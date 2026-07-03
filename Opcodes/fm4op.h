@@ -61,7 +61,7 @@ typedef struct FM4OP {
     OPDS        h;
     MYFLT       *ar;                  /* Output */
     MYFLT       *amp, *frequency;
-    MYFLT       *control1, *control2, *modDepth; /* Control1 doubles as vowel */
+    MYFLT       *control1, *control2, *modDepth; /* Control1 MYDBLs as vowel */
     MYFLT       *vibFreq;
     MYFLT       *ifn0, *ifn1, *ifn2, *ifn3, *vifn;
     MYFLT       *opt;
@@ -84,7 +84,7 @@ typedef struct FM4OPV {
     OPDS        h;
     MYFLT       *ar;                  /* Output */
     MYFLT       *amp, *frequency;
-    MYFLT       *control1, *control2, *modDepth; /* Control1 doubles as vowel */
+    MYFLT       *control1, *control2, *modDepth; /* Control1 MYDBLs as vowel */
     MYFLT       *vibFreq;
     MYFLT       *ifn0, *ifn1, *ifn2, *ifn3, *vifn;
 

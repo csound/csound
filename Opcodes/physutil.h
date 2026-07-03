@@ -24,7 +24,7 @@
 
 /* Various filters etc for Physical models */
 
-#include <math.h>
+
 
 #define AMP_SCALE (csound->Get0dBFS(csound))
 #define AMP_RSCALE (FL(1.)/AMP_SCALE)
@@ -223,7 +223,7 @@ void BiQuad_setZeroCoeffs(BiQuad*, MYFLT *);
 #define BiQuad_setFreqAndReson(b,freq,reson)    \
         { (b).poleCoeffs[1]= -((reson)*(reson)); \
           (b).poleCoeffs[0]= FL(2.0)*(reson)*\
-            (MYFLT)cos((double)(freq)*CS_TPIDSR); }
+            (MYFLT)cos((MYDBL)(freq)*CS_TPIDSR); }
 MYFLT BiQuad_tick(BiQuad*, MYFLT);
 #define BiQuad_lastOut(x)       (x)->lastOutput
 

@@ -73,15 +73,15 @@ static int32_t partials_init(CSOUND * csound, _PARTS * p)
     p->prev = 0;
     p->cur = maxtracks;
 
-    if (p->mags.auxp == NULL || p->mags.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->mags);
+    if (p->mags.auxp == NULL || p->mags.size < sizeof(MYDBL) * numbins)
+      csound->AuxAlloc(csound, sizeof(MYDBL) * numbins, &p->mags);
     else
-      memset(p->mags.auxp, 0,sizeof(double) * numbins );
+      memset(p->mags.auxp, 0,sizeof(MYDBL) * numbins );
 
-    if (p->lmags.auxp == NULL || p->lmags.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->lmags);
+    if (p->lmags.auxp == NULL || p->lmags.size < sizeof(MYDBL) * numbins)
+      csound->AuxAlloc(csound, sizeof(MYDBL) * numbins, &p->lmags);
     else
-      memset(p->lmags.auxp, 0,sizeof(double) * numbins );
+      memset(p->lmags.auxp, 0,sizeof(MYDBL) * numbins );
 
      if (p->cflag.auxp == NULL || p->cflag.size < sizeof(int32_t) * maxtracks)
       csound->AuxAlloc(csound, sizeof(int32_t) * maxtracks, &p->cflag);
@@ -114,42 +114,42 @@ static int32_t partials_init(CSOUND * csound, _PARTS * p)
      else
        memset(p->lastpk.auxp, 0, sizeof(uint32) * maxtracks * 2);
 
-     if (p->binex.auxp == NULL || p->binex.size < sizeof(double) * numbins)
-       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->binex);
+     if (p->binex.auxp == NULL || p->binex.size < sizeof(MYDBL) * numbins)
+       csound->AuxAlloc(csound, sizeof(MYDBL) * numbins, &p->binex);
      else
-       memset(p->binex.auxp, 0,sizeof(double) * numbins );
+       memset(p->binex.auxp, 0,sizeof(MYDBL) * numbins );
 
-     if (p->magex.auxp == NULL || p->magex.size < sizeof(double) * numbins)
-       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->magex);
+     if (p->magex.auxp == NULL || p->magex.size < sizeof(MYDBL) * numbins)
+       csound->AuxAlloc(csound, sizeof(MYDBL) * numbins, &p->magex);
      else
-       memset(p->magex.auxp, 0,sizeof(double) * numbins );
+       memset(p->magex.auxp, 0,sizeof(MYDBL) * numbins );
 
-     if (p->bins.auxp == NULL || p->bins.size < sizeof(double) * maxtracks)
-       csound->AuxAlloc(csound, sizeof(double) * maxtracks, &p->bins);
+     if (p->bins.auxp == NULL || p->bins.size < sizeof(MYDBL) * maxtracks)
+       csound->AuxAlloc(csound, sizeof(MYDBL) * maxtracks, &p->bins);
      else
-       memset(p->bins.auxp, 0, sizeof(double) * maxtracks );
+       memset(p->bins.auxp, 0, sizeof(MYDBL) * maxtracks );
 
      if (p->oldbins.auxp == NULL ||
-         p->oldbins.size < sizeof(double) * maxtracks * 2)
-       csound->AuxAlloc(csound, sizeof(double) * maxtracks * 2, &p->oldbins);
+         p->oldbins.size < sizeof(MYDBL) * maxtracks * 2)
+       csound->AuxAlloc(csound, sizeof(MYDBL) * maxtracks * 2, &p->oldbins);
      else
-       memset(p->oldbins.auxp, 0, sizeof(double) * maxtracks * 2);
+       memset(p->oldbins.auxp, 0, sizeof(MYDBL) * maxtracks * 2);
 
-     if (p->diffs.auxp == NULL || p->diffs.size < sizeof(double) * numbins)
-       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->diffs);
+     if (p->diffs.auxp == NULL || p->diffs.size < sizeof(MYDBL) * numbins)
+       csound->AuxAlloc(csound, sizeof(MYDBL) * numbins, &p->diffs);
      else
-       memset(p->diffs.auxp, 0, sizeof(double) * numbins );
+       memset(p->diffs.auxp, 0, sizeof(MYDBL) * numbins );
 
-     if (p->pmags.auxp == NULL || p->pmags.size < sizeof(double) * maxtracks * 2)
-       csound->AuxAlloc(csound, sizeof(double) * maxtracks * 2, &p->pmags);
+     if (p->pmags.auxp == NULL || p->pmags.size < sizeof(MYDBL) * maxtracks * 2)
+       csound->AuxAlloc(csound, sizeof(MYDBL) * maxtracks * 2, &p->pmags);
      else
-       memset(p->pmags.auxp, 0, sizeof(double) * maxtracks * 2);
+       memset(p->pmags.auxp, 0, sizeof(MYDBL) * maxtracks * 2);
 
      if (p->adthresh.auxp == NULL ||
-         p->adthresh.size < sizeof(double) * maxtracks * 2)
-       csound->AuxAlloc(csound, sizeof(double) * maxtracks * 2, &p->adthresh);
+         p->adthresh.size < sizeof(MYDBL) * maxtracks * 2)
+       csound->AuxAlloc(csound, sizeof(MYDBL) * maxtracks * 2, &p->adthresh);
      else
-       memset(p->adthresh.auxp, 0, sizeof(double) * maxtracks * 2);
+       memset(p->adthresh.auxp, 0, sizeof(MYDBL) * maxtracks * 2);
 
      if (p->fout->frame.auxp == NULL ||
          p->fout->frame.size < sizeof(float) * numbins * 4)
@@ -197,27 +197,27 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     float   absthresh, logthresh;
     int32_t     ndx, count = 0, i = 0, n = 0, j = 0;
     float   dbstep;
-    double  y1, y2, a, b, dtmp;
+    MYDBL  y1, y2, a, b, dtmp;
     float   ftmp, ftmp2;
     int32_t numbins = p->numbins, maxtracks = p->mtracks;
     int32_t prev = p->prev, cur = p->cur, foundcont;
     uint64_t accum = p->accum;
     int32_t minpoints = (int32_t) (*p->pts > 1 ? *p->pts : 1) - 1;
     int32_t tracks; // = p->tracks;
-    double  *mags = (double *) p->mags.auxp;
-    double *lmags = (double *) p->lmags.auxp;
+    MYDBL  *mags = (MYDBL *) p->mags.auxp;
+    MYDBL *lmags = (MYDBL *) p->lmags.auxp;
     int32_t *cflag = (int32_t *) p->cflag.auxp;
     int32_t *trkid = (int32_t *) p->trkid.auxp;
     int32_t *trndx = (int32_t *) p->trndx.auxp;
     int32_t *index = (int32_t *) p->index.auxp;
     uint32 *tstart = (uint32 *) p->tstart.auxp;
-    double  *binex = (double *) p->binex.auxp;
-    double  *magex = (double *) p->magex.auxp;
-    double  *oldbins = (double *) p->oldbins.auxp;
-    double  *diffs = (double *) p->diffs.auxp;
-    double  *adthresh = (double *) p->adthresh.auxp;
-    double  *pmags = (double *) p->pmags.auxp;
-    double  *bins = (double *) p->bins.auxp;
+    MYDBL  *binex = (MYDBL *) p->binex.auxp;
+    MYDBL  *magex = (MYDBL *) p->magex.auxp;
+    MYDBL  *oldbins = (MYDBL *) p->oldbins.auxp;
+    MYDBL  *diffs = (MYDBL *) p->diffs.auxp;
+    MYDBL  *adthresh = (MYDBL *) p->adthresh.auxp;
+    MYDBL  *pmags = (MYDBL *) p->pmags.auxp;
+    MYDBL  *bins = (MYDBL *) p->bins.auxp;
     uint32 *lastpk = (uint32 *) p->lastpk.auxp;
     uint32_t timecount = p->timecount,
              maxgap = (uint32_t) (*p->gap > 0 ? *p->gap : 0);
@@ -241,7 +241,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
 
     /* take the logarithm of the magnitudes */
     for (i = 0; i < numbins; i++)
-      lmags[i] = log((double)mags[i]);
+      lmags[i] = log((MYDBL)mags[i]);
 
     for (i = 0; i < numbins - 1; i++) {
 
@@ -272,8 +272,8 @@ static void Analysis(CSOUND * csound, _PARTS * p)
       a = (y2 - 2.0 * y1) / 2.0;
       b = 1.0 - y1 / a;
 
-      binex[i] = (double) (rmax - 1.0 + b / 2.0);
-      magex[i] = (double) exp(dtmp - a * b * b / 4.0);
+      binex[i] = (MYDBL) (rmax - 1.0 + b / 2.0);
+      magex[i] = (MYDBL) exp(dtmp - a * b * b / 4.0);
     }
     /* Track allocation */
 
@@ -429,10 +429,10 @@ static int32_t partials_process(CSOUND * csound, _PARTS * p)
     float  *fin1 = p->fin1->frame.auxp;
     float  *fin2 = p->fin2->frame.auxp;
     float  *fout = p->fout->frame.auxp;
-    double  *mags = p->mags.auxp;
-    double  *bins = p->bins.auxp;
+    MYDBL  *mags = p->mags.auxp;
+    MYDBL  *bins = p->bins.auxp;
     int32_t    *trndx = p->trndx.auxp;
-    double   frac, a, b;
+    MYDBL   frac, a, b;
     int32_t maxtracks = (p->mtracks < numbins ? p->mtracks : numbins);
     end = numbins * 4;
 

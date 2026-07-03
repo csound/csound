@@ -61,7 +61,7 @@ typedef struct {
 typedef struct {
     OPDS        h;
     MYFLT       *ar, *asig, *kincr ;
-    double      index;
+    MYDBL      index;
     int32       sample_index;
     MYFLT       value;
 } FOLD;
@@ -70,7 +70,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *out, *freq, *retrig, *iphase, *argums[VARGMAX];
         MYFLT   args[VARGMAX];
-        double  phs;
+        MYDBL  phs;
         int32_t     nsegs;
 } LOOPSEG;
 
@@ -85,7 +85,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *out, *freq, *retrig, *iphase;
         T3SEG   argums[VARGMAX/3];
-        double  phs;
+        MYDBL  phs;
         int32_t nsegs;
 } LOOPTSEG;
 
@@ -115,7 +115,7 @@ typedef struct {
         MYFLT   *out, *AverageAmp,*AverageFreq, *randAmountAmp, *randAmountFreq;
         MYFLT   *ampMinRate, *ampMaxRate, *cpsMinRate, *cpsMaxRate, *ifn, *iphs;
         MYFLT   xcpsAmpRate, xcpsFreqRate;
-        double  lphs, tablenUPkr;
+        MYDBL  lphs, tablenUPkr;
         int32   tablen, phsAmpRate, phsFreqRate;
         MYFLT   num1amp, num2amp, num1freq, num2freq, dfdmaxAmp, dfdmaxFreq;
         FUNC    *ftp;
@@ -125,7 +125,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *out, *AverageAmp,*AverageFreq,*ifn;
         MYFLT   xcpsAmpRate, xcpsFreqRate;
-        double  lphs, tablenUPkr;
+        MYDBL  lphs, tablenUPkr;
         int32   tablen, phsAmpRate, phsFreqRate;
         MYFLT   num1amp, num2amp, num1freq, num2freq, dfdmaxAmp, dfdmaxFreq;
         FUNC    *ftp;
@@ -151,8 +151,8 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *amp, *cpsMin, *cpsMax;
-        double  si;
-        double  phs;
+        MYDBL  si;
+        MYDBL  phs;
         int32_t initflag, cod;
         MYFLT   num0, num1, num2, df0, df1,c3, c2;
 } JITTERS;
@@ -163,14 +163,14 @@ static inline MYFLT randGab(CSOUND *csound) {
   int32_t *holdrand = (int32_t *) csound->QueryGlobalVariable(csound, "::HOLDRAND::");
   uint32_t tmp = (uint32_t)*holdrand * 214013U + 2531011U;
   *holdrand = (int32_t)tmp;
-  return (MYFLT) ((double)((tmp >> 1) & 0x7fffffff) * oneUp31Bit);
+  return (MYFLT) ((MYDBL)((tmp >> 1) & 0x7fffffff) * oneUp31Bit);
 }
 
 static inline MYFLT BiRandGab(CSOUND *csound) {
   int32_t *holdrand = (int32_t *) csound->QueryGlobalVariable(csound, "::HOLDRAND::");
   uint32_t tmp = (uint32_t)*holdrand * (uint32_t)(-214013) + 2531011U;
   *holdrand = (int32_t)tmp;
-  return (MYFLT) ((double)(int32_t)tmp * oneUp31Bit);
+  return (MYFLT) ((MYDBL)(int32_t)tmp * oneUp31Bit);
 }
 
 
@@ -216,8 +216,8 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *rangeMin, *rangeMax, *cpsMin, *cpsMax;
-        double  si;
-        double  phs;
+        MYDBL  si;
+        MYDBL  phs;
         int32_t initflag, rangeMin_cod, rangeMax_cod;
         MYFLT   num0, num1, num2, df0, df1,c3, c2;
 } RANDOM3;

@@ -22,20 +22,20 @@
 
 #include "csoundCore.h" /*                              UGENS2.C        */
 #include "ugens2.h"
-#include <math.h>
+
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
 /* #define FLOOR(x) (x >= FL(0.0) ? (int64_t)x                          */
-/*                                  : (int64_t)((double)x - 0.999999999999999))
+/*                                  : (int64_t)((MYDBL)x - 0.999999999999999))
  */
 /* 1.0-1e-8 is safe for a maximum table length of 16777216 */
 /* 1.0-1e-15 could incorrectly round down large negative integers, */
-/* because doubles do not have sufficient resolution for numbers like */
+/* because MYDBLs do not have sufficient resolution for numbers like */
 /* -1000.999999999999999 (FLOOR(-1000) might possibly be -1001 which is wrong)*/
 /* it should be noted, though, that the above incorrect result would not be */
 /* a problem in the case of interpolating table opcodes, as the fractional */
 /* part would then be exactly 1.0, still giving a correct output value */
-#define MYFLOOR(x) (x >= FL(0.0) ? (int32_t)x : (int32_t)((double)x - 0.99999999))
+#define MYFLOOR(x) (x >= FL(0.0) ? (int32_t)x : (int32_t)((MYDBL)x - 0.99999999))
 
 
 
@@ -68,13 +68,13 @@ int32_t ephsset(CSOUND *csound, EPHSOR *p)
 
 int32_t ephsor(CSOUND *csound, EPHSOR *p)
 {
-    double      phase;
+    MYDBL      phase;
     uint32_t    offset = GetKsmpsOffset(&p->h);
     uint32_t    early  = GetEarlySmps(&p->h);
     uint32_t    n, nsmps = CS_KSMPS;
     MYFLT       *rs, *aphs, onedsr = CS_ONEDSR;
-    double      b = p->b;
-    double      incr, R = *p->kR;
+    MYDBL      b = p->b;
+    MYDBL      incr, R = *p->kR;
 
   rs = p->sr;
   if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
@@ -87,7 +87,7 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
   if (IS_ASIG_ARG(p->xcps)) {
     MYFLT *cps = p->xcps;
     for (n=offset; n<nsmps; n++) {
-      incr = (double)(cps[n] * onedsr);
+      incr = (MYDBL)(cps[n] * onedsr);
       rs[n] = (MYFLT) b;
       aphs[n] = (MYFLT) phase;
       phase += incr;
@@ -103,7 +103,7 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
     }
   }
   else {
-    incr = (double)(*p->xcps * onedsr);
+    incr = (MYDBL)(*p->xcps * onedsr);
     for (n=offset; n<nsmps; n++) {
       rs[n] = (MYFLT) b;
       aphs[n] = (MYFLT) phase;
@@ -127,9 +127,9 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
 int32_t kphsor(CSOUND *csound, PHSOR *p)
 {
   IGN(csound);
-  double      phs;
+  MYDBL      phs;
   *p->sr = (MYFLT)(phs = p->curphs);
-  if (UNLIKELY((phs += (double)*p->xcps * CS_ONEDKR) >= 1.0))
+  if (UNLIKELY((phs += (MYDBL)*p->xcps * CS_ONEDKR) >= 1.0))
     phs -= 1.0;
   else if (UNLIKELY(phs < 0.0))
     phs += 1.0;
@@ -140,12 +140,12 @@ int32_t kphsor(CSOUND *csound, PHSOR *p)
 int32_t phsor(CSOUND *csound, PHSOR *p)
 {
 
-    double      phase;
+    MYDBL      phase;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
     MYFLT       *rs, onedsr = CS_ONEDSR;
-    double      incr;
+    MYDBL      incr;
 
 
   rs = p->sr;
@@ -158,7 +158,7 @@ int32_t phsor(CSOUND *csound, PHSOR *p)
   if (IS_ASIG_ARG(p->xcps)) {
     MYFLT *cps = p->xcps;
     for (n=offset; n<nsmps; n++) {
-      incr = (double)(cps[n] * onedsr);
+      incr = (MYDBL)(cps[n] * onedsr);
       rs[n] = (MYFLT)phase;
       phase += incr;
       if (UNLIKELY((MYFLT)phase >= FL(1.0))) /* VL convert to MYFLT
@@ -170,7 +170,7 @@ int32_t phsor(CSOUND *csound, PHSOR *p)
     }
   }
   else {
-    incr = (double)(*p->xcps * onedsr);
+    incr = (MYDBL)(*p->xcps * onedsr);
     for (n=offset; n<nsmps; n++) {
       rs[n] = (MYFLT)phase;
       phase += incr;
@@ -394,8 +394,8 @@ int32_t posckkt(CSOUND *csound, OSC *p)
 {
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ft;
-  double      phs = p->phs;
-  double      si = *p->xcps * p->tablenUPsr;
+  MYDBL      phs = p->phs;
+  MYDBL      si = *p->xcps * p->tablenUPsr;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -422,7 +422,7 @@ int32_t poscaat(CSOUND *csound, OSC *p)
 {
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ft;
-  double      phs = p->phs;
+  MYDBL      phs = p->phs;
   MYFLT       *freq = p->xcps;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -455,7 +455,7 @@ int32_t posckat(CSOUND *csound, OSC *p)
 {
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ft;
-  double      phs = p->phs;
+  MYDBL      phs = p->phs;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
   uint32_t    n, nsmps = CS_KSMPS;
@@ -489,8 +489,8 @@ int32_t poscakt(CSOUND *csound, OSC *p)
 
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ft;
-  double      phs = p->phs;
-  double      si = *p->xcps * p->tablenUPsr;
+  MYDBL      phs = p->phs;
+  MYDBL      si = *p->xcps * p->tablenUPsr;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -520,8 +520,8 @@ int32_t poscakt(CSOUND *csound, OSC *p)
 int32_t kposct(CSOUND *csound, OSC *p)
 {
   IGN(csound);
-  double      phs = p->phs;
-  double      si = *p->xcps * p->tablen * CS_ONEDKR;
+  MYDBL      phs = p->phs;
+  MYDBL      si = *p->xcps * p->tablen * CS_ONEDKR;
 
   *p->sr = *(p->ftp->ftable + (int32)phs) * *p->xamp;
   phs    += si;
@@ -538,8 +538,8 @@ int32_t posckk(CSOUND *csound, OSC *p)
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ft;
   MYFLT       *curr_samp, fract;
-  double      phs = p->phs;
-  double      si = *p->xcps * p->tablenUPsr; /* gab c3 */
+  MYDBL      phs = p->phs;
+  MYDBL      si = *p->xcps * p->tablenUPsr; /* gab c3 */
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -569,7 +569,7 @@ int32_t poscaa(CSOUND *csound, OSC *p)
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ft;
   MYFLT       *curr_samp, fract;
-  double      phs = p->phs;
+  MYDBL      phs = p->phs;
   MYFLT       *freq = p->xcps;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -606,7 +606,7 @@ int32_t poscka(CSOUND *csound, OSC *p)
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ft;
   MYFLT       *curr_samp, fract;
-  double      phs = p->phs;
+  MYDBL      phs = p->phs;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
   uint32_t    n, nsmps = CS_KSMPS;
@@ -643,8 +643,8 @@ int32_t poscak(CSOUND *csound, OSC *p)
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ft;
   MYFLT       *curr_samp, fract;
-  double      phs = p->phs;
-  double      si = *p->xcps * p->tablenUPsr;
+  MYDBL      phs = p->phs;
+  MYDBL      si = *p->xcps * p->tablenUPsr;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -677,10 +677,10 @@ int32_t poscak(CSOUND *csound, OSC *p)
 int32_t kposc(CSOUND *csound, OSC *p)
 {
   IGN(csound);
-  double      phs = p->phs;
-  double      si = *p->xcps * p->tablen * CS_ONEDKR;
+  MYDBL      phs = p->phs;
+  MYDBL      si = *p->xcps * p->tablen * CS_ONEDKR;
   MYFLT       *curr_samp = p->ftp->ftable + (int32)phs;
-  MYFLT       fract = (MYFLT)(phs - (double)((int32)phs));
+  MYFLT       fract = (MYFLT)(phs - (MYDBL)((int32)phs));
 
   *p->sr = *p->xamp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
   phs    += si;
@@ -697,8 +697,8 @@ int32_t posc3kk(CSOUND *csound, OSC *p)
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ftab;
   MYFLT       fract;
-  double      phs  = p->phs;
-  double      si   = *p->xcps * p->tablen * CS_ONEDSR;
+  MYDBL      phs  = p->phs;
+  MYDBL      si   = *p->xcps * p->tablen * CS_ONEDSR;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -717,7 +717,7 @@ int32_t posc3kk(CSOUND *csound, OSC *p)
   }
   for (n=offset; n<nsmps; n++) {
     x0    = (int32)phs;
-    fract = (MYFLT)(phs - (double)x0);
+    fract = (MYFLT)(phs - (MYDBL)x0);
     x0--;
     if (UNLIKELY(x0<0)) {
       ym1 = ftab[p->tablen-1]; x0 = 0;
@@ -752,8 +752,8 @@ int32_t posc3ak(CSOUND *csound, OSC *p)
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ftab;
   MYFLT       fract;
-  double      phs  = p->phs;
-  double      si   = *p->xcps * p->tablen * CS_ONEDSR;
+  MYDBL      phs  = p->phs;
+  MYDBL      si   = *p->xcps * p->tablen * CS_ONEDSR;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -772,7 +772,7 @@ int32_t posc3ak(CSOUND *csound, OSC *p)
   }
   for (n=offset; n<nsmps; n++) {
     x0    = (int32)phs;
-    fract = (MYFLT)(phs - (double)x0);
+    fract = (MYFLT)(phs - (MYDBL)x0);
     x0--;
     if (UNLIKELY(x0<0)) {
       ym1 = ftab[p->tablen-1]; x0 = 0;
@@ -807,8 +807,8 @@ int32_t posc3ka(CSOUND *csound, OSC *p)
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ftab;
   MYFLT       fract;
-  double      phs  = p->phs;
-  /*double      si   = *p->freq * p->tablen * CS_ONEDSR;*/
+  MYDBL      phs  = p->phs;
+  /*MYDBL      si   = *p->freq * p->tablen * CS_ONEDSR;*/
   MYFLT       *freq = p->xcps;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -829,7 +829,7 @@ int32_t posc3ka(CSOUND *csound, OSC *p)
   for (n=offset; n<nsmps; n++) {
     MYFLT ff = freq[n];
     x0    = (int32)phs;
-    fract = (MYFLT)(phs - (double)x0);
+    fract = (MYFLT)(phs - (MYDBL)x0);
     x0--;
     if (UNLIKELY(x0<0)) {
       ym1 = ftab[p->tablen-1]; x0 = 0;
@@ -864,8 +864,8 @@ int32_t posc3aa(CSOUND *csound, OSC *p)
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ftab;
   MYFLT       fract;
-  double      phs  = p->phs;
-  /*double      si   = *p->freq * p->tablen * CS_ONEDSR;*/
+  MYDBL      phs  = p->phs;
+  /*MYDBL      si   = *p->freq * p->tablen * CS_ONEDSR;*/
   MYFLT       *freq = p->xcps;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -886,7 +886,7 @@ int32_t posc3aa(CSOUND *csound, OSC *p)
   for (n=offset; n<nsmps; n++) {
     MYFLT ff = freq[n];
     x0    = (int32)phs;
-    fract = (MYFLT)(phs - (double)x0);
+    fract = (MYFLT)(phs - (MYDBL)x0);
     x0--;
     if (UNLIKELY(x0<0)) {
       ym1 = ftab[p->tablen-1]; x0 = 0;
@@ -919,11 +919,11 @@ int32_t posc3aa(CSOUND *csound, OSC *p)
 int32_t kposc3(CSOUND *csound, OSC *p)
 {
   IGN(csound);
-  double      phs   = p->phs;
-  double      si    = *p->xcps * p->tablen * CS_ONEDKR;
+  MYDBL      phs   = p->phs;
+  MYDBL      si    = *p->xcps * p->tablen * CS_ONEDKR;
   MYFLT       *ftab = p->ftp->ftable;
   int32_t     x0    = (int32_t)phs;
-  MYFLT       fract = (MYFLT)(phs - (double)x0);
+  MYFLT       fract = (MYFLT)(phs - (MYDBL)x0);
   MYFLT       y0, y1, ym1, y2;
   MYFLT       amp = *p->xamp;
 
@@ -1498,7 +1498,7 @@ int32_t osckk3(CSOUND *csound, OSC   *p)
         MYFLT frcu = frsq*ym1;
         MYFLT t1 = y2 + y0+y0+y0;
 /*      MYFLT old = (y0 + (y1 - y0) * fract) * amp; */
-/*      double x = ((double)(x0-2)+fract)*twopi/32.0; */
+/*      MYDBL x = ((MYDBL)(x0-2)+fract)*twopi/32.0; */
 /*      MYFLT tr = amp*sin(x); */
         ar[n] = amp * (y0 + FL(0.5)*frcu +
                        fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
@@ -1712,8 +1712,8 @@ int32_t lposc_set(CSOUND *csound, LPOSC *p)
 
 int32_t lposca(CSOUND *csound, LPOSC *p)
 {
-  double  *phs= &p->phs;
-  double  si= *p->freq * (p->fsr/CS_ESR);
+  MYDBL  *phs= &p->phs;
+  MYDBL  si= *p->freq * (p->fsr/CS_ESR);
   MYFLT   *out = p->out,  *amp=p->amp;
   MYFLT   *ft =  p->ftp->ftable, *curr_samp;
   MYFLT   fract;
@@ -1748,11 +1748,11 @@ int32_t lposc(CSOUND *csound, LPOSC *p)
 {
   MYFLT       *out = p->out, *ft = p->ftp->ftable;
   MYFLT       *curr_samp, fract;
-  double      phs= p->phs, si= *p->freq * (p->fsr*CS_ONEDSR);
+  MYDBL      phs= p->phs, si= *p->freq * (p->fsr*CS_ONEDSR);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  double      loop, end, looplength;// = p->looplength;
+  MYDBL      loop, end, looplength;// = p->looplength;
   MYFLT       amp = *p->amp;
 
   if ((loop = *p->kloop) < 0) loop=0;
@@ -1767,7 +1767,7 @@ int32_t lposc(CSOUND *csound, LPOSC *p)
   }
   for (n=offset; n<nsmps; n++) {
     curr_samp = ft + (int32)phs;
-    fract = (MYFLT)(phs - (double)((int32)phs));
+    fract = (MYFLT)(phs - (MYDBL)((int32)phs));
     out[n] = amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
     phs += si;
     if (phs >= end) phs -= looplength;
@@ -1780,11 +1780,11 @@ int32_t lposc3(CSOUND *csound, LPOSC *p)
 {
   MYFLT       *out = p->out, *ftab = p->ftp->ftable;
   MYFLT       fract;
-  double      phs = p->phs, si= *p->freq * (p->fsr*CS_ONEDSR);
+  MYDBL      phs = p->phs, si= *p->freq * (p->fsr*CS_ONEDSR);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  double      loop, end, looplength;// = p->looplength;
+  MYDBL      loop, end, looplength;// = p->looplength;
   MYFLT       amp = *p->amp;
   int32_t     x0;
   MYFLT       y0, y1, ym1, y2;
@@ -1800,7 +1800,7 @@ int32_t lposc3(CSOUND *csound, LPOSC *p)
   }
   for (n=offset; n<nsmps; n++) {
     x0    = (int32)phs;
-    fract = (MYFLT)(phs - (double)x0);
+    fract = (MYFLT)(phs - (MYDBL)x0);
     x0--;
     if (x0<0) {
       ym1 = ftab[p->tablen-1]; x0 = 0;

@@ -25,7 +25,7 @@
 #else
 #include "csoundCore.h"
 #endif
-#include <math.h>
+
 
 /* %% bar sound synthesis translated from Mathlab and much changed */
 
@@ -39,9 +39,9 @@ typedef struct {
     MYFLT   *kbcL, *kbcR, *iK, *ib, *kscan, *iT30;
     MYFLT   *ipos, *ivel, *iwid;
 
-    double  *w, *w1, *w2;
+    MYDBL  *w, *w1, *w2;
     int32_t     step, first;
-    double  s0, s1, s2, t0, t1;
+    MYDBL  s0, s1, s2, t0, t1;
     int32_t     bcL, bcR, N;
     AUXCH   w_aux;
 } BAR;
@@ -49,17 +49,17 @@ typedef struct {
 static int32_t bar_init(CSOUND *csound, BAR *p)
 {
     if (*p->iK >= FL(0.0) || p->w_aux.auxp == NULL) {
-      double  K = FABS(*p->iK); /* ~=3.0  stiffness parameter, dimensionless */
-      double  T30 = *p->iT30;   /* ~=5.0; 30 db decay time (s) */
-      double  b = *p->ib;       /* ~=0.001 high-frequency loss parameter
+      MYDBL  K = FABS(*p->iK); /* ~=3.0  stiffness parameter, dimensionless */
+      MYDBL  T30 = *p->iT30;   /* ~=5.0; 30 db decay time (s) */
+      MYDBL  b = *p->ib;       /* ~=0.001 high-frequency loss parameter
                                    (keep small) */
 
       /* %%%%%%%%%%%%%%%%%% derived parameters */
-      double  dt = (double)CS_ONEDSR;
-      double  sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
-      double  dxmin = sqrt(dt*(b+hypot(b, K+K)));
+      MYDBL  dt = (MYDBL)CS_ONEDSR;
+      MYDBL  sig = (2.0*(MYDBL)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
+      MYDBL  dxmin = sqrt(dt*(b+hypot(b, K+K)));
       int32_t N = (int32_t) (1.0/dxmin);
-      double  dx = 1.0/N;
+      MYDBL  dx = 1.0/N;
 
       /* %%%%%%%%%%%%%%%%%%% scheme coefficients */
       p->s0 = (2.0-6.0*K*K*dt*dt/(dx*dx*dx*dx)-2.0*b*dt/(dx*dx))/(1.0+sig*dt*0.5);
@@ -73,8 +73,8 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
 
       /* %%%%%%%%%%%%%%%%%%%%% create grid functions */
 
-      csound->AuxAlloc(csound, (size_t)3*((N+5)*sizeof(double)), &(p->w_aux));
-      p->w = (double *) p->w_aux.auxp;
+      csound->AuxAlloc(csound, (size_t)3*((N+5)*sizeof(MYDBL)), &(p->w_aux));
+      p->w = (MYDBL *) p->w_aux.auxp;
       p->w1 = &(p->w[N + 5]);
       p->w2 = &(p->w1[N + 5]);
       p->step = p->first = 0;
@@ -93,8 +93,8 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
 
 static int32_t bar_run(CSOUND *csound, BAR *p)
 {
-    double xofreq = TWOPI* (*p->kscan)/CS_ESR; /* kspan ~=0.23; */
-    double xo, xofrac;
+    MYDBL xofreq = TWOPI* (*p->kscan)/CS_ESR; /* kspan ~=0.23; */
+    MYDBL xo, xofrac;
     int32_t xoint;
     int32_t step = p->step;
     int32_t first = p->first;
@@ -102,15 +102,15 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    double *w = p->w, *w1 = p->w1, *w2 = p->w2;
-    double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
+    MYDBL *w = p->w, *w1 = p->w1, *w2 = p->w2;
+    MYDBL s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
     /*  boundary condition pair  1: clamped, 2: pivoting, 3: free */
     int32_t bcL = (int32_t)MYFLT2LONG(*p->kbcL);
     int32_t bcR = (int32_t)MYFLT2LONG(*p->kbcR);
-    double SINNW = sin(xofreq*step); /* these are to calculate sin/cos by */
-    double COSNW = cos(xofreq*step); /* formula rather than many calls    */
-    double SIN1W = sin(xofreq);      /* Wins in ksmps>4 */
-    double COS1W = cos(xofreq);
+    MYDBL SINNW = sin(xofreq*step); /* these are to calculate sin/cos by */
+    MYDBL COSNW = cos(xofreq*step); /* formula rather than many calls    */
+    MYDBL SIN1W = sin(xofreq);      /* Wins in ksmps>4 */
+    MYDBL COS1W = cos(xofreq);
     MYFLT *ar = p->ar;
 
     if (UNLIKELY((bcL|bcR)&(~3) && (bcL|bcR)!=0))
@@ -160,9 +160,9 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
       if (first == 0) {
         p->first = first = 1;
         for (rr = 0; rr < N; rr++) {
-          if (fabs(rr/(double)N - *p->ipos) <= *p->iwid) {
+          if (fabs(rr/(MYDBL)N - *p->ipos) <= *p->iwid) {
             w[rr+2] += (1.0/CS_ESR)*(*p->ivel)*0.5*
-                (1.0+cos(PI*fabs(rr/(double)N-(*p->ipos))/(*p->iwid)));
+                (1.0+cos(PI*fabs(rr/(MYDBL)N-(*p->ipos))/(*p->iwid)));
           }
         }
       }
@@ -176,8 +176,8 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
       /* But is xofreq were to change could be difficult! */
       /*      xo = 0.5 + 0.5*sin(TWOPI*xofreq*(step+1)/CS_ESR); */
       {
-        double  xx = SINNW*COS1W + COSNW*SIN1W;
-        double  yy = COSNW*COS1W - SINNW*SIN1W;
+        MYDBL  xx = SINNW*COS1W + COSNW*SIN1W;
+        MYDBL  yy = COSNW*COS1W - SINNW*SIN1W;
 
         SINNW = xx;
         COSNW = yy;
@@ -191,7 +191,7 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
       ar[n] = (csound->Get0dBFS(csound))*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
       step++;
       {
-        double *ww = w2;
+        MYDBL *ww = w2;
 
         w2 = w1;
         w1 = w;
@@ -209,17 +209,17 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
 /* Prepared Piano string */
 
 typedef struct {
-  double pos;                   /* position along string of rattle */
-  double massden;               /* mass density ratio (rattle/string) */
-  double freq;                  /* fundamental freq. of rattle */
-  double length;                /* vertical length of rattle */
+  MYDBL pos;                   /* position along string of rattle */
+  MYDBL massden;               /* mass density ratio (rattle/string) */
+  MYDBL freq;                  /* fundamental freq. of rattle */
+  MYDBL length;                /* vertical length of rattle */
 } RATTLE;
 
 typedef struct {
-  double pos;                   /* position along string of rubber */
-  double massden;               /* mass density ratio (rubber/string) */
-  double freq;                  /* fundamental freq. of rubber */
-  double loss;                  /* loss parameter of rubber */
+  MYDBL pos;                   /* position along string of rubber */
+  MYDBL massden;               /* mass density ratio (rubber/string) */
+  MYDBL freq;                  /* fundamental freq. of rubber */
+  MYDBL loss;                  /* loss parameter of rubber */
 } RUBBER;
 
 typedef struct {
@@ -260,25 +260,25 @@ typedef struct {
 int32_t init_pp(CSOUND *csound, CSPP *p)
 {
     if (*p->K >= FL(0.0)) {
-      double K = *p->K; /* stiffness parameter, dimensionless */
-      double f0 = *p->ifreq;      /* fundamental freq. (Hz) */
-      double T30 = *p->iT30;      /* 30 db decay time (s) */
-      double b = *p->ib;          /* high-frequency loss parameter (keep small) */
+      MYDBL K = *p->K; /* stiffness parameter, dimensionless */
+      MYDBL f0 = *p->ifreq;      /* fundamental freq. (Hz) */
+      MYDBL T30 = *p->iT30;      /* 30 db decay time (s) */
+      MYDBL b = *p->ib;          /* high-frequency loss parameter (keep small) */
       uint32_t NS = p->NS = (int32_t)*p->iNS;       /* number of strings */
-      double D = *p->iD;  /* detune parameter (multiple strings) in cents */
+      MYDBL D = *p->iD;  /* detune parameter (multiple strings) in cents */
                           /* I.e., a total of D cents diff between highest */
                           /* and lowest string in set */
                           /* initialize prepared objects and hammer */
                           /* derived parameters */
-      double dt = (double)CS_ONEDSR;
-      double sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
+      MYDBL dt = (MYDBL)CS_ONEDSR;
+      MYDBL sig = (2.0*(MYDBL)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
 
       uint32_t N, n;
-      double *c, /*dx,*/ dxmin = 0.0; /* for stability */
+      MYDBL *c, /*dx,*/ dxmin = 0.0; /* for stability */
       FUNC  *ftp;
 
-      csound->AuxAlloc(csound, NS*sizeof(double), &p->auxchc);
-      c = (double *)p->auxchc.auxp;
+      csound->AuxAlloc(csound, NS*sizeof(MYDBL), &p->auxchc);
+      c = (MYDBL *)p->auxchc.auxp;
 
       if (*p->rattle_tab==FL(0.0) ||
           (ftp=csound->FTFind(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
@@ -294,22 +294,22 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
       }
 
       for (n=0; n<NS; n++) {
-        double detune_spread = (D*n/(NS-1.0) - D*0.5)/1200.0;
+        MYDBL detune_spread = (D*n/(NS-1.0) - D*0.5)/1200.0;
         c[n] = 2.0*f0*pow(2.0, detune_spread);
       }
 
       for (n=0; n<NS; n++) {
-        double y = c[n]*c[n]*dt*dt+2.0*b*dt;
-        double x = sqrt(y+hypot(y,4.0*K*dt))/ROOT2;
+        MYDBL y = c[n]*c[n]*dt*dt+2.0*b*dt;
+        MYDBL x = sqrt(y+hypot(y,4.0*K*dt))/ROOT2;
         if (x>dxmin) dxmin = x;
       }
       N = p->N = (uint32_t)(1.0/dxmin);
-      //dx = 1.0/(double)N;
+      //dx = 1.0/(MYDBL)N;
 
       csound->AuxAlloc(csound,
                        3*((1+(N+5))*NS+p->rattle_num+p->rubber_num)*sizeof(MYFLT),
                        &p->auxch);
-      //c = (double *)p->auxch.auxp;
+      //c = (MYDBL *)p->auxch.auxp;
       p->s0 = (MYFLT*)p->auxch.auxp;
       p->s1 = &p->s0[NS];
       p->hammer_force = &p->s1[NS];
@@ -362,23 +362,23 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t t, n, nsmps = CS_KSMPS;
-    double dt = CS_ONEDSR;
+    MYDBL dt = CS_ONEDSR;
     MYFLT *w = p->w, *w1 = p->w1, *w2 = p->w2,
           *rub = p->rub, *rub1 = p->rub1, *rub2 = p->rub2,
           *rat = p->rat, *rat1 = p->rat1, *rat2 = p->rat2;
     MYFLT *s0 = p->s0, *s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
-    double SINNW = 0;              /* these are to calculate sin/cos by */
-    double COSNW = 0;              /* formula rather than many calls    */
-    double SIN1W = 0;              /* Wins in ksmps>4 */
-    double COS1W = 0;
-    double SINNW2 = 0;
-    double COSNW2 = 0;
-    double SIN1W2 = 0;
-    double COS1W2 = 0;
+    MYDBL SINNW = 0;              /* these are to calculate sin/cos by */
+    MYDBL COSNW = 0;              /* formula rather than many calls    */
+    MYDBL SIN1W = 0;              /* Wins in ksmps>4 */
+    MYDBL COS1W = 0;
+    MYDBL SINNW2 = 0;
+    MYDBL COSNW2 = 0;
+    MYDBL SIN1W2 = 0;
+    MYDBL COS1W2 = 0;
 
     if (p->stereo) {
-      double f1 = (*p->scanfreq - FL(0.5)* *p->scanspread)/CS_ESR;
-      double f2 = (*p->scanfreq + FL(0.5)* *p->scanspread)/CS_ESR;
+      MYDBL f1 = (*p->scanfreq - FL(0.5)* *p->scanspread)/CS_ESR;
+      MYDBL f2 = (*p->scanfreq + FL(0.5)* *p->scanspread)/CS_ESR;
       SINNW = sin(f1*TWOPI*step); /* these are to calculate sin/cos by */
       COSNW = cos(f1*TWOPI*step); /* formula rather than many calls    */
       SIN1W = sin(f1*TWOPI);      /* Wins in ksmps>4 */
@@ -389,7 +389,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
       COS1W2 = cos(f2*TWOPI);
     }
     else {
-      double f1 = *p->scanfreq/CS_ESR;
+      MYDBL f1 = *p->scanfreq/CS_ESR;
       SINNW = sin(f1*TWOPI*step); /* these are to calculate sin/cos by */
       COSNW = cos(f1*TWOPI*step); /* formula rather than many calls    */
       SIN1W = sin(f1*TWOPI);      /* Wins in ksmps>4 */
@@ -526,8 +526,8 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
         int32_t xoint;
         MYFLT xofrac, xo;
         MYFLT out = 0.0;
-        double  xx = SINNW*COS1W + COSNW*SIN1W;
-        double  yy = COSNW*COS1W - SINNW*SIN1W;
+        MYDBL  xx = SINNW*COS1W + COSNW*SIN1W;
+        MYDBL  yy = COSNW*COS1W - SINNW*SIN1W;
 
         SINNW = xx;
         COSNW = yy;

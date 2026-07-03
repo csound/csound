@@ -52,7 +52,7 @@ static int32_t syncgrain_init(CSOUND *csound, syncgrain *p)
     if (UNLIKELY(p->olaps < 2))
       p->olaps = 2;
 
-    size =  (p->olaps) * sizeof(double);
+    size =  (p->olaps) * sizeof(MYDBL);
     csound->AuxAlloc(csound, size, &p->index);
     csound->AuxAlloc(csound, size, &p->envindex);
     csound->AuxAlloc(csound, size, &p->envincr);
@@ -81,9 +81,9 @@ static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
     MYFLT   *ftable = p->efunc->ftable;
 
     float   start = p->start, frac = p->frac;
-    double  *index = (double *) p->index.auxp;
-    double  *envindex = (double *) p->envindex.auxp;
-    double  *envincrn = (double *) p->envincr.auxp;
+    MYDBL  *index = (MYDBL *) p->index.auxp;
+    MYDBL  *envindex = (MYDBL *) p->envindex.auxp;
+    MYDBL  *envincrn = (MYDBL *) p->envincr.auxp;
     int32_t     *streamon = (int32_t *) p->streamon.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -206,7 +206,7 @@ static int32_t syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
       p->olaps = 2;
 
     if (*p->iskip == 0) {
-      int32_t size =  (p->olaps) * sizeof(double);
+      int32_t size =  (p->olaps) * sizeof(MYDBL);
       if (p->index.auxp == NULL || p->index.size < (uint32_t)size)
         csound->AuxAlloc(csound, size, &p->index);
       if (p->envindex.auxp == NULL || p->envindex.size < (uint32_t)size)
@@ -232,8 +232,8 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     MYFLT   *ftable = p->efunc->ftable;
     int32_t     *streamon = (int32_t *) p->streamon.auxp;
     float   start = p->start, frac = p->frac;
-    double  *index = (double *) p->index.auxp;
-    double  *envindex = (double *) p->envindex.auxp;
+    MYDBL  *index = (MYDBL *) p->index.auxp;
+    MYDBL  *envindex = (MYDBL *) p->envindex.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t vecpos, vecsize=CS_KSMPS;
@@ -420,7 +420,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     if (UNLIKELY(p->olaps < 2))
       p->olaps = 2;
 
-    size =  (p->olaps) * sizeof(double);
+    size =  (p->olaps) * sizeof(MYDBL);
     if (p->index.auxp == NULL || p->index.size < (uint32_t)size)
       csound->AuxAlloc(csound, size, &p->index);
     if (p->envindex.auxp == NULL || p->envindex.size < (uint32_t)size)
@@ -487,8 +487,8 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
     MYFLT   *ftable = p->efunc->ftable;
     int32_t     *streamon = (int32_t *) p->streamon.auxp;
     float   start = p->start, frac = p->frac, jump;
-    double  *index = (double *) p->index.auxp;
-    double  *envindex = (double *) p->envindex.auxp;
+    MYDBL  *index = (MYDBL *) p->index.auxp;
+    MYDBL  *envindex = (MYDBL *) p->envindex.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t vecpos, vecsize=CS_KSMPS;

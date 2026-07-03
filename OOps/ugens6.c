@@ -23,7 +23,7 @@
 
 #include "csoundCore.h" /*                              UGENS6.C        */
 #include "ugens6.h"
-#include <math.h>
+
 
 #define log001 (-FL(6.9078))    /* log(.001) */
 
@@ -355,7 +355,7 @@ static DELAYR *delayr_find(CSOUND *csound, MYFLT *ndx)
     if (UNLIKELY(n < 1 || n > csound->delayr_stack_depth)) {
       csound->InitError(csound,
                         Str("deltap: delayr index %.0f is out of range"),
-                        (double)*ndx);
+                        (MYDBL)*ndx);
       return NULL;
     }
     /* find delay line */
@@ -704,8 +704,8 @@ int32_t tapxset(CSOUND *csound, DELTAPX *p)
     if (UNLIKELY(p->wsize < 4)) p->wsize = 4;
     if (UNLIKELY(p->wsize > 1024)) p->wsize = 1024;
     /* wsize = 4: d2x = 1 - 1/3, wsize = 64: d2x = 1 - 1/36 */
-    p->d2x = 1.0 - pow((double)p->wsize * 0.85172, -0.89624);
-    p->d2x /= (double)((p->wsize * p->wsize) >> 2);
+    p->d2x = 1.0 - pow((MYDBL)p->wsize * 0.85172, -0.89624);
+    p->d2x /= (MYDBL)((p->wsize * p->wsize) >> 2);
     return OK;
 }
 
@@ -730,7 +730,7 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     maxd = q->npts; bufend = buf1 + maxd;
 
     if (p->wsize != 4) {                /* window size >= 8 */
-      double  d, x1, n1, w, d2x;
+      MYDBL  d, x1, n1, w, d2x;
       int32_t     i2, i;
       i2 = (p->wsize >> 1);
       /* wsize = 4: d2x = 1 - 1/3, wsize = 64: d2x = 1 - 1/36 */
@@ -740,30 +740,30 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
         /* x2: sine of x1 (for interpolation) */
         /* xpos: integer part of delay time (buffer position to read from) */
 
-        x1 = (double)indx - (double)*(del++) * (double)CS_ESR;
-        while (x1 < 0.0) x1 += (double)maxd;
-        xpos = (int32_t)x1; x1 -= (double)xpos;
+        x1 = (MYDBL)indx - (MYDBL)*(del++) * (MYDBL)CS_ESR;
+        while (x1 < 0.0) x1 += (MYDBL)maxd;
+        xpos = (int32_t)x1; x1 -= (MYDBL)xpos;
         while (xpos >= maxd) xpos -= maxd;
 
         if (x1 > 0.00000001 && x1 < 0.99999999) {
           xpos -= i2;
           while (xpos < 0) xpos += maxd;
-          d = (double)(1 - i2) - x1;
+          d = (MYDBL)(1 - i2) - x1;
           bufp = buf1 + xpos;
           i = i2;
           n1 = 0.0;
           do {
             w = 1.0 - d * d * d2x;
             if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
-            n1 += w * w * (double)*bufp / d; d++;
+            n1 += w * w * (MYDBL)*bufp / d; d++;
             w = 1.0 - d * d * d2x;
             if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
-            n1 -= w * w * (double)*bufp / d; d++;
+            n1 -= w * w * (MYDBL)*bufp / d; d++;
           } while (--i);
           out1[n] = (MYFLT)(n1 * sin(PI * x1) / PI);
         }
         else {                                          /* integer sample */
-          xpos = MYFLT2LRND((double)xpos + x1);         /* position */
+          xpos = MYFLT2LRND((MYDBL)xpos + x1);         /* position */
           if (xpos >= maxd) xpos -= maxd;
           out1[n] = buf1[xpos];
         }
@@ -771,11 +771,11 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
       }
     }
     else {                          /* window size = 4, cubic interpolation */
-      double  x, am1, a0, a1, a2;
+      MYDBL  x, am1, a0, a1, a2;
       for (n=offset; n<nsmps; n++) {
-        am1 = (double)indx - (double)*(del++) * (double)CS_ESR;
-        while (am1 < 0.0) am1 += (double)maxd;
-        xpos = (int32_t) am1; am1 -= (double)xpos;
+        am1 = (MYDBL)indx - (MYDBL)*(del++) * (MYDBL)CS_ESR;
+        while (am1 < 0.0) am1 += (MYDBL)maxd;
+        xpos = (int32_t) am1; am1 -= (MYDBL)xpos;
 
         a0  = am1 * am1; a2 = 0.16666667 * (am1 * a0 - am1);    /* sample +2 */
         a1  = 0.5 * (a0 + am1) - 3.0 * a2;                      /* sample +1 */
@@ -784,10 +784,10 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
 
         bufp = (xpos ? (buf1 + (xpos - 1L)) : (bufend - 1));
         while (bufp >= bufend) bufp -= maxd;
-        x = am1 * (double)*bufp;   if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
-        x += a0 * (double)*bufp;   if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
-        x += a1 * (double)*bufp;   if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
-        x += a2 * (double)*bufp;
+        x = am1 * (MYDBL)*bufp;   if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
+        x += a0 * (MYDBL)*bufp;   if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
+        x += a1 * (MYDBL)*bufp;   if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
+        x += a2 * (MYDBL)*bufp;
 
         indx++; out1[n] = (MYFLT)x;
       }
@@ -815,7 +815,7 @@ int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode *
     maxd = q->npts; bufend = buf1 + maxd;
 
     if (p->wsize != 4) {                /* window size >= 8 */
-      double  d, x1, n1, w, d2x;
+      MYDBL  d, x1, n1, w, d2x;
       int32_t     i2, i;
       i2 = (p->wsize >> 1);
       /* wsize = 4: d2x = 1 - 1/3, wsize = 64: d2x = 1 - 1/36 */
@@ -825,29 +825,29 @@ int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode *
         /* x2: sine of x1 (for interpolation) */
         /* xpos: integer part of delay time (buffer position to read from) */
 
-        x1 = (double)indx - (double)*(del++) * (double)CS_ESR;
-        while (x1 < 0.0) x1 += (double)maxd;
-        xpos = (int32_t) x1; x1 -= (double)xpos;
+        x1 = (MYDBL)indx - (MYDBL)*(del++) * (MYDBL)CS_ESR;
+        while (x1 < 0.0) x1 += (MYDBL)maxd;
+        xpos = (int32_t) x1; x1 -= (MYDBL)xpos;
         while (xpos >= maxd) xpos -= maxd;
 
         if (x1 > 0.00000001 && x1 < 0.99999999) {
-          n1 = (double)*in1 * (sin(PI * x1) / PI);
+          n1 = (MYDBL)*in1 * (sin(PI * x1) / PI);
           xpos -= i2;
           while (xpos < 0) xpos += maxd;
-          d = (double)(1 - i2) - x1;
+          d = (MYDBL)(1 - i2) - x1;
           bufp = buf1 + xpos;
           i = i2;
           do {
             w = 1.0 - d * d * d2x;
             if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
-            *bufp = (MYFLT)((double)*bufp + w * w * n1 / d); d++;
+            *bufp = (MYFLT)((MYDBL)*bufp + w * w * n1 / d); d++;
             w = 1.0 - d * d * d2x;
             if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
-            *bufp = (MYFLT)((double)*bufp - w * w * n1 / d); d++;
+            *bufp = (MYFLT)((MYDBL)*bufp - w * w * n1 / d); d++;
           } while (--i);
         }
         else {                                          /* integer sample */
-          xpos = MYFLT2LRND((double)xpos + x1);         /* position */
+          xpos = MYFLT2LRND((MYDBL)xpos + x1);         /* position */
           if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
           buf1[xpos] += in1[n];
         }
@@ -855,18 +855,18 @@ int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode *
       }
     }
     else {                          /* window size = 4, cubic interpolation */
-      double  x, am1, a0, a1, a2;
+      MYDBL  x, am1, a0, a1, a2;
       for (n=offset; n<nsmps; n++) {
-        am1 = (double)indx - (double)*(del++) * (double)CS_ESR;
-        while (am1 < 0.0) am1 += (double)maxd;
-        xpos = (int32_t) am1; am1 -= (double)xpos;
+        am1 = (MYDBL)indx - (MYDBL)*(del++) * (MYDBL)CS_ESR;
+        while (am1 < 0.0) am1 += (MYDBL)maxd;
+        xpos = (int32_t) am1; am1 -= (MYDBL)xpos;
 
         a0  = am1 * am1; a2 = 0.16666667 * (am1 * a0 - am1);    /* sample +2 */
         a1  = 0.5 * (a0 + am1) - 3.0 * a2;                      /* sample +1 */
         am1 = 0.5 * (a0 - am1) - a2;                            /* sample -1 */
         a0  = 3.0 * a2 - a0; a0++;                              /* sample 0  */
 
-        x = (double)in1[n];
+        x = (MYDBL)in1[n];
         bufp = (xpos ? (buf1 + (xpos - 1L)) : (bufend - 1));
         while (bufp >= bufend) bufp -= maxd;
         *bufp += (MYFLT)(am1 * x); if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
@@ -958,7 +958,7 @@ int32_t comb(CSOUND *csound, COMB *p)
        * on Alpha. So if the result would be less than 1.0e-16, we
        * just say it's zero and don't call exp().  heh 981101
        */
-      double exp_arg = (double)(log001 * *p->ilpt / p->prvt);
+      MYDBL exp_arg = (MYDBL)(log001 * *p->ilpt / p->prvt);
       if (UNLIKELY(exp_arg < -36.8413615))    /* ln(1.0e-16) */
         coef = p->coef = FL(0.0);
       else
@@ -1003,7 +1003,7 @@ int32_t invcomb(CSOUND *csound, COMB *p)
        * on Alpha. So if the result would be less than 1.0e-16, we
        * just say it is zero and do not call exp().  heh 981101
        */
-      double exp_arg = (double)(log001 * *p->ilpt / p->prvt);
+      MYDBL exp_arg = (MYDBL)(log001 * *p->ilpt / p->prvt);
       if (UNLIKELY(exp_arg < -36.8413615))    /* ln(1.0e-16) */
         coef = p->coef = FL(0.0);
       else

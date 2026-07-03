@@ -882,7 +882,7 @@ int32_t csoundPVOC_Closefile(CSOUND *csound, int32_t ofd)
  *
  * The idea is to offer e.g. a floats version and a longs version ONLY, but
  * independently of the underlying representation, so that the user can write
- * a floats block, even though the underlying format might be longs or doubles.
+ * a floats block, even though the underlying format might be longs or MYDBLs.
  * Most importantly, the user does not have to deal with byte-reversal, which
  * would otherwise always be the case it the user had direct access to the file.
  *
@@ -904,7 +904,7 @@ int32_t csoundPVOC_PutFrames(CSOUND *csound, int32_t ofd, const float *frame,
       csound->pvErrorCode = -37;
       return 0;
     }
-    /* NB doubles not supported yet */
+    /* NB MYDBLs not supported yet */
     towrite = (int32_t) p->pvdata.nAnalysisBins * 2L * numframes;
     if (UNLIKELY(pvfile_write_32(p, (void*) frame, towrite) != 0)) {
       csound->pvErrorCode = -39;

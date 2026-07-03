@@ -64,11 +64,11 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
     else {
       if (*ainput_dur <= FL(0.0)) {         /* 0 durtim, use to EOF */
         p->getframes = p->framesrem;
-        *ainput_dur = (MYFLT) ((double) p->getframes / (double) p->sr);
+        *ainput_dur = (MYFLT) ((MYDBL) p->getframes / (MYDBL) p->sr);
       }
       /* else chk that input dur is within filetime rem */
       else {
-        p->getframes = (int64_t) ((double) p->sr * (double) *ainput_dur + 0.5);
+        p->getframes = (int64_t) ((MYDBL) p->sr * (MYDBL) *ainput_dur + 0.5);
         if (UNLIKELY(p->getframes > p->framesrem)) {
           p->getframes = p->framesrem;
           csound->Warning(csound, Str("full requested duration not available"));
@@ -128,9 +128,9 @@ void *sndgetset(CSOUND *csound, void *p_)
     if (p->analonly)                    /* and sample rate */
       sfinfo.samplerate = (int32_t) p->sr;
     else
-      sfinfo.samplerate = (int32_t) ((double) csound->esr + 0.5);
+      sfinfo.samplerate = (int32_t) ((MYDBL) csound->esr + 0.5);
     if (sfinfo.samplerate < 1)
-      sfinfo.samplerate = (int32_t) ((double) DFLT_SR + 0.5);
+      sfinfo.samplerate = (int32_t) ((MYDBL) DFLT_SR + 0.5);
     /* open with full dir paths */
     p->fd = csound->FileOpen(csound, &(p->sinfd), CSFILE_SND_R,
                                      sfname, &sfinfo, "SFDIR;SSDIR",
@@ -158,7 +158,7 @@ void *sndgetset(CSOUND *csound, void *p_)
         sfinfo.samplerate = p->sr;
       }
     }
-    else if (UNLIKELY(sfinfo.samplerate != (int32_t) ((double) csound->esr + 0.5))) {
+    else if (UNLIKELY(sfinfo.samplerate != (int32_t) ((MYDBL) csound->esr + 0.5))) {
       csound->Warning(csound,                       /* non-anal:  cmp w. esr */
                       "%s sr = %d, orch sr = %7.1f",
                       sfname, (int32_t) sfinfo.samplerate, csound->esr);
@@ -192,7 +192,7 @@ void *sndgetset(CSOUND *csound, void *p_)
     }
     p->audrem = (int64_t) sfinfo.frames * (int64_t) sfinfo.channels;
     p->framesrem = (int64_t) sfinfo.frames;         /*   find frames rem */
-    skipframes = (int32_t) ((double) p->skiptime * (double) p->sr
+    skipframes = (int32_t) ((MYDBL) p->skiptime * (MYDBL) p->sr
                         + (p->skiptime >= FL(0.0) ? 0.5 : -0.5));
     if (skipframes < 0) {
       n = -skipframes;
@@ -374,7 +374,7 @@ char *csoundGetStrFormat(int32_t format)  /* used here, and in sfheader.c */
       case  AE_SHORT:   return Str("shorts");
       case  AE_LONG:    return Str("longs");
       case  AE_FLOAT:   return Str("floats");
-      case  AE_DOUBLE:  return Str("double floats");
+      case  AE_DOUBLE:  return Str("MYDBL floats");
       case  AE_24INT:   return Str("24bit ints");     /* RWD 5:2001 */
       case  AE_VORBIS:  return Str("vorbis encoding");
       case  AE_MPEG:    return Str("mpeg encoding");

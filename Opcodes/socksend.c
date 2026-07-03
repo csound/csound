@@ -664,7 +664,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
       buffersize += size;
       /* add data to message */
       float fdata;
-      double ddata;
+      MYDBL ddata;
       MYFLT mdata;
       int32_t data;
       int64_t ldata;

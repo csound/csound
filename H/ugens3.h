@@ -27,7 +27,7 @@
 typedef struct {
   OPDS    h;
   MYFLT   *rslt, *xamp, *kcps, *xcar, *xmod, *kndx, *ifn, *iphs;
-  double mphsf, cphsf;
+  MYDBL mphsf, cphsf;
   int32   mphs, cphs, floatph;
   int16   ampcod, carcod, modcod;
   FUNC    *ftp;
@@ -37,8 +37,8 @@ typedef struct {
   OPDS    h;
   MYFLT   *ar1,*ar2,*xamp,*kcps,*ifn,*ibas,*imod1,*ibeg1,*iend1,
     *imod2,*ibeg2,*iend2;
-  double   cpscvt;
-  double   lphs;
+  MYDBL   cpscvt;
+  MYDBL   lphs;
   int16   mod1, mod2;
   MYFLT   beg1, beg2;
   MYFLT   end1, end2;
@@ -50,8 +50,8 @@ typedef struct {
   OPDS    h;
   MYFLT   *sphs, *ar1,*ar2,*xamp,*kcps,*ifn,*ibas,*imod1,*ibeg1,*iend1,
     *imod2,*ibeg2,*iend2;
-  double   cpscvt;
-  double   lphs;
+  MYDBL   cpscvt;
+  MYDBL   lphs;
   int16   mod1, mod2;
   MYFLT   beg1, beg2;
   MYFLT   end1, end2;

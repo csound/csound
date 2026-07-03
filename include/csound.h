@@ -69,7 +69,7 @@
 #ifndef USE_DOUBLE
 #define MYFLT float
 #else
-#define MYFLT double
+#define MYFLT MYDBL
 #endif
 #endif
 #else
@@ -210,7 +210,7 @@ extern "C" {
     /* GEN01 defer allocation flag */
     int32_t     gen01defer;
     /* tempo value (-t)  */
-    double      cmdTempo;
+    MYDBL      cmdTempo;
     /* sampling rate override (-r) */
     MYFLT       sr_override;
     /* control rate override (-k) */
@@ -264,7 +264,7 @@ extern "C" {
     /* daemon mode flag */
     int32_t     daemon;
     /* OGG encoding quality */
-    double      quality;
+    MYDBL      quality;
     /* ksmps override */
     int32_t     ksmps_override;
     /* FFT library option */
@@ -1313,7 +1313,7 @@ extern "C" {
    * Returns the current score time in seconds
    * since the beginning of performance.
    */
-  PUBLIC double csoundGetScoreTime(CSOUND *);
+  PUBLIC MYDBL csoundGetScoreTime(CSOUND *);
 
   /**
    * Sets whether Csound score events are performed or not, independently

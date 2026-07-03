@@ -25,11 +25,11 @@
    The CARL software distribution is due to be released under the GNU LPGL.
 */
 
-#include <math.h>
+
 #include "csoundCore.h"
 #include "pstream.h"
 
-double  besseli(double x);
+MYDBL  besseli(MYDBL x);
 static  void    hamming(MYFLT *win, int32_t winLen, int32_t even);
 static  void    vonhann(MYFLT *win, int32_t winLen, int32_t even);
 
@@ -41,7 +41,7 @@ static  void    process_frame(CSOUND *, PVSYNTH *p);
 static CS_NOINLINE int32_t PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
                                             int32_t type, int32_t winLen)
 {
-  double  fpos, inc;
+  MYDBL  fpos, inc;
   MYFLT   *ftable;
   int32_t     i, n, flen, even;
 
@@ -55,9 +55,9 @@ static CS_NOINLINE int32_t PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
     return OK;
   case 2:   /* Kaiser */
     {
-      double  beta = 6.8;
-      double  x, flen2, besbeta;
-      flen2 = 1.0 / ((double)(winLen >> 1) * (double)(winLen >> 1));
+      MYDBL  beta = 6.8;
+      MYDBL  x, flen2, besbeta;
+      flen2 = 1.0 / ((MYDBL)(winLen >> 1) * (MYDBL)(winLen >> 1));
       besbeta = 1.0 / besseli(beta);
       n = winLen >> 1;
       x = (even ? 0.5 : 0.05);
@@ -75,13 +75,13 @@ static CS_NOINLINE int32_t PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
   flen = csoundGetTable(csound, &ftable, -(type));
   if (UNLIKELY(flen < 0))
     return csound->InitError(csound, Str("ftable for window not found"));
-  inc = (double)flen / (double)(winLen & (~1));
-  fpos = ((double)flen + (double)even * inc) * 0.5;
+  inc = (MYDBL)flen / (MYDBL)(winLen & (~1));
+  fpos = ((MYDBL)flen + (MYDBL)even * inc) * 0.5;
   n = winLen >> 1;
   /* this assumes that for a window with even size, space for an extra */
   /* sample is allocated */
   for (i = 0; i < n; i++) {
-    double  frac, tmp;
+    MYDBL  frac, tmp;
     int32_t     pos;
     frac = modf(fpos, &tmp);
     pos = (int32_t) tmp;
@@ -117,7 +117,7 @@ int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
       N*sizeof(MYFLT) > (uint32_t)p->input.size)
     csound->AuxAlloc(csound, N*sizeof(MYFLT),&p->input);
   else memset(p->input.auxp, 0, N*sizeof(MYFLT));
-  csound->AuxAlloc(csound, NB * sizeof(double), &p->oldInPhase);
+  csound->AuxAlloc(csound, NB * sizeof(MYDBL), &p->oldInPhase);
   if (p->analwinbuf.auxp==NULL ||
       NB*sizeof(CMPLX) > (uint32_t)p->analwinbuf.size)
     csound->AuxAlloc(csound, NB*sizeof(CMPLX),&p->analwinbuf);
@@ -130,13 +130,13 @@ int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
   p->fsig->sliding = 1;
   /* Need space for NB sines, cosines and a scatch phase area */
   if (p->trig.auxp==NULL ||
-      (2*NB)*sizeof(double) > (uint32_t)p->trig.size)
-    csound->AuxAlloc(csound,(2*NB)*sizeof(double),&p->trig);
+      (2*NB)*sizeof(MYDBL) > (uint32_t)p->trig.size)
+    csound->AuxAlloc(csound,(2*NB)*sizeof(MYDBL),&p->trig);
   {
-    double dc = cos(TWOPI/(double)N);
-    double ds = sin(TWOPI/(double)N);
-    double *c = (double *)(p->trig.auxp);
-    double *s = c+NB;
+    MYDBL dc = cos(TWOPI/(MYDBL)N);
+    MYDBL ds = sin(TWOPI/(MYDBL)N);
+    MYDBL *c = (MYDBL *)(p->trig.auxp);
+    MYDBL *s = c+NB;
     p->cosine = c;
     p->sine = s;
     c[0] = 1.0; s[0] = 0.0; // assignment to s unnecessary as csoundAuxalloc zeros
@@ -221,13 +221,13 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
   for (i = 1; i <= halfwinsize; i++)
     *(analwinhalf - i) = *(analwinhalf + i - Mf);
   if (M > N) {
-    double dN = (double)N;
+    MYDBL dN = (MYDBL)N;
     /*  sinc function */
     if (Mf)
       *analwinhalf *= (MYFLT)(dN * sin(HALFPI/dN) / (HALFPI));
     for (i = 1; i <= halfwinsize; i++)
       *(analwinhalf + i) *= (MYFLT)
-        (dN * sin((double)(PI*(i+0.5*Mf)/dN)) / (PI*(i+0.5*Mf)));
+        (dN * sin((MYDBL)(PI*(i+0.5*Mf)/dN)) / (PI*(i+0.5*Mf)));
     for (i = 1; i <= halfwinsize; i++)
       *(analwinhalf - i) = *(analwinhalf + i - Mf);
   }
@@ -375,7 +375,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p) {
 
 
 
-static inline double mod2Pi(double x)
+static inline MYDBL mod2Pi(MYDBL x)
 {
   x = fmod(x,TWOPI);
   if (x <= -PI) {
@@ -395,9 +395,9 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
   int32_t N = p->fsig->N;
   MYFLT *data = (MYFLT*)(p->input.auxp);
   CMPLX *fw = (CMPLX*)(p->analwinbuf.auxp);
-  double *c = p->cosine;
-  double *s = p->sine;
-  double *h = (double*)p->oldInPhase.auxp;
+  MYDBL *c = p->cosine;
+  MYDBL *s = p->sine;
+  MYDBL *h = (MYDBL*)p->oldInPhase.auxp;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -421,7 +421,7 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
     ff = (CMPLX*)(p->fsig->frame.auxp) + i*NB;
     /* fw is the current frame at this sample */
     for (j = 0; j < NB; j++) {
-      double ci = c[j], si = s[j];
+      MYDBL ci = c[j], si = s[j];
       re = fw[j].re + dx;
       im = fw[j].im;
       fw[j].re = ci*re - si*im;
@@ -585,12 +585,12 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
     /*           printf("%d: %f\t%f\n", j, ff[j].re, ff[j].im); */
     /*       } */
     for (j = 0; j < NB; j++) { /* Convert to AMP_FREQ */
-      double thismag = HYPOT(ff[j].re, ff[j].im);
-      double phase = ATAN2(ff[j].im, ff[j].re);
-      double angleDif  = phase -  h[j];
+      MYDBL thismag = HYPOT(ff[j].re, ff[j].im);
+      MYDBL phase = ATAN2(ff[j].im, ff[j].re);
+      MYDBL angleDif  = phase -  h[j];
       h[j] = phase;
       /*subtract expected phase difference */
-      angleDif -= (double)j * TWOPI/N;
+      angleDif -= (MYDBL)j * TWOPI/N;
       angleDif =  mod2Pi(angleDif);
       angleDif =  angleDif * N /TWOPI;
       ff[j].re = thismag;
@@ -644,7 +644,7 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
   MYFLT sum;
   int32_t halfwinsize,buflen;
   int32_t i,nBins,Mf,Lf;
-  double IO;
+  MYDBL IO;
 
   /* get params from input fsig */
   /* we TRUST they are legal */
@@ -668,14 +668,14 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
     /* and put into locals */
     p->wintype = wintype;
     p->format = p->fsig->format;
-    csound->AuxAlloc(csound, p->fsig->NB * sizeof(double), &p->oldOutPhase);
-    csound->AuxAlloc(csound, p->fsig->NB * sizeof(double), &p->output);
+    csound->AuxAlloc(csound, p->fsig->NB * sizeof(MYDBL), &p->oldOutPhase);
+    csound->AuxAlloc(csound, p->fsig->NB * sizeof(MYDBL), &p->output);
     return OK;
   }
   /* and put into locals */
   halfwinsize = M/2;
   buflen = M*4;
-  IO = (double)overlap;         /* always, no time-scaling possible */
+  IO = (MYDBL)overlap;         /* always, no time-scaling possible */
 
   p->arate = CS_ESR / (MYFLT) overlap;
   p->fund = CS_ESR / (MYFLT) N;
@@ -715,7 +715,7 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
   else {
     /* have to make analysis window to get amp scaling */
     /* so this ~could~ be a local alloc and free...*/
-    double dN = (double)N;
+    MYDBL dN = (MYDBL)N;
     analwinhalf = (MYFLT *) (p->analwinbuf.auxp) + halfwinsize;
     if (UNLIKELY(PVS_CreateWindow(csound, analwinhalf, wintype, M) != OK))
       return NOTOK;
@@ -730,7 +730,7 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
     }
     for (i = 1; i <= halfwinsize; i++)
       *(analwinhalf + i) *= (MYFLT)
-        (dN * sin((double)(PI*(i+0.5*Mf)/dN)) / (PI*(i+0.5*Mf)));
+        (dN * sin((MYDBL)(PI*(i+0.5*Mf)/dN)) / (PI*(i+0.5*Mf)));
     for (i = 1; i <= halfwinsize; i++)
       *(analwinhalf - i) = *(analwinhalf + i - Mf);
 
@@ -747,11 +747,11 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
       *(synwinhalf - i) = *(synwinhalf + i - Lf);
 
     if (Lf)
-      *synwinhalf *= (MYFLT)(IO * sin((double)(HALFPI/IO)) / (HALFPI));
+      *synwinhalf *= (MYFLT)(IO * sin((MYDBL)(HALFPI/IO)) / (HALFPI));
     for (i = 1; i <= halfwinsize; i++)
       *(synwinhalf + i) *= (MYFLT)
-        ((double)IO * sin((double)(PI*(i+0.5*Lf)/IO)) /
-         (PI*(i+0.5*(double)Lf)));
+        ((MYDBL)IO * sin((MYDBL)(PI*(i+0.5*Lf)/IO)) /
+         (PI*(i+0.5*(MYDBL)Lf)));
     for (i = 1; i <= halfwinsize; i++)
       *(synwinhalf - i) = *(synwinhalf + i - Lf);
   }
@@ -911,23 +911,23 @@ int32_t pvssynth(CSOUND *csound, PVSYNTH *p)
   int32_t NB = p->fsig->NB;
   MYFLT *aout = p->aout;
   CMPLX *ff;
-  double *h = (double*)p->oldOutPhase.auxp;
-  double *output = (double*)p->output.auxp;
+  MYDBL *h = (MYDBL*)p->oldOutPhase.auxp;
+  MYDBL *output = (MYDBL*)p->output.auxp;
 
   /* Get real part from AMP/FREQ */
   for (i=0; i<ksmps; i++) {
     MYFLT a;
     ff = (CMPLX*)(p->fsig->frame.auxp) + i*NB;
     for (k=0; k<NB; k++) {
-      double tmp, phase;
+      MYDBL tmp, phase;
 
       tmp = ff[k].im; /* Actually frequency */
       /* subtract bin mid frequency */
-      tmp -= (double)k * CS_ESR/N;
+      tmp -= (MYDBL)k * CS_ESR/N;
       /* get bin deviation from freq deviation */
       tmp *= TWOPI /CS_ESR;
       /* add the overlap phase advance back in */
-      tmp += (double)k*TWOPI/N;
+      tmp += (MYDBL)k*TWOPI/N;
       h[k] = phase = mod2Pi(h[k] + tmp);
       output[k] = ff[k].re*cos(phase);
     }
@@ -971,28 +971,28 @@ int32_t pvsynth(CSOUND *csound, PVSYNTH *p)
 
 static void hamming(MYFLT *win, int32_t winLen, int32_t even)
 {
-  double ftmp;
+  MYDBL ftmp;
   int32_t i;
 
   ftmp = PI/winLen;
 
   if (even) {
     for (i=0; i<winLen; i++)
-      win[i] = (MYFLT)(0.54 + 0.46*cos(ftmp*((double)i+0.5)));
+      win[i] = (MYFLT)(0.54 + 0.46*cos(ftmp*((MYDBL)i+0.5)));
     win[winLen] = FL(0.0);
   }
   else {
     win[0] = FL(1.0);
     for (i=1; i<=winLen; i++)
-      win[i] = (MYFLT)(0.54 + 0.46*cos(ftmp*(double)i));
+      win[i] = (MYFLT)(0.54 + 0.46*cos(ftmp*(MYDBL)i));
   }
 
 }
 
-double besseli(double x)
+MYDBL besseli(MYDBL x)
 {
-  double ax, ans;
-  double y;
+  MYDBL ax, ans;
+  MYDBL y;
 
   if (( ax = fabs( x)) < 3.75)     {
     y = x / 3.75;
@@ -1029,12 +1029,12 @@ static void vonhann(MYFLT *win, int32_t winLen, int32_t even)
 
   if (even) {
     for (i=0; i<winLen; i++)
-      win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*((double)i+0.5)));
+      win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*((MYDBL)i+0.5)));
     win[winLen] = FL(0.0);
   }
   else {
     win[0] = FL(1.0);
     for (i=1; i<=winLen; i++)
-      win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
+      win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(MYDBL)i));
   }
 }

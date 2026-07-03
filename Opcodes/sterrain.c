@@ -24,7 +24,7 @@
 #include "csoundCore.h"
 #endif
 #include "interlocks.h"
-#include <math.h>
+
 
 /*  Wave-terrain synthesis opcode
  *
@@ -68,7 +68,7 @@ typedef struct {
   MYFLT *xarr, *yarr;           /* Actual tables */
 
   MYFLT sizx, sizy;
-  double theta;
+  MYDBL theta;
 
 } SUPERTER;
 
@@ -89,13 +89,13 @@ static void rotate_point(MYFLT  cx, MYFLT  cy, MYFLT  angle, MYFLT *x, MYFLT *y)
 }
 
 typedef struct superparams {
-  double y;
-  double z;
-  double n1;
-  double n2;
-  double n3;
-  double a;
-  double b;
+  MYDBL y;
+  MYDBL z;
+  MYDBL n1;
+  MYDBL n2;
+  MYDBL n3;
+  MYDBL a;
+  MYDBL b;
 } SUPERPARAMS;
 
 static void superformula(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry,

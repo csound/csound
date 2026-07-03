@@ -372,7 +372,7 @@ static int32_t hvs3(CSOUND *csound, HVS3 *p)
 
 typedef struct {
         FUNC *function, *nxtfunction;
-        double d;
+        MYDBL d;
 } TSEG2;
 
 typedef struct {
@@ -390,7 +390,7 @@ static int32_t vphaseseg_set(CSOUND *csound, VPSEG *p)
     TSEG2       *segp;
     int32_t nsegs,j;
     MYFLT       **argp;
-    double dur, durtot = 0.0, prevphs;
+    MYDBL dur, durtot = 0.0, prevphs;
     FUNC *nxtfunc, *curfunc, *ftp;
 
     nsegs = p->nsegs =((p->INOCOUNT-3) >> 1);    /* count segs & alloc if nec */
@@ -469,7 +469,7 @@ static int32_t vphaseseg(CSOUND *csound, VPSEG *p)
 {
     IGN(csound);
     TSEG2       *segp = p->cursegp;
-    double phase = *p->kphase, partialPhase = 0.0;
+    MYDBL phase = *p->kphase, partialPhase = 0.0;
     int32_t j, flength;
     MYFLT   *curtab = NULL, *nxttab = NULL, curval, nxtval, *vector;
 

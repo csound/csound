@@ -43,7 +43,7 @@
 #define DB_RATIO FL(6.02059991327962)
 #define TO_RAD(x) ((x) * PI / FL(180.0))
 
-static inline double wrap_angle(MYFLT x) {
+static inline MYDBL wrap_angle(MYFLT x) {
     x = FMOD(x, FL(360.0));
     if (x < FL(0.0)) x += FL(360.0);
     return x;

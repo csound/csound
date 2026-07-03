@@ -21,7 +21,7 @@
 */
 
 #include "stdopcod.h"   /*                                      UGENS9.C        */
-#include <math.h>
+
 #include "convolve.h"
 #include "ugens9.h"
 #include "soundio.h"

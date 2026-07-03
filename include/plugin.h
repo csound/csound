@@ -41,7 +41,7 @@
 namespace csnd {
 
 /* constants */
-const double twopi = TWOPI;
+const MYDBL twopi = TWOPI;
 
 /** opcode threads: i-time, k-perf and/or a-perf
 */

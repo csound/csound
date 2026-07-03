@@ -30,7 +30,7 @@
 
 #include "stdopcod.h"
 #include "locsig.h"
-#include <math.h>
+
 
 static int32_t locsigset(CSOUND *csound, LOCSIG *p)
 {

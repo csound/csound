@@ -376,7 +376,7 @@ void sense_line(CSOUND *csound, void *userData)
 
               if(c == '\\') {
                 cp++;
-                if(*cp == '"') c = *cp; /* if it is a double quote */
+                if(*cp == '"') c = *cp; /* if it is a MYDBL quote */
                 /* otherwise we ignore it */
                 else cp--;
               }

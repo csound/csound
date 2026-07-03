@@ -53,7 +53,7 @@
 
 #include "interlocks.h"
 #include "phisem.h"
-#include <math.h>
+
 
 /* To do
    "10: Wrench", "12: CokeCan"};

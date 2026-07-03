@@ -248,7 +248,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
   /* iterators, file skip */
   int32_t i, j;
   int32_t skip = 0;
-  int32_t skipdouble = 0;
+  int32_t skipMYDBL = 0;
 
   /* used in choice of delay line lengths */
   int32_t basedelay=0;
@@ -644,7 +644,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
   coherup = (MYFLT *)p->coheru.auxp;
   cohervp = (MYFLT *)p->coherv.auxp;
 
-  /* usually, just go through all files; in this case, just doubled due
+  /* usually, just go through all files; in this case, just MYDBLd due
      to symmetry (with exceptions, as below) */
   for(i = 0; i < 368; i ++)
     {
@@ -654,9 +654,9 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
          i == 207 || i == 208 || i == 244  || i == 245 || i == 275 ||
          i == 276 || i == 304  || i == 305 || i == 328 || i == 346 ||
          i == 347 || i == 359 || i == 360 || i == 366 || i == 367)
-        skipdouble = 1;
+        skipMYDBL = 1;
       else
-        skipdouble = 0;
+        skipMYDBL = 0;
 
       for(j = 0; j < irlength; j ++)
         {
@@ -666,8 +666,8 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
       /* deal with 0 hz and nyq: may be a negative real val, no need for
          fabs() as squaring anyway! */
-      /* skipdouble: l = r */
-      if(skipdouble)
+      /* skipMYDBL: l = r */
+      if(skipMYDBL)
         {
           powerp[0] = powerp[0] + SQUARE(bufflp[0]);
           powerp[1] = powerp[1] + SQUARE(bufflp[1]);
@@ -681,7 +681,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
       for(j = 2; j < irlength; j += 2)
         {
-          if(skipdouble)
+          if(skipMYDBL)
             powerp[j] = powerp[j] + (MYFLT)SQUARE(bufflp[j]);
           else
             powerp[j] = powerp[j] + (MYFLT)SQUARE(bufflp[j]) +
@@ -707,9 +707,9 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
          i == 207 || i == 208 || i == 244  || i == 245 || i == 275 ||
          i == 276 || i == 304  || i == 305 || i == 328 || i == 346 ||
          i == 347 || i == 359 || i == 360 || i == 366 || i == 367)
-        skipdouble = 1;
+        skipMYDBL = 1;
       else
-        skipdouble = 0;
+        skipMYDBL = 0;
 
       for(j = 0; j < irlength; j ++)
         {
@@ -719,7 +719,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
       /* back to rectangular to find numerator: need complex nos */
       /* 0Hz and Nyq ok as real */
-      if(skipdouble)
+      if(skipMYDBL)
         {
           nump[0] = nump[0] + (bufflp[0] * buffrp[0]);
           nump[1] = nump[1] + (bufflp[1] * buffrp[1]);
@@ -743,7 +743,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
           iml = bufflp[j] * SIN(bufflp[j + 1]);
           rer = buffrp[j] * COS(buffrp[j + 1]);
           imr = buffrp[j] * SIN(buffrp[j + 1]);
-          if(skipdouble)
+          if(skipMYDBL)
             {
               nump[j] = nump[j] + ((rel * rer) + (iml * imr));
               nump[j + 1] = nump[j + 1] + ((rel * -imr) + (iml * rer));
@@ -844,7 +844,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
   do
     {
-      double alphsq;
+      MYDBL alphsq;
       alpha = rt60high / rt60low;
       clipcheck = 0;
       alphsq = SQUARE(alpha);

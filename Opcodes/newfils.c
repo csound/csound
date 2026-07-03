@@ -24,11 +24,11 @@
 #include "stdopcod.h"
 
 #include "newfils.h"
-#include <math.h>
+
 
 #define TABSIZE 20000
-static inline MYFLT nlf(MYFLT *t, double x, MYFLT mx, size_t siz){
-  double p =  (x*mx + 0.5)*siz;
+static inline MYFLT nlf(MYFLT *t, MYDBL x, MYFLT mx, size_t siz){
+  MYDBL p =  (x*mx + 0.5)*siz;
   size_t n = (size_t) p;
   return n > 0 ? (n < siz ? t[n] + (p - n)*(t[n+1] - t[n]) : t[siz-1]) : t[0];
 }
@@ -37,15 +37,15 @@ static inline MYFLT nlf(MYFLT *t, double x, MYFLT mx, size_t siz){
 
 
 static inline
-double fast_tanh(double x)
+MYDBL fast_tanh(MYDBL x)
 {
-  double x2 = x * x;
-  double a = x * (135135.0 + x2 * (17325.0 + x2 * (378.0 + x2)));
-  double b = 135135.0 + x2 * (62370.0 + x2 * (3150.0 + x2 * 28.0));
+  MYDBL x2 = x * x;
+  MYDBL a = x * (135135.0 + x2 * (17325.0 + x2 * (378.0 + x2)));
+  MYDBL b = 135135.0 + x2 * (62370.0 + x2 * (3150.0 + x2 * 28.0));
   return a / b;
 }
 
-static double TanH(double x)
+static MYDBL TanH(MYDBL x)
 {
   /* use the fact that tanh(-x) = - tanh(x)
      and if x>~4 tanh is approx constant 1
@@ -70,10 +70,10 @@ static int32_t moogladder_init(CSOUND *csound, moogladder *p)
   if (LIKELY(*p->istor == FL(0.0))) {
     /* for (i = 0; i < 6; i++) */
     /*   p->delay[i] = 0.0; */
-    memset(p->delay, '\0', 6*sizeof(double));
+    memset(p->delay, '\0', 6*sizeof(MYDBL));
     /* for (i = 0; i < 3; i++) */
     /*   p->tanhstg[i] = 0.0; */
-    memset(p->tanhstg, '\0', 3*sizeof(double));
+    memset(p->tanhstg, '\0', 3*sizeof(MYDBL));
     p->oldfreq = FL(0.0);
     p->oldres = -FL(1.0);     /* ensure calculation on first cycle */
   }
@@ -86,12 +86,12 @@ static int32_t moogladder_process(CSOUND *csound, moogladder *p)
   MYFLT   *in = p->in;
   MYFLT   freq = *p->freq;
   MYFLT   res = *p->res;
-  double  res4;
-  double  *delay = p->delay;
-  double  *tanhstg = p->tanhstg;
-  double  stg[4], input;
-  double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  MYDBL  res4;
+  MYDBL  *delay = p->delay;
+  MYDBL  *tanhstg = p->tanhstg;
+  MYDBL  stg[4], input;
+  MYDBL  acr, tune;
+  MYDBL vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -100,10 +100,10 @@ static int32_t moogladder_process(CSOUND *csound, moogladder *p)
   if (res < 0) res = 0;
 
   if (p->oldfreq != freq || p->oldres != res) {
-    double  f, fc, fc2, fc3, fcr;
+    MYDBL  f, fc, fc2, fc3, fcr;
     p->oldfreq = freq;
     /* sr is half the actual filter sampling rate  */
-    fc =  (double)(freq/CS_ESR);
+    fc =  (MYDBL)(freq/CS_ESR);
     f  =  0.5*fc;
     fc2 = fc*fc;
     fc3 = fc2*fc;
@@ -120,7 +120,7 @@ static int32_t moogladder_process(CSOUND *csound, moogladder *p)
     acr = p->oldacr;
     tune = p->oldtune;
   }
-  res4 = 4.0*(double)res*acr;
+  res4 = 4.0*(MYDBL)res*acr;
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -170,22 +170,22 @@ static int32_t moogladder_process_aa(CSOUND *csound, moogladder *p)
   MYFLT   *freq = p->freq;
   MYFLT   *res = p->res;
   MYFLT   cfreq = freq[0], cres = res[0];
-  double  res4;
-  double  *delay = p->delay;
-  double  *tanhstg = p->tanhstg;
-  double  stg[4], input;
-  double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  MYDBL  res4;
+  MYDBL  *delay = p->delay;
+  MYDBL  *tanhstg = p->tanhstg;
+  MYDBL  stg[4], input;
+  MYDBL  acr, tune;
+  MYDBL vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
 
   if (p->oldfreq != cfreq || p->oldres != cres) {
-    double  f, fc, fc2, fc3, fcr;
+    MYDBL  f, fc, fc2, fc3, fcr;
     p->oldfreq = cfreq;
     /* sr is half the actual filter sampling rate  */
-    fc =  (double)(cfreq/CS_ESR);
+    fc =  (MYDBL)(cfreq/CS_ESR);
     f  =  0.5*fc;
     fc2 = fc*fc;
     fc3 = fc2*fc;
@@ -202,7 +202,7 @@ static int32_t moogladder_process_aa(CSOUND *csound, moogladder *p)
     acr = p->oldacr;
     tune = p->oldtune;
   }
-  res4 = 4.0*(double)cres*acr;
+  res4 = 4.0*(MYDBL)cres*acr;
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -211,10 +211,10 @@ static int32_t moogladder_process_aa(CSOUND *csound, moogladder *p)
   }
   for (i = offset; i < nsmps; i++) {
     if (p->oldfreq != freq[i] || p->oldres != res[i]) {
-      double  f, fc, fc2, fc3, fcr;
+      MYDBL  f, fc, fc2, fc3, fcr;
       p->oldfreq = freq[i];
       /* sr is half the actual filter sampling rate  */
-      fc =  (double)(freq[i]/CS_ESR);
+      fc =  (MYDBL)(freq[i]/CS_ESR);
       f  =  0.5*fc;
       fc2 = fc*fc;
       fc3 = fc2*fc;
@@ -225,7 +225,7 @@ static int32_t moogladder_process_aa(CSOUND *csound, moogladder *p)
       p->oldres = cres;
       p->oldacr = acr;
       p->oldtune = tune;
-      res4 = 4.0*(double)res[i]*acr;
+      res4 = 4.0*(MYDBL)res[i]*acr;
     }
     /* oversampling  */
     for (j = 0; j < 2; j++) {
@@ -267,12 +267,12 @@ static int32_t moogladder_process_ak(CSOUND *csound, moogladder *p)
   MYFLT   *in = p->in;
   MYFLT   *freq = p->freq;
   MYFLT   res = *p->res;
-  double  res4;
-  double  *delay = p->delay;
-  double  *tanhstg = p->tanhstg;
-  double  stg[4], input;
-  double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  MYDBL  res4;
+  MYDBL  *delay = p->delay;
+  MYDBL  *tanhstg = p->tanhstg;
+  MYDBL  stg[4], input;
+  MYDBL  acr, tune;
+  MYDBL vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -281,10 +281,10 @@ static int32_t moogladder_process_ak(CSOUND *csound, moogladder *p)
   if (res < 0) res = 0;
 
   if (p->oldfreq != freq[0] || p->oldres != res) {
-    double  f, fc, fc2, fc3, fcr;
+    MYDBL  f, fc, fc2, fc3, fcr;
     p->oldfreq = freq[0];
     /* sr is half the actual filter sampling rate  */
-    fc =  (double)(freq[0]/CS_ESR);
+    fc =  (MYDBL)(freq[0]/CS_ESR);
     f  =  0.5*fc;
     fc2 = fc*fc;
     fc3 = fc2*fc;
@@ -301,7 +301,7 @@ static int32_t moogladder_process_ak(CSOUND *csound, moogladder *p)
     acr = p->oldacr;
     tune = p->oldtune;
   }
-  res4 = 4.0*(double)res*acr;
+  res4 = 4.0*(MYDBL)res*acr;
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -310,10 +310,10 @@ static int32_t moogladder_process_ak(CSOUND *csound, moogladder *p)
   }
   for (i = offset; i < nsmps; i++) {
     if (p->oldfreq != freq[i]) {
-      double  f, fc, fc2, fc3, fcr;
+      MYDBL  f, fc, fc2, fc3, fcr;
       p->oldfreq = freq[i];
       /* sr is half the actual filter sampling rate  */
-      fc =  (double)(freq[i]/CS_ESR);
+      fc =  (MYDBL)(freq[i]/CS_ESR);
       f  =  0.5*fc;
       fc2 = fc*fc;
       fc3 = fc2*fc;
@@ -323,7 +323,7 @@ static int32_t moogladder_process_ak(CSOUND *csound, moogladder *p)
       tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
       p->oldacr = acr;
       p->oldtune = tune;
-      res4 = 4.0*(double)res*acr;
+      res4 = 4.0*(MYDBL)res*acr;
     }
     /* oversampling  */
     for (j = 0; j < 2; j++) {
@@ -366,12 +366,12 @@ static int32_t moogladder_process_ka(CSOUND *csound, moogladder *p)
   MYFLT   freq = *p->freq;
   MYFLT   *res = p->res;
   MYFLT cres = res[0];
-  double  res4;
-  double  *delay = p->delay;
-  double  *tanhstg = p->tanhstg;
-  double  stg[4], input;
-  double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  MYDBL  res4;
+  MYDBL  *delay = p->delay;
+  MYDBL  *tanhstg = p->tanhstg;
+  MYDBL  stg[4], input;
+  MYDBL  acr, tune;
+  MYDBL vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -380,10 +380,10 @@ static int32_t moogladder_process_ka(CSOUND *csound, moogladder *p)
   if (cres < 0) cres = 0;
 
   if (p->oldfreq != freq || p->oldres != cres) {
-    double  f, fc, fc2, fc3, fcr;
+    MYDBL  f, fc, fc2, fc3, fcr;
     p->oldfreq = freq;
     /* sr is half the actual filter sampling rate  */
-    fc =  (double)(freq/CS_ESR);
+    fc =  (MYDBL)(freq/CS_ESR);
     f  =  0.5*fc;
     fc2 = fc*fc;
     fc3 = fc2*fc;
@@ -400,7 +400,7 @@ static int32_t moogladder_process_ka(CSOUND *csound, moogladder *p)
     acr = p->oldacr;
     tune = p->oldtune;
   }
-  res4 = 4.0*(double)cres*acr;
+  res4 = 4.0*(MYDBL)cres*acr;
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -409,9 +409,9 @@ static int32_t moogladder_process_ka(CSOUND *csound, moogladder *p)
   }
   for (i = offset; i < nsmps; i++) {
     if (cres != res[i]) {
-      double  f, fc, fc2, fc3, fcr;
+      MYDBL  f, fc, fc2, fc3, fcr;
       /* sr is half the actual filter sampling rate  */
-      fc =  (double)(freq/CS_ESR);
+      fc =  (MYDBL)(freq/CS_ESR);
       f  =  0.5*fc;
       fc2 = fc*fc;
       fc3 = fc2*fc;
@@ -422,7 +422,7 @@ static int32_t moogladder_process_ka(CSOUND *csound, moogladder *p)
       p->oldres = cres = res[i];
       p->oldacr = acr;
       p->oldtune = tune;
-      res4 = 4.0*(double)cres*acr;
+      res4 = 4.0*(MYDBL)cres*acr;
     }
     /* oversampling  */
     for (j = 0; j < 2; j++) {
@@ -464,12 +464,12 @@ static int32_t moogladder2_process(CSOUND *csound, moogladder *p)
   MYFLT   *in = p->in;
   MYFLT   freq = *p->freq;
   MYFLT   res = *p->res;
-  double  res4;
-  double  *delay = p->delay;
-  double  *tanhstg = p->tanhstg;
-  double  stg[4], input;
-  double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  MYDBL  res4;
+  MYDBL  *delay = p->delay;
+  MYDBL  *tanhstg = p->tanhstg;
+  MYDBL  stg[4], input;
+  MYDBL  acr, tune;
+  MYDBL vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -478,10 +478,10 @@ static int32_t moogladder2_process(CSOUND *csound, moogladder *p)
   if (res < 0) res = 0;
 
   if (p->oldfreq != freq || p->oldres != res) {
-    double  f, fc, fc2, fc3, fcr;
+    MYDBL  f, fc, fc2, fc3, fcr;
     p->oldfreq = freq;
     /* sr is half the actual filter sampling rate  */
-    fc =  (double)(freq/CS_ESR);
+    fc =  (MYDBL)(freq/CS_ESR);
     f  =  0.5*fc;
     fc2 = fc*fc;
     fc3 = fc2*fc;
@@ -498,7 +498,7 @@ static int32_t moogladder2_process(CSOUND *csound, moogladder *p)
     acr = p->oldacr;
     tune = p->oldtune;
   }
-  res4 = 4.0*(double)res*acr;
+  res4 = 4.0*(MYDBL)res*acr;
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -547,22 +547,22 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
   MYFLT   *freq = p->freq;
   MYFLT   *res = p->res;
   MYFLT   cfreq = freq[0], cres = res[0];
-  double  res4;
-  double  *delay = p->delay;
-  double  *tanhstg = p->tanhstg;
-  double  stg[4], input;
-  double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  MYDBL  res4;
+  MYDBL  *delay = p->delay;
+  MYDBL  *tanhstg = p->tanhstg;
+  MYDBL  stg[4], input;
+  MYDBL  acr, tune;
+  MYDBL vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
 
   if (p->oldfreq != cfreq || p->oldres != cres) {
-    double  f, fc, fc2, fc3, fcr;
+    MYDBL  f, fc, fc2, fc3, fcr;
     p->oldfreq = cfreq;
     /* sr is half the actual filter sampling rate  */
-    fc =  (double)(cfreq/CS_ESR);
+    fc =  (MYDBL)(cfreq/CS_ESR);
     f  =  0.5*fc;
     fc2 = fc*fc;
     fc3 = fc2*fc;
@@ -579,7 +579,7 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
     acr = p->oldacr;
     tune = p->oldtune;
   }
-  res4 = 4.0*(double)cres*acr;
+  res4 = 4.0*(MYDBL)cres*acr;
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -588,10 +588,10 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
   }
   for (i = offset; i < nsmps; i++) {
     if (p->oldfreq != freq[i] || p->oldres != res[i]) {
-      double  f, fc, fc2, fc3, fcr;
+      MYDBL  f, fc, fc2, fc3, fcr;
       p->oldfreq = freq[i];
       /* sr is half the actual filter sampling rate  */
-      fc =  (double)(freq[i]/CS_ESR);
+      fc =  (MYDBL)(freq[i]/CS_ESR);
       f  =  0.5*fc;
       fc2 = fc*fc;
       fc3 = fc2*fc;
@@ -602,7 +602,7 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
       p->oldres = cres;
       p->oldacr = acr;
       p->oldtune = tune;
-      res4 = 4.0*(double)res[i]*acr;
+      res4 = 4.0*(MYDBL)res[i]*acr;
     }
     /* oversampling  */
     for (j = 0; j < 2; j++) {
@@ -644,12 +644,12 @@ static int32_t moogladder2_process_ak(CSOUND *csound, moogladder *p)
   MYFLT   *in = p->in;
   MYFLT   *freq = p->freq;
   MYFLT   res = *p->res;
-  double  res4;
-  double  *delay = p->delay;
-  double  *tanhstg = p->tanhstg;
-  double  stg[4], input;
-  double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  MYDBL  res4;
+  MYDBL  *delay = p->delay;
+  MYDBL  *tanhstg = p->tanhstg;
+  MYDBL  stg[4], input;
+  MYDBL  acr, tune;
+  MYDBL vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -658,10 +658,10 @@ static int32_t moogladder2_process_ak(CSOUND *csound, moogladder *p)
   if (res < 0) res = 0;
 
   if (p->oldfreq != freq[0] || p->oldres != res) {
-    double  f, fc, fc2, fc3, fcr;
+    MYDBL  f, fc, fc2, fc3, fcr;
     p->oldfreq = freq[0];
     /* sr is half the actual filter sampling rate  */
-    fc =  (double)(freq[0]/CS_ESR);
+    fc =  (MYDBL)(freq[0]/CS_ESR);
     f  =  0.5*fc;
     fc2 = fc*fc;
     fc3 = fc2*fc;
@@ -678,7 +678,7 @@ static int32_t moogladder2_process_ak(CSOUND *csound, moogladder *p)
     acr = p->oldacr;
     tune = p->oldtune;
   }
-  res4 = 4.0*(double)res*acr;
+  res4 = 4.0*(MYDBL)res*acr;
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -687,10 +687,10 @@ static int32_t moogladder2_process_ak(CSOUND *csound, moogladder *p)
   }
   for (i = offset; i < nsmps; i++) {
     if (p->oldfreq != freq[i]) {
-      double  f, fc, fc2, fc3, fcr;
+      MYDBL  f, fc, fc2, fc3, fcr;
       p->oldfreq = freq[i];
       /* sr is half the actual filter sampling rate  */
-      fc =  (double)(freq[i]/CS_ESR);
+      fc =  (MYDBL)(freq[i]/CS_ESR);
       f  =  0.5*fc;
       fc2 = fc*fc;
       fc3 = fc2*fc;
@@ -700,7 +700,7 @@ static int32_t moogladder2_process_ak(CSOUND *csound, moogladder *p)
       tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
       p->oldacr = acr;
       p->oldtune = tune;
-      res4 = 4.0*(double)res*acr;
+      res4 = 4.0*(MYDBL)res*acr;
     }
     /* oversampling  */
     for (j = 0; j < 2; j++) {
@@ -743,12 +743,12 @@ static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
   MYFLT   freq = *p->freq;
   MYFLT   *res = p->res;
   MYFLT cres = res[0];
-  double  res4;
-  double  *delay = p->delay;
-  double  *tanhstg = p->tanhstg;
-  double  stg[4], input;
-  double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  MYDBL  res4;
+  MYDBL  *delay = p->delay;
+  MYDBL  *tanhstg = p->tanhstg;
+  MYDBL  stg[4], input;
+  MYDBL  acr, tune;
+  MYDBL vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -757,10 +757,10 @@ static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
   if (cres < 0) cres = 0;
 
   if (p->oldfreq != freq || p->oldres != cres) {
-    double  f, fc, fc2, fc3, fcr;
+    MYDBL  f, fc, fc2, fc3, fcr;
     p->oldfreq = freq;
     /* sr is half the actual filter sampling rate  */
-    fc =  (double)(freq/CS_ESR);
+    fc =  (MYDBL)(freq/CS_ESR);
     f  =  0.5*fc;
     fc2 = fc*fc;
     fc3 = fc2*fc;
@@ -777,7 +777,7 @@ static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
     acr = p->oldacr;
     tune = p->oldtune;
   }
-  res4 = 4.0*(double)cres*acr;
+  res4 = 4.0*(MYDBL)cres*acr;
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -786,9 +786,9 @@ static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
   }
   for (i = offset; i < nsmps; i++) {
     if (cres != res[i]) {
-      double  f, fc, fc2, fc3, fcr;
+      MYDBL  f, fc, fc2, fc3, fcr;
       /* sr is half the actual filter sampling rate  */
-      fc =  (double)(freq/CS_ESR);
+      fc =  (MYDBL)(freq/CS_ESR);
       f  =  0.5*fc;
       fc2 = fc*fc;
       fc3 = fc2*fc;
@@ -799,7 +799,7 @@ static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
       p->oldres = cres = res[i];
       p->oldacr = acr;
       p->oldtune = tune;
-      res4 = 4.0*(double)cres*acr;
+      res4 = 4.0*(MYDBL)cres*acr;
     }
     /* oversampling  */
     for (j = 0; j < 2; j++) {
@@ -857,10 +857,10 @@ static int32_t statevar_process(CSOUND *csound,statevar *p)
   MYFLT  *in = p->in;
   MYFLT  *freq = p->freq;
   MYFLT  *res  = p->res;
-  double  lpd = p->lpd;
-  double  bpd = p->bpd;
-  double  lp  = p->lp, hp = 0.0, bp = 0.0, br = 0.0;
-  double  f,q,lim;
+  MYDBL  lpd = p->lpd;
+  MYDBL  bpd = p->bpd;
+  MYDBL  lp  = p->lp, hp = 0.0, bp = 0.0, br = 0.0;
+  MYDBL  f,q,lim;
   int32_t ostimes = p->ostimes,j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -887,7 +887,7 @@ static int32_t statevar_process(CSOUND *csound,statevar *p)
     MYFLT fr = (asgfr ? freq[i] : *freq);
     MYFLT rs = (asgrs ? res[i] : *res);
     if (p->oldfreq != fr|| p->oldres != rs) {
-      f = 2.0*sin(fr*(double)CS_PIDSR/ostimes);
+      f = 2.0*sin(fr*(MYDBL)CS_PIDSR/ostimes);
       q = 1.0/rs;
       lim = ((2.0 - f) *0.05)/ostimes;
       /* csound->Message(csound, "lim: %f, q: %f \n", lim, q); */
@@ -939,8 +939,8 @@ static int32_t fofilter_process(CSOUND *csound,fofilter *p)
   MYFLT  *freq = p->freq;
   MYFLT  *ris = p->ris;
   MYFLT  *dec = p->dec;
-  double  *delay = p->delay,ang=0,fsc,rrad1=0,rrad2=0;
-  double  w1,y1,w2,y2;
+  MYDBL  *delay = p->delay,ang=0,fsc,rrad1=0,rrad2=0;
+  MYDBL  w1,y1,w2,y2;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -959,7 +959,7 @@ static int32_t fofilter_process(CSOUND *csound,fofilter *p)
     MYFLT dc = asgdc ? dec[i] : *dec;
     if (frq != lfrq || rs != lrs || dc != ldc) {
       lfrq = frq; lrs = rs; ldc = dc;
-      ang = (double)CS_TPIDSR*frq;         /* pole angle */
+      ang = (MYDBL)CS_TPIDSR*frq;         /* pole angle */
       fsc = sin(ang) - 3.0;                      /* freq scl   */
       rrad1 =  pow(10.0, fsc/(dc*CS_ESR));  /* filter radii */
       rrad2 =  pow(10.0, fsc/(rs*CS_ESR));
@@ -985,11 +985,11 @@ typedef struct _mvcf {
   OPDS h;
   MYFLT *out;
   MYFLT *in, *freq, *res, *skipinit;
-  double c1, c2, c3, c4, c5;
-  double fr, w;
+  MYDBL c1, c2, c3, c4, c5;
+  MYDBL fr, w;
 } mvclpf24;
 
-double exp2ap(double x) {
+MYDBL exp2ap(MYDBL x) {
   int32_t i = (int32_t) (floor(x));
   x -= i;
   return ldexp(1 + x * (0.6930 +
@@ -1012,7 +1012,7 @@ int32_t mvclpf24_init(CSOUND *csound, mvclpf24 *p){
 int32_t mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, res;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1062,7 +1062,7 @@ int32_t mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
 int32_t mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, res, *freq = p->freq;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t;
   int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1115,7 +1115,7 @@ int32_t mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
 int32_t mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, *res = p->res;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1165,7 +1165,7 @@ int32_t mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
 int32_t mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, *res = p->res, *freq = p->freq;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t;
   int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1217,7 +1217,7 @@ int32_t mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
 int32_t mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, res;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1266,7 +1266,7 @@ int32_t mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
 int32_t mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, res, *freq = p->freq ;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t;
   int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1317,7 +1317,7 @@ int32_t mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
 int32_t mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, *res = p->res;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1365,7 +1365,7 @@ int32_t mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
 int32_t mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, *res = p->res, *freq = p->freq ;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t;
   int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1415,7 +1415,7 @@ int32_t mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
 int32_t mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, res;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, d;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1488,7 +1488,7 @@ int32_t mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
 int32_t mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, res, *freq = p->freq;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t, d;
   int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1564,7 +1564,7 @@ int32_t mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
 int32_t mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, *res  = p->res;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, d;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1639,7 +1639,7 @@ int32_t mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
 int32_t mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, *res = p->res, *freq = p->freq;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, t, x, d;
   int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1719,8 +1719,8 @@ typedef struct _mvcf4 {
   OPDS h;
   MYFLT *out0, *out1, *out2, *out3;
   MYFLT *in, *freq, *res, *skipinit;
-  double c1, c2, c3, c4, c5;
-  double fr, w;
+  MYDBL c1, c2, c3, c4, c5;
+  MYDBL fr, w;
 } mvclpf24_4;
 
 
@@ -1738,7 +1738,7 @@ int32_t mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
   MYFLT *out0 = p->out0, *out1 = p->out1,
     *out2 = p->out2, *out3 = p->out3;
   MYFLT *in = p->in, res;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, d;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1826,7 +1826,7 @@ int32_t mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
   MYFLT *out0 = p->out0, *out1 = p->out1,
     *out2 = p->out2, *out3 = p->out3;
   MYFLT *in = p->in, res, *freq = p->freq;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t, d;
   int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1913,7 +1913,7 @@ int32_t mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
   MYFLT *out0 = p->out0, *out1 = p->out1,
     *out2 = p->out2, *out3 = p->out3;
   MYFLT *in = p->in, *res = p->res;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, d;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2000,7 +2000,7 @@ int32_t mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
   MYFLT *out0 = p->out0, *out1 = p->out1,
     *out2 = p->out2, *out3 = p->out3;
   MYFLT *in = p->in, *res = p->res, *freq = p->freq;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t, d;
   int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -2091,8 +2091,8 @@ typedef struct _mvcfh {
   OPDS h;
   MYFLT *out;
   MYFLT *in, *freq, *skipinit;
-  double c1, c2, c3, c4, c5;
-  double fr, w, x;
+  MYDBL c1, c2, c3, c4, c5;
+  MYDBL fr, w, x;
 } mvchpf24;
 
 int32_t mvchpf24_init(CSOUND *csound, mvchpf24 *p){
@@ -2108,7 +2108,7 @@ int32_t mvchpf24_init(CSOUND *csound, mvchpf24 *p){
 int32_t mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x = p->x, t, d, y;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2173,7 +2173,7 @@ int32_t mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
 int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, *freq = p->freq;
-  double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
+  MYDBL c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x = p->x, t, d, y;
   int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -2244,18 +2244,18 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
    cased on code by Miller Puckette
 */
 
-static int32_t calc_derivatives(CSOUND *csound, BOB *p, double *dstate,
-                                double *state, MYFLT in)
+static int32_t calc_derivatives(CSOUND *csound, BOB *p, MYDBL *dstate,
+                                MYDBL *state, MYFLT in)
 {
   MYFLT  freq = *p->freq;
   MYFLT  res = *p->res;
-  double k = TWOPI * freq;
-  double sat = *p->sat;
-  double satinv = 1.0/sat;
+  MYDBL k = TWOPI * freq;
+  MYDBL sat = *p->sat;
+  MYDBL satinv = 1.0/sat;
 
-  double satstate0 = sat * tanh(state[0] * satinv);
-  double satstate1 = sat * tanh(state[1] * satinv);
-  double satstate2 = sat * tanh(state[2] * satinv);
+  MYDBL satstate0 = sat * tanh(state[0] * satinv);
+  MYDBL satstate1 = sat * tanh(state[1] * satinv);
+  MYDBL satstate2 = sat * tanh(state[2] * satinv);
 
   dstate[0] = k *
     (sat * tanh((in - res * state[3]) * satinv) - satstate0);
@@ -2296,13 +2296,13 @@ static int32_t bob_process(CSOUND *csound,BOB *p)
   MYFLT  *sat  = p->sat;
 
   int32_t ostimes = p->ostimes,j;
-  double stepsize = 1./(ostimes * CS_ESR);
+  MYDBL stepsize = 1./(ostimes * CS_ESR);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i,l, nsmps = CS_KSMPS;
   int32_t      asgfr = IS_ASIG_ARG(p->freq),
     asgrs = IS_ASIG_ARG(p->res), asgsa = IS_ASIG_ARG(p->sat);
-  double deriv1[DIM], deriv2[DIM], deriv3[DIM], deriv4[DIM],
+  MYDBL deriv1[DIM], deriv2[DIM], deriv3[DIM], deriv4[DIM],
     tempstate[DIM];
 
   if (UNLIKELY(offset)) {
@@ -2386,10 +2386,10 @@ int32_t vps_process(CSOUND *csound, VPS *p) {
 typedef struct vcfnl {
   OPDS h;
   MYFLT *y, *y1, *x, *f, *r, *kn, *istor;
-  double s[4];
-  double A, G[4];
+  MYDBL s[4];
+  MYDBL A, G[4];
   MYFLT ff;
-  double piosr;
+  MYDBL piosr;
   MYFLT max;
   MYFLT *tab;
   size_t size;
@@ -2397,7 +2397,7 @@ typedef struct vcfnl {
 
 int32_t vcfnl_init(CSOUND *csound, VCFNL *p) {
   MYFLT *tab;
-  double g, *G = p->G;
+  MYDBL g, *G = p->G;
   p->piosr = CS_PIDSR;
   p->ff = *p->f;
   g = TAN(p->ff*p->piosr);
@@ -2426,10 +2426,10 @@ int32_t vcfnl_init(CSOUND *csound, VCFNL *p) {
 }
 
 int32_t vcfnl_perfk(CSOUND *csound, VCFNL *p) {
-  double *G = p->G, A = p->A, *s = p->s, ss;
+  MYDBL *G = p->G, A = p->A, *s = p->s, ss;
   MYFLT *y = p->y, *x = p->x, *y1 = p->y1,
     kn = (*p->kn > 0 ? *p->kn : 0)+FL(1.0), kno1;
-  double w, u, o;
+  MYDBL w, u, o;
   MYFLT k = *p->r * FL(4.0), max = p->max, *tab = p->tab;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2473,10 +2473,10 @@ int32_t vcfnl_perfk(CSOUND *csound, VCFNL *p) {
 }
 
 int32_t vcfnl_perfak(CSOUND *csound, VCFNL *p) {
-  double *G = p->G, A = p->A, *s = p->s, ss, g;
+  MYDBL *G = p->G, A = p->A, *s = p->s, ss, g;
   MYFLT *y = p->y, *x = p->x, *y1 = p->y1, *f = p->f,
     kn = (*p->kn > 0 ? *p->kn : 0)+FL(1.0), kno1;
-  double w, u, o, piosr = p->piosr;
+  MYDBL w, u, o, piosr = p->piosr;
   MYFLT k = *p->r * FL(4.0), max = p->max, *tab = p->tab;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2516,10 +2516,10 @@ int32_t vcfnl_perfak(CSOUND *csound, VCFNL *p) {
 }
 
 int32_t vcfnl_perfka(CSOUND *csound, VCFNL *p) {
-  double *G = p->G, A = p->A, *s = p->s, ss;
+  MYDBL *G = p->G, A = p->A, *s = p->s, ss;
   MYFLT *y = p->y, *x = p->x, *y1 = p->y1, *r = p->r,
     kn = (*p->kn > 0 ? *p->kn : 0)+FL(1.0), kno1;
-  double w, u, o, piosr = p->piosr;
+  MYDBL w, u, o, piosr = p->piosr;
   MYFLT max = p->max, *tab = p->tab, k;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2564,10 +2564,10 @@ int32_t vcfnl_perfka(CSOUND *csound, VCFNL *p) {
 }
 
 int32_t vcfnl_perfaa(CSOUND *csound, VCFNL *p) {
-  double *G = p->G, A = p->A, *s = p->s, ss, g;
+  MYDBL *G = p->G, A = p->A, *s = p->s, ss, g;
   MYFLT *y = p->y, *x = p->x, *y1 = p->y1, *f = p->f, *r = p->r,
     kn = (*p->kn > 0 ? *p->kn : 0)+FL(1.0), kno1;
-  double w, u, o, piosr = p->piosr;
+  MYDBL w, u, o, piosr = p->piosr;
   MYFLT k, max = p->max, *tab = p->tab;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2612,14 +2612,14 @@ int32_t vcfnl_perfaa(CSOUND *csound, VCFNL *p) {
 typedef struct vcf {
   OPDS h;
   MYFLT *y, *x, *f, *r, *istor;
-  double s[4];
-  double A, G[4];
+  MYDBL s[4];
+  MYDBL A, G[4];
   MYFLT ff;
-  double piosr;
+  MYDBL piosr;
 } VCF;
 
 int32_t vcf_init(CSOUND *csound, VCF *p) {
-  double g, *G = p->G;
+  MYDBL g, *G = p->G;
   p->piosr = PI/CS_ESR;
   p->ff = *p->f;
   g = TAN(p->ff*p->piosr);
@@ -2634,9 +2634,9 @@ int32_t vcf_init(CSOUND *csound, VCF *p) {
 }
 
 int32_t vcf_perfk(CSOUND *csound, VCF *p) {
-  double *G = p->G, A = p->A, *s = p->s, ss;
+  MYDBL *G = p->G, A = p->A, *s = p->s, ss;
   MYFLT *y = p->y, *x = p->x;
-  double w, u, o;
+  MYDBL w, u, o;
   MYFLT k = *p->r <=  1 ? (*p->r >= 0 ? *p->r*4 : 0)  : 4;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2677,9 +2677,9 @@ int32_t vcf_perfk(CSOUND *csound, VCF *p) {
 }
 
 int32_t vcf_perfak(CSOUND *csound, VCF *p) {
-  double *G = p->G, A, *s = p->s, ss, g;
+  MYDBL *G = p->G, A, *s = p->s, ss, g;
   MYFLT *y = p->y, *x = p->x, *f = p->f;
-  double w, u, o;
+  MYDBL w, u, o;
   MYFLT k = *p->r <=  1 ? (*p->r >= 0 ? *p->r*4 : 0)  : 4;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2718,9 +2718,9 @@ int32_t vcf_perfak(CSOUND *csound, VCF *p) {
 
 
 int32_t vcf_perfka(CSOUND *csound, VCF *p) {
-  double *G = p->G, A = p->A, *s = p->s, ss;
+  MYDBL *G = p->G, A = p->A, *s = p->s, ss;
   MYFLT *y = p->y, *x = p->x;
-  double w, u, o;
+  MYDBL w, u, o;
   MYFLT *r = p->r, k;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2761,9 +2761,9 @@ int32_t vcf_perfka(CSOUND *csound, VCF *p) {
 }
 
 int32_t vcf_perfaa(CSOUND *csound, VCF *p) {
-  double *G = p->G, A, *s = p->s, ss, g;
+  MYDBL *G = p->G, A, *s = p->s, ss, g;
   MYFLT *y = p->y, *x = p->x, *f = p->f;
-  double w, u, o;
+  MYDBL w, u, o;
   MYFLT *r = p->r, k;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2805,15 +2805,15 @@ typedef struct _spf {
   OPDS h;
   MYFLT *y,*xl,*xh,*xb,*f,*r, *istor;
   MYFLT ff, R;
-  double s[2],sl[2],sh[2],sb[2];
-  double al[2],ah[2],ab,b[2];
-  double piosr;
+  MYDBL s[2],sl[2],sh[2],sb[2];
+  MYDBL al[2],ah[2],ab,b[2];
+  MYDBL piosr;
 } SPF;
 
 
 int32_t spf_init(CSOUND *csound, SPF *p) {
-  double w, w2, fac;
-  double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
+  MYDBL w, w2, fac;
+  MYDBL *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
   p->piosr = PI/CS_ESR;
   w = TAN(*p->f*p->piosr);
   w2 = w*w;
@@ -2836,14 +2836,14 @@ int32_t spf_perfkk(CSOUND *csound, SPF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  double *b = p->b,*al = p->al,*ah = p->ah, ab = p->ab;
+  MYDBL *b = p->b,*al = p->al,*ah = p->ah, ab = p->ab;
   MYFLT *xl = p->xl, *xh = p->xh, *xb = p->xb, *y = p->y;
-  double x;
-  double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
+  MYDBL x;
+  MYDBL *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
 
   if(p->ff != *p->f ||
      p->R  != *p->r) {
-    double w, w2, fac;
+    MYDBL w, w2, fac;
     p->R = *p->r >  0 ? (*p->r <= 2. ? *p->r : 2.) : 0.;
     w = TAN(*p->f*p->piosr);
     w2 = w*w;
@@ -2890,11 +2890,11 @@ int32_t spf_perfak(CSOUND *csound, SPF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  double *b = p->b,*al = p->al,*ah = p->ah, ab;
+  MYDBL *b = p->b,*al = p->al,*ah = p->ah, ab;
   MYFLT *xl = p->xl, *xh = p->xh, *xb = p->xb, *y = p->y;
-  double x;
-  double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
-  double w, w2, fac, R;
+  MYDBL x;
+  MYDBL *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
+  MYDBL w, w2, fac, R;
   MYFLT *f = p->f;
 
   R = *p->r >  0 ? (*p->r <= 2. ? *p->r : 2.) : 0.;
@@ -2938,11 +2938,11 @@ int32_t spf_perfaa(CSOUND *csound, SPF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  double *b = p->b,*al = p->al,*ah = p->ah, ab;
+  MYDBL *b = p->b,*al = p->al,*ah = p->ah, ab;
   MYFLT *xl = p->xl, *xh = p->xh, *xb = p->xb, *y = p->y;
-  double x;
-  double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
-  double w, w2, fac, R;
+  MYDBL x;
+  MYDBL *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
+  MYDBL w, w2, fac, R;
   MYFLT *r = p->r, *f = p->f;
 
   if (UNLIKELY(offset)) {
@@ -2985,11 +2985,11 @@ int32_t spf_perfka(CSOUND *csound, SPF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  double *b = p->b,*al = p->al,*ah = p->ah, ab;
+  MYDBL *b = p->b,*al = p->al,*ah = p->ah, ab;
   MYFLT *xl = p->xl, *xh = p->xh, *xb = p->xb, *y = p->y;
-  double x;
-  double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
-  double w, w2, fac, R;
+  MYDBL x;
+  MYDBL *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
+  MYDBL w, w2, fac, R;
   MYFLT *r = p->r;
 
   w = TAN(*p->f*p->piosr);
@@ -3033,14 +3033,14 @@ typedef struct _skf {
   OPDS h;
   MYFLT *y,*x,*f,*K,*ihp,*istor;
   MYFLT ff, R, KK;
-  double s[2];
-  double a[2],b[2];
-  double piosr;
+  MYDBL s[2];
+  MYDBL a[2],b[2];
+  MYDBL piosr;
 } SKF;
 
 int32_t skf_init(CSOUND *csound, SKF *p) {
-  double w, w2, fac;
-  double *s = p->s;
+  MYDBL w, w2, fac;
+  MYDBL *s = p->s;
   p->piosr = PI/CS_ESR;
   w = TAN(*p->f*p->piosr);
   w2 = w*w;
@@ -3067,14 +3067,14 @@ int32_t skf_perfkk(CSOUND *csound, SKF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  double *b = p->b,*a = p->a;
+  MYDBL *b = p->b,*a = p->a;
   MYFLT *x = p->x, *y = p->y;
-  double yy;
-  double *s = p->s;
+  MYDBL yy;
+  MYDBL *s = p->s;
 
   if(p->ff != *p->f ||
      p->KK != *p->K) {
-    double w, w2, fac;
+    MYDBL w, w2, fac;
     p->KK = (*p->K > 1 ? (*p->K <= 3. ? *p->K : 3.) : 1.);
     p->R = 3 - p->KK;
     w = TAN(*p->f*p->piosr);
@@ -3113,10 +3113,10 @@ int32_t skf_perfak(CSOUND *csound, SKF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  double *b = p->b,*a = p->a;
+  MYDBL *b = p->b,*a = p->a;
   MYFLT *x = p->x, *y = p->y, *f = p->f;
-  double yy, R;
-  double *s = p->s;
+  MYDBL yy, R;
+  MYDBL *s = p->s;
   R = 3 - (*p->K > 1 ? (*p->K <= 3. ? *p->K : 3.) : 1.);
 
   if (UNLIKELY(offset)) {
@@ -3128,7 +3128,7 @@ int32_t skf_perfak(CSOUND *csound, SKF *p) {
   }
 
   for (i=offset; i<nsmps; i++) {
-    double w, w2, fac;
+    MYDBL w, w2, fac;
     w = TAN(f[i]*p->piosr);
     w2 = w*w;
     fac = 1./(1. + R*w + w2);
@@ -3153,11 +3153,11 @@ int32_t skf_perfaa(CSOUND *csound, SKF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  double *b = p->b,*a = p->a;
+  MYDBL *b = p->b,*a = p->a;
   MYFLT *x = p->x, *y = p->y, *f = p->f;
-  double yy, R;
+  MYDBL yy, R;
   MYFLT *K = p->K;
-  double *s = p->s;
+  MYDBL *s = p->s;
 
   if (UNLIKELY(offset)) {
     memset(y, '\0', offset*sizeof(MYFLT));
@@ -3168,7 +3168,7 @@ int32_t skf_perfaa(CSOUND *csound, SKF *p) {
   }
 
   for (i=offset; i<nsmps; i++) {
-    double w, w2, fac;
+    MYDBL w, w2, fac;
     R = 3 - (K[i] > 1 ? (K[i] <= 3. ? K[i] : 3.) : 1.);
     w = TAN(f[i]*p->piosr);
     w2 = w*w;
@@ -3194,12 +3194,12 @@ int32_t skf_perfka(CSOUND *csound, SKF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  double *b = p->b,*a = p->a;
+  MYDBL *b = p->b,*a = p->a;
   MYFLT *x = p->x, *y = p->y;
-  double yy, R;
+  MYDBL yy, R;
   MYFLT *K = p->K;
-  double *s = p->s;
-  double w, w2, fac;
+  MYDBL *s = p->s;
+  MYDBL w, w2, fac;
   w = TAN(*p->f*p->piosr);
   w2 = w*w;
 
@@ -3236,9 +3236,9 @@ typedef struct _svn {
   OPDS h;
   MYFLT *yh,*yl,*yb,*yr,*x,*f,*q,*kn,*ifn,*inm,*mx,*istor;
   MYFLT ff, Q;
-  double fac, w;
-  double s[2];
-  double piosr;
+  MYDBL fac, w;
+  MYDBL s[2];
+  MYDBL piosr;
   MYFLT *tab, max;
   int32_t size;
 } SVN;
@@ -3246,8 +3246,8 @@ typedef struct _svn {
 
 
 int32_t svn_init(CSOUND *csound, SVN *p) {
-  double w2;
-  double *s = p->s;
+  MYDBL w2;
+  MYDBL *s = p->s;
   p->piosr = PI/CS_ESR;
   p->w = TAN(*p->f*p->piosr);
   w2 = p->w*p->w;
@@ -3285,13 +3285,13 @@ int32_t svn_perfkk(CSOUND *csound, SVN *p) {
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
   MYFLT *x = p->x , kn = *p->kn, kno1;
-  double u, w = p->w, fac = p->fac, Q = p->Q, D;
-  double *s = p->s;
+  MYDBL u, w = p->w, fac = p->fac, Q = p->Q, D;
+  MYDBL *s = p->s;
   MYFLT *tab = p->tab, *tn = NULL;
-  double max = p->max, mx = *p->mx;
+  MYDBL max = p->max, mx = *p->mx;
   int32_t size = p->size, sz = 0;
   FUNC *ftab = csound->FTFind(csound, p->inm);
-  double scal = csound->Get0dBFS(csound), iscal;
+  MYDBL scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
   D = 1./Q;
 
@@ -3366,13 +3366,13 @@ int32_t svn_perfak(CSOUND *csound, SVN *p) {
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
   MYFLT *x = p->x , kn = *p->kn > 0 ? *p->kn : .0001, kno1, *f = p->f;
-  double u, w, fac, Q = p->Q, D;
-  double *s = p->s;
+  MYDBL u, w, fac, Q = p->Q, D;
+  MYDBL *s = p->s;
   MYFLT *tab = p->tab, *tn = NULL;
-  double max = p->max, mx = *p->mx;
+  MYDBL max = p->max, mx = *p->mx;
   int32_t size = p->size, sz = 0;
   FUNC *ftab = csound->FTFind(csound, p->inm);
-  double scal = csound->Get0dBFS(csound), iscal;
+  MYDBL scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
   Q = p->Q = *p->q >  0.5 ? *p->q : 0.5;
   D = 1./Q;
@@ -3442,13 +3442,13 @@ int32_t svn_perfka(CSOUND *csound, SVN *p) {
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
   MYFLT *x = p->x,  kn = *p->kn > 0 ? *p->kn : .0001, kno1, *q = p->q;
-  double u, w = p->w, w2, fac = p->fac, D;
-  double *s = p->s;
+  MYDBL u, w = p->w, w2, fac = p->fac, D;
+  MYDBL *s = p->s;
   MYFLT *tab = p->tab, *tn = NULL;
-  double max = p->max, mx = *p->mx;
+  MYDBL max = p->max, mx = *p->mx;
   int32_t size = p->size, sz = 0;
   FUNC *ftab = csound->FTFind(csound, p->inm);
-  double scal = csound->Get0dBFS(csound), iscal;
+  MYDBL scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
   w2 = w*w;
 
@@ -3524,13 +3524,13 @@ int32_t svn_perfaa(CSOUND *csound, SVN *p) {
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
   MYFLT *x = p->x ,kn = *p->kn > 0 ? *p->kn : .0001, kno1, *f = p->f, *q = p->q;
-  double u, w, fac, D;
-  double *s = p->s;
+  MYDBL u, w, fac, D;
+  MYDBL *s = p->s;
   MYFLT *tab = p->tab, *tn = NULL;
-  double max = p->max, mx = *p->mx;
+  MYDBL max = p->max, mx = *p->mx;
   int32_t size = p->size, sz = 0;
   FUNC *ftab = csound->FTFind(csound, p->inm);
-  double scal = csound->Get0dBFS(csound), iscal;
+  MYDBL scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
 
   if (UNLIKELY(offset)) {

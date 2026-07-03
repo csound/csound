@@ -45,7 +45,7 @@
 
 #include "csoundCore.h"
 #include "ugrw1.h"
-#include <math.h>
+
 #include <ctype.h>
 #include "csound_standard_types.h"
 
@@ -281,7 +281,7 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       if ((temp  == '^') && (tempn != '^')) {
         *sdest++ = ESC;
       }
-/* Look for a double caret and insert a single caret - stepping forward  one */
+/* Look for a MYDBL caret and insert a single caret - stepping forward  one */
       else if ((temp  == '^') && (tempn == '^')) {
         *sdest++ = '^';
         sarg++;
@@ -292,7 +292,7 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
         *sdest++ = ESC;
         *sdest++ = '[';
       }
-/* Look for a double tilde and insert a tilde caret - stepping forward one.  */
+/* Look for a MYDBL tilde and insert a tilde caret - stepping forward one.  */
       else if ((temp  == '~') && (tempn == '~')) {
         *sdest++ = '~';
         sarg++;

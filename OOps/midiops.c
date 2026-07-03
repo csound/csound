@@ -23,7 +23,7 @@
 
 #include "csoundCore.h"                                 /*      MIDIOPS.C   */
 #include "midiops.h"
-#include <math.h>
+
 #include <time.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "arrays.h"
@@ -248,7 +248,7 @@ int32_t pchmidi(CSOUND *csound, MIDIKMB *p)
 {
     IGN(csound);
     INSDS *lcurip = p->h.insdshead;
-    double fract, oct, ioct;
+    MYDBL fract, oct, ioct;
     oct = lcurip->m_pitch / 12.0 + 3.0;
     fract = modf(oct, &ioct);
     fract *= 0.12;
@@ -259,7 +259,7 @@ int32_t pchmidi(CSOUND *csound, MIDIKMB *p)
 int32_t pchmidib(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
-    double fract, oct, ioct;
+    MYDBL fract, oct, ioct;
     MCHNBLK *xxx = csound->curip->m_chnbp;
     MYFLT bend = pitchbend_value(xxx);
     oct = (lcurip->m_pitch + (bend * p->scale)) / FL(12.0) + FL(3.0);
@@ -734,7 +734,7 @@ void zeroNoteFromArray(int32_t notes[], int32_t noteNumber, int32_t size)
 
 int32_t metroCounter(MIDIARP *p)
 {
-    double phs = p->curphs;
+    MYDBL phs = p->curphs;
     if (phs == 0.0 && p->flag) {
       p->metroTick = FL(1.0);
       p->flag = 0;

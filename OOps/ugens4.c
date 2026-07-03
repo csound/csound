@@ -22,7 +22,7 @@
 
 #include "csoundCore.h"         /*                      UGENS4.C        */
 #include "ugens4.h"
-#include <math.h>
+
 #include <inttypes.h>
 
 /* The branch prediction slows it down!! */
@@ -57,7 +57,7 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
     int32_t       nn;
-    double   phsf = p->fphs;
+    MYDBL   phsf = p->fphs;
     
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
@@ -155,7 +155,7 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       r, absr, num, denom, scal, last = p->last;
     int32_t       nn, lphs = p->lphs;
-    double fphs = p->fphs;
+    MYDBL fphs = p->fphs;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;

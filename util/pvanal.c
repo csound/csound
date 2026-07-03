@@ -37,12 +37,12 @@
 #include "cwindow.h"
 #include "soundio.h"
 #include "pvfileio.h"
-#include <math.h>
+
 #include <ctype.h>
 
 
 typedef struct pvocex_ch {
-        double  rratio;
+        MYDBL  rratio;
         MYFLT   *input,         /* pointer to start of input buffer */
                 *anal,          /* pointer to start of analysis buffer */
                 *nextIn,        /* pointer to next empty word in input */
@@ -117,18 +117,18 @@ static  int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd,
                         int64_t srate, int64_t chans, int64_t fftsize,
                         int64_t overlap, int64_t winsize,
                         pv_wtype wintype,
-                        double beta, int32_t displays);
+                        MYDBL beta, int32_t displays);
 static  int64_t    generate_frame(CSOUND*, PVX *pvx, MYFLT *fbuf, float *outanal,
                                         int64_t samps, int32_t frametype);
 static  void    chan_split(CSOUND*, const MYFLT *inbuf, MYFLT **chbuf,
                                     int64_t insize, int64_t chans);
 static  int32_t     init(CSOUND *csound,
                      PVX **pvx, int64_t srate, int64_t fftsize, int64_t winsize,
-                     int64_t overlap, pv_wtype wintype, double beta);
+                     int64_t overlap, pv_wtype wintype, MYDBL beta);
 /* from elsewhere in Csound! But special form for CARL code*/
 static  void    hamming(MYFLT *win, int32_t winLen, int32_t even);
-static  double  besseli(double x);
-static  void    kaiser(MYFLT *win, int32_t len, double Beta);
+static  MYDBL  besseli(MYDBL x);
+static  void    kaiser(MYFLT *win, int32_t len, MYDBL Beta);
 static  void    vonhann(MYFLT *win, int32_t winLen, int32_t even);
 static  int32_t     quit(CSOUND *, char *msg);
 
@@ -162,7 +162,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
     FILE    *trfil = stdout;
     pv_wtype  WindowType = PVOC_HANN;
     char    err_msg[512];
-    double  beta = 6.8;
+    MYDBL  beta = 6.8;
     int32_t displays = 0;
 
 
@@ -389,7 +389,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int32_t frame)
       return;
     for (i = 0; i < p->npts; i++)
       p->dispBufs[p->dispFrame][i] =
-          (MYFLT) sqrt((double) (p->dispBufs[p->dispFrame][i]
+          (MYFLT) sqrt((MYDBL) (p->dispBufs[p->dispFrame][i]
                                  / (MYFLT) p->dispCnt));
     p->csound->SetDisplay(p->csound, &(p->dwindow), p->dispBufs[p->dispFrame],
                        p->npts, "pvanalwin", 0, "PVANAL");
@@ -405,7 +405,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int32_t frame)
 
 static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
                    int64_t srate, int64_t chans, int64_t fftsize, int64_t overlap,
-                   int64_t winsize, pv_wtype wintype, double beta, int32_t displays)
+                   int64_t winsize, pv_wtype wintype, MYDBL beta, int32_t displays)
 {
     int32_t         i, k, pvfile = -1, rc = 0;
     pv_stype    stype = STYPE_16;
@@ -546,7 +546,7 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
 
 static int32_t init(CSOUND *csound,
                 PVX **pvx, int64_t srate, int64_t fftsize, int64_t winsize,
-                int64_t overlap, pv_wtype wintype, double beta)
+                int64_t overlap, pv_wtype wintype, MYDBL beta)
 {
     int32_t     i;
     int64_t    N, N2, M, Mf, D;
@@ -641,10 +641,10 @@ static int32_t init(CSOUND *csound,
     if (M > N) {
       if (Mf)
         *thispvx->analWindow *=
-          (MYFLT)((double)N*sin(HALFPI/(double)N)/(HALFPI));
+          (MYFLT)((MYDBL)N*sin(HALFPI/(MYDBL)N)/(HALFPI));
       for (i = 1; i <= thispvx->analWinLen; i++)
         *(thispvx->analWindow + i) *=   /* D.T. 2000*/
-          (MYFLT)((double)N*sin((double)(PI*(i+0.5*Mf)/N))/(PI*(i+0.5*Mf)));
+          (MYFLT)((MYDBL)N*sin((MYDBL)(PI*(i+0.5*Mf)/N))/(PI*(i+0.5*Mf)));
       for (i = 1; i <= thispvx->analWinLen; i++)
         *(thispvx->analWindow - i) = *(thispvx->analWindow + i - Mf);
     }
@@ -712,7 +712,7 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
     int32_t     got, tocp, i, j, k;
     int64_t    N = pvx->N;
     MYFLT   *fp, *oi, *i0, *i1, real, imag, *anal, angleDif;
-    double  rratio, phase;
+    MYDBL  rratio, phase;
     float   *ofp;           /* RWD MUST be 32bit */
 
     anal = pvx->anal;
@@ -788,14 +788,14 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
            i++,i0+=2,i1+=2, oi++) {
         real = *i0;
         imag = *i1;
-        *i0 =(MYFLT) hypot((double)real, (double)imag);
+        *i0 =(MYFLT) hypot((MYDBL)real, (MYDBL)imag);
         /* phase unwrapping */
         /*if (*i0 == 0.)*/
         if (*i0 < FL(1.0E-10))        /* RWD don't mess with v small numbers! */
           angleDif = FL(0.0);
 
         else {
-          rratio = atan2((double)imag,(double)real);
+          rratio = atan2((MYDBL)imag,(MYDBL)real);
           angleDif  = (MYFLT)((phase = rratio) - *oi);
           *oi = (MYFLT) phase;
         }
@@ -813,7 +813,7 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
     fp = anal;
     ofp = outanal;
     for (i=0;i < N+2;i++)
-      *ofp++ = (float) *fp++;  /* RWD need 32bit cast incase MYFLT is double */
+      *ofp++ = (float) *fp++;  /* RWD need 32bit cast incase MYFLT is MYDBL */
 
     pvx->nI += pvx->D;                          /* increment time */
     pvx->Dd = MIN(pvx->D,                       /* CARL */
@@ -845,28 +845,28 @@ static void chan_split(CSOUND *csound, const MYFLT *inbuf, MYFLT **chbuf,
 
 static void hamming(MYFLT *win, int32_t winLen, int32_t even)
 {
-    double ftmp;
+    MYDBL ftmp;
     int32_t i;
 
     ftmp = PI/winLen;
 
     if (even) {
       for (i=0; i<winLen; i++)
-        *(win+i) = (MYFLT)(0.54 + 0.46*cos(ftmp*((double)i+0.5)));
+        *(win+i) = (MYFLT)(0.54 + 0.46*cos(ftmp*((MYDBL)i+0.5)));
       *(win+winLen) = FL(0.0);
     }
     else {
       *(win) = FL(1.0);
       for (i=1; i<=winLen; i++)
-        *(win+i) = (MYFLT)(0.54 + 0.46*cos(ftmp*(double)i));
+        *(win+i) = (MYFLT)(0.54 + 0.46*cos(ftmp*(MYDBL)i));
     }
 
 }
 
-static double besseli(double x)
+static MYDBL besseli(MYDBL x)
 {
-    double ax, ans;
-    double y;
+    MYDBL ax, ans;
+    MYDBL y;
 
     if (( ax = fabs( x)) < 3.75)     {
       y = x / 3.75;
@@ -894,12 +894,12 @@ static double besseli(double x)
     return ans;
 }
 
-static void kaiser(MYFLT *win, int32_t len, double Beta)
+static void kaiser(MYFLT *win, int32_t len, MYDBL Beta)
 {
     MYFLT *ft = win;
-    double i, xarg = 1.0;        /*xarg = amp scalefactor */
-    for (i = -(double)len/2.0 + 0.1 ; i < (double)len/2.0 ; i++) {
-      double z = 2.0*i/(double)(len - 1);
+    MYDBL i, xarg = 1.0;        /*xarg = amp scalefactor */
+    for (i = -(MYDBL)len/2.0 + 0.1 ; i < (MYDBL)len/2.0 ; i++) {
+      MYDBL z = 2.0*i/(MYDBL)(len - 1);
       *ft++ = (MYFLT) (xarg *
                        besseli(Beta * sqrt(1.0-z*z)) /
                        besseli(Beta));
@@ -917,12 +917,12 @@ static void vonhann(MYFLT *win, int32_t winLen, int32_t even)
 
     if (even) {
       for (i=0; i<winLen; i++)
-        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*((double)i+0.5)));
+        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*((MYDBL)i+0.5)));
       win[winLen] = FL(0.0);
     }
     else {
       win[0] = FL(1.0);
       for (i=1; i<=winLen; i++)
-        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
+        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(MYDBL)i));
     }
 }

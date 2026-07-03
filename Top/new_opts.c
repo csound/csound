@@ -69,28 +69,28 @@ void dump_cfg_variables(CSOUND *csound)
           csound->Message(csound, Str("<float>"));
           if ((p[i])->f.min > -1.0e24f)
             csound->Message(csound, ", %s%g", Str("min: "),
-                                    (double) (p[i])->f.min);
+                                    (MYDBL) (p[i])->f.min);
           if ((p[i])->f.max < 1.0e24f)
             csound->Message(csound, ", %s%g", Str("max: "),
-                                    (double) (p[i])->f.max);
+                                    (MYDBL) (p[i])->f.max);
           break;
         case CSOUNDCFG_DOUBLE:
           csound->Message(csound, Str("<float>"));
           if ((p[i])->d.min > -1.0e24)
             csound->Message(csound, ", %s%g", Str("min: "),
-                                    (double) (p[i])->d.min);
+                                    (MYDBL) (p[i])->d.min);
           if ((p[i])->d.max < 1.0e24)
             csound->Message(csound, ", %s%g", Str("max: "),
-                                    (double) (p[i])->d.max);
+                                    (MYDBL) (p[i])->d.max);
           break;
         case CSOUNDCFG_MYFLT:
           csound->Message(csound, Str("<float>"));
           if ((p[i])->m.min > ((MYFLT) -1.0e24))
             csound->Message(csound, ", %s%g", Str("min: "),
-                                    (double) (p[i])->m.min);
+                                    (MYDBL) (p[i])->m.min);
           if ((p[i])->m.max < ((MYFLT) 1.0e24))
             csound->Message(csound, ", %s%g", Str("max: "),
-                                    (double) (p[i])->m.max);
+                                    (MYDBL) (p[i])->m.max);
           break;
         case CSOUNDCFG_STRING:
           csound->Message(csound, Str("<string> (max. length = %d characters)"),

@@ -136,7 +136,7 @@ typedef struct {
         MYFLT   *iprd, *ilo, *ihi, *idbthresh;
                                 /* Optional */
         MYFLT   *ifrqs, *iconf, *istrt, *iocts, *iq, *inptls, *irolloff, *istor;
-        double  c1, c2, prvq;
+        MYDBL  c1, c2, prvq;
 #define MAXFRQS 120
         SPECDAT wsig;
         int32_t     nfreqs, ncoefs, dbout, scountdown, timcount;
@@ -238,7 +238,7 @@ typedef struct {
     int32       ampinc;         /* Scale output to range */
     uint32      randSeed;     /* Used by local random generator */
                                 /* for Paul Kellet's filter bank */
-    double      b0, b1, b2, b3, b4, b5, b6;
+    MYDBL      b0, b1, b2, b3, b4, b5, b6;
                                 /* for Gardner method */
     int32       grd_Rows[GRD_MAX_RANDOM_ROWS];
     int32       grd_NumRows;    /* Number of rows (octave bands of noise) */

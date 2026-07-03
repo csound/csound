@@ -57,7 +57,7 @@ static CS_NOINLINE void
     csoundWriteMidiOutFile(CSOUND *csound, const unsigned char *evt, int32_t nbytes)
 {
     unsigned char   buf[8];
-    double          s;
+    MYDBL          s;
     midiOutFile_t   *p = (midiOutFile_t *) csound->midiGlobals->midiOutFileData;
     uint32_t   t, prv;
     int32_t             ndx = 0;

@@ -44,7 +44,7 @@
 /* calculate distance */
 
 #define SPAT3D_XYZ2DIST(x,y,z)  \
-     ((MYFLT) sqrt ((double) ((x) * (x) + (y) * (y) + (z) * (z))))
+     ((MYFLT) sqrt ((MYDBL) ((x) * (x) + (y) * (y) + (z) * (z))))
 
 /* limit a number to a specified range */
 
@@ -58,7 +58,7 @@ typedef struct {
                                         /* -1: none, 0: X, 1: Y, 2: Z   */
         MYFLT   Xc;                     /* coord. offset                */
         MYFLT   W0, X0, Y0, Z0;         /* W, X, Y, Z (Ll, Lh, Rl, Rh)  */
-        double  D0, D1;                 /* delay                        */
+        MYDBL  D0, D1;                 /* delay                        */
         MYFLT   *yn;                    /* output sound                 */
         MYFLT   a0, a1, a2, b0, b1, b2; /* EQ parameters                */
         MYFLT   xnm1, xnm2, ynm1, ynm2; /* EQ tmp data                  */

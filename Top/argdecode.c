@@ -195,7 +195,7 @@ static const char *longUsageList[] = {
     Str_noop("--events=string         perform events in string"), 
     "--format={wav,aiff,au,raw,paf,svx,nist,voc,ircam,w64,mat4,mat5",
     "          pvf,xi,htk,sds,avr,wavex,sd2,flac,caf,wve,ogg,mpc2k,rf64,mpeg}",
-    "--format={alaw,ulaw,schar,uchar,float,double,short,long,24bit,vorbis}",
+    "--format={alaw,ulaw,schar,uchar,float,MYDBL,short,long,24bit,vorbis}",
     Str_noop("  Set output file format"),
     Str_noop("--aiff                  set AIFF format"),
     Str_noop("--au                    set AU format"),
@@ -417,7 +417,7 @@ void set_output_format(OPARMS *O, char c) {
     break;
 
   case 'd':
-    O->outformat = AE_DOUBLE; /* double soundfile */
+    O->outformat = AE_DOUBLE; /* MYDBL soundfile */
     break;
 
   case 's':
@@ -456,7 +456,7 @@ typedef struct {
 
 static const SAMPLE_FORMAT_ENTRY sample_format_map[] = {
     {"alaw", 'a'},   {"schar", 'c'},  {"uchar", '8'}, {"float", 'f'},
-    {"double", 'd'}, {"long", 'l'},   {"short", 's'}, {"ulaw", 'u'},
+    {"MYDBL", 'd'}, {"long", 'l'},   {"short", 's'}, {"ulaw", 'u'},
     {"24bit", '3'},  {"vorbis", 'v'}, {NULL, '\0'}};
 
 const char *get_output_format(OPARMS *O) {
@@ -1448,7 +1448,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
         case 't':
           FIND(Str("no tempo value"));
           {
-            double val;
+            MYDBL val;
             sscanf(s, "%lg%n", &val, &n); /* use this tempo .. */
             s += n;
             if (UNLIKELY(val < 0.0))

@@ -102,7 +102,7 @@ void check_options(CSOUND *csound) {
 static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
   char *p = ss;
   int32_t num, cnt;
-  double p2o, p2, p3o, p3, inst;
+  MYDBL p2o, p2, p3o, p3, inst;
   while (*p != '\0') {
     switch (*p) {
     case 'f':

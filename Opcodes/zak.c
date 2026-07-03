@@ -51,7 +51,7 @@
 #include "csoundCore.h"
 #endif
 #include "interlocks.h"
-#include <math.h>
+
 #include <ctype.h>
 
 #include "zak.h"

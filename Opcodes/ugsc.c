@@ -87,7 +87,7 @@ static int32_t svf(CSOUND *csound, SVF *p)
       if (fco != lfco || q != lq) {
         lfco = fco; lq = q;
         /* calculate frequency and Q coefficients */
-        f1 = FL(2.0) * (MYFLT)sin((double)(fco * CS_PIDSR));
+        f1 = FL(2.0) * (MYFLT)sin((MYDBL)(fco * CS_PIDSR));
         /* Protect against division by zero */
         if (UNLIKELY(q<FL(0.000001))) q = FL(1.0);
         q1 = FL(1.0) / q;
@@ -123,9 +123,9 @@ static int32_t hilbertset(CSOUND *csound, HILBERT *p)
     int32_t j;  /* used to increment for loop */
 
     /* pole values taken from Bernie Hutchins, "Musical Engineer's Handbook" */
-    double poles[12] = {0.3609, 2.7412, 11.1573, 44.7581, 179.6242, 798.4578,
+    MYDBL poles[12] = {0.3609, 2.7412, 11.1573, 44.7581, 179.6242, 798.4578,
                         1.2524, 5.5671, 22.3423, 89.6271, 364.7914, 2770.1114};
-    double polefreq, rc, alpha, beta;
+    MYDBL polefreq, rc, alpha, beta;
     /* calculate coefficients for allpass filters, based on sampling rate */
     for (j=0; j<12; j++) {
       /*      p->coef[j] = (1 - (15 * PI * pole[j]) / CS_ESR) /
@@ -133,7 +133,7 @@ static int32_t hilbertset(CSOUND *csound, HILBERT *p)
       polefreq = poles[j] * 15.0;
       rc = 1.0 / (2.0 * PI * polefreq);
       alpha = 1.0 / rc;
-      alpha = alpha * 0.5 * (double)CS_ONEDSR;
+      alpha = alpha * 0.5 * (MYDBL)CS_ONEDSR;
       beta = (1.0 - alpha) / (1.0 + alpha);
       p->xnm1[j] = p->ynm1[j] = FL(0.0);
       p->coef[j] = -(MYFLT)beta;
@@ -234,10 +234,10 @@ static int32_t resonr(CSOUND *csound, RESONZ *p)
      *
      */
 
-    double r = 0.0, scale = 1.0; /* radius & scaling factor */
-    double c1=0.0, c2=0.0;   /* filter coefficients */
+    MYDBL r = 0.0, scale = 1.0; /* radius & scaling factor */
+    MYDBL c1=0.0, c2=0.0;   /* filter coefficients */
     MYFLT *out, *in;
-    double xn, yn, xnm1, xnm2, ynm1, ynm2;
+    MYDBL xn, yn, xnm1, xnm2, ynm1, ynm2;
     MYFLT *kcf = p->kcf, *kbw = p->kbw;
     MYFLT lcf = -FL(1.0), lbw = -FL(1.0);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -262,15 +262,15 @@ static int32_t resonr(CSOUND *csound, RESONZ *p)
       MYFLT bw = asgw ? kbw[n] : *kbw;
       if (cf != lcf || bw != lbw) {
         lcf = cf; lbw = bw;
-        r = exp((double)(bw * CS_MPIDSR));
-        c1 = 2.0 * r * cos((double)(cf * CS_TPIDSR));
+        r = exp((MYDBL)(bw * CS_MPIDSR));
+        c1 = 2.0 * r * cos((MYDBL)(cf * CS_TPIDSR));
         c2 = r * r;
         if (p->scaletype == 1)
           scale = 1.0 - r;
         else if (p->scaletype == 2)
           scale = sqrt(1.0 - r);
       }
-      xn = (double)in[n];
+      xn = (MYDBL)in[n];
       out[n] = (MYFLT)(yn = scale * (xn - r * xnm2) + c1 * ynm1 - c2 * ynm2);
       xnm2 = xnm1;
       xnm1 = xn;
@@ -297,10 +297,10 @@ static int32_t resonz(CSOUND *csound, RESONZ *p)
      *
      */
 
-    double r = 0.0, scale = 1.0; /* radius & scaling factor */
-    double c1=0.0, c2=0.0;   /* filter coefficients */
+    MYDBL r = 0.0, scale = 1.0; /* radius & scaling factor */
+    MYDBL c1=0.0, c2=0.0;   /* filter coefficients */
     MYFLT *out, *in;
-    double xn, yn, xnm1, xnm2, ynm1, ynm2;
+    MYDBL xn, yn, xnm1, xnm2, ynm1, ynm2;
     MYFLT *kcf = p->kcf, *kbw = p->kbw;
     MYFLT lcf = -FL(1.0), lbw = -FL(1.0);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -330,15 +330,15 @@ static int32_t resonz(CSOUND *csound, RESONZ *p)
       MYFLT bw = asgw ? kbw[n] : *kbw;
       if (cf != lcf || bw != lbw) {
         lcf = cf; lbw = bw;
-        r = exp(-(double)(bw * CS_PIDSR));
-        c1 = 2.0 * r * cos((double)(CS_TPIDSR*cf));
+        r = exp(-(MYDBL)(bw * CS_PIDSR));
+        c1 = 2.0 * r * cos((MYDBL)(CS_TPIDSR*cf));
         c2 = r * r;
         if (p->scaletype == 1)
           scale = (1.0 - c2) * 0.5;
         else if (p->scaletype == 2)
           scale = sqrt((1.0 - c2) * 0.5);
       }
-      xn = (double)in[n];
+      xn = (MYDBL)in[n];
       out[n] = (MYFLT)(yn = scale * (xn - xnm2) + c1 * ynm1 - c2 * ynm2);
       xnm2 = xnm1;
       xnm1 = xn;
@@ -550,17 +550,17 @@ static int32_t lp2_set(CSOUND *csound, LP2 *p)
 Hal Chamberlin's "Musical Applications of Microprocessors." */
 static int32_t lp2(CSOUND *csound, LP2 *p)
 {
-    double a, b, c, temp;
+    MYDBL a, b, c, temp;
     MYFLT *out, *in;
-    double yn, ynm1, ynm2;
+    MYDBL yn, ynm1, ynm2;
     MYFLT kfco = *p->kfco, kres = *p->kres;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    temp = (double)(CS_MPIDSR * kfco / kres);
+    temp = (MYDBL)(CS_MPIDSR * kfco / kres);
       /* (-PI_F * kfco / (kres * CS_ESR)); */
-    a = 2.0 * cos((double) (kfco * CS_TPIDSR)) * exp(temp);
+    a = 2.0 * cos((MYDBL) (kfco * CS_TPIDSR)) * exp(temp);
     b = exp(temp+temp);
     c = 1.0 - a + b;
 
@@ -575,7 +575,7 @@ static int32_t lp2(CSOUND *csound, LP2 *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (double)in[n]);
+      out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (MYDBL)in[n]);
       ynm2 = ynm1;
       ynm1 = yn;
     }
@@ -586,18 +586,18 @@ static int32_t lp2(CSOUND *csound, LP2 *p)
 
 static int32_t lp2aa(CSOUND *csound, LP2 *p)
 {
-    double a, b, c, temp;
+    MYDBL a, b, c, temp;
     MYFLT *out, *in;
-    double yn, ynm1, ynm2;
+    MYDBL yn, ynm1, ynm2;
     MYFLT *fcop = p->kfco, *resp = p->kres;
     MYFLT fco = fcop[0], res = resp[0];
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    temp = (double)(CS_MPIDSR * fco / res);
+    temp = (MYDBL)(CS_MPIDSR * fco / res);
       /* (-PI_F * kfco / (kres * CS_ESR)); */
-    a = 2.0 * cos((double) (fco * CS_TPIDSR)) * exp(temp);
+    a = 2.0 * cos((MYDBL) (fco * CS_TPIDSR)) * exp(temp);
     b = exp(temp+temp);
     c = 1.0 - a + b;
 
@@ -614,13 +614,13 @@ static int32_t lp2aa(CSOUND *csound, LP2 *p)
     for (n=offset; n<nsmps; n++) {
       if (res!=resp[n] || fco!=fcop[n]) {
         res=resp[n]; fco=fcop[n];
-        temp = (double)(CS_MPIDSR * fco / res);
+        temp = (MYDBL)(CS_MPIDSR * fco / res);
         /* (-PI_F * kfco / (kres * CS_ESR)); */
-        a = 2.0 * cos((double) (fco * CS_TPIDSR)) * exp(temp);
+        a = 2.0 * cos((MYDBL) (fco * CS_TPIDSR)) * exp(temp);
         b = exp(temp+temp);
         c = 1.0 - a + b;
       }
-      out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (double)in[n]);
+      out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (MYDBL)in[n]);
       ynm2 = ynm1;
       ynm1 = yn;
     }
@@ -631,18 +631,18 @@ static int32_t lp2aa(CSOUND *csound, LP2 *p)
 
 static int32_t lp2ka(CSOUND *csound, LP2 *p)
 {
-    double a, b, c, temp;
+    MYDBL a, b, c, temp;
     MYFLT *out, *in;
-    double yn, ynm1, ynm2;
+    MYDBL yn, ynm1, ynm2;
     MYFLT *resp = p->kres;
     MYFLT fco = *p->kfco, res = resp[0];
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    temp = (double)(CS_MPIDSR * fco / res);
+    temp = (MYDBL)(CS_MPIDSR * fco / res);
       /* (-PI_F * kfco / (kres * CS_ESR)); */
-    a = 2.0 * cos((double) (fco * CS_TPIDSR)) * exp(temp);
+    a = 2.0 * cos((MYDBL) (fco * CS_TPIDSR)) * exp(temp);
     b = exp(temp+temp);
     c = 1.0 - a + b;
 
@@ -659,13 +659,13 @@ static int32_t lp2ka(CSOUND *csound, LP2 *p)
     for (n=offset; n<nsmps; n++) {
       if (res!=resp[n]) {
         res=resp[n];
-        temp = (double)(CS_MPIDSR * fco / res);
+        temp = (MYDBL)(CS_MPIDSR * fco / res);
         /* (-PI_F * kfco / (kres * CS_ESR)); */
-        a = 2.0 * cos((double) (fco * CS_TPIDSR)) * exp(temp);
+        a = 2.0 * cos((MYDBL) (fco * CS_TPIDSR)) * exp(temp);
         b = exp(temp+temp);
         c = 1.0 - a + b;
       }
-      out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (double)in[n]);
+      out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (MYDBL)in[n]);
       ynm2 = ynm1;
       ynm1 = yn;
     }
@@ -676,18 +676,18 @@ static int32_t lp2ka(CSOUND *csound, LP2 *p)
 
 static int32_t lp2ak(CSOUND *csound, LP2 *p)
 {
-    double a, b, c, temp;
+    MYDBL a, b, c, temp;
     MYFLT *out, *in;
-    double yn, ynm1, ynm2;
+    MYDBL yn, ynm1, ynm2;
     MYFLT *fcop = p->kfco;
     MYFLT fco = fcop[0], res = *p->kres;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    temp = (double)(CS_MPIDSR * fco / res);
+    temp = (MYDBL)(CS_MPIDSR * fco / res);
       /* (-PI_F * kfco / (kres * CS_ESR)); */
-    a = 2.0 * cos((double) (fco * CS_TPIDSR)) * exp(temp);
+    a = 2.0 * cos((MYDBL) (fco * CS_TPIDSR)) * exp(temp);
     b = exp(temp+temp);
     c = 1.0 - a + b;
 
@@ -704,13 +704,13 @@ static int32_t lp2ak(CSOUND *csound, LP2 *p)
     for (n=offset; n<nsmps; n++) {
       if (fco!=fcop[n]) {
         fco=fcop[n];
-        temp = (double)(CS_MPIDSR * fco / res);
+        temp = (MYDBL)(CS_MPIDSR * fco / res);
         /* (-PI_F * kfco / (kres * CS_ESR)); */
-        a = 2.0 * cos((double) (fco * CS_TPIDSR)) * exp(temp);
+        a = 2.0 * cos((MYDBL) (fco * CS_TPIDSR)) * exp(temp);
         b = exp(temp+temp);
         c = 1.0 - a + b;
       }
-      out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (double)in[n]);
+      out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (MYDBL)in[n]);
       ynm2 = ynm1;
       ynm1 = yn;
     }
@@ -732,14 +732,14 @@ typedef struct {
 static int32_t hilbertset_array(CSOUND *csound, HILBERTA *p)
 {
     int32_t j;  
-    double poles[12] = {0.3609, 2.7412, 11.1573, 44.7581, 179.6242, 798.4578,
+    MYDBL poles[12] = {0.3609, 2.7412, 11.1573, 44.7581, 179.6242, 798.4578,
                         1.2524, 5.5671, 22.3423, 89.6271, 364.7914, 2770.1114};
-    double polefreq, rc, alpha, beta;
+    MYDBL polefreq, rc, alpha, beta;
     for (j=0; j<12; j++) {
       polefreq = poles[j] * 15.0;
       rc = 1.0 / (2.0 * PI * polefreq);
       alpha = 1.0 / rc;
-      alpha = alpha * 0.5 * (double)CS_ONEDSR;
+      alpha = alpha * 0.5 * (MYDBL)CS_ONEDSR;
       beta = (1.0 - alpha) / (1.0 + alpha);
       p->xnm1[j] = p->ynm1[j] = FL(0.0);
       p->coef[j] = -(MYFLT)beta;

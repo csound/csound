@@ -71,7 +71,7 @@ typedef struct {
 typedef struct {
         OPDS h;
         MYFLT *out, *in, *kcf, *kbw, *iscl, *istor;
-        double xnm1, xnm2, ynm1, ynm2;
+        MYDBL xnm1, xnm2, ynm1, ynm2;
         int32_t scaletype, aratemod;
 } RESONZ;
 
@@ -98,5 +98,5 @@ typedef struct {
 typedef struct {
         OPDS h;
         MYFLT *out, *in, *kfco, *kres, *istor;
-        double ynm1, ynm2;
+        MYDBL ynm1, ynm2;
 } LP2;

@@ -26,7 +26,7 @@
 /*****************************************/
 
 #include "pvoc.h"
-#include <math.h>
+
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */
@@ -233,7 +233,7 @@ int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
                              PVWINLEN, pvfilnam);
   }
   for (i = 0; i < OPWLEN / 2 + 1; ++i)    /* time window is OPWLEN long */
-    p->window[i] = (MYFLT) (0.5 - 0.5 * cos(TWOPI*(double)i/(double)OPWLEN));
+    p->window[i] = (MYFLT) (0.5 - 0.5 * cos(TWOPI*(MYDBL)i/(MYDBL)OPWLEN));
   /* NB: HANNING */
   memset(p->outBuf, 0, pvfrsiz(p)*sizeof(MYFLT));
   /* for (i = 0; i< pvfrsiz(p); ++i) */
@@ -423,7 +423,7 @@ int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
                              PVWINLEN, pvfilnam);
   }
   for (i = 0; i < OPWLEN / 2 + 1; ++i)    /* time window is OPWLEN long */
-    p->window[i] = (MYFLT) (0.5 - 0.5 * cos(TWOPI*(double)i/(double)OPWLEN));
+    p->window[i] = (MYFLT) (0.5 - 0.5 * cos(TWOPI*(MYDBL)i/(MYDBL)OPWLEN));
   /* NB: HANNING */
   memset(p->outBuf, 0, pvfrsiz(p)*sizeof(MYFLT));
   /* for (i = 0; i < pvfrsiz(p); ++i) */

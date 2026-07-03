@@ -22,7 +22,7 @@
 
 #include "stdopcod.h"
 #include "dam.h"
-#include <math.h>
+
 
 
 /*

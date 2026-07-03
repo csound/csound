@@ -31,8 +31,8 @@ typedef struct {
     OPDS    h;
     MYFLT   *ar, *iamp, *icps, *iphs, *iflg;                /* opcode args  */
     /* internal variables */
-    int32_t     use_double;
-    double  xd, cd, vd;
+    int32_t     use_MYDBL;
+    MYDBL  xd, cd, vd;
     MYFLT   x, c, v;
 } OSCILS;
 
@@ -44,7 +44,7 @@ typedef struct {
     MYFLT   *imode, *istrt, *istor;                         /* args         */
     /* internal variables */
     int32_t     loop_mode;
-    double  phs, lps, lpe;
+    MYDBL  phs, lps, lpe;
     int32_t     dir;            /* playback direction (0: backward, 1: forward) */
 } LPHASOR;
 
@@ -57,7 +57,7 @@ typedef struct {
     /* internal variables */
     int32_t     raw_ndx, ndx_scl, wrap_ndx, wsize;
     MYFLT   win_fact;
-/*  double  wsized2_d, pidwsize_d; */           /* for oscils_hann.c */
+/*  MYDBL  wsized2_d, pidwsize_d; */           /* for oscils_hann.c */
 } TABLEXKT;
 
 /* these functions are exported to entry*.c */

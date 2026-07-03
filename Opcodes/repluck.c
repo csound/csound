@@ -256,7 +256,7 @@ static int32_t streson(CSOUND *csound, STRES *p)
     MYFLT *in = p->ainput;
     MYFLT g = *p->ifdbgain;
     MYFLT freq;
-    double a, s, w, sample, tdelay, fracdelay;
+    MYDBL a, s, w, sample, tdelay, fracdelay;
     int32_t delay;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

@@ -156,7 +156,7 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
     }
     return OK;
   }
-  indx = (int32_t)((double)*(p->indx) + (*(p->indx) >= FL(0.0) ? 0.5 : -0.5));
+  indx = (int32_t)((MYDBL)*(p->indx) + (*(p->indx) >= FL(0.0) ? 0.5 : -0.5));
   if (indx < 0 || indx > (int32_t) csound->strsmax ||
       csound->strsets == NULL || csound->strsets[indx] == NULL)
     return OK;
@@ -520,20 +520,20 @@ sprintf_opcode_(CSOUND *csound,
       case 'G':
 	{
 	//printf("%d %d \n", str->size, strlen(str->data));
-	int32_t max_double_chars = 18;
-	if (strlen(strseg) + max_double_chars  > (uint32_t)maxChars) {
+	int32_t max_MYDBL_chars = 18;
+	if (strlen(strseg) + max_MYDBL_chars  > (uint32_t)maxChars) {
 	  size_t offs = outstring - str->data;
-	  str->data = csound->ReAlloc(csound, str->data, str->size  + max_double_chars );
+	  str->data = csound->ReAlloc(csound, str->data, str->size  + max_MYDBL_chars );
 	  if(str->data == NULL) {
 	    return StrOp_ErrMsg(p, Str("memory allocation failure"));
 	  }
-	  str->size += max_double_chars;
-	  maxChars += max_double_chars;
+	  str->size += max_MYDBL_chars;
+	  maxChars += max_MYDBL_chars;
 	  outstring = str->data + offs;
 	  //printf("maxchars = %d  %s\n", maxChars, strseg);
 	}
 	//printf("%d %d \n", str->size, strlen(str->data));
-	n = snprintf(outstring, maxChars, strseg, (double)*parm);
+	n = snprintf(outstring, maxChars, strseg, (MYDBL)*parm);
 	}
 	break;
       case 's':
@@ -689,7 +689,7 @@ int32_t puts_opcode_perf(CSOUND *csound, PUTS_OP *p)
 int32_t strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
 {
   char    *s = NULL, *tmp;
-  double  x;
+  MYDBL  x;
 
   if (IsStringCode(*p->str))
     s = csoundGetArgString(csound, *p->str);
@@ -715,7 +715,7 @@ int32_t strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
 {
   IGN(csound);
   char    *s = NULL, *tmp;
-  double  x;
+  MYDBL  x;
   s = (char*) p->str->data;
   while (isblank(*s)) s++;
   if (UNLIKELY(*s == '\0'))

@@ -37,13 +37,13 @@ void freeStringMem (char* ptr) {
 
 
 __attribute__((used))
-double* allocFloatArray(int length) {
-  double *ptr = NULL;
-  ptr = malloc(length * sizeof(double));
+MYDBL* allocFloatArray(int length) {
+  MYDBL *ptr = NULL;
+  ptr = malloc(length * sizeof(MYDBL));
   return ptr;
 }
 
-void freeFloatArrayMem(double* ptr) {
+void freeFloatArrayMem(MYDBL* ptr) {
   free(ptr);
 }
 
@@ -319,9 +319,9 @@ char* getMidiOutFileName(CSOUND *csound) {
   }
 }
 
-double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
+MYDBL csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
   int *error = NULL;
-  double returnValue = csoundGetControlChannel(csound, channelName, error);
+  MYDBL returnValue = csoundGetControlChannel(csound, channelName, error);
 
 //  printf("csoundGetControlChannel: Channel Name %s\n", channelName);
   if (error != NULL) {
@@ -404,13 +404,13 @@ int main (int argc, char *argv[] ) {}
 //   return __getf2(b, c, d, e);
 // }
 
-// void __extenddftf2(int32_t x, double y) {}
+// void __extenddftf2(int32_t x, MYDBL y) {}
 
 // void __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) {}
 
 // void __muloti4(int32_t a, int64_t b, int64_t c, int64_t d, int64_t d_, int32_t e) {}
 
-// int __lttf2(long double a, long double b) {
+// int __lttf2(long MYDBL a, long MYDBL b) {
 //   if (a > b) {
 //     return 1;
 //   } else if (a == b) {

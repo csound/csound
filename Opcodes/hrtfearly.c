@@ -932,7 +932,7 @@ static int32_t early_process(CSOUND *csound, early *p)
 
     int32_t wallreflections, floorreflections=0, ceilingreflections=0;
     MYFLT delsinglel, delsingler;
-    MYFLT deldoublel[2], deldoubler[2];
+    MYFLT delMYDBLl[2], delMYDBLr[2];
 
     /* temp variables, for efficiency */
     MYFLT tempx, tempy;
@@ -1550,28 +1550,28 @@ static int32_t early_process(CSOUND *csound, early *p)
                     filter(hrtfrinterp, p->wallcoefhigh,
                            p->wallcoeflow, &delsingler,
                            irlength, sr);
-                    deldoublel[0] = deldoublel[1] =
-                      deldoubler[0] = deldoubler[1] = 0.0;
+                    delMYDBLl[0] = delMYDBLl[1] =
+                      delMYDBLr[0] = delMYDBLr[1] = 0.0;
                     band(hrtflinterp, FL(250.0), FL(250.0) / p->q,
-                         p->wallg1, deldoublel, irlength, sr);
+                         p->wallg1, delMYDBLl, irlength, sr);
                     band(hrtfrinterp, FL(250.0), FL(250.0) / p->q,
-                         p->wallg1, deldoubler, irlength, sr);
-                    deldoublel[0] = deldoublel[1] =
-                      deldoubler[0] = deldoubler[1] = 0.0;
+                         p->wallg1, delMYDBLr, irlength, sr);
+                    delMYDBLl[0] = delMYDBLl[1] =
+                      delMYDBLr[0] = delMYDBLr[1] = 0.0;
                     band(hrtflinterp, FL(1000.0),
                          FL(1000.0) / p->q, p->wallg2,
-                         deldoublel, irlength, sr);
+                         delMYDBLl, irlength, sr);
                     band(hrtfrinterp, FL(1000.0),
                          FL(1000.0) / p->q, p->wallg2,
-                         deldoubler, irlength, sr);
-                    deldoublel[0] = deldoublel[1] =
-                      deldoubler[0] = deldoubler[1] = 0.0;
+                         delMYDBLr, irlength, sr);
+                    delMYDBLl[0] = delMYDBLl[1] =
+                      delMYDBLr[0] = delMYDBLr[1] = 0.0;
                     band(hrtflinterp, FL(4000.0),
                          FL(4000.0) / p->q, p->wallg3,
-                         deldoublel, irlength, sr);
+                         delMYDBLl, irlength, sr);
                     band(hrtfrinterp, FL(4000.0),
                          FL(4000.0) / p->q, p->wallg3,
-                         deldoubler, irlength, sr);
+                         delMYDBLr, irlength, sr);
                   }
                   if (threed) {
                     for (i = 0; i < floorreflections; i++) {
@@ -1581,24 +1581,24 @@ static int32_t early_process(CSOUND *csound, early *p)
                              irlength, sr);
                       filter(hrtfrinterp, p->floorcoefhigh, p->floorcoeflow,
                              &delsingler, irlength, sr);
-                      deldoublel[0] = deldoublel[1] = deldoubler[0] =
-                        deldoubler[1] = 0.0;
+                      delMYDBLl[0] = delMYDBLl[1] = delMYDBLr[0] =
+                        delMYDBLr[1] = 0.0;
                       band(hrtflinterp, FL(250.0), FL(250.0) / p->q, p->floorg1,
-                           deldoublel, irlength, sr);
+                           delMYDBLl, irlength, sr);
                       band(hrtfrinterp, FL(250.0), FL(250.0) / p->q, p->floorg1,
-                           deldoubler, irlength, sr);
-                      deldoublel[0] = deldoublel[1] = deldoubler[0] =
-                        deldoubler[1] = 0.0;
+                           delMYDBLr, irlength, sr);
+                      delMYDBLl[0] = delMYDBLl[1] = delMYDBLr[0] =
+                        delMYDBLr[1] = 0.0;
                       band(hrtflinterp, FL(1000.0), FL(1000.0) / p->q, p->floorg2,
-                           deldoublel, irlength, sr);
+                           delMYDBLl, irlength, sr);
                       band(hrtfrinterp, FL(1000.0), FL(1000.0) / p->q, p->floorg2,
-                           deldoubler, irlength, sr);
-                      deldoublel[0] = deldoublel[1] = deldoubler[0] =
-                        deldoubler[1] = 0.0;
+                           delMYDBLr, irlength, sr);
+                      delMYDBLl[0] = delMYDBLl[1] = delMYDBLr[0] =
+                        delMYDBLr[1] = 0.0;
                       band(hrtflinterp, FL(4000.0), FL(4000.0) / p->q, p->floorg3,
-                           deldoublel, irlength, sr);
+                           delMYDBLl, irlength, sr);
                       band(hrtfrinterp, FL(4000.0), FL(4000.0) / p->q, p->floorg3,
-                           deldoubler, irlength, sr);
+                           delMYDBLr, irlength, sr);
                     }
                     for (i = 0; i < ceilingreflections; i++) {
                       delsinglel = delsingler = FL(0.0);
@@ -1606,24 +1606,24 @@ static int32_t early_process(CSOUND *csound, early *p)
                              &delsinglel, irlength, sr);
                       filter(hrtfrinterp, p->ceilingcoefhigh, p->ceilingcoeflow,
                              &delsingler, irlength, sr);
-                      deldoublel[0] = deldoublel[1] = deldoubler[0] =
-                        deldoubler[1] = 0.0;
+                      delMYDBLl[0] = delMYDBLl[1] = delMYDBLr[0] =
+                        delMYDBLr[1] = 0.0;
                       band(hrtflinterp, FL(250.0), FL(250.0) / p->q, p->ceilingg1,
-                           deldoublel, irlength, sr);
+                           delMYDBLl, irlength, sr);
                       band(hrtfrinterp, FL(250.0), FL(250.0) / p->q, p->ceilingg1,
-                           deldoubler, irlength, sr);
-                      deldoublel[0] = deldoublel[1] = deldoubler[0] =
-                        deldoubler[1] = 0.0;
+                           delMYDBLr, irlength, sr);
+                      delMYDBLl[0] = delMYDBLl[1] = delMYDBLr[0] =
+                        delMYDBLr[1] = 0.0;
                       band(hrtflinterp, FL(1000.0), FL(1000.0) / p->q,
-                           p->ceilingg2, deldoublel, irlength, sr);
+                           p->ceilingg2, delMYDBLl, irlength, sr);
                       band(hrtfrinterp, FL(1000.0), FL(1000.0) / p->q,
-                           p->ceilingg2, deldoubler, irlength, sr);
-                      deldoublel[0] = deldoublel[1] = deldoubler[0] =
-                        deldoubler[1] = 0.0;
+                           p->ceilingg2, delMYDBLr, irlength, sr);
+                      delMYDBLl[0] = delMYDBLl[1] = delMYDBLr[0] =
+                        delMYDBLr[1] = 0.0;
                       band(hrtflinterp, FL(4000.0), FL(4000.0) / p->q,
-                           p->ceilingg3, deldoublel, irlength, sr);
+                           p->ceilingg3, delMYDBLl, irlength, sr);
                       band(hrtfrinterp, FL(4000.0), FL(4000.0) / p->q,
-                           p->ceilingg3, deldoubler, irlength, sr);
+                           p->ceilingg3, delMYDBLr, irlength, sr);
                     }
                   }
 

@@ -34,7 +34,7 @@
 #endif
 #include "interlocks.h"
 #include "vbap.h"
-#include <math.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "interlocks.h"
@@ -186,15 +186,15 @@ void scale_angles(ANG_VEC *avec)
 void normalize_wts(OUT_WTS *wts)
 /* performs equal-power normalization to gain factors*/
 {
-  double tmp;
+  MYDBL tmp;
   MYFLT tmp1;
   if (wts->wt1 < 0) wts->wt1 = FL(0.0);
   if (wts->wt2 < 0) wts->wt2 = FL(0.0);
   if (wts->wt3 < 0) wts->wt3 = FL(0.0);
 
-  tmp  = (double)wts->wt1 * wts->wt1;
-  tmp += (double)wts->wt2 * wts->wt2;
-  tmp += (double)wts->wt3 * wts->wt3;
+  tmp  = (MYDBL)wts->wt1 * wts->wt1;
+  tmp += (MYDBL)wts->wt2 * wts->wt2;
+  tmp += (MYDBL)wts->wt3 * wts->wt3;
 
   tmp = sqrt(tmp);
   tmp1 = (MYFLT)(1.0 / tmp);
@@ -208,11 +208,11 @@ void angle_to_cart(ANG_VEC avec, CART_VEC *cvec)
 {
   /* length unattended */
   //MYFLT atorad = (TWOPI_F / FL(360.0));
-  cvec->x = (MYFLT) (cos((double) (avec.azi * ATORAD)) *
-                     cos((double) (avec.ele * ATORAD)));
-  cvec->y = (MYFLT) (sin((double) (avec.azi * ATORAD)) *
-                     cos((double) (avec.ele * ATORAD)));
-  cvec->z = (MYFLT) (sin((double) (avec.ele * ATORAD)));
+  cvec->x = (MYFLT) (cos((MYDBL) (avec.azi * ATORAD)) *
+                     cos((MYDBL) (avec.ele * ATORAD)));
+  cvec->y = (MYFLT) (sin((MYDBL) (avec.azi * ATORAD)) *
+                     cos((MYDBL) (avec.ele * ATORAD)));
+  cvec->z = (MYFLT) (sin((MYDBL) (avec.ele * ATORAD)));
 }
 
 void cart_to_angle(CART_VEC cvec, ANG_VEC *avec)
@@ -246,7 +246,7 @@ void cart_to_angle(CART_VEC cvec, ANG_VEC *avec)
 }
 
 void angle_to_cart_II(ANG_VEC *from, CART_VEC *to)
-/* conversion, double*/
+/* conversion, MYDBL*/
 {
   MYFLT ang2rad = TWOPI_F / FL(360.0);
   to->x= COS(from->azi * ang2rad) * COS(from->ele * ang2rad);
@@ -1325,7 +1325,7 @@ static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
       tmp3.x = (FL(1.0)-coeff) * tmp1.x + coeff * tmp2.x;
       tmp3.y = (FL(1.0)-coeff) * tmp1.y + coeff * tmp2.y;
       tmp3.z = (FL(1.0)-coeff) * tmp1.z + coeff * tmp2.z;
-      coeff = (MYFLT)sqrt((double)(tmp3.x * tmp3.x +
+      coeff = (MYFLT)sqrt((MYDBL)(tmp3.x * tmp3.x +
                                    tmp3.y * tmp3.y +
                                    tmp3.z * tmp3.z));
       tmp3.x /= coeff; tmp3.y /= coeff; tmp3.z /= coeff;
@@ -2070,7 +2070,7 @@ int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
       tmp3.x = (FL(1.0)-coeff) * tmp1.x + coeff * tmp2.x;
       tmp3.y = (FL(1.0)-coeff) * tmp1.y + coeff * tmp2.y;
       tmp3.z = (FL(1.0)-coeff) * tmp1.z + coeff * tmp2.z;
-      coeff = (MYFLT)sqrt((double)(tmp3.x * tmp3.x +
+      coeff = (MYFLT)sqrt((MYDBL)(tmp3.x * tmp3.x +
                                    tmp3.y * tmp3.y +
                                    tmp3.z * tmp3.z));
       tmp3.x /= coeff; tmp3.y /= coeff; tmp3.z /= coeff;
@@ -2770,7 +2770,7 @@ int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
       tmp3.x = (FL(1.0)-coeff) * tmp1.x + coeff * tmp2.x;
       tmp3.y = (FL(1.0)-coeff) * tmp1.y + coeff * tmp2.y;
       tmp3.z = (FL(1.0)-coeff) * tmp1.z + coeff * tmp2.z;
-      coeff = (MYFLT)sqrt((double)(tmp3.x * tmp3.x +
+      coeff = (MYFLT)sqrt((MYDBL)(tmp3.x * tmp3.x +
                                    tmp3.y * tmp3.y +
                                    tmp3.z * tmp3.z));
       tmp3.x /= coeff; tmp3.y /= coeff; tmp3.z /= coeff;

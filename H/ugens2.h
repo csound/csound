@@ -27,14 +27,14 @@
 typedef struct {
         OPDS    h;
         MYFLT   *sr, *xcps, *iphs;
-        double  curphs;
+        MYDBL  curphs;
 } PHSOR;
 
 typedef struct {
         OPDS    h;
         MYFLT   *sr,*aphs, *xcps, *kR, *iphs;
-        double  curphs;
-        double  b;
+        MYDBL  curphs;
+        MYDBL  b;
 } EPHSOR;
 
 typedef struct {
@@ -51,7 +51,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *rslt, *idel, *kamp, *idur, *ifn;
         int32   kinc, phs;
-        double   fphs, inc;
+        MYDBL   fphs, inc;
         int32   dcnt;
         FUNC    *ftp;
 } OSCIL1;
@@ -68,10 +68,10 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr, *xamp, *xcps, *ifn, *iphs;
         int32   lphs;
-        double   phs;
+        MYDBL   phs;
         FUNC    *ftp;
         int32       tablen;
-        double      tablenUPsr;
+        MYDBL      tablenUPsr;
         FUNC    FF;
 } OSC;
 
@@ -81,6 +81,6 @@ typedef struct  {
     FUNC        *ftp;
     int32        tablen;
     MYFLT       fsr;
-    double      phs, looplength;
+    MYDBL      phs, looplength;
 } LPOSC;
 

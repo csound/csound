@@ -38,7 +38,7 @@ static int32_t dcblockrset(CSOUND *csound, DCBlocker* p)
     IGN(csound);
     p->outputs = 0.0;
     p->inputs = 0.0;
-    p->gain = (double)*p->gg;
+    p->gain = (MYDBL)*p->gg;
     if (p->gain == 0.0 || p->gain>=1.0 || p->gain<=-1.0)
       p->gain = 0.99;
     return OK;
@@ -51,9 +51,9 @@ static int32_t dcblockr(CSOUND *csound, DCBlocker* p)
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
-    double      gain = p->gain;
-    double      outputs = p->outputs;
-    double      inputs = p->inputs;
+    MYDBL      gain = p->gain;
+    MYDBL      outputs = p->outputs;
+    MYDBL      inputs = p->inputs;
     MYFLT       *samp = p->in;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -62,7 +62,7 @@ static int32_t dcblockr(CSOUND *csound, DCBlocker* p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      double sample = (double)samp[n];
+      MYDBL sample = (MYDBL)samp[n];
       outputs = sample - inputs + (gain * outputs);
       inputs = sample;
       ar[n] = (MYFLT)outputs;
@@ -84,9 +84,9 @@ typedef struct _dcblk2 {
   MYFLT   *input, *order, *iskip;
   AUXCH   delay1;
   AUXCH   iirdelay1, iirdelay2, iirdelay3, iirdelay4;
-  double  ydels[4];
+  MYDBL  ydels[4];
   int32_t dp1,dp2;
-  double  scaler;
+  MYDBL  scaler;
 } DCBlock2;
 
 
@@ -97,40 +97,40 @@ static int32_t dcblock2set(CSOUND *csound, DCBlock2* p)
     else if (order < 4) order = 4;
 
     if (p->delay1.auxp == NULL ||
-        p->delay1.size < (order-1)*2*sizeof(double))
-      csound->AuxAlloc(csound, (order-1)*2*sizeof(double),
+        p->delay1.size < (order-1)*2*sizeof(MYDBL))
+      csound->AuxAlloc(csound, (order-1)*2*sizeof(MYDBL),
                        &p->delay1);
 
     if (p->iirdelay1.auxp == NULL ||
-        p->iirdelay1.size < (order)*sizeof(double))
+        p->iirdelay1.size < (order)*sizeof(MYDBL))
       csound->AuxAlloc(csound,
-                       (order)*sizeof(double), &p->iirdelay1);
+                       (order)*sizeof(MYDBL), &p->iirdelay1);
 
     if (p->iirdelay2.auxp == NULL ||
-        p->iirdelay2.size < (order)*sizeof(double))
+        p->iirdelay2.size < (order)*sizeof(MYDBL))
       csound->AuxAlloc(csound,
-                       (order)*sizeof(double), &p->iirdelay2);
+                       (order)*sizeof(MYDBL), &p->iirdelay2);
 
     if (p->iirdelay3.auxp == NULL ||
-        p->iirdelay3.size < (order)*sizeof(double))
+        p->iirdelay3.size < (order)*sizeof(MYDBL))
       csound->AuxAlloc(csound,
-                       (order)*sizeof(double), &p->iirdelay3);
+                       (order)*sizeof(MYDBL), &p->iirdelay3);
 
     if (p->iirdelay4.auxp == NULL ||
-        p->iirdelay4.size < (order)*sizeof(double))
+        p->iirdelay4.size < (order)*sizeof(MYDBL))
       csound->AuxAlloc(csound,
-                       (order)*sizeof(double), &p->iirdelay4);
+                       (order)*sizeof(MYDBL), &p->iirdelay4);
 
     p->scaler = 1.0/order;
     if (!*p->iskip) {
-      memset(p->ydels, 0, 4*sizeof(double));
+      memset(p->ydels, 0, 4*sizeof(MYDBL));
       /* p->ydels[0] = 0.0;   p->ydels[1] = 0.0; */
       /* p->ydels[2] = 0.0;   p->ydels[3] = 0.0; */
-      memset(p->delay1.auxp, 0, sizeof(double)*(order-1)*2);
-      memset(p->iirdelay1.auxp, 0, sizeof(double)*(order));
-      memset(p->iirdelay2.auxp, 0, sizeof(double)*(order));
-      memset(p->iirdelay3.auxp, 0, sizeof(double)*(order));
-      memset(p->iirdelay4.auxp, 0, sizeof(double)*(order));
+      memset(p->delay1.auxp, 0, sizeof(MYDBL)*(order-1)*2);
+      memset(p->iirdelay1.auxp, 0, sizeof(MYDBL)*(order));
+      memset(p->iirdelay2.auxp, 0, sizeof(MYDBL)*(order));
+      memset(p->iirdelay3.auxp, 0, sizeof(MYDBL)*(order));
+      memset(p->iirdelay4.auxp, 0, sizeof(MYDBL)*(order));
       p->dp1 = 0; p->dp2 = 0;
     }
     return OK;
@@ -144,22 +144,22 @@ static int32_t dcblock2(CSOUND *csound, DCBlock2* p)
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT    *in = p->input;
     MYFLT    *out = p->output;
-    double   *del1 = (double *)p->delay1.auxp;
-    double   *iirdel[4],x1,x2,y,del;
-    double   *ydels = p->ydels;
-    double   scale = p->scaler;
+    MYDBL   *del1 = (MYDBL *)p->delay1.auxp;
+    MYDBL   *iirdel[4],x1,x2,y,del;
+    MYDBL   *ydels = p->ydels;
+    MYDBL   scale = p->scaler;
     int32_t      p1 = p->dp1;
     int32_t      p2 = p->dp2;
     int32_t      j;
     uint64_t del1size, iirdelsize;
 
-    iirdel[0] = (double *) p->iirdelay1.auxp;
-    iirdel[1] = (double *) p->iirdelay2.auxp;
-    iirdel[2] = (double *) p->iirdelay3.auxp;
-    iirdel[3] = (double *) p->iirdelay4.auxp;
+    iirdel[0] = (MYDBL *) p->iirdelay1.auxp;
+    iirdel[1] = (MYDBL *) p->iirdelay2.auxp;
+    iirdel[2] = (MYDBL *) p->iirdelay3.auxp;
+    iirdel[3] = (MYDBL *) p->iirdelay4.auxp;
 
-    del1size = p->delay1.size/sizeof(double);
-    iirdelsize = p->iirdelay1.size/sizeof(double);
+    del1size = p->delay1.size/sizeof(MYDBL);
+    iirdelsize = p->iirdelay1.size/sizeof(MYDBL);
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -170,7 +170,7 @@ static int32_t dcblock2(CSOUND *csound, DCBlock2* p)
 
       /* long delay */
       del = del1[p1];
-      del1[p1] = x1 = (double)in[i];
+      del1[p1] = x1 = (MYDBL)in[i];
 
       /* IIR cascade */
       for (j=0; j < 4; j++) {

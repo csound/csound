@@ -24,7 +24,7 @@
 
 #include "stdopcod.h"               /*                      UGENS7.C        */
 #include "ugens7.h"
-#include <math.h>
+
 
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 
@@ -107,7 +107,7 @@ static int32_t fof(CSOUND *csound, FOFS *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   int32   fund_inc, form_inc, floatph = p->floatph;
-  double  form_incf, fund_incf;
+  MYDBL  form_incf, fund_incf;
   MYFLT   v1, fract ,*ftab;
 
   if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
@@ -155,8 +155,8 @@ static int32_t fof(CSOUND *csound, FOFS *p)
       OVRLAP *prvact = ovp;
       ovp = ovp->nxtact;                   /*  formant waveform  */
       if(floatph) {
-        double formphsf = ovp->formphsf;
-        double frac = formphsf - (int32_t) formphsf; 
+        MYDBL formphsf = ovp->formphsf;
+        MYDBL frac = formphsf - (int32_t) formphsf; 
         ftab = ftp1->ftable + (size_t) (formphsf * ftp1->flen);
         v1 = *ftab++;  
         result = v1 + (*ftab - v1) * frac;
@@ -333,7 +333,7 @@ static int32_t newpulse(CSOUND *csound,
     if(p->floatph) {
       ovp->formphsf += *p->iphs;
       ovp->formphsf = PHMOD1(ovp->formphsf);
-      ovp->glissbas = ovp->formincf * (MYFLT)pow(2.0, (double)*p->kgliss);
+      ovp->glissbas = ovp->formincf * (MYFLT)pow(2.0, (MYDBL)*p->kgliss);
       ovp->glissbas -= ovp->formincf;
       ovp->glissbas /= ovp->timrem;
     } else {
@@ -343,7 +343,7 @@ static int32_t newpulse(CSOUND *csound,
          ovp->forminc at each pass in fof2. Thus glissbas must be
          equal to kgliss / grain playing time. Also make it harmonic,
          so integer kgliss can represent octaves (ie pow() call). */
-      ovp->glissbas = ovp->forminc * (MYFLT)pow(2.0, (double)*p->kgliss);
+      ovp->glissbas = ovp->forminc * (MYFLT)pow(2.0, (MYDBL)*p->kgliss);
       /* glissbas should be diff of start & end pitch*/
       ovp->glissbas -= ovp->forminc;
       ovp->glissbas /= ovp->timrem;
@@ -435,7 +435,7 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
     if (*p->kest != p->prvest &&
         *p->kest != FL(0.0)) {    /* if new pitch estimate */
       MYFLT estperiod = CS_ESR / *p->kest;
-      double b = 2.0 - cos((double)(*p->kest * CS_TPIDSR));
+      MYDBL b = 2.0 - cos((MYDBL)(*p->kest * CS_TPIDSR));
       p->c2 = (MYFLT)(b - sqrt(b*b - 1.0)); /*   recalc lopass coefs */
       p->c1 = FL(1.0) - p->c2;
       p->prvest = *p->kest;

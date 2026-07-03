@@ -73,7 +73,7 @@ typedef struct _psyn {
     int32_t     tracks, pos, numbins, hopsize;
     FUNC    *func;
     AUXCH   sum, amps, freqs, phases, trackID;
-    double   factor, facsqr, min;
+    MYDBL   factor, facsqr, min;
 } _PSYN;
 
 typedef struct _psyn2 {
@@ -84,7 +84,7 @@ typedef struct _psyn2 {
     int32_t     tracks, pos, numbins, hopsize;
     FUNC    *func;
     AUXCH   sum, amps, freqs, phases, trackID;
-    double   factor, facsqr, min;
+    MYDBL   factor, facsqr, min;
 } _PSYN2;
 
 static int32_t psynth_init(CSOUND *csound, _PSYN *p)
@@ -110,25 +110,25 @@ static int32_t psynth_init(CSOUND *csound, _PSYN *p)
     else p->min = *p->thresh*csound->Get0dBFS(csound);
 
     if (p->amps.auxp == NULL ||
-        (uint32_t) p->amps.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
+        (uint32_t) p->amps.size < sizeof(MYDBL) * numbins)
+      csound->AuxAlloc(csound, sizeof(MYDBL) * numbins, &p->amps);
     else
-      memset(p->amps.auxp, 0, sizeof(double) * numbins );
+      memset(p->amps.auxp, 0, sizeof(MYDBL) * numbins );
     if (p->freqs.auxp == NULL ||
-        (uint32_t) p->freqs.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->freqs);
+        (uint32_t) p->freqs.size < sizeof(MYDBL) * numbins)
+      csound->AuxAlloc(csound, sizeof(MYDBL) * numbins, &p->freqs);
     else
-      memset(p->freqs.auxp, 0, sizeof(double) * numbins );
+      memset(p->freqs.auxp, 0, sizeof(MYDBL) * numbins );
     if (p->phases.auxp == NULL ||
-        (uint32_t) p->phases.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->phases);
+        (uint32_t) p->phases.size < sizeof(MYDBL) * numbins)
+      csound->AuxAlloc(csound, sizeof(MYDBL) * numbins, &p->phases);
     else
-      memset(p->phases.auxp, 0, sizeof(double) * numbins );
+      memset(p->phases.auxp, 0, sizeof(MYDBL) * numbins );
     if (p->sum.auxp == NULL ||
-        (uint32_t) p->sum.size < sizeof(double) * p->hopsize)
-      csound->AuxAlloc(csound, sizeof(double) * p->hopsize, &p->sum);
+        (uint32_t) p->sum.size < sizeof(MYDBL) * p->hopsize)
+      csound->AuxAlloc(csound, sizeof(MYDBL) * p->hopsize, &p->sum);
     else
-      memset(p->sum.auxp, 0, sizeof(double) * p->hopsize );
+      memset(p->sum.auxp, 0, sizeof(MYDBL) * p->hopsize );
     if (p->trackID.auxp == NULL ||
         (uint32_t) p->trackID.size < sizeof(int32_t) * numbins)
       csound->AuxAlloc(csound, sizeof(int32_t) * numbins, &p->trackID);
@@ -140,8 +140,8 @@ static int32_t psynth_init(CSOUND *csound, _PSYN *p)
 
 static int32_t psynth_process(CSOUND *csound, _PSYN *p)
 {
-    double  ampnext, amp, freq, freqnext, phase, ratio;
-    double  a, f, frac, incra, incrph, factor;
+    MYDBL  ampnext, amp, freq, freqnext, phase, ratio;
+    MYDBL  a, f, frac, incra, incrph, factor;
     MYFLT   scale = *p->scal, pitch = *p->pitch;
     int32_t     ndx, size = p->func->flen;
     int32_t     i, j, k, m, id;
@@ -154,12 +154,12 @@ static int32_t psynth_process(CSOUND *csound, _PSYN *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t      pos = p->pos;
-    double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
-    double   *phases = (double *) p->phases.auxp;
+    MYDBL   *amps = (MYDBL *) p->amps.auxp, *freqs = (MYDBL *) p->freqs.auxp;
+    MYDBL   *phases = (MYDBL *) p->phases.auxp;
     MYFLT    *outsum = (MYFLT *) p->sum.auxp;
     int32_t     *trackID = (int32_t *) p->trackID.auxp;
     int32_t     hopsize = p->hopsize;
-    double  min = p->min;
+    MYDBL  min = p->min;
     ratio = size * CS_ONEDSR;
     factor = p->factor;
 
@@ -179,8 +179,8 @@ static int32_t psynth_process(CSOUND *csound, _PSYN *p)
         i = j = k = 0;
         while (i < maxtracks * 4) {
 
-          ampnext = (double) fin[i] * scale;
-          freqnext = (double) fin[i + 1] * pitch;
+          ampnext = (MYDBL) fin[i] * scale;
+          freqnext = (MYDBL) fin[i + 1] * pitch;
           if ((id = (int32_t) fin[i + 3]) != -1) {
             j = k + notcontin;
 
@@ -277,25 +277,25 @@ static int32_t psynth2_init(CSOUND *csound, _PSYN2 *p)
     else p->min = *p->thresh*csound->Get0dBFS(csound);
 
     if (p->amps.auxp == NULL ||
-        (uint32_t) p->amps.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
+        (uint32_t) p->amps.size < sizeof(MYDBL) * numbins)
+      csound->AuxAlloc(csound, sizeof(MYDBL) * numbins, &p->amps);
     else
-      memset(p->amps.auxp, 0, sizeof(double) * numbins );
+      memset(p->amps.auxp, 0, sizeof(MYDBL) * numbins );
     if (p->freqs.auxp == NULL ||
-        (uint32_t) p->freqs.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->freqs);
+        (uint32_t) p->freqs.size < sizeof(MYDBL) * numbins)
+      csound->AuxAlloc(csound, sizeof(MYDBL) * numbins, &p->freqs);
     else
-      memset(p->freqs.auxp, 0, sizeof(double) * numbins );
+      memset(p->freqs.auxp, 0, sizeof(MYDBL) * numbins );
     if (p->phases.auxp == NULL ||
-        (uint32_t) p->phases.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->phases);
+        (uint32_t) p->phases.size < sizeof(MYDBL) * numbins)
+      csound->AuxAlloc(csound, sizeof(MYDBL) * numbins, &p->phases);
     else
-      memset(p->phases.auxp, 0, sizeof(double) * numbins  );
+      memset(p->phases.auxp, 0, sizeof(MYDBL) * numbins  );
     if (p->sum.auxp == NULL ||
-        (uint32_t) p->sum.size < sizeof(double) * p->hopsize)
-      csound->AuxAlloc(csound, sizeof(double) * p->hopsize, &p->sum);
+        (uint32_t) p->sum.size < sizeof(MYDBL) * p->hopsize)
+      csound->AuxAlloc(csound, sizeof(MYDBL) * p->hopsize, &p->sum);
     else
-      memset(p->sum.auxp, 0, sizeof(double) * p->hopsize );
+      memset(p->sum.auxp, 0, sizeof(MYDBL) * p->hopsize );
     if (p->trackID.auxp == NULL ||
         (uint32_t) p->trackID.size < sizeof(int32_t) * numbins)
       csound->AuxAlloc(csound, sizeof(int32_t) * numbins, &p->trackID);
@@ -307,10 +307,10 @@ static int32_t psynth2_init(CSOUND *csound, _PSYN2 *p)
 
 static int32_t psynth2_process(CSOUND *csound, _PSYN2 *p)
 {
-    double   ampnext, amp, freq, freqnext, phase, phasenext;
-    double  a2, a3, cph;
-    double   phasediff, facsqr, ph;
-    double   a, frac, incra, incrph, factor, lotwopi, cnt;
+    MYDBL   ampnext, amp, freq, freqnext, phase, phasenext;
+    MYDBL  a2, a3, cph;
+    MYDBL   phasediff, facsqr, ph;
+    MYDBL   a, frac, incra, incrph, factor, lotwopi, cnt;
     MYFLT   scale = *p->scal;
     int32_t     ndx, size = p->func->flen;
     int32_t     i=0, j, k, m, id;
@@ -323,15 +323,15 @@ static int32_t psynth2_process(CSOUND *csound, _PSYN2 *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t      pos = p->pos;
-    double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
-    double   *phases = (double *) p->phases.auxp;
+    MYDBL   *amps = (MYDBL *) p->amps.auxp, *freqs = (MYDBL *) p->freqs.auxp;
+    MYDBL   *phases = (MYDBL *) p->phases.auxp;
     MYFLT   *outsum = (MYFLT *) p->sum.auxp;
     int32_t     *trackID = (int32_t *) p->trackID.auxp;
     int32_t     hopsize = p->hopsize;
-    double  min = p->min;
+    MYDBL  min = p->min;
 
     incrph = CS_ONEDSR;
-    lotwopi = (double)(size) / TWOPI_F;
+    lotwopi = (MYDBL)(size) / TWOPI_F;
     factor = p->factor;
     facsqr = p->facsqr;
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
@@ -350,9 +350,9 @@ static int32_t psynth2_process(CSOUND *csound, _PSYN2 *p)
         /* for each track */
         i = j = k = 0;
         while (i < maxtracks * 4) {
-          ampnext = (double) fin[i] * scale;
-          freqnext = (double) fin[i + 1] * TWOPI_F;
-          phasenext = (double) fin[i + 2];
+          ampnext = (MYDBL) fin[i] * scale;
+          freqnext = (MYDBL) fin[i + 1] * TWOPI_F;
+          phasenext = (MYDBL) fin[i + 2];
           if ((id = (int32_t) fin[i + 3]) != -1) {
 
             j = k + notcontin;
@@ -451,10 +451,10 @@ static int32_t psynth2_process(CSOUND *csound, _PSYN2 *p)
 
 static int32_t psynth3_process(CSOUND *csound, _PSYN *p)
 {
-    double   ampnext, amp, freq, freqnext, phase, phasenext;
-    double  a2, a3, cph=0.0;
-    double   phasediff, facsqr, ph;
-    double   a, frac, incra, incrph, factor, lotwopi, cnt;
+    MYDBL   ampnext, amp, freq, freqnext, phase, phasenext;
+    MYDBL  a2, a3, cph=0.0;
+    MYDBL   phasediff, facsqr, ph;
+    MYDBL   a, frac, incra, incrph, factor, lotwopi, cnt;
     MYFLT   scale = *p->scal, pitch = *p->pitch;
     int32_t     ndx, size = p->func->flen;
     int32_t     i, j, k, m, id;
@@ -467,15 +467,15 @@ static int32_t psynth3_process(CSOUND *csound, _PSYN *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t      pos = p->pos;
-    double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
-    double   *phases = (double *) p->phases.auxp;
+    MYDBL   *amps = (MYDBL *) p->amps.auxp, *freqs = (MYDBL *) p->freqs.auxp;
+    MYDBL   *phases = (MYDBL *) p->phases.auxp;
     MYFLT    *outsum = (MYFLT *) p->sum.auxp;
     int32_t     *trackID = (int32_t *) p->trackID.auxp;
     int32_t     hopsize = p->hopsize;
-    double  min = p->min;
+    MYDBL  min = p->min;
 
     incrph = CS_ONEDSR;
-    lotwopi = (double) (size) / TWOPI_F;
+    lotwopi = (MYDBL) (size) / TWOPI_F;
     factor = p->factor;
     facsqr = p->facsqr;
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
@@ -493,9 +493,9 @@ static int32_t psynth3_process(CSOUND *csound, _PSYN *p)
         /* for each track */
         i = j = k = 0;
         while (i < maxtracks * 4) {
-          ampnext = (double) fin[i] * scale;
-          freqnext = (double) fin[i + 1] * TWOPI_F * pitch;
-          phasenext = (double) fin[i + 2];
+          ampnext = (MYDBL) fin[i] * scale;
+          freqnext = (MYDBL) fin[i + 1] * TWOPI_F * pitch;
+          phasenext = (MYDBL) fin[i + 2];
           if ((id = (int32_t) fin[i + 3]) != -1) {
             j = k + notcontin;
 

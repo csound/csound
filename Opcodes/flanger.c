@@ -22,7 +22,7 @@
 
 #include "stdopcod.h"               /* Flanger by Maldonado, with coding
                                    enhancements by JPff -- July 1998 */
-#include <math.h>
+
 #include "flanger.h"
 
 static int32_t flanger_set (CSOUND *csound, FLANGER *p)
@@ -119,9 +119,9 @@ static int32_t wguide1(CSOUND *csound, WGUIDE1 *p)
     indx                     = p->left;
     /*---------------- filter -----------------------*/
     if (*p->filt_khp != p->prvhp) {
-      double b;
+      MYDBL b;
       p->prvhp               = *p->filt_khp;
-      b                      = 2.0 - cos((double)(p->prvhp * CS_TPIDSR));
+      b                      = 2.0 - cos((MYDBL)(p->prvhp * CS_TPIDSR));
       p->c2                  = (MYFLT)(b - sqrt(b * b - 1.0));
       p->c1                  = FL(1.0) - p->c2;
     }
@@ -239,17 +239,17 @@ static int32_t wguide2(CSOUND *csound, WGUIDE2 *p)
     indx1 = p->left1;
     indx2 = p->left2;
     if (*p->filt_khp1 != p->prvhp1) {
-      double b;
+      MYDBL b;
       p->prvhp1 = *p->filt_khp1;
-      b = 2.0 - cos((double)(p->prvhp1 * CS_TPIDSR));
+      b = 2.0 - cos((MYDBL)(p->prvhp1 * CS_TPIDSR));
       p->c2_1 = (MYFLT)(b - sqrt((b * b) - 1.0));
       p->c1_1 = FL(1.0) - p->c2_1;
     }
     if (*p->filt_khp2 != p->prvhp2) {
-      double b;
+      MYDBL b;
       p->prvhp2 = *p->filt_khp2;
-      b = 2.0 - cos((double)(p->prvhp2 * CS_TPIDSR));
-      p->c2_2 = (MYFLT)(b - sqrt((double)(b * b) - 1.0));
+      b = 2.0 - cos((MYDBL)(p->prvhp2 * CS_TPIDSR));
+      p->c2_2 = (MYFLT)(b - sqrt((MYDBL)(b * b) - 1.0));
       p->c1_2 = FL(1.0) - p->c2_2;
     }
     c1_1= p->c1_1;

@@ -109,7 +109,7 @@ typedef struct {
         float   fund,arate;
         float   RoverTwoPi,TwoPioverR,Fexact;
         MYFLT   *nextIn;
-        int32    nI,Ii,IOi;              /* need all these ?; double as N and NB */
+        int32    nI,Ii,IOi;              /* need all these ?; MYDBL as N and NB */
         int32    inptr;
 
         AUXCH   input;
@@ -118,7 +118,7 @@ typedef struct {
         AUXCH   analwinbuf;     /* prewin in SDFT case */
         AUXCH   oldInPhase;
         AUXCH           trig;
-        double          *cosine, *sine;
+        MYDBL          *cosine, *sine;
         void    *setup;
 } PVSANAL;
 

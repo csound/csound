@@ -92,11 +92,11 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
   }
   csound->Free(csound, fname);
   if (*(p->iBaseFreq) > FL(0.0))
-    sf->baseFreq = (double) *(p->iBaseFreq);
+    sf->baseFreq = (MYDBL) *(p->iBaseFreq);
   if (*(p->iAmpScale) != FL(0.0))
-    sf->scaleFac = (double) *(p->iAmpScale);
+    sf->scaleFac = (MYDBL) *(p->iAmpScale);
   if (*(p->iStartOffset) >= FL(0.0))
-    sf->startOffs = (double) *(p->iStartOffset);
+    sf->startOffs = (MYDBL) *(p->iStartOffset);
   loopMode = (int32_t) MYFLT2LRND(*(p->iLoopMode1));
   if (loopMode >= 0) {
     if (UNLIKELY(loopMode > 3))
@@ -108,10 +108,10 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
   }
   if (sf->loopMode < 2 || sf->loopStart == sf->loopEnd) {
     sf->loopStart = 0.0;
-    sf->loopEnd = (double) ((int32) sf->nFrames);
+    sf->loopEnd = (MYDBL) ((int32) sf->nFrames);
   }
   else if (sf->loopStart > sf->loopEnd) {
-    double  tmp = sf->loopStart;
+    MYDBL  tmp = sf->loopStart;
     sf->loopStart = sf->loopEnd;
     sf->loopEnd = tmp;
   }
@@ -179,9 +179,9 @@ typedef struct LOSCILXA_OPCODE_ {
   int32_t     loopingWholeFile;
 } LOSCILXA_OPCODE;
 
-static inline int_least64_t loscilx_convert_phase(double phs)
+static inline int_least64_t loscilx_convert_phase(MYDBL phs)
 {
-  double  tmp = phs * LOSCILX_PHASE_SCALE;
+  MYDBL  tmp = phs * LOSCILX_PHASE_SCALE;
 #ifdef HAVE_C99
   return (int_least64_t) llrint(tmp);
 #else
@@ -201,9 +201,9 @@ static inline int32 loscilx_phase_int(int_least64_t phs)
   return (int32) retval;
 }
 
-static inline double loscilx_phase_frac(int_least64_t phs)
+static inline MYDBL loscilx_phase_frac(int_least64_t phs)
 {
-  return ((double) ((int32_t) (((uint32_t) ((uint_least64_t) phs)
+  return ((MYDBL) ((int32_t) (((uint32_t) ((uint_least64_t) phs)
                                 & (uint32_t) 0xFFFFFFFFU) >> 1))
           * (1.0 / 2147483648.0));
 }
@@ -212,7 +212,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
 {
   void    *dataPtr = NULL;
   int32_t nChannels, loopMode;
-  double  frqScale = 1.0;
+  MYDBL  frqScale = 1.0;
 
   p->dataPtr = NULL;
   nChannels = GetOutputArgCnt((OPDS *)p);
@@ -232,10 +232,10 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
                                (char*) p->ifn);
     if (sf->loopMode < 2 || sf->loopStart == sf->loopEnd) {
       sf->loopStart = 0.0;
-      sf->loopEnd = (double) ((int32) sf->nFrames);
+      sf->loopEnd = (MYDBL) ((int32) sf->nFrames);
     }
     else if (sf->loopStart > sf->loopEnd) {
-      double  tmp = sf->loopStart;
+      MYDBL  tmp = sf->loopStart;
       sf->loopStart = sf->loopEnd;
       sf->loopEnd = tmp;
     }
@@ -254,10 +254,10 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     }
     if (*(p->ibas) > FL(0.0)) {
       frqScale = sf->sampleRate
-        / ((double) CS_ESR * (double) *(p->ibas));
+        / ((MYDBL) CS_ESR * (MYDBL) *(p->ibas));
     }
     else
-      frqScale = sf->sampleRate / ((double) CS_ESR * sf->baseFreq);
+      frqScale = sf->sampleRate / ((MYDBL) CS_ESR * sf->baseFreq);
     p->ampScale = (MYFLT) sf->scaleFac * csound->Get0dBFS(csound);
     p->nFrames = (int32) sf->nFrames;
   }
@@ -288,21 +288,21 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     p->curLoopEnd = (int_least64_t) ftp->end1 << 32;
     if (*(p->ibas) > FL(0.0)) {
       if (ftp->gen01args.sample_rate > FL(0.0))
-        frqScale = (double) ftp->gen01args.sample_rate
-          / ((double) CS_ESR * (double) *(p->ibas));
+        frqScale = (MYDBL) ftp->gen01args.sample_rate
+          / ((MYDBL) CS_ESR * (MYDBL) *(p->ibas));
       else
-        frqScale = 1.0 / (double) *(p->ibas);
+        frqScale = 1.0 / (MYDBL) *(p->ibas);
     }
     else if (ftp->cpscvt > FL(0.0)) {
-      frqScale = (double) ftp->cpscvt; 
+      frqScale = (MYDBL) ftp->cpscvt; 
     }
     else if (ftp->gen01args.sample_rate > FL(0.0))
-      frqScale = (double) ftp->gen01args.sample_rate / (double) CS_ESR;
+      frqScale = (MYDBL) ftp->gen01args.sample_rate / (MYDBL) CS_ESR;
     p->ampScale = FL(1.0);
     p->nFrames = ftp->flenfrms + 1L;
   }
   if (*(p->istrt) >= FL(0.0))
-    p->curPos = loscilx_convert_phase((double) *(p->istrt));
+    p->curPos = loscilx_convert_phase((MYDBL) *(p->istrt));
   p->curPosInc = (int_least64_t) 0;
   p->curLoopDir = 1;
   loopMode = (int32_t) MYFLT2LRND(*(p->imod1));
@@ -311,8 +311,8 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       return csound->InitError(csound, Str("invalid loop mode: %d"),
                                loopMode);
     p->curLoopMode = loopMode;
-    p->curLoopStart = loscilx_convert_phase((double) *(p->ibeg1));
-    p->curLoopEnd = loscilx_convert_phase((double) *(p->iend1));
+    p->curLoopStart = loscilx_convert_phase((MYDBL) *(p->ibeg1));
+    p->curLoopEnd = loscilx_convert_phase((MYDBL) *(p->iend1));
   }
   if (p->curLoopMode <= 0 || p->curLoopStart == p->curLoopEnd) {
     p->curLoopStart = (int_least64_t) 0;
@@ -366,7 +366,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
 {
   void    *dataPtr = NULL;
   int32_t loopMode;
-  double  frqScale = 1.0;
+  MYDBL  frqScale = 1.0;
 
   p->dataPtr = NULL;
   if (IsStringCode(*p->ifn)) {
@@ -381,10 +381,10 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
                                (char*) p->ifn);
     if (sf->loopMode < 2 || sf->loopStart == sf->loopEnd) {
       sf->loopStart = 0.0;
-      sf->loopEnd = (double) ((int32) sf->nFrames);
+      sf->loopEnd = (MYDBL) ((int32) sf->nFrames);
     }
     else if (sf->loopStart > sf->loopEnd) {
-      double  tmp = sf->loopStart;
+      MYDBL  tmp = sf->loopStart;
       sf->loopStart = sf->loopEnd;
       sf->loopEnd = tmp;
     }
@@ -401,10 +401,10 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
     }
     if (*(p->ibas) > FL(0.0)) {
       frqScale = sf->sampleRate
-        / ((double) CS_ESR * (double) *(p->ibas));
+        / ((MYDBL) CS_ESR * (MYDBL) *(p->ibas));
     }
     else
-      frqScale = sf->sampleRate / ((double) CS_ESR * sf->baseFreq);
+      frqScale = sf->sampleRate / ((MYDBL) CS_ESR * sf->baseFreq);
     p->ampScale = (MYFLT) sf->scaleFac * csound->Get0dBFS(csound);
     p->nFrames = (int32) sf->nFrames;
   }
@@ -433,21 +433,21 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
     p->curLoopEnd = (int_least64_t) ftp->end1 << 32;
     if (*(p->ibas) > FL(0.0)) {
       if (ftp->gen01args.sample_rate > FL(0.0))
-        frqScale = (double) ftp->gen01args.sample_rate
-          / ((double) CS_ESR * (double) *(p->ibas));
+        frqScale = (MYDBL) ftp->gen01args.sample_rate
+          / ((MYDBL) CS_ESR * (MYDBL) *(p->ibas));
       else
-        frqScale = 1.0 / (double) *(p->ibas);
+        frqScale = 1.0 / (MYDBL) *(p->ibas);
     }
     else if (ftp->cpscvt > FL(0.0)) {
-      frqScale = (double) ftp->cpscvt; 
+      frqScale = (MYDBL) ftp->cpscvt; 
     }
     else if (ftp->gen01args.sample_rate > FL(0.0))
-      frqScale = (double) ftp->gen01args.sample_rate / (double) CS_ESR;
+      frqScale = (MYDBL) ftp->gen01args.sample_rate / (MYDBL) CS_ESR;
     p->ampScale = FL(1.0);
     p->nFrames = ftp->flenfrms + 1L;
   }
   if (*(p->istrt) >= FL(0.0))
-    p->curPos = loscilx_convert_phase((double) *(p->istrt));
+    p->curPos = loscilx_convert_phase((MYDBL) *(p->istrt));
   p->curPosInc = (int_least64_t) 0;
   p->curLoopDir = 1;
   loopMode = (int32_t) MYFLT2LRND(*(p->imod1));
@@ -456,8 +456,8 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
       return csound->InitError(csound, Str("invalid loop mode: %d"),
                                loopMode);
     p->curLoopMode = loopMode;
-    p->curLoopStart = loscilx_convert_phase((double) *(p->ibeg1));
-    p->curLoopEnd = loscilx_convert_phase((double) *(p->iend1));
+    p->curLoopStart = loscilx_convert_phase((MYDBL) *(p->ibeg1));
+    p->curLoopEnd = loscilx_convert_phase((MYDBL) *(p->iend1));
   }
   if (p->curLoopMode <= 0 || p->curLoopStart == p->curLoopEnd) {
     p->curLoopStart = (int_least64_t) 0;
@@ -525,11 +525,11 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
 /*          generated, respectively.                      */
 /* -------- written by Istvan Varga, Jan 28 2002 -------- */
 
-static inline void init_sine_gen(double a, double f, double p, double c,
-                                 double *x, double *v)
+static inline void init_sine_gen(MYDBL a, MYDBL f, MYDBL p, MYDBL c,
+                                 MYDBL *x, MYDBL *v)
 {
-  double  y0, y1;             /* these should be doubles */
-  double xx, vv;
+  MYDBL  y0, y1;             /* these should be MYDBLs */
+  MYDBL xx, vv;
   y0 = sin(p);
   y1 = sin(p + f);
   xx = y0;
@@ -544,7 +544,7 @@ static int32_t loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
   int32_t     j;
-  double  frac_d, pidwarp_d = 0.0, c = 0.0;
+  MYDBL  frac_d, pidwarp_d = 0.0, c = 0.0;
   MYFLT   frac, ampScale, winFact = p->winFact;
   int32   ndx;
   int32_t     winSmps;
@@ -553,9 +553,9 @@ static int32_t loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
   if (UNLIKELY(p->dataPtr == NULL)) goto err1;
 
   if (*(p->kcps) != p->prvKcps) {
-    double  f;
+    MYDBL  f;
     p->prvKcps = *(p->kcps);
-    f = (double) p->prvKcps * (double) p->frqScale;
+    f = (MYDBL) p->prvKcps * (MYDBL) p->frqScale;
 #ifdef HAVE_C99
     p->curPosInc = (int_least64_t) llrint(f);
 #else
@@ -578,18 +578,18 @@ static int32_t loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
     }
   }
   if (p->enableWarp) {
-    double  tmp1, tmp2;
+    MYDBL  tmp1, tmp2;
 
-    pidwarp_d = PI * (double) p->warpFact;
+    pidwarp_d = PI * (MYDBL) p->warpFact;
     c = 2.0 * cos(pidwarp_d) - 2.0;
     /* correct window for kwarp */
-    tmp1 = tmp2 = (double) (p->winSize >> 1);
+    tmp1 = tmp2 = (MYDBL) (p->winSize >> 1);
     tmp1 *= tmp1;
     tmp1 = 1.0 / tmp1;
-    tmp2 *= (double) p->warpFact;
-    tmp2 -= (double) ((int32_t) tmp2) + 0.5;
+    tmp2 *= (MYDBL) p->warpFact;
+    tmp2 -= (MYDBL) ((int32_t) tmp2) + 0.5;
     tmp2 *= (4.0 * tmp2);
-    winFact = (MYFLT) (((double) p->winFact - tmp1) * tmp2 + tmp1);
+    winFact = (MYFLT) (((MYDBL) p->winFact - tmp1) * tmp2 + tmp1);
   }
   ampScale = *(p->xamp) * p->ampScale;
   if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(MYFLT));
@@ -632,12 +632,12 @@ static int32_t loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
       break;
     default:                                  /* sinc interpolation */
       {
-        double  d, x, v;
+        MYDBL  d, x, v;
         MYFLT   a0, a1;
         int32_t     wsized2 = winSmps >> 1;
 
         ndx += (int32) (1 - wsized2);
-        d = (double) (1 - wsized2) - frac_d;
+        d = (MYDBL) (1 - wsized2) - frac_d;
         j = 0;
         if (p->enableWarp) {              /* ...with window warp enabled */
           init_sine_gen((1.0 / PI), pidwarp_d, (pidwarp_d * d), c, &x, &v);
@@ -876,7 +876,7 @@ static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
   int32_t     j;
-  double  frac_d, pidwarp_d = 0.0, c = 0.0;
+  MYDBL  frac_d, pidwarp_d = 0.0, c = 0.0;
   MYFLT   frac, ampScale, winFact = p->winFact;
   int32   ndx;
   int32_t     winSmps;
@@ -885,9 +885,9 @@ static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
   if (UNLIKELY(p->dataPtr == NULL)) goto err1;
 
   if (*(p->kcps) != p->prvKcps) {
-    double  f;
+    MYDBL  f;
     p->prvKcps = *(p->kcps);
-    f = (double) p->prvKcps * (double) p->frqScale;
+    f = (MYDBL) p->prvKcps * (MYDBL) p->frqScale;
 #ifdef HAVE_C99
     p->curPosInc = (int_least64_t) llrint(f);
 #else
@@ -910,18 +910,18 @@ static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
     }
   }
   if (p->enableWarp) {
-    double  tmp1, tmp2;
+    MYDBL  tmp1, tmp2;
 
-    pidwarp_d = PI * (double) p->warpFact;
+    pidwarp_d = PI * (MYDBL) p->warpFact;
     c = 2.0 * cos(pidwarp_d) - 2.0;
     /* correct window for kwarp */
-    tmp1 = tmp2 = (double) (p->winSize >> 1);
+    tmp1 = tmp2 = (MYDBL) (p->winSize >> 1);
     tmp1 *= tmp1;
     tmp1 = 1.0 / tmp1;
-    tmp2 *= (double) p->warpFact;
-    tmp2 -= (double) ((int32_t) tmp2) + 0.5;
+    tmp2 *= (MYDBL) p->warpFact;
+    tmp2 -= (MYDBL) ((int32_t) tmp2) + 0.5;
     tmp2 *= (4.0 * tmp2);
-    winFact = (MYFLT) (((double) p->winFact - tmp1) * tmp2 + tmp1);
+    winFact = (MYFLT) (((MYDBL) p->winFact - tmp1) * tmp2 + tmp1);
   }
   ampScale = *(p->xamp) * p->ampScale;
   memset(p->arr->data, '\0', CS_KSMPS*p->nChannels*sizeof(MYFLT));
@@ -963,12 +963,12 @@ static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
       break;
     default:                                  /* sinc interpolation */
       {
-        double  d, x, v;
+        MYDBL  d, x, v;
         MYFLT   a0, a1;
         int32_t     wsized2 = winSmps >> 1;
 
         ndx += (int32) (1 - wsized2);
-        d = (double) (1 - wsized2) - frac_d;
+        d = (MYDBL) (1 - wsized2) - frac_d;
         j = 0;
         if (p->enableWarp) {              /* ...with window warp enabled */
           init_sine_gen((1.0 / PI), pidwarp_d, (pidwarp_d * d), c, &x, &v);

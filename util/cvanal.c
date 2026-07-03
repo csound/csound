@@ -145,7 +145,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
               cvh->headBsize,              /* total number of bytes of data */
               cvh->dataBsize,              /* total number of bytes of data */
               cvh->dataFormat,             /* (int32_t) format specifier */
-              (double)cvh->samplingRate,   /* of original sample */
+              (MYDBL)cvh->samplingRate,   /* of original sample */
               cvh->src_chnls,              /* no. of channels in source */
               cvh->channel,                /* requested channel(s) */
               cvh->Hlen,                   /* length of impulse reponse */
@@ -155,7 +155,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
               cvh->headBsize,              /* total number of bytes of data */
               cvh->dataBsize,              /* total number of bytes of data */
               cvh->dataFormat,             /* (int32_t) format specifier */
-              (double)cvh->samplingRate,   /* of original sample */
+              (MYDBL)cvh->samplingRate,   /* of original sample */
               cvh->src_chnls,              /* no. of channels in source */
               cvh->channel,                /* requested channel(s) */
               cvh->Hlen,                   /* length of impulse reponse */
@@ -230,7 +230,7 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
         int32 i, l;
         l = (cvh->dataBsize/nchanls)/sizeof(MYFLT);
         for (i=0; i<l; i++) {
-            fprintf(ofd, "%a\n", (double)outbuf[i]);
+            fprintf(ofd, "%a\n", (MYDBL)outbuf[i]);
         }
       }
       else

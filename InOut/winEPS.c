@@ -21,7 +21,7 @@
 
 #include "csoundCore.h"         /*                      WINEPS.C        */
 #include "cwindow.h"
-#include <math.h>
+
 
 /*--------------------------------------  winEPS.c ---------------------------
  *
@@ -180,7 +180,7 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
 
 static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
 {
-    double bmin, bmax, big;
+    MYDBL bmin, bmax, big;
     int32_t    i;
 
     /**
@@ -194,7 +194,7 @@ static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
     }
 
     bmax = 0.0000001;
-    if (fabs((double)*max) > bmax) {
+    if (fabs((MYDBL)*max) > bmax) {
       while ((i = (int32_t)(FABS(*max) / bmax)))
         bmax = bmax * 10.0;
     }

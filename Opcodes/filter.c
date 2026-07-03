@@ -127,18 +127,18 @@
  */
 
 /* Contains modifications by John ffitch, which have no restrictions attached
- * Main changes are to work in double precision internally */
+ * Main changes are to work in MYDBL precision internally */
 
 #include <stdlib.h>
 
 #include "stdopcod.h"
 #include "filter.h"
-#include <math.h>
 
-typedef struct FCOMPLEX {double r,i;} fcomplex;
 
-static double readFilter(FILTER*, int32_t);
-static void insertFilter(FILTER*,double);
+typedef struct FCOMPLEX {MYDBL r,i;} fcomplex;
+
+static MYDBL readFilter(FILTER*, int32_t);
+static void insertFilter(FILTER*,MYDBL);
 
 #ifndef MAX
 #define MAX(a,b) ((a>b)?(a):(b))
@@ -147,26 +147,26 @@ static void insertFilter(FILTER*,double);
 
 /*#define POLEISH (1) */     /* 1=poleish pole roots after Laguer root finding */
 
-typedef struct FPOLAR {double mag,ph;} fpolar;
+typedef struct FPOLAR {MYDBL mag,ph;} fpolar;
 
 /* Routines associated with pole control */
-static void expandPoly(fcomplex[], double[], int32_t);
+static void expandPoly(fcomplex[], MYDBL[], int32_t);
 static void complex2polar(fcomplex[],fpolar[], int32_t);
 static void polar2complex(fpolar[],fcomplex[], int32_t);
 static void sortRoots(fcomplex roots[], int32_t dim);
 static int32_t sortfun(fpolar *a, fpolar *b);
-static void nudgeMags(fpolar a[], fcomplex b[], int32_t dim, double fact);
-static void nudgePhases(fpolar a[], fcomplex b[], int32_t dim, double fact);
+static void nudgeMags(fpolar a[], fcomplex b[], int32_t dim, MYDBL fact);
+static void nudgePhases(fpolar a[], fcomplex b[], int32_t dim, MYDBL fact);
 
 static void zroots(CSOUND*, fcomplex [], int32_t, fcomplex []);
 static fcomplex Cadd(fcomplex, fcomplex);
 static fcomplex Csub(fcomplex, fcomplex);
 static fcomplex Cmul(fcomplex, fcomplex);
 static fcomplex Cdiv(fcomplex, fcomplex);
-static fcomplex Complex(double, double);
-static double Cabs(fcomplex);
+static fcomplex Complex(MYDBL, MYDBL);
+static MYDBL Cabs(fcomplex);
 static fcomplex Csqrt(fcomplex);
-static fcomplex RCmul(double, fcomplex);
+static fcomplex RCmul(MYDBL, fcomplex);
 
 /* Filter initialization routine */
 static int32_t ifilter(CSOUND *csound, FILTER* p)
@@ -189,17 +189,17 @@ static int32_t ifilter(CSOUND *csound, FILTER* p)
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(p->numb-1,p->numa);
 
-    csound->AuxAlloc(csound, p->ndelay * sizeof(double), &p->delay);
+    csound->AuxAlloc(csound, p->ndelay * sizeof(MYDBL), &p->delay);
 
     /* Initialize the delay line for safety  ***NOT NEEDED AS AUXALLOC DOES THAT */
     /* for (i=0;i<p->ndelay;i++) */
-    /*   ((double*)p->delay.auxp)[i] = 0.0; */
+    /*   ((MYDBL*)p->delay.auxp)[i] = 0.0; */
 
     /* Set current position pointer to beginning of delay */
-    p->currPos = (double*)p->delay.auxp;
+    p->currPos = (MYDBL*)p->delay.auxp;
 
     for (i=0; i<p->numb+p->numa; i++)
-      p->dcoeffs[i] = (double)*p->coeffs[i];
+      p->dcoeffs[i] = (MYDBL)*p->coeffs[i];
     return OK;
 }
 
@@ -208,7 +208,7 @@ static int32_t izfilter(CSOUND *csound, ZFILTER *p)
 {
     fcomplex a[MAXPOLES];
     fcomplex *roots;
-    double *coeffs;
+    MYDBL *coeffs;
     int32_t i, dim;
 
     /* since i-time arguments are not guaranteed to propagate to p-time
@@ -227,13 +227,13 @@ static int32_t izfilter(CSOUND *csound, ZFILTER *p)
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(p->numb-1,p->numa);
 
-    csound->AuxAlloc(csound, p->ndelay * sizeof(double), &p->delay);
+    csound->AuxAlloc(csound, p->ndelay * sizeof(MYDBL), &p->delay);
 
     /* Set current position pointer to beginning of delay */
-    p->currPos = (double*)p->delay.auxp;
+    p->currPos = (MYDBL*)p->delay.auxp;
 
     for (i=0; i<p->numb+p->numa; i++)
-      p->dcoeffs[i] = (double)*p->coeffs[i];
+      p->dcoeffs[i] = (MYDBL)*p->coeffs[i];
 
     /* Add auxillary root memory */
     csound->AuxAlloc(csound, p->numa * sizeof(fcomplex), &p->roots);
@@ -271,11 +271,11 @@ static int32_t afilter(CSOUND *csound, FILTER* p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double* a = p->dcoeffs+p->numb;
-    double* b = p->dcoeffs+1;
-    double  b0 = p->dcoeffs[0];
+    MYDBL* a = p->dcoeffs+p->numb;
+    MYDBL* b = p->dcoeffs+1;
+    MYDBL  b0 = p->dcoeffs[0];
 
-    double poleSamp, zeroSamp, inSamp;
+    MYDBL poleSamp, zeroSamp, inSamp;
 
     /* Outer loop */
     if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
@@ -323,11 +323,11 @@ static int32_t kfilter(CSOUND *csound, FILTER* p)
      IGN(csound);
     int32_t i;
 
-    double* a = p->dcoeffs+p->numb;
-    double* b = p->dcoeffs+1;
-    double  b0 = p->dcoeffs[0];
+    MYDBL* a = p->dcoeffs+p->numb;
+    MYDBL* b = p->dcoeffs+1;
+    MYDBL  b0 = p->dcoeffs[0];
 
-    double poleSamp, zeroSamp, inSamp;
+    MYDBL poleSamp, zeroSamp, inSamp;
 
     inSamp = *p->in;
     poleSamp = inSamp;
@@ -374,18 +374,18 @@ static int32_t azfilter(CSOUND *csound, ZFILTER* p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double* a = p->dcoeffs+p->numb;
-    double* b = p->dcoeffs+1;
-    double  b0 = p->dcoeffs[0];
+    MYDBL* a = p->dcoeffs+p->numb;
+    MYDBL* b = p->dcoeffs+1;
+    MYDBL  b0 = p->dcoeffs[0];
 
-    double poleSamp, zeroSamp, inSamp;
+    MYDBL poleSamp, zeroSamp, inSamp;
 
     fpolar B[MAXPOLES];
     fcomplex C[MAXPOLES+1];
 
     fcomplex *roots = (fcomplex*) p->roots.auxp;
-    double kmagf = *p->kmagf; /* Mag nudge factor */
-    double kphsf = *p->kphsf; /* Phs nudge factor */
+    MYDBL kmagf = *p->kmagf; /* Mag nudge factor */
+    MYDBL kphsf = *p->kphsf; /* Phs nudge factor */
 
     int32_t dim = p->numa;
 
@@ -440,19 +440,19 @@ static int32_t azfilter(CSOUND *csound, ZFILTER* p)
  * allows multiple lattice structures to access the same delay line.
  *
  */
-static double readFilter(FILTER* p, int32_t i)
+static MYDBL readFilter(FILTER* p, int32_t i)
 {
-    double* readPoint; /* Generic pointer address */
+    MYDBL* readPoint; /* Generic pointer address */
 
     /* Calculate the address of the index for this read */
     readPoint = p->currPos - i;
 
     /* Wrap around for time-delay if necessary */
-    if (readPoint < ((double*)p->delay.auxp) )
+    if (readPoint < ((MYDBL*)p->delay.auxp) )
       readPoint += p->ndelay;
     else
       /* Wrap for time-advance if necessary */
-      if (readPoint > ((double*)p->delay.auxp + (p->ndelay-1)) )
+      if (readPoint > ((MYDBL*)p->delay.auxp + (p->ndelay-1)) )
         readPoint -= p->ndelay;
 
     return *readPoint; /* Dereference read address for delayed value */
@@ -464,14 +464,14 @@ static double readFilter(FILTER* p, int32_t i)
  * currPos pointer modulo the length of the delay line.
  *
  */
-static void insertFilter(FILTER* p, double val)
+static void insertFilter(FILTER* p, MYDBL val)
 {
     /* Insert the passed value into the delay line */
     *p->currPos = val;
 
     /* Update the currPos pointer and wrap modulo the delay length */
-    if (((double*) (++p->currPos)) >
-        ((double*)p->delay.auxp + (p->ndelay-1)) )
+    if (((MYDBL*) (++p->currPos)) >
+        ((MYDBL*)p->delay.auxp + (p->ndelay-1)) )
       p->currPos -= p->ndelay;
 }
 
@@ -479,7 +479,7 @@ static void insertFilter(FILTER* p, double val)
 /* The expanded polynomial is computed as a[0..N] in
  * descending powers of Z
  */
-static void expandPoly(fcomplex roots[], double a[], int32_t dim)
+static void expandPoly(fcomplex roots[], MYDBL a[], int32_t dim)
 {
     int32_t j,k;
     fcomplex z[MAXPOLES],d[MAXPOLES];
@@ -559,10 +559,10 @@ static int32_t sortfun(fpolar *a, fpolar *b)
  * without affecting the overall frequency response characteristic.
  *
  */
-static void nudgeMags(fpolar a[], fcomplex b[], int32_t dim, double fact)
+static void nudgeMags(fpolar a[], fcomplex b[], int32_t dim, MYDBL fact)
 {
-    double eps = .000001; /* To avoid underflow comparisons */
-    double nudgefact;
+    MYDBL eps = .000001; /* To avoid underflow comparisons */
+    MYDBL nudgefact;
     int32_t i;
 
     /* Check range of nudge factor */
@@ -599,12 +599,12 @@ static void nudgeMags(fpolar a[], fcomplex b[], int32_t dim, double fact)
  *
  * Multiply phases of all poles by factor
  */
-static void nudgePhases(fpolar a[], fcomplex b[], int32_t dim, double fact)
+static void nudgePhases(fpolar a[], fcomplex b[], int32_t dim, MYDBL fact)
 {
-    double eps = .000001; /* To avoid underflow comparisons */
-    double nudgefact;
+    MYDBL eps = .000001; /* To avoid underflow comparisons */
+    MYDBL nudgefact;
     int32_t i;
-    double phmax=0.0;
+    MYDBL phmax=0.0;
 
     /* Check range of nudge factor */
     if (fact>0 && fact<=1) {
@@ -653,9 +653,9 @@ static void laguer(CSOUND *csound, fcomplex a[], int32_t m,
                    fcomplex *x, int32_t *its)
 {
     int32_t iter,j;
-    double abx,abp,abm,err;
+    MYDBL abx,abp,abm,err;
     fcomplex dx,x1,b,d,f,g,h,sq,gp,gm,g2;
-    static const double frac[MR+1] = {0.0,0.5,0.25,0.75,0.13,0.38,0.62,0.88,1.0};
+    static const MYDBL frac[MR+1] = {0.0,0.5,0.25,0.75,0.13,0.38,0.62,0.88,1.0};
 
     for (iter=1; iter<=MAXIT; iter++) {
       *its = iter;
@@ -669,21 +669,21 @@ static void laguer(CSOUND *csound, fcomplex a[], int32_t m,
         b = Cadd(Cmul(*x,b),a[j]);
         err = Cabs(b)+abx*err;
       }
-      err *= (double)EPSS;
+      err *= (MYDBL)EPSS;
       if (Cabs(b) <= err) return;
       g = Cdiv(d,b);
       g2 = Cmul(g,g);
       h = Csub(g2,RCmul(2.0,Cdiv(f,b)));
-      sq = Csqrt(RCmul((double) (m-1),Csub(RCmul((double) m,h),g2)));
+      sq = Csqrt(RCmul((MYDBL) (m-1),Csub(RCmul((MYDBL) m,h),g2)));
       gp = Cadd(g,sq);
       gm = Csub(g,sq);
       abp = Cabs(gp);
       abm = Cabs(gm);
       if (abp < abm) gp = gm;
-      dx = ((FPMAX(abp,abm) > 0.0 ? Cdiv(Complex((double) m,0.0),gp)
+      dx = ((FPMAX(abp,abm) > 0.0 ? Cdiv(Complex((MYDBL) m,0.0),gp)
            : RCmul(exp(log(1.0+abx)),
-                   Complex(cos((double)iter),
-                           sin((double)iter)))));
+                   Complex(cos((MYDBL)iter),
+                           sin((MYDBL)iter)))));
       x1 = Csub(*x,dx);
       if (x->r == x1.r && x->i == x1.i) return;
       if (iter % MT) *x = x1;
@@ -769,7 +769,7 @@ static fcomplex Cmul(fcomplex a, fcomplex b)
     return c;
 }
 
-static fcomplex Complex(double re, double im)
+static fcomplex Complex(MYDBL re, MYDBL im)
 {
     fcomplex c;
     c.r = re;
@@ -788,7 +788,7 @@ static fcomplex Complex(double re, double im)
 static fcomplex Cdiv(fcomplex a, fcomplex b)
 {
     fcomplex c;
-    double r,den;
+    MYDBL r,den;
     if (fabs(b.r) >= fabs(b.i)) {
       r   = b.i/b.r;
       den = b.r+r*b.i;
@@ -804,10 +804,10 @@ static fcomplex Cdiv(fcomplex a, fcomplex b)
     return c;
 }
 
-static double Cabs(fcomplex z)
+static MYDBL Cabs(fcomplex z)
 {
-    double x,y,ans;
-    double temp;
+    MYDBL x,y,ans;
+    MYDBL temp;
     x = fabs(z.r);
     y = fabs(z.i);
     if (x == 0.0)
@@ -828,8 +828,8 @@ static double Cabs(fcomplex z)
 static fcomplex Csqrt(fcomplex z)
 {
     fcomplex c;
-    double w;
-    double x,y,r;
+    MYDBL w;
+    MYDBL x,y,r;
     if ((z.r == 0.0) && (z.i == 0.0)) {
       c.r = 0.0;
       c.i = 0.0;
@@ -857,7 +857,7 @@ static fcomplex Csqrt(fcomplex z)
     }
 }
 
-static fcomplex RCmul(double x, fcomplex a)
+static fcomplex RCmul(MYDBL x, fcomplex a)
 {
     fcomplex c;
     c.r = x*a.r;

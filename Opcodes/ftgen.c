@@ -20,7 +20,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include "soundio.h"
-#include <math.h>
+
 
 typedef struct {
   OPDS    h;

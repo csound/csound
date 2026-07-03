@@ -38,7 +38,7 @@
 #include "modal4.h"
 #include "marimba.h"
 #include "vibraphn.h"
-#include <math.h>
+
 #include "interlocks.h"
 static int32_t make_Modal4(CSOUND *csound,
                            Modal4 *m, MYFLT *ifn, MYFLT vgain, MYFLT vrate)
@@ -275,7 +275,7 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
   p->strikePosition = *p->spos;
   /* Set Stick hardness stuff */
   p->stickHardness = *p->hardness;
-  p->m4.w_rate = (FL(0.25) * (MYFLT)pow(4.0,(double)p->stickHardness));
+  p->m4.w_rate = (FL(0.25) * (MYFLT)pow(4.0,(MYDBL)p->stickHardness));
   p->m4.masterGain = (FL(0.1) + (FL(1.8) * p->stickHardness));
   /* Set Strike position */
   temp2 = p->strikePosition * PI_F;
@@ -289,7 +289,7 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
   /* Strike */
   {
     int32_t triples = (*p->triples<=FL(0.0) ? 20 : (int32_t)*p->triples);
-    int32_t doubles = (*p->doubles<=FL(0.0) ? 40 : triples + (int32_t)*p->doubles);
+    int32_t MYDBLs = (*p->MYDBLs<=FL(0.0) ? 40 : triples + (int32_t)*p->MYDBLs);
    const OPARMS *parm;
     parm =  csound->GetOParms(csound) ;
     itemp = csound->Rand31(csound->RandSeed31(csound)) % 100;
@@ -298,7 +298,7 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
       if (parm->msglevel & CS_RNGEMSG)
         csound->Message(csound, "%s", Str("striking three times here!!!\n"));
     }
-    else if (itemp < doubles) {
+    else if (itemp < MYDBLs) {
       p->multiStrike = 1;
       if (parm->msglevel & CS_RNGEMSG)
         csound->Message(csound, "%s", Str("striking twice here!!\n"));

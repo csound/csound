@@ -32,14 +32,14 @@
 typedef struct {
     OPDS    h;
     MYFLT   *out, *in, *b0, *b1, *b2, *a0, *a1, *a2, *reinit;
-    double  xnm1, xnm2, ynm1, ynm2;
+    MYDBL  xnm1, xnm2, ynm1, ynm2;
 } BIQUAD;
 
                                 /* Structure for moogvcf filter */
 typedef struct {
     OPDS    h;
     MYFLT   *out, *in, *fco, *res, *max, *iskip;
-    double  xnm1, y1nm1, y2nm1, y3nm1, y1n, y2n, y3n, y4n;
+    MYDBL  xnm1, y1nm1, y2nm1, y3nm1, y1n, y2n, y3n, y4n;
     MYFLT   maxint;
     int16   fcocod, rezcod;
 } MOOGVCF;
@@ -48,7 +48,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *out, *in, *fco, *rez, *mode, *iskip;
-    double  xnm1, xnm2, ynm1, ynm2;
+    MYDBL  xnm1, xnm2, ynm1, ynm2;
     int16   fcocod, rezcod;
     int16   warn;
 } REZZY;
@@ -86,9 +86,9 @@ typedef struct {
 typedef struct {
     OPDS   h;
     MYFLT  *out, *in, *fc, *v, *q, *mode, *iskip;
-    double xnm1, xnm2, ynm1, ynm2;
+    MYDBL xnm1, xnm2, ynm1, ynm2;
     MYFLT  prv_fc, prv_v, prv_q;
-    double b0, b1, b2, a1, a2;
+    MYDBL b0, b1, b2, a1, a2;
     int32_t imode;
 } PAREQ;
 
@@ -116,7 +116,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *out, *in, *fco, *res, *dist, *asym, *iskip;
-    double  y, y1, y2;
+    MYDBL  y, y1, y2;
     int16   fcocod, rezcod;
 } TBVCF;
 
@@ -124,7 +124,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *aout, *ain, *kfreq, *kq, *reinit;
-    double  xnm1, ynm1, ynm2, a0, a1, a2, d;
+    MYDBL  xnm1, ynm1, ynm2, a0, a1, a2, d;
     MYFLT   lfq,lq;
     MYFLT   limit;
 } MODE;

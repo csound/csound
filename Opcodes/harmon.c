@@ -28,7 +28,7 @@
 
 #include "interlocks.h"
 
-#include <math.h>
+
 
 typedef struct {
         MYFLT   *srcp;

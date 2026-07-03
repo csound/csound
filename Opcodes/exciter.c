@@ -25,7 +25,7 @@
 #else
 #include "csoundCore.h"
 #endif       /*                    EXCITER.C         */
-#include <math.h>
+
 
 /**********************************************************************
  * EXCITER by Markus Schmidt
@@ -42,21 +42,21 @@ typedef struct {
   // Internals
   MYFLT       freq_old, ceil_old;
   // biquad data
-  double      hp1[7], hp2[7], hp3[7], hp4[7];
-  double      lp1[7],  lp2[7];
+  MYDBL      hp1[7], hp2[7], hp3[7], hp4[7];
+  MYDBL      lp1[7],  lp2[7];
   // resampler
-  double      rs00[7], rs01[7], rs10[7], rs11[7];
+  MYDBL      rs00[7], rs01[7], rs10[7], rs11[7];
   // distortion
-  double      rdrive, rbdr, kpa, kpb, kna, knb, ap, an, imr, kc, srct, sq, pwrq;
+  MYDBL      rdrive, rbdr, kpa, kpb, kna, knb, ap, an, imr, kc, srct, sq, pwrq;
   int32_t         over;
-  double      prev_med, prev_out;
-  double      blend_old, drive_old;
+  MYDBL      prev_med, prev_out;
+  MYDBL      blend_old, drive_old;
 } EXCITER;
 
-static inline double process(double st[7], double in/*, char *s */)
+static inline MYDBL process(MYDBL st[7], MYDBL in/*, char *s */)
 {
-    double tmp = in - st[5] * st[3] - st[6] * st[4];
-    double out = tmp * st[0] + st[5] * st[1] + st[6] * st[2];
+    MYDBL tmp = in - st[5] * st[3] - st[6] * st[4];
+    MYDBL out = tmp * st[0] + st[5] * st[1] + st[6] * st[2];
     st[6] = st[5];
     st[5] = tmp;
     /* printf("%s: %f -> %f; %f %f\n", s, in, out, st[5], st[6]); */
@@ -67,13 +67,13 @@ static inline double process(double st[7], double in/*, char *s */)
      * @param fc     resonant frequency
      * @param q      resonance (gain at fc)
      */
-static inline void set_hp_rbj(CSOUND *csound, double hp[7], double fc, double q, MYFLT sr)
+static inline void set_hp_rbj(CSOUND *csound, MYDBL hp[7], MYDBL fc, MYDBL q, MYFLT sr)
 {
-    double omega= (TWOPI*fc/(double) sr);
-    double sn=sin(omega);
-    double cs=cos(omega);
-    double alpha=(double)(sn/(2.0*q));
-    double inv=(double)(1.0/(1.0+alpha));
+    MYDBL omega= (TWOPI*fc/(MYDBL) sr);
+    MYDBL sn=sin(omega);
+    MYDBL cs=cos(omega);
+    MYDBL alpha=(MYDBL)(sn/(2.0*q));
+    MYDBL inv=(MYDBL)(1.0/(1.0+alpha));
 
     hp[2]/*a2*/ = hp[0]/*a0*/ =  (inv*(1.0 + cs)*0.5);
     hp[1]/*a1*/ =  -2.0 * hp[0];
@@ -83,13 +83,13 @@ static inline void set_hp_rbj(CSOUND *csound, double hp[7], double fc, double q,
     return;
 }
 
-static inline void set_lp_rbj(double lp[7], double fc, double q, double sr)
+static inline void set_lp_rbj(MYDBL lp[7], MYDBL fc, MYDBL q, MYDBL sr)
 {
-    double omega=(TWOPI*fc/sr);
-    double sn=sin(omega);
-    double cs=cos(omega);
-    double alpha=(sn/(2*q));
-    double inv=(1.0/(1.0+alpha));
+    MYDBL omega=(TWOPI*fc/sr);
+    MYDBL sn=sin(omega);
+    MYDBL cs=cos(omega);
+    MYDBL alpha=(sn/(2*q));
+    MYDBL inv=(1.0/(1.0+alpha));
 
     /* printf("fc = %f q = %f sr = %f: %f\n", fc, q, sr, TWOPI*fc/sr); */
     /* printf("omega = %f, sn = %f, cs = %f, alpha = %f, inv = %f\n", */
@@ -117,24 +117,24 @@ static int32_t exciter_init(CSOUND *csound, EXCITER *p)
     p->blend_old = p->drive_old = -1.0;
     //resample_set_params(csound, p);
     {
-      double srate = (double)CS_ESR;
-      double ff = 25000.0;
+      MYDBL srate = (MYDBL)CS_ESR;
+      MYDBL ff = 25000.0;
       if (srate>50000) ff = srate*0.5;
       // set all filters
       set_lp_rbj(p->rs00, ff, 0.8, srate * 2);
       /* printf("resample filter: %f %f %f %f %f %f %f\n", */
       /*        p->rs00[0],p->rs00[1],p->rs00[2],p->rs00[3],p->rs00[4], */
       /*        p->rs00[5],p->rs00[6]); */
-      memcpy(p->rs01, p->rs00, 5*sizeof(double));
-      memcpy(p->rs10, p->rs00, 5*sizeof(double));
-      memcpy(p->rs11, p->rs00, 5*sizeof(double));
+      memcpy(p->rs01, p->rs00, 5*sizeof(MYDBL));
+      memcpy(p->rs10, p->rs00, 5*sizeof(MYDBL));
+      memcpy(p->rs11, p->rs00, 5*sizeof(MYDBL));
     }
     return OK;
 }
 
-void upsample(EXCITER *p, double *tmp, double sample)
+void upsample(EXCITER *p, MYDBL *tmp, MYDBL sample)
 {
-    double tt = process(p->rs00,sample);
+    MYDBL tt = process(p->rs00,sample);
     tmp[0] = process(p->rs01,tt);
     //printf("up0:%f -> %f -> %f\n", sample, tt, tmp[0]);
     tt = process(p->rs00,0.0);
@@ -143,7 +143,7 @@ void upsample(EXCITER *p, double *tmp, double sample)
     return;
 }
 
-double downsample(EXCITER *p, double *sample)
+MYDBL downsample(EXCITER *p, MYDBL *sample)
 {
     //printf("downsample: %f %f ->", sample[0], sample[1]);
     sample[0] = process(p->rs10, sample[0]);
@@ -154,28 +154,28 @@ double downsample(EXCITER *p, double *sample)
     return sample[0];
 }
 
-static inline double M(double x)
+static inline MYDBL M(MYDBL x)
 {
     return (fabs(x) > 0.00000001) ? x : 0.0;
 }
 
-static inline double D(double x)
+static inline MYDBL D(MYDBL x)
 {
     x = fabs(x);
     return (x > 0.00000001) ? sqrt(x) : 0.0;
 }
 
-static inline double distort(EXCITER *p, double in)
+static inline MYDBL distort(EXCITER *p, MYDBL in)
 {
-    double samples[2], ans;
+    MYDBL samples[2], ans;
     int32_t i;
-    double ap = p->ap, an = p->an, kpa = p->kpa, kna = p->kna,
+    MYDBL ap = p->ap, an = p->an, kpa = p->kpa, kna = p->kna,
           kpb = p->kpb, knb = p->knb, pwrq = p->pwrq;
     //printf("in: %f\n", in);
     upsample(p, samples, in);
     for (i = 0; i < p->over; i++) {
-      double proc = samples[i];
-      double med;
+      MYDBL proc = samples[i];
+      MYDBL med;
       //printf("%d: %f-> ", i, proc);
       if (proc >= 0.0) {
         med = (D(ap + proc * (kpa - proc)) + kpb) * pwrq;
@@ -205,7 +205,7 @@ static inline void set_distort(CSOUND *csound, EXCITER *p)
 {
     // set distortion coeffs
     if ((p->drive_old != *p->pdrive) || (p->blend_old != *p->pblend)) {
-      double srate = CS_ESR;
+      MYDBL srate = CS_ESR;
       /* printf("drive %f->%f; blend %f->%f\n", */
       /*        p->drive_old, *p->pdrive, p->blend_old, *p->pblend); */
       p->drive_old = *p->pdrive;
@@ -238,15 +238,15 @@ static inline void params_changed(CSOUND *csound, EXCITER *p)
     // set the params of all filters
     if (UNLIKELY(*p->pfreq != p->freq_old)) {
       set_hp_rbj(csound, p->hp1, *p->pfreq, 0.707, CS_ESR);
-      memcpy(p->hp2, p->hp1, 5*sizeof(double));
-      memcpy(p->hp3, p->hp1, 5*sizeof(double));
-      memcpy(p->hp4, p->hp1, 5*sizeof(double));
+      memcpy(p->hp2, p->hp1, 5*sizeof(MYDBL));
+      memcpy(p->hp3, p->hp1, 5*sizeof(MYDBL));
+      memcpy(p->hp4, p->hp1, 5*sizeof(MYDBL));
       p->freq_old = *p->pfreq;
     }
     // set the params of all filters
     if (UNLIKELY(*p->pceil != p->ceil_old)) {
-      set_lp_rbj(p->lp1, *p->pceil, 0.707, (double)CS_ESR);
-      memcpy(p->lp2, p->lp1, 5*sizeof(double));
+      set_lp_rbj(p->lp1, *p->pceil, 0.707, (MYDBL)CS_ESR);
+      memcpy(p->lp2, p->lp1, 5*sizeof(MYDBL));
       p->ceil_old = *p->pceil;
     }
     // set distortion
@@ -270,8 +270,8 @@ int32_t exciter_perf(CSOUND *csound, EXCITER *p)
    // process
     for (n = offset; n<nsmps; n++) {
       // cycle through samples
-      double out, in, out1;
-      in = (double)p->ain[n]/zerodb;
+      MYDBL out, in, out1;
+      in = (MYDBL)p->ain[n]/zerodb;
       // all pre filters in chain
       //printf("**** %f ****\n", in);
       out1 = process(p->hp2, process(p->hp1, in));

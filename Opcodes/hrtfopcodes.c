@@ -27,7 +27,7 @@
 #endif
 #include "interlocks.h"
 
-#include <math.h>
+
 /* definitions */
 /* from mit */
 #define minelev (-40)

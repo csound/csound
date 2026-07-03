@@ -50,7 +50,7 @@ typedef struct {
   MYFLT *out;
   MYFLT *in, *cutoff, *mode, *skip;
   MYFLT last_cut, G;
-  double z1;
+  MYDBL z1;
 } ZDF_1POLE;
 
 
@@ -59,23 +59,23 @@ typedef struct {
   MYFLT *outlp, *outhp;
   MYFLT *in, *cutoff, *skip;
   MYFLT last_cut, G;
-  double z1;
+  MYDBL z1;
 } ZDF_1POLE_MODE;
 
 typedef struct {
   OPDS h;
   MYFLT *out;
   MYFLT *in, *cutoff, *q, *mode, *skip;
-  double last_cut, last_q, g, R;
-  double z1, z2;
+  MYDBL last_cut, last_q, g, R;
+  MYDBL z1, z2;
 } ZDF_2POLE;
 
 typedef struct {
   OPDS h;
   MYFLT *outlp,*outbp, *outhp;
   MYFLT *in, *cutoff, *q, *skip;
-  double last_cut, last_q, g, R;
-  double z1, z2;
+  MYDBL last_cut, last_q, g, R;
+  MYDBL z1, z2;
 } ZDF_2POLE_MODE;
 
 
@@ -83,30 +83,30 @@ typedef struct {
   OPDS h;
   MYFLT *out;
   MYFLT *in, *cutoff, *q, *skip;
-  double last_cut, last_q, last_k, last_g, last_G, last_G2, last_G3, last_GAMMA;
-  double z1, z2, z3, z4;
+  MYDBL last_cut, last_q, last_k, last_g, last_G, last_G2, last_G3, last_GAMMA;
+  MYDBL z1, z2, z3, z4;
 } ZDF_LADDER;
 
 typedef struct {
   OPDS h;
   MYFLT *out;
   MYFLT *in, *cutoff, *kval, *nlp, *saturation, *skip;
-  double a[4], z[4], G[4], beta[4], delta[3], epsilon[3], gamma[3], SG[4];
-  double SIGMA, GAMMA, last_alpha, last_cut;
+  MYDBL a[4], z[4], G[4], beta[4], delta[3], epsilon[3], gamma[3], SG[4];
+  MYDBL SIGMA, GAMMA, last_alpha, last_cut;
 } DIODE_LADDER;
 
 typedef struct {
   OPDS h;
   MYFLT *out;
   MYFLT *in, *cutoff, *q, *nonlinear, *saturation, *skip;
-  double z1, z2, z3, last_cut, last_q, g, G, K, S35, alpha, lpf2_beta, hpf1_beta;
+  MYDBL z1, z2, z3, last_cut, last_q, g, G, K, S35, alpha, lpf2_beta, hpf1_beta;
 } K35_LPF;
 
 typedef struct {
   OPDS h;
   MYFLT *out;
   MYFLT *in, *cutoff, *q, *nonlinear, *saturation, *skip;
-  double z1, z2, z3, last_cut, last_q, g, G, K, S35, alpha, hpf2_beta, lpf1_beta;
+  MYDBL z1, z2, z3, last_cut, last_q, g, G, K, S35, alpha, hpf2_beta, lpf1_beta;
 } K35_HPF;
 
 

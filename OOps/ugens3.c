@@ -22,7 +22,7 @@
 
 #include "csoundCore.h"         /*                              UGENS3.C    */
 #include "ugens3.h"
-#include <math.h>
+
 
 int32_t foscset(CSOUND *csound, FOSC *p)
 {
@@ -53,7 +53,7 @@ int32_t foscil(CSOUND *csound, FOSC *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   MYFLT    mincf, cincf;
-  double   cphsf, mphsf;
+  MYDBL   cphsf, mphsf;
   MYFLT    sicvt = CS_SICVT;
 
 
@@ -163,7 +163,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
   uint32_t n, nsmps = CS_KSMPS;
   MYFLT    *ft, sicvt = CS_SICVT;
   MYFLT    cincf, mincf;
-  double   cphsf = p->cphsf, mphsf = p->mphsf;
+  MYDBL   cphsf = p->cphsf, mphsf = p->mphsf;
 
 
   ar = p->rslt;

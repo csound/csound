@@ -130,7 +130,7 @@ extern "C" {
      Sets the playback time pointer to the specified value (in seconds)
   */
   PUBLIC void csoundPerformanceThreadSetScoreOffsetSeconds(CS_PERF_THREAD* pt,
-    double timeVal);
+    MYDBL timeVal);
   
   /**
      Compiles the given orchestra code

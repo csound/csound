@@ -31,7 +31,7 @@
 #endif
 
 #include "interlocks.h"
-#include <math.h>
+
 
 #define MINFREQINBINS 5
 #define MAXHIST 3
@@ -279,7 +279,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
         if (var * totalpower > THRSH * height
             || var < FL(1.0e-30)) continue;
 
-        stdev = (MYFLT)sqrt((double)var);
+        stdev = (MYFLT)sqrt((MYDBL)var);
         if (totalfreq < 4) totalfreq = 4;
 
 
@@ -351,7 +351,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
       if ((nbelow8 < 4 || npartials < 7) && cumpow < FL(0.01) * totalpower)
         histpeak.hvalue = 0;
       else {
-        double pitchpow = (cumstrength * cumstrength);
+        MYDBL pitchpow = (cumstrength * cumstrength);
         MYFLT freqinbins = freqnum/freqden;
         pitchpow = pitchpow * pitchpow;
         if (freqinbins < MINFREQINBINS)
@@ -545,8 +545,8 @@ int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
 enum {LP1=0, LP2, HP};
 
 typedef struct biquad_ {
-  double a0, a1, a2, b1, b2;
-  double del1, del2;
+  MYDBL a0, a1, a2, b1, b2;
+  MYDBL del1, del2;
 } BIQUAD;
 
 typedef struct plltrack_
@@ -555,15 +555,15 @@ typedef struct plltrack_
   MYFLT *freq, *lock;
   MYFLT *asig,*kd,*klpf,*klpfQ,*klf,*khf,*kthresh;
   BIQUAD   fils[6];
-  double  ace, xce;
-  double cos_x, sin_x, x1, x2;
+  MYDBL  ace, xce;
+  MYDBL cos_x, sin_x, x1, x2;
   MYFLT klpf_o, klpfQ_o, klf_o,khf_o;
 
 } PLLTRACK;
 
-void update_coefs(PLLTRACK *p, double fr, double Q, BIQUAD *biquad, int32_t TYPE)
+void update_coefs(PLLTRACK *p, MYDBL fr, MYDBL Q, BIQUAD *biquad, int32_t TYPE)
 {
-    double k, ksq, div, ksqQ;
+    MYDBL k, ksq, div, ksqQ;
 
     switch(TYPE){
     case LP2:
@@ -620,11 +620,11 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
 {
     int32_t ksmps, i, k;
     MYFLT _0dbfs;
-    double a0[6], a1[6], a2[6], b1[6], b2[6];
-    double *mem1[6], *mem2[6];
-    double *ace, *xce;
-    double *cos_x, *sin_x, *x1, *x2;
-    double scal,esr;
+    MYDBL a0[6], a1[6], a2[6], b1[6], b2[6];
+    MYDBL *mem1[6], *mem2[6];
+    MYDBL *ace, *xce;
+    MYDBL *cos_x, *sin_x, *x1, *x2;
+    MYDBL scal,esr;
     BIQUAD *biquad = p->fils;
     MYFLT *asig=p->asig,kd=*p->kd,klpf,klpfQ,klf,khf,kthresh;
     MYFLT *freq=p->freq, *lock =p->lock, itmp = asig[0];
@@ -701,8 +701,8 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
     ace = &p->ace;
 
     for (i=0; i < ksmps; i++){
-      double input = (double) (asig[i]/_0dbfs), env;
-      double w, y, icef = 0.99, fosc, xd, c, s, oc;
+      MYDBL input = (MYDBL) (asig[i]/_0dbfs), env;
+      MYDBL w, y, icef = 0.99, fosc, xd, c, s, oc;
 
       /* input stage filters */
       for (k=0; k < 4 ; k++){

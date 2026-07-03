@@ -28,7 +28,7 @@
 #include "csoundCore.h"
 #endif
 #include "interlocks.h"
-#include <math.h>
+
 #include "cwindow.h"
 #include "spectra.h"
 #include "pitch.h"
@@ -95,13 +95,13 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
       Q != p->curq         ||
       (p->disprd && !p->octwindow.windid) ||
       hanning != p->hanning) {                /*     make new tables */
-    double      basfrq, curfrq, frqmlt, Qfactor;
-    double      theta, a, windamp, onedws, pidws;
+    MYDBL      basfrq, curfrq, frqmlt, Qfactor;
+    MYDBL      theta, a, windamp, onedws, pidws;
     MYFLT       *sinp, *cosp;
     int32_t         k, sumk, windsiz, halfsiz, *wsizp, *woffp;
     int32_t       auxsiz, bufsiz = 0;
     int32_t       majr, minr, totsamps, totsize;
-    double      hicps,locps,oct;  /*   must alloc anew */
+    MYDBL      hicps,locps,oct;  /*   must alloc anew */
 
     p->nfreqs = nfreqs;
     p->curq = Q;
@@ -130,7 +130,7 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
                               hicps, locps);
 
       basfrq = hicps/2.0;                     /* oct below retuned top */
-      frqmlt = pow(2.0,(double)1.0/nfreqs);   /* nfreq interval mult */
+      frqmlt = pow(2.0,(MYDBL)1.0/nfreqs);   /* nfreq interval mult */
       Qfactor = Q * dwnp->srate;
       curfrq = basfrq;
       for (sumk=0,wsizp=p->winlen,woffp=p->offset,n=nfreqs; n--; ) {
@@ -257,7 +257,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
   DOWNDAT *downp = &p->downsig;
   OCTDAT  *octp;
   SPECDAT *specp;
-  double  c;
+  MYDBL  c;
 
     if (UNLIKELY(early)) nsmps -= early;
     do {
@@ -381,8 +381,8 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*         || p->timcount <= 0 || Q <= 0. */
 /*         || hanning != p->hanning */
 /*         || ncoefs != p->ncoefs) {       /\*     make new tables *\/ */
-/*       double      basfrq, curfrq, frqmlt, Qfactor; */
-/*       double      theta, a, windamp, onedws, pidws; */
+/*       MYDBL      basfrq, curfrq, frqmlt, Qfactor; */
+/*       MYDBL      theta, a, windamp, onedws, pidws; */
 /*       MYFLT       *sinp, *cosp; */
 /*       int32_t         n, k, sumk, windsiz, *wsizp, nsamps; */
 /*       int64_t        auxsiz; */
@@ -403,7 +403,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*       p->ncoefs = ncoefs; */
 /*       basfrq = downp->hifrq/2.0 * TWOPI/downp->srate;
          /\* oct below retuned top *\/ */
-/*       frqmlt = pow(2.0,1.0/(double)nfreqs);    /\* nfreq interval mult *\/ */
+/*       frqmlt = pow(2.0,1.0/(MYDBL)nfreqs);    /\* nfreq interval mult *\/ */
 /*       Qfactor = TWOPI * Q;      /\* Was incorrect value for 2pi?? *\/ */
 /*       curfrq = basfrq; */
 /*       for (sumk=0,wsizp=p->winlen,n=nfreqs; n--; ) { */
@@ -470,7 +470,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*     MYFLT   *dftp; */
 /*     int32_t     nocts, wrap; */
 /*     MYFLT   a, b; */
-/*     double  c; */
+/*     MYDBL  c; */
 
 /*     if ((--p->countdown))  return;
        /\* if not yet time for new spec, return *\/ */
@@ -614,7 +614,7 @@ int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
   dstp = p->pdist;
   nfreqs = (MYFLT)inspecp->nfreqs;
   for (nn = 1; nn <= ptlmax; nn += inc)
-    *dstp++ = (int32_t) ((log((double) nn) / LOGTWO) * nfreqs + 0.5);
+    *dstp++ = (int32_t) ((log((MYDBL) nn) / LOGTWO) * nfreqs + 0.5);
   if ((rolloff = *p->irolloff) == 0.0 || rolloff == 1.0 || nptls == 1) {
     p->rolloff = 0;
     weightsum = (MYFLT)nptls;
@@ -659,7 +659,7 @@ int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
   }
 
   dbthresh = *p->idbthresh;                     /* thresholds: */
-  ampthresh = (MYFLT)exp((double)dbthresh * LOG10D20);
+  ampthresh = (MYFLT)exp((MYDBL)dbthresh * LOG10D20);
   switch(inspecp->dbout) {
   case 0: p->threshon = ampthresh;              /* mag */
     p->threshoff = ampthresh / FL(2.0);
@@ -1199,7 +1199,7 @@ int32_t spfilset(CSOUND *csound, SPECFILT *p)
   {
     int32_t nn;
     MYFLT *flp = p->coefs;
-    double halftim, reittim = inspecp->ktimprd * CS_ONEDKR;
+    MYDBL halftim, reittim = inspecp->ktimprd * CS_ONEDKR;
     for (nn=0;nn<npts;nn++) {
       if ((halftim = flp[nn]) > 0.)
         flp[nn] = (MYFLT)pow(0.5, reittim/halftim);

@@ -21,7 +21,7 @@
     Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
-#include <math.h>
+
 #include "csoundCore.h"
 #include "namedins.h"
 #include "inst_ops.h"

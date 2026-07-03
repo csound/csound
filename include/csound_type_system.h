@@ -57,7 +57,7 @@ extern "C" {
   } CS_VAR_MEM;
 
 #if defined(UINTPTR_MAX) && defined(UINT64_MAX) && (UINTPTR_MAX == UINT64_MAX)
-#define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(double))
+#define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(MYDBL))
 #else
 #define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(MYFLT))
 #endif

@@ -21,7 +21,7 @@
 */
 
 #include "stdopcod.h"
-#include <math.h>
+
 
 #define FTCONV_MAXCHN   8
 
@@ -277,7 +277,7 @@ static int32_t ftconv_perf(CSOUND *csound, FTCONV *p)
       p->cnt = 0;
       /* calculate FFT of input */
       for (i = nSamples; i < (nSamples << 1); i++)
-        rBuf[i] = FL(0.0);          /* pad to double length */
+        rBuf[i] = FL(0.0);          /* pad to MYDBL length */
       csound->RealFFT(csound, p->fwdsetup, rBuf);
       /* update ring buffer position */
       p->rbCnt++;

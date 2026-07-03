@@ -22,7 +22,7 @@
 #include "csoundCore.h"
 #include "aops.h"
 #include "complex_ops.h"
-#include <math.h>
+
 
 static inline int32_t smallest(int32_t a, int32_t b, int32_t c) {
   if(c == 0) return a < b ? a : b;

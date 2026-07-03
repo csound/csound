@@ -27,7 +27,7 @@
 #include "csoundCore.h"
 #endif
 
-#include <math.h>
+
 typedef struct {
   OPDS        h;
   MYFLT       *res;           /*  state */

@@ -27,7 +27,7 @@ typedef struct {
     MYFLT  *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;
     int32  ndx;
     int32_t    done, first_flag;
-    double start, newtime;
+    MYDBL start, newtime;
     int32  pfn;
     MYFLT  *table, curr_unit_time;
 } SEQTIM;
@@ -37,7 +37,7 @@ typedef struct {
     MYFLT  *ktrig, *ktrigin, *unit_time, *kstart, *kloop, *kinitndx, *kfn;
     int32  ndx;
     int32_t    done, first_flag;
-    double start, newtime;
+    MYDBL start, newtime;
     int32  pfn;
     MYFLT  *table, curr_unit_time;
 } SEQTIM2;
@@ -60,7 +60,7 @@ static int32_t seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
       p->newtime = p->table[p->ndx-1];
     else
       p->newtime = 0;
-    p->start = (double)CS_KCNT * CS_ONEDKR;
+    p->start = (MYDBL)CS_KCNT * CS_ONEDKR;
     start = (int32) *p->kstart;
     loop = (int32) *p->kloop;
     if (loop > 0) {
@@ -95,10 +95,10 @@ static int32_t seqtim(CSOUND *csound, SEQTIM *p)
       }
 
       if (p->curr_unit_time != *p->unit_time) {
-        double constant = p->start - (double)CS_KCNT * CS_ONEDKR;
-        double difference_new = p->newtime * p->curr_unit_time + constant;
-        double difference_old = p->newtime * *p->unit_time     + constant;
-        double difference = difference_new - difference_old;
+        MYDBL constant = p->start - (MYDBL)CS_KCNT * CS_ONEDKR;
+        MYDBL difference_new = p->newtime * p->curr_unit_time + constant;
+        MYDBL difference_old = p->newtime * *p->unit_time     + constant;
+        MYDBL difference = difference_new - difference_old;
         p->start = p->start + difference;
         p->curr_unit_time = *p->unit_time;
       }
@@ -106,7 +106,7 @@ static int32_t seqtim(CSOUND *csound, SEQTIM *p)
           > p->newtime * *p->unit_time + p->start) {
         MYFLT curr_val = p->table[p->ndx];
         p->first_flag = 0;
-        p->newtime += (double)curr_val;
+        p->newtime += (MYDBL)curr_val;
         if (loop > 0) {
           (*ndx)++;
           *ndx %= loop;
@@ -201,10 +201,10 @@ static int32_t seqtim2(CSOUND *csound, SEQTIM2 *p)
         p->table = ftp->ftable;
       }
       if (p->curr_unit_time != *p->unit_time) {
-        double constant = p->start - CS_KCNT * CS_ONEDKR;
-        double difference_new = p->newtime * p->curr_unit_time + constant;
-        double difference_old = p->newtime * *p->unit_time     + constant;
-        double difference = difference_new - difference_old;
+        MYDBL constant = p->start - CS_KCNT * CS_ONEDKR;
+        MYDBL difference_new = p->newtime * p->curr_unit_time + constant;
+        MYDBL difference_old = p->newtime * *p->unit_time     + constant;
+        MYDBL difference = difference_new - difference_old;
         p->start = p->start + difference;
         p->curr_unit_time = *p->unit_time;
       }

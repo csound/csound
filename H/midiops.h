@@ -167,7 +167,7 @@ typedef struct {
   MYFLT   *noteOut, *counter;
   MYFLT   *arpRate, *arpMode;
   int32_t metroTick;
-  double  curphs;
+  MYDBL  curphs;
   int32_t flag;
   int32_t status, chan, data1, data2,
     noteCnt, noteIndex, maxNumNotes,

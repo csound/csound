@@ -286,7 +286,7 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
     char    *sfname;
     void    *fd;
     SNDFILE *sf;
-    double  peakVal = -1.0;
+    MYDBL  peakVal = -1.0;
     int32_t     fmt, typ;
     SFLIB_INFO sfinfo;
 
@@ -306,24 +306,24 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
                                sfname, Str(csound->SndfileStrError(csound,NULL)));
     }
     if (channel <= 0) {
-      if (csound->SndfileCommand(csound,sf, SFC_GET_SIGNAL_MAX, &peakVal, sizeof(double))
+      if (csound->SndfileCommand(csound,sf, SFC_GET_SIGNAL_MAX, &peakVal, sizeof(MYDBL))
           == SFLIB_FALSE) {
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
                                     "file for maximum amplitude"), sfname);
         if (csound->SndfileCommand(csound,sf, SFC_CALC_NORM_SIGNAL_MAX,
-                       &peakVal, sizeof(double)) != 0)
+                       &peakVal, sizeof(MYDBL)) != 0)
           peakVal = -1.0;
       }
     }
     else {
-      double  *peaks;
+      MYDBL  *peaks;
       size_t  nBytes;
       if (UNLIKELY(channel > sfinfo.channels))
         return csound->InitError(csound,
                                  Str("Input channel for peak exceeds number "
                                 "of channels in file"));
-      nBytes = sizeof(double)* sfinfo.channels;
-      peaks = (double*)csound->Malloc(csound, nBytes);
+      nBytes = sizeof(MYDBL)* sfinfo.channels;
+      peaks = (MYDBL*)csound->Malloc(csound, nBytes);
       if (csound->SndfileCommand(csound,sf, SFC_GET_MAX_ALL_CHANNELS, peaks, (int32_t) nBytes) == SFLIB_FALSE) {
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
                                     "file for maximum amplitude"), sfname);
@@ -339,7 +339,7 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
     typ = SF2TYPE(sfinfo.format);
     if ((fmt != AE_FLOAT && fmt != AE_DOUBLE) ||
         (typ == TYP_WAV || typ == TYP_W64 || typ == TYP_AIFF))
-      *p->r1 = (MYFLT)(peakVal * (double)csound->e0dbfs);
+      *p->r1 = (MYFLT)(peakVal * (MYDBL)csound->e0dbfs);
     else
       *p->r1 = (MYFLT)peakVal;
     csound->FileClose(csound, fd);

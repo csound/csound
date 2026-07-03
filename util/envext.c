@@ -42,7 +42,7 @@
 /* Static function prototypes */
 
 static SNDFILE * SCsndgetset(CSOUND *, SOUNDIN **, char *);
-static void FindEnvelope(CSOUND *, SNDFILE *, SOUNDIN *, double, char *);
+static void FindEnvelope(CSOUND *, SNDFILE *, SOUNDIN *, MYDBL, char *);
 
 static void envext_usage(CSOUND *csound, char *mesg, ...)
 {
@@ -64,7 +64,7 @@ static int32_t envext(CSOUND *csound, int32_t argc, char **argv)
     char        *inputfile = NULL;
     SNDFILE     *infd;
     char        c, *s;
-    double      window = 0.25;
+    MYDBL      window = 0.25;
     SOUNDIN     *p;  /* space allocated by SAsndgetset() */
     char        *outname = NULL;
 
@@ -109,7 +109,7 @@ static SNDFILE *
 SCsndgetset(CSOUND *csound, SOUNDIN **pp, char *inputfile)
 {
     SNDFILE *infd;
-    double  dur;
+    MYDBL  dur;
     SOUNDIN *p;
 
     (csound->GetUtility(csound))->SetUtilSr(csound, FL(0.0));      /* set esr 0. with no orchestra   */
@@ -120,7 +120,7 @@ SCsndgetset(CSOUND *csound, SOUNDIN **pp, char *inputfile)
     if ((infd = (csound->GetUtility(csound))->SndinGetSet(csound, p)) == 0) /*open sndfil, do skiptime*/
       return(0);
     p->getframes = p->framesrem;
-    dur = (double) p->getframes / p->sr;
+    dur = (MYDBL) p->getframes / p->sr;
     csound->Message(csound,Str("enveloping %"PRId64" sample frames (%3.1f secs)\n"),
            (int64_t) p->getframes, dur);
     return(infd);
@@ -128,10 +128,10 @@ SCsndgetset(CSOUND *csound, SOUNDIN **pp, char *inputfile)
 
 static void
 FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
-             double window, char *outname)
+             MYDBL window, char *outname)
 {
-    double      tpersample;
-    double      max, min;
+    MYDBL      tpersample;
+    MYDBL      max, min;
     int64_t     mxpos, minpos;
     int32_t     block = 0;
     MYFLT       *buffer;
@@ -141,22 +141,22 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
     FILE *      outfile;
 
     outfile = fopen((outname == NULL ? "newenv" : outname), "w");
-    bufferlen = (int32_t)(window*(double)p->sr);
+    bufferlen = (int32_t)(window*(MYDBL)p->sr);
     buffer = (MYFLT*) malloc(bufferlen*sizeof(MYFLT));
-    tpersample = 1.0/(double)p->sr;
+    tpersample = 1.0/(MYDBL)p->sr;
     fprintf(outfile, "%.3f\t%.3f\n", 0.0, 0.0);
     while ((read_in = (csound->GetUtility(csound))->Sndin(csound,infd,buffer,bufferlen,p)) > 0) {
       max = 0.0;        mxpos = 0;
       min = 0.0;        minpos = 0;
       for (i=0; i<read_in; i++) {
-        if ((double)buffer[i] > max)
-          max = (double)buffer[i], mxpos = i;
-        if ((double)buffer[i] < min)
-          min = (double)buffer[i], minpos = i;
+        if ((MYDBL)buffer[i] > max)
+          max = (MYDBL)buffer[i], mxpos = i;
+        if ((MYDBL)buffer[i] < min)
+          min = (MYDBL)buffer[i], minpos = i;
       }
       if (-min > max) max = -min, mxpos = minpos;
       fprintf(outfile, "%.3f\t%.3f\n",
-              block*window+(double)mxpos*tpersample, max/SHORTMAX);
+              block*window+(MYDBL)mxpos*tpersample, max/SHORTMAX);
       block++;
     }
     csound->SndfileClose(csound,infd);

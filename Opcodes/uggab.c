@@ -28,7 +28,7 @@
 
 #include "stdopcod.h"
 #include "uggab.h"
-#include <math.h>
+
 
 static int32_t wrap(CSOUND *csound, WRAP *p)
 {
@@ -336,7 +336,7 @@ static int32_t resony(CSOUND *csound, RESONY *p)
     MYFLT   *ar = p->ar, *asig;
     MYFLT   c3p1, c3t4, omc3, c2sqr;
     MYFLT   *yt1, *yt2, c1, c2, c3, cosf;
-    double  cf;
+    MYDBL  cf;
     int32_t loop = p->loop;
     if (UNLIKELY(loop==0))
       return csound->InitError(csound, "%s", Str("loop cannot be zero"));
@@ -362,11 +362,11 @@ static int32_t resony(CSOUND *csound, RESONY *p)
 
       for (j = 0; j < loop; j++) {
         if (flag)                     /* linear separation in hertz */
-          cosf = (MYFLT) cos((cf = (double) (*p->kcf * sep * j))
-                             * (double) CS_TPIDSR);
+          cosf = (MYFLT) cos((cf = (MYDBL) (*p->kcf * sep * j))
+                             * (MYDBL) CS_TPIDSR);
         else                          /* logarithmic separation in octaves */
-          cosf = (MYFLT) cos((cf = (double) (*p->kcf * pow(2.0, sep * j)))
-                             * (double) CS_TPIDSR);
+          cosf = (MYFLT) cos((cf = (MYDBL) (*p->kcf * pow(2.0, sep * j)))
+                             * (MYDBL) CS_TPIDSR);
         c3 = EXP(*p->kbw * (cf / *p->kcf) * CS_MTPIDSR);
         c3p1 = c3 + FL(1.0);
         c3t4 = c3 * FL(4.0);
@@ -411,7 +411,7 @@ static int32_t fold(CSOUND *csound, FOLD *p)
     MYFLT *ar = p->ar;
     MYFLT *asig = p->asig;
     MYFLT kincr = *p->kincr;
-    double index = p->index;
+    MYDBL index = p->index;
     int32 sample_index = p->sample_index;
     MYFLT value = p->value;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -420,8 +420,8 @@ static int32_t fold(CSOUND *csound, FOLD *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      if (index < (double)sample_index) {
-        index += (double)kincr;
+      if (index < (MYDBL)sample_index) {
+        index += (MYDBL)kincr;
         ar[n]  = value = asig[n];
       }
       else ar[n]= value;
@@ -452,7 +452,7 @@ static int32_t loopseg(CSOUND *csound, LOOPSEG *p)
     IGN(csound);
     MYFLT *argp=p->args;
     MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
-    double   phs, si=*p->freq*CS_ONEDKR;
+    MYDBL   phs, si=*p->freq*CS_ONEDKR;
     int32_t nsegs=p->nsegs+1;
     int32_t j;
     if (*p->retrig)
@@ -495,7 +495,7 @@ static int32_t loopxseg(CSOUND *csound, LOOPSEG *p)
     MYFLT exp1 = FL(1.0)/(FL(1.0)-EXP(FL(1.0)));
     MYFLT *argp=p->args;
     MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
-    double   phs, si=*p->freq*CS_ONEDKR;
+    MYDBL   phs, si=*p->freq*CS_ONEDKR;
     int32_t nsegs=p->nsegs+1;
     int32_t j;
     if (*p->retrig)
@@ -544,7 +544,7 @@ static int32_t looptseg(CSOUND *csound, LOOPTSEG *p)
 {
     IGN(csound);
     MYFLT beg_seg=FL(0.0), end_seg=FL(0.0), durtot=FL(0.0);
-    double   phs, si=*p->freq*CS_ONEDKR;
+    MYDBL   phs, si=*p->freq*CS_ONEDKR;
     int32_t nsegs=p->nsegs;
     int32_t j;
 
@@ -586,7 +586,7 @@ static int32_t lpshold(CSOUND *csound, LOOPSEG *p)
     IGN(csound);
     MYFLT *argp=p->args;
     MYFLT beg_seg=0, end_seg, durtot=FL(0.0);
-    double   phs, si=*p->freq*CS_ONEDKR;
+    MYDBL   phs, si=*p->freq*CS_ONEDKR;
     int32_t nsegs=p->nsegs+1;
     int32_t j;
 
@@ -804,7 +804,7 @@ static int32_t vibrato_set(CSOUND *csound, VIBRATO *p)
 static int32_t vibrato(CSOUND *csound, VIBRATO *p)
 {
     FUNC        *ftp;
-    double      phs, inc;
+    MYDBL      phs, inc;
     MYFLT       *ftab, fract, v1;
     MYFLT       RandAmountAmp,RandAmountFreq;
 
@@ -880,7 +880,7 @@ static int32_t vibr_set(CSOUND *csound, VIBR *p)
 static int32_t vibr(CSOUND *csound, VIBR *p)
 {
     FUNC        *ftp;
-    double      phs, inc;
+    MYDBL      phs, inc;
     MYFLT       *ftab, fract, v1;
     MYFLT       rAmountAmp,rAmountFreq;
 
@@ -1082,7 +1082,7 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t  cod = p->cod;
-    double phs = p->phs, si = p->si;
+    MYDBL phs = p->phs, si = p->si;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1475,7 +1475,7 @@ static int32_t random3a(CSOUND *csound, RANDOM3 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    double      phs = p->phs, si = p->si;
+    MYDBL      phs = p->phs, si = p->si;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {

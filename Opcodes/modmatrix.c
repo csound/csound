@@ -171,7 +171,7 @@ static void process(CSOUND *csound, MODMATRIX *m)
         __m128d acc1 = _mm_setzero_pd();
         __m128d acc2 = _mm_setzero_pd();
 
-        double *curmod = &m->mattab->ftable[col];
+        MYDBL *curmod = &m->mattab->ftable[col];
 
         for (row = 0; row < m->nummod; ++row) {
             __m128d srcval = _mm_load1_pd(&src[row]);

@@ -22,7 +22,7 @@
 */
 #include "stdopcod.h"
 #include "interlocks.h"
-#include <math.h>
+
 
 typedef struct {
     OPDS    h;                                      /* required header */
@@ -30,7 +30,7 @@ typedef struct {
             *ml, *mm, *mn, *mo, *mp, *mq;           /* addr outarg */
     MYFLT   *asig, *kalpha, *kbeta, *kin[4];          /* addr inargs */
     /* private dataspace */
-    double  w, x, y, z, r, s, t, u, v, k, l, m, n, o, p, q;
+    MYDBL  w, x, y, z, r, s, t, u, v, k, l, m, n, o, p, q;
 } AMBIC;
 
 typedef struct {
@@ -38,7 +38,7 @@ typedef struct {
     MYFLT   *m0, *m1, *m2, *m3, *m4, *m5, *m6, *m7; /* addr outarg */
     MYFLT   *isetup, *aw, *ax, *ay, *a[VARGMAX];    /* addr inargs */
     /* private dataspace */
-    double  w[8], x[8], y[8], z[8], r[8], s[8], t[8], u[8],
+    MYDBL  w[8], x[8], y[8], z[8], r[8], s[8], t[8], u[8],
             v[8], k[8], l[8], m[8], n[8], o[8], p[8], q[8];
 } AMBID;
 
@@ -95,8 +95,8 @@ static void ambicode_set_coefficients(AMBIC *p)
 {
     /* convert degrees to radian */
     /* 0.017 = pi/180 */
-    double kalpha_rad = (double)(*p->kalpha)*0.0174532925199432957692369076848861;
-    double kbeta_rad = (double)(*p->kbeta)*0.0174532925199432957692369076848861;
+    MYDBL kalpha_rad = (MYDBL)(*p->kalpha)*0.0174532925199432957692369076848861;
+    MYDBL kbeta_rad = (MYDBL)(*p->kbeta)*0.0174532925199432957692369076848861;
 
     /* calculate ambisonic coefficients (Furse-Malham-set) */
 
@@ -105,7 +105,7 @@ static void ambicode_set_coefficients(AMBIC *p)
 
     /* 1st order */
     {
-      double ck = cos(kbeta_rad);
+      MYDBL ck = cos(kbeta_rad);
       p->x = cos(kalpha_rad) * ck;
       p->y = sin(kalpha_rad) * ck;
       p->z = sin(kbeta_rad);
@@ -285,13 +285,13 @@ static int32_t aambicode(CSOUND *csound, AMBIC *p)
     return OK;
 }
 
-static void ambideco_set_coefficients(AMBID *p, double alpha, double beta,
+static void ambideco_set_coefficients(AMBID *p, MYDBL alpha, MYDBL beta,
                                       int32_t index)
 {
     /* convert degrees to radian */
     /* 0.017... = pi/180 */
-    double alpha_rad = alpha * 0.0174532925199432957692369076848861;
-    double beta_rad = beta * 0.0174532925199432957692369076848861;
+    MYDBL alpha_rad = alpha * 0.0174532925199432957692369076848861;
+    MYDBL beta_rad = beta * 0.0174532925199432957692369076848861;
 
     /* calculate ambisonic coefficients (Furse-Malham-set) */
 
@@ -300,7 +300,7 @@ static void ambideco_set_coefficients(AMBID *p, double alpha, double beta,
 
     /* 1st order */
     {
-      double cbeta = cos(beta_rad);
+      MYDBL cbeta = cos(beta_rad);
       p->x[index] = cos(alpha_rad) * cbeta;
       p->y[index] = sin(alpha_rad) * cbeta;
       p->z[index] = sin(beta_rad);
@@ -353,16 +353,16 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
           }
           else {
             int32_t i;
-            static double w[] = {0.707106781186547524400844362104849,
+            static MYDBL w[] = {0.707106781186547524400844362104849,
                                  0.707106781186547524400844362104849};
-/*             static double x[] = {0.0, 0.0}; */
-            static double y[] = {0.5000,-0.5000};
-/*             static double z[] = {0.0, 0.0}; */
-/*             static double r[] = {0.0, 0.0}; */
-/*             static double s[] = {0.0, 0.0}; */
-/*             static double t[] = {0.0, 0.0}; */
-/*             static double u[] = {0.0, 0.0}; */
-/*             static double v[] = {0.0, 0.0}; */
+/*             static MYDBL x[] = {0.0, 0.0}; */
+            static MYDBL y[] = {0.5000,-0.5000};
+/*             static MYDBL z[] = {0.0, 0.0}; */
+/*             static MYDBL r[] = {0.0, 0.0}; */
+/*             static MYDBL s[] = {0.0, 0.0}; */
+/*             static MYDBL t[] = {0.0, 0.0}; */
+/*             static MYDBL u[] = {0.0, 0.0}; */
+/*             static MYDBL v[] = {0.0, 0.0}; */
             for (i=0; i<2; i++) {
               p->w[i] = w[i];
               p->x[i] = 0.0;
@@ -400,15 +400,15 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
           }
           else {
             int32_t i;
-            static double w[] = {0.3536, 0.3536, 0.3536, 0.3536};
-            static double x[] = {0.2434,  0.2434, -0.2434, -0.2434};
-            static double y[] = {0.2434,  -0.2434, -0.2434, 0.2434};
-/*             static double z[] = {0.0, 0.0, 0.0, 0.0}; */
-/*             static double r[] = {0.0, 0.0, 0.0, 0.0}; */
-/*             static double s[] = {0.0, 0.0, 0.0, 0.0}; */
-/*             static double t[] = {0.0, 0.0, 0.0, 0.0}; */
-/*             static double u[] = {0.0, 0.0, 0.0, 0.0}; */
-            static double v[] = {0.0964, -0.0964, 0.0964, -0.0964};
+            static MYDBL w[] = {0.3536, 0.3536, 0.3536, 0.3536};
+            static MYDBL x[] = {0.2434,  0.2434, -0.2434, -0.2434};
+            static MYDBL y[] = {0.2434,  -0.2434, -0.2434, 0.2434};
+/*             static MYDBL z[] = {0.0, 0.0, 0.0, 0.0}; */
+/*             static MYDBL r[] = {0.0, 0.0, 0.0, 0.0}; */
+/*             static MYDBL s[] = {0.0, 0.0, 0.0, 0.0}; */
+/*             static MYDBL t[] = {0.0, 0.0, 0.0, 0.0}; */
+/*             static MYDBL u[] = {0.0, 0.0, 0.0, 0.0}; */
+            static MYDBL v[] = {0.0964, -0.0964, 0.0964, -0.0964};
             for (i=0; i<4; i++) {
               p->w[i] = w[i];
               p->x[i] = x[i];
@@ -447,15 +447,15 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
         else {
           int32_t i;
           /* Furze controlled opposites */
-          static double w[] = {0.2828, 0.2828, 0.2828, 0.2828, 0.2828};
-          static double x[] = {0.2227, -0.0851, -0.2753, -0.0851, 0.2227};
-          static double y[] = {0.1618, 0.2619, 0.0000, -0.2619, -0.1618};
-/*           static double z[] = {0.0, 0.0, 0.0, 0.0}; */
-/*           static double r[] = {0.0, 0.0, 0.0, 0.0}; */
-/*           static double s[] = {0.0, 0.0, 0.0, 0.0}; */
-/*           static double t[] = {0.0, 0.0, 0.0, 0.0}; */
-          static double u[] = {0.0238, -0.0624, 0.0771, -0.0624, 0.0238};
-          static double v[] = {0.0733, -0.0453, 0.0000, 0.0453, -0.0733};
+          static MYDBL w[] = {0.2828, 0.2828, 0.2828, 0.2828, 0.2828};
+          static MYDBL x[] = {0.2227, -0.0851, -0.2753, -0.0851, 0.2227};
+          static MYDBL y[] = {0.1618, 0.2619, 0.0000, -0.2619, -0.1618};
+/*           static MYDBL z[] = {0.0, 0.0, 0.0, 0.0}; */
+/*           static MYDBL r[] = {0.0, 0.0, 0.0, 0.0}; */
+/*           static MYDBL s[] = {0.0, 0.0, 0.0, 0.0}; */
+/*           static MYDBL t[] = {0.0, 0.0, 0.0, 0.0}; */
+          static MYDBL u[] = {0.0238, -0.0624, 0.0771, -0.0624, 0.0238};
+          static MYDBL v[] = {0.0733, -0.0453, 0.0000, 0.0453, -0.0733};
 
           for (i=0; i<5; i++) {
             p->w[i] = w[i];
@@ -498,19 +498,19 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
           }
           else {
             int32_t i;
-            static double w[] = {0.1768, 0.1768, 0.1768, 0.1768,
+            static MYDBL w[] = {0.1768, 0.1768, 0.1768, 0.1768,
                                  0.1768, 0.1768, 0.1768, 0.1768};
-            static double x[] = {0.1591, 0.0659, -0.0659,-0.1591,
+            static MYDBL x[] = {0.1591, 0.0659, -0.0659,-0.1591,
                                  -0.1591,-0.0659, 0.0659, 0.1591};
-            static double y[] = {0.0659,  0.1591, 0.1591, 0.0659,
+            static MYDBL y[] = {0.0659,  0.1591, 0.1591, 0.0659,
                                  -0.0659,-0.1591,-0.1591,-0.0659};
-/*             static double z[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
-/*             static double r[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
-/*             static double s[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
-/*             static double t[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
-            static double u[] = {0.0342,-0.0342,-0.0342, 0.0342,
+/*             static MYDBL z[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
+/*             static MYDBL r[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
+/*             static MYDBL s[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
+/*             static MYDBL t[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
+            static MYDBL u[] = {0.0342,-0.0342,-0.0342, 0.0342,
                                  0.0342,-0.0342,-0.0342, 0.0342};
-            static double v[] = {0.0342, 0.0342,-0.0342,-0.0342,
+            static MYDBL v[] = {0.0342, 0.0342,-0.0342,-0.0342,
                                  0.0342, 0.0342,-0.0342,-0.0342};
             for (i=0; i<8; i++) {
               p->w[i] = w[i];
@@ -553,21 +553,21 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
           }
           else {
             int32_t i;
-            static double w[] = {0.1768,0.1768,0.1768,0.1768,
+            static MYDBL w[] = {0.1768,0.1768,0.1768,0.1768,
                                  0.1768,0.1768,0.1768,0.1768};
-            static double x[] = {0.1140, 0.1140,-0.1140,-0.1140,
+            static MYDBL x[] = {0.1140, 0.1140,-0.1140,-0.1140,
                                  0.1140, 0.1140,-0.1140,-0.1140};
-            static double y[] = {0.1140,-0.1140,-0.1140, 0.1140,
+            static MYDBL y[] = {0.1140,-0.1140,-0.1140, 0.1140,
                                  0.1140,-0.1140,-0.1140, 0.1140};
-            static double z[] = {-0.1140,-0.1140,-0.1140,-0.1140,
+            static MYDBL z[] = {-0.1140,-0.1140,-0.1140,-0.1140,
                                  0.1140, 0.1140, 0.1140, 0.1140};
-/*             static double r[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
-            static double s[] = {-0.0369,-0.0369, 0.0369, 0.0369,
+/*             static MYDBL r[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
+            static MYDBL s[] = {-0.0369,-0.0369, 0.0369, 0.0369,
                                  0.0369, 0.0369,-0.0369,-0.0369};
-            static double t[] = {-0.0369, 0.0369, 0.0369,-0.0369,
+            static MYDBL t[] = {-0.0369, 0.0369, 0.0369,-0.0369,
                                  0.0369,-0.0369,-0.0369, 0.0369};
-/*             static double u[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
-            static double v[] = { 0.0369,-0.0369, 0.0369,-0.0369,
+/*             static MYDBL u[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
+            static MYDBL v[] = { 0.0369,-0.0369, 0.0369,-0.0369,
                                   0.0369,-0.0369, 0.0369,-0.0369};
             for (i=0; i<8; i++) {
               p->w[i] = w[i];
@@ -604,11 +604,11 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
    RS   -110°   {0.9101, -0.7834, -0.9562, -0.0806,  0.0000}  */
         {
           int32_t i;
-          static double w[] = {0.4724, 0.4724, 0.3226, 0.9101, 0.9101};
-          static double x[] = {0.7143, 0.7143, 0.7719,-0.7834,-0.7834};
-          static double y[] = {0.7258,-0.7258, 0.0000, 0.9562,-0.9562};
-          static double u[] = {0.0000,0.0000,0.0000,-0.0806,-0.0806};
-          static double v[] = {0.3456,-0.3456,0.4724,0.0000,0.0000};
+          static MYDBL w[] = {0.4724, 0.4724, 0.3226, 0.9101, 0.9101};
+          static MYDBL x[] = {0.7143, 0.7143, 0.7719,-0.7834,-0.7834};
+          static MYDBL y[] = {0.7258,-0.7258, 0.0000, 0.9562,-0.9562};
+          static MYDBL u[] = {0.0000,0.0000,0.0000,-0.0806,-0.0806};
+          static MYDBL v[] = {0.3456,-0.3456,0.4724,0.0000,0.0000};
           for (i=0; i<5; i++) {
             p->w[i] = w[i];
             p->x[i] = x[i];

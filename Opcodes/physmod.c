@@ -32,7 +32,7 @@
 #include "flute.h"
 #include "bowed.h"
 #include "brass.h"
-#include <math.h>
+
 #include "interlocks.h"
 
 
@@ -766,7 +766,7 @@ void LipFilt_setFreq(BRASS *p, LipFilt *pp, MYFLT frequency)
 {
   MYFLT coeffs[2];
   coeffs[0] = FL(2.0) * FL(0.997) *
-    (MYFLT)cos(CS_TPIDSR * (double)frequency);   /* damping should  */
+    (MYFLT)cos(CS_TPIDSR * (MYDBL)frequency);   /* damping should  */
   coeffs[1] = -FL(0.997) * FL(0.997);                 /* change with lip */
   BiQuad_setPoleCoeffs(pp, coeffs);                    /* parameters, but */
   BiQuad_setGain(*pp, FL(0.03));                       /* not yet.        */

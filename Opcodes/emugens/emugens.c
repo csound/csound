@@ -1884,7 +1884,7 @@ tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
     int32_t step  = (int)*p->kstep;
     if (end < 1)
         end = ftp->flen;
-    int32_t numitems = (int) (ceil((end - start) / (double)step));
+    int32_t numitems = (int) (ceil((end - start) / (MYDBL)step));
     if(numitems < 0)
         return PERFERR(Str("tab2array: cannot copy a negative number of items"));
 
@@ -2603,7 +2603,7 @@ static int32_t
 lastcycle(CSOUND *csound, LASTCYCLE *p) {
     IGN(csound);
     if(p->fired == 1) {
-        // this prevents double firing in the case were a lower instr turns
+        // this prevents MYDBL firing in the case were a lower instr turns
         // us off
         *p->out = 0;
         return OK;
@@ -2922,7 +2922,7 @@ sprintf_opcode_(CSOUND *csound,
             case 'F':
             case 'g':
             case 'G':
-                n = snprintf(outstring, str->size, strseg, (double)*parm);
+                n = snprintf(outstring, str->size, strseg, (MYDBL)*parm);
                 break;
             case 's':
                 if(!IS_STRING_ARG(parm)) {

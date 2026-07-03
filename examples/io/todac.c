@@ -41,7 +41,7 @@ int main(int argc, char** argv){
     outparam.channelCount = chn;
     outparam.sampleFormat = paFloat32;
     outparam.suggestedLatency = (PaTime)
-      (bufsize/chn)/(double)sr;
+      (bufsize/chn)/(MYDBL)sr;
 
     err = Pa_OpenStream(&handle,NULL,&outparam,
 			sr,bufsize,paNoFlag, 

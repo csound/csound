@@ -54,17 +54,17 @@ static int32_t zdf_1pole_mode_init(CSOUND* csound, ZDF_1POLE_MODE* p) {
 
 static int32_t zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
      IGN(csound);
-    double z1 = p->z1;
-    double last_cut = p->last_cut;
-    double G = p->G;
+    MYDBL z1 = p->z1;
+    MYDBL last_cut = p->last_cut;
+    MYDBL G = p->G;
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = CS_ONEDSR;
-    double Tdiv2 = T / 2.0;
-    double two_div_T = 2.0 / T;
+    MYDBL T = CS_ONEDSR;
+    MYDBL Tdiv2 = T / 2.0;
+    MYDBL two_div_T = 2.0 / T;
 
     int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
 
@@ -89,21 +89,21 @@ static int32_t zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
       if (cutoff != last_cut) {
         last_cut = cutoff;
 
-        double wd = TWOPI * cutoff;
-        double wa = two_div_T * tan(wd * Tdiv2);
-        double g = wa * Tdiv2;
+        MYDBL wd = TWOPI * cutoff;
+        MYDBL wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL g = wa * Tdiv2;
         G = g / (1.0 + g);
       }
 
       // do the filter, see VA book p. 46
       // form sub-node value v(n)
 
-      double in = p->in[n];
-      double v = (in - z1) * G;
+      MYDBL in = p->in[n];
+      MYDBL v = (in - z1) * G;
 
       // form output of node + register
-      double lp = v + z1;
-      double hp = in - lp;
+      MYDBL lp = v + z1;
+      MYDBL hp = in - lp;
 
       // z1 register update
       z1 = lp + v;
@@ -130,17 +130,17 @@ static int32_t zdf_1pole_init(CSOUND* csound, ZDF_1POLE* p) {
 
 static int32_t zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
 
-    double z1 = p->z1;
-    double last_cut = p->last_cut;
-    double G = p->G;
+    MYDBL z1 = p->z1;
+    MYDBL last_cut = p->last_cut;
+    MYDBL G = p->G;
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = CS_ONEDSR;
-    double Tdiv2 = T / 2.0;
-    double two_div_T = 2.0 / T;
+    MYDBL T = CS_ONEDSR;
+    MYDBL Tdiv2 = T / 2.0;
+    MYDBL two_div_T = 2.0 / T;
     int32_t mode = MYFLT2LONG(*p->mode);
 
     int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
@@ -163,30 +163,30 @@ static int32_t zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
       if (cutoff != last_cut) {
         last_cut = cutoff;
 
-        double wd = TWOPI * cutoff;
-        double wa = two_div_T * tan(wd * Tdiv2);
-        double g = wa * Tdiv2;
+        MYDBL wd = TWOPI * cutoff;
+        MYDBL wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL g = wa * Tdiv2;
         G = g / (1.0 + g);
       }
 
       // do the filter, see VA book p. 46
       // form sub-node value v(n)
 
-      double in = p->in[n];
-      double v = (in - z1) * G;
+      MYDBL in = p->in[n];
+      MYDBL v = (in - z1) * G;
 
       // form output of node + register
-      double lp = v + z1;
+      MYDBL lp = v + z1;
 
       if (mode == 0) { // low-pass
         p->out[n] = lp;
       }
       else if (mode == 1) { // high-pass
-        double hp = in - lp;
+        MYDBL hp = in - lp;
         p->out[n] = hp;
       }
       else if (mode == 2) { // allpass
-        double hp = in - lp;
+        MYDBL hp = in - lp;
         p->out[n] = lp - hp;
       }
       // TODO Implement low-shelf and high-shelf
@@ -222,21 +222,21 @@ static int32_t zdf_2pole_mode_init(CSOUND* csound, ZDF_2POLE_MODE* p) {
 
 
 static int32_t zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
-    double z1 = p->z1;
-    double z2 = p->z2;
-    double last_cut = p->last_cut;
-    double last_q = p->last_q;
-    double g = p->g;
-    double R = p->R;
-    double g2 = g * g;
+    MYDBL z1 = p->z1;
+    MYDBL z2 = p->z2;
+    MYDBL last_cut = p->last_cut;
+    MYDBL last_q = p->last_q;
+    MYDBL g = p->g;
+    MYDBL R = p->R;
+    MYDBL g2 = g * g;
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = CS_ONEDSR;
-    double Tdiv2 = T / 2.0;
-    double two_div_T = 2.0 / T;
+    MYDBL T = CS_ONEDSR;
+    MYDBL Tdiv2 = T / 2.0;
+    MYDBL two_div_T = 2.0 / T;
 
     int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
     int32_t q_arate = IS_ASIG_ARG(p->q);
@@ -267,8 +267,8 @@ static int32_t zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
       if (cutoff != last_cut) {
         last_cut = cutoff;
 
-        double wd = TWOPI * cutoff;
-        double wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wd = TWOPI * cutoff;
+        MYDBL wa = two_div_T * tan(wd * Tdiv2);
         g = wa * Tdiv2;
         g2 = g * g;
       }
@@ -278,11 +278,11 @@ static int32_t zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
         R = 1.0 / (2.0 * q);
       }
 
-      double in = p->in[n];
-      double hp = (in - (2.0 * R + g) * z1 - z2) / (1.0 + (2.0 * R * g) + g2);
-      double bp = g * hp + z1;
-      double lp = g * bp + z2;
-      //              double notch = in - (2.0 * R * bp);
+      MYDBL in = p->in[n];
+      MYDBL hp = (in - (2.0 * R + g) * z1 - z2) / (1.0 + (2.0 * R * g) + g2);
+      MYDBL bp = g * hp + z1;
+      MYDBL lp = g * bp + z2;
+      //              MYDBL notch = in - (2.0 * R * bp);
 
       // register updates
       z1 = g * hp + bp;
@@ -319,22 +319,22 @@ static int32_t zdf_2pole_init(CSOUND* csound, ZDF_2POLE* p) {
 }
 
 static int32_t zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
-    double z1 = p->z1;
-    double z2 = p->z2;
-    double last_cut = p->last_cut;
-    double last_q = p->last_q;
+    MYDBL z1 = p->z1;
+    MYDBL z2 = p->z2;
+    MYDBL last_cut = p->last_cut;
+    MYDBL last_q = p->last_q;
     int32_t mode = MYFLT2LONG(*p->mode);
-    double g = p->g;
-    double R = p->R;
-    double g2 = g * g;
+    MYDBL g = p->g;
+    MYDBL R = p->R;
+    MYDBL g2 = g * g;
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = CS_ONEDSR;
-    double Tdiv2 = T / 2.0;
-    double two_div_T = 2.0 / T;
+    MYDBL T = CS_ONEDSR;
+    MYDBL Tdiv2 = T / 2.0;
+    MYDBL two_div_T = 2.0 / T;
 
     int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
     int32_t q_arate = IS_ASIG_ARG(p->q);
@@ -361,8 +361,8 @@ static int32_t zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
       if (cutoff != last_cut) {
         last_cut = cutoff;
 
-        double wd = TWOPI * cutoff;
-        double wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wd = TWOPI * cutoff;
+        MYDBL wa = two_div_T * tan(wd * Tdiv2);
         g = wa * Tdiv2;
         g2 = g * g;
       }
@@ -372,10 +372,10 @@ static int32_t zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
         R = 1.0 / (2.0 * q);
       }
 
-      double in = p->in[n];
-      double hp = (in - (2.0 * R + g) * z1 - z2) / (1.0 + (2.0 * R * g) + g2);
-      double bp = g * hp + z1;
-      double lp = g * bp + z2;
+      MYDBL in = p->in[n];
+      MYDBL hp = (in - (2.0 * R + g) * z1 - z2) / (1.0 + (2.0 * R * g) + g2);
+      MYDBL bp = g * hp + z1;
+      MYDBL lp = g * bp + z2;
 
       if (mode == 0) { // low-pass
         p->out[n] = lp;
@@ -440,26 +440,26 @@ static int32_t zdf_ladder_init(CSOUND* csound, ZDF_LADDER* p) {
 
 static int32_t zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
 
-    double z1 = p->z1;
-    double z2 = p->z2;
-    double z3 = p->z3;
-    double z4 = p->z4;
-    double last_cut = p->last_cut;
-    double last_q = p->last_q;
-    double k = p->last_k;
-    double g = p->last_g;
-    double G = p->last_G;
-    double G2 = p->last_G2;
-    double G3 = p->last_G3;
-    double GAMMA = p->last_GAMMA;
+    MYDBL z1 = p->z1;
+    MYDBL z2 = p->z2;
+    MYDBL z3 = p->z3;
+    MYDBL z4 = p->z4;
+    MYDBL last_cut = p->last_cut;
+    MYDBL last_q = p->last_q;
+    MYDBL k = p->last_k;
+    MYDBL g = p->last_g;
+    MYDBL G = p->last_G;
+    MYDBL G2 = p->last_G2;
+    MYDBL G3 = p->last_G3;
+    MYDBL GAMMA = p->last_GAMMA;
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = CS_ONEDSR;
-    double Tdiv2 = T / 2.0;
-    double two_div_T = 2.0 / T;
+    MYDBL T = CS_ONEDSR;
+    MYDBL Tdiv2 = T / 2.0;
+    MYDBL two_div_T = 2.0 / T;
 
     int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
     int32_t q_arate = IS_ASIG_ARG(p->q);
@@ -493,8 +493,8 @@ static int32_t zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
       if (cutoff != last_cut) {
         last_cut = cutoff;
 
-        double wd = TWOPI * cutoff;
-        double wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wd = TWOPI * cutoff;
+        MYDBL wa = two_div_T * tan(wd * Tdiv2);
         g = wa * Tdiv2;
         G = g / (1.0 + g);
         G2 = G * G;
@@ -502,19 +502,19 @@ static int32_t zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
         GAMMA = G2 * G2;
       }
 
-      double g_plus_1 = g + 1.0;
+      MYDBL g_plus_1 = g + 1.0;
 
-      double S1 = z1 / g_plus_1;
-      double S2 = z2 / g_plus_1;
-      double S3 = z3 / g_plus_1;
-      double S4 = z4 / g_plus_1;
+      MYDBL S1 = z1 / g_plus_1;
+      MYDBL S2 = z2 / g_plus_1;
+      MYDBL S3 = z3 / g_plus_1;
+      MYDBL S4 = z4 / g_plus_1;
 
-      double S = (G3 * S1) + (G2 * S2) + (G * S3) + S4;
-      double u = (p->in[n] - k *  S) / (1 + k * GAMMA);
+      MYDBL S = (G3 * S1) + (G2 * S2) + (G * S3) + S4;
+      MYDBL u = (p->in[n] - k *  S) / (1 + k * GAMMA);
 
       // 1st stage
-      double v = (u - z1) * G;
-      double lp = v + z1;
+      MYDBL v = (u - z1) * G;
+      MYDBL lp = v + z1;
       z1 = lp + v;
 
       // 2nd stage
@@ -586,47 +586,47 @@ static int32_t diode_ladder_init(CSOUND* csound,
 static int32_t diode_ladder_perf(CSOUND* csound,
                              DIODE_LADDER* p) {
 
-    double a1 = p->a[0];
-    double a2 = p->a[1];
-    double a3 = p->a[2];
-    double a4 = p->a[3];
-    double z1 = p->z[0];
-    double z2 = p->z[1];
-    double z3 = p->z[2];
-    double z4 = p->z[3];
-    double G1 = p->G[0];
-    double G2 = p->G[1];
-    double G3 = p->G[2];
-    double G4 = p->G[3];
-    double beta1 = p->beta[0];
-    double beta2 = p->beta[1];
-    double beta3 = p->beta[2];
-    double beta4 = p->beta[3];
-    double delta1 = p->delta[0];
-    double delta2 = p->delta[1];
-    double delta3 = p->delta[2];
-    double epsilon1 = p->epsilon[0];
-    double epsilon2 = p->epsilon[1];
-    double epsilon3 = p->epsilon[2];
-    double gamma1 = p->gamma[0];
-    double gamma2 = p->gamma[1];
-    double gamma3 = p->gamma[2];
-    double SG1 = p->SG[0];
-    double SG2 = p->SG[1];
-    double SG3 = p->SG[2];
-    double SG4 = p->SG[3];
-    double GAMMA = p->GAMMA;
-    double SIGMA = p->SIGMA;
-    double alpha = p->last_alpha;
-    double last_cut = p->last_cut;
+    MYDBL a1 = p->a[0];
+    MYDBL a2 = p->a[1];
+    MYDBL a3 = p->a[2];
+    MYDBL a4 = p->a[3];
+    MYDBL z1 = p->z[0];
+    MYDBL z2 = p->z[1];
+    MYDBL z3 = p->z[2];
+    MYDBL z4 = p->z[3];
+    MYDBL G1 = p->G[0];
+    MYDBL G2 = p->G[1];
+    MYDBL G3 = p->G[2];
+    MYDBL G4 = p->G[3];
+    MYDBL beta1 = p->beta[0];
+    MYDBL beta2 = p->beta[1];
+    MYDBL beta3 = p->beta[2];
+    MYDBL beta4 = p->beta[3];
+    MYDBL delta1 = p->delta[0];
+    MYDBL delta2 = p->delta[1];
+    MYDBL delta3 = p->delta[2];
+    MYDBL epsilon1 = p->epsilon[0];
+    MYDBL epsilon2 = p->epsilon[1];
+    MYDBL epsilon3 = p->epsilon[2];
+    MYDBL gamma1 = p->gamma[0];
+    MYDBL gamma2 = p->gamma[1];
+    MYDBL gamma3 = p->gamma[2];
+    MYDBL SG1 = p->SG[0];
+    MYDBL SG2 = p->SG[1];
+    MYDBL SG3 = p->SG[2];
+    MYDBL SG4 = p->SG[3];
+    MYDBL GAMMA = p->GAMMA;
+    MYDBL SIGMA = p->SIGMA;
+    MYDBL alpha = p->last_alpha;
+    MYDBL last_cut = p->last_cut;
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = CS_ONEDSR;
-    double Tdiv2 = T / 2.0;
-    double two_div_T = 2.0 / T;
+    MYDBL T = CS_ONEDSR;
+    MYDBL Tdiv2 = T / 2.0;
+    MYDBL two_div_T = 2.0 / T;
 
     int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
     int32_t k_arate = IS_ASIG_ARG(p->kval);
@@ -654,10 +654,10 @@ static int32_t diode_ladder_perf(CSOUND* csound,
       if (cutoff != last_cut) {
         last_cut = cutoff;
 
-        double wd = TWOPI * cutoff;
-        double wa = two_div_T * tan(wd * Tdiv2);
-        double g = wa * Tdiv2;
-        double gp1 = 1.0 + g;
+        MYDBL wd = TWOPI * cutoff;
+        MYDBL wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL g = wa * Tdiv2;
+        MYDBL gp1 = 1.0 + g;
         G4 = 0.5 * g / gp1;
         G3 = 0.5 * g / (gp1 - 0.5 * g * G4);
         G2 = 0.5 * g / (gp1 - 0.5 * g * G3);
@@ -689,14 +689,14 @@ static int32_t diode_ladder_perf(CSOUND* csound,
       }
 
       //feedback inputs
-      double fb4 = beta4 * z4;
-      double fb3 = beta3 * (z3 + fb4 * delta3);
-      double fb2 = beta2 * (z2 + fb3 * delta2);
+      MYDBL fb4 = beta4 * z4;
+      MYDBL fb3 = beta3 * (z3 + fb4 * delta3);
+      MYDBL fb2 = beta2 * (z2 + fb3 * delta2);
 
       //feedback process
-      double fbo1 = (beta1 * (z1 + fb2 * delta1));
-      double fbo2 = (beta2 * (z2 + fb3 * delta2));
-      double fbo3 = (beta3 * (z3 + fb4 * delta3));
+      MYDBL fbo1 = (beta1 * (z1 + fb2 * delta1));
+      MYDBL fbo2 = (beta2 * (z2 + fb3 * delta2));
+      MYDBL fbo3 = (beta3 * (z3 + fb4 * delta3));
 
       SIGMA = (SG1 * fbo1) + (SG2 * fbo2) + (SG3 * fbo3) + (SG4 * fb4);
 
@@ -709,12 +709,12 @@ static int32_t diode_ladder_perf(CSOUND* csound,
       }
 
       // form input to loop
-      double un = (in - k * SIGMA) / (1.0 + k * GAMMA);
+      MYDBL un = (in - k * SIGMA) / (1.0 + k * GAMMA);
 
       // 1st stage
-      double xin = un * gamma1 + fb2 + epsilon1 * fbo1;
-      double v = (a1 * xin - z1) * alpha;
-      double lp = v + z1;
+      MYDBL xin = un * gamma1 + fb2 + epsilon1 * fbo1;
+      MYDBL v = (a1 * xin - z1) * alpha;
+      MYDBL lp = v + z1;
       z1 = lp + v;
 
       // 2nd stage
@@ -797,26 +797,26 @@ static int32_t k35_lpf_init(CSOUND* csound, K35_LPF* p) {
 
 static int32_t k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
 
-    double z1 = p->z1;
-    double z2 = p->z2;
-    double z3 = p->z3;
-    double last_cut = p->last_cut;
-    double last_q = p->last_q;
-    double g = p->g;
-    double G = p->G;
-    double K = p->K;
-    double S35 = p->S35;
-    double alpha = p->alpha;
-    double lpf2_beta = p->lpf2_beta;
-    double hpf1_beta = p->hpf1_beta;
+    MYDBL z1 = p->z1;
+    MYDBL z2 = p->z2;
+    MYDBL z3 = p->z3;
+    MYDBL last_cut = p->last_cut;
+    MYDBL last_q = p->last_q;
+    MYDBL g = p->g;
+    MYDBL G = p->G;
+    MYDBL K = p->K;
+    MYDBL S35 = p->S35;
+    MYDBL alpha = p->alpha;
+    MYDBL lpf2_beta = p->lpf2_beta;
+    MYDBL hpf1_beta = p->hpf1_beta;
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = CS_ONEDSR;
-    double Tdiv2 = T / 2.0;
-    double two_div_T = 2.0 / T;
+    MYDBL T = CS_ONEDSR;
+    MYDBL Tdiv2 = T / 2.0;
+    MYDBL two_div_T = 2.0 / T;
 
     int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
     int32_t q_arate = IS_ASIG_ARG(p->q);
@@ -825,7 +825,7 @@ static int32_t k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
     MYFLT q = q_arate ? 0.0 : *p->q;
 
     int32_t nonlinear = MYFLT2LONG(*p->nonlinear);
-    double saturation = *p->saturation;
+    MYDBL saturation = *p->saturation;
 
     if (UNLIKELY(offset)) {
       memset(p->out, '\0', offset*sizeof(MYFLT));
@@ -847,8 +847,8 @@ static int32_t k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
       }
 
       if (cutoff != last_cut) {
-        double wd = TWOPI * cutoff;
-        double wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wd = TWOPI * cutoff;
+        MYDBL wa = two_div_T * tan(wd * Tdiv2);
         g = wa * Tdiv2;
         G = g / (1.0 + g);
       }
@@ -868,31 +868,31 @@ static int32_t k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
       last_q = q;
 
       // LPF1
-      double v1 = (in - z1) * G;
-      double lp1 = v1 + z1;
+      MYDBL v1 = (in - z1) * G;
+      MYDBL lp1 = v1 + z1;
       z1 = lp1 + v1;
 
-      double u = alpha * (lp1 + S35);
+      MYDBL u = alpha * (lp1 + S35);
 
       if (nonlinear) {
         u = tanh(u * saturation);
       }
 
       // LPF2
-      double v2 = (u - z2) * G;
-      double lp2 = v2 + z2;
+      MYDBL v2 = (u - z2) * G;
+      MYDBL lp2 = v2 + z2;
       z2 = lp2 + v2;
-      double y = K * lp2;
+      MYDBL y = K * lp2;
 
       // HPF1
 
-      double v3 = (y - z3) * G;
-      double lp3 = v3 + z3;
+      MYDBL v3 = (y - z3) * G;
+      MYDBL lp3 = v3 + z3;
       z3 = lp3 + v3;
-      // double hp1 = y - lp3; /* FIXME: not used */
+      // MYDBL hp1 = y - lp3; /* FIXME: not used */
 
       S35 = (lpf2_beta * z2) + (hpf1_beta * z3);
-      double out = (K > 0) ? (y / K) : y;
+      MYDBL out = (K > 0) ? (y / K) : y;
 
       p->out[n] = out;
     }
@@ -936,26 +936,26 @@ static int32_t k35_hpf_init(CSOUND* csound, K35_HPF* p) {
 
 static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
 
-    double z1 = p->z1;
-    double z2 = p->z2;
-    double z3 = p->z3;
-    double last_cut = p->last_cut;
-    double last_q = p->last_q;
-    double g = p->g;
-    double G = p->G;
-    double K = p->K;
-    double S35 = p->S35;
-    double alpha = p->alpha;
-    double hpf2_beta = p->hpf2_beta;
-    double lpf1_beta = p->lpf1_beta;
+    MYDBL z1 = p->z1;
+    MYDBL z2 = p->z2;
+    MYDBL z3 = p->z3;
+    MYDBL last_cut = p->last_cut;
+    MYDBL last_q = p->last_q;
+    MYDBL g = p->g;
+    MYDBL G = p->G;
+    MYDBL K = p->K;
+    MYDBL S35 = p->S35;
+    MYDBL alpha = p->alpha;
+    MYDBL hpf2_beta = p->hpf2_beta;
+    MYDBL lpf1_beta = p->lpf1_beta;
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = CS_ONEDSR;
-    double Tdiv2 = T / 2.0;
-    double two_div_T = 2.0 / T;
+    MYDBL T = CS_ONEDSR;
+    MYDBL Tdiv2 = T / 2.0;
+    MYDBL two_div_T = 2.0 / T;
 
     int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
     int32_t q_arate = IS_ASIG_ARG(p->q);
@@ -965,7 +965,7 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
 
     int32_t
       nonlinear = MYFLT2LONG(*p->nonlinear);
-    double saturation = *p->saturation;
+    MYDBL saturation = *p->saturation;
 
     if (UNLIKELY(offset)) {
       memset(p->out, '\0', offset*sizeof(MYFLT));
@@ -987,8 +987,8 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
       }
 
       if (cutoff != last_cut) {
-        double wd = TWOPI * cutoff;
-        double wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wd = TWOPI * cutoff;
+        MYDBL wa = two_div_T * tan(wd * Tdiv2);
         g = wa * Tdiv2;
         G = g / (1.0 + g);
       }
@@ -1008,31 +1008,31 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
       last_q = q;
 
       // HPF1
-      double v1 = (in - z1) * G;
-      double lp1 = v1 + z1;
+      MYDBL v1 = (in - z1) * G;
+      MYDBL lp1 = v1 + z1;
       z1 = lp1 + v1;
-      double y1 = in - lp1;
+      MYDBL y1 = in - lp1;
 
-      double u = alpha * (y1 + S35);
-      double y = K * u;
+      MYDBL u = alpha * (y1 + S35);
+      MYDBL y = K * u;
 
       if (nonlinear) {
         y = tanh(y * saturation);
       }
 
       // HPF2
-      double v2 = (y - z2) * G;
-      double lp2 = v2 + z2;
+      MYDBL v2 = (y - z2) * G;
+      MYDBL lp2 = v2 + z2;
       z2 = lp2 + v2;
-      double hp2 = y - lp2;
+      MYDBL hp2 = y - lp2;
 
       // LPF1
-      double v3 = (hp2 - z3) * G;
-      double lp3 = v3 + z3;
+      MYDBL v3 = (hp2 - z3) * G;
+      MYDBL lp3 = v3 + z3;
       z3 = lp3 + v3;
 
       S35 = (hpf2_beta * z2) + (lpf1_beta * z3);
-      double out = (K > 0) ? (y / K) : y;
+      MYDBL out = (K > 0) ? (y / K) : y;
 
       p->out[n] = out;
     }

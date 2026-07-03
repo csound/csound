@@ -107,7 +107,7 @@ typedef struct {
   MYFLT *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;
   int32 ndx;
   int32_t   done;
-  double start, newtime;
+  MYDBL start, newtime;
   int32 pfn;
   MYFLT *table;
 } SEQTIM;

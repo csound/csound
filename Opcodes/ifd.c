@@ -50,7 +50,7 @@ typedef struct _ifd {
   AUXCH   sigframe, diffsig, win, diffwin;
   AUXCH   counter;
   int32_t     fftsize, hopsize, wintype, frames, cnt;
-  double  fund, factor;
+  MYDBL  fund, factor;
   MYFLT   norm, g;
   void  *setup;
 } IFD;
@@ -60,7 +60,7 @@ static int32_t ifd_init(CSOUND * csound, IFD * p)
   int32_t     fftsize, hopsize, frames;
   int32_t    *counter, wintype, i;
   MYFLT  *winf, *dwinf;
-  double  alpha = 0.0, fac;
+  MYDBL  alpha = 0.0, fac;
 
   //p->cnt = 0;
   fftsize = p->fftsize = (int32_t) *p->p2;
@@ -161,7 +161,7 @@ static int32_t ifd_init(CSOUND * csound, IFD * p)
 static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
 {
 
-  double  powerspec, da, db, a, b, ph, factor = p->factor, fund = p->fund;
+  MYDBL  powerspec, da, db, a, b, ph, factor = p->factor, fund = p->fund;
   MYFLT   scl = p->g / p->norm;
   int32_t     i2, i, fftsize = p->fftsize, hsize = p->fftsize / 2;
   MYFLT   tmp1, tmp2;
@@ -203,7 +203,7 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
     if ((outphases[i] = output[i] = (float) sqrt(powerspec)) != 0.0f) {
       output[i + 1] = ((a * db - b * da) / powerspec) * factor + i2 * fund;
       ph = (float) ATAN2(b, a);
-      /*double d = ph - outphases[i + 1];
+      /*MYDBL d = ph - outphases[i + 1];
         while (d > PI)
         d -= TWOPI;
         while (d < -PI)
@@ -260,7 +260,7 @@ static int32_t tifd_init(CSOUND * csound, IFD * p)
   int32_t     fftsize, hopsize;
   int32_t     wintype, i;
   MYFLT  *winf, *dwinf;
-  double  alpha = 0.0, fac;
+  MYDBL  alpha = 0.0, fac;
 
 
   fftsize = p->fftsize = (int32_t) *p->p4;

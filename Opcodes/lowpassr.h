@@ -25,8 +25,8 @@
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *kfco, *kres, *istor;
-        double  ynm1, ynm2;
-        double  coef1, coef2, okf, okr, k;
+        MYDBL  ynm1, ynm2;
+        MYDBL  coef1, coef2, okf, okr, k;
 } LOWPR;
 
 typedef struct {

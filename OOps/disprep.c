@@ -21,7 +21,7 @@
 */
 
 #include "csoundCore.h"         /*                      DISPREP.C       */
-#include <math.h>
+
 #include "cwindow.h"
 #include "disprep.h"
 #include "csound_standard_types.h"
@@ -747,7 +747,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
         *linp++ = *xcur++;                  /*  into linexp buf       */
       for (xcur=p->xbeg; wrap--; )
         *linp++ = *xcur++;
-      csoundDisplay(csound, &p->dwindow);         /* displaydouble window  */
+      csoundDisplay(csound, &p->dwindow);         /* displayMYDBL window  */
       p->dcntdown = p->dtimcnt;             /*   & reset the counter  */
     }
 /*  if (p->tempo != 0.0)  */

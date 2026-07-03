@@ -22,7 +22,7 @@
 
 #include "csoundCore.h"
 #include "midiinterop.h"
-#include "math.h"
+
 
 #define dv127   (FL(1.0)/FL(127.0))
 
@@ -80,15 +80,15 @@ int32_t midinoteonoct(CSOUND *csound, MIDINOTEON *p)
 
 int32_t midinoteonpch(CSOUND *csound, MIDINOTEON *p)
 {
-    double pitch;
-    double octave;
-    double integer;
-    double fraction;
+    MYDBL pitch;
+    MYDBL octave;
+    MYDBL integer;
+    MYDBL fraction;
     IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
-    pitch = (double)p->h.insdshead->m_pitch;
+    pitch = (MYDBL)p->h.insdshead->m_pitch;
     octave = pitch / 12.0 + 3.0;
     fraction = modf(octave, &integer);
     fraction *= 0.12;

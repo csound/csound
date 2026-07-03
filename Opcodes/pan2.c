@@ -27,7 +27,7 @@
 #endif
 #include "interlocks.h"
 
-#include <math.h>
+
 #include "arrays.h"
 
 typedef struct {

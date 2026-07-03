@@ -79,21 +79,21 @@ typedef struct csCfgVariableFloat_s {
     float           max;              /* maximum allowed value              */
 } csCfgVariableFloat_t;
 
-/* double type */
+/* MYDBL type */
 
 typedef struct csCfgVariableDouble_s {
     union csCfgVariable_u *nxt;       /* pointer to next structure in chain */
     unsigned char   *name;            /* name of the variable               */
-    double          *p;               /* pointer to value                   */
+    MYDBL          *p;               /* pointer to value                   */
     int32_t             type;             /* type (CSOUNDCFG_DOUBLE)            */
     int32_t             flags;            /* bitwise OR of flags                */
     unsigned char   *shortDesc;       /* short description (NULL if none)   */
     unsigned char   *longDesc;        /* long description (NULL if none)    */
-    double          min;              /* minimum allowed value              */
-    double          max;              /* maximum allowed value              */
+    MYDBL          min;              /* minimum allowed value              */
+    MYDBL          max;              /* maximum allowed value              */
 } csCfgVariableDouble_t;
 
-/* MYFLT (float or double) type */
+/* MYFLT (float or MYDBL) type */
 
 typedef struct csCfgVariableMYFLT_s {
     union csCfgVariable_u *nxt;       /* pointer to next structure in chain */

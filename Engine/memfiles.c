@@ -85,7 +85,7 @@ static int32_t load_het_file(CSOUND *csound, const char *filnam,
 static MYFLT read_ieee(FILE* f, int32_t *end)
 {
     char buff[120];
-    double x;
+    MYDBL x;
     char *p = fgets(buff, 120, f);
 
     if (p==NULL || feof(f)) {
@@ -572,7 +572,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     p->fullName = (char*) csound->Malloc(csound,
                                          strlen(csound->GetFileName(fd)) + 1);
     strcpy(p->fullName, csound->GetFileName(fd));
-    p->sampleRate = (double) sfinfo->samplerate;
+    p->sampleRate = (MYDBL) sfinfo->samplerate;
     p->nFrames = (size_t) sfinfo->frames;
     p->nChannels = sfinfo->channels;
     p->sampleFormat = SF2FORMAT(sfinfo->format);
@@ -592,16 +592,16 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
           /* set loop mode and loop points */
           p->loopMode = (lpd.loops[0].mode == SF_LOOP_FORWARD ?
                          2 : (lpd.loops[0].mode == SF_LOOP_BACKWARD ? 3 : 4));
-          p->loopStart = (double) lpd.loops[0].start;
-          p->loopEnd = (double) lpd.loops[0].end;
+          p->loopStart = (MYDBL) lpd.loops[0].start;
+          p->loopEnd = (MYDBL) lpd.loops[0].end;
         }
         else {
           /* loop mode: off */
           p->loopMode = 1;
         }
-        p->baseFreq = pow(2.0, (double) (((int32_t) lpd.basenote - 69) * 100
+        p->baseFreq = pow(2.0, (MYDBL) (((int32_t) lpd.basenote - 69) * 100
                                          + (int32_t) lpd.detune) / 1200.0) * csound->A4;
-        p->scaleFac = pow(10.0, (double) lpd.gain * 0.05);
+        p->scaleFac = pow(10.0, (MYDBL) lpd.gain * 0.05);
       }
     }
     if (UNLIKELY((size_t) csound->SndfileRead(csound, sf, &(p->data[0]), (sf_count_t) p->nFrames)

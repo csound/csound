@@ -37,7 +37,7 @@
 
 #include "interlocks.h"
 
-#include <math.h>
+
 
 
 typedef struct {
@@ -420,7 +420,7 @@ static int32_t PDHalfY(CSOUND* csound, PD_HALF* p)
 typedef struct {
     OPDS    h;
     MYFLT   *aphase, *asyncout, *xcps, *asyncin, *initphase;
-    double  curphase;
+    MYDBL  curphase;
 } SYNCPHASOR;
 
 int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
@@ -439,12 +439,12 @@ int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
 
 int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
 {
-    double      phase;
+    MYDBL      phase;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *out, *syncout, *syncin;
-    double      incr;
+    MYDBL      incr;
     int32_t         cpsIsARate;
 
     out = p->aphase;
@@ -466,7 +466,7 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
           syncout[n] = FL(1.0);        /* send sync whenever syncin */
         }
         else {
-          incr = (double)(cps[n] * CS_ONEDSR);
+          incr = (MYDBL)(cps[n] * CS_ONEDSR);
           out[n] = (MYFLT)phase;
           phase += incr;
           if (phase >= 1.0) {
@@ -482,7 +482,7 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
       }
     }
     else {
-      incr = (double)(*p->xcps * CS_ONEDSR);
+      incr = (MYDBL)(*p->xcps * CS_ONEDSR);
       for (n=offset; n<nsmps; n++) {
         if (syncin[n] != FL(0.0)) {        /* non-zero triggers reset */
           phase = 0.0;

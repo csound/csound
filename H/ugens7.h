@@ -30,7 +30,7 @@
 typedef struct ovrlap {
         struct ovrlap  *nxtact, *nxtfree;
         int32    timrem, dectim, formphs, forminc, risphs, risinc, decphs, decinc;
-        double  formphsf, formincf, risphsf, risincf, decphsf, decincf;
+        MYDBL  formphsf, formincf, risphsf, risincf, decphsf, decincf;
         MYFLT   curamp, expamp;
         MYFLT   glissbas;/* Gliss factor to add to forminc (ifna index incr) */
        int32    sampct;         /* Sample count since grain started */

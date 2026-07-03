@@ -371,8 +371,8 @@ static void set_xtratim(CSOUND *csound, INSDS *ip)
   if (UNLIKELY(ip->relesing))
     return;
   ip->offtim = (csound->icurTimeSamples +
-                ip->ksmps * (double) ip->xtratim)/csound->esr;
-  ip->offbet = csound->curBeat + (csound->curBeat_inc * (double) ip->xtratim);
+                ip->ksmps * (MYDBL) ip->xtratim)/csound->esr;
+  ip->offbet = csound->curBeat + (csound->curBeat_inc * (MYDBL) ip->xtratim);
   ip->relesing = 1;
   csound->engineState.instrtxtp[ip->insno]->pending_release++;
 }
@@ -603,7 +603,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
   }
   if (newevtp->p3orig >= FL(0.0))
     ip->offbet = csound->beatOffs
-      + (double) newevtp->p2orig + (double) newevtp->p3orig;
+      + (MYDBL) newevtp->p2orig + (MYDBL) newevtp->p3orig;
   else
     ip->offbet = -1.0;
   flp = &ip->p1.value;
@@ -629,7 +629,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
 
   if (O->Beatmode)
     ip->p2.value     = (MYFLT) (csound->icurTimeSamples/csound->esr - csound->timeOffs);
-  ip->offtim       = (double) ip->p3.value;         /* & duplicate p3 for now */
+  ip->offtim       = (MYDBL) ip->p3.value;         /* & duplicate p3 for now */
   ip->m_chnbp      = (MCHNBLK*) NULL;
   ip->xtratim      = 0;
   ip->relesing     = 0;
@@ -642,7 +642,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
   /* VL 18 Dec 24 - needs to be set before init pass to propagate to UDOS */
   if (O->sampleAccurate && !tie) {
     int64_t start_time_samps, start_time_kcycles;
-    double duration_samps;
+    MYDBL duration_samps;
     start_time_samps = (int64_t) (ip->p2.value * csound->esr);
     duration_samps =  ip->p3.value * csound->esr;
     start_time_kcycles = start_time_samps/csound->ksmps;
@@ -678,8 +678,8 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
                     __LINE__, ip->p3.value, ip->offtim); /* *********** */
 #endif
   if (ip->p3.value > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
-    double p2 = (double) ip->p2.value + csound->timeOffs;
-    ip->offtim = p2 + (double) ip->p3.value;
+    MYDBL p2 = (MYDBL) ip->p2.value + csound->timeOffs;
+    ip->offtim = p2 + (MYDBL) ip->p3.value;
     if (O->sampleAccurate && !tie  &&
         ip->p3.value > 0 &&
         ip->xtratim == 0) /* ceil for sample-accurate ending */
@@ -689,7 +689,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     if (O->Beatmode) {
       p2 = ((p2*csound->esr - csound->icurTimeSamples) / csound->ibeatTime)
         + csound->curBeat;
-      ip->offbet = p2 + ((double) ip->p3.value*csound->esr / csound->ibeatTime);
+      ip->offbet = p2 + ((MYDBL) ip->p3.value*csound->esr / csound->ibeatTime);
     }
 #ifdef BETA
     if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME))
@@ -699,7 +699,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
 #endif
     if(csound->oparms->realtime) // compensate for possible late starts
       {
-        double p2 = (double) ip->p2.value + csound->timeOffs;
+        MYDBL p2 = (MYDBL) ip->p2.value + csound->timeOffs;
         ip->offtim += (csound->icurTimeSamples/csound->esr - p2);
       }
     sched_off_time(csound, ip);                  /*   put in turnoff list */
@@ -923,8 +923,8 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     int32_t pfield_index = O->midiKeyPch;
     CS_VAR_MEM* pfield = (pfields + pfield_index);
     MYFLT value = (MYFLT) ip->m_pitch;
-    double octave = 0;
-    double fraction = 0.0;
+    MYDBL octave = 0;
+    MYDBL fraction = 0.0;
     value = value / FL(12.0) + FL(3.0);
     fraction = modf(value, &octave);
     fraction *= 0.12;
@@ -1040,11 +1040,11 @@ static void sched_off_time(CSOUND *csound, INSDS *ip)
 
 #endif
     if (csound->oparms_.Beatmode) {
-      double  tval = csound->curBeat + (0.505 * csound->curBeat_inc);
+      MYDBL  tval = csound->curBeat + (0.505 * csound->curBeat_inc);
       if (ip->offbet <= tval) beat_expire(csound, tval);
     }
     else {
-      double  tval = (csound->icurTimeSamples + (0.505 * csound->ksmps))/csound->esr;
+      MYDBL  tval = (csound->icurTimeSamples + (0.505 * csound->ksmps))/csound->esr;
       if (ip->offtim <= tval) time_expire(csound, tval);
     }
 #ifdef BETA
@@ -1438,7 +1438,7 @@ int32_t csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
 /* unlink expired notes from activ chain */
 /*      and mark them inactive           */
 /*    close any files in each fdchain    */
-void beat_expire(CSOUND *csound, double beat)
+void beat_expire(CSOUND *csound, MYDBL beat)
 {
   INSDS  *ip;
  strt:
@@ -1471,7 +1471,7 @@ void beat_expire(CSOUND *csound, double beat)
 /* unlink expired notes from activ chain */
 /*      and mark them inactive           */
 /*    close any files in each fdchain    */
-void time_expire(CSOUND *csound, double time)
+void time_expire(CSOUND *csound, MYDBL time)
 {
   INSDS  *ip;
 

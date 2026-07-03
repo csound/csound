@@ -29,8 +29,8 @@
 #ifdef _MSC_VER
 #define _USE_MATH_DEFINES
 #endif
-#include <math.h>
-#include <math.h>
+
+
 #ifdef BUILD_PLUGINS
 #include "csdl.h"
 #else
@@ -100,7 +100,7 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
       // TODO - Double check this is equivalent to non-windows complex definition
           _Fcomplex ph = { cos(x), sin(x) };
 #else
-      complex double ph =  cos(x) + I*sin(x);
+      complex MYDBL ph =  cos(x) + I*sin(x);
 #endif
       tmp[i] = mag * (MYFLT)crealf(ph);
       tmp[i + 1] = mag * (MYFLT)cimagf(ph);

@@ -21,7 +21,7 @@
 */
 
 #include "pvoc.h"         /*      UGENS8.C        */
-#include <math.h>
+
 
 /* RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
@@ -61,7 +61,7 @@ int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
   if (*p->imode == 1 || *p->imode == 2) {
     int32  n = (int32) ((p->frSiz + 2L) * (p->maxFr + 2L));
 #ifdef USE_DOUBLE
-    n = (n + 1L) * (int32) sizeof(float) / (int32) sizeof(double);
+    n = (n + 1L) * (int32) sizeof(float) / (int32) sizeof(MYDBL);
 #endif
     memsize += n;
   }

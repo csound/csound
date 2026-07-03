@@ -25,7 +25,7 @@
 
 
 typedef struct ListItem {
-  double           val;
+  MYDBL           val;
   struct ListItem *args;
 } ListItem;
 

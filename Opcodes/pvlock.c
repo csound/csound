@@ -37,7 +37,7 @@ typedef struct dats {
     *idecim, *konset, *offset, *dbthresh;
   int32_t cnt, hsize, curframe, N, decim,tscale;
   uint32_t nchans;
-  double pos;
+  MYDBL pos;
   MYFLT accum;
   AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS],
     nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS], fdata;
@@ -47,7 +47,7 @@ typedef struct dats {
   SNDFILE *sf;
   FDCH    fdch;
   MYFLT resamp;
-  double tstamp, incr;
+  MYDBL tstamp, incr;
   void *fwdsetup, *invsetup;
 } DATASPACE;
 
@@ -58,7 +58,7 @@ typedef struct dats1 {
     *idecim, *konset, *offset, *dbthresh;
   int32_t cnt, hsize, curframe, N, decim,tscale;
   uint32_t nchans;
-  double pos;
+  MYDBL pos;
   MYFLT accum;
   AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS],
     nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS], fdata;
@@ -68,7 +68,7 @@ typedef struct dats1 {
   SNDFILE *sf;
   FDCH    fdch;
   MYFLT resamp;
-  double tstamp, incr;
+  MYDBL tstamp, incr;
   void *fwdsetup, *invsetup;
 } DATASPACEM;
 
@@ -233,14 +233,14 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
     int32_t nsmps = CS_KSMPS, n;
     int32_t sizefrs, size, post, i, j;
     int64_t spos;  // = p->pos;
-    double pos;
+    MYDBL pos;
     MYFLT *fwin, *bwin, in,
       *prev, *win = (MYFLT *) p->win.auxp;
     MYFLT *outframe;
     MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
     int32_t *framecnt;
     int32_t curframe = p->curframe, decim = p->decim;
-    double scaling = (8./decim)/3.;
+    MYDBL scaling = (8./decim)/3.;
 
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -260,8 +260,8 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
 
       if (cnt == hsize) {
         /* audio samples are stored in a function table */
-        double tim;
-        double resamp;
+        MYDBL tim;
+        MYDBL resamp;
         ft = csound->FTFind(csound,p->knum);
         if (UNLIKELY(ft==NULL))
           return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
@@ -438,14 +438,14 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
     int32_t nsmps = CS_KSMPS, n;
     int32_t sizefrs, size, post, i, j;
     int64_t spos; //= p->pos;
-    double pos;
+    MYDBL pos;
     MYFLT *fwin, *bwin, in,
       *prev, *win = (MYFLT *) p->win.auxp;
     MYFLT *outframe;
     MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
     int32_t *framecnt;
     int32_t curframe = p->curframe, decim = p->decim;
-    double scaling = (8./decim)/3.;
+    MYDBL scaling = (8./decim)/3.;
 
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -465,8 +465,8 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
 
       if (cnt == hsize) {
         /* audio samples are stored in a function table */
-        double tim;
-        double resamp;
+        MYDBL tim;
+        MYDBL resamp;
         ft = csound->FTFind(csound,p->knum);
         if (UNLIKELY(ft==NULL))
           return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
@@ -673,7 +673,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
     int32_t N = p->N, hsize = p->hsize, cnt = p->cnt, sizefrs, nchans = p->nchans;
     int32_t  nsmps = CS_KSMPS, n;
     int32_t size, post, i, j;
-    double pos, spos = p->pos;
+    MYDBL pos, spos = p->pos;
     MYFLT *fwin, *bwin;
     MYFLT in, *nwin, *prev;
     MYFLT *win = (MYFLT *) p->win.auxp, *outframe;
@@ -681,7 +681,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
     MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
     int32_t *framecnt, curframe = p->curframe;
     int32_t decim = p->decim;
-    double scaling = (8./decim)/3.;
+    MYDBL scaling = (8./decim)/3.;
 
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -700,7 +700,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
     for (n=offset; n < nsmps; n++) {
 
       if (cnt == hsize) {
-        double resamp;
+        MYDBL resamp;
         ft = csound->FTFind(csound,p->knum);
         if (UNLIKELY(ft==NULL))
           return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
@@ -893,7 +893,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
     int32_t N = p->N, hsize = p->hsize, cnt = p->cnt, sizefrs, nchans = p->nchans;
     int32_t  nsmps = CS_KSMPS, n;
     int32_t size, post, i, j;
-    double pos, spos = p->pos;
+    MYDBL pos, spos = p->pos;
     MYFLT *fwin, *bwin;
     MYFLT in, *nwin, *prev;
     MYFLT *win = (MYFLT *) p->win.auxp, *outframe;
@@ -901,7 +901,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
     MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
     int32_t *framecnt, curframe = p->curframe;
     int32_t decim = p->decim;
-    double scaling = (8./decim)/3.;
+    MYDBL scaling = (8./decim)/3.;
 
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -920,7 +920,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
     for (n=offset; n < nsmps; n++) {
 
       if (cnt == hsize) {
-        double resamp;
+        MYDBL resamp;
         ft = csound->FTFind(csound,p->knum);
         if (UNLIKELY(ft==NULL))
           return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
@@ -1188,7 +1188,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     int32_t N = p->N, hsize = p->hsize, cnt = p->cnt, sizefrs, nchans = p->nchans;
     int32_t  nsmps = CS_KSMPS, n;
     int32_t size, post, i, j;
-    double pos, spos = p->pos;
+    MYDBL pos, spos = p->pos;
     MYFLT *fwin, *bwin;
     MYFLT in, *nwin, *prev;
     MYFLT *win = (MYFLT *) p->win.auxp, *outframe;
@@ -1196,7 +1196,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
     int32_t *framecnt, curframe = p->curframe;
     int32_t decim = p->decim;
-    double tstamp = p->tstamp, incrt = p->incr;
+    MYDBL tstamp = p->tstamp, incrt = p->incr;
  
     if (time < 0) /* negative tempo is not possible */
       time = 0.0;
@@ -1204,7 +1204,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
 
     {
       int32_t outnum = GetOutputArgCnt((OPDS *)p);
-      double _0dbfs = csound->Get0dBFS(csound);
+      MYDBL _0dbfs = csound->Get0dBFS(csound);
 
       if (UNLIKELY(early)) {
         nsmps -= early;
@@ -1744,8 +1744,8 @@ typedef struct amfm {
   OPDS h;
   MYFLT *am, *fm;
   MYFLT *re, *im;
-  double ph;
-  double scal;
+  MYDBL ph;
+  MYDBL scal;
 } AMFM;
 
 
@@ -1760,7 +1760,7 @@ int32_t am_fm(CSOUND *csound, AMFM *p) {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t n, nsmps = CS_KSMPS;
-    double oph = p->ph, f, ph;
+    MYDBL oph = p->ph, f, ph;
     MYFLT *fm = p->fm;
     MYFLT *am = p->am;
     MYFLT *re = p->re;

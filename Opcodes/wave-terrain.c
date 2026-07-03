@@ -22,7 +22,7 @@
 
 
 #include "wave-terrain.h"
-#include <math.h>
+
 
 /*  Wave-terrain synthesis opcode
  *

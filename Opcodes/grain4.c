@@ -41,7 +41,7 @@
 #include "interlocks.h"
 #include "interlocks.h"
 #include "grain4.h"
-#include <math.h>
+
 
 #define        RNDMUL  15625L
 

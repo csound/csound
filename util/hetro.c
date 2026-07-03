@@ -22,7 +22,7 @@
 
 #include "std_util.h"                                   /*  HETRO.C   */
 #include "soundio.h"
-#include <math.h>
+
 #include <inttypes.h>
 
 //#define DEBUG 1
@@ -69,7 +69,7 @@ typedef struct {
                                 /* begin time & sample input duration*/
            **MAGS, **FREQS;     /* magnitude and freq. output buffers*/
 
-  double *cos_mul, *sin_mul,    /* quad. term buffers*/
+  MYDBL *cos_mul, *sin_mul,    /* quad. term buffers*/
          *a_term, *b_term,      /*real & imag. terms*/
          *r_ampl,               /* pt. by pt. amplitude buffer*/
          *r_phase,              /* pt. by pt. phase buffer*/
@@ -93,20 +93,20 @@ typedef struct {
          *outfilnam;            /* output file name */
   MYFLT  *auxp;                 /* pointer to input file */
   MYFLT  *adp;                  /* pointer to front of sample file */
-  double *c_p,*s_p;             /* pointers to space for sine and cos terms */
+  MYDBL *c_p,*s_p;             /* pointers to space for sine and cos terms */
   int32_t newformat;             /* flag for m/c independent format */
 } HET;
 
 #if INCSDIF
 static int32_t writesdif(CSOUND*, HET*);
 #endif
-static  double  GETVAL(HET *, double *, int32);
-//static  double  sq(double);
-static  void    PUTVAL(HET *,double *, int32, double);
+static  MYDBL  GETVAL(HET *, MYDBL *, int32);
+//static  MYDBL  sq(MYDBL);
+static  void    PUTVAL(HET *,MYDBL *, int32, MYDBL);
 static  int32_t hetdyn(CSOUND *csound, HET *, int32_t);
 static  void    lpinit(HET*);
-static  void    lowpass(HET *,double *, double *, int32);
-static  void    average(HET *,int32, double *, double *, int32);
+static  void    lowpass(HET *,MYDBL *, MYDBL *, int32);
+static  void    average(HET *,int32, MYDBL *, MYDBL *, int32);
 static  void    output(HET *,int32, int32_t, int32_t);
 static  void    output_ph(HET *, int32);
 static  int32_t filedump(HET *, CSOUND *);
@@ -144,7 +144,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     int32_t i, hno, channel = 1, retval = 0;
     int32   nsamps, smpspc, bufspc, mgfrspc;
     char    *dsp, *dspace;
-    double  *begbufs, *endbufs;
+    MYDBL  *begbufs, *endbufs;
     HET     het;
     HET     *t = &het;
     SOUNDIN *p;         /* space allocated by SAsndgetset() */
@@ -300,27 +300,27 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     t->midbuf = t->bufsiz/2;
     t->bufmask = t->bufsiz - 1;
 
-    smpspc = t->smpsin * sizeof(double);
-    bufspc = t->bufsiz * sizeof(double);
+    smpspc = t->smpsin * sizeof(MYDBL);
+    bufspc = t->bufsiz * sizeof(MYDBL);
 //printf("sizes2: smpspc - %d  bufspc - %d\n", smpspc, bufspc);
     dsp = dspace = csound->Calloc(csound, smpspc * 2 + bufspc * 13);
-    t->c_p = (double *) dsp;      dsp += smpspc;  /* space for the    */
-    t->s_p = (double *) dsp;      dsp += smpspc;  /* quadrature terms */
-    begbufs = (double *) dsp;
-    t->cos_mul = (double *) dsp;  dsp += bufspc;  /* bufs that will be */
-    t->sin_mul = (double *) dsp;  dsp += bufspc;  /* refilled each hno */
-    t->a_term = (double *) dsp;   dsp += bufspc;
-    t->b_term = (double *) dsp;   dsp += bufspc;
-    t->r_ampl = (double *) dsp;   dsp += bufspc;
-    t->ph_av1 = (double *) dsp;   dsp += bufspc;
-    t->ph_av2 = (double *) dsp;   dsp += bufspc;
-    t->ph_av3 = (double *) dsp;   dsp += bufspc;
-    t->r_phase = (double *) dsp;  dsp += bufspc;
-    t->amp_av1 = (double *) dsp;  dsp += bufspc;
-    t->amp_av2 = (double *) dsp;  dsp += bufspc;
-    t->amp_av3 = (double *) dsp;  dsp += bufspc;
-    t->a_avg = (double *) dsp;    dsp += bufspc;
-    endbufs = (double *) dsp;
+    t->c_p = (MYDBL *) dsp;      dsp += smpspc;  /* space for the    */
+    t->s_p = (MYDBL *) dsp;      dsp += smpspc;  /* quadrature terms */
+    begbufs = (MYDBL *) dsp;
+    t->cos_mul = (MYDBL *) dsp;  dsp += bufspc;  /* bufs that will be */
+    t->sin_mul = (MYDBL *) dsp;  dsp += bufspc;  /* refilled each hno */
+    t->a_term = (MYDBL *) dsp;   dsp += bufspc;
+    t->b_term = (MYDBL *) dsp;   dsp += bufspc;
+    t->r_ampl = (MYDBL *) dsp;   dsp += bufspc;
+    t->ph_av1 = (MYDBL *) dsp;   dsp += bufspc;
+    t->ph_av2 = (MYDBL *) dsp;   dsp += bufspc;
+    t->ph_av3 = (MYDBL *) dsp;   dsp += bufspc;
+    t->r_phase = (MYDBL *) dsp;  dsp += bufspc;
+    t->amp_av1 = (MYDBL *) dsp;  dsp += bufspc;
+    t->amp_av2 = (MYDBL *) dsp;  dsp += bufspc;
+    t->amp_av3 = (MYDBL *) dsp;  dsp += bufspc;
+    t->a_avg = (MYDBL *) dsp;    dsp += bufspc;
+    endbufs = (MYDBL *) dsp;
 
     mgfrspc = t->num_pts * sizeof(MYFLT);
     dsp = csound->Malloc(csound, mgfrspc * t->hmax * 2);
@@ -335,11 +335,11 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     lpinit(t);                        /* calculate LPF coeffs.  */
     t->adp = t->auxp;           /* point to beg sample data block */
     for (hno = 0; hno < t->hmax; hno++) { /* for requested harmonics */
-      double *dblp;
+      MYDBL *dblp;
       t->freq_est += t->fund_est; /*   do analysis */
       t->cur_est = t->freq_est;
       dblp = begbufs;
-      // TODO? memset(begbufs, '\0', (endbufs-begbufs)*sizeof(double));
+      // TODO? memset(begbufs, '\0', (endbufs-begbufs)*sizeof(MYDBL));
       do {
         *dblp++ = FL(0.0);                    /* clear all refilling buffers */
       } while (dblp < endbufs);
@@ -369,13 +369,13 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     return retval;
 }
 
-static double GETVAL(HET* t, double *inb, int32 smpl)
+static MYDBL GETVAL(HET* t, MYDBL *inb, int32 smpl)
 {                               /* get value at position smpl in array inb */
     if (smpl<0) return 0.0;
     return   inb[(smpl + t->midbuf) & t->bufmask];
 }
 
-static void PUTVAL(HET* t, double *outb, int32 smpl, double value)
+static void PUTVAL(HET* t, MYDBL *outb, int32 smpl, MYDBL value)
 {                               /* put value in array outb at postn smpl */
     outb[(smpl + t->midbuf) & t->bufmask] = value;
 }
@@ -384,8 +384,8 @@ static int32_t hetdyn(CSOUND *csound,
                       HET* t, int32_t hno) /* HETERODYNE FILTER */
 {
     int32   smplno;
-    double  temp_a, temp_b, tpidelest;
-    double  *cos_p, *sin_p;
+    MYDBL  temp_a, temp_b, tpidelest;
+    MYDBL  *cos_p, *sin_p;
     int32   n;
     int32_t outpnt, lastout = -1;
     MYFLT   *ptr;
@@ -396,10 +396,10 @@ static int32_t hetdyn(CSOUND *csound,
     sin_p = t->s_p;
     tpidelest = TWOPI * t->cur_est * t->delta_t;
     for (smplno = 0; smplno < t->smpsin; smplno++) {
-      //double phase = smplno * tpidelest;     /* do all quadrature calcs */
+      //MYDBL phase = smplno * tpidelest;     /* do all quadrature calcs */
       ptr = t->adp;           /* at once and point to it */
-      cos_p[smplno] = (double)(ptr[smplno] * cos(smplno * tpidelest));
-      sin_p[smplno] = (double)(ptr[smplno] * sin(smplno * tpidelest));
+      cos_p[smplno] = (MYDBL)(ptr[smplno] * cos(smplno * tpidelest));
+      sin_p[smplno] = (MYDBL)(ptr[smplno] * sin(smplno * tpidelest));
     }
 
     for (smplno = 0; smplno < t->smpsin - t->windsiz; smplno++) {
@@ -465,7 +465,7 @@ static void lpinit(HET *t) /* lowpass coefficient ititializer */
 {               /* 3rd order butterworth LPF coefficients calculated using */
                 /* impulse invariance */
     MYFLT costerm,sinterm;
-    double omega_c;
+    MYDBL omega_c;
 
     omega_c = t->freq_c*TWOPI;
     costerm = (MYFLT)cos(SQRTOF3*omega_c*t->delta_t*0.5);
@@ -485,7 +485,7 @@ static void lpinit(HET *t) /* lowpass coefficient ititializer */
     t->y3 = (-(MYFLT)exp(-2.0*omega_c*t->delta_t));
 }
 
-static void lowpass(HET *t, double *out, double *in, int32 smpl)
+static void lowpass(HET *t, MYDBL *out, MYDBL *in, int32 smpl)
   /* call with x1,x2,yA,y2,y3 initialised  */
   /* calls LPF function */
 {
@@ -497,7 +497,7 @@ static void lowpass(HET *t, double *out, double *in, int32 smpl)
             t->y3 * GETVAL(t,out,smpl-3)));
 }
 
-static void average(HET *t, int32 window,double *in,double *out, int32 smpl)
+static void average(HET *t, int32 window,MYDBL *in,MYDBL *out, int32 smpl)
   /* AVERAGES OVER 'WINDOW' SAMPLES */
   /* this is actually a comb filter with 'Z' */
   /* transform of (1/w *[1 - Z**-w]/[1 - Z**-1]) */
@@ -508,15 +508,15 @@ static void average(HET *t, int32 window,double *in,double *out, int32 smpl)
     if (smpl<window) {
       //printf("inside window: %f %f\n", GETVAL(t,out,smpl-1), GETVAL(t,in,smpl));
       PUTVAL(t,out, smpl,
-             (double)(GETVAL(t,out,smpl-1) +
-                      (1.0/(double)window) * (GETVAL(t,in,smpl))));
+             (MYDBL)(GETVAL(t,out,smpl-1) +
+                      (1.0/(MYDBL)window) * (GETVAL(t,in,smpl))));
     }
     else {
       //printf("outside window: %f %f %f\n", GETVAL(t,out,smpl-1),
       //       GETVAL(t,in,smpl), GETVAL(t,in,smpl-window));
       PUTVAL(t,out, smpl,
-             (double)(GETVAL(t,out,smpl-1) +
-                      (1.0/(double)window) *
+             (MYDBL)(GETVAL(t,out,smpl-1) +
+                      (1.0/(MYDBL)window) *
                       (GETVAL(t,in,smpl) - GETVAL(t,in,smpl-window))));
     }
 }
@@ -527,8 +527,8 @@ static void output_ph(HET *t,int32 smpl)
                                 /* for each samples quadrature components, & */
                                 /* and unwraps the phase.  A phase difference*/
 {                               /* is taken to represent the freq. change.   */
-    double      delt_temp;      /* the pairs are then comb filtered.         */
-    double      temp_a;
+    MYDBL      delt_temp;      /* the pairs are then comb filtered.         */
+    MYDBL      temp_a;
 
     //printf("phase: %f %f\n", GETVAL(t, t->a_term,smpl), GETVAL(t,t->b_term,smpl));
     if ((temp_a=GETVAL(t,t->a_term,smpl)) == 0)
@@ -537,7 +537,7 @@ static void output_ph(HET *t,int32 smpl)
     else t->new_ph=
            -atan(GETVAL(t,t->b_term,smpl)/temp_a) - PI*u(-temp_a);
 
-    if (fabs((double)t->new_ph - t->old_ph)>PI)
+    if (fabs((MYDBL)t->new_ph - t->old_ph)>PI)
       t->jmp_ph -= TWOPI*sgn(temp_a);
 
     //printf("output-ph: %f ->%f\n",t->old_ph, t->new_ph);
@@ -573,7 +573,7 @@ static void output(HET *t, int32 smpl, int32_t hno, int32_t pnt)
                         /* when called, gets frequency change */
                         /* and adds it to current freq. stores*/
 {                       /* current amp and new freq in arrays */
-    double delt_freq;
+    MYDBL delt_freq;
     MYFLT  new_amp, new_freq;
 
     if (pnt < t->num_pts) {
@@ -627,9 +627,9 @@ static int32_t quit(CSOUND *csound, char *msg)
 static int32_t filedump(HET *t, CSOUND *csound)
 {
     int32_t h, pnt, ofd, nbytes;
-    double  scale,x,y;
+    MYDBL  scale,x,y;
     int16   **mags, **freqs, *magout, *frqout;
-    double  ampsum, maxampsum = 0.0;
+    MYDBL  ampsum, maxampsum = 0.0;
     int32   lenfil = 0;
     int16   *TIME;
     MYFLT   timesiz;
@@ -816,8 +816,8 @@ static int32_t filedump(HET *t, CSOUND *csound)
 static int32_t writesdif(CSOUND *csound, HET *t)
 {
     int32_t     i,j,h, pnt;
-    double      scale;
-    double      ampsum, maxampsum = 0.0;
+    MYDBL      scale;
+    MYDBL      ampsum, maxampsum = 0.0;
     MYFLT       timesiz;
     SDIFresult  r;
     SDIF_FrameHeader head;
@@ -841,7 +841,7 @@ static int32_t writesdif(CSOUND *csound, HET *t)
     scale = t->m_ampsum / maxampsum;
     /* SDIF does not specify a range, 'cos it's too clever for that sort
      * of thing, but this seems consistent with existing examples! */
-    scale *= (double) (1.0/csound->Get0dBFS(csound));
+    scale *= (MYDBL) (1.0/csound->Get0dBFS(csound));
 
     for (h = 0; h < t->hmax; h++) {
       for (pnt = 0; pnt < t->num_pts; pnt++) {

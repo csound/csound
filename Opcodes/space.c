@@ -28,7 +28,7 @@
 
 #include "stdopcod.h"
 #include "space.h"
-#include <math.h>
+
 
 #define RESOLUTION 100
 

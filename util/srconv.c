@@ -45,7 +45,7 @@
 
 #include "std_util.h"
 #include "soundio.h"
-#include <math.h>
+
 #include <ctype.h>
 
 #define IBUF    (4096)
@@ -60,7 +60,7 @@
       }                                                             \
 }
 
-//static  void    kaiser(int, float *, int, int, double);
+//static  void    kaiser(int, float *, int, int, MYDBL);
 
 #if 0
 static  void    usage(CSOUND *);
@@ -467,7 +467,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
       SFLIB_INFO sfinfo;
       char    *name;
       memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-      sfinfo.samplerate = (int) ((double) Rout + 0.5);
+      sfinfo.samplerate = (int) ((MYDBL) Rout + 0.5);
       sfinfo.channels = (int) p->nchanls;
       //printf("filetyp=%x outformat=%x\n", O->filetyp, O->outformat);
       sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
@@ -525,7 +525,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
     at half of Rin. */
 
     fdel = ((MYFLT) (L * Rin) / Rout);
-    del = (int) ((double) fdel + 0.5);
+    del = (int) ((MYDBL) fdel + 0.5);
     idel = (MYFLT) del;
     if (del > L)
       N = del;
@@ -542,12 +542,12 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
     window += WinLen;
     wLen = (M/2 - L) / L;
 
-    kaiser(M, window, WinLen, 1, (double) beta);
+    kaiser(M, window, WinLen, 1, (MYDBL) beta);
 
     for (i = 1; i <= WinLen; i++) {
-      double  tmp = (double) N;
-      tmp = tmp * sin(PI * (double) i / tmp) / (PI * (double) i);
-      window[i] = (float) ((double) window[i] * tmp);
+      MYDBL  tmp = (MYDBL) N;
+      tmp = tmp * sin(PI * (MYDBL) i / tmp) / (PI * (MYDBL) i);
+      window[i] = (float) ((MYDBL) window[i] * tmp);
     }
 
     if (Rout < Rin) {
@@ -563,9 +563,9 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
     else
       sum = FL(1.0) / (MYFLT) window[0];
 
-    window[0] = (float) ((double) window[0] * (double) sum);
+    window[0] = (float) ((MYDBL) window[0] * (MYDBL) sum);
     for (i = 1; i <= WinLen; i++) {
-      window[i] = (float) ((double) window[i] * (double) sum);
+      window[i] = (float) ((MYDBL) window[i] * (MYDBL) sum);
       *(window - i) = window[i];
     }
 
@@ -807,9 +807,9 @@ static void usage(CSOUND *csound)
       csound->Message(csound, "%s\n", Str(usage_txt[i]));
 }
 
-static double ino(double x)
+static MYDBL ino(MYDBL x)
 {
-    double  y, t, e, de, sde, xi;
+    MYDBL  y, t, e, de, sde, xi;
     int32_t     i;
 
     y = x * 0.5;
@@ -817,7 +817,7 @@ static double ino(double x)
     e = 1.0;
     de = 1.0;
     for (i = 1; i <= 25; i++) {
-      xi = (double) i;
+      xi = (MYDBL) i;
       de = de * y / xi;
       sde = de * de;
       e += sde;
@@ -827,7 +827,7 @@ static double ino(double x)
     return e;
 }
 
-static void kaiser(int32_t nf, float *w, int32_t n, int32_t ieo, double beta)
+static void kaiser(int32_t nf, float *w, int32_t n, int32_t ieo, MYDBL beta)
 {
 
 /*
@@ -838,18 +838,18 @@ static void kaiser(int32_t nf, float *w, int32_t n, int32_t ieo, double beta)
  beta = parameter of kaiser window
 */
 
-    double  bes, xind, xi;
+    MYDBL  bes, xind, xi;
     int32_t     i;
 
     bes = ino(beta);
-    xind = (double) ((nf - 1) * (nf - 1));
+    xind = (MYDBL) ((nf - 1) * (nf - 1));
 
     for (i = 0; i < n; i++) {
-      xi = (double) i;
+      xi = (MYDBL) i;
       if (ieo == 0)
         xi += 0.5;
       xi = 4.0 * xi * xi;
-      xi = sqrt(1.0 - (double) (xi / xind));
+      xi = sqrt(1.0 - (MYDBL) (xi / xind));
       w[i] = (float) (ino(beta * xi) / bes);
     }
 }

@@ -22,7 +22,7 @@
 
 #include "stdopcod.h"
 #include "oscbnk.h"
-#include <math.h>
+
 
 static inline STDOPCOD_GLOBALS *get_oscbnk_globals(CSOUND *csound)
 {
@@ -51,7 +51,7 @@ static CS_PURE int32 oscbnk_rand31(int32 seed)
 
 static void oscbnk_seedrand(CSOUND *csound, int32 *seed, MYFLT seedval)
 {
-  *seed = (int32) ((double) seedval + 0.5);
+  *seed = (int32) ((MYDBL) seedval + 0.5);
   if (*seed < 1L) {                   /* seed from current time */
     STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
     if (pp->oscbnk_seed > 0UL)
@@ -82,7 +82,7 @@ static uint32 oscbnk_rnd_phase(int32 *seed)
 
 static MYFLT oscbnk_rnd_bipolar(int32_t *seed, MYFLT rpow, int32_t rmode)
 {
-  double      x;
+  MYDBL      x;
   MYFLT       s;
 
   /* update random seed */
@@ -91,7 +91,7 @@ static MYFLT oscbnk_rnd_bipolar(int32_t *seed, MYFLT rpow, int32_t rmode)
 
   /* convert to floating point */
 
-  x = (double) (*seed - 0x3FFFFFFFL) * (1.0 / 1073741823.015625);
+  x = (MYDBL) (*seed - 0x3FFFFFFFL) * (1.0 / 1073741823.015625);
 
   if (!(rmode)) return ((MYFLT) x);           /* uniform distribution */
 
@@ -100,7 +100,7 @@ static MYFLT oscbnk_rnd_bipolar(int32_t *seed, MYFLT rpow, int32_t rmode)
   s = (x < 0.0 ? FL(-1.0) : FL(1.0));         /* sign                 */
   x = fabs(x);                                /* absolute value       */
   if (rmode == 2) x = fabs(1.0 - x);
-  x = pow(x, (double) rpow);
+  x = pow(x, (MYDBL) rpow);
   if (rmode == 2) x = 1.0 - x;
 
   return ((MYFLT) x * s);
@@ -500,7 +500,7 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
       /* initialise ramps */
       f = ((o->osc_frq + f) * FL(0.5) + *(p->args[1])) * p->frq_scl;
       if (pm_enabled) {
-        f += (MYFLT) ((double) o->osc_phm - (double) pm) / (nsmps-offset);
+        f += (MYFLT) ((MYDBL) o->osc_phm - (MYDBL) pm) / (nsmps-offset);
         f -= (MYFLT) ((int32) f);
       }
       f_i = OSCBNK_PHS2INT(f);
@@ -537,7 +537,7 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
       /* initialise ramps */
       f = ((o->osc_frq + f) * FL(0.5) + *(p->args[1])) * p->frq_scl;
       if (pm_enabled) {
-        f += (MYFLT) ((double) o->osc_phm - (double) pm) / (nsmps-offset);
+        f += (MYFLT) ((MYDBL) o->osc_phm - (MYDBL) pm) / (nsmps-offset);
         f -= (MYFLT) ((int32) f);
       }
       f_i = OSCBNK_PHS2INT(f);
@@ -638,7 +638,7 @@ static int32_t grain2set(CSOUND *csound, GRAIN2 *p)
   int32_t  i;
   FUNC     *ftp;
   uint32_t n;
-  double   x, y;
+  MYDBL   x, y;
 
   /* check opcode params */
 
@@ -676,15 +676,15 @@ static int32_t grain2set(CSOUND *csound, GRAIN2 *p)
 
   /* initialise oscillators */
   if(p->floatph) {
-    y = 1. / (double) p->nr_osc;
+    y = 1. / (MYDBL) p->nr_osc;
     x = 1.;
     for (i = 0; i < p->nr_osc; i++) {
       if ((x -= y) < 0.0) x = 0.0;
       p->osc[i].window_phsf = (uint32) x;
     }
   } else {
-    y = (double) OSCBNK_PHSMAX / (double) p->nr_osc;
-    x = (double) OSCBNK_PHSMAX + 0.5;
+    y = (MYDBL) OSCBNK_PHSMAX / (MYDBL) p->nr_osc;
+    x = (MYDBL) OSCBNK_PHSMAX + 0.5;
     for (i = 0; i < p->nr_osc; i++) {
       if ((x -= y) < 0.0) x = 0.0;
       p->osc[i].window_phs = (uint32) x;
@@ -700,19 +700,19 @@ static void grain2_init_grain_phase(GRAIN2_OSC *o, uint32 frq,
                                     uint32 w_frq, MYFLT frq_scl,
                                     int32_t f_nolock)
 {
-  double  d;
+  MYDBL  d;
   MYFLT   f;
 
   if (!(w_frq)) return;
   if (f_nolock) {
-    d = (double) o->grain_frq_flt * (double) frq_scl
-      * (double) OSCBNK_PHSMAX + (double) frq;
+    d = (MYDBL) o->grain_frq_flt * (MYDBL) frq_scl
+      * (MYDBL) OSCBNK_PHSMAX + (MYDBL) frq;
   }
   else {
-    d = (double) o->grain_frq_int;
+    d = (MYDBL) o->grain_frq_int;
   }
-  d *= (double) o->window_phs / ((double) w_frq * (double) OSCBNK_PHSMAX);
-  d -= (double) ((int32) d);
+  d *= (MYDBL) o->window_phs / ((MYDBL) w_frq * (MYDBL) OSCBNK_PHSMAX);
+  d -= (MYDBL) ((int32) d);
   f = (MYFLT) d;
   o->grain_phs = (o->grain_phs + OSCBNK_PHS2INT(f)) & OSCBNK_PHSMSK;
 }
@@ -722,7 +722,7 @@ static void grain2_init_grain_phase(GRAIN2_OSC *o, uint32 frq,
 static void grain2_init_grain_phase_f(GRAIN2_OSC *o, MYFLT frq,
                                       MYFLT w_frq, MYFLT frq_scl,
                                       int32_t f_nolock){
-  double  d;
+  MYDBL  d;
   MYFLT   f;
 
   if (!(w_frq)) return;
@@ -730,10 +730,10 @@ static void grain2_init_grain_phase_f(GRAIN2_OSC *o, MYFLT frq,
     d = o->grain_frq_flt * frq_scl + frq;
   }
   else {
-    d = (double) o->grain_frq_flt ;
+    d = (MYDBL) o->grain_frq_flt ;
   }
   d *= o->window_phsf / w_frq;
-  d -= (double) ((int32) d);
+  d -= (MYDBL) ((int32) d);
   f = (MYFLT) d;
   o->grain_phsf = PHMOD1(o->grain_phsf + f);
 }
@@ -746,7 +746,7 @@ static void grain2_init_grain(GRAIN2 *p, GRAIN2_OSC *o)
   MYFLT   f;
   f = oscbnk_rnd_bipolar(&(p->seed), p->rnd_pow, p->rnd_mode);
   if(p->floatph) {
-    o->grain_phsf = (double) oscbnk_rnd_phase(&(p->seed))/OSCBNK_PHSMAX;
+    o->grain_phsf = (MYDBL) oscbnk_rnd_phase(&(p->seed))/OSCBNK_PHSMAX;
     if (p->mode & 2) {
       o->grain_frq_flt = f;
     } else {
@@ -925,11 +925,11 @@ static int32_t grain3set(CSOUND *csound, GRAIN3 *p)
 
   /* allocate space */
   n = (uint32_t) p->ovrlap * (int32) sizeof(GRAIN2_OSC);
-  n += ((uint32_t) CS_KSMPS + 1L) * (int32) sizeof(double);
+  n += ((uint32_t) CS_KSMPS + 1L) * (int32) sizeof(MYDBL);
   if ((p->auxdata.auxp == NULL) || (p->auxdata.size < n))
     csound->AuxAlloc(csound, n, &(p->auxdata));
   p->phase = (uint32 *) p->auxdata.auxp;
-  p->phasef = (double *) p->auxdata.auxp;
+  p->phasef = (MYDBL *) p->auxdata.auxp;
   p->osc = (GRAIN2_OSC *) ((uint32 *) p->phase + CS_KSMPS + 1);
   p->osc_start = p->osc;
   p->osc_end = p->osc;
@@ -997,7 +997,7 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
   uint32_t      offset = p->h.insdshead->ksmps_offset;
   uint32_t      early  = p->h.insdshead->ksmps_no_end;
   uint32_t      nn, nsmps = CS_KSMPS;
-  double        *phsf, x_phf, g_phf, g_frqf, frqf, w_phf;
+  MYDBL        *phsf, x_phf, g_phf, g_frqf, frqf, w_phf;
   int32_t       flen, wflen = p->wflen, floatph = 0;
 
   /* clear output */
@@ -1060,11 +1060,11 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
   else {
     f = p->phs0;
     if(!floatph) g_ph = phs[nsmps];
-    else g_phf = (double) phsf[nsmps];
+    else g_phf = (MYDBL) phsf[nsmps];
   }
   p->phs0 = *(p->kphs);
   /* convert phase modulation to frequency modulation */
-  f = (MYFLT) ((double) p->phs0 - (double) f) / (nsmps-offset);
+  f = (MYFLT) ((MYDBL) p->phs0 - (MYDBL) f) / (nsmps-offset);
   f -= (MYFLT) ((int32) f);
   if(!floatph) g_frq = OSCBNK_PHS2INT(f);
   else g_frqf = f;
@@ -1106,7 +1106,7 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
   p->grain_frq = frq;                 /* grain frequency      */
   p->grain_frqf = frqf;
   p->frq_scl = frq_scl = *(p->kfmd) * CS_ONEDSR;
-  p->pm_wrap = (fabs((double) *(p->kpmd)) > 0.9 ? 1 : 0);
+  p->pm_wrap = (fabs((MYDBL) *(p->kpmd)) > 0.9 ? 1 : 0);
 
 
   /* initialise grains (if enabled) */
@@ -1769,7 +1769,7 @@ static int32_t oscktp(CSOUND *csound, OSCKTP *p)
 
   /* convert phase modulation to frequency modulation */
   /* VL moved the line from below to here */
-  v = (MYFLT) ((double) *(p->kphs) - (double) p->old_phs) / (nsmps-offset);
+  v = (MYFLT) ((MYDBL) *(p->kphs) - (MYDBL) p->old_phs) / (nsmps-offset);
   p->old_phs = *(p->kphs);
   if(floatph) frqf = PHMOD1(frqf + v);
   else frq = (frq + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;
@@ -1921,7 +1921,7 @@ static int32_t osckts(CSOUND *csound, OSCKTS *p)
 typedef struct {
   int32_t     waveform;           /* waveform number (< 0: user defined)       */
   int32_t     w_npart;            /* nr of partials in user specified waveform */
-  double  npart_mul;          /* multiplier for number of partials         */
+  MYDBL  npart_mul;          /* multiplier for number of partials         */
   int32_t     min_size, max_size; /* minimum and maximum table size            */
   MYFLT   *w_fftbuf;          /* FFT of user specified waveform            */
 } VCO2_TABLE_PARAMS;
@@ -2046,9 +2046,9 @@ static void vco2_default_table_params(int32_t w, VCO2_TABLE_PARAMS *tp)
 
 /* return number of partials for next table */
 
-static void vco2_next_npart(double *npart, VCO2_TABLE_PARAMS *tp)
+static void vco2_next_npart(MYDBL *npart, VCO2_TABLE_PARAMS *tp)
 {
-  double  n;
+  MYDBL  n;
   n = *npart * tp->npart_mul;
   if ((n - *npart) < 1.0)
     (*npart)++;
@@ -2096,7 +2096,7 @@ static int32_t vco2_tables_create(CSOUND *csound, int32_t waveform,
 {
   STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
   int32_t               i, npart, ntables;
-  double            npart_f;
+  MYDBL            npart_f;
   VCO2_TABLE_ARRAY  *tables;
   VCO2_TABLE_PARAMS tp2;
 
@@ -2132,7 +2132,7 @@ static int32_t vco2_tables_create(CSOUND *csound, int32_t waveform,
   do {
     ntables++;
     vco2_next_npart(&npart_f, tp);
-  } while (npart_f <= (double) i);
+  } while (npart_f <= (MYDBL) i);
   /* allocate memory for the table array ... */
   tables = pp->vco2_tables[waveform] =
     (VCO2_TABLE_ARRAY*) csound->Calloc(csound, sizeof(VCO2_TABLE_ARRAY));
@@ -2233,7 +2233,7 @@ static int32_t vco2init(CSOUND *csound, VCO2INIT *p)
         return csound->InitError(csound, "%s", Str("vco2init: invalid "
                                              "partial number multiplier"));
       }
-      tp.npart_mul = (double) *(p->ipmul);
+      tp.npart_mul = (MYDBL) *(p->ipmul);
     }
     if (*(p->iminsiz) > FL(0.0)) {
       i = (int32_t) MYFLT2LONG(*(p->iminsiz));
@@ -2512,7 +2512,7 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
     f = *(p->kcps) * p->f_scl;
     frq = OSCBNK_PHS2INT(f);
     if (p->pm_enabled) {
-      f1 = (MYFLT) ((double) *(p->kphs) - (double) p->kphs_old)
+      f1 = (MYFLT) ((MYDBL) *(p->kphs) - (MYDBL) p->kphs_old)
         / (nsmps-offset);
       p->kphs_old = *(p->kphs);
       frq = (frq + OSCBNK_PHS2INT(f1)) & OSCBNK_PHSMSK;
@@ -2561,7 +2561,7 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
     }
     else {
       v = -(*(p->kpw));                                 /* pulse width */
-      f1 = (MYFLT) ((double) v - (double) p->kphs2_old) / (nsmps-offset);
+      f1 = (MYFLT) ((MYDBL) v - (MYDBL) p->kphs2_old) / (nsmps-offset);
       f = p->kphs2_old; f -= (MYFLT) ((int32) f); if (f < FL(0.0)) f++;
       p->kphs2_old = v;
       phs2 = p->phs2;
@@ -2791,14 +2791,14 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
     MYFLT   b0, b1, b2, a1, a2, tmp;
     MYFLT   xnm1, xnm2, ynm1, ynm2;
     MYFLT   *ar, *asig;
-    double  dva0;
+    MYDBL  dva0;
 
     if (*(p->kcps) != p->old_kcps) {
       /* frequency changed */
       new_frq = 1;
       p->old_kcps = *(p->kcps);
       /* calculate variables that depend on freq., and are used by all modes */
-      p->omega = (double) p->old_kcps * TWOPI / (double) CS_ESR;
+      p->omega = (MYDBL) p->old_kcps * TWOPI / (MYDBL) CS_ESR;
       p->cs = cos(p->omega);
       p->sn = sqrt(1.0 - p->cs * p->cs);
       //printf("**** (%d) p->cs = %f\n", __LINE__, p->cs);
@@ -2816,12 +2816,12 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
     switch (p->ftype) {
     case 0:                                     /* lowpass filter */
       if (new_frq || *(p->kQ) != p->old_kQ) {
-        double  alpha;
+        MYDBL  alpha;
         p->old_kQ = *(p->kQ);
 #ifdef IV_Q_CALC
-        alpha = p->sn * 0.5 / (double) p->old_kQ;       /* IV - Dec 28 2002 */
+        alpha = p->sn * 0.5 / (MYDBL) p->old_kQ;       /* IV - Dec 28 2002 */
 #else
-        alpha = p->sn * sinh(0.5 / (double) p->old_kQ);
+        alpha = p->sn * sinh(0.5 / (MYDBL) p->old_kQ);
 #endif
         /* recalculate all coeffs */
         dva0 = 1.0 / (1.0 + alpha);
@@ -2839,12 +2839,12 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
       break;
     case 1:                                     /* highpass filter */
       if (new_frq || *(p->kQ) != p->old_kQ) {
-        double  alpha;
+        MYDBL  alpha;
         p->old_kQ = *(p->kQ);
 #ifdef IV_Q_CALC
-        alpha = p->sn * 0.5 / (double) p->old_kQ;       /* IV - Dec 28 2002 */
+        alpha = p->sn * 0.5 / (MYDBL) p->old_kQ;       /* IV - Dec 28 2002 */
 #else
-        alpha = p->sn * sinh(0.5 / (double) p->old_kQ);
+        alpha = p->sn * sinh(0.5 / (MYDBL) p->old_kQ);
 #endif
         /* recalculate all coeffs */
         dva0 = 1.0 / (1.0 + alpha);
@@ -2862,12 +2862,12 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
       break;
     case 2:                                     /* bandpass filter */
       if (new_frq || *(p->kQ) != p->old_kQ) {
-        double  alpha;
+        MYDBL  alpha;
         p->old_kQ = *(p->kQ);
 #ifdef IV_Q_CALC
-        alpha = tan(p->omega * 0.5 / (double) p->old_kQ); /* IV - Dec 28 2002 */
+        alpha = tan(p->omega * 0.5 / (MYDBL) p->old_kQ); /* IV - Dec 28 2002 */
 #else
-        alpha = p->sn * sinh(0.5 / (double) p->old_kQ);
+        alpha = p->sn * sinh(0.5 / (MYDBL) p->old_kQ);
 #endif
         /* recalculate all coeffs */
         dva0 = 1.0 / (1.0 + alpha);
@@ -2885,12 +2885,12 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
       break;
     case 3:                                     /* band-reject (notch) filter */
       if (new_frq || *(p->kQ) != p->old_kQ) {
-        double  alpha;
+        MYDBL  alpha;
         p->old_kQ = *(p->kQ);
 #ifdef IV_Q_CALC
-        alpha = tan(p->omega * 0.5 / (double) p->old_kQ); /* IV - Dec 28 2002 */
+        alpha = tan(p->omega * 0.5 / (MYDBL) p->old_kQ); /* IV - Dec 28 2002 */
 #else
-        alpha = p->sn * sinh(0.5 / (double) p->old_kQ);
+        alpha = p->sn * sinh(0.5 / (MYDBL) p->old_kQ);
 #endif
         /* recalculate all coeffs */
         dva0 = 1.0 / (1.0 + alpha);
@@ -2908,14 +2908,14 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
       break;
     case 4:                                     /* peaking EQ */
       if (new_frq || *(p->kQ) != p->old_kQ || *(p->klvl) != p->old_klvl) {
-        double  sq, alpha, tmp1, tmp2;
+        MYDBL  sq, alpha, tmp1, tmp2;
         p->old_kQ = *(p->kQ);
-        sq = sqrt((double) (p->old_klvl = *(p->klvl)));
+        sq = sqrt((MYDBL) (p->old_klvl = *(p->klvl)));
         //printf("*** (%d) p->old_klvl\n", __LINE__, p->old_klvl);
 #ifdef IV_Q_CALC
-        alpha = tan(p->omega * 0.5 / (double) p->old_kQ); /* IV - Dec 28 2002 */
+        alpha = tan(p->omega * 0.5 / (MYDBL) p->old_kQ); /* IV - Dec 28 2002 */
 #else
-        alpha = p->sn * sinh(0.5 / (double) p->old_kQ);
+        alpha = p->sn * sinh(0.5 / (MYDBL) p->old_kQ);
 #endif
         /* recalculate all coeffs */
         tmp1 = alpha / sq;
@@ -2936,11 +2936,11 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
       break;
     case 5:                                     /* low shelf */
       if (new_frq || *(p->klvl) != p->old_klvl || *(p->kS) != p->old_kS) {
-        double sq, beta, tmp1, tmp2, tmp3, tmp4;
-        sq = sqrt((double) (p->old_klvl = *(p->klvl)));
+        MYDBL sq, beta, tmp1, tmp2, tmp3, tmp4;
+        sq = sqrt((MYDBL) (p->old_klvl = *(p->klvl)));
         p->old_kS = *(p->kS);
-        beta = p->sn * sqrt(((double) p->old_klvl + 1.0) / p->old_kS
-                            - (double) p->old_klvl + sq + sq - 1.0);
+        beta = p->sn * sqrt(((MYDBL) p->old_klvl + 1.0) / p->old_kS
+                            - (MYDBL) p->old_klvl + sq + sq - 1.0);
         /* recalculate all coeffs */
         tmp1 = sq + 1.0;
         tmp2 = sq - 1.0;
@@ -2964,11 +2964,11 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
       break;
     case 6:                                     /* high shelf */
       if (new_frq || *(p->klvl) != p->old_klvl || *(p->kS) != p->old_kS) {
-        double sq, beta, tmp1, tmp2, tmp3, tmp4;
-        sq = sqrt((double) (p->old_klvl = *(p->klvl)));
+        MYDBL sq, beta, tmp1, tmp2, tmp3, tmp4;
+        sq = sqrt((MYDBL) (p->old_klvl = *(p->klvl)));
         p->old_kS = *(p->kS);
-        beta = p->sn * sqrt(((double) p->old_klvl + 1.0) / p->old_kS
-                            - (double) p->old_klvl + sq + sq - 1.0);
+        beta = p->sn * sqrt(((MYDBL) p->old_klvl + 1.0) / p->old_kS
+                            - (MYDBL) p->old_klvl + sq + sq - 1.0);
         /* recalculate all coeffs */
         tmp1 = sq + 1.0;
         tmp2 = sq - 1.0;

@@ -87,8 +87,8 @@ extern "C" {
   int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
   int32_t insert_event(CSOUND *, int32_t,  EVTBLK*);
   void free_inactive_instances(CSOUND*);
-  void beat_expire(CSOUND *, double);
-  void time_expire(CSOUND *, double);
+  void beat_expire(CSOUND *, MYDBL);
+  void time_expire(CSOUND *, MYDBL);
   int32_t insert_event_at_sample(CSOUND *, const EVTBLK *, const MYFLT *, int64_t);
   MEMFIL *csoundLoadMemoryfile(CSOUND *csound, const char *filnam, int32_t csFileType,
                                int32_t (*callback)(CSOUND*, MEMFIL*));

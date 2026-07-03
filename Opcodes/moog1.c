@@ -63,7 +63,7 @@ static void make_FormSwep(FormSwep *p)
 /*     p->reson = p->currentReson = aReson; */
 /*     p->freq = p->currentFreq = aFreq; */
 /*     p->poleCoeffs[1] = - (aReson * aReson); */
-/*     p->poleCoeffs[0] = 2.0*aReson*(MYFLT)cos((double)(twopi*aFreq/esr)); */
+/*     p->poleCoeffs[0] = 2.0*aReson*(MYFLT)cos((MYDBL)(twopi*aFreq/esr)); */
 /* } */
 
 void FormSwep_setStates(FormSwep *p, MYFLT aFreq, MYFLT aReson, MYFLT aGain)

@@ -563,7 +563,7 @@ int32_t kperf_debug(CSOUND *csound) {
       csound->multiThreadedDag = NULL;
     } else {
       int32_t done;
-      double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
+      MYDBL time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
 
       while (ip != NULL) { /* for each instr active:  */
         if (UNLIKELY(csound->oparms->sampleAccurate && ip->offtim > 0 &&

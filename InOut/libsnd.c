@@ -788,7 +788,7 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
         csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
                   Str(csound->SndfileStrError(csound,NULL)));
       csound->SndfileCommand(csound,STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
-                 &O->quality, sizeof(double));
+                 &O->quality, sizeof(MYDBL));
     }
     else {
       fullName = csoundFindOutputFile(csound, fName, "SFDIR");
@@ -800,7 +800,7 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
         csoundDie(csound, Str("sfinit: cannot open %s\n%s"),
                   fullName, csoundSndfileStrError (csound, NULL));
       csound->SndfileCommand(csound,STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
-                 &O->quality, sizeof(double));
+                 &O->quality, sizeof(MYDBL));
       /* only notify the host if we opened a real file, not stdout or a pipe */
       csoundNotifyFileOpened(csound, fullName,
                               csoundType2CsfileType(O->filetyp, O->outformat), 1, 0);

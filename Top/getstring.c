@@ -242,7 +242,7 @@ static const char *language_names[] = {"", /* Default */
 #endif
 }
 
-double csoundStrtod(char* nptr, char** endptr) {
+MYDBL csoundStrtod(char* nptr, char** endptr) {
 #if defined(HAVE_STRTOD_L) && !defined(__wasi__)
   return strtod_l(nptr, endptr, csound_c_locale);
 #else

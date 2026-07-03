@@ -694,8 +694,8 @@ static int32_t ioutfile_set(CSOUND *csound, IOUTFILE *p)
     case 1:
       {     /* with prefix (i-statement, p1, p2 and p3) */
         int32_t     p1 = (int32_t) p->h.insdshead->p1.value;
-        double  p2 = (double) CS_KCNT * CS_ONEDKR;
-        double  p3 = p->h.insdshead->p3.value;
+        MYDBL  p2 = (MYDBL) CS_KCNT * CS_ONEDKR;
+        MYDBL  p3 = p->h.insdshead->p3.value;
         if (p3 > FL(0.0))
           fprintf(rfil, "i %i %f %f ", p1, p2, p3);
         else
@@ -707,9 +707,9 @@ static int32_t ioutfile_set(CSOUND *csound, IOUTFILE *p)
         pp->fout_kreset = CS_KCNT;
       {
         int32_t p1 = (int32_t) p->h.insdshead->p1.value;
-        double p2 = (double) (CS_KCNT - pp->fout_kreset)
+        MYDBL p2 = (MYDBL) (CS_KCNT - pp->fout_kreset)
           * CS_ONEDKR;
-        double p3 = p->h.insdshead->p3.value;
+        MYDBL p3 = p->h.insdshead->p3.value;
         if (p3 > FL(0.0))
           fprintf(rfil, "i %i %f %f ", p1, p2, p3);
         else
@@ -721,7 +721,7 @@ static int32_t ioutfile_set(CSOUND *csound, IOUTFILE *p)
       return OK;
     }
     for (j = 0; j < p->INOCOUNT - 3; j++) {
-      fprintf(rfil, " %f", (double) *args[j]);
+      fprintf(rfil, " %f", (MYDBL) *args[j]);
     }
     putc('\n', rfil);
   }
@@ -771,8 +771,8 @@ static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
     case 1:
       {     /* whith prefix (i-statement, p1, p2 and p3) */
         int32_t p1 = (int32_t) p->h.insdshead->p1.value;
-        double p2 = p->counter * CS_ONEDKR;
-        double p3 = (double) (CS_KCNT - p->counter)
+        MYDBL p2 = p->counter * CS_ONEDKR;
+        MYDBL p3 = (MYDBL) (CS_KCNT - p->counter)
           * CS_ONEDKR;
         fprintf(rfil, "i %i %f %f ", p1, p2, p3);
       }
@@ -780,8 +780,8 @@ static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
     case 2: /* with prefix (start at 0 time) */
       {
         int32_t p1 = (int32_t) p->h.insdshead->p1.value;
-        double p2 = (p->counter - pp->fout_kreset) * CS_ONEDKR;
-        double p3 = (double) (CS_KCNT - p->counter)
+        MYDBL p2 = (p->counter - pp->fout_kreset) * CS_ONEDKR;
+        MYDBL p3 = (MYDBL) (CS_KCNT - p->counter)
           * CS_ONEDKR;
         fprintf(rfil, "i %i %f %f ", p1, p2, p3);
       }
@@ -791,7 +791,7 @@ static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
       return OK;
     }
     for (j = 0; j < p->INOCOUNT - 3; j++) {
-      fprintf(rfil, " %f", (double) *args[j]);
+      fprintf(rfil, " %f", (MYDBL) *args[j]);
     }
     putc('\n', rfil);
   }
@@ -1291,7 +1291,7 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
     if ((temp  == '^') && (tempn != '^')) {
       *sdest++ = 0x1B; /* ESC */
     }
-    /* Look for a double caret and insert a single caret
+    /* Look for a MYDBL caret and insert a single caret
        - stepping forward one */
     else if ((temp  == '^') && (tempn == '^')) {
       *sdest++ = '^';
@@ -1303,7 +1303,7 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
       *sdest++ = 0x1B; /* ESC */
       *sdest++ = '[';
     }
-    /* Look for a double tilde and insert a tilde caret
+    /* Look for a MYDBL tilde and insert a tilde caret
        - stepping forward one. */
     else if ((temp  == '~') && (tempn == '~')) {
       *sdest++ = '~';

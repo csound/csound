@@ -61,7 +61,7 @@ typedef struct {
         MYFLT   osc_frq, osc_amp;       /* osc. freq. / sr, amplitude   */
         MYFLT   xnm1, xnm2, ynm1, ynm2; /* EQ tmp data                  */
         MYFLT   a1, a2, b0, b1, b2;     /* EQ coeffs saved for interp.  */
-        double  osc_phsf, LFO1phsf, LFO2phsf;
+        MYDBL  osc_phsf, LFO1phsf, LFO2phsf;
 } OSCBNK_OSC;
 
 typedef struct {
@@ -153,7 +153,7 @@ typedef struct {
         MYFLT   *wft, wft_pfrac;        /* window table                 */
         uint32   wft_lobits, wft_mask;
   int32   wflen, floatph;
-        double  x_phsf, *phasef;
+        MYDBL  x_phsf, *phasef;
         AUXCH   auxdata;
         uint32   *phase;         /* grain phase offset           */
         GRAIN2_OSC      *osc;           /* oscillator array             */
@@ -299,7 +299,7 @@ typedef struct {                /* ar rbjeq asig, kfco, klvl, kQ, kS[, imode] */
         MYFLT   *ar, *asig, *kcps, *klvl, *kQ, *kS, *imode;     /* args */
         /* internal variables */
         MYFLT   old_kcps, old_klvl, old_kQ, old_kS;
-        double  omega, cs, sn;
+        MYDBL  omega, cs, sn;
         MYFLT   xnm1, xnm2, ynm1, ynm2;
         MYFLT   b0, b1, b2, a1, a2;
         int32_t

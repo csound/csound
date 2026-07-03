@@ -83,7 +83,7 @@ static char *rcsid = "$Id$";
  *
  */
 #include "csoundCore.h"
-#include <math.h>
+
 #include <assert.h>
 
 static void fft_(CSOUND *,MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t);
@@ -220,14 +220,14 @@ static void fftmx(MYFLT *a, MYFLT *b,
         lim,
         maxf,mm,
         nn,nt;
-    double  aa, aj, ajm, ajp, ak, akm, akp,
+    MYDBL  aa, aj, ajm, ajp, ak, akm, akp,
       bb, bj, bjm, bjp, bk, bkm, bkp,
       c1, c2=0, c3=0, c72, cd,
       dr,
       rad,
       sd, s1, s2=0, s3=0, s72, s120;
 
-    double      xx;     /****** ADDED APRIL 1991 *********/
+    MYDBL      xx;     /****** ADDED APRIL 1991 *********/
     inc=abs(isn);
     nt = inc*ntot;
     ks = inc*nspan;
@@ -254,7 +254,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
       s120 = -s120;
       rad = -rad;}
     else {
-      ak = 1.0/(double)n;
+      ak = 1.0/(MYDBL)n;
       for (j=1; j<=nt;j += inc) {
         a[j] *= (MYFLT)ak;
         b[j] *= (MYFLT)ak;
@@ -280,7 +280,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
  */
 
  lbl40:
-    dr = (8.0 * (double)jc)/((double)kspan);
+    dr = (8.0 * (MYDBL)jc)/((MYDBL)kspan);
 /*************************** APRIL 1991 POW & POW2 not WORKING.. REPLACE *******
                     cd = 2.0 * (pow2 ( sin(0.5 * dr * rad)) );
 *******************************************************************************/
@@ -341,7 +341,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
     if (kk <= (jc+jc)) goto lbl60;
     goto lbl40;
  lbl90:
-    s1 = ((double)((kk-1)/jc)) * dr * rad;
+    s1 = ((MYDBL)((kk-1)/jc)) * dr * rad;
     c1 = cos(s1);
     s1 = sin(s1);
     mm = (k1/2 < mm+klim ? k1/2 : mm+klim);
@@ -460,7 +460,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
     if (kk <= nt) goto lbl150;
     goto lbl170;
  lbl200:
-    s1 = ((double)((kk-1)/jc)) * dr * rad;
+    s1 = ((MYDBL)((kk-1)/jc)) * dr * rad;
     c1 = cos(s1);
     s1 = sin(s1);
     mm = (kspan < mm+klim ? kspan : mm+klim);
@@ -524,7 +524,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
     if (k==5)   goto lbl210;
     if (k==jf)  goto lbl250;
     jf = k;
-    s1 = rad/(((double)(k))/8.0);
+    s1 = rad/(((MYDBL)(k))/8.0);
     c1 = cos(s1);
     s1 = sin(s1);
     ck[jf] = FL(1.0);
@@ -631,7 +631,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
     if (kk <= (jc+jc)) goto lbl300;
     goto lbl40;
  lbl340:
-    s1 = ((double)((kk-1)/jc)) * dr * rad;
+    s1 = ((MYDBL)((kk-1)/jc)) * dr * rad;
     c2 = cos(s1);
     s1 = sin(s1);
     mm = (kspan < mm+klim ?  kspan :mm+klim);
@@ -850,14 +850,14 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int32_t n, int32_t isn)
       mm,ml,
       nf,nk,nh;
 
-    double      aa,ab,
+    MYDBL      aa,ab,
       ba,bb,
       cd,cn,
       dr,
       em,
       rad,re,
       sd,sn;
-    double      xx;     /******* ADDED APRIL 1991 ******/
+    MYDBL      xx;     /******* ADDED APRIL 1991 ******/
     /* adjust  input array pointers (called from C) */
     a--;        b--;
     inc = abs(isn);
@@ -865,14 +865,14 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int32_t n, int32_t isn)
     nk = (nf*inc) + 2;
     nh = nk/2;
 /*****************************
-        rad  = atan((double)1.0);
+        rad  = atan((MYDBL)1.0);
 ******************************/
     rad = 0.785398163397448278900;
-    dr = -4.0/(double)(nf);
+    dr = -4.0/(MYDBL)(nf);
 /********************************** POW2 REMOVED APRIL 1991 *****************
-                                cd = 2.0 * (pow2(sin((double)0.5 * dr * rad)));
+                                cd = 2.0 * (pow2(sin((MYDBL)0.5 * dr * rad)));
 *****************************************************************************/
-    xx = sin((double)0.5 * dr * rad);
+    xx = sin((MYDBL)0.5 * dr * rad);
     cd = 2.0 * xx * xx;
     sd = sin(dr * rad);
 /*

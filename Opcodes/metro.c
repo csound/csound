@@ -21,13 +21,13 @@
 */
 
 #include "stdopcod.h"
-#include <math.h>
+
 
 typedef struct {
         OPDS    h;
         MYFLT   *sr, *xcps, *iphs, *kgate;
-        double  curphs;
-        double  gate;
+        MYDBL  curphs;
+        MYDBL  gate;
         int32_t flag;
 } METRO;
 
@@ -35,7 +35,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *sr, *xcps, *kswng, *iamp, *iphs;
-        double  amp2, curphs, curphs2, swng_init;
+        MYDBL  amp2, curphs, curphs2, swng_init;
         int32_t flag, flag2;
 } METRO2;
 //
@@ -59,7 +59,7 @@ typedef struct  {
 
 static int32_t metro_set(CSOUND *csound, METRO *p)
 {
-    double phs = *p->iphs;
+    MYDBL phs = *p->iphs;
     int32  longphs;
 
     if (phs >= 0.0) {
@@ -73,7 +73,7 @@ static int32_t metro_set(CSOUND *csound, METRO *p)
 
 static int32_t metro(CSOUND *csound, METRO *p)
 {
-    double      phs= p->curphs;
+    MYDBL      phs= p->curphs;
     IGN(csound);
     if (phs == 0.0 && p->flag) {
       *p->sr = FL(1.0);
@@ -93,7 +93,7 @@ static int32_t metro(CSOUND *csound, METRO *p)
 /* John ffitch Oct 2021; for beginers */
 static int32_t metrobpm(CSOUND *csound, METRO *p)
 {
-    double      phs= p->curphs;
+    MYDBL      phs= p->curphs;
     IGN(csound);
     p->gate = *p->kgate;
     if (phs == 0.0 && p->flag) {
@@ -117,8 +117,8 @@ static int32_t metrobpm(CSOUND *csound, METRO *p)
 */
 static int32_t metro2_set(CSOUND *csound, METRO2 *p)
 {
-    double phs = *p->iphs;
-    double swng = *p->kswng;
+    MYDBL phs = *p->iphs;
+    MYDBL swng = *p->kswng;
     int32  longphs;
     p->amp2 = *p->iamp;
 
@@ -136,11 +136,11 @@ static int32_t metro2_set(CSOUND *csound, METRO2 *p)
 
 static int32_t metro2(CSOUND *csound, METRO2 *p)
 {
-    double      phs= p->curphs;
-    double      phs2= p->curphs2;
-    double      phs2_init = p->swng_init;
-    double      amp2= p->amp2;
-    double      swng= *p->kswng;
+    MYDBL      phs= p->curphs;
+    MYDBL      phs2= p->curphs2;
+    MYDBL      phs2_init = p->swng_init;
+    MYDBL      amp2= p->amp2;
+    MYDBL      swng= *p->kswng;
     IGN(csound);
 // MAIN TICK
     if (phs == 0.0 && p->flag) {

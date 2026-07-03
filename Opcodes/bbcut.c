@@ -22,7 +22,7 @@
 #include "stdopcod.h"
 #include "interlocks.h"
 #include "bbcut.h"
-#include <math.h>
+
 
 /* my auxilliary functions */
 

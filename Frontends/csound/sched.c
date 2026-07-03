@@ -97,15 +97,15 @@ static int parse_sched_opt(const char *s, int *priority, int *cpuMax, int *secs)
 static void *wd_thread_routine(void *dummy)
 {
     uint32_t t0, t1;
-    double   p;
+    MYDBL   p;
 
     (void) dummy;
     for ( ; ; ) {
       t0 = (uint32_t) clock();
       csoundSleep((size_t) (secs * 1000));
       t1 = (uint32_t) clock();
-      p = (double) ((int32_t) (t1 - t0)) * (100.0 / (double) CLOCKS_PER_SEC);
-      if ((p / (double) secs) > (double) cpuMax) {
+      p = (MYDBL) ((int32_t) (t1 - t0)) * (100.0 / (MYDBL) CLOCKS_PER_SEC);
+      if ((p / (MYDBL) secs) > (MYDBL) cpuMax) {
         kill(getpid(), SIGTERM); csoundSleep(1500);
         kill(getpid(), SIGKILL); csoundSleep(1500);
         exit(-1);

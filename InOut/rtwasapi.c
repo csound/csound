@@ -243,7 +243,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
     /* WASAPI duration is in 100-nanosecond units (REFERENCE_TIME) */
     /* Duration = (bufSamp_HW / sampleRate) * 10,000,000 */
     if (parm->bufSamp_HW > 0 && parm->sampleRate > 0) {
-        hnsRequestedDuration = (REFERENCE_TIME)((double)parm->bufSamp_HW / 
+        hnsRequestedDuration = (REFERENCE_TIME)((MYDBL)parm->bufSamp_HW / 
                                                  parm->sampleRate * REFTIMES_PER_SEC);
     } else {
         /* Default to 100ms if not specified */

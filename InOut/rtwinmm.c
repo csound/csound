@@ -142,7 +142,7 @@ static int32_t set_format_params(CSOUND *csound, WAVEFORMATEX *wfx,
     framsize = sampsize * parm->nChannels;
     wfx->wFormatTag = (WORD) (parm->sampleFormat == AE_FLOAT ? 3 : 1);
     wfx->nChannels = (WORD) parm->nChannels;
-    wfx->nSamplesPerSec = (DWORD) ((double) parm->sampleRate + 0.5);
+    wfx->nSamplesPerSec = (DWORD) ((MYDBL) parm->sampleRate + 0.5);
     wfx->nAvgBytesPerSec = (DWORD) ((int32_t) wfx->nSamplesPerSec * framsize);
     wfx->nBlockAlign = (DWORD) framsize;
     wfx->wBitsPerSample = (DWORD) (sampsize << 3);

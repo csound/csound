@@ -21,7 +21,7 @@
 
 
 #include <ctype.h>
-#include <math.h>
+
 #include "array_ops.h"
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
@@ -164,7 +164,7 @@ static MYFLT nextval(FILE *f)
  top1:
   if (UNLIKELY(feof(f))) return NAN; /* Return NAN to indicate EOF */
   if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
-    double d;                           /* A number starts */
+    MYDBL d;                           /* A number starts */
     char buff[128];
     int32_t j = 0;
     do {                                /* Fill buffer */
@@ -227,7 +227,7 @@ static MYFLT nextsval(char **ff)
  top1:
   if (UNLIKELY(c=='\0')) { *ff = f; return SSTRCOD; }
   if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
-    double d;                           /* A number starts */
+    MYDBL d;                           /* A number starts */
     char buff[128];
     int32_t j = 0;
     do {                                /* Fill buffer */

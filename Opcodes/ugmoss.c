@@ -24,7 +24,7 @@
 #include "stdopcod.h"
 #include "ugmoss.h"
 #include "aops.h"
-#include <math.h>
+
 
 /******************************************************************************
   all this code was written by william 'pete' moss. <petemoss@petemoss.org>

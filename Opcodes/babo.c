@@ -128,7 +128,7 @@ input  |    |------>|
 #include "csoundCore.h"
 #endif
 #include "babo.h"
-#include <math.h>
+
 #include "interlocks.h"
 
 #if !defined(FLT_MAX)
@@ -196,7 +196,7 @@ static void
 _Babo_common_delay_create(CSOUND *csound, BaboDelay *this, MYFLT max_time)
 {
     size_t num_floats =
-      (size_t)MYFLT2LRND((MYFLT)ceil((double)(max_time*this->sr)));
+      (size_t)MYFLT2LRND((MYFLT)ceil((MYDBL)(max_time*this->sr)));
 
     BaboMemory_create(csound, &this->core, num_floats);
 }

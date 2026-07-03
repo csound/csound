@@ -42,7 +42,7 @@ int32_t csound_score_event(CSOUND *csound, char type,
                              const MYFLT *pfields, long numFields);
 int32_t csound_score_event_absolute(CSOUND *csound, char type,
                                      const MYFLT *pfields, long numFields,
-                                     double time_ofs);
+                                     MYDBL time_ofs);
 void set_channel_data_ptr(CSOUND *csound, const char *name,
                           void *ptr, int32_t newSize);
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
@@ -163,14 +163,14 @@ void message_dequeue(CSOUND *csound) {
           char type;
           const MYFLT *pfields;
           long numFields;
-          double ofs;
+          MYDBL ofs;
           type = msg->args[0];
           memcpy(&pfields, msg->args + ARG_ALIGN,
                  sizeof(MYFLT *));
           memcpy(&numFields, msg->args + ARG_ALIGN*2,
                  sizeof(long));
           memcpy(&ofs, msg->args + ARG_ALIGN*3,
-                 sizeof(double));
+                 sizeof(MYDBL));
 
           csound_score_event_absolute(csound, type, pfields, numFields,
                                              ofs);

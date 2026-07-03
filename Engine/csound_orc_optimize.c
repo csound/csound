@@ -206,10 +206,10 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           MYFLT lval, rval;
           char buf[64];
           lval = (current->left->type == INTEGER_TOKEN ?
-                  (double)current->left->value->value :
+                  (MYDBL)current->left->value->value :
                   current->left->value->fvalue);
           rval = (current->right->type == INTEGER_TOKEN ?
-                  (double)current->right->value->value :
+                  (MYDBL)current->right->value->value :
                   current->right->value->fvalue);
           //printf("lval = %g  rval = %g\n", lval, rval);
           switch (current->type) {
@@ -393,7 +393,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           MYFLT lval;
           char buf[64];
           lval = (current->right->type == INTEGER_TOKEN ?
-                  (double)current->right->value->value :
+                  (MYDBL)current->right->value->value :
                   current->right->value->fvalue);
           switch (current->type) {
           case S_UMINUS:

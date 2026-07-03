@@ -26,7 +26,7 @@
 #else
 #include "csoundCore.h"
 #endif
-#include <math.h>
+
 
 static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
 {

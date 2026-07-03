@@ -127,7 +127,7 @@ typedef struct _sndloop {
   MYFLT *dur, *cfd;         /* duration, crossfade  */
   AUXCH buffer;             /* loop memory */
   int32  wp;                /* writer pointer */
-  double rp;                /* read pointer  */
+  MYDBL rp;                /* read pointer  */
   int32  cfds;              /* crossfade in samples */
   int32 durs;               /* duration in samples */
   int32_t  rst;                 /* reset indicator */
@@ -143,7 +143,7 @@ typedef struct _flooper {
   FUNC  *sfunc;  /* function table */
   int32 strts;   /* start in samples */
   int32  durs;   /* duration in samples */
-  double  ndx;   /* table lookup ndx */
+  MYDBL  ndx;   /* table lookup ndx */
   int32_t nchnls;
   int32_t   loop_off;
 } flooper;
@@ -158,7 +158,7 @@ typedef struct _flooper2 {
   FUNC *efunc;
   MYFLT count;
   int32_t lstart, lend,cfade, mode;
-  double  ndx[2];    /* table lookup ndx */
+  MYDBL  ndx[2];    /* table lookup ndx */
   int32_t firsttime, init;
   MYFLT ostart, oend;
   int32_t nchnls;
@@ -238,7 +238,7 @@ static int32_t sndloop_process(CSOUND *csound, sndloop *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int32 durs = p->durs, cfds = p->cfds, wp = p->wp;
-    double rp = p->rp;
+    MYDBL rp = p->rp;
     MYFLT a = p->a, inc = p->inc;
     MYFLT *out = p->out, *sig = p->sig, *buffer = p->buffer.auxp;
     MYFLT pitch = *(p->pitch);
@@ -380,7 +380,7 @@ static int32_t flooper_process(CSOUND *csound, flooper *p)
     MYFLT **aout = p->out, *buffer = p->buffer.auxp;
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
     MYFLT *tab = p->sfunc->ftable;
-    double ndx = p->ndx;
+    MYDBL ndx = p->ndx;
     MYFLT  frac;
     int32_t tndx, loop_off = p->loop_off, nchnls = p->nchnls;
 
@@ -454,7 +454,7 @@ static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
         if ((p->ndx[0] = *p->start*p->sfunc->gen01args.sample_rate) < 0)
           p->ndx[0] = 0;
         if (p->ndx[0] >= p->sfunc->flen/p->sfunc->nchanls)
-          p->ndx[0] = (double) p->sfunc->flen/p->sfunc->nchanls - 1.0;
+          p->ndx[0] = (MYDBL) p->sfunc->flen/p->sfunc->nchanls - 1.0;
         p->count = 0;
       }
       p->init = 1;
@@ -478,7 +478,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     MYFLT out[2], **aout = p->out, sr;
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
     MYFLT *tab;
-    double *ndx = p->ndx;
+    MYDBL *ndx = p->ndx;
     MYFLT frac0, frac1, *etab;
     int32_t loop_end = p->lend, loop_start = p->lstart,
       crossfade = p->cfade, len;
@@ -497,7 +497,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
       return csound->PerfError(csound, &(p->h),
                                Str("table %d invalid\n"), (int32_t) *p->ifn);
     if (p->ndx[0] >= p->sfunc->flen)
-       p->ndx[0] = (double) p->sfunc->flen - 1.0;
+       p->ndx[0] = (MYDBL) p->sfunc->flen - 1.0;
 
     if(p->nchnls != p->sfunc->nchanls) {
        csound->Warning(csound,
@@ -543,18 +543,18 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
        crossfade = (int32_t) (*p->crossfade*sr);
       p->ostart = *p->loop_start; p->oend = *p->loop_end;
       if (mode == 1) {
-        ndx[0] = (double) loop_end;
-        ndx[1] = (double) loop_end;
+        ndx[0] = (MYDBL) loop_end;
+        ndx[1] = (MYDBL) loop_end;
         count = (MYFLT) crossfade;
         p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
       }
       else if (mode == 2) {
-        ndx[1] = (double) loop_start - FL(1.0);
+        ndx[1] = (MYDBL) loop_start - FL(1.0);
         p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
 
       }
       else {
-        ndx[1] = (double) loop_start;
+        ndx[1] = (MYDBL) loop_start;
         p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
       }
       *firsttime = 0;
@@ -631,7 +631,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
             crossfade = (int32_t) (*p->crossfade*sr);
           p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
           ndx[0] = ndx[1];
-          ndx[1] =  (double)loop_end;
+          ndx[1] =  (MYDBL)loop_end;
           count=(MYFLT)crossfade;
           p->oend = *p->loop_end;
           p->ostart = *p->loop_start;
@@ -680,7 +680,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
           ndx[0] += pitch;
           init = 0;
           if (ndx[0] >= loop_end - crossfade) {
-            ndx[1] = (double) loop_end;
+            ndx[1] = (MYDBL) loop_end;
             count = 0;
           }
         }
@@ -727,7 +727,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
           }
           ndx[1] -= pitch;
           if (ndx[1] <= loop_start + crossfade) {
-            ndx[0] = (double) loop_start;
+            ndx[0] = (MYDBL) loop_start;
             count = 0;
           }
         }
@@ -759,7 +759,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
               loopsize/2-1 : crossfade;
             p->oend = *p->loop_end;
             p->ostart = *p->loop_start;
-            ndx[0] = (double) loop_start;
+            ndx[0] = (MYDBL) loop_start;
             count = 0;
           }
         }
@@ -819,7 +819,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
             crossfade = (int32_t) (*p->crossfade*sr);
           p->cfade = crossfade = crossfade > loopsize ? loopsize-1 : crossfade;
           ndx[0] = ndx[1];
-          ndx[1] = (double)loop_start;
+          ndx[1] = (MYDBL)loop_start;
           p->oend = *p->loop_end;
           p->ostart = *p->loop_start;
           count=0;

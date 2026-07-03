@@ -117,12 +117,12 @@ typedef struct _moogladder {
   MYFLT   *res;
   MYFLT   *istor;
 
-  double  delay[6];
-  double  tanhstg[3];
+  MYDBL  delay[6];
+  MYDBL  tanhstg[3];
   MYFLT   oldfreq;
   MYFLT   oldres;
-  double  oldacr;
-  double  oldtune;
+  MYDBL  oldacr;
+  MYDBL  oldtune;
 } moogladder;
 
 static int32_t moogladder_init(CSOUND *csound,moogladder *p);
@@ -140,14 +140,14 @@ typedef struct _statevar {
   MYFLT   *osamp;
   MYFLT   *istor;
 
-  double  bpd;
-  double  lpd;
-  double  lp;
+  MYDBL  bpd;
+  MYDBL  lpd;
+  MYDBL  lp;
   int32_t     ostimes;
   MYFLT   oldfreq;
   MYFLT   oldres;
-  double  oldq;
-  double  oldf;
+  MYDBL  oldq;
+  MYDBL  oldf;
 } statevar;
 
 static int32_t statevar_init(CSOUND *csound,statevar *p);
@@ -162,7 +162,7 @@ typedef struct _fofilter {
   MYFLT   *dec;
   MYFLT   *istor;
 
-  double  delay[4];
+  MYDBL  delay[4];
 } fofilter;
 
 static int32_t fofilter_init(CSOUND *csound,fofilter *p);
@@ -183,7 +183,7 @@ typedef struct _bob {
   MYFLT   oldfreq;
   MYFLT   oldres;
   MYFLT   oldsat;
-  double  state[DIM];
+  MYDBL  state[DIM];
 } BOB;
 
 static int32_t bob_init(CSOUND *csound,BOB *p);

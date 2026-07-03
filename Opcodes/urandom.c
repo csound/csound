@@ -66,7 +66,7 @@ static int32_t urand_run(CSOUND *csound, URANDOM *p)
 {
      IGN(csound);
     int32_t ur = p->ur;
-    /* union ieee754_double x; */
+    /* union ieee754_MYDBL x; */
     int64_t x;
     if (UNLIKELY(read(ur, &x, sizeof(int64_t))!=sizeof(int64_t))) return NOTOK;
 
@@ -87,7 +87,7 @@ static int32_t urand_arun(CSOUND *csound, URANDOM *p)
 {
      IGN(csound);
     int32_t ur = p->ur;
-    /* union ieee754_double x; */
+    /* union ieee754_MYDBL x; */
     int64_t x;
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;

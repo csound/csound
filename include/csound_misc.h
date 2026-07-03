@@ -86,13 +86,13 @@ extern "C" {
    * Return the elapsed real time (in seconds) since the specified timer
    * structure was initialised.
    */
-  PUBLIC double csoundGetRealTime(RTCLOCK *);
+  PUBLIC MYDBL csoundGetRealTime(RTCLOCK *);
 
   /**
    * Return the elapsed CPU time (in seconds) since the specified timer
    * structure was initialised.
    */
-  PUBLIC double csoundGetCPUTime(RTCLOCK *);
+  PUBLIC MYDBL csoundGetCPUTime(RTCLOCK *);
 
   /**
    * Return a 32-bit unsigned integer to be used as seed from current time.

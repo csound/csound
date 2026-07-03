@@ -23,7 +23,7 @@
 #include "stdopcod.h"                 /*                              UGENSA.C  */
 #include "ugensa.h"
 #include "ugens7.h"
-#include <math.h>
+
 
 
 /* FOG generator */
@@ -145,8 +145,8 @@ static int32_t fog(CSOUND *csound, FOGS *p)
       OVERLAP *prvact = ovp;
       ovp = ovp->nxtact;                     /*  formant waveform  */
       if(floatph) {
-        double formphsf = ovp->formphsf;
-        double frac = formphsf - (int32_t) formphsf; 
+        MYDBL formphsf = ovp->formphsf;
+        MYDBL frac = formphsf - (int32_t) formphsf; 
         ftab = ftp1->ftable + (size_t) (formphsf * ftp1->flen);
         v1 = *ftab++;  
         result = v1 + (*ftab - v1) * frac;

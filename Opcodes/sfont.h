@@ -55,7 +55,7 @@ typedef struct {
         int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
-        double  si[MAXSPLT],phs[MAXSPLT];
+        MYDBL  si[MAXSPLT],phs[MAXSPLT];
         MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT], attack[MAXSPLT],
                 decay[MAXSPLT], sustain[MAXSPLT], release[MAXSPLT];
         MYFLT   attr[MAXSPLT], decr[MAXSPLT];
@@ -69,7 +69,7 @@ typedef struct {
         int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
-        double  si[MAXSPLT],phs[MAXSPLT];
+        MYDBL  si[MAXSPLT],phs[MAXSPLT];
         MYFLT   attenuation[MAXSPLT],attack[MAXSPLT], decay[MAXSPLT],
                 sustain[MAXSPLT], release[MAXSPLT];
         MYFLT   attr[MAXSPLT], decr[MAXSPLT];
@@ -83,7 +83,7 @@ typedef struct {
         int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
-        double  si[MAXSPLT],phs[MAXSPLT];
+        MYDBL  si[MAXSPLT],phs[MAXSPLT];
         MYFLT   attenuation[MAXSPLT],attack[MAXSPLT], decay[MAXSPLT],
                 sustain[MAXSPLT], release[MAXSPLT];
         MYFLT   attr[MAXSPLT], decr[MAXSPLT];
@@ -97,7 +97,7 @@ typedef struct {
         int32_t spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
-        double  si[MAXSPLT],phs[MAXSPLT];
+        MYDBL  si[MAXSPLT],phs[MAXSPLT];
         MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT],attack[MAXSPLT],
                 decay[MAXSPLT], sustain[MAXSPLT], release[MAXSPLT];
         MYFLT   attr[MAXSPLT], decr[MAXSPLT];

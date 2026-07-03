@@ -164,8 +164,8 @@ const char *csoundOSCMessageGetFloat(const char *buf, MYFLT *mf) {
 }
 
 const char *csoundOSCMessageGetDouble(const char *buf, MYFLT *mf) {
-  double f;
-  f = *((double *) buf);
+  MYDBL f;
+  f = *((MYDBL *) buf);
   byteswap((char*)&f,8);
   *mf = (MYFLT) f;
   return buf + 8;

@@ -34,7 +34,7 @@
 #endif
 #include "interlocks.h"
 #include <assert.h>
-#include <math.h>
+
 
 /* ------------------------------------------------------------------------- */
 
@@ -138,15 +138,15 @@ abformenc(CSOUND * csound, AMBIC * p) {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t sampleCount, sampleIndex, channelCount, channelIndex;
-    double angle, elevation, x, y, z;
+    MYDBL angle, elevation, x, y, z;
     MYFLT coefficients[16], coefficient, * output, * input;
     MYFLT x2, y2, z2;
 
     /* Find basic mode & angles: */
     sampleCount = CS_KSMPS;
     channelCount = p->OUTOCOUNT;
-    angle = (double)(*(p->kangle)) * (PI / 180.0);
-    elevation = (double)(*(p->kelevation)) * (PI / 180.0);
+    angle = (MYDBL)(*(p->kangle)) * (PI / 180.0);
+    elevation = (MYDBL)(*(p->kelevation)) * (PI / 180.0);
 
     /* Find direction cosines: */
     x  = cos(elevation);
@@ -217,15 +217,15 @@ abformenc_a(CSOUND * csound, AMBICA * p) {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t sampleCount, sampleIndex, channelCount, channelIndex, ksmps;
-    double angle, elevation, x, y, z;
+    MYDBL angle, elevation, x, y, z;
     MYFLT coefficients[16], coefficient, * output, * input;
     MYFLT x2, y2, z2;
 
     /* Find basic mode & angles: */
     ksmps = sampleCount = CS_KSMPS;
     channelCount = p->tabout->sizes[0];
-    angle = (double)(*(p->kangle)) * (PI / 180.0);
-    elevation = (double)(*(p->kelevation)) * (PI / 180.0);
+    angle = (MYDBL)(*(p->kangle)) * (PI / 180.0);
+    elevation = (MYDBL)(*(p->kelevation)) * (PI / 180.0);
 
     /* Find direction cosines: */
     x  = cos(elevation);

@@ -54,7 +54,7 @@ typedef struct /* waveformatex */ {
 
 #endif
 
-/* NB no support provided for double format (yet) */
+/* NB no support provided for MYDBL format (yet) */
 
 typedef enum pvoc_wordformat {
     PVOC_IEEE_FLOAT,

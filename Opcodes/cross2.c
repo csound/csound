@@ -24,7 +24,7 @@
 #include "ptrigtbl.h"
 #include "fhtfun.h"
 #include "interlocks.h"
-#include <math.h>
+
 
 #define CH_THRESH       1.19209e-7
 #define CHOP(a) (a < CH_THRESH ? CH_THRESH : a)

@@ -23,24 +23,24 @@
 #include "csmodule.h"
 
 /* dummy functions for the case when no real-time audio module is available */
-static double *get_dummy_rtaudio_globals(CSOUND *csound) {
-  double *p;
+static MYDBL *get_dummy_rtaudio_globals(CSOUND *csound) {
+  MYDBL *p;
 
-  p = (double *)csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
+  p = (MYDBL *)csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
   if (p == NULL) {
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "__rtaudio_null_state",
-                                              sizeof(double) * 4) != 0))
+                                              sizeof(MYDBL) * 4) != 0))
       csound->Die(csound, Str("rtdummy: failed to allocate globals"));
 #ifndef __wasi__
     csound->Message(csound, Str("rtaudio: dummy module enabled\n"));
 #endif
-    p = (double *)csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
+    p = (MYDBL *)csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
   }
   return p;
 }
 
-static void dummy_rtaudio_timer(CSOUND *csound, double *p) {
-  double timeWait;
+static void dummy_rtaudio_timer(CSOUND *csound, MYDBL *p) {
+  MYDBL timeWait;
   int32_t i;
 
   timeWait = p[0] - csoundGetRealTime(csound->csRtClock);
@@ -50,7 +50,7 @@ static void dummy_rtaudio_timer(CSOUND *csound, double *p) {
 }
 
 int32_t playopen_dummy(CSOUND *csound, const csRtAudioParams *parm) {
-  double *p;
+  MYDBL *p;
   char *s;
 
   /* find out if the use of dummy real-time audio functions was requested, */
@@ -71,20 +71,20 @@ int32_t playopen_dummy(CSOUND *csound, const csRtAudioParams *parm) {
   p = get_dummy_rtaudio_globals(csound);
   csound->rtPlay_userdata = (void *)p;
   p[0] = csound->GetRealTime(csound->csRtClock);
-  p[1] = 1.0 / ((double)((int32_t)sizeof(MYFLT) * parm->nChannels) *
-                (double)parm->sampleRate);
+  p[1] = 1.0 / ((MYDBL)((int32_t)sizeof(MYFLT) * parm->nChannels) *
+                (MYDBL)parm->sampleRate);
   return CSOUND_SUCCESS;
 }
 
 void rtplay_dummy(CSOUND *csound, const MYFLT *outBuf, int32_t nbytes) {
-  double *p = (double *)csound->rtPlay_userdata;
+  MYDBL *p = (MYDBL *)csound->rtPlay_userdata;
   (void)outBuf;
-  p[0] += ((double)nbytes * p[1]);
+  p[0] += ((MYDBL)nbytes * p[1]);
   dummy_rtaudio_timer(csound, p);
 }
 
 int32_t recopen_dummy(CSOUND *csound, const csRtAudioParams *parm) {
-  double *p;
+  MYDBL *p;
   char *s;
 
   /* find out if the use of dummy real-time audio functions was requested, */
@@ -102,22 +102,22 @@ int32_t recopen_dummy(CSOUND *csound, const csRtAudioParams *parm) {
     }
     // return CSOUND_ERROR;
   }
-  p = (double *)get_dummy_rtaudio_globals(csound) + 2;
+  p = (MYDBL *)get_dummy_rtaudio_globals(csound) + 2;
   csound->rtRecord_userdata = (void *)p;
   p[0] = csound->GetRealTime(csound->csRtClock);
-  p[1] = 1.0 / ((double)((int32_t)sizeof(MYFLT) * parm->nChannels) *
-                (double)parm->sampleRate);
+  p[1] = 1.0 / ((MYDBL)((int32_t)sizeof(MYFLT) * parm->nChannels) *
+                (MYDBL)parm->sampleRate);
   return CSOUND_SUCCESS;
 }
 
 int32_t rtrecord_dummy(CSOUND *csound, MYFLT *inBuf, int32_t nbytes) {
-  double *p = (double *)csound->rtRecord_userdata;
+  MYDBL *p = (MYDBL *)csound->rtRecord_userdata;
 
   /* for (i = 0; i < (nbytes / (int32_t) sizeof(MYFLT)); i++) */
   /*   ((MYFLT*) inBuf)[i] = FL(0.0); */
   memset(inBuf, 0, nbytes);
 
-  p[0] += ((double)nbytes * p[1]);
+  p[0] += ((MYDBL)nbytes * p[1]);
   dummy_rtaudio_timer(csound, p);
 
   return nbytes;
@@ -327,9 +327,9 @@ csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
   csound->enableHostImplementedMIDIIO = state;
 }
 
- double csoundGetScoreTime(CSOUND *csound) {
-  double curtime = csound->icurTimeSamples;
-  double esr = csound->esr;
+ MYDBL csoundGetScoreTime(CSOUND *csound) {
+  MYDBL curtime = csound->icurTimeSamples;
+  MYDBL esr = csound->esr;
   return curtime / esr;
 }
 

@@ -40,7 +40,7 @@ typedef struct Marimba {
     MYFLT       *amplitude, *frequency;
     MYFLT       *hardness, *spos, *ifn;
     MYFLT       *vibFreq, *vibAmt, *ivfn, *dettack;
-    MYFLT       *doubles, *triples;
+    MYFLT       *MYDBLs, *triples;
 /* Modal4 */
     Modal4      m4;
     int32_t         multiStrike;

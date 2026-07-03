@@ -21,7 +21,7 @@
 */
 
 #include "stdopcod.h"
-#include <math.h>
+
 
 #define DEFAULT_SRATE   44100.0
 #define STEREO_SPREAD   23.0
@@ -30,7 +30,7 @@
 #define NR_COMB         8
 #define NR_ALLPASS      4
 
-static const double comb_delays[NR_COMB][2] = {
+static const MYDBL comb_delays[NR_COMB][2] = {
     { 1116.0 / DEFAULT_SRATE, (1116.0 + STEREO_SPREAD) / DEFAULT_SRATE },
     { 1188.0 / DEFAULT_SRATE, (1188.0 + STEREO_SPREAD) / DEFAULT_SRATE },
     { 1277.0 / DEFAULT_SRATE, (1277.0 + STEREO_SPREAD) / DEFAULT_SRATE },
@@ -41,24 +41,24 @@ static const double comb_delays[NR_COMB][2] = {
     { 1617.0 / DEFAULT_SRATE, (1617.0 + STEREO_SPREAD) / DEFAULT_SRATE }
 };
 
-static const double allpass_delays[NR_ALLPASS][2] = {
+static const MYDBL allpass_delays[NR_ALLPASS][2] = {
     { 556.0 / DEFAULT_SRATE, (556.0 + STEREO_SPREAD) / DEFAULT_SRATE },
     { 441.0 / DEFAULT_SRATE, (441.0 + STEREO_SPREAD) / DEFAULT_SRATE },
     { 341.0 / DEFAULT_SRATE, (341.0 + STEREO_SPREAD) / DEFAULT_SRATE },
     { 225.0 / DEFAULT_SRATE, (225.0 + STEREO_SPREAD) / DEFAULT_SRATE }
 };
 
-static const double fixedGain   = 0.015;
-static const double scaleDamp   = 0.4;
-static const double scaleRoom   = 0.28;
-static const double offsetRoom  = 0.7;
+static const MYDBL fixedGain   = 0.015;
+static const MYDBL scaleDamp   = 0.4;
+static const MYDBL scaleRoom   = 0.28;
+static const MYDBL offsetRoom  = 0.7;
 
-static const double allPassFeedBack = 0.5;
+static const MYDBL allPassFeedBack = 0.5;
 
 typedef struct {
     int32_t     nSamples;
     int32_t     bufPos;
-    double  filterState;
+    MYDBL  filterState;
     MYFLT   buf[1];
 } freeVerbComb;
 
@@ -83,20 +83,20 @@ typedef struct {
     MYFLT           *tmpBuf;
     AUXCH           auxData;
     MYFLT           prvDampFactor;
-    double          dampValue;
-    double          srFact;
+    MYDBL          dampValue;
+    MYDBL          srFact;
 } FREEVERB;
 
-static int32_t calc_nsamples(FREEVERB *p, double delTime)
+static int32_t calc_nsamples(FREEVERB *p, MYDBL delTime)
 {
-    double  sampleRate;
-    sampleRate = (double) *(p->iSampleRate);
+    MYDBL  sampleRate;
+    sampleRate = (MYDBL) *(p->iSampleRate);
     if (sampleRate < MIN_SRATE)
       sampleRate = DEFAULT_SRATE;
     return (int32_t) (delTime * sampleRate + 0.5);
 }
 
-static int32_t comb_nbytes(FREEVERB *p, double delTime)
+static int32_t comb_nbytes(FREEVERB *p, MYDBL delTime)
 {
     int32_t nbytes;
     nbytes = (int32_t) sizeof(freeVerbComb) - (int32_t) sizeof(MYFLT);
@@ -104,7 +104,7 @@ static int32_t comb_nbytes(FREEVERB *p, double delTime)
     return ((nbytes + 15) & (~15));
 }
 
-static int32_t allpass_nbytes(FREEVERB *p, double delTime)
+static int32_t allpass_nbytes(FREEVERB *p, MYDBL delTime)
 {
     int32_t nbytes;
     nbytes = (int32_t) sizeof(freeVerbAllPass) - (int32_t) sizeof(MYFLT);
@@ -169,7 +169,7 @@ static int32_t freeverb_init(CSOUND *csound, FREEVERB *p)
 
 static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
 {
-    double          feedback, damp1, damp2, x;
+    MYDBL          feedback, damp1, damp2, x;
     freeVerbComb    *combp;
     freeVerbAllPass *allpassp;
     int32_t             i;
@@ -180,10 +180,10 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
     /* check if opcode was correctly initialised */
     if (UNLIKELY(p->auxData.size <= 0L || p->auxData.auxp == NULL)) goto err1;
     /* calculate reverb parameters */
-    feedback = (double) *(p->kRoomSize) * scaleRoom + offsetRoom;
+    feedback = (MYDBL) *(p->kRoomSize) * scaleRoom + offsetRoom;
     if (*(p->kDampFactor) != p->prvDampFactor) {
       p->prvDampFactor = *(p->kDampFactor);
-      damp1 = (double) *(p->kDampFactor) * scaleDamp;
+      damp1 = (MYDBL) *(p->kDampFactor) * scaleDamp;
       /* hack to correct high frequency attenuation for sample rate */
       if (*(p->iSampleRate) >= MIN_SRATE)
         damp1 = pow(damp1, p->srFact);
@@ -198,9 +198,9 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
       combp = p->Comb[i][0];
       for (n = 0; n < nsmps; n++) {
         p->tmpBuf[n] += combp->buf[combp->bufPos];
-        x = (double) combp->buf[combp->bufPos];
+        x = (MYDBL) combp->buf[combp->bufPos];
         combp->filterState = (combp->filterState * damp1) + (x * damp2);
-        x = combp->filterState * feedback + (double) p->aInL[n];
+        x = combp->filterState * feedback + (MYDBL) p->aInL[n];
         combp->buf[combp->bufPos] = (MYFLT) x;
         if (UNLIKELY(++(combp->bufPos) >= combp->nSamples))
           combp->bufPos = 0;
@@ -210,7 +210,7 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
     for (i = 0; i < NR_ALLPASS; i++) {
       allpassp = p->AllPass[i][0];
       for (n = 0; n < nsmps; n++) {
-        x = (double) allpassp->buf[allpassp->bufPos] - (double) p->tmpBuf[n];
+        x = (MYDBL) allpassp->buf[allpassp->bufPos] - (MYDBL) p->tmpBuf[n];
         allpassp->buf[allpassp->bufPos] *= (MYFLT) allPassFeedBack;
         allpassp->buf[allpassp->bufPos] += p->tmpBuf[n];
         if (UNLIKELY(++(allpassp->bufPos) >= allpassp->nSamples))
@@ -235,9 +235,9 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
       combp = p->Comb[i][1];
       for (n = 0; n < nsmps; n++) {
         p->tmpBuf[n] += combp->buf[combp->bufPos];
-        x = (double) combp->buf[combp->bufPos];
+        x = (MYDBL) combp->buf[combp->bufPos];
         combp->filterState = (combp->filterState * damp1) + (x * damp2);
-        x = combp->filterState * feedback + (double) p->aInR[n];
+        x = combp->filterState * feedback + (MYDBL) p->aInR[n];
         combp->buf[combp->bufPos] = (MYFLT) x;
         if (UNLIKELY(++(combp->bufPos) >= combp->nSamples))
           combp->bufPos = 0;
@@ -247,7 +247,7 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
     for (i = 0; i < NR_ALLPASS; i++) {
       allpassp = p->AllPass[i][1];
       for (n = 0; n < nsmps; n++) {
-        x = (double) allpassp->buf[allpassp->bufPos] - (double) p->tmpBuf[n];
+        x = (MYDBL) allpassp->buf[allpassp->bufPos] - (MYDBL) p->tmpBuf[n];
         allpassp->buf[allpassp->bufPos] *= (MYFLT) allPassFeedBack;
         allpassp->buf[allpassp->bufPos] += p->tmpBuf[n];
         if (UNLIKELY(++(allpassp->bufPos) >= allpassp->nSamples))

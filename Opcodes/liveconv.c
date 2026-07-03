@@ -28,7 +28,7 @@
 #include "csoundCore.h"
 #endif
 #include "interlocks.h"
-#include <math.h>
+
 
 /*
 ** Data structures holding the load/unload information
@@ -465,7 +465,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
          convolution */
       p->cnt = 0; /* reset buffer position */
 
-      /* pad input in ring buffer with zeros to double length */
+      /* pad input in ring buffer with zeros to MYDBL length */
       for (i = nSamples; i < (nSamples << 1); i++)
         rBuf[i] = FL(0.0);
 

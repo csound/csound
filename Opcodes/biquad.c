@@ -30,7 +30,7 @@
 /* October 1998 by Hans Mikelson                               */
 /***************************************************************/
 //#include "csdl.h"
-#include <math.h>
+
 #include "biquad.h"
 #include "csound_standard_types.h"
 
@@ -56,10 +56,10 @@ static int32_t biquad(CSOUND *csound, BIQUAD *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  double xn, yn;
-  double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-  double a0 = 1.0 / *p->a0, a1 = a0 * *p->a1, a2 = a0 * *p->a2;
-  double b0 = a0 * *p->b0, b1 = a0 * *p->b1, b2 = a0 * *p->b2;
+  MYDBL xn, yn;
+  MYDBL xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
+  MYDBL a0 = 1.0 / *p->a0, a1 = a0 * *p->a1, a2 = a0 * *p->a2;
+  MYDBL b0 = a0 * *p->b0, b1 = a0 * *p->b1, b2 = a0 * *p->b2;
 
   if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -67,7 +67,7 @@ static int32_t biquad(CSOUND *csound, BIQUAD *p)
     memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n=offset; n<nsmps; n++) {
-    xn = (double)p->in[n];
+    xn = (MYDBL)p->in[n];
     yn = b0*xn + b1*xnm1 + b2*xnm2 - a1*ynm1 - a2*ynm2;
     xnm2 = xnm1;
     xnm1 = xn;
@@ -88,10 +88,10 @@ static int32_t biquada(CSOUND *csound, BIQUAD *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   MYFLT *out, *in;
-  double xn, yn;
+  MYDBL xn, yn;
   MYFLT *a0 = p->a0, *a1 = p->a1, *a2 = p->a2;
   MYFLT *b0 = p->b0, *b1 = p->b1, *b2 = p->b2;
-  double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
+  MYDBL xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
   in   = p->in;
   out  = p->out;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -100,9 +100,9 @@ static int32_t biquada(CSOUND *csound, BIQUAD *p)
     memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n=offset; n<nsmps; n++) {
-    xn = (double)in[n];
-    yn = ( (double)b0[n] * xn + (double)b1[n] * xnm1 + (double)b2[n] * xnm2 -
-           a1[n] * ynm1 - (double)a2[n] * ynm2)/ (double)a0[n];
+    xn = (MYDBL)in[n];
+    yn = ( (MYDBL)b0[n] * xn + (MYDBL)b1[n] * xnm1 + (MYDBL)b2[n] * xnm2 -
+           a1[n] * ynm1 - (MYDBL)a2[n] * ynm2)/ (MYDBL)a0[n];
     xnm2 = xnm1;
     xnm1 = xn;
     ynm2 = ynm1;
@@ -138,27 +138,27 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   MYFLT *out, *in;
-  double xn;
+  MYDBL xn;
   MYFLT *fcoptr, *resptr;
   /* Fake initialisations to stop compiler warnings!! */
-  double fco, res, kp=0.0, pp1d2=0.0, scale=0.0, k=0.0;
-  double max = (double)p->maxint;
-  double dmax = 1.0/max;
-  double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
-  double y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
+  MYDBL fco, res, kp=0.0, pp1d2=0.0, scale=0.0, k=0.0;
+  MYDBL max = (MYDBL)p->maxint;
+  MYDBL dmax = 1.0/max;
+  MYDBL xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
+  MYDBL y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
   MYFLT zerodb = csound->Get0dBFS(csound);
 
   in      = p->in;
   out     = p->out;
   fcoptr  = p->fco;
   resptr  = p->res;
-  fco     = (double)*fcoptr;
-  res     = (double)*resptr;
+  fco     = (MYDBL)*fcoptr;
+  res     = (MYDBL)*resptr;
 
   /* Only need to calculate once */
   if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) {
-    double fcon;
-    fcon  = 2.0*fco*(double)CS_ONEDSR; /* normalised freq. 0 to Nyquist */
+    MYDBL fcon;
+    fcon  = 2.0*fco*(MYDBL)CS_ONEDSR; /* normalised freq. 0 to Nyquist */
     kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */
     pp1d2 = (kp+1.0)*0.5;                   /* Timesaver          */
     scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor     */
@@ -172,20 +172,20 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
   for (n=offset; n<nsmps; n++) {
     /* Handle a-rate modulation of fco & res. */
     if (p->fcocod) {
-      fco = (double)fcoptr[n];
+      fco = (MYDBL)fcoptr[n];
     }
     if (p->rezcod) {
-      res = (double)resptr[n];
+      res = (MYDBL)resptr[n];
     }
     if ((p->rezcod!=0) || (p->fcocod!=0)) {
-      double fcon;
-      fcon  = 2.0*fco*(double)CS_ONEDSR; /* normalised frq. 0 to Nyquist */
+      MYDBL fcon;
+      fcon  = 2.0*fco*(MYDBL)CS_ONEDSR; /* normalised frq. 0 to Nyquist */
       kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning */
       pp1d2 = (kp+1.0)*0.5;                   /* Timesaver */
       scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor */
       k     = res*scale;
     }
-    xn = (double)in[n] * dmax/zerodb;
+    xn = (MYDBL)in[n] * dmax/zerodb;
     xn = xn - k * y4n; /* Inverted feed back for corner peaking */
 
     /* Four cascaded onepole filters (bilinear transform) */
@@ -238,22 +238,22 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   MYFLT *out, *fcoptr, *rezptr, *in;
-  double fco, rez, xn, yn;
-  double fqcadj, a=0.0, /* Initialisations fake */
+  MYDBL fco, rez, xn, yn;
+  MYDBL fqcadj, a=0.0, /* Initialisations fake */
     csq=0.0, invb=0.0, tval=0.0; /* Temporary variables for the filter */
-  double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-  double b1 = 0.0, b2 = 0.0;
+  MYDBL xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
+  MYDBL b1 = 0.0, b2 = 0.0;
   int32_t warn = p->warn;
 
   in     = p->in;
   out    = p->out;
   fcoptr = p->fco;
   rezptr = p->rez;
-  fco    = (double)*fcoptr;
-  rez    = (double)*rezptr;
+  fco    = (MYDBL)*fcoptr;
+  rez    = (MYDBL)*rezptr;
 
   /* Freq. is adjusted based on sample rate */
-  fqcadj = 0.149659863*(double)CS_ESR;
+  fqcadj = 0.149659863*(MYDBL)CS_ESR;
   /* Try to keep the resonance under control     */
   if (rez < 1.0) rez = 1.0;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -264,9 +264,9 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
   if (*p->mode == FL(0.0)) {    /* Low Pass */
     if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) {
       /* Only need to calculate once */
-      double c = fqcadj/fco;    /* Filter constant c=1/Fco * adjustment */
-      double rez2 = rez/(1.0 + exp(fco/11000.0));
-      double b;
+      MYDBL c = fqcadj/fco;    /* Filter constant c=1/Fco * adjustment */
+      MYDBL rez2 = rez/(1.0 + exp(fco/11000.0));
+      MYDBL b;
       a    = c/rez2 - 1.0;      /* a depends on both Fco and Rez */
       csq  = c*c;               /* Precalculate c^2 */
       b    = 1.0 + a + csq;     /* Normalization constant */
@@ -276,13 +276,13 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
       // Stabalise
       {    // POLES
         //Note that csq cannot be zero
-        double  p0, p1, pi, disc;
+        MYDBL  p0, p1, pi, disc;
         disc=b1*b1-(4*b2);
         if (disc<0.0) {
           pi = sqrt(-disc)/2.0;
           p0 = p1 = (-b1)/2.0;
           if (p0*p0+pi*pi>=1.0) {
-            double theta = ATAN2(pi, p0);
+            MYDBL theta = ATAN2(pi, p0);
             if (warn) csound->Warning(csound, "%s", Str("rezzy instability corrected"));
             p0 = NEARONE * COS(theta);
             //pi = NEARONE * sin(theta);
@@ -306,15 +306,15 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
     for (n=offset; n<nsmps; n++) { /* do ksmp times   */
       /* Handle a-rate modulation of fco and rez */
       if (p->fcocod) {
-        fco = (double)fcoptr[n];
+        fco = (MYDBL)fcoptr[n];
       }
       if (p->rezcod) {
-        rez = (double)rezptr[n];
+        rez = (MYDBL)rezptr[n];
       }
       if ((p->rezcod!=0) || (p->fcocod!=0)) {
-        double c = fqcadj/fco;
-        double rez2 = rez/(1.0 + exp(fco/11000.0));
-        double b;
+        MYDBL c = fqcadj/fco;
+        MYDBL rez2 = rez/(1.0 + exp(fco/11000.0));
+        MYDBL b;
         a    = c/rez2 - 1.0;  /* a depends on both Fco and Rez */
         csq  = c*c;           /* Precalculate c^2 */
         b    = 1.0 + a + csq; /* Normalization constant */
@@ -323,13 +323,13 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
         b2 = csq*invb;
         // Stabalise
         {    // POLES
-          double disc, p0, p1, pi;
+          MYDBL disc, p0, p1, pi;
           disc=b1*b1-(4*b2);
           if (disc<0.0) {
             pi = sqrt(-disc)/2.0;
             p0=p1=(-b1)/2.0;
             if (p0*p0+pi*pi>=1.0) {
-              double theta = ATAN2(pi, p0);
+              MYDBL theta = ATAN2(pi, p0);
               if (warn) csound->Warning(csound,
                                         "%s", Str("rezzy instability corrected"));
               //printf("b1, b2 = %f, %f ->", b1,b2);
@@ -356,7 +356,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
         }
         //printf("Poles: (%f,%f) and (%f,%f) ", p0, pi, p1, -pi);
       }
-      xn = (double)in[n];             /* Get the next sample */
+      xn = (MYDBL)in[n];             /* Get the next sample */
       /* Mikelson Biquad Filter Guts*/
       //yn = (1.0/sqrt(1.0+rez)*xn - (-a-2.0*csq)*ynm1 - csq*ynm2)*invb;
       yn = invb/sqrt(1.0+rez)*xn - b1*ynm1 - b2*ynm2;
@@ -370,10 +370,10 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
     }
   }
   else { /* High Pass Rezzy */
-    double c=0.0, rez2=0.0, cdrez2 = 0.0;
+    MYDBL c=0.0, rez2=0.0, cdrez2 = 0.0;
     if (UNLIKELY(p->fcocod==0 && p->rezcod==0)) {
       /* Only need to calculate once */
-      double b;
+      MYDBL b;
       c = fqcadj/fco;    /* Filter constant c=1/Fco * adjustment */
       rez2 = rez/(1.0 + sqrt(sqrt(1.0/c)));
       tval = 0.75/sqrt(1.0 + rez);
@@ -387,13 +387,13 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
       /*        c,rez2,tval,csq,b,invb); */
 
       {    // POLES
-        double p0, p1, pi;
-        double disc=b1*b1-(4*b2);
+        MYDBL p0, p1, pi;
+        MYDBL disc=b1*b1-(4*b2);
         if (disc<0.0) {
           pi = sqrt(-disc)/2.0;
           p0=p1=(-b1)/2.0;
           if (p0*p0+pi*pi>=1.0) {
-            double theta = ATAN2(pi, p0);
+            MYDBL theta = ATAN2(pi, p0);
             //printf("b1, b2= %f, %f ", b1, b2);
             if (warn) csound->Warning(csound, "%s", Str("rezzy instability corrected"));
             b1 = -p0*cos(theta); b2 = NEARONE*NEARONE; warn = 0;
@@ -420,13 +420,13 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
     for (n=offset; n<nsmps; n++) { /* do ksmp times   */
       /* Handle a-rate modulation of fco and rez */
       if (p->fcocod) {
-        fco = (double)fcoptr[n];
+        fco = (MYDBL)fcoptr[n];
       }
       if (p->rezcod) {
-        rez = (double)rezptr[n];
+        rez = (MYDBL)rezptr[n];
       }
       if (p->fcocod!=0 || p->rezcod!=0) {
-        double b;
+        MYDBL b;
         c = fqcadj/fco;
         rez2 = rez/(1.0 + sqrt(sqrt(1.0/c)));
         tval   = 0.75/sqrt(1.0 + rez);
@@ -438,13 +438,13 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
         b2 = csq*invb;
 
         {    // POLES
-          double  p0, p1, pi;
-          double disc=b1*b1-(4*b2);
+          MYDBL  p0, p1, pi;
+          MYDBL disc=b1*b1-(4*b2);
           if (disc<0.0) {
             pi = sqrt(-disc)/2.0;
             p0=p1=(-b1)/2.0;
             if (p0*p0+pi*pi >=1.0) {
-              double theta = ATAN2(pi,p0);
+              MYDBL theta = ATAN2(pi,p0);
               //printf("b1, b2= %f, %f ", b1, b2);
               if (warn) csound->Warning(csound,
                                         "%s", Str("rezzy instability corrected"));
@@ -468,7 +468,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
         }
 
       }
-      xn = (double)in[n];            /* Get the next sample */
+      xn = (MYDBL)in[n];            /* Get the next sample */
       /* Mikelson Biquad Filter Guts*/
       yn = -b1*ynm1 - b2*ynm2
         + (( cdrez2 + csq)*tval*xn + (-cdrez2 - 2.0*csq)*tval*xnm1
@@ -972,49 +972,49 @@ static int32_t vco(CSOUND *csound, VCO *p)
       uint32_t n, nsmps = CS_KSMPS;
 
       if (*p->fc != p->prv_fc || *p->v != p->prv_v || *p->q != p->prv_q) {
-        double omega = (double)(CS_TPIDSR * *p->fc), k, kk, vkk, vk, vkdq, a0;
+        MYDBL omega = (MYDBL)(CS_TPIDSR * *p->fc), k, kk, vkk, vk, vkdq, a0;
         p->prv_fc = *p->fc; p->prv_v = *p->v; p->prv_q = *p->q;
         switch (p->imode) {
           /* Low Shelf */
         case 1: {
-          double sq = sqrt(2.0 * (double) p->prv_v);
+          MYDBL sq = sqrt(2.0 * (MYDBL) p->prv_v);
           k = tan(omega * 0.5);
           kk = k * k;
-          vkk = (double)p->prv_v * kk;
+          vkk = (MYDBL)p->prv_v * kk;
           p->b0 =  1.0 + sq * k + vkk;
           p->b1 =  2.0 * (vkk - FL(1.0));
           p->b2 =  1.0 - sq * k + vkk;
-          a0    =  1.0 + k / (double)p->prv_q + kk;
+          a0    =  1.0 + k / (MYDBL)p->prv_q + kk;
           p->a1 =  2.0 * (kk - 1.0);
-          p->a2 =  1.0 - k / (double)p->prv_q + kk;
+          p->a2 =  1.0 - k / (MYDBL)p->prv_q + kk;
         }
           break;
           /* High Shelf */
         case 2: {
-          double sq = sqrt(2.0 * (double) p->prv_v);
+          MYDBL sq = sqrt(2.0 * (MYDBL) p->prv_v);
           k = tan((PI - omega) * 0.5);
           kk = k * k;
-          vkk = (double)p->prv_v * kk;
+          vkk = (MYDBL)p->prv_v * kk;
           p->b0 =  1.0 + sq * k + vkk;
           p->b1 = -2.0 * (vkk - 1.0);
           p->b2 =  1.0 - sq * k + vkk;
-          a0    =  1.0 + k / (double)p->prv_q + kk;
+          a0    =  1.0 + k / (MYDBL)p->prv_q + kk;
           p->a1 = -2.0 * (kk - 1.0);
-          p->a2 =  1.0 - k / (double)p->prv_q + kk;
+          p->a2 =  1.0 - k / (MYDBL)p->prv_q + kk;
         }
           break;
           /* Peaking EQ */
         default: {
           k = tan(omega * 0.5);
           kk = k * k;
-          vk = (double)p->prv_v * k;
-          vkdq = vk / (double)p->prv_q;
+          vk = (MYDBL)p->prv_v * k;
+          vkdq = vk / (MYDBL)p->prv_q;
           p->b0 =  1.0 + vkdq + kk;
           p->b1 =  2.0 * (kk - 1.0);
           p->b2 =  1.0 - vkdq + kk;
-          a0    =  1.0 + k / (double)p->prv_q + kk;
+          a0    =  1.0 + k / (MYDBL)p->prv_q + kk;
           p->a1 =  2.0 * (kk - 1.0);
-          p->a2 =  1.0 - k / (double)p->prv_q + kk;
+          p->a2 =  1.0 - k / (MYDBL)p->prv_q + kk;
         }
         }
         a0 = 1.0 / a0;
@@ -1026,11 +1026,11 @@ static int32_t vco(CSOUND *csound, VCO *p)
         memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
       }
       {
-        double a1 = p->a1, a2 = p->a2;
-        double b0 = p->b0, b1 = p->b1, b2 = p->b2;
-        double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
+        MYDBL a1 = p->a1, a2 = p->a2;
+        MYDBL b0 = p->b0, b1 = p->b1, b2 = p->b2;
+        MYDBL xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
         for (n=offset; n<nsmps; n++) {
-          xn = (double)p->in[n];
+          xn = (MYDBL)p->in[n];
           yn = b0 * xn + b1 * xnm1 + b2 * xnm2 - a1 * ynm1 - a2 * ynm2;
           xnm2 = xnm1;
           xnm1 = xn;
@@ -1343,13 +1343,13 @@ static int32_t vco(CSOUND *csound, VCO *p)
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
       MYFLT *out, *in;
-      double x;
+      MYDBL x;
       MYFLT *fcoptr, *resptr, *distptr, *asymptr;
-      double fco, res, dist, asym;
-      double y = p->y, y1 = p->y1, y2 = p->y2;
+      MYDBL fco, res, dist, asym;
+      MYDBL y = p->y, y1 = p->y1, y2 = p->y2;
       /* The initialisations are fake to fool compiler warnings */
-      double ih, fdbk, d, ad;
-      double fc=0.0, fco1=0.0, q=0.0, q1=0.0;
+      MYDBL ih, fdbk, d, ad;
+      MYDBL fc=0.0, fco1=0.0, q=0.0, q1=0.0;
 
       ih  = 0.001; /* ih is the incremental factor */
 
@@ -1362,17 +1362,17 @@ static int32_t vco(CSOUND *csound, VCO *p)
       asymptr = p->asym;
 
       /* Get the values for the k-rate variables */
-      fco  = (double)*fcoptr;
-      res  = (double)*resptr;
-      dist = (double)*distptr;
-      asym = (double)*asymptr;
+      fco  = (MYDBL)*fcoptr;
+      res  = (MYDBL)*resptr;
+      dist = (MYDBL)*distptr;
+      asym = (MYDBL)*asymptr;
 
       /* Try to decouple the variables */
       if ((p->rezcod==0) && (p->fcocod==0)) { /* Calc once only */
         q1   = res/(1.0 + sqrt(dist));
         fco1 = pow(fco*260.0/(1.0+q1*0.5),0.58);
         q    = q1*fco1*fco1*0.0005;
-        fc   = fco1*(double)CS_ONEDSR*(44100.0/8.0);
+        fc   = fco1*(MYDBL)CS_ONEDSR*(44100.0/8.0);
       }
       if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
@@ -1382,18 +1382,18 @@ static int32_t vco(CSOUND *csound, VCO *p)
       for (n=offset; n<nsmps; n++) {
         /* Handle a-rate modulation of fco & res. */
         if (p->fcocod) {
-          fco = (double)fcoptr[n];
+          fco = (MYDBL)fcoptr[n];
         }
         if (p->rezcod) {
-          res = (double)resptr[n];
+          res = (MYDBL)resptr[n];
         }
         if ((p->rezcod!=0) || (p->fcocod!=0)) {
           q1  = res/(1.0 + sqrt(dist));
           fco1 = pow(fco*260.0/(1.0+q1*0.5),0.58);
           q  = q1*fco1*fco1*0.0005;
-          fc  = fco1*(double)CS_ONEDSR*(44100.0/8.0);
+          fc  = fco1*(MYDBL)CS_ONEDSR*(44100.0/8.0);
         }
-        x  = (double)in[n];
+        x  = (MYDBL)in[n];
         fdbk = q*y/(1.0 + exp(-3.0*y)*asym);
         y1  = y1 + ih*((x - y1)*fc - fdbk);
         d  = -0.1*y*20.0;
@@ -1425,21 +1425,21 @@ static int32_t vco(CSOUND *csound, VCO *p)
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
       MYFLT *out, *fcoptr, *rezptr, *in;
-      double fco, rez, xn, yn;
-      double sin2 = 0.0, cos2 = 0.0, beta=0.0, alpha, gamma=0.0, mu, sigma, chi;
-      double theta;
-      double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
+      MYDBL fco, rez, xn, yn;
+      MYDBL sin2 = 0.0, cos2 = 0.0, beta=0.0, alpha, gamma=0.0, mu, sigma, chi;
+      MYDBL theta;
+      MYDBL xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
       int32_t mode = (int32_t)MYFLT2LONG(*p->mode);
 
       in     = p->in;
       out    = p->out;
       fcoptr = p->fco;
       rezptr = p->rez;
-      fco    = (double)*fcoptr;
-      rez    = (double)*rezptr;
+      fco    = (MYDBL)*fcoptr;
+      rez    = (MYDBL)*rezptr;
 
       if ((p->rezcod == 0) && (p->fcocod == 0)) {
-        theta = fco * (double)CS_TPIDSR;
+        theta = fco * (MYDBL)CS_TPIDSR;
         sin2 = sin(theta) * 0.5;
         cos2 = cos(theta);
         beta = (rez - sin2) / (rez + sin2);
@@ -1473,20 +1473,20 @@ static int32_t vco(CSOUND *csound, VCO *p)
         for (n=offset; n<nsmps; n++) {                        /* do ksmp times   */
           /* Handle a-rate modulation of fco and rez */
           if (p->fcocod) {
-            fco = (double)fcoptr[n];
+            fco = (MYDBL)fcoptr[n];
           }
           if (p->rezcod) {
-            rez = (double)rezptr[n];
+            rez = (MYDBL)rezptr[n];
           }
           if ((p->rezcod == 1) || (p->fcocod == 1)) {
-            theta = fco * (double) CS_TPIDSR;
+            theta = fco * (MYDBL) CS_TPIDSR;
             sin2 = sin(theta) * 0.5;
             cos2 = cos(theta);
             beta = (rez - sin2) / (rez + sin2);
             gamma = (beta + 1.0) * cos2;
             alpha = (beta + 1.0 + chi*gamma) * 0.5;
           }
-          xn     = (double)in[n];   /* Get the next sample */
+          xn     = (MYDBL)in[n];   /* Get the next sample */
           yn     = alpha*(xn + mu*xnm1 + sigma*xnm2) + gamma*ynm1 - beta*ynm2;
 
           xnm2   = xnm1; /* Update Xn-2 */
@@ -1502,13 +1502,13 @@ static int32_t vco(CSOUND *csound, VCO *p)
         for (n=offset; n<nsmps; n++) {                       /* do ksmp times   */
           /* Handle a-rate modulation of fco and rez */
           if (p->fcocod) {
-            fco = (double)fcoptr[n];
+            fco = (MYDBL)fcoptr[n];
           }
           if (p->rezcod) {
-            rez = (double)rezptr[n];
+            rez = (MYDBL)rezptr[n];
           }
           if ((p->rezcod == 1) || (p->fcocod == 1)) {
-            theta = fco * (double) CS_TPIDSR;
+            theta = fco * (MYDBL) CS_TPIDSR;
             sin2  = sin(theta) * 0.5;
             cos2  = cos(theta);
             beta  = (rez - sin2) / (rez + sin2);
@@ -1516,7 +1516,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
             alpha = (beta + 1.0) * 0.5;
           }
           mu     = -2.0*cos2;
-          xn     = (double)in[n];       /* Get the next sample */
+          xn     = (MYDBL)in[n];       /* Get the next sample */
           yn     = alpha*(xn + mu*xnm1 + xnm2) + gamma*ynm1 - beta*ynm2;
 
           xnm2   = xnm1;  /* Update Xn-2 */
@@ -1530,13 +1530,13 @@ static int32_t vco(CSOUND *csound, VCO *p)
         for (n=offset; n<nsmps; n++) {                        /* do ksmp times   */
           /* Handle a-rate modulation of fco and rez */
           if (p->fcocod) {
-            fco = (double)fcoptr[n];
+            fco = (MYDBL)fcoptr[n];
           }
           if (p->rezcod) {
-            rez = (double)rezptr[n];
+            rez = (MYDBL)rezptr[n];
           }
           if ((p->rezcod == 1) || (p->fcocod == 1)) {
-            theta = fco * (double) CS_TPIDSR;
+            theta = fco * (MYDBL) CS_TPIDSR;
             sin2 = sin(theta) * 0.5;
             cos2 = cos(theta);
             beta = (rez - sin2) / (rez + sin2);
@@ -1544,7 +1544,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
           }
           chi    = beta;
           mu     = -gamma;
-          xn     = (double)in[n];               /* Get the next sample */
+          xn     = (MYDBL)in[n];               /* Get the next sample */
           yn     = chi*xn + mu*xnm1 + xnm2 + gamma*ynm1 - beta*ynm2;
 
           xnm2   = xnm1;  /* Update Xn-2 */
@@ -1588,8 +1588,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
       MYFLT kfq = *p->kfreq;
       MYFLT kq  = *p->kq;
 
-      double xn, yn, a0=p->a0, a1=p->a1, a2=p->a2,d=p->d;
-      double xnm1 = p->xnm1, ynm1 = p->ynm1, ynm2 = p->ynm2;
+      MYDBL xn, yn, a0=p->a0, a1=p->a1, a2=p->a2,d=p->d;
+      MYDBL xnm1 = p->xnm1, ynm1 = p->ynm1, ynm2 = p->ynm2;
       int32_t    asgfr = IS_ASIG_ARG(p->kfreq), asgq = IS_ASIG_ARG(p->kq);
 
       if (UNLIKELY(kfq>p->limit)) {
@@ -1611,9 +1611,9 @@ static int32_t vco(CSOUND *csound, VCO *p)
         }
         if (asgq) kq = p->kq[n];
         if (lfq != kfq || lq != kq) {
-          double kfreq  = kfq*TWOPI;
-          double kalpha = (CS_ESR/kfreq);
-          double kbeta  = kalpha*kalpha;
+          MYDBL kfreq  = kfq*TWOPI;
+          MYDBL kalpha = (CS_ESR/kfreq);
+          MYDBL kbeta  = kalpha*kalpha;
           d      = 0.5*kalpha;
 
           lq = kq; lfq = kfq;
@@ -1621,7 +1621,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
           a1     = a0 * (1.0-2.0*kbeta);
           a2     = a0 * (kbeta-d/kq);
         }
-        xn = (double)p->ain[n];
+        xn = (MYDBL)p->ain[n];
 
         yn = a0*xnm1 - a1*ynm1 - a2*ynm2;
 

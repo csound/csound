@@ -23,7 +23,7 @@
 /* ------ oscils, lphasor, and tablexkt by Istvan Varga (Jan 5 2002) ------ */
 
 #include "csoundCore.h"
-#include <math.h>
+
 #define CSOUND_OSCILS_C 1
 #include "oscils.h"
 
@@ -47,10 +47,10 @@
 /*          generated, respectively.                      */
 /* -------- written by Istvan Varga, Jan 28 2002 -------- */
 
-static void init_sine_gen(double a, double f, double p,
-                           double *x, double *c, double *v)
+static void init_sine_gen(MYDBL a, MYDBL f, MYDBL p,
+                           MYDBL *x, MYDBL *c, MYDBL *v)
 {
-    double  y0, y1;                 /* these should be doubles */
+    MYDBL  y0, y1;                 /* these should be MYDBLs */
 
     y0 = sin(p);
     y1 = sin(p + f);
@@ -69,11 +69,11 @@ int32_t oscils_set(CSOUND *csound, OSCILS *p)
 
     iflg = (int32_t) (*(p->iflg) + FL(0.5)) & 0x07; /* check flags */
     if (UNLIKELY(iflg & 1)) return OK;          /* skip init, nothing to do */
-    p->use_double = (iflg & 2 ? 1 : 0);         /* use doubles internally */
-    init_sine_gen((double)*(p->iamp), (double)(*(p->icps) * CS_TPIDSR),
-                  (double)(*(p->iphs) * TWOPI_F),
+    p->use_MYDBL = (iflg & 2 ? 1 : 0);         /* use MYDBLs internally */
+    init_sine_gen((MYDBL)*(p->iamp), (MYDBL)(*(p->icps) * CS_TPIDSR),
+                  (MYDBL)(*(p->iphs) * TWOPI_F),
                    &(p->xd), &(p->cd), &(p->vd));
-    if (!(p->use_double)) {
+    if (!(p->use_MYDBL)) {
       p->x = (MYFLT) p->xd;       /* use floats */
       p->c = (MYFLT) p->cd;
       p->v = (MYFLT) p->vd;
@@ -90,7 +90,7 @@ int32_t oscils(CSOUND *csound, OSCILS *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *ar, x, c, v;
-    double  xd, cd, vd;
+    MYDBL  xd, cd, vd;
 
     /* copy object data to local variables */
     ar = p->ar;
@@ -100,7 +100,7 @@ int32_t oscils(CSOUND *csound, OSCILS *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    if (p->use_double) {            /* use doubles */
+    if (p->use_MYDBL) {            /* use MYDBLs */
       xd = p->xd; cd = p->cd; vd = p->vd;
       for (n=offset; n<nsmps; n++) {
         ar[n] = (MYFLT) xd;
@@ -128,9 +128,9 @@ int32_t lphasor_set(CSOUND *csound, LPHASOR *p)
     IGN(csound);
     if (UNLIKELY(*(p->istor) != FL(0.0))) return OK;       /* nothing to do */
 
-    p->phs = (double)*(p->istrt);                          /* start phase */
-    p->lps = (double)*(p->ilps);                           /* loop start */
-    p->lpe = (double)*(p->ilpe);                           /* loop end */
+    p->phs = (MYDBL)*(p->istrt);                          /* start phase */
+    p->lps = (MYDBL)*(p->ilps);                           /* loop start */
+    p->lpe = (MYDBL)*(p->ilpe);                           /* loop end */
     p->loop_mode = (int32_t) (*(p->imode) + FL(0.5)) & 0x03;   /* loop mode */
     if (p->lpe <= p->lps) p->loop_mode = 0;                /* disable loop */
     p->dir = 1;                                            /* direction */
@@ -147,7 +147,7 @@ int32_t lphasor(CSOUND *csound, LPHASOR *p)
     uint32_t n, nsmps = CS_KSMPS;
     int32_t loop_mode, dir;
     MYFLT   *ar, *xtrns;
-    double  trns, phs, lps, lpe, lpt;
+    MYDBL  trns, phs, lps, lpe, lpt;
     int32_t     assxtr = IS_ASIG_ARG(p->xtrns);
 
     /* copy object data to local variables */
@@ -155,7 +155,7 @@ int32_t lphasor(CSOUND *csound, LPHASOR *p)
     phs = p->phs; lps = p->lps; lpe = p->lpe;
     lpt = lpe - lps;
     loop_mode = p->loop_mode;
-    trns = (double)*xtrns;
+    trns = (MYDBL)*xtrns;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -163,20 +163,20 @@ int32_t lphasor(CSOUND *csound, LPHASOR *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      if (assxtr) trns = (double)xtrns[n];
+      if (assxtr) trns = (MYDBL)xtrns[n];
       ar[n] = (MYFLT) phs;
       phs += (p->dir ? trns : -trns);
       if (loop_mode) {
         dir = (trns < 0.0 ? !(p->dir) : p->dir);
         if (dir && (phs >= lpe)) {
-          phs += lpt * (double)((int32_t)((lps - phs) / lpt));
+          phs += lpt * (MYDBL)((int32_t)((lps - phs) / lpt));
           if (loop_mode & 2) {
             phs = lps + lpe - phs;  /* reverse direction */
             p->dir = !(p->dir);
           }
         }
         else if (!dir && (phs <= lps)) {
-          phs += lpt * (double)((int32_t)((lpe - phs) / lpt));
+          phs += lpt * (MYDBL)((int32_t)((lpe - phs) / lpt));
           if (loop_mode & 1) {
             phs = lps + lpe - phs;  /* reverse direction */
             p->dir = !(p->dir);
@@ -222,7 +222,7 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t i, wsize, wsized2, wrap_ndx, warp;
-    double  ndx, d, x, c, v, flen_d, onedpi_d, pidwarp_d;
+    MYDBL  ndx, d, x, c, v, flen_d, onedpi_d, pidwarp_d;
     int32_t ndx_i=0, flen;
     MYFLT   *ar, *xndx, ndx_f, a0, a1, a2, a3, v0, v1, v2, v3, *ftable;
     MYFLT   onedwarp, win_fact;
@@ -242,7 +242,7 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
       return NOTOK;     /* invalid table */
     if (UNLIKELY((ftable = ftp->ftable) == NULL)) return NOTOK;
     flen = ftp->flen;               /* table length */
-    flen_d = (double)flen;
+    flen_d = (MYDBL)flen;
 
     /* copy object data to local variables */
     ar = p->ar;
@@ -251,11 +251,11 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
     if ((wsize > 4) && UNLIKELY((*(p->kwarp) > FL(1.001)))) {
       warp = 1;                     /* enable warp */
       onedwarp = FL(1.0) / *(p->kwarp);
-      pidwarp_d = PI / (double)*(p->kwarp);
+      pidwarp_d = PI / (MYDBL)*(p->kwarp);
       /* correct window for kwarp */
-      x = v = (double)wsized2; x *= x; x = 1.0 / x;
-      v *= (double)onedwarp; v -= (double)((int32_t)v) + 0.5; v *= 4.0 * v;
-      win_fact = (MYFLT)(((double)p->win_fact - x) * v + x);
+      x = v = (MYDBL)wsized2; x *= x; x = 1.0 / x;
+      v *= (MYDBL)onedwarp; v -= (MYDBL)((int32_t)v) + 0.5; v *= 4.0 * v;
+      win_fact = (MYFLT)(((MYDBL)p->win_fact - x) * v + x);
     }
     else {
       warp = 0; onedwarp = FL(0.0); pidwarp_d = 0.0;
@@ -269,16 +269,16 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      ndx = (double)*xndx;
+      ndx = (MYDBL)*xndx;
       if (asgx) xndx++;
       /* calculate table index */
       if (!(p->raw_ndx)) {
-        ndx += (double)*(p->ixoff);
+        ndx += (MYDBL)*(p->ixoff);
         if (p->ndx_scl) ndx *= flen_d;
       }
       /* integer and fractional part of table index */
       ndx_i = (int32_t)ndx;
-      ndx_f = (MYFLT) (ndx - (double)ndx_i);
+      ndx_f = (MYFLT) (ndx - (MYDBL)ndx_i);
       if (ndx_f < FL(0.0)) {
         ndx_f++; ndx_i--;
        }
@@ -323,9 +323,9 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
           break;
         default:                    /* ---- sinc interpolation ---- */
           ar[n] = FL(0.0);        /* clear output */
-          ndx = (double)ndx_f;
+          ndx = (MYDBL)ndx_f;
           ndx_i += (int32_t)(1 - wsized2);
-          d = (double)(1 - wsized2) - ndx;
+          d = (MYDBL)(1 - wsized2) - ndx;
           if (warp) {           /* ---- warp enabled ---- */
             init_sine_gen(onedpi_d, pidwarp_d, pidwarp_d * d, &x, &c, &v);
             /* samples -(window size / 2 - 1) to -1 */

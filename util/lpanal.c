@@ -29,7 +29,7 @@
 #ifndef WIN32
 #include <unistd.h>
 #endif
-#include <math.h>
+
 
 /* LPC analysis, modified by BV 8'92 for linkage to audio files via soundin.c.
  * Currently set for maximum of 50 poles, & max anal segment of 1000 samples,
@@ -46,8 +46,8 @@
 
 typedef struct {
   int32_t poleCount, WINDIN, debug, verbose, doPitch;
-  double  *x;
-  double  (*a)[MAXPOLES];
+  MYDBL  *x;
+  MYDBL  (*a)[MAXPOLES];
   WINDAT   pwindow;
   // for new lpred method
   int32_t newmethod;
@@ -75,15 +75,15 @@ typedef struct {
   MYFLT    w31, w32;                  /* Initialised to zero by calloc */
   MYFLT    w41/*, w42*/;              /* Initialised to zero by calloc */
   int32_t  firstcall, tencount;       /* Initialised to zero by calloc */
-  MYFLT   *Dwind_dbuf, *Dwind_end1;   /* double buffer for downsamps   */
+  MYFLT   *Dwind_dbuf, *Dwind_end1;   /* MYDBL buffer for downsamps   */
   MYFLT   *dbp1, *dbp2;
 } LPANAL_GLOBALS;
 
 /* Forward declaration */
 
 static  void    alpol(CSOUND *, LPC *, MYFLT *,
-                      double *, double *, double *, double *);
-static  void    gauss(LPC *, double (*)[MAXPOLES], double*, double*);
+                      MYDBL *, MYDBL *, MYDBL *, MYDBL *);
+static  void    gauss(LPC *, MYDBL (*)[MAXPOLES], MYDBL*, MYDBL*);
 static  void    quit(CSOUND *, char *), lpdieu(CSOUND *, char *);
 static  void    usage(CSOUND *);
 static  void    ptable(CSOUND *, MYFLT, MYFLT, MYFLT, int32_t, LPANAL_GLOBALS*);
@@ -94,7 +94,7 @@ static  MYFLT   getpch(CSOUND *, MYFLT *, LPANAL_GLOBALS*);
     if (UNLIKELY(!(--argc) || (((s = *++argv)!=0) && *s == '-')))       \
       lpdieu(csound, MSG);
 
-#include <math.h>
+
 #include <stdio.h>
 #ifndef TRUE
 #define TRUE (1)
@@ -112,14 +112,14 @@ static  MYFLT   getpch(CSOUND *, MYFLT *, LPANAL_GLOBALS*);
  *
  */
 
-static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
-                     int32_t *pt, int32_t itmax, int32_t *indic, double *work)
+static void polyzero(int32_t n, MYDBL *a, MYDBL *zerore, MYDBL *zeroim,
+                     int32_t *pt, int32_t itmax, int32_t *indic, MYDBL *work)
 {
-    double        u, v, w, k, m, f, fm, fc, xm, ym, xr, yr, xc, yc;
-    double        dx, dy, term, factor;
+    MYDBL        u, v, w, k, m, f, fm, fc, xm, ym, xr, yr, xc, yc;
+    MYDBL        dx, dy, term, factor;
     int32_t       n1, i, j, p, iter;
     unsigned char conv;
-    double        tmp;
+    MYDBL        tmp;
 
     factor = 1.0;
 
@@ -131,7 +131,7 @@ static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
 
     /* for (i=0; i<=n; i++) */
     /*   work[i+1] = a[i]; */
-    memcpy(&work[1], a, (n+1)*sizeof(double));
+    memcpy(&work[1], a, (n+1)*sizeof(MYDBL));
     *indic = 0;
     *pt = 0;
     n1 = n;
@@ -151,7 +151,7 @@ static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
         fm = fc;
         xm = 0.0;
         ym = 0.0;
-        dx = pow(fabs(a[n]/a[0]),(1.0/((double)n1)));
+        dx = pow(fabs(a[n]/a[0]),(1.0/((MYDBL)n1)));
         dy = 0.0;
         iter = 0;
         conv = FALSE;
@@ -264,13 +264,13 @@ static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
  */
 
 static void synthetize(int32_t poleCount,
-                       double *poleReal,
-                       double *poleImag,
-                       double *polyReal,
-                       double *polyImag)
+                       MYDBL *poleReal,
+                       MYDBL *poleImag,
+                       MYDBL *polyReal,
+                       MYDBL *polyImag)
 {
     int32_t  j, k;
-    double   pr, pi, cr, ci;
+    MYDBL   pr, pi, cr, ci;
 
     polyReal[0] = 1;
     polyImag[0] = 0;
@@ -305,10 +305,10 @@ static void synthetize(int32_t poleCount,
 
 #endif
 
-static void InvertPoles(int32_t count, double *real, double *imag)
+static void InvertPoles(int32_t count, MYDBL *real, MYDBL *imag)
 {
     int32_t    i;
-    double pr,pi,mag;
+    MYDBL pr,pi,mag;
 
     for (i=0; i<count; i++) {
       pr = real[i];
@@ -322,7 +322,7 @@ static void InvertPoles(int32_t count, double *real, double *imag)
 #ifdef TRACE_POLES
 
 static void DumpPoles(CSOUND *csound,
-                      int32_t poleCount, double *part1, double *part2,
+                      int32_t poleCount, MYDBL *part1, MYDBL *part2,
                       int32_t isMagn, char *where)
 {
     int32_t i;
@@ -352,7 +352,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     MYFLT   *coef, beg_time, input_dur, sr = FL(0.0);
     char    *infilnam, *outfilnam;
     int32_t     ofd;
-    double  errn, rms1, rms2, filterCoef[MAXPOLES+1];
+    MYDBL  errn, rms1, rms2, filterCoef[MAXPOLES+1];
     MYFLT   *sigbuf, *sigbuf2;      /* changed from short */
     int64_t    n;
     uint32_t     osiz, nb;
@@ -367,11 +367,11 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     int32_t     i, j, indic, storePoles;
     int32_t     poleFound;
-    double  pr, pi, pm, pp, dPI;
-    double  polePart1[MAXPOLES], polePart2[MAXPOLES];
-    double  z1, workArray1[MAXPOLES];
+    MYDBL  pr, pi, pm, pp, dPI;
+    MYDBL  polePart1[MAXPOLES], polePart2[MAXPOLES];
+    MYDBL  z1, workArray1[MAXPOLES];
 #ifdef _DEBUG
-    double  polyReal[MAXPOLES], polyImag[MAXPOLES];
+    MYDBL  polyReal[MAXPOLES], polyImag[MAXPOLES];
 #endif
     LPANAL_GLOBALS *lpg;
     int32_t new_format=0;
@@ -579,10 +579,10 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
       lph->headersize = LPBUFSIZ;
 
     /* Write header to disk */
-    if (new_format) {           /* ****This is not accurate wrt doubles**** */
+    if (new_format) {           /* ****This is not accurate wrt MYDBLs**** */
       fprintf(oFd, "LPANAL\n%d %d %d %d\n%a %a %a\n",
               lph->headersize, lph->lpmagic, lph->npoles, lph->nvals,
-              (double)lph->framrate, (double)lph->srate, (double)lph->duration);
+              (MYDBL)lph->framrate, (MYDBL)lph->srate, (MYDBL)lph->duration);
     }
     else if ((nb = (int32_t) write(ofd,(char *)lph,(int32_t)lph->headersize)) <
         lph->headersize)
@@ -616,10 +616,10 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                     "pitch: 0000.00   ", 0, "LPC/POLES");
 #endif
     /* Space for a array */
-    lpc.a = (double (*)[MAXPOLES])
-      csound->Malloc(csound, MAXPOLES * MAXPOLES * sizeof(double));
-    lpc.x = (double *) csound->Malloc(csound,   /* alloc a double array */
-                                      lpc.WINDIN * sizeof(double));
+    lpc.a = (MYDBL (*)[MAXPOLES])
+      csound->Malloc(csound, MAXPOLES * MAXPOLES * sizeof(MYDBL));
+    lpc.x = (MYDBL *) csound->Malloc(csound,   /* alloc a MYDBL array */
+                                      lpc.WINDIN * sizeof(MYDBL));
 #ifdef TRACE
     csound->FileOpen(csound, &trace, CSFILE_STD, "lpanal.trace", "w", NULL,
                       CSFTYPE_OTHER_TEXT, 0);
@@ -634,7 +634,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     /* Do the analysis */
     do {
       MYFLT *fp1;
-      double *dfp;
+      MYDBL *dfp;
 
       /* Analyze current frame */
 #ifdef TRACE_POLES
@@ -750,7 +750,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
       if (new_format) {
         uint32_t i, j;
         for (i=0, j=0; i<osiz; i+=sizeof(MYFLT), j++)
-          fprintf(oFd, "%a\n", (double)coef[j]);
+          fprintf(oFd, "%a\n", (MYDBL)coef[j]);
       }
       else
         if (UNLIKELY((nb = (int32_t) write(ofd, (char *)coef, osiz)) != osiz))
@@ -809,27 +809,27 @@ static MYFLT noise(MYFLT a) {
  *
  */
 
-static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
-                  double *rms1, double *rms2, double *b)
+static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, MYDBL *errn,
+                  MYDBL *rms1, MYDBL *rms2, MYDBL *b)
                                         /* sig now MYFLT */
                                         /* b filled here */
 {
   if(!thislp->newmethod) {
-    double v[MAXPOLES];
-    double *xp;
-    double sum, sumx, sumy;
+    MYDBL v[MAXPOLES];
+    MYDBL *xp;
+    MYDBL sum, sumx, sumy;
     int32_t i, j, k, limit;
 
    /* Transfer signal in x array */
     for (xp=thislp->x; xp-thislp->x < thislp->WINDIN;++xp,++sig) {
       /* VL 24.06.21 - adding a little noise to allow pole analysis
          to be carried out with silences */
-      *xp = (double) *sig + (thislp->storePoles ? noise(0.0001) : 0.);
+      *xp = (MYDBL) *sig + (thislp->storePoles ? noise(0.0001) : 0.);
     }
 
    /* Build system to be solved */
     for (i=0; i < thislp->poleCount;++i) {
-      sum = (double) 0.0;
+      sum = (MYDBL) 0.0;
       for (k=thislp->poleCount; k < thislp->WINDIN;++k)
         sum += thislp->x[k-(i+1)] * thislp->x[k];
       v[i] = -sum;
@@ -889,10 +889,10 @@ static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
  *
  */
 static void gauss(LPC* thislp,
-                  double (*a/*old*/)[MAXPOLES], double *bold, double b[])
+                  MYDBL (*a/*old*/)[MAXPOLES], MYDBL *bold, MYDBL b[])
 {
-    double amax, dum, pivot;
-    double c[MAXPOLES];
+    MYDBL amax, dum, pivot;
+    MYDBL c[MAXPOLES];
     int32_t i, j, k, l, istar=-1, ii, lp;
 
     /* bold untouched by this subroutine */
@@ -906,7 +906,7 @@ static void gauss(LPC* thislp,
     for (i=0; i < thislp->poleCount - 1;++i)  {        /* find largest pivot */
       amax = 0.0;
       for (ii=i; ii < thislp->poleCount;++ii)  {
-        double npq = fabs(a[ii][i]);
+        MYDBL npq = fabs(a[ii][i]);
         if (npq >= amax)  {
           istar = ii;
           amax = npq;
@@ -1021,8 +1021,8 @@ static void trigpo(MYFLT omega,
 /* dimensions:   phi[NN][HWIN], psi[NP][HWIN], gamphi[NN], gampsi[NP]  */
 {
     int32_t    j=0, k, np;
-    double alpha, beta, gamma, wcos[HWIN], wsin[HWIN];
-    double p, z, a, b, yy;
+    MYDBL alpha, beta, gamma, wcos[HWIN], wsin[HWIN];
+    MYDBL p, z, a, b, yy;
 
     np = n+1;
     for (k=0;  k<lpg->Hwind;  ++k) {
@@ -1065,7 +1065,7 @@ static void trigpo(MYFLT omega,
       b = 2.0 *alpha/gamphi[j-1];
     }
     beta = 0.0;
-    gamma = (double) lpg->Hwind;
+    gamma = (MYDBL) lpg->Hwind;
     for ( k=0; k < lpg->Hwind;  ++k) {
       beta += wcos[k];
       psi[0][k] = FL(1.0);

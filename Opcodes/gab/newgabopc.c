@@ -79,14 +79,14 @@ typedef struct  {
   int64_t    tablen;
   MYFLT   fsr;
   MYFLT *ft; /*table */
-  double  phs, fsrUPsr /* , looplength */;
+  MYDBL  phs, fsrUPsr /* , looplength */;
   int64_t    phs_int;
 } LPOSC_ST;
 
 static int32_t lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
 {
   FUNC *ftp;
-  double  loop, end, looplength, fsr;
+  MYDBL  loop, end, looplength, fsr;
   if (UNLIKELY((ftp = csound->FTFind(csound, p->ift)) == NULL))
     return csound->InitError(csound, "%s", Str("invalid function"));
   if (UNLIKELY(!(fsr = ftp->gen01args.sample_rate))) {
@@ -117,7 +117,7 @@ static int32_t lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
 static int32_t lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
 {
   IGN(csound);
-  double  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
+  MYDBL  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
   MYFLT   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
   MYFLT   *ft =  p->ft;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -140,7 +140,7 @@ static int32_t lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
     memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n=offset; n<nsmps; n++) {
-    double fract;
+    MYDBL fract;
     MYFLT *curr_samp1 = ft + (int64_t) *phs * 2;
     MYFLT *curr_samp2 = curr_samp1 +1;
     fract= *phs - (int64_t) *phs;

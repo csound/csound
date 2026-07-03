@@ -30,7 +30,7 @@
 #include "interlocks.h"
 #endif
 
-#include <math.h>
+
 
 /*  Wave-terrain synthesis opcode
  *
@@ -67,7 +67,7 @@ typedef struct {
   MYFLT *xarr, *yarr;           /* Actual tables */
 
   MYFLT sizx, sizy;
-  double theta;
+  MYDBL theta;
 
 } WAVETER;
 
@@ -90,7 +90,7 @@ static void rotate_point(MYFLT  cx, MYFLT  cy, MYFLT  angle, MYFLT *x, MYFLT *y)
 /* the normal eclipse function with center kx,ky and radius krx and kry */
 
 static void ellipse(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
-    double x = t+kparam*SIN(t);
+    MYDBL x = t+kparam*SIN(t);
     *outX = kx + krx * SIN(x);
     *outY = ky + kry * COS(x);
 }
@@ -108,7 +108,7 @@ static void limacon(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kpa
 /* a simple 8 */
 
 static void lemniskateG(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
-    double x = t+kparam*SIN(t);
+    MYDBL x = t+kparam*SIN(t);
     *outX = kx + krx * COS(x);
     *outY = ky + kry * SIN(x)*COS(x);
 }
@@ -138,16 +138,16 @@ static void scarabeus(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT k
 }
 /* folium see http://www.2dcurves.com/quartic/quarticfo.html */
 static void folium(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
-    double sint = SIN(t);
-    double cost = COS(t);
+    MYDBL sint = SIN(t);
+    MYDBL cost = COS(t);
     *outX = kx + krx * cost * cost * (sint*sint - kparam);
     *outY = ky + kry * sint * cost * (sint*sint - kparam);
 }
 
 /* talbot see http://www.2dcurves.com/trig/trigta.html */
 static void talbot(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
-    double sint = SIN(t);
-    double cost = COS(t);
+    MYDBL sint = SIN(t);
+    MYDBL cost = COS(t);
     *outX = kx + krx * cost * (1 + kparam * sint*sint);
     *outY = ky + kry * sint * (1 - kparam - kparam*cost*cost);
 }

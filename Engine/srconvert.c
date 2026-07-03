@@ -86,8 +86,8 @@ static void src_linear_deinit(CSOUND *csound, SR_CONVERTER *pp) {
   csound->Free(csound, pp);
 }
 
-static inline double mod1(double x){
-  double r;
+static inline MYDBL mod1(MYDBL x){
+  MYDBL r;
   r = x - MYFLT2LRND(x) ;
   if (r < 0.0) return r + 1.0 ;
   return r;

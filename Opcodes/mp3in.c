@@ -328,7 +328,7 @@ typedef struct dats{
   MYFLT *out1,*out2,*kstamp, *knum, *time,*kpitch, *kamp, *skip, *iN,
     *idecim, *klock,*kinterp;
   int32_t cnt, hsize, curframe, N, decim,tscale;
-  double pos;
+  MYDBL pos;
   MYFLT accum;
   AUXCH outframe[MP3_CHNS], win, bwin[MP3_CHNS], fwin[MP3_CHNS],
     nwin[MP3_CHNS], prev[MP3_CHNS], framecount[MP3_CHNS], fdata[MP3_CHNS], buffer;
@@ -338,7 +338,7 @@ typedef struct dats{
   mp3dec_t mpa;
   FDCH    fdch;
   MYFLT resamp;
-  double tstamp, incr;
+  MYDBL tstamp, incr;
   int32_t initDone;
   uint32_t bufused;
   int32_t finished;
@@ -369,7 +369,7 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
   uint32_t i;
   uint32_t size;
   int32_t  decim = *p->idecim;
-  /*double dtime;
+  /*MYDBL dtime;
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     dtime = ts.tv_sec + 1e-9*ts.tv_nsec;*/
@@ -444,7 +444,7 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
                              MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                              0.0 };
   mpadec_info_t mpainfo;
-  /*double dtime;
+  /*MYDBL dtime;
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     dtime = ts.tv_sec + 1e-9*ts.tv_nsec;*/
@@ -621,7 +621,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
   int32_t N = p->N, hsize = p->hsize, cnt = p->cnt;
   int32_t  nsmps = CS_KSMPS, n;
   int32_t size = (int32_t) p->fdata[0].size/sizeof(MYFLT), post, i, j;
-  double pos, spos = p->pos;
+  MYDBL pos, spos = p->pos;
   MYFLT *fwin, *bwin;
   MYFLT in, *prev;
   MYFLT *win = (MYFLT *) p->win.auxp, *outframe;
@@ -629,8 +629,8 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
   int32_t *framecnt, curframe = p->curframe;
   int32_t decim               = p->decim;
   int32_t interp              = *p->kinterp;
-  double tstamp               = p->tstamp, incrt = p->incr;
-  double amp                  = *p->kamp*csound->Get0dBFS(csound)*(8./decim)/3.;
+  MYDBL tstamp               = p->tstamp, incrt = p->incr;
+  MYDBL amp                  = *p->kamp*csound->Get0dBFS(csound)*(8./decim)/3.;
   int32_t curbuf              = p->curbuf;
   AUXCH *mfwin = p->fwin,
     *mbwin = p->bwin,

@@ -981,7 +981,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
      if (var->varType == &CS_VAR_TYPE_ARRAY) {
         char *res = create_array_arg_type(csound, var);
-        if (res==NULL) {        /* **REVIEW** this double syntax error */
+        if (res==NULL) {        /* **REVIEW** this MYDBL syntax error */
           synterr(csound, Str("Array of unknown type at line %d\n"), tree->line);
           do_baktrace(csound, tree->locn);
         }
@@ -3780,10 +3780,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
            current->right->type == NUMBER_TOKEN)) {
         MYFLT lval, rval;
         lval = (current->left->type == INTEGER_TOKEN ?
-                (double)current->left->value->value :
+                (MYDBL)current->left->value->value :
                 current->left->value->fvalue);
         rval = (current->right->type == INTEGER_TOKEN ?
-                (double)current->right->value->value :
+                (MYDBL)current->right->value->value :
                 current->right->value->fvalue);
         switch (current->type) {
         case '+':

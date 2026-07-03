@@ -157,7 +157,7 @@ static int32_t pvlook(CSOUND *csound, int32_t argc, char *argv[])
     pvlook_print(&p, "; File name\t%s\n", argv[argc - 1]);
     pvlook_print(&p, "; Channels\t%d\n", nchnls);
     pvlook_print(&p, "; Word Format\t%s\n",
-                 data.wWordFormat == PVOC_IEEE_FLOAT ? "float" : "double");
+                 data.wWordFormat == PVOC_IEEE_FLOAT ? "float" : "MYDBL");
     pvlook_print(&p, "; Frame Type\t%s\n",
                  data.wAnalFormat == PVOC_AMP_FREQ ? "Amplitude/Frequency" :
                  data.wAnalFormat == PVOC_AMP_PHASE ? "Amplitude/Phase" :

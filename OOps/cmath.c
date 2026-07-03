@@ -25,7 +25,7 @@
 
 #include "csoundCore.h"
 #include "cmath.h"
-#include <math.h>
+
 
 int32_t ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
 {
@@ -75,7 +75,7 @@ int32_t apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
 int32_t seedrand(CSOUND *csound, PRAND *p)
 {
     uint32_t  seedVal = (uint32_t)0;
-    int32_t xx = (int32_t)((double)*p->out + 0.5);
+    int32_t xx = (int32_t)((MYDBL)*p->out + 0.5);
     int32_t *holdrand = (int32_t *) csound->QueryGlobalVariable(csound, "::HOLDRAND::");
 
     if (xx > FL(0.0))
@@ -106,7 +106,7 @@ int32_t getseed(CSOUND *csound, GETSEED *p)
 
 /* * * * * * RANDOM NUMBER GENERATORS * * * * * */
 
-#define UInt32toFlt(x) ((double)(x) * (1.0 / 4294967295.03125))
+#define UInt32toFlt(x) ((MYDBL)(x) * (1.0 / 4294967295.03125))
 
 #define unirand(c) ((MYFLT) UInt32toFlt(csoundRandMT(&((c)->randState_))))
 
@@ -136,7 +136,7 @@ static inline MYFLT trirand(CSOUND *csound, MYFLT range)
     r1 = (uint64_t)csoundRandMT(&(csound->randState_));
     r1 += (uint64_t)csoundRandMT(&(csound->randState_));
 
-    return ((MYFLT) ((double)((int64_t)r1 - (int64_t)0xFFFFFFFFU)
+    return ((MYFLT) ((MYDBL)((int64_t)r1 - (int64_t)0xFFFFFFFFU)
                      * (1.0 / 4294967295.03125)) * range);
 }
 
@@ -177,13 +177,13 @@ static MYFLT gaussrand(CSOUND *csound, MYFLT s)
 {
     int64_t   r1 = -((int64_t)0xFFFFFFFFU * 6);
     int32_t       n = 12;
-    double    x;
+    MYDBL    x;
 
     do {
       r1 += (int64_t)csoundRandMT(&(csound->randState_));
     } while (--n);
-    x = (double)r1;
-    return (MYFLT)(x * ((double)s * (1.0 / (3.83 * 4294967295.03125))));
+    x = (MYDBL)r1;
+    return (MYFLT)(x * ((MYDBL)s * (1.0 / (3.83 * 4294967295.03125))));
 }
 
 /* cauchy distribution routine */
@@ -219,12 +219,12 @@ static MYFLT pcauchrand(CSOUND *csound, MYFLT a)
 
 static MYFLT betarand(CSOUND *csound, MYFLT range, MYFLT a, MYFLT b)
 {
-    double  r1, r2;
-    double aa, bb;
+    MYDBL  r1, r2;
+    MYDBL aa, bb;
     if (UNLIKELY(a <= FL(0.0) || b <= FL(0.0)))
       return FL(0.0);
 
-    aa = (double)a; bb = (double)b;
+    aa = (MYDBL)a; bb = (MYDBL)b;
     do {
       uint32_t  tmp;
       do {
@@ -245,7 +245,7 @@ static MYFLT betarand(CSOUND *csound, MYFLT range, MYFLT a, MYFLT b)
 static MYFLT weibrand(CSOUND *csound, MYFLT s, MYFLT t)
 {
     uint32_t  r1;
-    double    r2;
+    MYDBL    r2;
 
     if (UNLIKELY(t <= FL(0.0))) return FL(0.0);
 
@@ -253,9 +253,9 @@ static MYFLT weibrand(CSOUND *csound, MYFLT s, MYFLT t)
       r1 = csoundRandMT(&(csound->randState_));
     } while (!r1 || r1 == (uint32_t)0xFFFFFFFFU);
 
-    r2 = 1.0 - ((double)r1 * (1.0 / 4294967295.0));
+    r2 = 1.0 - ((MYDBL)r1 * (1.0 / 4294967295.0));
 
-    return (s * (MYFLT)pow(-(log(r2)), (1.0 / (double)t)));
+    return (s * (MYFLT)pow(-(log(r2)), (1.0 / (MYDBL)t)));
 }
 
 /* Poisson distribution routine */
@@ -286,7 +286,7 @@ int32_t auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    double  scale = (double)*p->arg1 * (1.0 / 4294967295.03125);
+    MYDBL  scale = (MYDBL)*p->arg1 * (1.0 / 4294967295.03125);
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -294,7 +294,7 @@ int32_t auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      out[n] = (MYFLT)((double)csoundRandMT(&(csound->randState_)) * scale);
+      out[n] = (MYFLT)((MYDBL)csoundRandMT(&(csound->randState_)) * scale);
     }
     return OK;
 }

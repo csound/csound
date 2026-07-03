@@ -654,8 +654,8 @@ static int32_t gen09(FGDATA *ff, FUNC *ftp)
 {
     int32_t     hcnt;
     MYFLT   *valp, *fp, *finp;
-    double  phs, inc, amp;
-    double  tpdlen = TWOPI / (double) ff->flen;
+    MYDBL  phs, inc, amp;
+    MYDBL  tpdlen = TWOPI / (MYDBL) ff->flen;
 
 
     if ((hcnt = (ff->e.pcnt - 4) / 3) <= 0)         /* hcnt = nargs / 3 */
@@ -681,7 +681,7 @@ static int32_t gen10(FGDATA *ff, FUNC *ftp)
     int32   phs, hcnt;
     MYFLT   amp, *fp, *finp;
     int32   flen = ff->flen;
-    double  tpdlen = TWOPI / (double) flen;
+    MYDBL  tpdlen = TWOPI / (MYDBL) flen;
 
 
     hcnt = ff->e.pcnt - 4;                              /* hcnt is nargs    */
@@ -703,7 +703,7 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
 {
     MYFLT   *fp, *finp;
     int32    phs;
-    double  x;
+    MYDBL  x;
     MYFLT   denom, r, scale;
     int32_t     n, k;
     int32_t     nargs = ff->e.pcnt - 4;
@@ -735,7 +735,7 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
       }
     }
     else {                                   /* complex "gbuzz" case */
-      double  tpdlen = TWOPI / (double) ff->flen;
+      MYDBL  tpdlen = TWOPI / (MYDBL) ff->flen;
       MYFLT   numer, twor, rsqp1, rtn, rtnp1, absr;
       int32_t     km1, kpn, kpnm1;
 
@@ -750,7 +750,7 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
         scale = FL(1.0) / n;
       else scale = (FL(1.0) - absr) / (FL(1.0) - FABS(rtn));
       for (phs = 0; fp <= finp; phs++) {
-        x = (double) phs * tpdlen;
+        x = (MYDBL) phs * tpdlen;
         numer = (MYFLT)cos(x*k) - r * (MYFLT)cos(x*km1) - rtn*(MYFLT)cos(x*kpn)
                 + rtnp1 * (MYFLT)cos(x*kpnm1);
         if ((denom = rsqp1 - twor * (MYFLT) cos(x)) > FL(0.0001)
@@ -764,17 +764,17 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
 
 static int32_t gen12(FGDATA *ff, FUNC *ftp)
 {
-    static const double coefs[] = { 3.5156229, 3.0899424, 1.2067492,
+    static const MYDBL coefs[] = { 3.5156229, 3.0899424, 1.2067492,
                                     0.2659732, 0.0360768, 0.0045813 };
-    const double *coefp, *cplim = coefs + 6;
-    double  sum, tsquare, evenpowr;
+    const MYDBL *coefp, *cplim = coefs + 6;
+    MYDBL  sum, tsquare, evenpowr;
     int32_t     n;
     MYFLT   *fp;
-    double  xscale;
+    MYDBL  xscale;
 
-    xscale = (double) ff->e.p[5] / ff->flen / 3.75;
+    xscale = (MYDBL) ff->e.p[5] / ff->flen / 3.75;
     for (n = 0, fp = ftp->ftable; n <= ff->flen; n++) {
-      tsquare  = (double) n * xscale;
+      tsquare  = (MYDBL) n * xscale;
       tsquare *= tsquare;
       for (sum = evenpowr = 1.0, coefp = coefs; coefp < cplim; coefp++) {
         evenpowr *= tsquare;
@@ -972,7 +972,7 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     int32_t     cnt, start, finish, fnlen, j;
     MYFLT   *pp = &ff->e.p[5], fn, amp, *fp, *fp18 = ftp->ftable, range, f;
-    double  i;
+    MYDBL  i;
     FUNC    *fnp;
     int32_t     nargs = ff->e.pcnt - 4;
 
@@ -1016,7 +1016,7 @@ static int32_t gen19(FGDATA *ff, FUNC *ftp)
 {
     int32_t     hcnt;
     MYFLT   *valp, *fp, *finp;
-    double  phs, inc, amp, dc, tpdlen = TWOPI / (double) ff->flen;
+    MYDBL  phs, inc, amp, dc, tpdlen = TWOPI / (MYDBL) ff->flen;
     int32_t     nargs = ff->e.pcnt - 4;
 
     if ((hcnt = nargs / 4) <= 0)                /* hcnt = nargs / 4 */
@@ -1043,7 +1043,7 @@ static int32_t gen19(FGDATA *ff, FUNC *ftp)
 static int32_t gen20(FGDATA *ff, FUNC *ftp)
 {
     MYFLT   cf[4], *ft;
-    double  arg, x, xarg, beta = 0.0,varian = 1.0;
+    MYDBL  arg, x, xarg, beta = 0.0,varian = 1.0;
     int32_t     i, nargs = ff->e.pcnt - 4;
 
     ft = ftp->ftable;
@@ -1055,8 +1055,8 @@ static int32_t gen20(FGDATA *ff, FUNC *ftp)
     }
 
     if (nargs > 2) {
-      beta = (double) ff->e.p[7];
-      varian = (double) ff->e.p[7];
+      beta = (MYDBL) ff->e.p[7];
+      varian = (MYDBL) ff->e.p[7];
     }
 
     switch ((int32_t) ff->e.p[5])  {
@@ -1097,9 +1097,9 @@ static int32_t gen20(FGDATA *ff, FUNC *ftp)
         return OK;
     case 7:                     /* Kaiser */
       {
-        double flen2 = 4.0 / ((double) ff->flen * (double) ff->flen);
-        double besbeta = 1.0 / besseli(beta);
-        x = (double) ff->flen * (-0.5) + 1.0;
+        MYDBL flen2 = 4.0 / ((MYDBL) ff->flen * (MYDBL) ff->flen);
+        MYDBL besbeta = 1.0 / besseli(beta);
+        x = (MYDBL) ff->flen * (-0.5) + 1.0;
         ft[0] = ft[ff->flen] = (MYFLT) (xarg * besbeta);
         for (i = 1 ; i < (int32_t) ff->flen ; i++, x += 1.0)
           ft[i] = (MYFLT) (xarg * besseli(beta * sqrt(1.0 - x * x * flen2))
@@ -1154,7 +1154,7 @@ static MYFLT nextval(FILE *f)
  top1:
     if (UNLIKELY(feof(f))) return NAN; /* Hope value is ignored */
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
-      double d;                           /* A number starts */
+      MYDBL d;                           /* A number starts */
       char buff[128];
       int32_t j = 0;
       do {                                /* Fill buffer */
@@ -1500,8 +1500,8 @@ static int32_t gen30(FGDATA *ff, FUNC *ftp)
       }
     }
     else {
-      minh = (int32_t) ((double) minfrac + (i < 10000 ? 0.99 : 0.9));
-      maxh = (int32_t) ((double) maxfrac + (i < 10000 ? 0.01 : 0.1));
+      minh = (int32_t) ((MYDBL) minfrac + (i < 10000 ? 0.99 : 0.9));
+      maxh = (int32_t) ((MYDBL) maxfrac + (i < 10000 ? 0.01 : 0.1));
       minfrac = maxfrac = FL(1.0);
     }
     if (minh > maxh)
@@ -1545,7 +1545,7 @@ static int32_t gen31(FGDATA *ff, FUNC *ftp)
 
     MYFLT   *x, *y, *f1, *f2;
     MYFLT   a, p;
-    double  d_re, d_im, p_re, p_im, ptmp;
+    MYDBL  d_re, d_im, p_re, p_im, ptmp;
     int32_t     i, j, k, n, l1, l2;
     int32_t     nargs = ff->e.pcnt - 4;
     MYFLT   *valp = &ff->e.p[6];
@@ -1582,7 +1582,7 @@ static int32_t gen31(FGDATA *ff, FUNC *ftp)
       }
       if (UNLIKELY(p < FL(0.0))) p += FL(1.0);
       p *= TWOPI_F;
-      d_re = cos((double) p); d_im = sin((double) p);
+      d_re = cos((MYDBL) p); d_im = sin((MYDBL) p);
       p_re = 1.0; p_im = 0.0;   /* init. phase */
       for (i = k = 0; (i < l1 && k <l2); i += (n << 1), k += 2) {
         /* mix to table */
@@ -1622,7 +1622,7 @@ static int32_t gen32(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     MYFLT   *x, *y, *f1, *f2;
     MYFLT   a, p;
-    double  d_re, d_im, p_re, p_im, ptmp;
+    MYDBL  d_re, d_im, p_re, p_im, ptmp;
     int32_t     i, j, k, n, l1, l2, ntabl, *pnum, ft;
     int32_t     nargs = ff->e.pcnt - 4;
 
@@ -1671,20 +1671,20 @@ static int32_t gen32(FGDATA *ff, FUNC *ftp)
       }
       if (i < 0) {              /* use linear interpolation */
         ft = i;
-        p_re  = (double) paccess(ff,pnum[j] + 3);     /* start phase */
-        p_re -= (double) ((int32_t) p_re); if (p_re < 0.0) p_re++;
-        p_re *= (double) l2;
-        d_re  = (double) paccess(ff,pnum[j] + 1);     /* frequency */
-        d_re *= (double) l2 / (double) l1;
+        p_re  = (MYDBL) paccess(ff,pnum[j] + 3);     /* start phase */
+        p_re -= (MYDBL) ((int32_t) p_re); if (p_re < 0.0) p_re++;
+        p_re *= (MYDBL) l2;
+        d_re  = (MYDBL) paccess(ff,pnum[j] + 1);     /* frequency */
+        d_re *= (MYDBL) l2 / (MYDBL) l1;
         a     = paccess(ff,pnum[j] + 2);              /* amplitude */
         for (i = 0; i <= l1; i++) {
-          k = (int32_t) p_re; p = (MYFLT) (p_re - (double) k);
+          k = (int32_t) p_re; p = (MYFLT) (p_re - (MYDBL) k);
           if (k >= l2) k -= l2;
           f1[i] += f2[k++] * a * (FL(1.0) - p);
           f1[i] += f2[k] * a * p;
           p_re += d_re;
-          while (p_re < 0.0) p_re += (double) l2;
-          while (p_re >= (double) l2) p_re -= (double) l2;
+          while (p_re < 0.0) p_re += (MYDBL) l2;
+          while (p_re >= (MYDBL) l2) p_re -= (MYDBL) l2;
         }
       }
       else {                    /* use FFT */
@@ -1707,7 +1707,7 @@ static int32_t gen32(FGDATA *ff, FUNC *ftp)
         a *= csound->GetInverseRealFFTScale(csound, (int32_t) l1);
         p = paccess(ff,pnum[j] + 3);                           /* phase */
         p -= (MYFLT) ((int32_t) p); if (p < FL(0.0)) p += FL(1.0); p *= TWOPI_F;
-        d_re = cos ((double) p); d_im = sin ((double) p);
+        d_re = cos ((MYDBL) p); d_im = sin ((MYDBL) p);
         p_re = 1.0; p_im = 0.0;         /* init. phase */
         if (y != NULL)
           for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
@@ -1822,7 +1822,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
     MYFLT   fmode, *ft, *srcft, scl;
-    double  y0, y1, x, c, v, *xn, *cn, *vn, *tmp, amp, frq, phs;
+    MYDBL  y0, y1, x, c, v, *xn, *cn, *vn, *tmp, amp, frq, phs;
     int32    nh, flen, srclen, i, j, k, l, bs;
     FUNC    *src;
     int32_t     nargs = ff->e.pcnt - 4;
@@ -1860,20 +1860,20 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     /* use blocks of 256 samples (2048 bytes) for speed */
     bs = 256L;
     /* allocate memory for tmp data */
-    tmp = (double*) csound->Malloc(csound, sizeof(double) * bs);
-    xn  = (double*) csound->Malloc(csound, sizeof(double) * (nh + 1L));
-    cn  = (double*) csound->Malloc(csound, sizeof(double) * (nh + 1L));
-    vn  = (double*) csound->Malloc(csound, sizeof(double) * (nh + 1L));
+    tmp = (MYDBL*) csound->Malloc(csound, sizeof(MYDBL) * bs);
+    xn  = (MYDBL*) csound->Malloc(csound, sizeof(MYDBL) * (nh + 1L));
+    cn  = (MYDBL*) csound->Malloc(csound, sizeof(MYDBL) * (nh + 1L));
+    vn  = (MYDBL*) csound->Malloc(csound, sizeof(MYDBL) * (nh + 1L));
     /* initialise oscillators */
     i = -1L;
     while (++i < nh) {
-      amp = (double) scl * (double) *(srcft++);         /* amplitude */
-      frq = (double) fmode * (double) *(srcft++);       /* frequency */
+      amp = (MYDBL) scl * (MYDBL) *(srcft++);         /* amplitude */
+      frq = (MYDBL) fmode * (MYDBL) *(srcft++);       /* frequency */
       if (UNLIKELY(fabs (frq) > PI)) {
         xn[i] = cn[i] = vn[i] = 0.0;
         srcft++; continue;      /* skip partial with too high frequency */
       }
-      phs = TWOPI * (double) *(srcft++);                /* phase */
+      phs = TWOPI * (MYDBL) *(srcft++);                /* phase */
       /* calculate coeffs for fast sine oscillator */
       y0 = sin(phs);           /* sample 0 */
       y1 = sin(phs + frq);     /* sample 1 */
@@ -1889,7 +1889,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     do {
       k = (j > bs ? bs : j);    /* block size */
       /* clear buffer */
-      memset(tmp, 0, k*sizeof(double));
+      memset(tmp, 0, k*sizeof(MYDBL));
       /* for (i = 0L; i < k; i++) tmp[i] = 0.0; */
       /* fast sine oscillator */
       i = -1L;
@@ -2076,7 +2076,7 @@ static void generate_sine_tab(CSOUND *csound)
     int32_t flen = csound->sinelength;
     FUNC    *ftp = (FUNC*) csound->Calloc(csound, sizeof(FUNC));
     ftp->ftable = (MYFLT*) csound->Calloc(csound, sizeof(MYFLT)*(flen+1));
-    double  tpdlen = TWOPI / (double) flen;
+    MYDBL  tpdlen = TWOPI / (MYDBL) flen;
     MYFLT *ftable = ftp->ftable;
     uint32_t i;
     int32_t ltest, lobits;
@@ -2342,7 +2342,7 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
       SFLIB_INSTRUMENT lpd;
       int32_t ans = csound->SndfileCommand(csound,fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT));
       if (ans) {
-        double natcps;
+        MYDBL natcps;
 #ifdef BETA
         if ((csound->oparms_.msglevel & 7) == 7) {
           csoundMessage(csound,
@@ -2361,8 +2361,8 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
                   lpd.loops[1].end, lpd.loops[1].count);
         }
 #endif
-        natcps = pow(2.0, ((double) ((int32_t) lpd.basenote - 69)
-                           + (double) lpd.detune * 0.01) / 12.0) * csound->A4;
+        natcps = pow(2.0, ((MYDBL) ((int32_t) lpd.basenote - 69)
+                           + (MYDBL) lpd.detune * 0.01) / 12.0) * csound->A4;
         ftp->cpscvt = ftp->cvtbas / natcps;
         ftp->loopmode1 = (lpd.loops[0].mode == SF_LOOP_NONE ? 0 :
                           lpd.loops[0].mode == SF_LOOP_FORWARD ? 1 :
@@ -2447,7 +2447,7 @@ static int32_t gen43(FGDATA *ff, FUNC *ftp)
     uint32          framesize, blockalign, bins;
     uint32          frames, i, j;
     float           *framep, *startp;
-    double          accum = 0.0;
+    MYDBL          accum = 0.0;
 
     if (UNLIKELY(nvals != 2)) {
       return csoundFtError(ff, Str("wrong number of ftable arguments"));
@@ -2682,7 +2682,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
                                       int32_t npts, int32_t wpts, int32_t mode)
 {
     MYFLT   *buf1, *buf2;
-    double  tmp;
+    MYDBL  tmp;
     MYFLT   scaleFac;
     int32_t     i, j, npts2 = (npts << 1);
     void *setup;
@@ -2721,11 +2721,11 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     setup = csound->RealFFTSetup(csound, npts2, FFT_FWD);
     csound->RealFFT(csound, setup, buf1);
     for (i = j = 0; i < npts; i++, j += 2) {
-      tmp = (double) buf1[j];
+      tmp = (MYDBL) buf1[j];
       tmp = sqrt(tmp * tmp + 1.0e-20);
       obuf[i] = (MYFLT) tmp;
     }
-    tmp = (double) buf1[1];
+    tmp = (MYDBL) buf1[1];
     tmp = sqrt(tmp * tmp + 1.0e-20);
     obuf[i] = (MYFLT) tmp;
     /* calculate logarithm of magnitude response, */
@@ -2748,11 +2748,11 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     csound->RealFFT(csound, setup, buf1);
     /* convert from magnitude/phase format to real/imaginary */
     for (i = 2; i < npts2; i += 2) {
-      double  ph;
-      ph = (double) buf1[i >> 1] / TWOPI;
+      MYDBL  ph;
+      ph = (MYDBL) buf1[i >> 1] / TWOPI;
       ph = TWOPI * modf(ph, &tmp);
       ph = (ph < 0.0 ? ph + PI : ph - PI);
-      tmp = -((double) scaleFac * (double) obuf[i >> 1]);
+      tmp = -((MYDBL) scaleFac * (MYDBL) obuf[i >> 1]);
       buf2[i] = (MYFLT) (tmp * cos(ph));
       buf2[i + 1] = (MYFLT) (tmp * sin(ph));
     }

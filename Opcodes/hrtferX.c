@@ -56,7 +56,7 @@
 #endif
 #include "interlocks.h"
 #include <stdio.h>
-#include <math.h>
+
 #include <stdlib.h>
 #include "hrtferx.h"
 
@@ -189,14 +189,14 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
     flip = 0;
 
         /* Convert elevation in degrees to elevation array index. */
-    el_index = ROUND((double)(elev - MIN_ELEV) / ELEV_INC);
+    el_index = ROUND((MYDBL)(elev - MIN_ELEV) / ELEV_INC);
     if (el_index < 0)
       el_index = 0;
     else if (el_index >= N_ELEV)
       el_index = N_ELEV-1;
 
         /* Convert azimuth in degrees to azimuth array index. */
-    azim = (int32_t)fmod((double)azim, 360.0);
+    azim = (int32_t)fmod((MYDBL)azim, 360.0);
     if (azim < 0)
       azim += 360;
     if (azim > 180) {
@@ -209,7 +209,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
         /* azim should be 0<=azim<=180 so calculate az_index and clip
            to legal range
            note - accesses global array elevation_data */
-    az_index = ROUND((double)azim / (360.0 / elevation_data[el_index]));
+    az_index = ROUND((MYDBL)azim / (360.0 / elevation_data[el_index]));
     if (az_index < 0)
       az_index = 0;
     else if (az_index >= elevation_data[el_index])

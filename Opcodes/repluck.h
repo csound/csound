@@ -51,7 +51,7 @@ typedef struct  {
 typedef struct{
         OPDS h;
         MYFLT   *result, *ainput, *afr, *ifdbgain;
-        double   LPdelay, APdelay;
+        MYDBL   LPdelay, APdelay;
         MYFLT   *Cdelay;
         AUXCH   aux;
         int32_t     wpointer, rpointer, size;

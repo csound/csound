@@ -25,7 +25,7 @@
 #include "namedins.h"
 #include <stdio.h>
 #include <ctype.h>
-#include <math.h>
+
 
 /* list of environment variables used by Csound */
 static const char *envVar_list[] = {

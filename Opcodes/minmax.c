@@ -36,7 +36,7 @@
 #include "csoundCore.h"
 #endif
 #include "interlocks.h"
-#include <math.h>
+
 
 typedef struct {
     OPDS    h;

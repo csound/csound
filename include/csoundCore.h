@@ -466,9 +466,9 @@ typedef struct {
     /* Set if instr instance is active (perfing) */
     char     actflg;
     /* Time to turn off event, in score beats */
-    double   offbet;
+    MYDBL   offbet;
     /* Time to turn off event, in seconds (negative on indef/tie) */
-    double   offtim;
+    MYDBL   offtim;
     /* pointer to Csound engine and API for externals */
     CSOUND  *csound;
     uint64_t kcounter;
@@ -648,7 +648,7 @@ typedef struct {
     /** file length in sample frames  */
     size_t          nFrames;
     /** sample rate in Hz             */
-    double          sampleRate;
+    MYDBL          sampleRate;
     /** number of channels            */
     int32_t             nChannels;
     /** AE_SHORT, AE_FLOAT, etc.      */
@@ -665,15 +665,15 @@ typedef struct {
      */
     int32_t             loopMode;
     /** playback start offset frames  */
-    double          startOffs;
+    MYDBL          startOffs;
     /** loop start (sample frames)    */
-    double          loopStart;
+    MYDBL          loopStart;
     /** loop end (sample frames)      */
-    double          loopEnd;
+    MYDBL          loopEnd;
     /** base frequency (in Hz)        */
-    double          baseFreq;
+    MYDBL          baseFreq;
     /** amplitude scale factor        */
-    double          scaleFac;
+    MYDBL          scaleFac;
     /** interleaved sample data       */
     MYFLT           data[1];
   } SNDMEMFILE;
@@ -735,8 +735,8 @@ typedef struct _FFT_SETUP {
 #define ORTXT h.optext->t
 #define INOCOUNT ORTXT.inArgCount
 #define OUTOCOUNT ORTXT.outArgCount
-#define CURTIME (((double)csound->icurTimeSamples) / ((double)csound->esr))
-#define CURTIME_inc (((double)csound->ksmps) / ((double)csound->esr))
+#define CURTIME (((MYDBL)csound->icurTimeSamples) / ((MYDBL)csound->esr))
+#define CURTIME_inc (((MYDBL)csound->ksmps) / ((MYDBL)csound->esr))
 
 /**@}*/
 /** @name Macros to check for arg types */
@@ -763,8 +763,8 @@ static inline MYFLT PHMOD1(MYFLT p) {
 /**
  * Binary positive power function
  */
-static inline double intpow1(double x, int32_t n) {
-  double ans = 1.;
+static inline MYDBL intpow1(MYDBL x, int32_t n) {
+  MYDBL ans = 1.;
   while (n != 0) {
     if (n & 1)
       ans = ans * x;
@@ -777,7 +777,7 @@ static inline double intpow1(double x, int32_t n) {
   /**
  * Binary power function
  */
-static inline double intpow(MYFLT x, int32_t n) {
+static inline MYDBL intpow(MYFLT x, int32_t n) {
   if (n < 0) {
     n = -n;
     x = 1. / x;
@@ -800,7 +800,7 @@ static inline int32_t byte_order(void) {
 #ifdef USE_DOUBLE
     int32_t sel = (byte_order()+1)&1;
     union {
-      double d;
+      MYDBL d;
       int32_t i[2];
     } z;
     z.d = xx;
@@ -916,8 +916,8 @@ static inline int32_t GetReleaseFlag(void *p) {
  * was called. The return value may be negative if the note has indefinite
  * duration.
  */
-static inline double GetOffTime(OPDS *p) {
-  return (double)p->insdshead->offtim;
+static inline MYDBL GetOffTime(OPDS *p) {
+  return (MYDBL)p->insdshead->offtim;
 }
 
 /**
@@ -1272,8 +1272,8 @@ struct CSOUND_ {
   void *(*GetCurrentThreadID)(void);
   void (*Sleep)(size_t milliseconds);
   void (*InitTimerStruct)(RTCLOCK *);
-  double (*GetRealTime)(RTCLOCK *);
-  double (*GetCPUTime)(RTCLOCK *);
+  MYDBL (*GetRealTime)(RTCLOCK *);
+  MYDBL (*GetCPUTime)(RTCLOCK *);
   /**@}*/
 
   /** @name Circular lock-free buffer */
@@ -1458,7 +1458,7 @@ struct CSOUND_ {
   char *(*LocalizeString)(const char *)__attribute__((format_arg(1)));
 #endif
   /* String conversion */
-  double (*Strtod)(char *nptr, char **);
+  MYDBL (*Strtod)(char *nptr, char **);
   /* String formatted printing */
   int32_t (*Sprintf)(char *str, const char *format, ...);
   /* String formatted scanning */
@@ -1552,11 +1552,11 @@ struct CSOUND_ {
   MYFLT ekr;
   /** current time in seconds, inc. per kprd */
   int64_t icurTimeSamples; /* Current time in samples */
-  double curTime_inc;
+  MYDBL curTime_inc;
   /** start time of current section    */
-  double timeOffs, beatOffs;
+  MYDBL timeOffs, beatOffs;
   /** current time in beats, inc per kprd */
-  double curBeat, curBeat_inc;
+  MYDBL curBeat, curBeat_inc;
   /** beat time = 60 / tempo           */
   int64_t ibeatTime; /* Beat time in samples */
   EVTBLK *currevent;
@@ -1605,7 +1605,7 @@ struct CSOUND_ {
   int32_t reinitflag;
   int32_t tieflag;
   MYFLT e0dbfs, dbfs_to_float;
-  double A4;
+  MYDBL A4;
   void *rtRecord_userdata;
   void *rtPlay_userdata;
   jmp_buf exitjmp;
@@ -1632,8 +1632,8 @@ struct CSOUND_ {
   int32_t genmax;
   CS_HASH_TABLE *namedGlobals;
   CS_HASH_TABLE *cfgVariableDB;
-  double prvbt, curbt, nxtbt;
-  double curp2, nxtim;
+  MYDBL prvbt, curbt, nxtbt;
+  MYDBL curp2, nxtim;
   int64_t cyclesRemaining;
   EVTBLK evt;
   void *memalloc_db;
@@ -1680,7 +1680,7 @@ struct CSOUND_ {
   void *last_delayr;
   int32 revlpsiz[6];
   int32 revlpsum;
-  double rndfrac; /* aops.c */
+  MYDBL rndfrac; /* aops.c */
   MYFLT *logbase2;
   NAMES *omacros, *smacros;
   void *namedgen;   /* fgens.c */

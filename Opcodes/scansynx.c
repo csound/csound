@@ -52,7 +52,7 @@
 /*               Made interpolation selectable April 2000 */
 
 #include "scansyn.h"
-#include <math.h>
+
 #include "cwindow.h"
 
 /* Order of interpolation of scanning */

@@ -28,7 +28,7 @@
 /******************************************************************/
 
 #include "pvoc.h"
-#include <math.h>
+
 
 /* Do we do the whole buffer, or just indep vals? */
 #define someof(s)       (s)

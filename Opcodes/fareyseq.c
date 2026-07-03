@@ -29,7 +29,7 @@
 #endif
 
 #include "interlocks.h"
-#include <math.h>
+
 #include <time.h>
 
 #define MAX_PFACTOR 16
@@ -217,7 +217,7 @@ int32_t FareyLength (int32_t n);
 int32_t PrimeFactors (int32_t n, PFACTOR p[]);
 MYFLT Digest (int32_t n);
 void float2frac (CSOUND *csound, MYFLT in, int32_t *p, int32_t *q);
-void float_to_cfrac (CSOUND *csound, double r, int32_t n,
+void float_to_cfrac (CSOUND *csound, MYDBL r, int32_t n,
                      int32_t a[], int32_t p[], int32_t q[]);
 
 /* a filter and table copy opcode for filtering tables containing
@@ -666,14 +666,14 @@ void float2frac (CSOUND *csound, MYFLT in, int32_t *num, int32_t *denom)
     int32_t P = 0; int32_t Q = 0;
     int32_t i;
 
-    float_to_cfrac (csound, (double)in, N, a, p, q);
+    float_to_cfrac (csound, (MYDBL)in, N, a, p, q);
 
     for (i=0; i <= N; i++) {
-      double temp;
+      MYDBL temp;
       float error;
       if (!q[i+1])
         continue;
-      temp = (double) p[i+1] / (double) q[i+1];
+      temp = (MYDBL) p[i+1] / (MYDBL) q[i+1];
       error = in - temp;
       if ((fabs(error)) < 0.00001) {
         P = p[i+1];
@@ -686,12 +686,12 @@ void float2frac (CSOUND *csound, MYFLT in, int32_t *num, int32_t *denom)
 }
 
 /* continued fraction expansion */
-void float_to_cfrac (CSOUND *csound, double r, int32_t n,
+void float_to_cfrac (CSOUND *csound, MYDBL r, int32_t n,
                      int32_t a[], int32_t p[], int32_t q[])
 {
     int32_t i;
-    double r_copy;
-    double *x;
+    MYDBL r_copy;
+    MYDBL *x;
 
     if (r == 0.0) {
       memset(a, 0, sizeof(int32_t)*(n+1));
@@ -709,7 +709,7 @@ void float_to_cfrac (CSOUND *csound, double r, int32_t n,
       return;
     }
 
-    x = csound->Calloc(csound, (n+1)* sizeof(double));
+    x = csound->Calloc(csound, (n+1)* sizeof(MYDBL));
 
     r_copy = fabs (r);
 
@@ -722,7 +722,7 @@ void float_to_cfrac (CSOUND *csound, double r, int32_t n,
     a[0] = (int32_t) x[0];
 
     for (i = 1; i <= n; i++) {
-      x[i] = 1.0 / (x[i-1] - (double) a[i-1]);
+      x[i] = 1.0 / (x[i-1] - (MYDBL) a[i-1]);
       a[i] = (int32_t
               ) x[i];
       p[i+1] = a[i] * p[i] + p[i-1];

@@ -31,11 +31,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
+
 
 typedef struct atsdataloc {
-  double  amp;
-  double  freq;
+  MYDBL  amp;
+  MYDBL  freq;
 } ATS_DATA_LOC;
 
 typedef struct _randiats { /* the data for the randi UG */
@@ -46,23 +46,23 @@ typedef struct _randiats { /* the data for the randi UG */
 } RANDIATS;
 
 typedef struct _atsnzaux {
-  double  buf[25];
+  MYDBL  buf[25];
   MYFLT   phaseinc[25];
   MYFLT   nfreq[25];
   RANDIATS randinoise[25];
 } atsnzAUX;
 
 typedef struct atsstruct {
-  double  magic;      /* ats magic number */
-  double  sampr;      /* sampling rate */
-  double  frmsz;      /* frame size in samples */
-  double  winsz;      /* window size in samples */
-  double  npartials;  /* number of partials */
-  double  nfrms;      /* number of frames */
-  double  ampmax;     /* max amplitude */
-  double  freqmax;    /* max frequency */
-  double  dur;        /* duration seconds */
-  double  type;       /* Ats Frame type 1-4 */
+  MYDBL  magic;      /* ats magic number */
+  MYDBL  sampr;      /* sampling rate */
+  MYDBL  frmsz;      /* frame size in samples */
+  MYDBL  winsz;      /* window size in samples */
+  MYDBL  npartials;  /* number of partials */
+  MYDBL  nfrms;      /* number of frames */
+  MYDBL  ampmax;     /* max amplitude */
+  MYDBL  freqmax;    /* max frequency */
+  MYDBL  dur;        /* duration seconds */
+  MYDBL  type;       /* Ats Frame type 1-4 */
 } ATSSTRUCT;
 
 typedef struct _atsinfo {
@@ -83,12 +83,12 @@ typedef struct _atsread {
   /* of the data, so we do not print too many warnings */
   int32_t     prFlg;
   /* points to the start of the data */
-  double  *datastart;
+  MYDBL  *datastart;
   /* tells the location of the partal to output */
-  /* and the number of doubles to increment to get to the next frame */
+  /* and the number of MYDBLs to increment to get to the next frame */
   int32_t     partialloc, frmInc;
   MEMFIL  *atsmemfile;
-  double  timefrmInc;
+  MYDBL  timefrmInc;
   /* indicates if the data file is byte swapped or not */
   int32_t     swapped;
 } ATSREAD;
@@ -100,10 +100,10 @@ typedef struct _atsreadnz {
   /* a flag used to indicate if we've steped out of the time range */
   /* of the data, so we do not print too many warnings */
   int32_t     prFlg;
-  double  *datastart; /* points to the start of the data */
+  MYDBL  *datastart; /* points to the start of the data */
   int32_t     nzbandloc, frmInc;
   MEMFIL  *atsmemfile;
-  double  timefrmInc;
+  MYDBL  timefrmInc;
   int32_t     swapped;    /* indicates if the data file is byte swapped or not */
 } ATSREADNZ;
 
@@ -118,15 +118,15 @@ typedef struct _atsadd {
   AUXCH   auxch;
   MEMFIL  *atsmemfile;
 
-  double  maxFr;
+  MYDBL  maxFr;
   /* a flag used to indicate if we've steped out of the time range */
   /* of the data, so we do not print too many warnings */
   int32_t     prFlg;
-  double  timefrmInc;
-  double  MaxAmp;     /* maximum amplitude in anaylsis file */
+  MYDBL  timefrmInc;
+  MYDBL  MaxAmp;     /* maximum amplitude in anaylsis file */
   int32_t     firstpartial, partialinc, frmInc;
-  double  *datastart;
-  double  *oscphase;  /* oscillator phase */
+  MYDBL  *datastart;
+  MYDBL  *oscphase;  /* oscillator phase */
   ATS_DATA_LOC *buf;
   int32_t     swapped;    /* indicates if the data file is byte swapped or not */
   MYFLT *oldamps;
@@ -142,19 +142,19 @@ typedef struct _atsaddnz {
 
   MEMFIL  *atsmemfile;  /* a pointer into the ATS file */
 
-  double  maxFr;
+  MYDBL  maxFr;
   int32_t     prFlg;
   int32_t     frmInc; /* amount to increment frame pointer to get to next frame */
-  double  timefrmInc;
-  double  winsize;    /* size of windows in analysis file, used to */
+  MYDBL  timefrmInc;
+  MYDBL  winsize;    /* size of windows in analysis file, used to */
   /*   compute RMS amplitude from energy in noise band */
-  double  *datastart;
+  MYDBL  *datastart;
 
-  double  buf[25];      /* stores band information for passing data */
-  double  phaseinc[25]; /* to create an array of noise */
-  double  oscphase[25]; /* the phase of all the oscilators */
+  MYDBL  buf[25];      /* stores band information for passing data */
+  MYDBL  phaseinc[25]; /* to create an array of noise */
+  MYDBL  oscphase[25]; /* the phase of all the oscilators */
   RANDIATS randinoise[25]; /* pointer to the interpolated random noise info */
-  double  nfreq[25];
+  MYDBL  nfreq[25];
   int32_t     firstband;
   int32_t     swapped;    /* indicates if the data file is byte swapped or not */
   int32_t     bands, bandoffset, bandincr;
@@ -175,9 +175,9 @@ struct _atsbufread {
   int32_t     firstpartial; /* location of first wanted partial in the frame */
   int32_t     partialinc; /* amount to increment pointer by */
   /*   to get at the next partial in a frame */
-  double  timefrmInc;
+  MYDBL  timefrmInc;
   MYFLT   MaxAmp;     /* maximum amplitude in anaylsis file */
-  double  *datastart; /* pointer to the data (past the header) */
+  MYDBL  *datastart; /* pointer to the data (past the header) */
   ATSSTRUCT atshead;
   int32_t     swapped;    /* indicates if the data file is byte swapped or not */
 };
@@ -195,15 +195,15 @@ typedef struct _atscross {
   AUXCH   auxch;
   MEMFIL  *atsmemfile;
 
-  double  maxFr;
+  MYDBL  maxFr;
   /* a flag used to indicate if we've steped out of the time range */
   /* of the data, so we do not print too many warnings */
   int32_t     prFlg;
-  double  timefrmInc;
-  double  MaxAmp;     /* maximum amplitude in anaylsis file */
+  MYDBL  timefrmInc;
+  MYDBL  MaxAmp;     /* maximum amplitude in anaylsis file */
   int32_t     firstpartial, partialinc, frmInc;
-  double  *datastart;
-  double  *oscphase;  /* oscillator phase */
+  MYDBL  *datastart;
+  MYDBL  *oscphase;  /* oscillator phase */
   ATS_DATA_LOC *buf;
   int32_t     swapped;    /* indicates if the data file is byte swapped or not */
   MYFLT   *oldamps;
@@ -220,31 +220,31 @@ typedef struct _atssinnoi {
   MEMFIL  *atsmemfile;  /* a pointer into the ATS file */
   AUXCH   auxch;
 
-  double  maxFr;
+  MYDBL  maxFr;
   int32_t prFlg;
   int32_t nzmemsize;
-  /* double  winsize; */   /* size of windows in analysis file, used to */
+  /* MYDBL  winsize; */   /* size of windows in analysis file, used to */
   /* compute RMS amplitude from energy in noise band */
-  double  *datastart;
-  double  *nzdata;
+  MYDBL  *datastart;
+  MYDBL  *nzdata;
 
   int32_t firstpartial;
   int32_t partialinc;
   int32_t firstband;
   int32_t frmInc; /* amount to increment frame pointer to get to next frame */
-  double  timefrmInc;
+  MYDBL  timefrmInc;
   int32_t npartials;
 
   ATS_DATA_LOC *oscbuf; /* stores band information for passing data */
 
-  double  *nzbuf;       /* stores band information for passing data */
-  double  *oscphase;    /* the phase of all the oscilators */
+  MYDBL  *nzbuf;       /* stores band information for passing data */
+  MYDBL  *oscphase;    /* the phase of all the oscilators */
   RANDIATS *randinoise; /* a pointer to the interpolated random noise info */
   ATSSTRUCT *atshead;
   char    *filename;
   int32_t swapped;    /* indicates if the data file is byte swapped or not */
-  double noiphase[25];
-  double phaseinc[25];
+  MYDBL noiphase[25];
+  MYDBL phaseinc[25];
 
 } ATSSINNOI;
 

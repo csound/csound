@@ -28,13 +28,13 @@ static const char *midiFile_ID = "MThd";
 static const char *midiTrack_ID = "MTrk";
 
 /* default tempo in beats per minute */
-static const double default_tempo = 120.0;
+static const MYDBL default_tempo = 120.0;
 
 typedef struct tempoEvent_s {
   unsigned long   kcnt;               /* time (in ticks while reading     */
   /*   MIDI file, will be converted   */
   /*   to kperiods once file is read) */
-  double          tempoVal;           /* tempo value in beats per minute  */
+  MYDBL          tempoVal;           /* tempo value in beats per minute  */
 } tempoEvent_t;
 
 typedef struct midiEvent_s {
@@ -53,7 +53,7 @@ typedef struct midiEvent_s {
 typedef struct midifile_s {
   /* static file data, not changed at performance */
   char            *name;
-  double          timeCode;           /* > 0: ticks per beat              */
+  MYDBL          timeCode;           /* > 0: ticks per beat              */
   /* < 0: ticks per second            */
   unsigned long   totalKcnt;          /* total duration of file           */
   /*   (in ticks while reading file,  */
@@ -65,15 +65,15 @@ typedef struct midifile_s {
   midiEvent_t     *eventList;         /* array of MIDI events             */
   tempoEvent_t    *tempoList;         /* array of tempo changes           */
   /* performance time state variables */
-  double          currentTempo;       /* current tempo in BPM             */
+  MYDBL          currentTempo;       /* current tempo in BPM             */
   int32_t             eventListIndex;     /* index of next MIDI event in list */
   int32_t             tempoListIndex;     /* index of next tempo change       */
   int32_t         mute;                /* mute flag      */
   int32_t         pause;               /* pause flag     */
   int32_t          id;                 /* item id in list */
   int32_t           port;              /* MIDI port (internal) */
-  double           temposcal;          /* tempo scaling */
-  double           counter;            /* playback counter */
+  MYDBL           temposcal;          /* tempo scaling */
+  MYDBL           counter;            /* playback counter */
   uint64_t         global_kcounter;    /* local reference to global kcounter */
   int32_t          loop;               /* loop flag */
   struct midifile_s    *nxt;
@@ -82,9 +82,9 @@ typedef struct midifile_s {
 #define MIDIFILE    (csound->midiGlobals->midiFileData)
 #define MF(x)       (midifile->x)
 
-static double initial_tempo(const midifile_t *midifile)
+static MYDBL initial_tempo(const midifile_t *midifile)
 {
-  double tempo = default_tempo;
+  MYDBL tempo = default_tempo;
   int32_t i = 0;
 
   while (i < midifile->nTempo && midifile->tempoList[i].kcnt == 0UL) {
@@ -95,14 +95,14 @@ static double initial_tempo(const midifile_t *midifile)
   return tempo;
 }
 
-static double tempo_at_position(const midifile_t *midifile, double position,
+static MYDBL tempo_at_position(const midifile_t *midifile, MYDBL position,
                                 int32_t *tempoListIndex)
 {
-  double tempo = initial_tempo(midifile);
+  MYDBL tempo = initial_tempo(midifile);
   int32_t index = 0;
 
   while (index < midifile->nTempo &&
-         (double) midifile->tempoList[index].kcnt <= position) {
+         (MYDBL) midifile->tempoList[index].kcnt <= position) {
     tempo = midifile->tempoList[index].tempoVal;
     index++;
   }
@@ -221,7 +221,7 @@ static int32_t alloc_event(CSOUND *csound, midifile_t *midifile,
 
 static int32_t alloc_tempo(CSOUND *csound,
                            midifile_t *midifile,
-                           unsigned long kcnt, double tempoVal)
+                           unsigned long kcnt, MYDBL tempoVal)
 {
   tempoEvent_t *tmp;
   /* expand array if necessary */
@@ -373,7 +373,7 @@ static int32_t readEvent(CSOUND *csound, FILE *f, midifile_t *midifile,
         csound->Message(csound, Str(" *** invalid tempo\n"));
         return -1;
       }
-      return alloc_tempo(csound, midifile, tickCnt, (60000000.0 / (double) d));
+      return alloc_tempo(csound, midifile, tickCnt, (60000000.0 / (MYDBL) d));
     case 0x2F:                        /* end of track */
       if (UNLIKELY(i)) {
         csound->Message(csound, Str(" *** invalid end of track event\n"));
@@ -513,7 +513,7 @@ static CS_NOINLINE void tempoEvent_sort(tempoEvent_t *p, tempoEvent_t *tmp,
 
 static void sortEventLists(CSOUND *csound, midifile_t *midifile)
 {
-  double        timeVal, tempoVal;
+  MYDBL        timeVal, tempoVal;
   unsigned long prvTicks, curTicks, tickEvent, tickTempo;
   int32_t           i, j;
 
@@ -539,7 +539,7 @@ static void sortEventLists(CSOUND *csound, midifile_t *midifile)
     tempoVal = default_tempo;
     /* prvTicks = */ curTicks = 0UL;
     /* k-periods per tick */
-    tempoVal = (double) csound->ekr / (tempoVal * MF(timeCode) / 60.0);
+    tempoVal = (MYDBL) csound->ekr / (tempoVal * MF(timeCode) / 60.0);
     i = j = 0;
     while (i < MF(nEvents) || j < MF(nTempo)) {
       prvTicks = curTicks;
@@ -549,43 +549,43 @@ static void sortEventLists(CSOUND *csound, midifile_t *midifile)
       if (j < MF(nTempo)) tickTempo = MF(tempoList)[j].kcnt;
       if (tickEvent < tickTempo) {
         curTicks = tickEvent;
-        timeVal += ((double) ((long) (curTicks - prvTicks)) * tempoVal);
+        timeVal += ((MYDBL) ((long) (curTicks - prvTicks)) * tempoVal);
         MF(eventList)[i++].kcnt = (unsigned long) (timeVal + 0.5);
       }
       else {
         curTicks = tickTempo;
-        timeVal += ((double) ((long) (curTicks - prvTicks)) * tempoVal);
+        timeVal += ((MYDBL) ((long) (curTicks - prvTicks)) * tempoVal);
         tempoVal = MF(tempoList)[j].tempoVal;     /* new tempo */
         /* k-periods per tick */
-        tempoVal = (double) csound->ekr / (tempoVal * MF(timeCode) / 60.0);
+        tempoVal = (MYDBL) csound->ekr / (tempoVal * MF(timeCode) / 60.0);
         MF(tempoList)[j++].kcnt = (unsigned long) (timeVal + 0.5);
       }
     }
     /* calculate total file length in k-periods */
-    timeVal += ((double) ((long) (MF(totalKcnt) - curTicks)) * tempoVal);
+    timeVal += ((MYDBL) ((long) (MF(totalKcnt) - curTicks)) * tempoVal);
     MF(totalKcnt) = (unsigned long) (timeVal + 0.5);
   }
   else {
     /* simple case: time based tick values */
     tempoVal = -(MF(timeCode));
     /* k-periods per tick */
-    tempoVal = (double) csound->ekr / tempoVal;
+    tempoVal = (MYDBL) csound->ekr / tempoVal;
     i = -1;
     while (++i < MF(nEvents)) {
       curTicks = MF(eventList)[i].kcnt;
-      timeVal = (double) curTicks * tempoVal;
+      timeVal = (MYDBL) curTicks * tempoVal;
       curTicks = (unsigned long) (timeVal + 0.5);
       MF(eventList)[i].kcnt = curTicks;
     }
     i = -1;
     while (++i < MF(nTempo)) {
       curTicks = MF(tempoList)[i].kcnt;
-      timeVal = (double) curTicks * tempoVal;
+      timeVal = (MYDBL) curTicks * tempoVal;
       curTicks = (unsigned long) (timeVal + 0.5);
       MF(tempoList)[i].kcnt = curTicks;
     }
     /* calculate total file length in k-periods */
-    MF(totalKcnt) = (unsigned long) ((double) MF(totalKcnt) * tempoVal + 0.5);
+    MF(totalKcnt) = (unsigned long) ((MYDBL) MF(totalKcnt) * tempoVal + 0.5);
   }
 }
 
@@ -710,13 +710,13 @@ static int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
     goto err_return;
   }
   if (timeCode < 0x8000)
-    MF(timeCode) = (double) timeCode;
+    MF(timeCode) = (MYDBL) timeCode;
   else {
     switch (timeCode & 0xFF00) {
     case 0xE800:
     case 0xE700:
     case 0xE200:
-      MF(timeCode) = (double) ((timeCode >> 8) - 256);
+      MF(timeCode) = (MYDBL) ((timeCode >> 8) - 256);
       break;
     case 0xE300:
       MF(timeCode) = -29.97;
@@ -726,7 +726,7 @@ static int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
                       Str(" *** invalid time code: %d\n"), timeCode);
       goto err_return;
     }
-    MF(timeCode) *= (double) (timeCode & 0xFF);
+    MF(timeCode) *= (MYDBL) (timeCode & 0xFF);
   }
   /* initialise structure data */
   MF(totalKcnt) = 0;
@@ -1073,7 +1073,7 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
     int i;
     midifile_t *mf = find_midifile(csound, (int32_t) *pp->num);
     if(mf) {
-      double posk;
+      MYDBL posk;
       MYFLT pos = *(pp->kResult);
       if(pos < 0.) pos = 0.;
       posk = pos*csoundGetKr(csound);

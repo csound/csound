@@ -966,7 +966,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int32_t bytes_)
       if (p->csndBufPos == 0) {
         /* wait until there is enough free space in ring buffer */
         if (!p->inputEnabled)
-          /* **** COVERITY: claims this is a double lock **** */
+          /* **** COVERITY: claims this is a MYDBL lock **** */
           rtJack_Lock(csound, &(p->bufs[p->csndBufCnt]->csndLock));
       }
       /* copy audio data */
@@ -1031,8 +1031,8 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
       //if (p.jackState != 2) {
       //if (p.jackState == 0)
       //  csound->Sleep((size_t)
-      //                ((int32_t) ((double) (p.bufSize * p.nBuffers)
-      //                        * 1000.0 / (double) p.sampleRate + 0.999)));
+      //                ((int32_t) ((MYDBL) (p.bufSize * p.nBuffers)
+      //                        * 1000.0 / (MYDBL) p.sampleRate + 0.999)));
       jack_deactivate(p.client);
       //}
       csound->Sleep((size_t) 50);

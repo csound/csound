@@ -54,7 +54,7 @@
 #endif
 
 /* hopefully cannot change during performance */
-static double timeResolutionSeconds = -1.0;
+static MYDBL timeResolutionSeconds = -1.0;
 
 /* find out CPU frequency based on /proc/cpuinfo */
 int32_t get_time_resolution(void) {
@@ -107,7 +107,7 @@ int32_t get_time_resolution(void) {
   int_least64_t tmp2;
   QueryPerformanceFrequency(&tmp1);
   tmp2 = (int_least64_t)tmp1.LowPart + ((int_least64_t)tmp1.HighPart << 32);
-  timeResolutionSeconds = 1.0 / (double)tmp2;
+  timeResolutionSeconds = 1.0 / (MYDBL)tmp2;
 #elif defined(HAVE_GETTIMEOFDAY)
   timeResolutionSeconds = 0.000001;
 #else
@@ -168,18 +168,18 @@ void csoundInitTimerStruct(RTCLOCK *p) {
  * return the elapsed real time (in seconds) since the specified timer
  * structure was initialised
  */
-double csoundGetRealTime(RTCLOCK *p) {
-  return ((double)(get_real_time() - p->starttime_real) *
-          (double)timeResolutionSeconds);
+MYDBL csoundGetRealTime(RTCLOCK *p) {
+  return ((MYDBL)(get_real_time() - p->starttime_real) *
+          (MYDBL)timeResolutionSeconds);
 }
 
 /**
  * return the elapsed CPU time (in seconds) since the specified timer
  * structure was initialised
  */
-double csoundGetCPUTime(RTCLOCK *p) {
-  return ((double)((uint32_t)get_CPU_time() - (uint32_t)p->starttime_CPU) *
-          (1.0 / (double)CLOCKS_PER_SEC));
+MYDBL csoundGetCPUTime(RTCLOCK *p) {
+  return ((MYDBL)((uint32_t)get_CPU_time() - (uint32_t)p->starttime_CPU) *
+          (1.0 / (MYDBL)CLOCKS_PER_SEC));
 }
 
 /* return a 32-bit unsigned integer to be used as seed from current time */

@@ -34,7 +34,7 @@
 */
 
 #include "stdopcod.h"
-#include <math.h>
+
 
 #define DEFAULT_SRATE   44100.0
 #define MIN_SRATE       5000.0
@@ -49,7 +49,7 @@
 /* reverbParams[n][2] = random variation frequency (in 1/sec)       */
 /* reverbParams[n][3] = random seed (0 - 32767)                     */
 
-static const double reverbParams[8][4] = {
+static const MYDBL reverbParams[8][4] = {
     { (2473.0 / DEFAULT_SRATE), 0.0010, 3.100,  1966.0 },
     { (2767.0 / DEFAULT_SRATE), 0.0011, 3.500, 29491.0 },
     { (3217.0 / DEFAULT_SRATE), 0.0017, 1.110, 22937.0 },
@@ -60,8 +60,8 @@ static const double reverbParams[8][4] = {
     { (1933.0 / DEFAULT_SRATE), 0.0006, 3.221, 14417.0 }
 };
 
-static const double outputGain  = 0.35;
-static const double jpScale     = 0.25;
+static const MYDBL outputGain  = 0.35;
+static const MYDBL jpScale     = 0.25;
 
 typedef struct {
     int32_t         writePos;
@@ -72,7 +72,7 @@ typedef struct {
     int32_t         dummy;
     int32_t         seedVal;
     int32_t         randLine_cnt;
-    double      filterState;
+    MYDBL      filterState;
     MYFLT       buf[1];
 } delayLine;
 
@@ -80,8 +80,8 @@ typedef struct {
     OPDS        h;
     MYFLT       *aoutL, *aoutR, *ainL, *ainR, *kFeedBack, *kLPFreq;
     MYFLT       *iSampleRate, *iPitchMod, *iSkipInit;
-    double      sampleRate;
-    double      dampFact;
+    MYDBL      sampleRate;
+    MYDBL      dampFact;
     MYFLT       prv_LPFreq;
     int32_t         initDone;
     delayLine   *delayLines[8];
@@ -90,10 +90,10 @@ typedef struct {
 
 static int32_t delay_line_max_samples(SC_REVERB *p, int32_t n)
 {
-    double  maxDel;
+    MYDBL  maxDel;
 
     maxDel = reverbParams[n][0];
-    maxDel += (reverbParams[n][1] * (double) *(p->iPitchMod) * 1.125);
+    maxDel += (reverbParams[n][1] * (MYDBL) *(p->iPitchMod) * 1.125);
     return (int32_t) (maxDel * p->sampleRate + 16.5);
 }
 
@@ -109,7 +109,7 @@ static int32_t delay_line_bytes_alloc(SC_REVERB *p, int32_t n)
 
 static inline void next_random_lineseg(SC_REVERB *p, delayLine *lp, int32_t n)
 {
-    double  prvDel, nxtDel, phs_incVal;
+    MYDBL  prvDel, nxtDel, phs_incVal;
 
     /* update random seed */
     if (lp->seedVal < 0)
@@ -119,24 +119,24 @@ static inline void next_random_lineseg(SC_REVERB *p, delayLine *lp, int32_t n)
       lp->seedVal -= 0x10000;
     /* length of next segment in samples */
     lp->randLine_cnt = (int32_t) ((p->sampleRate / reverbParams[n][2]) + 0.5);
-    prvDel = (double) lp->writePos;
-    prvDel -= ((double) lp->readPos
-               + ((double) lp->readPosFrac / (double) DELAYPOS_SCALE));
+    prvDel = (MYDBL) lp->writePos;
+    prvDel -= ((MYDBL) lp->readPos
+               + ((MYDBL) lp->readPosFrac / (MYDBL) DELAYPOS_SCALE));
     while (prvDel < 0.0)
-      prvDel += (double) lp->bufferSize;
+      prvDel += (MYDBL) lp->bufferSize;
     prvDel = prvDel / p->sampleRate;    /* previous delay time in seconds */
-    nxtDel = (double) lp->seedVal * reverbParams[n][1] / 32768.0;
+    nxtDel = (MYDBL) lp->seedVal * reverbParams[n][1] / 32768.0;
     /* next delay time in seconds */
-    nxtDel = reverbParams[n][0] + (nxtDel * (double) *(p->iPitchMod));
+    nxtDel = reverbParams[n][0] + (nxtDel * (MYDBL) *(p->iPitchMod));
     /* calculate phase increment per sample */
-    phs_incVal = (prvDel - nxtDel) / (double) lp->randLine_cnt;
+    phs_incVal = (prvDel - nxtDel) / (MYDBL) lp->randLine_cnt;
     phs_incVal = phs_incVal * p->sampleRate + 1.0;
     lp->readPosFrac_inc = (int32_t) (phs_incVal * DELAYPOS_SCALE + 0.5);
 }
 
 static void init_delay_line(SC_REVERB *p, delayLine *lp, int32_t n)
 {
-    double  readPos;
+    MYDBL  readPos;
     /* int32_t     i; */
 
     /* calculate length of delay line */
@@ -146,11 +146,11 @@ static void init_delay_line(SC_REVERB *p, delayLine *lp, int32_t n)
     /* set random seed */
     lp->seedVal = (int32_t) (reverbParams[n][3] + 0.5);
     /* set initial delay time */
-    readPos = (double) lp->seedVal * reverbParams[n][1] / 32768;
-    readPos = reverbParams[n][0] + (readPos * (double) *(p->iPitchMod));
-    readPos = (double) lp->bufferSize - (readPos * p->sampleRate);
+    readPos = (MYDBL) lp->seedVal * reverbParams[n][1] / 32768;
+    readPos = reverbParams[n][0] + (readPos * (MYDBL) *(p->iPitchMod));
+    readPos = (MYDBL) lp->bufferSize - (readPos * p->sampleRate);
     lp->readPos = (int32_t) readPos;
-    readPos = (readPos - (double) lp->readPos) * (double) DELAYPOS_SCALE;
+    readPos = (readPos - (MYDBL) lp->readPos) * (MYDBL) DELAYPOS_SCALE;
     lp->readPosFrac = (int32_t) (readPos + 0.5);
     /* initialise first random line segment */
     next_random_lineseg(p, lp, n);
@@ -168,9 +168,9 @@ static int32_t sc_reverb_init(CSOUND *csound, SC_REVERB *p)
 
     /* check for valid parameters */
     if (UNLIKELY(*(p->iSampleRate) <= FL(0.0)))
-      p->sampleRate = (double) CS_ESR;
+      p->sampleRate = (MYDBL) CS_ESR;
     else
-      p->sampleRate = (double) *(p->iSampleRate);
+      p->sampleRate = (MYDBL) *(p->iSampleRate);
     if (UNLIKELY(p->sampleRate < MIN_SRATE || p->sampleRate > MAX_SRATE)) {
       return csound->InitError(csound,
                                "%s", Str("reverbsc: sample rate is out of range"));
@@ -205,15 +205,15 @@ static int32_t sc_reverb_init(CSOUND *csound, SC_REVERB *p)
 
 static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
 {
-    double    ainL, ainR, aoutL, aoutR;
-    double    vm1, v0, v1, v2, am1, a0, a1, a2, frac;
+    MYDBL    ainL, ainR, aoutL, aoutR;
+    MYDBL    vm1, v0, v1, v2, am1, a0, a1, a2, frac;
     delayLine *lp;
     int32_t       readPos;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, n, nsmps = CS_KSMPS;
     int32_t       bufferSize; /* Local copy */
-    double    dampFact = p->dampFact;
+    MYDBL    dampFact = p->dampFact;
 
     if (UNLIKELY(p->initDone <= 0)) goto err1;
     /* calculate tone filter coefficient if frequency changed */
@@ -238,8 +238,8 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
       for (n = 0; n < 8; n++)
         ainL += p->delayLines[n]->filterState;
       ainL *= jpScale;
-      ainR = ainL + (double) p->ainR[i];
-      ainL = ainL + (double) p->ainL[i];
+      ainR = ainL + (MYDBL) p->ainR[i];
+      ainL = ainL + (MYDBL) p->ainL[i];
       /* loop through all delay lines */
       for (n = 0; n < 8; n++) {
         lp = p->delayLines[n];
@@ -257,34 +257,34 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
         if (UNLIKELY(lp->readPos >= bufferSize))
           lp->readPos -= bufferSize;
         readPos = lp->readPos;
-        frac = (double) lp->readPosFrac * (1.0 / (double) DELAYPOS_SCALE);
+        frac = (MYDBL) lp->readPosFrac * (1.0 / (MYDBL) DELAYPOS_SCALE);
         /* calculate interpolation coefficients */
         a2 = frac * frac; a2 -= 1.0; a2 *= (1.0 / 6.0);
         a1 = frac; a1 += 1.0; a1 *= 0.5; am1 = a1 - 1.0;
         a0 = 3.0 * a2; a1 -= a0; am1 -= a2; a0 -= frac;
         /* read four samples for interpolation */
         if (LIKELY(readPos > 0 && readPos < (bufferSize - 2))) {
-          vm1 = (double) (lp->buf[readPos - 1]);
-          v0  = (double) (lp->buf[readPos]);
-          v1  = (double) (lp->buf[readPos + 1]);
-          v2  = (double) (lp->buf[readPos + 2]);
+          vm1 = (MYDBL) (lp->buf[readPos - 1]);
+          v0  = (MYDBL) (lp->buf[readPos]);
+          v1  = (MYDBL) (lp->buf[readPos + 1]);
+          v2  = (MYDBL) (lp->buf[readPos + 2]);
         }
         else {
           /* at buffer wrap-around, need to check index */
           if (--readPos < 0) readPos += bufferSize;
-          vm1 = (double) lp->buf[readPos];
+          vm1 = (MYDBL) lp->buf[readPos];
           if (++readPos >= bufferSize) readPos -= bufferSize;
-          v0 = (double) lp->buf[readPos];
+          v0 = (MYDBL) lp->buf[readPos];
           if (++readPos >= bufferSize) readPos -= bufferSize;
-          v1 = (double) lp->buf[readPos];
+          v1 = (MYDBL) lp->buf[readPos];
           if (++readPos >= bufferSize) readPos -= bufferSize;
-          v2 = (double) lp->buf[readPos];
+          v2 = (MYDBL) lp->buf[readPos];
         }
         v0 = (am1 * vm1 + a0 * v0 + a1 * v1 + a2 * v2) * frac + v0;
         /* update buffer read position */
         lp->readPosFrac += lp->readPosFrac_inc;
         /* apply feedback gain and lowpass filter */
-        v0 *= (double) *(p->kFeedBack);
+        v0 *= (MYDBL) *(p->kFeedBack);
         v0 = (lp->filterState - v0) * dampFact + v0;
         lp->filterState = v0;
         /* mix to output */
@@ -317,7 +317,7 @@ static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, n, nsmps = CS_KSMPS;
     int32_t   bufferSize; /* Local copy */
-    double    dampFact = p->dampFact;
+    MYDBL    dampFact = p->dampFact;
     MYFLT  *inR = p->ainR, *inL = p->ainL;
     MYFLT   *outR = p->aoutR, *outL = p->aoutL;
     MYFLT kFeedBack = *p->kFeedBack;
@@ -367,7 +367,7 @@ static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
         if (UNLIKELY(lpn->readPos >= bufferSize))
           lpn->readPos -= bufferSize;
         if(linear) {
-        frac = (double) lpn->readPosFrac * (1.0 / (double) DELAYPOS_SCALE);
+        frac = (MYDBL) lpn->readPosFrac * (1.0 / (MYDBL) DELAYPOS_SCALE);
         v0 = lpn->buf[lpn->readPos];
         v1 = lpn->readPos != bufferSize - 1 ? lpn->buf[lpn->readPos + 1] : lpn->buf[0];
         v0 = (v1 - v0) * frac + v0;

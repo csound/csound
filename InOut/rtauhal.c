@@ -158,7 +158,7 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     Device_Info *devinfo;
     UInt32  bufframes, nchnls;
     int32_t devouts = 0, devins = 0;
-    double srate;
+    MYDBL srate;
     UInt32 enableIO, maxFPS;
     AudioComponent HALOutput;
     AudioComponentInstance *aunit;
@@ -380,14 +380,14 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
     /* although the SR is set in the stream properties,
        we also need to set the device to match */
-    double sr;
+    MYDBL sr;
     prop.mSelector = kAudioDevicePropertyNominalSampleRate;
     if(!isInput){
       AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
       csound->GetSystemSr(csound, sr);
     }
 
-    psize = sizeof(double);
+    psize = sizeof(MYDBL);
     AudioObjectSetPropertyData(dev, &prop, 0, NULL, psize, &srate);
     AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
 

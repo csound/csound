@@ -27,7 +27,7 @@
 #endif
 #include "interlocks.h"
 #include "crossfm.h"
-#include <math.h>
+
 
 int32_t xfmset(CSOUND *csound, CROSSFM *p)
 {

@@ -47,7 +47,7 @@
 #include <winsock2.h>
 #include <windows.h>
 #endif
-#include <math.h>
+
 #include "oload.h"
 #include "fgens.h"
 #include "namedins.h"
@@ -189,13 +189,13 @@ void print_csound_version(CSOUND *csound) {
 #ifdef USE_DOUBLE
 #ifdef BETA
   csoundErrorMsg(csound,
-                 Str("--Csound version %s beta (double samples) %s\n"
+                 Str("--Csound version %s beta (MYDBL samples) %s\n"
                      "[commit: %s]\n"),
                  CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                  STRING_HASH(GIT_HASH_VALUE));
 #else
   csoundErrorMsg(csound,
-                 Str("--Csound version %s (double samples) %s\n"
+                 Str("--Csound version %s (MYDBL samples) %s\n"
                      "[commit: %s]\n"),
                  CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                  STRING_HASH(GIT_HASH_VALUE));

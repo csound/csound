@@ -80,7 +80,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
   int32_t played_count = 0;
   int32_t which_task;
   INSDS **task_map = (INSDS **)csound->dag_task_map;
-  double time_end;
+  MYDBL time_end;
   int32_t next_task = INVALID;
 
   while (1) {
@@ -300,7 +300,7 @@ int32_t kperf(CSOUND *csound) {
     // single-thread performance
     else {
       int32_t done;
-      double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
+      MYDBL time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
 
       while (ip != NULL) { /* for each instr active:  */
         INSDS *nxt = ip->nxtact;

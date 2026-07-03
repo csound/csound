@@ -27,7 +27,7 @@
 #include "pvs_ops.h"
 #include "pvsbasic.h"
 #include "pvfileio.h"
-#include <math.h>
+
 #define MAXOUTS 16
 
 static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
@@ -335,7 +335,7 @@ typedef struct _pvsdiskin {
   MYFLT *ioff;
   MYFLT *ichn;
   MYFLT *interp;
-  double  pos;
+  MYDBL  pos;
   uint32 oldpos;
   int32_t chans, chn;
   int32_t pvfile;
@@ -425,7 +425,7 @@ static int32_t pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
 {
   int32_t overlap = p->fout->overlap, i;
   uint32_t posi;
-  double pos = p->pos;
+  MYDBL pos = p->pos;
   int32 N = p->fout->N;
   MYFLT frac;
   float *fout = (float *)  p->fout->frame.auxp;
@@ -486,7 +486,7 @@ typedef struct _pvst {
   uint32 scnt;
   int32_t tscale;
   MYFLT accum;
-  double pos;
+  MYDBL pos;
   float factor, fund, rotfac, scale;
   AUXCH bwin[MAXOUTS];
   AUXCH fwin[MAXOUTS], nwin[MAXOUTS];
@@ -569,7 +569,7 @@ typedef struct _pvst1 {
   uint32 scnt;
   int32_t tscale;
   MYFLT accum;
-  double pos;
+  MYDBL pos;
   float factor, fund, rotfac, scale;
   AUXCH bwin[MAXOUTS];
   AUXCH fwin[MAXOUTS], nwin[MAXOUTS];
@@ -645,7 +645,7 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
   uint32_t j;
   uint32_t sizefrs, nchans = p->nchans;
   int32 N = p->fout[0]->N, post, size;
-  double frac, spos = p->pos, pos;
+  MYDBL frac, spos = p->pos, pos;
   MYFLT *tab, dbtresh = *p->dbthresh;
   FUNC *ft;
   float *fout;
@@ -656,7 +656,7 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
   float tmp_real, tmp_im, powrat;
 
   if ((int32_t)p->scnt >= hsize) {
-    double resamp;
+    MYDBL resamp;
     /* audio samples are stored in a function table */
     ft = csound->FTFind(csound,p->knum);
     if (ft == NULL){
@@ -758,7 +758,7 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
       fwin[N+1] = fwin[1] = 0.0;
 
       for (i=2,k=1; i < N; i+=2, k++) {
-        double bph, fph, dph;
+        MYDBL bph, fph, dph;
         /* freqs */
         bph = ATAN2(bwin[i+1],bwin[i]);
         fph = ATAN2(fwin[i+1],fwin[i]);
@@ -800,7 +800,7 @@ int32_t pvstanal1(CSOUND *csound, PVST1 *p)
   uint32_t j;
   uint32_t sizefrs, nchans = p->nchans;
   int32 N = p->fout[0]->N, post, size;
-  double frac, spos = p->pos, pos;
+  MYDBL frac, spos = p->pos, pos;
   MYFLT *tab, dbtresh = *p->dbthresh;
   FUNC *ft;
   float *fout;
@@ -811,7 +811,7 @@ int32_t pvstanal1(CSOUND *csound, PVST1 *p)
   float tmp_real, tmp_im, powrat;
 
   if ((int32_t)p->scnt >= hsize) {
-    double resamp;
+    MYDBL resamp;
     /* audio samples are stored in a function table */
     ft = csound->FTFind(csound,p->knum);
     if (ft == NULL){
@@ -913,7 +913,7 @@ int32_t pvstanal1(CSOUND *csound, PVST1 *p)
       fwin[N+1] = fwin[1] = 0.0;
 
       for (i=2,k=1; i < N; i+=2, k++) {
-        double bph, fph, dph;
+        MYDBL bph, fph, dph;
         /* freqs */
         bph = ATAN2(bwin[i+1],bwin[i]);
         fph = ATAN2(fwin[i+1],fwin[i]);
@@ -1112,7 +1112,7 @@ static int32_t pvsoscprocess(CSOUND *csound, PVSOSC *p)
   int32    framesize;
   MYFLT   famp, ffun,w;
   float   *fout;
-  double  cfbin,a;
+  MYDBL  cfbin,a;
   float   amp, freq;
   int32_t     cbin, k, n;
 
@@ -1327,17 +1327,17 @@ static int32_t pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
    IGN(csound);
   int32_t     i;
   int32    framesize;
-  double  ffa, ffr;
+  MYDBL  ffa, ffr;
 
-  ffa = (double) *p->kfra;
-  ffr = (double) *p->kfrf;
+  ffa = (MYDBL) *p->kfra;
+  ffr = (MYDBL) *p->kfrf;
 
 
   framesize = p->fin->N + 2;
 
   if (p->fin->sliding) {
     CMPLX *fout, *fin, *del;
-    double  costh1, costh2, coef1, coef2;
+    MYDBL  costh1, costh2, coef1, coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t NB = p->fin->NB;
@@ -1359,13 +1359,13 @@ static int32_t pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
       fin = (CMPLX*) p->fin->frame.auxp +NB*n;
       del = (CMPLX*) p->del.auxp +NB*n;
       if (IS_ASIG_ARG(p->kfra)) {
-        ffa = (double)  p->kfra[n];
+        ffa = (MYDBL)  p->kfra[n];
         ffa = ffa < 0.0 ? 0.0 : (ffa > 1.0 ? 1.0 : ffa);
         costh1 = 2.0 - cos(PI * ffa);
         coef1 = sqrt(costh1 * costh1 - 1.0) - costh1;
       }
       if (IS_ASIG_ARG(p->kfrf)) {
-        ffr = (double)  p->kfrf[n];
+        ffr = (MYDBL)  p->kfrf[n];
         ffr = ffr < 0.0 ? 0.0 : (ffr > 1.0 ? 1.0 : ffr);
         costh2 = 2.0 - cos(PI * ffr);
         coef2 = sqrt(costh2 * costh2 - 1.0) - costh2;
@@ -1382,7 +1382,7 @@ static int32_t pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
   }
   if (p->lastframe < p->fin->framecount) {
     float   *fout, *fin, *del;
-    double  costh1, costh2, coef1, coef2;
+    MYDBL  costh1, costh2, coef1, coef2;
     fout = (float *) p->fout->frame.auxp;
     fin = (float *) p->fin->frame.auxp;
     del = (float *) p->del.auxp;
@@ -2285,7 +2285,7 @@ static int32_t pvsblur(CSOUND *csound, PVSBLUR *p)
 {
   int32    j, i, N = p->fout->N, first, framesize = N + 2;
   int32    countr = p->count;
-  double  amp = 0.0, freq = 0.0;
+  MYDBL  amp = 0.0, freq = 0.0;
   int32_t     delayframes = (int32_t) (*p->kdel * p->frpsec);
   int32_t     kdel = delayframes * framesize;
   int32_t     mdel = (int32_t) (*p->maxdel * p->frpsec) * framesize;

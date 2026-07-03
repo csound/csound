@@ -40,7 +40,7 @@ class Generator {
         float mFrameRate;
         int32_t mChans;
         int32 mSampleSize;
-        double *mDataBuf;     // filled by rtplay_, cleared afer copy
+        MYDBL *mDataBuf;     // filled by rtplay_, cleared afer copy
         size_t mXferSize;     // actual source size in bytes (may be less than full)
         sem_id cs_sem;        // to be waited on by Csound
 

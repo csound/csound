@@ -30,20 +30,20 @@ typedef struct  {
         OPDS    h;
         MYFLT   *sr, *ain, *kfc, *istor;
         MYFLT   lkf;
-        double  a[8];
+        MYDBL  a[8];
 } BFIL;
 
 typedef struct  {
         OPDS    h;
         MYFLT   *sr, *ain, *kfo, *kbw, *istor;
         MYFLT   lkf, lkb;
-        double  a[8];
+        MYDBL  a[8];
 } BBFIL;
 
-#include <math.h>
+
 //#define ROOT2 (1.4142135623730950488)
 
-static void butter_filter(uint32_t, uint32_t, MYFLT *, MYFLT *, double *);
+static void butter_filter(uint32_t, uint32_t, MYFLT *, MYFLT *, MYDBL *);
 
 int32_t butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 {
@@ -76,11 +76,11 @@ static int32_t hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       
     }
 
     if (*p->kfc != p->lkf)      {
-      double    *a, c;
+      MYDBL    *a, c;
 
       a = p->a;
       p->lkf = *p->kfc;
-      c = tan((double)(CS_PIDSR * p->lkf));
+      c = tan((MYDBL)(CS_PIDSR * p->lkf));
 
       a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
       a[2] = -(a[1] + a[1]);
@@ -114,10 +114,10 @@ static int32_t lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       
     }
 
     if (*p->kfc != p->lkf) {
-      double     *a, c;
+      MYDBL     *a, c;
       a = p->a;
       p->lkf = *p->kfc;
-      c = 1.0 / tan((double)(CS_PIDSR * p->lkf));
+      c = 1.0 / tan((MYDBL)(CS_PIDSR * p->lkf));
       a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
       a[2] = a[1] + a[1];
       a[3] = a[1];
@@ -132,13 +132,13 @@ static int32_t lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       
 /* Filter loop */
 
 static void butter_filter(uint32_t n, uint32_t offset,
-                          MYFLT *in, MYFLT *out, double *a)
+                          MYFLT *in, MYFLT *out, MYDBL *a)
 {
-    double t, y;
+    MYDBL t, y;
     uint32_t nn;
 
     for (nn=offset; nn<n; nn++) {
-      t = (double)in[nn] - a[4] * a[6] - a[5] * a[7];
+      t = (MYDBL)in[nn] - a[4] * a[6] - a[5] * a[7];
       t = csoundUndenormalizeDouble(t); /* Not needed on AMD */
       y = t * a[1] + a[2] * a[6] + a[3] * a[7];
       a[7] = a[6];

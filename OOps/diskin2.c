@@ -25,7 +25,7 @@
 #include "soundfile.h"
 #include "soundio.h"
 #include "diskin2.h"
-#include <math.h>
+
 #include <inttypes.h>
 
 
@@ -165,10 +165,10 @@ static inline void diskin2_get_sample(CSOUND *csound,
 /*          generated, respectively.                      */
 /* -------- written by Istvan Varga, Jan 28 2002 -------- */
 
-static inline void init_sine_gen(double a, double f, double p, double c,
-                                 double *x, double *v)
+static inline void init_sine_gen(MYDBL a, MYDBL f, MYDBL p, MYDBL c,
+                                 MYDBL *x, MYDBL *v)
 {
-    double  y0, y1;             /* these should be doubles */
+    MYDBL  y0, y1;             /* these should be MYDBLs */
 
     y0 = sin(p);
     y1 = sin(p + f);
@@ -294,7 +294,7 @@ static int32_t diskin2_cleanup(CSOUND *csound, void *p);
 
 static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
 {
-  double  pos;
+  MYDBL  pos;
   char    name[1024];
   void    *fd;
   SFLIB_INFO sfinfo;
@@ -374,7 +374,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   if (MYFLT2LONG(CS_ESR) != sfinfo.samplerate) {
     if (LIKELY(p->winSize != 1)) {
       /* will automatically convert sample rate if interpolation is enabled */
-      p->warpScale = (double)sfinfo.samplerate / (double)CS_ESR;
+      p->warpScale = (MYDBL)sfinfo.samplerate / (MYDBL)CS_ESR;
     }
     else {
       csound->Warning(csound, Str("diskin2: warning: file sample rate (%d) "
@@ -387,8 +387,8 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   if (UNLIKELY(p->fileLength < 1L))
     p->wrapMode = 0;
   /* initialise read position */
-  pos = (double)*(p->iSkipTime) * (double)CS_ESR * p->warpScale;
-  pos *= (double)POS_FRAC_SCALE;
+  pos = (MYDBL)*(p->iSkipTime) * (MYDBL)CS_ESR * p->warpScale;
+  pos *= (MYDBL)POS_FRAC_SCALE;
   p->pos_frac = (int64_t)(pos >= 0.0 ? (pos + 0.5) : (pos - 0.5));
   if (p->wrapMode) {
     p->pos_frac %= ((int64_t)p->fileLength << POS_FRAC_SHIFT);
@@ -582,7 +582,7 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t      nsmps = CS_KSMPS;
     int32_t      chn, i, nn;
-    double   d, frac_d, x, c, v, pidwarp_d;
+    MYDBL   d, frac_d, x, c, v, pidwarp_d;
     MYFLT    frac, a0, a1, a2, a3, onedwarp, winFact;
     int32_t  ndx;
     int32_t  wsized2, warp;
@@ -594,9 +594,9 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
                                Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
-      double  f;
+      MYDBL  f;
       p->prv_kTranspose = *(p->kTranspose);
-      f = (double)p->prv_kTranspose * p->warpScale * (double)POS_FRAC_SCALE;
+      f = (MYDBL)p->prv_kTranspose * p->warpScale * (MYDBL)POS_FRAC_SCALE;
 #ifdef HAVE_C99
       p->pos_frac_inc = (int64_t)llrint(f);
 #else
@@ -659,12 +659,12 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
         onedwarp = (p->pos_frac_inc >= (int64_t) 0 ?
                     ((MYFLT)nn / (MYFLT)p->pos_frac_inc)
                     : ((MYFLT)(-nn) / (MYFLT)p->pos_frac_inc));
-        pidwarp_d = PI * (double)onedwarp;
+        pidwarp_d = PI * (MYDBL)onedwarp;
         c = 2.0 * cos(pidwarp_d) - 2.0;
         /* correct window for kwarp */
-        x = v = (double)wsized2; x *= x; x = 1.0 / x;
-        v *= (double)onedwarp; v -= (double)((int32_t)v) + 0.5; v *= 4.0 * v;
-        winFact = (MYFLT)(((double)p->winFact - x) * v + x);
+        x = v = (MYDBL)wsized2; x *= x; x = 1.0 / x;
+        v *= (MYDBL)onedwarp; v -= (MYDBL)((int32_t)v) + 0.5; v *= 4.0 * v;
+        winFact = (MYFLT)(((MYDBL)p->winFact - x) * v + x);
       }
       else {
         warp = 0;
@@ -673,10 +673,10 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
         winFact = p->winFact;
       }
       for (nn = offset; nn < nsmps; nn++) {
-        frac_d = (double)((int32_t)(p->pos_frac & (int64_t)POS_FRAC_MASK))
-          * (1.0 / (double)POS_FRAC_SCALE);
+        frac_d = (MYDBL)((int32_t)(p->pos_frac & (int64_t)POS_FRAC_MASK))
+          * (1.0 / (MYDBL)POS_FRAC_SCALE);
         ndx += (int32_t)(1 - wsized2);
-        d = (double)(1 - wsized2) - frac_d;
+        d = (MYDBL)(1 - wsized2) - frac_d;
         if (warp) {                           /* ---- warp enabled ---- */
           init_sine_gen((1.0 / PI), pidwarp_d, (pidwarp_d * d), c, &x, &v);
           /* samples -(window size / 2 - 1) to -1 */
@@ -769,7 +769,7 @@ void diskin_file_read(CSOUND *csound, DISKIN2 *p)
     /* nsmps is bufsize in frames */
     int32_t nsmps = csound->CheckCircularBuffer(csound, p->cb, 1)/p->nChannels;
     int32_t i, nn;
-    double  d, frac_d, x, c, v, pidwarp_d;
+    MYDBL  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
     int32_t ndx;
     int32_t wsized2, warp;
@@ -782,9 +782,9 @@ void diskin_file_read(CSOUND *csound, DISKIN2 *p)
       return;
     }
     if (transpose != p->prv_kTranspose) {
-      double  f;
+      MYDBL  f;
       p->prv_kTranspose = transpose;
-      f = (double)p->prv_kTranspose * p->warpScale * (double)POS_FRAC_SCALE;
+      f = (MYDBL)p->prv_kTranspose * p->warpScale * (MYDBL)POS_FRAC_SCALE;
 #ifdef HAVE_C99
       p->pos_frac_inc = (int64_t)llrint(f);
 #else
@@ -847,12 +847,12 @@ void diskin_file_read(CSOUND *csound, DISKIN2 *p)
         onedwarp = (p->pos_frac_inc >= (int64_t) 0 ?
                     ((MYFLT)nn / (MYFLT)p->pos_frac_inc)
                     : ((MYFLT)(-nn) / (MYFLT)p->pos_frac_inc));
-        pidwarp_d = PI * (double)onedwarp;
+        pidwarp_d = PI * (MYDBL)onedwarp;
         c = 2.0 * cos(pidwarp_d) - 2.0;
         /* correct window for kwarp */
-        x = v = (double)wsized2; x *= x; x = 1.0 / x;
-        v *= (double)onedwarp; v -= (double)((int32_t)v) + 0.5; v *= 4.0 * v;
-        winFact = (MYFLT)(((double)p->winFact - x) * v + x);
+        x = v = (MYDBL)wsized2; x *= x; x = 1.0 / x;
+        v *= (MYDBL)onedwarp; v -= (MYDBL)((int32_t)v) + 0.5; v *= 4.0 * v;
+        winFact = (MYFLT)(((MYDBL)p->winFact - x) * v + x);
       }
       else {
         warp = 0;
@@ -861,10 +861,10 @@ void diskin_file_read(CSOUND *csound, DISKIN2 *p)
         winFact = p->winFact;
       }
       for (nn = 0; nn < nsmps; nn++) {
-        frac_d = (double)((int32_t)(p->pos_frac & (int64_t)POS_FRAC_MASK))
-          * (1.0 / (double)POS_FRAC_SCALE);
+        frac_d = (MYDBL)((int32_t)(p->pos_frac & (int64_t)POS_FRAC_MASK))
+          * (1.0 / (MYDBL)POS_FRAC_SCALE);
         ndx += (int32_t)(1 - wsized2);
-        d = (double)(1 - wsized2) - frac_d;
+        d = (MYDBL)(1 - wsized2) - frac_d;
         if (warp) {                           /* ---- warp enabled ---- */
           init_sine_gen((1.0 / PI), pidwarp_d, (pidwarp_d * d), c, &x, &v);
           /* samples -(window size / 2 - 1) to -1 */
@@ -1201,7 +1201,7 @@ void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p) {
     /* nsmps is bufsize in frames */
     int32_t nsmps = csound->CheckCircularBuffer(csound, p->cb, 1)/p->nChannels;
     int32_t i, nn;
-    double  d, frac_d, x, c, v, pidwarp_d;
+    MYDBL  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
     int32_t   ndx;
     int32_t     wsized2, warp;
@@ -1213,9 +1213,9 @@ void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p) {
       return;
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
-      double  f;
+      MYDBL  f;
       p->prv_kTranspose = *(p->kTranspose);
-      f = (double)p->prv_kTranspose * p->warpScale * (double)POS_FRAC_SCALE;
+      f = (MYDBL)p->prv_kTranspose * p->warpScale * (MYDBL)POS_FRAC_SCALE;
 #ifdef HAVE_C99
       p->pos_frac_inc = (int64_t)llrint(f);
 #else
@@ -1277,12 +1277,12 @@ void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p) {
         onedwarp = (p->pos_frac_inc >= (int64_t) 0 ?
                     ((MYFLT)nn / (MYFLT)p->pos_frac_inc)
                     : ((MYFLT)(-nn) / (MYFLT)p->pos_frac_inc));
-        pidwarp_d = PI * (double)onedwarp;
+        pidwarp_d = PI * (MYDBL)onedwarp;
         c = 2.0 * cos(pidwarp_d) - 2.0;
         /* correct window for kwarp */
-        x = v = (double)wsized2; x *= x; x = 1.0 / x;
-        v *= (double)onedwarp; v -= (double)((int32_t)v) + 0.5; v *= 4.0 * v;
-        winFact = (MYFLT)(((double)p->winFact - x) * v + x);
+        x = v = (MYDBL)wsized2; x *= x; x = 1.0 / x;
+        v *= (MYDBL)onedwarp; v -= (MYDBL)((int32_t)v) + 0.5; v *= 4.0 * v;
+        winFact = (MYFLT)(((MYDBL)p->winFact - x) * v + x);
       }
       else {
         warp = 0;
@@ -1291,10 +1291,10 @@ void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p) {
         winFact = p->winFact;
       }
       for (nn = 0; nn < nsmps; nn++) {
-        frac_d = (double)((int32_t)(p->pos_frac & (int64_t)POS_FRAC_MASK))
-          * (1.0 / (double)POS_FRAC_SCALE);
+        frac_d = (MYDBL)((int32_t)(p->pos_frac & (int64_t)POS_FRAC_MASK))
+          * (1.0 / (MYDBL)POS_FRAC_SCALE);
         ndx += (int32_t)(1 - wsized2);
-        d = (double)(1 - wsized2) - frac_d;
+        d = (MYDBL)(1 - wsized2) - frac_d;
         if (warp) {                           /* ---- warp enabled ---- */
           init_sine_gen((1.0 / PI), pidwarp_d, (pidwarp_d * d), c, &x, &v);
           /* samples -(window size / 2 - 1) to -1 */
@@ -1402,7 +1402,7 @@ uintptr_t diskin_io_thread_array(void *p){
 
 static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
                                   int32_t stringname){
-    double  pos;
+    MYDBL  pos;
     char    name[1024];
     void    *fd;
     SFLIB_INFO sfinfo;
@@ -1497,7 +1497,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     if (MYFLT2LONG(CS_ESR) != sfinfo.samplerate) {
       if (LIKELY(p->winSize != 1)) {
         /* will automatically convert sample rate if interpolation is enabled */
-        p->warpScale = (double)sfinfo.samplerate / (double)CS_ESR;
+        p->warpScale = (MYDBL)sfinfo.samplerate / (MYDBL)CS_ESR;
       }
       else {
         csound->Warning(csound, Str("diskin2: warning: file sample rate (%d) "
@@ -1510,8 +1510,8 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     if (UNLIKELY(p->fileLength < 1L))
       p->wrapMode = 0;
     /* initialise read position */
-    pos = (double)*(p->iSkipTime) * (double)CS_ESR * p->warpScale;
-    pos *= (double)POS_FRAC_SCALE;
+    pos = (MYDBL)*(p->iSkipTime) * (MYDBL)CS_ESR * p->warpScale;
+    pos *= (MYDBL)POS_FRAC_SCALE;
     p->pos_frac = (int64_t)(pos >= 0.0 ? (pos + 0.5) : (pos - 0.5));
     if (p->wrapMode) {
       p->pos_frac %= ((int64_t)p->fileLength << POS_FRAC_SHIFT);
@@ -1655,7 +1655,7 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t nsmps = CS_KSMPS, ksmps = CS_KSMPS;
     int32_t chn, i, nn;
-    double  d, frac_d, x, c, v, pidwarp_d;
+    MYDBL  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
     int32_t   ndx;
     int32_t     wsized2, warp;
@@ -1668,9 +1668,9 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
                                Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
-      double  f;
+      MYDBL  f;
       p->prv_kTranspose = *(p->kTranspose);
-      f = (double)p->prv_kTranspose * p->warpScale * (double)POS_FRAC_SCALE;
+      f = (MYDBL)p->prv_kTranspose * p->warpScale * (MYDBL)POS_FRAC_SCALE;
 #ifdef HAVE_C99
       p->pos_frac_inc = (int64_t)llrint(f);
 #else
@@ -1735,12 +1735,12 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
         onedwarp = (p->pos_frac_inc >= (int64_t) 0 ?
                     ((MYFLT)nn / (MYFLT)p->pos_frac_inc)
                     : ((MYFLT)(-nn) / (MYFLT)p->pos_frac_inc));
-        pidwarp_d = PI * (double)onedwarp;
+        pidwarp_d = PI * (MYDBL)onedwarp;
         c = 2.0 * cos(pidwarp_d) - 2.0;
         /* correct window for kwarp */
-        x = v = (double)wsized2; x *= x; x = 1.0 / x;
-        v *= (double)onedwarp; v -= (double)((int32_t)v) + 0.5; v *= 4.0 * v;
-        winFact = (MYFLT)(((double)p->winFact - x) * v + x);
+        x = v = (MYDBL)wsized2; x *= x; x = 1.0 / x;
+        v *= (MYDBL)onedwarp; v -= (MYDBL)((int32_t)v) + 0.5; v *= 4.0 * v;
+        winFact = (MYFLT)(((MYDBL)p->winFact - x) * v + x);
       }
       else {
         warp = 0;
@@ -1749,10 +1749,10 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
         winFact = p->winFact;
       }
       for (nn = offset; nn < nsmps; nn++) {
-        frac_d = (double)((int32_t)(p->pos_frac & (int64_t)POS_FRAC_MASK))
-          * (1.0 / (double)POS_FRAC_SCALE);
+        frac_d = (MYDBL)((int32_t)(p->pos_frac & (int64_t)POS_FRAC_MASK))
+          * (1.0 / (MYDBL)POS_FRAC_SCALE);
         ndx += (int32_t)(1 - wsized2);
-        d = (double)(1 - wsized2) - frac_d;
+        d = (MYDBL)(1 - wsized2) - frac_d;
         if (warp) {                           /* ---- warp enabled ---- */
           init_sine_gen((1.0 / PI), pidwarp_d, (pidwarp_d * d), c, &x, &v);
           /* samples -(window size / 2 - 1) to -1 */

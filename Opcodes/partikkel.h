@@ -30,16 +30,16 @@ Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 
 typedef struct {
     FUNC *table;
-    double phase, delta;
-    double sweepoffset, sweepdecay;
+    MYDBL phase, delta;
+    MYDBL sweepoffset, sweepdecay;
     MYFLT gain;
 } WAVEDATA;
 
 typedef struct {
     uint32_t start, stop;
-    double envphase, envinc;
-    double envattacklen, envdecaystart;
-    double env2amount;
+    MYDBL envphase, envinc;
+    MYDBL envattacklen, envdecaystart;
+    MYDBL env2amount;
     MYFLT fmamp;
     FUNC *fmenvtab;
     uint32_t harmonics;
@@ -155,7 +155,7 @@ typedef struct PARTIKKEL {
     uint32_t channelmaskindex;
     FUNC *wavgaintab;
     uint32_t wavgainindex;
-    double grainphase, graininc;
+    MYDBL grainphase, graininc;
     FUNC *pantab;
     int32_t floatph;
 } PARTIKKEL;

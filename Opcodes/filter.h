@@ -50,9 +50,9 @@ typedef struct {
   int32_t numa;         /* i-var p-time storage registers */
   int32_t numb;
 
-  double dcoeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient double arguments */
+  MYDBL dcoeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient MYDBL arguments */
   AUXCH delay;     /* delay-line state memory base pointer */
-  double* currPos;  /* delay-line current position pointer */ /* >>Was float<< */
+  MYDBL* currPos;  /* delay-line current position pointer */ /* >>Was float<< */
   int32_t   ndelay;    /* length of delay line (i.e. filter order) */
 } FILTER;
 
@@ -68,9 +68,9 @@ typedef struct {
   int32_t numa;         /* i-var p-time storage registers */
   int32_t numb;
 
-  double dcoeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient double arguments */
+  MYDBL dcoeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient MYDBL arguments */
   AUXCH delay;     /* delay-line state memory base pointer */
-  double* currPos;  /* delay-line current position pointer */ /* >>Was float<< */
+  MYDBL* currPos;  /* delay-line current position pointer */ /* >>Was float<< */
   int32_t
   ndelay;    /* length of delay line (i.e. filter order) */
   AUXCH roots;     /* pole roots memory for zfilter */

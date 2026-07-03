@@ -32,13 +32,13 @@
 #ifndef _waveguide_h
 #define _waveguide_h
 
-#include <math.h>
+
 #ifndef sinf
-#define sinf(a) (MYFLT)sin((double)(a))
-#define cosf(a) (MYFLT)cos((double)(a))
-#define sqrtf(a) (MYFLT)sqrt((double)(a))
-#define atan2f(a,b) (MYFLT)atan2((double)(a),(double)(b))
-#define powf(a,b) (MYFLT)pow((double)(a),(double)(b))
+#define sinf(a) (MYFLT)sin((MYDBL)(a))
+#define cosf(a) (MYFLT)cos((MYDBL)(a))
+#define sqrtf(a) (MYFLT)sqrt((MYDBL)(a))
+#define atan2f(a,b) (MYFLT)atan2((MYDBL)(a),(MYDBL)(b))
+#define powf(a,b) (MYFLT)pow((MYDBL)(a),(MYDBL)(b))
 #endif
 
 /* TYPEDEFS */

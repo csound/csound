@@ -26,7 +26,7 @@
         /*      Improvements 1999 John ffitch */
 
 #include "stdopcod.h"
-#include <math.h>
+
 #include "follow.h"
 
 static int32_t flwset(CSOUND *csound, FOL *p)

@@ -27,7 +27,7 @@
 #include "parse_param.h"
 #include <ctype.h>
 #include <inttypes.h>
-#include <math.h>
+
 #include <string.h>
 #include "oload.h"
 #include "pstream.h"
@@ -82,9 +82,9 @@ static int32_t udo_has_perf_opcodes(INSTRTXT *ip) {
 #undef FLOAT_COMPARE
 #endif
 #ifdef USE_DOUBLE
-#define FLOAT_COMPARE(x, y) (fabs((double)(x) / (double)(y)-1.0) > 1.0e-12)
+#define FLOAT_COMPARE(x, y) (fabs((MYDBL)(x) / (MYDBL)(y)-1.0) > 1.0e-12)
 #else
-#define FLOAT_COMPARE(x, y) (fabs((double)(x) / (double)(y)-1.0) > 5.0e-7)
+#define FLOAT_COMPARE(x, y) (fabs((MYDBL)(x) / (MYDBL)(y)-1.0) > 5.0e-7)
 #endif
 
 static char *strsav_string(CSOUND *csound, ENGINE_STATE *engineState,
@@ -614,7 +614,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   MYFLT sr = FL(-1.0), kr = FL(-1.0), ksmps = FL(-1.0), nchnls = DFLT_NCHNLS,
     inchnls = -FL(1.0), _0dbfs = FL(-1.0);
   int32_t krdef = 0; //, ksmpsdef = 0, srdef = 0;
-  double A4 = 0.0;
+  MYDBL A4 = 0.0;
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
   OPARMS *O = csound->oparms;
 
@@ -777,7 +777,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                       "sr = %.7g, kr = %.7g, ksmps = %.7g", sr, kr,
                       ksmps);
     }
-    else if (UNLIKELY(FLOAT_COMPARE(sr, (double)kr * ksmps)
+    else if (UNLIKELY(FLOAT_COMPARE(sr, (MYDBL)kr * ksmps)
                       && !(O->ksmps_override || O->sr_override ||
                            O->kr_override)))
       synterr(p, Str("%s inconsistent sr, kr, ksmps\n"), err_msg);
@@ -915,7 +915,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         csoundDie(csound, Str("%s invalid sample rate"), s);
       if (UNLIKELY(csound->ekr <= FL(0.0)))
         csoundDie(csound, Str("%s invalid control rate"), s);
-      if (UNLIKELY(FLOAT_COMPARE(csound->esr, (double)csound->ekr * ensmps)))
+      if (UNLIKELY(FLOAT_COMPARE(csound->esr, (MYDBL)csound->ekr * ensmps)))
         csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
     }
     if(csoundGetDebug(csound) & DEBUG_COMPILER)

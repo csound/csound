@@ -26,7 +26,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <float.h>
 #include "csoundCore.h"
 #include "corfile.h"
 #include <inttypes.h>

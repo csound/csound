@@ -26,7 +26,7 @@
 #else
 #include "csoundCore.h"
 #endif
-#include <math.h>
+
 
 typedef struct filter_ {
         MYFLT x1, x2;
@@ -39,7 +39,7 @@ typedef struct {
         MYFLT   *kmom,*kint,*kst;
         MYFLT   *rst,*in;
 
-        double a1,a2, b0,b1,b2;
+        MYDBL a1,a2, b0,b1,b2;
         filter filter1; // first stage
         filter filter2; // second stage
         int32_t m, kcount, jcount;
@@ -56,7 +56,7 @@ typedef struct {
         MYFLT   *kmom,*kint,*kst;
         MYFLT   *rst,*in1,*in2;
 
-        double a1,a2, b0,b1,b2;
+        MYDBL a1,a2, b0,b1,b2;
         filter filter1; // first stage
         filter filter2; // second stage
         filter filter3; // first stage

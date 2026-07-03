@@ -663,7 +663,7 @@ int32_t arduinoReadSetup(CSOUND* csound, ARD_READ* p)
       return csound->InitError(csound, "%s", Str("arduinoStart not running\n"));
     /* Initialise port filter */
     if (*p->ihtim != FL(0.0)) {
-      p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
+      p->c2 = pow(0.5, (MYDBL)CS_ONEDKR / *p->ihtim);
       p->c1 = 1.0 - p->c2;
       p->yt1 = FL(0.0);
     } else {

@@ -27,28 +27,28 @@
 typedef struct {
         OPDS    h;
         MYFLT   *kr, *ksig, *ihtim, *isig;
-        double   c1, c2, yt1;
+        MYDBL   c1, c2, yt1;
         MYFLT  ihtim_old;
 } PORT;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *khp, *istor;
-        double  c1, c2, yt1, prvhp;
+        MYDBL  c1, c2, yt1, prvhp;
 } TONE;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *kcf, *kbw, *iscl, *istor;
         int32_t     scale;
-        double  c1, c2, c3, yt1, yt2, cosf, prvcf, prvbw;
+        MYDBL  c1, c2, c3, yt1, yt2, cosf, prvcf, prvbw;
         int32_t     asigf, asigw;
 } RESON;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *khp, *ord, *istor;
-        double  c1, c2, *yt1, prvhp;
+        MYDBL  c1, c2, *yt1, prvhp;
         int32_t loop;
         AUXCH   aux;
 } TONEX;
@@ -57,7 +57,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *kcf, *kbw, *ord, *iscl, *istor;
         int32_t     scale, loop;
-        double  c1, c2, c3, *yt1, *yt2, cosf, prvcf, prvbw;
+        MYDBL  c1, c2, c3, *yt1, *yt2, cosf, prvcf, prvbw;
         AUXCH   aux;
 } RESONX;
 
@@ -98,19 +98,19 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *kr, *asig, *ihp, *istor;
-        double   c1, c2, prvq;
+        MYDBL   c1, c2, prvq;
 } RMS;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *krms, *ihp, *istor;
-        double  c1, c2, prvq, prva;
+        MYDBL  c1, c2, prvq, prva;
 } GAIN;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *csig, *ihp, *istor;
-        double  c1, c2, prvq, prvr, prva;
+        MYDBL  c1, c2, prvq, prvr, prva;
 } BALANCE;
 
 typedef struct {

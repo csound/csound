@@ -42,7 +42,7 @@
 #include "csoundCore.h"
 #endif
 #include "interlocks.h"
-#include <math.h>
+
 #include <limits.h>
 
 typedef struct {
@@ -58,7 +58,7 @@ typedef struct {
   MYFLT ampdecay;  /* subtract from amp on new pulse */
   MYFLT lenfact;   /* increase length of next pulse */
   int32 floatph;
-  double pulsephsf;  /* float index */
+  MYDBL pulsephsf;  /* float index */
   MYFLT  pulseincf;  /*  float incr */
 } VOSIM;
 

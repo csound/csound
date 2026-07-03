@@ -198,7 +198,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
        0) int32_t
        1) float
        2) string
-       3) double
+       3) MYDBL
        4) char
        5) table as blob
     */
@@ -294,7 +294,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
           lo_message_add_float(msg, (float)(*arg[i]));
           break;
         case 'd':
-          lo_message_add_double(msg, (double)(*arg[i]));
+          lo_message_add_double(msg, (MYDBL)(*arg[i]));
           break;
         case 's':
           lo_message_add_string(msg, ((STRINGDAT *)arg[i])->data);

@@ -34,7 +34,7 @@ typedef struct {
 
         MYFLT   thresh, loknee, hiknee, ratio, curatt, currls;
         MYFLT   envthrsh, envlo, kneespan, kneemul, kneecoef, ratcoef;
-        double  cenv, c1, c2, d1, d2, ampmul;
+        MYDBL  cenv, c1, c2, d1, d2, ampmul;
         MYFLT   *abuf, *cbuf, *aptr, *cptr, *clim, lmax, *lmaxp;
         int32   newenv;
         AUXCH   auxch;
@@ -44,7 +44,7 @@ typedef struct {
 typedef struct {        /* this now added from 07/01 */
     OPDS    h;
     MYFLT   *ar, *asig, *kdist, *ifn, *ihp, *istor;
-    double  c1, c2;
+    MYDBL  c1, c2;
     MYFLT   prvq, prvd, min_rms;
     MYFLT   midphs, maxphs, begval, endval;
     FUNC    *ftp;
@@ -145,7 +145,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
     }
     for (n=offset; n<nsmps; n++) {   /* now for each sample of both inputs:  */
       MYFLT asig, lsig;
-      double csig;
+      MYDBL csig;
       asig = *p->aptr;                  /* get signals from delay line  */
       csig = *p->cptr;
       *p->aptr = ainp[n]*scal;               /*   & replace with incoming    */
@@ -180,7 +180,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
     lvlchk:
       if (p->cenv > p->envlo) {         /* if env exceeds loknee amp    */
         if (p->newenv) {                /*   calc dbenv & ampmul        */
-          double dbenv, excess;
+          MYDBL dbenv, excess;
           p->newenv = 0;
           dbenv = log(p->cenv + 0.001) / LOG10D20;      /* for softknee */
           if ((excess = dbenv - (p->loknee+p->bias)) < p->kneespan)
@@ -206,7 +206,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
 
 static int32_t distset(CSOUND *csound, DIST *p)
 {
-    double  b;
+    MYDBL  b;
     FUNC    *ftp;
 
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) return NOTOK;
@@ -215,7 +215,7 @@ static int32_t distset(CSOUND *csound, DIST *p)
     p->midphs = p->maxphs * FL(0.5);
     p->begval = ftp->ftable[0];
     p->endval = ftp->ftable[ftp->flen];
-    b = 2.0 - cos((double) (*p->ihp * CS_TPIDSR)); /*  and rms coefs */
+    b = 2.0 - cos((MYDBL) (*p->ihp * CS_TPIDSR)); /*  and rms coefs */
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
     p->min_rms = csound->Get0dBFS(csound) * DV32768;

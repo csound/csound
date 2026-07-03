@@ -95,8 +95,8 @@ static int32_t pv_export(CSOUND *csound, int32_t argc, char **argv)
       csound->Free(csound,frame);
     }
 /*     else { */
-/*       double *frame =
-            (double*) malloc(data.nAnalysisBins * 2 * sizeof(double)); */
+/*       MYDBL *frame =
+            (MYDBL*) malloc(data.nAnalysisBins * 2 * sizeof(MYDBL)); */
 /*       for (; i!=0; i--) { */
 /*         int32_t j; */
 /*         csound->PVOC_GetFrames(csound, inf, frame, 1); */

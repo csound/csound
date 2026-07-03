@@ -28,7 +28,7 @@
 
 #include "interlocks.h"
 
-#define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
+#define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((MYDBL)x - 0.99999999))
 
 typedef struct {
         OPDS    h;
@@ -53,7 +53,7 @@ typedef struct {
 
 static int32_t vaget(CSOUND *csound, VA_GET *p)
 {
-    int32 ndx = (int32) MYFLOOR((double)*p->kindx);
+    int32 ndx = (int32) MYFLOOR((MYDBL)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     if(LIKELY(ndx >= 0 && ndx < (int32) CS_KSMPS)) {
@@ -70,7 +70,7 @@ static int32_t vaget(CSOUND *csound, VA_GET *p)
 
 static int32_t vaset(CSOUND *csound, VA_SET *p)
 {
-    int32 ndx = (int32) MYFLOOR((double)*p->kindx);
+    int32 ndx = (int32) MYFLOOR((MYDBL)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     if(LIKELY(ndx >= 0 && ndx < (int32) CS_KSMPS)) {
@@ -87,7 +87,7 @@ static int32_t vaset(CSOUND *csound, VA_SET *p)
 
 static int32_t vasigget(CSOUND *csound, VASIG_GET *p)
 {
-    int32 ndx = (int32) MYFLOOR((double)*p->kindx);
+    int32 ndx = (int32) MYFLOOR((MYDBL)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 
@@ -104,7 +104,7 @@ static int32_t vasigget(CSOUND *csound, VASIG_GET *p)
 
 static int32_t vasigset(CSOUND *csound, VASIG_SET *p)
 {
-    int32 ndx = (int32) MYFLOOR((double)*p->kindx);
+    int32 ndx = (int32) MYFLOOR((MYDBL)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 

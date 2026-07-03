@@ -24,7 +24,7 @@
 
 #include "stdopcod.h"
 #include "lowpassr.h"
-#include <math.h>
+
 
 static int32_t lowpr_set(CSOUND *csound, LOWPR *p)
 {
@@ -40,12 +40,12 @@ static int32_t lowpr_set(CSOUND *csound, LOWPR *p)
 
 static int32_t lowpr(CSOUND *csound, LOWPR *p)
 {
-    double b, k = p->k;
+    MYDBL b, k = p->k;
     MYFLT *ar, *asig;
-    double yn, ynm1, ynm2 ;
+    MYDBL yn, ynm1, ynm2 ;
     MYFLT kfco = *p->kfco;
     MYFLT kres = *p->kres;
-    double coef1 = p->coef1, coef2 = p->coef2;
+    MYDBL coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -54,8 +54,8 @@ static int32_t lowpr(CSOUND *csound, LOWPR *p)
       if (UNLIKELY(kfco<=FL(0.0)))
         return csound->PerfError(csound, &(p->h),
                                  "%s", Str("Cutoff parameter must be positive"));
-      b = 10.0 / (kres * sqrt((double)kfco)) - 1.0;
-      p->k = k = 1000.0 / (double)kfco;
+      b = 10.0 / (kres * sqrt((MYDBL)kfco)) - 1.0;
+      p->k = k = 1000.0 / (MYDBL)kfco;
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
       p->okf = kfco; p->okr = kres; /* remember to save recalculation */
@@ -71,7 +71,7 @@ static int32_t lowpr(CSOUND *csound, LOWPR *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps;n++) {
-      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
+      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (MYDBL)asig[n]) * coef2);
       ynm2 = ynm1;
       ynm1 =  yn;
     }
@@ -83,13 +83,13 @@ static int32_t lowpr(CSOUND *csound, LOWPR *p)
 
 static int32_t lowpraa(CSOUND *csound, LOWPR *p)
 {
-    double b, k = p->k;
+    MYDBL b, k = p->k;
     MYFLT *ar, *asig;
-    double yn, ynm1, ynm2 ;
+    MYDBL yn, ynm1, ynm2 ;
     MYFLT *fco = p->kfco;
     MYFLT *res = p->kres;
     MYFLT okf = p->okf, okr = p->okr;
-    double coef1 = p->coef1, coef2 = p->coef2;
+    MYDBL coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -98,8 +98,8 @@ static int32_t lowpraa(CSOUND *csound, LOWPR *p)
       if (UNLIKELY(fco[0]<=FL(0.0)))
         return csound->PerfError(csound, &(p->h),
                                  "%s", Str("Cutoff parameter must be positive"));
-      b = 10.0 / (res[0] * sqrt((double)fco[0])) - 1.0;
-      p->k = k = 1000.0 / (double)fco[0];
+      b = 10.0 / (res[0] * sqrt((MYDBL)fco[0])) - 1.0;
+      p->k = k = 1000.0 / (MYDBL)fco[0];
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
       okf = fco[0]; okr = res[0];
@@ -120,14 +120,14 @@ static int32_t lowpraa(CSOUND *csound, LOWPR *p)
         if (UNLIKELY(fco[n]<=FL(0.0)))
           return csound->PerfError(csound, &(p->h),
                                  "%s", Str("Cutoff parameter must be positive"));
-        b = 10.0 / (res[n] * sqrt((double)fco[n])) - 1.0;
-        p->k = k = 1000.0 / (double)fco[0];
+        b = 10.0 / (res[n] * sqrt((MYDBL)fco[n])) - 1.0;
+        p->k = k = 1000.0 / (MYDBL)fco[0];
         p->coef1 = coef1 = (b+2.0 * k);
         p->coef2 = coef2 = 1.0/(1.0 + b + k);
         okf = fco[n]; okr = res[n];
         /* remember to save recalculation */
       }
-      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
+      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (MYDBL)asig[n]) * coef2);
       ynm2 = ynm1;
       ynm1 = yn;
     }
@@ -139,13 +139,13 @@ static int32_t lowpraa(CSOUND *csound, LOWPR *p)
 
 static int32_t lowprak(CSOUND *csound, LOWPR *p)
 {
-    double b, k = p->k;
+    MYDBL b, k = p->k;
     MYFLT *ar, *asig;
-    double yn, ynm1, ynm2 ;
+    MYDBL yn, ynm1, ynm2 ;
     MYFLT *fco = p->kfco;
     MYFLT kres = *p->kres;
     MYFLT okf = p->okf, okr = p->okr;
-    double coef1 = p->coef1, coef2 = p->coef2;
+    MYDBL coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -154,8 +154,8 @@ static int32_t lowprak(CSOUND *csound, LOWPR *p)
       if (UNLIKELY(fco[0]<=FL(0.0)))
         return csound->PerfError(csound, &(p->h),
                                  "%s", Str("Cutoff parameter must be positive"));
-      b = 10.0 / (kres * sqrt((double)fco[0])) - 1.0;
-      p->k = k = 1000.0 / (double)fco[0];
+      b = 10.0 / (kres * sqrt((MYDBL)fco[0])) - 1.0;
+      p->k = k = 1000.0 / (MYDBL)fco[0];
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
       okf = fco[0]; okr = kres; /* remember to save recalculation */
@@ -175,13 +175,13 @@ static int32_t lowprak(CSOUND *csound, LOWPR *p)
         if (UNLIKELY(fco[n]<=FL(0.0)))
           return csound->PerfError(csound, &(p->h),
                                    "%s", Str("Cutoff parameter must be positive"));
-        b = 10.0 / (kres * sqrt((double)fco[n])) - 1.0;
-        p->k = k = 1000.0 / (double)fco[n];
+        b = 10.0 / (kres * sqrt((MYDBL)fco[n])) - 1.0;
+        p->k = k = 1000.0 / (MYDBL)fco[n];
         p->coef1 = coef1 = (b+2.0 * k);
         p->coef2 = coef2 = 1.0/(1.0 + b + k);
         okf = fco[n]; /* remember to save recalculation */
       }
-      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
+      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (MYDBL)asig[n]) * coef2);
       ynm2 = ynm1;
       ynm1 =  yn;
     }
@@ -194,13 +194,13 @@ static int32_t lowprak(CSOUND *csound, LOWPR *p)
 
 static int32_t lowprka(CSOUND *csound, LOWPR *p)
 {
-    double b, k = p->k;
+    MYDBL b, k = p->k;
     MYFLT *ar, *asig;
-    double yn, ynm1, ynm2 ;
+    MYDBL yn, ynm1, ynm2 ;
     MYFLT fco = *p->kfco;
     MYFLT *res = p->kres;
     MYFLT okr = p->okr, okf = p->okf;
-    double coef1 = p->coef1, coef2 = p->coef2;
+    MYDBL coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -209,8 +209,8 @@ static int32_t lowprka(CSOUND *csound, LOWPR *p)
       if (UNLIKELY(fco<=FL(0.0)))
         return csound->PerfError(csound, &(p->h),
                                  "%s", Str("Cutoff parameter must be positive"));
-      b = 10.0 / (res[0] * sqrt((double)fco)) - 1.0;
-      p->k = k = 1000.0 / (double)fco;
+      b = 10.0 / (res[0] * sqrt((MYDBL)fco)) - 1.0;
+      p->k = k = 1000.0 / (MYDBL)fco;
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
       okf = fco; okr = res[0]; /* remember to save recalculation */
@@ -228,13 +228,13 @@ static int32_t lowprka(CSOUND *csound, LOWPR *p)
     for (n=offset; n<nsmps;n++) {
       // ****Optimise by remembering okf/okr
       if (okr != res[n]) { /* Only if changed */
-        b = 10.0 / (res[n] * sqrt((double)fco)) - 1.0;
-        p->k = k = 1000.0 / (double)fco;
+        b = 10.0 / (res[n] * sqrt((MYDBL)fco)) - 1.0;
+        p->k = k = 1000.0 / (MYDBL)fco;
         p->coef1 = coef1 = (b+2.0 * k);
         p->coef2 = coef2 = 1.0/(1.0 + b + k);
         okr = res[n]; /* remember to save recalculation */
       }
-      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
+      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (MYDBL)asig[n]) * coef2);
       ynm2 = ynm1;
       ynm1 = yn;
     }
@@ -346,13 +346,13 @@ static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
       MYFLT lynm1 = ynm1[j];
       MYFLT lynm2 = ynm2[j];
                 /*
-                linfco=log((double) kfco)*ONEtoLOG2     ;
+                linfco=log((MYDBL) kfco)*ONEtoLOG2     ;
                 linfco = linfco + (sep / p->loop)*j;
                 kfco = (MYFLT) pow(2.0,linfco);
                 */
       kfco = kfcobase * (FL(1.0) + (sep * j));
 
-      b = FL(10.0) / ( kres * (MYFLT)sqrt((double)kfco)) - FL(1.0);
+      b = FL(10.0) / ( kres * (MYFLT)sqrt((MYDBL)kfco)) - FL(1.0);
       k = FL(1000.0) / kfco;
       coef1 = (b+FL(2.0) *k);
       coef2 = FL(1.0)/(FL(1.0) + b + k);

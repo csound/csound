@@ -21,7 +21,7 @@
 */
 
 #include "csoundCore.h"                             /*   SREAD.C     */
-#include <math.h>      /* for fabs() */
+      /* for fabs() */
 #include <ctype.h>
 #include <inttypes.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
@@ -297,7 +297,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           p = &((csound->sread.bp)->text[1]);
           while (isblank(q=*p)) p++;
           if (isdigit(q) || q=='+' || q=='-' || q=='.') {
-            double  tt;
+            MYDBL  tt;
             char    *tmp = p;
             tt = csoundStrtod(p, &tmp);
             //printf("tt=%lf q=%c\n", tt, q);
@@ -383,7 +383,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           /*         if (strchr("+-.0123456789", *p) != NULL) { */
           q = *p;
           if (isdigit(q) || q=='+' || q=='-' || q=='.') {
-            double  tt;
+            MYDBL  tt;
             char    *tmp = p;
             tt = csoundStrtod(p, &tmp);
             if (tmp != p && (*tmp == '\0' || isspace(*tmp))) {

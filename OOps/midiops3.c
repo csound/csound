@@ -24,7 +24,7 @@
 #include "csoundCore.h"
 #include "midiops.h"
 #include "midiops3.h"
-#include <math.h>
+
 
 #define f7bit           (FL(127.0))
 #define oneTOf7bit      (MYFLT)(1.0/127.0)
@@ -174,10 +174,10 @@
                                                                   \
                 /*----- init filtering coeffs*/                   \
         *yt1++ = FL(0.0);                                         \
-        b = (MYFLT)(2.0 - cos((double)(*(sld++)->ihp              \
+        b = (MYFLT)(2.0 - cos((MYDBL)(*(sld++)->ihp              \
                                        * CS_TPIDSR           \
                                        * CS_KSMPS)));        \
-        *c2 = (MYFLT)(b - sqrt((double)(b * b - FL(1.0))));       \
+        *c2 = (MYFLT)(b - sqrt((MYDBL)(b * b - FL(1.0))));       \
         *c1++ = FL(1.0) - *c2++;                                  \
       }                                                           \
     }                                                             \
@@ -711,9 +711,9 @@ int32_t sliderTable8(CSOUND *csound, SLIDER8t *p) /* GAB */
         chanblock[*slnum++] =  (MYFLT)((int32_t)(value * f7bit + FL(0.5))); \
         /*----- init filtering coeffs*/                                 \
         *yt1++ = FL(0.0);                                               \
-        b = (MYFLT)(2.0 - cos((double)(*(sld)->ihp *                    \
+        b = (MYFLT)(2.0 - cos((MYDBL)(*(sld)->ihp *                    \
                               CS_TPIDSR * CS_KSMPS)));             \
-        *c2 = (MYFLT)(b - sqrt((double)(b * b - FL(1.0))));             \
+        *c2 = (MYFLT)(b - sqrt((MYDBL)(b * b - FL(1.0))));             \
         *c1++ = FL(1.0) - *c2++;                                        \
                                                                         \
         min++; max++; ftp++; j++; sld++;                                \

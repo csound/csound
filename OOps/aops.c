@@ -23,7 +23,7 @@
 #include "csoundCore.h" /*                                      AOPS.C  */
 #include "aops.h"
 #include "arrays.h"
-#include <math.h>
+
 #include <time.h>
 
 #define POW2TABSIZI 4096
@@ -814,12 +814,12 @@ int32_t frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac par
 #ifdef MYFLOOR
 #undef MYFLOOR
 #endif
-#define MYFLOOR(x) ((int32_t)((double)(x) >= 0.0 ? (x) : (x) - 0.99999999))
+#define MYFLOOR(x) ((int32_t)((MYDBL)(x) >= 0.0 ? (x) : (x) - 0.99999999))
 
 #ifdef MYCEIL
 #undef MYCEIL
 #endif
-#define MYCEIL(x) ((int32_t)((double)(x) >= 0.0 ? (x) + 0.99999999 : (x)))
+#define MYCEIL(x) ((int32_t)((MYDBL)(x) >= 0.0 ? (x) + 0.99999999 : (x)))
 
 int32_t int1_round(CSOUND *csound, EVAL *p)         /* round to nearest integer */
 {
@@ -900,14 +900,14 @@ int32_t int1a_ceil(CSOUND *csound, EVAL *p)         /* round up */
 
 int32_t rnd1seed(CSOUND *csound, INM *p)
 {
-  double intpart;
+  MYDBL intpart;
   csound->rndfrac = modf(*p->ar, &intpart);
   return OK;
 }
 
 int32_t rnd1(CSOUND *csound, EVAL *p)               /* returns unipolar rand(x) */
 {
-  double intpart;
+  MYDBL intpart;
   csound->rndfrac = modf(csound->rndfrac * rndmlt, &intpart);
   *p->r = *p->a * (MYFLT)csound->rndfrac;
   return OK;
@@ -915,7 +915,7 @@ int32_t rnd1(CSOUND *csound, EVAL *p)               /* returns unipolar rand(x) 
 
 int32_t birnd1(CSOUND *csound, EVAL *p)             /* returns bipolar rand(x) */
 {
-  double intpart;
+  MYDBL intpart;
   csound->rndfrac = modf(csound->rndfrac * rndmlt, &intpart);
   *p->r = *p->a * (FL(2.0) * (MYFLT)csound->rndfrac - FL(1.0));
   return OK;
@@ -1156,8 +1156,8 @@ int32_t rtclock(CSOUND *csound, EVAL *p)
 
 int32_t octpch(CSOUND *csound, EVAL *p)
 {
-  double fract, oct;
-  double in = (double)*p->a;
+  MYDBL fract, oct;
+  MYDBL in = (MYDBL)*p->a;
   fract = modf(in, &oct);
   fract *= EIPT3;
   *p->r = (MYFLT)(oct + fract);
@@ -1166,8 +1166,8 @@ int32_t octpch(CSOUND *csound, EVAL *p)
 
 int32_t pchoct(CSOUND *csound, EVAL *p)
 {
-  double fract, oct;
-  double in = (double)*p->a;
+  MYDBL fract, oct;
+  MYDBL in = (MYDBL)*p->a;
   fract = modf(in, &oct);
   fract *= 0.12;
   *p->r = (MYFLT)(oct + fract);
@@ -1211,8 +1211,8 @@ int32_t octcps(CSOUND *csound, EVAL *p)
 
 int32_t cpspch(CSOUND *csound, EVAL *p)
 {
-  double in = (double)*p->a;
-  double fract, oct;
+  MYDBL in = (MYDBL)*p->a;
+  MYDBL fract, oct;
   int32_t loct;
   fract = modf(in, &oct);
   fract *= EIPT3;
@@ -1242,9 +1242,9 @@ int32_t octmidinn(CSOUND *csound, EVAL *p)
 int32_t pchmidinn(CSOUND *csound, EVAL *p)
 {
   IGN(csound);
-  double fract, oct, octdec;
+  MYDBL fract, oct, octdec;
   /* Convert Midi Note number to 8ve.decimal format */
-  octdec = ((double)*p->a / 12.0) + MIDINOTE0;
+  octdec = ((MYDBL)*p->a / 12.0) + MIDINOTE0;
   /* then convert to 8ve.pc format */
   fract = modf(octdec, &oct);
   fract *= 0.12;
@@ -1254,12 +1254,12 @@ int32_t pchmidinn(CSOUND *csound, EVAL *p)
 
 int32_t cpsxpch(CSOUND *csound, XENH *p)
 {                               /* This may be too expensive */
-  double  fract;
-  double  loct;
+  MYDBL  fract;
+  MYDBL  loct;
 
-  fract = modf((double)*p->pc, &loct); /* Get octave */
+  fract = modf((MYDBL)*p->pc, &loct); /* Get octave */
   if (*p->et > 0) {
-    fract = pow((double)*p->cy, loct + (100.0*fract)/((double)*p->et));
+    fract = pow((MYDBL)*p->cy, loct + (100.0*fract)/((MYDBL)*p->et));
     *p->r = (MYFLT)fract * *p->ref;
   }
   else {                      /* Values in a table */
@@ -1282,12 +1282,12 @@ int32_t cpsxpch(CSOUND *csound, XENH *p)
 
 int32_t cps2pch(CSOUND *csound, XENH *p)
 {
-  double  fract;
-  double  loct;
+  MYDBL  fract;
+  MYDBL  loct;
 
-  fract = modf((double)*p->pc, &loct);        /* Get octave */
+  fract = modf((MYDBL)*p->pc, &loct);        /* Get octave */
   if (*p->et > 0) {
-    fract = pow(2.0, loct + (100.0*fract)/((double)*p->et));
+    fract = pow(2.0, loct + (100.0*fract)/((MYDBL)*p->et));
     *p->r = (MYFLT)(fract * 1.02197503906); /* Refer to base frequency */
   }
   else {
@@ -1308,7 +1308,7 @@ int32_t cps2pch(CSOUND *csound, XENH *p)
                     pow(2.0, loct));
   }
 
-  /*  double ref = 261.62561 / pow(2.0, 8.0); */
+  /*  MYDBL ref = 261.62561 / pow(2.0, 8.0); */
   return OK;
 }
 
@@ -1387,13 +1387,13 @@ int32_t logbasetwo_set(CSOUND *csound, EVAL *p)
 {
   IGN(p);
   if (UNLIKELY(csound->logbase2 == NULL)) {
-    double  x = (1.0 / INTERVAL);
+    MYDBL  x = (1.0 / INTERVAL);
     int32_t     i;
     csound->logbase2 = (MYFLT*) csound->Malloc(csound, (STEPS + 1)
                                                * sizeof(MYFLT));
     for (i = 0; i <= STEPS; i++) {
       csound->logbase2[i] = ONEdLOG2 * LOG((MYFLT)x);
-      x += ((INTERVAL - 1.0 / INTERVAL) / (double)STEPS);
+      x += ((INTERVAL - 1.0 / INTERVAL) / (MYDBL)STEPS);
     }
   }
   return OK;
@@ -2231,10 +2231,10 @@ int32_t divinak(CSOUND *csound, ASSIGN *p)
  * infinity. Hence, there are 2 bit masks to test. Doubles have the most
  * significant bit of the fraction in (0-based) bit 52, floats have the most
  * significant bit of the fraction in bit 22.
- * double qNaN:
+ * MYDBL qNaN:
  * 0111111111110000000000000000000000000000000000000000000000000000
  * 0x7FF0000000000000ULL
- * double sNaN:
+ * MYDBL sNaN:
  * 0111111111101000000000000000000000000000000000000000000000000000
  * 0x7FE8000000000000ULL
  * float qNaN:

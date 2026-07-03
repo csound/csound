@@ -26,8 +26,8 @@ typedef struct DCBlocker {
     OPDS        h;
     MYFLT       *ar, *in, *gg;
 
-    double      outputs;
-    double      inputs;
-    double      gain;
+    MYDBL      outputs;
+    MYDBL      inputs;
+    MYDBL      gain;
 } DCBlocker;
 

@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <math.h>
+
 
 #include "csoundCore.h"
 #include "cfgvar.h"
@@ -99,7 +99,7 @@ static int32_t check_flags(int32_t flags)
  *              CSOUNDCFG_INTEGER:      int*
  *              CSOUNDCFG_BOOLEAN:      int32_t* (value may be 0 or 1)
  *              CSOUNDCFG_FLOAT:        float*
- *              CSOUNDCFG_DOUBLE:       double*
+ *              CSOUNDCFG_DOUBLE:       MYDBL*
  *              CSOUNDCFG_MYFLT:        MYFLT*
  *              CSOUNDCFG_STRING:       char* (should have enough space)
  *   flags:   bitwise OR of flag values, currently only CSOUNDCFG_POWOFTWO
@@ -199,10 +199,10 @@ static int32_t cfg_alloc_structure(CSOUND* csound,
         (*ptr)->f.min = (min == NULL ? -1.0e30f : *((float*) min));
         (*ptr)->f.max = (max == NULL ? 1.0e30f : *((float*) max));
         break;
-      case CSOUNDCFG_DOUBLE:                                    /* double */
+      case CSOUNDCFG_DOUBLE:                                    /* MYDBL */
         (*ptr)->d.flags &= (~(CSOUNDCFG_POWOFTWO));
-        (*ptr)->d.min = (min == NULL ? -1.0e30 : *((double*) min));
-        (*ptr)->d.max = (max == NULL ? 1.0e30 : *((double*) max));
+        (*ptr)->d.min = (min == NULL ? -1.0e30 : *((MYDBL*) min));
+        (*ptr)->d.max = (max == NULL ? 1.0e30 : *((MYDBL*) max));
         break;
       case CSOUNDCFG_MYFLT:                                     /* MYFLT */
         (*ptr)->m.flags &= (~(CSOUNDCFG_POWOFTWO));
@@ -268,7 +268,7 @@ int32_t csoundCreateConfigurationVariable(CSOUND *csound, const char *name,
 
 static int32_t set_cfgvariable_value(csCfgVariable_t *pp, void *value)
 {
-    double  dVal;
+    MYDBL  dVal;
     MYFLT   mVal;
     float   fVal;
     int32_t     iVal;
@@ -297,7 +297,7 @@ static int32_t set_cfgvariable_value(csCfgVariable_t *pp, void *value)
         *(pp->f.p) = fVal;
         break;
       case CSOUNDCFG_DOUBLE:
-        dVal = *((double*) value);
+        dVal = *((MYDBL*) value);
         if (UNLIKELY(dVal < pp->d.min)) return CSOUNDCFG_TOO_LOW;
         if (UNLIKELY(dVal > pp->d.max)) return CSOUNDCFG_TOO_HIGH;
         *(pp->d.p) = dVal;
@@ -341,7 +341,7 @@ int32_t csoundSetConfigurationVariable(CSOUND *csound,
 
 static int32_t parse_cfg_variable(csCfgVariable_t *pp, const char *value)
 {
-    double  dVal;
+    MYDBL  dVal;
     MYFLT   mVal;
     float   fVal;
     int32_t     iVal;
@@ -374,7 +374,7 @@ static int32_t parse_cfg_variable(csCfgVariable_t *pp, const char *value)
         fVal = (float) atof(value);
         return set_cfgvariable_value(pp, (void*) (&fVal));
       case CSOUNDCFG_DOUBLE:
-        dVal = (double) atof(value);
+        dVal = (MYDBL) atof(value);
         return set_cfgvariable_value(pp, (void*) (&dVal));
       case CSOUNDCFG_MYFLT:
         mVal = (MYFLT) atof(value);

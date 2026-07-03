@@ -114,7 +114,7 @@ extern "C" {
   PUBLIC char *csoundLocalizeString(const char *s)
      __attribute__ ((format_arg (1)));
   PUBLIC char* cs_strtok_r(char* str, char* sep, char** lasts);
-  PUBLIC double csoundStrtod(char* nptr, char** endptr);
+  PUBLIC MYDBL csoundStrtod(char* nptr, char** endptr);
   PUBLIC int32_t csoundSprintf(char *str, const char *format, ...);
   PUBLIC int32_t csoundSscanf(char *str, const char *format, ...);
 #ifdef __cplusplus

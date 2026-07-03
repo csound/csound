@@ -25,7 +25,7 @@
 #else
 #include "csoundCore.h"
 #endif
-#include <math.h>
+
 
 static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c);
 static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t x);

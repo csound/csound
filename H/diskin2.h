@@ -63,7 +63,7 @@ typedef struct diskin2 {
     MYFLT   *prvBuf;
     MYFLT   prv_kTranspose;
     MYFLT   winFact;
-    double  warpScale;
+    MYDBL  warpScale;
     void *sf;
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
@@ -110,7 +110,7 @@ typedef struct diskin2_array {
     MYFLT   *prvBuf;
     MYFLT   prv_kTranspose;
     MYFLT   winFact;
-    double  warpScale;
+    MYDBL  warpScale;
     void *sf;
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */

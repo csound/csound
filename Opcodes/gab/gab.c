@@ -32,7 +32,9 @@
 #include <math.h>
 #include "interlocks.h"
 
+#ifndef FLT_MAX
 #define FLT_MAX ((MYFLT)0x7fffffff)
+#endif
 
 static int32_t krsnsetx(CSOUND *csound, KRESONX *p)
 /* Gabriel Maldonado, modified for arb order  */
@@ -350,17 +352,17 @@ static int32_t nlalp(CSOUND *csound, NLALP *p)
   uint32_t n, nsmps = CS_KSMPS;
   MYFLT *rp;
   MYFLT *ip;
-  double m0;
-  double m1;
-  double tm0;
-  double tm1;
-  double klfact;
-  double knfact;
+  MYDBL m0;
+  MYDBL m1;
+  MYDBL tm0;
+  MYDBL tm1;
+  MYDBL klfact;
+  MYDBL knfact;
 
   rp = p->aresult;
   ip = p->ainsig;
-  klfact = (double)*p->klfact;
-  knfact = (double)*p->knfact;
+  klfact = (MYDBL)*p->klfact;
+  knfact = (MYDBL)*p->knfact;
   tm0 = p->m0;
   tm1 = p->m1;
   if (UNLIKELY(offset)) memset(rp, '\0', offset*sizeof(MYFLT));
@@ -370,18 +372,18 @@ static int32_t nlalp(CSOUND *csound, NLALP *p)
   }
   if (knfact == 0.0) { /* linear case */
     if (UNLIKELY(klfact == 0.0)) { /* degenerated linear case */
-      m0 = (double)ip[0] - tm1;
+      m0 = (MYDBL)ip[0] - tm1;
       rp[offset] = (MYFLT)(tm0);
       for (n=offset+1; n<nsmps; n++) {
         rp[n] = (MYFLT)(m0);
-        m0 = (double)ip[n];
+        m0 = (MYDBL)ip[n];
       }
       tm1 = 0.0;
       tm0 = m0;
     }
     else { /* normal linear case */
       for (n=offset; n<nsmps; n++) {
-        m0 = (double)ip[n] - tm1;
+        m0 = (MYDBL)ip[n] - tm1;
         m1 = m0 * klfact;
         rp[n] = (MYFLT)(tm0 + m1);
         tm1 = m1;
@@ -391,7 +393,7 @@ static int32_t nlalp(CSOUND *csound, NLALP *p)
   } else { /* non-linear case */
     if (UNLIKELY(klfact == 0.0)) { /* simplified non-linear case */
       for (n=offset; n<nsmps; n++) {
-        m0 = (double)ip[n] - tm1;
+        m0 = (MYDBL)ip[n] - tm1;
         m1 = fabs(m0) * knfact;
         rp[n] = (MYFLT)(tm0 + m1);
         tm1 = m1;
@@ -399,7 +401,7 @@ static int32_t nlalp(CSOUND *csound, NLALP *p)
       }
     } else { /* normal non-linear case */
       for (n=offset; n<nsmps; n++) {
-        m0 = (double)ip[n] - tm1;
+        m0 = (MYDBL)ip[n] - tm1;
         m1 = m0 * klfact + fabs(m0) * knfact;
         rp[n] = (MYFLT)(tm0 + m1);
         tm1 = m1;
@@ -419,7 +421,7 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     FUNC    *ftp;
     uint32_t count;
     int32   *lphs;
-    double *fphs;
+    MYDBL *fphs;
     p->inerr = 0;
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
@@ -461,16 +463,16 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
                                        "than amptable size!"));
   }
     if (p->lphs.auxp==NULL ||
-        p->lphs.size < sizeof(double)*count)
-      csound->AuxAlloc(csound, sizeof(double)*count, &p->lphs);
+        p->lphs.size < sizeof(MYDBL)*count)
+      csound->AuxAlloc(csound, sizeof(MYDBL)*count, &p->lphs);
     lphs = (int32*)p->lphs.auxp;
-    fphs = (double*)p->lphs.auxp;
+    fphs = (MYDBL*)p->lphs.auxp;
     if (*p->iphs > 1) {
       do {
         if(p->floatph)
           *fphs++ = PHMOD1((csound->Rand31(csound->RandSeed31(csound)) - 1)/ 2147483645.0);
         else
-         *lphs++ = ((int32) ((MYFLT) ((double)(csound->Rand31(csound->RandSeed31(csound)) - 1) / 2147483645.0)* FMAXLEN)) & PHMASK;
+         *lphs++ = ((int32) ((MYFLT) ((MYDBL)(csound->Rand31(csound->RandSeed31(csound)) - 1) / 2147483645.0)* FMAXLEN)) & PHMASK;
       } while (--count);
     }
     else if (*p->iphs >= 0) {
@@ -504,7 +506,7 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
     MYFLT   *ar, *ftbl, *freqtbl, *amptbl, *prevAmp;
     MYFLT   amp0, amp, cps0, cps, ampIncr, amp2, incf;
     int32   phs, inc, lobits;
-    double  *fphs, phsf;
+    MYDBL  *fphs, phsf;
     int32   *lphs;
     int32_t     c, count, flen = p->ftp->flen, floatph = p->floatph;;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -526,7 +528,7 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
     amptp = p->amptp;
     amptbl = amptp->ftable;
     lphs = (int32*)p->lphs.auxp;
-        fphs = (double*)p->lphs.auxp;
+        fphs = (MYDBL*)p->lphs.auxp;
     prevAmp = (MYFLT*)p->pamp.auxp;
 
     cps0 = *p->kcps;

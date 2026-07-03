@@ -95,20 +95,20 @@ static inline long sflib_writef_MYFLT(void *handle, float *ptr, long items) {
 }
 
 #else
-static inline long sflib_read_MYFLT(void *handle, double *ptr, long items) {
-    return sf_read_double((SNDFILE *) handle, ptr, items);
+static inline long sflib_read_MYFLT(void *handle, MYDBL *ptr, long items) {
+    return sf_read_MYDBL((SNDFILE *) handle, ptr, items);
 }
 
-static inline long sflib_write_MYFLT(void *handle, double *ptr, long items) {
-    return sf_write_double((SNDFILE *) handle, ptr, items);
+static inline long sflib_write_MYFLT(void *handle, MYDBL *ptr, long items) {
+    return sf_write_MYDBL((SNDFILE *) handle, ptr, items);
 }
 
-static inline long sflib_readf_MYFLT(void *handle, double *ptr, long items) {
-    return sf_readf_double((SNDFILE *) handle, ptr, items);
+static inline long sflib_readf_MYFLT(void *handle, MYDBL *ptr, long items) {
+    return sf_readf_MYDBL((SNDFILE *) handle, ptr, items);
 }
 
-static inline long sflib_writef_MYFLT(void *handle, double *ptr, long items) {
-    return sf_writef_double((SNDFILE *) handle, ptr, items);
+static inline long sflib_writef_MYFLT(void *handle, MYDBL *ptr, long items) {
+    return sf_writef_MYDBL((SNDFILE *) handle, ptr, items);
 }
 #endif // !USE_DOUBLE
 

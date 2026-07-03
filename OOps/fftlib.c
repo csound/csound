@@ -28,7 +28,7 @@
 */
 
 #include <stdlib.h>
-#include <math.h>
+
 #include "csoundCore.h"
 #include "csound.h"
 #include "fftlib.h"
@@ -3065,7 +3065,7 @@ static void riffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
   int32_t StageCnt;
   int32_t NDiffU;
 
-  scale = (MYFLT)(1.0 / (double)((int32_t)POW2(M)));
+  scale = (MYFLT)(1.0 / (MYDBL)((int32_t)POW2(M)));
   M = M - 1;
   switch (M) {
   case -1:

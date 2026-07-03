@@ -26,7 +26,7 @@
 /************************************************************/
 
 #include "pvoc.h"
-#include <math.h>
+
 
 int32_t tblesegset(CSOUND *csound, TABLESEG *p)
 {

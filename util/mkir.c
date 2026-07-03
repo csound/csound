@@ -33,8 +33,8 @@
 
 static MYFLT *generate_sweep(CSOUND *csound, MYFLT sr, int32_t len) {
   int n;
-  double ph = 0, f = 1., fi;
-  double scal = 2*PI/sr;
+  MYDBL ph = 0, f = 1., fi;
+  MYDBL scal = 2*PI/sr;
   MYFLT *sweep = (MYFLT *) csound->Calloc(csound, len*sizeof(MYFLT));
   fi = pow(sr/2, 1./len);
   for(n = 0; n < len; n++) {

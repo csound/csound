@@ -206,7 +206,7 @@ char *csoundStringArg2Name(CSOUND *csound, char *s, void *p, const char *baseNam
       s[i] = '\0';
     }
     else {
-      int32_t   i = (int32_t) ((double) *((MYFLT*) p)
+      int32_t   i = (int32_t) ((MYDBL) *((MYFLT*) p)
                        + (*((MYFLT*) p) >= FL(0.0) ? 0.5 : -0.5));
       if (i >= 0 && i <= (int32_t) csound->strsmax &&
           csound->strsets != NULL && csound->strsets[i] != NULL) {

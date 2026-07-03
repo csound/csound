@@ -74,7 +74,7 @@
 
 #include "std_util.h"
 #include "soundio.h"
-#include <math.h>
+
 #include <ctype.h>
 #include <inttypes.h>
 
@@ -576,9 +576,9 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
     minv = FL(1.0) / (MYFLT)m;
     md = m / 2;
-    g0 = (MYFLT) pow(10.0,(double)(0.05*(double)g0));
+    g0 = (MYFLT) pow(10.0,(MYDBL)(0.05*(MYDBL)g0));
     g0m = FL(1.0) - g0;
-    th = (MYFLT) pow(10.0,(double)(0.05*(double)th));
+    th = (MYFLT) pow(10.0,(MYDBL)(0.05*(MYDBL)th));
 
     /* set up analysis window: The window is assumed to be symmetric
         with M total points.  After the initial memory allocation,
@@ -607,11 +607,11 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
     if (M > N) {
       if (Meven)
-        *aWin *= (MYFLT)N * (MYFLT) sin(HALFPI/(double)N) /( HALFPI_F);
+        *aWin *= (MYFLT)N * (MYFLT) sin(HALFPI/(MYDBL)N) /( HALFPI_F);
       for (i = 1; i <= aLen; i++)
-        aWin[i] *= (MYFLT) (N * sin(PI * ((double) i + 0.5 * (double) Meven)
-                                    / (double) N)
-                            / (PI * (i + 0.5 * (double) Meven)));
+        aWin[i] *= (MYFLT) (N * sin(PI * ((MYDBL) i + 0.5 * (MYDBL) Meven)
+                                    / (MYDBL) N)
+                            / (PI * (i + 0.5 * (MYDBL) Meven)));
       for (i = 1; i <= aLen; i++)
         aWin[-i] = aWin[i - Meven];
     }
@@ -663,11 +663,11 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
         sWin[-i] = sWin[i - Leven];
 
       if (Leven)
-        *sWin *= (MYFLT) (I * sin(HALFPI/(double) I) / (HALFPI));
+        *sWin *= (MYFLT) (I * sin(HALFPI/(MYDBL) I) / (HALFPI));
       for (i = 1; i <= sLen; i++)
-        sWin[i] *= (MYFLT)(I * sin(PI * ((double) i + 0.5 * (double) Leven)
-                                   / (double) I)
-                           / (PI * ((double) i + 0.5 * (double) Leven)));
+        sWin[i] *= (MYFLT)(I * sin(PI * ((MYDBL) i + 0.5 * (MYDBL) Leven)
+                                   / (MYDBL) I)
+                           / (PI * ((MYDBL) i + 0.5 * (MYDBL) Leven)));
       for (i = 1; i <= sLen; i++)
         sWin[i] = sWin[i - Leven];
 
@@ -1216,20 +1216,20 @@ static int32_t writebuffer(CSOUND *csound, SNDFILE *outfd,
 
 static void hamming(MYFLT *win, int32_t winLen, int32_t even)
 {
-    double  ftmp;
+    MYDBL  ftmp;
     int32_t i;
 
     ftmp = PI / winLen;
 
     if (even) {
       for (i = 0; i < winLen; i++)
-        win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * ((double)i + 0.5)));
+        win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * ((MYDBL)i + 0.5)));
       win[winLen] = FL(0.0);
     }
     else {
       win[0] = FL(1.0);
       for (i = 1; i <= winLen; i++)
-        win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * (double)i));
+        win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * (MYDBL)i));
     }
 }
 

@@ -1798,7 +1798,7 @@ static int32_t vport(CSOUND *csound,VPORT *p)
     int32_t elements = p->elements;
     MYFLT *vector = p->vector, *yt1 = p->yt1, c1, c2;
     if (p->prvhtim != *p->khtim) {
-      p->c2 = (MYFLT)pow(0.5, (double)CS_ONEDKR / *p->khtim);
+      p->c2 = (MYFLT)pow(0.5, (MYDBL)CS_ONEDKR / *p->khtim);
       p->c1 = FL(1.0) - p->c2;
       p->prvhtim = *p->khtim;
     }
@@ -2327,7 +2327,7 @@ static int32_t vphaseseg_set(CSOUND *csound,VPSEG *p)
     TSEG2       *segp;
     int32_t nsegs,j;
     MYFLT       **argp,  *vector;
-    double dur, durtot = 0.0, prevphs;
+    MYDBL dur, durtot = 0.0, prevphs;
     FUNC *nxtfunc, *curfunc, *ftp;
     int32_t32        flength;
 
@@ -2400,7 +2400,7 @@ static int32_t vphaseseg(CSOUND *csound,VPSEG *p)
 {
 
     TSEG2       *segp = p->cursegp;
-    double phase = *p->kphase, partialPhase = 0.0;
+    MYDBL phase = *p->kphase, partialPhase = 0.0;
     int32_t j, flength;
     MYFLT       *curtab = NULL, *nxttab = NULL, curval, nxtval, *vector;
 

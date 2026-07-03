@@ -59,6 +59,7 @@
 */
 
 #include "pffft.h"
+#include "sysdep.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -74,7 +75,7 @@
 #ifdef COMPILER_MSVC
 #define _USE_MATH_DEFINES
 #endif
-#include <math.h>
+
 
 #if defined(COMPILER_GCC)
 #  define ALWAYS_INLINE(return_type) inline return_type __attribute__ ((always_inline))

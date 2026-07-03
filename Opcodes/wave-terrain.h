@@ -42,7 +42,7 @@ typedef struct {
   MYFLT *xarr, *yarr;           /* Actual tables */
 
   MYFLT sizx, sizy;
-  double theta;
+  MYDBL theta;
 
 } WAVETER;
 

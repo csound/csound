@@ -38,7 +38,6 @@
 
 #include <unistd.h>
 #include <limits.h>
-#include <float.h>
 
 // only available on Linux (no /proc/stat on OSX)
 #if defined(LINUX)
@@ -114,7 +113,7 @@ static int32_t cpupercent_renew(CSOUND *csound, CPUMETER* p)
 #define TRIMz(x)  ((tz = (SIC_t)(x)) < 0 ? 0 : tz)
     SIC_t u_frme, s_frme, n_frme, i_frme,
       w_frme, x_frme, y_frme, z_frme, tot_frme, tz;
-    double scale;
+    MYDBL scale;
     uint32_t k;
     CPU_t *cpu = p->cpus;
     char buf[SMLBUFSIZ];
@@ -139,18 +138,18 @@ static int32_t cpupercent_renew(CSOUND *csound, CPUMETER* p)
     tot_frme = u_frme + s_frme + n_frme + i_frme +
                w_frme + x_frme + y_frme + z_frme;
     if (tot_frme < 1) tot_frme = 1;
-    scale = 100.0 / (double)tot_frme;
-    *p->k0 = 100.0-(double)i_frme * scale;
+    scale = 100.0 / (MYDBL)tot_frme;
+    *p->k0 = 100.0-(MYDBL)i_frme * scale;
     if (TEST)
       printf("**%5.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f\n",
-             (double)u_frme * scale,
-             (double)s_frme * scale,
-             (double)n_frme * scale,
-             (double)i_frme * scale,
-             (double)w_frme * scale,
-             (double)x_frme * scale,
-             (double)y_frme * scale,
-             (double)z_frme * scale
+             (MYDBL)u_frme * scale,
+             (MYDBL)s_frme * scale,
+             (MYDBL)n_frme * scale,
+             (MYDBL)i_frme * scale,
+             (MYDBL)w_frme * scale,
+             (MYDBL)x_frme * scale,
+             (MYDBL)y_frme * scale,
+             (MYDBL)z_frme * scale
              );
     // remember for next time around
     cpu[k].u_sav = cpu[k].u;
@@ -180,19 +179,19 @@ static int32_t cpupercent_renew(CSOUND *csound, CPUMETER* p)
       tot_frme = u_frme + s_frme + n_frme + i_frme +
                  w_frme + x_frme + y_frme + z_frme;
       if (tot_frme < 1) tot_frme = 1;
-      scale = 100.0 / (double)tot_frme;
+      scale = 100.0 / (MYDBL)tot_frme;
       //if (p->kk[k]==NULL) break;
       *p->kk[k] = 100.0-i_frme * scale;
       if (TEST)
         printf("%7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f\n",
-               (double)u_frme * scale,
-               (double)s_frme * scale,
-               (double)n_frme * scale,
-               (double)i_frme * scale,
-               (double)w_frme * scale,
-               (double)x_frme * scale,
-               (double)y_frme * scale,
-               (double)z_frme * scale);
+               (MYDBL)u_frme * scale,
+               (MYDBL)s_frme * scale,
+               (MYDBL)n_frme * scale,
+               (MYDBL)i_frme * scale,
+               (MYDBL)w_frme * scale,
+               (MYDBL)x_frme * scale,
+               (MYDBL)y_frme * scale,
+               (MYDBL)z_frme * scale);
 
       // remember for next time around
       cpu[k].u_sav = cpu[k].u;

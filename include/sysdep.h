@@ -118,6 +118,20 @@ typedef uint_least16_t uint16;
 #include "float-version.h"
 #endif
 
+#ifdef FORCE_SINGLE_PRECISION
+ #define MYDBL float
+ #define sf_read_MYDBL sf_read_float
+ #define sf_readf_MYDBL sf_readf_float
+ #define sf_write_MYDBL sf_write_float
+ #define sf_writef_MYDBL sf_writef_float
+#else
+ #define MYDBL double
+ #define sf_read_MYDBL sf_read_double
+ #define sf_readf_MYDBL sf_readf_double
+ #define sf_write_MYDBL sf_write_double
+ #define sf_writef_MYDBL sf_writef_double
+#endif
+
 #ifdef USE_DOUBLE
 /* Defined here as Android does not have log2 functions */
 #define MYRECIPLN2  1.442695040888963407359924681001892137426 /* 1.0/log(2) */
@@ -183,6 +197,9 @@ typedef uint_least16_t uint16;
 // #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <float.h>
+#include <stddef.h>
+
 #include <string.h>
 #if defined(HAVE_FCNTL_H) || defined(__unix) || defined(__unix__)
 #include <fcntl.h>
@@ -191,18 +208,18 @@ typedef uint_least16_t uint16;
 #include <unistd.h>
 #endif
 
-/* Experiment with doubles or floats */
+/* Experiment with MYDBLs or floats */
 
 #ifndef __MYFLT_DEF
 #  define __MYFLT_DEF
 #  ifndef USE_DOUBLE
 #    define MYFLT float
 #  else
-#    define MYFLT double
+#    define MYFLT MYDBL
 #  endif
 #endif
 
-/* Aligning to double boundaries, should work with MYFLT as float or double */
+/* Aligning to MYDBL boundaries, should work with MYFLT as float or MYDBL */
 #define CS_FLOAT_ALIGN(x) ((int32_t)(x + sizeof(MYFLT)-1) & (~(sizeof(MYFLT)-1)))
 
 #if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
@@ -357,19 +374,19 @@ typedef unsigned long       uintptr_t;
 
 #ifdef USE_LRINT
 #  ifndef USE_DOUBLE
-#    define MYFLT2LONG(x) (x > LONG_MIN && x < (double)LONG_MAX ? \
+#    define MYFLT2LONG(x) (x > LONG_MIN && x < (MYDBL)LONG_MAX ? \
                            (int32) lrintf((float) (x)) : 0)
-#    define MYFLT2LRND(x) (x > LONG_MIN && x < (double)LONG_MAX ? \
+#    define MYFLT2LRND(x) (x > LONG_MIN && x < (MYDBL)LONG_MAX ? \
                            (int32) lrintf((float) (x)) : 0)
 #  else
 #    define MYFLT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? \
-                           (int32) lrint((double) (x)) : 0)
+                           (int32) lrint((MYDBL) (x)) : 0)
 #    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? \
-                           (int32) lrint((double) (x)) : 0)
+                           (int32) lrint((MYDBL) (x)) : 0)
 #    define MYFLT2LONG64(x) (x > LONG_MIN && x < LONG_MAX ? \
-                           (int64_t) lrintl((double) (x)) : 0)
+                           (int64_t) lrintl((MYDBL) (x)) : 0)
 #    define MYFLT2LRND64(x) (x > LONG_MIN && x < LONG_MAX ? \
-                           (int64_t) lrintl((double) (x)) : 0)
+                           (int64_t) lrintl((MYDBL) (x)) : 0)
 #  endif
 #elif defined(MSVC)
 #include <emmintrin.h>
@@ -384,11 +401,11 @@ static inline int32_t MYFLT2LRND (float const x) {
 }
 
 #  else
-static inline int32_t MYFLT2LONG (double const x) {
+static inline int32_t MYFLT2LONG (MYDBL const x) {
     return _mm_cvtsd_si32 (_mm_load_sd (&x));
 }
 
-static inline int32_t MYFLT2LRND (double const x) {
+static inline int32_t MYFLT2LRND (MYDBL const x) {
     return _mm_cvtsd_si32 (_mm_load_sd (&x));
 }
 #  endif
@@ -406,15 +423,15 @@ static inline int32 MYFLT2LRND(float fval)
 #  else
 #    define MYFLT2LONG(x) ((int32) (x))
 #    if defined(HAVE_GCC3) && defined(__i386__) && !defined(__ICC)
-#      define MYFLT2LRND(x) ((int32) lrint((double) (x)))
+#      define MYFLT2LRND(x) ((int32) lrint((MYDBL) (x)))
 #    else
 
-static inline int32 MYFLT2LRND(double fval)
+static inline int32 MYFLT2LRND(MYDBL fval)
 {
     return ((int32) (fval + (fval < 0.0 ? -0.5 : 0.5)));
 }
 
-static inline int64 MYFLT2LRND64(double fval)
+static inline int64 MYFLT2LRND64(MYDBL fval)
 {
     return ((int64) (fval + (fval < 0.0 ? -0.5 : 0.5)));
 }
@@ -438,9 +455,9 @@ static inline float csoundUndenormalizeFloat(float x)
     return ((x + 1.0e-30f) - tmp);
 }
 
-static inline double csoundUndenormalizeDouble(double x)
+static inline MYDBL csoundUndenormalizeDouble(MYDBL x)
 {
-    volatile double tmp = 1.0e-200;
+    volatile MYDBL tmp = 1.0e-200;
     return ((x + 1.0e-200) - tmp);
 }
 #else

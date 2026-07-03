@@ -28,7 +28,7 @@ extern "C" {
 
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
-#if defined(__SSE__) && !defined(EMSCRIPTEN)
+#if defined(__SSE__) && !defined(EMSCRIPTEN) && !defined(FORCE_SINGLE_PRECISION)
 #include <xmmintrin.h>
 #ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_MASK   0x0040
@@ -62,15 +62,15 @@ extern "C" {
 #define VARGMAX   (1999)
 #define NOT_AN_INSTRUMENT (-1)
 
-// long max table length is the default for doubles  
+// long max table length is the default for MYDBLs  
 #if defined(USE_DOUBLE) && !defined(SHORT_TABLE_LENGTH)  
 // MAXLEN is the largest positive 32bit signed pow of two  
 static const int32_t MAXLEN = 1 << 30;
-static const double FMAXLEN = (double) (1 << 30);
+static const MYDBL FMAXLEN = (MYDBL) (1 << 30);
 static const uint32_t PHMASK = (1 << 30) - 1;
 #else   // this is the original max table length - floats
 static const int32_t MAXLEN =  1 << 24;
-static const double FMAXLEN = (double) (1 << 24);
+static const MYDBL FMAXLEN = (MYDBL) (1 << 24);
 static const uint32_t PHMASK = (1 << 24) - 1;
 #endif  
 #define PFRAC(x)   ((MYFLT)((x) & ftp->lomask) * ftp->lodiv)
@@ -83,7 +83,7 @@ static const uint32_t PHMASK = (1 << 24) - 1;
 #define CPSOCTL(n) ((MYFLT)(1<<((int32_t)(n)>>13))*csound->cpsocfrc[(int32_t)(n)&8191])
 #ifdef USE_DOUBLE
   extern int64_t MYNAN;
-#define SSTRCOD    (double) NAN
+#define SSTRCOD    (MYDBL) NAN
 #else
   extern int32 MYNAN;
 #define SSTRCOD    (float) NAN

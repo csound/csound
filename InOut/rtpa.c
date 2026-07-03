@@ -263,8 +263,8 @@ static int32_t set_stream_parameters(CSOUND *csound, PaStreamParameters *sp,
   sp->channelCount = (parm->nChannels < 2 ? 2 : parm->nChannels);
 #endif  
   sp->sampleFormat = (PaSampleFormat) paFloat32;
-  sp->suggestedLatency = (PaTime) ((double) parm->bufSamp_SW
-                                   / (double) parm->sampleRate);
+  sp->suggestedLatency = (PaTime) ((MYDBL) parm->bufSamp_SW
+                                   / (MYDBL) parm->sampleRate);
   sp->hostApiSpecificStreamInfo = NULL;
   return 0;
 }
@@ -444,7 +444,7 @@ static int32_t set_device_params_noblock(CSOUND *csound)
                        : (PaStreamParameters*) NULL),
                       (pabs->mode & 2 ? &(pabs->outputPaParameters)
                        : (PaStreamParameters*) NULL),
-                      (double) (pabs->mode & 2 ? pabs->outParm.sampleRate
+                      (MYDBL) (pabs->mode & 2 ? pabs->outParm.sampleRate
                                 : pabs->inParm.sampleRate),
                       (unsigned long) (pabs->mode & 2 ?
                                        pabs->outParm.bufSamp_SW
@@ -576,12 +576,12 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev,
   }
   streamParams.channelCount = parm->nChannels;
   streamParams.sampleFormat = paFloat32;
-  streamParams.suggestedLatency = (PaTime) ((double) parm->bufSamp_HW
-                                            / (double) parm->sampleRate);
+  streamParams.suggestedLatency = (PaTime) ((MYDBL) parm->bufSamp_HW
+                                            / (MYDBL) parm->sampleRate);
   /* open stream */
   if (play) {
     err = (int32_t) Pa_OpenStream(&(dev->handle), NULL, &streamParams,
-                                  (double) parm->sampleRate,
+                                  (MYDBL) parm->sampleRate,
                                   (unsigned long) parm->bufSamp_SW,
                                   (csound->GetDitherMode(csound) ?
                                    paNoFlag:paDitherOff),
@@ -589,7 +589,7 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev,
   }
   else {
     err = (int32_t) Pa_OpenStream(&(dev->handle), &streamParams, NULL,
-                                  (double) parm->sampleRate,
+                                  (MYDBL) parm->sampleRate,
                                   (unsigned long) parm->bufSamp_SW,
                                   paNoFlag, NULL, NULL);
   }

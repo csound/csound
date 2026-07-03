@@ -32,14 +32,14 @@
 /* April/May 2002 by Erik Spjut                                */
 /***************************************************************/
 
-#include <math.h>
+
 #include "stdopcod.h"
 #include "clfilt.h"
 
 static int32_t clfiltset(CSOUND *csound, CLFILT *p)
 {
     MYFLT tanfpi, tanfpi2, cotfpi, cotfpi2;
-    double eps, bethe, aleph, zee;
+    MYDBL eps, bethe, aleph, zee;
     int32_t m, nsec;
     MYFLT pbr = *p->pbr, sbr = *p->sbr;        /* As cannot change */
     p->prvfreq = *p->freq;
@@ -64,7 +64,7 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
                                            "in clfilt"), *p->npol);
 /*       p->nsec = nsec = 1; */
     }
-    else if (UNLIKELY(fmod((double)*p->npol,2.0) != 0.0)) {
+    else if (UNLIKELY(fmod((MYDBL)*p->npol,2.0) != 0.0)) {
       p->nsec = nsec = (int32_t)((*p->npol+FL(1.0))*FL(0.5));
       csound->Warning(csound, Str("odd number of poles chosen in clfilt,"
                                   " rounded to %d"), 2*nsec);

@@ -26,7 +26,7 @@
 #include "filesys.h"
 #include <stdio.h>
 #include <ctype.h>
-#include <math.h>
+
 
 #if defined(MSVC) || defined(__wasi__)
 #include <fcntl.h>
@@ -766,7 +766,7 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
             close(tmp_fd);
             p->fd = tmp_fd = -1;
             csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
-                       &csound->oparms->quality, sizeof(double));
+                       &csound->oparms->quality, sizeof(MYDBL));
             goto doneSFOpen;
           }
         }
@@ -807,7 +807,7 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
       }
       csound->SndfileCommand(csound,p->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
       csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
-                 &csound->oparms->quality, sizeof(double));
+                 &csound->oparms->quality, sizeof(MYDBL));
       *((SNDFILE**) fd) = p->sf;
       break;
     default:                                  /* low level I/O */

@@ -25,7 +25,7 @@
 #else
 #include "csoundCore.h"
 #endif
-#include <math.h>
+
 
 #define MAX_PFACTOR 16
 static const int32_t MAX_PRIMES = 168; /* 168 primes < 1000 */

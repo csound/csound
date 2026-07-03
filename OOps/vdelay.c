@@ -27,7 +27,7 @@
 
 #include "csoundCore.h"
 
-#include <math.h>
+
 #include "vdelay.h"
 
 //#define ESR     (CS_ESR/FL(1000.0))
@@ -349,7 +349,7 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
     MYFLT *del = p->adel;
     MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
     int32_t   wsize = p->interp_size;
-    double x1, x2, w, d, d2x, n1;
+    MYDBL x1, x2, w, d, d2x, n1;
     int32_t   i, i2, xpos;
 
     if (UNLIKELY(buf1 == NULL)) goto err1;                          /* RWD fix */
@@ -357,7 +357,7 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
-    d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
+    d2x = (1.0 - pow ((MYDBL)wsize * 0.85172, -0.89624)) / (MYDBL)(i2 * i2);
     if (UNLIKELY(offset)) memset(out1, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -372,29 +372,29 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx - ((double)del[nn] * (double)CS_ESR);
-      while (x1 < 0.0) x1 += (double)maxd;
+      x1 = (MYDBL)indx - ((MYDBL)del[nn] * (MYDBL)CS_ESR);
+      while (x1 < 0.0) x1 += (MYDBL)maxd;
       xpos = (int32_t)x1;
-      x1 -= (double)xpos;
+      x1 -= (MYDBL)xpos;
       x2 = sin (PI * x1) / PI;
       while (xpos >= maxd) xpos -= maxd;
 
       if (x1 * (1.0 - x1) > 0.00000001) {
         xpos += (1 - i2);
         while (xpos < 0) xpos += maxd;
-        d = (double)(1 - i2) - x1;
+        d = (MYDBL)(1 - i2) - x1;
         for (i = i2; i--;) {
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          n1 += (double)buf1[xpos] * w;
+          n1 += (MYDBL)buf1[xpos] * w;
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          n1 -= (double)buf1[xpos] * w;
+          n1 -= (MYDBL)buf1[xpos] * w;
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
         }
         out1[nn] = (MYFLT) (n1 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);      /* position */
+        xpos = (int32_t)((MYDBL)xpos + x1 + 0.5);      /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         out1[nn] = buf1[xpos];
       }
@@ -420,7 +420,7 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     MYFLT *del = p->adel;
     MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
     int32_t   wsize = p->interp_size;
-    double x1, x2, w, d, d2x, n1;
+    MYDBL x1, x2, w, d, d2x, n1;
     int32_t   i, i2, xpos;
 
     if (UNLIKELY(buf1 == NULL)) goto err1;                          /* RWD fix */
@@ -428,7 +428,7 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
-    d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
+    d2x = (1.0 - pow ((MYDBL)wsize * 0.85172, -0.89624)) / (MYDBL)(i2 * i2);
 
     if (UNLIKELY(offset)) memset(out1, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -440,18 +440,18 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx + ((double)del[nn] * (double)CS_ESR);
-      while (x1 < 0.0) x1 += (double)maxd;
+      x1 = (MYDBL)indx + ((MYDBL)del[nn] * (MYDBL)CS_ESR);
+      while (x1 < 0.0) x1 += (MYDBL)maxd;
       xpos = (int32_t)x1;
-      x1 -= (double)xpos;
+      x1 -= (MYDBL)xpos;
       x2 = sin (PI * x1) / PI;
       while (xpos >= maxd) xpos -= maxd;
 
       if (LIKELY(x1 * (1.0 - x1) > 0.00000001)) {
-        n1 = (double)in1[nn] * x2;
+        n1 = (MYDBL)in1[nn] * x2;
         xpos += (1 - i2);
         while (xpos < 0) xpos += maxd;
-        d = (double)(1 - i2) - x1;
+        d = (MYDBL)(1 - i2) - x1;
         for (i = i2; i--;) {
           w = 1.0 - d*d*d2x; w *= (w / d++);
           buf1[xpos] += (MYFLT) (n1 * w);
@@ -462,7 +462,7 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
         }
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);      /* position */
+        xpos = (int32_t)((MYDBL)xpos + x1 + 0.5);      /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         buf1[xpos] += in1[nn];
       }
@@ -489,7 +489,7 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
     MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
     int32_t   wsize = p->interp_size;
-    double x1, x2, w, d, d2x, n1, n2;
+    MYDBL x1, x2, w, d, d2x, n1, n2;
     int32_t   i, i2, xpos;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -500,7 +500,7 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
-    d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
+    d2x = (1.0 - pow ((MYDBL)wsize * 0.85172, -0.89624)) / (MYDBL)(i2 * i2);
     if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
       memset(out2, '\0', offset*sizeof(MYFLT));
@@ -519,29 +519,29 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx - ((double)del[n] * (double)CS_ESR);
-      while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
+      x1 = (MYDBL)indx - ((MYDBL)del[n] * (MYDBL)CS_ESR);
+      while (UNLIKELY(x1 < 0.0)) x1 += (MYDBL)maxd;
       xpos = (int32_t)x1;
-      x1 -= (double)xpos;
+      x1 -= (MYDBL)xpos;
       x2 = sin (PI * x1) / PI;
       while (UNLIKELY(xpos >= maxd)) xpos -= maxd;
 
       if (x1 * (1.0 - x1) > 0.00000001) {
         xpos += (1 - i2);
         while (UNLIKELY(xpos < 0)) xpos += maxd;
-        d = (double)(1 - i2) - x1;
+        d = (MYDBL)(1 - i2) - x1;
         for (i = i2; i--;) {
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          n1 += (double)buf1[xpos] * w; n2 += (double)buf2[xpos] * w;
+          n1 += (MYDBL)buf1[xpos] * w; n2 += (MYDBL)buf2[xpos] * w;
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          n1 -= (double)buf1[xpos] * w; n2 -= (double)buf2[xpos] * w;
+          n1 -= (MYDBL)buf1[xpos] * w; n2 -= (MYDBL)buf2[xpos] * w;
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
         }
         out1[n] = (MYFLT) (n1 * x2); out2[n] = (MYFLT) (n2 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);      /* position */
+        xpos = (int32_t)((MYDBL)xpos + x1 + 0.5);      /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         out1[n] = buf1[xpos]; out2[n] = buf2[xpos];
       }
@@ -570,7 +570,7 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
     MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
     int32_t   wsize = p->interp_size;
-    double x1, x2, w, d, d2x, n1, n2;
+    MYDBL x1, x2, w, d, d2x, n1, n2;
     int32_t   i, i2, xpos;
 
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL))) goto err1;     /* RWD fix */
@@ -578,7 +578,7 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
-    d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
+    d2x = (1.0 - pow ((MYDBL)wsize * 0.85172, -0.89624)) / (MYDBL)(i2 * i2);
 
     if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
@@ -594,18 +594,18 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx + ((double)del[n] * (double)CS_ESR);
-      while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
+      x1 = (MYDBL)indx + ((MYDBL)del[n] * (MYDBL)CS_ESR);
+      while (UNLIKELY(x1 < 0.0)) x1 += (MYDBL)maxd;
       xpos = (int32_t)x1;
-      x1 -= (double)xpos;
+      x1 -= (MYDBL)xpos;
       x2 = sin (PI * x1) / PI;
       while (UNLIKELY(xpos >= maxd)) xpos -= maxd;
 
       if (x1 * (1.0 - x1) > 0.00000001) {
-        n1 = (double)in1[n] * x2; n2 = (double)in2[n] * x2;
+        n1 = (MYDBL)in1[n] * x2; n2 = (MYDBL)in2[n] * x2;
         xpos += (1 - i2);
         while (UNLIKELY(xpos < 0)) xpos += maxd;
-        d = (double)(1 - i2) - x1;
+        d = (MYDBL)(1 - i2) - x1;
         for (i = i2; i--;) {
           w = 1.0 - d*d*d2x; w *= (w / d++);
           buf1[xpos] += (MYFLT) (n1 * w); buf2[xpos] += (MYFLT) (n2 * w);
@@ -616,7 +616,7 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
         }
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((MYDBL)xpos + x1 + 0.5);       /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         buf1[xpos] += in1[n]; buf2[xpos] += in2[n];
       }
@@ -653,7 +653,7 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     MYFLT *buf3 = (MYFLT *)p->aux3.auxp;
     MYFLT *buf4 = (MYFLT *)p->aux4.auxp;
     int32_t   wsize = p->interp_size;
-    double x1, x2, w, d, d2x, n1, n2, n3, n4;
+    MYDBL x1, x2, w, d, d2x, n1, n2, n3, n4;
     int32_t   i, i2, xpos;
     /* RWD fix */
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL) ||
@@ -662,7 +662,7 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
-    d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
+    d2x = (1.0 - pow ((MYDBL)wsize * 0.85172, -0.89624)) / (MYDBL)(i2 * i2);
 
     if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
@@ -687,32 +687,32 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx - ((double)*del++ * (double)CS_ESR);
-      while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
+      x1 = (MYDBL)indx - ((MYDBL)*del++ * (MYDBL)CS_ESR);
+      while (UNLIKELY(x1 < 0.0)) x1 += (MYDBL)maxd;
       xpos = (int32_t)x1;
-      x1 -= (double)xpos;
+      x1 -= (MYDBL)xpos;
       x2 = sin (PI * x1) / PI;
       while (UNLIKELY(xpos >= maxd)) xpos -= maxd;
 
       if (LIKELY(x1 * (1.0 - x1) > 0.00000001)) {
         xpos += (1 - i2);
         while (UNLIKELY(xpos < 0)) xpos += maxd;
-        d = (double)(1 - i2) - x1;
+        d = (MYDBL)(1 - i2) - x1;
         for (i = i2; i--;) {
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          n1 += (double)buf1[xpos] * w; n2 += (double)buf2[xpos] * w;
-          n3 += (double)buf3[xpos] * w; n4 += (double)buf4[xpos] * w;
+          n1 += (MYDBL)buf1[xpos] * w; n2 += (MYDBL)buf2[xpos] * w;
+          n3 += (MYDBL)buf3[xpos] * w; n4 += (MYDBL)buf4[xpos] * w;
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          n1 -= (double)buf1[xpos] * w; n2 -= (double)buf2[xpos] * w;
-          n3 -= (double)buf3[xpos] * w; n4 -= (double)buf4[xpos] * w;
+          n1 -= (MYDBL)buf1[xpos] * w; n2 -= (MYDBL)buf2[xpos] * w;
+          n3 -= (MYDBL)buf3[xpos] * w; n4 -= (MYDBL)buf4[xpos] * w;
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
         }
         out1[n] = (MYFLT) (n1 * x2); out2[n] = (MYFLT) (n2 * x2);
         out3[n] = (MYFLT) (n3 * x2); out4[n] = (MYFLT) (n4 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((MYDBL)xpos + x1 + 0.5);       /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         out1[n] = buf1[xpos]; out2[n] = buf2[xpos];
         out3[n] = buf3[xpos]; out4[n] = buf4[xpos];
@@ -748,7 +748,7 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     MYFLT *buf3 = (MYFLT *)p->aux3.auxp;
     MYFLT *buf4 = (MYFLT *)p->aux4.auxp;
     int32_t   wsize = p->interp_size;
-    double x1, x2, w, d, d2x, n1, n2, n3, n4;
+    MYDBL x1, x2, w, d, d2x, n1, n2, n3, n4;
     int32_t   i, i2, xpos;
     /* RWD fix */
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL) ||
@@ -757,7 +757,7 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
-    d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
+    d2x = (1.0 - pow ((MYDBL)wsize * 0.85172, -0.89624)) / (MYDBL)(i2 * i2);
 
     if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));
@@ -778,19 +778,19 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx + ((double)del[n] * (double)CS_ESR);
-      while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
+      x1 = (MYDBL)indx + ((MYDBL)del[n] * (MYDBL)CS_ESR);
+      while (UNLIKELY(x1 < 0.0)) x1 += (MYDBL)maxd;
       xpos = (int32_t)x1;
-      x1 -= (double)xpos;
+      x1 -= (MYDBL)xpos;
       x2 = sin (PI * x1) / PI;
       while (UNLIKELY(xpos >= maxd)) xpos -= maxd;
 
       if (x1 * (1.0 - x1) > 0.00000001) {
-        n1 = (double)in1[n] * x2; n2 = (double)in2[n] * x2;
-        n3 = (double)in3[n] * x2; n4 = (double)in4[n] * x2;
+        n1 = (MYDBL)in1[n] * x2; n2 = (MYDBL)in2[n] * x2;
+        n3 = (MYDBL)in3[n] * x2; n4 = (MYDBL)in4[n] * x2;
         xpos += (1 - i2);
         while (UNLIKELY(xpos < 0)) xpos += maxd;
-        d = (double)(1 - i2) - x1;
+        d = (MYDBL)(1 - i2) - x1;
         for (i = i2; i--;) {
           w = 1.0 - d*d*d2x; w *= (w / d++);
           buf1[xpos] += (MYFLT) (n1 * w); buf2[xpos] += (MYFLT) (n2 * w);
@@ -803,7 +803,7 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
         }
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((MYDBL)xpos + x1 + 0.5);       /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         buf1[xpos] += in1[n]; buf2[xpos] += in2[n];
         buf3[xpos] += in3[n]; buf4[xpos] += in4[n];
@@ -940,7 +940,7 @@ static int32_t prime(int32_t val)
         ;
       return (smallprime[i] == val ? 1 : 0);
     }
-    last = (int32_t) sqrt((double)val);
+    last = (int32_t) sqrt((MYDBL)val);
     for (i = 0; smallprime[i] < (last < 3572 ? last : 3572); i++) {
       if (UNLIKELY((val % smallprime[i]) == 0))
         return 0;
@@ -1092,7 +1092,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
         }
         p->c_time[i] = (MYFLT) c_time;
         n += c_time;
-        p->c_gain[i] = (MYFLT) exp((double)(LOG001 * (p->c_time[i]
+        p->c_gain[i] = (MYFLT) exp((MYDBL)(LOG001 * (p->c_time[i]
                                                        * CS_ONEDSR)
                                              / (p->c_orggains[i] * *p->time)));
         p->g[i] = *p->hdif;
@@ -1124,7 +1124,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
             a_time += 2;
         }
         p->a_time[i] = (MYFLT) a_time;
-        p->a_gain[i] = (MYFLT) exp((double)(LOG001 * (p->a_time[i]
+        p->a_gain[i] = (MYFLT) exp((MYDBL)(LOG001 * (p->a_time[i]
                                                        * CS_ONEDSR)
                                              / (p->a_orggains[i] * *p->time)));
         n += a_time;
