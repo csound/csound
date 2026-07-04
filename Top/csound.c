@@ -1138,6 +1138,9 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
 }
 
 #if defined(_WIN32) || defined(__MINGW32__)
+#ifndef _WIN32_WINNT
+# define _WIN32_WINNT 0x0602 
+#endif
 # include <processthreadsapi.h>
 #elif defined(__APPLE__) || defined(__linux__)
 # include <sys/resource.h>  
@@ -1154,7 +1157,7 @@ static void csound_initialize_stack_bounds(CSOUND *csound) {
 #if defined(_WIN32) || defined(__MINGW32__)
     ULONG_PTR low_lim = 0;
     ULONG_PTR hi_lim = 0;
-    GetCurrentThreadStackLimits(&low_lim, &high_lim);
+    GetCurrentThreadStackLimits(&low_lim, &hi_lim);
     csound->stack_low_limit  = (uintptr_t)low_lim;
 #elif defined(BARE_METAL)
     extern uint32_t _stack_bottom;
