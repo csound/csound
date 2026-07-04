@@ -1226,8 +1226,10 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                                instno, inm->name);
     }
-    if (!tp->act_instance)
-      instance(csound, instno);
+    if (!tp->act_instance) {
+      if(instance(csound, instno) == NULL)
+        csound->InitError(csound, "Error instantiating UDO %s\n", inm->name);
+    }
     lcurip = tp->act_instance;            /* use free instance, and */
     tp->act_instance = lcurip->nxtact;    /* remove from chain      */
     if (lcurip->opcod_iobufs==NULL)

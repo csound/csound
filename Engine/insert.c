@@ -1715,8 +1715,8 @@ void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip)
     }
 }
 
-static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
-{
+static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link) {
+
   INSTRTXT  *tp;
   INSDS     *ip;
   OPTXT     *optxt;
@@ -1952,7 +1952,9 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
 }
 
 INSDS *instance(CSOUND *csound, int32_t insno) {
-  return instantiate(csound, insno, 1);
+  if(!csound_stack_exhaustion_check(csound))
+    return instantiate(csound, insno, 1);
+  else return NULL;
 }
 
 /**

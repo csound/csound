@@ -1817,6 +1817,7 @@ struct CSOUND_ {
   int32_t parflag;
   int32_t *taskflag;
   int32_t midiout_port;
+  uintptr_t stack_low_limit; 
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

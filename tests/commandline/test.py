@@ -790,6 +790,7 @@ def runTest():
             "test_udo_optional_after_instr.csd",
             "test new-style UDO optional args defined after instr",
         ],
+        ["test_stack_overflow.csd", "test for stack overflow, clean exit", 1],
     ]
 
     maxallocTests = [

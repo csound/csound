@@ -1112,7 +1112,9 @@ static const CSOUND cenviron_ = {
     300, /* genLabs */
     0, 0, 0, 0, /* midi RT messages */
     0, /* struct_array_temp_counter */
-    0, NULL  /* PARCS thread sync */
+    0, NULL,  /* PARCS thread sync */
+    0, /* midiout port */
+    0, /*  stack_low_limit */
 };
 
 void csoundLongJmp(CSOUND *csound, int32_t retval) {
@@ -1135,6 +1137,53 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   longjmp(csound->exitjmp, n);
 }
 
+#if (defined(TARGET_OS_OSX) && TARGET_OS_OSX) || (defined(__linux__) && !defined(__ANDROID__))
+#define STACK_LIMIT 8388608
+#else
+#define STACK_LIMIT 1048576
+#endif
+
+#ifdef BARE_METAL
+extern uint32_t _stack_bottom;
+#endif
+
+
+static void csound_initialize_stack_bounds(CSOUND *csound) {
+#if defined(_WIN32_)
+    ULONG_PTR low_lim = 0;
+    ULONG_PTR hi_lim = 0;
+    GetCurrentThreadStackLimits(&low_lim, &high_lim);
+    csound->stack_low_limit  = (uintptr_t)low_lim;
+#elif defined(BARE_METAL)
+    csound->stack_low_limit = (uintptr_t)&_stack_bottom; 
+#else
+    int local_anchor = 0;
+    size_t stack_size = 0;
+    struct rlimit limit;
+    uintptr_t stack_high_limit = (uintptr_t) &local_anchor;
+    if (getrlimit(RLIMIT_STACK, &limit) == 0
+        && limit.rlim_cur != RLIM_INFINITY) {
+      stack_size = (size_t) limit.rlim_cur;
+    } else {
+      stack_size = STACK_LIMIT;  
+    }
+    csound->stack_low_limit = stack_high_limit - stack_size;
+#endif
+}
+
+int32_t csound_stack_exhaustion_check(CSOUND *csound) {
+  // stack overflow check & clean exit    
+  int frame_boundary_marker = 0;
+  uintptr_t current_stack_ptr = (uintptr_t) &frame_boundary_marker;
+  size_t safety = 64 * 1024; 
+  if (current_stack_ptr <= csound->stack_low_limit + safety) {
+    // long jump
+    csound->ErrorMsg(csound, "error: stack overflow\n");
+    csound->LongJmp(csound, CSOUND_ERROR);
+    return CSOUND_ERROR; 
+  }
+  return CSOUND_SUCCESS;
+}
 
 
 typedef struct csInstance_s {
@@ -1465,6 +1514,7 @@ static void install_signal_handler(void) {
   allocate_message_queue(csound);
   // version is displayed by default, can be suppressed via --suppress-version
   csound->print_version = 1;
+  csound_initialize_stack_bounds(csound); 
   return csound;
 }
 
