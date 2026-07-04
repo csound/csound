@@ -593,7 +593,6 @@ public:
 int32_t CsoundPerformanceThread::Perform()
 {
     int retval = 0;
-    csound_initialize_stack_bounds(csound); 
     do {
       while (firstMessage) {
         csoundLockMutex(queueLock);

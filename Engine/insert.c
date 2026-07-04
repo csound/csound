@@ -1951,6 +1951,11 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link) {
 }
 
 INSDS *instance(CSOUND *csound, int32_t insno) {
+  // no stack checks when running in multiple threads
+  if(csound->multiThreadedThreadInfo != NULL ||
+     csound->oparms->realtime)
+    return instantiate(csound, insno, 1);
+  // otherwise do stack overflow check
   if(!csound_stack_exhaustion_check(csound))
     return instantiate(csound, insno, 1);
   else return NULL;

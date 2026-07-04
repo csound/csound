@@ -1164,7 +1164,7 @@ void csound_initialize_stack_bounds(CSOUND *csound) {
    ULONG_PTR low_limit = 0;
    ULONG_PTR high_limit = 0;
    GetCurrentThreadStackLimits(&low_limit, &high_limit);
-   csound->stack_low_limit = (uintptr_t)lowLimit;
+   csound->stack_low_limit = (uintptr_t)low_limit;
 #elif defined(BARE_METAL)
     extern uint32_t _stack_bottom;
     csound->stack_low_limit = (uintptr_t)&_stack_bottom;
@@ -1531,7 +1531,6 @@ static void install_signal_handler(void) {
   allocate_message_queue(csound);
   // version is displayed by default, can be suppressed via --suppress-version
   csound->print_version = 1;
-  csound_initialize_stack_bounds(csound); 
   return csound;
 }
 

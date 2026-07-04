@@ -236,7 +236,10 @@ int32_t kperf(CSOUND *csound) {
   csound->kcounter = ++(csound->global_kcounter);
   csound->icurTimeSamples += csound->ksmps;
   csound->curBeat += csound->curBeat_inc;
-
+  // initialise stack bounds on first call
+  if(csound->stack_low_limit == 0)
+    csound_initialize_stack_bounds(csound);
+  
   /* call message_dequeue to run API calls */
   message_dequeue(csound);
 
