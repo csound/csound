@@ -131,6 +131,7 @@ extern "C" {
   void twarp(CSOUND*);
   void add_csobj(CSOUND *csound, TYPE_POOL* pool);
   int32_t csound_stack_exhaustion_check(CSOUND *csound);
+  void csound_initialize_stack_bounds(CSOUND *csound);
 
 /**
  * Register a function to be called by csoundReset(), in reverse order

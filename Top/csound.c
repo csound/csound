@@ -1151,7 +1151,7 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
 #endif
 
 
-static void csound_initialize_stack_bounds(CSOUND *csound) {
+void csound_initialize_stack_bounds(CSOUND *csound) {
 #if defined(__MINGW32__)
   MEMORY_BASIC_INFORMATION mbi;
   int local_anchor = 0;
