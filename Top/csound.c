@@ -1138,12 +1138,11 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
 }
 
 #if defined(_WIN32) || defined(__MINGW32__)
-#ifndef _WIN32_WINNT
-# define _WIN32_WINNT 0x0602 
-#endif
-# include <processthreadsapi.h>
+# include <intrin.h>   
 #elif defined(__APPLE__) || defined(__linux__)
-# include <sys/resource.h>  
+ #include <sys/resource.h>
+#elif defined(__EMSCRIPTEN__)
+ #include <emscripten/stack.h> 
 #endif
 
 #if (defined(TARGET_OS_OSX) && TARGET_OS_OSX) || (defined(__linux__) && !defined(__ANDROID__))
@@ -1155,16 +1154,21 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
 
 static void csound_initialize_stack_bounds(CSOUND *csound) {
 #if defined(_WIN32) || defined(__MINGW32__)
-    ULONG_PTR low_lim = 0;
-    ULONG_PTR hi_lim = 0;
-    GetCurrentThreadStackLimits(&low_lim, &hi_lim);
-    csound->stack_low_limit  = (uintptr_t)low_lim;
+    uintptr_t stack_floor = 0;
+    #if defined(_WIN64)
+        stack_floor = (uintptr_t)__readgsqword(0x10);
+    #else
+        stack_floor = (uintptr_t)__readfsdword(0x08);
+    #endif
+    csound->stack_low_limit  = (uintptr_t) stack_floor;
 #elif defined(BARE_METAL)
     extern uint32_t _stack_bottom;
     csound->stack_low_limit = (uintptr_t)&_stack_bottom;
 #elif defined(__wasi__)
     extern uint8_t __data_end;  
-    csound->stack_low_limit = (uintptr_t)&__data_end;    
+    csound->stack_low_limit = (uintptr_t)&__data_end;
+#elif defined(__EMSCRIPTEN__)
+    csound->stack_low_limit = (uintptr_t)emscripten_stack_get_end();
 #else
     int local_anchor = 0;
     size_t stack_size = 0;

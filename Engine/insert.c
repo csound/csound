@@ -1716,7 +1716,6 @@ void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip)
 }
 
 static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link) {
-
   INSTRTXT  *tp;
   INSDS     *ip;
   OPTXT     *optxt;
