@@ -1137,9 +1137,8 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   longjmp(csound->exitjmp, n);
 }
 
-#if defined(_WIN32) || defined(__MINGW32__)
-# include <intrin.h>   
-#elif defined(__APPLE__) || defined(__linux__)
+ 
+#if defined(__APPLE__) || defined(__linux__)
  #include <sys/resource.h>
 #elif defined(__EMSCRIPTEN__)
  #include <emscripten/stack.h> 
@@ -1153,14 +1152,19 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
 
 
 static void csound_initialize_stack_bounds(CSOUND *csound) {
-#if defined(_WIN32) || defined(__MINGW32__)
-    uintptr_t stack_floor = 0;
-    #if defined(_WIN64)
-        stack_floor = (uintptr_t)__readgsqword(0x10);
-    #else
-        stack_floor = (uintptr_t)__readfsdword(0x08);
-    #endif
-    csound->stack_low_limit  = (uintptr_t) stack_floor;
+#if defined(__MINGW32__)
+  MEMORY_BASIC_INFORMATION mbi;
+  int local_anchor = 0;
+  if (VirtualQuery(&local_anchor, &mbi, sizeof(mbi)) != 0) {
+    csound->stack_low_limit = (uintptr_t)mbi.AllocationBase;
+  } else {
+    csound->stack_low_limit = (uintptr_t)&local_anchor - (1 * 1024 * 1024);
+  }
+#elif defined(_WIN32)
+   ULONG_PTR low_limit = 0;
+   ULONG_PTR high_limit = 0;
+   GetCurrentThreadStackLimits(&low_limit, &high_limit);
+   csound->stack_low_limit = (uintptr_t)lowLimit;
 #elif defined(BARE_METAL)
     extern uint32_t _stack_bottom;
     csound->stack_low_limit = (uintptr_t)&_stack_bottom;
