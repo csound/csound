@@ -1137,6 +1137,12 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   longjmp(csound->exitjmp, n);
 }
 
+#if defined(_WIN32)
+# include <processthreadsapi.h>
+#elif defined(__APPLE__) || defined(__linux__)
+# include <sys/resource.h>  
+#endif
+
 #if (defined(TARGET_OS_OSX) && TARGET_OS_OSX) || (defined(__linux__) && !defined(__ANDROID__))
 #define STACK_LIMIT 8388608
 #else
