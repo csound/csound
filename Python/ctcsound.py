@@ -1411,7 +1411,20 @@ class Csound:
 
     def array_data(self, adat):
         """Get the data from the ARRAYDAT adat."""
-        return libcsound.csoundGetArrayData(adat)
+        type_s = self.array_data_type(adat)
+        ndim = self.array_data_dimensions(adat)
+        shape = self.array_data_sizes(adat)
+        if type_s == "i" or type_s == "k":
+            array_type = np.ctypeslib.ndpointer(MYFLT, ndim, shape, 'C_CONTIGUOUS')
+        elif type_s == "a":
+            array_type = np.ctypeslib.ndpointer(MYFLT*self.sr(), ndim, shape, 'C_CONTIGUOUS')
+        elif type_s == "S":
+            array_type = np.ctypeslib.ndpointer(ct.c_void_p, ndim, shape, 'C_CONTIGUOUS')
+        else:
+            return None
+        ptr = libcsound.csoundGetArrayData(adat)
+        p = ct.cast(ptr, array_type)
+        return array_from_pointer(p)
 
     # These two functions are using c void * for the data.
     # Not very useful in Python. To be refined.
