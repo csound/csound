@@ -2515,6 +2515,29 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
     if (right->type == T_FUNCTION &&
         right->left == NULL &&
         right->next == NULL) {
+      char *outType = NULL;
+      TREE *arg = right->right;
+      int32_t hasExpressionArg = 0;
+
+      while (arg != NULL && !hasExpressionArg) {
+        hasExpressionArg = is_expression_node(arg) ||
+                           is_boolean_expression_node(arg);
+        arg = arg->next;
+      }
+
+      if (hasExpressionArg && tree_arg_list_count(root->left) == 1) {
+        char *leftName = root->left->value ? root->left->value->lexeme : NULL;
+
+        if (leftName != NULL && strchr("aikSKBbf", leftName[0]) != NULL &&
+            (outType = get_arg_type2(csound, right, typeTable)) != NULL) {
+          if (strlen(outType) == 1 && leftName[0] == outType[0]) {
+            csound->Free(csound, outType);
+            return root;
+          }
+          csound->Free(csound, outType);
+        }
+      }
+
       right->next = root->next;
       right->left = root->left;
       right->type = T_OPCALL;
