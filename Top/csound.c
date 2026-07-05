@@ -1022,7 +1022,9 @@ static const CSOUND cenviron_ = {
     0.0,           /*   limiter */
     DFLT_SR, DFLT_KR,  /* defaults */
     0,             /* mp3 mode */
-    0              /* instr redefinition flag */
+    0,             /* instr redefinition flag */
+    0,             /* deprecation error flag */
+    1000           /* MAX udo recursion depth */
   },
   {0, 0, {0}}, /* REMOT_BUF */
   NULL,           /* remoteGlobals        */

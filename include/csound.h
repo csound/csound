@@ -283,6 +283,8 @@ extern "C" {
     int32_t     redef;
     /* error on deprecated opcodes */
     int32_t     error_deprecated;
+    /* UDO recursion depth */
+    int32_t     recursion_depth;
   } OPARMS;
 
   /**

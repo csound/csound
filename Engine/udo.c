@@ -1218,6 +1218,25 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   if (tp == NULL)
     return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                              instno, inm->name);
+
+  if(csound->oparms->recursion_depth > 0
+     && inm->recurse_depth == 0) {
+    // set top frame jump for recursion depth exception
+    if (setjmp(inm->udojmp) != 0) {
+      return csound->InitError(csound,
+                               "error: UDO %s max recursion depth %d reached",
+                               inm->name, csound->oparms->recursion_depth);
+    }
+  }
+
+   inm->recurse_depth++;
+   if(csound->oparms->recursion_depth > 0 &&
+      inm->recurse_depth >
+      csound->oparms->recursion_depth) {
+     // exit gracefully from here back to top frame
+     longjmp(inm->udojmp, CSOUND_ERROR);
+   }
+  
   if (!p->ip) {
     /* search for already allocated, but not active instance */
     /* if none was found, allocate a new instance */
@@ -1270,8 +1289,6 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   lcurip->onedkr = CS_ONEDKR;
   lcurip->onedksmps = CS_ONEDKSMPS;
   lcurip->kicvt = CS_KICVT;
-
-
 
   /* VL 13-12-13 */
   /* this sets ksmps and kr local variables */
@@ -1485,6 +1502,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
    if (UNLIKELY(csound->oparms->odebug))
     csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n",
                     lcurip, lcurip->xtratim, parent_ip, parent_ip->xtratim);
+   inm->recurse_depth = 0;
   return OK;
 }
 

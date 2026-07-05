@@ -790,6 +790,7 @@ def runTest():
             "test_udo_optional_after_instr.csd",
             "test new-style UDO optional args defined after instr",
         ],
+        ["test_udo_recursion.csd", "test for UDO recursion depth exception", 1]
     ]
 
     maxallocTests = [

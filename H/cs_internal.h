@@ -200,6 +200,8 @@ extern "C" {
     CS_VAR_POOL* out_arg_pool;
     CS_VAR_POOL* in_arg_pool;
     struct instr *ip;
+    int32_t recurse_depth;
+    jmp_buf udojmp;
     OENTRY *oentry;
     PBR_REWIRE_PLAN *pbr_plan;
     struct opcodinfo *prv;
