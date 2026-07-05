@@ -348,7 +348,7 @@ static const char *longUsageList[] = {
     Str_noop("--run-unit-tests        enable assertion opcodes and report test failures"),
     Str_noop("                          (assertions are ignored by default)"),
     Str_noop("--error-deprecated      trigger compilation error on deprecated opcodes"),
-    Str_noop("--recursion-dept=n    set max UDO recursion depth to n"),
+    Str_noop("--recursion-depth=n    set max UDO recursion depth to n"),
     Str_noop("--help                  long help"),
     NULL};
 
