@@ -1660,16 +1660,22 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
           if (var->subType) {
             // Generic array, use subType (element type)
             outType = csoundStrdup(csound, var->subType->varTypeName);
-          } else if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
-            // Generic array with dimensions
-            outType = csoundStrdup(csound, var->subType->varTypeName);
           } else if (var->varType == &CS_VAR_TYPE_A) {
             outType = csoundStrdup(csound, "k");
+          } else if (var->varType == &CS_VAR_TYPE_ARRAY) {
+            synterr(csound,
+                    Str("expand_statement: unable to find array sub-type "
+                        "for var %s line %d\n"),
+                    varBaseName, current->line);
+            return NULL;
           } else {
             // Typed array like k[], varType is the element type
             outType = csoundStrdup(csound, var->varType->varTypeName);
           }
-          arrayElementIsStruct = var->subType && var->subType->userDefinedType;
+          arrayElementIsStruct =
+            (var->subType && var->subType->userDefinedType) ||
+            (var->subType == NULL && var->varType &&
+             var->varType->userDefinedType);
         }
       }
 
