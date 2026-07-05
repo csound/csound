@@ -2504,6 +2504,38 @@ TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* unary_op)
  * For further reference, please see the rule for statement and opcall in
  * Engine/csound_orc.y.
  */
+static char *get_assignment_lhs_type_hint(CSOUND *csound, TREE *left)
+{
+  if (left == NULL || left->value == NULL) {
+    return NULL;
+  }
+
+  if (left->value->optype != NULL) {
+    const char *type = convert_array_type_string(csound, left->value->optype);
+    char *ret = csoundStrdup(csound, type);
+    if (type != left->value->optype) {
+      csound->Free(csound, (void*)type);
+    }
+    return ret;
+  }
+
+  char *name = left->value->lexeme;
+  if (name == NULL) {
+    return NULL;
+  }
+  if (*name == '#') {
+    name++;
+  }
+  if (*name == 'g' && name[1] != '\0') {
+    name++;
+  }
+  if (strchr("aikSKBbf", *name) != NULL) {
+    char type[2] = {*name, '\0'};
+    return csoundStrdup(csound, type);
+  }
+  return NULL;
+}
+
 TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
                                   TYPE_TABLE* typeTable) {
   int32_t leftCount, rightCount;
@@ -2526,15 +2558,19 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
       }
 
       if (hasExpressionArg && tree_arg_list_count(root->left) == 1) {
-        char *leftName = root->left->value ? root->left->value->lexeme : NULL;
+        char *leftType = get_assignment_lhs_type_hint(csound, root->left);
 
-        if (leftName != NULL && strchr("aikSKBbf", leftName[0]) != NULL &&
+        if (leftType != NULL && strlen(leftType) == 1 &&
             (outType = get_arg_type2(csound, right, typeTable)) != NULL) {
-          if (strlen(outType) == 1 && leftName[0] == outType[0]) {
+          if (!strcmp(leftType, outType)) {
+            csound->Free(csound, leftType);
             csound->Free(csound, outType);
             return root;
           }
           csound->Free(csound, outType);
+        }
+        if (leftType != NULL) {
+          csound->Free(csound, leftType);
         }
       }
 

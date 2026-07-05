@@ -23,6 +23,9 @@ instr 1
   assert(strcmp(holder.keys[0], "alpha") == 0)
   assert(strcmp(holder.keys[1], "beta") == 0)
 
+  result:i = strcmp(holder.keys[0], "alpha")
+  assert(result == 0)
+
   prints "String-array direct member index test passed\n"
 endin
 
