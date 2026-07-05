@@ -1223,12 +1223,13 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
      && inm->recurse_depth == 0) {
     // set top frame jump for recursion depth exception
     if (setjmp(inm->udojmp) != 0) {
+      inm->recurse_depth = 0;
       return csound->InitError(csound,
                                "error: UDO %s max recursion depth %d reached",
                                inm->name, csound->oparms->recursion_depth);
     }
   }
-
+   // increment recursion depth count
    inm->recurse_depth++;
    if(csound->oparms->recursion_depth > 0 &&
       inm->recurse_depth >
@@ -1380,13 +1381,16 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       err = (*csound->ids->init)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
+  // following init pass, decrement recursion depth count
+  inm->recurse_depth--;
 
   if(err) return err;
   if(inm->passByRef) {
     pbr_sync_pass_through_outputs(csound, p, lcurip);
     pbr_writeback_pass_through_inputs(csound, p, lcurip);
   }
-  csound->mode = 0;  ATOMIC_SET(p->ip->init_done, 1);
+  csound->mode = 0;
+  ATOMIC_SET(p->ip->init_done, 1);
 
   /* After init chain completes, materialise UDO outputs only for pass-by-copy.
      In pass-by-ref mode, internal outputs are already rewired to caller storage
@@ -1502,7 +1506,6 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
    if (UNLIKELY(csound->oparms->odebug))
     csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n",
                     lcurip, lcurip->xtratim, parent_ip, parent_ip->xtratim);
-   inm->recurse_depth = 0;
   return OK;
 }
 
