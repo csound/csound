@@ -1218,6 +1218,26 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   if (tp == NULL)
     return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                              instno, inm->name);
+
+  if(csound->oparms->recursion_depth > 0
+     && inm->recurse_depth == 0) {
+    // set top frame jump for recursion depth exception
+    if (setjmp(inm->udojmp) != 0) {
+      inm->recurse_depth = 0;
+      return csound->InitError(csound,
+                               "error: UDO %s max recursion depth %d reached",
+                               inm->name, csound->oparms->recursion_depth);
+    }
+  }
+   // increment recursion depth count
+   inm->recurse_depth++;
+   if(csound->oparms->recursion_depth > 0 &&
+      inm->recurse_depth >
+      csound->oparms->recursion_depth) {
+     // exit gracefully from here back to top frame
+     longjmp(inm->udojmp, CSOUND_ERROR);
+   }
+  
   if (!p->ip) {
     /* search for already allocated, but not active instance */
     /* if none was found, allocate a new instance */
@@ -1270,8 +1290,6 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   lcurip->onedkr = CS_ONEDKR;
   lcurip->onedksmps = CS_ONEDKSMPS;
   lcurip->kicvt = CS_KICVT;
-
-
 
   /* VL 13-12-13 */
   /* this sets ksmps and kr local variables */
@@ -1363,13 +1381,16 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       err = (*csound->ids->init)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
+  // following init pass, decrement recursion depth count
+  inm->recurse_depth--;
 
   if(err) return err;
   if(inm->passByRef) {
     pbr_sync_pass_through_outputs(csound, p, lcurip);
     pbr_writeback_pass_through_inputs(csound, p, lcurip);
   }
-  csound->mode = 0;  ATOMIC_SET(p->ip->init_done, 1);
+  csound->mode = 0;
+  ATOMIC_SET(p->ip->init_done, 1);
 
   /* After init chain completes, materialise UDO outputs only for pass-by-copy.
      In pass-by-ref mode, internal outputs are already rewired to caller storage

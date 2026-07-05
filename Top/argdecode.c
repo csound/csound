@@ -348,6 +348,7 @@ static const char *longUsageList[] = {
     Str_noop("--run-unit-tests        enable assertion opcodes and report test failures"),
     Str_noop("                          (assertions are ignored by default)"),
     Str_noop("--error-deprecated      trigger compilation error on deprecated opcodes"),
+    Str_noop("--recursion-depth=n    set max UDO recursion depth to n"),
     Str_noop("--help                  long help"),
     NULL};
 
@@ -1235,9 +1236,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     s += 14;
     O->kr_default = O->sr_default / atof(s);
     return 1;
-  }
-
-  else if (!(strcmp(s, "aft-zero"))) {
+  } else if (!(strcmp(s, "aft-zero"))) {
     csound->aftouch = 0;
     return 1;
   } else if (!(strncmp(s, "limiter=", 8))) {
@@ -1248,10 +1247,14 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
                        Str("Ignoring invalid limiter\n"));
       O->limiter = 0;
     }
-    return 1;
-
+   return 1;
   } else if (!(strcmp(s, "limiter"))) {
     O->limiter = 0.5;
+    return 1;
+  } else if (!(strncmp(s, "recursion-depth=", 16))) {
+    s += 16;
+    int32_t depth = atof(s);
+    O->recursion_depth = depth > 0 ? depth : 0;
     return 1;
   } else if (!(strcmp(s, "vbr"))) {
 #ifdef SNDFILE_MP3
