@@ -1631,32 +1631,45 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     if (currentArg->type == T_ARRAY) {
       char *outType;
       CS_VARIABLE* var;
+      int32_t arrayElementIsStruct = 0;
 
-      char *varBaseName = currentArg->left->value->lexeme;
-      // search for the array variable in all pools
-      var = find_var_from_pools(csound, varBaseName,
-                                varBaseName, typeTable);
-      if (var == NULL) {
-        synterr(csound,
-                Str("expand_statement: unable to find array sub-type "
-                    "for var %s line %d\n"),
-                varBaseName, current->line);
-        return NULL;
+      if (currentArg->left == NULL || currentArg->left->value == NULL ||
+          currentArg->left->value->lexeme == NULL) {
+        const CS_TYPE* outCsType;
+        outType = get_arg_type2(csound, currentArg, typeTable);
+        if (outType == NULL) {
+          return NULL;
+        }
+        outCsType = csoundGetTypeWithVarTypeName(csound->typePool, outType);
+        arrayElementIsStruct = outCsType != NULL && outCsType->userDefinedType;
       } else {
-        // Check if it's an array
-        // For LHS array assignment, the temporary variable should have the element type
-        // (e.g., "k" for k[], "S" for S[]) because it represents the value being assigned
-        if (var->subType) {
-          // Generic array, use subType (element type)
-          outType = strdup(var->subType->varTypeName);
-        } else if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
-          // Generic array with dimensions
-          outType = strdup(var->subType->varTypeName);
-        } else if (var->varType == &CS_VAR_TYPE_A) {
-          outType = strdup("k");
+        char *varBaseName = currentArg->left->value->lexeme;
+        // search for the array variable in all pools
+        var = find_var_from_pools(csound, varBaseName,
+                                  varBaseName, typeTable);
+        if (var == NULL) {
+          synterr(csound,
+                  Str("expand_statement: unable to find array sub-type "
+                      "for var %s line %d\n"),
+                  varBaseName, current->line);
+          return NULL;
         } else {
-          // Typed array like k[], varType is the element type
-          outType = strdup(var->varType->varTypeName);
+          // Check if it's an array
+          // For LHS array assignment, the temporary variable should have the element type
+          // (e.g., "k" for k[], "S" for S[]) because it represents the value being assigned
+          if (var->subType) {
+            // Generic array, use subType (element type)
+            outType = csoundStrdup(csound, var->subType->varTypeName);
+          } else if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
+            // Generic array with dimensions
+            outType = csoundStrdup(csound, var->subType->varTypeName);
+          } else if (var->varType == &CS_VAR_TYPE_A) {
+            outType = csoundStrdup(csound, "k");
+          } else {
+            // Typed array like k[], varType is the element type
+            outType = csoundStrdup(csound, var->varType->varTypeName);
+          }
+          arrayElementIsStruct = var->subType && var->subType->userDefinedType;
         }
       }
 
@@ -1665,7 +1678,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                          create_out_arg(csound, outType,
                                         typeTable->localPool->synthArgCount++,
                                         typeTable));
-      free(outType);
+      csound->Free(csound, outType);
 
       if (previousArg == NULL) {
         current->left = temp;
@@ -1679,7 +1692,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       char* opcodeNameBase;
       if (init) {
         opcodeNameBase = "##array_init";
-      } else if (var->subType && var->subType->userDefinedType) {
+      } else if (arrayElementIsStruct) {
         opcodeNameBase = "##array_set_struct";
       } else {
         opcodeNameBase = "##array_set";
