@@ -462,14 +462,16 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   while (current != NULL) {
     if (is_expression_node(current)) {
       TREE* newArg;
+      TREE* temp = current->next;
 
+      current->next = NULL;
       anchor = append_to_tree(csound, anchor,
                             create_expression(csound, current, line, locn,
                                               typeTable));
       last = tree_tail(anchor);
       newArg = create_ans_token(csound, last->left->value->lexeme);
       newArgList = append_to_tree(csound, newArgList, newArg);
-      current = current->next;
+      current = temp;
     } else {
       TREE* temp;
       newArgList = append_to_tree(csound, newArgList, current);
@@ -486,7 +488,9 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   while (current != NULL) {
     if (is_expression_node(current)) {
       TREE* newArg;
+      TREE* temp = current->next;
 
+      current->next = NULL;
       anchor = append_to_tree(csound, anchor,
                             create_expression(csound, current, line,
                                               locn, typeTable));
@@ -494,7 +498,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
 
       newArg = create_ans_token(csound, last->left->value->lexeme);
       newArgList = append_to_tree(csound, newArgList, newArg);
-      current = current->next;
+      current = temp;
     }
     else {
       TREE* temp;

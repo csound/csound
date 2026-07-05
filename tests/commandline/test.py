@@ -765,6 +765,14 @@ def runTest():
             "structs/test_struct_array_member_copy_fail.csd",
             "copying struct-array member out of a struct",
         ],
+        [
+            "structs/test_struct_array_member_with_scalar.csd",
+            "copying a struct-array member containing scalar fields",
+        ],
+        [
+            "structs/test_string_array_direct_member_index.csd",
+            "direct indexing of a string-array struct member",
+        ],
         ["test_exitnowk.csd", "perf-time exitnow opcode"],
         ["test_udt_channel.csd", "testing user-defined type channel"],
         ["test_udt_chan_no_match.csd", "testing unmatched udt channel", 1],
