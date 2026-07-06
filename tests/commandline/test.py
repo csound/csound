@@ -770,6 +770,10 @@ def runTest():
             "copying a struct-array member containing scalar fields",
         ],
         [
+            "structs/test_struct_member_array_struct_set.csd",
+            "assigning into a struct-array member inside a struct",
+        ],
+        [
             "structs/test_string_array_direct_member_index.csd",
             "direct indexing of a string-array struct member",
         ],

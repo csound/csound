@@ -320,7 +320,12 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
 
         char *elementType = NULL;
         int len = (int)strlen(structArrayType);
-        if (structArrayType[0] == ':') {
+        if (len >= 3 && structArrayType[0] == '[' &&
+            structArrayType[len - 1] == ']') {
+          elementType = csound->Malloc(csound, len - 1);
+          strncpy(elementType, structArrayType + 1, len - 2);
+          elementType[len - 2] = '\0';
+        } else if (structArrayType[0] == ':') {
           char *semicolon = strchr(structArrayType, ';');
           if (semicolon != NULL) {
             int typeNameLen = (int)(semicolon - structArrayType - 1);
@@ -2418,6 +2423,15 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       break;
 
     case T_ARRAY:
+
+      if (array_target_missing_lexeme(current)) {
+        char *arrayElementType = get_arg_type2(csound, current, typeTable);
+        if (arrayElementType == NULL) {
+          csound->LongJmp(csound, 1);
+        }
+        csound->Free(csound, arrayElementType);
+        break;
+      }
 
       varName = current->left->value->lexeme;
       // check if the array variable exists, it needs to be declared
