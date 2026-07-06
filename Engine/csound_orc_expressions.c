@@ -658,8 +658,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       char* outype;
 
       // Handle struct member access or other complex left expressions
-      if (root->left == NULL || root->left->value == NULL ||
-          root->left->value->lexeme == NULL) {
+      if (array_target_missing_lexeme(root)) {
         // This could be a struct member access - delegate to get_arg_string_from_tree
         // Note: get_arg_string_from_tree returns the element type for T_ARRAY nodes
         char* elementType = get_arg_string_from_tree(csound, root, typeTable);
@@ -1633,8 +1632,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       CS_VARIABLE* var;
       int32_t arrayElementIsStruct = 0;
 
-      if (currentArg->left == NULL || currentArg->left->value == NULL ||
-          currentArg->left->value->lexeme == NULL) {
+      if (array_target_missing_lexeme(currentArg)) {
         const CS_TYPE* outCsType;
         outType = get_arg_type2(csound, currentArg, typeTable);
         if (outType == NULL) {

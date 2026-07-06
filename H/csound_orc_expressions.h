@@ -33,6 +33,12 @@ typedef struct {
     int32_t gotoType;
 } LOOP_JUMP_TARGETS;
 
+static inline int32_t array_target_missing_lexeme(TREE *arrayNode) {
+  return arrayNode == NULL || arrayNode->left == NULL ||
+         arrayNode->left->value == NULL ||
+         arrayNode->left->value->lexeme == NULL;
+}
+
 CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
 CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 

@@ -2424,8 +2424,7 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     case T_ARRAY:
 
-      if (current->left == NULL || current->left->value == NULL ||
-          current->left->value->lexeme == NULL) {
+      if (array_target_missing_lexeme(current)) {
         char *arrayElementType = get_arg_type2(csound, current, typeTable);
         if (arrayElementType == NULL) {
           csound->LongJmp(csound, 1);
