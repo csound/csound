@@ -26,6 +26,13 @@
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
 
+static int32_t is_intentionally_empty_array(const ARRAYDAT *dat)
+{
+  return dat != NULL && dat->data != NULL && dat->dimensions == 1 &&
+         dat->sizes != NULL && dat->sizes[0] == 0 &&
+         dat->arrayMemberSize > 0 &&
+         dat->allocated == (size_t) dat->arrayMemberSize;
+}
 
 int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
@@ -301,8 +308,7 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     for (int32_t j = 0; j < dat->dimensions; j++) {
       if (dat->sizes[j] <= 0) { needInfer = 1; break; }
     }
-    if (needInfer && dat->data != NULL && dat->dimensions == 1 &&
-        dat->sizes[0] == 0) {
+    if (needInfer && is_intentionally_empty_array(dat)) {
       needInfer = 0;
     }
     if (needInfer) {
@@ -508,7 +514,8 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     }
   }
   // Check if this is a struct array that needs auto-sizing before bounds checking
-  if (dat->data == NULL && dat->dimensions > 0 && dat->sizes != NULL &&
+  if (dat->dimensions > 0 && dat->sizes != NULL &&
+      !is_intentionally_empty_array(dat) &&
       dat->arrayType && dat->arrayType->userDefinedType) {
     int needsAutoSizing = 0;
     for (int32_t j = 0; j < dat->dimensions; j++) {
@@ -536,8 +543,7 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     for (int32_t j = 0; j < dat->dimensions; j++) {
       if (dat->sizes[j] <= 0) { needInfer = 1; break; }
     }
-    if (needInfer && dat->data != NULL && dat->dimensions == 1 &&
-        dat->sizes[0] == 0) {
+    if (needInfer && is_intentionally_empty_array(dat)) {
       needInfer = 0;
     }
     if (needInfer) {
