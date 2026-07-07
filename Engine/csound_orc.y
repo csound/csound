@@ -383,6 +383,18 @@ opcall  : identifier NEWLINE
             $2->left = $1;
             $2->right = $3;
           }
+        | out_arg_list identifier NEWLINE
+          { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
+            if ($2->value != NULL && $2->value->lexeme != NULL &&
+                strcmp($2->value->lexeme, "init") == 0) {
+              $$->left = $2;
+              $2->type = T_OPCALL;
+              $2->left = $1;
+            } else {
+              $$->left = $1;
+              $$->right = $2;
+            }
+          }
         | out_arg_list_array expr_list NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
             $$->left = $1;
@@ -399,6 +411,18 @@ opcall  : identifier NEWLINE
             $2->type = T_OPCALL;
             $2->left = $1;
             $2->right = $3;
+          }
+        | out_arg_list_array identifier NEWLINE
+          { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
+            if ($2->value != NULL && $2->value->lexeme != NULL &&
+                strcmp($2->value->lexeme, "init") == 0) {
+              $$->left = $2;
+              $2->type = T_OPCALL;
+              $2->left = $1;
+            } else {
+              $$->left = $1;
+              $$->right = $2;
+            }
           }
         | function_call NEWLINE
           { $$ = $1; }

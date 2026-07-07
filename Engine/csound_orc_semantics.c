@@ -3104,10 +3104,14 @@ int32_t initStructVar(CSOUND* csound, void* p) {
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)init->out;
   CS_TYPE* type = csoundGetTypeForArg(init->out);
   int32_t len = cs_cons_length(type->members);
+  int32_t incnt = (int32_t)init->h.optext->t.inArgCount;
   int32_t i;
   if(csoundGetDebug(csound) & DEBUG_SEMANTICS) {
      csound->Message(csound, "Initializing Struct...\n");
      csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+  }
+  if (incnt == 0) {
+    return CSOUND_SUCCESS;
   }
   for (i = 0; i < len; i++) {
     CS_VAR_MEM* mem = structVar->members[i];
@@ -3407,6 +3411,10 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     member = member->next;
   }
   temp[index] = 0;
+  oentry.intypes = csoundStrdup(csound, "");
+  csoundAppendOpcodes(csound, &oentry, 1);
+  oentry.opname = csoundStrdup(csound, oentry.opname);
+  oentry.outypes = csoundStrdup(csound, oentry.outypes);
   oentry.intypes = csoundStrdup(csound, temp);
   csoundAppendOpcodes(csound, &oentry, 1);
   return 1;
@@ -3818,6 +3826,17 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         }
       }
       break;
+    }
+
+    case T_TYPED_IDENT: {
+      TREE *next = current->next;
+
+      add_args(csound, current, typeTable);
+      if (previous != NULL) {
+        previous->next = next;
+      }
+      current = next;
+      continue;
     }
 
     case BREAK_TOKEN: {
