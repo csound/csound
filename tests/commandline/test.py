@@ -510,6 +510,11 @@ def runTest():
             "test expected failure with negative dimension size and array",
             1,
         ],
+        [
+            "arrays/test_arrays_zero_dimension_fail.csd",
+            "test expected failure with zero dimension in multi-dimensional array",
+            1,
+        ],
         ["test_iarr_operators.csd", "test i[] operators"],
         ["test_booleans.csd", "tests using boolean data-types"],
         ["test_boolean_function.csd", "test boolean function in conditionals"],

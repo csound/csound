@@ -62,9 +62,14 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     }
     if (UNLIKELY(v == 0)) {
       // Special-case for audio arrays: size 0 means use ksmps (first dimension only)
-      if (!(isAudioArray && i == 0)) {
+      if (isAudioArray && i == 0) {
         continue;
       }
+      if (inArgCount == 1) {
+        continue;
+      }
+      return csound->InitError(csound, "%s",
+                               Str("Error: zero-size array initialization is only supported for 1-D arrays"));
     }
   }
 
