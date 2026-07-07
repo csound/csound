@@ -788,6 +788,11 @@ def runTest():
             "nested struct-array member reads inside boolean expression args",
         ],
         [
+            "structs/test_struct_init_partial_member_fails.csd",
+            "fail when struct init provides only some members",
+            "fail",
+        ],
+        [
             "structs/test_string_array_direct_member_index.csd",
             "direct indexing of a string-array struct member",
         ],
@@ -856,7 +861,7 @@ def runTest():
     tests += maxallocTests
     tests += pfieldTests
     tests += mkirTests
-   
+
     output = ""
 
     retVals = []
