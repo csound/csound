@@ -19,9 +19,12 @@ instr 1
 
   nums init 1
   names init 1
+  boxes init 1
 
+  box:Box init 64
   nums[0] = 42
   names[0] = "flute"
+  boxes[0] = box
 
   if (lenarray(nums) != 1 || nums[0] != 42) then
     prints "Empty numeric array resize failed: len=%d value=%d\n", \
@@ -32,6 +35,12 @@ instr 1
   if (lenarray(names) != 1 || strcmp(names[0], "flute") != 0) then
     prints "Empty string array resize failed: len=%d value='%s'\n", \
       lenarray(names), names[0]
+    exitnow(1)
+  endif
+
+  if (lenarray(boxes) != 1 || boxes[0].value != 64) then
+    prints "Empty struct array resize failed: len=%d value=%d\n", \
+      lenarray(boxes), boxes[0].value
     exitnow(1)
   endif
 endin
