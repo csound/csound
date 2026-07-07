@@ -702,6 +702,7 @@ def runTest():
         ["arrays/arrays_for_loop.csd", "tests for loops over array types"],
         ["arrays/test_redef_fail.csd", "fail on redefinition of variable by array", 1],
         ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],
+        ["arrays/test_empty_array_init.csd", "test zero-length array initialization"],
         ["complex_array_test.csd", "testing complex array ops"],
         ["test_array_channels.csd", "testing bus channels holding arrays"],
         ["fft_array_test.csd", "testing complex fft array ops"],

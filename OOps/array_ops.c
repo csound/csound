@@ -49,11 +49,14 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
                                Str("Error: NULL size pointer for array initialization"));
     }
     int v = MYFLT2LRND(*p->isizes[i]);
-    if (UNLIKELY(v <= 0)) {
+    if (UNLIKELY(v < 0)) {
+      return csound->InitError(csound, "%s",
+                               Str("Error: sizes must be >= 0 for array initialization"));
+    }
+    if (UNLIKELY(v == 0)) {
       // Special-case for audio arrays: size 0 means use ksmps (first dimension only)
       if (!(isAudioArray && i == 0)) {
-        return csound->InitError(csound, "%s",
-                                 Str("Error: sizes must be > 0 for array initialization"));
+        continue;
       }
     }
   }
@@ -97,10 +100,11 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
                                                            p->h.insdshead);
     char *mem;
     arrayDat->arrayMemberSize = var->memBlockSize;
+    int32_t allocCount = size > 0 ? size : 1;
     arrayDat->data = csound->Calloc(csound,
-                                    arrayDat->allocated=var->memBlockSize*size);
+                                    arrayDat->allocated=var->memBlockSize*allocCount);
     mem = (char *) arrayDat->data;
-    for (i=0; i < size; i++) {
+    for (i=0; i < allocCount; i++) {
       var->initializeVariableMemory(csound, var,
                                     (MYFLT*)(mem+i*var->memBlockSize));
     }
@@ -296,6 +300,10 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     int needInfer = 0;
     for (int32_t j = 0; j < dat->dimensions; j++) {
       if (dat->sizes[j] <= 0) { needInfer = 1; break; }
+    }
+    if (needInfer && dat->data != NULL && dat->dimensions == 1 &&
+        dat->sizes[0] == 0) {
+      needInfer = 0;
     }
     if (needInfer) {
       if (dat->dimensions == 1 && dat->allocated > 0 && dat->arrayMemberSize > 0) {
@@ -500,7 +508,8 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     }
   }
   // Check if this is a struct array that needs auto-sizing before bounds checking
-  if (dat->dimensions > 0 && dat->sizes != NULL && dat->arrayType && dat->arrayType->userDefinedType) {
+  if (dat->data == NULL && dat->dimensions > 0 && dat->sizes != NULL &&
+      dat->arrayType && dat->arrayType->userDefinedType) {
     int needsAutoSizing = 0;
     for (int32_t j = 0; j < dat->dimensions; j++) {
       if (dat->sizes[j] <= 0) {
@@ -526,6 +535,10 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     int needInfer = 0;
     for (int32_t j = 0; j < dat->dimensions; j++) {
       if (dat->sizes[j] <= 0) { needInfer = 1; break; }
+    }
+    if (needInfer && dat->data != NULL && dat->dimensions == 1 &&
+        dat->sizes[0] == 0) {
+      needInfer = 0;
     }
     if (needInfer) {
       if (dat->dimensions == 1 && dat->allocated > 0 && dat->arrayMemberSize > 0) {
