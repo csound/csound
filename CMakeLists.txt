@@ -588,8 +588,8 @@ csound_check_nonfinite_math()
 
 # C language standard.
 # MSVC only gained /std:c11 in 19.27 and CMake only maps CMAKE_C_STANDARD to it
-# from 3.18, but we are supporting cmake >= 3.13, so probe the switch directly 
-# there. Everywhere else use CMAKE_C_STANDARD, which CMake translates to the 
+# from 3.18, but we are supporting cmake >= 3.13, so probe the switch directly
+# there. Everywhere else use CMAKE_C_STANDARD, which CMake translates to the
 # right compiler option for the toolchain (-std=gnu11 for GCC/Clang, -std=c11, /std:c11 for clang-cl,
 #  and decays to gnu99 when C11 is unavailable.
 if(MSVC)
@@ -1278,6 +1278,7 @@ set(stdopcod_SRCS
     Opcodes/dbap.c
     Opcodes/savgol.c
     Opcodes/remap.c
+    Opcodes/stm.c
     )
 
 set(sock_ops_SRCS
