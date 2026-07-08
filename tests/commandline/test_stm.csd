@@ -62,7 +62,7 @@ opcode FreezeNode(g:i, st:AudioState):void
 endop
 
 ; ---- dispatch: run the current node by name ----
-opcode stmDispatch(g:i, st:AudioState, cur:S):void
+opcode STM_DISPATCH(g:i, st:AudioState, cur:S):void
     if strcmpk(cur, "Analyze") == 0 then
         AnalyzeNode(g, st)
     elseif strcmpk(cur, "Texture") == 0 then
@@ -120,7 +120,7 @@ instr 1
     exit_t:k = stmonexit(graph, "Texture")
     exit_f:k = stmonexit(graph, "Freeze")
 
-    stmDispatch(graph, state, cur)
+    STM_DISPATCH(graph, state, cur)
     changed:k = stmadvance(graph)
 
     ; ---- flow trace ----
@@ -255,7 +255,7 @@ endin
 ; ---- Example 2: test (invariants under random drive) ----
 instr 11
     Scur = stmcurrent(graph2)
-    stmDispatch(graph2, state2, Scur)
+    STM_DISPATCH(graph2, state2, Scur)
     changed:k = stmadvance(graph2)
 
     node:k = state2.node
@@ -415,11 +415,135 @@ instr 20
     endif
 endin
 
+; ============================================================
+; Example 4: introspection + id-based API + entry/reset.
+;
+; Exercises the newer opcodes:
+;   stmentry     - set a non-default entry node (before compile)
+;   stmnodecount - number of nodes
+;   stmedgecount - total number of edges
+;   stmnodeid    - name -> id
+;   stmnodename  - id   -> name
+;   stmcurrentid - current node as id (dispatch by index, not name)
+;   stmnext(id)  - request a transition by id (resolves to the .id overload)
+;   stmreset     - restore the graph to its entry node
+;
+; Graph4: Idle -> Run -> Done -> Idle (a cycle). Entry is forced to
+; "Run" via stmentry, so the machine does NOT start at node 0.
+; ============================================================
+
+graph4@global:i = stmcreate()
+stmaddnode(graph4, "Idle")     ; id 0
+stmaddnode(graph4, "Run")      ; id 1
+stmaddnode(graph4, "Done")     ; id 2
+stmaddedge(graph4, "Idle", "Run")
+stmaddedge(graph4, "Run", "Done")
+stmaddedge(graph4, "Done", "Idle")
+stmentry(graph4, "Run")        ; non-default entry (id 1)
+stmcompile(graph4)
+
+instr 40
+    c:k = timeinstk()
+
+    ; ---- introspection: structure is immutable, values constant ----
+    ncount:k = stmnodecount(graph4)
+    ecount:k = stmedgecount(graph4)
+    id_idle:k = stmnodeid(graph4, "Idle")
+    id_run:k  = stmnodeid(graph4, "Run")
+    id_done:k = stmnodeid(graph4, "Done")
+
+    ; ---- current node by id, and id -> name round-trip ----
+    curid:k   = stmcurrentid(graph4)
+    curname:S = stmnodename(graph4, curid)   ; id -> name
+    cur:S     = stmcurrent(graph4)           ; name path (cross-check)
+
+    println("[E4] c%d  curid=%d  curname=%s  cur=%s  nodes=%d  edges=%d", c, curid, curname, cur, ncount, ecount)
+
+    ; ---- structural assertions (hold every cycle) ----
+    if ncount != 3 || ecount != 3 then
+        printks("FAIL E4: nodes=%f edges=%f expected 3/3\n", 0, ncount, ecount)
+        exitnowk(-1)
+    endif
+    if id_idle != 0 || id_run != 1 || id_done != 2 then
+        printks("FAIL E4: ids I/R/D=%f/%f/%f expected 0/1/2\n", 0, id_idle, id_run, id_done)
+        exitnowk(-1)
+    endif
+    ; id -> name must agree with the name path (stmcurrent)
+    if strcmpk(curname, cur) != 0 then
+        printks("FAIL E4: stmnodename(curid) disagrees with stmcurrent\n", 0)
+        exitnowk(-1)
+    endif
+
+    ; ---- id-based drive + entry/reset ----
+    if c == 1 then
+        ; entry forced to Run (id 1), NOT node 0
+        if curid != id_run then
+            printks("FAIL E4 c1: entry curid=%f expected 1 (Run via stmentry)\n", 0, curid)
+            exitnowk(-1)
+        endif
+        stmnext(graph4, id_done)             ; Run -> Done (legal, by id)
+    elseif c == 2 then
+        if curid != id_done then
+            printks("FAIL E4 c2: curid=%f expected 2 (Done)\n", 0, curid)
+            exitnowk(-1)
+        endif
+        stmnext(graph4, id_idle)             ; Done -> Idle (legal, by id)
+    elseif c == 3 then
+        if curid != id_idle then
+            printks("FAIL E4 c3: curid=%f expected 0 (Idle)\n", 0, curid)
+            exitnowk(-1)
+        endif
+        stmnext(graph4, id_done)             ; Idle -> Done ILLEGAL (no such edge)
+    elseif c == 4 then
+        ; illegal request must have been rejected -> still Idle
+        if curid != id_idle then
+            printks("FAIL E4 c4: curid=%f expected 0 (illegal id rejected, stay Idle)\n", 0, curid)
+            exitnowk(-1)
+        endif
+        stmnext(graph4, id_run)              ; Idle -> Run (legal)
+    elseif c == 5 then
+        if curid != id_run then
+            printks("FAIL E4 c5: curid=%f expected 1 (Run)\n", 0, curid)
+            exitnowk(-1)
+        endif
+        stmnext(graph4, id_done)             ; Run -> Done
+    elseif c == 6 then
+        if curid != id_done then
+            printks("FAIL E4 c6: curid=%f expected 2 (Done)\n", 0, curid)
+            exitnowk(-1)
+        endif
+        stmreset(graph4)                     ; restore entry (Run) from Done
+    elseif c == 7 then
+        ; reset restored the entry node (Run, id 1)
+        if curid != id_run then
+            printks("FAIL E4 c7: curid=%f expected 1 (stmreset -> entry Run)\n", 0, curid)
+            exitnowk(-1)
+        endif
+        ; explicit id -> name on a known id
+        Sd:S = stmnodename(graph4, id_done)
+        if strcmpk(Sd, "Done") != 0 then
+            printks("FAIL E4 c7: stmnodename(2)=%s expected Done\n", 0, Sd)
+            exitnowk(-1)
+        endif
+        println("STM INTROSPECTION TEST PASSED")
+        turnoff
+    endif
+
+    changed:k = stmadvance(graph4)
+
+    ; illegal id transition at c3 must not have been applied
+    if c == 3 && changed != 0 then
+        printks("FAIL E4 c3: illegal id transition was applied (changed=%f)\n", 0, changed)
+        exitnowk(-1)
+    endif
+endin
+
 </CsInstruments>
 <CsScore>
-i1  0 1      ; example 1: deterministic transitions + conditional edge
-i10 0 1      ; example 2: capture / analysis of random signal
-i11 0 1      ; example 2: graph runtime + invariant checks
-i20 0 1      ; example 3: instruments as stateful processes (spawn/kill via enter/exit)
+i 1  0   1      ; example 1: deterministic transitions + conditional edge
+i 10 0   1      ; example 2: capture / analysis of random signal
+i 11 0   1      ; example 2: graph runtime + invariant checks
+i 20 0   1      ; example 3: instruments as stateful processes (spawn/kill via enter/exit)
+i 40 0.1 1      ; example 4: introspection + id-based API + entry/reset
 </CsScore>
 </CsoundSynthesizer>
