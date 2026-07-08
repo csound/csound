@@ -1622,8 +1622,6 @@ struct CSOUND_ {
   int32_t csoundIsScorePending_;
   int64_t advanceCnt;
   int32_t initonly;
-  int32_t evt_poll_cnt;
-  int32_t evt_poll_maxcnt;
   int32_t Mforcdecs, Mxtroffs, MTrkend;
   OPCODINFO *opcodeInfo;
   FUNC **flist;
