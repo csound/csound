@@ -21,14 +21,26 @@
 */
 
 /*
- STM is a family of Csound opcodes for building stateful computational
- graphs inspired by LangGraph. The graph owns the state machine: nodes
- (identified by name) and edges (valid transitions). Node computation is
- written as ordinary user-defined opcodes that operate on a shared struct
- passed by reference, and dispatched from the orchestra according to the
- current node id (stmcurrent). A node requests a transition with stmnext;
- stmadvance validates it against the edges and advances the current node,
- keeping control logic separate from audio DSP.
+   STM is a family of Csound opcodes for building stateful computational
+   graphs inspired by LangGraph (https://github.com/langchain-ai/langgraph).
+
+   The graph owns the state-machine structure: named nodes and the edges that
+   define valid transitions between them. Node computation remains ordinary
+   Csound code, typically written as user-defined opcodes operating on a shared
+   struct passed by reference.
+
+   At k-rate, the orchestra asks the graph for the current node with stmcurrent,
+   dispatches explicitly to the matching node implementation, then calls
+   stmadvance. During its execution, a node may request a transition with
+   stmnext. stmadvance validates that request against the graph edges and applies
+   it only if it is legal.
+
+   The practical runtime loop is:
+
+   stmcurrent -> dispatch current node -> node updates shared state calls stmnext -> stmadvance
+
+   This keeps the state-machine control flow explicit and deterministic while
+   leaving DSP, analysis, and musical behavior in the orchestra.
 */
 
 
