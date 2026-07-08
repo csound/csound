@@ -774,6 +774,10 @@ def runTest():
             "assigning into a struct-array member inside a struct",
         ],
         [
+            "structs/test_recursive_struct_member_array_direct_index.csd",
+            "direct indexing of recursive struct-array members",
+        ],
+        [
             "structs/test_string_array_direct_member_index.csd",
             "direct indexing of a string-array struct member",
         ],

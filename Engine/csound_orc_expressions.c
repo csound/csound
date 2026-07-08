@@ -98,13 +98,17 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
     char *type = remove_type_quoting(csound, outype);
     if (find_brace(type)) {
       if(*type == '[') { // [type]
-        snprintf(s, 16, "#%c%d[]", type[1], argCount);
-        add_array_arg(csound, s,  NULL, 1, typeTable);
+        size_t typeLen = strlen(type);
+        char *baseType = (typeLen >= 3) ? cs_strndup(csound, type + 1, typeLen - 2)
+                                        : csoundStrdup(csound, type);
+        snprintf(s, 256, "#%s%d[]", baseType, argCount);
+        add_array_arg(csound, s, baseType, 1, typeTable);
+        csound->Free(csound, baseType);
       } else { // type[]
         size_t typeLen = strlen(type);
         char *baseType = (typeLen >= 2) ? cs_strndup(csound, type, typeLen - 2)
                                         : csoundStrdup(csound, type);
-        snprintf(s, 16, "#%c%d[]", type[0], argCount);
+        snprintf(s, 256, "#%s%d[]", baseType, argCount);
         add_array_arg(csound, s,  baseType, 1, typeTable);
         csound->Free(csound, baseType);
       }
@@ -659,9 +663,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
 
       // Handle struct member access or other complex left expressions
       if (array_target_missing_lexeme(root)) {
-        // This could be a struct member access - delegate to get_arg_string_from_tree
-        // Note: get_arg_string_from_tree returns the element type for T_ARRAY nodes
-        char* elementType = get_arg_string_from_tree(csound, root, typeTable);
+        char* elementType = get_arg_type2(csound, root, typeTable);
         if (elementType == NULL) {
           return NULL;
         }
