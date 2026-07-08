@@ -57,13 +57,29 @@ static TREE* tree_tail(TREE* node) {
   return t;
 }
 
+/* Append node to the end of head's sibling (->next) list and return
+   the (possibly new) head; either argument may be NULL.  Walks the
+   list from head on every call, so for a chain of consecutive appends
+   prefer tree_append_at() with a saved tail cursor. */
 TREE* tree_append(TREE *head, TREE *node) {
+  if (node == NULL) {
+    return head;
+  }
   TREE *tail = tree_tail(head);
   if (tail == NULL) {
     return node;
   }
   tail->next = node;
   return head;
+}
+
+/* Attach node at a known tail and return the new tail.  Unlike
+   tree_append() this never re-walks the list from its head, so a chain
+   of consecutive appends stays O(total length): keep the returned tail
+   and feed it to the next call. */
+static TREE* tree_append_at(TREE *tail, TREE *node) {
+  tail->next = node;
+  return tree_tail(node);
 }
 
 char *remove_type_quoting(CSOUND *csound, const char *outype) {
@@ -405,16 +421,16 @@ static TREE *create_cond_expression(CSOUND *csound,
     D->left = create_ans_token(csound, right); D->right = d;
     d = D;
   }
-  b = tree_append(b, d);
-  b = tree_append(b, create_simple_goto_token(csound, L2, type==2?0:type));
-  b = tree_append(b, create_synthetic_label(csound, ln1));
-  b = tree_append(b, c);
-  b = tree_append(b, create_synthetic_label(csound, ln2));
-
-  last = create_opcode_token(csound, csoundStrdup(csound, eq));
+  /* last is the tail of b here; chain via tree_append_at so no node is
+     walked twice */
+  last = tree_append_at(last, d);
+  last = tree_append_at(last, create_simple_goto_token(csound, L2, type==2?0:type));
+  last = tree_append_at(last, create_synthetic_label(csound, ln1));
+  last = tree_append_at(last, c);
+  last = tree_append_at(last, create_synthetic_label(csound, ln2));
+  last = tree_append_at(last, create_opcode_token(csound, csoundStrdup(csound, eq)));
   last->left = create_ans_token(csound, right);
   last->right = create_ans_token(csound, right);
-  b = tree_append(b, last);
   return b;
 }
 
@@ -445,6 +461,39 @@ static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
                         typeTable->localPool->synthArgCount++, typeTable);
 }
 
+static TREE *expand_expression_arg_list(CSOUND *csound, TREE *current,
+                                        TREE **anchor, int32_t line,
+                                        uint64_t locn,
+                                        TYPE_TABLE *typeTable)
+{
+  TREE *newArgList = NULL;
+
+  while (current != NULL) {
+    TREE *expanded = NULL;
+    TREE *newArg = current;
+    TREE *next = current->next;
+
+    current->next = NULL;
+    if (current->type == STRUCT_EXPR && struct_expr_has_array_root(current)) {
+      expanded = expand_struct_array_member_read(csound, current, line,
+                                                 locn, typeTable);
+    }
+    else if (is_expression_node(current)) {
+      expanded = create_expression(csound, current, line, locn, typeTable);
+    }
+
+    if (expanded != NULL) {
+      *anchor = tree_append(*anchor, expanded);
+      expanded = tree_tail(*anchor);
+      newArg = create_ans_token(csound, expanded->left->value->lexeme);
+    }
+    newArgList = tree_append(newArgList, newArg);
+    current = next;
+  }
+
+  return newArgList;
+}
+
 /**
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
@@ -454,8 +503,8 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
                                TYPE_TABLE* typeTable)
 {
   char op[80], *outarg = NULL;
-  TREE *anchor = NULL, *last;
-  TREE * opTree, *current, *newArgList;
+  TREE *anchor = NULL;
+  TREE *opTree;
   OENTRIES* opentries;
   CS_VARIABLE* var;
 
@@ -463,76 +512,10 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   if (root->type=='?') return create_cond_expression(csound, root, line,
                                                      locn, typeTable);
   memset(op, 0, 80);
-  current = root->left;
-  newArgList = NULL;
-  while (current != NULL) {
-    TREE* newArg;
-    TREE* temp = current->next;
-
-    current->next = NULL;
-    if (current->type == STRUCT_EXPR && struct_expr_has_array_root(current)) {
-      TREE* expanded = expand_struct_array_member_read(csound, current,
-                                                       line, locn, typeTable);
-      if (expanded != NULL) {
-        anchor = tree_append(anchor, expanded);
-        last = tree_tail(anchor);
-        newArg = create_ans_token(csound, last->left->value->lexeme);
-        newArgList = tree_append(newArgList, newArg);
-      }
-      else {
-        newArgList = tree_append(newArgList, current);
-      }
-    }
-    else if (is_expression_node(current)) {
-      anchor = tree_append(anchor,
-                            create_expression(csound, current, line, locn,
-                                              typeTable));
-      last = tree_tail(anchor);
-      newArg = create_ans_token(csound, last->left->value->lexeme);
-      newArgList = tree_append(newArgList, newArg);
-    } else {
-      newArgList = tree_append(newArgList, current);
-    }
-    current = temp;
-
-  }
-  root->left = newArgList;
-
-  current = root->right;
-  newArgList = NULL;
-  while (current != NULL) {
-    TREE* newArg;
-    TREE* temp = current->next;
-
-    current->next = NULL;
-    if (current->type == STRUCT_EXPR && struct_expr_has_array_root(current)) {
-      TREE* expanded = expand_struct_array_member_read(csound, current,
-                                                       line, locn, typeTable);
-      if (expanded != NULL) {
-        anchor = tree_append(anchor, expanded);
-        last = tree_tail(anchor);
-        newArg = create_ans_token(csound, last->left->value->lexeme);
-        newArgList = tree_append(newArgList, newArg);
-      }
-      else {
-        newArgList = tree_append(newArgList, current);
-      }
-    }
-    else if (is_expression_node(current)) {
-      anchor = tree_append(anchor,
-                            create_expression(csound, current, line,
-                                              locn, typeTable));
-      last = tree_tail(anchor);
-
-      newArg = create_ans_token(csound, last->left->value->lexeme);
-      newArgList = tree_append(newArgList, newArg);
-    }
-    else {
-      newArgList = tree_append(newArgList, current);
-    }
-    current = temp;
-  }
-  root->right = newArgList;
+  root->left = expand_expression_arg_list(csound, root->left, &anchor,
+                                          line, locn, typeTable);
+  root->right = expand_expression_arg_list(csound, root->right, &anchor,
+                                           line, locn, typeTable);
 
   switch(root->type) {
   case '+':
@@ -706,7 +689,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         synterr(csound,
                 Str("create_expression: unable to find array sub-type "
                     "for var %s line %d\n"),
-                varBaseName, current->line);
+                varBaseName, line);
         return NULL;
       } else {
         // Check if it's an array
