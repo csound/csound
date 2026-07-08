@@ -40,6 +40,7 @@ static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
     ans->len = 0;
     ans->markup = NULL;
     ans->rate = -1;
+    ans->cached_arg_type = NULL;
     return ans;
 }
 
@@ -441,4 +442,3 @@ TREE * csound_orc_optimize(CSOUND *csound, TREE *root)
     return original;
     // return remove_excess_assigns(csound,original);
 }
-

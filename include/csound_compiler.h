@@ -54,6 +54,7 @@ extern "C" {
     // markup node adds OENTRY or synthetic var
     // names to expression nodes should be moved
     // to TYPE_TABLE
+    char          *cached_arg_type;
   } TREE;
 
 #ifndef CSOUND_CSDL_H

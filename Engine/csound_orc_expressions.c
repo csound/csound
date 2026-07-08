@@ -151,6 +151,7 @@ static TREE *create_empty_token(CSOUND *csound)
   ans->locn  = 0;
   ans->value = NULL;
   ans->markup = NULL;
+  ans->cached_arg_type = NULL;
   return ans;
 }
 
@@ -170,6 +171,7 @@ static TREE *create_unary_token(CSOUND *csound, char *sym)
   ans->len = 0;
   ans->rate = -1;
   ans->markup = NULL;
+  ans->cached_arg_type = NULL;
   ans->value = make_int(csound, sym, NULL);
   return ans;
 }

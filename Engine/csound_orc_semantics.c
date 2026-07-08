@@ -520,8 +520,50 @@ static const char *convert_array_type_string(CSOUND *csound,
   } else return str;
 }
 
+static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
+
+static int32_t is_cacheable_arg_type_node(TREE *tree)
+{
+  if (tree == NULL) {
+    return 0;
+  }
+
+  switch (tree->type) {
+  case NUMBER_TOKEN:
+  case INTEGER_TOKEN:
+  case FALSE_TOKEN:
+  case TRUE_TOKEN:
+  case FALSEK_TOKEN:
+  case TRUEK_TOKEN:
+  case STRING_TOKEN:
+  case LABEL_TOKEN:
+  case T_ARRAY_IDENT:
+  case T_IDENT:
+  case T_TYPED_IDENT:
+    return 1;
+  default:
+    return 0;
+  }
+}
+
 /* This function gets arg type with checking type table */
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
+{
+  char *argType;
+  int32_t cacheable = is_cacheable_arg_type_node(tree);
+
+  if (cacheable && tree->cached_arg_type != NULL) {
+    return csoundStrdup(csound, tree->cached_arg_type);
+  }
+
+  argType = get_arg_type2_impl(csound, tree, typeTable);
+  if (cacheable && argType != NULL && tree->cached_arg_type == NULL) {
+    tree->cached_arg_type = csoundStrdup(csound, argType);
+  }
+  return argType;
+}
+
+static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
   char* s;
   char* t;
@@ -4186,6 +4228,10 @@ static void delete_tree(CSOUND *csound, TREE **l)
     tree->left = NULL;
     delete_tree(csound, &(tree->right));
     tree->right = NULL;
+    if (tree->cached_arg_type) {
+      csound->Free(csound, tree->cached_arg_type);
+      tree->cached_arg_type = NULL;
+    }
     *l = tree->next;
     csound->Free(csound, old);
   }

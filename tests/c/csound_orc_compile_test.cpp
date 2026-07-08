@@ -166,6 +166,27 @@ TEST_F (OrcCompileTests, testLineNumber)
     TREE *tree = csoundParseOrc(csound, instrument);
     ASSERT_TRUE(tree != NULL);
 }
+
+TEST_F (OrcCompileTests, testCompileTreeWithRepeatedArgumentTypes)
+{
+    const char* instrument =
+        "instr 1 \n"
+        "kbase init 440 \n"
+        "krate init 2 \n"
+        "kamp = kbase + kbase + krate \n"
+        "a1 oscili kamp, kbase + krate \n"
+        "out a1 \n"
+        "endin \n";
+
+    TREE *tree = csoundParseOrc(csound, instrument);
+    ASSERT_TRUE(tree != NULL);
+
+    int32_t result = csoundCompileTree(csound, tree, 0);
+    ASSERT_EQ(0, result);
+
+    csoundDeleteTree(csound, tree);
+}
+
 #if 0
 // Helper to dump AST tree for debugging column number tests
 static void dump_tree(TREE *t, int depth) {

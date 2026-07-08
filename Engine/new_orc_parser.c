@@ -247,6 +247,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
             wrapper->left = scan->left;
             wrapper->right = scan->right;
             wrapper->markup = scan->markup;
+            wrapper->cached_arg_type = NULL;
             wrapper->next = NULL;  // Initialize next to NULL
 
             // Add wrapper to struct list
@@ -359,4 +360,3 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       return newRoot;
     }
 }
-
