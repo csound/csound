@@ -3943,14 +3943,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
             anchor = anchor_expansion;
           }
 
-          // Find the end of the expansion chain and link to current->next
-          TREE* last = anchor_expansion;
-          while (last && last->next) {
-            last = last->next;
-          }
-          if (last) {
-            last->next = current->next;
-          }
+          // Reconnect the expansion to the remaining statements.
+          tree_append(anchor_expansion, current->next);
 
           current = anchor_expansion;
           continue;
@@ -4045,20 +4039,23 @@ void do_baktrace(CSOUND *csound, uint64_t files)
 
 }
 
+/* HACK - a TREE type outside this range marks an uninitialized node.
+ * This occurs for rules like in topstatement where the left hand
+ * topstatement the first time around is not initialized to anything
+ * useful; the bound 400 is arbitrary, chosen as it seemed to be a
+ * value higher than all the type numbers that were being printed out. */
+#define TREE_TYPE_IS_UNINITIALIZED(t) ((t)->type > 400 || (t)->type < 0)
+
 /**
  * Grammar-rule variant of tree_append() (csound_orc_expressions.c):
  * the same sibling-list append, but additionally treats an
  * uninitialized `first` node as an empty list.
- * HACK - This occurs for rules like in topstatement where the left hand
- * topstatement the first time around is not initialized to anything
- * useful; the number 400 is arbitrary, chosen as it seemed to be a
- * value higher than all the type numbers that were being printed out.
  * Only use this from parser rules; everywhere else use tree_append().
  */
 TREE* parser_append(CSOUND * csound, TREE *first, TREE *newlast)
 {
   IGN(csound);
-  if (first != NULL && (first->type > 400 || first->type < 0)) {
+  if (first != NULL && TREE_TYPE_IS_UNINITIALIZED(first)) {
     return newlast;
   }
   return tree_append(first, newlast);
