@@ -46,6 +46,7 @@ int32_t is_expression_node(TREE *node);
 int32_t is_boolean_expression_node(TREE *node);
 int32_t is_statement_expansion_required(TREE* root);
 void handle_optional_args(CSOUND *csound, TREE *l);
+TREE* tree_append(TREE *head, TREE *node);
 TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_until_statement(CSOUND* csound, TREE* current,
                              TYPE_TABLE* typeTable, int32_t, LOOP_JUMP_TARGETS* targets);

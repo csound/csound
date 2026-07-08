@@ -171,7 +171,7 @@
 
 #define namedInstrFlag csound->parserNamedInstrFlag
 
-    extern TREE* append_to_tree(CSOUND * csound, TREE *first, TREE *newlast);
+    extern TREE* parser_append(CSOUND * csound, TREE *first, TREE *newlast);
     extern int csound_orclex(TREE**, CSOUND *, void *);
     extern void print_tree(CSOUND *, char *msg, TREE *);
     extern TREE* constant_fold(CSOUND *, TREE *);
@@ -210,7 +210,7 @@ orcfile : root_statement_list
 
 
 root_statement_list : root_statement_list root_statement
-                      { $$ = append_to_tree(csound, $1, $2); }
+                      { $$ = parser_append(csound, $1, $2); }
                     | root_statement
                     ;
 
@@ -228,9 +228,9 @@ struct_definition : STRUCT_TOKEN identifier struct_arg_list
                   ;
 
 struct_arg_list : struct_arg_list ',' struct_arg
-                { $$ = append_to_tree(csound, $1, $3); }
+                { $$ = parser_append(csound, $1, $3); }
                 | struct_arg_list ',' NEWLINE struct_arg
-                 { $$ = append_to_tree(csound, $1, $4); }
+                 { $$ = parser_append(csound, $1, $4); }
                 | struct_arg
                 ;
 
@@ -255,7 +255,7 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
 
 
 instr_id_list : instr_id_list ',' instr_id
-                  { $$ = append_to_tree(csound, $1, $3); }
+                  { $$ = parser_append(csound, $1, $3); }
               | instr_id  { csp_orc_sa_instr_add_tree(csound, $1);
                     add_instr_variable(csound, $1);
                 }
@@ -347,7 +347,7 @@ udo_out_arg_list : '(' out_type_list ')'
              ;
 
 out_type_list : out_type_list ',' out_type
-              { $$ = append_to_tree(csound, $1, $3); }
+              { $$ = parser_append(csound, $1, $3); }
              | out_type
              ;
 
@@ -464,7 +464,7 @@ function_call : typed_identifierb expr_list ')'
 
 statement_list : statement_list statement
                 {
-                    $$ = append_to_tree(csound, (TREE *)$1, (TREE *)$2);
+                    $$ = parser_append(csound, (TREE *)$1, (TREE *)$2);
                 }
                 | statement
                 | {
@@ -693,9 +693,9 @@ declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list 
 
 /* Expressions */
 expr_list : expr_list ',' expr
-              { $$ = append_to_tree(csound, $1, $3); }
+              { $$ = parser_append(csound, $1, $3); }
          | expr_list ',' NEWLINE expr
-              { $$ = append_to_tree(csound, $1, $4); }
+              { $$ = parser_append(csound, $1, $4); }
          | expr
          ;
 
@@ -724,52 +724,52 @@ expr    : function_call
 gen_array : '[' expr S_ELIPSIS2 expr_list  ']' {
             $$ = make_leaf(csound, LINE,LOCN, T_FUNCTION, make_token(csound, "genarray", NULL));
             $$->right = $2;
-            append_to_tree(csound, $$->right, $4);
+            parser_append(csound, $$->right, $4);
              }
 
 slice_array :
           identifier '[' expr ':' expr_list  ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
             $$->right = $1;
-            $$->right = append_to_tree(csound, $$->right, $3);
-            append_to_tree(csound, $$->right, $5);
+            $$->right = parser_append(csound, $$->right, $3);
+            parser_append(csound, $$->right, $5);
            }
            |
            identifier '[' ':' expr_list  ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
             $$->right = $1;
-            $$->right = append_to_tree(csound, $$->right,
+            $$->right = parser_append(csound, $$->right,
                                        make_leaf(csound,LINE,LOCN, T_IDENT,
                                                  make_int(csound, "0", NULL)));
-            append_to_tree(csound, $$->right, $4);
+            parser_append(csound, $$->right, $4);
            }
            |
            identifier '[' expr ':' ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
             $$->right = $1;
-            $$->right = append_to_tree(csound, $$->right, $3);
+            $$->right = parser_append(csound, $$->right, $3);
            }
           |
           expr '[' expr ':' expr_list  ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
             $$->right = $1;
-            $$->right = append_to_tree(csound, $$->right, $3);
-            append_to_tree(csound, $$->right, $5);
+            $$->right = parser_append(csound, $$->right, $3);
+            parser_append(csound, $$->right, $5);
            }
            |
            expr '[' ':' expr_list  ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
             $$->right = $1;
-            $$->right = append_to_tree(csound, $$->right,
+            $$->right = parser_append(csound, $$->right,
                                        make_leaf(csound,LINE,LOCN, T_IDENT,
                                                  make_int(csound, "0", NULL)));
-            append_to_tree(csound, $$->right, $4);
+            parser_append(csound, $$->right, $4);
            }
            |
            expr '[' expr ':' ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
             $$->right = $1;
-            $$->right = append_to_tree(csound, $$->right, $3);
+            $$->right = parser_append(csound, $$->right, $3);
            }
 
 
@@ -783,7 +783,7 @@ static_array : '[' expr_list ']' {
 */
 array_expr :  array_expr '[' expr ']'
           {
-            append_to_tree(csound, $1->right, $3);
+            parser_append(csound, $1->right, $3);
             $$ = $1;
           }
           | identifier '[' expr ']'
@@ -952,7 +952,7 @@ binary_expr : expr '+' optnewline expr   { $$ = make_node(csound, LINE,LOCN, '+'
 
 
 out_arg_list : out_arg_list ',' out_arg
-              { $$ = append_to_tree(csound, $1, $3); }
+              { $$ = parser_append(csound, $1, $3); }
              | out_arg
              ;
 
@@ -963,12 +963,12 @@ out_arg : identifier
         ;
 
 out_arg_list_array : out_arg_list_array ',' array_expr
-              { $$ = append_to_tree(csound, $1, $3); }
+              { $$ = parser_append(csound, $1, $3); }
              | array_expr
              ;
 
 array_identifier: array_identifier '[' ']' {
-            append_to_tree(csound, $1->right,
+            parser_append(csound, $1->right,
                            make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[", NULL)));
             $$ = $1;
           }
