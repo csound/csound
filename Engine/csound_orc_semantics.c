@@ -4016,40 +4016,22 @@ void do_baktrace(CSOUND *csound, uint64_t files)
 }
 
 /**
- * Appends TREE * node to TREE * node using ->next field in struct; walks
- * down  list to append at end; checks for NULL's and returns
- * appropriate nodes
+ * Grammar-rule variant of tree_append() (csound_orc_expressions.c):
+ * the same sibling-list append, but additionally treats an
+ * uninitialized `first` node as an empty list.
+ * HACK - This occurs for rules like in topstatement where the left hand
+ * topstatement the first time around is not initialized to anything
+ * useful; the number 400 is arbitrary, chosen as it seemed to be a
+ * value higher than all the type numbers that were being printed out.
+ * Only use this from parser rules; everywhere else use tree_append().
  */
-TREE* append_to_tree(CSOUND * csound, TREE *first, TREE *newlast)
+TREE* parser_append(CSOUND * csound, TREE *first, TREE *newlast)
 {
   IGN(csound);
-  TREE *current;
-  if (first == NULL) {
+  if (first != NULL && (first->type > 400 || first->type < 0)) {
     return newlast;
   }
-
-  if (newlast == NULL) {
-    return first;
-  }
-
-  /* HACK - Checks to see if first node is uninitialized (sort of)
-   * This occurs for rules like in topstatement where the left hand
-   * topstatement the first time around is not initialized to anything
-   * useful; the number 400 is arbitrary, chosen as it seemed to be a
-   * value higher than all the type numbers that were being printed out
-   */
-  if (first->type > 400 || first-> type < 0) {
-    return newlast;
-  }
-
-  current = first;
-  while (current->next != NULL) {
-    current = current->next;
-  }
-
-  current->next = newlast;
-
-  return first;
+  return tree_append(first, newlast);
 }
 
 
@@ -4579,23 +4561,20 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "0", NULL));
           temp->markup = &SYNTHESIZED_ARG;
-          if (l->right==NULL) l->right = temp;
-          else append_to_tree(csound, l->right, temp);
+          l->right = tree_append(l->right, temp);
           break;
         case 'P':
         case 'p':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "1", NULL));
           temp->markup = &SYNTHESIZED_ARG;
-          if (l->right==NULL) l->right = temp;
-          else append_to_tree(csound, l->right, temp);
+          l->right = tree_append(l->right, temp);
           break;
         case 'q':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "10", NULL));
           temp->markup = &SYNTHESIZED_ARG;
-          if (l->right==NULL) l->right = temp;
-          else append_to_tree(csound, l->right, temp);
+          l->right = tree_append(l->right, temp);
           break;
 
         case 'V':
@@ -4603,23 +4582,20 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           temp = make_leaf(csound, l->line, l->locn, NUMBER_TOKEN,
                            make_num(csound, ".5", NULL));
           temp->markup = &SYNTHESIZED_ARG;
-          if (l->right==NULL) l->right = temp;
-          else append_to_tree(csound, l->right, temp);
+          l->right = tree_append(l->right, temp);
           break;
         case 'h':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "127", NULL));
           temp->markup = &SYNTHESIZED_ARG;
-          if (l->right==NULL) l->right = temp;
-          else append_to_tree(csound, l->right, temp);
+          l->right = tree_append(l->right, temp);
           break;
         case 'J':
         case 'j':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "-1", NULL));
           temp->markup = &SYNTHESIZED_ARG;
-          if (l->right==NULL) l->right = temp;
-          else append_to_tree(csound, l->right, temp);
+          l->right = tree_append(l->right, temp);
           break;
         case 'M':
         case 'N':
