@@ -299,10 +299,6 @@ int32_t start_engine(CSOUND *csound)
     if (UNLIKELY(init0(csound) != 0))
       csoundDie(csound, Str("header init errors"));
 
-    csound->evt_poll_cnt    = 0;
-    csound->evt_poll_maxcnt =
-      (int)(250.0 /(double) csound->ekr); /* VL this was wrong: kr/250 originally */
-
     /* open MIDI output (moved here from argdecode) */
     if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
       O->Midioutname = NULL;
