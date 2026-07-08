@@ -233,6 +233,7 @@ extern "C" {
   } MODULE_INFO;
 
 #define MAX_ALLOC_QUEUE 1024
+#define ALLOC_DATA_MERGE_STATE 4
   typedef struct _alloc_data_ {
     int32_t type;
     int32_t insno;
@@ -241,6 +242,8 @@ extern "C" {
     MEVENT mep;
     INSDS *ip;
     OPDS *ids;
+    ENGINE_STATE *engine_state;
+    struct type_table *type_table;
   } ALLOC_DATA;
 
 #define MAX_MESSAGE_STR 1024

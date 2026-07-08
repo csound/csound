@@ -45,6 +45,19 @@ static int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn,
 static int32_t insert(CSOUND *csound, int32_t insno, EVTBLK *newevtp);
 static void maxalloc_turnoff(CSOUND *csound, int32_t insno);
 
+/* Reserve, fill, and publish realtime allocation queue slots in producer order. */
+void alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
+{
+  unsigned long wp;
+
+  csoundSpinLock(&csound->alloc_queue_spinlock);
+  wp = csound->alloc_queue_wp;
+  csound->alloc_queue[wp] = *data;
+  csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
+  ATOMIC_INCR(csound->alloc_queue_items);
+  csoundSpinUnLock(&csound->alloc_queue_spinlock);
+}
+
 /* Helper function to get type string from argument without unsafe casting */
 static char* get_arg_type_from_arg(ARG *arg, CS_VARIABLE **var) {
     if (arg->type == ARG_CONSTANT) {
@@ -210,6 +223,15 @@ uintptr_t event_insert_thread(void *p) {
     if(items == 0)
       csoundSleep((int32_t) ((int32_t) wakeup > 0 ? wakeup : 1));
     else while(items) {
+        if (inst[rp].type == ALLOC_DATA_MERGE_STATE) {
+          ENGINE_STATE *engine_state = inst[rp].engine_state;
+          TYPE_TABLE *type_table = inst[rp].type_table;
+          OPDS *ids = inst[rp].ids;
+          csoundSpinLock(&csound->alloc_spinlock);
+          named_instr_assign_numbers(csound, engine_state);
+          merge_state(csound, engine_state, type_table, ids);
+          csoundSpinUnLock(&csound->alloc_spinlock);
+        }
         if (inst[rp].type == 3)  {
           INSDS *ip = inst[rp].ip;
           OPDS *ids = inst[rp].ids;
@@ -382,12 +404,11 @@ static void set_xtratim(CSOUND *csound, INSDS *ip)
 int32_t insert_event(CSOUND *csound, int32_t insno, EVTBLK *newevtp) {
 
   if(csound->oparms->realtime) {
-    unsigned long wp = csound->alloc_queue_wp;
-    csound->alloc_queue[wp].insno = insno;
-    csound->alloc_queue[wp].blk =  *newevtp;
-    csound->alloc_queue[wp].type = 0;
-    csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
-    ATOMIC_INCR(csound->alloc_queue_items);
+    ALLOC_DATA data = { 0 };
+    data.insno = insno;
+    data.blk =  *newevtp;
+    data.type = 0;
+    alloc_queue_enqueue(csound, &data);
     return 0;
   }
   else return insert(csound, insno, newevtp);
@@ -737,13 +758,12 @@ int32_t insert_midi_event(CSOUND *csound, int32_t insno, MCHNBLK *chn,
                           MEVENT *mep) {
 
   if(csound->oparms->realtime) {
-    unsigned long wp = csound->alloc_queue_wp;
-    csound->alloc_queue[wp].insno = insno;
-    csound->alloc_queue[wp].chn = chn;
-    csound->alloc_queue[wp].mep = *mep;
-    csound->alloc_queue[wp].type = 1;
-    csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
-    ATOMIC_INCR(csound->alloc_queue_items);
+    ALLOC_DATA data = { 0 };
+    data.insno = insno;
+    data.chn = chn;
+    data.mep = *mep;
+    data.type = 1;
+    alloc_queue_enqueue(csound, &data);
     return 0;
   }
   else return insert_midi(csound, insno, chn, mep);

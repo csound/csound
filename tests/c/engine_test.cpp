@@ -174,3 +174,28 @@ TEST_F (EngineTests, testEmptyCommandLineArgumentSeparator)
     ASSERT_EQ(csoundCompile(csound, 5, compileArguments), CSOUND_SUCCESS);
     ASSERT_EQ(csoundGetCommandLineArgCount(csound), 0);
 }
+
+TEST_F (EngineTests, testRealtimeAsyncCompileMergesOnEventThread)
+{
+    csoundSetOption(csound, "-n");
+    csoundSetOption(csound, "-d");
+    csoundSetOption(csound, "--realtime");
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      sr = 48000
+      ksmps = 64
+      nchnls = 1
+      0dbfs = 1
+      instr 1
+      endin
+    )", 0), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      instr AsyncMerged
+      endin
+    )", 1), CSOUND_SUCCESS);
+
+    csoundSleep(100);
+
+    ASSERT_GT(csoundGetInstrNumber(csound, "AsyncMerged"), 0);
+}
