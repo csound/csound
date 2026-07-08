@@ -70,11 +70,10 @@ typedef struct {
     GRAPH_NODE *nodes;
     uint32_t node_count;
     uint32_t node_capacity;
-
     uint32_t current_node;
     uint32_t previous_node;
     uint32_t requested_node;
-
+    uint32_t start_node;
     int32_t compiled;
 } GRAPH;
 
@@ -132,6 +131,14 @@ typedef struct {
 typedef struct {
     OPDS h;
     // outputs
+    MYFLT *cur;
+    // inputs
+    MYFLT *handle;
+} GRAPH_CURRENT_ID; // k-rate
+
+typedef struct {
+    OPDS h;
+    // outputs
     MYFLT *changed;
     // inputs
     MYFLT *handle;
@@ -146,6 +153,13 @@ typedef struct {
 
 typedef struct {
     OPDS h;
+    // inputs
+    MYFLT *handle;
+    MYFLT *next_node;
+} GRAPH_NEXT_ID;
+
+typedef struct {
+    OPDS h;
     // outputs
     MYFLT *trig;
     // inputs
@@ -157,7 +171,60 @@ typedef struct {
     GRAPH *g;
 } GRAPH_ON_EE;
 
+// INTROSPECTION
 
+typedef struct {
+    OPDS h;
+    // outputs
+    MYFLT *node_id;
+    // inputs
+    MYFLT *handle;
+    STRINGDAT *node_name;
+} GRAPH_NODE_ID;
+
+typedef struct {
+    OPDS h;
+    // outputs
+    STRINGDAT *node_name;
+    // inputs
+    MYFLT *handle;
+    MYFLT *node_id;
+} GRAPH_NODE_NAME;
+
+typedef struct {
+    OPDS h;
+    // outputs
+    MYFLT *node_count;
+    // inputs
+    MYFLT *handle;
+} GRAPH_NODE_COUNT;
+
+typedef struct {
+    OPDS h;
+    // outputs
+    MYFLT *edge_count;
+    // inputs
+    MYFLT *handle;
+} GRAPH_EDGE_COUNT;
+
+
+// CONTROL FLOW
+
+typedef struct {
+    OPDS h;
+    // inputs
+    MYFLT *handle;
+} GRAPH_RESET;
+
+typedef struct {
+    OPDS h;
+    // inputs
+    MYFLT *handle;
+    STRINGDAT *entry_node;
+} GRAPH_ENTRY;
+
+
+// INTERFACE
 
 int32_t graph_create(CSOUND *csound, GRAPH_CREATE *p); // i-time
 int32_t graph_create_deinit(CSOUND *csound, GRAPH_CREATE *p);
@@ -166,8 +233,16 @@ int32_t graph_add_edge(CSOUND *csound, GRAPH_ADD_EDGE *p); // i-time
 int32_t graph_add_cond_edge(CSOUND *csound, GRAPH_ADD_COND_EDGE *p); // i-time
 int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p); // i-time
 int32_t graph_current(CSOUND *csound, GRAPH_CURRENT *p); // k-time
+int32_t graph_current_id(CSOUND *csound, GRAPH_CURRENT_ID *p); // k-time
 int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p); // k-time
 int32_t graph_next(CSOUND *csound, GRAPH_NEXT *p); // k-time
+int32_t graph_next_id(CSOUND *csound, GRAPH_NEXT_ID *p); // k-time
 int32_t graph_on_ee_init(CSOUND *csound, GRAPH_ON_EE *p); // i-time
 int32_t graph_on_enter(CSOUND *csound, GRAPH_ON_EE *p); // k-time
 int32_t graph_on_exit(CSOUND *csound, GRAPH_ON_EE *p); // k-time
+int32_t graph_node_id(CSOUND *csound, GRAPH_NODE_ID *p); // k-time
+int32_t graph_node_name(CSOUND *csound, GRAPH_NODE_NAME *p); // k-time
+int32_t graph_node_count(CSOUND *csound, GRAPH_NODE_COUNT *p); // k-time
+int32_t graph_edge_count(CSOUND *csound, GRAPH_EDGE_COUNT *p); // k-time
+int32_t graph_reset(CSOUND *csound, GRAPH_RESET *p); // k-time
+int32_t graph_entry(CSOUND *csound, GRAPH_ENTRY *p); // i-time

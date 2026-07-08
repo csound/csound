@@ -190,24 +190,29 @@ int32_t graph_create(CSOUND *csound, GRAPH_CREATE *p) {
         return csound->InitError(csound, "[stm] stmcreate: registry error");
     }
 
+    g->start_node = NO_NODE;
     *p->handle = (MYFLT) handle;
     return OK;
 }
 
 int32_t graph_add_node(CSOUND *csound, GRAPH_ADD_NODE *p) {
     GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL)
+    if (g == NULL) {
         return csound->InitError(csound, "[stm] stmaddnode: invalid graph");
-    if (g->compiled)
+    }
+    if (g->compiled) {
         return csound->InitError(csound, "[stm] stmaddnode: graph already compiled (immutable)");
-    if (graph_find_node(g, p->node_name->data) >= 0)
+    }
+    if (graph_find_node(g, p->node_name->data) >= 0) {
         return csound->InitError(csound, "[stm] stmaddnode: duplicate node name '%s'", p->node_name->data);
+    }
 
     if (g->node_count == g->node_capacity) {
         uint32_t newcap = g->node_capacity * 2;
         GRAPH_NODE *grown = csound->ReAlloc(csound, g->nodes, sizeof(GRAPH_NODE) * newcap);
-        if (grown == NULL)
+        if (grown == NULL) {
             return csound->InitError(csound, "[stm] stmaddnode: memory error");
+        }
         g->nodes = grown;
         g->node_capacity = newcap;
     }
@@ -269,7 +274,8 @@ int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
     }
 
     g->compiled = 1;
-    g->current_node = 0; // entry node = first added
+    if (g->start_node == NO_NODE) g->start_node = 0;
+    g->current_node = g->start_node; // entry node
     g->previous_node = NO_NODE;
     g->requested_node = NO_NODE;
 
@@ -280,10 +286,12 @@ int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
 int32_t graph_current(CSOUND *csound, GRAPH_CURRENT *p) {
     GRAPH *g = stm_handle_to_graph(csound, *p->handle);
 
-    if (g == NULL || !g->compiled)
+    if (g == NULL || !g->compiled) {
         return csound->PerfError(csound, &(p->h), "[stm] stmcurrent: graph not compiled");
-    if (g->current_node >= g->node_count)
+    }
+    if (g->current_node >= g->node_count) {
         return csound->PerfError(csound, &(p->h), "[stm] stmcurrent: invalid current node");
+    }
 
     const char *name = g->nodes[g->current_node].name;
     size_t len = strlen(name);
@@ -295,6 +303,21 @@ int32_t graph_current(CSOUND *csound, GRAPH_CURRENT *p) {
         p->cur->size = len + 1;
     }
     memcpy(p->cur->data, name, len + 1);
+    return OK;
+}
+
+/* return the current node id (for orchestra-side dispatch) */
+int32_t graph_current_id(CSOUND *csound, GRAPH_CURRENT_ID *p) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+
+    if (g == NULL || !g->compiled) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmcurrentid: graph not compiled");
+    }
+    if (g->current_node >= g->node_count) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmcurrentid: invalid current node");
+    }
+
+    *p->cur = g->current_node;
     return OK;
 }
 
@@ -337,6 +360,19 @@ int32_t graph_next(CSOUND *csound, GRAPH_NEXT *p) {
     int32_t requested_node = graph_find_node(g, p->next_node->data);
     if (requested_node < 0)
         return csound->PerfError(csound, &(p->h), "[stm] stmnext: node '%s' not found", p->next_node->data);
+
+    g->requested_node = (uint32_t) requested_node;
+    return OK;
+}
+
+int32_t graph_next_id(CSOUND *csound, GRAPH_NEXT_ID *p) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    if (g == NULL)
+        return csound->PerfError(csound, &(p->h), "[stm] stmnextid: invalid graph");
+
+    int32_t requested_node = (int32_t) *p->next_node;
+    if (requested_node < 0 || (uint32_t) requested_node >= g->node_count)
+        return csound->PerfError(csound, &(p->h), "[stm] stmnextid: node '%d' not found", requested_node);
 
     g->requested_node = (uint32_t) requested_node;
     return OK;
@@ -409,20 +445,126 @@ int32_t graph_on_exit(CSOUND *csound, GRAPH_ON_EE *p) {
 }
 
 
+int32_t graph_node_id(CSOUND *csound, GRAPH_NODE_ID *p) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    if (g == NULL) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmnodeid: not valid graph");
+    }
+
+    int32_t n = graph_find_node(g, p->node_name->data);
+    if (n < 0) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmnodeid: node not found");
+    }
+
+    *p->node_id = (MYFLT) n;
+    return OK;
+}
+
+int32_t graph_node_name(CSOUND *csound, GRAPH_NODE_NAME *p) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    if (g == NULL) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmnodename: not valid graph");
+    }
+
+    uint32_t node_id = (uint32_t) *p->node_id;
+    if (node_id >= g->node_count) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmnodename: invalid node id");
+    }
+
+    const char *name = g->nodes[node_id].name;
+    size_t len = strlen(name);
+    if (len >= p->node_name->size) {
+        void *newp = csound->ReAlloc(csound, p->node_name->data, len + 1);
+        if (newp == NULL)
+            return csound->PerfError(csound, &(p->h), "[stm] stmnodename: memory error");
+        p->node_name->data = newp;
+        p->node_name->size = len + 1;
+    }
+
+    memcpy(p->node_name->data, name, len + 1);
+    return OK;
+}
+
+int32_t graph_node_count(CSOUND *csound, GRAPH_NODE_COUNT *p) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    if (g == NULL) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmnodecount: not valid graph");
+    }
+
+    *p->node_count = g->node_count;
+    return OK;
+}
+
+int32_t graph_edge_count(CSOUND *csound, GRAPH_EDGE_COUNT *p) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    if (g == NULL) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmedgecount: not valid graph");
+    }
+
+    uint32_t edge_count = 0;
+    for (uint32_t i = 0; i < g->node_count; i++) {
+        edge_count += g->nodes[i].edge_count;
+    }
+
+    *p->edge_count = edge_count;
+    return OK;
+}
+
+int32_t graph_reset(CSOUND *csound, GRAPH_RESET *p) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    if (g == NULL || !g->compiled) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmreset: graph not compiled");
+    }
+
+    g->current_node = g->start_node;
+    g->previous_node = NO_NODE;
+    g->requested_node = NO_NODE;
+
+    return OK;
+}
+
+int32_t graph_entry(CSOUND *csound, GRAPH_ENTRY *p) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    if (g == NULL) {
+        return csound->InitError(csound, "[stm] stmentry: not valid graph");
+    }
+
+    if (g->compiled) {
+        return csound->InitError(csound, "[stm] stmentry: graph already compiled. Move entry before stmcompile");
+    }
+
+    int32_t n = graph_find_node(g, p->entry_node->data);
+    if (n < 0) {
+        return csound->InitError(csound, "[stm] stmentry: node not found");
+    }
+
+    g->start_node = (uint32_t) n;
+    return OK;
+}
+
+
 
 #define S(x) sizeof(x)
 
 static OENTRY stm[] = {
-    { "stmcreate",      S(GRAPH_CREATE),        0, "i", "",      (SUBR) graph_create,        NULL,                  (SUBR) graph_create_deinit },
-    { "stmaddnode",     S(GRAPH_ADD_NODE),      0, "",  "iS",    (SUBR) graph_add_node,      NULL,                  NULL },
-    { "stmaddedge",     S(GRAPH_ADD_EDGE),      0, "",  "iSS",   (SUBR) graph_add_edge,      NULL,                  NULL },
-    { "stmaddcondedge", S(GRAPH_ADD_COND_EDGE), 0, "",  "iSS[]", (SUBR) graph_add_cond_edge, NULL,                  NULL },
-    { "stmcompile",     S(GRAPH_COMPILE),       0, "",  "i",     (SUBR) graph_compile,       NULL,                  NULL },
-    { "stmcurrent",     S(GRAPH_CURRENT),       0, "S", "i",     NULL,                       (SUBR) graph_current,  NULL },
-    { "stmadvance",     S(GRAPH_ADVANCE),       0, "k", "i",     NULL,                       (SUBR) graph_advance,  NULL },
-    { "stmnext",        S(GRAPH_NEXT),          0, "",  "iS",    NULL,                       (SUBR) graph_next,     NULL },
-    { "stmonenter",     S(GRAPH_ON_EE),         0, "k", "iS",    (SUBR) graph_on_ee_init,    (SUBR) graph_on_enter, NULL },
-    { "stmonexit",      S(GRAPH_ON_EE),         0, "k", "iS",    (SUBR) graph_on_ee_init,    (SUBR) graph_on_exit,  NULL },
+    { "stmcreate",      S(GRAPH_CREATE),        0, "i", "",      (SUBR) graph_create,        NULL,                    (SUBR) graph_create_deinit },
+    { "stmaddnode",     S(GRAPH_ADD_NODE),      0, "",  "iS",    (SUBR) graph_add_node,      NULL,                    NULL },
+    { "stmaddedge",     S(GRAPH_ADD_EDGE),      0, "",  "iSS",   (SUBR) graph_add_edge,      NULL,                    NULL },
+    { "stmaddcondedge", S(GRAPH_ADD_COND_EDGE), 0, "",  "iSS[]", (SUBR) graph_add_cond_edge, NULL,                    NULL },
+    { "stmcompile",     S(GRAPH_COMPILE),       0, "",  "i",     (SUBR) graph_compile,       NULL,                    NULL },
+    { "stmcurrent",     S(GRAPH_CURRENT),       0, "S", "i",     NULL,                       (SUBR) graph_current,    NULL },
+    { "stmcurrentid",   S(GRAPH_CURRENT_ID),    0, "k", "i",     NULL,                       (SUBR) graph_current_id, NULL },
+    { "stmadvance",     S(GRAPH_ADVANCE),       0, "k", "i",     NULL,                       (SUBR) graph_advance,    NULL },
+    { "stmnext",        S(GRAPH_NEXT),          0, "",  "iS",    NULL,                       (SUBR) graph_next,       NULL },
+    { "stmnext.id",     S(GRAPH_NEXT_ID),       0, "",  "ik",    NULL,                       (SUBR) graph_next_id,    NULL },
+    { "stmonenter",     S(GRAPH_ON_EE),         0, "k", "iS",    (SUBR) graph_on_ee_init,    (SUBR) graph_on_enter,   NULL },
+    { "stmonexit",      S(GRAPH_ON_EE),         0, "k", "iS",    (SUBR) graph_on_ee_init,    (SUBR) graph_on_exit,    NULL },
+    { "stmnodename",    S(GRAPH_NODE_NAME),     0, "S", "ik",    NULL,                       (SUBR) graph_node_name,  NULL },
+    { "stmnodeid",      S(GRAPH_NODE_ID),       0, "k", "iS",    NULL,                       (SUBR) graph_node_id,    NULL },
+    { "stmnodecount",   S(GRAPH_NODE_COUNT),    0, "k", "i",     NULL,                       (SUBR) graph_node_count, NULL },
+    { "stmedgecount",   S(GRAPH_EDGE_COUNT),    0, "k", "i",     NULL,                       (SUBR) graph_edge_count, NULL },
+    { "stmreset",       S(GRAPH_RESET),         0, "",  "i",     NULL,                       (SUBR) graph_reset,      NULL },
+    { "stmentry",       S(GRAPH_ENTRY),         0, "",  "iS",    (SUBR) graph_entry,         NULL,                    NULL },
 };
 
 int32_t stm_init_(CSOUND *csound) {
