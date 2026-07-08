@@ -1,4 +1,6 @@
-#include "csound.h"
+#define __BUILDING_LIBCSOUND
+
+#include "csoundCore.h"
 #include "csound_graph_display.h"
 #include <stdio.h>
 #include "gtest/gtest.h"
@@ -71,4 +73,23 @@ TEST_F (EngineTests, testScoreRewind)
       ;
     csoundRewindScore(csound);
     ASSERT_TRUE(csoundPerformKsmps(csound) == 0); 
+}
+
+TEST_F (EngineTests, testEventPollCounterUsesControlRate)
+{
+    csoundSetOption(csound, "-n");
+    csoundSetOption(csound, "-d");
+    csoundEventString(csound, "i 1 0 1\n", 0);
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      sr = 48000
+      ksmps = 64
+      nchnls = 1
+      0dbfs = 1
+      instr 1
+      endin
+    )", 0), CSOUND_SUCCESS);
+
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    ASSERT_DOUBLE_EQ(csound->ekr, 750.0);
+    ASSERT_EQ(csound->evt_poll_maxcnt, 3);
 }
