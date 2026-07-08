@@ -43,7 +43,8 @@
    leaving DSP, analysis, and musical behavior in the orchestra.
 */
 
-
+#ifndef STM_H
+#define STM_H
 
 #include "stdopcod.h"
 #include "csound.h"
@@ -246,3 +247,5 @@ int32_t graph_node_count(CSOUND *csound, GRAPH_NODE_COUNT *p); // k-time
 int32_t graph_edge_count(CSOUND *csound, GRAPH_EDGE_COUNT *p); // k-time
 int32_t graph_reset(CSOUND *csound, GRAPH_RESET *p); // k-time
 int32_t graph_entry(CSOUND *csound, GRAPH_ENTRY *p); // i-time
+
+#endif
