@@ -327,6 +327,7 @@ int32_t start_engine(CSOUND *csound)
     if (csound->oparms->realtime && csound->event_insert_loop == 0){
       csound->init_pass_threadlock = csoundCreateMutex(0);
       csound->ErrorMsg(csound, "Initialising spinlock...\n");
+      csoundSpinLockInit(&csound->alloc_queue_spinlock);
       csoundSpinLockInit(&csound->alloc_spinlock);
       csound->event_insert_loop = 1;
       csound->alloc_queue = (ALLOC_DATA *)

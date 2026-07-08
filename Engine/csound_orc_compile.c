@@ -2115,11 +2115,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       if (!csound->oparms->realtime)
         csoundUnlockMutex(csound->API_lock);
     } else {
-      if (csound->oparms->realtime)
-        csoundSpinLock(&csound->alloc_spinlock);
       merge_state_enqueue(csound, engineState, typeTable, ids);
-      if (csound->oparms->realtime)
-        csoundSpinUnLock(&csound->alloc_spinlock);
     }
   } else {
     /* now add the instruments with names, assigning them fake instr numbers */

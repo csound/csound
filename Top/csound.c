@@ -1082,6 +1082,7 @@ static const CSOUND cenviron_ = {
   NULL,           /* alloc_queue */
   0,              /* alloc_queue_items */
   0,              /* alloc_queue_wp */
+  SPINLOCK_INIT,  /* alloc_queue_spinlock */
   SPINLOCK_INIT,  /* alloc_spinlock */
   NULL,           /* init_event */
   NULL,           /* message_string */
