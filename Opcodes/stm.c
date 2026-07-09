@@ -130,9 +130,10 @@ static uint32_t stm_register_graph(CSOUND *csound, GRAPH *g) {
 static GRAPH *stm_handle_to_graph(CSOUND *csound, MYFLT handle) {
     STM_REGISTRY *reg = stm_registry_query(csound);
     if (reg == NULL) return NULL;
-    uint32_t idx = (uint32_t) handle;
-    if (idx == 0 || idx > reg->count) return NULL;
-    return reg->graphs[idx - 1];
+    /* range-check before the cast: converting a MYFLT that falls outside the
+       target range is undefined. The negated >= also rejects NaN. */
+    if (!(handle >= FL(1.0)) || handle > (MYFLT) reg->count) return NULL;
+    return reg->graphs[(uint32_t) handle - 1];
 }
 
 /* ------------------------------------------------------------------ */
@@ -463,7 +464,6 @@ int32_t graph_on_ee_init(CSOUND *csound, GRAPH_ON_EE *p) {
     }
 
     p->node_id = n;
-    p->g = g;
     *p->trig = FL(0.0);
     p->was_current = 0;
 
@@ -472,8 +472,11 @@ int32_t graph_on_ee_init(CSOUND *csound, GRAPH_ON_EE *p) {
 
 /* rising-edge trigger: 1 only on the cycle this node becomes current */
 int32_t graph_on_enter(CSOUND *csound, GRAPH_ON_EE *p) {
-    GRAPH *g = p->g;
-    if (g == NULL || !g->compiled) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    if (g == NULL) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmonenter: invalid graph (freed?)");
+    }
+    if (!g->compiled) {
         return csound->PerfError(csound, &(p->h), "[stm] stmonenter: graph not compiled");
     }
 
@@ -485,8 +488,11 @@ int32_t graph_on_enter(CSOUND *csound, GRAPH_ON_EE *p) {
 
 /* rising-edge trigger: 1 only on the cycle this node becomes not current */
 int32_t graph_on_exit(CSOUND *csound, GRAPH_ON_EE *p) {
-    GRAPH *g = p->g;
-    if (g == NULL || !g->compiled) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    if (g == NULL) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmonexit: invalid graph (freed?)");
+    }
+    if (!g->compiled) {
         return csound->PerfError(csound, &(p->h), "[stm] stmonexit: graph not compiled");
     }
 
@@ -518,10 +524,12 @@ int32_t graph_node_name(CSOUND *csound, GRAPH_NODE_NAME *p) {
         return csound->PerfError(csound, &(p->h), "[stm] stmnodename: not valid graph");
     }
 
-    uint32_t node_id = (uint32_t) *p->node_id;
-    if (node_id >= g->node_count) {
+    /* range-check before the cast, see stm_handle_to_graph */
+    MYFLT id = *p->node_id;
+    if (!(id >= FL(0.0)) || id >= (MYFLT) g->node_count) {
         return csound->PerfError(csound, &(p->h), "[stm] stmnodename: invalid node id");
     }
+    uint32_t node_id = (uint32_t) id;
 
     const char *name = g->nodes[node_id].name;
     size_t len = strlen(name);
@@ -660,7 +668,7 @@ static OENTRY stm[] = {
     { "stmentry",       S(GRAPH_ENTRY),         0, "",  "iS",    (SUBR) graph_entry,         NULL,                     NULL },
     { "stmtick",        S(GRAPH_TIME),          0, "k", "i",     NULL,                       (SUBR) graph_time_tick,   NULL },
     { "stmnodetime",    S(GRAPH_TIME),          0, "k", "i",     NULL,                       (SUBR) graph_time_node,   NULL },
-    { "stmtime",        S(GRAPH_TIME),          0, "k", "i",     NULL,                       (SUBR) graph_time_global, NULL },
+    { "stmtime",        S(GRAPH_TIME),          0, "k", "i",     NULL,                       (SUBR) graph_time_global, NULL }
 };
 
 int32_t stm_init_(CSOUND *csound) {
