@@ -87,7 +87,6 @@
 #include "stdopcod.h"
 #include "csound.h"
 #include "sysdep.h"
-#include <csdl.h>
 #include <stdint.h>
 
 
@@ -211,10 +210,11 @@ typedef struct {
     // inputs
     MYFLT *handle;
     STRINGDAT *node;
-    // private
+    // private: the node id is stable (the graph is immutable once compiled), but
+    // the GRAPH itself must never be cached, it dies with the instrument that
+    // created it. Resolve the handle on every perf pass instead.
     int32_t node_id;
     int32_t was_current;
-    GRAPH *g;
 } GRAPH_ON_EE;
 
 // INTROSPECTION
