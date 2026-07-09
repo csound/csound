@@ -2106,7 +2106,7 @@ char *check_optional_type(CSOUND *csound, char *name) {
 void add_arg(CSOUND* csound, char* varName, char* annotation,
              TYPE_TABLE* typeTable, TREE* tree) {
 
-  const CS_TYPE* type;
+  const CS_TYPE* type = NULL;
   CS_VARIABLE* var;
   char *t = csoundStrdup(csound, varName);
   char *lvarName = csoundStrdup(csound, varName); // local copy
@@ -2194,7 +2194,11 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 
       t = lvarName;
 
-      if (*t == '#') t++;
+      int32_t isSynthetic = 0;
+      if (*t == '#') {
+        isSynthetic = 1;
+        t++;
+      }
       if (*t == 'g') pool = typeTable->globalPool;
       if (*t == 'g') t++;
 
@@ -2214,10 +2218,22 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
         varInit.dimensions = dimensions;
         varInit.type =  varType;
         typeArg = &varInit;
+      } else if (isSynthetic) {
+        char *syntheticType = csoundStrdup(csound, t);
+        char *end = syntheticType + strlen(syntheticType);
+        while (end > syntheticType && isdigit((unsigned char) end[-1])) {
+          *--end = '\0';
+        }
+        if (strlen(syntheticType) > 1) {
+          type = csoundGetTypeWithVarTypeName(csound->typePool, syntheticType);
+        }
+        csound->Free(csound, syntheticType);
       }
 
-      argLetter[0] = *t;
-      type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+      if (type == NULL) {
+        argLetter[0] = *t;
+        type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+      }
     }
     var = csoundCreateVariable(csound, csound->typePool,
 				 type, lvarName, typeArg);

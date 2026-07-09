@@ -38,6 +38,12 @@ static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
                                        TYPE_TABLE*);
 static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
                                TYPE_TABLE*);
+static int32_t struct_expr_has_array_root(TREE* structExpr);
+TREE* expand_struct_array_member_read(CSOUND* csound,
+                                      TREE* structExpr,
+                                      int32_t line,
+                                      uint64_t locn,
+                                      TYPE_TABLE* typeTable);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
 
 TREE* tree_tail(TREE* node) {
@@ -464,25 +470,34 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   current = root->left;
   newArgList = NULL;
   while (current != NULL) {
-    if (is_expression_node(current)) {
-      TREE* newArg;
-      TREE* temp = current->next;
+    TREE* newArg;
+    TREE* temp = current->next;
 
-      current->next = NULL;
+    current->next = NULL;
+    if (current->type == STRUCT_EXPR && struct_expr_has_array_root(current)) {
+      TREE* expanded = expand_struct_array_member_read(csound, current,
+                                                       line, locn, typeTable);
+      if (expanded != NULL) {
+        anchor = append_to_tree(csound, anchor, expanded);
+        last = tree_tail(anchor);
+        newArg = create_ans_token(csound, last->left->value->lexeme);
+        newArgList = append_to_tree(csound, newArgList, newArg);
+      }
+      else {
+        newArgList = append_to_tree(csound, newArgList, current);
+      }
+    }
+    else if (is_expression_node(current)) {
       anchor = append_to_tree(csound, anchor,
                             create_expression(csound, current, line, locn,
                                               typeTable));
       last = tree_tail(anchor);
       newArg = create_ans_token(csound, last->left->value->lexeme);
       newArgList = append_to_tree(csound, newArgList, newArg);
-      current = temp;
     } else {
-      TREE* temp;
       newArgList = append_to_tree(csound, newArgList, current);
-      temp = current->next;
-      current->next = NULL;
-      current = temp;
     }
+    current = temp;
 
   }
   root->left = newArgList;
@@ -490,11 +505,24 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   current = root->right;
   newArgList = NULL;
   while (current != NULL) {
-    if (is_expression_node(current)) {
-      TREE* newArg;
-      TREE* temp = current->next;
+    TREE* newArg;
+    TREE* temp = current->next;
 
-      current->next = NULL;
+    current->next = NULL;
+    if (current->type == STRUCT_EXPR && struct_expr_has_array_root(current)) {
+      TREE* expanded = expand_struct_array_member_read(csound, current,
+                                                       line, locn, typeTable);
+      if (expanded != NULL) {
+        anchor = append_to_tree(csound, anchor, expanded);
+        last = tree_tail(anchor);
+        newArg = create_ans_token(csound, last->left->value->lexeme);
+        newArgList = append_to_tree(csound, newArgList, newArg);
+      }
+      else {
+        newArgList = append_to_tree(csound, newArgList, current);
+      }
+    }
+    else if (is_expression_node(current)) {
       anchor = append_to_tree(csound, anchor,
                             create_expression(csound, current, line,
                                               locn, typeTable));
@@ -502,15 +530,11 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
 
       newArg = create_ans_token(csound, last->left->value->lexeme);
       newArgList = append_to_tree(csound, newArgList, newArg);
-      current = temp;
     }
     else {
-      TREE* temp;
       newArgList = append_to_tree(csound, newArgList, current);
-      temp = current->next;
-      current->next = NULL;
-      current = temp;
     }
+    current = temp;
   }
   root->right = newArgList;
 
@@ -1464,6 +1488,7 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
   int32_t i;
   const char* memberType;
   const char* outType;
+  char* arrayMemberType = NULL;
   char* outArg;
 
   if (!resolve_struct_array_member_path(csound, structExpr, typeTable, &path)) {
@@ -1492,10 +1517,21 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
     currentStructArg = nextStructArg;
   }
 
-  memberType = path.memberVars[path.memberCount - 1]->varType->varTypeName;
-  outType = memberType;
-  if (path.hasKRateIndex && memberType[0] == 'i' && memberType[1] == '\0') {
-    outType = "k";
+  if (path.memberVars[path.memberCount - 1]->varType == &CS_VAR_TYPE_ARRAY) {
+    arrayMemberType = create_array_arg_type(csound,
+                                            path.memberVars[path.memberCount - 1]);
+    if (arrayMemberType == NULL) {
+      csound->Free(csound, currentStructArg);
+      return NULL;
+    }
+    outType = arrayMemberType;
+  }
+  else {
+    memberType = path.memberVars[path.memberCount - 1]->varType->varTypeName;
+    outType = memberType;
+    if (path.hasKRateIndex && memberType[0] == 'i' && memberType[1] == '\0') {
+      outType = "k";
+    }
   }
 
   outArg = create_out_arg(csound, (char*)outType,
@@ -1506,6 +1542,9 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
                              path.memberIndices[path.memberCount - 1]));
 
   csound->Free(csound, currentStructArg);
+  if (arrayMemberType != NULL) {
+    csound->Free(csound, arrayMemberType);
+  }
   csound->Free(csound, outArg);
   return readOps;
 }
