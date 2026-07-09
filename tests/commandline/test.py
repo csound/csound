@@ -510,6 +510,11 @@ def runTest():
             "test expected failure with negative dimension size and array",
             1,
         ],
+        [
+            "arrays/test_arrays_zero_dimension_fail.csd",
+            "test expected failure with zero dimension in multi-dimensional array",
+            1,
+        ],
         ["test_iarr_operators.csd", "test i[] operators"],
         ["test_booleans.csd", "tests using boolean data-types"],
         ["test_boolean_function.csd", "test boolean function in conditionals"],
@@ -702,6 +707,7 @@ def runTest():
         ["arrays/arrays_for_loop.csd", "tests for loops over array types"],
         ["arrays/test_redef_fail.csd", "fail on redefinition of variable by array", 1],
         ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],
+        ["arrays/test_empty_array_init.csd", "test zero-length array initialization"],
         ["complex_array_test.csd", "testing complex array ops"],
         ["test_array_channels.csd", "testing bus channels holding arrays"],
         ["fft_array_test.csd", "testing complex fft array ops"],
@@ -772,6 +778,10 @@ def runTest():
         [
             "structs/test_struct_member_array_struct_set.csd",
             "assigning into a struct-array member inside a struct",
+        ],
+        [
+            "structs/test_recursive_struct_member_array_direct_index.csd",
+            "direct indexing of recursive struct-array members",
         ],
         [
             "structs/test_string_array_direct_member_index.csd",

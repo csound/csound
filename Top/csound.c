@@ -828,8 +828,6 @@ static const CSOUND cenviron_ = {
   1,              /*  csoundIsScorePending_ */
   0,              /*  advanceCnt          */
   0,              /*  initonly            */
-  0,              /*  evt_poll_cnt        */
-  0,              /*  evt_poll_maxcnt     */
   0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
   NULL,           /*  opcodeInfo  */
   NULL,           /*  flist               */
@@ -2389,4 +2387,3 @@ MYFLT csoundSetReleaseLengthSeconds(void *p, MYFLT n) {
   return ((MYFLT)((OPDS *)p)->insdshead->xtratim *
           ((OPDS *)p)->insdshead->csound->onedkr);
 }
-
