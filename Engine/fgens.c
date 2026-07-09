@@ -93,6 +93,18 @@ static int32_t GENUL(FGDATA *ff, FUNC *ftp)
     return csoundFtError(ff, Str("unknown GEN number"));
 }
 
+/* Releases a function table and the two buffers its header owns. csoundFree
+   ignores NULL, and args stays NULL until csoundFTCreate fills it in.
+   The caller must have already cleared csound->flist[fno]. */
+static void ftfree(CSOUND *csound, FUNC *ftp)
+{
+    if (ftp == NULL)
+      return;
+    csound->Free(csound, ftp->ftable);
+    csound->Free(csound, ftp->args);
+    csound->Free(csound, (void*) ftp);
+}
+
 /**
  * Create ftable using evtblk data, and store pointer to new table in *ftpp.
  * If mode is zero, a zero table number is ignored, otherwise a new table
@@ -139,7 +151,7 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
         return csoundFtError(&ff, Str("ftable does not exist"));
       }
       csound->flist[ff.fno] = NULL;
-      csound->Free(csound, (void*) ftp);
+      ftfree(csound, ftp);
       if (UNLIKELY(msg_enabled))
         csoundMessage(csound, Str("ftable %d now deleted\n"), ff.fno);
       return 0;
@@ -198,9 +210,8 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
       i = (*csound->gensub[genum])(&ff, NULL);
       ftp = csound->flist[ff.fno];
       if (i != 0) {
-        if(ftp != NULL)
-          csound->Free(csound, ftp);
         csound->flist[ff.fno] = NULL;
+        ftfree(csound, ftp);
         return -1;
       }
       ftp->sr = csound->esr;
@@ -251,7 +262,7 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
       csoundMessage(csound, Str("ftable %d:\n"), ff.fno);
     if ((*csound->gensub[genum])(&ff, ftp) != 0) {
       csound->flist[ff.fno] = NULL;
-      csound->Free(csound, ftp);
+      ftfree(csound, ftp);
       return -1;
     }
 
@@ -295,11 +306,11 @@ int32_t csoundFTAlloc(CSOUND *csound, int32_t tableNum,
         csound->flist[i] = NULL;            /* Clear new section            */
       csound->maxfnum = size;
     }
-    /* allocate space for table */
-    size = (int32_t) (len * (int32_t) sizeof(MYFLT));
+    /* allocate space for table: the header must be zeroed, csoundFTCreate
+       frees ftp->args before replacing it and would otherwise free garbage */
     ftp = csound->flist[tableNum];
     if (ftp == NULL) {
-      csound->flist[tableNum] = (FUNC*) csound->Malloc(csound, sizeof(FUNC));
+      csound->flist[tableNum] = (FUNC*) csound->Calloc(csound, sizeof(FUNC));
       csound->flist[tableNum]->ftable =
         (MYFLT*)csound->Malloc(csound, sizeof(MYFLT)*(len+1));
     }
@@ -311,14 +322,13 @@ int32_t csoundFTAlloc(CSOUND *csound, int32_t tableNum,
                                         "may find this disturbing"), tableNum);
       }
       csound->flist[tableNum] = NULL;
-      csound->Free(csound, ftp);
-      csound->flist[tableNum] = (FUNC*) csound->Malloc(csound, (size_t) size);
+      ftfree(csound, ftp);
+      csound->flist[tableNum] = (FUNC*) csound->Calloc(csound, sizeof(FUNC));
       csound->flist[tableNum]->ftable =
         (MYFLT*)csound->Malloc(csound, sizeof(MYFLT)*(len+1));
     }
     /* initialise table header */
     ftp = csound->flist[tableNum];
-    //memset((void*) ftp, 0, (size_t) ((char*) &(ftp->ftable) - (char*) ftp));
     ftp->flen = (int32) len;
     if (!(len & (len - 1))) {
       /* for power of two length: */
@@ -351,7 +361,7 @@ int32_t csoundFTFree(CSOUND *csound, int32_t tableNum)
     if (UNLIKELY(ftp == NULL))
       return -1;
     csound->flist[tableNum] = NULL;
-    csound->Free(csound, ftp);
+    ftfree(csound, ftp);
 
     return 0;
 }
@@ -2111,9 +2121,9 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
     if (UNLIKELY(ftp != NULL)) {
       csound->Warning(csound, Str("replacing previous ftable %d"), ff->fno);
       if (ff->flen != (int32)ftp->flen) {       /* if redraw & diff len, */
-        csound->Free(csound, ftp->ftable);
-        csound->Free(csound, (void*) ftp);             /*   release old space   */
-        csound->flist[ff->fno] = ftp = NULL;
+        csound->flist[ff->fno] = NULL;
+        ftfree(csound, ftp);                          /*   release old space   */
+        ftp = NULL;
         if (UNLIKELY(csound->actanchor.nxtact != NULL)) { /*   & chk for danger */
           csound->Warning(csound, Str("ftable %d relocating due to size change"
                                       "\n         currently active instruments "
@@ -2123,6 +2133,8 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
       else {
                                     /* else clear it to zero */
         MYFLT *tmp = ftp->ftable;
+        /* the memset below drops args on the floor: release it first */
+        csound->Free(csound, ftp->args);
         memset((void*) ftp->ftable, 0, sizeof(MYFLT)*(ff->flen+1));
         memset((void*) ftp, 0, sizeof(FUNC));
         ftp->ftable = tmp; /* restore table pointer */
