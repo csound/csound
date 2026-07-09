@@ -41,6 +41,44 @@
 
    This keeps the state-machine control flow explicit and deterministic while
    leaving DSP, analysis, and musical behavior in the orchestra.
+
+   GRAPH CLOCK
+
+   Every graph carries its own clock, read with three k-rate opcodes:
+
+     stmtick     - k-cycles elapsed since stmcompile or stmreset
+     stmtime     - graph time in seconds, that is tick * kperiod
+     stmnodetime - seconds elapsed since the current node became current
+
+   The clock is driven by stmadvance, not by the global k-counter: one tick is
+   one call to stmadvance. It is the state machine's own notion of time, so it
+   only moves when the machine is actually stepped. If the instrument driving
+   the graph is turned off, skipped, or simply not scheduled for a cycle, the
+   graph clock does not move either. stmtime is therefore NOT wall-clock time
+   and will diverge from times(), and stmtick is NOT timeinstk(). Use those
+   opcodes instead when performance time is what is wanted.
+
+   Two rules follow from an advance-driven clock:
+
+     1. call stmadvance exactly once per graph per k-cycle. Two instrument
+        instances sharing one graph handle would tick it twice per cycle.
+     2. read the time opcodes BEFORE stmadvance. After it they already report
+        the values of the next cycle.
+
+   Both times are derived from the tick count rather than accumulated, so they
+   cannot drift over long runs, single precision builds included. kperiod is
+   captured from the instrument that calls stmadvance, so a driver with a local
+   setksmps is measured on its own control rate. stmtick is counted internally
+   in a uint64 and returned as MYFLT, hence exact up to 2^53 in a double build
+   and 2^24 in a float one.
+
+   Node time is measured from the tick at which the current node was entered:
+
+     - it reads 0 on the node's own first cycle
+     - a transition rejected by stmadvance (no such edge) leaves it untouched,
+       since the current node never changed
+     - stmreset restarts tick, graph time and node time at 0, exactly the way
+       stmcompile does
 */
 
 
@@ -278,6 +316,10 @@ int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
     g->current_node = g->start_node; // entry node
     g->previous_node = NO_NODE;
     g->requested_node = NO_NODE;
+    g->graph_tick = 0;
+    g->node_tick_on_enter = 0;
+    g->kperiod = FL(0.0);
+    g->reset_pending = 0;
 
     return OK;
 }
@@ -346,6 +388,16 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
             g->current_node = target;
             changed = 1;
         }
+    }
+
+    g->kperiod = (MYFLT) CS_KSMPS / CS_ESR;
+    if (g->reset_pending) {
+        // graph restarted during this cycle: its clock starts on the next one
+        g->reset_pending = 0;
+    } else {
+        g->graph_tick++;
+        // node time is measured relative to the tick the node became current
+        if (changed) g->node_tick_on_enter = g->graph_tick;
     }
 
     *p->changed = (MYFLT) changed;
@@ -519,6 +571,10 @@ int32_t graph_reset(CSOUND *csound, GRAPH_RESET *p) {
     g->current_node = g->start_node;
     g->previous_node = NO_NODE;
     g->requested_node = NO_NODE;
+    g->graph_tick = 0;
+    g->node_tick_on_enter = 0;
+    g->kperiod = FL(0.0);
+    g->reset_pending = 1;
 
     return OK;
 }
@@ -542,29 +598,69 @@ int32_t graph_entry(CSOUND *csound, GRAPH_ENTRY *p) {
     return OK;
 }
 
+/* k-cycles since compile/reset: one tick per stmadvance call, so the graph
+   clock stops whenever the machine is not being stepped */
+int32_t graph_time_tick(CSOUND *csound, GRAPH_TIME *p) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    if (g == NULL || !g->compiled) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmtick: graph not compiled");
+    }
 
+    *p->t = (MYFLT) g->graph_tick;
+    return OK;
+}
+
+/* graph time in seconds: derived from the tick count, never accumulated, so it
+   cannot drift. This is graph time, not performance time: use times() for that */
+int32_t graph_time_global(CSOUND *csound, GRAPH_TIME *p) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    if (g == NULL || !g->compiled) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmtime: graph not compiled");
+    }
+
+    *p->t = (MYFLT) g->graph_tick * g->kperiod;
+    return OK;
+}
+
+/* seconds since the current node became current: 0 on the node's own first
+   cycle, and unaffected by a stmnext that stmadvance rejected */
+int32_t graph_time_node(CSOUND *csound, GRAPH_TIME *p) {
+    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    if (g == NULL || !g->compiled) {
+        return csound->PerfError(csound, &(p->h), "[stm] stmnodetime: graph not compiled");
+    }
+
+    *p->t = (MYFLT) (g->graph_tick - g->node_tick_on_enter) * g->kperiod;
+    return OK;
+}
+
+
+// CSOUND OP-INTER
 
 #define S(x) sizeof(x)
 
 static OENTRY stm[] = {
-    { "stmcreate",      S(GRAPH_CREATE),        0, "i", "",      (SUBR) graph_create,        NULL,                    (SUBR) graph_create_deinit },
-    { "stmaddnode",     S(GRAPH_ADD_NODE),      0, "",  "iS",    (SUBR) graph_add_node,      NULL,                    NULL },
-    { "stmaddedge",     S(GRAPH_ADD_EDGE),      0, "",  "iSS",   (SUBR) graph_add_edge,      NULL,                    NULL },
-    { "stmaddcondedge", S(GRAPH_ADD_COND_EDGE), 0, "",  "iSS[]", (SUBR) graph_add_cond_edge, NULL,                    NULL },
-    { "stmcompile",     S(GRAPH_COMPILE),       0, "",  "i",     (SUBR) graph_compile,       NULL,                    NULL },
-    { "stmcurrent",     S(GRAPH_CURRENT),       0, "S", "i",     NULL,                       (SUBR) graph_current,    NULL },
-    { "stmcurrentid",   S(GRAPH_CURRENT_ID),    0, "k", "i",     NULL,                       (SUBR) graph_current_id, NULL },
-    { "stmadvance",     S(GRAPH_ADVANCE),       0, "k", "i",     NULL,                       (SUBR) graph_advance,    NULL },
-    { "stmnext",        S(GRAPH_NEXT),          0, "",  "iS",    NULL,                       (SUBR) graph_next,       NULL },
-    { "stmnext.id",     S(GRAPH_NEXT_ID),       0, "",  "ik",    NULL,                       (SUBR) graph_next_id,    NULL },
-    { "stmonenter",     S(GRAPH_ON_EE),         0, "k", "iS",    (SUBR) graph_on_ee_init,    (SUBR) graph_on_enter,   NULL },
-    { "stmonexit",      S(GRAPH_ON_EE),         0, "k", "iS",    (SUBR) graph_on_ee_init,    (SUBR) graph_on_exit,    NULL },
-    { "stmnodename",    S(GRAPH_NODE_NAME),     0, "S", "ik",    NULL,                       (SUBR) graph_node_name,  NULL },
-    { "stmnodeid",      S(GRAPH_NODE_ID),       0, "k", "iS",    NULL,                       (SUBR) graph_node_id,    NULL },
-    { "stmnodecount",   S(GRAPH_NODE_COUNT),    0, "k", "i",     NULL,                       (SUBR) graph_node_count, NULL },
-    { "stmedgecount",   S(GRAPH_EDGE_COUNT),    0, "k", "i",     NULL,                       (SUBR) graph_edge_count, NULL },
-    { "stmreset",       S(GRAPH_RESET),         0, "",  "i",     NULL,                       (SUBR) graph_reset,      NULL },
-    { "stmentry",       S(GRAPH_ENTRY),         0, "",  "iS",    (SUBR) graph_entry,         NULL,                    NULL },
+    { "stmcreate",      S(GRAPH_CREATE),        0, "i", "",      (SUBR) graph_create,        NULL,                     (SUBR) graph_create_deinit },
+    { "stmaddnode",     S(GRAPH_ADD_NODE),      0, "",  "iS",    (SUBR) graph_add_node,      NULL,                     NULL },
+    { "stmaddedge",     S(GRAPH_ADD_EDGE),      0, "",  "iSS",   (SUBR) graph_add_edge,      NULL,                     NULL },
+    { "stmaddcondedge", S(GRAPH_ADD_COND_EDGE), 0, "",  "iSS[]", (SUBR) graph_add_cond_edge, NULL,                     NULL },
+    { "stmcompile",     S(GRAPH_COMPILE),       0, "",  "i",     (SUBR) graph_compile,       NULL,                     NULL },
+    { "stmcurrent",     S(GRAPH_CURRENT),       0, "S", "i",     NULL,                       (SUBR) graph_current,     NULL },
+    { "stmcurrentid",   S(GRAPH_CURRENT_ID),    0, "k", "i",     NULL,                       (SUBR) graph_current_id,  NULL },
+    { "stmadvance",     S(GRAPH_ADVANCE),       0, "k", "i",     NULL,                       (SUBR) graph_advance,     NULL },
+    { "stmnext",        S(GRAPH_NEXT),          0, "",  "iS",    NULL,                       (SUBR) graph_next,        NULL },
+    { "stmnext.id",     S(GRAPH_NEXT_ID),       0, "",  "ik",    NULL,                       (SUBR) graph_next_id,     NULL },
+    { "stmonenter",     S(GRAPH_ON_EE),         0, "k", "iS",    (SUBR) graph_on_ee_init,    (SUBR) graph_on_enter,    NULL },
+    { "stmonexit",      S(GRAPH_ON_EE),         0, "k", "iS",    (SUBR) graph_on_ee_init,    (SUBR) graph_on_exit,     NULL },
+    { "stmnodename",    S(GRAPH_NODE_NAME),     0, "S", "ik",    NULL,                       (SUBR) graph_node_name,   NULL },
+    { "stmnodeid",      S(GRAPH_NODE_ID),       0, "k", "iS",    NULL,                       (SUBR) graph_node_id,     NULL },
+    { "stmnodecount",   S(GRAPH_NODE_COUNT),    0, "k", "i",     NULL,                       (SUBR) graph_node_count,  NULL },
+    { "stmedgecount",   S(GRAPH_EDGE_COUNT),    0, "k", "i",     NULL,                       (SUBR) graph_edge_count,  NULL },
+    { "stmreset",       S(GRAPH_RESET),         0, "",  "i",     NULL,                       (SUBR) graph_reset,       NULL },
+    { "stmentry",       S(GRAPH_ENTRY),         0, "",  "iS",    (SUBR) graph_entry,         NULL,                     NULL },
+    { "stmtick",        S(GRAPH_TIME),          0, "k", "i",     NULL,                       (SUBR) graph_time_tick,   NULL },
+    { "stmnodetime",    S(GRAPH_TIME),          0, "k", "i",     NULL,                       (SUBR) graph_time_node,   NULL },
+    { "stmtime",        S(GRAPH_TIME),          0, "k", "i",     NULL,                       (SUBR) graph_time_global, NULL },
 };
 
 int32_t stm_init_(CSOUND *csound) {
