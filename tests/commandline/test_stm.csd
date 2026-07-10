@@ -108,14 +108,14 @@ instr 1
 
     cur:S = stmcurrent(graph)
 
-    ; on_enter monitors, read before advance: each fires 1 only on the
-    ; cycle its node becomes current (rising-edge), 0 while it stays.
+    ; on_enter monitors, read before advance: each fires 1 only for a real
+    ; graph event observed after this opcode instance was initialized.
     enter_a:k = stmonenter(graph, "Analyze")
     enter_t:k = stmonenter(graph, "Texture")
     enter_f:k = stmonenter(graph, "Freeze")
 
-    ; on_exit monitors (falling-edge): each fires 1 the cycle its node
-    ; stops being current, i.e. one cycle after it requested a transition.
+    ; on_exit monitors: each fires 1 for a real graph event where its node
+    ; stopped being current.
     exit_a:k = stmonexit(graph, "Analyze")
     exit_t:k = stmonexit(graph, "Texture")
     exit_f:k = stmonexit(graph, "Freeze")
@@ -135,8 +135,8 @@ instr 1
             printks("[FAIL] c1: expected transition to Texture\n", 0)
             exitnowk(-1)
         endif
-        if enter_a != 1 || enter_t != 0 || enter_f != 0 then
-            printks("[FAIL] c1: on_enter A/T/F=%f/%f/%f expected 1/0/0 (entry node)\n", 0, enter_a, enter_t, enter_f)
+        if enter_a != 0 || enter_t != 0 || enter_f != 0 then
+            printks("[FAIL] c1: on_enter A/T/F=%f/%f/%f expected 0/0/0 (initial state is not a new event)\n", 0, enter_a, enter_t, enter_f)
             exitnowk(-1)
         endif
         if exit_a != 0 || exit_t != 0 || exit_f != 0 then
@@ -202,7 +202,7 @@ instr 1
             exitnowk(-1)
         endif
     elseif c == 5 then
-        ; Analyze stays (no request). Rising-edge: on_enter must NOT refire.
+        ; Analyze stays (no request): on_enter must NOT refire.
         if state.node != 1 then
             printks("[FAIL] c5: node=%f expected 1 (Analyze)\n", 0, state.node)
             exitnowk(-1)
@@ -351,6 +351,13 @@ endin
 ; ---- supervisor: binds nodes to instruments via enter/exit ----
 instr 20
     c:k = timeinstk()
+
+    ; Initial state is not a transition event for a freshly initialized
+    ; observer, so bind the entry process explicitly.
+    if c == 1 then
+        schedulek(30, 0, -1)
+        println("[E3] c%d  INITIAL A -> spawn instr 30", c)
+    endif
 
     ; deterministic drive: A (start) -> B @c5 -> A @c10
     if c == 5 then
@@ -542,13 +549,13 @@ endin
 ; Example 5: the graph clock.
 ;
 ;   stmtick     - k-cycles elapsed since stmcompile / stmreset
-;   stmtime     - graph time in seconds (tick * kperiod)
+;   stmtime     - graph time in seconds (advanced sample frames / sr)
 ;   stmnodetime - seconds since the current node became current
 ;
 ; stmadvance is what drives the clock, so the time opcodes are read
 ; BEFORE it: after stmadvance they already report the next cycle.
-; The times are derived from the tick count rather than accumulated,
-; so they cannot drift.
+; The times are derived from integer sample-frame counters rather than
+; accumulated floating-point seconds, so they cannot drift.
 ;
 ; The three invariants that are easy to get wrong:
 ;   1. a REJECTED stmnext must not restart the node clock
@@ -584,7 +591,7 @@ instr 50
 
     println("[E5] c%d  curid=%d  tick=%d  time=%.6f  nodetime=%.6f", c, curid, tick, gt, nt)
 
-    ; graph time is always exactly tick * kperiod (derived, never accumulated)
+    ; with a constant ksmps driver, graph time equals tick * kperiod
     if abs:k(gt - tick * kper) > 1e-9 then
         printks("[FAIL] E5: stmtime=%f expected tick*kper=%f\n", 0, gt, tick * kper)
         exitnowk(-1)
@@ -661,6 +668,55 @@ instr 50
     endif
 endin
 
+; ============================================================
+; Example 6: graph time with changing local setksmps.
+;
+; This guards against computing stmtime as tick * latest_kperiod. After
+; 32 advances at setksmps 1 and one advance at setksmps 32, the graph has
+; 33 ticks but represents 64 sample frames.
+; ============================================================
+
+graph6@global:i = stmcreate()
+stmaddnode(graph6, "A")
+stmcompile(graph6)
+
+instr 60
+    setksmps 1
+    c:k = init(0)
+    c = c + 1
+
+    if c <= 32 then
+        changed:k = stmadvance(graph6)
+    endif
+    if c == 32 then
+        turnoff
+    endif
+endin
+
+instr 61
+    setksmps 32
+    c:k = init(0)
+    c = c + 1
+
+    tick:k = stmtick(graph6)
+    gt:k = stmtime(graph6)
+
+    if c == 1 then
+        if tick != 32 || abs:k(gt - 32 / sr) > 1e-9 then
+            printks("[FAIL] E6 c1: tick=%f time=%f expected 32 and %f\n", 0, tick, gt, 32 / sr)
+            exitnowk(-1)
+        endif
+        changed:k = stmadvance(graph6)
+    elseif c == 2 then
+        if tick != 33 || abs:k(gt - 64 / sr) > 1e-9 then
+            printks("[FAIL] E6 c2: tick=%f time=%f expected 33 and %f\n", 0, tick, gt, 64 / sr)
+            exitnowk(-1)
+        endif
+        println("[DONE] STM VARIABLE KSMPS CLOCK TEST PASSED\n")
+        turnoff
+    endif
+endin
+
 </CsInstruments>
 <CsScore>
 i 1  0   1 ; example 1: deterministic transitions + conditional edge
@@ -669,5 +725,7 @@ i 11 2.2 1 ; example 2: graph runtime + invariant checks
 i 20 3.3 1 ; example 3: instruments as stateful processes (spawn/kill via enter/exit)
 i 40 4.4 1 ; example 4: introspection + id-based API + entry/reset
 i 50 5.3 1 ; example 5: graph clock (tick / graph time / node time)
+i 60 6.4 0.1 ; example 6: 32 one-sample advances
+i 61 6.5 0.1 ; example 6: one 32-sample advance
 </CsScore>
 </CsoundSynthesizer>

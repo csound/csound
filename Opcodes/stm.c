@@ -42,12 +42,28 @@
    This keeps the state-machine control flow explicit and deterministic while
    leaving DSP, analysis, and musical behavior in the orchestra.
 
+   ENTER/EXIT EVENTS
+
+   stmonenter and stmonexit report graph-level transition events, not an
+   observer-local rising/falling edge. Each opcode instance records the graph
+   event sequence that was current when it was initialized; it only triggers
+   for a later event where the named node was entered or exited. Therefore an
+   observer scheduled after node B is already current does not receive a fake
+   stmonenter(B) on its first pass.
+
+   These opcodes observe the latest graph event seen by that opcode call. If a
+   graph is advanced through multiple transitions between two passes of a slow
+   observer, intermediate events may be missed. For process lifecycle binding,
+   the deterministic pattern is to run the enter/exit checks in the same
+   supervisor loop that advances the graph, and bind the initial state
+   explicitly if it needs an initial process.
+
    GRAPH CLOCK
 
    Every graph carries its own clock, read with three k-rate opcodes:
 
      stmtick     - k-cycles elapsed since stmcompile or stmreset
-     stmtime     - graph time in seconds, that is tick * kperiod
+     stmtime     - graph time in seconds, advanced sample frames / sr
      stmnodetime - seconds elapsed since the current node became current
 
    The clock is driven by stmadvance, not by the global k-counter: one tick is
@@ -65,12 +81,13 @@
      2. read the time opcodes BEFORE stmadvance. After it they already report
         the values of the next cycle.
 
-   Both times are derived from the tick count rather than accumulated, so they
-   cannot drift over long runs, single precision builds included. kperiod is
-   captured from the instrument that calls stmadvance, so a driver with a local
-   setksmps is measured on its own control rate. stmtick is counted internally
-   in a uint64 and returned as MYFLT, hence exact up to 2^53 in a double build
-   and 2^24 in a float one.
+   Times are derived from integer sample-frame counters rather than accumulated
+   floating-point seconds, so they cannot drift over long runs. Each stmadvance
+   adds the advancing instrument's current CS_KSMPS to the graph's total sample
+   count, which means successive drivers with different local setksmps values
+   contribute their real control-period lengths without retroactively rescaling
+   earlier steps. stmtick is counted internally in a uint64 and returned as
+   MYFLT, hence exact up to 2^53 in a double build and 2^24 in a float one.
 
    Node time is measured from the tick at which the current node was entered:
 
@@ -79,6 +96,34 @@
        since the current node never changed
      - stmreset restarts tick, graph time and node time at 0, exactly the way
        stmcompile does
+
+   REGISTRY HANDLES
+
+   Graph handles are numeric MYFLT values because orchestra code cannot safely
+   carry raw C pointers. The registry stores graphs in reusable slots and
+   encodes both the slot index and a generation counter into the handle. This
+   lets STM reuse a freed slot without making an old handle point to the new
+   graph now living there.
+
+   The handle encoding is intentionally kept within 2^24, so all handle
+   integers are exact even in single-precision MYFLT builds. With the current
+   constants this allows 4096 live registry slots per CSOUND instance and 4096
+   generations per slot, for up to 16,777,216 graph lifetimes before every slot
+   would be exhausted.
+
+   CONCURRENCY MODEL
+
+   A graph handle may be shared across instruments, including under multicore
+   performance. STM protects the registry, graph lookup, graph mutation and
+   graph deinit with a per-CSOUND STM registry mutex. This prevents ordinary
+   data races and resolve/free races when different instruments touch the same
+   graph.
+
+   Synchronization is per opcode call, not a transaction over the whole
+   stmcurrent -> node dispatch -> stmnext -> stmadvance orchestra pattern.
+   If multiple instruments mutate one graph, the scheduler's execution order is
+   still the semantic order. A single supervisor remains the most deterministic
+   pattern, but it is not enforced.
 */
 
 
@@ -96,44 +141,166 @@
 /* graph registry (per csound instance)                               */
 /* ------------------------------------------------------------------ */
 
+/* NOTE: Ownership/lifetime notes:
+   - the STM_REGISTRY struct itself is stored as a Csound global variable, so
+     its natural owner is the CSOUND instance;
+   - each GRAPH is owned by the stmcreate opcode instance that created it, and
+     graph_create_deinit frees it, then clears the registry slot;
+   - reusing NULL registry slots keeps the table compact. Handles encode both
+     the slot index and the slot generation, so a stale numeric handle cannot
+     become valid again just because the same slot was reused. */
+
 /* Query-only: never creates the registry (safe in deinit). */
 static STM_REGISTRY *stm_registry_query(CSOUND *csound) {
     return (STM_REGISTRY *) csound->QueryGlobalVariable(csound, STM_REGISTRY_NAME);
 }
 
-/* Register a graph, returns a 1-based handle (0 on failure). */
-static uint32_t stm_register_graph(CSOUND *csound, GRAPH *g) {
+static void stm_registry_lock(CSOUND *csound, STM_REGISTRY *reg) {
+    if (reg != NULL && reg->mutex != NULL)
+        csound->LockMutex(reg->mutex);
+}
+
+static void stm_registry_unlock(CSOUND *csound, STM_REGISTRY *reg) {
+    if (reg != NULL && reg->mutex != NULL)
+        csound->UnlockMutex(reg->mutex);
+}
+
+static uint32_t stm_make_handle(uint32_t slot, uint32_t generation) {
+    if (slot >= STM_HANDLE_SLOT_BASE || generation == 0 ||
+            generation > STM_HANDLE_GENERATION_MAX) {
+        return 0;
+    }
+    return (generation - 1) * STM_HANDLE_SLOT_BASE + slot + 1;
+}
+
+static int32_t stm_decode_handle(MYFLT handle, uint32_t *slot, uint32_t *generation) {
+    if (!(handle >= FL(1.0)) || handle > (MYFLT) STM_HANDLE_MAX_EXACT) return 0;
+
+    uint32_t raw = (uint32_t) handle;
+    if ((MYFLT) raw != handle) return 0;
+
+    uint32_t value = raw - 1;
+    *slot = value % STM_HANDLE_SLOT_BASE;
+    *generation = (value / STM_HANDLE_SLOT_BASE) + 1;
+    return 1;
+}
+
+static int32_t stm_myflt_to_uint32(MYFLT value, uint32_t max_exclusive,
+        uint32_t *out) {
+    /* Check range before casting: out-of-range float-to-int conversion is
+       undefined, and the negated >= rejects NaN. */
+    if (!(value >= FL(0.0)) || value >= (MYFLT) max_exclusive) return 0;
+
+    uint32_t converted = (uint32_t) value;
+    if ((MYFLT) converted != value) return 0;
+
+    *out = converted;
+    return 1;
+}
+
+/* Register a graph, returns an encoded handle (0 on failure).
+   The first generation preserves the old handles: slot 0 -> handle 1. */
+static uint32_t stm_register_graph(CSOUND *csound, GRAPH *g, uint32_t *slot_out, uint32_t *generation_out) {
     STM_REGISTRY *reg = stm_registry_query(csound);
     if (reg == NULL) {
-        if (csound->CreateGlobalVariable(csound, STM_REGISTRY_NAME, sizeof(STM_REGISTRY)) != 0)
+        if (csound->CreateGlobalVariable(csound, STM_REGISTRY_NAME, sizeof(STM_REGISTRY)) != 0) {
             return 0;
+        }
         reg = stm_registry_query(csound);
-        if (reg == NULL) return 0;
+        if (reg == NULL) { return 0; }
         reg->capacity = INITIAL_GRAPH_CAPACITY;
         reg->count = 0;
-        reg->graphs = csound->Calloc(csound, sizeof(GRAPH *) * reg->capacity);
-        if (reg->graphs == NULL) return 0;
+        reg->slots = csound->Calloc(csound, sizeof(STM_REGISTRY_SLOT) * reg->capacity);
+        if (reg->slots == NULL) { return 0; }
+        reg->mutex = csound->Create_Mutex(0);
+        if (reg->mutex == NULL) { return 0; }
+    }
+
+    stm_registry_lock(csound, reg);
+
+    /* reuse free slot; generation 0 means the slot exhausted its handle space */
+    for (uint32_t i = 0; i < reg->count; i++) {
+        STM_REGISTRY_SLOT *slot = &reg->slots[i];
+        if (slot->graph == NULL && slot->generation > 0 && slot->generation <= STM_HANDLE_GENERATION_MAX) {
+            slot->graph = g;
+            *slot_out = i;
+            *generation_out = slot->generation;
+            uint32_t handle = stm_make_handle(i, slot->generation);
+            stm_registry_unlock(csound, reg);
+            return handle;
+        }
     }
 
     if (reg->count == reg->capacity) {
+        if (reg->capacity >= STM_HANDLE_SLOT_BASE) {
+            stm_registry_unlock(csound, reg);
+            return 0;
+        }
         uint32_t newcap = reg->capacity * 2;
-        GRAPH **grown = csound->ReAlloc(csound, reg->graphs, sizeof(GRAPH *) * newcap);
-        if (grown == NULL) return 0;
-        reg->graphs = grown;
+        if (newcap > STM_HANDLE_SLOT_BASE) newcap = STM_HANDLE_SLOT_BASE;
+        STM_REGISTRY_SLOT *grown = csound->ReAlloc(csound, reg->slots, sizeof(STM_REGISTRY_SLOT) * newcap);
+        if (grown == NULL) {
+            stm_registry_unlock(csound, reg);
+            return 0;
+        }
+        reg->slots = grown;
         reg->capacity = newcap;
     }
 
-    reg->graphs[reg->count] = g;
-    return ++reg->count; // 1-based handle
+    uint32_t slot = reg->count++;
+    reg->slots[slot].graph = g;
+    reg->slots[slot].generation = 1;
+    *slot_out = slot;
+    *generation_out = 1;
+    uint32_t handle = stm_make_handle(slot, 1);
+    stm_registry_unlock(csound, reg);
+    return handle;
 }
 
-static GRAPH *stm_handle_to_graph(CSOUND *csound, MYFLT handle) {
+static GRAPH *stm_handle_to_graph_locked(STM_REGISTRY *reg, MYFLT handle) {
+    uint32_t slot;
+    uint32_t generation;
+    if (!stm_decode_handle(handle, &slot, &generation)) return NULL;
+    if (slot >= reg->count) return NULL;
+    if (reg->slots[slot].generation != generation) return NULL;
+    return reg->slots[slot].graph;
+}
+
+static int32_t stm_get_graph_init_locked(CSOUND *csound, OPDS *opds, MYFLT handle, const char *msg, STM_REGISTRY **reg_out, GRAPH **g_out) {
     STM_REGISTRY *reg = stm_registry_query(csound);
-    if (reg == NULL) return NULL;
-    /* range-check before the cast: converting a MYFLT that falls outside the
-       target range is undefined. The negated >= also rejects NaN. */
-    if (!(handle >= FL(1.0)) || handle > (MYFLT) reg->count) return NULL;
-    return reg->graphs[(uint32_t) handle - 1];
+    if (reg == NULL) {
+        return csound->InitError(csound, "%s", msg);
+    }
+
+    stm_registry_lock(csound, reg);
+    GRAPH *g = stm_handle_to_graph_locked(reg, handle);
+    if (g == NULL) {
+        stm_registry_unlock(csound, reg);
+        return csound->InitError(csound, "%s", msg);
+    }
+
+    (void) opds;
+    *reg_out = reg;
+    *g_out = g;
+    return OK;
+}
+
+static int32_t stm_get_graph_perf_locked(CSOUND *csound, OPDS *opds, MYFLT handle, const char *msg, STM_REGISTRY **reg_out, GRAPH **g_out) {
+    STM_REGISTRY *reg = stm_registry_query(csound);
+    if (reg == NULL) {
+        return csound->PerfError(csound, opds, "%s", msg);
+    }
+
+    stm_registry_lock(csound, reg);
+    GRAPH *g = stm_handle_to_graph_locked(reg, handle);
+    if (g == NULL) {
+        stm_registry_unlock(csound, reg);
+        return csound->PerfError(csound, opds, "%s", msg);
+    }
+
+    *reg_out = reg;
+    *g_out = g;
+    return OK;
 }
 
 /* ------------------------------------------------------------------ */
@@ -187,8 +354,11 @@ static int32_t add_edge_helper(CSOUND *csound, GRAPH *g, const char *from_node_n
 /* ------------------------------------------------------------------ */
 
 int32_t graph_create_deinit(CSOUND *csound, GRAPH_CREATE *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    GRAPH *g = p->graph;
     if (g != NULL) {
+        STM_REGISTRY *reg = stm_registry_query(csound);
+        stm_registry_lock(csound, reg);
+
         if (g->nodes != NULL) {
             for (uint32_t i = 0; i < g->node_count; i++) {
                 csound->Free(csound, g->nodes[i].edges);
@@ -197,11 +367,22 @@ int32_t graph_create_deinit(CSOUND *csound, GRAPH_CREATE *p) {
             csound->Free(csound, g->nodes);
         }
         // null the registry slot so the handle can no longer resolve
-        STM_REGISTRY *reg = stm_registry_query(csound);
-        uint32_t idx = (uint32_t) *p->handle;
-        if (reg != NULL && idx > 0 && idx <= reg->count)
-            reg->graphs[idx - 1] = NULL;
+        if (reg != NULL && p->slot < reg->count) {
+            STM_REGISTRY_SLOT *slot = &reg->slots[p->slot];
+            if (slot->graph == g && slot->generation == p->generation) {
+                slot->graph = NULL;
+                if (slot->generation < STM_HANDLE_GENERATION_MAX) {
+                    slot->generation++;
+                } else {
+                    slot->generation = 0;
+                }
+            }
+        }
         csound->Free(csound, g);
+        stm_registry_unlock(csound, reg);
+        p->graph = NULL;
+        p->slot = 0;
+        p->generation = 0;
         *p->handle = 0;
     }
     return OK;
@@ -222,7 +403,9 @@ int32_t graph_create(CSOUND *csound, GRAPH_CREATE *p) {
 
     g->compiled = 0;
 
-    uint32_t handle = stm_register_graph(csound, g);
+    uint32_t slot;
+    uint32_t generation;
+    uint32_t handle = stm_register_graph(csound, g, &slot, &generation);
     if (handle == 0) {
         csound->Free(csound, g->nodes);
         csound->Free(csound, g);
@@ -230,19 +413,24 @@ int32_t graph_create(CSOUND *csound, GRAPH_CREATE *p) {
     }
 
     g->start_node = NO_NODE;
+    p->graph = g;
+    p->slot = slot;
+    p->generation = generation;
     *p->handle = (MYFLT) handle;
     return OK;
 }
 
 int32_t graph_add_node(CSOUND *csound, GRAPH_ADD_NODE *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL) {
-        return csound->InitError(csound, "[stm] stmaddnode: invalid graph");
-    }
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_init_locked(csound, &(p->h), *p->handle,
+            "[stm] stmaddnode: invalid graph", &reg, &g) != OK) return NOTOK;
     if (g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->InitError(csound, "[stm] stmaddnode: graph already compiled (immutable)");
     }
     if (graph_find_node(g, p->node_name->data) >= 0) {
+        stm_registry_unlock(csound, reg);
         return csound->InitError(csound, "[stm] stmaddnode: duplicate node name '%s'", p->node_name->data);
     }
 
@@ -250,6 +438,7 @@ int32_t graph_add_node(CSOUND *csound, GRAPH_ADD_NODE *p) {
         uint32_t newcap = g->node_capacity * 2;
         GRAPH_NODE *grown = csound->ReAlloc(csound, g->nodes, sizeof(GRAPH_NODE) * newcap);
         if (grown == NULL) {
+            stm_registry_unlock(csound, reg);
             return csound->InitError(csound, "[stm] stmaddnode: memory error");
         }
         g->nodes = grown;
@@ -263,8 +452,10 @@ int32_t graph_add_node(CSOUND *csound, GRAPH_ADD_NODE *p) {
     node->id = id;
     size_t namelen = strlen(p->node_name->data);
     node->name = csound->Calloc(csound, namelen + 1);
-    if (node->name == NULL)
+    if (node->name == NULL) {
+        stm_registry_unlock(csound, reg);
         return csound->InitError(csound, "[stm] stmaddnode: memory error");
+    }
     memcpy(node->name, p->node_name->data, namelen);
 
     node->edge_count = 0;
@@ -272,43 +463,56 @@ int32_t graph_add_node(CSOUND *csound, GRAPH_ADD_NODE *p) {
     node->edges = csound->Calloc(csound, sizeof(uint32_t) * node->edge_capacity);
     if (node->edges == NULL) {
         csound->Free(csound, node->name);
+        stm_registry_unlock(csound, reg);
         return csound->InitError(csound, "[stm] stmaddnode: memory error");
     }
 
     g->node_count++;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 int32_t graph_add_edge(CSOUND *csound, GRAPH_ADD_EDGE *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL) {
-        return csound->InitError(csound, "[stm] stmaddedge: invalid graph");
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_init_locked(csound, &(p->h), *p->handle, "[stm] stmaddedge: invalid graph", &reg, &g) != OK) {
+        return NOTOK;
     }
 
     if (g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->InitError(csound, "[stm] stmaddedge: graph already compiled (immutable)");
     }
 
     if (add_edge_helper(csound, g, p->from->data, p->to->data) == NOTOK) {
+        stm_registry_unlock(csound, reg);
         return csound->InitError(csound, "[stm] stmaddedge, something went wrong");
     }
 
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    STM_REGISTRY *reg;
+    GRAPH *g;
 
-    if (g == NULL)
-        return csound->InitError(csound, "[stm] stmcompile: invalid graph");
-    if (g->node_count == 0)
+    if (stm_get_graph_init_locked(csound, &(p->h), *p->handle, "[stm] stmcompile: invalid graph", &reg, &g) != OK) {
+        return NOTOK;
+    }
+
+    if (g->node_count == 0) {
+        stm_registry_unlock(csound, reg);
         return csound->InitError(csound, "[stm] stmcompile: graph has no nodes");
+    }
 
     for (uint32_t i = 0; i < g->node_count; i++) {
         GRAPH_NODE *n = &g->nodes[i];
         for (uint32_t e = 0; e < n->edge_count; e++) {
-            if (n->edges[e] >= g->node_count)
+            if (n->edges[e] >= g->node_count) {
+                stm_registry_unlock(csound, reg);
                 return csound->InitError(csound, "[stm] stmcompile: invalid edge");
+            }
         }
     }
 
@@ -318,21 +522,32 @@ int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
     g->previous_node = NO_NODE;
     g->requested_node = NO_NODE;
     g->graph_tick = 0;
-    g->node_tick_on_enter = 0;
-    g->kperiod = FL(0.0);
+    g->total_sample_frames = 0;
+    g->node_sample_on_enter = 0;
     g->reset_pending = 0;
+    g->event_seq = 1;
+    g->event_entered_node = g->current_node;
+    g->event_exited_node = NO_NODE;
 
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 /* return the current node name (for orchestra-side dispatch) */
 int32_t graph_current(CSOUND *csound, GRAPH_CURRENT *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    STM_REGISTRY *reg;
+    GRAPH *g;
 
-    if (g == NULL || !g->compiled) {
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmcurrent: graph not compiled", &reg, &g) != OK) {
+        return NOTOK;
+    }
+
+    if (!g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmcurrent: graph not compiled");
     }
     if (g->current_node >= g->node_count) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmcurrent: invalid current node");
     }
 
@@ -340,40 +555,58 @@ int32_t graph_current(CSOUND *csound, GRAPH_CURRENT *p) {
     size_t len = strlen(name);
     if (len >= p->cur->size) {
         void *newp = csound->ReAlloc(csound, p->cur->data, len + 1);
-        if (newp == NULL)
+        if (newp == NULL) {
+            stm_registry_unlock(csound, reg);
             return csound->PerfError(csound, &(p->h), "[stm] stmcurrent: memory error");
+        }
         p->cur->data = newp;
         p->cur->size = len + 1;
     }
     memcpy(p->cur->data, name, len + 1);
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 /* return the current node id (for orchestra-side dispatch) */
 int32_t graph_current_id(CSOUND *csound, GRAPH_CURRENT_ID *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    STM_REGISTRY *reg;
+    GRAPH *g;
 
-    if (g == NULL || !g->compiled) {
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmcurrentid: graph not compiled", &reg, &g) != OK) {
+        return NOTOK;
+    }
+
+    if (!g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmcurrentid: graph not compiled");
     }
     if (g->current_node >= g->node_count) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmcurrentid: invalid current node");
     }
 
     *p->cur = g->current_node;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 /* apply the transition requested by the node (if it is a valid edge),
    return 1 if the current node changed, 0 otherwise */
 int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
+    STM_REGISTRY *reg;
+    GRAPH *g;
 
-    if (g == NULL || !g->compiled) {
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmadvance: graph not compiled", &reg, &g) != OK) {
+        return NOTOK;
+    }
+
+    if (!g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmadvance: graph not compiled");
     }
 
     if (g->current_node >= g->node_count) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmadvance: invalid current node");
     }
 
@@ -387,57 +620,73 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
         if (target < g->node_count && graph_has_edge(node, target)) {
             g->previous_node = g->current_node;
             g->current_node = target;
+            g->event_seq++;
+            g->event_exited_node = g->previous_node;
+            g->event_entered_node = target;
             changed = 1;
         }
     }
 
-    g->kperiod = (MYFLT) CS_KSMPS / CS_ESR;
     if (g->reset_pending) {
         // graph restarted during this cycle: its clock starts on the next one
         g->reset_pending = 0;
     } else {
         g->graph_tick++;
-        // node time is measured relative to the tick the node became current
-        if (changed) g->node_tick_on_enter = g->graph_tick;
+        g->total_sample_frames += (uint64_t) CS_KSMPS;
+        if (changed) {
+            g->node_sample_on_enter = g->total_sample_frames;
+        }
     }
 
     *p->changed = (MYFLT) changed;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 int32_t graph_next(CSOUND *csound, GRAPH_NEXT *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL)
-        return csound->PerfError(csound, &(p->h), "[stm] stmnext: invalid graph");
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle,
+            "[stm] stmnext: invalid graph", &reg, &g) != OK) return NOTOK;
 
     int32_t requested_node = graph_find_node(g, p->next_node->data);
-    if (requested_node < 0)
+    if (requested_node < 0) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmnext: node '%s' not found", p->next_node->data);
+    }
 
     g->requested_node = (uint32_t) requested_node;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 int32_t graph_next_id(CSOUND *csound, GRAPH_NEXT_ID *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL)
-        return csound->PerfError(csound, &(p->h), "[stm] stmnextid: invalid graph");
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmnextid: invalid graph", &reg, &g) != OK) {
+        return NOTOK;
+    }
 
-    int32_t requested_node = (int32_t) *p->next_node;
-    if (requested_node < 0 || (uint32_t) requested_node >= g->node_count)
-        return csound->PerfError(csound, &(p->h), "[stm] stmnextid: node '%d' not found", requested_node);
+    uint32_t requested_node;
+    if (!stm_myflt_to_uint32(*p->next_node, g->node_count, &requested_node)) {
+        stm_registry_unlock(csound, reg);
+        return csound->PerfError(csound, &(p->h), "[stm] stmnextid: invalid node id");
+    }
 
-    g->requested_node = (uint32_t) requested_node;
+    g->requested_node = requested_node;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 int32_t graph_add_cond_edge(CSOUND *csound, GRAPH_ADD_COND_EDGE *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL) {
-        return csound->InitError(csound, "[stm] stmaddcondedge: invalid graph");
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_init_locked(csound, &(p->h), *p->handle, "[stm] stmaddcondedge: invalid graph", &reg, &g) != OK) {
+        return NOTOK;
     }
 
     if (g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->InitError(csound, "[stm] stmaddcondedge: graph already compiled (immutable)");
     }
 
@@ -445,120 +694,142 @@ int32_t graph_add_cond_edge(CSOUND *csound, GRAPH_ADD_COND_EDGE *p) {
     int32_t ntargets = p->targets->sizes[0];
     for (int32_t i = 0; i < ntargets; i++) {
         if (add_edge_helper(csound, g, p->from->data, items[i].data) == NOTOK) {
+            stm_registry_unlock(csound, reg);
             return csound->InitError(csound, "[stm] stmaddcondedge, something went wrong");
         }
     }
 
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 int32_t graph_on_ee_init(CSOUND *csound, GRAPH_ON_EE *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL) {
-        return csound->InitError(csound, "[stm] on enter/exit: invalid graph");
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_init_locked(csound, &(p->h), *p->handle, "[stm] on enter/exit: invalid graph", &reg, &g) != OK) {
+        return NOTOK;
     }
 
     int32_t n = graph_find_node(g, p->node->data);
     if (n < 0) {
+        stm_registry_unlock(csound, reg);
         return csound->InitError(csound, "[stm] on enter/exit : node '%s' not found", p->node->data);
     }
 
     p->node_id = n;
     *p->trig = FL(0.0);
-    p->was_current = 0;
+    p->last_seen_event_seq = g->event_seq;
 
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 /* rising-edge trigger: 1 only on the cycle this node becomes current */
 int32_t graph_on_enter(CSOUND *csound, GRAPH_ON_EE *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmonenter: invalid graph (freed?)");
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmonenter: invalid graph (freed?)", &reg, &g) != OK) {
+        return NOTOK;
     }
+
     if (!g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmonenter: graph not compiled");
     }
 
-    int32_t is_curr = g->current_node == (uint32_t) p->node_id;
-    *p->trig = is_curr && !p->was_current ? FL(1.0) : FL(0.0);
-    p->was_current = is_curr;
+    int32_t entered = g->event_seq > p->last_seen_event_seq && g->event_entered_node == (uint32_t) p->node_id;
+    *p->trig = entered ? FL(1.0) : FL(0.0);
+    p->last_seen_event_seq = g->event_seq;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 /* rising-edge trigger: 1 only on the cycle this node becomes not current */
 int32_t graph_on_exit(CSOUND *csound, GRAPH_ON_EE *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmonexit: invalid graph (freed?)");
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmonexit: invalid graph (freed?)", &reg, &g) != OK) {
+        return NOTOK;
     }
+
     if (!g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmonexit: graph not compiled");
     }
 
-    int32_t is_curr = g->current_node == (uint32_t) p->node_id;
-    *p->trig = !is_curr && p->was_current ? FL(1.0) : FL(0.0);
-    p->was_current = is_curr;
+    int32_t exited = g->event_seq > p->last_seen_event_seq && g->event_exited_node == (uint32_t) p->node_id;
+    *p->trig = exited ? FL(1.0) : FL(0.0);
+    p->last_seen_event_seq = g->event_seq;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 
 int32_t graph_node_id(CSOUND *csound, GRAPH_NODE_ID *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmnodeid: not valid graph");
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmnodeid: not valid graph", &reg, &g) != OK) {
+        return NOTOK;
     }
 
     int32_t n = graph_find_node(g, p->node_name->data);
     if (n < 0) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmnodeid: node not found");
     }
 
     *p->node_id = (MYFLT) n;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 int32_t graph_node_name(CSOUND *csound, GRAPH_NODE_NAME *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmnodename: not valid graph");
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmnodename: not valid graph", &reg, &g) != OK) {
+        return NOTOK;
     }
 
-    /* range-check before the cast, see stm_handle_to_graph */
-    MYFLT id = *p->node_id;
-    if (!(id >= FL(0.0)) || id >= (MYFLT) g->node_count) {
+    uint32_t node_id;
+    if (!stm_myflt_to_uint32(*p->node_id, g->node_count, &node_id)) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmnodename: invalid node id");
     }
-    uint32_t node_id = (uint32_t) id;
 
     const char *name = g->nodes[node_id].name;
     size_t len = strlen(name);
     if (len >= p->node_name->size) {
         void *newp = csound->ReAlloc(csound, p->node_name->data, len + 1);
-        if (newp == NULL)
+        if (newp == NULL) {
+            stm_registry_unlock(csound, reg);
             return csound->PerfError(csound, &(p->h), "[stm] stmnodename: memory error");
+        }
         p->node_name->data = newp;
         p->node_name->size = len + 1;
     }
 
     memcpy(p->node_name->data, name, len + 1);
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 int32_t graph_node_count(CSOUND *csound, GRAPH_NODE_COUNT *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmnodecount: not valid graph");
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmnodecount: not valid graph", &reg, &g) != OK) {
+        return NOTOK;
     }
 
     *p->node_count = g->node_count;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 int32_t graph_edge_count(CSOUND *csound, GRAPH_EDGE_COUNT *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmedgecount: not valid graph");
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmedgecount: not valid graph", &reg, &g) != OK) {
+        return NOTOK;
     }
 
     uint32_t edge_count = 0;
@@ -567,78 +838,115 @@ int32_t graph_edge_count(CSOUND *csound, GRAPH_EDGE_COUNT *p) {
     }
 
     *p->edge_count = edge_count;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 int32_t graph_reset(CSOUND *csound, GRAPH_RESET *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL || !g->compiled) {
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmreset: graph not compiled", &reg, &g) != OK) {
+        return NOTOK;
+    }
+
+    if (!g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmreset: graph not compiled");
     }
 
+    uint32_t old_node = g->current_node;
     g->current_node = g->start_node;
     g->previous_node = NO_NODE;
     g->requested_node = NO_NODE;
     g->graph_tick = 0;
-    g->node_tick_on_enter = 0;
-    g->kperiod = FL(0.0);
+    g->total_sample_frames = 0;
+    g->node_sample_on_enter = 0;
     g->reset_pending = 1;
+    g->event_seq++;
+    g->event_exited_node = old_node != g->start_node ? old_node : NO_NODE;
+    g->event_entered_node = g->start_node;
 
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 int32_t graph_entry(CSOUND *csound, GRAPH_ENTRY *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL) {
-        return csound->InitError(csound, "[stm] stmentry: not valid graph");
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_init_locked(csound, &(p->h), *p->handle, "[stm] stmentry: not valid graph", &reg, &g) != OK) {
+        return NOTOK;
     }
 
     if (g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->InitError(csound, "[stm] stmentry: graph already compiled. Move entry before stmcompile");
     }
 
     int32_t n = graph_find_node(g, p->entry_node->data);
     if (n < 0) {
+        stm_registry_unlock(csound, reg);
         return csound->InitError(csound, "[stm] stmentry: node not found");
     }
 
     g->start_node = (uint32_t) n;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 /* k-cycles since compile/reset: one tick per stmadvance call, so the graph
    clock stops whenever the machine is not being stepped */
 int32_t graph_time_tick(CSOUND *csound, GRAPH_TIME *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL || !g->compiled) {
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmtick: graph not compiled", &reg, &g) != OK) {
+        return NOTOK;
+    }
+
+    if (!g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmtick: graph not compiled");
     }
 
     *p->t = (MYFLT) g->graph_tick;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
-/* graph time in seconds: derived from the tick count, never accumulated, so it
-   cannot drift. This is graph time, not performance time: use times() for that */
+/* graph time in seconds: derived from the integer count of sample frames
+   advanced by stmadvance, never accumulated as floating-point seconds */
 int32_t graph_time_global(CSOUND *csound, GRAPH_TIME *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL || !g->compiled) {
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmtime: graph not compiled", &reg, &g) != OK) {
+        return NOTOK;
+    }
+
+    if (!g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmtime: graph not compiled");
     }
 
-    *p->t = (MYFLT) g->graph_tick * g->kperiod;
+    *p->t = (MYFLT) g->total_sample_frames / CS_ESR;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 
 /* seconds since the current node became current: 0 on the node's own first
    cycle, and unaffected by a stmnext that stmadvance rejected */
 int32_t graph_time_node(CSOUND *csound, GRAPH_TIME *p) {
-    GRAPH *g = stm_handle_to_graph(csound, *p->handle);
-    if (g == NULL || !g->compiled) {
+    STM_REGISTRY *reg;
+    GRAPH *g;
+    if (stm_get_graph_perf_locked(csound, &(p->h), *p->handle, "[stm] stmnodetime: graph not compiled", &reg, &g) != OK) {
+        return NOTOK;
+    }
+
+    if (!g->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->PerfError(csound, &(p->h), "[stm] stmnodetime: graph not compiled");
     }
 
-    *p->t = (MYFLT) (g->graph_tick - g->node_tick_on_enter) * g->kperiod;
+    *p->t = (MYFLT) (g->total_sample_frames - g->node_sample_on_enter) / CS_ESR;
+    stm_registry_unlock(csound, reg);
     return OK;
 }
 

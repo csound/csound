@@ -42,12 +42,28 @@
    This keeps the state-machine control flow explicit and deterministic while
    leaving DSP, analysis, and musical behavior in the orchestra.
 
+   ENTER/EXIT EVENTS
+
+   stmonenter and stmonexit report graph-level transition events, not an
+   observer-local rising/falling edge. Each opcode instance records the graph
+   event sequence that was current when it was initialized; it only triggers
+   for a later event where the named node was entered or exited. Therefore an
+   observer scheduled after node B is already current does not receive a fake
+   stmonenter(B) on its first pass.
+
+   These opcodes observe the latest graph event seen by that opcode call. If a
+   graph is advanced through multiple transitions between two passes of a slow
+   observer, intermediate events may be missed. For process lifecycle binding,
+   the deterministic pattern is to run the enter/exit checks in the same
+   supervisor loop that advances the graph, and bind the initial state
+   explicitly if it needs an initial process.
+
    GRAPH CLOCK
 
    Every graph carries its own clock, read with three k-rate opcodes:
 
      stmtick     - k-cycles elapsed since stmcompile or stmreset
-     stmtime     - graph time in seconds, that is tick * kperiod
+     stmtime     - graph time in seconds, advanced sample frames / sr
      stmnodetime - seconds elapsed since the current node became current
 
    The clock is driven by stmadvance, not by the global k-counter: one tick is
@@ -65,12 +81,13 @@
      2. read the time opcodes BEFORE stmadvance. After it they already report
         the values of the next cycle.
 
-   Both times are derived from the tick count rather than accumulated, so they
-   cannot drift over long runs, single precision builds included. kperiod is
-   captured from the instrument that calls stmadvance, so a driver with a local
-   setksmps is measured on its own control rate. stmtick is counted internally
-   in a uint64 and returned as MYFLT, hence exact up to 2^53 in a double build
-   and 2^24 in a float one.
+   Times are derived from integer sample-frame counters rather than accumulated
+   floating-point seconds, so they cannot drift over long runs. Each stmadvance
+   adds the advancing instrument's current CS_KSMPS to the graph's total sample
+   count, which means successive drivers with different local setksmps values
+   contribute their real control-period lengths without retroactively rescaling
+   earlier steps. stmtick is counted internally in a uint64 and returned as
+   MYFLT, hence exact up to 2^53 in a double build and 2^24 in a float one.
 
    Node time is measured from the tick at which the current node was entered:
 
@@ -79,6 +96,34 @@
        since the current node never changed
      - stmreset restarts tick, graph time and node time at 0, exactly the way
        stmcompile does
+
+   REGISTRY HANDLES
+
+   Graph handles are numeric MYFLT values because orchestra code cannot safely
+   carry raw C pointers. The registry stores graphs in reusable slots and
+   encodes both the slot index and a generation counter into the handle. This
+   lets STM reuse a freed slot without making an old handle point to the new
+   graph now living there.
+
+   The handle encoding is intentionally kept within 2^24, so all handle
+   integers are exact even in single-precision MYFLT builds. With the current
+   constants this allows 4096 live registry slots per CSOUND instance and 4096
+   generations per slot, for up to 16,777,216 graph lifetimes before every slot
+   would be exhausted.
+
+   CONCURRENCY MODEL
+
+   A graph handle may be shared across instruments, including under multicore
+   performance. STM protects the registry, graph lookup, graph mutation and
+   graph deinit with a per-CSOUND STM registry mutex. This prevents ordinary
+   data races and resolve/free races when different instruments touch the same
+   graph.
+
+   Synchronization is per opcode call, not a transaction over the whole
+   stmcurrent -> node dispatch -> stmnext -> stmadvance orchestra pattern.
+   If multiple instruments mutate one graph, the scheduler's execution order is
+   still the semantic order. A single supervisor remains the most deterministic
+   pattern, but it is not enforced.
 */
 
 #ifndef STM_H
@@ -93,6 +138,9 @@
 #define INITIAL_NODE_CAPACITY 10
 #define INITIAL_EDGE_CAPACITY 10
 #define INITIAL_GRAPH_CAPACITY 8
+#define STM_HANDLE_SLOT_BASE 4096U
+#define STM_HANDLE_MAX_EXACT 16777216U
+#define STM_HANDLE_GENERATION_MAX (STM_HANDLE_MAX_EXACT / STM_HANDLE_SLOT_BASE)
 #define NO_NODE UINT32_MAX
 #define STM_REGISTRY_NAME "::stm_registry::"
 
@@ -115,25 +163,39 @@ typedef struct {
     uint32_t start_node;
     // time section: the clock is driven by stmadvance, see the note above
     uint64_t graph_tick; // stmadvance calls since compile/reset
-    uint64_t node_tick_on_enter; // graph_tick at which current_node was entered
-    MYFLT kperiod; // seconds per k-cycle of the advancing instrument
+    uint64_t total_sample_frames; // samples advanced since compile/reset
+    uint64_t node_sample_on_enter; // total_sample_frames at node entry
     int32_t reset_pending; // stmreset ran this cycle: next stmadvance does not tick
+    // transition event section: graph-level enter/exit events
+    uint64_t event_seq;
+    uint32_t event_entered_node;
+    uint32_t event_exited_node;
     // compile and freeze
     int32_t compiled;
 } GRAPH;
 
-/* Per-csound registry: handles are 1-based indices into this table,
-   stored as MYFLT (exact for small ints, no pointer truncation). */
 typedef struct {
-    GRAPH **graphs;
+    GRAPH *graph;
+    uint32_t generation;
+} STM_REGISTRY_SLOT;
+
+/* Per-csound registry: handles encode a slot and generation into an integer
+   stored as MYFLT (kept within the exact integer range of float builds). */
+typedef struct {
+    STM_REGISTRY_SLOT *slots;
     uint32_t count;
     uint32_t capacity;
+    void *mutex;
 } STM_REGISTRY;
 
 typedef struct {
     OPDS h;
     // outputs
     MYFLT *handle;
+    // private: owner state used by deinit, independent from the exposed handle
+    GRAPH *graph;
+    uint32_t slot;
+    uint32_t generation;
 } GRAPH_CREATE;
 
 typedef struct {
@@ -214,7 +276,7 @@ typedef struct {
     // the GRAPH itself must never be cached, it dies with the instrument that
     // created it. Resolve the handle on every perf pass instead.
     int32_t node_id;
-    int32_t was_current;
+    uint64_t last_seen_event_seq;
 } GRAPH_ON_EE;
 
 // INTROSPECTION
