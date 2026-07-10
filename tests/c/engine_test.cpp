@@ -195,7 +195,11 @@ TEST_F (EngineTests, testRealtimeAsyncCompileMergesOnEventThread)
       endin
     )", 1), CSOUND_SUCCESS);
 
-    csoundSleep(100);
+    int32_t insno = 0;
+    for (int32_t i = 0; i < 200 && insno <= 0; ++i) {
+      csoundSleep(10);
+      insno = csoundGetInstrNumber(csound, "AsyncMerged");
+    }
 
-    ASSERT_GT(csoundGetInstrNumber(csound, "AsyncMerged"), 0);
+    ASSERT_GT(insno, 0);
 }

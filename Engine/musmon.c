@@ -36,7 +36,8 @@
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
 
-#ifdef HAVE_PTHREAD_SPIN_LOCK
+#if defined(HAVE_PTHREAD_SPIN_LOCK) || defined(MSVC) || defined(MACOSX) || \
+    (defined(__GNUC__) && defined(HAVE_ATOMIC_BUILTIN))
 #define RT_SPIN_TRYLOCK { int32_t trylock = CSOUND_SUCCESS; \
   if(csound->oparms->realtime)             \
     trylock = csoundSpinTryLock(&csound->alloc_spinlock);      \
@@ -45,7 +46,8 @@
 #define RT_SPIN_TRYLOCK csoundSpinLock(&csound->alloc_spinlock);
 #endif
 
-#ifdef HAVE_PTHREAD_SPIN_LOCK
+#if defined(HAVE_PTHREAD_SPIN_LOCK) || defined(MSVC) || defined(MACOSX) || \
+    (defined(__GNUC__) && defined(HAVE_ATOMIC_BUILTIN))
 #define RT_SPIN_UNLOCK \
   if(csound->oparms->realtime) \
     csoundSpinUnLock(&csound->alloc_spinlock); \
