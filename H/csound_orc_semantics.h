@@ -36,6 +36,7 @@
 
 char *strip_extension(CSOUND *csound, const char *s);
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
+char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar);
 
 void print_tree(CSOUND *, char *, TREE *);
 OENTRIES* find_opcode2(CSOUND*, char*);

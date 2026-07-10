@@ -784,6 +784,10 @@ def runTest():
             "direct indexing of recursive struct-array members",
         ],
         [
+            "structs/test_struct_array_nested_condition_arg.csd",
+            "nested struct-array member reads inside boolean expression args",
+        ],
+        [
             "structs/test_string_array_direct_member_index.csd",
             "direct indexing of a string-array struct member",
         ],
