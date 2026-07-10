@@ -13,6 +13,14 @@ nchnls	= 2
 
 struct TestStruct member1:i
 struct TestStruct2515 var1:i, var2:i
+struct AccumulatorNode value:i, previous:AccumulatorNode[], length:i
+
+opcode prependNode(value:i, previous:AccumulatorNode):AccumulatorNode
+    previousItems:AccumulatorNode[] init 1
+    node:AccumulatorNode init value, previousItems, 1
+    node.previous[0] = previous
+    xout node
+endop
 
 // increments the value in the passed-in pointer
 opcode incr(ival):void
@@ -497,6 +505,18 @@ instr 34
 endin
 
 
+// The output and final input share caller storage. Constructing the output
+// must not overwrite the input before the UDO embeds its previous value.
+instr 35
+    noPrevious:AccumulatorNode[] init 0
+    accumulator:AccumulatorNode init 1, noPrevious, 0
+    accumulator = prependNode(2, accumulator)
+
+    assertEquals(accumulator.value, 2)
+    assertEquals(accumulator.previous[0].value, 1)
+endin
+
+
 </CsInstruments>
 <CsScore>
 i1 0 1
@@ -519,6 +539,7 @@ i31 0 0.01
 i32 0 0.01
 i33 0 1
 i34 0 1
+i35 0 1
 ; i"SoundTest" 0 4 220 0.25
 ; i"SoundTest" 1 3 330 0.25
 ; i"SoundTest" 2 3 440 0.25
