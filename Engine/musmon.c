@@ -403,6 +403,18 @@ void delete_selected_rt_events(CSOUND *csound, MYFLT instr)
   //csound->OrcTrigEvts = NULL;
 }
 
+#ifndef __EMSCRIPTEN__
+static void stop_event_insert_thread(CSOUND *csound)
+{
+    if (csound->event_insert_thread != NULL) {
+      csound->event_insert_loop = 0;
+      csound->JoinThread(csound->event_insert_thread);
+      csoundDestroyMutex(csound->init_pass_threadlock);
+      csound->event_insert_thread = 0;
+    }
+}
+#endif
+
 static inline void cs_beep(CSOUND *csound)
 {
     csound->ErrorMsg(csound, Str("%c\tbeep!\n"), '\a');
@@ -435,6 +447,10 @@ int32_t csound_cleanup(CSOUND *csound)
     /* will not clean up more than once */
     csound->engineStatus &= ~(CS_STATE_CLN);
 
+#ifndef __EMSCRIPTEN__
+    stop_event_insert_thread(csound);
+#endif
+
     deactivate_all_notes(csound);
 
     if (csound->engineState.instrtxtp &&
@@ -443,15 +459,6 @@ int32_t csound_cleanup(CSOUND *csound)
         csound->engineState.instrtxtp[0]->instance->actflg)
       xturnoff_now(csound, csound->engineState.instrtxtp[0]->instance);
     delete_pending_rt_events(csound);
-
-#ifndef __EMSCRIPTEN__
-    if (csound->event_insert_loop == 1) {
-      csound->event_insert_loop = 0;
-      csound->JoinThread(csound->event_insert_thread);
-      csoundDestroyMutex(csound->init_pass_threadlock);
-      csound->event_insert_thread = 0;
-    }
-#endif
 
     while (csound->freeEvtNodes != NULL) {
       p = (void*) csound->freeEvtNodes;
