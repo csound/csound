@@ -72,6 +72,14 @@ opcode incrAndReturnK(kval):k
 endop
 
 
+// Writes the output before reading the input, exposing caller-side aliasing.
+opcode incrementAliasedK(source:k):k
+    result:k = 0
+    result = source + 1
+    xout result
+endop
+
+
 opcode incrExpr(ival):(i,i)
     xout ival + 1, ival + 2
 endop
@@ -517,6 +525,20 @@ instr 35
 endin
 
 
+// The output and input share caller storage at performance time. The input
+// must retain its value until incrementAliasedK reads it.
+instr 36
+    value:k init 5
+    value = incrementAliasedK(value)
+
+    if (timeinstk() == 1 && value != 6) then
+        printks "ERROR: aliased k input was overwritten: expected 6, got %g\n", \
+            0, value
+        exitnowk(-1)
+    endif
+endin
+
+
 </CsInstruments>
 <CsScore>
 i1 0 1
@@ -540,6 +562,7 @@ i32 0 0.01
 i33 0 1
 i34 0 1
 i35 0 1
+i36 0 0.01
 ; i"SoundTest" 0 4 220 0.25
 ; i"SoundTest" 1 3 330 0.25
 ; i"SoundTest" 2 3 440 0.25
