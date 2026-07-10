@@ -472,6 +472,10 @@ def runTest():
         ["test_instr_redefinition.csd", "allow instr redefinition"],
         ["test_instr0_labels.csd", "test labels in instr0 space"],
         ["test_string.csd", "test string assignment and printing"],
+        [
+            "test_string_preprocessor_whitespace.csd",
+            "preserve function-like whitespace inside strings",
+        ],
         ["test_sprintf.csd", "test string assignment and printing"],
         [
             "test_sprintf2.csd",
