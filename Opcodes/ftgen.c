@@ -245,6 +245,17 @@ static int32_t myInitError(CSOUND *csound, OPDS *p, const char *str, ...)
   return csound->InitError(csound, "%s",str);
 }
 
+static void ftload_copy_header(CSOUND *csound, FUNC *ftp,
+                               const FUNC *header, size_t size)
+{
+  MYFLT *ftable = ftp->ftable;
+  csound->Free(csound, ftp->args);
+  memcpy(ftp, header, size);
+  ftp->ftable = ftable;
+  ftp->args = NULL;
+  ftp->argcnt = 0;
+}
+
 static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
 {
   MYFLT **argp = p->argums;
@@ -298,7 +309,8 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       // Do we need to check value of ftp->fflen? #27323
       if (ftp->flen > 0x40000000)
         return csound->InitError(csound,"%s", Str("table length too long"));
-      memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT*) - SSTRSIZ);
+      ftload_copy_header(csound, ftp, &header,
+                         sizeof(FUNC) - sizeof(MYFLT*) - SSTRSIZ);
       memset(ftp->ftable, 0, sizeof(MYFLT) * ((uint64_t) ftp->flen + 1));
       n = fread(ftp->ftable, sizeof(MYFLT), ftp->flen + 1l, file);
       if (UNLIKELY(n!=ftp->flen + 1)) goto err4;
@@ -434,7 +446,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       }
       ftp = ft_func(csound, &fno_f);
       if(ftp->ftable) {
-        memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT));
+        ftload_copy_header(csound, ftp, &header, sizeof(FUNC) - sizeof(MYFLT));
         memset(ftp->ftable, 0, sizeof(MYFLT) * (ftp->flen + 1));
       } else goto err;
         
@@ -523,10 +535,14 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
       FUNC *ftp;
       //csound->Message(csound, "saving table %f \n", **argp);
       if ( *argp && (ftp = csound->FTFind(csound, *argp)) != NULL) {
+        FUNC header = *ftp;
         MYFLT *table = ftp->ftable;
         int32 flen = ftp->flen;
         int32_t n;
-        n =  (int32_t) fwrite(ftp, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ, 1, file);
+        header.args = NULL;
+        header.argcnt = 0;
+        header.ftable = NULL;
+        n =  (int32_t) fwrite(&header, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ, 1, file);
         if (UNLIKELY(n!=1)) goto err4;
         n =  (int32_t) fwrite(table, sizeof(MYFLT), flen + 1, file);
         if (UNLIKELY(n!=flen + 1)) goto err4;
