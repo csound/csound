@@ -50,7 +50,7 @@ static void do_umacro(CSOUND *, char *, yyscan_t);
 static void do_umacroq(CSOUND *, char *, yyscan_t);
 static void do_ifdef(CSOUND *, char *, yyscan_t);
 static void do_ifdef_skip_code(CSOUND *, yyscan_t);
-static void do_function(CSOUND*, char *, CORFIL*);
+static void do_function(CSOUND*, char *, CORFIL*, int32_t);
 //static void print_csound_predata(CSOUND *,char *,yyscan_t);
 static void csound_pre_line(CSOUND *, CORFIL*, yyscan_t);
 //static void delete_macros(CSOUND*, yyscan_t);
@@ -619,76 +619,76 @@ QNAN            "qnan"[ \t]*\(
                   }
 }
 {IDENT}         { corfile_puts(csound, yytext,csound->expanded_orc); }
-{INT}           { do_function(csound, yytext,csound->expanded_orc); }
-{FRAC}          { do_function(csound, yytext,csound->expanded_orc); }
-{ROUND}         { do_function(csound, yytext,csound->expanded_orc); }
-{FLOOR}         { do_function(csound, yytext,csound->expanded_orc); }
-{CEIL}          { do_function(csound, yytext,csound->expanded_orc); }
-{RND}           { do_function(csound, yytext,csound->expanded_orc); }
-{BIRND}         { do_function(csound, yytext,csound->expanded_orc); }
-{ABS}           { do_function(csound, yytext,csound->expanded_orc); }
-{EXP}           { do_function(csound, yytext,csound->expanded_orc); }
-{LOG}           { do_function(csound, yytext,csound->expanded_orc); }
-{SQRT}          { do_function(csound, yytext,csound->expanded_orc); }
-{SIN}           { do_function(csound, yytext,csound->expanded_orc); }
-{COS}           { do_function(csound, yytext,csound->expanded_orc); }
-{TAN}           { do_function(csound, yytext,csound->expanded_orc); }
-{SININV}        { do_function(csound, yytext,csound->expanded_orc); }
-{COSINV}        { do_function(csound, yytext,csound->expanded_orc); }
-{TANINV}        { do_function(csound, yytext,csound->expanded_orc); }
-{LOG10}         { do_function(csound, yytext,csound->expanded_orc); }
-{LOG2}          { do_function(csound, yytext,csound->expanded_orc); }
-{SINH}          { do_function(csound, yytext,csound->expanded_orc); }
-{COSH}          { do_function(csound, yytext,csound->expanded_orc); }
-{TANH}          { do_function(csound, yytext,csound->expanded_orc); }
-{AMPDB}         { do_function(csound, yytext,csound->expanded_orc); }
-{AMPDBFS}       { do_function(csound, yytext,csound->expanded_orc); }
-{DBAMP}         { do_function(csound, yytext,csound->expanded_orc); }
-{DBFSAMP}       { do_function(csound, yytext,csound->expanded_orc); }
-{FTCPS}         { do_function(csound, yytext,csound->expanded_orc); }
-{FTLEN}         { do_function(csound, yytext,csound->expanded_orc); }
-{FTSR}          { do_function(csound, yytext,csound->expanded_orc); }
-{FTLPTIM}       { do_function(csound, yytext,csound->expanded_orc); }
-{FTCHNLS}       { do_function(csound, yytext,csound->expanded_orc); }
-{I}             { do_function(csound, yytext,csound->expanded_orc); }
-{K}             { do_function(csound, yytext,csound->expanded_orc); }
-{CPSOCT}        { do_function(csound, yytext,csound->expanded_orc); }
-{OCTPCH}        { do_function(csound, yytext,csound->expanded_orc); }
-{CPSPCH}        { do_function(csound, yytext,csound->expanded_orc); }
-{PCHOCT}        { do_function(csound, yytext,csound->expanded_orc); }
-{OCTCPS}        { do_function(csound, yytext,csound->expanded_orc); }
-{NSAMP}         { do_function(csound, yytext,csound->expanded_orc); }
-{POWOFTWO}      { do_function(csound, yytext,csound->expanded_orc); }
-{LOGBTWO}       { do_function(csound, yytext,csound->expanded_orc); }
-{A}             { do_function(csound, yytext,csound->expanded_orc); }
-{TB0}           { do_function(csound, yytext,csound->expanded_orc); }
-{TB1}           { do_function(csound, yytext,csound->expanded_orc); }
-{TB2}           { do_function(csound, yytext,csound->expanded_orc); }
-{TB3}           { do_function(csound, yytext,csound->expanded_orc); }
-{TB4}           { do_function(csound, yytext,csound->expanded_orc); }
-{TB5}           { do_function(csound, yytext,csound->expanded_orc); }
-{TB6}           { do_function(csound, yytext,csound->expanded_orc); }
-{TB7}           { do_function(csound, yytext,csound->expanded_orc); }
-{TB8}           { do_function(csound, yytext,csound->expanded_orc); }
-{TB9}           { do_function(csound, yytext,csound->expanded_orc); }
-{TB10}          { do_function(csound, yytext,csound->expanded_orc); }
-{TB11}          { do_function(csound, yytext,csound->expanded_orc); }
-{TB12}          { do_function(csound, yytext,csound->expanded_orc); }
-{TB13}          { do_function(csound, yytext,csound->expanded_orc); }
-{TB14}          { do_function(csound, yytext,csound->expanded_orc); }
-{TB15}          { do_function(csound, yytext,csound->expanded_orc); }
-{URD}           { do_function(csound, yytext,csound->expanded_orc); }
-{NOT}           { do_function(csound, yytext,csound->expanded_orc); }
-{CENT}          { do_function(csound, yytext,csound->expanded_orc); }
-{OCTAVE}        { do_function(csound, yytext,csound->expanded_orc); }
-{SEMITONE}      { do_function(csound, yytext,csound->expanded_orc); }
-{CPSMIDIN}      { do_function(csound, yytext,csound->expanded_orc); }
-{OCTMIDIN}      { do_function(csound, yytext,csound->expanded_orc); }
-{PCHMIDIN}      { do_function(csound, yytext,csound->expanded_orc); }
-{DB}            { do_function(csound, yytext,csound->expanded_orc); }
-{P}             { do_function(csound, yytext,csound->expanded_orc); }
-{QINF}          { do_function(csound, yytext,csound->expanded_orc); }
-{QNAN}          { do_function(csound, yytext,csound->expanded_orc); }
+{INT}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{FRAC}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{ROUND}         { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{FLOOR}         { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{CEIL}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{RND}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{BIRND}         { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{ABS}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{EXP}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{LOG}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{SQRT}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{SIN}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{COS}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TAN}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{SININV}        { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{COSINV}        { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TANINV}        { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{LOG10}         { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{LOG2}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{SINH}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{COSH}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TANH}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{AMPDB}         { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{AMPDBFS}       { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{DBAMP}         { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{DBFSAMP}       { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{FTCPS}         { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{FTLEN}         { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{FTSR}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{FTLPTIM}       { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{FTCHNLS}       { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{I}             { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{K}             { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{CPSOCT}        { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{OCTPCH}        { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{CPSPCH}        { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{PCHOCT}        { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{OCTCPS}        { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{NSAMP}         { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{POWOFTWO}      { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{LOGBTWO}       { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{A}             { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB0}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB1}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB2}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB3}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB4}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB5}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB6}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB7}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB8}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB9}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB10}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB11}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB12}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB13}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB14}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{TB15}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{URD}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{NOT}           { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{CENT}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{OCTAVE}        { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{SEMITONE}      { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{CPSMIDIN}      { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{OCTMIDIN}      { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{PCHMIDIN}      { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{DB}            { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{P}             { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{QINF}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
+{QNAN}          { do_function(csound, yytext, csound->expanded_orc, PARM->isString); }
 
 .               { corfile_putc(csound, yytext[0], csound->expanded_orc); }
 
@@ -1481,12 +1481,12 @@ void csound_pre_line(CSOUND *csound, CORFIL* cf, void *yyscanner)
     PARM->line = n;
 }
 
-void do_function(CSOUND *csound, char *text, CORFIL *cf)
+void do_function(CSOUND *csound, char *text, CORFIL *cf, int32_t isString)
 {
     char *p = text;
     //printf("do_function on >>%s<<\n", text);
     while (*p != '\0') {
-      if (!isspace(*p)) corfile_putc(csound, *p, cf);
+      if (isString || !isspace(*p)) corfile_putc(csound, *p, cf);
       p++;
     }
     return;
