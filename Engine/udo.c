@@ -842,10 +842,7 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
   }
 
   udoinfo = p->buf->opcode_info;
-  xin = pbr_find_xin(lcurip);
-  if (xin == NULL) {
-    return NULL;
-  }
+  xin = NULL;
 
   for (i = 0; i < udoinfo->inchns; i++) {
     MYFLT *input = p->ar[udoinfo->outchns + i];
@@ -853,6 +850,12 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
 
     for (j = 0; j < udoinfo->outchns; j++) {
       if (p->ar[j] == input) {
+        if (xin == NULL) {
+          xin = pbr_find_xin(lcurip);
+          if (xin == NULL) {
+            return NULL;
+          }
+        }
         pbr_copy_value(csound, xin->args[i], input, lcurip);
         break;
       }
