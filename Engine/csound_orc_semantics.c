@@ -1474,7 +1474,8 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 
 
 OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
-                             char* outArgTypes, char* inArgTypes) {
+                             const char* outArgTypes,
+                             const char* inArgTypes) {
   IGN(csound);
   int32_t i;
 
