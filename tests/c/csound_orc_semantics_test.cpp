@@ -19,6 +19,7 @@
 extern "C" {
     extern OENTRIES* find_opcode2 (CSOUND* csound, const char* opname);
     extern OENTRY* resolve_opcode (CSOUND*, OENTRIES* entries,  const char* outArgTypes, const char* inArgTypes);
+    extern OENTRY* resolve_opcode_exact (CSOUND*, OENTRIES* entries, const char* outArgTypes, const char* inArgTypes);
     extern OENTRY* find_opcode_new (CSOUND* csound,  const char* opname, const char* outArgsFound, const char* inArgsFound);
     extern bool check_in_arg (const char* found, const char* required);
     extern bool check_in_args (CSOUND* csound, const char* outArgsFound, const char* opOutArgs);
@@ -67,6 +68,16 @@ TEST_F (OrcSemanticsTest, ResolveOpcodeTest)
 
     OENTRY* opc = resolve_opcode(csound, entries, (char *)  "k", (char *) "k");
     ASSERT_TRUE (opc != NULL);
+
+    opc = resolve_opcode(csound, entries, (char *) "i", (char *) "b");
+    ASSERT_STREQ("=.ib", opc->opname);
+    csound->Free(csound, entries);
+
+    entries = find_opcode2(csound, "##userOpcode");
+    opc = resolve_opcode_exact(csound, entries, NULL, NULL);
+    ASSERT_TRUE(opc != NULL);
+    opc = resolve_opcode_exact(csound, entries, "0", "0");
+    ASSERT_TRUE(opc != NULL);
     csound->Free(csound, entries);
 
     entries = find_opcode2(csound,  "vco2");

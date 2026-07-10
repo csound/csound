@@ -146,9 +146,9 @@ const OENTRY opcodlst_1[] = {
   { "=.bb",    S(RELAT),0,       "b", "b", (SUBR) b2b, NULL, NULL, NULL  },
 
   { "B",    S(RELAT),0,       "B", "k", NULL, (SUBR) bassign, NULL, NULL  },
-  { "=.ib",    S(ASSIGN),0,       "i", "b", (SUBR) b2s, NULL, NULL, NULL  },
+  { "=.ib",    S(ASSIGN),0,       "i", "b", (SUBR) b2i, NULL, NULL, NULL  },
   { "=.kB",    S(ASSIGN),0,       "k", "B", NULL, (SUBR) b2s, NULL, NULL  },
-  { "i",    S(ASSIGN),0,       "i", "b", (SUBR) b2s, NULL, NULL, NULL  },
+  { "i",    S(ASSIGN),0,       "i", "b", (SUBR) b2i, NULL, NULL, NULL  },
   { "k",    S(ASSIGN),0,       "k", "B", NULL, (SUBR) b2s, NULL, NULL  },
   { "=.k",    S(ASSIGNM),0,        "zzzzzzzzzzzzzzzzzzzzzzzz", "z",
     NULL, minit, NULL, NULL },
