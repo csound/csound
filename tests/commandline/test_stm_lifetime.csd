@@ -15,10 +15,11 @@ nchnls = 1
 ; its deinit frees the GRAPH. An instrument that outlives the owner
 ; must NOT be able to dereference it.
 ;
-; stmonenter/stmonexit resolve the handle on every perf pass exactly
-; for this reason. They used to cache the GRAPH* at init, which made
-; this orchestra read freed memory (and segfault under an allocator
-; that unmaps freed pages).
+; Cross-instrument observation is allowed while the owner is alive, but graph
+; lookup and deinit are synchronized through the STM registry mutex. Older
+; versions let stmonenter/stmonexit cache or resolve the GRAPH* without this
+; lifetime protection, which made this orchestra read freed memory (and
+; segfault under an allocator that unmaps freed pages).
 ;
 ; EXPECTED: a clean perf error, not a crash. This csd is registered
 ; in test.py as an expected failure (non-zero return code).
@@ -46,12 +47,13 @@ instr 20 ; observer: outlives the owner
     c:k = init(0)
     c = c + 1
     if c == 1 then
-        ; while the owner is alive, the entry node reads as just entered
-        if trig != 1 then
-            printks("[FAIL] lifetime: expected on_enter=1 on the first cycle\n", 0)
+        ; while the owner is alive, the handle resolves. The initial entry is
+        ; not a new graph event for this late observer, so trig is 0.
+        if trig != 0 then
+            printks("[FAIL] lifetime: expected on_enter=0 for late observer\n", 0)
             exitnowk(-1)
         endif
-        printks("[lifetime] instr 20: graph observed while alive, trig=1\n", 0)
+        printks("[lifetime] instr 20: graph observed while alive, trig=0\n", 0)
     endif
 endin
 
