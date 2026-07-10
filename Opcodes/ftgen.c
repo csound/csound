@@ -785,16 +785,16 @@ static int32_t getftargs(CSOUND *csound, FTARGS *p)
   for (i = 1; i < argcnt; i++)
     strlen += snprintf(NULL, 0, "%g ", src->args[i]);
 
-  p->Scd->size = strlen + 1;
+  p->Scd->size = strlen;
 
   if (p->Scd->data == NULL) {
-    p->Scd->data = (char*) csound->Calloc(csound, strlen + 1);
+    p->Scd->data = (char*) csound->Calloc(csound, strlen);
   }
   else
-    p->Scd->data = (char*) csound->ReAlloc(csound, p->Scd->data, strlen + 1);
+    p->Scd->data = (char*) csound->ReAlloc(csound, p->Scd->data, strlen);
 
   {
-    char* curr = p->Scd->data, *const end = curr + strlen + 1;
+    char* curr = p->Scd->data, *const end = curr + strlen;
     for (i = 1; curr != end && i < argcnt; i++) {
       curr += snprintf(curr, end-curr, "%g ", src->args[i]);
     }
