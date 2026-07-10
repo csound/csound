@@ -1481,12 +1481,14 @@ void csound_pre_line(CSOUND *csound, CORFIL* cf, void *yyscanner)
     PARM->line = n;
 }
 
-void do_function(CSOUND *csound, char *text, CORFIL *cf, int32_t isString)
+static void do_function(CSOUND *csound, char *text, CORFIL *cf,
+                        int32_t isString)
 {
     char *p = text;
     //printf("do_function on >>%s<<\n", text);
     while (*p != '\0') {
-      if (isString || !isspace(*p)) corfile_putc(csound, *p, cf);
+      if (isString || !isspace((unsigned char) *p))
+        corfile_putc(csound, *p, cf);
       p++;
     }
     return;

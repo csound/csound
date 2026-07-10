@@ -9,14 +9,13 @@ opcode AssertString(actual:S, prefix:S, suffix:S):i
   expected:S = prefix
   expected strcat expected, space
   expected strcat expected, suffix
+  result:i = 1
 
   if (strcmp(actual, expected) != 0) then
     prints "String whitespace failed: expected '%s', got '%s'\n", \
       expected, actual
+    result = 0
     exitnow(1)
-    result:i = 0
-  else
-    result:i = 1
   endif
 
   xout result
