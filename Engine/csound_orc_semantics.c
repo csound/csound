@@ -3656,7 +3656,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                                                      current->left->right,
                                                      typeTable);
       add_udo_definition(csound, false, current->value->lexeme,
-             inArgStringDecl, outArgStringDecl, UNDEFINED);
+                         outArgStringDecl, inArgStringDecl, UNDEFINED);
       csound->inZero = 0;
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
 	csound->Message(csound, "UDO declared\n");
