@@ -1473,6 +1473,25 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 }
 
 
+OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
+                             char* outArgTypes, char* inArgTypes) {
+  IGN(csound);
+  int32_t i;
+
+  const char* outTest = (outArgTypes == NULL || !strcmp("0", outArgTypes)) ?
+                          "" : outArgTypes;
+  const char* inTest = (inArgTypes == NULL || !strcmp("0", inArgTypes)) ?
+                         "" : inArgTypes;
+  for (i = 0; i < entries->count; i++) {
+    OENTRY* temp = entries->entries[i];
+    if (temp->intypes != NULL && !strcmp(inTest, temp->intypes) &&
+        temp->outypes != NULL && !strcmp(outTest, temp->outypes)) {
+      return temp;
+    }
+  }
+  return NULL;
+}
+
 /* Given an OENTRIES list, resolve to a single OENTRY* based on the
  * found in- and out- argtypes.  Returns NULL if opcode could not be
  * resolved. If more than one entry matches, mechanism assumes there
@@ -1482,6 +1501,14 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
                        char* outArgTypes, char* inArgTypes) {
   int32_t i, check;
+  OENTRY* exact;
+
+  /* A polymorphic or variadic entry must not shadow a concrete signature. */
+  if ((exact = resolve_opcode_exact(csound, entries,
+                                    outArgTypes, inArgTypes)) != NULL) {
+    return exact;
+  }
+
   for (i = 0; i < entries->count; i++) {
     OENTRY* temp = entries->entries[i];
     if ((check = check_in_args(csound, inArgTypes, temp->intypes)) &&
@@ -1493,23 +1520,6 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
                 args_required(inArgTypes), temp->opname, VARGMAX);
         return NULL;
       }
-      return temp;
-    }
-  }
-  return NULL;
-}
-
-
-OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
-                             char* outArgTypes, char* inArgTypes) {
-  IGN(csound);
-  int32_t i;
-
-  char* outTest = (!strcmp("0", outArgTypes)) ? "" : outArgTypes;
-  for (i = 0; i < entries->count; i++) {
-    OENTRY* temp = entries->entries[i];
-    if (temp->intypes != NULL && !strcmp(inArgTypes, temp->intypes) &&
-        temp->outypes != NULL && !strcmp(outTest, temp->outypes)) {
       return temp;
     }
   }
