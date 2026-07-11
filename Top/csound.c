@@ -643,6 +643,7 @@ static const CSOUND cenviron_ = {
   (void (*)(CSOUND *, const MYFLT *, int32_t)) NULL,  /*  audtran     */
   NULL,           /*  hostdata            */
   NULL, NULL,     /*  orchname, scorename */
+  0, NULL,        /*  command line args   */
   NULL, NULL,     /*  orchstr, *scorestr  */
   (OPDS*) NULL,   /*  ids                 */
   { (CS_VAR_POOL*)NULL,

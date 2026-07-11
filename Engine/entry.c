@@ -1781,6 +1781,8 @@ const OENTRY opcodlst_1[] = {
     (SUBR) strset_init, NULL, NULL                        },
   { "strget",   S(STRGET_OP),0,     "S",    "i",
     (SUBR) strget_init, NULL, NULL                        },
+  { "argv",     S(ARGV_OP),0,       "S[]",  "",
+    (SUBR) commandline_args_init, NULL, NULL               },
   {  "S",   S(STRGET_OP),0,     "S",    "i",
      (SUBR) s_opcode, NULL, NULL                           },
   {  "S",   S(STRGET_OP),0,     "S",    "k",

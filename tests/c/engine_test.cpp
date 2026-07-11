@@ -72,3 +72,105 @@ TEST_F (EngineTests, testScoreRewind)
     csoundRewindScore(csound);
     ASSERT_TRUE(csoundPerformKsmps(csound) == 0); 
 }
+
+TEST_F (EngineTests, testCommandLineArgumentsApi)
+{
+    char firstArgument[] = "concert.orc";
+    const char *arguments[] = {
+      firstArgument,
+      "first violin",
+      "--quiet",
+      ""
+    };
+
+    ASSERT_EQ(csoundSetCommandLineArgs(csound, 4, arguments), CSOUND_SUCCESS);
+    firstArgument[0] = 'X';
+
+    ASSERT_EQ(csoundGetCommandLineArgCount(csound), 4);
+    ASSERT_STREQ(csoundGetCommandLineArg(csound, 0), "concert.orc");
+    ASSERT_STREQ(csoundGetCommandLineArg(csound, 1), "first violin");
+    ASSERT_STREQ(csoundGetCommandLineArg(csound, 2), "--quiet");
+    ASSERT_STREQ(csoundGetCommandLineArg(csound, 3), "");
+    ASSERT_EQ(csoundGetCommandLineArg(csound, -1), nullptr);
+    ASSERT_EQ(csoundGetCommandLineArg(csound, 4), nullptr);
+    ASSERT_EQ(csoundEvalCode(csound, R"(
+      Sarguments:S[] argv
+      return lenarray(Sarguments)
+    )"), 4);
+
+    const char *invalidArguments[] = {nullptr};
+    ASSERT_EQ(csoundSetCommandLineArgs(csound, 1, invalidArguments),
+              CSOUND_ERROR);
+    ASSERT_EQ(csoundGetCommandLineArgCount(csound), 4);
+
+    ASSERT_EQ(csoundSetCommandLineArgs(csound, 0, nullptr), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundGetCommandLineArgCount(csound), 0);
+    ASSERT_EQ(csoundEvalCode(csound, R"(
+      Sarguments:S[] argv
+      return lenarray(Sarguments)
+    )"), 0);
+
+    ASSERT_EQ(csoundSetCommandLineArgs(csound, 4, arguments), CSOUND_SUCCESS);
+    csoundReset(csound);
+    ASSERT_EQ(csoundGetCommandLineArgCount(csound), 0);
+}
+
+TEST_F (EngineTests, testCommandLineArgumentSeparator)
+{
+    const char *staleArguments[] = {"stale"};
+    const char *arguments[] = {
+      "csound",
+      "-n",
+      "--suppress-version",
+      "--code=instr 1\nendin",
+      "--",
+      "concert.orc",
+      "first violin",
+      "--logfile=ignored",
+      ""
+    };
+
+    ASSERT_EQ(csoundSetCommandLineArgs(csound, 1, staleArguments),
+              CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompile(csound, 9, arguments), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundGetCommandLineArgCount(csound), 4);
+    ASSERT_STREQ(csoundGetCommandLineArg(csound, 0), "concert.orc");
+    ASSERT_STREQ(csoundGetCommandLineArg(csound, 1), "first violin");
+    ASSERT_STREQ(csoundGetCommandLineArg(csound, 2), "--logfile=ignored");
+    ASSERT_STREQ(csoundGetCommandLineArg(csound, 3), "");
+}
+
+TEST_F (EngineTests, testExplicitCommandLineArgumentsSurviveCompile)
+{
+    const char *applicationArguments[] = {"concert.orc", "first violin"};
+    const char *compileArguments[] = {
+      "csound",
+      "-n",
+      "--suppress-version",
+      "--code=instr 1\nendin"
+    };
+
+    ASSERT_EQ(csoundSetCommandLineArgs(csound, 2, applicationArguments),
+              CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompile(csound, 4, compileArguments), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundGetCommandLineArgCount(csound), 2);
+    ASSERT_STREQ(csoundGetCommandLineArg(csound, 0), "concert.orc");
+    ASSERT_STREQ(csoundGetCommandLineArg(csound, 1), "first violin");
+}
+
+TEST_F (EngineTests, testEmptyCommandLineArgumentSeparator)
+{
+    const char *staleArguments[] = {"stale"};
+    const char *compileArguments[] = {
+      "csound",
+      "-n",
+      "--suppress-version",
+      "--code=instr 1\nendin",
+      "--"
+    };
+
+    ASSERT_EQ(csoundSetCommandLineArgs(csound, 1, staleArguments),
+              CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompile(csound, 5, compileArguments), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundGetCommandLineArgCount(csound), 0);
+}

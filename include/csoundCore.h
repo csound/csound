@@ -1536,6 +1536,8 @@ struct CSOUND_ {
   void (*audtran)(CSOUND *, const MYFLT *, int32_t);
   void *hostdata;
   char *orchname, *scorename;
+  int32_t commandLineArgCount;
+  char **commandLineArgs;
   CORFIL *orchstr, *scorestr;
   OPDS *ids;                /* used by init loops */
   ENGINE_STATE engineState; /* current Engine State merged after

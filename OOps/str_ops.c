@@ -25,6 +25,7 @@
 #include "csoundCore.h"
 #define CSOUND_STR_OPS_C    1
 #include "str_ops.h"
+#include "arrays.h"
 #include <ctype.h>
 #ifdef HAVE_CURL
 #include <curl/curl.h>
@@ -166,6 +167,27 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
     p->r->size = size + 1;
   }
   strcpy((char*) p->r->data, csound->strsets[indx]);
+  return OK;
+}
+
+int32_t commandline_args_init(CSOUND *csound, ARGV_OP *p)
+{
+  int32_t count = csoundGetCommandLineArgCount(csound);
+  const CS_TYPE *stringType = csound->GetType(csound, "S");
+
+  tabinit(csound, p->args, count, p->h.insdshead);
+  for (int32_t index = 0; index < count; index++) {
+    const char *argument = csoundGetCommandLineArg(csound, index);
+    STRINGDAT source = {
+      (char *) argument,
+      strlen(argument) + 1,
+      0,
+      -1
+    };
+    STRINGDAT *destination = &((STRINGDAT *) p->args->data)[index];
+    stringType->copyValue(csound, stringType, destination, &source,
+                          p->h.insdshead);
+  }
   return OK;
 }
 
