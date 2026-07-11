@@ -233,6 +233,10 @@ extern "C" {
   } MODULE_INFO;
 
 #define MAX_ALLOC_QUEUE 1024
+#define ALLOC_DATA_SCORE_EVENT 0
+#define ALLOC_DATA_MIDI_EVENT 1
+#define ALLOC_DATA_INIT_PASS 2
+#define ALLOC_DATA_REINIT_PASS 3
 #define ALLOC_DATA_MERGE_STATE 4
   typedef struct _alloc_data_ {
     int32_t type;

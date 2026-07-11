@@ -1,7 +1,11 @@
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
 #include "csound_graph_display.h"
+#include <algorithm>
+#include <atomic>
 #include <stdio.h>
+#include <thread>
+#include <vector>
 #include "gtest/gtest.h"
 #include "time.h"
 
@@ -210,8 +214,7 @@ TEST_F (EngineTests, testRealtimeAllocQueueRejectsOverflow)
     csound->alloc_queue = static_cast<ALLOC_DATA *>(
       csound->Calloc(csound, sizeof(ALLOC_DATA) * MAX_ALLOC_QUEUE));
     ASSERT_NE(csound->alloc_queue, nullptr);
-    ASSERT_EQ(csoundSpinLockInit(&csound->alloc_queue_spinlock),
-              CSOUND_SUCCESS);
+    ASSERT_EQ(alloc_queue_lock_init(csound), CSOUND_SUCCESS);
     ATOMIC_SET(csound->alloc_queue_items, 0);
     csound->alloc_queue_wp = 0;
 
@@ -245,6 +248,59 @@ TEST_F (EngineTests, testRealtimeAllocQueueRejectsOverflow)
 
     ATOMIC_SET(csound->alloc_queue_items, 0);
     csound->alloc_queue_wp = 0;
+    alloc_queue_lock_destroy(csound);
+    csound->Free(csound, csound->alloc_queue);
+    csound->alloc_queue = nullptr;
+}
+
+TEST_F (EngineTests, testRealtimeAllocQueueMutexFallback)
+{
+    constexpr int32_t producerCount = 4;
+    constexpr int32_t itemsPerProducer = MAX_ALLOC_QUEUE / producerCount;
+    std::atomic<int32_t> failures {0};
+    std::atomic<int32_t> ready {0};
+    std::atomic<bool> start {false};
+    std::vector<std::thread> producers;
+
+    csound->alloc_queue = static_cast<ALLOC_DATA *>(
+      csound->Calloc(csound, sizeof(ALLOC_DATA) * MAX_ALLOC_QUEUE));
+    ASSERT_NE(csound->alloc_queue, nullptr);
+    csound->alloc_queue_mutex = csoundCreateMutex(0);
+    ASSERT_NE(csound->alloc_queue_mutex, nullptr);
+    csound->alloc_queue_items = 0;
+    csound->alloc_queue_wp = 0;
+
+    for (int32_t producer = 0; producer < producerCount; ++producer) {
+      producers.emplace_back([this, producer, &failures, &ready, &start]() {
+        ready++;
+        while (!start.load())
+          std::this_thread::yield();
+        for (int32_t index = 0; index < itemsPerProducer; ++index) {
+          ALLOC_DATA data = { 0 };
+          data.insno = producer * itemsPerProducer + index + 1;
+          if (alloc_queue_enqueue(csound, &data) != CSOUND_SUCCESS)
+            failures++;
+        }
+      });
+    }
+
+    while (ready.load() != producerCount)
+      std::this_thread::yield();
+    start = true;
+
+    for (auto &producer : producers)
+      producer.join();
+
+    ASSERT_EQ(failures.load(), 0);
+    ASSERT_EQ(csound->alloc_queue_items, MAX_ALLOC_QUEUE);
+    std::vector<int32_t> instrumentNumbers;
+    for (int32_t index = 0; index < MAX_ALLOC_QUEUE; ++index)
+      instrumentNumbers.push_back(csound->alloc_queue[index].insno);
+    std::sort(instrumentNumbers.begin(), instrumentNumbers.end());
+    for (int32_t index = 0; index < MAX_ALLOC_QUEUE; ++index)
+      ASSERT_EQ(instrumentNumbers[index], index + 1);
+
+    alloc_queue_lock_destroy(csound);
     csound->Free(csound, csound->alloc_queue);
     csound->alloc_queue = nullptr;
 }

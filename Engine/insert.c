@@ -45,6 +45,48 @@ static int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn,
 static int32_t insert(CSOUND *csound, int32_t insno, EVTBLK *newevtp);
 static void maxalloc_turnoff(CSOUND *csound, int32_t insno);
 
+static void alloc_queue_lock(CSOUND *csound)
+{
+  if (csound->alloc_queue_mutex != NULL)
+    csoundLockMutex(csound->alloc_queue_mutex);
+  else
+    csoundSpinLock(&csound->alloc_queue_spinlock);
+}
+
+static void alloc_queue_unlock(CSOUND *csound)
+{
+  if (csound->alloc_queue_mutex != NULL)
+    csoundUnlockMutex(csound->alloc_queue_mutex);
+  else
+    csoundSpinUnLock(&csound->alloc_queue_spinlock);
+}
+
+int32_t alloc_queue_lock_init(CSOUND *csound)
+{
+  csound->alloc_queue_mutex = NULL;
+  csound->alloc_queue_items = 0;
+  csound->alloc_queue_wp = 0;
+#if CSOUND_SPINLOCK_AVAILABLE
+  if (csoundSpinLockInit(&csound->alloc_queue_spinlock) == CSOUND_SUCCESS)
+    return CSOUND_SUCCESS;
+#endif
+  csound->alloc_queue_mutex = csoundCreateMutex(0);
+  return csound->alloc_queue_mutex != NULL ? CSOUND_SUCCESS : CSOUND_ERROR;
+}
+
+void alloc_queue_lock_destroy(CSOUND *csound)
+{
+  if (csound->alloc_queue_mutex != NULL) {
+    csoundDestroyMutex(csound->alloc_queue_mutex);
+    csound->alloc_queue_mutex = NULL;
+  }
+#if defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
+  else {
+    pthread_spin_destroy(&csound->alloc_queue_spinlock);
+  }
+#endif
+}
+
 /* Reserve, fill, and publish a realtime allocation request. */
 int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
 {
@@ -54,17 +96,34 @@ int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
   if (UNLIKELY(csound->alloc_queue == NULL))
     return CSOUND_ERROR;
 
-  csoundSpinLock(&csound->alloc_queue_spinlock);
-  if (UNLIKELY(ATOMIC_GET(csound->alloc_queue_items) >= MAX_ALLOC_QUEUE)) {
+  alloc_queue_lock(csound);
+  if (UNLIKELY(csound->alloc_queue_items >= MAX_ALLOC_QUEUE)) {
     result = CSOUND_ERROR;
   }
   else {
     wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp] = *data;
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
-    ATOMIC_INCR(csound->alloc_queue_items);
+    csound->alloc_queue_items++;
   }
-  csoundSpinUnLock(&csound->alloc_queue_spinlock);
+  alloc_queue_unlock(csound);
+  return result;
+}
+
+static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
+                                   unsigned long *readPosition)
+{
+  int32_t result = 0;
+
+  alloc_queue_lock(csound);
+  if (csound->alloc_queue_items > 0) {
+    *data = csound->alloc_queue[*readPosition];
+    *readPosition = *readPosition + 1 < MAX_ALLOC_QUEUE ?
+      *readPosition + 1 : 0;
+    csound->alloc_queue_items--;
+    result = 1;
+  }
+  alloc_queue_unlock(csound);
   return result;
 }
 
@@ -202,7 +261,6 @@ static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
  */
 uintptr_t event_insert_thread(void *p) {
   CSOUND *csound = (CSOUND *) p;
-  ALLOC_DATA *inst = csound->alloc_queue;
   float wakeup = (1000*csound->ksmps/csound->esr);
   unsigned long rp = 0, items, rpm = 0;
   message_string_queue_t *mess = NULL;
@@ -228,48 +286,56 @@ uintptr_t event_insert_thread(void *p) {
   }
 
   while(csound->event_insert_loop) {
-    // get the value of items_to_alloc
-    items = ATOMIC_GET(csound->alloc_queue_items);
-    if(items == 0)
-      csoundSleep((int32_t) ((int32_t) wakeup > 0 ? wakeup : 1));
-    else while(items) {
-        if (inst[rp].type == ALLOC_DATA_MERGE_STATE) {
-          ENGINE_STATE *engine_state = inst[rp].engine_state;
-          TYPE_TABLE *type_table = inst[rp].type_table;
-          OPDS *ids = inst[rp].ids;
+    ALLOC_DATA data;
+    uint32_t processed = 0;
+
+    while (processed < MAX_ALLOC_QUEUE &&
+           alloc_queue_dequeue(csound, &data, &rp)) {
+      switch (data.type) {
+        case ALLOC_DATA_MERGE_STATE: {
+          ENGINE_STATE *engine_state = data.engine_state;
+          TYPE_TABLE *type_table = data.type_table;
+          OPDS *ids = data.ids;
           merge_state_realtime(csound, engine_state, type_table, ids);
+          break;
         }
-        if (inst[rp].type == 3)  {
-          INSDS *ip = inst[rp].ip;
-          OPDS *ids = inst[rp].ids;
+
+        case ALLOC_DATA_REINIT_PASS: {
+          INSDS *ip = data.ip;
+          OPDS *ids = data.ids;
           csoundSpinLock(&csound->alloc_spinlock);
           reinit_pass(csound, ip, ids);
           csoundSpinUnLock(&csound->alloc_spinlock);
           ATOMIC_SET(ip->init_done, 1);
+          break;
         }
-        if (inst[rp].type == 2)  {
-          INSDS *ip = inst[rp].ip;
+
+        case ALLOC_DATA_INIT_PASS: {
+          INSDS *ip = data.ip;
           ATOMIC_SET(ip->init_done, 0);
           csoundSpinLock(&csound->alloc_spinlock);
           init_pass(csound, ip);
           csoundSpinUnLock(&csound->alloc_spinlock);
           ATOMIC_SET(ip->init_done, 1);
+          break;
         }
-        if(inst[rp].type == 1) {
+
+        case ALLOC_DATA_MIDI_EVENT:
           csoundSpinLock(&csound->alloc_spinlock);
-          insert_midi(csound, inst[rp].insno, inst[rp].chn, &inst[rp].mep);
+          insert_midi(csound, data.insno, data.chn, &data.mep);
           csoundSpinUnLock(&csound->alloc_spinlock);
-        }
-        if(inst[rp].type == 0)  {
+          break;
+
+        case ALLOC_DATA_SCORE_EVENT:
           csoundSpinLock(&csound->alloc_spinlock);
-          insert(csound, inst[rp].insno, &inst[rp].blk);
+          insert(csound, data.insno, &data.blk);
           csoundSpinUnLock(&csound->alloc_spinlock);
-        }
-        // decrement the value of items_to_alloc
-        ATOMIC_DECR(csound->alloc_queue_items);
-        items--;
-        rp = rp + 1 < MAX_ALLOC_QUEUE ? rp + 1 : 0;
+          break;
       }
+      processed++;
+    }
+    if(processed == 0)
+      csoundSleep((int32_t) ((int32_t) wakeup > 0 ? wakeup : 1));
     items = ATOMIC_GET(csound->message_string_queue_items);
     while(items) {
       if(mess != NULL)
@@ -414,7 +480,7 @@ int32_t insert_event(CSOUND *csound, int32_t insno, EVTBLK *newevtp) {
     ALLOC_DATA data = { 0 };
     data.insno = insno;
     data.blk =  *newevtp;
-    data.type = 0;
+    data.type = ALLOC_DATA_SCORE_EVENT;
     return alloc_queue_enqueue(csound, &data);
   }
   else return insert(csound, insno, newevtp);
@@ -768,7 +834,7 @@ int32_t insert_midi_event(CSOUND *csound, int32_t insno, MCHNBLK *chn,
     data.insno = insno;
     data.chn = chn;
     data.mep = *mep;
-    data.type = 1;
+    data.type = ALLOC_DATA_MIDI_EVENT;
     return alloc_queue_enqueue(csound, &data);
   }
   else return insert_midi(csound, insno, chn, mep);
