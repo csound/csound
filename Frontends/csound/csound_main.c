@@ -182,6 +182,8 @@ int main(int argc, char **argv)
 
     /* open log file if specified */
     for (i = 1; i < argc; i++) {
+      if (strcmp(argv[i], "--") == 0)
+        break;
       if (strncmp(argv[i], "-O", 2) == 0 && (int) strlen(argv[i]) > 2)
         fname = argv[i] + 2;
       else if (strncmp(argv[i], "--logfile=", 10) == 0 &&

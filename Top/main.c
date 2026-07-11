@@ -153,6 +153,76 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
   }
 }
 
+int32_t csoundSetCommandLineArgs(CSOUND *csound, int32_t argc,
+                                 const char **argv)
+{
+  char **copy = NULL;
+  size_t pointerBytes;
+  size_t totalBytes;
+
+  if (UNLIKELY(csound == NULL || argc < 0 || (argc > 0 && argv == NULL)))
+    return CSOUND_ERROR;
+
+  if (UNLIKELY((size_t) argc > SIZE_MAX / sizeof(char *)))
+    return CSOUND_MEMORY;
+
+  pointerBytes = (size_t) argc * sizeof(char *);
+  totalBytes = pointerBytes;
+  for (int32_t index = 0; index < argc; index++) {
+    size_t length;
+
+    if (UNLIKELY(argv[index] == NULL))
+      return CSOUND_ERROR;
+    length = strlen(argv[index]) + 1;
+    if (UNLIKELY(length > SIZE_MAX - totalBytes))
+      return CSOUND_MEMORY;
+    totalBytes += length;
+  }
+
+  if (argc > 0) {
+    char *destination;
+
+    copy = (char **) csound->Malloc(csound, totalBytes);
+    if (UNLIKELY(copy == NULL))
+      return CSOUND_MEMORY;
+
+    destination = (char *) copy + pointerBytes;
+    for (int32_t index = 0; index < argc; index++) {
+      size_t length = strlen(argv[index]) + 1;
+      copy[index] = destination;
+      memcpy(destination, argv[index], length);
+      destination += length;
+    }
+  }
+
+  if (csound->commandLineArgs != NULL)
+    csound->Free(csound, csound->commandLineArgs);
+  csound->commandLineArgs = copy;
+  csound->commandLineArgCount = argc;
+  return CSOUND_SUCCESS;
+}
+
+int32_t csoundGetCommandLineArgCount(CSOUND *csound)
+{
+  return csound != NULL ? csound->commandLineArgCount : 0;
+}
+
+const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
+{
+  if (csound == NULL || index < 0 || index >= csound->commandLineArgCount)
+    return NULL;
+  return csound->commandLineArgs[index];
+}
+
+static int32_t command_line_separator(int32_t argc, const char **argv)
+{
+  for (int32_t index = 1; index < argc; index++) {
+    if (argv[index] != NULL && strcmp(argv[index], "--") == 0)
+      return index;
+  }
+  return argc;
+}
+
  int32_t csoundCompile(CSOUND *csound, int32_t argc, const char **argv) {
   OPARMS *O = csound->oparms;
   char *s;
@@ -173,6 +243,18 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
                     Str("Csound is already started, call csoundReset()\n"
                         "before starting again.\n"));
     return CSOUND_ERROR;
+  }
+
+  {
+    int32_t separator = command_line_separator(argc, argv);
+    if (separator < argc) {
+      int32_t result = csoundSetCommandLineArgs(
+        csound, argc - separator - 1, &argv[separator + 1]);
+      if (UNLIKELY(result != CSOUND_SUCCESS))
+        return result;
+      ac = separator;
+      argc = separator;
+    }
   }
 
   if (UNLIKELY(--argc <= 0)) {
@@ -647,4 +729,3 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
 
   return start_engine(csound);
 }
-

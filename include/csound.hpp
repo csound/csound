@@ -153,6 +153,21 @@ class PUBLIC Csound
     return csoundCompile(csound, argc, argv);
   }
 
+  virtual int32_t SetCommandLineArgs(int32_t argc, const char **argv)
+  {
+    return csoundSetCommandLineArgs(csound, argc, argv);
+  }
+
+  virtual int32_t GetCommandLineArgCount()
+  {
+    return csoundGetCommandLineArgCount(csound);
+  }
+
+  virtual const char *GetCommandLineArg(int32_t index)
+  {
+    return csoundGetCommandLineArg(csound, index);
+  }
+
   virtual int32_t Compile(const char *csdName)
   {
     const char  *argv[3];

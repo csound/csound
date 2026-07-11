@@ -182,6 +182,7 @@ static const char *shortUsageList[] = {
     Str_noop("-Q dnam     select MIDI output device"),
     Str_noop("-z          list opcodes in this version"),
     Str_noop("-Z          dither output"),
+    Str_noop("-- args...  expose following arguments through the argv opcode"),
 #if defined(LINUX)
     Str_noop("--sched     set real-time priority and lock memory"),
     Str_noop("              (requires -d and real time audio (-iadc/-odac))"),
@@ -191,6 +192,7 @@ static const char *shortUsageList[] = {
     NULL};
 
 static const char *longUsageList[] = {
+    Str_noop("-- args...              application arguments for the argv opcode"),
     Str_noop("--code=string           compile code string"),
     Str_noop("--events=string         perform events in string"), 
     "--format={wav,aiff,au,raw,paf,svx,nist,voc,ircam,w64,mat4,mat5",

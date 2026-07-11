@@ -628,6 +628,8 @@ extern "C" {
    * Compiles Csound input files (such as an orchestra and score, or CSD)
    * as directed by the supplied command-line arguments,
    * but does not perform them. Returns a non-zero error code on failure.
+   * An exact "--" ends Csound option parsing; following arguments are copied
+   * into the application argument list exposed by the argv opcode and API.
    * In this mode, the sequence of calls should be as follows:
    * /code
    *       csoundCompile(csound, argc, argv);
@@ -637,6 +639,24 @@ extern "C" {
    * /endcode
    */
   PUBLIC int32_t csoundCompile(CSOUND *, int32_t argc, const char **argv);
+
+  /**
+   * Replace the application arguments exposed to the orchestra. Arguments
+   * passed after "--" to csoundCompile() are stored through this API.
+   * The strings are copied and remain valid until they are replaced or the
+   * Csound instance is reset. Pass zero arguments to clear the list.
+   */
+  PUBLIC int32_t csoundSetCommandLineArgs(CSOUND *csound, int32_t argc,
+                                          const char **argv);
+
+  /** Return the number of application arguments exposed to the orchestra. */
+  PUBLIC int32_t csoundGetCommandLineArgCount(CSOUND *csound);
+
+  /**
+   * Return an application argument by zero-based index, or NULL when the
+   * index is outside the current argument list.
+   */
+  PUBLIC const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index);
 
   /**
    * Parse, and compile the given orchestra from an ASCII string,

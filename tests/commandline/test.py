@@ -104,6 +104,8 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
     """
     filename = test_data[0]
     desc = test_data[1]
+    test_run_args = test_data[3] if len(test_data) >= 4 else run_args
+    application_args = test_data[4] if len(test_data) >= 5 else ""
 
     logger.debug(f"Starting test {test_index + 1}: {filename} - {desc}")
     start_time = time.time()
@@ -123,7 +125,10 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
             executable = f"{runtimeEnvironment} {executable}"
 
         # Use temp file for stderr capture (like the original implementation)
-        command = f"{executable} {run_args} {sourceDirectory}/{filename} 2> {temp_file}"
+        command = (
+            f"{executable} {test_run_args} {sourceDirectory}/{filename} "
+            f"{application_args} 2> {temp_file}"
+        )
 
         logger.debug(f"Executing command: {command}")
 
@@ -695,6 +700,13 @@ def runTest():
         ["test_dbap.csd", "test dbap and dbapgains opcodes"],
         ["test_generic_chan.csd", "testing generic bus channel"],
         ["test_generic_chan_no_match.csd", "testing type mismatch for bus channel", 1],
+        [
+            "test_commandline_args.csd",
+            "application arguments after -- are available through argv",
+            0,
+            "-nd",
+            '-- concert.orc "first violin" --logfile=ignored ""',
+        ],
     ]
 
     arrayTests = [
