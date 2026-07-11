@@ -418,7 +418,7 @@ int32_t insert_event(CSOUND *csound, int32_t insno, EVTBLK *newevtp) {
     data.insno = insno;
     data.blk =  *newevtp;
     data.type = 0;
-    return alloc_queue_enqueue(csound, &data) == CSOUND_SUCCESS ? 0 : 1;
+    return alloc_queue_enqueue(csound, &data);
   }
   else return insert(csound, insno, newevtp);
 }
@@ -772,7 +772,7 @@ int32_t insert_midi_event(CSOUND *csound, int32_t insno, MCHNBLK *chn,
     data.chn = chn;
     data.mep = *mep;
     data.type = 1;
-    return alloc_queue_enqueue(csound, &data) == CSOUND_SUCCESS ? 0 : 1;
+    return alloc_queue_enqueue(csound, &data);
   }
   else return insert_midi(csound, insno, chn, mep);
 

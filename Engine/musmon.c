@@ -833,10 +833,16 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
         evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
       /* else alloc, init, activate */
       if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
-        /* Use a consistent INIT ERROR prefix so frontends can parse it */
-        print_score_error(csound, rtEvt,
-                        Str("\nINIT ERROR in instr %d (%s): note deleted (%d init errors)"),
-                        insno, evt->strarg, n);
+        if (n == CSOUND_ERROR)
+          print_score_error(csound, rtEvt,
+                            Str(" - note deleted. realtime allocation "
+                                "queue is full"));
+        else
+          /* Use a consistent INIT ERROR prefix so frontends can parse it */
+          print_score_error(csound, rtEvt,
+                            Str("\nINIT ERROR in instr %d (%s): note "
+                                "deleted (%d init errors)"),
+                            insno, evt->strarg, n);
       }
     }
     else {                                        /* IV - Oct 31 2002 */
@@ -864,11 +870,16 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
         if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
           evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
         if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
-          /* else alloc, init, activate */
-          /* Use a consistent INIT ERROR prefix so frontends can parse it */
-          print_score_error(csound, rtEvt,
-                          Str("\nINIT ERROR in instr %d: note deleted (%d init errors)"),
-                          insno, n);
+          if (n == CSOUND_ERROR)
+            print_score_error(csound, rtEvt,
+                              Str(" - note deleted. realtime allocation "
+                                  "queue is full"));
+          else
+            /* Use a consistent INIT ERROR prefix so frontends can parse it */
+            print_score_error(csound, rtEvt,
+                              Str("\nINIT ERROR in instr %d: note deleted "
+                                  "(%d init errors)"),
+                              insno, n);
         }
       }
     }
@@ -907,7 +918,10 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
       /* alloc,init,activ */
       csound->ErrorMsg(csound,
                       Str("\t\t   T%7.3f - note deleted. "), csound->curp2);
-      {
+      if (n == CSOUND_ERROR)
+        csound->ErrorMsg(csound,
+                         Str("realtime allocation queue is full\n"));
+      else {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (name)
           csound->ErrorMsg(csound, Str("\nINIT ERROR in instr %s: note deleted (%d init errors)\n"),
