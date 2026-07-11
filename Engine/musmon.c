@@ -833,12 +833,13 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
         evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
       /* else alloc, init, activate */
       if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
+        /* Use a consistent INIT ERROR prefix so frontends can parse it */
         if (n == CSOUND_ERROR)
           print_score_error(csound, rtEvt,
-                            Str(" - note deleted. realtime allocation "
-                                "queue is full"));
+                            Str("\nINIT ERROR in instr %d (%s): note "
+                                "deleted (realtime allocation queue is full)"),
+                            insno, evt->strarg);
         else
-          /* Use a consistent INIT ERROR prefix so frontends can parse it */
           print_score_error(csound, rtEvt,
                             Str("\nINIT ERROR in instr %d (%s): note "
                                 "deleted (%d init errors)"),
@@ -870,12 +871,13 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
         if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
           evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
         if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
+          /* Use a consistent INIT ERROR prefix so frontends can parse it */
           if (n == CSOUND_ERROR)
             print_score_error(csound, rtEvt,
-                              Str(" - note deleted. realtime allocation "
-                                  "queue is full"));
+                              Str("\nINIT ERROR in instr %d: note deleted "
+                                  "(realtime allocation queue is full)"),
+                              insno);
           else
-            /* Use a consistent INIT ERROR prefix so frontends can parse it */
             print_score_error(csound, rtEvt,
                               Str("\nINIT ERROR in instr %d: note deleted "
                                   "(%d init errors)"),
