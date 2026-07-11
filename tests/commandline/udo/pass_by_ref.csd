@@ -156,6 +156,52 @@ opcode scaleAudio(aSig):a
 endop
 
 
+// Recursive series filter from the opcode manual, in classic pass-by-copy
+// and modern pass-by-reference forms.
+opcode LowpassByCopy, a, akk
+    setksmps 1
+    aIn, kCoefficient1, kCoefficient2 xin
+    aOut init 0
+    aOut = aIn * kCoefficient1 + aOut * kCoefficient2
+    xout aOut
+endop
+
+
+opcode RecursiveLowpassByCopy, a, akkpp
+    aIn, kCoefficient1, kCoefficient2, iDepth, iCount xin
+    if (iCount >= iDepth) goto done
+    aIn RecursiveLowpassByCopy aIn, kCoefficient1, kCoefficient2, \
+        iDepth, iCount + 1
+done:
+    aOut LowpassByCopy aIn, kCoefficient1, kCoefficient2
+    xout aOut
+endop
+
+
+opcode LowpassByReference(input:a, coefficient1:k, coefficient2:k):a
+    sampleIndex:k = 0
+    output:a init 0
+    previous:k init 0
+    while sampleIndex < ksmps do
+        output[sampleIndex] = input[sampleIndex] * coefficient1 + \
+            previous * coefficient2
+        previous = output[sampleIndex]
+        sampleIndex += 1
+    od
+    xout output
+endop
+
+
+opcode RecursiveLowpassByReference(signal:a, coefficient1:k, coefficient2:k, \
+                                   depth:p, count:p):a
+    if (count < depth) then
+        signal = RecursiveLowpassByReference(signal, coefficient1, \
+                                             coefficient2, depth, count + 1)
+    endif
+    xout LowpassByReference(signal, coefficient1, coefficient2)
+endop
+
+
 instr 1
     iv = 33
     iv2 = 77
@@ -539,6 +585,29 @@ instr 36
 endin
 
 
+instr 37
+    // Recursive pass-by-reference filtering must match the classic copy path.
+    input:a = oscili(0.5, 220)
+    coefficient:k = linseg(0.2, p3, 0.8)
+    byCopy:a RecursiveLowpassByCopy input, coefficient, 1 - coefficient, 10
+    byReference:a = RecursiveLowpassByReference(input, coefficient, \
+                                                 1 - coefficient, 10)
+    difference:a = byCopy - byReference
+    peakError:k peak difference
+    outputPeak:k peak byCopy
+
+    if (peakError > 0.000001) then
+        printks "ERROR: recursive pass-by-reference filter differs by %g\n", \
+            0, peakError
+        exitnowk(-1)
+    endif
+    if (timeinstk() == 2 && outputPeak == 0) then
+        printks "ERROR: recursive filter produced no signal\n", 0
+        exitnowk(-1)
+    endif
+endin
+
+
 </CsInstruments>
 <CsScore>
 i1 0 1
@@ -563,6 +632,7 @@ i33 0 1
 i34 0 1
 i35 0 1
 i36 0 0.01
+i37 0 0.05
 ; i"SoundTest" 0 4 220 0.25
 ; i"SoundTest" 1 3 330 0.25
 ; i"SoundTest" 2 3 440 0.25
