@@ -1790,6 +1790,19 @@ static char *node2string(int32_t type) {
   }
 }
 
+static void merge_engine_state(CSOUND *csound, ENGINE_STATE *engineState,
+                               TYPE_TABLE *typetable) {
+  enginestate_merge(csound, engineState);
+  enginestate_free(csound, engineState);
+  free_typetable(csound, typetable);
+}
+
+static void run_merged_global_init(CSOUND *csound, OPDS *ids) {
+  /* run global i-time code */
+  init0(csound);
+  csound->ids = ids;
+}
+
 /** Merge and Dispose of engine state and type table,
     and run global i-time code
 */
@@ -1797,12 +1810,22 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
                  TYPE_TABLE *typetable, OPDS *ids) {
   if (csound->init_pass_threadlock)
     csoundLockMutex(csound->init_pass_threadlock);
-  enginestate_merge(csound, engineState);
-  enginestate_free(csound, engineState);
-  free_typetable(csound, typetable);
-  /* run global i-time code */
-  init0(csound);
-  csound->ids = ids;
+  merge_engine_state(csound, engineState, typetable);
+  run_merged_global_init(csound, ids);
+  if (csound->init_pass_threadlock)
+    csoundUnlockMutex(csound->init_pass_threadlock);
+}
+
+void merge_state_realtime(CSOUND *csound, ENGINE_STATE *engineState,
+                          TYPE_TABLE *typetable, OPDS *ids) {
+  if (csound->init_pass_threadlock)
+    csoundLockMutex(csound->init_pass_threadlock);
+  /* Global i-time opcodes may allocate, so this lock must end before init0. */
+  csoundSpinLock(&csound->alloc_spinlock);
+  named_instr_assign_numbers(csound, engineState);
+  merge_engine_state(csound, engineState, typetable);
+  csoundSpinUnLock(&csound->alloc_spinlock);
+  run_merged_global_init(csound, ids);
   if (csound->init_pass_threadlock)
     csoundUnlockMutex(csound->init_pass_threadlock);
 }

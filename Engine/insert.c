@@ -237,10 +237,7 @@ uintptr_t event_insert_thread(void *p) {
           ENGINE_STATE *engine_state = inst[rp].engine_state;
           TYPE_TABLE *type_table = inst[rp].type_table;
           OPDS *ids = inst[rp].ids;
-          csoundSpinLock(&csound->alloc_spinlock);
-          named_instr_assign_numbers(csound, engine_state);
-          merge_state(csound, engine_state, type_table, ids);
-          csoundSpinUnLock(&csound->alloc_spinlock);
+          merge_state_realtime(csound, engine_state, type_table, ids);
         }
         if (inst[rp].type == 3)  {
           INSDS *ip = inst[rp].ip;
