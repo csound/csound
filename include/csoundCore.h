@@ -1792,6 +1792,7 @@ struct CSOUND_ {
   volatile unsigned long alloc_queue_items;
   unsigned long alloc_queue_wp;
   spin_lock_t alloc_queue_spinlock;
+  void *alloc_queue_mutex;
   spin_lock_t alloc_spinlock;
   EVTBLK *init_event;
   char *message_string;

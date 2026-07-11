@@ -36,8 +36,7 @@
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
 
-#if defined(HAVE_PTHREAD_SPIN_LOCK) || defined(MSVC) || defined(MACOSX) || \
-    (defined(__GNUC__) && defined(HAVE_ATOMIC_BUILTIN))
+#if CSOUND_SPINLOCK_AVAILABLE
 #define RT_SPIN_TRYLOCK { int32_t trylock = CSOUND_SUCCESS; \
   if(csound->oparms->realtime)             \
     trylock = csoundSpinTryLock(&csound->alloc_spinlock);      \
@@ -46,8 +45,7 @@
 #define RT_SPIN_TRYLOCK csoundSpinLock(&csound->alloc_spinlock);
 #endif
 
-#if defined(HAVE_PTHREAD_SPIN_LOCK) || defined(MSVC) || defined(MACOSX) || \
-    (defined(__GNUC__) && defined(HAVE_ATOMIC_BUILTIN))
+#if CSOUND_SPINLOCK_AVAILABLE
 #define RT_SPIN_UNLOCK \
   if(csound->oparms->realtime) \
     csoundSpinUnLock(&csound->alloc_spinlock); \
@@ -329,15 +327,45 @@ int32_t start_engine(CSOUND *csound)
     if (csound->oparms->realtime && csound->event_insert_loop == 0){
       /* Init-time compile opcodes re-enter this lock while merging state. */
       csound->init_pass_threadlock = csoundCreateMutex(1);
-      csound->ErrorMsg(csound, "Initialising spinlock...\n");
-      csoundSpinLockInit(&csound->alloc_queue_spinlock);
+      if (UNLIKELY(csound->init_pass_threadlock == NULL)) {
+        csound->ErrorMsg(csound, "%s", Str("Failed to initialise realtime "
+                                             "init lock\n"));
+        return CSOUND_ERROR;
+      }
+      csound->ErrorMsg(csound, "Initialising realtime allocation queue...\n");
+      if (UNLIKELY(alloc_queue_lock_init(csound) != CSOUND_SUCCESS)) {
+        csound->ErrorMsg(csound, "%s", Str("Failed to initialise realtime "
+                                             "allocation queue lock\n"));
+        csoundDestroyMutex(csound->init_pass_threadlock);
+        csound->init_pass_threadlock = NULL;
+        return CSOUND_ERROR;
+      }
       csoundSpinLockInit(&csound->alloc_spinlock);
-      csound->event_insert_loop = 1;
       csound->alloc_queue = (ALLOC_DATA *)
         csound->Calloc(csound, sizeof(ALLOC_DATA)*MAX_ALLOC_QUEUE);
+      if (UNLIKELY(csound->alloc_queue == NULL)) {
+        csound->ErrorMsg(csound, "%s", Str("Failed to allocate realtime "
+                                             "allocation queue\n"));
+        alloc_queue_lock_destroy(csound);
+        csoundDestroyMutex(csound->init_pass_threadlock);
+        csound->init_pass_threadlock = NULL;
+        return CSOUND_MEMORY;
+      }
+      csound->event_insert_loop = 1;
       csound->event_insert_thread =
         csound->CreateThread(event_insert_thread,
                              (void*)csound);
+      if (UNLIKELY(csound->event_insert_thread == NULL)) {
+        csound->event_insert_loop = 0;
+        alloc_queue_lock_destroy(csound);
+        csoundDestroyMutex(csound->init_pass_threadlock);
+        csound->init_pass_threadlock = NULL;
+        csound->Free(csound, csound->alloc_queue);
+        csound->alloc_queue = NULL;
+        csound->ErrorMsg(csound, "%s", Str("Failed to start realtime "
+                                             "allocation queue thread\n"));
+        return CSOUND_ERROR;
+      }
       csound->ErrorMsg(csound, "Starting realtime mode queue: %p thread: %p\n",
                       csound->alloc_queue, csound->event_insert_thread );
     }
@@ -413,7 +441,13 @@ static void stop_event_insert_thread(CSOUND *csound)
     if (csound->event_insert_thread != NULL) {
       csound->event_insert_loop = 0;
       csound->JoinThread(csound->event_insert_thread);
+      alloc_queue_lock_destroy(csound);
+      csound->Free(csound, csound->alloc_queue);
+      csound->alloc_queue = NULL;
+      csound->alloc_queue_items = 0;
+      csound->alloc_queue_wp = 0;
       csoundDestroyMutex(csound->init_pass_threadlock);
+      csound->init_pass_threadlock = NULL;
       csound->event_insert_thread = 0;
     }
 }

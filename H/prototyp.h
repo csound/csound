@@ -87,6 +87,8 @@ extern "C" {
   int32_t instr_context_check(CSOUND *csound, INSDS *ip, INSDS *insdshead);
   int32_t alloc_queue_enqueue(CSOUND *csound,
                               const struct _alloc_data_ *data);
+  int32_t alloc_queue_lock_init(CSOUND *csound);
+  void alloc_queue_lock_destroy(CSOUND *csound);
   int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
   int32_t insert_event(CSOUND *, int32_t,  EVTBLK*);
   void free_inactive_instances(CSOUND*);

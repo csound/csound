@@ -121,7 +121,7 @@ int32_t reinit(CSOUND *csound, GOTO *p)
     ATOMIC_SET8(p->h.insdshead->actflg, 0);
     data.ip = p->h.insdshead;
     data.ids = p->lblblk->prvi;
-    data.type = 3;
+    data.type = ALLOC_DATA_REINIT_PASS;
 
     if (UNLIKELY(alloc_queue_enqueue(csound, &data) != CSOUND_SUCCESS)) {
       ATOMIC_SET(p->h.insdshead->init_done, init_done);
