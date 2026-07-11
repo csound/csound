@@ -327,7 +327,8 @@ int32_t start_engine(CSOUND *csound)
 
 #ifndef __EMSCRIPTEN__
     if (csound->oparms->realtime && csound->event_insert_loop == 0){
-      csound->init_pass_threadlock = csoundCreateMutex(0);
+      /* Init-time compile opcodes re-enter this lock while merging state. */
+      csound->init_pass_threadlock = csoundCreateMutex(1);
       csound->ErrorMsg(csound, "Initialising spinlock...\n");
       csoundSpinLockInit(&csound->alloc_queue_spinlock);
       csoundSpinLockInit(&csound->alloc_spinlock);

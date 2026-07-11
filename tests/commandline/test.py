@@ -461,6 +461,10 @@ def runTest():
         ["test_ftload_binary_args_ownership.csd", "test binary ftload does not share args ownership"],
         ["test_getftargs_empty_after_ftload.csd", "test getftargs returns empty args after binary ftload"],
         ["test_fail_compilestr.csd", "testing clean compilestr fail"],
+        [
+            "test_realtime_compile_opcodes.csd",
+            "test realtime init-thread compile opcodes",
+        ],
         ["test_global_struct_var.csd", "testing global structure var"],
         ["test_setscorepos.csd", "testing setscorepos and rewindscore"],
         ["test_instr0_call.csd", "testing ability to call instr 0"],
