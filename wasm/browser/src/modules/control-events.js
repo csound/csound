@@ -49,6 +49,20 @@ export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
 csoundInputMessageAsync["toString"] = () => "inputMessageAsync = async (scoreEvent) => Number;";
 
 /**
+ * Queues text for the readline opcode. Include a newline to submit the line.
+ * @function
+ */
+export const csoundReadlinePushText = (wasm) => (csound, text) => {
+  const stringPtr = string2ptr(wasm, text);
+  const result = wasm.exports["csoundReadlinePushText"](csound, stringPtr);
+  freeStringPtr(wasm, stringPtr);
+  return result;
+};
+
+csoundReadlinePushText["toString"] = () =>
+  "readlinePushText = async (text) => Number;";
+
+/**
  * Retrieves the value of control channel identified by channelName.
  * If the err argument is not NULL, the error (or success) code finding
  * or accessing the channel is stored in it.
