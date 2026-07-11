@@ -122,6 +122,7 @@
   "csoundRandMT",
   "csoundReadCircularBuffer",
   "csoundReadScore",
+  "csoundReadlinePushText",
   "csoundRegisterKeyboardCallback",
   "csoundRemoveKeyboardCallback",
   "csoundReset",

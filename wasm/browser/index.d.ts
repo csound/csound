@@ -258,6 +258,10 @@ declare interface CsoundObj {
    */
   inputMessageAsync: (scoreEvent: string) => Promise<number>;
   /**
+   * Queues text for the readline opcode. Include a newline to submit the line.
+   */
+  readlinePushText: (text: string) => Promise<number>;
+  /**
    * Retrieves the value of control channel identified by channelName.
    * If the err argument is not NULL, the error (or success) code finding
    * or accessing the channel is stored in it.
@@ -648,6 +652,7 @@ declare interface LibCsoundObj {
   _isRequestingRtMidiInput: (csound: number) => number;
   csoundInputMessage: (csound: number, scoreEvent: string) => number;
   csoundInputMessageAsync: (csound: number, scoreEvent: string) => number;
+  csoundReadlinePushText: (csound: number, text: string) => number;
   csoundGetControlChannel: (csound: number, channelName: string) => number;
   csoundSetControlChannel: (csound: number, channelName: string, value: number) => void;
   csoundGetStringChannel: (csound: number, channelName: string) => string;

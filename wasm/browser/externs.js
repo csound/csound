@@ -138,6 +138,7 @@ var WasiFS;
  * csoundPushMidiMessage: function(CsoundInst, number, number, number): number,
  * csoundInputMessage: function(CsoundInst, string): number,
  * csoundInputMessageAsync: function(CsoundInst, string): number,
+ * csoundReadlinePushText: function(CsoundInst, string): number,
  * csoundGetControlChannel: function(CsoundInst, string): number,
  * csoundSetControlChannel: function(CsoundInst, string, number): undefined,
  * csoundGetStringChannel: function(CsoundInst, string): string,

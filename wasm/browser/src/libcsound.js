@@ -68,6 +68,7 @@ import {
 import {
   csoundInputMessage,
   csoundInputMessageAsync,
+  csoundReadlinePushText,
   csoundGetControlChannel,
   csoundSetControlChannel,
   csoundGetStringChannel,
@@ -197,6 +198,7 @@ export const api = {
   // @module/control_events
   csoundInputMessage,
   csoundInputMessageAsync,
+  csoundReadlinePushText,
   csoundGetControlChannel,
   csoundSetControlChannel,
   csoundGetStringChannel,
