@@ -89,7 +89,8 @@
    earlier steps. stmtick is counted internally in a uint64 and returned as
    MYFLT, hence exact up to 2^53 in a double build and 2^24 in a float one.
 
-   Node time is measured from the tick at which the current node was entered:
+   Node time is measured from the sample-frame count at which the current node
+   was entered:
 
      - it reads 0 on the node's own first cycle
      - a transition rejected by stmadvance (no such edge) leaves it untouched,
