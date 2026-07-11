@@ -53,8 +53,8 @@ static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 in
                                  ENGINE_STATE *engineState, int32_t merge);
 
 MYFLT initialise_io(CSOUND *csound);
-void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
-                         OPDS *ids);
+int32_t merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
+                            OPDS *ids);
 OENTRY* find_opcode(CSOUND*, char*);
 void sanitize(CSOUND *csound);
 
@@ -2115,7 +2115,14 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       if (!csound->oparms->realtime)
         csoundUnlockMutex(csound->API_lock);
     } else {
-      merge_state_enqueue(csound, engineState, typeTable, ids);
+      if (UNLIKELY(merge_state_enqueue(csound, engineState,
+                                       typeTable, ids) != CSOUND_SUCCESS)) {
+        csound->ErrorMsg(csound, "%s", Str("cannot merge compiled orchestra: "
+                                           "realtime allocation queue is full\n"));
+        enginestate_free(csound, engineState);
+        free_typetable(csound, typeTable);
+        return CSOUND_ERROR;
+      }
     }
   } else {
     /* now add the instruments with names, assigning them fake instr numbers */
