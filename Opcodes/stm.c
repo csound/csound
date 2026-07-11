@@ -89,7 +89,8 @@
    earlier steps. stmtick is counted internally in a uint64 and returned as
    MYFLT, hence exact up to 2^53 in a double build and 2^24 in a float one.
 
-   Node time is measured from the tick at which the current node was entered:
+   Node time is measured from the sample-frame count at which the current node
+   was entered:
 
      - it reads 0 on the node's own first cycle
      - a transition rejected by stmadvance (no such edge) leaves it untouched,
@@ -165,6 +166,27 @@ static void stm_registry_unlock(CSOUND *csound, STM_REGISTRY *reg) {
         csound->UnlockMutex(reg->mutex);
 }
 
+static int32_t stm_registry_reset(CSOUND *csound, void *userData) {
+    STM_REGISTRY *reg = (STM_REGISTRY *) userData;
+    if (reg == NULL)
+        reg = stm_registry_query(csound);
+    if (reg == NULL)
+        return OK;
+
+    if (reg->mutex != NULL) {
+        csound->DestroyMutex(reg->mutex);
+        reg->mutex = NULL;
+    }
+    if (reg->slots != NULL) {
+        csound->Free(csound, reg->slots);
+        reg->slots = NULL;
+    }
+    reg->count = 0;
+    reg->capacity = 0;
+    csound->DestroyGlobalVariable(csound, STM_REGISTRY_NAME);
+    return OK;
+}
+
 static uint32_t stm_make_handle(uint32_t slot, uint32_t generation) {
     if (slot >= STM_HANDLE_SLOT_BASE || generation == 0 ||
             generation > STM_HANDLE_GENERATION_MAX) {
@@ -207,13 +229,29 @@ static uint32_t stm_register_graph(CSOUND *csound, GRAPH *g, uint32_t *slot_out,
             return 0;
         }
         reg = stm_registry_query(csound);
-        if (reg == NULL) { return 0; }
+        if (reg == NULL) {
+            csound->DestroyGlobalVariable(csound, STM_REGISTRY_NAME);
+            return 0;
+        }
         reg->capacity = INITIAL_GRAPH_CAPACITY;
         reg->count = 0;
         reg->slots = csound->Calloc(csound, sizeof(STM_REGISTRY_SLOT) * reg->capacity);
-        if (reg->slots == NULL) { return 0; }
+        if (reg->slots == NULL) {
+            csound->DestroyGlobalVariable(csound, STM_REGISTRY_NAME);
+            return 0;
+        }
         reg->mutex = csound->Create_Mutex(0);
-        if (reg->mutex == NULL) { return 0; }
+        if (reg->mutex == NULL) {
+            csound->Free(csound, reg->slots);
+            reg->slots = NULL;
+            csound->DestroyGlobalVariable(csound, STM_REGISTRY_NAME);
+            return 0;
+        }
+        if (csound->RegisterResetCallback(csound, (void *) reg,
+                stm_registry_reset) != 0) {
+            stm_registry_reset(csound, (void *) reg);
+            return 0;
+        }
     }
 
     stm_registry_lock(csound, reg);
@@ -724,7 +762,8 @@ int32_t graph_on_ee_init(CSOUND *csound, GRAPH_ON_EE *p) {
     return OK;
 }
 
-/* rising-edge trigger: 1 only on the cycle this node becomes current */
+/* Graph-level enter event trigger: 1 only for a new transition event where
+   this node became current. */
 int32_t graph_on_enter(CSOUND *csound, GRAPH_ON_EE *p) {
     STM_REGISTRY *reg;
     GRAPH *g;
@@ -744,7 +783,8 @@ int32_t graph_on_enter(CSOUND *csound, GRAPH_ON_EE *p) {
     return OK;
 }
 
-/* rising-edge trigger: 1 only on the cycle this node becomes not current */
+/* Graph-level exit event trigger: 1 only for a new transition event where
+   this node stopped being current. */
 int32_t graph_on_exit(CSOUND *csound, GRAPH_ON_EE *p) {
     STM_REGISTRY *reg;
     GRAPH *g;
@@ -862,9 +902,11 @@ int32_t graph_reset(CSOUND *csound, GRAPH_RESET *p) {
     g->total_sample_frames = 0;
     g->node_sample_on_enter = 0;
     g->reset_pending = 1;
-    g->event_seq++;
-    g->event_exited_node = old_node != g->start_node ? old_node : NO_NODE;
-    g->event_entered_node = g->start_node;
+    if (old_node != g->start_node) {
+        g->event_seq++;
+        g->event_exited_node = old_node;
+        g->event_entered_node = g->start_node;
+    }
 
     stm_registry_unlock(csound, reg);
     return OK;
