@@ -45,17 +45,27 @@ static int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn,
 static int32_t insert(CSOUND *csound, int32_t insno, EVTBLK *newevtp);
 static void maxalloc_turnoff(CSOUND *csound, int32_t insno);
 
-/* Reserve, fill, and publish realtime allocation queue slots in producer order. */
-void alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
+/* Reserve, fill, and publish a realtime allocation request. */
+int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
 {
   unsigned long wp;
+  int32_t result = CSOUND_SUCCESS;
+
+  if (UNLIKELY(csound->alloc_queue == NULL))
+    return CSOUND_ERROR;
 
   csoundSpinLock(&csound->alloc_queue_spinlock);
-  wp = csound->alloc_queue_wp;
-  csound->alloc_queue[wp] = *data;
-  csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
-  ATOMIC_INCR(csound->alloc_queue_items);
+  if (UNLIKELY(ATOMIC_GET(csound->alloc_queue_items) >= MAX_ALLOC_QUEUE)) {
+    result = CSOUND_ERROR;
+  }
+  else {
+    wp = csound->alloc_queue_wp;
+    csound->alloc_queue[wp] = *data;
+    csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
+    ATOMIC_INCR(csound->alloc_queue_items);
+  }
   csoundSpinUnLock(&csound->alloc_queue_spinlock);
+  return result;
 }
 
 /* Helper function to get type string from argument without unsafe casting */
@@ -408,8 +418,7 @@ int32_t insert_event(CSOUND *csound, int32_t insno, EVTBLK *newevtp) {
     data.insno = insno;
     data.blk =  *newevtp;
     data.type = 0;
-    alloc_queue_enqueue(csound, &data);
-    return 0;
+    return alloc_queue_enqueue(csound, &data) == CSOUND_SUCCESS ? 0 : 1;
   }
   else return insert(csound, insno, newevtp);
 }
@@ -763,8 +772,7 @@ int32_t insert_midi_event(CSOUND *csound, int32_t insno, MCHNBLK *chn,
     data.chn = chn;
     data.mep = *mep;
     data.type = 1;
-    alloc_queue_enqueue(csound, &data);
-    return 0;
+    return alloc_queue_enqueue(csound, &data) == CSOUND_SUCCESS ? 0 : 1;
   }
   else return insert_midi(csound, insno, chn, mep);
 

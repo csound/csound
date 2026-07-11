@@ -1,4 +1,5 @@
-#include "csound.h"
+#define __BUILDING_LIBCSOUND
+#include "csoundCore.h"
 #include "csound_graph_display.h"
 #include <stdio.h>
 #include "gtest/gtest.h"
@@ -202,4 +203,38 @@ TEST_F (EngineTests, testRealtimeAsyncCompileMergesOnEventThread)
     }
 
     ASSERT_GT(insno, 0);
+}
+
+TEST_F (EngineTests, testRealtimeAllocQueueRejectsOverflow)
+{
+    csound->alloc_queue = static_cast<ALLOC_DATA *>(
+      csound->Calloc(csound, sizeof(ALLOC_DATA) * MAX_ALLOC_QUEUE));
+    ASSERT_NE(csound->alloc_queue, nullptr);
+    ASSERT_EQ(csoundSpinLockInit(&csound->alloc_queue_spinlock),
+              CSOUND_SUCCESS);
+    ATOMIC_SET(csound->alloc_queue_items, 0);
+    csound->alloc_queue_wp = 0;
+
+    for (int32_t i = 0; i < MAX_ALLOC_QUEUE; ++i) {
+      ALLOC_DATA data = { 0 };
+      data.insno = i + 1;
+      ASSERT_EQ(alloc_queue_enqueue(csound, &data), CSOUND_SUCCESS);
+    }
+
+    ASSERT_EQ(ATOMIC_GET(csound->alloc_queue_items), MAX_ALLOC_QUEUE);
+    ASSERT_EQ(csound->alloc_queue_wp, 0u);
+    for (int32_t i = 0; i < MAX_ALLOC_QUEUE; ++i)
+      ASSERT_EQ(csound->alloc_queue[i].insno, i + 1);
+
+    ALLOC_DATA overflow = { 0 };
+    overflow.insno = MAX_ALLOC_QUEUE + 1;
+    ASSERT_EQ(alloc_queue_enqueue(csound, &overflow), CSOUND_ERROR);
+    ASSERT_EQ(ATOMIC_GET(csound->alloc_queue_items), MAX_ALLOC_QUEUE);
+    ASSERT_EQ(csound->alloc_queue_wp, 0u);
+    ASSERT_EQ(csound->alloc_queue[0].insno, 1);
+
+    ATOMIC_SET(csound->alloc_queue_items, 0);
+    csound->alloc_queue_wp = 0;
+    csound->Free(csound, csound->alloc_queue);
+    csound->alloc_queue = nullptr;
 }

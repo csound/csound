@@ -308,7 +308,8 @@ void kill_instance_enqueue(CSOUND *csound, MYFLT instr, int32_t insno,
 /* this is to be called from
    csound_compile_tree() in csound_orc_compile.c
 */
-void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *ids) {
+int32_t merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e,
+                            TYPE_TABLE *t, OPDS *ids) {
   if (csound->oparms->realtime && csound->event_insert_loop &&
       csound->alloc_queue != NULL) {
     ALLOC_DATA data = { 0 };
@@ -316,8 +317,7 @@ void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *i
     data.type_table = t;
     data.ids = ids;
     data.type = ALLOC_DATA_MERGE_STATE;
-    alloc_queue_enqueue(csound, &data);
-    return;
+    return alloc_queue_enqueue(csound, &data);
   }
 
   const int32_t argsize = ARG_ALIGN*3;
@@ -326,6 +326,7 @@ void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *i
   memcpy(args+ARG_ALIGN, &t, sizeof(TYPE_TABLE *));
   memcpy(args+2*ARG_ALIGN, &ids, sizeof(OPDS *));
   message_enqueue(csound,MERGE_STATE, args, argsize);
+  return CSOUND_SUCCESS;
 }
 
 /** Async versions of the functions above
