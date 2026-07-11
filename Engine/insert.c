@@ -256,6 +256,28 @@ static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   return error;
 }
 
+static int32_t realtime_init_pass(CSOUND *csound, INSDS *ip)
+{
+  int32_t error;
+
+  /* Init opcodes may acquire alloc_spinlock; the init mutex remains held. */
+  csoundSpinUnLock(&csound->alloc_spinlock);
+  error = init_pass(csound, ip);
+  csoundSpinLock(&csound->alloc_spinlock);
+  return error;
+}
+
+static int32_t realtime_reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids)
+{
+  int32_t error;
+
+  /* Reinit has the same lock requirements as the initial pass. */
+  csoundSpinUnLock(&csound->alloc_spinlock);
+  error = reinit_pass(csound, ip, ids);
+  csoundSpinLock(&csound->alloc_spinlock);
+  return error;
+}
+
 /*
  * creates a thread to process instance allocations
  */
@@ -291,6 +313,9 @@ uintptr_t event_insert_thread(void *p) {
 
     while (processed < MAX_ALLOC_QUEUE &&
            alloc_queue_dequeue(csound, &data, &rp)) {
+      /* Keep the common lock order: init mutex, then allocation lock. */
+      if (csound->init_pass_threadlock)
+        csoundLockMutex(csound->init_pass_threadlock);
       switch (data.type) {
         case ALLOC_DATA_MERGE_STATE: {
           ENGINE_STATE *engine_state = data.engine_state;
@@ -304,7 +329,7 @@ uintptr_t event_insert_thread(void *p) {
           INSDS *ip = data.ip;
           OPDS *ids = data.ids;
           csoundSpinLock(&csound->alloc_spinlock);
-          reinit_pass(csound, ip, ids);
+          realtime_reinit_pass(csound, ip, ids);
           csoundSpinUnLock(&csound->alloc_spinlock);
           ATOMIC_SET(ip->init_done, 1);
           break;
@@ -314,7 +339,7 @@ uintptr_t event_insert_thread(void *p) {
           INSDS *ip = data.ip;
           ATOMIC_SET(ip->init_done, 0);
           csoundSpinLock(&csound->alloc_spinlock);
-          init_pass(csound, ip);
+          realtime_init_pass(csound, ip);
           csoundSpinUnLock(&csound->alloc_spinlock);
           ATOMIC_SET(ip->init_done, 1);
           break;
@@ -332,6 +357,8 @@ uintptr_t event_insert_thread(void *p) {
           csoundSpinUnLock(&csound->alloc_spinlock);
           break;
       }
+      if (csound->init_pass_threadlock)
+        csoundUnlockMutex(csound->init_pass_threadlock);
       processed++;
     }
     if(processed == 0)
@@ -757,7 +784,8 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
 
   // current event needs to be reset here
   csound->init_event = newevtp;
-  error = init_pass(csound, ip);
+  error = csound->oparms->realtime ? realtime_init_pass(csound, ip) :
+    init_pass(csound, ip);
   if(error == 0)
     ATOMIC_SET(ip->init_done, 1);
   if (UNLIKELY(csound->inerrcnt || ip->p3.value == FL(0.0))) {
@@ -1063,7 +1091,8 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
    }
   } else csound->init_event = NULL;
 
-  error = init_pass(csound, ip);
+  error = csound->oparms->realtime ? realtime_init_pass(csound, ip) :
+    init_pass(csound, ip);
   if(evt.p) csound->Free(csound, evt.p);
   csound->init_event = NULL;
   if(error == 0)

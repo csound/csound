@@ -1820,11 +1820,12 @@ void merge_state_realtime(CSOUND *csound, ENGINE_STATE *engineState,
                           TYPE_TABLE *typetable, OPDS *ids) {
   if (csound->init_pass_threadlock)
     csoundLockMutex(csound->init_pass_threadlock);
-  /* Global i-time opcodes may allocate, so this lock must end before init0. */
+  /* Keep the init-lock-before-allocation-lock order used by realtime init. */
   csoundSpinLock(&csound->alloc_spinlock);
   named_instr_assign_numbers(csound, engineState);
   merge_engine_state(csound, engineState, typetable);
   csoundSpinUnLock(&csound->alloc_spinlock);
+  /* Global i-time opcodes may acquire the allocation lock themselves. */
   run_merged_global_init(csound, ids);
   if (csound->init_pass_threadlock)
     csoundUnlockMutex(csound->init_pass_threadlock);
