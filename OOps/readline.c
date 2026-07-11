@@ -41,6 +41,7 @@
 
 #define READLINE_GLOBALS_NAME "::readline_globals::"
 #define READLINE_INITIAL_CAPACITY 128
+#define READLINE_INPUT_CAPACITY 65536
 #define READLINE_OUTPUT_CAPACITY 65536
 #define READLINE_OUTPUT_CHUNK 1024
 
@@ -80,6 +81,7 @@ typedef struct {
 
 typedef struct {
   READLINE_OPCODE *active;
+  void *inputBuffer;
   int32_t resetRegistered;
 } READLINE_GLOBALS;
 
@@ -177,7 +179,39 @@ static READLINE_GLOBALS *get_readline_globals(CSOUND *csound)
     globals->resetRegistered = 1;
   }
 
+  if (globals != NULL && globals->inputBuffer == NULL) {
+    globals->inputBuffer = csound->CreateCircularBuffer(
+      csound, READLINE_INPUT_CAPACITY, sizeof(char));
+    if (UNLIKELY(globals->inputBuffer == NULL))
+      return NULL;
+  }
+
   return globals;
+}
+
+int32_t csoundReadlinePushText(CSOUND *csound, const char *text)
+{
+  READLINE_GLOBALS *globals;
+  size_t length;
+
+  if (UNLIKELY(csound == NULL || text == NULL))
+    return CSOUND_ERROR;
+
+  length = strlen(text);
+  if (length == 0)
+    return CSOUND_SUCCESS;
+  if (UNLIKELY(length > (size_t) INT32_MAX))
+    return CSOUND_ERROR;
+
+  globals = get_readline_globals(csound);
+  if (UNLIKELY(globals == NULL ||
+               csound->CheckCircularBuffer(
+                 csound, globals->inputBuffer, 1) < (int32_t) length))
+    return CSOUND_ERROR;
+
+  return csound->WriteCircularBuffer(
+           csound, globals->inputBuffer, text, (int32_t) length) ==
+         (int32_t) length ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 static int32_t grow_buffer(CSOUND *csound, READLINE_STATE *state,
@@ -628,12 +662,19 @@ static int32_t readline_reset(CSOUND *csound, void *userData)
 {
   READLINE_GLOBALS *globals = (READLINE_GLOBALS *) userData;
 
-  if (globals != NULL && globals->active != NULL)
-    readline_deinit(csound, globals->active);
+  if (globals != NULL) {
+    if (globals->active != NULL)
+      readline_deinit(csound, globals->active);
+    if (globals->inputBuffer != NULL) {
+      csound->DestroyCircularBuffer(csound, globals->inputBuffer);
+      globals->inputBuffer = NULL;
+    }
+  }
   return OK;
 }
 
-static int32_t poll_terminal(CSOUND *csound, int32_t *key,
+static int32_t poll_terminal(CSOUND *csound, READLINE_STATE *state,
+                             int32_t *key,
                              int32_t *fromTerminal)
 {
   int32_t callbackKey = 0;
@@ -653,6 +694,17 @@ static int32_t poll_terminal(CSOUND *csound, int32_t *key,
     csound->inChar_ = 0;
     *fromTerminal = 0;
     return READLINE_POLL_CHARACTER;
+  }
+
+  if (state->globals != NULL && state->globals->inputBuffer != NULL) {
+    unsigned char input;
+
+    if (csound->ReadCircularBuffer(
+          csound, state->globals->inputBuffer, &input, 1) == 1) {
+      *key = (int32_t) input;
+      *fromTerminal = 0;
+      return READLINE_POLL_CHARACTER;
+    }
   }
 
 #if defined(WIN32)
@@ -879,7 +931,7 @@ int32_t readline_perf(CSOUND *csound, READLINE_OPCODE *p)
     return readline_perf_error(
       csound, p, Str("readline: terminal output queue full"));
 
-  pollResult = poll_terminal(csound, &key, &fromTerminal);
+  pollResult = poll_terminal(csound, state, &key, &fromTerminal);
   if (pollResult == READLINE_POLL_NONE)
     return OK;
   if (pollResult == READLINE_POLL_ERROR)

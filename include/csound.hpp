@@ -318,6 +318,10 @@ class PUBLIC Csound
   {
     csoundKeyPress(csound, c);
   }
+  virtual int32_t ReadlinePushText(const char *text)
+  {
+    return csoundReadlinePushText(csound, text);
+  }
   virtual void Event(int32_t type, MYFLT *pFields, int32_t numFields, int32_t async = 0)
   {
     csoundEvent(csound, type, pFields, numFields, async);

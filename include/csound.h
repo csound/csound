@@ -1196,16 +1196,27 @@ extern "C" {
 
   /**
    * Set the ASCII code of the most recent key pressed.
-   * This value is used by the 'sensekey' opcode if a callback
-   * for returning keyboard events is not set (see
+   * This value is used by keyboard input opcodes such as 'sensekey' and
+   * 'readline' if a callback for returning keyboard events is not set (see
    * csoundRegisterKeyboardCallback()).
    */
   PUBLIC void csoundKeyPress(CSOUND *, char c);
 
   /**
+   * Queue UTF-8 text for consumption by the readline opcode. A newline
+   * character completes the current line. Text may be queued before or
+   * during performance, allowing hosts without terminal input, such as
+   * Android and WebAssembly applications, to connect their own text input.
+   *
+   * Returns CSOUND_SUCCESS on success or CSOUND_ERROR if the arguments are
+   * invalid or the input queue does not have enough space for the full text.
+   */
+  PUBLIC int32_t csoundReadlinePushText(CSOUND *, const char *text);
+
+  /**
    * Registers general purpose callback functions that will be called to query
    * keyboard events. These callbacks are called on every control period by
-   * the sensekey opcode.
+   * opcodes that consume keyboard input.
    * The callback is preserved on csoundReset(), and multiple
    * callbacks may be set and will be called in reverse order of
    * registration. If the same function is set again, it is only moved
