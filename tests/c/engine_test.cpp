@@ -218,7 +218,8 @@ TEST_F (EngineTests, testRealtimeAllocQueueRejectsOverflow)
     for (int32_t i = 0; i < MAX_ALLOC_QUEUE; ++i) {
       ALLOC_DATA data = { 0 };
       data.insno = i + 1;
-      ASSERT_EQ(alloc_queue_enqueue(csound, &data), CSOUND_SUCCESS);
+      ASSERT_EQ(alloc_queue_enqueue(csound, &data), CSOUND_SUCCESS)
+        << "queue item " << i;
     }
 
     ASSERT_EQ(ATOMIC_GET(csound->alloc_queue_items), MAX_ALLOC_QUEUE);
@@ -232,6 +233,15 @@ TEST_F (EngineTests, testRealtimeAllocQueueRejectsOverflow)
     ASSERT_EQ(ATOMIC_GET(csound->alloc_queue_items), MAX_ALLOC_QUEUE);
     ASSERT_EQ(csound->alloc_queue_wp, 0u);
     ASSERT_EQ(csound->alloc_queue[0].insno, 1);
+
+    int32_t realtime = csound->oparms->realtime;
+    EVTBLK event = { 0 };
+    MCHNBLK channel = { 0 };
+    MEVENT midi = { 0 };
+    csound->oparms->realtime = 1;
+    ASSERT_EQ(insert_event(csound, 1, &event), CSOUND_ERROR);
+    ASSERT_EQ(insert_midi_event(csound, 1, &channel, &midi), CSOUND_ERROR);
+    csound->oparms->realtime = realtime;
 
     ATOMIC_SET(csound->alloc_queue_items, 0);
     csound->alloc_queue_wp = 0;
