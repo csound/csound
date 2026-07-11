@@ -207,6 +207,42 @@ TEST_F (IOTests, testReadline)
     ASSERT_STREQ(line, "abcd");
 }
 
+TEST_F (IOTests, testReadlineHostInput)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+
+    const char *instrument =
+        "ksmps = 1\n"
+        "chnk \"readline_status\", 2\n"
+        "chnS \"readline_line\", 2\n"
+        "instr 1\n"
+        "  Sline, kstatus readline \"\"\n"
+        "  if (kstatus == 1) then\n"
+        "    chnset Sline, \"readline_line\"\n"
+        "    chnset kstatus, \"readline_status\"\n"
+        "  endif\n"
+        "endin\n";
+
+    ASSERT_EQ(csoundCompileOrc(csound, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundReadlinePushText(csound, "from host\n"),
+              CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    MYFLT status = 0;
+    int32_t error = 0;
+    for (int32_t cycle = 0; cycle < 32 && status == 0; cycle++) {
+        ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+        status = csoundGetControlChannel(csound, "readline_status", &error);
+        ASSERT_EQ(error, CSOUND_SUCCESS);
+    }
+
+    char line[32];
+    ASSERT_EQ(status, FL(1.0));
+    csoundGetStringChannel(csound, "readline_line", line);
+    ASSERT_STREQ(line, "from host");
+}
+
 TEST_F (IOTests, testReadlineRejectsSecondPrompt)
 {
     ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
