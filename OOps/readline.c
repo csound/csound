@@ -30,6 +30,7 @@
 #if defined(WIN32)
 #include <conio.h>
 #include <io.h>
+#include <windows.h>
 #elif defined(HAVE_TERMIOS_H) && defined(HAVE_UNISTD_H) && \
       !defined(__EMSCRIPTEN__) && !defined(__wasi__)
 #define CSOUND_READLINE_POSIX 1
@@ -40,6 +41,12 @@
 
 #define READLINE_GLOBALS_NAME "::readline_globals::"
 #define READLINE_INITIAL_CAPACITY 128
+#define READLINE_OUTPUT_CAPACITY 65536
+#define READLINE_OUTPUT_CHUNK 1024
+
+#if defined(WIN32) && !defined(ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#endif
 
 enum {
   READLINE_POLL_ERROR = -2,
@@ -60,17 +67,37 @@ enum {
   READLINE_KEY_RIGHT
 };
 
+enum {
+  READLINE_PENDING_NONE = 0,
+  READLINE_PENDING_LINE = 1,
+  READLINE_PENDING_EOF = -1
+};
+
+typedef struct {
+  const char *data;
+  size_t length;
+} READLINE_OUTPUT_PART;
+
 typedef struct {
   READLINE_OPCODE *active;
   int32_t resetRegistered;
 } READLINE_GLOBALS;
 
 typedef struct {
+  CSOUND *csound;
   READLINE_GLOBALS *globals;
   char *buffer;
+  void *outputBuffer;
+  void *writerThread;
   size_t length;
   size_t cursor;
   size_t capacity;
+  int32_t writerStop;
+  int32_t outputError;
+  int32_t outputQueued;
+  int32_t outputCompleted;
+  int32_t pendingStatus;
+  int32_t pendingTarget;
   int32_t promptPending;
   int32_t lineOpen;
   int32_t eof;
@@ -78,6 +105,11 @@ typedef struct {
   int32_t interactive;
   int32_t terminalModeSet;
   int32_t ownsProcessInput;
+#if defined(WIN32)
+  HANDLE outputHandle;
+  DWORD savedOutputMode;
+  int32_t outputModeSet;
+#endif
 #if defined(CSOUND_READLINE_POSIX)
   struct termios savedTerminalMode;
 #endif
@@ -187,17 +219,134 @@ static int32_t copy_line_to_output(CSOUND *csound, READLINE_OPCODE *p)
   return OK;
 }
 
-static void write_prompt(READLINE_OPCODE *p)
+static uintptr_t terminal_writer(void *userData)
+{
+  READLINE_STATE *state = (READLINE_STATE *) userData;
+  char output[READLINE_OUTPUT_CHUNK];
+
+  for (;;) {
+    int32_t count = state->csound->ReadCircularBuffer(
+      state->csound, state->outputBuffer, output, READLINE_OUTPUT_CHUNK);
+
+    if (count == 0) {
+      if (ATOMIC_GET(state->writerStop))
+        break;
+      state->csound->Sleep(1);
+      continue;
+    }
+
+    size_t offset = 0;
+    while (offset < (size_t) count) {
+      size_t written = fwrite(output + offset, 1,
+                              (size_t) count - offset, stdout);
+
+      if (written > 0) {
+        offset += written;
+      }
+      else if (ferror(stdout) && errno == EINTR) {
+        clearerr(stdout);
+      }
+      else {
+        ATOMIC_SET(state->outputError, 1);
+        return 0;
+      }
+    }
+
+    if (fflush(stdout) != 0) {
+      ATOMIC_SET(state->outputError, 1);
+      return 0;
+    }
+    ATOMIC_ADD(state->outputCompleted, count);
+  }
+
+  return 0;
+}
+
+static int32_t start_terminal_writer(CSOUND *csound, READLINE_STATE *state)
+{
+  if (!state->interactive)
+    return OK;
+
+  state->outputBuffer = csound->CreateCircularBuffer(
+    csound, READLINE_OUTPUT_CAPACITY, sizeof(char));
+  if (UNLIKELY(state->outputBuffer == NULL))
+    return NOTOK;
+
+  state->writerThread = csound->CreateThread(terminal_writer, state);
+  if (UNLIKELY(state->writerThread == NULL)) {
+    csound->DestroyCircularBuffer(csound, state->outputBuffer);
+    state->outputBuffer = NULL;
+    return NOTOK;
+  }
+  return OK;
+}
+
+static void stop_terminal_writer(READLINE_STATE *state)
+{
+  if (state->writerThread != NULL) {
+    ATOMIC_SET(state->writerStop, 1);
+    state->csound->JoinThread(state->writerThread);
+    state->writerThread = NULL;
+  }
+
+  if (state->outputBuffer != NULL) {
+    state->csound->DestroyCircularBuffer(state->csound, state->outputBuffer);
+    state->outputBuffer = NULL;
+  }
+}
+
+static int32_t queue_terminal_output(READLINE_STATE *state,
+                                     const READLINE_OUTPUT_PART *parts,
+                                     size_t partCount)
+{
+  size_t total = 0;
+
+  if (!state->interactive)
+    return OK;
+
+  for (size_t index = 0; index < partCount; index++) {
+    if (parts[index].length > (size_t) INT32_MAX - total)
+      return NOTOK;
+    total += parts[index].length;
+  }
+
+  if (total == 0)
+    return OK;
+  if (state->outputBuffer == NULL ||
+      state->csound->CheckCircularBuffer(
+        state->csound, state->outputBuffer, 1) < (int32_t) total)
+    return NOTOK;
+
+  for (size_t index = 0; index < partCount; index++) {
+    int32_t length = (int32_t) parts[index].length;
+
+    if (length == 0)
+      continue;
+    if (state->csound->WriteCircularBuffer(
+          state->csound, state->outputBuffer,
+          parts[index].data, length) != length)
+      return NOTOK;
+    ATOMIC_ADD(state->outputQueued, length);
+  }
+  return OK;
+}
+
+static int32_t write_prompt(READLINE_OPCODE *p)
 {
   READLINE_STATE *state = (READLINE_STATE *) p->state;
 
   if (state->interactive && p->prompt->data != NULL &&
       p->prompt->data[0] != '\0') {
-    fputs(p->prompt->data, stdout);
-    fflush(stdout);
+    READLINE_OUTPUT_PART part = {
+      p->prompt->data, strlen(p->prompt->data)
+    };
+
+    if (UNLIKELY(queue_terminal_output(state, &part, 1) != OK))
+      return NOTOK;
     state->lineOpen = 1;
   }
   state->promptPending = 0;
+  return OK;
 }
 
 static int32_t is_utf8_continuation(char value)
@@ -239,75 +388,136 @@ static size_t count_characters(const READLINE_STATE *state, size_t start)
   return count;
 }
 
-static void move_terminal_cursor(READLINE_STATE *state, size_t count,
-                                 char direction)
+static int32_t format_cursor_sequence(char *buffer, size_t capacity,
+                                      size_t count, char direction,
+                                      size_t *length)
 {
-  if (state->interactive && count > 0) {
-    fprintf(stdout, "\033[%zu%c", count, direction);
-    fflush(stdout);
-  }
+  int32_t result = snprintf(buffer, capacity, "\033[%zu%c",
+                            count, direction);
+
+  if (UNLIKELY(result < 0 || (size_t) result >= capacity))
+    return NOTOK;
+  *length = (size_t) result;
+  return OK;
 }
 
-static void redraw_after_insert(READLINE_STATE *state, size_t insertPosition,
-                                int32_t fromTerminal)
+static int32_t move_terminal_cursor(READLINE_STATE *state, size_t count,
+                                    char direction)
 {
-  if (!state->interactive || !fromTerminal)
-    return;
+  char sequence[64];
+  size_t length;
+  READLINE_OUTPUT_PART part;
 
-  fwrite(state->buffer + insertPosition, 1,
-         state->length - insertPosition, stdout);
-  move_terminal_cursor(state, count_characters(state, state->cursor), 'D');
-  fflush(stdout);
-  state->lineOpen = 1;
+  if (!state->interactive || count == 0)
+    return OK;
+  if (UNLIKELY(format_cursor_sequence(sequence, sizeof(sequence),
+                                      count, direction, &length) != OK))
+    return NOTOK;
+
+  part.data = sequence;
+  part.length = length;
+  return queue_terminal_output(state, &part, 1);
 }
 
-static void redraw_after_backspace(READLINE_STATE *state,
+static int32_t redraw_after_insert(READLINE_STATE *state,
+                                   size_t insertPosition,
                                    int32_t fromTerminal)
 {
-  size_t tailLength;
+  char cursorSequence[64];
+  size_t cursorLength = 0;
+  size_t cursorCount;
+  READLINE_OUTPUT_PART parts[2];
 
   if (!state->interactive || !fromTerminal)
-    return;
+    return OK;
 
-  move_terminal_cursor(state, 1, 'D');
-  tailLength = state->length - state->cursor;
-  if (tailLength > 0)
-    fwrite(state->buffer + state->cursor, 1, tailLength, stdout);
-  fputc(' ', stdout);
-  move_terminal_cursor(state,
-                       count_characters(state, state->cursor) + 1, 'D');
-  fflush(stdout);
+  cursorCount = count_characters(state, state->cursor);
+  if (cursorCount > 0 &&
+      UNLIKELY(format_cursor_sequence(
+                 cursorSequence, sizeof(cursorSequence), cursorCount,
+                 'D', &cursorLength) != OK))
+    return NOTOK;
+
+  parts[0].data = state->buffer + insertPosition;
+  parts[0].length = state->length - insertPosition;
+  parts[1].data = cursorSequence;
+  parts[1].length = cursorLength;
+  if (UNLIKELY(queue_terminal_output(state, parts, 2) != OK))
+    return NOTOK;
+  state->lineOpen = 1;
+  return OK;
 }
 
-static void move_cursor_left(READLINE_STATE *state, int32_t fromTerminal)
+static int32_t redraw_after_backspace(READLINE_STATE *state,
+                                      int32_t fromTerminal)
+{
+  char leftSequence[64];
+  char rightSequence[64];
+  size_t leftLength;
+  size_t rightLength;
+  size_t tailLength;
+  READLINE_OUTPUT_PART parts[4];
+
+  if (!state->interactive || !fromTerminal)
+    return OK;
+
+  if (UNLIKELY(format_cursor_sequence(
+                 leftSequence, sizeof(leftSequence), 1,
+                 'D', &leftLength) != OK))
+    return NOTOK;
+
+  tailLength = state->length - state->cursor;
+  if (UNLIKELY(format_cursor_sequence(
+                 rightSequence, sizeof(rightSequence),
+                 count_characters(state, state->cursor) + 1,
+                 'D', &rightLength) != OK))
+    return NOTOK;
+
+  parts[0].data = leftSequence;
+  parts[0].length = leftLength;
+  parts[1].data = state->buffer + state->cursor;
+  parts[1].length = tailLength;
+  parts[2].data = " ";
+  parts[2].length = 1;
+  parts[3].data = rightSequence;
+  parts[3].length = rightLength;
+  return queue_terminal_output(state, parts, 4);
+}
+
+static int32_t move_cursor_left(READLINE_STATE *state, int32_t fromTerminal)
 {
   size_t position = previous_character(state, state->cursor);
 
   if (position != state->cursor) {
     state->cursor = position;
     if (fromTerminal)
-      move_terminal_cursor(state, 1, 'D');
+      return move_terminal_cursor(state, 1, 'D');
   }
+  return OK;
 }
 
-static void move_cursor_right(READLINE_STATE *state, int32_t fromTerminal)
+static int32_t move_cursor_right(READLINE_STATE *state, int32_t fromTerminal)
 {
   size_t position = next_character(state, state->cursor);
 
   if (position != state->cursor) {
     state->cursor = position;
     if (fromTerminal)
-      move_terminal_cursor(state, 1, 'C');
+      return move_terminal_cursor(state, 1, 'C');
   }
+  return OK;
 }
 
-static void finish_terminal_line(READLINE_STATE *state)
+static int32_t finish_terminal_line(READLINE_STATE *state)
 {
   if (state->interactive) {
-    fputs("\r\n", stdout);
-    fflush(stdout);
+    READLINE_OUTPUT_PART part = { "\r\n", 2 };
+
+    if (UNLIKELY(queue_terminal_output(state, &part, 1) != OK))
+      return NOTOK;
   }
   state->lineOpen = 0;
+  return OK;
 }
 
 static int32_t configure_terminal(CSOUND *csound, READLINE_STATE *state)
@@ -315,7 +525,28 @@ static int32_t configure_terminal(CSOUND *csound, READLINE_STATE *state)
 #if defined(WIN32)
   state->interactive = _isatty(_fileno(stdin)) &&
                        _isatty(_fileno(stdout));
-  IGN(csound);
+
+  if (state->interactive) {
+    DWORD mode;
+
+    state->outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (UNLIKELY(state->outputHandle == NULL ||
+                 state->outputHandle == INVALID_HANDLE_VALUE ||
+                 !GetConsoleMode(state->outputHandle, &mode)))
+      return csound->InitError(
+        csound, "%s", Str("readline: failed to read console mode"));
+
+    state->savedOutputMode = mode;
+    if (!(mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING)) {
+      if (UNLIKELY(!SetConsoleMode(
+                     state->outputHandle,
+                     mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING)))
+        return csound->InitError(
+          csound, "%s",
+          Str("readline: failed to enable virtual terminal mode"));
+      state->outputModeSet = 1;
+    }
+  }
 #elif defined(CSOUND_READLINE_POSIX)
   state->interactive = isatty(STDIN_FILENO) && isatty(STDOUT_FILENO);
 
@@ -342,15 +573,17 @@ static int32_t configure_terminal(CSOUND *csound, READLINE_STATE *state)
   return OK;
 }
 
-static void restore_terminal(READLINE_STATE *state)
+static void restore_terminal_modes(READLINE_STATE *state)
 {
   if (state == NULL)
     return;
 
-  if (state->lineOpen)
-    finish_terminal_line(state);
-
-#if defined(CSOUND_READLINE_POSIX)
+#if defined(WIN32)
+  if (state->outputModeSet) {
+    SetConsoleMode(state->outputHandle, state->savedOutputMode);
+    state->outputModeSet = 0;
+  }
+#elif defined(CSOUND_READLINE_POSIX)
   if (state->terminalModeSet) {
     tcsetattr(STDIN_FILENO, TCSANOW, &state->savedTerminalMode);
     state->terminalModeSet = 0;
@@ -368,7 +601,8 @@ static void release_readline(CSOUND *csound, READLINE_OPCODE *p)
     return;
 
   state = (READLINE_STATE *) p->state;
-  restore_terminal(state);
+  state->lineOpen = 0;
+  restore_terminal_modes(state);
 
   if (state->globals != NULL && state->globals->active == p)
     state->globals->active = NULL;
@@ -382,6 +616,10 @@ static void release_readline(CSOUND *csound, READLINE_OPCODE *p)
 static int32_t readline_perf_error(CSOUND *csound, READLINE_OPCODE *p,
                                    const char *message)
 {
+  if (p != NULL && p->state != NULL) {
+    READLINE_STATE *state = (READLINE_STATE *) p->state;
+    ATOMIC_SET(state->writerStop, 1);
+  }
   release_readline(csound, p);
   return csound->PerfError(csound, &p->h, "%s", message);
 }
@@ -391,7 +629,7 @@ static int32_t readline_reset(CSOUND *csound, void *userData)
   READLINE_GLOBALS *globals = (READLINE_GLOBALS *) userData;
 
   if (globals != NULL && globals->active != NULL)
-    release_readline(csound, globals->active);
+    readline_deinit(csound, globals->active);
   return OK;
 }
 
@@ -576,6 +814,7 @@ int32_t readline_init(CSOUND *csound, READLINE_OPCODE *p)
   }
 
   state->globals = globals;
+  state->csound = csound;
   state->capacity = READLINE_INITIAL_CAPACITY;
   state->promptPending = 1;
   state->ownsProcessInput = 1;
@@ -585,6 +824,11 @@ int32_t readline_init(CSOUND *csound, READLINE_OPCODE *p)
   if (UNLIKELY(configure_terminal(csound, state) != OK)) {
     readline_deinit(csound, p);
     return NOTOK;
+  }
+  if (UNLIKELY(start_terminal_writer(csound, state) != OK)) {
+    readline_deinit(csound, p);
+    return csound->InitError(
+      csound, "%s", Str("readline: failed to start terminal writer"));
   }
   return OK;
 }
@@ -602,13 +846,38 @@ int32_t readline_perf(CSOUND *csound, READLINE_OPCODE *p)
                                Str("readline: not initialized"));
 
   *p->status = FL(0.0);
+  if (UNLIKELY(ATOMIC_GET(state->outputError)))
+    return readline_perf_error(csound, p,
+                               Str("readline: terminal output error"));
+
+  if (state->pendingStatus != READLINE_PENDING_NONE) {
+    int32_t pendingStatus;
+
+    if (ATOMIC_GET(state->outputCompleted) != state->pendingTarget)
+      return OK;
+
+    pendingStatus = state->pendingStatus;
+    state->pendingStatus = READLINE_PENDING_NONE;
+    if (pendingStatus == READLINE_PENDING_EOF) {
+      state->eof = 1;
+      *p->status = FL(-1.0);
+      release_readline(csound, p);
+    }
+    else {
+      *p->status = FL(1.0);
+    }
+    return OK;
+  }
+
   if (state->eof) {
     *p->status = FL(-1.0);
     return OK;
   }
 
-  if (state->promptPending)
-    write_prompt(p);
+  if (state->promptPending &&
+      UNLIKELY(write_prompt(p) != OK))
+    return readline_perf_error(
+      csound, p, Str("readline: terminal output queue full"));
 
   pollResult = poll_terminal(csound, &key, &fromTerminal);
   if (pollResult == READLINE_POLL_NONE)
@@ -617,19 +886,33 @@ int32_t readline_perf(CSOUND *csound, READLINE_OPCODE *p)
     return readline_perf_error(csound, p, Str("readline: input error"));
   if (pollResult == READLINE_POLL_EOF ||
       ((key == 4 || key == 26) && state->length == 0)) {
-    state->eof = 1;
-    *p->status = FL(-1.0);
-    release_readline(csound, p);
+    if (UNLIKELY(finish_terminal_line(state) != OK))
+      return readline_perf_error(
+        csound, p, Str("readline: terminal output queue full"));
+    state->pendingStatus = READLINE_PENDING_EOF;
+    state->pendingTarget = ATOMIC_GET(state->outputQueued);
+    ATOMIC_SET(state->writerStop, 1);
+
+    if (ATOMIC_GET(state->outputCompleted) == state->pendingTarget) {
+      state->pendingStatus = READLINE_PENDING_NONE;
+      state->eof = 1;
+      *p->status = FL(-1.0);
+      release_readline(csound, p);
+    }
     return OK;
   }
 
   escapeAction = consume_escape(state, key);
   if (escapeAction == READLINE_ESCAPE_LEFT) {
-    move_cursor_left(state, fromTerminal);
+    if (UNLIKELY(move_cursor_left(state, fromTerminal) != OK))
+      return readline_perf_error(
+        csound, p, Str("readline: terminal output queue full"));
     return OK;
   }
   if (escapeAction == READLINE_ESCAPE_RIGHT) {
-    move_cursor_right(state, fromTerminal);
+    if (UNLIKELY(move_cursor_right(state, fromTerminal) != OK))
+      return readline_perf_error(
+        csound, p, Str("readline: terminal output queue full"));
     return OK;
   }
   if (escapeAction == READLINE_ESCAPE_CONSUMED)
@@ -639,18 +922,28 @@ int32_t readline_perf(CSOUND *csound, READLINE_OPCODE *p)
     if (UNLIKELY(copy_line_to_output(csound, p) != OK))
       return readline_perf_error(
         csound, p, Str("readline: memory allocation failure"));
-    finish_terminal_line(state);
+    if (UNLIKELY(finish_terminal_line(state) != OK))
+      return readline_perf_error(
+        csound, p, Str("readline: terminal output queue full"));
     state->length = 0;
     state->cursor = 0;
     state->buffer[0] = '\0';
     state->promptPending = 1;
-    *p->status = FL(1.0);
+    state->pendingStatus = READLINE_PENDING_LINE;
+    state->pendingTarget = ATOMIC_GET(state->outputQueued);
+
+    if (ATOMIC_GET(state->outputCompleted) == state->pendingTarget) {
+      state->pendingStatus = READLINE_PENDING_NONE;
+      *p->status = FL(1.0);
+    }
     return OK;
   }
 
   if (key == 8 || key == 127) {
-    if (remove_character(state))
-      redraw_after_backspace(state, fromTerminal);
+    if (remove_character(state) &&
+        UNLIKELY(redraw_after_backspace(state, fromTerminal) != OK))
+      return readline_perf_error(
+        csound, p, Str("readline: terminal output queue full"));
     return OK;
   }
 
@@ -660,7 +953,10 @@ int32_t readline_perf(CSOUND *csound, READLINE_OPCODE *p)
     if (UNLIKELY(insert_character(csound, state, key) != OK))
       return readline_perf_error(
         csound, p, Str("readline: memory allocation failure"));
-    redraw_after_insert(state, insertPosition, fromTerminal);
+    if (UNLIKELY(redraw_after_insert(
+                   state, insertPosition, fromTerminal) != OK))
+      return readline_perf_error(
+        csound, p, Str("readline: terminal output queue full"));
   }
   return OK;
 }
@@ -673,6 +969,9 @@ int32_t readline_deinit(CSOUND *csound, READLINE_OPCODE *p)
     return OK;
 
   state = (READLINE_STATE *) p->state;
+  if (state->lineOpen && !ATOMIC_GET(state->outputError))
+    (void) finish_terminal_line(state);
+  stop_terminal_writer(state);
   release_readline(csound, p);
   csound->Free(csound, state->buffer);
   csound->Free(csound, state);
