@@ -954,6 +954,7 @@ set(libcsound_SRCS
     OOps/pvfileio.c
     OOps/pvsanal.c
     OOps/random.c
+    OOps/readline.c
     OOps/remote.c
     OOps/schedule.c
     OOps/sndinfUG.c
