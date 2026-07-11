@@ -2076,6 +2076,8 @@ const OENTRY opcodlst_1[] = {
     NULL, (SUBR) sensekey_perf, NULL                      },
   { "sensekey",    S(KSENSE),0,                  "kz",           "",
     NULL, (SUBR) sensekey_perf, NULL                      },
+  { "readline",    S(READLINE_OPCODE),0,         "Sk",           "S",
+    (SUBR) readline_init, (SUBR) readline_perf, (SUBR) readline_deinit },
   { "remove",      S(DELETEIN),0,               "",             "T",
     (SUBR) delete_instr, NULL, NULL                       },
   //  { "##globallock",   S(GLOBAL_LOCK_UNLOCK),0,  "", "i",
