@@ -14,10 +14,12 @@ giFileResult init 0
 
 instr 1
   iStringStatus compilestr {{
-giStringResult = 1
-
 instr RealtimeCompiledString
 endin
+
+; Exercises alloc_spinlock acquisition from merged global i-time code.
+prealloc "RealtimeCompiledString", 1
+giStringResult = 1
 }}
 
   if (iStringStatus != 0) then
