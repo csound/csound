@@ -173,7 +173,6 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
 int32_t commandline_args_init(CSOUND *csound, ARGV_OP *p)
 {
   int32_t count = csoundGetCommandLineArgCount(csound);
-  const CS_TYPE *stringType = csound->GetType(csound, "S");
 
   tabinit(csound, p->args, count, p->h.insdshead);
   for (int32_t index = 0; index < count; index++) {
@@ -184,9 +183,10 @@ int32_t commandline_args_init(CSOUND *csound, ARGV_OP *p)
       0,
       -1
     };
-    STRINGDAT *destination = &((STRINGDAT *) p->args->data)[index];
-    stringType->copyValue(csound, stringType, destination, &source,
-                          p->h.insdshead);
+    char *destination = (char *) p->args->data +
+      ((size_t) index * p->args->arrayMemberSize);
+    p->args->arrayType->copyValue(csound, p->args->arrayType,
+                                  destination, &source, p->h.insdshead);
   }
   return OK;
 }
