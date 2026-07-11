@@ -124,6 +124,16 @@ TEST_F (OrcCompileTests, testCompile)
     }
 }
 
+TEST_F (OrcCompileTests, testNestedExpressionFailurePropagates)
+{
+    const char *instrument =
+        "instr 1\n"
+        "  iresult = abs(missing[0] + 1)\n"
+        "endin\n";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
 TEST_F (OrcCompileTests, testReuse)
 {
     int32_t result;

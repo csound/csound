@@ -477,9 +477,15 @@ static TREE *expand_expression_arg_list(CSOUND *csound, TREE *current,
     if (current->type == STRUCT_EXPR && struct_expr_has_array_root(current)) {
       expanded = expand_struct_array_member_read(csound, current, line,
                                                  locn, typeTable);
+      if (expanded == NULL) {
+        return NULL;
+      }
     }
     else if (is_expression_node(current)) {
       expanded = create_expression(csound, current, line, locn, typeTable);
+      if (expanded == NULL) {
+        return NULL;
+      }
     }
 
     if (expanded != NULL) {
@@ -504,6 +510,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
 {
   char op[80], *outarg = NULL;
   TREE *anchor = NULL;
+  TREE *expandedArgs;
   TREE *opTree;
   OENTRIES* opentries;
   CS_VARIABLE* var;
@@ -512,10 +519,22 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   if (root->type=='?') return create_cond_expression(csound, root, line,
                                                      locn, typeTable);
   memset(op, 0, 80);
-  root->left = expand_expression_arg_list(csound, root->left, &anchor,
-                                          line, locn, typeTable);
-  root->right = expand_expression_arg_list(csound, root->right, &anchor,
-                                           line, locn, typeTable);
+  if (root->left != NULL) {
+    expandedArgs = expand_expression_arg_list(csound, root->left, &anchor,
+                                              line, locn, typeTable);
+    if (expandedArgs == NULL) {
+      return NULL;
+    }
+    root->left = expandedArgs;
+  }
+  if (root->right != NULL) {
+    expandedArgs = expand_expression_arg_list(csound, root->right, &anchor,
+                                              line, locn, typeTable);
+    if (expandedArgs == NULL) {
+      return NULL;
+    }
+    root->right = expandedArgs;
+  }
 
   switch(root->type) {
   case '+':
