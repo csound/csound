@@ -952,13 +952,22 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
   if (mep->type == NOTEON_TYPE && mep->dat2) {      /* midi note ON: */
     if (UNLIKELY((n = insert_midi_event(csound, insno, chn, mep)))) {
       /* alloc,init,activ */
+      char *name = csound->engineState.instrtxtp[insno]->insname;
       csound->ErrorMsg(csound,
                       Str("\t\t   T%7.3f - note deleted. "), csound->curp2);
-      if (n == CSOUND_ERROR)
-        csound->ErrorMsg(csound,
-                         Str("realtime allocation queue is full\n"));
+      if (n == CSOUND_ERROR) {
+        if (name)
+          csound->ErrorMsg(csound,
+                           Str("\nINIT ERROR in instr %s: note deleted "
+                               "(realtime allocation queue is full)\n"),
+                           name);
+        else
+          csound->ErrorMsg(csound,
+                           Str("\nINIT ERROR in instr %d: note deleted "
+                               "(realtime allocation queue is full)\n"),
+                           insno);
+      }
       else {
-        char *name = csound->engineState.instrtxtp[insno]->insname;
         if (name)
           csound->ErrorMsg(csound, Str("\nINIT ERROR in instr %s: note deleted (%d init errors)\n"),
                           name, n);
