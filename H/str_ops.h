@@ -158,7 +158,7 @@ typedef struct {
 int32_t     eqs(CSOUND *, void *);
 int32_t     strset_init(CSOUND *, void *);
 int32_t     strget_init(CSOUND *, void *);
-int32_t     commandline_args_init(CSOUND *, void *);
+int32_t     commandline_args_init(CSOUND *, ARGV_OP *);
 int32_t     strcpy_opcode_p(CSOUND *, void *);
 int32_t     strcpy_opcode_S(CSOUND *, void *);
 int32_t     strassign_k(CSOUND *, void *);
