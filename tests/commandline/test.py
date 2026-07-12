@@ -95,7 +95,9 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
 
     Args:
         test_index: Index of the test in the original test list
-        test_data: Test data tuple [filename, description, optional_expected_result]
+        test_data: Test data tuple [filename, description,
+            optional_expected_result, optional_run_args,
+            optional_application_args]
         run_args: Arguments to pass to csound
         temp_file: Temporary file for csound output
 
