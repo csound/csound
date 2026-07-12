@@ -397,13 +397,6 @@ int32_t graph_create_deinit(CSOUND *csound, GRAPH_CREATE *p) {
         STM_REGISTRY *reg = stm_registry_query(csound);
         stm_registry_lock(csound, reg);
 
-        if (g->nodes != NULL) {
-            for (uint32_t i = 0; i < g->node_count; i++) {
-                csound->Free(csound, g->nodes[i].edges);
-                csound->Free(csound, g->nodes[i].name);
-            }
-            csound->Free(csound, g->nodes);
-        }
         // null the registry slot so the handle can no longer resolve
         if (reg != NULL && p->slot < reg->count) {
             STM_REGISTRY_SLOT *slot = &reg->slots[p->slot];
@@ -416,8 +409,16 @@ int32_t graph_create_deinit(CSOUND *csound, GRAPH_CREATE *p) {
                 }
             }
         }
-        csound->Free(csound, g);
         stm_registry_unlock(csound, reg);
+
+        if (g->nodes != NULL) {
+            for (uint32_t i = 0; i < g->node_count; i++) {
+                csound->Free(csound, g->nodes[i].edges);
+                csound->Free(csound, g->nodes[i].name);
+            }
+            csound->Free(csound, g->nodes);
+        }
+        csound->Free(csound, g);
         p->graph = NULL;
         p->slot = 0;
         p->generation = 0;
