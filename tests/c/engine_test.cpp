@@ -271,7 +271,7 @@ TEST_F (EngineTests, testRealtimeAllocQueueMutexFallback)
     csound->alloc_queue_wp = 0;
 
     for (int32_t producer = 0; producer < producerCount; ++producer) {
-      producers.emplace_back([this, producer, &failures, &ready, &start]() {
+      producers.emplace_back([this, producer, itemsPerProducer, &failures, &ready, &start]() {
         ready++;
         while (!start.load())
           std::this_thread::yield();
