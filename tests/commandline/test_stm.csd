@@ -73,17 +73,18 @@ opcode STM_DISPATCH(g:i, st:AudioState, cur:S):void
 endop
 
 ; ---- graph build ----
-graph@global:i = stmcreate()
-stmaddnode(graph, "Analyze")
-stmaddnode(graph, "Texture")
-stmaddnode(graph, "Freeze")
-stmaddedge(graph, "Analyze", "Texture")
-stmaddedge(graph, "Texture", "Freeze")
+graph_builder@global:i = stmcreate()
+stmaddnode(graph_builder, "Analyze")
+stmaddnode(graph_builder, "Texture")
+stmaddnode(graph_builder, "Freeze")
+stmaddedge(graph_builder, "Analyze", "Texture")
+stmaddedge(graph_builder, "Texture", "Freeze")
 
 ; conditional branch: Freeze -> one of {Texture, Analyze}
-stmaddcondedge(graph, "Freeze", ["Texture", "Analyze"])
+stmaddcondedge(graph_builder, "Freeze", ["Texture", "Analyze"])
 
-stmcompile(graph)
+graph_definition@global:i = stmcompile(graph_builder)
+graph@global:i = stminstance(graph_definition)
 
 ; ---- Example 1: deterministic drive + per-cycle assertions ----
 state@global:AudioState = init(0, 0, 0, 0.05, 0)
@@ -121,7 +122,7 @@ instr 1
     exit_f:k = stmonexit(graph, "Freeze")
 
     STM_DISPATCH(graph, state, cur)
-    changed:k = stmadvance(graph)
+    changed:k, from_id:k, to_id:k = stmadvance(graph)
 
     ; ---- flow trace ----
     println("[E1] c%d  cur=%s  node=%d  enter[A/T/F]=%d/%d/%d  exit[A/T/F]=%d/%d/%d  changed=%d", c, cur, state.node, enter_a, enter_t, enter_f, exit_a, exit_t, exit_f, changed)
@@ -230,14 +231,15 @@ endin
 ; Two instruments: capture (writes state) and test (invariants).
 ; ============================================================
 
-graph2@global:i = stmcreate()
-stmaddnode(graph2, "Analyze")
-stmaddnode(graph2, "Texture")
-stmaddnode(graph2, "Freeze")
-stmaddedge(graph2, "Analyze", "Texture")
-stmaddedge(graph2, "Texture", "Freeze")
-stmaddcondedge(graph2, "Freeze", ["Texture", "Analyze"])
-stmcompile(graph2)
+graph2_builder@global:i = stmcreate()
+stmaddnode(graph2_builder, "Analyze")
+stmaddnode(graph2_builder, "Texture")
+stmaddnode(graph2_builder, "Freeze")
+stmaddedge(graph2_builder, "Analyze", "Texture")
+stmaddedge(graph2_builder, "Texture", "Freeze")
+stmaddcondedge(graph2_builder, "Freeze", ["Texture", "Analyze"])
+graph2_definition@global:i = stmcompile(graph2_builder)
+graph2@global:i = stminstance(graph2_definition)
 
 state2@global:AudioState = init(0, 0, 0, 0.05, 0)
 
@@ -256,7 +258,7 @@ endin
 instr 11
     Scur = stmcurrent(graph2)
     STM_DISPATCH(graph2, state2, Scur)
-    changed:k = stmadvance(graph2)
+    changed:k, from_id:k, to_id:k = stmadvance(graph2)
 
     node:k = state2.node
 
@@ -329,12 +331,13 @@ endin
 ; Graph3: A <-> B, each node = a long-running process instrument.
 ; ============================================================
 
-graph3@global:i = stmcreate()
-stmaddnode(graph3, "A")
-stmaddnode(graph3, "B")
-stmaddedge(graph3, "A", "B")
-stmaddedge(graph3, "B", "A")
-stmcompile(graph3)
+graph3_builder@global:i = stmcreate()
+stmaddnode(graph3_builder, "A")
+stmaddnode(graph3_builder, "B")
+stmaddedge(graph3_builder, "A", "B")
+stmaddedge(graph3_builder, "B", "A")
+graph3_definition@global:i = stmcompile(graph3_builder)
+graph3@global:i = stminstance(graph3_definition)
 
 ; per-process accumulators (shared state the processes own)
 hits_a@global:k = init(0)
@@ -386,7 +389,7 @@ instr 20
         println("[E3] c%d  EXIT  B -> kill  instr 31", c)
     endif
 
-    changed:k = stmadvance(graph3)   ; transition applied (return unused here)
+    changed:k, from_id:k, to_id:k = stmadvance(graph3)   ; transition applied (return unused here)
 
     ; --- invariant: exactly the current node's process is alive ---
     ; checked 2 cycles after each spawn/kill so events have settled
@@ -439,15 +442,16 @@ endin
 ; "Run" via stmentry, so the machine does NOT start at node 0.
 ; ============================================================
 
-graph4@global:i = stmcreate()
-stmaddnode(graph4, "Idle")     ; id 0
-stmaddnode(graph4, "Run")      ; id 1
-stmaddnode(graph4, "Done")     ; id 2
-stmaddedge(graph4, "Idle", "Run")
-stmaddedge(graph4, "Run", "Done")
-stmaddedge(graph4, "Done", "Idle")
-stmentry(graph4, "Run")        ; non-default entry (id 1)
-stmcompile(graph4)
+graph4_builder@global:i = stmcreate()
+stmaddnode(graph4_builder, "Idle")     ; id 0
+stmaddnode(graph4_builder, "Run")      ; id 1
+stmaddnode(graph4_builder, "Done")     ; id 2
+stmaddedge(graph4_builder, "Idle", "Run")
+stmaddedge(graph4_builder, "Run", "Done")
+stmaddedge(graph4_builder, "Done", "Idle")
+stmentry(graph4_builder, "Run")        ; non-default entry (id 1)
+graph4_definition@global:i = stmcompile(graph4_builder)
+graph4@global:i = stminstance(graph4_definition)
 
 instr 40
     c:k = timeinstk()
@@ -536,11 +540,11 @@ instr 40
         turnoff
     endif
 
-    changed:k = stmadvance(graph4)
+    changed:k, from_id:k, to_id:k = stmadvance(graph4)
 
     ; illegal id transition at c3 must not have been applied
-    if c == 3 && changed != 0 then
-        printks("[FAIL] E4 c3: illegal id transition was applied (changed=%f)\n", 0, changed)
+    if c == 3 && changed != 2 then
+        printks("[FAIL] E4 c3: illegal id transition status=%f expected 2\n", 0, changed)
         exitnowk(-1)
     endif
 endin
@@ -565,13 +569,14 @@ endin
 ; Graph5: A <-> B, plus an edgeless C so A -> C is always illegal.
 ; ============================================================
 
-graph5@global:i = stmcreate()
-stmaddnode(graph5, "A")        ; id 0, entry
-stmaddnode(graph5, "B")        ; id 1
-stmaddnode(graph5, "C")        ; id 2, no edges: A -> C is never legal
-stmaddedge(graph5, "A", "B")
-stmaddedge(graph5, "B", "A")
-stmcompile(graph5)
+graph5_builder@global:i = stmcreate()
+stmaddnode(graph5_builder, "A")        ; id 0, entry
+stmaddnode(graph5_builder, "B")        ; id 1
+stmaddnode(graph5_builder, "C")        ; id 2, no edges: A -> C is never legal
+stmaddedge(graph5_builder, "A", "B")
+stmaddedge(graph5_builder, "B", "A")
+graph5_definition@global:i = stmcompile(graph5_builder)
+graph5@global:i = stminstance(graph5_definition)
 
 kper@global:i = ksmps / sr     ; one k-cycle in seconds
 
@@ -656,10 +661,10 @@ instr 50
         turnoff
     endif
 
-    changed:k = stmadvance(graph5)
+    changed:k, from_id:k, to_id:k = stmadvance(graph5)
 
-    if c == 3 && changed != 0 then
-        printks("[FAIL] E5 c3: illegal transition A -> C was applied\n", 0)
+    if c == 3 && changed != 2 then
+        printks("[FAIL] E5 c3: illegal transition status=%f expected 2\n", 0, changed)
         exitnowk(-1)
     endif
     if c == 4 && changed != 1 then
@@ -676,9 +681,10 @@ endin
 ; 33 ticks but represents 64 sample frames.
 ; ============================================================
 
-graph6@global:i = stmcreate()
-stmaddnode(graph6, "A")
-stmcompile(graph6)
+graph6_builder@global:i = stmcreate()
+stmaddnode(graph6_builder, "A")
+graph6_definition@global:i = stmcompile(graph6_builder)
+graph6@global:i = stminstance(graph6_definition)
 
 instr 60
     setksmps 1
@@ -686,7 +692,7 @@ instr 60
     c = c + 1
 
     if c <= 32 then
-        changed:k = stmadvance(graph6)
+        changed:k, from_id:k, to_id:k = stmadvance(graph6)
     endif
     if c == 32 then
         turnoff
@@ -706,7 +712,7 @@ instr 61
             printks("[FAIL] E6 c1: tick=%f time=%f expected 32 and %f\n", 0, tick, gt, 32 / sr)
             exitnowk(-1)
         endif
-        changed:k = stmadvance(graph6)
+        changed:k, from_id:k, to_id:k = stmadvance(graph6)
     elseif c == 2 then
         if tick != 33 || abs:k(gt - 64 / sr) > 1e-9 then
             printks("[FAIL] E6 c2: tick=%f time=%f expected 33 and %f\n", 0, tick, gt, 64 / sr)
@@ -715,6 +721,148 @@ instr 61
         println("[DONE] STM VARIABLE KSMPS CLOCK TEST PASSED\n")
         turnoff
     endif
+endin
+
+; ============================================================
+; Example 7: stmadvance status, source/target IDs and conflicts.
+;
+; Status values:
+;   0 NO_REQUEST, 1 CHANGED, 2 ILLEGAL_EDGE,
+;   3 SELF_TRANSITION, 4 CONFLICT
+; ============================================================
+
+graph7_builder@global:i = stmcreate()
+stmaddnode(graph7_builder, "A")        ; id 0
+stmaddnode(graph7_builder, "B")        ; id 1
+stmaddnode(graph7_builder, "C")        ; id 2
+stmaddedge(graph7_builder, "A", "A")  ; legal self-transition
+stmaddedge(graph7_builder, "A", "B")
+stmaddedge(graph7_builder, "B", "A")
+graph7_definition@global:i = stmcompile(graph7_builder)
+graph7@global:i = stminstance(graph7_definition)
+
+instr 70
+    c:k = init(0)
+    c = c + 1
+
+    enter_a:k = stmonenter(graph7, "A")
+    exit_a:k = stmonexit(graph7, "A")
+    enter_b:k = stmonenter(graph7, "B")
+    exit_b:k = stmonexit(graph7, "B")
+
+    if c == 2 then
+        stmnext(graph7, "C")       ; no A -> C edge
+    elseif c == 4 then
+        stmnext(graph7, "A")
+        stmnext(graph7, "A")       ; identical requests are idempotent
+    elseif c == 5 then
+        stmnext(graph7, "B")
+    elseif c == 6 then
+        stmnext(graph7, "B")       ; no explicit B -> B self-edge
+    elseif c == 7 then
+        stmnext(graph7, "A")       ; reset discards this pending request
+        stmreset(graph7)
+    elseif c == 8 then
+        stmreset(graph7)
+        stmnext(graph7, "B")       ; request after reset is still evaluated
+    elseif c == 10 then
+        stmreset(graph7)
+        stmnext(graph7, "B")
+        stmnext(graph7, "C")       ; distinct pending targets conflict
+    elseif c == 11 then
+        stmnext(graph7, "B")
+        stmnext(graph7, "B")       ; still one effective request
+    endif
+
+    status:k, from_id:k, to_id:k = stmadvance(graph7)
+    current_id:k = stmcurrentid(graph7)
+
+    if c == 1 && (status != 0 || from_id != 0 || to_id != -1 || current_id != 0) then
+        printks("[FAIL] E7 NO_REQUEST: status/from/to/current=%f/%f/%f/%f\n", 0,
+                status, from_id, to_id, current_id)
+        exitnowk(-1)
+    elseif c == 2 && (status != 2 || from_id != 0 || to_id != 2 || current_id != 0) then
+        printks("[FAIL] E7 ILLEGAL_EDGE: status/from/to/current=%f/%f/%f/%f\n", 0,
+                status, from_id, to_id, current_id)
+        exitnowk(-1)
+    elseif c == 3 && (status != 0 || from_id != 0 || to_id != -1 || current_id != 0) then
+        printks("[FAIL] E7 REJECTED_CONSUMED: status/from/to/current=%f/%f/%f/%f\n", 0,
+                status, from_id, to_id, current_id)
+        exitnowk(-1)
+    elseif c == 4 && (status != 3 || from_id != 0 || to_id != 0 || current_id != 0) then
+        printks("[FAIL] E7 SELF_TRANSITION: status/from/to/current=%f/%f/%f/%f\n", 0,
+                status, from_id, to_id, current_id)
+        exitnowk(-1)
+    elseif c == 5 && (status != 1 || from_id != 0 || to_id != 1 || current_id != 1 || enter_a != 1 || exit_a != 1) then
+        printks("[FAIL] E7 CHANGED: status/from/to/current=%f/%f/%f/%f\n", 0,
+                status, from_id, to_id, current_id)
+        exitnowk(-1)
+    elseif c == 6 && (status != 2 || from_id != 1 || to_id != 1 || current_id != 1 || enter_b != 1 || exit_a != 1) then
+        printks("[FAIL] E7 SELF_WITHOUT_EDGE: status/from/to/current=%f/%f/%f/%f\n", 0,
+                status, from_id, to_id, current_id)
+        exitnowk(-1)
+    elseif c == 7 && (status != 0 || from_id != 0 || to_id != -1 || current_id != 0) then
+        printks("[FAIL] E7 REQUEST_THEN_RESET: status/from/to/current=%f/%f/%f/%f\n", 0,
+                status, from_id, to_id, current_id)
+        exitnowk(-1)
+    elseif c == 8 && (status != 1 || from_id != 0 || to_id != 1 || current_id != 1) then
+        printks("[FAIL] E7 RESET_THEN_REQUEST: status/from/to/current=%f/%f/%f/%f\n", 0,
+                status, from_id, to_id, current_id)
+        exitnowk(-1)
+    elseif c == 9 then
+        status2:k, from2:k, to2:k = stmadvance(graph7)
+        tick_after:k = stmtick(graph7)
+        if status != 0 || status2 != 0 || from2 != 1 || to2 != -1 || tick_after != 2 then
+            printks("[FAIL] E7 REPEATED_ADVANCE: status1/status2/from/to/tick=%f/%f/%f/%f/%f\n", 0,
+                    status, status2, from2, to2, tick_after)
+            exitnowk(-1)
+        endif
+    elseif c == 10 && (status != 4 || from_id != 0 || to_id != -1 || current_id != 0) then
+        printks("[FAIL] E7 CONFLICT: status/from/to/current=%f/%f/%f/%f\n", 0,
+                status, from_id, to_id, current_id)
+        exitnowk(-1)
+    elseif c == 11 then
+        if status != 1 || from_id != 0 || to_id != 1 || current_id != 1 then
+            printks("[FAIL] E7 IDEMPOTENT: status/from/to/current=%f/%f/%f/%f\n", 0,
+                    status, from_id, to_id, current_id)
+            exitnowk(-1)
+        endif
+        println("[DONE] STM ADVANCE STATUS TEST PASSED\n")
+        turnoff
+    endif
+endin
+
+; Distinct opcode instances writing different targets produce the same
+; reject-on-conflict result when both requests precede the supervisor advance.
+graph8_builder@global:i = stmcreate()
+stmaddnode(graph8_builder, "A")
+stmaddnode(graph8_builder, "B")
+stmaddnode(graph8_builder, "C")
+stmaddedge(graph8_builder, "A", "B")
+stmaddedge(graph8_builder, "A", "C")
+graph8_definition@global:i = stmcompile(graph8_builder)
+graph8@global:i = stminstance(graph8_definition)
+
+instr 80
+    stmnext(graph8, "B")
+    turnoff
+endin
+
+instr 81
+    stmnext(graph8, "C")
+    turnoff
+endin
+
+instr 82
+    status:k, from_id:k, to_id:k = stmadvance(graph8)
+    current_id:k = stmcurrentid(graph8)
+    if status != 4 || from_id != 0 || to_id != -1 || current_id != 0 then
+        printks("[FAIL] E8 WRITER_CONFLICT: status/from/to/current=%f/%f/%f/%f\n", 0,
+                status, from_id, to_id, current_id)
+        exitnowk(-1)
+    endif
+    println("[DONE] STM DISTINCT WRITER CONFLICT TEST PASSED\n")
+    turnoff
 endin
 
 </CsInstruments>
@@ -727,5 +875,9 @@ i 40 4.4 1 ; example 4: introspection + id-based API + entry/reset
 i 50 5.3 1 ; example 5: graph clock (tick / graph time / node time)
 i 60 6.4 0.1 ; example 6: 32 one-sample advances
 i 61 6.5 0.1 ; example 6: one 32-sample advance
+i 70 6.6 0.1 ; example 7: advance statuses and request conflicts
+i 80 6.8 0.01 ; example 8: first writer requests B
+i 81 6.81 0.01 ; example 8: second writer requests C
+i 82 6.82 0.01 ; example 8: supervisor rejects the pending conflict
 </CsScore>
 </CsoundSynthesizer>
