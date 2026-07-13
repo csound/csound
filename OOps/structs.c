@@ -23,6 +23,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <math.h>
 #include "array_ops.h"
 #include "arrays_internal.h"
 #include "csoundCore.h"
