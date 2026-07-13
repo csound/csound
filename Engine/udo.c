@@ -90,6 +90,30 @@ static int32_t udo_frame_can_be_recycled(const UOPCODE *opcode,
          child->subins_deact == NULL && !udo_has_rate_converter(opcode);
 }
 
+void recycle_init_only_udo_instances(CSOUND *csound, INSDS *parent)
+{
+  UOPCODE *opcode;
+  INSDS *child;
+
+  /* The caller's final duration is only known after its complete init chain.
+     Recycle from the top of the deactivation stack so each child can expose
+     the previous entry before its frame is returned to the free list. */
+  while (parent != NULL && parent->opcod_deact != NULL) {
+    opcode = (UOPCODE *)parent->opcod_deact;
+    child = opcode->ip;
+    if (!udo_frame_can_be_recycled(opcode, parent, child)) {
+      break;
+    }
+    parent->opcod_deact = child->opcod_deact;
+    child->opcod_deact = NULL;
+    recycle_udo_instance(csound, child);
+    opcode->ip = NULL;
+    opcode->buf = NULL;
+    opcode->parent_ip = NULL;
+    opcode->h.perf = (SUBR)useropcd_init_only;
+  }
+}
+
 static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
                                 MYFLT *argPtr, const char *structPath);
 static MYFLT *pbr_resolve_struct_target(CSOUND *csound, MYFLT *argPtr,
@@ -1314,8 +1338,6 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   uint32_t i;
   OPCODINFO    *inm;
   OPCOD_IOBUFS *buf = p->buf;
-  void         *previous_deact = NULL;
-  int32_t       attached_instance = 0;
   /* look up the 'fake' instr number, and opcode name */
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
   if (inm != NULL) {
@@ -1371,9 +1393,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     tp->active++;
     tp->instcnt++;
     /* link into deact chain */
-    previous_deact = parent_ip->opcod_deact;
-    attached_instance = 1;
-    lcurip->opcod_deact = previous_deact;
+    lcurip->opcod_deact = parent_ip->opcod_deact;
     lcurip->subins_deact = NULL;
     parent_ip->opcod_deact = (void*) p;
     p->ip = lcurip;
@@ -1508,6 +1528,10 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   csound->mode = 0;
   ATOMIC_SET(p->ip->init_done, 1);
 
+  /* Child UDOs can only be classified after this complete init chain because
+     a later statement may still change lcurip->p3. */
+  recycle_init_only_udo_instances(csound, lcurip);
+
   /* After init chain completes, materialise UDO outputs only for pass-by-copy.
      In pass-by-ref mode, internal outputs are already rewired to caller storage
      and direct pass-through outputs have already been written back. */
@@ -1588,23 +1612,6 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   /* restore globals */
   csound->ids = saved_ids;
   csound->curip = parent_ip;
-
-  /* A zero-duration parent cannot run this frame at performance time. Type
-     copy callbacks above have already retained any structured output storage,
-     so a frame with no deferred lifetime can now be recycled. */
-  if (attached_instance &&
-      udo_frame_can_be_recycled(p, p->parent_ip, lcurip) &&
-      p->parent_ip->opcod_deact == (void *)p &&
-      lcurip->opcod_deact == previous_deact) {
-    p->parent_ip->opcod_deact = previous_deact;
-    lcurip->opcod_deact = NULL;
-    recycle_udo_instance(csound, lcurip);
-    p->ip = NULL;
-    p->buf = NULL;
-    p->parent_ip = NULL;
-    p->h.perf = (SUBR)useropcd_init_only;
-    return OK;
-  }
 
   /* ksmps and esr may have changed, check against insdshead
      select perf routine and scale xtratim accordingly.

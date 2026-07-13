@@ -24,6 +24,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "array_ops.h"
+#include "arrays_internal.h"
 #include "csoundCore.h"
 #include "csound_standard_types.h"
 #include "csound_orc_structs.h"
@@ -35,8 +36,7 @@ static int32_t struct_value_matches_type(const CS_TYPE *type,
   CONS_CELL *expectedMember;
 
   if (type == NULL || type->members == NULL || value == NULL ||
-      value->members == NULL ||
-      value->memberCount != cs_cons_length(type->members)) {
+      value->members == NULL) {
     return 0;
   }
   expectedMember = type->members;
@@ -130,11 +130,7 @@ static int32_t struct_array_element(CSOUND *csound, OPDS *opds,
     return csound->PerfError(csound, opds, "%s: invalid array storage",
                              opcodeName);
   }
-  if (UNLIKELY(array->storage != NULL &&
-               (array->storage->data != array->data ||
-                array->storage->arrayType != array->arrayType ||
-                array->storage->arrayMemberSize !=
-                  array->arrayMemberSize))) {
+  if (UNLIKELY(!csound_array_storage_matches(csound, array))) {
     return csound->PerfError(csound, opds,
                              "%s: inconsistent shared array storage",
                              opcodeName);
@@ -145,8 +141,7 @@ static int32_t struct_array_element(CSOUND *csound, OPDS *opds,
                              opcodeName);
   }
   offset = index * elementSize;
-  allocated = array->storage != NULL
-                ? array->storage->allocated : array->allocated;
+  allocated = csound_array_allocated_bytes(csound, array);
   if (UNLIKELY(allocated < elementSize ||
                offset > allocated - elementSize)) {
     return csound->PerfError(csound, opds,
@@ -176,7 +171,13 @@ int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
     return csound->PerfError(csound, &p->h,
                              "array_set_struct: invalid element type");
   }
-  csound_array_prepare_write(csound, dat, p->h.insdshead);
+  if (UNLIKELY(dat->storage != NULL &&
+               csound_array_prepare_write(csound, dat,
+                                          p->h.insdshead) != OK)) {
+    return csound->PerfError(
+      csound, &p->h,
+      "array_set_struct: could not detach shared array");
+  }
   if (UNLIKELY(struct_array_flat_index(csound, &p->h, "array_set_struct",
                                        dat, p->indexes, indexCount,
                                        &index) != OK)) {

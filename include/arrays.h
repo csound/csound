@@ -23,157 +23,17 @@
 #ifndef __ARRAY_H__
 #define __ARRAY_H__
 
-/* Shared backing for arrays of user-defined structs. Recursive struct links
-   are represented by arrays, making this the ownership boundary needed when
-   an instrument frame is recycled. It tracks one allocation, not the complete
-   object graph, and is not a garbage collector; reference cycles are therefore
-   not collected. The count protects storage shared by independently
-   synchronized views: a writer detaches while readers of other views retain
-   stable storage. Copying or mutating the same ARRAYDAT still requires
-   Csound's usual lock. */
-typedef struct cs_array_storage {
-    int32_t refs;
-    /* Kept in the layout on every target so separately built plugins agree
-       on the sidecar ABI. One lock is allocated per sidecar, not per view,
-       and only when native atomics are absent. */
-    void *refLock;
-    int32_t dimensions;
-    int32_t arrayMemberSize;
-    const CS_TYPE *arrayType;
-    int32_t *sizes;
-    MYFLT *data;
-    size_t allocated;
-} CS_ARRAY_STORAGE;
-
-static inline int32_t cs_array_storage_ref_count(
-    CSOUND *csound, CS_ARRAY_STORAGE *storage)
+/* Ownership remains engine-private. Installed plugins dispatch the detach
+   operation through their CSOUND instance instead of embedding that logic. */
+static inline int32_t csound_array_prepare_write(CSOUND *csound,
+                                                  ARRAYDAT *array,
+                                                  INSDS *ctx)
 {
-#if defined(MSVC)
-    IGN(csound);
-    return (int32_t)InterlockedCompareExchange(
-      (volatile LONG *)&storage->refs, 0, 0);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-    IGN(csound);
-    return __atomic_load_n(&storage->refs, __ATOMIC_ACQUIRE);
-#else
-    int32_t refs;
-    if (UNLIKELY(storage->refLock == NULL)) {
-        return 0;
-    }
-    csound->LockMutex(storage->refLock);
-    refs = storage->refs;
-    csound->UnlockMutex(storage->refLock);
-    return refs;
-#endif
-}
-
-static inline int32_t cs_array_storage_try_add_ref(
-    CSOUND *csound, CS_ARRAY_STORAGE *storage)
-{
-#if defined(MSVC)
-    IGN(csound);
-    LONG refs = InterlockedCompareExchange(
-      (volatile LONG *)&storage->refs, 0, 0);
-    while (refs > 0 && refs < INT32_MAX) {
-        LONG observed = InterlockedCompareExchange(
-          (volatile LONG *)&storage->refs, refs + 1, refs);
-        if (observed == refs) {
-            return (int32_t)(refs + 1);
-        }
-        refs = observed;
-    }
-    return NOTOK;
-#elif defined(HAVE_ATOMIC_BUILTIN)
-    IGN(csound);
-    int32_t refs = __atomic_load_n(&storage->refs, __ATOMIC_RELAXED);
-    while (refs > 0 && refs < INT32_MAX) {
-        if (__atomic_compare_exchange_n(&storage->refs, &refs, refs + 1,
-                                        0, __ATOMIC_ACQ_REL,
-                                        __ATOMIC_ACQUIRE)) {
-            return refs + 1;
-        }
-    }
-    return NOTOK;
-#else
-    int32_t refs;
-    if (UNLIKELY(storage->refLock == NULL)) {
+    if (csound == NULL || csound->ArrayPrepareWrite == NULL) {
         return NOTOK;
     }
-    csound->LockMutex(storage->refLock);
-    if (storage->refs <= 0 || storage->refs == INT32_MAX) {
-        csound->UnlockMutex(storage->refLock);
-        return NOTOK;
-    }
-    refs = ++storage->refs;
-    csound->UnlockMutex(storage->refLock);
-    return refs;
-#endif
+    return csound->ArrayPrepareWrite(csound, array, ctx);
 }
-
-static inline int32_t cs_array_storage_try_claim(
-    CSOUND *csound, CS_ARRAY_STORAGE *storage)
-{
-#if defined(MSVC)
-    IGN(csound);
-    return InterlockedCompareExchange((volatile LONG *)&storage->refs,
-                                      0, 1) == 1 ? OK : NOTOK;
-#elif defined(HAVE_ATOMIC_BUILTIN)
-    IGN(csound);
-    int32_t expected = 1;
-    return __atomic_compare_exchange_n(&storage->refs, &expected, 0, 0,
-                                       __ATOMIC_ACQ_REL,
-                                       __ATOMIC_ACQUIRE) ? OK : NOTOK;
-#else
-    int32_t result = NOTOK;
-    if (UNLIKELY(storage->refLock == NULL)) {
-        return result;
-    }
-    csound->LockMutex(storage->refLock);
-    if (storage->refs != 1) {
-        csound->UnlockMutex(storage->refLock);
-        return result;
-    }
-    storage->refs = 0;
-    result = OK;
-    csound->UnlockMutex(storage->refLock);
-    return result;
-#endif
-}
-
-static inline int32_t cs_array_storage_release_ref(
-    CSOUND *csound, CS_ARRAY_STORAGE *storage)
-{
-#if defined(MSVC)
-    IGN(csound);
-    return (int32_t)InterlockedDecrement((volatile LONG *)&storage->refs);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-    IGN(csound);
-    return __atomic_sub_fetch(&storage->refs, 1, __ATOMIC_ACQ_REL);
-#else
-    int32_t refs;
-    if (UNLIKELY(storage->refLock == NULL)) {
-        return NOTOK;
-    }
-    csound->LockMutex(storage->refLock);
-    refs = --storage->refs;
-    csound->UnlockMutex(storage->refLock);
-    return refs;
-#endif
-}
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-/* Internal runtime entry points used by core array writers. The inline helper
-   below remains self-contained because utility plugins do not link these
-   symbols. */
-void csound_array_prepare_write(CSOUND *csound, ARRAYDAT *array,
-                                INSDS *ctx);
-void csound_array_share(CSOUND *csound, ARRAYDAT *dest, ARRAYDAT *src);
-void csound_free_array_storage(CSOUND *csound, ARRAYDAT *array);
-#ifdef __cplusplus
-}
-#endif
 
 typedef struct {
     OPDS    h;
@@ -269,187 +129,6 @@ static inline int32_t csound_array_allocation_size(int32_t memberSize,
     }
     *result = count * (size_t)memberSize;
     return OK;
-}
-
-static inline void csound_array_free_elements_inline(
-    CSOUND *csound, const CS_TYPE *arrayType, MYFLT *data,
-    size_t allocated, int32_t memberSize)
-{
-    /* Managed allocation paths initialize or zero every capacity slot before
-       increasing allocated. Empty arrays also own one initialized placeholder,
-       so teardown follows capacity rather than the logical element count. */
-    if (arrayType != NULL && arrayType->freeVariableMemory != NULL &&
-        data != NULL && memberSize > 0) {
-        /* If legacy metadata is malformed, free every complete element and
-           leave only an incomplete trailing fragment to the raw-buffer free. */
-        size_t count = allocated / (size_t)memberSize;
-        for (size_t i = 0; i < count; i++) {
-            void *element = (char *)data + i * (size_t)memberSize;
-            arrayType->freeVariableMemory(csound, element);
-        }
-    }
-}
-
-static inline void cs_array_storage_destroy_inline(
-    CSOUND *csound, CS_ARRAY_STORAGE *storage)
-{
-    if (storage == NULL) {
-        return;
-    }
-    csound_array_free_elements_inline(csound, storage->arrayType,
-                                      storage->data, storage->allocated,
-                                      storage->arrayMemberSize);
-    csound->Free(csound, storage->data);
-    csound->Free(csound, storage->sizes);
-    if (storage->refLock != NULL) {
-        csound->DestroyMutex(storage->refLock);
-    }
-    csound->Free(csound, storage);
-}
-
-static inline int32_t cs_array_storage_layout(
-    const ARRAYDAT *array, const CS_ARRAY_STORAGE *storage,
-    size_t *logicalCount, size_t *capacity, size_t *strideBytes)
-{
-    if (array == NULL || storage == NULL || logicalCount == NULL ||
-        capacity == NULL || strideBytes == NULL ||
-        storage->dimensions <= 0 ||
-        storage->dimensions != array->dimensions ||
-        storage->arrayType == NULL ||
-        !storage->arrayType->userDefinedType ||
-        storage->arrayType->copyValue == NULL || storage->data == NULL ||
-        storage->sizes != array->sizes || storage->data != array->data ||
-        storage->arrayType != array->arrayType ||
-        storage->arrayMemberSize != array->arrayMemberSize ||
-        storage->arrayMemberSize <= 0 ||
-        storage->allocated < (size_t)storage->arrayMemberSize ||
-        storage->allocated % (size_t)storage->arrayMemberSize != 0 ||
-        (array->allocated != 0 && array->allocated != storage->allocated) ||
-        csound_array_member_count(array, logicalCount) != OK) {
-        return NOTOK;
-    }
-
-    *capacity = storage->allocated / (size_t)storage->arrayMemberSize;
-    *strideBytes = (size_t)storage->arrayMemberSize;
-    return *logicalCount <= *capacity ? OK : NOTOK;
-}
-
-static inline int32_t cs_array_storage_clone(
-    CSOUND *csound, const ARRAYDAT *array, const CS_ARRAY_STORAGE *storage,
-    INSDS *ctx, size_t capacity, size_t strideBytes,
-    ARRAYDAT *clone)
-{
-    CS_VARIABLE *var;
-
-    memset(clone, 0, sizeof(*clone));
-    clone->dimensions = storage->dimensions;
-    clone->arrayMemberSize = storage->arrayMemberSize;
-    clone->arrayType = storage->arrayType;
-    clone->allocated = storage->allocated;
-    if (clone->dimensions > 0) {
-        clone->sizes = (int32_t *)csound->Malloc(
-          csound, sizeof(int32_t) * (size_t)clone->dimensions);
-        memcpy(clone->sizes, array->sizes,
-               sizeof(int32_t) * (size_t)clone->dimensions);
-    }
-    clone->data = (MYFLT *)csound->Calloc(csound, clone->allocated);
-
-    var = array_element_create_variable(csound, clone->arrayType, ctx);
-    if (UNLIKELY(var == NULL || var->initializeVariableMemory == NULL)) {
-        csound->Free(csound, clone->data);
-        csound->Free(csound, clone->sizes);
-        memset(clone, 0, sizeof(*clone));
-        return NOTOK;
-    }
-    for (size_t i = 0; i < capacity; i++) {
-        void *element = (char *)clone->data + i * strideBytes;
-        var->initializeVariableMemory(csound, var, (MYFLT *)element);
-    }
-    csound->Free(csound, var);
-
-    /* Capacity slots are all initialized and may become visible after a later
-       resize, so copy them even when the current logical size is smaller. */
-    for (size_t i = 0; i < capacity; i++) {
-        size_t offset = i * strideBytes;
-        clone->arrayType->copyValue(csound, clone->arrayType,
-                                    (char *)clone->data + offset,
-                                    (char *)storage->data + offset, ctx);
-    }
-    return OK;
-}
-
-/* Detach a shared structured array before an inline array helper mutates it.
-   The first write to a shared value may allocate; later writes are in-place.
-   This stays inline because utility plugins use tabinit without linking to
-   internal Csound symbols. Ownership failures are fatal because this helper
-   has no opcode error context and continuing could use or free invalid memory. */
-static inline void csound_array_prepare_write_inline(CSOUND *csound,
-                                                      ARRAYDAT *array,
-                                                      INSDS *ctx)
-{
-    CS_ARRAY_STORAGE *storage;
-    ARRAYDAT clone = {0};
-    size_t logicalCount, capacity, strideBytes;
-    int32_t refs;
-
-    if (array == NULL || array->storage == NULL) {
-        return;
-    }
-
-    storage = array->storage;
-    if (UNLIKELY(cs_array_storage_layout(array, storage, &logicalCount,
-                                         &capacity, &strideBytes) != OK)) {
-        csound->Die(csound, "invalid shared structured-array storage");
-        return;
-    }
-
-    refs = cs_array_storage_ref_count(csound, storage);
-    if (UNLIKELY(refs <= 0)) {
-        csound->Die(csound, "invalid shared array reference count");
-        return;
-    }
-    /* This ARRAYDAT owns one live reference. A count of one cannot reach zero
-       through another independently locked view; a concurrent retain can only
-       move it to two and make the claim fail. */
-    if (refs == 1 && cs_array_storage_try_claim(csound, storage) == OK) {
-        /* The final view can discard the sidecar and resume direct ownership. */
-        array->arrayMemberSize = storage->arrayMemberSize;
-        array->arrayType = storage->arrayType;
-        array->sizes = storage->sizes;
-        array->data = storage->data;
-        array->allocated = storage->allocated;
-        array->storage = NULL;
-        if (storage->refLock != NULL) {
-            csound->DestroyMutex(storage->refLock);
-        }
-        csound->Free(csound, storage);
-        return;
-    }
-    /* If the 1 -> 0 claim lost a race to a new reference, or another view
-       released a 2 -> 1 reference after the load above, cloning is still
-       valid: this ARRAYDAT continues to hold one live reference throughout. */
-    if (UNLIKELY(cs_array_storage_clone(csound, array, storage, ctx,
-                                        capacity, strideBytes,
-                                        &clone) != OK)) {
-        csound->Die(csound, "could not clone shared structured-array storage");
-        return;
-    }
-    refs = cs_array_storage_release_ref(csound, storage);
-    if (UNLIKELY(refs < 0)) {
-        csound_array_free_elements_inline(csound, clone.arrayType, clone.data,
-                                          clone.allocated,
-                                          clone.arrayMemberSize);
-        csound->Free(csound, clone.data);
-        csound->Free(csound, clone.sizes);
-        csound->Die(csound, "invalid shared array reference count");
-        return;
-    }
-    /* Another independently locked view may release its reference while this
-       one is being detached. The last releaser still owns final teardown. */
-    if (refs == 0) {
-        cs_array_storage_destroy_inline(csound, storage);
-    }
-    *array = clone;
 }
 
 static inline int32_t csound_array_initialize_struct_range(
@@ -555,7 +234,11 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size,
         csound->Die(csound, "tabinit: invalid array or size");
         return;
     }
-    csound_array_prepare_write_inline(csound, p, ctx);
+    if (UNLIKELY(p->storage != NULL &&
+                 csound_array_prepare_write(csound, p, ctx) != OK)) {
+        csound->Die(csound, "tabinit: could not detach shared array");
+        return;
+    }
     if (p->dimensions == 0) {
         p->dimensions = 1;
     }
@@ -600,7 +283,11 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p,
         csound->Die(csound, "tabinit_like: array types do not match");
         return;
     }
-    csound_array_prepare_write_inline(csound, p, NULL);
+    if (UNLIKELY(p->storage != NULL &&
+                 csound_array_prepare_write(csound, p, NULL) != OK)) {
+        csound->Die(csound, "tabinit_like: could not detach shared array");
+        return;
+    }
     if (p->data == tp->data) {
         return;
     }
@@ -634,8 +321,12 @@ static inline int32_t tabcheck(CSOUND *csound, ARRAYDAT *p, int32_t size, OPDS *
       return csound->PerfError(csound, q, "%s", Str("Invalid array size"));
     }
     /* Updating the logical size is a write even when capacity is unchanged. */
-    csound_array_prepare_write_inline(csound, p,
-                                      q != NULL ? q->insdshead : NULL);
+    if (UNLIKELY(p->storage != NULL &&
+                 csound_array_prepare_write(
+                   csound, p, q != NULL ? q->insdshead : NULL) != OK)) {
+      return csound->PerfError(csound, q, "%s",
+                               Str("Could not detach shared array"));
+    }
     if (p->data == NULL || p->dimensions == 0 || p->sizes == NULL) {
       return csound->PerfError(csound, q, "%s", Str("Array not initialised"));
     }

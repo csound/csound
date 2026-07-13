@@ -56,6 +56,7 @@
 #include "lpred.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
+#include "arrays_internal.h"
 #include "namedins.h"
 #include "find_opcode.h"
 #include "udo.h"
@@ -605,12 +606,13 @@ static const CSOUND cenviron_ = {
     csoundSprintf, // csoundSprintf
     csoundSscanf,  // csoundSscanf
     csoundDeprecate,
-    /* space for API expansion: 50 slots */
+    csound_array_prepare_write_impl,
+    /* space for API expansion: 49 slots */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
   (SUBR) NULL,    /*  first_callback_     */
@@ -859,6 +861,7 @@ static const CSOUND cenviron_ = {
   0,              /* init pass loop  */
   NULL,           /* init pass threadlock */
   NULL,           /* API_lock */
+  NULL,           /* array_storage_lock */
   SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
   SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
   NULL, NULL,             /* Delayed messages */
@@ -1462,6 +1465,9 @@ static void install_signal_handler(void) {
     csound->opcodedir = strdup(opcodedir);
   csoundReset(csound);
   csound->API_lock = csoundCreateMutex(1);
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+  csound->array_storage_lock = csoundCreateMutex(0);
+#endif
   allocate_message_queue(csound);
   // version is displayed by default, can be suppressed via --suppress-version
   csound->print_version = 1;
@@ -1510,6 +1516,9 @@ struct CsoundCallbackEntry_s {
   if (csound->API_lock != NULL) {
     // csoundLockMutex(csound->API_lock);
     csoundDestroyMutex(csound->API_lock);
+  }
+  if (csound->array_storage_lock != NULL) {
+    csoundDestroyMutex(csound->array_storage_lock);
   }
   // free opcodedir
   free(csound->opcodedir);
@@ -1914,6 +1923,7 @@ static void reset(CSOUND *csound) {
   memcpy(p1, (void *)&(saved_env->first_callback_), (size_t)length);
   csound->csoundCallbacks_ = saved_env->csoundCallbacks_;
   csound->API_lock = saved_env->API_lock;
+  csound->array_storage_lock = saved_env->array_storage_lock;
 #ifdef HAVE_PTHREAD_SPIN_LOCK
   csound->memlock = saved_env->memlock;
   csound->spinlock = saved_env->spinlock;

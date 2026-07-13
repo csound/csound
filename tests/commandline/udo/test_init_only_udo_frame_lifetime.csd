@@ -65,6 +65,9 @@ endop
 
 struct Section players:i
 
+sectionChannelDimensions@global:i[] fillarray 1
+chn_array "section-array", 3, "Section", sectionChannelDimensions
+
 opcode ForwardSections(input:Section[]):Section[]
   xout input
 endop
@@ -195,9 +198,42 @@ instr PerformanceCheck
   endif
 endin
 
+instr LateDurationCheck
+  value:k init 0
+  value = IncrementCycle(value)
+  ; The final duration is not known until the complete init pass has run.
+  p3 = 0.02
+  if (timeinstk() == 2 && value != 2) then
+    printks "late p3 UDO cycle failed: expected=2 got=%g\n", 0, value
+    exitnowk(-1)
+  endif
+endin
+
+instr ArrayChannelCheck
+  source:Section[] init 1
+  original:Section init 4
+  changed:Section init 9
+  source[0] = original
+  chnset source, "section-array"
+
+  ; The channel owns an independent top-level copy. A later source write must
+  ; not alter the value already sent through the channel.
+  source[0] = changed
+  received:Section[] init 1
+  received chnget "section-array"
+  channelValue:Section = received[0]
+  if (channelValue.players != 4) then
+    prints "struct array channel copy failed: expected=4 got=%d\n", \
+      channelValue.players
+    exitnow(1)
+  endif
+endin
+
 </CsInstruments>
 <CsScore>
 i "InitChecks" 0 0
 i "PerformanceCheck" 0 0.02
+i "LateDurationCheck" 0 0
+i "ArrayChannelCheck" 0 0
 </CsScore>
 </CsoundSynthesizer>

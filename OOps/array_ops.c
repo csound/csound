@@ -23,14 +23,14 @@
 #include <ctype.h>
 #include <math.h>
 #include "array_ops.h"
+#include "arrays_internal.h"
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
 
-static int32_t is_intentionally_empty_array(const ARRAYDAT *dat)
+static int32_t is_intentionally_empty_array(CSOUND *csound,
+                                            const ARRAYDAT *dat)
 {
-  size_t allocated = dat != NULL && dat->storage != NULL
-                       ? dat->storage->allocated
-                       : (dat != NULL ? dat->allocated : 0);
+  size_t allocated = csound_array_allocated_bytes(csound, dat);
 
   return dat != NULL && dat->data != NULL && dat->dimensions == 1 &&
          dat->sizes != NULL && dat->sizes[0] == 0 &&
@@ -318,7 +318,12 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
   if (UNLIKELY(dat == NULL)) {
     return csound->PerfError(csound, &(p->h), Str("array_set: NULL array"));
   }
-  csound_array_prepare_write(csound, dat, p->h.insdshead);
+  if (UNLIKELY(dat->storage != NULL &&
+               csound_array_prepare_write(csound, dat,
+                                          p->h.insdshead) != OK)) {
+    return csound->PerfError(csound, &p->h, "%s",
+                             Str("array_set: could not detach shared array"));
+  }
   MYFLT* mem = (MYFLT*)dat->data;
   int32_t i;
   int32_t end, index = 0, incr;
@@ -332,12 +337,13 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     for (int32_t j = 0; j < dat->dimensions; j++) {
       if (dat->sizes[j] <= 0) { needInfer = 1; break; }
     }
-    if (needInfer && is_intentionally_empty_array(dat)) {
+    if (needInfer && is_intentionally_empty_array(csound, dat)) {
       needInfer = 0;
     }
     if (needInfer) {
-      if (dat->dimensions == 1 && dat->allocated > 0 && dat->arrayMemberSize > 0) {
-        int32_t inferred = (int32_t)(dat->allocated / (size_t)dat->arrayMemberSize);
+      size_t allocated = csound_array_allocated_bytes(csound, dat);
+      if (dat->dimensions == 1 && allocated > 0 && dat->arrayMemberSize > 0) {
+        int32_t inferred = (int32_t)(allocated / (size_t)dat->arrayMemberSize);
         if (inferred <= 0) inferred = 1;
         dat->sizes[0] = inferred;
       } else {
@@ -515,8 +521,10 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
             dat->sizes = csound->Calloc(csound, sizeof(int32_t));
           }
           // Infer size from allocated memory
-          if (dat->allocated > 0) {
-            dat->sizes[0] = (int32_t)(dat->allocated / (size_t)dat->arrayMemberSize);
+          size_t allocated = csound_array_allocated_bytes(csound, dat);
+          if (allocated > 0) {
+            dat->sizes[0] = (int32_t)(allocated /
+                                      (size_t)dat->arrayMemberSize);
           } else {
             dat->sizes[0] = 1; // Conservative default
           }
@@ -538,7 +546,7 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
   }
   // Check if this is a struct array that needs auto-sizing before bounds checking
   if (dat->dimensions > 0 && dat->sizes != NULL &&
-      !is_intentionally_empty_array(dat) &&
+      !is_intentionally_empty_array(csound, dat) &&
       dat->arrayType && dat->arrayType->userDefinedType) {
     int needsAutoSizing = 0;
     for (int32_t j = 0; j < dat->dimensions; j++) {
@@ -551,7 +559,12 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     if (needsAutoSizing) {
       /* Size recovery changes array metadata. Detach a structured view first
          so a read from malformed legacy metadata cannot resize its siblings. */
-      csound_array_prepare_write(csound, dat, p->h.insdshead);
+      if (UNLIKELY(csound_array_prepare_write(
+                     csound, dat, p->h.insdshead) != OK)) {
+        return csound->PerfError(
+          csound, &p->h, "%s",
+          Str("array_get: could not detach shared array metadata"));
+      }
       mem = dat->data;
       // Set a default size for struct arrays that were declared but not properly initialized
       for (int32_t j = 0; j < dat->dimensions; j++) {
@@ -570,12 +583,13 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     for (int32_t j = 0; j < dat->dimensions; j++) {
       if (dat->sizes[j] <= 0) { needInfer = 1; break; }
     }
-    if (needInfer && is_intentionally_empty_array(dat)) {
+    if (needInfer && is_intentionally_empty_array(csound, dat)) {
       needInfer = 0;
     }
     if (needInfer) {
-      if (dat->dimensions == 1 && dat->allocated > 0 && dat->arrayMemberSize > 0) {
-        int32_t inferred = (int32_t)(dat->allocated / (size_t)dat->arrayMemberSize);
+      size_t allocated = csound_array_allocated_bytes(csound, dat);
+      if (dat->dimensions == 1 && allocated > 0 && dat->arrayMemberSize > 0) {
+        int32_t inferred = (int32_t)(allocated / (size_t)dat->arrayMemberSize);
         if (inferred <= 0) inferred = 1; /* minimum sane size */
         dat->sizes[0] = inferred;
       } else {
@@ -628,9 +642,7 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
                              Str("Invalid array element offset"));
   }
   size_t offset = (size_t)index * (size_t)dat->arrayMemberSize;
-  size_t allocatedBytes = dat->storage != NULL
-                            ? dat->storage->allocated
-                            : dat->allocated;
+  size_t allocatedBytes = csound_array_allocated_bytes(csound, dat);
   if (UNLIKELY(allocatedBytes > 0 &&
                offset + (size_t)dat->arrayMemberSize > allocatedBytes)) {
     return csound->PerfError(
@@ -3436,7 +3448,6 @@ int32_t tabcopy(CSOUND *csound, TABCPY *p)
   if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
     return csound->InitError(csound, "%s",
                              Str("array-variable types do not match"));
-
   if (p->src == p->dst) return OK;
 
   /* The registered copy routine owns element lifetime and keeps dimensions,
@@ -3538,8 +3549,20 @@ int32_t tabcopy2(CSOUND *csound, TABCPY *p)
   if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
     return csound->InitError(csound, "%s",
                              Str("array-variable types do not match"));
+  if (UNLIKELY(p->src->arrayType != NULL &&
+               p->src->arrayType->userDefinedType))
+    return csound->InitError(
+      csound, "%s",
+      Str("sample-accurate array copy does not support struct arrays"));
 
   if (p->src == p->dst) return OK;
+
+  if (UNLIKELY(p->dst->storage != NULL &&
+               csound_array_prepare_write(csound, p->dst,
+                                          p->h.insdshead) != OK)) {
+    return csound->InitError(csound, "%s",
+                             Str("could not detach shared destination array"));
+  }
 
   if (UNLIKELY(csound_array_member_count(p->src, &elementCount) != OK))
     return csound->InitError(csound, "%s",

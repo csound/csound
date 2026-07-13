@@ -141,6 +141,10 @@ static int32_t init_pass(CSOUND *csound, INSDS *ip) {
   csound->ids = ids;
   csound->curip = curip;
 
+  if (error == 0) {
+    recycle_init_only_udo_instances(csound, ip);
+  }
+
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
 

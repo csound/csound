@@ -9,8 +9,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <atomic>
+#include <thread>
+#include <vector>
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
+#include "arrays_internal.h"
 #include "csoundCore.h"
 #include "gtest/gtest.h"
 
@@ -66,6 +70,117 @@ TEST_F (TypeSystemTests, testGetVarSimpleName)
     ASSERT_STREQ ("a1", csoundGetVarSimpleName(csound, "[a]1"));
     ASSERT_STREQ ("StestString", csoundGetVarSimpleName(csound, "StestString"));
     ASSERT_STREQ ("StestString", csoundGetVarSimpleName(csound, "[S]testString"));
+}
+
+TEST_F (TypeSystemTests, testArrayCopyPreservesDestinationCapacity)
+{
+    int32_t sourceSize = 2;
+    MYFLT sourceData[] = {FL(11.0), FL(22.0)};
+    ARRAYDAT source{};
+    ARRAYDAT destination{};
+
+    source.dimensions = 1;
+    source.sizes = &sourceSize;
+    source.arrayMemberSize = sizeof(MYFLT);
+    source.arrayType = &CS_VAR_TYPE_I;
+    source.data = sourceData;
+    source.allocated = sizeof(sourceData);
+
+    destination.dimensions = 1;
+    destination.sizes = static_cast<int32_t *>(
+      csound->Calloc(csound, sizeof(int32_t)));
+    destination.sizes[0] = 8;
+    destination.arrayMemberSize = sizeof(MYFLT);
+    destination.arrayType = &CS_VAR_TYPE_I;
+    destination.allocated = sizeof(MYFLT) * 8;
+    destination.data = static_cast<MYFLT *>(
+      csound->Calloc(csound, destination.allocated));
+    MYFLT *originalAllocation = destination.data;
+
+    ASSERT_EQ(OK, csound_array_copy_independent(
+                    csound, &destination, &source, nullptr));
+    EXPECT_EQ(originalAllocation, destination.data);
+    EXPECT_EQ(sizeof(MYFLT) * 8, destination.allocated);
+    ASSERT_EQ(1, destination.dimensions);
+    ASSERT_NE(nullptr, destination.sizes);
+    EXPECT_EQ(2, destination.sizes[0]);
+    EXPECT_EQ(FL(11.0), destination.data[0]);
+    EXPECT_EQ(FL(22.0), destination.data[1]);
+
+    csound_free_array_storage(csound, &destination);
+}
+
+TEST_F (TypeSystemTests, testIndependentArrayCopyReportsTypeMismatch)
+{
+    int32_t sourceSize = 1;
+    MYFLT sourceData[] = {FL(1.0)};
+    ARRAYDAT source{};
+    ARRAYDAT destination{};
+
+    source.dimensions = 1;
+    source.sizes = &sourceSize;
+    source.arrayMemberSize = sizeof(MYFLT);
+    source.arrayType = &CS_VAR_TYPE_I;
+    source.data = sourceData;
+    source.allocated = sizeof(sourceData);
+    destination.arrayType = &CS_VAR_TYPE_S;
+
+    EXPECT_EQ(NOTOK, csound_array_copy_independent(
+                       csound, &destination, &source, nullptr));
+    EXPECT_EQ(nullptr, destination.data);
+    EXPECT_EQ(0u, destination.allocated);
+}
+
+TEST_F (TypeSystemTests, testConcurrentStructuredArrayCopiesShareOneStorage)
+{
+    constexpr int32_t readerCount = 8;
+    CS_TYPE elementType = CS_VAR_TYPE_I;
+    ARRAYDAT source{};
+    std::vector<ARRAYDAT> destinations(readerCount);
+    std::vector<std::thread> readers;
+    std::atomic<int32_t> ready{0};
+    std::atomic<bool> start{false};
+
+    elementType.userDefinedType = 1;
+    source.dimensions = 1;
+    source.sizes = static_cast<int32_t *>(
+      csound->Calloc(csound, sizeof(int32_t)));
+    source.sizes[0] = 1;
+    source.arrayMemberSize = sizeof(MYFLT);
+    source.arrayType = &elementType;
+    source.data = static_cast<MYFLT *>(
+      csound->Calloc(csound, sizeof(MYFLT)));
+    source.data[0] = FL(17.0);
+    source.allocated = sizeof(MYFLT);
+
+    for (ARRAYDAT &destination : destinations) {
+        destination.arrayType = &elementType;
+        readers.emplace_back([&, destinationPtr = &destination]() {
+            ready.fetch_add(1, std::memory_order_release);
+            while (!start.load(std::memory_order_acquire)) {
+                std::this_thread::yield();
+            }
+            CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                                        destinationPtr, &source, nullptr);
+        });
+    }
+    while (ready.load(std::memory_order_acquire) != readerCount) {
+        std::this_thread::yield();
+    }
+    start.store(true, std::memory_order_release);
+    for (std::thread &reader : readers) {
+        reader.join();
+    }
+
+    ASSERT_NE(nullptr, source.storage);
+    for (ARRAYDAT &destination : destinations) {
+        EXPECT_EQ(source.storage, destination.storage);
+        EXPECT_EQ(source.data, destination.data);
+        ASSERT_NE(nullptr, destination.data);
+        EXPECT_EQ(FL(17.0), destination.data[0]);
+        csound_free_array_storage(csound, &destination);
+    }
+    csound_free_array_storage(csound, &source);
 }
 
 //void test_array_name_variable_clashing(void)
