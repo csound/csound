@@ -818,6 +818,10 @@ def runTest():
         ["udo/test_args_in.csd", "Pass-by-ref connects args correctly."],
         ["udo/test_K_type.csd", "K-type arguments work with pass-by-ref"],
         [
+            "udo/test_init_only_udo_frame_lifetime.csd",
+            "Init-only UDO frames release structured temporary values",
+        ],
+        [
             "udo/test_udo_init_only_conditional_perf_chain.csd",
             "init-only UDOs in conditionals do not install perf chains",
         ],

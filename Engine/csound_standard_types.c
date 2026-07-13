@@ -22,6 +22,7 @@
 
 #include "csoundCore.h"
 #include "csound_standard_types.h"
+#include "arrays.h"
 #include "pstream.h"
 #include "find_opcode.h"
 #include <stdlib.h>
@@ -137,149 +138,122 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     sDest->timestamp = kcnt;
 }
 
-static size_t array_get_num_members(ARRAYDAT* aSrc) {
-    int32_t i, retVal = 0;
-
-    if (aSrc->dimensions <= 0) {
-      return retVal;
-    }
-
-    retVal = aSrc->sizes[0];
-
-    for (i = 1; i < aSrc->dimensions; i++) {
-      retVal *= aSrc->sizes[i];
-    }
-    return (size_t)retVal;
-}
-
-/*
- * array_copy_value - Copy array data with optimized handling for user-defined types
- *
- * Memory Ownership Semantics:
- * - For UDT arrays (user-defined structs): Creates non-owning aliases (allocated=0)
- *   where aDest->sizes and aDest->data point to aSrc's buffers
- * - For regular arrays: Performs deep copy with owned memory allocation
- * - Pre-existing destination memory is always freed before reallocation
- * - Early alias check prevents unnecessary allocations and potential leaks
- *
- * Parameters:
- *   csound - Csound instance
- *   cstype - Type information for validation
- *   dest - Destination ARRAYDAT (may be uninitialized)
- *   src - Source ARRAYDAT (must be valid)
- *   ctx - Instrument context for variable creation
- */
+/* Structured arrays share backing storage and detach on write. Other arrays
+   retain their established deep-copy semantics; they do not retain recursive
+   struct graphs and do not need ownership sharing for this lifetime fix. */
 static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
     ARRAYDAT* aDest = (ARRAYDAT*)dest;
+    /* The type callback declares src const. Structured copies may attach an
+       ownership sidecar, which changes bookkeeping but not the source value. */
     ARRAYDAT* aSrc = (ARRAYDAT*)src;
-    CSOUND* cs = (CSOUND*)csound;
-    CS_VARIABLE* var;
-    size_t j;
-    int32_t memMyfltSize;
-    size_t arrayNumMembers;
+    CS_VARIABLE* var = NULL;
+    size_t arrayNumMembers, capacity, requiredBytes = 0;
+    int32_t needsAllocation;
 
-    /* If destination is NULL, nothing to do. */
-    if (UNLIKELY(aDest == NULL)) {
+    IGN(cstype);
+
+    if (UNLIKELY(aDest == NULL || aSrc == NULL) || aDest == aSrc) {
+        return;
+    }
+    if (UNLIKELY(!csound_array_element_types_compatible(
+                   aDest->arrayType, aSrc->arrayType))) {
+        csound->Die(csound, "array element types do not match during copy");
+        return;
+    }
+    if (aDest->arrayType == NULL) {
+        aDest->arrayType = aSrc->arrayType;
+    }
+    /* Structured arrays share backing storage until a writer detaches. */
+    if (aSrc->arrayType != NULL && aSrc->arrayType->userDefinedType) {
+        csound_array_share(csound, aDest, aSrc);
+        return;
+    }
+    if (aDest->data != NULL && aDest->data == aSrc->data) {
+        /* A legacy view can reach this callback with a different ARRAYDAT but
+           the same allocation. Reallocating the destination would invalidate
+           the source, while the value is already identical. */
         return;
     }
 
-    /* Optimization and safety: for arrays of user-defined structs, perform a
-       shallow alias instead of deep-copying elements. This avoids heavy copy
-       and shared-ownership bugs; alias is non-owning (allocated=0).
-       This check is done BEFORE any allocations to prevent memory leaks. */
-    if (aSrc && aSrc->arrayType && aSrc->arrayType->userDefinedType) {
-        if (aDest->sizes == aSrc->sizes && aDest->data == aSrc->data) {
-            aDest->arrayMemberSize = aSrc->arrayMemberSize;
-            aDest->dimensions      = aSrc->dimensions;
-            aDest->arrayType       = aSrc->arrayType;
-            aDest->allocated       = 0;
+    if (UNLIKELY(csound_array_member_count(aSrc, &arrayNumMembers) != OK)) {
+        csound->Die(csound, "invalid array dimensions during copy");
+        return;
+    }
+    if (UNLIKELY(arrayNumMembers > 0 && aSrc->data == NULL)) {
+        csound->Die(csound, "array data is missing during copy");
+        return;
+    }
+    capacity = arrayNumMembers > 0 ? arrayNumMembers : 1;
+    if (aSrc->data != NULL) {
+        if (UNLIKELY(csound_array_allocation_size(
+                       aSrc->arrayMemberSize, capacity,
+                       &requiredBytes) != OK)) {
+            csound->Die(csound, "array allocation size overflow during copy");
             return;
         }
-
-        /* Free only owned destination storage before creating an alias. */
-        if (aDest->allocated > 0) {
-            if (aDest->sizes != NULL) {
-                cs->Free(cs, aDest->sizes);
-                aDest->sizes = NULL;
-            }
-            if (aDest->data != NULL) {
-                cs->Free(cs, aDest->data);
-                aDest->data = NULL;
-            }
-        } else if (aDest->data == NULL && aDest->sizes != NULL) {
-            cs->Free(cs, aDest->sizes);
-            aDest->sizes = NULL;
+        /* allocated == 0 is the legacy non-owning-view marker. Owners must
+           report enough capacity for every logical element copied below. */
+        if (UNLIKELY(aSrc->allocated > 0 &&
+                     aSrc->allocated < requiredBytes)) {
+            csound->Die(csound, "array source capacity is too small");
+            return;
         }
-
-        /* Shallow alias for arrays of structs - non-owning reference */
-        aDest->arrayMemberSize = aSrc->arrayMemberSize;
-        aDest->dimensions      = aSrc->dimensions;
-        aDest->sizes           = aSrc->sizes;
-        aDest->arrayType       = aSrc->arrayType;
-        aDest->data            = aSrc->data;
-        aDest->allocated       = 0; /* Non-owning alias */
-        return;
     }
 
-    /* If destination is an uninitialised array shell (arrayType == NULL),
-       initialise it from the source so we can perform a copy. */
-    if (UNLIKELY(aDest->arrayType == NULL) && aSrc && aSrc->arrayType != NULL) {
-        /* Bootstrap destination metadata and storage from source */
-        aDest->arrayType = aSrc->arrayType;
-        aDest->dimensions = aSrc->dimensions;
-        if (aDest->sizes != NULL) { cs->Free(cs, aDest->sizes); }
-        aDest->sizes = cs->Malloc(cs, sizeof(int32_t) * aSrc->dimensions);
-        memcpy(aDest->sizes, aSrc->sizes, sizeof(int32_t) * aSrc->dimensions);
-        aDest->arrayMemberSize = aSrc->arrayMemberSize;
-        size_t nm = array_get_num_members(aSrc);
-        if (aDest->data != NULL) { cs->Free(cs, aDest->data); }
-        aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * nm);
-        aDest->allocated = aSrc->arrayMemberSize * nm;
-    }
+    /* Use exact capacity so shrinking a managed array releases trailing
+       element storage instead of retaining it until instrument teardown. */
+    needsAllocation = aDest->storage != NULL || aDest->data == NULL ||
+      aSrc->arrayMemberSize != aDest->arrayMemberSize ||
+      aSrc->dimensions != aDest->dimensions ||
+      (aSrc->dimensions > 0 && aDest->sizes == NULL) ||
+      requiredBytes != aDest->allocated;
 
-    arrayNumMembers = array_get_num_members(aSrc);
-    memMyfltSize = aSrc->arrayMemberSize / sizeof(MYFLT);
-
-    /* If source and destination are the same array object, skip copy */
-    if (aDest == aSrc) {
-        return;
-    }
-
-    if(aDest->data == NULL ||
-       aSrc->arrayMemberSize != aDest->arrayMemberSize ||
-       aSrc->dimensions != aDest->dimensions ||
-       aSrc->arrayType != aDest->arrayType ||
-       arrayNumMembers > array_get_num_members(aDest)) {
-
+    if (needsAllocation) {
+        csound_free_array_storage(csound, aDest);
         aDest->arrayMemberSize = aSrc->arrayMemberSize;
         aDest->dimensions = aSrc->dimensions;
-        if(aDest->sizes != NULL) {
-            cs->Free(cs, aDest->sizes);
+        if (aSrc->dimensions > 0 && aSrc->sizes != NULL) {
+            aDest->sizes = csound->Malloc(
+              csound, sizeof(int32_t) * (size_t)aSrc->dimensions);
+            memcpy(aDest->sizes, aSrc->sizes,
+                   sizeof(int32_t) * (size_t)aSrc->dimensions);
         }
-        aDest->sizes = cs->Malloc(cs, sizeof(int32_t) * aSrc->dimensions);
-        memcpy(aDest->sizes, aSrc->sizes, sizeof(int32_t) * aSrc->dimensions);
-        aDest->arrayType = aSrc->arrayType;
-        if(aDest->data != NULL) {
-            cs->Free(cs, aDest->data);
-        }
-        aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * arrayNumMembers);
-        aDest->allocated = aSrc->arrayMemberSize * arrayNumMembers;
-    } else if(arrayNumMembers <= array_get_num_members(aDest)) // set sizes, don't reallocate
-      for(j = 0; j < aDest->dimensions; j++) aDest->sizes[j] = aSrc->sizes[j];
-    
 
-    var = aDest->arrayType->createVariable(cs, (void *)aDest->arrayType, ctx);
-    for (j = 0; j < arrayNumMembers; j++) {
-        size_t index = j * memMyfltSize;
-        if(var->initializeVariableMemory != NULL) {
-          var->initializeVariableMemory(csound, var, aDest->data + index);
+        if (aSrc->data == NULL || aSrc->arrayMemberSize <= 0) {
+            return;
         }
-        aDest->arrayType->copyValue(csound, aDest->arrayType,
-                                    aDest->data + index,
-                                    aSrc->data + index, ctx);
+        aDest->allocated = requiredBytes;
+        aDest->data = csound->Calloc(csound, aDest->allocated);
+
+        var = array_element_create_variable(csound, aDest->arrayType, ctx);
+        if (var != NULL && var->initializeVariableMemory != NULL) {
+            for (size_t i = 0; i < capacity; i++) {
+                var->initializeVariableMemory(csound, var,
+                  (MYFLT*)((char*)aDest->data +
+                           i * (size_t)aDest->arrayMemberSize));
+            }
+        }
+    } else if (aDest->dimensions > 0) {
+        memcpy(aDest->sizes, aSrc->sizes,
+               sizeof(int32_t) * (size_t)aDest->dimensions);
     }
 
+    for (size_t i = 0; i < arrayNumMembers; i++) {
+        size_t offset = i * (size_t)aSrc->arrayMemberSize;
+        void* destElement = (char*)aDest->data + offset;
+        const void* srcElement = (const char*)aSrc->data + offset;
+        if (aDest->arrayType != NULL &&
+            aDest->arrayType->copyValue != NULL) {
+            aDest->arrayType->copyValue(csound, aDest->arrayType,
+                                        destElement, srcElement, ctx);
+        } else {
+            memcpy(destElement, srcElement, (size_t)aSrc->arrayMemberSize);
+        }
+    }
+    if (var != NULL) {
+        csound->Free(csound, var);
+    }
 }
 
 static void opcodedef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
@@ -358,6 +332,7 @@ static void array_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock)
     dat->arrayMemberSize = 0;
     dat->dimensions = 0;
     dat->sizes = NULL;
+    dat->storage = NULL;
 
     // Initialize array dimensions if they were set during variable creation
     if (var->dimensions > 0) {
@@ -530,54 +505,178 @@ static void string_free_var_mem(void* csnd, void* p) {
     string_free_internal(csound, dat);
 }
 
-static void array_free_var_mem(void* csnd, void* p) {
-    CSOUND* csound = (CSOUND*)csnd;
-    ARRAYDAT* dat = (ARRAYDAT*)p;
+static void array_clear_view(ARRAYDAT* dat) {
+    /* Keep arrayType: it is the variable's declared element type and is needed
+       if the same ARRAYDAT is initialized again. */
+    dat->dimensions = 0;
+    dat->sizes = NULL;
+    dat->arrayMemberSize = 0;
+    dat->data = NULL;
+    dat->allocated = 0;
+    dat->storage = NULL;
+}
 
-    /* Only free backing storage if this ARRAYDAT owns it. Aliases set allocated=0. */
-    if (dat->allocated > 0 && dat->data != NULL) {
-        const CS_TYPE* arrayType = dat->arrayType;
+void csound_free_array_storage(CSOUND* csound, ARRAYDAT* dat) {
+    int32_t ownsData;
 
-        if (arrayType->freeVariableMemory != NULL) {
-            MYFLT* mem = dat->data;
-            size_t memMyfltSize = 0;
-            // Compute element count without trusting dat->sizes pointer, which may be shared/aliased
-            size_t i;
-            size_t elemCount = 0;
+    if (dat == NULL) {
+        return;
+    }
 
-            // Safe division with checks for arrayMemberSize and sizeof(MYFLT)
-            if (dat->arrayMemberSize > 0 && sizeof(MYFLT) > 0) {
-                memMyfltSize = (size_t)dat->arrayMemberSize / sizeof(MYFLT);
-
-                if (dat->allocated > 0) {
-                    elemCount = (size_t)dat->allocated / (size_t)dat->arrayMemberSize;
-                }
-            } else if (dat->sizes) {
-                // Fallback to sizes if available
-                elemCount = (dat->dimensions > 0) ? (size_t)dat->sizes[0] : 0;
-                for (i = 1; i < (size_t)dat->dimensions; i++) {
-                    // Check for multiplication overflow
-                    if (elemCount > 0 && (size_t)dat->sizes[i] > SIZE_MAX / elemCount) {
-                        // Overflow would occur, cap at SIZE_MAX
-                        elemCount = SIZE_MAX;
-                        break;
-                    }
-                    elemCount *= (size_t)dat->sizes[i];
-                }
-            }
-
-            for (i = 0; i < elemCount; i++) {
-                arrayType->freeVariableMemory(csound,
-                                              mem + (i * memMyfltSize));
-            }
+    if (dat->storage != NULL) {
+        CS_ARRAY_STORAGE* storage = dat->storage;
+        int32_t refs = cs_array_storage_release_ref(csound, storage);
+        if (UNLIKELY(refs < 0)) {
+            csound->Die(csound, "negative shared array reference count");
+            return;
         }
+        if (refs == 0) {
+            cs_array_storage_destroy_inline(csound, storage);
+        }
+        array_clear_view(dat);
+        return;
+    }
 
+    /* Aliases have data but allocated == 0. An empty array still owns its
+       one-element placeholder, so allocated remains greater than zero. */
+    ownsData = dat->allocated > 0 && dat->data != NULL;
+    if (ownsData) {
+        csound_array_free_elements_inline(csound, dat->arrayType, dat->data,
+                                          dat->allocated,
+                                          dat->arrayMemberSize);
         csound->Free(csound, dat->data);
     }
 
-    if (dat->allocated > 0 && dat->sizes != NULL) {
+    /* An uninitialised array shell owns its sizes metadata. Aliases own
+       neither sizes nor data, and must only be detached. */
+    if (dat->sizes != NULL && (ownsData || dat->data == NULL)) {
         csound->Free(csound, dat->sizes);
     }
+
+    array_clear_view(dat);
+}
+
+void csound_array_share(CSOUND* csound, ARRAYDAT* dest, ARRAYDAT* src) {
+    CS_ARRAY_STORAGE* storage;
+    size_t logicalCount, capacity, strideBytes;
+
+    if (dest == NULL || src == NULL || dest == src) {
+        return;
+    }
+    if (UNLIKELY(src->arrayType == NULL ||
+                 !src->arrayType->userDefinedType ||
+                 csound_array_member_count(src, &logicalCount) != OK)) {
+        csound->Die(csound, "invalid structured array during copy");
+        return;
+    }
+    if (dest->data != NULL && dest->data == src->data &&
+        dest->storage != NULL && dest->storage == src->storage) {
+        return;
+    }
+    if (src->data == NULL) {
+        if (UNLIKELY(src->storage != NULL)) {
+            csound->Die(csound,
+                        "structured array has storage without array data");
+            return;
+        }
+        csound_free_array_storage(csound, dest);
+        dest->dimensions = src->dimensions;
+        dest->arrayMemberSize = src->arrayMemberSize;
+        dest->arrayType = src->arrayType;
+        if (src->dimensions > 0 && src->sizes != NULL) {
+            dest->sizes = csound->Malloc(
+              csound, sizeof(int32_t) * (size_t)src->dimensions);
+            memcpy(dest->sizes, src->sizes,
+                   sizeof(int32_t) * (size_t)src->dimensions);
+        }
+        return;
+    }
+
+    storage = src->storage;
+    if (storage == NULL) {
+        CS_ARRAY_STORAGE candidate = {0};
+
+        /* A raw alias (allocated == 0) has no owner that can participate in
+           reference counting. Internal structured-array copies now always
+           carry a sidecar, so accepting such a source would risk freeing
+           memory owned elsewhere. */
+        if (UNLIKELY(src->allocated == 0 || src->arrayMemberSize <= 0 ||
+                     src->allocated % (size_t)src->arrayMemberSize != 0)) {
+            csound->Die(csound,
+                        "cannot share non-owning structured-array storage");
+            return;
+        }
+
+        candidate.refs = 1;
+        candidate.dimensions = src->dimensions;
+        candidate.arrayMemberSize = src->arrayMemberSize;
+        candidate.arrayType = src->arrayType;
+        candidate.sizes = src->sizes;
+        candidate.data = src->data;
+        candidate.allocated = src->allocated;
+        if (UNLIKELY(cs_array_storage_layout(
+                       src, &candidate, &logicalCount,
+                       &capacity, &strideBytes) != OK)) {
+            csound->Die(csound,
+                        "invalid structured-array storage during copy");
+            return;
+        }
+
+        /* Install the sidecar lazily. This is the bookkeeping-only source
+           mutation mentioned in array_copy_value; normal array access remains
+           unchanged, and additional views report allocated == 0. */
+        storage = csound->Calloc(csound, sizeof(CS_ARRAY_STORAGE));
+        *storage = candidate;
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+        /* Csound's generic atomic fallback is intentionally non-atomic. A
+           sidecar can outlive the lock protecting its original ARRAYDAT, so
+           non-atomic targets serialize reference changes with a mutex. */
+        storage->refLock = csound->Create_Mutex(0);
+        if (UNLIKELY(storage->refLock == NULL)) {
+            csound->Free(csound, storage);
+            csound->Die(csound,
+                        "could not create shared-array reference lock");
+            return;
+        }
+#endif
+        src->storage = storage;
+    }
+    else if (UNLIKELY(cs_array_storage_layout(
+                        src, storage, &logicalCount,
+                        &capacity, &strideBytes) != OK)) {
+        csound->Die(csound, "invalid structured-array storage during copy");
+        return;
+    }
+
+    /* Validate and retain the source before releasing the destination. This
+       matters for legacy aliases that may point at destination-owned data. */
+    if (UNLIKELY(dest->data == src->data && dest->storage != storage &&
+                 (dest->storage != NULL || dest->allocated > 0))) {
+        csound->Die(csound, "conflicting structured-array ownership");
+        return;
+    }
+    if (UNLIKELY(cs_array_storage_try_add_ref(csound, storage) == NOTOK)) {
+        csound->Die(csound, "invalid shared array reference count");
+        return;
+    }
+    csound_free_array_storage(csound, dest);
+
+    dest->dimensions = src->dimensions;
+    dest->sizes = src->sizes;
+    dest->arrayMemberSize = src->arrayMemberSize;
+    dest->arrayType = src->arrayType;
+    dest->data = src->data;
+    dest->allocated = 0;
+    dest->storage = storage;
+}
+
+void csound_array_prepare_write(CSOUND* csound, ARRAYDAT* array,
+                                INSDS* ctx) {
+    csound_array_prepare_write_inline(csound, array, ctx);
+}
+
+static void array_free_var_mem(void* csnd, void* p) {
+    csound_free_array_storage((CSOUND*)csnd, (ARRAYDAT*)p);
 }
 
 /* STANDARD TYPE DEFINITIONS */

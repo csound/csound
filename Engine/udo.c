@@ -53,6 +53,41 @@ static int32_t count_args(const char *args) {
   return count;
 }
 
+static int32_t useropcd_init_only(CSOUND *csound, UOPCODE *p)
+{
+  IGN(csound);
+  IGN(p);
+  return OK;
+}
+
+static int32_t udo_has_rate_converter(const UOPCODE *opcode)
+{
+  int32_t index;
+
+  for (index = 0; index < OPCODENUMOUTS_MAX; index++) {
+    if (opcode->cvt_in[index] != NULL || opcode->cvt_out[index] != NULL) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int32_t udo_frame_can_be_recycled(const UOPCODE *opcode,
+                                         const INSDS *parent,
+                                         const INSDS *child)
+{
+  /* Exactly zero is intentional: negative p3 is indefinite, while a positive
+     p3 may still execute. Rate converters are normally released when the
+     parent follows its UDO deactivation chain, so keep that path when present.
+     Opcode AUXCH allocations remain attached to the inactive INSDS for reuse;
+     unlike deinit callbacks, files, or nested instances, they do not depend on
+     local variable ownership and therefore do not block recycling. */
+  return parent != NULL && parent->p3.value == FL(0.0) &&
+         parent->xtratim == 0 && child != NULL && child->xtratim == 0 &&
+         child->nxtd == NULL && child->fdchp == NULL &&
+         child->subins_deact == NULL && !udo_has_rate_converter(opcode);
+}
+
 static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
                                 MYFLT *argPtr, const char *structPath);
 static MYFLT *pbr_resolve_struct_target(CSOUND *csound, MYFLT *argPtr,
@@ -1277,6 +1312,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   uint32_t i;
   OPCODINFO    *inm;
   OPCOD_IOBUFS *buf = p->buf;
+  void         *previous_deact = NULL;
+  int32_t       attached_instance = 0;
   /* look up the 'fake' instr number, and opcode name */
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
   if (inm != NULL) {
@@ -1332,7 +1369,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     tp->active++;
     tp->instcnt++;
     /* link into deact chain */
-    lcurip->opcod_deact = parent_ip->opcod_deact;
+    previous_deact = parent_ip->opcod_deact;
+    attached_instance = 1;
+    lcurip->opcod_deact = previous_deact;
     lcurip->subins_deact = NULL;
     parent_ip->opcod_deact = (void*) p;
     p->ip = lcurip;
@@ -1507,7 +1546,10 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
           if (v->varType == &CS_VAR_TYPE_ARRAY && (wantedSubType == NULL
                                                    || v->subType == wantedSubType)) {
             ARRAYDAT* cand = (ARRAYDAT*)(lcurip->lclbas + v->memBlockIndex);
-            if (cand && cand->data && cand->allocated > 0
+            /* A structured-array view can carry capacity in its sidecar while
+               ARRAYDAT.allocated remains zero for legacy ownership checks. */
+            if (cand && cand->data &&
+                (cand->allocated > 0 || cand->storage != NULL)
                 && cand->dimensions >= 0 && cand->arrayType) {
               if ((void*)cand != dst) {
                 src = (void*)cand;
@@ -1544,6 +1586,23 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   /* restore globals */
   csound->ids = saved_ids;
   csound->curip = parent_ip;
+
+  /* A zero-duration parent cannot run this frame at performance time. Type
+     copy callbacks above have already retained any structured output storage,
+     so a frame with no deferred lifetime can now be recycled. */
+  if (attached_instance &&
+      udo_frame_can_be_recycled(p, p->parent_ip, lcurip) &&
+      p->parent_ip->opcod_deact == (void *)p &&
+      lcurip->opcod_deact == previous_deact) {
+    p->parent_ip->opcod_deact = previous_deact;
+    lcurip->opcod_deact = NULL;
+    recycle_udo_instance(csound, lcurip);
+    p->ip = NULL;
+    p->buf = NULL;
+    p->parent_ip = NULL;
+    p->h.perf = (SUBR)useropcd_init_only;
+    return OK;
+  }
 
   /* ksmps and esr may have changed, check against insdshead
      select perf routine and scale xtratim accordingly.

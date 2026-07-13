@@ -82,6 +82,7 @@ extern "C" {
   void free_instance(CSOUND *csound, INSDS *ip);
   int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
   void free_instr_var_memory(CSOUND* csound, INSDS* ip);
+  void recycle_udo_instance(CSOUND* csound, INSDS* ip);
   int32_t init_instance(CSOUND *csound, INSDS *ip, EVTBLK *newevtp);
   int32_t instr_context_check(CSOUND *csound, INSDS *ip, INSDS *insdshead);
   int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
