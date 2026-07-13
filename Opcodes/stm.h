@@ -24,12 +24,14 @@
    STM is a family of Csound opcodes for building stateful computational
    graphs inspired by LangGraph (https://github.com/langchain-ai/langgraph).
 
-   The graph owns the state-machine structure: named nodes and the edges that
-   define valid transitions between them. Node computation remains ordinary
-   Csound code, typically written as user-defined opcodes operating on a shared
-   struct passed by reference.
+   stmcreate builds a mutable topology, stmcompile freezes it into an immutable
+   definition, and stminstance creates a mutable runner from that definition.
+   Multiple runners can share one definition while keeping current node,
+   requests, clocks and transition events independent. Node computation remains
+   ordinary Csound code, typically written as user-defined opcodes operating on
+   a shared struct passed by reference.
 
-   At k-rate, the orchestra asks the graph for the current node with stmcurrent,
+   At k-rate, the orchestra asks the runner for the current node with stmcurrent,
    dispatches explicitly to the matching node implementation, then calls
    stmadvance. During its execution, a node may request a transition with
    stmnext. stmadvance validates that request against the graph edges and applies
@@ -42,9 +44,22 @@
    This keeps the state-machine control flow explicit and deterministic while
    leaving DSP, analysis, and musical behavior in the orchestra.
 
+   ADVANCE STATUS
+
+   stmadvance returns three k-rate values: status, source node ID and target
+   node ID. The status values are STM_NO_REQUEST (0), STM_CHANGED (1),
+   STM_ILLEGAL_EDGE (2), STM_SELF_TRANSITION (3) and STM_CONFLICT (4). The
+   target is -1 when there was no unique target (no request or conflict).
+
+   Requests share one pending slot. The first target requested before an
+   advance is retained; repeating that target is idempotent, while requesting
+   a different target marks a conflict. A conflicted advance applies neither
+   target. This detects competing intentions without trying to identify the
+   writers; a single writer changing its request also counts as a conflict.
+
    ENTER/EXIT EVENTS
 
-   stmonenter and stmonexit report graph-level transition events, not an
+   stmonenter and stmonexit report runner-level transition events, not an
    observer-local rising/falling edge. Each opcode instance records the graph
    event sequence that was current when it was initialized; it only triggers
    for a later event where the named node was entered or exited. Therefore an
@@ -52,17 +67,21 @@
    stmonenter(B) on its first pass.
 
    These opcodes observe the latest graph event seen by that opcode call. If a
-   graph is advanced through multiple transitions between two passes of a slow
+   runner is advanced through multiple transitions between two passes of a slow
    observer, intermediate events may be missed. For process lifecycle binding,
    the deterministic pattern is to run the enter/exit checks in the same
    supervisor loop that advances the graph, and bind the initial state
    explicitly if it needs an initial process.
 
+   stmevent provides loss detection and ordered consumption through a bounded
+   per-runner ring. Each opcode instance owns an independent read cursor; an
+   overflow output reports when unread events were overwritten.
+
    GRAPH CLOCK
 
-   Every graph carries its own clock, read with three k-rate opcodes:
+   Every runner carries its own clock, read with three k-rate opcodes:
 
-     stmtick     - k-cycles elapsed since stmcompile or stmreset
+     stmtick     - k-cycles elapsed since stminstance or stmreset
      stmtime     - graph time in seconds, advanced sample frames / sr
      stmnodetime - seconds elapsed since the current node became current
 
@@ -76,8 +95,8 @@
 
    Two rules follow from an advance-driven clock:
 
-     1. call stmadvance exactly once per graph per k-cycle. Two instrument
-        instances sharing one graph handle would tick it twice per cycle.
+     1. call stmadvance exactly once per runner per k-cycle. Multiple calls by
+        its writer tick it multiple times; overlapping writers are rejected.
      2. read the time opcodes BEFORE stmadvance. After it they already report
         the values of the next cycle.
 
@@ -96,15 +115,16 @@
      - a transition rejected by stmadvance (no such edge) leaves it untouched,
        since the current node never changed
      - stmreset restarts tick, graph time and node time at 0, exactly the way
-       stmcompile does
+       stminstance does
 
    REGISTRY HANDLES
 
-   Graph handles are numeric MYFLT values because orchestra code cannot safely
-   carry raw C pointers. The registry stores graphs in reusable slots and
-   encodes both the slot index and a generation counter into the handle. This
-   lets STM reuse a freed slot without making an old handle point to the new
-   graph now living there.
+   Builder, definition and runner handles are numeric MYFLT values because
+   orchestra code cannot safely carry raw C pointers. One typed registry stores
+   all three object kinds in reusable slots and encodes both the slot index and
+   a generation counter into each handle. Every lookup validates generation and
+   expected object type before casting, so a builder handle cannot be used as a
+   definition or runner handle.
 
    The handle encoding is intentionally kept within 2^24, so all handle
    integers are exact even in single-precision MYFLT builds. With the current
@@ -114,17 +134,17 @@
 
    CONCURRENCY MODEL
 
-   A graph handle may be shared across instruments, including under multicore
-   performance. STM protects the registry, graph lookup, graph mutation and
-   graph deinit with a per-CSOUND STM registry mutex. This prevents ordinary
-   data races and resolve/free races when different instruments touch the same
-   graph.
+   Immutable definitions may be shared freely. Each runner permits one active
+   writer instrument instance and any number of observers. Multiple mutating
+   opcodes in that writer are allowed, and a later writer may claim the runner
+   after the previous one deinitializes; overlapping writer instruments are
+   rejected during opcode initialization.
 
-   Synchronization is per opcode call, not a transaction over the whole
-   stmcurrent -> node dispatch -> stmnext -> stmadvance orchestra pattern.
-   If multiple instruments mutate one graph, the scheduler's execution order is
-   still the semantic order. A single supervisor remains the most deterministic
-   pattern, but it is not enforced.
+   Each opcode resolves and retains its runner during initialization, so the
+   performance path does not touch the registry mutex. The writer publishes
+   compound runner updates through an atomic sequence counter; observers retry
+   if an update overlaps their snapshot. On platforms without compiler atomic
+   builtins, the same contract uses a per-runner fallback mutex.
 */
 
 #ifndef STM_H
@@ -139,11 +159,60 @@
 #define INITIAL_NODE_CAPACITY 10
 #define INITIAL_EDGE_CAPACITY 10
 #define INITIAL_GRAPH_CAPACITY 8
+#define TRANSITION_BUFFER_CAPACITY 10
 #define STM_HANDLE_SLOT_BASE 4096U
 #define STM_HANDLE_MAX_EXACT 16777216U
 #define STM_HANDLE_GENERATION_MAX (STM_HANDLE_MAX_EXACT / STM_HANDLE_SLOT_BASE)
-#define NO_NODE UINT32_MAX
+#define STM_NO_NODE UINT32_MAX
 #define STM_REGISTRY_NAME "::stm_registry::"
+#define STM_REQUEST_OK 0
+#define STM_REQUEST_CONFLICT 1
+
+#define STM_GET_BUILDER_INIT(csound, opds, handle, msg, reg, out) \
+    stm_get_object_init_locked((csound), (opds), (handle), STM_OBJECT_BUILDER, (msg), (reg), (void **) (out))
+
+#define STM_GET_DEFINITION_INIT(csound, opds, handle, msg, reg, out) \
+    stm_get_object_init_locked((csound), (opds), (handle), STM_OBJECT_DEFINITION, (msg), (reg), (void **) (out))
+
+#define STM_GET_RUNNER_INIT(csound, opds, handle, msg, reg, out) \
+    stm_get_object_init_locked((csound), (opds), (handle), STM_OBJECT_RUNNER, (msg), (reg), (void **) (out))
+
+
+typedef enum {
+    STM_RUNNER_READER = 0,
+    STM_RUNNER_WRITER
+} STM_RUNNER_ACCESS;
+
+typedef enum {
+    STM_EVENT_CHANGED = 1,
+    STM_EVENT_SELF_TRANSITION,
+    STM_EVENT_RESET
+} GRAPH_EVENT_STATUS;
+
+typedef struct {
+    uint64_t sequence;
+    uint32_t from;
+    uint32_t to;
+    int32_t status;
+} GRAPH_TRANSITION_EVENT;
+
+typedef struct {
+    uint64_t sequence;
+    uint32_t entered_node;
+    uint32_t exited_node;
+} STM_LATEST_EVENT_SNAPSHOT;
+
+typedef struct {
+    uint64_t total_frames;
+    uint64_t node_enter;
+} STM_NODE_TIME_SNAPSHOT;
+
+typedef struct {
+    int32_t available;
+    int32_t overflow;
+    uint64_t oldest_sequence;
+    GRAPH_TRANSITION_EVENT event;
+} STM_TRANSITION_SNAPSHOT;
 
 typedef struct {
     char *name;
@@ -155,30 +224,81 @@ typedef struct {
 
 typedef struct {
     GRAPH_NODE *nodes;
-    // node section
     uint32_t node_count;
     uint32_t node_capacity;
+    uint32_t start_node;
+    int32_t compiled;
+} GRAPH_BUILDER;
+
+typedef struct {
+    GRAPH_NODE *nodes;
+    uint32_t node_count;
+    uint32_t start_node;
+    uint32_t refcount;
+} GRAPH_DEFINITION;
+
+typedef struct {
+    GRAPH_DEFINITION *definition;
+    uint32_t refcount;
+    uint32_t state_version;
+#if !defined(HAVE_ATOMIC_BUILTIN)
+    void *state_mutex;
+#endif
+    INSDS *writer_owner;
+    uint32_t writer_claims;
+    // mutable (runner)
     uint32_t current_node;
     uint32_t previous_node;
     uint32_t requested_node;
-    uint32_t start_node;
+    int32_t request_conflict;
     // time section: the clock is driven by stmadvance, see the note above
     uint64_t graph_tick; // stmadvance calls since compile/reset
     uint64_t total_sample_frames; // samples advanced since compile/reset
     uint64_t node_sample_on_enter; // total_sample_frames at node entry
-    int32_t reset_pending; // stmreset ran this cycle: next stmadvance does not tick
-    // transition event section: graph-level enter/exit events
+    // transition event section: runner-level enter/exit events
     uint64_t event_seq;
     uint32_t event_entered_node;
     uint32_t event_exited_node;
-    // compile and freeze
-    int32_t compiled;
-} GRAPH;
+    // cycle (graph reset)
+    uint64_t reset_pcycle;
+    int32_t has_reset_cycle;
+    // transitions buffer
+    GRAPH_TRANSITION_EVENT *transitions;
+    uint32_t tndx_write;
+    uint32_t transition_count;
+} GRAPH_RUNNER;
 
 typedef struct {
-    GRAPH *graph;
+    GRAPH_RUNNER *runner;
+    INSDS *writer_owner;
+    int32_t writer_claimed;
+} STM_RUNNER_REF;
+
+typedef enum {
+    STM_OBJECT_NONE = 0,
+    STM_OBJECT_BUILDER,
+    STM_OBJECT_DEFINITION,
+    STM_OBJECT_RUNNER
+} STM_OBJECT_TYPE;
+
+typedef union {
+    void *ptr;
+    GRAPH_BUILDER *builder;
+    GRAPH_DEFINITION *definition;
+    GRAPH_RUNNER *runner;
+} STM_OBJECT_POINTER;
+
+typedef struct {
+    STM_OBJECT_POINTER object;
     uint32_t generation;
+    STM_OBJECT_TYPE type;
 } STM_REGISTRY_SLOT;
+
+typedef struct {
+    uint32_t slot;
+    uint32_t generation;
+    STM_OBJECT_TYPE type;
+} STM_OWNER_TOKEN;
 
 /* Per-csound registry: handles encode a slot and generation into an integer
    stored as MYFLT (kept within the exact integer range of float builds). */
@@ -193,10 +313,7 @@ typedef struct {
     OPDS h;
     // outputs
     MYFLT *handle;
-    // private: owner state used by deinit, independent from the exposed handle
-    GRAPH *graph;
-    uint32_t slot;
-    uint32_t generation;
+    STM_OWNER_TOKEN owner;
 } GRAPH_CREATE;
 
 typedef struct {
@@ -224,9 +341,21 @@ typedef struct {
 
 typedef struct {
     OPDS h;
+    // outputs
+    MYFLT *def_handle; // definition handle
     // inputs
-    MYFLT *handle;
+    MYFLT *bld_handle; // builder handle
+    STM_OWNER_TOKEN owner;
 } GRAPH_COMPILE;
+
+typedef struct {
+    OPDS h;
+    // outputs
+    MYFLT *runner_handle;
+    // inputs
+    MYFLT *def_handle;
+    STM_OWNER_TOKEN owner;
+} GRAPH_INSTANCE;
 
 typedef struct {
     OPDS h;
@@ -234,22 +363,37 @@ typedef struct {
     STRINGDAT *cur;
     // inputs
     MYFLT *handle;
+    STM_RUNNER_REF ref;
 } GRAPH_CURRENT; // k-rate
 
+/* Shared by every k-rate runner query with a single MYFLT output:
+   stmcurrentid, stmnodecount, stmedgecount, stmtick, stmtime, stmnodetime. */
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *cur;
+    MYFLT *out;
     // inputs
     MYFLT *handle;
-} GRAPH_CURRENT_ID; // k-rate
+    STM_RUNNER_REF ref;
+} GRAPH_RUNNER_QUERY; // k-rate
+
+typedef enum {
+    STM_NO_REQUEST = 0,
+    STM_CHANGED,
+    STM_ILLEGAL_EDGE,
+    STM_SELF_TRANSITION,
+    STM_CONFLICT
+} STM_ADVANCE_STATUS;
 
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *changed;
+    MYFLT *status;
+    MYFLT *id_from;
+    MYFLT *id_to;
     // inputs
     MYFLT *handle;
+    STM_RUNNER_REF ref;
 } GRAPH_ADVANCE; // k-rate
 
 typedef struct {
@@ -257,6 +401,7 @@ typedef struct {
     // inputs
     MYFLT *handle;
     STRINGDAT *next_node;
+    STM_RUNNER_REF ref;
 } GRAPH_NEXT;
 
 typedef struct {
@@ -264,6 +409,7 @@ typedef struct {
     // inputs
     MYFLT *handle;
     MYFLT *next_node;
+    STM_RUNNER_REF ref;
 } GRAPH_NEXT_ID;
 
 typedef struct {
@@ -273,11 +419,11 @@ typedef struct {
     // inputs
     MYFLT *handle;
     STRINGDAT *node;
-    // private: the node id is stable (the graph is immutable once compiled), but
-    // the GRAPH itself must never be cached, it dies with the instrument that
-    // created it. Resolve the handle on every perf pass instead.
+    // The node id is stable in the immutable definition. The retained runner
+    // reference keeps both the runtime state and its definition alive.
     int32_t node_id;
     uint64_t last_seen_event_seq;
+    STM_RUNNER_REF ref;
 } GRAPH_ON_EE;
 
 // INTROSPECTION
@@ -289,6 +435,7 @@ typedef struct {
     // inputs
     MYFLT *handle;
     STRINGDAT *node_name;
+    STM_RUNNER_REF ref;
 } GRAPH_NODE_ID;
 
 typedef struct {
@@ -298,24 +445,8 @@ typedef struct {
     // inputs
     MYFLT *handle;
     MYFLT *node_id;
+    STM_RUNNER_REF ref;
 } GRAPH_NODE_NAME;
-
-typedef struct {
-    OPDS h;
-    // outputs
-    MYFLT *node_count;
-    // inputs
-    MYFLT *handle;
-} GRAPH_NODE_COUNT;
-
-typedef struct {
-    OPDS h;
-    // outputs
-    MYFLT *edge_count;
-    // inputs
-    MYFLT *handle;
-} GRAPH_EDGE_COUNT;
-
 
 // CONTROL FLOW
 
@@ -323,6 +454,7 @@ typedef struct {
     OPDS h;
     // inputs
     MYFLT *handle;
+    STM_RUNNER_REF ref;
 } GRAPH_RESET;
 
 typedef struct {
@@ -332,15 +464,23 @@ typedef struct {
     STRINGDAT *entry_node;
 } GRAPH_ENTRY;
 
-// TIME SECTION
+// TRANSITION EVENT RING
 
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *t;
+    MYFLT *status;
+    MYFLT *sequence;
+    MYFLT *overflow;
+    MYFLT *available;
+    MYFLT *from;
+    MYFLT *to;
     // inputs
     MYFLT *handle;
-} GRAPH_TIME;
+    // private
+    uint64_t next_event_seq;
+    STM_RUNNER_REF ref;
+} GRAPH_TRANSITION;
 
 
 // INTERFACE
@@ -349,30 +489,34 @@ typedef struct {
 int32_t graph_create(CSOUND *csound, GRAPH_CREATE *p); // i-time
 int32_t graph_create_deinit(CSOUND *csound, GRAPH_CREATE *p);
 int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p); // i-time
+int32_t graph_compile_deinit(CSOUND *csound, GRAPH_COMPILE *p);
+int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p); // i-time
+int32_t graph_instance_deinit(CSOUND *csound, GRAPH_INSTANCE *p);
 int32_t graph_reset(CSOUND *csound, GRAPH_RESET *p); // k-time
 // node
 int32_t graph_add_node(CSOUND *csound, GRAPH_ADD_NODE *p); // i-time
 int32_t graph_node_id(CSOUND *csound, GRAPH_NODE_ID *p); // k-time
 int32_t graph_node_name(CSOUND *csound, GRAPH_NODE_NAME *p); // k-time
-int32_t graph_node_count(CSOUND *csound, GRAPH_NODE_COUNT *p); // k-time
+int32_t graph_node_count(CSOUND *csound, GRAPH_RUNNER_QUERY *p); // k-time
 int32_t graph_entry(CSOUND *csound, GRAPH_ENTRY *p); // i-time
 // edge
 int32_t graph_add_edge(CSOUND *csound, GRAPH_ADD_EDGE *p); // i-time
 int32_t graph_add_cond_edge(CSOUND *csound, GRAPH_ADD_COND_EDGE *p); // i-time
-int32_t graph_edge_count(CSOUND *csound, GRAPH_EDGE_COUNT *p); // k-time
+int32_t graph_edge_count(CSOUND *csound, GRAPH_RUNNER_QUERY *p); // k-time
 // flow and trig
 int32_t graph_current(CSOUND *csound, GRAPH_CURRENT *p); // k-time
-int32_t graph_current_id(CSOUND *csound, GRAPH_CURRENT_ID *p); // k-time
+int32_t graph_current_id(CSOUND *csound, GRAPH_RUNNER_QUERY *p); // k-time
 int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p); // k-time
 int32_t graph_next(CSOUND *csound, GRAPH_NEXT *p); // k-time
 int32_t graph_next_id(CSOUND *csound, GRAPH_NEXT_ID *p); // k-time
 int32_t graph_on_ee_init(CSOUND *csound, GRAPH_ON_EE *p); // i-time
 int32_t graph_on_enter(CSOUND *csound, GRAPH_ON_EE *p); // k-time
 int32_t graph_on_exit(CSOUND *csound, GRAPH_ON_EE *p); // k-time
+int32_t graph_transition(CSOUND *csound, GRAPH_TRANSITION *p); // k-time
 // time
-int32_t graph_time_tick(CSOUND *csound, GRAPH_TIME *p); // k-time
-int32_t graph_time_global(CSOUND *csound, GRAPH_TIME *p); // k-time
-int32_t graph_time_node(CSOUND *csound, GRAPH_TIME *p); // k-time
+int32_t graph_time_tick(CSOUND *csound, GRAPH_RUNNER_QUERY *p); // k-time
+int32_t graph_time_global(CSOUND *csound, GRAPH_RUNNER_QUERY *p); // k-time
+int32_t graph_time_node(CSOUND *csound, GRAPH_RUNNER_QUERY *p); // k-time
 
 
 
