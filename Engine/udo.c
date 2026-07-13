@@ -81,7 +81,9 @@ static int32_t udo_frame_can_be_recycled(const UOPCODE *opcode,
      parent follows its UDO deactivation chain, so keep that path when present.
      Opcode AUXCH allocations remain attached to the inactive INSDS for reuse;
      unlike deinit callbacks, files, or nested instances, they do not depend on
-     local variable ownership and therefore do not block recycling. */
+     local variable ownership and therefore do not block recycling. Failing
+     this whitelist keeps the existing deactivation lifecycle; it does not
+     orphan the frame. */
   return parent != NULL && parent->p3.value == FL(0.0) &&
          parent->xtratim == 0 && child != NULL && child->xtratim == 0 &&
          child->nxtd == NULL && child->fdchp == NULL &&

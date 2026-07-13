@@ -44,6 +44,9 @@ extern "C" {
     char* varDescription;
     int32_t argtype; // used to denote if allowed as in-arg, out-arg, or both
     struct csvariable* (*createVariable)(void *cs, void *p, struct insds *ctx);
+    /* copyValue preserves the logical source value. Managed aggregates may
+       attach lifetime bookkeeping to a mutable runtime source header; callers
+       must synchronize concurrent access to that same runtime object. */
     void (*copyValue)(CSOUND* csound, const struct cstype* cstype, void* dest,
                       const void* src, struct insds *ctx);
     void (*freeVariableMemory)(void* csound, void* varMem);
