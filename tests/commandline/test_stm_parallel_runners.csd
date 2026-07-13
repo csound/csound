@@ -42,11 +42,11 @@ instr 1 ; writer for runner1: one transition every cycle
     endif
 endin
 
-instr 2 ; writer for runner2: one transition every second cycle
+instr 2 ; writer for runner2: stop advancing before runner1
     cycle:k = init(0)
     cycle += 1
 
-    if cycle <= 120 && cycle % 2 == 0 then
+    if cycle <= 80 then
         current:k = stmcurrentid(runner2)
         if current == 0 then
             stmnext(runner2, 1)
@@ -71,7 +71,7 @@ instr 3
     current1:k = stmcurrentid(runner1)
     current2:k = stmcurrentid(runner2)
 
-    if tick1 != 120 || tick2 != 60 || current1 != 0 || current2 != 0 then
+    if tick1 != 120 || tick2 != 80 || current1 != 0 || current2 != 0 then
         printks("[FAIL] parallel runners final tick/current=%f/%f/%f/%f\n", 0, tick1, tick2, current1, current2)
         exitnowk(-1)
     endif
