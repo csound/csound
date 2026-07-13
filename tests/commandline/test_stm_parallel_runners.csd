@@ -25,11 +25,13 @@ runner2@global:i = stminstance(shared_definition)
 
 instr 1 ; writer for runner1: one transition every cycle
     cycle:k = init(0)
+    previous_tick:k = init(0)
     cycle += 1
 
-    tick:k = stmtick(runner1)
-    if tick != cycle - 1 then
-        printks("[FAIL] parallel writer 1 tick=%f expected %f\n", 0, tick, cycle - 1)
+    tick_before:k = stmtick(runner1)
+    if tick_before != previous_tick then
+        printks("[FAIL] parallel writer 1 tick changed externally=%f/%f\n", 0,
+                previous_tick, tick_before)
         exitnowk(-1)
     endif
 
@@ -45,6 +47,13 @@ instr 1 ; writer for runner1: one transition every cycle
                 status, from_id, to_id)
         exitnowk(-1)
     endif
+    tick_after:k = stmtick(runner1)
+    if tick_after != tick_before + 1 then
+        printks("[FAIL] parallel writer 1 tick before/after=%f/%f\n", 0,
+                tick_before, tick_after)
+        exitnowk(-1)
+    endif
+    previous_tick = tick_after
 
     if cycle == 120 then
         printks("[PASS] parallel writer 1\n", 0)
@@ -54,12 +63,13 @@ endin
 
 instr 2 ; writer for runner2: one transition every second cycle
     cycle:k = init(0)
-    advances:k = init(0)
+    previous_tick:k = init(0)
     cycle += 1
 
-    tick:k = stmtick(runner2)
-    if tick != advances then
-        printks("[FAIL] parallel writer 2 tick=%f expected %f\n", 0, tick, advances)
+    tick_before:k = stmtick(runner2)
+    if tick_before != previous_tick then
+        printks("[FAIL] parallel writer 2 tick changed externally=%f/%f\n", 0,
+                previous_tick, tick_before)
         exitnowk(-1)
     endif
 
@@ -71,12 +81,18 @@ instr 2 ; writer for runner2: one transition every second cycle
             stmnext(runner2, 0)
         endif
         status:k, from_id:k, to_id:k = stmadvance(runner2)
-        advances += 1
         if status != 1 || from_id == to_id then
             printks("[FAIL] parallel writer 2 status/from/to=%f/%f/%f\n", 0,
                     status, from_id, to_id)
             exitnowk(-1)
         endif
+        tick_after:k = stmtick(runner2)
+        if tick_after != tick_before + 1 then
+            printks("[FAIL] parallel writer 2 tick before/after=%f/%f\n", 0,
+                    tick_before, tick_after)
+            exitnowk(-1)
+        endif
+        previous_tick = tick_after
     endif
 
     if cycle == 120 then
