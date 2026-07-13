@@ -24,6 +24,7 @@
 /*                      BUS.C           */
 #include "csoundCore.h"
 #include "arrays.h"
+#include "arrays_internal.h"
 #include <setjmp.h>
 #include <ctype.h>
 #include <string.h>
@@ -2354,14 +2355,15 @@ int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p)
 }
 
 /* ARRAY channels implementation - VL 7.08.24 */
-static inline void copy_array(CSOUND *csound,
-                              ARRAYDAT *out, const ARRAYDAT *in, spin_lock_t *lock) {
+static inline int32_t copy_array(CSOUND *csound, ARRAYDAT *out,
+                                 const ARRAYDAT *in, spin_lock_t *lock)
+{
+  int32_t result;
+
   csoundSpinLock(lock);
-  CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY, out, in, NULL);
-  /* csoundSetArrayData() has no CSOUND argument and therefore cannot detach a
-     shared array. Keep channel storage independent at this API boundary. */
-  csound_array_prepare_write(csound, out, NULL);
+  result = csound_array_copy_independent(csound, out, in, NULL);
   csoundSpinUnLock(lock);
+  return result;
 }
 
 static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int32_t type) {
@@ -2415,7 +2417,11 @@ int32_t array_perf_check(CSOUND* csound, CHNGET* p, int32_t type) {
 static int32_t chnget_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p)
 {
   if(array_perf_check(csound, p, CSOUND_INPUT_CHANNEL) == OK) {
-    copy_array(csound, (ARRAYDAT *) p->arg,  (ARRAYDAT *) p->fp, p->lock);
+    if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->arg,
+                            (ARRAYDAT *)p->fp, p->lock) != OK)) {
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("array channel copy failed"));
+    }
     return OK;
   }
   else return NOTOK;
@@ -2429,7 +2435,11 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
     if(adat->arrayType != &CS_VAR_TYPE_A &&
        adat->arrayType != &CS_VAR_TYPE_K) {
       /* copy array data - except if it is k or a-type */
-      copy_array(csound, adat, (ARRAYDAT *) p->fp, p->lock);
+      if (UNLIKELY(copy_array(csound, adat, (ARRAYDAT *)p->fp,
+                              p->lock) != OK)) {
+        return csound->InitError(csound, "%s",
+                                 Str("array channel copy failed"));
+      }
     } else {
       if(CS_ESR != csound->esr)
         return csound->InitError(csound,
@@ -2445,7 +2455,11 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
 static int32_t chnset_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p)
 {
   if(array_perf_check(csound, p, CSOUND_OUTPUT_CHANNEL) == OK) {
-    copy_array(csound, (ARRAYDAT *) p->fp,  (ARRAYDAT *) p->arg, p->lock);
+    if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->fp,
+                            (ARRAYDAT *)p->arg, p->lock) != OK)) {
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("array channel copy failed"));
+    }
     return OK;
   }
   else return NOTOK;
@@ -2459,7 +2473,11 @@ int32_t chnset_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
     if(adat->arrayType != &CS_VAR_TYPE_A &&
        adat->arrayType != &CS_VAR_TYPE_K) {
       /* copy array data - except if it is k or a-type */
-      copy_array(csound, (ARRAYDAT *) p->fp, adat, p->lock);
+      if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->fp, adat,
+                              p->lock) != OK)) {
+        return csound->InitError(csound, "%s",
+                                 Str("array channel copy failed"));
+      }
     } else {
       if(CS_ESR != csound->esr)
         return csound->InitError(csound,

@@ -1478,7 +1478,10 @@ struct CSOUND_ {
       To allow the API to grow while maintining backward binary compatibility.
    */
   /**@{ */
-  SUBR dummyfn_2[50];
+  /* This consumes one former placeholder; the 50-pointer reserve keeps the
+     offsets of private CSOUND fields unchanged. */
+  int32_t (*ArrayPrepareWrite)(CSOUND *, ARRAYDAT *, INSDS *);
+  SUBR dummyfn_2[49];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1665,6 +1668,7 @@ struct CSOUND_ {
   int32_t event_insert_loop;
   void *init_pass_threadlock;
   void *API_lock;
+  void *array_storage_lock;
   spin_lock_t spoutlock, spinlock;
   spin_lock_t memlock, spinlock1;
   char *delayederrormessages;
