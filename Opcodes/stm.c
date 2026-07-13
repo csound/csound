@@ -153,6 +153,10 @@
 #include "coreDefs.h"
 #include "csound.h"
 #include "sysdep.h"
+/* udo.h carries OPCODINFO pointers, while plugin builds do not expose the
+   private definition from cs_internal.h.  STM only needs the type to be
+   declared in order to use OPCOD_IOBUFS. */
+typedef struct opcodinfo OPCODINFO;
 #include "udo.h"
 #include <stddef.h>
 #include <stdint.h>
