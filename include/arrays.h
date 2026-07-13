@@ -28,12 +28,14 @@
    an instrument frame is recycled. It tracks one allocation, not the complete
    object graph, and is not a garbage collector; reference cycles are therefore
    not collected. The count protects storage shared by independently
-   synchronized views. Copying or mutating the same ARRAYDAT still requires
+   synchronized views: a writer detaches while readers of other views retain
+   stable storage. Copying or mutating the same ARRAYDAT still requires
    Csound's usual lock. */
 typedef struct cs_array_storage {
     int32_t refs;
     /* Kept in the layout on every target so separately built plugins agree
-       on the sidecar ABI. It is allocated only when native atomics are absent. */
+       on the sidecar ABI. One lock is allocated per sidecar, not per view,
+       and only when native atomics are absent. */
     void *refLock;
     int32_t dimensions;
     int32_t arrayMemberSize;
@@ -207,6 +209,9 @@ static inline int32_t csound_array_element_types_compatible(
     }
     destinationName = destination->varTypeName;
     sourceName = source->varTypeName;
+    /* Pointer equality above handles canonical built-in and user-defined
+       types, including multi-character names. Name-based compatibility is
+       deliberately limited to the legacy one-letter i/k rate exception. */
     if (destinationName == NULL || sourceName == NULL ||
         destinationName[0] == '\0' || sourceName[0] == '\0' ||
         destinationName[1] != '\0' || sourceName[1] != '\0') {
@@ -270,8 +275,9 @@ static inline void csound_array_free_elements_inline(
     CSOUND *csound, const CS_TYPE *arrayType, MYFLT *data,
     size_t allocated, int32_t memberSize)
 {
-    /* Empty arrays own one initialized placeholder, so teardown follows
-       allocated capacity rather than the current logical element count. */
+    /* Managed allocation paths initialize or zero every capacity slot before
+       increasing allocated. Empty arrays also own one initialized placeholder,
+       so teardown follows capacity rather than the logical element count. */
     if (arrayType != NULL && arrayType->freeVariableMemory != NULL &&
         data != NULL && memberSize > 0) {
         /* If legacy metadata is malformed, free every complete element and
@@ -375,7 +381,8 @@ static inline int32_t cs_array_storage_clone(
 /* Detach a shared structured array before an inline array helper mutates it.
    The first write to a shared value may allocate; later writes are in-place.
    This stays inline because utility plugins use tabinit without linking to
-   internal Csound symbols. */
+   internal Csound symbols. Ownership failures are fatal because this helper
+   has no opcode error context and continuing could use or free invalid memory. */
 static inline void csound_array_prepare_write_inline(CSOUND *csound,
                                                       ARRAYDAT *array,
                                                       INSDS *ctx)
@@ -401,6 +408,9 @@ static inline void csound_array_prepare_write_inline(CSOUND *csound,
         csound->Die(csound, "invalid shared array reference count");
         return;
     }
+    /* This ARRAYDAT owns one live reference. A count of one cannot reach zero
+       through another independently locked view; a concurrent retain can only
+       move it to two and make the claim fail. */
     if (refs == 1 && cs_array_storage_try_claim(csound, storage) == OK) {
         /* The final view can discard the sidecar and resume direct ownership. */
         array->arrayMemberSize = storage->arrayMemberSize;
