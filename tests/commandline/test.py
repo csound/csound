@@ -71,12 +71,52 @@ class TestResult:
         self.expected_result = (
             1 if len(test_data) == 3 or self.filename in expectedFailures else 0
         )
+        self.expectation = (
+            test_data[3]
+            if len(test_data) >= 4 and isinstance(test_data[3], dict)
+            else None
+        )
+        if self.expectation is not None:
+            self.expected_result = self.expectation.get("return_code", 0)
+        else:
+            self.expected_result = (len(test_data) == 3) and 1 or 0
+
+    @staticmethod
+    def _patterns(value):
+        """Normalize one expected-output pattern or a list of patterns."""
+        if value is None:
+            return []
+        return value if isinstance(value, list) else [value]
+
+    @property
+    def validation_error(self):
+        """Explain why a structured return-code/output expectation failed."""
+        if self.expectation is None:
+            return None
+
+        if self.return_code != self.expected_result:
+            return (
+                f"return code {self.return_code}, expected exactly "
+                f"{self.expected_result}"
+            )
+
+        for pattern in self._patterns(self.expectation.get("output_contains")):
+            if pattern not in self.cs_output:
+                return f"required diagnostic not found: {pattern!r}"
+
+        for pattern in self._patterns(self.expectation.get("output_excludes")):
+            if pattern in self.cs_output:
+                return f"forbidden crash diagnostic found: {pattern!r}"
+
+        return None
 
     @property
     def passed(self):
         """Check if test passed based on return code and expected result."""
         if self.error is not None:
             return False
+        if self.expectation is not None:
+            return self.validation_error is None
         return (self.return_code == 0) == (self.expected_result == 0)
 
     @property
@@ -96,6 +136,8 @@ class TestResult:
         )
         if self.error:
             output += f"\tError: {self.error}\n"
+        if self.validation_error:
+            output += f"\tValidation: {self.validation_error}\n"
         if verbose and self.execution_time:
             output += f"\tExecution Time: {self.execution_time:.2f}s\n"
         return output
@@ -846,6 +888,78 @@ def runTest():
             0,
             "-nd",
             '-- concert.orc "first violin" --logfile=ignored ""',
+        ["test_stm.csd", "testing stm opcodes"],
+        ["test_stm_sequential_trace.csd", "testing sequential stm state trace"],
+        ["test_stm_event.csd", "testing stm transition event ring"],
+        [
+            "test_stm_instances.csd",
+            "testing shared definition, independent stm runners and instance overload",
+        ],
+        ["test_stm_lockfree.csd", "testing one stm writer with lock-free multicore observers"],
+        [
+            "test_stm_parallel_runners.csd",
+            "testing independent stm writers on parallel multicore runners",
+        ],
+        ["test_stm_long_names.csd", "testing stm string outputs with long node names"],
+        [
+            "test_stm_writer_conflict.csd",
+            "expected failure: stm rejects overlapping writer instruments",
+            1,
+            {
+                "return_code": 1,
+                "output_contains": "[stm] runner already has another active writer",
+                "output_excludes": [
+                    "Segmentation fault",
+                    "AddressSanitizer",
+                    "UndefinedBehaviorSanitizer",
+                    "Abort trap",
+                ],
+            },
+        ],
+        ["test_stm_reinit_reset.csd", "testing stm reinit cleanup and reset cycle"],
+        [
+            "test_stm_lifetime.csd",
+            "stm runner pins active observers and rejects stale handles",
+            1,
+            {
+                "return_code": 1,
+                "output_contains": [
+                    "[lifetime] retained observer remained safe after owner ended",
+                    "INIT ERROR in instr 30 (opcode stmonenter)",
+                    "[stm] on enter/exit: invalid runner",
+                ],
+                "output_excludes": [
+                    "Segmentation fault",
+                    "AddressSanitizer",
+                    "UndefinedBehaviorSanitizer",
+                    "Abort trap",
+                ],
+            },
+        ],
+        ["test_stm_invalid_id.csd", "expected failure: stm rejects fractional node id", 1],
+        [
+            "test_stm_unknown_node.csd",
+            "expected failure: stmnext rejects an unknown node name",
+            1,
+            {
+                "return_code": 1,
+                "output_contains": "[stm] stmnext: node 'Zeta' not found",
+                "output_excludes": [
+                    "Segmentation fault",
+                    "AddressSanitizer",
+                    "UndefinedBehaviorSanitizer",
+                    "Abort trap",
+                ],
+            },
+        ],
+        [
+            "test_stm_type_mismatch.csd",
+            "expected failure: stm rejects a builder where a definition is required",
+            1,
+            {
+                "return_code": 1,
+                "output_contains": "[stm] stminstance: invalid definition",
+            },
         ],
         ["signalflowgraphtest.csd", "test signal-flow graph opcodes"],
         [

@@ -16,10 +16,11 @@ definition@global:i = stmcompile(builder)
 graph@global:i = stminstance(definition)
 
 instr 1
-    ; Fractional node ids must not be silently truncated to integers.
-    stmnext(graph, 1.5)
+    ; A name that is not in the compiled definition must raise a clean
+    ; performance error instead of being ignored or matched partially.
+    stmnext(graph, "Zeta")
     status:k, from_id:k, to_id:k = stmadvance(graph)
-    printks("[FAIL] stmnext.id accepted a fractional node id, status=%f\n", 0, status)
+    printks("[FAIL] stmnext accepted an unknown node name, status=%f\n", 0, status)
     exitnowk(-1)
 endin
 

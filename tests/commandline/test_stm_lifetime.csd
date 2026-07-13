@@ -9,36 +9,35 @@ nchnls = 1
 0dbfs  = 1
 
 ; ============================================================
-; STM graph lifetime: observing a graph that has been freed.
+; STM runner lifetime: retained observers and stale handles.
 ;
-; A graph belongs to the instrument instance that called stmcreate:
-; its deinit frees the GRAPH. An instrument that outlives the owner
-; must NOT be able to dereference it.
+; Builder, definition-handle and runner ownership belong to their producing
+; opcode instances. Runtime opcodes retain the runner during init and release
+; it during deinit, so an already initialized observer may safely outlive the
+; stminstance owner. Removing the registry handle prevents new users from
+; joining; the runner storage is freed only after the last retained opcode ends.
 ;
-; Cross-instrument observation is allowed while the owner is alive, but graph
-; lookup and deinit are synchronized through the STM registry mutex. Older
-; versions let stmonenter/stmonexit cache or resolve the GRAPH* without this
-; lifetime protection, which made this orchestra read freed memory (and
-; segfault under an allocator that unmaps freed pages).
+; Cross-instrument observation is allowed without registry lookups on each
+; performance pass. Older versions cached a raw GRAPH* without retaining it,
+; which made this orchestra read freed memory (and segfault under an allocator
+; that unmaps freed pages).
 ;
-; EXPECTED: a clean perf error, not a crash. This csd is registered
-; in test.py as an expected failure (non-zero return code).
-;
-; Note: the return code alone cannot tell a clean error apart from a
-; crash. The real regression guard is running this file under a
-; sanitizer (-fsanitize=address), where the old code aborts.
+; EXPECTED: instr 20 remains safe after the owner ends, then instr 30 gets a
+; clean init error when it tries to acquire the stale handle. The test.py entry
+; requires both diagnostics and rejects common crash/sanitizer messages.
 ; ============================================================
 
 handle@global:i = init(0)
 
-instr 10 ; owner: the graph dies with this instance
-    h:i = stmcreate()
-    stmaddnode(h, "A")
-    stmaddnode(h, "B")
-    stmaddedge(h, "A", "B")
-    stmcompile(h)
-    handle = h
-    prints("[lifetime] instr 10: graph %d created, freed when this instance ends\n", h)
+instr 10 ; owner: removes the public handle when this instance ends
+    builder:i = stmcreate()
+    stmaddnode(builder, "A")
+    stmaddnode(builder, "B")
+    stmaddedge(builder, "A", "B")
+    definition:i = stmcompile(builder)
+    runner:i = stminstance(definition)
+    handle = runner
+    prints("[lifetime] instr 10: runner %d created; handle removed when owner ends\n", runner)
 endin
 
 instr 20 ; observer: outlives the owner
@@ -55,12 +54,20 @@ instr 20 ; observer: outlives the owner
         endif
         printks("[lifetime] instr 20: graph observed while alive, trig=0\n", 0)
     endif
+    if c == 70 then
+        printks("[lifetime] retained observer remained safe after owner ended\n", 0)
+    endif
+endin
+
+instr 30 ; a new observer cannot acquire the stale registry handle
+    trig:k = stmonenter(handle, "A")
 endin
 
 </CsInstruments>
 <CsScore>
-i 10 0    0.05   ; owner: graph freed at 0.05
-i 20 0.01 0.40   ; observer: still running well past 0.05
+i 10 0    0.05   ; owner removes registry handle at 0.05
+i 20 0.01 0.08   ; retained observer runs past owner deinit
+i 30 0.10 0.01   ; new observer: controlled init error on stale handle
 e
 </CsScore>
 </CsoundSynthesizer>
