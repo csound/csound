@@ -29,138 +29,196 @@
 #include "csound_orc_structs.h"
 #include "struct_ops.h"
 
-int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
+static int32_t struct_value_matches_type(const CS_TYPE *type,
+                                         const CS_STRUCT_VAR *value)
 {
-  ARRAYDAT* dat = p->arrayDat;
-  if (UNLIKELY(dat == NULL || dat->data == NULL)) {
-    return csound->PerfError(csound, &(p->h), Str("array_set_struct: NULL array"));
+  CONS_CELL *expectedMember;
+
+  if (type == NULL || type->members == NULL || value == NULL ||
+      value->members == NULL ||
+      value->memberCount != cs_cons_length(type->members)) {
+    return 0;
   }
-  int32_t indefArgCount = p->INOCOUNT - 2; // value + at least one index
-  if (UNLIKELY(indefArgCount <= 0))
-    return csound->PerfError(csound, &(p->h), Str("array_set_struct: no indexes"));
-  if (UNLIKELY(dat->dimensions > 0 && indefArgCount != dat->dimensions)) {
-    // Allow flat arrays with no metadata
-    if (!(dat && dat->dimensions == 0)) {
-      return csound->PerfError(csound, &(p->h), Str("array_set_struct: dimension mismatch"));
+  expectedMember = type->members;
+  for (int32_t i = 0; i < value->memberCount; i++) {
+    if (expectedMember == NULL) {
+      return 0;
     }
-  }
-  // Compute flat index
-  size_t index = 0;
-  for (int32_t i = 0; i < indefArgCount; i++) {
-    int32_t end = (int32_t)(*p->indexes[i]);
+    CS_VARIABLE *expected = (CS_VARIABLE *)expectedMember->value;
+    CS_VAR_MEM *actual = value->members[i];
 
-    // Enforce non-negative index check for all cases
-    if (UNLIKELY(end < 0)) {
-      return csound->PerfError(csound, &(p->h), Str("array_set_struct: index %d out of range (negative)"), i+1);
+    if (expected == NULL || expected->varType == NULL || actual == NULL ||
+        actual->varType == NULL ||
+        expected->varType != actual->varType) {
+      return 0;
     }
-
-    if (dat->dimensions > 0 && dat->sizes != NULL) {
-      size_t dim = (size_t)dat->sizes[i];
-      if (UNLIKELY((size_t)end >= dim)) {
-        return csound->PerfError(csound, &(p->h), Str("array_set_struct: index %d out of range"), i+1);
-      }
-      if (UNLIKELY(index > (SIZE_MAX - (size_t)end) / dim)) {
-        return csound->PerfError(csound, &(p->h), Str("array_set_struct: index overflow"));
-      }
-      index = (index * dim) + (size_t)end;
-    } else {
-      // For flat arrays (dat->dimensions == 0), we need to validate bounds differently
-      // We'll check the final computed index against the array size after the loop
-      index = (size_t)end; // flat arrays: last index wins
+    if (expected->varType == &CS_VAR_TYPE_ARRAY &&
+        expected->subType != NULL &&
+        ((ARRAYDAT *)&actual->value)->arrayType != expected->subType) {
+      return 0;
     }
+    expectedMember = expectedMember->next;
   }
+  return expectedMember == NULL;
+}
 
-  // Validate capacity if known
-  if (UNLIKELY(dat->arrayMemberSize <= 0)) {
-    return csound->PerfError(csound, &(p->h), Str("array_set_struct: invalid element size"));
+static int32_t struct_array_flat_index(CSOUND *csound, OPDS *opds,
+                                       const char *opcodeName,
+                                       const ARRAYDAT *array,
+                                       MYFLT *const *indexes,
+                                       int32_t indexCount,
+                                       size_t *result)
+{
+  size_t flatIndex = 0;
+
+  if (UNLIKELY(result == NULL || opcodeName == NULL || array == NULL ||
+               indexes == NULL || array->dimensions <= 0 ||
+               array->sizes == NULL || indexCount != array->dimensions)) {
+    return csound->PerfError(csound, opds,
+                             "%s: array dimensions do not match indexes",
+                             opcodeName);
   }
+  for (int32_t i = 0; i < indexCount; i++) {
+    int32_t coordinate;
+    size_t dimension;
+    MYFLT rawIndex;
 
-  // Address element in bytes (safe for struct payloads)
-  char* base = (char*)dat->data;
-
-  // Validate byte offset is within allocated buffer
-  size_t elemSize = (size_t)dat->arrayMemberSize;
-  if (UNLIKELY(index > (SIZE_MAX - (elemSize - 1)) / elemSize)) {
-    return csound->PerfError(csound, &(p->h), Str("array_set_struct: offset overflow"));
-  }
-  size_t allocatedBytes = (size_t)dat->allocated;
-  if (allocatedBytes == 0 && dat->sizes && dat->dimensions > 0) {
-    allocatedBytes = (size_t)dat->sizes[0] * elemSize;
-  }
-  size_t offset = (size_t)index * elemSize;
-  if (allocatedBytes > 0 && UNLIKELY(offset + elemSize > allocatedBytes)) {
-    return csound->PerfError(csound, &(p->h), Str("array_set_struct: computed offset %zu out of bounds"), offset);
-  }
-
-  char* dstPtr = base + offset;
-
-  // Ensure destination struct is initialized (members allocated)
-  if (dat->arrayType && dat->arrayType->userDefinedType) {
-    CS_STRUCT_VAR* dst = (CS_STRUCT_VAR*)(void*)dstPtr;
-    if (dst && dst->members == NULL) {
-      CS_VARIABLE* var = dat->arrayType->createVariable(csound, (void*)dat->arrayType, p->h.insdshead);
-      if (var && var->initializeVariableMemory) {
-        var->initializeVariableMemory(csound, var, (MYFLT*)dst);
-      }
-      if (var) {
-        csound->Free(csound, var);
-      }
+    if (UNLIKELY(indexes[i] == NULL || array->sizes[i] <= 0)) {
+      return csound->PerfError(csound, opds,
+                               "%s: invalid index or dimension %d",
+                               opcodeName, i + 1);
     }
-  }
-
-  // Copy value into destination using type-aware copier
-  // For struct arrays, we need to copy member by member since the array elements
-  // are raw struct data, not CS_STRUCT_VAR structures with members pointers
-  if (dat->arrayType && dat->arrayType->userDefinedType) {
-    CS_STRUCT_VAR* srcVar = (CS_STRUCT_VAR*)p->value;
-    CS_STRUCT_VAR* dstVar = (CS_STRUCT_VAR*)dstPtr;
-
-    // Validate that dstVar is within bounds before accessing
-    if (UNLIKELY(dstVar == NULL)) {
-      return csound->PerfError(csound, &(p->h), Str("array_set_struct: destination pointer is NULL"));
+    rawIndex = *indexes[i];
+    /* C casts outside the int32_t range are undefined. Fractional indexes
+       retain the established truncation behavior after this range check. */
+    if (UNLIKELY(isnan(rawIndex) || rawIndex < FL(0.0) ||
+                 rawIndex > (MYFLT)INT32_MAX)) {
+      return csound->PerfError(csound, opds,
+                               "%s: invalid index for dimension %d",
+                               opcodeName, i + 1);
     }
-
-    // Ensure both are initialized
-    if (srcVar && srcVar->members && dstVar && dstVar->members && dat->arrayType->members) {
-      // Get member count from the type definition, not the variable
-      int32_t memberCount = cs_cons_length(dat->arrayType->members);
-      for (int32_t i = 0; i < memberCount; i++) {
-        CS_VAR_MEM* srcMember = srcVar->members[i];
-        CS_VAR_MEM* dstMember = dstVar->members[i];
-        if (srcMember && dstMember && srcMember->varType) {
-          // Copy the member value
-          if (srcMember->varType->copyValue) {
-            srcMember->varType->copyValue(csound, srcMember->varType,
-                                         &dstMember->value, &srcMember->value, p->h.insdshead);
-          } else {
-            dstMember->value = srcMember->value;
-          }
-        }
-      }
+    coordinate = (int32_t)rawIndex;
+    dimension = (size_t)array->sizes[i];
+    if (UNLIKELY(coordinate < 0 || (size_t)coordinate >= dimension)) {
+      return csound->PerfError(csound, opds,
+                               "%s: index %d out of range for dimension %d",
+                               opcodeName, coordinate, i + 1);
     }
-  } else if (dat->arrayType && dat->arrayType->copyValue) {
-    dat->arrayType->copyValue(csound, dat->arrayType, (void*)dstPtr, p->value, p->h.insdshead);
-  } else {
-    // Fallback should not happen for struct, but keep parity with array_set
-    if (LIKELY(dstPtr != NULL && p->value != NULL)) *((MYFLT*)dstPtr) = *((MYFLT*)p->value);
+    if (UNLIKELY(flatIndex >
+                 (SIZE_MAX - (size_t)coordinate) / dimension)) {
+      return csound->PerfError(csound, opds, "%s: index overflow",
+                               opcodeName);
+    }
+    flatIndex = flatIndex * dimension + (size_t)coordinate;
   }
+  *result = flatIndex;
   return OK;
 }
 
-void struct_array_member_assign(
-    ARRAYDAT* arraySrc,
-    ARRAYDAT* arrayDst
-) {
-    /* Shallow alias: destination does not own storage */
-    arrayDst->allocated = 0;
-    arrayDst->arrayMemberSize = arraySrc->arrayMemberSize;
-    arrayDst->data = arraySrc->data;
-    arrayDst->dimensions = arraySrc->dimensions;
-    arrayDst->sizes = arraySrc->sizes;
-    arrayDst->arrayType = arraySrc->arrayType;
+static int32_t struct_array_element(CSOUND *csound, OPDS *opds,
+                                    const char *opcodeName,
+                                    const ARRAYDAT *array, size_t index,
+                                    void **result)
+{
+  size_t elementSize;
+  size_t offset;
+  size_t allocated;
+
+  if (UNLIKELY(result == NULL || opcodeName == NULL || array == NULL ||
+               array->data == NULL ||
+               array->arrayMemberSize <= 0)) {
+    return csound->PerfError(csound, opds, "%s: invalid array storage",
+                             opcodeName);
+  }
+  if (UNLIKELY(array->storage != NULL &&
+               (array->storage->data != array->data ||
+                array->storage->arrayType != array->arrayType ||
+                array->storage->arrayMemberSize !=
+                  array->arrayMemberSize))) {
+    return csound->PerfError(csound, opds,
+                             "%s: inconsistent shared array storage",
+                             opcodeName);
+  }
+  elementSize = (size_t)array->arrayMemberSize;
+  if (UNLIKELY(index > (SIZE_MAX - elementSize) / elementSize)) {
+    return csound->PerfError(csound, opds, "%s: offset overflow",
+                             opcodeName);
+  }
+  offset = index * elementSize;
+  allocated = array->storage != NULL
+                ? array->storage->allocated : array->allocated;
+  if (UNLIKELY(allocated < elementSize ||
+               offset > allocated - elementSize)) {
+    return csound->PerfError(csound, opds,
+                             "%s: element exceeds allocated storage",
+                             opcodeName);
+  }
+  *result = (char *)array->data + offset;
+  return OK;
 }
 
-// /* Built-in struct member get/set SUBRs (generic, any struct) */
+int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
+{
+  ARRAYDAT* dat = p->arrayDat;
+  CS_STRUCT_VAR *source;
+  CS_STRUCT_VAR *destination;
+  size_t index;
+  void *element;
+  int32_t indexCount = p->INOCOUNT - 2;
+
+  if (UNLIKELY(dat == NULL || p->value == NULL)) {
+    return csound->PerfError(csound, &p->h,
+                             "array_set_struct: NULL array or value");
+  }
+  if (UNLIKELY(dat->arrayType == NULL ||
+               !dat->arrayType->userDefinedType ||
+               dat->arrayType->copyValue == NULL)) {
+    return csound->PerfError(csound, &p->h,
+                             "array_set_struct: invalid element type");
+  }
+  csound_array_prepare_write(csound, dat, p->h.insdshead);
+  if (UNLIKELY(struct_array_flat_index(csound, &p->h, "array_set_struct",
+                                       dat, p->indexes, indexCount,
+                                       &index) != OK)) {
+    return NOTOK;
+  }
+  if (UNLIKELY(struct_array_element(csound, &p->h, "array_set_struct",
+                                    dat, index, &element) != OK)) {
+    return NOTOK;
+  }
+
+  source = (CS_STRUCT_VAR *)p->value;
+  destination = (CS_STRUCT_VAR *)element;
+  if (UNLIKELY(!struct_value_matches_type(dat->arrayType, source))) {
+    return csound->PerfError(csound, &p->h,
+                             "array_set_struct: value does not match type");
+  }
+  if (destination->members == NULL) {
+    CS_VARIABLE *var = array_element_create_variable(
+      csound, dat->arrayType, p->h.insdshead);
+    if (UNLIKELY(var == NULL || var->initializeVariableMemory == NULL)) {
+      if (var != NULL) {
+        csound->Free(csound, var);
+      }
+      return csound->PerfError(csound, &p->h,
+                               "array_set_struct: cannot initialize element");
+    }
+    var->initializeVariableMemory(csound, var, element);
+    csound->Free(csound, var);
+  }
+  if (UNLIKELY(!struct_value_matches_type(dat->arrayType, destination))) {
+    return csound->PerfError(csound, &p->h,
+                             "array_set_struct: destination does not match type");
+  }
+
+  /* The registered copier carries nested-array ownership through ordinary
+     struct assignment and through this array-specific lowering path. */
+  dat->arrayType->copyValue(csound, dat->arrayType,
+                            destination, source, p->h.insdshead);
+  return OK;
+}
+
+/* Built-in struct member get/set SUBRs (generic, any struct). */
 int32_t struct_member_get_init(CSOUND *csound, STRUCT_GET *p)
 {
   return OK;
@@ -179,7 +237,12 @@ int32_t struct_member_get_init_and_perf(CSOUND *csound, STRUCT_GET *p)
 int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
 {
   if (UNLIKELY(p->nths[0] == NULL)) {
-    return csound->PerfError(csound, &(p->h), "Invalid member index pointer (NULL)");
+    return csound->PerfError(csound, &p->h,
+                             "Invalid member index pointer (NULL)");
+  }
+  if (UNLIKELY(p->out == NULL)) {
+    return csound->PerfError(csound, &p->h,
+                             "Invalid struct member output (NULL)");
   }
 
   if (UNLIKELY(p->var == NULL)) {
@@ -211,49 +274,16 @@ int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
   }
 
   CS_VAR_MEM* member = varIn->members[nthInt];
+  if (UNLIKELY(member == NULL)) {
+    return csound->PerfError(csound, &p->h,
+                             "Struct member %d is not initialized", nthInt);
+  }
 
   /* Use type-aware copy so array members and non-scalars are handled */
   if (member->varType && member->varType->copyValue) {
-    if (member->varType == &CS_VAR_TYPE_ARRAY) {
-      ARRAYDAT *src = (ARRAYDAT*)&member->value;
-      ARRAYDAT *dst = (ARRAYDAT*)p->out;
-
-      if (src->arrayType && src->arrayType->userDefinedType) {
-        // For arrays of structs: shallow alias
-        dst->arrayType       = src->arrayType;
-        dst->dimensions      = src->dimensions;
-        dst->sizes           = src->sizes;
-        dst->arrayMemberSize = src->arrayMemberSize;
-        dst->data            = src->data;
-        dst->allocated       = 0;
-        /* Ensure dimension metadata exists for destination alias (Option A, UDT arrays) */
-        if ((dst->sizes == NULL || dst->dimensions <= 0) && src && src->arrayMemberSize > 0) {
-          // Copy dimensions from source if they exist
-          // For aliases (allocated=0), only use shallow copy - never allocate new metadata
-          if (src->dimensions > 0 && src->sizes != NULL) {
-            dst->dimensions = src->dimensions;
-            dst->sizes = src->sizes;
-          }
-        }
-
-      } else {
-          /* Ensure dimension metadata exists for destination alias (Option A) */
-          if ((dst->sizes == NULL || dst->dimensions <= 0) && src && src->data && src->arrayMemberSize > 0) {
-            // For aliases (allocated=0), only use shallow copy - never allocate new metadata
-            if (src->dimensions > 0 && src->sizes != NULL) {
-              dst->dimensions = src->dimensions;
-              dst->sizes = src->sizes;
-            }
-          }
-
-        // For arrays of primitives (e.g., S[], k[], i[]): perform deep copy
-        member->varType->copyValue(csound, member->varType, (void*)dst, (void*)src, p->h.insdshead);
-      }
-    } else {
-      member->varType->copyValue(csound, member->varType,
-                                 (void*)p->out, (void*)&member->value,
-                                 p->h.insdshead);
-    }
+    member->varType->copyValue(csound, member->varType,
+                               (void*)p->out, (void*)&member->value,
+                               p->h.insdshead);
   } else {
     *p->out = member->value;
   }
@@ -285,7 +315,12 @@ int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
 
   // Check if p->var is NULL before casting
   if (UNLIKELY(p->var == NULL)) {
-    return csound->PerfError(csound, &(p->h), "Invalid struct pointer (NULL)");
+    return csound->PerfError(csound, &p->h,
+                             "Invalid struct pointer (NULL)");
+  }
+  if (UNLIKELY(p->in == NULL)) {
+    return csound->PerfError(csound, &p->h,
+                             "Invalid struct member input (NULL)");
   }
 
   CS_STRUCT_VAR* var = (CS_STRUCT_VAR*)p->var;
@@ -317,10 +352,10 @@ int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
   }
 
   CS_VAR_MEM* member = var->members[nthInt];
-
-
-
-
+  if (UNLIKELY(member == NULL)) {
+    return csound->PerfError(csound, &p->h,
+                             "Struct member %d is not initialized", nthInt);
+  }
 
   /* Type-aware assignment; fall back to scalar write */
   if (member->varType && member->varType->copyValue) {
@@ -345,7 +380,12 @@ int32_t struct_member_array_assign(
 
     // Check if p->var is NULL before casting
     if (UNLIKELY(p->var == NULL)) {
-      return csound->PerfError(csound, &(p->h), "Invalid struct pointer (NULL)");
+      return csound->PerfError(csound, &p->h,
+                               "Invalid struct pointer (NULL)");
+    }
+    if (UNLIKELY(p->in == NULL)) {
+      return csound->PerfError(csound, &p->h,
+                               "Invalid array member input (NULL)");
     }
 
     int nthInt = (int) *p->nths[0];
@@ -366,20 +406,8 @@ int32_t struct_member_array_assign(
     }
 
     ARRAYDAT* dst = (ARRAYDAT*) &member->value;
-    ARRAYDAT* src = p->in;
-
-
-    struct_array_member_assign(src, dst);
-
-    /* Option A: ensure dimension metadata is present for destination view.
-       For aliases, only use shallow copy - never allocate new metadata. */
-    if ((dst->sizes == NULL || dst->dimensions <= 0) && src && src->arrayMemberSize > 0) {
-      // Copy dimensions from source if they exist
-      if (src->dimensions > 0 && src->sizes != NULL) {
-        dst->dimensions = src->dimensions;
-        dst->sizes = src->sizes;
-      }
-    }
+    CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                                dst, p->in, p->h.insdshead);
 
     return OK;
 
@@ -428,147 +456,86 @@ int32_t struct_alias(CSOUND *csound, STRUCT_ALIAS *p)
 int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
 {
   ARRAYDAT* arrayDat = dat->arrayDat;
+  CS_STRUCT_VAR *source;
+  CS_STRUCT_VAR *destination = (CS_STRUCT_VAR *)dat->out;
+  size_t index;
+  size_t totalSize;
+  void *element;
+  int32_t indexCount = dat->INOCOUNT - 1;
 
-  if (UNLIKELY(arrayDat == NULL)) {
-    return csound->PerfError(csound, &(dat->h), "struct_array_get: array is NULL");
+  if (UNLIKELY(arrayDat == NULL || destination == NULL)) {
+    return csound->PerfError(csound, &dat->h,
+                             "struct_array_get: NULL array or output");
+  }
+  if (UNLIKELY(arrayDat->arrayType == NULL ||
+               !arrayDat->arrayType->userDefinedType ||
+               arrayDat->arrayType->copyValue == NULL)) {
+    return csound->PerfError(csound, &dat->h,
+                             "struct_array_get: invalid element type");
   }
 
-  if (arrayDat->dimensions <= 0) {
-    csound->Warning(csound, "struct_array_get: input array has no dimensions\n");
-    return OK;
-  }
-
-  // If array data is NULL, try to initialize it
-  if (arrayDat->data == NULL && arrayDat->arrayType != NULL && arrayDat->arrayType->userDefinedType) {
-    // Calculate total size from dimensions
-    int32_t totalSize = 1;
-    for (int32_t i = 0; i < arrayDat->dimensions; i++) {
-      totalSize *= arrayDat->sizes[i];
+  /* A declared array can have complete dimensions before its backing store is
+     created. Use the same initializer as other array paths before reading. */
+  if (arrayDat->data == NULL) {
+    if (UNLIKELY(csound_array_member_count(arrayDat, &totalSize) != OK ||
+                 totalSize > INT32_MAX)) {
+      return csound->PerfError(csound, &dat->h,
+                               "Invalid struct array dimensions");
     }
+    tabinit(csound, arrayDat, (int32_t)totalSize, dat->h.insdshead);
+  }
+  if (UNLIKELY(struct_array_flat_index(csound, &dat->h,
+                                       "struct_array_get", arrayDat,
+                                       dat->indicies, indexCount,
+                                       &index) != OK)) {
+    return NOTOK;
+  }
+  if (UNLIKELY(struct_array_element(csound, &dat->h, "struct_array_get",
+                                    arrayDat, index, &element) != OK)) {
+    return NOTOK;
+  }
 
-    CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, (void*)arrayDat->arrayType, dat->h.insdshead);
-    arrayDat->arrayMemberSize = var->memBlockSize;
-    arrayDat->data = csound->Calloc(csound, arrayDat->arrayMemberSize * totalSize);
-    arrayDat->allocated = arrayDat->arrayMemberSize * totalSize;
+  source = (CS_STRUCT_VAR *)element;
+  if (UNLIKELY(!struct_value_matches_type(arrayDat->arrayType, source))) {
+    return csound->PerfError(csound, &dat->h,
+                             "struct_array_get: element does not match type");
+  }
 
-    // Initialize each struct element
-    char *mem = (char *) arrayDat->data;
-    for (int32_t i = 0; i < totalSize; i++) {
-      if (var->initializeVariableMemory != NULL) {
-        var->initializeVariableMemory(csound, var, (MYFLT*)(mem + i * var->memBlockSize));
-      }
+  if (destination->members == NULL || !destination->ownsMembers ||
+      destination->memberCount != source->memberCount) {
+    CS_VARIABLE* helper;
+
+    /* A read result must own its members. Copying into an alias would modify
+       the struct that the previous result referenced. */
+    if (destination->ownsMembers) {
+      csound_free_struct_members(csound, destination);
     }
-    csound->Free(csound, var);
-  }
-
-  if (UNLIKELY(arrayDat->data == NULL)) {
-    csound->Warning(csound, "struct_array_get: array data is still NULL after initialization attempt");
-    return OK;
-  }
-
-  int index = (int)(*dat->indicies[0]);
-
-  /* CRITICAL FIX: Add bounds checking */
-  if (arrayDat->sizes == NULL || arrayDat->dimensions <= 0) {
-    return csound->PerfError(csound, &(dat->h),
-        "Struct array has invalid dimensions or sizes");
-  }
-
-  // Enforce non-negative index check
-  if (index < 0) {
-    return csound->PerfError(csound, &(dat->h),
-        "Struct array index %d is negative", index);
-  }
-
-  if (index >= arrayDat->sizes[0]) {
-    return csound->PerfError(csound, &(dat->h),
-        "Struct array index %d out of bounds (0-%d)", index, arrayDat->sizes[0]-1);
-  }
-
-  char* mem = (char *) arrayDat->data;
-
-  if (UNLIKELY(mem == NULL)) {
-    return csound->PerfError(csound, &(dat->h),
-        "Struct array data is NULL");
-  }
-
-  // CRITICAL: arrayMemberSize is in BYTES for struct arrays, not MYFLT units
-  // Verify the computed address is correct
-  size_t elemSize = (size_t)arrayDat->arrayMemberSize;
-  size_t offset = (size_t)index * elemSize;
-
-  /* Check if offset is within allocated memory
-     Note: alias views set allocated=0; in that case compute effective capacity
-     from sizes[0] * elemSize. */
-  size_t allocatedBytes = (size_t)arrayDat->allocated;
-  if (allocatedBytes == 0 && arrayDat->sizes && arrayDat->dimensions > 0) {
-    allocatedBytes = (size_t)arrayDat->sizes[0] * elemSize;
-  }
-  if (offset + elemSize > allocatedBytes) {
-    return csound->PerfError(csound, &(dat->h),
-        "Struct array access would exceed allocated memory");
-  }
-
-  CS_STRUCT_VAR* srcVar = (CS_STRUCT_VAR*)(mem + offset);
-  CS_STRUCT_VAR* dstVar = (CS_STRUCT_VAR*) dat->out;
-
-  /* Add safety checks before accessing srcVar */
-  if (UNLIKELY(srcVar == NULL)) {
-
-    return csound->PerfError(csound, &(dat->h),
-        "Struct array element at index %d is NULL", index);
-  }
-
-  if (UNLIKELY(dstVar == NULL)) {
-    return csound->PerfError(csound, &(dat->h),
-        "Destination struct variable is NULL");
-  }
-
-  /* Ensure srcVar is initialized */
-  if (srcVar->members == NULL) {
-
-    if (arrayDat->arrayType && arrayDat->arrayType->createVariable) {
-      CS_VARIABLE* helper = arrayDat->arrayType->createVariable(csound, (void*)arrayDat->arrayType, dat->h.insdshead);
-      if (helper && helper->initializeVariableMemory) {
-        helper->initializeVariableMemory(csound, helper, (MYFLT*)srcVar);
-      }
-      if (helper) {
+    else {
+      destination->members = NULL;
+      destination->memberCount = 0;
+      destination->ownsMembers = 0;
+    }
+    helper = array_element_create_variable(csound, arrayDat->arrayType,
+                                           dat->h.insdshead);
+    if (UNLIKELY(helper == NULL ||
+                 helper->initializeVariableMemory == NULL)) {
+      if (helper != NULL) {
         csound->Free(csound, helper);
       }
+      return csound->PerfError(csound, &dat->h,
+                               "Could not initialize struct array output");
     }
-    if (srcVar->members == NULL) {
-      return csound->PerfError(csound, &(dat->h),
-          "Struct array element at index %d is not properly initialized", index);
-    }
+    helper->initializeVariableMemory(csound, helper, (MYFLT *)destination);
+    csound->Free(csound, helper);
+  }
+  if (UNLIKELY(!struct_value_matches_type(arrayDat->arrayType,
+                                          destination))) {
+    return csound->PerfError(csound, &dat->h,
+                             "struct_array_get: output does not match type");
   }
 
-  dstVar = (CS_STRUCT_VAR*)dat->out;
-
-  /* For struct arrays, we copy values also when they are references, because the array
-     element's member storage is separate from the output struct's storage */
-  if (dstVar->members && srcVar->members && dstVar->memberCount == srcVar->memberCount) {
-    for (int i = 0; i < srcVar->memberCount; i++) {
-      CS_VAR_MEM *d = dstVar->members[i], *s = srcVar->members[i];
-      if (!d || !s) continue;
-      if (d->varType && d->varType->copyValue) {
-        d->varType->copyValue(csound, d->varType, &d->value, &s->value, dat->h.insdshead);
-      } else {
-        d->value = s->value;
-      }
-    }
-    /* keep existing ownership as-is after deep copy */
-  } else {
-    /* free previously owned members before aliasing to avoid leaks */
-    if (dstVar->members && dstVar->ownsMembers) {
-      csound_free_struct_members(csound, dstVar);
-      dstVar->members = NULL;
-      dstVar->memberCount = 0;
-      dstVar->ownsMembers = 0;
-    }
-    dstVar->members = srcVar->members;
-    dstVar->memberCount = srcVar->memberCount;
-    dstVar->ownsMembers = 0;
-  }
+  arrayDat->arrayType->copyValue(csound, arrayDat->arrayType,
+                                 destination, source, dat->h.insdshead);
   return OK;
 }
 

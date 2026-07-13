@@ -253,6 +253,7 @@ typedef struct {
   /**
    * Type definition for arrays
    */
+  struct cs_array_storage;
   struct arraydat {
     int32_t      dimensions; /* number of array dimensions */
     int32_t*     sizes;  /* size of each dimensions */
@@ -260,6 +261,12 @@ typedef struct {
     const struct cstype* arrayType; /* type of array */
     MYFLT*   data; /* data */
     size_t   allocated; /* size of allocated data */
+    /* Opaque ownership sidecar for structured arrays. Appending it preserves
+       existing member offsets but changes sizeof(ARRAYDAT), so external code
+       embedding the struct must rebuild against this header. Direct ARRAYDAT
+       constructors must initialize the field to NULL; ownership changes must
+       go through the array type callbacks rather than copying this pointer. */
+    struct cs_array_storage* storage;
   };
 
   /**

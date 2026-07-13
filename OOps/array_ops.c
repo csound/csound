@@ -28,19 +28,27 @@
 
 static int32_t is_intentionally_empty_array(const ARRAYDAT *dat)
 {
+  size_t allocated = dat != NULL && dat->storage != NULL
+                       ? dat->storage->allocated
+                       : (dat != NULL ? dat->allocated : 0);
+
   return dat != NULL && dat->data != NULL && dat->dimensions == 1 &&
          dat->sizes != NULL && dat->sizes[0] == 0 &&
          dat->arrayMemberSize > 0 &&
-         dat->allocated == (size_t) dat->arrayMemberSize;
+         allocated == (size_t)dat->arrayMemberSize;
 }
 
 int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
   ARRAYDAT* arrayDat = p->arrayDat;
-  int32_t i, size;
+  int32_t i;
+  size_t elementCount, capacity, bytes;
 
   int32_t inArgCount = p->INOCOUNT;
 
+  if (UNLIKELY(arrayDat == NULL))
+    return csound->InitError(csound, "%s",
+                             Str("array_init: NULL output array"));
   if (UNLIKELY(inArgCount == 0))
     return
       csound->InitError(csound, "%s",
@@ -73,6 +81,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     }
   }
 
+  csound_free_array_storage(csound, arrayDat);
   arrayDat->dimensions = inArgCount;
   arrayDat->sizes = csound->Calloc(csound, sizeof(int32_t) * inArgCount);
   for (i = 0; i < inArgCount; i++) {
@@ -82,12 +91,9 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     arrayDat->sizes[i] = v;
   }
 
-  size = arrayDat->sizes[0];
-  if (inArgCount > 1) {
-    for (i = 1; i < inArgCount; i++) {
-      size *= arrayDat->sizes[i];
-    }
-  }
+  if (UNLIKELY(csound_array_member_count(arrayDat, &elementCount) != OK))
+    return csound->InitError(csound, "%s",
+                             Str("array_init: array dimensions overflow"));
 
   {
     // Safety: check for NULL arrayType
@@ -107,18 +113,30 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
       }
     }
 
-    CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, (void *)
-                                                           arrayDat->arrayType,
-                                                           p->h.insdshead);
+    CS_VARIABLE* var = array_element_create_variable(
+      csound, arrayDat->arrayType, p->h.insdshead);
     char *mem;
+    if (UNLIKELY(var == NULL || var->memBlockSize <= 0 ||
+                 var->initializeVariableMemory == NULL)) {
+      if (var != NULL)
+        csound->Free(csound, var);
+      return csound->InitError(csound, "%s",
+                               Str("array_init: invalid element type"));
+    }
     arrayDat->arrayMemberSize = var->memBlockSize;
-    int32_t allocCount = size > 0 ? size : 1;
-    arrayDat->data = csound->Calloc(csound,
-                                    arrayDat->allocated=var->memBlockSize*allocCount);
+    capacity = elementCount > 0 ? elementCount : 1;
+    if (UNLIKELY(csound_array_allocation_size(
+                   arrayDat->arrayMemberSize, capacity, &bytes) != OK)) {
+      csound->Free(csound, var);
+      return csound->InitError(csound, "%s",
+                               Str("array_init: allocation size overflow"));
+    }
+    arrayDat->allocated = bytes;
+    arrayDat->data = csound->Calloc(csound, bytes);
     mem = (char *) arrayDat->data;
-    for (i=0; i < allocCount; i++) {
+    for (size_t index = 0; index < capacity; index++) {
       var->initializeVariableMemory(csound, var,
-                                    (MYFLT*)(mem+i*var->memBlockSize));
+        (MYFLT*)(mem + index * (size_t)var->memBlockSize));
     }
     csound->Free(csound, var);
 
@@ -300,6 +318,7 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
   if (UNLIKELY(dat == NULL)) {
     return csound->PerfError(csound, &(p->h), Str("array_set: NULL array"));
   }
+  csound_array_prepare_write(csound, dat, p->h.insdshead);
   MYFLT* mem = (MYFLT*)dat->data;
   int32_t i;
   int32_t end, index = 0, incr;
@@ -470,7 +489,6 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
 
   MYFLT* mem = dat->data;
   int32_t i;
-  int32_t incr;
   int32_t end;
   int32_t index;
   int32_t indefArgCount = p->INOCOUNT - 1;
@@ -531,6 +549,10 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     }
 
     if (needsAutoSizing) {
+      /* Size recovery changes array metadata. Detach a structured view first
+         so a read from malformed legacy metadata cannot resize its siblings. */
+      csound_array_prepare_write(csound, dat, p->h.insdshead);
+      mem = dat->data;
       // Set a default size for struct arrays that were declared but not properly initialized
       for (int32_t j = 0; j < dat->dimensions; j++) {
         dat->sizes[j] = 2; // Default size
@@ -581,7 +603,7 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
   }
 
 
-  /* Special case: signal-as-array view (a[k]) — dimensions==0 and element type is 'a'.
+  /* Special case: signal-as-array view (a[k]): dimensions==0 and element type is 'a'.
      Here, dat->data points to the a-signal vector (MYFLT[ksmps]). The index is a k-rate
      sample index, so we simply pick that element. */
   if (dat->dimensions == 0 && dat->arrayType == &CS_VAR_TYPE_A) {
@@ -598,81 +620,38 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     return OK;
   }
 
-  incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
-  mem += incr;
+  if (UNLIKELY(index < 0 || dat->arrayMemberSize <= 0 ||
+               (size_t)index >
+                 (SIZE_MAX - (size_t)dat->arrayMemberSize) /
+                   (size_t)dat->arrayMemberSize)) {
+    return csound->PerfError(csound, &(p->h), "%s",
+                             Str("Invalid array element offset"));
+  }
+  size_t offset = (size_t)index * (size_t)dat->arrayMemberSize;
+  size_t allocatedBytes = dat->storage != NULL
+                            ? dat->storage->allocated
+                            : dat->allocated;
+  if (UNLIKELY(allocatedBytes > 0 &&
+               offset + (size_t)dat->arrayMemberSize > allocatedBytes)) {
+    return csound->PerfError(
+      csound, &(p->h),
+      Str("Array element %d exceeds allocated storage (%zu + %d > %zu)"),
+      index, offset, dat->arrayMemberSize, allocatedBytes);
+  }
+  mem = (MYFLT*)((char*)dat->data + offset);
 
 
 
-  /* Proper handling for arrays of user-defined structs: alias element instead of deep copy */
+  /* User-defined struct elements are copied into the output. Their nested
+     arrays retain shared backing storage through the normal type copy path. */
   if (dat->arrayType && dat->arrayType->userDefinedType) {
-    if (UNLIKELY(dat->data == NULL)) {
-      // Try to initialize the array if it's not initialized yet
-      if (dat->dimensions > 0 && dat->sizes != NULL) {
-
-
-        // Check if sizes are set (non-zero) or if we need to use a default
-        int32_t totalSize = 1;
-        int needsDefaultSizing = 0;
-
-        for (int32_t i = 0; i < dat->dimensions; i++) {
-          if (dat->sizes[i] <= 0) {
-            needsDefaultSizing = 1;
-            break;
-          }
-          totalSize *= dat->sizes[i];
-        }
-
-        // If sizes aren't set, this array was declared but not initialized with explicit sizes
-        // This happens with declarations like "relatives:Person[] init 2" where the init
-        // opcode should have set the sizes, but it didn't get called properly
-        if (needsDefaultSizing) {
-          // For struct arrays, we can try to infer the size from the access pattern
-          // or use a reasonable default. Since this is likely from a declaration like
-          // "relatives:Person[] init 2", we'll try to use a default size.
-
-
-          // Set a default size for 1D arrays - this is a fallback for when
-          // the init opcode wasn't called properly
-          for (int32_t i = 0; i < dat->dimensions; i++) {
-            dat->sizes[i] = 2; // Default size, could be made configurable
-          }
-          totalSize = 1;
-          for (int32_t i = 0; i < dat->dimensions; i++) {
-            totalSize *= dat->sizes[i];
-          }
-        }
-
-        CS_VARIABLE* var = dat->arrayType->createVariable(csound, (void*)dat->arrayType, p->h.insdshead);
-        dat->arrayMemberSize = var->memBlockSize;
-        dat->data = csound->Calloc(csound, dat->arrayMemberSize * totalSize);
-        dat->allocated = dat->arrayMemberSize * totalSize;
-
-        // Initialize each struct element
-        char *arrayMem = (char *) dat->data;
-        for (int32_t i = 0; i < totalSize; i++) {
-          if (var->initializeVariableMemory != NULL) {
-            var->initializeVariableMemory(csound, var, (MYFLT*)(arrayMem + i * var->memBlockSize));
-          }
-        }
-        csound->Free(csound, var);
-
-        // Recalculate mem pointer after initialization
-        mem = dat->data;
-        incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
-        mem += incr;
-      } else {
-        return OK; /* Gracefully skip rather than aborting init/perf */
-      }
+    if (UNLIKELY(p->out == NULL)) {
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("Invalid struct output"));
     }
-    CS_STRUCT_VAR* srcVar = (CS_STRUCT_VAR*) (mem);
-    CS_STRUCT_VAR* dstVar = (CS_STRUCT_VAR*) (p->out);
-    if (UNLIKELY(srcVar == NULL)) {
-      return csound->PerfError(csound, &(p->h), "%s", Str("Invalid struct element"));
-    }
-    /* Alias the underlying members; this is a read/view of the array element */
-    dstVar->members     = srcVar->members;
-    dstVar->memberCount = srcVar->memberCount;
-    dstVar->ownsMembers = 0;
+    dat->arrayType->copyValue(csound, dat->arrayType,
+                              (void*)p->out, (void*)mem,
+                              p->h.insdshead);
   } else {
     if (UNLIKELY(mem == NULL)) {
       /* Report error in the correct phase */
@@ -3446,8 +3425,6 @@ static int32_t get_array_total_size(ARRAYDAT* dat)
 
 int32_t tabcopy(CSOUND *csound, TABCPY *p)
 {
-  int32_t i, arrayTotalSize, memMyfltSize;
-
   if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
     return csound->InitError(csound, "%s", Str("array-variable not initialised"));
   if (UNLIKELY(p->dst->dimensions > 0 &&
@@ -3462,44 +3439,11 @@ int32_t tabcopy(CSOUND *csound, TABCPY *p)
 
   if (p->src == p->dst) return OK;
 
-  if (p->src->arrayType && p->src->arrayType->userDefinedType) {
-    CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
-                                p->dst, p->src, p->h.insdshead);
-    return OK;
-  }
-
-  arrayTotalSize = get_array_total_size(p->src);
-  memMyfltSize = p->src->arrayMemberSize / sizeof(MYFLT);
-  p->dst->arrayMemberSize = p->src->arrayMemberSize;
-
-
-
-  if (arrayTotalSize != get_array_total_size(p->dst)) {
-    p->dst->dimensions = p->src->dimensions;
-
-    p->dst->sizes = csound->Malloc(csound, sizeof(int32_t) * p->src->dimensions);
-    memcpy(p->dst->sizes, p->src->sizes, sizeof(int32_t) * p->src->dimensions);
-
-    if (p->dst->data == NULL) {
-      p->dst->data = csound->Calloc(csound,
-                                    p->src->arrayMemberSize * arrayTotalSize);
-      p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
-    } else {
-      p->dst->data = csound->ReAlloc(csound, p->dst->data,
-                                     p->src->arrayMemberSize * arrayTotalSize);
-      memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
-    }
-  }
-
-  for (i = 0; i < arrayTotalSize; i++) {
-    int32_t index = (i * memMyfltSize);
-    p->dst->arrayType->copyValue(csound, p->dst->arrayType,
-                                 (void*)(p->dst->data + index),
-                                 (void*)(p->src->data + index), p->h.insdshead);
-  }
-
-
-
+  /* The registered copy routine owns element lifetime and keeps dimensions,
+     capacity, and backing-storage metadata in sync. Reimplementing resize here
+     used to leave ARRAYDAT.allocated stale after a string-array assignment. */
+  CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                              p->dst, p->src, p->h.insdshead);
   return OK;
 }
 
@@ -3539,8 +3483,6 @@ int32_t tabcopyk_init(CSOUND *csound, TABCPY *p) {
 
 int32_t tabcopyk(CSOUND *csound, TABCPY *p)
 {
-  int32_t i, arrayTotalSize, memMyfltSize;
-
   if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
     return csound->PerfError(csound, &(p->h), "%s", Str("array-variable not initialised"));
   if (UNLIKELY(p->dst->dimensions > 0 &&
@@ -3555,48 +3497,14 @@ int32_t tabcopyk(CSOUND *csound, TABCPY *p)
 
   if (p->src == p->dst) return OK;
 
-  if (p->src->arrayType && p->src->arrayType->userDefinedType) {
-    CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
-                                p->dst, p->src, p->h.insdshead);
-    return OK;
-  }
-
-  arrayTotalSize = get_array_total_size(p->src);
-  memMyfltSize = p->src->arrayMemberSize / sizeof(MYFLT);
-  p->dst->arrayMemberSize = p->src->arrayMemberSize;
-
-  if (arrayTotalSize != get_array_total_size(p->dst)) {
-    p->dst->dimensions = p->src->dimensions;
-
-    p->dst->sizes = csound->Malloc(csound, sizeof(int32_t) * p->src->dimensions);
-    memcpy(p->dst->sizes, p->src->sizes, sizeof(int32_t) * p->src->dimensions);
-
-    if (p->dst->data == NULL) {
-      p->dst->data = csound->Calloc(csound,
-                                    p->src->arrayMemberSize * arrayTotalSize);
-      p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
-    } else {
-      p->dst->data = csound->ReAlloc(csound, p->dst->data,
-                                     p->src->arrayMemberSize * arrayTotalSize);
-      memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
-    }
-  }
-
-  for (i = 0; i < arrayTotalSize; i++) {
-    int32_t index = (i * memMyfltSize);
-    p->dst->arrayType->copyValue(csound, p->dst->arrayType,
-                                 (void*)(p->dst->data + index),
-                                 (void*)(p->src->data + index), p->h.insdshead);
-  }
-
+  CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                              p->dst, p->src, p->h.insdshead);
   return OK;
 }
 
 
 int32_t tabcopy1(CSOUND *csound, TABCPY *p)
 {
-  int32_t i, arrayTotalSize, memMyfltSize;
-
   if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
     return csound->InitError(csound, "%s", Str("array-variable not initialised"));
   if (p->dst->dimensions > 0 && p->src->dimensions != p->dst->dimensions)
@@ -3605,42 +3513,16 @@ int32_t tabcopy1(CSOUND *csound, TABCPY *p)
 
   if (p->src == p->dst) return OK;
 
-  arrayTotalSize = get_array_total_size(p->src);
-  memMyfltSize = p->src->arrayMemberSize / sizeof(MYFLT);
-  p->dst->arrayMemberSize = p->src->arrayMemberSize;
-
-  if (arrayTotalSize != get_array_total_size(p->dst)) {
-    p->dst->dimensions = p->src->dimensions;
-
-    p->dst->sizes = csound->Malloc(csound, sizeof(int32_t) * p->src->dimensions);
-    memcpy(p->dst->sizes, p->src->sizes, sizeof(int32_t) * p->src->dimensions);
-
-    if (p->dst->data == NULL) {
-      p->dst->data = csound->Calloc(csound,
-                                    p->src->arrayMemberSize * arrayTotalSize);
-      p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
-    } else {
-      p->dst->data = csound->ReAlloc(csound, p->dst->data,
-                                     p->src->arrayMemberSize * arrayTotalSize);
-      memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
-    }
-  }
-
-
-  for (i = 0; i < arrayTotalSize; i++) {
-    int32_t index = (i * memMyfltSize);
-    p->dst->arrayType->copyValue(csound,
-                                 p->dst->arrayType,
-                                 (void*)(p->dst->data + index),
-                                 (void*)(p->src->data + index),  p->h.insdshead);
-  }
-
+  CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                              p->dst, p->src, p->h.insdshead);
   return OK;
 }
 
 int32_t tabcopy2(CSOUND *csound, TABCPY *p)
 {                               /* Like tabcopy but sample-accurate */
-  int32_t i, j, arrayTotalSize;
+  int32_t i, j;
+  int32_t layoutDiff;
+  size_t elementCount, capacity, bytes;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   int32_t nsmps = CS_KSMPS;
@@ -3659,24 +3541,34 @@ int32_t tabcopy2(CSOUND *csound, TABCPY *p)
 
   if (p->src == p->dst) return OK;
 
-  arrayTotalSize = get_array_total_size(p->src);
+  if (UNLIKELY(csound_array_member_count(p->src, &elementCount) != OK))
+    return csound->InitError(csound, "%s",
+                             Str("array-variable dimensions overflow"));
   p->dst->arrayMemberSize = p->src->arrayMemberSize;
+  capacity = elementCount > 0 ? elementCount : 1;
+  if (UNLIKELY(csound_array_allocation_size(
+                 p->src->arrayMemberSize, capacity, &bytes) != OK))
+    return csound->InitError(csound, "%s",
+                             Str("array-variable allocation size overflow"));
 
-  if (arrayTotalSize != get_array_total_size(p->dst)) {
+  layoutDiff = p->dst->dimensions != p->src->dimensions ||
+               p->dst->sizes == NULL ||
+               memcmp(p->dst->sizes, p->src->sizes,
+                      sizeof(int32_t) * (size_t)p->src->dimensions) != 0;
+  if (layoutDiff || p->dst->allocated != bytes) {
     p->dst->dimensions = p->src->dimensions;
 
-    p->dst->sizes = csound->Malloc(csound, sizeof(int32_t) * p->src->dimensions);
+    p->dst->sizes = csound->ReAlloc(
+      csound, p->dst->sizes, sizeof(int32_t) * p->src->dimensions);
     memcpy(p->dst->sizes, p->src->sizes, sizeof(int32_t) * p->src->dimensions);
 
     if (p->dst->data == NULL) {
-      p->dst->data = csound->Calloc(csound,
-                                    p->src->arrayMemberSize * arrayTotalSize);
-      p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
+      p->dst->data = csound->Calloc(csound, bytes);
     } else {
-      p->dst->data = csound->ReAlloc(csound, p->dst->data,
-                                     p->src->arrayMemberSize * arrayTotalSize);
-      memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
+      p->dst->data = csound->ReAlloc(csound, p->dst->data, bytes);
+      memset(p->dst->data, 0, bytes);
     }
+    p->dst->allocated = bytes;
   }
   dest = (MYFLT*)p->dst->data;
   src = (MYFLT*)p->src->data;

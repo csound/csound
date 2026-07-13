@@ -2358,6 +2358,9 @@ static inline void copy_array(CSOUND *csound,
                               ARRAYDAT *out, const ARRAYDAT *in, spin_lock_t *lock) {
   csoundSpinLock(lock);
   CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY, out, in, NULL);
+  /* csoundSetArrayData() has no CSOUND argument and therefore cannot detach a
+     shared array. Keep channel storage independent at this API boundary. */
+  csound_array_prepare_write(csound, out, NULL);
   csoundSpinUnLock(lock);
 }
 

@@ -1917,6 +1917,17 @@ void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip)
     }
 }
 
+void recycle_udo_instance(CSOUND *csound, INSDS *ip)
+{
+  /* Reset local values and their cached argument pointers before deact()
+     publishes the frame on the reusable-instance list. Callers must first
+     exclude deinit callbacks and resources that still depend on local data. */
+  free_instr_var_memory(csound, ip);
+  csoundInitializeVarPool(csound, ip->lclbas, ip->instr->varPool);
+  csoundReinitInstrumentArgpp(csound, ip);
+  deact(csound, ip);
+}
+
 static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
 {
   INSTRTXT  *tp;
