@@ -891,6 +891,7 @@ def runTest():
         ["test_stm.csd", "testing stm opcodes"],
         ["test_stm_sequential_trace.csd", "testing sequential stm state trace"],
         ["test_stm_event.csd", "testing stm transition event ring"],
+        ["test_stm_checkpoint.csd", "testing stm checkpoint capture and resume"],
         [
             "test_stm_instances.csd",
             "testing shared definition, independent stm runners and instance overload",
