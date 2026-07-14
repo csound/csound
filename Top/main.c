@@ -1,4 +1,3 @@
-
 /*
     main.c: compilation and startup
 
