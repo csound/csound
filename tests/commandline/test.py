@@ -704,7 +704,20 @@ def runTest():
         ["test_generic_chan_no_match.csd", "testing type mismatch for bus channel", 1],
         [
             "test_commandline_args.csd",
-            "application arguments after -- are available through argv",
+            "command line application arguments after -- are available through argv",
+            0,
+            "-nd",
+            '-- concert.orc "first violin" --logfile=ignored ""',
+        ],
+        [
+            "test_csoptions_args.csd",
+            "CsOptions application arguments after -- are available through argv",
+            0,
+            "-nd",
+        ],
+        [
+            "test_commandline_overrides_csoptions_args.csd",
+            "command line application arguments override CsOptions arguments",
             0,
             "-nd",
             '-- concert.orc "first violin" --logfile=ignored ""',

@@ -214,15 +214,6 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   return csound->commandLineArgs[index];
 }
 
-static int32_t command_line_separator(int32_t argc, const char **argv)
-{
-  for (int32_t index = 1; index < argc; index++) {
-    if (argv[index] != NULL && strcmp(argv[index], "--") == 0)
-      return index;
-  }
-  return argc;
-}
-
  int32_t csoundCompile(CSOUND *csound, int32_t argc, const char **argv) {
   OPARMS *O = csound->oparms;
   char *s;
@@ -243,18 +234,6 @@ static int32_t command_line_separator(int32_t argc, const char **argv)
                     Str("Csound is already started, call csoundReset()\n"
                         "before starting again.\n"));
     return CSOUND_ERROR;
-  }
-
-  {
-    int32_t separator = command_line_separator(argc, argv);
-    if (separator < argc) {
-      int32_t result = csoundSetCommandLineArgs(
-        csound, argc - separator - 1, &argv[separator + 1]);
-      if (UNLIKELY(result != CSOUND_SUCCESS))
-        return result;
-      ac = separator;
-      argc = separator;
-    }
   }
 
   if (UNLIKELY(--argc <= 0)) {
