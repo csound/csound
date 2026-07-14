@@ -63,6 +63,8 @@ class SharedArrayBufferMainThread {
 
     this.callbackId = 0;
     this.callbackBuffer = {};
+    this.performanceEndState = undefined;
+    this.stopReleaseReceived = false;
 
     this.audioStateBuffer = new SharedArrayBuffer(
       initialSharedState.length * Int32Array.BYTES_PER_ELEMENT,
@@ -164,6 +166,38 @@ class SharedArrayBufferMainThread {
     }
   }
 
+  resetPerformanceEndSignals() {
+    this.performanceEndState = undefined;
+    this.stopReleaseReceived = false;
+  }
+
+  markPerformanceEndState(playState) {
+    this.performanceEndState = playState;
+    this.finishPerformanceEnd();
+  }
+
+  markStopReleaseReceived() {
+    this.stopReleaseReceived = true;
+    this.finishPerformanceEnd();
+  }
+
+  finishPerformanceEnd() {
+    if (!this.performanceEndState || !this.stopReleaseReceived) {
+      return;
+    }
+
+    // Logs and play-state changes share one ordered port. releaseStop uses a
+    // second port, so wait for both before exposing completion to callers.
+    const performanceEndState = this.performanceEndState;
+    this.resetPerformanceEndSignals();
+    if (performanceEndState === "renderEnded") {
+      this.publicEvents && this.publicEvents.triggerRenderEnded();
+    } else {
+      this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded();
+    }
+    this.eventPromises && this.eventPromises.releaseStopPromise();
+  }
+
   async onPlayStateChange(newPlayState) {
     if (this === undefined) {
       console.log("Failed to announce playstatechange", newPlayState);
@@ -174,6 +208,7 @@ class SharedArrayBufferMainThread {
       // prevent late timers from calling terminated fn
       return;
     }
+    let performanceEndState;
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         log(
@@ -216,6 +251,7 @@ class SharedArrayBufferMainThread {
         if (userProvidedNchnlsInput > -1) {
           Atomics.store(this.audioStatePointer, AUDIO_STATE.NCHNLS_I, userProvidedNchnlsInput);
         }
+        performanceEndState = newPlayState;
         break;
       }
       case "renderStarted": {
@@ -225,8 +261,7 @@ class SharedArrayBufferMainThread {
       }
       case "renderEnded": {
         log(`event: renderEnded received, beginning cleanup`)();
-        this.publicEvents.triggerRenderEnded();
-        this.eventPromises && this.eventPromises.releaseStopPromise();
+        performanceEndState = newPlayState;
         break;
       }
       default: {
@@ -239,6 +274,9 @@ class SharedArrayBufferMainThread {
       await this.audioWorker.onPlayStateChange(newPlayState);
     } catch (error) {
       console.error(error);
+    }
+    if (performanceEndState) {
+      this.markPerformanceEndState(performanceEndState);
     }
   }
 
@@ -313,11 +351,7 @@ class SharedArrayBufferMainThread {
           break;
         }
         case "releaseStop": {
-          this.onPlayStateChange(
-            this.currentPlayState === "renderStarted" ? "renderEnded" : "realtimePerformanceEnded",
-          );
-          this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded();
-          this.eventPromises && this.eventPromises.releaseStopPromise();
+          this.markStopReleaseReceived();
           break;
         }
         case "releasePause": {
@@ -438,6 +472,7 @@ class SharedArrayBufferMainThread {
             if (this.eventPromises.isWaiting("start")) {
               return -1;
             } else {
+              this.resetPerformanceEndSignals();
               this.eventPromises.createStartPromise();
 
               const startPayload = {};
