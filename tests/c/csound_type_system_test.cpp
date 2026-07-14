@@ -16,6 +16,7 @@
 #include "csound_standard_types.h"
 #include "arrays_internal.h"
 #include "csoundCore.h"
+#include "arrays.h"
 #include "gtest/gtest.h"
 
 class TypeSystemTests : public ::testing::Test {
@@ -180,6 +181,49 @@ TEST_F (TypeSystemTests, testConcurrentStructuredArrayCopiesShareOneStorage)
         EXPECT_EQ(FL(17.0), destination.data[0]);
         csound_free_array_storage(csound, &destination);
     }
+    csound_free_array_storage(csound, &source);
+}
+
+TEST_F (TypeSystemTests, testStructuredArrayWriteClaimDoesNotAllocate)
+{
+    CS_TYPE elementType = CS_VAR_TYPE_I;
+    ARRAYDAT source{};
+    ARRAYDAT shared{};
+
+    elementType.userDefinedType = 1;
+    source.dimensions = 1;
+    source.sizes = static_cast<int32_t *>(
+      csound->Calloc(csound, sizeof(int32_t)));
+    source.sizes[0] = 1;
+    source.arrayMemberSize = sizeof(MYFLT);
+    source.arrayType = &elementType;
+    source.data = static_cast<MYFLT *>(
+      csound->Calloc(csound, sizeof(MYFLT)));
+    source.data[0] = FL(23.0);
+    source.allocated = sizeof(MYFLT);
+    shared.arrayType = &elementType;
+
+    CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                                &shared, &source, nullptr);
+    ASSERT_NE(nullptr, source.storage);
+    ASSERT_EQ(source.storage, shared.storage);
+    MYFLT *const originalData = source.data;
+    auto *const originalStorage = source.storage;
+
+    EXPECT_EQ(NOTOK, csound_array_try_prepare_write(
+                       csound, &source, nullptr));
+    EXPECT_EQ(originalStorage, source.storage);
+    EXPECT_EQ(originalData, source.data);
+    EXPECT_EQ(originalStorage, shared.storage);
+
+    csound_free_array_storage(csound, &shared);
+    EXPECT_EQ(OK, csound_array_try_prepare_write(
+                    csound, &source, nullptr));
+    EXPECT_EQ(nullptr, source.storage);
+    EXPECT_EQ(originalData, source.data);
+    EXPECT_EQ(sizeof(MYFLT), source.allocated);
+    EXPECT_EQ(FL(23.0), source.data[0]);
+
     csound_free_array_storage(csound, &source);
 }
 
