@@ -34,10 +34,46 @@ npm run build         # runs scripts/compile.sh via nix-build
 
 `scripts/compile.sh` produces the following artefacts in `wasm/lib/`:
 
-- `csound.wasm` — main binary
-- `csound.wasm.z` — compressed variant
+- `csound.wasm` - standalone WASI command for runtimes such as Wasmtime
+- `csound-no-entry.wasm` - browser-hosted WASI reactor (`_initialize`, no `_start`)
+- `csound-no-entry.wasm.z` - compressed browser-hosted module
 - `csound-plugin-sdk.tar.gz` — plugin SDK archive
 - `plugin_example.wasm` / `plugin_example_cpp.wasm` — example plugins
+
+Both Csound modules are published in `@csound/wasm-bin`. The package `main`
+entry is the standalone `csound.wasm`; browser bundling selects
+`csound-no-entry.wasm.z` explicitly.
+
+On Darwin the build script defaults to `x86_64-linux`, allowing Nix to use a
+configured Linux builder. This is not a WASM platform requirement: local Darwin
+builds are supported. Set `NIX_SYSTEM` to the native Nix system to build locally,
+or to another available system to select a different builder.
+
+The standalone module currently targets Wasmtime's standardized WebAssembly
+exception handling. A direct invocation looks like:
+
+```bash
+wasmtime run -Wexceptions=y --dir=. ./lib/csound.wasm -nd ./example.csd
+```
+
+To run the command-line CSD suite against an already-built `lib/csound.wasm`:
+
+```bash
+source ./scripts/nixpkgs-pin.sh
+nix-build ./src/csound-tests.nix
+```
+
+The test derivation uses the same `x86_64-linux` default on Darwin; pass
+`--argstr system aarch64-darwin` or `--argstr system x86_64-darwin` to run it
+locally instead. Elsewhere it uses the native Nix system. It uses Wasmtime from
+the pinned Nixpkgs, disables audio with `-nd`, and runs the cases listed in
+`tests/commandline/test.py`. The OSC socket case still executes, but its nonzero
+result is expected because this WASI Preview-1 build has no socket creation or
+UDP send support.
+
+For releases, publish a new `@csound/wasm-bin` version before updating and
+publishing `@csound/browser`; older binary packages do not contain the renamed
+`csound-no-entry.wasm.z` browser artifact.
 
 ---
 

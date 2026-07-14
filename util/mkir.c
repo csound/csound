@@ -377,7 +377,13 @@ int32_t mkir_init_(CSOUND *csound)
 }
 
 static NGFENS nfgen[] = {{"deconv", gen_deconv}, {NULL, NULL}};
-PUBLIC NGFENS *csound_fgen_init(CSOUND *csound) {
+NGFENS *mkir_fgen_init(CSOUND *csound) {
    (void) csound;
    return nfgen;
 }
+
+#ifdef BUILD_PLUGINS
+PUBLIC NGFENS *csound_fgen_init(CSOUND *csound) {
+  return mkir_fgen_init(csound);
+}
+#endif

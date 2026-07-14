@@ -137,7 +137,11 @@ export const WASI = function ({ preopens }) {
 WASI.prototype.start = function (instance) {
   this.CPUTIME_START = performanceNowPoly();
   const exports = instance["exports"];
-  exports["_start"]();
+  const initialize = exports["_initialize"];
+  if (typeof initialize !== "function") {
+    throw new Error("Browser WASI module does not export _initialize");
+  }
+  initialize();
 };
 
 /**

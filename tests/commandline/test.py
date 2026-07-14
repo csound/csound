@@ -3,18 +3,25 @@
 # Csound Test Suite
 # By Steven Yi <stevenyi at gmail dot com>
 
-import os
-import sys
-import threading
 import logging
+import locale
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
 import time
+from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from queue import Queue
 
 ##csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
 csoundExecutable = ""
 sourceDirectory = "."
-runtimeEnvironment = None
+runtimeExecutable = None
+runtimeArguments = []
+expectedFailures = set()
+outputEncoding = locale.getpreferredencoding(False) or "utf-8"
 
 # Parallel execution configuration
 enable_parallel = True  # Default to parallel execution
@@ -60,11 +67,15 @@ class TestResult:
         self.error = error
         self.filename = test_data[0]
         self.description = test_data[1]
-        self.expected_result = (len(test_data) == 3) and 1 or 0
+        self.expected_result = (
+            1 if len(test_data) == 3 or self.filename in expectedFailures else 0
+        )
 
     @property
     def passed(self):
         """Check if test passed based on return code and expected result."""
+        if self.error is not None:
+            return False
         return (self.return_code == 0) == (self.expected_result == 0)
 
     @property
@@ -89,7 +100,56 @@ class TestResult:
         return output
 
 
-def execute_single_test(test_index, test_data, run_args, temp_file):
+def decode_process_output(data):
+    """Decode subprocess bytes without allowing logging text to fail a test."""
+    if not data:
+        return ""
+    if isinstance(data, str):
+        return data
+    return data.decode(outputEncoding, errors="replace")
+
+
+def collect_process_output(stderr_file, stdout):
+    """Collect child stderr and stdout in the format used by test reports."""
+    stderr_file.flush()
+    stderr_file.seek(0)
+    output = decode_process_output(stderr_file.read())
+    stdout_text = decode_process_output(stdout)
+    if stdout_text:
+        output += "\n[STDOUT CAPTURED]:\n" + stdout_text
+    return output
+
+
+def resolve_command_path(command):
+    """Resolve relative executable paths before changing the child cwd."""
+    if os.path.isabs(command) or not os.path.dirname(command):
+        return command
+    return os.path.abspath(command)
+
+
+def split_command_args(args):
+    """Normalize optional per-test arguments into subprocess argv entries."""
+    if not args:
+        return []
+    if isinstance(args, str):
+        return shlex.split(args)
+    return list(args)
+
+
+@contextmanager
+def runtime_working_directory():
+    """Provide runtimes with a writable copy mounted at their current cwd."""
+    if not runtimeExecutable:
+        yield None
+        return
+
+    with tempfile.TemporaryDirectory(prefix="csound-commandline-tests-") as root:
+        working_directory = os.path.join(root, "tests")
+        shutil.copytree(sourceDirectory, working_directory)
+        yield working_directory
+
+
+def execute_single_test(test_index, test_data, run_args, working_directory=None):
     """
     Execute a single Csound test and return the result.
 
@@ -99,8 +159,6 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
             optional_expected_result, optional_run_args,
             optional_application_args, optional_stack_limit_kb]
         run_args: Arguments to pass to csound
-        temp_file: Temporary file for csound output
-
     Returns:
         TestResult object containing execution results
     """
@@ -124,61 +182,64 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
         else:
             executable = (csoundExecutable == "") and "csound" or csoundExecutable
 
-        if runtimeEnvironment:
-            executable = f"{runtimeEnvironment} {executable}"
-
-        # Use temp file for stderr capture (like the original implementation)
-        command = (
-            f"{executable} {test_run_args} {sourceDirectory}/{filename} "
-            f"{application_args} 2> {temp_file}"
-        )
+        # Keep the runtime as structured argv so paths containing spaces work on
+        # both POSIX and Windows. Runtime options precede the module path.
+        command = []
+        if runtimeExecutable:
+            command.append(resolve_command_path(runtimeExecutable))
+            command.extend(runtimeArguments)
+            # A runtime consumes a module file, not a PATH-resolved command.
+            command.append(os.path.abspath(executable))
+        else:
+            command.append(resolve_command_path(executable))
+        command.extend(split_command_args(test_run_args))
+        if working_directory:
+            # Test names already use portable forward slashes, as required by a
+            # WASI guest regardless of the host platform.
+            command.append(filename)
+        else:
+            command.append(os.path.join(sourceDirectory, filename))
+        command.extend(split_command_args(application_args))
         if stack_limit_kb is not None and os.name == "posix":
-            command = f"ulimit -s {int(stack_limit_kb)} && {command}"
+            command = [
+                "/bin/sh",
+                "-c",
+                'ulimit -s "$1" && shift && exec "$@"',
+                "csound-test",
+                str(int(stack_limit_kb)),
+                *command,
+            ]
 
         logger.debug(f"Executing command: {command}")
 
-        # Execute the command with timeout using subprocess.run
-        # (subprocess.run already handles WIFEXITED properly, unlike os.system)
-        import subprocess
+        # An anonymous OS temporary file avoids collisions between concurrent
+        # test-suite processes and does not require a writable working directory.
+        with tempfile.TemporaryFile(mode="w+b") as stderr_file:
+            try:
+                result = subprocess.run(
+                    command,
+                    timeout=test_timeout,
+                    stdout=subprocess.PIPE,
+                    stderr=stderr_file,
+                    cwd=working_directory,
+                )
+                return_code = result.returncode
 
-        try:
-            result = subprocess.run(
-                command,
-                shell=True,
-                timeout=test_timeout,
-                capture_output=True,
-                text=True,
-            )
-            return_code = result.returncode
+            except subprocess.TimeoutExpired as error:
+                logger.error(
+                    f"Test {filename} timed out after {test_timeout} seconds"
+                )
+                cs_output = collect_process_output(stderr_file, error.stdout)
+                return TestResult(
+                    test_index,
+                    test_data,
+                    -1,
+                    cs_output,
+                    test_timeout,
+                    error=f"Test timed out after {test_timeout} seconds",
+                )
 
-            # For backward compatibility with os.system behavior,
-            # if we were using os.system we would need WIFEXITED:
-            # if hasattr(os, 'WIFEXITED') and os.WIFEXITED(return_code):
-            #     return_code = os.WEXITSTATUS(return_code)
-            # But subprocess.run already gives us the proper exit status
-
-        except subprocess.TimeoutExpired:
-            logger.error(f"Test {filename} timed out after {test_timeout} seconds")
-            return TestResult(
-                test_index,
-                test_data,
-                -1,
-                "",
-                test_timeout,
-                error=f"Test timed out after {test_timeout} seconds",
-            )
-
-        # Read csound output from temp file (stderr)
-        cs_output = ""
-        try:
-            with open(temp_file, "r") as f:
-                cs_output = f.read()
-        except IOError as e:
-            logger.warning(f"Could not read temp file {temp_file}: {e}")
-
-        # Also capture stdout if available (for complete test output like CI/CD systems)
-        if result.stdout:
-            cs_output += "\n[STDOUT CAPTURED]:\n" + result.stdout
+            cs_output = collect_process_output(stderr_file, result.stdout)
 
         execution_time = time.time() - start_time
 
@@ -196,7 +257,13 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
         )
 
 
-def run_tests_parallel(tests, run_args, max_workers=None, result_callback=None):
+def run_tests_parallel(
+    tests,
+    run_args,
+    max_workers=None,
+    result_callback=None,
+    working_directory=None,
+):
     """
     Run tests in parallel using ThreadPoolExecutor.
 
@@ -217,35 +284,25 @@ def run_tests_parallel(tests, run_args, max_workers=None, result_callback=None):
     # Check if workers=1 for sequential execution
     if max_workers == 1:
         logger.info(f"Running {len(tests)} tests sequentially (workers=1)")
-        return run_tests_sequential(tests, run_args, result_callback)
+        return run_tests_sequential(
+            tests, run_args, result_callback, working_directory
+        )
 
     logger.info(f"Running {len(tests)} tests in parallel with {max_workers} workers")
 
-    # Create unique temp files for each worker to avoid conflicts
-    temp_files = [
-        f"csound_test_output_{threading.get_ident()}_{i}.txt"
-        for i in range(max_workers)
-    ]
-    temp_file_queue = Queue()
-    for temp_file in temp_files:
-        temp_file_queue.put(temp_file)
-
     results = [None] * len(tests)
 
-    def worker_with_temp_file(test_index_and_data):
-        """Worker function that manages temp file allocation."""
+    def worker(test_index_and_data):
         test_index, test_data = test_index_and_data
-        temp_file = temp_file_queue.get()
-        try:
-            return execute_single_test(test_index, test_data, run_args, temp_file)
-        finally:
-            temp_file_queue.put(temp_file)
+        return execute_single_test(
+            test_index, test_data, run_args, working_directory
+        )
 
     # Execute tests in parallel
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all tests
         future_to_index = {
-            executor.submit(worker_with_temp_file, (i, test)): i
+            executor.submit(worker, (i, test)): i
             for i, test in enumerate(tests)
         }
 
@@ -285,18 +342,12 @@ def run_tests_parallel(tests, run_args, max_workers=None, result_callback=None):
                 if result_callback:
                     result_callback(result, completed_count)
 
-    # Clean up temp files
-    for temp_file in temp_files:
-        try:
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
-        except OSError:
-            pass
-
     return results
 
 
-def run_tests_sequential(tests, run_args, result_callback=None):
+def run_tests_sequential(
+    tests, run_args, result_callback=None, working_directory=None
+):
     """
     Run tests sequentially (original behavior).
 
@@ -309,22 +360,15 @@ def run_tests_sequential(tests, run_args, result_callback=None):
         List of TestResult objects ordered by original test index
     """
     results = []
-    tempfile = "csound_test_output.txt"
-
     for test_index, test_data in enumerate(tests):
-        result = execute_single_test(test_index, test_data, run_args, tempfile)
+        result = execute_single_test(
+            test_index, test_data, run_args, working_directory
+        )
         results.append(result)
 
         # Call result callback if provided
         if result_callback:
             result_callback(result, test_index + 1)
-
-    # Clean up the temp file
-    try:
-        if os.path.exists(tempfile):
-            os.remove(tempfile)
-    except OSError:
-        pass
 
     return results
 
@@ -344,7 +388,10 @@ STANDARD OPTIONS:
     --csound-executable=<path>     Path to csound executable
     --opcode7dir64=<path>          Set OPCODE7DIR64 environment variable
     --source-dir=<path>            Source directory for tests (default: .)
-    --runtime-environment=<env>    Runtime environment setup command
+    --runtime-executable=<path>    Runtime executable placed before the Csound module
+    --runtime-arg=<arg>            Runtime argument; repeat once per argument
+    --expected-failure=<file>      Treat a nonzero result as expected for this test
+    --runtime-environment=<path>   Deprecated executable-only alias
     --help                         Show this help message
 
 EXAMPLES:
@@ -352,6 +399,8 @@ EXAMPLES:
     ./test.py --workers=1                                  # Sequential execution
     ./test.py --workers=8                                  # Parallel with 8 workers
     ./test.py --timeout=60 --verbose                       # Custom timeout and logging
+    ./test.py --runtime-executable=wasmtime --runtime-arg=run \
+      --runtime-arg=--dir=. --csound-executable=/path/to/csound.wasm
 
     """
 
@@ -366,7 +415,7 @@ def get_actual_workers():
 
 
 def runTest():
-    runArgs = "-nd"  # "-Wdo test.wav"
+    runArgs = ["-nd"]  # ["-Wdo", "test.wav"]
 
     print("Testing with Csound")
 
@@ -955,6 +1004,19 @@ def runTest():
     tests += pfieldTests
     tests += mkirTests
 
+    unknownExpectedFailures = expectedFailures.difference(test[0] for test in tests)
+    if unknownExpectedFailures:
+        logger.error(
+            "Unknown expected-failure tests: %s",
+            ", ".join(sorted(unknownExpectedFailures)),
+        )
+        return 1
+    if expectedFailures:
+        logger.info(
+            "Runtime-specific expected failures: %s",
+            ", ".join(sorted(expectedFailures)),
+        )
+
     output = ""
 
     retVals = []
@@ -1019,7 +1081,14 @@ def runTest():
 
     # Execute tests and collect results
     start_time = time.time()
-    results = run_tests_parallel(tests, runArgs, max_workers, collect_result)
+    with runtime_working_directory() as working_directory:
+        results = run_tests_parallel(
+            tests,
+            runArgs,
+            max_workers,
+            collect_result,
+            working_directory,
+        )
     total_execution_time = time.time() - start_time
 
     logger.info(f"All tests completed in {total_execution_time:.2f} seconds")
@@ -1078,8 +1147,18 @@ if __name__ == "__main__":
                 print(os.environ["OPCODE7DIR64"])
             elif arg.startswith("--source-dir="):
                 sourceDirectory = arg[13:]
+            elif arg.startswith("--runtime-executable="):
+                runtimeExecutable = arg[21:]
             elif arg.startswith("--runtime-environment="):
-                runtimeEnvironment = arg[22:]
+                runtimeExecutable = arg[22:]
+                logger.warning(
+                    "--runtime-environment is deprecated; use "
+                    "--runtime-executable and repeatable --runtime-arg options"
+                )
+            elif arg.startswith("--runtime-arg="):
+                runtimeArguments.append(arg[14:])
+            elif arg.startswith("--expected-failure="):
+                expectedFailures.add(arg[19:])
             elif arg.startswith("--workers="):
                 try:
                     max_workers = int(arg[10:])

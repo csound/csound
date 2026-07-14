@@ -86,7 +86,7 @@ var CsoundInst;
 var WasiFS;
 
 /** @typedef {{
- * _start: function(): void,
+ * _initialize: function(): void,
  * __wasm_call_ctors: function(): void,
  * __wasi_js_csoundSetMessageStringCallback: function(): void,
  * isRequestingRtMidiInput: function(CsoundInst): number,

@@ -1,14 +1,44 @@
 name: Csound WASM command-line tests
 
+env:
+  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/4db2c220f32fd162658ed1b7bb2f46a82996ddbe.tar.gz
+
 on:
   workflow_run:
     workflows: ["csound_wasm"]
     types: [completed]
 
+permissions:
+  actions: read
+
 jobs:
   commandline-tests:
     name: CSD tests with Wasmtime
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
-      - name: Placeholder
-        run: echo true
+      - name: Download Wasm artifact from build workflow
+        uses: actions/download-artifact@v4
+        with:
+          name: lib
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/wasm-commandline-source/wasm
+      - name: Download matching command-line test sources
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm-commandline-test-sources
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/wasm-commandline-source
+      - uses: cachix/install-nix-action@v31
+        with:
+          nix_path: ${{ env.nix_path }}
+      - name: Uncompress Wasm artifact
+        run: |
+          unzip \
+            "$RUNNER_TEMP/wasm-commandline-source/wasm/lib.zip" \
+            -d "$RUNNER_TEMP/wasm-commandline-source/wasm"
+      - name: Run command-line CSD tests with Wasmtime
+        working-directory: ${{ runner.temp }}/wasm-commandline-source
+        run: nix-build ./wasm/src/csound-tests.nix --no-out-link --show-trace

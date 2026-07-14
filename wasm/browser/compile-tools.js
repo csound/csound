@@ -28,7 +28,10 @@ const rootDir = __dirname;
 
 fs.writeFileSync(
   path.join(rootDir, "dist", "__csound_wasm_static_tools.inline.js"),
-  inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.static.wasm.z", "binary.wasm"),
+  inlineArraybuffer(
+    "./node_modules/@csound/wasm-bin/lib/csound-no-entry.wasm.z",
+    "binary.wasm",
+  ),
 );
 
 (async () => {

@@ -124,7 +124,10 @@ fs.mkdirSync(distDir);
 
   fs.writeFileSync(
     path.join(rootDir, "dist", "__csound_wasm.inline.js"),
-    inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.wasm.z", "binary.wasm"),
+    inlineArraybuffer(
+      "./node_modules/@csound/wasm-bin/lib/csound-no-entry.wasm.z",
+      "binary.wasm",
+    ),
   );
 
 // const polyfills = {
