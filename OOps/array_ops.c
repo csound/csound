@@ -503,6 +503,7 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
   int32_t end;
   int32_t index;
   int32_t indefArgCount = p->INOCOUNT - 1;
+  char *element;
 
   if (UNLIKELY(mem == NULL)) {
     return csound->PerfError(csound, &(p->h), Str("array_get: array data is NULL"));
@@ -655,7 +656,7 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
       Str("Array element %d exceeds allocated storage (%zu + %d > %zu)"),
       index, offset, dat->arrayMemberSize, allocatedBytes);
   }
-  mem = (MYFLT*)((char*)dat->data + offset);
+  element = (char *)dat->data + offset;
 
 
 
@@ -667,10 +668,10 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
                                Str("Invalid struct output"));
     }
     dat->arrayType->copyValue(csound, dat->arrayType,
-                              (void*)p->out, (void*)mem,
+                              (void *)p->out, (void *)element,
                               p->h.insdshead);
   } else {
-    if (UNLIKELY(mem == NULL)) {
+    if (UNLIKELY(element == NULL)) {
       /* Report error in the correct phase */
       if (csound->mode == 2) {
         return csound->PerfError(csound, &(p->h), "%s", Str("array-variable not initialised"));
@@ -679,17 +680,18 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
       }
     }
     if (dat->arrayType == &CS_VAR_TYPE_S) {
-      STRINGDAT* src = (STRINGDAT*)mem;
+      STRINGDAT* src = (STRINGDAT *)element;
       STRINGDAT* dst = (STRINGDAT*)p->out;
       dat->arrayType->copyValue(csound, dat->arrayType, (void*)dst, (void*)src, p->h.insdshead);
     } else if (dat->arrayType && dat->arrayType->copyValue) {
-      dat->arrayType->copyValue(csound, dat->arrayType, (void*)p->out, (void*)mem,
+      dat->arrayType->copyValue(csound, dat->arrayType,
+                                (void *)p->out, (void *)element,
                                 p->h.insdshead);
     } else {
       /* Fallback: shallow value copy for element types without copyValue */
-      if (LIKELY(mem != NULL && p->out != NULL)) {
+      if (LIKELY(element != NULL && p->out != NULL)) {
         size_t bytes = dat->arrayMemberSize > 0 ? dat->arrayMemberSize : sizeof(MYFLT);
-        memcpy((void*)p->out, (void*)mem, bytes);
+        memcpy((void *)p->out, (void *)element, bytes);
       }
     }
   }
