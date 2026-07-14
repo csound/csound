@@ -65,6 +65,9 @@ class SharedArrayBufferMainThread {
     this.callbackBuffer = {};
     this.performanceEndState = undefined;
     this.stopReleaseReceived = false;
+    // End state and stop release arrive on different ports. A generation keeps
+    // late messages from an earlier run from completing the current one.
+    this.performanceGeneration = 0;
 
     this.audioStateBuffer = new SharedArrayBuffer(
       initialSharedState.length * Int32Array.BYTES_PER_ELEMENT,
@@ -171,12 +174,25 @@ class SharedArrayBufferMainThread {
     this.stopReleaseReceived = false;
   }
 
-  markPerformanceEndState(playState) {
+  isCurrentPerformanceGeneration(performanceGeneration) {
+    return (
+      performanceGeneration === undefined ||
+      performanceGeneration === this.performanceGeneration
+    );
+  }
+
+  markPerformanceEndState(playState, performanceGeneration) {
+    if (!this.isCurrentPerformanceGeneration(performanceGeneration)) {
+      return;
+    }
     this.performanceEndState = playState;
     this.finishPerformanceEnd();
   }
 
-  markStopReleaseReceived() {
+  markStopReleaseReceived(performanceGeneration) {
+    if (!this.isCurrentPerformanceGeneration(performanceGeneration)) {
+      return;
+    }
     this.stopReleaseReceived = true;
     this.finishPerformanceEnd();
   }
@@ -198,9 +214,12 @@ class SharedArrayBufferMainThread {
     this.eventPromises && this.eventPromises.releaseStopPromise();
   }
 
-  async onPlayStateChange(newPlayState) {
+  async onPlayStateChange(newPlayState, performanceGeneration) {
     if (this === undefined) {
       console.log("Failed to announce playstatechange", newPlayState);
+      return;
+    }
+    if (!this.isCurrentPerformanceGeneration(performanceGeneration)) {
       return;
     }
     this.currentPlayState = newPlayState;
@@ -276,7 +295,7 @@ class SharedArrayBufferMainThread {
       console.error(error);
     }
     if (performanceEndState) {
-      this.markPerformanceEndState(performanceEndState);
+      this.markPerformanceEndState(performanceEndState, performanceGeneration);
     }
   }
 
@@ -334,6 +353,10 @@ class SharedArrayBufferMainThread {
     log(`(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`)();
 
     this.ipcMessagePorts.sabMainCallbackReply.addEventListener("message", (event) => {
+      if (event.data && event.data["type"] === "releaseStop") {
+        this.markStopReleaseReceived(event.data["performanceGeneration"]);
+        return;
+      }
       switch (event.data) {
         case "poll": {
           if (this.ipcMessagePorts && this.ipcMessagePorts.sabMainCallbackReply) {
@@ -351,7 +374,7 @@ class SharedArrayBufferMainThread {
           break;
         }
         case "releaseStop": {
-          this.markStopReleaseReceived();
+          this.markStopReleaseReceived(this.performanceGeneration);
           break;
         }
         case "releasePause": {
@@ -472,6 +495,7 @@ class SharedArrayBufferMainThread {
             if (this.eventPromises.isWaiting("start")) {
               return -1;
             } else {
+              this.performanceGeneration += 1;
               this.resetPerformanceEndSignals();
               this.eventPromises.createStartPromise();
 
@@ -481,6 +505,7 @@ class SharedArrayBufferMainThread {
               startPayload["audioStreamOut"] = audioStreamOut;
               startPayload["midiBuffer"] = midiBuffer;
               startPayload["csound"] = csoundInstance;
+              startPayload["performanceGeneration"] = this.performanceGeneration;
 
               const startResult = await proxyCallback(startPayload);
 
