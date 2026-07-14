@@ -32,7 +32,19 @@ static inline int32_t csound_array_prepare_write(CSOUND *csound,
     if (csound == NULL || csound->ArrayPrepareWrite == NULL) {
         return NOTOK;
     }
-    return csound->ArrayPrepareWrite(csound, array, ctx);
+    return csound->ArrayPrepareWrite(csound, array, ctx, 1);
+}
+
+/* Performance-time writers may claim uniquely referenced storage, but must
+   not clone a shared structured array. */
+static inline int32_t csound_array_try_prepare_write(CSOUND *csound,
+                                                      ARRAYDAT *array,
+                                                      INSDS *ctx)
+{
+    if (csound == NULL || csound->ArrayPrepareWrite == NULL) {
+        return NOTOK;
+    }
+    return csound->ArrayPrepareWrite(csound, array, ctx, 0);
 }
 
 typedef struct {
@@ -320,12 +332,14 @@ static inline int32_t tabcheck(CSOUND *csound, ARRAYDAT *p, int32_t size, OPDS *
     if (UNLIKELY(p == NULL || size < 0)) {
       return csound->PerfError(csound, q, "%s", Str("Invalid array size"));
     }
-    /* Updating the logical size is a write even when capacity is unchanged. */
+    /* The caller writes this buffer during performance. Claiming a
+       sole reference is safe here, but cloning shared storage would allocate. */
     if (UNLIKELY(p->storage != NULL &&
-                 csound_array_prepare_write(
+                 csound_array_try_prepare_write(
                    csound, p, q != NULL ? q->insdshead : NULL) != OK)) {
       return csound->PerfError(csound, q, "%s",
-                               Str("Could not detach shared array"));
+                               Str("Cannot write shared array during "
+                                   "performance pass"));
     }
     if (p->data == NULL || p->dimensions == 0 || p->sizes == NULL) {
       return csound->PerfError(csound, q, "%s", Str("Array not initialised"));

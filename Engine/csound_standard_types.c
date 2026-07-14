@@ -139,10 +139,10 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     sDest->timestamp = kcnt;
 }
 
-/* The ownership implementation is private to the engine. Reference changes
-   are safe across separately synchronized ARRAYDAT views; copying or mutating
-   the same ARRAYDAT still requires its usual channel or engine lock. Installed
-   plugins see only the opaque pointer and detach callback in arrays.h. */
+/* The ownership implementation is private to the engine. Concurrent copies
+   can atomically retain or install a sidecar; mutating the same ARRAYDAT still
+   requires its usual channel or engine lock. Installed plugins see only the
+   opaque pointer and detach callback in arrays.h. */
 typedef struct cs_array_storage {
     int32_t refs;
     int32_t dimensions;
@@ -1020,7 +1020,7 @@ static int32_t csound_array_share(CSOUND *csound, ARRAYDAT *dest,
 }
 
 int32_t csound_array_prepare_write_impl(CSOUND *csound, ARRAYDAT *array,
-                                        INSDS *ctx)
+                                        INSDS *ctx, int32_t allowAllocation)
 {
     CS_ARRAY_STORAGE *storage;
     ARRAYDAT clone = {0};
@@ -1057,6 +1057,9 @@ int32_t csound_array_prepare_write_impl(CSOUND *csound, ARRAYDAT *array,
         array->storage = NULL;
         csound->Free(csound, storage);
         return OK;
+    }
+    if (!allowAllocation) {
+        return NOTOK;
     }
     if (UNLIKELY(cs_array_storage_clone(csound, array, storage, ctx,
                                         capacity, strideBytes,

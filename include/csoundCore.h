@@ -1480,7 +1480,7 @@ struct CSOUND_ {
   /**@{ */
   /* This consumes one former placeholder; the 50-pointer reserve keeps the
      offsets of private CSOUND fields unchanged. */
-  int32_t (*ArrayPrepareWrite)(CSOUND *, ARRAYDAT *, INSDS *);
+  int32_t (*ArrayPrepareWrite)(CSOUND *, ARRAYDAT *, INSDS *, int32_t);
   SUBR dummyfn_2[49];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
