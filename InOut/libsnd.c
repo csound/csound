@@ -1,3 +1,4 @@
+
 /*
     sndlib.c:
 
@@ -883,11 +884,12 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
     STA(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
     STA(outbufp)   = STA(outbuf) = csound->Malloc(csound, STA(outbufsiz));
     if (STA(pipdevout) == 2) {
-      csound->Message(csound,
-                      Str("writing %d sample blks of %lu-bit floats to %s\n"),
-                      O->outbufsamps, (unsigned long) sizeof(MYFLT)*8,
-                      STA(sfoutname));
-
+      if(O->msglevel || O->odebug) {
+        csound->Message(csound,
+                        Str("writing %d sample blks of %lu-bit floats to %s\n"),
+                        O->outbufsamps, (unsigned long) sizeof(MYFLT)*8,
+                        STA(sfoutname));
+      }
     }
     else {
       csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
@@ -959,24 +961,26 @@ void sf_close_out(CSOUND *csound)
 #endif
 
  report:
-    if (STA(pipdevout) == 2) {
-      csound->Message(csound,
-                      "%"PRIi32" %d %s%lu%s%s\n",
-                      csound->nrecs, O->outbufsamps, Str("sample blks of "),
-                      (unsigned long)sizeof(MYFLT)*8,Str("-bit floats written to "),
-                      STA(sfoutname));
+    if(O->msglevel || O->odebug) {
+      if (STA(pipdevout) == 2) {
+        csound->Message(csound,
+                        "%"PRIi32" %d %s%lu%s%s\n",
+                        csound->nrecs, O->outbufsamps, Str("sample blks of "),
+                        (unsigned long)sizeof(MYFLT)*8,Str("-bit floats written to "),
+                        STA(sfoutname));
+      }
+      else {
+        csound->Message(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
+                        O->outbufsamps, O->outbufsamps * O->sndfileSampleSize,
+                        csoundGetStrFormat(O->outformat), STA(sfoutname));
+        if (O->filetyp == TYP_RAW)
+          csound->Message(csound, Str(" (raw)\n"));
+        else
+          csound->Message(csound, " (%s)\n", csoundType2String(O->filetyp));
+        
+      }
+      STA(osfopen) = 0;
     }
-    else {
-      csound->Message(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
-                      O->outbufsamps, O->outbufsamps * O->sndfileSampleSize,
-                      csoundGetStrFormat(O->outformat), STA(sfoutname));
-      if (O->filetyp == TYP_RAW)
-        csound->Message(csound, Str(" (raw)\n"));
-      else
-        csound->Message(csound, " (%s)\n", csoundType2String(O->filetyp));
-      
-    }
-    STA(osfopen) = 0;
 }
 
 /* report soundfile write(osfd) error   */

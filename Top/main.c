@@ -1,3 +1,4 @@
+
 /*
     main.c: compilation and startup
 
@@ -198,7 +199,8 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
   /* check for CSD file */
   if (csound->orchname == NULL) {
     if (csound->info_message_request) {
-      csound->info_message_request = 0;
+      // Do not reset flag, it forces performance output in cases where it is not desired
+      // csound->info_message_request = 0;  
       csound->LongJmp(csound, 1);
     } else if (UNLIKELY(csound->oparms->daemon == 0))
       dieu(csound, Str("no orchestra name"));
