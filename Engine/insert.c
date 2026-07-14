@@ -1725,8 +1725,10 @@ void recycle_udo_instance(CSOUND *csound, INSDS *ip)
      publishes the frame on the reusable-instance list. Callers must first
      exclude deinit callbacks and resources that still depend on local data. */
   free_instr_var_memory(csound, ip);
-  csoundInitializeVarPool(csound, ip->lclbas, ip->instr->varPool);
-  csoundReinitInstrumentArgpp(csound, ip);
+  if (ip->lclbas != NULL) {
+    csoundInitializeVarPool(csound, ip->lclbas, ip->instr->varPool);
+    csoundReinitInstrumentArgpp(csound, ip);
+  }
   deact(csound, ip);
 }
 
