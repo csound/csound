@@ -23,6 +23,10 @@
 #ifndef __ARRAY_H__
 #define __ARRAY_H__
 
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+
 /* Ownership remains engine-private. Installed plugins dispatch the detach
    operation through their CSOUND instance instead of embedding that logic. */
 static inline int32_t csound_array_prepare_write(CSOUND *csound,
