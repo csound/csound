@@ -72,21 +72,28 @@ static int32_t udo_has_rate_converter(const UOPCODE *opcode)
   return 0;
 }
 
+static int32_t udo_call_is_init_only(const UOPCODE *opcode)
+{
+  return opcode != NULL && opcode->h.optext != NULL &&
+         opcode->h.optext->t.oentry != NULL &&
+         opcode->h.optext->t.oentry->perf == NULL;
+}
+
 static int32_t udo_frame_can_be_recycled(const UOPCODE *opcode,
                                          const INSDS *parent,
                                          const INSDS *child)
 {
-  /* Exactly zero is intentional: negative p3 is indefinite, while a positive
-     p3 may still execute. Rate converters are normally released when the
-     parent follows its UDO deactivation chain, so keep that path when present.
-     Opcode AUXCH allocations remain attached to the inactive INSDS for reuse;
-     unlike deinit callbacks, files, or nested instances, they do not depend on
-     local variable ownership and therefore do not block recycling. Failing
-     this whitelist keeps the existing deactivation lifecycle; it does not
-     orphan the frame. */
-  return parent != NULL && parent->p3.value == FL(0.0) &&
-         parent->xtratim == 0 && child != NULL && child->xtratim == 0 &&
-         child->nxtd == NULL && child->fdchp == NULL &&
+  /* The compiler removes the perf callback from each init-only UDO's concrete
+     OENTRY, which is the call-site contract used when building performance
+     chains. The caller's duration and the child frame's internal links do not
+     say whether this call can perform. Rate converters are normally released
+     when the parent follows its UDO deactivation chain, so keep that path when
+     present. Opcode AUXCH allocations remain attached to the inactive INSDS
+     for reuse; unlike deinit callbacks, files, or nested instances, they do
+     not depend on local variable ownership and therefore do not block
+     recycling. */
+  return parent != NULL && child != NULL && udo_call_is_init_only(opcode) &&
+         child->xtratim == 0 && child->nxtd == NULL && child->fdchp == NULL &&
          child->subins_deact == NULL && !udo_has_rate_converter(opcode);
 }
 
@@ -95,9 +102,9 @@ void recycle_init_only_udo_instances(CSOUND *csound, INSDS *parent)
   UOPCODE *opcode;
   INSDS *child;
 
-  /* The caller's final duration is only known after its complete init chain.
-     Recycle from the top of the deactivation stack so each child can expose
-     the previous entry before its frame is returned to the free list. */
+  /* Recycle after the complete init chain has materialised outputs and linked
+     resources. Walking from the top lets each child expose the previous entry
+     before its frame is returned to the free list. */
   while (parent != NULL && parent->opcod_deact != NULL) {
     opcode = (UOPCODE *)parent->opcod_deact;
     child = opcode->ip;

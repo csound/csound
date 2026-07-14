@@ -231,7 +231,8 @@ endin
 
 </CsInstruments>
 <CsScore>
-i "InitChecks" 0 0
+; A normal score duration must not retain frames for init-only UDO calls.
+i "InitChecks" 0 0.02
 i "PerformanceCheck" 0 0.02
 i "LateDurationCheck" 0 0
 i "ArrayChannelCheck" 0 0
