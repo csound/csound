@@ -91,9 +91,11 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     arrayDat->sizes[i] = v;
   }
 
-  if (UNLIKELY(csound_array_member_count(arrayDat, &elementCount) != OK))
+  if (UNLIKELY(csound_array_member_count(arrayDat, &elementCount) != OK)) {
+    csound_free_array_storage(csound, arrayDat);
     return csound->InitError(csound, "%s",
                              Str("array_init: array dimensions overflow"));
+  }
 
   {
     // Safety: check for NULL arrayType
@@ -109,6 +111,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
       }
 
       if (arrayDat->arrayType == NULL) {
+        csound_free_array_storage(csound, arrayDat);
         return csound->InitError(csound, "array_init: arrayType is NULL - struct type information missing");
       }
     }
@@ -120,6 +123,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
                  var->initializeVariableMemory == NULL)) {
       if (var != NULL)
         csound->Free(csound, var);
+      csound_free_array_storage(csound, arrayDat);
       return csound->InitError(csound, "%s",
                                Str("array_init: invalid element type"));
     }
@@ -128,6 +132,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     if (UNLIKELY(csound_array_allocation_size(
                    arrayDat->arrayMemberSize, capacity, &bytes) != OK)) {
       csound->Free(csound, var);
+      csound_free_array_storage(csound, arrayDat);
       return csound->InitError(csound, "%s",
                                Str("array_init: allocation size overflow"));
     }
