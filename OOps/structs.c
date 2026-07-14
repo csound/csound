@@ -31,6 +31,20 @@
 #include "csound_orc_structs.h"
 #include "struct_ops.h"
 
+static int32_t nonnegative_index_from_myflt(MYFLT value, int32_t *result)
+{
+  double widened = (double)value;
+
+  /* Widen before comparing so a float MYFLT cannot round INT32_MAX upward. */
+  if (UNLIKELY(result == NULL || isnan(widened) || widened < 0.0 ||
+               widened > (double)INT32_MAX)) {
+    return NOTOK;
+  }
+  /* Fractional indexes retain the established truncation behavior. */
+  *result = (int32_t)widened;
+  return OK;
+}
+
 static int32_t struct_value_matches_type(const CS_TYPE *type,
                                          const CS_STRUCT_VAR *value)
 {
@@ -90,15 +104,11 @@ static int32_t struct_array_flat_index(CSOUND *csound, OPDS *opds,
                                opcodeName, i + 1);
     }
     rawIndex = *indexes[i];
-    /* C casts outside the int32_t range are undefined. Fractional indexes
-       retain the established truncation behavior after this range check. */
-    if (UNLIKELY(isnan(rawIndex) || rawIndex < FL(0.0) ||
-                 rawIndex > (MYFLT)INT32_MAX)) {
+    if (UNLIKELY(nonnegative_index_from_myflt(rawIndex, &coordinate) != OK)) {
       return csound->PerfError(csound, opds,
                                "%s: invalid index for dimension %d",
                                opcodeName, i + 1);
     }
-    coordinate = (int32_t)rawIndex;
     dimension = (size_t)array->sizes[i];
     if (UNLIKELY(coordinate < 0 || (size_t)coordinate >= dimension)) {
       return csound->PerfError(csound, opds,
@@ -268,10 +278,12 @@ int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
     return csound->PerfError(csound, &(p->h), "Corrupted struct: invalid memberCount=%d", varIn->memberCount);
   }
 
-  MYFLT memberIndexFloat = *p->nths[0];
-  int nthInt = (int)memberIndexFloat;
+  int32_t nthInt;
+  if (UNLIKELY(nonnegative_index_from_myflt(*p->nths[0], &nthInt) != OK)) {
+    return csound->PerfError(csound, &p->h, "Invalid member index");
+  }
 
-  if (UNLIKELY(nthInt < 0 || nthInt >= varIn->memberCount)) {
+  if (UNLIKELY(nthInt >= varIn->memberCount)) {
     return csound->PerfError(csound, &(p->h), "Invalid member index %d (memberCount=%d)", nthInt, varIn->memberCount);
   }
 
@@ -345,11 +357,12 @@ int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
     return csound->PerfError(csound, &(p->h), "Corrupted struct: invalid memberCount=%d", var->memberCount);
   }
 
-  // Read and validate the member index
-  MYFLT memberIndexFloat = *p->nths[0];
-  int nthInt = (int)memberIndexFloat;
+  int32_t nthInt;
+  if (UNLIKELY(nonnegative_index_from_myflt(*p->nths[0], &nthInt) != OK)) {
+    return csound->PerfError(csound, &p->h, "Invalid member index");
+  }
 
-  if (UNLIKELY(nthInt < 0 || nthInt >= var->memberCount)) {
+  if (UNLIKELY(nthInt >= var->memberCount)) {
     return csound->PerfError(csound, &(p->h), "Invalid member index %d (memberCount=%d)", nthInt, var->memberCount);
   }
 
@@ -390,13 +403,16 @@ int32_t struct_member_array_assign(
                                "Invalid array member input (NULL)");
     }
 
-    int nthInt = (int) *p->nths[0];
     CS_STRUCT_VAR* var = (CS_STRUCT_VAR*)p->var;
+    int32_t nthInt;
 
     if (UNLIKELY(var == NULL || var->members == NULL))
       return csound->PerfError(csound, &(p->h), "Invalid struct for member_array_assign");
 
-    if (UNLIKELY(nthInt < 0 || nthInt >= var->memberCount)) {
+    if (UNLIKELY(nonnegative_index_from_myflt(*p->nths[0], &nthInt) != OK)) {
+      return csound->PerfError(csound, &p->h, "Invalid member index");
+    }
+    if (UNLIKELY(nthInt >= var->memberCount)) {
       return csound->PerfError(csound, &(p->h),
         "Member index %d out of bounds (memberCount=%d)", nthInt, var->memberCount);
     }
