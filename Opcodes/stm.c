@@ -431,10 +431,8 @@ static void stm_destroy_object(CSOUND *csound, STM_OBJECT_TYPE type, STM_OBJECT_
 
 static int32_t stm_registry_reset(CSOUND *csound, void *userData) {
     STM_REGISTRY *reg = (STM_REGISTRY *) userData;
-    if (reg == NULL)
-        reg = stm_registry_query(csound);
-    if (reg == NULL)
-        return OK;
+    if (reg == NULL) reg = stm_registry_query(csound);
+    if (reg == NULL) return OK;
 
     if (reg->slots != NULL) {
         for (uint32_t i = 0; i < reg->count; i++) {
