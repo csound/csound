@@ -160,6 +160,7 @@
 #define INITIAL_EDGE_CAPACITY 10
 #define INITIAL_GRAPH_CAPACITY 8
 #define TRANSITION_BUFFER_CAPACITY 10
+#define CHECKPOINT_BUFFER_CAPACITY 100
 #define STM_HANDLE_SLOT_BASE 4096U
 #define STM_HANDLE_MAX_EXACT 16777216U
 #define STM_HANDLE_GENERATION_MAX (STM_HANDLE_MAX_EXACT / STM_HANDLE_SLOT_BASE)
@@ -186,7 +187,8 @@ typedef enum {
 typedef enum {
     STM_EVENT_CHANGED = 1,
     STM_EVENT_SELF_TRANSITION,
-    STM_EVENT_RESET
+    STM_EVENT_RESET,
+    STM_EVENT_RESUME
 } GRAPH_EVENT_STATUS;
 
 typedef struct {
@@ -238,6 +240,18 @@ typedef struct {
 } GRAPH_DEFINITION;
 
 typedef struct {
+    char name[64];
+    int32_t is_valid;
+    uint32_t current_node;
+    uint32_t previous_node;
+    uint32_t requested_node;
+    int32_t request_conflict;
+    uint64_t graph_tick;
+    uint64_t total_sample_frames;
+    uint64_t node_sample_on_enter;
+} STM_CHECKPOINT;
+
+typedef struct {
     GRAPH_DEFINITION *definition;
     uint32_t refcount;
     uint32_t state_version;
@@ -266,6 +280,10 @@ typedef struct {
     GRAPH_TRANSITION_EVENT *transitions;
     uint32_t tndx_write;
     uint32_t transition_count;
+    // checkpoints
+    STM_CHECKPOINT *checkpoints;
+    uint32_t cndx_write;
+    uint32_t ckp_count;
 } GRAPH_RUNNER;
 
 typedef struct {
@@ -482,6 +500,19 @@ typedef struct {
     STM_RUNNER_REF ref;
 } GRAPH_TRANSITION;
 
+typedef struct {
+    OPDS h;
+    // outputs
+    MYFLT *check;
+    // inputs
+    MYFLT *runner_handle;
+    STRINGDAT *checkpoint_name;
+    MYFLT *trig;
+    //private
+    STM_RUNNER_REF ref;
+    char last_name[64];
+} GRAPH_CHECKPOINT;
+
 
 // INTERFACE
 
@@ -517,7 +548,9 @@ int32_t graph_transition(CSOUND *csound, GRAPH_TRANSITION *p); // k-time
 int32_t graph_time_tick(CSOUND *csound, GRAPH_RUNNER_QUERY *p); // k-time
 int32_t graph_time_global(CSOUND *csound, GRAPH_RUNNER_QUERY *p); // k-time
 int32_t graph_time_node(CSOUND *csound, GRAPH_RUNNER_QUERY *p); // k-time
-
+// points
+int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p); // k-time
+int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p); // k-time
 
 
 #endif
