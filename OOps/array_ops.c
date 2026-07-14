@@ -319,8 +319,8 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     return csound->PerfError(csound, &(p->h), Str("array_set: NULL array"));
   }
   if (UNLIKELY(dat->storage != NULL &&
-               csound_array_prepare_write(csound, dat,
-                                          p->h.insdshead) != OK)) {
+               csound_array_prepare_write_for_mode(
+                 csound, dat, p->h.insdshead) != OK)) {
     return csound->PerfError(csound, &p->h, "%s",
                              Str("array_set: could not detach shared array"));
   }
@@ -559,7 +559,7 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     if (needsAutoSizing) {
       /* Size recovery changes array metadata. Detach a structured view first
          so a read from malformed legacy metadata cannot resize its siblings. */
-      if (UNLIKELY(csound_array_prepare_write(
+      if (UNLIKELY(csound_array_prepare_write_for_mode(
                      csound, dat, p->h.insdshead) != OK)) {
         return csound->PerfError(
           csound, &p->h, "%s",
@@ -3554,15 +3554,9 @@ int32_t tabcopy2(CSOUND *csound, TABCPY *p)
     return csound->InitError(
       csound, "%s",
       Str("sample-accurate array copy does not support struct arrays"));
+  /* Managed storage belongs only to struct arrays, which are rejected above. */
 
   if (p->src == p->dst) return OK;
-
-  if (UNLIKELY(p->dst->storage != NULL &&
-               csound_array_prepare_write(csound, p->dst,
-                                          p->h.insdshead) != OK)) {
-    return csound->InitError(csound, "%s",
-                             Str("could not detach shared destination array"));
-  }
 
   if (UNLIKELY(csound_array_member_count(p->src, &elementCount) != OK))
     return csound->InitError(csound, "%s",

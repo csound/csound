@@ -184,11 +184,12 @@ TEST_F (TypeSystemTests, testConcurrentStructuredArrayCopiesShareOneStorage)
     csound_free_array_storage(csound, &source);
 }
 
-TEST_F (TypeSystemTests, testStructuredArrayWriteClaimDoesNotAllocate)
+TEST_F (TypeSystemTests, testStructuredArrayWritePreparationRespectsEngineMode)
 {
     CS_TYPE elementType = CS_VAR_TYPE_I;
     ARRAYDAT source{};
     ARRAYDAT shared{};
+    int32_t savedMode = csound->mode;
 
     elementType.userDefinedType = 1;
     source.dimensions = 1;
@@ -210,21 +211,31 @@ TEST_F (TypeSystemTests, testStructuredArrayWriteClaimDoesNotAllocate)
     MYFLT *const originalData = source.data;
     auto *const originalStorage = source.storage;
 
-    EXPECT_EQ(NOTOK, csound_array_try_prepare_write(
+    csound->mode = 2;
+    EXPECT_EQ(NOTOK, csound_array_prepare_write_for_mode(
                        csound, &source, nullptr));
     EXPECT_EQ(originalStorage, source.storage);
     EXPECT_EQ(originalData, source.data);
     EXPECT_EQ(originalStorage, shared.storage);
 
-    csound_free_array_storage(csound, &shared);
-    EXPECT_EQ(OK, csound_array_try_prepare_write(
+    csound->mode = 1;
+    EXPECT_EQ(OK, csound_array_prepare_write_for_mode(
                     csound, &source, nullptr));
+    csound->mode = savedMode;
     EXPECT_EQ(nullptr, source.storage);
-    EXPECT_EQ(originalData, source.data);
+    EXPECT_NE(originalData, source.data);
     EXPECT_EQ(sizeof(MYFLT), source.allocated);
     EXPECT_EQ(FL(23.0), source.data[0]);
+    EXPECT_EQ(originalStorage, shared.storage);
+    EXPECT_EQ(originalData, shared.data);
+
+    EXPECT_EQ(OK, csound_array_try_prepare_write(
+                    csound, &shared, nullptr));
+    EXPECT_EQ(nullptr, shared.storage);
+    EXPECT_EQ(originalData, shared.data);
 
     csound_free_array_storage(csound, &source);
+    csound_free_array_storage(csound, &shared);
 }
 
 //void test_array_name_variable_clashing(void)

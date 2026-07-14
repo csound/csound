@@ -173,8 +173,8 @@ int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
                              "array_set_struct: invalid element type");
   }
   if (UNLIKELY(dat->storage != NULL &&
-               csound_array_prepare_write(csound, dat,
-                                          p->h.insdshead) != OK)) {
+               csound_array_prepare_write_for_mode(
+                 csound, dat, p->h.insdshead) != OK)) {
     return csound->PerfError(
       csound, &p->h,
       "array_set_struct: could not detach shared array");

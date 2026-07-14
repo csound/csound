@@ -528,7 +528,7 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
     }
 
     if (destination->storage != NULL &&
-        csound_array_prepare_write(csound, destination, ctx) != OK) {
+        csound_array_prepare_write_for_mode(csound, destination, ctx) != OK) {
         return NOTOK;
     }
     if (destination->data == source->data && destination->data != NULL &&
