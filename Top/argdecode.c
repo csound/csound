@@ -1295,6 +1295,22 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   return 1;
 }
 
+static int32_t capture_application_arguments(CSOUND *csound, int32_t *argc,
+                                             const char **argv)
+{
+  for (int32_t index = 1; index <= *argc; index++) {
+    if (argv[index] != NULL && strcmp(argv[index], "--") == 0) {
+      /* Option sources are decoded in precedence order. A later separator
+         replaces application arguments captured from an earlier source. */
+      int32_t result = csoundSetCommandLineArgs(
+        csound, *argc - index, &argv[index + 1]);
+      *argc = index - 1;
+      return result;
+    }
+  }
+  return CSOUND_SUCCESS;
+}
+
 int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
   OPARMS *O = csound->oparms;
   char *s, **argv;
@@ -1304,6 +1320,13 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
   /* make a copy of the option list */
   char *p1, *p2;
   int32_t nbytes, i;
+  if (UNLIKELY(capture_application_arguments(csound, &argc, argv_) !=
+               CSOUND_SUCCESS)) {
+    return 0;
+  }
+  if (argc == 0) {
+    return 1;
+  }
   /* calculate the number of bytes to allocate */
   /* N.B. the argc value passed to argdecode is decremented by one */
   nbytes = (argc + 1) * (int32_t)sizeof(char *);

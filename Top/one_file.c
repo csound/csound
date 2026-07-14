@@ -334,10 +334,14 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
               p++;
             }
             if (*p == '"') {
+              if (isspace(*(p+1))) {
+                *p++ = '\0';
+                /* The quoted argument was already added above. */
+                continue;
+              }
               /* ETX char used to mark the limits of a string */
-              *p = (isspace(*(p+1)) ? '\0' : 3);
+              *p = 3;
             }
-            //            break;
           }
 
           if (*p==';' ||
