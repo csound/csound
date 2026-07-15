@@ -79,6 +79,13 @@ static int32_t udo_call_is_init_only(const UOPCODE *opcode)
          opcode->h.optext->t.oentry->perf == NULL;
 }
 
+static int32_t insds_has_deferred_lifecycle_work(const INSDS *instance)
+{
+  return instance == NULL || instance->xtratim != 0 ||
+         instance->nxtd != NULL || instance->fdchp != NULL ||
+         instance->opcod_deact != NULL || instance->subins_deact != NULL;
+}
+
 static int32_t udo_frame_can_be_recycled(const UOPCODE *opcode,
                                          const INSDS *parent,
                                          const INSDS *child)
@@ -88,13 +95,14 @@ static int32_t udo_frame_can_be_recycled(const UOPCODE *opcode,
      chains. The caller's duration and the child frame's internal links do not
      say whether this call can perform. Rate converters are normally released
      when the parent follows its UDO deactivation chain, so keep that path when
-     present. Opcode AUXCH allocations remain attached to the inactive INSDS
-     for reuse; unlike deinit callbacks, files, or nested instances, they do
-     not depend on local variable ownership and therefore do not block
-     recycling. */
+     present. A retained UDO deactivation node may live in this frame's opcode
+     storage, so its frame must also remain valid until the parent deactivates.
+     Opcode AUXCH allocations remain attached to the inactive INSDS for reuse;
+     unlike deferred lifecycle work, they do not depend on local variable
+     ownership and therefore do not block recycling. */
   return parent != NULL && child != NULL && udo_call_is_init_only(opcode) &&
-         child->xtratim == 0 && child->nxtd == NULL && child->fdchp == NULL &&
-         child->subins_deact == NULL && !udo_has_rate_converter(opcode);
+         !insds_has_deferred_lifecycle_work(child) &&
+         !udo_has_rate_converter(opcode);
 }
 
 void recycle_init_only_udo_instances(CSOUND *csound, INSDS *parent)
