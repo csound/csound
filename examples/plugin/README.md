@@ -511,6 +511,14 @@ argument data. It has the following members:
 the vector.
 * iterator and const_iterator: iterator types for this class.
 * data_array(): returns a pointer to the vector data.
+* writable_data(): prepares mutable storage without allocating, or returns
+  null when a shared managed array cannot be detached during performance.
+* writable_data_init(): prepares mutable storage during initialization and may
+  allocate an independent copy.
+
+The legacy mutable iterators, subscript operator, and data_array() are intended
+for fixed-layout arrays. Plugins handling structs, strings, or other managed
+elements should call writable_data() or writable_data_init() before mutation.
 
 In addition to this, the inargs and outargs objects in the Plugin
 class have a template method that can be used to get a Vector
@@ -555,4 +563,3 @@ library (e.g so in Linux and dylib in OSX), but CPOF does not impose any
 link-time dependencies (not even to Csound).
 
 Victor Lazzarini, 01/2017
-

@@ -24,6 +24,8 @@
 
 #include "csoundCore.h"
 #include "csound_standard_types.h"
+#include "arrays.h"
+#include "arrays_internal.h"
 #include "opcode.h"
 #include "udo.h"
 #include <ctype.h>
@@ -1252,8 +1254,6 @@ int32_t create_opcode_simple(CSOUND *csound, AOP *p) {
   return csound->InitError(csound, "invalid opcode reference");
 }
 
-#include "arrays.h"
-
 /**
  *  create OpcodeObj array from OpcodeDef
  *
@@ -1485,17 +1485,21 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       if((types[j] = csoundGetTypeForArg(p->args[j]))
           == &CS_VAR_TYPE_ARRAY &&
          !isTypeArray(&obj[i],j, 0)) {
-        // arrays need to be treated separately
-        // data needs to be placed into typed variable memory
-        // unfortunately we need to copy in order to have this correct
-      array = (ARRAYDAT *)  p->args[j]; // each outarg is an array
-      size = array->arrayMemberSize;
-      ndx = i + j*n;
-      csound->AuxAlloc(csound, sizeof(CS_TYPE *) + size, &mem[ndx]);
-      argmem = (CS_VAR_MEM *) mem[ndx].auxp;
-      types[j] = (CS_TYPE *) array->arrayType; // set type
-      argmem->varType = types[j];
-      args[j] = &argmem->value; // set pointer
+        /* Scalarize fixed-layout array elements into per-object arguments.
+           Managed elements cannot be transferred safely as raw bytes. */
+        array = (ARRAYDAT *)p->args[j];
+        if (UNLIKELY(csound_array_has_managed_elements(array))) {
+          return csound->InitError(
+            csound,
+            "Opcode[] run does not support managed array output elements");
+        }
+        size = array->arrayMemberSize;
+        ndx = i + j*n;
+        csound->AuxAlloc(csound, sizeof(CS_TYPE *) + size, &mem[ndx]);
+        argmem = (CS_VAR_MEM *)mem[ndx].auxp;
+        types[j] = (CS_TYPE *)array->arrayType;
+        argmem->varType = types[j];
+        args[j] = &argmem->value;
       } else // single var
          args[j] = p->args[j];
     }
@@ -1507,22 +1511,25 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       if((types[m] = csoundGetTypeForArg(p->args[m]))
          == &CS_VAR_TYPE_ARRAY &&
          !isTypeArray(&obj[i],j, 1)) {
-      array = (ARRAYDAT *)  p->args[m]; // each inarg is an array
-      ndx = i + n*m;
-      size = array->arrayMemberSize;
-      csound->AuxAlloc(csound, sizeof(CS_TYPE *) + size, &mem[ndx]);
-      argmem = (CS_VAR_MEM *) mem[ndx].auxp;
-      array = (ARRAYDAT *)  p->args[m]; // each inarg is an array
-      char *data = (char *) array->data; // copy loc pointer to args
-      types[m] = (CS_TYPE *) array->arrayType;
-      argmem->varType = types[m];
-      args[m] = &argmem->value;
-      // copy array args data in - but not k or a vars
-      if(types[m] != &CS_VAR_TYPE_K &&
-         types[m] != &CS_VAR_TYPE_A)
-         memcpy(&argmem->value, data+i*size, size);
-      //printf("arg[%d] %f %d \n", i, argmem->value, j);
-
+        char *data;
+        array = (ARRAYDAT *)p->args[m];
+        if (UNLIKELY(csound_array_has_managed_elements(array))) {
+          return csound->InitError(
+            csound,
+            "Opcode[] run does not support managed array input elements");
+        }
+        ndx = i + n*m;
+        size = array->arrayMemberSize;
+        csound->AuxAlloc(csound, sizeof(CS_TYPE *) + size, &mem[ndx]);
+        argmem = (CS_VAR_MEM *)mem[ndx].auxp;
+        data = (char *)array->data;
+        types[m] = (CS_TYPE *)array->arrayType;
+        argmem->varType = types[m];
+        args[m] = &argmem->value;
+        // copy array args data in - but not k or a vars
+        if(types[m] != &CS_VAR_TYPE_K &&
+           types[m] != &CS_VAR_TYPE_A)
+          memcpy(&argmem->value, data+i*size, size);
       } else // single var
         args[m] = p->args[m];
      }
@@ -1630,33 +1637,102 @@ int32_t set_opcode_param(CSOUND *csound, AOP *p) {
   return OK;
 }
 
-int32_t get_opcode_output(CSOUND *csound, AOP *p) {
+static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
+                                  int32_t initializing) {
   OPCODEOBJ *obj = (OPCODEOBJ *) p->a;
   uint32_t ndx = (uint32_t) (*p->b >= 0 ? *p->b : 0);
-  MYFLT **outarg = obj->outargp;
-  if(outarg != NULL) {
-  if(context_check(csound, obj, p->h.insdshead) != OK)
-    return csound->PerfError(csound, &(p->h), "incompatible context for opcode %s \n",
-                             obj->dataspace->optext->t.oentry->opname);
-  if(ndx < obj->dataspace->optext->t.outArgCount) {
-    CS_TYPE *destype = csoundGetTypeForArg(p->r);
-    if(csoundGetTypeForArg(outarg[ndx]) == destype) {
-      if(csoundGetTypeForArg(p->r) == &CS_VAR_TYPE_ARRAY) {
-        ARRAYDAT *dest = (ARRAYDAT *) p->r;
-        ARRAYDAT *src = (ARRAYDAT *) outarg[ndx];
-        if(dest->allocated < src->allocated)
-         tabinit_like(csound, dest, src);
-      }
-      destype->copyValue(csound, destype, p->r, outarg[ndx], p->h.insdshead);
+  MYFLT **outargs;
+  CS_TYPE *destinationType;
+  CS_TYPE *sourceType;
+  int32_t result;
+
+  if (UNLIKELY(obj == NULL || obj->dataspace == NULL)) {
+    return initializing
+      ? csound->InitError(csound, "object not initialised\n")
+      : csound->PerfError(csound, &p->h, "object not initialised\n");
+  }
+  outargs = obj->outargp;
+  if (UNLIKELY(outargs == NULL)) {
+    return initializing
+      ? csound->InitError(csound, "object not initialised\n")
+      : csound->PerfError(csound, &p->h, "object not initialised\n");
+  }
+  if (UNLIKELY(context_check(csound, obj, p->h.insdshead) != OK)) {
+    return initializing
+      ? csound->InitError(csound, "incompatible context for opcode %s\n",
+                          obj->dataspace->optext->t.oentry->opname)
+      : csound->PerfError(csound, &p->h,
+                          "incompatible context for opcode %s\n",
+                          obj->dataspace->optext->t.oentry->opname);
+  }
+  if (UNLIKELY(ndx >= obj->dataspace->optext->t.outArgCount)) {
+    return initializing
+      ? csound->InitError(csound, "argument index out of range\n")
+      : csound->PerfError(csound, &p->h, "argument index out of range\n");
+  }
+
+  destinationType = csoundGetTypeForArg(p->r);
+  sourceType = csoundGetTypeForArg(outargs[ndx]);
+  if (UNLIKELY(sourceType == NULL || destinationType == NULL)) {
+    return initializing
+      ? csound->InitError(csound, "could not resolve getp argument types\n")
+      : csound->PerfError(csound, &p->h,
+                          "could not resolve getp argument types\n");
+  }
+  if (UNLIKELY(sourceType != destinationType)) {
+    return initializing
+      ? csound->InitError(csound, "mismatching argument types: need %s, got %s\n",
+                          sourceType->varTypeName,
+                          destinationType->varTypeName)
+      : csound->PerfError(csound, &p->h,
+                          "mismatching argument types: need %s, got %s\n",
+                          sourceType->varTypeName,
+                          destinationType->varTypeName);
+  }
+
+  if (destinationType == &CS_VAR_TYPE_ARRAY) {
+    ARRAYDAT *destination = (ARRAYDAT *)p->r;
+    ARRAYDAT *source = (ARRAYDAT *)outargs[ndx];
+    if (UNLIKELY(csound_array_has_managed_elements(source))) {
+      return initializing
+        ? csound->InitError(
+            csound, "getp does not support managed array outputs")
+        : csound->PerfError(
+            csound, &p->h,
+            "getp does not support managed array outputs");
     }
-    else return csound->PerfError(csound, &(p->h), "mimatching argument types: "
-                                  "need %s, got %s \n",
-                                  csoundGetTypeForArg(outarg[ndx])->varTypeName,
-                                  csoundGetTypeForArg(p->r)->varTypeName);
-  } else return csound->PerfError(csound, &(p->h),
-                                   "argument index out of range\n");
-   return OK;
-  } else return csound->PerfError(csound, &(p->h),
-                                   "object not initialised\n");
+    result = csound_array_copy_independent(
+      csound, destination, source, p->h.insdshead,
+      initializing ? CSOUND_ARRAY_COPY_ALLOW_ALLOCATION
+                   : CSOUND_ARRAY_COPY_NO_ALLOCATION);
+    if (UNLIKELY(result != OK)) {
+      return initializing
+        ? csound->InitError(csound,
+                            "could not prepare getp array output")
+        : csound->PerfError(
+            csound, &p->h,
+            "getp array output changed capacity during performance");
+    }
+    return OK;
+  }
+  if (UNLIKELY(destinationType->userDefinedType ||
+               destinationType->freeVariableMemory != NULL ||
+               destinationType->copyValue == NULL)) {
+    return initializing
+      ? csound->InitError(csound,
+                          "getp does not support managed outputs")
+      : csound->PerfError(csound, &p->h,
+                          "getp does not support managed outputs");
+  }
+  destinationType->copyValue(csound, destinationType, p->r,
+                             outargs[ndx], p->h.insdshead);
+  return OK;
 }
 
+int32_t get_opcode_output_init(CSOUND *csound, AOP *p) {
+  return copy_opcode_output(csound, p, 1);
+}
+
+int32_t get_opcode_output(CSOUND *csound, AOP *p) {
+  return copy_opcode_output(csound, p, 0);
+}

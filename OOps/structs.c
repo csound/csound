@@ -163,29 +163,9 @@ static int32_t struct_array_element(CSOUND *csound, OPDS *opds,
   return OK;
 }
 
-int32_t array_set_struct_init(CSOUND *csound, ARRAY_SET *p)
-{
-  ARRAYDAT *dat = p->arrayDat;
-
-  if (UNLIKELY(dat == NULL || dat->arrayType == NULL ||
-               !dat->arrayType->userDefinedType)) {
-    return csound->InitError(csound, "%s",
-                             Str("array_set_struct: invalid destination"));
-  }
-  /* A k-rate element write cannot allocate a detached array backing store.
-     Detach during this opcode's init callback so its performance callback
-     only mutates owned storage. */
-  if (UNLIKELY(dat->storage != NULL &&
-               csound_array_prepare_write(csound, dat,
-                                          p->h.insdshead) != OK)) {
-    return csound->InitError(
-      csound, "%s",
-      Str("array_set_struct: could not prepare writable array"));
-  }
-  return OK;
-}
-
-int32_t array_set_struct(CSOUND *csound, ARRAY_SET *p)
+static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
+                                     CSOUND_STRUCT_COPY_MODE copyMode,
+                                     int32_t initializing)
 {
   ARRAYDAT* dat = p->arrayDat;
   CS_STRUCT_VAR *source;
@@ -195,21 +175,32 @@ int32_t array_set_struct(CSOUND *csound, ARRAY_SET *p)
   int32_t indexCount = p->INOCOUNT - 2;
 
   if (UNLIKELY(dat == NULL || p->value == NULL)) {
-    return csound->PerfError(csound, &p->h,
-                             "array_set_struct: NULL array or value");
+    return initializing
+      ? csound->InitError(csound, "array_set_struct: NULL array or value")
+      : csound->PerfError(csound, &p->h,
+                          "array_set_struct: NULL array or value");
   }
   if (UNLIKELY(dat->arrayType == NULL ||
                !dat->arrayType->userDefinedType ||
                dat->arrayType->copyValue == NULL)) {
-    return csound->PerfError(csound, &p->h,
-                             "array_set_struct: invalid element type");
+    return initializing
+      ? csound->InitError(csound,
+                          "array_set_struct: invalid element type")
+      : csound->PerfError(csound, &p->h,
+                          "array_set_struct: invalid element type");
   }
-  if (UNLIKELY(dat->storage != NULL &&
-               csound_array_prepare_write_for_mode(
-                 csound, dat, p->h.insdshead) != OK)) {
-    return csound->PerfError(
-      csound, &p->h,
-      "array_set_struct: could not detach shared array");
+  if (dat->storage != NULL) {
+    int32_t result = initializing
+      ? csound_array_prepare_write(csound, dat, p->h.insdshead)
+      : csound_array_try_prepare_write(csound, dat, p->h.insdshead);
+    if (UNLIKELY(result != OK)) {
+      return initializing
+        ? csound->InitError(
+            csound, "array_set_struct: could not detach shared array")
+        : csound->PerfError(
+            csound, &p->h,
+            "array_set_struct: could not detach shared array");
+    }
   }
   if (UNLIKELY(struct_array_flat_index(csound, &p->h, "array_set_struct",
                                        dat, p->indexes, indexCount,
@@ -224,10 +215,19 @@ int32_t array_set_struct(CSOUND *csound, ARRAY_SET *p)
   source = (CS_STRUCT_VAR *)p->value;
   destination = (CS_STRUCT_VAR *)element;
   if (UNLIKELY(!struct_value_matches_type(dat->arrayType, source))) {
-    return csound->PerfError(csound, &p->h,
-                             "array_set_struct: value does not match type");
+    return initializing
+      ? csound->InitError(
+          csound, "array_set_struct: value does not match type")
+      : csound->PerfError(
+          csound, &p->h,
+          "array_set_struct: value does not match type");
   }
   if (destination->members == NULL) {
+    if (!initializing) {
+      return csound->PerfError(
+        csound, &p->h,
+        "array_set_struct: destination was not prepared during init");
+    }
     CS_VARIABLE *var = array_element_create_variable(
       csound, dat->arrayType, p->h.insdshead);
     if (UNLIKELY(var == NULL || var->initializeVariableMemory == NULL)) {
@@ -241,15 +241,61 @@ int32_t array_set_struct(CSOUND *csound, ARRAY_SET *p)
     csound->Free(csound, var);
   }
   if (UNLIKELY(!struct_value_matches_type(dat->arrayType, destination))) {
-    return csound->PerfError(csound, &p->h,
-                             "array_set_struct: destination does not match type");
+    return initializing
+      ? csound->InitError(
+          csound, "array_set_struct: destination does not match type")
+      : csound->PerfError(
+          csound, &p->h,
+          "array_set_struct: destination does not match type");
   }
 
   /* The registered copier carries nested-array ownership through ordinary
      struct assignment and through this array-specific lowering path. */
-  dat->arrayType->copyValue(csound, dat->arrayType,
-                            destination, source, p->h.insdshead);
+  if (UNLIKELY(csound_copy_struct_value(
+                 csound, dat->arrayType, destination, source,
+                 p->h.insdshead, copyMode) != OK)) {
+    return initializing
+      ? csound->InitError(csound,
+                          "array_set_struct: could not copy value")
+      : csound->PerfError(csound, &p->h,
+                          "array_set_struct: could not copy value");
+  }
   return OK;
+}
+
+int32_t array_set_struct_init(CSOUND *csound, ARRAY_SET *p)
+{
+  ARRAYDAT *dat = p->arrayDat;
+
+  if (UNLIKELY(dat == NULL || dat->arrayType == NULL ||
+               !dat->arrayType->userDefinedType)) {
+    return csound->InitError(csound,
+                             "array_set_struct: invalid destination");
+  }
+  /* Preparation must not perform the k-rate assignment early. It only makes
+     the outer destination independent; nested value storage is copied when
+     the assignment actually executes. */
+  if (UNLIKELY(dat->storage != NULL &&
+               csound_array_prepare_write(csound, dat,
+                                          p->h.insdshead) != OK)) {
+    return csound->InitError(
+      csound, "array_set_struct: could not prepare writable array");
+  }
+  return OK;
+}
+
+int32_t array_set_struct_i(CSOUND *csound, ARRAY_SET *p)
+{
+  return array_set_struct_copy(
+    csound, p, CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION, 1);
+}
+
+int32_t array_set_struct(CSOUND *csound, ARRAY_SET *p)
+{
+  /* The outer array must already be writable, but a recursively structured
+     value may legitimately change its nested array dimensions at k-rate. */
+  return array_set_struct_copy(
+    csound, p, CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION, 0);
 }
 
 /* Built-in struct member get/set SUBRs (generic, any struct). */

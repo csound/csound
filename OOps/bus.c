@@ -2356,12 +2356,13 @@ int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p)
 
 /* ARRAY channels implementation - VL 7.08.24 */
 static inline int32_t copy_array(CSOUND *csound, ARRAYDAT *out,
-                                 const ARRAYDAT *in, spin_lock_t *lock)
+                                 const ARRAYDAT *in, spin_lock_t *lock,
+                                 CSOUND_ARRAY_COPY_MODE mode)
 {
   int32_t result;
 
   csoundSpinLock(lock);
-  result = csound_array_copy_independent(csound, out, in, NULL);
+  result = csound_array_copy_independent(csound, out, in, NULL, mode);
   csoundSpinUnLock(lock);
   return result;
 }
@@ -2418,7 +2419,8 @@ static int32_t chnget_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p)
 {
   if(array_perf_check(csound, p, CSOUND_INPUT_CHANNEL) == OK) {
     if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->arg,
-                            (ARRAYDAT *)p->fp, p->lock) != OK)) {
+                            (ARRAYDAT *)p->fp, p->lock,
+                            CSOUND_ARRAY_COPY_NO_ALLOCATION) != OK)) {
       return csound->PerfError(csound, &p->h, "%s",
                                Str("array channel copy failed"));
     }
@@ -2436,7 +2438,8 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
        adat->arrayType != &CS_VAR_TYPE_K) {
       /* copy array data - except if it is k or a-type */
       if (UNLIKELY(copy_array(csound, adat, (ARRAYDAT *)p->fp,
-                              p->lock) != OK)) {
+                              p->lock,
+                              CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
         return csound->InitError(csound, "%s",
                                  Str("array channel copy failed"));
       }
@@ -2456,7 +2459,8 @@ static int32_t chnset_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p)
 {
   if(array_perf_check(csound, p, CSOUND_OUTPUT_CHANNEL) == OK) {
     if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->fp,
-                            (ARRAYDAT *)p->arg, p->lock) != OK)) {
+                            (ARRAYDAT *)p->arg, p->lock,
+                            CSOUND_ARRAY_COPY_NO_ALLOCATION) != OK)) {
       return csound->PerfError(csound, &p->h, "%s",
                                Str("array channel copy failed"));
     }
@@ -2474,7 +2478,8 @@ int32_t chnset_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
        adat->arrayType != &CS_VAR_TYPE_K) {
       /* copy array data - except if it is k or a-type */
       if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->fp, adat,
-                              p->lock) != OK)) {
+                              p->lock,
+                              CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
         return csound->InitError(csound, "%s",
                                  Str("array channel copy failed"));
       }
@@ -2519,15 +2524,6 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
   return OK;
 }
 
-static int32_t array_channel_has_managed_elements(const ARRAYDAT *array)
-{
-  /* freeVariableMemory is the general lifetime signal. Csound structs are
-     also conservative here because their value stores owned member pointers. */
-  return array != NULL && array->arrayType != NULL &&
-    (array->arrayType->userDefinedType ||
-     array->arrayType->freeVariableMemory != NULL);
-}
-
 /* Clear an unmanaged array channel to zero at performance time. Managed
    elements need type-aware teardown and reinitialization, which may allocate
    and therefore cannot be performed by this real-time opcode. */
@@ -2539,7 +2535,7 @@ static int32_t chnclear_opcode_perf_ARRAY(CSOUND *csound, CHNCLEAR *p)
     csoundSpinLock(p->lock[i]);
     /* Channel element types are normally fixed. Recheck under the lock before
        the destructive operation so API-side changes cannot expose memset. */
-    if (UNLIKELY(array_channel_has_managed_elements(adat))) {
+    if (UNLIKELY(csound_array_has_managed_elements(adat))) {
       csoundSpinUnLock(p->lock[i]);
       return csound->PerfError(
         csound, &p->h,
@@ -2566,7 +2562,7 @@ int32_t chnclear_opcode_init_ARRAY(CSOUND *csound, CHNCLEAR *p)
     if (LIKELY(!err)) {
       p->lock[i] = (spin_lock_t *)
         get_channel_lock(csound,(char*) p->iname[i]->data);
-      if (UNLIKELY(array_channel_has_managed_elements(
+      if (UNLIKELY(csound_array_has_managed_elements(
                      (ARRAYDAT *)p->fp[i]))) {
         return csound->InitError(
           csound,
@@ -2808,13 +2804,21 @@ const int32_t *csoundArrayDataSizes(const ARRAYDAT *adat){
   return adat->sizes;
 }
 
-void csoundSetArrayData(ARRAYDAT *adat,
-                        const void* data) {
-  size_t siz = adat->sizes[0];
-  int32_t i;
-  for(i = 1; i < adat->dimensions; i++)
-    siz *= adat->sizes[i];
-  memcpy(adat->data, data, siz*adat->arrayMemberSize);
+int32_t csoundSetArrayData(ARRAYDAT *adat, const void *data) {
+  size_t elementCount;
+  size_t bytes;
+
+  if (adat == NULL || data == NULL || adat->data == NULL ||
+      adat->arrayType == NULL || adat->arrayMemberSize <= 0 ||
+      csound_array_has_managed_elements(adat) ||
+      csound_array_member_count(adat, &elementCount) != OK ||
+      csound_array_allocation_size(adat->arrayMemberSize, elementCount,
+                                   &bytes) != OK ||
+      bytes > adat->allocated) {
+    return CSOUND_ERROR;
+  }
+  memcpy(adat->data, data, bytes);
+  return CSOUND_SUCCESS;
 }
 
 const void *csoundGetArrayData(const ARRAYDAT *adat) {

@@ -11,6 +11,13 @@ nchnls = 1
 struct Sample value:k
 struct Holder samples:Sample[]
 
+sampleDimensions@global:i[] fillarray 1
+chnarray "sample-channel", 3, "Sample", sampleDimensions
+
+opcode ForwardSamples(input:Sample[]):Sample[]
+  xout input
+endop
+
 instr 1
   source:Sample[] init 2
   initial:Sample init 10
@@ -61,9 +68,88 @@ instr 2
   turnoff
 endin
 
+instr 3
+  values:Sample[] init 1
+  original:Sample init 10
+  values[0] = original
+  source:Holder init values
+  copied:Holder = source
+
+  replacement:Sample init 77
+  index:k init 0
+  copied.samples[index] = replacement
+  if copied.samples[index].value != 77 || \
+      source.samples[index].value != 10 then
+    printks "nested struct copy failed: copied=%d source=%d\n", 0, \
+      copied.samples[index].value, source.samples[index].value
+    exitnowk(1)
+  endif
+  turnoff
+endin
+
+instr 4
+  source:Sample[] init 1
+  original:Sample init 10
+  source[0] = original
+  copied:Sample[] = source
+
+  replacement:Sample init 88
+  index:k init 0
+  source[index] = replacement
+  if copied[index].value != 10 || source[index].value != 88 then
+    printks "reverse struct copy failed: copied=%d source=%d\n", 0, \
+      copied[index].value, source[index].value
+    exitnowk(1)
+  endif
+  turnoff
+endin
+
+instr 5
+  source:Sample[] init 2
+  first:Sample init 10
+  second:Sample init 20
+  source[0] = first
+  source[1] = second
+  trimmed:Sample[] = ForwardSamples(source)
+
+  requestedSize:k init 1
+  trim trimmed, requestedSize
+  trimmedLength:k = lenarray:k(trimmed)
+  sourceLength:k = lenarray:k(source)
+  if trimmedLength != 1 || sourceLength != 2 || \
+      trimmed[0].value != 10 || source[1].value != 20 then
+    printks "struct trim failed: trimmed=%d source=%d\n", 0, \
+      trimmedLength, sourceLength
+    exitnowk(1)
+  endif
+  turnoff
+endin
+
+instr 6
+  source:Sample[] init 1
+  original:Sample init 10
+  source[0] = original
+  chnset source, "sample-channel"
+  copied:Sample[] chnget "sample-channel"
+
+  replacement:Sample init 66
+  index:k init 0
+  copied[index] = replacement
+  if copied[index].value != 66 || source[index].value != 10 then
+    printks "struct channel copy failed: copied=%d source=%d\n", 0, \
+      copied[index].value, source[index].value
+    exitnowk(1)
+  endif
+  turnoff
+endin
+
 </CsInstruments>
 <CsScore>
 i 1 0 0.1
 i 2 0 0.1
+i 3 0 0.1
+i 4 0 0.1
+i 5 0 0.1
+i 6 0 0.1
 </CsScore>
 </CsoundSynthesizer>

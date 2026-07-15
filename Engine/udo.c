@@ -79,11 +79,23 @@ static int32_t udo_call_is_init_only(const UOPCODE *opcode)
          opcode->h.optext->t.oentry->perf == NULL;
 }
 
+static int32_t insds_owns_deactivation_head(const INSDS *instance)
+{
+  const OPDS *head;
+
+  if (instance == NULL || instance->opcod_deact == NULL) {
+    return 0;
+  }
+  head = (const OPDS *)instance->opcod_deact;
+  return head->insdshead == instance;
+}
+
 static int32_t insds_has_deferred_lifecycle_work(const INSDS *instance)
 {
   return instance == NULL || instance->xtratim != 0 ||
          instance->nxtd != NULL || instance->fdchp != NULL ||
-         instance->opcod_deact != NULL || instance->subins_deact != NULL;
+         insds_owns_deactivation_head(instance) ||
+         instance->subins_deact != NULL;
 }
 
 static int32_t udo_frame_can_be_recycled(const UOPCODE *opcode,
@@ -97,6 +109,8 @@ static int32_t udo_frame_can_be_recycled(const UOPCODE *opcode,
      when the parent follows its UDO deactivation chain, so keep that path when
      present. A retained UDO deactivation node may live in this frame's opcode
      storage, so its frame must also remain valid until the parent deactivates.
+     An inherited chain head owned by the parent is only a link to the previous
+     sibling call and can safely be restored before recycling this child.
      Opcode AUXCH allocations remain attached to the inactive INSDS for reuse;
      unlike deferred lifecycle work, they do not depend on local variable
      ownership and therefore do not block recycling. */

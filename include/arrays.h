@@ -51,6 +51,16 @@ static inline int32_t csound_array_try_prepare_write(CSOUND *csound,
     return csound->ArrayPrepareWrite(csound, array, ctx, 0);
 }
 
+/* Managed elements own memory or contain nested runtime values. They must be
+   copied and cleared through their type callbacks, never as raw bytes. */
+static inline int32_t csound_array_has_managed_elements(
+    const ARRAYDAT *array)
+{
+    return array != NULL && array->arrayType != NULL &&
+      (array->arrayType->userDefinedType ||
+       array->arrayType->freeVariableMemory != NULL);
+}
+
 typedef struct {
     OPDS    h;
     MYFLT   *r, *a;
