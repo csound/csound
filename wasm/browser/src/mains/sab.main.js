@@ -374,7 +374,8 @@ class SharedArrayBufferMainThread {
           break;
         }
         case "releaseStop": {
-          this.markStopReleaseReceived(this.performanceGeneration);
+          // Untagged releases cannot be attributed to a performance. Current
+          // workers always send the object payload handled above.
           break;
         }
         case "releasePause": {
