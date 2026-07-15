@@ -44,7 +44,7 @@ instr 1
         advance_status:k, advance_from:k, advance_to:k = stmadvance(event_graph)
     elseif cycle == 6 then
         ; Reset from B to the entry node A is recorded with RESET status.
-        stmreset(event_graph)
+        stmreset(event_graph, 1)
     elseif cycle == 7 then
         ; Produce 12 alternating transitions. The ten retained events are
         ; sequences 9..18, so readers waiting for sequence 7 report overflow
