@@ -789,6 +789,18 @@ static CS_NOINLINE void print_score_error(CSOUND *p, int32_t rtEvt,
   p->perferrcnt++;
 }
 
+static const char *realtime_event_error_reason(int32_t status)
+{
+  switch (status) {
+  case CSOUND_ERROR:
+    return Str("realtime allocation queue is full");
+  case CSOUND_MEMORY:
+    return Str("out of memory while copying realtime event");
+  default:
+    return NULL;
+  }
+}
+
 static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
 {
   EVTBLK  *saved_currevent;
@@ -868,11 +880,19 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       /* else alloc, init, activate */
       if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
         /* Use a consistent INIT ERROR prefix so frontends can parse it */
-        if (n == CSOUND_ERROR)
-          print_score_error(csound, rtEvt,
-                            Str("\nINIT ERROR in instr %d (%s): note "
-                                "deleted (realtime allocation queue is full)"),
-                            insno, evt->strarg);
+        if (n < 0) {
+          const char *reason = realtime_event_error_reason(n);
+          if (reason != NULL)
+            print_score_error(csound, rtEvt,
+                              Str("\nINIT ERROR in instr %d (%s): note "
+                                  "deleted (%s)"),
+                              insno, evt->strarg, reason);
+          else
+            print_score_error(csound, rtEvt,
+                              Str("\nINIT ERROR in instr %d (%s): note "
+                                  "deleted (realtime event failed with status %d)"),
+                              insno, evt->strarg, n);
+        }
         else
           print_score_error(csound, rtEvt,
                             Str("\nINIT ERROR in instr %d (%s): note "
@@ -906,11 +926,19 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
           evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
         if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
           /* Use a consistent INIT ERROR prefix so frontends can parse it */
-          if (n == CSOUND_ERROR)
-            print_score_error(csound, rtEvt,
-                              Str("\nINIT ERROR in instr %d: note deleted "
-                                  "(realtime allocation queue is full)"),
-                              insno);
+          if (n < 0) {
+            const char *reason = realtime_event_error_reason(n);
+            if (reason != NULL)
+              print_score_error(csound, rtEvt,
+                                Str("\nINIT ERROR in instr %d: note deleted "
+                                    "(%s)"),
+                                insno, reason);
+            else
+              print_score_error(csound, rtEvt,
+                                Str("\nINIT ERROR in instr %d: note deleted "
+                                    "(realtime event failed with status %d)"),
+                                insno, n);
+          }
           else
             print_score_error(csound, rtEvt,
                               Str("\nINIT ERROR in instr %d: note deleted "
@@ -955,17 +983,32 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
       char *name = csound->engineState.instrtxtp[insno]->insname;
       csound->ErrorMsg(csound,
                       Str("\t\t   T%7.3f - note deleted. "), csound->curp2);
-      if (n == CSOUND_ERROR) {
-        if (name)
-          csound->ErrorMsg(csound,
-                           Str("\nINIT ERROR in instr %s: note deleted "
-                               "(realtime allocation queue is full)\n"),
-                           name);
-        else
-          csound->ErrorMsg(csound,
-                           Str("\nINIT ERROR in instr %d: note deleted "
-                               "(realtime allocation queue is full)\n"),
-                           insno);
+      if (n < 0) {
+        const char *reason = realtime_event_error_reason(n);
+        if (reason != NULL) {
+          if (name)
+            csound->ErrorMsg(csound,
+                             Str("\nINIT ERROR in instr %s: note deleted "
+                                 "(%s)\n"),
+                             name, reason);
+          else
+            csound->ErrorMsg(csound,
+                             Str("\nINIT ERROR in instr %d: note deleted "
+                                 "(%s)\n"),
+                             insno, reason);
+        }
+        else {
+          if (name)
+            csound->ErrorMsg(csound,
+                             Str("\nINIT ERROR in instr %s: note deleted "
+                                 "(realtime event failed with status %d)\n"),
+                             name, n);
+          else
+            csound->ErrorMsg(csound,
+                             Str("\nINIT ERROR in instr %d: note deleted "
+                                 "(realtime event failed with status %d)\n"),
+                             insno, n);
+        }
       }
       else {
         if (name)
