@@ -307,7 +307,7 @@ static STM_LATEST_EVENT_SNAPSHOT stm_latest_event_snapshot(CSOUND *csound, GRAPH
     stm_state_read_lock(csound, runner);
     do {
         version = stm_state_read_begin(runner);
-        snapshot.sequence = STM_LOAD(&runner->event_seq);
+        snapshot.sequence = STM_LOAD(&runner->node_event_seq);
         snapshot.entered_node = STM_LOAD(&runner->event_entered_node);
         snapshot.exited_node = STM_LOAD(&runner->event_exited_node);
     } while (stm_state_read_retry(runner, version));
@@ -1046,8 +1046,10 @@ int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p) {
     runner->requested_node = STM_NO_NODE;
     runner->request_conflict = STM_REQUEST_OK;
     runner->event_seq = 1;
+    runner->node_event_seq = 1;
     runner->event_entered_node = runner->current_node;
     runner->event_exited_node = STM_NO_NODE;
+    runner->run_state = STM_RUNNER_RUNNING;
     stm_registry_unlock(csound, reg);
 
     STM_OBJECT_POINTER object = { .runner = runner };
@@ -1061,7 +1063,7 @@ int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p) {
     return OK;
 }
 
-static void record_gtransition(GRAPH_RUNNER *g, uint32_t from, uint32_t to, int32_t status) {
+static void record_gevent(GRAPH_RUNNER *g, uint32_t from, uint32_t to, int32_t status, int32_t is_transition) {
     uint32_t write_index = STM_LOAD(&g->tndx_write);
     uint32_t count       = STM_LOAD(&g->transition_count);
     uint64_t sequence    = STM_LOAD(&g->event_seq) + 1U;
@@ -1078,8 +1080,12 @@ static void record_gtransition(GRAPH_RUNNER *g, uint32_t from, uint32_t to, int3
         STM_STORE(&g->transition_count, count + 1U);
     }
 
-    STM_STORE(&g->event_exited_node, from);
-    STM_STORE(&g->event_entered_node, to);
+    if (is_transition) {
+        STM_STORE(&g->event_exited_node, from);
+        STM_STORE(&g->event_entered_node, to);
+        STM_STORE(&g->node_event_seq, sequence);
+    }
+
     STM_STORE(&g->event_seq, sequence);
 }
 
@@ -1149,7 +1155,7 @@ static int32_t resume_gcheckpoint(GRAPH_RUNNER *g, const char *name) {
        the transition ring and its reader cursors remain valid. */
     STM_STORE(&g->reset_pcycle, 0);
     STM_STORE(&g->has_reset_cycle, 0);
-    record_gtransition(g, old_node, gc->current_node, STM_EVENT_RESUME);
+    record_gevent(g, old_node, gc->current_node, STM_EVENT_RECALL, 1);
 
     return OK;
 }
@@ -1224,6 +1230,15 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
     }
 
     stm_runner_update_begin(csound, g);
+
+    if (STM_LOAD(&g->run_state) == STM_RUNNER_PAUSED) {
+        *p->status = STM_PAUSED;
+        *p->id_from = (MYFLT) STM_LOAD(&g->current_node);
+        *p->id_to = FL(-1.0);
+        stm_runner_update_end(csound, g);
+        return OK;
+    }
+
     uint32_t source = STM_LOAD(&g->current_node);
     uint32_t target = g->requested_node;
     int32_t status = STM_NO_REQUEST;
@@ -1254,7 +1269,7 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
             STM_STORE(&g->previous_node, source);
             STM_STORE(&g->current_node, target);
             int32_t estatus = is_self ? STM_EVENT_SELF_TRANSITION : STM_EVENT_CHANGED;
-            record_gtransition(g, source, target, estatus);
+            record_gevent(g, source, target, estatus, 1);
         }
     }
 
@@ -1285,6 +1300,10 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
 int32_t graph_next(CSOUND *csound, GRAPH_NEXT *p) {
     GRAPH_RUNNER *g = p->ref.runner;
 
+    if (STM_LOAD(&g->run_state) == STM_RUNNER_PAUSED) {
+        return OK;
+    }
+
     int32_t requested_node = graph_find_node(g->definition->nodes, g->definition->node_count, p->next_node->data);
     if (requested_node < 0) {
         return csound->PerfError(csound, &(p->h), "[stm] stmnext: node '%s' not found", p->next_node->data);
@@ -1296,6 +1315,10 @@ int32_t graph_next(CSOUND *csound, GRAPH_NEXT *p) {
 
 int32_t graph_next_id(CSOUND *csound, GRAPH_NEXT_ID *p) {
     GRAPH_RUNNER *g = p->ref.runner;
+
+    if (STM_LOAD(&g->run_state) == STM_RUNNER_PAUSED) {
+        return OK;
+    }
 
     uint32_t requested_node;
     if (!stm_myflt_to_uint32(*p->next_node, g->definition->node_count, &requested_node)) {
@@ -1346,7 +1369,7 @@ int32_t graph_on_ee_init(CSOUND *csound, GRAPH_ON_EE *p) {
 
     p->node_id = n;
     *p->trig = FL(0.0);
-    p->last_seen_event_seq = stm_snapshot_u64(csound, g, &g->event_seq);
+    p->last_seen_event_seq = stm_snapshot_u64(csound, g, &g->node_event_seq);
     return OK;
 }
 
@@ -1357,10 +1380,8 @@ static int32_t graph_on_ee_deinit(CSOUND *csound, GRAPH_ON_EE *p) {
 /* Runner-level enter event trigger: 1 only for a new transition event where
    this node became current. */
 int32_t graph_on_enter(CSOUND *csound, GRAPH_ON_EE *p) {
-    STM_LATEST_EVENT_SNAPSHOT event =
-            stm_latest_event_snapshot(csound, p->ref.runner);
-    int32_t entered = event.sequence > p->last_seen_event_seq &&
-            event.entered_node == (uint32_t) p->node_id;
+    STM_LATEST_EVENT_SNAPSHOT event = stm_latest_event_snapshot(csound, p->ref.runner);
+    int32_t entered = event.sequence > p->last_seen_event_seq && event.entered_node == (uint32_t) p->node_id;
     *p->trig = entered ? FL(1.0) : FL(0.0);
     p->last_seen_event_seq = event.sequence;
     return OK;
@@ -1369,10 +1390,8 @@ int32_t graph_on_enter(CSOUND *csound, GRAPH_ON_EE *p) {
 /* Runner-level exit event trigger: 1 only for a new transition event where
    this node stopped being current. */
 int32_t graph_on_exit(CSOUND *csound, GRAPH_ON_EE *p) {
-    STM_LATEST_EVENT_SNAPSHOT event =
-            stm_latest_event_snapshot(csound, p->ref.runner);
-    int32_t exited = event.sequence > p->last_seen_event_seq &&
-            event.exited_node == (uint32_t) p->node_id;
+    STM_LATEST_EVENT_SNAPSHOT event = stm_latest_event_snapshot(csound, p->ref.runner);
+    int32_t exited = event.sequence > p->last_seen_event_seq && event.exited_node == (uint32_t) p->node_id;
     *p->trig = exited ? FL(1.0) : FL(0.0);
     p->last_seen_event_seq = event.sequence;
     return OK;
@@ -1447,7 +1466,7 @@ int32_t graph_reset(CSOUND *csound, GRAPH_RESET *p) {
     g->reset_pcycle = csound->GetEngineKcounter(csound);
     g->has_reset_cycle = 1;
     if (old_node != start_node) {
-        record_gtransition(g, old_node, start_node, STM_EVENT_RESET);
+        record_gevent(g, old_node, start_node, STM_EVENT_RESET, 1);
     }
 
     stm_runner_update_end(csound, g);
@@ -1525,6 +1544,7 @@ int32_t graph_transition(CSOUND *csound, GRAPH_TRANSITION *p) {
         *p->overflow = FL(1.0);
         p->next_event_seq = snapshot.oldest_sequence;
     }
+
     if (!snapshot.available) return OK;
 
     *p->available = FL(1.0);
@@ -1539,13 +1559,13 @@ int32_t graph_transition(CSOUND *csound, GRAPH_TRANSITION *p) {
 static int32_t graph_checkpoint_init(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     p->last_name[0] = '\0';
     *p->check = FL(0.0);
-    return stm_runner_ref_init(csound, &p->h, *p->runner_handle, STM_RUNNER_WRITER, "[stm] stmfreeze: invalid runner", &p->ref);
+    return stm_runner_ref_init(csound, &p->h, *p->runner_handle, STM_RUNNER_WRITER, "[stm] stmcall: invalid runner", &p->ref);
 }
 
 static int32_t graph_checkpoint_resume_init(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     p->last_name[0] = '\0';
     *p->check = FL(0.0);
-    return stm_runner_ref_init(csound, &p->h, *p->runner_handle, STM_RUNNER_WRITER, "[stm] stmresume: invalid runner", &p->ref);
+    return stm_runner_ref_init(csound, &p->h, *p->runner_handle, STM_RUNNER_WRITER, "[stm] stmrecall: invalid runner", &p->ref);
 }
 
 static int32_t graph_checkpoint_deinit(CSOUND *csound, GRAPH_CHECKPOINT *p) {
@@ -1563,7 +1583,7 @@ int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
 
     GRAPH_RUNNER *runner = p->ref.runner;
     if (runner == NULL) {
-        return csound->PerfError(csound, &p->h,"[stm] stmfreeze: runner is not initialized");
+        return csound->PerfError(csound, &p->h,"[stm] stmcall: runner is not initialized");
     }
 
     stm_runner_update_begin(csound, runner);
@@ -1571,7 +1591,7 @@ int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     stm_runner_update_end(csound, runner);
 
     if (result != OK) {
-        return csound->PerfError(csound, &p->h,"[stm] stmfreeze: could not record checkpoint '%s'",p->checkpoint_name->data);
+        return csound->PerfError(csound, &p->h,"[stm] stmcall: could not record checkpoint '%s'",p->checkpoint_name->data);
     }
 
     snprintf(p->last_name, sizeof(p->last_name), "%s", p->checkpoint_name->data);
@@ -1580,6 +1600,11 @@ int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
 }
 
 int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
+    GRAPH_RUNNER *runner = p->ref.runner;
+    if (runner == NULL) {
+        return csound->PerfError(csound, &p->h,"[stm] stmrecall: runner is not initialized");
+    }
+
     *p->check = FL(0.0);
 
     if (*p->trig != FL(1.0)) {
@@ -1587,14 +1612,14 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
         p->last_name[0] = '\0';
         return OK;
     }
-    if (strcmp(p->checkpoint_name->data, p->last_name) == 0) {
-        *p->check = FL(1.0); // already resumed for the current high trigger
+
+    if (STM_LOAD(&runner->run_state) == STM_RUNNER_PAUSED) {
         return OK;
     }
 
-    GRAPH_RUNNER *runner = p->ref.runner;
-    if (runner == NULL) {
-        return csound->PerfError(csound, &p->h,"[stm] stmresume: runner is not initialized");
+    if (strcmp(p->checkpoint_name->data, p->last_name) == 0) {
+        *p->check = FL(1.0); // already resumed for the current high trigger
+        return OK;
     }
 
     stm_runner_update_begin(csound, runner);
@@ -1602,7 +1627,7 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     stm_runner_update_end(csound, runner);
 
     if (result != OK) {
-        return csound->PerfError(csound, &p->h,"[stm] stmresume: could not resume checkpoint '%s'",p->checkpoint_name->data);
+        return csound->PerfError(csound, &p->h,"[stm] stmrecall: could not resume checkpoint '%s'",p->checkpoint_name->data);
     }
 
     snprintf(p->last_name, sizeof(p->last_name), "%s", p->checkpoint_name->data);
@@ -1610,37 +1635,98 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     return OK;
 }
 
+static int32_t graph_pause_init(CSOUND *csound, GRAPH_PAUSE *p) {
+    return stm_runner_ref_init(csound, &p->h, *p->runner_handle, STM_RUNNER_WRITER, "[stm] stmpause/resume: invalid runner", &p->ref);
+}
+
+static int32_t graph_pause_deinit(CSOUND *csound, GRAPH_PAUSE *p) {
+    return stm_runner_ref_deinit(csound, &p->h, &p->ref);
+}
+
+int32_t graph_pause(CSOUND *csound, GRAPH_PAUSE *p) {
+    if (*p->trig != FL(1.0)) return OK;
+
+    GRAPH_RUNNER *runner = p->ref.runner;
+    if (runner == NULL) {
+        return csound->PerfError(csound, &p->h,"[stm] stmpause: runner is not initialized");
+    }
+
+    stm_runner_update_begin(csound, runner);
+
+    if (STM_LOAD(&runner->run_state) == STM_RUNNER_PAUSED) {
+        stm_runner_update_end(csound, runner);
+        return OK;
+    }
+
+    uint32_t current_node = STM_LOAD(&runner->current_node);
+    STM_STORE(&runner->requested_node, STM_NO_NODE);
+    STM_STORE(&runner->request_conflict, STM_REQUEST_OK);
+    STM_STORE(&runner->run_state, STM_RUNNER_PAUSED);
+    record_gevent(runner, current_node, current_node, STM_EVENT_PAUSED, 0);
+    stm_runner_update_end(csound, runner);
+
+    return OK;
+}
+
+int32_t graph_resume(CSOUND *csound, GRAPH_PAUSE *p) {
+    if (*p->trig != FL(1.0)) return OK;
+
+    GRAPH_RUNNER *runner = p->ref.runner;
+    if (runner == NULL) {
+        return csound->PerfError(csound, &p->h,"[stm] stmresume: runner is not initialized");
+    }
+
+    stm_runner_update_begin(csound, runner);
+
+    if (STM_LOAD(&runner->run_state) == STM_RUNNER_RUNNING) {
+        stm_runner_update_end(csound, runner);
+        return OK;
+    }
+
+    uint32_t current_node = STM_LOAD(&runner->current_node);
+    STM_STORE(&runner->requested_node, STM_NO_NODE);
+    STM_STORE(&runner->request_conflict, STM_REQUEST_OK);
+    STM_STORE(&runner->run_state, STM_RUNNER_RUNNING);
+    record_gevent(runner, current_node, current_node, STM_EVENT_RESUME, 0);
+    stm_runner_update_end(csound, runner);
+
+    return OK;
+}
+
+
 
 // CSOUND OP-INTER
 
 #define S(x) sizeof(x)
 
 static OENTRY stm[] = {
-    { "stmcreate",      S(GRAPH_CREATE),        0, "i",      "",      (SUBR) graph_create,           NULL,                           (SUBR) graph_create_deinit     },
-    { "stmaddnode",     S(GRAPH_ADD_NODE),      0, "",       "iS",    (SUBR) graph_add_node,         NULL,                           NULL                           },
-    { "stmaddedge",     S(GRAPH_ADD_EDGE),      0, "",       "iSS",   (SUBR) graph_add_edge,         NULL,                           NULL                           },
-    { "stmaddcondedge", S(GRAPH_ADD_COND_EDGE), 0, "",       "iSS[]", (SUBR) graph_add_cond_edge,    NULL,                           NULL                           },
-    { "stmcompile",     S(GRAPH_COMPILE),       0, "i",      "i",     (SUBR) graph_compile,          NULL,                           (SUBR) graph_compile_deinit    },
-    { "stminstance",    S(GRAPH_INSTANCE),      0, "i",      "i",     (SUBR) graph_instance,         NULL,                           (SUBR) graph_instance_deinit   },
-    { "stmcurrent",     S(GRAPH_CURRENT),       0, "S",      "i",     (SUBR) graph_current_init,     (SUBR) graph_current,           (SUBR) graph_current_deinit    },
-    { "stmcurrentid",   S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_current_id_init,  (SUBR) graph_current_id,        (SUBR) graph_current_id_deinit },
-    { "stmadvance",     S(GRAPH_ADVANCE),       0, "kkk",    "i",     (SUBR) graph_advance_init,     (SUBR) graph_advance,           (SUBR) graph_advance_deinit    },
-    { "stmnext",        S(GRAPH_NEXT),          0, "",       "iS",    (SUBR) graph_next_init,        (SUBR) graph_next,              (SUBR) graph_next_deinit       },
-    { "stmnext.id",     S(GRAPH_NEXT_ID),       0, "",       "ik",    (SUBR) graph_next_id_init,     (SUBR) graph_next_id,           (SUBR) graph_next_id_deinit    },
-    { "stmonenter",     S(GRAPH_ON_EE),         0, "k",      "iS",    (SUBR) graph_on_ee_init,       (SUBR) graph_on_enter,          (SUBR) graph_on_ee_deinit      },
-    { "stmonexit",      S(GRAPH_ON_EE),         0, "k",      "iS",    (SUBR) graph_on_ee_init,       (SUBR) graph_on_exit,           (SUBR) graph_on_ee_deinit      },
-    { "stmnodename",    S(GRAPH_NODE_NAME),     0, "S",      "ik",    (SUBR) graph_node_name_init,   (SUBR) graph_node_name,         (SUBR) graph_node_name_deinit  },
-    { "stmnodeid",      S(GRAPH_NODE_ID),       0, "k",      "iS",    (SUBR) graph_node_id_init,     (SUBR) graph_node_id,           (SUBR) graph_node_id_deinit    },
-    { "stmnodecount",   S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_node_count_init,  (SUBR) graph_node_count,        (SUBR) graph_node_count_deinit },
-    { "stmedgecount",   S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_edge_count_init,  (SUBR) graph_edge_count,        (SUBR) graph_edge_count_deinit },
-    { "stmreset",       S(GRAPH_RESET),         0, "",       "i",     (SUBR) graph_reset_init,       (SUBR) graph_reset,             (SUBR) graph_reset_deinit      },
-    { "stmentry",       S(GRAPH_ENTRY),         0, "",       "iS",    (SUBR) graph_entry,            NULL,                           NULL                           },
-    { "stmtick",        S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_time_init,        (SUBR) graph_time_tick,         (SUBR) graph_time_deinit       },
-    { "stmnodetime",    S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_time_init,        (SUBR) graph_time_node,         (SUBR) graph_time_deinit       },
-    { "stmtime",        S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_time_init,        (SUBR) graph_time_global,       (SUBR) graph_time_deinit       },
-    { "stmevent",       S(GRAPH_TRANSITION),    0, "kkkkkk", "i",     (SUBR) graph_transition_init,  (SUBR) graph_transition,        (SUBR) graph_transition_deinit },
-    { "stmfreeze",      S(GRAPH_CHECKPOINT),    0, "k",      "iSk",   (SUBR) graph_checkpoint_init,  (SUBR) graph_checkpoint,        (SUBR) graph_checkpoint_deinit },
-    { "stmresume",      S(GRAPH_CHECKPOINT),    0, "k",      "iSk",   (SUBR) graph_checkpoint_resume_init, (SUBR) graph_checkpoint_resume, (SUBR) graph_checkpoint_deinit },
+    { "stmcreate",      S(GRAPH_CREATE),        0, "i",      "",      (SUBR) graph_create,                 NULL,                           (SUBR) graph_create_deinit     },
+    { "stmaddnode",     S(GRAPH_ADD_NODE),      0, "",       "iS",    (SUBR) graph_add_node,               NULL,                           NULL                           },
+    { "stmaddedge",     S(GRAPH_ADD_EDGE),      0, "",       "iSS",   (SUBR) graph_add_edge,               NULL,                           NULL                           },
+    { "stmaddcondedge", S(GRAPH_ADD_COND_EDGE), 0, "",       "iSS[]", (SUBR) graph_add_cond_edge,          NULL,                           NULL                           },
+    { "stmcompile",     S(GRAPH_COMPILE),       0, "i",      "i",     (SUBR) graph_compile,                NULL,                           (SUBR) graph_compile_deinit    },
+    { "stminstance",    S(GRAPH_INSTANCE),      0, "i",      "i",     (SUBR) graph_instance,               NULL,                           (SUBR) graph_instance_deinit   },
+    { "stmcurrent",     S(GRAPH_CURRENT),       0, "S",      "i",     (SUBR) graph_current_init,           (SUBR) graph_current,           (SUBR) graph_current_deinit    },
+    { "stmcurrentid",   S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_current_id_init,        (SUBR) graph_current_id,        (SUBR) graph_current_id_deinit },
+    { "stmadvance",     S(GRAPH_ADVANCE),       0, "kkk",    "i",     (SUBR) graph_advance_init,           (SUBR) graph_advance,           (SUBR) graph_advance_deinit    },
+    { "stmnext",        S(GRAPH_NEXT),          0, "",       "iS",    (SUBR) graph_next_init,              (SUBR) graph_next,              (SUBR) graph_next_deinit       },
+    { "stmnext.id",     S(GRAPH_NEXT_ID),       0, "",       "ik",    (SUBR) graph_next_id_init,           (SUBR) graph_next_id,           (SUBR) graph_next_id_deinit    },
+    { "stmonenter",     S(GRAPH_ON_EE),         0, "k",      "iS",    (SUBR) graph_on_ee_init,             (SUBR) graph_on_enter,          (SUBR) graph_on_ee_deinit      },
+    { "stmonexit",      S(GRAPH_ON_EE),         0, "k",      "iS",    (SUBR) graph_on_ee_init,             (SUBR) graph_on_exit,           (SUBR) graph_on_ee_deinit      },
+    { "stmnodename",    S(GRAPH_NODE_NAME),     0, "S",      "ik",    (SUBR) graph_node_name_init,         (SUBR) graph_node_name,         (SUBR) graph_node_name_deinit  },
+    { "stmnodeid",      S(GRAPH_NODE_ID),       0, "k",      "iS",    (SUBR) graph_node_id_init,           (SUBR) graph_node_id,           (SUBR) graph_node_id_deinit    },
+    { "stmnodecount",   S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_node_count_init,        (SUBR) graph_node_count,        (SUBR) graph_node_count_deinit },
+    { "stmedgecount",   S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_edge_count_init,        (SUBR) graph_edge_count,        (SUBR) graph_edge_count_deinit },
+    { "stmreset",       S(GRAPH_RESET),         0, "",       "i",     (SUBR) graph_reset_init,             (SUBR) graph_reset,             (SUBR) graph_reset_deinit      },
+    { "stmentry",       S(GRAPH_ENTRY),         0, "",       "iS",    (SUBR) graph_entry,                  NULL,                           NULL                           },
+    { "stmtick",        S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_time_init,              (SUBR) graph_time_tick,         (SUBR) graph_time_deinit       },
+    { "stmnodetime",    S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_time_init,              (SUBR) graph_time_node,         (SUBR) graph_time_deinit       },
+    { "stmtime",        S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_time_init,              (SUBR) graph_time_global,       (SUBR) graph_time_deinit       },
+    { "stmevent",       S(GRAPH_TRANSITION),    0, "kkkkkk", "i",     (SUBR) graph_transition_init,        (SUBR) graph_transition,        (SUBR) graph_transition_deinit },
+    { "stmcall",        S(GRAPH_CHECKPOINT),    0, "k",      "iSk",   (SUBR) graph_checkpoint_init,        (SUBR) graph_checkpoint,        (SUBR) graph_checkpoint_deinit },
+    { "stmrecall",      S(GRAPH_CHECKPOINT),    0, "k",      "iSk",   (SUBR) graph_checkpoint_resume_init, (SUBR) graph_checkpoint_resume, (SUBR) graph_checkpoint_deinit },
+    { "stmpause",       S(GRAPH_PAUSE),         0, "",       "ik",    (SUBR) graph_pause_init,             (SUBR) graph_pause,             (SUBR) graph_pause_deinit      },
+    { "stmresume",      S(GRAPH_PAUSE),         0, "",       "ik",    (SUBR) graph_pause_init,             (SUBR) graph_resume,            (SUBR) graph_pause_deinit      },
 };
 
 int32_t stm_init_(CSOUND *csound) {
