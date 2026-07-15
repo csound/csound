@@ -31,7 +31,7 @@ instr 1
     ; Capture a non-initial state: B at tick 1. A reset or a hard-coded jump
     ; to the entry node cannot satisfy the resume assertions below.
     freeze_trigger:k = cycle == 1 ? 1 : 0
-    captured:k = stmfreeze(checkpoint_runner, "at-B-tick-1", freeze_trigger)
+    captured:k = stmcall(checkpoint_runner, "at-B-tick-1", freeze_trigger)
     freeze_node:k = stmcurrentid(checkpoint_runner)
     freeze_tick:k = stmtick(checkpoint_runner)
     if freeze_trigger == 1 then
@@ -40,7 +40,7 @@ instr 1
 
     ; The low cycle between resume pulses must re-arm the same checkpoint.
     resume_trigger:k = cycle == 4 || cycle == 6 ? 1 : 0
-    resumed:k = stmresume(checkpoint_runner, "at-B-tick-1", resume_trigger)
+    resumed:k = stmrecall(checkpoint_runner, "at-B-tick-1", resume_trigger)
 
     current:k = stmcurrentid(checkpoint_runner)
     tick:k = stmtick(checkpoint_runner)
