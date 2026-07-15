@@ -802,6 +802,15 @@ def runTest():
             "structs/test_string_array_direct_member_index.csd",
             "direct indexing of a string-array struct member",
         ],
+        [
+            "structs/test_struct_arate_members.csd",
+            "a-rate struct member write/read with ksmps above parse-time default",
+        ],
+        [
+            "structs/test_struct_arate_member_init_const_fails.csd",
+            "fail when a-rate struct members are initialized with constants",
+            "fail",
+        ],
         ["test_exitnowk.csd", "perf-time exitnow opcode"],
         ["test_udt_channel.csd", "testing user-defined type channel"],
         ["test_udt_chan_no_match.csd", "testing unmatched udt channel", 1],
