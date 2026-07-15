@@ -30,6 +30,7 @@ const activeNodes = new Map();
  * @this {{
  * workerMessagePort: Object,
  * bufferLength: number,
+ * performanceGeneration: (number|undefined),
  * }}
  */
 function processSharedArrayBuffer(inputs, outputs) {
@@ -128,7 +129,10 @@ function processSharedArrayBuffer(inputs, outputs) {
       // means a fatal situation and browser
       // may crash
       this.workerMessagePort.post("FATAL: 100 buffers failed in a row");
-      this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+      this.workerMessagePort.broadcastPlayState(
+        "realtimePerformanceEnded",
+        this.performanceGeneration,
+      );
       return false;
     }
   }
@@ -223,7 +227,10 @@ function processVanillaBuffers(inputs, outputs) {
       // means a fatal situation and browser
       // may crash
       this.workerMessagePort.post("FATAL: 100 buffers failed in a row");
-      this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+      this.workerMessagePort.broadcastPlayState(
+        "realtimePerformanceEnded",
+        this.performanceGeneration,
+      );
       return false;
     }
   }
@@ -252,11 +259,13 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     const inputsCount = processorOptions["inputsCount"];
     const outputsCount = processorOptions["outputsCount"];
     const ksmps = processorOptions["ksmps"];
+    const performanceGeneration = processorOptions["performanceGeneration"];
     const maybeSharedArrayBuffer = processorOptions["maybeSharedArrayBuffer"];
     const maybeSharedArrayBufferAudioIn = processorOptions["maybeSharedArrayBufferAudioIn"];
     const maybeSharedArrayBufferAudioOut = processorOptions["maybeSharedArrayBufferAudioOut"];
 
     this.workerMessagePort = undefined;
+    this.performanceGeneration = performanceGeneration;
     this.startPromiz = undefined;
     this.audioFramePort = undefined;
     this.audioInputPort = undefined;
@@ -380,12 +389,18 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
 
   pause() {
     this.isPaused = true;
-    this.workerMessagePort.broadcastPlayState("realtimePerformancePaused");
+    this.workerMessagePort.broadcastPlayState(
+      "realtimePerformancePaused",
+      this.performanceGeneration,
+    );
   }
 
   resume() {
     this.isPaused = false;
-    this.workerMessagePort.broadcastPlayState("realtimePerformanceResumed");
+    this.workerMessagePort.broadcastPlayState(
+      "realtimePerformanceResumed",
+      this.performanceGeneration,
+    );
   }
 
   terminate() {
@@ -423,9 +438,12 @@ function initMessagePort(payload) {
     payload["log"] = logMessage;
     port.postMessage(payload);
   };
-  workerMessagePort.broadcastPlayState = (playStateChange) => {
+  workerMessagePort.broadcastPlayState = (playStateChange, performanceGeneration) => {
     const payload = {};
     payload["playStateChange"] = playStateChange;
+    if (performanceGeneration !== undefined) {
+      payload["performanceGeneration"] = performanceGeneration;
+    }
     port.postMessage(payload);
   };
 

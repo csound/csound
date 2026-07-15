@@ -52,8 +52,9 @@
     "build:readme": "node --experimental-modules script/generate-readme.mjs > README.md",
     "build:tools": "node compile-tools.js",
     "test:types": "node tests/types/run.cjs",
-    "test:ci": "npm run test:types && node tests/selenium_runner.js",
-    "test:ci:firefox": "npm run test:types && node tests/selenium_runner_firefox.js",
+    "test:unit": "mocha \"tests/unit/**/*.test.js\"",
+    "test:ci": "npm run test:types && npm run test:unit && node tests/selenium_runner.js",
+    "test:ci:firefox": "npm run test:types && npm run test:unit && node tests/selenium_runner_firefox.js",
     "test:open": "node tests/server.cjs"
   },
   "devDependencies": {
