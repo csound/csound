@@ -40,6 +40,7 @@ class AudioWorkletMainThread {
     this.csoundWorkerMain = undefined;
     this.workletWorkerUrl = undefined;
     this.workletProxy = undefined;
+    this.performanceGeneration = undefined;
     this["isRequestingMidi"] = false;
     this.isRequestingInput = false;
 
@@ -91,6 +92,7 @@ class AudioWorkletMainThread {
     processorOptions["inputsCount"] = inputsCount;
     processorOptions["outputsCount"] = this.outputsCount;
     processorOptions["ksmps"] = this.ksmps;
+    processorOptions["performanceGeneration"] = this.performanceGeneration;
     processorOptions["maybeSharedArrayBuffer"] =
       this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStatePointer;
     processorOptions["maybeSharedArrayBufferAudioIn"] =
@@ -107,7 +109,19 @@ class AudioWorkletMainThread {
     return audioNode;
   }
 
-  async onPlayStateChange(newPlayState) {
+  async onPlayStateChange(newPlayState, performanceGeneration) {
+    // Old AudioWorklet processors can still post on the shared message port
+    // after a replacement node starts. Only the current SAB run may act here.
+    if (
+      this.csoundWorkerMain &&
+      this.csoundWorkerMain.hasSharedArrayBuffer &&
+      performanceGeneration !== this.csoundWorkerMain.performanceGeneration
+    ) {
+      return;
+    }
+    if (newPlayState === "realtimePerformanceStarted") {
+      this.performanceGeneration = performanceGeneration;
+    }
     this.currentPlayState = newPlayState;
 
     switch (newPlayState) {

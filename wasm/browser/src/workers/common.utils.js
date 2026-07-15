@@ -92,5 +92,5 @@ export const renderFunction =
       }
     }
 
-    workerMessagePort.broadcastPlayState("renderEnded");
+    workerMessagePort.broadcastPlayState("renderEnded", payload["performanceGeneration"]);
   };
