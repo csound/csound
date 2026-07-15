@@ -127,6 +127,67 @@ static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
   return result;
 }
 
+static size_t evtblk_strarg_size(const EVTBLK *src)
+{
+  char *end = src->strarg;
+  int32_t n = src->scnt;
+
+  if (end == NULL)
+    return 0;
+
+  if (n <= 0)
+    return strlen(end) + 1;
+
+  while (n--)
+    end += strlen(end) + 1;
+  return (size_t)(end - src->strarg);
+}
+
+static void free_queued_evtblk_pfields(CSOUND *csound, EVTBLK *evt)
+{
+  if (evt->p != NULL) {
+    csound->Free(csound, evt->p);
+    evt->p = NULL;
+  }
+}
+
+static void free_queued_evtblk(CSOUND *csound, EVTBLK *evt)
+{
+  free_queued_evtblk_pfields(csound, evt);
+  if (evt->strarg != NULL) {
+    csound->Free(csound, evt->strarg);
+    evt->strarg = NULL;
+  }
+}
+
+static int32_t copy_evtblk_for_queue(CSOUND *csound, EVTBLK *dst,
+                                     const EVTBLK *src)
+{
+  *dst = *src;
+  dst->p = NULL;
+  dst->strarg = NULL;
+
+  if (src->p != NULL && src->pcnt >= 0) {
+    size_t bytes = sizeof(MYFLT) * ((size_t)src->pcnt + 1U);
+    dst->p = (MYFLT *) csound->Malloc(csound, bytes);
+    if (UNLIKELY(dst->p == NULL))
+      return CSOUND_MEMORY;
+    memcpy(dst->p, src->p, bytes);
+  }
+
+  if (src->strarg != NULL) {
+    size_t bytes = evtblk_strarg_size(src);
+    dst->strarg = (char *) csound->Malloc(csound, bytes);
+    if (UNLIKELY(dst->strarg == NULL)) {
+      free_queued_evtblk(csound, dst);
+      return CSOUND_MEMORY;
+    }
+    memcpy(dst->strarg, src->strarg, bytes);
+  }
+
+  return CSOUND_SUCCESS;
+}
+
 /* Helper function to get type string from argument without unsafe casting */
 static char* get_arg_type_from_arg(ARG *arg, CS_VARIABLE **var) {
     if (arg->type == ARG_CONSTANT) {
@@ -356,10 +417,21 @@ uintptr_t event_insert_thread(void *p) {
           break;
 
         case ALLOC_DATA_SCORE_EVENT:
+        {
+          int32_t result;
           csoundSpinLock(&csound->alloc_spinlock);
-          insert(csound, data.insno, &data.blk);
+          result = insert(csound, data.insno, &data.blk);
           csoundSpinUnLock(&csound->alloc_spinlock);
+          if (result == 0) {
+            /* insert() copies p-fields, but keeps strarg for INSDS::strarg. */
+            free_queued_evtblk_pfields(csound, &data.blk);
+            data.blk.strarg = NULL;
+          }
+          else {
+            free_queued_evtblk(csound, &data.blk);
+          }
           break;
+        }
       }
       if (csound->init_pass_threadlock)
         csoundUnlockMutex(csound->init_pass_threadlock);
@@ -509,10 +581,16 @@ int32_t insert_event(CSOUND *csound, int32_t insno, EVTBLK *newevtp) {
 
   if(csound->oparms->realtime) {
     ALLOC_DATA data = { 0 };
+    int32_t result;
     data.insno = insno;
-    data.blk =  *newevtp;
     data.type = ALLOC_DATA_SCORE_EVENT;
-    return alloc_queue_enqueue(csound, &data);
+    result = copy_evtblk_for_queue(csound, &data.blk, newevtp);
+    if (UNLIKELY(result != CSOUND_SUCCESS))
+      return result;
+    result = alloc_queue_enqueue(csound, &data);
+    if (UNLIKELY(result != CSOUND_SUCCESS))
+      free_queued_evtblk(csound, &data.blk);
+    return result;
   }
   else return insert(csound, insno, newevtp);
 }

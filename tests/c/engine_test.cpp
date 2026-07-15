@@ -3,6 +3,7 @@
 #include "csound_graph_display.h"
 #include <algorithm>
 #include <atomic>
+#include <cstring>
 #include <stdio.h>
 #include <thread>
 #include <vector>
@@ -248,6 +249,56 @@ TEST_F (EngineTests, testRealtimeAllocQueueRejectsOverflow)
 
     ATOMIC_SET(csound->alloc_queue_items, 0);
     csound->alloc_queue_wp = 0;
+    alloc_queue_lock_destroy(csound);
+    csound->Free(csound, csound->alloc_queue);
+    csound->alloc_queue = nullptr;
+}
+
+TEST_F (EngineTests, testRealtimeInsertEventCopiesQueuedEvtblk)
+{
+    csound->alloc_queue = static_cast<ALLOC_DATA *>(
+      csound->Calloc(csound, sizeof(ALLOC_DATA) * MAX_ALLOC_QUEUE));
+    ASSERT_NE(csound->alloc_queue, nullptr);
+    ASSERT_EQ(alloc_queue_lock_init(csound), CSOUND_SUCCESS);
+    ATOMIC_SET(csound->alloc_queue_items, 0);
+    csound->alloc_queue_wp = 0;
+
+    int32_t realtime = csound->oparms->realtime;
+    MYFLT pfields[] = { FL(0.0), FL(1.0), FL(0.0), FL(0.25) };
+    char strarg[] = "First\0Second";
+    EVTBLK event = { 0 };
+    event.opcod = 'i';
+    event.pcnt = 3;
+    event.p = pfields;
+    event.scnt = 2;
+    event.strarg = strarg;
+    csound->oparms->realtime = 1;
+
+    ASSERT_EQ(insert_event(csound, 1, &event), CSOUND_SUCCESS);
+    ASSERT_EQ(ATOMIC_GET(csound->alloc_queue_items), 1);
+
+    ALLOC_DATA *queued = &csound->alloc_queue[0];
+    ASSERT_EQ(queued->type, ALLOC_DATA_SCORE_EVENT);
+    ASSERT_EQ(queued->insno, 1);
+    ASSERT_NE(queued->blk.p, event.p);
+    ASSERT_NE(queued->blk.strarg, event.strarg);
+    ASSERT_EQ(queued->blk.pcnt, event.pcnt);
+    ASSERT_EQ(queued->blk.p[1], FL(1.0));
+    ASSERT_STREQ(queued->blk.strarg, "First");
+    ASSERT_STREQ(queued->blk.strarg + std::strlen("First") + 1, "Second");
+
+    pfields[1] = FL(99.0);
+    strarg[0] = 'X';
+    ASSERT_EQ(queued->blk.p[1], FL(1.0));
+    ASSERT_STREQ(queued->blk.strarg, "First");
+
+    csound->Free(csound, queued->blk.p);
+    csound->Free(csound, queued->blk.strarg);
+    queued->blk.p = nullptr;
+    queued->blk.strarg = nullptr;
+    ATOMIC_SET(csound->alloc_queue_items, 0);
+    csound->alloc_queue_wp = 0;
+    csound->oparms->realtime = realtime;
     alloc_queue_lock_destroy(csound);
     csound->Free(csound, csound->alloc_queue);
     csound->alloc_queue = nullptr;
