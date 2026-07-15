@@ -43,7 +43,7 @@ endin
 
 instr 3
   ; init with a-rate arguments: the only legal arg form for a-rate
-  ; members (constants are rejected, see the companion _fails test);
+  ; members (constants are rejected, see the companion _negative test);
   ; the i-time member copy also runs at the full header ksmps
   source:a = oscili(0.4, 330)
   st:AudioBus = init(source, source)
