@@ -8,7 +8,7 @@ ksmps  = 32
 nchnls = 1
 0dbfs  = 1
 
-#include "libassert.orc"
+#include "../libassert.orc"
 
 seed 1   ; deterministic random drive for Example 2
 
@@ -523,7 +523,7 @@ instr 40
             printks("[FAIL] E4 c6: curid=%f expected 2 (Done)\n", 0, curid)
             exitnowk(-1)
         endif
-        stmreset(graph4)                     ; restore entry (Run) from Done
+        stmreset(graph4, 1)                  ; restore entry (Run) from Done
     elseif c == 7 then
         ; reset restored the entry node (Run, id 1)
         if curid != id_run then
@@ -655,7 +655,7 @@ instr 50
     elseif c == 4 then
         stmnext(graph5, "B")    ; legal
     elseif c == 6 then
-        stmreset(graph5)        ; back to entry node A, clock restarts
+        stmreset(graph5, 1)     ; back to entry node A, clock restarts
     elseif c == 7 then
         println("[DONE] STM CLOCK TEST PASSED\n")
         turnoff
@@ -761,12 +761,12 @@ instr 70
         stmnext(graph7, "B")       ; no explicit B -> B self-edge
     elseif c == 7 then
         stmnext(graph7, "A")       ; reset discards this pending request
-        stmreset(graph7)
+        stmreset(graph7, 1)
     elseif c == 8 then
-        stmreset(graph7)
+        stmreset(graph7, 1)
         stmnext(graph7, "B")       ; request after reset is still evaluated
     elseif c == 10 then
-        stmreset(graph7)
+        stmreset(graph7, 1)
         stmnext(graph7, "B")
         stmnext(graph7, "C")       ; distinct pending targets conflict
     elseif c == 11 then

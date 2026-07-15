@@ -53,7 +53,7 @@ endin
 
 instr 10
     ; An advance in the reset cycle must leave the restarted clock at zero.
-    stmreset(reset_graph)
+    stmreset(reset_graph, 1)
     status:k, from_id:k, to_id:k = stmadvance(reset_graph)
     turnoff
 endin
@@ -66,7 +66,7 @@ instr 11
     endif
 
     ; This reset is deliberately not followed by an advance in this cycle.
-    stmreset(reset_graph)
+    stmreset(reset_graph, 1)
     turnoff
 endin
 

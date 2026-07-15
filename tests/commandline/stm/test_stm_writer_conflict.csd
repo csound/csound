@@ -18,7 +18,7 @@ instr 1 ; first active writer owns the runner claim
 endin
 
 instr 2 ; an overlapping writer must be rejected during init
-    stmreset(runner)
+    stmreset(runner, 1)
 endin
 </CsInstruments>
 <CsScore>

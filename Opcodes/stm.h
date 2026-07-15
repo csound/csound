@@ -48,8 +48,9 @@
 
    stmadvance returns three k-rate values: status, source node ID and target
    node ID. The status values are STM_NO_REQUEST (0), STM_CHANGED (1),
-   STM_ILLEGAL_EDGE (2), STM_SELF_TRANSITION (3) and STM_CONFLICT (4). The
-   target is -1 when there was no unique target (no request or conflict).
+   STM_ILLEGAL_EDGE (2), STM_SELF_TRANSITION (3), STM_CONFLICT (4),
+   STM_PAUSED (5) and STM_DELETED (6). The target is -1 when there was no
+   unique target or the runner did not advance.
 
    Requests share one pending slot. The first target requested before an
    advance is retained; repeating that target is idempotent, while requesting
@@ -186,7 +187,8 @@ typedef enum {
 
 typedef enum {
     STM_RUNNER_RUNNING = 0,
-    STM_RUNNER_PAUSED
+    STM_RUNNER_PAUSED,
+    STM_RUNNER_DELETED
 } STM_RUNNER_STATUS;
 
 typedef enum {
@@ -194,8 +196,9 @@ typedef enum {
     STM_EVENT_SELF_TRANSITION,
     STM_EVENT_RESET,
     STM_EVENT_RECALL,
-    STM_EVENT_PAUSED,
-    STM_EVENT_RESUME
+    STM_EVENT_PAUSE,
+    STM_EVENT_RESUME,
+    STM_EVENT_DELETE
 } GRAPH_EVENT_STATUS;
 
 typedef enum {
@@ -211,7 +214,8 @@ typedef enum {
     STM_ILLEGAL_EDGE,
     STM_SELF_TRANSITION,
     STM_CONFLICT,
-    STM_PAUSED
+    STM_PAUSED,
+    STM_DELETED
 } STM_ADVANCE_STATUS;
 
 typedef struct {
@@ -483,8 +487,11 @@ typedef struct {
     OPDS h;
     // inputs
     MYFLT *handle;
+    MYFLT *trig;
+    // private
     STM_RUNNER_REF ref;
-} GRAPH_RESET;
+    int32_t trigger_high;
+} GRAPH_ONE_SHOT;
 
 typedef struct {
     OPDS h;
@@ -524,15 +531,6 @@ typedef struct {
     char last_name[64];
 } GRAPH_CHECKPOINT;
 
-typedef struct {
-    OPDS h;
-    // inputs
-    MYFLT *runner_handle;
-    MYFLT *trig;
-    //private
-    STM_RUNNER_REF ref;
-} GRAPH_PAUSE;
-
 
 // INTERFACE
 
@@ -543,7 +541,7 @@ int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p); // i-time
 int32_t graph_compile_deinit(CSOUND *csound, GRAPH_COMPILE *p);
 int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p); // i-time
 int32_t graph_instance_deinit(CSOUND *csound, GRAPH_INSTANCE *p);
-int32_t graph_reset(CSOUND *csound, GRAPH_RESET *p); // k-time
+int32_t graph_reset(CSOUND *csound, GRAPH_ONE_SHOT *p); // k-time
 // node
 int32_t graph_add_node(CSOUND *csound, GRAPH_ADD_NODE *p); // i-time
 int32_t graph_node_id(CSOUND *csound, GRAPH_NODE_ID *p); // k-time
@@ -571,8 +569,9 @@ int32_t graph_time_node(CSOUND *csound, GRAPH_RUNNER_QUERY *p); // k-time
 // points
 int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p); // k-time
 int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p); // k-time
-int32_t graph_pause(CSOUND *csound, GRAPH_PAUSE *p); // k-time
-int32_t graph_resume(CSOUND *csound, GRAPH_PAUSE *p); // k-time
+int32_t graph_pause(CSOUND *csound, GRAPH_ONE_SHOT *p); // k-time
+int32_t graph_resume(CSOUND *csound, GRAPH_ONE_SHOT *p); // k-time
+int32_t graph_delete(CSOUND *csound, GRAPH_ONE_SHOT *p); // k-time
 
 
 #endif

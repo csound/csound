@@ -135,7 +135,7 @@ instr 1
     ; WorkflowState struct.
     if cycle == 7 then
         println("  control     : supervisor calls stmreset after DoneNode")
-        stmreset(workflow_runner)
+        stmreset(workflow_runner, 1)
     endif
 
     advance_status:k, advance_from:k, advance_to:k = stmadvance(workflow_runner)

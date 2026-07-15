@@ -48,8 +48,9 @@
 
    stmadvance returns three k-rate values: status, source node ID and target
    node ID. The status values are STM_NO_REQUEST (0), STM_CHANGED (1),
-   STM_ILLEGAL_EDGE (2), STM_SELF_TRANSITION (3) and STM_CONFLICT (4). The
-   target is -1 when there was no unique target (no request or conflict).
+   STM_ILLEGAL_EDGE (2), STM_SELF_TRANSITION (3), STM_CONFLICT (4),
+   STM_PAUSED (5) and STM_DELETED (6). The target is -1 when there was no
+   unique target or the runner did not advance.
 
    Requests share one pending slot. The first target requested before an
    advance is retained; repeating that target is idempotent, while requesting
@@ -778,6 +779,13 @@ static void graph_request_node(GRAPH_RUNNER *g, uint32_t target) {
     }
 }
 
+static int32_t IS_FIRED(GRAPH_ONE_SHOT *p) {
+    int32_t high = *p->trig > FL(0.0);
+    int32_t fired = high && !p->trigger_high;
+    p->trigger_high = high;
+    return fired;
+}
+
 /* ------------------------------------------------------------------ */
 /* opcodes                                                            */
 /* ------------------------------------------------------------------ */
@@ -1179,8 +1187,22 @@ STM_RUNNER_REF_OPCODE(graph_node_id,    GRAPH_NODE_ID,      STM_RUNNER_READER, "
 STM_RUNNER_REF_OPCODE(graph_node_name,  GRAPH_NODE_NAME,    STM_RUNNER_READER, "[stm] stmnodename: invalid runner")
 STM_RUNNER_REF_OPCODE(graph_node_count, GRAPH_RUNNER_QUERY, STM_RUNNER_READER, "[stm] stmnodecount: invalid runner")
 STM_RUNNER_REF_OPCODE(graph_edge_count, GRAPH_RUNNER_QUERY, STM_RUNNER_READER, "[stm] stmedgecount: invalid runner")
-STM_RUNNER_REF_OPCODE(graph_reset,      GRAPH_RESET,        STM_RUNNER_WRITER, "[stm] stmreset: invalid runner")
 STM_RUNNER_REF_OPCODE(graph_time,       GRAPH_RUNNER_QUERY, STM_RUNNER_READER, "[stm] invalid runner for time query")
+
+
+#define STM_RUNNER_REF_ONE_SHOT_OPCODE(fname, ACCESS, MSG)                           \
+    static int32_t fname##_init(CSOUND *csound, GRAPH_ONE_SHOT *p) {                 \
+        p->trigger_high = 0;                                                         \
+        return stm_runner_ref_init(csound, &p->h, *p->handle, ACCESS, MSG, &p->ref); \
+    }                                                                                \
+    static int32_t fname##_deinit(CSOUND *csound, GRAPH_ONE_SHOT *p) {               \
+        return stm_runner_ref_deinit(csound, &p->h, &p->ref);                        \
+    }
+
+STM_RUNNER_REF_ONE_SHOT_OPCODE(graph_reset,  STM_RUNNER_WRITER, "[stm] stmreset: invalid runner")
+STM_RUNNER_REF_ONE_SHOT_OPCODE(graph_pause,  STM_RUNNER_WRITER, "[stm] stmpause: invalid runner")
+STM_RUNNER_REF_ONE_SHOT_OPCODE(graph_resume, STM_RUNNER_WRITER, "[stm] stmresume: invalid runner")
+STM_RUNNER_REF_ONE_SHOT_OPCODE(graph_delete, STM_RUNNER_WRITER, "[stm] stmdelete: invalid runner")
 
 /* return the current node name (for orchestra-side dispatch) */
 int32_t graph_current(CSOUND *csound, GRAPH_CURRENT *p) {
@@ -1231,7 +1253,16 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
 
     stm_runner_update_begin(csound, g);
 
-    if (STM_LOAD(&g->run_state) == STM_RUNNER_PAUSED) {
+    int32_t run_state = STM_LOAD(&g->run_state);
+    if (run_state == STM_RUNNER_DELETED) {
+        *p->status = STM_DELETED;
+        *p->id_from = (MYFLT) STM_LOAD(&g->current_node);
+        *p->id_to = FL(-1.0);
+        stm_runner_update_end(csound, g);
+        return OK;
+    }
+
+    if (run_state == STM_RUNNER_PAUSED) {
         *p->status = STM_PAUSED;
         *p->id_from = (MYFLT) STM_LOAD(&g->current_node);
         *p->id_to = FL(-1.0);
@@ -1300,7 +1331,7 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
 int32_t graph_next(CSOUND *csound, GRAPH_NEXT *p) {
     GRAPH_RUNNER *g = p->ref.runner;
 
-    if (STM_LOAD(&g->run_state) == STM_RUNNER_PAUSED) {
+    if (STM_LOAD(&g->run_state) != STM_RUNNER_RUNNING) {
         return OK;
     }
 
@@ -1316,7 +1347,7 @@ int32_t graph_next(CSOUND *csound, GRAPH_NEXT *p) {
 int32_t graph_next_id(CSOUND *csound, GRAPH_NEXT_ID *p) {
     GRAPH_RUNNER *g = p->ref.runner;
 
-    if (STM_LOAD(&g->run_state) == STM_RUNNER_PAUSED) {
+    if (STM_LOAD(&g->run_state) != STM_RUNNER_RUNNING) {
         return OK;
     }
 
@@ -1450,10 +1481,17 @@ int32_t graph_edge_count(CSOUND *csound, GRAPH_RUNNER_QUERY *p) {
     return OK;
 }
 
-int32_t graph_reset(CSOUND *csound, GRAPH_RESET *p) {
+int32_t graph_reset(CSOUND *csound, GRAPH_ONE_SHOT *p) {
+    if (!IS_FIRED(p)) return OK;
+
     GRAPH_RUNNER *g = p->ref.runner;
 
     stm_runner_update_begin(csound, g);
+    if (STM_LOAD(&g->run_state) == STM_RUNNER_DELETED) {
+        stm_runner_update_end(csound, g);
+        return OK;
+    }
+
     uint32_t old_node = STM_LOAD(&g->current_node);
     uint32_t start_node = g->definition->start_node;
     STM_STORE(&g->current_node, start_node);
@@ -1576,14 +1614,17 @@ int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     *p->check = FL(0.0);
 
     if (*p->trig != FL(1.0)) return OK;
-    if (strcmp(p->checkpoint_name->data, p->last_name) == 0) {
-        *p->check = FL(1.0); // already captured by this opcode instance
-        return OK;
-    }
 
     GRAPH_RUNNER *runner = p->ref.runner;
     if (runner == NULL) {
         return csound->PerfError(csound, &p->h,"[stm] stmcall: runner is not initialized");
+    }
+    if (STM_LOAD(&runner->run_state) == STM_RUNNER_DELETED) {
+        return OK;
+    }
+    if (strcmp(p->checkpoint_name->data, p->last_name) == 0) {
+        *p->check = FL(1.0); // already captured by this opcode instance
+        return OK;
     }
 
     stm_runner_update_begin(csound, runner);
@@ -1613,7 +1654,7 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
         return OK;
     }
 
-    if (STM_LOAD(&runner->run_state) == STM_RUNNER_PAUSED) {
+    if (STM_LOAD(&runner->run_state) != STM_RUNNER_RUNNING) {
         return OK;
     }
 
@@ -1635,16 +1676,8 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     return OK;
 }
 
-static int32_t graph_pause_init(CSOUND *csound, GRAPH_PAUSE *p) {
-    return stm_runner_ref_init(csound, &p->h, *p->runner_handle, STM_RUNNER_WRITER, "[stm] stmpause/resume: invalid runner", &p->ref);
-}
-
-static int32_t graph_pause_deinit(CSOUND *csound, GRAPH_PAUSE *p) {
-    return stm_runner_ref_deinit(csound, &p->h, &p->ref);
-}
-
-int32_t graph_pause(CSOUND *csound, GRAPH_PAUSE *p) {
-    if (*p->trig != FL(1.0)) return OK;
+int32_t graph_pause(CSOUND *csound, GRAPH_ONE_SHOT *p) {
+    if (!IS_FIRED(p)) return OK;
 
     GRAPH_RUNNER *runner = p->ref.runner;
     if (runner == NULL) {
@@ -1653,7 +1686,7 @@ int32_t graph_pause(CSOUND *csound, GRAPH_PAUSE *p) {
 
     stm_runner_update_begin(csound, runner);
 
-    if (STM_LOAD(&runner->run_state) == STM_RUNNER_PAUSED) {
+    if (STM_LOAD(&runner->run_state) != STM_RUNNER_RUNNING) {
         stm_runner_update_end(csound, runner);
         return OK;
     }
@@ -1662,14 +1695,14 @@ int32_t graph_pause(CSOUND *csound, GRAPH_PAUSE *p) {
     STM_STORE(&runner->requested_node, STM_NO_NODE);
     STM_STORE(&runner->request_conflict, STM_REQUEST_OK);
     STM_STORE(&runner->run_state, STM_RUNNER_PAUSED);
-    record_gevent(runner, current_node, current_node, STM_EVENT_PAUSED, 0);
+    record_gevent(runner, current_node, current_node, STM_EVENT_PAUSE, 0);
     stm_runner_update_end(csound, runner);
 
     return OK;
 }
 
-int32_t graph_resume(CSOUND *csound, GRAPH_PAUSE *p) {
-    if (*p->trig != FL(1.0)) return OK;
+int32_t graph_resume(CSOUND *csound, GRAPH_ONE_SHOT *p) {
+    if (!IS_FIRED(p)) return OK;
 
     GRAPH_RUNNER *runner = p->ref.runner;
     if (runner == NULL) {
@@ -1678,7 +1711,7 @@ int32_t graph_resume(CSOUND *csound, GRAPH_PAUSE *p) {
 
     stm_runner_update_begin(csound, runner);
 
-    if (STM_LOAD(&runner->run_state) == STM_RUNNER_RUNNING) {
+    if (STM_LOAD(&runner->run_state) != STM_RUNNER_PAUSED) {
         stm_runner_update_end(csound, runner);
         return OK;
     }
@@ -1688,6 +1721,31 @@ int32_t graph_resume(CSOUND *csound, GRAPH_PAUSE *p) {
     STM_STORE(&runner->request_conflict, STM_REQUEST_OK);
     STM_STORE(&runner->run_state, STM_RUNNER_RUNNING);
     record_gevent(runner, current_node, current_node, STM_EVENT_RESUME, 0);
+    stm_runner_update_end(csound, runner);
+
+    return OK;
+}
+
+int32_t graph_delete(CSOUND *csound, GRAPH_ONE_SHOT *p) {
+    if (!IS_FIRED(p)) return OK;
+
+    GRAPH_RUNNER *runner = p->ref.runner;
+    if (runner == NULL) {
+        return csound->PerfError(csound, &p->h,"[stm] stmdelete: runner is not initialized");
+    }
+
+    stm_runner_update_begin(csound, runner);
+
+    if (STM_LOAD(&runner->run_state) == STM_RUNNER_DELETED) {
+        stm_runner_update_end(csound, runner);
+        return OK;
+    }
+
+    uint32_t current_node = STM_LOAD(&runner->current_node);
+    STM_STORE(&runner->requested_node, STM_NO_NODE);
+    STM_STORE(&runner->request_conflict, STM_REQUEST_OK);
+    STM_STORE(&runner->run_state, STM_RUNNER_DELETED);
+    record_gevent(runner, current_node, current_node, STM_EVENT_DELETE, 0);
     stm_runner_update_end(csound, runner);
 
     return OK;
@@ -1717,7 +1775,7 @@ static OENTRY stm[] = {
     { "stmnodeid",      S(GRAPH_NODE_ID),       0, "k",      "iS",    (SUBR) graph_node_id_init,           (SUBR) graph_node_id,           (SUBR) graph_node_id_deinit    },
     { "stmnodecount",   S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_node_count_init,        (SUBR) graph_node_count,        (SUBR) graph_node_count_deinit },
     { "stmedgecount",   S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_edge_count_init,        (SUBR) graph_edge_count,        (SUBR) graph_edge_count_deinit },
-    { "stmreset",       S(GRAPH_RESET),         0, "",       "i",     (SUBR) graph_reset_init,             (SUBR) graph_reset,             (SUBR) graph_reset_deinit      },
+    { "stmreset",       S(GRAPH_ONE_SHOT),      0, "",       "ik",    (SUBR) graph_reset_init,             (SUBR) graph_reset,             (SUBR) graph_reset_deinit      },
     { "stmentry",       S(GRAPH_ENTRY),         0, "",       "iS",    (SUBR) graph_entry,                  NULL,                           NULL                           },
     { "stmtick",        S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_time_init,              (SUBR) graph_time_tick,         (SUBR) graph_time_deinit       },
     { "stmnodetime",    S(GRAPH_RUNNER_QUERY),  0, "k",      "i",     (SUBR) graph_time_init,              (SUBR) graph_time_node,         (SUBR) graph_time_deinit       },
@@ -1725,8 +1783,9 @@ static OENTRY stm[] = {
     { "stmevent",       S(GRAPH_TRANSITION),    0, "kkkkkk", "i",     (SUBR) graph_transition_init,        (SUBR) graph_transition,        (SUBR) graph_transition_deinit },
     { "stmcall",        S(GRAPH_CHECKPOINT),    0, "k",      "iSk",   (SUBR) graph_checkpoint_init,        (SUBR) graph_checkpoint,        (SUBR) graph_checkpoint_deinit },
     { "stmrecall",      S(GRAPH_CHECKPOINT),    0, "k",      "iSk",   (SUBR) graph_checkpoint_resume_init, (SUBR) graph_checkpoint_resume, (SUBR) graph_checkpoint_deinit },
-    { "stmpause",       S(GRAPH_PAUSE),         0, "",       "ik",    (SUBR) graph_pause_init,             (SUBR) graph_pause,             (SUBR) graph_pause_deinit      },
-    { "stmresume",      S(GRAPH_PAUSE),         0, "",       "ik",    (SUBR) graph_pause_init,             (SUBR) graph_resume,            (SUBR) graph_pause_deinit      },
+    { "stmpause",       S(GRAPH_ONE_SHOT),      0, "",       "ik",    (SUBR) graph_pause_init,             (SUBR) graph_pause,             (SUBR) graph_pause_deinit      },
+    { "stmresume",      S(GRAPH_ONE_SHOT),      0, "",       "ik",    (SUBR) graph_resume_init,            (SUBR) graph_resume,            (SUBR) graph_resume_deinit     },
+    { "stmdelete",      S(GRAPH_ONE_SHOT),      0, "",       "ik",    (SUBR) graph_delete_init,            (SUBR) graph_delete,            (SUBR) graph_delete_deinit     }
 };
 
 int32_t stm_init_(CSOUND *csound) {

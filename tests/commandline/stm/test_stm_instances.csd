@@ -46,7 +46,7 @@ instr 1
             printks("[FAIL] independent advances: current=%f/%f tick=%f/%f\n", 0, current1, current2, tick1, tick2)
             exitnowk(-1)
         endif
-        stmreset(runner1)
+        stmreset(runner1, 1)
     elseif cycle == 4 then
         if current1 != 0 || current2 != 1 || tick1 != 0 || tick2 != 1 then
             printks("[FAIL] runner1 reset affected runner2: current=%f/%f tick=%f/%f\n", 0, current1, current2, tick1, tick2)
