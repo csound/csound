@@ -822,6 +822,10 @@ def runTest():
             "Init-only UDO frames release structured temporary values",
         ],
         [
+            "udo/test_init_only_udo_nested_cleanup.csd",
+            "Retained nested UDO cleanup survives overlapping frame reuse",
+        ],
+        [
             "udo/test_udo_init_only_conditional_perf_chain.csd",
             "init-only UDOs in conditionals do not install perf chains",
         ],
