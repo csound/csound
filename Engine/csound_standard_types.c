@@ -24,6 +24,7 @@
 #include "csound_standard_types.h"
 #include "arrays.h"
 #include "arrays_internal.h"
+#include "csound_orc_structs.h"
 #include "pstream.h"
 #include "find_opcode.h"
 #include <stdlib.h>
@@ -542,9 +543,13 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
         }
     }
 
-    if (destination->storage != NULL &&
-        csound_array_prepare_write_for_mode(csound, destination, ctx) != OK) {
-        return NOTOK;
+    if (destination->storage != NULL) {
+        int32_t result = allowAllocation
+          ? csound_array_prepare_write(csound, destination, ctx)
+          : csound_array_try_prepare_write(csound, destination, ctx);
+        if (result != OK) {
+            return NOTOK;
+        }
     }
     if (destination->data == source->data && destination->data != NULL &&
         destination->allocated > 0) {
@@ -620,7 +625,18 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
         void *destinationElement = (char *)destination->data + offset;
         const void *sourceElement = (const char *)source->data + offset;
 
-        if (destination->arrayType->copyValue != NULL) {
+        if (!shareStructured &&
+            destination->arrayType->userDefinedType) {
+            if (csound_copy_struct_value(
+                  csound, destination->arrayType, destinationElement,
+                  sourceElement, ctx,
+                  allowAllocation
+                    ? CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION
+                    : CSOUND_STRUCT_COPY_INDEPENDENT_NO_ALLOCATION) != OK) {
+                return NOTOK;
+            }
+        }
+        else if (destination->arrayType->copyValue != NULL) {
             destination->arrayType->copyValue(
               csound, destination->arrayType, destinationElement,
               sourceElement, ctx);
@@ -635,10 +651,11 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
 
 int32_t csound_array_copy_independent(CSOUND *csound,
                                       ARRAYDAT *destination,
-                                      const ARRAYDAT *source, INSDS *ctx)
+                                      const ARRAYDAT *source, INSDS *ctx,
+                                      CSOUND_ARRAY_COPY_MODE mode)
 {
     return csound_array_copy(csound, destination, source, ctx, 0,
-                             csound == NULL || csound->mode != 2);
+                             mode == CSOUND_ARRAY_COPY_ALLOW_ALLOCATION);
 }
 
 /* Structured arrays share backing storage and detach on write. Other arrays

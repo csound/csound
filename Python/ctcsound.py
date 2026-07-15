@@ -389,6 +389,7 @@ libcsound.csoundArrayDataDimensions.restype = ct.c_int32
 libcsound.csoundArrayDataDimensions.argtypes = [ARRAYDAT_p]
 libcsound.csoundArrayDataSizes.restype = ct.POINTER(ct.c_int32)
 libcsound.csoundArrayDataSizes.argtypes = [ARRAYDAT_p]
+libcsound.csoundSetArrayData.restype = ct.c_int32
 libcsound.csoundSetArrayData.argtypes = [ARRAYDAT_p, ct.c_void_p]
 libcsound.csoundGetArrayData.restype = ct.c_void_p
 libcsound.csoundGetArrayData.argtypes = [ARRAYDAT_p]
@@ -1406,8 +1407,8 @@ class Csound:
         return array_from_pointer(p)
 
     def set_array_data(self, adat, data):
-        """Set the data in the ARRAYDAT adat."""
-        libcsound.csoundSetArrayData(adat, data)
+        """Set fixed-layout numeric data in the ARRAYDAT adat."""
+        return libcsound.csoundSetArrayData(adat, data)
 
     def array_data(self, adat):
         """Get the data from the ARRAYDAT adat."""
@@ -2592,4 +2593,3 @@ class UgenVar:
         """Get the string value (S-type vars only)."""
         s = libcsound.csoundUgenVarGetString(self.var)
         return pstring(s) if s else None
-

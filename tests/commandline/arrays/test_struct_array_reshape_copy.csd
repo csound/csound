@@ -10,6 +10,10 @@ nchnls = 1
 
 struct Sample value:i
 
+opcode ForwardSamples(input:Sample[]):Sample[]
+  xout input
+endop
+
 instr 1
   source:Sample[] init 4
   first:Sample init 10
@@ -22,7 +26,9 @@ instr 1
   source[2] = third
   source[3] = fourth
 
-  reshaped:Sample[] = source
+  ; A UDO return shares structured backing storage until the first write.
+  ; This specifically exercises reshapearray's detach path.
+  reshaped:Sample[] = ForwardSamples(source)
   reshapearray reshaped, 2, 2
 
   if lenarray(source, 0) != 1 || lenarray(source, 1) != 4 then

@@ -316,6 +316,22 @@ int32_t array_err(CSOUND* csound, ARRAY_SET *p)
   return csound->InitError(csound,  "%s", Str("Cannot set i-array at k-rate\n"));
 }
 
+int32_t array_set_init(CSOUND *csound, ARRAY_SET *p)
+{
+  ARRAYDAT *dat = p->arrayDat;
+
+  if (UNLIKELY(dat == NULL)) {
+    return csound->InitError(csound, "%s", Str("array_set: NULL array"));
+  }
+  if (UNLIKELY(dat->storage != NULL &&
+               csound_array_prepare_write(csound, dat,
+                                          p->h.insdshead) != OK)) {
+    return csound->InitError(csound, "%s",
+                             Str("array_set: could not detach shared array"));
+  }
+  return array_set(csound, p);
+}
+
 int32_t array_set(CSOUND* csound, ARRAY_SET *p)
 {
   ARRAYDAT* dat = p->arrayDat;
@@ -324,7 +340,7 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     return csound->PerfError(csound, &(p->h), Str("array_set: NULL array"));
   }
   if (UNLIKELY(dat->storage != NULL &&
-               csound_array_prepare_write_for_mode(
+               csound_array_try_prepare_write(
                  csound, dat, p->h.insdshead) != OK)) {
     return csound->PerfError(csound, &p->h, "%s",
                              Str("array_set: could not detach shared array"));
@@ -565,7 +581,7 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     if (needsAutoSizing) {
       /* Size recovery changes array metadata. Detach a structured view first
          so a read from malformed legacy metadata cannot resize its siblings. */
-      if (UNLIKELY(csound_array_prepare_write_for_mode(
+      if (UNLIKELY(csound_array_try_prepare_write(
                      csound, dat, p->h.insdshead) != OK)) {
         return csound->PerfError(
           csound, &p->h, "%s",
@@ -3465,14 +3481,11 @@ int32_t tabcopy(CSOUND *csound, TABCPY *p)
        callback reserves independent destination storage; copy into that
        storage here so a following element write never has to detach. */
     if (UNLIKELY(csound_array_copy_independent(
-                   csound, p->dst, p->src, p->h.insdshead) != OK)) {
-      return csound->mode == 2
-        ? csound->PerfError(
-            csound, &p->h, "%s",
-            Str("structured array assignment requires preallocated storage"))
-        : csound->InitError(
-            csound, "%s",
-            Str("could not copy structured array independently"));
+                   csound, p->dst, p->src, p->h.insdshead,
+                   CSOUND_ARRAY_COPY_NO_ALLOCATION) != OK)) {
+      return csound->PerfError(
+        csound, &p->h, "%s",
+        Str("structured array assignment requires preallocated storage"));
     }
   }
   else {
@@ -3495,7 +3508,8 @@ int32_t tabcopyk_init(CSOUND *csound, TABCPY *p) {
       return csound->InitError(csound, "%s",
                                Str("array-variable types do not match"));
     if (UNLIKELY(csound_array_copy_independent(
-                   csound, p->dst, p->src, p->h.insdshead) != OK)) {
+                   csound, p->dst, p->src, p->h.insdshead,
+                   CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
       return csound->InitError(
         csound, "%s",
         Str("could not prepare structured array assignment"));
@@ -3803,6 +3817,20 @@ int32_t trim_i(CSOUND *csound, TRIM *p)
   int32_t size = (int)(*p->size);
   tabinit(csound, p->tab, size, p->h.insdshead);
   p->tab->sizes[0] = size;
+  return OK;
+}
+
+int32_t trim_prepare(CSOUND *csound, TRIM *p)
+{
+  if (UNLIKELY(p->tab == NULL)) {
+    return csound->InitError(csound, "%s", Str("Array not initialised"));
+  }
+  if (UNLIKELY(p->tab->storage != NULL &&
+               csound_array_prepare_write(csound, p->tab,
+                                          p->h.insdshead) != OK)) {
+    return csound->InitError(csound, "%s",
+                             Str("Could not prepare array for trim"));
+  }
   return OK;
 }
 

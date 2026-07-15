@@ -31,6 +31,7 @@
 #include "parse_param.h"
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
+#include "arrays_internal.h"
 #include "csound_orc_expressions.h"
 #include "csound_orc_semantics.h"
 #include "csound_orc_compile.h"
@@ -3190,34 +3191,73 @@ CS_VARIABLE* createStructVar(void* cs, void* p, INSDS *ctx) {
   return var;
 }
 
-void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest, const
-                   void* src, INSDS *p) {
+int32_t csound_copy_struct_value(CSOUND *csound,
+                                 const CS_TYPE *structType,
+                                 void *dest, const void *src, INSDS *ctx,
+                                 CSOUND_STRUCT_COPY_MODE mode) {
   CS_STRUCT_VAR* varDest = (CS_STRUCT_VAR*)dest;
-  CS_STRUCT_VAR* varSrc = (CS_STRUCT_VAR*)src;
+  const CS_STRUCT_VAR* varSrc = (const CS_STRUCT_VAR*)src;
   int32_t i, count;
 
-  // Don't copy to itself
   if (dest == src) {
-    return;
+    return OK;
   }
 
-  if (varDest->members == NULL || varSrc->members == NULL) {
-    csound->Message(csound, "struct not initialised - cannot copy\n");
-    return;  // Can't copy if members aren't initialized
+  if (structType == NULL || varDest == NULL || varSrc == NULL ||
+      varDest->members == NULL || varSrc->members == NULL) {
+    return NOTOK;
   }
 
   count = cs_cons_length(structType->members);
+  if (count != varDest->memberCount || count != varSrc->memberCount) {
+    return NOTOK;
+  }
   for (i = 0; i < count; i++) {
     CS_VAR_MEM* d = varDest->members[i];
     CS_VAR_MEM* s = varSrc->members[i];
-    if (d != NULL && s != NULL) {
-      // Check if d and s are the same (aliased)
-      if (d == s) {
-        // Already aliased, nothing to copy
-        continue;
-      }
-      d->varType->copyValue(csound, d->varType, &d->value, &s->value, p);
+    if (d == NULL || s == NULL || d->varType == NULL ||
+        d->varType != s->varType) {
+      return NOTOK;
     }
+    if (d == s) {
+      continue;
+    }
+    if (mode != CSOUND_STRUCT_COPY_SHARED_ARRAYS &&
+        d->varType == &CS_VAR_TYPE_ARRAY) {
+      if (csound_array_copy_independent(
+            csound, (ARRAYDAT *)&d->value,
+            (const ARRAYDAT *)&s->value, ctx,
+            mode == CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION
+              ? CSOUND_ARRAY_COPY_ALLOW_ALLOCATION
+              : CSOUND_ARRAY_COPY_NO_ALLOCATION) != OK) {
+        return NOTOK;
+      }
+    }
+    else if (mode != CSOUND_STRUCT_COPY_SHARED_ARRAYS &&
+             d->varType->userDefinedType) {
+      if (csound_copy_struct_value(csound, d->varType,
+                                   &d->value, &s->value, ctx,
+                                   mode) != OK) {
+        return NOTOK;
+      }
+    }
+    else if (d->varType->copyValue != NULL) {
+      d->varType->copyValue(csound, d->varType,
+                            &d->value, &s->value, ctx);
+    }
+    else {
+      return NOTOK;
+    }
+  }
+  return OK;
+}
+
+void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest,
+                   const void* src, INSDS *p) {
+  if (UNLIKELY(csound_copy_struct_value(
+                 csound, structType, dest, src, p,
+                 CSOUND_STRUCT_COPY_SHARED_ARRAYS) != OK)) {
+    csound->Message(csound, "struct not initialised - cannot copy\n");
   }
 }
 

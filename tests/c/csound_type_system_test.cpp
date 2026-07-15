@@ -99,7 +99,8 @@ TEST_F (TypeSystemTests, testArrayCopyPreservesDestinationCapacity)
     MYFLT *originalAllocation = destination.data;
 
     ASSERT_EQ(OK, csound_array_copy_independent(
-                    csound, &destination, &source, nullptr));
+                    csound, &destination, &source, nullptr,
+                    CSOUND_ARRAY_COPY_ALLOW_ALLOCATION));
     EXPECT_EQ(originalAllocation, destination.data);
     EXPECT_EQ(sizeof(MYFLT) * 8, destination.allocated);
     ASSERT_EQ(1, destination.dimensions);
@@ -127,7 +128,8 @@ TEST_F (TypeSystemTests, testIndependentArrayCopyReportsTypeMismatch)
     destination.arrayType = &CS_VAR_TYPE_S;
 
     EXPECT_EQ(NOTOK, csound_array_copy_independent(
-                       csound, &destination, &source, nullptr));
+                       csound, &destination, &source, nullptr,
+                       CSOUND_ARRAY_COPY_ALLOW_ALLOCATION));
     EXPECT_EQ(nullptr, destination.data);
     EXPECT_EQ(0u, destination.allocated);
 }
@@ -184,12 +186,11 @@ TEST_F (TypeSystemTests, testConcurrentStructuredArrayCopiesShareOneStorage)
     csound_free_array_storage(csound, &source);
 }
 
-TEST_F (TypeSystemTests, testStructuredArrayWritePreparationRespectsEngineMode)
+TEST_F (TypeSystemTests, testStructuredArrayWritePreparationUsesExplicitPolicy)
 {
     CS_TYPE elementType = CS_VAR_TYPE_I;
     ARRAYDAT source{};
     ARRAYDAT shared{};
-    int32_t savedMode = csound->mode;
 
     elementType.userDefinedType = 1;
     source.dimensions = 1;
@@ -211,17 +212,14 @@ TEST_F (TypeSystemTests, testStructuredArrayWritePreparationRespectsEngineMode)
     MYFLT *const originalData = source.data;
     auto *const originalStorage = source.storage;
 
-    csound->mode = 2;
-    EXPECT_EQ(NOTOK, csound_array_prepare_write_for_mode(
+    EXPECT_EQ(NOTOK, csound_array_try_prepare_write(
                        csound, &source, nullptr));
     EXPECT_EQ(originalStorage, source.storage);
     EXPECT_EQ(originalData, source.data);
     EXPECT_EQ(originalStorage, shared.storage);
 
-    csound->mode = 1;
-    EXPECT_EQ(OK, csound_array_prepare_write_for_mode(
+    EXPECT_EQ(OK, csound_array_prepare_write(
                     csound, &source, nullptr));
-    csound->mode = savedMode;
     EXPECT_EQ(nullptr, source.storage);
     EXPECT_NE(originalData, source.data);
     EXPECT_EQ(sizeof(MYFLT), source.allocated);

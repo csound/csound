@@ -1088,9 +1088,13 @@ extern "C" {
 
 
   /**
-   * Set the data in the ARRAYDAT adat
+   * Set fixed-layout numeric data in ARRAYDAT adat.
+   *
+   * String, struct, and other managed element types are rejected because
+   * their values require CSOUND-aware type callbacks. Returns
+   * CSOUND_SUCCESS, or CSOUND_ERROR when the input or array is invalid.
    **/
-  PUBLIC void csoundSetArrayData(ARRAYDAT *adat, const void* data);
+  PUBLIC int32_t csoundSetArrayData(ARRAYDAT *adat, const void* data);
 
   /**
    * Get the data from the ARRAYDAT adat

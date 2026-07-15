@@ -659,6 +659,12 @@ def runTest():
         ["test_ambiguous_opcall.csd", "test ambiguous opcall examples"],
         ["test_opcode_type.csd", "tests opcode type"],
         ["test_opcode_obj_loop.csd", "tests array of opcode objects in loops"],
+        ["test_opcode_getp.csd", "tests numeric opcode-object output access"],
+        [
+            "test_opcode_getp_managed_fail.csd",
+            "reject managed opcode-object output access",
+            1,
+        ],
         ["test_sa.csd", "test sample accurate mode"],
         ["test_overload_selection.csd", "test wrong annotation case"],
         ["test_unschedule.csd", "test unscheduling events"],
@@ -752,6 +758,11 @@ def runTest():
         [
             "arrays/test_struct_array_k_write_after_copy.csd",
             "k-rate writes use prepared struct-array copy storage",
+        ],
+        [
+            "arrays/test_opcode_array_managed_fail.csd",
+            "reject managed scalar transfers through Opcode arrays",
+            1,
         ],
         [
             "arrays/test_chncleararray_managed_fail.csd",

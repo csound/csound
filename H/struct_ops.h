@@ -67,6 +67,7 @@ typedef struct {
 } STRUCT_ARRAY_GET;
 
 int32_t array_set_struct_init(CSOUND *csound, ARRAY_SET *p);
+int32_t array_set_struct_i(CSOUND *csound, ARRAY_SET *p);
 int32_t array_set_struct(CSOUND *csound, ARRAY_SET *p);
 int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat);
 int32_t struct_member_get_init_and_perf(CSOUND *csound, STRUCT_GET *p);
