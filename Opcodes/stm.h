@@ -185,11 +185,34 @@ typedef enum {
 } STM_RUNNER_ACCESS;
 
 typedef enum {
+    STM_RUNNER_RUNNING = 0,
+    STM_RUNNER_PAUSED
+} STM_RUNNER_STATUS;
+
+typedef enum {
     STM_EVENT_CHANGED = 1,
     STM_EVENT_SELF_TRANSITION,
     STM_EVENT_RESET,
+    STM_EVENT_RECALL,
+    STM_EVENT_PAUSED,
     STM_EVENT_RESUME
 } GRAPH_EVENT_STATUS;
+
+typedef enum {
+    STM_OBJECT_NONE = 0,
+    STM_OBJECT_BUILDER,
+    STM_OBJECT_DEFINITION,
+    STM_OBJECT_RUNNER
+} STM_OBJECT_TYPE;
+
+typedef enum {
+    STM_NO_REQUEST = 0,
+    STM_CHANGED,
+    STM_ILLEGAL_EDGE,
+    STM_SELF_TRANSITION,
+    STM_CONFLICT,
+    STM_PAUSED
+} STM_ADVANCE_STATUS;
 
 typedef struct {
     uint64_t sequence;
@@ -284,6 +307,9 @@ typedef struct {
     STM_CHECKPOINT *checkpoints;
     uint32_t cndx_write;
     uint32_t ckp_count;
+    // run state
+    int32_t run_state;
+    uint64_t node_event_seq;
 } GRAPH_RUNNER;
 
 typedef struct {
@@ -291,13 +317,6 @@ typedef struct {
     INSDS *writer_owner;
     int32_t writer_claimed;
 } STM_RUNNER_REF;
-
-typedef enum {
-    STM_OBJECT_NONE = 0,
-    STM_OBJECT_BUILDER,
-    STM_OBJECT_DEFINITION,
-    STM_OBJECT_RUNNER
-} STM_OBJECT_TYPE;
 
 typedef union {
     void *ptr;
@@ -394,14 +413,6 @@ typedef struct {
     MYFLT *handle;
     STM_RUNNER_REF ref;
 } GRAPH_RUNNER_QUERY; // k-rate
-
-typedef enum {
-    STM_NO_REQUEST = 0,
-    STM_CHANGED,
-    STM_ILLEGAL_EDGE,
-    STM_SELF_TRANSITION,
-    STM_CONFLICT
-} STM_ADVANCE_STATUS;
 
 typedef struct {
     OPDS h;
@@ -513,6 +524,15 @@ typedef struct {
     char last_name[64];
 } GRAPH_CHECKPOINT;
 
+typedef struct {
+    OPDS h;
+    // inputs
+    MYFLT *runner_handle;
+    MYFLT *trig;
+    //private
+    STM_RUNNER_REF ref;
+} GRAPH_PAUSE;
+
 
 // INTERFACE
 
@@ -551,6 +571,8 @@ int32_t graph_time_node(CSOUND *csound, GRAPH_RUNNER_QUERY *p); // k-time
 // points
 int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p); // k-time
 int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p); // k-time
+int32_t graph_pause(CSOUND *csound, GRAPH_PAUSE *p); // k-time
+int32_t graph_resume(CSOUND *csound, GRAPH_PAUSE *p); // k-time
 
 
 #endif
