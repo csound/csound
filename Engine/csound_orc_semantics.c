@@ -3150,8 +3150,16 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   }
   for (i = 0; i < len; i++) {
     CS_VARIABLE* var = members->value;
-    size_t size = (sizeof(CS_VAR_MEM) - sizeof(MYFLT)) + var->memBlockSize;
-    CS_VAR_MEM* mem = csound->Calloc(csound, size);
+    size_t size;
+    CS_VAR_MEM* mem;
+    /* member vars are created at parse time, before the header is applied:
+       a-rate members carry a memBlockSize based on the default ksmps, so
+       refresh it here or copyValue overruns the allocation at perf time */
+    if (var->updateMemBlockSize != NULL) {
+      var->updateMemBlockSize(csound, var);
+    }
+    size = (sizeof(CS_VAR_MEM) - sizeof(MYFLT)) + var->memBlockSize;
+    mem = csound->Calloc(csound, size);
     if (var->initializeVariableMemory != NULL) {
       var->initializeVariableMemory(csound, var, &mem->value);
     }
