@@ -328,20 +328,24 @@ uintptr_t event_insert_thread(void *p) {
         case ALLOC_DATA_REINIT_PASS: {
           INSDS *ip = data.ip;
           OPDS *ids = data.ids;
+          int32_t error;
           csoundSpinLock(&csound->alloc_spinlock);
-          realtime_reinit_pass(csound, ip, ids);
+          error = realtime_reinit_pass(csound, ip, ids);
           csoundSpinUnLock(&csound->alloc_spinlock);
-          ATOMIC_SET(ip->init_done, 1);
+          if (error == 0)
+            ATOMIC_SET(ip->init_done, 1);
           break;
         }
 
         case ALLOC_DATA_INIT_PASS: {
           INSDS *ip = data.ip;
+          int32_t error;
           ATOMIC_SET(ip->init_done, 0);
           csoundSpinLock(&csound->alloc_spinlock);
-          realtime_init_pass(csound, ip);
+          error = realtime_init_pass(csound, ip);
           csoundSpinUnLock(&csound->alloc_spinlock);
-          ATOMIC_SET(ip->init_done, 1);
+          if (error == 0)
+            ATOMIC_SET(ip->init_done, 1);
           break;
         }
 
