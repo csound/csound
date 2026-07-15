@@ -714,6 +714,10 @@ def runTest():
         ["arrays/test_redef_fail.csd", "fail on redefinition of variable by array", 1],
         ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],
         ["arrays/test_empty_array_init.csd", "test zero-length array initialization"],
+        [
+            "arrays/test_struct_array_reshape_copy.csd",
+            "reshaping a struct-array copy preserves its source",
+        ],
         ["complex_array_test.csd", "testing complex array ops"],
         ["test_array_channels.csd", "testing bus channels holding arrays"],
         ["fft_array_test.csd", "testing complex fft array ops"],
