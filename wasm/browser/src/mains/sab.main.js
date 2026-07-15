@@ -279,6 +279,7 @@ class SharedArrayBufferMainThread {
         break;
       }
       case "renderEnded": {
+        this.eventPromises.createStopPromise();
         log(`event: renderEnded received, beginning cleanup`)();
         performanceEndState = newPlayState;
         break;
