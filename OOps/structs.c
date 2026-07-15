@@ -163,7 +163,29 @@ static int32_t struct_array_element(CSOUND *csound, OPDS *opds,
   return OK;
 }
 
-int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
+int32_t array_set_struct_init(CSOUND *csound, ARRAY_SET *p)
+{
+  ARRAYDAT *dat = p->arrayDat;
+
+  if (UNLIKELY(dat == NULL || dat->arrayType == NULL ||
+               !dat->arrayType->userDefinedType)) {
+    return csound->InitError(csound, "%s",
+                             Str("array_set_struct: invalid destination"));
+  }
+  /* A k-rate element write cannot allocate a detached array backing store.
+     Detach during this opcode's init callback so its performance callback
+     only mutates owned storage. */
+  if (UNLIKELY(dat->storage != NULL &&
+               csound_array_prepare_write(csound, dat,
+                                          p->h.insdshead) != OK)) {
+    return csound->InitError(
+      csound, "%s",
+      Str("array_set_struct: could not prepare writable array"));
+  }
+  return OK;
+}
+
+int32_t array_set_struct(CSOUND *csound, ARRAY_SET *p)
 {
   ARRAYDAT* dat = p->arrayDat;
   CS_STRUCT_VAR *source;

@@ -454,13 +454,26 @@ int32_t csound_array_storage_matches(CSOUND *csound,
 static int32_t csound_array_share(CSOUND *csound, ARRAYDAT *destination,
                                   ARRAYDAT *source);
 
-static void csound_array_copy_dimensions(CSOUND *csound,
-                                         ARRAYDAT *destination,
-                                         const ARRAYDAT *source)
+static int32_t csound_array_copy_dimensions(CSOUND *csound,
+                                            ARRAYDAT *destination,
+                                            const ARRAYDAT *source,
+                                            int32_t allowAllocation)
 {
     if (source->dimensions == 0) {
+        if (!allowAllocation && (destination->dimensions != 0 ||
+                                 destination->sizes != NULL)) {
+            return NOTOK;
+        }
         csound->Free(csound, destination->sizes);
         destination->sizes = NULL;
+    }
+    else if (!allowAllocation) {
+        if (destination->dimensions != source->dimensions ||
+            destination->sizes == NULL) {
+            return NOTOK;
+        }
+        memcpy(destination->sizes, source->sizes,
+               sizeof(int32_t) * (size_t)source->dimensions);
     }
     else {
         destination->sizes = (int32_t *)csound->ReAlloc(
@@ -470,11 +483,13 @@ static void csound_array_copy_dimensions(CSOUND *csound,
                sizeof(int32_t) * (size_t)source->dimensions);
     }
     destination->dimensions = source->dimensions;
+    return OK;
 }
 
 static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
                                  const ARRAYDAT *source, INSDS *ctx,
-                                 int32_t shareStructured)
+                                 int32_t shareStructured,
+                                 int32_t allowAllocation)
 {
     CS_VARIABLE *var = NULL;
     size_t memberCount;
@@ -536,7 +551,11 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
         /* The destination already owns the allocation exposed by a legacy
            source view. The value is identical and must not be reallocated. */
         if (destination->sizes != source->sizes) {
-            csound_array_copy_dimensions(csound, destination, source);
+            if (UNLIKELY(csound_array_copy_dimensions(
+                           csound, destination, source,
+                           allowAllocation) != OK)) {
+                return NOTOK;
+            }
         }
         else {
             destination->dimensions = source->dimensions;
@@ -549,6 +568,9 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
        destination->arrayMemberSize != source->arrayMemberSize ||
        requiredBytes > destination->allocated);
 
+    if (UNLIKELY(needsAllocation && !allowAllocation)) {
+        return NOTOK;
+    }
     if (needsAllocation) {
         var = array_element_create_variable(csound,
                                             destination->arrayType, ctx);
@@ -562,7 +584,11 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
         }
         csound_free_array_storage(csound, destination);
         destination->arrayMemberSize = source->arrayMemberSize;
-        csound_array_copy_dimensions(csound, destination, source);
+        if (UNLIKELY(csound_array_copy_dimensions(
+                       csound, destination, source, 1) != OK)) {
+            csound->Free(csound, var);
+            return NOTOK;
+        }
         destination->allocated = requiredBytes;
         destination->data = (MYFLT *)csound->Calloc(csound, requiredBytes);
         if (var->initializeVariableMemory != NULL) {
@@ -576,10 +602,17 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
     }
     else {
         if (source->data == NULL) {
+            if (UNLIKELY(!allowAllocation && destination->data != NULL)) {
+                return NOTOK;
+            }
             csound_free_array_storage(csound, destination);
             destination->arrayMemberSize = source->arrayMemberSize;
         }
-        csound_array_copy_dimensions(csound, destination, source);
+        if (UNLIKELY(csound_array_copy_dimensions(
+                       csound, destination, source,
+                       allowAllocation) != OK)) {
+            return NOTOK;
+        }
     }
 
     for (size_t i = 0; i < memberCount; i++) {
@@ -604,7 +637,8 @@ int32_t csound_array_copy_independent(CSOUND *csound,
                                       ARRAYDAT *destination,
                                       const ARRAYDAT *source, INSDS *ctx)
 {
-    return csound_array_copy(csound, destination, source, ctx, 0);
+    return csound_array_copy(csound, destination, source, ctx, 0,
+                             csound == NULL || csound->mode != 2);
 }
 
 /* Structured arrays share backing storage and detach on write. Other arrays
@@ -614,7 +648,7 @@ static void array_copy_value(CSOUND *csound, const CS_TYPE *cstype, void *dest,
 {
     IGN(cstype);
     if (UNLIKELY(csound_array_copy(csound, (ARRAYDAT *)dest,
-                                   (const ARRAYDAT *)src, ctx, 1) != OK)) {
+                                   (const ARRAYDAT *)src, ctx, 1, 1) != OK)) {
         csound->ErrorMsg(csound, "%s\n", Str("array copy failed"));
     }
 }
@@ -946,7 +980,10 @@ static int32_t csound_array_share(CSOUND *csound, ARRAYDAT *dest,
         csound_free_array_storage(csound, dest);
         dest->arrayMemberSize = src->arrayMemberSize;
         dest->arrayType = src->arrayType;
-        csound_array_copy_dimensions(csound, dest, src);
+        if (UNLIKELY(csound_array_copy_dimensions(
+                       csound, dest, src, 1) != OK)) {
+            return NOTOK;
+        }
         return OK;
     }
 
