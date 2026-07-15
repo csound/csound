@@ -3460,8 +3460,25 @@ int32_t tabcopy(CSOUND *csound, TABCPY *p)
   /* The registered copy routine owns element lifetime and keeps dimensions,
      capacity, and backing-storage metadata in sync. Reimplementing resize here
      used to leave ARRAYDAT.allocated stale after a string-array assignment. */
-  CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
-                              p->dst, p->src, p->h.insdshead);
+  if (p->src->arrayType != NULL && p->src->arrayType->userDefinedType) {
+    /* Generic structured-array assignment also runs at k-rate. Its init
+       callback reserves independent destination storage; copy into that
+       storage here so a following element write never has to detach. */
+    if (UNLIKELY(csound_array_copy_independent(
+                   csound, p->dst, p->src, p->h.insdshead) != OK)) {
+      return csound->mode == 2
+        ? csound->PerfError(
+            csound, &p->h, "%s",
+            Str("structured array assignment requires preallocated storage"))
+        : csound->InitError(
+            csound, "%s",
+            Str("could not copy structured array independently"));
+    }
+  }
+  else {
+    CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                                p->dst, p->src, p->h.insdshead);
+  }
   return OK;
 }
 
@@ -3477,8 +3494,12 @@ int32_t tabcopyk_init(CSOUND *csound, TABCPY *p) {
     if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
       return csound->InitError(csound, "%s",
                                Str("array-variable types do not match"));
-    CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
-                                p->dst, p->src, p->h.insdshead);
+    if (UNLIKELY(csound_array_copy_independent(
+                   csound, p->dst, p->src, p->h.insdshead) != OK)) {
+      return csound->InitError(
+        csound, "%s",
+        Str("could not prepare structured array assignment"));
+    }
     return OK;
   }
 

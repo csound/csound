@@ -718,6 +718,10 @@ def runTest():
             "arrays/test_struct_array_reshape_copy.csd",
             "reshaping a struct-array copy preserves its source",
         ],
+        [
+            "arrays/test_struct_array_k_write_after_copy.csd",
+            "k-rate writes use prepared struct-array copy storage",
+        ],
         ["complex_array_test.csd", "testing complex array ops"],
         ["test_array_channels.csd", "testing bus channels holding arrays"],
         ["fft_array_test.csd", "testing complex fft array ops"],
