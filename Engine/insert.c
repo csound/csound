@@ -1719,6 +1719,60 @@ void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip)
     }
 }
 
+static CS_VAR_MEM *instance_local_memory(CS_VARIABLE *var, MYFLT *lclbas)
+{
+  char *value = (char *)(lclbas + var->memBlockIndex);
+
+  var->memBlock = (CS_VAR_MEM *)(value - CS_VAR_TYPE_OFFSET);
+  return var->memBlock;
+}
+
+static void initialize_instance_reserved_variables(CSOUND *csound, INSDS *ip,
+                                                    MYFLT *lclbas)
+{
+  static const char *const numericNames[] = { "ksmps", "kr", "sr" };
+  MYFLT numericValues[] = { csound->ksmps, csound->ekr, csound->esr };
+  CS_VAR_POOL *pool;
+  CS_VARIABLE *var;
+  size_t index;
+
+  if (UNLIKELY(ip == NULL || ip->instr == NULL || lclbas == NULL)) {
+    return;
+  }
+  pool = ip->instr->varPool;
+  if (UNLIKELY(pool == NULL)) {
+    return;
+  }
+
+  for (index = 0; index < sizeof(numericNames) / sizeof(numericNames[0]);
+       index++) {
+    var = csoundFindVariableWithName(csound, pool, numericNames[index]);
+    if (var != NULL) {
+      instance_local_memory(var, lclbas)->value = numericValues[index];
+    }
+  }
+
+  var = csoundFindVariableWithName(csound, pool, "this_instr");
+  if (var != NULL) {
+    INSTREF source = { ip->instr, 0 };
+    INSTREF *destination =
+      (INSTREF *)&instance_local_memory(var, lclbas)->value;
+
+    var->varType->copyValue(csound, var->varType, destination, &source, NULL);
+    destination->readonly = 1;
+  }
+
+  var = csoundFindVariableWithName(csound, pool, "this");
+  if (var != NULL) {
+    INSTANCEREF source = { ip, 0 };
+    INSTANCEREF *destination =
+      (INSTANCEREF *)&instance_local_memory(var, lclbas)->value;
+
+    var->varType->copyValue(csound, var->varType, destination, &source, NULL);
+    destination->readonly = 1;
+  }
+}
+
 void recycle_udo_instance(CSOUND *csound, INSDS *ip)
 {
   /* Reset local values and their cached argument pointers before deact()
@@ -1727,6 +1781,7 @@ void recycle_udo_instance(CSOUND *csound, INSDS *ip)
   free_instr_var_memory(csound, ip);
   if (ip->lclbas != NULL) {
     csoundInitializeVarPool(csound, ip->lclbas, ip->instr->varPool);
+    initialize_instance_reserved_variables(csound, ip, ip->lclbas);
     csoundReinitInstrumentArgpp(csound, ip);
   }
   deact(csound, ip);
@@ -1917,49 +1972,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     csoundMessage(csound, "endin (instr %d)\n", ip->insno);
   }
 
-  /* VL 13-12-13: point the memory to the local ksmps & kr variables,
-     and initialise them */
-  CS_VARIABLE* var = csoundFindVariableWithName(csound,
-                                                ip->instr->varPool, "ksmps");
-  if (var) {
-    char* temp = (char*)(lclbas + var->memBlockIndex);
-    var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
-    var->memBlock->value = csound->ksmps;
-  }
-  var = csoundFindVariableWithName(csound, ip->instr->varPool, "kr");
-  if (var) {
-    char* temp = (char*)(lclbas + var->memBlockIndex);
-    var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
-    var->memBlock->value = csound->ekr;
-  }
-
-  var = csoundFindVariableWithName(csound, ip->instr->varPool, "sr");
-  if (var) {
-    char* temp = (char*)(lclbas + var->memBlockIndex);
-    var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
-    var->memBlock->value = csound->esr;
-  }
-
-  var = csoundFindVariableWithName(csound, ip->instr->varPool, "this_instr");
-  if(var) {
-    INSTREF src = { ip->instr, 0 }, *dest;
-    char* temp = (char*)(lclbas + var->memBlockIndex);
-    var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
-    dest = (INSTREF *) &(var->memBlock->value);
-    var->varType->copyValue(csound, var->varType, dest, &src, NULL);
-    // mark it as read-only
-    dest->readonly = 1;
-  }
-  var = csoundFindVariableWithName(csound, ip->instr->varPool, "this");
-  if(var) {
-    INSTANCEREF src = { ip, 0 }, *dest;
-    char* temp = (char*)(lclbas + var->memBlockIndex);
-    var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
-    dest = (INSTANCEREF *) &(var->memBlock->value);
-    var->varType->copyValue(csound, var->varType, dest, &src, NULL);
-    // mark it as read-only
-    dest->readonly = 1;
-  }
+  initialize_instance_reserved_variables(csound, ip, lclbas);
 
 
   if (UNLIKELY(nxtopds > opdslim))

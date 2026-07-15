@@ -826,6 +826,10 @@ def runTest():
             "Retained nested UDO cleanup survives overlapping frame reuse",
         ],
         [
+            "udo/test_init_only_udo_reserved_refs.csd",
+            "Recycled init-only UDOs restore reserved instance references",
+        ],
+        [
             "udo/test_udo_init_only_conditional_perf_chain.csd",
             "init-only UDOs in conditionals do not install perf chains",
         ],
