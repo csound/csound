@@ -4,6 +4,9 @@
 </CsOptions>
 <CsInstruments>
 
+clearDimensions@global:i[] fillarray 2
+chnarray "clear", 3, "k", clearDimensions
+
 instr 1
  S1[] fillarray "one", "two", "three"
  chnset S1, "string"
@@ -56,11 +59,26 @@ else
   printks "all k numbers in init channel correctly matched\n", 1
 endif
 endin
+
+instr 3
+values:k[] fillarray 3, 4
+chnset values, "clear"
+chncleararray "clear"
+cleared:k[] init 2
+cleared chnget "clear"
+
+if cleared[0] != 0 || cleared[1] != 0 then
+  printks "array channel was not cleared: %g, %g\n", 0, \
+    cleared[0], cleared[1]
+  exitnowk(-1)
+endif
+turnoff
+endin
 </CsInstruments>
 
 <CsScore>
 i1 0 1
 i2 0 1
+i3 0 1
 </CsScore>
 </CsoundSynthesizer>
-
