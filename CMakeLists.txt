@@ -782,6 +782,11 @@ else()
 endif()
 
 # Flex/Bison for the new parser
+if(WIN32)
+    find_program(FLEX_EXECUTABLE NAMES flex win_flex win_flex.exe)
+    find_program(BISON_EXECUTABLE NAMES bison win_bison win_bison.exe)
+endif()
+
 find_package(FLEX)
 find_package(BISON)
 
