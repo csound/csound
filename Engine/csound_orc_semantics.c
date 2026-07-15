@@ -3158,7 +3158,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
     if (var->updateMemBlockSize != NULL) {
       var->updateMemBlockSize(csound, var);
     }
-    size = (sizeof(CS_VAR_MEM) - sizeof(MYFLT)) + var->memBlockSize;
+    size = CS_VAR_TYPE_OFFSET + var->memBlockSize;
     mem = csound->Calloc(csound, size);
     if (var->initializeVariableMemory != NULL) {
       var->initializeVariableMemory(csound, var, &mem->value);

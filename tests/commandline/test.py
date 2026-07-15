@@ -838,7 +838,7 @@ def runTest():
             "a-rate struct member write/read with ksmps above parse-time default",
         ],
         [
-            "structs/test_struct_arate_member_init_const_fails.csd",
+            "structs/test_struct_arate_members_negative.csd",
             "fail when a-rate struct members are initialized with constants",
             "fail",
         ],
