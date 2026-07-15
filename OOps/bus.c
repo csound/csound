@@ -2519,15 +2519,36 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
   return OK;
 }
 
-/* clear an array channel to zero at performance time */
+static int32_t array_channel_has_managed_elements(const ARRAYDAT *array)
+{
+  /* freeVariableMemory is the general lifetime signal. Csound structs are
+     also conservative here because their value stores owned member pointers. */
+  return array != NULL && array->arrayType != NULL &&
+    (array->arrayType->userDefinedType ||
+     array->arrayType->freeVariableMemory != NULL);
+}
+
+/* Clear an unmanaged array channel to zero at performance time. Managed
+   elements need type-aware teardown and reinitialization, which may allocate
+   and therefore cannot be performed by this real-time opcode. */
 static int32_t chnclear_opcode_perf_ARRAY(CSOUND *csound, CHNCLEAR *p)
 {
   int32_t i, n=p->INOCOUNT;
-  IGN(csound);
   for (i=0; i<n; i++) {
     ARRAYDAT *adat = (ARRAYDAT*) p->fp[i];
     csoundSpinLock(p->lock[i]);
-    memset(adat->data, 0, adat->allocated);
+    /* Channel element types are normally fixed. Recheck under the lock before
+       the destructive operation so API-side changes cannot expose memset. */
+    if (UNLIKELY(array_channel_has_managed_elements(adat))) {
+      csoundSpinUnLock(p->lock[i]);
+      return csound->PerfError(
+        csound, &p->h,
+        Str("chncleararray: channel '%s' has managed elements"),
+        p->iname[i]->data);
+    }
+    if (adat->data != NULL && adat->allocated > 0) {
+      memset(adat->data, 0, adat->allocated);
+    }
     csoundSpinUnLock(p->lock[i]);
   }
   return OK;
@@ -2545,6 +2566,13 @@ int32_t chnclear_opcode_init_ARRAY(CSOUND *csound, CHNCLEAR *p)
     if (LIKELY(!err)) {
       p->lock[i] = (spin_lock_t *)
         get_channel_lock(csound,(char*) p->iname[i]->data);
+      if (UNLIKELY(array_channel_has_managed_elements(
+                     (ARRAYDAT *)p->fp[i]))) {
+        return csound->InitError(
+          csound,
+          Str("chncleararray: channel '%s' has managed elements"),
+          p->iname[i]->data);
+      }
     }
     else return print_chn_err(p, err);
   }
