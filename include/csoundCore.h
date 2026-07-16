@@ -507,6 +507,9 @@ typedef struct {
     char    *strarg;       /* string argument */
     int32_t  linked;  /* linked to instrtxt->act_instance */
     uint64_t instance_id; /* instance id number */
+    /* Background users that must finish before this instance is reused or
+       reclaimed. The owner is inactive while the final reference drains. */
+    volatile int32_t async_ref_count;
     /* Copy of required p-field values for quick access */
     CS_VAR_MEM  p0;
     CS_VAR_MEM  p1;

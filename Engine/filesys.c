@@ -647,9 +647,28 @@ char *csoundFindOutputFile(CSOUND *csound,
  */
 
 /* Realtime init and note deactivation may update this registry concurrently.
-   Keep only pointer updates under the spinlock; file I/O must remain outside. */
+   The spinlock protects pointer updates. If the asynchronous file reader is
+   active, its thread lock also pins nodes for the complete traversal while
+   keeping file I/O outside the spinlock. */
+static int32_t lock_file_io_registry(CSOUND *csound)
+{
+    if (csound->file_io_start && csound->file_io_threadlock != NULL) {
+      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+      return 1;
+    }
+    return 0;
+}
+
+static void unlock_file_io_registry(CSOUND *csound, int32_t locked)
+{
+    if (locked)
+      csound->NotifyThreadLock(csound->file_io_threadlock);
+}
+
 static void link_open_file(CSOUND *csound, CSFILE *file)
 {
+    int32_t ioLocked = lock_file_io_registry(csound);
+
     csoundSpinLock(&csound->open_files_lock);
     file->prv = NULL;
     file->nxt = (CSFILE*) csound->open_files;
@@ -657,6 +676,7 @@ static void link_open_file(CSOUND *csound, CSFILE *file)
       file->nxt->prv = file;
     csound->open_files = (void*) file;
     csoundSpinUnLock(&csound->open_files_lock);
+    unlock_file_io_registry(csound, ioLocked);
 }
 
 static void unlink_open_file(CSOUND *csound, CSFILE *file)
@@ -953,8 +973,9 @@ int32_t csoundFileClose(CSOUND *csound, void *fd)
 {
     CSFILE  *p = (CSFILE*) fd;
     int32_t     retval = -1;
+    int32_t ioLocked = lock_file_io_registry(csound);
+
     if (p->async_flag == ASYNC_GLOBAL) {
-      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
       unlink_open_file(csound, p);
       /* close file */
       switch (p->type) {
@@ -977,7 +998,6 @@ int32_t csoundFileClose(CSOUND *csound, void *fd)
       if (p->buf != NULL) csound->Free(csound, p->buf);
       p->bufsize = 0;
       csound->DestroyCircularBuffer(csound, p->cb);
-      csound->NotifyThreadLock(csound->file_io_threadlock);
     } else {
       unlink_open_file(csound, p);
       /* close file */
@@ -997,6 +1017,7 @@ int32_t csoundFileClose(CSOUND *csound, void *fd)
         break;
       }
     }
+    unlock_file_io_registry(csound, ioLocked);
     /* free allocated memory */
     csound->Free(csound, fd);
 
@@ -1134,6 +1155,8 @@ int32_t csoundFSeekAsync(CSOUND *csound, void *handle, int32_t pos, int32_t when
 
 
 static int32_t read_files(CSOUND *csound){
+    /* file_iothread holds file_io_threadlock, so registry nodes remain valid
+       until this complete pass returns. */
     CSFILE *current = (CSFILE *) csound->open_files;
     if (current == NULL) return 0;
     while (current) {

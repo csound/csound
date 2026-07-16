@@ -79,6 +79,8 @@ extern "C" {
   void  xturnoff(CSOUND *, INSDS *);
   void  xturnoff_now(CSOUND *, INSDS *);
   INSDS *instance(CSOUND *, int32_t);
+  INSDS *take_inactive_instance(CSOUND *, INSTRTXT *);
+  int32_t instance_has_async_refs(const INSDS *);
   INSDS *create_instance(CSOUND *csound, int32_t insno);
   void free_instance(CSOUND *csound, INSDS *ip);
   int32_t instr_num(CSOUND *csound, INSTRTXT *instr);

@@ -1441,11 +1441,6 @@ else()
     message(STATUS "Not building with multicore support.")
 endif()
 
-if(BUILD_BELA)
-    # Bela's hard realtime thread must not wait on a blocking mutex.
-    list(APPEND libcsound_CFLAGS -DCSOUND_NO_RT_MUTEX)
-endif()
-
 set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
 
 # ADDING HERE TO GRAB LIST OF HEADERS IN CASE OF BUILDING OSX FRAMEWORK

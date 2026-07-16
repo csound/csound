@@ -818,6 +818,7 @@ static const CSOUND cenviron_ = {
     NULL,
     0,  /* link flag */
     0,  /* instance id */
+    0,  /* async references */
     {NULL, FL(0.0)},
     {NULL, FL(0.0)},
     {NULL, FL(0.0)},

@@ -1504,10 +1504,11 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                                instno, inm->name);
     }
-    if (!tp->act_instance)
+    lcurip = take_inactive_instance(csound, tp);
+    if (lcurip == NULL) {
       instance(csound, instno);
-    lcurip = tp->act_instance;            /* use free instance, and */
-    tp->act_instance = lcurip->nxtact;    /* remove from chain      */
+      lcurip = take_inactive_instance(csound, tp);
+    }
     if (lcurip->opcod_iobufs==NULL)
       return csound->InitError(csound, "Broken redefinition of UDO %d (UDO %s)\n",
                                instno, inm->name);
@@ -2666,10 +2667,12 @@ int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
   /* IV - Oct 9 2002: copied this code from useropcdset() to fix some bugs */
   if (!(pip->reinitflag | pip->tieflag) || p->ip == NULL) {
     /* get instance */
-    if (csound->engineState.instrtxtp[instno]->act_instance == NULL)
+    INSTRTXT *tp = csound->engineState.instrtxtp[instno];
+    p->ip = take_inactive_instance(csound, tp);
+    if (p->ip == NULL) {
       instance(csound, instno);
-    p->ip = csound->engineState.instrtxtp[instno]->act_instance;
-    csound->engineState.instrtxtp[instno]->act_instance = p->ip->nxtact;
+      p->ip = take_inactive_instance(csound, tp);
+    }
     p->ip->insno = (int16) instno;
     p->ip->actflg++;                  /*    and mark the instr active */
     csound->engineState.instrtxtp[instno]->active++;

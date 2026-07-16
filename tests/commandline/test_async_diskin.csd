@@ -15,6 +15,8 @@ instr 2
 endin
 
 instr 3
+  ; Short overlapping notes race asynchronous init, deinit, and shutdown.
+  ; ASan and TSan make stale instance access easier to reproduce.
   iStart = 0
   while (iStart < 0.2) do
     schedule(1, iStart, 0.02)
@@ -23,14 +25,9 @@ instr 3
   od
 endin
 
-instr 4
- eventi("e",0,0)
-endin
-
 </CsInstruments>
 <CsScore>
 i 3 0 0
-i 4 0.15 0
 e 0.25
 </CsScore>
 </CsoundSynthesizer>

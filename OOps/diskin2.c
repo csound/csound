@@ -294,17 +294,24 @@ static uintptr_t diskin_io_thread_array(void *p);
 
 typedef struct diskin2_async_entry {
   void *instance;
+  INSDS *owner;
+  volatile int32_t *stopRequested;
+  volatile int32_t *instanceReaders;
   void *mutex;
   spin_lock_t spinlock;
-  volatile int32_t active;
+  int32_t active;
+  int32_t readers;
   struct diskin2_async_entry *next;
+  struct diskin2_async_entry *freeNext;
 } DISKIN2_ASYNC_ENTRY;
 
 typedef struct {
   DISKIN2_ASYNC_ENTRY *entries;
   DISKIN2_ASYNC_ENTRY *entryTail;
+  DISKIN2_ASYNC_ENTRY *freeEntries;
   DISKIN2_ASYNC_ENTRY *arrayEntries;
   DISKIN2_ASYNC_ENTRY *arrayEntryTail;
+  DISKIN2_ASYNC_ENTRY *arrayFreeEntries;
   void *thread;
   void *arrayThread;
   void *mutex;
@@ -312,11 +319,43 @@ typedef struct {
   volatile int32_t arrayRunning;
 } DISKIN2_ASYNC_STATE;
 
+static void diskin2_wait_for_readers(CSOUND *csound,
+                                     volatile int32_t *readers)
+{
+  while (ATOMIC_GET(*readers) != 0)
+    csoundSleep(1);
+}
+
 #ifndef __EMSCRIPTEN__
 
 static inline DISKIN2_ASYNC_STATE *diskin2_async_state(CSOUND *csound)
 {
   return (DISKIN2_ASYNC_STATE *) csound->diskin2_async_state;
+}
+
+static int32_t diskin2_lock_init(CSOUND *csound, spin_lock_t *spinlock,
+                                 void **mutex)
+{
+  *mutex = NULL;
+#if CSOUND_SPINLOCK_AVAILABLE
+  if (csoundSpinLockInit(spinlock) == CSOUND_SUCCESS)
+    return OK;
+#endif
+  *mutex = csoundCreateMutex(0);
+  return *mutex != NULL ? OK : NOTOK;
+}
+
+static void diskin2_lock_destroy(CSOUND *csound, spin_lock_t *spinlock,
+                                 void *mutex)
+{
+  if (mutex != NULL)
+    csoundDestroyMutex(mutex);
+#if defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
+  else
+    pthread_spin_destroy(spinlock);
+#else
+  IGN(spinlock);
+#endif
 }
 
 static inline void diskin2_registry_lock(CSOUND *csound)
@@ -357,28 +396,18 @@ static inline void diskin2_entry_unlock(CSOUND *csound,
     csoundSpinUnLock(&entry->spinlock);
 }
 
-static DISKIN2_ASYNC_ENTRY *diskin2_new_entry(CSOUND *csound, void *instance)
+static DISKIN2_ASYNC_ENTRY *diskin2_new_entry(CSOUND *csound)
 {
   DISKIN2_ASYNC_ENTRY *entry = (DISKIN2_ASYNC_ENTRY *)
     csound->Calloc(csound, sizeof(DISKIN2_ASYNC_ENTRY));
 
   if (UNLIKELY(entry == NULL))
     return NULL;
-#ifndef CSOUND_NO_RT_MUTEX
-  entry->mutex = csoundCreateMutex(0);
-#endif
-  if (entry->mutex == NULL) {
-#if CSOUND_SPINLOCK_AVAILABLE
-    if (UNLIKELY(csoundSpinLockInit(&entry->spinlock) != CSOUND_SUCCESS)) {
-      csound->Free(csound, entry);
-      return NULL;
-    }
-#else
+  if (UNLIKELY(diskin2_lock_init(csound, &entry->spinlock,
+                                 &entry->mutex) != OK)) {
     csound->Free(csound, entry);
     return NULL;
-#endif
   }
-  entry->instance = instance;
   return entry;
 }
 
@@ -393,137 +422,218 @@ static void diskin2_append_entry(DISKIN2_ASYNC_ENTRY **head,
   *tail = entry;
 }
 
-static int32_t diskin2_add_instance(CSOUND *csound, DISKIN2 *p)
+static DISKIN2_ASYNC_ENTRY *diskin2_take_entry(
+  CSOUND *csound, DISKIN2_ASYNC_ENTRY **head,
+  DISKIN2_ASYNC_ENTRY **tail, DISKIN2_ASYNC_ENTRY **freeEntries,
+  void *instance, INSDS *owner, volatile int32_t *stopRequested,
+  volatile int32_t *instanceReaders)
+{
+  DISKIN2_ASYNC_ENTRY *entry;
+
+  diskin2_registry_lock(csound);
+  entry = *freeEntries;
+  if (entry != NULL) {
+    *freeEntries = entry->freeNext;
+    entry->freeNext = NULL;
+  }
+  else {
+    entry = diskin2_new_entry(csound);
+    if (entry != NULL)
+      diskin2_append_entry(head, tail, entry);
+  }
+  diskin2_registry_unlock(csound);
+
+  if (entry != NULL) {
+    diskin2_entry_lock(csound, entry);
+    entry->instance = instance;
+    entry->owner = owner;
+    entry->stopRequested = stopRequested;
+    entry->instanceReaders = instanceReaders;
+    entry->readers = 0;
+    ATOMIC_SET(*stopRequested, 0);
+    ATOMIC_SET(*instanceReaders, 0);
+    entry->active = 1;
+    diskin2_entry_unlock(csound, entry);
+  }
+  return entry;
+}
+
+static int32_t diskin2_start_thread(CSOUND *csound, int32_t array)
 {
   DISKIN2_ASYNC_STATE *state = diskin2_async_state(csound);
-  DISKIN2_ASYNC_ENTRY *entry = (DISKIN2_ASYNC_ENTRY *) p->asyncEntry;
-  int32_t startThread;
+  volatile int32_t *running = array ? &state->arrayRunning : &state->running;
+  void **thread = array ? &state->arrayThread : &state->thread;
+  int32_t result = OK;
+
+  diskin2_registry_lock(csound);
+  if (!ATOMIC_GET(*running)) {
+    ATOMIC_SET(*running, 1);
+    *thread = csound->CreateThread(
+      array ? diskin_io_thread_array : diskin_io_thread, csound);
+    if (UNLIKELY(*thread == NULL)) {
+      ATOMIC_SET(*running, 0);
+      result = NOTOK;
+    }
+  }
+  diskin2_registry_unlock(csound);
+  return result;
+}
+
+static void diskin2_recycle_entry(CSOUND *csound,
+                                  DISKIN2_ASYNC_STATE *state,
+                                  DISKIN2_ASYNC_ENTRY *entry,
+                                  int32_t array)
+{
+  DISKIN2_ASYNC_ENTRY **freeEntries =
+    array ? &state->arrayFreeEntries : &state->freeEntries;
+
+  diskin2_registry_lock(csound);
+  entry->freeNext = *freeEntries;
+  *freeEntries = entry;
+  diskin2_registry_unlock(csound);
+}
+
+static void *diskin2_acquire_async_instance(CSOUND *csound,
+                                             DISKIN2_ASYNC_ENTRY *entry,
+                                             INSDS **owner)
+{
+  void *instance = NULL;
+
+  *owner = NULL;
+  diskin2_entry_lock(csound, entry);
+  if (entry->active && entry->instance != NULL &&
+      !ATOMIC_GET(*entry->stopRequested)) {
+    instance = entry->instance;
+    *owner = entry->owner;
+    entry->readers++;
+    ATOMIC_INCR(*entry->instanceReaders);
+    ATOMIC_INCR((*owner)->async_ref_count);
+  }
+  diskin2_entry_unlock(csound, entry);
+  return instance;
+}
+
+static void diskin2_release_async_instance(
+  CSOUND *csound, DISKIN2_ASYNC_STATE *state,
+  DISKIN2_ASYNC_ENTRY *entry, INSDS *owner,
+  volatile int32_t *instanceReaders, int32_t array)
+{
+  int32_t recycle = 0;
+
+  diskin2_entry_lock(csound, entry);
+  entry->readers--;
+  if (!entry->active && entry->readers == 0) {
+    entry->instance = NULL;
+    entry->owner = NULL;
+    entry->stopRequested = NULL;
+    entry->instanceReaders = NULL;
+    recycle = 1;
+  }
+  diskin2_entry_unlock(csound, entry);
+
+  if (recycle)
+    diskin2_recycle_entry(csound, state, entry, array);
+  /* These are the worker's final accesses to the opcode and its owner. */
+  ATOMIC_DECR(*instanceReaders);
+  ATOMIC_DECR(owner->async_ref_count);
+}
+
+static int32_t diskin2_add_async_instance(
+  CSOUND *csound, void *instance, void **entrySlot,
+  INSDS *owner, volatile int32_t *stopRequested,
+  volatile int32_t *instanceReaders, int32_t array)
+{
+  DISKIN2_ASYNC_STATE *state = diskin2_async_state(csound);
+  DISKIN2_ASYNC_ENTRY **head, **tail, **freeEntries;
+  DISKIN2_ASYNC_ENTRY *entry;
 
   if (UNLIKELY(state == NULL))
     return NOTOK;
+  head = array ? &state->arrayEntries : &state->entries;
+  tail = array ? &state->arrayEntryTail : &state->entryTail;
+  freeEntries = array ? &state->arrayFreeEntries : &state->freeEntries;
+  entry = diskin2_take_entry(csound, head, tail, freeEntries, instance,
+                             owner, stopRequested, instanceReaders);
+  if (UNLIKELY(entry == NULL))
+    return NOTOK;
 
-  if (entry == NULL) {
-    entry = diskin2_new_entry(csound, p);
-    if (UNLIKELY(entry == NULL))
-      return NOTOK;
-    diskin2_registry_lock(csound);
-    diskin2_append_entry(&state->entries, &state->entryTail, entry);
-    p->asyncEntry = entry;
-    diskin2_registry_unlock(csound);
-  }
-
-  ATOMIC_SET(p->asyncStopRequested, 0);
-  diskin2_entry_lock(csound, entry);
-  ATOMIC_SET(entry->active, 1);
-  diskin2_entry_unlock(csound, entry);
-
-  diskin2_registry_lock(csound);
-  startThread = !ATOMIC_GET(state->running);
-  if (startThread)
-    ATOMIC_SET(state->running, 1);
-  diskin2_registry_unlock(csound);
-
-  if (startThread) {
-    void *thread = csound->CreateThread(diskin_io_thread, csound);
-    if (UNLIKELY(thread == NULL)) {
-      diskin2_entry_lock(csound, entry);
-      ATOMIC_SET(entry->active, 0);
-      diskin2_entry_unlock(csound, entry);
-      ATOMIC_SET(state->running, 0);
-      return NOTOK;
-    }
-    diskin2_registry_lock(csound);
-    state->thread = thread;
-    diskin2_registry_unlock(csound);
+  *entrySlot = entry;
+  if (UNLIKELY(diskin2_start_thread(csound, array) != OK)) {
+    diskin2_entry_lock(csound, entry);
+    entry->active = 0;
+    entry->instance = NULL;
+    entry->owner = NULL;
+    entry->stopRequested = NULL;
+    entry->instanceReaders = NULL;
+    diskin2_entry_unlock(csound, entry);
+    *entrySlot = NULL;
+    diskin2_recycle_entry(csound, state, entry, array);
+    return NOTOK;
   }
   return OK;
 }
 
+static int32_t diskin2_add_instance(CSOUND *csound, DISKIN2 *p)
+{
+  return diskin2_add_async_instance(csound, p, &p->asyncEntry,
+                                    p->h.insdshead,
+                                    &p->asyncStopRequested,
+                                    &p->asyncReaders, 0);
+}
+
 static int32_t diskin2_add_array_instance(CSOUND *csound, DISKIN2_ARRAY *p)
 {
+  return diskin2_add_async_instance(csound, p, &p->asyncEntry,
+                                    p->h.insdshead,
+                                    &p->asyncStopRequested,
+                                    &p->asyncReaders, 1);
+}
+
+static int32_t diskin2_remove_async_instance(
+  CSOUND *csound, void **entrySlot, volatile int32_t *stopRequested,
+  int32_t *async, int32_t array)
+{
   DISKIN2_ASYNC_STATE *state = diskin2_async_state(csound);
-  DISKIN2_ASYNC_ENTRY *entry = (DISKIN2_ASYNC_ENTRY *) p->asyncEntry;
-  int32_t startThread;
+  DISKIN2_ASYNC_ENTRY *entry = (DISKIN2_ASYNC_ENTRY *) *entrySlot;
+  int32_t releaseEntry = 0;
 
-  if (UNLIKELY(state == NULL))
-    return NOTOK;
+  *async = 0;
+  ATOMIC_SET(*stopRequested, 1);
+  if (entry == NULL || state == NULL)
+    return OK;
 
-  if (entry == NULL) {
-    entry = diskin2_new_entry(csound, p);
-    if (UNLIKELY(entry == NULL))
-      return NOTOK;
-    diskin2_registry_lock(csound);
-    diskin2_append_entry(&state->arrayEntries, &state->arrayEntryTail, entry);
-    p->asyncEntry = entry;
-    diskin2_registry_unlock(csound);
-  }
-
-  ATOMIC_SET(p->asyncStopRequested, 0);
+  /* Stop new borrows without waiting for an in-flight disk read. The owning
+     INSDS remains unavailable for reuse until that borrow is released. */
   diskin2_entry_lock(csound, entry);
-  ATOMIC_SET(entry->active, 1);
-  diskin2_entry_unlock(csound, entry);
-
-  diskin2_registry_lock(csound);
-  startThread = !ATOMIC_GET(state->arrayRunning);
-  if (startThread)
-    ATOMIC_SET(state->arrayRunning, 1);
-  diskin2_registry_unlock(csound);
-
-  if (startThread) {
-    void *thread = csound->CreateThread(diskin_io_thread_array, csound);
-    if (UNLIKELY(thread == NULL)) {
-      diskin2_entry_lock(csound, entry);
-      ATOMIC_SET(entry->active, 0);
-      diskin2_entry_unlock(csound, entry);
-      ATOMIC_SET(state->arrayRunning, 0);
-      return NOTOK;
+  if (entry->active) {
+    entry->active = 0;
+    if (entry->readers == 0) {
+      entry->instance = NULL;
+      entry->owner = NULL;
+      entry->stopRequested = NULL;
+      entry->instanceReaders = NULL;
+      releaseEntry = 1;
     }
-    diskin2_registry_lock(csound);
-    state->arrayThread = thread;
-    diskin2_registry_unlock(csound);
   }
+  diskin2_entry_unlock(csound, entry);
+  *entrySlot = NULL;
+
+  if (releaseEntry)
+    diskin2_recycle_entry(csound, state, entry, array);
   return OK;
 }
 
 static int32_t diskin2_remove_instance(CSOUND *csound, DISKIN2 *p)
 {
-  DISKIN2_ASYNC_ENTRY *entry = (DISKIN2_ASYNC_ENTRY *) p->asyncEntry;
-
-  if (UNLIKELY(entry == NULL))
-    return NOTOK;
-
-  /* Let a worker blocked on its circular buffer leave before taking the
-     per-instance lock. Other diskin2 instances remain independent. */
-  ATOMIC_SET(p->asyncStopRequested, 1);
-  diskin2_entry_lock(csound, entry);
-  if (UNLIKELY(!ATOMIC_GET(entry->active))) {
-    diskin2_entry_unlock(csound, entry);
-    return NOTOK;
-  }
-  ATOMIC_SET(entry->active, 0);
-  p->async = 0;
-  diskin2_entry_unlock(csound, entry);
-  return OK;
+  return diskin2_remove_async_instance(
+    csound, &p->asyncEntry, &p->asyncStopRequested, &p->async, 0);
 }
 
 static int32_t diskin2_remove_array_instance(CSOUND *csound,
                                               DISKIN2_ARRAY *p)
 {
-  DISKIN2_ASYNC_ENTRY *entry = (DISKIN2_ASYNC_ENTRY *) p->asyncEntry;
-
-  if (UNLIKELY(entry == NULL))
-    return NOTOK;
-
-  ATOMIC_SET(p->asyncStopRequested, 1);
-  diskin2_entry_lock(csound, entry);
-  if (UNLIKELY(!ATOMIC_GET(entry->active))) {
-    diskin2_entry_unlock(csound, entry);
-    return NOTOK;
-  }
-  ATOMIC_SET(entry->active, 0);
-  p->async = 0;
-  diskin2_entry_unlock(csound, entry);
-  return OK;
+  return diskin2_remove_async_instance(
+    csound, &p->asyncEntry, &p->asyncStopRequested, &p->async, 1);
 }
 
 static int32_t diskin2_instance_running(CSOUND *csound, DISKIN2 *p)
@@ -548,12 +658,7 @@ static void diskin2_free_entries(CSOUND *csound, DISKIN2_ASYNC_ENTRY *entry)
   while (entry != NULL) {
     DISKIN2_ASYNC_ENTRY *next = entry->next;
 
-    if (entry->mutex != NULL)
-      csoundDestroyMutex(entry->mutex);
-#if defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
-    else
-      pthread_spin_destroy(&entry->spinlock);
-#endif
+    diskin2_lock_destroy(csound, &entry->spinlock, entry->mutex);
     csound->Free(csound, entry);
     entry = next;
   }
@@ -572,20 +677,10 @@ int32_t diskin2_async_setup(CSOUND *csound)
     csound, sizeof(DISKIN2_ASYNC_STATE));
   if (UNLIKELY(state == NULL))
     return CSOUND_MEMORY;
-#ifndef CSOUND_NO_RT_MUTEX
-  state->mutex = csoundCreateMutex(0);
-#endif
-  if (state->mutex == NULL) {
-#if CSOUND_SPINLOCK_AVAILABLE
-    if (UNLIKELY(csoundSpinLockInit(&csound->diskin2_async_lock) !=
-                 CSOUND_SUCCESS)) {
-      csound->Free(csound, state);
-      return CSOUND_ERROR;
-    }
-#else
+  if (UNLIKELY(diskin2_lock_init(csound, &csound->diskin2_async_lock,
+                                 &state->mutex) != OK)) {
     csound->Free(csound, state);
     return CSOUND_ERROR;
-#endif
   }
   csound->diskin2_async_state = state;
 #else
@@ -616,24 +711,27 @@ void diskin2_async_shutdown(CSOUND *csound)
   diskin2_free_entries(csound, state->entries);
   diskin2_free_entries(csound, state->arrayEntries);
   csound->diskin2_async_state = NULL;
-  if (state->mutex != NULL)
-    csoundDestroyMutex(state->mutex);
-#if defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
-  else
-    pthread_spin_destroy(&csound->diskin2_async_lock);
-#endif
+  diskin2_lock_destroy(csound, &csound->diskin2_async_lock, state->mutex);
   csound->Free(csound, state);
 #else
   IGN(csound);
 #endif
 }
 
-static inline int32_t diskin2_async_available(CSOUND *csound)
+static inline int32_t diskin2_async_available(CSOUND *csound, int32_t array)
 {
 #if defined(__EMSCRIPTEN__)
-  IGN(csound);
-  return 1;
+  /* The browser host owns the worker and publishes its list and run flag as
+     Csound globals. Fall back to synchronous reads if that host contract is
+     unavailable. */
+  const char *instances = array ? "DISKIN_INST_ARRAY" : "DISKIN_INST";
+  const char *running = array ? "DISKIN_THREAD_START_ARRAY" :
+                                "DISKIN_THREAD_START";
+
+  return csound->QueryGlobalVariable(csound, instances) != NULL &&
+         csound->QueryGlobalVariable(csound, running) != NULL;
 #else
+  IGN(array);
   return csound->diskin2_async_state != NULL;
 #endif
 }
@@ -660,6 +758,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     if (p->async && UNLIKELY(diskin2_async_deinit(csound, p) != OK))
       return csound->InitError(csound, "%s",
                                Str("diskin2: could not stop async worker"));
+    diskin2_wait_for_readers(csound, &p->asyncReaders);
     csoundFDClose(csound, &(p->fdch));
   }
   /* set default format parameters */
@@ -759,7 +858,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   memset(p->buf, 0, n*sizeof(MYFLT));
   
   if (csound->oparms->realtime == 1 && p->fforceSync == 0 &&
-      diskin2_async_available(csound)) {
+      diskin2_async_available(csound, 0)) {
 #ifdef __EMSCRIPTEN__
     DISKIN2 **top, *current;
 #endif
@@ -798,16 +897,15 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
 
 #ifdef __EMSCRIPTEN__
     top = (DISKIN2 **)csound->QueryGlobalVariable(csound, "DISKIN_INST");
-    if (top != NULL) {
-      current = *top;
-      if (current == NULL) {
-        *top = p;
-      }
-      else {
-        while (current->nxt != NULL)
-          current = current->nxt;
-        current->nxt = p;
-      }
+    p->nxt = NULL;
+    current = *top;
+    if (current == NULL) {
+      *top = p;
+    }
+    else {
+      while (current->nxt != NULL)
+        current = current->nxt;
+      current->nxt = p;
     }
 #else
     if (UNLIKELY(diskin2_add_instance(csound, p) != OK))
@@ -858,30 +956,35 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   return OK;
 }
 
-int32_t diskin2_async_deinit(CSOUND *csound, DISKIN2 *p){
-#ifndef __EMSCRIPTEN__
-  if (p->async)
-    return diskin2_remove_instance(csound, p);
-#elif defined(__EMSCRIPTEN__)
+int32_t diskin2_async_deinit(CSOUND *csound, DISKIN2 *p)
+{
+#ifdef __EMSCRIPTEN__
   if (p->async) {
     DISKIN2 **top, *current, *prv = NULL;
-    if ((top = (DISKIN2 **)
-         csound->QueryGlobalVariable(csound, "DISKIN_INST")) == NULL)
-      return NOTOK;
+
+    top = (DISKIN2 **) csound->QueryGlobalVariable(csound, "DISKIN_INST");
+    if (top == NULL) {
+      p->async = 0;
+      p->nxt = NULL;
+      return OK;
+    }
     current = *top;
-    while(current != NULL && current != p) {
+    while (current != NULL && current != p) {
       prv = current;
       current = current->nxt;
     }
-    if (UNLIKELY(current == NULL))
-      return NOTOK;
-    if (prv == NULL) *top = current->nxt;
-    else prv->nxt = current->nxt;
+    if (current != NULL) {
+      if (prv == NULL)
+        *top = current->nxt;
+      else
+        prv->nxt = current->nxt;
+    }
+    p->nxt = NULL;
     p->async = 0;
   }
 #else
-  IGN(csound);
-  IGN(p);
+  if (p->async)
+    return diskin2_remove_instance(csound, p);
 #endif
   return OK;
 }
@@ -1354,16 +1457,21 @@ static uintptr_t diskin_io_thread(void *p)
     entry = state->entries;
     diskin2_registry_unlock(csound);
     while (entry != NULL) {
-      DISKIN2 *current = (DISKIN2 *) entry->instance;
+      DISKIN2 *current;
+      DISKIN2_ASYNC_ENTRY *next;
+      INSDS *owner;
 
-      diskin2_entry_lock(csound, entry);
-      if (ATOMIC_GET(entry->active) &&
-          !ATOMIC_GET(current->asyncStopRequested))
-        diskin_file_read(csound, current);
-      diskin2_entry_unlock(csound, entry);
       diskin2_registry_lock(csound);
-      entry = entry->next;
+      next = entry->next;
       diskin2_registry_unlock(csound);
+      current = (DISKIN2 *)
+        diskin2_acquire_async_instance(csound, entry, &owner);
+      if (current != NULL) {
+        diskin_file_read(csound, current);
+        diskin2_release_async_instance(csound, state, entry, owner,
+                                       &current->asyncReaders, 0);
+      }
+      entry = next;
     }
   }
 #endif
@@ -1528,30 +1636,34 @@ static inline void diskin2_get_sample_array(CSOUND *csound,
 
 int32_t diskin2_async_deinit_array(CSOUND *csound, DISKIN2_ARRAY *p)
 {
-#ifndef __EMSCRIPTEN__
-  if (p->async)
-    return diskin2_remove_array_instance(csound, p);
-#elif defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
   if (p->async) {
-    DISKIN2_ARRAY  **top, *current, *prv;
-    if ((top = (DISKIN2_ARRAY **)
-         csound->QueryGlobalVariable(csound, "DISKIN_INST_ARRAY")) == NULL)
-      return NOTOK;
+    DISKIN2_ARRAY **top, *current, *prv = NULL;
+
+    top = (DISKIN2_ARRAY **) csound->QueryGlobalVariable(
+      csound, "DISKIN_INST_ARRAY");
+    if (top == NULL) {
+      p->async = 0;
+      p->nxt = NULL;
+      return OK;
+    }
     current = *top;
-    prv = NULL;
-    while(current != NULL && current != p) {
+    while (current != NULL && current != p) {
       prv = current;
       current = current->nxt;
     }
-    if (UNLIKELY(current == NULL))
-      return NOTOK;
-    if (prv == NULL) *top = current->nxt;
-    else prv->nxt = current->nxt;
+    if (current != NULL) {
+      if (prv == NULL)
+        *top = current->nxt;
+      else
+        prv->nxt = current->nxt;
+    }
+    p->nxt = NULL;
     p->async = 0;
   }
 #else
-  IGN(csound);
-  IGN(p);
+  if (p->async)
+    return diskin2_remove_array_instance(csound, p);
 #endif
   return OK;
 }
@@ -1778,16 +1890,21 @@ static uintptr_t diskin_io_thread_array(void *p)
     entry = state->arrayEntries;
     diskin2_registry_unlock(csound);
     while (entry != NULL) {
-      DISKIN2_ARRAY *current = (DISKIN2_ARRAY *) entry->instance;
+      DISKIN2_ARRAY *current;
+      DISKIN2_ASYNC_ENTRY *next;
+      INSDS *owner;
 
-      diskin2_entry_lock(csound, entry);
-      if (ATOMIC_GET(entry->active) &&
-          !ATOMIC_GET(current->asyncStopRequested))
-        diskin_file_read_array(csound, current);
-      diskin2_entry_unlock(csound, entry);
       diskin2_registry_lock(csound);
-      entry = entry->next;
+      next = entry->next;
       diskin2_registry_unlock(csound);
+      current = (DISKIN2_ARRAY *)
+        diskin2_acquire_async_instance(csound, entry, &owner);
+      if (current != NULL) {
+        diskin_file_read_array(csound, current);
+        diskin2_release_async_instance(csound, state, entry, owner,
+                                       &current->asyncReaders, 1);
+      }
+      entry = next;
     }
   }
 #endif
@@ -1813,6 +1930,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
           UNLIKELY(diskin2_async_deinit_array(csound, p) != OK))
         return csound->InitError(csound, "%s",
                                  Str("diskin2: could not stop async worker"));
+      diskin2_wait_for_readers(csound, &p->asyncReaders);
       csoundFDClose(csound, &(p->fdch));
     }
     // to handle raw files number of channels
@@ -1932,29 +2050,24 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
 
     memset(p->buf, 0, n*sizeof(MYFLT));
 
-
     if (csound->oparms->realtime == 1 && p->fforceSync == 0 &&
-        diskin2_async_available(csound)) {
+        diskin2_async_available(csound, 1)) {
 #ifdef __EMSCRIPTEN__
       DISKIN2_ARRAY **top, *current;
 #endif
       p->csound = csound;
       int32_t numelem = p->bufSize*p->nChannels;
-    
-     /* circular buffer is allocated once per opcode
-        instance and will be freed by csoundReset
-        we also make sure size is compatible
-      */
-    if(p->cb == NULL ||
-       csound->GetSizeCircularBuffer(csound,p->cb) < numelem) {
-       p->cb = csound->CreateCircularBuffer(csound,
-                                    numelem, sizeof(MYFLT));
-    }
-      if(p->cb == NULL) {
+
+      /* The circular buffer is allocated once per opcode instance and freed
+         by csoundReset. Reallocate it if the required size has grown. */
+      if (p->cb == NULL ||
+          csound->GetSizeCircularBuffer(csound, p->cb) < numelem) {
+        p->cb = csound->CreateCircularBuffer(csound, numelem, sizeof(MYFLT));
+      }
+      if (p->cb == NULL) {
         return csound->InitError(csound, "could not allocate circular buffer\n");
       }
 
-      // allocate buffer
       p->aOut_bufsize =
         ((unsigned int)p->bufSize) < CS_KSMPS ?
         ((MYFLT)CS_KSMPS) : ((MYFLT)p->bufSize);
@@ -1963,25 +2076,23 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
         csound->AuxAlloc(csound, (int32_t) n, &(p->auxData2));
       p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
       memset(p->aOut_buf, 0, n);
-      // allocate audio data buffer for asynchr processing
-      // this is used to copy interleaved data before output
+
+      /* Copy interleaved data here before writing opcode outputs. */
       n = CS_KSMPS*p->nChannels*sizeof(MYFLT);
       if (n != (int32_t)p->audioData.size)
-       csound->AuxAlloc(csound, (int32_t) n, &(p->audioData));
+        csound->AuxAlloc(csound, (int32_t) n, &(p->audioData));
 #ifdef __EMSCRIPTEN__
-      top =
-        (DISKIN2_ARRAY **)csound->QueryGlobalVariable(csound, "DISKIN_INST_ARRAY");
-      if (top != NULL) {
-        current = *top;
-        if (current == NULL) {
-          *top = p;
-        }
-        else {
-          while (current->nxt != NULL)
-            current = current->nxt;
-          current->nxt = p;
+      top = (DISKIN2_ARRAY **) csound->QueryGlobalVariable(
+        csound, "DISKIN_INST_ARRAY");
+      p->nxt = NULL;
+      current = *top;
+      if (current == NULL) {
+        *top = p;
+      }
+      else {
+        while (current->nxt != NULL)
           current = current->nxt;
-          }
+        current->nxt = p;
       }
 #else
       if (UNLIKELY(diskin2_add_array_instance(csound, p) != OK))

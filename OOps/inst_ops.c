@@ -147,7 +147,7 @@ int32_t delete_instr(CSOUND *csound, DELETEIN *p)
   active = ip->instance;
   while (active != NULL) {    /* Check there are no active instances */
     INSDS   *nxt = active->nxtinstance;
-    if (UNLIKELY(active->actflg)) { /* Can only remove non-active instruments */
+    if (UNLIKELY(active->actflg || instance_has_async_refs(active))) {
       char *name = csound->engineState.instrtxtp[n]->insname;
       if (name)
         return csound->InitError(csound,
@@ -206,7 +206,7 @@ int32_t delete_instrdef_opcode(CSOUND *csound, DELETE_INSTRDEF *p)
   active = ip->instance;
   while (active != NULL) {    /* Check there are no active instances */
     INSDS   *nxt = active->nxtinstance;
-    if (UNLIKELY(active->actflg)) { /* Can only remove non-active instruments */
+    if (UNLIKELY(active->actflg || instance_has_async_refs(active))) {
       char *name = csound->engineState.instrtxtp[n]->insname;
       if (name)
         return csound->InitError(csound,

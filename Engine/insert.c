@@ -45,6 +45,35 @@ static int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn,
 static int32_t insert(CSOUND *csound, int32_t insno, EVTBLK *newevtp);
 static void maxalloc_turnoff(CSOUND *csound, int32_t insno);
 
+int32_t instance_has_async_refs(const INSDS *ip)
+{
+  return ip != NULL && ATOMIC_GET(ip->async_ref_count) != 0;
+}
+
+INSDS *take_inactive_instance(CSOUND *csound, INSTRTXT *tp)
+{
+  INSDS *current = tp->act_instance;
+  INSDS *previous = NULL;
+
+  while (current != NULL && instance_has_async_refs(current)) {
+    previous = current;
+    current = current->nxtact;
+  }
+  if (current == NULL)
+    return NULL;
+  if (previous == NULL)
+    tp->act_instance = current->nxtact;
+  else
+    previous->nxtact = current->nxtact;
+  current->nxtact = NULL;
+
+  /* Deactivation leaves file handles open while a background user owns the
+     instance. The count is zero here, so reuse can finish that cleanup. */
+  if (current->fdchp != NULL)
+    fdchclose(csound, current);
+  return current;
+}
+
 static void alloc_queue_lock(CSOUND *csound)
 {
   if (csound->alloc_queue_mutex != NULL)
@@ -464,8 +493,7 @@ int32_t init0(CSOUND *csound)
   INSDS     *ip;
 
   instance(csound, 0);                            /* allocate instr 0     */
-  csound->curip = ip = tp->act_instance;
-  tp->act_instance = ip->nxtact;
+  csound->curip = ip = take_inactive_instance(csound, tp);
   csound->ids = (OPDS*) ip;
   tp->active++;
   ip->actflg++;
@@ -704,7 +732,8 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
 
   if(!tie) {
     /* alloc new dspace if needed */
-    if (tp->act_instance == NULL || tp->isNew) {
+    ip = tp->isNew ? NULL : take_inactive_instance(csound, tp);
+    if (ip == NULL) {
       csound->instance_count++;
       if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
@@ -715,14 +744,13 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       }
       instance(csound, insno);
       tp->isNew=0;
+      ip = take_inactive_instance(csound, tp);
     }
 
     /* pop from free instance chain */
     if(csoundGetDebug(csound) & DEBUG_RUNTIME)
      csoundMessage(csound, "insert(): tp->act_instance = %p\n", tp->act_instance);
-    ip = tp->act_instance;
     ATOMIC_SET(ip->init_done, 0);
-    tp->act_instance = ip->nxtact;
     ip->insno = (int16) insno;
     ip->esr = csound->esr;
     ip->pidsr = csound->pidsr;
@@ -1001,7 +1029,8 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   csound->inerrcnt = 0;
   ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
   /* alloc new dspace if needed */
-  if (tp->act_instance == NULL || tp->isNew) {
+  ip = tp->isNew ? NULL : take_inactive_instance(csound, tp);
+  if (ip == NULL) {
     if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
       if (UNLIKELY(name))
@@ -1011,11 +1040,10 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     }
     instance(csound, insno);
     tp->isNew = 0;
+    ip = take_inactive_instance(csound, tp);
   }
   /* pop from free instance chain */
-  ip = tp->act_instance;
   ATOMIC_SET(ip->init_done, 0);
-  tp->act_instance = ip->nxtact;
   ip->insno = (int16) insno;
 
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME))
@@ -1388,7 +1416,6 @@ static void deact(CSOUND *csound, INSDS *ip)
       frameCount++;
       break;
     }
-
     case DEACT_AFTER_UDO: {
       SUBINST *subinstr;
 
@@ -1440,6 +1467,10 @@ static void deact(CSOUND *csound, INSDS *ip)
         }
         /* Prevent a loop in kperf() if an inactive instance is passed in. */
         current->actflg = 0;
+        /* Finish synchronous file cleanup before publishing this instance to
+           the free list. The realtime init thread may reuse it at once. */
+        if (current->fdchp != NULL && !instance_has_async_refs(current))
+          fdchclose(csound, current);
         if (current->linked &&
             csound->engineState.instrtxtp[current->insno] ==
               current->instr) {
@@ -1450,7 +1481,9 @@ static void deact(CSOUND *csound, INSDS *ip)
         }
       }
 
-      if (current->fdchp != NULL)
+      /* An already inactive, unlinked instance is not published above. */
+      if (!current->linked && current->fdchp != NULL &&
+          !instance_has_async_refs(current))
         fdchclose(csound, current);
       csound->dag_changed++;
       frameCount--;
@@ -1593,23 +1626,26 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
 void free_inactive_instances(CSOUND *csound)
 {
   INSTRTXT  *txtp;
-  INSDS     *ip, *nxtip, *prvip, **prvnxtloc;
+  INSDS     *ip, *nxtip, *prvip, **prvnxtloc, *pending;
   int32_t       cnt = 0;
   for (txtp = &(csound->engineState.instxtanchor);
        txtp != NULL;  txtp = txtp->nxtinstxt) {
+    pending = NULL;
     if ((ip = txtp->instance) != NULL) {        /* if instance exists */
 
       prvip = NULL;
       prvnxtloc = &txtp->instance;
       do {
-        if (!ip->actflg) {
+        if (!ip->actflg && !instance_has_async_refs(ip)) {
           cnt++;
           if (ip->opcod_iobufs && ip->insno > csound->engineState.maxinsno)
             csound->Free(csound, ip->opcod_iobufs);
-          if (ip->fdchp != NULL)
+          if (ip->fdchp != NULL) {
             fdchclose(csound, ip);
-          if (ip->auxchp != NULL)
+          }
+          if (ip->auxchp != NULL) {
             auxchfree(csound, ip);
+          }
           free_instr_var_memory(csound, ip);
           if ((nxtip = ip->nxtinstance) != NULL)
             nxtip->prvinstance = prvip;
@@ -1617,6 +1653,10 @@ void free_inactive_instances(CSOUND *csound)
           csound->Free(csound, (char *)ip);
         }
         else {
+          if (!ip->actflg) {
+            ip->nxtact = pending;
+            pending = ip;
+          }
           prvip = ip;
           prvnxtloc = &ip->nxtinstance;
         }
@@ -1633,7 +1673,7 @@ void free_inactive_instances(CSOUND *csound)
       txtp->lst_instance = ip;
     }
 
-    txtp->act_instance = NULL;                /* no free instances */
+    txtp->act_instance = pending;
   }
   /* check current items in deadpool to see if they need deleting */
   {
@@ -1642,7 +1682,7 @@ void free_inactive_instances(CSOUND *csound)
       if (csound->dead_instr_pool[i] != NULL) {
         INSDS *active = csound->dead_instr_pool[i]->instance;
         while (active != NULL) {
-          if (active->actflg) {
+          if (active->actflg || instance_has_async_refs(active)) {
             // add_to_deadpool(csound,csound->dead_instr_pool[i]);
             break;
           }
@@ -2377,6 +2417,11 @@ void free_instance(CSOUND *csound, INSDS *ip) {
 
   // don't touch any instances that are in the act_instance chain
   if(ip->linked) return;
+
+  /* Unlinked instances cannot be left for the normal inactive-instance
+     pass. Wait off the realtime thread until their background users leave. */
+  while (instance_has_async_refs(ip))
+    csoundSleep(1);
 
   // deactivate any opcodes
   // NB: memory for these is freed elsewhere (free_inactive_instances)
