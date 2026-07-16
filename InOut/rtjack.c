@@ -395,6 +395,8 @@ static void openJackStreams(RtJackGlobals *p)
 
     size_t jack_sr = jack_get_sample_rate(p->client);
     csound->GetSystemSr(csound, jack_sr);
+    if (O->msglevel || O->odebug)
+      csound->Message(csound, "system sr: %f\n", csound->GetSystemSr(csound, 0));
     if(p->sampleRate < 0) p->sampleRate = jack_sr;
 
     /* check consistency of parameters */
