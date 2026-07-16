@@ -238,6 +238,7 @@ else()
     unset(BUILD_WASI_BROWSER CACHE)
     set(BUILD_WASI_BROWSER OFF)
 endif()
+option(BUILD_BELA "Build Bela main program" OFF)
 option(BUILD_WITH_LTO "Build with link-time optimisations" OFF)
 option(USE_SHORT_TABLE_LENGTH  "Build with original max table length 2^24" OFF)
 option(USE_ASA  "Use address sanitizer in Debug build" ON)
@@ -1438,6 +1439,11 @@ if(BUILD_MULTI_CORE)
 
 else()
     message(STATUS "Not building with multicore support.")
+endif()
+
+if(BUILD_BELA)
+    # Bela's hard realtime thread must not wait on a blocking mutex.
+    list(APPEND libcsound_CFLAGS -DCSOUND_NO_RT_MUTEX)
 endif()
 
 set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")

@@ -865,7 +865,7 @@ static const CSOUND cenviron_ = {
   NULL,           /* array_storage_lock */
   SPINLOCK_INIT,  /* array_storage_spinlock */
   SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
-  SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
+  SPINLOCK_INIT, SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
   NULL, NULL,             /* Delayed messages */
   {
     NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
@@ -1089,6 +1089,8 @@ static const CSOUND cenviron_ = {
   SPINLOCK_INIT,  /* alloc_queue_spinlock */
   NULL,           /* alloc_queue_mutex */
   SPINLOCK_INIT,  /* alloc_spinlock */
+  SPINLOCK_INIT,  /* diskin2_async_lock */
+  NULL,           /* diskin2_async_state */
   NULL,           /* init_event */
   NULL,           /* message_string */
   0,              /* message_string_queue_items */
@@ -1938,6 +1940,7 @@ static void reset(CSOUND *csound) {
   csound->spoutlock = saved_env->spoutlock;
   csound->spinlock1 = saved_env->spinlock1;
   csound->array_storage_spinlock = saved_env->array_storage_spinlock;
+  csound->open_files_lock = saved_env->open_files_lock;
 #endif
   csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
   memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
@@ -1965,6 +1968,7 @@ static void reset(CSOUND *csound) {
     csoundSpinLockInit(&csound->memlock);
     csoundSpinLockInit(&csound->spinlock1);
     csoundSpinLockInit(&csound->array_storage_spinlock);
+    csoundSpinLockInit(&csound->open_files_lock);
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "init spinlocks\n");
   }

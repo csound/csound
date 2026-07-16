@@ -295,6 +295,16 @@ int32_t start_engine(CSOUND *csound)
     if (O->Linein)
       linevent_open(csound);  /* if realtime input expected   */
 
+#ifndef __EMSCRIPTEN__
+    /* diskin2 may be used by instr 0 before the realtime queue is started. */
+    if (O->realtime &&
+        UNLIKELY(diskin2_async_setup(csound) != CSOUND_SUCCESS)) {
+      csound->ErrorMsg(csound, "%s",
+                       Str("Failed to initialise asynchronous diskin2\n"));
+      return CSOUND_ERROR;
+    }
+#endif
+
     /* run instr 0 inits */
     if (UNLIKELY(init0(csound) != 0))
       csoundDie(csound, Str("header init errors"));
@@ -496,6 +506,7 @@ int32_t csound_cleanup(CSOUND *csound)
         csound->engineState.instrtxtp[0]->instance &&
         csound->engineState.instrtxtp[0]->instance->actflg)
       xturnoff_now(csound, csound->engineState.instrtxtp[0]->instance);
+    diskin2_async_shutdown(csound);
     delete_pending_rt_events(csound);
 
     while (csound->freeEvtNodes != NULL) {

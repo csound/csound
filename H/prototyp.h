@@ -90,6 +90,8 @@ extern "C" {
                               const struct _alloc_data_ *data);
   int32_t alloc_queue_lock_init(CSOUND *csound);
   void alloc_queue_lock_destroy(CSOUND *csound);
+  int32_t diskin2_async_setup(CSOUND *csound);
+  void diskin2_async_shutdown(CSOUND *csound);
   int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
   int32_t insert_event(CSOUND *, int32_t,  EVTBLK*);
   void free_inactive_instances(CSOUND*);

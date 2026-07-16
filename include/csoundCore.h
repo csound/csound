@@ -1673,7 +1673,7 @@ struct CSOUND_ {
      Allocation and element copying happen after this lock is released. */
   spin_lock_t array_storage_spinlock;
   spin_lock_t spoutlock, spinlock;
-  spin_lock_t memlock, spinlock1;
+  spin_lock_t memlock, spinlock1, open_files_lock;
   char *delayederrormessages;
   void *printerrormessagesflag;
   struct sread__ sread;
@@ -1808,6 +1808,8 @@ struct CSOUND_ {
   spin_lock_t alloc_queue_spinlock;
   void *alloc_queue_mutex;
   spin_lock_t alloc_spinlock;
+  spin_lock_t diskin2_async_lock;
+  void *diskin2_async_state;
   EVTBLK *init_event;
   char *message_string;
   volatile unsigned long message_string_queue_items;

@@ -1,5 +1,3 @@
-option(BUILD_BELA "Build Bela main program" OFF)
-
 if(BUILD_BELA)
   message(STATUS "Building belacsound program.")
   if(NOT DEFINED BELA_HOME)

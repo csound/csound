@@ -646,6 +646,32 @@ char *csoundFindOutputFile(CSOUND *csound,
  *   On failure, NULL is returned.
  */
 
+/* Realtime init and note deactivation may update this registry concurrently.
+   Keep only pointer updates under the spinlock; file I/O must remain outside. */
+static void link_open_file(CSOUND *csound, CSFILE *file)
+{
+    csoundSpinLock(&csound->open_files_lock);
+    file->prv = NULL;
+    file->nxt = (CSFILE*) csound->open_files;
+    if (file->nxt != NULL)
+      file->nxt->prv = file;
+    csound->open_files = (void*) file;
+    csoundSpinUnLock(&csound->open_files_lock);
+}
+
+static void unlink_open_file(CSOUND *csound, CSFILE *file)
+{
+    csoundSpinLock(&csound->open_files_lock);
+    if (file->prv == NULL)
+      csound->open_files = (void*) file->nxt;
+    else
+      file->prv->nxt = file->nxt;
+    if (file->nxt != NULL)
+      file->nxt->prv = file->prv;
+    file->nxt = file->prv = NULL;
+    csoundSpinUnLock(&csound->open_files_lock);
+}
+
 void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
                      const char *name, void *param, const char *env,
                      int32_t csFileType, int32_t isTemporary)
@@ -726,7 +752,7 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
     p = (CSFILE*) csound->Malloc(csound, (size_t) nbytes);
     if (UNLIKELY(p == NULL))
       goto err_return;
-    p->nxt = (CSFILE*) csound->open_files;
+    p->nxt = (CSFILE*) NULL;
     p->prv = (CSFILE*) NULL;
     p->type = type;
     p->fd = tmp_fd;
@@ -814,9 +840,7 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
       *((int*) fd) = tmp_fd;
     }
     /* link into chain of open files */
-    if (csound->open_files != NULL)
-      ((CSFILE*) csound->open_files)->prv = p;
-    csound->open_files = (void*) p;
+    link_open_file(csound, p);
     /* notify the host if it asked */
     if (csound->FileOpenCallback_ != NULL) {
       int32_t writing = (type == CSFILE_SND_W || type == CSFILE_FD_W ||
@@ -878,7 +902,7 @@ void *csoundCreateFileHandle(CSOUND *csound,
     p = (CSFILE*) csound->Calloc(csound, (size_t) nbytes);
     if (p == NULL)
       return NULL;
-    p->nxt = (CSFILE*) csound->open_files;
+    p->nxt = (CSFILE*) NULL;
     p->prv = (CSFILE*) NULL;
     p->type = type;
     p->fd = -1;
@@ -906,9 +930,7 @@ void *csoundCreateFileHandle(CSOUND *csound,
       return NULL;
     }
     /* link into chain of open files */
-    if (csound->open_files != NULL)
-      ((CSFILE*) csound->open_files)->prv = p;
-    csound->open_files = (void*) p;
+    link_open_file(csound, p);
     /* return with opaque file handle */
     p->cb = NULL;
     return (void*) p;
@@ -933,6 +955,7 @@ int32_t csoundFileClose(CSOUND *csound, void *fd)
     int32_t     retval = -1;
     if (p->async_flag == ASYNC_GLOBAL) {
       csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+      unlink_open_file(csound, p);
       /* close file */
       switch (p->type) {
       case CSFILE_FD_R:
@@ -951,18 +974,12 @@ int32_t csoundFileClose(CSOUND *csound, void *fd)
           retval |= close(p->fd);
         break;
       }
-      /* unlink from chain of open files */
-      if (p->prv == NULL)
-        csound->open_files = (void*) p->nxt;
-      else
-        p->prv->nxt = p->nxt;
-      if (p->nxt != NULL)
-        p->nxt->prv = p->prv;
       if (p->buf != NULL) csound->Free(csound, p->buf);
       p->bufsize = 0;
       csound->DestroyCircularBuffer(csound, p->cb);
       csound->NotifyThreadLock(csound->file_io_threadlock);
     } else {
+      unlink_open_file(csound, p);
       /* close file */
       switch (p->type) {
       case CSFILE_FD_R:
@@ -979,13 +996,6 @@ int32_t csoundFileClose(CSOUND *csound, void *fd)
           retval |= close(p->fd);
         break;
       }
-      /* unlink from chain of open files */
-      if (p->prv == NULL)
-        csound->open_files = (void*) p->nxt;
-      else
-        p->prv->nxt = p->nxt;
-      if (p->nxt != NULL)
-        p->nxt->prv = p->prv;
     }
     /* free allocated memory */
     csound->Free(csound, fd);
