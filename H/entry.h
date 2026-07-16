@@ -63,6 +63,7 @@
 #include "ugtabs.h"
 #include "compile_ops.h"
 #include "lpred.h"
+#include "readline.h"
 #include "midiops3.h"
 #include "midiops2.h"
 #include "pitch.h"

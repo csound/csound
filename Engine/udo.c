@@ -750,6 +750,7 @@ static void pbr_apply_entries(CSOUND *csound,
                               UOPCODE *p,
                               OPDS *chain,
                               char *op_mem_start,
+                              XIN *xin,
                               const PBR_REWIRE_ENTRY *entries,
                               int32_t entry_count) {
   int32_t max_ar_index;
@@ -766,15 +767,32 @@ static void pbr_apply_entries(CSOUND *csound,
 
   for (i = 0; i < entry_count; i++) {
     const PBR_REWIRE_ENTRY *entry = &entries[i];
+    MYFLT *target;
 
     if (entry->ar_index < 0 || entry->ar_index >= max_ar_index) {
       continue;
     }
 
+    target = p->ar[entry->ar_index];
+    if (xin != NULL &&
+        entry->ar_index >= p->buf->opcode_info->outchns) {
+      int32_t input_index = entry->ar_index - p->buf->opcode_info->outchns;
+      int32_t output_index;
+
+      for (output_index = 0;
+           output_index < p->buf->opcode_info->outchns;
+           output_index++) {
+        if (p->ar[output_index] == target) {
+          target = xin->args[input_index];
+          break;
+        }
+      }
+    }
+
     rewire_argpp(csound,
                  (OPDS *)(op_mem_start + entry->opcode_mem_offset),
                  entry->arg_index,
-                 p->ar[entry->ar_index],
+                 target,
                  entry->structPath);
   }
 }
@@ -796,6 +814,60 @@ static void pbr_copy_value(CSOUND *csound, MYFLT *dst, MYFLT *src, INSDS *ctx) {
   } else {
     *dst = *src;
   }
+}
+
+static XIN *pbr_find_xin(INSDS *lcurip) {
+  OPDS *op;
+
+  if (lcurip == NULL) {
+    return NULL;
+  }
+
+  for (op = (OPDS *)lcurip->nxti; op != NULL; op = op->nxti) {
+    const char *opname = op->optext != NULL && op->optext->t.oentry != NULL ?
+      op->optext->t.oentry->opname : NULL;
+    if (opname != NULL && strcmp(opname, "xin") == 0) {
+      return (XIN *)op;
+    }
+  }
+
+  return NULL;
+}
+
+static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
+                                          UOPCODE *p,
+                                          INSDS *lcurip) {
+  OPCODINFO *udoinfo;
+  XIN *xin;
+  int32_t i;
+
+  if (p == NULL || p->buf == NULL || p->buf->opcode_info == NULL ||
+      lcurip == NULL) {
+    return NULL;
+  }
+
+  udoinfo = p->buf->opcode_info;
+  xin = NULL;
+
+  for (i = 0; i < udoinfo->inchns; i++) {
+    MYFLT *input = p->ar[udoinfo->outchns + i];
+    int32_t j;
+
+    for (j = 0; j < udoinfo->outchns; j++) {
+      if (p->ar[j] == input) {
+        if (xin == NULL) {
+          xin = pbr_find_xin(lcurip);
+          if (xin == NULL) {
+            return NULL;
+          }
+        }
+        pbr_copy_value(csound, xin->args[i], input, lcurip);
+        break;
+      }
+    }
+  }
+
+  return xin;
 }
 
 static int32_t pbr_is_readonly_source(MYFLT *src) {
@@ -1135,17 +1207,20 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
   OPCODINFO *udoinfo = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
   PBR_REWIRE_PLAN *plan = udoinfo != NULL ? udoinfo->pbr_plan : NULL;
   char *op_mem_start = pbr_get_opcode_mem_start(lcurip);
+  XIN *xin;
 
   if (plan == NULL || op_mem_start == NULL) {
     return;
   }
 
+  xin = pbr_snapshot_colliding_inputs(csound, p, lcurip);
+
   /* Rewire internal opcodes to point at caller storage.  For pass-through
      variables (xin->xout same name), the alias now points at the output slot
      so internal writes go to the caller's output variable. */
-  pbr_apply_entries(csound, p, lcurip->nxti, op_mem_start,
+  pbr_apply_entries(csound, p, lcurip->nxti, op_mem_start, xin,
                     plan->init_entries, plan->init_count);
-  pbr_apply_entries(csound, p, lcurip->nxtp, op_mem_start,
+  pbr_apply_entries(csound, p, lcurip->nxtp, op_mem_start, xin,
                     plan->perf_entries, plan->perf_count);
 
   /* Seed pass-through outputs before the internal chain runs.  Constants and
@@ -1223,6 +1298,26 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   if (tp == NULL)
     return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                              instno, inm->name);
+
+  if(csound->oparms->recursion_depth > 0
+     && inm->recurse_depth == 0) {
+    // set top frame jump for recursion depth exception
+    if (setjmp(inm->udojmp) != 0) {
+      inm->recurse_depth = 0;
+      return csound->InitError(csound,
+                               "error: UDO %s max recursion depth %d reached",
+                               inm->name, csound->oparms->recursion_depth);
+    }
+  }
+   // increment recursion depth count
+   inm->recurse_depth++;
+   if(csound->oparms->recursion_depth > 0 &&
+      inm->recurse_depth >
+      csound->oparms->recursion_depth) {
+     // exit gracefully from here back to top frame
+     longjmp(inm->udojmp, CSOUND_ERROR);
+   }
+  
   if (!p->ip) {
     /* search for already allocated, but not active instance */
     /* if none was found, allocate a new instance */
@@ -1275,8 +1370,6 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   lcurip->onedkr = CS_ONEDKR;
   lcurip->onedksmps = CS_ONEDKSMPS;
   lcurip->kicvt = CS_KICVT;
-
-
 
   /* VL 13-12-13 */
   /* this sets ksmps and kr local variables */
@@ -1368,13 +1461,16 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       err = (*csound->ids->init)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
+  // following init pass, decrement recursion depth count
+  inm->recurse_depth--;
 
   if(err) return err;
   if(inm->passByRef) {
     pbr_sync_pass_through_outputs(csound, p, lcurip);
     pbr_writeback_pass_through_inputs(csound, p, lcurip);
   }
-  csound->mode = 0;  ATOMIC_SET(p->ip->init_done, 1);
+  csound->mode = 0;
+  ATOMIC_SET(p->ip->init_done, 1);
 
   /* After init chain completes, materialise UDO outputs only for pass-by-copy.
      In pass-by-ref mode, internal outputs are already rewired to caller storage
@@ -2033,6 +2129,7 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
     return OK;
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
+  pbr_snapshot_colliding_inputs(csound, p, p->ip);
   pbr_seed_pass_through_outputs(csound, p, p->ip);
   p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
   if (UNLIKELY(!(CS_PDS = (OPDS*) (p->ip->nxtp))))

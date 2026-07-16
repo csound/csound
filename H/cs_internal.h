@@ -200,6 +200,8 @@ extern "C" {
     CS_VAR_POOL* out_arg_pool;
     CS_VAR_POOL* in_arg_pool;
     struct instr *ip;
+    int32_t recurse_depth;
+    jmp_buf udojmp;
     OENTRY *oentry;
     PBR_REWIRE_PLAN *pbr_plan;
     struct opcodinfo *prv;
@@ -231,6 +233,11 @@ extern "C" {
   } MODULE_INFO;
 
 #define MAX_ALLOC_QUEUE 1024
+#define ALLOC_DATA_SCORE_EVENT 0
+#define ALLOC_DATA_MIDI_EVENT 1
+#define ALLOC_DATA_INIT_PASS 2
+#define ALLOC_DATA_REINIT_PASS 3
+#define ALLOC_DATA_MERGE_STATE 4
   typedef struct _alloc_data_ {
     int32_t type;
     int32_t insno;
@@ -239,6 +246,8 @@ extern "C" {
     MEVENT mep;
     INSDS *ip;
     OPDS *ids;
+    ENGINE_STATE *engine_state;
+    struct type_table *type_table;
   } ALLOC_DATA;
 
 #define MAX_MESSAGE_STR 1024

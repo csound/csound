@@ -95,7 +95,9 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
 
     Args:
         test_index: Index of the test in the original test list
-        test_data: Test data tuple [filename, description, optional_expected_result]
+        test_data: Test data tuple [filename, description,
+            optional_expected_result, optional_run_args,
+            optional_application_args]
         run_args: Arguments to pass to csound
         temp_file: Temporary file for csound output
 
@@ -104,6 +106,8 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
     """
     filename = test_data[0]
     desc = test_data[1]
+    test_run_args = test_data[3] if len(test_data) >= 4 else run_args
+    application_args = test_data[4] if len(test_data) >= 5 else ""
 
     logger.debug(f"Starting test {test_index + 1}: {filename} - {desc}")
     start_time = time.time()
@@ -123,7 +127,10 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
             executable = f"{runtimeEnvironment} {executable}"
 
         # Use temp file for stderr capture (like the original implementation)
-        command = f"{executable} {run_args} {sourceDirectory}/{filename} 2> {temp_file}"
+        command = (
+            f"{executable} {test_run_args} {sourceDirectory}/{filename} "
+            f"{application_args} 2> {temp_file}"
+        )
 
         logger.debug(f"Executing command: {command}")
 
@@ -451,7 +458,13 @@ def runTest():
         ["test_parse_error_udo_missing_commas.csd", "expected failure: udo missing commas", 1],
         ["test_parse_error_udo_missing_arglist.csd", "expected failure: udo missing arg list", 1],
         ["test_gen49_defer.csd", "test GEN49 deferred length"],
+        ["test_ftload_binary_args_ownership.csd", "test binary ftload does not share args ownership"],
+        ["test_getftargs_empty_after_ftload.csd", "test getftargs returns empty args after binary ftload"],
         ["test_fail_compilestr.csd", "testing clean compilestr fail"],
+        [
+            "test_realtime_compile_opcodes.csd",
+            "test realtime init-thread compile opcodes",
+        ],
         ["test_global_struct_var.csd", "testing global structure var"],
         ["test_setscorepos.csd", "testing setscorepos and rewindscore"],
         ["test_instr0_call.csd", "testing ability to call instr 0"],
@@ -472,6 +485,10 @@ def runTest():
         ["test_instr_redefinition.csd", "allow instr redefinition"],
         ["test_instr0_labels.csd", "test labels in instr0 space"],
         ["test_string.csd", "test string assignment and printing"],
+        [
+            "test_string_preprocessor_whitespace.csd",
+            "preserve function-like whitespace inside strings",
+        ],
         ["test_sprintf.csd", "test string assignment and printing"],
         [
             "test_sprintf2.csd",
@@ -508,6 +525,11 @@ def runTest():
         [
             "test_arrays_negative_dimension_fail.csd",
             "test expected failure with negative dimension size and array",
+            1,
+        ],
+        [
+            "arrays/test_arrays_zero_dimension_fail.csd",
+            "test expected failure with zero dimension in multi-dimensional array",
             1,
         ],
         ["test_iarr_operators.csd", "test i[] operators"],
@@ -685,6 +707,26 @@ def runTest():
         ["test_generic_chan.csd", "testing generic bus channel"],
         ["test_generic_chan_no_match.csd", "testing type mismatch for bus channel", 1],
         ["test_bus_channels.csd", "testing bus channels"],
+        [
+            "test_commandline_args.csd",
+            "command line application arguments after -- are available through argv",
+            0,
+            "-nd",
+            '-- concert.orc "first violin" --logfile=ignored ""',
+        ],
+        [
+            "test_csoptions_args.csd",
+            "CsOptions application arguments after -- are available through argv",
+            0,
+            "-nd",
+        ],
+        [
+            "test_commandline_overrides_csoptions_args.csd",
+            "command line application arguments override CsOptions arguments",
+            0,
+            "-nd",
+            '-- concert.orc "first violin" --logfile=ignored ""',
+        ],
     ]
 
     arrayTests = [
@@ -703,6 +745,7 @@ def runTest():
         ["arrays/arrays_for_loop.csd", "tests for loops over array types"],
         ["arrays/test_redef_fail.csd", "fail on redefinition of variable by array", 1],
         ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],
+        ["arrays/test_empty_array_init.csd", "test zero-length array initialization"],
         ["complex_array_test.csd", "testing complex array ops"],
         ["test_array_channels.csd", "testing bus channels holding arrays"],
         ["fft_array_test.csd", "testing complex fft array ops"],
@@ -766,6 +809,31 @@ def runTest():
             "structs/test_struct_array_member_copy_fail.csd",
             "copying struct-array member out of a struct",
         ],
+        [
+            "structs/test_struct_array_member_with_scalar.csd",
+            "copying a struct-array member containing scalar fields",
+        ],
+        [
+            "structs/test_struct_member_array_struct_set.csd",
+            "assigning into a struct-array member inside a struct",
+        ],
+        [
+            "structs/test_recursive_struct_member_array_direct_index.csd",
+            "direct indexing of recursive struct-array members",
+        ],
+        [
+            "structs/test_struct_array_nested_condition_arg.csd",
+            "nested struct-array member reads inside boolean expression args",
+        ],
+        [
+            "structs/test_struct_init_partial_member_fails.csd",
+            "fail when struct init provides only some members",
+            "fail",
+        ],
+        [
+            "structs/test_string_array_direct_member_index.csd",
+            "direct indexing of a string-array struct member",
+        ],
         ["test_exitnowk.csd", "perf-time exitnow opcode"],
         ["test_udt_channel.csd", "testing user-defined type channel"],
         ["test_udt_chan_no_match.csd", "testing unmatched udt channel", 1],
@@ -791,6 +859,7 @@ def runTest():
             "test_udo_optional_after_instr.csd",
             "test new-style UDO optional args defined after instr",
         ],
+        ["test_udo_recursion.csd", "test for UDO recursion depth exception", 1]
     ]
 
     maxallocTests = [
@@ -830,7 +899,7 @@ def runTest():
     tests += maxallocTests
     tests += pfieldTests
     tests += mkirTests
-   
+
     output = ""
 
     retVals = []

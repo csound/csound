@@ -95,6 +95,7 @@ void allocate_message_queue(CSOUND *csound) {
 }
 
 
+
 /* enqueue should be called by the relevant API function */
 void *message_enqueue(CSOUND *csound, int32_t message, char *args,
                       int32_t argsiz) {
@@ -307,13 +308,25 @@ void kill_instance_enqueue(CSOUND *csound, MYFLT instr, int32_t insno,
 /* this is to be called from
    csound_compile_tree() in csound_orc_compile.c
 */
-void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *ids) {
+int32_t merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e,
+                            TYPE_TABLE *t, OPDS *ids) {
+  if (csound->oparms->realtime && csound->event_insert_loop &&
+      csound->alloc_queue != NULL) {
+    ALLOC_DATA data = { 0 };
+    data.engine_state = e;
+    data.type_table = t;
+    data.ids = ids;
+    data.type = ALLOC_DATA_MERGE_STATE;
+    return alloc_queue_enqueue(csound, &data);
+  }
+
   const int32_t argsize = ARG_ALIGN*3;
   char args[ARG_ALIGN*3];
   memcpy(args, &e, sizeof(ENGINE_STATE *));
   memcpy(args+ARG_ALIGN, &t, sizeof(TYPE_TABLE *));
   memcpy(args+2*ARG_ALIGN, &ids, sizeof(OPDS *));
   message_enqueue(csound,MERGE_STATE, args, argsize);
+  return CSOUND_SUCCESS;
 }
 
 /** Async versions of the functions above
@@ -428,6 +441,3 @@ void csound_table_copy_in(CSOUND *csound, int32_t table, const MYFLT *ptable) {
   if (csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
 }
-
-
-

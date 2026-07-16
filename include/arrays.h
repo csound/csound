@@ -59,7 +59,8 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx
           return;
         }
         p->arrayMemberSize = var->memBlockSize;
-        ss = (size_t)p->arrayMemberSize * (size_t)size;
+        int32_t allocCount = size > 0 ? size : 1;
+        ss = (size_t)p->arrayMemberSize * (size_t)allocCount;
         p->data = (MYFLT*)csound->Calloc(csound, ss);
         p->allocated = ss;
         // Initialize struct elements if user-defined type
@@ -68,14 +69,14 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx
           size_t blockSize = (size_t)var->memBlockSize;
           // Batch process struct arrays
           int32_t i = 0;
-          for (; i + 3 < size; i += 4) {
+          for (; i + 3 < allocCount; i += 4) {
             var->initializeVariableMemory(csound, var, (MYFLT*)(base + i * blockSize));
             var->initializeVariableMemory(csound, var, (MYFLT*)(base + (i + 1) * blockSize));
             var->initializeVariableMemory(csound, var, (MYFLT*)(base + (i + 2) * blockSize));
             var->initializeVariableMemory(csound, var, (MYFLT*)(base + (i + 3) * blockSize));
           }
           // The second loop only handles the remainder elements (0-3 elements at most)
-          for (; i < size; i++) {
+          for (; i < allocCount; i++) {
             var->initializeVariableMemory(csound, var, (MYFLT*)(base + i * blockSize));
           }
           csound->Free(csound, var);
@@ -141,7 +142,8 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
         return;
       }
       p->arrayMemberSize = var->memBlockSize;
-      size_t bytes = (size_t)p->arrayMemberSize * (size_t)elemCount;
+      uint32_t allocCount = elemCount > 0 ? elemCount : 1;
+      size_t bytes = (size_t)p->arrayMemberSize * (size_t)allocCount;
       p->data = (MYFLT*)csound->Calloc(csound, bytes);
       p->allocated = bytes;
       // Initialize struct elements if it's UDT
@@ -150,14 +152,14 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
         size_t blockSize = (size_t)var->memBlockSize;
         // Batch process arrays
         uint32_t i = 0;
-        for (; i + 3 < elemCount; i += 4) {
+        for (; i + 3 < allocCount; i += 4) {
           var->initializeVariableMemory(csound, var, (MYFLT*)(base + i * blockSize));
           var->initializeVariableMemory(csound, var, (MYFLT*)(base + (i + 1) * blockSize));
           var->initializeVariableMemory(csound, var, (MYFLT*)(base + (i + 2) * blockSize));
           var->initializeVariableMemory(csound, var, (MYFLT*)(base + (i + 3) * blockSize));
         }
         // The second loop only handles the remainder elements (0-3 elements at most)
-        for (; i < elemCount; i++) {
+        for (; i < allocCount; i++) {
           var->initializeVariableMemory(csound, var, (MYFLT*)(base + i * blockSize));
         }
       }

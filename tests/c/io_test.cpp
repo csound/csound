@@ -106,6 +106,27 @@ int32_t key_callback_txt(void *userData, void *p, uint32_t type)
     return CSOUND_SUCCESS;
 }
 
+struct ReadlineInput {
+    const char *text;
+    size_t position;
+};
+
+int32_t readline_callback(void *userData, void *p, uint32_t type)
+{
+    ReadlineInput *input = (ReadlineInput *) userData;
+    unsigned char character = (unsigned char) input->text[input->position];
+
+    *((int32_t *) p) = (int32_t) character;
+    if (character != '\0')
+        input->position++;
+    return CSOUND_SUCCESS;
+}
+
+int32_t readline_error_callback(void *, void *, uint32_t)
+{
+    return CSOUND_ERROR;
+}
+
 TEST_F (IOTests, testKeyboardIO)
 {
     int32_t ret, prev = 100;
@@ -144,6 +165,177 @@ TEST_F (IOTests, testKeyboardIO)
 
     // val = csoundGetControlChannel(csound, "down2", &err);
     // ASSERT_DOUBLE_EQ (val, 1.0);
+}
+
+TEST_F (IOTests, testReadline)
+{
+    ReadlineInput input = {
+        "acd\033[D\033[Db\033[CX\177\033[C\n", 0
+    };
+    int32_t ret = csoundRegisterKeyboardCallback(
+        csound, readline_callback, &input, CSOUND_CALLBACK_KBD_TEXT);
+    ASSERT_EQ(ret, CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+
+    const char *instrument =
+        "ksmps = 1\n"
+        "chnk \"readline_status\", 2\n"
+        "chnS \"readline_line\", 2\n"
+        "instr 1\n"
+        "  Sline, kstatus readline \"\"\n"
+        "  if (kstatus == 1) then\n"
+        "    chnset Sline, \"readline_line\"\n"
+        "    chnset kstatus, \"readline_status\"\n"
+        "  endif\n"
+        "endin\n";
+
+    ASSERT_EQ(csoundCompileOrc(csound, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    MYFLT status = 0;
+    int32_t error = 0;
+    for (int32_t cycle = 0; cycle < 32 && status == 0; cycle++) {
+        ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+        status = csoundGetControlChannel(csound, "readline_status", &error);
+        ASSERT_EQ(error, CSOUND_SUCCESS);
+    }
+
+    char line[32];
+    ASSERT_EQ(status, FL(1.0));
+    csoundGetStringChannel(csound, "readline_line", line);
+    ASSERT_STREQ(line, "abcd");
+}
+
+TEST_F (IOTests, testReadlineHostInput)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+
+    const char *instrument =
+        "ksmps = 1\n"
+        "chnk \"readline_status\", 2\n"
+        "chnS \"readline_line\", 2\n"
+        "instr 1\n"
+        "  Sline, kstatus readline \"\"\n"
+        "  if (kstatus == 1) then\n"
+        "    chnset Sline, \"readline_line\"\n"
+        "    chnset kstatus, \"readline_status\"\n"
+        "  endif\n"
+        "endin\n";
+
+    ASSERT_EQ(csoundCompileOrc(csound, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundReadlinePushText(csound, "from host\n"),
+              CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    MYFLT status = 0;
+    int32_t error = 0;
+    for (int32_t cycle = 0; cycle < 32 && status == 0; cycle++) {
+        ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+        status = csoundGetControlChannel(csound, "readline_status", &error);
+        ASSERT_EQ(error, CSOUND_SUCCESS);
+    }
+
+    char line[32];
+    ASSERT_EQ(status, FL(1.0));
+    csoundGetStringChannel(csound, "readline_line", line);
+    ASSERT_STREQ(line, "from host");
+}
+
+TEST_F (IOTests, testReadlineRejectsSecondPrompt)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+
+    const char *instrument =
+        "ksmps = 1\n"
+        "instr 1\n"
+        "  Sfirst, kfirst readline \"first> \"\n"
+        "  Ssecond, ksecond readline \"second> \"\n"
+        "endin\n";
+
+    ASSERT_EQ(csoundCompileOrc(csound, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    ASSERT_NE(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+}
+
+TEST_F (IOTests, testReadlineReportsEof)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+
+    const char *instrument =
+        "ksmps = 1\n"
+        "chnk \"readline_status\", 2\n"
+        "chnk \"second_readline_status\", 2\n"
+        "chnS \"second_readline_line\", 2\n"
+        "instr 1\n"
+        "  Sline, kstatus readline \"\"\n"
+        "  chnset kstatus, \"readline_status\"\n"
+        "endin\n"
+        "instr 2\n"
+        "  Sline, kstatus readline \"\"\n"
+        "  if (kstatus == 1) then\n"
+        "    chnset Sline, \"second_readline_line\"\n"
+        "    chnset kstatus, \"second_readline_status\"\n"
+        "  endif\n"
+        "endin\n";
+
+    ASSERT_EQ(csoundCompileOrc(csound, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    csoundKeyPress(csound, '\004');
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    int32_t error = 0;
+    MYFLT status = csoundGetControlChannel(
+        csound, "readline_status", &error);
+    ASSERT_EQ(error, CSOUND_SUCCESS);
+    ASSERT_EQ(status, FL(-1.0));
+
+    csoundEventString(csound, "i 2 0 1", 0);
+    csoundKeyPress(csound, 'x');
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    csoundKeyPress(csound, '\n');
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    status = csoundGetControlChannel(
+        csound, "second_readline_status", &error);
+    ASSERT_EQ(error, CSOUND_SUCCESS);
+    ASSERT_EQ(status, FL(1.0));
+
+    char line[8];
+    csoundGetStringChannel(csound, "second_readline_line", line);
+    ASSERT_STREQ(line, "x");
+}
+
+TEST_F (IOTests, testReadlineReleasesInputAfterError)
+{
+    const char *instrument =
+        "ksmps = 1\n"
+        "instr 1\n"
+        "  Sline, kstatus readline \"\"\n"
+        "endin\n";
+    ASSERT_EQ(csoundRegisterKeyboardCallback(
+        csound, readline_error_callback, nullptr,
+        CSOUND_CALLBACK_KBD_TEXT), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    // A performance error need not change this control period's return value.
+    (void) csoundPerformKsmps(csound);
+
+    CSOUND *other = csoundCreate(NULL, NULL);
+    ASSERT_NE(other, nullptr);
+    csoundCreateMessageBuffer(other, 0);
+    ASSERT_EQ(csoundSetOption(other, "--logfile=NULL"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(other, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(other, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(other, "i 1 0 1", 0);
+    ASSERT_EQ(csoundStart(other), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundPerformKsmps(other), CSOUND_SUCCESS);
+    csoundDestroy(other);
 }
 
 

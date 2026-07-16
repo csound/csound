@@ -33,6 +33,9 @@ if(BUILD_TESTS)
         ugen_test.cpp
     )
 
+    set(unittests_CFLAGS ${libcsound_CFLAGS})
+    list(REMOVE_ITEM unittests_CFLAGS -D__BUILDING_LIBCSOUND)
+    target_compile_options(unittests PRIVATE ${unittests_CFLAGS})
     target_compile_features(unittests PUBLIC cxx_std_17)
 
     target_include_directories(${CSOUNDLIB} PRIVATE ${libcsound_private_include_dirs})

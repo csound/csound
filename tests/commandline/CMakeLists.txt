@@ -8,6 +8,12 @@
 
 find_package(Python3 COMPONENTS Interpreter QUIET)
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/test_realtime_compile_opcodes.orc
+  ${CMAKE_CURRENT_BINARY_DIR}/test_realtime_compile_opcodes.orc
+  COPYONLY
+)
+
 if(Python3_Interpreter_FOUND)
   # Build the common test arguments
   set(COMMON_TEST_ARGS --csound-executable=${CMAKE_BINARY_DIR}/csound --source-dir=${CMAKE_CURRENT_SOURCE_DIR})
@@ -85,5 +91,4 @@ if(Python3_Interpreter_FOUND)
 else()
   message(STATUS "Python3 not found; not creating commandline test targets.")
 endif()
-
 

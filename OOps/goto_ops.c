@@ -113,14 +113,23 @@ int32_t reinit(CSOUND *csound, GOTO *p)
     csound->reinitflag = p->h.insdshead->reinitflag = 0;
   }
   else {
-    uint64_t wp = csound->alloc_queue_wp;
+    int32_t init_done = ATOMIC_GET(p->h.insdshead->init_done);
+    int32_t actflg = ATOMIC_GET8(p->h.insdshead->actflg);
+    ALLOC_DATA data = { 0 };
+
     ATOMIC_SET(p->h.insdshead->init_done, 0);
     ATOMIC_SET8(p->h.insdshead->actflg, 0);
-    csound->alloc_queue[wp].ip = p->h.insdshead;
-    csound->alloc_queue[wp].ids = p->lblblk->prvi;
-    csound->alloc_queue[wp].type = 3;
-    csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
-    ATOMIC_INCR(csound->alloc_queue_items);
+    data.ip = p->h.insdshead;
+    data.ids = p->lblblk->prvi;
+    data.type = ALLOC_DATA_REINIT_PASS;
+
+    if (UNLIKELY(alloc_queue_enqueue(csound, &data) != CSOUND_SUCCESS)) {
+      ATOMIC_SET(p->h.insdshead->init_done, init_done);
+      ATOMIC_SET8(p->h.insdshead->actflg, actflg);
+      csound->reinitflag = p->h.insdshead->reinitflag = 0;
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("reinit: realtime allocation queue is full"));
+    }
     return NOTOK;
   }
   return OK;

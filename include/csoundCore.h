@@ -1536,6 +1536,8 @@ struct CSOUND_ {
   void (*audtran)(CSOUND *, const MYFLT *, int32_t);
   void *hostdata;
   char *orchname, *scorename;
+  int32_t commandLineArgCount;
+  char **commandLineArgs;
   CORFIL *orchstr, *scorestr;
   OPDS *ids;                /* used by init loops */
   ENGINE_STATE engineState; /* current Engine State merged after
@@ -1622,8 +1624,6 @@ struct CSOUND_ {
   int32_t csoundIsScorePending_;
   int64_t advanceCnt;
   int32_t initonly;
-  int32_t evt_poll_cnt;
-  int32_t evt_poll_maxcnt;
   int32_t Mforcdecs, Mxtroffs, MTrkend;
   OPCODINFO *opcodeInfo;
   FUNC **flist;
@@ -1791,6 +1791,8 @@ struct CSOUND_ {
   ALLOC_DATA *alloc_queue;
   volatile unsigned long alloc_queue_items;
   unsigned long alloc_queue_wp;
+  spin_lock_t alloc_queue_spinlock;
+  void *alloc_queue_mutex;
   spin_lock_t alloc_spinlock;
   EVTBLK *init_event;
   char *message_string;

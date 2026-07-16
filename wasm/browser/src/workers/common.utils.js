@@ -50,7 +50,10 @@ export const handleCsoundStart =
         createRealtimeAudioThread(arguments_);
       } else {
         // Do rendering
-        workerMessagePort.broadcastPlayState("renderStarted");
+        workerMessagePort.broadcastPlayState(
+          "renderStarted",
+          arguments_["performanceGeneration"],
+        );
         if (renderFunction) {
           renderFunction(arguments_);
         } else {
@@ -89,5 +92,5 @@ export const renderFunction =
       }
     }
 
-    workerMessagePort.broadcastPlayState("renderEnded");
+    workerMessagePort.broadcastPlayState("renderEnded", payload["performanceGeneration"]);
   };

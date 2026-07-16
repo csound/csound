@@ -182,6 +182,7 @@ static const char *shortUsageList[] = {
     Str_noop("-Q dnam     select MIDI output device"),
     Str_noop("-z          list opcodes in this version"),
     Str_noop("-Z          dither output"),
+    Str_noop("-- args...  expose following arguments through the argv opcode"),
 #if defined(LINUX)
     Str_noop("--sched     set real-time priority and lock memory"),
     Str_noop("              (requires -d and real time audio (-iadc/-odac))"),
@@ -191,6 +192,7 @@ static const char *shortUsageList[] = {
     NULL};
 
 static const char *longUsageList[] = {
+    Str_noop("-- args...              application arguments for the argv opcode"),
     Str_noop("--code=string           compile code string"),
     Str_noop("--events=string         perform events in string"), 
     "--format={wav,aiff,au,raw,paf,svx,nist,voc,ircam,w64,mat4,mat5",
@@ -348,6 +350,7 @@ static const char *longUsageList[] = {
     Str_noop("--run-unit-tests        enable assertion opcodes and report test failures"),
     Str_noop("                          (assertions are ignored by default)"),
     Str_noop("--error-deprecated      trigger compilation error on deprecated opcodes"),
+    Str_noop("--recursion-depth=n    set max UDO recursion depth to n"),
     Str_noop("--help                  long help"),
     NULL};
 
@@ -1235,9 +1238,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     s += 14;
     O->kr_default = O->sr_default / atof(s);
     return 1;
-  }
-
-  else if (!(strcmp(s, "aft-zero"))) {
+  } else if (!(strcmp(s, "aft-zero"))) {
     csound->aftouch = 0;
     return 1;
   } else if (!(strncmp(s, "limiter=", 8))) {
@@ -1248,10 +1249,14 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
                        Str("Ignoring invalid limiter\n"));
       O->limiter = 0;
     }
-    return 1;
-
+   return 1;
   } else if (!(strcmp(s, "limiter"))) {
     O->limiter = 0.5;
+    return 1;
+  } else if (!(strncmp(s, "recursion-depth=", 16))) {
+    s += 16;
+    int32_t depth = atof(s);
+    O->recursion_depth = depth > 0 ? depth : 0;
     return 1;
   } else if (!(strcmp(s, "vbr"))) {
 #ifdef SNDFILE_MP3
@@ -1290,6 +1295,22 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   return 1;
 }
 
+static int32_t capture_application_arguments(CSOUND *csound, int32_t *argc,
+                                             const char **argv)
+{
+  for (int32_t index = 1; index <= *argc; index++) {
+    if (argv[index] != NULL && strcmp(argv[index], "--") == 0) {
+      /* Option sources are decoded in precedence order. A later separator
+         replaces application arguments captured from an earlier source. */
+      int32_t result = csoundSetCommandLineArgs(
+        csound, *argc - index, &argv[index + 1]);
+      *argc = index - 1;
+      return result;
+    }
+  }
+  return CSOUND_SUCCESS;
+}
+
 int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
   OPARMS *O = csound->oparms;
   char *s, **argv;
@@ -1299,6 +1320,13 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
   /* make a copy of the option list */
   char *p1, *p2;
   int32_t nbytes, i;
+  if (UNLIKELY(capture_application_arguments(csound, &argc, argv_) !=
+               CSOUND_SUCCESS)) {
+    return 0;
+  }
+  if (argc == 0) {
+    return 1;
+  }
   /* calculate the number of bytes to allocate */
   /* N.B. the argc value passed to argdecode is decremented by one */
   nbytes = (argc + 1) * (int32_t)sizeof(char *);

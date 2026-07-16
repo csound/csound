@@ -643,6 +643,7 @@ static const CSOUND cenviron_ = {
   (void (*)(CSOUND *, const MYFLT *, int32_t)) NULL,  /*  audtran     */
   NULL,           /*  hostdata            */
   NULL, NULL,     /*  orchname, scorename */
+  0, NULL,        /*  command line args   */
   NULL, NULL,     /*  orchstr, *scorestr  */
   (OPDS*) NULL,   /*  ids                 */
   { (CS_VAR_POOL*)NULL,
@@ -828,8 +829,6 @@ static const CSOUND cenviron_ = {
   1,              /*  csoundIsScorePending_ */
   0,              /*  advanceCnt          */
   0,              /*  initonly            */
-  0,              /*  evt_poll_cnt        */
-  0,              /*  evt_poll_maxcnt     */
   0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
   NULL,           /*  opcodeInfo  */
   NULL,           /*  flist               */
@@ -1022,7 +1021,9 @@ static const CSOUND cenviron_ = {
     0.0,           /*   limiter */
     DFLT_SR, DFLT_KR,  /* defaults */
     0,             /* mp3 mode */
-    0              /* instr redefinition flag */
+    0,             /* instr redefinition flag */
+    0,             /* deprecation error flag */
+    1000           /* MAX udo recursion depth */
   },
   {0, 0, {0}}, /* REMOT_BUF */
   NULL,           /* remoteGlobals        */
@@ -1081,6 +1082,8 @@ static const CSOUND cenviron_ = {
   NULL,           /* alloc_queue */
   0,              /* alloc_queue_items */
   0,              /* alloc_queue_wp */
+  SPINLOCK_INIT,  /* alloc_queue_spinlock */
+  NULL,           /* alloc_queue_mutex */
   SPINLOCK_INIT,  /* alloc_spinlock */
   NULL,           /* init_event */
   NULL,           /* message_string */
@@ -2387,4 +2390,3 @@ MYFLT csoundSetReleaseLengthSeconds(void *p, MYFLT n) {
   return ((MYFLT)((OPDS *)p)->insdshead->xtratim *
           ((OPDS *)p)->insdshead->csound->onedkr);
 }
-

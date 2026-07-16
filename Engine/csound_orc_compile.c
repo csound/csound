@@ -53,8 +53,8 @@ static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 in
                                  ENGINE_STATE *engineState, int32_t merge);
 
 MYFLT initialise_io(CSOUND *csound);
-void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
-                         OPDS *ids);
+int32_t merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
+                            OPDS *ids);
 OENTRY* find_opcode(CSOUND*, char*);
 void sanitize(CSOUND *csound);
 
@@ -1790,6 +1790,19 @@ static char *node2string(int32_t type) {
   }
 }
 
+static void merge_engine_state(CSOUND *csound, ENGINE_STATE *engineState,
+                               TYPE_TABLE *typetable) {
+  enginestate_merge(csound, engineState);
+  enginestate_free(csound, engineState);
+  free_typetable(csound, typetable);
+}
+
+static void run_merged_global_init(CSOUND *csound, OPDS *ids) {
+  /* run global i-time code */
+  init0(csound);
+  csound->ids = ids;
+}
+
 /** Merge and Dispose of engine state and type table,
     and run global i-time code
 */
@@ -1797,12 +1810,23 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
                  TYPE_TABLE *typetable, OPDS *ids) {
   if (csound->init_pass_threadlock)
     csoundLockMutex(csound->init_pass_threadlock);
-  enginestate_merge(csound, engineState);
-  enginestate_free(csound, engineState);
-  free_typetable(csound, typetable);
-  /* run global i-time code */
-  init0(csound);
-  csound->ids = ids;
+  merge_engine_state(csound, engineState, typetable);
+  run_merged_global_init(csound, ids);
+  if (csound->init_pass_threadlock)
+    csoundUnlockMutex(csound->init_pass_threadlock);
+}
+
+void merge_state_realtime(CSOUND *csound, ENGINE_STATE *engineState,
+                          TYPE_TABLE *typetable, OPDS *ids) {
+  if (csound->init_pass_threadlock)
+    csoundLockMutex(csound->init_pass_threadlock);
+  /* Keep the init-lock-before-allocation-lock order used by realtime init. */
+  csoundSpinLock(&csound->alloc_spinlock);
+  named_instr_assign_numbers(csound, engineState);
+  merge_engine_state(csound, engineState, typetable);
+  csoundSpinUnLock(&csound->alloc_spinlock);
+  /* Global i-time opcodes may acquire the allocation lock themselves. */
+  run_merged_global_init(csound, ids);
   if (csound->init_pass_threadlock)
     csoundUnlockMutex(csound->init_pass_threadlock);
 }
@@ -2115,11 +2139,14 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       if (!csound->oparms->realtime)
         csoundUnlockMutex(csound->API_lock);
     } else {
-      if (csound->oparms->realtime)
-        csoundSpinLock(&csound->alloc_spinlock);
-      merge_state_enqueue(csound, engineState, typeTable, ids);
-      if (csound->oparms->realtime)
-        csoundSpinUnLock(&csound->alloc_spinlock);
+      if (UNLIKELY(merge_state_enqueue(csound, engineState,
+                                       typeTable, ids) != CSOUND_SUCCESS)) {
+        csound->ErrorMsg(csound, "%s", Str("cannot merge compiled orchestra: "
+                                           "realtime allocation queue is full\n"));
+        enginestate_free(csound, engineState);
+        free_typetable(csound, typeTable);
+        return CSOUND_ERROR;
+      }
     }
   } else {
     /* now add the instruments with names, assigning them fake instr numbers */

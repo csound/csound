@@ -32,7 +32,10 @@ export const messageEventHandler = (worker) => (event) => {
       worker.publicEvents.triggerDebugCallback();
     }
   } else if (event.data["playStateChange"] && worker && worker["onPlayStateChange"]) {
-    worker["onPlayStateChange"](event.data["playStateChange"]);
+    worker["onPlayStateChange"](
+      event.data["playStateChange"],
+      event.data["performanceGeneration"],
+    );
   }
 };
 

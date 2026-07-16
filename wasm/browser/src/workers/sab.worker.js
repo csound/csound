@@ -80,6 +80,7 @@ const sabCreateRealtimeAudioThread =
     const audioStreamOut = argumentz["audioStreamOut"];
     const midiBuffer = argumentz["midiBuffer"];
     const csound = argumentz["csound"];
+    const performanceGeneration = argumentz["performanceGeneration"];
 
     const audioStatePointer = new Int32Array(audioStateBuffer);
 
@@ -145,7 +146,10 @@ const sabCreateRealtimeAudioThread =
       );
     }
 
-    workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
+    workerMessagePort.broadcastPlayState(
+      "realtimePerformanceStarted",
+      performanceGeneration,
+    );
     // Let's notify the audio-worker that performance has started
     Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 1);
 
@@ -172,9 +176,12 @@ const sabCreateRealtimeAudioThread =
           libraryCsound.csoundPerformKsmps(csound);
         }
         log(`triggering realtimePerformanceEnded event`)();
-        workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+        workerMessagePort.broadcastPlayState(
+          "realtimePerformanceEnded",
+          performanceGeneration,
+        );
         log(`End of realtimePerformance loop!`)();
-        releaseStop();
+        releaseStop(performanceGeneration);
         return true;
       } else {
         return false;
@@ -327,9 +334,12 @@ const sabCreateRealtimeAudioThread =
 const initMessagePort = ({ port }) => {
   const workerMessagePort = new MessagePortState();
   workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog });
-  workerMessagePort.broadcastPlayState = (playStateChange) => {
+  workerMessagePort.broadcastPlayState = (playStateChange, performanceGeneration) => {
     const payload = {};
     payload["playStateChange"] = playStateChange;
+    if (performanceGeneration !== undefined) {
+      payload["performanceGeneration"] = performanceGeneration;
+    }
     port.postMessage(payload);
   };
   workerMessagePort.broadcastSabUnlocked = () => port.postMessage({ sabWorker: "unlocked" });
@@ -384,6 +394,7 @@ const renderFunction =
   async (argumentz) => {
     const audioStateBuffer = argumentz["audioStateBuffer"];
     const csound = argumentz["csound"];
+    const performanceGeneration = argumentz["performanceGeneration"];
     const audioStatePointer = new Int32Array(audioStateBuffer);
     Atomics.store(audioStatePointer, AUDIO_STATE.IS_RENDERING, 1);
     workerMessagePort.broadcastSabUnlocked();
@@ -408,8 +419,8 @@ const renderFunction =
       }
     }
     Atomics.store(audioStatePointer, AUDIO_STATE.IS_RENDERING, 0);
-    workerMessagePort.broadcastPlayState("renderEnded");
-    releaseStop();
+    workerMessagePort.broadcastPlayState("renderEnded", performanceGeneration);
+    releaseStop(performanceGeneration);
   };
 
 /** @export */
@@ -422,7 +433,12 @@ const initialize = async (payload) => {
   log(`initializing SABWorker and WASM`)();
   const workerMessagePort = initMessagePort({ port: messagePort });
   const callbacksRequest = () => callbackPort.postMessage("poll");
-  const releaseStop = () => callbackPort.postMessage("releaseStop");
+  const releaseStop = (performanceGeneration) => {
+    const payload = {};
+    payload["type"] = "releaseStop";
+    payload["performanceGeneration"] = performanceGeneration;
+    callbackPort.postMessage(payload);
+  };
   const releasePause = () => callbackPort.postMessage("releasePause");
   const releaseResumed = () => callbackPort.postMessage("releaseResumed");
 

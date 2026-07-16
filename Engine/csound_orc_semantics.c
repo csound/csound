@@ -320,7 +320,12 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
 
         char *elementType = NULL;
         int len = (int)strlen(structArrayType);
-        if (structArrayType[0] == ':') {
+        if (len >= 3 && structArrayType[0] == '[' &&
+            structArrayType[len - 1] == ']') {
+          elementType = csound->Malloc(csound, len - 1);
+          strncpy(elementType, structArrayType + 1, len - 2);
+          elementType[len - 2] = '\0';
+        } else if (structArrayType[0] == ':') {
           char *semicolon = strchr(structArrayType, ';');
           if (semicolon != NULL) {
             int typeNameLen = (int)(semicolon - structArrayType - 1);
@@ -1468,6 +1473,26 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 }
 
 
+OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
+                             const char* outArgTypes,
+                             const char* inArgTypes) {
+  IGN(csound);
+  int32_t i;
+
+  const char* outTest = (outArgTypes == NULL || !strcmp("0", outArgTypes)) ?
+                          "" : outArgTypes;
+  const char* inTest = (inArgTypes == NULL || !strcmp("0", inArgTypes)) ?
+                         "" : inArgTypes;
+  for (i = 0; i < entries->count; i++) {
+    OENTRY* temp = entries->entries[i];
+    if (temp->intypes != NULL && !strcmp(inTest, temp->intypes) &&
+        temp->outypes != NULL && !strcmp(outTest, temp->outypes)) {
+      return temp;
+    }
+  }
+  return NULL;
+}
+
 /* Given an OENTRIES list, resolve to a single OENTRY* based on the
  * found in- and out- argtypes.  Returns NULL if opcode could not be
  * resolved. If more than one entry matches, mechanism assumes there
@@ -1477,6 +1502,14 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
                        char* outArgTypes, char* inArgTypes) {
   int32_t i, check;
+  OENTRY* exact;
+
+  /* A polymorphic or variadic entry must not shadow a concrete signature. */
+  if ((exact = resolve_opcode_exact(csound, entries,
+                                    outArgTypes, inArgTypes)) != NULL) {
+    return exact;
+  }
+
   for (i = 0; i < entries->count; i++) {
     OENTRY* temp = entries->entries[i];
     if ((check = check_in_args(csound, inArgTypes, temp->intypes)) &&
@@ -1488,23 +1521,6 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
                 args_required(inArgTypes), temp->opname, VARGMAX);
         return NULL;
       }
-      return temp;
-    }
-  }
-  return NULL;
-}
-
-
-OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
-                             char* outArgTypes, char* inArgTypes) {
-  IGN(csound);
-  int32_t i;
-
-  char* outTest = (!strcmp("0", outArgTypes)) ? "" : outArgTypes;
-  for (i = 0; i < entries->count; i++) {
-    OENTRY* temp = entries->entries[i];
-    if (temp->intypes != NULL && !strcmp(inArgTypes, temp->intypes) &&
-        temp->outypes != NULL && !strcmp(outTest, temp->outypes)) {
       return temp;
     }
   }
@@ -2101,7 +2117,7 @@ char *check_optional_type(CSOUND *csound, char *name) {
 void add_arg(CSOUND* csound, char* varName, char* annotation,
              TYPE_TABLE* typeTable, TREE* tree) {
 
-  const CS_TYPE* type;
+  const CS_TYPE* type = NULL;
   CS_VARIABLE* var;
   char *t = csoundStrdup(csound, varName);
   char *lvarName = csoundStrdup(csound, varName); // local copy
@@ -2189,7 +2205,11 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 
       t = lvarName;
 
-      if (*t == '#') t++;
+      int32_t isSynthetic = 0;
+      if (*t == '#') {
+        isSynthetic = 1;
+        t++;
+      }
       if (*t == 'g') pool = typeTable->globalPool;
       if (*t == 'g') t++;
 
@@ -2209,10 +2229,22 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
         varInit.dimensions = dimensions;
         varInit.type =  varType;
         typeArg = &varInit;
+      } else if (isSynthetic) {
+        char *syntheticType = csoundStrdup(csound, t);
+        char *end = syntheticType + strlen(syntheticType);
+        while (end > syntheticType && isdigit((unsigned char) end[-1])) {
+          *--end = '\0';
+        }
+        if (strlen(syntheticType) > 1) {
+          type = csoundGetTypeWithVarTypeName(csound->typePool, syntheticType);
+        }
+        csound->Free(csound, syntheticType);
       }
 
-      argLetter[0] = *t;
-      type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+      if (type == NULL) {
+        argLetter[0] = *t;
+        type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+      }
     }
     var = csoundCreateVariable(csound, csound->typePool,
 				 type, lvarName, typeArg);
@@ -2419,6 +2451,15 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     case T_ARRAY:
 
+      if (array_target_missing_lexeme(current)) {
+        char *arrayElementType = get_arg_type2(csound, current, typeTable);
+        if (arrayElementType == NULL) {
+          csound->LongJmp(csound, 1);
+        }
+        csound->Free(csound, arrayElementType);
+        break;
+      }
+
       varName = current->left->value->lexeme;
       // check if the array variable exists, it needs to be declared
       arrvar = find_var_from_pools(csound, varName, varName, typeTable);
@@ -2504,6 +2545,38 @@ TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* unary_op)
  * For further reference, please see the rule for statement and opcall in
  * Engine/csound_orc.y.
  */
+static char *get_assignment_lhs_type_hint(CSOUND *csound, TREE *left)
+{
+  if (left == NULL || left->value == NULL) {
+    return NULL;
+  }
+
+  if (left->value->optype != NULL) {
+    const char *type = convert_array_type_string(csound, left->value->optype);
+    char *ret = csoundStrdup(csound, type);
+    if (type != left->value->optype) {
+      csound->Free(csound, (void*)type);
+    }
+    return ret;
+  }
+
+  char *name = left->value->lexeme;
+  if (name == NULL) {
+    return NULL;
+  }
+  if (*name == '#') {
+    name++;
+  }
+  if (*name == 'g' && name[1] != '\0') {
+    name++;
+  }
+  if (strchr("aikSKBbf", *name) != NULL) {
+    char type[2] = {*name, '\0'};
+    return csoundStrdup(csound, type);
+  }
+  return NULL;
+}
+
 TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
                                   TYPE_TABLE* typeTable) {
   int32_t leftCount, rightCount;
@@ -2515,6 +2588,33 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
     if (right->type == T_FUNCTION &&
         right->left == NULL &&
         right->next == NULL) {
+      char *outType = NULL;
+      TREE *arg = right->right;
+      int32_t hasExpressionArg = 0;
+
+      while (arg != NULL && !hasExpressionArg) {
+        hasExpressionArg = is_expression_node(arg) ||
+                           is_boolean_expression_node(arg);
+        arg = arg->next;
+      }
+
+      if (hasExpressionArg && tree_arg_list_count(root->left) == 1) {
+        char *leftType = get_assignment_lhs_type_hint(csound, root->left);
+
+        if (leftType != NULL && strlen(leftType) == 1 &&
+            (outType = get_arg_type2(csound, right, typeTable)) != NULL) {
+          if (!strcmp(leftType, outType)) {
+            csound->Free(csound, leftType);
+            csound->Free(csound, outType);
+            return root;
+          }
+          csound->Free(csound, outType);
+        }
+        if (leftType != NULL) {
+          csound->Free(csound, leftType);
+        }
+      }
+
       right->next = root->next;
       right->left = root->left;
       right->type = T_OPCALL;
@@ -3010,6 +3110,109 @@ int32_t verify_until_statement(CSOUND* csound, TREE* root,
   return 1;
 }
 
+int32_t initStructVar(CSOUND* csound, void* p) {
+  INIT_STRUCT_VAR* init = (INIT_STRUCT_VAR*)p;
+  CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)init->out;
+  CS_TYPE* type = csoundGetTypeForArg(init->out);
+  int32_t len = cs_cons_length(type->members);
+  int32_t incnt = (int32_t)init->h.optext->t.inArgCount;
+  int32_t i;
+  if(csoundGetDebug(csound) & DEBUG_SEMANTICS) {
+     csound->Message(csound, "Initializing Struct...\n");
+     csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+  }
+  if (incnt == 0) {
+    return CSOUND_SUCCESS;
+  }
+  for (i = 0; i < len; i++) {
+    CS_VAR_MEM* mem = structVar->members[i];
+    mem->varType->copyValue(csound, mem->varType, &mem->value,
+                            init->inArgs[i], init->h.insdshead);
+  }
+
+  return CSOUND_SUCCESS;
+}
+
+void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
+  CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
+  const CS_TYPE* type = var->varType;
+  CONS_CELL* members = type->members;
+
+  int32_t len = cs_cons_length(members);
+  int32_t i;
+
+  structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
+  structVar->memberCount = len;  // Set the member count
+  structVar->ownsMembers = 1;    // This struct owns its members
+  if(csoundGetDebug(csound) & DEBUG_SEMANTICS) {
+      csound->Message(csound, "Initializing Struct...\n");
+      csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+  }
+  for (i = 0; i < len; i++) {
+    CS_VARIABLE* var = members->value;
+    size_t size = (sizeof(CS_VAR_MEM) - sizeof(MYFLT)) + var->memBlockSize;
+    CS_VAR_MEM* mem = csound->Calloc(csound, size);
+    if (var->initializeVariableMemory != NULL) {
+      var->initializeVariableMemory(csound, var, &mem->value);
+    }
+    mem->varType = var->varType;
+    structVar->members[i] = mem;
+
+    members = members->next;
+  }
+}
+
+CS_VARIABLE* createStructVar(void* cs, const CS_TYPE* p, INSDS *ctx) {
+  CSOUND* csound = (CSOUND*)cs;
+  const CS_TYPE* type = (const CS_TYPE*)p;
+
+  if (type == NULL) {
+    csound->Message(csound, "ERROR: no type given for struct creation\n");
+    return NULL;
+  }
+
+  CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+  IGN(p);
+  var->memBlockSize = sizeof(CS_STRUCT_VAR);
+  var->initializeVariableMemory = initializeStructVar;
+  var->varType = type;
+  var->ctx = ctx;
+
+  //FIXME - implement
+  return var;
+}
+
+void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest, const
+                   void* src, INSDS *p) {
+  CS_STRUCT_VAR* varDest = (CS_STRUCT_VAR*)dest;
+  CS_STRUCT_VAR* varSrc = (CS_STRUCT_VAR*)src;
+  int32_t i, count;
+
+  // Don't copy to itself
+  if (dest == src) {
+    return;
+  }
+
+  if (varDest->members == NULL || varSrc->members == NULL) {
+    csound->Message(csound, "struct not initialised - cannot copy\n");
+    return;  // Can't copy if members aren't initialized
+  }
+
+  count = cs_cons_length(structType->members);
+  for (i = 0; i < count; i++) {
+    CS_VAR_MEM* d = varDest->members[i];
+    CS_VAR_MEM* s = varSrc->members[i];
+    if (d != NULL && s != NULL) {
+      // Check if d and s are the same (aliased)
+      if (d == s) {
+        // Already aliased, nothing to copy
+        continue;
+      }
+      d->varType->copyValue(csound, d->varType, &d->value, &s->value, p);
+    }
+  }
+}
+
 // Phase 1: Register struct name as placeholder type (for recursive references)
 int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) {
   if (!structDefTree || !structDefTree->left || !structDefTree->left->value) {
@@ -3218,6 +3421,10 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     member = member->next;
   }
   temp[index] = 0;
+  oentry.intypes = csoundStrdup(csound, "");
+  csoundAppendOpcodes(csound, &oentry, 1);
+  oentry.opname = csoundStrdup(csound, oentry.opname);
+  oentry.outypes = csoundStrdup(csound, oentry.outypes);
   oentry.intypes = csoundStrdup(csound, temp);
   csoundAppendOpcodes(csound, &oentry, 1);
   return 1;
@@ -3467,7 +3674,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                                                      current->left->right,
                                                      typeTable);
       add_udo_definition(csound, false, current->value->lexeme,
-             inArgStringDecl, outArgStringDecl, UNDEFINED);
+                         outArgStringDecl, inArgStringDecl, UNDEFINED);
       csound->inZero = 0;
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
 	csound->Message(csound, "UDO declared\n");
@@ -3631,6 +3838,17 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       break;
     }
 
+    case T_TYPED_IDENT: {
+      TREE *next = current->next;
+
+      add_args(csound, current, typeTable);
+      if (previous != NULL) {
+        previous->next = next;
+      }
+      current = next;
+      continue;
+    }
+
     case BREAK_TOKEN: {
       TREE* breakGoto;
 
@@ -3724,14 +3942,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
             anchor = anchor_expansion;
           }
 
-          // Find the end of the expansion chain and link to current->next
-          TREE* last = anchor_expansion;
-          while (last && last->next) {
-            last = last->next;
-          }
-          if (last) {
-            last->next = current->next;
-          }
+          // Reconnect the expansion to the remaining statements.
+          tree_append(anchor_expansion, current->next);
 
           current = anchor_expansion;
           continue;
@@ -3826,41 +4038,26 @@ void do_baktrace(CSOUND *csound, uint64_t files)
 
 }
 
+/* HACK - a TREE type outside this range marks an uninitialized node.
+ * This occurs for rules like in topstatement where the left hand
+ * topstatement the first time around is not initialized to anything
+ * useful; the bound 400 is arbitrary, chosen as it seemed to be a
+ * value higher than all the type numbers that were being printed out. */
+#define TREE_TYPE_IS_UNINITIALIZED(t) ((t)->type > 400 || (t)->type < 0)
+
 /**
- * Appends TREE * node to TREE * node using ->next field in struct; walks
- * down  list to append at end; checks for NULL's and returns
- * appropriate nodes
+ * Grammar-rule variant of tree_append() (csound_orc_expressions.c):
+ * the same sibling-list append, but additionally treats an
+ * uninitialized `first` node as an empty list.
+ * Only use this from parser rules; everywhere else use tree_append().
  */
-TREE* append_to_tree(CSOUND * csound, TREE *first, TREE *newlast)
+TREE* parser_append(CSOUND * csound, TREE *first, TREE *newlast)
 {
   IGN(csound);
-  TREE *current;
-  if (first == NULL) {
+  if (first != NULL && TREE_TYPE_IS_UNINITIALIZED(first)) {
     return newlast;
   }
-
-  if (newlast == NULL) {
-    return first;
-  }
-
-  /* HACK - Checks to see if first node is uninitialized (sort of)
-   * This occurs for rules like in topstatement where the left hand
-   * topstatement the first time around is not initialized to anything
-   * useful; the number 400 is arbitrary, chosen as it seemed to be a
-   * value higher than all the type numbers that were being printed out
-   */
-  if (first->type > 400 || first-> type < 0) {
-    return newlast;
-  }
-
-  current = first;
-  while (current->next != NULL) {
-    current = current->next;
-  }
-
-  current->next = newlast;
-
-  return first;
+  return tree_append(first, newlast);
 }
 
 
@@ -4390,23 +4587,20 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "0", NULL));
           temp->markup = &SYNTHESIZED_ARG;
-          if (l->right==NULL) l->right = temp;
-          else append_to_tree(csound, l->right, temp);
+          l->right = tree_append(l->right, temp);
           break;
         case 'P':
         case 'p':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "1", NULL));
           temp->markup = &SYNTHESIZED_ARG;
-          if (l->right==NULL) l->right = temp;
-          else append_to_tree(csound, l->right, temp);
+          l->right = tree_append(l->right, temp);
           break;
         case 'q':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "10", NULL));
           temp->markup = &SYNTHESIZED_ARG;
-          if (l->right==NULL) l->right = temp;
-          else append_to_tree(csound, l->right, temp);
+          l->right = tree_append(l->right, temp);
           break;
 
         case 'V':
@@ -4414,23 +4608,20 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           temp = make_leaf(csound, l->line, l->locn, NUMBER_TOKEN,
                            make_num(csound, ".5", NULL));
           temp->markup = &SYNTHESIZED_ARG;
-          if (l->right==NULL) l->right = temp;
-          else append_to_tree(csound, l->right, temp);
+          l->right = tree_append(l->right, temp);
           break;
         case 'h':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "127", NULL));
           temp->markup = &SYNTHESIZED_ARG;
-          if (l->right==NULL) l->right = temp;
-          else append_to_tree(csound, l->right, temp);
+          l->right = tree_append(l->right, temp);
           break;
         case 'J':
         case 'j':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "-1", NULL));
           temp->markup = &SYNTHESIZED_ARG;
-          if (l->right==NULL) l->right = temp;
-          else append_to_tree(csound, l->right, temp);
+          l->right = tree_append(l->right, temp);
           break;
         case 'M':
         case 'N':

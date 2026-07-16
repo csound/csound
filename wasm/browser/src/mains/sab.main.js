@@ -27,6 +27,7 @@ import {
 import { logSABMain as log } from "../logger";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
 import { EventPromises } from "../utils/event-promises";
+import { SABCompletionCoordinator } from "../utils/sab-completion-coordinator.js";
 import { PublicEventAPI } from "../events";
 import SABWorker from "../../dist/__compiled.sab.worker.inline.js";
 
@@ -63,6 +64,12 @@ class SharedArrayBufferMainThread {
 
     this.callbackId = 0;
     this.callbackBuffer = {};
+    // End state and stop release arrive on different ports. A generation keeps
+    // late messages from an earlier run from completing the current one.
+    this.performanceGeneration = 0;
+    this.performanceCompletion = new SABCompletionCoordinator((performanceEndState) =>
+      this.finishPerformanceEnd(performanceEndState),
+    );
 
     this.audioStateBuffer = new SharedArrayBuffer(
       initialSharedState.length * Int32Array.BYTES_PER_ELEMENT,
@@ -147,7 +154,7 @@ class SharedArrayBufferMainThread {
 
       Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 1);
       await this.eventPromises.waitForPause();
-      this.onPlayStateChange("realtimePerformancePaused");
+      this.onPlayStateChange("realtimePerformancePaused", this.performanceGeneration);
       return 0;
     }
   }
@@ -160,13 +167,41 @@ class SharedArrayBufferMainThread {
     ) {
       Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
       Atomics.notify(this.audioStatePointer, AUDIO_STATE.IS_PAUSED);
-      this.onPlayStateChange("realtimePerformanceResumed");
+      this.onPlayStateChange("realtimePerformanceResumed", this.performanceGeneration);
     }
   }
 
-  async onPlayStateChange(newPlayState) {
+  markPerformanceEndState(playState, performanceGeneration) {
+    this.performanceCompletion.markEnd(playState, performanceGeneration);
+  }
+
+  markStopReleaseReceived(performanceGeneration) {
+    if (!this.performanceCompletion.canAccept(performanceGeneration)) {
+      return;
+    }
+    // Either completion signal can arrive first. Establish the stop barrier
+    // before recording this one so a new run cannot reset partial state.
+    this.eventPromises.createStopPromise();
+    this.performanceCompletion.markStopReleased(performanceGeneration);
+  }
+
+  finishPerformanceEnd(performanceEndState) {
+    // Logs and play-state changes share one ordered port. releaseStop uses a
+    // second port, so wait for both before exposing completion to callers.
+    if (performanceEndState === "renderEnded") {
+      this.publicEvents && this.publicEvents.triggerRenderEnded();
+    } else {
+      this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded();
+    }
+    this.eventPromises && this.eventPromises.releaseStopPromise();
+  }
+
+  async onPlayStateChange(newPlayState, performanceGeneration) {
     if (this === undefined) {
       console.log("Failed to announce playstatechange", newPlayState);
+      return;
+    }
+    if (!this.performanceCompletion.canAccept(performanceGeneration)) {
       return;
     }
     this.currentPlayState = newPlayState;
@@ -174,6 +209,7 @@ class SharedArrayBufferMainThread {
       // prevent late timers from calling terminated fn
       return;
     }
+    let performanceEndState;
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         log(
@@ -216,6 +252,7 @@ class SharedArrayBufferMainThread {
         if (userProvidedNchnlsInput > -1) {
           Atomics.store(this.audioStatePointer, AUDIO_STATE.NCHNLS_I, userProvidedNchnlsInput);
         }
+        performanceEndState = newPlayState;
         break;
       }
       case "renderStarted": {
@@ -224,9 +261,9 @@ class SharedArrayBufferMainThread {
         break;
       }
       case "renderEnded": {
+        this.eventPromises.createStopPromise();
         log(`event: renderEnded received, beginning cleanup`)();
-        this.publicEvents.triggerRenderEnded();
-        this.eventPromises && this.eventPromises.releaseStopPromise();
+        performanceEndState = newPlayState;
         break;
       }
       default: {
@@ -236,9 +273,12 @@ class SharedArrayBufferMainThread {
 
     // forward the message from worker to the audioWorker
     try {
-      await this.audioWorker.onPlayStateChange(newPlayState);
+      await this.audioWorker.onPlayStateChange(newPlayState, performanceGeneration);
     } catch (error) {
       console.error(error);
+    }
+    if (performanceEndState) {
+      this.markPerformanceEndState(performanceEndState, performanceGeneration);
     }
   }
 
@@ -296,6 +336,10 @@ class SharedArrayBufferMainThread {
     log(`(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`)();
 
     this.ipcMessagePorts.sabMainCallbackReply.addEventListener("message", (event) => {
+      if (event.data && event.data["type"] === "releaseStop") {
+        this.markStopReleaseReceived(event.data["performanceGeneration"]);
+        return;
+      }
       switch (event.data) {
         case "poll": {
           if (this.ipcMessagePorts && this.ipcMessagePorts.sabMainCallbackReply) {
@@ -313,11 +357,8 @@ class SharedArrayBufferMainThread {
           break;
         }
         case "releaseStop": {
-          this.onPlayStateChange(
-            this.currentPlayState === "renderStarted" ? "renderEnded" : "realtimePerformanceEnded",
-          );
-          this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded();
-          this.eventPromises && this.eventPromises.releaseStopPromise();
+          // Untagged releases cannot be attributed to a performance. Current
+          // workers always send the object payload handled above.
           break;
         }
         case "releasePause": {
@@ -438,6 +479,8 @@ class SharedArrayBufferMainThread {
             if (this.eventPromises.isWaiting("start")) {
               return -1;
             } else {
+              this.performanceGeneration += 1;
+              this.performanceCompletion.begin(this.performanceGeneration);
               this.eventPromises.createStartPromise();
 
               const startPayload = {};
@@ -446,6 +489,7 @@ class SharedArrayBufferMainThread {
               startPayload["audioStreamOut"] = audioStreamOut;
               startPayload["midiBuffer"] = midiBuffer;
               startPayload["csound"] = csoundInstance;
+              startPayload["performanceGeneration"] = this.performanceGeneration;
 
               const startResult = await proxyCallback(startPayload);
 

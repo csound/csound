@@ -153,6 +153,21 @@ class PUBLIC Csound
     return csoundCompile(csound, argc, argv);
   }
 
+  virtual int32_t SetCommandLineArgs(int32_t argc, const char **argv)
+  {
+    return csoundSetCommandLineArgs(csound, argc, argv);
+  }
+
+  virtual int32_t GetCommandLineArgCount()
+  {
+    return csoundGetCommandLineArgCount(csound);
+  }
+
+  virtual const char *GetCommandLineArg(int32_t index)
+  {
+    return csoundGetCommandLineArg(csound, index);
+  }
+
   virtual int32_t Compile(const char *csdName)
   {
     const char  *argv[3];
@@ -317,6 +332,10 @@ class PUBLIC Csound
   virtual void KeyPressed(char c)
   {
     csoundKeyPress(csound, c);
+  }
+  virtual int32_t ReadlinePushText(const char *text)
+  {
+    return csoundReadlinePushText(csound, text);
   }
   virtual void Event(int32_t type, MYFLT *pFields, int32_t numFields, int32_t async = 0)
   {

@@ -1137,7 +1137,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install mingw-w64-i686-dev gcc-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64-tools
+          sudo apt-get install mingw-w64-i686-dev gcc-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64-tools flex bison
 
       - name: Use posix mingw for 32-bit
         run: |
@@ -1222,6 +1222,15 @@ jobs:
               done
             '
 
+      - name: Verify readline host API is exported
+        run: |
+          for ARCH in arm arm64 x86 x64; do
+            LIBRARY=$(find "build/$ARCH" -type f -name 'libcsound.so*' -print -quit)
+            test -n "$LIBRARY"
+            readelf --wide --dyn-syms "$LIBRARY" |
+              grep -F 'csoundReadlinePushText' > /dev/null
+          done
+
   wasm_build:
     name: Wasm build (emscripten/vcpkg)
     runs-on: ubuntu-latest
@@ -1293,6 +1302,11 @@ jobs:
           export ANDROID_NDK_ROOT="$PWD/AndroidNDK.app/Contents/NDK"
           cd CsoundAndroid
           sh build.sh
+
+      - name: Verify readline Android binding
+        working-directory: Android
+        run: |
+          grep -R -F 'ReadlinePushText' CsoundAndroid/src/csnd7 > /dev/null
 
       - name: create release package
         working-directory: Android

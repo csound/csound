@@ -1185,6 +1185,50 @@ e
       cs.csoundDestroy(csound);
     });
 
+    it("can feed readline from host text", function () {
+      const csound = cs.csoundCreate();
+      assert.notEqual(csound, 0, "csoundCreate returns non-zero pointer");
+
+      try {
+        assert.equal(0, cs.csoundSetOption(csound, "-d"));
+        assert.equal(0, cs.csoundSetOption(csound, "-n"));
+        assert.equal(
+          0,
+          cs.csoundCompileOrc(
+            csound,
+            `ksmps = 1
+chnk "readline_status", 2
+chnS "readline_line", 2
+instr 1
+  Sline, kstatus readline ""
+  if (kstatus == 1) then
+    chnset Sline, "readline_line"
+    chnset kstatus, "readline_status"
+  endif
+endin
+schedule(1, 0, 1)`,
+          ),
+        );
+        assert.equal(0, cs.csoundReadlinePushText(csound, "from wasi\n"));
+        assert.equal(0, cs.csoundStart(csound));
+
+        let status = 0;
+        for (let cycle = 0; cycle < 32 && status === 0; cycle++) {
+          assert.equal(0, cs.csoundPerformKsmps(csound));
+          status = cs.csoundGetControlChannel(csound, "readline_status");
+        }
+
+        assert.equal(1, status, "readline reports a completed line");
+        assert.equal(
+          "from wasi",
+          cs.csoundGetStringChannel(csound, "readline_line"),
+        );
+      } finally {
+        cs.csoundStop(csound);
+        cs.csoundDestroy(csound);
+      }
+    });
+
     it("exposes UGEN_ARG_TYPE enum", function () {
       assert.isObject(cs.UGEN_ARG_TYPE, "UGEN_ARG_TYPE is an object");
       assert.equal(cs.UGEN_ARG_TYPE.I, 0);

@@ -322,8 +322,9 @@ CsoundMYFLTArray::CsoundMYFLTArray(int n)
 {
     p = (MYFLT*) 0;
     pp = (void*) 0;
-    if (n > 0)
-      pp = (void*) malloc((size_t) n * sizeof(MYFLT));
+    cp = nullptr;
+    if (n > 0 && (size_t) n <= SIZE_MAX / sizeof(MYFLT))
+      pp = (void*) calloc((size_t) n, sizeof(MYFLT));
     if (pp) {
       p = (MYFLT*) pp;
       for (int i = 0; i < n; i++)
@@ -401,8 +402,11 @@ void CsoundArgVList::Insert(int ndx, const char *s)
       ndx = cnt;
     if (ndx < 0)
       ndx = 0;
-    new_cnt = (cnt >= 0 ? cnt + 1 : 1);
-    new_argv = (char**) malloc((size_t) (new_cnt + 1) * sizeof(char*));
+    size_t new_cnt_sz = (cnt >= 0 ? (size_t) cnt + 1 : (size_t) 1);
+    if (new_cnt_sz > (size_t) INT_MAX || new_cnt_sz > SIZE_MAX / sizeof(char*) - 1)
+      return;
+    new_cnt = (int) new_cnt_sz;
+    new_argv = (char**) calloc(new_cnt_sz + 1, sizeof(char*));
     if (!new_argv)
       return;
     for (i = 0; i < ndx; i++)
@@ -412,7 +416,7 @@ void CsoundArgVList::Insert(int ndx, const char *s)
       free((void*) new_argv);
       return;
     }
-    strcpy(new_argv[i], s);
+    strncpy(new_argv[i], s, strlen(s) + 1);
     while (++i < new_cnt)
       new_argv[i] = ArgV_[i - 1];
     new_argv[i] = (char*) 0;

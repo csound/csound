@@ -42,4 +42,6 @@ int32_t query_reversewrite_opcode(CSOUND *csound, ORCTOKEN *o);
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
 void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
                  TYPE_TABLE *typetable, OPDS *ids); 
+void merge_state_realtime(CSOUND *csound, ENGINE_STATE *engineState,
+                          TYPE_TABLE *typetable, OPDS *ids);
 #endif

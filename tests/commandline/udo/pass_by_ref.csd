@@ -13,6 +13,14 @@ nchnls	= 2
 
 struct TestStruct member1:i
 struct TestStruct2515 var1:i, var2:i
+struct AccumulatorNode value:i, previous:AccumulatorNode[], length:i
+
+opcode prependNode(value:i, previous:AccumulatorNode):AccumulatorNode
+    previousItems:AccumulatorNode[] init 1
+    node:AccumulatorNode init value, previousItems, 1
+    node.previous[0] = previous
+    xout node
+endop
 
 // increments the value in the passed-in pointer
 opcode incr(ival):void
@@ -61,6 +69,14 @@ endop
 opcode incrAndReturnK(kval):k
     kval += 1
     xout kval
+endop
+
+
+// Writes the output before reading the input, exposing caller-side aliasing.
+opcode incrementAliasedK(source:k):k
+    result:k = 0
+    result = source + 1
+    xout result
 endop
 
 
@@ -137,6 +153,52 @@ endop
 opcode scaleAudio(aSig):a
     aSig *= 0.5
     xout aSig
+endop
+
+
+// Recursive series filter from the opcode manual, in classic pass-by-copy
+// and modern pass-by-reference forms.
+opcode LowpassByCopy, a, akk
+    setksmps 1
+    aIn, kCoefficient1, kCoefficient2 xin
+    aOut init 0
+    aOut = aIn * kCoefficient1 + aOut * kCoefficient2
+    xout aOut
+endop
+
+
+opcode RecursiveLowpassByCopy, a, akkpp
+    aIn, kCoefficient1, kCoefficient2, iDepth, iCount xin
+    if (iCount >= iDepth) goto done
+    aIn RecursiveLowpassByCopy aIn, kCoefficient1, kCoefficient2, \
+        iDepth, iCount + 1
+done:
+    aOut LowpassByCopy aIn, kCoefficient1, kCoefficient2
+    xout aOut
+endop
+
+
+opcode LowpassByReference(input:a, coefficient1:k, coefficient2:k):a
+    sampleIndex:k = 0
+    output:a init 0
+    previous:k init 0
+    while sampleIndex < ksmps do
+        output[sampleIndex] = input[sampleIndex] * coefficient1 + \
+            previous * coefficient2
+        previous = output[sampleIndex]
+        sampleIndex += 1
+    od
+    xout output
+endop
+
+
+opcode RecursiveLowpassByReference(signal:a, coefficient1:k, coefficient2:k, \
+                                   depth:p, count:p):a
+    if (count < depth) then
+        signal = RecursiveLowpassByReference(signal, coefficient1, \
+                                             coefficient2, depth, count + 1)
+    endif
+    xout LowpassByReference(signal, coefficient1, coefficient2)
 endop
 
 
@@ -497,6 +559,55 @@ instr 34
 endin
 
 
+// The output and final input share caller storage. Constructing the output
+// must not overwrite the input before the UDO embeds its previous value.
+instr 35
+    noPrevious:AccumulatorNode[] init 0
+    accumulator:AccumulatorNode init 1, noPrevious, 0
+    accumulator = prependNode(2, accumulator)
+
+    assertEquals(accumulator.value, 2)
+    assertEquals(accumulator.previous[0].value, 1)
+endin
+
+
+// The output and input share caller storage at performance time. The input
+// must retain its value until incrementAliasedK reads it.
+instr 36
+    value:k init 5
+    value = incrementAliasedK(value)
+
+    if (timeinstk() == 1 && value != 6) then
+        printks "ERROR: aliased k input was overwritten: expected 6, got %g\n", \
+            0, value
+        exitnowk(-1)
+    endif
+endin
+
+
+instr 37
+    // Recursive pass-by-reference filtering must match the classic copy path.
+    input:a = oscili(0.5, 220)
+    coefficient:k = linseg(0.2, p3, 0.8)
+    byCopy:a RecursiveLowpassByCopy input, coefficient, 1 - coefficient, 10
+    byReference:a = RecursiveLowpassByReference(input, coefficient, \
+                                                 1 - coefficient, 10)
+    difference:a = byCopy - byReference
+    peakError:k peak difference
+    outputPeak:k peak byCopy
+
+    if (peakError > 0.000001) then
+        printks "ERROR: recursive pass-by-reference filter differs by %g\n", \
+            0, peakError
+        exitnowk(-1)
+    endif
+    if (timeinstk() == 2 && outputPeak == 0) then
+        printks "ERROR: recursive filter produced no signal\n", 0
+        exitnowk(-1)
+    endif
+endin
+
+
 </CsInstruments>
 <CsScore>
 i1 0 1
@@ -519,6 +630,9 @@ i31 0 0.01
 i32 0 0.01
 i33 0 1
 i34 0 1
+i35 0 1
+i36 0 0.01
+i37 0 0.05
 ; i"SoundTest" 0 4 220 0.25
 ; i"SoundTest" 1 3 330 0.25
 ; i"SoundTest" 2 3 440 0.25

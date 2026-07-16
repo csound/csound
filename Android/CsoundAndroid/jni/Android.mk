@@ -87,6 +87,7 @@ $(CSOUND_SRC_ROOT)/OOps/pstream.c \
 $(CSOUND_SRC_ROOT)/OOps/pvfileio.c \
 $(CSOUND_SRC_ROOT)/OOps/pvsanal.c \
 $(CSOUND_SRC_ROOT)/OOps/random.c \
+$(CSOUND_SRC_ROOT)/OOps/readline.c \
 $(CSOUND_SRC_ROOT)/OOps/remote.c \
 $(CSOUND_SRC_ROOT)/OOps/schedule.c \
 $(CSOUND_SRC_ROOT)/OOps/sndinfUG.c \

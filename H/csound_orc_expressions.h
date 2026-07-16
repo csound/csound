@@ -33,6 +33,12 @@ typedef struct {
     int32_t gotoType;
 } LOOP_JUMP_TARGETS;
 
+static inline int32_t array_target_missing_lexeme(TREE *arrayNode) {
+  return arrayNode == NULL || arrayNode->left == NULL ||
+         arrayNode->left->value == NULL ||
+         arrayNode->left->value->lexeme == NULL;
+}
+
 CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
 CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 
@@ -40,6 +46,7 @@ int32_t is_expression_node(TREE *node);
 int32_t is_boolean_expression_node(TREE *node);
 int32_t is_statement_expansion_required(TREE* root);
 void handle_optional_args(CSOUND *csound, TREE *l);
+TREE* tree_append(TREE *head, TREE *node);
 TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_until_statement(CSOUND* csound, TREE* current,
                              TYPE_TABLE* typeTable, int32_t, LOOP_JUMP_TARGETS* targets);

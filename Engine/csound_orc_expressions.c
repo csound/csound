@@ -38,9 +38,15 @@ static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
                                        TYPE_TABLE*);
 static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
                                TYPE_TABLE*);
+static int32_t struct_expr_has_array_root(TREE* structExpr);
+TREE* expand_struct_array_member_read(CSOUND* csound,
+                                      TREE* structExpr,
+                                      int32_t line,
+                                      uint64_t locn,
+                                      TYPE_TABLE* typeTable);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
 
-TREE* tree_tail(TREE* node) {
+static TREE* tree_tail(TREE* node) {
   TREE* t = node;
   if (t == NULL) {
     return NULL;
@@ -49,6 +55,31 @@ TREE* tree_tail(TREE* node) {
     t = t->next;
   }
   return t;
+}
+
+/* Append node to the end of head's sibling (->next) list and return
+   the (possibly new) head; either argument may be NULL.  Walks the
+   list from head on every call, so for a chain of consecutive appends
+   prefer tree_append_at() with a saved tail cursor. */
+TREE* tree_append(TREE *head, TREE *node) {
+  if (node == NULL) {
+    return head;
+  }
+  TREE *tail = tree_tail(head);
+  if (tail == NULL) {
+    return node;
+  }
+  tail->next = node;
+  return head;
+}
+
+/* Attach node at a known tail and return the new tail.  Unlike
+   tree_append() this never re-walks the list from its head, so a chain
+   of consecutive appends stays O(total length): keep the returned tail
+   and feed it to the next call. */
+static TREE* tree_append_at(TREE *tail, TREE *node) {
+  tail->next = node;
+  return tree_tail(node);
 }
 
 char *remove_type_quoting(CSOUND *csound, const char *outype) {
@@ -98,13 +129,17 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
     char *type = remove_type_quoting(csound, outype);
     if (find_brace(type)) {
       if(*type == '[') { // [type]
-        snprintf(s, 16, "#%c%d[]", type[1], argCount);
-        add_array_arg(csound, s,  NULL, 1, typeTable);
+        size_t typeLen = strlen(type);
+        char *baseType = (typeLen >= 3) ? cs_strndup(csound, type + 1, typeLen - 2)
+                                        : csoundStrdup(csound, type);
+        snprintf(s, 256, "#%s%d[]", baseType, argCount);
+        add_array_arg(csound, s, baseType, 1, typeTable);
+        csound->Free(csound, baseType);
       } else { // type[]
         size_t typeLen = strlen(type);
         char *baseType = (typeLen >= 2) ? cs_strndup(csound, type, typeLen - 2)
                                         : csoundStrdup(csound, type);
-        snprintf(s, 16, "#%c%d[]", type[0], argCount);
+        snprintf(s, 256, "#%s%d[]", baseType, argCount);
         add_array_arg(csound, s,  baseType, 1, typeTable);
         csound->Free(csound, baseType);
       }
@@ -335,10 +370,7 @@ static TREE *create_cond_expression(CSOUND *csound,
   right  = get_arg_type2(csound, d, typeTable);
   if (left[0]=='c') left[0] = 'i';
   if (right[0]=='c') right[0] = 'i';
-  last = b;
-  while (last->next != NULL) {
-    last = last->next;
-  }
+  last = tree_tail(b);
 
   if(last->left == NULL) {
     csound->Message(csound,
@@ -389,26 +421,16 @@ static TREE *create_cond_expression(CSOUND *csound,
     D->left = create_ans_token(csound, right); D->right = d;
     d = D;
   }
-  last = b;
-  while (last->next != NULL) {
-    last = last->next;
-  }
-  last->next = d;
-  while (last->next != NULL) last = last->next;
-  //Last is now last assignment
-  last->next = create_simple_goto_token(csound, L2, type==2?0:type);
-  while (last->next != NULL) last = last->next;
-  last->next = create_synthetic_label(csound,ln1);
-  while (last->next != NULL) last = last->next;
-
-  last->next = c;
-  while (last->next != NULL) last = last->next;
-  while (last->next != NULL) last = last->next;
-  last->next = create_synthetic_label(csound,ln2);
-  while (last->next != NULL) last = last->next;
-  last->next = create_opcode_token(csound, csoundStrdup(csound, eq));
-  last->next->left = create_ans_token(csound, right);
-  last->next->right = create_ans_token(csound, right);
+  /* last is the tail of b here; chain via tree_append_at so no node is
+     walked twice */
+  last = tree_append_at(last, d);
+  last = tree_append_at(last, create_simple_goto_token(csound, L2, type==2?0:type));
+  last = tree_append_at(last, create_synthetic_label(csound, ln1));
+  last = tree_append_at(last, c);
+  last = tree_append_at(last, create_synthetic_label(csound, ln2));
+  last = tree_append_at(last, create_opcode_token(csound, csoundStrdup(csound, eq)));
+  last->left = create_ans_token(csound, right);
+  last->right = create_ans_token(csound, right);
   return b;
 }
 
@@ -439,6 +461,45 @@ static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
                         typeTable->localPool->synthArgCount++, typeTable);
 }
 
+static TREE *expand_expression_arg_list(CSOUND *csound, TREE *current,
+                                        TREE **anchor, int32_t line,
+                                        uint64_t locn,
+                                        TYPE_TABLE *typeTable)
+{
+  TREE *newArgList = NULL;
+
+  while (current != NULL) {
+    TREE *expanded = NULL;
+    TREE *newArg = current;
+    TREE *next = current->next;
+
+    current->next = NULL;
+    if (current->type == STRUCT_EXPR && struct_expr_has_array_root(current)) {
+      expanded = expand_struct_array_member_read(csound, current, line,
+                                                 locn, typeTable);
+      if (expanded == NULL) {
+        return NULL;
+      }
+    }
+    else if (is_expression_node(current)) {
+      expanded = create_expression(csound, current, line, locn, typeTable);
+      if (expanded == NULL) {
+        return NULL;
+      }
+    }
+
+    if (expanded != NULL) {
+      *anchor = tree_append(*anchor, expanded);
+      expanded = tree_tail(*anchor);
+      newArg = create_ans_token(csound, expanded->left->value->lexeme);
+    }
+    newArgList = tree_append(newArgList, newArg);
+    current = next;
+  }
+
+  return newArgList;
+}
+
 /**
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
@@ -448,8 +509,9 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
                                TYPE_TABLE* typeTable)
 {
   char op[80], *outarg = NULL;
-  TREE *anchor = NULL, *last;
-  TREE * opTree, *current, *newArgList;
+  TREE *anchor = NULL;
+  TREE *expandedArgs;
+  TREE *opTree;
   OENTRIES* opentries;
   CS_VARIABLE* var;
 
@@ -457,54 +519,22 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   if (root->type=='?') return create_cond_expression(csound, root, line,
                                                      locn, typeTable);
   memset(op, 0, 80);
-  current = root->left;
-  newArgList = NULL;
-  while (current != NULL) {
-    if (is_expression_node(current)) {
-      TREE* newArg;
-
-      anchor = append_to_tree(csound, anchor,
-                            create_expression(csound, current, line, locn,
-                                              typeTable));
-      last = tree_tail(anchor);
-      newArg = create_ans_token(csound, last->left->value->lexeme);
-      newArgList = append_to_tree(csound, newArgList, newArg);
-      current = current->next;
-    } else {
-      TREE* temp;
-      newArgList = append_to_tree(csound, newArgList, current);
-      temp = current->next;
-      current->next = NULL;
-      current = temp;
+  if (root->left != NULL) {
+    expandedArgs = expand_expression_arg_list(csound, root->left, &anchor,
+                                              line, locn, typeTable);
+    if (expandedArgs == NULL) {
+      return NULL;
     }
-
+    root->left = expandedArgs;
   }
-  root->left = newArgList;
-
-  current = root->right;
-  newArgList = NULL;
-  while (current != NULL) {
-    if (is_expression_node(current)) {
-      TREE* newArg;
-
-      anchor = append_to_tree(csound, anchor,
-                            create_expression(csound, current, line,
-                                              locn, typeTable));
-      last = tree_tail(anchor);
-
-      newArg = create_ans_token(csound, last->left->value->lexeme);
-      newArgList = append_to_tree(csound, newArgList, newArg);
-      current = current->next;
+  if (root->right != NULL) {
+    expandedArgs = expand_expression_arg_list(csound, root->right, &anchor,
+                                              line, locn, typeTable);
+    if (expandedArgs == NULL) {
+      return NULL;
     }
-    else {
-      TREE* temp;
-      newArgList = append_to_tree(csound, newArgList, current);
-      temp = current->next;
-      current->next = NULL;
-      current = temp;
-    }
+    root->right = expandedArgs;
   }
-  root->right = newArgList;
 
   switch(root->type) {
   case '+':
@@ -654,11 +684,8 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       char* outype;
 
       // Handle struct member access or other complex left expressions
-      if (root->left == NULL || root->left->value == NULL ||
-          root->left->value->lexeme == NULL) {
-        // This could be a struct member access - delegate to get_arg_string_from_tree
-        // Note: get_arg_string_from_tree returns the element type for T_ARRAY nodes
-        char* elementType = get_arg_string_from_tree(csound, root, typeTable);
+      if (array_target_missing_lexeme(root)) {
+        char* elementType = get_arg_type2(csound, root, typeTable);
         if (elementType == NULL) {
           return NULL;
         }
@@ -681,7 +708,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         synterr(csound,
                 Str("create_expression: unable to find array sub-type "
                     "for var %s line %d\n"),
-                varBaseName, current->line);
+                varBaseName, line);
         return NULL;
       } else {
         // Check if it's an array
@@ -756,11 +783,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
     anchor = opTree;
   }
   else {
-    last = anchor;
-    while (last->next != NULL) {
-      last = last->next;
-    }
-    last->next = opTree;
+    anchor = tree_append(anchor, opTree);
   }
   csound->Free(csound, outarg);
   return anchor;
@@ -783,10 +806,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   if (is_boolean_expression_node(root->left)) {
     anchor = create_boolean_expression(csound, root->left,
                                        line, locn, typeTable);
-    last = anchor;
-    while (last->next != NULL) {
-      last = last->next;
-    }
+    last = tree_tail(anchor);
     /* TODO - Free memory of old left node
        freetree */
     root->left = create_ans_token(csound, last->left->value->lexeme);
@@ -795,10 +815,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
 
     /* TODO - Free memory of old left node
        freetree */
-    last = anchor;
-    while (last->next != NULL) {
-      last = last->next;
-    }
+    last = tree_tail(anchor);
     root->left = create_ans_token(csound, last->left->value->lexeme);
   }
 
@@ -812,21 +829,12 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
       anchor = newRight;
     }
     else {
-      last = anchor;
-      while (last->next != NULL) {
-        last = last->next;
-      }
-      last->next = newRight;
+      anchor = tree_append(anchor, newRight);
     }
-    last = newRight;
-
-    while (last->next != NULL) {
-      last = last->next;
-    }
+    last = tree_tail(newRight);
     /* TODO - Free only the replaced right wrapper node/token here;
        do not recursively delete children since they are reused. */
-    root->right = append_to_tree(csound,
-                                 create_ans_token(csound,
+    root->right = tree_append(create_ans_token(csound,
                                                   last->left->value->lexeme),
                                  remaining);
   }
@@ -840,22 +848,13 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
       anchor = newRight;
     }
     else {
-      last = anchor;
-      while (last->next != NULL) {
-        last = last->next;
-      }
-      last->next = newRight;
+      anchor = tree_append(anchor, newRight);
     }
-    last = newRight;
-
-    while (last->next != NULL) {
-      last = last->next;
-    }
+    last = tree_tail(newRight);
 
     // VL need to append any arguments following
     // the new expression
-    root->right = append_to_tree(csound,
-                                 create_ans_token(csound,
+    root->right = tree_append(create_ans_token(csound,
                                                   last->left->value->lexeme),
                                  remaining);
     /* TODO - Free only the replaced right wrapper node/token here;
@@ -952,11 +951,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     anchor = opTree;
   }
   else {
-    last = anchor;
-    while (last->next != NULL) {
-      last = last->next;
-    }
-    last->next = opTree;
+    anchor = tree_append(anchor, opTree);
   }
   csound->Free(csound, outarg);
   csound->Free(csound, op);
@@ -1390,7 +1385,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                                   typeTable->localPool->synthArgCount++,
                                   typeTable);
   assignmentOps =
-    append_to_tree(csound, assignmentOps,
+    tree_append(assignmentOps,
                    create_struct_array_get_call(csound, current->line,
                                                 current->locn,
                                                 structTemps[0],
@@ -1402,7 +1397,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                                         typeTable->localPool->synthArgCount++,
                                         typeTable);
     assignmentOps =
-      append_to_tree(csound, assignmentOps,
+      tree_append(assignmentOps,
                      create_struct_member_get_call(csound, current->line,
                                                    current->locn,
                                                    structTemps[i + 1],
@@ -1411,7 +1406,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
   }
 
   assignmentOps =
-    append_to_tree(csound, assignmentOps,
+    tree_append(assignmentOps,
                    create_struct_member_set_call(csound, current->line,
                                                  current->locn,
                                                  structTemps[path.memberCount - 1],
@@ -1420,14 +1415,14 @@ int expand_struct_array_member_assignment(CSOUND* csound,
 
   for (i = path.memberCount - 2; i >= 0; i--) {
     assignmentOps =
-      append_to_tree(csound, assignmentOps,
+      tree_append(assignmentOps,
                      create_struct_member_set_from_ident_call(
                        csound, current->line, current->locn,
                        structTemps[i], path.memberIndices[i], structTemps[i + 1]));
   }
 
   assignmentOps =
-    append_to_tree(csound, assignmentOps,
+    tree_append(assignmentOps,
                    create_struct_array_set_call(csound, current->line,
                                                 current->locn,
                                                 path.arrayExpr,
@@ -1437,7 +1432,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
     csound->Free(csound, structTemps[i]);
   }
 
-  *anchor = append_to_tree(csound, *anchor, assignmentOps);
+  *anchor = tree_append(*anchor, assignmentOps);
   return 1;
 }
 
@@ -1459,6 +1454,7 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
   int32_t i;
   const char* memberType;
   const char* outType;
+  char* arrayMemberType = NULL;
   char* outArg;
 
   if (!resolve_struct_array_member_path(csound, structExpr, typeTable, &path)) {
@@ -1469,7 +1465,7 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
                                     path.rootStructType->varTypeName,
                                     typeTable->localPool->synthArgCount++,
                                     typeTable);
-  readOps = append_to_tree(csound, readOps,
+  readOps = tree_append(readOps,
                            create_struct_array_get_call(csound, line, locn,
                                                         currentStructArg,
                                                         path.arrayExpr));
@@ -1479,7 +1475,7 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
                                          path.memberVars[i]->varType->varTypeName,
                                          typeTable->localPool->synthArgCount++,
                                          typeTable);
-    readOps = append_to_tree(csound, readOps,
+    readOps = tree_append(readOps,
                              create_struct_member_get_call(
                                csound, line, locn, nextStructArg,
                                currentStructArg, path.memberIndices[i]));
@@ -1487,20 +1483,34 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
     currentStructArg = nextStructArg;
   }
 
-  memberType = path.memberVars[path.memberCount - 1]->varType->varTypeName;
-  outType = memberType;
-  if (path.hasKRateIndex && memberType[0] == 'i' && memberType[1] == '\0') {
-    outType = "k";
+  if (path.memberVars[path.memberCount - 1]->varType == &CS_VAR_TYPE_ARRAY) {
+    arrayMemberType = create_array_arg_type(csound,
+                                            path.memberVars[path.memberCount - 1]);
+    if (arrayMemberType == NULL) {
+      csound->Free(csound, currentStructArg);
+      return NULL;
+    }
+    outType = arrayMemberType;
+  }
+  else {
+    memberType = path.memberVars[path.memberCount - 1]->varType->varTypeName;
+    outType = memberType;
+    if (path.hasKRateIndex && memberType[0] == 'i' && memberType[1] == '\0') {
+      outType = "k";
+    }
   }
 
   outArg = create_out_arg(csound, (char*)outType,
                           typeTable->localPool->synthArgCount++, typeTable);
-  readOps = append_to_tree(csound, readOps,
+  readOps = tree_append(readOps,
                            create_struct_member_get_call(
                              csound, line, locn, outArg, currentStructArg,
                              path.memberIndices[path.memberCount - 1]));
 
   csound->Free(csound, currentStructArg);
+  if (arrayMemberType != NULL) {
+    csound->Free(csound, arrayMemberType);
+  }
   csound->Free(csound, outArg);
   return readOps;
 }
@@ -1535,7 +1545,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       TREE* expanded = expand_struct_array_member_read(csound, currentArg,
                                                        currentArg->line, currentArg->locn, typeTable);
       if (expanded) {
-        anchor = append_to_tree(csound, anchor, expanded);
+        anchor = tree_append(anchor, expanded);
         last = tree_tail(anchor);
         char* newArg = last->left->value->lexeme;
         newArgTree = create_ans_token(csound, newArg);
@@ -1582,7 +1592,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       csound->Free(csound, currentArg);
 
       /* Set as anchor if necessary */
-      anchor = append_to_tree(csound, anchor, expressionNodes);
+      anchor = tree_append(anchor, expressionNodes);
 
       /* reconnect into chain */
       last = tree_tail(expressionNodes);
@@ -1611,7 +1621,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     currentArg = currentArg->next;
   }
 
-  anchor = append_to_tree(csound, anchor, current);
+  anchor = tree_append(anchor, current);
 
 
   // handle LHS expressions (i.e. array-set's)
@@ -1627,32 +1637,50 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     if (currentArg->type == T_ARRAY) {
       char *outType;
       CS_VARIABLE* var;
+      int32_t arrayElementIsStruct = 0;
 
-      char *varBaseName = currentArg->left->value->lexeme;
-      // search for the array variable in all pools
-      var = find_var_from_pools(csound, varBaseName,
-                                varBaseName, typeTable);
-      if (var == NULL) {
-        synterr(csound,
-                Str("expand_statement: unable to find array sub-type "
-                    "for var %s line %d\n"),
-                varBaseName, current->line);
-        return NULL;
+      if (array_target_missing_lexeme(currentArg)) {
+        const CS_TYPE* outCsType;
+        outType = get_arg_type2(csound, currentArg, typeTable);
+        if (outType == NULL) {
+          return NULL;
+        }
+        outCsType = csoundGetTypeWithVarTypeName(csound->typePool, outType);
+        arrayElementIsStruct = outCsType != NULL && outCsType->userDefinedType;
       } else {
-        // Check if it's an array
-        // For LHS array assignment, the temporary variable should have the element type
-        // (e.g., "k" for k[], "S" for S[]) because it represents the value being assigned
-        if (var->subType) {
-          // Generic array, use subType (element type)
-          outType = strdup(var->subType->varTypeName);
-        } else if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
-          // Generic array with dimensions
-          outType = strdup(var->subType->varTypeName);
-        } else if (var->varType == &CS_VAR_TYPE_A) {
-          outType = strdup("k");
+        char *varBaseName = currentArg->left->value->lexeme;
+        // search for the array variable in all pools
+        var = find_var_from_pools(csound, varBaseName,
+                                  varBaseName, typeTable);
+        if (var == NULL) {
+          synterr(csound,
+                  Str("expand_statement: unable to find array sub-type "
+                      "for var %s line %d\n"),
+                  varBaseName, current->line);
+          return NULL;
         } else {
-          // Typed array like k[], varType is the element type
-          outType = strdup(var->varType->varTypeName);
+          // Check if it's an array
+          // For LHS array assignment, the temporary variable should have the element type
+          // (e.g., "k" for k[], "S" for S[]) because it represents the value being assigned
+          if (var->subType) {
+            // Generic array, use subType (element type)
+            outType = csoundStrdup(csound, var->subType->varTypeName);
+          } else if (var->varType == &CS_VAR_TYPE_A) {
+            outType = csoundStrdup(csound, "k");
+          } else if (var->varType == &CS_VAR_TYPE_ARRAY) {
+            synterr(csound,
+                    Str("expand_statement: unable to find array sub-type "
+                        "for var %s line %d\n"),
+                    varBaseName, current->line);
+            return NULL;
+          } else {
+            // Typed array like k[], varType is the element type
+            outType = csoundStrdup(csound, var->varType->varTypeName);
+          }
+          arrayElementIsStruct =
+            (var->subType && var->subType->userDefinedType) ||
+            (var->subType == NULL && var->varType &&
+             var->varType->userDefinedType);
         }
       }
 
@@ -1661,7 +1689,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                          create_out_arg(csound, outType,
                                         typeTable->localPool->synthArgCount++,
                                         typeTable));
-      free(outType);
+      csound->Free(csound, outType);
 
       if (previousArg == NULL) {
         current->left = temp;
@@ -1675,7 +1703,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       char* opcodeNameBase;
       if (init) {
         opcodeNameBase = "##array_init";
-      } else if (var->subType && var->subType->userDefinedType) {
+      } else if (arrayElementIsStruct) {
         opcodeNameBase = "##array_set_struct";
       } else {
         opcodeNameBase = "##array_set";
@@ -1690,7 +1718,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       arraySet->right->next->next =
         currentArg->right; // TODO - check if this handles expressions
 
-      anchor = append_to_tree(csound, anchor, arraySet);
+      anchor = tree_append(anchor, arraySet);
       currentArg = temp;
 
     }
@@ -1700,7 +1728,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
   handle_optional_args(csound, current);
   collapse_last_assigment(csound, anchor, typeTable);
-  append_to_tree(csound, anchor, originalNext);
+  tree_append(anchor, originalNext);
   return anchor;
 }
 
@@ -1727,7 +1755,7 @@ TREE* expand_if_statement(CSOUND* csound,
                                 right->locn, typeTable);
 
 
-    anchor = append_to_tree(csound, anchor, expressionNodes);
+    anchor = tree_append(anchor, expressionNodes);
 
     /* reconnect into chain */
     last = tree_tail(expressionNodes);
@@ -1761,7 +1789,7 @@ TREE* expand_if_statement(CSOUND* csound,
       tempRight = ifBlockCurrent->right;
 
       if (ifBlockCurrent->type == ELSE_TOKEN) {
-        append_to_tree(csound, anchor, tempRight);
+        tree_append(anchor, tempRight);
         break;
       }
 
@@ -1770,7 +1798,7 @@ TREE* expand_if_statement(CSOUND* csound,
                                   tempLeft->line, tempLeft->locn,
                                   typeTable);
 
-      anchor = append_to_tree(csound, anchor, expressionNodes);
+      anchor = tree_append(anchor, expressionNodes);
 
       last = tree_tail(expressionNodes);
 
@@ -1806,7 +1834,7 @@ TREE* expand_if_statement(CSOUND* csound,
           );
         }
         gotoToken->next = statements;
-        anchor = append_to_tree(csound, anchor, gotoToken);
+        anchor = tree_append(anchor, gotoToken);
 
         /* relinking */
         last = tree_tail(last);
@@ -1820,12 +1848,12 @@ TREE* expand_if_statement(CSOUND* csound,
           if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
             csound->Message(csound, "Creating simple goto token\n");
 
-          append_to_tree(csound, last, gotoEndLabelToken);
+          tree_append(last, gotoEndLabelToken);
 
           gotoEndLabelToken->next = labelEnd;
         }
         else {
-          append_to_tree(csound, last, labelEnd);
+          tree_append(last, labelEnd);
         }
 
         ifBlockCurrent = tempRight->next;
@@ -1835,14 +1863,14 @@ TREE* expand_if_statement(CSOUND* csound,
     if (endLabelCounter > 0) {
       TREE *endLabel = create_synthetic_label(csound,
                                               endLabelCounter);
-      anchor = append_to_tree(csound, anchor, endLabel);
+      anchor = tree_append(anchor, endLabel);
 
       typeTable->labelList = cs_cons(csound,
                                      csoundStrdup(csound,
                                                endLabel->value->lexeme),
                                      typeTable->labelList);
     }
-    anchor = append_to_tree(csound, anchor, current->next);
+    anchor = tree_append(anchor, current->next);
   }
   else {
     csound->Message(csound,
@@ -1939,7 +1967,7 @@ TREE* expand_switch_statement(
         if (gotoChainTail == NULL) {
           gotoChainTail = gotoChainTailAnchor;
         } else {
-          append_to_tree(csound, gotoChainTail, gotoChainTailAnchor);
+          tree_append(gotoChainTail, gotoChainTailAnchor);
         }
 
         TREE* caseArg = caseNode->left;
@@ -1951,7 +1979,7 @@ TREE* expand_switch_statement(
             }
           } else {
             gotoChainHeadAnchor = create_cgoto_node(csound, isPerfRate);
-            append_to_tree(csound, gotoChainHead, gotoChainHeadAnchor);
+            tree_append(gotoChainHead, gotoChainHeadAnchor);
           }
 
           gotoChainHeadAnchor->right = create_equality_statement(
@@ -1965,10 +1993,8 @@ TREE* expand_switch_statement(
         }
 
         if (caseNode->right != NULL) {
-          gotoChainTailAnchor = append_to_tree(csound, gotoChainTailAnchor, caseNode->right);
-          gotoChainTailAnchor = append_to_tree(
-            csound,
-            gotoChainTailAnchor,
+          gotoChainTailAnchor = tree_append(gotoChainTailAnchor, caseNode->right);
+          gotoChainTailAnchor = tree_append(gotoChainTailAnchor,
             copy_node(csound, endGoto)
           );
           hasTrailingEmptyCases = 0;
@@ -1977,9 +2003,7 @@ TREE* expand_switch_statement(
         }
     } else if (caseNode->type == DEFAULT_TOKEN && gotoChainHeadDefaultCase == NULL) {
       if (hasTrailingEmptyCases) {
-        gotoChainTailAnchor = append_to_tree(
-          csound,
-          gotoChainTailAnchor,
+        gotoChainTailAnchor = tree_append(gotoChainTailAnchor,
           copy_node(csound, endGoto)
         );
         hasTrailingEmptyCases = 0;
@@ -1994,7 +2018,7 @@ TREE* expand_switch_statement(
       gotoChainHeadDefaultCase->right = defaultCaseLabel;
       if (caseNode->right != NULL) {
         defaultCaseBody = caseNode->right;
-        append_to_tree(csound, defaultCaseBody, copy_node(csound, endGoto));
+        tree_append(defaultCaseBody, copy_node(csound, endGoto));
       } else {
         defaultCaseBody = copy_node(csound, endGoto);
       }
@@ -2009,19 +2033,13 @@ TREE* expand_switch_statement(
   }
 
   if (gotoChainHeadDefaultCase != NULL) {
-    gotoChainHeadAnchor = append_to_tree(
-      csound,
-      gotoChainHeadAnchor,
+    gotoChainHeadAnchor = tree_append(gotoChainHeadAnchor,
       gotoChainHeadDefaultCase
     );
-    gotoChainTailAnchor = append_to_tree(
-      csound,
-      gotoChainTailAnchor,
+    gotoChainTailAnchor = tree_append(gotoChainTailAnchor,
       copy_node(csound, defaultCaseLabel)
     );
-    gotoChainTailAnchor = append_to_tree(
-      csound,
-      gotoChainTailAnchor,
+    gotoChainTailAnchor = tree_append(gotoChainTailAnchor,
       defaultCaseBody
     );
     if (gotoChainTail == NULL) {
@@ -2030,24 +2048,18 @@ TREE* expand_switch_statement(
   }
 
   if (gotoChainHeadDefaultCase == NULL) {
-    gotoChainHeadAnchor = append_to_tree(
-      csound,
-      gotoChainHeadAnchor,
+    gotoChainHeadAnchor = tree_append(gotoChainHeadAnchor,
       endGoto
     );
   }
 
-  gotoChainHeadAnchor = append_to_tree(
-    csound,
-    gotoChainHeadAnchor,
+  gotoChainHeadAnchor = tree_append(gotoChainHeadAnchor,
     gotoChainTail
   );
-  append_to_tree(
-    csound,
-    gotoChainHeadAnchor,
+  tree_append(gotoChainHeadAnchor,
     copy_node(csound, endLabel)
   );
-  append_to_tree(csound, gotoChainHeadAnchor, originalNext);
+  tree_append(gotoChainHeadAnchor, originalNext);
 
   return gotoChainHead != NULL ? gotoChainHead : gotoChainHeadAnchor;
 }
@@ -2089,7 +2101,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
       current->locn,
       typeTable
     );
-    anchor = append_to_tree(csound, anchor, expressionNodes);
+    anchor = tree_append(anchor, expressionNodes);
     last = tree_tail(anchor);
   }
 
@@ -2115,7 +2127,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   gotoToken->right->next = labelEnd;
 
 
-  last = append_to_tree(csound, last, gotoToken);
+  last = tree_append(last, gotoToken);
   last = tree_tail(last);
 
 
@@ -2128,7 +2140,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
                                                      topLabel,
                                                      (gotoType==1 ? 0 : 1));
 
-  append_to_tree(csound, last, gotoTopLabelToken);
+  tree_append(last, gotoTopLabelToken);
   gotoTopLabelToken->next = labelEnd;
 
 

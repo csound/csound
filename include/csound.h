@@ -268,6 +268,8 @@ extern "C" {
     int32_t     redef;
     /* error on deprecated opcodes */
     int32_t     error_deprecated;
+    /* UDO recursion depth */
+    int32_t     recursion_depth;
   } OPARMS;
 
   /**
@@ -612,6 +614,8 @@ extern "C" {
    * Compiles Csound input files (such as an orchestra and score, or CSD)
    * as directed by the supplied command-line arguments,
    * but does not perform them. Returns a non-zero error code on failure.
+   * An exact "--" ends Csound option parsing; following arguments are copied
+   * into the application argument list exposed by the argv opcode and API.
    * In this mode, the sequence of calls should be as follows:
    * /code
    *       csoundCompile(csound, argc, argv);
@@ -621,6 +625,24 @@ extern "C" {
    * /endcode
    */
   PUBLIC int32_t csoundCompile(CSOUND *, int32_t argc, const char **argv);
+
+  /**
+   * Replace the application arguments exposed to the orchestra. Arguments
+   * passed after "--" to csoundCompile() are stored through this API.
+   * The strings are copied and remain valid until they are replaced or the
+   * Csound instance is reset. Pass zero arguments to clear the list.
+   */
+  PUBLIC int32_t csoundSetCommandLineArgs(CSOUND *csound, int32_t argc,
+                                          const char **argv);
+
+  /** Return the number of application arguments exposed to the orchestra. */
+  PUBLIC int32_t csoundGetCommandLineArgCount(CSOUND *csound);
+
+  /**
+   * Return an application argument by zero-based index, or NULL when the
+   * index is outside the current argument list.
+   */
+  PUBLIC const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index);
 
   /**
    * Parse, and compile the given orchestra from an ASCII string,
@@ -1202,16 +1224,27 @@ extern "C" {
 
   /**
    * Set the ASCII code of the most recent key pressed.
-   * This value is used by the 'sensekey' opcode if a callback
-   * for returning keyboard events is not set (see
+   * This value is used by keyboard input opcodes such as 'sensekey' and
+   * 'readline' if a callback for returning keyboard events is not set (see
    * csoundRegisterKeyboardCallback()).
    */
   PUBLIC void csoundKeyPress(CSOUND *, char c);
 
   /**
+   * Queue UTF-8 text for consumption by the readline opcode. A newline
+   * character completes the current line. Text may be queued before or
+   * during performance, allowing hosts without terminal input, such as
+   * Android and WebAssembly applications, to connect their own text input.
+   *
+   * Returns CSOUND_SUCCESS on success or CSOUND_ERROR if the arguments are
+   * invalid or the input queue does not have enough space for the full text.
+   */
+  PUBLIC int32_t csoundReadlinePushText(CSOUND *, const char *text);
+
+  /**
    * Registers general purpose callback functions that will be called to query
    * keyboard events. These callbacks are called on every control period by
-   * the sensekey opcode.
+   * opcodes that consume keyboard input.
    * The callback is preserved on csoundReset(), and multiple
    * callbacks may be set and will be called in reverse order of
    * registration. If the same function is set again, it is only moved

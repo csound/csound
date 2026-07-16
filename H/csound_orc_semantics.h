@@ -36,6 +36,7 @@
 
 char *strip_extension(CSOUND *csound, const char *s);
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
+char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar);
 
 void print_tree(CSOUND *, char *, TREE *);
 OENTRIES* find_opcode2(CSOUND*, char*);
@@ -48,7 +49,8 @@ char* convert_external_to_internal(CSOUND* csound, char* arg);
 int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
 void handle_optional_args(CSOUND *, TREE *);
 char* resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
-TREE* append_to_tree(CSOUND * csound, TREE *first, TREE *newlast);
+/* grammar-rule variant of tree_append(); only for use in parser rules */
+TREE* parser_append(CSOUND * csound, TREE *first, TREE *newlast);
 void add_arg(CSOUND* csound, char* varName, char* annotation,
 	     TYPE_TABLE* typeTable, TREE *tree);
 void add_array_arg(CSOUND* csound, char* varName, char* annotation,

@@ -782,6 +782,11 @@ else()
 endif()
 
 # Flex/Bison for the new parser
+if(WIN32)
+    find_program(FLEX_EXECUTABLE NAMES flex win_flex win_flex.exe)
+    find_program(BISON_EXECUTABLE NAMES bison win_bison win_bison.exe)
+endif()
+
 find_package(FLEX)
 find_package(BISON)
 
@@ -954,6 +959,7 @@ set(libcsound_SRCS
     OOps/pvfileio.c
     OOps/pvsanal.c
     OOps/random.c
+    OOps/readline.c
     OOps/remote.c
     OOps/schedule.c
     OOps/sndinfUG.c

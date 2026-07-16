@@ -583,6 +583,14 @@ typedef int32_t spin_lock_t;
 #define SPINLOCK_INIT 0
 #endif
 
+#if defined(MSVC) || defined(MACOSX) || \
+    (defined(__GNUC__) && (defined(HAVE_PTHREAD_SPIN_LOCK) || \
+                           defined(HAVE_ATOMIC_BUILTIN)))
+#define CSOUND_SPINLOCK_AVAILABLE 1
+#else
+#define CSOUND_SPINLOCK_AVAILABLE 0
+#endif
+
 #if (defined(__MACH__) || defined(ANDROID) || defined(NACL) \
   || defined(__CYGWIN__) || defined(__HAIKU__))
 #include <pthread.h>
