@@ -5,6 +5,8 @@
 <CsInstruments>
 
 gkVictimPerfCycles init 0
+gkTurnoffAttempts init 0
+gkCancellationFailed init 0
 
 instr 1
   a1 diskin2 "fox.wav"
@@ -66,6 +68,7 @@ endop
 instr 7
   ; Keep trying until instr 8 is visible on the active chain. Its indefinite
   ; duration means zero perf cycles below can only result from this turnoff.
+  gkTurnoffAttempts += 1
   turnoff2 8, 0, 0
 endin
 
@@ -77,8 +80,20 @@ instr 8
 endin
 
 instr 9
-  if (i(gkVictimPerfCycles) != 0) then
+  ; Observe at k-rate while the event thread is still completing SlowInit.
+  if (gkVictimPerfCycles != 0) then
+    gkCancellationFailed = 1
+  endif
+endin
+
+instr 10
+  ; Keep process termination at i-time; exitnow is not a k-rate assertion.
+  if (i(gkCancellationFailed) != 0) then
     prints "Cancelled instance reached its performance pass\n"
+    exitnow(1)
+  endif
+  if (i(gkTurnoffAttempts) == 0) then
+    prints "Cancellation test made no turnoff attempts\n"
     exitnow(1)
   endif
 endin
@@ -89,9 +104,10 @@ i 3 0.1 0
 i 4 0 0.05
 i 4 0.01 0.05
 i 5 0 0.03
-i 7 0 0.2
+i 7 0 0.55
 i 8 0 -1
-i 9 0.08 0
-e 0.4
+i 9 0 0.58
+i 10 0.59 0
+e 0.65
 </CsScore>
 </CsoundSynthesizer>

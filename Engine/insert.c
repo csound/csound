@@ -39,6 +39,8 @@
 
 static void show_allocs(CSOUND *);
 static void deact(CSOUND *, INSDS *);
+static void xturnoff_now_internal(CSOUND *, INSDS *, int32_t);
+static void free_unlinked_instance(CSOUND *, INSDS *);
 static void sched_off_time(CSOUND *, INSDS *);
 static int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn,
                            MEVENT *mep);
@@ -77,22 +79,57 @@ void async_instance_unlock(CSOUND *csound)
 
 void instance_init_begin(CSOUND *csound, INSDS *ip)
 {
+  int32_t depth;
+
   async_instance_lock(csound);
-  ATOMIC_SET(ip->init_running, 1);
-  ATOMIC_SET(ip->turnoff_pending, 0);
+  depth = ATOMIC_GET(ip->init_running);
+  ATOMIC_SET(ip->init_running, depth + 1);
   async_instance_unlock(csound);
 }
 
 int32_t instance_init_finish(CSOUND *csound, INSDS *ip)
 {
-  int32_t turnoffPending;
+  int32_t depth;
+  int32_t result = INSTANCE_INIT_DEFERRED;
 
   async_instance_lock(csound);
-  ATOMIC_SET(ip->init_running, 0);
-  turnoffPending = ATOMIC_GET(ip->turnoff_pending);
-  ATOMIC_SET(ip->turnoff_pending, 0);
+  depth = ATOMIC_GET(ip->init_running);
+  if (depth <= 0) {
+    async_instance_unlock(csound);
+    return result;
+  }
+  ATOMIC_SET(ip->init_running, --depth);
+  if (depth == 0) {
+    if (ATOMIC_GET(ip->turnoff_pending) == INSTANCE_TURNOFF_REQUESTED) {
+      ATOMIC_SET(ip->turnoff_pending, INSTANCE_TURNOFF_FINALIZING);
+      result = INSTANCE_INIT_TURNOFF;
+    }
+    else
+      result = INSTANCE_INIT_COMPLETE;
+  }
   async_instance_unlock(csound);
-  return turnoffPending;
+  return result;
+}
+
+void instance_init_turnoff(CSOUND *csound, INSDS *ip)
+{
+  int32_t freePending;
+  int32_t freeNow;
+
+  /* FINALIZING keeps other turnoff/free callers away until the forced
+     deactivation has finished. */
+  if (ATOMIC_GET8(ip->actflg) == 0)
+    ATOMIC_SET8(ip->actflg, 1);
+  xturnoff_now_internal(csound, ip, 1);
+  async_instance_lock(csound);
+  freePending = ATOMIC_GET(ip->free_pending);
+  ATOMIC_SET(ip->free_pending, 0);
+  freeNow = freePending && !ip->linked;
+  if (!freeNow)
+    ATOMIC_SET(ip->turnoff_pending, INSTANCE_TURNOFF_NONE);
+  async_instance_unlock(csound);
+  if (freeNow)
+    free_unlinked_instance(csound, ip);
 }
 
 static INSDS *take_inactive_instance(CSOUND *csound, INSTRTXT *tp)
@@ -103,8 +140,9 @@ static INSDS *take_inactive_instance(CSOUND *csound, INSTRTXT *tp)
   inactive_instance_lock(csound);
   current = tp->act_instance;
   while (current != NULL &&
-         (instance_has_async_refs(current) || current->fdchp != NULL ||
-          ATOMIC_GET(current->init_running))) {
+         (instance_has_async_refs(current) ||
+          ATOMIC_GET(current->init_running) ||
+          ATOMIC_GET(current->turnoff_pending))) {
     previous = current;
     current = current->nxtact;
   }
@@ -118,6 +156,10 @@ static INSDS *take_inactive_instance(CSOUND *csound, INSTRTXT *tp)
     previous->nxtact = current->nxtact;
   current->nxtact = NULL;
   inactive_instance_unlock(csound);
+  /* A previous deactivation may have deferred this close until its final
+     asynchronous reader released the instance. No reader remains here. */
+  if (current->fdchp != NULL)
+    fdchclose(csound, current);
   return current;
 }
 
@@ -411,6 +453,9 @@ static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   if(csound->oparms->realtime) {
     csoundLockMutex(csound->init_pass_threadlock);
   }
+  /* Each queued pass owns a complete reinit interval. An earlier queued pass
+     may already have cleared these flags before this one starts. */
+  csound->reinitflag = ip->reinitflag = 1;
   csound->curip = ip;
   csound->ids = ids;
   csound->mode = 1;
@@ -423,7 +468,6 @@ static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   }
   csound->mode = 0;
 
-  ATOMIC_SET8(ip->actflg, 1);
   csound->reinitflag = ip->reinitflag = 0;
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
@@ -502,29 +546,35 @@ uintptr_t event_insert_thread(void *p) {
         case ALLOC_DATA_REINIT_PASS: {
           INSDS *ip = data.ip;
           OPDS *ids = data.ids;
-          int32_t error;
+          int32_t error, initResult;
           csoundSpinLock(&csound->alloc_spinlock);
           error = realtime_reinit_pass(csound, ip, ids);
-          csoundSpinUnLock(&csound->alloc_spinlock);
-          if (error == 0)
+          initResult = instance_init_finish(csound, ip);
+          if (initResult == INSTANCE_INIT_COMPLETE && error == 0) {
             ATOMIC_SET(ip->init_done, 1);
-          if (instance_init_finish(csound, ip))
-            xturnoff_now(csound, ip);
+            ATOMIC_SET8(ip->actflg, 1);
+          }
+          else
+            ATOMIC_SET(ip->init_done, 0);
+          if (initResult == INSTANCE_INIT_TURNOFF)
+            instance_init_turnoff(csound, ip);
+          csoundSpinUnLock(&csound->alloc_spinlock);
           break;
         }
 
         case ALLOC_DATA_INIT_PASS: {
           INSDS *ip = data.ip;
-          int32_t error;
+          int32_t error, initResult;
           ATOMIC_SET(ip->init_done, 0);
           instance_init_begin(csound, ip);
           csoundSpinLock(&csound->alloc_spinlock);
           error = realtime_init_pass(csound, ip);
-          csoundSpinUnLock(&csound->alloc_spinlock);
-          if (error == 0)
+          initResult = instance_init_finish(csound, ip);
+          if (initResult == INSTANCE_INIT_COMPLETE && error == 0)
             ATOMIC_SET(ip->init_done, 1);
-          if (instance_init_finish(csound, ip))
-            xturnoff_now(csound, ip);
+          if (initResult == INSTANCE_INIT_TURNOFF)
+            instance_init_turnoff(csound, ip);
+          csoundSpinUnLock(&csound->alloc_spinlock);
           break;
         }
 
@@ -763,7 +813,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
   OPARMS    *O = csound->oparms;
   CS_VAR_MEM *pfields = NULL;        /* *** was uninitialised *** */
   int32_t   tie = 0, i;
-  int32_t  n, error = 0;
+  int32_t  n, error = 0, initResult;
   MYFLT  *flp, *fep;
   MYFLT newp1 = 0;
 
@@ -824,8 +874,10 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       break;
     }
   }
-  if (tie)
+  if (tie) {
+    ATOMIC_SET(ip->init_done, 0);
     instance_init_begin(csound, ip);
+  }
 
   if(!tie) {
     /* alloc new dspace if needed */
@@ -1001,10 +1053,15 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
   csound->init_event = newevtp;
   error = csound->oparms->realtime ? realtime_init_pass(csound, ip) :
     init_pass(csound, ip);
-  if(error == 0)
+  initResult = instance_init_finish(csound, ip);
+  if (initResult == INSTANCE_INIT_COMPLETE && error == 0) {
     ATOMIC_SET(ip->init_done, 1);
-  if (instance_init_finish(csound, ip)) {
-    xturnoff_now(csound, ip);
+  }
+  else {
+    ATOMIC_SET(ip->init_done, 0);
+  }
+  if (initResult == INSTANCE_INIT_TURNOFF) {
+    instance_init_turnoff(csound, ip);
     return error != 0 ? error : csound->inerrcnt;
   }
   if (UNLIKELY(csound->inerrcnt || ip->p3.value == FL(0.0))) {
@@ -1094,7 +1151,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   INSDS     *ip, **ipp, *prvp, *nxtp;
   OPARMS    *O = csound->oparms;
   CS_VAR_MEM *pfields;
-  int32_t pmax = 0, error = 0;
+  int32_t pmax = 0, error = 0, initResult;
 
   if (UNLIKELY(csound->advanceCnt))
     return 0;
@@ -1157,6 +1214,8 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   }
   ATOMIC_SET(ip->init_done, 0);
   ip->insno = (int16) insno;
+  /* A MIDI note-off can arrive as soon as the instance is published below. */
+  instance_init_begin(csound, ip);
 
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME))
     csound->Message(csound, "Now %d active instr %d\n", tp->active, insno);
@@ -1175,10 +1234,6 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   /* turned off first as well */
   ip->nxtolap = NULL;
 
-  /* Publish the init-in-progress state before this instance becomes visible
-     on the active chain. A concurrent turnoff is then deferred until the
-     event thread completes this pass. */
-  instance_init_begin(csound, ip);
   nxtp = &(csound->actanchor);          /* now splice into activ lst */
   while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
     if (nxtp->insno > insno) {
@@ -1325,10 +1380,15 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     init_pass(csound, ip);
   if(evt.p) csound->Free(csound, evt.p);
   csound->init_event = NULL;
-  if(error == 0)
+  initResult = instance_init_finish(csound, ip);
+  if (initResult == INSTANCE_INIT_COMPLETE && error == 0) {
     ATOMIC_SET(ip->init_done, 1);
-  if (instance_init_finish(csound, ip)) {
-    xturnoff_now(csound, ip);
+  }
+  else {
+    ATOMIC_SET(ip->init_done, 0);
+  }
+  if (initResult == INSTANCE_INIT_TURNOFF) {
+    instance_init_turnoff(csound, ip);
     return error != 0 ? error : csound->inerrcnt;
   }
 
@@ -1436,6 +1496,21 @@ void deinit_pass(CSOUND *csound, INSDS *ip) {
   }
 }
 
+static int32_t instance_turnoff_must_wait(CSOUND *csound, INSDS *ip)
+{
+  int32_t wait;
+  int32_t state;
+
+  async_instance_lock(csound);
+  state = ATOMIC_GET(ip->turnoff_pending);
+  wait = ATOMIC_GET(ip->init_running) > 0 ||
+         state == INSTANCE_TURNOFF_FINALIZING;
+  if (wait && state != INSTANCE_TURNOFF_FINALIZING)
+    ATOMIC_SET(ip->turnoff_pending, INSTANCE_TURNOFF_REQUESTED);
+  async_instance_unlock(csound);
+  return wait;
+}
+
 #define DEACT_LOCAL_STACK_SIZE 64
 
 typedef enum {
@@ -1447,6 +1522,7 @@ typedef enum {
 typedef struct {
   INSDS *ip;
   DEACT_STAGE stage;
+  int32_t force;
 } DEACT_FRAME;
 
 static DEACT_FRAME *deact_grow_stack(CSOUND *csound, DEACT_FRAME *stack,
@@ -1484,7 +1560,7 @@ static DEACT_FRAME *deact_grow_stack(CSOUND *csound, DEACT_FRAME *stack,
 
 /* unlink single instr from activ chain */
 /*      and mark it inactive            */
-static void deact(CSOUND *csound, INSDS *ip)
+static void deact_internal(CSOUND *csound, INSDS *ip, int32_t force)
 {
   DEACT_FRAME localStack[DEACT_LOCAL_STACK_SIZE];
   DEACT_FRAME *stack = localStack;
@@ -1493,6 +1569,7 @@ static void deact(CSOUND *csound, INSDS *ip)
 
   localStack[0].ip = ip;
   localStack[0].stage = DEACT_ENTER;
+  localStack[0].force = force;
 
   /* Store the recursive continuations explicitly while preserving their
      original cleanup order. Ordinary chains remain in localStack. */
@@ -1504,14 +1581,10 @@ static void deact(CSOUND *csound, INSDS *ip)
     case DEACT_ENTER: {
       UOPCODE *udo;
 
-      async_instance_lock(csound);
-      if (ATOMIC_GET(current->init_running)) {
-        ATOMIC_SET(current->turnoff_pending, 1);
-        async_instance_unlock(csound);
+      if (!frame->force && instance_turnoff_must_wait(csound, current)) {
         frameCount--;
         break;
       }
-      async_instance_unlock(csound);
 
       deinit_pass(csound, current);
       csound->engineState.instrtxtp[current->insno]->active--;
@@ -1543,6 +1616,7 @@ static void deact(CSOUND *csound, INSDS *ip)
                                  &capacity);
       stack[frameCount].ip = udo->ip;
       stack[frameCount].stage = DEACT_ENTER;
+      stack[frameCount].force = 0;
       frameCount++;
       break;
     }
@@ -1566,6 +1640,7 @@ static void deact(CSOUND *csound, INSDS *ip)
                                  &capacity);
       stack[frameCount].ip = subinstr->ip;
       stack[frameCount].stage = DEACT_ENTER;
+      stack[frameCount].force = 0;
       frameCount++;
       break;
     }
@@ -1633,12 +1708,19 @@ static void deact(CSOUND *csound, INSDS *ip)
     csound->Free(csound, stack);
 }
 
+static void deact(CSOUND *csound, INSDS *ip)
+{
+  deact_internal(csound, ip, 0);
+}
+
 /* Turn off a particular insalloc, also remove from list of active */
 /* MIDI notes. Allows for releasing if ip->xtratim > 0. */
-void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
-{                                         /* called by inexclus on ctrl 111 */
+static void xturnoff_internal(CSOUND *csound, INSDS *ip, int32_t force)
+{
   MCHNBLK *chn;
 
+  if (!force && instance_turnoff_must_wait(csound, ip))
+    return;
   if (UNLIKELY(ip->relesing))
     return;                             /* already releasing: nothing to do */
 
@@ -1684,20 +1766,30 @@ void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
   }
   else {
     /* no extra time needed: deactivate immediately */
-    deact(csound, ip);
+    deact_internal(csound, ip, force);
     csound->dag_changed++;      /* Need to remake DAG */
   }
 }
 
+void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
+{                                         /* called by inexclus on ctrl 111 */
+  xturnoff_internal(csound, ip, 0);
+}
+
 /* Turn off instrument instance immediately, without releasing. */
 /* Removes alloc from list of active MIDI notes. */
-void xturnoff_now(CSOUND *csound, INSDS *ip)
+static void xturnoff_now_internal(CSOUND *csound, INSDS *ip, int32_t force)
 {
   if (ip->xtratim > 0 && ip->relesing)
     csound->engineState.instrtxtp[ip->insno]->pending_release--;
   ip->xtratim = 0;
   ip->relesing = 0;
-  xturnoff(csound, ip);
+  xturnoff_internal(csound, ip, force);
+}
+
+void xturnoff_now(CSOUND *csound, INSDS *ip)
+{
+  xturnoff_now_internal(csound, ip, 0);
 }
 
 void xturnoff_instance(CSOUND *csound, MYFLT instr, int32_t insno, INSDS *ip,
@@ -1767,9 +1859,9 @@ void free_inactive_instances(CSOUND *csound)
   INSDS     *reclaim = NULL;
   int32_t       cnt = 0;
 
-  /* Detach reclaimable instances while holding the list lock, then release
-     files and memory after unlocking. Allocation and I/O must never extend a
-     realtime spinlock critical section. */
+  /* Detach reclaimable instances while holding the instance-list lock, then
+     release files and memory after that lock is released. A caller may still
+     serialize the surrounding section transition with alloc_spinlock. */
   inactive_instance_lock(csound);
   for (txtp = &(csound->engineState.instxtanchor);
        txtp != NULL;  txtp = txtp->nxtinstxt) {
@@ -1780,7 +1872,8 @@ void free_inactive_instances(CSOUND *csound)
       prvnxtloc = &txtp->instance;
       do {
         if (!ip->actflg && !instance_has_async_refs(ip) &&
-            !ATOMIC_GET(ip->init_running)) {
+            !ATOMIC_GET(ip->init_running) &&
+            !ATOMIC_GET(ip->turnoff_pending)) {
           cnt++;
           if ((nxtip = ip->nxtinstance) != NULL)
             nxtip->prvinstance = prvip;
@@ -1832,7 +1925,9 @@ void free_inactive_instances(CSOUND *csound)
       if (csound->dead_instr_pool[i] != NULL) {
         INSDS *active = csound->dead_instr_pool[i]->instance;
         while (active != NULL) {
-          if (active->actflg || instance_has_async_refs(active)) {
+          if (active->actflg || instance_has_async_refs(active) ||
+              ATOMIC_GET(active->init_running) ||
+              ATOMIC_GET(active->turnoff_pending)) {
             // add_to_deadpool(csound,csound->dead_instr_pool[i]);
             break;
           }
@@ -2564,19 +2659,11 @@ INSDS *create_instance(CSOUND *csound, int32_t insno)
     - Unlinked instances are freed.
     All active instances are turned off.
 */
-void free_instance(CSOUND *csound, INSDS *ip) {
-  // unpause
-  if(ip->actflg == 0) ip->actflg = 1;
-  // turnoff immediately
-  xturnoff_now(csound, ip);
-
-  // don't touch any instances that are in the act_instance chain
-  if(ip->linked) return;
-
-  /* Unlinked instances cannot be left for the normal inactive-instance pass.
-     Worker release does not require alloc_spinlock, so background users and a
-     queued init can finish even when this caller arrived through that path. */
-  while (instance_has_async_refs(ip) || ATOMIC_GET(ip->init_running)) {
+static void free_unlinked_instance(CSOUND *csound, INSDS *ip)
+{
+  /* Worker release does not require alloc_spinlock, so an asynchronous reader
+     can finish even if deletion was requested from an engine critical path. */
+  while (instance_has_async_refs(ip)) {
     diskin2_async_drain_deferred(csound);
     csoundSleep(1);
   }
@@ -2630,6 +2717,32 @@ void free_instance(CSOUND *csound, INSDS *ip) {
   csound->Free(csound, ip);
 }
 
+void free_instance(CSOUND *csound, INSDS *ip) {
+  int32_t lifecycleBusy;
+
+  // unpause
+  if(ip->actflg == 0) ip->actflg = 1;
+  // turnoff immediately
+  xturnoff_now(csound, ip);
+
+  // don't touch any instances that are in the act_instance chain
+  if(ip->linked) return;
+
+  /* A queued init/reinit owns this INSDS until its outermost finish. Transfer
+     deletion to that finalizer instead of waiting while this caller may hold
+     alloc_spinlock or init_pass_threadlock. */
+  async_instance_lock(csound);
+  lifecycleBusy = ATOMIC_GET(ip->init_running) > 0 ||
+                  ATOMIC_GET(ip->turnoff_pending) != INSTANCE_TURNOFF_NONE;
+  if (lifecycleBusy)
+    ATOMIC_SET(ip->free_pending, 1);
+  async_instance_unlock(csound);
+  if (lifecycleBusy)
+    return;
+
+  free_unlinked_instance(csound, ip);
+}
+
 /** Initialise an instance
     - copy data from evt pfields
     - run init pass
@@ -2640,7 +2753,7 @@ int32_t init_instance(CSOUND *csound, INSDS *ip,
   EVTBLK *initevt = csound->init_event;
   INSTRTXT *tp = csound->engineState.instrtxtp[ip->insno];
   CS_VAR_MEM *pfields = NULL;
-  int32_t   i, n, error = CSOUND_SUCCESS;
+  int32_t   i, n, error = CSOUND_SUCCESS, initResult;
   MYFLT  *fep;
   pfields = (CS_VAR_MEM*) &ip->p0;
   /* init: */
@@ -2673,15 +2786,18 @@ int32_t init_instance(CSOUND *csound, INSDS *ip,
   csound->init_event = newevtp;
   instance_init_begin(csound, ip);
   error = init_pass(csound, ip);
-  if(error == 0) {
+  initResult = instance_init_finish(csound, ip);
+  if (initResult == INSTANCE_INIT_COMPLETE && error == 0) {
     ATOMIC_SET(ip->init_done, 1);
     ip->actflg = 1;  // set as active
-  } else {
-    ATOMIC_SET(ip->init_done, 0);
-    ip->actflg = 0;  // set as inactive
   }
-  if (instance_init_finish(csound, ip) && ip->actflg)
-    xturnoff_now(csound, ip);
+  else {
+    ATOMIC_SET(ip->init_done, 0);
+  }
+  if (initResult == INSTANCE_INIT_TURNOFF)
+    instance_init_turnoff(csound, ip);
+  else if (initResult == INSTANCE_INIT_COMPLETE && error != 0)
+    ip->actflg = 0;  // set as inactive
   csound->init_event = initevt;
   return error;
 }

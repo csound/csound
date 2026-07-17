@@ -500,8 +500,14 @@ typedef struct {
     MYFLT   *spin;         /* offset into csound->spin */
     MYFLT   *spout;        /* offset into csound->spout, or local spout */
     int32_t  init_done;
+    /* Init work can be nested or queued more than once. begin/finish update
+       init_running as a depth under async_ref_spinlock. A terminal turnoff is
+       sticky until the outermost finish consumes it; free_pending transfers an
+       unlinked instance deletion to that finalizer instead of waiting while a
+       lock needed by queued init work may be held. */
     volatile int32_t init_running;
     volatile int32_t turnoff_pending;
+    volatile int32_t free_pending;
     int32_t  tieflag;
     int32_t  reinitflag;
     MYFLT    retval;
@@ -1815,6 +1821,8 @@ struct CSOUND_ {
   volatile unsigned long alloc_queue_items;
   unsigned long alloc_queue_wp;
   spin_lock_t alloc_queue_spinlock;
+  /* Realtime lock order is alloc, then instance/async-reference/event. The
+     three short registry locks must never be held while taking alloc. */
   spin_lock_t alloc_spinlock;
   spin_lock_t instance_spinlock;
   spin_lock_t async_ref_spinlock;

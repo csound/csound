@@ -180,8 +180,8 @@ TEST_F (IOTests, testSynchronousCloseWhileAsyncWorkerRuns)
     remove(asyncPath.c_str());
     remove(syncPath.c_str());
     void *asyncHandle = csoundFileOpenAsync(
-        csound, &asyncFile, CSFILE_STD, asyncPath.c_str(), (void *) "w+", nullptr,
-        CSFTYPE_OTHER_TEXT, 64, 0);
+        csound, &asyncFile, CSFILE_STD, asyncPath.c_str(), (void *) "w+",
+        nullptr, CSFTYPE_OTHER_TEXT, 64, 0);
     ASSERT_NE(asyncHandle, nullptr);
     void *syncHandle = csoundFileOpen(
         csound, &syncFile, CSFILE_STD, syncPath.c_str(), (void *) "w+", nullptr,

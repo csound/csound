@@ -313,16 +313,21 @@ typedef struct diskin2_async_entry {
 } DISKIN2_ASYNC_ENTRY;
 
 typedef struct {
+  /* All entries are retained until shutdown; inactive entries move to the
+     corresponding free list for reuse. */
   DISKIN2_ASYNC_ENTRY *entries;
   DISKIN2_ASYNC_ENTRY *entryTail;
   DISKIN2_ASYNC_ENTRY *freeEntries;
+  /* The worker scans only active scalar entries. */
   DISKIN2_ASYNC_ENTRY *activeEntries;
   DISKIN2_ASYNC_ENTRY *activeEntryTail;
+  /* Array readers have an independent allocation and active registry. */
   DISKIN2_ASYNC_ENTRY *arrayEntries;
   DISKIN2_ASYNC_ENTRY *arrayEntryTail;
   DISKIN2_ASYNC_ENTRY *arrayFreeEntries;
   DISKIN2_ASYNC_ENTRY *activeArrayEntries;
   DISKIN2_ASYNC_ENTRY *activeArrayEntryTail;
+  /* File closes that must wait for the current worker borrow. */
   DISKIN2_ASYNC_ENTRY *deferredCloses;
   void *thread;
   void *arrayThread;
@@ -707,10 +712,10 @@ static int32_t diskin2_add_async_instance(
   if (!ATOMIC_GET(state->shuttingDown) &&
       ATOMIC_GET(*asyncState) != DISKIN2_ASYNC_STOPPED &&
       !ATOMIC_GET(*stopRequested)) {
-      diskin2_entry_lock(entry);
-      entry->active = 1;
-      diskin2_entry_unlock(entry);
-      diskin2_activate_entry_locked(state, entry, array);
+    diskin2_entry_lock(entry);
+    entry->active = 1;
+    diskin2_entry_unlock(entry);
+    diskin2_activate_entry_locked(state, entry, array);
     *entrySlot = entry;
     *async = 1;
     ATOMIC_SET(*asyncState, DISKIN2_ASYNC_ACTIVE);

@@ -657,7 +657,8 @@ enum {
 
 enum {
   FILE_ASYNC_NONE = 0,
-  FILE_ASYNC_STARTING = -1
+  FILE_ASYNC_STARTING = -1,
+  FILE_ASYNC_RUNNING = ASYNC_GLOBAL
 };
 
 static void link_open_file(CSOUND *csound, CSFILE *file)
@@ -1218,7 +1219,7 @@ void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
     p->buf = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*buffsize);
     if (p->cb != NULL && p->buf != NULL) {
       csoundSpinLock(&csound->open_files_lock);
-      p->async_flag = ASYNC_GLOBAL;
+      p->async_flag = FILE_ASYNC_RUNNING;
       csoundSpinUnLock(&csound->open_files_lock);
     }
     csound->NotifyThreadLock(csound->file_io_threadlock);
@@ -1286,11 +1287,14 @@ static int32_t read_files(CSOUND *csound){
     csoundSpinLock(&csound->open_files_lock);
     pass = ++csound->file_io_pass;
     csoundSpinUnLock(&csound->open_files_lock);
+    /* Restart at the head after each unpinned read. A pass stamp prevents
+       duplicate work while avoiding a cached next pointer that a concurrent
+       close could retire and reclaim. */
     for (;;) {
       csoundSpinLock(&csound->open_files_lock);
       current = (CSFILE *) csound->open_files;
       while (current != NULL &&
-             (current->async_flag != ASYNC_GLOBAL ||
+             (current->async_flag != FILE_ASYNC_RUNNING ||
               current->io_pass == pass))
         current = current->nxt;
       if (current != NULL) {

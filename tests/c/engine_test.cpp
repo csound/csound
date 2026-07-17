@@ -202,6 +202,32 @@ TEST_F (EngineTests, testDeinitContinuesAfterError)
     ASSERT_EQ(deinitCallCount, 2);
 }
 
+TEST_F (EngineTests, testNestedInitKeepsTurnoffPending)
+{
+    INSDS instance {};
+
+    instance_init_begin(csound, &instance);
+    instance_init_begin(csound, &instance);
+    EXPECT_EQ(ATOMIC_GET(instance.init_running), 2);
+    EXPECT_EQ(instance_init_finish(csound, &instance),
+              INSTANCE_INIT_DEFERRED);
+
+    ATOMIC_SET(instance.turnoff_pending, INSTANCE_TURNOFF_REQUESTED);
+    instance_init_begin(csound, &instance);
+    EXPECT_EQ(ATOMIC_GET(instance.init_running), 2);
+    EXPECT_EQ(ATOMIC_GET(instance.turnoff_pending),
+              INSTANCE_TURNOFF_REQUESTED);
+    EXPECT_EQ(instance_init_finish(csound, &instance),
+              INSTANCE_INIT_DEFERRED);
+    EXPECT_EQ(instance_init_finish(csound, &instance),
+              INSTANCE_INIT_TURNOFF);
+    EXPECT_EQ(ATOMIC_GET(instance.init_running), 0);
+    EXPECT_EQ(ATOMIC_GET(instance.turnoff_pending),
+              INSTANCE_TURNOFF_FINALIZING);
+    EXPECT_EQ(instance_init_finish(csound, &instance),
+              INSTANCE_INIT_DEFERRED);
+}
+
 TEST_F (EngineTests, testUdpServer)
 {
     csoundSetIsGraphable(csound, 1);

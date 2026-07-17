@@ -38,20 +38,20 @@
 
 #if CSOUND_SPINLOCK_AVAILABLE
 #define RT_SPIN_TRYLOCK { int32_t trylock = CSOUND_SUCCESS; \
-  if(csound->oparms->realtime)             \
+  if(csound->realtime_locks_initialized)                         \
     trylock = csoundSpinTryLock(&csound->alloc_spinlock);      \
   if(trylock == CSOUND_SUCCESS) {
 #else
-#define RT_SPIN_TRYLOCK csoundSpinLock(&csound->alloc_spinlock);
+#define RT_SPIN_TRYLOCK {
 #endif
 
 #if CSOUND_SPINLOCK_AVAILABLE
 #define RT_SPIN_UNLOCK \
-  if(csound->oparms->realtime) \
+  if(csound->realtime_locks_initialized) \
     csoundSpinUnLock(&csound->alloc_spinlock); \
   trylock = CSOUND_SUCCESS; } }
 #else
-#define RT_SPIN_UNLOCK csoundSpinUnLock(&csound->alloc_spinlock);
+#define RT_SPIN_UNLOCK }
 #endif
 
 #define STA(x)   (csound->musmonStatics.x)

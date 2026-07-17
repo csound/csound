@@ -1455,9 +1455,11 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 {
   OPDS         *saved_ids = csound->ids;
   INSDS        *parent_ip = csound->curip, *lcurip;
+  INSDS        *saved_curip = csound->curip;
   INSTRTXT     *tp;
   uint32_t instno;
   uint32_t i;
+  int32_t initResult;
   OPCODINFO    *inm;
   OPCOD_IOBUFS *buf = p->buf;
   /* look up the 'fake' instr number, and opcode name */
@@ -1477,41 +1479,38 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                              instno, inm->name);
 
-  if(csound->oparms->recursion_depth > 0
-     && inm->recurse_depth == 0) {
-    // set top frame jump for recursion depth exception
-    if (setjmp(inm->udojmp) != 0) {
-      inm->recurse_depth = 0;
-      return csound->InitError(csound,
-                               "error: UDO %s max recursion depth %d reached",
-                               inm->name, csound->oparms->recursion_depth);
-    }
+  inm->recurse_depth++;
+  if (csound->oparms->recursion_depth > 0 &&
+      inm->recurse_depth > csound->oparms->recursion_depth) {
+    /* Return through each recursive init frame so its lifecycle bookkeeping
+       and recursion depth are unwound normally. */
+    inm->recurse_depth--;
+    return csound->InitError(csound,
+                             "error: UDO %s max recursion depth %d reached",
+                             inm->name, csound->oparms->recursion_depth);
   }
-   // increment recursion depth count
-   inm->recurse_depth++;
-   if(csound->oparms->recursion_depth > 0 &&
-      inm->recurse_depth >
-      csound->oparms->recursion_depth) {
-     // exit gracefully from here back to top frame
-     longjmp(inm->udojmp, CSOUND_ERROR);
-   }
   
   if (!p->ip) {
     /* search for already allocated, but not active instance */
     /* if none was found, allocate a new instance */
     tp = csound->engineState.instrtxtp[instno];
     if (tp == NULL) {
+      inm->recurse_depth--;
       return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                                instno, inm->name);
     }
     lcurip = allocate_or_take_instance(csound, tp, instno);
-    if (UNLIKELY(lcurip == NULL))
+    if (UNLIKELY(lcurip == NULL)) {
+      inm->recurse_depth--;
       return csound->InitError(csound,
                                "Could not allocate UDO %s instance\n",
                                inm->name);
-    if (lcurip->opcod_iobufs==NULL)
+    }
+    if (lcurip->opcod_iobufs==NULL) {
+      inm->recurse_depth--;
       return csound->InitError(csound, "Broken redefinition of UDO %d (UDO %s)\n",
                                instno, inm->name);
+    }
     lcurip->actflg++;                     /*    and mark the instr active */
     tp->active++;
     tp->instcnt++;
@@ -1602,6 +1601,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
    // check for setksmps or over/undersample
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
+  instance_init_begin(csound, lcurip);
   ATOMIC_SET(p->ip->init_done, 0);
   csound->mode = 1;
   buf->iflag = 0;
@@ -1648,6 +1648,15 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   // following init pass, decrement recursion depth count
   inm->recurse_depth--;
 
+  csound->mode = 0;
+  initResult = instance_init_finish(csound, lcurip);
+  ATOMIC_SET(p->ip->init_done, 0);
+  if (initResult == INSTANCE_INIT_TURNOFF) {
+    instance_init_turnoff(csound, lcurip);
+    csound->ids = saved_ids;
+    csound->curip = saved_curip;
+    return err;
+  }
   if (err) {
     goto restore_state;
   }
@@ -1748,11 +1757,18 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   }
 
   csound->mode = 0;
-  ATOMIC_SET(p->ip->init_done, 1);
+  if (UNLIKELY(err != OK)) {
+    ATOMIC_SET(p->ip->init_done, 0);
+    goto restore_state;
+  }
+  ATOMIC_SET(p->ip->init_done,
+             initResult == INSTANCE_INIT_COMPLETE);
 
   /* Child UDOs can only be classified after this complete init chain because
      a later statement may still change lcurip->p3. */
-  recycle_init_only_udo_instances(csound, lcurip);
+  if (initResult == INSTANCE_INIT_COMPLETE) {
+    recycle_init_only_udo_instances(csound, lcurip);
+  }
 
   /* copy length related parameters back to caller instr */
   parent_ip->relesing = lcurip->relesing;
@@ -1764,7 +1780,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   /* restore globals */
   csound->mode = 0;
   csound->ids = saved_ids;
-  csound->curip = parent_ip;
+  csound->curip = saved_curip;
   if (UNLIKELY(err != OK)) {
     return err;
   }
@@ -2653,7 +2669,7 @@ int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
   OPDS    *saved_ids = csound->ids;
   INSDS   *saved_curip = csound->curip;
   CS_VAR_MEM   *pfield;
-  int32_t     n, init_op, inarg_ofs;
+  int32_t     n, init_op, inarg_ofs, initResult;
   INSDS  *pip = p->h.insdshead;
 
   init_op = (p->h.perf == NULL ? 1 : 0);
@@ -2784,6 +2800,7 @@ int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
 
   /* do init pass for this instr */
   csound->curip = p->ip;        /* **** NEW *** */
+  instance_init_begin(csound, p->ip);
   p->ip->init_done = 0;
   csound->ids = (OPDS *)p->ip;
   csound->mode = 1;
@@ -2792,7 +2809,10 @@ int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
     (*csound->ids->init)(csound, csound->ids);
   }
   csound->mode = 0;
-  p->ip->init_done = 1;
+  initResult = instance_init_finish(csound, p->ip);
+  ATOMIC_SET(p->ip->init_done, initResult == INSTANCE_INIT_COMPLETE);
+  if (initResult == INSTANCE_INIT_TURNOFF)
+    instance_init_turnoff(csound, p->ip);
   /* copy length related parameters back to caller instr */
   saved_curip->xtratim = csound->curip->xtratim;
   saved_curip->relesing = csound->curip->relesing;
