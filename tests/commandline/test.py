@@ -735,7 +735,9 @@ def runTest():
         ["test_overload_selection.csd", "test wrong annotation case"],
         ["test_unschedule.csd", "test unscheduling events"],
         ["diskin_excess_channels.csd", "test sample accurate mode"],
-        ["test_async_diskin.csd", "test diskin in rt async mode"],
+        # Keep the CSD's null realtime backend: its RMS checks require paced
+        # performance; suite-wide -n can outrun the asynchronous I/O worker.
+        ["test_async_diskin.csd", "test diskin in rt async mode", None, ""],
         ["test_diskin2_nested_reuse.csd", "test nested diskin2 instance reuse"],
         ["test_midifile_ops.csd", "testing midifile opcodes"],
         ["test_midifile_loop.csd", "testing midifile tempo set, pos, loop"],

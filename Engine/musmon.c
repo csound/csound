@@ -559,6 +559,16 @@ static void stop_event_insert_thread(CSOUND *csound)
     if (csound->event_insert_thread != NULL) {
       csound->event_insert_loop = 0;
       csound->JoinThread(csound->event_insert_thread);
+      /* Complete the context reset that csoundLongJmp deferred while this
+         thread could still be traversing an init chain. */
+      if (csound->engineStatus & CS_STATE_JMP) {
+        csound->curip = NULL;
+        csound->ids = NULL;
+        csound->reinitflag = 0;
+        csound->tieflag = 0;
+        csound->perferrcnt += csound->inerrcnt;
+        csound->inerrcnt = 0;
+      }
       csound->Free(csound, csound->alloc_queue);
       csound->alloc_queue = NULL;
       csound->alloc_queue_items = 0;

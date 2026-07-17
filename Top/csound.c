@@ -1142,12 +1142,17 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   if (!n)
     n = CSOUND_EXITJMP_SUCCESS;
 
-  csound->curip = NULL;
-  csound->ids = NULL;
-  csound->reinitflag = 0;
-  csound->tieflag = 0;
-  csound->perferrcnt += csound->inerrcnt;
-  csound->inerrcnt = 0;
+  /* Realtime init owns these fields on the event thread. A performance-time
+     exit may arrive while that thread is inside an opcode, so cleanup defers
+     resetting the shared init context until after joining it. */
+  if (csound->event_insert_thread == NULL) {
+    csound->curip = NULL;
+    csound->ids = NULL;
+    csound->reinitflag = 0;
+    csound->tieflag = 0;
+    csound->perferrcnt += csound->inerrcnt;
+    csound->inerrcnt = 0;
+  }
   csound->engineStatus |= CS_STATE_JMP;
   // printf("**** longjmp with %d\n", n);
 

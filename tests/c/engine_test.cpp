@@ -256,6 +256,42 @@ TEST_F (EngineTests, testNestedInitKeepsTurnoffPending)
     instance.turnoff_pending = INSTANCE_TURNOFF_NONE;
 }
 
+TEST_F (EngineTests, testRealtimeLongJmpPreservesInitThreadContext)
+{
+    INSDS instance {};
+    OPDS opcode {};
+    int32_t initialPerfErrors = csound->perferrcnt;
+
+    // A non-null handle means the event thread may own this init context.
+    csound->event_insert_thread = &opcode;
+    csound->curip = &instance;
+    csound->ids = &opcode;
+    csound->reinitflag = 1;
+    csound->tieflag = 1;
+    csound->inerrcnt = 2;
+
+    int32_t jumpResult = setjmp(csound->exitjmp);
+    if (jumpResult == 0)
+      csoundLongJmp(csound, 1);
+
+    EXPECT_NE(jumpResult, 0);
+    EXPECT_EQ(csound->curip, &instance);
+    EXPECT_EQ(csound->ids, &opcode);
+    EXPECT_EQ(csound->reinitflag, 1);
+    EXPECT_EQ(csound->tieflag, 1);
+    EXPECT_EQ(csound->inerrcnt, 2);
+    EXPECT_EQ(csound->perferrcnt, initialPerfErrors);
+
+    // Do not leave a fake thread handle or stack pointers for TearDown().
+    csound->event_insert_thread = nullptr;
+    csound->curip = nullptr;
+    csound->ids = nullptr;
+    csound->reinitflag = 0;
+    csound->tieflag = 0;
+    csound->inerrcnt = 0;
+    csound->engineStatus &= ~CS_STATE_JMP;
+}
+
 TEST_F (EngineTests, testUdpServer)
 {
     csoundSetIsGraphable(csound, 1);
