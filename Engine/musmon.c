@@ -1181,24 +1181,11 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
 static int32_t process_rt_score_event(CSOUND *csound, EVTNODE *e)
 {
   EVTBLK *evt = &e->evt;
-  int32_t retval, insno, rfd;
+  int32_t retval;
 
   if (csound->curp2 * csound->esr < (double)csound->icurTimeSamples) {
     csound->curp2 = (double)csound->icurTimeSamples/csound->esr;
     print_amp_values(csound, 0);
-  }
-  insno = MYFLT2LONG(evt->p[1]);
-  if ((rfd = getRemoteInsRfd(csound, insno))) {
-    if (rfd == GLOBAL_REMOT)
-      insGlobevt(csound, evt);
-    else
-      insSendevt(csound, evt, rfd);
-    if (evt->strarg != NULL) {
-      csound->Free(csound, evt->strarg);
-      evt->strarg = NULL;
-    }
-    recycle_rt_event(csound, e);
-    return 0;
   }
   retval = process_score_event(csound, evt, 1);
   if (evt->strarg != NULL) {

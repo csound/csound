@@ -1123,16 +1123,18 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
         instance and will be freed by csoundReset
         we also make sure size is compatible
       */
-    if(p->cb == NULL ||
-       csound->GetSizeCircularBuffer(csound,p->cb) < numelem) {
-       p->cb = csound->CreateCircularBuffer(csound,
-                                    numelem, sizeof(MYFLT));
-    }
+    if (p->cb == NULL ||
+        csound->GetSizeCircularBuffer(csound, p->cb) < numelem) {
+      void *newCb =
+        csound->CreateCircularBuffer(csound, numelem, sizeof(MYFLT));
 
-   if (UNLIKELY(p->cb == NULL)) {
-     return csound->InitError(csound, "%s",
-                              Str("diskin2: failed to allocate circular buffer"));
-   }
+      if (UNLIKELY(newCb == NULL))
+        return csound->InitError(
+          csound, "%s", Str("diskin2: failed to allocate circular buffer"));
+      if (p->cb != NULL)
+        csound->DestroyCircularBuffer(csound, p->cb);
+      p->cb = newCb;
+    }
 
     // allocate buffer
     p->aOut_bufsize =  ((unsigned int)p->bufSize) < CS_KSMPS ?
@@ -2330,10 +2332,15 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
          by csoundReset. Reallocate it if the required size has grown. */
       if (p->cb == NULL ||
           csound->GetSizeCircularBuffer(csound, p->cb) < numelem) {
-        p->cb = csound->CreateCircularBuffer(csound, numelem, sizeof(MYFLT));
-      }
-      if (p->cb == NULL) {
-        return csound->InitError(csound, "could not allocate circular buffer\n");
+        void *newCb =
+          csound->CreateCircularBuffer(csound, numelem, sizeof(MYFLT));
+
+        if (UNLIKELY(newCb == NULL))
+          return csound->InitError(csound,
+                                   "could not allocate circular buffer\n");
+        if (p->cb != NULL)
+          csound->DestroyCircularBuffer(csound, p->cb);
+        p->cb = newCb;
       }
 
       p->aOut_bufsize =

@@ -661,12 +661,13 @@ enum {
   FILE_ASYNC_RUNNING = ASYNC_GLOBAL
 };
 
-static void link_open_file(CSOUND *csound, CSFILE *file)
+static void link_open_file(CSOUND *csound, CSFILE *file,
+                           int32_t setupReaders)
 {
     csoundSpinLock(&csound->open_files_lock);
     file->retired_nxt = NULL;
     file->io_pass = 0;
-    file->io_readers = 0;
+    file->io_readers = setupReaders;
     file->retired = 0;
     file->prv = NULL;
     file->nxt = (CSFILE*) csound->open_files;
@@ -707,9 +708,12 @@ static int32_t unlink_open_file(CSOUND *csound, CSFILE *file)
     return deferred;
 }
 
-void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
-                     const char *name, void *param, const char *env,
-                     int32_t csFileType, int32_t isTemporary)
+/* An asynchronous open starts with one setup reader so shutdown can retire,
+   but cannot reclaim, the node before its buffers and worker state are ready. */
+static void *csoundFileOpenInternal(
+  CSOUND *csound, void *fd, int32_t type, const char *name, void *param,
+  const char *env, int32_t csFileType, int32_t isTemporary,
+  int32_t setupReaders)
 {
     CSFILE  *p = NULL;
     char    *fullName = NULL;
@@ -793,6 +797,12 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
     p->fd = tmp_fd;
     p->f = tmp_f;
     p->sf = tmp_sf;
+    p->cb = NULL;
+    p->async_flag = FILE_ASYNC_NONE;
+    p->items = 0;
+    p->pos = 0;
+    p->buf = NULL;
+    p->bufsize = 0;
     strcpy(&(p->fullName[0]), fullName);
     if (env != NULL) {
       csound->Free(csound, fullName);
@@ -875,7 +885,7 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
       *((int*) fd) = tmp_fd;
     }
     /* link into chain of open files */
-    link_open_file(csound, p);
+    link_open_file(csound, p, setupReaders);
     /* notify the host if it asked */
     if (csound->FileOpenCallback_ != NULL) {
       int32_t writing = (type == CSFILE_SND_W || type == CSFILE_FD_W ||
@@ -886,10 +896,6 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
                                 writing, isTemporary);
     }
     /* return with opaque file handle */
-    p->cb = NULL;
-    p->async_flag = 0;
-    p->buf = NULL;
-    p->bufsize = 0;
     return (void*) p;
 
  err_return:
@@ -909,6 +915,14 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
     else
       *((int*) fd) = -1;
     return NULL;
+}
+
+void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
+                     const char *name, void *param, const char *env,
+                     int32_t csFileType, int32_t isTemporary)
+{
+    return csoundFileOpenInternal(csound, fd, type, name, param, env,
+                                  csFileType, isTemporary, 0);
 }
 
 
@@ -965,7 +979,7 @@ void *csoundCreateFileHandle(CSOUND *csound,
       return NULL;
     }
     /* link into chain of open files */
-    link_open_file(csound, p);
+    link_open_file(csound, p, 0);
     /* return with opaque file handle */
     p->cb = NULL;
     return (void*) p;
@@ -1187,27 +1201,49 @@ static int32_t start_file_io_thread(CSOUND *csound)
     return NOTOK;
 }
 
+static int32_t finish_async_file_setup(CSOUND *csound, CSFILE *file)
+{
+    int32_t retired;
+
+    csoundSpinLock(&csound->open_files_lock);
+    file->io_readers--;
+    retired = file->retired;
+    csoundSpinUnLock(&csound->open_files_lock);
+    if (retired)
+      reclaim_retired_files(csound);
+    return retired;
+}
+
 void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
                            const char *name, void *param, const char *env,
                            int32_t csFileType, int32_t buffsize, int32_t isTemporary)
 {
 #ifndef __EMSCRIPTEN__
     CSFILE *p;
-    if ((p = (CSFILE *) csoundFileOpen(csound,fd,type,name,param,env,
-                                               csFileType,isTemporary)) == NULL)
+    int32_t cancelled;
+    if ((p = (CSFILE *) csoundFileOpenInternal(
+           csound, fd, type, name, param, env, csFileType, isTemporary, 1)) ==
+        NULL)
       return NULL;
 
     /* Keep the worker alive while this file's circular buffers are prepared,
        but do not let it process the file before setup is complete. */
     csoundSpinLock(&csound->open_files_lock);
-    p->async_flag = FILE_ASYNC_STARTING;
+    cancelled = p->retired;
+    if (!cancelled)
+      p->async_flag = FILE_ASYNC_STARTING;
     csoundSpinUnLock(&csound->open_files_lock);
+    if (cancelled) {
+      finish_async_file_setup(csound, p);
+      return NULL;
+    }
 
     if (UNLIKELY(start_file_io_thread(csound) != OK)) {
       csoundSpinLock(&csound->open_files_lock);
       p->async_flag = FILE_ASYNC_NONE;
       csoundSpinUnLock(&csound->open_files_lock);
       csoundFileClose(csound, p);
+      finish_async_file_setup(csound, p);
       return NULL;
     }
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
@@ -1217,21 +1253,23 @@ void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
     p->pos = 0;
     p->bufsize = buffsize;
     p->buf = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*buffsize);
-    if (p->cb != NULL && p->buf != NULL) {
-      csoundSpinLock(&csound->open_files_lock);
+    csoundSpinLock(&csound->open_files_lock);
+    cancelled = p->retired || p->cb == NULL || p->buf == NULL;
+    if (!cancelled)
       p->async_flag = FILE_ASYNC_RUNNING;
-      csoundSpinUnLock(&csound->open_files_lock);
-    }
+    else
+      p->async_flag = FILE_ASYNC_NONE;
+    csoundSpinUnLock(&csound->open_files_lock);
     csound->NotifyThreadLock(csound->file_io_threadlock);
 
-    if (p->cb == NULL || p->buf == NULL) {
+    if (cancelled) {
       /* close file immediately */
-      csoundSpinLock(&csound->open_files_lock);
-      p->async_flag = FILE_ASYNC_NONE;
-      csoundSpinUnLock(&csound->open_files_lock);
       csoundFileClose(csound, (void *) p);
+      finish_async_file_setup(csound, p);
       return NULL;
     }
+    if (finish_async_file_setup(csound, p))
+      return NULL;
     return (void *) p;
 #else
     return NULL;

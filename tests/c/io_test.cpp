@@ -187,16 +187,22 @@ TEST_F (IOTests, testSynchronousCloseWhileAsyncWorkerRuns)
         csound, &syncFile, CSFILE_STD, syncPath.c_str(), (void *) "w+", nullptr,
         CSFTYPE_OTHER_TEXT, 0);
     ASSERT_NE(syncHandle, nullptr);
+    auto retiredFilesEmpty = [&]() {
+      csoundSpinLock(&csound->open_files_lock);
+      const bool empty = csound->retired_files == nullptr;
+      csoundSpinUnLock(&csound->open_files_lock);
+      return empty;
+    };
 
     ASSERT_EQ(csoundFileClose(csound, syncHandle), 0);
-    EXPECT_EQ(csound->retired_files, nullptr);
+    EXPECT_TRUE(retiredFilesEmpty());
     EXPECT_EQ(remove(syncPath.c_str()), 0);
 
     ASSERT_EQ(csoundFileClose(csound, asyncHandle), 0);
     for (int32_t retry = 0;
-         retry < 100 && csound->retired_files != nullptr; retry++)
+         retry < 100 && !retiredFilesEmpty(); retry++)
       csoundSleep(1);
-    EXPECT_EQ(csound->retired_files, nullptr);
+    EXPECT_TRUE(retiredFilesEmpty());
     EXPECT_EQ(remove(asyncPath.c_str()), 0);
 }
 
