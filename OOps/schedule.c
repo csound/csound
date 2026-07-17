@@ -936,15 +936,39 @@ static int32_t events_match(CSOUND *csound,
 
 
 static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
-  EVTNODE *e = csound->OrcTrigEvts;
-  EVTBLK  *evtn = &(e->evt);
-  while(e != NULL && e != csound->freeEvtNodes) {
+  EVTNODE *e, *previous = NULL;
+  EVTNODE *removed = NULL;
+
+  if (csound->oparms->realtime)
+    csoundSpinLock(&csound->alloc_spinlock);
+  e = csound->OrcTrigEvts;
+  while(e != NULL) {
+    EVTNODE *next = e->nxt;
+    EVTBLK *evtn = &e->evt;
+
     if(events_match(csound, evt, evtn)) {
+      if (previous != NULL)
+        previous->nxt = next;
+      else
+        csound->OrcTrigEvts = next;
+      e->nxt = removed;
+      removed = e;
+      if(!cont)
+        break;
+    }
+    else
+      previous = e;
+    e = next;
+  }
+  if (csound->oparms->realtime)
+    csoundSpinUnLock(&csound->alloc_spinlock);
+
+  for (e = removed; e != NULL; e = e->nxt) {
+    EVTBLK *evtn = &e->evt;
+
+    if(csound->oparms->msglevel > 0) {
       int i;
-      csound->OrcTrigEvts = e->nxt;
-      e->nxt = csound->freeEvtNodes;
-      csound->freeEvtNodes = e;
-      if(csound->oparms->msglevel > 0) {
+
       csound->Message(csound, "unscheduled event: %c", evtn->opcod);
       for(i = 1; i < evtn->pcnt+1; i++) {
         if(IsStringCode(evtn->p[i]))
@@ -953,10 +977,23 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
         else csound->Message(csound, "%.3f ", evtn->p[i]);
       }
       csound->Message(csound, "\n");
-      }
-      if(!cont) break;
     }
-    e = e->nxt;
+    if (evtn->strarg != NULL) {
+      csound->Free(csound, evtn->strarg);
+      evtn->strarg = NULL;
+    }
+  }
+  if (removed != NULL) {
+    EVTNODE *tail = removed;
+
+    while (tail->nxt != NULL)
+      tail = tail->nxt;
+    if (csound->oparms->realtime)
+      csoundSpinLock(&csound->alloc_spinlock);
+    tail->nxt = csound->freeEvtNodes;
+    csound->freeEvtNodes = removed;
+    if (csound->oparms->realtime)
+      csoundSpinUnLock(&csound->alloc_spinlock);
   }
 }
 

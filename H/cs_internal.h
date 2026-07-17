@@ -30,6 +30,7 @@ extern "C" {
   typedef struct CSFILE_ {
     struct CSFILE_  *nxt;
     struct CSFILE_  *prv;
+    struct CSFILE_  *retired_nxt;
     int32_t type;
     int32_t  fd;
     FILE *f;

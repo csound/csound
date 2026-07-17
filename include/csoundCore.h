@@ -508,7 +508,9 @@ typedef struct {
     int32_t  linked;  /* linked to instrtxt->act_instance */
     uint64_t instance_id; /* instance id number */
     /* Background users that must finish before this instance is reused or
-       reclaimed. The owner is inactive while the final reference drains. */
+       reclaimed. Increment only while a lock proves the INSDS is alive. Every
+       reuse and free path must reject a nonzero count, and a borrower must not
+       access the INSDS after its final decrement. */
     volatile int32_t async_ref_count;
     /* Copy of required p-field values for quick access */
     CS_VAR_MEM  p0;
@@ -1702,6 +1704,7 @@ struct CSOUND_ {
   NAMES *omacros, *smacros;
   void *namedgen;   /* fgens.c */
   void *open_files; /* fileopen.c */
+  void *retired_files; /* nodes awaiting file I/O thread reclamation */
   void *searchPathCache;
   CS_HASH_TABLE *sndmemfiles;
   void *reset_list;

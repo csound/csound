@@ -647,40 +647,30 @@ char *csoundFindOutputFile(CSOUND *csound,
  */
 
 /* Realtime init and note deactivation may update this registry concurrently.
-   The spinlock protects pointer updates. If the asynchronous file reader is
-   active, its thread lock also pins nodes for the complete traversal while
-   keeping file I/O outside the spinlock. */
-static int32_t lock_file_io_registry(CSOUND *csound)
-{
-    if (csound->file_io_start && csound->file_io_threadlock != NULL) {
-      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
-      return 1;
-    }
-    return 0;
-}
-
-static void unlock_file_io_registry(CSOUND *csound, int32_t locked)
-{
-    if (locked)
-      csound->NotifyThreadLock(csound->file_io_threadlock);
-}
+   Pointer updates use the spinlock. When the file worker is running, removed
+   nodes are reclaimed only after its current traversal has completed. */
+enum {
+  FILE_IO_STARTING = -1,
+  FILE_IO_STOPPED,
+  FILE_IO_RUNNING
+};
 
 static void link_open_file(CSOUND *csound, CSFILE *file)
 {
-    int32_t ioLocked = lock_file_io_registry(csound);
-
     csoundSpinLock(&csound->open_files_lock);
+    file->retired_nxt = NULL;
     file->prv = NULL;
     file->nxt = (CSFILE*) csound->open_files;
     if (file->nxt != NULL)
       file->nxt->prv = file;
     csound->open_files = (void*) file;
     csoundSpinUnLock(&csound->open_files_lock);
-    unlock_file_io_registry(csound, ioLocked);
 }
 
-static void unlink_open_file(CSOUND *csound, CSFILE *file)
+static int32_t unlink_open_file(CSOUND *csound, CSFILE *file)
 {
+    int32_t deferred;
+
     csoundSpinLock(&csound->open_files_lock);
     if (file->prv == NULL)
       csound->open_files = (void*) file->nxt;
@@ -688,8 +678,16 @@ static void unlink_open_file(CSOUND *csound, CSFILE *file)
       file->prv->nxt = file->nxt;
     if (file->nxt != NULL)
       file->nxt->prv = file->prv;
-    file->nxt = file->prv = NULL;
+    deferred = ATOMIC_GET(csound->file_io_start) != 0;
+    if (deferred) {
+      file->retired_nxt = (CSFILE *) csound->retired_files;
+      csound->retired_files = file;
+    }
+    else {
+      file->nxt = file->prv = NULL;
+    }
     csoundSpinUnLock(&csound->open_files_lock);
+    return deferred;
 }
 
 void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
@@ -969,75 +967,99 @@ char *csoundGetFileName(void *fd)
  * Close a file previously opened with csoundFileOpen().
  */
 
+static int32_t close_file_now(CSOUND *csound, CSFILE *p)
+{
+    int32_t     retval = -1;
+
+    switch (p->type) {
+    case CSFILE_FD_R:
+    case CSFILE_FD_W:
+      retval = close(p->fd);
+      break;
+    case CSFILE_STD:
+      retval = fclose(p->f);
+      break;
+    case CSFILE_SND_R:
+    case CSFILE_SND_W:
+      if (p->sf != NULL)
+        retval = csound->SndfileClose(csound, p->sf);
+      p->sf = NULL;
+      if (p->fd >= 0)
+        retval |= close(p->fd);
+      break;
+    }
+    if (p->buf != NULL)
+      csound->Free(csound, p->buf);
+    p->bufsize = 0;
+    if (p->cb != NULL)
+      csound->DestroyCircularBuffer(csound, p->cb);
+    csound->Free(csound, p);
+    return retval;
+}
+
+static int32_t reclaim_retired_files(CSOUND *csound)
+{
+    CSFILE *retired;
+    int32_t keepRunning;
+
+    csoundSpinLock(&csound->open_files_lock);
+    retired = (CSFILE *) csound->retired_files;
+    csound->retired_files = NULL;
+    keepRunning = csound->open_files != NULL ||
+                  ATOMIC_GET(csound->file_io_start) == FILE_IO_STARTING;
+    if (!keepRunning)
+      ATOMIC_SET(csound->file_io_start, 0);
+    csoundSpinUnLock(&csound->open_files_lock);
+
+    while (retired != NULL) {
+      CSFILE *next = retired->retired_nxt;
+
+      retired->nxt = retired->prv = retired->retired_nxt = NULL;
+      close_file_now(csound, retired);
+      retired = next;
+    }
+    return keepRunning;
+}
+
 int32_t csoundFileClose(CSOUND *csound, void *fd)
 {
-    CSFILE  *p = (CSFILE*) fd;
-    int32_t     retval = -1;
-    int32_t ioLocked = lock_file_io_registry(csound);
+    CSFILE *p = (CSFILE *) fd;
 
-    if (p->async_flag == ASYNC_GLOBAL) {
-      unlink_open_file(csound, p);
-      /* close file */
-      switch (p->type) {
-      case CSFILE_FD_R:
-      case CSFILE_FD_W:
-        retval = close(p->fd);
-        break;
-      case CSFILE_STD:
-        retval = fclose(p->f);
-        break;
-      case CSFILE_SND_R:
-      case CSFILE_SND_W:
-        if (p->sf)
-          retval = csound->SndfileClose(csound,p->sf);
-        p->sf = NULL;
-        if (p->fd >= 0)
-          retval |= close(p->fd);
-        break;
-      }
-      if (p->buf != NULL) csound->Free(csound, p->buf);
-      p->bufsize = 0;
-      csound->DestroyCircularBuffer(csound, p->cb);
-    } else {
-      unlink_open_file(csound, p);
-      /* close file */
-      switch (p->type) {
-      case CSFILE_FD_R:
-      case CSFILE_FD_W:
-        retval = close(p->fd);
-        break;
-      case CSFILE_STD:
-        retval = fclose(p->f);
-        break;
-      case CSFILE_SND_R:
-      case CSFILE_SND_W:
-        retval = csound->SndfileClose(csound,p->sf);
-        if (p->fd >= 0)
-          retval |= close(p->fd);
-        break;
-      }
-    }
-    unlock_file_io_registry(csound, ioLocked);
-    /* free allocated memory */
-    csound->Free(csound, fd);
+    if (unlink_open_file(csound, p))
+      return 0;
 
-    /* return with error value */
-    return retval;
+    return close_file_now(csound, p);
 }
 
 /* Close all open files; called by csoundReset(). */
 
 void close_all_files(CSOUND *csound)
 {
-    while (csound->open_files != NULL)
-      csoundFileClose(csound, csound->open_files);
-    if (csound->file_io_start) {
+    CSFILE *file;
+
+    /* A creator publishes the thread handle after CreateThread returns. Do
+       not tear down its registry while that publication is in flight. */
+    while (ATOMIC_GET(csound->file_io_start) == FILE_IO_STARTING)
+      csoundSleep(1);
+    for (;;) {
+      csoundSpinLock(&csound->open_files_lock);
+      file = (CSFILE *) csound->open_files;
+      csoundSpinUnLock(&csound->open_files_lock);
+      if (file == NULL)
+        break;
+      csoundFileClose(csound, file);
+    }
+    if (csound->file_io_thread != NULL) {
 #ifndef __EMSCRIPTEN__
       csound->JoinThread(csound->file_io_thread);
 #endif
       if (csound->file_io_threadlock != NULL)
         csound->DestroyThreadLock(csound->file_io_threadlock);
     }
+    reclaim_retired_files(csound);
+    csound->file_io_thread = NULL;
+    csound->file_io_threadlock = NULL;
+    ATOMIC_SET(csound->file_io_start, 0);
 }
 
 /* The fromScore parameter should be 1 if opening a score include file,
@@ -1074,6 +1096,60 @@ void *fopen_path(CSOUND *csound, FILE **fp, const char *name, const char *basena
 
 static uintptr_t file_iothread(void *p);
 
+static int32_t start_file_io_thread(CSOUND *csound)
+{
+    int32_t lifecycle;
+    int32_t creator = 0;
+
+    for (;;) {
+      csoundSpinLock(&csound->open_files_lock);
+      lifecycle = ATOMIC_GET(csound->file_io_start);
+      if (lifecycle == FILE_IO_STOPPED) {
+        ATOMIC_SET(csound->file_io_start, FILE_IO_STARTING);
+        creator = 1;
+      }
+      csoundSpinUnLock(&csound->open_files_lock);
+      if (lifecycle == FILE_IO_RUNNING)
+        return OK;
+      if (creator)
+        break;
+      csoundSleep(1);
+    }
+
+    if (csound->file_io_thread != NULL) {
+      csound->JoinThread(csound->file_io_thread);
+      csound->file_io_thread = NULL;
+      if (csound->file_io_threadlock != NULL) {
+        csound->DestroyThreadLock(csound->file_io_threadlock);
+        csound->file_io_threadlock = NULL;
+      }
+    }
+    /* STARTING serializes creators while thread creation remains outside the
+       registry spinlock. read_files keeps the new worker alive until this
+       function publishes RUNNING. */
+    csound->file_io_threadlock = csound->CreateThreadLock();
+    if (LIKELY(csound->file_io_threadlock != NULL)) {
+      csound->NotifyThreadLock(csound->file_io_threadlock);
+      csound->file_io_thread =
+        csound->CreateThread(file_iothread, (void *) csound);
+    }
+
+    csoundSpinLock(&csound->open_files_lock);
+    lifecycle = csound->file_io_thread != NULL ? FILE_IO_RUNNING :
+                                                  FILE_IO_STOPPED;
+    ATOMIC_SET(csound->file_io_start, lifecycle);
+    csoundSpinUnLock(&csound->open_files_lock);
+    if (lifecycle == FILE_IO_RUNNING)
+      return OK;
+
+    if (csound->file_io_threadlock != NULL) {
+      csound->DestroyThreadLock(csound->file_io_threadlock);
+      csound->file_io_threadlock = NULL;
+    }
+    reclaim_retired_files(csound);
+    return NOTOK;
+}
+
 void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
                            const char *name, void *param, const char *env,
                            int32_t csFileType, int32_t buffsize, int32_t isTemporary)
@@ -1084,21 +1160,19 @@ void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
                                                csFileType,isTemporary)) == NULL)
       return NULL;
 
-    if (csound->file_io_start == 0) {
-      csound->file_io_start = 1;
-      csound->file_io_threadlock = csound->CreateThreadLock();
-      csound->NotifyThreadLock(csound->file_io_threadlock);
-      csound->file_io_thread =
-        csound->CreateThread(file_iothread, (void *) csound);
+    if (UNLIKELY(start_file_io_thread(csound) != OK)) {
+      csoundFileClose(csound, p);
+      return NULL;
     }
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
-    p->async_flag = ASYNC_GLOBAL;
 
     p->cb = csound->CreateCircularBuffer(csound, buffsize*4, sizeof(MYFLT));
     p->items = 0;
     p->pos = 0;
     p->bufsize = buffsize;
     p->buf = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*buffsize);
+    if (p->cb != NULL && p->buf != NULL)
+      p->async_flag = ASYNC_GLOBAL;
     csound->NotifyThreadLock(csound->file_io_threadlock);
 
     if (p->cb == NULL || p->buf == NULL) {
@@ -1155,10 +1229,11 @@ int32_t csoundFSeekAsync(CSOUND *csound, void *handle, int32_t pos, int32_t when
 
 
 static int32_t read_files(CSOUND *csound){
-    /* file_iothread holds file_io_threadlock, so registry nodes remain valid
-       until this complete pass returns. */
-    CSFILE *current = (CSFILE *) csound->open_files;
-    if (current == NULL) return 0;
+    CSFILE *current;
+
+    csoundSpinLock(&csound->open_files_lock);
+    current = (CSFILE *) csound->open_files;
+    csoundSpinUnLock(&csound->open_files_lock);
     while (current) {
       if (current->async_flag == ASYNC_GLOBAL) {
         int32_t m = current->pos, l, n = current->items;
@@ -1190,9 +1265,11 @@ static int32_t read_files(CSOUND *csound){
           break;
         }
       }
+      csoundSpinLock(&csound->open_files_lock);
       current = current->nxt;
+      csoundSpinUnLock(&csound->open_files_lock);
     }
-    return 1;
+    return reclaim_retired_files(csound);
 }
 
 
@@ -1208,6 +1285,8 @@ static uintptr_t file_iothread(void *p){
       res = read_files(csound);
       csound->NotifyThreadLock(csound->file_io_threadlock);
     }
-    csound->file_io_start = 0;
+    /* read_files publishes STOPPED under open_files_lock. A new creator may
+       already have advanced the lifecycle to STARTING by the time this old
+       worker returns, so it must not overwrite that newer generation. */
     return (uintptr_t)NULL;
 }

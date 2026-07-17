@@ -945,7 +945,7 @@ static const CSOUND cenviron_ = {
   NULL,           /*  logbase2            */
   NULL, NULL,     /*  omacros, smacros    */
   NULL,           /*  namedgen            */
-  NULL,           /*  open_files          */
+  NULL, NULL,     /*  open_files, retired_files */
   NULL,           /*  searchPathCache     */
   NULL,           /*  sndmemfiles         */
   NULL,           /*  reset_list          */

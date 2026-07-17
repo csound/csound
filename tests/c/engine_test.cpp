@@ -161,6 +161,47 @@ TEST_F (EngineTests, testTypedComplexFftRejectsOddSize)
               std::string::npos);
 }
 
+static int32_t deinitCallCount = 0;
+
+static int32_t failingDeinit(CSOUND *, void *)
+{
+    deinitCallCount++;
+    return NOTOK;
+}
+
+static int32_t succeedingDeinit(CSOUND *, void *)
+{
+    deinitCallCount++;
+    return OK;
+}
+
+TEST_F (EngineTests, testDeinitContinuesAfterError)
+{
+    INSDS owner {};
+    OPDS first {};
+    OPDS second {};
+    OPTXT firstText {};
+    OPTXT secondText {};
+    OENTRY firstEntry {};
+    OENTRY secondEntry {};
+
+    firstEntry.opname = const_cast<char *>("failing-deinit");
+    secondEntry.opname = const_cast<char *>("succeeding-deinit");
+    firstText.t.oentry = &firstEntry;
+    secondText.t.oentry = &secondEntry;
+    first.deinit = failingDeinit;
+    first.optext = &firstText;
+    first.nxtd = &second;
+    second.deinit = succeedingDeinit;
+    second.optext = &secondText;
+    owner.nxtd = &first;
+    deinitCallCount = 0;
+
+    deinit_pass(csound, &owner);
+
+    ASSERT_EQ(deinitCallCount, 2);
+}
+
 TEST_F (EngineTests, testUdpServer)
 {
     csoundSetIsGraphable(csound, 1);

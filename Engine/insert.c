@@ -44,13 +44,14 @@ static int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn,
                            MEVENT *mep);
 static int32_t insert(CSOUND *csound, int32_t insno, EVTBLK *newevtp);
 static void maxalloc_turnoff(CSOUND *csound, int32_t insno);
+static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link);
 
 int32_t instance_has_async_refs(const INSDS *ip)
 {
   return ip != NULL && ATOMIC_GET(ip->async_ref_count) != 0;
 }
 
-INSDS *take_inactive_instance(CSOUND *csound, INSTRTXT *tp)
+static INSDS *take_inactive_instance_locked(CSOUND *csound, INSTRTXT *tp)
 {
   INSDS *current = tp->act_instance;
   INSDS *previous = NULL;
@@ -74,6 +75,39 @@ INSDS *take_inactive_instance(CSOUND *csound, INSTRTXT *tp)
   return current;
 }
 
+INSDS *allocate_or_take_instance(CSOUND *csound, INSTRTXT *tp,
+                                 int32_t insno)
+{
+  INSDS *ip;
+
+  csoundSpinLock(&csound->alloc_spinlock);
+  ip = take_inactive_instance_locked(csound, tp);
+  csoundSpinUnLock(&csound->alloc_spinlock);
+  if (ip != NULL)
+    return ip;
+
+  /* Building an instance may allocate and initialize a large opcode graph.
+     Do that work before taking the realtime allocation lock, then publish the
+     completed instance to the owning instrument in one short critical
+     section. It is returned directly, so it never enters the free list. */
+  ip = instantiate(csound, insno, 0);
+  if (UNLIKELY(ip == NULL))
+    return NULL;
+
+  tp = ip->instr;
+  csoundSpinLock(&csound->alloc_spinlock);
+  ip->prvinstance = tp->lst_instance;
+  if (tp->lst_instance != NULL)
+    tp->lst_instance->nxtinstance = ip;
+  else
+    tp->instance = ip;
+  tp->lst_instance = ip;
+  ip->insno = (int16_t) insno;
+  ip->linked = 1;
+  csoundSpinUnLock(&csound->alloc_spinlock);
+  return ip;
+}
+
 static void alloc_queue_lock(CSOUND *csound)
 {
   if (csound->alloc_queue_mutex != NULL)
@@ -90,30 +124,43 @@ static void alloc_queue_unlock(CSOUND *csound)
     csoundSpinUnLock(&csound->alloc_queue_spinlock);
 }
 
-int32_t alloc_queue_lock_init(CSOUND *csound)
+int32_t realtime_lock_init(spin_lock_t *spinlock, void **mutex)
 {
-  csound->alloc_queue_mutex = NULL;
-  csound->alloc_queue_items = 0;
-  csound->alloc_queue_wp = 0;
+  *mutex = NULL;
 #if CSOUND_SPINLOCK_AVAILABLE
-  if (csoundSpinLockInit(&csound->alloc_queue_spinlock) == CSOUND_SUCCESS)
+  if (csoundSpinLockInit(spinlock) == CSOUND_SUCCESS)
     return CSOUND_SUCCESS;
 #endif
-  csound->alloc_queue_mutex = csoundCreateMutex(0);
-  return csound->alloc_queue_mutex != NULL ? CSOUND_SUCCESS : CSOUND_ERROR;
+  *mutex = csoundCreateMutex(0);
+  return *mutex != NULL ? CSOUND_SUCCESS : CSOUND_ERROR;
+}
+
+void realtime_lock_destroy(spin_lock_t *spinlock, void **mutex)
+{
+  if (*mutex != NULL) {
+    csoundDestroyMutex(*mutex);
+    *mutex = NULL;
+  }
+#if defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
+  else
+    pthread_spin_destroy(spinlock);
+#else
+  IGN(spinlock);
+#endif
+}
+
+int32_t alloc_queue_lock_init(CSOUND *csound)
+{
+  csound->alloc_queue_items = 0;
+  csound->alloc_queue_wp = 0;
+  return realtime_lock_init(&csound->alloc_queue_spinlock,
+                            &csound->alloc_queue_mutex);
 }
 
 void alloc_queue_lock_destroy(CSOUND *csound)
 {
-  if (csound->alloc_queue_mutex != NULL) {
-    csoundDestroyMutex(csound->alloc_queue_mutex);
-    csound->alloc_queue_mutex = NULL;
-  }
-#if defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
-  else {
-    pthread_spin_destroy(&csound->alloc_queue_spinlock);
-  }
-#endif
+  realtime_lock_destroy(&csound->alloc_queue_spinlock,
+                        &csound->alloc_queue_mutex);
 }
 
 /* Reserve, fill, and publish a realtime allocation request. */
@@ -470,6 +517,7 @@ uintptr_t event_insert_thread(void *p) {
         csoundUnlockMutex(csound->init_pass_threadlock);
       processed++;
     }
+    diskin2_async_drain_deferred(csound);
     if(processed == 0)
       csoundSleep((int32_t) ((int32_t) wakeup > 0 ? wakeup : 1));
     items = ATOMIC_GET(csound->message_string_queue_items);
@@ -492,8 +540,10 @@ int32_t init0(CSOUND *csound)
   INSTRTXT  *tp = csound->engineState.instrtxtp[0];
   INSDS     *ip;
 
-  instance(csound, 0);                            /* allocate instr 0     */
-  csound->curip = ip = take_inactive_instance(csound, tp);
+  csound->curip = ip = allocate_or_take_instance(csound, tp, 0);
+  if (UNLIKELY(ip == NULL))
+    return csound->InitError(csound, "%s",
+                             Str("could not allocate instrument 0"));
   csound->ids = (OPDS*) ip;
   tp->active++;
   ip->actflg++;
@@ -732,7 +782,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
 
   if(!tie) {
     /* alloc new dspace if needed */
-    ip = tp->isNew ? NULL : take_inactive_instance(csound, tp);
+    ip = tp->isNew ? NULL : take_inactive_instance_locked(csound, tp);
     if (ip == NULL) {
       csound->instance_count++;
       if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
@@ -744,12 +794,13 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       }
       instance(csound, insno);
       tp->isNew=0;
-      ip = take_inactive_instance(csound, tp);
+      ip = take_inactive_instance_locked(csound, tp);
     }
-
-    /* pop from free instance chain */
+    if (UNLIKELY(ip == NULL))
+      return csound->InitError(csound,
+                               Str("could not allocate instrument %d"), insno);
     if(csoundGetDebug(csound) & DEBUG_RUNTIME)
-     csoundMessage(csound, "insert(): tp->act_instance = %p\n", tp->act_instance);
+      csoundMessage(csound, "insert(): instance = %p\n", ip);
     ATOMIC_SET(ip->init_done, 0);
     ip->insno = (int16) insno;
     ip->esr = csound->esr;
@@ -1029,7 +1080,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   csound->inerrcnt = 0;
   ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
   /* alloc new dspace if needed */
-  ip = tp->isNew ? NULL : take_inactive_instance(csound, tp);
+  ip = tp->isNew ? NULL : take_inactive_instance_locked(csound, tp);
   if (ip == NULL) {
     if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
@@ -1040,9 +1091,14 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     }
     instance(csound, insno);
     tp->isNew = 0;
-    ip = take_inactive_instance(csound, tp);
+    ip = take_inactive_instance_locked(csound, tp);
   }
-  /* pop from free instance chain */
+  if (UNLIKELY(ip == NULL)) {
+    tp->active--;
+    tp->instcnt--;
+    return csound->InitError(csound,
+                             Str("could not allocate instrument %d"), insno);
+  }
   ATOMIC_SET(ip->init_done, 0);
   ip->insno = (int16) insno;
 
@@ -1299,10 +1355,11 @@ static void sched_off_time(CSOUND *csound, INSDS *ip)
 }
 
 void deinit_pass(CSOUND *csound, INSDS *ip) {
-  int32_t error = 0;
   OPDS *dds = (OPDS *) ip;
   const char* op;
-  while (error == 0 && (dds = dds->nxtd) != NULL) {
+  while ((dds = dds->nxtd) != NULL) {
+    int32_t error;
+
     if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME)) {
       op = dds->optext->t.oentry->opname;
       csound->Message(csound, "deinit %s:\n", op);
@@ -1653,7 +1710,7 @@ void free_inactive_instances(CSOUND *csound)
           csound->Free(csound, (char *)ip);
         }
         else {
-          if (!ip->actflg) {
+          if (!ip->actflg && ip->linked) {
             ip->nxtact = pending;
             pending = ip;
           }
@@ -2185,6 +2242,8 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
                              CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET)) +
                             (varPoolCount * sizeof(CS_VARIABLE*)) +
                             tp->opdstot);
+  if (UNLIKELY(ip == NULL))
+    return NULL;
   ip->csound = csound;
   ip->m_chnbp = (MCHNBLK*) NULL;
   ip->instr = tp;
@@ -2413,15 +2472,17 @@ void free_instance(CSOUND *csound, INSDS *ip) {
   if(ip->actflg == 0) ip->actflg = 1;
   // turnoff immediately
   ip->xtratim = 0;
-  xturnoff(csound, ip);
+  xturnoff_now(csound, ip);
 
   // don't touch any instances that are in the act_instance chain
   if(ip->linked) return;
 
   /* Unlinked instances cannot be left for the normal inactive-instance
      pass. Wait off the realtime thread until their background users leave. */
-  while (instance_has_async_refs(ip))
+  while (instance_has_async_refs(ip)) {
+    diskin2_async_drain_deferred(csound);
     csoundSleep(1);
+  }
 
   // deactivate any opcodes
   // NB: memory for these is freed elsewhere (free_inactive_instances)

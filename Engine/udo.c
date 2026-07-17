@@ -1504,11 +1504,11 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                                instno, inm->name);
     }
-    lcurip = take_inactive_instance(csound, tp);
-    if (lcurip == NULL) {
-      instance(csound, instno);
-      lcurip = take_inactive_instance(csound, tp);
-    }
+    lcurip = allocate_or_take_instance(csound, tp, instno);
+    if (UNLIKELY(lcurip == NULL))
+      return csound->InitError(csound,
+                               "Could not allocate UDO %s instance\n",
+                               inm->name);
     if (lcurip->opcod_iobufs==NULL)
       return csound->InitError(csound, "Broken redefinition of UDO %d (UDO %s)\n",
                                instno, inm->name);
@@ -2668,11 +2668,11 @@ int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
   if (!(pip->reinitflag | pip->tieflag) || p->ip == NULL) {
     /* get instance */
     INSTRTXT *tp = csound->engineState.instrtxtp[instno];
-    p->ip = take_inactive_instance(csound, tp);
-    if (p->ip == NULL) {
-      instance(csound, instno);
-      p->ip = take_inactive_instance(csound, tp);
-    }
+    p->ip = allocate_or_take_instance(csound, tp, instno);
+    if (UNLIKELY(p->ip == NULL))
+      return csound->InitError(csound,
+                               "Could not allocate subinstrument %d\n",
+                               instno);
     p->ip->insno = (int16) instno;
     p->ip->actflg++;                  /*    and mark the instr active */
     csound->engineState.instrtxtp[instno]->active++;

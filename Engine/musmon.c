@@ -56,6 +56,62 @@
 
 #define STA(x)   (csound->musmonStatics.x)
 
+static inline void rt_event_lock(CSOUND *csound)
+{
+  /* Realtime init opcodes produce events while the performance thread
+     consumes them. Hold this lock only for list pointer changes. */
+  if (csound->oparms->realtime)
+    csoundSpinLock(&csound->alloc_spinlock);
+}
+
+static inline int32_t rt_event_try_lock(CSOUND *csound)
+{
+  return !csound->oparms->realtime ||
+         csoundSpinTryLock(&csound->alloc_spinlock) == CSOUND_SUCCESS;
+}
+
+static inline void rt_event_unlock(CSOUND *csound)
+{
+  if (csound->oparms->realtime)
+    csoundSpinUnLock(&csound->alloc_spinlock);
+}
+
+static void recycle_rt_event(CSOUND *csound, EVTNODE *event)
+{
+  rt_event_lock(csound);
+  event->nxt = csound->freeEvtNodes;
+  csound->freeEvtNodes = event;
+  rt_event_unlock(csound);
+}
+
+static void recycle_rt_event_list(CSOUND *csound, EVTNODE *events)
+{
+  EVTNODE *tail;
+
+  if (events == NULL)
+    return;
+  tail = events;
+  while (tail->nxt != NULL)
+    tail = tail->nxt;
+  rt_event_lock(csound);
+  tail->nxt = csound->freeEvtNodes;
+  csound->freeEvtNodes = events;
+  rt_event_unlock(csound);
+}
+
+static int32_t rt_event_due(CSOUND *csound)
+{
+  int32_t due;
+
+  if (!rt_event_try_lock(csound))
+    return 0;
+  due = csound->OrcTrigEvts != NULL &&
+        csound->OrcTrigEvts->start_kcnt <=
+        (uint32_t) csound->global_kcounter;
+  rt_event_unlock(csound);
+  return due;
+}
+
 /**
   Open and Initialises the input/output
   returns the HW sampling rate if it has been
@@ -399,26 +455,31 @@ static void deactivate_all_notes(CSOUND *csound)
 
 static void delete_pending_rt_events(CSOUND *csound)
 {
-  EVTNODE *ep = csound->OrcTrigEvts;
+  EVTNODE *events, *ep;
 
+  rt_event_lock(csound);
+  events = csound->OrcTrigEvts;
+  csound->OrcTrigEvts = NULL;
+  rt_event_unlock(csound);
+  ep = events;
   while (ep != NULL) {
-    EVTNODE *nxt = ep->nxt;
     if (ep->evt.strarg != NULL) {
       csound->Free(csound,ep->evt.strarg);
       ep->evt.strarg = NULL;
     }
-    /* push to stack of free event nodes */
-    ep->nxt = csound->freeEvtNodes;
-    csound->freeEvtNodes = ep;
-    ep = nxt;
+    ep = ep->nxt;
   }
-  csound->OrcTrigEvts = NULL;
+  recycle_rt_event_list(csound, events);
 }
 
 void delete_selected_rt_events(CSOUND *csound, MYFLT instr)
 {
-  EVTNODE *ep = csound->OrcTrigEvts;
+  EVTNODE *ep;
   EVTNODE *last = NULL;
+  EVTNODE *removed = NULL;
+
+  rt_event_lock(csound);
+  ep = csound->OrcTrigEvts;
   while (ep != NULL) {
     EVTNODE *nxt = ep->nxt;
     //printf("*** delete_selected_rt_events: instr = %f, p[1] = %f\n",
@@ -427,20 +488,22 @@ void delete_selected_rt_events(CSOUND *csound, MYFLT instr)
         (((int)(ep->evt.p[1]) == instr) || (ep->evt.p[1] == instr))) {
       //printf(" ** found\n");
       // Found an event to cancel
-      if (ep->evt.strarg != NULL) {
-        // clearstring if necessary
-        csound->Free(csound,ep->evt.strarg);
-        ep->evt.strarg = NULL;
-      }
       if (last) last->nxt = nxt; else csound->OrcTrigEvts = nxt;
-      /* push to stack of free event nodes */
-      ep->nxt = csound->freeEvtNodes;
-      csound->freeEvtNodes = ep;
+      ep->nxt = removed;
+      removed = ep;
     }
     else last = ep;
     ep = nxt;
   }
-  //csound->OrcTrigEvts = NULL;
+  rt_event_unlock(csound);
+
+  for (ep = removed; ep != NULL; ep = ep->nxt) {
+    if (ep->evt.strarg != NULL) {
+      csound->Free(csound,ep->evt.strarg);
+      ep->evt.strarg = NULL;
+    }
+  }
+  recycle_rt_event_list(csound, removed);
 }
 
 #ifndef __EMSCRIPTEN__
@@ -493,6 +556,7 @@ int32_t csound_cleanup(CSOUND *csound)
     /* will not clean up more than once */
     csound->engineStatus &= ~(CS_STATE_CLN);
 
+    diskin2_async_prepare_shutdown(csound);
 #ifndef __EMSCRIPTEN__
     stop_event_insert_thread(csound);
 #endif
@@ -1062,7 +1126,23 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
       print_amp_values(csound, 0);
   }
   if (sensType == 4) {                  /* RM: Realtime orc event   */
-    EVTNODE *e = csound->OrcTrigEvts;
+    EVTNODE *e;
+
+    /* The asynchronous init thread may schedule new events while this
+       performance thread consumes them. Detach one node while holding the
+       shared allocation lock, then perform all potentially expensive work
+       after releasing it. */
+    if (!rt_event_try_lock(csound))
+      return 0;
+    e = csound->OrcTrigEvts;
+    if (e == NULL || e->start_kcnt >
+        (uint32_t) csound->global_kcounter) {
+      rt_event_unlock(csound);
+      return 0;
+    }
+    csound->OrcTrigEvts = e->nxt;
+    e->nxt = NULL;
+    rt_event_unlock(csound);
     /* RM: Events are sorted on insertion, so just check the first */
     evt = &(e->evt);
     insno = MYFLT2LONG(evt->p[1]);
@@ -1071,10 +1151,13 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
         insGlobevt(csound, evt);       /* RM: do a global send and allow local */
       else
         insSendevt(csound, evt, rfd);  /* RM: or send to single remote_cleanup Csound */
+      if (evt->strarg != NULL) {
+        csound->Free(csound, evt->strarg);
+        evt->strarg = NULL;
+      }
+      recycle_rt_event(csound, e);
       return 0;
     }
-    /* pop from the list */
-    csound->OrcTrigEvts = e->nxt;
     retval = process_score_event(csound, evt, 1);
 
     if (evt->strarg != NULL) {
@@ -1084,8 +1167,7 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
 
     /* push back to free alloc stack so it can be reused later
     */
-    e->nxt = csound->freeEvtNodes;
-    csound->freeEvtNodes = e;
+    recycle_rt_event(csound, e);
   }
   else if (sensType == 2) {                      /* Midievent:    */
     MEVENT *mep;
@@ -1275,9 +1357,7 @@ int32_t sense_events(CSOUND *csound)
     }
 
     /* check for pending real time events */
-    while (csound->OrcTrigEvts != NULL &&
-           csound->OrcTrigEvts->start_kcnt <=
-           (uint32) csound->global_kcounter) {
+    while (rt_event_due(csound)) {
 
       if ((retval = process_rt_event(csound, 4)) != 0){
         goto scode;
@@ -1384,15 +1464,17 @@ static inline uint64_t time2kcnt(CSOUND *csound, double tval)
 static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
   EVTNODE       *e;
   /* make a copy of the event... */
-  if (csound->freeEvtNodes != NULL) {             /* pop alloc from stack */
-    e = csound->freeEvtNodes;                     /*   if available       */
+  rt_event_lock(csound);
+  e = csound->freeEvtNodes;
+  if (e != NULL)
     csound->freeEvtNodes = e->nxt;
-  }
-  else {
+  rt_event_unlock(csound);
+  if (e == NULL) {
     e = (EVTNODE*) csound->Calloc(csound, sizeof(EVTNODE)); /* or alloc new one */
     if (UNLIKELY(e == NULL))
       return NULL;
   }
+  e->nxt = NULL;
   if (ep->strarg != NULL) {  /* copy string argument if present */
     /* NEED TO COPY WHOLE STRING STRUCTURE */
     int32_t n = ep->scnt;
@@ -1400,7 +1482,7 @@ static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
     while (n--) { s += strlen(s)+1; };
     e->evt.strarg = (char*) csound->Malloc(csound, (size_t) (s-ep->strarg)+1);
     if (UNLIKELY(e->evt.strarg == NULL)) {
-      csound->Free(csound, e);
+      recycle_rt_event(csound, e);
       return NULL;
     }
     memcpy(e->evt.strarg, ep->strarg, s-ep->strarg+1 );
@@ -1414,6 +1496,15 @@ static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
      e->evt.pcnt = ep->pcnt;
      if(e->evt.p != NULL) csound->Free(csound, e->evt.p);
      e->evt.p = csound->Calloc(csound, sizeof(MYFLT)*(ep->pcnt+1));
+     if (UNLIKELY(e->evt.p == NULL)) {
+       e->evt.pcnt = 0;
+       if (e->evt.strarg != NULL) {
+         csound->Free(csound, e->evt.strarg);
+         e->evt.strarg = NULL;
+       }
+       recycle_rt_event(csound, e);
+       return NULL;
+     }
   } else e->evt.pcnt = ep->pcnt;
   return e;
 }
@@ -1521,6 +1612,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   }
   /* queue new event */
   e->start_kcnt = start_kcnt;
+  rt_event_lock(csound);
   prv = csound->OrcTrigEvts;
   /* if list is empty, or at beginning of list: */
   if (prv == NULL || start_kcnt < prv->start_kcnt) {
@@ -1533,6 +1625,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     e->nxt = prv->nxt;
     prv->nxt = e;
   }
+  rt_event_unlock(csound);
   /* Make sure sense_events() looks for RT events */
   csound->oparms->RTevents = 1;
 
@@ -1545,8 +1638,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   if (e->evt.strarg != NULL)
     csound->Free(csound, e->evt.strarg);
   e->evt.strarg = NULL;
-  e->nxt = csound->freeEvtNodes;
-  csound->freeEvtNodes = e;
+  recycle_rt_event(csound, e);
   return retval;
 
 }
@@ -1573,6 +1665,8 @@ int32_t insert_event_at_sample(CSOUND *csound, const EVTBLK *ep,
   MYFLT *pf;
   int  i;
   EVTNODE *e = copy_evtblk(csound, ep);
+  if (UNLIKELY(e == NULL))
+    return CSOUND_MEMORY;
   pf = e->evt.p;
   for(i=0; i < ep->pcnt; i++)    /* copy p-field list */
     pf[i+1] = pfields[i];
@@ -1590,6 +1684,8 @@ int32_t insert_score_args_at_sample(CSOUND *csound, const EVTBLK *ep,
   MYFLT *pf;
   int  i;
   EVTNODE *e = copy_evtblk(csound, ep);
+  if (UNLIKELY(e == NULL))
+    return CSOUND_MEMORY;
   pf = e->evt.p;
   for(i=0; i < ep->pcnt; i++)    /* copy p-field list */
     pf[i+1] = *(pfields[i]);

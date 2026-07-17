@@ -78,8 +78,9 @@ extern "C" {
   void  add_tmpfile(CSOUND *, char *);
   void  xturnoff(CSOUND *, INSDS *);
   void  xturnoff_now(CSOUND *, INSDS *);
+  void  deinit_pass(CSOUND *, INSDS *);
   INSDS *instance(CSOUND *, int32_t);
-  INSDS *take_inactive_instance(CSOUND *, INSTRTXT *);
+  INSDS *allocate_or_take_instance(CSOUND *, INSTRTXT *, int32_t);
   int32_t instance_has_async_refs(const INSDS *);
   INSDS *create_instance(CSOUND *csound, int32_t insno);
   void free_instance(CSOUND *csound, INSDS *ip);
@@ -92,7 +93,11 @@ extern "C" {
                               const struct _alloc_data_ *data);
   int32_t alloc_queue_lock_init(CSOUND *csound);
   void alloc_queue_lock_destroy(CSOUND *csound);
+  int32_t realtime_lock_init(spin_lock_t *, void **);
+  void realtime_lock_destroy(spin_lock_t *, void **);
   int32_t diskin2_async_setup(CSOUND *csound);
+  void diskin2_async_drain_deferred(CSOUND *csound);
+  void diskin2_async_prepare_shutdown(CSOUND *csound);
   void diskin2_async_shutdown(CSOUND *csound);
   int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
   int32_t insert_event(CSOUND *, int32_t,  EVTBLK*);

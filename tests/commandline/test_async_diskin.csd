@@ -16,6 +16,7 @@ endin
 
 instr 3
   ; Short overlapping notes race asynchronous init, deinit, and shutdown.
+  ; Combining scalar and array readers also exercises scheduled-event locking.
   ; ASan and TSan make stale instance access easier to reproduce.
   iStart = 0
   while (iStart < 0.2) do
@@ -25,9 +26,32 @@ instr 3
   od
 endin
 
+instr 4
+  kReopen metro 500
+  if (kReopen == 1) then
+    reinit REOPEN
+  endif
+  kgoto PLAY
+
+REOPEN:
+  a1 diskin2 "fox.wav"
+  rireturn
+
+PLAY:
+  out a1 * 0.1
+endin
+
+instr 5
+  a1 init 0
+  fout "test_async_file.wav", 14, a1
+endin
+
 </CsInstruments>
 <CsScore>
 i 3 0 0
+i 4 0 0.05
+i 4 0.01 0.05
+i 5 0 0.03
 e 0.25
 </CsScore>
 </CsoundSynthesizer>
