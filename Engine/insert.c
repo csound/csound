@@ -2050,7 +2050,7 @@ void free_inactive_instances(CSOUND *csound)
 {
   INSTRTXT  *txtp;
   INSDS     *ip, *nxtip, *prvip, **prvnxtloc, *pending;
-  INSDS     *reclaim = NULL;
+  INSDS     *reclaim = NULL, *reclaim_tail = NULL;
   int32_t       cnt = 0;
 
   /* Detach reclaimable instances while holding the instance-list lock, then
@@ -2070,8 +2070,16 @@ void free_inactive_instances(CSOUND *csound)
           if ((nxtip = ip->nxtinstance) != NULL)
             nxtip->prvinstance = prvip;
           *prvnxtloc = nxtip;
-          ip->nxtinstance = reclaim;
-          reclaim = ip;
+          /* Preserve the original INSTRTXT traversal order. An owning
+             instrument's AUXCH chain can contain descriptors embedded in a
+             nested UDO instance, so reversing this list would free the
+             descriptor storage before auxchfree() follows the chain. */
+          ip->nxtinstance = NULL;
+          if (reclaim_tail != NULL)
+            reclaim_tail->nxtinstance = ip;
+          else
+            reclaim = ip;
+          reclaim_tail = ip;
         }
         else {
           if (!ip->actflg && ip->linked) {
