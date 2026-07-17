@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
+#include "filesys.h"
 
 
 class IOTests : public ::testing::Test {
@@ -165,6 +166,38 @@ TEST_F (IOTests, testKeyboardIO)
 
     // val = csoundGetControlChannel(csound, "down2", &err);
     // ASSERT_DOUBLE_EQ (val, 1.0);
+}
+
+TEST_F (IOTests, testSynchronousCloseWhileAsyncWorkerRuns)
+{
+    std::string prefix = ::testing::TempDir() + "csound_" +
+                         std::to_string(reinterpret_cast<uintptr_t>(csound));
+    std::string asyncPath = prefix + "_async.tmp";
+    std::string syncPath = prefix + "_sync.tmp";
+    FILE *asyncFile = nullptr;
+    FILE *syncFile = nullptr;
+
+    remove(asyncPath.c_str());
+    remove(syncPath.c_str());
+    void *asyncHandle = csoundFileOpenAsync(
+        csound, &asyncFile, CSFILE_STD, asyncPath.c_str(), (void *) "w+", nullptr,
+        CSFTYPE_OTHER_TEXT, 64, 0);
+    ASSERT_NE(asyncHandle, nullptr);
+    void *syncHandle = csoundFileOpen(
+        csound, &syncFile, CSFILE_STD, syncPath.c_str(), (void *) "w+", nullptr,
+        CSFTYPE_OTHER_TEXT, 0);
+    ASSERT_NE(syncHandle, nullptr);
+
+    ASSERT_EQ(csoundFileClose(csound, syncHandle), 0);
+    EXPECT_EQ(csound->retired_files, nullptr);
+    EXPECT_EQ(remove(syncPath.c_str()), 0);
+
+    ASSERT_EQ(csoundFileClose(csound, asyncHandle), 0);
+    for (int32_t retry = 0;
+         retry < 100 && csound->retired_files != nullptr; retry++)
+      csoundSleep(1);
+    EXPECT_EQ(csound->retired_files, nullptr);
+    EXPECT_EQ(remove(asyncPath.c_str()), 0);
 }
 
 TEST_F (IOTests, testReadline)

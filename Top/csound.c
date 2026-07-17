@@ -810,7 +810,9 @@ static const CSOUND cenviron_ = {
     0,
     NULL,
     NULL,
-    0,
+    0,  /* init_done */
+    0,  /* init_running */
+    0,  /* turnoff_pending */
     0,
     0,
     FL(0.0),
@@ -946,6 +948,7 @@ static const CSOUND cenviron_ = {
   NULL, NULL,     /*  omacros, smacros    */
   NULL,           /*  namedgen            */
   NULL, NULL,     /*  open_files, retired_files */
+  0,              /*  file_io_pass */
   NULL,           /*  searchPathCache     */
   NULL,           /*  sndmemfiles         */
   NULL,           /*  reset_list          */
@@ -1088,8 +1091,11 @@ static const CSOUND cenviron_ = {
   0,              /* alloc_queue_items */
   0,              /* alloc_queue_wp */
   SPINLOCK_INIT,  /* alloc_queue_spinlock */
-  NULL,           /* alloc_queue_mutex */
   SPINLOCK_INIT,  /* alloc_spinlock */
+  SPINLOCK_INIT,  /* instance_spinlock */
+  SPINLOCK_INIT,  /* async_ref_spinlock */
+  SPINLOCK_INIT,  /* rt_event_spinlock */
+  0,              /* realtime_locks_initialized */
   SPINLOCK_INIT,  /* diskin2_async_lock */
   NULL,           /* diskin2_async_state */
   NULL,           /* init_event */

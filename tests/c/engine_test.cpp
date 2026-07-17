@@ -468,7 +468,7 @@ TEST_F (EngineTests, testRealtimeInsertEventCopiesQueuedEvtblk)
     csound->alloc_queue = nullptr;
 }
 
-TEST_F (EngineTests, testRealtimeAllocQueueMutexFallback)
+TEST_F (EngineTests, testRealtimeAllocQueueMultipleProducers)
 {
     constexpr int32_t producerCount = 4;
     constexpr int32_t itemsPerProducer = MAX_ALLOC_QUEUE / producerCount;
@@ -480,10 +480,7 @@ TEST_F (EngineTests, testRealtimeAllocQueueMutexFallback)
     csound->alloc_queue = static_cast<ALLOC_DATA *>(
       csound->Calloc(csound, sizeof(ALLOC_DATA) * MAX_ALLOC_QUEUE));
     ASSERT_NE(csound->alloc_queue, nullptr);
-    csound->alloc_queue_mutex = csoundCreateMutex(0);
-    ASSERT_NE(csound->alloc_queue_mutex, nullptr);
-    csound->alloc_queue_items = 0;
-    csound->alloc_queue_wp = 0;
+    ASSERT_EQ(alloc_queue_lock_init(csound), CSOUND_SUCCESS);
 
     for (int32_t producer = 0; producer < producerCount; ++producer) {
       producers.emplace_back([this, producer, itemsPerProducer, &failures, &ready, &start]() {

@@ -82,6 +82,8 @@ extern "C" {
   INSDS *instance(CSOUND *, int32_t);
   INSDS *allocate_or_take_instance(CSOUND *, INSTRTXT *, int32_t);
   int32_t instance_has_async_refs(const INSDS *);
+  void instance_init_begin(CSOUND *, INSDS *);
+  int32_t instance_init_finish(CSOUND *, INSDS *);
   INSDS *create_instance(CSOUND *csound, int32_t insno);
   void free_instance(CSOUND *csound, INSDS *ip);
   int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
@@ -93,8 +95,13 @@ extern "C" {
                               const struct _alloc_data_ *data);
   int32_t alloc_queue_lock_init(CSOUND *csound);
   void alloc_queue_lock_destroy(CSOUND *csound);
-  int32_t realtime_lock_init(spin_lock_t *, void **);
-  void realtime_lock_destroy(spin_lock_t *, void **);
+  int32_t realtime_spin_lock_init(spin_lock_t *);
+  void realtime_spin_lock_destroy(spin_lock_t *);
+  void async_instance_lock(CSOUND *csound);
+  void async_instance_unlock(CSOUND *csound);
+  void csound_rt_event_lock(CSOUND *csound);
+  void csound_rt_event_unlock(CSOUND *csound);
+  void csound_recycle_rt_event_list(CSOUND *csound, EVTNODE *events);
   int32_t diskin2_async_setup(CSOUND *csound);
   void diskin2_async_drain_deferred(CSOUND *csound);
   void diskin2_async_prepare_shutdown(CSOUND *csound);

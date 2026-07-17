@@ -31,6 +31,9 @@ extern "C" {
     struct CSFILE_  *nxt;
     struct CSFILE_  *prv;
     struct CSFILE_  *retired_nxt;
+    uint64_t io_pass;
+    int32_t io_readers;
+    int32_t retired;
     int32_t type;
     int32_t  fd;
     FILE *f;

@@ -500,6 +500,8 @@ typedef struct {
     MYFLT   *spin;         /* offset into csound->spin */
     MYFLT   *spout;        /* offset into csound->spout, or local spout */
     int32_t  init_done;
+    volatile int32_t init_running;
+    volatile int32_t turnoff_pending;
     int32_t  tieflag;
     int32_t  reinitflag;
     MYFLT    retval;
@@ -1705,6 +1707,7 @@ struct CSOUND_ {
   void *namedgen;   /* fgens.c */
   void *open_files; /* fileopen.c */
   void *retired_files; /* nodes awaiting file I/O thread reclamation */
+  uint64_t file_io_pass;
   void *searchPathCache;
   CS_HASH_TABLE *sndmemfiles;
   void *reset_list;
@@ -1812,8 +1815,11 @@ struct CSOUND_ {
   volatile unsigned long alloc_queue_items;
   unsigned long alloc_queue_wp;
   spin_lock_t alloc_queue_spinlock;
-  void *alloc_queue_mutex;
   spin_lock_t alloc_spinlock;
+  spin_lock_t instance_spinlock;
+  spin_lock_t async_ref_spinlock;
+  spin_lock_t rt_event_spinlock;
+  int32_t realtime_locks_initialized;
   spin_lock_t diskin2_async_lock;
   void *diskin2_async_state;
   EVTBLK *init_event;

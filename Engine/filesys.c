@@ -655,10 +655,18 @@ enum {
   FILE_IO_RUNNING
 };
 
+enum {
+  FILE_ASYNC_NONE = 0,
+  FILE_ASYNC_STARTING = -1
+};
+
 static void link_open_file(CSOUND *csound, CSFILE *file)
 {
     csoundSpinLock(&csound->open_files_lock);
     file->retired_nxt = NULL;
+    file->io_pass = 0;
+    file->io_readers = 0;
+    file->retired = 0;
     file->prv = NULL;
     file->nxt = (CSFILE*) csound->open_files;
     if (file->nxt != NULL)
@@ -672,14 +680,22 @@ static int32_t unlink_open_file(CSOUND *csound, CSFILE *file)
     int32_t deferred;
 
     csoundSpinLock(&csound->open_files_lock);
+    if (file->retired) {
+      csoundSpinUnLock(&csound->open_files_lock);
+      return 1;
+    }
     if (file->prv == NULL)
       csound->open_files = (void*) file->nxt;
     else
       file->prv->nxt = file->nxt;
     if (file->nxt != NULL)
       file->nxt->prv = file->prv;
-    deferred = ATOMIC_GET(csound->file_io_start) != 0;
+    /* Only the node currently borrowed by the file worker needs deferred
+       reclamation. Ordinary files retain synchronous close semantics even
+       while an unrelated asynchronous file is open. */
+    deferred = file->io_readers != 0;
     if (deferred) {
+      file->retired = 1;
       file->retired_nxt = (CSFILE *) csound->retired_files;
       csound->retired_files = file;
     }
@@ -999,24 +1015,44 @@ static int32_t close_file_now(CSOUND *csound, CSFILE *p)
 
 static int32_t reclaim_retired_files(CSOUND *csound)
 {
-    CSFILE *retired;
+    CSFILE *current, *previous, *reclaim = NULL;
     int32_t keepRunning;
 
     csoundSpinLock(&csound->open_files_lock);
-    retired = (CSFILE *) csound->retired_files;
-    csound->retired_files = NULL;
-    keepRunning = csound->open_files != NULL ||
-                  ATOMIC_GET(csound->file_io_start) == FILE_IO_STARTING;
+    previous = NULL;
+    current = (CSFILE *) csound->retired_files;
+    while (current != NULL) {
+      CSFILE *next = current->retired_nxt;
+
+      if (current->io_readers == 0) {
+        if (previous == NULL)
+          csound->retired_files = next;
+        else
+          previous->retired_nxt = next;
+        current->retired_nxt = reclaim;
+        reclaim = current;
+      }
+      else
+        previous = current;
+      current = next;
+    }
+    keepRunning = ATOMIC_GET(csound->file_io_start) == FILE_IO_STARTING;
+    for (current = (CSFILE *) csound->open_files;
+         current != NULL && !keepRunning; current = current->nxt) {
+      keepRunning = current->async_flag != FILE_ASYNC_NONE;
+    }
+    if (csound->retired_files != NULL)
+      keepRunning = 1;
     if (!keepRunning)
-      ATOMIC_SET(csound->file_io_start, 0);
+      ATOMIC_SET(csound->file_io_start, FILE_IO_STOPPED);
     csoundSpinUnLock(&csound->open_files_lock);
 
-    while (retired != NULL) {
-      CSFILE *next = retired->retired_nxt;
+    while (reclaim != NULL) {
+      CSFILE *next = reclaim->retired_nxt;
 
-      retired->nxt = retired->prv = retired->retired_nxt = NULL;
-      close_file_now(csound, retired);
-      retired = next;
+      reclaim->nxt = reclaim->prv = reclaim->retired_nxt = NULL;
+      close_file_now(csound, reclaim);
+      reclaim = next;
     }
     return keepRunning;
 }
@@ -1059,7 +1095,7 @@ void close_all_files(CSOUND *csound)
     reclaim_retired_files(csound);
     csound->file_io_thread = NULL;
     csound->file_io_threadlock = NULL;
-    ATOMIC_SET(csound->file_io_start, 0);
+    ATOMIC_SET(csound->file_io_start, FILE_IO_STOPPED);
 }
 
 /* The fromScore parameter should be 1 if opening a score include file,
@@ -1160,7 +1196,16 @@ void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
                                                csFileType,isTemporary)) == NULL)
       return NULL;
 
+    /* Keep the worker alive while this file's circular buffers are prepared,
+       but do not let it process the file before setup is complete. */
+    csoundSpinLock(&csound->open_files_lock);
+    p->async_flag = FILE_ASYNC_STARTING;
+    csoundSpinUnLock(&csound->open_files_lock);
+
     if (UNLIKELY(start_file_io_thread(csound) != OK)) {
+      csoundSpinLock(&csound->open_files_lock);
+      p->async_flag = FILE_ASYNC_NONE;
+      csoundSpinUnLock(&csound->open_files_lock);
       csoundFileClose(csound, p);
       return NULL;
     }
@@ -1171,12 +1216,18 @@ void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
     p->pos = 0;
     p->bufsize = buffsize;
     p->buf = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*buffsize);
-    if (p->cb != NULL && p->buf != NULL)
+    if (p->cb != NULL && p->buf != NULL) {
+      csoundSpinLock(&csound->open_files_lock);
       p->async_flag = ASYNC_GLOBAL;
+      csoundSpinUnLock(&csound->open_files_lock);
+    }
     csound->NotifyThreadLock(csound->file_io_threadlock);
 
     if (p->cb == NULL || p->buf == NULL) {
       /* close file immediately */
+      csoundSpinLock(&csound->open_files_lock);
+      p->async_flag = FILE_ASYNC_NONE;
+      csoundSpinUnLock(&csound->open_files_lock);
       csoundFileClose(csound, (void *) p);
       return NULL;
     }
@@ -1230,12 +1281,26 @@ int32_t csoundFSeekAsync(CSOUND *csound, void *handle, int32_t pos, int32_t when
 
 static int32_t read_files(CSOUND *csound){
     CSFILE *current;
+    uint64_t pass;
 
     csoundSpinLock(&csound->open_files_lock);
-    current = (CSFILE *) csound->open_files;
+    pass = ++csound->file_io_pass;
     csoundSpinUnLock(&csound->open_files_lock);
-    while (current) {
-      if (current->async_flag == ASYNC_GLOBAL) {
+    for (;;) {
+      csoundSpinLock(&csound->open_files_lock);
+      current = (CSFILE *) csound->open_files;
+      while (current != NULL &&
+             (current->async_flag != ASYNC_GLOBAL ||
+              current->io_pass == pass))
+        current = current->nxt;
+      if (current != NULL) {
+        current->io_pass = pass;
+        current->io_readers++;
+      }
+      csoundSpinUnLock(&csound->open_files_lock);
+      if (current == NULL)
+        break;
+      {
         int32_t m = current->pos, l, n = current->items;
         int32_t items = current->bufsize;
         MYFLT *buf = current->buf;
@@ -1266,7 +1331,7 @@ static int32_t read_files(CSOUND *csound){
         }
       }
       csoundSpinLock(&csound->open_files_lock);
-      current = current->nxt;
+      current->io_readers--;
       csoundSpinUnLock(&csound->open_files_lock);
     }
     return reclaim_retired_files(csound);

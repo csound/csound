@@ -939,8 +939,7 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
   EVTNODE *e, *previous = NULL;
   EVTNODE *removed = NULL;
 
-  if (csound->oparms->realtime)
-    csoundSpinLock(&csound->alloc_spinlock);
+  csound_rt_event_lock(csound);
   e = csound->OrcTrigEvts;
   while(e != NULL) {
     EVTNODE *next = e->nxt;
@@ -960,8 +959,7 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
       previous = e;
     e = next;
   }
-  if (csound->oparms->realtime)
-    csoundSpinUnLock(&csound->alloc_spinlock);
+  csound_rt_event_unlock(csound);
 
   for (e = removed; e != NULL; e = e->nxt) {
     EVTBLK *evtn = &e->evt;
@@ -983,18 +981,7 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
       evtn->strarg = NULL;
     }
   }
-  if (removed != NULL) {
-    EVTNODE *tail = removed;
-
-    while (tail->nxt != NULL)
-      tail = tail->nxt;
-    if (csound->oparms->realtime)
-      csoundSpinLock(&csound->alloc_spinlock);
-    tail->nxt = csound->freeEvtNodes;
-    csound->freeEvtNodes = removed;
-    if (csound->oparms->realtime)
-      csoundSpinUnLock(&csound->alloc_spinlock);
-  }
+  csound_recycle_rt_event_list(csound, removed);
 }
 
 void set_evt_strarg(CSOUND *csound, EVTBLK *e, int32_t pcnt, const

@@ -117,6 +117,9 @@ int32_t reinit(CSOUND *csound, GOTO *p)
     int32_t actflg = ATOMIC_GET8(p->h.insdshead->actflg);
     ALLOC_DATA data = { 0 };
 
+    /* Publish the reinit lifecycle before the request enters the queue. A
+       concurrent turnoff is retained until the event thread finishes it. */
+    instance_init_begin(csound, p->h.insdshead);
     ATOMIC_SET(p->h.insdshead->init_done, 0);
     ATOMIC_SET8(p->h.insdshead->actflg, 0);
     data.ip = p->h.insdshead;
@@ -124,9 +127,14 @@ int32_t reinit(CSOUND *csound, GOTO *p)
     data.type = ALLOC_DATA_REINIT_PASS;
 
     if (UNLIKELY(alloc_queue_enqueue(csound, &data) != CSOUND_SUCCESS)) {
+      int32_t turnoffPending;
+
       ATOMIC_SET(p->h.insdshead->init_done, init_done);
       ATOMIC_SET8(p->h.insdshead->actflg, actflg);
+      turnoffPending = instance_init_finish(csound, p->h.insdshead);
       csound->reinitflag = p->h.insdshead->reinitflag = 0;
+      if (turnoffPending)
+        xturnoff_now(csound, p->h.insdshead);
       return csound->PerfError(csound, &p->h, "%s",
                                Str("reinit: realtime allocation queue is full"));
     }
