@@ -5,8 +5,8 @@
 <CsInstruments>
 
 gkVictimPerfCycles init 0
+gkVictimInitCompleted init 0
 gkTurnoffAttempts init 0
-gkCancellationFailed init 0
 gkUdoFirst init 0
 gkUdoSecond init 0
 gkSubFirst init 0
@@ -79,14 +79,30 @@ endin
 instr 8
   iUnused = SlowInit()
   a1 diskin2 "fox.wav"
+  ; Publish completion from the init thread before this cancelled instance
+  ; could enter its performance pass.
+  gkVictimInitCompleted init 1
   gkVictimPerfCycles += 1
   out a1 * 0.1
 endin
 
 instr 9
-  ; Observe at k-rate while the event thread is still completing SlowInit.
-  if (gkVictimPerfCycles != 0) then
-    gkCancellationFailed = 1
+  ; This watcher starts before instr 8, so SlowInit cannot delay the assertion
+  ; itself. Keep process termination on the performance thread: exitnow would
+  ; otherwise longjmp from the realtime init thread on a failed assertion.
+  if (gkVictimInitCompleted != 0) then
+    if (gkVictimPerfCycles != 0) then
+      printks "Cancelled instance reached its performance pass\n", 0
+      exitnowk(1)
+    endif
+    if (gkTurnoffAttempts == 0) then
+      printks "Cancellation test made no turnoff attempts\n", 0
+      exitnowk(1)
+    endif
+    turnoff
+  elseif (timeinsts() > 1.4) then
+    printks "Cancellation test did not complete its init pass\n", 0
+    exitnowk(1)
   endif
 endin
 
@@ -121,45 +137,38 @@ instr 13
 endin
 
 instr 10
-  ; Keep process termination at i-time; exitnow is not a k-rate assertion.
-  if (i(gkCancellationFailed) != 0) then
-    prints "Cancelled instance reached its performance pass\n"
-    exitnow(1)
-  endif
-  if (i(gkTurnoffAttempts) == 0) then
-    prints "Cancellation test made no turnoff attempts\n"
-    exitnow(1)
-  endif
-  firstUdo:i = i(gkUdoFirst)
-  secondUdo:i = i(gkUdoSecond)
-  firstSub:i = i(gkSubFirst)
-  secondSub:i = i(gkSubSecond)
-  if (firstUdo <= 0 || secondUdo < firstUdo * 0.9) then
-    prints "Realtime UDO diskin2 reuse failed: first=%f second=%f\n", \
-      firstUdo, secondUdo
-    exitnow(1)
-  endif
-  if (firstSub <= 0 || secondSub < firstSub * 0.9) then
-    prints "Realtime subinstr diskin2 reuse failed: first=%f second=%f\n", \
-      firstSub, secondSub
-    exitnow(1)
+  ; Validate nested reuse before starting the deliberately slow init case.
+  if (timeinstk() > 0) then
+    if (gkUdoFirst <= 0 || gkUdoSecond < gkUdoFirst * 0.9) then
+      printks "Realtime UDO diskin2 reuse failed: first=%f second=%f\n", \
+        0, gkUdoFirst, gkUdoSecond
+      exitnowk(1)
+    endif
+    if (gkSubFirst <= 0 || gkSubSecond < gkSubFirst * 0.9) then
+      printks "Realtime subinstr diskin2 reuse failed: first=%f second=%f\n", \
+        0, gkSubFirst, gkSubSecond
+      exitnowk(1)
+    endif
+    turnoff
   endif
 endin
 
 </CsInstruments>
 <CsScore>
-i 3 0.1 0
-i 4 0 0.05
-i 4 0.01 0.05
-i 5 0 0.03
-i 7 0 0.55
-i 8 0 -1
-i 9 0 0.58
-i 11 0.70 0.1 1
-i 11 0.90 0.1 2
-i 13 1.10 0.1 1
-i 13 1.30 0.1 2
-i 10 1.50 0
-e 1.55
+i 11 0.00 0.1 1
+i 11 0.15 0.1 2
+i 13 0.30 0.1 1
+i 13 0.45 0.1 2
+i 10 0.60 0.05
+; Complete overlap, reinit, and file-close stress before blocking init.
+i 3 0.65 0
+i 4 0.65 0.05
+i 4 0.66 0.05
+i 5 0.65 0.03
+; Start the turnoff loop and watcher before the victim blocks the init thread.
+i 7 0.95 1.5
+i 9 0.95 1.5
+i 8 1.00 -1
+e 2.50
 </CsScore>
 </CsoundSynthesizer>
