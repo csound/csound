@@ -256,6 +256,22 @@ TEST_F (EngineTests, testNestedInitKeepsTurnoffPending)
     instance.turnoff_pending = INSTANCE_TURNOFF_NONE;
 }
 
+TEST_F (EngineTests, testRecycleDetachedInactiveInstance)
+{
+    INSTRTXT instrument {};
+    INSDS available {};
+    INSDS detached {};
+
+    available.instr = &instrument;
+    detached.instr = &instrument;
+    instrument.act_instance = &available;
+
+    recycle_inactive_instance(csound, &detached);
+
+    EXPECT_EQ(instrument.act_instance, &detached);
+    EXPECT_EQ(detached.nxtact, &available);
+}
+
 TEST_F (EngineTests, testRealtimeLongJmpPreservesInitThreadContext)
 {
     INSDS instance {};

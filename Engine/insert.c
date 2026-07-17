@@ -295,6 +295,17 @@ INSDS *allocate_or_take_instance(CSOUND *csound, INSTRTXT *tp,
   return ip;
 }
 
+void recycle_inactive_instance(CSOUND *csound, INSDS *ip)
+{
+  INSTRTXT *tp = ip->instr;
+
+  /* The caller owns an inactive instance detached from this reuse list. */
+  inactive_instance_lock(csound);
+  ip->nxtact = tp->act_instance;
+  tp->act_instance = ip;
+  inactive_instance_unlock(csound);
+}
+
 static void alloc_queue_lock(CSOUND *csound)
 {
   csoundSpinLock(&csound->alloc_queue_spinlock);
@@ -2916,8 +2927,8 @@ static void free_unlinked_instance(CSOUND *csound, INSDS *ip)
 void free_instance(CSOUND *csound, INSDS *ip) {
   // don't touch any instances that are in the act_instance chain
   if(ip->linked) {
-    /* A paused instance stays on the active chain with actflg cleared. Only
-       restore it when the chain link proves this is not a free-list node. */
+    /* Every active-chain node has a non-null predecessor; the head points to
+       actanchor. Free-list nodes clear prvact, so do not reactivate those. */
     if (ATOMIC_GET8(ip->actflg) == 0 && ip->prvact != NULL)
       ATOMIC_SET8(ip->actflg, 1);
     xturnoff_now(csound, ip);

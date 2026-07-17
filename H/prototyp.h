@@ -81,6 +81,7 @@ extern "C" {
   void  deinit_pass(CSOUND *, INSDS *);
   INSDS *instance(CSOUND *, int32_t);
   INSDS *allocate_or_take_instance(CSOUND *, INSTRTXT *, int32_t);
+  void recycle_inactive_instance(CSOUND *, INSDS *);
   int32_t instance_has_async_refs(const INSDS *);
   int32_t instance_is_reclaimable(const INSDS *);
   typedef enum {

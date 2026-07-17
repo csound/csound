@@ -1507,6 +1507,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
                                inm->name);
     }
     if (lcurip->opcod_iobufs==NULL) {
+      recycle_inactive_instance(csound, lcurip);
       inm->recurse_depth--;
       return csound->InitError(csound, "Broken redefinition of UDO %d (UDO %s)\n",
                                instno, inm->name);
