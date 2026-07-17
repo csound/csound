@@ -82,6 +82,7 @@ extern "C" {
   INSDS *instance(CSOUND *, int32_t);
   INSDS *allocate_or_take_instance(CSOUND *, INSTRTXT *, int32_t);
   int32_t instance_has_async_refs(const INSDS *);
+  int32_t instance_is_reclaimable(const INSDS *);
   typedef enum {
     INSTANCE_INIT_DEFERRED = 0,
     INSTANCE_INIT_COMPLETE,
@@ -90,11 +91,13 @@ extern "C" {
   typedef enum {
     INSTANCE_TURNOFF_NONE = 0,
     INSTANCE_TURNOFF_REQUESTED,
-    INSTANCE_TURNOFF_FINALIZING
+    INSTANCE_TURNOFF_FINALIZING,
+    INSTANCE_TURNOFF_RECLAIM
   } INSTANCE_TURNOFF_STATE;
-  void instance_init_begin(CSOUND *, INSDS *);
-  int32_t instance_init_finish(CSOUND *, INSDS *);
-  void instance_init_turnoff(CSOUND *, INSDS *);
+  int32_t instance_init_begin(CSOUND *, INSDS *);
+  INSTANCE_INIT_RESULT instance_init_finish(CSOUND *, INSDS *);
+  void instance_init_request_turnoff(CSOUND *, INSDS *);
+  void instance_process_pending_turnoffs(CSOUND *);
   INSDS *create_instance(CSOUND *csound, int32_t insno);
   void free_instance(CSOUND *csound, INSDS *ip);
   int32_t instr_num(CSOUND *csound, INSTRTXT *instr);

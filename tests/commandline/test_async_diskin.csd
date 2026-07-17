@@ -7,6 +7,10 @@
 gkVictimPerfCycles init 0
 gkTurnoffAttempts init 0
 gkCancellationFailed init 0
+gkUdoFirst init 0
+gkUdoSecond init 0
+gkSubFirst init 0
+gkSubSecond init 0
 
 instr 1
   a1 diskin2 "fox.wav"
@@ -86,6 +90,36 @@ instr 9
   endif
 endin
 
+opcode NestedDiskin():a
+  audio:a diskin2 "fox.wav"
+  xout audio
+endop
+
+instr 11
+  audio:a = NestedDiskin()
+  level:k rms audio
+  if (p4 == 1) then
+    gkUdoFirst = max(gkUdoFirst, level)
+  else
+    gkUdoSecond = max(gkUdoSecond, level)
+  endif
+endin
+
+instr 12
+  audio:a diskin2 "fox.wav"
+  out audio * 0.1
+endin
+
+instr 13
+  audio:a subinstr 12
+  level:k rms audio
+  if (p4 == 1) then
+    gkSubFirst = max(gkSubFirst, level)
+  else
+    gkSubSecond = max(gkSubSecond, level)
+  endif
+endin
+
 instr 10
   ; Keep process termination at i-time; exitnow is not a k-rate assertion.
   if (i(gkCancellationFailed) != 0) then
@@ -94,6 +128,20 @@ instr 10
   endif
   if (i(gkTurnoffAttempts) == 0) then
     prints "Cancellation test made no turnoff attempts\n"
+    exitnow(1)
+  endif
+  firstUdo:i = i(gkUdoFirst)
+  secondUdo:i = i(gkUdoSecond)
+  firstSub:i = i(gkSubFirst)
+  secondSub:i = i(gkSubSecond)
+  if (firstUdo <= 0 || secondUdo < firstUdo * 0.9) then
+    prints "Realtime UDO diskin2 reuse failed: first=%f second=%f\n", \
+      firstUdo, secondUdo
+    exitnow(1)
+  endif
+  if (firstSub <= 0 || secondSub < firstSub * 0.9) then
+    prints "Realtime subinstr diskin2 reuse failed: first=%f second=%f\n", \
+      firstSub, secondSub
     exitnow(1)
   endif
 endin
@@ -107,7 +155,11 @@ i 5 0 0.03
 i 7 0 0.55
 i 8 0 -1
 i 9 0 0.58
-i 10 0.59 0
-e 0.65
+i 11 0.70 0.1 1
+i 11 0.90 0.1 2
+i 13 1.10 0.1 1
+i 13 1.30 0.1 2
+i 10 1.50 0
+e 1.55
 </CsScore>
 </CsoundSynthesizer>

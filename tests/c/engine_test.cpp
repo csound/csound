@@ -206,14 +206,19 @@ TEST_F (EngineTests, testNestedInitKeepsTurnoffPending)
 {
     INSDS instance {};
 
-    instance_init_begin(csound, &instance);
-    instance_init_begin(csound, &instance);
+    EXPECT_EQ(instance_init_begin(csound, &instance), CSOUND_SUCCESS);
+    EXPECT_EQ(instance_init_begin(csound, &instance), CSOUND_SUCCESS);
     EXPECT_EQ(ATOMIC_GET(instance.init_running), 2);
     EXPECT_EQ(instance_init_finish(csound, &instance),
               INSTANCE_INIT_DEFERRED);
 
-    ATOMIC_SET(instance.turnoff_pending, INSTANCE_TURNOFF_REQUESTED);
-    instance_init_begin(csound, &instance);
+    ATOMIC_SET(instance.init_done, 1);
+    instance_init_request_turnoff(csound, &instance);
+    EXPECT_EQ(ATOMIC_GET(instance.init_done), 0);
+    EXPECT_EQ(ATOMIC_GET(instance.turnoff_pending),
+              INSTANCE_TURNOFF_REQUESTED);
+    EXPECT_EQ(csound->init_turnoff_pending, nullptr);
+    EXPECT_EQ(instance_init_begin(csound, &instance), CSOUND_SUCCESS);
     EXPECT_EQ(ATOMIC_GET(instance.init_running), 2);
     EXPECT_EQ(ATOMIC_GET(instance.turnoff_pending),
               INSTANCE_TURNOFF_REQUESTED);
@@ -224,8 +229,29 @@ TEST_F (EngineTests, testNestedInitKeepsTurnoffPending)
     EXPECT_EQ(ATOMIC_GET(instance.init_running), 0);
     EXPECT_EQ(ATOMIC_GET(instance.turnoff_pending),
               INSTANCE_TURNOFF_FINALIZING);
+    EXPECT_EQ(csound->init_turnoff_pending, &instance);
+    instance_init_request_turnoff(csound, &instance);
+    EXPECT_EQ(csound->init_turnoff_pending, &instance);
+    EXPECT_EQ(instance.init_turnoff_next, nullptr);
+    EXPECT_EQ(instance_init_begin(csound, &instance), CSOUND_ERROR);
+    EXPECT_EQ(ATOMIC_GET(instance.init_running), 0);
     EXPECT_EQ(instance_init_finish(csound, &instance),
               INSTANCE_INIT_DEFERRED);
+    EXPECT_EQ(ATOMIC_GET(instance.turnoff_pending),
+              INSTANCE_TURNOFF_FINALIZING);
+    EXPECT_EQ(csound->init_turnoff_pending, &instance);
+
+    ATOMIC_SET(instance.turnoff_pending, INSTANCE_TURNOFF_RECLAIM);
+    EXPECT_EQ(instance_init_begin(csound, &instance), CSOUND_ERROR);
+    EXPECT_EQ(ATOMIC_GET(instance.init_running), 0);
+
+    ATOMIC_SET(instance.turnoff_pending, INSTANCE_TURNOFF_REQUESTED);
+    EXPECT_EQ(instance_init_begin(csound, &instance), CSOUND_ERROR);
+    EXPECT_EQ(ATOMIC_GET(instance.init_running), 0);
+
+    csound->init_turnoff_pending = nullptr;
+    instance.init_turnoff_next = nullptr;
+    ATOMIC_SET(instance.turnoff_pending, INSTANCE_TURNOFF_NONE);
 }
 
 TEST_F (EngineTests, testUdpServer)

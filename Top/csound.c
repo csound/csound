@@ -814,6 +814,7 @@ static const CSOUND cenviron_ = {
     0,  /* init_running */
     0,  /* turnoff_pending */
     0,  /* free_pending */
+    NULL, /* init_turnoff_next */
     0,
     0,
     FL(0.0),
@@ -1097,6 +1098,7 @@ static const CSOUND cenviron_ = {
   SPINLOCK_INIT,  /* async_ref_spinlock */
   SPINLOCK_INIT,  /* rt_event_spinlock */
   0,              /* realtime_locks_initialized */
+  NULL,           /* init_turnoff_pending */
   SPINLOCK_INIT,  /* diskin2_async_lock */
   NULL,           /* diskin2_async_state */
   NULL,           /* init_event */

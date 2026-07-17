@@ -607,7 +607,11 @@ int32_t csound_cleanup(CSOUND *csound)
     stop_event_insert_thread(csound);
 #endif
 
+    /* The queue thread only publishes terminal init results. Once it has
+       drained and stopped, this thread owns active-chain finalization. */
+    instance_process_pending_turnoffs(csound);
     deactivate_all_notes(csound);
+    instance_process_pending_turnoffs(csound);
 
     if (csound->engineState.instrtxtp &&
         csound->engineState.instrtxtp[0] &&
@@ -615,6 +619,8 @@ int32_t csound_cleanup(CSOUND *csound)
         csound->engineState.instrtxtp[0]->instance->actflg)
       xturnoff_now(csound, csound->engineState.instrtxtp[0]->instance);
     diskin2_async_shutdown(csound);
+    /* Unlinked deletes can wait non-blockingly for the final diskin2 borrow. */
+    instance_process_pending_turnoffs(csound);
     delete_pending_rt_events(csound);
 
     while (csound->freeEvtNodes != NULL) {
@@ -1243,6 +1249,9 @@ int32_t sense_events(CSOUND *csound)
     csound->ErrorMsg(csound, Str("terminating.\n"));
     return 1;                         /* abort with perf incomplete */
   }
+  /* The performance thread owns active-chain removal. The handoff uses a
+     non-blocking allocation-lock attempt and retries next cycle if busy. */
+  instance_process_pending_turnoffs(csound);
   /* if turnoffs pending, remove any expired instrs */
   RT_SPIN_TRYLOCK
   if (UNLIKELY(csound->frstoff != NULL)) {

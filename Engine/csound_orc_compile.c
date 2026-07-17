@@ -1292,7 +1292,7 @@ static void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
     if (csound->dead_instr_pool[i] != NULL) {
       INSDS *active = csound->dead_instr_pool[i]->instance;
       while (active != NULL) {
-        if (active->actflg || instance_has_async_refs(active)) {
+        if (!instance_is_reclaimable(active)) {
           break;
         }
         active = active->nxtinstance;

@@ -1459,7 +1459,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   INSTRTXT     *tp;
   uint32_t instno;
   uint32_t i;
-  int32_t initResult;
+  INSTANCE_INIT_RESULT initResult;
   OPCODINFO    *inm;
   OPCOD_IOBUFS *buf = p->buf;
   /* look up the 'fake' instr number, and opcode name */
@@ -1579,6 +1579,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   lcurip->ksmps_no_end = parent_ip->ksmps_no_end;
   lcurip->tieflag = parent_ip->tieflag;
   lcurip->reinitflag = parent_ip->reinitflag;
+  /* parent_ip is walked to the outermost caller for inherited p-fields;
+     saved_curip remains the immediate caller used to restore engine state. */
   /* copy all p-fields, including p1 (will this work ?) */
   if (tp->pmax > 3) {         /* requested number of p-fields */
     uint32 n = tp->pmax, pcnt = 0;
@@ -1598,10 +1600,16 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(CS_VAR_MEM));
   }
 
-   // check for setksmps or over/undersample
+  // check for setksmps or over/undersample
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
-  instance_init_begin(csound, lcurip);
+  if (UNLIKELY(instance_init_begin(csound, lcurip) != CSOUND_SUCCESS)) {
+    inm->recurse_depth--;
+    csound->ids = saved_ids;
+    csound->curip = saved_curip;
+    return csound->InitError(csound,
+                             "UDO %s instance is being turned off", inm->name);
+  }
   ATOMIC_SET(p->ip->init_done, 0);
   csound->mode = 1;
   buf->iflag = 0;
@@ -1652,10 +1660,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   initResult = instance_init_finish(csound, lcurip);
   ATOMIC_SET(p->ip->init_done, 0);
   if (initResult == INSTANCE_INIT_TURNOFF) {
-    instance_init_turnoff(csound, lcurip);
     csound->ids = saved_ids;
     csound->curip = saved_curip;
-    return err;
+    return err != 0 ? err : NOTOK;
   }
   if (err) {
     goto restore_state;
@@ -2669,7 +2676,8 @@ int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
   OPDS    *saved_ids = csound->ids;
   INSDS   *saved_curip = csound->curip;
   CS_VAR_MEM   *pfield;
-  int32_t     n, init_op, inarg_ofs, initResult;
+  int32_t     n, init_op, inarg_ofs;
+  INSTANCE_INIT_RESULT initResult;
   INSDS  *pip = p->h.insdshead;
 
   init_op = (p->h.perf == NULL ? 1 : 0);
@@ -2800,8 +2808,13 @@ int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
 
   /* do init pass for this instr */
   csound->curip = p->ip;        /* **** NEW *** */
-  instance_init_begin(csound, p->ip);
-  p->ip->init_done = 0;
+  if (UNLIKELY(instance_init_begin(csound, p->ip) != CSOUND_SUCCESS)) {
+    csound->ids = saved_ids;
+    csound->curip = saved_curip;
+    return csound->InitError(csound,
+                             "subinstrument %d is being turned off", instno);
+  }
+  ATOMIC_SET(p->ip->init_done, 0);
   csound->ids = (OPDS *)p->ip;
   csound->mode = 1;
   while ((csound->ids = csound->ids->nxti) != NULL) {
@@ -2811,8 +2824,11 @@ int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
   csound->mode = 0;
   initResult = instance_init_finish(csound, p->ip);
   ATOMIC_SET(p->ip->init_done, initResult == INSTANCE_INIT_COMPLETE);
-  if (initResult == INSTANCE_INIT_TURNOFF)
-    instance_init_turnoff(csound, p->ip);
+  if (initResult == INSTANCE_INIT_TURNOFF) {
+    csound->ids = saved_ids;
+    csound->curip = saved_curip;
+    return NOTOK;
+  }
   /* copy length related parameters back to caller instr */
   saved_curip->xtratim = csound->curip->xtratim;
   saved_curip->relesing = csound->curip->relesing;
