@@ -1833,7 +1833,7 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
                           current->insno);
       }
 
-      if (current->actflg != 0) {
+      if (ATOMIC_GET8(current->actflg) != 0) {
         if (current->prvact &&
             (nxtp = current->prvact->nxtact = current->nxtact) != NULL) {
           nxtp->prvact = current->prvact;
@@ -1843,7 +1843,7 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
         /* Prevent a loop in kperf() if an inactive instance is passed in. */
         async_instance_lock(csound);
         ATOMIC_SET(current->init_done, 0);
-        current->actflg = 0;
+        ATOMIC_SET8(current->actflg, 0);
         closeFiles = current->fdchp != NULL &&
           !instance_has_async_refs(current);
         async_instance_unlock(csound);

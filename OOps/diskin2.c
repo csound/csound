@@ -338,9 +338,10 @@ typedef struct {
   volatile int32_t shuttingDown;
 } DISKIN2_ASYNC_STATE;
 
-/* Lock order is registry, then entry. Entry activity prevents new borrows;
-   the separate owner-reference lock coordinates final release with deact.
-   Disk reads and file closes run without any of these locks held. */
+/* Lock order is registry, then entry, or owner-reference, then entry. Entry
+   activity prevents new borrows; the owner-reference lock serializes a new
+   borrow with INSDS reclamation. Disk reads and file closes run without any
+   of these locks held. */
 
 enum {
   DISKIN2_ASYNC_IDLE = 0,
@@ -610,6 +611,9 @@ static void *diskin2_acquire_async_instance(CSOUND *csound,
   void *instance = NULL;
 
   *owner = NULL;
+  /* Reclamation tests async_ref_count under this lock. Take it before the
+     entry lock so a zero-to-one transition cannot race with freeing owner. */
+  async_instance_lock(csound);
   diskin2_entry_lock(entry);
   if (entry->active && entry->instance != NULL &&
       !ATOMIC_GET(*entry->stopRequested)) {
@@ -620,6 +624,7 @@ static void *diskin2_acquire_async_instance(CSOUND *csound,
     ATOMIC_INCR((*owner)->async_ref_count);
   }
   diskin2_entry_unlock(entry);
+  async_instance_unlock(csound);
   return instance;
 }
 
@@ -652,7 +657,7 @@ static void diskin2_release_async_instance(
        performs this handoff, so neither can miss the final close. */
     deferClose = closeOnRelease &&
                  ATOMIC_GET(owner->async_ref_count) == 1 &&
-                 !owner->actflg && owner->fdchp != NULL;
+                 ATOMIC_GET8(owner->actflg) == 0 && owner->fdchp != NULL;
     if (!deferClose) {
       ATOMIC_DECR(*instanceReaders);
       ATOMIC_DECR(owner->async_ref_count);
