@@ -32,4 +32,4 @@ jobs:
             -d "$RUNNER_TEMP/wasm-commandline-source/wasm"
       - name: Run command-line CSD tests with Wasmtime
         working-directory: ${{ runner.temp }}/wasm-commandline-source
-        run: nix-build ./wasm/src/csound-tests.nix --no-out-link --show-trace
+        run: nix-build ./wasm/src/csound-tests.nix --no-out-link --show-trace --option log-lines 10000
