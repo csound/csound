@@ -5,17 +5,11 @@ source "$(dirname "$0")/nixpkgs-pin.sh"
 GIT_HASH=$(git rev-parse HEAD 2>/dev/null || echo "none")
 BUILD_DATE=$(LC_ALL=C date "+%Y-%m-%d")
 if [ -z "${NIX_SYSTEM:-}" ]; then
-  if [ "$(uname -s)" = "Darwin" ]; then
-    # Select a Linux target so Nix can use a configured Linux builder.
-    # WASM also builds locally on Darwin when NIX_SYSTEM selects that host.
-    NIX_SYSTEM=x86_64-linux
-  else
-    # --raw is unavailable in older Nix releases. Plain evaluation prints a
-    # quoted string, which can be normalized with shell parameter expansion.
-    NIX_SYSTEM=$(nix-instantiate --eval --expr builtins.currentSystem)
-    NIX_SYSTEM=${NIX_SYSTEM#\"}
-    NIX_SYSTEM=${NIX_SYSTEM%\"}
-  fi
+  # --raw is unavailable in older Nix releases. Plain evaluation prints a
+  # quoted string, which can be normalized with shell parameter expansion.
+  NIX_SYSTEM=$(nix-instantiate --eval --expr builtins.currentSystem)
+  NIX_SYSTEM=${NIX_SYSTEM#\"}
+  NIX_SYSTEM=${NIX_SYSTEM%\"}
 fi
 
 COMMON_ARGS=(
@@ -26,8 +20,8 @@ COMMON_ARGS=(
   --show-trace
 )
 
-# The selected system controls where Nix builds these derivations. Other hosts
-# use their native Nix system unless NIX_SYSTEM overrides it.
+# The selected system controls where Nix builds these derivations. Set
+# NIX_SYSTEM to a remote builder's system when a non-native build is desired.
 nix-build ./src/csound.nix "${COMMON_ARGS[@]}" --argstr moduleKind browser -o result
 nix-build ./src/csound.nix "${COMMON_ARGS[@]}" --argstr moduleKind command -o result_cli
 nix-build ./src/plugin_example.nix \

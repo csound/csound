@@ -1,8 +1,5 @@
 {
-  system ?
-    if builtins.match ".*-darwin" builtins.currentSystem != null
-    then "x86_64-linux"
-    else builtins.currentSystem,
+  system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
   pkgsWasm ? pkgs.pkgsCross.wasi32,
   stdenvWasm ? pkgsWasm.clangStdenv,

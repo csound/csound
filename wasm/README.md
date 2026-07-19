@@ -44,10 +44,10 @@ Both Csound modules are published in `@csound/wasm-bin`. The package `main`
 entry is the standalone `csound.wasm`; browser bundling selects
 `csound-no-entry.wasm.z` explicitly.
 
-On Darwin the build script defaults to `x86_64-linux`, allowing Nix to use a
-configured Linux builder. This is not a WASM platform requirement: local Darwin
-builds are supported. Set `NIX_SYSTEM` to the native Nix system to build locally,
-or to another available system to select a different builder.
+The build defaults to the local Nix system. To use a configured remote builder,
+set `NIX_SYSTEM` to the system provided by that builder. For example, from
+Darwin, `NIX_SYSTEM=x86_64-linux yarn build` selects an available
+`x86_64-linux` builder.
 
 The standalone module currently targets Wasmtime's standardized WebAssembly
 exception handling. A direct invocation looks like:
@@ -63,13 +63,12 @@ source ./scripts/nixpkgs-pin.sh
 nix-build ./src/csound-tests.nix
 ```
 
-The test derivation uses the same `x86_64-linux` default on Darwin; pass
-`--argstr system aarch64-darwin` or `--argstr system x86_64-darwin` to run it
-locally instead. Elsewhere it uses the native Nix system. It uses Wasmtime from
-the pinned Nixpkgs, disables audio with `-nd`, and runs the cases listed in
-`tests/commandline/test.py`. The OSC socket case still executes, but its nonzero
-result is expected because this WASI Preview-1 build has no socket creation or
-UDP send support.
+The test derivation also defaults to the local Nix system. Pass
+`--argstr system x86_64-linux` to select a configured Linux builder explicitly.
+It uses Wasmtime from the pinned Nixpkgs, disables audio with `-nd`, and runs the
+cases listed in `tests/commandline/test.py`. The OSC socket case still executes,
+but its nonzero result is expected because this WASI Preview-1 build has no
+socket creation or UDP send support.
 
 For releases, publish a new `@csound/wasm-bin` version before updating and
 publishing `@csound/browser`; older binary packages do not contain the renamed
