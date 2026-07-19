@@ -192,11 +192,21 @@ opcode LowpassByReference(input:a, coefficient1:k, coefficient2:k):a
 endop
 
 
-opcode RecursiveLowpassByReference(signal:a, coefficient1:k, coefficient2:k, \
-                                   depth:p, count:p):a
+opcode RecursiveLowpassByReference(
+    signal:a,
+    coefficient1:k,
+    coefficient2:k,
+    depth:p,
+    count:p
+):a
     if (count < depth) then
-        signal = RecursiveLowpassByReference(signal, coefficient1, \
-                                             coefficient2, depth, count + 1)
+        signal = RecursiveLowpassByReference(
+            signal,
+            coefficient1,
+            coefficient2,
+            depth,
+            count + 1
+        )
     endif
     xout LowpassByReference(signal, coefficient1, coefficient2)
 endop
@@ -590,8 +600,12 @@ instr 37
     input:a = oscili(0.5, 220)
     coefficient:k = linseg(0.2, p3, 0.8)
     byCopy:a RecursiveLowpassByCopy input, coefficient, 1 - coefficient, 10
-    byReference:a = RecursiveLowpassByReference(input, coefficient, \
-                                                 1 - coefficient, 10)
+    byReference:a = RecursiveLowpassByReference(
+        input,
+        coefficient,
+        1 - coefficient,
+        10
+    )
     difference:a = byCopy - byReference
     peakError:k peak difference
     outputPeak:k peak byCopy
