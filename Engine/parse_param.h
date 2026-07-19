@@ -59,6 +59,7 @@ typedef struct parse_parm_s {
     uint64_t        ilocn;      /* and location */
     uint32_t        first_column;
     uint32_t        last_column;  
+    uint32_t        paren_depth;  /* suppress newlines inside parentheses */
     int             xsubstr;    /* count for substr */
 } PARSE_PARM;
 
