@@ -1653,9 +1653,18 @@ static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
   }
   outargs = obj->outargp;
   if (UNLIKELY(outargs == NULL)) {
+    /* A perf-only Opcode object binds its argument pointers on the first
+       performance call. Defer getp validation until that call has run. */
+    OENTRY *entry = obj->dataspace->optext != NULL
+      ? obj->dataspace->optext->t.oentry : NULL;
+    if (initializing && entry != NULL && entry->init == NULL &&
+        entry->perf != NULL) {
+      return OK;
+    }
     return initializing
       ? csound->InitError(csound, "object not initialised\n")
-      : csound->PerfError(csound, &p->h, "object not initialised\n");
+      : csound->PerfError(csound, &p->h,
+                          "object not initialised\n");
   }
   if (UNLIKELY(context_check(csound, obj, p->h.insdshead) != OK)) {
     return initializing

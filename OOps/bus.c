@@ -2418,9 +2418,11 @@ int32_t array_perf_check(CSOUND* csound, CHNGET* p, int32_t type) {
 static int32_t chnget_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p)
 {
   if(array_perf_check(csound, p, CSOUND_INPUT_CHANNEL) == OK) {
+    /* Array channels have historically followed a producer's changing size.
+       Keep that behavior here; the channel lock serializes the resize. */
     if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->arg,
                             (ARRAYDAT *)p->fp, p->lock,
-                            CSOUND_ARRAY_COPY_NO_ALLOCATION) != OK)) {
+                            CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
       return csound->PerfError(csound, &p->h, "%s",
                                Str("array channel copy failed"));
     }
@@ -2458,9 +2460,11 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
 static int32_t chnset_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p)
 {
   if(array_perf_check(csound, p, CSOUND_OUTPUT_CHANNEL) == OK) {
+    /* See chnget_opcode_perf_ARRAY: dynamic array-channel sizing is an
+       established behavior and remains protected by the channel lock. */
     if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->fp,
                             (ARRAYDAT *)p->arg, p->lock,
-                            CSOUND_ARRAY_COPY_NO_ALLOCATION) != OK)) {
+                            CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
       return csound->PerfError(csound, &p->h, "%s",
                                Str("array channel copy failed"));
     }

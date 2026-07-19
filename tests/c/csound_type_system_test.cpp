@@ -16,6 +16,7 @@
 #include "csound_standard_types.h"
 #include "arrays_internal.h"
 #include "csoundCore.h"
+#include "csound_orc_structs.h"
 #include "arrays.h"
 #include "gtest/gtest.h"
 
@@ -229,11 +230,113 @@ TEST_F (TypeSystemTests, testStructuredArrayWritePreparationUsesExplicitPolicy)
 
     EXPECT_EQ(OK, csound_array_try_prepare_write(
                     csound, &shared, nullptr));
-    EXPECT_EQ(nullptr, shared.storage);
+    EXPECT_NE(originalStorage, shared.storage);
+    EXPECT_TRUE(csound_array_storage_matches(csound, &shared));
     EXPECT_EQ(originalData, shared.data);
 
     csound_free_array_storage(csound, &source);
     csound_free_array_storage(csound, &shared);
+}
+
+TEST_F (TypeSystemTests, testStructuredArrayCopyAndWriteClaimAreSerialized)
+{
+    constexpr int32_t iterationCount = 500;
+    const CS_TYPE *elementType;
+
+    ASSERT_EQ(CSOUND_SUCCESS,
+              csoundCompileOrc(csound,
+                               "struct ConcurrentValue value:i\n", 0));
+    elementType = csoundGetTypeWithVarTypeName(
+      csound->typePool, ":ConcurrentValue;");
+    ASSERT_NE(nullptr, elementType);
+    ASSERT_TRUE(elementType->userDefinedType);
+
+    for (int32_t iteration = 0; iteration < iterationCount; iteration++) {
+        ARRAYDAT source{};
+        ARRAYDAT initialView{};
+        ARRAYDAT destination{};
+        CS_VARIABLE *elementVariable;
+        CS_STRUCT_VAR *sourceValue;
+        CS_STRUCT_VAR *destinationValue;
+        std::atomic<int32_t> ready{0};
+        std::atomic<bool> start{false};
+        std::atomic<int32_t> writeResult{NOTOK};
+
+        source.dimensions = 1;
+        source.sizes = static_cast<int32_t *>(
+          csound->Calloc(csound, sizeof(int32_t)));
+        source.sizes[0] = 1;
+        source.arrayType = elementType;
+        elementVariable = elementType->createVariable(
+          csound, const_cast<CS_TYPE *>(elementType), nullptr);
+        ASSERT_NE(nullptr, elementVariable);
+        ASSERT_NE(nullptr, elementVariable->initializeVariableMemory);
+        source.arrayMemberSize = elementVariable->memBlockSize;
+        source.data = static_cast<MYFLT *>(
+          csound->Calloc(csound, (size_t)source.arrayMemberSize));
+        elementVariable->initializeVariableMemory(
+          csound, elementVariable, source.data);
+        csound->Free(csound, elementVariable);
+        source.allocated = (size_t)source.arrayMemberSize;
+        sourceValue = reinterpret_cast<CS_STRUCT_VAR *>(source.data);
+        ASSERT_NE(nullptr, sourceValue->members);
+        sourceValue->members[0]->value = FL(31.0);
+        initialView.arrayType = elementType;
+        destination.arrayType = elementType;
+
+        CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                                    &initialView, &source, nullptr);
+        ASSERT_NE(nullptr, source.storage);
+        csound_free_array_storage(csound, &initialView);
+
+        std::thread copier([&]() {
+            ready.fetch_add(1, std::memory_order_release);
+            while (!start.load(std::memory_order_acquire)) {
+                std::this_thread::yield();
+            }
+            CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                                        &destination, &source, nullptr);
+        });
+        std::thread writer([&]() {
+            ready.fetch_add(1, std::memory_order_release);
+            while (!start.load(std::memory_order_acquire)) {
+                std::this_thread::yield();
+            }
+            writeResult.store(csound_array_try_prepare_write(
+                                csound, &source, nullptr),
+                              std::memory_order_release);
+        });
+
+        while (ready.load(std::memory_order_acquire) != 2) {
+            std::this_thread::yield();
+        }
+        start.store(true, std::memory_order_release);
+        copier.join();
+        writer.join();
+
+        ASSERT_NE(nullptr, source.data);
+        ASSERT_NE(nullptr, destination.data);
+        sourceValue = reinterpret_cast<CS_STRUCT_VAR *>(source.data);
+        destinationValue = reinterpret_cast<CS_STRUCT_VAR *>(
+          destination.data);
+        ASSERT_NE(nullptr, sourceValue->members);
+        ASSERT_NE(nullptr, destinationValue->members);
+        EXPECT_EQ(FL(31.0), sourceValue->members[0]->value);
+        EXPECT_EQ(FL(31.0), destinationValue->members[0]->value);
+        EXPECT_TRUE(csound_array_storage_matches(csound, &source));
+        EXPECT_TRUE(csound_array_storage_matches(csound, &destination));
+        if (writeResult.load(std::memory_order_acquire) == OK) {
+            EXPECT_NE(source.data, destination.data);
+        }
+        else {
+            EXPECT_EQ(NOTOK, writeResult.load(std::memory_order_acquire));
+            EXPECT_EQ(source.data, destination.data);
+            EXPECT_EQ(source.storage, destination.storage);
+        }
+
+        csound_free_array_storage(csound, &source);
+        csound_free_array_storage(csound, &destination);
+    }
 }
 
 //void test_array_name_variable_clashing(void)

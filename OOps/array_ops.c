@@ -323,8 +323,7 @@ int32_t array_set_init(CSOUND *csound, ARRAY_SET *p)
   if (UNLIKELY(dat == NULL)) {
     return csound->InitError(csound, "%s", Str("array_set: NULL array"));
   }
-  if (UNLIKELY(dat->storage != NULL &&
-               csound_array_prepare_write(csound, dat,
+  if (UNLIKELY(csound_array_prepare_write(csound, dat,
                                           p->h.insdshead) != OK)) {
     return csound->InitError(csound, "%s",
                              Str("array_set: could not detach shared array"));
@@ -339,8 +338,7 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
   if (UNLIKELY(dat == NULL)) {
     return csound->PerfError(csound, &(p->h), Str("array_set: NULL array"));
   }
-  if (UNLIKELY(dat->storage != NULL &&
-               csound_array_try_prepare_write(
+  if (UNLIKELY(csound_array_try_prepare_write(
                  csound, dat, p->h.insdshead) != OK)) {
     return csound->PerfError(csound, &p->h, "%s",
                              Str("array_set: could not detach shared array"));
@@ -3550,8 +3548,19 @@ int32_t tabcopyk(CSOUND *csound, TABCPY *p)
 
   if (p->src == p->dst) return OK;
 
-  CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
-                              p->dst, p->src, p->h.insdshead);
+  if (p->src->arrayType != NULL && p->src->arrayType->userDefinedType) {
+    if (UNLIKELY(csound_array_copy_independent(
+                   csound, p->dst, p->src, p->h.insdshead,
+                   CSOUND_ARRAY_COPY_NO_ALLOCATION) != OK)) {
+      return csound->PerfError(
+        csound, &p->h, "%s",
+        Str("structured array assignment requires preallocated storage"));
+    }
+  }
+  else {
+    CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                                p->dst, p->src, p->h.insdshead);
+  }
   return OK;
 }
 
@@ -3825,8 +3834,7 @@ int32_t trim_prepare(CSOUND *csound, TRIM *p)
   if (UNLIKELY(p->tab == NULL)) {
     return csound->InitError(csound, "%s", Str("Array not initialised"));
   }
-  if (UNLIKELY(p->tab->storage != NULL &&
-               csound_array_prepare_write(csound, p->tab,
+  if (UNLIKELY(csound_array_prepare_write(csound, p->tab,
                                           p->h.insdshead) != OK)) {
     return csound->InitError(csound, "%s",
                              Str("Could not prepare array for trim"));

@@ -562,11 +562,10 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
 }
 
 int32_t copy_var_generic(CSOUND *csound, void *p) {
-    /* Generic structured values can change nested array dimensions at k-rate.
-       The destination value is independent, so resizing its nested storage
-       does not detach a COW array that may still be observed elsewhere. */
+    /* Init prepares independent nested storage. Performance copies may update
+       that storage, but must not detach or clone a shared aggregate. */
     return copy_var_generic_impl(
-      csound, p, CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION, 0);
+      csound, p, CSOUND_STRUCT_COPY_INDEPENDENT_NO_ALLOCATION, 0);
 }
 
 
