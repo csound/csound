@@ -35,7 +35,7 @@ jobs:
           name: lib
           path: ${{ env.wasm_bin_dir }}/lib.zip
       - name: Archive command-line test sources
-        continue-on-error: true
+        continue-on-error: false
         uses: actions/upload-artifact@v4
         with:
           name: wasm-commandline-test-sources
