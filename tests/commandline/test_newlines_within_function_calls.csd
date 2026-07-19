@@ -48,6 +48,21 @@ iNestedFunction = (
 )
 prints "Nested function expression: %d\n", iNestedFunction
 
+; Nested string delimiters and parentheses must not affect the outer call.
+prints(
+  {{
+Nested extended string with parentheses:
+{{inner (text)}}
+}}
+)
+
+prints(
+  R{
+Nested raw string with parentheses:
+R{inner (text)}R
+}R
+)
+
 endin
 
 </CsInstruments>
