@@ -202,8 +202,19 @@ static inline int32_t csound_array_ensure_capacity(CSOUND *csound,
     }
     else {
         /* allocated == 0 marks a legacy non-owning view. Only managed
-           structured views can be detached safely before resizing. */
-        if (array->allocated == 0 || array->arrayMemberSize <= 0 ||
+           structured views can be detached safely before resizing. A view
+           may still reuse its known logical extent without taking ownership. */
+        if (array->allocated == 0) {
+            size_t logicalCapacity;
+
+            if (array->arrayMemberSize <= 0 ||
+                csound_array_member_count(array, &logicalCapacity) != OK ||
+                capacity > logicalCapacity) {
+                return NOTOK;
+            }
+            return OK;
+        }
+        if (array->arrayMemberSize <= 0 ||
             array->allocated % (size_t)array->arrayMemberSize != 0) {
             return NOTOK;
         }
@@ -260,8 +271,7 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size,
         csound->Die(csound, "tabinit: invalid array or size");
         return;
     }
-    if (UNLIKELY(p->storage != NULL &&
-                 csound_array_prepare_write(csound, p, ctx) != OK)) {
+    if (UNLIKELY(csound_array_prepare_write(csound, p, ctx) != OK)) {
         csound->Die(csound, "tabinit: could not detach shared array");
         return;
     }
@@ -309,8 +319,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p,
         csound->Die(csound, "tabinit_like: array types do not match");
         return;
     }
-    if (UNLIKELY(p->storage != NULL &&
-                 csound_array_prepare_write(csound, p, NULL) != OK)) {
+    if (UNLIKELY(csound_array_prepare_write(csound, p, NULL) != OK)) {
         csound->Die(csound, "tabinit_like: could not detach shared array");
         return;
     }
@@ -348,8 +357,7 @@ static inline int32_t tabcheck(CSOUND *csound, ARRAYDAT *p, int32_t size, OPDS *
     }
     /* The caller writes this buffer during performance. Claiming a
        sole reference is safe here, but cloning shared storage would allocate. */
-    if (UNLIKELY(p->storage != NULL &&
-                 csound_array_try_prepare_write(
+    if (UNLIKELY(csound_array_try_prepare_write(
                    csound, p, q != NULL ? q->insdshead : NULL) != OK)) {
       return csound->PerfError(csound, q, "%s",
                                Str("Cannot write shared array during "

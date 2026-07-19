@@ -24,8 +24,24 @@ instr 1
   turnoff
 endin
 
+instr 2
+  definition:OpcodeDef init "limit.k"
+  object:Opcode create definition, 1
+  value:k init 42
+  lower:k init 0
+  upper:k init 100
+  result:k perf object, value, lower, upper
+  copied:k getp object, 0
+  if result != 42 || copied != 42 then
+    printks "perf-only getp failed: result=%g copied=%g\n", 0, result, copied
+    exitnowk(1)
+  endif
+  turnoff
+endin
+
 </CsInstruments>
 <CsScore>
 i 1 0 0.1
+i 2 0 0.1
 </CsScore>
 </CsoundSynthesizer>

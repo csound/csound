@@ -27,6 +27,7 @@
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
 #include "csound_orc_structs.h"
+#include "arrays_internal.h"
 #include "namedins.h"
 #include "cs_internal.h"
 
@@ -57,6 +58,40 @@ static int32_t useropcd_init_only(CSOUND *csound, UOPCODE *p)
 {
   IGN(csound);
   IGN(p);
+  return OK;
+}
+
+static int32_t udo_copy_value(CSOUND *csound, const CS_VARIABLE *variable,
+                              void *destination, const void *source,
+                              INSDS *ctx, int32_t independent,
+                              int32_t allowAllocation)
+{
+  if (variable == NULL || variable->varType == NULL ||
+      destination == NULL || source == NULL) {
+    return NOTOK;
+  }
+  if (independent && variable->varType == &CS_VAR_TYPE_ARRAY) {
+    const ARRAYDAT *sourceArray = (const ARRAYDAT *)source;
+
+    if (sourceArray->arrayType != NULL &&
+        sourceArray->arrayType->userDefinedType) {
+      return csound_array_copy_independent(
+        csound, (ARRAYDAT *)destination, sourceArray, ctx,
+        allowAllocation ? CSOUND_ARRAY_COPY_ALLOW_ALLOCATION
+                        : CSOUND_ARRAY_COPY_NO_ALLOCATION);
+    }
+  }
+  if (independent && variable->varType->userDefinedType) {
+    return csound_copy_struct_value(
+      csound, variable->varType, destination, source, ctx,
+      allowAllocation ? CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION
+                      : CSOUND_STRUCT_COPY_INDEPENDENT_NO_ALLOCATION);
+  }
+  if (variable->varType->copyValue == NULL) {
+    return NOTOK;
+  }
+  variable->varType->copyValue(csound, variable->varType,
+                               destination, source, ctx);
   return OK;
 }
 
@@ -882,23 +917,44 @@ static void pbr_apply_entries(CSOUND *csound,
   }
 }
 
-static void pbr_copy_value(CSOUND *csound, MYFLT *dst, MYFLT *src, INSDS *ctx) {
+static int32_t pbr_copy_value(CSOUND *csound, MYFLT *dst, MYFLT *src,
+                              INSDS *ctx, int32_t allowAllocation) {
   CS_TYPE *dst_type;
   CS_TYPE *src_type;
+  CS_TYPE *type;
 
   if (dst == NULL || src == NULL || dst == src) {
-    return;
+    return OK;
   }
 
   dst_type = csoundGetTypeForArg(dst);
   src_type = csoundGetTypeForArg(src);
-  if (dst_type != NULL && dst_type->copyValue != NULL) {
-    dst_type->copyValue(csound, dst_type, dst, src, ctx);
-  } else if (src_type != NULL && src_type->copyValue != NULL) {
-    src_type->copyValue(csound, src_type, dst, src, ctx);
-  } else {
+  type = dst_type != NULL && dst_type->copyValue != NULL
+    ? dst_type : src_type;
+  if (type == &CS_VAR_TYPE_ARRAY) {
+    const ARRAYDAT *sourceArray = (const ARRAYDAT *)src;
+
+    if (sourceArray->arrayType != NULL &&
+        sourceArray->arrayType->userDefinedType) {
+      return csound_array_copy_independent(
+        csound, (ARRAYDAT *)dst, sourceArray, ctx,
+        allowAllocation ? CSOUND_ARRAY_COPY_ALLOW_ALLOCATION
+                        : CSOUND_ARRAY_COPY_NO_ALLOCATION);
+    }
+  }
+  if (type != NULL && type->userDefinedType) {
+    return csound_copy_struct_value(
+      csound, type, dst, src, ctx,
+      allowAllocation ? CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION
+                      : CSOUND_STRUCT_COPY_INDEPENDENT_NO_ALLOCATION);
+  }
+  if (type != NULL && type->copyValue != NULL) {
+    type->copyValue(csound, type, dst, src, ctx);
+  }
+  else {
     *dst = *src;
   }
+  return OK;
 }
 
 static XIN *pbr_find_xin(INSDS *lcurip) {
@@ -921,11 +977,16 @@ static XIN *pbr_find_xin(INSDS *lcurip) {
 
 static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
                                           UOPCODE *p,
-                                          INSDS *lcurip) {
+                                          INSDS *lcurip,
+                                          int32_t allowAllocation,
+                                          int32_t *copyResult) {
   OPCODINFO *udoinfo;
   XIN *xin;
   int32_t i;
 
+  if (copyResult != NULL) {
+    *copyResult = OK;
+  }
   if (p == NULL || p->buf == NULL || p->buf->opcode_info == NULL ||
       lcurip == NULL) {
     return NULL;
@@ -946,7 +1007,13 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
             return NULL;
           }
         }
-        pbr_copy_value(csound, xin->args[i], input, lcurip);
+        if (UNLIKELY(pbr_copy_value(csound, xin->args[i], input,
+                                    lcurip, allowAllocation) != OK)) {
+          if (copyResult != NULL) {
+            *copyResult = NOTOK;
+          }
+          return xin;
+        }
         break;
       }
     }
@@ -960,22 +1027,23 @@ static int32_t pbr_is_readonly_source(MYFLT *src) {
   return src_type == &CS_VAR_TYPE_C || src_type == &CS_VAR_TYPE_P;
 }
 
-static void pbr_seed_pass_through_outputs(CSOUND *csound,
-                                          UOPCODE *p,
-                                          INSDS *ctx) {
+static int32_t pbr_seed_pass_through_outputs(CSOUND *csound,
+                                             UOPCODE *p,
+                                             INSDS *ctx,
+                                             int32_t allowAllocation) {
   OPCODINFO *udoinfo;
   PBR_REWIRE_PLAN *plan;
   int32_t max_ar_index;
   int32_t i;
 
   if (p == NULL || p->buf == NULL || p->buf->opcode_info == NULL) {
-    return;
+    return OK;
   }
 
   udoinfo = p->buf->opcode_info;
   plan = udoinfo->pbr_plan;
   if (plan == NULL || plan->seed_entries == NULL) {
-    return;
+    return OK;
   }
 
   max_ar_index = udoinfo->outchns + udoinfo->inchns;
@@ -992,26 +1060,31 @@ static void pbr_seed_pass_through_outputs(CSOUND *csound,
     dst = p->ar[entry->output_ar_index];
     src = pbr_resolve_struct_target(csound, p->ar[entry->input_ar_index],
                                     entry->input_struct_path);
-    pbr_copy_value(csound, dst, src, ctx);
+    if (UNLIKELY(pbr_copy_value(csound, dst, src, ctx,
+                                allowAllocation) != OK)) {
+      return NOTOK;
+    }
   }
+  return OK;
 }
 
-static void pbr_sync_pass_through_outputs(CSOUND *csound,
-                                          UOPCODE *p,
-                                          INSDS *ctx) {
+static int32_t pbr_sync_pass_through_outputs(CSOUND *csound,
+                                             UOPCODE *p,
+                                             INSDS *ctx,
+                                             int32_t allowAllocation) {
   OPCODINFO *udoinfo;
   PBR_REWIRE_PLAN *plan;
   int32_t max_ar_index;
   int32_t i;
 
   if (p == NULL || p->buf == NULL || p->buf->opcode_info == NULL) {
-    return;
+    return OK;
   }
 
   udoinfo = p->buf->opcode_info;
   plan = udoinfo->pbr_plan;
   if (plan == NULL || plan->seed_entries == NULL) {
-    return;
+    return OK;
   }
 
   max_ar_index = udoinfo->outchns + udoinfo->inchns;
@@ -1029,26 +1102,31 @@ static void pbr_sync_pass_through_outputs(CSOUND *csound,
 
     dst = p->ar[entry->output_ar_index];
     src = p->ar[entry->work_ar_index];
-    pbr_copy_value(csound, dst, src, ctx);
+    if (UNLIKELY(pbr_copy_value(csound, dst, src, ctx,
+                                allowAllocation) != OK)) {
+      return NOTOK;
+    }
   }
+  return OK;
 }
 
-static void pbr_writeback_pass_through_inputs(CSOUND *csound,
-                                              UOPCODE *p,
-                                              INSDS *ctx) {
+static int32_t pbr_writeback_pass_through_inputs(CSOUND *csound,
+                                                 UOPCODE *p,
+                                                 INSDS *ctx,
+                                                 int32_t allowAllocation) {
   OPCODINFO *udoinfo;
   PBR_REWIRE_PLAN *plan;
   int32_t max_ar_index;
   int32_t i;
 
   if (p == NULL || p->buf == NULL || p->buf->opcode_info == NULL) {
-    return;
+    return OK;
   }
 
   udoinfo = p->buf->opcode_info;
   plan = udoinfo->pbr_plan;
   if (plan == NULL || plan->seed_entries == NULL) {
-    return;
+    return OK;
   }
 
   max_ar_index = udoinfo->outchns + udoinfo->inchns;
@@ -1096,8 +1174,12 @@ static void pbr_writeback_pass_through_inputs(CSOUND *csound,
     dst = pbr_resolve_struct_target(csound, input_base,
                                     entry->input_struct_path);
     src = p->ar[entry->work_ar_index];
-    pbr_copy_value(csound, dst, src, ctx);
+    if (UNLIKELY(pbr_copy_value(csound, dst, src, ctx,
+                                allowAllocation) != OK)) {
+      return NOTOK;
+    }
   }
+  return OK;
 }
 
 void csoundBuildUserOpcodeRewirePlan(CSOUND *csound, OPCODINFO *udoinfo) {
@@ -1288,17 +1370,23 @@ static MYFLT *pbr_resolve_struct_target(CSOUND *csound, MYFLT *argPtr,
  * the caller's output slot and the output is seeded with the input value so
  * that internal operations start from the correct initial value.
  */
-static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
+static int32_t handle_pass_by_ref(CSOUND* csound, UOPCODE* p,
+                                  INSDS* lcurip) {
   OPCODINFO *udoinfo = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
   PBR_REWIRE_PLAN *plan = udoinfo != NULL ? udoinfo->pbr_plan : NULL;
   char *op_mem_start = pbr_get_opcode_mem_start(lcurip);
   XIN *xin;
+  int32_t copyResult;
 
   if (plan == NULL || op_mem_start == NULL) {
-    return;
+    return OK;
   }
 
-  xin = pbr_snapshot_colliding_inputs(csound, p, lcurip);
+  xin = pbr_snapshot_colliding_inputs(csound, p, lcurip, 1,
+                                      &copyResult);
+  if (UNLIKELY(copyResult != OK)) {
+    return NOTOK;
+  }
 
   /* Rewire internal opcodes to point at caller storage.  For pass-through
      variables (xin->xout same name), the alias now points at the output slot
@@ -1311,7 +1399,7 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
   /* Seed pass-through outputs before the internal chain runs.  Constants and
      other immutable inputs stay protected because writes happen to the output
      scratch slot first; mutable inputs are written back after the chain. */
-  pbr_seed_pass_through_outputs(csound, p, lcurip);
+  return pbr_seed_pass_through_outputs(csound, p, lcurip, 1);
 }
 
 /*
@@ -1527,7 +1615,12 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     parent_ip->esr == p->ip->esr;
 
   if(inm->passByRef) {
-    handle_pass_by_ref(csound, p, lcurip);
+    if (UNLIKELY(handle_pass_by_ref(csound, p, lcurip) != OK)) {
+      inm->recurse_depth--;
+      err = csound->InitError(
+        csound, "could not prepare pass-by-reference UDO buffers");
+      goto restore_state;
+    }
   }
 
   /* Initialize the UDO */
@@ -1549,18 +1642,30 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   // following init pass, decrement recursion depth count
   inm->recurse_depth--;
 
-  if(err) return err;
-  if(inm->passByRef) {
-    pbr_sync_pass_through_outputs(csound, p, lcurip);
-    pbr_writeback_pass_through_inputs(csound, p, lcurip);
+  if (err) {
+    goto restore_state;
   }
-  csound->mode = 0;
-  ATOMIC_SET(p->ip->init_done, 1);
+  if(inm->passByRef) {
+    int32_t copyResult;
 
-  /* Child UDOs can only be classified after this complete init chain because
-     a later statement may still change lcurip->p3. */
-  recycle_init_only_udo_instances(csound, lcurip);
-
+    if (UNLIKELY(pbr_sync_pass_through_outputs(
+                   csound, p, lcurip, 1) != OK ||
+                 pbr_writeback_pass_through_inputs(
+                   csound, p, lcurip, 1) != OK)) {
+      err = csound->InitError(
+        csound, "could not copy pass-by-reference UDO value");
+      goto restore_state;
+    }
+    /* Init may grow an output that aliases an input. Refresh the saved input
+       after writeback so its nested buffers can be reused without allocation
+       when the UDO reaches the performance pass. */
+    pbr_snapshot_colliding_inputs(csound, p, lcurip, 1, &copyResult);
+    if (UNLIKELY(copyResult != OK)) {
+      err = csound->InitError(
+        csound, "could not prepare pass-by-reference UDO input");
+      goto restore_state;
+    }
+  }
   /* After init chain completes, materialise UDO outputs only for pass-by-copy.
      In pass-by-ref mode, internal outputs are already rewired to caller storage
      and direct pass-through outputs have already been written back. */
@@ -1604,8 +1709,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
             /* A structured-array view can carry capacity in its sidecar while
                ARRAYDAT.allocated remains zero for legacy ownership checks. */
             if (cand && cand->data &&
-                (cand->allocated > 0 || cand->storage != NULL)
-                && cand->dimensions >= 0 && cand->arrayType) {
+                csound_array_allocated_bytes(csound, cand) > 0 &&
+                cand->dimensions >= 0 && cand->arrayType) {
               if ((void*)cand != dst) {
                 src = (void*)cand;
                 break;
@@ -1619,11 +1724,15 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       if (src && dst) {
         if (src != dst) {
           // no copying of a & k types at i-time !!!
-          if((cur->varType != &CS_VAR_TYPE_A &&
-              cur->varType != &CS_VAR_TYPE_K) ||
-             // special case - K-type arg
-             inm_local->outtypes[i] == 'K')
-            cur->varType->copyValue(csound, cur->varType, dst, src, lcurip);
+          if (((cur->varType != &CS_VAR_TYPE_A &&
+                cur->varType != &CS_VAR_TYPE_K) ||
+               inm_local->outtypes[i] == 'K') &&
+              UNLIKELY(udo_copy_value(csound, cur, dst, src, lcurip,
+                                      lcurip->nxtp != NULL, 1) != OK)) {
+            err = csound->InitError(
+              csound, "could not prepare structured UDO output");
+            break;
+          }
          }
       }
 
@@ -1632,15 +1741,27 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     }
   }
 
+  csound->mode = 0;
+  ATOMIC_SET(p->ip->init_done, 1);
+
+  /* Child UDOs can only be classified after this complete init chain because
+     a later statement may still change lcurip->p3. */
+  recycle_init_only_udo_instances(csound, lcurip);
+
   /* copy length related parameters back to caller instr */
   parent_ip->relesing = lcurip->relesing;
   parent_ip->offbet = lcurip->offbet;
   parent_ip->offtim = lcurip->offtim;
   parent_ip->p3 = lcurip->p3;
 
+ restore_state:
   /* restore globals */
+  csound->mode = 0;
   csound->ids = saved_ids;
   csound->curip = parent_ip;
+  if (UNLIKELY(err != OK)) {
+    return err;
+  }
 
   /* ksmps and esr may have changed, check against insdshead
      select perf routine and scale xtratim accordingly.
@@ -1729,7 +1850,12 @@ int32_t set_inbufs(CSOUND *csound,
          csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) ||
         // special case: K-type inputs
           inm->intypes[i] == 'K') {
-      current->varType->copyValue(csound, current->varType, out, in, h->insdshead);
+      if (UNLIKELY(udo_copy_value(csound, current, out, in,
+                                  h->insdshead,
+                                  h->insdshead->nxtp != NULL, 1) != OK)) {
+        return csound->InitError(
+          csound, "could not prepare structured UDO input");
+      }
     }
     // set up src units one per input arg - non k/a sigs/arrays are bypassed
     if(esr != parent_sr) {
@@ -1784,7 +1910,12 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
     CS_TYPE* outType = csoundGetTypeForArg(out);
     tmp[i] = in;
     if (outType != &CS_VAR_TYPE_K && outType != &CS_VAR_TYPE_A) {
-      current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
+      if (UNLIKELY(udo_copy_value(csound, current, out, in,
+                                  p->h.insdshead,
+                                  p->h.insdshead->nxtp != NULL, 1) != OK)) {
+        return csound->InitError(
+          csound, "could not prepare structured UDO output");
+      }
     }
     if(CS_ESR != parent_sr) {
         // set up src units one per input arg - non k/a sigs/arrays are bypassed
@@ -1852,7 +1983,12 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
+          if (UNLIKELY(udo_copy_value(csound, current, out, in,
+                                      p->h.insdshead, 1, 0) != OK)) {
+            return csound->PerfError(
+              csound, &p->h,
+              "structured UDO input changed capacity during performance");
+          }
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -1956,7 +2092,12 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
+          if (UNLIKELY(udo_copy_value(csound, current, out, in,
+                                      p->h.insdshead, 1, 0) != OK)) {
+            return csound->PerfError(
+              csound, &p->h,
+              "structured UDO input changed capacity during performance");
+          }
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -2084,7 +2225,12 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
           }
         }
       } else {
-        current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
+        if (UNLIKELY(udo_copy_value(csound, current, out, in,
+                                    p->h.insdshead, 1, 0) != OK)) {
+          return csound->PerfError(
+            csound, &p->h,
+            "structured UDO output changed capacity during performance");
+        }
       }
     }
     current = current->next;
@@ -2147,7 +2293,12 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
           } else {
             void* in = (void*)external_ptrs[i + inm->outchns];
             void* out = (void*)internal_ptrs[i + inm->outchns];
-            current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
+            if (UNLIKELY(udo_copy_value(csound, current, out, in,
+                                        p->h.insdshead, 1, 0) != OK)) {
+              return csound->PerfError(
+                csound, &p->h,
+                "structured UDO input changed capacity during performance");
+            }
           }
         } else { // under/oversampling
           void* in = (void*) external_ptrs[i + inm->outchns];
@@ -2183,8 +2334,12 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
           } else {
             void* in = (void*)internal_ptrs[i];
             void* out = (void*)external_ptrs[i];
-            current->varType->copyValue(csound, current->varType,
-                                        out, in, p->h.insdshead);
+            if (UNLIKELY(udo_copy_value(csound, current, out, in,
+                                        p->h.insdshead, 1, 0) != OK)) {
+              return csound->PerfError(
+                csound, &p->h,
+                "structured UDO output changed capacity during performance");
+            }
           }
         }
         else { // under/oversampling
@@ -2215,14 +2370,21 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
 int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
 {
   OPDS    *saved_pds = CS_PDS;
+  int32_t copyResult;
+  int32_t seedResult;
   int32_t done;
   done = ATOMIC_GET(p->ip->init_done);
   if (UNLIKELY(!done)) /* init not done, exit */
     return OK;
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
-  pbr_snapshot_colliding_inputs(csound, p, p->ip);
-  pbr_seed_pass_through_outputs(csound, p, p->ip);
+  pbr_snapshot_colliding_inputs(csound, p, p->ip, 0, &copyResult);
+  seedResult = pbr_seed_pass_through_outputs(csound, p, p->ip, 0);
+  if (UNLIKELY(copyResult != OK || seedResult != OK)) {
+    return csound->PerfError(
+      csound, &p->h,
+      "pass-by-reference UDO value changed capacity during performance");
+  }
   p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
   if (UNLIKELY(!(CS_PDS = (OPDS*) (p->ip->nxtp))))
     goto writeback; /* no perf code */
@@ -2249,8 +2411,15 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
   }
 
  writeback:
-  pbr_sync_pass_through_outputs(csound, p, p->ip);
-  pbr_writeback_pass_through_inputs(csound, p, p->ip);
+  if (UNLIKELY(pbr_sync_pass_through_outputs(
+                 csound, p, p->ip, 0) != OK ||
+               pbr_writeback_pass_through_inputs(
+                 csound, p, p->ip, 0) != OK)) {
+    CS_PDS = saved_pds;
+    return csound->PerfError(
+      csound, &p->h,
+      "pass-by-reference UDO value changed capacity during performance");
+  }
 
  endop:
   /* restore globals */

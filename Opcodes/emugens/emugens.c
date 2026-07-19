@@ -1971,8 +1971,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
                           "results in %d total elements"),
                       orig_numitems, numitems);
 
-    if (UNLIKELY(a->storage != NULL &&
-                 csound_array_prepare_write(csound, a,
+    if (UNLIKELY(csound_array_prepare_write(csound, a,
                                             p->h.insdshead) != OK)) {
       return INITERRF("%s",
                       Str("reshapearray: could not detach shared array"));

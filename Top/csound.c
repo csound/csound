@@ -863,6 +863,7 @@ static const CSOUND cenviron_ = {
   NULL,           /* init pass threadlock */
   NULL,           /* API_lock */
   NULL,           /* array_storage_lock */
+  SPINLOCK_INIT,  /* array_storage_spinlock */
   SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
   SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
   NULL, NULL,             /* Delayed messages */
@@ -1468,7 +1469,11 @@ static void install_signal_handler(void) {
     csound->opcodedir = strdup(opcodedir);
   csoundReset(csound);
   csound->API_lock = csoundCreateMutex(1);
-#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+  /* This is the inverse of the structured-array protocol's functional
+     spinlock test in csound_standard_types.c. */
+#if !defined(MSVC) && !defined(MACOSX) && \
+    !(defined(__GNUC__) && \
+      (defined(HAVE_PTHREAD_SPIN_LOCK) || defined(HAVE_ATOMIC_BUILTIN)))
   csound->array_storage_lock = csoundCreateMutex(0);
 #endif
   allocate_message_queue(csound);
@@ -1932,6 +1937,7 @@ static void reset(CSOUND *csound) {
   csound->spinlock = saved_env->spinlock;
   csound->spoutlock = saved_env->spoutlock;
   csound->spinlock1 = saved_env->spinlock1;
+  csound->array_storage_spinlock = saved_env->array_storage_spinlock;
 #endif
   csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
   memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
@@ -1958,6 +1964,7 @@ static void reset(CSOUND *csound) {
     csoundSpinLockInit(&csound->spinlock);
     csoundSpinLockInit(&csound->memlock);
     csoundSpinLockInit(&csound->spinlock1);
+    csoundSpinLockInit(&csound->array_storage_spinlock);
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "init spinlocks\n");
   }
