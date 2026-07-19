@@ -93,7 +93,6 @@ RSTR            "R{"
 ERSTR           "}R"
 
 
-%s ignorenewline
 %x line
 %x sline
 %x src
@@ -536,9 +535,12 @@ ERSTR           "}R"
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
-{IDENTB}        { if (UNLIKELY(strchr(yytext, '\n')))
+{IDENTB}        { PARM->paren_depth++;
+                  if (UNLIKELY(strchr(yytext, '\n'))) {
+                       yycolumn = 1;
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
+                  }
                   *strrchr(yytext, '(') = '\0';
                   *lvalp = lookup_token(csound, yytext, yyscanner);
                   return (*lvalp)->type+1; }
@@ -546,9 +548,12 @@ ERSTR           "}R"
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
-{TYPED_IDENTIFIERB} { if (UNLIKELY(strchr(yytext, '\n')))
+{TYPED_IDENTIFIERB} { PARM->paren_depth++;
+                      if (UNLIKELY(strchr(yytext, '\n'))) {
+                           yycolumn = 1;
                            csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                                 yyscanner);
+                      }
                       *strrchr(yytext, '(') = '\0';
                       *lvalp = lookup_token(csound, yytext, yyscanner);
                       return (*lvalp)->type+1; }
@@ -557,10 +562,11 @@ ERSTR           "}R"
                     /*csound->Message(csound,"%d\n", (*lvalp)->type);*/
                     return ((*lvalp)->type);
                 }
-{LPAREN}     { BEGIN(ignorenewline);
+{LPAREN}     { PARM->paren_depth++;
                return *yytext; }
 
-{RPAREN}     { BEGIN(INITIAL);
+{RPAREN}     { if (PARM->paren_depth > 0)
+                 PARM->paren_depth--;
                return *yytext; }
 
 {SYMBOL}     { return *yytext;}
@@ -600,18 +606,11 @@ ERSTR           "}R"
                   yyterminate();
                 }
 
-<ignorenewline>{
-  "\n" {
-    yycolumn = 1;
-    csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                         yyscanner);
-  }
-}
-
 <INITIAL>"\n" { yycolumn = 1;
-                csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                       yyscanner);
-                return NEWLINE; }
+                 csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                      yyscanner);
+                 if (PARM->paren_depth == 0)
+                   return NEWLINE; }
 
 %%
 
@@ -762,5 +761,4 @@ uint32_t csound_orcget_last_column(void *yyscanner)
   //   struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return PARM->last_column;
 }
-
 

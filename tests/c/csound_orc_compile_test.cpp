@@ -591,7 +591,7 @@ TEST_F (OrcCompileTests, testColumnNumbersContinuation)
     csoundDeleteTree(csound, tree);
 }
 
-// Test column tracking inside parentheses (ignorenewline state)
+// Test column tracking inside parentheses (parenthesis depth)
 // Newlines inside parens should reset yycolumn but not return NEWLINE.
 // Note: the parser expands (100 + 200) into an implicit ##add node
 // with a temp #i0 variable, so the AST has 3 statements:
@@ -599,7 +599,7 @@ TEST_F (OrcCompileTests, testColumnNumbersContinuation)
 TEST_F (OrcCompileTests, testColumnNumbersIgnoreNewline)
 {
     const char *orc = "instr 1\n"
-                      "k1 = (100 +\n"      // line 2: ( triggers ignorenewline
+                      "k1 = (100 +\n"      // line 2: ( increments parenthesis depth
                       " 200)\n"             // line 3: 200 at cols 2-4
                       "k2 = 300\n"          // line 4: k2 at cols 1-2
                       "endin\n";
