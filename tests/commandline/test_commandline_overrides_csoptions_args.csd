@@ -12,12 +12,16 @@ instr 1
     exitnow(1)
   endif
 
-  if (strcmp(Sarguments[0], "concert.orc") != 0 || \
-      strcmp(Sarguments[1], "first violin") != 0 || \
-      strcmp(Sarguments[2], "--logfile=ignored") != 0 || \
-      strcmp(Sarguments[3], "") != 0) then
-    prints "command line did not override CsOptions: '%s', '%s', '%s', '%s'\n", \
+  if (
+    strcmp(Sarguments[0], "concert.orc") != 0 ||
+    strcmp(Sarguments[1], "first violin") != 0 ||
+    strcmp(Sarguments[2], "--logfile=ignored") != 0 ||
+    strcmp(Sarguments[3], "") != 0
+  ) then
+    prints(
+      "command line did not override CsOptions: '%s', '%s', '%s', '%s'\n",
       Sarguments[0], Sarguments[1], Sarguments[2], Sarguments[3]
+    )
     exitnow(1)
   endif
 endin
