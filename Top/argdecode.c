@@ -1101,8 +1101,14 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     O->sampleAccurate = 1;
     return 1;
   } else if (!(strcmp(s, "realtime"))) {
+#if defined(__wasi__)
+    csound->Message(csound,
+                    Str("--realtime ignored in WASI; using synchronous mode\n"));
+    O->realtime = 0;
+#else
     csound->Message(csound, Str("realtime mode enabled\n"));
     O->realtime = 1;
+#endif
     return 1;
   } else if (!(strncmp(s, "nchnls=", 7))) {
     s += 7;
