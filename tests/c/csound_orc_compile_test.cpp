@@ -91,7 +91,7 @@ TEST_F (OrcCompileTests, testSplitArgs)
 TEST_F (OrcCompileTests, testMutuallyRecursiveUdoRateInference)
 {
     const char* orchestra = R"(
-struct RateValue values:i[]
+struct RateValue value:i, values:i[]
 rateValues@global:RateValue[] init 1
 
 declare RateInitEven(depth:i):(i)
@@ -123,6 +123,25 @@ opcode RateInitRead(index:i):i
   xout result
 endop
 
+opcode RateInitWhile(index:i):i
+  result:i init 0
+  ; Keep the member read nested so loop expansion must preserve init context.
+  while ((rateValues[index].value + 0) < 1) do
+    result += 1
+    break
+  od
+  xout result
+endop
+
+opcode RatePerfWhile(index:k):i
+  result:i init 0
+  while ((rateValues[index].value + 0) < 1) do
+    result += 1
+    break
+  od
+  xout result
+endop
+
 opcode RatePerfEven(depth:i):i
   result:i init 1
   if (depth > 0) ithen
@@ -146,17 +165,23 @@ endop
     OENTRY* initEven = find_opcode_new(csound, "RateInitEven", "i", "i");
     OENTRY* initOdd = find_opcode_new(csound, "RateInitOdd", "i", "i");
     OENTRY* initRead = find_opcode_new(csound, "RateInitRead", "i", "i");
+    OENTRY* initWhile = find_opcode_new(csound, "RateInitWhile", "i", "i");
+    OENTRY* perfWhile = find_opcode_new(csound, "RatePerfWhile", "i", "k");
     OENTRY* perfEven = find_opcode_new(csound, "RatePerfEven", "i", "i");
     OENTRY* perfOdd = find_opcode_new(csound, "RatePerfOdd", "i", "i");
 
     ASSERT_NE(nullptr, initEven);
     ASSERT_NE(nullptr, initOdd);
     ASSERT_NE(nullptr, initRead);
+    ASSERT_NE(nullptr, initWhile);
+    ASSERT_NE(nullptr, perfWhile);
     ASSERT_NE(nullptr, perfEven);
     ASSERT_NE(nullptr, perfOdd);
     EXPECT_EQ(nullptr, initEven->perf);
     EXPECT_EQ(nullptr, initOdd->perf);
     EXPECT_EQ(nullptr, initRead->perf);
+    EXPECT_EQ(nullptr, initWhile->perf);
+    EXPECT_NE(nullptr, perfWhile->perf);
     EXPECT_NE(nullptr, perfEven->perf);
     EXPECT_NE(nullptr, perfOdd->perf);
 }
