@@ -57,6 +57,8 @@
   "csoundGetAudioChannel",
   "csoundGetAudioDevList",
   "csoundGetCPUTime",
+  "csoundGetChannel",
+  "csoundSetChannel",
   "csoundGetChannelDatasize",
   "csoundGetChannelPtr",
   "csoundGetChannels",

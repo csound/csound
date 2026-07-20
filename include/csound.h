@@ -887,8 +887,8 @@ extern "C" {
    *     pvs data as a PVSDATEXT structure - (PVSDAT **) pp
    *    (see csoundPvsData***(), csoundSetPvsData(),
    *     csoundGetPvsData(), and csoundInitPvsData())
-   *   CSOUND_VAR_CHANNEL
-   *    generic variable data channel
+   *    CSOUND_VAR_CHANNEL
+   *       generic variable channel (pre-existing only)
    * and at least one of these:
    *   CSOUND_INPUT_CHANNEL
    *   CSOUND_OUTPUT_CHANNEL
@@ -919,6 +919,8 @@ extern "C" {
    * See Top/threadsafe.c in the Csound library sources for
    * examples.  Optionally, use the channel get/set functions
    * provided below, which are threadsafe by default.
+   * NB: this function cannot be used to create a generic CSOUND_VAR_CHANNEL
+   *     but it can access existing channels of that type
    */
   PUBLIC int32_t csoundGetChannelPtr(CSOUND *,
                                  void **p, const char *name, int32_t type);

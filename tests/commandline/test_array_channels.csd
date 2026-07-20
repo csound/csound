@@ -139,6 +139,21 @@ printks "all struct array items correctly matched\n",1
 turnoff
 endin
 
+instr 7
+values:k[] fillarray 3, 4
+chnset values, "clear"
+chncleararray "clear"
+cleared:k[] init 2
+cleared chnget "clear"
+
+if cleared[0] != 0 || cleared[1] != 0 then
+  printks "array channel was not cleared: %g, %g\n", 0, \
+    cleared[0], cleared[1]
+  exitnowk(-1)
+endif
+turnoff
+endin
+
 
 </CsInstruments>
 
@@ -149,6 +164,6 @@ i3 0 1
 i4 0 1
 i5 0 1
 i6 0 1
-
+i7 0 1
 </CsScore>
 </CsoundSynthesizer>
