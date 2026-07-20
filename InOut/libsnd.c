@@ -71,7 +71,7 @@ static inline void spout_interleave(CSOUND *csound, int32_t scal) {
     /* if nspout remaining > buf rem, prepare to send in parts */
    if (spoutrem > (int32_t) csound->libsndStatics.outbufrem) {
      end = csound->libsndStatics.outbufrem/nchnls;
-   } 
+   }
   spoutrem -= (end-start)*nchnls;
   csound->libsndStatics.outbufrem -= (end-start)*nchnls;
   for(j=start; j<end; j++) {
@@ -102,18 +102,18 @@ static inline void spout_interleave(CSOUND *csound, int32_t scal) {
        }
       *spout++ = absamp;
       if (absamp < FL(0.0)) absamp = -absamp;
-      if (absamp > csound->maxamp[i]) {   //  maxamp this seg  
+      if (absamp > csound->maxamp[i]) {   //  maxamp this seg
         csound->maxamp[i] = absamp;
         csound->maxpos[i] = nframes;
       }
-      if (absamp > csound->e0dbfs) {    // out of range?    
-        csound->rngcnt[i]++;            //  report it       
+      if (absamp > csound->e0dbfs) {    // out of range?
+        csound->rngcnt[i]++;            //  report it
         csound->rngflg = 1;
       }
       }
        nframes++;
   }
- 
+
   if (!csound->libsndStatics.outbufrem) {
       if (csound->libsndStatics.osfopen) {
         csound->nrecs++;
@@ -814,14 +814,14 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
                  &(O->mp3_mode), sizeof(int32_t));
     }
  #endif
-    
+
     /* IV - Feb 22 2005: clip integer formats */
     if (O->outformat != AE_FLOAT && O->outformat != AE_DOUBLE)
       csound->SndfileCommand(csound,STA(outfile), SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
     csound->SndfileCommand(csound,STA(outfile), SFC_SET_ADD_PEAK_CHUNK,
                NULL, (csound->peakchunks ? SFLIB_TRUE : SFLIB_FALSE));
 #ifdef SOME_FINE_DAY
-#ifdef USE_LIBSNDFILE    
+#ifdef USE_LIBSNDFILE
     if (csound->dither_output) {        /* This may not be written yet!! */
       SF_DITHER_INFO  ditherInfo;
       memset(&ditherInfo, 0, sizeof(SF_DITHER_INFO));
@@ -829,7 +829,7 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
       ditherInfo.level = 1.0;
       ditherInfo.name  = (char*) NULL;
       csound->SndfileCommand(csound,STA(outfile), SFC_SET_DITHER_ON_WRITE,
-                 &ditherInfo, sizeof(SF_DITHER_INFO));   
+                 &ditherInfo, sizeof(SF_DITHER_INFO));
     }
 #endif
 #endif
@@ -883,11 +883,12 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
     STA(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
     STA(outbufp)   = STA(outbuf) = csound->Malloc(csound, STA(outbufsiz));
     if (STA(pipdevout) == 2) {
-      csound->Message(csound,
-                      Str("writing %d sample blks of %lu-bit floats to %s\n"),
-                      O->outbufsamps, (unsigned long) sizeof(MYFLT)*8,
-                      STA(sfoutname));
-
+      if(O->msglevel || O->odebug) {
+        csound->Message(csound,
+                        Str("writing %d sample blks of %lu-bit floats to %s\n"),
+                        O->outbufsamps, (unsigned long) sizeof(MYFLT)*8,
+                        STA(sfoutname));
+      }
     }
     else {
       csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
@@ -959,22 +960,24 @@ void sf_close_out(CSOUND *csound)
 #endif
 
  report:
-    if (STA(pipdevout) == 2) {
-      csound->Message(csound,
-                      "%"PRIi32" %d %s%lu%s%s\n",
-                      csound->nrecs, O->outbufsamps, Str("sample blks of "),
-                      (unsigned long)sizeof(MYFLT)*8,Str("-bit floats written to "),
-                      STA(sfoutname));
-    }
-    else {
-      csound->Message(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
-                      O->outbufsamps, O->outbufsamps * O->sndfileSampleSize,
-                      csoundGetStrFormat(O->outformat), STA(sfoutname));
-      if (O->filetyp == TYP_RAW)
-        csound->Message(csound, Str(" (raw)\n"));
-      else
-        csound->Message(csound, " (%s)\n", csoundType2String(O->filetyp));
-      
+    if(O->msglevel || O->odebug) {
+      if (STA(pipdevout) == 2) {
+        csound->Message(csound,
+                        "%"PRIi32" %d %s%lu%s%s\n",
+                        csound->nrecs, O->outbufsamps, Str("sample blks of "),
+                        (unsigned long)sizeof(MYFLT)*8,Str("-bit floats written to "),
+                        STA(sfoutname));
+      }
+      else {
+        csound->Message(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
+                        O->outbufsamps, O->outbufsamps * O->sndfileSampleSize,
+                        csoundGetStrFormat(O->outformat), STA(sfoutname));
+        if (O->filetyp == TYP_RAW)
+          csound->Message(csound, Str(" (raw)\n"));
+        else
+          csound->Message(csound, " (%s)\n", csoundType2String(O->filetyp));
+
+      }
     }
     STA(osfopen) = 0;
 }
@@ -998,7 +1001,7 @@ void sf_open_nosound(CSOUND *csound)
 {
     alloc_globals(csound);
     csound->Message(csound, Str("not writing to sound disk\n"));
-    
+
     /* init counter, though not writing */
     STA(outbufrem) = csound->oparms->outbufsamps;
 }

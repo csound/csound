@@ -388,16 +388,16 @@ static void openJackStreams(RtJackGlobals *p)
    const OPARMS *O;
     O = csound->GetOParms(csound) ;
 
-
     /* connect to JACK server */
     p->client = jack_client_open(&(p->clientName[0]), JackNoStartServer, NULL);
     if (UNLIKELY(p->client == NULL))
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
 
-    csound->GetSystemSr(csound, jack_get_sample_rate(p->client));
-    if(O->msglevel || O->odebug)
-      csound->Message(csound, "system sr: %f\n", csound->GetSystemSr(csound,0));
-    if(p->sampleRate < 0) p->sampleRate = jack_get_sample_rate(p->client);
+    size_t jack_sr = jack_get_sample_rate(p->client);
+    csound->GetSystemSr(csound, jack_sr);
+    if (O->msglevel || O->odebug)
+      csound->Message(csound, "system sr: %f\n", csound->GetSystemSr(csound, 0));
+    if(p->sampleRate < 0) p->sampleRate = jack_sr;
 
     /* check consistency of parameters */
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > 255))
