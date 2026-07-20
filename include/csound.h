@@ -380,7 +380,7 @@ extern "C" {
   };
 
   typedef struct cstype CS_TYPE;
-  typedef struct csvariable CS_VARIABLE;
+  typedef struct csvarmem CS_VAR_MEM;
 
 #ifndef CSOUND_CSDL_H
   /** @defgroup INSTANTIATION Instantiation
@@ -996,20 +996,20 @@ extern "C" {
 
 
   /** 
-   * Sets the data in a channel from a CS_VARIABLE 
-   * variable data is copied into the channel
+   * Sets the data in a channel from a source variable memory block
+   * Input memory block is copied into the channel
    * Access to channel via this function is threadsafe
    */
   PUBLIC int32_t csoundSetChannel(CSOUND *csound, const char *name,
-                                  const CS_VARIABLE *var);
+                                  const CS_VAR_MEM *var);
 
   /** 
-   * Gets a CS_VARIABLE holding the data in a channel
+   * Gets a memory block holding the variable data in a channel
    * NB: similar to csoundGetChannelPtr(), access to this resource
    * is not thread-safe and requires the use of the channel
    * lock (see the notes for that API function).
    */    
-  PUBLIC const CS_VARIABLE *csoundGetChannel(CSOUND *csound,
+  PUBLIC const CS_VAR_MEM *csoundGetChannel(CSOUND *csound,
                                              const char *name);
 
   /**

@@ -317,14 +317,14 @@ TEST_F (ChannelTests, ChannelVariable)
                 )ORC");
     int32_t err = csoundStart(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
-    const CS_VARIABLE *var = csoundGetChannel(csound, "1");
-    MYFLT val = csoundGetChannel(csound, "2")->memBlock->value;
+    const CS_VAR_MEM *var = csoundGetChannel(csound, "1");
+    MYFLT val = csoundGetChannel(csound, "2")->value;
     ASSERT_EQ(val, 0.0);
     err = csoundSetChannel(csound, "2", var);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     csoundPerformKsmps(csound);
-    ASSERT_EQ(csoundGetChannel(csound, "2")->memBlock->value,
-              csoundGetChannel(csound, "1")->memBlock->value);
+    ASSERT_EQ(csoundGetChannel(csound, "2")->value,
+              csoundGetChannel(csound, "1")->value);
 }
 
 TEST_F (ChannelTests, ChannelNewVariable)
@@ -333,15 +333,13 @@ TEST_F (ChannelTests, ChannelNewVariable)
     csoundCompileOrc(csound, orc1);
     int32_t err = csoundStart(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
-    const CS_TYPE *ktype = csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "k");
-    CS_VARIABLE *var = ktype->createVariable(csound, ktype, NULL);
-    CS_VAR_MEM memBlock;  // enough storage for a scalar (i, k), other types might need extra
-    var->memBlock = &memBlock;
-    MYFLT val = 1.0;
-    ktype->copyValue(csound, ktype, &(var->memBlock->value), &val, NULL);
-    err = csoundSetChannel(csound, name, var);
+    CS_VAR_MEM memBlock; // memblock value holds enough storage for a MYFLT
+    memBlock.varType = csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "k");
+    memBlock.value = 1.0; 
+    err = csoundSetChannel(csound, name, &memBlock);
+    printf("value %f\n", csoundGetChannel(csound,name)->value);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
-    ASSERT_EQ(val, csoundGetChannel(csound,name)->memBlock->value);
+    ASSERT_EQ(memBlock.value, csoundGetChannel(csound,name)->value);
 }
 
 TEST_F (ChannelTests, ArrayChannel)
@@ -389,8 +387,8 @@ TEST_F (ChannelTests, AudioChannel)
     ASSERT_TRUE(rms > 0);
     // now let's test getting it as an audio variable
     MYFLT pow = 0;
-    const CS_VARIABLE *var = csoundGetChannel(csound, "audio");
-    const MYFLT *sample = &(var->memBlock->value);
+    const CS_VAR_MEM *var = csoundGetChannel(csound, "audio");
+    const MYFLT *sample = &(var->value);
     for(int i = 0; i < 10; i++) {
       pow += sample[i]*sample[i];
     }

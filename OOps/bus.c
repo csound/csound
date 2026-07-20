@@ -2965,20 +2965,25 @@ int32_t sensekey_perf(CSOUND *csound, KSENSE *p)
    API for over twenty years (it is not a new departure).
    However, unlike csoundGetChannelPtr(), this is const-safe (read-only access)
 */
-const CS_VARIABLE *csoundGetChannel(CSOUND *csound, const char *name) { 
+const CS_VAR_MEM *csoundGetChannel(CSOUND *csound, const char *name) { 
   CHNENTRY *pp = find_channel(csound, name);
-  if(pp && pp->var) return pp->var;
+  if(pp && pp->var) return pp->var->memBlock;
   else return NULL;
 } 
 
-int32_t csoundSetChannel(CSOUND *csound, const char *name, const CS_VARIABLE *var) { 
+int32_t csoundSetChannel(CSOUND *csound, const char *name, const CS_VAR_MEM *var) { 
   CHNENTRY *pp = find_channel(csound, name);
+  // validate var  
+  if(var == NULL) {
+    csoundMessage(csound, "null input memBlock\n");
+    return CSOUND_ERROR;
+  }
   if(pp) {
     if(pp->var && pp->var->varType == var->varType) {
       csoundLockChannel(csound, name);
-      if(var && var->memBlock)
+      if(var)
        pp->var->varType->copyValue(csound, pp->var->varType, (&(pp->var->memBlock->value)),
-                                  &(var->memBlock->value), NULL);
+                                  &(var->value), NULL);
       csoundUnlockChannel(csound,name);
       return CSOUND_SUCCESS;
     } else {
