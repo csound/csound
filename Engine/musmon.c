@@ -530,7 +530,7 @@ int32_t csound_cleanup(CSOUND *csound)
       if(csound->perferrcnt > 0) {
         csound->ErrorMsg(csound, Str("\n%d errors in performance\n"),
                          csound->perferrcnt);
-      }
+      } else  csound->ErrorMsg(csound, "\n");
       
       /* Print unit test report if enabled */
       if (csound->oparms->runUnitTests) {
