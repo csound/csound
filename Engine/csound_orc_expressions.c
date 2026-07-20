@@ -35,15 +35,18 @@ ORCTOKEN *make_token(CSOUND *, char *, void *);
 ORCTOKEN *make_label(CSOUND *, char *, void *);
 
 static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
-                                       TYPE_TABLE*);
+                                       TYPE_TABLE*, int32_t);
 static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
-                               TYPE_TABLE*);
+                               TYPE_TABLE*, int32_t);
 static int32_t struct_expr_has_array_root(TREE* structExpr);
+static int32_t array_has_k_rate_index(CSOUND* csound, TREE* indexExpr,
+                                      TYPE_TABLE* typeTable);
 TREE* expand_struct_array_member_read(CSOUND* csound,
                                       TREE* structExpr,
                                       int32_t line,
                                       uint64_t locn,
-                                      TYPE_TABLE* typeTable);
+                                      TYPE_TABLE* typeTable,
+                                      int32_t initContext);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
 
 static TREE* tree_tail(TREE* node) {
@@ -346,14 +349,15 @@ int32_t is_boolean_expression_node(TREE *node)
 
 static TREE *create_cond_expression(CSOUND *csound,
                                     TREE *root, int32_t line, uint64_t locn,
-                                    TYPE_TABLE* typeTable)
+                                    TYPE_TABLE* typeTable,
+                                    int32_t initContext)
 {
   TREE *last = NULL;
   int32 ln1 = csound->genlabs++, ln2 = csound->genlabs++;
   TREE *L1 = create_synthetic_label(csound, ln1);
   TREE *L2 = create_synthetic_label(csound, ln2);
   TREE *b = create_boolean_expression(csound, root->left, line, locn,
-                                      typeTable);
+                                      typeTable, initContext);
   TREE *c = root->right->left, *d = root->right->right;
   char *left, *right;
   int32_t type;
@@ -464,7 +468,8 @@ static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
 static TREE *expand_expression_arg_list(CSOUND *csound, TREE *current,
                                         TREE **anchor, int32_t line,
                                         uint64_t locn,
-                                        TYPE_TABLE *typeTable)
+                                        TYPE_TABLE *typeTable,
+                                        int32_t initContext)
 {
   TREE *newArgList = NULL;
 
@@ -476,13 +481,15 @@ static TREE *expand_expression_arg_list(CSOUND *csound, TREE *current,
     current->next = NULL;
     if (current->type == STRUCT_EXPR && struct_expr_has_array_root(current)) {
       expanded = expand_struct_array_member_read(csound, current, line,
-                                                 locn, typeTable);
+                                                 locn, typeTable,
+                                                 initContext);
       if (expanded == NULL) {
         return NULL;
       }
     }
     else if (is_expression_node(current)) {
-      expanded = create_expression(csound, current, line, locn, typeTable);
+      expanded = create_expression(csound, current, line, locn, typeTable,
+                                   initContext);
       if (expanded == NULL) {
         return NULL;
       }
@@ -506,7 +513,8 @@ static TREE *expand_expression_arg_list(CSOUND *csound, TREE *current,
  */
 static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
                                uint64_t locn,
-                               TYPE_TABLE* typeTable)
+                               TYPE_TABLE* typeTable,
+                               int32_t initContext)
 {
   char op[80], *outarg = NULL;
   TREE *anchor = NULL;
@@ -517,11 +525,13 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
 
   /* HANDLE SUB EXPRESSIONS */
   if (root->type=='?') return create_cond_expression(csound, root, line,
-                                                     locn, typeTable);
+                                                     locn, typeTable,
+                                                     initContext);
   memset(op, 0, 80);
   if (root->left != NULL) {
     expandedArgs = expand_expression_arg_list(csound, root->left, &anchor,
-                                              line, locn, typeTable);
+                                              line, locn, typeTable,
+                                              initContext);
     if (expandedArgs == NULL) {
       return NULL;
     }
@@ -529,7 +539,8 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   }
   if (root->right != NULL) {
     expandedArgs = expand_expression_arg_list(csound, root->right, &anchor,
-                                              line, locn, typeTable);
+                                              line, locn, typeTable,
+                                              initContext);
     if (expandedArgs == NULL) {
       return NULL;
     }
@@ -682,6 +693,9 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   case T_ARRAY:
     {
       char* outype;
+      int32_t initArrayRead =
+        initContext &&
+        !array_has_k_rate_index(csound, root->right, typeTable);
 
       // Handle struct member access or other complex left expressions
       if (array_target_missing_lexeme(root)) {
@@ -691,7 +705,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         }
 
         // Set the operation to array_get (struct members are always plain arrays)
-        strNcpy(op, "##array_get", 80);
+        strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
 
         // Use the element type directly (it's already the type of array[index])
         outarg = create_out_arg(csound, elementType,
@@ -719,7 +733,8 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
           if (var->subType->userDefinedType) {
             strNcpy(op, "##array_get_struct", 80);
           } else {
-            strNcpy(op, "##array_get", 80);
+            strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get",
+                    80);
           }
           outype = strdup(var->subType->varTypeName);
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
@@ -738,14 +753,14 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         }
         } else if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
           // Generic array with dimensions (but no subType set yet)
-          strNcpy(op, "##array_get", 80);
+          strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
           outype = strdup(var->subType->varTypeName);
         } else if (var->varType == &CS_VAR_TYPE_A) {
-          strNcpy(op, "##array_get", 80);
+          strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
           outype = strdup("k");
         } else {
           // Typed array like k[], varType is the element type
-          strNcpy(op, "##array_get", 80);
+          strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
           outype = strdup(var->varType->varTypeName);
         }
       }
@@ -794,7 +809,9 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
  * create_opcode when an expression node has been found as an argument
  */
 static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
-                                       int32_t line, uint64_t locn, TYPE_TABLE* typeTable)
+                                       int32_t line, uint64_t locn,
+                                       TYPE_TABLE* typeTable,
+                                       int32_t initContext)
 {
   char *op, *outarg;
   TREE *anchor = NULL, *last;
@@ -805,13 +822,14 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   /* HANDLE SUB EXPRESSIONS */
   if (is_boolean_expression_node(root->left)) {
     anchor = create_boolean_expression(csound, root->left,
-                                       line, locn, typeTable);
+                                       line, locn, typeTable, initContext);
     last = tree_tail(anchor);
     /* TODO - Free memory of old left node
        freetree */
     root->left = create_ans_token(csound, last->left->value->lexeme);
   } else if (is_expression_node(root->left)) {
-    anchor = create_expression(csound, root->left, line, locn, typeTable);
+    anchor = create_expression(csound, root->left, line, locn, typeTable,
+                               initContext);
 
     /* TODO - Free memory of old left node
        freetree */
@@ -824,7 +842,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     TREE * remaining = root->right->next;
     TREE * newRight = create_boolean_expression(csound,
                                                 root->right, line, locn,
-                                                typeTable);
+                                                typeTable, initContext);
     if (anchor == NULL) {
       anchor = newRight;
     }
@@ -840,7 +858,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   }
   else if (is_expression_node(root->right)) {
     TREE * newRight = create_expression(csound, root->right, line,
-                                        locn, typeTable);
+                                        locn, typeTable, initContext);
     TREE * remaining = root->right->next;
 
 
@@ -883,7 +901,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
 
   if(root->type == T_FUNCTION) {
     return create_expression(csound, root, line,
-                             locn, typeTable);
+                             locn, typeTable, initContext);
   }
 
 
@@ -1134,9 +1152,8 @@ static char* get_struct_array_element_type_name(CSOUND* csound,
   return elementTypeName;
 }
 
-static int32_t struct_array_has_k_rate_index(CSOUND* csound,
-                                             TREE* indexExpr,
-                                             TYPE_TABLE* typeTable)
+static int32_t array_has_k_rate_index(CSOUND* csound, TREE* indexExpr,
+                                      TYPE_TABLE* typeTable)
 {
   while (indexExpr != NULL) {
     char* argType = get_arg_string_from_tree(csound, indexExpr, typeTable);
@@ -1224,7 +1241,7 @@ static int32_t resolve_struct_array_member_path(CSOUND* csound,
   path->arrayExpr = arrayExpr;
   path->rootStructType = currentStructType;
   path->hasKRateIndex =
-    struct_array_has_k_rate_index(csound, arrayExpr->right, typeTable);
+    array_has_k_rate_index(csound, arrayExpr->right, typeTable);
 
   for (i = rawMemberCount - 1; i >= 0; i--) {
     int32_t memberIndex = -1;
@@ -1294,9 +1311,11 @@ static TREE* create_struct_member_get_call(CSOUND* csound,
                                            uint64_t locn,
                                            const char* outArg,
                                            const char* structArg,
-                                           int32_t memberIndex)
+                                           int32_t memberIndex,
+                                           int32_t initContext)
 {
-  TREE* getMemberOp = create_opcode_token(csound, "##member_get");
+  TREE* getMemberOp = create_opcode_token(
+    csound, initContext ? "##member_get_init" : "##member_get");
   getMemberOp->type = T_OPCALL;
   getMemberOp->line = line;
   getMemberOp->locn = locn;
@@ -1402,7 +1421,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                                                    current->locn,
                                                    structTemps[i + 1],
                                                    structTemps[i],
-                                                   path.memberIndices[i]));
+                                                   path.memberIndices[i], 0));
   }
 
   assignmentOps =
@@ -1446,7 +1465,8 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
                                       TREE* structExpr,
                                       int32_t line,
                                       uint64_t locn,
-                                      TYPE_TABLE* typeTable)
+                                      TYPE_TABLE* typeTable,
+                                      int32_t initContext)
 {
   STRUCT_ARRAY_MEMBER_PATH path;
   TREE* readOps = NULL;
@@ -1478,7 +1498,8 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
     readOps = tree_append(readOps,
                              create_struct_member_get_call(
                                csound, line, locn, nextStructArg,
-                               currentStructArg, path.memberIndices[i]));
+                               currentStructArg, path.memberIndices[i],
+                               initContext));
     csound->Free(csound, currentStructArg);
     currentStructArg = nextStructArg;
   }
@@ -1505,7 +1526,8 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
   readOps = tree_append(readOps,
                            create_struct_member_get_call(
                              csound, line, locn, outArg, currentStructArg,
-                             path.memberIndices[path.memberCount - 1]));
+                             path.memberIndices[path.memberCount - 1],
+                             initContext));
 
   csound->Free(csound, currentStructArg);
   if (arrayMemberType != NULL) {
@@ -1526,6 +1548,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
   TREE* originalNext = current->next;
   TREE* previousArg = NULL;
   TREE* currentArg = current->right;
+  OENTRY* statementEntry = (OENTRY*)current->markup;
+  int32_t initContext = statementEntry != NULL && statementEntry->perf == NULL;
 
   current->next = NULL;
 
@@ -1543,7 +1567,10 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     if (currentArg->type == STRUCT_EXPR &&
         struct_expr_has_array_root(currentArg)) {
       TREE* expanded = expand_struct_array_member_read(csound, currentArg,
-                                                       currentArg->line, currentArg->locn, typeTable);
+                                                       currentArg->line,
+                                                       currentArg->locn,
+                                                       typeTable,
+                                                       initContext);
       if (expanded) {
         anchor = tree_append(anchor, expanded);
         last = tree_tail(anchor);
@@ -1573,14 +1600,15 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       if (is_bool == 0) {
         expressionNodes =
           create_expression(csound, currentArg,
-                            currentArg->line, currentArg->locn, typeTable);
+                            currentArg->line, currentArg->locn, typeTable,
+                            initContext);
         // free discarded node
       }
       else {
         expressionNodes =
           create_boolean_expression(csound, currentArg,
                                     currentArg->line, currentArg->locn,
-                                    typeTable);
+                                    typeTable, initContext);
       }
 
 
@@ -1752,7 +1780,8 @@ TREE* expand_if_statement(CSOUND* csound,
       csound->Message(csound, "Found if-goto\n");
     expressionNodes =
       create_boolean_expression(csound, left, right->line,
-                                right->locn, typeTable);
+                                right->locn, typeTable,
+                                right->type == IGOTO_TOKEN);
 
 
     anchor = tree_append(anchor, expressionNodes);
@@ -1796,7 +1825,8 @@ TREE* expand_if_statement(CSOUND* csound,
       expressionNodes =
         create_boolean_expression(csound, tempLeft,
                                   tempLeft->line, tempLeft->locn,
-                                  typeTable);
+                                  typeTable,
+                                  tempRight->type == ITHEN_TOKEN);
 
       anchor = tree_append(anchor, expressionNodes);
 
@@ -2099,7 +2129,8 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
       current->left,
       current->line,
       current->locn,
-      typeTable
+      typeTable,
+      targets->gotoType != 0
     );
     anchor = tree_append(anchor, expressionNodes);
     last = tree_tail(anchor);

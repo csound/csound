@@ -59,24 +59,6 @@ int32_t merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
 OENTRY* find_opcode(CSOUND*, char*);
 void sanitize(CSOUND *csound);
 
-static int32_t udo_entry_matches_definition(const OENTRY *entry,
-                                            const OPCODINFO *opinfo) {
-  const OPCODINFO *called;
-
-  if (entry == NULL || opinfo == NULL ||
-      entry->init != (SUBR)useropcdset || entry->useropinfo == NULL) {
-    return 0;
-  }
-  called = (const OPCODINFO *)entry->useropinfo;
-  return called == opinfo ||
-         (called->name != NULL && opinfo->name != NULL &&
-          called->intypes != NULL && opinfo->intypes != NULL &&
-          called->outtypes != NULL && opinfo->outtypes != NULL &&
-          strcmp(called->name, opinfo->name) == 0 &&
-          strcmp(called->intypes, opinfo->intypes) == 0 &&
-          strcmp(called->outtypes, opinfo->outtypes) == 0);
-}
-
 static int32_t udo_entry_is_init_control(CSOUND *csound,
                                          const INSTRTXT *ip,
                                          const TEXT *text) {
@@ -85,7 +67,10 @@ static int32_t udo_entry_is_init_control(CSOUND *csound,
   if (ip == NULL || text == NULL || text->oentry == NULL) {
     return 0;
   }
-  if (strcmp(text->oentry->opname, "goto") == 0) {
+  if (strcmp(text->oentry->opname, "goto") == 0 ||
+      strcmp(text->oentry->opname, "cggoto.0") == 0) {
+    /* Generated switch control does not itself require a performance pass.
+       Any opcode reached by the branch is inspected independently below. */
     return 1;
   }
   if (strcmp(text->oentry->opname, "cngoto") != 0 ||
@@ -115,11 +100,19 @@ static int32_t udo_pool_has_perf_types(const CS_VAR_POOL *pool) {
   return 0;
 }
 
-/* Check if a UDO definition has any perf-time opcodes. A direct recursive
-   call inherits this definition's rate and is not independent evidence that
-   the body performs. */
-static int32_t udo_has_perf_opcodes(CSOUND *csound, INSTRTXT *ip,
-                                    OPCODINFO *opinfo) {
+static OPCODINFO *udo_called_definition(const OENTRY *entry) {
+  if (entry == NULL || entry->init != (SUBR)useropcdset ||
+      entry->useropinfo == NULL) {
+    return NULL;
+  }
+  return (OPCODINFO *)entry->useropinfo;
+}
+
+/* A UDO call is classified after every definition in this compilation has
+   been built. Ignoring calls here lets mutually recursive, init-only UDOs
+   reach the same fixed point as direct recursion. */
+static int32_t udo_has_intrinsic_perf(CSOUND *csound, INSTRTXT *ip,
+                                      OPCODINFO *opinfo) {
   OPTXT *optxt = (OPTXT *) ip;
   if (opinfo != NULL &&
       (udo_pool_has_perf_types(opinfo->in_arg_pool) ||
@@ -131,7 +124,7 @@ static int32_t udo_has_perf_opcodes(CSOUND *csound, INSTRTXT *ip,
     if (ttp->oentry == NULL) continue;
     if (strcmp(ttp->oentry->opname, "$label") == 0) continue;
     if (strcmp(ttp->oentry->opname, "endop") == 0) break;
-    if (udo_entry_matches_definition(ttp->oentry, opinfo)) {
+    if (udo_called_definition(ttp->oentry) != NULL) {
       continue;
     }
     if (udo_entry_is_init_control(csound, ip, ttp)) {
@@ -142,6 +135,57 @@ static int32_t udo_has_perf_opcodes(CSOUND *csound, INSTRTXT *ip,
     }
   }
   return 0;
+}
+
+static int32_t udo_calls_perf_definition(OPCODINFO *opinfo) {
+  OPTXT *optxt = opinfo != NULL ? (OPTXT *)opinfo->ip : NULL;
+
+  while (optxt != NULL && (optxt = optxt->nxtop) != NULL) {
+    OPCODINFO *called = udo_called_definition(optxt->t.oentry);
+    if (called == NULL || called == opinfo) {
+      continue;
+    }
+    if (called->oentry != NULL && called->oentry->perf != NULL) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void classify_udo_rates(CSOUND *csound, ENGINE_STATE *engineState) {
+  INSTRTXT *instrument;
+  int32_t changed;
+
+  /* Seed each definition from its own body. Calls are ignored in this pass so
+     an init-only recursion cycle starts at the all-init fixed point. */
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    if (instrument->opcode_info != NULL) {
+      OPCODINFO *opinfo = instrument->opcode_info;
+      opinfo->oentry->perf = udo_has_intrinsic_perf(
+        csound, instrument, opinfo) ? (SUBR)useropcd : NULL;
+    }
+  }
+
+  do {
+    changed = 0;
+    for (instrument = engineState->instxtanchor.nxtinstxt;
+         instrument != NULL; instrument = instrument->nxtinstxt) {
+      OPCODINFO *opinfo = instrument->opcode_info;
+      if (opinfo != NULL && opinfo->oentry->perf == NULL &&
+          udo_calls_perf_definition(opinfo)) {
+        opinfo->oentry->perf = (SUBR)useropcd;
+        changed = 1;
+      }
+    }
+  } while (changed);
+
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    if (instrument->opcode_info != NULL) {
+      build_user_opcode_rewire_plan(csound, instrument->opcode_info);
+    }
+  }
 }
 
 
@@ -2157,12 +2201,6 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
         // replace ip oentry by the UDO oentry
         ((OPTXT *)instrtxt)->t.oentry = opinfo->oentry;
 
-        // remove dummy perf routine from init-time opcodes
-        if (!udo_has_perf_opcodes(csound, instrtxt, opinfo)) {
-          opinfo->oentry->perf = NULL;
-        }
-
-        build_user_opcode_rewire_plan(csound, opinfo);
       }
 
       break;
@@ -2185,6 +2223,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     }
     current = current->next;
   }
+
+  classify_udo_rates(csound, engineState);
 
 
   if (UNLIKELY(csound->synterrcnt)) {

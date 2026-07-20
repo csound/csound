@@ -60,7 +60,10 @@ TREE * create_opcode_token(CSOUND *csound, char* op);
 TREE* convert_break_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);
 TREE* convert_continue_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);
 int expand_struct_array_member_assignment(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, TREE** anchor);
-TREE* expand_struct_array_member_read(CSOUND* csound, TREE* structExpr, int32_t line, uint64_t locn, TYPE_TABLE* typeTable);
+TREE* expand_struct_array_member_read(CSOUND* csound, TREE* structExpr,
+                                      int32_t line, uint64_t locn,
+                                      TYPE_TABLE* typeTable,
+                                      int32_t initContext);
 
 
 #endif
