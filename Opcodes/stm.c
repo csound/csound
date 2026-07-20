@@ -1613,15 +1613,23 @@ static int32_t graph_checkpoint_deinit(CSOUND *csound, GRAPH_CHECKPOINT *p) {
 int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     *p->check = FL(0.0);
 
-    if (*p->trig != FL(1.0)) return OK;
-
     GRAPH_RUNNER *runner = p->ref.runner;
     if (runner == NULL) {
         return csound->PerfError(csound, &p->h,"[stm] stmcall: runner is not initialized");
     }
+
     if (STM_LOAD(&runner->run_state) == STM_RUNNER_DELETED) {
         return OK;
     }
+
+    if (*p->trig != FL(1.0)) {
+        return OK;
+    } else {
+        if (p->checkpoint_name->data[0] == '\0') {
+            return csound->PerfError(csound, &p->h,"[stm] stmcall: empty checkpoint name");
+        }
+    }
+
     if (strcmp(p->checkpoint_name->data, p->last_name) == 0) {
         *p->check = FL(1.0); // already captured by this opcode instance
         return OK;
@@ -1641,12 +1649,12 @@ int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
 }
 
 int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
+    *p->check = FL(0.0);
+
     GRAPH_RUNNER *runner = p->ref.runner;
     if (runner == NULL) {
         return csound->PerfError(csound, &p->h,"[stm] stmrecall: runner is not initialized");
     }
-
-    *p->check = FL(0.0);
 
     if (*p->trig != FL(1.0)) {
         /* Re-arm the same checkpoint name for the next trigger pulse. */
@@ -1656,6 +1664,10 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
 
     if (STM_LOAD(&runner->run_state) != STM_RUNNER_RUNNING) {
         return OK;
+    }
+
+    if (p->checkpoint_name->data[0] == '\0') {
+        return csound->PerfError(csound, &p->h,"[stm] stmrecall: empty checkpoint name");
     }
 
     if (strcmp(p->checkpoint_name->data, p->last_name) == 0) {
