@@ -97,7 +97,7 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
         test_index: Index of the test in the original test list
         test_data: Test data tuple [filename, description,
             optional_expected_result, optional_run_args,
-            optional_application_args]
+            optional_application_args, optional_stack_limit_kb]
         run_args: Arguments to pass to csound
         temp_file: Temporary file for csound output
 
@@ -108,6 +108,7 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
     desc = test_data[1]
     test_run_args = test_data[3] if len(test_data) >= 4 else run_args
     application_args = test_data[4] if len(test_data) >= 5 else ""
+    stack_limit_kb = test_data[5] if len(test_data) >= 6 else None
 
     logger.debug(f"Starting test {test_index + 1}: {filename} - {desc}")
     start_time = time.time()
@@ -131,6 +132,8 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
             f"{executable} {test_run_args} {sourceDirectory}/{filename} "
             f"{application_args} 2> {temp_file}"
         )
+        if stack_limit_kb is not None and os.name == "posix":
+            command = f"ulimit -s {int(stack_limit_kb)} && {command}"
 
         logger.debug(f"Executing command: {command}")
 
@@ -879,6 +882,14 @@ def runTest():
         ["udo/test_udo_const_inargs.csd", "correct polymorphic UDO entry found"],
         ["udo/test_udo_xout_const.csd", "Constants as xout inputs work"],
         ["udo/pass_by_ref.csd", "Pass-by-ref works with new-style UDOs"],
+        [
+            "udo/test_deep_udo_deactivation.csd",
+            "deep UDO chains deactivate without exhausting the C stack",
+            None,
+            runArgs,
+            "",
+            256,
+        ],
         ["udo/test_args_in.csd", "Pass-by-ref connects args correctly."],
         ["udo/test_K_type.csd", "K-type arguments work with pass-by-ref"],
         [

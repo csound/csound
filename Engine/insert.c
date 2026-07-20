@@ -1287,76 +1287,180 @@ void deinit_pass(CSOUND *csound, INSDS *ip) {
   }
 }
 
+#define DEACT_LOCAL_STACK_SIZE 64
+
+typedef enum {
+  DEACT_ENTER,
+  DEACT_AFTER_UDO,
+  DEACT_AFTER_SUBINSTR
+} DEACT_STAGE;
+
+typedef struct {
+  INSDS *ip;
+  DEACT_STAGE stage;
+} DEACT_FRAME;
+
+static DEACT_FRAME *deact_grow_stack(CSOUND *csound, DEACT_FRAME *stack,
+                                     DEACT_FRAME *localStack,
+                                     size_t frameCount, size_t *capacity)
+{
+  DEACT_FRAME *grown;
+  size_t newCapacity;
+
+  if (UNLIKELY(*capacity > SIZE_MAX / 2 ||
+               *capacity * 2 > SIZE_MAX / sizeof(DEACT_FRAME))) {
+    csound->Die(csound, "%s", Str("deact: traversal depth overflow"));
+    return stack;
+  }
+
+  newCapacity = *capacity * 2;
+  if (stack == localStack) {
+    grown = (DEACT_FRAME *) csound->Malloc(
+      csound, newCapacity * sizeof(DEACT_FRAME));
+    if (LIKELY(grown != NULL))
+      memcpy(grown, localStack, frameCount * sizeof(DEACT_FRAME));
+  }
+  else {
+    grown = (DEACT_FRAME *) csound->ReAlloc(
+      csound, stack, newCapacity * sizeof(DEACT_FRAME));
+  }
+
+  if (UNLIKELY(grown == NULL)) {
+    csound->Die(csound, "%s", Str("deact: could not grow traversal stack"));
+    return stack;
+  }
+  *capacity = newCapacity;
+  return grown;
+}
+
 /* unlink single instr from activ chain */
 /*      and mark it inactive            */
 static void deact(CSOUND *csound, INSDS *ip)
 {
-  INSDS  *nxtp;
+  DEACT_FRAME localStack[DEACT_LOCAL_STACK_SIZE];
+  DEACT_FRAME *stack = localStack;
+  size_t capacity = DEACT_LOCAL_STACK_SIZE;
+  size_t frameCount = 1;
 
-  /* do deinit pass */
-  deinit_pass(csound, ip);
-  /* remove an active instrument */
-  csound->engineState.instrtxtp[ip->insno]->active--;
-  if (ip->xtratim > 0)
-    csound->engineState.instrtxtp[ip->insno]->pending_release--;
-  csound->cpu_power_busy -= csound->engineState.instrtxtp[ip->insno]->cpuload;
-  /* IV - Sep 8 2002: free subinstr instances */
-  /* that would otherwise result in a memory leak */
-  if (ip->opcod_deact) {
-    int32_t k;
-    UOPCODE *p = (UOPCODE*) ip->opcod_deact;          /* IV - Oct 26 2002 */
-    // free converter if it has already been created (maybe we could reuse?)
-    for(k=0; k<OPCODENUMOUTS_MAX; k++)
-      if(p->cvt_in[k] != NULL) {
-        src_deinit(csound, p->cvt_in[k]);
-        p->cvt_in[k] = NULL; // clear pointer
+  localStack[0].ip = ip;
+  localStack[0].stage = DEACT_ENTER;
+
+  /* Store the recursive continuations explicitly while preserving their
+     original cleanup order. Ordinary chains remain in localStack. */
+  while (frameCount > 0) {
+    DEACT_FRAME *frame = &stack[frameCount - 1];
+    INSDS *current = frame->ip;
+
+    switch (frame->stage) {
+    case DEACT_ENTER: {
+      UOPCODE *udo;
+
+      deinit_pass(csound, current);
+      csound->engineState.instrtxtp[current->insno]->active--;
+      if (current->xtratim > 0)
+        csound->engineState.instrtxtp[current->insno]->pending_release--;
+      csound->cpu_power_busy -=
+        csound->engineState.instrtxtp[current->insno]->cpuload;
+
+      frame->stage = DEACT_AFTER_UDO;
+      if (current->opcod_deact == NULL)
+        continue;
+
+      udo = (UOPCODE *) current->opcod_deact;
+      for (int32_t k = 0; k < OPCODENUMOUTS_MAX; k++) {
+        if (udo->cvt_in[k] != NULL) {
+          src_deinit(csound, udo->cvt_in[k]);
+          udo->cvt_in[k] = NULL;
+        }
+      }
+      for (int32_t k = 0; k < OPCODENUMOUTS_MAX; k++) {
+        if (udo->cvt_out[k] != NULL) {
+          src_deinit(csound, udo->cvt_out[k]);
+          udo->cvt_out[k] = NULL;
+        }
       }
 
-    for(k=0; k<OPCODENUMOUTS_MAX; k++)
-      if(p->cvt_out[k] != NULL) {
-        src_deinit(csound, p->cvt_out[k]);
-        p->cvt_out[k] = NULL; // clear pointer
-      }
-
-    deact(csound, p->ip);     /* deactivate */
-    p->ip = NULL;
-    /* IV - Oct 26 2002: set perf routine to "not initialised" */
-    p->h.perf = (SUBR) useropcd;
-    ip->opcod_deact = NULL;
-  }
-  if (ip->subins_deact) {
-    deact(csound, ((SUBINST*) ip->subins_deact)->ip); /* IV - Oct 24 2002 */
-    ((SUBINST*) ip->subins_deact)->ip = NULL;
-    ip->subins_deact = NULL;
-  }
-  if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME)) {
-    char *name = csound->engineState.instrtxtp[ip->insno]->insname;
-    if (UNLIKELY(name))
-      csound->Message(csound, Str("removed instance of instr %s\n"), name);
-    else
-      csound->Message(csound, Str("removed instance of instr %d\n"), ip->insno);
-  }
-
-
-  if(ip->actflg != 0) {
-   if (ip->prvact && (nxtp = ip->prvact->nxtact = ip->nxtact) != NULL) {
-    nxtp->prvact = ip->prvact;
+      if (UNLIKELY(frameCount == capacity))
+        stack = deact_grow_stack(csound, stack, localStack, frameCount,
+                                 &capacity);
+      stack[frameCount].ip = udo->ip;
+      stack[frameCount].stage = DEACT_ENTER;
+      frameCount++;
+      break;
     }
-    /*  prevent a loop in kperf() in case deact() is called on
-        an inactive instance */
-    ip->actflg = 0;
-    if(ip->linked) {
-      /* link into free instance chain so that it can be reused */
-      if (csound->engineState.instrtxtp[ip->insno] == ip->instr){
-        ip->nxtact = csound->engineState.instrtxtp[ip->insno]->act_instance;
-        csound->engineState.instrtxtp[ip->insno]->act_instance = ip;
+
+    case DEACT_AFTER_UDO: {
+      SUBINST *subinstr;
+
+      if (current->opcod_deact != NULL) {
+        UOPCODE *udo = (UOPCODE *) current->opcod_deact;
+        udo->ip = NULL;
+        udo->h.perf = (SUBR) useropcd;
+        current->opcod_deact = NULL;
       }
+
+      frame->stage = DEACT_AFTER_SUBINSTR;
+      if (current->subins_deact == NULL)
+        continue;
+
+      subinstr = (SUBINST *) current->subins_deact;
+      if (UNLIKELY(frameCount == capacity))
+        stack = deact_grow_stack(csound, stack, localStack, frameCount,
+                                 &capacity);
+      stack[frameCount].ip = subinstr->ip;
+      stack[frameCount].stage = DEACT_ENTER;
+      frameCount++;
+      break;
+    }
+
+    case DEACT_AFTER_SUBINSTR: {
+      INSDS *nxtp;
+
+      if (current->subins_deact != NULL) {
+        SUBINST *subinstr = (SUBINST *) current->subins_deact;
+        subinstr->ip = NULL;
+        current->subins_deact = NULL;
+      }
+
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME)) {
+        char *name =
+          csound->engineState.instrtxtp[current->insno]->insname;
+        if (UNLIKELY(name))
+          csound->Message(csound, Str("removed instance of instr %s\n"),
+                          name);
+        else
+          csound->Message(csound, Str("removed instance of instr %d\n"),
+                          current->insno);
+      }
+
+      if (current->actflg != 0) {
+        if (current->prvact &&
+            (nxtp = current->prvact->nxtact = current->nxtact) != NULL) {
+          nxtp->prvact = current->prvact;
+        }
+        /* Prevent a loop in kperf() if an inactive instance is passed in. */
+        current->actflg = 0;
+        if (current->linked &&
+            csound->engineState.instrtxtp[current->insno] ==
+              current->instr) {
+          current->nxtact =
+            csound->engineState.instrtxtp[current->insno]->act_instance;
+          csound->engineState.instrtxtp[current->insno]->act_instance =
+            current;
+        }
+      }
+
+      if (current->fdchp != NULL)
+        fdchclose(csound, current);
+      csound->dag_changed++;
+      frameCount--;
+      break;
+    }
     }
   }
 
-  if (ip->fdchp != NULL)
-    fdchclose(csound, ip);
-  csound->dag_changed++;
+  if (stack != localStack)
+    csound->Free(csound, stack);
 }
 
 /* Turn off a particular insalloc, also remove from list of active */
