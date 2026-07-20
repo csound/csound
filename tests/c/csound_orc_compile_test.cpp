@@ -45,6 +45,9 @@ public:
 extern "C" {
     extern int32_t args_required (const char* arrayName);
     extern char** split_args (CSOUND* csound, const char* argString);
+    extern OENTRY* find_opcode_new (CSOUND* csound, const char* opname,
+                                    const char* outArgsFound,
+                                    const char* inArgsFound);
 }
 
 TEST_F (OrcCompileTests, testArgsRequired)
@@ -83,6 +86,79 @@ TEST_F (OrcCompileTests, testSplitArgs)
     ASSERT_STREQ ("k", results[2]);
     ASSERT_STREQ ("a", results[3]);
     csound->Free(csound, results);
+}
+
+TEST_F (OrcCompileTests, testMutuallyRecursiveUdoRateInference)
+{
+    const char* orchestra = R"(
+struct RateValue values:i[]
+rateValues@global:RateValue[] init 1
+
+declare RateInitEven(depth:i):(i)
+declare RateInitOdd(depth:i):(i)
+declare RatePerfEven(depth:i):(i)
+declare RatePerfOdd(depth:i):(i)
+
+opcode RateInitEven(depth:i):i
+  result:i init 1
+  switch depth
+    case 0
+    default
+      result = RateInitOdd(depth - 1)
+  endsw
+  xout result
+endop
+
+opcode RateInitOdd(depth:i):i
+  result:i init 1
+  if (depth > 0) ithen
+    result = RateInitEven(depth - 1)
+  endif
+  xout result
+endop
+
+opcode RateInitRead(index:i):i
+  value:RateValue init rateValues[index]
+  result:i init value.values[0]
+  xout result
+endop
+
+opcode RatePerfEven(depth:i):i
+  result:i init 1
+  if (depth > 0) ithen
+    result = RatePerfOdd(depth - 1)
+  endif
+  xout result
+endop
+
+opcode RatePerfOdd(depth:i):i
+  result:i init 1
+  printks "", 1
+  if (depth > 0) ithen
+    result = RatePerfEven(depth - 1)
+  endif
+  xout result
+endop
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+
+    OENTRY* initEven = find_opcode_new(csound, "RateInitEven", "i", "i");
+    OENTRY* initOdd = find_opcode_new(csound, "RateInitOdd", "i", "i");
+    OENTRY* initRead = find_opcode_new(csound, "RateInitRead", "i", "i");
+    OENTRY* perfEven = find_opcode_new(csound, "RatePerfEven", "i", "i");
+    OENTRY* perfOdd = find_opcode_new(csound, "RatePerfOdd", "i", "i");
+
+    ASSERT_NE(nullptr, initEven);
+    ASSERT_NE(nullptr, initOdd);
+    ASSERT_NE(nullptr, initRead);
+    ASSERT_NE(nullptr, perfEven);
+    ASSERT_NE(nullptr, perfOdd);
+    EXPECT_EQ(nullptr, initEven->perf);
+    EXPECT_EQ(nullptr, initOdd->perf);
+    EXPECT_EQ(nullptr, initRead->perf);
+    EXPECT_NE(nullptr, perfEven->perf);
+    EXPECT_NE(nullptr, perfOdd->perf);
 }
 
 TEST_F (OrcCompileTests, testCompile)

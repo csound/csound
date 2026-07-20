@@ -624,6 +624,14 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
             tabinit_like(csound, dstArr, (ARRAYDAT *)srcArr);
         }
 
+        /* An explicit aggregate init has no performance callback. Copy every
+           array element now instead of relying on the normal assignment's
+           first performance pass. */
+        if (assign->h.perf == NULL) {
+            return copy_var_generic_impl(
+              csound, p, CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION, 1);
+        }
+
         // Special-case: complex arrays copy immediately (no perf hook, no flag).
         if (srcArr->arrayType == &CS_VAR_TYPE_COMPLEX) {
             return copy_var_generic_impl(
