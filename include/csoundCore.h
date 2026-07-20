@@ -253,6 +253,7 @@ typedef struct {
   /**
    * Type definition for arrays
    */
+  struct cs_array_storage;
   struct arraydat {
     int32_t      dimensions; /* number of array dimensions */
     int32_t*     sizes;  /* size of each dimensions */
@@ -260,6 +261,12 @@ typedef struct {
     const struct cstype* arrayType; /* type of array */
     MYFLT*   data; /* data */
     size_t   allocated; /* size of allocated data */
+    /* Opaque ownership sidecar for structured arrays. Appending it preserves
+       existing member offsets but changes sizeof(ARRAYDAT), so external code
+       embedding the struct must rebuild against this header. Direct ARRAYDAT
+       constructors must initialize the field to NULL; ownership changes must
+       go through the array type callbacks rather than copying this pointer. */
+    struct cs_array_storage* storage;
   };
 
   /**
@@ -1471,7 +1478,10 @@ struct CSOUND_ {
       To allow the API to grow while maintining backward binary compatibility.
    */
   /**@{ */
-  SUBR dummyfn_2[50];
+  /* This consumes one former placeholder; the 50-pointer reserve keeps the
+     offsets of private CSOUND fields unchanged. */
+  int32_t (*ArrayPrepareWrite)(CSOUND *, ARRAYDAT *, INSDS *, int32_t);
+  SUBR dummyfn_2[49];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1658,6 +1668,10 @@ struct CSOUND_ {
   int32_t event_insert_loop;
   void *init_pass_threadlock;
   void *API_lock;
+  void *array_storage_lock;
+  /* Serializes only structured-array sidecar discovery and reference changes.
+     Allocation and element copying happen after this lock is released. */
+  spin_lock_t array_storage_spinlock;
   spin_lock_t spoutlock, spinlock;
   spin_lock_t memlock, spinlock1;
   char *delayederrormessages;

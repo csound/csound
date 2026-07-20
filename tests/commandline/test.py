@@ -659,6 +659,12 @@ def runTest():
         ["test_ambiguous_opcall.csd", "test ambiguous opcall examples"],
         ["test_opcode_type.csd", "tests opcode type"],
         ["test_opcode_obj_loop.csd", "tests array of opcode objects in loops"],
+        ["test_opcode_getp.csd", "tests numeric opcode-object output access"],
+        [
+            "test_opcode_getp_managed_fail.csd",
+            "reject managed opcode-object output access",
+            1,
+        ],
         ["test_sa.csd", "test sample accurate mode"],
         ["test_overload_selection.csd", "test wrong annotation case"],
         ["test_unschedule.csd", "test unscheduling events"],
@@ -746,6 +752,24 @@ def runTest():
         ["arrays/test_redef_fail.csd", "fail on redefinition of variable by array", 1],
         ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],
         ["arrays/test_empty_array_init.csd", "test zero-length array initialization"],
+        [
+            "arrays/test_struct_array_reshape_copy.csd",
+            "reshaping a struct-array copy preserves its source",
+        ],
+        [
+            "arrays/test_struct_array_k_write_after_copy.csd",
+            "k-rate writes use prepared struct-array copy storage",
+        ],
+        [
+            "arrays/test_opcode_array_managed_fail.csd",
+            "reject managed scalar transfers through Opcode arrays",
+            1,
+        ],
+        [
+            "arrays/test_chncleararray_managed_fail.csd",
+            "reject byte-wise clearing of managed array channels",
+            1,
+        ],
         ["complex_array_test.csd", "testing complex array ops"],
         ["test_array_channels.csd", "testing bus channels holding arrays"],
         ["fft_array_test.csd", "testing complex fft array ops"],
@@ -834,6 +858,15 @@ def runTest():
             "structs/test_string_array_direct_member_index.csd",
             "direct indexing of a string-array struct member",
         ],
+        [
+            "structs/test_struct_arate_members.csd",
+            "a-rate struct member write/read with ksmps above parse-time default",
+        ],
+        [
+            "structs/test_struct_arate_members_negative.csd",
+            "fail when a-rate struct members are initialized with constants",
+            "fail",
+        ],
         ["test_exitnowk.csd", "perf-time exitnow opcode"],
         ["test_udt_channel.csd", "testing user-defined type channel"],
         ["test_udt_chan_no_match.csd", "testing unmatched udt channel", 1],
@@ -849,6 +882,18 @@ def runTest():
         ["udo/pass_by_ref.csd", "Pass-by-ref works with new-style UDOs"],
         ["udo/test_args_in.csd", "Pass-by-ref connects args correctly."],
         ["udo/test_K_type.csd", "K-type arguments work with pass-by-ref"],
+        [
+            "udo/test_init_only_udo_frame_lifetime.csd",
+            "Init-only UDO frames release structured temporary values",
+        ],
+        [
+            "udo/test_init_only_udo_nested_cleanup.csd",
+            "Retained nested UDO cleanup survives overlapping frame reuse",
+        ],
+        [
+            "udo/test_init_only_udo_reserved_refs.csd",
+            "Recycled init-only UDOs restore reserved instance references",
+        ],
         [
             "udo/test_udo_init_only_conditional_perf_chain.csd",
             "init-only UDOs in conditionals do not install perf chains",

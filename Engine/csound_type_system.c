@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
+#include "csound_orc_structs.h"
+#include "arrays_internal.h"
 #include "csoundCore.h"
 #include "aops.h"
 #include "arrays.h"
@@ -457,7 +459,9 @@ static int types_are_equivalent(CSOUND *csound, const char* type1, const char* t
 
 
 /* GENERIC VARIABLE COPYING */
-int32_t copy_var_generic(CSOUND *csound, void *p) {
+static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
+                                     CSOUND_STRUCT_COPY_MODE structCopyMode,
+                                     int32_t initializing) {
     ASSIGN* assign = (ASSIGN*)p;
     CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
     CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
@@ -540,8 +544,28 @@ int32_t copy_var_generic(CSOUND *csound, void *p) {
 
 
 
-    typeR->copyValue(csound, typeR, assign->r, assign->a, assign->h.insdshead);
+    if (typeR->userDefinedType) {
+      if (UNLIKELY(csound_copy_struct_value(
+                     csound, typeR, assign->r, assign->a,
+                     assign->h.insdshead,
+                     structCopyMode) != OK)) {
+        return initializing
+          ? csound->InitError(csound, "could not copy structured value")
+          : csound->PerfError(csound, &assign->h,
+                              "could not copy structured value");
+      }
+      return OK;
+    }
+    typeR->copyValue(csound, typeR, assign->r, assign->a,
+                     assign->h.insdshead);
     return OK;
+}
+
+int32_t copy_var_generic(CSOUND *csound, void *p) {
+    /* Init prepares independent nested storage. Performance copies may update
+       that storage, but must not detach or clone a shared aggregate. */
+    return copy_var_generic_impl(
+      csound, p, CSOUND_STRUCT_COPY_INDEPENDENT_NO_ALLOCATION, 0);
 }
 
 
@@ -558,12 +582,18 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
         ARRAYDAT *dstArr = (ARRAYDAT *)assign->r;
         if (srcType != &CS_VAR_TYPE_ARRAY) {
             // Source is a scalar (e.g., assigning to array element), not array-to-array
-            return copy_var_generic(csound, p);
+            return copy_var_generic_impl(
+              csound, p, CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION, 1);
         }
         ARRAYDAT *srcArr = (ARRAYDAT *)assign->a;
         if (srcArr->arrayType && srcArr->arrayType->userDefinedType) {
             assign->h.perf = copy_var_no_op;
-            copy_var_generic(csound, p);
+            if (UNLIKELY(csound_array_copy_independent(
+                           csound, dstArr, srcArr, assign->h.insdshead,
+                           CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
+              return csound->InitError(
+                csound, "could not copy structured array value");
+            }
             return OK;
         }
         // If the destination really is an array, make it like the source.
@@ -573,23 +603,24 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
 
         // Special-case: complex arrays copy immediately (no perf hook, no flag).
         if (srcArr->arrayType == &CS_VAR_TYPE_COMPLEX) {
-            copy_var_generic(csound, p);
-            return OK;
+            return copy_var_generic_impl(
+              csound, p, CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION, 1);
         }
 
         // For integer or instrument arrays, fall through to the "flag" path below.
         if (srcArr->arrayType == &CS_VAR_TYPE_I ||
             srcArr->arrayType == &CS_VAR_TYPE_INSTR) {
             assign->h.perf = copy_var_no_op;
-            copy_var_generic(csound, p);
-            return OK;
+            return copy_var_generic_impl(
+              csound, p, CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION, 1);
         }
 
         // Other array element types: nothing more to do here.
         return OK;
     }
 
-    return copy_var_generic(csound, p);
+    return copy_var_generic_impl(
+      csound, p, CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION, 1);
 }
 
 

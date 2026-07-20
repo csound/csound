@@ -246,6 +246,33 @@ TEST_F (ChannelTests, InvalidChannel)
     ASSERT_EQ(err, CSOUND_SUCCESS);
 }
 
+TEST_F (ChannelTests, ArrayDataSetterRejectsManagedElements)
+{
+    const int32_t sizes[] = {1};
+    ARRAYDAT *numbers = csoundInitArrayChannel(
+      csound, "host-numbers", "i", 1, sizes);
+    ARRAYDAT *strings = csoundInitArrayChannel(
+      csound, "host-strings", "S", 1, sizes);
+    const MYFLT number = (MYFLT)42.0;
+    const void *originalStorage;
+    void *originalString;
+    void *currentString;
+
+    ASSERT_NE(nullptr, numbers);
+    ASSERT_NE(nullptr, strings);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetArrayData(numbers, &number));
+    EXPECT_EQ(number, static_cast<const MYFLT *>(
+                        csoundGetArrayData(numbers))[0]);
+
+    originalStorage = csoundGetArrayData(strings);
+    ASSERT_NE(nullptr, originalStorage);
+    memcpy(&originalString, originalStorage, sizeof(originalString));
+    EXPECT_EQ(CSOUND_ERROR, csoundSetArrayData(strings, &number));
+    EXPECT_EQ(originalStorage, csoundGetArrayData(strings));
+    memcpy(&currentString, originalStorage, sizeof(currentString));
+    EXPECT_EQ(originalString, currentString);
+}
+
 const char orc6[] = "chn_k \"chan\", 3, 2, 0.5, 0, 1, 10, 10, 50, 100\n"
         "chn_k \"chan2\", 3, 2, 0.5, 0, 1, 10, 10, 50, 100, \"testattr\"\n"
         "chn_k \"chan3\", 3, 2, 0.5, 0, 1\n"

@@ -290,7 +290,8 @@ int32_t soundin(CSOUND *csound, DISKIN2 *p){
 }
 
 static uintptr_t diskin_io_thread(void *p);
-static int32_t diskin2_cleanup(CSOUND *csound, void *p); 
+static int32_t diskin2_reset_callback(CSOUND *csound, void *p);
+static int32_t diskin2_reset_callback_array(CSOUND *csound, void *p);
 
 static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
 {
@@ -456,27 +457,43 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
       csound->CreateGlobalVariable(csound, "DISKIN_PTHREAD", sizeof(void**));
       csound->CreateGlobalVariable(csound,
                                    "DISKIN_THREAD_START", sizeof(int32_t));
+      csound->RegisterResetCallback(csound, NULL,
+                                    diskin2_reset_callback);
       current = *top;
     }
     else
 #endif
       {
         current = *top;
-        while(current->nxt != NULL) { /* find next empty slot in chain */
+        if (current != NULL) {
+          while(current->nxt != NULL) { /* find next empty slot in chain */
+            current = current->nxt;
+          }
+          /* DISKIN_INST memory will be freed on csoundReset() */
+          current->nxt = p;
           current = current->nxt;
         }
-        /* DISKIN_INST memory will be freed on csoundReset() */
-        current->nxt = p;
-        current = current->nxt;
+        else {
+          /* Chain was emptied by a concurrent diskin2_async_deinit
+             while alloc_spinlock was released during realtime init.
+             Re-seed with this instance. I/O globals still exist and
+             the I/O thread will be joined by diskin2_reset_callback
+             at csoundReset time. */
+          *top = p;
+          current = p;
+        }
     }
     current->nxt = NULL;
 
 #ifndef __EMSCRIPTEN__
-    if(*(start = csound->QueryGlobalVariable(csound,
-                                               "DISKIN_THREAD_START")) == 0) {
+    start = (int32_t *) csound->QueryGlobalVariable(csound,
+                                                    "DISKIN_THREAD_START");
+    if (start != NULL && *start == 0) {
       void **thread = csound->QueryGlobalVariable(csound, "DISKIN_PTHREAD");
-      *thread = csound->CreateThread(diskin_io_thread, *top);
-      *start = 1;
+      if (thread != NULL) {
+        *thread = csound->CreateThread(diskin_io_thread, *top);
+        *start = 1;
+      }
     }
 #endif
     p->async = 1;
@@ -523,17 +540,39 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   return OK;
 }
 
-static int32_t diskin2_cleanup(CSOUND *csound, void *p) {
+static int32_t diskin2_reset_callback(CSOUND *csound, void *p) {
 #ifndef __EMSCRIPTEN__
-      int32_t *start; void **pt;
-      start = (int32_t *) csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START");
+    int32_t *start; void **pt;
+    IGN(p);
+    start = (int32_t *) csound->QueryGlobalVariable(csound, "DISKIN_THREAD_START");
+    if (start != NULL) {
       *start = 0;
-      pt = csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD");
-      //csound->Message(csound, "dealloc %p %d\n", start, *start);
-      csound->JoinThread(*pt);
+      pt = csound->QueryGlobalVariable(csound, "DISKIN_PTHREAD");
+      if (pt != NULL && *pt != NULL)
+        csound->JoinThread(*pt);
       csound->DestroyGlobalVariable(csound, "DISKIN_PTHREAD");
       csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START");
       csound->DestroyGlobalVariable(csound, "DISKIN_INST");
+    }
+#endif
+    return OK;
+}
+
+static int32_t diskin2_reset_callback_array(CSOUND *csound, void *p) {
+#ifndef __EMSCRIPTEN__
+    int32_t *start; void **pt;
+    IGN(p);
+    start = (int32_t *) csound->QueryGlobalVariable(csound,
+                                                    "DISKIN_THREAD_START_ARRAY");
+    if (start != NULL) {
+      *start = 0;
+      pt = csound->QueryGlobalVariable(csound, "DISKIN_PTHREAD_ARRAY");
+      if (pt != NULL && *pt != NULL)
+        csound->JoinThread(*pt);
+      csound->DestroyGlobalVariable(csound, "DISKIN_PTHREAD_ARRAY");
+      csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START_ARRAY");
+      csound->DestroyGlobalVariable(csound, "DISKIN_INST_ARRAY");
+    }
 #endif
     return OK;
 }
@@ -553,8 +592,23 @@ int32_t diskin2_async_deinit(CSOUND *csound, DISKIN2 *p){
     }
     if (prv == NULL) *top = current->nxt;
     else prv->nxt = current->nxt;
-    if(*top == NULL)
-      diskin2_cleanup(csound,p);
+    if(*top == NULL) {
+#ifndef __EMSCRIPTEN__
+      /* Signal the I/O thread to stop.  Do not join the thread or
+         destroy globals here: this function may be called from the
+         performance thread under alloc_spinlock (via beat_expire ->
+         deact -> deinit_pass), and csoundJoinThread would block,
+         deadlocking with the event_insert_thread which needs
+         alloc_spinlock in realtime_init_pass.  The actual join
+         and global cleanup are deferred to diskin2_reset_callback,
+         registered via csound->RegisterResetCallback and called
+         at csoundReset time. */
+      int32_t *start = (int32_t *) csound->QueryGlobalVariable(
+                                       csound, "DISKIN_THREAD_START");
+      if (start != NULL)
+        *start = 0;
+#endif
+    }
   }
   return OK;
 }
@@ -1181,16 +1235,11 @@ int32_t diskin2_async_deinit_array(CSOUND *csound,  DISKIN2_ARRAY *p){
 
 #ifndef __EMSCRIPTEN__
     if (*top == NULL) {
-      int32_t *start; void **pt;
+      int32_t *start;
       start = (int32_t *) csound->QueryGlobalVariable(csound,
                                                   "DISKIN_THREAD_START_ARRAY");
-      *start = 0;
-      pt = csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD_ARRAY");
-      //csound->Message(csound, "dealloc %p %d\n", start, *start);
-      csound->JoinThread(*pt);
-      csound->DestroyGlobalVariable(csound, "DISKIN_PTHREAD_ARRAY");
-      csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START_ARRAY");
-      csound->DestroyGlobalVariable(csound, "DISKIN_INST_ARRAY");
+      if (start != NULL)
+        *start = 0;
     }
 #endif
   }
@@ -1588,17 +1637,25 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
                                      "DISKIN_PTHREAD_ARRAY", sizeof(void**));
         csound->CreateGlobalVariable(csound,
                                      "DISKIN_THREAD_START_ARRAY", sizeof(int32_t));
+        csound->RegisterResetCallback(csound, NULL,
+                                      diskin2_reset_callback_array);
         current = *top;
       }
       else
 #endif
         {
           current = *top;
-          while(current->nxt != NULL) { /* find next empty slot in chain */
+          if (current != NULL) {
+            while(current->nxt != NULL) { /* find next empty slot in chain */
+              current = current->nxt;
+            }
+            current->nxt = p;
             current = current->nxt;
           }
-          current->nxt = p;
-          current = current->nxt;
+          else {
+            *top = p;
+            current = p;
+          }
         }
       current->nxt = NULL;
 

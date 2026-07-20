@@ -341,8 +341,12 @@ public:
   uint32_t GetNsmps() { return nsmps; }
 };
 
-/** One-dimensional array container
-    template class
+/** One-dimensional array container template class.
+
+    The legacy mutable iterators, subscript, and data_array() accessors are
+    fixed-layout accessors and do not perform an ownership transition. Managed
+    arrays must obtain storage through writable_data() or writable_data_init()
+    before using those accessors.
  */
 template <typename T> class Vector : ARRAYDAT {
 
@@ -351,6 +355,28 @@ public:
    */
   void init(Csound *csound, int32_t size, INSDS *ctx) {
     tabinit(csound, this, size, ctx);
+  }
+
+  /** Return writable data without allocating while detaching shared storage.
+      This is safe to call from the performance pass and returns nullptr when
+      the array requires a clone. Direct mutable iterators and subscripts are
+      only safe for unmanaged arrays or after this check succeeds. */
+  T *writable_data(Csound *csound, INSDS *ctx) {
+    CSOUND *engine = (CSOUND *)csound;
+    int32_t result = engine != nullptr
+      ? csound_array_try_prepare_write(engine, this, ctx)
+      : NOTOK;
+    return result == OK ? (T *)data : nullptr;
+  }
+
+  /** Return writable data during initialization, allowing a shared managed
+      array to allocate an independent copy. */
+  T *writable_data_init(Csound *csound, INSDS *ctx) {
+    CSOUND *engine = (CSOUND *)csound;
+    int32_t result = engine != nullptr
+      ? csound_array_prepare_write(engine, this, ctx)
+      : NOTOK;
+    return result == OK ? (T *)data : nullptr;
   }
 
   /** iterator type
@@ -841,7 +867,8 @@ public:
    */
   Fsig &fsig_data(int32_t n) { return (Fsig &)*ptrs[n]; }
 
-  /** 1-D array data as Vector template ref
+  /** 1-D array data as Vector template ref. Managed output arrays must use
+      Vector::writable_data() before raw mutation.
    */
   template <typename T> Vector<T> &vector_data(int32_t n) {
     return (Vector<T> &)*ptrs[n];

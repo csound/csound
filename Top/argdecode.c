@@ -1175,6 +1175,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     csoundLoadExternals(csound);
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
+    csound->info_message_request = 1;
     if (*(s + 7) == '=') {
       if (!strncmp(s + 8, "in", 2)) {
         list_audio_devices(csound, 0);
@@ -1184,7 +1185,6 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       list_audio_devices(csound, 0);
       list_audio_devices(csound, 1);
     }
-    csound->info_message_request = 1;
     return 1;
   } else if (!(strncmp(s, "midi-devices", 12))) {
     csoundLoadExternals(csound);
@@ -1208,8 +1208,9 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
          backend to open successfully */
       set_output_format(O, 'f');
       O->sr_override = FL(-1.0);
-      O->inbufsamps = O->outbufsamps = 256;
+      O->inbufsamps = O->outbufsamps = 1024;
       O->oMaxLag = 1024;
+      csound->info_message_request = 1;
       csoundLoadExternals(csound);
       if (csoundInitModules(csound) != 0)
         csound->LongJmp(csound, 1);
@@ -1221,14 +1222,14 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       }
       // then output
       if(O->outfilename && !strncmp(O->outfilename, "dac", 3)){
-      sf_open_out(csound);
-      sf_close_out(csound);
+        sf_open_out(csound);
+        sf_close_out(csound);
       }
       csound->MessageS(csound, CSOUNDMSG_STDOUT, "system sr: %f\n",
                        csound->GetSystemSr(csound, 0));
       csound->LongJmp(csound, 0);
     }
-    csound->info_message_request = 1;
+    csound->info_message_request = 0;
     return 1;
   } else if (!strncmp(s, "use-system-sr", 13)) {
     if (O->sr_override == FL(0.0))

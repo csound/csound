@@ -58,15 +58,84 @@ int32_t merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
 OENTRY* find_opcode(CSOUND*, char*);
 void sanitize(CSOUND *csound);
 
-/* Check if a UDO definition has any perf-time opcodes.
-   Returns 1 if perf-time opcodes exist, 0 otherwise. */
-static int32_t udo_has_perf_opcodes(INSTRTXT *ip) {
+static int32_t udo_entry_matches_definition(const OENTRY *entry,
+                                            const OPCODINFO *opinfo) {
+  const OPCODINFO *called;
+
+  if (entry == NULL || opinfo == NULL ||
+      entry->init != (SUBR)useropcdset || entry->useropinfo == NULL) {
+    return 0;
+  }
+  called = (const OPCODINFO *)entry->useropinfo;
+  return called == opinfo ||
+         (called->name != NULL && opinfo->name != NULL &&
+          called->intypes != NULL && opinfo->intypes != NULL &&
+          called->outtypes != NULL && opinfo->outtypes != NULL &&
+          strcmp(called->name, opinfo->name) == 0 &&
+          strcmp(called->intypes, opinfo->intypes) == 0 &&
+          strcmp(called->outtypes, opinfo->outtypes) == 0);
+}
+
+static int32_t udo_entry_is_init_control(CSOUND *csound,
+                                         const INSTRTXT *ip,
+                                         const TEXT *text) {
+  const CS_VARIABLE *variable;
+
+  if (ip == NULL || text == NULL || text->oentry == NULL) {
+    return 0;
+  }
+  if (strcmp(text->oentry->opname, "goto") == 0) {
+    return 1;
+  }
+  if (strcmp(text->oentry->opname, "cngoto") != 0 ||
+      text->inlist == NULL || text->inlist->count < 1) {
+    return 0;
+  }
+  variable = csoundFindVariableWithName(csound, ip->varPool,
+                                        text->inlist->arg[0]);
+  return variable != NULL && variable->varType == &CS_VAR_TYPE_b;
+}
+
+static int32_t udo_pool_has_perf_types(const CS_VAR_POOL *pool) {
+  const CS_VARIABLE *variable = pool != NULL ? pool->head : NULL;
+
+  while (variable != NULL) {
+    const CS_TYPE *type = variable->varType;
+    const CS_TYPE *subtype = variable->subType;
+    if (type == &CS_VAR_TYPE_A || type == &CS_VAR_TYPE_K ||
+        type == &CS_VAR_TYPE_B || type == &CS_VAR_TYPE_W ||
+        type == &CS_VAR_TYPE_F || subtype == &CS_VAR_TYPE_A ||
+        subtype == &CS_VAR_TYPE_K || subtype == &CS_VAR_TYPE_B ||
+        subtype == &CS_VAR_TYPE_W || subtype == &CS_VAR_TYPE_F) {
+      return 1;
+    }
+    variable = variable->next;
+  }
+  return 0;
+}
+
+/* Check if a UDO definition has any perf-time opcodes. A direct recursive
+   call inherits this definition's rate and is not independent evidence that
+   the body performs. */
+static int32_t udo_has_perf_opcodes(CSOUND *csound, INSTRTXT *ip,
+                                    OPCODINFO *opinfo) {
   OPTXT *optxt = (OPTXT *) ip;
+  if (opinfo != NULL &&
+      (udo_pool_has_perf_types(opinfo->in_arg_pool) ||
+       udo_pool_has_perf_types(opinfo->out_arg_pool))) {
+    return 1;
+  }
   while ((optxt = optxt->nxtop) != NULL) {
     TEXT *ttp = &optxt->t;
     if (ttp->oentry == NULL) continue;
     if (strcmp(ttp->oentry->opname, "$label") == 0) continue;
     if (strcmp(ttp->oentry->opname, "endop") == 0) break;
+    if (udo_entry_matches_definition(ttp->oentry, opinfo)) {
+      continue;
+    }
+    if (udo_entry_is_init_control(csound, ip, ttp)) {
+      continue;
+    }
     if (ttp->oentry->perf != NULL) {
       return 1;
     }
@@ -2085,14 +2154,14 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
         instrtxt->opcode_info = opinfo;
         // replace ip oentry by the UDO oentry
         ((OPTXT *)instrtxt)->t.oentry = opinfo->oentry;
-      }
 
-      // remove dummy perf routine from init-time opcodes
-      if(!udo_has_perf_opcodes(instrtxt)) {
-        opinfo->oentry->perf = NULL;
-      }
+        // remove dummy perf routine from init-time opcodes
+        if (!udo_has_perf_opcodes(csound, instrtxt, opinfo)) {
+          opinfo->oentry->perf = NULL;
+        }
 
-      csoundBuildUserOpcodeRewirePlan(csound, opinfo);
+        csoundBuildUserOpcodeRewirePlan(csound, opinfo);
+      }
 
       break;
     case T_OPCALL:

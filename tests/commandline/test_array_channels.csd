@@ -5,6 +5,9 @@
 <CsInstruments>
 nchnls=2
 
+clearDimensions@global:i[] fillarray 2
+chnarray "clear", 3, "k", clearDimensions
+
 instr 1
  S1[] fillarray "one", "two", "three"
  chnset S1, "string"
@@ -146,6 +149,6 @@ i3 0 1
 i4 0 1
 i5 0 1
 i6 0 1
+
 </CsScore>
 </CsoundSynthesizer>
-

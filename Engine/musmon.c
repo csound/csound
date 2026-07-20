@@ -527,9 +527,11 @@ int32_t csound_cleanup(CSOUND *csound)
         for (rngp = STA(orngcnt), n = csound->nchnls; n--; )
           csound->ErrorMsg(csound, "%9d", *rngp++);
       }
-      csound->ErrorMsg(csound, Str("\n%d errors in performance\n"),
-                      csound->perferrcnt);
-
+      if(csound->perferrcnt > 0) {
+        csound->ErrorMsg(csound, Str("\n%d errors in performance\n"),
+                         csound->perferrcnt);
+      }
+      
       /* Print unit test report if enabled */
       if (csound->oparms->runUnitTests) {
         int32_t passed = csound->total_assert_cnt - csound->perferrcnt;
