@@ -1171,6 +1171,34 @@ static int32_t array_has_k_rate_index(CSOUND* csound, TREE* indexExpr,
   return 0;
 }
 
+static int32_t tree_has_k_rate_array_index(CSOUND* csound, TREE* tree,
+                                           TYPE_TABLE* typeTable)
+{
+  while (tree != NULL) {
+    if ((tree->type == T_ARRAY &&
+         array_has_k_rate_index(csound, tree->right, typeTable)) ||
+        tree_has_k_rate_array_index(csound, tree->left, typeTable) ||
+        tree_has_k_rate_array_index(csound, tree->right, typeTable)) {
+      return 1;
+    }
+    tree = tree->next;
+  }
+  return 0;
+}
+
+static int32_t boolean_expression_is_init_rate(CSOUND* csound, TREE* tree,
+                                               TYPE_TABLE* typeTable)
+{
+  char* type = get_arg_type2(csound, tree, typeTable);
+  int32_t result = type != NULL && type[0] == 'b' &&
+    !tree_has_k_rate_array_index(csound, tree, typeTable);
+
+  if (type != NULL) {
+    csound->Free(csound, type);
+  }
+  return result;
+}
+
 static int32_t struct_expr_has_array_root(TREE* structExpr)
 {
   TREE* current = structExpr;
@@ -1388,6 +1416,9 @@ int expand_struct_array_member_assignment(CSOUND* csound,
   TREE* assignmentOps = NULL;
   char* structTemps[STRUCT_ARRAY_MEMBER_PATH_MAX_DEPTH];
   int32_t i;
+  /* This path handles ordinary assignment only. There is no init-only member
+     setter, so its intermediate reads must retain the ordinary context. */
+  const int32_t initContext = 0;
 
   if (!current || !current->left || current->left->type != STRUCT_EXPR ||
       current->right == NULL) {
@@ -1421,7 +1452,8 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                                                    current->locn,
                                                    structTemps[i + 1],
                                                    structTemps[i],
-                                                   path.memberIndices[i], 0));
+                                                   path.memberIndices[i],
+                                                   initContext));
   }
 
   assignmentOps =
@@ -2124,13 +2156,15 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   if (current->left->type == T_IDENT) {
     last = tree_tail(anchor);
   } else {
+    int32_t initContext =
+      boolean_expression_is_init_rate(csound, current->left, typeTable);
     expressionNodes = create_boolean_expression(
       csound,
       current->left,
       current->line,
       current->locn,
       typeTable,
-      targets->gotoType != 0
+      initContext
     );
     anchor = tree_append(anchor, expressionNodes);
     last = tree_tail(anchor);
