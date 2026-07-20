@@ -403,7 +403,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
   if(varType) {
     ARRAY_VAR_INIT varInit;
     if(varType == &CS_VAR_TYPE_ARRAY) {
-      varInit.dimensions = 1; // one dimension,
+      varInit.dimensions = 1; //  default to 1
       varInit.type = NULL; //subtype to be set later
     }
     pp->var = varType->createVariable(csound, varType == &CS_VAR_TYPE_ARRAY ?
@@ -529,7 +529,8 @@ int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name){
   pp = find_channel(csound, name);
   
   if (pp == NULL // no channel
-      && pp->var == NULL) // no variable data created
+      || pp->var == NULL // no variable data created
+      || pp->var->memBlock == NULL)
     return 0; 
   else {
     if ((pp->type & CSOUND_STRING_CHANNEL) == CSOUND_STRING_CHANNEL) {
@@ -746,7 +747,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
       // support for arrays (not currently used)
       varInit.dimensions = ((ARRAYDAT*)p->arg)->dimensions;
       varInit.type = ((ARRAYDAT*)p->arg)->arrayType;
-      pp->type = CSOUND_ARRAY_CHANNEL | accessMode;
+      pp->type |= CSOUND_ARRAY_CHANNEL | accessMode;
     }
     pp->var = argtype->createVariable(csound, (argtype == &CS_VAR_TYPE_ARRAY ?
                                                (const CS_TYPE *)
@@ -757,7 +758,8 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
                         argtype->varTypeName);
       return NULL;
     }
-    
+
+    pp->var->varType = argtype;
     // allocate memory
     pp->var->memBlock = (CS_VAR_MEM *) csoundCalloc(csound, pp->var->memBlockSize
                                                     + CS_VAR_TYPE_OFFSET);
@@ -769,7 +771,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
     if (pp->var->initializeVariableMemory != NULL)
       pp->var->initializeVariableMemory(csound, pp->var, &(pp->var->memBlock->value));
     
-    if(pp->type == CSOUND_ARRAY_CHANNEL)
+    if((pp->type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_ARRAY_CHANNEL)
       tabinit_like(csound, (ARRAYDAT *) &pp->var->memBlock->value,
                    (ARRAYDAT *) p->arg);
   } else if(pp->var->varType != argtype) {
@@ -830,7 +832,7 @@ int32_t chnget_opcode_generic_init_k(CSOUND *csound, CHNGET *p) {
 
 int32_t chnset_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
   CHNENTRY *pp = find_channel(csound, p->iname->data);
-  if(pp) {
+  if(pp && pp->var) {
     if(pp->var->varType != GetTypeForArg(p->arg))
       return csound->PerfError(csound, &(p->h),
                                "channel type did not match argument\n");
@@ -851,7 +853,7 @@ int32_t chnset_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
 
 int32_t chnget_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
   CHNENTRY *pp = find_channel(csound, p->iname->data);
-  if(pp) {
+  if(pp && pp->var) {
     if(pp->var->varType != GetTypeForArg(p->arg))
       return csound->PerfError(csound, &(p->h),
                                "channel type did not match argument\n");
@@ -1517,6 +1519,7 @@ static void chnexport_generic_initialise(CSOUND *csound, CHNENTRY *pp,
   int32_t   err;
   if (UNLIKELY(argtype == NULL || argtype->createVariable == NULL)) {
     csound->InitError(csound, "channel argument has no variable constructor\n");
+    return;
   }
   pp->var = argtype->createVariable(csound,  argtype, op);
 }
@@ -1575,13 +1578,15 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
   if(chn->var == NULL)  // check chn var exists
     return csound->InitError(csound, "failed to create channel storage for type %s\n",
                              var->varType->varTypeName);
-  
+
+  csoundSpinLock(&chn->lock);  
   /* Free any existing chn var memBlock allocated earlier */
   delete_channel_varmem(csound, chn);
   /* point to the arg var */
   chn->var->memBlock = var->memBlock;
   /* set the flag to mark this */
   chn->varmem_is_external = 1;
+  csoundSpinUnLock(&chn->lock);
 
   /* if control channel, set additional parameters */
   if ((type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
@@ -2450,11 +2455,15 @@ static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int32_t type) {
   } else return csound->InitError(csound, "could not find channel\n");
 
   chn = find_channel(csound, p->iname->data);
-  chn->var->subType = adat->arrayType;
-  chn->var->dimensions = adat->dimensions;
+  if(chn->var->subType == NULL) {
+    // if subtype not set, set it here to the array arg
+    chn->var->subType = adat->arrayType;
+    chn->var->dimensions = adat->dimensions;
+  }
   adat_chn = (ARRAYDAT *) p->fp;
   if(adat_chn->arrayType == NULL)
    adat_chn->arrayType = adat->arrayType;
+
   if(adat->data == NULL) {
     if(adat_chn->data == NULL)
       return csound->InitError(csound, "array channel not allocated\n");

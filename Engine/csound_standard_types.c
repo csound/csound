@@ -32,22 +32,26 @@
 /* MEMORY COPYING FUNCTIONS */
 static void myflt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
+  if(src && dest)
    memcpy(dest, src, sizeof(MYFLT));
 }
 
 static void asig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                      const void* src, INSDS *ctx) {
   int32_t ksmps = ctx ? ctx->ksmps : csound->ksmps;
+  if(src && dest)
   memcpy(dest, src, sizeof(MYFLT) * ksmps);
 }
 
 static void complex_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                         const void* src, INSDS *ctx) {
+  if(src && dest)
   memcpy(dest, src, sizeof(COMPLEXDAT));
 }
 
 static void wsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                      const void* src, INSDS *ctx) {
+    if(src && dest)
     memcpy(dest, src, sizeof(SPECDAT));
     //TODO - check if this needs to copy SPECDAT's DOWNDAT member and AUXCH
 }
@@ -56,13 +60,15 @@ static void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                      const void* src, INSDS *ctx) {
     PVSDAT *fsigout = (PVSDAT*) dest;
     PVSDAT *fsigin = (PVSDAT*) src;
-    int32_t N = fsigin->N;
+    if(src && dest) {
+    int32_t N = fsigin->N;  
     memcpy(dest, src, sizeof(PVSDAT) - sizeof(AUXCH));
     if(fsigout->frame.auxp == NULL ||
        fsigout->frame.size < (N + 2) * sizeof(float))
       ((CSOUND *)csound)->AuxAlloc(csound,
                                    (N + 2) * sizeof(float), &fsigout->frame);
     memcpy(fsigout->frame.auxp, fsigin->frame.auxp, (N + 2) * sizeof(float));
+    }
 }
 
 /* String buffer management utility */
@@ -601,7 +607,7 @@ static void array_copy_value(CSOUND *csound, const CS_TYPE *cstype, void *dest,
 static void opcodedef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
   OPCODEREF *p = (OPCODEREF *) dest;
-  if(!p->readonly) {
+  if(!p->readonly && src && dest) {
    memcpy(dest, src, sizeof(OPCODEREF));
    p->readonly = 0; // clear readonly flag (which is not copied)
   }
@@ -620,7 +626,8 @@ static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     csound->Warning(csound, "mismatching context: copy value bypassed");
     return;
   }
-  if(!p->readonly) {
+  if(!p->readonly && src && dest) {
+   
    memcpy(dest, src, sizeof(OPCODEOBJ));
    p->readonly = 0; // clear readonly flag (which is not copied)
   }
