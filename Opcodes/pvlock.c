@@ -1674,7 +1674,9 @@ static int32_t hilbert_array_init(CSOUND *csound, HILBA *p) {
     p->off = 0;
     p->N = N;
     p->hop = h;
-    tabinit(csound, p->out, CS_KSMPS, p->h.insdshead);
+    if (UNLIKELY(tabinit(csound, p->out, CS_KSMPS,
+                         p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
     for(int k=0; k < CS_KSMPS; k++)
       ((COMPLEXDAT *)p->out->data)[k].isPolar = 0;  
     return OK;

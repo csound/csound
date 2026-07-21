@@ -1721,7 +1721,9 @@ int32_t chnget_array_opcode_init_i(CSOUND* csound, CHNGETARRAY* p)
   p->arraySize = arr->sizes[0];
   p->channels = (STRINGDAT*) arr->data;
 
-  tabinit(csound, p->arrayDat, p->arraySize, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->arrayDat, p->arraySize,
+                       p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
 
   int32_t err;
   MYFLT* fp;
@@ -1779,7 +1781,9 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
   p->channels = (STRINGDAT*) arr->data;
   p->channelPtrs = (MYFLT **) csound->Malloc(csound, p->arraySize*sizeof(MYFLT*));
   // VL: surely an array of pointers?
-  tabinit(csound, p->arrayDat, p->arraySize,  p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->arrayDat, p->arraySize,
+                       p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
 
   int32_t err;
   int32_t channelType;
@@ -2536,15 +2540,15 @@ static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int32_t type) {
   if(adat->data == NULL) {
     if(adat_chn->data == NULL)
       return csound->InitError(csound, "array channel not allocated\n");
-    else tabinit_like(csound, adat, adat_chn);
-
+    else if (UNLIKELY(tabinit_like(csound, adat, adat_chn) != OK))
+      return csound_array_init_resize_error(csound);
   }
 
   if(adat_chn->data == NULL) {
     if(adat->data == NULL)
       return csound->InitError(csound, "array variable not allocated\n");
-    else tabinit_like(csound, adat_chn, adat);
-
+    else if (UNLIKELY(tabinit_like(csound, adat_chn, adat) != OK))
+      return csound_array_init_resize_error(csound);
   }
   return OK;
 }
@@ -2680,7 +2684,8 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
 
   adat->arrayType = (CS_TYPE *)
     csoundGetTypeWithVarTypeName(csound->typePool, p->type->data);
-  tabinit(csound, adat, siz, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, adat, siz, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
   return OK;
 }
 
@@ -2978,7 +2983,10 @@ ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
 
     adat->arrayType = (CS_TYPE *)
       csoundGetTypeWithVarTypeName(csound->typePool, type);
-    tabinit(csound, adat, siz, NULL);
+    if (UNLIKELY(tabinit(csound, adat, siz, NULL) != OK)) {
+      csound->ErrorMsg(csound, "%s", Str("Could not resize array channel"));
+      return NULL;
+    }
   }
   return adat;
 }

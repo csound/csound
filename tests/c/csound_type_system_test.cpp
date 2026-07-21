@@ -241,6 +241,76 @@ TEST_F (TypeSystemTests, testIndependentArrayCopyReportsTypeMismatch)
     EXPECT_EQ(0u, destination.allocated);
 }
 
+TEST_F (TypeSystemTests, testTabinitRejectsNegativeSizeWithoutMutation)
+{
+    ARRAYDAT array{};
+
+    array.arrayType = &CS_VAR_TYPE_I;
+    ASSERT_EQ(OK, tabinit(csound, &array, 2, nullptr));
+    ASSERT_NE(nullptr, array.data);
+    ASSERT_NE(nullptr, array.sizes);
+    array.data[0] = FL(11.0);
+    MYFLT *const data = array.data;
+    int32_t *const sizes = array.sizes;
+    const size_t allocated = array.allocated;
+
+    EXPECT_EQ(NOTOK, tabinit(csound, &array, -1, nullptr));
+    EXPECT_EQ(data, array.data);
+    EXPECT_EQ(sizes, array.sizes);
+    EXPECT_EQ(allocated, array.allocated);
+    EXPECT_EQ(1, array.dimensions);
+    EXPECT_EQ(2, array.sizes[0]);
+    EXPECT_EQ(FL(11.0), array.data[0]);
+
+    csound_free_array_storage(csound, &array);
+}
+
+TEST_F (TypeSystemTests, testTabinitStorageFailureLeavesArrayReusable)
+{
+    ARRAYDAT array{};
+
+    EXPECT_EQ(NOTOK, tabinit(csound, &array, 2, nullptr));
+    EXPECT_EQ(0, array.dimensions);
+    EXPECT_EQ(nullptr, array.sizes);
+    EXPECT_EQ(nullptr, array.data);
+    EXPECT_EQ(0u, array.allocated);
+
+    array.arrayType = &CS_VAR_TYPE_I;
+    ASSERT_EQ(OK, tabinit(csound, &array, 2, nullptr));
+    EXPECT_EQ(1, array.dimensions);
+    EXPECT_EQ(2, array.sizes[0]);
+    EXPECT_NE(nullptr, array.data);
+
+    csound_free_array_storage(csound, &array);
+}
+
+TEST_F (TypeSystemTests, testTabinitLikeRejectsInvalidSourceWithoutMutation)
+{
+    ARRAYDAT source{};
+    ARRAYDAT destination{};
+
+    destination.arrayType = &CS_VAR_TYPE_I;
+    ASSERT_EQ(OK, tabinit(csound, &destination, 2, nullptr));
+    ASSERT_NE(nullptr, destination.data);
+    ASSERT_NE(nullptr, destination.sizes);
+    destination.data[0] = FL(13.0);
+    MYFLT *const data = destination.data;
+    int32_t *const sizes = destination.sizes;
+    const size_t allocated = destination.allocated;
+    source.arrayType = &CS_VAR_TYPE_I;
+    source.dimensions = -1;
+
+    EXPECT_EQ(NOTOK, tabinit_like(csound, &destination, &source));
+    EXPECT_EQ(data, destination.data);
+    EXPECT_EQ(sizes, destination.sizes);
+    EXPECT_EQ(allocated, destination.allocated);
+    EXPECT_EQ(1, destination.dimensions);
+    EXPECT_EQ(2, destination.sizes[0]);
+    EXPECT_EQ(FL(13.0), destination.data[0]);
+
+    csound_free_array_storage(csound, &destination);
+}
+
 TEST_F (TypeSystemTests, testConcurrentStructuredArrayCopiesShareOneStorage)
 {
     constexpr int32_t readerCount = 8;

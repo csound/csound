@@ -271,53 +271,62 @@ static inline int32_t csound_array_ensure_capacity(CSOUND *csound,
     return OK;
 }
 
-static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size,
-                           INSDS *ctx)
+/* Resize an array. Return NOTOK without publishing a new logical size when
+   validation, detachment, or allocation fails. */
+static inline int32_t tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size,
+                              INSDS *ctx)
 {
+    int32_t *newSizes = NULL;
     size_t capacity;
 
     if (UNLIKELY(p == NULL || size < 0 || p->dimensions < 0)) {
-        csound->Die(csound, "tabinit: invalid array or size");
-        return;
-    }
-    if (UNLIKELY(csound_array_prepare_write(csound, p, ctx) != OK)) {
-        csound->Die(csound, "tabinit: could not detach shared array");
-        return;
-    }
-    if (p->dimensions == 0) {
-        p->dimensions = 1;
-    }
-    if (p->dimensions == 1 && p->sizes == NULL) {
-        p->sizes = (int32_t *)csound->Calloc(csound, sizeof(int32_t));
+        return NOTOK;
     }
     if (UNLIKELY(p->dimensions > 1 && p->sizes == NULL)) {
-        csound->Die(csound, "tabinit: multidimensional array has no sizes");
-        return;
+        return NOTOK;
+    }
+    if (p->dimensions <= 1 && p->sizes == NULL) {
+        newSizes = (int32_t *)csound->Calloc(csound, sizeof(int32_t));
+        if (UNLIKELY(newSizes == NULL)) {
+            return NOTOK;
+        }
+    }
+    if (UNLIKELY(csound_array_prepare_write(csound, p, ctx) != OK)) {
+        csound->Free(csound, newSizes);
+        return NOTOK;
     }
     capacity = size > 0 ? (size_t)size : 1;
     if (UNLIKELY(csound_array_ensure_capacity(csound, p, capacity, ctx)
                  != OK)) {
-        csound->Die(csound, "tabinit: could not allocate array storage");
-        return;
+        csound->Free(csound, newSizes);
+        return NOTOK;
     }
-    if (p->dimensions == 1) {
+    if (newSizes != NULL) {
+        p->sizes = newSizes;
+    }
+    if (p->dimensions <= 1) {
+        p->dimensions = 1;
         p->sizes[0] = size;
     }
+    return OK;
 }
 
-static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p,
-                                const ARRAYDAT *tp)
+/* Match another array's layout. Return NOTOK without publishing partial size
+   metadata when validation, detachment, or allocation fails. */
+static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
+                                   const ARRAYDAT *tp)
 {
+    int32_t *newSizes = NULL;
     size_t elementCount;
     size_t capacity;
 
-    if (UNLIKELY(p == NULL || tp == NULL || tp->dimensions < 0 ||
+    if (UNLIKELY(p == NULL || tp == NULL || p->dimensions < 0 ||
+                 tp->dimensions < 0 ||
                  csound_array_member_count(tp, &elementCount) != OK)) {
-        csound->Die(csound, "tabinit_like: invalid source array");
-        return;
+        return NOTOK;
     }
     if (p == tp) {
-        return;
+        return OK;
     }
     if (p->arrayType == NULL) {
         p->arrayType = tp->arrayType;
@@ -325,36 +334,61 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p,
     if (UNLIKELY(p->arrayType == NULL ||
                  !csound_array_element_types_compatible(
                    p->arrayType, tp->arrayType))) {
-        csound->Die(csound, "tabinit_like: array types do not match");
-        return;
+        return NOTOK;
+    }
+    if (tp->dimensions > 0 &&
+        (p->dimensions != tp->dimensions || p->sizes == NULL)) {
+        newSizes = (int32_t *)csound->Calloc(
+          csound, sizeof(int32_t) * (size_t)tp->dimensions);
+        if (UNLIKELY(newSizes == NULL)) {
+            return NOTOK;
+        }
+        memcpy(newSizes, tp->sizes,
+               sizeof(int32_t) * (size_t)tp->dimensions);
     }
     if (UNLIKELY(csound_array_prepare_write(csound, p, NULL) != OK)) {
-        csound->Die(csound, "tabinit_like: could not detach shared array");
-        return;
+        csound->Free(csound, newSizes);
+        return NOTOK;
     }
     if (p->data == tp->data) {
-        return;
+        csound->Free(csound, newSizes);
+        return OK;
     }
 
+    capacity = elementCount > 0 ? elementCount : 1;
+    if (UNLIKELY(csound_array_ensure_capacity(csound, p, capacity, NULL)
+                 != OK)) {
+        csound->Free(csound, newSizes);
+        return NOTOK;
+    }
     if (tp->dimensions == 0) {
         csound->Free(csound, p->sizes);
         p->sizes = NULL;
         p->dimensions = 0;
     }
-    else if (p->dimensions != tp->dimensions || p->sizes == NULL) {
-        p->sizes = (int32_t *)csound->ReAlloc(
-          csound, p->sizes, sizeof(int32_t) * (size_t)tp->dimensions);
+    else if (newSizes != NULL) {
+        csound->Free(csound, p->sizes);
+        p->sizes = newSizes;
         p->dimensions = tp->dimensions;
+        newSizes = NULL;
     }
-    if (tp->dimensions > 0) {
+    else {
         memcpy(p->sizes, tp->sizes,
                sizeof(int32_t) * (size_t)tp->dimensions);
     }
-    capacity = elementCount > 0 ? elementCount : 1;
-    if (UNLIKELY(csound_array_ensure_capacity(csound, p, capacity, NULL)
-                 != OK)) {
-        csound->Die(csound, "tabinit_like: could not allocate array storage");
-    }
+    return OK;
+}
+
+static inline int32_t csound_array_init_resize_error(CSOUND *csound)
+{
+    return csound->InitError(csound, "%s", Str("Could not resize array"));
+}
+
+static inline int32_t csound_array_perf_resize_error(CSOUND *csound,
+                                                      OPDS *ctx)
+{
+    return csound->PerfError(csound, ctx, "%s",
+                             Str("Could not resize array"));
 }
 
 static inline int32_t tabcheck(CSOUND *csound, ARRAYDAT *p, int32_t size, OPDS *q)

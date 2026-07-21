@@ -235,7 +235,9 @@ static int32_t directory(CSOUND *csound, DIR_STRUCT *p) {
   }
 
   int32_t numberOfFiles = (int32_t) fileNames.size();
-  tabinit(csound, p->outArr, numberOfFiles, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->outArr, numberOfFiles,
+                       p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
   STRINGDAT *strings = (STRINGDAT *)p->outArr->data;
 
   for (int32_t i = 0; i < numberOfFiles; i++) {

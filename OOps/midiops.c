@@ -858,7 +858,9 @@ int32_t savectrl_init(CSOUND *csound, SAVECTRL *p)
       if (ctlno < FL(0.0) || ctlno > FL(127.0))
         return csound->InitError(csound, Str("Value out of range [0,127]\n"));
     }
-    tabinit(csound, p->arr, 2+2*nargs, p->h.insdshead);
+    if (UNLIKELY(tabinit(csound, p->arr, 2+2*nargs,
+                         p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
     p->arr->data[0] = nargs;    /* length */
     p->arr->data[1] = chnl+1;   /* channel */
     for (i=0, j=2; i<nargs; i++, j+=2) {
@@ -1093,4 +1095,3 @@ int32_t printpresets_init1(CSOUND *csound, PRINTPRESETS *p)
     if (p->fout==NULL) return NOTOK;
     return OK;
 }
-

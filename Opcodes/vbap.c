@@ -1916,7 +1916,9 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
                              "%s", Str("vbap system NOT configured.\nMissing"
                                        " vbaplsinit opcode in orchestra?"));
   //printf("**** size = %d\n", p->q.ls_set_am);
-  tabinit(csound,  p->tabout, p->q.ls_set_am, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->tabout, p->q.ls_set_am,
+                       p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
   cnt = p->q.number = p->tabout->sizes[0];
   csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
   if (UNLIKELY(p->q.aux.auxp == NULL)) {
@@ -3066,4 +3068,3 @@ static OENTRY vbap_localops[] = {
 };
 
 LINKAGE_BUILTIN(vbap_localops)
-

@@ -785,8 +785,11 @@ static int32_t scsnmapV_init(CSOUND *csound, PSCSNMAPV *p)
     /* Get corresponding update */
     p->p = listget(csound, (int32_t)*p->i_id);
     if (p->p == NULL) return NOTOK;
-    tabinit(csound, p->k_pos,(p->p)->len, p->h.insdshead);
-    tabinit(csound, p->k_vel,(p->p)->len, p->h.insdshead);
+    if (UNLIKELY(tabinit(csound, p->k_pos, (p->p)->len,
+                         p->h.insdshead) != OK ||
+                 tabinit(csound, p->k_vel, (p->p)->len,
+                         p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
     return OK;
 }
 
