@@ -1868,14 +1868,16 @@ static void reset(CSOUND *csound) {
     ATOMIC_SET(csound->parflag,!csound->parflag);
 #endif
   }
-  csound_cleanup(csound);
-  /* call registered reset callbacks */
+  /* call registered reset callbacks before csound_cleanup so that
+     any I/O threads (e.g. diskin2 async) are joined before their
+     instance memory is freed by free_inactive_instances. */
   while (csound->reset_list != NULL) {
     resetCallback_t *p = (resetCallback_t *)csound->reset_list;
     p->func(csound, p->userData);
     csound->reset_list = (void *)p->nxt;
     free(p);
   }
+  csound_cleanup(csound);
   /* call local destructor routines of external modules */
   /* should check return value... */
   csoundDestroyModules(csound);

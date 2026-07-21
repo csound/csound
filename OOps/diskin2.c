@@ -550,9 +550,6 @@ static int32_t diskin2_reset_callback(CSOUND *csound, void *p) {
       pt = csound->QueryGlobalVariable(csound, "DISKIN_PTHREAD");
       if (pt != NULL && *pt != NULL)
         csound->JoinThread(*pt);
-      csound->DestroyGlobalVariable(csound, "DISKIN_PTHREAD");
-      csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START");
-      csound->DestroyGlobalVariable(csound, "DISKIN_INST");
     }
 #endif
     return OK;
@@ -569,9 +566,6 @@ static int32_t diskin2_reset_callback_array(CSOUND *csound, void *p) {
       pt = csound->QueryGlobalVariable(csound, "DISKIN_PTHREAD_ARRAY");
       if (pt != NULL && *pt != NULL)
         csound->JoinThread(*pt);
-      csound->DestroyGlobalVariable(csound, "DISKIN_PTHREAD_ARRAY");
-      csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START_ARRAY");
-      csound->DestroyGlobalVariable(csound, "DISKIN_INST_ARRAY");
     }
 #endif
     return OK;
