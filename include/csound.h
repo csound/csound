@@ -997,20 +997,28 @@ extern "C" {
   PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
 
 
-  /** 
-   * Sets the data in a channel from a source variable memory block
-   * Input memory block is copied into the channel
-   * Access to channel via this function is threadsafe
+  /**
+   * Copies a value from a source variable memory block into a channel.
+   * The source and destination CS_VAR_MEM types must match. The source must
+   * contain enough initialized storage for its declared type; see
+   * csound_type_system.h for the CS_VAR_MEM definition and layout macros.
+   * Returns CSOUND_SUCCESS on success and CSOUND_ERROR for invalid input,
+   * missing channels, invalid channel storage, or type mismatches.
+   * Access to the channel through this function is thread-safe.
    */
   PUBLIC int32_t csoundSetChannel(CSOUND *csound, const char *name,
                                   const CS_VAR_MEM *var);
 
-  /** 
-   * Gets a memory block holding the variable data in a channel
-   * NB: similar to csoundGetChannelPtr(), access to this resource
-   * is not thread-safe and requires the use of the channel
-   * lock (see the notes for that API function).
-   */    
+  /**
+   * Returns a read-only pointer to the engine-owned variable memory block for
+   * a channel, or NULL if the channel has no initialized storage. The caller
+   * must not free the returned pointer. It remains valid until csoundReset()
+   * or destruction of the Csound instance.
+   *
+   * Like csoundGetChannelPtr(), reading the live value is not inherently
+   * thread-safe and requires the channel lock when concurrent writes are
+   * possible. See csound_type_system.h for the CS_VAR_MEM definition.
+   */
   PUBLIC const CS_VAR_MEM *csoundGetChannel(CSOUND *csound,
                                              const char *name);
 

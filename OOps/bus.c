@@ -541,7 +541,6 @@ int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name){
       STRINGDAT *dat = (STRINGDAT *) &(pp->var->memBlock->value);
       return (int32_t) dat->size;
     }
-    // NEED TO CHECK FOR ARRAYS
     if((pp->type & CSOUND_ARRAY_CHANNEL) == CSOUND_ARRAY_CHANNEL) {
       ARRAYDAT *dat = (ARRAYDAT *) &(pp->var->memBlock->value);
       return (int32_t)dat->allocated;
@@ -3031,12 +3030,8 @@ int32_t sensekey_perf(CSOUND *csound, KSENSE *p)
   return OK;
 }
 
-/**
-   Like csoundGetChannelPtr() this function *is not* threadsafe by
-   default. This is not an issue as we have that behaviour in the
-   API for over twenty years (it is not a new departure).
-   However, unlike csoundGetChannelPtr(), this is const-safe (read-only access)
-*/
+/* Like csoundGetChannelPtr(), access to the live value is not thread-safe
+   without taking the channel lock. The returned pointer is read-only. */
 const CS_VAR_MEM *csoundGetChannel(CSOUND *csound, const char *name) { 
   CHNENTRY *pp = find_channel(csound, name);
   if(pp && pp->var) return pp->var->memBlock;
