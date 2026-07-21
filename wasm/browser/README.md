@@ -11,6 +11,25 @@ ScriptProcessorNode support has been removed from the library. ScriptProcessorNo
 
 **Migration:** If you were using `useSPN: true`, simply remove this parameter. The library will automatically use the superior AudioWorklet API.
 
+## Microphone input
+
+Browser microphone access requires a secure context. Use HTTPS for deployed
+applications. For local development, use `http://localhost` or a loopback
+address such as `http://127.0.0.1`. A computer name or LAN address served over
+HTTP does not count as secure, even when it points to the same computer.
+
+Set the Csound input option to `-iadc` before calling `start()`. Worker modes
+detect this option and request microphone permission during startup. A direct
+call to `enableAudioInput()` only applies to the single-thread mode; worker
+modes ignore it. The returned promise rejects when the browser cannot provide
+microphone access.
+
+When Csound runs in an iframe, the parent page must also allow microphone
+access through its Permissions Policy.
+
+See the
+[MediaDevices.getUserMedia documentation](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#privacy_and_security)
+for browser security and permission rules.
 
 ## Api Documentation
 

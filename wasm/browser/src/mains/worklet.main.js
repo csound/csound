@@ -17,6 +17,7 @@ import * as Comlink from "../utils/comlink.js";
 import { logWorkletMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
 import { requestMidi } from "../utils/request-midi";
+import { requestMicrophoneNode } from "./io.utils.js";
 import { messageEventHandler } from "./messages.main";
 import WorkletWorker from "../../dist/__compiled.worklet.worker.inline.js";
 
@@ -257,61 +258,35 @@ class AudioWorkletMainThread {
       });
     }
 
-    let microphonePromise;
-
     if (this.isRequestingInput) {
-      let resolveMicrophonePromise;
-      microphonePromise = new Promise((resolve) => {
-        resolveMicrophonePromise = resolve;
-      });
-      const getUserMedia =
-        navigator.mediaDevices === undefined
-          ? navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia
-          : navigator.mediaDevices.getUserMedia;
+      let stream;
+      try {
+        stream = await requestMicrophoneNode();
+      } catch (error) {
+        console.error(error);
+      }
 
-      const microphoneCallback = (stream) => {
-        if (stream) {
-          const liveInput = this.audioContext.createMediaStreamSource(stream);
-          this.inputsCount = liveInput.channelCount;
-          const newNode = this.createWorkletNode(
-            this.audioContext,
-            liveInput.channelCount,
-            contextUid,
-          );
-          this.audioWorkletNode = newNode;
-          if (this.autoConnect) {
-            liveInput.connect(newNode).connect(this.audioContext.destination);
-          }
-        } else {
-          // Continue as before if user cancels
-          this.inputsCount = 0;
-          const newNode = this.createWorkletNode(this.audioContext, 0, contextUid);
-          this.audioWorkletNode = newNode;
-          if (this.autoConnect) {
-            this.audioWorkletNode.connect(this.audioContext.destination);
-          }
+      if (stream) {
+        const liveInput = this.audioContext.createMediaStreamSource(stream);
+        this.inputsCount = liveInput.channelCount;
+        const newNode = this.createWorkletNode(
+          this.audioContext,
+          liveInput.channelCount,
+          contextUid,
+        );
+        this.audioWorkletNode = newNode;
+        if (this.autoConnect) {
+          liveInput.connect(newNode).connect(this.audioContext.destination);
         }
-        resolveMicrophonePromise && resolveMicrophonePromise();
-      };
-
-      log("requesting microphone access")();
-      navigator.mediaDevices === undefined
-        ? getUserMedia.call(
-            navigator,
-            {
-              audio: {
-                optional: [{ echoCancellation: false, sampleSize: 32 }],
-              },
-            },
-            microphoneCallback,
-            console.error,
-          )
-        : getUserMedia
-            .call(navigator.mediaDevices, {
-              audio: { echoCancellation: false, sampleSize: 32 },
-            })
-            .then(microphoneCallback)
-            .catch(console.error);
+      } else {
+        // Continue without input if the browser denies microphone access.
+        this.inputsCount = 0;
+        const newNode = this.createWorkletNode(this.audioContext, 0, contextUid);
+        this.audioWorkletNode = newNode;
+        if (this.autoConnect) {
+          this.audioWorkletNode.connect(this.audioContext.destination);
+        }
+      }
     } else {
       const newNode = this.createWorkletNode(this.audioContext, 0, contextUid);
       this.audioWorkletNode = newNode;
@@ -322,7 +297,6 @@ class AudioWorkletMainThread {
       }
     }
 
-    microphonePromise && (await microphonePromise);
     this.workletProxy = Comlink.wrap(this.audioWorkletNode.port, undefined);
 
     this.ipcMessagePorts.mainMessagePortAudio.addEventListener(

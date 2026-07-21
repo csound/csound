@@ -13,50 +13,54 @@
  * limitations under the License.
  */
 
-export const requestMicrophoneNode = (microphoneCallback) => {
-  const getUserMedia =
-    navigator.mediaDevices === undefined
-      ? navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia
-      : navigator.mediaDevices.getUserMedia;
-
+export const requestMicrophoneNode = async () => {
   console.log("requesting microphone access");
-  navigator.mediaDevices === undefined
-    ? getUserMedia.call(
-        navigator,
-        {
-          audio: {
-            optional: [{ echoCancellation: false, sampleSize: 32 }],
-          },
+
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    return navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, sampleSize: 32 },
+    });
+  }
+
+  const legacyGetUserMedia =
+    navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+  if (!legacyGetUserMedia) {
+    throw new Error(
+      "Microphone input is unavailable. Use HTTPS, localhost, or a loopback address and allow microphone access.",
+    );
+  }
+
+  return new Promise((resolve, reject) => {
+    legacyGetUserMedia.call(
+      navigator,
+      {
+        audio: {
+          optional: [{ echoCancellation: false, sampleSize: 32 }],
         },
-        microphoneCallback,
-        console.error,
-      )
-    : getUserMedia
-        .call(navigator.mediaDevices, {
-          audio: { echoCancellation: false, sampleSize: 32 },
-        })
-        .then(microphoneCallback)
-        .catch(console.error);
+      },
+      resolve,
+      reject,
+    );
+  });
 };
 
 // rebind this to exportApi instance to use
 /**
+ * Requests browser microphone access and connects the stream to Csound.
+ * This requires HTTPS, localhost, or a loopback address. Worker modes should
+ * request input with `-iadc` before calling `start()` instead.
+ *
  * @function
- * @this {{
- * getNode: function(): Promise.<Object>,
- * getAudioContext: function(): Promise.<Object>,
- * }}
+ * @returns {Promise<void>} Resolves after the microphone stream is connected.
  */
 export async function enableAudioInput() {
   console.log("enabling audio input");
-  requestMicrophoneNode(async (stream) => {
-    if (stream) {
-      const audioContext = await this["getAudioContext"]();
-      const liveInput = audioContext.createMediaStreamSource(stream);
-      this.inputsCount = liveInput.channelCount;
+  const stream = await requestMicrophoneNode();
+  const audioContext = await this["getAudioContext"]();
+  const liveInput = audioContext.createMediaStreamSource(stream);
+  this.inputsCount = liveInput.channelCount;
 
-      const node = await this["getNode"]();
-      liveInput.connect(node);
-    }
-  });
+  const node = await this["getNode"]();
+  liveInput.connect(node);
 }

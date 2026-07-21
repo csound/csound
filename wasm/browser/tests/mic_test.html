@@ -40,8 +40,6 @@
         });
 
         const compileReturn = await csoundObj.compileCSD(test);
-        // console.log(csoundObj);
-        await csoundObj.enableAudioInput();
         const startReturn = await csoundObj.start();
         const n = await csoundObj.getNode();
         const ctx = await csoundObj.getAudioContext();

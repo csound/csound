@@ -490,7 +490,9 @@ declare interface CsoundObj {
    */
   terminateInstance: () => Promise<void>;
   /**
-   * Enable audio input functionality
+   * Requests microphone access and connects it to Csound in single-thread mode.
+   * Requires HTTPS, localhost, or a loopback address. In worker modes, set
+   * `-iadc` before calling `start()` instead.
    */
   enableAudioInput: () => Promise<void>;
   /**

@@ -273,7 +273,11 @@ class SingleThreadAudioWorkletMainThread {
 
             if (isRequestingRealtimeOutput) {
               if (isRequestingInput) {
-                this.exportApi["enableAudioInput"]();
+                try {
+                  await this.exportApi["enableAudioInput"]();
+                } catch (error) {
+                  console.error(error);
+                }
               }
 
               const isRequestingMidi =
