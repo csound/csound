@@ -16,6 +16,7 @@
 import * as Comlink from "../utils/comlink.js";
 import { logWorkletMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
+import { getGlobalScope } from "../utils/global-scope.js";
 import { requestMidi } from "../utils/request-midi";
 import {
   releaseMicrophoneStream,
@@ -174,7 +175,9 @@ class AudioWorkletMainThread {
         }
 
         if (this.workletWorkerUrl) {
-          (globalThis.URL || globalThis.webkitURL).revokeObjectURL(this.workletWorkerUrl);
+          const globalScope = getGlobalScope();
+          const urlApi = globalScope && (globalScope.URL || globalScope.webkitURL);
+          urlApi && urlApi.revokeObjectURL(this.workletWorkerUrl);
         }
 
         this.audioWorkletNode && delete this.audioWorkletNode;

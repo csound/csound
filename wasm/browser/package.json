@@ -4,6 +4,9 @@
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
+  "engines": {
+    "node": ">=18.18"
+  },
   "files": [
     "dist/csound*",
     "dist/factory*",

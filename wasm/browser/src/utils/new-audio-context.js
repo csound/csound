@@ -13,11 +13,14 @@
  * limitations under the License.
  */
 
+import { getGlobalScope } from "./global-scope.js";
+
 export const WebkitAudioContext = () => {
-  if (globalThis.webkitAudioContext !== undefined) {
-    return globalThis.webkitAudioContext;
-  } else if (globalThis.AudioContext !== undefined) {
-    return globalThis.AudioContext;
+  const globalScope = getGlobalScope();
+  if (globalScope?.webkitAudioContext !== undefined) {
+    return globalScope.webkitAudioContext;
+  } else if (globalScope?.AudioContext !== undefined) {
+    return globalScope.AudioContext;
   }
 };
 
