@@ -180,6 +180,8 @@ export const api = {
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
+  csoundSetParams,
+  csoundGetParams,
   csoundGetDebug,
   csoundSetDebug,
   // @module/rtaudio
@@ -269,7 +271,7 @@ export const api = {
   fs,
 };
 
-export default function (wasm) {
+export default function createLibcsound(wasm) {
   /** @suppress {missingProperties} */
   const { fs: apiFs, UGEN_ARG_TYPE: ugenArgType, ...apiRest } = api;
 

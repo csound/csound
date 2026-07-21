@@ -174,7 +174,7 @@ class AudioWorkletMainThread {
         }
 
         if (this.workletWorkerUrl) {
-          (window.URL || window.webkitURL).revokeObjectURL(this.workletWorkerUrl);
+          (globalThis.URL || globalThis.webkitURL).revokeObjectURL(this.workletWorkerUrl);
         }
 
         this.audioWorkletNode && delete this.audioWorkletNode;
@@ -239,15 +239,15 @@ class AudioWorkletMainThread {
     }
     this.workletWorkerUrl = WorkletWorker();
 
-    if (!registeredContexts.has(this.audioContext)) {
+    if (registeredContexts.has(this.audioContext)) {
+      log("Module already registered on this AudioContext, skipping addModule")();
+    } else {
       try {
         await this.audioContext.audioWorklet.addModule(this.workletWorkerUrl);
         registeredContexts.add(this.audioContext);
       } catch (error) {
         console.error("Error calling audioWorklet.addModule", error);
       }
-    } else {
-      log("Module already registered on this AudioContext, skipping addModule")();
     }
 
     log("WorkletWorker module added")();

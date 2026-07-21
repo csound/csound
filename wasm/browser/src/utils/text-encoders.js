@@ -41,7 +41,7 @@ function TextDecoderPoly() {
 
   this.trimNull = (a) => {
     const c = a.indexOf("\0");
-    if (c > -1) {
+    if (c !== -1) {
       return a.slice(0, Math.max(0, c));
     }
     return a;

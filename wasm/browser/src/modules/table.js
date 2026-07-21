@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { uint2String } from "../utils/text-encoders.js";
 /*
    csound table module from <csound.h>
    https://csound.com/docs/api/group___t_a_b_l_e.html
@@ -96,5 +95,4 @@ export const csoundGetTableArgs = (wasm) => (csound /* CsoundInst */, tableNumbe
 };
 
 csoundGetTableArgs["toString"] = () => "getTableArgs = async (tableNum) => ?Float64Array;";
-
 

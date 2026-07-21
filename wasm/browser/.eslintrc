@@ -27,5 +27,7 @@
     "unicorn/numeric-separators-style": "off",
     "unicorn/require-post-message-target-origin": "off",
     "unicorn/no-useless-undefined": "off",
+    "unicorn/no-null": "off",
+    "unicorn/prefer-at": "off",
   },
 }

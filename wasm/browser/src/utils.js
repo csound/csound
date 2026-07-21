@@ -32,15 +32,15 @@ export const isSafari = () =>
   typeof navigator.vendor === "string" && navigator.vendor.includes("Apple");
 
 export const isSabSupported = () =>
-  !isFirefox() && window && window.Atomics !== undefined && window.SharedArrayBuffer !== undefined;
+  !isFirefox() && globalThis && globalThis.Atomics !== undefined && globalThis.SharedArrayBuffer !== undefined;
 
 export const areWorkletsSupported = () => AudioNode !== undefined && AudioWorkletNode !== undefined;
 
 export const WebkitAudioContext = () => {
-  if (window.webkitAudioContext !== undefined) {
-    return window.webkitAudioContext;
-  } else if (window.AudioContext !== undefined) {
-    return window.AudioContext;
+  if (globalThis.webkitAudioContext !== undefined) {
+    return globalThis.webkitAudioContext;
+  } else if (globalThis.AudioContext !== undefined) {
+    return globalThis.AudioContext;
   }
 };
 

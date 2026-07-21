@@ -14,10 +14,10 @@
  */
 
 export const WebkitAudioContext = () => {
-  if (window.webkitAudioContext !== undefined) {
-    return window.webkitAudioContext;
-  } else if (window.AudioContext !== undefined) {
-    return window.AudioContext;
+  if (globalThis.webkitAudioContext !== undefined) {
+    return globalThis.webkitAudioContext;
+  } else if (globalThis.AudioContext !== undefined) {
+    return globalThis.AudioContext;
   }
 };
 

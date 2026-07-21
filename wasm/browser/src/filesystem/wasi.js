@@ -22,7 +22,7 @@ const googPath = goog.require("goog.string.path");
 const DEBUG_WASI = goog.define("DEBUG_WASI", false);
 
 function removeLeadingSlash(path) {
-  return path.replace(/^\//g, "");
+  return path.replaceAll(/^\//g, "");
 }
 
 function splitPathSegments(path) {

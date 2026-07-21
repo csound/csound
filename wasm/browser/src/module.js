@@ -23,6 +23,10 @@ const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
 const WASI_LONGJMP_PREFIX = "CSOUND_WASI_LONGJMP:";
 
+const wasmLongjmp = (_, value) => {
+  throw new Error(`csound exit with code: ${value}`);
+};
+
 export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer }) => {
   return function (_, __, length_, offset) {
     if (!memory) {
@@ -59,7 +63,7 @@ export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer 
       }
     });
     printableChunks.forEach((chunk) => {
-      const maybePrintable = chunk.replace(/(\r\n|\n|\r)/gm, "");
+      const maybePrintable = chunk.replaceAll(/(\r\n|\n|\r)/gm, "");
       if (maybePrintable) {
         messagePort.post({ log: chunk });
       }
@@ -149,7 +153,7 @@ export function getBinaryHeaderData(input) {
     const bytes = readBytes(len);
     // ASCII for section names
     let s = "";
-    for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    for (let i = 0; i < bytes.length; i++) s += String.fromCodePoint(bytes[i]);
     return s;
   }
 
@@ -214,7 +218,7 @@ export function getBinaryHeaderData(input) {
 }
 
 
-export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
+export default async function loadWasm({ wasmDataURI, withPlugins = [], messagePort }) {
   const wasi = new WASI({ preopens: { "/": "/" } });
   const jumpTable = new Map(); // maps jmpbuf pointers to JS frames
   let tempRet0 = 0; // for 64-bit return value handling
@@ -231,11 +235,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
     if (!label) {
       throw new Error(`Invalid longjmp target ${jmpbuf}`);
     }
-    throw `csound exit with code: ${value}`;
-  };
-
-  const __wasm_longjmp = (_, value) => {
-    throw `csound exit with code: ${value}`;
+    throw new Error(`csound exit with code: ${value}`);
   };
 
   const getTempRet0 = () => tempRet0;
@@ -320,19 +320,17 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const options = wasi.getImports(module);
   let withPlugins_ = [];
 
-  let currentMemorySegment = initialMemory;
-
-  let hostRuntimeInstance;
+  const hostRuntime = { instance: undefined };
 
   const csoundLoadModules = (csoundInstance) => {
     withPlugins_.forEach((pluginItem) => {
       const pluginInstance =
         pluginItem && pluginItem.instance ? pluginItem.instance : pluginItem;
       const pluginTable = pluginItem && pluginItem.table ? pluginItem.table : table;
-      if (hostRuntimeInstance === undefined) {
+      if (hostRuntime.instance === undefined) {
         console.error("csound-wasm internal: timing problem detected!");
       } else {
-        dlinit(hostRuntimeInstance, pluginInstance, table, csoundInstance, pluginTable, memory);
+        dlinit(hostRuntime.instance, pluginInstance, table, csoundInstance, pluginTable, memory);
       }
     });
     return 0;
@@ -351,7 +349,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   options["env"]["saveSetjmp"] = saveSetjmp;
   options["env"]["testSetjmp"] = testSetjmp;
   options["env"]["longjmp"] = longjmp;
-  options["env"]["__wasm_longjmp"] = __wasm_longjmp;
+  options["env"]["__wasm_longjmp"] = wasmLongjmp;
   options["env"]["getTempRet0"] = getTempRet0;
   options["env"]["setTempRet0"] = setTempRet0;
 
@@ -393,7 +391,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   /** @suppress {checkTypes} */
   instance_["exports"] = moduleExports;
-  hostRuntimeInstance = instance_;
+  hostRuntime.instance = instance_;
 
   const table = instance_["exports"]["__indirect_function_table"];
   const hasLegacyWasiPluginLoader =
@@ -404,8 +402,6 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
     accumulator = await accumulator;
     try {
       const {
-        memorySize: pluginMemorySize,
-        memoryAlign: pluginMemoryAlign,
         tableSize: pluginTableSize,
       } = headerData;
 
@@ -439,8 +435,6 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
       // pluginOptions["env"]["__memory_base"] = currentMemorySegment * PAGE_SIZE;
       // pluginOptions["env"]["__table_base"] = tableBase;
       delete pluginOptions["env"]["csoundWasiJsMessageCallback"];
-
-      currentMemorySegment += Math.ceil((pluginMemorySize + pluginMemoryAlign) / PAGE_SIZE);
 
       /**
        * @suppress {checkTypes}
