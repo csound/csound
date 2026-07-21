@@ -409,13 +409,13 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
     pp->var = varType->createVariable(csound, varType == &CS_VAR_TYPE_ARRAY ?
                                       (const CS_TYPE*) &varInit :
                                       varType, NULL);
-    pp->var->varType = varType;
     if (UNLIKELY(pp->var == NULL)) {
       csound->Message(csound, "failed to create channel variable for type %s\n",
                         varType->varTypeName);
       csoundFree(csound, pp);
       return NULL;
     }
+    pp->var->varType = varType;
     pp->var->memBlock = (CS_VAR_MEM *)
         csound->Calloc(csound, CS_VAR_TYPE_OFFSET  +
                        pp->var->memBlockSize);
@@ -1520,13 +1520,13 @@ int32_t chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
 static void chnexport_generic_initialise(CSOUND *csound, CHNENTRY *pp,
                                          const CS_TYPE *argtype,
                                          INSDS *op) {
-  int32_t   err;
   if (UNLIKELY(argtype == NULL || argtype->createVariable == NULL)) {
     csound->InitError(csound, "channel argument has no variable constructor\n");
     return;
   }
   pp->var = argtype->createVariable(csound,  argtype, op);
-  pp->var->varType = argtype;
+  if (LIKELY(pp->var != NULL))
+    pp->var->varType = argtype;
 }
 
 
