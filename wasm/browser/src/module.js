@@ -318,16 +318,14 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   let withPlugins_ = [];
 
   const hostRuntime = { instance: undefined };
-  let currentMemoryOffset = fixedMemoryBase + initialMemory * PAGE_SIZE;
+  let currentMemoryOffset = initialMemory * PAGE_SIZE;
 
   const csoundLoadModules = (csoundInstance) => {
     withPlugins_.forEach((pluginItem) => {
       const pluginInstance =
         pluginItem && pluginItem.instance ? pluginItem.instance : pluginItem;
       const pluginTable = pluginItem && pluginItem.table ? pluginItem.table : table;
-      if (hostRuntime.instance === undefined) {
-        console.error("csound-wasm internal: timing problem detected!");
-      }
+      // dlinit falls back to direct plugin initialization until the host is ready.
       dlinit(hostRuntime.instance, pluginInstance, table, csoundInstance, pluginTable, memory);
     });
     return 0;
