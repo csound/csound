@@ -3043,58 +3043,66 @@ const CS_VAR_MEM *csoundGetChannel(CSOUND *csound, const char *name) {
   else return NULL;
 } 
 
-int32_t csoundSetChannel(CSOUND *csound, const char *name, const CS_VAR_MEM *var) { 
-  CHNENTRY *pp = find_channel(csound, name);
-  // validate var  
-  if(var == NULL) {
-    csoundMessage(csound, "null input memBlock\n");
+int32_t csoundSetChannel(CSOUND *csound, const char *name,
+                        const CS_VAR_MEM *var) {
+  CHNENTRY *pp;
+  const CS_TYPE *channelType;
+
+  if(name == NULL || name[0] == '\0' || var == NULL || var->varType == NULL) {
+    csoundMessage(csound, "invalid channel name or input memBlock\n");
     return CSOUND_ERROR;
   }
-  if(pp) {
-    if(pp->var && pp->var->varType == var->varType) {
-      // control channels use atomics if available 
-      if((pp->type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_CONTROL_CHANNEL &&
-         pp->var->memBlock) {
-        MYFLT *fp = &pp->var->memBlock->value;
+
+  pp = find_channel(csound, name);
+  if(pp == NULL || pp->var == NULL || pp->var->memBlock == NULL ||
+     pp->var->varType == NULL || pp->var->memBlock->varType == NULL) {
+    csoundMessage(csound, "could not access channel %s\n", name);
+    return CSOUND_ERROR;
+  }
+
+  channelType = pp->var->memBlock->varType;
+  if(pp->var->varType != channelType || channelType != var->varType) {
+    csoundMessage(csound, "could not copy data into channel %s\n", name);
+    return CSOUND_ERROR;
+  }
+
+  // control channels use atomics if available
+  if((pp->type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_CONTROL_CHANNEL) {
+    MYFLT *fp = &pp->var->memBlock->value;
 #if defined(MSVC)
-        volatile union {
-          MYFLT d;
-          MYFLT_INT_TYPE i;
-        } x;
-        x.d = var->value;
+    volatile union {
+      MYFLT d;
+      MYFLT_INT_TYPE i;
+    } x;
+    x.d = var->value;
 #if defined(USE_DOUBLE)
-        InterlockedExchange64((MYFLT_INT_TYPE *) fp, x.i);
+    InterlockedExchange64((MYFLT_INT_TYPE *) fp, x.i);
 #else
-        InterlockedExchange((MYFLT_INT_TYPE *) fp, x.i);
+    InterlockedExchange((MYFLT_INT_TYPE *) fp, x.i);
 #endif
 #elif defined(HAVE_ATOMIC_BUILTIN)
-        union {
-          MYFLT d;
-          MYFLT_INT_TYPE i;
-        } x;
-        x.d = var->value;
-        __atomic_store_n((MYFLT_INT_TYPE *)fp,x.i, __ATOMIC_SEQ_CST);
+    union {
+      MYFLT d;
+      MYFLT_INT_TYPE i;
+    } x;
+    x.d = var->value;
+    __atomic_store_n((MYFLT_INT_TYPE *)fp, x.i, __ATOMIC_SEQ_CST);
 #else
-        csoundLockChannel(csound, name);
-        *fp = var->value;
-        csoundUnlockChannel(csound, name);
+    csoundLockChannel(csound, name);
+    *fp = var->value;
+    csoundUnlockChannel(csound, name);
 #endif
-      }
-      else {
-        // other channels just lock
-        csoundLockChannel(csound, name);
-        if(pp->var->memBlock)
-          pp->var->varType->copyValue(csound, pp->var->varType, (&(pp->var->memBlock->value)),
-                                      &(var->value), NULL);
-        csoundUnlockChannel(csound,name);
-      }
-      return CSOUND_SUCCESS;
-    } else {
-      csoundMessage(csound, "could not copy data into channel %s\n", name);
+  }
+  else {
+    if(channelType->copyValue == NULL) {
+      csoundMessage(csound, "channel %s has no value copy function\n", name);
       return CSOUND_ERROR;
     }
-  } else {
-    csoundMessage(csound, "could not find channel %s\n", name);
-    return CSOUND_ERROR;
+    csoundLockChannel(csound, name);
+    channelType->copyValue(csound, channelType,
+                           &(pp->var->memBlock->value), &(var->value), NULL);
+    csoundUnlockChannel(csound, name);
   }
-} 
+
+  return CSOUND_SUCCESS;
+}

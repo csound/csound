@@ -370,6 +370,30 @@ TEST_F (ChannelTests, ChannelNewVarMem)
 }
 
 
+TEST_F (ChannelTests, ChannelSetRejectsInvalidState)
+{
+    csoundCompileOrc(csound, orc2);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    const CS_VAR_MEM *channel = csoundGetChannel(csound, "testing");
+    ASSERT_NE(nullptr, channel);
+    EXPECT_EQ(CSOUND_ERROR, csoundSetChannel(csound, nullptr, channel));
+    EXPECT_EQ(CSOUND_ERROR, csoundSetChannel(csound, "testing", nullptr));
+
+    CS_VAR_MEM missingType{};
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundSetChannel(csound, "testing", &missingType));
+
+    CS_VAR_MEM wrongType{};
+    wrongType.varType = csoundGetTypeWithVarTypeName(
+      csoundGetTypePool(csound), "i");
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundSetChannel(csound, "testing", &wrongType));
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundSetChannel(csound, "missing", channel));
+}
+
+
 
 TEST_F (ChannelTests, VarChannelType)
 {
