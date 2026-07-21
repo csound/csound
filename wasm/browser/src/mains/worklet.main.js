@@ -272,7 +272,14 @@ class AudioWorkletMainThread {
       try {
         stream = await this["requestMicrophoneInput"]();
       } catch (error) {
+        if (error.name === "AbortError") {
+          return;
+        }
         console.error(error);
+      }
+
+      if (stream && (this.microphoneStream !== stream || !this.audioContext)) {
+        return;
       }
 
       if (stream) {

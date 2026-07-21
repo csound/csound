@@ -45,13 +45,29 @@ export const requestMicrophoneNode = async () => {
   });
 };
 
+const stopMicrophoneTracks = (stream) => {
+  stream?.getTracks().forEach((track) => track.stop());
+};
+
+const microphoneRequestCancelled = () => {
+  const error = new Error("Microphone request was cancelled because the Csound instance ended");
+  error.name = "AbortError";
+  return error;
+};
+
 export async function requestMicrophoneStream() {
   if (this.microphoneStream) {
     return this.microphoneStream;
   }
 
   if (!this.microphonePromise) {
+    const requestToken = {};
+    this.microphoneRequestToken = requestToken;
     const microphonePromise = requestMicrophoneNode().then((stream) => {
+      if (this.microphoneRequestToken !== requestToken) {
+        stopMicrophoneTracks(stream);
+        throw microphoneRequestCancelled();
+      }
       this.microphoneStream = stream;
       return stream;
     });
@@ -70,13 +86,18 @@ export async function requestMicrophoneStream() {
 }
 
 export const releaseMicrophoneStream = (owner) => {
+  const microphonePromise = owner.microphonePromise;
+  delete owner.microphoneRequestToken;
   if (owner.microphoneInput) {
     owner.microphoneInput.disconnect();
     delete owner.microphoneInput;
   }
   if (owner.microphoneStream) {
-    owner.microphoneStream.getTracks().forEach((track) => track.stop());
+    stopMicrophoneTracks(owner.microphoneStream);
     delete owner.microphoneStream;
+  }
+  if (microphonePromise) {
+    microphonePromise.then(stopMicrophoneTracks).catch(() => {});
   }
   delete owner.microphonePromise;
 };
@@ -100,6 +121,11 @@ export async function enableAudioInput() {
   console.log("enabling audio input");
   await setAudioInputOption(this.exportApi);
   const stream = await requestMicrophoneStream.call(this);
+
+  if (this.microphoneStream !== stream || !this.audioContext || !this.node) {
+    stopMicrophoneTracks(stream);
+    throw microphoneRequestCancelled();
+  }
 
   if (this.microphoneInput) {
     return;

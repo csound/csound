@@ -3,15 +3,25 @@
 import assert from "node:assert/strict";
 
 let handleCsoundStart;
+let originalGoogDescriptor;
 
 describe("worker performance mode", () => {
   before(async () => {
-    globalThis.goog = { define: () => true };
+    originalGoogDescriptor = Object.getOwnPropertyDescriptor(globalThis, "goog");
+    Object.defineProperty(globalThis, "goog", {
+      configurable: true,
+      writable: true,
+      value: { define: () => true },
+    });
     ({ handleCsoundStart } = await import("../../src/workers/common.utils.js"));
   });
 
   after(() => {
-    delete globalThis.goog;
+    if (originalGoogDescriptor) {
+      Object.defineProperty(globalThis, "goog", originalGoogDescriptor);
+    } else {
+      delete globalThis.goog;
+    }
   });
 
   it("uses the real-time path for microphone input without DAC output", async () => {

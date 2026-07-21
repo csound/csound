@@ -160,6 +160,38 @@ describe("microphone input", () => {
     assert.equal(owner.microphoneStream, undefined);
   });
 
+  it("stops a microphone stream that resolves after release", async () => {
+    let grantPermission;
+    let stopped = false;
+    const stream = {
+      getTracks: () => [
+        {
+          stop: () => {
+            stopped = true;
+          },
+        },
+      ],
+    };
+    setNavigator({
+      mediaDevices: {
+        getUserMedia: () =>
+          new Promise((resolve) => {
+            grantPermission = resolve;
+          }),
+      },
+    });
+
+    const owner = {};
+    const request = requestMicrophoneStream.call(owner);
+    releaseMicrophoneStream(owner);
+    grantPermission(stream);
+
+    await assert.rejects(request, { name: "AbortError" });
+    assert.equal(stopped, true);
+    assert.equal(owner.microphoneStream, undefined);
+    assert.equal(owner.microphonePromise, undefined);
+  });
+
   it("shares an in-flight microphone request", async () => {
     let grantPermission;
     let requestCount = 0;
