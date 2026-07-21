@@ -16,7 +16,7 @@
 import { dlinit } from "./dlinit";
 import { WASI } from "./filesystem/wasi";
 import { clearArray } from "./utils/clear-array";
-import { uint2String } from "./utils/text-encoders.js";
+import { decoder, uint2String } from "./utils/text-encoders.js";
 import { Inflate } from "./zlib/inflate.js";
 
 const PAGE_SIZE = 65536;
@@ -151,10 +151,7 @@ export function getBinaryHeaderData(input) {
   function readName() {
     const len = readULEB();
     const bytes = readBytes(len);
-    // ASCII for section names
-    let s = "";
-    for (let i = 0; i < bytes.length; i++) s += String.fromCodePoint(bytes[i]);
-    return s;
+    return decoder.decode(bytes);
   }
 
   // Defaults for static WASM (no dylink)
@@ -294,7 +291,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   const pluginsMemory = Math.ceil(
     withPlugins.reduce(
       (accumulator, { headerData }) =>
-        accumulator + (headerData.memorySize + memoryAlign),
+        accumulator + headerData.memorySize + 2 ** headerData.memoryAlign,
       0,
     ) / PAGE_SIZE,
   );
@@ -321,6 +318,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   let withPlugins_ = [];
 
   const hostRuntime = { instance: undefined };
+  let currentMemoryOffset = fixedMemoryBase + initialMemory * PAGE_SIZE;
 
   const csoundLoadModules = (csoundInstance) => {
     withPlugins_.forEach((pluginItem) => {
@@ -329,9 +327,8 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
       const pluginTable = pluginItem && pluginItem.table ? pluginItem.table : table;
       if (hostRuntime.instance === undefined) {
         console.error("csound-wasm internal: timing problem detected!");
-      } else {
-        dlinit(hostRuntime.instance, pluginInstance, table, csoundInstance, pluginTable, memory);
       }
+      dlinit(hostRuntime.instance, pluginInstance, table, csoundInstance, pluginTable, memory);
     });
     return 0;
   };
@@ -402,6 +399,8 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
     accumulator = await accumulator;
     try {
       const {
+        memorySize: pluginMemorySize,
+        memoryAlign: pluginMemoryAlign,
         tableSize: pluginTableSize,
       } = headerData;
 
@@ -415,6 +414,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
       const hasModuleInit = pluginExports.some(({ name }) => name === "csoundModuleInit");
       const useIsolatedPluginTable = !hasLegacyWasiPluginLoader || (hasOpcodeInit && !hasModuleInit);
       let pluginTable = table;
+      const pluginTableBaseValue = table.length;
 
       if (useIsolatedPluginTable) {
         const isolatedInitial = Math.max(table.length + Math.max(pluginTableSize, 0) + 16, 16);
@@ -432,9 +432,20 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
       pluginOptions["env"] = Object.assign({}, pluginOptions["env"]);
       pluginOptions["env"]["memory"] = memory;
       pluginOptions["env"]["__indirect_function_table"] = pluginTable;
-      // pluginOptions["env"]["__memory_base"] = currentMemorySegment * PAGE_SIZE;
-      // pluginOptions["env"]["__table_base"] = tableBase;
+      const pluginMemoryAlignment = 2 ** pluginMemoryAlign;
+      const pluginMemoryBaseValue =
+        Math.ceil(currentMemoryOffset / pluginMemoryAlignment) * pluginMemoryAlignment;
+      pluginOptions["env"]["__memory_base"] = new WebAssembly.Global(
+        { value: "i32", mutable: false },
+        pluginMemoryBaseValue,
+      );
+      pluginOptions["env"]["__table_base"] = new WebAssembly.Global(
+        { value: "i32", mutable: false },
+        pluginTableBaseValue,
+      );
       delete pluginOptions["env"]["csoundWasiJsMessageCallback"];
+
+      currentMemoryOffset = pluginMemoryBaseValue + pluginMemorySize;
 
       /**
        * @suppress {checkTypes}

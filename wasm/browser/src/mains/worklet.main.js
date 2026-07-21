@@ -250,6 +250,7 @@ class AudioWorkletMainThread {
         registeredContexts.add(this.audioContext);
       } catch (error) {
         console.error("Error calling audioWorklet.addModule", error);
+        throw error;
       }
     }
 

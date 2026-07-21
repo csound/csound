@@ -15,6 +15,8 @@
 
 import { getGlobalScope } from "./utils/global-scope.js";
 
+export { WebkitAudioContext } from "./utils/new-audio-context.js";
+
 export const appendBuffers = (buffer1, buffer2) => {
   const temporary = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
   temporary.set(new Uint8Array(buffer1), 0);
@@ -44,17 +46,6 @@ export const isSabSupported = () => {
 };
 
 export const areWorkletsSupported = () => AudioNode !== undefined && AudioWorkletNode !== undefined;
-
-export const WebkitAudioContext = () => {
-  const globalScope = getGlobalScope();
-  if (globalScope?.webkitAudioContext !== undefined) {
-    return globalScope.webkitAudioContext;
-  } else if (globalScope?.AudioContext !== undefined) {
-    return globalScope.AudioContext;
-  }
-};
-
-
 
 export const csoundApiRename = (apiName) => {
   let minusCsound = apiName.replace(/^csound/i, "");
