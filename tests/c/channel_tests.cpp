@@ -427,10 +427,20 @@ TEST_F (ChannelTests, VarChannelType)
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     ASSERT_EQ(((COMPLEXDAT *)ptr)->real, 2.0);
     ASSERT_EQ(((COMPLEXDAT *)ptr)->imag, 2.0);
+
+    controlChannelInfo_t *channels = nullptr;
+    int32_t channelCount = csoundListChannels(csound, &channels);
+    csoundDeleteChannelList(csound, channels);
+
     // cannot create
     err = csoundGetChannelPtr(csound, &ptr, "cmplx2", CSOUND_VAR_CHANNEL |
                         CSOUND_INPUT_CHANNEL);
     ASSERT_FALSE(err == CSOUND_SUCCESS);
+    channels = nullptr;
+    ASSERT_EQ(channelCount, csoundListChannels(csound, &channels));
+    for(int32_t i = 0; i < channelCount; ++i)
+      ASSERT_STRNE("cmplx2", channels[i].name);
+    csoundDeleteChannelList(csound, channels);
     csound->Free(csound, memBlock);
 }
 
