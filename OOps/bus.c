@@ -1589,6 +1589,7 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
   delete_channel_varmem(csound, chn);
   /* point to the arg var */
   chn->var->memBlock = var->memBlock;
+  chn->var->varType = var->varType;
   /* set the flag to mark this */
   chn->varmem_is_external = 1;
   csoundSpinUnLock(&chn->lock);

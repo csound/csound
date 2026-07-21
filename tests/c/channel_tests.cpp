@@ -411,6 +411,34 @@ TEST_F (ChannelTests, VarChannelType)
 }
 
 
+TEST_F (ChannelTests, ExportedInitChannelKeepsVarType)
+{
+  csoundCompileOrc(csound, R"ORC(
+                 instr 1
+                  value@global:i chnexport "init-export", 3
+                 endin
+                 schedule(1, 0, 1)
+                )ORC");
+  ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+
+  const CS_TYPE *initType = csoundGetTypeWithVarTypeName(
+    csoundGetTypePool(csound), "i");
+  const CS_VAR_MEM *channel = csoundGetChannel(csound, "init-export");
+  ASSERT_NE(nullptr, channel);
+  ASSERT_EQ(initType, channel->varType);
+  ASSERT_EQ(initType, csoundGetChannelVarType(csound, "init-export"));
+
+  CS_VAR_MEM replacement;
+  replacement.varType = initType;
+  replacement.value = 7.0;
+  ASSERT_EQ(CSOUND_SUCCESS,
+            csoundSetChannel(csound, "init-export", &replacement));
+  ASSERT_EQ(replacement.value,
+            csoundGetChannel(csound, "init-export")->value);
+}
+
+
 TEST_F (ChannelTests, ArrayChannel)
 {
     const char *name = "testing";
