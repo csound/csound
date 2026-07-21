@@ -22,7 +22,7 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback } from "../utils.js";
 import { messageEventHandler, IPCMessagePorts } from "./messages.main.js";
 import { api as API } from "../libcsound.js";
 import { PublicEventAPI } from "../events.js";
-import { enableAudioInput } from "./io.utils.js";
+import { enableAudioInput, releaseMicrophoneStream } from "./io.utils.js";
 import { requestMidi } from "../utils/request-midi.js";
 import { EventPromises } from "../utils/event-promises.js";
 import WorkletWorker from "../../dist/__compiled.worklet.singlethread.worker.inline.js";
@@ -81,6 +81,7 @@ class SingleThreadAudioWorkletMainThread {
   }
 
   async terminateInstance() {
+    releaseMicrophoneStream(this.exportApi);
     if (this.workletProxy) {
       try {
         await this.workletProxy["terminate"]();

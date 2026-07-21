@@ -18,11 +18,15 @@ applications. For local development, use \`http://localhost\` or a loopback
 address such as \`http://127.0.0.1\`. A computer name or LAN address served over
 HTTP does not count as secure, even when it points to the same computer.
 
-Set the Csound input option to \`-iadc\` before calling \`start()\`. Worker modes
-detect this option and request microphone permission during startup. A direct
-call to \`enableAudioInput()\` only applies to the single-thread mode; worker
-modes ignore it. The returned promise rejects when the browser cannot provide
-microphone access.
+Call \`await csound.enableAudioInput()\` before \`start()\` to set the Csound
+input option, request microphone permission, and prepare the input stream. This
+works in single-thread, worker, and SharedArrayBuffer modes. The returned
+promise rejects when the browser cannot provide microphone access.
+
+You can instead set the Csound input option to \`-iadc\` in a CSD or with
+\`setOption()\`. Each mode detects this option and requests microphone access
+during startup. Use \`enableAudioInput()\` when the application needs to handle
+permission errors before it starts Csound.
 
 When Csound runs in an iframe, the parent page must also allow microphone
 access through its Permissions Policy.

@@ -2,7 +2,12 @@
 
 import assert from "node:assert/strict";
 
-import { enableAudioInput, requestMicrophoneNode } from "../../src/mains/io.utils.js";
+import {
+  enableAudioInput,
+  enableAudioInputInWorker,
+  requestMicrophoneNode,
+  requestMicrophoneStream,
+} from "../../src/mains/io.utils.js";
 
 const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, "navigator");
 
@@ -93,6 +98,10 @@ describe("microphone input", () => {
       },
     };
     const csound = {
+      setOption: async (option) => {
+        assert.equal(option, "-iadc");
+        return 0;
+      },
       getAudioContext: async () => ({
         createMediaStreamSource: (value) => {
           assert.equal(value, stream);
@@ -106,7 +115,9 @@ describe("microphone input", () => {
     const enabled = enableAudioInput.call(csound).then(() => {
       resolved = true;
     });
-    await Promise.resolve();
+    while (!grantPermission) {
+      await Promise.resolve();
+    }
     assert.equal(resolved, false);
 
     grantPermission(stream);
@@ -114,5 +125,81 @@ describe("microphone input", () => {
 
     assert.equal(csound.inputsCount, 2);
     assert.equal(connectedNode, node);
+  });
+
+  it("shares an in-flight microphone request", async () => {
+    let grantPermission;
+    let requestCount = 0;
+    const stream = { id: "microphone" };
+    setNavigator({
+      mediaDevices: {
+        getUserMedia: () => {
+          requestCount += 1;
+          return new Promise((resolve) => {
+            grantPermission = resolve;
+          });
+        },
+      },
+    });
+
+    const owner = {};
+    const firstRequest = requestMicrophoneStream.call(owner);
+    const secondRequest = requestMicrophoneStream.call(owner);
+    grantPermission(stream);
+
+    assert.equal(await firstRequest, stream);
+    assert.equal(await secondRequest, stream);
+    assert.equal(await requestMicrophoneStream.call(owner), stream);
+    assert.equal(requestCount, 1);
+  });
+
+  it("enables input before worker mode starts", async () => {
+    const calls = [];
+    const main = {
+      currentPlayState: undefined,
+      exportApi: {
+        setOption: async (option) => {
+          calls.push(["setOption", option]);
+          return 0;
+        },
+      },
+      audioWorker: {
+        requestMicrophoneInput: async () => {
+          calls.push(["requestMicrophoneInput"]);
+        },
+      },
+    };
+
+    await enableAudioInputInWorker.call(main);
+
+    assert.deepEqual(calls, [
+      ["setOption", "-iadc"],
+      ["requestMicrophoneInput"],
+    ]);
+  });
+
+  it("rejects worker input changes after start", async () => {
+    await assert.rejects(
+      enableAudioInputInWorker.call({ currentPlayState: "realtimePerformanceStarted" }),
+      { message: "enableAudioInput() must be called before start() in worker mode" },
+    );
+  });
+
+  it("passes worker microphone permission errors to the caller", async () => {
+    const permissionError = new Error("Permission denied");
+    const main = {
+      currentPlayState: undefined,
+      exportApi: { setOption: async () => 0 },
+      audioWorker: {
+        requestMicrophoneInput: async () => {
+          throw permissionError;
+        },
+      },
+    };
+
+    await assert.rejects(
+      enableAudioInputInWorker.call(main),
+      (error) => error === permissionError,
+    );
   });
 });

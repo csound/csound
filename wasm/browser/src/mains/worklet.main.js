@@ -17,7 +17,10 @@ import * as Comlink from "../utils/comlink.js";
 import { logWorkletMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
 import { requestMidi } from "../utils/request-midi";
-import { requestMicrophoneNode } from "./io.utils.js";
+import {
+  releaseMicrophoneStream,
+  requestMicrophoneStream,
+} from "./io.utils.js";
 import { messageEventHandler } from "./messages.main";
 import WorkletWorker from "../../dist/__compiled.worklet.worker.inline.js";
 
@@ -41,6 +44,9 @@ class AudioWorkletMainThread {
     this.csoundWorkerMain = undefined;
     this.workletWorkerUrl = undefined;
     this.workletProxy = undefined;
+    this.microphoneInput = undefined;
+    this.microphonePromise = undefined;
+    this.microphoneStream = undefined;
     this.performanceGeneration = undefined;
     this["isRequestingMidi"] = false;
     this.isRequestingInput = false;
@@ -58,10 +64,12 @@ class AudioWorkletMainThread {
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.terminateInstance = this.terminateInstance.bind(this);
     this.createWorkletNode = this.createWorkletNode.bind(this);
+    this["requestMicrophoneInput"] = requestMicrophoneStream.bind(this);
     log("AudioWorkletMainThread was constructed")();
   }
 
   async terminateInstance() {
+    releaseMicrophoneStream(this);
     if (this.workletProxy) {
       try {
         await this.workletProxy["terminate"]();
@@ -158,6 +166,10 @@ class AudioWorkletMainThread {
         if (this.autoConnect && this.audioWorkletNode) {
           this.audioWorkletNode.disconnect();
           delete this.audioWorkletNode;
+        }
+        if (this.microphoneInput) {
+          this.microphoneInput.disconnect();
+          delete this.microphoneInput;
         }
         if (this.workletProxy) {
           this.workletProxy[Comlink.releaseProxy]();
@@ -261,7 +273,7 @@ class AudioWorkletMainThread {
     if (this.isRequestingInput) {
       let stream;
       try {
-        stream = await requestMicrophoneNode();
+        stream = await this["requestMicrophoneInput"]();
       } catch (error) {
         console.error(error);
       }
@@ -275,8 +287,10 @@ class AudioWorkletMainThread {
           contextUid,
         );
         this.audioWorkletNode = newNode;
+        this.microphoneInput = liveInput;
+        liveInput.connect(newNode);
         if (this.autoConnect) {
-          liveInput.connect(newNode).connect(this.audioContext.destination);
+          newNode.connect(this.audioContext.destination);
         }
       } else {
         // Continue without input if the browser denies microphone access.

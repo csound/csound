@@ -490,9 +490,10 @@ declare interface CsoundObj {
    */
   terminateInstance: () => Promise<void>;
   /**
-   * Requests microphone access and connects it to Csound in single-thread mode.
-   * Requires HTTPS, localhost, or a loopback address. In worker modes, set
-   * `-iadc` before calling `start()` instead.
+   * Sets `-iadc`, requests microphone access, and prepares the input stream.
+   * Call this before `start()`. Works in all modes and rejects when the browser
+   * cannot provide microphone access. Requires HTTPS, localhost, or a loopback
+   * address.
    */
   enableAudioInput: () => Promise<void>;
   /**
