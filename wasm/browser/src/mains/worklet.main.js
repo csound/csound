@@ -167,10 +167,7 @@ class AudioWorkletMainThread {
           this.audioWorkletNode.disconnect();
           delete this.audioWorkletNode;
         }
-        if (this.microphoneInput) {
-          this.microphoneInput.disconnect();
-          delete this.microphoneInput;
-        }
+        releaseMicrophoneStream(this);
         if (this.workletProxy) {
           this.workletProxy[Comlink.releaseProxy]();
           delete this.workletProxy;

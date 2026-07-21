@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import {
   enableAudioInput,
   enableAudioInputInWorker,
+  releaseMicrophoneStream,
   requestMicrophoneNode,
   requestMicrophoneStream,
 } from "../../src/mains/io.utils.js";
@@ -97,22 +98,24 @@ describe("microphone input", () => {
         connectedNode = value;
       },
     };
-    const csound = {
-      setOption: async (option) => {
-        assert.equal(option, "-iadc");
-        return 0;
-      },
-      getAudioContext: async () => ({
+    const owner = {
+      exportApi: Object.freeze({
+        setOption: async (option) => {
+          assert.equal(option, "-iadc");
+          return 0;
+        },
+      }),
+      audioContext: {
         createMediaStreamSource: (value) => {
           assert.equal(value, stream);
           return liveInput;
         },
-      }),
-      getNode: async () => node,
+      },
+      node,
     };
 
     let resolved = false;
-    const enabled = enableAudioInput.call(csound).then(() => {
+    const enabled = enableAudioInput.call(owner).then(() => {
       resolved = true;
     });
     while (!grantPermission) {
@@ -123,8 +126,38 @@ describe("microphone input", () => {
     grantPermission(stream);
     await enabled;
 
-    assert.equal(csound.inputsCount, 2);
+    assert.equal(owner.inputsCount, 2);
     assert.equal(connectedNode, node);
+  });
+
+  it("releases the microphone source and media tracks", () => {
+    let disconnected = false;
+    let stopped = false;
+    const owner = {
+      microphoneInput: {
+        disconnect: () => {
+          disconnected = true;
+        },
+      },
+      microphonePromise: Promise.resolve(),
+      microphoneStream: {
+        getTracks: () => [
+          {
+            stop: () => {
+              stopped = true;
+            },
+          },
+        ],
+      },
+    };
+
+    releaseMicrophoneStream(owner);
+
+    assert.equal(disconnected, true);
+    assert.equal(stopped, true);
+    assert.equal(owner.microphoneInput, undefined);
+    assert.equal(owner.microphonePromise, undefined);
+    assert.equal(owner.microphoneStream, undefined);
   });
 
   it("shares an in-flight microphone request", async () => {

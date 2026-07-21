@@ -88,7 +88,7 @@ const setAudioInputOption = async (api) => {
   }
 };
 
-// rebind this to exportApi instance to use
+// Bind this to the mutable single-thread main instance.
 /**
  * Sets `-iadc`, requests browser microphone access, and connects the stream to
  * Csound. This requires HTTPS, localhost, or a loopback address.
@@ -98,20 +98,18 @@ const setAudioInputOption = async (api) => {
  */
 export async function enableAudioInput() {
   console.log("enabling audio input");
-  await setAudioInputOption(this);
+  await setAudioInputOption(this.exportApi);
   const stream = await requestMicrophoneStream.call(this);
 
   if (this.microphoneInput) {
     return;
   }
 
-  const audioContext = await this["getAudioContext"]();
-  const liveInput = audioContext.createMediaStreamSource(stream);
+  const liveInput = this.audioContext.createMediaStreamSource(stream);
   this.microphoneInput = liveInput;
   this.inputsCount = liveInput.channelCount;
 
-  const node = await this["getNode"]();
-  liveInput.connect(node);
+  liveInput.connect(this.node);
 }
 
 export async function enableAudioInputInWorker() {
