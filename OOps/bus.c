@@ -3052,7 +3052,7 @@ int32_t csoundSetChannel(CSOUND *csound, const char *name, const CS_VAR_MEM *var
   if(pp) {
     if(pp->var && pp->var->varType == var->varType) {
       // control channels use atomics if available 
-      if(pp->type == (CSOUND_CHANNEL_TYPE_MASK & CSOUND_CONTROL_CHANNEL) &&
+      if((pp->type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_CONTROL_CHANNEL &&
          pp->var->memBlock) {
         MYFLT *fp = &pp->var->memBlock->value;
 #if defined(MSVC)
@@ -3074,9 +3074,9 @@ int32_t csoundSetChannel(CSOUND *csound, const char *name, const CS_VAR_MEM *var
         x.d = var->value;
         __atomic_store_n((MYFLT_INT_TYPE *)fp,x.i, __ATOMIC_SEQ_CST);
 #else
-        csoundLockChannel(csound, name)
+        csoundLockChannel(csound, name);
         *fp = var->value;
-        csoundUnlockChannel(csound,name);
+        csoundUnlockChannel(csound, name);
 #endif
       }
       else {
