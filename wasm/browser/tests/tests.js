@@ -1165,6 +1165,11 @@ e
       assert.property(cs, "getMemory");
     });
 
+    it("exports generic channel memory APIs", function () {
+      assert.isFunction(cs.wasm.exports.csoundGetChannel);
+      assert.isFunction(cs.wasm.exports.csoundSetChannel);
+    });
+
     it("can create and run a csound instance", function () {
       const csound = cs.csoundCreate();
       assert.notEqual(csound, 0, "csoundCreate returns non-zero pointer");
