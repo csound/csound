@@ -690,7 +690,9 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
       memset(buf, 0, MTU);
     }
     if(p->sout->data == NULL)
-      tabinit(csound, p->sout, 2, p->h.insdshead);
+      if (UNLIKELY(tabinit(csound, p->sout, 2,
+                           p->h.insdshead) != OK))
+        return csound_array_init_resize_error(csound);
 
   return OK;
 }

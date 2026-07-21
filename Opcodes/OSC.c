@@ -1255,7 +1255,9 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
                                            strlen((char*) p->dest->data) + 1);
     strcpy(p->c.saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
-    tabinit(csound, p->args, n= (int32_t)strlen((char*) p->type->data), p->h.insdshead);
+    n = (int32_t)strlen((char *)p->type->data);
+    if (UNLIKELY(tabinit(csound, p->args, n, p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
     strcpy(p->c.saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
       switch (p->c.saved_types[i]) {

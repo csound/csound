@@ -389,7 +389,9 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
       sf->loopEnd = tmp;
     }
     p->nChannels = sf->nChannels;
-    tabinit(csound, p->arr, p->nChannels, p->h.insdshead);
+    if (UNLIKELY(tabinit(csound, p->arr, p->nChannels,
+                         p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
     dataPtr = (void*) &(sf->data[0]);
     p->curPos = loscilx_convert_phase(sf->startOffs);
     p->curLoopMode = sf->loopMode - 1;
@@ -416,7 +418,9 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
     if (ftp == NULL)
       return NOTOK;
     p->nChannels = ftp->nchanls;
-    tabinit(csound, p->arr, p->nChannels, p->h.insdshead);
+    if (UNLIKELY(tabinit(csound, p->arr, p->nChannels,
+                         p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
     dataPtr = (void*) &(ftp->ftable[0]);
     p->curPos = (int_least64_t) 0;
     switch ((int32_t) ftp->loopmode1) {

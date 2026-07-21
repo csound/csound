@@ -921,7 +921,9 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
   if (p->f.async == 1)
     csound->FSeekAsync(csound,p->f.fd, p->currpos*p->f.nchnls, SEEK_SET);
 
-  tabinit(csound, p->tabout, p->chn, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->tabout, p->chn,
+                       p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
   return OK;
 }
 

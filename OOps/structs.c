@@ -616,7 +616,9 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
       return csound->InitError(csound,
                                "Invalid struct array dimensions");
     }
-    tabinit(csound, arrayDat, (int32_t)totalSize, dat->h.insdshead);
+    if (UNLIKELY(tabinit(csound, arrayDat, (int32_t)totalSize,
+                         dat->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
   }
   if (UNLIKELY(struct_array_flat_index(csound, &dat->h,
                                        "struct_array_get", arrayDat,
