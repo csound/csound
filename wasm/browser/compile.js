@@ -51,14 +51,25 @@ const monkeyPatches = (code) => {
 const inputFile = path.join(srcDir, "workers/sab.worker.js");
 const tmpOutFileName = path.join(rootDir, "dist", "test.min.js");
 
+const findClosureExport = (data, exportName) => {
+  const match = data.match(new RegExp(`goog\\.exportSymbol\\("${exportName}",\\s*([\\w$]+)\\);`));
+  if (!match) {
+    throw new Error(`Could not find Closure export for ${exportName}`);
+  }
+  return match[1];
+};
+
 const makeModuleExportsHack = () => {
   let data = fs.readFileSync(path.join(rootDir, "dist", "csound.js")).toString();
 
   if (DEV) {
+    const csoundExport = findClosureExport(data, "__Csound__");
+    const libcsoundExport = findClosureExport(data, "__libcsound__");
     const hackedData = data.replace(
       "__GOOGLE_CLOSURE_REPLACEME__",
-      `const Csound = Csound$$$module$src$index;` +
-        ` const libcsound = libcsoundEntry$$$module$src$libcsound_entry;` +
+      () =>
+        `const Csound = ${csoundExport};` +
+        ` const libcsound = ${libcsoundExport};` +
         ` export { Csound, libcsound }; export default Csound;`,
     );
     fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
@@ -93,7 +104,7 @@ const makeModuleExportsHack = () => {
         // so we can reference it in the export statement
         const wCall = data.substring(startIdx, i);
         const replacement = `var __lcs__=${inlinedExpr}`;
-        data = data.replace(wCall, replacement);
+        data = data.replace(wCall, () => replacement);
         obfuscatedLibcsound = "__lcs__";
       }
     }
@@ -108,7 +119,10 @@ const makeModuleExportsHack = () => {
       exportStatement = `const Csound = ${obfuscatedCsound}; export { Csound }; export default Csound;`;
     }
 
-    const hackedData = data.replace("__GOOGLE_CLOSURE_REPLACEME__", exportStatement);
+    const hackedData = data.replace(
+      "__GOOGLE_CLOSURE_REPLACEME__",
+      () => exportStatement,
+    );
     fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
   }
 };
