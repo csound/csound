@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--n 
+-n
 </CsOptions>
 <CsInstruments>
 0dbfs=1
@@ -25,7 +25,7 @@ endin
 </CsInstruments>
 <CsScore>
 i1 0 1 0.5 440 -1
-i2 0 1 0.5 440 
+i2 0 1 0.5 440
 </CsScore>
 </CsoundSynthesizer>
 

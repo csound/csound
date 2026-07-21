@@ -59,7 +59,7 @@ CS_VARIABLE* createTuple(void* cs, const CS_TYPE* p, INSDS *ctx) {
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(Tuple));
     var->initializeVariableMemory = &varInitMemory;
     var->ctx = ctx;
-    var->varType = p;              
+    var->varType = p;
     return var;
 }
 

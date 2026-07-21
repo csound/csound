@@ -61,5 +61,5 @@ void [
   isRequestingRtAudioInput,
   isRequestingRtMidiInput,
   isRequestingRtAudioInputAlias,
-  isRequestingRtMidiInputAlias,  
+  isRequestingRtMidiInputAlias,
 ];

@@ -89,5 +89,3 @@ void freeStructVarMemory(void *csnd, void *p) {
   CS_STRUCT_VAR *var = (CS_STRUCT_VAR *)p;
   csound_free_struct_members(csound, var);
 }
-
-

@@ -93,7 +93,7 @@ i:k = 0
 k:k = 1
 while i < 2 do
  j:k = 0
- while j < 2 do 
+ while j < 2 do
   if mat[i][j] != k then
    printks "matrix[%d,%d] not matched\n", 1, i, j
    exitnowk(-1)

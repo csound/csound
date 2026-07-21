@@ -61,7 +61,7 @@ static void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     PVSDAT *fsigout = (PVSDAT*) dest;
     PVSDAT *fsigin = (PVSDAT*) src;
     if(src && dest) {
-    int32_t N = fsigin->N;  
+    int32_t N = fsigin->N;
     memcpy(dest, src, sizeof(PVSDAT) - sizeof(AUXCH));
     if(fsigout->frame.auxp == NULL ||
        fsigout->frame.size < (N + 2) * sizeof(float))
@@ -627,7 +627,7 @@ static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     return;
   }
   if(!p->readonly && src && dest) {
-   
+
    memcpy(dest, src, sizeof(OPCODEOBJ));
    p->readonly = 0; // clear readonly flag (which is not copied)
   }
@@ -803,7 +803,7 @@ CS_VARIABLE* create_array(void* csnd, const void *p, INSDS *ctx) {
       var->subType = type;
       var->dimensions = state->dimensions;
     }
-    
+
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(ARRAYDAT));
     var->initializeVariableMemory = &array_init_memory;
     var->ctx = ctx;

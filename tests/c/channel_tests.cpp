@@ -363,7 +363,7 @@ TEST_F (ChannelTests, ChannelNewVarMem)
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     CS_VAR_MEM memBlock; // memblock value holds enough storage for a MYFLT
     memBlock.varType = csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "k");
-    memBlock.value = 1.0; 
+    memBlock.value = 1.0;
     err = csoundSetChannel(csound, name, &memBlock);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     ASSERT_EQ(memBlock.value, csoundGetChannel(csound,name)->value);
@@ -409,17 +409,17 @@ TEST_F (ChannelTests, VarChannelType)
     csoundPerformKsmps(csound);
     const CS_VAR_MEM *var = csoundGetChannel(csound, "cmplx");
     COMPLEXDAT *vardat = (COMPLEXDAT *) (&var->value), cmplx = { 2., 2., 0};
-    
+
     ASSERT_EQ(vardat->real, 1.0);
     ASSERT_EQ(vardat->imag, 1.0);
 
     // set values
     CS_VAR_MEM *memBlock = (CS_VAR_MEM *) csound->Calloc(csound,
-                                                         CS_VAR_TYPE_OFFSET + sizeof(COMPLEXDAT));  
+                                                         CS_VAR_TYPE_OFFSET + sizeof(COMPLEXDAT));
     memBlock->varType = csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "Complex");
     memcpy(&memBlock->value, &cmplx, sizeof(COMPLEXDAT));
     err =  csoundSetChannel(csound,"cmplx", memBlock);
-    
+
     void *ptr;
     // can access
     err = csoundGetChannelPtr(csound, &ptr, "cmplx", CSOUND_VAR_CHANNEL |
@@ -505,7 +505,7 @@ TEST_F (ChannelTests, AudioChannel)
               chnset sig, "audio"
              endin
              schedule(1,0,1);
-                     )ORC");    
+                     )ORC");
     int32_t err = csoundStart(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     csoundPerformKsmps(csound);
@@ -523,5 +523,5 @@ TEST_F (ChannelTests, AudioChannel)
     for(int i = 0; i < 10; i++) {
       pow += sample[i]*sample[i];
     }
-    ASSERT_TRUE(pow > 0);  
+    ASSERT_TRUE(pow > 0);
 }
