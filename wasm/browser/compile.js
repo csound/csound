@@ -231,6 +231,7 @@ const compile = async (config) => {
       "./node_modules/google-closure-library/closure/goog/dom/tagname.js",
     ],
     jscomp_off: ["accessControls"],
+    jscomp_error: ["globalThis"],
     assume_function_wrapper: false,
     compilation_level: DEV ? "SIMPLE_OPTIMIZATIONS" : "ADVANCED",
     language_in: "ECMASCRIPT_2021",
@@ -253,7 +254,7 @@ const compile = async (config) => {
         resolve();
       } else {
         reject();
-        process.exit(0);
+        process.exit(1);
       }
     });
   });

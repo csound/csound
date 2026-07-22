@@ -51,6 +51,7 @@ fs.writeFileSync(
     hide_warnings_for: ["./node_modules/pako/dist/pako.min.js"],
 
     jscomp_off: ["accessControls"],
+    jscomp_error: ["globalThis"],
     assume_function_wrapper: false,
     compilation_level: "SIMPLE_OPTIMIZATIONS",
     language_in: "ECMASCRIPT_2021",
