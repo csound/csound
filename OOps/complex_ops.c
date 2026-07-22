@@ -981,14 +981,21 @@ int32_t complexa_minus_complex(CSOUND *csound, COPS1 *p) {
 static inline void
 cmplx_cmplx_proda(COMPLEXDAT *out, COMPLEXDAT *in, COMPLEXDAT *num, int32_t n) {
   for(int i = 0; i < n; i++) {
-    out[i].isPolar = in[i].isPolar;
-    if(!in[i].isPolar) {
-      out[i].real = in[i].real*num[i].real - in[i].imag*num[i].imag;
-      out[i].imag = in[i].imag*num[i].real + in[i].real*num[i].imag;
+    COMPLEXDAT left = in[i];
+    COMPLEXDAT right = num[i];
+    COMPLEXDAT result;
+    if(left.isPolar && right.isPolar) {
+      result.real = left.real*right.real;
+      result.imag = left.imag + right.imag;
+      result.isPolar = 1;
     } else {
-      out[i].real = in[i].real*num[i].real;
-      out[i].imag = in[i].imag + num[i].imag;
+      if(left.isPolar) left = complex(&left);
+      if(right.isPolar) right = complex(&right);
+      result.real = left.real*right.real - left.imag*right.imag;
+      result.imag = left.imag*right.real + left.real*right.imag;
+      result.isPolar = 0;
     }
+    out[i] = result;
   }
 }
 
@@ -1020,17 +1027,24 @@ int32_t complexa_mulin(CSOUND *csound, COPS1 *p) {
 
 static inline void
 cmplx_cmplx_diva(COMPLEXDAT *out, COMPLEXDAT *in, COMPLEXDAT* num, int32_t n) {
-  MYFLT d;
   for(int i = 0; i < n; i++) {
-    out[i].isPolar = in[i].isPolar;
-    if(!in[i].isPolar) {
-      d = num[i].real*num[i].real + num[i].imag*num[i].imag;
-      out[i].real = (in[i].real*num[i].real + in[i].imag*num[i].imag)/d;
-      out[i].imag = (in[i].imag*num[i].real - in[i].real*num[i].imag)/d;
+    COMPLEXDAT left = in[i];
+    COMPLEXDAT right = num[i];
+    COMPLEXDAT result;
+    if(left.isPolar && right.isPolar) {
+      result.real = left.real/right.real;
+      result.imag = left.imag - right.imag;
+      result.isPolar = 1;
     } else {
-      out[i].real = in[i].real/num[i].real;
-      out[i].imag = in[i].imag - num[i].imag;
+      MYFLT d;
+      if(left.isPolar) left = complex(&left);
+      if(right.isPolar) right = complex(&right);
+      d = right.real*right.real + right.imag*right.imag;
+      result.real = (left.real*right.real + left.imag*right.imag)/d;
+      result.imag = (left.imag*right.real - left.real*right.imag)/d;
+      result.isPolar = 0;
     }
+    out[i] = result;
   }
 }
 
@@ -1061,19 +1075,16 @@ int32_t complexa_divin(CSOUND *csound, COPS1 *p) {
 static inline void
 cmplx_cmplx_adda(COMPLEXDAT *out, COMPLEXDAT *in, COMPLEXDAT* num, int32_t n) {
   for(int i = 0; i < n; i++) {
-    out[i].isPolar = in[i].isPolar;
-    if(!in[i].isPolar) {
-      out[i].real = in[i].real + num[i].real;
-      out[i].imag = in[i].imag + num[i].imag;
-    } else {
-      MYFLT re, im;
-      re = COS(in[i].imag)*in[i].real;
-      im = SIN(in[i].imag)*in[i].real;
-      re += num[i].real;
-      im += num[i].imag;
-      out[i].real = HYPOT(re,im);
-      out[i].imag = ATAN2(im,re);
-    }
+    COMPLEXDAT left = in[i];
+    COMPLEXDAT right = num[i];
+    COMPLEXDAT result;
+    int32_t isPolar = left.isPolar && right.isPolar;
+    if(left.isPolar) left = complex(&left);
+    if(right.isPolar) right = complex(&right);
+    result.real = left.real + right.real;
+    result.imag = left.imag + right.imag;
+    result.isPolar = 0;
+    out[i] = isPolar ? polar(&result) : result;
   }
 }
 
@@ -1104,19 +1115,16 @@ int32_t complexa_addin(CSOUND *csound, COPS1 *p) {
 static inline void
 cmplx_cmplx_suba(COMPLEXDAT *out, COMPLEXDAT *in, COMPLEXDAT* num, int32_t n) {
   for(int i = 0; i < n; i++) {
-    out[i].isPolar = in[i].isPolar;
-    if(!in[i].isPolar) {
-      out[i].real = in[i].real - num[i].real;
-      out[i].imag = in[i].imag - num[i].imag;
-    } else {
-      MYFLT re, im;
-      re = COS(in[i].imag)*in[i].real;
-      im = SIN(in[i].imag)*in[i].real;
-      re -= num[i].real;
-      im -= num[i].imag;
-      out[i].real = HYPOT(re,im);
-      out[i].imag = ATAN2(im,re);
-    }
+    COMPLEXDAT left = in[i];
+    COMPLEXDAT right = num[i];
+    COMPLEXDAT result;
+    int32_t isPolar = left.isPolar && right.isPolar;
+    if(left.isPolar) left = complex(&left);
+    if(right.isPolar) right = complex(&right);
+    result.real = left.real - right.real;
+    result.imag = left.imag - right.imag;
+    result.isPolar = 0;
+    out[i] = isPolar ? polar(&result) : result;
   }
 }
 
