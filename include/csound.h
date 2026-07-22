@@ -1008,9 +1008,10 @@ extern "C" {
    * missing channels, invalid channel storage, or type mismatches.
    * Writes to the destination channel are serialized. If the source is live
    * engine-owned storage, the caller must separately synchronize access to
-   * it. A type's copyValue function may allocate memory, so this function is
-   * not guaranteed to be suitable for a real-time thread. copyValue is
-   * invoked without an instrument context.
+   * it. A type's copyValue function may allocate memory while the channel is
+   * locked. This function is not suitable for a real-time thread, and a host
+   * should avoid managed-value writes while a performance thread uses the
+   * same channel. copyValue is invoked without an instrument context.
    */
   PUBLIC int32_t csoundSetChannel(CSOUND *csound, const char *name,
                                   const CS_VAR_MEM *var);
