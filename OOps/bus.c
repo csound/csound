@@ -333,6 +333,16 @@ static void delete_channel_varmem(CSOUND *csound, CHNENTRY* entry) {
   }
 }
 
+static void delete_channel_entry_contents(CSOUND *csound, CHNENTRY *entry) {
+  if (entry == NULL)
+    return;
+  if (entry->hints.attributes != NULL)
+    csound->Free(csound, entry->hints.attributes);
+  delete_channel_varmem(csound, entry);
+  if (entry->var != NULL)
+    csound->Free(csound, entry->var);
+}
+
 static int32_t delete_channel_db(CSOUND *csound, void *p){
   CONS_CELL *head, *values;
   IGN(p);
@@ -343,14 +353,7 @@ static int32_t delete_channel_db(CSOUND *csound, void *p){
   if (head != NULL) {
     while(values != NULL) {
       CHNENTRY* entry = values->value;
-      if (entry->hints.attributes) {
-        // free hints.attributes if allocated
-        csound->Free(csound, entry->hints.attributes);
-      }
-     delete_channel_varmem(csound, entry);
-     if(entry->var) {
-        csound->Free(csound, entry->var);
-     }
+     delete_channel_entry_contents(csound, entry);
      values = values->next;
     }
     cs_cons_free(csound, head);
@@ -358,6 +361,21 @@ static int32_t delete_channel_db(CSOUND *csound, void *p){
   cs_hash_table_mfree_complete(csound, csound->chn_db);
   csound->chn_db = NULL;
   return 0;
+}
+
+static int32_t ensure_channel_db(CSOUND *csound) {
+  if (csound->chn_db != NULL)
+    return CSOUND_SUCCESS;
+  csound->chn_db = cs_hash_table_create(csound);
+  if (UNLIKELY(csound->chn_db == NULL))
+    return CSOUND_MEMORY;
+  if (UNLIKELY(csound->RegisterResetCallback(csound, NULL,
+                                             delete_channel_db) != 0)) {
+    cs_hash_table_mfree_complete(csound, csound->chn_db);
+    csound->chn_db = NULL;
+    return CSOUND_MEMORY;
+  }
+  return CSOUND_SUCCESS;
 }
 
 static inline CHNENTRY *find_channel(CSOUND *csound, const char *name){
@@ -463,15 +481,8 @@ static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
   if (UNLIKELY(!(type & 48)))
     return CSOUND_ERROR;
 
-  /* create new empty database if not allocated */
-  if (csound->chn_db == NULL) {
-    csound->chn_db = cs_hash_table_create(csound);
-    if (UNLIKELY(csound->RegisterResetCallback(csound, NULL,
-                                               delete_channel_db) != 0))
-      return CSOUND_MEMORY;
-    if (UNLIKELY(csound->chn_db == NULL))
-      return CSOUND_MEMORY;
-  }
+  if (UNLIKELY(ensure_channel_db(csound) != CSOUND_SUCCESS))
+    return CSOUND_MEMORY;
   /* allocate new entry */
   pp = alloc_channel(csound, name, type);
   if (UNLIKELY(pp == NULL))
@@ -609,15 +620,8 @@ void csoundDeleteChannelList(CSOUND *csound, controlChannelInfo_t *lst)
   if (lst != NULL) csound->Free(csound, lst);
 }
 
-int32_t csoundSetControlChannelHints(CSOUND *csound, const char *name,
-                                     controlChannelHints_t hints){
-  CHNENTRY  *pp;
-
-  if (UNLIKELY(name == NULL))
-    return CSOUND_ERROR;
-  pp = find_channel(csound, name);
-  if (UNLIKELY(pp == NULL))
-    return CSOUND_ERROR;
+static int32_t set_control_channel_hints(CSOUND *csound, CHNENTRY *pp,
+                                         controlChannelHints_t hints) {
   if (UNLIKELY((pp->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL))
     return CSOUND_ERROR;
   if  (hints.behav == CSOUND_CONTROL_CHANNEL_NO_HINTS) {
@@ -644,6 +648,18 @@ int32_t csoundSetControlChannelHints(CSOUND *csound, const char *name,
     strcpy(pp->hints.attributes, hints.attributes);
   }
   return CSOUND_SUCCESS;
+}
+
+int32_t csoundSetControlChannelHints(CSOUND *csound, const char *name,
+                                     controlChannelHints_t hints){
+  CHNENTRY  *pp;
+
+  if (UNLIKELY(name == NULL))
+    return CSOUND_ERROR;
+  pp = find_channel(csound, name);
+  if (UNLIKELY(pp == NULL))
+    return CSOUND_ERROR;
+  return set_control_channel_hints(csound, pp, hints);
 }
 
 /**
@@ -1540,8 +1556,8 @@ static int32_t chnexport_generic_initialise(CSOUND *csound, CHNENTRY *pp,
 /* export new channel from global orchestra variable */
 int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
 {
-  MYFLT *dummy;
   char  *argName;
+  const char *channelName = p->iname->data;
   int32_t  type = CSOUND_CONTROL_CHANNEL, mode, err;
   controlChannelHints_t hints;
   CHNENTRY *chn;
@@ -1580,47 +1596,58 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     type |= CSOUND_INPUT_CHANNEL;
   if (mode & 2)
     type |= CSOUND_OUTPUT_CHANNEL;
-  /* check if the channel already exists (it should not) */
-  err = csoundGetChannelPtr(csound, (void **) &dummy, (char*) p->iname->data, 0);
-  if (UNLIKELY(err >= 0))
+  if (UNLIKELY(find_channel(csound, channelName) != NULL))
     return csound->InitError(csound, Str("channel already exists"));
-  err = create_new_channel(csound, (char*) p->iname->data, type);
-  if (err)
+  if (UNLIKELY(strlen(channelName) > MAX_CHAN_NAME))
+    return csound->InitError(csound, Str("invalid channel name"));
+  if (UNLIKELY(var->memBlock == NULL))
+    return csound->InitError(csound, Str("export variable is not initialised"));
+  if (UNLIKELY((err = ensure_channel_db(csound)) != CSOUND_SUCCESS))
     return print_chn_err(p, err);
 
-  /* Now we need to find the channel entry */
-  chn = find_channel(csound, (char*) p->iname->data);
+  /* Prepare the complete entry before making it visible to channel readers. */
+  chn = alloc_channel(csound, channelName, type);
+  if (UNLIKELY(chn == NULL))
+    return print_chn_err(p, CSOUND_MEMORY);
+  chn->hints.behav = 0;
+  chn->type = type;
+  strcpy(&(chn->name[0]), channelName);
+
   if(chn->var == NULL &&
      UNLIKELY((err = chnexport_generic_initialise(
                  csound, chn, var->varType)) != OK))
-    return err;
+    goto failed;
 
-  csoundSpinLock(&chn->lock);
-  /* Free any existing chn var memBlock allocated earlier */
+  /* Discard the private backing block and install the final external block. */
   delete_channel_varmem(csound, chn);
-  /* point to the arg var */
   chn->var->memBlock = var->memBlock;
   chn->var->varType = var->varType;
-  /* set the flag to mark this */
+  chn->var->dimensions = var->dimensions;
+  chn->var->subType = var->subType;
   chn->varmem_is_external = 1;
-  csoundSpinUnLock(&chn->lock);
 
-  /* if control channel, set additional parameters */
-  if ((type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
-    return OK;
-  // ***FIXME not used type = (int32_t)MYFLT2LRND(*(p->itype));
-  hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
-  hints.dflt = *(p->idflt);
-  hints.min = *(p->imin);
-  hints.max = *(p->imax);
-  hints.x = hints.y = hints.width = hints.height = 0;
-  hints.attributes = NULL;
-  err = csoundSetControlChannelHints(csound, (char*) p->iname->data, hints);
-  if (LIKELY(!err))
-    return OK;
-  if (err == CSOUND_MEMORY)
-    return print_chn_err(p, err);
-  return csound->InitError(csound, Str("invalid channel parameters"));
+  if ((type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_CONTROL_CHANNEL) {
+    // ***FIXME not used type = (int32_t)MYFLT2LRND(*(p->itype));
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.dflt = *(p->idflt);
+    hints.min = *(p->imin);
+    hints.max = *(p->imax);
+    hints.x = hints.y = hints.width = hints.height = 0;
+    hints.attributes = NULL;
+    if (UNLIKELY(set_control_channel_hints(csound, chn, hints) !=
+                 CSOUND_SUCCESS)) {
+      err = csound->InitError(csound, Str("invalid channel parameters"));
+      goto failed;
+    }
+  }
+
+  cs_hash_table_put(csound, csound->chn_db, (char*)channelName, chn);
+  return OK;
+
+ failed:
+  delete_channel_entry_contents(csound, chn);
+  csound->Free(csound, chn);
+  return err;
 }
 
 /* returns all parameters of a channel */

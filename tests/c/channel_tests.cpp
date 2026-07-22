@@ -473,6 +473,40 @@ TEST_F (ChannelTests, ExportedInitChannelKeepsVarType)
 }
 
 
+TEST_F (ChannelTests, ExportedArrayChannelKeepsStorageAndMetadata)
+{
+  csoundCompileOrc(csound, R"ORC(
+                 instr 1
+                  values@global:k[] chnexport "array-export", 3
+                  values fillarray 3, 4
+                 endin
+                 instr 2
+                  values:k[] chnget "array-export"
+                  chnset values[1], "array-export-result"
+                 endin
+                 schedule(1, 0, 1)
+                 schedule(2, 0, 1)
+                )ORC");
+  ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+
+  const CS_VAR_MEM *channel = csoundGetChannel(csound, "array-export");
+  ASSERT_NE(nullptr, channel);
+  ASSERT_STREQ("[", channel->varType->varTypeName);
+  const ARRAYDAT *array = reinterpret_cast<const ARRAYDAT*>(&channel->value);
+  ASSERT_EQ(1, array->dimensions);
+  ASSERT_STREQ("k", array->arrayType->varTypeName);
+  ASSERT_NE(nullptr, array->data);
+  EXPECT_EQ((MYFLT)3.0, array->data[0]);
+  EXPECT_EQ((MYFLT)4.0, array->data[1]);
+
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+  EXPECT_EQ(channel, csoundGetChannel(csound, "array-export"));
+  EXPECT_EQ((MYFLT)4.0,
+            csoundGetControlChannel(csound, "array-export-result", nullptr));
+}
+
+
 TEST_F (ChannelTests, ArrayChannel)
 {
     const char *name = "testing";
