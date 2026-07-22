@@ -123,6 +123,36 @@ TEST_F (TypeSystemTests, testCreateVariableForTypeRejectsInvalidSize)
                          csound, &probeType, nullptr, nullptr));
 }
 
+TEST_F (TypeSystemTests, testStandardCopyCallbacksDefendAgainstNullPointers)
+{
+    const CS_TYPE* types[] = {
+      &CS_VAR_TYPE_A,
+      &CS_VAR_TYPE_K,
+      &CS_VAR_TYPE_I,
+      &CS_VAR_TYPE_S,
+      &CS_VAR_TYPE_P,
+      &CS_VAR_TYPE_R,
+      &CS_VAR_TYPE_C,
+      &CS_VAR_TYPE_W,
+      &CS_VAR_TYPE_F,
+      &CS_VAR_TYPE_B,
+      &CS_VAR_TYPE_b,
+      &CS_VAR_TYPE_ARRAY,
+      &CS_VAR_TYPE_OPCODEREF,
+      &CS_VAR_TYPE_OPCODEOBJ,
+      &CS_VAR_TYPE_INSTR,
+      &CS_VAR_TYPE_INSTR_INSTANCE,
+      &CS_VAR_TYPE_COMPLEX
+    };
+    MYFLT value = FL(0.0);
+
+    for (const CS_TYPE* type : types) {
+      ASSERT_NE(nullptr, type->copyValue);
+      type->copyValue(csound, type, nullptr, &value, nullptr);
+      type->copyValue(csound, type, &value, nullptr, nullptr);
+    }
+}
+
 TEST_F (TypeSystemTests, testTypeSystem)
 {
   TYPE_POOL* pool = csound->typePool;

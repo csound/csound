@@ -741,8 +741,10 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
   int32_t   err;
   const CS_TYPE *argtype = GetTypeForArg(p->arg);
   CHNENTRY *pp = find_channel(csound, p->iname->data);
-  if (UNLIKELY(argtype == NULL || argtype->createVariable == NULL)) {
-    csound->InitError(csound, "channel argument has no variable constructor\n");
+  if (UNLIKELY(argtype == NULL || argtype->createVariable == NULL ||
+               argtype->copyValue == NULL)) {
+    csound->InitError(csound,
+                      "channel argument has incomplete variable operations\n");
     return NULL;
   }
 
@@ -863,6 +865,10 @@ int32_t chnset_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
       return csound->PerfError(csound, &(p->h),
                                "channel %s not initialised\n",
                                p->iname->data);
+    if(pp->var->varType->copyValue == NULL)
+      return csound->PerfError(csound, &(p->h),
+                               "channel %s has no value copy function\n",
+                               p->iname->data);
     // now lock and copy data
     p->lock = (spin_lock_t *)
       get_channel_lock(csound, (char*) p->iname->data);
@@ -883,6 +889,10 @@ int32_t chnget_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
     if(pp->var->memBlock == NULL)
       return csound->PerfError(csound, &(p->h),
                                "channel %s not initialised\n",
+                               p->iname->data);
+    if(pp->var->varType->copyValue == NULL)
+      return csound->PerfError(csound, &(p->h),
+                               "channel %s has no value copy function\n",
                                p->iname->data);
     // now lock and copy data
     p->lock = (spin_lock_t *)
