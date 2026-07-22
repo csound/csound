@@ -23,7 +23,6 @@ public:
     virtual void SetUp ()
     {
       csound = csoundCreate (NULL, NULL);
-      //csoundCreateMessageBuffer (csound, 0);
       csoundSetOption (csound, "-n");
     }
 
