@@ -55,6 +55,21 @@ instr 2
  assert(real(ca), 0)
  assert(imag(ca), 0)
 
+ kAddOnce:Complex = complex(1, 2)
+ kAddOnce += complex(3, 4)
+ assert_close(real(kAddOnce), 4)
+ assert_close(imag(kAddOnce), 6)
+
+ kSubOnce:Complex = complex(5, 7)
+ kSubOnce -= complex(2, 3)
+ assert_close(real(kSubOnce), 3)
+ assert_close(imag(kSubOnce), 4)
+
+ kMulOnce:Complex = complex(1, 2)
+ kMulOnce *= complex(3, 4)
+ assert_close(real(kMulOnce), -5)
+ assert_close(imag(kMulOnce), 10)
+
  kDivRR:Complex = complex(4*cos(0.75), 4*sin(0.75), 0)
  kDivRR /= complex(2*cos(0.25), 2*sin(0.25), 0)
  assert_close(abs(kDivRR), 2)
