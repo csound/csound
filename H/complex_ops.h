@@ -109,6 +109,8 @@ int32_t complex_array_polar(CSOUND *csound, COPS1 *p);
 int32_t complex_array_complex(CSOUND *csound, COPS1 *p);
 int32_t cops_init_a(CSOUND *csound, COPS1 *p);
 int32_t complex_array_assign(CSOUND *csound, COPS1 *p);
+int32_t complex_array_polar_init(CSOUND *csound, COPS1 *p);
+int32_t complex_array_polar_assign(CSOUND *csound, COPS1 *p);
 int32_t complex_array_exp(CSOUND *csound, COPS1 *p);
 int32_t complex_array_log(CSOUND *csound, COPS1 *p);
 int32_t complexa_mulin(CSOUND *csound, COPS1 *p);
