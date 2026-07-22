@@ -214,6 +214,24 @@ static void csound_array_free_elements(CSOUND *csound,
     }
 }
 
+static int32_t csound_array_element_layout_valid(
+    const CS_TYPE *arrayType, const CS_VARIABLE *var, int32_t memberSize)
+{
+    if (var == NULL || var->memBlockSize <= 0 || memberSize <= 0) {
+        return 0;
+    }
+    if (var->memBlockSize == memberSize) {
+        return 1;
+    }
+    /* Local-ksmps UDOs keep the caller's wider audio-array stride while
+       operating on one shorter block at a time. A wider callback would write
+       past the element, so only the shorter direction is safe. */
+    return arrayType == &CS_VAR_TYPE_A &&
+      (size_t)var->memBlockSize % sizeof(MYFLT) == 0 &&
+      (size_t)memberSize % sizeof(MYFLT) == 0 &&
+      var->memBlockSize < memberSize;
+}
+
 /* Initialise fresh slots only. All checks that can return NOTOK happen before
    the first callback, so callers can free an unpublished buffer as raw data. */
 int32_t csound_array_initialize_element_range(
@@ -244,7 +262,8 @@ int32_t csound_array_initialize_element_range(
 
     var = array_element_create_variable(csound, array->arrayType, ctx);
     if (UNLIKELY(var == NULL ||
-                 var->memBlockSize != array->arrayMemberSize ||
+                 !csound_array_element_layout_valid(
+                    array->arrayType, var, array->arrayMemberSize) ||
                  (var->initializeVariableMemory == NULL &&
                   csound_array_has_managed_elements(array)))) {
         if (var != NULL) {
@@ -259,6 +278,10 @@ int32_t csound_array_initialize_element_range(
     for (size_t i = begin; i < end; i++) {
         MYFLT *element = (MYFLT *)((char *)array->data + i * stride);
         var->initializeVariableMemory(csound, var, element);
+        if ((size_t)var->memBlockSize < stride) {
+            memset((char *)element + var->memBlockSize, 0,
+                   stride - (size_t)var->memBlockSize);
+        }
     }
     csound->Free(csound, var);
     return OK;
@@ -331,7 +354,9 @@ int32_t csound_array_ensure_capacity_impl(CSOUND *csound, ARRAYDAT *array,
 
     if (!fresh) {
         var = array_element_create_variable(csound, array->arrayType, ctx);
-        if (UNLIKELY(var == NULL || var->memBlockSize != memberSize ||
+        if (UNLIKELY(var == NULL ||
+                     !csound_array_element_layout_valid(
+                       array->arrayType, var, memberSize) ||
                      (var->initializeVariableMemory == NULL &&
                       csound_array_has_managed_elements(array)))) {
             if (var != NULL) {
@@ -612,6 +637,19 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
     if (csound_array_values_alias(csound, destination, source)) {
         return OK;
     }
+    if (source->data != NULL && memberCount > 0 &&
+        source->arrayType == &CS_VAR_TYPE_A) {
+        size_t copyBytes;
+        size_t contextKsmps = ctx != NULL
+          ? (size_t)ctx->ksmps : (size_t)csound->ksmps;
+
+        if (UNLIKELY(csound_array_allocation_size(
+                       (int32_t)sizeof(MYFLT), contextKsmps,
+                       &copyBytes) != OK ||
+                     copyBytes > (size_t)source->arrayMemberSize)) {
+            return NOTOK;
+        }
+    }
 
     {
       int32_t result = allowAllocation
@@ -659,7 +697,9 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
         var = array_element_create_variable(csound,
                                             destination->arrayType, ctx);
         if (UNLIKELY(var == NULL ||
-                     var->memBlockSize != source->arrayMemberSize ||
+                     !csound_array_element_layout_valid(
+                       destination->arrayType, var,
+                       source->arrayMemberSize) ||
                      (var->initializeVariableMemory == NULL &&
                       csound_array_has_managed_elements(destination)))) {
             if (var != NULL) {
@@ -1296,7 +1336,8 @@ int32_t csound_array_prepare_opcode_write_impl(
 {
     INSDS *ctx;
 
-    if (UNLIKELY(csound == NULL || errorMessage == NULL)) {
+    if (UNLIKELY(csound == NULL || errorMessage == NULL ||
+                 (!initializing && opds == NULL))) {
         return NOTOK;
     }
     ctx = opds != NULL ? opds->insdshead : NULL;

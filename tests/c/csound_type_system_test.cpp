@@ -18,7 +18,29 @@
 #include "csoundCore.h"
 #include "csound_orc_structs.h"
 #include "arrays.h"
+extern "C" {
+#include "array_ops.h"
+}
 #include "gtest/gtest.h"
+
+namespace {
+
+int32_t initErrorCalls;
+int32_t perfErrorCalls;
+
+int32_t countInitError(CSOUND *, const char *, ...)
+{
+    initErrorCalls++;
+    return NOTOK;
+}
+
+int32_t countPerfError(CSOUND *, OPDS *, const char *, ...)
+{
+    perfErrorCalls++;
+    return NOTOK;
+}
+
+}
 
 class TypeSystemTests : public ::testing::Test {
 public:
@@ -446,6 +468,50 @@ TEST_F (TypeSystemTests, testStructuredArrayWritePreparationUsesExplicitPolicy)
     csound_free_array_storage(csound, &shared);
 }
 
+TEST_F (TypeSystemTests, testOpcodeWritePreparationRequiresPerfContext)
+{
+    ARRAYDAT array{};
+
+    EXPECT_EQ(NOTOK, csound_array_prepare_opcode_write(
+                       csound, &array, nullptr, 0,
+                       "performance write failed"));
+    EXPECT_EQ(OK, csound_array_prepare_opcode_write(
+                    csound, &array, nullptr, 1,
+                    "initialization write failed"));
+}
+
+TEST_F (TypeSystemTests, testArrayGetErrorsUseExplicitPhase)
+{
+    ARRAYDAT array{};
+    ARRAY_GET get{};
+    OPTXT optext{};
+    auto *const originalInitError = csound->InitError;
+    auto *const originalPerfError = csound->PerfError;
+
+    optext.t.inArgCount = 2;
+    get.h.optext = &optext;
+    get.arrayDat = &array;
+    initErrorCalls = 0;
+    perfErrorCalls = 0;
+    csound->InitError = countInitError;
+    csound->PerfError = countPerfError;
+
+    const int32_t initResult = array_get_init(csound, &get);
+    const int32_t perfResult = array_get(csound, &get);
+    get.arrayDat = nullptr;
+    const int32_t nullInitResult = array_get_init(csound, &get);
+    const int32_t nullPerfResult = array_get(csound, &get);
+
+    csound->InitError = originalInitError;
+    csound->PerfError = originalPerfError;
+    EXPECT_EQ(NOTOK, initResult);
+    EXPECT_EQ(NOTOK, perfResult);
+    EXPECT_EQ(NOTOK, nullInitResult);
+    EXPECT_EQ(NOTOK, nullPerfResult);
+    EXPECT_EQ(2, initErrorCalls);
+    EXPECT_EQ(2, perfErrorCalls);
+}
+
 TEST_F (TypeSystemTests, testManagedArrayCapacityInitializesOnlyNewElements)
 {
     const CS_TYPE *elementType;
@@ -489,6 +555,95 @@ TEST_F (TypeSystemTests, testManagedArrayCapacityInitializesOnlyNewElements)
     EXPECT_EQ(secondMembers, elementAt(1)->members);
 
     csound_free_array_storage(csound, &array);
+}
+
+TEST_F (TypeSystemTests, testAudioArrayStrideChecksLocalKsmpsDirection)
+{
+    INSDS narrowContext{};
+    INSDS wideContext{};
+    ARRAYDAT wideSource{};
+    ARRAYDAT narrowSource{};
+    ARRAYDAT destination{};
+    ARRAYDAT rejectedDestination{};
+    ARRAYDAT existingDestination{};
+
+    narrowContext.ksmps = 1;
+    wideContext.ksmps = 32;
+
+    wideSource.dimensions = 1;
+    wideSource.sizes = static_cast<int32_t *>(
+      csound->Calloc(csound, sizeof(int32_t)));
+    wideSource.sizes[0] = 1;
+    wideSource.arrayType = &CS_VAR_TYPE_A;
+    ASSERT_EQ(OK, csound_array_ensure_capacity(
+                    csound, &wideSource, 1, &wideContext));
+    wideSource.data[0] = FL(0.25);
+
+    destination.arrayType = &CS_VAR_TYPE_A;
+    ASSERT_EQ(OK, csound_array_copy_independent(
+                    csound, &destination, &wideSource, &narrowContext,
+                    CSOUND_ARRAY_COPY_ALLOW_ALLOCATION));
+    EXPECT_EQ(wideSource.arrayMemberSize, destination.arrayMemberSize);
+    ASSERT_NE(nullptr, destination.data);
+    EXPECT_EQ(FL(0.25), destination.data[0]);
+
+    ASSERT_EQ(OK, csound_array_ensure_capacity(
+                    csound, &wideSource, 2, &narrowContext));
+    EXPECT_EQ(FL(0.25), wideSource.data[0]);
+    ASSERT_EQ(0u, (size_t)wideSource.arrayMemberSize % sizeof(MYFLT));
+    const size_t samplesPerElement =
+      (size_t)wideSource.arrayMemberSize / sizeof(MYFLT);
+    for (size_t sample = 0; sample < samplesPerElement; sample++) {
+        EXPECT_EQ(FL(0.0), wideSource.data[samplesPerElement + sample]);
+    }
+
+    narrowSource.dimensions = 1;
+    narrowSource.sizes = static_cast<int32_t *>(
+      csound->Calloc(csound, sizeof(int32_t)));
+    narrowSource.sizes[0] = 1;
+    narrowSource.arrayType = &CS_VAR_TYPE_A;
+    ASSERT_EQ(OK, csound_array_ensure_capacity(
+                    csound, &narrowSource, 1, &narrowContext));
+    narrowSource.data[0] = FL(0.5);
+    MYFLT *const originalData = narrowSource.data;
+    const size_t originalAllocated = narrowSource.allocated;
+
+    EXPECT_EQ(NOTOK, csound_array_ensure_capacity(
+                       csound, &narrowSource, 2, &wideContext));
+    EXPECT_EQ(originalData, narrowSource.data);
+    EXPECT_EQ(originalAllocated, narrowSource.allocated);
+    EXPECT_EQ(FL(0.5), narrowSource.data[0]);
+
+    rejectedDestination.arrayType = &CS_VAR_TYPE_A;
+    EXPECT_EQ(NOTOK, csound_array_copy_independent(
+                       csound, &rejectedDestination, &narrowSource,
+                       &wideContext, CSOUND_ARRAY_COPY_ALLOW_ALLOCATION));
+    EXPECT_EQ(nullptr, rejectedDestination.data);
+    EXPECT_EQ(0u, rejectedDestination.allocated);
+
+    existingDestination.dimensions = 1;
+    existingDestination.sizes = static_cast<int32_t *>(
+      csound->Calloc(csound, sizeof(int32_t)));
+    existingDestination.sizes[0] = 1;
+    existingDestination.arrayType = &CS_VAR_TYPE_A;
+    ASSERT_EQ(OK, csound_array_ensure_capacity(
+                    csound, &existingDestination, 1, &narrowContext));
+    existingDestination.data[0] = FL(0.75);
+    MYFLT *const existingData = existingDestination.data;
+    const size_t existingAllocated = existingDestination.allocated;
+
+    EXPECT_EQ(NOTOK, csound_array_copy_independent(
+                       csound, &existingDestination, &narrowSource,
+                       &wideContext, CSOUND_ARRAY_COPY_ALLOW_ALLOCATION));
+    EXPECT_EQ(existingData, existingDestination.data);
+    EXPECT_EQ(existingAllocated, existingDestination.allocated);
+    EXPECT_EQ(FL(0.75), existingDestination.data[0]);
+
+    csound_free_array_storage(csound, &wideSource);
+    csound_free_array_storage(csound, &narrowSource);
+    csound_free_array_storage(csound, &destination);
+    csound_free_array_storage(csound, &rejectedDestination);
+    csound_free_array_storage(csound, &existingDestination);
 }
 
 TEST_F (TypeSystemTests, testStructuredArrayCopyAndWriteClaimAreSerialized)
