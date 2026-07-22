@@ -35,6 +35,10 @@ const externsDir = path.join(rootDir, "externs");
 const srcDir = path.join(rootDir, "src");
 const googDir = path.join(rootDir, "goog");
 const distDir = path.join(rootDir, "dist");
+const noEntryWasmPath = path.join(nodeModulesDir, "@csound/wasm-bin/lib/csound-no-entry.wasm.z");
+const browserWasmPath = fs.existsSync(noEntryWasmPath)
+  ? noEntryWasmPath
+  : path.join(nodeModulesDir, "@csound/wasm-bin/lib/csound.wasm.z");
 
 function trimString(a) {
   return a
@@ -58,8 +62,8 @@ const makeModuleExportsHack = () => {
     const hackedData = data.replace(
       "__GOOGLE_CLOSURE_REPLACEME__",
       `const Csound = Csound$$$module$src$index;` +
-      ` const libcsound = libcsoundEntry$$$module$src$libcsound_entry;` +
-      ` export { Csound, libcsound }; export default Csound;`,
+        ` const libcsound = libcsoundEntry$$$module$src$libcsound_entry;` +
+        ` export { Csound, libcsound }; export default Csound;`,
     );
     fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
   } else {
@@ -82,8 +86,8 @@ const makeModuleExportsHack = () => {
         let depth = 1; // we're inside the w( already
         let i = exprStart;
         while (i < data.length && depth > 0) {
-          if (data[i] === '(') depth++;
-          else if (data[i] === ')') depth--;
+          if (data[i] === "(") depth++;
+          else if (data[i] === ")") depth--;
           i++;
         }
         // i now points past the closing ')' of w(...)
@@ -105,14 +109,10 @@ const makeModuleExportsHack = () => {
         ` const libcsound = ${obfuscatedLibcsound};` +
         ` export { Csound, libcsound }; export default Csound;`;
     } else {
-      exportStatement =
-        `const Csound = ${obfuscatedCsound}; export { Csound }; export default Csound;`;
+      exportStatement = `const Csound = ${obfuscatedCsound}; export { Csound }; export default Csound;`;
     }
 
-    const hackedData = data.replace(
-      "__GOOGLE_CLOSURE_REPLACEME__",
-      exportStatement,
-    );
+    const hackedData = data.replace("__GOOGLE_CLOSURE_REPLACEME__", exportStatement);
     fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
   }
 };
@@ -122,13 +122,10 @@ if (fs.existsSync(distDir)) {
 }
 fs.mkdirSync(distDir);
 
-  fs.writeFileSync(
-    path.join(rootDir, "dist", "__csound_wasm.inline.js"),
-    inlineArraybuffer(
-      "./node_modules/@csound/wasm-bin/lib/csound-no-entry.wasm.z",
-      "binary.wasm",
-    ),
-  );
+fs.writeFileSync(
+  path.join(rootDir, "dist", "__csound_wasm.inline.js"),
+  inlineArraybuffer(browserWasmPath, "binary.wasm"),
+);
 
 // const polyfills = {
 //   fetch_noop: fs.readFileSync("polyfills/fetch-noop.js", "utf-8"),
@@ -251,9 +248,7 @@ const compile = async (config) => {
   };
   const closureCompiler = new ClosureCompiler(deepMerge(defaultConfig, config));
 
-  closureCompiler.javaPath = process.env.JAVA_HOME
-    ? `${process.env.JAVA_HOME}/bin/java`
-    : "java";
+  closureCompiler.javaPath = process.env.JAVA_HOME ? `${process.env.JAVA_HOME}/bin/java` : "java";
   closureCompiler.JAR_PATH = JarPath;
   await new Promise((resolve, reject) => {
     const javaProcess = closureCompiler.run((exitCode, inputString, stderr) => {

@@ -25,13 +25,17 @@ const { compiler: ClosureCompiler } = goog;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = __dirname;
+const noEntryWasmPath = path.join(
+  rootDir,
+  "node_modules/@csound/wasm-bin/lib/csound-no-entry.wasm.z",
+);
+const browserWasmPath = fs.existsSync(noEntryWasmPath)
+  ? noEntryWasmPath
+  : path.join(rootDir, "node_modules/@csound/wasm-bin/lib/csound.wasm.z");
 
 fs.writeFileSync(
   path.join(rootDir, "dist", "__csound_wasm_static_tools.inline.js"),
-  inlineArraybuffer(
-    "./node_modules/@csound/wasm-bin/lib/csound-no-entry.wasm.z",
-    "binary.wasm",
-  ),
+  inlineArraybuffer(browserWasmPath, "binary.wasm"),
 );
 
 (async () => {
