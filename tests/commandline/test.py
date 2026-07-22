@@ -613,9 +613,8 @@ def runTest():
         ],
         ["test_explicit_globals.csd", "test global declaration of explicit types"],
         [
-            "test_fail_mismatched_types.csd",
-            "syntax error on mismatched type declaration",
-            1,
+            "test_mismatched_type_shadowing.csd",
+            "test explicitly typed locals shadow globals with complete array metadata",
         ],
         [
             "test_fail_redefine.csd",

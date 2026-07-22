@@ -2110,6 +2110,48 @@ char *check_optional_type(CSOUND *csound, char *name) {
     return csoundStrdup(csound, name);
 }
 
+static const CS_TYPE *resolve_type_annotation(CSOUND *csound,
+                                              const char *annotation,
+                                              ARRAY_VAR_INIT *varInit,
+                                              const void **typeArg) {
+  const CS_TYPE *type;
+  const char *firstBracket = strchr(annotation, '[');
+
+  *typeArg = NULL;
+  if (firstBracket == NULL) {
+    type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
+    if (type == NULL)
+      csound->ErrorMsg(csound, "Unknown type annotation: %s\n", annotation);
+    return type;
+  }
+
+  int32_t dimensions = 0;
+  const char *p = firstBracket;
+  while (p[0] == '[' && p[1] == ']') {
+    dimensions++;
+    p += 2;
+  }
+
+  size_t baseLen = (size_t) (firstBracket - annotation);
+  char *baseType = csound->Malloc(csound, baseLen + 1);
+  memcpy(baseType, annotation, baseLen);
+  baseType[baseLen] = '\0';
+
+  const CS_TYPE *elementType =
+    csoundGetTypeWithVarTypeName(csound->typePool, baseType);
+  csound->Free(csound, baseType);
+  if (elementType == NULL || dimensions == 0 || *p != '\0') {
+    csound->ErrorMsg(csound, "Invalid array type annotation: %s\n",
+                     annotation);
+    return NULL;
+  }
+
+  varInit->dimensions = dimensions;
+  varInit->type = elementType;
+  *typeArg = varInit;
+  return csoundGetTypeWithVarTypeName(csound->typePool, "[");
+}
+
 /* This function creates a new variable for a rhs argument
    if the variable is not found in any of the pools
    If the variable is found, a consistency check is made
@@ -2137,7 +2179,6 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       (var && var->varType == &CS_VAR_TYPE_OPCODEREF)) {
     if (annotation != NULL) {
       // check for global annotation in explicit-type rhs vars
-      lvarName = csoundStrdup(csound, varName);
       pool = find_global_annotation(lvarName, typeTable);
       if(pool == csound->engineState.varPool
          || pool == typeTable->globalPool) {
@@ -2150,54 +2191,12 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       }
       // check to see if annotation is optional type
       char *nm = check_optional_type(csound, annotation);
-
-      // Check if annotation is an array type (contains [])
-      char* firstBracket = strchr(nm, '[');
-      if (firstBracket != NULL) {
-        // Parse array annotation like "k[]", "S[][]", ":MyType;[]" etc.
-        int32_t dimensions = 0;
-        char* p = firstBracket;
-
-        // Count dimensions by counting "[]" pairs
-        while (*p == '[') {
-          if (*(p+1) == ']') {
-            dimensions++;
-            p += 2;
-          } else {
-            break;
-          }
-        }
-
-        // Extract element type (everything before the first '[')
-        size_t baseLen = firstBracket - nm;
-        char* baseType = csound->Malloc(csound, baseLen + 1);
-        strncpy(baseType, nm, baseLen);
-        baseType[baseLen] = '\0';
-
-        const CS_TYPE* elemType = csoundGetTypeWithVarTypeName(csound->typePool, baseType);
-
-        if (elemType == NULL) {
-          csound->ErrorMsg(csound, "Unknown element type for array: %s\n", baseType);
-          csound->Free(csound, baseType);
-          csound->Free(csound, nm);
-          csound->Free(csound, lvarName);
-          return;
-        }
-        csound->Free(csound, baseType);
-
-        // Get the array type (use "[" which has create_array)
-        type = csoundGetTypeWithVarTypeName(csound->typePool, "[");
-
-        // Set up ARRAY_VAR_INIT with dimensions and element type
-        varInit.dimensions = dimensions;
-        varInit.type = elemType;
-        typeArg = &varInit;
-      } else {
-        // Not an array, use the type directly
-        type = csoundGetTypeWithVarTypeName(csound->typePool,nm);
-        typeArg = (void *) type;
-      }
+      type = resolve_type_annotation(csound, nm, &varInit, &typeArg);
       csound->Free(csound, nm);
+      if (type == NULL) {
+        csound->Free(csound, lvarName);
+        return;
+      }
     } else {
       // check for @global in implicit-type rhs vars
       // and if found, strip it and print warning
@@ -2257,15 +2256,11 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       CS_VAR_POOL *var_pool = get_var_pool(csound, typeTable, lvarName);
       // check for optional type
       t = check_optional_type(csound, annotation);
-
-      // Check if t is an array type annotation (contains [])
-      char* firstBracket = strchr(t, '[');
-      if (firstBracket != NULL) {
-        // Array type - use "[" as the type
-        type = csoundGetTypeWithVarTypeName(csound->typePool, "[");
-      } else {
-        // Regular type
-        type = csoundGetTypeWithVarTypeName(csound->typePool, t);
+      type = resolve_type_annotation(csound, t, &varInit, &typeArg);
+      if (type == NULL) {
+        csound->Free(csound, t);
+        csound->Free(csound, lvarName);
+        return;
       }
       if(type && type != var->varType){
 	 // remove variable if it belongs to the same pool (local/global)
