@@ -715,6 +715,7 @@ int32_t tabarithset(CSOUND *csound, TABARITH *p)
 {
 
   if (LIKELY(p->left->data && p->right->data)) {
+    ARRAYDAT *source = p->left;
     int32_t i;
     if (UNLIKELY(p->left->dimensions != p->right->dimensions))
       return
@@ -726,7 +727,11 @@ int32_t tabarithset(CSOUND *csound, TABARITH *p)
           csound->InitError(csound, "%s",
                             Str("Dimensions do not match in array arithmetic"));
     }
-    tabinit_like(csound, p->ans, p->left);
+    /* Use the operand whose element type matches the result. */
+    if (p->ans->arrayType != source->arrayType &&
+        p->ans->arrayType == p->right->arrayType)
+      source = p->right;
+    tabinit_like(csound, p->ans, source);
     return OK;
   }
   else return csound->InitError(csound, "%s",
