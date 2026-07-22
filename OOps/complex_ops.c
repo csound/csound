@@ -745,8 +745,8 @@ int32_t complex_div_scalar(CSOUND *csound, COPS1 *p) {
 static inline void
 cmplx_sc_add(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT num, int32_t n) {
   for(int i = 0; i < n; i++) {
+    out[i].isPolar = in[i].isPolar;
     if(!in[i].isPolar) {
-      out[i].isPolar = in[i].isPolar;
       out[i].real = in[i].real + num;
       out[i].imag = in[i].imag;
     } else {
