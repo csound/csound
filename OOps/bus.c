@@ -1520,13 +1520,19 @@ int32_t chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
 }
 
 
-static void chnexport_generic_initialise(CSOUND *csound, CHNENTRY *pp,
-                                         const CS_TYPE *argtype) {
+static int32_t chnexport_generic_initialise(CSOUND *csound, CHNENTRY *pp,
+                                            const CS_TYPE *argtype) {
   if (UNLIKELY(argtype == NULL || argtype->createVariable == NULL)) {
-    csound->InitError(csound, "channel argument has no variable constructor\n");
-    return;
+    return csound->InitError(
+      csound, "channel argument has no variable constructor\n");
   }
   pp->var = csoundCreateVariableForType(csound, argtype, NULL, NULL);
+  if (UNLIKELY(pp->var == NULL)) {
+    return csound->InitError(csound,
+                             "failed to create channel storage for type %s\n",
+                             argtype->varTypeName);
+  }
+  return OK;
 }
 
 
@@ -1535,13 +1541,19 @@ static void chnexport_generic_initialise(CSOUND *csound, CHNENTRY *pp,
 int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
 {
   MYFLT *dummy;
-  char  *argName = GetOutputArgName(&p->h, 0);
+  char  *argName;
   int32_t  type = CSOUND_CONTROL_CHANNEL, mode, err;
   controlChannelHints_t hints;
   CHNENTRY *chn;
-  CS_VARIABLE *var = csoundFindVariableWithName(csound,
-                                                csound->engineState.varPool,
-                                                argName);
+  CS_VARIABLE *var;
+
+  if (UNLIKELY(GetOutputArgCnt((OPDS *)p) != 1))
+    return csound->InitError(csound, Str("invalid export variable"));
+  argName = GetOutputArgName(&p->h, 0);
+  if (UNLIKELY(argName == NULL))
+    return csound->InitError(csound, Str("invalid export variable"));
+  var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                   argName);
 
   if(var == NULL)
     return csound->InitError(csound, "global variable not found for export\n");
@@ -1578,11 +1590,10 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
 
   /* Now we need to find the channel entry */
   chn = find_channel(csound, (char*) p->iname->data);
-  if(chn->var  ==  NULL) // initialise it now
-    chnexport_generic_initialise(csound, chn, var->varType);
-  if(chn->var == NULL)  // check chn var exists
-    return csound->InitError(csound, "failed to create channel storage for type %s\n",
-                             var->varType->varTypeName);
+  if(chn->var == NULL &&
+     UNLIKELY((err = chnexport_generic_initialise(
+                 csound, chn, var->varType)) != OK))
+    return err;
 
   csoundSpinLock(&chn->lock);
   /* Free any existing chn var memBlock allocated earlier */
