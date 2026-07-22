@@ -18,6 +18,14 @@ int32_t csound_array_copy_independent(CSOUND *csound, ARRAYDAT *destination,
                                       CSOUND_ARRAY_COPY_MODE mode);
 int32_t csound_array_prepare_write_impl(CSOUND *csound, ARRAYDAT *array,
                                         INSDS *ctx, int32_t allowAllocation);
+int32_t csound_array_prepare_opcode_write_impl(
+    CSOUND *csound, ARRAYDAT *array, OPDS *opds, int32_t initializing,
+    const char *errorMessage);
+int32_t csound_array_ensure_capacity_impl(CSOUND *csound, ARRAYDAT *array,
+                                          size_t capacity, INSDS *ctx);
+int32_t csound_array_initialize_element_range(
+    CSOUND *csound, ARRAYDAT *array, size_t dataBytes, size_t begin,
+    size_t end, INSDS *ctx);
 void csound_free_array_storage(CSOUND *csound, ARRAYDAT *array);
 size_t csound_array_allocated_bytes(CSOUND *csound, const ARRAYDAT *array);
 int32_t csound_array_storage_matches(CSOUND *csound,

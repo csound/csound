@@ -1967,41 +1967,54 @@ static int32_t
 arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     ARRAYDAT *a = p->in;
     int32_t numdims = p->INOCOUNT - 1;
+    int32_t newSizes[20];
+    size_t orig_numitems;
+    size_t numitems = 1;
 
-    int32_t orig_numitems = 1;
-    for(int i=0; i < a->dimensions; i++) {
-        orig_numitems *= a->sizes[i];
+    if (UNLIKELY(a == NULL || a->data == NULL || a->dimensions <= 0 ||
+                 a->sizes == NULL || numdims <= 0 || numdims > 20 ||
+                 csound_array_member_count(a, &orig_numitems) != OK)) {
+        return INITERR(Str("reshapearray: invalid array or dimensions"));
     }
-    int32_t numitems = 1;
     for(int i=0; i < numdims; i++) {
-        MYFLT dim = *(p->dims[i]);
-        int32_t idim = (int32_t)dim;
-        if(idim <= 0) {
-            return INITERRF(Str("reshapearray: invalid dimension at index %d, a dimension must be >= 0, got %d"), i, (int)dim);
+        double dim = (double)*(p->dims[i]);
+        if (UNLIKELY(!isfinite(dim) || dim < 1.0 ||
+                     dim > (double)INT32_MAX || floor(dim) != dim)) {
+            return INITERRF(
+              Str("reshapearray: dimension %d must be a positive integer, "
+                  "got %g"), i, dim);
         }
-        numitems *= idim;
+        newSizes[i] = (int32_t)dim;
+        if (UNLIKELY((size_t)newSizes[i] > SIZE_MAX / numitems)) {
+            return INITERR(Str("reshapearray: dimension product overflow"));
+        }
+        numitems *= (size_t)newSizes[i];
     }
 
     if(numitems != orig_numitems)
-      return INITERRF(Str("reshapearray: The number of items do not match."
-                          "The array has %d elements, but the new shape"
-                          "results in %d total elements"),
+      return INITERRF(Str("reshapearray: the number of items does not match. "
+                          "The array has %zu elements, but the new shape "
+                          "results in %zu total elements"),
                       orig_numitems, numitems);
 
-    if (UNLIKELY(csound_array_prepare_write(csound, a,
-                                            p->h.insdshead) != OK)) {
-      return INITERRF("%s",
-                      Str("reshapearray: could not detach shared array"));
+    if (UNLIKELY(csound_array_prepare_opcode_write(
+                   csound, a, &p->h, 1,
+                   Str("reshapearray: could not prepare array for writing"))
+                 != OK)) {
+      return NOTOK;
     }
 
     if(a->dimensions != numdims) {
+        int32_t *resized = csound->ReAlloc(
+          csound, a->sizes, sizeof(int32_t) * (size_t)numdims);
+        if (UNLIKELY(resized == NULL)) {
+            return INITERR(Str("reshapearray: could not resize dimensions"));
+        }
+        a->sizes = resized;
         a->dimensions = numdims;
-        a->sizes = csound->ReAlloc(csound, a->sizes, sizeof(int32_t)*numdims);
     }
 
-    for(int i=0; i < numdims; i++) {
-        a->sizes[i] = (int32_t)(*(p->dims[i]));
-    }
+    memcpy(a->sizes, newSizes, sizeof(int32_t) * (size_t)numdims);
 
     return OK;
 }

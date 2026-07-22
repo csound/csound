@@ -446,6 +446,51 @@ TEST_F (TypeSystemTests, testStructuredArrayWritePreparationUsesExplicitPolicy)
     csound_free_array_storage(csound, &shared);
 }
 
+TEST_F (TypeSystemTests, testManagedArrayCapacityInitializesOnlyNewElements)
+{
+    const CS_TYPE *elementType;
+    ARRAYDAT array{};
+
+    ASSERT_EQ(CSOUND_SUCCESS,
+              csoundCompileOrc(csound, "struct RangeValue value:i\n", 0));
+    elementType = csoundGetTypeWithVarTypeName(
+      csound->typePool, ":RangeValue;");
+    ASSERT_NE(nullptr, elementType);
+    ASSERT_TRUE(elementType->userDefinedType);
+    array.arrayType = elementType;
+
+    ASSERT_EQ(OK, csound_array_ensure_capacity(csound, &array, 1, nullptr));
+    ASSERT_GT(array.arrayMemberSize, 0);
+    ASSERT_EQ((size_t)array.arrayMemberSize, array.allocated);
+    auto elementAt = [&array](size_t index) {
+        return reinterpret_cast<CS_STRUCT_VAR *>(
+          reinterpret_cast<char *>(array.data) +
+          index * (size_t)array.arrayMemberSize);
+    };
+    ASSERT_NE(nullptr, elementAt(0)->members);
+    ASSERT_EQ(1, elementAt(0)->memberCount);
+    elementAt(0)->members[0]->value = FL(41.0);
+    auto *firstMembers = elementAt(0)->members;
+
+    EXPECT_EQ(NOTOK, csound_array_initialize_element_range(
+                       csound, &array, array.allocated, 1, 2, nullptr));
+    EXPECT_EQ(firstMembers, elementAt(0)->members);
+    EXPECT_EQ(FL(41.0), elementAt(0)->members[0]->value);
+
+    ASSERT_EQ(OK, csound_array_ensure_capacity(csound, &array, 3, nullptr));
+    EXPECT_EQ(firstMembers, elementAt(0)->members);
+    EXPECT_EQ(FL(41.0), elementAt(0)->members[0]->value);
+    ASSERT_NE(nullptr, elementAt(1)->members);
+    ASSERT_NE(nullptr, elementAt(2)->members);
+    auto *secondMembers = elementAt(1)->members;
+
+    EXPECT_EQ(OK, csound_array_ensure_capacity(csound, &array, 2, nullptr));
+    EXPECT_EQ(firstMembers, elementAt(0)->members);
+    EXPECT_EQ(secondMembers, elementAt(1)->members);
+
+    csound_free_array_storage(csound, &array);
+}
+
 TEST_F (TypeSystemTests, testStructuredArrayCopyAndWriteClaimAreSerialized)
 {
     constexpr int32_t iterationCount = 500;

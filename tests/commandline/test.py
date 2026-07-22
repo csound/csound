@@ -898,6 +898,10 @@ def runTest():
             "reshaping a struct-array copy preserves its source",
         ],
         [
+            "arrays/test_managed_struct_array_paths.csd",
+            "managed struct-array writes share one ownership path",
+        ],
+        [
             "arrays/test_struct_array_k_write_after_copy.csd",
             "k-rate writes use prepared struct-array copy storage",
         ],
