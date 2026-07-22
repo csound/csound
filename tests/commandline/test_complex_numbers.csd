@@ -126,6 +126,22 @@ assert_close(real(Cpolar[1]), real(Csource[1]), kepsilon)
 assert_close(imag(Cpolar[1]), imag(Csource[1]), kepsilon)
 endin
 
+instr 7
+Csource:Complex[] = [complex(5, taninv2(4, 3), 1), complex(-2, 7)]
+Crect:Complex[] = complex(Csource)
+kepsilon = 0.00001
+
+assert_close(real(Crect[0]), 3, kepsilon)
+assert_close(imag(Crect[0]), 4, kepsilon)
+assert_close(abs(Crect[0]), 5, kepsilon)
+assert_close(arg(Crect[0]), taninv2(4, 3), kepsilon)
+
+assert_close(real(Crect[1]), -2, kepsilon)
+assert_close(imag(Crect[1]), 7, kepsilon)
+assert_close(abs(Crect[1]), sqrt(53), kepsilon)
+assert_close(arg(Crect[1]), taninv2(7, -2), kepsilon)
+endin
+
 </CsInstruments>
 <CsScore>
 i1 0 1
@@ -134,5 +150,6 @@ i3 0 1
 i4 0 1
 i5 0 1
 i6 0 1
+i7 0 1
 </CsScore>
 </CsoundSynthesizer>
