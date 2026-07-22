@@ -42,7 +42,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
   ARRAYDAT* arrayDat = p->arrayDat;
   int32_t i;
-  size_t elementCount, capacity, bytes;
+  size_t elementCount, capacity;
 
   int32_t inArgCount = p->INOCOUNT;
 
@@ -97,54 +97,30 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
                              Str("array_init: array dimensions overflow"));
   }
 
-  {
-    // Safety: check for NULL arrayType
+  // Safety: check for NULL arrayType
+  if (arrayDat->arrayType == NULL) {
+    // Try to recover by extracting struct type from opcode name
+    const char* opname = p->h.optext && p->h.optext->t.oentry ? p->h.optext->t.oentry->opname : NULL;
+    if (opname && strncmp(opname, "init.", 5) == 0) {
+      const char* typeName = opname + 5; // Skip "init." prefix
+      CS_TYPE* structType = (CS_TYPE*)csoundGetTypeWithVarTypeName(csound->typePool, typeName);
+      if (structType) {
+        arrayDat->arrayType = structType;
+      }
+    }
+
     if (arrayDat->arrayType == NULL) {
-      // Try to recover by extracting struct type from opcode name
-      const char* opname = p->h.optext && p->h.optext->t.oentry ? p->h.optext->t.oentry->opname : NULL;
-      if (opname && strncmp(opname, "init.", 5) == 0) {
-        const char* typeName = opname + 5; // Skip "init." prefix
-        CS_TYPE* structType = (CS_TYPE*)csoundGetTypeWithVarTypeName(csound->typePool, typeName);
-        if (structType) {
-          arrayDat->arrayType = structType;
-        }
-      }
-
-      if (arrayDat->arrayType == NULL) {
-        csound_free_array_storage(csound, arrayDat);
-        return csound->InitError(csound, "array_init: arrayType is NULL - struct type information missing");
-      }
-    }
-
-    CS_VARIABLE* var = array_element_create_variable(
-      csound, arrayDat->arrayType, p->h.insdshead);
-    char *mem;
-    if (UNLIKELY(var == NULL || var->memBlockSize <= 0 ||
-                 var->initializeVariableMemory == NULL)) {
-      if (var != NULL)
-        csound->Free(csound, var);
       csound_free_array_storage(csound, arrayDat);
-      return csound->InitError(csound, "%s",
-                               Str("array_init: invalid element type"));
+      return csound->InitError(csound, "array_init: arrayType is NULL - struct type information missing");
     }
-    arrayDat->arrayMemberSize = var->memBlockSize;
-    capacity = elementCount > 0 ? elementCount : 1;
-    if (UNLIKELY(csound_array_allocation_size(
-                   arrayDat->arrayMemberSize, capacity, &bytes) != OK)) {
-      csound->Free(csound, var);
-      csound_free_array_storage(csound, arrayDat);
-      return csound->InitError(csound, "%s",
-                               Str("array_init: allocation size overflow"));
-    }
-    arrayDat->allocated = bytes;
-    arrayDat->data = csound->Calloc(csound, bytes);
-    mem = (char *) arrayDat->data;
-    for (size_t index = 0; index < capacity; index++) {
-      var->initializeVariableMemory(csound, var,
-        (MYFLT*)(mem + index * (size_t)var->memBlockSize));
-    }
-    csound->Free(csound, var);
+  }
 
+  capacity = elementCount > 0 ? elementCount : 1;
+  if (UNLIKELY(csound_array_ensure_capacity(
+                 csound, arrayDat, capacity, p->h.insdshead) != OK)) {
+    csound_free_array_storage(csound, arrayDat);
+    return csound->InitError(csound, "%s",
+                             Str("array_init: could not initialize elements"));
   }
   return OK;
 }
@@ -319,32 +295,22 @@ int32_t array_err(CSOUND* csound, ARRAY_SET *p)
   return csound->InitError(csound,  "%s", Str("Cannot set i-array at k-rate\n"));
 }
 
-int32_t array_set_init(CSOUND *csound, ARRAY_SET *p)
+static int32_t array_set_common(CSOUND *csound, ARRAY_SET *p,
+                                int32_t initializing)
 {
   ARRAYDAT *dat = p->arrayDat;
 
   if (UNLIKELY(dat == NULL)) {
-    return csound->InitError(csound, "%s", Str("array_set: NULL array"));
+    return initializing
+      ? csound->InitError(csound, "%s", Str("array_set: NULL array"))
+      : csound->PerfError(csound, &p->h, "%s",
+                          Str("array_set: NULL array"));
   }
-  if (UNLIKELY(csound_array_prepare_write(csound, dat,
-                                          p->h.insdshead) != OK)) {
-    return csound->InitError(csound, "%s",
-                             Str("array_set: could not detach shared array"));
-  }
-  return array_set(csound, p);
-}
-
-int32_t array_set(CSOUND* csound, ARRAY_SET *p)
-{
-  ARRAYDAT* dat = p->arrayDat;
-
-  if (UNLIKELY(dat == NULL)) {
-    return csound->PerfError(csound, &(p->h), Str("array_set: NULL array"));
-  }
-  if (UNLIKELY(csound_array_try_prepare_write(
-                 csound, dat, p->h.insdshead) != OK)) {
-    return csound->PerfError(csound, &p->h, "%s",
-                             Str("array_set: could not detach shared array"));
+  if (UNLIKELY(csound_array_prepare_opcode_write(
+                 csound, dat, &p->h, initializing,
+                 Str("array_set: could not prepare array for writing"))
+               != OK)) {
+    return NOTOK;
   }
   MYFLT* mem = (MYFLT*)dat->data;
   int32_t i;
@@ -504,7 +470,18 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
   return OK;
 }
 
-int32_t array_get(CSOUND* csound, ARRAY_GET *p)
+int32_t array_set_init(CSOUND *csound, ARRAY_SET *p)
+{
+  return array_set_common(csound, p, 1);
+}
+
+int32_t array_set(CSOUND *csound, ARRAY_SET *p)
+{
+  return array_set_common(csound, p, 0);
+}
+
+static int32_t array_get_common(CSOUND *csound, ARRAY_GET *p,
+                                int32_t initializing)
 {
   ARRAYDAT* dat = p->arrayDat;
 
@@ -582,11 +559,11 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     if (needsAutoSizing) {
       /* Size recovery changes array metadata. Detach a structured view first
          so a read from malformed legacy metadata cannot resize its siblings. */
-      if (UNLIKELY(csound_array_try_prepare_write(
-                     csound, dat, p->h.insdshead) != OK)) {
-        return csound->PerfError(
-          csound, &p->h, "%s",
-          Str("array_get: could not detach shared array metadata"));
+      if (UNLIKELY(csound_array_prepare_opcode_write(
+                     csound, dat, &p->h, initializing,
+                     Str("array_get: could not prepare array metadata"))
+                   != OK)) {
+        return NOTOK;
       }
       mem = dat->data;
       // Set a default size for struct arrays that were declared but not properly initialized
@@ -714,6 +691,17 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
   }
   return OK;
 }
+
+int32_t array_get_init(CSOUND *csound, ARRAY_GET *p)
+{
+  return array_get_common(csound, p, 1);
+}
+
+int32_t array_get(CSOUND *csound, ARRAY_GET *p)
+{
+  return array_get_common(csound, p, 0);
+}
+
 int32_t tabarithset(CSOUND *csound, TABARITH *p)
 {
 
@@ -3850,10 +3838,10 @@ int32_t trim_prepare(CSOUND *csound, TRIM *p)
   if (UNLIKELY(p->tab == NULL)) {
     return csound->InitError(csound, "%s", Str("Array not initialised"));
   }
-  if (UNLIKELY(csound_array_prepare_write(csound, p->tab,
-                                          p->h.insdshead) != OK)) {
-    return csound->InitError(csound, "%s",
-                             Str("Could not prepare array for trim"));
+  if (UNLIKELY(csound_array_prepare_opcode_write(
+                 csound, p->tab, &p->h, 1,
+                 Str("trim: could not prepare array for writing")) != OK)) {
+    return NOTOK;
   }
   return OK;
 }

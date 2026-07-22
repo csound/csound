@@ -186,6 +186,7 @@ int32_t array_err(CSOUND* csound, ARRAY_SET *p);
 int32_t array_set_init(CSOUND* csound, ARRAY_SET *p);
 int32_t array_set(CSOUND* csound, ARRAY_SET *p);
 int32_t array_get(CSOUND* csound, ARRAY_GET *p);
+int32_t array_get_init(CSOUND *csound, ARRAY_GET *p);
 int32_t tabarithset(CSOUND *csound, TABARITH *p);
 int32_t tabarithset1(CSOUND *csound, TABARITH1 *p);
 int32_t tabarithset2(CSOUND *csound, TABARITH2 *p);
