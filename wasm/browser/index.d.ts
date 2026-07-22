@@ -490,7 +490,10 @@ declare interface CsoundObj {
    */
   terminateInstance: () => Promise<void>;
   /**
-   * Enable audio input functionality
+   * Sets `-iadc`, requests microphone access, and prepares the input stream.
+   * Call this before `start()`. Works in all modes and rejects when the browser
+   * cannot provide microphone access. Requires HTTPS, localhost, or a loopback
+   * address.
    */
   enableAudioInput: () => Promise<void>;
   /**

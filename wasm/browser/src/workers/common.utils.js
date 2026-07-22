@@ -43,10 +43,14 @@ export const handleCsoundStart =
 
     setTimeout(() => {
       const isRequestingRtMidiInput = libraryCsound["isRequestingRtMidiInput"](csound);
-      const isExpectingRealtimeOutput =
-        shouldDemonize || isRequestingRtMidiInput || outputName.includes("dac");
+      const isRequestingRtAudioInput = libraryCsound["isRequestingRtAudioInput"](csound);
+      const isExpectingRealtimePerformance =
+        shouldDemonize ||
+        isRequestingRtMidiInput ||
+        isRequestingRtAudioInput ||
+        outputName.includes("dac");
 
-      if (isExpectingRealtimeOutput) {
+      if (isExpectingRealtimePerformance) {
         createRealtimeAudioThread(arguments_);
       } else {
         // Do rendering

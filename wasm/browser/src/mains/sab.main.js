@@ -29,6 +29,7 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from
 import { EventPromises } from "../utils/event-promises";
 import { SABCompletionCoordinator } from "../utils/sab-completion-coordinator.js";
 import { PublicEventAPI } from "../events";
+import { enableAudioInputInWorker } from "./io.utils.js";
 import SABWorker from "../../dist/__compiled.sab.worker.inline.js";
 
 class SharedArrayBufferMainThread {
@@ -431,10 +432,7 @@ class SharedArrayBufferMainThread {
     this.exportApi["pause"] = this.csoundPause.bind(this);
     this.exportApi["resume"] = this.csoundResume.bind(this);
     this.exportApi["terminateInstance"] = this.terminateInstance.bind(this);
-    this.exportApi["enableAudioInput"] = () =>
-      console.warn(
-        `enableAudioInput was ignored: please use -iadc option before calling start with useWorker=true`,
-      );
+    this.exportApi["enableAudioInput"] = enableAudioInputInWorker.bind(this);
 
     this.exportApi["name"] = "Csound: Audio Worklet, Shared-Array Buffer";
 

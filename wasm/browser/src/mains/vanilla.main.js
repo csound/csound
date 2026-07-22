@@ -20,6 +20,7 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from
 import { IPCMessagePorts, messageEventHandler } from "./messages.main";
 import { EventPromises } from "../utils/event-promises";
 import { PublicEventAPI } from "../events";
+import { enableAudioInputInWorker } from "./io.utils.js";
 import VanillaWorker from "../../dist/__compiled.vanilla.worker.inline.js";
 
 class VanillaWorkerMainThread {
@@ -250,10 +251,7 @@ class VanillaWorkerMainThread {
     };
 
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
-    this.exportApi["enableAudioInput"] = () =>
-      console.warn(
-        `enableAudioInput was ignored: please use -iadc option before calling start with useWorker=true`,
-      );
+    this.exportApi["enableAudioInput"] = enableAudioInputInWorker.bind(this);
 
     this.exportApi["name"] = "Csound: Audio Worklet, Worker";
 

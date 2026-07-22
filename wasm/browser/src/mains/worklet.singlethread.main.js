@@ -22,7 +22,7 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback } from "../utils.js";
 import { messageEventHandler, IPCMessagePorts } from "./messages.main.js";
 import { api as API } from "../libcsound.js";
 import { PublicEventAPI } from "../events.js";
-import { enableAudioInput } from "./io.utils.js";
+import { enableAudioInput, releaseMicrophoneStream } from "./io.utils.js";
 import { requestMidi } from "../utils/request-midi.js";
 import { EventPromises } from "../utils/event-promises.js";
 import WorkletWorker from "../../dist/__compiled.worklet.singlethread.worker.inline.js";
@@ -81,6 +81,7 @@ class SingleThreadAudioWorkletMainThread {
   }
 
   async terminateInstance() {
+    releaseMicrophoneStream(this);
     if (this.workletProxy) {
       try {
         await this.workletProxy["terminate"]();
@@ -124,6 +125,7 @@ class SingleThreadAudioWorkletMainThread {
       }
 
       case "realtimePerformanceEnded": {
+        releaseMicrophoneStream(this);
         this.midiPortStarted = false;
         this.currentPlayState = undefined;
         this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded();
@@ -245,7 +247,7 @@ class SingleThreadAudioWorkletMainThread {
     /** @suppress {checkTypes} */
     this.exportApi["getNode"] = async () => this.node;
     /** @suppress {checkTypes} */
-    this.exportApi["enableAudioInput"] = enableAudioInput;
+    this.exportApi["enableAudioInput"] = enableAudioInput.bind(this);
     this.exportApi["name"] = "Csound: Audio Worklet, Single-threaded";
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
     // the default message listener
@@ -273,7 +275,11 @@ class SingleThreadAudioWorkletMainThread {
 
             if (isRequestingRealtimeOutput) {
               if (isRequestingInput) {
-                this.exportApi["enableAudioInput"]();
+                try {
+                  await this.exportApi["enableAudioInput"]();
+                } catch (error) {
+                  console.error(error);
+                }
               }
 
               const isRequestingMidi =

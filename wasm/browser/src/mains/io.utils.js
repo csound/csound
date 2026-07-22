@@ -13,50 +13,136 @@
  * limitations under the License.
  */
 
-export const requestMicrophoneNode = (microphoneCallback) => {
-  const getUserMedia =
-    navigator.mediaDevices === undefined
-      ? navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia
-      : navigator.mediaDevices.getUserMedia;
-
+export const requestMicrophoneNode = async () => {
   console.log("requesting microphone access");
-  navigator.mediaDevices === undefined
-    ? getUserMedia.call(
-        navigator,
-        {
-          audio: {
-            optional: [{ echoCancellation: false, sampleSize: 32 }],
-          },
+
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    return navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, sampleSize: 32 },
+    });
+  }
+
+  const legacyGetUserMedia =
+    navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+  if (!legacyGetUserMedia) {
+    throw new Error(
+      "Microphone input is unavailable. Use HTTPS, localhost, or a loopback address and allow microphone access.",
+    );
+  }
+
+  return new Promise((resolve, reject) => {
+    legacyGetUserMedia.call(
+      navigator,
+      {
+        audio: {
+          optional: [{ echoCancellation: false, sampleSize: 32 }],
         },
-        microphoneCallback,
-        console.error,
-      )
-    : getUserMedia
-        .call(navigator.mediaDevices, {
-          audio: { echoCancellation: false, sampleSize: 32 },
-        })
-        .then(microphoneCallback)
-        .catch(console.error);
+      },
+      resolve,
+      reject,
+    );
+  });
 };
 
-// rebind this to exportApi instance to use
+const stopMicrophoneTracks = (stream) => {
+  stream?.getTracks().forEach((track) => track.stop());
+};
+
+const microphoneRequestCancelled = () => {
+  const error = new Error("Microphone request was cancelled because the Csound instance ended");
+  error.name = "AbortError";
+  return error;
+};
+
+export async function requestMicrophoneStream() {
+  if (this.microphoneStream) {
+    return this.microphoneStream;
+  }
+
+  if (!this.microphonePromise) {
+    const requestToken = {};
+    this.microphoneRequestToken = requestToken;
+    const microphonePromise = requestMicrophoneNode().then((stream) => {
+      if (this.microphoneRequestToken !== requestToken) {
+        stopMicrophoneTracks(stream);
+        throw microphoneRequestCancelled();
+      }
+      this.microphoneStream = stream;
+      return stream;
+    });
+    this.microphonePromise = microphonePromise;
+
+    try {
+      return await microphonePromise;
+    } finally {
+      if (this.microphonePromise === microphonePromise) {
+        delete this.microphonePromise;
+      }
+    }
+  }
+
+  return this.microphonePromise;
+}
+
+export const releaseMicrophoneStream = (owner) => {
+  const microphonePromise = owner.microphonePromise;
+  delete owner.microphoneRequestToken;
+  if (owner.microphoneInput) {
+    owner.microphoneInput.disconnect();
+    delete owner.microphoneInput;
+  }
+  if (owner.microphoneStream) {
+    stopMicrophoneTracks(owner.microphoneStream);
+    delete owner.microphoneStream;
+  }
+  if (microphonePromise) {
+    microphonePromise.then(stopMicrophoneTracks).catch(() => {});
+  }
+  delete owner.microphonePromise;
+};
+
+const setAudioInputOption = async (api) => {
+  const result = await api["setOption"]("-iadc");
+  if (result !== 0) {
+    throw new Error(`Could not set the Csound microphone input option: ${result}`);
+  }
+};
+
+// Bind this to the mutable single-thread main instance.
 /**
+ * Sets `-iadc`, requests browser microphone access, and connects the stream to
+ * Csound. This requires HTTPS, localhost, or a loopback address.
+ *
  * @function
- * @this {{
- * getNode: function(): Promise.<Object>,
- * getAudioContext: function(): Promise.<Object>,
- * }}
+ * @returns {Promise<void>} Resolves after the microphone stream is connected.
  */
 export async function enableAudioInput() {
   console.log("enabling audio input");
-  requestMicrophoneNode(async (stream) => {
-    if (stream) {
-      const audioContext = await this["getAudioContext"]();
-      const liveInput = audioContext.createMediaStreamSource(stream);
-      this.inputsCount = liveInput.channelCount;
+  await setAudioInputOption(this.exportApi);
+  const stream = await requestMicrophoneStream.call(this);
 
-      const node = await this["getNode"]();
-      liveInput.connect(node);
-    }
-  });
+  if (this.microphoneStream !== stream || !this.audioContext || !this.node) {
+    stopMicrophoneTracks(stream);
+    throw microphoneRequestCancelled();
+  }
+
+  if (this.microphoneInput) {
+    return;
+  }
+
+  const liveInput = this.audioContext.createMediaStreamSource(stream);
+  this.microphoneInput = liveInput;
+  this.inputsCount = liveInput.channelCount;
+
+  liveInput.connect(this.node);
+}
+
+export async function enableAudioInputInWorker() {
+  if (this.currentPlayState) {
+    throw new Error("enableAudioInput() must be called before start() in worker mode");
+  }
+
+  await setAudioInputOption(this.exportApi);
+  await this.audioWorker["requestMicrophoneInput"]();
 }
