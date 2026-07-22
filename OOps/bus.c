@@ -766,6 +766,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
     pp->var->memBlock = (CS_VAR_MEM *) csoundCalloc(csound, pp->var->memBlockSize
                                                     + CS_VAR_TYPE_OFFSET);
     if (UNLIKELY(pp->var->memBlock == NULL)) {
+      pp->var->ctx = NULL;
       csound->InitError(csound, "memory allocation failure");
       return NULL;
     }
@@ -776,6 +777,10 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
     if((pp->type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_ARRAY_CHANNEL)
       tabinit_like(csound, (ARRAYDAT *) &pp->var->memBlock->value,
                    (ARRAYDAT *) p->arg);
+
+    /* Constructors and initializers may need the note's local ksmps, but the
+       channel descriptor outlives that note. Do not retain its INSDS. */
+    pp->var->ctx = NULL;
   } else if(pp->var->varType != argtype) {
     csound->InitError(csound,
                       "channel type did not match argument\n");
@@ -1516,13 +1521,12 @@ int32_t chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
 
 
 static void chnexport_generic_initialise(CSOUND *csound, CHNENTRY *pp,
-                                         const CS_TYPE *argtype,
-                                         INSDS *op) {
+                                         const CS_TYPE *argtype) {
   if (UNLIKELY(argtype == NULL || argtype->createVariable == NULL)) {
     csound->InitError(csound, "channel argument has no variable constructor\n");
     return;
   }
-  pp->var = csoundCreateVariableForType(csound, argtype, NULL, op);
+  pp->var = csoundCreateVariableForType(csound, argtype, NULL, NULL);
 }
 
 
@@ -1575,7 +1579,7 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
   /* Now we need to find the channel entry */
   chn = find_channel(csound, (char*) p->iname->data);
   if(chn->var  ==  NULL) // initialise it now
-    chnexport_generic_initialise(csound, chn, var->varType, p->h.insdshead);
+    chnexport_generic_initialise(csound, chn, var->varType);
   if(chn->var == NULL)  // check chn var exists
     return csound->InitError(csound, "failed to create channel storage for type %s\n",
                              var->varType->varTypeName);
