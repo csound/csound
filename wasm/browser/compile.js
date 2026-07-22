@@ -35,10 +35,6 @@ const externsDir = path.join(rootDir, "externs");
 const srcDir = path.join(rootDir, "src");
 const googDir = path.join(rootDir, "goog");
 const distDir = path.join(rootDir, "dist");
-const noEntryWasmPath = path.join(nodeModulesDir, "@csound/wasm-bin/lib/csound-no-entry.wasm.z");
-const browserWasmPath = fs.existsSync(noEntryWasmPath)
-  ? noEntryWasmPath
-  : path.join(nodeModulesDir, "@csound/wasm-bin/lib/csound.wasm.z");
 
 function trimString(a) {
   return a
@@ -124,7 +120,7 @@ fs.mkdirSync(distDir);
 
 fs.writeFileSync(
   path.join(rootDir, "dist", "__csound_wasm.inline.js"),
-  inlineArraybuffer(browserWasmPath, "binary.wasm"),
+  inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.wasm.z", "binary.wasm"),
 );
 
 // const polyfills = {

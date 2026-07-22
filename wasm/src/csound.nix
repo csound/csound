@@ -138,8 +138,8 @@ in
       if browserHosted
       then ''
         # This reactor is instantiated by the browser host.
-        zopfli --zlib -c $out/bin/csound > $out/lib/csound-no-entry.wasm.z
-        cp $out/bin/csound $out/lib/csound-no-entry.wasm
+        zopfli --zlib -c $out/bin/csound > $out/lib/csound.wasm.z
+        cp $out/bin/csound $out/lib/csound.wasm
 
         # Build a lightweight SDK archive for compiling external WASM plugins.
         # This can be distributed so plugin builds do not need the full Csound source build.
@@ -158,6 +158,6 @@ in
       ''
       else ''
         # This command module owns its memory and has a real WASI _start entry.
-        cp $out/bin/csound $out/lib/csound.wasm
+        cp $out/bin/csound $out/lib/csound-cli.wasm
       '';
   }

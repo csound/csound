@@ -34,15 +34,15 @@ npm run build         # runs scripts/compile.sh via nix-build
 
 `scripts/compile.sh` produces the following artefacts in `wasm/lib/`:
 
-- `csound.wasm` - standalone WASI command for runtimes such as Wasmtime
-- `csound-no-entry.wasm` - browser-hosted WASI reactor (`_initialize`, no `_start`)
-- `csound-no-entry.wasm.z` - compressed browser-hosted module
+- `csound.wasm` - browser-hosted WASI reactor (`_initialize`, no `_start`)
+- `csound.wasm.z` - compressed browser-hosted module
+- `csound-cli.wasm` - standalone WASI command for runtimes such as Wasmtime
 - `csound-plugin-sdk.tar.gz` — plugin SDK archive
 - `plugin_example.wasm` / `plugin_example_cpp.wasm` — example plugins
 
 Both Csound modules are published in `@csound/wasm-bin`. The package `main`
-entry is the standalone `csound.wasm`; browser bundling selects
-`csound-no-entry.wasm.z` explicitly.
+entry remains the browser reactor, `csound.wasm`. Command-line runtimes should
+load `csound-cli.wasm` explicitly.
 
 The build defaults to the local Nix system. To use a configured remote builder,
 set `NIX_SYSTEM` to the system provided by that builder. For example, from
@@ -53,10 +53,11 @@ The standalone module currently targets Wasmtime's standardized WebAssembly
 exception handling. A direct invocation looks like:
 
 ```bash
-wasmtime run -Wexceptions=y --dir=. ./lib/csound.wasm -nd ./example.csd
+wasmtime run -Wexceptions=y --dir=. ./lib/csound-cli.wasm -nd ./example.csd
 ```
 
-To run the command-line CSD suite against an already-built `lib/csound.wasm`:
+To run the command-line CSD suite against an already-built
+`lib/csound-cli.wasm`:
 
 ```bash
 source ./scripts/nixpkgs-pin.sh
@@ -71,8 +72,8 @@ but its nonzero result is expected because this WASI Preview-1 build has no
 socket creation or UDP send support.
 
 For releases, publish a new `@csound/wasm-bin` version before updating and
-publishing `@csound/browser`; older binary packages do not contain the renamed
-`csound-no-entry.wasm.z` browser artifact.
+publishing `@csound/browser`; older binary packages do not contain the new
+`csound-cli.wasm` command artifact.
 
 ---
 

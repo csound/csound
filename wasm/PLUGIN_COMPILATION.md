@@ -44,8 +44,8 @@ This does:
 Expected outputs:
 
 - `lib/csound.wasm`
-- `lib/csound-no-entry.wasm`
-- `lib/csound-no-entry.wasm.z`
+- `lib/csound.wasm.z`
+- `lib/csound-cli.wasm`
 - `lib/csound-plugin-sdk.tar.gz`
 - `lib/plugin_example.wasm`
 - `lib/plugin_example_cpp.wasm`

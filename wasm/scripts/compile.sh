@@ -42,9 +42,9 @@ if [ -d "./lib" ]; then
     rm -rf "./lib"
 fi
 mkdir lib
-cp ./result_cli/lib/csound.wasm lib
-cp ./result/lib/csound-no-entry.wasm lib
-cp ./result/lib/csound-no-entry.wasm.z lib
+cp ./result_cli/lib/csound-cli.wasm lib
+cp ./result/lib/csound.wasm lib
+cp ./result/lib/csound.wasm.z lib
 cp ./result/lib/csound-plugin-sdk.tar.gz lib
 cp ./result_plugin_c/lib/plugin_example.wasm lib
 cp ./result_plugin_cpp/lib/plugin_example_cpp.wasm lib

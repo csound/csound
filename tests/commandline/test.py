@@ -400,7 +400,7 @@ EXAMPLES:
     ./test.py --workers=8                                  # Parallel with 8 workers
     ./test.py --timeout=60 --verbose                       # Custom timeout and logging
     ./test.py --runtime-executable=wasmtime --runtime-arg=run \
-      --runtime-arg=--dir=. --csound-executable=/path/to/csound.wasm
+      --runtime-arg=--dir=. --csound-executable=/path/to/csound-cli.wasm
 
     """
 

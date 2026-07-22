@@ -1,7 +1,7 @@
 {
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
-  csoundWasm ? ../lib/csound.wasm,
+  csoundWasm ? ../lib/csound-cli.wasm,
   commandlineTests ? ../../tests/commandline,
   workers ? 4,
   testTimeout ? 60,
@@ -14,8 +14,8 @@ pkgs.runCommand "csound-wasm-commandline-tests" {
 } ''
   export HOME="$TMPDIR"
 
-  cp ${csoundWasm} csound.wasm
-  wasmtime compile -Wexceptions=y -Ccache=n -o csound.cwasm csound.wasm
+  cp ${csoundWasm} csound-cli.wasm
+  wasmtime compile -Wexceptions=y -Ccache=n -o csound.cwasm csound-cli.wasm
   csound_module="$PWD/csound.cwasm"
 
   cp -R ${commandlineTests} commandline-tests
