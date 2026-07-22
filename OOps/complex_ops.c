@@ -1211,6 +1211,24 @@ cmplx_real_diva(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT *num, int32_t n) {
   }
 }
 
+static inline void
+real_cmplx_diva(COMPLEXDAT *out, MYFLT *num, COMPLEXDAT *in, int32_t n) {
+  for(int i = 0; i < n; i++) {
+    MYFLT real = in[i].real;
+    MYFLT imag = in[i].imag;
+    if(!in[i].isPolar) {
+      MYFLT den = real*real + imag*imag;
+      out[i].real = (num[i]*real)/den;
+      out[i].imag = -(num[i]*imag)/den;
+      out[i].isPolar = 0;
+    } else {
+      out[i].real = num[i]/real;
+      out[i].imag = -imag;
+      out[i].isPolar = 1;
+    }
+  }
+}
+
 int32_t complexa_div_reala(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
@@ -1233,7 +1251,7 @@ int32_t reala_div_complexa(CSOUND *csound, COPS1 *p) {
   COMPLEXDAT *in1 = (COMPLEXDAT *) array2->data;
   MYFLT *in2 = (MYFLT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
-  cmplx_real_diva(out,in1,in2,len);
+  real_cmplx_diva(out,in2,in1,len);
   return OK;
 }
 
