@@ -43,6 +43,18 @@ instr 5
  outch p4, aOutArr[p4-1]
 endin
 
+instr 6
+ aValues[] init 1
+ aValues[0] = 5
+ kAmount = 2
+ aValues -= kAmount
+ kValue downsamp aValues[0]
+ if kValue != 3 then
+  printks "a[] -= k expected 3, got %f\n", 0, kValue
+  exitnowk(-1)
+ endif
+endin
+
 </CsInstruments>
 <CsScore>
 i 1 0 16
@@ -54,5 +66,6 @@ i 4 8 2 1
 i 4 10 2 2
 i 5 12 2 1
 i 5 14 2 2
+i 6 0 .1
 </CsScore>
 </CsoundSynthesizer>
