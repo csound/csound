@@ -20,6 +20,14 @@ if abs(kActual - kExpected) > 0.000001 then
 endif
 endop
 
+opcode assert_close_i,0,ii
+iActual, iExpected xin
+if abs(iActual - iExpected) > 0.000001 then
+ printf_i "assert close error %.9f %.9f\n", 1, iActual, iExpected
+ exitnow(-1)
+endif
+endop
+
 test@global:Complex[] init 2
 test[0] = 1,2
 test[1] = 3,4
@@ -54,6 +62,38 @@ instr 2
  ca -= complex(1,1)
  assert(real(ca), 0)
  assert(imag(ca), 0)
+
+ iAdd:Complex init 1, 2
+ iAddOperand:Complex init 3, 4
+ iAdd += iAddOperand
+ iAddReal = real(iAdd)
+ iAddImag = imag(iAdd)
+ assert_close_i(iAddReal, 4)
+ assert_close_i(iAddImag, 6)
+
+ iSub:Complex init 5, 7
+ iSubOperand:Complex init 2, 3
+ iSub -= iSubOperand
+ iSubReal = real(iSub)
+ iSubImag = imag(iSub)
+ assert_close_i(iSubReal, 3)
+ assert_close_i(iSubImag, 4)
+
+ iMul:Complex init 1, 2
+ iMulOperand:Complex init 3, 4
+ iMul *= iMulOperand
+ iMulReal = real(iMul)
+ iMulImag = imag(iMul)
+ assert_close_i(iMulReal, -5)
+ assert_close_i(iMulImag, 10)
+
+ iDiv:Complex = complex(4, 0.75, 1)
+ iDivisor:Complex = complex(2, 0.25, 1)
+ iDiv /= iDivisor
+ iDivAbs = abs(iDiv)
+ iDivArg = arg(iDiv)
+ assert_close_i(iDivAbs, 2)
+ assert_close_i(iDivArg, 0.5)
 
  kAddOnce:Complex = complex(1, 2)
  kAddOnce += complex(3, 4)
