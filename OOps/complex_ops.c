@@ -1475,11 +1475,13 @@ int32_t complex_array_complex(CSOUND *csound, COPS1 *p) {
   COMPLEXDAT *in = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
-    out[i].isPolar = in[i].isPolar;
     if(!in[i].isPolar) out[i] = in[i];
     else {
-      out[i].real = in[i].real*COS(in[i].imag);
-      out[i].imag = in[i].real*SIN(in[i].imag);
+      MYFLT magnitude = in[i].real;
+      MYFLT phase = in[i].imag;
+      out[i].real = magnitude*COS(phase);
+      out[i].imag = magnitude*SIN(phase);
+      out[i].isPolar = 0;
     }
   }
   return OK;

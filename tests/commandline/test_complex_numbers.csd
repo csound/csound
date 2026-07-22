@@ -12,6 +12,14 @@ if k1 != k2 then
 endif
 endop
 
+opcode assert_close,0,kkk
+kactual, kexpected, ktolerance xin
+if abs(kactual - kexpected) > ktolerance then
+ printks "assert_close error %f %f\n", 1, kactual, kexpected
+ exitnowk(-1)
+endif
+endop
+
 test@global:Complex[] init 2
 test[0] = 1,2
 test[1] = 3,4
@@ -71,11 +79,28 @@ Ca += Ra
 Ca = 2*Ca/Ca1
 endin
 
+instr 5
+Csource:Complex[] = [complex(5, taninv2(4, 3), 1), complex(-2, 7)]
+Crect:Complex[] = complex(Csource)
+kepsilon = 0.00001
+
+assert_close(real(Crect[0]), 3, kepsilon)
+assert_close(imag(Crect[0]), 4, kepsilon)
+assert_close(abs(Crect[0]), 5, kepsilon)
+assert_close(arg(Crect[0]), taninv2(4, 3), kepsilon)
+
+assert_close(real(Crect[1]), -2, kepsilon)
+assert_close(imag(Crect[1]), 7, kepsilon)
+assert_close(abs(Crect[1]), sqrt(53), kepsilon)
+assert_close(arg(Crect[1]), taninv2(7, -2), kepsilon)
+endin
+
 </CsInstruments>
 <CsScore>
 i1 0 1
 i2 0 1
 i3 0 1
 i4 0 1
+i5 0 1
 </CsScore>
 </CsoundSynthesizer>
