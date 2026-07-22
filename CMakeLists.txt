@@ -1092,7 +1092,7 @@ if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
         list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/src/csound_wasm.c)
     else()
         # Standalone WASI has a conventional command entry point and no JS host.
-        list(APPEND libcsound_CFLAGS -DCSOUND_WASI_STANDALONE)
+        list(APPEND libcsound_CFLAGS -DCSOUND_WASI_CLI)
         # The deconv opcode and named GEN normally arrive through the stdutil
         # plugin. Link only their source into the no-dynamic-loader command.
         list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/util/mkir.c)
