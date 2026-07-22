@@ -6,6 +6,7 @@
 import logging
 import locale
 import os
+import re
 import shlex
 import shutil
 import stat
@@ -46,6 +47,15 @@ def setup_logging():
 
 logger = setup_logging()
 
+WINDOWS_EXCEPTION_EXIT_MIN = 0xC0000000
+
+
+def is_normal_nonzero_exit(return_code):
+    """Reject signal exits and Windows exception status codes."""
+    if return_code <= 0:
+        return False
+    return os.name != "nt" or return_code < WINDOWS_EXCEPTION_EXIT_MIN
+
 
 class Test:
     def __init__(self, fileName, description="", expected=True):
@@ -55,10 +65,22 @@ class Test:
 
 
 class TestResult:
-    """Container for test execution results with ordering information."""
+    """Container for test results and optional stderr diagnostic checks.
+
+    A string in the third test entry is an expected stderr substring. A
+    compiled regular expression in that entry matches stderr with search().
+    Both forms also require a normal nonzero process exit.
+    """
 
     def __init__(
-        self, test_index, test_data, return_code, cs_output, execution_time, error=None
+        self,
+        test_index,
+        test_data,
+        return_code,
+        cs_output,
+        execution_time,
+        error=None,
+        stderr_output=None,
     ):
         self.test_index = test_index
         self.test_data = test_data
@@ -68,16 +90,38 @@ class TestResult:
         self.error = error
         self.filename = test_data[0]
         self.description = test_data[1]
+        self.expected = test_data[2] if len(test_data) >= 3 else 0
         self.expected_result = (
-            1 if len(test_data) == 3 or self.filename in expectedFailures else 0
+            1
+            if self.filename in expectedFailures
+            else 0 if self.expected in (None, False, 0, "") else 1
         )
+        self.stderr_output = cs_output if stderr_output is None else stderr_output
+
+    @property
+    def expected_stderr(self):
+        """Return the expected stderr substring or regular expression."""
+        if self.expected_result != 0 and isinstance(self.expected, (str, re.Pattern)):
+            return self.expected
+        return None
+
+    @property
+    def stderr_matches(self):
+        """Check the diagnostic for an expected-failure test."""
+        if self.expected_stderr is None:
+            return True
+        if isinstance(self.expected_stderr, str):
+            return self.expected_stderr in self.stderr_output
+        return self.expected_stderr.search(self.stderr_output) is not None
 
     @property
     def passed(self):
         """Check if test passed based on return code and expected result."""
         if self.error is not None:
             return False
-        return (self.return_code == 0) == (self.expected_result == 0)
+        if self.expected_result == 0:
+            return self.return_code == 0
+        return is_normal_nonzero_exit(self.return_code) and self.stderr_matches
 
     @property
     def status_line(self):
@@ -94,6 +138,16 @@ class TestResult:
         output += (
             f"\tReturn Code: {self.return_code}\tExpected: {self.expected_result}\n"
         )
+        if self.expected_stderr is not None:
+            if isinstance(self.expected_stderr, str):
+                diagnostic = repr(self.expected_stderr)
+                kind = "substring"
+            else:
+                diagnostic = repr(self.expected_stderr.pattern)
+                kind = "regular expression"
+            output += f"\tExpected stderr {kind}: {diagnostic}\n"
+            if not self.stderr_matches:
+                output += "\tExpected diagnostic was not found in captured stderr\n"
         if self.error:
             output += f"\tError: {self.error}\n"
         if verbose and self.execution_time:
@@ -171,7 +225,7 @@ def execute_single_test(test_index, test_data, run_args, working_directory=None)
     Args:
         test_index: Index of the test in the original test list
         test_data: Test data tuple [filename, description,
-            optional_expected_result, optional_run_args,
+            optional_expected_result_or_stderr_pattern, optional_run_args,
             optional_application_args, optional_stack_limit_kb]
         run_args: Arguments to pass to csound
     Returns:
@@ -254,7 +308,13 @@ def execute_single_test(test_index, test_data, run_args, working_directory=None)
                     error=f"Test timed out after {test_timeout} seconds",
                 )
 
-            cs_output = collect_process_output(stderr_file, result.stdout)
+            stderr_file.flush()
+            stderr_file.seek(0)
+            stderr_output = decode_process_output(stderr_file.read())
+            cs_output = stderr_output
+            stdout_text = decode_process_output(result.stdout)
+            if stdout_text:
+                cs_output += "\n[STDOUT CAPTURED]:\n" + stdout_text
 
         execution_time = time.time() - start_time
 
@@ -262,7 +322,14 @@ def execute_single_test(test_index, test_data, run_args, working_directory=None)
             f"Completed test {test_index + 1}: {filename} in {execution_time:.2f}s"
         )
 
-        return TestResult(test_index, test_data, return_code, cs_output, execution_time)
+        return TestResult(
+            test_index,
+            test_data,
+            return_code,
+            cs_output,
+            execution_time,
+            stderr_output=stderr_output,
+        )
 
     except Exception as e:
         execution_time = time.time() - start_time
@@ -729,7 +796,7 @@ def runTest():
         [
             "test_opcode_getp_managed_fail.csd",
             "reject managed opcode-object output access",
-            1,
+            "getp does not support managed outputs",
         ],
         ["test_sa.csd", "test sample accurate mode"],
         ["test_overload_selection.csd", "test wrong annotation case"],
@@ -835,14 +902,22 @@ def runTest():
             "k-rate writes use prepared struct-array copy storage",
         ],
         [
-            "arrays/test_opcode_array_managed_fail.csd",
-            "reject managed scalar transfers through Opcode arrays",
-            1,
+            "arrays/test_opcode_array_managed_output_fail.csd",
+            "reject managed output transfers through Opcode arrays",
+            # Keep a regex entry in the live suite to cover both supported forms.
+            re.compile(
+                r"Opcode\[\] run does not support managed array output elements"
+            ),
+        ],
+        [
+            "arrays/test_opcode_array_managed_input_fail.csd",
+            "reject managed input transfers through Opcode arrays",
+            "Opcode[] run does not support managed array input elements",
         ],
         [
             "arrays/test_chncleararray_managed_fail.csd",
             "reject byte-wise clearing of managed array channels",
-            1,
+            "chncleararray: channel 'instrument-records' has managed elements",
         ],
         ["complex_array_test.csd", "testing complex array ops"],
         ["test_array_channels.csd", "testing bus channels holding arrays"],
@@ -926,7 +1001,7 @@ def runTest():
         [
             "structs/test_struct_init_partial_member_fails.csd",
             "fail when struct init provides only some members",
-            "fail",
+            ":Point; init c",
         ],
         [
             "structs/test_string_array_direct_member_index.csd",
@@ -939,7 +1014,7 @@ def runTest():
         [
             "structs/test_struct_arate_members_negative.csd",
             "fail when a-rate struct members are initialized with constants",
-            "fail",
+            ":AudioBus; init cc",
         ],
         ["test_exitnowk.csd", "perf-time exitnow opcode"],
         ["test_udt_channel.csd", "testing user-defined type channel"],
