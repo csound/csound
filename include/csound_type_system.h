@@ -115,7 +115,8 @@ extern "C" {
    * Invokes a type's variable constructor with separate type and optional
    * type-specific initialization arguments. On success, the returned
    * variable's varType is set to type. The returned variable does not include
-   * an allocated CS_VAR_MEM block.
+   * an allocated CS_VAR_MEM block. Constructors that return a variable with a
+   * non-positive memBlockSize are treated as failures.
    */
   PUBLIC CS_VARIABLE* csoundCreateVariableForType(
       CSOUND* csound, const CS_TYPE* type, const void* typeArg,

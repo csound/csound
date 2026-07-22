@@ -838,7 +838,7 @@ int32_t chnset_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
     if(pp->var->varType != GetTypeForArg(p->arg))
       return csound->PerfError(csound, &(p->h),
                                "channel type did not match argument\n");
-    if(pp->var->memBlockSize == 0)
+    if(pp->var->memBlock == NULL)
       return csound->PerfError(csound, &(p->h),
                                "channel %s not initialised\n",
                                p->iname->data);
@@ -859,7 +859,7 @@ int32_t chnget_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
     if(pp->var->varType != GetTypeForArg(p->arg))
       return csound->PerfError(csound, &(p->h),
                                "channel type did not match argument\n");
-    if(pp->var->memBlockSize == 0)
+    if(pp->var->memBlock == NULL)
       return csound->PerfError(csound, &(p->h),
                                "channel %s not initialised\n",
                                p->iname->data);

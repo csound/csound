@@ -64,6 +64,17 @@ CS_VARIABLE* createConstructorProbe(void* cs, const CS_TYPE* type,
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(MYFLT));
     return var;
 }
+
+CS_VARIABLE* createInvalidSizeProbe(void* cs, const CS_TYPE* type,
+                                    const void* typeArg, INSDS* ctx)
+{
+    CSOUND* csound = static_cast<CSOUND*>(cs);
+    IGN(type);
+    IGN(typeArg);
+    IGN(ctx);
+    return static_cast<CS_VARIABLE*>(
+      csound->Calloc(csound, sizeof(CS_VARIABLE)));
+}
 }
 
 TEST_F (TypeSystemTests, testCreateVariableForTypeSeparatesArguments)
@@ -93,6 +104,23 @@ TEST_F (TypeSystemTests, testCreateVariableForTypeSeparatesArguments)
     EXPECT_EQ(&context, constructorContext);
     EXPECT_EQ(&probeType, var->varType);
     csound->Free(csound, var);
+}
+
+TEST_F (TypeSystemTests, testCreateVariableForTypeRejectsInvalidSize)
+{
+    CS_TYPE probeType{
+      const_cast<char*>("InvalidSizeProbe"),
+      const_cast<char*>("invalid variable size probe"),
+      CS_ARG_TYPE_BOTH,
+      createInvalidSizeProbe,
+      nullptr,
+      nullptr,
+      nullptr,
+      0
+    };
+
+    EXPECT_EQ(nullptr, csoundCreateVariableForType(
+                         csound, &probeType, nullptr, nullptr));
 }
 
 TEST_F (TypeSystemTests, testTypeSystem)

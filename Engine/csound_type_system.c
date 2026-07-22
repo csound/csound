@@ -212,9 +212,14 @@ CS_VARIABLE* csoundCreateVariableForType(CSOUND* csound,
       return NULL;
     }
     var = type->createVariable(csound, type, typeArg, ctx);
-    if (LIKELY(var != NULL)) {
-      var->varType = type;
+    if (UNLIKELY(var == NULL)) {
+      return NULL;
     }
+    if (UNLIKELY(var->memBlockSize <= 0)) {
+      csound->Free(csound, var);
+      return NULL;
+    }
+    var->varType = type;
     return var;
 }
 
