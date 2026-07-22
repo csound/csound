@@ -1516,7 +1516,10 @@ struct CSOUND_ {
      offsets of private CSOUND fields unchanged. */
   int32_t (*ArrayPrepareWrite)(CSOUND *, ARRAYDAT *, INSDS *, int32_t);
   int32_t (*GetTableArgs)(CSOUND *, MYFLT **, int32_t);
-  SUBR dummyfn_2[48];
+  int32_t (*ArrayPrepareOpcodeWrite)(CSOUND *, ARRAYDAT *, OPDS *, int32_t,
+                                     const char *);
+  int32_t (*ArrayEnsureCapacity)(CSOUND *, ARRAYDAT *, size_t, INSDS *);
+  SUBR dummyfn_2[46];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */
