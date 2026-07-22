@@ -110,6 +110,29 @@ assert_close(real(kResult[1]), 0, kepsilon)
 assert_close(imag(kResult[1]), 2, kepsilon)
 endin
 
+instr 6
+kReal[] = [10]
+kRect:Complex[] = [complex(3, 4)]
+kPolar:Complex[] = [complex(5, taninv2(4, 3), 1)]
+kepsilon = 0.00001
+
+kResult:Complex[] = kRect - kReal
+assert_close(real(kResult[0]), -7, kepsilon)
+assert_close(imag(kResult[0]), 4, kepsilon)
+
+kResult = kReal - kRect
+assert_close(real(kResult[0]), 7, kepsilon)
+assert_close(imag(kResult[0]), -4, kepsilon)
+
+kResult = kPolar - kReal
+assert_close(real(kResult[0]), -7, kepsilon)
+assert_close(imag(kResult[0]), 4, kepsilon)
+
+kResult = kReal - kPolar
+assert_close(real(kResult[0]), 7, kepsilon)
+assert_close(imag(kResult[0]), -4, kepsilon)
+endin
+
 </CsInstruments>
 <CsScore>
 i1 0 1
@@ -117,5 +140,6 @@ i2 0 1
 i3 0 1
 i4 0 1
 i5 0 1
+i6 0 1
 </CsScore>
 </CsoundSynthesizer>

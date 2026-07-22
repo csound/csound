@@ -1334,9 +1334,25 @@ cmplx_real_minusa(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT *num, int32_t n) {
       out[i].imag = in[i].imag;
     } else {
       MYFLT re, im;
-      re = COS(in[i].imag)*in[i].real;
+      re = COS(in[i].imag)*in[i].real - num[i];
       im = SIN(in[i].imag)*in[i].real;
-      re = num[i] - re;
+      out[i].real = HYPOT(re,im);
+      out[i].imag = ATAN2(im,re);
+    }
+  }
+}
+
+static inline void
+real_cmplx_minusa(COMPLEXDAT *out, MYFLT *num, COMPLEXDAT *in, int32_t n) {
+  for(int i = 0; i < n; i++) {
+    out[i].isPolar = in[i].isPolar;
+    if(!in[i].isPolar) {
+      out[i].real = num[i]-in[i].real;
+      out[i].imag = -in[i].imag;
+    } else {
+      MYFLT re, im;
+      re = num[i] - COS(in[i].imag)*in[i].real;
+      im = -SIN(in[i].imag)*in[i].real;
       out[i].real = HYPOT(re,im);
       out[i].imag = ATAN2(im,re);
     }
@@ -1366,7 +1382,7 @@ int32_t reala_minus_complexa(CSOUND *csound, COPS1 *p) {
   COMPLEXDAT *in1 = (COMPLEXDAT *) array2->data;
   MYFLT *in2 = (MYFLT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
-  cmplx_real_minusa(out,in1,in2,len);
+  real_cmplx_minusa(out,in2,in1,len);
   return OK;
 }
 
