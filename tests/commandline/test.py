@@ -8,6 +8,7 @@ import locale
 import os
 import shlex
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -136,6 +137,19 @@ def split_command_args(args):
     return list(args)
 
 
+def make_tree_writable(root):
+    """Give the current user write access throughout a copied test tree."""
+    for current_root, directory_names, file_names in os.walk(root):
+        paths = [current_root]
+        paths.extend(
+            os.path.join(current_root, name)
+            for name in directory_names + file_names
+        )
+        for path in paths:
+            mode = stat.S_IMODE(os.stat(path).st_mode)
+            os.chmod(path, mode | stat.S_IWUSR)
+
+
 @contextmanager
 def runtime_working_directory():
     """Provide runtimes with a writable copy mounted at their current cwd."""
@@ -146,6 +160,7 @@ def runtime_working_directory():
     with tempfile.TemporaryDirectory(prefix="csound-commandline-tests-") as root:
         working_directory = os.path.join(root, "tests")
         shutil.copytree(sourceDirectory, working_directory)
+        make_tree_writable(working_directory)
         yield working_directory
 
 
@@ -391,7 +406,7 @@ STANDARD OPTIONS:
     --runtime-executable=<path>    Runtime executable placed before the Csound module
     --runtime-arg=<arg>            Runtime argument; repeat once per argument
     --expected-failure=<file>      Treat a nonzero result as expected for this test
-    --runtime-environment=<path>   Deprecated executable-only alias
+    --runtime-environment=<path>   Deprecated executable-path-only alias
     --help                         Show this help message
 
 EXAMPLES:
@@ -1152,8 +1167,9 @@ if __name__ == "__main__":
             elif arg.startswith("--runtime-environment="):
                 runtimeExecutable = arg[22:]
                 logger.warning(
-                    "--runtime-environment is deprecated; use "
-                    "--runtime-executable and repeatable --runtime-arg options"
+                    "--runtime-environment is deprecated and accepts only an "
+                    "executable path; it does not parse arguments. Use "
+                    "--runtime-executable with repeatable --runtime-arg options"
                 )
             elif arg.startswith("--runtime-arg="):
                 runtimeArguments.append(arg[14:])
