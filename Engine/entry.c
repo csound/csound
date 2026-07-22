@@ -487,7 +487,7 @@ const OENTRY opcodlst_1[] = {
 
   {"##subin.[ak", sizeof(TABARITHIN), 0, "a[]", "k[]",
    NULL, (SUBR)tabarkrsbin },
-  {"##subdin.[aks", sizeof(TABARITHIN), 0, "a[]", "k",
+  {"##subin.[aks", sizeof(TABARITHIN), 0, "a[]", "k",
    NULL, (SUBR)tabaksubin },
 
   {"##mul.[p", sizeof(TABARITH1), 0, "i[]", "i[]i",
