@@ -1631,10 +1631,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 
   if(inm->passByRef) {
     if (UNLIKELY(handle_pass_by_ref(csound, p, lcurip) != OK)) {
-      inm->recurse_depth--;
       err = csound->InitError(
         csound, "could not prepare pass-by-reference UDO buffers");
-      goto restore_state;
+      goto finish_init;
     }
   }
 
@@ -1654,6 +1653,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       err = (*csound->ids->init)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
+ finish_init:
   // following init pass, decrement recursion depth count
   inm->recurse_depth--;
 
