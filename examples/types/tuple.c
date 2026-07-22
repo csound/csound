@@ -8,7 +8,8 @@ typedef struct TUPLE {
   size_t size;
 } TUPLE;
 
-static CS_VARIABLE* create_tuple(void* cs, const void* p, INSDS *ctx);
+static CS_VARIABLE* create_tuple(void* cs, const CS_TYPE* type,
+                                 const void* typeArg, INSDS *ctx);
 
 static void var_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
   memset(memblock, 0, var->memBlockSize);
@@ -25,15 +26,16 @@ CS_TYPE CS_VAR_TYPE_TUPLE = {
     NULL, NULL, 0
 };
 
-static CS_VARIABLE* create_tuple(void* cs, const void* p, INSDS *ctx) {
+static CS_VARIABLE* create_tuple(void* cs, const CS_TYPE* type,
+                                 const void* typeArg, INSDS *ctx) {
     CSOUND* csound = (CSOUND*) cs;
+    IGN(type);
+    IGN(typeArg);
     CS_VARIABLE* var = (CS_VARIABLE *)
       csound->Calloc(csound, sizeof(CS_VARIABLE));
-    IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(TUPLE));
     var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
-    var->varType = &CS_VAR_TYPE_TUPLE;
     return var;
 }
 

@@ -74,9 +74,7 @@ static inline CS_VARIABLE *array_element_create_variable(CSOUND *csound,
     if (arrayType == NULL || arrayType->createVariable == NULL) {
         return NULL;
     }
-    void *typeArg = (arrayType && arrayType->userDefinedType)
-                      ? (void *)arrayType : NULL;
-    return arrayType->createVariable(csound, typeArg, ctx);
+    return csoundCreateVariableForType(csound, arrayType, NULL, ctx);
 }
 
 static inline int32_t csound_array_element_types_compatible(

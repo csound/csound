@@ -999,12 +999,18 @@ extern "C" {
 
   /**
    * Copies a value from a source variable memory block into a channel.
+   * This is a low-level type-system API intended for an already initialized
+   * CS_VAR_MEM block; it does not allocate or initialize source storage.
    * The source and destination CS_VAR_MEM types must match. The source must
    * contain enough initialized storage for its declared type; see
    * csound_type_system.h for the CS_VAR_MEM definition and layout macros.
    * Returns CSOUND_SUCCESS on success and CSOUND_ERROR for invalid input,
    * missing channels, invalid channel storage, or type mismatches.
-   * Access to the channel through this function is thread-safe.
+   * Writes to the destination channel are serialized. If the source is live
+   * engine-owned storage, the caller must separately synchronize access to
+   * it. A type's copyValue function may allocate memory, so this function is
+   * not guaranteed to be suitable for a real-time thread. copyValue is
+   * invoked without an instrument context.
    */
   PUBLIC int32_t csoundSetChannel(CSOUND *csound, const char *name,
                                   const CS_VAR_MEM *var);
@@ -1017,7 +1023,8 @@ extern "C" {
    *
    * Like csoundGetChannelPtr(), reading the live value is not inherently
    * thread-safe and requires the channel lock when concurrent writes are
-   * possible. See csound_type_system.h for the CS_VAR_MEM definition.
+   * possible, including when passing this pointer to csoundSetChannel(). See
+   * csound_type_system.h for the CS_VAR_MEM definition.
    */
   PUBLIC const CS_VAR_MEM *csoundGetChannel(CSOUND *csound,
                                              const char *name);

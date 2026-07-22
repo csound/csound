@@ -200,23 +200,41 @@ char* csoundGetVarSimpleName(CSOUND* csound, const char* varName) {
 }
 
 
+CS_VARIABLE* csoundCreateVariableForType(CSOUND* csound,
+                                         const CS_TYPE* type,
+                                         const void* typeArg,
+                                         INSDS* ctx)
+{
+    CS_VARIABLE *var;
+
+    if (UNLIKELY(csound == NULL || type == NULL ||
+                 type->createVariable == NULL)) {
+      return NULL;
+    }
+    var = type->createVariable(csound, type, typeArg, ctx);
+    if (LIKELY(var != NULL)) {
+      var->varType = type;
+    }
+    return var;
+}
+
 /** Create variable outside an instrument context */
 CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
-                                  const CS_TYPE* type, char* name, void* typeArg)
+                                  const CS_TYPE* type, char* name,
+                                  const void* typeArg)
 {
     CS_TYPE_ITEM* current = pool->head;
     if (LIKELY(type != NULL))
       while (current != NULL) {
         if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
-          const CS_TYPE *pArg = (typeArg != NULL) ? (const CS_TYPE *) typeArg : type;
-          CS_VARIABLE* var = current->cstype->createVariable(csound, pArg, NULL);
+          CS_VARIABLE* var = csoundCreateVariableForType(
+              csound, current->cstype, typeArg, NULL);
           if (UNLIKELY(var == NULL)) {
             ((CSOUND *)csound)->ErrorMsg(csound,
               Str("cannot create variable %s: type '%s' createVariable returned NULL\n"),
               name ? name : "(null)", type ? type->varTypeName : "(null)");
             return NULL;
           }
-          var->varType = type;
           var->varName = csoundStrdup(csound, name);
           return var;
         }

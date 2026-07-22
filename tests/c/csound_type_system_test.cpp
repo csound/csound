@@ -47,6 +47,54 @@ public:
     CSOUND* csound {nullptr};
 };
 
+namespace {
+const CS_TYPE* constructorType = nullptr;
+const void* constructorTypeArg = nullptr;
+INSDS* constructorContext = nullptr;
+
+CS_VARIABLE* createConstructorProbe(void* cs, const CS_TYPE* type,
+                                    const void* typeArg, INSDS* ctx)
+{
+    CSOUND* csound = static_cast<CSOUND*>(cs);
+    constructorType = type;
+    constructorTypeArg = typeArg;
+    constructorContext = ctx;
+    CS_VARIABLE* var = static_cast<CS_VARIABLE*>(
+      csound->Calloc(csound, sizeof(CS_VARIABLE)));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(MYFLT));
+    return var;
+}
+}
+
+TEST_F (TypeSystemTests, testCreateVariableForTypeSeparatesArguments)
+{
+    CS_TYPE probeType{
+      const_cast<char*>("ConstructorProbe"),
+      const_cast<char*>("constructor callback probe"),
+      CS_ARG_TYPE_BOTH,
+      createConstructorProbe,
+      nullptr,
+      nullptr,
+      nullptr,
+      0
+    };
+    int32_t typeArg = 42;
+    INSDS context{};
+
+    constructorType = nullptr;
+    constructorTypeArg = nullptr;
+    constructorContext = nullptr;
+    CS_VARIABLE* var = csoundCreateVariableForType(
+      csound, &probeType, &typeArg, &context);
+
+    ASSERT_NE(nullptr, var);
+    EXPECT_EQ(&probeType, constructorType);
+    EXPECT_EQ(&typeArg, constructorTypeArg);
+    EXPECT_EQ(&context, constructorContext);
+    EXPECT_EQ(&probeType, var->varType);
+    csound->Free(csound, var);
+}
+
 TEST_F (TypeSystemTests, testTypeSystem)
 {
   TYPE_POOL* pool = csound->typePool;
@@ -267,8 +315,8 @@ TEST_F (TypeSystemTests, testStructuredArrayCopyAndWriteClaimAreSerialized)
           csound->Calloc(csound, sizeof(int32_t)));
         source.sizes[0] = 1;
         source.arrayType = elementType;
-        elementVariable = elementType->createVariable(
-          csound, const_cast<CS_TYPE *>(elementType), nullptr);
+        elementVariable = csoundCreateVariableForType(
+          csound, elementType, nullptr, nullptr);
         ASSERT_NE(nullptr, elementVariable);
         ASSERT_NE(nullptr, elementVariable->initializeVariableMemory);
         source.arrayMemberSize = elementVariable->memBlockSize;

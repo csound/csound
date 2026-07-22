@@ -406,16 +406,16 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
       varInit.dimensions = 1; //  default to 1
       varInit.type = NULL; //subtype to be set later
     }
-    pp->var = varType->createVariable(csound, varType == &CS_VAR_TYPE_ARRAY ?
-                                      (const CS_TYPE*) &varInit :
-                                      varType, NULL);
+    pp->var = csoundCreateVariableForType(
+      csound, varType,
+      varType == &CS_VAR_TYPE_ARRAY ? (const void *) &varInit : NULL,
+      NULL);
     if (UNLIKELY(pp->var == NULL)) {
       csound->Message(csound, "failed to create channel variable for type %s\n",
                         varType->varTypeName);
       csoundFree(csound, pp);
       return NULL;
     }
-    pp->var->varType = varType;
     pp->var->memBlock = (CS_VAR_MEM *)
         csound->Calloc(csound, CS_VAR_TYPE_OFFSET  +
                        pp->var->memBlockSize);
@@ -752,17 +752,16 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
       varInit.type = ((ARRAYDAT*)p->arg)->arrayType;
       pp->type |= CSOUND_ARRAY_CHANNEL | accessMode;
     }
-    pp->var = argtype->createVariable(csound, (argtype == &CS_VAR_TYPE_ARRAY ?
-                                               (const CS_TYPE *)
-                                               &varInit : argtype),
-                                               p->h.insdshead);
+    pp->var = csoundCreateVariableForType(
+      csound, argtype,
+      argtype == &CS_VAR_TYPE_ARRAY ? (const void *) &varInit : NULL,
+      p->h.insdshead);
     if (UNLIKELY(pp->var == NULL)) {
       csound->InitError(csound, "failed to create channel storage for type %s\n",
                         argtype->varTypeName);
       return NULL;
     }
 
-    pp->var->varType = argtype;
     // allocate memory
     pp->var->memBlock = (CS_VAR_MEM *) csoundCalloc(csound, pp->var->memBlockSize
                                                     + CS_VAR_TYPE_OFFSET);
@@ -1523,9 +1522,7 @@ static void chnexport_generic_initialise(CSOUND *csound, CHNENTRY *pp,
     csound->InitError(csound, "channel argument has no variable constructor\n");
     return;
   }
-  pp->var = argtype->createVariable(csound,  argtype, op);
-  if (LIKELY(pp->var != NULL))
-    pp->var->varType = argtype;
+  pp->var = csoundCreateVariableForType(csound, argtype, NULL, op);
 }
 
 

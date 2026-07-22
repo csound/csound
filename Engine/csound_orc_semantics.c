@@ -2125,7 +2125,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
   CS_VAR_POOL* pool = typeTable->localPool;
   char argLetter[2] = {0};
   ARRAY_VAR_INIT varInit;
-  void* typeArg = NULL;
+  const void* typeArg = NULL;
   // remove any global annotation
   find_global_annotation(t, typeTable);
   // search on  all pools
@@ -2340,7 +2340,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
   CS_VAR_POOL* pool = typeTable->localPool;
   char argLetter[2];
   ARRAY_VAR_INIT varInit;
-  void* typeArg = NULL;
+  const void* typeArg = NULL;
   const CS_TYPE* varType;
   // remove any global annotation
   find_global_annotation(t, typeTable);
@@ -3171,9 +3171,10 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   }
 }
 
-CS_VARIABLE* createStructVar(void* cs, const CS_TYPE* p, INSDS *ctx) {
+CS_VARIABLE* createStructVar(void* cs, const CS_TYPE* type,
+                             const void* typeArg, INSDS *ctx) {
   CSOUND* csound = (CSOUND*)cs;
-  const CS_TYPE* type = (const CS_TYPE*)p;
+  IGN(typeArg);
 
   if (type == NULL) {
     csound->Message(csound, "ERROR: no type given for struct creation\n");
@@ -3181,10 +3182,8 @@ CS_VARIABLE* createStructVar(void* cs, const CS_TYPE* p, INSDS *ctx) {
   }
 
   CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-  IGN(p);
   var->memBlockSize = sizeof(CS_STRUCT_VAR);
   var->initializeVariableMemory = initializeStructVar;
-  var->varType = type;
   var->ctx = ctx;
 
   //FIXME - implement
@@ -3292,7 +3291,7 @@ int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) {
   type->varTypeName = internalName;
   type->varDescription = "user-defined struct (placeholder)";
   type->argtype = CS_ARG_TYPE_BOTH;
-  type->createVariable = (CREATEF) createStructVar;
+  type->createVariable = createStructVar;
   type->copyValue = copyStructVar;
   type->freeVariableMemory = freeStructVarMemory;
   type->userDefinedType = 1;
@@ -3336,7 +3335,7 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     type->varTypeName = internalName;
     type->varDescription = "user-defined struct";
     type->argtype = CS_ARG_TYPE_BOTH;
-    type->createVariable = (CREATEF) createStructVar;
+    type->createVariable = createStructVar;
     type->copyValue = copyStructVar;
     type->freeVariableMemory = freeStructVarMemory;
     type->userDefinedType = 1;
@@ -3387,8 +3386,7 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
       csound->Free(csound, baseType);
     } else {
       memberType = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
-      var = memberType->createVariable(csound, type, NULL);
-      var->varType = memberType;  // Set varType for non-array types
+      var = csoundCreateVariableForType(csound, memberType, NULL, NULL);
     }
 
     var->varName = csoundStrdup(csound, memberName);
@@ -4699,7 +4697,8 @@ void handle_optional_args(CSOUND *csound, TREE *l)
 
 
 CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
-                               CS_TYPE *type, char *name, void *typeArg);
+                                 CS_TYPE *type, char *name,
+                                 const void *typeArg);
 void add_instr_variable(CSOUND *csound,  TREE *x) {
   /* add instr variable to engine varpool
      called by bison when instr ids are found
