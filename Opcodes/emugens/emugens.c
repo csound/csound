@@ -1957,22 +1957,25 @@ multiplying by zero always leads to an error.
 
 */
 
+enum { ARRAYRESHAPE_MAX_DIMENSIONS = 20 };
+
 typedef struct {
     OPDS h;
     ARRAYDAT *in;
-    MYFLT *dims[20];
+    MYFLT *dims[ARRAYRESHAPE_MAX_DIMENSIONS];
 } ARRAYRESHAPE;
 
 static int32_t
 arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     ARRAYDAT *a = p->in;
     int32_t numdims = p->INOCOUNT - 1;
-    int32_t newSizes[20];
+    int32_t newSizes[ARRAYRESHAPE_MAX_DIMENSIONS];
     size_t orig_numitems;
     size_t numitems = 1;
 
     if (UNLIKELY(a == NULL || a->data == NULL || a->dimensions <= 0 ||
-                 a->sizes == NULL || numdims <= 0 || numdims > 20 ||
+                 a->sizes == NULL || numdims <= 0 ||
+                 numdims > ARRAYRESHAPE_MAX_DIMENSIONS ||
                  csound_array_member_count(a, &orig_numitems) != OK)) {
         return INITERR(Str("reshapearray: invalid array or dimensions"));
     }
