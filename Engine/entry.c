@@ -819,7 +819,7 @@ const OENTRY opcodlst_1[] = {
   {"##mulin.Complex", sizeof(CXOP), 0, ":Complex;",":Complex;",
    (SUBR) complex_mulin, (SUBR) complex_mulin},
   {"##divin.Complex", sizeof(CXOP), 0, ":Complex;",":Complex;",
-   (SUBR) complex_divin, (SUBR) complex_divin},
+   NULL, (SUBR) complex_divin},
   {"##addin.Complex", sizeof(CXOP), 0, ":Complex;",":Complex;",
    (SUBR) complex_addin, (SUBR) complex_addin},
   {"##subin.Complex", sizeof(CXOP), 0, ":Complex;",":Complex;",

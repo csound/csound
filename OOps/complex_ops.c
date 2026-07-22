@@ -458,9 +458,9 @@ static inline int32_t complex_divin_pr(CSOUND *csound, CXOP *p) {
 }
 
 static inline int32_t complex_divin_pp(CSOUND *csound, CXOP *p) {
-  if (p->b->real != FL(0.0)) {
-    p->ans->real = p->ans->real / p->b->real;
-    p->ans->imag = p->ans->imag - p->b->imag;
+  if (p->a->real != FL(0.0)) {
+    p->ans->real = p->ans->real / p->a->real;
+    p->ans->imag = p->ans->imag - p->a->imag;
   } else {
     csound->Message(csound, "complex polar div by zero\n");
     return NOTOK;
