@@ -481,6 +481,7 @@ def runTest():
         ],
         ["test_opcode_with_opt_ins.csd", "test opcode with opt ins only"],
         ["test_fillarray_audio.csd", "test Arr:a[] = [sig:a]"],
+        ["test_array_audio_div_scalar.csd", "test a[] / a does not segfault"],
         ["test_oversample.csd", "test oversampling in new-style UDO"],
         ["test_pvs_np2.csd", "test pvsanal/synth with np2 size"],
         ["test_grain3_overlap_regression.csd", "grain3 should not fail with false overlap error"],
