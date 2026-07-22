@@ -65,11 +65,10 @@ extern "C" {
   typedef struct channelEntry_s {
     struct channelEntry_s *nxt;
     controlChannelHints_t hints;
-    MYFLT       *data;
-    spin_lock_t lock;               /* Multi-thread protection */
+    spin_lock_t lock;      /* Multi-thread protection */
     int32_t     type;
-    int32_t     datasize;  /* size of allocated chn data */
-    const CS_TYPE *varType; /* variable type used by channel */
+    CS_VARIABLE  *var;     /* channel data */
+    int32_t     varmem_is_external;
     char        name[1];
   } CHNENTRY;
 

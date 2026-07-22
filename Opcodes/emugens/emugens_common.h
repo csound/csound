@@ -46,7 +46,8 @@ tabensure_init(CSOUND *csound, ARRAYDAT *p, int size, void *ctx)
         p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
     }
     if (p->data == NULL) {
-      CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, ctx);
+      CS_VARIABLE* var = csoundCreateVariableForType(
+        csound, p->arrayType, NULL, ctx);
         p->arrayMemberSize = var->memBlockSize;
         ss = p->arrayMemberSize*size;
         p->data = (MYFLT*)csound->Calloc(csound, ss);

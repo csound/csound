@@ -616,9 +616,8 @@ def runTest():
         ],
         ["test_explicit_globals.csd", "test global declaration of explicit types"],
         [
-            "test_fail_mismatched_types.csd",
-            "syntax error on mismatched type declaration",
-            1,
+            "test_mismatched_type_shadowing.csd",
+            "test explicitly typed locals shadow globals with complete array metadata",
         ],
         [
             "test_fail_redefine.csd",
@@ -715,6 +714,7 @@ def runTest():
         ["test_dbap.csd", "test dbap and dbapgains opcodes"],
         ["test_generic_chan.csd", "testing generic bus channel"],
         ["test_generic_chan_no_match.csd", "testing type mismatch for bus channel", 1],
+        ["test_bus_channels.csd", "testing bus channels"],
         [
             "test_commandline_args.csd",
             "command line application arguments after -- are available through argv",

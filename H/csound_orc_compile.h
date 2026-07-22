@@ -30,7 +30,8 @@ int32_t args_required(char* argString);
 char** split_args(CSOUND* csound, char* argString);
 char* get_struct_expr_string(CSOUND* csound, TREE* structTree);
 CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
-                                 CS_TYPE *type, char *name, void *typeArg);
+                                 CS_TYPE *type, char *name,
+                                 const void *typeArg);
 void *find_or_add_constant(CSOUND *csound, CS_HASH_TABLE *constantsPool,
                            const char *name, MYFLT value);
 void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt);

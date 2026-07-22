@@ -1165,6 +1165,11 @@ e
       assert.property(cs, "getMemory");
     });
 
+    it("exports generic channel memory APIs", function () {
+      assert.isFunction(cs.wasm.exports.csoundGetChannel);
+      assert.isFunction(cs.wasm.exports.csoundSetChannel);
+    });
+
     it("can create and run a csound instance", function () {
       const csound = cs.csoundCreate();
       assert.notEqual(csound, 0, "csoundCreate returns non-zero pointer");
@@ -1315,7 +1320,6 @@ schedule(1, 0, 1)`,
         cs.csoundDestroy(csound);
       });
     });
-
     it("isRequestingRtAudioInput ignores file input names", function () {
       const fileInputNames = ["adc.wav", "adc-file.wav", "my_adc_file.wav", "samples/adc.wav"];
 
@@ -1337,7 +1341,6 @@ schedule(1, 0, 1)`,
         cs.csoundDestroy(csound);
       });
     });
-
     it("isRequestingRtAudioInput returns false when audio input is not used", function () {
       const csound = cs.csoundCreate();
       cs.csoundSetOption(csound, "-d");

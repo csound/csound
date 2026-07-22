@@ -38,16 +38,24 @@ extern "C" {
   struct csvariable;
   struct cstype;
   struct insds;
+
+  /* Variable constructors receive the canonical type separately from any
+     optional type-specific initialization data. Callers should use
+     csoundCreateVariableForType() so varType is established consistently. */
+  typedef struct csvariable* (*CS_CREATE_VARIABLE_FUNC)(
+      void *cs, const struct cstype *type, const void *typeArg,
+      struct insds *ctx);
     
   typedef struct cstype {
     char* varTypeName;
     char* varDescription;
     int32_t argtype; // used to denote if allowed as in-arg, out-arg, or both
-    struct csvariable* (*createVariable)(void *cs, void *p, struct insds *ctx);
-    /* copyValue preserves the logical source value. Managed aggregates may
-       atomically attach lifetime bookkeeping to a mutable runtime source
-       header. Callers must synchronize mutations of the same runtime object;
-       concurrent read/copy safety remains type-specific. */
+    CS_CREATE_VARIABLE_FUNC createVariable;
+    /* copyValue requires non-NULL source and destination pointers and
+       preserves the logical source value. Managed aggregates may atomically
+       attach lifetime bookkeeping to a mutable runtime source header. Callers
+       must synchronize mutations of the same runtime object; concurrent
+       read/copy safety remains type-specific. */
     void (*copyValue)(CSOUND* csound, const struct cstype* cstype, void* dest,
                       const void* src, struct insds *ctx);
     void (*freeVariableMemory)(void* csound, void* varMem);
@@ -103,6 +111,17 @@ extern "C" {
    */
   PUBLIC int32_t csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool,
                                    CS_TYPE* typeInstance);
+
+  /**
+   * Invokes a type's variable constructor with separate type and optional
+   * type-specific initialization arguments. On success, the returned
+   * variable's varType is set to type. The returned variable does not include
+   * an allocated CS_VAR_MEM block. Constructors that return a variable with a
+   * non-positive memBlockSize are treated as failures.
+   */
+  PUBLIC CS_VARIABLE* csoundCreateVariableForType(
+      CSOUND* csound, const CS_TYPE* type, const void* typeArg,
+      struct insds* ctx);
   
   /** 
    *  Creates a new variable with a type from type table
@@ -110,7 +129,7 @@ extern "C" {
    */  
   PUBLIC CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
                                            const CS_TYPE* type, char* name,
-                                           void* typeArg);
+                                           const void* typeArg);
   /** 
    *  Gets a type variable from a type name string
    *  Returns the CS_TYPE*, NULL on failure

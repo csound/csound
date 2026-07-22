@@ -28,6 +28,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "csoundCore.h"
+
+#ifdef ECHO
+#undef ECHO
+#endif
 // to shut up the lexer writing to stdout
 #define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
              fwrite(yytext, (size_t) yyleng, 1, stderr); \

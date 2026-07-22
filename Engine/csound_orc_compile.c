@@ -634,7 +634,8 @@ static OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
  * in separate blocks, pointed by var->memBlock
  */
 CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
-                                 CS_TYPE *type, char *name, void *typeArg) {
+                                 CS_TYPE *type, char *name,
+                                 const void *typeArg) {
   // Check for null or corrupted engineState and varPool to prevent segfault
   if (engineState == NULL || engineState->varPool == NULL ||
       (uintptr_t)engineState->varPool < 0x1000) {  // Detect corrupted small addresses

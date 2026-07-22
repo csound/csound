@@ -2,6 +2,8 @@
 #include <string.h>
 #include "gtest/gtest.h"
 #include "csound.h"
+#include "csound_type_system.h"
+#include "csdl.h"
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
 #define csoundScoreEvent(a,b,c,d) csoundEvent(a,0,c,d,0)
@@ -22,7 +24,7 @@ public:
     {
       csound = csoundCreate (NULL, NULL);
       csoundCreateMessageBuffer (csound, 0);
-      csoundSetOption (csound, "--logfile=NULL");
+      csoundSetOption (csound, "-n");
     }
 
     virtual void TearDown ()
@@ -32,6 +34,7 @@ public:
     }
 
     CSOUND* csound {nullptr};
+
 };
 
 TEST_F (ChannelTests, ControlChannelParams)
@@ -327,4 +330,232 @@ TEST_F (ChannelTests, StringChannel)
     ASSERT_STREQ(string, "strchan3_val");
 
     delete [] string;
+}
+
+TEST_F (ChannelTests, ChannelVarMem)
+{
+  csoundCompileOrc(csound, R"ORC(
+                 chnset 1, "1"
+                 chnset 0, "2"
+                 instr 1
+                  k1 chnget "2"
+                  chnset k1, "1"
+                 endin
+                 schedule(1,0,1)
+                )ORC");
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    const CS_VAR_MEM *var = csoundGetChannel(csound, "1");
+    MYFLT val = csoundGetChannel(csound, "2")->value;
+    ASSERT_EQ(val, 0.0);
+    err = csoundSetChannel(csound, "2", var);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    csoundPerformKsmps(csound);
+    ASSERT_EQ(csoundGetChannel(csound, "2")->value,
+              csoundGetChannel(csound, "1")->value);
+}
+
+TEST_F (ChannelTests, ChannelNewVarMem)
+{
+    const char *name = "testing";
+    csoundCompileOrc(csound, orc1);
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    CS_VAR_MEM memBlock; // memblock value holds enough storage for a MYFLT
+    memBlock.varType = csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "k");
+    memBlock.value = 1.0;
+    err = csoundSetChannel(csound, name, &memBlock);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    ASSERT_EQ(memBlock.value, csoundGetChannel(csound,name)->value);
+}
+
+
+TEST_F (ChannelTests, ChannelSetRejectsInvalidState)
+{
+    csoundCompileOrc(csound, orc2);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    const CS_VAR_MEM *channel = csoundGetChannel(csound, "testing");
+    ASSERT_NE(nullptr, channel);
+    EXPECT_EQ(CSOUND_ERROR, csoundSetChannel(csound, nullptr, channel));
+    EXPECT_EQ(CSOUND_ERROR, csoundSetChannel(csound, "testing", nullptr));
+
+    CS_VAR_MEM missingType{};
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundSetChannel(csound, "testing", &missingType));
+
+    CS_VAR_MEM wrongType{};
+    wrongType.varType = csoundGetTypeWithVarTypeName(
+      csoundGetTypePool(csound), "i");
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundSetChannel(csound, "testing", &wrongType));
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundSetChannel(csound, "missing", channel));
+}
+
+
+
+TEST_F (ChannelTests, VarChannelType)
+{
+  csoundCompileOrc(csound, R"ORC(
+                 instr 1
+                  var:Complex init 1,1
+                  chnset var, "cmplx"
+                 endin
+                 schedule(1,0,1)
+                )ORC");
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    csoundPerformKsmps(csound);
+    const CS_VAR_MEM *var = csoundGetChannel(csound, "cmplx");
+    COMPLEXDAT *vardat = (COMPLEXDAT *) (&var->value), cmplx = { 2., 2., 0};
+
+    ASSERT_EQ(vardat->real, 1.0);
+    ASSERT_EQ(vardat->imag, 1.0);
+
+    // set values
+    CS_VAR_MEM *memBlock = (CS_VAR_MEM *) csound->Calloc(csound,
+                                                         CS_VAR_TYPE_OFFSET + sizeof(COMPLEXDAT));
+    memBlock->varType = csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "Complex");
+    memcpy(&memBlock->value, &cmplx, sizeof(COMPLEXDAT));
+    err =  csoundSetChannel(csound,"cmplx", memBlock);
+
+    void *ptr;
+    // can access
+    err = csoundGetChannelPtr(csound, &ptr, "cmplx", CSOUND_VAR_CHANNEL |
+                        CSOUND_OUTPUT_CHANNEL);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    ASSERT_EQ(((COMPLEXDAT *)ptr)->real, 2.0);
+    ASSERT_EQ(((COMPLEXDAT *)ptr)->imag, 2.0);
+
+    controlChannelInfo_t *channels = nullptr;
+    int32_t channelCount = csoundListChannels(csound, &channels);
+    csoundDeleteChannelList(csound, channels);
+
+    // cannot create
+    err = csoundGetChannelPtr(csound, &ptr, "cmplx2", CSOUND_VAR_CHANNEL |
+                        CSOUND_INPUT_CHANNEL);
+    ASSERT_FALSE(err == CSOUND_SUCCESS);
+    channels = nullptr;
+    ASSERT_EQ(channelCount, csoundListChannels(csound, &channels));
+    for(int32_t i = 0; i < channelCount; ++i)
+      ASSERT_STRNE("cmplx2", channels[i].name);
+    csoundDeleteChannelList(csound, channels);
+    csound->Free(csound, memBlock);
+}
+
+
+TEST_F (ChannelTests, ExportedInitChannelKeepsVarType)
+{
+  csoundCompileOrc(csound, R"ORC(
+                 instr 1
+                  value@global:i chnexport "init-export", 3
+                 endin
+                 schedule(1, 0, 1)
+                )ORC");
+  ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+
+  const CS_TYPE *initType = csoundGetTypeWithVarTypeName(
+    csoundGetTypePool(csound), "i");
+  const CS_VAR_MEM *channel = csoundGetChannel(csound, "init-export");
+  ASSERT_NE(nullptr, channel);
+  ASSERT_EQ(initType, channel->varType);
+  ASSERT_EQ(initType, csoundGetChannelVarType(csound, "init-export"));
+
+  CS_VAR_MEM replacement;
+  replacement.varType = initType;
+  replacement.value = 7.0;
+  ASSERT_EQ(CSOUND_SUCCESS,
+            csoundSetChannel(csound, "init-export", &replacement));
+  ASSERT_EQ(replacement.value,
+            csoundGetChannel(csound, "init-export")->value);
+}
+
+
+TEST_F (ChannelTests, ExportedArrayChannelKeepsStorageAndMetadata)
+{
+  csoundCompileOrc(csound, R"ORC(
+                 instr 1
+                  values@global:k[] chnexport "array-export", 3
+                  values fillarray 3, 4
+                 endin
+                 instr 2
+                  values:k[] chnget "array-export"
+                  chnset values[1], "array-export-result"
+                 endin
+                 schedule(1, 0, 1)
+                 schedule(2, 0, 1)
+                )ORC");
+  ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+
+  const CS_VAR_MEM *channel = csoundGetChannel(csound, "array-export");
+  ASSERT_NE(nullptr, channel);
+  ASSERT_STREQ("[", channel->varType->varTypeName);
+  const ARRAYDAT *array = reinterpret_cast<const ARRAYDAT*>(&channel->value);
+  ASSERT_EQ(1, array->dimensions);
+  ASSERT_STREQ("k", array->arrayType->varTypeName);
+  ASSERT_NE(nullptr, array->data);
+  EXPECT_EQ((MYFLT)3.0, array->data[0]);
+  EXPECT_EQ((MYFLT)4.0, array->data[1]);
+
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+  EXPECT_EQ(channel, csoundGetChannel(csound, "array-export"));
+  EXPECT_EQ((MYFLT)4.0,
+            csoundGetControlChannel(csound, "array-export-result", nullptr));
+}
+
+
+TEST_F (ChannelTests, ArrayChannel)
+{
+    const char *name = "testing";
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    int32_t size = 2;
+    ARRAYDAT *adat = csoundInitArrayChannel(csound, name, "k", 1, &size);
+    MYFLT data[2] = {1., 2.};
+    csoundSetArrayData(adat, data);
+    const MYFLT *dataout = (const MYFLT *) csoundGetArrayData(adat);
+    ASSERT_EQ(dataout[0], data[0]);
+    ASSERT_EQ(dataout[1], data[1]);
+    csoundCompileOrc(csound, R"ORC(
+             instr 1
+              var:k[] chnget "testing"
+              chnset var[0], "control"
+             endin
+             schedule(1,0,1);
+                     )ORC");
+    csoundPerformKsmps(csound);
+    MYFLT val = csoundGetControlChannel(csound, "control", &err);
+    ASSERT_EQ(val, data[0]);
+}
+
+TEST_F (ChannelTests, AudioChannel)
+{
+    csoundCompileOrc(csound, R"ORC(
+             instr 1
+              sig:a oscili 0dbfs, A4
+              chnset sig, "audio"
+             endin
+             schedule(1,0,1);
+                     )ORC");
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    csoundPerformKsmps(csound);
+    MYFLT audio[10], rms = 0.; // ksmps defaults to 10
+    csoundGetAudioChannel(csound, "audio", audio);
+    for(int i = 0; i < 10; i++) {
+      rms += audio[i]*audio[i];
+    }
+    rms = sqrt(rms/10);
+    ASSERT_TRUE(rms > 0);
+    // now let's test getting it as an audio variable
+    MYFLT pow = 0;
+    const CS_VAR_MEM *var = csoundGetChannel(csound, "audio");
+    const MYFLT *sample = &(var->value);
+    for(int i = 0; i < 10; i++) {
+      pow += sample[i]*sample[i];
+    }
+    ASSERT_TRUE(pow > 0);
 }

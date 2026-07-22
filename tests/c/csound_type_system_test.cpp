@@ -47,6 +47,112 @@ public:
     CSOUND* csound {nullptr};
 };
 
+namespace {
+const CS_TYPE* constructorType = nullptr;
+const void* constructorTypeArg = nullptr;
+INSDS* constructorContext = nullptr;
+
+CS_VARIABLE* createConstructorProbe(void* cs, const CS_TYPE* type,
+                                    const void* typeArg, INSDS* ctx)
+{
+    CSOUND* csound = static_cast<CSOUND*>(cs);
+    constructorType = type;
+    constructorTypeArg = typeArg;
+    constructorContext = ctx;
+    CS_VARIABLE* var = static_cast<CS_VARIABLE*>(
+      csound->Calloc(csound, sizeof(CS_VARIABLE)));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(MYFLT));
+    return var;
+}
+
+CS_VARIABLE* createInvalidSizeProbe(void* cs, const CS_TYPE* type,
+                                    const void* typeArg, INSDS* ctx)
+{
+    CSOUND* csound = static_cast<CSOUND*>(cs);
+    IGN(type);
+    IGN(typeArg);
+    IGN(ctx);
+    return static_cast<CS_VARIABLE*>(
+      csound->Calloc(csound, sizeof(CS_VARIABLE)));
+}
+}
+
+TEST_F (TypeSystemTests, testCreateVariableForTypeSeparatesArguments)
+{
+    CS_TYPE probeType{
+      const_cast<char*>("ConstructorProbe"),
+      const_cast<char*>("constructor callback probe"),
+      CS_ARG_TYPE_BOTH,
+      createConstructorProbe,
+      nullptr,
+      nullptr,
+      nullptr,
+      0
+    };
+    int32_t typeArg = 42;
+    INSDS context{};
+
+    constructorType = nullptr;
+    constructorTypeArg = nullptr;
+    constructorContext = nullptr;
+    CS_VARIABLE* var = csoundCreateVariableForType(
+      csound, &probeType, &typeArg, &context);
+
+    ASSERT_NE(nullptr, var);
+    EXPECT_EQ(&probeType, constructorType);
+    EXPECT_EQ(&typeArg, constructorTypeArg);
+    EXPECT_EQ(&context, constructorContext);
+    EXPECT_EQ(&probeType, var->varType);
+    csound->Free(csound, var);
+}
+
+TEST_F (TypeSystemTests, testCreateVariableForTypeRejectsInvalidSize)
+{
+    CS_TYPE probeType{
+      const_cast<char*>("InvalidSizeProbe"),
+      const_cast<char*>("invalid variable size probe"),
+      CS_ARG_TYPE_BOTH,
+      createInvalidSizeProbe,
+      nullptr,
+      nullptr,
+      nullptr,
+      0
+    };
+
+    EXPECT_EQ(nullptr, csoundCreateVariableForType(
+                         csound, &probeType, nullptr, nullptr));
+}
+
+TEST_F (TypeSystemTests, testStandardCopyCallbacksDefendAgainstNullPointers)
+{
+    const CS_TYPE* types[] = {
+      &CS_VAR_TYPE_A,
+      &CS_VAR_TYPE_K,
+      &CS_VAR_TYPE_I,
+      &CS_VAR_TYPE_S,
+      &CS_VAR_TYPE_P,
+      &CS_VAR_TYPE_R,
+      &CS_VAR_TYPE_C,
+      &CS_VAR_TYPE_W,
+      &CS_VAR_TYPE_F,
+      &CS_VAR_TYPE_B,
+      &CS_VAR_TYPE_b,
+      &CS_VAR_TYPE_ARRAY,
+      &CS_VAR_TYPE_OPCODEREF,
+      &CS_VAR_TYPE_OPCODEOBJ,
+      &CS_VAR_TYPE_INSTR,
+      &CS_VAR_TYPE_INSTR_INSTANCE,
+      &CS_VAR_TYPE_COMPLEX
+    };
+    MYFLT value = FL(0.0);
+
+    for (const CS_TYPE* type : types) {
+      ASSERT_NE(nullptr, type->copyValue);
+      type->copyValue(csound, type, nullptr, &value, nullptr);
+      type->copyValue(csound, type, &value, nullptr, nullptr);
+    }
+}
+
 TEST_F (TypeSystemTests, testTypeSystem)
 {
   TYPE_POOL* pool = csound->typePool;
@@ -267,8 +373,8 @@ TEST_F (TypeSystemTests, testStructuredArrayCopyAndWriteClaimAreSerialized)
           csound->Calloc(csound, sizeof(int32_t)));
         source.sizes[0] = 1;
         source.arrayType = elementType;
-        elementVariable = elementType->createVariable(
-          csound, const_cast<CS_TYPE *>(elementType), nullptr);
+        elementVariable = csoundCreateVariableForType(
+          csound, elementType, nullptr, nullptr);
         ASSERT_NE(nullptr, elementVariable);
         ASSERT_NE(nullptr, elementVariable->initializeVariableMemory);
         source.arrayMemberSize = elementVariable->memBlockSize;

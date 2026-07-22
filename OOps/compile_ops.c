@@ -325,11 +325,13 @@ static void csobj_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
   memcpy(dest, src, sizeof(CS_OBJ));
 }
 
-static CS_VARIABLE* create_csobj_var(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_csobj_var(void* cs, const CS_TYPE *type,
+                                     const void *typeArg, INSDS *ctx) {
   CSOUND* csound = (CSOUND*) cs;
+  IGN(type);
+  IGN(typeArg);
   CS_VARIABLE* var = (CS_VARIABLE *)
     csound->Calloc(csound, sizeof(CS_VARIABLE));
-  IGN(p);
   var->memBlockSize = CS_FLOAT_ALIGN(sizeof(CS_OBJ));
   var->initializeVariableMemory = &csobj_var_init_memory;
   var->ctx = ctx;
@@ -581,5 +583,4 @@ void add_csobj(CSOUND *csound, TYPE_POOL *pool) {
                        "", ":Csound;", (SUBR) destroy_csobj, NULL, NULL);
   
 }
-
 

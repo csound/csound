@@ -43,8 +43,6 @@ int32_t csound_score_event(CSOUND *csound, char type,
 int32_t csound_score_event_absolute(CSOUND *csound, char type,
                                      const MYFLT *pfields, long numFields,
                                      double time_ofs);
-void set_channel_data_ptr(CSOUND *csound, const char *name,
-                          void *ptr, int32_t newSize);
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
 static void csound_table_copy_out(CSOUND *csound, int32_t table, MYFLT *ptable);
 static void csound_table_copy_in(CSOUND *csound, int32_t table, const MYFLT *ptable);

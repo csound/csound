@@ -488,7 +488,43 @@ Functions in `csound.h` are wrapped in the Csound class in
 `csound.hpp` and so the changes listed above have been propagated
 to that interface.
 
+## Type-System Constructor Callbacks
 
+The `createVariable` callback in `CS_TYPE` now receives the canonical
+type and its optional setup data as separate arguments. A Csound6
+callback such as
 
-  
+```c
+struct csvariable *create_variable(void *cs, void *type_arg,
+                                   struct insds *ctx);
+```
 
+must use this Csound7 signature:
+
+```c
+struct csvariable *create_variable(void *cs,
+                                   const struct cstype *type,
+                                   const void *type_arg,
+                                   struct insds *ctx);
+```
+
+Call `csoundCreateVariableForType()` instead of invoking a type's
+constructor directly. It checks the result and sets the returned
+variable's canonical type.
+
+## Explicit Local Variable Shadowing
+
+An explicitly typed local variable may now shadow a global variable
+with the same name and a different type. For example:
+
+```csound
+value@global:i init 1
+
+instr 1
+  value:k = 2
+endin
+```
+
+Here, `value:k` belongs to instrument 1. It does not replace
+`value@global:i`. Explicit global declarations still use the global
+scope rules.

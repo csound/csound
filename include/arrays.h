@@ -66,16 +66,25 @@ typedef struct {
     MYFLT   *r, *a;
 } AEVAL;
 
+
 static inline CS_VARIABLE *array_element_create_variable(CSOUND *csound,
                                                          const CS_TYPE *arrayType,
                                                          INSDS *ctx)
 {
+    CS_VARIABLE *var;
+
     if (arrayType == NULL || arrayType->createVariable == NULL) {
         return NULL;
     }
-    void *typeArg = (arrayType && arrayType->userDefinedType)
-                      ? (void *)arrayType : NULL;
-    return arrayType->createVariable(csound, typeArg, ctx);
+
+    /* arrays.h is used by opcode modules that do not link directly against
+       libcsound. Keep this installed inline helper self-contained while
+       preserving the invariant enforced by csoundCreateVariableForType(). */
+    var = arrayType->createVariable(csound, arrayType, NULL, ctx);
+    if (var != NULL) {
+        var->varType = arrayType;
+    }
+    return var;
 }
 
 static inline int32_t csound_array_element_types_compatible(

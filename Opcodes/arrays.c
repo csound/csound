@@ -742,7 +742,8 @@ static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p,
       (p->dimensions==2 && (p->sizes[0] < rows || p->sizes[1] < columns))) {
     size_t ss;
     if (p->data == NULL) {
-      CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, ctx);
+      CS_VARIABLE* var = csoundCreateVariableForType(
+        csound, p->arrayType, NULL, ctx);
       p->arrayMemberSize = var->memBlockSize;
     }
     ss = p->arrayMemberSize*rows*columns;

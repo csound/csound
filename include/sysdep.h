@@ -85,6 +85,10 @@ _Static_assert(sizeof(long) == 4, "expected 32-bit long on wasm32");
 # endif
 #endif
 
+#if defined(MSVC)
+#include <intrin.h> /* for _InterlockedExchange */
+#endif
+
 #ifndef CABBAGE
 #ifdef MSVC
 typedef __int32 int32;
@@ -618,6 +622,26 @@ typedef int32_t spin_lock_t;
 
 #if defined(_WIN32) || defined(_WIN64)
 # define strtok_r strtok_s
+#endif
+
+#if defined(__unix) || defined(__unix__) || defined(__MACH__)
+#  ifdef HAVE_SYS_TIME_H
+#    include <sys/time.h>
+#  endif
+#  ifdef HAVE_SYS_TYPES_H
+#    include <sys/types.h>
+#  endif
+#  ifdef HAVE_TERMIOS_H
+#    include <termios.h>
+#  endif
+#elif defined(WIN32)
+#  include <conio.h>
+#endif
+
+#ifdef USE_DOUBLE
+#  define MYFLT_INT_TYPE int64_t
+#else
+#  define MYFLT_INT_TYPE int32_t
 #endif
 
 #endif  /* CSOUND_SYSDEP_H */

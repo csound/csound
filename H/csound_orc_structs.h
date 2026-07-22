@@ -53,7 +53,8 @@ CS_VARIABLE* getStructMember(CONS_CELL* members, char* memberName);
 int32_t initStructVar(CSOUND* csound, void* p);
 void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem);
 /* Note: signatures must match CS_TYPE callbacks in csound_type_system.h */
-CS_VARIABLE* createStructVar(void* cs, void* p, INSDS* ctx);
+CS_VARIABLE* createStructVar(void* cs, const CS_TYPE* type,
+                             const void* typeArg, INSDS* ctx);
 void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest,
                    const void* src, INSDS* p);
 typedef enum {

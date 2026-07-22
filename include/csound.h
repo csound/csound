@@ -44,21 +44,6 @@
 #  define PUBLIC_DATA
 #endif
 
-#if defined(MSVC)
-#  include <intrin.h> /* for _InterlockedExchange */
-#endif
-
-#if defined(__MACH__)
-// on OSX 10.6 i386 does not have all builtins
-#if defined(MAC_OS_X_VERSION_10_6)
-#ifdef HAVE_ATOMIC_BUILTIN
-#ifndef __x86_64__
-#undef HAVE_ATOMIC_BUILTIN
-#endif
-#endif
-#endif
-#endif
-
 // FOR ANDROID
 #ifdef SWIG
 #define CS_PRINTF2
@@ -395,6 +380,7 @@ extern "C" {
   };
 
   typedef struct cstype CS_TYPE;
+  typedef struct csvarmem CS_VAR_MEM;
 
 #ifndef CSOUND_CSDL_H
   /** @defgroup INSTANTIATION Instantiation
@@ -901,6 +887,8 @@ extern "C" {
    *     pvs data as a PVSDATEXT structure - (PVSDAT **) pp
    *    (see csoundPvsData***(), csoundSetPvsData(),
    *     csoundGetPvsData(), and csoundInitPvsData())
+   *    CSOUND_VAR_CHANNEL
+   *       generic variable channel (pre-existing only)
    * and at least one of these:
    *   CSOUND_INPUT_CHANNEL
    *   CSOUND_OUTPUT_CHANNEL
@@ -931,6 +919,8 @@ extern "C" {
    * See Top/threadsafe.c in the Csound library sources for
    * examples.  Optionally, use the channel get/set functions
    * provided below, which are threadsafe by default.
+   * NB: this function cannot be used to create a generic CSOUND_VAR_CHANNEL
+   *     but it can access existing channels of that type
    */
   PUBLIC int32_t csoundGetChannelPtr(CSOUND *,
                                  void **p, const char *name, int32_t type);
@@ -1006,6 +996,40 @@ extern "C" {
    **/
   PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
 
+
+  /**
+   * Copies a value from a source variable memory block into a channel.
+   * This is a low-level type-system API intended for an already initialized
+   * CS_VAR_MEM block; it does not allocate or initialize source storage.
+   * The source and destination CS_VAR_MEM types must match. The source must
+   * contain enough initialized storage for its declared type; see
+   * csound_type_system.h for the CS_VAR_MEM definition and layout macros.
+   * Returns CSOUND_SUCCESS on success and CSOUND_ERROR for invalid input,
+   * missing channels, invalid channel storage, or type mismatches.
+   * Writes to the destination channel are serialized. If the source is live
+   * engine-owned storage, the caller must separately synchronize access to
+   * it. A type's copyValue function may allocate memory while the channel is
+   * locked. This function is not suitable for a real-time thread, and a host
+   * should avoid managed-value writes while a performance thread uses the
+   * same channel. copyValue is invoked without an instrument context.
+   */
+  PUBLIC int32_t csoundSetChannel(CSOUND *csound, const char *name,
+                                  const CS_VAR_MEM *var);
+
+  /**
+   * Returns a read-only pointer to the engine-owned variable memory block for
+   * a channel, or NULL if the channel has no initialized storage. The caller
+   * must not free the returned pointer. It remains valid until csoundReset()
+   * or destruction of the Csound instance.
+   *
+   * Like csoundGetChannelPtr(), reading the live value is not inherently
+   * thread-safe and requires the channel lock when concurrent writes are
+   * possible, including when passing this pointer to csoundSetChannel(). See
+   * csound_type_system.h for the CS_VAR_MEM definition.
+   */
+  PUBLIC const CS_VAR_MEM *csoundGetChannel(CSOUND *csound,
+                                             const char *name);
+
   /**
    * retrieves the value of control channel identified by *name.
    * If the err argument is not NULL, the error (or success) code
@@ -1055,6 +1079,7 @@ extern "C" {
    * - "S" (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
    * - "k" (control sigs): each item is a MYFLT
+   * - all other standard types are supported
    *  dimensions - number of array dimensions
    *  sizes - sizes for each dimension
    * returns the ARRAYDAT for the requested channel or NULL on error
@@ -1073,6 +1098,7 @@ extern "C" {
    * - "S" (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
    * - "k" (control sigs): each item is a MYFLT
+   * - other standard type names
    */
   PUBLIC const char *csoundArrayDataType(const ARRAYDAT *adat);
 

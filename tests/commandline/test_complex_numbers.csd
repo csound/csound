@@ -19,8 +19,9 @@ test[1] = 3,4
 
 instr 1
  Ca:Complex[] init 10
+ Ca2:Complex[] = [complex(1,1), complex(2,2)]
  ca:Complex = 0,1
- cc:Complex = complex(1,1)*complex(2,2)
+ cc:Complex = Ca2[0]*Ca2[1]
  assert(real(ca),0)
  assert(imag(ca),1)
  cb:Complex = polar(ca)
