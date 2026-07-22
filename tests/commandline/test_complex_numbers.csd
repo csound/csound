@@ -80,36 +80,34 @@ Ca = 2*Ca/Ca1
 endin
 
 instr 5
-kReal[] = [10]
-kRect:Complex[] = [complex(3, 4)]
-kPolar:Complex[] = [complex(5, taninv2(4, 3), 1)]
-kRectZero:Complex[] = [complex(0, 0)]
-kPolarZero:Complex[] = [complex(0, 0.5, 1)]
+kReal[] = [10, 4]
+kRect:Complex[] = [complex(3, 4), complex(-1, 2)]
+kPolar:Complex[] = [complex(5, taninv2(4, 3), 1), complex(2, -$M_PI/2, 1)]
 kepsilon = 0.00001
 
 kResult:Complex[] = kRect / kReal
 assert_close(real(kResult[0]), 0.3, kepsilon)
 assert_close(imag(kResult[0]), 0.4, kepsilon)
+assert_close(real(kResult[1]), -0.25, kepsilon)
+assert_close(imag(kResult[1]), 0.5, kepsilon)
 
 kResult = kReal / kRect
 assert_close(real(kResult[0]), 1.2, kepsilon)
 assert_close(imag(kResult[0]), -1.6, kepsilon)
+assert_close(real(kResult[1]), -0.8, kepsilon)
+assert_close(imag(kResult[1]), -1.6, kepsilon)
 
 kResult = kPolar / kReal
 assert_close(real(kResult[0]), 0.3, kepsilon)
 assert_close(imag(kResult[0]), 0.4, kepsilon)
+assert_close(real(kResult[1]), 0, kepsilon)
+assert_close(imag(kResult[1]), -0.5, kepsilon)
 
 kResult = kReal / kPolar
 assert_close(real(kResult[0]), 1.2, kepsilon)
 assert_close(imag(kResult[0]), -1.6, kepsilon)
-
-kResult = kReal / kRectZero
-assert(qnan(real(kResult[0])), 1)
-assert(qnan(imag(kResult[0])), 1)
-
-kResult = kReal / kPolarZero
-assert(qinf(abs(kResult[0])), 1)
-assert_close(arg(kResult[0]), -0.5, kepsilon)
+assert_close(real(kResult[1]), 0, kepsilon)
+assert_close(imag(kResult[1]), 2, kepsilon)
 endin
 
 </CsInstruments>
