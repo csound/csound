@@ -87,6 +87,14 @@ STRINGDAT_p = ct.c_void_p
 ARRAYDAT_p = ct.c_void_p
 PVSDAT_p = ct.c_void_p
 
+# CS_VAR_MEM contains a type-system header followed by type-specific storage.
+# Keep it opaque: aggregate values may occupy more memory than its public C
+# declaration suggests.
+class CS_VAR_MEM(ct.Structure):
+    pass
+
+CS_VAR_MEM_p = ct.POINTER(CS_VAR_MEM)
+
 # Opaque pointers for UGen API structs
 UGEN_p = ct.c_void_p
 UGEN_FACTORY_p = ct.c_void_p
@@ -362,6 +370,10 @@ libcsound.csoundGetChannelPtr.argtypes = [CSOUND_p, ct.POINTER(ct.c_void_p),
                                           ct.c_char_p, ct.c_int32]
 libcsound.csoundGetChannelVarTypeName.restype = ct.c_char_p
 libcsound.csoundGetChannelVarTypeName.argtypes = [CSOUND_p, ct.c_char_p]
+libcsound.csoundGetChannel.restype = CS_VAR_MEM_p
+libcsound.csoundGetChannel.argtypes = [CSOUND_p, ct.c_char_p]
+libcsound.csoundSetChannel.restype = ct.c_int32
+libcsound.csoundSetChannel.argtypes = [CSOUND_p, ct.c_char_p, CS_VAR_MEM_p]
 libcsound.csoundListChannels.restype = ct.c_int32
 libcsound.csoundListChannels.argtypes = [CSOUND_p, ct.POINTER(ct.POINTER(ControlChannelInfo))]
 libcsound.csoundDeleteChannelList.argtypes = [CSOUND_p, ct.POINTER(ControlChannelInfo)]
@@ -1157,21 +1169,26 @@ class Csound:
         CSOUND_PVS_CHANNEL
             pvs data as a PVSDATEXT structure - (PVSDATEXT **) pp
             (see pvs_data(), set_pvs_data(), and init_pvs_channel())
+        CSOUND_VAR_CHANNEL
+            generic variable data from a pre-existing channel. Generic
+            channels cannot be created with this function.
         and at least one of these:
 
         CSOUND_INPUT_CHANNEL
         CSOUND_OUTPUT_CHANNEL
 
         If the channel is a control or an audio channel, the pointer is
-        translated to an ndarray of MYFLT. If the channel is a string channel,
-        the pointer is casted to ct.c_char_p. The error message is either
-        an empty string or a string describing the error that occured.
+        translated to an ndarray of MYFLT. String, array, and PVS channels are
+        returned using their corresponding opaque pointer types. Generic
+        channel data is returned as an opaque c_void_p because its layout is
+        type-specific. The error message is either an empty string or a string
+        describing the error that occurred.
 
         If the channel already exists, it must match the data type
-        (control, string, audio, pvs or array), however, the input/output bits
-        are OR'd with the new value. Note that audio and string channels
-        can only be created after calling compile_(), because the
-        storage size is not known until then.
+        (control, string, audio, pvs, array, or generic), however, the
+        input/output bits are OR'd with the new value. Note that audio and
+        string channels can only be created after calling compile_(), because
+        the storage size is not known until then.
 
         Return value is zero on success, or a negative error code,
 
@@ -1208,6 +1225,8 @@ class Csound:
                 return ct.cast(ptr, ARRAYDAT_p), err
             elif chan_type == CSOUND_PVS_CHANNEL:
                 return ct.cast(ptr, PVSDAT_p), err
+            elif chan_type == CSOUND_VAR_CHANNEL:
+                return ptr, err
             elif chan_type == CSOUND_AUDIO_CHANNEL:
                 length = libcsound.csoundGetKsmps(self.cs)
             array_type = np.ctypeslib.ndpointer(MYFLT, 1, (length,), 'C_CONTIGUOUS')
@@ -1228,9 +1247,37 @@ class Csound:
             err = 'An array channel named {} already exists'.format(name)
         elif ret == CSOUND_PVS_CHANNEL:
             err = 'A PVS channel named {} already exists'.format(name)
+        elif ret == CSOUND_VAR_CHANNEL:
+            err = 'A generic variable channel named {} already exists'.format(name)
         else:
             err = 'Unknown error'
         return None, err
+
+    def channel(self, name):
+        """Returns an opaque pointer to a channel's variable memory block.
+
+        The returned memory is owned by Csound and must not be freed. The
+        pointer remains valid until reset() or destruction of this instance.
+        Reading a live value is not inherently thread-safe; use lock_channel()
+        and unlock_channel() when concurrent writes are possible.
+
+        Returns None if the channel does not exist or has no initialized
+        storage.
+        """
+        return libcsound.csoundGetChannel(self.cs, cstring(name))
+
+    def set_channel(self, name, var):
+        """Copies an initialized channel variable memory block into a channel.
+
+        var should be a pointer returned by channel(). Its type must exactly
+        match the destination channel type. The copy may allocate memory and
+        is therefore not guaranteed to be safe for a real-time thread. If var
+        refers to live engine-owned storage, the caller must synchronize reads
+        from that source separately.
+
+        Returns CSOUND_SUCCESS on success or CSOUND_ERROR on failure.
+        """
+        return libcsound.csoundSetChannel(self.cs, cstring(name), var)
 
     def channel_var_type_name(self, name):
         """Returns the var type for a channel name.
