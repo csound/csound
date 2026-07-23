@@ -148,6 +148,13 @@ static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
   return OK;
 }
 
+/* Complex[] signatures do not retain a rate, so the shared form runs both phases. */
+static int32_t fft_complex_i(CSOUND *csound, FFT *p) {
+  if (LIKELY(init_fft_complex(csound, p) == OK))
+    return perf_fft_complex(csound, p);
+  else return NOTOK;
+}
+
 static int32_t init_rfft_r2c(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
@@ -177,6 +184,12 @@ static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
   return OK;
 }
 
+static int32_t rfft_r2c_i(CSOUND *csound, FFT *p) {
+  if (LIKELY(init_rfft_r2c(csound, p) == OK))
+    return perf_rfft_r2c(csound, p);
+  else return NOTOK;
+}
+
 static int32_t init_rfft_c2r(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
@@ -203,6 +216,12 @@ static int32_t perf_rfft_c2r(CSOUND *csound, FFT *p) {
   csound->RealFFT(csound,p->setup,tmp);
   memcpy(p->out->data,tmp,N*sizeof(MYFLT));
   return OK;
+}
+
+static int32_t rfft_c2r_i(CSOUND *csound, FFT *p) {
+  if (LIKELY(init_rfft_c2r(csound, p) == OK))
+    return perf_rfft_c2r(csound, p);
+  else return NOTOK;
 }
 
 static int32_t init_rfft(CSOUND *csound, FFT *p) {
@@ -1289,15 +1308,23 @@ static OENTRY arrayvars_localops[] =
   {
     { "nxtpow2", sizeof(INOUT), 0, "i", "i", (SUBR)nxtpow2},
     { "fft", sizeof(FFT), 0, ":Complex;[]",":Complex;[]o",
-      (SUBR) init_fft_complex, (SUBR) perf_fft_complex, NULL},
+      (SUBR) fft_complex_i, (SUBR) perf_fft_complex, NULL},
     { "fft", sizeof(FFT), 0, ":Complex;[]","k[]",
       (SUBR) init_fft_complex, (SUBR) perf_fft_complex, NULL},
+    { "fft", sizeof(FFT), 0, ":Complex;[]","i[]",
+      (SUBR) fft_complex_i, NULL, NULL},
     { "fft", sizeof(FFT), 0, "k[]",":Complex;[]",
       (SUBR) init_fft_complex, (SUBR) perf_fft_complex, NULL},
+    { "fft", sizeof(FFT), 0, "i[]",":Complex;[]",
+      (SUBR) fft_complex_i, NULL, NULL},
     { "rfft", sizeof(FFT), 0, ":Complex;[]","k[]",
       (SUBR) init_rfft_r2c, (SUBR) perf_rfft_r2c, NULL},
+    { "rfft", sizeof(FFT), 0, ":Complex;[]","i[]",
+      (SUBR) rfft_r2c_i, NULL, NULL},
     { "rifft", sizeof(FFT), 0, "k[]", ":Complex;[]",
       (SUBR) init_rfft_c2r, (SUBR) perf_rfft_c2r, NULL},
+    { "rifft", sizeof(FFT), 0, "i[]", ":Complex;[]",
+      (SUBR) rfft_c2r_i, NULL, NULL},
     { "rfft", sizeof(FFT), 0, "k[]","k[]",
       (SUBR) init_rfft, (SUBR) perf_rfft, NULL},
     {"rfft", sizeof(FFT), 0, "i[]","i[]",
