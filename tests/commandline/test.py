@@ -48,6 +48,7 @@ def setup_logging():
 logger = setup_logging()
 
 WINDOWS_EXCEPTION_EXIT_MIN = 0xC0000000
+REGEX_TYPE = type(re.compile(""))
 
 
 def is_normal_nonzero_exit(return_code):
@@ -101,7 +102,7 @@ class TestResult:
     @property
     def expected_stderr(self):
         """Return the expected stderr substring or regular expression."""
-        if self.expected_result != 0 and isinstance(self.expected, (str, re.Pattern)):
+        if self.expected_result != 0 and isinstance(self.expected, (str, REGEX_TYPE)):
             return self.expected
         return None
 
