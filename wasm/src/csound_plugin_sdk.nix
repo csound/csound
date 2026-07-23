@@ -1,5 +1,6 @@
 {
-  pkgs ? import <nixpkgs> {},
+  system ? builtins.currentSystem,
+  pkgs ? import <nixpkgs> {inherit system;},
   pkgsWasm ? pkgs.pkgsCross.wasi32,
   stdenvWasm ? pkgsWasm.clangStdenv,
   csoundSdkArchive ? ../lib/csound-plugin-sdk.tar.gz,
@@ -27,4 +28,8 @@ in
         fi
       '';
     }
-  else pkgs.callPackage ./csound.nix {inherit pkgs pkgsWasm stdenvWasm;}
+  else
+    pkgs.callPackage ./csound.nix {
+      inherit pkgs pkgsWasm stdenvWasm;
+      moduleKind = "browser";
+    }

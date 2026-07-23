@@ -55,6 +55,7 @@ const microphoneRequestCancelled = () => {
   return error;
 };
 
+/** @this {!Object} */
 export async function requestMicrophoneStream() {
   if (this.microphoneStream) {
     return this.microphoneStream;
@@ -115,6 +116,7 @@ const setAudioInputOption = async (api) => {
  * Csound. This requires HTTPS, localhost, or a loopback address.
  *
  * @function
+ * @this {!Object}
  * @returns {Promise<void>} Resolves after the microphone stream is connected.
  */
 export async function enableAudioInput() {
@@ -138,6 +140,7 @@ export async function enableAudioInput() {
   liveInput.connect(this.node);
 }
 
+/** @this {!Object} */
 export async function enableAudioInputInWorker() {
   if (this.currentPlayState) {
     throw new Error("enableAudioInput() must be called before start() in worker mode");

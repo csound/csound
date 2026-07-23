@@ -34,10 +34,46 @@ npm run build         # runs scripts/compile.sh via nix-build
 
 `scripts/compile.sh` produces the following artefacts in `wasm/lib/`:
 
-- `csound.wasm` — main binary
-- `csound.wasm.z` — compressed variant
+- `csound.wasm` - browser-hosted WASI reactor (`_initialize`, no `_start`)
+- `csound.wasm.z` - compressed browser-hosted module
+- `csound-cli.wasm` - standalone WASI command for runtimes such as Wasmtime
 - `csound-plugin-sdk.tar.gz` — plugin SDK archive
 - `plugin_example.wasm` / `plugin_example_cpp.wasm` — example plugins
+
+Both Csound modules are published in `@csound/wasm-bin`. The package `main`
+entry remains the browser reactor, `csound.wasm`. Command-line runtimes should
+load `csound-cli.wasm` explicitly.
+
+The build defaults to the local Nix system. To use a configured remote builder,
+set `NIX_SYSTEM` to the system provided by that builder. For example, from
+Darwin, `NIX_SYSTEM=x86_64-linux yarn build` selects an available
+`x86_64-linux` builder.
+
+The standalone module currently targets Wasmtime's standardized WebAssembly
+exception handling. A direct invocation looks like:
+
+```bash
+wasmtime run -Wexceptions=y --dir=. ./lib/csound-cli.wasm -nd ./example.csd
+```
+
+To run the command-line CSD suite against an already-built
+`lib/csound-cli.wasm`:
+
+```bash
+source ./scripts/nixpkgs-pin.sh
+nix-build ./src/csound-tests.nix
+```
+
+The test derivation also defaults to the local Nix system. Pass
+`--argstr system x86_64-linux` to select a configured Linux builder explicitly.
+It uses Wasmtime from the pinned Nixpkgs, disables audio with `-nd`, and runs the
+cases listed in `tests/commandline/test.py`. The OSC socket case still executes,
+but its nonzero result is expected because this WASI Preview-1 build has no
+socket creation or UDP send support.
+
+For releases, publish a new `@csound/wasm-bin` version before updating and
+publishing `@csound/browser`; older binary packages do not contain the new
+`csound-cli.wasm` command artifact.
 
 ---
 

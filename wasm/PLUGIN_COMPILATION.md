@@ -36,15 +36,16 @@ bash ./scripts/compile.sh
 
 This does:
 
-1. Build Csound once (`result`)
-2. Create SDK archive (`result/lib/csound-plugin-sdk.tar.gz`)
+1. Build the browser module and SDK (`result`)
+2. Build the standalone command module (`result_cli`)
 3. Build C and C++ plugin examples against the SDK archive
-4. Copy outputs to `wasm/lib/`
+4. Copy all outputs to `wasm/lib/`
 
 Expected outputs:
 
 - `lib/csound.wasm`
 - `lib/csound.wasm.z`
+- `lib/csound-cli.wasm`
 - `lib/csound-plugin-sdk.tar.gz`
 - `lib/plugin_example.wasm`
 - `lib/plugin_example_cpp.wasm`

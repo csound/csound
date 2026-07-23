@@ -366,6 +366,9 @@ int32_t csoundInitModules(CSOUND *csound) {
   return retval;
 }
 
+#if defined(CSOUND_WASI_BROWSER) && defined(CSOUND_WASI_CLI)
+#error "WASI browser and standalone host modes are mutually exclusive"
+#elif defined(CSOUND_WASI_BROWSER)
 // In browser-wasi, this function is provided by the JS host.
 int32_t csoundLoadModulesHost(CSOUND *csound)
     __attribute__((used,
@@ -375,6 +378,15 @@ int32_t csoundLoadModulesHost(CSOUND *csound)
 int32_t csoundLoadModules(CSOUND *csound) {
   return csoundLoadModulesHost(csound);
 }
+#elif defined(CSOUND_WASI_CLI)
+// Standalone WASI has no dynamic loader. All available opcodes are linked in.
+int32_t csoundLoadModules(CSOUND *csound) {
+  (void) csound;
+  return CSOUND_SUCCESS;
+}
+#else
+#error "A WASI host mode must be selected by the build system"
+#endif
 
 int32_t csoundLoadExternals(CSOUND *csound) {
   (void) csound;
@@ -1220,6 +1232,9 @@ typedef int32_t (*INITFN2)(CSOUND *);
  int32_t csoundModuleInit_fractalnoise(CSOUND *csound);
  int32_t scansyn_init_(CSOUND *csound);
  int32_t scansynx_init_(CSOUND *csound);
+#ifdef CSOUND_WASI_CLI
+ int32_t mkir_init_(CSOUND *csound);
+#endif
 
 /**
    Builtin linkage for C fgens - Instructions:
@@ -1239,6 +1254,9 @@ NGFENS *ftest_fgens_init(CSOUND *);
 NGFENS *farey_fgens_init(CSOUND *);
 NGFENS *padsyn_fgen_init(CSOUND *);
 NGFENS *mp3in_fgen_init(CSOUND *);
+#ifdef CSOUND_WASI_CLI
+NGFENS *mkir_fgen_init(CSOUND *);
+#endif
 
 CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
 {
@@ -1317,12 +1335,19 @@ CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
 #endif
     scansyn_init_,
     scansynx_init_,
+#ifdef CSOUND_WASI_CLI
+    mkir_init_,
+#endif
     NULL
   };
 
   const FGINITFN fgentab[] = {
     ftest_fgens_init, farey_fgens_init, quadbezier_fgens_init,
-    padsyn_fgen_init, mp3in_fgen_init, NULL };
+    padsyn_fgen_init, mp3in_fgen_init,
+#ifdef CSOUND_WASI_CLI
+    mkir_fgen_init,
+#endif
+    NULL };
 
 
   for (i=0; staticmodules[i]!=NULL; i++) {

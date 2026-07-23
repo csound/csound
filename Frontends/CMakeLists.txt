@@ -5,7 +5,7 @@ string(TOUPPER "${CMAKE_SYSTEM_NAME}" CMAKE_SYSTEM_NAME_UPPER)
 
 ## Csound Commandline Executable ##
 if(BUILD_CSOUND_COMMAND)
-  if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
+  if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" AND BUILD_WASI_BROWSER)
     set(CS_MAIN_SRCS ${CMAKE_SOURCE_DIR}/wasm/src/csound_wasm.c)
   else()
     set(CS_MAIN_SRCS csound/csound_main.c)
@@ -17,6 +17,12 @@ if(BUILD_CSOUND_COMMAND)
 
   # We need a different name to avoid clashes with float libcsound
   make_executable(csound-bin "${CS_MAIN_SRCS}" "${CSOUNDLIB};${MATH_LIBRARY}" csound)
+
+  if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" AND BUILD_WASI_BROWSER)
+    # Use wasi-libc's reactor startup: it exposes _initialize for the JS host
+    # and deliberately has no command-style _start entry point.
+    target_link_options(csound-bin PRIVATE -mexec-model=reactor)
+  endif()
 
   if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     target_link_libraries(csound-bin PRIVATE Threads::Threads)
@@ -52,6 +58,4 @@ if(BUILD_CSBEATS)
     target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
     target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/beats)
 endif()
-
-
 

@@ -21,37 +21,41 @@ if(Python3_Interpreter_FOUND)
   # Platform-specific csdtests targets
   if (MINGW)
     # For MinGW with Wine runtime
-    list(APPEND PLATFORM_ARGS --runtime-environment=wine --opcode7dir64=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+    list(APPEND PLATFORM_ARGS --runtime-executable=wine --opcode7dir64=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
     add_custom_target(csdtests
       ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test.py
       ${COMMON_TEST_ARGS}
       ${PLATFORM_ARGS}
+      VERBATIM
     )
     # Verbose variant target
     add_custom_target(csdtests-verbose
       ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test.py
       --verbose
       --csound-executable=${CMAKE_BINARY_DIR}/csound
-      --runtime-environment=wine
+      --runtime-executable=wine
       --opcode7dir64=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}
       --source-dir=${CMAKE_CURRENT_SOURCE_DIR}
+      VERBATIM
     )
   elseif (EMSCRIPTEN)
     # For Emscripten with Node.js runtime
-    list(APPEND PLATFORM_ARGS --runtime-environment=${EMSDK_NODE} --opcode7dir64=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+    list(APPEND PLATFORM_ARGS --runtime-executable=${EMSDK_NODE} --opcode7dir64=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
     add_custom_target(csdtests
       ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test.py
       ${COMMON_TEST_ARGS}
       ${PLATFORM_ARGS}
+      VERBATIM
     )
     # Verbose variant target
     add_custom_target(csdtests-verbose
       ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test.py
       --verbose
       --csound-executable=${CMAKE_BINARY_DIR}/csound
-      --runtime-environment=${EMSDK_NODE}
+      --runtime-executable=${EMSDK_NODE}
       --opcode7dir64=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}
       --source-dir=${CMAKE_CURRENT_SOURCE_DIR}
+      VERBATIM
     )
   elseif(MSVC)
     # For MSVC builds
@@ -62,6 +66,7 @@ if(Python3_Interpreter_FOUND)
       --csound-executable=${CSOUND_EXECUTABLE_PATH}
       ${PLATFORM_ARGS}
       --source-dir=${CMAKE_CURRENT_SOURCE_DIR}
+      VERBATIM
     )
     # Verbose variant target
     add_custom_target(csdtests-verbose
@@ -70,6 +75,7 @@ if(Python3_Interpreter_FOUND)
       --csound-executable=${CSOUND_EXECUTABLE_PATH}
       --opcode7dir64=$<TARGET_FILE_DIR:csound-bin>
       --source-dir=${CMAKE_CURRENT_SOURCE_DIR}
+      VERBATIM
     )
   else()
     # Default for Unix-like systems (Linux, macOS)
@@ -78,6 +84,7 @@ if(Python3_Interpreter_FOUND)
       ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test.py
       ${COMMON_TEST_ARGS}
       ${PLATFORM_ARGS}
+      VERBATIM
     )
     # Verbose variant target
     add_custom_target(csdtests-verbose
@@ -86,6 +93,7 @@ if(Python3_Interpreter_FOUND)
       --csound-executable=${CMAKE_BINARY_DIR}/csound
       --opcode7dir64=${CMAKE_BINARY_DIR}
       --source-dir=${CMAKE_CURRENT_SOURCE_DIR}
+      VERBATIM
     )
   endif()
 else()

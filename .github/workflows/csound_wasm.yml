@@ -1,11 +1,19 @@
 name: csound_wasm
+run-name: "WASM | ${{ github.event_name == 'pull_request' && format('PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) || format('{0} push', github.ref_name) }}"
+
 env:
   nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/4db2c220f32fd162658ed1b7bb2f46a82996ddbe.tar.gz
+
 on:
   pull_request:
     branches: ["**"]
   push:
     branches: ["develop"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   csound-wasm:
     env:
@@ -15,10 +23,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-      - uses: cachix/install-nix-action@v25
+      - uses: cachix/install-nix-action@v31
         with:
           nix_path: ${{ env.nix_path }}
-      - uses: cachix/cachix-action@v15
+      - uses: cachix/cachix-action@v17
         with:
           name: csound
           authToken: ${{ secrets.CACHIX_TOKEN }}
@@ -34,6 +42,42 @@ jobs:
         with:
           name: lib
           path: ${{ env.wasm_bin_dir }}/lib.zip
+      - name: Archive command-line test sources
+        continue-on-error: false
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-commandline-test-sources
+          path: |
+            ./wasm/src/csound-tests.nix
+            ./tests/commandline
+
+  commandline-tests:
+    needs: csound-wasm
+    name: CSD tests with Wasmtime
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Download Wasm artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: lib
+          path: ${{ runner.temp }}/wasm-commandline-source/wasm
+      - name: Download matching command-line test sources
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm-commandline-test-sources
+          path: ${{ runner.temp }}/wasm-commandline-source
+      - uses: cachix/install-nix-action@v31
+        with:
+          nix_path: ${{ env.nix_path }}
+      - name: Uncompress Wasm artifact
+        run: |
+          unzip \
+            "$RUNNER_TEMP/wasm-commandline-source/wasm/lib.zip" \
+            -d "$RUNNER_TEMP/wasm-commandline-source/wasm"
+      - name: Run command-line CSD tests with Wasmtime
+        working-directory: ${{ runner.temp }}/wasm-commandline-source
+        run: nix-build ./wasm/src/csound-tests.nix --no-out-link --show-trace --option log-lines 10000
 
   browser-test:
     env:
@@ -46,10 +90,10 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
-      - uses: cachix/install-nix-action@v25
+      - uses: cachix/install-nix-action@v31
         with:
           nix_path: ${{ env.nix_path }}
-      - uses: cachix/cachix-action@v15
+      - uses: cachix/cachix-action@v17
         with:
           name: csound
           authToken: ${{ secrets.CACHIX_TOKEN }}

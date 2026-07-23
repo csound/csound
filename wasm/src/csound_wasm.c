@@ -340,12 +340,6 @@ char* csoundGetStringChannelWasi(CSOUND* csound, const char *channelName) {
   return data;
 }
 
-// extern size_t __heap_base;
-
-// DUMMY MAIN (never called, but is needed)
-int main (int argc, char *argv[] ) {}
-
-
 // Compilation fix for unsupported functions defined
 // wasi-libc/expected/wasm32-wasi/undefined-symbols.txt
 

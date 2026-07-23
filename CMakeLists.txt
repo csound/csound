@@ -228,6 +228,16 @@ option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" 
 option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 option(BUILD_PLUGINS "Build external opcodes as plugins" OFF)
+if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
+    option(BUILD_WASI_BROWSER
+           "Build WASI for a browser host instead of as a standalone command"
+           OFF)
+else()
+    # Keep this WASI-only mode out of native platform configurations, including
+    # caches left behind by a previous cross-compilation.
+    unset(BUILD_WASI_BROWSER CACHE)
+    set(BUILD_WASI_BROWSER OFF)
+endif()
 option(BUILD_WITH_LTO "Build with link-time optimisations" OFF)
 option(USE_SHORT_TABLE_LENGTH  "Build with original max table length 2^24" OFF)
 option(USE_ASA  "Use address sanitizer in Debug build" ON)
@@ -1075,9 +1085,19 @@ if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     list(REMOVE_ITEM externs_SRCS Opcodes/counter.c)
     list(REMOVE_ITEM externs_SRCS Opcodes/serial.c)
     list(REMOVE_ITEM externs_SRCS Opcodes/system_call.c)
-    # Add WASI-specific source file
-    list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/src/csound_wasm.c)
-    list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/src/csound_wasm.c)
+    if(BUILD_WASI_BROWSER)
+        # Browser builds use JavaScript-hosted callbacks and imported memory.
+        list(APPEND libcsound_CFLAGS -DCSOUND_WASI_BROWSER)
+        list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/src/csound_wasm.c)
+        list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/src/csound_wasm.c)
+    else()
+        # Standalone WASI has a conventional command entry point and no JS host.
+        list(APPEND libcsound_CFLAGS -DCSOUND_WASI_CLI)
+        # The deconv opcode and named GEN normally arrive through the stdutil
+        # plugin. Link only their source into the no-dynamic-loader command.
+        list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/util/mkir.c)
+        list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/util/mkir.c)
+    endif()
 endif()
 
 set(newgabops_SRCS

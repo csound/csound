@@ -3177,7 +3177,9 @@ CS_VARIABLE* createStructVar(void* cs, const CS_TYPE* type,
   }
 
   CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-  var->memBlockSize = sizeof(CS_STRUCT_VAR);
+  /* Array storage advances in MYFLT units. On wasm32 CS_STRUCT_VAR is 12
+     bytes, so leaving this unaligned would truncate the element stride. */
+  var->memBlockSize = CS_FLOAT_ALIGN(sizeof(CS_STRUCT_VAR));
   var->initializeVariableMemory = initializeStructVar;
   var->ctx = ctx;
 

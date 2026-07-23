@@ -28,7 +28,7 @@ const rootDir = __dirname;
 
 fs.writeFileSync(
   path.join(rootDir, "dist", "__csound_wasm_static_tools.inline.js"),
-  inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.static.wasm.z", "binary.wasm"),
+  inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.wasm.z", "binary.wasm"),
 );
 
 (async () => {
@@ -51,6 +51,7 @@ fs.writeFileSync(
     hide_warnings_for: ["./node_modules/pako/dist/pako.min.js"],
 
     jscomp_off: ["accessControls"],
+    jscomp_error: ["globalThis"],
     assume_function_wrapper: false,
     compilation_level: "SIMPLE_OPTIMIZATIONS",
     language_in: "ECMASCRIPT_2021",
