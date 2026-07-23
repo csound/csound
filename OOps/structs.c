@@ -574,7 +574,9 @@ int32_t struct_alias(CSOUND *csound, STRUCT_ALIAS *p)
 }
 
 
-int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
+static int32_t struct_array_get_common(CSOUND *csound,
+                                       STRUCT_ARRAY_GET* dat,
+                                       int32_t initializing)
 {
   ARRAYDAT* arrayDat = dat->arrayDat;
   CS_STRUCT_VAR *source;
@@ -583,9 +585,6 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
   size_t totalSize;
   void *element;
   int32_t indexCount = dat->INOCOUNT - 1;
-  int32_t initializing = dat->h.optext != NULL &&
-    dat->h.optext->t.oentry != NULL &&
-    dat->h.optext->t.oentry->perf == NULL;
 
   if (UNLIKELY(arrayDat == NULL || destination == NULL)) {
     return initializing
@@ -685,6 +684,16 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
   arrayDat->arrayType->copyValue(csound, arrayDat->arrayType,
                                  destination, source, dat->h.insdshead);
   return OK;
+}
+
+int32_t struct_array_get_init(CSOUND *csound, STRUCT_ARRAY_GET* dat)
+{
+  return struct_array_get_common(csound, dat, 1);
+}
+
+int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
+{
+  return struct_array_get_common(csound, dat, 0);
 }
 
 
