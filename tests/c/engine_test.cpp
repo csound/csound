@@ -1,14 +1,61 @@
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
 #include "csound_graph_display.h"
+#include "fftlib.h"
 #include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <cstring>
 #include <stdio.h>
+#include <string>
 #include <thread>
 #include <vector>
 #include "gtest/gtest.h"
 #include "time.h"
+
+namespace {
+
+std::vector<MYFLT> directComplexDft(const std::vector<MYFLT>& input,
+                                    bool inverse)
+{
+    const int32_t size = static_cast<int32_t>(input.size() / 2);
+    const double direction = inverse ? 1.0 : -1.0;
+    const double scale = inverse ? 1.0 / size : 1.0;
+    const double twoPi = 2.0 * std::acos(-1.0);
+    std::vector<MYFLT> output(input.size(), FL(0.0));
+
+    for (int32_t bin = 0; bin < size; ++bin) {
+        double real = 0.0;
+        double imag = 0.0;
+        for (int32_t sample = 0; sample < size; ++sample) {
+            const double angle = direction * twoPi *
+              static_cast<double>(bin) * sample / size;
+            const double cosine = std::cos(angle);
+            const double sine = std::sin(angle);
+            const double inputReal = input[sample * 2];
+            const double inputImag = input[sample * 2 + 1];
+            real += inputReal * cosine - inputImag * sine;
+            imag += inputReal * sine + inputImag * cosine;
+        }
+        output[bin * 2] = static_cast<MYFLT>(real * scale);
+        output[bin * 2 + 1] = static_cast<MYFLT>(imag * scale);
+    }
+    return output;
+}
+
+std::string drainMessageBuffer(CSOUND *csound)
+{
+    std::string messages;
+    while (csoundGetMessageCnt(csound) > 0) {
+        const char *message = csoundGetFirstMessage(csound);
+        if (message != nullptr)
+            messages += message;
+        csoundPopFirstMessage(csound);
+    }
+    return messages;
+}
+
+}
 
 class EngineTests : public ::testing::Test {
 public:
@@ -35,6 +82,84 @@ public:
 
     CSOUND* csound {nullptr};
 };
+
+TEST_F (EngineTests, testComplexFftMatchesDirectDft)
+{
+    const std::vector<std::vector<MYFLT>> inputs = {
+      {FL(1.0), FL(0.5), FL(-2.0), FL(1.25), FL(0.75), FL(-0.5),
+       FL(3.0), FL(-1.5), FL(-0.25), FL(2.0), FL(1.5), FL(-0.75)},
+      {FL(1.0), FL(0.5), FL(-2.0), FL(1.25), FL(0.75), FL(-0.5),
+       FL(3.0), FL(-1.5), FL(-0.25), FL(2.0), FL(1.5), FL(-0.75),
+       FL(0.5), FL(1.75), FL(-1.0), FL(-0.25)}
+    };
+    const double tolerance =
+      sizeof(MYFLT) == sizeof(float) ? 0.0001 : 1.0e-10;
+
+    for (const auto& input : inputs) {
+        const int32_t size = static_cast<int32_t>(input.size() / 2);
+        const auto expectedForward = directComplexDft(input, false);
+        auto actualForward = input;
+        if (size == 6)
+            csoundComplexFFTnp2(csound, actualForward.data(), size);
+        else
+            csound->ComplexFFT(csound, actualForward.data(), size);
+
+        for (size_t i = 0; i < actualForward.size(); ++i)
+            EXPECT_NEAR(actualForward[i], expectedForward[i], tolerance)
+              << "FFT size " << size << ", component " << i;
+
+        const auto expectedInverse = directComplexDft(actualForward, true);
+        auto actualInverse = actualForward;
+        if (size == 6)
+            csoundInverseComplexFFTnp2(csound, actualInverse.data(), size);
+        else
+            csound->InverseComplexFFT(csound, actualInverse.data(), size);
+
+        for (size_t i = 0; i < actualInverse.size(); ++i) {
+            EXPECT_NEAR(actualInverse[i], expectedInverse[i], tolerance)
+              << "inverse FFT size " << size << ", component " << i;
+            EXPECT_NEAR(actualInverse[i], input[i], tolerance)
+              << "round trip size " << size << ", component " << i;
+        }
+    }
+}
+
+TEST_F (EngineTests, testComplexFftReportsUnsupportedSizes)
+{
+    MYFLT buffer[] = {
+      FL(1.0), FL(1.0), FL(2.0), FL(-1.0), FL(0.5), FL(2.0)
+    };
+    drainMessageBuffer(csound);
+
+    csoundComplexFFTnp2(csound, buffer, 3);
+    csoundInverseComplexFFTnp2(csound, buffer, 3);
+
+    const std::string messages = drainMessageBuffer(csound);
+    EXPECT_NE(messages.find("csoundComplexFFTnp2(): invalid FFT size, 3"),
+              std::string::npos);
+    EXPECT_NE(messages.find("csoundInverseComplexFFTnp2(): invalid FFT size, 3"),
+              std::string::npos);
+}
+
+TEST_F (EngineTests, testTypedComplexFftRejectsOddSize)
+{
+    csoundSetOption(csound, "-n");
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      instr 1
+        kInput:Complex[] = [complex(1, 1), complex(2, -1), complex(0.5, 2)]
+        kSpectrum:Complex[] = fft(kInput)
+        turnoff
+      endin
+    )", 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 0.01", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    EXPECT_NE(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    const std::string messages = drainMessageBuffer(csound);
+    EXPECT_NE(messages.find(
+                "fft: input array size (3) must be 1 or even"),
+              std::string::npos);
+}
 
 TEST_F (EngineTests, testUdpServer)
 {

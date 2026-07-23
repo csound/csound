@@ -101,6 +101,10 @@ static int32_t init_fft_complex(CSOUND *csound, FFT *p) {
       return csound->InitError(csound, "fft: input array size (%d) is unreasonable", N);
     }
   }
+  if (UNLIKELY(N > 1 && (N & 1)))
+    return csound->InitError(csound,
+                             Str("fft: input array size (%d) must be 1 or even"),
+                             N);
 
   tabinit(csound, p->out, N, p->h.insdshead);
   size_t bytes = (size_t)N * 2u * sizeof(MYFLT);
