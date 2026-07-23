@@ -139,7 +139,7 @@ WASI.prototype.start = function (instance) {
   const exports = instance["exports"];
   const initialize = exports["_initialize"];
   if (typeof initialize !== "function") {
-    throw new Error("Browser WASI module does not export _initialize");
+    throw new TypeError("Browser WASI module does not export _initialize");
   }
   initialize();
 };
