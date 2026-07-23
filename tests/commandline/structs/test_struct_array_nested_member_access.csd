@@ -30,6 +30,11 @@ instr 1
   i1 = array[1].inner.val
   assertEquals(i1, 9)
 
+  ; The array getter must run at init before the nested aggregate copy.
+  copyIndex:k init 1
+  copy:Inner init array[copyIndex].inner
+  assertEquals(copy.val, 9)
+
   prints "Struct array nested member access test passed!\n"
 endin
 

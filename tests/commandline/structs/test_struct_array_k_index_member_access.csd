@@ -20,6 +20,11 @@ instr 1
   array[0].val1 = 1
   array[1].val1 = 2
 
+  ; An explicit aggregate init must read its k-indexed source at init.
+  copyIndex:k init 1
+  copy:MyType init array[copyIndex]
+  assertEquals(copy.val1, 2)
+
   ; Switch the index at k-rate and read the selected member each control pass.
   kindex = int(timeinstk() / 5)
   kval = array[kindex].val1
