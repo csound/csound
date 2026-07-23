@@ -2568,7 +2568,7 @@ int32_t tabaarml(CSOUND *csound, TABARITH2 *p)
     sizel*=r->sizes[i];
   for (i=0; i<sizel; i++) {
     MYFLT *b,*aa;
-    int32_t j = i+span;
+    int32_t j = i*span;
     b = (MYFLT*)&(r->data[j]);
     aa = (MYFLT*)&(ans->data[j]);
     if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
