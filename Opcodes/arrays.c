@@ -74,6 +74,14 @@ typedef struct _fft {
   AUXCH mem;
 } FFT;
 
+static inline MYFLT complex_rect_real(const COMPLEXDAT *value) {
+  return value->isPolar ? value->real * COS(value->imag) : value->real;
+}
+
+static inline MYFLT complex_rect_imag(const COMPLEXDAT *value) {
+  return value->isPolar ? value->real * SIN(value->imag) : value->imag;
+}
+
 static int32_t init_fft_complex(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
@@ -124,8 +132,8 @@ static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
   COMPLEXDAT *c = (COMPLEXDAT *) p->in->data;
   if(p->in->arrayType == csound->GetType(csound, "Complex")) {
     for(int32_t i = 0, j = 0; j < N; i+=2, j++) {
-      tmp[i] = c[j].real;
-      tmp[i+1] = c[j].imag;
+      tmp[i] = complex_rect_real(&c[j]);
+      tmp[i+1] = complex_rect_imag(&c[j]);
     }
   } else {
     MYFLT *re = p->in->data;
@@ -142,6 +150,7 @@ static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
     for(int32_t i = 0, j = 0; j < N; i+=2, j++) {
       c[j].real = tmp[i];
       c[j].imag = tmp[i+1];
+      c[j].isPolar = 0;
     }
   } else {
     MYFLT *re = p->out->data;
@@ -175,9 +184,11 @@ static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
     c[j].real = tmp[i];
     if(j) c[j].imag = tmp[i+1];
     else c[j].imag = 0.;
+    c[j].isPolar = 0;
   }
   c[N>>1].real = tmp[1];
   c[N>>1].imag =  0.;
+  c[N>>1].isPolar = 0;
   return OK;
 }
 
@@ -199,11 +210,13 @@ static int32_t perf_rfft_c2r(CSOUND *csound, FFT *p) {
   int32_t N = p->out->sizes[0];
   MYFLT *tmp = (MYFLT *)p->mem.auxp;
   COMPLEXDAT *c = (COMPLEXDAT *) p->in->data;
-  for(int32_t i = 0, j = 0; i < N; i+=2, j++) {
-    tmp[i] = c[j].real;
-    if(j) tmp[i+1] = c[j].imag;
+  int32_t halfN = N >> 1;
+  tmp[0] = complex_rect_real(&c[0]);
+  for(int32_t j = 1; j < halfN; j++) {
+    tmp[j << 1] = complex_rect_real(&c[j]);
+    tmp[(j << 1) + 1] = complex_rect_imag(&c[j]);
   }
-  tmp[1] = c[N>>1].real;
+  tmp[1] = complex_rect_real(&c[halfN]);
   csound->RealFFT(csound,p->setup,tmp);
   memcpy(p->out->data,tmp,N*sizeof(MYFLT));
   return OK;
