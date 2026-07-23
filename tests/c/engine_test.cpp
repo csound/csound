@@ -2,11 +2,16 @@
 #include "csoundCore.h"
 #include "csound_graph_display.h"
 #include "fftlib.h"
+extern "C" {
+#include "aops.h"
+#include "complex_ops.h"
+}
 #include <algorithm>
 #include <atomic>
 #include <clocale>
 #include <cmath>
 #include <cstring>
+#include <limits>
 #include <stdio.h>
 #include <string>
 #include <thread>
@@ -208,6 +213,53 @@ TEST_F (EngineTests, testTypedComplexFftRejectsOddSize)
     EXPECT_NE(messages.find(
                 "fft: input array size (3) must be 1 or even"),
               std::string::npos);
+}
+
+TEST_F (EngineTests, testRealComplexSubtraction)
+{
+    struct SubtractionCase {
+        COMPLEXDAT input;
+        bool scalarFirst;
+        MYFLT expectedReal;
+        MYFLT expectedImag;
+    };
+
+    const MYFLT scalar = FL(10.0);
+    const MYFLT angle = std::atan2(FL(4.0), FL(3.0));
+    const SubtractionCase cases[] = {
+        {{FL(3.0), FL(4.0), 0}, true,  FL(7.0),  FL(-4.0)},
+        {{FL(3.0), FL(4.0), 0}, false, FL(-7.0), FL(4.0)},
+        {{FL(5.0), angle, 1},    true,  FL(7.0),  FL(-4.0)},
+        {{FL(5.0), angle, 1},    false, FL(-7.0), FL(4.0)},
+    };
+    const MYFLT tolerance = std::numeric_limits<MYFLT>::epsilon() * FL(256.0);
+
+    for (const auto& testCase : cases) {
+        COMPLEXDAT input = testCase.input;
+        COMPLEXDAT result = {};
+        MYFLT scalarArg = scalar;
+        AOP opcode = {};
+        opcode.r = reinterpret_cast<MYFLT *>(&result);
+
+        if (testCase.scalarFirst) {
+            opcode.a = &scalarArg;
+            opcode.b = reinterpret_cast<MYFLT *>(&input);
+            ASSERT_EQ(real_sub_complex(csound, &opcode), OK);
+        }
+        else {
+            opcode.a = reinterpret_cast<MYFLT *>(&input);
+            opcode.b = &scalarArg;
+            ASSERT_EQ(complex_sub_real(csound, &opcode), OK);
+        }
+
+        EXPECT_EQ(result.isPolar, input.isPolar);
+        const MYFLT resultReal = result.isPolar
+          ? result.real * std::cos(result.imag) : result.real;
+        const MYFLT resultImag = result.isPolar
+          ? result.real * std::sin(result.imag) : result.imag;
+        EXPECT_NEAR(resultReal, testCase.expectedReal, tolerance);
+        EXPECT_NEAR(resultImag, testCase.expectedImag, tolerance);
+    }
 }
 
 TEST_F (EngineTests, testUdpServer)

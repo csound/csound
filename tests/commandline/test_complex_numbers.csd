@@ -133,6 +133,47 @@ assert_close(real(kResult[0]), 7, kepsilon)
 assert_close(imag(kResult[0]), -4, kepsilon)
 endin
 
+instr 6
+iepsilon = 0.00001
+iRect:Complex = complex(3, 4)
+iPolar:Complex = complex(5, taninv2(4, 3), 1)
+
+iResult:Complex = iRect - 10
+assert_close(real(iResult), -7, iepsilon)
+assert_close(imag(iResult), 4, iepsilon)
+
+iResult = 10 - iRect
+assert_close(real(iResult), 7, iepsilon)
+assert_close(imag(iResult), -4, iepsilon)
+
+iResult = iPolar - 10
+assert_close(real(iResult), -7, iepsilon)
+assert_close(imag(iResult), 4, iepsilon)
+
+iResult = 10 - iPolar
+assert_close(real(iResult), 7, iepsilon)
+assert_close(imag(iResult), -4, iepsilon)
+
+kRect:Complex = complex(3, 4)
+kPolar:Complex = complex(5, taninv2(4, 3), 1)
+
+kResult:Complex = kRect - 10
+assert_close(real(kResult), -7, iepsilon)
+assert_close(imag(kResult), 4, iepsilon)
+
+kResult = 10 - kRect
+assert_close(real(kResult), 7, iepsilon)
+assert_close(imag(kResult), -4, iepsilon)
+
+kResult = kPolar - 10
+assert_close(real(kResult), -7, iepsilon)
+assert_close(imag(kResult), 4, iepsilon)
+
+kResult = 10 - kPolar
+assert_close(real(kResult), 7, iepsilon)
+assert_close(imag(kResult), -4, iepsilon)
+endin
+
 </CsInstruments>
 <CsScore>
 i1 0 1

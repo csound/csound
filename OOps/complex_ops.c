@@ -540,7 +540,8 @@ int32_t real_sub_complex(CSOUND *csound, AOP *p) {
   COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
   COMPLEXDAT cmpx = !((COMPLEXDAT *) p->b)->isPolar ?
     *((COMPLEXDAT *)p->b) : complex((COMPLEXDAT *)p->b);
-  cmpx.real -= *p->a;
+  cmpx.real = *p->a - cmpx.real;
+  cmpx.imag = -cmpx.imag;
   *ans = !((COMPLEXDAT *)p->b)->isPolar ? cmpx :
     polar(&cmpx);
   return OK;
