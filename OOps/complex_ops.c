@@ -1537,11 +1537,6 @@ int32_t complex_array_polar_assign(CSOUND *csound, COPS1 *p) {
   return complex_array_assign_type(csound, p, 1);
 }
 
-int32_t complex_array_polar_init(CSOUND *csound, COPS1 *p) {
-  int32_t res = cops_init_r(csound, p);
-  return res == OK ? complex_array_polar_assign(csound, p) : res;
-}
-
 int32_t complex_array_exp(CSOUND *csond, COPS1 *p) {
   int32_t n = smallest2(p->out->sizes[0],((ARRAYDAT *)p->a)->sizes[0]);
   COMPLEXDAT *cmpx = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;

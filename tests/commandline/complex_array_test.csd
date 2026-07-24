@@ -150,14 +150,6 @@ endin
 
 instr 5
 kTolerance = 0.000001
-iMagnitude[] fillarray 2, 0
-iPhase[] fillarray 0.5, 1.25
-iValues:Complex[] = polar(iMagnitude, iPhase)
-assert_close(abs(iValues[0]), 2, kTolerance)
-assert_close(arg(iValues[0]), 0.5, kTolerance)
-assert_close(abs(iValues[1]), 0, kTolerance)
-assert_close(arg(iValues[1]), 1.25, kTolerance)
-
 kMagnitude[] = [2, 3, 0]
 kPhase[] = [0, $M_PI/2, 1.25]
 kValues:Complex[] = polar(kMagnitude, kPhase)
