@@ -137,6 +137,7 @@ jobs:
           nix-shell --pure
           yarn test:ci
       - name: Fix the test report
+        if: always()
         run: |
           cd $wasm_browser_dir
           nix-shell --pure
@@ -145,6 +146,7 @@ jobs:
             tests/_results.junit.xml > tests/GOOGLE_CHROME.junit.xml
           rm tests/_results.junit.xml
       - name: Publish Test Report
+        if: always()
         uses: mikepenz/action-junit-report@v6
         with:
           report_paths: "**/tests/*.junit.xml"
