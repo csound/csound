@@ -235,6 +235,40 @@ TEST_F (OrcCompileTests, testNestedExpressionFailurePropagates)
     ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
 }
 
+TEST_F (OrcCompileTests, testRejectsPerfOnlyKIndexAggregateInit)
+{
+    const char *instrument = R"(
+struct Box value:i
+
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  index:k init 0
+  copy:Box init boxes[index + 0]
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testRejectsPerfOnlyKIndexNestedAggregateInit)
+{
+    const char *instrument = R"(
+struct Inner value:i
+struct Outer inner:Inner
+
+instr 1
+  inner:Inner init 37
+  outer:Outer init inner
+  outers:Outer[] fillarray outer
+  index:k init 0
+  copy:Inner init outers[index + 0].inner
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
 TEST_F (OrcCompileTests, testReuse)
 {
     int32_t result;

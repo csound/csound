@@ -31,7 +31,24 @@ instr 1
   assertEquals(copied[0].value, 10)
   assertEquals(copied[1].value, 20)
 
+  ; Read a whole struct from an array stored in a struct member.
+  copyIndex:k init 1
+  selected:Box init holder.items[copyIndex]
+  assertEquals(selected.value, 20)
+
+  ; Keep the matching performance read out of the init pass.
+  perfIndex:k init -1
+  perfIndex = 0
+  perfValue:k = holder.items[perfIndex].value
+  if (timeinstk() == 1) then
+    event "i", 2, 0, 0.001, perfValue, 10
+  endif
+
   prints "Struct-array member with scalar test passed\n"
+endin
+
+instr 2
+  assertEquals(p4, p5)
 endin
 
 </CsInstruments>

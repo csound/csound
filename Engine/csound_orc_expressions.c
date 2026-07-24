@@ -34,6 +34,12 @@
 ORCTOKEN *make_token(CSOUND *, char *, void *);
 ORCTOKEN *make_label(CSOUND *, char *, void *);
 
+enum {
+  EXPRESSION_PERF_CONTEXT = 0,
+  EXPRESSION_INIT_CONTEXT,
+  EXPRESSION_EXPLICIT_INIT_CONTEXT
+};
+
 static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
                                        TYPE_TABLE*, int32_t);
 static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
@@ -41,6 +47,9 @@ static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
 static int32_t struct_expr_has_array_root(TREE* structExpr);
 static int32_t array_has_k_rate_index(CSOUND* csound, TREE* indexExpr,
                                       TYPE_TABLE* typeTable);
+static int32_t tree_has_perf_only_k_rate_value(CSOUND* csound,
+                                               TREE* tree,
+                                               TYPE_TABLE* typeTable);
 TREE* expand_struct_array_member_read(CSOUND* csound,
                                       TREE* structExpr,
                                       int32_t line,
@@ -48,6 +57,21 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
                                       TYPE_TABLE* typeTable,
                                       int32_t initContext);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
+
+static int32_t expression_context_has_init(int32_t expressionContext)
+{
+  return expressionContext != EXPRESSION_PERF_CONTEXT;
+}
+
+static char* struct_array_get_opcode_name(int32_t expressionContext,
+                                          int32_t hasKRateIndex)
+{
+  if (expressionContext == EXPRESSION_EXPLICIT_INIT_CONTEXT &&
+      hasKRateIndex) {
+    return "##array_get_struct_init";
+  }
+  return "##array_get_struct";
+}
 
 static TREE* tree_tail(TREE* node) {
   TREE* t = node;
@@ -527,6 +551,28 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   if (root->type=='?') return create_cond_expression(csound, root, line,
                                                      locn, typeTable,
                                                      initContext);
+  if (root->type == T_ARRAY &&
+      initContext == EXPRESSION_EXPLICIT_INIT_CONTEXT &&
+      tree_has_perf_only_k_rate_value(csound, root->right, typeTable)) {
+    char* elementType = get_arg_type2(csound, root, typeTable);
+    const CS_TYPE* elementCsType =
+      elementType == NULL
+        ? NULL
+        : csoundGetTypeWithVarTypeName(csound->typePool, elementType);
+    int32_t elementIsStruct =
+      elementCsType != NULL && elementCsType->userDefinedType;
+
+    if (elementType != NULL) {
+      csound->Free(csound, elementType);
+    }
+    if (elementIsStruct) {
+      synterr(csound,
+              Str("struct array index requires performance-rate evaluation "
+                  "during init, line %d\n"),
+              line);
+      return NULL;
+    }
+  }
   memset(op, 0, 80);
   if (root->left != NULL) {
     expandedArgs = expand_expression_arg_list(csound, root->left, &anchor,
@@ -693,19 +739,29 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   case T_ARRAY:
     {
       char* outype;
+      int32_t hasKRateIndex =
+        array_has_k_rate_index(csound, root->right, typeTable);
       int32_t initArrayRead =
-        initContext &&
-        !array_has_k_rate_index(csound, root->right, typeTable);
+        expression_context_has_init(initContext) && !hasKRateIndex;
 
       // Handle struct member access or other complex left expressions
       if (array_target_missing_lexeme(root)) {
         char* elementType = get_arg_type2(csound, root, typeTable);
+        const CS_TYPE* elementCsType;
         if (elementType == NULL) {
           return NULL;
         }
 
-        // Set the operation to array_get (struct members are always plain arrays)
-        strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
+        elementCsType =
+          csoundGetTypeWithVarTypeName(csound->typePool, elementType);
+        if (elementCsType != NULL && elementCsType->userDefinedType) {
+          strNcpy(op,
+                  struct_array_get_opcode_name(initContext, hasKRateIndex),
+                  80);
+        }
+        else {
+          strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
+        }
 
         // Use the element type directly (it's already the type of array[index])
         outarg = create_out_arg(csound, elementType,
@@ -731,7 +787,9 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       if (var->subType) {
           // Generic array or struct array
           if (var->subType->userDefinedType) {
-            strNcpy(op, "##array_get_struct", 80);
+            strNcpy(op,
+                    struct_array_get_opcode_name(initContext, hasKRateIndex),
+                    80);
           } else {
             strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get",
                     80);
@@ -1171,6 +1229,35 @@ static int32_t array_has_k_rate_index(CSOUND* csound, TREE* indexExpr,
   return 0;
 }
 
+static int32_t tree_has_perf_only_k_rate_value(CSOUND* csound,
+                                               TREE* tree,
+                                               TYPE_TABLE* typeTable)
+{
+  /* Direct k variables already have init storage. An i-indexed array read
+     lowers to ##array_get_init. Other computed k values only run at perf. */
+  while (tree != NULL) {
+    char* argType =
+      (is_expression_node(tree) || tree->type == STRUCT_EXPR)
+        ? get_arg_type2(csound, tree, typeTable)
+        : NULL;
+    int32_t isKRate =
+      argType != NULL && (argType[0] == 'k' || argType[0] == 'K');
+
+    if (argType != NULL) {
+      csound->Free(csound, argType);
+    }
+    if ((isKRate && tree->type != T_IDENT &&
+         !(tree->type == T_ARRAY &&
+           !array_has_k_rate_index(csound, tree->right, typeTable))) ||
+        tree_has_perf_only_k_rate_value(csound, tree->left, typeTable) ||
+        tree_has_perf_only_k_rate_value(csound, tree->right, typeTable)) {
+      return 1;
+    }
+    tree = tree->next;
+  }
+  return 0;
+}
+
 static int32_t tree_has_k_rate_array_index(CSOUND* csound, TREE* tree,
                                            TYPE_TABLE* typeTable)
 {
@@ -1322,9 +1409,13 @@ static TREE* create_struct_array_get_call(CSOUND* csound,
                                           int32_t line,
                                           uint64_t locn,
                                           const char* outArg,
-                                          TREE* arrayExpr)
+                                          TREE* arrayExpr,
+                                          int32_t initContext,
+                                          int32_t hasKRateIndex)
 {
-  TREE* getOp = create_opcode_token(csound, "##array_get_struct");
+  TREE* getOp = create_opcode_token(
+    csound,
+    struct_array_get_opcode_name(initContext, hasKRateIndex));
   getOp->type = T_OPCALL;
   getOp->line = line;
   getOp->locn = locn;
@@ -1439,7 +1530,9 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                    create_struct_array_get_call(csound, current->line,
                                                 current->locn,
                                                 structTemps[0],
-                                                path.arrayExpr));
+                                                path.arrayExpr,
+                                                initContext,
+                                                path.hasKRateIndex));
 
   for (i = 0; i < path.memberCount - 1; i++) {
     structTemps[i + 1] = create_out_arg(csound,
@@ -1512,6 +1605,15 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
   if (!resolve_struct_array_member_path(csound, structExpr, typeTable, &path)) {
     return NULL;
   }
+  if (initContext == EXPRESSION_EXPLICIT_INIT_CONTEXT &&
+      tree_has_perf_only_k_rate_value(csound, path.arrayExpr->right,
+                                      typeTable)) {
+    synterr(csound,
+            Str("struct array index requires performance-rate evaluation "
+                "during init, line %d\n"),
+            line);
+    return NULL;
+  }
 
   currentStructArg = create_out_arg(csound,
                                     path.rootStructType->varTypeName,
@@ -1520,7 +1622,9 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
   readOps = tree_append(readOps,
                            create_struct_array_get_call(csound, line, locn,
                                                         currentStructArg,
-                                                        path.arrayExpr));
+                                                        path.arrayExpr,
+                                                        initContext,
+                                                        path.hasKRateIndex));
 
   for (i = 0; i < path.memberCount - 1; i++) {
     char* nextStructArg = create_out_arg(csound,
@@ -1581,7 +1685,15 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
   TREE* previousArg = NULL;
   TREE* currentArg = current->right;
   OENTRY* statementEntry = (OENTRY*)current->markup;
-  int32_t initContext = statementEntry != NULL && statementEntry->perf == NULL;
+  /* Some init-only opcodes, such as xout and printtype, do not consume the
+     expression value at init. Only an explicit init needs the strict getter. */
+  int32_t initContext =
+    current->value != NULL && current->value->lexeme != NULL &&
+    strcmp(current->value->lexeme, "init") == 0
+      ? EXPRESSION_EXPLICIT_INIT_CONTEXT
+      : (statementEntry != NULL && statementEntry->perf == NULL
+           ? EXPRESSION_INIT_CONTEXT
+           : EXPRESSION_PERF_CONTEXT);
 
   current->next = NULL;
 
@@ -1603,25 +1715,26 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                                                        currentArg->locn,
                                                        typeTable,
                                                        initContext);
-      if (expanded) {
-        anchor = tree_append(anchor, expanded);
-        last = tree_tail(anchor);
-        char* newArg = last->left->value->lexeme;
-        newArgTree = create_ans_token(csound, newArg);
-
-        nextArg = currentArg->next;
-        csound->Free(csound, currentArg);
-
-        if (previousArg == NULL) {
-          current->right = newArgTree;
-        }
-        else {
-          previousArg->next = newArgTree;
-        }
-        newArgTree->next = nextArg;
-        currentArg = newArgTree;
-        continue;
+      if (expanded == NULL) {
+        return NULL;
       }
+      anchor = tree_append(anchor, expanded);
+      last = tree_tail(anchor);
+      char* newArg = last->left->value->lexeme;
+      newArgTree = create_ans_token(csound, newArg);
+
+      nextArg = currentArg->next;
+      csound->Free(csound, currentArg);
+
+      if (previousArg == NULL) {
+        current->right = newArgTree;
+      }
+      else {
+        previousArg->next = newArgTree;
+      }
+      newArgTree->next = nextArg;
+      currentArg = newArgTree;
+      continue;
     }
 
     if (is_expression_node(currentArg) ||
