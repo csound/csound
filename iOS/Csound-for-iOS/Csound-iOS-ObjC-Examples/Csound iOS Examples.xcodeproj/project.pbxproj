@@ -16,6 +16,7 @@
 		5704CB172D7CE6F10085F4B1 /* CsoundiOS.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB152D7CE6F10085F4B1 /* CsoundiOS.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5704CB1A2D7CE9280085F4B1 /* libSndfileiOS.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB192D7CE9280085F4B1 /* libSndfileiOS.xcframework */; };
 		5704CB1B2D7CE9280085F4B1 /* libSndfileiOS.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB192D7CE9280085F4B1 /* libSndfileiOS.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		57501E252FE7E17F001D2C67 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 57501E242FE7E17F001D2C67 /* SceneDelegate.m */; };
 		576FFAC12D7D9E8C00190F26 /* LICENSE.TXT in Resources */ = {isa = PBXBuildFile; fileRef = 576FFABF2D7D9E8C00190F26 /* LICENSE.TXT */; };
 		576FFAC22D7D9E8C00190F26 /* CsoundLabelBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAA82D7D9E8C00190F26 /* CsoundLabelBinding.m */; };
 		576FFAC32D7D9E8C00190F26 /* CsoundAttitudeBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFA9F2D7D9E8C00190F26 /* CsoundAttitudeBinding.m */; };
@@ -119,6 +120,8 @@
 		5704CB0F2D7CD4310085F4B1 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		5704CB152D7CE6F10085F4B1 /* CsoundiOS.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = CsoundiOS.xcframework; path = ../CsoundiOS.xcframework; sourceTree = "<group>"; };
 		5704CB192D7CE9280085F4B1 /* libSndfileiOS.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libSndfileiOS.xcframework; path = ../libSndfileiOS.xcframework; sourceTree = "<group>"; };
+		57501E232FE7E17F001D2C67 /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
+		57501E242FE7E17F001D2C67 /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
 		576FFA9C2D7D9E8C00190F26 /* CsoundAccelerometerBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundAccelerometerBinding.h; sourceTree = "<group>"; };
 		576FFA9D2D7D9E8C00190F26 /* CsoundAccelerometerBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundAccelerometerBinding.m; sourceTree = "<group>"; };
 		576FFA9E2D7D9E8C00190F26 /* CsoundAttitudeBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundAttitudeBinding.h; sourceTree = "<group>"; };
@@ -398,6 +401,8 @@
 		F6B6466314D348E5005F786B /* Csound iOS Examples */ = {
 			isa = PBXGroup;
 			children = (
+				57501E232FE7E17F001D2C67 /* SceneDelegate.h */,
+				57501E242FE7E17F001D2C67 /* SceneDelegate.m */,
 				F6B646F014D353A7005F786B /* ViewControllers */,
 				F6B6466C14D348E5005F786B /* AppDelegate.h */,
 				F6B6466D14D348E5005F786B /* AppDelegate.m */,
@@ -751,6 +756,7 @@
 				C41F0AA1197361D200997479 /* ControlKnob.m in Sources */,
 				F6B6477A14D353A7005F786B /* WaveviewViewController.m in Sources */,
 				C41F0A9A1973612A00997479 /* ConsoleOutputViewController.m in Sources */,
+				57501E252FE7E17F001D2C67 /* SceneDelegate.m in Sources */,
 				C46B769019B5C0A1000D4F95 /* InstrumentEditorViewController.m in Sources */,
 				F6968A5716B07BA00089C462 /* TrappedGeneratorViewController.m in Sources */,
 			);

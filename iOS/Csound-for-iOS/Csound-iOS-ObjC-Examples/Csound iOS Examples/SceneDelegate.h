@@ -1,15 +1,15 @@
-/* 
+/*
  
- AppDelegate.m: minimal app delegate
+ SceneDelegate.h: UI scene lifecycle
  
- Copyright (C) 2011 Steven Yi
+ Copyright (C) 2026 Victor Lazzarini
  
  This file is part of Csound iOS Examples.
  
  The Csound for iOS Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.   
+ version 2.1 of the License, or (at your option) any later version.
  
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,14 +21,15 @@
  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
  
  */
+#import <UIKit/UIKit.h>
 
-#import "AppDelegate.h"
 
-@implementation AppDelegate
+@interface SceneDelegate : UIResponder <UIWindowSceneDelegate>
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-    return YES;
-}
+// Ensure this exact property line exists here:
+@property (strong, nonatomic) UIWindow *window;
+
 
 @end
+
+

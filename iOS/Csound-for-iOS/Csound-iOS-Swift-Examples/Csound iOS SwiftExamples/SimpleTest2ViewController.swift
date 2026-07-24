@@ -49,7 +49,7 @@ class SimpleTest2ViewController: BaseCsoundViewController {
         super.viewDidLoad()
     }
     
-    func toggleOnOff(_ sender: UISwitch) {
+    @objc func toggleOnOff(_ sender: UISwitch) {
         if sender.isOn {
             let tempFile = Bundle.main.path(forResource: "test2", ofType: "csd")
             
