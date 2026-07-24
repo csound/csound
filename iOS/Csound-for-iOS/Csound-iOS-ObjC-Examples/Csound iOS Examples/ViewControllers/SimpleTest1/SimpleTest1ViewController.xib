@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11762" systemVersion="16A323" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES">
-    <device id="retina4_7" orientation="portrait">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="24765" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24743"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -23,25 +21,25 @@
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <slider opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="440" minValue="440" maxValue="880" translatesAutoresizingMaskIntoConstraints="NO" id="4">
-                    <rect key="frame" x="18" y="128" width="275" height="31"/>
+                    <rect key="frame" x="20" y="216" width="271" height="34"/>
                 </slider>
                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2Jd-6b-vzn">
-                    <rect key="frame" x="24.5" y="166" width="271" height="0.0"/>
+                    <rect key="frame" x="24.5" y="258" width="271" height="0.0"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="271" id="yOj-hF-5ic"/>
                     </constraints>
                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                    <color key="textColor" systemColor="darkTextColor"/>
                     <nil key="highlightedColor"/>
                 </label>
                 <switch opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="5">
-                    <rect key="frame" x="136" y="89" width="51" height="31"/>
+                    <rect key="frame" x="129.5" y="180" width="63" height="28"/>
                     <connections>
                         <action selector="toggleOnOff:" destination="-1" eventType="valueChanged" id="6"/>
                     </connections>
                 </switch>
                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9lC-kA-Am8">
-                    <rect key="frame" x="20" y="92" width="25" height="25"/>
+                    <rect key="frame" x="20" y="181.5" width="25" height="25"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="25" id="kVo-kc-hha"/>
                         <constraint firstAttribute="height" constant="25" id="sbp-xw-qqZ"/>
@@ -57,7 +55,7 @@
                 <constraint firstAttribute="trailing" secondItem="4" secondAttribute="trailing" constant="29" id="90P-tt-Evd"/>
                 <constraint firstItem="2Jd-6b-vzn" firstAttribute="top" secondItem="4" secondAttribute="bottom" constant="8" id="Gpk-xe-Izo"/>
                 <constraint firstItem="5" firstAttribute="centerX" secondItem="1" secondAttribute="centerX" id="HhJ-yY-OUs"/>
-                <constraint firstItem="5" firstAttribute="top" secondItem="1" secondAttribute="top" constant="89" id="MJb-AC-XlU"/>
+                <constraint firstItem="5" firstAttribute="top" secondItem="1" secondAttribute="top" constant="180" id="MJb-AC-XlU"/>
                 <constraint firstItem="9lC-kA-Am8" firstAttribute="centerY" secondItem="5" secondAttribute="centerY" id="hZA-jc-jW6"/>
                 <constraint firstItem="2Jd-6b-vzn" firstAttribute="centerX" secondItem="1" secondAttribute="centerX" id="j2u-3m-dew"/>
                 <constraint firstItem="4" firstAttribute="top" secondItem="5" secondAttribute="bottom" constant="8" id="oUw-tH-v7t"/>
@@ -66,14 +64,13 @@
             </constraints>
             <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <point key="canvasLocation" x="-189" y="28"/>
         </view>
     </objects>
     <resources>
         <image name="InfoButton" width="25" height="25"/>
+        <systemColor name="darkTextColor">
+            <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
     </resources>
-    <simulatedMetricsContainer key="defaultSimulatedMetrics">
-        <simulatedStatusBarMetrics key="statusBar"/>
-        <simulatedOrientationMetrics key="orientation"/>
-        <simulatedScreenMetrics key="destination" type="retina4_7.fullscreen"/>
-    </simulatedMetricsContainer>
 </document>
