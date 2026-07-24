@@ -80,6 +80,9 @@ jobs:
         run: nix-build ./wasm/src/csound-tests.nix --no-out-link --show-trace --option log-lines 10000
 
   browser-test:
+    permissions:
+      contents: read
+      checks: write
     env:
       wasm_bin_dir: ./wasm
       wasm_browser_dir: ./wasm/browser
@@ -134,6 +137,7 @@ jobs:
           nix-shell --pure
           yarn test:ci
       - name: Fix the test report
+        if: always()
         run: |
           cd $wasm_browser_dir
           nix-shell --pure
@@ -142,12 +146,14 @@ jobs:
             tests/_results.junit.xml > tests/GOOGLE_CHROME.junit.xml
           rm tests/_results.junit.xml
       - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v4
+        if: always()
+        uses: mikepenz/action-junit-report@v6
         with:
           report_paths: "**/tests/*.junit.xml"
+          annotate_only: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
           fail_on_failure: true
           include_passed: false
           detailed_summary: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
           check_title_template: |-
             {{FILE_NAME}} | {{SUITE_NAME}} | {{TEST_NAME}}
