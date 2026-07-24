@@ -107,14 +107,19 @@
 
 - (void)csoundObjCompleted:(CsoundObj *)csoundObj {
     
-    NSString *title = @"Render Complete";
-    NSString *message = @"File generated as trapped.wav in application Documents Folder.";
+    // Hop over to the main thread safely
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSString *title = @"Render Complete";
+        NSString *message = @"File generated as trapped.wav in application Documents Folder.";
+        
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
+        [alert addAction:defaultAction];
+        
+        [self presentViewController:alert animated:YES completion:nil];
+    });
     
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction *defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
-    [alert addAction:defaultAction];
-    [self presentViewController:alert animated:YES completion:nil];
-    
+    // This can stay outside or go inside, depending on if it affects the UI
     hasRendered = YES;
 }
 

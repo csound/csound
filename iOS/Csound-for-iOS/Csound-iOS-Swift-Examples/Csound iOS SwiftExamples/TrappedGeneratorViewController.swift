@@ -95,12 +95,16 @@ class TrappedGeneratorViewController: BaseCsoundViewController {
 
 extension TrappedGeneratorViewController: CsoundObjListener {
     func csoundObjCompleted(_ csoundObj: CsoundObj!) {
-        // Display a UIAlertController to the user notifying them of render completion
-        let alert = UIAlertController(title: "Render Complete", message: "File generated as trapped.wav in application Documents Folder.", preferredStyle: .alert)
-        let defaultAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-        alert.addAction(defaultAction)
+        // Hop over to the main thread before touching UIKit
+        DispatchQueue.main.async {
+            // Display a UIAlertController to the user notifying them of render completion
+            let alert = UIAlertController(title: "Render Complete", message: "File generated as trapped.wav in application Documents Folder.", preferredStyle: .alert)
+            let defaultAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+            alert.addAction(defaultAction)
+            
+            self.present(alert, animated: true, completion: nil)
+        }
         
-        present(alert, animated: true, completion: nil)
         hasRendered = true
     }
 }
