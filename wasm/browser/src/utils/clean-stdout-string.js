@@ -15,9 +15,9 @@
 
 export const cleanStdout = (stdout) => {
   const pattern = [
-    "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
-    "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))",
+    String.raw`[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[-a-zA-Z\d\/#&.:=?%@~_]*)*)?\u0007)`,
+    String.raw`(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))`,
   ].join("|");
   const regexPattern = new RegExp(pattern, "g");
-  return stdout.replace(regexPattern, "");
+  return stdout.replaceAll(regexPattern, "");
 };

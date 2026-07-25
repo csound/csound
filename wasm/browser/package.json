@@ -4,6 +4,9 @@
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
+  "engines": {
+    "node": ">=18.18"
+  },
   "files": [
     "dist/csound*",
     "dist/factory*",
@@ -65,7 +68,7 @@
     "browser-or-node": "^2.0.0",
     "chai": "^4.3.7",
     "cross-env": "^7.0.3",
-    "eslint": "^8.28.0",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-junit": "^1.0.1",
@@ -74,7 +77,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-standard": "^5.0.0",
-    "eslint-plugin-unicorn": "^45.0.0",
+    "eslint-plugin-unicorn": "^56.0.1",
     "finalhandler": "^1.2.0",
     "jsdoc": "^4.0.0",
     "jsdoc-export-default-interop": "^0.3.1",

@@ -16,6 +16,7 @@
 import * as Comlink from "../utils/comlink.js";
 import { logWorkletMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
+import { getGlobalScope } from "../utils/global-scope.js";
 import { requestMidi } from "../utils/request-midi";
 import {
   releaseMicrophoneStream,
@@ -174,7 +175,9 @@ class AudioWorkletMainThread {
         }
 
         if (this.workletWorkerUrl) {
-          (window.URL || window.webkitURL).revokeObjectURL(this.workletWorkerUrl);
+          const globalScope = getGlobalScope();
+          const urlApi = globalScope && (globalScope.URL || globalScope.webkitURL);
+          urlApi && urlApi.revokeObjectURL(this.workletWorkerUrl);
         }
 
         this.audioWorkletNode && delete this.audioWorkletNode;
@@ -239,15 +242,16 @@ class AudioWorkletMainThread {
     }
     this.workletWorkerUrl = WorkletWorker();
 
-    if (!registeredContexts.has(this.audioContext)) {
+    if (registeredContexts.has(this.audioContext)) {
+      log("Module already registered on this AudioContext, skipping addModule")();
+    } else {
       try {
         await this.audioContext.audioWorklet.addModule(this.workletWorkerUrl);
         registeredContexts.add(this.audioContext);
       } catch (error) {
         console.error("Error calling audioWorklet.addModule", error);
+        throw error;
       }
-    } else {
-      log("Module already registered on this AudioContext, skipping addModule")();
     }
 
     log("WorkletWorker module added")();

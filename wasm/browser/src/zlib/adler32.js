@@ -35,7 +35,7 @@ Adler32.update = function (adler, array) {
   let index = 0;
 
   while (length_ > 0) {
-    tlen = length_ > Adler32.OptimizationParameter ? Adler32.OptimizationParameter : length_;
+    tlen = Math.min(length_, Adler32.OptimizationParameter);
     length_ -= tlen;
     do {
       s1 += array[index++];

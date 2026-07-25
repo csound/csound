@@ -51,66 +51,36 @@ const monkeyPatches = (code) => {
 const inputFile = path.join(srcDir, "workers/sab.worker.js");
 const tmpOutFileName = path.join(rootDir, "dist", "test.min.js");
 
+const captureClosureExport = (data, exportName, variableName) => {
+  const marker = `("${exportName}",`;
+  if (!data.includes(marker)) {
+    throw new Error(`Could not find Closure export for ${exportName}`);
+  }
+  return data.replace(marker, () => `${marker}${variableName}=`);
+};
+
 const makeModuleExportsHack = () => {
   let data = fs.readFileSync(path.join(rootDir, "dist", "csound.js")).toString();
-
-  if (DEV) {
-    const hackedData = data.replace(
-      "__GOOGLE_CLOSURE_REPLACEME__",
-      `const Csound = Csound$$$module$src$index;` +
-        ` const libcsound = libcsoundEntry$$$module$src$libcsound_entry;` +
-        ` export { Csound, libcsound }; export default Csound;`,
-    );
-    fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
-  } else {
-    const matchResults = data.matchAll(/(\("__Csound__",)([A-Za-z]+)\)/g);
-    const matchResultsArr = Array.from(matchResults);
-    const obfuscatedCsound = matchResultsArr[0][2];
-
-    // Try simple variable reference first: w("__libcsound__",varName)
-    const libcsoundResults = data.matchAll(/(\("__libcsound__",)([A-Za-z]+)\)/g);
-    const libcsoundArr = Array.from(libcsoundResults);
-    let obfuscatedLibcsound = libcsoundArr.length > 0 ? libcsoundArr[0][2] : null;
-
-    // If Closure inlined the function (no simple var), extract it by
-    // balanced-paren matching from w("__libcsound__", <expr>)
-    if (!obfuscatedLibcsound) {
-      const marker = 'w("__libcsound__",';
-      const startIdx = data.indexOf(marker);
-      if (startIdx !== -1) {
-        const exprStart = startIdx + marker.length;
-        let depth = 1; // we're inside the w( already
-        let i = exprStart;
-        while (i < data.length && depth > 0) {
-          if (data[i] === "(") depth++;
-          else if (data[i] === ")") depth--;
-          i++;
-        }
-        // i now points past the closing ')' of w(...)
-        // The inlined expression is data[exprStart .. i-2] (exclude final ')')
-        const inlinedExpr = data.substring(exprStart, i - 1);
-        // Replace the w("__libcsound__",...) call with a var assignment
-        // so we can reference it in the export statement
-        const wCall = data.substring(startIdx, i);
-        const replacement = `var __lcs__=${inlinedExpr}`;
-        data = data.replace(wCall, replacement);
-        obfuscatedLibcsound = "__lcs__";
-      }
-    }
-
-    let exportStatement;
-    if (obfuscatedLibcsound) {
-      exportStatement =
-        `const Csound = ${obfuscatedCsound};` +
-        ` const libcsound = ${obfuscatedLibcsound};` +
-        ` export { Csound, libcsound }; export default Csound;`;
-    } else {
-      exportStatement = `const Csound = ${obfuscatedCsound}; export { Csound }; export default Csound;`;
-    }
-
-    const hackedData = data.replace("__GOOGLE_CLOSURE_REPLACEME__", exportStatement);
-    fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
+  const marker = "__GOOGLE_CLOSURE_REPLACEME__";
+  if (!data.includes(marker)) {
+    throw new Error("Could not find the module export marker");
   }
+
+  const csoundExport = "__csoundEsmExport__";
+  const libcsoundExport = "__libcsoundEsmExport__";
+  if (data.includes(csoundExport) || data.includes(libcsoundExport)) {
+    throw new Error("Closure output contains a reserved module export name");
+  }
+  data = captureClosureExport(data, "__Csound__", csoundExport);
+  data = captureClosureExport(data, "__libcsound__", libcsoundExport);
+  data = `let ${csoundExport}; let ${libcsoundExport};\n${data}`;
+
+  const exportStatement =
+    `const Csound = ${csoundExport};` +
+    ` const libcsound = ${libcsoundExport};` +
+    ` export { Csound, libcsound }; export default Csound;`;
+  const hackedData = data.replace(marker, () => exportStatement);
+  fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
 };
 
 if (fs.existsSync(distDir)) {

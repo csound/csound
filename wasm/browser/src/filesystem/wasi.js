@@ -22,7 +22,7 @@ const googPath = goog.require("goog.string.path");
 const DEBUG_WASI = goog.define("DEBUG_WASI", false);
 
 function removeLeadingSlash(path) {
-  return path.replace(/^\//g, "");
+  return path.replace(/^\//, "");
 }
 
 function splitPathSegments(path) {
@@ -139,7 +139,7 @@ WASI.prototype.start = function (instance) {
   const exports = instance["exports"];
   const initialize = exports["_initialize"];
   if (typeof initialize !== "function") {
-    throw new Error("Browser WASI module does not export _initialize");
+    throw new TypeError("Browser WASI module does not export _initialize");
   }
   initialize();
 };

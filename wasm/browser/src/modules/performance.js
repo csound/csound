@@ -129,7 +129,9 @@ csoundSetDebugCallbackWasi["toString"] = () =>
  * Dummy function to enable stop mechanism
  * @function
  */
-export const csoundStop = (wasm) => (csound) => {};
+const stop = () => {};
+
+export const csoundStop = () => stop;
 
 csoundStop["toString"] = () => "stop = async () => undefined;";
 

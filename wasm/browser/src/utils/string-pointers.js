@@ -14,7 +14,6 @@
  */
 
 import { encoder, uint2String } from "./text-encoders.js";
-import { trimNull } from "./trim-null.js";
 
 /**
  * @param {WasmInst} wasm
