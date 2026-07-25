@@ -15,6 +15,9 @@
 #else
 # include "unistd.h"
 #endif
+#if defined(CSOUND_TEST_OSC_PLUGIN) && defined(__MINGW32__)
+# include <windows.h>
+#endif
 #if defined(CSOUND_TEST_OSC_PLUGIN) && !(defined(WIN32) && !defined(__CYGWIN__))
 # include <dlfcn.h>
 #endif
