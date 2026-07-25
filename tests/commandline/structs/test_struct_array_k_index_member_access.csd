@@ -20,6 +20,10 @@ opcode PickAt(items:MyType[], index:k):MyType
   xout items[index]
 endop
 
+opcode CheckAtInit(items:MyType[], index:k):void
+  printfi "INIT_MEMBER=%f\n", 1, items[index].val1
+endop
+
 instr 1
   array:MyType[] init 2
   array[0].val1 = 1
@@ -35,6 +39,10 @@ instr 1
   memberCopy:MyType init array[selection.idx]
   assertEquals(memberCopy.val1, 2)
 
+  ; Other init-only consumers must receive the populated temporary too.
+  initConsumerIndex:k init 1
+  CheckAtInit(array, initConsumerIndex)
+
   ; An i-indexed k-array read is available during init and remains valid.
   indices:k[] fillarray 1
   indexedCopy:MyType init array[indices[0]]
@@ -45,10 +53,20 @@ instr 1
   perfIndex = 0
   perfValue:k = array[perfIndex].val1
 
+  ; An opcode with init setup and a perf callback must wait for perf to read.
+  printIndex:k init -1
+  printIndex = 0
+  printks "PERF_MEMBER=%f\n", 0.1, array[printIndex].val1
+
   ; Init-only type inspection must not force the getter to read at init.
   typeIndex:k init -1
   typeIndex = 0
   printtype array[typeIndex]
+
+  ; Nested type inspection must not force its operand to run at init.
+  nestedTypeIndex:k init -1
+  nestedTypeIndex = 0
+  prints "NESTED_TYPE=%s\n", typeof(array[nestedTypeIndex + 0].val1)
 
   ; The same rule applies to an aggregate read lowered inside xout.
   udoIndex:k init -1

@@ -63,10 +63,36 @@ static int32_t expression_context_has_init(int32_t expressionContext)
   return expressionContext != EXPRESSION_PERF_CONTEXT;
 }
 
+static int32_t opcode_uses_expression_types_only(const char* name)
+{
+  return name != NULL &&
+    (!strcmp(name, "printtype") || !strcmp(name, "print_type") ||
+     !strcmp(name, "typeof") || !strcmp(name, "typecheck"));
+}
+
+static int32_t opcode_is_init_only_value_consumer(OENTRY* entry)
+{
+  const char* name;
+
+  if (entry == NULL || entry->init == NULL || entry->opname == NULL) {
+    return 0;
+  }
+  name = entry->opname;
+  /* xout wires UDO outputs; type-only opcodes inspect metadata. */
+  if (!strcmp(name, "xout") || opcode_uses_expression_types_only(name)) {
+    return 0;
+  }
+  /* Keep this test conservative. A two-phase opcode may use init only for
+     setup or may read its inputs in both phases. The latter needs a getter
+     with both callbacks; an init-only getter could read a provisional index
+     or suppress later updates. */
+  return entry->perf == NULL;
+}
+
 static char* struct_array_get_opcode_name(int32_t expressionContext,
                                           int32_t hasKRateIndex)
 {
-  if (expressionContext == EXPRESSION_EXPLICIT_INIT_CONTEXT &&
+  if (expression_context_has_init(expressionContext) &&
       hasKRateIndex) {
     return "##array_get_struct_init";
   }
@@ -546,13 +572,18 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   TREE *opTree;
   OENTRIES* opentries;
   CS_VARIABLE* var;
+  int32_t childContext = initContext;
 
   /* HANDLE SUB EXPRESSIONS */
   if (root->type=='?') return create_cond_expression(csound, root, line,
                                                      locn, typeTable,
                                                      initContext);
+  if (root->type == T_FUNCTION && root->value != NULL &&
+      opcode_uses_expression_types_only(root->value->lexeme)) {
+    childContext = EXPRESSION_PERF_CONTEXT;
+  }
   if (root->type == T_ARRAY &&
-      initContext == EXPRESSION_EXPLICIT_INIT_CONTEXT &&
+      expression_context_has_init(initContext) &&
       tree_has_perf_only_k_rate_value(csound, root->right, typeTable)) {
     char* elementType = get_arg_type2(csound, root, typeTable);
     const CS_TYPE* elementCsType =
@@ -577,7 +608,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   if (root->left != NULL) {
     expandedArgs = expand_expression_arg_list(csound, root->left, &anchor,
                                               line, locn, typeTable,
-                                              initContext);
+                                              childContext);
     if (expandedArgs == NULL) {
       return NULL;
     }
@@ -586,7 +617,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   if (root->right != NULL) {
     expandedArgs = expand_expression_arg_list(csound, root->right, &anchor,
                                               line, locn, typeTable,
-                                              initContext);
+                                              childContext);
     if (expandedArgs == NULL) {
       return NULL;
     }
@@ -1247,7 +1278,7 @@ static int32_t tree_has_perf_only_k_rate_value(CSOUND* csound,
     if (argType != NULL) {
       csound->Free(csound, argType);
     }
-    if ((isKRate && tree->type != T_IDENT && tree->type != STRUCT_EXPR &&
+    if ((isKRate && tree->type != STRUCT_EXPR &&
          !(tree->type == T_ARRAY &&
            !array_has_k_rate_index(csound, tree->right, typeTable))) ||
         tree_has_perf_only_k_rate_value(csound, tree->left, typeTable) ||
@@ -1606,7 +1637,7 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
   if (!resolve_struct_array_member_path(csound, structExpr, typeTable, &path)) {
     return NULL;
   }
-  if (initContext == EXPRESSION_EXPLICIT_INIT_CONTEXT &&
+  if (expression_context_has_init(initContext) &&
       tree_has_perf_only_k_rate_value(csound, path.arrayExpr->right,
                                       typeTable)) {
     synterr(csound,
@@ -1686,13 +1717,11 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
   TREE* previousArg = NULL;
   TREE* currentArg = current->right;
   OENTRY* statementEntry = (OENTRY*)current->markup;
-  /* Some init-only opcodes, such as xout and printtype, do not consume the
-     expression value at init. Only an explicit init needs the strict getter. */
   int32_t initContext =
     current->value != NULL && current->value->lexeme != NULL &&
     strcmp(current->value->lexeme, "init") == 0
       ? EXPRESSION_EXPLICIT_INIT_CONTEXT
-      : (statementEntry != NULL && statementEntry->perf == NULL
+      : (opcode_is_init_only_value_consumer(statementEntry)
            ? EXPRESSION_INIT_CONTEXT
            : EXPRESSION_PERF_CONTEXT);
 

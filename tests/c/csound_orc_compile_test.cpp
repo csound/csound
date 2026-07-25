@@ -269,6 +269,68 @@ endin
     ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
 }
 
+TEST_F (OrcCompileTests, testRejectsPerfOnlyKIndexInitConsumer)
+{
+    const char *instrument = R"(
+struct Box value:i
+
+opcode PrintAt(items:Box[], index:k):void
+  printfi "VALUE=%f\n", 1, items[index + 0].value
+endop
+
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  index:k init 0
+  PrintAt(boxes, index)
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testInitOnlyConsumerReadsKIndexStructMember)
+{
+    const char *instrument = R"(
+sr = 44100
+ksmps = 32
+nchnls = 2
+0dbfs = 1
+
+struct Box value:i
+
+opcode PrintAt(items:Box[], index:k):void
+  printfi "VALUE=%f\n", 1, items[index].value
+endop
+
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  index:k init 0
+  PrintAt(boxes, index)
+endin
+)";
+
+    csoundCreateMessageBuffer(csound, 0);
+    csoundSetOption(csound, "-n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+    csoundReadScore(csound, "i 1 0 0.01\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    while (csoundPerformKsmps(csound) == CSOUND_SUCCESS) {
+    }
+
+    std::string messages;
+    while (csoundGetMessageCnt(csound) > 0) {
+        const char *message = csoundGetFirstMessage(csound);
+        if (message != nullptr) {
+            messages += message;
+        }
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_NE(std::string::npos, messages.find("VALUE=37.000000"))
+        << messages;
+}
+
 TEST_F (OrcCompileTests, testReuse)
 {
     int32_t result;
