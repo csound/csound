@@ -2041,16 +2041,15 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
           ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
-          int32_t count = src->sizes[0];
-          int32_t j;
-          if (src->dimensions > 1) {
-            for (j = 0; j < src->dimensions; j++) {
-              count *= src ->sizes[j];
-            }
+          size_t count, j;
+          if (UNLIKELY(csound_array_member_count(src, &count) != OK)) {
+            return csound->PerfError(
+              csound, &p->h, "%s", Str("invalid audio array size in UDO input"));
           }
 
           for (j = 0; j < count; j++) {
-            int32_t memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
+            size_t memberOffset =
+              j * ((size_t)src->arrayMemberSize / sizeof(MYFLT));
             MYFLT* in = src->data + memberOffset;
             MYFLT* out = target->data + memberOffset;
             *out = *(in + ofs);
@@ -2081,16 +2080,15 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
           ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
-          int32_t count = src->sizes[0];
-          int32_t j;
-          if (src->dimensions > 1) {
-            for (j = 0; j < src->dimensions; j++) {
-              count *= src->sizes[j];
-            }
+          size_t count, j;
+          if (UNLIKELY(csound_array_member_count(src, &count) != OK)) {
+            return csound->PerfError(
+              csound, &p->h, "%s", Str("invalid audio array size in UDO output"));
           }
 
           for (j = 0; j < count; j++) {
-            int32_t memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
+            size_t memberOffset =
+              j * ((size_t)src->arrayMemberSize / sizeof(MYFLT));
             MYFLT* in = src->data + memberOffset;
             MYFLT* out = target->data + memberOffset;
             *(out + ofs) = *in;
@@ -2150,16 +2148,15 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
           ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
-          int32_t count = src->sizes[0];
-          int32_t j;
-          if (src->dimensions > 1) {
-            for (j = 0; j < src->dimensions; j++) {
-              count *= src->sizes[j];
-            }
+          size_t count, j;
+          if (UNLIKELY(csound_array_member_count(src, &count) != OK)) {
+            return csound->PerfError(
+              csound, &p->h, "%s", Str("invalid audio array size in UDO input"));
           }
 
           for (j = 0; j < count; j++) {
-            int memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
+            size_t memberOffset =
+              j * ((size_t)src->arrayMemberSize / sizeof(MYFLT));
             MYFLT* in = src->data + memberOffset;
             MYFLT* out = target->data + memberOffset;
             memcpy(out, in + ofs, asigSize);
@@ -2194,15 +2191,14 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
           ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
-          int32_t count = src->sizes[0];
-          int32_t j;
-          if (src->dimensions > 1) {
-            for (j = 0; j < src->dimensions; j++) {
-              count *= src->sizes[j];
-            }
+          size_t count, j;
+          if (UNLIKELY(csound_array_member_count(src, &count) != OK)) {
+            return csound->PerfError(
+              csound, &p->h, "%s", Str("invalid audio array size in UDO output"));
           }
           for (j = 0; j < count; j++) {
-            int memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
+            size_t memberOffset =
+              j * ((size_t)src->arrayMemberSize / sizeof(MYFLT));
             MYFLT* in = src->data + memberOffset;
             MYFLT* out = target->data + memberOffset;
             memcpy(out + ofs, in, asigSize);
@@ -2244,17 +2240,16 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                  current->subType == &CS_VAR_TYPE_A) {
         if (offset || early) {
           ARRAYDAT* outDat = (ARRAYDAT*)out;
-          int32_t count = outDat->sizes[0];
-          int32_t j;
-          if (outDat->dimensions > 1) {
-            for (j = 0; j < outDat->dimensions; j++) {
-              count *= outDat->sizes[j];
-            }
+          size_t count, j;
+          if (UNLIKELY(csound_array_member_count(outDat, &count) != OK)) {
+            return csound->PerfError(
+              csound, &p->h, "%s", Str("invalid audio array size in UDO output"));
           }
 
           if (offset) {
             for (j = 0; j < count; j++) {
-              int memberOffset = j * (outDat->arrayMemberSize / sizeof(MYFLT));
+              size_t memberOffset =
+                j * ((size_t)outDat->arrayMemberSize / sizeof(MYFLT));
               MYFLT* outMem = outDat->data + memberOffset;
               memset(outMem, '\0', sizeof(MYFLT) * offset);
             }
@@ -2262,7 +2257,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
 
           if (early) {
             for (j = 0; j < count; j++) {
-              int32_t memberOffset = j * (outDat->arrayMemberSize / sizeof(MYFLT));
+              size_t memberOffset =
+                j * ((size_t)outDat->arrayMemberSize / sizeof(MYFLT));
               MYFLT* outMem = outDat->data + memberOffset;
               memset(outMem + g_ksmps, '\0', sizeof(MYFLT) * early);
             }
