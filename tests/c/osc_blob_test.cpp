@@ -53,11 +53,12 @@ TEST(OscBlobTest, AudioCountIsClampedToCompleteSamplesAndKsmps)
 
 TEST(OscBlobTest, AudioRejectsInvalidCountFields)
 {
-    const std::array<MYFLT, 4> invalidCounts = {
+    const std::array<MYFLT, 5> invalidCounts = {
         FL(-1.0),
         FL(1.5),
         std::numeric_limits<MYFLT>::infinity(),
-        std::numeric_limits<MYFLT>::quiet_NaN()
+        std::numeric_limits<MYFLT>::quiet_NaN(),
+        (MYFLT)((double)std::numeric_limits<uint32_t>::max() + 1.0)
     };
     for (const MYFLT count : invalidCounts) {
         OSC_MYFLT_BLOB_VIEW view{};
@@ -95,6 +96,31 @@ TEST(OscBlobTest, NumericArrayParsesUnalignedShapeAndValues)
     EXPECT_EQ(columns, parsedColumns);
 }
 
+namespace {
+
+void expectArrayViewCleared(const OSC_ARRAY_BLOB_VIEW& view)
+{
+    EXPECT_EQ(0, view.dimensions);
+    EXPECT_EQ(nullptr, view.sizes);
+    EXPECT_EQ(nullptr, view.values.data);
+    EXPECT_EQ(0u, view.values.count);
+}
+
+/* a view pre-filled with stale garbage, so the tests prove a failed parse
+   clears every field instead of leaving pointers into a rejected payload */
+OSC_ARRAY_BLOB_VIEW dirtyArrayView()
+{
+    static unsigned char stale[4] = {1, 2, 3, 4};
+    OSC_ARRAY_BLOB_VIEW view{};
+    view.dimensions = 7;
+    view.sizes = stale;
+    view.values.data = stale;
+    view.values.count = 9;
+    return view;
+}
+
+} // namespace
+
 TEST(OscBlobTest, NumericArrayRejectsTruncatedAndOverflowingShapes)
 {
     const std::vector<std::vector<int32_t>> shapes = {
@@ -109,19 +135,21 @@ TEST(OscBlobTest, NumericArrayRejectsTruncatedAndOverflowingShapes)
         for (const int32_t field : shape) {
             appendValue(payload, field);
         }
-        OSC_ARRAY_BLOB_VIEW view{};
+        OSC_ARRAY_BLOB_VIEW view = dirtyArrayView();
         EXPECT_EQ(NOTOK, osc_blob_parse_array(
                            payload.empty() ? nullptr : payload.data(),
                            payload.size(), &view));
+        expectArrayViewCleared(view);
     }
 
     std::vector<unsigned char> missingValues;
     appendValue(missingValues, (int32_t)1);
     appendValue(missingValues, (int32_t)2);
     appendValue(missingValues, FL(1.0));
-    OSC_ARRAY_BLOB_VIEW view{};
+    OSC_ARRAY_BLOB_VIEW view = dirtyArrayView();
     EXPECT_EQ(NOTOK, osc_blob_parse_array(
                        missingValues.data(), missingValues.size(), &view));
+    expectArrayViewCleared(view);
 }
 
 TEST(OscBlobTest, DirectArrayAndFtableRejectPartialSamples)

@@ -30,6 +30,7 @@ int32_t osc_blob_parse_audio(const void *payload, size_t payloadBytes,
 {
     const unsigned char *bytes = (const unsigned char *)payload;
     MYFLT advertised;
+    double advertisedValue;
     uint32_t advertisedCount;
     size_t available;
 
@@ -39,12 +40,13 @@ int32_t osc_blob_parse_audio(const void *payload, size_t payloadBytes,
       return NOTOK;
     }
     memcpy(&advertised, bytes, sizeof(advertised));
-    if (!isfinite((double)advertised) || advertised < FL(0.0) ||
-        advertised > (MYFLT)UINT32_MAX) {
+    advertisedValue = (double)advertised;
+    if (!isfinite(advertisedValue) || advertisedValue < 0.0 ||
+        advertisedValue > (double)UINT32_MAX) {
       return NOTOK;
     }
-    advertisedCount = (uint32_t)advertised;
-    if ((MYFLT)advertisedCount != advertised) {
+    advertisedCount = (uint32_t)advertisedValue;
+    if ((double)advertisedCount != advertisedValue) {
       return NOTOK;
     }
     available = (payloadBytes - sizeof(MYFLT)) / sizeof(MYFLT);
@@ -75,6 +77,7 @@ int32_t osc_blob_parse_array(const void *payload, size_t payloadBytes,
 {
     /* Array blobs contain a dimension count, dimension sizes, then MYFLTs. */
     const unsigned char *bytes = (const unsigned char *)payload;
+    const unsigned char *sizes;
     size_t headerBytes;
     size_t valueCount = 1;
     size_t valueBytes;
@@ -97,12 +100,12 @@ int32_t osc_blob_parse_array(const void *payload, size_t payloadBytes,
     }
     headerBytes = sizeof(int32_t) +
       (size_t)dimensions * sizeof(int32_t);
-    view->dimensions = dimensions;
-    view->sizes = bytes + sizeof(int32_t);
+    sizes = bytes + sizeof(int32_t);
     for (i = 0; i < dimensions; i++) {
       int32_t dimensionSize;
-      if (osc_blob_array_size(view, i, &dimensionSize) != OK ||
-          dimensionSize < 0) {
+      memcpy(&dimensionSize, sizes + (size_t)i * sizeof(int32_t),
+             sizeof(dimensionSize));
+      if (dimensionSize < 0) {
         return NOTOK;
       }
       if (dimensionSize == 0) {
@@ -122,6 +125,10 @@ int32_t osc_blob_parse_array(const void *payload, size_t payloadBytes,
     if (payloadBytes - headerBytes != valueBytes) {
       return NOTOK;
     }
+    /* the view is populated only once the whole payload has validated,
+       so a failed parse never leaves pointers into a rejected packet */
+    view->dimensions = dimensions;
+    view->sizes = sizes;
     view->values.data = bytes + headerBytes;
     view->values.count = valueCount;
     return OK;

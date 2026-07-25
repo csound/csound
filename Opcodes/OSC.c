@@ -819,6 +819,28 @@ static int32_t osc_malformed_blob(CSOUND *csound, char type)
     return OK;
 }
 
+/* The array decoders copy raw MYFLTs, so the destination's element type
+   must be a scalar MYFLT. A fresh array has no arrayMemberSize yet; size a
+   probe variable from its element type, exactly as
+   csound_array_ensure_capacity() would when allocating. */
+static int32_t osc_array_element_is_myflt(CSOUND *csound,
+                                          const ARRAYDAT *array, INSDS *ctx)
+{
+    CS_VARIABLE *var;
+    int32_t isMyflt;
+
+    if (array->data != NULL)
+      return array->arrayMemberSize == (int32_t)sizeof(MYFLT);
+    if (array->arrayType == NULL)
+      return 0;
+    var = array_element_create_variable(csound, array->arrayType, ctx);
+    if (var == NULL)
+      return 0;
+    isMyflt = var->memBlockSize == (int32_t)sizeof(MYFLT);
+    csound->Free(csound, var);
+    return isMyflt;
+}
+
 static int32_t osc_decode_direct_array(CSOUND *csound, OSCLISTEN *p,
                                        ARRAYDAT *array, const void *payload,
                                        size_t payloadBytes)
@@ -833,8 +855,7 @@ static int32_t osc_decode_direct_array(CSOUND *csound, OSCLISTEN *p,
     if (osc_blob_parse_myflts(payload, payloadBytes, &view) != OK ||
         array == NULL || array->dimensions <= 0 || array->sizes == NULL ||
         csound_array_has_managed_elements(array) ||
-        (array->data != NULL &&
-         array->arrayMemberSize != (int32_t)sizeof(MYFLT)) ||
+        !osc_array_element_is_myflt(csound, array, p->h.insdshead) ||
         csound_array_member_count(array, &currentCount) != OK) {
       return osc_malformed_blob(csound, 'D');
     }
@@ -885,8 +906,7 @@ static int32_t osc_decode_array(CSOUND *csound, OSCLISTEN *p,
     if (osc_blob_parse_array(payload, payloadBytes, &view) != OK ||
         array == NULL || array->arrayType == NULL ||
         csound_array_has_managed_elements(array) ||
-        (array->data != NULL &&
-         array->arrayMemberSize != (int32_t)sizeof(MYFLT)) ||
+        !osc_array_element_is_myflt(csound, array, p->h.insdshead) ||
         (array->data != NULL && array->allocated == 0 &&
          array->storage == NULL)) {
       return osc_malformed_blob(csound, 'A');
