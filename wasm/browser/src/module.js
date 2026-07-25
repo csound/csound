@@ -287,7 +287,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   // write over anything if it overflows.
   //
   const fixedMemoryBase = 128 * PAGES_PER_MB;
-  const initialMemory = Math.ceil((memorySize + memoryAlign) / PAGE_SIZE);
+  const initialMemory = Math.ceil((memorySize + 2 ** memoryAlign) / PAGE_SIZE);
   const pluginsMemory = Math.ceil(
     withPlugins.reduce(
       (accumulator, { headerData }) =>
