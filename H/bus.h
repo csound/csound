@@ -180,6 +180,8 @@ extern "C" {
   int32_t     pvsin_perf(CSOUND *, FCHAN *);
   int32_t     pvsout_init(CSOUND *, FCHAN *);
   int32_t     pvsout_perf(CSOUND *, FCHAN *);
+  int32_t     csoundSetPvsChannel(CSOUND *, const char *, const PVSDAT *);
+  int32_t     csoundGetPvsChannel(CSOUND *, const char *, PVSDAT *);
 
   int32_t     sensekey_perf(CSOUND *, KSENSE *);
 
