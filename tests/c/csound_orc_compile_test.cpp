@@ -327,6 +327,7 @@ endin
         }
         csoundPopFirstMessage(csound);
     }
+    csoundDestroyMessageBuffer(csound);
     EXPECT_NE(std::string::npos, messages.find("VALUE=37.000000"))
         << messages;
 }
