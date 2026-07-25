@@ -47,6 +47,7 @@
 
 #define MAXBUFS 32
 #define MTU (1456)
+#define STRING_RECV_BUFFER_SIZE (MTU + 1)
 
 #ifndef WIN32
 extern  int32_t     inet_aton(const char *cp, struct in_addr *inp);
@@ -167,7 +168,8 @@ static uintptr_t udpRecv_S(void *pdata)
     while (p->threadon) {
       /* get the data from the socket and store it in a tmp buffer */
       if ((bytes = (int32_t) recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen)) > 0) {
-        bytes = (bytes+sizeof(MYFLT)-1)/sizeof(MYFLT);
+        if (tmp[bytes - 1] != '\0')
+          tmp[bytes++] = '\0';
         csound->WriteCircularBuffer(csound, p->cb, tmp, bytes);
       }
     }
@@ -239,7 +241,8 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
 /* UDP version for strings */
 static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
 {
-    MYFLT   *buf;
+    char    *buf;
+    int64_t circular_buffer_size;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
@@ -266,23 +269,34 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
                       sizeof(p->server_addr)) == SOCKET_ERROR))
       return csound->InitError(csound, "%s", Str("bind failed"));
 
-    if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
+    if (p->buffer.auxp == NULL ||
+        (uint64_t) STRING_RECV_BUFFER_SIZE > p->buffer.size)
       /* allocate space for the buffer */
-      csound->AuxAlloc(csound, MTU, &p->buffer);
+      csound->AuxAlloc(csound, STRING_RECV_BUFFER_SIZE, &p->buffer);
     else {
-      buf = (MYFLT *) p->buffer.auxp;   /* make sure buffer is empty */
-      memset(buf, 0, MTU);
+      buf = (char *) p->buffer.auxp;   /* make sure buffer is empty */
+      memset(buf, 0, STRING_RECV_BUFFER_SIZE);
     }
     /* create a buffer to store the received string data */
-    if (p->tmp.auxp == NULL || (int64_t) p->tmp.size < MTU)
+    if (p->tmp.auxp == NULL ||
+        (int64_t) p->tmp.size < STRING_RECV_BUFFER_SIZE)
       /* allocate space for the buffer */
-      csound->AuxAlloc(csound, MTU, &p->tmp);
+      csound->AuxAlloc(csound, STRING_RECV_BUFFER_SIZE, &p->tmp);
     else {
-      buf = (MYFLT *) p->tmp.auxp;      /* make sure buffer is empty */
-      memset(buf, 0, MTU);
+      buf = (char *) p->tmp.auxp;      /* make sure buffer is empty */
+      memset(buf, 0, STRING_RECV_BUFFER_SIZE);
     }
-    p->buffsize = (int32_t) (p->buffer.size/sizeof(MYFLT));
-    p->cb = csound->CreateCircularBuffer(csound,  *p->ptr3, sizeof(MYFLT));
+    p->buffsize = (int32_t) p->buffer.size;
+    /* validate before casting: an out-of-range or NaN MYFLT to int64
+       conversion is undefined behaviour */
+    if (UNLIKELY(!(*p->ptr3 >= FL(1.0)) ||
+                 *p->ptr3 > (MYFLT) (INT32_MAX / (int32_t) sizeof(MYFLT))))
+      return csound->InitError(csound, "%s",
+                               Str("invalid sockrecv buffer length"));
+    circular_buffer_size = (int64_t) *p->ptr3 * (int64_t) sizeof(MYFLT);
+    p->cb = csound->CreateCircularBuffer(csound,
+                                         (int32_t) circular_buffer_size,
+                                         sizeof(char));
     /* create thread */
     p->threadon = 1;
     p->thrid = csound->CreateThread(udpRecv_S, (void *) p);
@@ -307,20 +321,30 @@ static int32_t send_recv_k(CSOUND *csound, SOCKRECV *p)
 static int32_t send_recv_S(CSOUND *csound, SOCKRECVSTR *p)
 {
     STRINGDAT *str = p->ptr1;
-    size_t len;
+    char *start, *end;
+    size_t available, len;
     if (p->outsamps >= p->rcvsamps) {
       p->outsamps =  0;
       p->rcvsamps =
         csound->ReadCircularBuffer(csound, p->cb, p->buf, p->buffsize);
     }
-    len = strlen(&p->buf[p->outsamps]);
-    //printf("len %d ans %s\n", len, &p->buf[p->outsamps]);
-    if (len>str->size) {        /* ensure enough space for result */
-      str->data = csound->ReAlloc(csound, str->data, len+1);
-      str->size  = len;
+    if (p->rcvsamps == 0) {
+      str->data[0] = '\0';
+      return OK;
     }
-    strncpy(str->data, &p->buf[p->outsamps], len+1);
-    p->outsamps += len+1;       /* Move bffer on */
+    start = &p->buf[p->outsamps];
+    available = (size_t) (p->rcvsamps - p->outsamps);
+    end = (char *) memchr(start, '\0', available);
+    len = end == NULL ? available : (size_t) (end - start);
+    if (len + 1 > str->size) {  /* ensure enough space for result */
+      str->data = csound->ReAlloc(csound, str->data, len+1);
+      str->size  = len + 1;
+    }
+    memcpy(str->data, start, len);
+    str->data[len] = '\0';
+    p->outsamps += (int32_t) len;
+    if (end != NULL)
+      p->outsamps++;
     return OK;
 }
 
@@ -771,12 +795,12 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 
 static OENTRY sockrecv_localops[] = {
   { "sockrecv.k", S(SOCKRECV), 0, "k", "ii",
-    (SUBR) init_recv, (SUBR) send_recv_k, NULL, (SUBR) deinit_udpRecv },
+    (SUBR) init_recv, (SUBR) send_recv_k, (SUBR) deinit_udpRecv },
   { "sockrecv.a", S(SOCKRECV), 0, "a", "ii",
     (SUBR) init_recv, (SUBR) send_recv, (SUBR) deinit_udpRecv },
   { "sockrecv.S", S(SOCKRECVSTR), 0, "S", "ii",
     (SUBR) init_recv_S,
-    (SUBR) send_recv_S, NULL, (SUBR) deinit_udpRecv_S },
+    (SUBR) send_recv_S, (SUBR) deinit_udpRecv_S },
   { "sockrecvs", S(SOCKRECV), 0, "aa", "ii",
     (SUBR) init_recvS,
     (SUBR) send_recvS,  (SUBR) deinit_udpRecv },
