@@ -47,6 +47,28 @@ if(BUILD_TESTS)
             ${CSOUNDLIB_STATIC}
     )
 
+    # BUILD_OSC_OPCODES stays ON in the cache when check_deps disables it
+    # in Opcodes/, so require the target too.
+    if(BUILD_OSC_OPCODES AND TARGET osc)
+        add_dependencies(unittests osc)
+        # Give the tests a plugin directory holding only the OSC plugin.
+        # Loading the full plugin directory makes every csound instance
+        # dlopen and dlclose each instrumented plugin, which sanitizer
+        # builds do not survive across repeated create/destroy cycles.
+        set(TEST_OSC_PLUGIN_DIR ${CMAKE_CURRENT_BINARY_DIR}/osc-plugin)
+        add_custom_target(unittests_osc_plugin
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OSC_PLUGIN_DIR}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:osc> ${TEST_OSC_PLUGIN_DIR}/
+            DEPENDS osc
+        )
+        add_dependencies(unittests unittests_osc_plugin)
+        target_compile_definitions(unittests PRIVATE
+            CSOUND_TEST_OSC_PLUGIN_DIR="${TEST_OSC_PLUGIN_DIR}"
+            CSOUND_TEST_OSC_PLUGIN="${TEST_OSC_PLUGIN_DIR}/$<TARGET_FILE_NAME:osc>"
+        )
+    endif()
+
     include(GoogleTest)
     gtest_discover_tests(unittests)
     message(STATUS "Building unit tests")

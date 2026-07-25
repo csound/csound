@@ -88,7 +88,7 @@ typedef struct {
     CSOUND  *csound;
     /* for OSCinit/OSClisten */
     int32_t   nPorts;
-    OSC_PORT  *ports;
+    OSC_PORT  **ports;
     int32_t   osccounter;
     void      *mutex_;
 } OSC_GLOBALS;
@@ -404,16 +404,35 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
     return OK;
 }
 
+static void OSC_stop_port(CSOUND *csound, OSC_PORT *port)
+{
+    if (port == NULL)
+      return;
+    if (port->thread != NULL) {
+      lo_server_thread_stop(port->thread);
+      lo_server_thread_free(port->thread);
+      port->thread = NULL;
+    }
+    if (port->mutex_ != NULL) {
+      csound->DestroyMutex(port->mutex_);
+      port->mutex_ = NULL;
+    }
+}
+
 /* RESET routine for cleaning up */
 static int32_t OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
 {
     int32_t i;
-    for (i = 0; i < p->nPorts; i++)
-      if (p->ports[i].thread) {
-        lo_server_thread_stop(p->ports[i].thread);
-        lo_server_thread_free(p->ports[i].thread);
-        csound->DestroyMutex(p->ports[i].mutex_);
+    for (i = 0; i < p->nPorts; i++) {
+      OSC_PORT *port = p->ports[i];
+      if (port != NULL) {
+        OSC_stop_port(csound, port);
+        csound->Free(csound, port);
       }
+    }
+    csound->Free(csound, p->ports);
+    if (p->mutex_ != NULL)
+      csound->DestroyMutex(p->mutex_);
     csound->DestroyGlobalVariable(csound, "_OSC_globals");
     return OK;
 }
@@ -441,8 +460,20 @@ static CS_NOINLINE OSC_GLOBALS *alloc_globals(CSOUND *csound)
     pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     pp->csound = csound;
     pp->mutex_ = csound->Create_Mutex(0);
-    csound->RegisterResetCallback(csound, (void*) pp,
-                                  (int32_t (*)(CSOUND *, void *)) OSC_reset);
+    if (UNLIKELY(pp->mutex_ == NULL)) {
+      csound->DestroyGlobalVariable(csound, "_OSC_globals");
+      csound->ErrorMsg(csound, "%s", Str("OSC: failed to create mutex"));
+      return NULL;
+    }
+    if (UNLIKELY(csound->RegisterResetCallback(
+                   csound, (void*) pp,
+                   (int32_t (*)(CSOUND *, void *)) OSC_reset) != OK)) {
+      csound->DestroyMutex(pp->mutex_);
+      csound->DestroyGlobalVariable(csound, "_OSC_globals");
+      csound->ErrorMsg(csound, "%s",
+                       Str("OSC: failed to register reset callback"));
+      return NULL;
+    }
     return pp;
 }
 
@@ -483,6 +514,8 @@ typedef struct {
 static int32_t OSCcounter(CSOUND *csound, OSCcount *p)
 {
     OSC_GLOBALS *g = alloc_globals(csound);
+    if (UNLIKELY(g == NULL))
+      return NOTOK;
     *p->ans = (MYFLT)g->osccounter;
     return OK;
 }
@@ -589,105 +622,115 @@ static void OSC_error(int32_t num, const char *msg, const char *path)
 static int32_t OSC_deinit(CSOUND *csound, OSCINIT *p)
 {
     int32_t n = (int32_t)*p->ihandle;
-    OSC_GLOBALS *pp = alloc_globals(csound);
-    OSC_PORT    *ports;
-    if (UNLIKELY(pp==NULL)) return NOTOK;
-    ports = pp->ports;
+    OSC_GLOBALS *pp =
+      (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
+    OSC_PORT *port;
+    if (UNLIKELY(pp == NULL || n < 0 || n >= pp->nPorts))
+      return NOTOK;
+    port = pp->ports[n];
+    if (UNLIKELY(port == NULL))
+      return NOTOK;
     csound->Message(csound, "handle=%d\n", n);
-    csound->DestroyMutex(ports[n].mutex_);
-    ports[n].mutex_ = NULL;
-    lo_server_thread_stop(ports[n].thread);
-    lo_server_thread_free(ports[n].thread);
-    ports[n].thread =  NULL;
+    OSC_stop_port(csound, port);
     csound->Message(csound, "%s", Str("OSC deinitialised\n"));
     return OK;
+}
+
+static int32_t OSC_start_port(CSOUND *csound, OSC_GLOBALS *globals,
+                              lo_server_thread thread, const char *portName,
+                              MYFLT *handle)
+{
+    int32_t n = globals->nPorts;
+    OSC_PORT *port = (OSC_PORT*) csound->Calloc(csound, sizeof(OSC_PORT));
+    OSC_PORT **ports;
+
+    if (UNLIKELY(port == NULL)) {
+      lo_server_thread_free(thread);
+      csound->ErrorMsg(csound, "%s",
+                       "OSC: Failed to allocate memory for ports\n");
+      return NOTOK;
+    }
+    port->csound = csound;
+    port->mutex_ = csound->Create_Mutex(0);
+    if (UNLIKELY(port->mutex_ == NULL)) {
+      lo_server_thread_free(thread);
+      csound->Free(csound, port);
+      csound->ErrorMsg(csound, "%s",
+                       "OSC: Failed to create listener mutex\n");
+      return NOTOK;
+    }
+    port->thread = thread;
+    if (UNLIKELY(lo_server_thread_start(thread) < 0)) {
+      lo_server_thread_free(thread);
+      port->thread = NULL;
+      csound->DestroyMutex(port->mutex_);
+      csound->Free(csound, port);
+      return csound->InitError(
+        csound, Str("cannot start OSC listener on port %s\n"), portName);
+    }
+    ports = (OSC_PORT**) csound->ReAlloc(
+      csound, globals->ports, sizeof(OSC_PORT*) * (n + 1));
+    if (UNLIKELY(ports == NULL)) {
+      OSC_stop_port(csound, port);
+      csound->Free(csound, port);
+      csound->ErrorMsg(csound, "%s",
+                       "OSC: Failed to allocate memory for ports\n");
+      return NOTOK;
+    }
+    globals->ports = ports;
+    globals->ports[n] = port;
+    globals->nPorts = n + 1;
+    *handle = (MYFLT) n;
+    return n;
 }
 
 static int32_t osc_listener_init(CSOUND *csound, OSCINIT *p)
 {
     OSC_GLOBALS *pp;
-    OSC_PORT    *ports;
-    char        buff[32];
-    int32_t         n;
+    lo_server_thread thread;
+    char buff[32];
+    int32_t n;
 
     /* allocate and initialise the globals structure */
     pp = alloc_globals(csound);
-    n = pp->nPorts;
-    OSC_PORT *temp_ports = (OSC_PORT*) csound->ReAlloc(csound, pp->ports,
-                                                       sizeof(OSC_PORT) * (n + 1));
-    if (temp_ports != NULL) {
-      ports = temp_ports;
-      pp->ports = ports;
-      ports[n].csound = csound;
-      ports[n].mutex_ = csound->Create_Mutex(0);
-    } else {
-      csound->ErrorMsg(csound, "%s",
-                       "OSC: Failed to allocate memory for ports\n");
+    if (UNLIKELY(pp == NULL))
       return NOTOK;
-    }
-    ports[n].oplst = NULL;
     snprintf(buff, 32, "%d", (int32_t) *(p->port));
-    ports[n].thread = lo_server_thread_new(buff, OSC_error);
-    if (UNLIKELY(ports[n].thread==NULL))
+    thread = lo_server_thread_new(buff, OSC_error);
+    if (UNLIKELY(thread == NULL))
       return csound->InitError(csound,
                                Str("cannot start OSC listener on port %s\n"),
                                buff);
-    ///if (lo_server_thread_start(ports[n].thread)<0)
-    ///  return csound->InitError(csound,
-    ///                           Str("cannot start OSC listener on port %s\n"),
-    ///                           buff);
-    lo_server_thread_start(ports[n].thread);
-    pp->ports = ports;
-    pp->nPorts = n + 1;
+    n = OSC_start_port(csound, pp, thread, buff, p->ihandle);
+    if (UNLIKELY(n < 0))
+      return NOTOK;
     csound->Warning(csound, Str("OSC listener #%d started on port %s\n"), n, buff);
-    *(p->ihandle) = (MYFLT) n;
-    //csound->RegisterDeinitCallback(csound, p,
-    //                             (int32_t (*)(CSOUND *, void *)) OSC_deinit);
     return OK;
 }
 
 static int32_t osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
 {
     OSC_GLOBALS *pp;
-    OSC_PORT    *ports;
-    char        buff[32];
-    int32_t     n;
+    lo_server_thread thread;
+    char buff[32];
+    int32_t n;
 
     /* allocate and initialise the globals structure */
     pp = alloc_globals(csound);
-    n = pp->nPorts;
-    OSC_PORT *temp_ports = (OSC_PORT*) csound->ReAlloc(csound, pp->ports,
-                                                       sizeof(OSC_PORT) * (n + 1));
-    if (temp_ports != NULL) {
-      ports = temp_ports;
-      pp->ports = ports;
-      ports[n].csound = csound;
-      ports[n].mutex_ = csound->Create_Mutex(0);
-    } else {
-      csound->ErrorMsg(csound, "%s",
-                       "OSC: Failed to allocate memory for ports\n");
+    if (UNLIKELY(pp == NULL))
       return NOTOK;
-    }
-    ports[n].oplst = NULL;
     snprintf(buff, 32, "%d", (int32_t) *(p->port));
-    ports[n].thread = lo_server_thread_new_multicast(p->group->data,
-                                                     buff, OSC_error);
-    if (UNLIKELY(ports[n].thread==NULL))
+    thread = lo_server_thread_new_multicast(p->group->data, buff, OSC_error);
+    if (UNLIKELY(thread == NULL))
       return csound->InitError(csound,
                                Str("cannot start OSC listener on port %s\n"),
                                buff);
-    ///if (lo_server_thread_start(ports[n].thread)<0)
-    ///  return csound->InitError(csound,
-    ///                           Str("cannot start OSC listener on port %s\n"),
-    ///                           buff);
-    lo_server_thread_start(ports[n].thread);
-    pp->ports = ports;
-    pp->nPorts = n + 1;
+    n = OSC_start_port(csound, pp, thread, buff, p->ihandle);
+    if (UNLIKELY(n < 0))
+      return NOTOK;
     csound->Warning(csound,
                     Str("OSC multicast listener #%d started on port %s\n"),
                     n, buff);
-    *(p->ihandle) = (MYFLT) n;
-
     return OK;
 }
 
@@ -695,25 +738,27 @@ static int32_t OSC_listendeinit(CSOUND *csound, OSC_PORT *port, OSCLCOMMON *p)
 {
     OSC_PAT *m;
 
-    if (port->mutex_==NULL) return NOTOK;
-    csound->LockMutex(port->mutex_);
-    if (port->oplst == (void*)p)
-      port->oplst = p->nxt;
-    else {
-      OSCLCOMMON *o = (OSCLCOMMON*) port->oplst;
-      if(o != NULL) {
-      for ( ; o->nxt != (void*) p; o = (OSCLCOMMON*) o->nxt)
-        ;
-      o->nxt = p->nxt;
-    }
-    }
-    csound->UnlockMutex(port->mutex_);
+    if (port != NULL && port->mutex_ != NULL) {
+      csound->LockMutex(port->mutex_);
+      if (port->oplst == (void*)p)
+        port->oplst = p->nxt;
+      else {
+        OSCLCOMMON *o = (OSCLCOMMON*) port->oplst;
+        while (o != NULL && o->nxt != (void*) p)
+          o = (OSCLCOMMON*) o->nxt;
+        if (o != NULL)
+          o->nxt = p->nxt;
+      }
+      csound->UnlockMutex(port->mutex_);
+      if (port->thread != NULL) {
 #ifdef LIBLO29
-    //Would like to use this call but requires liblo2.29
-    lo_server_thread_del_lo_method (port->thread, p->method);
+        /* lo_server_thread_del_lo_method requires liblo 0.29 or newer. */
+        lo_server_thread_del_lo_method(port->thread, p->method);
 #else
-    lo_server_thread_del_method(port->thread, p->saved_path, p->saved_types);
+        lo_server_thread_del_method(port->thread, p->saved_path, p->saved_types);
 #endif
+      }
+    }
     csound->Free(csound, p->saved_path);
     p->saved_path = NULL;
     p->nxt = NULL;
@@ -760,7 +805,10 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     n = (int32_t) *(p->ihandle);
     if (UNLIKELY(n < 0 || n >= pp->nPorts))
       return csound->InitError(csound, "%s", Str("invalid handle"));
-    p->port = &(pp->ports[n]);
+    p->port = pp->ports[n];
+    if (UNLIKELY(p->port == NULL || p->port->thread == NULL ||
+                 p->port->mutex_ == NULL))
+      return csound->InitError(csound, "%s", Str("invalid handle"));
     p->c.saved_path = (char*) csound->Malloc(csound,
                                            strlen((char*) p->dest->data) + 1);
     strcpy(p->c.saved_path, (char*) p->dest->data);
@@ -814,8 +862,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
 {
     OSC_PAT *m;
 
-    /* quick check for empty queue */
-    if (p->c.patterns == NULL) {
+    if (UNLIKELY(p->port->mutex_ == NULL)) {
       *p->kans = 0;
       return OK;
     }
@@ -1091,7 +1138,10 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
     n = (int32_t) *(p->ihandle);
     if (UNLIKELY(n < 0 || n >= pp->nPorts))
       return csound->InitError(csound, "%s", Str("invalid handle"));
-    p->port = &(pp->ports[n]);
+    p->port = pp->ports[n];
+    if (UNLIKELY(p->port == NULL || p->port->thread == NULL ||
+                 p->port->mutex_ == NULL))
+      return csound->InitError(csound, "%s", Str("invalid handle"));
     p->c.saved_path = (char*) csound->Malloc(csound,
                                            strlen((char*) p->dest->data) + 1);
     strcpy(p->c.saved_path, (char*) p->dest->data);
@@ -1123,8 +1173,7 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
 static int32_t OSC_alist(CSOUND *csound, OSCLISTENA *p)
 {
     OSC_PAT *m;
-    /* quick check for empty queue */
-    if (p->c.patterns == NULL) {
+    if (UNLIKELY(p->port->mutex_ == NULL)) {
       *p->kans = 0;
       return OK;
     }
