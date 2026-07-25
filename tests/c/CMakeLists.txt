@@ -24,6 +24,7 @@ if(BUILD_TESTS)
         csound_circular_buffer_test.cpp
         engine_test.cpp
         io_test.cpp
+        osc_blob_test.cpp
         server_test.cpp
         csound_plugin_opcode_test.cpp
         perfthread_test.cpp
@@ -31,6 +32,7 @@ if(BUILD_TESTS)
         test_new_type.cpp
         test_pfields.cpp
         ugen_test.cpp
+        ../../Opcodes/osc_blob.c
     )
 
     set(unittests_CFLAGS ${libcsound_CFLAGS})
