@@ -4,6 +4,7 @@
 #include "fftlib.h"
 #include <algorithm>
 #include <atomic>
+#include <clocale>
 #include <cmath>
 #include <cstring>
 #include <stdio.h>
@@ -53,6 +54,41 @@ std::string drainMessageBuffer(CSOUND *csound)
         csoundPopFirstMessage(csound);
     }
     return messages;
+}
+
+class NumericLocaleGuard {
+public:
+    NumericLocaleGuard()
+    {
+        const char *locale = std::setlocale(LC_NUMERIC, nullptr);
+        if (locale != nullptr)
+            savedLocale = locale;
+    }
+
+    ~NumericLocaleGuard()
+    {
+        if (!savedLocale.empty())
+            std::setlocale(LC_NUMERIC, savedLocale.c_str());
+    }
+
+private:
+    std::string savedLocale;
+};
+
+bool setCommaDecimalLocale()
+{
+    static const char *const candidates[] = {
+      "de_DE.UTF-8", "de_DE.utf8", "de_DE",
+      "fr_FR.UTF-8", "fr_FR.utf8", "fr_FR",
+      "German_Germany.1252", "German_Germany.65001"
+    };
+
+    for (const char *candidate : candidates) {
+        if (std::setlocale(LC_NUMERIC, candidate) != nullptr &&
+            std::strcmp(std::localeconv()->decimal_point, ",") == 0)
+            return true;
+    }
+    return false;
 }
 
 }
@@ -122,6 +158,19 @@ TEST_F (EngineTests, testComplexFftMatchesDirectDft)
               << "round trip size " << size << ", component " << i;
         }
     }
+}
+
+TEST_F (EngineTests, testSscanfUsesCLocale)
+{
+    NumericLocaleGuard localeGuard;
+    if (!setCommaDecimalLocale())
+        GTEST_SKIP() << "No comma-decimal locale is installed";
+
+    char input[] = "3.5";
+    double value = 0.0;
+
+    EXPECT_EQ(csound->Sscanf(input, "%lf", &value), 1);
+    EXPECT_DOUBLE_EQ(value, 3.5);
 }
 
 TEST_F (EngineTests, testComplexFftReportsUnsupportedSizes)
