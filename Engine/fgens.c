@@ -1379,6 +1379,16 @@ static int32_t gen27(FGDATA *ff, FUNC *ftp)
 
 /* read X Y values directly from ascii file */
 
+static void gen28free(CSOUND *csound, void *fd,
+                      MYFLT *x, MYFLT *y, MYFLT *z)
+{
+    csound->Free(csound, x);
+    csound->Free(csound, y);
+    csound->Free(csound, z);
+    if (fd != NULL)
+      csound->FileClose(csound, fd);
+}
+
 static int32_t gen28(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
@@ -1386,7 +1396,7 @@ static int32_t gen28(FGDATA *ff, FUNC *ftp)
     int32_t     seglen, resolution = 100;
     FILE    *filp;
     void    *fd;
-    int32_t     i=0, j=0;
+    int32_t     i=0, j=0, nread;
     MYFLT   *x, *y, *z;
     int32_t     arraysize = 1000;
     MYFLT   x1, y1, z1, x2, y2, z2, incrx, incry;
@@ -1401,26 +1411,31 @@ static int32_t gen28(FGDATA *ff, FUNC *ftp)
     x = (MYFLT*)csound->Calloc(csound,arraysize*sizeof(MYFLT));
     y = (MYFLT*)csound->Calloc(csound,arraysize*sizeof(MYFLT));
     z = (MYFLT*)csound->Calloc(csound,arraysize*sizeof(MYFLT));
+    for (;;) {
 #if defined(USE_DOUBLE)
-    while (fscanf( filp, "%lf%lf%lf", &z[i], &x[i], &y[i])!= EOF)
+      nread = fscanf(filp, "%lf%lf%lf", &z[i], &x[i], &y[i]);
 #else
-    while (fscanf( filp, "%f%f%f", &z[i], &x[i], &y[i])!= EOF)
+      nread = fscanf(filp, "%f%f%f", &z[i], &x[i], &y[i]);
 #endif
-      {
-        i++;
-        if (UNLIKELY(i>=arraysize)) {
-          MYFLT* newx, *newy, *newz;
-          arraysize += 1000;
-          newx = (MYFLT*)realloc(x, arraysize*sizeof(MYFLT));
-          newy = (MYFLT*)realloc(y, arraysize*sizeof(MYFLT));
-          newz = (MYFLT*)realloc(z, arraysize*sizeof(MYFLT));
-          if (UNLIKELY(!newx || !newy || !newz)) {
-            fprintf(stderr, Str("Out of Memory\n"));
-            exit(7);
-          }
-          x = newx; y = newy; z = newz;
-        }
+      if (nread == EOF)
+        break;
+      if (UNLIKELY(nread != 3))
+        goto gen28err2;
+      i++;
+      if (UNLIKELY(i >= arraysize)) {
+        arraysize += 1000;
+        x = (MYFLT*)csound->ReAlloc(csound, x,
+                                    arraysize*sizeof(MYFLT));
+        y = (MYFLT*)csound->ReAlloc(csound, y,
+                                    arraysize*sizeof(MYFLT));
+        z = (MYFLT*)csound->ReAlloc(csound, z,
+                                    arraysize*sizeof(MYFLT));
       }
+    }
+    if (UNLIKELY(ferror(filp)))
+      goto gen28err3;
+    if (UNLIKELY(i < 2))
+      goto gen28err4;
     --i;
 
     ff->flen      = (int32) (z[i] * resolution * 2);
@@ -1437,33 +1452,48 @@ static int32_t gen28(FGDATA *ff, FUNC *ftp)
       z1 = z[j];
       z2 = z[j+1];
 
-      if (UNLIKELY(z2 < z1)) goto gen28err2;
+      if (UNLIKELY(z2 < z1)) goto gen28err5;
+      /* points closer together than the resolution produce an empty
+         segment; skip it instead of dividing by zero */
       seglen = (int)((z2-z1) * resolution);
-      incrx = (x2 - x1) / (MYFLT)seglen;
-      incry = (y2 - y1) / (MYFLT)seglen;
-      while (seglen--) {
-        *fp++ = x1;
-        x1   += incrx;
-        *fp++ = y1;
-        y1   += incry;
+      if (seglen > 0) {
+        incrx = (x2 - x1) / (MYFLT)seglen;
+        incry = (y2 - y1) / (MYFLT)seglen;
+        /* fp < finp bounds every pair write: the table holds flen + 1
+           MYFLTs, so the last pair may land on the guard point but
+           never beyond it */
+        while (seglen-- && fp < finp) {
+          *fp++ = x1;
+          x1   += incrx;
+          *fp++ = y1;
+          y1   += incry;
+        }
       }
 
       j++;
     } while (--i);
-    do {
+    while (fp < finp) {
       *fp++ = x[j];
-      *fp++ = y[j+1];
-    } while (fp < finp);
+      *fp++ = y[j];
+    }
 
-    csound->Free(csound,x); csound->Free(csound,y); csound->Free(csound,z);
-    csound->FileClose(csound, fd);
+    gen28free(csound, fd, x, y, z);
 
     return OK;
 
  gen28err1:
     return csoundFtError(ff, Str("could not open space file"));
  gen28err2:
-    csound->Free(csound,x); csound->Free(csound,y); csound->Free(csound,z);
+    gen28free(csound, fd, x, y, z);
+    return csoundFtError(ff, Str("GEN28: malformed trajectory point %d"), i + 1);
+ gen28err3:
+    gen28free(csound, fd, x, y, z);
+    return csoundFtError(ff, Str("GEN28: error reading trajectory file"));
+ gen28err4:
+    gen28free(csound, fd, x, y, z);
+    return csoundFtError(ff, Str("GEN28 requires at least two trajectory points"));
+ gen28err5:
+    gen28free(csound, fd, x, y, z);
     return csoundFtError(ff, Str("Time values must be in increasing order"));
 }
 
