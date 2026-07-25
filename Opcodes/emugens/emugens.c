@@ -2657,13 +2657,29 @@ lastcycle(CSOUND *csound, LASTCYCLE *p) {
  *
  */
 
-// make sure that the out string has enough allocated space
-// This can be run only at init time
-static int32_t _string_ensure(CSOUND *csound, STRINGDAT *s, int32_t size) {
-    if (s->size >= (size_t)size)
+// Make sure that the output string has enough allocated space.
+// This can run only at init time.
+static int32_t string_ensure(CSOUND *csound, STRINGDAT *s, size_t size) {
+    if (s->size >= size)
         return OK;
-    csound->ReAlloc(csound, s->data, size);
+
+    char *data = csound->ReAlloc(csound, s->data, size);
+    if (UNLIKELY(data == NULL))
+        return INITERR(Str("memory allocation failure"));
+
+    s->data = data;
     s->size = size;
+    return OK;
+}
+
+static int32_t string_copy(CSOUND *csound, STRINGDAT *out,
+                           const char *src, size_t size) {
+    int32_t result = string_ensure(csound, out, size + 1);
+    if (UNLIKELY(result != OK))
+        return result;
+
+    memmove(out->data, src, size);
+    out->data[size] = '\0';
     return OK;
 }
 
@@ -2676,46 +2692,19 @@ typedef struct {
 
 static int32_t
 stripl(CSOUND *csound, STR1_1 *p) {
-    char *str = p->in->data;
-    size_t idx0;
-    for(idx0=0; idx0 < p->in->size; idx0++) {
-        if(!isspace(str[idx0]))
-            break;
-    }
-    // now idx points to start of content
-    if(str[idx0] == 0) {
-        // empty string
-        _string_ensure(csound, p->out, 1);
-        p->out->data[0] = 0;
-        return OK;
-    }
-    str += idx0;
-    size_t insize = strlen(str);
-    _string_ensure(csound, p->out, (int32_t) insize);
-    memcpy(p->out->data, str, insize);
-    return OK;
+    const char *str = p->in->data;
+    while (isspace((unsigned char)*str))
+        str++;
+    return string_copy(csound, p->out, str, strlen(str));
 }
 
 static int32_t
 stripr(CSOUND *csound, STR1_1 *p) {
-    // Trim trailing space
-    char *str = p->in->data;
-    int32_t size = (int32_t) strlen(str) - 1;
-    const char *end = str + size;
-    while(size && isspace(*end)) {
-        end--;
+    const char *str = p->in->data;
+    size_t size = strlen(str);
+    while (size > 0 && isspace((unsigned char)str[size - 1]))
         size--;
-    }
-    size += 1;
-    if(size > 0) {
-        _string_ensure(csound, p->out, size);
-        memcpy(p->out->data, str, size);
-    } else {
-        _string_ensure(csound, p->out, 1);
-        p->out->data[0] = 0;
-    }
-     return OK;
-
+    return string_copy(csound, p->out, str, size);
 }
 
 static int32_t
@@ -2730,44 +2719,33 @@ stripside(CSOUND *csound, STR1_1 *p) {
     return INITERRF("which should be one of 'l' or 'r', got %s", p->which->data);
 }
 
-// returns length
-int32_t _str_find_edges(const char *str, int32_t *startidx) {
-    // left
-    int32_t idx0 = 0;
+// Return the trimmed length and set the first non-space byte offset.
+static size_t str_find_edges(const char *str, size_t *startidx) {
+    size_t idx0 = 0;
     while(isspace((unsigned char)*str)) {
         str++;
         idx0++;
     }
 
     if(*str == 0) {
-        // Only whitespace
+        *startidx = idx0;
         return 0;
     }
 
-    // right
-    int32_t size = (int32_t) strlen(str) - 1;
-    const char *end = str + size;
-    while(size && isspace(*end)) {
-        end--;
+    size_t size = strlen(str);
+    while(size > 0 && isspace((unsigned char)str[size - 1])) {
         size--;
     }
     *startidx = idx0;
-    return size+1;
+    return size;
 }
 
 
 static int32_t
 strstrip(CSOUND *csound, STR1_1 *p) {
-    int32_t startidx;
-    int32_t size = _str_find_edges(p->in->data, &startidx);
-    if(size > 0) {
-        _string_ensure(csound, p->out, size);
-        memcpy(p->out->data, p->in->data + startidx, size);
-    } else {
-        _string_ensure(csound, p->out, 1);
-        p->out->data[0] = 0;
-    }
-    return OK;
+    size_t startidx;
+    size_t size = str_find_edges(p->in->data, &startidx);
+    return string_copy(csound, p->out, p->in->data + startidx, size);
 }
 
 

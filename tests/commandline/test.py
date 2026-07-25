@@ -553,6 +553,10 @@ def runTest():
         ["test_instr0_labels.csd", "test labels in instr0 space"],
         ["test_string.csd", "test string assignment and printing"],
         [
+            "test_strstrip_reallocation.csd",
+            "test strstrip reallocation and termination",
+        ],
+        [
             "test_string_preprocessor_whitespace.csd",
             "preserve function-like whitespace inside strings",
         ],
