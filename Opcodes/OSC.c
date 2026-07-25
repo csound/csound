@@ -630,7 +630,6 @@ static int32_t OSC_deinit(CSOUND *csound, OSCINIT *p)
     port = pp->ports[n];
     if (UNLIKELY(port == NULL))
       return NOTOK;
-    csound->Message(csound, "handle=%d\n", n);
     OSC_stop_port(csound, port);
     csound->Message(csound, "%s", Str("OSC deinitialised\n"));
     return OK;
