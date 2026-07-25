@@ -1233,8 +1233,9 @@ static int32_t tree_has_perf_only_k_rate_value(CSOUND* csound,
                                                TREE* tree,
                                                TYPE_TABLE* typeTable)
 {
-  /* Direct k variables already have init storage. An i-indexed array read
-     lowers to ##array_get_init. Other computed k values only run at perf. */
+  /* Direct k variables already have init storage, and struct member reads
+     have an init callback. An i-indexed array read lowers to
+     ##array_get_init. Other computed k values only run at perf. */
   while (tree != NULL) {
     char* argType =
       (is_expression_node(tree) || tree->type == STRUCT_EXPR)
@@ -1246,7 +1247,7 @@ static int32_t tree_has_perf_only_k_rate_value(CSOUND* csound,
     if (argType != NULL) {
       csound->Free(csound, argType);
     }
-    if ((isKRate && tree->type != T_IDENT &&
+    if ((isKRate && tree->type != T_IDENT && tree->type != STRUCT_EXPR &&
          !(tree->type == T_ARRAY &&
            !array_has_k_rate_index(csound, tree->right, typeTable))) ||
         tree_has_perf_only_k_rate_value(csound, tree->left, typeTable) ||

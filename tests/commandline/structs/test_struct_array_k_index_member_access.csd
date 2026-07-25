@@ -14,6 +14,7 @@ nchnls = 2
 ; Guards perf-time struct-array member reads: array[kIndex].member must lower
 ; to the k-rate ##array_get_struct path instead of failing opcode resolution.
 struct MyType val1:i, val2:i
+struct Selection idx:k
 
 opcode PickAt(items:MyType[], index:k):MyType
   xout items[index]
@@ -28,6 +29,11 @@ instr 1
   copyIndex:k init 1
   copy:MyType init array[copyIndex]
   assertEquals(copy.val1, 2)
+
+  ; A k-rate struct member has an init callback and can index an init read.
+  selection:Selection init 1
+  memberCopy:MyType init array[selection.idx]
+  assertEquals(memberCopy.val1, 2)
 
   ; An i-indexed k-array read is available during init and remains valid.
   indices:k[] fillarray 1
