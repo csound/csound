@@ -339,8 +339,8 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
         std::find(aoutlets.begin(), aoutlets.end(), this);
     if (thisoutlet != aoutlets.end()) {
       aoutlets.erase(thisoutlet);
-      warn(csound, Str("Removed instance 0x%x of %d instances of outleta %s\n"),
-           this, aoutlets.size(), sourceOutletId);
+      warn(csound, Str("Removed instance %p of %zu instances of outleta %s\n"),
+           (void *)this, aoutlets.size(), sourceOutletId);
     }
     return OK;
   }
@@ -485,8 +485,8 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
         std::find(koutlets.begin(), koutlets.end(), this);
     if (thisoutlet != koutlets.end()) {
       koutlets.erase(thisoutlet);
-      warn(csound, Str("Removed 0x%x of %d instances of outletk %s\n"), this,
-           koutlets.size(), sourceOutletId);
+      warn(csound, Str("Removed %p of %zu instances of outletk %s\n"),
+           (void *)this, koutlets.size(), sourceOutletId);
     }
     return OK;
   }
@@ -618,8 +618,8 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
         std::find(foutlets.begin(), foutlets.end(), this);
     if (thisoutlet != foutlets.end()) {
       foutlets.erase(thisoutlet);
-      warn(csound, Str("Removed 0x%x of %d instances of outletf %s\n"), this,
-           foutlets.size(), sourceOutletId);
+      warn(csound, Str("Removed %p of %zu instances of outletf %s\n"),
+           (void *)this, foutlets.size(), sourceOutletId);
     }
     return OK;
   }
@@ -824,8 +824,8 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
         std::find(voutlets.begin(), voutlets.end(), this);
     if (thisoutlet != voutlets.end()) {
       voutlets.erase(thisoutlet);
-      warn(csound, Str("Removed 0x%x of %d instances of outletv %s\n"), this,
-           voutlets.size(), sourceOutletId);
+      warn(csound, Str("Removed %p of %zu instances of outletv %s\n"),
+           (void *)this, voutlets.size(), sourceOutletId);
     }
     return OK;
   }
@@ -994,8 +994,8 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
         std::find(koutlets.begin(), koutlets.end(), this);
     if (thisoutlet != koutlets.end()) {
       koutlets.erase(thisoutlet);
-      warn(csound, Str("Removed 0x%x of %d instances of outletkid %s\n"), this,
-           koutlets.size(), sourceOutletId);
+      warn(csound, Str("Removed %p of %zu instances of outletkid %s\n"),
+           (void *)this, koutlets.size(), sourceOutletId);
     }
     return OK;
   }
@@ -1376,7 +1376,7 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
     }
     if (UNLIKELY(named == 0)) {
       return csound->InitError(csound, Str("Named gen \"%s\" not defined"),
-                               (char *)p->p4);
+                               ((STRINGDAT *)p->p4)->data);
     } else {
       ftevt->p[4] = named->genum;
     }
