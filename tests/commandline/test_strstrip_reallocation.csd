@@ -5,7 +5,10 @@
 <CsInstruments>
 
 instr 1
-  Scontent = "hello world with lots of leading and trailing spaces to force a realloc"
+  Sunit = "hello world with lots of leading and trailing spaces to force a realloc"
+  Scontent2 strcat Sunit, Sunit
+  Scontent4 strcat Scontent2, Scontent2
+  Scontent strcat Scontent4, Scontent4
   Sin sprintf "        %s        ", Scontent
 
   Sboth strstrip Sin
