@@ -3520,10 +3520,9 @@ int32_t tabcopyk_init(CSOUND *csound, TABCPY *p) {
   if (UNLIKELY(p->src == NULL || p->dst == NULL))
     return csound->InitError(csound, "tabcopyk_init: null src/dst");
 
-  if (p->dst->arrayType == NULL)
-    p->dst->arrayType = p->src->arrayType;
-
   if (p->src->arrayType && p->src->arrayType->userDefinedType) {
+    if (p->dst->arrayType == NULL)
+      p->dst->arrayType = p->src->arrayType;
     if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
       return csound->InitError(csound, "%s",
                                Str("array-variable types do not match"));
@@ -3537,21 +3536,7 @@ int32_t tabcopyk_init(CSOUND *csound, TABCPY *p) {
     return OK;
   }
 
-  // Propagate dimensions and sizes so downstream ops can rely on them
-  if (p->src->dimensions > 0) {
-    int32_t dim = p->src->dimensions;
-    p->dst->dimensions = dim;
-    if (p->dst->sizes != NULL) {
-      csound->Free(csound, p->dst->sizes);
-      p->dst->sizes = NULL;
-    }
-    p->dst->sizes = (int32_t*) csound->Malloc(csound, sizeof(int32_t) * dim);
-    memcpy(p->dst->sizes, p->src->sizes, sizeof(int32_t) * dim);
-  }
-
-  // Allocate backing store sized like the source total element count
-  if (UNLIKELY(tabinit(csound, p->dst, get_array_total_size(p->src),
-                       p->h.insdshead) != OK))
+  if (UNLIKELY(tabinit_like(csound, p->dst, p->src) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
@@ -3850,14 +3835,12 @@ int32_t ftab2tab(CSOUND *csound, TABCOPY *p)
 
 int32_t trim_i(CSOUND *csound, TRIM *p)
 {
-  MYFLT requestedSize = *p->size;
-  if (UNLIKELY(isnan(requestedSize) || requestedSize < FL(0.0) ||
-               requestedSize > (MYFLT)INT32_MAX)) {
+  int32_t size;
+  if (UNLIKELY(csound_array_size_to_int32(*p->size, &size) != OK)) {
     return csound->InitError(csound, "%s", Str("Invalid array size"));
   }
-  int32_t size = (int32_t)requestedSize;
   if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK)) {
-    return csound->InitError(csound, "%s", Str("Invalid array size"));
+    return csound_array_init_resize_error(csound);
   }
   return OK;
 }
@@ -3877,13 +3860,11 @@ int32_t trim_prepare(CSOUND *csound, TRIM *p)
 
 int32_t trim(CSOUND *csound, TRIM *p)
 {
-  MYFLT requestedSize = *p->size;
-  if (UNLIKELY(isnan(requestedSize) || requestedSize < FL(0.0) ||
-               requestedSize > (MYFLT)INT32_MAX)) {
+  int32_t size;
+  if (UNLIKELY(csound_array_size_to_int32(*p->size, &size) != OK)) {
     return csound->PerfError(csound, &p->h, "%s",
                              Str("Invalid array size"));
   }
-  int32_t size = (int32_t)requestedSize;
   int32_t n = tabcheck(csound, p->tab, size, &(p->h));
   if (n != OK) return n;
   p->tab->sizes[0] = size;

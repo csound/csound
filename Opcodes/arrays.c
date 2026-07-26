@@ -1352,14 +1352,34 @@ static int32_t deinterleave_i (CSOUND *csound, INTERL *p) {
   if(p->c->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   if(p->c->dimensions == 1) {
+    const CS_TYPE *arrayContainerType = csound->GetType(csound, "[");
+    ARRAYDAT preparedA = {0}, preparedB = {0};
     int32_t len = p->c->sizes[0]/2, i,j;
-    if (UNLIKELY(tabinit(csound, p->a, len, p->h.insdshead) != OK ||
-                 tabinit(csound, p->b, len, p->h.insdshead) != OK))
+
+    if (UNLIKELY(p->a == p->b))
+      return csound->InitError(csound, "%s",
+                               Str("array outputs must be distinct"));
+    if (UNLIKELY(arrayContainerType == NULL ||
+                 arrayContainerType->freeVariableMemory == NULL))
       return csound_array_init_resize_error(csound);
-    for(i = 0, j = 0; i < len; i++,j+=2) {
-      p->a->data[i] =  p->c->data[j];
-      p->b->data[i] = p->c->data[j+1];
+    preparedA.arrayType = p->a->arrayType;
+    preparedB.arrayType = p->b->arrayType;
+    if (UNLIKELY(tabinit(csound, &preparedA, len,
+                         p->h.insdshead) != OK ||
+                 tabinit(csound, &preparedB, len,
+                         p->h.insdshead) != OK)) {
+      arrayContainerType->freeVariableMemory(csound, &preparedA);
+      arrayContainerType->freeVariableMemory(csound, &preparedB);
+      return csound_array_init_resize_error(csound);
     }
+    for(i = 0, j = 0; i < len; i++,j+=2) {
+      preparedA.data[i] = p->c->data[j];
+      preparedB.data[i] = p->c->data[j+1];
+    }
+    arrayContainerType->freeVariableMemory(csound, p->a);
+    arrayContainerType->freeVariableMemory(csound, p->b);
+    *p->a = preparedA;
+    *p->b = preparedB;
     return OK;
   }
   return csound->InitError(csound, "%s", Str("array inputs not in correct format\n"));

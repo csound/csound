@@ -311,6 +311,38 @@ TEST_F (TypeSystemTests, testTabinitLikeRejectsInvalidSourceWithoutMutation)
     csound_free_array_storage(csound, &destination);
 }
 
+TEST_F (TypeSystemTests, testTabinitLikeFailureLeavesUntypedArrayUnchanged)
+{
+    CS_TYPE invalidElementType{};
+    int32_t sourceSizes[] = {1};
+    MYFLT sourceData = FL(0.0);
+    ARRAYDAT source{};
+    ARRAYDAT destination{};
+
+    source.arrayType = &invalidElementType;
+    source.dimensions = 1;
+    source.sizes = sourceSizes;
+    source.data = &sourceData;
+
+    EXPECT_EQ(NOTOK, tabinit_like(csound, &destination, &source));
+    EXPECT_EQ(nullptr, destination.arrayType);
+    EXPECT_EQ(0, destination.dimensions);
+    EXPECT_EQ(nullptr, destination.sizes);
+    EXPECT_EQ(0, destination.arrayMemberSize);
+    EXPECT_EQ(nullptr, destination.data);
+    EXPECT_EQ(0u, destination.allocated);
+    EXPECT_EQ(nullptr, destination.storage);
+}
+
+TEST_F (TypeSystemTests, testTrimRejectsInt32MaxPlusOne)
+{
+    MYFLT requestedSize = (MYFLT)2147483648.0;
+    int32_t size = 1;
+
+    EXPECT_EQ(NOTOK, csound_array_size_to_int32(requestedSize, &size));
+    EXPECT_EQ(1, size);
+}
+
 TEST_F (TypeSystemTests, testConcurrentStructuredArrayCopiesShareOneStorage)
 {
     constexpr int32_t readerCount = 8;

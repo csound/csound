@@ -782,14 +782,32 @@ static int32_t scsnsmap(CSOUND *csound, PSCSNMAP *p)
 
 static int32_t scsnmapV_init(CSOUND *csound, PSCSNMAPV *p)
 {
+    const CS_TYPE *arrayContainerType = csound->GetType(csound, "[");
+    ARRAYDAT preparedPosition = {0}, preparedVelocity = {0};
+
     /* Get corresponding update */
     p->p = listget(csound, (int32_t)*p->i_id);
     if (p->p == NULL) return NOTOK;
-    if (UNLIKELY(tabinit(csound, p->k_pos, (p->p)->len,
-                         p->h.insdshead) != OK ||
-                 tabinit(csound, p->k_vel, (p->p)->len,
-                         p->h.insdshead) != OK))
+    if (UNLIKELY(p->k_pos == p->k_vel))
+      return csound->InitError(csound, "%s",
+                               Str("array outputs must be distinct"));
+    if (UNLIKELY(arrayContainerType == NULL ||
+                 arrayContainerType->freeVariableMemory == NULL))
       return csound_array_init_resize_error(csound);
+    preparedPosition.arrayType = p->k_pos->arrayType;
+    preparedVelocity.arrayType = p->k_vel->arrayType;
+    if (UNLIKELY(tabinit(csound, &preparedPosition, (p->p)->len,
+                         p->h.insdshead) != OK ||
+                 tabinit(csound, &preparedVelocity, (p->p)->len,
+                         p->h.insdshead) != OK)) {
+      arrayContainerType->freeVariableMemory(csound, &preparedPosition);
+      arrayContainerType->freeVariableMemory(csound, &preparedVelocity);
+      return csound_array_init_resize_error(csound);
+    }
+    arrayContainerType->freeVariableMemory(csound, p->k_pos);
+    arrayContainerType->freeVariableMemory(csound, p->k_vel);
+    *p->k_pos = preparedPosition;
+    *p->k_vel = preparedVelocity;
     return OK;
 }
 

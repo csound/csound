@@ -351,9 +351,15 @@ public:
 template <typename T> class Vector : ARRAYDAT {
 
 public:
+  /** Initialise the container.
+   */
+  void init(Csound *csound, int32_t size, INSDS *ctx) {
+    (void)init_checked(csound, size, ctx);
+  }
+
   /** Initialise the container and return OK or NOTOK.
    */
-  int32_t init(Csound *csound, int32_t size, INSDS *ctx) {
+  int32_t init_checked(Csound *csound, int32_t size, INSDS *ctx) {
     return tabinit(csound, this, size, ctx);
   }
 
