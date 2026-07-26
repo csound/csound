@@ -1220,12 +1220,12 @@ typedef int32_t (*INITFN2)(CSOUND *);
  int32_t csoundModuleCreate_mixer(CSOUND *csound);
  int32_t csoundModuleInit_mixer(CSOUND *csound);
  int32_t csoundModuleInit_doppler(CSOUND *csound);
- int32_t csoundModuleInit_signalflowgraph(CSOUND *csound);
  int32_t arrayops_init_modules(CSOUND *csound);
  int32_t lfsr_init_modules(CSOUND *csound);
  int32_t pvsops_init_modules(CSOUND *csound);
  int32_t trigEnv_init_modules(CSOUND *csound);
  #endif
+ int32_t csoundModuleInit_signalflowgraph(CSOUND *csound);
  #ifndef BARE_METAL
  extern int32_t csoundModuleInit_ftsamplebank(CSOUND *csound);
  #endif
@@ -1323,13 +1323,13 @@ CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
     csoundModuleCreate_mixer,
     csoundModuleInit_mixer,
     csoundModuleInit_doppler,
-    csoundModuleInit_signalflowgraph,
     arrayops_init_modules,
     lfsr_init_modules,
     pvsops_init_modules,
     trigEnv_init_modules,
     csoundModuleInit_fractalnoise,
 #endif
+    csoundModuleInit_signalflowgraph,
 #if !defined(BARE_METAL) && !defined(__wasi__)
     csoundModuleInit_ftsamplebank,
 #endif
