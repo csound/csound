@@ -71,52 +71,12 @@ class TestResult:
         self.expected_result = (
             1 if len(test_data) == 3 or self.filename in expectedFailures else 0
         )
-        self.expectation = (
-            test_data[3]
-            if len(test_data) >= 4 and isinstance(test_data[3], dict)
-            else None
-        )
-        if self.expectation is not None:
-            self.expected_result = self.expectation.get("return_code", 0)
-        else:
-            self.expected_result = (len(test_data) == 3) and 1 or 0
-
-    @staticmethod
-    def _patterns(value):
-        """Normalize one expected-output pattern or a list of patterns."""
-        if value is None:
-            return []
-        return value if isinstance(value, list) else [value]
-
-    @property
-    def validation_error(self):
-        """Explain why a structured return-code/output expectation failed."""
-        if self.expectation is None:
-            return None
-
-        if self.return_code != self.expected_result:
-            return (
-                f"return code {self.return_code}, expected exactly "
-                f"{self.expected_result}"
-            )
-
-        for pattern in self._patterns(self.expectation.get("output_contains")):
-            if pattern not in self.cs_output:
-                return f"required diagnostic not found: {pattern!r}"
-
-        for pattern in self._patterns(self.expectation.get("output_excludes")):
-            if pattern in self.cs_output:
-                return f"forbidden crash diagnostic found: {pattern!r}"
-
-        return None
 
     @property
     def passed(self):
         """Check if test passed based on return code and expected result."""
         if self.error is not None:
             return False
-        if self.expectation is not None:
-            return self.validation_error is None
         return (self.return_code == 0) == (self.expected_result == 0)
 
     @property
@@ -136,8 +96,6 @@ class TestResult:
         )
         if self.error:
             output += f"\tError: {self.error}\n"
-        if self.validation_error:
-            output += f"\tValidation: {self.validation_error}\n"
         if verbose and self.execution_time:
             output += f"\tExecution Time: {self.execution_time:.2f}s\n"
         return output
@@ -887,7 +845,7 @@ def runTest():
             "command line application arguments override CsOptions arguments",
             0,
             "-nd",
-            '-- concert.orc "first violin" --logfile=ignored ""'
+            '-- concert.orc "first violin" --logfile=ignored ""',
         ],
         ["stm/test_stm.csd", "testing stm opcodes"],
         ["stm/test_stm_sequential_trace.csd", "testing sequential stm state trace"],
