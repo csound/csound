@@ -28,6 +28,7 @@ if(BUILD_TESTS)
         csound_plugin_opcode_test.cpp
         perfthread_test.cpp
         csound_test_sndfile.cpp
+        analysis_file_safety_test.cpp
         test_new_type.cpp
         test_pfields.cpp
         ugen_test.cpp

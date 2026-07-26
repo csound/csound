@@ -625,8 +625,16 @@ static int32_t pvoc_readheader(CSOUND *csound, PVOCFILE *p,
 {
     char      tag[5];
     uint32_t  size;
-    uint32_t  riffsize;
-    int32_t       fmtseen = 0, windowseen = 0;
+    uint64_t  riff_end;
+    long      file_size, chunk_start;
+    int32_t   fmtseen = 0, windowseen = 0;
+
+    if (UNLIKELY(fseek(p->fp, 0L, SEEK_END) != 0 ||
+                 (file_size = ftell(p->fp)) < 12L ||
+                 fseek(p->fp, 0L, SEEK_SET) != 0)) {
+      csound->pvErrorCode = -19;
+      return -1;
+    }
 
     if (UNLIKELY(pvfile_read_tag(p, &(tag[0])) != 0 ||
         strcmp(tag, "RIFF") != 0 ||
@@ -638,20 +646,36 @@ static int32_t pvoc_readheader(CSOUND *csound, PVOCFILE *p,
       csound->pvErrorCode = -19;
       return -1;
     }
-    riffsize = size;
+    riff_end = (uint64_t) size + 8U;
+    if (UNLIKELY(riff_end != (uint64_t) file_size)) {
+      csound->pvErrorCode = -25;
+      return -1;
+    }
     if (UNLIKELY(pvfile_read_tag(p, &(tag[0])) != 0 || strcmp(tag, "WAVE") != 0)) {
       csound->pvErrorCode = -20;
       return -1;
     }
-    riffsize -= sizeof(uint32_t);
     /* loop for chunks */
-    while (riffsize > (uint32_t) 0) {
+    while ((chunk_start = ftell(p->fp)) >= 0L &&
+           (uint64_t) chunk_start + 8U <= riff_end) {
+      uint64_t chunk_data, chunk_span;
       if (UNLIKELY(pvfile_read_tag(p, &(tag[0])) != 0 ||
                    pvfile_read_32(p, &size, 1L) != 1L)) {
         csound->pvErrorCode = -17;
         return -1;
       }
-      riffsize -= 2 * sizeof(uint32_t);
+      chunk_start = ftell(p->fp);
+      if (UNLIKELY(chunk_start < 0L)) {
+        csound->pvErrorCode = -17;
+        return -1;
+      }
+      chunk_data = (uint64_t) chunk_start;
+      chunk_span = (uint64_t) size + (uint64_t) (size & 1U);
+      if (UNLIKELY(chunk_data > riff_end ||
+                   chunk_span > riff_end - chunk_data)) {
+        csound->pvErrorCode = -25;
+        return -1;
+      }
       if (strcmp(tag, "fmt ") == 0) {
         /* bail out if not a pvoc file: not trying to read all WAVE formats!*/
         if (UNLIKELY((int32_t) size < (int32_t) SIZEOF_FMTPVOCEX)) {
@@ -662,7 +686,17 @@ static int32_t pvoc_readheader(CSOUND *csound, PVOCFILE *p,
           csound->pvErrorCode = -21;
           return -1;
         }
-        riffsize -= SIZEOF_FMTPVOCEX;
+        if (UNLIKELY(pWfpx->dwDataSize != sizeof(PVOCDATA) ||
+                     pWfpx->wxFormat.Format.nChannels == 0U ||
+                     pWfpx->data.nAnalysisBins < 2U ||
+                     pWfpx->data.nAnalysisBins > UINT32_MAX / 8U ||
+                     pWfpx->data.dwFrameAlign !=
+                       pWfpx->data.nAnalysisBins * 8U ||
+                     pWfpx->data.dwWinlen == 0U ||
+                     pWfpx->data.dwOverlap == 0U)) {
+          csound->pvErrorCode = -12;
+          return -1;
+        }
         fmtseen = 1;
         memcpy(&(p->fmtdata), &(pWfpx->wxFormat), SIZEOF_WFMTEX);
         memcpy(&(p->pvdata), &(pWfpx->data), sizeof(PVOCDATA));
@@ -677,7 +711,11 @@ static int32_t pvoc_readheader(CSOUND *csound, PVOCFILE *p,
           csound->pvErrorCode = -23;
           return -1;
         }
-        p->customWindow = csound->Malloc(csound, p->pvdata.dwWinlen * sizeof(float));
+        if (UNLIKELY((uint64_t) p->pvdata.dwWinlen * sizeof(float) != size)) {
+          csound->pvErrorCode = -24;
+          return -1;
+        }
+        p->customWindow = csound->Malloc(csound, (size_t) size);
         if (UNLIKELY(pvoc_readWindow(p,
                                      p->customWindow, p->pvdata.dwWinlen) != 0)) {
           csound->pvErrorCode = -24;
@@ -686,7 +724,7 @@ static int32_t pvoc_readheader(CSOUND *csound, PVOCFILE *p,
         windowseen = 1;
       }
       else if (strcmp(tag, "data") == 0) {
-        if (UNLIKELY((uint32_t) riffsize != size)) {
+        if (UNLIKELY(chunk_data + chunk_span != riff_end)) {
           csound->pvErrorCode = -25;
           return -1;
         }
@@ -700,20 +738,23 @@ static int32_t pvoc_readheader(CSOUND *csound, PVOCFILE *p,
             return -1;
           }
         }
-        p->datachunkoffset = (int32_t) ftell(p->fp);
+        if (UNLIKELY(size % p->pvdata.dwFrameAlign != 0U ||
+                     chunk_data > (uint64_t) INT32_MAX ||
+                     size / p->pvdata.dwFrameAlign > (uint32_t) INT32_MAX)) {
+          csound->pvErrorCode = -25;
+          return -1;
+        }
+        p->datachunkoffset = (int32_t) chunk_data;
         p->curpos = p->datachunkoffset;
         /* not m/c frames, for now */
         p->nFrames = size / p->pvdata.dwFrameAlign;
         return 0;
       }
-      else {
-        /* skip any unknown chunks */
-        riffsize -= 2 * sizeof(uint32_t);
-        if (UNLIKELY(fseek(p->fp, (int32_t) size, SEEK_CUR) != 0)) {
-          csound->pvErrorCode = -28;
-          return -1;
-        }
-        riffsize -= size;
+      /* skip any unread part of this chunk and its RIFF padding byte */
+      if (UNLIKELY(fseek(p->fp, (long) (chunk_data + chunk_span),
+                         SEEK_SET) != 0)) {
+        csound->pvErrorCode = -28;
+        return -1;
       }
     }
     /* if here, something very wrong! */
