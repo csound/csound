@@ -572,17 +572,25 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         break;
       case 'G':
         ft = csound->FTFind(csound, p->arg[i]);
+        if (UNLIKELY(ft == NULL))
+          return csound->InitError(csound, "%s",
+                                   Str("ftable not found for OSC message\n"));
         bsize += (sizeof(MYFLT)*ft->flen);
         iarg++;
         break;
       case 'A':
-      case 'D':
+      case 'D': {
+        /* the element count is the product of the dimension sizes,
+           not their sum */
+        size_t elements = 1;
         ar = (ARRAYDAT *) p->arg[i];
         for(j=0; j < ar->dimensions; j++)
-          bsize += (sizeof(MYFLT)*ar->sizes[j]);
-        bsize += 12;
+          elements *= (size_t) ar->sizes[j];
+        bsize += sizeof(MYFLT)*elements;
+        bsize += 8 + (size_t) ar->dimensions*sizeof(int32_t);
         iarg++;
         break;
+      }
       default:
         return csound->InitError(csound, Str("%c: data type not supported\n"),
                                  p->type->data[i]);
@@ -633,11 +641,20 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
       int32_t buffersize = 0, i, size;
       size_t bsize = p->aux.size;
       char *out = (char *) p->aux.auxp;
+      size_t needed;
       p->fstime = 0;
 
+      /* the destination string may have grown since init, so make sure
+         the buffer holds it and the type block before copying */
+      size = (int32_t) strlen(p->dest->data)+1;
+      needed = (size_t) (ceil(size/4.)*4) + p->types.size + 16;
+      if (needed > bsize) {
+        aux_realloc(csound, needed + 128, &p->aux);
+        out = (char *) p->aux.auxp;
+        bsize = p->aux.size;
+      }
       memset(out,0,bsize);
       /* package destination in 4-byte zero-padded block */
-      size = (int32_t) strlen(p->dest->data)+1;
       memcpy(out,p->dest->data,size);
       size = ceil(size/4.)*4;
       buffersize += size;
@@ -646,7 +663,11 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
          add a comma to the beginning of the type string.
       */
       out[buffersize] = ',';
+      /* bound the copy by the types buffer allocated at init, in case
+         the type string changed length at perf time */
       size = (int32_t) strlen(p->type->data)+1;
+      if ((size_t) size - 1 > p->types.size)
+        size = (int32_t) p->types.size + 1;
       /* check for b type before copying */
       for(i = 0; i < p->iargs; i++) {
         if(p->type->data[i] == 'b') {
@@ -754,6 +775,9 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           break;
         case 'G':
           ft = csound->FTFind(csound, p->arg[i]);
+          if (UNLIKELY(ft == NULL))
+            return csound->PerfError(csound, &(p->h), "%s",
+                                     Str("ftable not found for OSC message\n"));
           size = (int32_t)(sizeof(MYFLT)*ft->flen);
           if((size_t) buffersize + size + 4 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
@@ -767,18 +791,23 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           memcpy(out+buffersize,ft->ftable,size);
           buffersize += size;
           break;
-        case 'A':
+        case 'A': {
+          /* the element count is the product of the dimension sizes,
+             not their sum */
+          size_t elements = 1;
           ar = (ARRAYDAT *) p->arg[i];
-          size = 0;
           for(j=0; j < ar->dimensions; j++) {
-            size += (int32_t)ar->sizes[j]*sizeof(MYFLT);
+            elements *= (size_t) ar->sizes[j];
           }
-          if((size_t) buffersize + size + 12 > bsize) {
-            aux_realloc(csound, buffersize + size + 128, &p->aux);
+          size = (int32_t)(elements*sizeof(MYFLT));
+          if((size_t) buffersize + size + 8 + ar->dimensions*4 > bsize) {
+            aux_realloc(csound, buffersize + size + ar->dimensions*4 + 128,
+                        &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
           }
-          data = size + 8;
+          /* blob length: dimension count field, the sizes, then the values */
+          data = 4 + ar->dimensions*4 + size;
           byteswap((char *)&data,4);
           memcpy(out+buffersize,&data,4);
           buffersize += 4;
@@ -789,13 +818,17 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           memcpy(out+buffersize,ar->data,size);
           buffersize += size;
           break;
-        case 'D':
+        }
+        case 'D': {
+          /* the element count is the product of the dimension sizes,
+             not their sum */
+          size_t elements = 1;
           ar = (ARRAYDAT *) p->arg[i];
-          size = 0;
           for(j=0; j < ar->dimensions; j++) {
-            size += (int32_t)ar->sizes[j]*sizeof(MYFLT);
+            elements *= (size_t) ar->sizes[j];
           }
-          if((size_t) buffersize + size + 12 > bsize) {
+          size = (int32_t)(elements*sizeof(MYFLT));
+          if((size_t) buffersize + size + 4 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
@@ -807,6 +840,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           memcpy(out+buffersize,ar->data,size);
           buffersize += size;
           break;
+        }
         case 'a':
           size = (int32_t) (CS_KSMPS+1)*sizeof(MYFLT);
           if((size_t) buffersize + size + 4 > bsize) {
