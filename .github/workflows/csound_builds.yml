@@ -78,6 +78,48 @@ jobs:
           cd build
           make csdtests
 
+  linux_sanitizer:
+    name: Linux/Ubuntu sanitizer regression
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build bison flex \
+            gettext libasound2-dev libsndfile1-dev libsamplerate0-dev
+
+      - name: Configure sanitizer build
+        env:
+          CFLAGS: -fsanitize=address,undefined -fno-omit-frame-pointer
+          CXXFLAGS: -fsanitize=address,undefined -fno-omit-frame-pointer
+          LDFLAGS: -fsanitize=address,undefined
+        run: >
+          cmake -S . -B build-sanitize -G Ninja
+          -DCMAKE_BUILD_TYPE=Debug
+          -DBUILD_CSBEATS=0
+          -DBUILD_PERFTHREAD_CLASS=0
+          -DBUILD_PLUGINS=0
+          -DBUILD_STATIC_LIBRARY=0
+          -DBUILD_TESTS=0
+          -DBUILD_UTILITIES=0
+          -DUSE_CURL=0
+          -DUSE_MP3=0
+
+      - name: Build sanitizer Csound
+        run: cmake --build build-sanitize --target csound-bin -j"$(nproc)"
+
+      - name: Run multidimensional UDO regression
+        env:
+          ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+          OPCODE7DIR64: ${{ github.workspace }}/build-sanitize
+        run: ./build-sanitize/csound tests/commandline/test_arrays_in_udo.csd
+
   linux_build_vcpkg:
     name: Linux/Ubuntu build (vcpkg)
     runs-on: ubuntu-latest
