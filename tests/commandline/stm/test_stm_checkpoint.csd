@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing stm checkpoint capture and resume"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

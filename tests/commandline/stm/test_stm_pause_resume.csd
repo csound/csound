@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing stm pause and resume flow"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
