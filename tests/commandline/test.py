@@ -524,7 +524,6 @@ def runTest():
         ["test_parse_error_udo_missing_inargs.csd", "expected failure: udo missing inargs", 1],
         ["test_parse_error_udo_missing_commas.csd", "expected failure: udo missing commas", 1],
         ["test_parse_error_udo_missing_arglist.csd", "expected failure: udo missing arg list", 1],
-        ["test_signalflowgraph_lifetime.csd", "test signal-flow graph cleanup and ftgenonce"],
         ["test_gen49_defer.csd", "test GEN49 deferred length"],
         ["test_ftload_binary_args_ownership.csd", "test binary ftload does not share args ownership"],
         ["test_getftargs_empty_after_ftload.csd", "test getftargs returns empty args after binary ftload"],
@@ -801,6 +800,14 @@ def runTest():
             '-- concert.orc "first violin" --logfile=ignored ""',
         ],
     ]
+
+    if not csoundExecutable.lower().endswith((".wasm", ".cwasm")):
+        tests.append(
+            [
+                "test_signalflowgraph_lifetime.csd",
+                "test signal-flow graph cleanup and ftgenonce",
+            ]
+        )
 
     arrayTests = [
         ["arrays/arrays_i_local.csd", "local i[]"],
