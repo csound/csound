@@ -386,8 +386,9 @@ int32_t csoundPVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE 
     PVOCDATA      pvdata;
     WAVEFORMATEX  fmt;
     PVOCEX_MEMFILE  *pp;
-    int32_t           i, j, rc = 0, pvx_id, hdr_size, name_size;
+    int32_t           i, j, rc = 0, pvx_id;
     int32          totalframes, framelen;
+    size_t         fname_size, hdr_size, name_size;
     size_t         mem_wanted, header_bytes, alloc_size;
     float         *pFrame;
 
@@ -404,8 +405,11 @@ int32_t csoundPVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE 
       return 0;
     }
 
-    hdr_size = ((int32_t) sizeof(PVOCEX_MEMFILE) + 7) & (~7);
-    name_size = ((int32_t) strlen(fname) + 8) & (~7);
+    fname_size = strlen(fname);
+    if (UNLIKELY(fname_size > SIZE_MAX - 8U))
+      return pvx_err_msg(csound, Str("pvoc-ex file name is too large"));
+    hdr_size = (sizeof(PVOCEX_MEMFILE) + 7U) & ~(size_t) 7U;
+    name_size = (fname_size + 8U) & ~(size_t) 7U;
     memset(p, 0, sizeof(PVOCEX_MEMFILE));
     memset(&pvdata, 0, sizeof(PVOCDATA));
     memset(&fmt, 0, sizeof(WAVEFORMATEX));
@@ -446,7 +450,11 @@ int32_t csoundPVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE 
       return pvx_err_msg(csound, Str("pvoc-ex file %s is too large"), fname);
     }
     mem_wanted = (size_t) totalframes * (size_t) framelen * sizeof(float);
-    header_bytes = (size_t) hdr_size + (size_t) name_size;
+    if (UNLIKELY(hdr_size > SIZE_MAX - name_size)) {
+      csound->PVOC_CloseFile(csound, pvx_id);
+      return pvx_err_msg(csound, Str("pvoc-ex file %s is too large"), fname);
+    }
+    header_bytes = hdr_size + name_size;
     if (UNLIKELY(header_bytes > SIZE_MAX - mem_wanted)) {
       csound->PVOC_CloseFile(csound, pvx_id);
       return pvx_err_msg(csound, Str("pvoc-ex file %s is too large"), fname);
