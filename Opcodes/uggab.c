@@ -1125,7 +1125,7 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
 
 static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
 { /* gab d5*/
-    if (p->pfn != (int32)*p->tableNum) {
+    if (p->ftp == NULL || p->pfn != (int32)*p->tableNum) {
       if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
@@ -1140,6 +1140,7 @@ static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
 
 static int32_t iDiscreteUserRand(CSOUND *csound, DURAND *p)
 {
+    p->ftp = NULL;
     p->pfn = 0L;
     kDiscreteUserRand(csound,p);
     return OK;
@@ -1152,7 +1153,7 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS, flen;
 
-    if (p->pfn != (int32)*p->tableNum) {
+    if (p->ftp == NULL || p->pfn != (int32)*p->tableNum) {
       if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
@@ -1213,6 +1214,7 @@ static int32_t Cuserrnd_set(CSOUND *csound, CURAND *p)
 static int32_t Duserrnd_set(CSOUND *csound, DURAND *p)
 {
     IGN(csound);
+    p->ftp = NULL;
     p->pfn = 0;
     return OK;
 }

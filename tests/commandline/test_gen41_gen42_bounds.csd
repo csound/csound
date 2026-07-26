@@ -20,7 +20,7 @@ gi42RoundBelow ftgen 4, 0, -8, -42, \
 opcode AssertTableValue(ndx:i, fn:i, expected:i):void
   value:i = table:i(ndx, fn)
   if value != expected then
-    prints("table %d index %d: expected %f, got %f\n", \
+    prints("table %d index %d: expected %d, got %f\n", \
            fn, ndx, expected, value)
     exitnow(-1)
   endif
@@ -62,6 +62,13 @@ instr 1
   AssertTableValue(5, gi42RoundBelow, 50)
   AssertTableValue(6, gi42RoundBelow, 51)
   AssertTableValue(7, gi42RoundBelow, 60)
+
+  iBuiltinZero duserrnd 0
+  iBuiltinNegative duserrnd -1
+  kBuiltinZeroTable init 0
+  kBuiltinNegativeTable init -1
+  kBuiltinZero duserrnd kBuiltinZeroTable
+  aBuiltinNegative duserrnd kBuiltinNegativeTable
 
   kDiscrete duserrnd gi41RoundAbove
   kRange urd gi42RoundAbove
