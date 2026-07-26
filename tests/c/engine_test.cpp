@@ -187,11 +187,12 @@ protected:
 };
 
 static int32_t realFFTSetupCalls;
+static void *(*realFFTSetup)(CSOUND *, int32_t, int32_t);
 
-static void *countRealFFTSetup(CSOUND *, int32_t, int32_t)
+static void *countRealFFTSetup(CSOUND *csound, int32_t size, int32_t direction)
 {
     ++realFFTSetupCalls;
-    return nullptr;
+    return realFFTSetup(csound, size, direction);
 }
 
 TEST_P(InvalidRealFFTSizeTests, RejectsBeforeBackendSetup)
@@ -205,6 +206,7 @@ TEST_P(InvalidRealFFTSizeTests, RejectsBeforeBackendSetup)
     ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
 
     realFFTSetupCalls = 0;
+    realFFTSetup = csound->RealFFTSetup;
     csound->RealFFTSetup = countRealFFTSetup;
     EXPECT_NE(csoundPerformKsmps(csound), CSOUND_SUCCESS);
     EXPECT_EQ(realFFTSetupCalls, 0);
