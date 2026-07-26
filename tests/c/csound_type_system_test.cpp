@@ -27,6 +27,8 @@ namespace {
 
 int32_t initErrorCalls;
 int32_t perfErrorCalls;
+int32_t rangeConstructorCalls;
+int32_t rangeInitializerCalls;
 
 int32_t countInitError(CSOUND *, const char *, ...)
 {
@@ -38,6 +40,25 @@ int32_t countPerfError(CSOUND *, OPDS *, const char *, ...)
 {
     perfErrorCalls++;
     return NOTOK;
+}
+
+void initializeRangeProbe(CSOUND *, CS_VARIABLE *, MYFLT *memory)
+{
+    rangeInitializerCalls++;
+    *memory = FL(0.0);
+}
+
+CS_VARIABLE *createRangeProbe(void *cs, const CS_TYPE *, const void *,
+                              INSDS *ctx)
+{
+    CSOUND *csound = static_cast<CSOUND *>(cs);
+    rangeConstructorCalls++;
+    CS_VARIABLE *var = static_cast<CS_VARIABLE *>(
+      csound->Calloc(csound, sizeof(CS_VARIABLE)));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(MYFLT));
+    var->initializeVariableMemory = initializeRangeProbe;
+    var->ctx = ctx;
+    return var;
 }
 
 }
@@ -553,6 +574,37 @@ TEST_F (TypeSystemTests, testManagedArrayCapacityInitializesOnlyNewElements)
     EXPECT_EQ(OK, csound_array_ensure_capacity(csound, &array, 2, nullptr));
     EXPECT_EQ(firstMembers, elementAt(0)->members);
     EXPECT_EQ(secondMembers, elementAt(1)->members);
+
+    csound_free_array_storage(csound, &array);
+}
+
+TEST_F (TypeSystemTests, testArrayCapacityReusesPreparedElementVariable)
+{
+    CS_TYPE probeType{
+      const_cast<char *>("RangeProbe"),
+      const_cast<char *>("range initialization probe"),
+      CS_ARG_TYPE_BOTH,
+      createRangeProbe,
+      nullptr,
+      nullptr,
+      nullptr,
+      0
+    };
+    ARRAYDAT array{};
+
+    array.arrayType = &probeType;
+    rangeConstructorCalls = 0;
+    rangeInitializerCalls = 0;
+
+    ASSERT_EQ(OK, csound_array_ensure_capacity(csound, &array, 3, nullptr));
+    EXPECT_EQ(1, rangeConstructorCalls);
+    EXPECT_EQ(3, rangeInitializerCalls);
+    array.data[0] = FL(41.0);
+
+    ASSERT_EQ(OK, csound_array_ensure_capacity(csound, &array, 5, nullptr));
+    EXPECT_EQ(2, rangeConstructorCalls);
+    EXPECT_EQ(5, rangeInitializerCalls);
+    EXPECT_EQ(FL(41.0), array.data[0]);
 
     csound_free_array_storage(csound, &array);
 }

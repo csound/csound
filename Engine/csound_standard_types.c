@@ -232,6 +232,25 @@ static int32_t csound_array_element_layout_valid(
       var->memBlockSize < memberSize;
 }
 
+static void csound_array_initialize_element_range_with_variable(
+    CSOUND *csound, ARRAYDAT *array, size_t begin, size_t end,
+    CS_VARIABLE *var)
+{
+    size_t stride = (size_t)array->arrayMemberSize;
+
+    if (var->initializeVariableMemory == NULL) {
+        return;
+    }
+    for (size_t i = begin; i < end; i++) {
+        MYFLT *element = (MYFLT *)((char *)array->data + i * stride);
+        var->initializeVariableMemory(csound, var, element);
+        if ((size_t)var->memBlockSize < stride) {
+            memset((char *)element + var->memBlockSize, 0,
+                   stride - (size_t)var->memBlockSize);
+        }
+    }
+}
+
 /* Initialise fresh slots only. All checks that can return NOTOK happen before
    the first callback, so callers can free an unpublished buffer as raw data. */
 int32_t csound_array_initialize_element_range(
@@ -271,18 +290,8 @@ int32_t csound_array_initialize_element_range(
         }
         return NOTOK;
     }
-    if (var->initializeVariableMemory == NULL) {
-        csound->Free(csound, var);
-        return OK;
-    }
-    for (size_t i = begin; i < end; i++) {
-        MYFLT *element = (MYFLT *)((char *)array->data + i * stride);
-        var->initializeVariableMemory(csound, var, element);
-        if ((size_t)var->memBlockSize < stride) {
-            memset((char *)element + var->memBlockSize, 0,
-                   stride - (size_t)var->memBlockSize);
-        }
-    }
+    csound_array_initialize_element_range_with_variable(
+      csound, array, begin, end, var);
     csound->Free(csound, var);
     return OK;
 }
@@ -295,7 +304,6 @@ int32_t csound_array_ensure_capacity_impl(CSOUND *csound, ARRAYDAT *array,
     size_t bytes;
     size_t oldAllocated;
     size_t oldCapacity = 0;
-    int32_t oldMemberSize;
     int32_t memberSize;
     int32_t fresh;
 
@@ -305,7 +313,6 @@ int32_t csound_array_ensure_capacity_impl(CSOUND *csound, ARRAYDAT *array,
     }
     fresh = array->data == NULL;
     oldAllocated = array->allocated;
-    oldMemberSize = array->arrayMemberSize;
     memberSize = array->arrayMemberSize;
     if (fresh) {
         if (UNLIKELY(oldAllocated != 0)) {
@@ -365,8 +372,6 @@ int32_t csound_array_ensure_capacity_impl(CSOUND *csound, ARRAYDAT *array,
             return NOTOK;
         }
     }
-    csound->Free(csound, var);
-
     if (fresh) {
         newData = (MYFLT *)csound->Calloc(csound, bytes);
     }
@@ -374,6 +379,7 @@ int32_t csound_array_ensure_capacity_impl(CSOUND *csound, ARRAYDAT *array,
         newData = (MYFLT *)csound->ReAlloc(csound, array->data, bytes);
     }
     if (UNLIKELY(newData == NULL)) {
+        csound->Free(csound, var);
         return NOTOK;
     }
     array->data = newData;
@@ -381,15 +387,9 @@ int32_t csound_array_ensure_capacity_impl(CSOUND *csound, ARRAYDAT *array,
     if (!fresh) {
         memset((char *)newData + oldAllocated, 0, bytes - oldAllocated);
     }
-    if (UNLIKELY(csound_array_initialize_element_range(
-                   csound, array, bytes, oldCapacity, capacity, ctx) != OK)) {
-        if (fresh) {
-            csound->Free(csound, newData);
-            array->data = NULL;
-            array->arrayMemberSize = oldMemberSize;
-        }
-        return NOTOK;
-    }
+    csound_array_initialize_element_range_with_variable(
+      csound, array, oldCapacity, capacity, var);
+    csound->Free(csound, var);
     array->allocated = bytes;
     return OK;
 }
