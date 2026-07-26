@@ -1028,11 +1028,13 @@ static int32_t close_file_now(CSOUND *csound, CSFILE *p)
     return retval;
 }
 
-static int32_t reclaim_retired_files(CSOUND *csound)
+static int32_t reclaim_retired_files(CSOUND *csound, int32_t workerShutdown)
 {
     CSFILE *current, *previous, *reclaim = NULL;
     int32_t keepRunning;
 
+    /* Only the worker may publish STOPPED. Setup and cancellation paths can
+       reclaim nodes while the current worker is still alive. */
     csoundSpinLock(&csound->open_files_lock);
     previous = NULL;
     current = (CSFILE *) csound->retired_files;
@@ -1058,7 +1060,7 @@ static int32_t reclaim_retired_files(CSOUND *csound)
     }
     if (csound->retired_files != NULL)
       keepRunning = 1;
-    if (!keepRunning)
+    if (!keepRunning && workerShutdown)
       ATOMIC_SET(csound->file_io_start, FILE_IO_STOPPED);
     csoundSpinUnLock(&csound->open_files_lock);
 
@@ -1107,7 +1109,7 @@ void close_all_files(CSOUND *csound)
       if (csound->file_io_threadlock != NULL)
         csound->DestroyThreadLock(csound->file_io_threadlock);
     }
-    reclaim_retired_files(csound);
+    reclaim_retired_files(csound, 0);
     csound->file_io_thread = NULL;
     csound->file_io_threadlock = NULL;
     ATOMIC_SET(csound->file_io_start, FILE_IO_STOPPED);
@@ -1197,7 +1199,7 @@ static int32_t start_file_io_thread(CSOUND *csound)
       csound->DestroyThreadLock(csound->file_io_threadlock);
       csound->file_io_threadlock = NULL;
     }
-    reclaim_retired_files(csound);
+    reclaim_retired_files(csound, 0);
     return NOTOK;
 }
 
@@ -1210,7 +1212,7 @@ static int32_t finish_async_file_setup(CSOUND *csound, CSFILE *file)
     retired = file->retired;
     csoundSpinUnLock(&csound->open_files_lock);
     if (retired)
-      reclaim_retired_files(csound);
+      reclaim_retired_files(csound, 0);
     return retired;
 }
 
@@ -1376,7 +1378,7 @@ static int32_t read_files(CSOUND *csound){
       current->io_readers--;
       csoundSpinUnLock(&csound->open_files_lock);
     }
-    return reclaim_retired_files(csound);
+    return reclaim_retired_files(csound, 1);
 }
 
 
