@@ -330,11 +330,11 @@ int32_t voicformset(CSOUND *csound, VOICF *p)
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     int32_t i;
 
+    p->voiced.h = p->h;
     if (UNLIKELY(make_SingWave(csound, &p->voiced, p->ifn, p->ivfn)!=OK))
       return NOTOK;
     Envelope_setRate(csound, &(p->voiced.envelope), FL(0.001));
     Envelope_setTarget(&(p->voiced.envelope), FL(0.0));
-    p->voiced.h = p->h;
     make_Noise(p->noise);
 
     for (i=0; i<4; i++) {
