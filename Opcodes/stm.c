@@ -169,6 +169,15 @@ typedef struct opcodinfo OPCODINFO;
 /* graph registry (per csound instance)                               */
 /* ------------------------------------------------------------------ */
 
+/* Keep this in sync with the no-thread backend in Top/threads.c, whose
+   Create_Mutex implementation intentionally returns NULL. */
+#if !defined(HAVE_PTHREAD) && !defined(WIN32) && \
+        (defined(__STDC_NO_THREADS__) || defined(BARE_METAL) || defined(__wasi__))
+#define STM_MUTEX_AVAILABLE 0
+#else
+#define STM_MUTEX_AVAILABLE 1
+#endif
+
 /* Query-only: never creates the registry (safe in deinit). */
 static STM_REGISTRY *stm_registry_query(CSOUND *csound) {
     return (STM_REGISTRY *) csound->QueryGlobalVariable(csound, STM_REGISTRY_NAME);
@@ -510,6 +519,7 @@ static STM_REGISTRY *stm_registry_get_or_create(CSOUND *csound) {
             csound->DestroyGlobalVariable(csound, STM_REGISTRY_NAME);
             return NULL;
         }
+#if STM_MUTEX_AVAILABLE
         reg->mutex = csound->Create_Mutex(0);
         if (reg->mutex == NULL) {
             csound->Free(csound, reg->slots);
@@ -517,6 +527,7 @@ static STM_REGISTRY *stm_registry_get_or_create(CSOUND *csound) {
             csound->DestroyGlobalVariable(csound, STM_REGISTRY_NAME);
             return NULL;
         }
+#endif
         if (csound->RegisterResetCallback(csound, (void *) reg,
                 stm_registry_reset) != 0) {
             stm_registry_reset(csound, (void *) reg);
@@ -1035,7 +1046,7 @@ int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p) {
         return csound->InitError(csound, "[stm] stminstance: runner memory error");
     }
 
-#if !defined(HAVE_ATOMIC_BUILTIN)
+#if !defined(HAVE_ATOMIC_BUILTIN) && STM_MUTEX_AVAILABLE
     runner->state_mutex = csound->Create_Mutex(0);
     if (runner->state_mutex == NULL) {
         csound->Free(csound, runner->transitions);
