@@ -30,6 +30,7 @@
 #else
 #include "csoundCore.h"
 #endif
+#include "arrays.h"
 #include <sys/types.h>
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
@@ -41,6 +42,7 @@
 #define SOCKET_ERROR (-1)
 #endif
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <errno.h>
 
@@ -453,6 +455,39 @@ typedef struct {
   int32_t fstime;
 } OSCSEND2;
 
+static int32_t osc_array_blob_sizes(const ARRAYDAT *array, int32_t shaped,
+                                    size_t *valueBytes, size_t *blobBytes)
+{
+    size_t elements;
+    size_t headerBytes = 0;
+
+    if (valueBytes == NULL || blobBytes == NULL) {
+      return NOTOK;
+    }
+    *valueBytes = 0;
+    *blobBytes = 0;
+    if (array == NULL || array->dimensions <= 0 ||
+        csound_array_member_count(array, &elements) != OK ||
+        elements > SIZE_MAX / sizeof(MYFLT) ||
+        (elements != 0 && array->data == NULL)) {
+      return NOTOK;
+    }
+    *valueBytes = elements * sizeof(MYFLT);
+    if (shaped) {
+      if ((size_t)array->dimensions >
+          (SIZE_MAX - sizeof(int32_t)) / sizeof(int32_t)) {
+        return NOTOK;
+      }
+      headerBytes = sizeof(int32_t) +
+        (size_t)array->dimensions * sizeof(int32_t);
+    }
+    if (*valueBytes > SIZE_MAX - headerBytes) {
+      return NOTOK;
+    }
+    *blobBytes = headerBytes + *valueBytes;
+    return *blobBytes <= INT32_MAX ? OK : NOTOK;
+}
+
 static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
 {
     p->init_done = 0;
@@ -520,7 +555,6 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     STRINGDAT *s;
     ARRAYDAT *ar;
     FUNC *ft;
-    int32_t j;
     if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
       /* allocate space for the types buffer */
       csound->AuxAlloc(csound, strlen(p->type->data), &p->types);
@@ -580,14 +614,19 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         break;
       case 'A':
       case 'D': {
-        /* the element count is the product of the dimension sizes,
-           not their sum */
-        size_t elements = 1;
+        size_t valueBytes;
+        size_t blobBytes;
         ar = (ARRAYDAT *) p->arg[i];
-        for(j=0; j < ar->dimensions; j++)
-          elements *= (size_t) ar->sizes[j];
-        bsize += sizeof(MYFLT)*elements;
-        bsize += 8 + (size_t) ar->dimensions*sizeof(int32_t);
+        if (UNLIKELY(osc_array_blob_sizes(
+                       ar, p->type->data[i] == 'A',
+                       &valueBytes, &blobBytes) != OK ||
+                     bsize > SIZE_MAX - sizeof(int32_t) ||
+                     blobBytes >
+                       SIZE_MAX - bsize - sizeof(int32_t))) {
+          return csound->InitError(
+            csound, "%s", Str("OSC array payload is invalid or too large\n"));
+        }
+        bsize += sizeof(int32_t) + blobBytes;
         iarg++;
         break;
       }
@@ -693,7 +732,6 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
       STRINGDAT *s;
       ARRAYDAT *ar;
       FUNC *ft;
-      int32_t j;
       for(i = 0; i < p->iargs; i++) {
         switch(p->type->data[i]){
         case 'f':
@@ -792,53 +830,80 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           buffersize += size;
           break;
         case 'A': {
-          /* the element count is the product of the dimension sizes,
-             not their sum */
-          size_t elements = 1;
+          size_t valueBytes;
+          size_t blobBytes;
+          size_t requiredBytes;
+          size_t offset;
+          size_t shapeBytes;
           ar = (ARRAYDAT *) p->arg[i];
-          for(j=0; j < ar->dimensions; j++) {
-            elements *= (size_t) ar->sizes[j];
+          if (UNLIKELY(osc_array_blob_sizes(
+                         ar, 1, &valueBytes, &blobBytes) != OK ||
+                       (size_t)buffersize >
+                         SIZE_MAX - sizeof(int32_t) - blobBytes)) {
+            return csound->PerfError(
+              csound, &(p->h), "%s",
+              Str("OSC array payload is invalid or too large\n"));
           }
-          size = (int32_t)(elements*sizeof(MYFLT));
-          if((size_t) buffersize + size + 8 + ar->dimensions*4 > bsize) {
-            aux_realloc(csound, buffersize + size + ar->dimensions*4 + 128,
-                        &p->aux);
+          requiredBytes =
+            (size_t)buffersize + sizeof(int32_t) + blobBytes;
+          if (UNLIKELY(requiredBytes > INT32_MAX)) {
+            return csound->PerfError(
+              csound, &(p->h), "%s", Str("OSC message is too large\n"));
+          }
+          if (requiredBytes > bsize) {
+            aux_realloc(csound, requiredBytes + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
           }
           /* blob length: dimension count field, the sizes, then the values */
-          data = 4 + ar->dimensions*4 + size;
+          data = (int32_t)blobBytes;
           byteswap((char *)&data,4);
-          memcpy(out+buffersize,&data,4);
-          buffersize += 4;
-          memcpy(out+buffersize,&(ar->dimensions),4);
-          buffersize += 4;
-          memcpy(out+buffersize,&ar->sizes[0],ar->dimensions*4);
-          buffersize += ar->dimensions*4;
-          memcpy(out+buffersize,ar->data,size);
-          buffersize += size;
+          offset = (size_t)buffersize;
+          memcpy(out + offset, &data, sizeof(data));
+          offset += sizeof(data);
+          memcpy(out + offset, &(ar->dimensions), sizeof(ar->dimensions));
+          offset += sizeof(ar->dimensions);
+          shapeBytes = (size_t)ar->dimensions * sizeof(int32_t);
+          memcpy(out + offset, ar->sizes, shapeBytes);
+          offset += shapeBytes;
+          if (valueBytes != 0)
+            memcpy(out + offset, ar->data, valueBytes);
+          buffersize = (int32_t)requiredBytes;
           break;
         }
         case 'D': {
-          /* the element count is the product of the dimension sizes,
-             not their sum */
-          size_t elements = 1;
+          size_t valueBytes;
+          size_t blobBytes;
+          size_t requiredBytes;
+          size_t offset;
           ar = (ARRAYDAT *) p->arg[i];
-          for(j=0; j < ar->dimensions; j++) {
-            elements *= (size_t) ar->sizes[j];
+          if (UNLIKELY(osc_array_blob_sizes(
+                         ar, 0, &valueBytes, &blobBytes) != OK ||
+                       (size_t)buffersize >
+                         SIZE_MAX - sizeof(int32_t) - blobBytes)) {
+            return csound->PerfError(
+              csound, &(p->h), "%s",
+              Str("OSC array payload is invalid or too large\n"));
           }
-          size = (int32_t)(elements*sizeof(MYFLT));
-          if((size_t) buffersize + size + 4 > bsize) {
-            aux_realloc(csound, buffersize + size + 128, &p->aux);
+          requiredBytes =
+            (size_t)buffersize + sizeof(int32_t) + blobBytes;
+          if (UNLIKELY(requiredBytes > INT32_MAX)) {
+            return csound->PerfError(
+              csound, &(p->h), "%s", Str("OSC message is too large\n"));
+          }
+          if (requiredBytes > bsize) {
+            aux_realloc(csound, requiredBytes + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
           }
-          data = size;
+          data = (int32_t)blobBytes;
           byteswap((char *)&data,4);
-          memcpy(out+buffersize,&data,4);
-          buffersize += 4;
-          memcpy(out+buffersize,ar->data,size);
-          buffersize += size;
+          offset = (size_t)buffersize;
+          memcpy(out + offset, &data, sizeof(data));
+          offset += sizeof(data);
+          if (valueBytes != 0)
+            memcpy(out + offset, ar->data, valueBytes);
+          buffersize = (int32_t)requiredBytes;
           break;
         }
         case 'a':

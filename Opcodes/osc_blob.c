@@ -1,6 +1,7 @@
 #include "osc_blob.h"
 
 #include <math.h>
+#include <stdint.h>
 #include <string.h>
 
 static void clear_myflt_view(OSC_MYFLT_BLOB_VIEW *view)

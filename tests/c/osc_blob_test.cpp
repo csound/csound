@@ -96,6 +96,28 @@ TEST(OscBlobTest, NumericArrayParsesUnalignedShapeAndValues)
     EXPECT_EQ(columns, parsedColumns);
 }
 
+TEST(OscBlobTest, NumericArrayAcceptsZeroDimensionAndRejectsBadIndices)
+{
+    std::vector<unsigned char> payload;
+    appendValue(payload, (int32_t)2);
+    appendValue(payload, (int32_t)3);
+    appendValue(payload, (int32_t)0);
+
+    OSC_ARRAY_BLOB_VIEW view{};
+    ASSERT_EQ(OK, osc_blob_parse_array(
+                      payload.data(), payload.size(), &view));
+    EXPECT_EQ(2, view.dimensions);
+    EXPECT_EQ(0u, view.values.count);
+    EXPECT_EQ(payload.data() + payload.size(), view.values.data);
+
+    int32_t size = -1;
+    EXPECT_EQ(NOTOK, osc_blob_array_size(&view, -1, &size));
+    EXPECT_EQ(NOTOK, osc_blob_array_size(&view, view.dimensions, &size));
+
+    OSC_ARRAY_BLOB_VIEW cleared{};
+    EXPECT_EQ(NOTOK, osc_blob_array_size(&cleared, 0, &size));
+}
+
 namespace {
 
 void expectArrayViewCleared(const OSC_ARRAY_BLOB_VIEW& view)

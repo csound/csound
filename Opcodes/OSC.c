@@ -128,6 +128,7 @@ typedef struct {
     MYFLT       *args[ARG_CNT];
     OSC_PORT    *port;
     OSCLCOMMON  c;
+    int32_t     malformedBlobWarning;
 } OSCLISTEN;
 
 typedef struct {
@@ -755,6 +756,7 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     //void  *x;
     int32_t   i, n;
 
+    p->malformedBlobWarning = 0;
     OSC_GLOBALS *pp =
       (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (UNLIKELY(pp == NULL))
@@ -813,10 +815,15 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     return OK;
 }
 
-static int32_t osc_malformed_blob(CSOUND *csound, char type)
+#define OSC_BLOB_DROPPED (1)
+
+static int32_t osc_malformed_blob(CSOUND *csound, OSCLISTEN *p, char type)
 {
-    csound->Warning(csound, Str("OSC: ignoring malformed '%c' blob\n"), type);
-    return OK;
+    if (!p->malformedBlobWarning) {
+      csound->Warning(csound, Str("OSC: ignoring malformed '%c' blob\n"), type);
+      p->malformedBlobWarning = 1;
+    }
+    return OSC_BLOB_DROPPED;
 }
 
 /* The array decoders copy raw MYFLTs, so the destination's element type
@@ -857,19 +864,19 @@ static int32_t osc_decode_direct_array(CSOUND *csound, OSCLISTEN *p,
         csound_array_has_managed_elements(array) ||
         !osc_array_element_is_myflt(csound, array, p->h.insdshead) ||
         csound_array_member_count(array, &currentCount) != OK) {
-      return osc_malformed_blob(csound, 'D');
+      return osc_malformed_blob(csound, p, 'D');
     }
     if (view.count > currentCount) {
       for (i = 0; i < array->dimensions - 1; i++) {
         if (array->sizes[i] <= 0 ||
             (size_t)array->sizes[i] > SIZE_MAX / prefixCount) {
-          return osc_malformed_blob(csound, 'D');
+          return osc_malformed_blob(csound, p, 'D');
         }
         prefixCount *= (size_t)array->sizes[i];
       }
       if (prefixCount == 0 || view.count % prefixCount != 0 ||
           view.count / prefixCount > INT32_MAX) {
-        return osc_malformed_blob(csound, 'D');
+        return osc_malformed_blob(csound, p, 'D');
       }
       newLastSize = (int32_t)(view.count / prefixCount);
       resize = 1;
@@ -909,7 +916,7 @@ static int32_t osc_decode_array(CSOUND *csound, OSCLISTEN *p,
         !osc_array_element_is_myflt(csound, array, p->h.insdshead) ||
         (array->data != NULL && array->allocated == 0 &&
          array->storage == NULL)) {
-      return osc_malformed_blob(csound, 'A');
+      return osc_malformed_blob(csound, p, 'A');
     }
     newSizes = (int32_t *)csound->Malloc(
       csound, (size_t)view.dimensions * sizeof(int32_t));
@@ -921,7 +928,7 @@ static int32_t osc_decode_array(CSOUND *csound, OSCLISTEN *p,
     for (i = 0; i < view.dimensions; i++) {
       if (UNLIKELY(osc_blob_array_size(&view, i, &newSizes[i]) != OK)) {
         csound->Free(csound, newSizes);
-        return osc_malformed_blob(csound, 'A');
+        return osc_malformed_blob(csound, p, 'A');
       }
     }
     capacity = view.values.count > 0 ? view.values.count : 1;
@@ -950,13 +957,18 @@ static int32_t osc_decode_audio(CSOUND *csound, OSCLISTEN *p, int32_t index,
                                 const void *payload, size_t payloadBytes)
 {
     OSC_MYFLT_BLOB_VIEW view;
+    MYFLT *output = p->args[index];
 
     if (osc_blob_parse_audio(payload, payloadBytes, (size_t)CS_KSMPS,
                              &view) != OK) {
-      return osc_malformed_blob(csound, 'a');
+      return osc_malformed_blob(csound, p, 'a');
     }
     if (view.count != 0) {
-      memcpy(p->args[index], view.data, view.count * sizeof(MYFLT));
+      memcpy(output, view.data, view.count * sizeof(MYFLT));
+    }
+    if (view.count < (size_t)CS_KSMPS) {
+      memset(output + view.count, 0,
+             ((size_t)CS_KSMPS - view.count) * sizeof(MYFLT));
     }
     return OK;
 }
@@ -970,7 +982,7 @@ static int32_t osc_decode_ftable(CSOUND *csound, OSCLISTEN *p, int32_t index,
 
     if (osc_blob_parse_myflts(payload, payloadBytes, &view) != OK ||
         view.count > INT32_MAX) {
-      return osc_malformed_blob(csound, 'G');
+      return osc_malformed_blob(csound, p, 'G');
     }
     if (UNLIKELY(fno <= 0)) {
       return csound->PerfError(csound, &(p->h),
@@ -1040,7 +1052,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
     m = p->c.patterns;
     /* check again for thread safety */
     if (m != NULL) {
-      int32_t i;
+      int32_t i, malformedBlob = 0;
       /* unlink from queue */
       p->c.patterns = m->next;
       /* copy arguments */
@@ -1073,7 +1085,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
           int32_t blobBytes = lo_blob_datasize(m->args[i].blob);
           int32_t blobStatus;
           if (blobBytes < 0) {
-            blobStatus = osc_malformed_blob(csound, c);
+            blobStatus = osc_malformed_blob(csound, p, c);
           }
           else {
             blobStatus = osc_decode_blob(
@@ -1082,6 +1094,10 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
           }
           csound->Free(csound, m->args[i].blob);
           m->args[i].blob = NULL;
+          if (blobStatus == OSC_BLOB_DROPPED) {
+            malformedBlob = 1;
+            blobStatus = OK;
+          }
           if (status == OK && blobStatus != OK) {
             status = blobStatus;
           }
@@ -1089,6 +1105,8 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
         else
           *(p->args[i]) = m->args[i].number;
       }
+      if (!malformedBlob)
+        p->malformedBlobWarning = 0;
       /* push to stack of free message structures */
       m->next = p->c.freePatterns;
       p->c.freePatterns = m;
