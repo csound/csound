@@ -388,7 +388,7 @@ int32_t csoundPVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE 
     PVOCEX_MEMFILE  *pp;
     int32_t           i, j, rc = 0, pvx_id, hdr_size, name_size;
     int32          totalframes, framelen;
-    size_t         mem_wanted, alloc_size;
+    size_t         mem_wanted, header_bytes, alloc_size;
     float         *pFrame;
 
     if (UNLIKELY(fname == NULL || fname[0] == '\0')) {
@@ -446,18 +446,18 @@ int32_t csoundPVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE 
       return pvx_err_msg(csound, Str("pvoc-ex file %s is too large"), fname);
     }
     mem_wanted = (size_t) totalframes * (size_t) framelen * sizeof(float);
-    if (UNLIKELY((size_t) hdr_size + (size_t) name_size >
-                 SIZE_MAX - mem_wanted)) {
+    header_bytes = (size_t) hdr_size + (size_t) name_size;
+    if (UNLIKELY(header_bytes > SIZE_MAX - mem_wanted)) {
       csound->PVOC_CloseFile(csound, pvx_id);
       return pvx_err_msg(csound, Str("pvoc-ex file %s is too large"), fname);
     }
-    alloc_size = (size_t) hdr_size + (size_t) name_size + mem_wanted;
+    alloc_size = header_bytes + mem_wanted;
     /* try for the big block first! */
     pp = (PVOCEX_MEMFILE*) csound->Malloc(csound, alloc_size);
-    memset((void*) pp, 0, (size_t) (hdr_size + name_size));
+    memset((void*) pp, 0, header_bytes);
     pp->filename = (char*) ((uintptr_t) pp + (uintptr_t) hdr_size);
     pp->nxt = csound->pvx_memfiles;
-    pp->data = (float*) ((uintptr_t) pp + (uintptr_t) (hdr_size + name_size));
+    pp->data = (float*) ((uintptr_t) pp + (uintptr_t) header_bytes);
     strcpy(pp->filename, fname);
     /* despite using pvocex infile, and pvocex-style resynth, we ~still~
        have to rescale to Csound's internal range! This is because all pvocex
@@ -514,8 +514,8 @@ int32_t csoundPVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE 
 
     /* link into PVOC-EX memfile chain */
     csound->pvx_memfiles = pp;
-    csound->Message(csound, Str("file %s (%llu bytes) loaded into memory\n"),
-                    fname, (unsigned long long) mem_wanted);
+    csound->Message(csound, Str("file %s (%zu bytes) loaded into memory\n"),
+                    fname, mem_wanted);
 
     memcpy(p, pp, sizeof(PVOCEX_MEMFILE));
     return 0;

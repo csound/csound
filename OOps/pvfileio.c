@@ -647,7 +647,7 @@ static int32_t pvoc_readheader(CSOUND *csound, PVOCFILE *p,
       return -1;
     }
     riff_end = (uint64_t) size + 8U;
-    if (UNLIKELY(riff_end != (uint64_t) file_size)) {
+    if (UNLIKELY(riff_end > (uint64_t) file_size)) {
       csound->pvErrorCode = -25;
       return -1;
     }

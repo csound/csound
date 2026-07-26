@@ -105,16 +105,27 @@ static int32_t validate_atsfile(CSOUND *csound, MEMFIL *mfp,
                                 const char *opname, const char *fname,
                                 int32_t swapped)
 {
-  ATSSTRUCT *atsh = (ATSSTRUCT *) mfp->beginp;
-  double npartials = swapped ? bswap(&atsh->npartials) : atsh->npartials;
-  double nframes = swapped ? bswap(&atsh->nfrms) : atsh->nfrms;
-  double duration = swapped ? bswap(&atsh->dur) : atsh->dur;
-  double sample_rate = swapped ? bswap(&atsh->sampr) : atsh->sampr;
-  double frame_size = swapped ? bswap(&atsh->frmsz) : atsh->frmsz;
-  double window_size = swapped ? bswap(&atsh->winsz) : atsh->winsz;
-  double ats_type = swapped ? bswap(&atsh->type) : atsh->type;
+  ATSSTRUCT *atsh;
+  double npartials, nframes, duration, sample_rate;
+  double frame_size, window_size, ats_type;
   uint64_t partial_count, frame_count, frame_values, available_values;
   int32_t type;
+
+  if (UNLIKELY(mfp == NULL || mfp->beginp == NULL ||
+               mfp->length < (int32_t) sizeof(ATSSTRUCT))) {
+    return csound->InitError(csound,
+                             Str("%s: malformed ATS file %s: "
+                                 "header is truncated"),
+                             opname, fname);
+  }
+  atsh = (ATSSTRUCT *) mfp->beginp;
+  npartials = swapped ? bswap(&atsh->npartials) : atsh->npartials;
+  nframes = swapped ? bswap(&atsh->nfrms) : atsh->nfrms;
+  duration = swapped ? bswap(&atsh->dur) : atsh->dur;
+  sample_rate = swapped ? bswap(&atsh->sampr) : atsh->sampr;
+  frame_size = swapped ? bswap(&atsh->frmsz) : atsh->frmsz;
+  window_size = swapped ? bswap(&atsh->winsz) : atsh->winsz;
+  ats_type = swapped ? bswap(&atsh->type) : atsh->type;
 
   if (UNLIKELY(!isfinite(npartials) || npartials < 0.0 ||
                npartials > (double) INT32_MAX ||

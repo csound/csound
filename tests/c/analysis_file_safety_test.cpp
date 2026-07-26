@@ -29,20 +29,18 @@ class AnalysisFileSafetyTests : public ::testing::Test {
     std::filesystem::remove_all(directory, error);
   }
 
-  std::filesystem::path writeFile(const std::string &name,
-                                  const std::vector<uint8_t> &data)
+  void writeFile(const std::filesystem::path &path,
+                 const std::vector<uint8_t> &data)
   {
-    std::filesystem::path path = directory / name;
     std::ofstream stream(path, std::ios::binary);
+    ASSERT_TRUE(stream.is_open()) << "could not open " << path;
     stream.write(reinterpret_cast<const char *>(data.data()),
                  static_cast<std::streamsize>(data.size()));
     stream.close();
-    EXPECT_TRUE(stream);
-    return path;
+    ASSERT_TRUE(stream.good()) << "could not write " << path;
   }
 
-  int32_t runFileOpcode(const std::filesystem::path &path,
-                        const std::string &statement)
+  int32_t runFileOpcode(const std::string &statement)
   {
     std::string csd =
       "<CsoundSynthesizer>\n"
@@ -189,20 +187,22 @@ TEST_F(AnalysisFileSafetyTests, AtsMutationsFailCleanly)
   const std::array<size_t, 3> lengths = {1, 79, valid.size() - 1};
   for (size_t length : lengths) {
     std::vector<uint8_t> truncated(valid.begin(), valid.begin() + length);
-    auto path = writeFile("truncated-" + std::to_string(length) + ".ats",
-                          truncated);
+    auto path =
+      directory / ("truncated-" + std::to_string(length) + ".ats");
+    ASSERT_NO_FATAL_FAILURE(writeFile(path, truncated));
     std::string statement =
       "iValue ATSinfo \"" + path.generic_string() + "\", 0";
-    EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(path, statement));
+    EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(statement));
   }
 
   std::vector<uint8_t> corrupt = valid;
   double count = static_cast<double>(INT32_MAX);
   std::memcpy(corrupt.data() + 5 * sizeof(double), &count, sizeof(count));
-  auto path = writeFile("corrupt-count.ats", corrupt);
+  auto path = directory / "corrupt-count.ats";
+  ASSERT_NO_FATAL_FAILURE(writeFile(path, corrupt));
   std::string statement =
     "iValue ATSinfo \"" + path.generic_string() + "\", 0";
-  EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(path, statement));
+  EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(statement));
 }
 
 TEST_F(AnalysisFileSafetyTests, HetroMutationsFailCleanly)
@@ -211,47 +211,64 @@ TEST_F(AnalysisFileSafetyTests, HetroMutationsFailCleanly)
   const std::array<size_t, 4> lengths = {1, 2, 4, valid.size() - 1};
   for (size_t length : lengths) {
     std::vector<uint8_t> truncated(valid.begin(), valid.begin() + length);
-    auto path = writeFile("truncated-" + std::to_string(length) + ".het",
-                          truncated);
+    auto path =
+      directory / ("truncated-" + std::to_string(length) + ".het");
+    ASSERT_NO_FATAL_FAILURE(writeFile(path, truncated));
     std::string statement =
       "aSignal adsyn 1, 1, 1, \"" + path.generic_string() + "\"";
-    EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(path, statement));
+    EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(statement));
   }
 
   std::vector<uint8_t> corrupt = valid;
   int16_t count = INT16_MAX;
   std::memcpy(corrupt.data(), &count, sizeof(count));
-  auto path = writeFile("corrupt-count.het", corrupt);
+  auto path = directory / "corrupt-count.het";
+  ASSERT_NO_FATAL_FAILURE(writeFile(path, corrupt));
   std::string statement =
     "aSignal adsyn 1, 1, 1, \"" + path.generic_string() + "\"";
-  EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(path, statement));
+  EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(statement));
 }
 
 TEST_F(AnalysisFileSafetyTests, PvxMutationsFailCleanly)
 {
   const std::vector<uint8_t> valid = makePvxFile();
-  auto valid_path = writeFile("valid.pvx", valid);
+  auto valid_path = directory / "valid.pvx";
+  ASSERT_NO_FATAL_FAILURE(writeFile(valid_path, valid));
   ASSERT_EQ(0, loadPvx(valid_path));
+
+  std::vector<uint8_t> trailing = valid;
+  trailing.push_back(0xAA);
+  trailing.push_back(0x55);
+  auto trailing_path = directory / "valid-trailing.pvx";
+  ASSERT_NO_FATAL_FAILURE(writeFile(trailing_path, trailing));
+  ASSERT_EQ(0, loadPvx(trailing_path));
 
   const std::array<size_t, 4> lengths = {1, 12, 99, valid.size() - 1};
   for (size_t length : lengths) {
     std::vector<uint8_t> truncated(valid.begin(), valid.begin() + length);
-    auto path = writeFile("truncated-" + std::to_string(length) + ".pvx",
-                          truncated);
+    auto path =
+      directory / ("truncated-" + std::to_string(length) + ".pvx");
+    ASSERT_NO_FATAL_FAILURE(writeFile(path, truncated));
     EXPECT_NE(0, loadPvx(path));
   }
 
   std::vector<uint8_t> corrupt_riff = valid;
   putU32(corrupt_riff, 4, UINT32_MAX);
-  EXPECT_NE(0, loadPvx(writeFile("corrupt-riff-size.pvx", corrupt_riff)));
+  auto corrupt_riff_path = directory / "corrupt-riff-size.pvx";
+  ASSERT_NO_FATAL_FAILURE(writeFile(corrupt_riff_path, corrupt_riff));
+  EXPECT_NE(0, loadPvx(corrupt_riff_path));
 
   std::vector<uint8_t> corrupt_bins = valid;
   putU32(corrupt_bins, 76, 0x7FFFFFFF);
-  EXPECT_NE(0, loadPvx(writeFile("corrupt-bin-count.pvx", corrupt_bins)));
+  auto corrupt_bins_path = directory / "corrupt-bin-count.pvx";
+  ASSERT_NO_FATAL_FAILURE(writeFile(corrupt_bins_path, corrupt_bins));
+  EXPECT_NE(0, loadPvx(corrupt_bins_path));
 
   std::vector<uint8_t> corrupt_data = valid;
   putU32(corrupt_data, 104, UINT32_MAX);
-  EXPECT_NE(0, loadPvx(writeFile("corrupt-data-size.pvx", corrupt_data)));
+  auto corrupt_data_path = directory / "corrupt-data-size.pvx";
+  ASSERT_NO_FATAL_FAILURE(writeFile(corrupt_data_path, corrupt_data));
+  EXPECT_NE(0, loadPvx(corrupt_data_path));
 }
 
 } // namespace
