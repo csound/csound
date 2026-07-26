@@ -1062,7 +1062,8 @@ static int32_t chnget_opcode_perf_a(CSOUND* csound, CHNGET* p)
   if (CS_KSMPS ==(uint32_t) csound->ksmps){
     csoundSpinLock(p->lock);
     if (UNLIKELY(offset)) memset(p->arg, '\0', sizeof(MYFLT)*offset);
-    memcpy(&p->arg[offset], p->fp, sizeof(MYFLT)*(CS_KSMPS-offset-early));
+    memcpy(&p->arg[offset], &p->fp[offset],
+           sizeof(MYFLT)*(CS_KSMPS-offset-early));
     if (UNLIKELY(early))
       memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
     csoundSpinUnLock(p->lock);
@@ -1881,7 +1882,7 @@ int32_t chnget_array_opcode_perf_a(CSOUND *csound, CHNGETARRAY *p)
       if (UNLIKELY(offset))
         memset(outPtr, '\0', sizeof(MYFLT) * offset);
       memcpy(&outPtr[offset],
-             p->channelPtrs[index],
+             &p->channelPtrs[index][offset],
              sizeof(MYFLT) * (CS_KSMPS - offset - early));
       if (UNLIKELY(early))
         memset(&outPtr[CS_KSMPS - early],

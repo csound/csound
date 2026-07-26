@@ -69,6 +69,23 @@ instr 5  ; reader at the global ksmps
   endif
   kStarted = 1
 endin
+
+instr 6  ; sample-accurate readers at the global ksmps
+  SNames[] fillarray "left", "right"
+  aValues[] chngeta SNames
+  aValue chnget "left"
+  kFirst init 1
+  if kFirst == 1 then
+    kOffset offsetsmps
+    kExpected = kOffset / sr
+    if kOffset == 0 || k(aValues[0]) != kExpected || k(aValue) != kExpected then
+      printks "global-ksmps offset read mismatch: offset=%d, array=%.6f, scalar=%.6f, expected=%.6f\n", 0, \
+              kOffset, k(aValues[0]), k(aValue), kExpected
+      exitnowk(-1)
+    endif
+    kFirst = 0
+  endif
+endin
 </CsInstruments>
 <CsScore>
 i 1 0 0.5
@@ -76,5 +93,6 @@ i 2 0 0.5
 i 3 0.03125 0.25
 i 4 0 0.5
 i 5 0 0.5
+i 6 0.03125 0.25
 </CsScore>
 </CsoundSynthesizer>
