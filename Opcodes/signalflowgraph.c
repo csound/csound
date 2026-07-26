@@ -49,6 +49,7 @@ typedef struct SFG_CONNECTION_ {
 typedef struct SFG_FTABLE_ {
   int32_t pcnt;
   MYFLT *pfields;
+  char *string_parameter;
   unsigned long string_hash;
   int32_t fno;
   struct SFG_FTABLE_ *next;
@@ -277,6 +278,7 @@ static int32_t sfg_reset(CSOUND *csound, void *user_data)
     ftable = state->ftables;
     state->ftables = ftable->next;
     csound->Free(csound, ftable->pfields);
+    csound->Free(csound, ftable->string_parameter);
     csound->Free(csound, ftable);
   }
   if (state->ftables_lock != NULL) {
@@ -306,13 +308,19 @@ static int32_t sfg_create_state(CSOUND *csound)
   if (slot == NULL)
     return NOTOK;
   state = (SFG_STATE *)csound->Calloc(csound, sizeof(SFG_STATE));
-  if (state == NULL)
+  if (state == NULL) {
+    csound->DestroyGlobalVariable(csound, SFG_GLOBAL_NAME);
     return NOTOK;
+  }
   state->csound = csound;
   state->ports_lock = csound->Create_Mutex(0);
   state->ftables_lock = csound->Create_Mutex(0);
   *slot = state;
-  return csound->RegisterResetCallback(csound, state, sfg_reset);
+  if (csound->RegisterResetCallback(csound, state, sfg_reset) != OK) {
+    sfg_reset(csound, NULL);
+    return NOTOK;
+  }
+  return OK;
 }
 
 static void sfg_make_port_id(CSOUND *csound, OPDS *h, STRINGDAT *name,
@@ -322,7 +330,9 @@ static void sfg_make_port_id(CSOUND *csound, OPDS *h, STRINGDAT *name,
   const char *instrument_name = NULL;
   int32_t instrument_number = h->insdshead->insno;
 
-  if (instruments != NULL && instruments[instrument_number] != NULL)
+  if (instrument_number >= 0 &&
+      instrument_number <= csound->engineState.maxinsno &&
+      instruments != NULL && instruments[instrument_number] != NULL)
     instrument_name = instruments[instrument_number]->insname;
   if (instrument_name != NULL)
     snprintf(result, SFG_MAX_ID, "%s:%s", instrument_name, name->data);
@@ -641,6 +651,10 @@ static int32_t sfg_inletv_init(CSOUND *csound, SFG_INLETV *p)
   if (p->state == NULL)
     return csound->InitError(csound, "%s",
                              Str("signal-flow graph is not initialized"));
+  if (p->signal == NULL || p->signal->dimensions < 1 ||
+      p->signal->sizes == NULL || p->signal->data == NULL)
+    return csound->InitError(csound, "%s",
+                             Str("inletv: output array is not initialized"));
   p->value_count = sfg_array_value_count(p->signal);
   sfg_make_port_id(csound, &p->h, p->name, p->sink_id);
   return OK;
@@ -837,9 +851,12 @@ static int32_t sfg_alwayson(CSOUND *csound, SFG_ALWAYSON *p)
 
 static int32_t sfg_alwayson_s(CSOUND *csound, SFG_ALWAYSON_S *p)
 {
-  MYFLT instrument =
-      (MYFLT)csound->StringArg2Insno(csound, p->instrument->data, 1);
-  return sfg_schedule_alwayson(csound, &p->h, instrument, p->args);
+  int32_t instrument =
+      csound->StringArg2Insno(csound, p->instrument->data, 1);
+  if (instrument < 0)
+    return csound->InitError(csound, Str("alwayson: instrument \"%s\" not found"),
+                             p->instrument->data);
+  return sfg_schedule_alwayson(csound, &p->h, (MYFLT)instrument, p->args);
 }
 
 static unsigned long sfg_hash_string(const unsigned char *text)
@@ -852,11 +869,16 @@ static unsigned long sfg_hash_string(const unsigned char *text)
 }
 
 static int32_t sfg_ftable_matches(const SFG_FTABLE *cached, const EVTBLK *event,
+                                  const char *string_parameter,
                                   unsigned long string_hash)
 {
   int32_t i;
   if (cached->pcnt != event->pcnt ||
       cached->string_hash != string_hash)
+    return 0;
+  if ((cached->string_parameter == NULL) != (string_parameter == NULL) ||
+      (string_parameter != NULL &&
+       strcmp(cached->string_parameter, string_parameter) != 0))
     return 0;
   for (i = 0; i <= event->pcnt; ++i) {
     if (cached->pfields[i] != event->p[i])
@@ -951,7 +973,7 @@ static int32_t sfg_ftgenonce(CSOUND *csound, SFG_FTGEN *p,
   *p->ifno = FL(0.0);
   csound->LockMutex(state->ftables_lock);
   for (cached = state->ftables; cached != NULL; cached = cached->next) {
-    if (sfg_ftable_matches(cached, &event, string_hash)) {
+    if (sfg_ftable_matches(cached, &event, event.strarg, string_hash)) {
       *p->ifno = (MYFLT)cached->fno;
       csound->UnlockMutex(state->ftables_lock);
       csound->Free(csound, pfields);
@@ -974,6 +996,16 @@ static int32_t sfg_ftgenonce(CSOUND *csound, SFG_FTGEN *p,
   }
   entry->pcnt = event.pcnt;
   entry->pfields = pfields;
+  if (event.strarg != NULL) {
+    entry->string_parameter = csound->Strdup(csound, event.strarg);
+    if (entry->string_parameter == NULL) {
+      csound->UnlockMutex(state->ftables_lock);
+      csound->Free(csound, entry);
+      csound->Free(csound, pfields);
+      return csound->InitError(csound, "%s",
+                               Str("ftgenonce: allocation failed"));
+    }
+  }
   entry->string_hash = string_hash;
   entry->fno = function->fno;
   entry->next = state->ftables;
