@@ -4,7 +4,7 @@
 #include "csound.h"
 #include "csound_type_system.h"
 #include "csdl.h"
-#include "bus.h"
+#include "pstream.h"
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
 #define csoundScoreEvent(a,b,c,d) csoundEvent(a,0,c,d,0)
@@ -237,6 +237,12 @@ TEST_F (ChannelTests, PVSOpcodes)
                                          PVS_WIN_HANN, PVS_AMP_FREQ);
     ASSERT_NE(nullptr, input);
     csoundSetPvsData(input, frame);
+
+    PVSDAT *invalidDestination =
+      csoundInitPvsChannel(csound, "invalid-input",
+                           fftSize, overlap, windowSize,
+                           PVS_WIN_HANN, PVS_AMP_FREQ);
+    ASSERT_NE(nullptr, invalidDestination);
 
     PVSDAT invalidInput = *input;
     invalidInput.frame.size -= sizeof(float);
