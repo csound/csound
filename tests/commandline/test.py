@@ -530,6 +530,7 @@ def runTest():
         ["test_gen44_matrix_negative.csd", "reject a negative GEN44 matrix size", 1],
         ["test_gen44_matrix_zero.csd", "reject a zero GEN44 matrix size", 1],
         ["test_gen44_matrix_malformed.csd", "reject a malformed GEN44 matrix size", 1],
+        ["test_gen44_matrix_missing_close.csd", "reject a GEN44 header without >", 1],
         ["test_gen49_defer.csd", "test GEN49 deferred length"],
         ["test_ftload_binary_args_ownership.csd", "test binary ftload does not share args ownership"],
         ["test_getftargs_empty_after_ftload.csd", "test getftargs returns empty args after binary ftload"],

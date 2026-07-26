@@ -2533,7 +2533,7 @@ static int32_t gen44(FGDATA *ff, FUNC *ftp)
     intmax_t parsedSize;
     uint64_t matrixLength64;
     size_t matrixIndex;
-    int32_t matrixSize, matrixLength;
+    int32_t matrixSize, matrixLength, foundClose;
     int32_t i, j, n, result = OK;
     MYFLT stiffness;
 
@@ -2565,15 +2565,17 @@ static int32_t gen44(FGDATA *ff, FUNC *ftp)
     sizeText += 5;
     errno = 0;
     parsedSize = strtoimax(sizeText, &end, 10);
+    foundClose = 0;
     while (isspace((unsigned char)*end))
       end++;
     if (*end == '>') {
       end++;
+      foundClose = 1;
       while (isspace((unsigned char)*end))
         end++;
     }
     if (UNLIKELY(end == sizeText || errno == ERANGE ||
-                 *end != '\0' || parsedSize <= 0 ||
+                 !foundClose || *end != '\0' || parsedSize <= 0 ||
                  parsedSize > INT32_MAX)) {
       result = csoundFtError(ff, Str("GEN44: Invalid matrix size\n"));
       goto gen44done;
