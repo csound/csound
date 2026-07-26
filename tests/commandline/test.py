@@ -801,6 +801,14 @@ def runTest():
         ],
     ]
 
+    if not csoundExecutable.lower().endswith((".wasm", ".cwasm")):
+        tests.append(
+            [
+                "test_signalflowgraph_lifetime.csd",
+                "test signal-flow graph cleanup and ftgenonce",
+            ]
+        )
+
     arrayTests = [
         ["arrays/arrays_i_local.csd", "local i[]"],
         ["arrays/arrays_i_global.csd", "global i[]"],

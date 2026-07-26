@@ -181,7 +181,29 @@ unsigned long djb2_hash(unsigned char *str) {
  */
 struct EventBlock {
   EVTBLK evtblk;
+  std::vector<MYFLT> pfields;
   unsigned long strarg_djb2_hash;
+
+  explicit EventBlock(size_t pfieldCount)
+      : evtblk{}, pfields(pfieldCount, FL(0.0)), strarg_djb2_hash(0) {
+    evtblk.p = pfields.data();
+  }
+
+  EventBlock(const EventBlock &other)
+      : evtblk(other.evtblk), pfields(other.pfields),
+        strarg_djb2_hash(other.strarg_djb2_hash) {
+    evtblk.p = pfields.data();
+  }
+
+  EventBlock &operator=(const EventBlock &other) {
+    if (this != &other) {
+      evtblk = other.evtblk;
+      pfields = other.pfields;
+      strarg_djb2_hash = other.strarg_djb2_hash;
+      evtblk.p = pfields.data();
+    }
+    return *this;
+  }
 };
 
 
@@ -315,9 +337,11 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
         sfg_globals->aoutletsForSourceOutletIds[sourceOutletId];
     std::vector<Outleta *>::iterator thisoutlet =
         std::find(aoutlets.begin(), aoutlets.end(), this);
-    aoutlets.erase(thisoutlet);
-    warn(csound, Str("Removed instance 0x%x of %d instances of outleta %s\n"),
-         this, aoutlets.size(), sourceOutletId);
+    if (thisoutlet != aoutlets.end()) {
+      aoutlets.erase(thisoutlet);
+      warn(csound, Str("Removed instance %p of %zu instances of outleta %s\n"),
+           (void *)this, aoutlets.size(), sourceOutletId);
+    }
     return OK;
   }
 };
@@ -459,9 +483,11 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
         sfg_globals->koutletsForSourceOutletIds[sourceOutletId];
     std::vector<Outletk *>::iterator thisoutlet =
         std::find(koutlets.begin(), koutlets.end(), this);
-    koutlets.erase(thisoutlet);
-    warn(csound, Str("Removed 0x%x of %d instances of outletk %s\n"), this,
-         koutlets.size(), sourceOutletId);
+    if (thisoutlet != koutlets.end()) {
+      koutlets.erase(thisoutlet);
+      warn(csound, Str("Removed %p of %zu instances of outletk %s\n"),
+           (void *)this, koutlets.size(), sourceOutletId);
+    }
     return OK;
   }
 };
@@ -585,13 +611,16 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
     return OK;
   }
   int32_t noteoff(CSOUND *csound) {
+    LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::vector<Outletf *> &foutlets =
         sfg_globals->foutletsForSourceOutletIds[sourceOutletId];
     std::vector<Outletf *>::iterator thisoutlet =
         std::find(foutlets.begin(), foutlets.end(), this);
-    foutlets.erase(thisoutlet);
-    warn(csound, Str("Removed 0x%x of %d instances of outletf %s\n"), this,
-         foutlets.size(), sourceOutletId);
+    if (thisoutlet != foutlets.end()) {
+      foutlets.erase(thisoutlet);
+      warn(csound, Str("Removed %p of %zu instances of outletf %s\n"),
+           (void *)this, foutlets.size(), sourceOutletId);
+    }
     return OK;
   }
 };
@@ -793,9 +822,11 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
         sfg_globals->voutletsForSourceOutletIds[sourceOutletId];
     std::vector<Outletv *>::iterator thisoutlet =
         std::find(voutlets.begin(), voutlets.end(), this);
-    voutlets.erase(thisoutlet);
-    warn(csound, Str("Removed 0x%x of %d instances of outletv %s\n"), this,
-         voutlets.size(), sourceOutletId);
+    if (thisoutlet != voutlets.end()) {
+      voutlets.erase(thisoutlet);
+      warn(csound, Str("Removed %p of %zu instances of outletv %s\n"),
+           (void *)this, voutlets.size(), sourceOutletId);
+    }
     return OK;
   }
 };
@@ -961,9 +992,11 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
         sfg_globals->kidoutletsForSourceOutletIds[sourceOutletId];
     std::vector<Outletkid *>::iterator thisoutlet =
         std::find(koutlets.begin(), koutlets.end(), this);
-    koutlets.erase(thisoutlet);
-    warn(csound, Str("Removed 0x%x of %d instances of outletkid %s\n"), this,
-         koutlets.size(), sourceOutletId);
+    if (thisoutlet != koutlets.end()) {
+      koutlets.erase(thisoutlet);
+      warn(csound, Str("Removed %p of %zu instances of outletkid %s\n"),
+           (void *)this, koutlets.size(), sourceOutletId);
+    }
     return OK;
   }
 };
@@ -1303,14 +1336,27 @@ static void warn(CSOUND *csound, const char *format, ...) {
  */
 static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
                       bool hasStringParameter) {
-  SignalFlowGraphState *sfg_globals;
+  if (UNLIKELY(p == nullptr || p->ifno == nullptr || p->p1 == nullptr ||
+               p->p2 == nullptr || p->p3 == nullptr || p->p4 == nullptr ||
+               p->p5 == nullptr)) {
+    return csound->InitError(csound, "%s", Str("ftgenonce: invalid arguments"));
+  }
+  SignalFlowGraphState *sfg_globals = nullptr;
   QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+  if (UNLIKELY(sfg_globals == nullptr ||
+               sfg_globals->signal_flow_ftables_lock == nullptr)) {
+    return csound->InitError(csound, "%s",
+                             Str("ftgenonce: not initialized"));
+  }
   LockGuard guard(csound, sfg_globals->signal_flow_ftables_lock);
   int32_t result = OK;
-  EventBlock eventBlock;
+  int32_t inputArgCount = GetInputArgCnt((OPDS *)p);
+  if (UNLIKELY(inputArgCount < 5)) {
+    return csound->InitError(csound, "%s", Str("ftgenonce: invalid arguments"));
+  }
+  EventBlock eventBlock((size_t)inputArgCount + 1);
   EVTBLK *ftevt = &eventBlock.evtblk;
   *p->ifno = FL(0.0);
-  std::memset(ftevt, 0, sizeof(EVTBLK));
   // ifno ftgenonce ipfno, ip2dummy, ip4size, ip5gen, ip6arga, ip7argb,...
   ftevt->opcod = 'f';
   ftevt->strarg = 0;
@@ -1329,11 +1375,8 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       named = named->next; /*  and round again   */
     }
     if (UNLIKELY(named == 0)) {
-      if (sfg_globals->signal_flow_ftables_lock != 0) {
-        csound->UnlockMutex(sfg_globals->signal_flow_ftables_lock);
-      }
       return csound->InitError(csound, Str("Named gen \"%s\" not defined"),
-                               (char *)p->p4);
+                               ((STRINGDAT *)p->p4)->data);
     } else {
       ftevt->p[4] = named->genum;
     }
@@ -1354,21 +1397,22 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       ftevt->strarg = ((STRINGDAT *)p->p5)->data;
       break;
     default:
-      if (sfg_globals->signal_flow_ftables_lock != 0) {
-        csound->UnlockMutex(sfg_globals->signal_flow_ftables_lock);
-      }
       return csound->InitError(csound, "%s", Str("ftgen string arg not allowed"));
     }
   } else {
     ftevt->p[5] = *p->p5;
   }
   // Copy the remaining parameters.
-  ftevt->pcnt = (int16)GetInputArgCnt((OPDS *)p);
+  ftevt->pcnt = inputArgCount;
   int32_t n = ftevt->pcnt - 5;
   if (n > 0) {
     MYFLT **argp = p->argums;
     MYFLT *fp = &ftevt->p[0] + 6;
     do {
+      if (UNLIKELY(*argp == nullptr)) {
+        return csound->InitError(csound, "%s",
+                                 Str("ftgenonce: invalid arguments"));
+      }
       *fp++ = **argp++;
     } while (--n);
   }
@@ -1434,19 +1478,20 @@ static OENTRY oentries[] = {
     {(char *)"inleta", sizeof(Inleta), _CR,  (char *)"a", (char *)"S",
      (SUBR)&Inleta::init_, (SUBR)&Inleta::audio_},
     {(char *)"outletk", sizeof(Outletk), _CW,  (char *)"", (char *)"Sk",
-     (SUBR)&Outletk::init_, (SUBR)&Outletk::kontrol_, (SUBR)&Outleta::deinit_},
+     (SUBR)&Outletk::init_, (SUBR)&Outletk::kontrol_, (SUBR)&Outletk::deinit_},
     {(char *)"inletk", sizeof(Inletk), _CR,  (char *)"k", (char *)"S",
      (SUBR)&Inletk::init_, (SUBR)&Inletk::kontrol_, 0},
     {(char *)"outletkid", sizeof(Outletkid), _CW,  (char *)"", (char *)"SSk",
-     (SUBR)&Outletk::init_, (SUBR)&Outletk::kontrol_, (SUBR)&Outleta::deinit_},
+     (SUBR)&Outletkid::init_, (SUBR)&Outletkid::kontrol_,
+     (SUBR)&Outletkid::deinit_},
     {(char *)"inletkid", sizeof(Inletkid), _CR,  (char *)"k", (char *)"SS",
-     (SUBR)&Inletk::init_, (SUBR)&Inletk::kontrol_, 0},
+     (SUBR)&Inletkid::init_, (SUBR)&Inletkid::kontrol_, 0},
     {(char *)"outletf", sizeof(Outletf), _CW,  (char *)"", (char *)"Sf",
-     (SUBR)&Outletf::init_, (SUBR)&Outletf::audio_, (SUBR)&Outleta::deinit_},
+     (SUBR)&Outletf::init_, (SUBR)&Outletf::audio_, (SUBR)&Outletf::deinit_},
     {(char *)"inletf", sizeof(Inletf), _CR,  (char *)"f", (char *)"S",
      (SUBR)&Inletf::init_, (SUBR)&Inletf::audio_},
     {(char *)"outletv", sizeof(Outletv), _CW,  (char *)"", (char *)"Sa[]",
-     (SUBR)&Outletv::init_, (SUBR)&Outletv::audio_, (SUBR)&Outleta::deinit_},
+     (SUBR)&Outletv::init_, (SUBR)&Outletv::audio_, (SUBR)&Outletv::deinit_},
     {(char *)"inletv", sizeof(Inletv), _CR,  (char *)"a[]", (char *)"S",
      (SUBR)&Inletv::init_, (SUBR)&Inletv::audio_},
     {(char *)"connect", sizeof(Connect), 0,  (char *)"", (char *)"iSiSp",
