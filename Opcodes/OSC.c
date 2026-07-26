@@ -1236,8 +1236,10 @@ static int32_t OSC_ahandler(const char *path, const char *types,
 
 static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
 {
-    //void  *x;
-    int32_t   i, n;
+    int32_t i, n;
+    const char *path = (const char *)p->dest->data;
+    const char *types = (const char *)p->type->data;
+    size_t pathLength, typeLength;
 
     OSC_GLOBALS *pp =
       (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
@@ -1251,16 +1253,12 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
     if (UNLIKELY(p->port == NULL || p->port->thread == NULL ||
                  p->port->mutex_ == NULL))
       return csound->InitError(csound, "%s", Str("invalid handle"));
-    p->c.saved_path = (char*) csound->Malloc(csound,
-                                           strlen((char*) p->dest->data) + 1);
-    strcpy(p->c.saved_path, (char*) p->dest->data);
-    /* check for a valid argument list */
-    n = (int32_t)strlen((char *)p->type->data);
-    if (UNLIKELY(tabinit(csound, p->args, n, p->h.insdshead) != OK))
-      return csound_array_init_resize_error(csound);
-    strcpy(p->c.saved_types, (char*) p->type->data);
+    typeLength = strlen(types);
+    if (UNLIKELY(typeLength >= ARG_CNT))
+      return csound->InitError(csound, "%s", Str("too many OSC types"));
+    n = (int32_t)typeLength;
     for (i = 0; i < n; i++) {
-      switch (p->c.saved_types[i]) {
+      switch (types[i]) {
       case 'c':
       case 'd':
       case 'f':
@@ -1271,6 +1269,12 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
         return csound->InitError(csound, "%s", Str("invalid type"));
       }
     }
+    if (UNLIKELY(tabinit(csound, p->args, n, p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
+    pathLength = strlen(path);
+    p->c.saved_path = (char*)csound->Malloc(csound, pathLength + 1);
+    memcpy(p->c.saved_path, path, pathLength + 1);
+    memcpy(p->c.saved_types, types, typeLength + 1);
     csound->LockMutex(p->port->mutex_);
     p->c.nxt = p->port->oplst;
     p->port->oplst = (void*) &p->c;

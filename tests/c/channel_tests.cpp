@@ -318,6 +318,40 @@ TEST_F (ChannelTests, ArrayDataSetterRejectsManagedElements)
     EXPECT_EQ(originalString, currentString);
 }
 
+TEST_F (ChannelTests, InvalidArrayChannelShapeDoesNotPublishMetadata)
+{
+    const int32_t invalidSizes[] = {-1};
+    const int32_t validSizes[] = {2};
+    void *channelPointer = nullptr;
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetChannelPtr(
+      csound, &channelPointer, "array-shape",
+      CSOUND_ARRAY_CHANNEL | CSOUND_INPUT_CHANNEL |
+      CSOUND_OUTPUT_CHANNEL));
+    ARRAYDAT *array = static_cast<ARRAYDAT *>(channelPointer);
+    ASSERT_NE(nullptr, array);
+    const int32_t oldDimensions = array->dimensions;
+    int32_t *const oldSizes = array->sizes;
+    const CS_TYPE *const oldArrayType = array->arrayType;
+    MYFLT *const oldData = array->data;
+    const size_t oldAllocated = array->allocated;
+
+    EXPECT_EQ(nullptr, csoundInitArrayChannel(
+      csound, "array-shape", "k", 1, invalidSizes));
+    EXPECT_EQ(oldDimensions, array->dimensions);
+    EXPECT_EQ(oldSizes, array->sizes);
+    EXPECT_EQ(oldArrayType, array->arrayType);
+    EXPECT_EQ(oldData, array->data);
+    EXPECT_EQ(oldAllocated, array->allocated);
+
+    EXPECT_EQ(array, csoundInitArrayChannel(
+      csound, "array-shape", "k", 1, validSizes));
+    EXPECT_EQ(1, array->dimensions);
+    ASSERT_NE(nullptr, array->sizes);
+    EXPECT_EQ(2, array->sizes[0]);
+    EXPECT_NE(nullptr, array->data);
+}
+
 const char orc6[] = "chn_k \"chan\", 3, 2, 0.5, 0, 1, 10, 10, 50, 100\n"
         "chn_k \"chan2\", 3, 2, 0.5, 0, 1, 10, 10, 50, 100, \"testattr\"\n"
         "chn_k \"chan3\", 3, 2, 0.5, 0, 1\n"

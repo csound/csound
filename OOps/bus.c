@@ -2517,6 +2517,50 @@ int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p)
 }
 
 /* ARRAY channels implementation - VL 7.08.24 */
+static int32_t prepare_array_channel(CSOUND *csound, ARRAYDAT *prepared,
+                                     const CS_TYPE *elementType,
+                                     int32_t dimensions,
+                                     const int32_t *sizes, INSDS *ctx)
+{
+  size_t totalSize = 1;
+
+  if (UNLIKELY(prepared == NULL || elementType == NULL ||
+               dimensions <= 0 || sizes == NULL ||
+               (size_t)dimensions > SIZE_MAX / sizeof(int32_t)))
+    return NOTOK;
+
+  prepared->arrayType = elementType;
+  prepared->dimensions = dimensions;
+  prepared->sizes = (int32_t *)csound->Calloc(
+    csound, (size_t)dimensions * sizeof(int32_t));
+  if (UNLIKELY(prepared->sizes == NULL))
+    return NOTOK;
+
+  for (int32_t i = 0; i < dimensions; i++) {
+    if (UNLIKELY(sizes[i] < 0 ||
+                 (sizes[i] != 0 &&
+                  totalSize > (size_t)INT32_MAX / (size_t)sizes[i]))) {
+      csound_free_array_storage(csound, prepared);
+      return NOTOK;
+    }
+    prepared->sizes[i] = sizes[i];
+    totalSize *= (size_t)sizes[i];
+  }
+  if (UNLIKELY(tabinit(csound, prepared, (int32_t)totalSize, ctx) != OK)) {
+    csound_free_array_storage(csound, prepared);
+    return NOTOK;
+  }
+  return OK;
+}
+
+static void publish_array_channel(CSOUND *csound, ARRAYDAT *destination,
+                                  ARRAYDAT *prepared)
+{
+  csound_free_array_storage(csound, destination);
+  *destination = *prepared;
+  memset(prepared, 0, sizeof(*prepared));
+}
+
 static inline int32_t copy_array(CSOUND *csound, ARRAYDAT *out,
                                  const ARRAYDAT *in, spin_lock_t *lock,
                                  CSOUND_ARRAY_COPY_MODE mode)
@@ -2676,8 +2720,12 @@ int32_t chnset_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
 /* chn opcode (array channel) */
 int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
 {
+  ARRAYDAT prepared = {0};
   ARRAYDAT *adat;
-  int32_t   type, mode, err, siz = 0, i;
+  const CS_TYPE *elementType;
+  int32_t *sizes;
+  size_t dimensionCount;
+  int32_t type, mode, err, dimensions;
 
   mode = (int32_t) MYFLT2LRND(*(p->imode));
   if (UNLIKELY(mode < 1 || mode > 3))
@@ -2690,17 +2738,39 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
   err = csoundGetChannelPtr(csound, (void **) &adat, (char*) p->iname->data, type);
   if (UNLIKELY(err))
     return print_chn_err(p, err);
-  adat->dimensions = (int32_t) p->idim->sizes[0];
-  adat->sizes = (int32_t *) csound->Calloc(csound,
-                                           adat->dimensions*sizeof(int32_t));
-  siz = (adat->sizes[0] = (int32_t) MYFLT2LRND(p->idim->data[0]));
-  for(i = 1; i < adat->dimensions; i++)
-    siz *= (adat->sizes[i] = (int32_t) MYFLT2LRND(p->idim->data[i]));
 
-  adat->arrayType = (CS_TYPE *)
-    csoundGetTypeWithVarTypeName(csound->typePool, p->type->data);
-  if (UNLIKELY(tabinit(csound, adat, siz, p->h.insdshead) != OK))
+  if (UNLIKELY(p->idim == NULL || p->idim->data == NULL ||
+               p->idim->dimensions != 1 || p->idim->sizes == NULL ||
+               csound_array_member_count(p->idim, &dimensionCount) != OK ||
+               dimensionCount == 0 || dimensionCount > INT32_MAX))
+    return csound->InitError(csound, "%s",
+                             Str("invalid array channel dimensions"));
+  dimensions = (int32_t)dimensionCount;
+  sizes = (int32_t *)csound->Malloc(
+    csound, dimensionCount * sizeof(int32_t));
+  if (UNLIKELY(sizes == NULL))
     return csound_array_init_resize_error(csound);
+  for (int32_t i = 0; i < dimensions; i++) {
+    double size = (double)p->idim->data[i];
+    double roundedSize = nearbyint(size);
+    if (UNLIKELY(isnan(size) || size < 0.0 ||
+                 roundedSize >= (double)INT32_MAX + 1.0)) {
+      csound->Free(csound, sizes);
+      return csound->InitError(csound, "%s",
+                               Str("invalid array channel dimensions"));
+    }
+    sizes[i] = (int32_t)roundedSize;
+  }
+  elementType = csoundGetTypeWithVarTypeName(
+    csound->typePool, p->type->data);
+  if (UNLIKELY(prepare_array_channel(
+                 csound, &prepared, elementType, dimensions, sizes,
+                 p->h.insdshead) != OK)) {
+    csound->Free(csound, sizes);
+    return csound_array_init_resize_error(csound);
+  }
+  csound->Free(csound, sizes);
+  publish_array_channel(csound, adat, &prepared);
   return OK;
 }
 
@@ -2978,7 +3048,9 @@ int32_t csoundGetPvsChannel(CSOUND *csound, const char *name,
 ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
                                  const char *type, int32_t dimensions,
                                  const int32_t *sizes) {
-  int32_t i, siz = 0, err;
+  ARRAYDAT prepared = {0};
+  const CS_TYPE *elementType;
+  int32_t err;
   ARRAYDAT *adat;
 
   err = csoundGetChannelPtr(csound, (void **) &adat, name,
@@ -2989,19 +3061,15 @@ ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
   if(err != CSOUND_SUCCESS) return NULL;
 
   if(adat->data == NULL) {
-    adat->dimensions = dimensions;
-    adat->sizes = (int32_t *) csound->Calloc(csound,
-                                             dimensions*sizeof(int32_t));
-    siz = (adat->sizes[0] = sizes[0]);
-    for(i = 1; i < adat->dimensions; i++)
-      siz *= (adat->sizes[i] = sizes[i]);
-
-    adat->arrayType = (CS_TYPE *)
-      csoundGetTypeWithVarTypeName(csound->typePool, type);
-    if (UNLIKELY(tabinit(csound, adat, siz, NULL) != OK)) {
+    elementType = type != NULL
+      ? csoundGetTypeWithVarTypeName(csound->typePool, type) : NULL;
+    if (UNLIKELY(prepare_array_channel(
+                   csound, &prepared, elementType, dimensions, sizes,
+                   NULL) != OK)) {
       csound->ErrorMsg(csound, "%s", Str("Could not resize array channel"));
       return NULL;
     }
+    publish_array_channel(csound, adat, &prepared);
   }
   return adat;
 }

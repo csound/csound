@@ -23,6 +23,7 @@
 #ifndef __ARRAY_H__
 #define __ARRAY_H__
 
+#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -190,8 +191,10 @@ static inline int32_t csound_array_ensure_capacity(CSOUND *csound,
                                                    INSDS *ctx)
 {
     CS_VARIABLE *var = NULL;
+    MYFLT *newData;
     size_t oldCapacity = 0;
     size_t bytes;
+    int32_t memberSize = array->arrayMemberSize;
     int32_t fresh = array->data == NULL;
 
     if (array->arrayType == NULL || capacity == 0) {
@@ -207,7 +210,7 @@ static inline int32_t csound_array_ensure_capacity(CSOUND *csound,
             }
             return NOTOK;
         }
-        array->arrayMemberSize = var->memBlockSize;
+        memberSize = var->memBlockSize;
     }
     else {
         /* allocated == 0 marks a legacy non-owning view. Only managed
@@ -229,7 +232,7 @@ static inline int32_t csound_array_ensure_capacity(CSOUND *csound,
         }
         oldCapacity = array->allocated / (size_t)array->arrayMemberSize;
     }
-    if (csound_array_allocation_size(array->arrayMemberSize, capacity,
+    if (csound_array_allocation_size(memberSize, capacity,
                                      &bytes) != OK) {
         if (var != NULL) {
             csound->Free(csound, var);
@@ -243,7 +246,7 @@ static inline int32_t csound_array_ensure_capacity(CSOUND *csound,
     if (!fresh && array->arrayType->userDefinedType) {
         var = array_element_create_variable(csound, array->arrayType, ctx);
         if (var == NULL || var->initializeVariableMemory == NULL ||
-            var->memBlockSize != array->arrayMemberSize) {
+            var->memBlockSize != memberSize) {
             if (var != NULL) {
                 csound->Free(csound, var);
             }
@@ -251,19 +254,38 @@ static inline int32_t csound_array_ensure_capacity(CSOUND *csound,
         }
     }
     if (fresh) {
-        array->data = (MYFLT *)csound->Calloc(csound, bytes);
+        newData = (MYFLT *)csound->Calloc(csound, bytes);
+        if (UNLIKELY(newData == NULL)) {
+            csound->Free(csound, var);
+            return NOTOK;
+        }
+        if (UNLIKELY(csound_array_initialize_struct_range(
+                       csound, array->arrayType, var, newData, memberSize,
+                       oldCapacity, capacity) != OK)) {
+            csound->Free(csound, newData);
+            csound->Free(csound, var);
+            return NOTOK;
+        }
+        array->arrayMemberSize = memberSize;
+        array->data = newData;
+        array->allocated = bytes;
     }
     else {
-        array->data = (MYFLT *)csound->ReAlloc(csound, array->data, bytes);
-        memset((char *)array->data + array->allocated, 0,
+        newData = (MYFLT *)csound->ReAlloc(csound, array->data, bytes);
+        if (UNLIKELY(newData == NULL)) {
+            csound->Free(csound, var);
+            return NOTOK;
+        }
+        array->data = newData;
+        memset((char *)newData + array->allocated, 0,
                bytes - array->allocated);
-    }
-    array->allocated = bytes;
-    if (csound_array_initialize_struct_range(
-          csound, array->arrayType, var, array->data,
-          array->arrayMemberSize, oldCapacity, capacity) != OK) {
-        csound->Free(csound, var);
-        return NOTOK;
+        array->allocated = bytes;
+        if (UNLIKELY(csound_array_initialize_struct_range(
+                       csound, array->arrayType, var, newData, memberSize,
+                       oldCapacity, capacity) != OK)) {
+            csound->Free(csound, var);
+            return NOTOK;
+        }
     }
     if (var != NULL) {
         csound->Free(csound, var);
@@ -317,6 +339,8 @@ static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
                                    const ARRAYDAT *tp)
 {
     int32_t *newSizes = NULL;
+    const CS_TYPE *originalArrayType;
+    const CS_TYPE *targetArrayType;
     size_t elementCount;
     size_t capacity;
 
@@ -328,12 +352,12 @@ static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
     if (p == tp) {
         return OK;
     }
-    if (p->arrayType == NULL) {
-        p->arrayType = tp->arrayType;
-    }
-    if (UNLIKELY(p->arrayType == NULL ||
+    originalArrayType = p->arrayType;
+    targetArrayType = originalArrayType != NULL
+      ? originalArrayType : tp->arrayType;
+    if (UNLIKELY(targetArrayType == NULL ||
                  !csound_array_element_types_compatible(
-                   p->arrayType, tp->arrayType))) {
+                   targetArrayType, tp->arrayType))) {
         return NOTOK;
     }
     if (tp->dimensions > 0 &&
@@ -347,17 +371,21 @@ static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
                sizeof(int32_t) * (size_t)tp->dimensions);
     }
     if (UNLIKELY(csound_array_prepare_write(csound, p, NULL) != OK)) {
+        p->arrayType = originalArrayType;
         csound->Free(csound, newSizes);
         return NOTOK;
     }
     if (p->data == tp->data) {
+        p->arrayType = targetArrayType;
         csound->Free(csound, newSizes);
         return OK;
     }
 
     capacity = elementCount > 0 ? elementCount : 1;
+    p->arrayType = targetArrayType;
     if (UNLIKELY(csound_array_ensure_capacity(csound, p, capacity, NULL)
                  != OK)) {
+        p->arrayType = originalArrayType;
         csound->Free(csound, newSizes);
         return NOTOK;
     }
@@ -385,10 +413,23 @@ static inline int32_t csound_array_init_resize_error(CSOUND *csound)
 }
 
 static inline int32_t csound_array_perf_resize_error(CSOUND *csound,
-                                                      OPDS *ctx)
+                                                     OPDS *ctx)
 {
     return csound->PerfError(csound, ctx, "%s",
                              Str("Could not resize array"));
+}
+
+static inline int32_t csound_array_size_to_int32(MYFLT requestedSize,
+                                                 int32_t *size)
+{
+    double value = (double)requestedSize;
+
+    if (size == NULL || isnan(value) || value < 0.0 ||
+        value >= (double)INT32_MAX + 1.0) {
+        return NOTOK;
+    }
+    *size = (int32_t)value;
+    return OK;
 }
 
 static inline int32_t tabcheck(CSOUND *csound, ARRAYDAT *p, int32_t size, OPDS *q)
