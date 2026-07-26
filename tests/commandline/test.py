@@ -901,8 +901,6 @@ def runTest():
     if not csoundExecutable.lower().endswith((".wasm", ".cwasm")):
         tests += parcsTests
 
-
-
         tests += [[ "test_parcs_local_ksmps_kcounter.csd",
                    "PARCS kcounter test with local ksmps"]]
 
