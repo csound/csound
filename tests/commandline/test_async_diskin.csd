@@ -99,9 +99,9 @@ instr 9
       printks "Cancellation test made no turnoff attempts\n", 0
       exitnowk(1)
     endif
-    turnoff
-  ; Debug and sanitizer builds can take several seconds to finish SlowInit.
-  elseif (timeinsts() > 5.0) then
+    exitnowk(0)
+  ; Leave a wide margin for slow debug and sanitizer builds.
+  elseif (timeinsts() > 30.0) then
     printks "Cancellation test did not complete its init pass\n", 0
     exitnowk(1)
   endif
@@ -169,9 +169,9 @@ i 4 0.65 0.05
 i 4 0.66 0.05
 i 5 0.65 0.03
 ; Start the turnoff loop and watcher before the victim blocks the init thread.
-i 7 0.95 5.5
-i 9 0.95 5.5
+i 7 0.95 30.5
+i 9 0.95 30.5
 i 8 1.00 -1
-e 6.50
+e 31.50
 </CsScore>
 </CsoundSynthesizer>

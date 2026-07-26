@@ -938,6 +938,7 @@ static int32_t events_match(CSOUND *csound,
 static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
   EVTNODE *e, *previous = NULL;
   EVTNODE *removed = NULL;
+  EVTNODE *removedTail = NULL;
 
   csound_rt_event_lock(csound);
   e = csound->OrcTrigEvts;
@@ -950,6 +951,8 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
         previous->nxt = next;
       else
         csound->OrcTrigEvts = next;
+      if (removed == NULL)
+        removedTail = e;
       e->nxt = removed;
       removed = e;
       if(!cont)
@@ -981,7 +984,7 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
       evtn->strarg = NULL;
     }
   }
-  csound_recycle_rt_event_list(csound, removed);
+  csound_recycle_rt_event_list_with_tail(csound, removed, removedTail);
 }
 
 void set_evt_strarg(CSOUND *csound, EVTBLK *e, int32_t pcnt, const

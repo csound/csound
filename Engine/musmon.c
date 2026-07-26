@@ -93,6 +93,14 @@ void csound_recycle_rt_event_list(CSOUND *csound, EVTNODE *events)
   tail = events;
   while (tail->nxt != NULL)
     tail = tail->nxt;
+  csound_recycle_rt_event_list_with_tail(csound, events, tail);
+}
+
+void csound_recycle_rt_event_list_with_tail(CSOUND *csound, EVTNODE *events,
+                                            EVTNODE *tail)
+{
+  if (events == NULL)
+    return;
   csound_rt_event_lock(csound);
   tail->nxt = csound->freeEvtNodes;
   csound->freeEvtNodes = events;
@@ -502,7 +510,7 @@ static void deactivate_all_notes(CSOUND *csound)
 
 static void delete_pending_rt_events(CSOUND *csound)
 {
-  EVTNODE *events, *ep;
+  EVTNODE *events, *ep, *tail = NULL;
 
   csound_rt_event_lock(csound);
   events = csound->OrcTrigEvts;
@@ -514,9 +522,10 @@ static void delete_pending_rt_events(CSOUND *csound)
       csound->Free(csound,ep->evt.strarg);
       ep->evt.strarg = NULL;
     }
+    tail = ep;
     ep = ep->nxt;
   }
-  csound_recycle_rt_event_list(csound, events);
+  csound_recycle_rt_event_list_with_tail(csound, events, tail);
 }
 
 void delete_selected_rt_events(CSOUND *csound, MYFLT instr)
@@ -524,6 +533,7 @@ void delete_selected_rt_events(CSOUND *csound, MYFLT instr)
   EVTNODE *ep;
   EVTNODE *last = NULL;
   EVTNODE *removed = NULL;
+  EVTNODE *removedTail = NULL;
 
   csound_rt_event_lock(csound);
   ep = csound->OrcTrigEvts;
@@ -536,6 +546,8 @@ void delete_selected_rt_events(CSOUND *csound, MYFLT instr)
       //printf(" ** found\n");
       // Found an event to cancel
       if (last) last->nxt = nxt; else csound->OrcTrigEvts = nxt;
+      if (removed == NULL)
+        removedTail = ep;
       ep->nxt = removed;
       removed = ep;
     }
@@ -550,7 +562,7 @@ void delete_selected_rt_events(CSOUND *csound, MYFLT instr)
       ep->evt.strarg = NULL;
     }
   }
-  csound_recycle_rt_event_list(csound, removed);
+  csound_recycle_rt_event_list_with_tail(csound, removed, removedTail);
 }
 
 #ifndef __EMSCRIPTEN__

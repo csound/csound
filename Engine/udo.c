@@ -1486,7 +1486,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
        and recursion depth are unwound normally. */
     inm->recurse_depth--;
     return csound->InitError(csound,
-                             "error: UDO %s max recursion depth %d reached",
+                             Str("error: UDO %s max recursion depth %d reached"),
                              inm->name, csound->oparms->recursion_depth);
   }
   
@@ -1503,7 +1503,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     if (UNLIKELY(lcurip == NULL)) {
       inm->recurse_depth--;
       return csound->InitError(csound,
-                               "Could not allocate UDO %s instance\n",
+                               Str("Could not allocate UDO %s instance\n"),
                                inm->name);
     }
     if (lcurip->opcod_iobufs==NULL) {
@@ -1609,7 +1609,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     csound->ids = saved_ids;
     csound->curip = saved_curip;
     return csound->InitError(csound,
-                             "UDO %s instance is being turned off", inm->name);
+                             Str("UDO %s instance is being turned off"),
+                             inm->name);
   }
   ATOMIC_SET(p->ip->init_done, 0);
   csound->mode = 1;
@@ -2696,7 +2697,7 @@ int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
     p->ip = allocate_or_take_instance(csound, tp, instno);
     if (UNLIKELY(p->ip == NULL))
       return csound->InitError(csound,
-                               "Could not allocate subinstrument %d\n",
+                               Str("Could not allocate subinstrument %d\n"),
                                instno);
     p->ip->insno = (int16) instno;
     p->ip->actflg++;                  /*    and mark the instr active */
@@ -2813,7 +2814,8 @@ int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
     csound->ids = saved_ids;
     csound->curip = saved_curip;
     return csound->InitError(csound,
-                             "subinstrument %d is being turned off", instno);
+                             Str("subinstrument %d is being turned off"),
+                             instno);
   }
   ATOMIC_SET(p->ip->init_done, 0);
   csound->ids = (OPDS *)p->ip;

@@ -117,6 +117,9 @@ extern "C" {
   void csound_rt_event_lock(CSOUND *csound);
   void csound_rt_event_unlock(CSOUND *csound);
   void csound_recycle_rt_event_list(CSOUND *csound, EVTNODE *events);
+  void csound_recycle_rt_event_list_with_tail(CSOUND *csound,
+                                              EVTNODE *events,
+                                              EVTNODE *tail);
   int32_t diskin2_async_setup(CSOUND *csound);
   void diskin2_async_drain_deferred(CSOUND *csound);
   void diskin2_async_prepare_shutdown(CSOUND *csound);
