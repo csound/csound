@@ -12,7 +12,8 @@ instr 1
   iLength = ftlen(1)
   iFirst = table:i(0, 1)
   iLast = table:i(3, 1)
-  if iLength != 4 || iFirst != 1.0 || iLast != 3.0 then
+  iWrapped = table:i(7, 1, 0, 0, 1)
+  if iLength != 4 || iFirst != 1.0 || iLast != 3.0 || iWrapped != 3.0 then
     prints "GEN44 resized table does not match\n"
     exitnow -1
   endif

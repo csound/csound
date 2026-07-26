@@ -2565,8 +2565,16 @@ static int32_t gen44(FGDATA *ff, FUNC *ftp)
     sizeText += 5;
     errno = 0;
     parsedSize = strtoimax(sizeText, &end, 10);
+    while (isspace((unsigned char)*end))
+      end++;
+    if (*end == '>') {
+      end++;
+      while (isspace((unsigned char)*end))
+        end++;
+    }
     if (UNLIKELY(end == sizeText || errno == ERANGE ||
-                 parsedSize <= 0 || parsedSize > INT32_MAX)) {
+                 *end != '\0' || parsedSize <= 0 ||
+                 parsedSize > INT32_MAX)) {
       result = csoundFtError(ff, Str("GEN44: Invalid matrix size\n"));
       goto gen44done;
     }
@@ -2589,6 +2597,21 @@ static int32_t gen44(FGDATA *ff, FUNC *ftp)
       csound->Free(csound, ftp->ftable);
       ftp->ftable = fp;
       ftp->flen = ff->flen = matrixLength;
+      ftp->flenfrms = matrixLength;
+      if (matrixLength <= MAXLEN && IS_POW_TWO(matrixLength)) {
+        ftp->lenmask = matrixLength - 1;
+        for (i = matrixLength, ftp->lobits = 0;
+             i < MAXLEN;
+             ftp->lobits++, i <<= 1)
+          ;
+      }
+      else {
+        ftp->lenmask = 0xFFFFFFFF;
+        ftp->lobits = 0;
+      }
+      i = 1 << ftp->lobits;
+      ftp->lomask = i - 1;
+      ftp->lodiv = FL(1.0) / (MYFLT) i;
     }
     else {
       fp = ftp->ftable;
