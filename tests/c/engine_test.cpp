@@ -2,11 +2,19 @@
 #include "csoundCore.h"
 #include "csound_graph_display.h"
 #include "fftlib.h"
+extern "C" {
+#include "aops.h"
+int32_t is_NaN(CSOUND *, void *);
+int32_t is_NaNa(CSOUND *, void *);
+int32_t is_inf(CSOUND *, void *);
+int32_t is_infa(CSOUND *, void *);
+}
 #include <algorithm>
 #include <atomic>
 #include <clocale>
 #include <cmath>
 #include <cstring>
+#include <limits>
 #include <stdio.h>
 #include <string>
 #include <thread>
@@ -15,6 +23,16 @@
 #include "time.h"
 
 namespace {
+
+MYFLT myfltFromBits(uint64_t doubleBits, uint32_t floatBits)
+{
+    MYFLT value;
+    if constexpr (sizeof(MYFLT) == sizeof(doubleBits))
+        std::memcpy(&value, &doubleBits, sizeof(value));
+    else
+        std::memcpy(&value, &floatBits, sizeof(value));
+    return value;
+}
 
 std::vector<MYFLT> directComplexDft(const std::vector<MYFLT>& input,
                                     bool inverse)
@@ -158,6 +176,93 @@ TEST_F (EngineTests, testComplexFftMatchesDirectDft)
               << "round trip size " << size << ", component " << i;
         }
     }
+}
+
+TEST_F (EngineTests, testQinfClassifiesScalarAndAudioValues)
+{
+    const MYFLT positiveInfinity =
+      myfltFromBits(0x7FF0000000000000ULL, 0x7F800000U);
+    const MYFLT negativeInfinity =
+      myfltFromBits(0xFFF0000000000000ULL, 0xFF800000U);
+    const MYFLT nan = myfltFromBits(0x7FF8000000000000ULL, 0x7FC00000U);
+    MYFLT input = positiveInfinity;
+    MYFLT result = FL(0.0);
+    ASSIGN scalar {};
+    scalar.r = &result;
+    scalar.a = &input;
+
+    ASSERT_EQ(is_inf(csound, &scalar), OK);
+    EXPECT_EQ(result, FL(1.0));
+
+    input = negativeInfinity;
+    ASSERT_EQ(is_inf(csound, &scalar), OK);
+    EXPECT_EQ(result, FL(-1.0));
+
+    input = nan;
+    ASSERT_EQ(is_inf(csound, &scalar), OK);
+    EXPECT_EQ(result, FL(0.0));
+
+    input = (std::numeric_limits<MYFLT>::max)();
+    ASSERT_EQ(is_inf(csound, &scalar), OK);
+    EXPECT_EQ(result, FL(0.0));
+
+    MYFLT audio[] = {
+      positiveInfinity, FL(1.0), negativeInfinity, nan,
+      positiveInfinity, negativeInfinity
+    };
+    INSDS insds {};
+    insds.ksmps = static_cast<uint32_t>(sizeof(audio) / sizeof(audio[0]));
+    insds.ksmps_offset = 1;
+    insds.ksmps_no_end = 1;
+    ASSIGN audioOp {};
+    audioOp.h.insdshead = &insds;
+    audioOp.r = &result;
+    audioOp.a = audio;
+
+    ASSERT_EQ(is_infa(csound, &audioOp), OK);
+    EXPECT_EQ(result, FL(-2.0));
+}
+
+TEST_F (EngineTests, testQnanClassifiesScalarAndAudioValues)
+{
+    const MYFLT positiveInfinity =
+      myfltFromBits(0x7FF0000000000000ULL, 0x7F800000U);
+    const MYFLT negativeInfinity =
+      myfltFromBits(0xFFF0000000000000ULL, 0xFF800000U);
+    const MYFLT nan = myfltFromBits(0x7FF8000000000000ULL, 0x7FC00000U);
+    MYFLT input = nan;
+    MYFLT result = FL(0.0);
+    ASSIGN scalar {};
+    scalar.r = &result;
+    scalar.a = &input;
+
+    ASSERT_EQ(is_NaN(csound, &scalar), OK);
+    EXPECT_EQ(result, FL(1.0));
+
+    input = positiveInfinity;
+    ASSERT_EQ(is_NaN(csound, &scalar), OK);
+    EXPECT_EQ(result, FL(0.0));
+
+    input = negativeInfinity;
+    ASSERT_EQ(is_NaN(csound, &scalar), OK);
+    EXPECT_EQ(result, FL(0.0));
+
+    input = (std::numeric_limits<MYFLT>::max)();
+    ASSERT_EQ(is_NaN(csound, &scalar), OK);
+    EXPECT_EQ(result, FL(0.0));
+
+    MYFLT audio[] = {nan, FL(1.0), nan, positiveInfinity, nan, nan};
+    INSDS insds {};
+    insds.ksmps = static_cast<uint32_t>(sizeof(audio) / sizeof(audio[0]));
+    insds.ksmps_offset = 1;
+    insds.ksmps_no_end = 1;
+    ASSIGN audioOp {};
+    audioOp.h.insdshead = &insds;
+    audioOp.r = &result;
+    audioOp.a = audio;
+
+    ASSERT_EQ(is_NaNa(csound, &audioOp), OK);
+    EXPECT_EQ(result, FL(2.0));
 }
 
 TEST_F (EngineTests, testSscanfUsesCLocale)
