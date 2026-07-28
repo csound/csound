@@ -31,7 +31,7 @@ instr 1
   assertEquals(i1, 9)
 
   ; The array getter must run at init before the nested aggregate copy.
-  copyIndex:k init 1
+  copyIndex:i init 1
   copy:Inner init array[copyIndex].inner
   assertEquals(copy.val, 9)
 

@@ -235,7 +235,24 @@ TEST_F (OrcCompileTests, testNestedExpressionFailurePropagates)
     ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
 }
 
-TEST_F (OrcCompileTests, testRejectsPerfOnlyKIndexAggregateInit)
+TEST_F (OrcCompileTests, testRejectsKRateIndexStructAggregateInit)
+{
+    const char *instrument = R"(
+struct Box value:i
+
+instr 1
+  first:Box init 10
+  second:Box init 20
+  boxes:Box[] fillarray first, second
+  index:k = 1
+  copy:Box init boxes[index]
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testRejectsKRateExpressionStructAggregateInit)
 {
     const char *instrument = R"(
 struct Box value:i
@@ -251,7 +268,62 @@ endin
     ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
 }
 
-TEST_F (OrcCompileTests, testRejectsPerfOnlyKIndexNestedAggregateInit)
+TEST_F (OrcCompileTests, testRejectsKInitializedOutputStructAggregateInit)
+{
+    const char *instrument = R"(
+struct Box value:i
+
+opcode InitializedIndex, K, 0
+  index:k init 1
+  xout index
+endop
+
+instr 1
+  first:Box init 10
+  second:Box init 20
+  boxes:Box[] fillarray first, second
+  copy:Box init boxes[InitializedIndex()]
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testRejectsKRateStructMemberAggregateInit)
+{
+    const char *instrument = R"(
+struct Box value:i
+struct Selection index:k
+
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  selection:Selection init 0
+  copy:Box init boxes[selection.index]
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testRejectsKArrayElementStructAggregateInit)
+{
+    const char *instrument = R"(
+struct Box value:i
+
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  indices:k[] fillarray 0
+  index:i init 0
+  copy:Box init boxes[indices[index]]
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testRejectsKRateIndexNestedStructAggregateInit)
 {
     const char *instrument = R"(
 struct Inner value:i
@@ -262,41 +334,16 @@ instr 1
   outer:Outer init inner
   outers:Outer[] fillarray outer
   index:k init 0
-  copy:Inner init outers[index + 0].inner
+  copy:Inner init outers[index].inner
 endin
 )";
 
     ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
 }
 
-TEST_F (OrcCompileTests, testRejectsPerfOnlyKIndexInitConsumer)
+TEST_F (OrcCompileTests, testRejectsKRateIndexInitConsumer)
 {
     const char *instrument = R"(
-struct Box value:i
-
-opcode PrintAt(items:Box[], index:k):void
-  printfi "VALUE=%f\n", 1, items[index + 0].value
-endop
-
-instr 1
-  box:Box init 37
-  boxes:Box[] fillarray box
-  index:k init 0
-  PrintAt(boxes, index)
-endin
-)";
-
-    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
-}
-
-TEST_F (OrcCompileTests, testInitOnlyConsumerReadsKIndexStructMember)
-{
-    const char *instrument = R"(
-sr = 44100
-ksmps = 32
-nchnls = 2
-0dbfs = 1
-
 struct Box value:i
 
 opcode PrintAt(items:Box[], index:k):void
@@ -311,25 +358,7 @@ instr 1
 endin
 )";
 
-    csoundCreateMessageBuffer(csound, 0);
-    csoundSetOption(csound, "-n");
-    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
-    csoundReadScore(csound, "i 1 0 0.01\n");
-    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
-    while (csoundPerformKsmps(csound) == CSOUND_SUCCESS) {
-    }
-
-    std::string messages;
-    while (csoundGetMessageCnt(csound) > 0) {
-        const char *message = csoundGetFirstMessage(csound);
-        if (message != nullptr) {
-            messages += message;
-        }
-        csoundPopFirstMessage(csound);
-    }
-    csoundDestroyMessageBuffer(csound);
-    EXPECT_NE(std::string::npos, messages.find("VALUE=37.000000"))
-        << messages;
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
 }
 
 TEST_F (OrcCompileTests, testReuse)

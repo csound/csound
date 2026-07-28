@@ -32,7 +32,7 @@ instr 1
   assertEquals(copied[1].value, 20)
 
   ; Read a whole struct from an array stored in a struct member.
-  copyIndex:k init 1
+  copyIndex:i init 1
   selected:Box init holder.items[copyIndex]
   assertEquals(selected.value, 20)
 

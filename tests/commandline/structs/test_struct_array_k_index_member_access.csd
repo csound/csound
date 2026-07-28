@@ -20,32 +20,30 @@ opcode PickAt(items:MyType[], index:k):MyType
   xout items[index]
 endop
 
-opcode CheckAtInit(items:MyType[], index:k):void
-  printfi "INIT_MEMBER=%f\n", 1, items[index].val1
-endop
-
 instr 1
   array:MyType[] init 2
   array[0].val1 = 1
   array[1].val1 = 2
 
-  ; An explicit aggregate init must read its k-indexed source at init.
-  copyIndex:k init 1
+  ; Literal and i-rate indices select init-capable struct-array reads.
+  literalCopy:MyType init array[0]
+  assertEquals(literalCopy.val1, 1)
+
+  copyIndex:i init 1
   copy:MyType init array[copyIndex]
   assertEquals(copy.val1, 2)
 
-  ; A k-rate struct member has an init callback and can index an init read.
+  ; K-rate indices require an explicit conversion for an init-time read.
+  convertedIndex:k init 1
+  convertedCopy:MyType init array[i(convertedIndex)]
+  assertEquals(convertedCopy.val1, 2)
+
   selection:Selection init 1
-  memberCopy:MyType init array[selection.idx]
+  memberCopy:MyType init array[i(selection.idx)]
   assertEquals(memberCopy.val1, 2)
 
-  ; Other init-only consumers must receive the populated temporary too.
-  initConsumerIndex:k init 1
-  CheckAtInit(array, initConsumerIndex)
-
-  ; An i-indexed k-array read is available during init and remains valid.
   indices:k[] fillarray 1
-  indexedCopy:MyType init array[indices[0]]
+  indexedCopy:MyType init array[i(indices, 0)]
   assertEquals(indexedCopy.val1, 2)
 
   ; A performance read must not evaluate an invalid k-index during init.
