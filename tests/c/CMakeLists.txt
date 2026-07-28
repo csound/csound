@@ -51,21 +51,28 @@ if(BUILD_TESTS)
     # in Opcodes/, so require the target too.
     if(BUILD_OSC_OPCODES AND TARGET osc)
         add_dependencies(unittests osc)
-        # Give the tests a plugin directory holding only the OSC plugin.
-        # Loading the full plugin directory makes every csound instance
-        # dlopen and dlclose each instrumented plugin, which sanitizer
-        # builds do not survive across repeated create/destroy cycles.
-        set(TEST_OSC_PLUGIN_DIR ${CMAKE_CURRENT_BINARY_DIR}/osc-plugin)
+        # Give sanitizer tests a directory with only the OSC plugin.
+        set(TEST_OSC_PLUGIN_DIR
+            ${CMAKE_CURRENT_BINARY_DIR}/osc-plugin)
+        set(TEST_OSC_PLUGIN
+            ${TEST_OSC_PLUGIN_DIR}/$<TARGET_FILE_NAME:osc>)
         add_custom_target(unittests_osc_plugin
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OSC_PLUGIN_DIR}
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+                ${TEST_OSC_PLUGIN_DIR}
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<TARGET_FILE:osc> ${TEST_OSC_PLUGIN_DIR}/
             DEPENDS osc
         )
         add_dependencies(unittests unittests_osc_plugin)
+        if(USE_DOUBLE)
+            set(TEST_OSC_PLUGIN_ENV OPCODE7DIR64)
+        else()
+            set(TEST_OSC_PLUGIN_ENV OPCODE7DIR)
+        endif()
         target_compile_definitions(unittests PRIVATE
             CSOUND_TEST_OSC_PLUGIN_DIR="${TEST_OSC_PLUGIN_DIR}"
-            CSOUND_TEST_OSC_PLUGIN="${TEST_OSC_PLUGIN_DIR}/$<TARGET_FILE_NAME:osc>"
+            CSOUND_TEST_OSC_PLUGIN="${TEST_OSC_PLUGIN}"
+            CSOUND_TEST_OSC_PLUGIN_ENV="${TEST_OSC_PLUGIN_ENV}"
         )
     endif()
 

@@ -181,7 +181,7 @@ public:
 #ifdef CSOUND_TEST_OSC_PLUGIN_DIR
       static const bool oscPluginPinned = pinOscPlugin();
       ASSERT_TRUE(oscPluginPinned);
-      ASSERT_EQ(csoundSetGlobalEnv("OPCODE7DIR64",
+      ASSERT_EQ(csoundSetGlobalEnv(CSOUND_TEST_OSC_PLUGIN_ENV,
                                   CSOUND_TEST_OSC_PLUGIN_DIR),
                 CSOUND_SUCCESS);
 #endif
