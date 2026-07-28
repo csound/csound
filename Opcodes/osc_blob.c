@@ -1,6 +1,5 @@
 #include "osc_blob.h"
 
-#include <math.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -10,6 +9,21 @@ static void clear_myflt_view(OSC_MYFLT_BLOB_VIEW *view)
       view->data = NULL;
       view->count = 0;
     }
+}
+
+static int32_t myflt_is_finite(MYFLT value)
+{
+    /* -ffast-math can fold isfinite() away, so check the exponent bits. */
+#ifdef USE_DOUBLE
+    uint64_t bits;
+    memcpy(&bits, &value, sizeof(bits));
+    return (bits & UINT64_C(0x7ff0000000000000)) !=
+      UINT64_C(0x7ff0000000000000);
+#else
+    uint32_t bits;
+    memcpy(&bits, &value, sizeof(bits));
+    return (bits & UINT32_C(0x7f800000)) != UINT32_C(0x7f800000);
+#endif
 }
 
 int32_t osc_blob_parse_myflts(const void *payload, size_t payloadBytes,
@@ -42,7 +56,7 @@ int32_t osc_blob_parse_audio(const void *payload, size_t payloadBytes,
     }
     memcpy(&advertised, bytes, sizeof(advertised));
     advertisedValue = (double)advertised;
-    if (!isfinite(advertisedValue) || advertisedValue < 0.0 ||
+    if (!myflt_is_finite(advertised) || advertisedValue < 0.0 ||
         advertisedValue > (double)UINT32_MAX) {
       return NOTOK;
     }
