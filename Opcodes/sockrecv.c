@@ -255,6 +255,13 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
 #ifndef WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
       return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
+#else
+    {
+      u_long nonblocking = 1;
+      if (UNLIKELY(ioctlsocket(p->sock, FIONBIO, &nonblocking)
+                   == SOCKET_ERROR))
+        return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
+    }
 #endif
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
       return csound->InitError(csound, "%s", Str("creating socket"));
