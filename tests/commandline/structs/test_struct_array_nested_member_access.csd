@@ -31,11 +31,23 @@ instr 1
   assertEquals(i1, 9)
 
   ; The array getter must run at init before the nested aggregate copy.
-  copyIndex:k init 1
+  copyIndex:i init 1
   copy:Inner init array[copyIndex].inner
   assertEquals(copy.val, 9)
 
+  ; Nested performance reads must also leave the index untouched at init.
+  perfIndex:k init -1
+  perfIndex = 1
+  perfValue:k = array[perfIndex].inner.val
+  if (timeinstk() == 1) then
+    event "i", 2, 0, 0.001, perfValue, 9
+  endif
+
   prints "Struct array nested member access test passed!\n"
+endin
+
+instr 2
+  assertEquals(p4, p5)
 endin
 
 </CsInstruments>

@@ -885,7 +885,7 @@ const OENTRY opcodlst_1[] = {
   { "##array_get_struct", sizeof(STRUCT_ARRAY_GET), 0, ".", ".[]m",
     (SUBR)struct_array_get_init, NULL, NULL },
   { "##array_get_struct", sizeof(STRUCT_ARRAY_GET), 0, ".", ".[]z",
-    (SUBR)struct_array_get_init, (SUBR)struct_array_get, NULL },
+    NULL, (SUBR)struct_array_get, NULL },
   { "##member_get", sizeof(STRUCT_GET), 0, ".", ".i", (SUBR)struct_member_get_init_and_perf, (SUBR)struct_member_get, NULL },
   { "##member_get_init", sizeof(STRUCT_GET), 0, ".", ".i",
     (SUBR)struct_member_get_init_and_perf, NULL, NULL },

@@ -4050,6 +4050,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
       if (is_statement_expansion_required(current)) {
         current = expand_statement(csound, current, typeTable);
+        if (current == NULL) {
+          cs_cons_free_complete(csound, activeLoopStack);
+          cs_cons_free(csound, typeTable->labelList);
+          typeTable->labelList = parentLabelList;
+          return NULL;
+        }
         if (previous != NULL) {
           previous->next = current;
         }
