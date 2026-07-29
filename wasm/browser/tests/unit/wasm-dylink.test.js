@@ -105,6 +105,13 @@ describe("WebAssembly dynamic link metadata", () => {
     );
   });
 
+  it("rejects dylink.0 without memory info", () => {
+    assert.throws(
+      () => getBinaryHeaderData(wasmWith(customSection("dylink.0", []))),
+      /missing its memory info subsection/,
+    );
+  });
+
   const pluginPath = fileURLToPath(
     new URL("../../../lib/plugin_example_cpp.wasm", import.meta.url),
   );

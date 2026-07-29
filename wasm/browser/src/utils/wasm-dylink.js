@@ -145,6 +145,10 @@ export const getBinaryHeaderData = (
       position = subsectionEnd;
     }
 
+    if (!hasMemoryInfo) {
+      throw new Error("dylink.0 is missing its memory info subsection");
+    }
+
     header.neededDynlibsCount = header.neededDynlibs.length;
     return header;
   };

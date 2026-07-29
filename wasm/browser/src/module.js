@@ -306,7 +306,6 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   const hasLegacyWasiPluginLoader =
     typeof instance_["exports"]["csoundWasiLoadPlugin"] === "function" ||
     typeof instance_["exports"]["csoundWasiLoadOpcodeLibrary"] === "function";
-  const pluginMemoryAllocations = [];
 
   wasi.start(instance_);
 
@@ -333,7 +332,6 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
 
     const memoryBaseValue = alignUp(allocation, alignment);
     new Uint8Array(memory.buffer, memoryBaseValue, size).fill(0);
-    pluginMemoryAllocations.push(allocation);
     return memoryBaseValue;
   };
 
