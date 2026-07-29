@@ -852,6 +852,12 @@ def runTest():
             "test_signalflowgraph_lifetime.csd",
             "test signal-flow graph cleanup and ftgenonce",
         ],
+        ["test_remap.csd", "test remap opcodes"],
+        [
+            "test_remap_bounds_error.csd",
+            "expected failure: remap bounds=error with x out of range",
+            1,
+        ],
     ]
 
     parcsTests = [

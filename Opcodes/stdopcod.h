@@ -121,6 +121,7 @@ wave_terrain_init_(CSOUND *);
 extern int32_t
 wter2_init_(CSOUND *);
 extern int32_t dbap_init_(CSOUND *);
+extern int32_t remap_init_(CSOUND *);
 
 
 #endif  /* CSOUND_STDOPCOD_H */
