@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--n -m0 --sample-accurate
+-n -m0
 </CsOptions>
 <CsInstruments>
 
@@ -400,26 +400,6 @@ instr 10
 endin
 
 
-; ------------------------------------------- sample-accurate note start
-; --sample-accurate is on, so a note starting off a block boundary reaches the
-; opcode with a non-zero ksmps_offset. The samples it does compute still have
-; to line up with the input, so an identity table must reproduce the input
-; exactly. max_k scans only the active part of the block, which is precisely
-; the region an indexing mistake in the audio loop would corrupt.
-instr 11
-  fails:k = 0
-
-  ix:i[] = fillarray(-1, 1)
-  iy:i[] = fillarray(-1, 1)
-
-  drive:a = oscili(0.8, 2000)
-  through:a = remap(drive, ix, iy, $MODE_LINEAR, $BOUNDS_CLAMP)
-  fails += assert_range(max_k(through - drive, 1, 1), 0, 0, 930)
-
-  abort_on_fail(fails)
-endin
-
-
 ; --------------------------------------------------------------- verdict
 ; instr 98 is only reached when no instrument aborted the run before it
 instr 98
@@ -443,9 +423,9 @@ i7  0   0.5
 i8  0   1
 i9  0   0.5
 i10 0   0.5
-; starts 10 samples into a block, so instr 11 runs with ksmps_offset = 10
-i11 0.00022675736961451248 0.5
-i98 5.2 0.1
-e 1
+; the verdict runs once every test note is over; instr 99 only ever exists if
+; an assertion scheduled it, and its exitnow stops the run before this point
+i98 1.2 0.1
+e 2
 </CsScore>
 </CsoundSynthesizer>

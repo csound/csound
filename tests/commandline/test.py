@@ -853,6 +853,7 @@ def runTest():
             "test signal-flow graph cleanup and ftgenonce",
         ],
         ["test_remap.csd", "test remap opcodes"],
+        ["test_remap_sample_accurate.csd", "test remap audio with sample-accurate timing"],
         [
             "test_remap_bounds_error.csd",
             "expected failure: remap bounds=error with x out of range",
