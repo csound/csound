@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-
+-n -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
 
@@ -344,6 +344,82 @@ instr 9
 endin
 
 
+; ------------------------------------------------- waveshaping (audio input)
+; Running an a-rate signal through the table is a waveshaper, which only holds
+; if every sample is transformed on its own. So an identity table has to give
+; the input back sample for sample, and a clipping table has to really clip.
+;
+; The drive is deliberately fast - 2 kHz is about 22 samples per cycle, so a
+; 32-sample block spans nearly a cycle and a half. Anything that handled the
+; signal per block instead of per sample would show up here as an error close
+; to the full peak-to-peak swing, not as a rounding difference.
+instr 10
+  fails:k = 0
+
+  drive:a = oscili(0.8, 2000)
+
+  ; identity transfer function: the output must be the input
+  ix:i[] = fillarray(-1, 1)
+  iy:i[] = fillarray(-1, 1)
+  through:a = remap(drive, ix, iy, $MODE_LINEAR, $BOUNDS_CLAMP)
+  fails += assert_range(max_k(through - drive, 1, 1), 0, 0, 900)
+
+  ; doubling transfer function: every sample scaled by 2
+  gx:i[] = fillarray(-1, 1)
+  gy:i[] = fillarray(-2, 2)
+  doubled:a = remap(drive, gx, gy, $MODE_LINEAR, $BOUNDS_CLAMP)
+  fails += assert_range(max_k(doubled - drive * 2, 1, 1), 0, 0, 901)
+
+  ; hard clip at +-0.5: the transfer curve is flat past the knee, so a steady
+  ; drive beyond it lands exactly on the ceiling or the floor. Constants are
+  ; used here rather than the oscillator because the last block of a note is
+  ; partial under --sample-accurate, and a peak is not guaranteed to fall in it.
+  ; 0.8 in giving 0.5 out is also the nonlinearity itself: a linear map through
+  ; this table would have returned the input untouched.
+  cx:i[] = fillarray(-1, -0.5, 0.5, 1)
+  cy:i[] = fillarray(-0.5, -0.5, 0.5, 0.5)
+  above:a = remap(a(k(0.8)),  cx, cy, $MODE_LINEAR, $BOUNDS_CLAMP)
+  below:a = remap(a(k(-0.8)), cx, cy, $MODE_LINEAR, $BOUNDS_CLAMP)
+  if timeinstk() > 1 then
+    fails += assert_k(k(above),  0.5, 910)
+    fails += assert_k(k(below), -0.5, 911)
+  endif
+
+  ; and a moving signal never leaves the knee either
+  clipped:a = remap(drive, cx, cy, $MODE_LINEAR, $BOUNDS_CLAMP)
+  fails += assert_range(max_k(clipped, 1, 1), 0, 0.5, 912)
+
+  ; the cubic transfer curve stays inside the tabulated range, so a waveshaper
+  ; built on it cannot exceed the ceiling the user drew
+  sx:i[] = fillarray(-1, -0.5, 0, 0.5, 1)
+  sy:i[] = fillarray(-0.8, -0.6, 0, 0.6, 0.8)
+  soft:a = remap(drive, sx, sy, $MODE_CUBIC, $BOUNDS_CLAMP)
+  fails += assert_range(max_k(soft, 1, 1), 0, 0.8, 920)
+
+  abort_on_fail(fails)
+endin
+
+
+; ------------------------------------------- sample-accurate note start
+; --sample-accurate is on, so a note starting off a block boundary reaches the
+; opcode with a non-zero ksmps_offset. The samples it does compute still have
+; to line up with the input, so an identity table must reproduce the input
+; exactly. max_k scans only the active part of the block, which is precisely
+; the region an indexing mistake in the audio loop would corrupt.
+instr 11
+  fails:k = 0
+
+  ix:i[] = fillarray(-1, 1)
+  iy:i[] = fillarray(-1, 1)
+
+  drive:a = oscili(0.8, 2000)
+  through:a = remap(drive, ix, iy, $MODE_LINEAR, $BOUNDS_CLAMP)
+  fails += assert_range(max_k(through - drive, 1, 1), 0, 0, 930)
+
+  abort_on_fail(fails)
+endin
+
+
 ; --------------------------------------------------------------- verdict
 ; instr 98 is only reached when no instrument aborted the run before it
 instr 98
@@ -366,6 +442,9 @@ i6  0   0.5
 i7  0   0.5
 i8  0   1
 i9  0   0.5
+i10 0   0.5
+; starts 10 samples into a block, so instr 11 runs with ksmps_offset = 10
+i11 0.00022675736961451248 0.5
 i98 5.2 0.1
 e 1
 </CsScore>
