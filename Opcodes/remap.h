@@ -132,8 +132,10 @@ typedef struct {
 
 // REMAP
 
-int32_t remap_value(CSOUND *csound, REMAP_VALUE *p);
-int32_t remap_vec(CSOUND *csound, REMAP_VEC *p);
-int32_t remap_audio(CSOUND *csound, REMAP_VALUE *p);
+int32_t remap_value_init(CSOUND *csound, REMAP_VALUE *p);
+int32_t remap_vec_init(CSOUND *csound, REMAP_VEC *p);
+int32_t remap_value_perf(CSOUND *csound, REMAP_VALUE *p);
+int32_t remap_vec_perf(CSOUND *csound, REMAP_VEC *p);
+int32_t remap_audio_perf(CSOUND *csound, REMAP_VALUE *p);
 
 #endif
