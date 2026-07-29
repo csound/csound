@@ -37,15 +37,18 @@ in
 
       echo "Link together plugin_example_cpp.wasm"
       $CXX \
-        -Wl,-z,stack-size=128 \
+        -shared \
+        -nostdlib \
+        -nostartfiles \
+        -Wl,--experimental-pic \
         -Wl,--no-entry \
         -Wl,--import-table \
         -Wl,--import-memory \
+        -Wl,--import-undefined \
         -Wl,--export=__wasm_call_ctors \
         -Wl,--export=csoundModuleInit \
         -Wl,--export-if-defined=csoundModuleCreate \
         -Wl,--export-if-defined=csoundModuleDestroy \
-        -lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-mman -lwasi-emulated-process-clocks \
         plugin_example_cpp.o -o plugin_example_cpp.wasm
     '';
 

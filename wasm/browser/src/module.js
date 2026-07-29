@@ -17,11 +17,25 @@ import { dlinit } from "./dlinit";
 import { WASI } from "./filesystem/wasi";
 import { clearArray } from "./utils/clear-array";
 import { decoder, uint2String } from "./utils/text-encoders.js";
+import { getBinaryHeaderData as parseBinaryHeaderData } from "./utils/wasm-dylink.js";
 import { Inflate } from "./zlib/inflate.js";
+
+export const getBinaryHeaderData = (input) => parseBinaryHeaderData(input, decoder);
 
 const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
 const WASI_LONGJMP_PREFIX = "CSOUND_WASI_LONGJMP:";
+const MAX_ALIGNMENT_EXPONENT = 30;
+const MAX_SIGNED_WASM_I32 = 0x7fffffff;
+
+const alignmentFromExponent = (exponent) => {
+  if (!Number.isInteger(exponent) || exponent < 0 || exponent > MAX_ALIGNMENT_EXPONENT) {
+    throw new Error(`Invalid WebAssembly alignment exponent: ${exponent}`);
+  }
+  return 2 ** exponent;
+};
+
+const alignUp = (value, alignment) => Math.ceil(value / alignment) * alignment;
 
 const wasmLongjmp = (_, value) => {
   throw new Error(`csound exit with code: ${value}`);
@@ -112,109 +126,6 @@ const assertPluginExports = (pluginInstance) => {
   }
 };
 
-// Accepts ArrayBuffer or Uint8Array
-export function getBinaryHeaderData(input) {
-  const wasmBytes = input instanceof Uint8Array ? input : new Uint8Array(input);
-
-  // Check magic \0asm (little-endian 0x6d736100)
-  if (wasmBytes.length < 8) {
-    return { hasDylink: false, sectionSize: 0, memorySize: 0, memoryAlign: 0, tableSize: 0, tableAlign: 0, neededDynlibsCount: 0, neededDynlibs: [] };
-  }
-  if (!isWasmBinary(wasmBytes)) {
-    return { hasDylink: false, sectionSize: 0, memorySize: 0, memoryAlign: 0, tableSize: 0, tableAlign: 0, neededDynlibsCount: 0, neededDynlibs: [] };
-  }
-
-  // Cursor after magic(4) + version(4)
-  let pos = 8;
-
-  // helpers
-  function readULEB() {
-    let result = 0;
-    let shift = 0;
-    for (;;) {
-      if (pos >= wasmBytes.length) throw new Error("Unexpected EOF reading ULEB");
-      const byte = wasmBytes[pos++];
-      result |= (byte & 0x7f) << shift;
-      if ((byte & 0x80) === 0) break;
-      shift += 7;
-    }
-    return result;
-  }
-
-  function readBytes(n) {
-    if (pos + n > wasmBytes.length) throw new Error("Unexpected EOF reading bytes");
-    const sub = wasmBytes.subarray(pos, pos + n);
-    pos += n;
-    return sub;
-  }
-
-  function readName() {
-    const len = readULEB();
-    const bytes = readBytes(len);
-    return decoder.decode(bytes);
-  }
-
-  // Defaults for static WASM (no dylink)
-  const defaults = { hasDylink: false, sectionSize: 0, memorySize: 0, memoryAlign: 0, tableSize: 0, tableAlign: 0, neededDynlibsCount: 0, neededDynlibs: [] };
-
-  // Iterate sections
-  while (pos < wasmBytes.length) {
-    const id = wasmBytes[pos++];                 // section id (0 = custom)
-    const size = readULEB();                      // section size (bytes)
-    const sectionStart = pos;
-
-    if (id === 0 /* custom */) {
-      const namePos = pos;                        // remember to compute name+payload size
-      const name = readName();                    // custom section name
-      if (name === "dylink" || name === "dylink.0") {
-        // Parse dylink(.0) payload
-        // Spec (Emscripten): ULEB memorySize, ULEB memoryAlign, ULEB tableSize, ULEB tableAlign, ULEB neededDynlibsCount, then that many length-prefixed names
-        const memorySize = readULEB();
-        const memoryAlign = readULEB();
-        const tableSize = readULEB();
-        const tableAlign = readULEB();
-        const neededDynlibsCount = readULEB();
-
-        const neededDynlibs = [];
-        for (let i = 0; i < neededDynlibsCount; i++) {
-          neededDynlibs.push(readName());
-        }
-
-        const sectionSize = size; // raw size field for the custom section
-
-        // Done — return immediately
-        return {
-          hasDylink: true,
-          sectionSize,
-          memorySize,
-          memoryAlign,
-          tableSize,
-          tableAlign,
-          neededDynlibsCount,
-          neededDynlibs,
-        };
-      } else {
-        // Not the dylink section; skip remainder of this custom section payload
-        const consumed = pos - namePos; // bytes after we started inside payload
-        const remaining = size - consumed;
-        pos += Math.max(0, remaining);
-      }
-    } else {
-      // Non-custom: just skip the payload
-      pos += size;
-    }
-
-    // Safety: ensure we don't desync
-    if (pos !== sectionStart + size) {
-      pos = sectionStart + size;
-    }
-  }
-
-  // No dylink section found => static binary
-  return defaults;
-}
-
-
 export default async function loadWasm({ wasmDataURI, withPlugins = [], messagePort }) {
   const wasi = new WASI({ preopens: { "/": "/" } });
   const jumpTable = new Map(); // maps jmpbuf pointers to JS frames
@@ -287,11 +198,15 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   // write over anything if it overflows.
   //
   const fixedMemoryBase = 128 * PAGES_PER_MB;
-  const initialMemory = Math.ceil((memorySize + 2 ** memoryAlign) / PAGE_SIZE);
+  const initialMemory = Math.ceil(
+    (memorySize + alignmentFromExponent(memoryAlign)) / PAGE_SIZE,
+  );
   const pluginsMemory = Math.ceil(
     withPlugins.reduce(
       (accumulator, { headerData }) =>
-        accumulator + headerData.memorySize + 2 ** headerData.memoryAlign,
+        accumulator +
+        headerData.memorySize +
+        alignmentFromExponent(headerData.memoryAlign),
       0,
     ) / PAGE_SIZE,
   );
@@ -318,7 +233,6 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   let withPlugins_ = [];
 
   const hostRuntime = { instance: undefined };
-  let currentMemoryOffset = initialMemory * PAGE_SIZE;
 
   const csoundLoadModules = (csoundInstance) => {
     withPlugins_.forEach((pluginItem) => {
@@ -392,27 +306,68 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   const hasLegacyWasiPluginLoader =
     typeof instance_["exports"]["csoundWasiLoadPlugin"] === "function" ||
     typeof instance_["exports"]["csoundWasiLoadOpcodeLibrary"] === "function";
+  const pluginMemoryAllocations = [];
+
+  wasi.start(instance_);
+
+  const allocatePluginMemory = (size, alignmentExponent) => {
+    if (size === 0) {
+      return 0;
+    }
+
+    const allocate = instance_["exports"]["allocStringMem"];
+    if (typeof allocate !== "function") {
+      throw new TypeError("The WebAssembly host does not export allocStringMem");
+    }
+
+    const alignment = alignmentFromExponent(alignmentExponent);
+    const allocationSize = size + alignment - 1;
+    if (!Number.isSafeInteger(allocationSize) || allocationSize > MAX_SIGNED_WASM_I32) {
+      throw new TypeError("The WebAssembly plugin memory request is too large");
+    }
+
+    const allocation = allocate(allocationSize);
+    if (allocation === 0) {
+      throw new Error(`Could not reserve ${allocationSize} bytes for a WebAssembly plugin`);
+    }
+
+    const memoryBaseValue = alignUp(allocation, alignment);
+    new Uint8Array(memory.buffer, memoryBaseValue, size).fill(0);
+    pluginMemoryAllocations.push(allocation);
+    return memoryBaseValue;
+  };
 
   withPlugins_ = await withPlugins.reduce(async (accumulator, { headerData, wasmPluginBytes }) => {
     accumulator = await accumulator;
     try {
       const {
+        hasDylink,
         memorySize: pluginMemorySize,
         memoryAlign: pluginMemoryAlign,
         tableSize: pluginTableSize,
+        tableAlign: pluginTableAlign,
+        neededDynlibs,
       } = headerData;
+      if (neededDynlibs.length > 0) {
+        throw new Error(
+          `WebAssembly plugin dependencies are not supported: ${neededDynlibs.join(", ")}`,
+        );
+      }
 
       /** @suppress {checkTypes} */
       const plugin = await WebAssembly.compile(wasmPluginBytes);
       const pluginOptions = wasi.getImports(plugin);
+      const pluginImports = WebAssembly.Module.imports(plugin);
       const pluginExports = WebAssembly.Module.exports(plugin);
       const hasOpcodeInit = pluginExports.some(
         ({ name }) => name === "csound_opcode_init" || name === "csound_fgen_init",
       );
       const hasModuleInit = pluginExports.some(({ name }) => name === "csoundModuleInit");
-      const useIsolatedPluginTable = !hasLegacyWasiPluginLoader || (hasOpcodeInit && !hasModuleInit);
+      const useIsolatedPluginTable =
+        !hasDylink &&
+        (!hasLegacyWasiPluginLoader || (hasOpcodeInit && !hasModuleInit));
       let pluginTable = table;
-      const pluginTableBaseValue = table.length;
+      let pluginTableBaseValue = table.length;
 
       if (useIsolatedPluginTable) {
         const isolatedInitial = Math.max(table.length + Math.max(pluginTableSize, 0) + 16, 16);
@@ -423,16 +378,21 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
             pluginTable.set(tableIndex, tableFn);
           }
         }
-      } else if (pluginTableSize > 0) {
-        table.grow(pluginTableSize);
+      } else {
+        const pluginTableAlignment = alignmentFromExponent(pluginTableAlign);
+        pluginTableBaseValue = alignUp(table.length, pluginTableAlignment);
+        const tableGrowth = pluginTableBaseValue + pluginTableSize - table.length;
+        if (tableGrowth > 0) {
+          table.grow(tableGrowth);
+        }
       }
 
       pluginOptions["env"] = Object.assign({}, pluginOptions["env"]);
       pluginOptions["env"]["memory"] = memory;
       pluginOptions["env"]["__indirect_function_table"] = pluginTable;
-      const pluginMemoryAlignment = 2 ** pluginMemoryAlign;
-      const pluginMemoryBaseValue =
-        Math.ceil(currentMemoryOffset / pluginMemoryAlignment) * pluginMemoryAlignment;
+      const pluginMemoryBaseValue = hasDylink
+        ? allocatePluginMemory(pluginMemorySize, pluginMemoryAlign)
+        : 0;
       pluginOptions["env"]["__memory_base"] = new WebAssembly.Global(
         { value: "i32", mutable: false },
         pluginMemoryBaseValue,
@@ -441,9 +401,29 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
         { value: "i32", mutable: false },
         pluginTableBaseValue,
       );
-      delete pluginOptions["env"]["csoundWasiJsMessageCallback"];
 
-      currentMemoryOffset = pluginMemoryBaseValue + pluginMemorySize;
+      for (const pluginImport of pluginImports) {
+        if (pluginImport.module !== "env") {
+          continue;
+        }
+        if (pluginImport.kind === "function" && !pluginOptions["env"][pluginImport.name]) {
+          const hostFunction = instance_["exports"][pluginImport.name];
+          if (typeof hostFunction !== "function") {
+            throw new TypeError(`Missing WebAssembly host function: env.${pluginImport.name}`);
+          }
+          pluginOptions["env"][pluginImport.name] = hostFunction;
+        } else if (
+          pluginImport.kind === "global" &&
+          pluginImport.name === "__stack_pointer"
+        ) {
+          const hostStackPointer = instance_["exports"]["__stack_pointer"];
+          if (!hostStackPointer) {
+            throw new Error("The WebAssembly host does not export __stack_pointer");
+          }
+          pluginOptions["env"]["__stack_pointer"] = hostStackPointer;
+        }
+      }
+      delete pluginOptions["env"]["csoundWasiJsMessageCallback"];
 
       /**
        * @suppress {checkTypes}
@@ -451,6 +431,9 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
       const pluginInstance = await WebAssembly.instantiate(plugin, pluginOptions);
 
       if (assertPluginExports(pluginInstance)) {
+        if (typeof pluginInstance.exports.__wasm_apply_data_relocs === "function") {
+          pluginInstance.exports.__wasm_apply_data_relocs();
+        }
         pluginInstance.exports.__wasm_call_ctors();
         accumulator.push({ instance: pluginInstance, table: pluginTable });
       }
@@ -460,7 +443,6 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
     return accumulator;
   }, []);
 
-  wasi.start(instance_);
   instance_["exports"]["__wasi_js_csoundSetMessageStringCallback"]();
   return [instance_, wasi];
 }
