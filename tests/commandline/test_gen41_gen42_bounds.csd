@@ -16,6 +16,7 @@ gi42RoundAbove ftgen 3, 0, -8, -42, \
 gi42RoundBelow ftgen 4, 0, -8, -42, \
   10, 10, 1, 20, 21, 1, 30, 30, 1, \
   40, 40, 1, 50, 51, 1, 60, 60, 1
+giAudioChoices ftgen 5, 0, -4, -2, 10, 20, 30, 40
 
 opcode AssertTableValue(ndx:i, fn:i, expected:i):void
   value:i = table:i(ndx, fn)
@@ -72,6 +73,18 @@ instr 1
 
   kDiscrete duserrnd gi41RoundAbove
   kRange urd gi42RoundAbove
+  aDiscrete duserrnd giAudioChoices
+  aRange urd giAudioChoices
+  kDiscreteMax maxk aDiscrete, 1, 2
+  kRangeMax maxk aRange, 1, 2
+  if kDiscreteMax <= 10 then
+    printf "audio-rate duserrnd stayed on table element zero\n", 1
+    exitnowk(-1)
+  endif
+  if kRangeMax <= 10 then
+    printf "audio-rate urd stayed on table element zero\n", 1
+    exitnowk(-1)
+  endif
   printks "random values: %f %f\n", 1, kDiscrete, kRange
 endin
 </CsInstruments>

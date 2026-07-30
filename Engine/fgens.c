@@ -2003,10 +2003,16 @@ static int32_t gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
       return csoundFtError(ff,
                            Str("Gen41: Must have even number of arguments"));
     for (j = 0; j < nargs; j += 2) {
+      if (UNLIKELY(!isfinite(pp[j + 1])))
+        return csoundFtError(ff,
+                             Str("Gen41: probability must be finite"));
       if (UNLIKELY(pp[j + 1] < FL(0.0)))
         return csoundFtError(ff,
                              Str("Gen41: negative probability not allowed"));
       tot_prob += pp[j + 1];
+      if (UNLIKELY(!isfinite(tot_prob)))
+        return csoundFtError(ff,
+                             Str("Gen41: probability total must be finite"));
     }
     if (UNLIKELY(tot_prob <= FL(0.0)))
       return csoundFtError(ff,
@@ -2038,10 +2044,16 @@ static int32_t gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
       return csoundFtError(ff,
                            Str("Gen42: Must have a multiple of three arguments"));
     for (j = 0; j < nargs; j += 3) {
+      if (UNLIKELY(!isfinite(pp[j + 2])))
+        return csoundFtError(ff,
+                             Str("Gen42: probability must be finite"));
       if (UNLIKELY(pp[j + 2] < FL(0.0)))
         return csoundFtError(ff,
                              Str("Gen42: negative probability not allowed"));
       tot_prob += pp[j + 2];
+      if (UNLIKELY(!isfinite(tot_prob)))
+        return csoundFtError(ff,
+                             Str("Gen42: probability total must be finite"));
     }
     if (UNLIKELY(tot_prob <= FL(0.0)))
       return csoundFtError(ff,
