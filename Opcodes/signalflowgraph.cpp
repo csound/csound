@@ -1343,11 +1343,12 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
   }
   SignalFlowGraphState *sfg_globals = nullptr;
   QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
-#ifndef __wasi__
+#ifdef __wasi__
+  // signal_flow_ftables_lock is expected to be NULL on WASI.
+  if (UNLIKELY(sfg_globals == nullptr)) {
+#else
   if (UNLIKELY(sfg_globals == nullptr ||
                sfg_globals->signal_flow_ftables_lock == nullptr)) {
-#else
-  if (UNLIKELY(sfg_globals == nullptr)) {
 #endif
     return csound->InitError(csound, "%s",
                              Str("ftgenonce: not initialized"));
