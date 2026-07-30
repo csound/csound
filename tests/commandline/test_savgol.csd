@@ -13,6 +13,25 @@ nchnls = 1
 ; Reference coefficients below were derived in exact rational arithmetic from
 ; C = (A^T A)^-1 A^T scaled by deriv!, independently of the opcode.
 
+; MYFLT is float in single-precision builds (USE_DOUBLE=0), which the CI does
+; build and test. Anything that survives on seven significant digits is
+; compared at a fixed tolerance; anything whose accuracy is set by
+; cancellation gets a tolerance derived from the actual MYFLT epsilon.
+opcode machine_eps():i
+  e:i = 1
+  while 1 + e/2 != 1 do
+    e /= 2
+  od
+  xout(e)
+endop
+
+gi_eps@global:i = machine_eps()
+gi_single@global:i = (gi_eps > 1.0e-10 ? 1 : 0)
+
+opcode prec_tol(dbl:i, flt:i):i
+  xout(gi_single == 1 ? flt : dbl)
+endop
+
 opcode assert_close(got:i, want:i, tol:i, msg:S):void
   if abs(got - want) > tol then
     prints("FAIL %s: got %.14f, expected %.14f\n", msg, got, want)
@@ -85,13 +104,20 @@ opcode assert_moments(w:i, o:i):void
     m:i = 0
     while m <= o do
       s:i = 0
+      scale:i = 0
       k:i = 0
       while k < w do
-        s += mat[d][k] * int_pow(k - centre, m)
+        term:i = mat[d][k] * int_pow(k - centre, m)
+        s += term
+        scale += abs(term)
         k += 1
       od
       want:i = (m == d ? factorial(d) : 0)
-      if abs(s - want) > 1.0e-8 then
+      ; The sum cancels terms of magnitude `scale` down to `want`, so the
+      ; residual is bounded by a few ulps of `scale`, not by a fixed constant:
+      ; on w=31 o=4 that is 5e-11 in double and 2e-4 in single precision.
+      tol:i = 1024 * gi_eps * (scale > 1 ? scale : 1)
+      if abs(s - want) > tol then
         prints("FAIL moment w=%d o=%d deriv=%d m=%d: got %.14f, expected %.14f\n", w, o, d, m, s, want)
         exitnow(-1)
       endif
@@ -197,6 +223,25 @@ instr 7  ; parity of the derivative rows
   prints("savgolmat symmetry: ok\n")
 endin
 
+instr 9  ; frequency response at the two ends of the spectrum
+  mat:i[][] = savgolmat(9, 2)
+  dc:i = 0
+  nyq:i = 0
+  k:i = 0
+  while k < 9 do
+    dc += mat[0][k]
+    nyq += mat[0][k] * (k % 2 == 0 ? 1 : -1)
+    k += 1
+  od
+  ; Unity at DC, and -41/231 at Nyquist: a Savitzky-Golay kernel attenuates
+  ; the top of the spectrum by only about 15 dB, which is the shallow stopband
+  ; that pays for the peak preservation.
+  ; summing nine coefficients costs a few ulps, which is 1e-7 in single precision
+  assert_close(dc, 1, 64 * gi_eps, "smoothing kernel DC gain")
+  assert_close(nyq, -41/231, 64 * gi_eps, "smoothing kernel Nyquist gain")
+  prints("savgolmat frequency response: ok\n")
+endin
+
 instr 8  ; row d scales with 1/delta^d
   unit:i[][] = savgolmat(9, 3, 1)
   half:i[][] = savgolmat(9, 3, 0.5)
@@ -217,11 +262,10 @@ endin
 
 ; ------------------------------------------------------------------ savgol.a
 
-instr 20  ; unity DC gain, and rejection of a full-scale Nyquist component
-  sig:a = 1 + oscils(0.5, sr/2, 0)
-  y:a = savgol(sig, 9, 2)
+instr 20  ; unity DC gain
+  y:a = savgol(a(1), 9, 2)
   if timeinstk() > 2 then
-    assert_close_k(downsamp(y, 1), 1, 1.0e-9, 20)
+    assert_close_k(downsamp(y, 1), 1, prec_tol(1.0e-9, 1.0e-4), 20)
   endif
 endin
 
@@ -231,7 +275,7 @@ instr 21  ; a linear input is reproduced exactly, delayed by (winsize-1)/2
   y:a = savgol(sig, 11, 2)
   ref:a = delay(sig, 5 / sr)
   if timeinstk() > 2 then
-    assert_close_k(downsamp(y, 1), downsamp(ref, 1), 1.0e-9, 21)
+    assert_close_k(downsamp(y, 1), downsamp(ref, 1), prec_tol(1.0e-9, 1.0e-3), 21)
   endif
 endin
 
@@ -240,14 +284,14 @@ instr 22  ; first derivative of that ramp is its slope, in units per second
   sig:a = line(0, p3, slope * p3)
   y:a = savgol(sig, 7, 2, 1, 1/sr)
   if timeinstk() > 2 then
-    assert_close_k(downsamp(y, 1), slope, 1.0e-6, 22)
+    assert_close_k(downsamp(y, 1), slope, prec_tol(1.0e-6, 5.0e-2), 22)
   endif
 endin
 
 instr 23  ; derivative of a constant is zero
   y:a = savgol(a(1), 9, 3, 1, 1/sr)
   if timeinstk() > 2 then
-    assert_close_k(downsamp(y, 1), 0, 1.0e-6, 23)
+    assert_close_k(downsamp(y, 1), 0, prec_tol(1.0e-6, 1.0e-2), 23)
   endif
 endin
 
@@ -269,24 +313,28 @@ endin
 instr 30  ; unity DC gain at k-rate
   y:k = savgol(k(1), 9, 2)
   if timeinstk() > 12 then
-    assert_close_k(y, 1, 1.0e-9, 30)
+    assert_close_k(y, 1, prec_tol(1.0e-9, 1.0e-4), 30)
   endif
 endin
 
 instr 31  ; first derivative of a k-rate ramp, in units per second
   slope:k = 5
-  x:k = slope * times()
+  x:k = slope * timeinsts()
   y:k = savgol(x, 7, 2, 1, 1/kr)
   if timeinstk() > 10 then
-    assert_close_k(y, slope, 1.0e-6, 31)
+    assert_close_k(y, slope, prec_tol(1.0e-6, 5.0e-2), 31)
   endif
 endin
 
 instr 32  ; second derivative of a quadratic, exact for order >= 2
-  t:k = times()
+  ; Centred on the note so |t| stays small: a second derivative cancels terms
+  ; of magnitude (t/delta)^2, which in single precision leaves a few percent
+  ; even at |t| <= 5 and is hopeless if absolute score time is used instead.
+  t:k = frac(timeinsts()) - 0.5
   y:k = savgol(t * t, 9, 2, 2, 1/kr)
-  if timeinstk() > 12 then
-    assert_close_k(y, 2, 1.0e-4, 32)
+  if timeinstk() > 12 && abs(t) < 0.4 then
+    ; measured worst error: 1.1e-10 in double, 0.11 in single precision
+    assert_close_k(y, 2, prec_tol(1.0e-6, 0.3), 32)
   endif
 endin
 
@@ -299,7 +347,8 @@ endin
 
 instr 90
   if timeinstk() == 1 then
-    ; The score is deterministic and currently yields 1860393 checks; the bound
+    ; The score is deterministic and yields 1857650 checks in both the double
+    ; and the single-precision build; the bound
     ; is tight enough that a whole instrument going silent trips it.
     if gk_checks < 1850000 then
       printf("FAIL: only %d perf-rate assertions ran, expected at least 1850000\n", 1, gk_checks)
@@ -319,6 +368,7 @@ i 5  0 0.1
 i 6  0 0.1
 i 7  0 0.1
 i 8  0 0.1
+i 9  0 0.1
 
 ; Ten seconds of audio-rate filtering, then ten of control-rate, so that ring
 ; wrap-around, history shifting and coefficient scaling are exercised over
