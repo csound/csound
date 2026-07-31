@@ -65,6 +65,7 @@ import {
   isRequestingRtMidiInput,
   _isRequestingRtMidiInput,
 } from "./modules/rtmidi";
+import { getRequestedPlugins, isRequestingPlugins } from "./modules/plugins";
 import {
   csoundInputMessage,
   csoundInputMessageAsync,
@@ -197,6 +198,9 @@ export const api = {
   csoundPushMidiMessage,
   isRequestingRtMidiInput,
   _isRequestingRtMidiInput,
+  // @module/plugins
+  isRequestingPlugins,
+  getRequestedPlugins,
   // @module/control_events
   csoundInputMessage,
   csoundInputMessageAsync,

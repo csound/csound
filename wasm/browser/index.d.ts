@@ -219,6 +219,14 @@ declare interface CsoundObj {
    */
   setOption: (option: string) => Promise<number>;
   /**
+   * Returns 1 when one or more --opcode-lib paths are waiting to be loaded.
+   */
+  isRequestingPlugins: () => Promise<number>;
+  /**
+   * Returns pending --opcode-lib paths as a comma-separated string.
+   */
+  getRequestedPlugins: () => Promise<string>;
+  /**
    * Configure Csound with a given set of
    * parameters defined in the CSOUND_PARAMS structure.
    * These parameters are the part of the OPARMS struct
@@ -653,6 +661,8 @@ declare interface LibCsoundObj {
   _isRequestingRtAudioInput: (csound: number) => number;
   isRequestingRtMidiInput: (csound: number) => number;
   _isRequestingRtMidiInput: (csound: number) => number;
+  isRequestingPlugins: (csound: number) => number;
+  getRequestedPlugins: (csound: number) => string;
   csoundInputMessage: (csound: number, scoreEvent: string) => number;
   csoundInputMessageAsync: (csound: number, scoreEvent: string) => number;
   csoundReadlinePushText: (csound: number, text: string) => number;

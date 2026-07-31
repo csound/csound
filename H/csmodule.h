@@ -98,6 +98,11 @@ extern "C" {
    */
   int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir);
 
+#ifdef CSOUND_WASI_BROWSER
+  /** Load and initialise plugins requested through --opcode-lib. */
+  int32_t csoundLoadRequestedPlugins(CSOUND *csound);
+#endif
+
   /**
    * Call destructor functions of all loaded modules that have a
    * csoundModuleDestroy symbol, for Csound instance 'csound'.
@@ -116,4 +121,3 @@ extern "C" {
 #endif
 
 #endif /* CSOUND_CSMODULE_H */
-

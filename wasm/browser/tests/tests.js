@@ -153,6 +153,36 @@
 </CsoundSynthesizer>
 `;
 
+  const velvetLpOrchestra = `
+  sr = 48000
+  ksmps = 64
+  nchnls = 1
+  0dbfs = 1
+
+  instr 1
+    aIn poscil 0.2, 440
+    kCutoff init 1000
+    aOut velvetlp aIn, kCutoff
+    out aOut
+  endin
+`;
+
+  const velvetLpPluginTest = (pluginOption = "") => `
+<CsoundSynthesizer>
+<CsOptions>
+  -d
+  -n
+  ${pluginOption}
+</CsOptions>
+<CsInstruments>
+${velvetLpOrchestra}
+</CsInstruments>
+<CsScore>
+  i1 0 0.02
+</CsScore>
+</CsoundSynthesizer>
+`;
+
   const ftableTest = `
 <CsoundSynthesizer>
 <CsOptions>
@@ -401,6 +431,87 @@ e
         await cs.start();
         await cs.stop();
         await cs.terminateInstance();
+      });
+
+      it("loads an opcode plugin requested with setOption from the filesystem", async function () {
+        const cs = await Csound(test);
+
+        try {
+          assert.isFalse(await cs.fs.pathExists("./velvetlp.wasm"));
+          assert.equal(0, await cs.setOption("--opcode-lib=./velvetlp.wasm"));
+          assert.equal(1, await cs.isRequestingPlugins());
+          assert.equal("./velvetlp.wasm", await cs.getRequestedPlugins());
+
+          const response = await fetch("./velvetlp.wasm");
+          assert.isTrue(response.ok, "velvetlp fixture is available");
+          const pluginBytes = new Uint8Array(await response.arrayBuffer());
+          await cs.fs.writeFile("./velvetlp.wasm", pluginBytes);
+
+          assert.isTrue(await cs.fs.pathExists("./velvetlp.wasm"));
+          assert.equal(1, await cs.isRequestingPlugins());
+          assert.equal("./velvetlp.wasm", await cs.getRequestedPlugins());
+          assert.equal(0, await cs.compileCSD(velvetLpPluginTest()));
+          assert.equal(0, await cs.isRequestingPlugins());
+          assert.equal("", await cs.getRequestedPlugins());
+          assert.equal(0, await cs.start());
+          await cs.stop();
+
+          await cs.reset();
+          assert.equal(0, await cs.setOption("--opcode-lib=./velvetlp.wasm"));
+          assert.equal(1, await cs.isRequestingPlugins());
+          assert.equal(0, await cs.compileCSD(velvetLpPluginTest()));
+          assert.equal(0, await cs.isRequestingPlugins());
+          assert.equal(0, await cs.start());
+          await cs.stop();
+        } finally {
+          await cs.terminateInstance();
+        }
+      });
+
+      it("loads an opcode plugin requested in CsOptions from the filesystem", async function () {
+        const cs = await Csound(test);
+
+        try {
+          const response = await fetch("./velvetlp.wasm");
+          assert.isTrue(response.ok, "velvetlp fixture is available");
+          const pluginBytes = new Uint8Array(await response.arrayBuffer());
+          await cs.fs.writeFile("./velvetlp.wasm", pluginBytes);
+
+          assert.equal(0, await cs.isRequestingPlugins());
+          assert.equal("", await cs.getRequestedPlugins());
+          assert.equal(0, await cs.compileCSD(velvetLpPluginTest("--opcode-lib=./velvetlp.wasm")));
+          assert.equal(0, await cs.isRequestingPlugins());
+          assert.equal("", await cs.getRequestedPlugins());
+        } finally {
+          await cs.terminateInstance();
+        }
+      });
+
+      it("retries a missing opcode plugin before parseOrc verifies the tree", async function () {
+        const cs = await Csound(test);
+
+        try {
+          assert.isFalse(await cs.fs.pathExists("./velvetlp.wasm"));
+          assert.equal(0, await cs.setOption("--opcode-lib=./velvetlp.wasm"));
+          assert.equal(1, await cs.isRequestingPlugins());
+          assert.equal(0, await cs.parseOrc(velvetLpOrchestra));
+          assert.equal(1, await cs.isRequestingPlugins());
+          assert.equal("./velvetlp.wasm", await cs.getRequestedPlugins());
+
+          const response = await fetch("./velvetlp.wasm");
+          assert.isTrue(response.ok, "velvetlp fixture is available");
+          const pluginBytes = new Uint8Array(await response.arrayBuffer());
+          await cs.fs.writeFile("./velvetlp.wasm", pluginBytes);
+
+          const tree = await cs.parseOrc(velvetLpOrchestra);
+          assert.isOk(tree);
+          assert.equal(0, await cs.isRequestingPlugins());
+          assert.equal(0, await cs.compileTree(tree));
+          assert.equal(0, await cs.start());
+          await cs.stop();
+        } finally {
+          await cs.terminateInstance();
+        }
       });
 
       it("emits public events in realtime performance", async function () {

@@ -40,6 +40,10 @@ const isRequestingRtAudioInput: number = localLibCsound.isRequestingRtAudioInput
 const isRequestingRtMidiInput: number = localLibCsound.isRequestingRtMidiInput(0);
 const isRequestingRtAudioInputAlias: number = localLibCsound._isRequestingRtAudioInput(0);
 const isRequestingRtMidiInputAlias: number = localLibCsound._isRequestingRtMidiInput(0);
+const isRequestingPlugins: number = localLibCsound.isRequestingPlugins(0);
+const requestedPlugins: string = localLibCsound.getRequestedPlugins(0);
+const browserIsRequestingPlugins: Promise<number> = browserCsound.isRequestingPlugins();
+const browserRequestedPlugins: Promise<string> = browserCsound.getRequestedPlugins();
 
 void [
   createBrowserCsound,
@@ -62,4 +66,8 @@ void [
   isRequestingRtMidiInput,
   isRequestingRtAudioInputAlias,
   isRequestingRtMidiInputAlias,
+  isRequestingPlugins,
+  requestedPlugins,
+  browserIsRequestingPlugins,
+  browserRequestedPlugins,
 ];

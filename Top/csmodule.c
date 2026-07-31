@@ -290,7 +290,7 @@ static CS_NOINLINE int32_t init_module(CSOUND *csound, csoundModule_t *m)
 #ifdef __wasi__
 __attribute__((used))
 void csoundWasiLoadPlugin(CSOUND *csound, void *preInitFunc, void *initFunc, void *destFunc, void *errCodeToStr) {
-  csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
+  csoundModule_t *module = csound->Calloc(csound, sizeof(csoundModule_t) + 1);
   module->h = (void*) NULL;
 
   // The javascript host must assert that this is provided
@@ -313,7 +313,7 @@ void csoundWasiLoadPlugin(CSOUND *csound, void *preInitFunc, void *initFunc, voi
 
 __attribute__((used))
 void csoundWasiLoadOpcodeLibrary(CSOUND *csound, void *fgenInitFunc, void *opcodeInitFunc) {
-  csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
+  csoundModule_t *module = csound->Calloc(csound, sizeof(csoundModule_t) + 1);
   module->h = (void*) NULL;
 
   if (fgenInitFunc) {
@@ -378,6 +378,11 @@ int32_t csoundLoadModulesHost(CSOUND *csound)
 int32_t csoundLoadModules(CSOUND *csound) {
   return csoundLoadModulesHost(csound);
 }
+
+int32_t csoundLoadExternalsHost(CSOUND *csound, const char *libraries)
+    __attribute__((used,
+                   __import_module__("env"),
+                   __import_name__("csoundLoadExternals")));
 #elif defined(CSOUND_WASI_CLI)
 // Standalone WASI has no dynamic loader. All available opcodes are linked in.
 int32_t csoundLoadModules(CSOUND *csound) {
@@ -388,10 +393,76 @@ int32_t csoundLoadModules(CSOUND *csound) {
 #error "A WASI host mode must be selected by the build system"
 #endif
 
+static const char noRequestedPlugins[] = "";
+
+__attribute__((used))
+int32_t isRequestingPlugins(CSOUND *csound) {
+  return csound != NULL && csound->dl_opcodes_oplibs != NULL &&
+         csound->dl_opcodes_oplibs[0] != '\0';
+}
+
+__attribute__((used))
+const char *getRequestedPlugins(CSOUND *csound) {
+  if (!isRequestingPlugins(csound))
+    return noRequestedPlugins;
+  return csound->dl_opcodes_oplibs;
+}
+
 int32_t csoundLoadExternals(CSOUND *csound) {
+#ifdef CSOUND_WASI_BROWSER
+  char *libraries = csound->dl_opcodes_oplibs;
+  int32_t retval;
+
+  if (libraries == NULL || libraries[0] == '\0')
+    return CSOUND_SUCCESS;
+
+  retval = csoundLoadExternalsHost(csound, libraries);
+  if (LIKELY(retval == CSOUND_SUCCESS)) {
+    csound->dl_opcodes_oplibs = NULL;
+    csound->Free(csound, libraries);
+  }
+  return retval;
+#else
   (void) csound;
   return CSOUND_SUCCESS;
+#endif
 }
+
+#ifdef CSOUND_WASI_BROWSER
+int32_t csoundLoadRequestedPlugins(CSOUND *csound) {
+  csoundModule_t *oldHead = (csoundModule_t *)csound->csmodule_db;
+  csoundModule_t *module;
+  int32_t err;
+  int32_t retval;
+
+  if (!isRequestingPlugins(csound))
+    return CSOUND_SUCCESS;
+
+  retval = csoundLoadExternals(csound);
+
+  if (csound->modules_loaded == 0) {
+    err = csoundInitModules(csound);
+    if (UNLIKELY(err != CSOUND_SUCCESS &&
+                 (retval == CSOUND_SUCCESS || err < retval)))
+      retval = err;
+    if (LIKELY(err == CSOUND_SUCCESS))
+      csound->modules_loaded = 1;
+    return retval;
+  }
+
+  for (module = (csoundModule_t *)csound->csmodule_db;
+       module != oldHead;
+       module = module->nxt) {
+    if (UNLIKELY(module == NULL))
+      return CSOUND_ERROR;
+    err = init_module(csound, module);
+    if (UNLIKELY(err != CSOUND_SUCCESS &&
+                 (retval == CSOUND_SUCCESS || err < retval)))
+      retval = err;
+  }
+  return retval;
+}
+#endif
 
 int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
   return 0;

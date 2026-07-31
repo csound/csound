@@ -94,6 +94,7 @@ export default async function ({ withPlugins = [] }) {
   options.env.__memory_base = memoryBase;
   options.env.__table_base = tableBase;
   options.env.csoundLoadModules = () => {};
+  options.env.csoundLoadExternals = () => 0;
 
   const streamBuffer = [];
   const messagePort = {};
