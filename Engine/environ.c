@@ -31,6 +31,9 @@
 static const char *envVar_list[] = {
     "CSNOSTOP",
     "CSOUND7RC",
+#ifdef HAVE_WASMTIME
+    "CSOUND_WASMTIME_CACHE_CONFIG",
+#endif
     "CSSTRNGS",
     "CS_LANG",
     "HOME",
