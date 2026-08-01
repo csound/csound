@@ -354,7 +354,8 @@ PUBLIC void csoundDebugFreeVariables(CSOUND *csound,
  * that UDO body, read the same way as csoundDebugGetVariables().
  *
  * callLine is the source line of the UDO call (from the call-site opcode).
- * frameIndex orders sibling calls on the same parent (0 = outermost on chain).
+ * frameIndex orders sibling calls on the same parent (0 = head / most recent
+ * on the parent's opcod_deact chain).
  *
  * csoundDebugFreeUdoFrames() must be called when the list is no longer needed.
  * Not thread-safe; call from the k-cycle callback or between k-cycles.

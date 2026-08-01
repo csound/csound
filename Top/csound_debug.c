@@ -416,6 +416,35 @@ debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound)
     return csoundDebugBuildVarList(csound, pool->head, NULL, 1);
 }
 
+static UOPCODE *csoundDebugUdoFindSavedSibling(UOPCODE *nestedHead,
+                                               INSDS *sibling_parent)
+{
+    INSDS *ip;
+    UOPCODE *candidate;
+    int32_t depth;
+    enum { maxDepth = 64 };
+
+    if (nestedHead == NULL || sibling_parent == NULL) {
+        return NULL;
+    }
+    ip = nestedHead->ip;
+    for (depth = 0; depth < maxDepth && ip != NULL; depth++) {
+        candidate = (UOPCODE *)ip->opcod_deact;
+        if (candidate == NULL) {
+            return NULL;
+        }
+        if (candidate->parent_ip == sibling_parent) {
+            return candidate;
+        }
+        if (candidate->parent_ip == ip) {
+            ip = candidate->ip;
+            continue;
+        }
+        return NULL;
+    }
+    return NULL;
+}
+
 static UOPCODE *csoundDebugUdoChainNext(UOPCODE *p, INSDS *parent_ip)
 {
     UOPCODE *next;
@@ -424,13 +453,30 @@ static UOPCODE *csoundDebugUdoChainNext(UOPCODE *p, INSDS *parent_ip)
     }
     /* UDO linking stores the older sibling in p->ip->opcod_deact at call
        time, but that field becomes the head of nested UDO calls once the
-       sub-instance runs. Only follow it while it still points at a sibling
-       on parent_ip (same parent_ip as this chain). */
+       sub-instance runs. */
     next = (UOPCODE *)p->ip->opcod_deact;
-    if (next != NULL && next->parent_ip != parent_ip) {
-        next = NULL;
+    if (next == NULL) {
+        return NULL;
     }
-    return next;
+    if (next->parent_ip == parent_ip) {
+        return next;
+    }
+    if (next->parent_ip == p->ip) {
+        return csoundDebugUdoFindSavedSibling(next, parent_ip);
+    }
+    return NULL;
+}
+
+static int csoundDebugUopcodeVisited(UOPCODE *p, UOPCODE **visited,
+                                     int32_t visitedCount)
+{
+    int32_t i;
+    for (i = 0; i < visitedCount; i++) {
+        if (visited[i] == p) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 static const char *csoundDebugUdoName(UOPCODE *p)
@@ -481,22 +527,38 @@ static void csoundDebugCollectUdoFrames(
     int32_t depth,
     debug_udo_frame_t **head,
     debug_udo_frame_t **tail,
-    int32_t *frameIndex)
+    UOPCODE **visited,
+    int32_t *visitedCount)
 {
     UOPCODE *p;
+    int32_t siblingIndex = 0;
+    enum { maxVisited = 256 };
+
     for (p = (UOPCODE *)ip->opcod_deact; p != NULL;
          p = csoundDebugUdoChainNext(p, ip)) {
         INSDS *udo_ip = p->ip;
         if (udo_ip == NULL) {
             continue;
         }
+        /* opcod_deact on a child instance may still hold a saved sibling
+           pointer for its real parent; do not treat that as a nested call. */
+        if (p->parent_ip != ip) {
+            continue;
+        }
         if (!ATOMIC_GET(udo_ip->init_done)) {
             continue;
         }
+        if (csoundDebugUopcodeVisited(p, visited, *visitedCount)) {
+            continue;
+        }
+        if (*visitedCount >= maxVisited) {
+            continue;
+        }
+        visited[(*visitedCount)++] = p;
         csoundDebugAppendUdoFrame(csound, head, tail, p, udo_ip, depth,
-                                  (*frameIndex)++);
+                                  siblingIndex++);
         csoundDebugCollectUdoFrames(csound, udo_ip, depth + 1, head, tail,
-                                    frameIndex);
+                                    visited, visitedCount);
     }
 }
 
@@ -505,13 +567,15 @@ debug_udo_frame_t *csoundDebugGetUdoFrames(CSOUND *csound,
 {
     debug_udo_frame_t *head = NULL;
     debug_udo_frame_t *tail = NULL;
-    int32_t frameIndex = 0;
+    int32_t visitedCount = 0;
+    UOPCODE *visited[256];
     INSDS *ip;
     if (instr == NULL || instr->instrptr == NULL) {
         return NULL;
     }
     ip = (INSDS *)instr->instrptr;
-    csoundDebugCollectUdoFrames(csound, ip, 0, &head, &tail, &frameIndex);
+    csoundDebugCollectUdoFrames(csound, ip, 0, &head, &tail, visited,
+                                  &visitedCount);
     return head;
 }
 
@@ -582,15 +646,23 @@ int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
     n = (total < bufMax) ? total : bufMax;
 
     if (fsig->sliding) {
-        /* Sliding analysis: frame.auxp is CMPLX[ksmps * NB]. Use the most
-           recent sub-frame (last sample of the block). CMPLX is {re=amp,
-           im=freq} stored as MYFLT. */
-        uint32_t ksmps = csound->ksmps;
+        /* Sliding analysis: frame.auxp is CMPLX[local_ksmps * NB]. Use the
+           most recent sub-frame. Sub-frame count comes from the allocated
+           buffer size (local CS_KSMPS at init), not global csound->ksmps. */
+        size_t stride = (size_t) NB * sizeof(CMPLX);
+        uint32_t subframes;
         CMPLX *base;
-        if (ksmps < 1) {
-            ksmps = 1;
+        if (stride == 0 || fsig->frame.size < stride) {
+            if (infoOut != NULL) {
+                infoOut->NB = 0;
+            }
+            return 0;
         }
-        base = ((CMPLX *) fsig->frame.auxp) + (size_t) NB * (ksmps - 1);
+        subframes = (uint32_t)(fsig->frame.size / stride);
+        if (subframes < 1) {
+            subframes = 1;
+        }
+        base = ((CMPLX *) fsig->frame.auxp) + (size_t) NB * (subframes - 1);
         for (i = 0; i < n; i++) {
             int32_t bin = i >> 1;
             outBuf[i] = (i & 1) ? (float) base[bin].im : (float) base[bin].re;

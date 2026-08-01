@@ -183,6 +183,64 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigInstrumentLocal)
     csoundDebugFreeInstrInstances(csound, instrs);
 }
 
+TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigSlidingLocalKsmps)
+{
+    const char *orc =
+        "sr = 44100\n"
+        "ksmps = 32\n"
+        "nchnls = 1\n"
+        "0dbfs = 1\n"
+        "opcode slidingAnal, a, a\n"
+        "  setksmps 1\n"
+        "  ain xin\n"
+        "  fSig pvsanal ain, 512, 1, 512, 1\n"
+        "  aOut pvsynth fSig\n"
+        "  xout aOut\n"
+        "endop\n"
+        "instr 1\n"
+        "  aIn oscili 0.5, 440\n"
+        "  aOut slidingAnal aIn\n"
+        "  out aOut\n"
+        "endin\n";
+    csoundCompileOrc(csound, orc, 0);
+    csoundStart(csound);
+    csoundEventString(csound, "i 1 0 4", 0);
+    for (int i = 0; i < 400; i++) {
+        csoundPerformKsmps(csound);
+    }
+
+    debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
+    ASSERT_NE(instrs, nullptr);
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs);
+    ASSERT_NE(frames, nullptr);
+    ASSERT_STREQ(frames->udoName, "slidingAnal");
+
+    debug_variable_t *fSig = findVar(frames->varList, "fSig");
+    ASSERT_NE(fSig, nullptr);
+    ASSERT_STREQ(fSig->typeName, "f");
+    ASSERT_NE(fSig->data, nullptr);
+
+    const int32_t expectedNB = 512 / 2 + 1;
+    debug_fsig_info_t info;
+    float buf[2 * (512 / 2 + 1)];
+    int32_t total = csoundDebugSerializeFsig(
+        csound, fSig->data, buf,
+        (int32_t)(sizeof(buf) / sizeof(buf[0])), &info);
+
+    ASSERT_EQ(info.sliding, 1);
+    ASSERT_EQ(info.N, 512);
+    ASSERT_EQ(info.NB, expectedNB);
+    ASSERT_EQ(total, 2 * expectedNB);
+
+    for (int32_t i = 0; i < total; i += 2) {
+        ASSERT_FALSE(std::isnan(buf[i]));
+        ASSERT_GE(buf[i], 0.0f);
+    }
+
+    csoundDebugFreeUdoFrames(csound, frames);
+    csoundDebugFreeInstrInstances(csound, instrs);
+}
+
 TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigReportsSizeWithNullBuffer)
 {
     const char *orc =
