@@ -79,6 +79,9 @@
 
 #include "csoundCore.h"
 #include "csmodule.h"
+#ifdef HAVE_WASMTIME
+#include "wasm_plugins.h"
+#endif
 
 #if defined(__MACH__)
 #include <TargetConditionals.h>
@@ -768,6 +771,45 @@ static int cmp_func(const void *p1, const void *p2)
   return (strcmp(*((const char**) p1), *((const char**) p2)));
 }
 
+static int32_t is_wasm_library_name(const char *path)
+{
+  static const char suffix[] = ".wasm";
+  size_t path_length, suffix_length = sizeof(suffix) - 1;
+  uint32_t i;
+  if (path == NULL || (path_length = strlen(path)) < suffix_length)
+    return 0;
+  path += path_length - suffix_length;
+  for (i = 0; i < suffix_length; i++) {
+    char value = path[i];
+    if (value >= 'A' && value <= 'Z')
+      value = (char) (value - 'A' + 'a');
+    if (value != suffix[i])
+      return 0;
+  }
+  return 1;
+}
+
+static int32_t load_explicit_opcode_library(CSOUND *csound, const char *path)
+{
+#ifdef HAVE_WASMTIME
+  int32_t result;
+#endif
+  if (!is_wasm_library_name(path))
+    return load_external(csound, path);
+#ifdef HAVE_WASMTIME
+  result = csoundLoadWasmOpcodeLibrary(csound, path);
+  if (result == CSOUND_SUCCESS || result == CSOUND_MEMORY)
+    return result;
+  return CSOUND_INITIALIZATION;
+#else
+  csound->ErrorMsg(csound,
+                   "Cannot load Wasm opcode library '%s': this Csound build "
+                   "has no Wasmtime support\n",
+                   path);
+  return CSOUND_INITIALIZATION;
+#endif
+}
+
 int32_t csoundLoadExternals(CSOUND *csound)
 {
   char    *s, **lst;
@@ -799,7 +841,7 @@ int32_t csoundLoadExternals(CSOUND *csound)
   do {
     char  *fname = lst[i];
     if (fname[0] != '\0' && !(i && strcmp(fname, lst[i - 1]) == 0)) {
-      err = load_external(csound, fname);
+      err = load_explicit_opcode_library(csound, fname);
       if (UNLIKELY(err == CSOUND_INITIALIZATION || err == CSOUND_MEMORY))
         csoundDie(csound, Str(" *** error loading '%s'"), fname);
       else if (!err)
@@ -830,6 +872,11 @@ int32_t csoundInitModules(CSOUND *csound)
     if (UNLIKELY(i != CSOUND_SUCCESS && i < retval))
       retval = i;
   }
+#ifdef HAVE_WASMTIME
+  i = csoundInitWasmOpcodeLibraries(csound);
+  if (UNLIKELY(i != CSOUND_SUCCESS && i < retval))
+    retval = i;
+#endif
   /* return with error code */
   return retval;
 }
@@ -1026,6 +1073,11 @@ int32_t csoundDestroyModules(CSOUND *csound)
   }
 #ifndef BUILD_PLUGINS
   sfont_ModuleDestroy(csound);
+#endif
+#ifdef HAVE_WASMTIME
+  i = csoundDestroyWasmOpcodeLibraries(csound);
+  if (UNLIKELY(i != CSOUND_SUCCESS && i < retval))
+    retval = i;
 #endif
   /* return with error code */
   return retval;

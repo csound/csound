@@ -219,6 +219,7 @@ option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
 option(USE_CURL "Use CURL library" ON)
+option(USE_WASMTIME "Load WebAssembly opcode libraries with Wasmtime when available" ON)
 option(USE_DEFAULT_OPCODEDIR "Use default opcodedir for the system" ON)
 option(BUILD_INSTALLER "Build installer" OFF)
 option(BUILD_TESTS "Build tests" OFF)
@@ -252,6 +253,20 @@ option(PRESERVE_NAN "Force preserving NaNs against optimisation removal" ON)
 # Build metadata overrides for reproducible/sandboxed builds (e.g. Nix).
 set(CSOUND_GIT_HASH "" CACHE STRING "Override git commit shown in version output")
 set(CSOUND_BUILD_DATE "" CACHE STRING "Override build date shown in version output (e.g. 2026-02-12)")
+
+set(HAVE_WASMTIME OFF)
+if(USE_WASMTIME)
+    # Probe the needed API instead of guessing support from the Csound target.
+    find_package(Wasmtime 47 QUIET MODULE)
+    if(Wasmtime_FOUND)
+        set(HAVE_WASMTIME ON)
+        message(STATUS "Using Wasmtime ${Wasmtime_VERSION} for WebAssembly opcode libraries")
+    else()
+        message(STATUS "Compatible Wasmtime C API with compiler and cache support not found; WebAssembly opcode libraries are disabled")
+    endif()
+else()
+    message(STATUS "Wasmtime opcode support is disabled by USE_WASMTIME=OFF")
+endif()
 
 
 # secret rabbit code
@@ -1016,6 +1031,15 @@ set(libcsound_SRCS
     OOps/compile_ops.c
 )
 
+if(HAVE_WASMTIME)
+    list(APPEND libcsound_SRCS Top/wasm_plugins.c)
+endif()
+
+if(EMSCRIPTEN OR
+   (CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" AND BUILD_WASI_BROWSER))
+    list(APPEND libcsound_SRCS Top/wasm_opcode_abi_check.c)
+endif()
+
 if(IOS AND NOT  OSXCROSS_TARGET)
 
 set(libcsound_SRCS ${libcsound_SRCS}
@@ -1543,6 +1567,12 @@ endif()
 
 set(libcsound_LIBS "")
 
+if(HAVE_WASMTIME)
+    list(APPEND libcsound_LIBS Wasmtime::wasmtime)
+    list(APPEND libcsound_CFLAGS -DHAVE_WASMTIME)
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lwasmtime")
+endif()
+
 if(REQUIRE_PTHREADS AND NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     list(APPEND libcsound_LIBS Threads::Threads)
 endif()
@@ -1685,6 +1715,9 @@ endif()
 
 if(MSVC)
     target_link_libraries(${CSOUNDLIB} PRIVATE ws2_32)
+    if(HAVE_WASMTIME)
+        target_link_libraries(${CSOUNDLIB} PRIVATE Wasmtime::wasmtime)
+    endif()
 else()
     if(NOT IOS OR OSXCROSS_TARGET)
         target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
@@ -1908,6 +1941,9 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfigVersion.cmake"
 
 # install FindCsound.cmake for projects using Module mode
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindCsound.cmake"
+    DESTINATION "share/csound"
+)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/FindWasmtime.cmake"
     DESTINATION "share/csound"
 )
 

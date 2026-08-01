@@ -100,7 +100,8 @@ export const dlinit = (
         missing.push("memory");
       }
 
-      // LINKAGE() returns sizeof(localops) in bytes; on wasm32 OENTRY is 40 bytes.
+      // Frozen wasm32 OENTRY size and offsets. Keep this in sync with
+      // Top/wasm_opcode_abi.h. LINKAGE() returns sizeof(localops) in bytes.
       const wasm32OentrySize = 40;
 
       if (typeof pluginInstance.exports["csound_opcode_init"] === "function" && missing.length === 0) {
