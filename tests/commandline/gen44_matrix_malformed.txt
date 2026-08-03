@@ -1,0 +1,2 @@
+<MATRIX size=2foo>
+</MATRIX>

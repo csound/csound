@@ -592,10 +592,12 @@ static void sortEventLists(CSOUND *csound, midifile_t *midifile)
 /* remove specific midifile from list */
 static int32_t midi_file_close(CSOUND *csound, midifile_t *p) {
   midifile_t *midifile = MIDIFILE, *prv = NULL;
-  while(midifile != p) {
+  while(midifile != NULL && midifile != p) {
     prv = midifile;
     midifile = midifile->nxt;
   }
+  if(midifile == NULL)
+    return 0;
   if(prv == NULL) // top of the list
     MIDIFILE = midifile->nxt;
   else prv->nxt = midifile->nxt;// patch up the list
@@ -1141,5 +1143,4 @@ int32_t midi_file_status(CSOUND *csound, MIDITEMPO *p){
   } else *p->kResult = 0;
   return OK;
 }
-
 
