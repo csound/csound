@@ -297,7 +297,8 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     /* validate before casting: an out-of-range or NaN MYFLT to int64
        conversion is undefined behaviour */
     if (UNLIKELY(!(*p->ptr3 >= FL(1.0)) ||
-                 *p->ptr3 > (MYFLT) (INT32_MAX / (int32_t) sizeof(MYFLT))))
+                 (double) *p->ptr3 >
+                 (double) (INT32_MAX / (int32_t) sizeof(MYFLT))))
       return csound->InitError(csound, "%s",
                                Str("invalid sockrecv buffer length"));
     circular_buffer_size = (int64_t) *p->ptr3 * (int64_t) sizeof(MYFLT);
