@@ -260,6 +260,25 @@ static bool udp_send_bytes(const void *data, size_t size, uint16_t port)
     return sent;
 }
 
+#ifdef CSOUND_TEST_OSC_PLUGIN_DIR
+static bool udp_send_osc_int(uint16_t port, const char *path, int32_t value)
+{
+    std::vector<char> packet;
+    auto appendOscString = [&packet](const char *text) {
+      packet.insert(packet.end(), text, text + strlen(text) + 1);
+      while ((packet.size() & 3U) != 0U)
+        packet.push_back('\0');
+    };
+
+    appendOscString(path);
+    appendOscString(",i");
+    const uint32_t networkValue = htonl(static_cast<uint32_t>(value));
+    const char *bytes = reinterpret_cast<const char*>(&networkValue);
+    packet.insert(packet.end(), bytes, bytes + sizeof(networkValue));
+    return udp_send_bytes(packet.data(), packet.size(), port);
+}
+#endif
+
 class ServerTests : public ::testing::Test {
 public:
     ServerTests ()
@@ -394,6 +413,7 @@ TEST_F(ServerTests, OscListenerTeardownWhilePacketsArrive)
       "nchnls = 1\n"
       "0dbfs = 1\n"
       "chn_k \"race_received\", 3\n"
+      "chn_k \"teardown_received\", 3\n"
       "gihListener oscinit " + std::to_string(listenerPort) + "\n"
       "instr 1\n"
       "  kvalue init 0\n"
@@ -412,6 +432,9 @@ TEST_F(ServerTests, OscListenerTeardownWhilePacketsArrive)
       "  ihandle oscinit " + std::to_string(teardownPort) + "\n"
       "  kvalue init 0\n"
       "  kreceived osclisten ihandle, \"/teardown\", \"i\", kvalue\n"
+      "  if kreceived == 1 then\n"
+      "    chnset kvalue, \"teardown_received\"\n"
+      "  endif\n"
       "endin\n"
       "instr 4\n"
       "  kvalue init 0\n"
@@ -439,7 +462,160 @@ TEST_F(ServerTests, OscListenerTeardownWhilePacketsArrive)
       ASSERT_TRUE(performBlocks(csound, 8));
     }
 
+    EXPECT_GT(csoundGetControlChannel(csound, "teardown_received", NULL),
+              static_cast<MYFLT>(0.0));
     EXPECT_EQ(readMessages(csound).find("deinit error"), std::string::npos);
+}
+
+TEST_F(ServerTests, OscArrayListenerKeepsStablePortAddress)
+{
+    const int32_t listenerPort = findFreeUdpPort();
+    ASSERT_GT(listenerPort, 0);
+    int32_t addedPort = findFreeUdpPort();
+    for (int32_t i = 0; i < 10 && addedPort == listenerPort; ++i)
+      addedPort = findFreeUdpPort();
+    ASSERT_GT(addedPort, 0);
+    ASSERT_NE(addedPort, listenerPort);
+
+    const std::string orchestra =
+      "sr = 48000\n"
+      "ksmps = 32\n"
+      "nchnls = 1\n"
+      "0dbfs = 1\n"
+      "chn_k \"array_int\", 3\n"
+      "chn_k \"array_float\", 3\n"
+      "gihListener oscinit " + std::to_string(listenerPort) + "\n"
+      "instr 1\n"
+      "  kreceived, kvalues[] osclisten gihListener, \"/array\", \"if\"\n"
+      "  if kreceived == 1 then\n"
+      "    chnset kvalues[0], \"array_int\"\n"
+      "    chnset kvalues[1], \"array_float\"\n"
+      "  endif\n"
+      "endin\n"
+      "instr 2\n"
+      "  ihandle oscinit " + std::to_string(addedPort) + "\n"
+      "endin\n"
+      "instr 3\n"
+      "  ktrigger init 1\n"
+      "  oscsendlo ktrigger, \"127.0.0.1\", " +
+        std::to_string(listenerPort) + ", \"/array\", \"if\", 7, p4\n"
+      "endin\n";
+
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-d"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 60", 0);
+    ASSERT_TRUE(performBlocks(csound, 4));
+
+    csoundEventString(csound, "i 3 0 0.01 1.25", 0);
+    ASSERT_TRUE(waitForChannel(csound, "array_float",
+                               static_cast<MYFLT>(1.25)));
+    EXPECT_EQ(csoundGetControlChannel(csound, "array_int", NULL),
+              static_cast<MYFLT>(7.0));
+
+    for (int32_t i = 0; i < 8; ++i) {
+      csoundEventString(csound, "i 2 0 0.002", 0);
+      ASSERT_TRUE(performBlocks(csound, 4));
+    }
+
+    csoundEventString(csound, "i 3 0 0.01 2.5", 0);
+    EXPECT_TRUE(waitForChannel(csound, "array_float",
+                               static_cast<MYFLT>(2.5)));
+    EXPECT_EQ(csoundGetControlChannel(csound, "array_int", NULL),
+              static_cast<MYFLT>(7.0));
+    EXPECT_EQ(readMessages(csound).find("deinit error"), std::string::npos);
+}
+
+TEST_F(ServerTests, OscListenerContinuesAfterPortDeinit)
+{
+    const int32_t listenerPort = findFreeUdpPort();
+    ASSERT_GT(listenerPort, 0);
+
+    const std::string orchestra =
+      "sr = 48000\n"
+      "ksmps = 32\n"
+      "nchnls = 1\n"
+      "0dbfs = 1\n"
+      "chn_k \"queued_received\", 3\n"
+      "chn_k \"queued_cycles\", 3\n"
+      "chn_k \"queued_pending\", 3\n"
+      "chn_k \"queued_status\", 3\n"
+      "instr 1\n"
+      "  ihandle oscinit " + std::to_string(listenerPort) + "\n"
+      "endin\n"
+      "instr 2\n"
+      "  kvalue init 0\n"
+      "  kreceived osclisten 0, \"/queued\", \"i\", kvalue\n"
+      "  kcount init 0\n"
+      "  kcycles init 0\n"
+      "  kcycles += 1\n"
+      "  if kreceived == 1 then\n"
+      "    kcount += 1\n"
+      "    chnset kcount, \"queued_received\"\n"
+      "  endif\n"
+      "  kpending osccount\n"
+      "  chnset kcycles, \"queued_cycles\"\n"
+      "  chnset kpending, \"queued_pending\"\n"
+      "  chnset kreceived, \"queued_status\"\n"
+      "endin\n";
+
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-d"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    csoundEventString(csound, "i 1 0 0.02", 0);
+    ASSERT_TRUE(performBlocks(csound, 2));
+    csoundEventString(csound, "i 2 0 0.1", 0);
+    ASSERT_TRUE(performBlocks(csound, 2));
+
+    for (int32_t i = 0; i < 128; ++i)
+      ASSERT_TRUE(udp_send_osc_int(static_cast<uint16_t>(listenerPort),
+                                   "/queued", i));
+    csoundSleep(50);
+    ASSERT_TRUE(performBlocks(csound, 1));
+    ASSERT_GT(csoundGetControlChannel(csound, "queued_pending", NULL),
+              static_cast<MYFLT>(32.0));
+    ASSERT_GT(csoundGetControlChannel(csound, "queued_received", NULL),
+              static_cast<MYFLT>(0.0));
+
+    ASSERT_TRUE(performBlocks(csound, 40));
+    EXPECT_GT(csoundGetControlChannel(csound, "queued_cycles", NULL),
+              static_cast<MYFLT>(40.0));
+    EXPECT_GT(csoundGetControlChannel(csound, "queued_pending", NULL),
+              static_cast<MYFLT>(0.0));
+    EXPECT_EQ(csoundGetControlChannel(csound, "queued_status", NULL),
+              static_cast<MYFLT>(0.0));
+
+    const std::string messages = readMessages(csound);
+    EXPECT_EQ(messages.find("deinit error"), std::string::npos);
+}
+
+TEST_F(ServerTests, OscMulticastListenerStartsAndStops)
+{
+    const int32_t listenerPort = findFreeUdpPort();
+    ASSERT_GT(listenerPort, 0);
+
+    const std::string orchestra =
+      "sr = 48000\n"
+      "ksmps = 32\n"
+      "nchnls = 1\n"
+      "0dbfs = 1\n"
+      "instr 1\n"
+      "  ihandle oscinitm \"239.255.0.1\", " +
+        std::to_string(listenerPort) + "\n"
+      "endin\n";
+
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-d"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 0.005", 0);
+    ASSERT_TRUE(performBlocks(csound, 12));
+
+    const std::string messages = readMessages(csound);
+    EXPECT_EQ(messages.find("deinit error"), std::string::npos);
 }
 #endif
 
