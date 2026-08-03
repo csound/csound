@@ -622,7 +622,7 @@ const OENTRY opcodlst_1[] = {
    (SUBR)tabarithset1, (SUBR)tabarkpow },
   {"##pow.a[k[", sizeof(TABARITH), 0, "a[]", "a[]k[]",
    (SUBR)tabarithset, (SUBR)tabarkrpw },
-  { "taninvx2.Ai", sizeof(TABARITH), 0, "i[]", "i[]i[]",
+  { "taninv2.Ai", sizeof(TABARITH), 0, "i[]", "i[]i[]",
     (SUBR)taninv2_Ai  },
   { "taninv2.Ak", sizeof(TABARITH), 0, "k[]", "k[]k[]",
     (SUBR)tabarithset,

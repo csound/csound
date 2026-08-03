@@ -144,10 +144,21 @@ instr arraytests
 endin
 schedule(arraytests, 0, 1)
 
+instr arraytesttaninv2
+  iY[] fillarray 1, 1
+  iX[] fillarray 1, -1
+  iResult[] = taninv2(iY, iX)
+  if abs(iResult[0] - $M_PI/4) > 0.000001 || \
+     abs(iResult[1] - 3*$M_PI/4) > 0.000001 then
+    prints "taninv2 i-array result mismatch\n"
+    exitnow(-1)
+  endif
+endin
+schedule(arraytesttaninv2, 0, 1)
+
 </CsInstruments>
 <CsScore>
 f 0 1
 </CsScore>
 </CsoundSynthesizer>
-
 

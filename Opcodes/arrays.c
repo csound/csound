@@ -74,6 +74,7 @@ typedef struct _fft {
   AUXCH mem;
 } FFT;
 
+
 static inline MYFLT complex_rect_real(const COMPLEXDAT *value) {
   return value->isPolar ? value->real * COS(value->imag) : value->real;
 }
@@ -82,16 +83,20 @@ static inline MYFLT complex_rect_imag(const COMPLEXDAT *value) {
   return value->isPolar ? value->real * SIN(value->imag) : value->imag;
 }
 
-static int32_t init_fft_complex(CSOUND *csound, FFT *p) {
+static int32_t init_fft_complex_common(CSOUND *csound, FFT *p,
+                                       int32_t inverse) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s", inverse ?
+                             Str("fftinv: only one-dimensional arrays allowed") :
                              Str("fft: only one-dimensional arrays allowed"));
   /* Sanity checks: prevent pathological sizes and integer overflows */
   if (UNLIKELY(N <= 0))
-    return csound->InitError(csound, "%s", Str("fft: input array size must be > 0"));
+    return csound->InitError(csound, "%s", inverse ?
+                             Str("fftinv: input array size must be > 0") :
+                             Str("fft: input array size must be > 0"));
   /* Cap to a conservative upper bound to avoid overflow in allocations */
   const int32_t MAX_REASONABLE_N = (1 << 24); /* ~16M elements */
   if (UNLIKELY(N > MAX_REASONABLE_N)) {
@@ -103,10 +108,14 @@ static int32_t init_fft_complex(CSOUND *csound, FFT *p) {
         if (p->in->sizes && p->in->dimensions == 1)
           p->in->sizes[0] = N;
       } else {
-        return csound->InitError(csound, "fft: input array size (%d) is unreasonable", N);
+        return csound->InitError(csound, inverse ?
+                                 Str("fftinv: input array size (%d) is unreasonable") :
+                                 Str("fft: input array size (%d) is unreasonable"), N);
       }
     } else {
-      return csound->InitError(csound, "fft: input array size (%d) is unreasonable", N);
+      return csound->InitError(csound, inverse ?
+                               Str("fftinv: input array size (%d) is unreasonable") :
+                               Str("fft: input array size (%d) is unreasonable"), N);
     }
   }
   if (UNLIKELY(N > 1 && (N & 1)))
@@ -117,12 +126,27 @@ static int32_t init_fft_complex(CSOUND *csound, FFT *p) {
   tabinit(csound, p->out, N, p->h.insdshead);
   size_t bytes = (size_t)N * 2u * sizeof(MYFLT);
   csound->AuxAlloc(csound, bytes, &p->mem);
+  return OK;
+}
+
+static int32_t init_fft_complex(CSOUND *csound, FFT *p) {
+  int32_t result = init_fft_complex_common(csound, p, 0);
+  if (UNLIKELY(result != OK))
+    return result;
   if(p->out->arrayType == csound->GetType(csound, "Complex")
      && p->in->arrayType == csound->GetType(csound, "Complex"))
     p->b = *((MYFLT *)p->in2);
   else if(p->out->arrayType == csound->GetType(csound, "Complex"))
     p->b = 0;
   else p->b = 1;
+  return OK;
+}
+
+static int32_t init_ifft_complex(CSOUND *csound, FFT *p) {
+  int32_t result = init_fft_complex_common(csound, p, 1);
+  if (UNLIKELY(result != OK))
+    return result;
+  p->b = 1;
   return OK;
 }
 
@@ -1329,6 +1353,11 @@ static OENTRY arrayvars_localops[] =
      (SUBR) initialise_fft, (SUBR) perf_fft, NULL},
     {"fft", sizeof(FFT), 0, "i[]","i[]",
      (SUBR) fft_i, NULL, NULL},
+    /* Named inverse aliases for the typed fft(input, 1) forms. */
+    { "fftinv", sizeof(FFT), 0, ":Complex;[]", ":Complex;[]",
+      (SUBR) init_ifft_complex, (SUBR) perf_fft_complex, NULL},
+    { "fftinv", sizeof(FFT), 0, "k[]", ":Complex;[]",
+      (SUBR) init_ifft_complex, (SUBR) perf_fft_complex, NULL},
     {"fftinv", sizeof(FFT), 0, "k[]","k[]",
      (SUBR) init_ifft, (SUBR) perf_ifft, NULL},
     {"fftinv", sizeof(FFT), 0, "i[]","i[]",
