@@ -32,6 +32,8 @@
 #include "fgens.h"
 #include "pstream.h"
 #include "pvfileio.h"
+#include <errno.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include "fftlib.h"
 
@@ -2527,47 +2529,127 @@ static int32_t gen44(FGDATA *ff, FUNC *ftp)
     FILE    *filp;
     void    *fd;
     char buff[80];
-    int32_t len;
-    int32_t i, j, n;
+    char *sizeText, *end;
+    intmax_t parsedSize;
+    uint64_t matrixLength64;
+    size_t matrixIndex;
+    int32_t matrixSize, matrixLength, foundClose;
+    int32_t i, j, n, result = OK;
     MYFLT stiffness;
 
-    if (isstrcod(ff->e.p[5]))
-      strncpy(buff, (char *)(&ff->e.strarg[0]), 79);
+    if (isstrcod(ff->e.p[5])) {
+      strncpy(buff, (char *)(&ff->e.strarg[0]), sizeof(buff) - 1);
+      buff[sizeof(buff) - 1] = '\0';
+    }
     else
       csound->StringArg2Name(csound, buff, &(ff->e.p[5]), "stiff.", 0);
     fd = csound->FileOpen(csound, &filp, CSFILE_STD, buff, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL))
       return csoundFtError(ff, Str("GEN44: Failed to open file %s\n"), buff);
-    if (UNLIKELY(NULL==fgets(buff, 80, filp)))
-      return csoundFtError(ff, Str("GEN44; Failed to read matrix file\n"));
-    if (1!=sscanf(buff, "<MATRIX size=%d", &len))
-      return csoundFtError(ff, Str("GEN44: No header in matrix file\n"));
-    if (ftp==NULL) {
-      ff->flen = len*len;
+    if (UNLIKELY(fgets(buff, sizeof(buff), filp) == NULL)) {
+      result = csoundFtError(ff, Str("GEN44: Failed to read matrix file\n"));
+      goto gen44done;
+    }
+    if (strncmp(buff, "<MATRIX", 7) != 0) {
+      result = csoundFtError(ff, Str("GEN44: No header in matrix file\n"));
+      goto gen44done;
+    }
+    sizeText = &buff[7];
+    while (isspace((unsigned char)*sizeText))
+      sizeText++;
+    if (strncmp(sizeText, "size=", 5) != 0) {
+      result = csoundFtError(ff, Str("GEN44: No header in matrix file\n"));
+      goto gen44done;
+    }
+    sizeText += 5;
+    errno = 0;
+    parsedSize = strtoimax(sizeText, &end, 10);
+    foundClose = 0;
+    while (isspace((unsigned char)*end))
+      end++;
+    if (*end == '>') {
+      end++;
+      foundClose = 1;
+      while (isspace((unsigned char)*end))
+        end++;
+    }
+    if (UNLIKELY(end == sizeText || errno == ERANGE ||
+                 !foundClose || *end != '\0' || parsedSize <= 0 ||
+                 parsedSize > INT32_MAX)) {
+      result = csoundFtError(ff, Str("GEN44: Invalid matrix size\n"));
+      goto gen44done;
+    }
+    matrixSize = (int32_t) parsedSize;
+    matrixLength64 = (uint64_t) matrixSize * (uint64_t) matrixSize;
+    if (UNLIKELY(matrixLength64 > INT32_MAX ||
+                 matrixLength64 + 1 > SIZE_MAX / sizeof(MYFLT))) {
+      result = csoundFtError(ff, Str("GEN44: Matrix size is too large\n"));
+      goto gen44done;
+    }
+    matrixLength = (int32_t) matrixLength64;
+    if (ftp == NULL) {
+      ff->flen = matrixLength;
       ftp = ftalloc(ff);
       fp = ftp->ftable;
     }
-    else if (ff->e.p[3]<len*len) {
-      fp = ftp->ftable = csound->Calloc(csound, len*len*sizeof(MYFLT));
-      ftp->flen = len*len;
+    else if (ff->flen < matrixLength) {
+      fp = csound->Calloc(csound,
+                          ((size_t) matrixLength + 1) * sizeof(MYFLT));
+      csound->Free(csound, ftp->ftable);
+      ftp->ftable = fp;
+      ftp->flen = ff->flen = matrixLength;
+      ftp->flenfrms = matrixLength;
+      if (matrixLength <= MAXLEN && IS_POW_TWO(matrixLength)) {
+        ftp->lenmask = matrixLength - 1;
+        for (i = matrixLength, ftp->lobits = 0;
+             i < MAXLEN;
+             ftp->lobits++, i <<= 1)
+          ;
+      }
+      else {
+        ftp->lenmask = 0xFFFFFFFF;
+        ftp->lobits = 0;
+      }
+      i = 1 << ftp->lobits;
+      ftp->lomask = i - 1;
+      ftp->lodiv = FL(1.0) / (MYFLT) i;
     }
-    else memset(fp = ftp->ftable, '\0', sizeof(MYFLT)*ff->e.p [3]);
-    while (NULL!=  fgets(buff, 80, filp)) {
-      if (strncmp(buff, "</MATRIX>", 8)==0) break;
+    else {
+      fp = ftp->ftable;
+      memset(fp, '\0', (size_t) ff->flen * sizeof(MYFLT));
+    }
+    while (fgets(buff, sizeof(buff), filp) != NULL) {
+      if (strncmp(buff, "</MATRIX>", 8) == 0)
+        break;
 #if defined(USE_DOUBLE)
       n = sscanf(buff, " %d %d %lf \n", &i, &j, &stiffness);
 #else
       n = sscanf(buff, " %d %d %f \n", &i, &j, &stiffness);
 #endif
-      if (n==2)stiffness = FL(1.0);
-      else if (n!=3) return csoundFtError(ff, Str("GEN44: format error\n"));
-      if (i<1 || i>len || j<1 || j>len)
-        return csoundFtError(ff, Str("GEN44: Out of range\n"));
-      fp[(i-1)*len+j-1] = stiffness;
+      if (n == 2)
+        stiffness = FL(1.0);
+      else if (n != 3) {
+        result = csoundFtError(ff, Str("GEN44: format error\n"));
+        goto gen44done;
+      }
+      if (i < 1 || i > matrixSize || j < 1 || j > matrixSize) {
+        result = csoundFtError(ff, Str("GEN44: Out of range\n"));
+        goto gen44done;
+      }
+      matrixIndex =
+        (size_t) (i - 1) * (size_t) matrixSize + (size_t) (j - 1);
+      fp[matrixIndex] = stiffness;
     }
-    if (ff->e.p[4]>0) ff->e.p[4] = -44;
-    return OK;
+    if (UNLIKELY(ferror(filp))) {
+      result = csoundFtError(ff, Str("GEN44: Failed to read matrix file\n"));
+      goto gen44done;
+    }
+    if (ff->e.p[4] > 0)
+      ff->e.p[4] = -44;
+ gen44done:
+    csound->FileClose(csound, fd);
+    return result;
 }
 
 static int32_t gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
