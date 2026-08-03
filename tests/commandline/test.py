@@ -742,6 +742,7 @@ def runTest():
         ["diskin_excess_channels.csd", "test sample accurate mode"],
         ["test_async_diskin.csd", "test diskin in rt async mode"],
         ["test_midifile_ops.csd", "testing midifile opcodes"],
+        ["test_midifile_malformed.csd", "reject malformed MIDI files"],
         ["test_midifile_loop.csd", "testing midifile tempo set, pos, loop"],
         ["test_midifile_seek_tempo.csd", "testing tempo restoration after midifilepos"],
         ["test_midifile_time.csd", "testing midifile time counting"],
