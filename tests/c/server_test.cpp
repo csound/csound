@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <array>
+#include <string>
+#include <vector>
 #include "gtest/gtest.h"
 #if defined(WIN32) && !defined(__CYGWIN__) 
 # include <winsock2.h>
@@ -58,6 +61,100 @@ void udp_send(const char* msg) {
         sizeof(server_addr));
 }
 
+static uint16_t unused_udp_port()
+{
+    struct sockaddr_in server_addr = {};
+#if defined(WIN32) && !defined(__CYGWIN__)
+    SOCKET sock;
+#else
+    int32_t sock;
+#endif
+#if defined(WIN32) && !defined(__CYGWIN__)
+    WSADATA wsaData = { 0 };
+    int32_t err;
+    if ((err = WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0)
+        return 0;
+#endif
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (sock == INVALID_SOCKET) {
+        WSACleanup();
+        return 0;
+    }
+#else
+    if (sock < 0)
+        return 0;
+#endif
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    server_addr.sin_port = 0;
+    if (bind(sock, (const struct sockaddr*) &server_addr,
+             sizeof(server_addr)) != 0) {
+#if defined(WIN32) && !defined(__CYGWIN__)
+        closesocket(sock);
+        WSACleanup();
+#else
+        close(sock);
+#endif
+        return 0;
+    }
+#if defined(WIN32) && !defined(__CYGWIN__)
+    int address_size = sizeof(server_addr);
+#else
+    socklen_t address_size = sizeof(server_addr);
+#endif
+    if (getsockname(sock, (struct sockaddr*) &server_addr,
+                    &address_size) != 0) {
+        server_addr.sin_port = 0;
+    }
+#if defined(WIN32) && !defined(__CYGWIN__)
+    closesocket(sock);
+    WSACleanup();
+#else
+    close(sock);
+#endif
+    return ntohs(server_addr.sin_port);
+}
+
+static bool udp_send_bytes(const void *data, size_t size, uint16_t port)
+{
+    struct sockaddr_in server_addr = {};
+#if defined(WIN32) && !defined(__CYGWIN__)
+    SOCKET sock;
+#else
+    int32_t sock;
+#endif
+#if defined(WIN32) && !defined(__CYGWIN__)
+    WSADATA wsaData = { 0 };
+    int32_t err;
+    if ((err = WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0)
+        return false;
+#endif
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (sock == INVALID_SOCKET) {
+        WSACleanup();
+        return false;
+    }
+#else
+    if (sock < 0)
+        return false;
+#endif
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    server_addr.sin_port = htons(port);
+    bool sent = sendto(sock, (const char*) data, (int32_t) size, 0,
+                       (const struct sockaddr*) &server_addr,
+                       sizeof(server_addr)) == (int32_t) size;
+#if defined(WIN32) && !defined(__CYGWIN__)
+    closesocket(sock);
+    WSACleanup();
+#else
+    close(sock);
+#endif
+    return sent;
+}
+
 class ServerTests : public ::testing::Test {
 public:
     ServerTests ()
@@ -110,4 +207,81 @@ TEST_F (ServerTests, testServer) {
 
     performanceThread.Join();
     csound.Reset();
+}
+
+TEST_F (ServerTests, SockrecvBoundsUnterminatedUdpString) {
+    constexpr size_t mtu = 1456;
+    const uint16_t port = unused_udp_port();
+    ASSERT_NE(port, 0);
+
+    const std::string orchestra =
+        "sr = 48000\n"
+        "ksmps = 1\n"
+        "nchnls = 1\n"
+        "0dbfs = 1\n"
+        "instr 1\n"
+        "  Smessage sockrecv " + std::to_string(port) + ", 512\n"
+        "  chnset Smessage, \"sockrecv_result\"\n"
+        "endin\n";
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-d"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 60", 0);
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    std::array<char, mtu> payload;
+    payload.fill('A');
+    ASSERT_TRUE(udp_send_bytes(payload.data(), payload.size(), port));
+
+    std::string received;
+    for (int32_t attempt = 0; attempt < 1000 && received.empty(); attempt++) {
+        ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+        int32_t size = csoundGetChannelDatasize(csound, "sockrecv_result");
+        if (size > 0) {
+            std::vector<char> data((size_t) size);
+            csoundGetStringChannel(csound, "sockrecv_result", data.data());
+            received.assign(data.data());
+        }
+        if (received.empty())
+            csoundSleep(1);
+    }
+
+    ASSERT_EQ(received.size(), payload.size());
+    EXPECT_EQ(received, std::string(payload.data(), payload.size()));
+}
+
+TEST_F (ServerTests, SockrecvKRebindsPortAfterDeinit) {
+    const uint16_t port = unused_udp_port();
+    ASSERT_NE(port, 0);
+
+    const std::string orchestra =
+        "sr = 48000\n"
+        "ksmps = 1\n"
+        "nchnls = 1\n"
+        "0dbfs = 1\n"
+        "instr 1\n"
+        "  kmessage sockrecv " + std::to_string(port) + ", 512\n"
+        "endin\n";
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-d"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    csoundEventString(csound, "i 1 0 0.0001", 0);
+    for (int32_t cycle = 0; cycle < 32; cycle++)
+        ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    csoundEventString(csound, "i 1 0 0.0001", 0);
+    for (int32_t cycle = 0; cycle < 32; cycle++)
+        ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    bool bind_failed = false;
+    while (csoundGetMessageCnt(csound) > 0) {
+        const char *message = csoundGetFirstMessage(csound);
+        if (message != nullptr && strstr(message, "bind failed") != nullptr)
+            bind_failed = true;
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_FALSE(bind_failed);
 }
