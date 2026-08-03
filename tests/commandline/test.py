@@ -524,6 +524,16 @@ def runTest():
         ["test_parse_error_udo_missing_inargs.csd", "expected failure: udo missing inargs", 1],
         ["test_parse_error_udo_missing_commas.csd", "expected failure: udo missing commas", 1],
         ["test_parse_error_udo_missing_arglist.csd", "expected failure: udo missing arg list", 1],
+        ["test_gen28_malformed.csd", "reject malformed GEN28 trajectory", 1],
+        ["test_gen28_truncated.csd", "reject truncated GEN28 trajectory", 1],
+        ["test_gen28_terminal_point.csd", "keep GEN28 terminal point values"],
+        ["test_gen44_matrix_valid.csd", "load a valid GEN44 matrix"],
+        ["test_gen44_matrix_resize.csd", "resize a short GEN44 table"],
+        ["test_gen44_matrix_oversized.csd", "reject an oversized GEN44 matrix", 1],
+        ["test_gen44_matrix_negative.csd", "reject a negative GEN44 matrix size", 1],
+        ["test_gen44_matrix_zero.csd", "reject a zero GEN44 matrix size", 1],
+        ["test_gen44_matrix_malformed.csd", "reject a malformed GEN44 matrix size", 1],
+        ["test_gen44_matrix_missing_close.csd", "reject a GEN44 header without >", 1],
         ["test_gen49_defer.csd", "test GEN49 deferred length"],
         ["test_ftload_binary_args_ownership.csd", "test binary ftload does not share args ownership"],
         ["test_getftargs_empty_after_ftload.csd", "test getftargs returns empty args after binary ftload"],
@@ -547,11 +557,16 @@ def runTest():
         ["test_fillarray_audio.csd", "test Arr:a[] = [sig:a]"],
         ["test_oversample.csd", "test oversampling in new-style UDO"],
         ["test_pvs_np2.csd", "test pvsanal/synth with np2 size"],
+        ["test_voice_init.csd", "voice initializes its SingWave helper"],
         ["test_grain3_overlap_regression.csd", "grain3 should not fail with false overlap error"],
         ["test_grain3_float_interpolation.csd", "grain3 float-path interpolation should stay positive"],
         ["test_instr_redefinition.csd", "allow instr redefinition"],
         ["test_instr0_labels.csd", "test labels in instr0 space"],
         ["test_string.csd", "test string assignment and printing"],
+        [
+            "test_strstrip_reallocation.csd",
+            "test strstrip reallocation and termination",
+        ],
         [
             "test_string_preprocessor_whitespace.csd",
             "preserve function-like whitespace inside strings",
@@ -737,6 +752,7 @@ def runTest():
         ["diskin_excess_channels.csd", "test sample accurate mode"],
         ["test_async_diskin.csd", "test diskin in rt async mode"],
         ["test_midifile_ops.csd", "testing midifile opcodes"],
+        ["test_midifile_malformed.csd", "reject malformed MIDI files"],
         ["test_midifile_loop.csd", "testing midifile tempo set, pos, loop"],
         ["test_midifile_seek_tempo.csd", "testing tempo restoration after midifilepos"],
         ["test_midifile_time.csd", "testing midifile time counting"],
@@ -799,15 +815,12 @@ def runTest():
             "-nd",
             '-- concert.orc "first violin" --logfile=ignored ""',
         ],
+        ["signalflowgraphtest.csd", "test signal-flow graph opcodes"],
+        [
+            "test_signalflowgraph_lifetime.csd",
+            "test signal-flow graph cleanup and ftgenonce",
+        ],
     ]
-
-    if not csoundExecutable.lower().endswith((".wasm", ".cwasm")):
-        tests.append(
-            [
-                "test_signalflowgraph_lifetime.csd",
-                "test signal-flow graph cleanup and ftgenonce",
-            ]
-        )
 
     arrayTests = [
         ["arrays/arrays_i_local.csd", "local i[]"],
