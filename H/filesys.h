@@ -180,6 +180,10 @@ extern "C" {
    */
   int32_t csoundFileClose(CSOUND *, void *fd);
 
+  /** Remove a file from the open-file list without waiting for current async
+   * readers. The worker closes it after the last reader leaves. */
+  void csoundFileRetire(CSOUND *, void *fd);
+
   /** Given a file name as string, return full path of directory of file;
    * Note: does not check if file exists
    */

@@ -154,7 +154,7 @@ void csoundFDClose(CSOUND *csound, FDCH *fdchp)
       void  *fd = fdchp->fd;
       if (LIKELY(fd)) {
 	fdchp->fd = NULL;                     /* then delete the fd   */
-	csoundFileClose(csound, fd);          /*   close the file &   */
+	csoundFileRetire(csound, fd);         /*   retire the file &  */
       }
       if (prvchp)
 	prvchp->nxtchp = fdchp->nxtchp;       /* unlnk from fdchain   */
@@ -204,7 +204,7 @@ void fdchclose(CSOUND *csound, INSDS *ip)
     void  *fd = ip->fdchp->fd;
     if (LIKELY(fd)) {
       ip->fdchp->fd = NULL;           /*    delete the fd     */
-      csoundFileClose(csound, fd);    /*    & close the file  */
+      csoundFileRetire(csound, fd);   /*    & retire the file */
     }
   }
   if (UNLIKELY(csoundGetDebug(csound) & 0x01))

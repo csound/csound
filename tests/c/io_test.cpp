@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <thread>
 #include "gtest/gtest.h"
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
@@ -199,11 +200,31 @@ TEST_F (IOTests, testSynchronousCloseWhileAsyncWorkerRuns)
     EXPECT_EQ(remove(syncPath.c_str()), 0);
 
     ASSERT_EQ(csoundFileClose(csound, asyncHandle), 0);
-    for (int32_t retry = 0;
-         retry < 100 && !retiredFilesEmpty(); retry++)
-      csoundSleep(1);
     EXPECT_TRUE(retiredFilesEmpty());
     EXPECT_EQ(remove(asyncPath.c_str()), 0);
+}
+
+TEST_F (IOTests, testSynchronousCloseReportsBorrowedFileError)
+{
+    int invalidFd = -1;
+    void *handle = csoundCreateFileHandle(
+        csound, &invalidFd, CSFILE_FD_R, "invalid-borrowed-file");
+    ASSERT_NE(handle, nullptr);
+    auto *file = static_cast<CSFILE *>(handle);
+
+    csoundSpinLock(&csound->open_files_lock);
+    file->io_readers++;
+    csoundSpinUnLock(&csound->open_files_lock);
+    std::thread reader([&]() {
+      csoundSleep(10);
+      csoundSpinLock(&csound->open_files_lock);
+      file->io_readers--;
+      csoundSpinUnLock(&csound->open_files_lock);
+    });
+
+    EXPECT_EQ(csoundFileClose(csound, handle), -1);
+    reader.join();
+    EXPECT_EQ(csound->retired_files, nullptr);
 }
 
 TEST_F (IOTests, testReadline)

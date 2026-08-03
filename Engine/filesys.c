@@ -677,7 +677,8 @@ static void link_open_file(CSOUND *csound, CSFILE *file,
     csoundSpinUnLock(&csound->open_files_lock);
 }
 
-static int32_t unlink_open_file(CSOUND *csound, CSFILE *file)
+static int32_t unlink_open_file(CSOUND *csound, CSFILE *file,
+                                int32_t holdForClose)
 {
     int32_t deferred;
 
@@ -697,6 +698,10 @@ static int32_t unlink_open_file(CSOUND *csound, CSFILE *file)
        while an unrelated asynchronous file is open. */
     deferred = file->io_readers != 0;
     if (deferred) {
+      /* A synchronous closer keeps one claim so the worker cannot reclaim the
+         node before the closer can report the real close result. */
+      if (holdForClose)
+        file->io_readers++;
       file->retired = 1;
       file->retired_nxt = (CSFILE *) csound->retired_files;
       csound->retired_files = file;
@@ -1074,14 +1079,52 @@ static int32_t reclaim_retired_files(CSOUND *csound, int32_t workerShutdown)
     return keepRunning;
 }
 
+static int32_t claim_retired_file_for_close(CSOUND *csound, CSFILE *file)
+{
+    CSFILE *current, *previous;
+    int32_t claimed = 0;
+
+    csoundSpinLock(&csound->open_files_lock);
+    if (file->io_readers == 1) {
+      previous = NULL;
+      current = (CSFILE *) csound->retired_files;
+      while (current != NULL && current != file) {
+        previous = current;
+        current = current->retired_nxt;
+      }
+      if (current != NULL) {
+        if (previous == NULL)
+          csound->retired_files = current->retired_nxt;
+        else
+          previous->retired_nxt = current->retired_nxt;
+        file->nxt = file->prv = file->retired_nxt = NULL;
+        file->io_readers = 0;
+        file->retired = 0;
+        claimed = 1;
+      }
+    }
+    csoundSpinUnLock(&csound->open_files_lock);
+    return claimed;
+}
+
 int32_t csoundFileClose(CSOUND *csound, void *fd)
 {
     CSFILE *p = (CSFILE *) fd;
 
-    if (unlink_open_file(csound, p))
-      return 0;
+    if (unlink_open_file(csound, p, 1)) {
+      while (!claim_retired_file_for_close(csound, p))
+        csoundSleep(1);
+    }
 
     return close_file_now(csound, p);
+}
+
+void csoundFileRetire(CSOUND *csound, void *fd)
+{
+    CSFILE *p = (CSFILE *) fd;
+
+    if (!unlink_open_file(csound, p, 0))
+      close_file_now(csound, p);
 }
 
 /* Close all open files; called by csoundReset(). */
@@ -1244,7 +1287,7 @@ void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
       csoundSpinLock(&csound->open_files_lock);
       p->async_flag = FILE_ASYNC_NONE;
       csoundSpinUnLock(&csound->open_files_lock);
-      csoundFileClose(csound, p);
+      csoundFileRetire(csound, p);
       finish_async_file_setup(csound, p);
       return NULL;
     }
@@ -1265,8 +1308,8 @@ void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
     csound->NotifyThreadLock(csound->file_io_threadlock);
 
     if (cancelled) {
-      /* close file immediately */
-      csoundFileClose(csound, (void *) p);
+      /* Retire without waiting for the setup reader below. */
+      csoundFileRetire(csound, (void *) p);
       finish_async_file_setup(csound, p);
       return NULL;
     }
