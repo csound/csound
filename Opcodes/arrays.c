@@ -181,6 +181,14 @@ static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
   return OK;
 }
 
+static int32_t validate_real_fft_size(CSOUND *csound, const char *opcode,
+                                      int32_t size) {
+  if (UNLIKELY(size < 2 || (size & 1)))
+    return csound->InitError(csound, "%s: %s", opcode,
+                             Str("transform size must be even and at least 2"));
+  return OK;
+}
+
 static int32_t init_rfft_r2c(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
@@ -188,12 +196,14 @@ static int32_t init_rfft_r2c(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rfft: only one-dimensional arrays allowed"));
+  if (UNLIKELY(validate_real_fft_size(csound, "rfft", N) != OK))
+    return NOTOK;
   tabinit(csound, p->out, N/2+1, p->h.insdshead);
   p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
   csound->AuxAlloc(csound, sizeof(MYFLT)*N, &p->mem);
   return OK;
 }
-// NB: outputs are NOT packed (N+1 size)
+// Typed output has N / 2 + 1 unpacked complex bins.
 static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
   int32_t N = p->in->sizes[0];
   MYFLT *tmp = (MYFLT *)p->mem.auxp;
@@ -213,17 +223,23 @@ static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
 static int32_t init_rfft_c2r(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
-  int32_t   N = 2*(p->in->sizes[0] - 1);
+  int32_t M = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
-                             Str("rfft: only one-dimensional arrays allowed"));
+                             Str("rifft: only one-dimensional arrays allowed"));
+  if (UNLIKELY(M < 2))
+    return csound->InitError(csound, "%s",
+                             Str("rifft: input spectrum must contain at least 2 bins"));
+  int32_t N = 2*(M - 1);
+  if (UNLIKELY(validate_real_fft_size(csound, "rifft", N) != OK))
+    return NOTOK;
   tabinit(csound, p->out, N, p->h.insdshead);
   p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
   csound->AuxAlloc(csound, sizeof(MYFLT)*N, &p->mem);
   return OK;
 }
 
-// NB: these expect NOT packed (N+1 size) inputs
+// M unpacked complex bins produce 2 * (M - 1) real samples.
 static int32_t perf_rfft_c2r(CSOUND *csound, FFT *p) {
   int32_t N = p->out->sizes[0];
   MYFLT *tmp = (MYFLT *)p->mem.auxp;
@@ -245,6 +261,8 @@ static int32_t init_rfft(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rfft: only one-dimensional arrays allowed"));
+  if (UNLIKELY(validate_real_fft_size(csound, "rfft", N) != OK))
+    return NOTOK;
   tabinit(csound, p->out,N, p->h.insdshead);
   p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
   return OK;
@@ -270,6 +288,8 @@ static int32_t init_rifft(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rifft: only one-dimensional arrays allowed"));
+  if (UNLIKELY(validate_real_fft_size(csound, "rifft", N) != OK))
+    return NOTOK;
   p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
   tabinit(csound, p->out, N, p->h.insdshead);
   return OK;
