@@ -250,3 +250,38 @@ TEST_F (ServerTests, SockrecvBoundsUnterminatedUdpString) {
     ASSERT_EQ(received.size(), payload.size());
     EXPECT_EQ(received, std::string(payload.data(), payload.size()));
 }
+
+TEST_F (ServerTests, SockrecvKRebindsPortAfterDeinit) {
+    const uint16_t port = unused_udp_port();
+    ASSERT_NE(port, 0);
+
+    const std::string orchestra =
+        "sr = 48000\n"
+        "ksmps = 1\n"
+        "nchnls = 1\n"
+        "0dbfs = 1\n"
+        "instr 1\n"
+        "  kmessage sockrecv " + std::to_string(port) + ", 512\n"
+        "endin\n";
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-d"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    csoundEventString(csound, "i 1 0 0.0001", 0);
+    for (int32_t cycle = 0; cycle < 32; cycle++)
+        ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    csoundEventString(csound, "i 1 0 0.0001", 0);
+    for (int32_t cycle = 0; cycle < 32; cycle++)
+        ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    bool bind_failed = false;
+    while (csoundGetMessageCnt(csound) > 0) {
+        const char *message = csoundGetFirstMessage(csound);
+        if (message != nullptr && strstr(message, "bind failed") != nullptr)
+            bind_failed = true;
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_FALSE(bind_failed);
+}

@@ -85,6 +85,7 @@ typedef struct {
   AUXCH   buffer, tmp;
   MYFLT   *buf;
   int32_t     sock;
+  int32_t wsa_started;
   volatile int32_t threadon;
   int32_t buffsize;
   int32_t outsamps, rcvsamps;
@@ -103,6 +104,7 @@ typedef struct {
   AUXCH   buffer, tmp;
   char    *buf;
   int32_t     sock;
+  int32_t wsa_started;
   volatile int32_t threadon;
   int32_t buffsize;
   int32_t outsamps, rcvsamps;
@@ -112,12 +114,40 @@ typedef struct {
   struct sockaddr_in server_addr;
 } SOCKRECVSTR;
 
+static void deinit_udp_receiver(CSOUND *csound, volatile int32_t *threadon,
+                                void **thrid, int32_t *sock, void **cb,
+                                int32_t *wsa_started)
+{
+    *threadon = 0;
+    if (*sock != SOCKET_ERROR) {
+#if defined(WIN32) && !defined(__CYGWIN__)
+      closesocket(*sock);
+#else
+      close(*sock);
+#endif
+      *sock = SOCKET_ERROR;
+    }
+    if (*thrid != NULL) {
+      csound->JoinThread(*thrid);
+      *thrid = NULL;
+    }
+    if (*cb != NULL) {
+      csound->DestroyCircularBuffer(csound, *cb);
+      *cb = NULL;
+    }
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (*wsa_started)
+      WSACleanup();
+#endif
+    *wsa_started = 0;
+}
+
 static int32_t deinit_udpRecv(CSOUND *csound, void *pdata)
 {
     SOCKRECV *p = (SOCKRECV *) pdata;
 
-    p->threadon = 0;
-    csound->JoinThread(p->thrid);
+    deinit_udp_receiver(csound, &p->threadon, &p->thrid, &p->sock, &p->cb,
+                        &p->wsa_started);
     return OK;
 }
 
@@ -143,16 +173,8 @@ static int32_t deinit_udpRecv_S(CSOUND *csound, void *pdata)
 {
     SOCKRECVSTR *p = (SOCKRECVSTR *) pdata;
 
-    p->threadon = 0;
-    csound->JoinThread(p->thrid);
-
-#ifndef WIN32
-    close(p->sock);
-    csound->Message(csound, "%s", Str("OSCraw: Closing socket\n"));
-#else
-    closesocket(p->sock);
-    csound->Message(csound, "%s", Str("OSCraw: Closing socket\n"));
-#endif
+    deinit_udp_receiver(csound, &p->threadon, &p->thrid, &p->sock, &p->cb,
+                        &p->wsa_started);
     return OK;
 }
 
@@ -181,11 +203,16 @@ static uintptr_t udpRecv_S(void *pdata)
 static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
+    p->sock = SOCKET_ERROR;
+    p->wsa_started = 0;
+    p->thrid = NULL;
+    p->cb = NULL;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+    p->wsa_started = 1;
 #endif
     p->cs = csound;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -243,11 +270,16 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
 {
     char    *buf;
     int64_t circular_buffer_size;
+    p->sock = SOCKET_ERROR;
+    p->wsa_started = 0;
+    p->thrid = NULL;
+    p->cb = NULL;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+    p->wsa_started = 1;
 #endif
 
     p->cs = csound;
@@ -386,11 +418,16 @@ static int32_t send_recv(CSOUND *csound, SOCKRECV *p)
 static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
+    p->sock = SOCKET_ERROR;
+    p->wsa_started = 0;
+    p->thrid = NULL;
+    p->cb = NULL;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+    p->wsa_started = 1;
 #endif
 
     p->cs = csound;
