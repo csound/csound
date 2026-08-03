@@ -262,6 +262,126 @@ TEST_F (EngineTests, testRealComplexSubtraction)
     }
 }
 
+struct InvalidRealFFTSizeCase {
+    const char *name;
+    const char *statement;
+    const char *error;
+};
+
+class InvalidRealFFTSizeTests
+    : public ::testing::TestWithParam<InvalidRealFFTSizeCase> {
+protected:
+    void SetUp() override
+    {
+        csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(csound, nullptr);
+        csoundCreateMessageBuffer(csound, 0);
+        ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    }
+
+    void TearDown() override
+    {
+        csoundDestroy(csound);
+    }
+
+    CSOUND *csound {nullptr};
+};
+
+static int32_t realFFTSetupCalls;
+static void *(*realFFTSetup)(CSOUND *, int32_t, int32_t);
+
+static void *countRealFFTSetup(CSOUND *csound, int32_t size, int32_t direction)
+{
+    ++realFFTSetupCalls;
+    return realFFTSetup(csound, size, direction);
+}
+
+TEST_P(InvalidRealFFTSizeTests, RejectsBeforeBackendSetup)
+{
+    const InvalidRealFFTSizeCase &test = GetParam();
+    std::string orchestra = "instr 1\n";
+    orchestra += test.statement;
+    orchestra += "\nendin\n";
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 0", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    realFFTSetupCalls = 0;
+    realFFTSetup = csound->RealFFTSetup;
+    csound->RealFFTSetup = countRealFFTSetup;
+    EXPECT_NE(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    EXPECT_EQ(realFFTSetupCalls, 0);
+
+    std::string messages;
+    while (csoundGetMessageCnt(csound)) {
+        const char *message = csoundGetFirstMessage(csound);
+        if (message != nullptr)
+            messages += message;
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_NE(messages.find(test.error), std::string::npos)
+        << "Expected error text not found in:\n" << messages;
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ArrayOpcodes, InvalidRealFFTSizeTests,
+    ::testing::Values(
+        InvalidRealFFTSizeCase{
+            "TypedForwardEmpty",
+            "kInput[] init 0\nkSpectrum:Complex[] rfft kInput",
+            "rfft: transform size must be even and at least 2"},
+        InvalidRealFFTSizeCase{
+            "TypedForwardOne",
+            "kInput[] init 1\nkSpectrum:Complex[] rfft kInput",
+            "rfft: transform size must be even and at least 2"},
+        InvalidRealFFTSizeCase{
+            "TypedForwardOdd",
+            "kInput[] init 5\nkSpectrum:Complex[] rfft kInput",
+            "rfft: transform size must be even and at least 2"},
+        InvalidRealFFTSizeCase{
+            "TypedInverseEmpty",
+            "kSpectrum:Complex[] init 0\nkOutput[] rifft kSpectrum",
+            "rifft: input spectrum must contain at least 2 bins"},
+        InvalidRealFFTSizeCase{
+            "TypedInverseOne",
+            "kSpectrum:Complex[] init 1\nkOutput[] rifft kSpectrum",
+            "rifft: input spectrum must contain at least 2 bins"},
+        InvalidRealFFTSizeCase{
+            "PackedForwardEmpty",
+            "kInput[] init 0\nkOutput[] rfft kInput",
+            "rfft: transform size must be even and at least 2"},
+        InvalidRealFFTSizeCase{
+            "PackedForwardOne",
+            "kInput[] init 1\nkOutput[] rfft kInput",
+            "rfft: transform size must be even and at least 2"},
+        InvalidRealFFTSizeCase{
+            "PackedForwardOdd",
+            "kInput[] init 5\nkOutput[] rfft kInput",
+            "rfft: transform size must be even and at least 2"},
+        InvalidRealFFTSizeCase{
+            "PackedInitForwardOdd",
+            "iInput[] init 5\niOutput[] rfft iInput",
+            "rfft: transform size must be even and at least 2"},
+        InvalidRealFFTSizeCase{
+            "PackedInverseEmpty",
+            "kInput[] init 0\nkOutput[] rifft kInput",
+            "rifft: transform size must be even and at least 2"},
+        InvalidRealFFTSizeCase{
+            "PackedInverseOne",
+            "kInput[] init 1\nkOutput[] rifft kInput",
+            "rifft: transform size must be even and at least 2"},
+        InvalidRealFFTSizeCase{
+            "PackedInverseOdd",
+            "kInput[] init 5\nkOutput[] rifft kInput",
+            "rifft: transform size must be even and at least 2"},
+        InvalidRealFFTSizeCase{
+            "PackedInitInverseOdd",
+            "iInput[] init 5\niOutput[] rifft iInput",
+            "rifft: transform size must be even and at least 2"}),
+    [](const ::testing::TestParamInfo<InvalidRealFFTSizeCase> &info) {
+        return info.param.name;
+    });
+
 TEST_F (EngineTests, testUdpServer)
 {
     csoundSetIsGraphable(csound, 1);

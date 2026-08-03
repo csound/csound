@@ -25,10 +25,8 @@
 #include <math.h>
 
 static inline int32_t smallest(int32_t a, int32_t b, int32_t c) {
-  if(c == 0) return a < b ? a : b;
-  if(a < b && a < c) return a;
-  if(b < a && b < c) return b;
-  return c;
+  if(b < a) a = b;
+  return c < a ? c : a;
 }
 
 static inline int32_t smallest2(int32_t a, int32_t b) {
@@ -1562,7 +1560,8 @@ int32_t cops_init_a(CSOUND *csound, COPS1 *p) {
 }
 
 
-int32_t complex_array_assign(CSOUND *csound, COPS1 *p) {
+static inline int32_t
+complex_array_assign_type(CSOUND *csound, COPS1 *p, int32_t isPolar) {
   int32_t n = p->out->sizes[0];
   MYFLT *in1 = p->a;
   MYFLT *in2 = p->b;
@@ -1575,11 +1574,19 @@ int32_t complex_array_assign(CSOUND *csound, COPS1 *p) {
   }
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
-    out[i].isPolar = 0;
+    out[i].isPolar = isPolar;
     out[i].real = in1[i];
     out[i].imag = in2[i];
   }
   return OK;
+}
+
+int32_t complex_array_assign(CSOUND *csound, COPS1 *p) {
+  return complex_array_assign_type(csound, p, 0);
+}
+
+int32_t complex_array_polar_assign(CSOUND *csound, COPS1 *p) {
+  return complex_array_assign_type(csound, p, 1);
 }
 
 int32_t complex_array_exp(CSOUND *csond, COPS1 *p) {
