@@ -12,6 +12,14 @@ if k1 != k2 then
 endif
 endop
 
+opcode assert_close,0,kk
+kActual, kExpected xin
+if abs(kActual - kExpected) > 0.000001 then
+ printks "assert close error %.9f %.9f\n", 1, kActual, kExpected
+  exitnowk(-1)
+endif
+endop
+ 
 opcode assert_close,0,kkk
 kactual, kexpected, ktolerance xin
 
@@ -56,6 +64,50 @@ instr 2
  ca -= complex(1,1)
  assert(real(ca), 0)
  assert(imag(ca), 0)
+
+ kAddOnce:Complex = complex(1, 2)
+ kAddOnce += complex(3, 4)
+ assert_close(real(kAddOnce), 4)
+ assert_close(imag(kAddOnce), 6)
+
+ kSubOnce:Complex = complex(5, 7)
+ kSubOnce -= complex(2, 3)
+ assert_close(real(kSubOnce), 3)
+ assert_close(imag(kSubOnce), 4)
+
+ kMulOnce:Complex = complex(1, 2)
+ kMulOnce *= complex(3, 4)
+ assert_close(real(kMulOnce), -5)
+ assert_close(imag(kMulOnce), 10)
+
+ kDivRR:Complex = complex(4*cos(0.75), 4*sin(0.75), 0)
+ kDivRR /= complex(2*cos(0.25), 2*sin(0.25), 0)
+ assert_close(abs(kDivRR), 2)
+ assert_close(arg(kDivRR), 0.5)
+ assert_close(real(kDivRR), 2*cos(0.5))
+ assert_close(imag(kDivRR), 2*sin(0.5))
+
+ kDivRP:Complex = complex(4*cos(0.75), 4*sin(0.75), 0)
+ kDivRP /= complex(2, 0.25, 1)
+ assert_close(abs(kDivRP), 2)
+ assert_close(arg(kDivRP), 0.5)
+ assert_close(real(kDivRP), 2*cos(0.5))
+ assert_close(imag(kDivRP), 2*sin(0.5))
+
+ kDivPR:Complex = complex(4, 0.75, 1)
+ kDivPR /= complex(2*cos(0.25), 2*sin(0.25), 0)
+ assert_close(abs(kDivPR), 2)
+ assert_close(arg(kDivPR), 0.5)
+ assert_close(real(kDivPR), 2*cos(0.5))
+ assert_close(imag(kDivPR), 2*sin(0.5))
+
+ kDivPP:Complex = complex(4, 0.75, 1)
+ kDivPP /= complex(2, 0.25, 1)
+ assert_close(abs(kDivPP), 2)
+ assert_close(arg(kDivPP), 0.5)
+ assert_close(real(kDivPP), 2*cos(0.5))
+ assert_close(imag(kDivPP), 2*sin(0.5))
+ turnoff
 endin
 
 instr 3
