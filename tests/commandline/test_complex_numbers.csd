@@ -12,6 +12,24 @@ if k1 != k2 then
 endif
 endop
 
+opcode assert_close,0,kk
+kActual, kExpected xin
+if abs(kActual - kExpected) > 0.000001 then
+ printks "assert close error %.9f %.9f\n", 1, kActual, kExpected
+  exitnowk(-1)
+endif
+endop
+ 
+opcode assert_close,0,kkk
+kactual, kexpected, ktolerance xin
+
+kdifference = abs(kactual - kexpected)
+if qnan(kdifference) != 0 || kdifference > ktolerance then
+ printks "assert_close error %f %f\n", 1, kactual, kexpected
+ exitnowk(-1)
+endif
+endop
+
 test@global:Complex[] init 2
 test[0] = 1,2
 test[1] = 3,4
@@ -46,6 +64,50 @@ instr 2
  ca -= complex(1,1)
  assert(real(ca), 0)
  assert(imag(ca), 0)
+
+ kAddOnce:Complex = complex(1, 2)
+ kAddOnce += complex(3, 4)
+ assert_close(real(kAddOnce), 4)
+ assert_close(imag(kAddOnce), 6)
+
+ kSubOnce:Complex = complex(5, 7)
+ kSubOnce -= complex(2, 3)
+ assert_close(real(kSubOnce), 3)
+ assert_close(imag(kSubOnce), 4)
+
+ kMulOnce:Complex = complex(1, 2)
+ kMulOnce *= complex(3, 4)
+ assert_close(real(kMulOnce), -5)
+ assert_close(imag(kMulOnce), 10)
+
+ kDivRR:Complex = complex(4*cos(0.75), 4*sin(0.75), 0)
+ kDivRR /= complex(2*cos(0.25), 2*sin(0.25), 0)
+ assert_close(abs(kDivRR), 2)
+ assert_close(arg(kDivRR), 0.5)
+ assert_close(real(kDivRR), 2*cos(0.5))
+ assert_close(imag(kDivRR), 2*sin(0.5))
+
+ kDivRP:Complex = complex(4*cos(0.75), 4*sin(0.75), 0)
+ kDivRP /= complex(2, 0.25, 1)
+ assert_close(abs(kDivRP), 2)
+ assert_close(arg(kDivRP), 0.5)
+ assert_close(real(kDivRP), 2*cos(0.5))
+ assert_close(imag(kDivRP), 2*sin(0.5))
+
+ kDivPR:Complex = complex(4, 0.75, 1)
+ kDivPR /= complex(2*cos(0.25), 2*sin(0.25), 0)
+ assert_close(abs(kDivPR), 2)
+ assert_close(arg(kDivPR), 0.5)
+ assert_close(real(kDivPR), 2*cos(0.5))
+ assert_close(imag(kDivPR), 2*sin(0.5))
+
+ kDivPP:Complex = complex(4, 0.75, 1)
+ kDivPP /= complex(2, 0.25, 1)
+ assert_close(abs(kDivPP), 2)
+ assert_close(arg(kDivPP), 0.5)
+ assert_close(real(kDivPP), 2*cos(0.5))
+ assert_close(imag(kDivPP), 2*sin(0.5))
+ turnoff
 endin
 
 instr 3
@@ -71,11 +133,208 @@ Ca += Ra
 Ca = 2*Ca/Ca1
 endin
 
+instr 5
+kARect:Complex = complex(1, 2)
+kAPolar:Complex = complex(sqrt(5), taninv2(2, 1), 1)
+kBRect:Complex = complex(3, -4)
+kBPolar:Complex = complex(5, taninv2(-4, 3), 1)
+kLeft:Complex[] = [kARect, kARect, kAPolar, kAPolar]
+kRight:Complex[] = [kBRect, kBPolar, kBRect, kBPolar]
+kepsilon = 0.00001
+
+kAdd:Complex[] = kLeft + kRight
+kSub:Complex[] = kLeft - kRight
+kMul:Complex[] = kLeft * kRight
+kDiv:Complex[] = kLeft / kRight
+kIndex = 0
+while kIndex < 4 do
+ assert_close(real(kAdd[kIndex]), 4, kepsilon)
+ assert_close(imag(kAdd[kIndex]), -2, kepsilon)
+ assert_close(real(kSub[kIndex]), -2, kepsilon)
+ assert_close(imag(kSub[kIndex]), 6, kepsilon)
+ assert_close(real(kMul[kIndex]), 11, kepsilon)
+ assert_close(imag(kMul[kIndex]), 2, kepsilon)
+ assert_close(real(kDiv[kIndex]), -0.2, kepsilon)
+ assert_close(imag(kDiv[kIndex]), 0.4, kepsilon)
+ kIndex += 1
+od
+
+kAdd = kRight
+kSub = kRight
+kMul = kRight
+kDiv = kRight
+kAdd += kLeft
+kSub -= kLeft
+kMul *= kLeft
+kDiv /= kLeft
+kIndex = 0
+while kIndex < 4 do
+ assert_close(real(kAdd[kIndex]), 4, kepsilon)
+ assert_close(imag(kAdd[kIndex]), -2, kepsilon)
+ assert_close(real(kSub[kIndex]), 2, kepsilon)
+ assert_close(imag(kSub[kIndex]), -6, kepsilon)
+ assert_close(real(kMul[kIndex]), 11, kepsilon)
+ assert_close(imag(kMul[kIndex]), 2, kepsilon)
+ assert_close(real(kDiv[kIndex]), -1, kepsilon)
+ assert_close(imag(kDiv[kIndex]), -2, kepsilon)
+ kIndex += 1
+od
+endin
+
+instr 6
+kARect:Complex = complex(1, 2)
+kAPolar:Complex = complex(sqrt(5), taninv2(2, 1), 1)
+kBPolar:Complex = complex(5, taninv2(-4, 3), 1)
+kValues:Complex[] = [kARect, kAPolar]
+kepsilon = 0.00001
+
+kAddLeft:Complex[] = kValues + kBPolar
+kAddRight:Complex[] = kBPolar + kValues
+kSubLeft:Complex[] = kValues - kBPolar
+kSubRight:Complex[] = kBPolar - kValues
+kMulLeft:Complex[] = kValues * kBPolar
+kMulRight:Complex[] = kBPolar * kValues
+kDiv:Complex[] = kValues / kBPolar
+kIndex = 0
+while kIndex < 2 do
+ assert_close(real(kAddLeft[kIndex]), 4, kepsilon)
+ assert_close(imag(kAddLeft[kIndex]), -2, kepsilon)
+ assert_close(real(kAddRight[kIndex]), 4, kepsilon)
+ assert_close(imag(kAddRight[kIndex]), -2, kepsilon)
+ assert_close(real(kSubLeft[kIndex]), -2, kepsilon)
+ assert_close(imag(kSubLeft[kIndex]), 6, kepsilon)
+ assert_close(real(kSubRight[kIndex]), 2, kepsilon)
+ assert_close(imag(kSubRight[kIndex]), -6, kepsilon)
+ assert_close(real(kMulLeft[kIndex]), 11, kepsilon)
+ assert_close(imag(kMulLeft[kIndex]), 2, kepsilon)
+ assert_close(real(kMulRight[kIndex]), 11, kepsilon)
+ assert_close(imag(kMulRight[kIndex]), 2, kepsilon)
+ assert_close(real(kDiv[kIndex]), -0.2, kepsilon)
+ assert_close(imag(kDiv[kIndex]), 0.4, kepsilon)
+ kIndex += 1
+od
+endin
+
+instr 51
+kReal[] = [10, 4]
+kRect:Complex[] = [complex(3, 4), complex(-1, 2)]
+kPolar:Complex[] = [complex(5, taninv2(4, 3), 1), complex(2, -$M_PI/2, 1)]
+kepsilon = 0.00001
+
+kResult:Complex[] = kRect / kReal
+assert_close(real(kResult[0]), 0.3, kepsilon)
+assert_close(imag(kResult[0]), 0.4, kepsilon)
+assert_close(real(kResult[1]), -0.25, kepsilon)
+assert_close(imag(kResult[1]), 0.5, kepsilon)
+
+kResult = kReal / kRect
+assert_close(real(kResult[0]), 1.2, kepsilon)
+assert_close(imag(kResult[0]), -1.6, kepsilon)
+assert_close(real(kResult[1]), -0.8, kepsilon)
+assert_close(imag(kResult[1]), -1.6, kepsilon)
+
+kResult = kPolar / kReal
+assert_close(real(kResult[0]), 0.3, kepsilon)
+assert_close(imag(kResult[0]), 0.4, kepsilon)
+assert_close(real(kResult[1]), 0, kepsilon)
+assert_close(imag(kResult[1]), -0.5, kepsilon)
+
+kResult = kReal / kPolar
+assert_close(real(kResult[0]), 1.2, kepsilon)
+assert_close(imag(kResult[0]), -1.6, kepsilon)
+assert_close(real(kResult[1]), 0, kepsilon)
+assert_close(imag(kResult[1]), 2, kepsilon)
+endin
+
+instr 62
+kReal[] = [10]
+kRect:Complex[] = [complex(3, 4)]
+kPolar:Complex[] = [complex(5, taninv2(4, 3), 1)]
+kepsilon = 0.00001
+
+kResult:Complex[] = kRect - kReal
+assert_close(real(kResult[0]), -7, kepsilon)
+assert_close(imag(kResult[0]), 4, kepsilon)
+
+kResult = kReal - kRect
+assert_close(real(kResult[0]), 7, kepsilon)
+assert_close(imag(kResult[0]), -4, kepsilon)
+
+kResult = kPolar - kReal
+assert_close(real(kResult[0]), -7, kepsilon)
+assert_close(imag(kResult[0]), 4, kepsilon)
+
+kResult = kReal - kPolar
+assert_close(real(kResult[0]), 7, kepsilon)
+assert_close(imag(kResult[0]), -4, kepsilon)
+endin
+
+instr 71
+kEpsilon = 0.00001
+kRect:Complex = complex(3, 4)
+kPolar:Complex = complex(5, taninv2(4, 3), 1)
+
+kResult:Complex = kRect - 10
+assert_close(real(kResult), -7, kEpsilon)
+assert_close(imag(kResult), 4, kEpsilon)
+
+kResult = 10 - kRect
+assert_close(real(kResult), 7, kEpsilon)
+assert_close(imag(kResult), -4, kEpsilon)
+
+kResult = kPolar - 10
+assert_close(real(kResult), -7, kEpsilon)
+assert_close(imag(kResult), 4, kEpsilon)
+
+kResult = 10 - kPolar
+assert_close(real(kResult), 7, kEpsilon)
+assert_close(imag(kResult), -4, kEpsilon)
+endin
+
+instr 61
+Csource:Complex[] = [complex(3,4), polar(complex(3,4))]
+Cpolar:Complex[] = polar(Csource)
+kepsilon = 0.00001
+
+assert_close(abs(Cpolar[0]), abs(Csource[0]), kepsilon)
+assert_close(arg(Cpolar[0]), arg(Csource[0]), kepsilon)
+assert_close(real(Cpolar[0]), real(Csource[0]), kepsilon)
+assert_close(imag(Cpolar[0]), imag(Csource[0]), kepsilon)
+
+assert_close(abs(Cpolar[1]), abs(Csource[1]), kepsilon)
+assert_close(arg(Cpolar[1]), arg(Csource[1]), kepsilon)
+assert_close(real(Cpolar[1]), real(Csource[1]), kepsilon)
+assert_close(imag(Cpolar[1]), imag(Csource[1]), kepsilon)
+endin
+
+instr 7
+Csource:Complex[] = [complex(5, taninv2(4, 3), 1), complex(-2, 7)]
+Crect:Complex[] = complex(Csource)
+kepsilon = 0.00001
+
+assert_close(real(Crect[0]), 3, kepsilon)
+assert_close(imag(Crect[0]), 4, kepsilon)
+assert_close(abs(Crect[0]), 5, kepsilon)
+assert_close(arg(Crect[0]), taninv2(4, 3), kepsilon)
+
+assert_close(real(Crect[1]), -2, kepsilon)
+assert_close(imag(Crect[1]), 7, kepsilon)
+assert_close(abs(Crect[1]), sqrt(53), kepsilon)
+assert_close(arg(Crect[1]), taninv2(7, -2), kepsilon)
+endin
+
 </CsInstruments>
 <CsScore>
 i1 0 1
 i2 0 1
 i3 0 1
 i4 0 1
+i5 0 1
+i6 0 1
+i51 0 1
+i61 0 1
+i62 0 1
+i71 0 1
+i7 0 1
 </CsScore>
 </CsoundSynthesizer>

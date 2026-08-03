@@ -28,6 +28,7 @@ if(BUILD_TESTS)
         csound_plugin_opcode_test.cpp
         perfthread_test.cpp
         csound_test_sndfile.cpp
+        analysis_file_safety_test.cpp
         test_new_type.cpp
         test_pfields.cpp
         ugen_test.cpp
@@ -46,6 +47,35 @@ if(BUILD_TESTS)
             GTest::gtest_main
             ${CSOUNDLIB_STATIC}
     )
+
+    # BUILD_OSC_OPCODES stays ON in the cache when check_deps disables it
+    # in Opcodes/, so require the target too.
+    if(BUILD_OSC_OPCODES AND TARGET osc)
+        add_dependencies(unittests osc)
+        # Give sanitizer tests a directory with only the OSC plugin.
+        set(TEST_OSC_PLUGIN_DIR
+            ${CMAKE_CURRENT_BINARY_DIR}/osc-plugin)
+        set(TEST_OSC_PLUGIN
+            ${TEST_OSC_PLUGIN_DIR}/$<TARGET_FILE_NAME:osc>)
+        add_custom_target(unittests_osc_plugin
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+                ${TEST_OSC_PLUGIN_DIR}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:osc> ${TEST_OSC_PLUGIN_DIR}/
+            DEPENDS osc
+        )
+        add_dependencies(unittests unittests_osc_plugin)
+        if(USE_DOUBLE)
+            set(TEST_OSC_PLUGIN_ENV OPCODE7DIR64)
+        else()
+            set(TEST_OSC_PLUGIN_ENV OPCODE7DIR)
+        endif()
+        target_compile_definitions(unittests PRIVATE
+            CSOUND_TEST_OSC_PLUGIN_DIR="${TEST_OSC_PLUGIN_DIR}"
+            CSOUND_TEST_OSC_PLUGIN="${TEST_OSC_PLUGIN}"
+            CSOUND_TEST_OSC_PLUGIN_ENV="${TEST_OSC_PLUGIN_ENV}"
+        )
+    endif()
 
     include(GoogleTest)
     gtest_discover_tests(unittests)

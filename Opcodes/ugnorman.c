@@ -101,6 +101,66 @@ static CS_PURE double bswap(const double *swap_me)
   return d;
 }
 
+static int32_t validate_atsfile(CSOUND *csound, MEMFIL *mfp,
+                                const char *opname, const char *fname,
+                                int32_t swapped)
+{
+  ATSSTRUCT *atsh;
+  double npartials, nframes, duration, sample_rate;
+  double frame_size, window_size, ats_type;
+  uint64_t partial_count, frame_count, frame_values, available_values;
+  int32_t type;
+
+  if (UNLIKELY(mfp == NULL || mfp->beginp == NULL ||
+               mfp->length < (int32_t) sizeof(ATSSTRUCT))) {
+    return csound->InitError(csound,
+                             Str("%s: malformed ATS file %s: "
+                                 "header is truncated"),
+                             opname, fname);
+  }
+  atsh = (ATSSTRUCT *) mfp->beginp;
+  npartials = swapped ? bswap(&atsh->npartials) : atsh->npartials;
+  nframes = swapped ? bswap(&atsh->nfrms) : atsh->nfrms;
+  duration = swapped ? bswap(&atsh->dur) : atsh->dur;
+  sample_rate = swapped ? bswap(&atsh->sampr) : atsh->sampr;
+  frame_size = swapped ? bswap(&atsh->frmsz) : atsh->frmsz;
+  window_size = swapped ? bswap(&atsh->winsz) : atsh->winsz;
+  ats_type = swapped ? bswap(&atsh->type) : atsh->type;
+
+  if (UNLIKELY(!isfinite(npartials) || npartials < 0.0 ||
+               npartials > (double) INT32_MAX ||
+               npartials != floor(npartials) ||
+               !isfinite(nframes) || nframes < 1.0 ||
+               nframes > (double) INT32_MAX ||
+               nframes != floor(nframes) ||
+               !isfinite(ats_type) || ats_type < 1.0 || ats_type > 4.0 ||
+               ats_type != floor(ats_type) ||
+               !isfinite(duration) || duration <= 0.0 ||
+               !isfinite(sample_rate) || sample_rate <= 0.0 ||
+               !isfinite(frame_size) || frame_size <= 0.0 ||
+               !isfinite(window_size) || window_size <= 0.0)) {
+    return csound->InitError(csound,
+                             Str("%s: malformed ATS file %s: invalid header"),
+                             opname, fname);
+  }
+
+  partial_count = (uint64_t) npartials;
+  frame_count = (uint64_t) nframes;
+  type = (int32_t) ats_type;
+  frame_values = 1U + partial_count * (type == 2 || type == 4 ? 3U : 2U)
+                   + (type >= 3 ? 25U : 0U);
+  available_values =
+    ((uint64_t) mfp->length - sizeof(ATSSTRUCT)) / sizeof(double);
+  if (UNLIKELY(frame_values > available_values ||
+               frame_count > available_values / frame_values)) {
+    return csound->InitError(csound,
+                             Str("%s: malformed ATS file %s: "
+                                 "frame data is truncated"),
+                             opname, fname);
+  }
+  return OK;
+}
+
 /* load ATS file into memory; returns "is swapped" boolean, or -1 on error */
 
 static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
@@ -109,7 +169,7 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
   char              opname[64];
   STDOPCOD_GLOBALS  *pp;
   ATSSTRUCT         *atsh;
-  int32_t               i;
+  int32_t           i, swapped;
 
   strncpy(opname, GetOpcodeName(p), 63);   /* opcode name */
   opname[63]='\0';
@@ -131,18 +191,30 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
                             opname, fname);
     return NOTOK;
   }
+  if (UNLIKELY((*mfp)->length < (int32_t) sizeof(ATSSTRUCT))) {
+    (void) csound->InitError(csound,
+                             Str("%s: malformed ATS file %s: "
+                                 "header is truncated"),
+                             opname, fname);
+    return NOTOK;
+  }
   atsh = (ATSSTRUCT*) (*mfp)->beginp;
 
   /* make sure that this is an ats file */
   if (atsh->magic == 123.0)
-    return 0;
-  /* check to see if it is byteswapped */
-  if (UNLIKELY((int32_t) bswap(&(atsh->magic)) != 123)) {
+    swapped = 0;
+  else if (UNLIKELY((int32_t) bswap(&(atsh->magic)) != 123)) {
     (void)csound->InitError(csound, Str("%s: either %s is not an ATS file "
                                         "or the byte endianness is wrong"),
                             opname, fname);
     return NOTOK;
   }
+  else
+    swapped = 1;
+  if (UNLIKELY(validate_atsfile(csound, *mfp, opname, fname, swapped) != OK))
+    return NOTOK;
+  if (!swapped)
+    return 0;
   pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
   if (pp->swapped_warning)
     return 1;

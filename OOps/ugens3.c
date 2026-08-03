@@ -23,6 +23,7 @@
 #include "csoundCore.h"         /*                              UGENS3.C    */
 #include "ugens3.h"
 #include <math.h>
+#include <stddef.h>
 
 int32_t foscset(CSOUND *csound, FOSC *p)
 {
@@ -1441,14 +1442,25 @@ int32_t loscil3(CSOUND *csound, LOSC *p)
 #define ISINSIZ 32768L
 #define ADMASK  32767L
 
+static int32_t validate_adsyn_track(CSOUND *csound,
+                                    const int16 *begin, const int16 *end)
+{
+  ptrdiff_t words = end - begin;
+  if (UNLIKELY(words < 3 || end[-1] != 32767)) {
+    return csound->InitError(csound,
+                             "%s", Str("truncated ADSYN breakpoint track"));
+  }
+  return OK;
+}
+
 static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
 {
   int32_t    n;
   char    filnam[MAXNAME];
   MEMFIL  *mfp;
-  int16   *adp, *endata, val;
+  int16   *adp, *endata, *track_start = NULL, val;
   PTLPTR  *ptlap, *ptlfp, *ptlim;
-  int32_t     size;
+  int32_t size, declared_partials;
 
   if (csound->isintab == NULL) {  /* if no sin table yet, make one */
     int16 *ip;
@@ -1475,14 +1487,41 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
 
   adp = (int16 *) mfp->beginp;            /* align on file data */
   endata = (int16 *) mfp->endp;
-  size = 1+(*adp == -1 ? MAXPTLS : *adp++); /* Old no header -> MAXPIL */
+  if (UNLIKELY(mfp->length < (int32_t) sizeof(int16) ||
+               (mfp->length % (int32_t) sizeof(int16)) != 0)) {
+    return csound->InitError(csound,
+                             Str("malformed ADSYN file %s: truncated header"),
+                             filnam);
+  }
+  if (*adp == -1) {
+    declared_partials = -1;                /* old format has no header */
+    size = MAXPTLS + 1;
+  }
+  else {
+    declared_partials = (int32_t) *adp++;
+    if (UNLIKELY(declared_partials < 1 || declared_partials > MAXPTLS)) {
+      return csound->InitError(csound,
+                               Str("malformed ADSYN file %s: "
+                                   "invalid partial count"),
+                               filnam);
+    }
+    size = declared_partials + 1;
+  }
   if (p->aux.auxp==NULL || p->aux.size < (uint32_t)sizeof(PTLPTR)*size)
     csound->AuxAlloc(csound, sizeof(PTLPTR)*size, &p->aux);
 
   ptlap = ptlfp = (PTLPTR*)p->aux.auxp;   /* find base ptl blk */
   ptlim = ptlap + size;
-  do {
+  while (adp < endata) {
+    int16 *marker = adp;
     if ((val = *adp++) < 0) {             /* then for each brkpt set,   */
+      if (track_start != NULL &&
+          UNLIKELY(validate_adsyn_track(csound, track_start, marker) != OK))
+        return NOTOK;
+      if (UNLIKELY(endata - adp < 2))
+        return csound->InitError(csound,
+                                 "%s", Str("truncated ADSYN breakpoint track"));
+      track_start = adp;
       switch (val) {
       case -1:
         ptlap->nxtp = ptlap + 1;       /* chain the ptl blks */
@@ -1500,11 +1539,24 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
         return csound->InitError(csound, Str("illegal code %d encountered"), val);
       }
     }
-  } while (adp < endata);
-  if (UNLIKELY(ptlap != ptlfp)) {
+  }
+  if (UNLIKELY(track_start == NULL))
+    return csound->InitError(csound,
+                             Str("malformed ADSYN file %s: no tracks"),
+                             filnam);
+  if (UNLIKELY(validate_adsyn_track(csound, track_start, endata) != OK))
+    return NOTOK;
+  if (UNLIKELY(ptlap != ptlfp || ptlap == (PTLPTR *) p->aux.auxp)) {
     return csound->InitError(csound, Str("%d amp tracks, %d freq tracks"),
                              (int32_t) (ptlap - (PTLPTR*)p->aux.auxp) - 1,
                              (int32_t) (ptlfp - (PTLPTR*)p->aux.auxp) - 1);
+  }
+  if (UNLIKELY(declared_partials >= 0 &&
+               ptlap - (PTLPTR *) p->aux.auxp != declared_partials)) {
+    return csound->InitError(csound,
+                             Str("malformed ADSYN file %s: "
+                                 "partial count does not match header"),
+                             filnam);
   }
   ptlap->nxtp = NULL;   /* terminate the chain */
   p->mksecs = 0;

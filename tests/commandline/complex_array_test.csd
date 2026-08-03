@@ -14,6 +14,14 @@ if k1 != k2 then
 endif
 endop
 
+opcode assert_close,0,kkk
+kActual, kExpected, kTolerance xin
+if abs(kActual - kExpected) > kTolerance then
+ printks "assert_close error %.9f %.9f\n", 1, kActual, kExpected
+ exitnowk(-1)
+endif
+endop
+
 instr 1
  sig:Complex[] hilbert oscili(p4,p5)
  mod:Complex[] = oscili(0.5,100,-1,0.25), oscili(0.5,100,-1)
@@ -109,11 +117,73 @@ endif
 turnoff
 endin
 
+instr 4
+kRectInput:Complex[] = [complex(0, 2, 0)]
+kPolarInput:Complex[] = [complex(2, $M_PI/2, 1)]
+kRectLeft:Complex[] = kRectInput + 1
+kRectRight:Complex[] = 1 + kRectInput
+kPolarLeft:Complex[] = kPolarInput + 1
+kPolarRight:Complex[] = 1 + kPolarInput
+kTolerance = 0.00001
+
+assert_close(real(kRectLeft[0]), 1, kTolerance)
+assert_close(imag(kRectLeft[0]), 2, kTolerance)
+assert_close(abs(kRectLeft[0]), sqrt(5), kTolerance)
+assert_close(arg(kRectLeft[0]), taninv2(2, 1), kTolerance)
+
+assert_close(real(kRectRight[0]), 1, kTolerance)
+assert_close(imag(kRectRight[0]), 2, kTolerance)
+assert_close(abs(kRectRight[0]), sqrt(5), kTolerance)
+assert_close(arg(kRectRight[0]), taninv2(2, 1), kTolerance)
+
+assert_close(real(kPolarLeft[0]), 1, kTolerance)
+assert_close(imag(kPolarLeft[0]), 2, kTolerance)
+assert_close(abs(kPolarLeft[0]), sqrt(5), kTolerance)
+assert_close(arg(kPolarLeft[0]), taninv2(2, 1), kTolerance)
+
+assert_close(real(kPolarRight[0]), 1, kTolerance)
+assert_close(imag(kPolarRight[0]), 2, kTolerance)
+assert_close(abs(kPolarRight[0]), sqrt(5), kTolerance)
+assert_close(arg(kPolarRight[0]), taninv2(2, 1), kTolerance)
+turnoff
+endin
+
+instr 5
+kTolerance = 0.000001
+kMagnitude[] = [2, 3, 0]
+kPhase[] = [0, $M_PI/2, 1.25]
+kValues:Complex[] = polar(kMagnitude, kPhase)
+assert_close(real(kValues[0]), 2, kTolerance)
+assert_close(imag(kValues[0]), 0, kTolerance)
+assert_close(real(kValues[1]), 0, kTolerance)
+assert_close(imag(kValues[1]), 3, kTolerance)
+assert_close(abs(kValues[2]), 0, kTolerance)
+assert_close(arg(kValues[2]), 1.25, kTolerance)
+
+kLongMagnitude[] = [4, 5, 6]
+kShortPhase[] = [0.25, 0.5]
+kLongFirst:Complex[] = polar(kLongMagnitude, kShortPhase)
+assert(lenarray(kLongFirst), 3)
+assert_close(abs(kLongFirst[0]), 4, kTolerance)
+assert_close(arg(kLongFirst[1]), 0.5, kTolerance)
+assert_close(real(kLongFirst[2]), 0, kTolerance)
+assert_close(imag(kLongFirst[2]), 0, kTolerance)
+
+kShortMagnitude[] = [7, 8]
+kLongPhase[] = [0, 0.75, 1]
+kShortFirst:Complex[] = polar(kShortMagnitude, kLongPhase)
+assert(lenarray(kShortFirst), 2)
+assert_close(abs(kShortFirst[1]), 8, kTolerance)
+assert_close(arg(kShortFirst[1]), 0.75, kTolerance)
+turnoff
+endin
+
 </CsInstruments>
 <CsScore>
+i4 0 1
+i5 0 1
 i3 0 1
 i2 0 1
 i1 0 1 0.5 400
 </CsScore>
 </CsoundSynthesizer>
-

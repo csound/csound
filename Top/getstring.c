@@ -269,7 +269,6 @@ double csoundStrtod(char* nptr, char** endptr) {
     int32_t retVal;
     va_start(args, format);
     retVal = vsscanf_l(str,csound_c_locale,format,args);
-    retVal = vsscanf(str,format,args);
     va_end(args);
     return retVal;
 }
