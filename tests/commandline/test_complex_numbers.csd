@@ -246,6 +246,51 @@ assert_close(real(kResult[1]), 0, kepsilon)
 assert_close(imag(kResult[1]), 2, kepsilon)
 endin
 
+instr 62
+kReal[] = [10]
+kRect:Complex[] = [complex(3, 4)]
+kPolar:Complex[] = [complex(5, taninv2(4, 3), 1)]
+kepsilon = 0.00001
+
+kResult:Complex[] = kRect - kReal
+assert_close(real(kResult[0]), -7, kepsilon)
+assert_close(imag(kResult[0]), 4, kepsilon)
+
+kResult = kReal - kRect
+assert_close(real(kResult[0]), 7, kepsilon)
+assert_close(imag(kResult[0]), -4, kepsilon)
+
+kResult = kPolar - kReal
+assert_close(real(kResult[0]), -7, kepsilon)
+assert_close(imag(kResult[0]), 4, kepsilon)
+
+kResult = kReal - kPolar
+assert_close(real(kResult[0]), 7, kepsilon)
+assert_close(imag(kResult[0]), -4, kepsilon)
+endin
+
+instr 71
+kEpsilon = 0.00001
+kRect:Complex = complex(3, 4)
+kPolar:Complex = complex(5, taninv2(4, 3), 1)
+
+kResult:Complex = kRect - 10
+assert_close(real(kResult), -7, kEpsilon)
+assert_close(imag(kResult), 4, kEpsilon)
+
+kResult = 10 - kRect
+assert_close(real(kResult), 7, kEpsilon)
+assert_close(imag(kResult), -4, kEpsilon)
+
+kResult = kPolar - 10
+assert_close(real(kResult), -7, kEpsilon)
+assert_close(imag(kResult), 4, kEpsilon)
+
+kResult = 10 - kPolar
+assert_close(real(kResult), 7, kEpsilon)
+assert_close(imag(kResult), -4, kEpsilon)
+endin
+
 instr 61
 Csource:Complex[] = [complex(3,4), polar(complex(3,4))]
 Cpolar:Complex[] = polar(Csource)
@@ -288,6 +333,8 @@ i5 0 1
 i6 0 1
 i51 0 1
 i61 0 1
+i62 0 1
+i71 0 1
 i7 0 1
 </CsScore>
 </CsoundSynthesizer>
