@@ -1528,6 +1528,32 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
   return NULL;
 }
 
+static OENTRY *resolve_inplace_rate_opcode(CSOUND *csound,
+                                           OENTRIES *entries, TREE *root,
+                                           char *outArgTypes,
+                                           char *inArgTypes) {
+  char rate;
+  int32_t i;
+
+  if (root->type != S_ADDIN && root->type != S_SUBIN &&
+      root->type != S_MULIN && root->type != S_DIVIN) {
+    return NULL;
+  }
+  /* A typed output's signature does not carry its i/k phase. */
+  rate = is_irate(root->left) ? 'i' : 'k';
+
+  for (i = 0; i < entries->count; i++) {
+    OENTRY *entry = entries->entries[i];
+    const char *suffix = strchr(entry->opname, '.');
+    if (suffix != NULL && suffix[1] == rate && suffix[2] == '.' &&
+        check_in_args(csound, inArgTypes, entry->intypes) &&
+        check_out_args(csound, outArgTypes, entry->outypes)) {
+      return entry;
+    }
+  }
+  return NULL;
+}
+
 /* used when creating T_FUNCTION's */
 char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
                                 char* inArgTypes) {
@@ -2822,9 +2848,11 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     return 0;
   }
 
-  OENTRY* oentry;
-  if (root->value->optype == NULL ||
-      leftArgString == NULL) {
+  OENTRY* oentry = resolve_inplace_rate_opcode(csound, entries, root,
+                                               leftArgString,
+                                               rightArgString);
+  if (oentry == NULL && (root->value->optype == NULL ||
+                         leftArgString == NULL)) {
     if(root->value->optype) {
       // in the special case of 'k' for 'i'
       // we enforce the annotation
@@ -2840,7 +2868,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                             leftArgString, rightArgString);
   }
   /* if there is type annotation, try to resolve it */
-  else {
+  else if (oentry == NULL) {
     // if there is a discrepancy between out-types/annotation
     // print a warning and use out-types
     // except for 'p' and 'i'
