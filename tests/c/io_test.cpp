@@ -5,6 +5,11 @@
 #include "csoundCore.h"
 #include "filesys.h"
 
+static int32_t failSndfileClose(CSOUND *, void *)
+{
+    return -1;
+}
+
 
 class IOTests : public ::testing::Test {
 public:
@@ -206,11 +211,12 @@ TEST_F (IOTests, testSynchronousCloseWhileAsyncWorkerRuns)
 
 TEST_F (IOTests, testSynchronousCloseReportsBorrowedFileError)
 {
-    int invalidFd = -1;
+    SNDFILE *fakeSndfile = reinterpret_cast<SNDFILE *>(csound);
     void *handle = csoundCreateFileHandle(
-        csound, &invalidFd, CSFILE_FD_R, "invalid-borrowed-file");
+        csound, &fakeSndfile, CSFILE_SND_R, "invalid-borrowed-file");
     ASSERT_NE(handle, nullptr);
     auto *file = static_cast<CSFILE *>(handle);
+    csound->SndfileClose = failSndfileClose;
 
     csoundSpinLock(&csound->open_files_lock);
     file->io_readers++;
