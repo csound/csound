@@ -1191,6 +1191,22 @@ extern "C" {
   PUBLIC void csoundSetPvsData(PVSDAT *pvsdat, const float *frame);
 
   /**
+   * Copy pvsdat into a named PVS input channel.
+   * The source frame must hold N + 2 float values.
+   * Returns CSOUND_SUCCESS or CSOUND_ERROR if the channel or frame is invalid.
+   */
+  PUBLIC int32_t csoundSetPvsChannel(CSOUND *csound, const char *name,
+                                     const PVSDAT *pvsdat);
+
+  /**
+   * Copy a named PVS output channel into pvsdat.
+   * The destination frame must have space for N + 2 float values.
+   * Returns CSOUND_SUCCESS or CSOUND_ERROR if the channel or frame is invalid.
+   */
+  PUBLIC int32_t csoundGetPvsChannel(CSOUND *csound, const char *name,
+                                     PVSDAT *pvsdat);
+
+  /**
    * returns the size of data stored in a channel; for string channels
    * this might change if the channel space gets reallocated
    * Since string variables use dynamic memory allocation

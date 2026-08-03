@@ -4,6 +4,7 @@
 #include "csound.h"
 #include "csound_type_system.h"
 #include "csdl.h"
+#include "pstream.h"
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
 #define csoundScoreEvent(a,b,c,d) csoundEvent(a,0,c,d,0)
@@ -211,32 +212,75 @@ TEST_F (ChannelTests, ChannelOpcodes)
 
 const char orc5[] = "chn_k \"winsize\", 3\n"
         "instr 1\n"
-        "finput pvsin 1 \n"
+        "finput pvsin \"pvs-input\"\n"
         "ioverlap, inumbins, iwinsize, iformat pvsinfo finput\n"
-        "pvsout finput, 1\n"
+        "pvsout finput, \"pvs-output\"\n"
         "chnset iwinsize, \"winsize\"\n"
         "endin\n";
-/*
- NEEDS TO BE ADAPTED for new API
+
 TEST_F (ChannelTests, PVSOpcodes)
 {
+    constexpr int32_t fftSize = 1024;
+    constexpr int32_t overlap = 256;
+    constexpr int32_t windowSize = 1024;
+    constexpr size_t frameLength = fftSize + 2;
+    float frame[frameLength];
+    for (size_t i = 0; i < frameLength; ++i)
+      frame[i] = static_cast<float>(i) + 0.25f;
+
     int32_t err = csoundCompileOrc(csound, orc5);
-    ASSERT_TRUE(err == CSOUND_SUCCESS);
-    err = csoundStart(csound);
-    PVSDATEXT pvs_data, pvs_data2;
-    memset(&pvs_data,0,sizeof(PVSDATEXT));
-    memset(&pvs_data2,0,sizeof(PVSDATEXT));
-    pvs_data.N = 16;
-    pvs_data.winsize = 32;
-    err = csoundSetPvsChannel(csound, &pvs_data, "1");
-    err = csoundGetPvsChannel(csound, &pvs_data2, "1");
-    ASSERT_EQ(pvs_data.N, pvs_data2.N);
+    ASSERT_EQ(CSOUND_SUCCESS, err);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    PVSDAT *input = csoundInitPvsChannel(csound, "host-input",
+                                         fftSize, overlap, windowSize,
+                                         PVS_WIN_HANN, PVS_AMP_FREQ);
+    ASSERT_NE(nullptr, input);
+    csoundSetPvsData(input, frame);
+
+    PVSDAT *invalidDestination =
+      csoundInitPvsChannel(csound, "invalid-input",
+                           fftSize, overlap, windowSize,
+                           PVS_WIN_HANN, PVS_AMP_FREQ);
+    ASSERT_NE(nullptr, invalidDestination);
+
+    PVSDAT invalidInput = *input;
+    invalidInput.frame.size -= sizeof(float);
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundSetPvsChannel(csound, "invalid-input", &invalidInput));
+    ASSERT_EQ(CSOUND_SUCCESS,
+              csoundSetPvsChannel(csound, "pvs-input", input));
+
     MYFLT pFields[] = {1.0, 0.0, 1.0};
-    err = csoundScoreEvent(csound, 'i', pFields, 3);
-    err = csoundPerformKsmps(csound);
-    ASSERT_EQ(32.0, csoundGetControlChannel(csound, "winsize", NULL));
+    csoundScoreEvent(csound, 'i', pFields, 3);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    EXPECT_EQ(windowSize,
+              csoundGetControlChannel(csound, "winsize", nullptr));
+
+    PVSDAT *smallOutput = csoundInitPvsChannel(csound, "host-small-output",
+                                               fftSize / 2, overlap, windowSize,
+                                               PVS_WIN_HANN, PVS_AMP_FREQ);
+    ASSERT_NE(nullptr, smallOutput);
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundGetPvsChannel(csound, "pvs-output", smallOutput));
+    EXPECT_EQ(fftSize / 2, csoundPvsDataFFTSize(smallOutput));
+
+    PVSDAT *output = csoundInitPvsChannel(csound, "host-output",
+                                          fftSize, overlap, windowSize,
+                                          PVS_WIN_HANN, PVS_AMP_FREQ);
+    ASSERT_NE(nullptr, output);
+    ASSERT_EQ(CSOUND_SUCCESS,
+              csoundGetPvsChannel(csound, "pvs-output", output));
+    EXPECT_EQ(fftSize, csoundPvsDataFFTSize(output));
+    EXPECT_EQ(overlap, csoundPvsDataOverlap(output));
+    EXPECT_EQ(windowSize, csoundPvsDataWindowSize(output));
+    EXPECT_EQ(PVS_AMP_FREQ, csoundPvsDataFormat(output));
+
+    const float *outputFrame = csoundGetPvsData(output);
+    ASSERT_NE(nullptr, outputFrame);
+    for (size_t i = 0; i < frameLength; ++i)
+      EXPECT_EQ(frame[i], outputFrame[i]) << "frame index " << i;
 }
-*/
 
 TEST_F (ChannelTests, InvalidChannel)
 {
