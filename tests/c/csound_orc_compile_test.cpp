@@ -796,6 +796,51 @@ schedule(1,6/sr,0.5)
 
 }
 
+TEST_F (OrcCompileTests, testSampleAccurateLocalKsmpsUdoOutputTail)
+{
+  const char* instrument = R"(
+sr = 64
+ksmps = 64
+nchnls = 2
+0dbfs = 1
+
+opcode passa, a, a
+  aIn xin
+  setksmps 32
+  xout aIn
+endop
+
+instr 1
+  aConst = 1
+  aOut passa aConst
+  outch p4, aOut
+endin
+
+schedule(1, 0, 24 / sr, 1)
+schedule(1, 0, 40 / sr, 2)
+)";
+
+  ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundSetOption(csound, "--sample-accurate"), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundCompileOrc(csound, instrument), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+  const MYFLT *spout = csoundGetSpout(csound);
+  ASSERT_NE(spout, nullptr);
+  constexpr int32_t blockSize = 64;
+  constexpr int32_t channelCount = 2;
+  constexpr int32_t endSamples[] = {24, 40};
+  for (int32_t sample = 0; sample < blockSize; ++sample) {
+    for (int32_t channel = 0; channel < channelCount; ++channel) {
+      const MYFLT expected =
+        sample < endSamples[channel] ? FL(1.0) : FL(0.0);
+      EXPECT_EQ(expected, spout[sample * channelCount + channel])
+        << "sample " << sample << ", channel " << channel + 1;
+    }
+  }
+}
+
 TEST_F (OrcCompileTests, testCompileCSD)
 {
   const char* instrument = R"(

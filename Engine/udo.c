@@ -2199,7 +2199,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
 
         /* clear the end portion of outputs for sample accurate end */
         if (early) {
-          memset((char*)out + g_ksmps, '\0', sizeof(MYFLT) * early);
+          memset((MYFLT*)out + g_ksmps, '\0', sizeof(MYFLT) * early);
         }
       } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
                  current->subType == &CS_VAR_TYPE_A) {

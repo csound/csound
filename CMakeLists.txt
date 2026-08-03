@@ -1242,7 +1242,8 @@ else()
     # Limited C++ opcodes for WASI builds
     set(cppops_SRCS
         Opcodes/bformdec2.cpp
-        Opcodes/padsynth_gen.cpp)
+        Opcodes/padsynth_gen.cpp
+        Opcodes/signalflowgraph.cpp)
 endif()
 
 list(APPEND libcsound_SRCS)
