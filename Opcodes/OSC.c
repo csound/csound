@@ -25,6 +25,9 @@
 #define __HAIKU_CONFLICT
 
 #include "csdl.h"
+#include "arrays.h"
+#include "osc_blob.h"
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
@@ -125,6 +128,7 @@ typedef struct {
     MYFLT       *args[ARG_CNT];
     OSC_PORT    *port;
     OSCLCOMMON  c;
+    int32_t     malformedBlobWarning;
 } OSCLISTEN;
 
 typedef struct {
@@ -348,7 +352,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
             lo_blob myblob;
             MYFLT *data = csound->Malloc(csound, sizeof(MYFLT)*(CS_KSMPS+1));
             data[0] = CS_KSMPS;
-            memcpy(&data[1], arg[i], data[0]);
+            memcpy(&data[1], arg[i], sizeof(MYFLT)*CS_KSMPS);
             myblob = lo_blob_new(sizeof(MYFLT)*(CS_KSMPS+1), data);
             lo_message_add_blob(msg, myblob);
             csound->Free(csound, data);
@@ -796,6 +800,7 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     //void  *x;
     int32_t   i, n;
 
+    p->malformedBlobWarning = 0;
     OSC_GLOBALS *pp =
       (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (UNLIKELY(pp == NULL))
@@ -857,9 +862,233 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     return OK;
 }
 
+#define OSC_BLOB_DROPPED (1)
+
+static int32_t osc_malformed_blob(CSOUND *csound, OSCLISTEN *p, char type)
+{
+    if (!p->malformedBlobWarning) {
+      csound->Warning(csound, Str("OSC: ignoring malformed '%c' blob\n"), type);
+      p->malformedBlobWarning = 1;
+    }
+    return OSC_BLOB_DROPPED;
+}
+
+/* The array decoders copy raw MYFLTs, so the destination's element type
+   must be a scalar MYFLT. A fresh array has no arrayMemberSize yet; size a
+   probe variable from its element type, exactly as
+   csound_array_ensure_capacity() would when allocating. */
+static int32_t osc_array_element_is_myflt(CSOUND *csound,
+                                          const ARRAYDAT *array, INSDS *ctx)
+{
+    CS_VARIABLE *var;
+    int32_t isMyflt;
+
+    if (array->data != NULL)
+      return array->arrayMemberSize == (int32_t)sizeof(MYFLT);
+    if (array->arrayType == NULL)
+      return 0;
+    var = array_element_create_variable(csound, array->arrayType, ctx);
+    if (var == NULL)
+      return 0;
+    isMyflt = var->memBlockSize == (int32_t)sizeof(MYFLT);
+    csound->Free(csound, var);
+    return isMyflt;
+}
+
+static int32_t osc_decode_direct_array(CSOUND *csound, OSCLISTEN *p,
+                                       ARRAYDAT *array, const void *payload,
+                                       size_t payloadBytes)
+{
+    OSC_MYFLT_BLOB_VIEW view;
+    size_t currentCount;
+    size_t prefixCount = 1;
+    int32_t newLastSize = 0;
+    int32_t resize = 0;
+    int32_t i;
+
+    if (osc_blob_parse_myflts(payload, payloadBytes, &view) != OK ||
+        array == NULL || array->dimensions <= 0 || array->sizes == NULL ||
+        csound_array_has_managed_elements(array) ||
+        !osc_array_element_is_myflt(csound, array, p->h.insdshead) ||
+        csound_array_member_count(array, &currentCount) != OK) {
+      return osc_malformed_blob(csound, p, 'D');
+    }
+    if (view.count > currentCount) {
+      for (i = 0; i < array->dimensions - 1; i++) {
+        if (array->sizes[i] <= 0 ||
+            (size_t)array->sizes[i] > SIZE_MAX / prefixCount) {
+          return osc_malformed_blob(csound, p, 'D');
+        }
+        prefixCount *= (size_t)array->sizes[i];
+      }
+      if (prefixCount == 0 || view.count % prefixCount != 0 ||
+          view.count / prefixCount > INT32_MAX) {
+        return osc_malformed_blob(csound, p, 'D');
+      }
+      newLastSize = (int32_t)(view.count / prefixCount);
+      resize = 1;
+    }
+    if (view.count == 0) {
+      return OK;
+    }
+    if (UNLIKELY(csound_array_prepare_write(
+                   csound, array, p->h.insdshead) != OK ||
+                 csound_array_ensure_capacity(
+                   csound, array, view.count, p->h.insdshead) != OK ||
+                 array->data == NULL)) {
+      csound->ErrorMsg(csound, "%s",
+                       Str("OSC: Failed to allocate memory for array\n"));
+      return OK;
+    }
+    memcpy(array->data, view.data, view.count * sizeof(MYFLT));
+    if (resize) {
+      array->sizes[array->dimensions - 1] = newLastSize;
+    }
+    return OK;
+}
+
+static int32_t osc_decode_array(CSOUND *csound, OSCLISTEN *p,
+                                ARRAYDAT *array, const void *payload,
+                                size_t payloadBytes)
+{
+    OSC_ARRAY_BLOB_VIEW view;
+    int32_t *newSizes;
+    int32_t *oldSizes;
+    size_t capacity;
+    int32_t i;
+
+    if (osc_blob_parse_array(payload, payloadBytes, &view) != OK ||
+        array == NULL || array->arrayType == NULL ||
+        csound_array_has_managed_elements(array) ||
+        !osc_array_element_is_myflt(csound, array, p->h.insdshead) ||
+        (array->data != NULL && array->allocated == 0 &&
+         array->storage == NULL)) {
+      return osc_malformed_blob(csound, p, 'A');
+    }
+    newSizes = (int32_t *)csound->Malloc(
+      csound, (size_t)view.dimensions * sizeof(int32_t));
+    if (UNLIKELY(newSizes == NULL)) {
+      csound->ErrorMsg(csound, "%s",
+                       Str("OSC: Failed to allocate memory for array\n"));
+      return OK;
+    }
+    for (i = 0; i < view.dimensions; i++) {
+      if (UNLIKELY(osc_blob_array_size(&view, i, &newSizes[i]) != OK)) {
+        csound->Free(csound, newSizes);
+        return osc_malformed_blob(csound, p, 'A');
+      }
+    }
+    capacity = view.values.count > 0 ? view.values.count : 1;
+    if (UNLIKELY(csound_array_prepare_write(
+                   csound, array, p->h.insdshead) != OK ||
+                 csound_array_ensure_capacity(
+                   csound, array, capacity, p->h.insdshead) != OK ||
+                 array->data == NULL)) {
+      csound->Free(csound, newSizes);
+      csound->ErrorMsg(csound, "%s",
+                       Str("OSC: Failed to allocate memory for array\n"));
+      return OK;
+    }
+    oldSizes = array->sizes;
+    array->dimensions = view.dimensions;
+    array->sizes = newSizes;
+    csound->Free(csound, oldSizes);
+    if (view.values.count != 0) {
+      memcpy(array->data, view.values.data,
+             view.values.count * sizeof(MYFLT));
+    }
+    return OK;
+}
+
+static int32_t osc_decode_audio(CSOUND *csound, OSCLISTEN *p, int32_t index,
+                                const void *payload, size_t payloadBytes)
+{
+    OSC_MYFLT_BLOB_VIEW view;
+    MYFLT *output = p->args[index];
+
+    if (osc_blob_parse_audio(payload, payloadBytes, (size_t)CS_KSMPS,
+                             &view) != OK) {
+      return osc_malformed_blob(csound, p, 'a');
+    }
+    if (view.count != 0) {
+      memcpy(output, view.data, view.count * sizeof(MYFLT));
+    }
+    if (view.count < (size_t)CS_KSMPS) {
+      memset(output + view.count, 0,
+             ((size_t)CS_KSMPS - view.count) * sizeof(MYFLT));
+    }
+    return OK;
+}
+
+static int32_t osc_decode_ftable(CSOUND *csound, OSCLISTEN *p, int32_t index,
+                                 const void *payload, size_t payloadBytes)
+{
+    OSC_MYFLT_BLOB_VIEW view;
+    int32_t fno = MYFLT2LRND(*p->args[index]);
+    FUNC *ftp;
+
+    if (osc_blob_parse_myflts(payload, payloadBytes, &view) != OK ||
+        view.count > INT32_MAX) {
+      return osc_malformed_blob(csound, p, 'G');
+    }
+    if (UNLIKELY(fno <= 0)) {
+      return csound->PerfError(csound, &(p->h),
+                               Str("Invalid ftable no. %d"), fno);
+    }
+    ftp = csound->FTFind(csound, p->args[index]);
+    if (UNLIKELY(ftp == NULL)) {
+      return csound->PerfError(csound, &(p->h),
+                               "%s", Str("OSC internal error"));
+    }
+    if (view.count > ftp->flen) {
+      if (UNLIKELY(csound->FTAlloc(
+                     csound, fno, (int32_t)view.count) != OK)) {
+        csound->ErrorMsg(csound, "%s",
+                         Str("OSC: Failed to allocate memory for ftable\n"));
+        return OK;
+      }
+      ftp = csound->FTFind(csound, p->args[index]);
+      if (UNLIKELY(ftp == NULL)) {
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("OSC internal error"));
+      }
+    }
+    if (view.count != 0) {
+      memcpy(ftp->ftable, view.data, view.count * sizeof(MYFLT));
+      if (view.count == ftp->flen) {
+        ftp->ftable[ftp->flen] = ftp->ftable[0];
+      }
+    }
+    return OK;
+}
+
+static int32_t osc_decode_blob(CSOUND *csound, OSCLISTEN *p, int32_t index,
+                               char type, const void *payload,
+                               size_t payloadBytes)
+{
+    switch (type) {
+    case 'D':
+      return osc_decode_direct_array(
+        csound, p, (ARRAYDAT *)p->args[index], payload, payloadBytes);
+    case 'A':
+      return osc_decode_array(
+        csound, p, (ARRAYDAT *)p->args[index], payload, payloadBytes);
+    case 'a':
+      return osc_decode_audio(csound, p, index, payload, payloadBytes);
+    case 'G':
+      return osc_decode_ftable(csound, p, index, payload, payloadBytes);
+    case 'S':
+      return OK;
+    default:
+      return csound->PerfError(csound, &(p->h),
+                               Str("OSC: invalid blob type '%c'"), type);
+    }
+}
+
 static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
 {
     OSC_PAT *m;
+    int32_t status = OK;
 
     if (UNLIKELY(p->port->mutex_ == NULL)) {
       *p->kans = 0;
@@ -869,7 +1098,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
     m = p->c.patterns;
     /* check again for thread safety */
     if (m != NULL) {
-      int32_t i;
+      int32_t i, malformedBlob = 0;
       /* unlink from queue */
       p->c.patterns = m->next;
       /* copy arguments */
@@ -899,148 +1128,31 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
         }
         else if (p->c.saved_types[i]=='b') {
           char c = p->type->data[i];
-          int32_t len =  lo_blob_datasize(m->args[i].blob);
-          //printf("blob found %p type %c\n", m->args[i].blob, c);
-          //printf("length = %d\n", lo_blob_datasize(m->args[i].blob));
-          int32_t *idata = lo_blob_dataptr(m->args[i].blob);
-          if (c == 'D') {
-            int32_t j;
-            MYFLT *data = (MYFLT *) idata;
-            ARRAYDAT* arr = (ARRAYDAT*)p->args[i];
-            int32_t asize = 1;
-            for (j=0; j < arr->dimensions; j++) {
-              asize *= arr->sizes[j];
-            }
-            len /= sizeof(MYFLT);
-            if (asize < len) {
-              MYFLT *temp_data = (MYFLT *)
-                csound->ReAlloc(csound, arr->data, len*sizeof(MYFLT));
-              if (temp_data != NULL) {
-                arr->data = temp_data;
-                asize = len;
-              } else {
-                csound->ErrorMsg(csound, "%s",
-                                 "OSC: Failed to allocate memory for array\n");
-                continue;
-              }
-             for (j = 0; j < arr->dimensions-1; j++)
-              asize /= arr->sizes[j];
-             arr->sizes[arr->dimensions-1] = asize;
-            }
-            memcpy(arr->data,data,len*sizeof(MYFLT));
-           }
-          else if (c == 'A') {       /* Decode an numeric array */
-            int32_t j;
-            MYFLT* data = (MYFLT*)(&idata[1+idata[0]]);
-            int32_t size = 1;
-            ARRAYDAT* foo = (ARRAYDAT*)p->args[i];
-            foo->dimensions = idata[0];
-            csound->Free(csound, foo->sizes);
-            foo->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t)*idata[0]);
-#ifdef OSC_DEBUG
-            printf("dimension=%d\n", idata[0]);
-#endif
-            for (j=0; j<idata[0]; j++) {
-              foo->sizes[j] = idata[j+1];
-#ifdef OSC_DEBUG
-              printf("sizes[%d] = %d\n", j, idata[j+1]);
-#endif
-              size*=idata[j+1];
-            }
-#ifdef OSC_DEBUG
-            printf("idata = %i %i %i %i %i %i %i ...\n",
-                   idata[0], idata[1], idata[2], idata[3],
-                   idata[4], idata[5], idata[6]);
-            printf("data = %f, %f, %f...\n", data[0], data[1], data[2]);
-#endif
-            foo->data = (MYFLT*)csound->Malloc(csound, sizeof(MYFLT)*size);
-            memcpy(foo->data, data, sizeof(MYFLT)*size);
-            //printf("data = %f %f ...\n", foo->data[0], foo->data[1]);
+          int32_t blobBytes = lo_blob_datasize(m->args[i].blob);
+          int32_t blobStatus;
+          if (blobBytes < 0) {
+            blobStatus = osc_malformed_blob(csound, p, c);
           }
-          else if (c == 'a') {
-
-            MYFLT *data= (MYFLT*)idata;
-            uint32_t len = (uint32_t)data[0];
-            if (len>CS_KSMPS) len = CS_KSMPS;
-            memcpy(p->args[i], &data[1], len*sizeof(MYFLT));
+          else {
+            blobStatus = osc_decode_blob(
+              csound, p, i, c, lo_blob_dataptr(m->args[i].blob),
+              (size_t)blobBytes);
           }
-          else if (c == 'G') {  /* ftable received */
-            //FUNC* data = (FUNC*)idata;
-            MYFLT *data = (MYFLT *) idata;
-            int32_t fno = MYFLT2LRND(*p->args[i]);
-            FUNC *ftp;
-            if (UNLIKELY(fno <= 0))
-              return csound->PerfError(csound, &(p->h),
-                                       Str("Invalid ftable no. %d"), fno);
-
-            ftp = csound->FTFind(csound, p->args[i]);
-            if (UNLIKELY(ftp==NULL)) {
-              return csound->PerfError(csound, &(p->h),
-                                       "%s", Str("OSC internal error"));
-            }
-            if (len > (int32_t)  (ftp->flen*sizeof(MYFLT))) {
-              MYFLT *temp_ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
-                                                          len*sizeof(MYFLT));
-              if (temp_ftable != NULL) {
-                ftp->ftable = temp_ftable;
-                ftp->flen = len/sizeof(MYFLT);
-              } else {
-                csound->ErrorMsg(csound, "%s",
-                                 "OSC: Failed to allocate memory for ftable\n");
-                continue;
-              }
-            }
-            memcpy(ftp->ftable,data,len);
-
-#if 0
-            ftp = csound->FTFind(csound, p->args[i]);
-            if (UNLIKELY(ftp==NULL)) { // need to allocate ***FIXME***
-              return csound->PerfError(csound, &(p->h),
-                                       "%s", Str("OSC internal error"));
-            }
-            memcpy(ftp, data, sizeof(FUNC)-sizeof(MYFLT*));
-            ftp->fno = fno;
-#ifdef OSC_DEBUG
-            printf("%d\n", len);
-#endif
-            if (len > ftp->flen*sizeof(MYFLT)) {
-              MYFLT *temp_ftable =
-                (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
-                                        len-sizeof(FUNC)+sizeof(MYFLT*));
-              if (temp_ftable != NULL) {
-                ftp->ftable = temp_ftable;
-                ftp->flen = (len-sizeof(FUNC)+sizeof(MYFLT*))/sizeof(MYFLT);
-              } else {
-                csound->ErrorMsg(csound, "%s",
-                                 "OSC: Failed to allocate memory for ftable\n");
-                continue;
-              }
-            }
-#endif
-            {
-#ifdef OSC_DEBUG
-              MYFLT* dst = ftp->ftable;
-              MYFLT* src = (MYFLT*)(&(data->ftable));
-
-              //int32_t j;
-              printf("copy data: from %p to %p length %d %d\n",
-                     src, dst, len-sizeof(FUNC)+sizeof(MYFLT*), data->flen);
-              printf("was %f %f %f ...\n", dst[0], dst[1], dst[2]);
-              printf("will be %f %f %f ...\n", src[0],src[1], src[2]);
-              memcpy(dst, src, len-sizeof(FUNC)+sizeof(MYFLT*));
-#endif
-              //for (j=0; j<data->flen;j++) dst[j]=src[j];
-              //printf("now %f %f %f ...\n", dst[0], dst[1], dst[2]);
-            }
-          }
-          else if (c == 'S') {
-          }
-          else return csound->PerfError(csound,  &(p->h), "Oh dear");
           csound->Free(csound, m->args[i].blob);
+          m->args[i].blob = NULL;
+          if (blobStatus == OSC_BLOB_DROPPED) {
+            malformedBlob = 1;
+            blobStatus = OK;
+          }
+          if (status == OK && blobStatus != OK) {
+            status = blobStatus;
+          }
         }
         else
           *(p->args[i]) = m->args[i].number;
       }
+      if (!malformedBlob)
+        p->malformedBlobWarning = 0;
       /* push to stack of free message structures */
       m->next = p->c.freePatterns;
       p->c.freePatterns = m;
@@ -1053,7 +1165,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
     else
       *p->kans = 0;
     csound->UnlockMutex(p->port->mutex_);
-    return OK;
+    return status;
 }
 
 /* ******** ARRAY VERSION **** EXPERIMENTAL *** */
@@ -1121,8 +1233,6 @@ static int32_t OSC_ahandler(const char *path, const char *types,
     pp->csound->UnlockMutex(pp->mutex_);
     return retval;
 }
-
-#include "arrays.h"
 
 static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
 {

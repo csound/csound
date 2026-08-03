@@ -527,6 +527,99 @@ TEST_F(ServerTests, OscArrayListenerKeepsStablePortAddress)
     EXPECT_EQ(readMessages(csound).find("deinit error"), std::string::npos);
 }
 
+TEST_F(ServerTests, OscAudioBlobRoundTripsPreserveCompleteBlock)
+{
+    const int32_t listenerPort = findFreeUdpPort();
+    ASSERT_GT(listenerPort, 0);
+
+    const std::string orchestra =
+      "sr = 48000\n"
+      "ksmps = 32\n"
+      "nchnls = 1\n"
+      "0dbfs = 1\n"
+      "chn_k \"audio_lo_sum\", 3\n"
+      "chn_k \"audio_lo_weighted_sum\", 3\n"
+      "chn_k \"audio_socket_sum\", 3\n"
+      "chn_k \"audio_socket_weighted_sum\", 3\n"
+      "gihListener oscinit " + std::to_string(listenerPort) + "\n"
+      "instr 1\n"
+      "  aLo init 0\n"
+      "  aSocket init 0\n"
+      "  kLo osclisten gihListener, \"/audio-lo\", \"a\", aLo\n"
+      "  kSocket osclisten gihListener, \"/audio-socket\", \"a\", aSocket\n"
+      "  if kLo == 1 then\n"
+      "    kIndex = 0\n"
+      "    kSum = 0\n"
+      "    kWeightedSum = 0\n"
+      "    until kIndex >= ksmps do\n"
+      "      kSum += aLo[kIndex]\n"
+      "      kWeightedSum += aLo[kIndex] * (kIndex + 1)\n"
+      "      kIndex += 1\n"
+      "    od\n"
+      "    chnset kSum, \"audio_lo_sum\"\n"
+      "    chnset kWeightedSum, \"audio_lo_weighted_sum\"\n"
+      "  endif\n"
+      "  if kSocket == 1 then\n"
+      "    kIndex = 0\n"
+      "    kSum = 0\n"
+      "    kWeightedSum = 0\n"
+      "    until kIndex >= ksmps do\n"
+      "      kSum += aSocket[kIndex]\n"
+      "      kWeightedSum += aSocket[kIndex] * (kIndex + 1)\n"
+      "      kIndex += 1\n"
+      "    od\n"
+      "    chnset kSum, \"audio_socket_sum\"\n"
+      "    chnset kWeightedSum, \"audio_socket_weighted_sum\"\n"
+      "  endif\n"
+      "endin\n"
+      "instr 2\n"
+      "  aPayload init 0\n"
+      "  kIndex = 0\n"
+      "  until kIndex >= ksmps do\n"
+      "    aPayload[kIndex] = kIndex + 1\n"
+      "    kIndex += 1\n"
+      "  od\n"
+      "  kTrigger init 1\n"
+      "  oscsendlo kTrigger, \"127.0.0.1\", " +
+        std::to_string(listenerPort) +
+        ", \"/audio-lo\", \"a\", aPayload\n"
+      "endin\n"
+      "instr 3\n"
+      "  aPayload init 0\n"
+      "  kIndex = 0\n"
+      "  until kIndex >= ksmps do\n"
+      "    aPayload[kIndex] = kIndex + 101\n"
+      "    kIndex += 1\n"
+      "  od\n"
+      "  kTrigger init 1\n"
+      "  OSCsend kTrigger, \"127.0.0.1\", " +
+        std::to_string(listenerPort) +
+        ", \"/audio-socket\", \"a\", aPayload\n"
+      "endin\n";
+
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-d"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 60", 0);
+    ASSERT_TRUE(performBlocks(csound, 4));
+
+    csoundEventString(csound, "i 2 0 0.01", 0);
+    ASSERT_TRUE(waitForChannel(csound, "audio_lo_sum",
+                               static_cast<MYFLT>(528.0)));
+    EXPECT_EQ(csoundGetControlChannel(csound, "audio_lo_weighted_sum", NULL),
+              static_cast<MYFLT>(11440.0));
+
+    csoundEventString(csound, "i 3 0 0.01", 0);
+    ASSERT_TRUE(waitForChannel(csound, "audio_socket_sum",
+                               static_cast<MYFLT>(3728.0)));
+    EXPECT_EQ(csoundGetControlChannel(csound,
+                                      "audio_socket_weighted_sum", NULL),
+              static_cast<MYFLT>(64240.0));
+
+    EXPECT_EQ(readMessages(csound).find("malformed"), std::string::npos);
+}
+
 TEST_F(ServerTests, OscListenerContinuesAfterPortDeinit)
 {
     const int32_t listenerPort = findFreeUdpPort();
