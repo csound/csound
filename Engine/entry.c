@@ -868,6 +868,8 @@ const OENTRY opcodlst_1[] = {
     (SUBR) complex_to_polar},
   { "polar", S(COPS1), 0, ":Complex;[]", ":Complex;[]",(SUBR) cops_init_r,
      (SUBR) complex_array_polar },
+  { "polar", S(COPS1), 0, ":Complex;[]", "k[]k[]", (SUBR) cops_init_r,
+    (SUBR) complex_array_polar_assign },
   { "complex", S(R2CXOP), 0, ":Complex;", "iio", (SUBR) complex_assign},
   { "complex", S(R2CXOP), 0, ":Complex;", "kko", (SUBR) complex_assign,
     (SUBR) complex_assign},
