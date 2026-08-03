@@ -141,7 +141,7 @@ static uintptr_t udpRecv(void *pdata)
 
 static int32_t deinit_udpRecv_S(CSOUND *csound, void *pdata)
 {
-    SOCKRECV *p = (SOCKRECV *) pdata;
+    SOCKRECVSTR *p = (SOCKRECVSTR *) pdata;
 
     p->threadon = 0;
     csound->JoinThread(p->thrid);
