@@ -163,6 +163,8 @@ include(CheckLibraryExists)
 include(CMakeParseArguments)
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
+include(CheckCSourceCompiles)
+include(CheckCXXSourceCompiles)
 include(CMakePushCheckState)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
@@ -245,7 +247,7 @@ option(USE_STATIC_DEPS "Use static dependencies for libsndfile" OFF)
 option(USE_LIBSAMPLERATE "Use libsamplerate for sample rate conversion" ON)
 option(USE_LOCK_BARRIER "Use lock-based barrier in PARCS " OFF)
 option(ALIGN_MEMORY "Align memory allocation to MYFLT size" OFF)
-option(PRESERVE_NAN "Force preserving NaNs against optimisation removal" OFF)
+option(PRESERVE_NAN "Force preserving NaNs against optimisation removal" ON)
 # Build metadata overrides for reproducible/sandboxed builds (e.g. Nix).
 set(CSOUND_GIT_HASH "" CACHE STRING "Override git commit shown in version output")
 set(CSOUND_BUILD_DATE "" CACHE STRING "Override build date shown in version output (e.g. 2026-02-12)")
@@ -495,9 +497,35 @@ if (HAS_CXX_VISIBILITY_HIDDEN)
 endif()
 
 if (PRESERVE_NAN)
-message(STATUS "Preserving NaNs")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-finite-math-only")
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fno-finite-math-only")
+    message(STATUS "Preserving NaNs")
+    check_c_compiler_flag(-fno-finite-math-only HAS_NO_FINITE_MATH_ONLY)
+    check_cxx_compiler_flag(-fno-finite-math-only HAS_CXX_NO_FINITE_MATH_ONLY)
+    if (HAS_NO_FINITE_MATH_ONLY)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-finite-math-only")
+    endif()
+    if (HAS_CXX_NO_FINITE_MATH_ONLY)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-finite-math-only")
+    endif()
+endif()
+
+check_c_source_compiles("
+#if defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__
+#error __FINITE_MATH_ONLY__ is enabled
+#endif
+int main(void) { return 0; }
+" CSOUND_C_PRESERVES_NONFINITE)
+if (NOT CSOUND_C_PRESERVES_NONFINITE)
+    message(FATAL_ERROR "C compiler has finite-math-only enabled; Csound requires NaN and Inf checks")
+endif()
+
+check_cxx_source_compiles("
+#if defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__
+#error __FINITE_MATH_ONLY__ is enabled
+#endif
+int main() { return 0; }
+" CSOUND_CXX_PRESERVES_NONFINITE)
+if (NOT CSOUND_CXX_PRESERVES_NONFINITE)
+    message(FATAL_ERROR "C++ compiler has finite-math-only enabled; Csound requires NaN and Inf checks")
 endif()
 
 check_c_compiler_flag(-std=gnu11 HAS_C11)

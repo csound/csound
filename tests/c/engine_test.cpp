@@ -4,6 +4,8 @@
 #include "fftlib.h"
 extern "C" {
 #include "aops.h"
+int32_t is_NaN(CSOUND *, void *);
+int32_t is_inf(CSOUND *, void *);
 #include "complex_ops.h"
 }
 #include <algorithm>
@@ -20,6 +22,16 @@ extern "C" {
 #include "time.h"
 
 namespace {
+
+MYFLT myfltFromBits(uint64_t doubleBits, uint32_t floatBits)
+{
+    MYFLT value;
+    if constexpr (sizeof(MYFLT) == sizeof(doubleBits))
+        std::memcpy(&value, &doubleBits, sizeof(value));
+    else
+        std::memcpy(&value, &floatBits, sizeof(value));
+    return value;
+}
 
 std::vector<MYFLT> directComplexDft(const std::vector<MYFLT>& input,
                                     bool inverse)
@@ -163,6 +175,53 @@ TEST_F (EngineTests, testComplexFftMatchesDirectDft)
               << "round trip size " << size << ", component " << i;
         }
     }
+}
+
+// These tests guard the optimized build flags. If qinf(+Inf) starts returning
+// zero only in optimized GCC/Clang builds, check finite-math-only first.
+// -ffast-math enables __FINITE_MATH_ONLY__, which lets the compiler fold
+// NaN/Inf checks away. Csound needs non-finite values for qnan/qinf and for
+// NaN-tagged string p-fields, so CMake must add -fno-finite-math-only after
+// fast-math flags.
+//
+// Keep this test focused on the build-flag regression. Sign handling for
+// negative Inf, qnan(Inf), and audio-rate aggregate semantics are opcode
+// behavior questions and belong in their own tests with their own fixes.
+// Build the test values from bits to avoid compiler rewrites of arithmetic
+// expressions such as division by zero.
+TEST_F (EngineTests, testQinfClassifiesPositiveScalarInfinity)
+{
+    const MYFLT positiveInfinity =
+      myfltFromBits(0x7FF0000000000000ULL, 0x7F800000U);
+    MYFLT input = positiveInfinity;
+    MYFLT result = FL(0.0);
+    ASSIGN scalar {};
+    scalar.r = &result;
+    scalar.a = &input;
+
+    ASSERT_EQ(is_inf(csound, &scalar), OK);
+    EXPECT_NE(result, FL(0.0));
+
+    input = FL(1.0);
+    ASSERT_EQ(is_inf(csound, &scalar), OK);
+    EXPECT_EQ(result, FL(0.0));
+}
+
+TEST_F (EngineTests, testQnanClassifiesScalarNan)
+{
+    const MYFLT nan = myfltFromBits(0x7FF8000000000000ULL, 0x7FC00000U);
+    MYFLT input = nan;
+    MYFLT result = FL(0.0);
+    ASSIGN scalar {};
+    scalar.r = &result;
+    scalar.a = &input;
+
+    ASSERT_EQ(is_NaN(csound, &scalar), OK);
+    EXPECT_NE(result, FL(0.0));
+
+    input = FL(1.0);
+    ASSERT_EQ(is_NaN(csound, &scalar), OK);
+    EXPECT_EQ(result, FL(0.0));
 }
 
 TEST_F (EngineTests, testSscanfUsesCLocale)
