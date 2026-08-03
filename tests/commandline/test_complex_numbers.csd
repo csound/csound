@@ -14,7 +14,9 @@ endop
 
 opcode assert_close,0,kkk
 kactual, kexpected, ktolerance xin
-if abs(kactual - kexpected) > ktolerance then
+
+kdifference = abs(kactual - kexpected)
+if qnan(kdifference) != 0 || kdifference > ktolerance then
  printks "assert_close error %f %f\n", 1, kactual, kexpected
  exitnowk(-1)
 endif
@@ -80,6 +82,88 @@ Ca = 2*Ca/Ca1
 endin
 
 instr 5
+kARect:Complex = complex(1, 2)
+kAPolar:Complex = complex(sqrt(5), taninv2(2, 1), 1)
+kBRect:Complex = complex(3, -4)
+kBPolar:Complex = complex(5, taninv2(-4, 3), 1)
+kLeft:Complex[] = [kARect, kARect, kAPolar, kAPolar]
+kRight:Complex[] = [kBRect, kBPolar, kBRect, kBPolar]
+kepsilon = 0.00001
+
+kAdd:Complex[] = kLeft + kRight
+kSub:Complex[] = kLeft - kRight
+kMul:Complex[] = kLeft * kRight
+kDiv:Complex[] = kLeft / kRight
+kIndex = 0
+while kIndex < 4 do
+ assert_close(real(kAdd[kIndex]), 4, kepsilon)
+ assert_close(imag(kAdd[kIndex]), -2, kepsilon)
+ assert_close(real(kSub[kIndex]), -2, kepsilon)
+ assert_close(imag(kSub[kIndex]), 6, kepsilon)
+ assert_close(real(kMul[kIndex]), 11, kepsilon)
+ assert_close(imag(kMul[kIndex]), 2, kepsilon)
+ assert_close(real(kDiv[kIndex]), -0.2, kepsilon)
+ assert_close(imag(kDiv[kIndex]), 0.4, kepsilon)
+ kIndex += 1
+od
+
+kAdd = kRight
+kSub = kRight
+kMul = kRight
+kDiv = kRight
+kAdd += kLeft
+kSub -= kLeft
+kMul *= kLeft
+kDiv /= kLeft
+kIndex = 0
+while kIndex < 4 do
+ assert_close(real(kAdd[kIndex]), 4, kepsilon)
+ assert_close(imag(kAdd[kIndex]), -2, kepsilon)
+ assert_close(real(kSub[kIndex]), 2, kepsilon)
+ assert_close(imag(kSub[kIndex]), -6, kepsilon)
+ assert_close(real(kMul[kIndex]), 11, kepsilon)
+ assert_close(imag(kMul[kIndex]), 2, kepsilon)
+ assert_close(real(kDiv[kIndex]), -1, kepsilon)
+ assert_close(imag(kDiv[kIndex]), -2, kepsilon)
+ kIndex += 1
+od
+endin
+
+instr 6
+kARect:Complex = complex(1, 2)
+kAPolar:Complex = complex(sqrt(5), taninv2(2, 1), 1)
+kBPolar:Complex = complex(5, taninv2(-4, 3), 1)
+kValues:Complex[] = [kARect, kAPolar]
+kepsilon = 0.00001
+
+kAddLeft:Complex[] = kValues + kBPolar
+kAddRight:Complex[] = kBPolar + kValues
+kSubLeft:Complex[] = kValues - kBPolar
+kSubRight:Complex[] = kBPolar - kValues
+kMulLeft:Complex[] = kValues * kBPolar
+kMulRight:Complex[] = kBPolar * kValues
+kDiv:Complex[] = kValues / kBPolar
+kIndex = 0
+while kIndex < 2 do
+ assert_close(real(kAddLeft[kIndex]), 4, kepsilon)
+ assert_close(imag(kAddLeft[kIndex]), -2, kepsilon)
+ assert_close(real(kAddRight[kIndex]), 4, kepsilon)
+ assert_close(imag(kAddRight[kIndex]), -2, kepsilon)
+ assert_close(real(kSubLeft[kIndex]), -2, kepsilon)
+ assert_close(imag(kSubLeft[kIndex]), 6, kepsilon)
+ assert_close(real(kSubRight[kIndex]), 2, kepsilon)
+ assert_close(imag(kSubRight[kIndex]), -6, kepsilon)
+ assert_close(real(kMulLeft[kIndex]), 11, kepsilon)
+ assert_close(imag(kMulLeft[kIndex]), 2, kepsilon)
+ assert_close(real(kMulRight[kIndex]), 11, kepsilon)
+ assert_close(imag(kMulRight[kIndex]), 2, kepsilon)
+ assert_close(real(kDiv[kIndex]), -0.2, kepsilon)
+ assert_close(imag(kDiv[kIndex]), 0.4, kepsilon)
+ kIndex += 1
+od
+endin
+
+instr 51
 kReal[] = [10, 4]
 kRect:Complex[] = [complex(3, 4), complex(-1, 2)]
 kPolar:Complex[] = [complex(5, taninv2(4, 3), 1), complex(2, -$M_PI/2, 1)]
@@ -110,6 +194,38 @@ assert_close(real(kResult[1]), 0, kepsilon)
 assert_close(imag(kResult[1]), 2, kepsilon)
 endin
 
+instr 61
+Csource:Complex[] = [complex(3,4), polar(complex(3,4))]
+Cpolar:Complex[] = polar(Csource)
+kepsilon = 0.00001
+
+assert_close(abs(Cpolar[0]), abs(Csource[0]), kepsilon)
+assert_close(arg(Cpolar[0]), arg(Csource[0]), kepsilon)
+assert_close(real(Cpolar[0]), real(Csource[0]), kepsilon)
+assert_close(imag(Cpolar[0]), imag(Csource[0]), kepsilon)
+
+assert_close(abs(Cpolar[1]), abs(Csource[1]), kepsilon)
+assert_close(arg(Cpolar[1]), arg(Csource[1]), kepsilon)
+assert_close(real(Cpolar[1]), real(Csource[1]), kepsilon)
+assert_close(imag(Cpolar[1]), imag(Csource[1]), kepsilon)
+endin
+
+instr 7
+Csource:Complex[] = [complex(5, taninv2(4, 3), 1), complex(-2, 7)]
+Crect:Complex[] = complex(Csource)
+kepsilon = 0.00001
+
+assert_close(real(Crect[0]), 3, kepsilon)
+assert_close(imag(Crect[0]), 4, kepsilon)
+assert_close(abs(Crect[0]), 5, kepsilon)
+assert_close(arg(Crect[0]), taninv2(4, 3), kepsilon)
+
+assert_close(real(Crect[1]), -2, kepsilon)
+assert_close(imag(Crect[1]), 7, kepsilon)
+assert_close(abs(Crect[1]), sqrt(53), kepsilon)
+assert_close(arg(Crect[1]), taninv2(7, -2), kepsilon)
+endin
+
 </CsInstruments>
 <CsScore>
 i1 0 1
@@ -117,5 +233,9 @@ i2 0 1
 i3 0 1
 i4 0 1
 i5 0 1
+i6 0 1
+i51 0 1
+i61 0 1
+i7 0 1
 </CsScore>
 </CsoundSynthesizer>

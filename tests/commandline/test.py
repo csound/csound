@@ -553,6 +553,10 @@ def runTest():
         ["test_instr0_labels.csd", "test labels in instr0 space"],
         ["test_string.csd", "test string assignment and printing"],
         [
+            "test_strstrip_reallocation.csd",
+            "test strstrip reallocation and termination",
+        ],
+        [
             "test_string_preprocessor_whitespace.csd",
             "preserve function-like whitespace inside strings",
         ],
@@ -799,15 +803,12 @@ def runTest():
             "-nd",
             '-- concert.orc "first violin" --logfile=ignored ""',
         ],
+        ["signalflowgraphtest.csd", "test signal-flow graph opcodes"],
+        [
+            "test_signalflowgraph_lifetime.csd",
+            "test signal-flow graph cleanup and ftgenonce",
+        ],
     ]
-
-    if not csoundExecutable.lower().endswith((".wasm", ".cwasm")):
-        tests.append(
-            [
-                "test_signalflowgraph_lifetime.csd",
-                "test signal-flow graph cleanup and ftgenonce",
-            ]
-        )
 
     arrayTests = [
         ["arrays/arrays_i_local.csd", "local i[]"],
