@@ -745,8 +745,8 @@ int32_t complex_div_scalar(CSOUND *csound, COPS1 *p) {
 static inline void
 cmplx_sc_add(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT num, int32_t n) {
   for(int i = 0; i < n; i++) {
+    out[i].isPolar = in[i].isPolar;
     if(!in[i].isPolar) {
-      out[i].isPolar = in[i].isPolar;
       out[i].real = in[i].real + num;
       out[i].imag = in[i].imag;
     } else {
@@ -1224,6 +1224,24 @@ cmplx_real_diva(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT *num, int32_t n) {
   }
 }
 
+static inline void
+real_cmplx_diva(COMPLEXDAT *out, MYFLT *num, COMPLEXDAT *in, int32_t n) {
+  for(int i = 0; i < n; i++) {
+    MYFLT real = in[i].real;
+    MYFLT imag = in[i].imag;
+    if(!in[i].isPolar) {
+      MYFLT den = real*real + imag*imag;
+      out[i].real = (num[i]*real)/den;
+      out[i].imag = -(num[i]*imag)/den;
+      out[i].isPolar = 0;
+    } else {
+      out[i].real = num[i]/real;
+      out[i].imag = -imag;
+      out[i].isPolar = 1;
+    }
+  }
+}
+
 int32_t complexa_div_reala(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
@@ -1246,7 +1264,7 @@ int32_t reala_div_complexa(CSOUND *csound, COPS1 *p) {
   COMPLEXDAT *in1 = (COMPLEXDAT *) array2->data;
   MYFLT *in2 = (MYFLT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
-  cmplx_real_diva(out,in1,in2,len);
+  real_cmplx_diva(out,in2,in1,len);
   return OK;
 }
 
@@ -1472,11 +1490,13 @@ int32_t complex_array_polar(CSOUND *csound, COPS1 *p) {
   COMPLEXDAT *in = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
-    out[i].isPolar = in[i].isPolar;
     if(in[i].isPolar) out[i] = in[i];
     else {
-      out[i].real = HYPOT(in[i].real, in[i].imag);
-      out[i].imag = ATAN2(in[i].imag, in[i].real);
+      MYFLT real = in[i].real;
+      MYFLT imag = in[i].imag;
+      out[i].real = HYPOT(real, imag);
+      out[i].imag = ATAN2(imag, real);
+      out[i].isPolar = 1;
     }
   }
   return OK;
@@ -1488,11 +1508,13 @@ int32_t complex_array_complex(CSOUND *csound, COPS1 *p) {
   COMPLEXDAT *in = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
-    out[i].isPolar = in[i].isPolar;
     if(!in[i].isPolar) out[i] = in[i];
     else {
-      out[i].real = in[i].real*COS(in[i].imag);
-      out[i].imag = in[i].real*SIN(in[i].imag);
+      MYFLT magnitude = in[i].real;
+      MYFLT phase = in[i].imag;
+      out[i].real = magnitude*COS(phase);
+      out[i].imag = magnitude*SIN(phase);
+      out[i].isPolar = 0;
     }
   }
   return OK;

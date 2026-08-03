@@ -14,6 +14,14 @@ if k1 != k2 then
 endif
 endop
 
+opcode assert_close,0,kkk
+kActual, kExpected, kTolerance xin
+if abs(kActual - kExpected) > kTolerance then
+ printks "assert_close error %.9f %.9f\n", 1, kActual, kExpected
+ exitnowk(-1)
+endif
+endop
+
 instr 1
  sig:Complex[] hilbert oscili(p4,p5)
  mod:Complex[] = oscili(0.5,100,-1,0.25), oscili(0.5,100,-1)
@@ -109,11 +117,42 @@ endif
 turnoff
 endin
 
+instr 4
+kRectInput:Complex[] = [complex(0, 2, 0)]
+kPolarInput:Complex[] = [complex(2, $M_PI/2, 1)]
+kRectLeft:Complex[] = kRectInput + 1
+kRectRight:Complex[] = 1 + kRectInput
+kPolarLeft:Complex[] = kPolarInput + 1
+kPolarRight:Complex[] = 1 + kPolarInput
+kTolerance = 0.00001
+
+assert_close(real(kRectLeft[0]), 1, kTolerance)
+assert_close(imag(kRectLeft[0]), 2, kTolerance)
+assert_close(abs(kRectLeft[0]), sqrt(5), kTolerance)
+assert_close(arg(kRectLeft[0]), taninv2(2, 1), kTolerance)
+
+assert_close(real(kRectRight[0]), 1, kTolerance)
+assert_close(imag(kRectRight[0]), 2, kTolerance)
+assert_close(abs(kRectRight[0]), sqrt(5), kTolerance)
+assert_close(arg(kRectRight[0]), taninv2(2, 1), kTolerance)
+
+assert_close(real(kPolarLeft[0]), 1, kTolerance)
+assert_close(imag(kPolarLeft[0]), 2, kTolerance)
+assert_close(abs(kPolarLeft[0]), sqrt(5), kTolerance)
+assert_close(arg(kPolarLeft[0]), taninv2(2, 1), kTolerance)
+
+assert_close(real(kPolarRight[0]), 1, kTolerance)
+assert_close(imag(kPolarRight[0]), 2, kTolerance)
+assert_close(abs(kPolarRight[0]), sqrt(5), kTolerance)
+assert_close(arg(kPolarRight[0]), taninv2(2, 1), kTolerance)
+turnoff
+endin
+
 </CsInstruments>
 <CsScore>
+i4 0 1
 i3 0 1
 i2 0 1
 i1 0 1 0.5 400
 </CsScore>
 </CsoundSynthesizer>
-
