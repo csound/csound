@@ -1,9 +1,15 @@
 #include <stdio.h>
+#include <algorithm>
+#include <chrono>
+#include <future>
 #include <thread>
 #include "gtest/gtest.h"
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
 #include "filesys.h"
+
+extern "C" int32_t csoundKillInstance(CSOUND *, MYFLT, char *, int32_t,
+                                       int32_t, int32_t);
 
 static int32_t failSndfileClose(CSOUND *, void *)
 {
@@ -231,6 +237,71 @@ TEST_F (IOTests, testSynchronousCloseReportsBorrowedFileError)
     EXPECT_EQ(csoundFileClose(csound, handle), -1);
     reader.join();
     EXPECT_EQ(csound->retired_files, nullptr);
+}
+
+TEST_F (IOTests, testRealtimeFoutTurnoffDoesNotWaitForBorrowedFile)
+{
+    std::string path = ::testing::TempDir() + "csound_fout_" +
+                       std::to_string(reinterpret_cast<uintptr_t>(csound)) +
+                       ".wav";
+    std::replace(path.begin(), path.end(), '\\', '/');
+    std::string orchestra = R"(
+      sr = 48000
+      ksmps = 64
+      nchnls = 1
+      0dbfs = 1
+      instr 1
+        asig init 0
+        fout ")" + path + R"(", 14, asig
+      endin
+    )";
+
+    remove(path.c_str());
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "--realtime"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 10", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    CSFILE *file = nullptr;
+    bool borrowed = false;
+    csoundSpinLock(&csound->open_files_lock);
+    for (file = static_cast<CSFILE *>(csound->open_files);
+         file != nullptr && file->type != CSFILE_SND_W; file = file->nxt) {
+    }
+    if (file != nullptr && file->async_flag != 0) {
+      file->io_readers++;
+      borrowed = true;
+    }
+    csoundSpinUnLock(&csound->open_files_lock);
+    ASSERT_NE(file, nullptr);
+    ASSERT_TRUE(borrowed);
+
+    ASSERT_EQ(csoundKillInstance(csound, FL(1.0), nullptr, 0, 0, 1),
+              CSOUND_SUCCESS);
+    auto turnoff = std::async(std::launch::async, [this]() {
+      return csoundPerformKsmps(csound);
+    });
+    auto status = turnoff.wait_for(std::chrono::seconds(5));
+
+    csoundSpinLock(&csound->open_files_lock);
+    file->io_readers--;
+    csoundSpinUnLock(&csound->open_files_lock);
+
+    EXPECT_EQ(status, std::future_status::ready);
+    EXPECT_EQ(turnoff.get(), CSOUND_SUCCESS);
+
+    bool retiredFilesEmpty = false;
+    for (int32_t i = 0; i < 100 && !retiredFilesEmpty; ++i) {
+      csoundSpinLock(&csound->open_files_lock);
+      retiredFilesEmpty = csound->retired_files == nullptr;
+      csoundSpinUnLock(&csound->open_files_lock);
+      if (!retiredFilesEmpty)
+        csoundSleep(1);
+    }
+    EXPECT_TRUE(retiredFilesEmpty);
+    EXPECT_EQ(remove(path.c_str()), 0);
 }
 
 TEST_F (IOTests, testReadline)

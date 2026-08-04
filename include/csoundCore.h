@@ -1493,10 +1493,11 @@ struct CSOUND_ {
       To allow the API to grow while maintining backward binary compatibility.
    */
   /**@{ */
-  /* This consumes one former placeholder; the 50-pointer reserve keeps the
+  /* These consume former placeholders; the 50-pointer reserve keeps the
      offsets of private CSOUND fields unchanged. */
   int32_t (*ArrayPrepareWrite)(CSOUND *, ARRAYDAT *, INSDS *, int32_t);
-  SUBR dummyfn_2[49];
+  void (*FileRetire)(CSOUND *, void *);
+  SUBR dummyfn_2[48];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */
