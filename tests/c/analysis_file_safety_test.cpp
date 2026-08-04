@@ -9,22 +9,52 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <system_error>
 #include <vector>
 
+#if defined(_WIN32)
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
+
 namespace {
+
+uint64_t currentProcessId()
+{
+#if defined(_WIN32)
+  return static_cast<uint64_t>(_getpid());
+#else
+  return static_cast<uint64_t>(getpid());
+#endif
+}
 
 class AnalysisFileSafetyTests : public ::testing::Test {
  protected:
   void SetUp() override
   {
-    directory = std::filesystem::temp_directory_path() /
-                ("csound-analysis-file-tests-" +
-                 std::to_string(reinterpret_cast<uintptr_t>(this)));
-    std::filesystem::create_directories(directory);
+    const auto root = std::filesystem::temp_directory_path();
+    const std::string prefix =
+      "csound-analysis-file-tests-" + std::to_string(currentProcessId()) +
+      "-" + std::to_string(reinterpret_cast<uintptr_t>(this)) + "-";
+
+    for (uint32_t attempt = 0; attempt < 100; ++attempt) {
+      const auto candidate = root / (prefix + std::to_string(attempt));
+      std::error_code error;
+      if (std::filesystem::create_directory(candidate, error)) {
+        directory = candidate;
+        return;
+      }
+      if (error && error != std::errc::file_exists)
+        FAIL() << "could not create " << candidate << ": " << error.message();
+    }
+    FAIL() << "could not create a unique temporary directory in " << root;
   }
 
   void TearDown() override
   {
+    if (directory.empty())
+      return;
     std::error_code error;
     std::filesystem::remove_all(directory, error);
   }
