@@ -123,6 +123,9 @@ in
         "--export-table" # plugins do the reverse and import
         "--growable-table" # required so dlinit can append plugin function pointers
         "--import-memory"
+        "--export=__stack_pointer"
+        "--export-if-defined=sin"
+        "--export-if-defined=strcmp"
         "--export=__heap_base"
         "--export=__data_end"
       ]
