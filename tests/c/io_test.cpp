@@ -11,6 +11,17 @@
 extern "C" int32_t csoundKillInstance(CSOUND *, MYFLT, char *, int32_t,
                                        int32_t, int32_t);
 
+typedef struct {
+    OPDS h;
+} SLOW_INIT;
+
+static int32_t slowInit(CSOUND *csound, SLOW_INIT *p)
+{
+    (void) p;
+    csoundSleep(25);
+    return CSOUND_SUCCESS;
+}
+
 static int32_t failSndfileClose(CSOUND *, void *)
 {
     return -1;
@@ -322,29 +333,42 @@ TEST_F (IOTests, testRealtimeFoutTurnoffDoesNotWaitForBorrowedFile)
       0dbfs = 1
       instr 1
         asig init 0
+        test_sleep_init
         fout ")" + path + R"(", 14, asig
       endin
     )";
 
     remove(path.c_str());
+    ASSERT_EQ(csoundAppendOpcode(csound, "test_sleep_init", sizeof(SLOW_INIT),
+                                 0, "", "", (SUBR) slowInit, nullptr, nullptr),
+              CSOUND_SUCCESS);
     ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
     ASSERT_EQ(csoundSetOption(csound, "--realtime"), CSOUND_SUCCESS);
     ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
     csoundEventString(csound, "i 1 0 10", 0);
     ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
-    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
 
+    /* Realtime init runs on the event thread. Advance performance until
+       fout's async handle is ready; the short score also verifies that a
+       queued init prevents premature end-of-performance. */
     CSFILE *file = nullptr;
     bool borrowed = false;
-    csoundSpinLock(&csound->open_files_lock);
-    for (file = static_cast<CSFILE *>(csound->open_files);
-         file != nullptr && file->type != CSFILE_SND_W; file = file->nxt) {
+    auto initDeadline = std::chrono::steady_clock::now() +
+                        std::chrono::seconds(5);
+    while (!borrowed && std::chrono::steady_clock::now() < initDeadline) {
+      ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+      csoundSpinLock(&csound->open_files_lock);
+      for (file = static_cast<CSFILE *>(csound->open_files);
+           file != nullptr && file->type != CSFILE_SND_W; file = file->nxt) {
+      }
+      if (file != nullptr && file->async_flag != 0) {
+        file->io_readers++;
+        borrowed = true;
+      }
+      csoundSpinUnLock(&csound->open_files_lock);
+      if (!borrowed)
+        csoundSleep(1);
     }
-    if (file != nullptr && file->async_flag != 0) {
-      file->io_readers++;
-      borrowed = true;
-    }
-    csoundSpinUnLock(&csound->open_files_lock);
     ASSERT_NE(file, nullptr);
     ASSERT_TRUE(borrowed);
 

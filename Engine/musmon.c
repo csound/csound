@@ -584,6 +584,7 @@ static void stop_event_insert_thread(CSOUND *csound)
       csound->Free(csound, csound->alloc_queue);
       csound->alloc_queue = NULL;
       csound->alloc_queue_items = 0;
+      csound->alloc_queue_active = 0;
       csound->alloc_queue_wp = 0;
       csoundDestroyMutex(csound->init_pass_threadlock);
       csound->init_pass_threadlock = NULL;
@@ -1247,7 +1248,7 @@ int32_t sense_events(CSOUND *csound)
   OPARMS  *O = csound->oparms;
   int32_t     retval =  0, sensType;
   int32_t     conn, *sinp, end_check=1;
-  int32_t     waiting_for_note_off = 0;
+  int32_t     waiting_for_realtime_work = 0;
 
   csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
   if (UNLIKELY(data && data->status == CSDEBUG_STATUS_STOPPED)) {
@@ -1303,10 +1304,21 @@ int32_t sense_events(CSOUND *csound)
       case 'e':                     /* end of score, */
       case 'l':                     /* lplay list,   */
       case 's':                     /* or section:   */
+        /* Realtime score events are inserted on the allocation thread. Keep
+           performance alive while an insertion is queued or in progress so
+           the score cannot end before the new instance publishes its
+           off-time. */
+        if (O->realtime && alloc_queue_has_pending(csound)) {
+          waiting_for_realtime_work = 1;
+          csound->nxtim =
+            (csound->icurTimeSamples + csound->ksmps) / csound->esr;
+          csound->nxtbt = csound->curBeat + csound->curBeat_inc;
+          break;
+        }
         if (csound->frstoff != NULL) {    /* if still have notes
                                              with finite length, wait
                                              until all are turned off */
-          waiting_for_note_off = 1;
+          waiting_for_realtime_work = 1;
           RT_SPIN_TRYLOCK
           csound->nxtim = csound->frstoff->offtim;
           csound->nxtbt = csound->frstoff->offbet;
@@ -1396,7 +1408,7 @@ int32_t sense_events(CSOUND *csound)
        current sample, rounding produces zero cycles and retest would spin
        inside sense_events(), never reaching the note-expiration check at the
        top of the next control cycle. */
-    if (waiting_for_note_off && csound->cyclesRemaining <= 0)
+    if (waiting_for_realtime_work && csound->cyclesRemaining <= 0)
       csound->cyclesRemaining = 1;
   }
 

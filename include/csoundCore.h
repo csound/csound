@@ -1822,6 +1822,7 @@ struct CSOUND_ {
   void *directory;
   ALLOC_DATA *alloc_queue;
   volatile unsigned long alloc_queue_items;
+  unsigned long alloc_queue_active;
   unsigned long alloc_queue_wp;
   spin_lock_t alloc_queue_spinlock;
   /* Realtime lock order is alloc, then instance/async-reference/event. The

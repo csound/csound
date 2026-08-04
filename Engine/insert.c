@@ -341,6 +341,7 @@ void realtime_spin_lock_destroy(spin_lock_t *spinlock)
 int32_t alloc_queue_lock_init(CSOUND *csound)
 {
   csound->alloc_queue_items = 0;
+  csound->alloc_queue_active = 0;
   csound->alloc_queue_wp = 0;
   return realtime_spin_lock_init(&csound->alloc_queue_spinlock);
 }
@@ -384,20 +385,28 @@ static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
     *readPosition = *readPosition + 1 < MAX_ALLOC_QUEUE ?
       *readPosition + 1 : 0;
     csound->alloc_queue_items--;
+    csound->alloc_queue_active++;
     result = 1;
   }
   alloc_queue_unlock(csound);
   return result;
 }
 
-static int32_t alloc_queue_has_items(CSOUND *csound)
+int32_t alloc_queue_has_pending(CSOUND *csound)
 {
   int32_t result;
 
   alloc_queue_lock(csound);
-  result = csound->alloc_queue_items > 0;
+  result = csound->alloc_queue_items > 0 || csound->alloc_queue_active > 0;
   alloc_queue_unlock(csound);
   return result;
+}
+
+static void alloc_queue_complete(CSOUND *csound)
+{
+  alloc_queue_lock(csound);
+  csound->alloc_queue_active--;
+  alloc_queue_unlock(csound);
 }
 
 static size_t evtblk_strarg_size(const EVTBLK *src)
@@ -729,6 +738,7 @@ uintptr_t event_insert_thread(void *p) {
       }
       if (csound->init_pass_threadlock)
         csoundUnlockMutex(csound->init_pass_threadlock);
+      alloc_queue_complete(csound);
       processed++;
     }
     diskin2_async_drain_deferred(csound);
@@ -744,7 +754,7 @@ uintptr_t event_insert_thread(void *p) {
     }
     /* Stop requests reject new work at the engine boundary. Drain all
        published work so init depths and copied score data are not stranded. */
-    if (!csound->event_insert_loop && !alloc_queue_has_items(csound))
+    if (!csound->event_insert_loop && !alloc_queue_has_pending(csound))
       break;
   }
 
