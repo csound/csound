@@ -535,6 +535,20 @@ def runTest():
         ["test_gen44_matrix_malformed.csd", "reject a malformed GEN44 matrix size", 1],
         ["test_gen44_matrix_missing_close.csd", "reject a GEN44 header without >", 1],
         ["test_gen49_defer.csd", "test GEN49 deferred length"],
+        [
+            "test_gen41_gen42_bounds.csd",
+            "test bounded GEN41 and GEN42 probability rounding",
+        ],
+        [
+            "test_gen41_nonfinite_total.csd",
+            "expected failure: GEN41 probability total overflows",
+            1,
+        ],
+        [
+            "test_gen42_nonfinite_total.csd",
+            "expected failure: GEN42 probability total overflows",
+            1,
+        ],
         ["test_ftload_binary_args_ownership.csd", "test binary ftload does not share args ownership"],
         ["test_getftargs_empty_after_ftload.csd", "test getftargs returns empty args after binary ftload"],
         ["test_fail_compilestr.csd", "testing clean compilestr fail"],

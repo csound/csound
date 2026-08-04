@@ -1995,61 +1995,88 @@ static int32_t gen40(FGDATA *ff, FUNC *ftp)               /*gab d5*/
 static int32_t gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
 {
     MYFLT   *fp = ftp->ftable, *pp = &ff->e.p[5];
-    int32_t     i, j, k, width;
-    MYFLT    tot_prob = FL(0.0);
-    int32_t     nargs = ff->e.pcnt - 4;
+    int32_t i, j, limit;
+    MYFLT   cumulative = FL(0.0), tot_prob = FL(0.0);
+    int32_t nargs = ff->e.pcnt - 4;
 
-    //printf("*** nargs = %d, len = %d, number = %d\n", nargs, ftp->flen, ftp->fno);
-    for (j=0; j < nargs; j+=2) {
-      if (UNLIKELY(pp[j+1]<0))
-        return csoundFtError(ff, Str("Gen41: negative probability not allowed"));
-      tot_prob += pp[j+1];
+    if (UNLIKELY(nargs < 2 || (nargs & 1)))
+      return csoundFtError(ff,
+                           Str("Gen41: Must have even number of arguments"));
+    for (j = 0; j < nargs; j += 2) {
+      if (UNLIKELY(!isfinite(pp[j + 1])))
+        return csoundFtError(ff,
+                             Str("Gen41: probability must be finite"));
+      if (UNLIKELY(pp[j + 1] < FL(0.0)))
+        return csoundFtError(ff,
+                             Str("Gen41: negative probability not allowed"));
+      tot_prob += pp[j + 1];
+      if (UNLIKELY(!isfinite(tot_prob)))
+        return csoundFtError(ff,
+                             Str("Gen41: probability total must be finite"));
     }
-    //printf("total prob = %g\n", tot_prob);
-    if (nargs&1)
-      return csoundFtError(ff, Str("Gen41: Must have even numer of arguments"));
-    for (i=0, j=0; j< nargs; j+=2) {
-      width = (int32_t) ((pp[j+1]/tot_prob) * ff->flen +.5);
-      for ( k=0; k < width; k++,i++) {
-        if (i<ff->flen) {
-          //printf("*** i=%d, j=%d, pp]j] = %f\n", i, j, pp[j]);
-          fp[i] = pp[j];
-        } //else printf("%d out of range\n", i);
-      }
+    if (UNLIKELY(tot_prob <= FL(0.0)))
+      return csoundFtError(ff,
+                           Str("Gen41: probability total must be positive"));
+
+    for (i = 0, j = 0; j < nargs; j += 2) {
+      cumulative += pp[j + 1];
+      limit = (j + 2 == nargs
+                 ? ff->flen
+                 : (int32_t) ((cumulative / tot_prob) * ff->flen + FL(0.5)));
+      if (limit > ff->flen)
+        limit = ff->flen;
+      while (i < limit)
+        fp[i++] = pp[j];
     }
-    //printf("GEN41: i=%d le=%d\n", i, ff->flen);
-    if (UNLIKELY(i<=ff->flen))
-      fp[i] = pp[j-1]; /* conditional is attempt to stop error */
+    fp[ff->flen] = fp[ff->flen - 1];
 
     return OK;
 }
 
 static int32_t gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
 {
-    MYFLT   *fp = ftp->ftable, inc;
-    int32_t     j, k, width;
-    MYFLT    tot_prob = FL(0.0);
-    int32_t     nargs = ff->e.pcnt - 4;
-    MYFLT   *valp = &ff->e.p[5];
+    MYFLT   *fp = ftp->ftable, *pp = &ff->e.p[5];
+    MYFLT   cumulative = FL(0.0), tot_prob = FL(0.0);
+    int32_t i, j, k, limit, width;
+    int32_t nargs = ff->e.pcnt - 4;
 
-    for (j=0; j < nargs; j+=3) {
-      valp++;
-      valp++;
-      tot_prob += *valp++;
+    if (UNLIKELY(nargs < 3 || nargs % 3 != 0))
+      return csoundFtError(ff,
+                           Str("Gen42: Must have a multiple of three arguments"));
+    for (j = 0; j < nargs; j += 3) {
+      if (UNLIKELY(!isfinite(pp[j + 2])))
+        return csoundFtError(ff,
+                             Str("Gen42: probability must be finite"));
+      if (UNLIKELY(pp[j + 2] < FL(0.0)))
+        return csoundFtError(ff,
+                             Str("Gen42: negative probability not allowed"));
+      tot_prob += pp[j + 2];
+      if (UNLIKELY(!isfinite(tot_prob)))
+        return csoundFtError(ff,
+                             Str("Gen42: probability total must be finite"));
     }
-    valp = &ff->e.p[5];
-    for (j=0; j< nargs; j+=3) {
-      MYFLT p1, p2, p3;
-      p1 = *valp++;
-      p2 = *valp++;
-      p3 = *valp++;
-      width = (int32_t) ((p3/tot_prob) * ff->flen +FL(0.5));
-      inc = (p2-p1) / (MYFLT) (width-1);
-      for ( k=0; k < width; k++) {
-        *fp++ = p1+(inc*k);
+    if (UNLIKELY(tot_prob <= FL(0.0)))
+      return csoundFtError(ff,
+                           Str("Gen42: probability total must be positive"));
+
+    for (i = 0, j = 0; j < nargs; j += 3) {
+      cumulative += pp[j + 2];
+      limit = (j + 3 == nargs
+                 ? ff->flen
+                 : (int32_t) ((cumulative / tot_prob) * ff->flen + FL(0.5)));
+      if (limit > ff->flen)
+        limit = ff->flen;
+      width = limit - i;
+      if (width == 1) {
+        fp[i++] = pp[j];
+      }
+      else if (width > 1) {
+        MYFLT inc = (pp[j + 1] - pp[j]) / (MYFLT) (width - 1);
+        for (k = 0; k < width; k++, i++)
+          fp[i] = pp[j] + inc * k;
       }
     }
-    *fp = *(fp-1);
+    fp[ff->flen] = fp[ff->flen - 1];
 
     return OK;
 }

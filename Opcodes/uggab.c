@@ -1125,7 +1125,7 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
 
 static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
 { /* gab d5*/
-    if (p->pfn != (int32)*p->tableNum) {
+    if (p->ftp == NULL || p->pfn != (int32)*p->tableNum) {
       if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
@@ -1140,6 +1140,7 @@ static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
 
 static int32_t iDiscreteUserRand(CSOUND *csound, DURAND *p)
 {
+    p->ftp = NULL;
     p->pfn = 0L;
     kDiscreteUserRand(csound,p);
     return OK;
@@ -1152,7 +1153,7 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS, flen;
 
-    if (p->pfn != (int32)*p->tableNum) {
+    if (p->ftp == NULL || p->pfn != (int32)*p->tableNum) {
       if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
@@ -1165,7 +1166,7 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      out[n] = table[(int32)(randGab(csound)) * flen];
+      out[n] = table[(int32)(randGab(csound) * flen)];
     }
     return OK;
  err1:
@@ -1206,6 +1207,14 @@ static int32_t iContinuousUserRand(CSOUND *csound, CURAND *p)
 static int32_t Cuserrnd_set(CSOUND *csound, CURAND *p)
 {
     IGN(csound);
+    p->pfn = 0;
+    return OK;
+}
+
+static int32_t Duserrnd_set(CSOUND *csound, DURAND *p)
+{
+    IGN(csound);
+    p->ftp = NULL;
     p->pfn = 0;
     return OK;
 }
@@ -1567,14 +1576,15 @@ static OENTRY localops[] = {
 { "randomh.k",  S(RANDOMH), 0, "k", "kkkoo",
                                  (SUBR)randomh_set,(SUBR)krandomh,NULL},
 { "urd.i",  S(DURAND),  0, "i", "i", (SUBR)iDiscreteUserRand, NULL, NULL    },
-{ "urd.k",  S(DURAND),  0, "k", "k", (SUBR)Cuserrnd_set,(SUBR)kDiscreteUserRand },
+{ "urd.k",  S(DURAND),  0, "k", "k",
+                              (SUBR)Duserrnd_set, (SUBR)kDiscreteUserRand },
 { "urd.a",  S(DURAND),  0, "a", "k",
-                              (SUBR)Cuserrnd_set, (SUBR)aDiscreteUserRand },
+                              (SUBR)Duserrnd_set, (SUBR)aDiscreteUserRand },
 { "duserrnd.i", S(DURAND),0, "i", "i",  (SUBR)iDiscreteUserRand, NULL, NULL },
 { "duserrnd.k", S(DURAND),0, "k", "k",
-                                (SUBR)Cuserrnd_set,(SUBR)kDiscreteUserRand,NULL },
+                            (SUBR)Duserrnd_set,(SUBR)kDiscreteUserRand,NULL },
 { "duserrnd.a", S(DURAND),0, "a", "k",
-                                (SUBR)Cuserrnd_set,(SUBR)aDiscreteUserRand },
+                                (SUBR)Duserrnd_set,(SUBR)aDiscreteUserRand },
 { "trigger",  S(TRIG),  0, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
 { "sum",      S(SUM),   0, "a", "y",    (SUBR)sum_init, (SUBR)sum_               },
 { "product",  S(SUM),   0, "a", "y",    NULL, (SUBR)product           },
