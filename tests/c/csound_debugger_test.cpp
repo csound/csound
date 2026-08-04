@@ -544,7 +544,7 @@ TEST_F (DebuggerTests, testUdoFramesExposeInternalLocals)
 
     debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
     ASSERT_NE(instrs, nullptr);
-    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs);
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs, NULL);
     ASSERT_NE(frames, nullptr);
     ASSERT_STREQ(frames->udoName, "simpleGain");
     ASSERT_GT(frames->callLine, 0);
@@ -581,7 +581,7 @@ TEST_F (DebuggerTests, testUdoFramesDualCallSites)
 
     debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
     ASSERT_NE(instrs, nullptr);
-    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs);
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs, NULL);
     ASSERT_NE(frames, nullptr);
 
     int32_t count = 0;
@@ -610,7 +610,7 @@ TEST_F (DebuggerTests, testUdoFramesDualCallSites)
             sawR = 1;
         }
     }
-    ASSERT_GE(count, 2);
+    ASSERT_EQ(count, 2);
     ASSERT_EQ(sawL, 1);
     ASSERT_EQ(sawR, 1);
     ASSERT_EQ(sawIndex0, 1);
@@ -644,7 +644,7 @@ TEST_F (DebuggerTests, testUdoFramesNestedDepth)
     csoundPerformKsmps(csound);
 
     debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
-    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs);
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs, NULL);
     ASSERT_NE(frames, nullptr);
 
     int32_t maxDepth = -1;
@@ -695,7 +695,7 @@ TEST_F (DebuggerTests, testUdoFramesSiblingAfterNestedCall)
 
     debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
     ASSERT_NE(instrs, nullptr);
-    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs);
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs, NULL);
     ASSERT_NE(frames, nullptr);
 
     int32_t frameCount = 0;
@@ -720,10 +720,65 @@ TEST_F (DebuggerTests, testUdoFramesSiblingAfterNestedCall)
             ASSERT_GE(f->depth, 1);
         }
     }
-    ASSERT_GE(frameCount, 3);
+    ASSERT_EQ(frameCount, 4);
     ASSERT_EQ(sawGainL, 1);
     ASSERT_EQ(sawGainR, 1);
     ASSERT_EQ(sawInner, 1);
+
+    csoundDebugFreeUdoFrames(csound, frames);
+    csoundDebugFreeInstrInstances(csound, instrs);
+}
+
+TEST_F (DebuggerTests, testUdoFramesDoubleInnerPerOuter)
+{
+    const char *orc =
+        "opcode inner, k, k\n"
+        "  kIn xin\n"
+        "  kOut = kIn * 2\n"
+        "  xout kOut\n"
+        "endop\n"
+        "opcode outer, k, k\n"
+        "  kIn xin\n"
+        "  kA inner kIn\n"
+        "  kB inner kIn + 1\n"
+        "  kOut = kA + kB\n"
+        "  xout kOut\n"
+        "endop\n"
+        "instr 1\n"
+        "  kA outer 0\n"
+        "  kB outer 10\n"
+        "endin\n";
+
+    csoundCompileOrc(csound, orc, 0);
+    csoundStart(csound);
+    csoundEventString(csound, "i 1 0 1", 0);
+    csoundPerformKsmps(csound);
+
+    debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
+    ASSERT_NE(instrs, nullptr);
+    int32_t truncated = -1;
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs,
+                                                          &truncated);
+    ASSERT_NE(frames, nullptr);
+    ASSERT_EQ(truncated, 0);
+
+    int32_t frameCount = 0;
+    int32_t outerCount = 0;
+    int32_t innerCount = 0;
+    for (debug_udo_frame_t *f = frames; f != NULL; f = f->next) {
+        frameCount++;
+        if (strcmp(f->udoName, "outer") == 0) {
+            outerCount++;
+            ASSERT_EQ(f->depth, 0);
+        }
+        if (strcmp(f->udoName, "inner") == 0) {
+            innerCount++;
+            ASSERT_EQ(f->depth, 1);
+        }
+    }
+    ASSERT_EQ(frameCount, 6);
+    ASSERT_EQ(outerCount, 2);
+    ASSERT_EQ(innerCount, 4);
 
     csoundDebugFreeUdoFrames(csound, frames);
     csoundDebugFreeInstrInstances(csound, instrs);
@@ -756,8 +811,11 @@ TEST_F (DebuggerTests, testUdoFramesRecursiveSelfCall)
 
     debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
     ASSERT_NE(instrs, nullptr);
-    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs);
+    int32_t truncated = -1;
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs,
+                                                          &truncated);
     ASSERT_NE(frames, nullptr);
+    ASSERT_EQ(truncated, 0);
 
     int32_t frameCount = 0;
     int32_t maxDepth = -1;

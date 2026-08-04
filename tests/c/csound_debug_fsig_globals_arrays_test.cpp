@@ -166,7 +166,7 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigInstrumentLocal)
     float buf[2 * (1024 / 2 + 1)];
     int32_t total = csoundDebugSerializeFsig(
         csound, fSig->data, buf,
-        (int32_t)(sizeof(buf) / sizeof(buf[0])), &info);
+        (int32_t)(sizeof(buf) / sizeof(buf[0])), &info, 0);
 
     ASSERT_EQ(info.N, 1024);
     ASSERT_EQ(info.NB, expectedNB);
@@ -211,7 +211,7 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigSlidingLocalKsmps)
 
     debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
     ASSERT_NE(instrs, nullptr);
-    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs);
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs, NULL);
     ASSERT_NE(frames, nullptr);
     ASSERT_STREQ(frames->udoName, "slidingAnal");
 
@@ -225,7 +225,7 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigSlidingLocalKsmps)
     float buf[2 * (512 / 2 + 1)];
     int32_t total = csoundDebugSerializeFsig(
         csound, fSig->data, buf,
-        (int32_t)(sizeof(buf) / sizeof(buf[0])), &info);
+        (int32_t)(sizeof(buf) / sizeof(buf[0])), &info, 1);
 
     ASSERT_EQ(info.sliding, 1);
     ASSERT_EQ(info.N, 512);
@@ -236,6 +236,68 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigSlidingLocalKsmps)
         ASSERT_FALSE(std::isnan(buf[i]));
         ASSERT_GE(buf[i], 0.0f);
     }
+
+    csoundDebugFreeUdoFrames(csound, frames);
+    csoundDebugFreeInstrInstances(csound, instrs);
+}
+
+TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigSlidingReuseAfterKsmpsChange)
+{
+    const char *orc =
+        "sr = 44100\n"
+        "ksmps = 32\n"
+        "nchnls = 1\n"
+        "0dbfs = 1\n"
+        "opcode slidingAnal, a, ai\n"
+        "  ain, iKsmps xin\n"
+        "  setksmps iKsmps\n"
+        "  fSig pvsanal ain, 512, 1, 512, 1\n"
+        "  aOut pvsynth fSig\n"
+        "  xout aOut\n"
+        "endop\n"
+        "instr 1\n"
+        "  aIn oscili 0.5, 440\n"
+        "  aTmp slidingAnal aIn, 32\n"
+        "  aOut slidingAnal aIn, 1\n"
+        "  out aOut\n"
+        "endin\n";
+    csoundCompileOrc(csound, orc, 0);
+    csoundStart(csound);
+    csoundEventString(csound, "i 1 0 4", 0);
+    for (int i = 0; i < 400; i++) {
+        csoundPerformKsmps(csound);
+    }
+
+    debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
+    ASSERT_NE(instrs, nullptr);
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs, NULL);
+    ASSERT_NE(frames, nullptr);
+    ASSERT_STREQ(frames->udoName, "slidingAnal");
+    ASSERT_EQ(frames->frameIndex, 0);
+
+    debug_variable_t *fSig = findVar(frames->varList, "fSig");
+    ASSERT_NE(fSig, nullptr);
+
+    const int32_t expectedNB = 512 / 2 + 1;
+    debug_fsig_info_t info;
+    float bufActive[2 * (512 / 2 + 1)];
+    float bufStale[2 * (512 / 2 + 1)];
+    int32_t total = csoundDebugSerializeFsig(
+        csound, fSig->data, bufActive,
+        (int32_t)(sizeof(bufActive) / sizeof(bufActive[0])), &info, 1);
+    ASSERT_EQ(info.sliding, 1);
+    ASSERT_EQ(total, 2 * expectedNB);
+    for (int32_t i = 0; i < total; i += 2) {
+        ASSERT_FALSE(std::isnan(bufActive[i]));
+        ASSERT_GE(bufActive[i], 0.0f);
+    }
+
+    /* Capacity sub-frames remain from the first call (ksmps=32). */
+    total = csoundDebugSerializeFsig(
+        csound, fSig->data, bufStale,
+        (int32_t)(sizeof(bufStale) / sizeof(bufStale[0])), &info, 32);
+    ASSERT_EQ(total, 2 * expectedNB);
+    ASSERT_NE(bufActive[0], bufStale[0]);
 
     csoundDebugFreeUdoFrames(csound, frames);
     csoundDebugFreeInstrInstances(csound, instrs);
@@ -263,7 +325,7 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigReportsSizeWithNullBuffer)
     ASSERT_NE(fSig, nullptr);
 
     /* NULL outBuf -> report total size without copying */
-    int32_t total = csoundDebugSerializeFsig(csound, fSig->data, NULL, 0, NULL);
+    int32_t total = csoundDebugSerializeFsig(csound, fSig->data, NULL, 0, NULL, 0);
     ASSERT_EQ(total, 2 * (1024 / 2 + 1));
 
     csoundDebugFreeVariables(csound, vars);
@@ -274,10 +336,10 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigNullSafe)
 {
     debug_fsig_info_t info;
     float buf[8];
-    ASSERT_EQ(csoundDebugSerializeFsig(csound, NULL, buf, 8, &info), 0);
+    ASSERT_EQ(csoundDebugSerializeFsig(csound, NULL, buf, 8, &info, 0), 0);
     ASSERT_EQ(info.NB, 0);
     /* NULL info pointer must also be tolerated */
-    ASSERT_EQ(csoundDebugSerializeFsig(csound, NULL, buf, 8, NULL), 0);
+    ASSERT_EQ(csoundDebugSerializeFsig(csound, NULL, buf, 8, NULL, 0), 0);
 }
 
 /* ----------------------------------------------------------------- arrays -- */

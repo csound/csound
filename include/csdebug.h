@@ -359,9 +359,14 @@ PUBLIC void csoundDebugFreeVariables(CSOUND *csound,
  *
  * csoundDebugFreeUdoFrames() must be called when the list is no longer needed.
  * Not thread-safe; call from the k-cycle callback or between k-cycles.
+ *
+ * truncatedOut (may be NULL) is set to 1 when the walk could not enumerate all
+ * active UDO frames (e.g. allocation failure or depth safety limit). When
+ * non-zero, the returned list may be incomplete.
  */
 PUBLIC debug_udo_frame_t *csoundDebugGetUdoFrames(CSOUND *csound,
-                                                  debug_instr_t *instr);
+                                                  debug_instr_t *instr,
+                                                  int32_t *truncatedOut);
 
 /** Free list from csoundDebugGetUdoFrames() */
 PUBLIC void csoundDebugFreeUdoFrames(CSOUND *csound,
@@ -394,7 +399,11 @@ PUBLIC debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound);
  * analysis frame is written to outBuf as 2*NB interleaved float32 values
  * (amp0, freq0, amp1, freq1, ...), regardless of whether the source frame is
  * float32 (normal) or MYFLT (sliding). For sliding analysis the most recent
- * sub-frame in the ksmps block is used.
+ * active sub-frame in the current ksmps block is used.
+ *
+ * localKsmps is the producer's current local ksmps (e.g. from a UDO frame's
+ * ksmps variable when serializing an instrument-local f-signal). Pass 0 to
+ * use csound->ksmps (top-level instrument or global scope).
  *
  * infoOut (may be NULL) receives the frame metadata.
  *
@@ -405,7 +414,8 @@ PUBLIC debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound);
  */
 PUBLIC int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
                                         float *outBuf, int32_t bufMax,
-                                        debug_fsig_info_t *infoOut);
+                                        debug_fsig_info_t *infoOut,
+                                        int32_t localKsmps);
 
 /** Serialize a numeric array (ARRAYDAT) into a flat MYFLT buffer
  *

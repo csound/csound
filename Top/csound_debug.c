@@ -417,12 +417,13 @@ debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound)
 }
 
 static UOPCODE *csoundDebugUdoFindSavedSibling(UOPCODE *nestedHead,
-                                               INSDS *sibling_parent)
+                                               INSDS *sibling_parent,
+                                               int32_t *truncatedOut)
 {
     INSDS *ip;
     UOPCODE *candidate;
     int32_t depth;
-    enum { maxDepth = 64 };
+    enum { maxDepth = 4096 };
 
     if (nestedHead == NULL || sibling_parent == NULL) {
         return NULL;
@@ -440,12 +441,17 @@ static UOPCODE *csoundDebugUdoFindSavedSibling(UOPCODE *nestedHead,
             ip = candidate->ip;
             continue;
         }
-        return NULL;
+        /* Advance along nested saved-sibling chains instead of aborting. */
+        ip = candidate->ip;
+    }
+    if (truncatedOut != NULL) {
+        *truncatedOut = 1;
     }
     return NULL;
 }
 
-static UOPCODE *csoundDebugUdoChainNext(UOPCODE *p, INSDS *parent_ip)
+static UOPCODE *csoundDebugUdoChainNext(UOPCODE *p, INSDS *parent_ip,
+                                        int32_t *truncatedOut)
 {
     UOPCODE *next;
     if (p == NULL || p->ip == NULL || parent_ip == NULL) {
@@ -462,9 +468,40 @@ static UOPCODE *csoundDebugUdoChainNext(UOPCODE *p, INSDS *parent_ip)
         return next;
     }
     if (next->parent_ip == p->ip) {
-        return csoundDebugUdoFindSavedSibling(next, parent_ip);
+        return csoundDebugUdoFindSavedSibling(next, parent_ip, truncatedOut);
     }
     return NULL;
+}
+
+static int32_t csoundDebugVisitedEnsureCapacity(CSOUND *csound,
+                                                UOPCODE ***visited,
+                                                int32_t *visitedCapacity,
+                                                int32_t visitedCount,
+                                                int32_t *truncatedOut)
+{
+    UOPCODE **newVisited;
+    int32_t newCapacity;
+    size_t bytes;
+
+    if (visitedCount < *visitedCapacity) {
+        return 1;
+    }
+    newCapacity = (*visitedCapacity > 0) ? (*visitedCapacity * 2) : 64;
+    bytes = (size_t) newCapacity * sizeof(UOPCODE *);
+    newVisited = (UOPCODE **) csound->Malloc(csound, bytes);
+    if (newVisited == NULL) {
+        if (truncatedOut != NULL) {
+            *truncatedOut = 1;
+        }
+        return 0;
+    }
+    if (*visited != NULL && visitedCount > 0) {
+        memcpy(newVisited, *visited, (size_t) visitedCount * sizeof(UOPCODE *));
+        csound->Free(csound, *visited);
+    }
+    *visited = newVisited;
+    *visitedCapacity = newCapacity;
+    return 1;
 }
 
 static int csoundDebugUopcodeVisited(UOPCODE *p, UOPCODE **visited,
@@ -527,15 +564,16 @@ static void csoundDebugCollectUdoFrames(
     int32_t depth,
     debug_udo_frame_t **head,
     debug_udo_frame_t **tail,
-    UOPCODE **visited,
-    int32_t *visitedCount)
+    UOPCODE ***visited,
+    int32_t *visitedCount,
+    int32_t *visitedCapacity,
+    int32_t *truncatedOut)
 {
     UOPCODE *p;
     int32_t siblingIndex = 0;
-    enum { maxVisited = 256 };
 
     for (p = (UOPCODE *)ip->opcod_deact; p != NULL;
-         p = csoundDebugUdoChainNext(p, ip)) {
+         p = csoundDebugUdoChainNext(p, ip, truncatedOut)) {
         INSDS *udo_ip = p->ip;
         if (udo_ip == NULL) {
             continue;
@@ -548,34 +586,45 @@ static void csoundDebugCollectUdoFrames(
         if (!ATOMIC_GET(udo_ip->init_done)) {
             continue;
         }
-        if (csoundDebugUopcodeVisited(p, visited, *visitedCount)) {
+        if (csoundDebugUopcodeVisited(p, *visited, *visitedCount)) {
             continue;
         }
-        if (*visitedCount >= maxVisited) {
-            continue;
+        if (!csoundDebugVisitedEnsureCapacity(csound, visited, visitedCapacity,
+                                              *visitedCount, truncatedOut)) {
+            return;
         }
-        visited[(*visitedCount)++] = p;
+        (*visited)[(*visitedCount)++] = p;
         csoundDebugAppendUdoFrame(csound, head, tail, p, udo_ip, depth,
                                   siblingIndex++);
         csoundDebugCollectUdoFrames(csound, udo_ip, depth + 1, head, tail,
-                                    visited, visitedCount);
+                                    visited, visitedCount, visitedCapacity,
+                                    truncatedOut);
     }
 }
 
 debug_udo_frame_t *csoundDebugGetUdoFrames(CSOUND *csound,
-                                           debug_instr_t *instr)
+                                           debug_instr_t *instr,
+                                           int32_t *truncatedOut)
 {
     debug_udo_frame_t *head = NULL;
     debug_udo_frame_t *tail = NULL;
     int32_t visitedCount = 0;
-    UOPCODE *visited[256];
+    int32_t visitedCapacity = 0;
+    UOPCODE **visited = NULL;
     INSDS *ip;
+
+    if (truncatedOut != NULL) {
+        *truncatedOut = 0;
+    }
     if (instr == NULL || instr->instrptr == NULL) {
         return NULL;
     }
     ip = (INSDS *)instr->instrptr;
-    csoundDebugCollectUdoFrames(csound, ip, 0, &head, &tail, visited,
-                                  &visitedCount);
+    csoundDebugCollectUdoFrames(csound, ip, 0, &head, &tail, &visited,
+                                &visitedCount, &visitedCapacity, truncatedOut);
+    if (visited != NULL) {
+        csound->Free(csound, visited);
+    }
     return head;
 }
 
@@ -603,10 +652,11 @@ void csoundDebugFreeUdoFrames(CSOUND *csound, debug_udo_frame_t *frameHead)
 
 int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
                                  float *outBuf, int32_t bufMax,
-                                 debug_fsig_info_t *infoOut)
+                                 debug_fsig_info_t *infoOut,
+                                 int32_t localKsmps)
 {
     PVSDAT *fsig = (PVSDAT *) varData;
-    int32_t NB, total, n, i;
+    int32_t NB, total, n, i, activeKsmps;
 
     if (infoOut != NULL) {
         memset(infoOut, 0, sizeof(debug_fsig_info_t));
@@ -646,11 +696,11 @@ int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
     n = (total < bufMax) ? total : bufMax;
 
     if (fsig->sliding) {
-        /* Sliding analysis: frame.auxp is CMPLX[local_ksmps * NB]. Use the
-           most recent sub-frame. Sub-frame count comes from the allocated
-           buffer size (local CS_KSMPS at init), not global csound->ksmps. */
+        /* Sliding analysis: frame.auxp is CMPLX[capacity * NB]. Use the most
+           recent active sub-frame. Capacity may exceed the producer's current
+           local ksmps when a UDO instance is reused after setksmps. */
         size_t stride = (size_t) NB * sizeof(CMPLX);
-        uint32_t subframes;
+        uint32_t capacitySubframes, activeSubframes;
         CMPLX *base;
         if (stride == 0 || fsig->frame.size < stride) {
             if (infoOut != NULL) {
@@ -658,11 +708,20 @@ int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
             }
             return 0;
         }
-        subframes = (uint32_t)(fsig->frame.size / stride);
-        if (subframes < 1) {
-            subframes = 1;
+        activeKsmps = (localKsmps > 0) ? localKsmps : csound->ksmps;
+        capacitySubframes = (uint32_t)(fsig->frame.size / stride);
+        if (capacitySubframes < 1) {
+            capacitySubframes = 1;
         }
-        base = ((CMPLX *) fsig->frame.auxp) + (size_t) NB * (subframes - 1);
+        activeSubframes = (uint32_t) activeKsmps;
+        if (activeSubframes > capacitySubframes) {
+            activeSubframes = capacitySubframes;
+        }
+        if (activeSubframes < 1) {
+            activeSubframes = 1;
+        }
+        base = ((CMPLX *) fsig->frame.auxp)
+            + (size_t) NB * (activeSubframes - 1);
         for (i = 0; i < n; i++) {
             int32_t bin = i >> 1;
             outBuf[i] = (i & 1) ? (float) base[bin].im : (float) base[bin].re;
