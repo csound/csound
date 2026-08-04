@@ -1318,7 +1318,8 @@ struct CSOUND_ {
   void *(*FileOpen)(CSOUND *, void *, int32_t, const char *, void *,
                     const char *, int32_t, int32_t); /* Rename FileOpen */
   void (*NotifyFileOpened)(CSOUND *, const char *, int32_t, int32_t, int32_t);
-  int32_t (*FileClose)(CSOUND *, void *);
+  /* closeFlags is CSFILE_CLOSE_SYNC or CSFILE_CLOSE_DEFER. */
+  int32_t (*FileClose)(CSOUND *, void *, uint32_t closeFlags);
   const char *(*FileError)(CSOUND *, void *);
   void *(*FileOpenAsync)(CSOUND *, void *, int32_t, const char *, void *,
                          const char *, int32_t, int32_t, int32_t);
@@ -1493,11 +1494,10 @@ struct CSOUND_ {
       To allow the API to grow while maintining backward binary compatibility.
    */
   /**@{ */
-  /* These consume former placeholders; the 50-pointer reserve keeps the
+  /* This consumes one former placeholder; the 50-pointer reserve keeps the
      offsets of private CSOUND fields unchanged. */
   int32_t (*ArrayPrepareWrite)(CSOUND *, ARRAYDAT *, INSDS *, int32_t);
-  void (*FileRetire)(CSOUND *, void *);
-  SUBR dummyfn_2[48];
+  SUBR dummyfn_2[49];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */

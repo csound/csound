@@ -451,10 +451,9 @@ int32_t PS_ExitGraph(CSOUND *csound)
       fprintf(pp->psFile, "%%%%Trailer \n");
       fprintf(pp->psFile, "%%%%Pages: %d  \n", pp->currentPage);
       fprintf(pp->psFile, "%%%%EOF\n");
-      csound->FileClose(csound, pp->psfd);
+      csound->FileClose(csound, pp->psfd, CSFILE_CLOSE_SYNC);
       csound->winEPS_globals = NULL;
       csound->Free(csound, (void *) pp);
     }
     return 0;
 }
-

@@ -109,7 +109,7 @@ static int32_t SoundFontLoad(CSOUND *csound, char *fname)
     //soundFont->name[255]='\0';
     if (UNLIKELY(chunk_read(csound, fil, &soundFont->chunk.main_chunk)<0))
       csound->Message(csound, "%s", Str("sfont: failed to read file\n"));
-    csound->FileClose(csound, fd);
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     globals->soundFont = soundFont;
     fill_SfPointers(csound);
     fill_SfStruct(csound);

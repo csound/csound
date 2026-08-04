@@ -234,6 +234,6 @@ void csoundCloseMidiOutFile(CSOUND *csound)
     fputc((int32_t)(p->nBytes) & 0xFF, p->f);
     /* close file and clean up */
     csound->midiGlobals->midiOutFileData = NULL;
-    csound->FileClose(csound, p->fd);
+    csound->FileClose(csound, p->fd, CSFILE_CLOSE_SYNC);
     csound->Free(csound, p);
 }

@@ -607,13 +607,12 @@ static const CSOUND cenviron_ = {
     csoundSscanf,  // csoundSscanf
     csoundDeprecate,
     csound_array_prepare_write_impl,
-    csoundFileRetire,
-    /* space for API expansion: 48 slots */
+    /* space for API expansion: 49 slots */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
   (SUBR) NULL,    /*  first_callback_     */

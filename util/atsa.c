@@ -547,7 +547,7 @@ static int32_t main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
       return -2;
     }
     /* close output file */
-    csound->FileClose(csound, fd);
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     /* free ATS_SOUND memory */
     free_sound(csound, sound);
     return 0;
@@ -1884,7 +1884,7 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
     csound->Free(csound, in_buff);
     csound->Free(csound, synth_buff);
     /* update header and close output file */
-    csound->FileClose(csound, fd);
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     csound->Free(csound, obuf[0]);
     csound->Free(csound, obuf[1]);
     csound->Free(csound, obuf);
@@ -2849,4 +2849,3 @@ int32_t atsa_init_(CSOUND *csound)
     }
     return retval;
 }
-

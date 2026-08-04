@@ -342,7 +342,7 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
       *p->r1 = (MYFLT)(peakVal * (double)csound->e0dbfs);
     else
       *p->r1 = (MYFLT)peakVal;
-    csound->FileClose(csound, fd);
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
 
     return OK;
 }

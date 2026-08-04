@@ -2745,7 +2745,7 @@ int32_t soundout_deinit(CSOUND *csound, void *pp)
         q->outbufp = (MYFLT*) &(q->outbuf[0]);
       }
       /* close file */
-      csound->FileClose(csound, q->fd);
+      csound->FileClose(csound, q->fd, CSFILE_CLOSE_SYNC);
       q->sf = (SNDFILE*) NULL;
       q->fd = NULL;
     }

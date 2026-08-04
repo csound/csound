@@ -67,7 +67,7 @@ int32_t mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int32_t nogap
       return MP3DEC_RETCODE_INVALID_PARAMETERS;
     }
     if (mp3->flags & MP3DEC_FLAG_INITIALIZED) 
-      mp3->csound->FileClose(mp3->csound, mp3->fd);
+      mp3->csound->FileClose(mp3->csound, mp3->fd, CSFILE_CLOSE_SYNC);
     mp3->f = f;
     mp3->flags = MP3DEC_FLAG_SEEKABLE;
     mp3->stream_offset = mp3->stream_size = mp3->stream_position = 0;
@@ -207,7 +207,7 @@ int32_t mp3dec_uninit(mp3dec_t mp3dec)
     if (!mp3 || (mp3->size != sizeof(struct mp3dec_t)) || !mp3->mpadec)
       return MP3DEC_RETCODE_INVALID_HANDLE;
     if (mp3->flags & MP3DEC_FLAG_INITIALIZED)
-      mp3->csound->FileClose(mp3->csound, mp3->fd);
+      mp3->csound->FileClose(mp3->csound, mp3->fd, CSFILE_CLOSE_SYNC);
     mp3->f = NULL;
     mp3->flags = 0;
     mpadec_uninit(mp3->mpadec);
@@ -223,7 +223,7 @@ int32_t mp3dec_reset(mp3dec_t mp3dec)
     if (!mp3 || (mp3->size != sizeof(struct mp3dec_t)) || !mp3->mpadec)
       return MP3DEC_RETCODE_INVALID_HANDLE;
     if (mp3->flags & MP3DEC_FLAG_INITIALIZED)
-      mp3->csound->FileClose(mp3->csound, mp3->fd);
+      mp3->csound->FileClose(mp3->csound, mp3->fd, CSFILE_CLOSE_SYNC);
     mp3->f = NULL;
     mp3->flags = 0;
     mpadec_reset(mp3->mpadec);

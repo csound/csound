@@ -60,10 +60,9 @@ static CS_NOINLINE int32_t fout_deinit(CSOUND *csound, FOUT_FILE *p)
             if (((csound->GetOParms(csound))->msglevel & 7) == 7)
               csound->Message(csound, Str("Closing file '%s'...\n"),
                               csound->GetFileName(pp->fd));
-            /* Do not wait for the asynchronous file worker from a realtime
-               deinit pass. Synchronous files have no worker borrow and are
-               still closed immediately by FileRetire(). */
-            csound->FileRetire(csound, pp->fd);
+            /* Do not wait for asynchronous file-worker borrowers from a
+               realtime deinit pass. Unborrowed files still close here. */
+            csound->FileClose(csound, pp->fd, CSFILE_CLOSE_DEFER);
             pp->fd = NULL;
           }
         }

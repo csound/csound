@@ -999,10 +999,7 @@ char *csoundGetFileName(void *fd)
     return &(((CSFILE*) fd)->fullName[0]);
 }
 
-/**
- * Close a file previously opened with csoundFileOpen().
- */
-
+/* Close and release an unlinked file that has no outstanding worker borrow. */
 static int32_t close_file_now(CSOUND *csound, CSFILE *p)
 {
     int32_t     retval = -1;
@@ -1107,9 +1104,27 @@ static int32_t claim_retired_file_for_close(CSOUND *csound, CSFILE *file)
     return claimed;
 }
 
-int32_t csoundFileClose(CSOUND *csound, void *fd)
+/**
+ * Close a file previously opened with csoundFileOpen(). Synchronous mode
+ * waits for current file-worker borrowers and returns the underlying close
+ * result. Deferred mode transfers ownership without waiting; it returns
+ * CSOUND_SUCCESS once accepted and cannot report a later close error.
+ */
+int32_t csoundFileClose(CSOUND *csound, void *fd, uint32_t closeFlags)
 {
     CSFILE *p = (CSFILE *) fd;
+
+    if (UNLIKELY(closeFlags & ~CSFILE_CLOSE_DEFER)) {
+      csoundErrorMsg(csound, Str("csoundFileClose: invalid close flags: %u"),
+                     closeFlags);
+      return CSOUND_ERROR;
+    }
+
+    if (closeFlags & CSFILE_CLOSE_DEFER) {
+      if (!unlink_open_file(csound, p, 0))
+        (void) close_file_now(csound, p);
+      return CSOUND_SUCCESS;
+    }
 
     if (unlink_open_file(csound, p, 1)) {
       while (!claim_retired_file_for_close(csound, p))
@@ -1117,14 +1132,6 @@ int32_t csoundFileClose(CSOUND *csound, void *fd)
     }
 
     return close_file_now(csound, p);
-}
-
-void csoundFileRetire(CSOUND *csound, void *fd)
-{
-    CSFILE *p = (CSFILE *) fd;
-
-    if (!unlink_open_file(csound, p, 0))
-      close_file_now(csound, p);
 }
 
 /* Close all open files; called by csoundReset(). */
@@ -1143,7 +1150,7 @@ void close_all_files(CSOUND *csound)
       csoundSpinUnLock(&csound->open_files_lock);
       if (file == NULL)
         break;
-      csoundFileClose(csound, file);
+      csoundFileClose(csound, file, CSFILE_CLOSE_SYNC);
     }
     if (csound->file_io_thread != NULL) {
 #ifndef __EMSCRIPTEN__
@@ -1287,7 +1294,7 @@ void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
       csoundSpinLock(&csound->open_files_lock);
       p->async_flag = FILE_ASYNC_NONE;
       csoundSpinUnLock(&csound->open_files_lock);
-      csoundFileRetire(csound, p);
+      csoundFileClose(csound, p, CSFILE_CLOSE_DEFER);
       finish_async_file_setup(csound, p);
       return NULL;
     }
@@ -1308,8 +1315,8 @@ void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
     csound->NotifyThreadLock(csound->file_io_threadlock);
 
     if (cancelled) {
-      /* Retire without waiting for the setup reader below. */
-      csoundFileRetire(csound, (void *) p);
+      /* Defer close without waiting for the setup reader below. */
+      csoundFileClose(csound, (void *) p, CSFILE_CLOSE_DEFER);
       finish_async_file_setup(csound, p);
       return NULL;
     }

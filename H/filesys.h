@@ -176,13 +176,20 @@ extern "C" {
   char *csoundGetFileName(void *fd);
 
   /**
-   * Close a file previously opened with csoundFileOpen().
+   * Close a file previously opened with csoundFileOpen(). After a successful
+   * call, the handle must not be used again, regardless of the selected mode.
+   *
+   * CSFILE_CLOSE_SYNC removes the handle, waits for active asynchronous file
+   * worker borrowers, closes the underlying file, and returns its close
+   * result.
+   *
+   * CSFILE_CLOSE_DEFER removes the handle without waiting for active worker
+   * borrowers. If borrowed, the worker closes it after the final borrow. If
+   * unborrowed, it is closed immediately on the calling thread. The return
+   * value reports that ownership was accepted; an eventual close error cannot
+   * be reported to the caller.
    */
-  int32_t csoundFileClose(CSOUND *, void *fd);
-
-  /** Remove a file from the open-file list without waiting for current async
-   * readers. The worker closes it after the last reader leaves. */
-  void csoundFileRetire(CSOUND *, void *fd);
+  int32_t csoundFileClose(CSOUND *, void *fd, uint32_t closeFlags);
 
   /** Given a file name as string, return full path of directory of file;
    * Note: does not check if file exists

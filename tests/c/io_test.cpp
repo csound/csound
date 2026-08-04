@@ -206,11 +206,11 @@ TEST_F (IOTests, testSynchronousCloseWhileAsyncWorkerRuns)
       return empty;
     };
 
-    ASSERT_EQ(csoundFileClose(csound, syncHandle), 0);
+    ASSERT_EQ(csoundFileClose(csound, syncHandle, CSFILE_CLOSE_SYNC), 0);
     EXPECT_TRUE(retiredFilesEmpty());
     EXPECT_EQ(remove(syncPath.c_str()), 0);
 
-    ASSERT_EQ(csoundFileClose(csound, asyncHandle), 0);
+    ASSERT_EQ(csoundFileClose(csound, asyncHandle, CSFILE_CLOSE_SYNC), 0);
     EXPECT_TRUE(retiredFilesEmpty());
     EXPECT_EQ(remove(asyncPath.c_str()), 0);
 }
@@ -234,9 +234,64 @@ TEST_F (IOTests, testSynchronousCloseReportsBorrowedFileError)
       csoundSpinUnLock(&csound->open_files_lock);
     });
 
-    EXPECT_EQ(csoundFileClose(csound, handle), -1);
+    EXPECT_EQ(csoundFileClose(csound, handle, CSFILE_CLOSE_SYNC), -1);
     reader.join();
     EXPECT_EQ(csound->retired_files, nullptr);
+}
+
+TEST_F (IOTests, testDeferredCloseDoesNotWaitForBorrowedFile)
+{
+    std::string path = ::testing::TempDir() + "csound_deferred_" +
+                       std::to_string(reinterpret_cast<uintptr_t>(csound)) +
+                       ".tmp";
+    FILE *stream = nullptr;
+
+    remove(path.c_str());
+    void *handle = csoundFileOpenAsync(
+        csound, &stream, CSFILE_STD, path.c_str(), (void *) "w+", nullptr,
+        CSFTYPE_OTHER_TEXT, 64, 0);
+    ASSERT_NE(handle, nullptr);
+    auto *file = static_cast<CSFILE *>(handle);
+
+    csoundSpinLock(&csound->open_files_lock);
+    file->io_readers++;
+    csoundSpinUnLock(&csound->open_files_lock);
+
+    EXPECT_EQ(csoundFileClose(csound, handle, CSFILE_CLOSE_DEFER),
+              CSOUND_SUCCESS);
+    csoundSpinLock(&csound->open_files_lock);
+    EXPECT_TRUE(file->retired);
+    file->io_readers--;
+    csoundSpinUnLock(&csound->open_files_lock);
+
+    bool retiredFilesEmpty = false;
+    for (int32_t i = 0; i < 100 && !retiredFilesEmpty; ++i) {
+      csoundSpinLock(&csound->open_files_lock);
+      retiredFilesEmpty = csound->retired_files == nullptr;
+      csoundSpinUnLock(&csound->open_files_lock);
+      if (!retiredFilesEmpty)
+        csoundSleep(1);
+    }
+    EXPECT_TRUE(retiredFilesEmpty);
+    EXPECT_EQ(remove(path.c_str()), 0);
+}
+
+TEST_F (IOTests, testFileCloseRejectsUnknownFlags)
+{
+    std::string path = ::testing::TempDir() + "csound_close_flags_" +
+                       std::to_string(reinterpret_cast<uintptr_t>(csound)) +
+                       ".tmp";
+    FILE *stream = nullptr;
+
+    remove(path.c_str());
+    void *handle = csoundFileOpen(
+        csound, &stream, CSFILE_STD, path.c_str(), (void *) "w+", nullptr,
+        CSFTYPE_OTHER_TEXT, 0);
+    ASSERT_NE(handle, nullptr);
+
+    EXPECT_EQ(csoundFileClose(csound, handle, 1U << 8), CSOUND_ERROR);
+    EXPECT_EQ(csoundFileClose(csound, handle, CSFILE_CLOSE_SYNC), 0);
+    EXPECT_EQ(remove(path.c_str()), 0);
 }
 
 TEST_F (IOTests, testRealtimeFoutTurnoffDoesNotWaitForBorrowedFile)
