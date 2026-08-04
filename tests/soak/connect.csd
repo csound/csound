@@ -16,17 +16,17 @@ nchnls = 2
 
 ; Connect up the instruments to create a signal flow graph.
 
-connect "SimpleSine",   "leftout",     "Reverberator",     	"leftin"
-connect "SimpleSine",   "rightout",    "Reverberator",     	"rightin"
+connect "SimpleSine",   "leftout",     "Reverberator",     	"leftin", 1
+connect "SimpleSine",   "rightout",    "Reverberator",     	"rightin", 1
 
-connect "Moogy",        "leftout",     "Reverberator",     	"leftin"
-connect "Moogy",        "rightout",    "Reverberator",     	"rightin"
+connect "Moogy",        "leftout",     "Reverberator",     	"leftin", 1
+connect "Moogy",        "rightout",    "Reverberator",     	"rightin", 1
 
-connect "Reverberator", "leftout",     "Compressor",       	"leftin"
-connect "Reverberator", "rightout",    "Compressor",       	"rightin"
+connect "Reverberator", "leftout",     "Compressor",       	"leftin", 1
+connect "Reverberator", "rightout",    "Compressor",       	"rightin", 1
 
-connect "Compressor",   "leftout",     "Soundfile",       	"leftin"
-connect "Compressor",   "rightout",    "Soundfile",       	"rightin"
+connect "Compressor",   "leftout",     "Soundfile",       	"leftin", 1
+connect "Compressor",   "rightout",    "Soundfile",       	"rightin", 1
 
 ; Turn on the "effect" units in the signal flow graph.
 
