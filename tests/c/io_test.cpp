@@ -16,6 +16,21 @@ static int32_t failSndfileClose(CSOUND *, void *)
     return -1;
 }
 
+static int32_t removeAfterDeferredClose(const std::string &path)
+{
+    int32_t result = -1;
+
+    /* Retired files are detached from the registry before the worker closes
+       them. POSIX permits removing an open file, but Windows requires waiting
+       for that final close to finish. */
+    for (int32_t i = 0; i < 1000 && result != 0; ++i) {
+      result = remove(path.c_str());
+      if (result != 0)
+        csoundSleep(1);
+    }
+    return result;
+}
+
 
 class IOTests : public ::testing::Test {
 public:
@@ -273,7 +288,7 @@ TEST_F (IOTests, testDeferredCloseDoesNotWaitForBorrowedFile)
         csoundSleep(1);
     }
     EXPECT_TRUE(retiredFilesEmpty);
-    EXPECT_EQ(remove(path.c_str()), 0);
+    EXPECT_EQ(removeAfterDeferredClose(path), 0);
 }
 
 TEST_F (IOTests, testFileCloseRejectsUnknownFlags)
@@ -356,7 +371,7 @@ TEST_F (IOTests, testRealtimeFoutTurnoffDoesNotWaitForBorrowedFile)
         csoundSleep(1);
     }
     EXPECT_TRUE(retiredFilesEmpty);
-    EXPECT_EQ(remove(path.c_str()), 0);
+    EXPECT_EQ(removeAfterDeferredClose(path), 0);
 }
 
 TEST_F (IOTests, testReadline)
