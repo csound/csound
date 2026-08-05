@@ -1076,15 +1076,16 @@ static int32_t chnget_opcode_perf_a(CSOUND* csound, CHNGET* p)
 
   if (CS_KSMPS ==(uint32_t) csound->ksmps){
     csoundSpinLock(p->lock);
-    if (UNLIKELY(offset)) memset(p->arg, '\0', offset);
-    memcpy(&p->arg[offset], p->fp, sizeof(MYFLT)*(CS_KSMPS-offset-early));
+    if (UNLIKELY(offset)) memset(p->arg, '\0', sizeof(MYFLT)*offset);
+    memcpy(&p->arg[offset], &p->fp[offset],
+           sizeof(MYFLT)*(CS_KSMPS-offset-early));
     if (UNLIKELY(early))
       memset(&p->arg[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
     csoundSpinUnLock(p->lock);
   }
   else {
     csoundSpinLock(p->lock);
-    if (UNLIKELY(offset)) memset(p->arg, '\0', offset);
+    if (UNLIKELY(offset)) memset(p->arg, '\0', sizeof(MYFLT)*offset);
     memcpy(&p->arg[offset], &(p->fp[offset+p->pos]),
            sizeof(MYFLT)*(CS_KSMPS-offset-early));
     if (UNLIKELY(early))
@@ -1330,7 +1331,7 @@ static int32_t chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
     memcpy(&p->fp[offset], &p->arg[offset],
            sizeof(MYFLT)*(CS_KSMPS-offset-early));
     if (UNLIKELY(early))
-      memset(&p->fp[early], '\0', sizeof(MYFLT)*(CS_KSMPS-early));
+      memset(&p->fp[CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
     csoundSpinUnLock(p->lock);
   } else {
     /* Need lock for the channel */
@@ -1339,7 +1340,7 @@ static int32_t chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
     memcpy(&p->fp[offset+p->pos], &p->arg[offset],
            sizeof(MYFLT)*(CS_KSMPS-offset-early));
     if (UNLIKELY(early))
-      memset(&p->fp[early], '\0', sizeof(MYFLT)*(CS_KSMPS-early));
+      memset(&p->fp[p->pos+CS_KSMPS-early], '\0', sizeof(MYFLT)*early);
     p->pos += CS_KSMPS;
     p->pos %= (csound->ksmps-offset);
     csoundSpinUnLock(p->lock);
@@ -1840,6 +1841,7 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
   else
     p->h.perf = (SUBR) chnget_array_opcode_perf_S;
 
+  p->pos = 0;
   return OK;
 }
 
@@ -1886,35 +1888,38 @@ int32_t chnget_array_opcode_perf_a(CSOUND *csound, CHNGETARRAY *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
 
   int32_t index = 0;
-  int32_t blockIndex = 0;
-  MYFLT* outPtr;
   for (index = 0; index<p->arraySize; index++) {
-    blockIndex = csound->ksmps*index;
+    size_t blockIndex = (size_t) CS_KSMPS * (size_t) index;
+    MYFLT *outPtr = &p->arrayDat->data[blockIndex];
 
     if (CS_KSMPS == (uint32_t) csound->ksmps) {
       csoundSpinLock(p->lock);
       if (UNLIKELY(offset))
-        memset(&p->arrayDat->data[blockIndex], '\0', offset);
-      memcpy(&p->arrayDat->data[blockIndex+offset],
-             p->channelPtrs[index],
+        memset(outPtr, '\0', sizeof(MYFLT) * offset);
+      memcpy(&outPtr[offset],
+             &p->channelPtrs[index][offset],
              sizeof(MYFLT) * (CS_KSMPS - offset - early));
       if (UNLIKELY(early))
-        memset(&p->arrayDat->data[blockIndex+CS_KSMPS - early],
+        memset(&outPtr[CS_KSMPS - early],
                '\0', sizeof(MYFLT) * early);
       csoundSpinUnLock(p->lock);
     } else {
       csoundSpinLock(p->lock);
-      if (UNLIKELY(offset)) memset(&outPtr, '\0', offset);
-      memcpy(&p->arrayDat->data[blockIndex+offset],
+      if (UNLIKELY(offset))
+        memset(outPtr, '\0', sizeof(MYFLT) * offset);
+      memcpy(&outPtr[offset],
              &(p->channelPtrs[index][offset + p->pos]),
              sizeof(MYFLT) * (CS_KSMPS - offset - early));
       if (UNLIKELY(early))
-        memset(&p->arrayDat->data[blockIndex+CS_KSMPS - early],
+        memset(&outPtr[CS_KSMPS - early],
                '\0', sizeof(MYFLT) * early);
-      p->pos += CS_KSMPS;
-      p->pos %= (csound->ksmps - offset);
       csoundSpinUnLock(p->lock);
     }
+  }
+
+  if (CS_KSMPS != (uint32_t) csound->ksmps) {
+    p->pos += CS_KSMPS;
+    p->pos %= (csound->ksmps - offset);
   }
 
   return OK;
@@ -2054,6 +2059,7 @@ int32_t chnset_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
   else
     p->h.perf = (SUBR) chnset_array_opcode_perf_S;
 
+  p->pos = 0;
   return OK;
 }
 
@@ -2114,20 +2120,24 @@ int32_t chnset_array_opcode_perf_a(CSOUND *csound, CHNGETARRAY *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   ARRAYDAT* valueArr = (ARRAYDAT*) p->arrayDat;
   int32_t index = 0;
-  int32_t blockIndex = 0;
 
   for (index = 0; index<p->arraySize; index++) {
+    /* the source array's members are CS_KSMPS samples long, so stride
+       by the instrument's ksmps in both branches; the old code left
+       blockIndex stale in the local-ksmps branch */
+    size_t blockIndex = (size_t) CS_KSMPS * (size_t) index;
+    MYFLT *inPtr = &valueArr->data[blockIndex];
+
     if(CS_KSMPS == (uint32_t) csound->ksmps){
-      blockIndex = csound->ksmps*index;
       /* Need lock for the channel */
       csoundSpinLock(p->lock);
       if (UNLIKELY(offset)) memset(p->channelPtrs[index],
                                    '\0', sizeof(MYFLT)*offset);
-      memcpy(&p->channelPtrs[index][offset], &valueArr->data[blockIndex+offset],
+      memcpy(&p->channelPtrs[index][offset], &inPtr[offset],
              sizeof(MYFLT)*(CS_KSMPS-offset-early));
       if (UNLIKELY(early))
-        memset(&p->channelPtrs[index][early],
-               '\0', sizeof(MYFLT)*(CS_KSMPS-early));
+        memset(&p->channelPtrs[index][CS_KSMPS-early],
+               '\0', sizeof(MYFLT)*early);
       csoundSpinUnLock(p->lock);
     } else {
       /* Need lock for the channel */
@@ -2135,15 +2145,20 @@ int32_t chnset_array_opcode_perf_a(CSOUND *csound, CHNGETARRAY *p)
       if (UNLIKELY(offset)) memset(p->channelPtrs[index],
                                    '\0', sizeof(MYFLT)*offset);
       memcpy(&p->channelPtrs[index][offset+p->pos],
-             &valueArr->data[blockIndex+offset],
+             &inPtr[offset],
              sizeof(MYFLT)*(CS_KSMPS-offset-early));
       if (UNLIKELY(early))
-        memset(&p->channelPtrs[index][early],
-               '\0', sizeof(MYFLT)*(CS_KSMPS-early));
-      p->pos += CS_KSMPS;
-      p->pos %= (csound->ksmps-offset);
+        memset(&p->channelPtrs[index][p->pos+CS_KSMPS-early],
+               '\0', sizeof(MYFLT)*early);
       csoundSpinUnLock(p->lock);
     }
+  }
+
+  /* the position walks the channel's global-ksmps block once per
+     cycle, not once per array member */
+  if (CS_KSMPS != (uint32_t) csound->ksmps) {
+    p->pos += CS_KSMPS;
+    p->pos %= (csound->ksmps-offset);
   }
 
   return OK;

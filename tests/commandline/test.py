@@ -875,6 +875,10 @@ def runTest():
             "reject byte-wise clearing of managed array channels",
             1,
         ],
+        [
+            "arrays/test_chngeta_local_ksmps.csd",
+            "read audio channel arrays with a local ksmps",
+        ],
         ["complex_array_test.csd", "testing complex array ops"],
         ["test_array_channels.csd", "testing bus channels holding arrays"],
         ["fft_array_test.csd", "testing complex fft array ops"],
