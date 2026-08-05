@@ -361,7 +361,7 @@ PUBLIC void csoundDebugFreeVariables(CSOUND *csound,
  * Not thread-safe; call from the k-cycle callback or between k-cycles.
  *
  * truncatedOut (may be NULL) is set to 1 when the walk could not enumerate all
- * active UDO frames (e.g. allocation failure or depth safety limit). When
+ * active UDO frames (currently: saved-chain depth safety limit). When
  * non-zero, the returned list may be incomplete.
  */
 PUBLIC debug_udo_frame_t *csoundDebugGetUdoFrames(CSOUND *csound,
@@ -401,9 +401,10 @@ PUBLIC debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound);
  * float32 (normal) or MYFLT (sliding). For sliding analysis the most recent
  * active sub-frame in the current ksmps block is used.
  *
- * localKsmps is the producer's current local ksmps (e.g. from a UDO frame's
- * ksmps variable when serializing an instrument-local f-signal). Pass 0 to
- * use csound->ksmps (top-level instrument or global scope).
+ * localKsmps is the producer's current local ksmps (from the instrument or UDO
+ * instance that owns the f-signal). Pass 0 only when that producer is actually
+ * using the engine-global ksmps; otherwise pass the producer's current local
+ * ksmps, whether the producer is a UDO or a top-level instrument.
  *
  * infoOut (may be NULL) receives the frame metadata.
  *

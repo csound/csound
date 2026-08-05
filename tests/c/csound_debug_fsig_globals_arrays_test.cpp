@@ -243,6 +243,9 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigSlidingLocalKsmps)
 
 TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigSlidingReuseAfterKsmpsChange)
 {
+    /* Sequential notes through one call site: first note allocates a 32-slot
+       sliding buffer, then a later note recycles the UDO instance with
+       setksmps 1. Capacity alone would select a stale subframe. */
     const char *orc =
         "sr = 44100\n"
         "ksmps = 32\n"
@@ -256,14 +259,22 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigSlidingReuseAfterKsmpsChan
         "  xout aOut\n"
         "endop\n"
         "instr 1\n"
+        "  iKsmps = p4\n"
         "  aIn oscili 0.5, 440\n"
-        "  aTmp slidingAnal aIn, 32\n"
-        "  aOut slidingAnal aIn, 1\n"
+        "  aOut slidingAnal aIn, iKsmps\n"
         "  out aOut\n"
         "endin\n";
     csoundCompileOrc(csound, orc, 0);
     csoundStart(csound);
-    csoundEventString(csound, "i 1 0 4", 0);
+
+    /* Phase A: short note with local ksmps 32 (allocates capacity=32). */
+    csoundEventString(csound, "i 1 0 0.05 32", 0);
+    for (int i = 0; i < 100; i++) {
+        csoundPerformKsmps(csound);
+    }
+
+    /* Phase B: new note with local ksmps 1; recycled instance keeps capacity. */
+    csoundEventString(csound, "i 1 0 4 1", 0);
     for (int i = 0; i < 400; i++) {
         csoundPerformKsmps(csound);
     }
@@ -273,7 +284,6 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigSlidingReuseAfterKsmpsChan
     debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs, NULL);
     ASSERT_NE(frames, nullptr);
     ASSERT_STREQ(frames->udoName, "slidingAnal");
-    ASSERT_EQ(frames->frameIndex, 0);
 
     debug_variable_t *fSig = findVar(frames->varList, "fSig");
     ASSERT_NE(fSig, nullptr);
@@ -292,7 +302,8 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeFsigSlidingReuseAfterKsmpsChan
         ASSERT_GE(bufActive[i], 0.0f);
     }
 
-    /* Capacity sub-frames remain from the first call (ksmps=32). */
+    /* Capacity still reflects the first note; localKsmps=32 reads a stale
+       subframe that differs from the active localKsmps=1 subframe. */
     total = csoundDebugSerializeFsig(
         csound, fSig->data, bufStale,
         (int32_t)(sizeof(bufStale) / sizeof(bufStale[0])), &info, 32);
