@@ -145,7 +145,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
           insds->ksmps_no_end = early % lksmps;
         }
         for (i = start; i < n;
-             i += incr, insds->spin += incr, insds->spout += incr) {
+             i += incr, insds->spin += lksmps, insds->spout += lksmps) {
           opstart = (OPDS *)insds;
           csound->mode = 2;
           while ((opstart = opstart->nxtp) != NULL) {
