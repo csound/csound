@@ -354,7 +354,7 @@ int32_t kperf(CSOUND *csound) {
               ip->ksmps_no_end = early % lksmps;
             }
             for (i = start; i < n;
-                 i += incr, ip->spin += incr, ip->spout += incr) {
+                 i += incr, ip->spin += lksmps, ip->spout += lksmps) {
               ip->kcounter++;
               opstart = (OPDS *)ip;
               csound->mode = 2;

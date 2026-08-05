@@ -2087,8 +2087,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
         current = current->next;
       }
 
-      this_instr->spout += csound->nchnls;
-      this_instr->spin  += csound->nchnls;
+      this_instr->spout += 1;
+      this_instr->spin  += 1;
     } while (++ofs < g_ksmps);
   }
   else {
@@ -2199,8 +2199,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
         current = current->next;
       }
 
-      this_instr->spout += csound->nchnls*lksmps;
-      this_instr->spin  += csound->nchnls*lksmps;
+      this_instr->spout += lksmps;
+      this_instr->spin  += lksmps;
 
     } while ((ofs += this_instr->ksmps) < g_ksmps);
   }
