@@ -154,7 +154,8 @@ void csoundFDClose(CSOUND *csound, FDCH *fdchp)
       void  *fd = fdchp->fd;
       if (LIKELY(fd)) {
 	fdchp->fd = NULL;                     /* then delete the fd   */
-	csoundFileClose(csound, fd);          /*   close the file &   */
+	/* Do not wait for an active asynchronous file-worker borrow. */
+	csoundFileClose(csound, fd, CSFILE_CLOSE_DEFER);
       }
       if (prvchp)
 	prvchp->nxtchp = fdchp->nxtchp;       /* unlnk from fdchain   */
@@ -204,7 +205,8 @@ void fdchclose(CSOUND *csound, INSDS *ip)
     void  *fd = ip->fdchp->fd;
     if (LIKELY(fd)) {
       ip->fdchp->fd = NULL;           /*    delete the fd     */
-      csoundFileClose(csound, fd);    /*    & close the file  */
+      /* Deactivation must not wait for the asynchronous file worker. */
+      csoundFileClose(csound, fd, CSFILE_CLOSE_DEFER);
     }
   }
   if (UNLIKELY(csoundGetDebug(csound) & 0x01))

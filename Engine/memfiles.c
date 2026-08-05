@@ -633,7 +633,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     }
     if (UNLIKELY((size_t) csound->SndfileRead(csound, sf, &(p->data[0]), (sf_count_t) p->nFrames)
                  != p->nFrames)) {
-      csound->FileClose(csound, fd);
+      csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
       csound->Free(csound, p->name);
       csound->Free(csound, p->fullName);
       csound->Free(csound, p);
@@ -642,7 +642,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
       return NULL;
     }
     p->data[p->nFrames] = 0.0f;
-    csound->FileClose(csound, fd);
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     csound->Message(csound, "%s '%s' (sr = %d Hz, %d %s, %" PRId64 " %s) %s",
                     Str("File"), p->fullName, sfinfo->samplerate,
                     sfinfo->channels, Str("channel(s)"), (int64_t)sfinfo->frames,

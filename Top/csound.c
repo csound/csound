@@ -810,7 +810,11 @@ static const CSOUND cenviron_ = {
     0,
     NULL,
     NULL,
-    0,
+    0,  /* init_done */
+    0,  /* init_running */
+    0,  /* turnoff_pending */
+    0,  /* free_pending */
+    NULL, /* init_turnoff_next */
     0,
     0,
     FL(0.0),
@@ -818,6 +822,7 @@ static const CSOUND cenviron_ = {
     NULL,
     0,  /* link flag */
     0,  /* instance id */
+    0,  /* async references */
     {NULL, FL(0.0)},
     {NULL, FL(0.0)},
     {NULL, FL(0.0)},
@@ -865,7 +870,7 @@ static const CSOUND cenviron_ = {
   NULL,           /* array_storage_lock */
   SPINLOCK_INIT,  /* array_storage_spinlock */
   SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
-  SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
+  SPINLOCK_INIT, SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
   NULL, NULL,             /* Delayed messages */
   {
     NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
@@ -944,7 +949,8 @@ static const CSOUND cenviron_ = {
   NULL,           /*  logbase2            */
   NULL, NULL,     /*  omacros, smacros    */
   NULL,           /*  namedgen            */
-  NULL,           /*  open_files          */
+  NULL, NULL,     /*  open_files, retired_files */
+  0,              /*  file_io_pass */
   NULL,           /*  searchPathCache     */
   NULL,           /*  sndmemfiles         */
   NULL,           /*  reset_list          */
@@ -1085,10 +1091,17 @@ static const CSOUND cenviron_ = {
   NULL,           /* directory for corfiles */
   NULL,           /* alloc_queue */
   0,              /* alloc_queue_items */
+  0,              /* alloc_queue_active */
   0,              /* alloc_queue_wp */
   SPINLOCK_INIT,  /* alloc_queue_spinlock */
-  NULL,           /* alloc_queue_mutex */
   SPINLOCK_INIT,  /* alloc_spinlock */
+  SPINLOCK_INIT,  /* instance_spinlock */
+  SPINLOCK_INIT,  /* async_ref_spinlock */
+  SPINLOCK_INIT,  /* rt_event_spinlock */
+  0,              /* realtime_locks_initialized */
+  NULL,           /* init_turnoff_pending */
+  SPINLOCK_INIT,  /* diskin2_async_lock */
+  NULL,           /* diskin2_async_state */
   NULL,           /* init_event */
   NULL,           /* message_string */
   0,              /* message_string_queue_items */
@@ -1130,12 +1143,17 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   if (!n)
     n = CSOUND_EXITJMP_SUCCESS;
 
-  csound->curip = NULL;
-  csound->ids = NULL;
-  csound->reinitflag = 0;
-  csound->tieflag = 0;
-  csound->perferrcnt += csound->inerrcnt;
-  csound->inerrcnt = 0;
+  /* Realtime init owns these fields on the event thread. A performance-time
+     exit may arrive while that thread is inside an opcode, so cleanup defers
+     resetting the shared init context until after joining it. */
+  if (csound->event_insert_thread == NULL) {
+    csound->curip = NULL;
+    csound->ids = NULL;
+    csound->reinitflag = 0;
+    csound->tieflag = 0;
+    csound->perferrcnt += csound->inerrcnt;
+    csound->inerrcnt = 0;
+  }
   csound->engineStatus |= CS_STATE_JMP;
   // printf("**** longjmp with %d\n", n);
 
@@ -1938,6 +1956,7 @@ static void reset(CSOUND *csound) {
   csound->spoutlock = saved_env->spoutlock;
   csound->spinlock1 = saved_env->spinlock1;
   csound->array_storage_spinlock = saved_env->array_storage_spinlock;
+  csound->open_files_lock = saved_env->open_files_lock;
 #endif
   csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
   memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
@@ -1965,6 +1984,7 @@ static void reset(CSOUND *csound) {
     csoundSpinLockInit(&csound->memlock);
     csoundSpinLockInit(&csound->spinlock1);
     csoundSpinLockInit(&csound->array_storage_spinlock);
+    csoundSpinLockInit(&csound->open_files_lock);
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "init spinlocks\n");
   }

@@ -486,7 +486,7 @@ int32_t  csoundPVOC_CreateFile(CSOUND *csound, const char *filename,
     p->name = pname;
 
     if (pvoc_writeheader(csound, p) != 0) {
-      csound->FileClose(csound, p->fd);
+      csound->FileClose(csound, p->fd, CSFILE_CLOSE_SYNC);
       (void)remove(p->name);
       csound->Free(csound, p->name);
       if (p->customWindow)
@@ -537,7 +537,7 @@ int32_t csoundPVOC_OpenFile(CSOUND *csound,
     p->readonly = 1;
 
     if (UNLIKELY(pvoc_readheader(csound, p, &wfpx) != 0)) {
-      csound->FileClose(csound, p->fd);
+      csound->FileClose(csound, p->fd, CSFILE_CLOSE_SYNC);
       csound->Free(csound, p->name);
       if (p->customWindow)
         csound->Free(csound, p->customWindow);
@@ -904,7 +904,7 @@ int32_t csoundPVOC_Closefile(CSOUND *csound, int32_t ofd)
       if (!pvoc_updateheader(csound, ofd))
         rc = 0;
 
-    csound->FileClose(csound, p->fd);
+    csound->FileClose(csound, p->fd, CSFILE_CLOSE_SYNC);
     if (p->to_delete && !p->readonly)
       (void)remove(p->name);
     csound->Free(csound, p->name);

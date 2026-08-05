@@ -78,7 +78,27 @@ extern "C" {
   void  add_tmpfile(CSOUND *, char *);
   void  xturnoff(CSOUND *, INSDS *);
   void  xturnoff_now(CSOUND *, INSDS *);
+  void  deinit_pass(CSOUND *, INSDS *);
   INSDS *instance(CSOUND *, int32_t);
+  INSDS *allocate_or_take_instance(CSOUND *, INSTRTXT *, int32_t);
+  void recycle_inactive_instance(CSOUND *, INSDS *);
+  int32_t instance_has_async_refs(const INSDS *);
+  int32_t instance_is_reclaimable(const INSDS *);
+  typedef enum {
+    INSTANCE_INIT_DEFERRED = 0,
+    INSTANCE_INIT_COMPLETE,
+    INSTANCE_INIT_TURNOFF
+  } INSTANCE_INIT_RESULT;
+  typedef enum {
+    INSTANCE_TURNOFF_NONE = 0,
+    INSTANCE_TURNOFF_REQUESTED,
+    INSTANCE_TURNOFF_FINALIZING,
+    INSTANCE_TURNOFF_RECLAIM
+  } INSTANCE_TURNOFF_STATE;
+  int32_t instance_init_begin(CSOUND *, INSDS *);
+  INSTANCE_INIT_RESULT instance_init_finish(CSOUND *, INSDS *);
+  void instance_init_request_turnoff(CSOUND *, INSDS *);
+  void instance_process_pending_turnoffs(CSOUND *);
   INSDS *create_instance(CSOUND *csound, int32_t insno);
   void free_instance(CSOUND *csound, INSDS *ip);
   int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
@@ -88,8 +108,23 @@ extern "C" {
   int32_t instr_context_check(CSOUND *csound, INSDS *ip, INSDS *insdshead);
   int32_t alloc_queue_enqueue(CSOUND *csound,
                               const struct _alloc_data_ *data);
+  int32_t alloc_queue_has_pending(CSOUND *csound);
   int32_t alloc_queue_lock_init(CSOUND *csound);
   void alloc_queue_lock_destroy(CSOUND *csound);
+  int32_t realtime_spin_lock_init(spin_lock_t *);
+  void realtime_spin_lock_destroy(spin_lock_t *);
+  void async_instance_lock(CSOUND *csound);
+  void async_instance_unlock(CSOUND *csound);
+  void csound_rt_event_lock(CSOUND *csound);
+  void csound_rt_event_unlock(CSOUND *csound);
+  void csound_recycle_rt_event_list(CSOUND *csound, EVTNODE *events);
+  void csound_recycle_rt_event_list_with_tail(CSOUND *csound,
+                                              EVTNODE *events,
+                                              EVTNODE *tail);
+  int32_t diskin2_async_setup(CSOUND *csound);
+  void diskin2_async_drain_deferred(CSOUND *csound);
+  void diskin2_async_prepare_shutdown(CSOUND *csound);
+  void diskin2_async_shutdown(CSOUND *csound);
   int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
   int32_t insert_event(CSOUND *, int32_t,  EVTBLK*);
   void free_inactive_instances(CSOUND*);

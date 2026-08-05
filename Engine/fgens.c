@@ -1228,7 +1228,7 @@ static int32_t gen23(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(!feof(infile)))
       csound->Warning(csound,
                       Str("Number(s) after table full in GEN23, starting %f"), tmp);
-    csound->FileClose(csound, fd);
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     // if (def)
     {
       MYFLT *tab = ftp->ftable;
@@ -1388,7 +1388,7 @@ static void gen28free(CSOUND *csound, void *fd,
     csound->Free(csound, y);
     csound->Free(csound, z);
     if (fd != NULL)
-      csound->FileClose(csound, fd);
+      csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
 }
 
 static int32_t gen28(FGDATA *ff, FUNC *ftp)
@@ -2482,7 +2482,7 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
       needsiz(csound, ff, (int32_t) p->framesrem);
     }
     ftp->soundend = inlocs / ftp->nchanls;   /* record end of sound samps */
-    csound->FileClose(csound, p->fd);
+    csound->FileClose(csound, p->fd, CSFILE_CLOSE_SYNC);
     if (def) {
       MYFLT *tab = ftp->ftable;
       ftresdisp(ff, ftp);       /* VL: 11.01.05  for deferred alloc tables */
@@ -2705,7 +2705,7 @@ static int32_t gen44(FGDATA *ff, FUNC *ftp)
     if (ff->e.p[4] > 0)
       ff->e.p[4] = -44;
  gen44done:
-    csound->FileClose(csound, fd);
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     return result;
 }
 

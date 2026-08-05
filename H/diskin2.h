@@ -74,6 +74,10 @@ typedef struct diskin2 {
     MYFLT   aOut_bufsize;
     void    *cb;
     int32_t     async;
+    volatile int32_t asyncStopRequested;
+    volatile int32_t asyncReaders;
+    volatile int32_t asyncState;
+    void        *asyncEntry;
     MYFLT     transpose;
     CSOUND *csound;
     struct diskin2  *nxt;
@@ -120,6 +124,10 @@ typedef struct diskin2_array {
   MYFLT aOut_bufsize;
   void *cb;
   int32_t  async;
+  volatile int32_t asyncStopRequested;
+  volatile int32_t asyncReaders;
+  volatile int32_t asyncState;
+  void *asyncEntry;
   CSOUND *csound;
   struct diskin2_array *nxt;
 } DISKIN2_ARRAY;

@@ -459,10 +459,10 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       argp++;
     }
   }
-  csound->FileClose(csound, fd);
+  csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
   return OK;
  err:
-  csound->FileClose(csound, fd);
+  csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
   return err_func(csound, &(p->h),
                   "%s", Str("ftload: error allocating ftable"));
  err2:
@@ -470,7 +470,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
  err3:
   return err_func(csound, &(p->h), "%s", Str("ftload: unable to open file"));
  err4:
-  csound->FileClose(csound, fd);
+  csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
   return err_func(csound, &(p->h), "%s", Str("ftload: incorrect file"));
 }
 
@@ -605,10 +605,10 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
       argp++;
     }
   }
-  csound->FileClose(csound, fd);
+  csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
   return OK;
  err:
-  csound->FileClose(csound, fd);
+  csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
   return err_func(csound, &(p->h),
                   "%s", Str("ftsave: Bad table number. Saving is possible "
                             "only for existing tables."));

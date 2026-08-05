@@ -246,7 +246,7 @@ void *sndgetset(CSOUND *csound, void *p_)
 
  err_return:
     if (p->fd != NULL)
-      csound->FileClose(csound, p->fd);
+      csound->FileClose(csound, p->fd, CSFILE_CLOSE_SYNC);
     p->sinfd = NULL;
     p->fd = NULL;
     return NULL;

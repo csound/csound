@@ -696,7 +696,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
       p = buffer;
       if (strstr(p, "</CsScore>") == p) {
         char sys[1024];
-        csoundFileClose(csound, fd);
+        csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
         snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
 #if defined(IOS) || defined(__wasi__)
 int system_result = 0;
@@ -728,7 +728,7 @@ int system_result = system(sys);
         while (my_fgets(csound, buffer, CSD_MAX_LINE_LEN, scof)!= NULL)
           corfile_puts(csound, buffer, csound->scorestr);
         csoundMessage(csound, Str("closing %s\n"), STA(sconame));
-        csoundFileClose(csound, fd);
+        csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
         if (UNLIKELY(remove(STA(sconame))))
           csoundErrorMsg(csound, Str("and cannot remove %s\n"), STA(sconame));
         corfile_puts(csound, "\n#exit\n", csound->scorestr);
@@ -879,7 +879,7 @@ static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
     }
     csound->tempStatus |= csMidiScoMask;
     read_base64(csound, cf, midf);
-    csoundFileClose(csound, fd);
+    csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
     add_tmpfile(csound, STA(midname));               /* IV - Feb 03 2005 */
     STA(midiSet) = TRUE;
     while (TRUE) {
@@ -915,7 +915,7 @@ static int32_t create_sample(CSOUND *csound, char *buffer, CORFIL *cf)
       csoundDie(csound, Str("Cannot open sample file (%s) subfile"), sampname);
     }
     read_base64(csound, cf, smpf);
-    csoundFileClose(csound, fd);
+    csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
     add_tmpfile(csound, sampname);              /* IV - Feb 03 2005 */
     while (TRUE) {
       if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
@@ -957,7 +957,7 @@ static int32_t create_file(CSOUND *csound, char *buffer, CORFIL *cf)
       csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
     }
     read_base64(csound, cf, smpf);
-    csoundFileClose(csound, fd);
+    csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
     add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
 
     while (TRUE) {
@@ -1054,7 +1054,7 @@ static int32_t create_filea(CSOUND *csound, char *buffer, CORFIL *cf)
     }
     if (UNLIKELY(res==FALSE))
       csoundErrorMsg(csound, Str("Missing end tag </CsFile>\n"));
-    csoundFileClose(csound, fd);
+    csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
     add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
     return res;
 }

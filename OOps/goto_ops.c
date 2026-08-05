@@ -117,6 +117,14 @@ int32_t reinit(CSOUND *csound, GOTO *p)
     int32_t actflg = ATOMIC_GET8(p->h.insdshead->actflg);
     ALLOC_DATA data = { 0 };
 
+    /* Publish the reinit lifecycle before the request enters the queue. A
+       concurrent turnoff is retained until the event thread finishes it. */
+    if (UNLIKELY(instance_init_begin(csound, p->h.insdshead) !=
+                 CSOUND_SUCCESS)) {
+      csound->reinitflag = p->h.insdshead->reinitflag = 0;
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("reinit: instance is being turned off"));
+    }
     ATOMIC_SET(p->h.insdshead->init_done, 0);
     ATOMIC_SET8(p->h.insdshead->actflg, 0);
     data.ip = p->h.insdshead;
@@ -124,9 +132,14 @@ int32_t reinit(CSOUND *csound, GOTO *p)
     data.type = ALLOC_DATA_REINIT_PASS;
 
     if (UNLIKELY(alloc_queue_enqueue(csound, &data) != CSOUND_SUCCESS)) {
-      ATOMIC_SET(p->h.insdshead->init_done, init_done);
-      ATOMIC_SET8(p->h.insdshead->actflg, actflg);
+      INSTANCE_INIT_RESULT initResult;
+
+      initResult = instance_init_finish(csound, p->h.insdshead);
       csound->reinitflag = p->h.insdshead->reinitflag = 0;
+      if (initResult != INSTANCE_INIT_TURNOFF) {
+        ATOMIC_SET(p->h.insdshead->init_done, init_done);
+        ATOMIC_SET8(p->h.insdshead->actflg, actflg);
+      }
       return csound->PerfError(csound, &p->h, "%s",
                                Str("reinit: realtime allocation queue is full"));
     }

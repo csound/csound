@@ -1604,7 +1604,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
               CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
               read_options(csound, cf, 0);
               corfile_rm(csound, &cf);
-              csound->FileClose(csound, fd);
+              csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
             }
             while (*s++) {
             };

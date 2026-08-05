@@ -738,6 +738,7 @@ def runTest():
         ["test_create_instr.csd", "testing creating and scheduling instr"],
         ["test_instance_type.csd", "testing instance type"],
         ["test_play_opcode.csd", "testing play opcode"],
+        ["test_splice_instance.csd", "test splicing instr order"],
         ["test_create_init_perf_delete.csd", "testing new instance opcodes"],
         ["test_complex_numbers.csd", "testing complex number operations"],
         ["test_rfft.csd", "testing real-to-complex and complex-to-real fft"],
@@ -764,7 +765,10 @@ def runTest():
         ["test_overload_selection.csd", "test wrong annotation case"],
         ["test_unschedule.csd", "test unscheduling events"],
         ["diskin_excess_channels.csd", "test sample accurate mode"],
-        ["test_async_diskin.csd", "test diskin in rt async mode"],
+        # Keep the CSD's null realtime backend: its RMS checks require paced
+        # performance; suite-wide -n can outrun the asynchronous I/O worker.
+        ["test_async_diskin.csd", "test diskin in rt async mode", None, ""],
+        ["test_diskin2_nested_reuse.csd", "test nested diskin2 instance reuse"],
         ["test_midifile_ops.csd", "testing midifile opcodes"],
         ["test_midifile_malformed.csd", "reject malformed MIDI files"],
         ["test_midifile_loop.csd", "testing midifile tempo set, pos, loop"],

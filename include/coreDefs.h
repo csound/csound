@@ -57,6 +57,10 @@ extern "C" {
 #define CSFILE_STD      3
 #define CSFILE_SND_R    4
 #define CSFILE_SND_W    5
+/* csoundFileClose() modes. Deferred close transfers ownership immediately
+   without waiting for active asynchronous file-worker borrowers. */
+#define CSFILE_CLOSE_SYNC  0U
+#define CSFILE_CLOSE_DEFER 1U
 #define MAXINSNO  (200)
 #define PMAX      (1998)
 #define VARGMAX   (1999)

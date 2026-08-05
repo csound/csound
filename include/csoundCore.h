@@ -500,6 +500,16 @@ typedef struct {
     MYFLT   *spin;         /* offset into csound->spin */
     MYFLT   *spout;        /* offset into csound->spout, or local spout */
     int32_t  init_done;
+    /* Init work can be nested or queued more than once. Only
+       instance_init_begin/finish update init_running, under
+       async_ref_spinlock. A terminal turnoff remains sticky until the
+       outermost finish publishes this instance to the performance-thread
+       handoff. free_pending transfers unlinked deletion to that handoff, and
+       RECLAIM records that deinit is complete while an async reader exits. */
+    volatile int32_t init_running;
+    volatile int32_t turnoff_pending;
+    volatile int32_t free_pending;
+    struct insds *init_turnoff_next;
     int32_t  tieflag;
     int32_t  reinitflag;
     MYFLT    retval;
@@ -507,6 +517,11 @@ typedef struct {
     char    *strarg;       /* string argument */
     int32_t  linked;  /* linked to instrtxt->act_instance */
     uint64_t instance_id; /* instance id number */
+    /* Background users that must finish before this instance is reused or
+       reclaimed. Increment only while a lock proves the INSDS is alive. Every
+       reuse and free path must reject a nonzero count, and a borrower must not
+       access the INSDS after its final decrement. */
+    volatile int32_t async_ref_count;
     /* Copy of required p-field values for quick access */
     CS_VAR_MEM  p0;
     CS_VAR_MEM  p1;
@@ -1303,7 +1318,8 @@ struct CSOUND_ {
   void *(*FileOpen)(CSOUND *, void *, int32_t, const char *, void *,
                     const char *, int32_t, int32_t); /* Rename FileOpen */
   void (*NotifyFileOpened)(CSOUND *, const char *, int32_t, int32_t, int32_t);
-  int32_t (*FileClose)(CSOUND *, void *);
+  /* closeFlags is CSFILE_CLOSE_SYNC or CSFILE_CLOSE_DEFER. */
+  int32_t (*FileClose)(CSOUND *, void *, uint32_t closeFlags);
   const char *(*FileError)(CSOUND *, void *);
   void *(*FileOpenAsync)(CSOUND *, void *, int32_t, const char *, void *,
                          const char *, int32_t, int32_t, int32_t);
@@ -1673,7 +1689,7 @@ struct CSOUND_ {
      Allocation and element copying happen after this lock is released. */
   spin_lock_t array_storage_spinlock;
   spin_lock_t spoutlock, spinlock;
-  spin_lock_t memlock, spinlock1;
+  spin_lock_t memlock, spinlock1, open_files_lock;
   char *delayederrormessages;
   void *printerrormessagesflag;
   struct sread__ sread;
@@ -1699,6 +1715,8 @@ struct CSOUND_ {
   NAMES *omacros, *smacros;
   void *namedgen;   /* fgens.c */
   void *open_files; /* fileopen.c */
+  void *retired_files; /* nodes awaiting file I/O thread reclamation */
+  uint64_t file_io_pass;
   void *searchPathCache;
   CS_HASH_TABLE *sndmemfiles;
   void *reset_list;
@@ -1804,10 +1822,19 @@ struct CSOUND_ {
   void *directory;
   ALLOC_DATA *alloc_queue;
   volatile unsigned long alloc_queue_items;
+  unsigned long alloc_queue_active;
   unsigned long alloc_queue_wp;
   spin_lock_t alloc_queue_spinlock;
-  void *alloc_queue_mutex;
+  /* Realtime lock order is alloc, then instance/async-reference/event. The
+     three short registry locks must never be held while taking alloc. */
   spin_lock_t alloc_spinlock;
+  spin_lock_t instance_spinlock;
+  spin_lock_t async_ref_spinlock;
+  spin_lock_t rt_event_spinlock;
+  int32_t realtime_locks_initialized;
+  INSDS *init_turnoff_pending;
+  spin_lock_t diskin2_async_lock;
+  void *diskin2_async_state;
   EVTBLK *init_event;
   char *message_string;
   volatile unsigned long message_string_queue_items;

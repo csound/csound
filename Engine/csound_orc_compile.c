@@ -1292,7 +1292,7 @@ static void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
     if (csound->dead_instr_pool[i] != NULL) {
       INSDS *active = csound->dead_instr_pool[i]->instance;
       while (active != NULL) {
-        if (active->actflg) {
+        if (!instance_is_reclaimable(active)) {
           break;
         }
         active = active->nxtinstance;
@@ -1386,7 +1386,7 @@ static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
       }
       INSDS *active = engineState->instrtxtp[inm->instno]->instance;
       while (active != NULL) {
-        if (active->actflg) {
+        if (!instance_is_reclaimable(active)) {
           /* this marks the instrument number ready for replacement */
           engineState->instrtxtp[inm->instno] = NULL;
           break;
@@ -1634,7 +1634,7 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       }
       INSDS *active = engineState->instrtxtp[instrNum]->instance;
       while (active != NULL && instrNum != 0) {
-        if (active->actflg) {
+        if (!instance_is_reclaimable(active)) {
           add_to_deadpool(csound, engineState->instrtxtp[instrNum]);
           break;
         }

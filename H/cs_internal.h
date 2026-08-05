@@ -30,6 +30,10 @@ extern "C" {
   typedef struct CSFILE_ {
     struct CSFILE_  *nxt;
     struct CSFILE_  *prv;
+    struct CSFILE_  *retired_nxt;
+    uint64_t io_pass;
+    int32_t io_readers;
+    int32_t retired;
     int32_t type;
     int32_t  fd;
     FILE *f;
@@ -201,7 +205,6 @@ extern "C" {
     CS_VAR_POOL* in_arg_pool;
     struct instr *ip;
     int32_t recurse_depth;
-    jmp_buf udojmp;
     OENTRY *oentry;
     PBR_REWIRE_PLAN *pbr_plan;
     struct opcodinfo *prv;

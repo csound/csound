@@ -81,7 +81,7 @@ void check_options(CSOUND *csound) {
     corfile_rewind(cf);
     read_options(csound, cf, 0);
     corfile_rm(csound, &cf);
-    csound->FileClose(csound, fd);
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     csound->Free(csound, s);
   }
   /* check for .csound7rc in current directory */
@@ -94,7 +94,7 @@ void check_options(CSOUND *csound) {
     csound->Message(csound,
                     Str("Reading options from local directory .csound7rc\n"));
     corfile_rm(csound, &cf);
-    csound->FileClose(csound, fd);
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
   }
 #endif
 }

@@ -109,13 +109,13 @@ static uintptr_t write_tab(void* pp)
   //printf("t=%p size=%d ff=%p\n", t, size, ff);
     
   if (csound->SndfileWrite(csound, ff, t, size) != size) {
-    csound->FileClose(csound, ff);
+    csound->FileClose(csound, ff, CSFILE_CLOSE_SYNC);
     csound->PerfError(csound, h,
                       Str("tabaudio: failed to write data %d"),size);
     *ans = -FL(1.0);
   }
   else *ans = FL(1.0);
-  csound->FileClose(csound, ff);
+  csound->FileClose(csound, ff, CSFILE_CLOSE_SYNC);
   return 0;
 }
 
@@ -172,12 +172,12 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
     if (*p->sync==FL(0.0)) {  /* write in perf thread */
       if ((n= (int32_t) csound->SndfileWrite(csound, ff, t, size)) != size) {
         printf("%s\n", csound->FileError(csound, ff));
-        csound->FileClose(csound, ff);
+        csound->FileClose(csound, ff, CSFILE_CLOSE_SYNC);
         return csound->PerfError(csound, &(p->h),
                                  Str("tabaudio: failed to write data %d %d"),
                                  n,size);
       }
-      csound->FileClose(csound, ff);
+      csound->FileClose(csound, ff, CSFILE_CLOSE_SYNC);
     }
     else {                    /* Use a helper thread */
       SAVE_THREAD *q = (SAVE_THREAD*)csound->Malloc(csound, sizeof(SAVE_THREAD));
@@ -248,12 +248,12 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
     return csound->InitError(csound, Str("tabaudio: failed to open file %s"),
                              p->file->data);
   if ((n=(int32_t)csound->SndfileWrite(csound, ff, t, size)) != size) {
-    csound->FileClose(csound, ff);
+    csound->FileClose(csound, ff, CSFILE_CLOSE_SYNC);
     return csound->InitError(csound, Str("tabaudio: failed to write data: %s"),
                              csound->FileError(csound,ff));
   }
   *p->kans = FL(1.0);
-  csound->FileClose(csound, ff);
+  csound->FileClose(csound, ff, CSFILE_CLOSE_SYNC);
   return OK;
 }
 
@@ -266,6 +266,5 @@ static OENTRY tabaudio_localops[] =
   };
 
 LINKAGE_BUILTIN(tabaudio_localops)
-
 
 

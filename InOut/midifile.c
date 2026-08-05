@@ -767,7 +767,7 @@ static int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
       MF(nEvents) = saved_nEvents;    /* non-tempo events read */
   }
   if (fd != NULL)
-    csound->FileClose(csound, fd);
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
   /* prepare event and tempo list for reading */
   sortEventLists(csound, midifile);
   MF(currentTempo) = initial_tempo(midifile);
@@ -779,7 +779,7 @@ static int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
   /* in case of error: clean up and report error */
  err_return:
   if (fd != NULL)
-    csound->FileClose(csound, fd);
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
   midi_file_close(csound, midifile);
   return -1;
 }
@@ -1143,4 +1143,3 @@ int32_t midi_file_status(CSOUND *csound, MIDITEMPO *p){
   } else *p->kResult = 0;
   return OK;
 }
-

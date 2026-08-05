@@ -274,6 +274,152 @@ TEST_F (EngineTests, testTypedComplexFftRejectsOddSize)
               std::string::npos);
 }
 
+static int32_t deinitCallCount = 0;
+
+static int32_t failingDeinit(CSOUND *, void *)
+{
+    deinitCallCount++;
+    return NOTOK;
+}
+
+static int32_t succeedingDeinit(CSOUND *, void *)
+{
+    deinitCallCount++;
+    return OK;
+}
+
+TEST_F (EngineTests, testDeinitContinuesAfterError)
+{
+    INSDS owner {};
+    OPDS first {};
+    OPDS second {};
+    OPTXT firstText {};
+    OPTXT secondText {};
+    OENTRY firstEntry {};
+    OENTRY secondEntry {};
+
+    firstEntry.opname = const_cast<char *>("failing-deinit");
+    secondEntry.opname = const_cast<char *>("succeeding-deinit");
+    firstText.t.oentry = &firstEntry;
+    secondText.t.oentry = &secondEntry;
+    first.deinit = failingDeinit;
+    first.optext = &firstText;
+    first.nxtd = &second;
+    second.deinit = succeedingDeinit;
+    second.optext = &secondText;
+    owner.nxtd = &first;
+    deinitCallCount = 0;
+
+    deinit_pass(csound, &owner);
+
+    ASSERT_EQ(deinitCallCount, 2);
+}
+
+TEST_F (EngineTests, testNestedInitKeepsTurnoffPending)
+{
+    INSDS instance {};
+
+    // This local instance is never shared, so direct field access is safe and
+    // avoids MSVC's long-only Interlocked overloads in this C++ test.
+    EXPECT_EQ(instance_init_begin(csound, &instance), CSOUND_SUCCESS);
+    EXPECT_EQ(instance_init_begin(csound, &instance), CSOUND_SUCCESS);
+    EXPECT_EQ(instance.init_running, 2);
+    EXPECT_EQ(instance_init_finish(csound, &instance),
+              INSTANCE_INIT_DEFERRED);
+
+    instance.init_done = 1;
+    instance_init_request_turnoff(csound, &instance);
+    EXPECT_EQ(instance.init_done, 0);
+    EXPECT_EQ(instance.turnoff_pending,
+              INSTANCE_TURNOFF_REQUESTED);
+    EXPECT_EQ(csound->init_turnoff_pending, nullptr);
+    EXPECT_EQ(instance_init_begin(csound, &instance), CSOUND_SUCCESS);
+    EXPECT_EQ(instance.init_running, 2);
+    EXPECT_EQ(instance.turnoff_pending,
+              INSTANCE_TURNOFF_REQUESTED);
+    EXPECT_EQ(instance_init_finish(csound, &instance),
+              INSTANCE_INIT_DEFERRED);
+    EXPECT_EQ(instance_init_finish(csound, &instance),
+              INSTANCE_INIT_TURNOFF);
+    EXPECT_EQ(instance.init_running, 0);
+    EXPECT_EQ(instance.turnoff_pending,
+              INSTANCE_TURNOFF_FINALIZING);
+    EXPECT_EQ(csound->init_turnoff_pending, &instance);
+    instance_init_request_turnoff(csound, &instance);
+    EXPECT_EQ(csound->init_turnoff_pending, &instance);
+    EXPECT_EQ(instance.init_turnoff_next, nullptr);
+    EXPECT_EQ(instance_init_begin(csound, &instance), CSOUND_ERROR);
+    EXPECT_EQ(instance.init_running, 0);
+    EXPECT_EQ(instance_init_finish(csound, &instance),
+              INSTANCE_INIT_DEFERRED);
+    EXPECT_EQ(instance.turnoff_pending,
+              INSTANCE_TURNOFF_FINALIZING);
+    EXPECT_EQ(csound->init_turnoff_pending, &instance);
+
+    instance.turnoff_pending = INSTANCE_TURNOFF_RECLAIM;
+    EXPECT_EQ(instance_init_begin(csound, &instance), CSOUND_ERROR);
+    EXPECT_EQ(instance.init_running, 0);
+
+    instance.turnoff_pending = INSTANCE_TURNOFF_REQUESTED;
+    EXPECT_EQ(instance_init_begin(csound, &instance), CSOUND_ERROR);
+    EXPECT_EQ(instance.init_running, 0);
+
+    csound->init_turnoff_pending = nullptr;
+    instance.init_turnoff_next = nullptr;
+    instance.turnoff_pending = INSTANCE_TURNOFF_NONE;
+}
+
+TEST_F (EngineTests, testRecycleDetachedInactiveInstance)
+{
+    INSTRTXT instrument {};
+    INSDS available {};
+    INSDS detached {};
+
+    available.instr = &instrument;
+    detached.instr = &instrument;
+    instrument.act_instance = &available;
+
+    recycle_inactive_instance(csound, &detached);
+
+    EXPECT_EQ(instrument.act_instance, &detached);
+    EXPECT_EQ(detached.nxtact, &available);
+}
+
+TEST_F (EngineTests, testRealtimeLongJmpPreservesInitThreadContext)
+{
+    INSDS instance {};
+    OPDS opcode {};
+    int32_t initialPerfErrors = csound->perferrcnt;
+
+    // A non-null handle means the event thread may own this init context.
+    csound->event_insert_thread = &opcode;
+    csound->curip = &instance;
+    csound->ids = &opcode;
+    csound->reinitflag = 1;
+    csound->tieflag = 1;
+    csound->inerrcnt = 2;
+
+    int32_t jumpResult = setjmp(csound->exitjmp);
+    if (jumpResult == 0)
+      csoundLongJmp(csound, 1);
+
+    EXPECT_NE(jumpResult, 0);
+    EXPECT_EQ(csound->curip, &instance);
+    EXPECT_EQ(csound->ids, &opcode);
+    EXPECT_EQ(csound->reinitflag, 1);
+    EXPECT_EQ(csound->tieflag, 1);
+    EXPECT_EQ(csound->inerrcnt, 2);
+    EXPECT_EQ(csound->perferrcnt, initialPerfErrors);
+
+    // Do not leave a fake thread handle or stack pointers for TearDown().
+    csound->event_insert_thread = nullptr;
+    csound->curip = nullptr;
+    csound->ids = nullptr;
+    csound->reinitflag = 0;
+    csound->tieflag = 0;
+    csound->inerrcnt = 0;
+    csound->engineStatus &= ~CS_STATE_JMP;
+}
 TEST_F (EngineTests, testRealComplexSubtraction)
 {
     struct SubtractionCase {
@@ -707,7 +853,7 @@ TEST_F (EngineTests, testRealtimeInsertEventCopiesQueuedEvtblk)
     csound->alloc_queue = nullptr;
 }
 
-TEST_F (EngineTests, testRealtimeAllocQueueMutexFallback)
+TEST_F (EngineTests, testRealtimeAllocQueueMultipleProducers)
 {
     constexpr int32_t producerCount = 4;
     constexpr int32_t itemsPerProducer = MAX_ALLOC_QUEUE / producerCount;
@@ -719,10 +865,7 @@ TEST_F (EngineTests, testRealtimeAllocQueueMutexFallback)
     csound->alloc_queue = static_cast<ALLOC_DATA *>(
       csound->Calloc(csound, sizeof(ALLOC_DATA) * MAX_ALLOC_QUEUE));
     ASSERT_NE(csound->alloc_queue, nullptr);
-    csound->alloc_queue_mutex = csoundCreateMutex(0);
-    ASSERT_NE(csound->alloc_queue_mutex, nullptr);
-    csound->alloc_queue_items = 0;
-    csound->alloc_queue_wp = 0;
+    ASSERT_EQ(alloc_queue_lock_init(csound), CSOUND_SUCCESS);
 
     for (int32_t producer = 0; producer < producerCount; ++producer) {
       producers.emplace_back([this, producer, itemsPerProducer, &failures, &ready, &start]() {
