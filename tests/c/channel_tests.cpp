@@ -550,6 +550,104 @@ TEST_F (ChannelTests, ExportedArrayChannelKeepsStorageAndMetadata)
             csoundGetControlChannel(csound, "array-export-result", nullptr));
 }
 
+TEST_F (ChannelTests, AudioArrayArithmeticHonorsSampleAccurateNoteEnds)
+{
+  ASSERT_EQ(CSOUND_SUCCESS,
+            csoundSetOption(csound, "--sample-accurate"));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+                 sr = 64
+                 ksmps = 64
+                 nchnls = 1
+                 0dbfs = 1
+
+                 gaSub[] init 1
+                 gaMul[] init 1
+                 gaDiv[] init 1
+                 gaSubIn[] init 1
+                 gaDivIn[] init 1
+
+                 instr 1
+                   a12[] init 1
+                   a3[] init 1
+                   a6[] init 1
+                   a12[0] = 12
+                   a3[0] = 3
+                   a6[0] = 6
+
+                   gaSub = a12 - a3
+                   gaMul = a12 * a3
+                   gaDiv = a12 / a3
+                   gaSubIn -= a6
+                   gaDivIn /= a3
+
+                   chnset gaSub, "array-sub"
+                   chnset gaMul, "array-mul"
+                   chnset gaDiv, "array-div"
+                   chnset gaSubIn, "array-sub-in"
+                   chnset gaDivIn, "array-div-in"
+                 endin
+
+                 instr 2
+                   gaSub[0] = 99
+                   gaMul[0] = 99
+                   gaDiv[0] = 99
+                   gaSubIn[0] = 20
+                   gaDivIn[0] = 21
+                 endin
+
+                 instr 3
+                 endin
+
+                 schedule(2, 0, 1)
+                 schedule(1, 1, 1 / sr)
+                 schedule(2, 2, 1)
+                 schedule(1, 3, 48 / sr)
+                 schedule(3, 0, 5)
+                )ORC"));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+  ASSERT_EQ(64, csoundGetKsmps(csound));
+
+  struct ExpectedChannel {
+    const char *name;
+    MYFLT value;
+  };
+  const ExpectedChannel expectedChannels[] = {
+    {"array-sub", 9},
+    {"array-mul", 36},
+    {"array-div", 4},
+    {"array-sub-in", 14},
+    {"array-div-in", 7},
+  };
+  const auto checkChannels = [&](int32_t activeSamples) {
+    for (const ExpectedChannel &expected : expectedChannels) {
+      const CS_VAR_MEM *channel = csoundGetChannel(csound, expected.name);
+      ASSERT_NE(nullptr, channel) << expected.name;
+      ASSERT_STREQ("[", channel->varType->varTypeName) << expected.name;
+      const ARRAYDAT *array =
+        reinterpret_cast<const ARRAYDAT*>(&channel->value);
+      ASSERT_EQ(1, array->dimensions) << expected.name;
+      ASSERT_NE(nullptr, array->sizes) << expected.name;
+      ASSERT_EQ(1, array->sizes[0]) << expected.name;
+      ASSERT_STREQ("a", array->arrayType->varTypeName) << expected.name;
+      ASSERT_EQ(64 * static_cast<int32_t>(sizeof(MYFLT)),
+                array->arrayMemberSize) << expected.name;
+      ASSERT_NE(nullptr, array->data) << expected.name;
+      for (int32_t sample = 0; sample < 64; ++sample) {
+        const MYFLT expectedValue =
+          sample < activeSamples ? expected.value : 0;
+        EXPECT_EQ(expectedValue, array->data[sample])
+          << expected.name << ", sample " << sample;
+      }
+    }
+  };
+
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+  checkChannels(1);
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+  checkChannels(48);
+}
 
 TEST_F (ChannelTests, ArrayChannel)
 {
