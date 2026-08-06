@@ -2473,6 +2473,9 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
 int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
 
+  if(p->h.insdshead->instr->glbvarcnt > 0)
+    return csoundInitError(csound, "local ksmps not permitted with global audio vars\n");
+  
   uint32_t  l_ksmps, n;
   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
   MYFLT parent_sr = udo ? udo->parent_ip->esr : csound->esr;
@@ -2529,6 +2532,9 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
    with audio/control array arguments.
 */
 int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
+  if(p->h.insdshead->instr->glbvarcnt > 0)
+    return csoundInitError(csound, "local sr not permitted with global audio vars\n");
+
   int32_t os;
   MYFLT l_sr, onedos;
   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
@@ -2599,6 +2605,9 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
    It modifies ksmps according to the resampling factor.
 */
 int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
+  if(p->h.insdshead->instr->glbvarcnt > 0)
+    return csoundInitError(csound, "local sr not permitted with global audio vars\n");
+  
   int32_t os, lksmps;
   MYFLT l_sr, onedos;
   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;

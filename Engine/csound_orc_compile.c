@@ -2609,6 +2609,16 @@ static CS_VARIABLE *setup_arg_for_var_name(CSOUND* csound, ARG* arg,
   return arg->argPtr;
 }
 
+static int32_t is_audio_var(CSOUND *csound,
+                    CS_VARIABLE *var) {
+  if(var->varType == &CS_VAR_TYPE_A ||
+    (var->varType == &CS_VAR_TYPE_ARRAY &&
+     var->subType ==  &CS_VAR_TYPE_A))
+     return 1;
+   else return 0;
+}
+
+
 /* get storage ndx of const, pnum, lcl or gbl */
 /* argument const/gbl indexes are positiv+1, */
 /* pnum/lcl negativ-1 called only after      */
@@ -2697,11 +2707,14 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
   else if(engineState->varPool != NULL && (uintptr_t)engineState->varPool >= 0x1000 &&
           setup_arg_for_var_name(csound, arg, engineState->varPool, s) != NULL) {
        arg->type = ARG_GLOBAL;
+       if(is_audio_var(csound, arg->argPtr))
+          ip->glbvarcnt++;
     }
     else if(csound->engineState.varPool != NULL && (uintptr_t)csound->engineState.varPool >= 0x1000 &&
             setup_arg_for_var_name(csound, arg, csound->engineState.varPool, s) != NULL) {
     arg->type = ARG_GLOBAL;
-
+    if(is_audio_var(csound, arg->argPtr))
+          ip->glbvarcnt++;  
   }
   /* otherwise we have a local arg */
   else {
