@@ -880,6 +880,7 @@ def runTest():
             "read audio channel arrays with a local ksmps",
         ],
         ["test_local_ksmps_out.csd", "test output with local ksmps"],
+        ["test_local_ksmps_in.csd", "test input with local ksmps"],        
         ["complex_array_test.csd", "testing complex array ops"],
         ["test_array_channels.csd", "testing bus channels holding arrays"],
         ["fft_array_test.csd", "testing complex fft array ops"],

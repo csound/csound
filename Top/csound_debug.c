@@ -1035,6 +1035,7 @@ int32_t kperf_debug(CSOUND *csound) {
             int32_t i, n = csound->nspout, start = 0;
             lksmps = ip->ksmps;
             int32_t incr = csound->nchnls * lksmps;
+            int32_t insmps = csound->inchnls * lksmps;
             int32_t offset = ip->ksmps_offset;
             int32_t early = ip->ksmps_no_end;
             ip->spin = csound->spin;
@@ -1055,7 +1056,7 @@ int32_t kperf_debug(CSOUND *csound) {
             }
 
             for (i = start; i < n;
-                 i += incr, ip->spin += lksmps, ip->spout += lksmps) {
+                 i += incr, ip->spin += insmps, ip->spout += lksmps) {
               opcode_perf_debug(csound, data, ip);
               ip->kcounter++;
             }
