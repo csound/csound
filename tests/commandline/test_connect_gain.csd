@@ -22,6 +22,10 @@ connect "SourceB", "out", "SinkFan", "in", 0.5
 ; Explicit string-instrument overload with gain.
 connect.S "SourceA", "out", "SinkString", "in", 0.25
 
+; Duplicate edges to the same inlet sum their gains: 0.5 + 0.25 = 0.75
+connect "SourceA", "out", "SinkDup", "in", 0.5
+connect "SourceA", "out", "SinkDup", "in", 0.25
+
 alwayson "SourceA"
 alwayson "SourceB"
 alwayson "SinkOmit"
@@ -29,6 +33,7 @@ alwayson "SinkUnity"
 alwayson "SinkHalf"
 alwayson "SinkFan"
 alwayson "SinkString"
+alwayson "SinkDup"
 
 ; timeinstk() counts k-cycles (not seconds). With sr/ksmps above,
 ; e 0.05 is many cycles, so checks after the first cycle do run.
@@ -85,6 +90,16 @@ instr SinkString
   if timeinstk() >= 2 then
     if abs(kin - 0.25) > 1e-6 then
       printks "connect.S gain failed: expected=0.25 got=%f\n", 0, kin
+      exitnowk(1)
+    endif
+  endif
+endin
+
+instr SinkDup
+  kin inletk "in"
+  if timeinstk() >= 2 then
+    if abs(kin - 0.75) > 1e-6 then
+      printks "connect gain duplicate failed: expected=0.75 got=%f\n", 0, kin
       exitnowk(1)
     endif
   endif

@@ -836,7 +836,11 @@ def runTest():
         ],
         [
             "test_connect_gain.csd",
-            "test connect i-rate gain (omit, unity, non-unity, fan-in)",
+            "test connect i-rate gain (omit, unity, non-unity, fan-in, duplicate)",
+        ],
+        [
+            "test_connect_gain_fsig.csd",
+            "test connect i-rate gain on active non-sliding fsig inlets",
         ],
     ]
 

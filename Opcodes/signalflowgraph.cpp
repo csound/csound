@@ -91,7 +91,9 @@
  *
  * Optional igain is an i-rate linear amplitude applied to that connection
  * when the sink inlet accumulates sources. It defaults to 1 (unity), so
- * omitted gain and explicit unity match historical behavior.
+ * omitted gain and explicit unity match historical behavior. If the same
+ * source outlet is connected more than once to the same sink inlet, the
+ * gains are summed.
  *
  * alwayson Tinstrument [p4, ..., pn]
  *
@@ -263,6 +265,13 @@ struct SignalFlowGraphState {
   std::vector<std::vector<std::vector<Outletf *> *> *> foutletVectors;
   std::vector<std::vector<std::vector<Outletv *> *> *> voutletVectors;
   std::vector<std::vector<std::vector<Outletkid *> *> *> kidoutletVectors;
+  // Gain vectors are heap-pooled like sourceOutlets: opcode structs are
+  // zeroed raw memory and must not own std::vector by value.
+  std::vector<std::vector<MYFLT> *> againVectors;
+  std::vector<std::vector<MYFLT> *> kgainVectors;
+  std::vector<std::vector<MYFLT> *> fgainVectors;
+  std::vector<std::vector<MYFLT> *> vgainVectors;
+  std::vector<std::vector<MYFLT> *> kidgainVectors;
   SignalFlowGraphState(CSOUND *csound_) {
     csound = csound_;
     signal_flow_ports_lock = csound->Create_Mutex(0);
@@ -282,13 +291,25 @@ struct SignalFlowGraphState {
       delete *it;
     for (std::vector<std::vector<std::vector<Outletkid *> *> *>::iterator it = kidoutletVectors.begin(), end = kidoutletVectors.end(); it != end; it++)
       delete *it;
+    for (std::vector<std::vector<MYFLT> *>::iterator it = againVectors.begin(), end = againVectors.end(); it != end; it++)
+      delete *it;
+    for (std::vector<std::vector<MYFLT> *>::iterator it = kgainVectors.begin(), end = kgainVectors.end(); it != end; it++)
+      delete *it;
+    for (std::vector<std::vector<MYFLT> *>::iterator it = fgainVectors.begin(), end = fgainVectors.end(); it != end; it++)
+      delete *it;
+    for (std::vector<std::vector<MYFLT> *>::iterator it = vgainVectors.begin(), end = vgainVectors.end(); it != end; it++)
+      delete *it;
+    for (std::vector<std::vector<MYFLT> *>::iterator it = kidgainVectors.begin(), end = kidgainVectors.end(); it != end; it++)
+      delete *it;
 
     aoutletsForSourceOutletIds.clear();
     ainletsForSinkInletIds.clear();
     aoutletVectors.clear();
+    againVectors.clear();
     koutletsForSourceOutletIds.clear();
     kinletsForSinkInletIds.clear();
     koutletVectors.clear();
+    kgainVectors.clear();
     foutletsForSourceOutletIds.clear();
     voutletsForSourceOutletIds.clear();
     kidoutletsForSourceOutletIds.clear();
@@ -296,8 +317,11 @@ struct SignalFlowGraphState {
     kidinletsForSinkInletIds.clear();
     finletsForSinkInletIds.clear();
     foutletVectors.clear();
+    fgainVectors.clear();
     voutletVectors.clear();
+    vgainVectors.clear();
     kidoutletVectors.clear();
+    kidgainVectors.clear();
     connections.clear();
   }
 };
@@ -369,7 +393,7 @@ struct Inleta : public OpcodeBase<Inleta> {
    */
   char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outleta *> *> *sourceOutlets;
-  std::vector<MYFLT> sourceGains;
+  std::vector<MYFLT> *sourceGains;
   int32_t sampleN;
   SignalFlowGraphState *sfg_globals;
   int32_t init(CSOUND *csound) {
@@ -384,11 +408,13 @@ struct Inleta : public OpcodeBase<Inleta> {
                   sfg_globals->aoutletVectors.end(),
                   sourceOutlets) == sfg_globals->aoutletVectors.end()) {
       sourceOutlets = new std::vector<std::vector<Outleta *> *>;
+      sourceGains = new std::vector<MYFLT>;
       sfg_globals->aoutletVectors.push_back(sourceOutlets);
+      sfg_globals->againVectors.push_back(sourceGains);
     } else {
       sourceOutlets->clear();
+      sourceGains->clear();
     }
-    sourceGains.clear();
     warn(csound, "sourceOutlets: 0x%x\n", sourceOutlets);
     sinkInletId[0] = 0;
     const char *insname =
@@ -414,13 +440,16 @@ struct Inleta : public OpcodeBase<Inleta> {
       const Connection &connection = sourceConnections[i];
       std::vector<Outleta *> &aoutlets =
           sfg_globals->aoutletsForSourceOutletIds[connection.sourceOutletId];
-      if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &aoutlets) ==
-          sourceOutlets->end()) {
+      std::vector<std::vector<Outleta *> *>::iterator existing =
+          std::find(sourceOutlets->begin(), sourceOutlets->end(), &aoutlets);
+      if (existing == sourceOutlets->end()) {
         sourceOutlets->push_back(&aoutlets);
-        sourceGains.push_back(connection.gain);
+        sourceGains->push_back(connection.gain);
         warn(csound, Str("Connected instances of outlet %s to instance 0x%x of "
                          "inlet %s.\n"),
              connection.sourceOutletId.c_str(), this, sinkInletId);
+      } else {
+        (*sourceGains)[existing - sourceOutlets->begin()] += connection.gain;
       }
     }
     warn(csound, "ENDED Inleta::init().\n");
@@ -441,7 +470,7 @@ struct Inleta : public OpcodeBase<Inleta> {
          sourceI++) {
       // Loop over the source connection instances...
       std::vector<Outleta *> *instances = sourceOutlets->at(sourceI);
-      MYFLT gain = sourceGains[sourceI];
+      MYFLT gain = sourceGains->at(sourceI);
       for (size_t instanceI = 0, instanceN = instances->size();
            instanceI < instanceN; instanceI++) {
         Outleta *sourceOutlet = instances->at(instanceI);
@@ -519,7 +548,7 @@ struct Inletk : public OpcodeBase<Inletk> {
    */
   char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outletk *> *> *sourceOutlets;
-  std::vector<MYFLT> sourceGains;
+  std::vector<MYFLT> *sourceGains;
   int32_t ksmps;
   SignalFlowGraphState *sfg_globals;
   int32_t init(CSOUND *csound) {
@@ -530,11 +559,13 @@ struct Inletk : public OpcodeBase<Inletk> {
                   sfg_globals->koutletVectors.end(),
                   sourceOutlets) == sfg_globals->koutletVectors.end()) {
       sourceOutlets = new std::vector<std::vector<Outletk *> *>;
+      sourceGains = new std::vector<MYFLT>;
       sfg_globals->koutletVectors.push_back(sourceOutlets);
+      sfg_globals->kgainVectors.push_back(sourceGains);
     } else {
       sourceOutlets->clear();
+      sourceGains->clear();
     }
-    sourceGains.clear();
     sinkInletId[0] = 0;
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
@@ -559,13 +590,16 @@ struct Inletk : public OpcodeBase<Inletk> {
       const Connection &connection = sourceConnections[i];
       std::vector<Outletk *> &koutlets =
           sfg_globals->koutletsForSourceOutletIds[connection.sourceOutletId];
-      if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &koutlets) ==
-          sourceOutlets->end()) {
+      std::vector<std::vector<Outletk *> *>::iterator existing =
+          std::find(sourceOutlets->begin(), sourceOutlets->end(), &koutlets);
+      if (existing == sourceOutlets->end()) {
         sourceOutlets->push_back(&koutlets);
-        sourceGains.push_back(connection.gain);
+        sourceGains->push_back(connection.gain);
         warn(csound, Str("Connected instances of outlet %s to instance 0x%x"
                          "of inlet %s.\n"),
              connection.sourceOutletId.c_str(), this, sinkInletId);
+      } else {
+        (*sourceGains)[existing - sourceOutlets->begin()] += connection.gain;
       }
     }
     return OK;
@@ -582,7 +616,7 @@ struct Inletk : public OpcodeBase<Inletk> {
          sourceI++) {
       // Loop over the source connection instances...
       const std::vector<Outletk *> *instances = sourceOutlets->at(sourceI);
-      MYFLT gain = sourceGains[sourceI];
+      MYFLT gain = sourceGains->at(sourceI);
       for (size_t instanceI = 0, instanceN = instances->size();
            instanceI < instanceN; instanceI++) {
         const Outletk *sourceOutlet = instances->at(instanceI);
@@ -656,7 +690,7 @@ struct Inletf : public OpcodeBase<Inletf> {
    */
   char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outletf *> *> *sourceOutlets;
-  std::vector<MYFLT> sourceGains;
+  std::vector<MYFLT> *sourceGains;
   int32_t ksmps;
   int32_t lastframe;
   bool fsignalInitialized;
@@ -671,11 +705,13 @@ struct Inletf : public OpcodeBase<Inletf> {
                   sfg_globals->foutletVectors.end(),
                   sourceOutlets) == sfg_globals->foutletVectors.end()) {
       sourceOutlets = new std::vector<std::vector<Outletf *> *>;
+      sourceGains = new std::vector<MYFLT>;
       sfg_globals->foutletVectors.push_back(sourceOutlets);
+      sfg_globals->fgainVectors.push_back(sourceGains);
     } else {
       sourceOutlets->clear();
+      sourceGains->clear();
     }
-    sourceGains.clear();
     sinkInletId[0] = 0;
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
@@ -700,19 +736,24 @@ struct Inletf : public OpcodeBase<Inletf> {
       const Connection &connection = sourceConnections[i];
       std::vector<Outletf *> &foutlets =
           sfg_globals->foutletsForSourceOutletIds[connection.sourceOutletId];
-      if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &foutlets) ==
-          sourceOutlets->end()) {
+      std::vector<std::vector<Outletf *> *>::iterator existing =
+          std::find(sourceOutlets->begin(), sourceOutlets->end(), &foutlets);
+      if (existing == sourceOutlets->end()) {
         sourceOutlets->push_back(&foutlets);
-        sourceGains.push_back(connection.gain);
+        sourceGains->push_back(connection.gain);
         warn(csound, Str("Connected instances of outlet %s to instance 0x%x of "
                          "inlet %s.\n"),
              connection.sourceOutletId.c_str(), this, sinkInletId);
+      } else {
+        (*sourceGains)[existing - sourceOutlets->begin()] += connection.gain;
       }
     }
     return OK;
   }
   /**
    * Mix fsig values from active outlets feeding this inlet.
+   * Non-sliding frames max-merge source into sink (older code wrote the
+   * wrong direction and only ran for inactive sources).
    */
   int32_t audio(CSOUND *csound) {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
@@ -726,65 +767,72 @@ struct Inletf : public OpcodeBase<Inletf> {
          sourceI++) {
       // Loop over the source connection instances...
       const std::vector<Outletf *> *instances = sourceOutlets->at(sourceI);
-      const float gain = (float)sourceGains[sourceI];
+      const float gain = (float)sourceGains->at(sourceI);
       for (size_t instanceI = 0, instanceN = instances->size();
            instanceI < instanceN; instanceI++) {
         const Outletf *sourceOutlet = instances->at(instanceI);
         // Skip inactive instances.
-        if (sourceOutlet->opds.insdshead->actflg) {
-          if (!fsignalInitialized) {
-            int32 N = sourceOutlet->fsignal->N;
-            if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
-              csound->Warning(csound,
-                              "%s", Str("Unsafe to have same fsig as in and out"));
-            }
-            fsignal->sliding = 0;
-            if (sourceOutlet->fsignal->sliding) {
-              if (fsignal->frame.auxp == 0 ||
-                  fsignal->frame.size <
-                      sizeof(MYFLT) * opds.insdshead->ksmps * (N + 2))
-                csound->AuxAlloc(
-                    csound, (N + 2) * sizeof(MYFLT) * opds.insdshead->ksmps,
-                    &fsignal->frame);
-              fsignal->NB = sourceOutlet->fsignal->NB;
-              fsignal->sliding = 1;
-            } else if (fsignal->frame.auxp == 0 ||
-                       fsignal->frame.size < sizeof(float) * (N + 2)) {
-              csound->AuxAlloc(csound, (N + 2) * sizeof(float),
-                               &fsignal->frame);
-            }
-            fsignal->N = N;
-            fsignal->overlap = sourceOutlet->fsignal->overlap;
-            fsignal->winsize = sourceOutlet->fsignal->winsize;
-            fsignal->wintype = sourceOutlet->fsignal->wintype;
-            fsignal->format = sourceOutlet->fsignal->format;
-            fsignal->framecount = 1;
-            lastframe = 0;
-            if (UNLIKELY(!((fsignal->format == PVS_AMP_FREQ) ||
-                           (fsignal->format == PVS_AMP_PHASE))))
-              result = csound->InitError(csound,
-                                         "%s", Str("inletf: signal format "
-                                             "must be amp-phase or amp-freq."));
-            fsignalInitialized = true;
+        if (!sourceOutlet->opds.insdshead->actflg) {
+          continue;
+        }
+        if (!fsignalInitialized) {
+          int32 N = sourceOutlet->fsignal->N;
+          if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
+            csound->Warning(csound,
+                            "%s", Str("Unsafe to have same fsig as in and out"));
           }
-          if (fsignal->sliding) {
-            for (int32_t frameI = 0; frameI < ksmps; frameI++) {
-              sinkFrame = (CMPLX *)fsignal->frame.auxp + (fsignal->NB * frameI);
-              sourceFrame = (CMPLX *)sourceOutlet->fsignal->frame.auxp +
-                            (fsignal->NB * frameI);
-              for (size_t binI = 0, binN = fsignal->NB; binI < binN; binI++) {
-                float amp = sourceFrame[binI].re * gain;
-                if (amp > sinkFrame[binI].re) {
-                  sinkFrame[binI].re = amp;
-                  sinkFrame[binI].im = sourceFrame[binI].im;
-                }
+          fsignal->sliding = 0;
+          if (sourceOutlet->fsignal->sliding) {
+            if (fsignal->frame.auxp == 0 ||
+                fsignal->frame.size <
+                    sizeof(MYFLT) * opds.insdshead->ksmps * (N + 2))
+              csound->AuxAlloc(
+                  csound, (N + 2) * sizeof(MYFLT) * opds.insdshead->ksmps,
+                  &fsignal->frame);
+            fsignal->NB = sourceOutlet->fsignal->NB;
+            fsignal->sliding = 1;
+          } else if (fsignal->frame.auxp == 0 ||
+                     fsignal->frame.size < sizeof(float) * (N + 2)) {
+            csound->AuxAlloc(csound, (N + 2) * sizeof(float),
+                             &fsignal->frame);
+          }
+          fsignal->N = N;
+          fsignal->NB = sourceOutlet->fsignal->NB;
+          fsignal->overlap = sourceOutlet->fsignal->overlap;
+          fsignal->winsize = sourceOutlet->fsignal->winsize;
+          fsignal->wintype = sourceOutlet->fsignal->wintype;
+          fsignal->format = sourceOutlet->fsignal->format;
+          fsignal->framecount = 1;
+          lastframe = 0;
+          if (fsignal->frame.auxp != 0) {
+            memset(fsignal->frame.auxp, 0, fsignal->frame.size);
+          }
+          if (UNLIKELY(!((fsignal->format == PVS_AMP_FREQ) ||
+                         (fsignal->format == PVS_AMP_PHASE))))
+            result = csound->InitError(csound,
+                                       "%s", Str("inletf: signal format "
+                                           "must be amp-phase or amp-freq."));
+          fsignalInitialized = true;
+        }
+        if (fsignal->sliding) {
+          for (int32_t frameI = 0; frameI < ksmps; frameI++) {
+            sinkFrame = (CMPLX *)fsignal->frame.auxp + (fsignal->NB * frameI);
+            sourceFrame = (CMPLX *)sourceOutlet->fsignal->frame.auxp +
+                          (fsignal->NB * frameI);
+            for (size_t binI = 0, binN = fsignal->NB; binI < binN; binI++) {
+              float amp = sourceFrame[binI].re * gain;
+              if (amp > sinkFrame[binI].re) {
+                sinkFrame[binI].re = amp;
+                sinkFrame[binI].im = sourceFrame[binI].im;
               }
             }
           }
         } else {
           sink = (float *)fsignal->frame.auxp;
           source = (float *)sourceOutlet->fsignal->frame.auxp;
-          if (lastframe < int(fsignal->framecount)) {
+          // Compare against the source frame counter; using the sink's
+          // framecount here stopped updates after the first merge.
+          if (lastframe < int(sourceOutlet->fsignal->framecount)) {
             for (size_t binI = 0, binN = fsignal->N + 2; binI < binN;
                  binI += 2) {
               float amp = source[binI] * gain;
@@ -869,7 +917,7 @@ struct Inletv : public OpcodeBase<Inletv> {
    */
   char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outletv *> *> *sourceOutlets;
-  std::vector<MYFLT> sourceGains;
+  std::vector<MYFLT> *sourceGains;
   size_t arraySize;
   size_t myFltsPerArrayElement;
   int32_t sampleN;
@@ -893,11 +941,13 @@ struct Inletv : public OpcodeBase<Inletv> {
                   sfg_globals->voutletVectors.end(),
                   sourceOutlets) == sfg_globals->voutletVectors.end()) {
       sourceOutlets = new std::vector<std::vector<Outletv *> *>;
+      sourceGains = new std::vector<MYFLT>;
       sfg_globals->voutletVectors.push_back(sourceOutlets);
+      sfg_globals->vgainVectors.push_back(sourceGains);
     } else {
       sourceOutlets->clear();
+      sourceGains->clear();
     }
-    sourceGains.clear();
     warn(csound, "sourceOutlets: 0x%x\n", sourceOutlets);
     sinkInletId[0] = 0;
     const char *insname =
@@ -925,13 +975,16 @@ struct Inletv : public OpcodeBase<Inletv> {
       const Connection &connection = sourceConnections[i];
       std::vector<Outletv *> &voutlets =
           sfg_globals->voutletsForSourceOutletIds[connection.sourceOutletId];
-      if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &voutlets) ==
-          sourceOutlets->end()) {
+      std::vector<std::vector<Outletv *> *>::iterator existing =
+          std::find(sourceOutlets->begin(), sourceOutlets->end(), &voutlets);
+      if (existing == sourceOutlets->end()) {
         sourceOutlets->push_back(&voutlets);
-        sourceGains.push_back(connection.gain);
+        sourceGains->push_back(connection.gain);
         warn(csound, Str("Connected instances of outlet %s to instance 0x%x of "
                          "inlet %s\n"),
              connection.sourceOutletId.c_str(), this, sinkInletId);
+      } else {
+        (*sourceGains)[existing - sourceOutlets->begin()] += connection.gain;
       }
     }
     warn(csound, "ENDED Inletv::init().\n");
@@ -951,7 +1004,7 @@ struct Inletv : public OpcodeBase<Inletv> {
          sourceI++) {
       // Loop over the source connection instances...
       std::vector<Outletv *> *instances = sourceOutlets->at(sourceI);
-      MYFLT gain = sourceGains[sourceI];
+      MYFLT gain = sourceGains->at(sourceI);
       for (size_t instanceI = 0, instanceN = instances->size();
            instanceI < instanceN; instanceI++) {
         Outletv *sourceOutlet = instances->at(instanceI);
@@ -1045,7 +1098,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
   char sinkInletId[MAX_STRING];
   char *instanceId;
   std::vector<std::vector<Outletkid *> *> *sourceOutlets;
-  std::vector<MYFLT> sourceGains;
+  std::vector<MYFLT> *sourceGains;
   int32_t ksmps;
   SignalFlowGraphState *sfg_globals;
   int32_t init(CSOUND *csound) {
@@ -1056,11 +1109,13 @@ struct Inletkid : public OpcodeBase<Inletkid> {
                   sfg_globals->kidoutletVectors.end(),
                   sourceOutlets) == sfg_globals->kidoutletVectors.end()) {
       sourceOutlets = new std::vector<std::vector<Outletkid *> *>;
+      sourceGains = new std::vector<MYFLT>;
       sfg_globals->kidoutletVectors.push_back(sourceOutlets);
+      sfg_globals->kidgainVectors.push_back(sourceGains);
     } else {
       sourceOutlets->clear();
+      sourceGains->clear();
     }
-    sourceGains.clear();
     sinkInletId[0] = 0;
     instanceId = csound->StringArg2Name(csound, (char *)0, SinstanceId->data,
                                      (char *)"", 1);
@@ -1087,13 +1142,16 @@ struct Inletkid : public OpcodeBase<Inletkid> {
       const Connection &connection = sourceConnections[i];
       std::vector<Outletkid *> &koutlets =
           sfg_globals->kidoutletsForSourceOutletIds[connection.sourceOutletId];
-      if (std::find(sourceOutlets->begin(), sourceOutlets->end(), &koutlets) ==
-          sourceOutlets->end()) {
+      std::vector<std::vector<Outletkid *> *>::iterator existing =
+          std::find(sourceOutlets->begin(), sourceOutlets->end(), &koutlets);
+      if (existing == sourceOutlets->end()) {
         sourceOutlets->push_back(&koutlets);
-        sourceGains.push_back(connection.gain);
+        sourceGains->push_back(connection.gain);
         warn(csound, Str("Connected instances of outlet %s to instance 0x%x of "
                          "inlet %s.\n"),
              connection.sourceOutletId.c_str(), this, sinkInletId);
+      } else {
+        (*sourceGains)[existing - sourceOutlets->begin()] += connection.gain;
       }
     }
     return OK;
@@ -1110,7 +1168,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
          sourceI++) {
       // Loop over the source connection instances...
       const std::vector<Outletkid *> *instances = sourceOutlets->at(sourceI);
-      MYFLT gain = sourceGains[sourceI];
+      MYFLT gain = sourceGains->at(sourceI);
       for (size_t instanceI = 0, instanceN = instances->size();
            instanceI < instanceN; instanceI++) {
         const Outletkid *sourceOutlet = instances->at(instanceI);
