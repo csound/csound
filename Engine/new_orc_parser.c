@@ -28,9 +28,7 @@
 #include "score_param.h"
 #include "csound_orc_semantics.h"
 #include "new_orc_parser.h"
-#ifdef CSOUND_WASI_BROWSER
 #include "csmodule.h"
-#endif
 void add_opcode_defs(CSOUND *csound);
 
 #if defined(HAVE_DIRENT_H)
@@ -105,10 +103,8 @@ static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
     int32_t err;
-#ifdef CSOUND_WASI_BROWSER
     if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
       return NULL;
-#endif
     add_opcode_defs(csound);  // add global OpcodeDef variables
     {
       PRE_PARM    qq;

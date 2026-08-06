@@ -79,6 +79,9 @@
 
 #include "csoundCore.h"
 #include "csmodule.h"
+#ifdef HAVE_WASMTIME
+#include "wasm_plugins.h"
+#endif
 
 #if defined(__MACH__)
 #include <TargetConditionals.h>
@@ -427,42 +430,6 @@ int32_t csoundLoadExternals(CSOUND *csound) {
   return CSOUND_SUCCESS;
 #endif
 }
-
-#ifdef CSOUND_WASI_BROWSER
-int32_t csoundLoadRequestedPlugins(CSOUND *csound) {
-  csoundModule_t *oldHead = (csoundModule_t *)csound->csmodule_db;
-  csoundModule_t *module;
-  int32_t err;
-  int32_t retval;
-
-  if (!isRequestingPlugins(csound))
-    return CSOUND_SUCCESS;
-
-  retval = csoundLoadExternals(csound);
-
-  if (csound->modules_loaded == 0) {
-    err = csoundInitModules(csound);
-    if (UNLIKELY(err != CSOUND_SUCCESS &&
-                 (retval == CSOUND_SUCCESS || err < retval)))
-      retval = err;
-    if (LIKELY(err == CSOUND_SUCCESS))
-      csound->modules_loaded = 1;
-    return retval;
-  }
-
-  for (module = (csoundModule_t *)csound->csmodule_db;
-       module != oldHead;
-       module = module->nxt) {
-    if (UNLIKELY(module == NULL))
-      return CSOUND_ERROR;
-    err = init_module(csound, module);
-    if (UNLIKELY(err != CSOUND_SUCCESS &&
-                 (retval == CSOUND_SUCCESS || err < retval)))
-      retval = err;
-  }
-  return retval;
-}
-#endif
 
 int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
   return 0;
@@ -1103,6 +1070,48 @@ int32_t csoundDestroyModules(CSOUND *csound)
 }
 
 #endif /* __wasi__ */
+
+int32_t csoundLoadRequestedPlugins(CSOUND *csound) {
+  csoundModule_t *oldHead;
+  csoundModule_t *module;
+  int32_t err;
+  int32_t retval;
+
+  if (csound == NULL || csound->dl_opcodes_oplibs == NULL ||
+      csound->dl_opcodes_oplibs[0] == '\0')
+    return CSOUND_SUCCESS;
+
+  oldHead = (csoundModule_t *)csound->csmodule_db;
+  retval = csoundLoadExternals(csound);
+
+  if (csound->modules_loaded == 0) {
+    err = csoundInitModules(csound);
+    if (UNLIKELY(err != CSOUND_SUCCESS &&
+                 (retval == CSOUND_SUCCESS || err < retval)))
+      retval = err;
+    if (LIKELY(err == CSOUND_SUCCESS))
+      csound->modules_loaded = 1;
+    return retval;
+  }
+
+  for (module = (csoundModule_t *)csound->csmodule_db;
+       module != oldHead;
+       module = module->nxt) {
+    if (UNLIKELY(module == NULL))
+      return CSOUND_ERROR;
+    err = init_module(csound, module);
+    if (UNLIKELY(err != CSOUND_SUCCESS &&
+                 (retval == CSOUND_SUCCESS || err < retval)))
+      retval = err;
+  }
+#ifdef HAVE_WASMTIME
+  err = csoundInitWasmOpcodeLibraries(csound);
+  if (UNLIKELY(err != CSOUND_SUCCESS &&
+               (retval == CSOUND_SUCCESS || err < retval)))
+    retval = err;
+#endif
+  return retval;
+}
 
 /* ------------------------------------------------------------------------ */
 #if defined(WIN32)

@@ -51,6 +51,26 @@ if(BUILD_TESTS)
             ${CSOUNDLIB_STATIC}
     )
 
+    if(NOT EMSCRIPTEN AND NOT IOS AND NOT BARE_METAL AND
+       NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+        add_library(requested_opcode_test_plugin MODULE
+            fixtures/requested_opcode_plugin.c)
+        target_include_directories(requested_opcode_test_plugin PRIVATE
+            ${libcsound_private_include_dirs})
+        target_include_directories(requested_opcode_test_plugin PUBLIC
+            ${libcsound_public_include_dirs})
+        target_compile_definitions(requested_opcode_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        set_target_properties(requested_opcode_test_plugin PROPERTIES
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/requested-opcode-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/requested-opcode-plugin)
+        add_dependencies(unittests requested_opcode_test_plugin)
+        target_compile_definitions(unittests PRIVATE
+            "CSOUND_TEST_REQUESTED_OPCODE_PLUGIN=\"$<TARGET_FILE:requested_opcode_test_plugin>\"")
+    endif()
+
     # BUILD_OSC_OPCODES stays ON in the cache when check_deps disables it
     # in Opcodes/, so require the target too.
     if(BUILD_OSC_OPCODES AND TARGET osc)
