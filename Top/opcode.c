@@ -1267,7 +1267,8 @@ int32_t create_opcode_array(CSOUND *csound, OPARRAY *p) {
     OENTRY *entry =
      ref->entries->entries[n < ref->entries->count ? n : ref->entries->count-1];
     n  = *p->n;
-    tabinit(csound, p->r, n, p->h.insdshead);
+    if (UNLIKELY(tabinit(csound, p->r, n, p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
     obj = (OPCODEOBJ *) p->r->data;
     for(i = 0; i < n; i++) {
       if(obj[i].dataspace == NULL || obj[i].size < entry->dsblksiz) {
@@ -1469,8 +1470,10 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       array = (ARRAYDAT *) p->args[i];
       if(array->dimensions > 1)
         return csound->InitError(csound, "only 1-dim arrays are allowed\n");
-      if(array->dimensions == 0 || n > array->sizes[0])
-        tabinit(csound, array, n, p->h.insdshead);
+      if (array->dimensions == 0 || n > array->sizes[0]) {
+        if (UNLIKELY(tabinit(csound, array, n, p->h.insdshead) != OK))
+          return csound_array_init_resize_error(csound);
+      }
   }
   for(i = 0; i < n; i++) {
     size_t size;

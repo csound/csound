@@ -630,6 +630,36 @@ TEST_F (EngineTests, testScoreRewind)
     ASSERT_TRUE(csoundPerformKsmps(csound) == 0); 
 }
 
+TEST_F (EngineTests, testInvalidTrimDoesNotStopFollowingInstrument)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      sr = 1000
+      ksmps = 10
+      nchnls = 1
+
+      instr 1
+        values:i[] init 1
+        trim values, -1
+      endin
+
+      instr 2
+        chnset 1, "continued"
+      endin
+    )", 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 0\ni 2 0.01 0\n", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    for (int32_t cycle = 0; cycle < 4; ++cycle) {
+      if (csoundPerformKsmps(csound) != CSOUND_SUCCESS)
+        break;
+    }
+
+    int32_t error = 0;
+    EXPECT_EQ(csoundGetControlChannel(csound, "continued", &error), FL(1.0));
+    EXPECT_EQ(error, CSOUND_SUCCESS);
+}
+
 TEST_F (EngineTests, testCommandLineArgumentsApi)
 {
     char firstArgument[] = "concert.orc";

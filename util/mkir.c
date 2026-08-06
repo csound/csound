@@ -263,7 +263,8 @@ static int32_t deconv_init(CSOUND *csound, DECONV *p) {
   int32_t fftlen;
   p->len = p->swp->sizes[0];
   fftlen = p->len*2;
-  tabinit_like(csound, p->outp, p->swp);
+  if (UNLIKELY(tabinit_like(csound, p->outp, p->swp) != OK))
+    return csound_array_init_resize_error(csound);
   p->in = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*fftlen);
   p->sw = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*fftlen);
   return OK;

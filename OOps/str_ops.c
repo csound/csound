@@ -174,7 +174,8 @@ int32_t commandline_args_init(CSOUND *csound, ARGV_OP *p)
 {
   int32_t count = csoundGetCommandLineArgCount(csound);
 
-  tabinit(csound, p->args, count, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->args, count, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
   for (int32_t index = 0; index < count; index++) {
     const char *argument = csoundGetCommandLineArg(csound, index);
     STRINGDAT source = {

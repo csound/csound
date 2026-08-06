@@ -621,7 +621,11 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
         }
         // If the destination really is an array, make it like the source.
         if (csoundGetTypeForArg(dstArr) == &CS_VAR_TYPE_ARRAY) {
-            tabinit_like(csound, dstArr, (ARRAYDAT *)srcArr);
+            if (UNLIKELY(tabinit_like(csound, dstArr, srcArr) != OK)) {
+                return csound->InitError(
+                  csound, "%s",
+                  Str("array assignment: could not initialize destination"));
+            }
         }
 
         // Special-case: complex arrays copy immediately (no perf hook, no flag).

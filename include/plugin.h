@@ -351,10 +351,10 @@ public:
 template <typename T> class Vector : ARRAYDAT {
 
 public:
-  /** Initialise the container
+  /** Initialise the container and return OK or NOTOK.
    */
-  void init(Csound *csound, int32_t size, INSDS *ctx) {
-    tabinit(csound, this, size, ctx);
+  int32_t init(Csound *csound, int32_t size, INSDS *ctx) {
+    return tabinit(csound, this, size, ctx);
   }
 
   /** Return writable data without allocating while detaching shared storage.

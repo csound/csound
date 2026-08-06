@@ -744,7 +744,9 @@ static int32_t hilbertset_array(CSOUND *csound, HILBERTA *p)
       p->xnm1[j] = p->ynm1[j] = FL(0.0);
       p->coef[j] = -(MYFLT)beta;
     }
-    tabinit(csound, p->out, CS_KSMPS, p->h.insdshead);
+    if (UNLIKELY(tabinit(csound, p->out, CS_KSMPS,
+                         p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
     for(int k=0; k < CS_KSMPS; k++)
       ((COMPLEXDAT *)p->out->data)[k].isPolar = 0;  
     return OK;
@@ -818,4 +820,3 @@ int32_t ugsc_init_(CSOUND *csound)
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }
-

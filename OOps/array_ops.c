@@ -155,7 +155,8 @@ int32_t tabfill(CSOUND *csound, TABFILL *p)
   int32_t i, size;
   size_t memMyfltSize;
   MYFLT  **valp = p->iargs;
-  tabinit(csound, p->ans, nargs, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->ans, nargs, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
 
   size = p->ans->sizes[0];
   for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
@@ -240,7 +241,8 @@ int32_t tabfillf(CSOUND* csound, TABFILLF* p)
     nextval(infile);
   } while (!feof(infile));
   flen--; // overshoots by 1
-  tabinit(csound, p->ans, flen, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->ans, flen, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
   size = p->ans->sizes[0];
   for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
   if (size<flen) flen = size;
@@ -295,7 +297,8 @@ int32_t tabsfill(CSOUND *csound, TABFILLF *p)
     if (isnan(x)) break;
     flen++;
   } while (*string!='\0');
-  tabinit(csound, p->ans, flen, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->ans, flen, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
   size = p->ans->sizes[0];
   for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
   if (size<flen) flen = size;
@@ -731,7 +734,8 @@ int32_t tabarithset(CSOUND *csound, TABARITH *p)
     if (p->ans->arrayType != source->arrayType &&
         p->ans->arrayType == p->right->arrayType)
       source = p->right;
-    tabinit_like(csound, p->ans, source);
+    if (UNLIKELY(tabinit_like(csound, p->ans, source) != OK))
+      return csound_array_init_resize_error(csound);
     return OK;
   }
   else return csound->InitError(csound, "%s",
@@ -753,7 +757,8 @@ int32_t tabarithset1(CSOUND *csound, TABARITH1 *p)
   }
 
 
-  tabinit_like(csound, p->ans, left);
+  if (UNLIKELY(tabinit_like(csound, p->ans, left) != OK))
+    return csound_array_init_resize_error(csound);
   /* When the right operand is i-rate (##add.[i, ##sub.[i, etc.),
      it is safe and correct to compute the result at init-time as well.
      This ensures k[] outputs are populated even if a perf pass does
@@ -779,7 +784,8 @@ int32_t tabarithset2(CSOUND *csound, TABARITH2 *p)
     return OK;
   }
 
-  tabinit_like(csound, p->ans, right);
+  if (UNLIKELY(tabinit_like(csound, p->ans, right) != OK))
+    return csound_array_init_resize_error(csound);
 
 
   return OK;
@@ -970,7 +976,8 @@ int32_t tabaiadd(CSOUND *csound, TABARITH1 *p)
   ARRAYDAT *ans = p->ans;
   ARRAYDAT *l   = p->left;
   MYFLT r       = *p->right;
-  tabinit_like(csound, ans, l);
+  if (UNLIKELY(tabinit_like(csound, ans, l) != OK))
+    return csound_array_perf_resize_error(csound, &p->h);
   return tabiadd(csound, ans, l, r, p);
 }
 
@@ -1004,7 +1011,8 @@ int32_t tabaddinkk(CSOUND *csound, TABARITHIN *p)
   int32_t sizer    = r->sizes[0];
   int32_t i;
 
-  tabinit_like(csound, ans, r);
+  if (UNLIKELY(tabinit_like(csound, ans, r) != OK))
+    return csound_array_perf_resize_error(csound, &p->h);
 
   if (UNLIKELY(ans->data == NULL || r->data==NULL))
     return csound->PerfError(csound, &(p->h),
@@ -1285,7 +1293,8 @@ int32_t tabsubinkk(CSOUND *csound, TABARITHIN *p)
   int32_t sizer    = r->sizes[0];
   int32_t i;
 
-  tabinit_like(csound, ans, r);
+  if (UNLIKELY(tabinit_like(csound, ans, r) != OK))
+    return csound_array_perf_resize_error(csound, &p->h);
   if (UNLIKELY(ans->data == NULL || r->data==NULL))
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("array-variable not initialised"));
@@ -1323,7 +1332,8 @@ int32_t tabmulinkk(CSOUND *csound, TABARITHIN *p)
   int32_t sizer    = r->sizes[0];
   int32_t i;
 
-  tabinit_like(csound, ans, r);
+  if (UNLIKELY(tabinit_like(csound, ans, r) != OK))
+    return csound_array_perf_resize_error(csound, &p->h);
 
   if (UNLIKELY(ans->data == NULL || r->data==NULL))
     return csound->PerfError(csound, &(p->h),
@@ -1731,7 +1741,8 @@ int32_t tabdivinkk(CSOUND *csound, TABARITHIN *p)
   int32_t sizer    = r->sizes[0];
   int32_t i;
 
-  tabinit_like(csound, ans, r);
+  if (UNLIKELY(tabinit_like(csound, ans, r) != OK))
+    return csound_array_perf_resize_error(csound, &p->h);
   if (UNLIKELY(ans->data == NULL || r->data==NULL))
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("array-variable not initialised"));
@@ -1754,7 +1765,8 @@ int32_t tabaisub(CSOUND *csound, TABARITH1 *p)
   MYFLT r       = *p->right;
   int32_t sizel = l->sizes[0];
   int32_t i;
-  tabinit_like(csound, ans, l);
+  if (UNLIKELY(tabinit_like(csound, ans, l) != OK))
+    return csound_array_perf_resize_error(csound, &p->h);
 
   if (UNLIKELY(ans->data == NULL || l->data== NULL))
     return csound->PerfError(csound, &(p->h),
@@ -1776,7 +1788,8 @@ int32_t tabiasub(CSOUND *csound, TABARITH2 *p)
   MYFLT r     = *p->left;
   int32_t sizel = l->sizes[0];
   int32_t i;
-  tabinit_like(csound, ans, l);
+  if (UNLIKELY(tabinit_like(csound, ans, l) != OK))
+    return csound_array_perf_resize_error(csound, &p->h);
 
   if (UNLIKELY(ans->data == NULL || l->data== NULL))
     return csound->PerfError(csound, &(p->h),
@@ -1835,7 +1848,8 @@ int32_t tabaimult(CSOUND *csound, TABARITH1 *p)
   ARRAYDAT *ans = p->ans;
   ARRAYDAT *l   = p->left;
   MYFLT r       = *p->right;
-  tabinit_like(csound, ans, l);
+  if (UNLIKELY(tabinit_like(csound, ans, l) != OK))
+    return csound_array_perf_resize_error(csound, &p->h);
   return tabimult(csound, ans, l, r, p);
 }
 
@@ -1845,7 +1859,8 @@ int32_t tabiamult(CSOUND *csound, TABARITH2 *p)
   ARRAYDAT *ans = p->ans;
   ARRAYDAT *l   = p->right;
   MYFLT r       = *p->left;
-  tabinit_like(csound, ans, l);
+  if (UNLIKELY(tabinit_like(csound, ans, l) != OK))
+    return csound_array_perf_resize_error(csound, &p->h);
   return tabimult(csound, ans, l, r, p);
 }
 
@@ -1857,7 +1872,8 @@ int32_t tabaidiv(CSOUND *csound, TABARITH1 *p)
   MYFLT r       = *p->right;
   int32_t sizel = l->sizes[0];
   int32_t i;
-  tabinit_like(csound, ans, l);
+  if (UNLIKELY(tabinit_like(csound, ans, l) != OK))
+    return csound_array_perf_resize_error(csound, &p->h);
 
   if (UNLIKELY(r==FL(0.0)))
     return csound->PerfError(csound, &(p->h),
@@ -1882,7 +1898,8 @@ int32_t tabiadiv(CSOUND *csound, TABARITH2 *p)
   MYFLT r     = *p->left;
   int32_t sizel    = l->sizes[0];
   int32_t i;
-  tabinit_like(csound, ans, l);
+  if (UNLIKELY(tabinit_like(csound, ans, l) != OK))
+    return csound_array_perf_resize_error(csound, &p->h);
 
   if (UNLIKELY(ans->data == NULL || l->data== NULL))
     return csound->PerfError(csound, &(p->h),
@@ -3503,10 +3520,9 @@ int32_t tabcopyk_init(CSOUND *csound, TABCPY *p) {
   if (UNLIKELY(p->src == NULL || p->dst == NULL))
     return csound->InitError(csound, "tabcopyk_init: null src/dst");
 
-  if (p->dst->arrayType == NULL)
-    p->dst->arrayType = p->src->arrayType;
-
   if (p->src->arrayType && p->src->arrayType->userDefinedType) {
+    if (p->dst->arrayType == NULL)
+      p->dst->arrayType = p->src->arrayType;
     if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
       return csound->InitError(csound, "%s",
                                Str("array-variable types do not match"));
@@ -3520,20 +3536,8 @@ int32_t tabcopyk_init(CSOUND *csound, TABCPY *p) {
     return OK;
   }
 
-  // Propagate dimensions and sizes so downstream ops can rely on them
-  if (p->src->dimensions > 0) {
-    int32_t dim = p->src->dimensions;
-    p->dst->dimensions = dim;
-    if (p->dst->sizes != NULL) {
-      csound->Free(csound, p->dst->sizes);
-      p->dst->sizes = NULL;
-    }
-    p->dst->sizes = (int32_t*) csound->Malloc(csound, sizeof(int32_t) * dim);
-    memcpy(p->dst->sizes, p->src->sizes, sizeof(int32_t) * dim);
-  }
-
-  // Allocate backing store sized like the source total element count
-  tabinit(csound, p->dst, get_array_total_size(p->src), p->h.insdshead);
+  if (UNLIKELY(tabinit_like(csound, p->dst, p->src) != OK))
+    return csound_array_init_resize_error(csound);
   return OK;
 }
 
@@ -3769,9 +3773,11 @@ int32_t tabgen(CSOUND *csound, TABGEN *p)
                              (long long)sz64);
   int32_t size = (int32_t)sz64;
 
-  tabinit(csound, p->tab, size, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
   if (UNLIKELY(p->tab->data==NULL)) {
-    tabinit(csound, p->tab, size, p->h.insdshead);
+    if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
   }
   data =  p->tab->data;
   for (i=0; i < size; i++) {
@@ -3794,7 +3800,8 @@ int32_t ftab2tabi(CSOUND *csound, TABCOPY *p)
     return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
   fsize = ftp->flen;
   if (UNLIKELY(p->tab->data==NULL)) {
-    tabinit(csound, p->tab, fsize, p->h.insdshead);
+    if (UNLIKELY(tabinit(csound, p->tab, fsize, p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
     p->tab->sizes[0] = fsize;
   }
   tlen = p->tab->sizes[0];
@@ -3828,9 +3835,13 @@ int32_t ftab2tab(CSOUND *csound, TABCOPY *p)
 
 int32_t trim_i(CSOUND *csound, TRIM *p)
 {
-  int32_t size = (int)(*p->size);
-  tabinit(csound, p->tab, size, p->h.insdshead);
-  p->tab->sizes[0] = size;
+  int32_t size;
+  if (UNLIKELY(csound_array_size_to_int32(*p->size, &size) != OK)) {
+    return csound->InitError(csound, "%s", Str("Invalid array size"));
+  }
+  if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK)) {
+    return csound_array_init_resize_error(csound);
+  }
   return OK;
 }
 
@@ -3849,7 +3860,11 @@ int32_t trim_prepare(CSOUND *csound, TRIM *p)
 
 int32_t trim(CSOUND *csound, TRIM *p)
 {
-  int32_t size = (int)(*p->size);
+  int32_t size;
+  if (UNLIKELY(csound_array_size_to_int32(*p->size, &size) != OK)) {
+    return csound->PerfError(csound, &p->h, "%s",
+                             Str("Invalid array size"));
+  }
   int32_t n = tabcheck(csound, p->tab, size, &(p->h));
   if (n != OK) return n;
   p->tab->sizes[0] = size;
@@ -3880,7 +3895,8 @@ int32_t tabslice(CSOUND *csound, TABSLICE *p) {
   if (UNLIKELY(inc<=0))
     return csound->InitError(csound, "%s",
                              Str("slice increment must be positive"));
-  tabinit(csound, p->tab, size, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
 
   for (i = start, destIndex = 0; i < end + 1; i+=inc, destIndex++) {
     p->tab->arrayType->copyValue(csound, p->tab->arrayType,
@@ -3904,7 +3920,8 @@ int32_t tabmap_set(CSOUND *csound, TABMAP *p)
 
   size = p->tabin->sizes[0];
   if (UNLIKELY(p->tab->data==NULL)) {
-    tabinit(csound, p->tab, size, p->h.insdshead);
+    if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
     p->tab->sizes[0] = size;
   }
   else size = size < p->tab->sizes[0] ? size : p->tab->sizes[0];
@@ -3968,7 +3985,8 @@ int32_t tablength(CSOUND *csound, TABQUERY1 *p)
 
 int32_t asig2array_init(CSOUND *csound, A2ARR *p) {
   int32_t nsmps = CS_KSMPS;
-  tabinit(csound, p->res, nsmps, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->res, nsmps, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
   return OK;
 }
 

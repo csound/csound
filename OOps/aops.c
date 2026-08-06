@@ -1578,7 +1578,9 @@ int32_t inarray_set(CSOUND *csound, INA *p){
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
                              "local sampling rate not supported\n");
-  tabinit(csound, p->tabout, csound->inchnls, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->tabout, csound->inchnls,
+                       p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
   return OK;
 }
 
@@ -2594,7 +2596,9 @@ int32_t painit(CSOUND *csound, PAINIT *p)
   if (*p->end!=FL(0.0)) {
     if (k<pargs) pargs = k;
   }
-  tabinit(csound, p->inits, pargs-start+1, p->h.insdshead);
+  if (UNLIKELY(tabinit(csound, p->inits, pargs-start+1,
+                       p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
   for (n=0; n<=pargs-start; n++) {
     ((MYFLT*)p->inits->data)[n] = csound->init_event->p[n+start];
   }
