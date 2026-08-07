@@ -92,7 +92,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
     if (which_task == WAIT)
       continue;
     if (which_task == INVALID)
-      return error;
+      return errorcnt;
     /* VL: the validity of icurTime needs to be checked */
     time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
     insds = task_map[which_task];

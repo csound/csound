@@ -67,6 +67,10 @@ void csoundDebuggerBreakpointReached(CSOUND *csound)
 
  void csoundDebuggerInit(CSOUND *csound)
 {
+    /* to be removed if/when multicore is supported */
+    if(csound->multiThreadedThreadInfo != NULL)
+      csoundDie(csound, "cannot initialise debugger for multicore\n");
+  
     /* Idempotent: do nothing if already initialized */
     if (csound->csdebug_data != NULL) return;
     csdebug_data_t *data =
@@ -973,10 +977,9 @@ int32_t kperf_debug(CSOUND *csound) {
       for (k = 1; k < csound->oparms->numThreads; k++)
           mix_out(csound->spout_tmp, csound->spout_tmp +
                   k * csound->nspout, csound->nspout);
-      csound->multiThreadedDag = NULL; 
-#else /* currently disabled */
-      return CSOUND_ERROR;
-#endif
+ 
+#endif /* currently disabled */
+      csound->multiThreadedDag = NULL;
     } else {
       int32_t done;
       double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
