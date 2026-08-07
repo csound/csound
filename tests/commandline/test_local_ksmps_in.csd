@@ -5,7 +5,8 @@
 <CsInstruments>
 sr = 32
 ksmps = 8
-nchnls = 2
+nchnls = 1
+nchnls_i = 2
 0dbfs = 4
 
 
