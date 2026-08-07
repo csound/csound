@@ -299,6 +299,8 @@ int32_t kperf(CSOUND *csound) {
           mix_out(csound->spout_tmp, csound->spout_tmp +
                   k * csound->nspout, csound->nspout);
       }
+      else ATOMIC_SET(csound->multiThreadedComplete, 1);
+        
 #endif /* PARCS */
       csound->multiThreadedDag = NULL;
     }
