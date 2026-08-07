@@ -32,6 +32,7 @@
 #include "oload.h"
 #include "pstream.h"
 #include "csound_orc_semantics.h"
+#include "csound_orc_structs.h"
 #include "csound_standard_types.h"
 #include "csound_orc_compile.h"
 #include "namedins.h"
@@ -2609,6 +2610,26 @@ static CS_VARIABLE *setup_arg_for_var_name(CSOUND* csound, ARG* arg,
   return arg->argPtr;
 }
 
+static int32_t is_audio_var(CSOUND *csound, CS_VARIABLE *var,
+                            const char *structPath) {
+  if (structPath != NULL) {
+    char *path = csoundStrdup(csound, structPath);
+    char *th;
+    char *memberName = cs_strtok_r(path, ".", &th);
+    while (memberName != NULL && var != NULL) {
+      if (var->varType == NULL || !var->varType->userDefinedType) {
+        var = NULL;
+        break;
+      }
+      var = getStructMember(var->varType->members, memberName);
+      memberName = cs_strtok_r(NULL, ".", &th);
+    }
+    csound->Free(csound, path);
+  }
+  return csound_variable_contains_type(var, &CS_VAR_TYPE_A);
+}
+
+
 /* get storage ndx of const, pnum, lcl or gbl */
 /* argument const/gbl indexes are positiv+1, */
 /* pnum/lcl negativ-1 called only after      */
@@ -2697,11 +2718,14 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
   else if(engineState->varPool != NULL && (uintptr_t)engineState->varPool >= 0x1000 &&
           setup_arg_for_var_name(csound, arg, engineState->varPool, s) != NULL) {
        arg->type = ARG_GLOBAL;
+       if(is_audio_var(csound, arg->argPtr, arg->structPath))
+          ip->glbvarcnt++;
     }
     else if(csound->engineState.varPool != NULL && (uintptr_t)csound->engineState.varPool >= 0x1000 &&
             setup_arg_for_var_name(csound, arg, csound->engineState.varPool, s) != NULL) {
     arg->type = ARG_GLOBAL;
-
+    if(is_audio_var(csound, arg->argPtr, arg->structPath))
+          ip->glbvarcnt++;  
   }
   /* otherwise we have a local arg */
   else {

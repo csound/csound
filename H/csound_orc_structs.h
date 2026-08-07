@@ -50,6 +50,9 @@ typedef struct {
 /* Returns a dynamically allocated string; caller must free using csound->Free() */
 int findStructMemberIndex(CONS_CELL* members, char* memberName);
 CS_VARIABLE* getStructMember(CONS_CELL* members, char* memberName);
+/* Checks the variable and nested struct or array members for target. */
+int32_t csound_variable_contains_type(const CS_VARIABLE *var,
+                                      const CS_TYPE *target);
 int32_t initStructVar(CSOUND* csound, void* p);
 void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem);
 /* Note: signatures must match CS_TYPE callbacks in csound_type_system.h */
