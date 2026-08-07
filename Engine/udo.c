@@ -1636,6 +1636,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     csound->ids = csound->ids->nxti;
   }
 
+  if (UNLIKELY(err != OK))
+    goto finish_init;
+
   inm->passByRef = buf->opcode_info->newStyle &&
     parent_ip->ksmps == p->ip->ksmps &&
     parent_ip->esr == p->ip->esr;
