@@ -77,7 +77,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
                                int32_t numThreads) {
   INSDS *insds = NULL;
   OPDS *opstart = NULL;
-  int32_t played_count = 0;
+  int32_t error = 0;
   int32_t which_task;
   INSDS **task_map = (INSDS **)csound->dag_task_map;
   double time_end;
@@ -91,7 +91,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
     if (which_task == WAIT)
       continue;
     if (which_task == INVALID)
-      return played_count;
+      return error;
     /* VL: the validity of icurTime needs to be checked */
     time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
     insds = task_map[which_task];
@@ -113,11 +113,11 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
         insds->spout = csound->spout_tmp + index * csound->nspout;
         insds->kcounter = csound->kcounter;
         csound->mode = 2;
-        while ((opstart = opstart->nxtp) != NULL) {
+        while (error == 0 && (opstart = opstart->nxtp) != NULL) {
           /* In case of jumping need this repeat of opstart */
           opstart->insdshead->pds = opstart;
           csound->op = opstart->optext->t.opcod;
-          (*opstart->perf)(csound, opstart); /* run each opcode */
+          error = (*opstart->perf)(csound, opstart); /* run each opcode */
           opstart = opstart->insdshead->pds;
         }
         csound->mode = 0;
@@ -160,13 +160,12 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
       }
       insds->ksmps_offset = 0; /* reset sample-accuracy offset */
       insds->ksmps_no_end = 0; /* reset end of loop samples */
-      played_count++;
     }
     if(csoundGetDebug(csound) & DEBUG_PARCS)
       csound->Message(csound, "Finished task %d\n", which_task);
     next_task = dag_end_task(csound, which_task);
   }
-  return played_count;
+  return error;
 }
 
 int32_t csound_node_perf(CSOUND *csound, int32_t index,
@@ -200,8 +199,8 @@ unsigned long kperf_thread(void *cs) {
     return ULONG_MAX;
   }
   index++;
-  int32_t parflag, taskflag = 0;
-  while (1) {
+  int32_t parflag, taskflag = 0, err = 0;
+  while (err == 0) {
 #ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier1);
 #else
@@ -215,12 +214,14 @@ unsigned long kperf_thread(void *cs) {
       return 0UL;
     }
     csound->taskflag[index] = 0;
-    node_perf(csound, index, numThreads);
+    err = node_perf(csound, index, numThreads);
     csound->taskflag[index] = 1;
 #ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier2);
 #endif
   }
+  ATOMIC_SET(csound->multiThreadedComplete, 1);
+  return CSOUND_ERROR;
 }
 #endif // PARCS
 
@@ -264,7 +265,7 @@ int32_t kperf(CSOUND *csound) {
     /* There are 2 partitions of work: 1st by inso,
        2nd by inso count / thread count. */
 #ifdef PARCS
-      int32_t k;
+      int32_t k, error = 0;
       int32_t n = csound->oparms->numThreads;
       if (csound->dag_changed)
         dag_build(csound, ip);
@@ -277,7 +278,8 @@ int32_t kperf(CSOUND *csound) {
 #else
       ATOMIC_SET(csound->parflag,!csound->parflag);
 #endif
-      node_perf(csound, 0, n);
+      error = node_perf(csound, 0, n);
+      if(error == 0) {
       /* wait until partition is complete */
 #ifdef PARCS_USE_LOCK_BARRIER
       csound->WaitBarrier(csound->barrier2);
@@ -295,6 +297,7 @@ int32_t kperf(CSOUND *csound) {
           mix_out(csound->spout_tmp, csound->spout_tmp +
                   k * csound->nspout, csound->nspout);
 #endif /* PARCS */
+      }
       csound->multiThreadedDag = NULL;
     }
     // single-thread performance

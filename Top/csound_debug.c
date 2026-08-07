@@ -941,25 +941,22 @@ int32_t kperf_debug(CSOUND *csound) {
     }
   }
   if (ip != NULL && data != NULL && (data->status != CSDEBUG_STATUS_STOPPED)) {
-    /* There are 2 partitions of work: 1st by inso,
-       2nd by inso count / thread count. */
     if (csound->multiThreadedThreadInfo != NULL) {
-#ifdef PARCS
+#ifdef ONE_FINE_DAY
+      /* DEBUGGER disabled for multicore performance */
       int32_t k;
       int32_t n = csound->oparms->numThreads;
       if (csound->dag_changed)
         dag_build(csound, ip);
       else
-        dag_reinit(csound); /* set to initial state */
+        dag_reinit(csound);
 
-      /* process this partition */
 #ifdef PARCS_USE_LOCK_BARRIER
       csound->WaitBarrier(csound->barrier1)
 #else
       ATOMIC_SET(csound->parflag,!csound->parflag);
 #endif
       csound_node_perf(csound, 0, n);
-      /* wait until partition is complete */
 #ifdef PARCS_USE_LOCK_BARRIER
       csound->WaitBarrier(csound->barrier2);
 #else
@@ -971,11 +968,12 @@ int32_t kperf_debug(CSOUND *csound) {
         } while(sum < n);
       }
 #endif
-      /* do the mixing of thread buffers */
       for (k = 1; k < csound->oparms->numThreads; k++)
           mix_out(csound->spout_tmp, csound->spout_tmp +
                   k * csound->nspout, csound->nspout);
-#endif /* PARCS */
+#else /* currently disabled */
+      csoundDie(csound, "csound debugger cannot run in multiple threads\n");
+#endif
       csound->multiThreadedDag = NULL;
     } else {
       int32_t done;
