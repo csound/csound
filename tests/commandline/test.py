@@ -854,6 +854,11 @@ def runTest():
             ]
         )
 
+
+
+        tests += [[ "test_parcs_local_ksmps_kcounter.csd",
+                   "PARCS kcounter test with local ksmps"]]
+
     arrayTests = [
         ["arrays/arrays_i_local.csd", "local i[]"],
         ["arrays/arrays_i_global.csd", "global i[]"],
