@@ -421,7 +421,7 @@ int32_t kperf(CSOUND *csound) {
 #ifdef PARCS_USE_THREAD_BARRIER
         csound->WaitBarrier(csound->barrier1);
 #else
-        ATOMIC_SET(csound->parflag,!csound->parflag);
+        ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));
 #endif
       }
       csoundMessage(csound, Str("end of Performance\n"));
@@ -468,7 +468,7 @@ int32_t perform_buffer(CSOUND *csound) {
 #ifdef PARCS_USE_THREAD_BARRIER
         csound->WaitBarrier(csound->barrier1);
 #else
-        ATOMIC_SET(csound->parflag,!csound->parflag);
+        ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));
 #endif
         }
         return done;
