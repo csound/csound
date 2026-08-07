@@ -457,6 +457,8 @@ e
           await cs.stop();
 
           await cs.reset();
+          assert.equal(0, await cs.isRequestingPlugins());
+          assert.equal("", await cs.getRequestedPlugins());
           assert.equal(0, await cs.setOption("--opcode-lib=./velvetlp.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
           assert.equal(0, await cs.compileCSD(velvetLpPluginTest()));

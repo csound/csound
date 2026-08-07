@@ -12,6 +12,10 @@
 #include "csound.h"
 #include "csdl.h"
 
+#ifdef CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN
+#include "requested_opcode_plugin_path.hpp"
+#endif
+
 
 class PluginTests : public ::testing::Test {
 public:
@@ -95,7 +99,7 @@ TEST_F (PluginTests, testAddOpcodeC)
   csoundSleep(500);
 }
 
-#ifdef CSOUND_TEST_REQUESTED_OPCODE_PLUGIN
+#ifdef CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN
 TEST_F(PluginTests, testOpcodeLibLoadsBeforeOrchestraChecks)
 {
   const std::string option =
@@ -107,6 +111,19 @@ TEST_F(PluginTests, testOpcodeLibLoadsBeforeOrchestraChecks)
 
   ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, option.c_str()));
   ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument, 0));
+}
+
+TEST_F(PluginTests, testMissingOpcodeLibFailsOrchestraChecks)
+{
+  const std::string option =
+      "--opcode-lib=" CSOUND_TEST_REQUESTED_OPCODE_PLUGIN ".missing";
+  const char *instrument =
+      "instr 1\n"
+      "  iValue requested_opcode_fixture 42\n"
+      "endin\n";
+
+  ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, option.c_str()));
+  ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument, 0));
 }
 #endif
 

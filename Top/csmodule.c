@@ -1097,8 +1097,11 @@ int32_t csoundLoadRequestedPlugins(CSOUND *csound) {
   for (module = (csoundModule_t *)csound->csmodule_db;
        module != oldHead;
        module = module->nxt) {
-    if (UNLIKELY(module == NULL))
-      return CSOUND_ERROR;
+    if (UNLIKELY(module == NULL)) {
+      if (retval == CSOUND_SUCCESS || CSOUND_ERROR < retval)
+        retval = CSOUND_ERROR;
+      return retval;
+    }
     err = init_module(csound, module);
     if (UNLIKELY(err != CSOUND_SUCCESS &&
                  (retval == CSOUND_SUCCESS || err < retval)))

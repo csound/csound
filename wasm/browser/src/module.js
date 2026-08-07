@@ -246,6 +246,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   const pluginByRequestedPath = new Map();
   const registrationsByCsound = new Map();
   const pluginRuntime = { instantiatePlugin: undefined, table: undefined };
+  let sharedTableEnd = 0;
 
   const hostRuntime = { instance: undefined };
 
@@ -265,14 +266,18 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
     const pluginInstance = pluginItem.instance || pluginItem;
     const pluginTable = pluginItem.table || pluginRuntime.table;
     // dlinit falls back to direct plugin initialization until the host is ready.
-    dlinit(
-      hostRuntime.instance,
-      pluginInstance,
-      pluginRuntime.table,
-      csoundInstance,
-      pluginTable,
-      memory,
-    );
+    try {
+      dlinit(
+        hostRuntime.instance,
+        pluginInstance,
+        pluginRuntime.table,
+        csoundInstance,
+        pluginTable,
+        memory,
+      );
+    } finally {
+      sharedTableEnd = Math.max(sharedTableEnd, pluginRuntime.table.length);
+    }
     state.plugins.add(pluginItem);
   };
 
@@ -426,7 +431,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   hostRuntime.instance = instance_;
 
   pluginRuntime.table = instance_["exports"]["__indirect_function_table"];
-  let sharedTableEnd = pluginRuntime.table.length;
+  sharedTableEnd = pluginRuntime.table.length;
   wasi.start(instance_);
   const hasLegacyWasiPluginLoader =
     typeof instance_["exports"]["csoundWasiLoadPlugin"] === "function" ||
@@ -584,8 +589,6 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
           pluginOptions["env"]["__stack_pointer"] = hostStackPointer;
         }
       }
-      delete pluginOptions["env"]["csoundWasiJsMessageCallback"];
-
       /**
        * @suppress {checkTypes}
        * @type {WasmInst} */
@@ -636,7 +639,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
         withPlugins_.push(pluginItem);
       }
     } catch (error) {
-      console.error("Error while compiling csound-plugin", error);
+      console.error("Error while instantiating csound-plugin", error);
     }
   });
 

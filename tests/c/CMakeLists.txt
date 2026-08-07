@@ -67,8 +67,16 @@ if(BUILD_TESTS)
             RUNTIME_OUTPUT_DIRECTORY
                 ${CMAKE_CURRENT_BINARY_DIR}/requested-opcode-plugin)
         add_dependencies(unittests requested_opcode_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/requested_opcode_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_REQUESTED_OPCODE_PLUGIN R\"csound($<TARGET_FILE:requested_opcode_test_plugin>)csound\"\n"
+            TARGET requested_opcode_test_plugin)
+        target_include_directories(unittests PRIVATE
+            ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>)
         target_compile_definitions(unittests PRIVATE
-            "CSOUND_TEST_REQUESTED_OPCODE_PLUGIN=\"$<TARGET_FILE:requested_opcode_test_plugin>\"")
+            CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN)
     endif()
 
     # BUILD_OSC_OPCODES stays ON in the cache when check_deps disables it
