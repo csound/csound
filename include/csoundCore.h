@@ -155,6 +155,7 @@ typedef struct instr {
   int32_t instcnt;               /* Count number of instances ever */
   int32_t isNew;                 /* is this a new definition */
   int32_t nocheckpcnt;           /* Control checks on pcnt */
+  int32_t glbvarcnt;             /* global audio var count */
 } INSTRTXT;
 
 /**

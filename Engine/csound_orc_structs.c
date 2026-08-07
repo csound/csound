@@ -60,6 +60,61 @@ CS_VARIABLE* getStructMember(CONS_CELL* members, char* memberName) {
     return NULL;
 }
 
+typedef struct csound_type_path {
+  const CS_TYPE *type;
+  const struct csound_type_path *parent;
+} CSOUND_TYPE_PATH;
+
+static int32_t type_contains_type(const CS_TYPE *type,
+                                  const CS_TYPE *target,
+                                  const CSOUND_TYPE_PATH *path);
+
+static int32_t variable_contains_type(const CS_VARIABLE *var,
+                                      const CS_TYPE *target,
+                                      const CSOUND_TYPE_PATH *path) {
+  if (var == NULL || var->varType == NULL || target == NULL)
+    return 0;
+  if (var->varType == target)
+    return 1;
+  return type_contains_type(var->varType == &CS_VAR_TYPE_ARRAY
+                              ? var->subType : var->varType,
+                            target, path);
+}
+
+static int32_t type_contains_type(const CS_TYPE *type,
+                                  const CS_TYPE *target,
+                                  const CSOUND_TYPE_PATH *path) {
+  const CSOUND_TYPE_PATH *current = path;
+  const CONS_CELL *members;
+
+  if (type == NULL || target == NULL)
+    return 0;
+  if (type == target)
+    return 1;
+  if (!type->userDefinedType)
+    return 0;
+  while (current != NULL) {
+    if (current->type == type)
+      return 0;
+    current = current->parent;
+  }
+
+  CSOUND_TYPE_PATH next = { type, path };
+  members = type->members;
+  while (members != NULL) {
+    if (variable_contains_type((const CS_VARIABLE *) members->value,
+                               target, &next))
+      return 1;
+    members = members->next;
+  }
+  return 0;
+}
+
+int32_t csound_variable_contains_type(const CS_VARIABLE *var,
+                                      const CS_TYPE *target) {
+  return variable_contains_type(var, target, NULL);
+}
+
 /* Deep-free struct members if this instance owns them.
    Safe to call on aliases; does nothing if ownsMembers==0 or members==NULL. */
 void csound_free_struct_members(CSOUND *csound, CS_STRUCT_VAR *var) {

@@ -1479,6 +1479,15 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                              instno, inm->name);
 
+   if(tp->glbvarcnt > 0 &&
+      CS_KSMPS != csound->ksmps)
+    return csoundInitError(csound, "inherited local ksmps not permitted with global audio vars\n");
+
+  if(tp->glbvarcnt > 0 &&
+     CS_ESR != csound->esr)
+    return csoundInitError(csound, "inherited local sr not permitted with global audio vars\n");
+  
+
   inm->recurse_depth++;
   if (csound->oparms->recursion_depth > 0 &&
       inm->recurse_depth > csound->oparms->recursion_depth) {
@@ -1549,6 +1558,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   lcurip->onedkr = CS_ONEDKR;
   lcurip->onedksmps = CS_ONEDKSMPS;
   lcurip->kicvt = CS_KICVT;
+
 
   /* VL 13-12-13 */
   /* this sets ksmps and kr local variables */
@@ -1625,6 +1635,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
                (csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
+
+  if (UNLIKELY(err != OK))
+    goto finish_init;
 
   inm->passByRef = buf->opcode_info->newStyle &&
     parent_ip->ksmps == p->ip->ksmps &&
@@ -2473,6 +2486,11 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
 int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
 
+  if(p->h.insdshead->instr->glbvarcnt > 0 &&
+     *p->i_ksmps > 0 /* no-op */ &&
+     csound->ksmps != *p->i_ksmps /* no-op */)
+    return csoundInitError(csound, "local ksmps not permitted with global audio vars\n");
+  
   uint32_t  l_ksmps, n;
   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
   MYFLT parent_sr = udo ? udo->parent_ip->esr : csound->esr;
@@ -2529,6 +2547,10 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
    with audio/control array arguments.
 */
 int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
+  if(p->h.insdshead->instr->glbvarcnt > 0 &&
+     *p->os > 1 /* no op */)
+    return csoundInitError(csound, "local sr not permitted with global audio vars\n");
+
   int32_t os;
   MYFLT l_sr, onedos;
   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
@@ -2545,10 +2567,10 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
                            "can't oversample if local ksmps != parent ksmps\n");
 
   os = MYFLT2LRND(*p->os);
-  onedos = FL(1.0)/os;
   if(os < 1)
     return csound->InitError(csound, "illegal oversampling ratio: %d\n", os);
   if(os == 1 || CS_ESR != parent_sr) return OK; /* no op if changed already */
+  onedos = FL(1.0)/os;
 
   l_sr = CS_ESR*os;
   CS_ESR = l_sr;
@@ -2599,6 +2621,10 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
    It modifies ksmps according to the resampling factor.
 */
 int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
+  if(p->h.insdshead->instr->glbvarcnt > 0  &&
+     *p->os > 1 /* no op */)
+    return csoundInitError(csound, "local sr not permitted with global audio vars\n");
+  
   int32_t os, lksmps;
   MYFLT l_sr, onedos;
   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
@@ -2615,10 +2641,10 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
                            "can't undersample if local ksmps != parent ksmps\n");
 
   os = MYFLT2LRND(*p->os);
-  onedos = FL(1.0)/os;
   if(os < 1)
     return csound->InitError(csound,
                              "illegal undersampling ratio: %d\n", os);
+  onedos = FL(1.0)/os;
 
   if(os == 1 || CS_ESR != parent_sr) return OK; /* no op if already changed */
 
@@ -2673,7 +2699,7 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
 /*
  * subinstr opcode
  */
-int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
+static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t initop)
 {
   OPDS    *saved_ids = csound->ids;
   INSDS   *saved_curip = csound->curip;
@@ -2725,6 +2751,15 @@ int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
   p->ip->onedkr = CS_ONEDKR;
   p->ip->onedksmps = CS_ONEDKSMPS;
   p->ip->kicvt = CS_KICVT;
+
+
+  if(!initop && p->ip->instr->glbvarcnt > 0 &&
+     p->ip->ksmps != csound->ksmps)
+    return csoundInitError(csound, "inherited local ksmps not permitted with global audio vars\n");
+
+  if(!initop && p->ip->instr->glbvarcnt > 0 &&
+     p->ip->esr != csound->esr)
+    return csoundInitError(csound, "inherited local sr not permitted with global audio vars\n");
 
   /* copy parameters from this instrument into our subinstrument */
   p->ip->xtratim  = saved_curip->xtratim;
@@ -2852,7 +2887,7 @@ int32_t subinstrset_S(CSOUND *csound, SUBINST *p){
   inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
   instno = csoundStringArg2Insno(csound, ((STRINGDAT *)p->ar[inarg_ofs])->data, 1);
   if (UNLIKELY(instno==NOT_AN_INSTRUMENT)) instno = -1;
-  return subinstrset_(csound,p,instno);
+  return subinstrset_(csound,p,instno,init_op);
 }
 
 
@@ -2862,7 +2897,7 @@ int32_t subinstrset(CSOUND *csound, SUBINST *p){
   init_op = (p->h.perf == NULL ? 1 : 0);
   inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
   instno = (int32_t) *(p->ar[inarg_ofs]);
-  return subinstrset_(csound,p,instno);
+  return subinstrset_(csound,p,instno,init_op);
 }
 
 int32_t subinstr(CSOUND *csound, SUBINST *p)
