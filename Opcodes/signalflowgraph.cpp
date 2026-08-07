@@ -762,6 +762,8 @@ struct Inletf : public OpcodeBase<Inletf> {
     float *source = 0;
     CMPLX *sinkFrame = 0;
     CMPLX *sourceFrame = 0;
+    int32_t newLastframe = lastframe;
+    bool mergedNonSliding = false;
     // Loop over the source connections...
     for (size_t sourceI = 0, sourceN = sourceOutlets->size(); sourceI < sourceN;
          sourceI++) {
@@ -832,6 +834,8 @@ struct Inletf : public OpcodeBase<Inletf> {
           source = (float *)sourceOutlet->fsignal->frame.auxp;
           // Compare against the source frame counter; using the sink's
           // framecount here stopped updates after the first merge.
+          // Defer updating shared lastframe until all sources are checked so
+          // fan-in from multiple outlets with the same framecount still merges.
           if (lastframe < int(sourceOutlet->fsignal->framecount)) {
             for (size_t binI = 0, binN = fsignal->N + 2; binI < binN;
                  binI += 2) {
@@ -841,10 +845,16 @@ struct Inletf : public OpcodeBase<Inletf> {
                 sink[binI + 1] = source[binI + 1];
               }
             }
-            fsignal->framecount = lastframe = sourceOutlet->fsignal->framecount;
+            if (int(sourceOutlet->fsignal->framecount) > newLastframe) {
+              newLastframe = int(sourceOutlet->fsignal->framecount);
+            }
+            mergedNonSliding = true;
           }
         }
       }
+    }
+    if (mergedNonSliding) {
+      fsignal->framecount = lastframe = newLastframe;
     }
     return result;
   }
