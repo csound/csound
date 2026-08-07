@@ -2545,7 +2545,7 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
 */
 int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   if(p->h.insdshead->instr->glbvarcnt > 0 &&
-     *p->os <= 1 /* no op */)
+     *p->os > 1 /* no op */)
     return csoundInitError(csound, "local sr not permitted with global audio vars\n");
 
   int32_t os;
@@ -2619,7 +2619,7 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
 */
 int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   if(p->h.insdshead->instr->glbvarcnt > 0  &&
-     *p->os <= 1 /* no op */)
+     *p->os > 1 /* no op */)
     return csoundInitError(csound, "local sr not permitted with global audio vars\n");
   
   int32_t os, lksmps;
