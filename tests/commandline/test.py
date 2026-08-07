@@ -766,6 +766,16 @@ def runTest():
             1,
         ],
         ["test_sa.csd", "test sample accurate mode"],
+        [
+            "test_local_ksmps_sample_accurate.csd",
+            "test sample-accurate local ksmps offsets",
+        ],
+        [
+            "test_local_ksmps_sample_accurate.csd",
+            "test sample-accurate local ksmps offsets with PARCS",
+            None,
+            ["-nd", "--num-threads=2"],
+        ],
         ["test_overload_selection.csd", "test wrong annotation case"],
         ["test_unschedule.csd", "test unscheduling events"],
         ["diskin_excess_channels.csd", "test sample accurate mode"],

@@ -2013,6 +2013,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
     */
     this_instr->ksmps_offset = 0;
     this_instr->ksmps_no_end = 0;
+    this_instr->spin += csound->inchnls * ofs;
+    this_instr->spout += ofs;
     do {
       this_instr->kcounter++; /*kcounter needs to be incremented BEFORE perf */
       /* copy inputs */
@@ -2116,7 +2118,9 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
     int32_t lksmps = this_instr->ksmps;
     while (ofs >= lksmps) {
       ofs -= lksmps;
-      start++;
+      start += lksmps;
+      this_instr->spin += csound->inchnls * lksmps;
+      this_instr->spout += lksmps;
     }
     this_instr->ksmps_offset = ofs;
     ofs = start;
@@ -2957,7 +2961,9 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
     */
     while (offset >= lksmps) {
       offset -= lksmps;
-      start += csound->nchnls;
+      start += incr;
+      ip->spin += csound->inchnls*lksmps;
+      ip->spout += lksmps;
     }
     ip->ksmps_offset = offset;
     if (early) {

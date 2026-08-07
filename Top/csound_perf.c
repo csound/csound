@@ -139,7 +139,9 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
         */
         while (offset >= lksmps) {
           offset -= lksmps;
-          start += csound->nchnls;
+          start += incr;
+          insds->spin += csound->inchnls * lksmps;
+          insds->spout += lksmps;
         }
         insds->ksmps_offset = offset;
         if (UNLIKELY(early)) {
@@ -351,7 +353,9 @@ int32_t kperf(CSOUND *csound) {
             */
             while (offset >= lksmps) {
               offset -= lksmps;
-              start += csound->nchnls;
+              start += incr;
+              ip->spin += csound->inchnls * lksmps;
+              ip->spout += lksmps;
             }
             ip->ksmps_offset = offset;
             if (UNLIKELY(early)) {

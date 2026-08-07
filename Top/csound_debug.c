@@ -1049,7 +1049,9 @@ int32_t kperf_debug(CSOUND *csound) {
             */
             while (offset >= lksmps) {
               offset -= lksmps;
-              start += csound->nchnls;
+              start += incr;
+              ip->spin += csound->inchnls * lksmps;
+              ip->spout += lksmps;
             }
             ip->ksmps_offset = offset;
             if (UNLIKELY(early)) {
