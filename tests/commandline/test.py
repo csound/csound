@@ -497,6 +497,7 @@ def runTest():
         ["test_local_ksmps_global_fail.csd", "test failing use of global var with local ksmps",  1],
         ["test_local_ksmps_global_struct_k.csd", "allow global k-rate struct member with local ksmps"],
         ["test_local_ksmps_global_struct_a_fail.csd", "reject global a-rate struct member with local ksmps", 1],
+        ["test_local_ksmps_global_struct_copy_fail.csd", "reject global struct containing audio with local ksmps", 1],
         ["test_schedwhen.csd", "schedwhen opcode"],
         ["test_parse_error_unary.csd", "expected failure: unary parse error", 1],
         ["test_parse_error_unary_not.csd", "expected failure: unary ! parse error", 1],

@@ -2610,6 +2610,48 @@ static CS_VARIABLE *setup_arg_for_var_name(CSOUND* csound, ARG* arg,
   return arg->argPtr;
 }
 
+typedef struct audio_type_path {
+  const CS_TYPE *type;
+  const struct audio_type_path *parent;
+} AUDIO_TYPE_PATH;
+
+static int32_t type_contains_audio(const CS_TYPE *type,
+                                   const AUDIO_TYPE_PATH *path);
+
+static int32_t var_contains_audio(const CS_VARIABLE *var,
+                                  const AUDIO_TYPE_PATH *path) {
+  if (var == NULL || var->varType == NULL)
+    return 0;
+  return type_contains_audio(var->varType == &CS_VAR_TYPE_ARRAY
+                               ? var->subType : var->varType,
+                             path);
+}
+
+static int32_t type_contains_audio(const CS_TYPE *type,
+                                   const AUDIO_TYPE_PATH *path) {
+  const AUDIO_TYPE_PATH *current = path;
+  CONS_CELL *members;
+
+  if (type == &CS_VAR_TYPE_A)
+    return 1;
+  if (type == NULL || !type->userDefinedType)
+    return 0;
+  while (current != NULL) {
+    if (current->type == type)
+      return 0;
+    current = current->parent;
+  }
+
+  AUDIO_TYPE_PATH next = { type, path };
+  members = type->members;
+  while (members != NULL) {
+    if (var_contains_audio((CS_VARIABLE *) members->value, &next))
+      return 1;
+    members = members->next;
+  }
+  return 0;
+}
+
 static int32_t is_audio_var(CSOUND *csound, CS_VARIABLE *var,
                             const char *structPath) {
   if (structPath != NULL) {
@@ -2626,10 +2668,7 @@ static int32_t is_audio_var(CSOUND *csound, CS_VARIABLE *var,
     }
     csound->Free(csound, path);
   }
-  return var != NULL && var->varType != NULL &&
-    (var->varType == &CS_VAR_TYPE_A ||
-     (var->varType == &CS_VAR_TYPE_ARRAY &&
-      var->subType == &CS_VAR_TYPE_A));
+  return var_contains_audio(var, NULL);
 }
 
 
