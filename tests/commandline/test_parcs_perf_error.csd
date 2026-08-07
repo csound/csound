@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--n -d -m0
+-n -d -m0 -j 4
 </CsOptions>
 <CsInstruments>
 sr = 48000

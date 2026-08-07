@@ -213,11 +213,11 @@ unsigned long kperf_thread(void *cs) {
       free(threadId);
       return 0UL;
     }
-    csound->taskflag[index] = 0;
     err = node_perf(csound, index, numThreads);
-    csound->taskflag[index] = 1;
 #ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier2);
+#else
+    ATOMIC_SET(csound->taskflag[index], parflag);
 #endif
   }
   ATOMIC_SET(csound->multiThreadedComplete, 1);
@@ -274,9 +274,10 @@ int32_t kperf(CSOUND *csound) {
 
       /* process this partition */
 #ifdef PARCS_USE_LOCK_BARRIER
-      csound->WaitBarrier(csound->barrier1)
+      csound->WaitBarrier(csound->barrier1);
 #else
-      ATOMIC_SET(csound->parflag,!csound->parflag);
+      int32_t parflag = !ATOMIC_GET(csound->parflag);
+      ATOMIC_SET(csound->parflag, parflag);
 #endif
       error = node_perf(csound, 0, n);
       if(error == 0) {
@@ -285,11 +286,12 @@ int32_t kperf(CSOUND *csound) {
       csound->WaitBarrier(csound->barrier2);
 #else
       {
-        int32_t i, sum;
+        int32_t i;
         do {
-          for(i = 1, sum = 1; i < n; i++)
-            sum += csound->taskflag[i];
-        } while(sum < n);
+          for(i = 1; i < n; i++)
+            if (ATOMIC_GET(csound->taskflag[i]) != parflag)
+              break;
+        } while(i < n);
       }
 #endif
       /* do the mixing of thread buffers */
@@ -422,7 +424,7 @@ int32_t kperf(CSOUND *csound) {
 #ifdef PARCS_USE_LOCK_BARRIER
         csound->WaitBarrier(csound->barrier1);
 #else
-        ATOMIC_SET(csound->parflag,!csound->parflag);
+        ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));
 #endif
       }
       csoundMessage(csound, Str("end of Performance\n"));
@@ -469,7 +471,7 @@ int32_t perform_buffer(CSOUND *csound) {
 #ifdef PARCS_USE_LOCK_BARRIER
         csound->WaitBarrier(csound->barrier1);
 #else
-        ATOMIC_SET(csound->parflag,!csound->parflag);
+        ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));
 #endif
         }
         return done;
@@ -482,5 +484,3 @@ int32_t perform_buffer(CSOUND *csound) {
   }
   return 0;
 }
-
-

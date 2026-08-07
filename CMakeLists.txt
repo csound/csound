@@ -1461,7 +1461,7 @@ if(BUILD_MULTI_CORE)
 
    if(USE_LOCK_BARRIER)
      message(STATUS "Using thread-lock barrier.")
-     list(APPEND libcsound_CFLAGS -DPARCS_USE_THREAD_BARRIER)
+     list(APPEND libcsound_CFLAGS -DPARCS_USE_LOCK_BARRIER)
    else()
     message(STATUS "Using lock-free barrier.")
    endif()
