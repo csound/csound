@@ -125,9 +125,11 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
         int32_t i, n = csound->nspout, start = 0;
         int32_t lksmps = insds->ksmps;
         int32_t incr = csound->nchnls * lksmps;
+        int32_t insmps = csound->inchnls * lksmps;
         int32_t offset = insds->ksmps_offset;
         int32_t early = insds->ksmps_no_end;
         OPDS *opstart;
+        
         insds->spin = csound->spin;
         insds->spout = csound->spout_tmp + index * csound->nspout;
         insds->kcounter = csound->kcounter * csound->ksmps;
@@ -145,7 +147,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
           insds->ksmps_no_end = early % lksmps;
         }
         for (i = start; i < n;
-             i += incr, insds->spin += incr, insds->spout += incr) {
+             i += incr, insds->spin += insmps, insds->spout += lksmps) {
           opstart = (OPDS *)insds;
           csound->mode = 2;
           while ((opstart = opstart->nxtp) != NULL) {
@@ -337,6 +339,7 @@ int32_t kperf(CSOUND *csound) {
             int32_t i, n = csound->nspout, start = 0;
             lksmps = ip->ksmps;
             int32_t incr = csound->nchnls * lksmps;
+            int32_t insmps = csound->inchnls * lksmps;
             int32_t offset = ip->ksmps_offset;
             int32_t early = ip->ksmps_no_end;
             OPDS *opstart;
@@ -356,7 +359,7 @@ int32_t kperf(CSOUND *csound) {
               ip->ksmps_no_end = early % lksmps;
             }
             for (i = start; i < n;
-                 i += incr, ip->spin += incr, ip->spout += incr) {
+                 i += incr, ip->spin += insmps, ip->spout += lksmps) {
               ip->kcounter++;
               opstart = (OPDS *)ip;
               csound->mode = 2;

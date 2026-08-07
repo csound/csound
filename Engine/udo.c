@@ -63,7 +63,7 @@ static int32_t useropcd_init_only(CSOUND *csound, UOPCODE *p)
 {
   IGN(csound);
   IGN(p);
-  return OK;
+  return OK;  // no-op
 }
 
 static int32_t udo_copy_value(CSOUND *csound, const CS_VARIABLE *variable,
@@ -1986,6 +1986,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
   MYFLT** internal_ptrs = p->buf->iobufp_ptrs;
   MYFLT** external_ptrs = p->ar;
   int32_t done;
+  int32_t inchnls = csound->inchnls;
+  int32_t insmps = csound->inchnls * this_instr->ksmps;
 
   done = ATOMIC_GET(p->ip->init_done);
   if (UNLIKELY(!done)) /* init not done, exit */
@@ -2100,8 +2102,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
         current = current->next;
       }
 
-      this_instr->spout += csound->nchnls;
-      this_instr->spin  += csound->nchnls;
+      this_instr->spout += 1;
+      this_instr->spin  += inchnls;
     } while (++ofs < g_ksmps);
   }
   else {
@@ -2212,8 +2214,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
         current = current->next;
       }
 
-      this_instr->spout += csound->nchnls*lksmps;
-      this_instr->spin  += csound->nchnls*lksmps;
+      this_instr->spout += lksmps;
+      this_instr->spin  += insmps;
 
     } while ((ofs += this_instr->ksmps) < g_ksmps);
   }
@@ -2943,6 +2945,7 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
     int32_t i, n = csound->nspout, start = 0;
     int32_t lksmps = ip->ksmps;
     int32_t incr = csound->nchnls*lksmps;
+    int32_t insmps = csound->inchnls * lksmps;
     int32_t offset =  ip->ksmps_offset;
     int32_t early = ip->ksmps_no_end;
     ip->spin = csound->spin;
@@ -2962,7 +2965,7 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
       ip->ksmps_no_end = early % lksmps;
     }
 
-    for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
+    for (i=start; i < n; i+=incr, ip->spin+=insmps, ip->spout+=lksmps) {
       ip->kcounter++;
       if ((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
         int32_t error = 0;
