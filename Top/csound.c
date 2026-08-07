@@ -1882,7 +1882,7 @@ static void reset(CSOUND *csound) {
       csound->multiThreadedThreadInfo != NULL &&
       ATOMIC_GET(csound->multiThreadedComplete) == 0) {
     ATOMIC_SET(csound->multiThreadedComplete, 1);
-#ifdef PARCS_USE_THREAD_BARRIER
+#ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier1);
 #else
     ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));

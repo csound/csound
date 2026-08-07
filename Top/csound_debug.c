@@ -953,7 +953,7 @@ int32_t kperf_debug(CSOUND *csound) {
         dag_reinit(csound); /* set to initial state */
 
       /* process this partition */
-#ifdef PARCS_USE_THREAD_BARRIER
+#ifdef PARCS_USE_LOCK_BARRIER
       csound->WaitBarrier(csound->barrier1);
 #else
       int32_t parflag = !ATOMIC_GET(csound->parflag);
@@ -961,7 +961,7 @@ int32_t kperf_debug(CSOUND *csound) {
 #endif
       csound_node_perf(csound, 0, n);
       /* wait until partition is complete */
-#ifdef PARCS_USE_THREAD_BARRIER
+#ifdef PARCS_USE_LOCK_BARRIER
       csound->WaitBarrier(csound->barrier2);
 #else
       {
