@@ -63,7 +63,7 @@ static int32_t useropcd_init_only(CSOUND *csound, UOPCODE *p)
 {
   IGN(csound);
   IGN(p);
-  return OK;
+  return OK;  // no-op
 }
 
 static int32_t udo_copy_value(CSOUND *csound, const CS_VARIABLE *variable,
