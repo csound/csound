@@ -678,6 +678,7 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
 #ifdef PARCS_USE_THREAD_BARRIER
     csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
 #else
+    ATOMIC_SET(csound->parflag, 0);
     csound->taskflag = (int32_t *) csound->Calloc(csound,
                                                  sizeof(int32_t)
                                                   *O->numThreads);

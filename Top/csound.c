@@ -1878,9 +1878,11 @@ static void reset(CSOUND *csound) {
   int32_t n = 0;
 
   // stop multicore threads if still running
-  if (csound->oparms->numThreads > 1) {
+  if (csound->oparms->numThreads > 1 &&
+      csound->multiThreadedThreadInfo != NULL &&
+      ATOMIC_GET(csound->multiThreadedComplete) == 0) {
     ATOMIC_SET(csound->multiThreadedComplete, 1);
-#ifdef PARCS_USE_LOCK_BARRIER
+#ifdef PARCS_USE_THREAD_BARRIER
     csound->WaitBarrier(csound->barrier1);
 #else
     ATOMIC_SET(csound->parflag,!csound->parflag);

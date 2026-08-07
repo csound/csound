@@ -953,22 +953,24 @@ int32_t kperf_debug(CSOUND *csound) {
         dag_reinit(csound); /* set to initial state */
 
       /* process this partition */
-#ifdef PARCS_USE_LOCK_BARRIER
-      csound->WaitBarrier(csound->barrier1)
+#ifdef PARCS_USE_THREAD_BARRIER
+      csound->WaitBarrier(csound->barrier1);
 #else
-      ATOMIC_SET(csound->parflag,!csound->parflag);
+      int32_t parflag = !ATOMIC_GET(csound->parflag);
+      ATOMIC_SET(csound->parflag, parflag);
 #endif
       csound_node_perf(csound, 0, n);
       /* wait until partition is complete */
-#ifdef PARCS_USE_LOCK_BARRIER
+#ifdef PARCS_USE_THREAD_BARRIER
       csound->WaitBarrier(csound->barrier2);
 #else
       {
-        int32_t i, sum;
+        int32_t i;
         do {
-          for(i = 1, sum = 1; i < n; i++)
-            sum += csound->taskflag[i];
-        } while(sum < n);
+          for(i = 1; i < n; i++)
+            if (ATOMIC_GET(csound->taskflag[i]) != parflag)
+              break;
+        } while(i < n);
       }
 #endif
       /* do the mixing of thread buffers */
