@@ -298,8 +298,8 @@ int32_t kperf(CSOUND *csound) {
       for (k = 1; k < csound->oparms->numThreads; k++)
           mix_out(csound->spout_tmp, csound->spout_tmp +
                   k * csound->nspout, csound->nspout);
-#endif /* PARCS */
       }
+#endif /* PARCS */
       csound->multiThreadedDag = NULL;
     }
     // single-thread performance
