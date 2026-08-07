@@ -77,7 +77,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
                                int32_t numThreads) {
   INSDS *insds = NULL;
   OPDS *opstart = NULL;
-  int32_t error = 0;
+  int32_t errorcnt = 0;
   int32_t which_task;
   INSDS **task_map = (INSDS **)csound->dag_task_map;
   double time_end;
@@ -85,6 +85,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
 
   while (1) {
     int32_t done;
+    int32_t error = 0;
     which_task = dag_get_task(csound, index, numThreads, next_task);
     if(csoundGetDebug(csound) & DEBUG_PARCS)
       csound->Message(csound, "Select task %d %d\n", which_task, index);
@@ -165,8 +166,10 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
     if(csoundGetDebug(csound) & DEBUG_PARCS)
       csound->Message(csound, "Finished task %d\n", which_task);
     next_task = dag_end_task(csound, which_task);
+    errorcnt += error; // update error count
+    error = 0;  // reset error check
   }
-  return error;
+  return errorcnt;
 }
 
 int32_t csound_node_perf(CSOUND *csound, int32_t index,
