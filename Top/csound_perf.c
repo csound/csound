@@ -200,14 +200,14 @@ unsigned long kperf_thread(void *cs) {
     return ULONG_MAX;
   }
   index++;
-  int32_t parflag, last_parflag = 0;
+  int32_t parflag, taskflag = 0;
   while (1) {
-#ifdef PARCS_USE_THREAD_BARRIER
+#ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier1);
 #else
     do parflag = ATOMIC_GET(csound->parflag);
-    while(parflag == last_parflag);
-    last_parflag = parflag;
+    while(parflag == taskflag);
+    taskflag = parflag;
 #endif
     if (ATOMIC_GET(csound->multiThreadedComplete) == 1) {
       // exit thread on performance end
@@ -215,7 +215,7 @@ unsigned long kperf_thread(void *cs) {
       return 0UL;
     }
     node_perf(csound, index, numThreads);
-#ifdef PARCS_USE_THREAD_BARRIER
+#ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier2);
 #else
     ATOMIC_SET(csound->taskflag[index], parflag);
@@ -272,7 +272,7 @@ int32_t kperf(CSOUND *csound) {
         dag_reinit(csound); /* set to initial state */
 
       /* process this partition */
-#ifdef PARCS_USE_THREAD_BARRIER
+#ifdef PARCS_USE_LOCK_BARRIER
       csound->WaitBarrier(csound->barrier1);
 #else
       int32_t parflag = !ATOMIC_GET(csound->parflag);
@@ -280,7 +280,7 @@ int32_t kperf(CSOUND *csound) {
 #endif
       node_perf(csound, 0, n);
       /* wait until partition is complete */
-#ifdef PARCS_USE_THREAD_BARRIER
+#ifdef PARCS_USE_LOCK_BARRIER
       csound->WaitBarrier(csound->barrier2);
 #else
       {
@@ -418,7 +418,7 @@ int32_t kperf(CSOUND *csound) {
         csoundUnlockMutex(csound->API_lock);
       if (csound->oparms->numThreads > 1) {
         ATOMIC_SET(csound->multiThreadedComplete, 1);
-#ifdef PARCS_USE_THREAD_BARRIER
+#ifdef PARCS_USE_LOCK_BARRIER
         csound->WaitBarrier(csound->barrier1);
 #else
         ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));
@@ -465,7 +465,7 @@ int32_t perform_buffer(CSOUND *csound) {
           csoundUnlockMutex(csound->API_lock);
         if (csound->oparms->numThreads > 1) {
         ATOMIC_SET(csound->multiThreadedComplete, 1);
-#ifdef PARCS_USE_THREAD_BARRIER
+#ifdef PARCS_USE_LOCK_BARRIER
         csound->WaitBarrier(csound->barrier1);
 #else
         ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));
