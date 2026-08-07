@@ -148,10 +148,11 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
              i += incr, insds->spin += incr, insds->spout += incr) {
           opstart = (OPDS *)insds;
           csound->mode = 2;
-          while ((opstart = opstart->nxtp) != NULL) {
+          while (error == 0 &&
+                 (opstart = opstart->nxtp) != NULL) {
             opstart->insdshead->pds = opstart;
             csound->op = opstart->optext->t.opcod;
-            (*opstart->perf)(csound, opstart); /* run each opcode */
+            error = (*opstart->perf)(csound, opstart); /* run each opcode */
             opstart = opstart->insdshead->pds;
           }
           csound->mode = 0;
@@ -200,7 +201,7 @@ unsigned long kperf_thread(void *cs) {
   }
   index++;
   int32_t parflag, taskflag = 0, err = 0;
-  while (err == 0) {
+  while (1) {
 #ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier1);
 #else
@@ -214,14 +215,15 @@ unsigned long kperf_thread(void *cs) {
       return 0UL;
     }
     err = node_perf(csound, index, numThreads);
+    if(err)
+      csoundErrorMsg(csound, "%s %d \n",  Str("error in thread"), index);
 #ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier2);
 #else
     ATOMIC_SET(csound->taskflag[index], parflag);
 #endif
   }
-  ATOMIC_SET(csound->multiThreadedComplete, 1);
-  return CSOUND_ERROR;
+  return 0UL;
 }
 #endif // PARCS
 
@@ -280,7 +282,9 @@ int32_t kperf(CSOUND *csound) {
       ATOMIC_SET(csound->parflag, parflag);
 #endif
       error = node_perf(csound, 0, n);
-      if(error == 0) {
+      if(error)
+        csoundErrorMsg(csound, "%s",  Str("error in thread 1\n"));
+        
       /* wait until partition is complete */
 #ifdef PARCS_USE_LOCK_BARRIER
       csound->WaitBarrier(csound->barrier2);
@@ -298,9 +302,6 @@ int32_t kperf(CSOUND *csound) {
       for (k = 1; k < csound->oparms->numThreads; k++)
           mix_out(csound->spout_tmp, csound->spout_tmp +
                   k * csound->nspout, csound->nspout);
-      }
-      else ATOMIC_SET(csound->multiThreadedComplete, 1);
-        
 #endif /* PARCS */
       csound->multiThreadedDag = NULL;
     }

@@ -15,8 +15,11 @@ instr 1
   kcycle timeinstk
   printks "after-error cycle=%d value=%f\n", 0, kcycle, kvalue
 endin
+
+
 </CsInstruments>
 <CsScore>
+i 1 0 0.01
 i 1 0 0.01
 e
 </CsScore>

@@ -973,10 +973,10 @@ int32_t kperf_debug(CSOUND *csound) {
       for (k = 1; k < csound->oparms->numThreads; k++)
           mix_out(csound->spout_tmp, csound->spout_tmp +
                   k * csound->nspout, csound->nspout);
+      csound->multiThreadedDag = NULL; 
 #else /* currently disabled */
-      csoundDie(csound, "csound debugger cannot run in multiple threads\n");
+      return CSOUND_ERROR;
 #endif
-      csound->multiThreadedDag = NULL;
     } else {
       int32_t done;
       double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
