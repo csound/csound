@@ -930,7 +930,7 @@ static int32_t grain3set(CSOUND *csound, GRAIN3 *p)
     csound->AuxAlloc(csound, n, &(p->auxdata));
   p->phase = (uint32 *) p->auxdata.auxp;
   p->phasef = (double *) p->auxdata.auxp;
-  p->osc = (GRAIN2_OSC *) ((uint32 *) p->phase + CS_KSMPS + 1);
+  p->osc = (GRAIN2_OSC *) (p->phasef + CS_KSMPS + 1);
   p->osc_start = p->osc;
   p->osc_end = p->osc;
   p->osc_max = p->osc + (p->ovrlap - 1);

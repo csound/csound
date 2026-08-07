@@ -224,7 +224,7 @@ static uint32_t sync_buffer(mpadec_t mpadec)
     if (mpa->state == MPADEC_STATE_START) {
       buf += 128; i -= 128;
       while (i >= 4) {
-        register uint32_t tmp = (buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
+        register uint32_t tmp = ((uint32_t)buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
         if (((tmp & 0xFFE00000) == 0xFFE00000) &&
             (tmp & (3<<17))                    &&
             ((tmp & (3<<10)) != (3<<10))) {
@@ -236,7 +236,7 @@ static uint32_t sync_buffer(mpadec_t mpadec)
               }
               else {
                 register uint32_t tmp2 =
-                  (buf[mpa->frame.frame_size]<<24)     |
+                  ((uint32_t)buf[mpa->frame.frame_size]<<24) |
                   (buf[mpa->frame.frame_size + 1]<<16) |
                   (buf[mpa->frame.frame_size + 2]<<8)  |
                   buf[mpa->frame.frame_size + 3];
@@ -263,7 +263,7 @@ static uint32_t sync_buffer(mpadec_t mpadec)
       }
     } else {
       while (i >= 4) {
-        register uint32_t tmp = (buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
+        register uint32_t tmp = ((uint32_t)buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
         if (((tmp & 0xFFE00000) == 0xFFE00000) &&
             (tmp & (3<<17))                    &&
             ((tmp & (3<<10)) != (3<<10))) {
