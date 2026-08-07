@@ -296,12 +296,13 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
           ofs = pp - e->p;
           msize += PMAX;
           e->p =  (MYFLT*) csound->ReAlloc(csound, e->p,
-                                           sizeof(MYFLT)*msize);
+                                           sizeof(MYFLT)*(msize+1));
           if (UNLIKELY(e->p==NULL)) {
             fprintf(stderr, Str("Out of Memory\n"));
             exit(7);
           }
           pp = e->p + ofs;
+          plim = e->p + msize;
         }
       }
       e->p2orig = e->p[2];                 /* now go count the pfields */
@@ -335,12 +336,13 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
                     ofs = pp - e->p;
                     msize += PMAX;
                     e->p = (MYFLT*) csound->ReAlloc(csound, e->p,
-                                                     sizeof(MYFLT)*msize);
-                    pp = e->p + ofs;
+                                                     sizeof(MYFLT)*(msize+1));
                     if (UNLIKELY(e->p==NULL)) {
                       fprintf(stderr, Str("Out of Memory\n"));
                       exit(7);
                     }
+                    pp = e->p + ofs;
+                    plim = e->p + msize;
                   }
                 }
     setp:
