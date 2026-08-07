@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--n -d -m0
+-n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
 sr=64
@@ -71,8 +71,8 @@ instr 2
            + abs(aOut32[1][0] - aIn[1][0]) \
            + abs(aOut32[1][1] - aIn[1][1]) \
            + abs(aOut32[1][2] - aIn[1][2])
-  kError1 downsamp aError1
-  kError32 downsamp aError32
+  kError1 max_k aError1, 1, 1
+  kError32 max_k aError32, 1, 1
   if kError1 > 0.0000001 || kError32 > 0.0000001 then
     printks "multidimensional audio array UDO copy failed: %f, %f\n", \
             0, kError1, kError32
@@ -83,7 +83,7 @@ endin
 </CsInstruments>
 <CsScore>
 i 1 0 0.5
-i 2 0 0.5
+i 2 0 1
+i 2 1.25 0.5
 </CsScore>
 </CsoundSynthesizer>
-

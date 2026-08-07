@@ -79,8 +79,11 @@ jobs:
           make csdtests
 
   linux_sanitizer:
-    name: Linux/Ubuntu sanitizer regression
+    name: Linux/Ubuntu full tests (ASan + UBSan)
     runs-on: ubuntu-latest
+    env:
+      ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
     steps:
       - name: Checkout source code
         uses: actions/checkout@v5
@@ -90,8 +93,12 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build bison flex \
-            gettext libasound2-dev libsndfile1-dev libsamplerate0-dev
+          sudo apt-get install -y \
+            build-essential cmake ninja-build python3 libgtest-dev \
+            libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev \
+            libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk \
+            liblo-dev ladspa-sdk dssi-dev libsamplerate0-dev \
+            libpipewire-0.3-dev bison flex gettext
 
       - name: Configure sanitizer build
         env:
@@ -101,24 +108,28 @@ jobs:
         run: >
           cmake -S . -B build-sanitize -G Ninja
           -DCMAKE_BUILD_TYPE=Debug
-          -DBUILD_CSBEATS=0
-          -DBUILD_PERFTHREAD_CLASS=0
-          -DBUILD_PLUGINS=0
-          -DBUILD_STATIC_LIBRARY=0
-          -DBUILD_TESTS=0
-          -DBUILD_UTILITIES=0
-          -DUSE_CURL=0
+          -DBUILD_TESTS=1
+          -DBUILD_STATIC_LIBRARY=1
           -DUSE_MP3=0
+          -DUSE_CURL=0
 
       - name: Build sanitizer Csound
-        run: cmake --build build-sanitize --target csound-bin -j"$(nproc)"
+        run: cmake --build build-sanitize --parallel "$(nproc)"
 
-      - name: Run multidimensional UDO regression
-        env:
-          ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
-          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
-          OPCODE7DIR64: ${{ github.workspace }}/build-sanitize
-        run: ./build-sanitize/csound tests/commandline/test_arrays_in_udo.csd
+      - name: Run unit tests
+        run: >
+          ctest --test-dir build-sanitize
+          --parallel "$(nproc)"
+          --output-on-failure
+          --no-tests=error
+
+      - name: Run CSD tests
+        run: |
+          cmake --build build-sanitize --target csdtests
+          if grep -E 'AddressSanitizer|UndefinedBehaviorSanitizer|runtime error:' \
+            build-sanitize/tests/commandline/results.txt; then
+            exit 1
+          fi
 
   linux_build_vcpkg:
     name: Linux/Ubuntu build (vcpkg)
