@@ -308,12 +308,24 @@ public:
           CsoundPerformanceThreadMessage::unlockRecord();
           return;
         }
-        csoundSndfileCommand(csound, (SNDFILE *) recordData->sfile, SFC_SET_CLIPPING,
+        csound->SndfileCommand(csound, (SNDFILE *) recordData->sfile, SFC_SET_CLIPPING,
                    NULL, SFLIB_TRUE);
         recordData->sfname = csound->Strdup(csound, filename.c_str());
         csoundLockMutex(recordData->mutex);
-        ATOMIC_SET_BOOL(recordData->running, true);
         recordData->thread = csoundCreateThread(recordThread_, (void*) recordData);
+        if (recordData->thread) {
+          ATOMIC_SET_BOOL(recordData->running, true);
+        }
+        else {
+          csoundMessage(csound, "Could not create recording thread.");
+          ATOMIC_SET_BOOL(recordData->running, false);
+          csound->SndfileClose(csound, (SNDFILE *) recordData->sfile);
+          recordData->sfile = NULL;
+          csound->Free(csound, recordData->sfname);
+          recordData->sfname = NULL;
+          csoundDestroyCircularBuffer(csound, recordData->cbuf);
+          recordData->cbuf = NULL;
+        }
         csoundUnlockMutex(recordData->mutex);
 
 
