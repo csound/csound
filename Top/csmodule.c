@@ -426,8 +426,7 @@ int32_t csoundLoadExternals(CSOUND *csound) {
   }
   return retval;
 #else
-  (void) csound;
-  return CSOUND_SUCCESS;
+  return isRequestingPlugins(csound) ? CSOUND_ERROR : CSOUND_SUCCESS;
 #endif
 }
 

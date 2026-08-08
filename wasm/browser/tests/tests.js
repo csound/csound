@@ -153,21 +153,18 @@
 </CsoundSynthesizer>
 `;
 
-  const velvetLpOrchestra = `
-  sr = 48000
+  const filesystemPluginOrchestra = `
+  sr = 44100
   ksmps = 64
   nchnls = 1
   0dbfs = 1
 
   instr 1
-    aIn poscil 0.2, 440
-    kCutoff init 1000
-    aOut velvetlp aIn, kCutoff
-    out aOut
+    a1 hello440
   endin
 `;
 
-  const velvetLpPluginTest = (pluginOption = "") => `
+  const filesystemPluginTest = (pluginOption = "") => `
 <CsoundSynthesizer>
 <CsOptions>
   -d
@@ -175,7 +172,7 @@
   ${pluginOption}
 </CsOptions>
 <CsInstruments>
-${velvetLpOrchestra}
+${filesystemPluginOrchestra}
 </CsInstruments>
 <CsScore>
   i1 0 0.02
@@ -437,20 +434,20 @@ e
         const cs = await Csound(test);
 
         try {
-          assert.isFalse(await cs.fs.pathExists("./velvetlp.wasm"));
-          assert.equal(0, await cs.setOption("--opcode-lib=./velvetlp.wasm"));
+          assert.isFalse(await cs.fs.pathExists("./plugin_example_cpp.wasm"));
+          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal("./velvetlp.wasm", await cs.getRequestedPlugins());
+          assert.equal("./plugin_example_cpp.wasm", await cs.getRequestedPlugins());
 
-          const response = await fetch("./velvetlp.wasm");
-          assert.isTrue(response.ok, "velvetlp fixture is available");
+          const response = await fetch("./plugin_example_cpp.wasm");
+          assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
-          await cs.fs.writeFile("./velvetlp.wasm", pluginBytes);
+          await cs.fs.writeFile("./plugin_example_cpp.wasm", pluginBytes);
 
-          assert.isTrue(await cs.fs.pathExists("./velvetlp.wasm"));
+          assert.isTrue(await cs.fs.pathExists("./plugin_example_cpp.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal("./velvetlp.wasm", await cs.getRequestedPlugins());
-          assert.equal(0, await cs.compileCSD(velvetLpPluginTest()));
+          assert.equal("./plugin_example_cpp.wasm", await cs.getRequestedPlugins());
+          assert.equal(0, await cs.compileCSD(filesystemPluginTest()));
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
           assert.equal(0, await cs.start());
@@ -459,9 +456,9 @@ e
           await cs.reset();
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
-          assert.equal(0, await cs.setOption("--opcode-lib=./velvetlp.wasm"));
+          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal(0, await cs.compileCSD(velvetLpPluginTest()));
+          assert.equal(0, await cs.compileCSD(filesystemPluginTest()));
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal(0, await cs.start());
           await cs.stop();
@@ -474,14 +471,14 @@ e
         const cs = await Csound(test);
 
         try {
-          const response = await fetch("./velvetlp.wasm");
-          assert.isTrue(response.ok, "velvetlp fixture is available");
+          const response = await fetch("./plugin_example_cpp.wasm");
+          assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
-          await cs.fs.writeFile("./velvetlp.wasm", pluginBytes);
+          await cs.fs.writeFile("./plugin_example_cpp.wasm", pluginBytes);
 
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
-          assert.equal(0, await cs.compileCSD(velvetLpPluginTest("--opcode-lib=./velvetlp.wasm")));
+          assert.equal(0, await cs.compileCSD(filesystemPluginTest("--opcode-lib=./plugin_example_cpp.wasm")));
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
         } finally {
@@ -493,19 +490,19 @@ e
         const cs = await Csound(test);
 
         try {
-          assert.isFalse(await cs.fs.pathExists("./velvetlp.wasm"));
-          assert.equal(0, await cs.setOption("--opcode-lib=./velvetlp.wasm"));
+          assert.isFalse(await cs.fs.pathExists("./plugin_example_cpp.wasm"));
+          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal(0, await cs.parseOrc(velvetLpOrchestra));
+          assert.equal(0, await cs.parseOrc(filesystemPluginOrchestra));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal("./velvetlp.wasm", await cs.getRequestedPlugins());
+          assert.equal("./plugin_example_cpp.wasm", await cs.getRequestedPlugins());
 
-          const response = await fetch("./velvetlp.wasm");
-          assert.isTrue(response.ok, "velvetlp fixture is available");
+          const response = await fetch("./plugin_example_cpp.wasm");
+          assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
-          await cs.fs.writeFile("./velvetlp.wasm", pluginBytes);
+          await cs.fs.writeFile("./plugin_example_cpp.wasm", pluginBytes);
 
-          const tree = await cs.parseOrc(velvetLpOrchestra);
+          const tree = await cs.parseOrc(filesystemPluginOrchestra);
           assert.isOk(tree);
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal(0, await cs.compileTree(tree));
