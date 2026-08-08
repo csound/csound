@@ -913,7 +913,8 @@ int32_t kperf_debug(CSOUND *csound) {
       csound->spinrecv(csound); /*      fill the spin buf  */
     /* clear spout */
     memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
-    memset(csound->spout_tmp, 0, csound->nspout * sizeof(MYFLT));
+    memset(csound->spout_tmp, 0,
+           csound->nspout * csound->oparms->numThreads * sizeof(MYFLT));
   }
 
   ip = csound->actanchor.nxtact;
@@ -1047,7 +1048,9 @@ int32_t kperf_debug(CSOUND *csound) {
             */
             while (offset >= lksmps) {
               offset -= lksmps;
-              start += csound->nchnls;
+              start += incr;
+              ip->spin += csound->inchnls * lksmps;
+              ip->spout += lksmps;
             }
             ip->ksmps_offset = offset;
             if (UNLIKELY(early)) {
