@@ -172,7 +172,7 @@ declare interface CsoundObj {
    * Must be called before csound.start() for reliable behaviour.
    * Once enabled, subscribe with: csound.on("debugCallback", () => { ... })
    */
-  enableDebugCallback: () => Promise<void>;
+  enableDebugCallback: () => Promise<number>;
   /**
    * CsoundFilesystem
    */

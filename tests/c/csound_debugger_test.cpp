@@ -51,7 +51,13 @@ TEST_F (DebuggerTests, testDebuggerFailParcs)
     ASSERT_EQ(err, CSOUND_ERROR);
 }
 
-
+TEST_F (DebuggerTests, testDebuggerFailParcsAtStart)
+{
+    ASSERT_EQ(csoundDebuggerInit(csound), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-j 2"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_ERROR);
+    csoundDebuggerClean(csound);
+}
 
 TEST_F (DebuggerTests, testAddBreakpoint)
 {
@@ -841,4 +847,3 @@ TEST_F (DebuggerTests, testUdoFramesRecursiveSelfCall)
     csoundDebugFreeUdoFrames(csound, frames);
     csoundDebugFreeInstrInstances(csound, instrs);
 }
-

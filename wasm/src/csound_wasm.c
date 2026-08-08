@@ -243,11 +243,14 @@ int csoundResetWasi(CSOUND *csound) {
 }
 
 __attribute__((used))
-void csoundSetDebugCallbackWasi(CSOUND *csound) {
+int32_t csoundSetDebugCallbackWasi(CSOUND *csound) {
   /* csoundDebuggerInit is idempotent — safe to call even if already
      initialized or if called multiple times. */
-  csoundDebuggerInit(csound);
+  int32_t err = csoundDebuggerInit(csound);
+  if (err != CSOUND_SUCCESS)
+    return err;
   csoundSetDebugCallback(csound, &csoundWasiCDebugCallback, NULL);
+  return CSOUND_SUCCESS;
 }
 
 // Keep a stable non-null pointer for JS string reads.

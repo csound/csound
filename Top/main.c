@@ -570,6 +570,11 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
     check_options(csound);
   }
 
+  if (UNLIKELY(O->numThreads > 1 && csound->csdebug_data != NULL)) {
+    csoundErrorMsg(csound, "cannot start multicore performance with debugger\n");
+    return CSOUND_ERROR;
+  }
+
   if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
     csound->Message(csound,
                     Str("Csound is already started, call csoundReset()\n"

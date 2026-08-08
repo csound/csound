@@ -123,7 +123,7 @@ export const csoundSetDebugCallbackWasi = (wasm) => (csound) =>
   wasm.exports["csoundSetDebugCallbackWasi"](csound);
 
 csoundSetDebugCallbackWasi["toString"] = () =>
-  "setDebugCallbackWasi = async (csound) => undefined;";
+  "setDebugCallbackWasi = async (csound) => Number;";
 
 /**
  * Dummy function to enable stop mechanism
