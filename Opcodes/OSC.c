@@ -563,21 +563,27 @@ static int32_t OSC_handler(const char *path, const char *types,
           }
           /* copy argument list */
           for (i = 0; o->saved_types[i] != '\0'; i++) {
+            lo_arg value;
             switch (types[i]) {
             default:              /* Should not happen */
             case 'i':
-              m->args[i].number = (MYFLT) argv[i]->i; break;
+              memcpy(&value.i, (const void *) argv[i], sizeof(value.i));
+              m->args[i].number = (MYFLT) value.i; break;
             case 'h':
-              m->args[i].number = (MYFLT) argv[i]->i64; break;
+              memcpy(&value.i64, (const void *) argv[i], sizeof(value.i64));
+              m->args[i].number = (MYFLT) value.i64; break;
             case 'c':
-               m->args[i].number= (MYFLT) argv[i]->c; break;
+              memcpy(&value.c, (const void *) argv[i], sizeof(value.c));
+              m->args[i].number = (MYFLT) value.c; break;
             case 'f':
-               m->args[i].number = (MYFLT) argv[i]->f; break;
+              memcpy(&value.f, (const void *) argv[i], sizeof(value.f));
+              m->args[i].number = (MYFLT) value.f; break;
             case 'd':
-               m->args[i].number= (MYFLT) argv[i]->d; break;
+              memcpy(&value.d, (const void *) argv[i], sizeof(value.d));
+              m->args[i].number = (MYFLT) value.d; break;
             case 's':
               { // ***NO CHECK THAT m->args[i] IS A STRING
-                char  *src = (char*) &(argv[i]->s), *dst = m->args[i].string.data;
+                char *src = (char *) argv[i], *dst = m->args[i].string.data;
                 if (m->args[i].string.size <= strlen(src)) {
                   if (dst != NULL) csound->Free(csound, dst);
                   dst = csound->Strdup(csound, src);
@@ -1209,18 +1215,24 @@ static int32_t OSC_ahandler(const char *path, const char *types,
           }
           /* copy argument list */
           for (i = 0; o->saved_types[i] != '\0'; i++) {
+            lo_arg value;
             switch (types[i]) {
             default:              /* Should not happen */
             case 'i':
-              m->args[i].number = (MYFLT) argv[i]->i; break;
+              memcpy(&value.i, (const void *) argv[i], sizeof(value.i));
+              m->args[i].number = (MYFLT) value.i; break;
             case 'h':
-              m->args[i].number = (MYFLT) argv[i]->i64; break;
+              memcpy(&value.i64, (const void *) argv[i], sizeof(value.i64));
+              m->args[i].number = (MYFLT) value.i64; break;
             case 'c':
-              m->args[i].number= (MYFLT) argv[i]->c; break;
+              memcpy(&value.c, (const void *) argv[i], sizeof(value.c));
+              m->args[i].number = (MYFLT) value.c; break;
             case 'f':
-              m->args[i].number = (MYFLT) argv[i]->f; break;
+              memcpy(&value.f, (const void *) argv[i], sizeof(value.f));
+              m->args[i].number = (MYFLT) value.f; break;
             case 'd':
-              m->args[i].number= (MYFLT) argv[i]->d; break;
+              memcpy(&value.d, (const void *) argv[i], sizeof(value.d));
+              m->args[i].number = (MYFLT) value.d; break;
             }
           }
           retval = 0;

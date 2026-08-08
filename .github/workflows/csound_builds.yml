@@ -78,6 +78,59 @@ jobs:
           cd build
           make csdtests
 
+  linux_sanitizer:
+    name: Linux/Ubuntu full tests (ASan + UBSan)
+    runs-on: ubuntu-latest
+    env:
+      ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build python3 libgtest-dev \
+            libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev \
+            libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk \
+            liblo-dev ladspa-sdk dssi-dev libsamplerate0-dev \
+            libpipewire-0.3-dev bison flex gettext
+
+      - name: Configure sanitizer build
+        env:
+          CFLAGS: -fsanitize=address,undefined -fno-omit-frame-pointer
+          CXXFLAGS: -fsanitize=address,undefined -fno-omit-frame-pointer
+          LDFLAGS: -fsanitize=address,undefined
+        run: >
+          cmake -S . -B build-sanitize -G Ninja
+          -DCMAKE_BUILD_TYPE=Debug
+          -DBUILD_TESTS=1
+          -DBUILD_STATIC_LIBRARY=1
+          -DUSE_MP3=1
+          -DUSE_CURL=0
+
+      - name: Build sanitizer Csound
+        run: cmake --build build-sanitize --parallel "$(nproc)"
+
+      - name: Run unit tests
+        run: >
+          ctest --test-dir build-sanitize
+          --parallel "$(nproc)"
+          --output-on-failure
+          --no-tests=error
+
+      - name: Run CSD tests
+        run: |
+          cmake --build build-sanitize --target csdtests
+          if grep -E 'AddressSanitizer|UndefinedBehaviorSanitizer|runtime error:' \
+            build-sanitize/tests/commandline/results.txt; then
+            exit 1
+          fi
+
   linux_build_vcpkg:
     name: Linux/Ubuntu build (vcpkg)
     runs-on: ubuntu-latest

@@ -90,7 +90,7 @@ static uint32_t detect_frame_size(mpadec_t mpadec)
     buf += mpa->frame.frame_size;
     i -= mpa->frame.frame_size;
     while (i >= 4) {
-      register uint32_t tmp = (buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
+      register uint32_t tmp = ((uint32_t)buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
       if (((tmp & 0xFFE00000) == 0xFFE00000) &&
           (tmp & (3 << 17)) &&
           ((tmp & (3 << 10)) != (3 << 10))) {
@@ -102,7 +102,7 @@ static uint32_t detect_frame_size(mpadec_t mpadec)
             uint32_t fs = mpa->bytes_left - i - mpa->frame.padding + ((tmp>>9) & 1);
             if (i >= (fs + 4)) {
               buf += fs;
-              tmp = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
+              tmp = ((uint32_t)buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
               buf -= fs;
               if (((tmp & 0xFFE00000) == 0xFFE00000) &&
                   (tmp & (3 << 17))                  &&
@@ -224,7 +224,7 @@ static uint32_t sync_buffer(mpadec_t mpadec)
     if (mpa->state == MPADEC_STATE_START) {
       buf += 128; i -= 128;
       while (i >= 4) {
-        register uint32_t tmp = (buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
+        register uint32_t tmp = ((uint32_t)buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
         if (((tmp & 0xFFE00000) == 0xFFE00000) &&
             (tmp & (3<<17))                    &&
             ((tmp & (3<<10)) != (3<<10))) {
@@ -236,7 +236,7 @@ static uint32_t sync_buffer(mpadec_t mpadec)
               }
               else {
                 register uint32_t tmp2 =
-                  (buf[mpa->frame.frame_size]<<24)     |
+                  ((uint32_t)buf[mpa->frame.frame_size]<<24) |
                   (buf[mpa->frame.frame_size + 1]<<16) |
                   (buf[mpa->frame.frame_size + 2]<<8)  |
                   buf[mpa->frame.frame_size + 3];
@@ -263,7 +263,7 @@ static uint32_t sync_buffer(mpadec_t mpadec)
       }
     } else {
       while (i >= 4) {
-        register uint32_t tmp = (buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
+        register uint32_t tmp = ((uint32_t)buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
         if (((tmp & 0xFFE00000) == 0xFFE00000) &&
             (tmp & (3<<17))                    &&
             ((tmp & (3<<10)) != (3<<10))) {
@@ -333,14 +333,14 @@ static int32_t first_frame(mpadec_t mpadec)
         mpa->next_byte += framesize;
         mpa->bytes_left -= framesize;
         buf += 4;
-        mpa->tag_info.flags = (buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
+        mpa->tag_info.flags = ((uint32_t)buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
         buf += 4;
         if (mpa->tag_info.flags & 1) {
-          mpa->tag_info.frames = (buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
+          mpa->tag_info.frames = ((uint32_t)buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
           buf += 4;
         };
         if (mpa->tag_info.flags & 2) {
-          mpa->tag_info.bytes = (buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
+          mpa->tag_info.bytes = ((uint32_t)buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[3];
           buf += 4;
         };
         if (mpa->tag_info.flags & 4) {
