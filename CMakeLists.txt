@@ -1085,8 +1085,7 @@ if(HAVE_WASMTIME)
     list(APPEND libcsound_SRCS Top/wasm_plugins.c)
 endif()
 
-if(EMSCRIPTEN OR
-   (CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" AND BUILD_WASI_BROWSER))
+if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" AND BUILD_WASI_BROWSER)
     list(APPEND libcsound_SRCS Top/wasm_opcode_abi_check.c)
 endif()
 
