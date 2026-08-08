@@ -1486,7 +1486,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   if(tp->glbvarcnt > 0 &&
      CS_ESR != csound->esr)
     return csoundInitError(csound, "inherited local sr not permitted with global audio vars\n");
-  
+
 
   inm->recurse_depth++;
   if (csound->oparms->recursion_depth > 0 &&
@@ -1498,7 +1498,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
                              Str("error: UDO %s max recursion depth %d reached"),
                              inm->name, csound->oparms->recursion_depth);
   }
-  
+
   if (!p->ip) {
     /* search for already allocated, but not active instance */
     /* if none was found, allocate a new instance */
@@ -2486,7 +2486,7 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
      *p->i_ksmps > 0 /* no-op */ &&
      csound->ksmps != *p->i_ksmps /* no-op */)
     return csoundInitError(csound, "local ksmps not permitted with global audio vars\n");
-  
+
   uint32_t  l_ksmps, n;
   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
   MYFLT parent_sr = udo ? udo->parent_ip->esr : csound->esr;
@@ -2620,7 +2620,7 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   if(p->h.insdshead->instr->glbvarcnt > 0  &&
      *p->os > 1 /* no op */)
     return csoundInitError(csound, "local sr not permitted with global audio vars\n");
-  
+
   int32_t os, lksmps;
   MYFLT l_sr, onedos;
   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;

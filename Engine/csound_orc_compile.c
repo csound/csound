@@ -2725,7 +2725,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
             setup_arg_for_var_name(csound, arg, csound->engineState.varPool, s) != NULL) {
     arg->type = ARG_GLOBAL;
     if(is_audio_var(csound, arg->argPtr, arg->structPath))
-          ip->glbvarcnt++;  
+          ip->glbvarcnt++;
   }
   /* otherwise we have a local arg */
   else {

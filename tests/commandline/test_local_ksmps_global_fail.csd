@@ -36,7 +36,7 @@ opcode Test4,0,0
 endop
 
 opcode Test00,0,0
- setksmps 10 
+ setksmps 10
  gaatest[0] = 1 //ok
  prints "OK!"
 endop

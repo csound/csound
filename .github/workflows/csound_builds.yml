@@ -110,7 +110,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=Debug
           -DBUILD_TESTS=1
           -DBUILD_STATIC_LIBRARY=1
-          -DUSE_MP3=0
+          -DUSE_MP3=1
           -DUSE_CURL=0
 
       - name: Build sanitizer Csound
