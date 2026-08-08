@@ -55,11 +55,11 @@ int main(int argc, char **argv)
 
     Csound* csound = new Csound();
     csound->Compile(2, (const char **)argv);
-    csound->Start();
     if (csoundDebuggerInit(csound->GetCsound()) != CSOUND_SUCCESS) {
         delete csound;
         return 1;
     }
+    csound->Start();
     csoundSetBreakpointCallback(csound->GetCsound(), brkpt_cb, NULL);
 
     cout << "Csound filename: " << argv[1] << '\n';
