@@ -132,7 +132,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
         
         insds->spin = csound->spin;
         insds->spout = csound->spout_tmp + index * csound->nspout;
-        insds->kcounter = csound->kcounter * csound->ksmps;
+        insds->kcounter = ((csound->kcounter - 1) * csound->ksmps / lksmps) + 1;
         /* we have to deal with sample-accurate code
            whole CS_KSMPS blocks are offset here, the
            remainder is left to each opcode to deal with.
