@@ -104,6 +104,7 @@ Opcodes: internal and plugin opcodes
 - quadbezier.c: bezier lines
 - repluck.c: plucked-string physical models
 - reverbsc.c: FDN reverb
+- savgol.c: Savitzky-Golay filter
 - scansyn.c: scanned synthesis
 - scansynx.c: scanned synthesis
 - scoreline.c: event triggering

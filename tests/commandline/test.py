@@ -852,6 +852,37 @@ def runTest():
             "test_signalflowgraph_lifetime.csd",
             "test signal-flow graph cleanup and ftgenonce",
         ],
+        ["test_savgol.csd", "test savgol filter and savgol matrix"],
+        [
+            "test_savgol_fail_winsize_even.csd",
+            "expected failure: savgol winsize must be odd",
+            1,
+        ],
+        [
+            "test_savgol_fail_winsize_small.csd",
+            "expected failure: savgol winsize must be at least 3",
+            1,
+        ],
+        [
+            "test_savgol_fail_order.csd",
+            "expected failure: savgol order must be less than winsize",
+            1,
+        ],
+        [
+            "test_savgol_fail_deriv.csd",
+            "expected failure: savgol deriv must not exceed order",
+            1,
+        ],
+        [
+            "test_savgol_fail_delta.csd",
+            "expected failure: savgol delta must be positive",
+            1,
+        ],
+        [
+            "test_savgol_fail_mat.csd",
+            "expected failure: savgolmat rejects an even winsize",
+            1,
+        ],
     ]
 
     parcsTests = [
