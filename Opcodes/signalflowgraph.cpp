@@ -244,10 +244,17 @@ struct Connection {
   MYFLT gain; // i-rate linear amplitude; default 1
 };
 
+struct FsigSourceFrameState {
+  uint64_t generation;
+  uint32_t framecount;
+  bool seen;
+};
+
 struct SignalFlowGraphState {
   CSOUND *csound;
   void *signal_flow_ports_lock;
   void *signal_flow_ftables_lock;
+  uint64_t nextFoutletGeneration;
   std::map<std::string, std::vector<Outleta *>> aoutletsForSourceOutletIds;
   std::map<std::string, std::vector<Outletk *>> koutletsForSourceOutletIds;
   std::map<std::string, std::vector<Outletf *>> foutletsForSourceOutletIds;
@@ -259,6 +266,8 @@ struct SignalFlowGraphState {
   std::map<std::string, std::vector<Inletv *>> vinletsForSinkInletIds;
   std::map<std::string, std::vector<Inletkid *>> kidinletsForSinkInletIds;
   std::map<std::string, std::vector<Connection>> connections;
+  std::map<const Inletf *, std::map<const Outletf *, FsigSourceFrameState>>
+      fframesForInlets;
   std::map<EventBlock, int> functionTablesForEvtblks;
   std::vector<std::vector<std::vector<Outleta *> *> *> aoutletVectors;
   std::vector<std::vector<std::vector<Outletk *> *> *> koutletVectors;
@@ -274,6 +283,7 @@ struct SignalFlowGraphState {
   std::vector<std::vector<MYFLT> *> kidgainVectors;
   SignalFlowGraphState(CSOUND *csound_) {
     csound = csound_;
+    nextFoutletGeneration = 0;
     signal_flow_ports_lock = csound->Create_Mutex(0);
     signal_flow_ftables_lock = csound->Create_Mutex(0);
   }
@@ -322,6 +332,7 @@ struct SignalFlowGraphState {
     vgainVectors.clear();
     kidoutletVectors.clear();
     kidgainVectors.clear();
+    fframesForInlets.clear();
     connections.clear();
   }
 };
@@ -641,9 +652,11 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
    */
   char sourceOutletId[MAX_STRING];
   SignalFlowGraphState *sfg_globals;
+  uint64_t generation;
   int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
+    generation = ++sfg_globals->nextFoutletGeneration;
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
@@ -692,7 +705,7 @@ struct Inletf : public OpcodeBase<Inletf> {
   std::vector<std::vector<Outletf *> *> *sourceOutlets;
   std::vector<MYFLT> *sourceGains;
   int32_t ksmps;
-  int32_t lastframe;
+  uint32_t lastframe;
   bool fsignalInitialized;
   SignalFlowGraphState *sfg_globals;
   int32_t init(CSOUND *csound) {
@@ -701,6 +714,7 @@ struct Inletf : public OpcodeBase<Inletf> {
     ksmps = opds.insdshead->ksmps;
     lastframe = 0;
     fsignalInitialized = false;
+    sfg_globals->fframesForInlets[this].clear();
     if (std::find(sfg_globals->foutletVectors.begin(),
                   sfg_globals->foutletVectors.end(),
                   sourceOutlets) == sfg_globals->foutletVectors.end()) {
@@ -752,8 +766,8 @@ struct Inletf : public OpcodeBase<Inletf> {
   }
   /**
    * Mix fsig values from active outlets feeding this inlet.
-   * Non-sliding frames max-merge source into sink (older code wrote the
-   * wrong direction and only ran for inactive sources).
+   * Non-sliding frames rebuild when any source advances. Sliding frames
+   * rebuild every k-cycle.
    */
   int32_t audio(CSOUND *csound) {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
@@ -762,8 +776,43 @@ struct Inletf : public OpcodeBase<Inletf> {
     float *source = 0;
     CMPLX *sinkFrame = 0;
     CMPLX *sourceFrame = 0;
-    int32_t newLastframe = lastframe;
-    bool mergedNonSliding = false;
+    std::map<const Outletf *, FsigSourceFrameState> &sourceFrames =
+        sfg_globals->fframesForInlets[this];
+    for (auto &sourceFrameState : sourceFrames) {
+      sourceFrameState.second.seen = false;
+    }
+    bool sourceFrameChanged = false;
+    for (size_t sourceI = 0, sourceN = sourceOutlets->size(); sourceI < sourceN;
+         sourceI++) {
+      const std::vector<Outletf *> *instances = sourceOutlets->at(sourceI);
+      for (size_t instanceI = 0, instanceN = instances->size();
+           instanceI < instanceN; instanceI++) {
+        const Outletf *sourceOutlet = instances->at(instanceI);
+        if (!sourceOutlet->opds.insdshead->actflg) {
+          continue;
+        }
+        const FsigSourceFrameState state = {
+            sourceOutlet->generation, sourceOutlet->fsignal->framecount, true};
+        auto frame = sourceFrames.insert(std::make_pair(sourceOutlet, state));
+        if (frame.second || frame.first->second.generation != state.generation ||
+            frame.first->second.framecount != state.framecount) {
+          sourceFrameChanged = true;
+        }
+        frame.first->second = state;
+      }
+    }
+    for (auto frame = sourceFrames.begin(); frame != sourceFrames.end();) {
+      if (!frame->second.seen) {
+        frame = sourceFrames.erase(frame);
+        sourceFrameChanged = true;
+      } else {
+        ++frame;
+      }
+    }
+    if (fsignalInitialized && fsignal->frame.auxp != 0 &&
+        (fsignal->sliding || sourceFrameChanged)) {
+      memset(fsignal->frame.auxp, 0, fsignal->frame.size);
+    }
     // Loop over the source connections...
     for (size_t sourceI = 0, sourceN = sourceOutlets->size(); sourceI < sourceN;
          sourceI++) {
@@ -832,11 +881,7 @@ struct Inletf : public OpcodeBase<Inletf> {
         } else {
           sink = (float *)fsignal->frame.auxp;
           source = (float *)sourceOutlet->fsignal->frame.auxp;
-          // Compare against the source frame counter; using the sink's
-          // framecount here stopped updates after the first merge.
-          // Defer updating shared lastframe until all sources are checked so
-          // fan-in from multiple outlets with the same framecount still merges.
-          if (lastframe < int(sourceOutlet->fsignal->framecount)) {
+          if (sourceFrameChanged) {
             for (size_t binI = 0, binN = fsignal->N + 2; binI < binN;
                  binI += 2) {
               float amp = source[binI] * gain;
@@ -845,16 +890,12 @@ struct Inletf : public OpcodeBase<Inletf> {
                 sink[binI + 1] = source[binI + 1];
               }
             }
-            if (int(sourceOutlet->fsignal->framecount) > newLastframe) {
-              newLastframe = int(sourceOutlet->fsignal->framecount);
-            }
-            mergedNonSliding = true;
           }
         }
       }
     }
-    if (mergedNonSliding) {
-      fsignal->framecount = lastframe = newLastframe;
+    if (sourceFrameChanged && fsignalInitialized && !fsignal->sliding) {
+      fsignal->framecount = ++lastframe;
     }
     return result;
   }
