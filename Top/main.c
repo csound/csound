@@ -669,6 +669,10 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
   O->sndfileSampleSize = sndfileSampleSize(FORMAT2SF(O->outformat));
   O->informat = O->outformat; /* informat default */
 
+#if defined(__wasi__)
+  O->numThreads = 1;
+#endif
+
 #ifdef PARCS
   if (O->numThreads > 1) {
     int32_t i;
