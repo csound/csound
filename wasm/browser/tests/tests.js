@@ -1165,6 +1165,33 @@ e
       assert.property(cs, "getMemory");
     });
 
+    it("reuses resources after failed plugin loads", async function () {
+      const { libcsound } = await import(url);
+      const badPlugin = Uint8Array.from(
+        atob(
+          "AGFzbQEAAAAADAZkeWxpbmtAAAEAAAEEAWAAAAI3AgNlbnYZX19pbmRpcmVjdF9mdW5jdGlvbl90YWJsZQFwAAADZW52DF9fdGFibGVfYmFzZQN/AAMDAgAAByoCEV9fd2FzbV9jYWxsX2N0b3JzAAASY3NvdW5kTW9kdWxlQ3JlYXRlAAEJBwEAIwALAQEKCAIDAAALAgAL",
+        ),
+        (char) => char.charCodeAt(0),
+      );
+      const oneFailure = await libcsound({ withPlugins: [badPlugin] });
+      const repeatedFailures = await libcsound({ withPlugins: Array(8).fill(badPlugin) });
+      const oneExports = oneFailure.wasm.exports;
+      const repeatedExports = repeatedFailures.wasm.exports;
+      const oneTable = oneExports.__indirect_function_table;
+      const repeatedTable = repeatedExports.__indirect_function_table;
+      const oneAllocation = oneExports.allocStringMem(64);
+      const repeatedAllocation = repeatedExports.allocStringMem(64);
+
+      try {
+        assert.equal(oneTable.length, repeatedTable.length);
+        assert.equal(oneAllocation, repeatedAllocation);
+        assert.isNull(repeatedTable.get(repeatedTable.length - 1));
+      } finally {
+        oneExports.freeStringMem(oneAllocation);
+        repeatedExports.freeStringMem(repeatedAllocation);
+      }
+    });
+
     it("exports generic channel memory APIs", function () {
       assert.isFunction(cs.wasm.exports.csoundGetChannel);
       assert.isFunction(cs.wasm.exports.csoundSetChannel);
