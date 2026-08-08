@@ -65,14 +65,16 @@ void csoundDebuggerBreakpointReached(CSOUND *csound)
     csoundDebugFreeVariables(csound, bkpt_info.instrVarList);
 }
 
- void csoundDebuggerInit(CSOUND *csound)
+int32_t csoundDebuggerInit(CSOUND *csound)
 {
-    /* to be removed if/when multicore is supported */
-    if(csound->multiThreadedThreadInfo != NULL)
-      csoundDie(csound, "cannot initialise debugger for multicore\n");
+  /* to be removed if/when multicore is supported */
+  if(csound->multiThreadedThreadInfo != NULL) {
+    csoundErrorMsg(csound, "cannot initialise debugger for multicore\n");
+    return CSOUND_ERROR;
+  }
   
     /* Idempotent: do nothing if already initialized */
-    if (csound->csdebug_data != NULL) return;
+    if (csound->csdebug_data != NULL) return CSOUND_SUCCESS;
     csdebug_data_t *data =
       (csdebug_data_t *) csound->Malloc(csound, sizeof(csdebug_data_t));
     data->bkpt_anchor = (bkpt_node_t *) csound->Malloc(csound, sizeof(bkpt_node_t));
@@ -88,6 +90,7 @@ void csoundDebuggerBreakpointReached(CSOUND *csound)
                                                   64, sizeof(debug_command_t));
     csound->csdebug_data = data;
     csound->kperf = kperf_debug;
+    return CSOUND_SUCCESS;
 }
 
  void csoundDebuggerClean(CSOUND *csound)

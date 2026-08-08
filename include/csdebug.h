@@ -223,8 +223,10 @@ typedef struct csdebug_data_s {
  * This call is not thread safe and must be called before performance starts.
  *
  * @param csound A Csound instance
+ *
+ * Returns CSOUND_ERROR on failure, CSOUND_SUCCESS on initialisation completed.
 */
-PUBLIC void csoundDebuggerInit(CSOUND *csound);
+PUBLIC int32_t csoundDebuggerInit(CSOUND *csound);
 
 /** Cleanup debugger facilities
  *
