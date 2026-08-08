@@ -55,7 +55,20 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake curl xz-utils clang lld wasi-libc libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk liblo-dev ladspa-sdk dssi-dev  bison flex gettext libsamplerate0-dev libpipewire-0.3-dev
+          sudo apt-get install cmake curl xz-utils libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk liblo-dev ladspa-sdk dssi-dev  bison flex gettext libsamplerate0-dev libpipewire-0.3-dev
+
+      - name: Install WASI SDK
+        run: |
+          CSOUND_WASI_SDK_VERSION=33
+          CSOUND_WASI_SDK_FULL_VERSION=33.0
+          CSOUND_WASI_SDK_SHA256=0ba8b5bfaeb2adf3f29bab5841d76cf5318ab8e1642ea195f88baba1abd47bce
+          CSOUND_WASI_SDK_ARCHIVE="wasi-sdk-${CSOUND_WASI_SDK_FULL_VERSION}-x86_64-linux.tar.gz"
+          curl --fail --location --retry 3 \
+            --output "${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE}" \
+            "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${CSOUND_WASI_SDK_VERSION}/${CSOUND_WASI_SDK_ARCHIVE}"
+          echo "${CSOUND_WASI_SDK_SHA256}  ${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE}" | sha256sum --check
+          tar -xzf "${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE}" -C "${RUNNER_TEMP}"
+          echo "WASI_SDK_PATH=${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE%.tar.gz}" >> "${GITHUB_ENV}"
 
       - name: Install Wasmtime C API
         run: |
@@ -84,9 +97,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DUSE_MP3=0 -DBUILD_TESTS=1 -DBUILD_STATIC_LIBRARY=1 \
-            -DWasmtime_ROOT="${CSOUND_WASMTIME_ROOT}" \
-            -DCSOUND_WASM_TEST_C_COMPILER=/usr/bin/clang \
-            -DCSOUND_WASM_TEST_SYSROOT=/usr
+            -DWasmtime_ROOT="${CSOUND_WASMTIME_ROOT}"
           grep -q '^Wasmtime_HAS_REQUIRED_API:INTERNAL=1$' CMakeCache.txt
 
       - name: Build Csound
