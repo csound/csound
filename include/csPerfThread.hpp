@@ -102,7 +102,7 @@ typedef struct {
     void *cbuf;
     void *sfile;
     void *thread;
-    char running;
+    bool running;
     void* condvar;
     void* mutex;
     char *sfname;

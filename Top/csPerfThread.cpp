@@ -212,7 +212,7 @@ extern "C" {
     MYFLT buf[bufsize];
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     csoundLockMutex(recordData->mutex);
-    while (ATOMIC_GET8(recordData->running)) {
+    while (ATOMIC_GET_BOOL(recordData->running)) {
         csoundCondWait(recordData->condvar, recordData->mutex);
         int sampsread;
         do {
@@ -236,9 +236,9 @@ static bool stopRecordThread(recordData_t *recordData)
 {
     bool wasRunning;
     csoundLockMutex(recordData->mutex);
-    wasRunning = ATOMIC_GET8(recordData->running);
+    wasRunning = ATOMIC_GET_BOOL(recordData->running);
     if (wasRunning) {
-        ATOMIC_SET8(recordData->running, false);
+        ATOMIC_SET_BOOL(recordData->running, false);
         csoundCondSignal(recordData->condvar);
     }
     csoundUnlockMutex(recordData->mutex);
@@ -258,7 +258,7 @@ public:
         this->filename = filename;
         CsoundPerformanceThreadMessage::lockRecord();
         recordData_t *recordData = CsoundPerformanceThreadMessage::getRecordData();
-        if (ATOMIC_GET8(recordData->running)) {
+        if (ATOMIC_GET_BOOL(recordData->running)) {
             CsoundPerformanceThreadMessage::unlockRecord();
             return;
         }
@@ -308,7 +308,7 @@ public:
                    NULL, SFLIB_TRUE);
         recordData->sfname = csound->Strdup(csound, filename.c_str());
         csoundLockMutex(recordData->mutex);
-        ATOMIC_SET8(recordData->running, true);
+        ATOMIC_SET_BOOL(recordData->running, true);
         recordData->thread = csoundCreateThread(recordThread_, (void*) recordData);
         csoundUnlockMutex(recordData->mutex);
 
@@ -645,7 +645,7 @@ int32_t CsoundPerformanceThread::Perform()
       if(processcallback != NULL)
            processcallback(cdata);
       retval = csoundPerformKsmps(csound);
-      if (ATOMIC_GET8(recordData.running)) {
+      if (ATOMIC_GET_BOOL(recordData.running)) {
           const MYFLT *spout = csoundGetSpout(csound);
           int len = csoundGetKsmps(csound) * csoundGetChannels(csound,0);
           int written = csoundWriteCircularBuffer(NULL, recordData.cbuf,
@@ -751,7 +751,7 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
     recordData.cbuf = NULL;
     recordData.sfile = NULL;
     recordData.thread = NULL;
-    ATOMIC_SET8(recordData.running, false);
+    ATOMIC_SET_BOOL(recordData.running, false);
 
         recordData.mutex = csoundCreateMutex (0);
         recordData.condvar = csoundCreateCondVar();
@@ -913,7 +913,7 @@ int32_t CsoundPerformanceThread::Join()
     int32_t retval;
     retval = status;
 
-    if (ATOMIC_GET8(recordData.running))
+    if (ATOMIC_GET_BOOL(recordData.running))
       stopRecordThread(&recordData);
     if (perfThread) {
       retval = (int32_t) csoundJoinThread(perfThread);

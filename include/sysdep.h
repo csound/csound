@@ -510,6 +510,17 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #endif
 
 #ifdef MSVC
+#define ATOMIC_SET_BOOL(var, val) \
+  ((void) InterlockedExchange8((volatile char *) &(var), (char) !!(val)))
+#define ATOMIC_GET_BOOL(var) \
+  (InterlockedExchangeAdd8((volatile char *) &(var), 0) != 0)
+#else
+#define ATOMIC_SET_BOOL(var, val) \
+  do { ATOMIC_SET8(var, !!(val)); } while (0)
+#define ATOMIC_GET_BOOL ATOMIC_GET8
+#endif
+
+#ifdef MSVC
 #define ATOMIC_DECR(var) InterlockedExchangeAdd(&var, -1)
 #elif defined(HAVE_ATOMIC_BUILTIN)
 #define ATOMIC_DECR(var) __atomic_sub_fetch(&var, 1, __ATOMIC_SEQ_CST)
