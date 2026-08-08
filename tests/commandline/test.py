@@ -844,15 +844,14 @@ def runTest():
         ],
     ]
 
+    parcsTests = [
+         [ "test_parcs_instance_overlap.csd",
+                "PARCS does not enter one instrument instance twice"], 
+          ["test_parcs_perf_error.csd", "PARCS exits on perf error",1]
+              ]
+    
     if not csoundExecutable.lower().endswith((".wasm", ".cwasm")):
-        tests.append(
-            [
-                "test_parcs_instance_overlap.csd",
-                "PARCS does not enter one instrument instance twice",
-                0,
-                ["-nd", "--num-threads=4"],
-            ]
-        )
+        tests += parcsTests           
 
 
 

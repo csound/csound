@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--n -d -m128
+-n -d  -j 4
 </CsOptions>
 <CsInstruments>
 
