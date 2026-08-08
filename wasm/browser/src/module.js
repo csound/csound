@@ -26,6 +26,8 @@ const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
 const WASI_LONGJMP_PREFIX = "CSOUND_WASI_LONGJMP:";
 const MAX_ALIGNMENT_EXPONENT = 30;
+// Bound table growth and failed-load cleanup for one plugin.
+const MAX_PLUGIN_TABLE_ENTRIES = 1000000;
 const MAX_SIGNED_WASM_I32 = 0x7fffffff;
 
 const alignmentFromExponent = (exponent) => {
@@ -408,10 +410,26 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
           }
         }
       } else {
+        if (
+          !Number.isSafeInteger(pluginTableSize) ||
+          pluginTableSize < 0 ||
+          pluginTableSize > MAX_PLUGIN_TABLE_ENTRIES
+        ) {
+          throw new TypeError("Invalid WebAssembly plugin table size");
+        }
         const pluginTableAlignment = alignmentFromExponent(pluginTableAlign);
         pluginTableBaseValue = alignUp(sharedTableEnd, pluginTableAlignment);
         const tableLimit = pluginTableBaseValue + pluginTableSize;
+        if (
+          !Number.isSafeInteger(tableLimit) ||
+          tableLimit > MAX_SIGNED_WASM_I32
+        ) {
+          throw new TypeError("The WebAssembly plugin table request is too large");
+        }
         const tableGrowth = tableLimit - table.length;
+        if (tableGrowth > MAX_PLUGIN_TABLE_ENTRIES) {
+          throw new TypeError("The WebAssembly plugin table request is too large");
+        }
         if (tableGrowth > 0) {
           table.grow(tableGrowth);
         }

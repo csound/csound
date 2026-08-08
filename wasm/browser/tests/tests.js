@@ -1192,6 +1192,33 @@ e
       }
     });
 
+    it("rejects unsafe plugin table requests before growing", async function () {
+      const { libcsound } = await import(url);
+      const unsafePlugins = [
+        // The dylink headers ask for 1,000,001 entries and 2^30 alignment.
+        "AGFzbQEAAAAADgZkeWxpbmtAAMGEPQAAAQQBYAAAAjcCA2VudhlfX2luZGlyZWN0X2Z1bmN0aW9uX3RhYmxlAXAAAANlbnYMX190YWJsZV9iYXNlA38AAwMCAAAHKgIRX193YXNtX2NhbGxfY3RvcnMAABJjc291bmRNb2R1bGVDcmVhdGUAAQkHAQAjAAsBAQoIAgMAAAsCAAs=",
+        "AGFzbQEAAAAADAZkeWxpbmtAAAEeAAEEAWAAAAI3AgNlbnYZX19pbmRpcmVjdF9mdW5jdGlvbl90YWJsZQFwAAADZW52DF9fdGFibGVfYmFzZQN/AAMDAgAAByoCEV9fd2FzbV9jYWxsX2N0b3JzAAASY3NvdW5kTW9kdWxlQ3JlYXRlAAEJBwEAIwALAQEKCAIDAAALAgAL",
+      ].map((encodedPlugin) =>
+        Uint8Array.from(atob(encodedPlugin), (char) => char.charCodeAt(0)),
+      );
+      assert.isTrue(unsafePlugins.every((plugin) => WebAssembly.validate(plugin)));
+      const tableGrow = WebAssembly.Table.prototype.grow;
+      let growCalled = false;
+      WebAssembly.Table.prototype.grow = () => {
+        growCalled = true;
+        throw new Error("Unexpected shared table growth");
+      };
+
+      try {
+        for (const unsafePlugin of unsafePlugins) {
+          await libcsound({ withPlugins: [unsafePlugin] });
+        }
+        assert.isFalse(growCalled);
+      } finally {
+        WebAssembly.Table.prototype.grow = tableGrow;
+      }
+    });
+
     it("exports generic channel memory APIs", function () {
       assert.isFunction(cs.wasm.exports.csoundGetChannel);
       assert.isFunction(cs.wasm.exports.csoundSetChannel);
