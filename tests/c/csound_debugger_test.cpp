@@ -44,6 +44,15 @@ TEST_F (DebuggerTests, testDebuggerInit)
     csoundDebuggerClean(csound);
 }
 
+TEST_F (DebuggerTests, testDebuggerFailParcs)
+{
+    csoundSetOption(csound, "-j 2");
+    int32_t err = csoundDebuggerInit(csound);
+    ASSERT_EQ(err, CSOUND_ERROR);
+}
+
+
+
 TEST_F (DebuggerTests, testAddBreakpoint)
 {
     csoundDebuggerInit(csound);

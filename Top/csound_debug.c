@@ -68,7 +68,7 @@ void csoundDebuggerBreakpointReached(CSOUND *csound)
 int32_t csoundDebuggerInit(CSOUND *csound)
 {
   /* to be removed if/when multicore is supported */
-  if(csound->multiThreadedThreadInfo != NULL) {
+  if(csound->oparms->numThreads > 1) {
     csoundErrorMsg(csound, "cannot initialise debugger for multicore\n");
     return CSOUND_ERROR;
   }
@@ -108,12 +108,6 @@ int32_t csoundDebuggerInit(CSOUND *csound)
     csound->Free(csound, data);
     csound->csdebug_data = NULL;
     csound->kperf = kperf;
-}
-
- void csoundDebugStart(CSOUND *csound)
-{
-    csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    data->status = CSDEBUG_STATUS_RUNNING;
 }
 
  void csoundSetBreakpoint(CSOUND *csound, int32_t line, int32_t instr, int32_t skip)
