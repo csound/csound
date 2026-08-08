@@ -2338,19 +2338,41 @@ int32_t error_fn(CSOUND *csound, ERRFN *p)
 
 /* ------------------------------------------------------------------------ */
 
+static inline MYFLT monitor_spout_sample(CSOUND *csound, INSDS *instance,
+                                         uint32_t channel, uint32_t frame)
+{
+  MYFLT *spout = instance->spout;
+  uintptr_t base = (uintptr_t)csound->spout_tmp;
+  uintptr_t current = (uintptr_t)spout;
+  size_t samples = (size_t)csound->nspout * csound->oparms->numThreads;
+
+  if (current < base || current - base >= samples * sizeof(MYFLT))
+    return spout[channel * csound->ksmps + frame];
+
+  size_t offset = ((current - base) / sizeof(MYFLT)) % csound->nspout;
+  size_t index = offset + (size_t)channel * csound->ksmps + frame;
+  MYFLT value = csound->spout_tmp[index];
+
+  if (csound->multiThreadedThreadInfo != NULL) {
+    int32_t thread;
+    for (thread = 1; thread < csound->oparms->numThreads; thread++)
+      value += csound->spout_tmp[thread * (size_t)csound->nspout + index];
+  }
+  return value;
+}
+
 int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
 {
   uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t end = CS_KSMPS - p->h.insdshead->ksmps_no_end;
   uint32_t i, j, nsmps = CS_KSMPS, nchnls = csound->GetNchnls(csound);
-  MYFLT *spout = csound->spout_tmp;
 
   for (j = 0; j<nchnls; j++) {
     for (i = 0; i<nsmps; i++) {
-      if (i<offset||i>nsmps-early)
+      if (i < offset || i >= end)
         p->ar[j][i] = FL(0.0);
       else
-        p->ar[j][i] = spout[i+j*nsmps];
+        p->ar[j][i] = monitor_spout_sample(csound, p->h.insdshead, j, i);
     }
   }
   return OK;
@@ -2654,25 +2676,17 @@ int32_t monitora_perf(CSOUND *csound, MONITOR_A *p)
 {
   ARRAYDAT *aa = p->tabin;
   uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t i, j, l, nsmps = CS_KSMPS;
-  MYFLT       *data = aa->data;
-  MYFLT       *sp= CS_SPOUT;
+  uint32_t nsmps = CS_KSMPS;
+  uint32_t end = nsmps - p->h.insdshead->ksmps_no_end;
+  uint32_t i, j;
+  MYFLT *data = aa->data;
   uint32_t len = (uint32_t)p->len;
 
-  for (l=0; l<len; l++) {
-    sp = CS_SPOUT;
-    memset(data, '\0', nsmps*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-    }
-    for (i = 0; i<nsmps; i++) {
-      for (j = 0; j<csound->GetNchnls(csound); j++) {
-        if (i<offset)
-          data[i+j*nsmps] = FL(0.0);
-        else
-          data[i+j*nsmps] = sp[i+j*nsmps];
-      }
+  memset(data, '\0', len * nsmps * sizeof(MYFLT));
+  for (j = 0; j < len; j++) {
+    for (i = offset; i < end; i++) {
+      data[i+j*nsmps] = monitor_spout_sample(csound, p->h.insdshead,
+                                             j, i);
     }
   }
   return OK;

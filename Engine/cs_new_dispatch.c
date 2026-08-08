@@ -37,6 +37,7 @@
 #include "csoundCore.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
+#include "interlocks.h"
 #include <stdbool.h>
 
 #if defined(_MSC_VER)
@@ -182,6 +183,17 @@ static int32_t dag_intersect(CSOUND *csound, struct set_t *current,
     return res;
 }
 
+static int32_t instr_has_direct_monitor(INSTRTXT *instr)
+{
+    OPTXT *opcode;
+    for (opcode = instr->nxtop; opcode != NULL; opcode = opcode->nxtop) {
+      OENTRY *entry = opcode->t.oentry;
+      if (entry != NULL && (entry->flags & IW) != 0)
+        return 1;
+    }
+    return 0;
+}
+
 void dag_build(CSOUND *csound, INSDS *chain)
 {
     INSDS *save = chain;
@@ -222,6 +234,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
     i = 0; chain = save;
     while (chain != NULL) {     /* for each instance check against later */
       int32_t j = i+1;              /* count of instance */
+      int32_t current_monitor = instr_has_direct_monitor(chain->instr);
       if (UNLIKELY(csound->oparms->odebug))
         printf("\nWho depends on %d (instr %d)?\n", i, chain->insno);
       INSDS *next = chain->nxtact;
@@ -231,11 +244,13 @@ void dag_build(CSOUND *csound, INSDS *chain)
       while (next) {
         INSTR_SEMANTICS *later_instr = dag_get_info(csound, next->insno);
         int32_t cnt = 0;
+        int32_t later_monitor = instr_has_direct_monitor(next->instr);
         if (UNLIKELY(csound->oparms->odebug)) printf("%d ", j);
         //csp_set_print(csound, later_instr->read);
         //csp_set_print(csound, later_instr->write);
         //csp_set_print(csound, later_instr->read_write);
-        if (dag_intersect(csound, current_instr->write,
+        if (current_monitor || later_monitor ||
+            dag_intersect(csound, current_instr->write,
                           later_instr->read, cnt++)       ||
             dag_intersect(csound, current_instr->read_write,
                           later_instr->read, cnt++)       ||
@@ -504,6 +519,4 @@ taskID dag_end_task(CSOUND *csound, taskID i)
     //dag_print_state(csound);
     return next_task;
 }
-
-
 

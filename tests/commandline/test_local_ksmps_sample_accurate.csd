@@ -75,6 +75,20 @@ instr 31
   LocalOut
 endin
 
+instr 97
+  setksmps 4
+  aLeft, aRight monitor
+  aMix[] monitor
+  kLeft downsamp aLeft
+  kRight downsamp aRight
+  kArrayLeft downsamp aMix[0]
+  kArrayRight downsamp aMix[1]
+  if kLeft != 2 || kRight != 4 || \
+     kArrayLeft != 2 || kArrayRight != 4 then
+    exitnowk 1
+  endif
+endin
+
 instr 98
   aLeft, aRight monitor
   aPhase phasor sr / ksmps
@@ -121,5 +135,9 @@ i 98 0 0.5 0.2109375 0.421875 4
 s
 i 30 0.375 0.03125
 i 98 0 0.5 0.046875 0.09375 1
+s
+i 31 0 0.5
+i 31 0 0.5
+i 97 0 0.5
 </CsScore>
 </CsoundSynthesizer>

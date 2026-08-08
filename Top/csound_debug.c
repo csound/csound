@@ -912,7 +912,8 @@ int32_t kperf_debug(CSOUND *csound) {
       csound->spinrecv(csound); /*      fill the spin buf  */
     /* clear spout */
     memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
-    memset(csound->spout_tmp, 0, csound->nspout * sizeof(MYFLT));
+    memset(csound->spout_tmp, 0,
+           csound->nspout * csound->oparms->numThreads * sizeof(MYFLT));
   }
 
   ip = csound->actanchor.nxtact;
