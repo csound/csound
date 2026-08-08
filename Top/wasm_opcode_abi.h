@@ -13,7 +13,7 @@
 #define CSOUND_WASM_OPCODE_ABI_H
 
 #ifndef CSOUNDCORE_H
-#error "Include csoundCore.h before wasm_opcode_abi.h"
+#error "Include csoundCore.h before Top/wasm_opcode_abi.h"
 #endif
 
 #include <stddef.h>
