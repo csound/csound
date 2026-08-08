@@ -58,7 +58,7 @@ TEST(PerfThreadsTests, Record) {
 
     CsoundPerformanceThread performanceThread1(csound.GetCsound());
     performanceThread1.Play();
-    performanceThread1.Record("missing-record-dir/testrec.wav");
+    performanceThread1.Record("");
     performanceThread1.StopRecord();
     performanceThread1.FlushMessageQueue();
     performanceThread1.Record("testrec.wav");
