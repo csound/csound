@@ -264,6 +264,7 @@ public:
         }
         CSOUND * csound = pt_->GetCsound();
         if (!csound) {
+            CsoundPerformanceThreadMessage::unlockRecord();
             return;
         }
         recordData->csound = csound;
@@ -275,6 +276,7 @@ public:
 
         if (!recordData->cbuf) {
           csoundMessage(csound, "Could create recording buffer.");
+          CsoundPerformanceThreadMessage::unlockRecord();
           return;
         }
 
@@ -302,6 +304,8 @@ public:
         if (!recordData->sfile) {
           csoundMessage(csound, "Could not open file for recording.");
           csoundDestroyCircularBuffer(csound, recordData->cbuf);
+          recordData->cbuf = NULL;
+          CsoundPerformanceThreadMessage::unlockRecord();
           return;
         }
         csoundSndfileCommand(csound, (SNDFILE *) recordData->sfile, SFC_SET_CLIPPING,
