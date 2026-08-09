@@ -852,6 +852,14 @@ def runTest():
             "test_signalflowgraph_lifetime.csd",
             "test signal-flow graph cleanup and ftgenonce",
         ],
+        [
+            "test_connect_gain.csd",
+            "test connect i-rate gain (omit, unity, non-unity, fan-in, duplicate)",
+        ],
+        [
+            "test_connect_gain_fsig.csd",
+            "test connect i-rate gain on active non-sliding fsig inlets",
+        ],
     ]
 
     parcsTests = [
