@@ -13,6 +13,25 @@
  * limitations under the License.
  */
 
+const tableFunctionIndexes = new WeakMap();
+
+const internTableFunction = (table, func) => {
+  let indexes = tableFunctionIndexes.get(table);
+  if (!indexes) {
+    indexes = new WeakMap();
+    tableFunctionIndexes.set(table, indexes);
+  }
+
+  let index = indexes.get(func);
+  if (index === undefined || table.get(index) !== func) {
+    index = table.length;
+    table.grow(1);
+    table.set(index, func);
+    indexes.set(func, index);
+  }
+  return index;
+};
+
 export const dlinit = (
   hostInstance,
   pluginInstance,
@@ -40,34 +59,20 @@ export const dlinit = (
       0,
     );
 
-    let tableEnd = table.length;
-
     if (typeof pluginInstance.exports["csoundModuleCreate"] === "function") {
-      table.grow(1);
-      csoundModuleCreate.value = tableEnd;
-      table.set(tableEnd, pluginInstance.exports["csoundModuleCreate"]);
-      tableEnd += 1;
+      csoundModuleCreate.value = internTableFunction(table, pluginInstance.exports["csoundModuleCreate"]);
     }
 
     if (typeof pluginInstance.exports["csoundModuleInit"] === "function") {
-      table.grow(1);
-      csoundModuleInit.value = tableEnd;
-      table.set(tableEnd, pluginInstance.exports["csoundModuleInit"]);
-      tableEnd += 1;
+      csoundModuleInit.value = internTableFunction(table, pluginInstance.exports["csoundModuleInit"]);
     }
 
     if (typeof pluginInstance.exports["csoundModuleDestroy"] === "function") {
-      table.grow(1);
-      csoundModuleDestroy.value = tableEnd;
-      table.set(tableEnd, pluginInstance.exports["csoundModuleDestroy"]);
-      tableEnd += 1;
+      csoundModuleDestroy.value = internTableFunction(table, pluginInstance.exports["csoundModuleDestroy"]);
     }
 
     if (typeof pluginInstance.exports["csoundModuleErrorCodeToString"] === "function") {
-      table.grow(1);
-      csoundModuleErrorCodeToString.value = tableEnd;
-      table.set(tableEnd, pluginInstance.exports["csoundModuleErrorCodeToString"]);
-      tableEnd += 1;
+      csoundModuleErrorCodeToString.value = internTableFunction(table, pluginInstance.exports["csoundModuleErrorCodeToString"]);
     }
 
     hostExports["csoundWasiLoadPlugin"](
@@ -122,10 +127,7 @@ export const dlinit = (
                 console.error(`Missing plugin function at table index ${funcIndex}`);
                 return 0;
               }
-              const hostTableIndex = table.length;
-              table.grow(1);
-              table.set(hostTableIndex, funcRef);
-              return hostTableIndex;
+              return internTableFunction(table, funcRef);
             };
 
             try {
@@ -180,20 +182,12 @@ export const dlinit = (
     const csoundOpcodeInit = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
     const csoundFgenInit = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
 
-    let tableEnd = table.length;
-
     if (typeof pluginInstance.exports["csound_opcode_init"] === "function") {
-      csoundOpcodeInit.value = tableEnd;
-      table.grow(1);
-      table.set(tableEnd, pluginInstance.exports["csound_opcode_init"]);
-      tableEnd += 1;
+      csoundOpcodeInit.value = internTableFunction(table, pluginInstance.exports["csound_opcode_init"]);
     }
 
     if (typeof pluginInstance.exports["csound_fgen_init"] === "function") {
-      csoundFgenInit.value = tableEnd;
-      table.grow(1);
-      table.set(tableEnd, pluginInstance.exports["csound_fgen_init"]);
-      tableEnd += 1;
+      csoundFgenInit.value = internTableFunction(table, pluginInstance.exports["csound_fgen_init"]);
     }
 
     hostExports["csoundWasiLoadOpcodeLibrary"](

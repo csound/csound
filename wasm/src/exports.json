@@ -6,6 +6,8 @@
   "sizeOfMidiStruct",
   "isRequestingRtMidiInput",
   "isRequestingRtAudioInput",
+  "isRequestingPlugins",
+  "getRequestedPlugins",
   "getRtMidiName",
   "getMidiOutFileName",
   "pushMidiMessage",

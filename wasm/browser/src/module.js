@@ -98,6 +98,21 @@ function isWasmBinary(wasmBytes) {
   );
 }
 
+function equalWasmBytes(left, right) {
+  if (left === right) {
+    return true;
+  }
+  if (!left || !right || left.length !== right.length) {
+    return false;
+  }
+  for (const [index, byte] of left.entries()) {
+    if (byte !== right[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 const assertPluginExports = (pluginExports) => {
   const exportNames = new Set(pluginExports.map(({ name }) => name));
   if (!exportNames.has("__wasm_call_ctors")) {
@@ -226,19 +241,126 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   /** @suppress {checkTypes} */
   const module = await WebAssembly.compile(wasmBytes);
   const options = wasi.getImports(module);
-  let withPlugins_ = [];
+  const withPlugins_ = [];
+  const cachedPlugins = [];
+  const pluginByRequestedPath = new Map();
+  const registrationsByCsound = new Map();
+  const pluginRuntime = { instantiatePlugin: undefined, table: undefined };
+  let sharedTableEnd = 0;
 
   const hostRuntime = { instance: undefined };
 
+  const registrationState = (csoundInstance) => {
+    let state = registrationsByCsound.get(csoundInstance);
+    if (!state) {
+      state = { paths: new Set(), plugins: new Set() };
+      registrationsByCsound.set(csoundInstance, state);
+    }
+    return state;
+  };
+
+  const registerPlugin = (pluginItem, csoundInstance, state) => {
+    if (state.plugins.has(pluginItem)) {
+      return;
+    }
+    const pluginInstance = pluginItem.instance || pluginItem;
+    const pluginTable = pluginItem.table || pluginRuntime.table;
+    // dlinit falls back to direct plugin initialization until the host is ready.
+    try {
+      dlinit(
+        hostRuntime.instance,
+        pluginInstance,
+        pluginRuntime.table,
+        csoundInstance,
+        pluginTable,
+        memory,
+      );
+    } finally {
+      sharedTableEnd = Math.max(sharedTableEnd, pluginRuntime.table.length);
+    }
+    state.plugins.add(pluginItem);
+  };
+
   const csoundLoadModules = (csoundInstance) => {
+    // Csound calls this once for each new module lifecycle, including reset.
+    const state = { paths: new Set(), plugins: new Set() };
+    registrationsByCsound.set(csoundInstance, state);
     withPlugins_.forEach((pluginItem) => {
-      const pluginInstance =
-        pluginItem && pluginItem.instance ? pluginItem.instance : pluginItem;
-      const pluginTable = pluginItem && pluginItem.table ? pluginItem.table : table;
-      // dlinit falls back to direct plugin initialization until the host is ready.
-      dlinit(hostRuntime.instance, pluginInstance, table, csoundInstance, pluginTable, memory);
+      registerPlugin(pluginItem, csoundInstance, state);
     });
     return 0;
+  };
+
+  const readCString = (pointer) => {
+    if (!pointer) {
+      return "";
+    }
+    const bytes = new Uint8Array(memory.buffer, pointer);
+    let length = 0;
+    while (length < bytes.length && bytes[length] !== 0) {
+      length += 1;
+    }
+    return uint2String(bytes.subarray(0, length));
+  };
+
+  const csoundLoadExternals = (csoundInstance, requestedPluginsPointer) => {
+    if (typeof pluginRuntime.instantiatePlugin !== "function") {
+      return -1;
+    }
+
+    const requested = readCString(requestedPluginsPointer);
+    const requestedPaths = [...new Set(requested.split(",").filter((path) => path.length > 0))];
+    requestedPaths.sort();
+
+    const state = registrationState(csoundInstance);
+    let result = 0;
+
+    requestedPaths.forEach((path) => {
+      if (state.paths.has(path)) {
+        return;
+      }
+
+      try {
+        const wasmPluginBytes = wasi.readFile(path);
+        if (!isWasmBinary(wasmPluginBytes)) {
+          console.error(`Unable to load requested Csound plugin '${path}' from the WASI filesystem.`);
+          result = -1;
+          return;
+        }
+
+        let pluginItem = pluginByRequestedPath.get(path);
+        if (!pluginItem || !equalWasmBytes(pluginItem.wasmPluginBytes, wasmPluginBytes)) {
+          pluginItem = cachedPlugins.find((item) =>
+            equalWasmBytes(item.wasmPluginBytes, wasmPluginBytes),
+          );
+          if (!pluginItem) {
+            pluginItem = pluginRuntime.instantiatePlugin({
+              headerData: getBinaryHeaderData(wasmPluginBytes),
+              wasmPluginBytes,
+            });
+            if (pluginItem) {
+              cachedPlugins.push(pluginItem);
+            }
+          }
+          if (pluginItem) {
+            pluginByRequestedPath.set(path, pluginItem);
+          }
+        }
+
+        if (!pluginItem) {
+          result = -1;
+          return;
+        }
+
+        registerPlugin(pluginItem, csoundInstance, state);
+        state.paths.add(path);
+      } catch (error) {
+        console.error(`Error while loading requested Csound plugin '${path}'`, error);
+        result = -1;
+      }
+    });
+
+    return result;
   };
 
   options["env"] = options["env"] || {};
@@ -248,7 +370,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   options["env"]["__memory_base"] = memoryBase;
   options["env"]["__table_base"] = tableBase;
   options["env"]["csoundLoadModules"] = csoundLoadModules;
-  options["env"]["csoundLoadExternals"] = () => {};
+  options["env"]["csoundLoadExternals"] = csoundLoadExternals;
 
   // Add setjmp/longjmp functions to the environment
   options["env"]["saveSetjmp"] = saveSetjmp;
@@ -293,18 +415,27 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   const instance_ = {};
 
   moduleExports["memory"] = memory;
+  const nativeCsoundDestroy = moduleExports["csoundDestroy"];
+  if (typeof nativeCsoundDestroy === "function") {
+    moduleExports["csoundDestroy"] = (csoundInstance) => {
+      try {
+        return nativeCsoundDestroy(csoundInstance);
+      } finally {
+        registrationsByCsound.delete(csoundInstance);
+      }
+    };
+  }
 
   /** @suppress {checkTypes} */
   instance_["exports"] = moduleExports;
   hostRuntime.instance = instance_;
 
-  const table = instance_["exports"]["__indirect_function_table"];
-  let sharedTableEnd = table.length;
+  pluginRuntime.table = instance_["exports"]["__indirect_function_table"];
+  sharedTableEnd = pluginRuntime.table.length;
+  wasi.start(instance_);
   const hasLegacyWasiPluginLoader =
     typeof instance_["exports"]["csoundWasiLoadPlugin"] === "function" ||
     typeof instance_["exports"]["csoundWasiLoadOpcodeLibrary"] === "function";
-
-  wasi.start(instance_);
 
   const allocatePluginMemory = (size, alignmentExponent) => {
     if (size === 0) {
@@ -341,70 +472,56 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
     return { allocation, memoryBaseValue };
   };
 
-  withPlugins_ = await withPlugins.reduce(async (accumulator, { headerData, wasmPluginBytes }) => {
-    accumulator = await accumulator;
+  pluginRuntime.instantiatePlugin = ({
+    headerData,
+    plugin: precompiledPlugin,
+    wasmPluginBytes,
+  }) => {
+    const {
+      hasDylink,
+      memorySize: pluginMemorySize,
+      memoryAlign: pluginMemoryAlign,
+      tableSize: pluginTableSize,
+      tableAlign: pluginTableAlign,
+      neededDynlibs,
+    } = headerData;
+    if (neededDynlibs.length > 0) {
+      throw new Error(
+        `WebAssembly plugin dependencies are not supported: ${neededDynlibs.join(", ")}`,
+      );
+    }
+
+    /** @suppress {checkTypes} */
+    const plugin = precompiledPlugin || new WebAssembly.Module(wasmPluginBytes);
+    const pluginOptions = wasi.getImports(plugin);
+    const pluginImports = WebAssembly.Module.imports(plugin);
+    const pluginExports = WebAssembly.Module.exports(plugin);
+    if (!assertPluginExports(pluginExports)) {
+      return undefined;
+    }
+    const hasOpcodeInit = pluginExports.some(
+      ({ name }) => name === "csound_opcode_init" || name === "csound_fgen_init",
+    );
+    const hasModuleInit = pluginExports.some(({ name }) => name === "csoundModuleInit");
+    const useIsolatedPluginTable =
+      !hasDylink && (!hasLegacyWasiPluginLoader || (hasOpcodeInit && !hasModuleInit));
     let pluginMemoryAllocation = 0;
     let sharedTableBase = 0;
     let sharedTableLimit = 0;
     let sharedTableReserved = false;
+
     try {
-      const {
-        hasDylink,
-        memorySize: pluginMemorySize,
-        memoryAlign: pluginMemoryAlign,
-        tableSize: pluginTableSize,
-        tableAlign: pluginTableAlign,
-        neededDynlibs,
-      } = headerData;
-      if (neededDynlibs.length > 0) {
-        throw new Error(
-          `WebAssembly plugin dependencies are not supported: ${neededDynlibs.join(", ")}`,
-        );
-      }
+      let pluginTable = pluginRuntime.table;
+      let pluginTableBaseValue = pluginRuntime.table.length;
 
-      /** @suppress {checkTypes} */
-      const plugin = await WebAssembly.compile(wasmPluginBytes);
-      const pluginOptions = wasi.getImports(plugin);
-      const pluginImports = WebAssembly.Module.imports(plugin);
-      const pluginExports = WebAssembly.Module.exports(plugin);
-      if (!assertPluginExports(pluginExports)) {
-        return accumulator;
-      }
-      const hasOpcodeInit = pluginExports.some(
-        ({ name }) => name === "csound_opcode_init" || name === "csound_fgen_init",
-      );
-      const hasModuleInit = pluginExports.some(({ name }) => name === "csoundModuleInit");
-      const useIsolatedPluginTable =
-        !hasDylink &&
-        (!hasLegacyWasiPluginLoader || (hasOpcodeInit && !hasModuleInit));
-      pluginOptions["env"] = Object.assign({}, pluginOptions["env"]);
-      for (const pluginImport of pluginImports) {
-        if (pluginImport.module !== "env") {
-          continue;
-        }
-        if (pluginImport.kind === "function" && !pluginOptions["env"][pluginImport.name]) {
-          const hostFunction = instance_["exports"][pluginImport.name];
-          if (typeof hostFunction !== "function") {
-            throw new TypeError(`Missing WebAssembly host function: env.${pluginImport.name}`);
-          }
-          pluginOptions["env"][pluginImport.name] = hostFunction;
-        } else if (pluginImport.kind === "global" && pluginImport.name === "__stack_pointer") {
-          const hostStackPointer = instance_["exports"]["__stack_pointer"];
-          if (!hostStackPointer) {
-            throw new Error("The WebAssembly host does not export __stack_pointer");
-          }
-          pluginOptions["env"]["__stack_pointer"] = hostStackPointer;
-        }
-      }
-      delete pluginOptions["env"]["csoundWasiJsMessageCallback"];
-
-      let pluginTable = table;
-      let pluginTableBaseValue = table.length;
       if (useIsolatedPluginTable) {
-        const isolatedInitial = Math.max(table.length + Math.max(pluginTableSize, 0) + 16, 16);
+        const isolatedInitial = Math.max(
+          pluginRuntime.table.length + Math.max(pluginTableSize, 0) + 16,
+          16,
+        );
         pluginTable = new WebAssembly.Table({ initial: isolatedInitial, element: "anyfunc" });
-        for (let tableIndex = 0; tableIndex < table.length; tableIndex += 1) {
-          const tableFn = table.get(tableIndex);
+        for (let tableIndex = 0; tableIndex < pluginRuntime.table.length; tableIndex += 1) {
+          const tableFn = pluginRuntime.table.get(tableIndex);
           if (tableFn) {
             pluginTable.set(tableIndex, tableFn);
           }
@@ -420,24 +537,22 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
         const pluginTableAlignment = alignmentFromExponent(pluginTableAlign);
         pluginTableBaseValue = alignUp(sharedTableEnd, pluginTableAlignment);
         const tableLimit = pluginTableBaseValue + pluginTableSize;
-        if (
-          !Number.isSafeInteger(tableLimit) ||
-          tableLimit > MAX_SIGNED_WASM_I32
-        ) {
+        if (!Number.isSafeInteger(tableLimit) || tableLimit > MAX_SIGNED_WASM_I32) {
           throw new TypeError("The WebAssembly plugin table request is too large");
         }
-        const tableGrowth = tableLimit - table.length;
+        const tableGrowth = tableLimit - pluginRuntime.table.length;
         if (tableGrowth > MAX_PLUGIN_TABLE_ENTRIES) {
           throw new TypeError("The WebAssembly plugin table request is too large");
         }
         if (tableGrowth > 0) {
-          table.grow(tableGrowth);
+          pluginRuntime.table.grow(tableGrowth);
         }
         sharedTableBase = pluginTableBaseValue;
         sharedTableLimit = tableLimit;
         sharedTableReserved = true;
       }
 
+      pluginOptions["env"] = Object.assign({}, pluginOptions["env"]);
       pluginOptions["env"]["memory"] = memory;
       pluginOptions["env"]["__indirect_function_table"] = pluginTable;
       const pluginMemory = hasDylink
@@ -453,35 +568,80 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
         pluginTableBaseValue,
       );
 
+      for (const pluginImport of pluginImports) {
+        if (pluginImport.module !== "env") {
+          continue;
+        }
+        if (pluginImport.kind === "function" && !pluginOptions["env"][pluginImport.name]) {
+          const hostFunction = instance_["exports"][pluginImport.name];
+          if (typeof hostFunction !== "function") {
+            throw new TypeError(`Missing WebAssembly host function: env.${pluginImport.name}`);
+          }
+          pluginOptions["env"][pluginImport.name] = hostFunction;
+        } else if (
+          pluginImport.kind === "global" &&
+          pluginImport.name === "__stack_pointer"
+        ) {
+          const hostStackPointer = instance_["exports"]["__stack_pointer"];
+          if (!hostStackPointer) {
+            throw new Error("The WebAssembly host does not export __stack_pointer");
+          }
+          pluginOptions["env"]["__stack_pointer"] = hostStackPointer;
+        }
+      }
       /**
        * @suppress {checkTypes}
        * @type {WasmInst} */
-      const pluginInstance = await WebAssembly.instantiate(plugin, pluginOptions);
+      const pluginInstance = new WebAssembly.Instance(plugin, pluginOptions);
 
       if (typeof pluginInstance.exports.__wasm_apply_data_relocs === "function") {
         pluginInstance.exports.__wasm_apply_data_relocs();
       }
       pluginInstance.exports.__wasm_call_ctors();
-      accumulator.push({ instance: pluginInstance, table: pluginTable });
       pluginMemoryAllocation = 0;
       if (sharedTableReserved) {
         sharedTableEnd = sharedTableLimit;
         sharedTableReserved = false;
       }
-    } catch (error) {
-      console.error("Error while compiling csound-plugin", error);
+      return { instance: pluginInstance, table: pluginTable, wasmPluginBytes };
     } finally {
       if (sharedTableReserved) {
         for (let tableIndex = sharedTableBase; tableIndex < sharedTableLimit; tableIndex += 1) {
-          table.set(tableIndex, null);
+          pluginRuntime.table.set(tableIndex, null);
         }
       }
       if (pluginMemoryAllocation !== 0) {
         instance_["exports"]["freeStringMem"](pluginMemoryAllocation);
       }
     }
-    return accumulator;
-  }, []);
+  };
+
+  const compiledWithPlugins = await Promise.all(
+    withPlugins.map(async ({ headerData, wasmPluginBytes }) => {
+      try {
+        const plugin = await WebAssembly.compile(wasmPluginBytes);
+        return { headerData, plugin, wasmPluginBytes };
+      } catch (error) {
+        console.error("Error while compiling csound-plugin", error);
+        return undefined;
+      }
+    }),
+  );
+
+  compiledWithPlugins.forEach((pluginInput) => {
+    if (!pluginInput) {
+      return;
+    }
+    try {
+      const pluginItem = pluginRuntime.instantiatePlugin(pluginInput);
+      if (pluginItem) {
+        cachedPlugins.push(pluginItem);
+        withPlugins_.push(pluginItem);
+      }
+    } catch (error) {
+      console.error("Error while instantiating csound-plugin", error);
+    }
+  });
 
   instance_["exports"]["__wasi_js_csoundSetMessageStringCallback"]();
   return [instance_, wasi];

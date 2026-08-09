@@ -79,6 +79,9 @@
 
 #include "csoundCore.h"
 #include "csmodule.h"
+#ifdef HAVE_WASMTIME
+#include "wasm_plugins.h"
+#endif
 
 #if defined(__MACH__)
 #include <TargetConditionals.h>
@@ -290,7 +293,7 @@ static CS_NOINLINE int32_t init_module(CSOUND *csound, csoundModule_t *m)
 #ifdef __wasi__
 __attribute__((used))
 void csoundWasiLoadPlugin(CSOUND *csound, void *preInitFunc, void *initFunc, void *destFunc, void *errCodeToStr) {
-  csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
+  csoundModule_t *module = csound->Calloc(csound, sizeof(csoundModule_t) + 1);
   module->h = (void*) NULL;
 
   // The javascript host must assert that this is provided
@@ -313,7 +316,7 @@ void csoundWasiLoadPlugin(CSOUND *csound, void *preInitFunc, void *initFunc, voi
 
 __attribute__((used))
 void csoundWasiLoadOpcodeLibrary(CSOUND *csound, void *fgenInitFunc, void *opcodeInitFunc) {
-  csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
+  csoundModule_t *module = csound->Calloc(csound, sizeof(csoundModule_t) + 1);
   module->h = (void*) NULL;
 
   if (fgenInitFunc) {
@@ -378,6 +381,11 @@ int32_t csoundLoadModulesHost(CSOUND *csound)
 int32_t csoundLoadModules(CSOUND *csound) {
   return csoundLoadModulesHost(csound);
 }
+
+int32_t csoundLoadExternalsHost(CSOUND *csound, const char *libraries)
+    __attribute__((used,
+                   __import_module__("env"),
+                   __import_name__("csoundLoadExternals")));
 #elif defined(CSOUND_WASI_CLI)
 // Standalone WASI has no dynamic loader. All available opcodes are linked in.
 int32_t csoundLoadModules(CSOUND *csound) {
@@ -388,9 +396,38 @@ int32_t csoundLoadModules(CSOUND *csound) {
 #error "A WASI host mode must be selected by the build system"
 #endif
 
+static const char noRequestedPlugins[] = "";
+
+__attribute__((used))
+int32_t isRequestingPlugins(CSOUND *csound) {
+  return csound != NULL && csound->dl_opcodes_oplibs != NULL &&
+         csound->dl_opcodes_oplibs[0] != '\0';
+}
+
+__attribute__((used))
+const char *getRequestedPlugins(CSOUND *csound) {
+  if (!isRequestingPlugins(csound))
+    return noRequestedPlugins;
+  return csound->dl_opcodes_oplibs;
+}
+
 int32_t csoundLoadExternals(CSOUND *csound) {
-  (void) csound;
-  return CSOUND_SUCCESS;
+#ifdef CSOUND_WASI_BROWSER
+  char *libraries = csound->dl_opcodes_oplibs;
+  int32_t retval;
+
+  if (libraries == NULL || libraries[0] == '\0')
+    return CSOUND_SUCCESS;
+
+  retval = csoundLoadExternalsHost(csound, libraries);
+  if (LIKELY(retval == CSOUND_SUCCESS)) {
+    csound->dl_opcodes_oplibs = NULL;
+    csound->Free(csound, libraries);
+  }
+  return retval;
+#else
+  return isRequestingPlugins(csound) ? CSOUND_ERROR : CSOUND_SUCCESS;
+#endif
 }
 
 int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
@@ -1032,6 +1069,51 @@ int32_t csoundDestroyModules(CSOUND *csound)
 }
 
 #endif /* __wasi__ */
+
+int32_t csoundLoadRequestedPlugins(CSOUND *csound) {
+  csoundModule_t *oldHead;
+  csoundModule_t *module;
+  int32_t err;
+  int32_t retval;
+
+  if (csound == NULL || csound->dl_opcodes_oplibs == NULL ||
+      csound->dl_opcodes_oplibs[0] == '\0')
+    return CSOUND_SUCCESS;
+
+  oldHead = (csoundModule_t *)csound->csmodule_db;
+  retval = csoundLoadExternals(csound);
+
+  if (csound->modules_loaded == 0) {
+    err = csoundInitModules(csound);
+    if (UNLIKELY(err != CSOUND_SUCCESS &&
+                 (retval == CSOUND_SUCCESS || err < retval)))
+      retval = err;
+    if (LIKELY(err == CSOUND_SUCCESS))
+      csound->modules_loaded = 1;
+    return retval;
+  }
+
+  for (module = (csoundModule_t *)csound->csmodule_db;
+       module != oldHead;
+       module = module->nxt) {
+    if (UNLIKELY(module == NULL)) {
+      if (retval == CSOUND_SUCCESS || CSOUND_ERROR < retval)
+        retval = CSOUND_ERROR;
+      return retval;
+    }
+    err = init_module(csound, module);
+    if (UNLIKELY(err != CSOUND_SUCCESS &&
+                 (retval == CSOUND_SUCCESS || err < retval)))
+      retval = err;
+  }
+#ifdef HAVE_WASMTIME
+  err = csoundInitWasmOpcodeLibraries(csound);
+  if (UNLIKELY(err != CSOUND_SUCCESS &&
+               (retval == CSOUND_SUCCESS || err < retval)))
+    retval = err;
+#endif
+  return retval;
+}
 
 /* ------------------------------------------------------------------------ */
 #if defined(WIN32)

@@ -95,6 +95,7 @@ const Csound = async ({ logCallback }) => {
   const options = wasi.getImports(module);
   options.env = options.env || {};
   options.env.csoundLoadModules = () => 0;
+  options.env.csoundLoadExternals = () => -1;
   options.env.memory = memory;
 
   const messagePort = { post: ({ log }) => typeof logCallback === "function" && logCallback(log) };

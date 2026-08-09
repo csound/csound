@@ -575,8 +575,9 @@ async function loadRawCsound(config, port) {
       return 0;
     },
 
-    csoundLoadExternals() {
-      return 0;
+    csoundLoadExternals(_csound, _libraries) {
+      // This minimal host cannot load dynamic WASM plugins.
+      return -1;
     },
 
     csoundWasiJsMessageCallback(_csound, _attribute, length, pointer) {

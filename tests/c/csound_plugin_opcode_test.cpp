@@ -7,9 +7,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include "gtest/gtest.h"
 #include "csound.h"
 #include "csdl.h"
+
+#ifdef CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN
+#include "requested_opcode_plugin_path.hpp"
+#endif
 
 
 class PluginTests : public ::testing::Test {
@@ -93,6 +98,34 @@ TEST_F (PluginTests, testAddOpcodeC)
     result = csoundPerformKsmps(csound);
   csoundSleep(500);
 }
+
+#ifdef CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN
+TEST_F(PluginTests, testOpcodeLibLoadsBeforeOrchestraChecks)
+{
+  const std::string option =
+      "--opcode-lib=" CSOUND_TEST_REQUESTED_OPCODE_PLUGIN;
+  const char *instrument =
+      "instr 1\n"
+      "  iValue requested_opcode_fixture 42\n"
+      "endin\n";
+
+  ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, option.c_str()));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument, 0));
+}
+
+TEST_F(PluginTests, testMissingOpcodeLibFailsOrchestraChecks)
+{
+  const std::string option =
+      "--opcode-lib=" CSOUND_TEST_REQUESTED_OPCODE_PLUGIN ".missing";
+  const char *instrument =
+      "instr 1\n"
+      "  iValue requested_opcode_fixture 42\n"
+      "endin\n";
+
+  ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, option.c_str()));
+  ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument, 0));
+}
+#endif
 
 #include "plugin.h"
 
