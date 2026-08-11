@@ -2052,7 +2052,9 @@ class CsoundPerformanceThread:
         self.cpt = libcspt.csoundCreatePerformanceThread(csp)
 
     def __del__(self):
-        libcspt.csoundDestroyPerforma#
+        libcspt.csoundDestroyPerformanceThread(self.cpt)
+    
+    #
     # Realtime MIDI I/O
     #
     def set_host_midi_IO(self):
