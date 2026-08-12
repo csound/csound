@@ -73,13 +73,19 @@ int csoundShouldDaemonize(CSOUND *csound) {
   return 0;
 }
 
+int isRequestingRtAudioInput(CSOUND *csound);
 
 // END CS_MIDIDEVICE
 __attribute__((used))
 int csoundStartWasi(CSOUND *csound) {
+  const char *outputName = csoundGetOutputName(csound);
 
-  // For WASI, we'll use a simplified approach
-  // Since csoundGetOutputName might not be available, we'll skip the device check
+  if ((outputName != NULL && strncmp(outputName, "dac", 3) == 0) ||
+      isRequestingRtAudioInput(csound) ||
+      csoundShouldDaemonize(csound)) {
+    csoundSetHostAudioIO(csound);
+  }
+
   return csoundStart(csound);
 }
 

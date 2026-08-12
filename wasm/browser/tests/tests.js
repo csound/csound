@@ -401,6 +401,100 @@ e
         await cs.terminateInstance();
       });
 
+      if (!test.useWorker) {
+        it("preserves Web Audio input when -iadc is requested", async function () {
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)({
+            latencyHint: "interactive",
+          });
+
+          let cs;
+          let node;
+          let oscillator;
+          let gain;
+
+          try {
+            await audioContext.resume();
+            cs = await Csound({
+              ...test,
+              audioContext,
+              autoConnect: false,
+              inputChannelCount: 1,
+              outputChannelCount: 1,
+            });
+
+            assert.equal(await cs.setOption("-odac"), 0);
+            assert.equal(await cs.setOption("-iadc"), 0);
+            assert.equal(await cs.setOption("-m0"), 0);
+            assert.equal(
+              await cs.compileOrc(`
+                ksmps = 64
+                nchnls = 1
+                nchnls_i = 1
+                0dbfs = 1
+
+                instr 1
+                  aInput inch 1
+                  kInputRms rms aInput
+                  chnset kInputRms, "inputRms"
+                  out aInput * 0
+                endin
+
+                schedule(1, 0, -1)
+              `),
+              0,
+            );
+
+            node = await cs.getNode();
+            node.connect(audioContext.destination);
+
+            gain = audioContext.createGain();
+            gain.gain.value = 0.5;
+            oscillator = audioContext.createOscillator();
+            oscillator.frequency.value = 440;
+            oscillator.connect(gain).connect(node);
+
+            assert.equal(await cs.start(), 0);
+            oscillator.start();
+
+            let maxInputRms = 0;
+            for (let attempt = 0; attempt < 40 && maxInputRms <= 0.01; attempt++) {
+              await new Promise((resolve) => setTimeout(resolve, 25));
+              maxInputRms = Math.max(maxInputRms, await cs.getControlChannel("inputRms"));
+            }
+
+            assert.isAbove(
+              maxInputRms,
+              0.01,
+              "inch(1) should receive the signal connected to the AudioWorklet input",
+            );
+          } finally {
+            if (oscillator) {
+              try {
+                oscillator.stop();
+              } catch {}
+              oscillator.disconnect();
+            }
+            if (gain) {
+              gain.disconnect();
+            }
+            if (node) {
+              node.disconnect();
+            }
+            if (cs) {
+              try {
+                await cs.stop();
+              } catch {}
+              if (cs.terminateInstance) {
+                await cs.terminateInstance();
+              }
+            }
+            if (audioContext.state !== "closed") {
+              await audioContext.close();
+            }
+          }
+        });
+      }
+
       it("can load and run plugins", async function () {
         const testWithPlugin = Object.assign(
           {
