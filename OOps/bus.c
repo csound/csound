@@ -3079,7 +3079,9 @@ int32_t csoundArrayDataDimensions(const ARRAYDAT *adat) {
 }
 
 const char *csoundArrayDataType(const ARRAYDAT *adat) {
-  return adat->arrayType->varTypeName;
+  if(adat && adat->arrayType)
+   return adat->arrayType->varTypeName;
+  else return NULL;
 }
 
 const int32_t *csoundArrayDataSizes(const ARRAYDAT *adat){

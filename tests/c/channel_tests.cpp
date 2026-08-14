@@ -707,6 +707,19 @@ TEST_F (ChannelTests, ArrayChannel)
     ASSERT_EQ(val, data[0]);
 }
 
+TEST_F (ChannelTests, ArrayChannelDataType) {
+    ARRAYDAT *adat = NULL;
+    csoundCompileOrc(csound, "instr 1\nendin\n");
+    csoundStart(csound); 
+    csoundGetChannelPtr(csound, (void **) &adat, "never_initialized",
+                              CSOUND_ARRAY_CHANNEL |
+                              CSOUND_INPUT_CHANNEL |
+                              CSOUND_OUTPUT_CHANNEL);
+    const char *type = csoundArrayDataType(adat);  
+    ASSERT_TRUE(type == NULL);
+}
+
+
 TEST_F (ChannelTests, AudioChannel)
 {
     csoundCompileOrc(csound, R"ORC(
