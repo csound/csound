@@ -344,9 +344,17 @@ void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
  *   S       -> STRINGDAT, data points to the C string
  *   f       -> PVSDAT*,   decode with csoundDebugSerializeFsig()
  *   [       -> ARRAYDAT*, decode with csoundDebugSerializeArray()
+ *
+ * udo is the invocation a UDO instance belongs to, NULL for top-level
+ * instruments and the global pool. Csound 7 typed headers
+ * (opcode name(a:k):a) run pass-by-ref: the xin/xout names are rewired
+ * onto the caller's storage and the instance's own pool slots for them
+ * stay untouched, so those names must be read through
+ * csoundUserOpcodeRefArgStorage() instead of lclbas.
  */
 static debug_variable_t *csoundDebugBuildVarList(
-    CSOUND *csound, CS_VARIABLE *varPoolHead, MYFLT *lclbas, int32_t isGlobal)
+    CSOUND *csound, CS_VARIABLE *varPoolHead, MYFLT *lclbas, int32_t isGlobal,
+    const UOPCODE *udo)
 {
     debug_variable_t *head = NULL;
     debug_variable_t *debug_var = NULL;
@@ -359,7 +367,11 @@ static debug_variable_t *csoundDebugBuildVarList(
                 base = (MYFLT *) &var->memBlock->value;
             }
         } else {
-            base = lclbas + var->memBlockIndex;
+            base = udo != NULL ?
+                csoundUserOpcodeRefArgStorage(udo, var->varName) : NULL;
+            if (base == NULL) {
+                base = lclbas + var->memBlockIndex;
+            }
         }
         if (!head) {
             head = csound->Malloc(csound, sizeof(debug_variable_t));
@@ -397,11 +409,29 @@ static debug_variable_t *csoundDebugBuildVarList(
     return head;
 }
 
+static const UOPCODE *csoundDebugUdoInvocation(const debug_instr_t *instr)
+{
+    INSDS *ip;
+    OPCOD_IOBUFS *buf;
+
+    if (instr == NULL || instr->instrptr == NULL) {
+        return NULL;
+    }
+    /* Only UDO instances get opcod_iobufs (insno > maxinsno). */
+    ip = (INSDS *)instr->instrptr;
+    buf = (OPCOD_IOBUFS *)ip->opcod_iobufs;
+    if (buf == NULL) {
+        return NULL;
+    }
+    return (const UOPCODE *)buf->uopcode_struct;
+}
+
  debug_variable_t *csoundDebugGetVariables(CSOUND *csound,
                                                  debug_instr_t *instr)
 {
     return csoundDebugBuildVarList(csound, instr->varPoolHead,
-                                   instr->lclbas, 0);
+                                   instr->lclbas, 0,
+                                   csoundDebugUdoInvocation(instr));
 }
 
 debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound)
@@ -414,7 +444,7 @@ debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound)
     if (pool == NULL) {
         return NULL;
     }
-    return csoundDebugBuildVarList(csound, pool->head, NULL, 1);
+    return csoundDebugBuildVarList(csound, pool->head, NULL, 1, NULL);
 }
 
 static UOPCODE *csoundDebugUdoFindSavedSibling(UOPCODE *nestedHead,
@@ -546,7 +576,7 @@ static void csoundDebugAppendUdoFrame(
     frame->frameIndex = frameIndex;
     if (udo_ip->instr != NULL && udo_ip->instr->varPool != NULL) {
         frame->varList = csoundDebugBuildVarList(
-            csound, udo_ip->instr->varPool->head, udo_ip->lclbas, 0);
+            csound, udo_ip->instr->varPool->head, udo_ip->lclbas, 0, p);
     } else {
         frame->varList = NULL;
     }

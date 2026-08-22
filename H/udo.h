@@ -116,4 +116,10 @@ void recycle_init_only_udo_instances(CSOUND *, INSDS *);
 void csoundBuildUserOpcodeRewirePlan(CSOUND *, OPCODINFO *);
 void csoundFreeOpcodeInfoChain(CSOUND *);
 
+/* Caller storage a pass-by-ref UDO argument was rewired onto, or NULL when
+   varName is an ordinary local of the UDO instance (or the call does not use
+   pass-by-ref).  The returned pointer is borrowed and only valid while the
+   instance is active. */
+MYFLT *csoundUserOpcodeRefArgStorage(const UOPCODE *p, const char *varName);
+
 #endif
