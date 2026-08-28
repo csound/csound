@@ -350,9 +350,9 @@ void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
  * (opcode name(a:k):a) run pass-by-ref: the xin/xout names are rewired
  * onto the caller's storage and the instance's own pool slots for them
  * stay untouched, so those names must be read through
- * csoundUserOpcodeRefArgStorage() instead of lclbas.
+ * user_opcode_ref_arg_storage() instead of lclbas.
  */
-static debug_variable_t *csoundDebugBuildVarList(
+static debug_variable_t *debug_build_var_list(
     CSOUND *csound, CS_VARIABLE *varPoolHead, MYFLT *lclbas, int32_t isGlobal,
     const UOPCODE *udo)
 {
@@ -368,7 +368,7 @@ static debug_variable_t *csoundDebugBuildVarList(
             }
         } else {
             base = udo != NULL ?
-                csoundUserOpcodeRefArgStorage(udo, var->varName) : NULL;
+                user_opcode_ref_arg_storage(udo, var->varName) : NULL;
             if (base == NULL) {
                 base = lclbas + var->memBlockIndex;
             }
@@ -409,7 +409,7 @@ static debug_variable_t *csoundDebugBuildVarList(
     return head;
 }
 
-static const UOPCODE *csoundDebugUdoInvocation(const debug_instr_t *instr)
+static const UOPCODE *debug_udo_invocation(const debug_instr_t *instr)
 {
     INSDS *ip;
     OPCOD_IOBUFS *buf;
@@ -429,9 +429,9 @@ static const UOPCODE *csoundDebugUdoInvocation(const debug_instr_t *instr)
  debug_variable_t *csoundDebugGetVariables(CSOUND *csound,
                                                  debug_instr_t *instr)
 {
-    return csoundDebugBuildVarList(csound, instr->varPoolHead,
+    return debug_build_var_list(csound, instr->varPoolHead,
                                    instr->lclbas, 0,
-                                   csoundDebugUdoInvocation(instr));
+                                   debug_udo_invocation(instr));
 }
 
 debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound)
@@ -444,10 +444,10 @@ debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound)
     if (pool == NULL) {
         return NULL;
     }
-    return csoundDebugBuildVarList(csound, pool->head, NULL, 1, NULL);
+    return debug_build_var_list(csound, pool->head, NULL, 1, NULL);
 }
 
-static UOPCODE *csoundDebugUdoFindSavedSibling(UOPCODE *nestedHead,
+static UOPCODE *debug_udo_find_saved_sibling(UOPCODE *nestedHead,
                                                INSDS *sibling_parent,
                                                int32_t *truncatedOut)
 {
@@ -481,7 +481,7 @@ static UOPCODE *csoundDebugUdoFindSavedSibling(UOPCODE *nestedHead,
     return NULL;
 }
 
-static UOPCODE *csoundDebugUdoChainNext(UOPCODE *p, INSDS *parent_ip,
+static UOPCODE *debug_udo_chain_next(UOPCODE *p, INSDS *parent_ip,
                                         int32_t *truncatedOut)
 {
     UOPCODE *next;
@@ -499,12 +499,12 @@ static UOPCODE *csoundDebugUdoChainNext(UOPCODE *p, INSDS *parent_ip,
         return next;
     }
     if (next->parent_ip == p->ip) {
-        return csoundDebugUdoFindSavedSibling(next, parent_ip, truncatedOut);
+        return debug_udo_find_saved_sibling(next, parent_ip, truncatedOut);
     }
     return NULL;
 }
 
-static int32_t csoundDebugVisitedEnsureCapacity(CSOUND *csound,
+static int32_t debug_visited_ensure_capacity(CSOUND *csound,
                                                 UOPCODE ***visited,
                                                 int32_t *visitedCapacity,
                                                 int32_t visitedCount,
@@ -535,7 +535,7 @@ static int32_t csoundDebugVisitedEnsureCapacity(CSOUND *csound,
     return 1;
 }
 
-static int csoundDebugUopcodeVisited(UOPCODE *p, UOPCODE **visited,
+static int debug_uopcode_visited(UOPCODE *p, UOPCODE **visited,
                                      int32_t visitedCount)
 {
     int32_t i;
@@ -547,7 +547,7 @@ static int csoundDebugUopcodeVisited(UOPCODE *p, UOPCODE **visited,
     return 0;
 }
 
-static const char *csoundDebugUdoName(UOPCODE *p)
+static const char *debug_udo_name(UOPCODE *p)
 {
     OPCOD_IOBUFS *buf = p->buf;
     if (buf != NULL && buf->opcode_info != NULL && buf->opcode_info->name != NULL) {
@@ -559,7 +559,7 @@ static const char *csoundDebugUdoName(UOPCODE *p)
     return "unknown";
 }
 
-static void csoundDebugAppendUdoFrame(
+static void debug_append_udo_frame(
     CSOUND *csound,
     debug_udo_frame_t **head,
     debug_udo_frame_t **tail,
@@ -570,12 +570,12 @@ static void csoundDebugAppendUdoFrame(
 {
     debug_udo_frame_t *frame =
         csound->Malloc(csound, sizeof(debug_udo_frame_t));
-    frame->udoName = csoundDebugUdoName(p);
+    frame->udoName = debug_udo_name(p);
     frame->callLine = (p->h.optext != NULL) ? p->h.optext->t.linenum : 0;
     frame->depth = depth;
     frame->frameIndex = frameIndex;
     if (udo_ip->instr != NULL && udo_ip->instr->varPool != NULL) {
-        frame->varList = csoundDebugBuildVarList(
+        frame->varList = debug_build_var_list(
             csound, udo_ip->instr->varPool->head, udo_ip->lclbas, 0, p);
     } else {
         frame->varList = NULL;
@@ -589,7 +589,7 @@ static void csoundDebugAppendUdoFrame(
     }
 }
 
-static void csoundDebugCollectUdoFrames(
+static void debug_collect_udo_frames(
     CSOUND *csound,
     INSDS *ip,
     int32_t depth,
@@ -604,7 +604,7 @@ static void csoundDebugCollectUdoFrames(
     int32_t siblingIndex = 0;
 
     for (p = (UOPCODE *)ip->opcod_deact; p != NULL;
-         p = csoundDebugUdoChainNext(p, ip, truncatedOut)) {
+         p = debug_udo_chain_next(p, ip, truncatedOut)) {
         INSDS *udo_ip = p->ip;
         if (udo_ip == NULL) {
             continue;
@@ -617,17 +617,17 @@ static void csoundDebugCollectUdoFrames(
         if (!ATOMIC_GET(udo_ip->init_done)) {
             continue;
         }
-        if (csoundDebugUopcodeVisited(p, *visited, *visitedCount)) {
+        if (debug_uopcode_visited(p, *visited, *visitedCount)) {
             continue;
         }
-        if (!csoundDebugVisitedEnsureCapacity(csound, visited, visitedCapacity,
+        if (!debug_visited_ensure_capacity(csound, visited, visitedCapacity,
                                               *visitedCount, truncatedOut)) {
             return;
         }
         (*visited)[(*visitedCount)++] = p;
-        csoundDebugAppendUdoFrame(csound, head, tail, p, udo_ip, depth,
+        debug_append_udo_frame(csound, head, tail, p, udo_ip, depth,
                                   siblingIndex++);
-        csoundDebugCollectUdoFrames(csound, udo_ip, depth + 1, head, tail,
+        debug_collect_udo_frames(csound, udo_ip, depth + 1, head, tail,
                                     visited, visitedCount, visitedCapacity,
                                     truncatedOut);
     }
@@ -651,7 +651,7 @@ debug_udo_frame_t *csoundDebugGetUdoFrames(CSOUND *csound,
         return NULL;
     }
     ip = (INSDS *)instr->instrptr;
-    csoundDebugCollectUdoFrames(csound, ip, 0, &head, &tail, &visited,
+    debug_collect_udo_frames(csound, ip, 0, &head, &tail, &visited,
                                 &visitedCount, &visitedCapacity, truncatedOut);
     if (visited != NULL) {
         csound->Free(csound, visited);

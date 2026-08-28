@@ -1910,7 +1910,7 @@ static void reset(CSOUND *csound) {
     csound->opcodes = NULL;
   }
   if (csound->opcodeInfo != NULL) {
-    csoundFreeOpcodeInfoChain(csound);
+    free_opcode_info_chain(csound);
   }
 
   csound->oparms_.odebug = 0;

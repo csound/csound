@@ -1203,7 +1203,7 @@ static int32_t pbr_writeback_pass_through_inputs(CSOUND *csound,
   return OK;
 }
 
-void csoundBuildUserOpcodeRewirePlan(CSOUND *csound, OPCODINFO *udoinfo) {
+void build_user_opcode_rewire_plan(CSOUND *csound, OPCODINFO *udoinfo) {
   PBR_PLAN_BUILDER builder = {0};
   PBR_REWIRE_PLAN *plan;
   OPTXT *optxt;
@@ -1267,7 +1267,7 @@ void csoundBuildUserOpcodeRewirePlan(CSOUND *csound, OPCODINFO *udoinfo) {
   plan->aliases = builder.aliases;
 }
 
-void csoundFreeOpcodeInfoChain(CSOUND *csound) {
+void free_opcode_info_chain(CSOUND *csound) {
   OPCODINFO *current = csound->opcodeInfo;
 
   while (current != NULL) {
@@ -1437,7 +1437,7 @@ static int32_t udo_call_is_pass_by_ref(const UOPCODE *p,
     p->parent_ip->esr == p->ip->esr;
 }
 
-MYFLT *csoundUserOpcodeRefArgStorage(const UOPCODE *p, const char *varName) {
+MYFLT *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
   OPCODINFO *udoinfo;
   PBR_REWIRE_PLAN *plan;
   MYFLT *target;

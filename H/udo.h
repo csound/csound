@@ -113,13 +113,13 @@ int32_t useropcd_local_ksmps(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_copy(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_ref(CSOUND *, UOPCODE *);
 void recycle_init_only_udo_instances(CSOUND *, INSDS *);
-void csoundBuildUserOpcodeRewirePlan(CSOUND *, OPCODINFO *);
-void csoundFreeOpcodeInfoChain(CSOUND *);
+void build_user_opcode_rewire_plan(CSOUND *, OPCODINFO *);
+void free_opcode_info_chain(CSOUND *);
 
 /* Caller storage a pass-by-ref UDO argument was rewired onto, or NULL when
    varName is an ordinary local of the UDO instance (or the call does not use
    pass-by-ref).  The returned pointer is borrowed and only valid while the
    instance is active. */
-MYFLT *csoundUserOpcodeRefArgStorage(const UOPCODE *p, const char *varName);
+MYFLT *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName);
 
 #endif
