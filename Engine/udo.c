@@ -188,11 +188,6 @@ static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
 static MYFLT *pbr_resolve_struct_target(CSOUND *csound, MYFLT *argPtr,
                                         const char *structPath);
 
-typedef struct pbr_alias_entry {
-  const char *name;
-  int32_t ar_index;
-} PBR_ALIAS_ENTRY;
-
 typedef struct pbr_plan_builder {
   PBR_ALIAS_ENTRY *aliases;
   int32_t alias_count;
@@ -451,7 +446,11 @@ static int32_t pbr_add_alias(CSOUND *csound,
     return NOTOK;
   }
 
-  builder->aliases[builder->alias_count].name = name;
+  builder->aliases[builder->alias_count].name =
+    cs_strndup(csound, name, strlen(name));
+  if (builder->aliases[builder->alias_count].name == NULL) {
+    return NOTOK;
+  }
   builder->aliases[builder->alias_count].ar_index = ar_index;
   builder->alias_count++;
 
@@ -834,6 +833,22 @@ static void pbr_free_seed_entries(CSOUND *csound,
   csound->Free(csound, entries);
 }
 
+static void pbr_free_aliases(CSOUND *csound,
+                             PBR_ALIAS_ENTRY *aliases,
+                             int32_t alias_count) {
+  int32_t i;
+
+  if (aliases == NULL) {
+    return;
+  }
+
+  for (i = 0; i < alias_count; i++) {
+    csound->Free(csound, aliases[i].name);
+  }
+
+  csound->Free(csound, aliases);
+}
+
 static void pbr_free_plan(CSOUND *csound, PBR_REWIRE_PLAN *plan) {
   if (plan == NULL) {
     return;
@@ -842,6 +857,7 @@ static void pbr_free_plan(CSOUND *csound, PBR_REWIRE_PLAN *plan) {
   pbr_free_entries(csound, plan->init_entries, plan->init_count);
   pbr_free_entries(csound, plan->perf_entries, plan->perf_count);
   pbr_free_seed_entries(csound, plan->seed_entries, plan->seed_count);
+  pbr_free_aliases(csound, plan->aliases, plan->alias_count);
   csound->Free(csound, plan);
 }
 
@@ -1187,7 +1203,7 @@ static int32_t pbr_writeback_pass_through_inputs(CSOUND *csound,
   return OK;
 }
 
-void csoundBuildUserOpcodeRewirePlan(CSOUND *csound, OPCODINFO *udoinfo) {
+void build_user_opcode_rewire_plan(CSOUND *csound, OPCODINFO *udoinfo) {
   PBR_PLAN_BUILDER builder = {0};
   PBR_REWIRE_PLAN *plan;
   OPTXT *optxt;
@@ -1245,11 +1261,13 @@ void csoundBuildUserOpcodeRewirePlan(CSOUND *csound, OPCODINFO *udoinfo) {
   plan->init_entries = builder.init_entries;
   plan->perf_entries = builder.perf_entries;
   plan->seed_entries = builder.seed_entries;
-
-  csound->Free(csound, builder.aliases);
+  /* Retained so callers (currently the debugger) can resolve a UDO-local
+     variable name to the caller storage its opcodes were rewired onto. */
+  plan->alias_count = builder.alias_count;
+  plan->aliases = builder.aliases;
 }
 
-void csoundFreeOpcodeInfoChain(CSOUND *csound) {
+void free_opcode_info_chain(CSOUND *csound) {
   OPCODINFO *current = csound->opcodeInfo;
 
   while (current != NULL) {
@@ -1405,6 +1423,70 @@ static int32_t handle_pass_by_ref(CSOUND* csound, UOPCODE* p,
      other immutable inputs stay protected because writes happen to the output
      scratch slot first; mutable inputs are written back after the chain. */
   return pbr_seed_pass_through_outputs(csound, p, lcurip, 1);
+}
+
+/* True when this invocation was set up with pass-by-ref, i.e. its internal
+   opcodes were rewired onto caller storage.  Shared with useropcdset() so
+   the debugger cannot drift from the engine.  Recomputed per call rather
+   than read from OPCODINFO.passByRef, which only records the most recent
+   init. */
+static int32_t udo_call_is_pass_by_ref(const UOPCODE *p,
+                                       const OPCODINFO *udoinfo) {
+  return udoinfo != NULL && udoinfo->newStyle && p->ip != NULL &&
+    p->parent_ip != NULL && p->parent_ip->ksmps == p->ip->ksmps &&
+    p->parent_ip->esr == p->ip->esr;
+}
+
+MYFLT *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
+  OPCODINFO *udoinfo;
+  PBR_REWIRE_PLAN *plan;
+  MYFLT *target;
+  int32_t ar_index;
+  int32_t outchns;
+  int32_t i;
+
+  if (p == NULL || p->buf == NULL || varName == NULL) {
+    return NULL;
+  }
+
+  udoinfo = p->buf->opcode_info;
+  if (!udo_call_is_pass_by_ref(p, udoinfo)) {
+    return NULL;
+  }
+
+  plan = udoinfo->pbr_plan;
+  if (plan == NULL || plan->aliases == NULL) {
+    return NULL;
+  }
+
+  /* Exact match only: base-name matching would map a plain variable onto a
+     slot that was aliased for one of its struct members. */
+  ar_index = pbr_alias_lookup_exact(plan->aliases, plan->alias_count, varName);
+  outchns = udoinfo->outchns;
+  if (ar_index < 0 || ar_index >= outchns + udoinfo->inchns) {
+    return NULL;
+  }
+
+  target = p->ar[ar_index];
+  if (target == NULL) {
+    return NULL;
+  }
+
+  /* An input sharing caller storage with an output is read through the xin
+     snapshot refreshed each k-cycle; p->ar[] already holds the output the body
+     wrote over it.  Mirrors pbr_apply_entries().  The xin lookup walks the init
+     chain, so only do it once a collision is confirmed. */
+  if (ar_index >= outchns) {
+    for (i = 0; i < outchns; i++) {
+      if (p->ar[i] == target) {
+        XIN *xin = pbr_find_xin(p->ip);
+
+        return xin != NULL ? xin->args[ar_index - outchns] : target;
+      }
+    }
+  }
+
+  return target;
 }
 
 /*
@@ -1639,9 +1721,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   if (UNLIKELY(err != OK))
     goto finish_init;
 
-  inm->passByRef = buf->opcode_info->newStyle &&
-    parent_ip->ksmps == p->ip->ksmps &&
-    parent_ip->esr == p->ip->esr;
+  /* Per-definition flag for perf-routine selection.  The debugger must not
+     read this back: the next init of the same UDO overwrites it. */
+  inm->passByRef = udo_call_is_pass_by_ref(p, inm);
 
   if(inm->passByRef) {
     if (UNLIKELY(handle_pass_by_ref(csound, p, lcurip) != OK)) {

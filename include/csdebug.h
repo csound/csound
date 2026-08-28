@@ -340,7 +340,14 @@ PUBLIC debug_instr_t *csoundDebugGetInstrInstances(CSOUND *csound);
  */
 PUBLIC void csoundDebugFreeInstrInstances(CSOUND *csound, debug_instr_t *instr);
 
-/** Get list of variables for instrument */
+/** Get list of variables for an instrument or UDO instance
+ *
+ * For a top-level instrument this reads the instance pool. For a UDO
+ * instance (breakpointInstr when paused inside a UDO body, or a
+ * debug_instr_t built from that INSDS) typed pass-by-ref arguments are
+ * resolved onto the caller's storage; other locals still come from the
+ * instance pool.
+ */
 PUBLIC debug_variable_t *csoundDebugGetVariables(CSOUND *csound,
                                                  debug_instr_t *instr);
 
@@ -353,7 +360,9 @@ PUBLIC void csoundDebugFreeVariables(CSOUND *csound,
  * Walks the UOPCODE chain hung off the instrument's opcod_deact list and
  * returns one entry per active UDO sub-instance (including nested/recursive
  * frames at greater depth values). Each frame includes a variable list for
- * that UDO body, read the same way as csoundDebugGetVariables().
+ * that UDO body. Typed pass-by-ref arguments are resolved onto the caller's
+ * storage; other locals are read from the instance pool, matching
+ * csoundDebugGetVariables() on a UDO instance.
  *
  * callLine is the source line of the UDO call (from the call-site opcode).
  * frameIndex orders sibling calls on the same parent (0 = head / most recent

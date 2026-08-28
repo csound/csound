@@ -2162,7 +2162,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
           opinfo->oentry->perf = NULL;
         }
 
-        csoundBuildUserOpcodeRewirePlan(csound, opinfo);
+        build_user_opcode_rewire_plan(csound, opinfo);
       }
 
       break;
