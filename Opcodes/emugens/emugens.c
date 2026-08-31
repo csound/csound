@@ -515,6 +515,12 @@ static int32 bpfx_i(CSOUND *csound, BPFX *p) {
 }
 
 
+/*
+   Returns: -1 if x is less than the lowest breakpoint
+            -2 if x is higher than the highest breakpoint
+            otherwise, returns the index of the lower breakpoint. NB: because the x and
+            y data are interleaved, the index returned is the index of the x value, which is always even.
+ */
 static inline int32_t bpfx_find(MYFLT **data, MYFLT x, int32_t datalen, int32_t lastidx) {
     // returns -1 if x is less than the lowest breakpoint
     if (x <= *data[0])
@@ -527,7 +533,7 @@ static inline int32_t bpfx_find(MYFLT **data, MYFLT x, int32_t datalen, int32_t 
             return lastidx;
         // search next pair
         if(lastidx < datalen - 6 && *data[lastidx+2] <= x && x < *data[lastidx+4])
-            return lastidx+1;
+            return lastidx+2;
     }
     // binary search
     int32_t numpairs = datalen / 2;
@@ -553,7 +559,7 @@ static int32_t bpfx_k(CSOUND *csound, BPFX *p) {
     MYFLT x0, x1, y0, y1;
 
     int32_t idx = bpfx_find(data, x, datalen, p->lastidx);
-
+    
     if(idx == -1) {
         *p->r = *data[1];
         p->lastidx = -1;
