@@ -516,11 +516,10 @@ static int32 bpfx_i(CSOUND *csound, BPFX *p) {
 
 
 /*
-   Returns: -1 if x is less than the lowest breakpoint
-            -2 if x is higher than the highest breakpoint
+   Returns: -1 if x is less than or equal to the lowest breakpoint
+            -2 if x is greater than or equal to the highest breakpoint
             otherwise, returns the index of the lower breakpoint. NB: because the x and
             y data are interleaved, the index returned is the index of the x value, which is always even.
- */
 static inline int32_t bpfx_find(MYFLT **data, MYFLT x, int32_t datalen, int32_t lastidx) {
     // returns -1 if x is less than the lowest breakpoint
     if (x <= *data[0])
