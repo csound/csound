@@ -1960,6 +1960,4 @@ if(MINGW)
     endif()
 endif()
 
-add_custom_target(format sh format.sh  Top/*.c  Top/*.cpp  Engine/*.c
-    OOps/*.c Opcodes/*.c  Opcodes/*.cpp Opcodes/*/*.c  Opcodes/*/*.cpp
-    util/*.c WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+include(cmake/ClangTidy.cmake)
