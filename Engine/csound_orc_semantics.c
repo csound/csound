@@ -2939,25 +2939,25 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                          root->value->last_column);
     csound->Free(csound, name);
     name = strip_extension(csound, root->value->lexeme);
-    csoundMessage(csound, Str("Found:\n  %s %s %s\n"),
-                  leftArgString ? leftArgString : "", name,
-                  rightArgString ? rightArgString : "");
+    csoundMessageS(csound, CSOUNDMSG_ERROR, Str("Found:\n  %s %s %s\n"),
+                   leftArgString ? leftArgString : "", name,
+                   rightArgString ? rightArgString : "");
     csound->Free(csound, name);
-    csoundMessage(csound, Str("\nCandidates:\n"));
+    csoundMessageS(csound, CSOUNDMSG_ERROR, Str("\nCandidates:\n"));
 
     for (i = 0; i < entries->count; i++) {
       OENTRY *entry = entries->entries[i];
       name = strip_extension(csound, entry->opname);
-      csoundMessage(csound, "  %s %s %s\n", entry->outypes, name,
-                    entry->intypes);
+      csoundMessageS(csound, CSOUNDMSG_ERROR, "  %s %s %s\n",
+                     entry->outypes, name, entry->intypes);
       csound->Free(csound, name);
     }
 
-    csoundMessage(csound, Str("\nLine: %d "
-                              " columns %d-%d\n"),
-                  root->line,
-                  root->value->first_column,
-                  root->value->last_column);
+    csoundMessageS(csound, CSOUNDMSG_ERROR, Str("\nLine: %d "
+                                                " columns %d-%d\n"),
+                   root->line,
+                   root->value->first_column,
+                   root->value->last_column);
     do_baktrace(csound, root->locn);
 
     csound->Free(csound, leftArgString);
