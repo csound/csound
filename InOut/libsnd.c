@@ -57,7 +57,7 @@ static void reset_output_fade(CSOUND *csound)
   STA(outputFadePos) = 0;
 }
 
-PUBLIC int32_t csoundPerformOutputFade(CSOUND *csound, uint32_t frames)
+int32_t csoundPerformOutputFade(CSOUND *csound, uint32_t frames)
 {
   int32_t result = 0;
 

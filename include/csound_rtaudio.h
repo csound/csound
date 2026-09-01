@@ -1,7 +1,7 @@
 /*
   csound_rtaudio.h: realtime audio module functions
 
-  Copyright (C) 1991-2024 
+  Copyright (C) 1991-2024
 
   This file is part of Csound.
 
@@ -29,7 +29,7 @@ extern "C" {
   /** @defgroup AUDIOIO Audio I/O
    *
    *  @{ */
-  
+
   /**
    * Real-time audio parameters structure
    */
@@ -76,13 +76,19 @@ extern "C" {
   PUBLIC void csoundSetHostAudioIO(CSOUND *);
 
   /**
+   * Renders realtime output while applying a linear fade over the specified
+   * number of sample frames.
+   */
+  PUBLIC int32_t csoundPerformOutputFade(CSOUND *, uint32_t frames);
+
+  /**
    *  Sets the current RT audio module
    */
   PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module);
 
   /** @}*/
 
-  
+
 #ifdef __cplusplus
 }
 #endif /*  __cplusplus */

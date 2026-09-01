@@ -38,7 +38,6 @@
 extern int set_rt_priority(int argc, const char **argv);
 #endif
 extern int csoundErrCnt(CSOUND*);
-extern int32_t csoundPerformOutputFade(CSOUND *, uint32_t);
 static FILE *logFile = NULL;
 
 static void msg_callback(CSOUND *csound,
