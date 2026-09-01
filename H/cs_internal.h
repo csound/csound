@@ -340,6 +340,8 @@ extern "C" {
       uint32  nframes               /* = 1UL */;
       FILE    *pin, *pout;
       int32_t dither;
+      uint32_t outputFadeFrames;
+      uint32_t outputFadePos;
    };
 
   typedef struct evt_cb_func {

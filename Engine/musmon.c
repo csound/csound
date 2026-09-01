@@ -598,6 +598,17 @@ static inline void cs_beep(CSOUND *csound)
     csound->ErrorMsg(csound, Str("%c\tbeep!\n"), '\a');
 }
 
+void csound_close_audio(CSOUND *csound)
+{
+    /* This is intentionally idempotent. reset() closes audio before worker
+       teardown; csound_cleanup() repeats the call as a fallback for callers
+       that invoke cleanup directly. */
+    if (!csound->enableHostImplementedAudioIO) {
+      sf_close_in(csound);
+      sf_close_out(csound);
+    }
+}
+
 int32_t csound_cleanup(CSOUND *csound)
 {
     void    *p;
@@ -624,6 +635,16 @@ int32_t csound_cleanup(CSOUND *csound)
     }
     /* will not clean up more than once */
     csound->engineStatus &= ~(CS_STATE_CLN);
+
+    /* Close real-time audio before the rest of cleanup can leave a device
+       queue to drain while the audio state is still intact. */
+    if (!csound->enableHostImplementedAudioIO) {
+      csound_close_audio(csound);
+      if (UNLIKELY(!csound->oparms->sfwrite)) {
+        if(csound->oparms->msglevel ||csoundGetDebug(csound) & DEBUG_RUNTIME)
+         csound->ErrorMsg(csound, Str("no sound written to disk\n"));
+      }
+    }
 
     diskin2_async_prepare_shutdown(csound);
 #ifndef __EMSCRIPTEN__
@@ -709,16 +730,8 @@ int32_t csound_cleanup(CSOUND *csound)
     /* close MIDI input */
     midi_close(csound);
 
-    /* IV - Feb 03 2005: do not need to call rtclose from here, */
-    /* as sf_close_in/sf_close_out will do that. */
-    if (!csound->enableHostImplementedAudioIO) {
-      sf_close_in(csound);
-      sf_close_out(csound);
-      if (UNLIKELY(!csound->oparms->sfwrite)) {
-        if(csound->oparms->msglevel ||csoundGetDebug(csound) & DEBUG_RUNTIME)
-         csound->ErrorMsg(csound, Str("no sound written to disk\n"));
-      }
-    }
+    /* Audio was closed at the start of cleanup while its final samples were
+       still available to the real-time backend. */
     /* close any remote_cleanup.c sockets */
     if (csound->remoteGlobals) remote_cleanup(csound);
     if (UNLIKELY(csound->oparms->ringbell))

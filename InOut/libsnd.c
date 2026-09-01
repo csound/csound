@@ -51,6 +51,25 @@ static inline void alloc_globals(CSOUND *csound)
     csound->libsndStatics.nframes = (uint32)1;
 }
 
+static void reset_output_fade(CSOUND *csound)
+{
+  STA(outputFadeFrames) = 0;
+  STA(outputFadePos) = 0;
+}
+
+PUBLIC int32_t csoundPerformOutputFade(CSOUND *csound, uint32_t frames)
+{
+  int32_t result = 0;
+
+  if (frames == 0 || STA(pipdevout) != 2 || !STA(osfopen))
+    return 0;
+  STA(outputFadeFrames) = frames;
+  STA(outputFadePos) = 0;
+  while (!result && STA(outputFadePos) < frames)
+    result = csoundPerformKsmps(csound);
+  return result;
+}
+
 /* VL 28.1.24
    interleave spraw into output buffer and
    copy back into spout when done
@@ -75,8 +94,18 @@ static inline void spout_interleave(CSOUND *csound, int32_t scal) {
   spoutrem -= (end-start)*nchnls;
   csound->libsndStatics.outbufrem -= (end-start)*nchnls;
   for(j=start; j<end; j++) {
+    MYFLT fadeGain = FL(1.0);
+    if (STA(outputFadeFrames) != 0) {
+      if (STA(outputFadeFrames) <= 1 ||
+          STA(outputFadePos) >= STA(outputFadeFrames))
+        fadeGain = FL(0.0);
+      else
+        fadeGain = (MYFLT) (STA(outputFadeFrames) -
+                            STA(outputFadePos) - 1) /
+                   (MYFLT) (STA(outputFadeFrames) - 1);
+    }
     for(i=0; i< (int32_t) nchnls;i++) {
-     absamp = spinter[i*ksmps+j];
+     absamp = spinter[i*ksmps+j] * fadeGain;
       // built inlimiter start ****
       // There is a rather awkward problem in reporting out of range not being
       // confused by the limited value but passing the clipped values to the
@@ -111,6 +140,9 @@ static inline void spout_interleave(CSOUND *csound, int32_t scal) {
         csound->rngflg = 1;
       }
       }
+       if (STA(outputFadeFrames) != 0 &&
+           STA(outputFadePos) < STA(outputFadeFrames))
+         STA(outputFadePos)++;
        nframes++;
   }
 
@@ -878,6 +910,7 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
 
 
  outset:
+    reset_output_fade(csound);
     O->sndfileSampleSize = (int32_t) sndfileSampleSize(FORMAT2SF(O->outformat));
     /* calc outbuf size & alloc bufspace */
     STA(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
