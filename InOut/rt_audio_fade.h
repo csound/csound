@@ -23,6 +23,21 @@ static inline void rt_audio_fade_begin(RT_AUDIO_FADE *fade,
   fade->positionFrames = 0;
 }
 
+static inline MYFLT rt_audio_fade_next_gain(RT_AUDIO_FADE *fade)
+{
+  MYFLT gain;
+  if (fade->lengthFrames <= 1 ||
+      fade->positionFrames >= fade->lengthFrames) {
+    gain = (MYFLT) 0.0;
+  }
+  else {
+    gain = (MYFLT) (fade->lengthFrames - fade->positionFrames - 1) /
+           (MYFLT) (fade->lengthFrames - 1);
+  }
+  fade->positionFrames++;
+  return gain;
+}
+
 static inline void rt_audio_fade_apply(RT_AUDIO_FADE *fade,
                                        MYFLT *samples,
                                        int32_t sampleCount,
@@ -35,18 +50,9 @@ static inline void rt_audio_fade_apply(RT_AUDIO_FADE *fade,
     return;
   frameCount = sampleCount / channels;
   for (frame = 0; frame < frameCount; frame++) {
-    MYFLT gain;
-    if (fade->lengthFrames <= 1 ||
-        fade->positionFrames >= fade->lengthFrames) {
-      gain = (MYFLT) 0.0;
-    }
-    else {
-      gain = (MYFLT) (fade->lengthFrames - fade->positionFrames - 1) /
-             (MYFLT) (fade->lengthFrames - 1);
-    }
+    MYFLT gain = rt_audio_fade_next_gain(fade);
     for (channel = 0; channel < channels; channel++)
       samples[frame * channels + channel] *= gain;
-    fade->positionFrames++;
   }
 }
 

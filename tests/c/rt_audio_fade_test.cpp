@@ -37,3 +37,19 @@ TEST(RtAudioFadeTest, KeepsFollowingFramesSilent)
   EXPECT_DOUBLE_EQ((double) samples[0], 0.0);
   EXPECT_DOUBLE_EQ((double) samples[1], 0.0);
 }
+
+TEST(RtAudioFadeTest, ContinuesAcrossBuffers)
+{
+  RT_AUDIO_FADE fade;
+  MYFLT first[] = {(MYFLT) 1.0, (MYFLT) 1.0};
+  MYFLT second[] = {(MYFLT) 1.0, (MYFLT) 1.0};
+
+  rt_audio_fade_begin(&fade, 4, 1);
+  rt_audio_fade_apply(&fade, first, 2, 1);
+  rt_audio_fade_apply(&fade, second, 2, 1);
+
+  EXPECT_DOUBLE_EQ((double) first[0], 1.0);
+  EXPECT_NEAR((double) first[1], 2.0 / 3.0, 1.0e-6);
+  EXPECT_NEAR((double) second[0], 1.0 / 3.0, 1.0e-6);
+  EXPECT_DOUBLE_EQ((double) second[1], 0.0);
+}

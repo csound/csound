@@ -27,6 +27,7 @@
 #include <android/log.h>
 #include <stdint.h>
 #include <time.h>
+#include "../../../InOut/rt_audio_fade.h"
 
 MYFLT *get_output_buffer(CSOUND *csound);
 int perform_buffer(CSOUND *csound);
@@ -76,6 +77,10 @@ typedef struct OPEN_SL_PARAMS_ {
   int async;
 
   int run;
+  volatile int32_t closing;
+  volatile int32_t outputDone;
+  int32_t outputFinalQueued;
+  RT_AUDIO_FADE closeFade;
 } open_sl_params;
 
 
@@ -87,14 +92,35 @@ void bqPlayerCallback(SLBufferQueueItf bq, void *context)
 {
   open_sl_params *p = (open_sl_params *) context;
   CSOUND *csound = p->csound;
-   
+  int32_t closing;
+
+  closing = ATOMIC_GET(p->closing);
+  if(closing && p->outputFinalQueued) {
+    ATOMIC_SET(p->outputDone, 1);
+    return;
+  }
+
   if(p->async){
-    int read=0,items = p->outBufSamples, i, r = 0;
+    int read=0, items = p->outBufSamples, i;
+    int nchnls = csound->GetNchnls(csound);
     MYFLT *outputBuffer = p->outputBuffer;
     short *playBuffer = p->playBuffer;
+    memset(playBuffer, 0, items*sizeof(short));
+    if(closing && p->closeFade.lengthFrames == 0) {
+      int queued = csound->CheckCircularBuffer(csound, p->outcb, 0);
+      rt_audio_fade_begin(&p->closeFade, queued, nchnls);
+    }
     read = csound->ReadCircularBuffer(csound,p->outcb,outputBuffer,items);
+    if(closing)
+      rt_audio_fade_apply(&p->closeFade, outputBuffer, read, nchnls);
     for(i=0;i < read; i++)
       playBuffer[i] = (short) (outputBuffer[i]*CONV16BIT);
+    if(closing && csound->CheckCircularBuffer(csound, p->outcb, 0) == 0)
+      p->outputFinalQueued = 1;
+    if(closing && read == 0) {
+      ATOMIC_SET(p->outputDone, 1);
+      return;
+    }
     (*bq)->Enqueue(bq,playBuffer,items*sizeof(short));
     if(p->streamTime != NULL) *p->streamTime +=
                                 items/csound->GetNchnls(csound);
@@ -102,18 +128,38 @@ void bqPlayerCallback(SLBufferQueueItf bq, void *context)
   else {
     // run Csound 
     int items = p->outBufSamples,
-      i, r = 0, ret = 1, paused;
+      i, ret = 1, paused;
+    int nchnls = csound->GetNchnls(csound);
     short *playBuffer = p->playBuffer;
     memset(playBuffer, 0, items*sizeof(short));
     MYFLT *outputBuffer = get_output_buffer(csound);
     if(outputBuffer != NULL) {
-     paused = *((int *) csound->QueryGlobalVariable(csound,"::paused::"));
-     if(!paused) ret = perform_buffer(csound);
-     else csound->Message(csound, "paused \n");
-     if(ret==0){
-      for(i=0;i < items; i++)
-	playBuffer[i] = (short) (outputBuffer[i]*CONV16BIT);
-     } else return;
+      if(closing) {
+        rt_audio_fade_begin(&p->closeFade, items, nchnls);
+        for(i=0; i < items; i += nchnls) {
+          MYFLT gain = rt_audio_fade_next_gain(&p->closeFade);
+          for(int32_t channel=0; channel < nchnls; channel++)
+            playBuffer[i+channel] =
+              (short) (outputBuffer[i+channel]*gain*CONV16BIT);
+        }
+        p->outputFinalQueued = 1;
+      }
+      else {
+        paused = *((int *) csound->QueryGlobalVariable(csound,"::paused::"));
+        if(!paused) ret = perform_buffer(csound);
+        else csound->Message(csound, "paused \n");
+        if(ret==0) {
+          for(i=0;i < items; i++)
+            playBuffer[i] = (short) (outputBuffer[i]*CONV16BIT);
+        }
+        else {
+          ATOMIC_SET(p->outputDone, 1);
+          return;
+        }
+      }
+    }
+    else if(closing) {
+      p->outputFinalQueued = 1;
     }
     (*bq)->Enqueue(bq,playBuffer,items*sizeof(short));
     if(p->streamTime != NULL)
@@ -342,6 +388,10 @@ int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm)
     else csound->Message(csound, Str("OpenSL: engine create\n"));
   }
   params->run = 0;
+  ATOMIC_SET(params->closing, 0);
+  ATOMIC_SET(params->outputDone, 0);
+  params->outputFinalQueued = 0;
+  rt_audio_fade_reset(&params->closeFade);
   params->async =  *((int *)csoundQueryGlobalVariable(csound,"::async::"));
   memcpy(&(params->outParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtPlayUserData(p)) = (void*) params;
@@ -368,13 +418,17 @@ void bqRecorderCallback(SLBufferQueueItf bq, void *context)
   int items = p->inBufSamples/nchnls,i,k,n;
   MYFLT *inputBuffer = p->inputBuffer;
   short *recBuffer = p->recBuffer;
+  if(ATOMIC_GET(p->closing))
+    return;
   /* convert mono to stereo */
   for(i=n=0; i < items; i++, n+=nchnls) {
     for(k=0; k < nchnls; k++)
       inputBuffer[n+k] = recBuffer[i]*CONVMYFLT;
   }
   csound->WriteCircularBuffer(csound,p->incb,p->inputBuffer,items*nchnls);
-  (*p->recorderBufferQueue)->Enqueue(p->recorderBufferQueue, recBuffer,items*sizeof(short));
+  if(!ATOMIC_GET(p->closing))
+    (*p->recorderBufferQueue)->Enqueue(p->recorderBufferQueue, recBuffer,
+                                       items*sizeof(short));
 }
 
 /* get samples from ADC */
@@ -579,17 +633,33 @@ void androidrtclose_(CSOUND *csound)
   open_sl_params *params;
   params = (open_sl_params *) csound->QueryGlobalVariable(csound,
 							  "_openslGlobals");
-  params->run = 0;
   if (params == NULL)
     return;
+  params->run = 0;
+  ATOMIC_SET(params->closing, 1);
+  *(csound->GetRtRecordUserData(csound)) = NULL;
+  *(csound->GetRtPlayUserData(csound)) = NULL;
   // destroy buffer queue audio player object, and invalidate
   // all associated interfaces
   if (params->bqPlayerObject != NULL) {
     SLuint32 state = SL_PLAYSTATE_PLAYING;
+    int32_t queued = params->outcb != NULL ?
+      csound->CheckCircularBuffer(csound, params->outcb, 0) : 0;
+    int32_t frames = (queued + params->outBufSamples) /
+      csound->GetNchnls(csound);
+    int32_t timeout = (int32_t)
+      ((frames * 1000) / csoundGetSr(csound)) + 100;
+    if(timeout > 2000) timeout = 2000;
+    while(timeout-- > 0 && !ATOMIC_GET(params->outputDone))
+      usleep(1000);
     (*params->bqPlayerPlay)->SetPlayState(params->bqPlayerPlay,
                                           SL_PLAYSTATE_STOPPED);
-    while(state != SL_PLAYSTATE_STOPPED)
+    for(timeout = 2000; timeout > 0; timeout--) {
       (*params->bqPlayerPlay)->GetPlayState(params->bqPlayerPlay, &state);
+      if(state == SL_PLAYSTATE_STOPPED)
+        break;
+      usleep(1000);
+    }
     (*params->bqPlayerObject)->Destroy(params->bqPlayerObject);
     params->bqPlayerObject = NULL;
     params->bqPlayerPlay = NULL;
@@ -599,11 +669,16 @@ void androidrtclose_(CSOUND *csound)
 
   // destroy audio recorder object, and invalidate all associated interfaces
   if (params->recorderObject != NULL) {
-    SLuint32 state = SL_PLAYSTATE_PLAYING;
+    SLuint32 state = SL_RECORDSTATE_RECORDING;
+    int32_t timeout;
     (*params->recorderRecord)->SetRecordState(params->recorderRecord,
                                               SL_RECORDSTATE_STOPPED);
-    while(state != SL_RECORDSTATE_STOPPED)
+    for(timeout = 2000; timeout > 0; timeout--) {
       (*params->recorderRecord)->GetRecordState(params->recorderRecord, &state);
+      if(state == SL_RECORDSTATE_STOPPED)
+        break;
+      usleep(1000);
+    }
     (*params->recorderObject)->Destroy(params->recorderObject);
     params->recorderObject = NULL;
     params->recorderRecord = NULL;
@@ -623,8 +698,10 @@ void androidrtclose_(CSOUND *csound)
     params->engineEngine = NULL;
   }
 
-  csound->DestroyCircularBuffer(csound, params->incb);
-  csound->DestroyCircularBuffer(csound, params->outcb);
+  if(params->incb != NULL)
+    csound->DestroyCircularBuffer(csound, params->incb);
+  if(params->outcb != NULL)
+    csound->DestroyCircularBuffer(csound, params->outcb);
 
   if (params->outputBuffer != NULL) {
     csound->Free(csound, params->outputBuffer);
@@ -646,8 +723,6 @@ void androidrtclose_(CSOUND *csound)
     params->recBuffer = NULL;
   }
 
-  *(csound->GetRtRecordUserData(csound)) = NULL;
-  *(csound->GetRtPlayUserData(csound)) = NULL;
   csound->DestroyGlobalVariable(csound, "_openslGlobals");
   csound->Message(csound, "Closing Cound realtime audio.\n");
 

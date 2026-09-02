@@ -446,6 +446,7 @@ static void openJackStreams(RtJackGlobals *p)
     p->csndBufPos = 0;
     p->jackBufCnt = 0;
     p->jackBufPos = 0;
+    ATOMIC_SET(p->outputBuffersQueued, p->outputEnabled ? p->nBuffers : 0);
     for (i = 0; i < p->nBuffers; i++) {
       rtJack_TryLock(p->csound, &(p->bufs[i]->csndLock));
       rtJack_Unlock(p->csound, &(p->bufs[i]->jackLock));
@@ -850,6 +851,8 @@ static int32_t processCallback(jack_nframes_t nframes, void *arg)
       /* if done with a buffer, notify Csound thread and advance to next one */
       if (p->jackBufPos >= p->bufSize) {
         p->jackBufPos = 0;
+        if (p->outputEnabled)
+          ATOMIC_DECR(p->outputBuffersQueued);
         rtJack_Unlock(p->csound, &(p->bufs[p->jackBufCnt]->csndLock));
         if (++(p->jackBufCnt) >= p->nBuffers)
           p->jackBufCnt = 0;
@@ -971,11 +974,12 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int32_t bytes_)
       }
       /* copy audio data */
       for (k = 0; k < p->nChannels; k++)
-        p->bufs[p->csndBufCnt]->outBufs[k][i] =
+        p->bufs[p->csndBufCnt]->outBufs[k][p->csndBufPos] =
           (jack_default_audio_sample_t) outbuf_[j++];
       if (++(p->csndBufPos) >= p->bufSize) {
         p->csndBufPos = 0;
         /* notify JACK callback that this buffer is now filled */
+        ATOMIC_INCR(p->outputBuffersQueued);
         rtJack_Unlock(csound, &(p->bufs[p->csndBufCnt]->jackLock));
         /* advance to next buffer */
         if (++(p->csndBufCnt) >= p->nBuffers)
@@ -1016,7 +1020,7 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
 {
     RtJackGlobals p;
     RtJackGlobals *pp;
-    int32_t           i;
+    int32_t           i, j, timeout;
 
     pp = (RtJackGlobals*) csound->QueryGlobalVariable(csound, "_rtjackGlobals");
     if (pp == NULL)
@@ -1027,6 +1031,25 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
     /* free globals */
 
     if (p.client != (jack_client_t*) NULL) {
+      if (p.outputEnabled && p.jackState == 0) {
+        if (pp->csndBufPos != 0) {
+          for (i = pp->csndBufPos; i < pp->bufSize; i++)
+            for (j = 0; j < pp->nChannels; j++)
+              pp->bufs[pp->csndBufCnt]->outBufs[j][i] =
+                (jack_default_audio_sample_t) 0;
+          pp->csndBufPos = 0;
+          ATOMIC_INCR(pp->outputBuffersQueued);
+          rtJack_Unlock(csound, &(pp->bufs[pp->csndBufCnt]->jackLock));
+        }
+        timeout = (pp->bufSize * pp->nBuffers * 1000) / pp->sampleRate + 100;
+        if (timeout > 2000)
+          timeout = 2000;
+        while (timeout-- > 0 && ATOMIC_GET(pp->outputBuffersQueued) > 0)
+          csound->Sleep((size_t) 1);
+        csound->Sleep((size_t)
+                      ((jack_get_buffer_size(p.client) * 1000) /
+                       (uint32_t) p.sampleRate + 1));
+      }
       /* deactivate client */
       //if (p.jackState != 2) {
       //if (p.jackState == 0)
@@ -1035,7 +1058,6 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
       //                        * 1000.0 / (double) p.sampleRate + 0.999)));
       jack_deactivate(p.client);
       //}
-      csound->Sleep((size_t) 50);
       /* unregister and free all ports */
       if (p.inPorts != NULL) {
         for (i = 0; i < p.nChannels_i; i++) {

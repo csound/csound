@@ -77,7 +77,10 @@ extern "C" {
 
   /**
    * Renders realtime output while applying a linear fade over the specified
-   * number of sample frames.
+   * number of sample frames. Call this from the thread that owns performance,
+   * after requesting an orderly stop and before destroying the Csound instance.
+   * This function advances performance while rendering the fade and is not
+   * safe to call concurrently with csoundPerform() or csoundPerformKsmps().
    */
   PUBLIC int32_t csoundPerformOutputFade(CSOUND *, uint32_t frames);
 
