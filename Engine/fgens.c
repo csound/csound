@@ -118,7 +118,7 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
                               int32_t mode)
 {
     int32    genum, ltest;
-    int32_t  lobits, msg_enabled, i;
+    int32_t  lobits, msg_enabled, i, result = 0;
     FUNC    *ftp;
     FGDATA  ff;
     MYFLT   flen;
@@ -139,7 +139,7 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
     ff.fno = (int32_t) MYFLT2LRND(ff.e.p[1]);
     if (!ff.fno) {
       if (!mode)
-        return 0;                               /*  fno = 0: return,        */
+        goto cleanup;                           /*  fno = 0: return,        */
       ff.fno = FTAB_SEARCH_BASE;
       do {                                      /*      or automatic number */
         ++ff.fno;
@@ -150,13 +150,14 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
       ff.fno = -(ff.fno);
       if (UNLIKELY(ff.fno > csound->maxfnum ||
                    (ftp = csound->flist[ff.fno]) == NULL)) {
-        return csoundFtError(&ff, Str("ftable does not exist"));
+        result = csoundFtError(&ff, Str("ftable does not exist"));
+        goto cleanup;
       }
       csound->flist[ff.fno] = NULL;
       ftfree(csound, ftp);
       if (UNLIKELY(msg_enabled))
         csoundMessage(csound, Str("ftable %d now deleted\n"), ff.fno);
-      return 0;
+      goto cleanup;
     }
     if (UNLIKELY(ff.fno > csound->maxfnum)) {   /* extend list if necessary */
       FUNC  **nn;
@@ -171,7 +172,8 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
       csound->maxfnum = size;
     }
     if (UNLIKELY(ff.e.pcnt <= 4)) {             /*  chk minimum arg count   */
-      return csoundFtError(&ff, Str("insufficient gen arguments"));
+      result = csoundFtError(&ff, Str("insufficient gen arguments"));
+      goto cleanup;
     }
      memcpy(&(ff.e.p[2]), &(evtblkp->p[2]),
              sizeof(MYFLT) * ((int32_t) ff.e.pcnt - 1));
@@ -186,7 +188,9 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
         n = n->next;                            /*  and round again         */
       }
       if (UNLIKELY(n == NULL)) {
-        return csoundFtError(&ff, Str("Named gen \"%s\" not defined"), ff.e.strarg);
+        result = csoundFtError(&ff, Str("Named gen \"%s\" not defined"),
+                               ff.e.strarg);
+        goto cleanup;
       }
     }
     else {
@@ -194,7 +198,8 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
       if (genum < 0)
         genum = -genum;
       if (UNLIKELY(!genum || genum > csound->genmax)) { /*   & legal gen number x*/
-        return csoundFtError(&ff, Str("illegal gen number"));
+        result = csoundFtError(&ff, Str("illegal gen number"));
+        goto cleanup;
       }
     }
     flen =  ff.e.p[3];
@@ -205,7 +210,8 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
       if (UNLIKELY(genum != 1 && genum != 2 && genum != 23 &&
                    genum != 28 && genum != 44 && genum != 49 &&
                    genum != 53 && genum<=GENMAX)) {
-        return csoundFtError(&ff, Str("deferred size not supported"));
+        result = csoundFtError(&ff, Str("deferred size not supported"));
+        goto cleanup;
       }
       if (UNLIKELY(msg_enabled))
         csoundMessage(csound, Str("ftable %d:\n"), ff.fno);
@@ -214,7 +220,8 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
       if (i != 0) {
         csound->flist[ff.fno] = NULL;
         ftfree(csound, ftp);
-        return -1;
+        result = -1;
+        goto cleanup;
       }
       ftp->sr = csound->esr;
       *ftpp = ftp;
@@ -233,8 +240,10 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
       ff.guardreq = ff.flen & 01;       /*  set guard request flg   */
       ff.flen &= -2L;                   /*  flen now w/o guardpt    */
     }
-    if (ff.flen >  MAXLEN)
-        return csoundFtError(&ff, Str("illegal table length"));
+    if (ff.flen >  MAXLEN) {
+      result = csoundFtError(&ff, Str("illegal table length"));
+      goto cleanup;
+    }
     // now flen is set
     // test and set lobits
     for (ltest = ff.flen, lobits = 0;
@@ -265,7 +274,8 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
     if ((*csound->gensub[genum])(&ff, ftp) != 0) {
       csound->flist[ff.fno] = NULL;
       ftfree(csound, ftp);
-      return -1;
+      result = -1;
+      goto cleanup;
     }
 
     /* VL 11.01.05 for deferred GEN01, it's called in gen01raw */
@@ -273,7 +283,7 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
 
     *ftpp = ftp;
     /* keep original arguments, from GEN number  */
-     end:
+    end:
     ftp->argcnt = ff.e.pcnt - 3;
     {
       int32_t size=ftp->argcnt;
@@ -281,8 +291,9 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
       ftp->args = csound->Calloc(csound, sizeof(MYFLT)*size);
       memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*size); /* is this right? */
     }
+    cleanup:
     csound->Free(csound, ff.e.p);
-    return 0;
+    return result;
 }
 
 /**

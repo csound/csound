@@ -762,6 +762,44 @@ TEST_F (EngineTests, testEmptyCommandLineArgumentSeparator)
     ASSERT_EQ(csoundGetCommandLineArgCount(csound), 0);
 }
 
+TEST_F (EngineTests, testNegativeFunctionTableEventReleasesTemporaryPfields)
+{
+    ASSERT_EQ(csoundSetOption(csound, "--nodisplays"), CSOUND_SUCCESS);
+    MYFLT createPfields[] = {
+      FL(0.0), FL(1.0), FL(0.0), FL(8.0), FL(-2.0), FL(0.0)
+    };
+    EVTBLK createEvent = { 0 };
+    createEvent.opcod = 'f';
+    createEvent.pcnt = 5;
+    createEvent.p = createPfields;
+
+    FUNC *table = nullptr;
+    ASSERT_EQ(csound->FTCreate(csound, &table, &createEvent, 0),
+              CSOUND_SUCCESS);
+    ASSERT_NE(table, nullptr);
+    ASSERT_EQ(csound->FTDelete(csound, 1), CSOUND_SUCCESS);
+
+    void *const memoryBaseline = csound->memalloc_db;
+    ASSERT_EQ(csound->FTCreate(csound, &table, &createEvent, 0),
+              CSOUND_SUCCESS);
+    ASSERT_NE(table, nullptr);
+
+    MYFLT deletePfields[] = {
+      FL(0.0), FL(-1.0), FL(0.0), FL(0.0)
+    };
+    EVTBLK deleteEvent = { 0 };
+    deleteEvent.opcod = 'f';
+    deleteEvent.pcnt = 3;
+    deleteEvent.p = deletePfields;
+
+    FUNC *deletedTable = nullptr;
+    ASSERT_EQ(csound->FTCreate(csound, &deletedTable, &deleteEvent, 0),
+              CSOUND_SUCCESS);
+    EXPECT_EQ(deletedTable, nullptr);
+    EXPECT_EQ(csound->flist[1], nullptr);
+    EXPECT_EQ(csound->memalloc_db, memoryBaseline);
+}
+
 TEST_F (EngineTests, testRealtimeAsyncCompileMergesOnEventThread)
 {
     csoundSetOption(csound, "-n");
