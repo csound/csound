@@ -847,6 +847,44 @@ def runTest():
             "-nd",
             '-- concert.orc "first violin" --logfile=ignored ""',
         ],
+        ["stm/test_stm.csd", "testing stm opcodes"],
+        ["stm/test_stm_sequential_trace.csd", "testing sequential stm state trace"],
+        ["stm/test_stm_event.csd", "testing stm transition event ring"],
+        ["stm/test_stm_checkpoint.csd", "testing stm checkpoint capture and resume"],
+        ["stm/test_stm_pause_resume.csd", "testing stm pause and resume flow"],
+        ["stm/test_stm_delete.csd", "testing terminal stm runner deletion"],
+        [
+            "stm/test_stm_instances.csd",
+            "testing shared definition, independent stm runners and instance overload",
+        ],
+        ["stm/test_stm_lockfree.csd", "testing one stm writer with lock-free multicore observers"],
+        [
+            "stm/test_stm_parallel_runners.csd",
+            "testing independent stm writers on parallel multicore runners",
+        ],
+        ["stm/test_stm_long_names.csd", "testing stm string outputs with long node names"],
+        [
+            "stm/test_stm_writer_conflict.csd",
+            "expected failure: stm rejects overlapping writer instruments",
+            1,
+        ],
+        ["stm/test_stm_reinit_reset.csd", "testing stm reinit cleanup and reset cycle"],
+        [
+            "stm/test_stm_lifetime.csd",
+            "stm runner pins active observers and rejects stale handles",
+            1,
+        ],
+        ["stm/test_stm_invalid_id.csd", "expected failure: stm rejects fractional node id", 1],
+        [
+            "stm/test_stm_unknown_node.csd",
+            "expected failure: stmnext rejects an unknown node name",
+            1,
+        ],
+        [
+            "stm/test_stm_type_mismatch.csd",
+            "expected failure: stm rejects a builder where a definition is required",
+            1,
+        ],
         ["signalflowgraphtest.csd", "test signal-flow graph opcodes"],
         [
             "test_signalflowgraph_lifetime.csd",
@@ -864,14 +902,12 @@ def runTest():
 
     parcsTests = [
          [ "test_parcs_instance_overlap.csd",
-                "PARCS does not enter one instrument instance twice"], 
+                "PARCS does not enter one instrument instance twice"],
           ["test_parcs_perf_error.csd", "PARCS exits on perf error",1]
               ]
-    
+
     if not csoundExecutable.lower().endswith((".wasm", ".cwasm")):
-        tests += parcsTests           
-
-
+        tests += parcsTests
 
         tests += [[ "test_parcs_local_ksmps_kcounter.csd",
                    "PARCS kcounter test with local ksmps"]]
