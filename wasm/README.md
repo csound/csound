@@ -56,6 +56,11 @@ exception handling. A direct invocation looks like:
 wasmtime run -Wexceptions=y --dir=. ./lib/csound-cli.wasm -nd ./example.csd
 ```
 
+Native Csound can also use Wasmtime to load supported opcode plugins passed as
+`--opcode-lib=file.wasm`. See
+[Native Csound WebAssembly plugins](NATIVE_OPCODE_PLUGINS.md) for the build
+option, current ABI limits, and compile-cache rules.
+
 To run the command-line CSD suite against an already-built
 `lib/csound-cli.wasm`:
 
