@@ -342,17 +342,24 @@ static int32_t array_set_common(CSOUND *csound, ARRAY_SET *p,
   }
 
   if (UNLIKELY(indefArgCount == 0)) {
-    csound->ErrorMsg(csound, "%s", Str("Error: no indexes set for array set\n"));
-    return CSOUND_ERROR;
+    return initializing
+      ? csound->InitError(csound, "%s", Str("Error: no indexes set for array set\n"))
+      : csound->PerfError(csound, &p->h, "%s",
+                          Str("Error: no indexes set for array set\n"));
   }
   if (UNLIKELY(indefArgCount!=dat->dimensions)) {
     /* Allow arrays with no metadata (e.g., signal-as-array views) by treating
        them as flat 1-D arrays addressed with a single index. */
     if (!(dat && dat->dimensions == 0)) {
-      return csound->PerfError(csound, &(p->h),
-                               Str("Array dimension %d does not match "
-                                   "for dimensions %d\n"),
-                               indefArgCount, dat->dimensions);
+      return initializing
+        ? csound->InitError(csound,
+                            Str("Array dimension %d does not match "
+                                "for dimensions %d\n"),
+                            indefArgCount, dat->dimensions)
+        : csound->PerfError(csound, &p->h,
+                            Str("Array dimension %d does not match "
+                                "for dimensions %d\n"),
+                            indefArgCount, dat->dimensions);
     }
   }
 
@@ -391,7 +398,13 @@ static int32_t array_set_common(CSOUND *csound, ARRAY_SET *p,
     end = (int)(*p->indexes[i]);
     if (dat->dimensions > 0 && dat->sizes != NULL) {
       if (UNLIKELY(end < 0))
-        return csound->PerfError(csound, &(p->h), Str("Array index %d out of range (negative) for dimension %d"), end, i+1);
+        return initializing
+          ? csound->InitError(csound,
+                              Str("Array index %d out of range (negative) for dimension %d"),
+                              end, i+1)
+          : csound->PerfError(csound, &p->h,
+                              Str("Array index %d out of range (negative) for dimension %d"),
+                              end, i+1);
       if (UNLIKELY(end >= dat->sizes[i])) {
         /* Auto-grow 1-D numeric arrays on demand to accommodate writes from fillarray */
         if (!(dat->arrayType && dat->arrayType->userDefinedType) && dat->dimensions == 1) {
@@ -410,10 +423,15 @@ static int32_t array_set_common(CSOUND *csound, ARRAY_SET *p,
           dat->sizes[0] = newSize;
           mem = (MYFLT*)dat->data;
         } else {
-          return csound->PerfError(csound, &(p->h),
-                                   Str("Array index %d out of range (0,%d) "
-                                       "for dimension %d"),
-                                   end, dat->sizes[i]-1, i+1);
+          return initializing
+            ? csound->InitError(csound,
+                                Str("Array index %d out of range (0,%d) "
+                                    "for dimension %d"),
+                                end, dat->sizes[i]-1, i+1)
+            : csound->PerfError(csound, &p->h,
+                                Str("Array index %d out of range (0,%d) "
+                                    "for dimension %d"),
+                                end, dat->sizes[i]-1, i+1);
         }
       }
       index = (index * dat->sizes[i]) + end;
