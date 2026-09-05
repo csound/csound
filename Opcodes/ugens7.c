@@ -38,7 +38,7 @@ static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
     OVRLAP *ovp, *nxtovp;
     int32  olaps;
     // VL 22.03.24 check len to set float phase flag
-    if(IS_POW_TWO(p->ftp1->flen) && IS_POW_TWO(p->ftp1->flen))
+    if(IS_POW_TWO(p->ftp1->flen) && IS_POW_TWO(p->ftp2->flen))
       p->floatph = 0;
     else p->floatph = 1;
  
