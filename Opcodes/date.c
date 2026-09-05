@@ -67,7 +67,7 @@ static int32_t datemyfltset(CSOUND *csound, DATEMYFLT *p)
     *p->time_ += (MYFLT)(tp.tv_nsec)*1.0e-9;
     if (p->OUTOCOUNT==2) *p->nano =(MYFLT)tp.tv_nsec;
 #else
-  #ifdef __MACH
+  #ifdef __MACH__
     // There may be more accurate methods.....
     struct timeval tp;
     int32_t rv = gettimeofday(&tp, NULL);
