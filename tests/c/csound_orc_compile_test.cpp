@@ -186,6 +186,126 @@ endop
     EXPECT_NE(nullptr, perfOdd->perf);
 }
 
+
+TEST_F (OrcCompileTests, testInitOnlyGeneratedGetterConsumers)
+{
+    const char* orchestra = R"(
+struct GetterValue text:S, children:GetterValue[]
+getterValues@global:GetterValue[] init 1
+getterStrings@global:S[] fillarray "hello"
+getterNumbers@global:k[] init 1
+
+opcode GetterLength(input:S):i
+  xout strlen(input)
+endop
+opcode GetterDiscard(input:S):void
+  length:i = strlen(input)
+endop
+opcode GetterMember(index:i):i
+  result:i = GetterLength(getterValues[index].text)
+  xout result
+endop
+opcode GetterString(index:i):void
+  GetterDiscard(getterStrings[index])
+endop
+opcode GetterChild(index:i):GetterValue
+  xout getterValues[index].children[0]
+endop
+opcode GetterChildExplicit(index:i):GetterValue
+  result:GetterValue init getterValues[index].children[0]
+  xout result
+endop
+opcode GetterPerf(input:S):k
+  result:k = strlenk(input)
+  xout result
+endop
+opcode GetterPerfMember(index:i):k
+  result:k = GetterPerf(getterValues[index].text)
+  xout result
+endop
+opcode GetterPerfString(index:i):k
+  result:k = GetterPerf(getterStrings[index])
+  xout result
+endop
+opcode GetterPerfNumber(index:i):k
+  xout getterNumbers[index]
+endop
+opcode GetterOutput(index:i):S
+  xout getterValues[index].text
+endop
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    const char* initNames[] = {"GetterMember", "GetterString", "GetterChild",
+                              "GetterChildExplicit"};
+    const char* initOutputs[] = {"i", "", ":GetterValue;", ":GetterValue;"};
+    for (int i = 0; i < 4; ++i) {
+        OENTRY* entry = find_opcode_new(csound, initNames[i], initOutputs[i], "i");
+        ASSERT_NE(nullptr, entry) << initNames[i];
+        EXPECT_EQ(nullptr, entry->perf) << initNames[i];
+    }
+    const char* perfNames[] = {"GetterPerfMember", "GetterPerfString",
+                              "GetterPerfNumber", "GetterOutput"};
+    for (int i = 0; i < 4; ++i) {
+        OENTRY* entry = find_opcode_new(csound, perfNames[i], i == 3 ? "S" : "k", "i");
+        ASSERT_NE(nullptr, entry) << perfNames[i];
+        EXPECT_NE(nullptr, entry->perf) << perfNames[i];
+    }
+}
+
+TEST_F (OrcCompileTests, testInitGetterRecursiveFrameReuse)
+{
+    const char* orchestra = R"(
+struct BranchValue text:S
+branchValues@global:BranchValue[] init 1
+branch:BranchValue init "hello"
+branchValues[0] init branch
+
+opcode BranchLength(input:S):i
+  xout strlen(input)
+endop
+opcode BranchRead():i
+  result:i = BranchLength(branchValues[0].text)
+  xout result
+endop
+opcode CountGetterBranches(depth:i):i
+  length:i = BranchRead()
+  result:i = length
+  if (depth > 0) then
+    left:i = CountGetterBranches(depth - 1)
+    right:i = CountGetterBranches(depth - 1)
+    result = left + right
+  endif
+  xout result
+endop
+instr 1
+  result:i = CountGetterBranches(12)
+  chnset result, "branch-result"
+endin
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(20480, csoundGetControlChannel(csound, "branch-result", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+
+    OENTRY* entry = find_opcode_new(csound, "CountGetterBranches", "i", "i");
+    ASSERT_NE(nullptr, entry);
+    OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+    ASSERT_NE(nullptr, info);
+    int instances = 0;
+    for (INSDS* frame = info->ip->instance; frame != nullptr;
+         frame = frame->nxtinstance) {
+        ++instances;
+    }
+    // Completed branches reuse frames; only recursion depth sets the bound.
+    EXPECT_LE(instances, 16);
+}
+
 TEST_F (OrcCompileTests, testCompile)
 {
     int32_t result, compile_again = 0;
