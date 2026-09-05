@@ -110,6 +110,13 @@ void csoundWasiJsMessageCallback(
 void csoundWasiCMessageCallback(CSOUND *csound, int attr, const char *format, va_list args) {
   char buffer[MAX_MESSAGE_STR];
   int len = vsnprintf(buffer, MAX_MESSAGE_STR, format, args);
+  if (len < 0) {
+    return;
+  }
+  /* vsnprintf returns the length before truncation. Only pass stored bytes. */
+  if (len >= MAX_MESSAGE_STR) {
+    len = MAX_MESSAGE_STR - 1;
+  }
   (* csoundWasiJsMessageCallback)(csound, attr, len, buffer);
 }
 
