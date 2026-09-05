@@ -20,6 +20,16 @@ opcode PickAt(items:MyType[], index:k):MyType
   xout items[index]
 endop
 
+opcode CheckInitValue(item:MyType):void
+  assertEquals(item.val1, 2)
+endop
+
+opcode CheckPerfValue(item:MyType):void
+  if (timeinstk() == 1) then
+    event "i", 2, 0, 0.001, item.val1, 2
+  endif
+endop
+
 instr 1
   array:MyType[] init 2
   array[0].val1 = 1
@@ -37,6 +47,11 @@ instr 1
   convertedIndex:k init 1
   convertedCopy:MyType init array[i(convertedIndex)]
   assertEquals(convertedCopy.val1, 2)
+
+  ; Init-only UDOs accept values read at init, including converted indices.
+  CheckInitValue array[1]
+  CheckInitValue array[copyIndex]
+  CheckInitValue array[i(convertedIndex)]
 
   selection:Selection init 1
   memberCopy:MyType init array[i(selection.idx)]
@@ -70,6 +85,7 @@ instr 1
   udoIndex:k init -1
   udoIndex = 1
   udoValue:MyType = PickAt(array, udoIndex)
+  CheckPerfValue array[udoIndex]
 
   ; Switch the index at k-rate and read the selected member each control pass.
   kindex = int(timeinstk() / 5)

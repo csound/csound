@@ -188,6 +188,67 @@ static void classify_udo_rates(CSOUND *csound, ENGINE_STATE *engineState) {
   }
 }
 
+/* Expression lowering sees provisional UDO callbacks. Once their rates are
+   final, reject performance-only struct temporaries passed to init-only UDOs.
+   UDOs take values, including wrappers around type-only built-ins.
+   Follow member getters too, so selecting a nested struct keeps the phase of
+   the array read. Only generated temporaries are tracked: user variables can
+   have separate init and performance assignments. */
+static void verify_udo_struct_read_phases(CSOUND *csound,
+                                         ENGINE_STATE *engineState) {
+  INSTRTXT *instrument;
+
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    CS_HASH_TABLE *perfReads = NULL;
+    OPTXT *optxt = (OPTXT *)instrument;
+
+    while ((optxt = optxt->nxtop) != NULL) {
+      TEXT *text = &optxt->t;
+      OENTRY *entry = text->oentry;
+      TEXT *source = NULL;
+      int32_t i;
+
+      if (entry == NULL) continue;
+      if (udo_called_definition(entry) != NULL && entry->perf == NULL &&
+          perfReads != NULL && text->inlist != NULL) {
+        for (i = 0; i < text->inlist->count; i++) {
+          source = cs_hash_table_get(csound, perfReads,
+                                      text->inlist->arg[i]);
+          if (source != NULL) {
+            synterr(csound,
+                    Str("init-only UDO %s cannot take a performance-only "
+                        "struct array read; "
+                        "convert the index explicitly, line %d\n"),
+                    entry->opname, source->linenum);
+          }
+        }
+      }
+
+      source = NULL;
+      if (strcmp(entry->opname, "##array_get_struct") == 0 &&
+          entry->init == NULL) {
+        source = text;
+      }
+      else if (perfReads != NULL && text->inlist != NULL &&
+               text->inlist->count > 0 &&
+               (strcmp(entry->opname, "##member_get") == 0 ||
+                strncmp(entry->opname, "##member_get.", 13) == 0)) {
+        source = cs_hash_table_get(csound, perfReads, text->inlist->arg[0]);
+      }
+      if (source != NULL && text->outlist != NULL) {
+        for (i = 0; i < text->outlist->count; i++) {
+          char *name = text->outlist->arg[i];
+          if (name[0] != '#') continue;
+          if (perfReads == NULL) perfReads = cs_hash_table_create(csound);
+          cs_hash_table_put(csound, perfReads, name, source);
+        }
+      }
+    }
+    if (perfReads != NULL) cs_hash_table_free(csound, perfReads);
+  }
+}
+
 
 
 
@@ -2225,6 +2286,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   }
 
   classify_udo_rates(csound, engineState);
+  verify_udo_struct_read_phases(csound, engineState);
 
 
   if (UNLIKELY(csound->synterrcnt)) {

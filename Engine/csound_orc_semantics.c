@@ -3788,6 +3788,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
 
       current = expand_if_statement(csound, current, typeTable);
+      if (current == NULL) {
+        anchor = NULL;
+        goto cleanup;
+      }
 
       if (previous != NULL) {
         previous->next = current;
@@ -3802,12 +3806,19 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       if (!verify_until_statement(csound, current, typeTable)) {
         synterr(csound, "loop conditional expression not valid, line %d",
                 current->line - 2);
-        return NULL;
+        csound->Free(csound, targets);
+        anchor = NULL;
+        goto cleanup;
       }
 
       current = expand_until_statement(csound, current,
                                        typeTable, current->type==WHILE_TOKEN,
                                        targets);
+      if (current == NULL) {
+        csound->Free(csound, targets);
+        anchor = NULL;
+        goto cleanup;
+      }
 
       if (previous != NULL) {
         previous->next = current;
@@ -4051,10 +4062,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       if (is_statement_expansion_required(current)) {
         current = expand_statement(csound, current, typeTable);
         if (current == NULL) {
-          cs_cons_free_complete(csound, activeLoopStack);
-          cs_cons_free(csound, typeTable->labelList);
-          typeTable->labelList = parentLabelList;
-          return NULL;
+          anchor = NULL;
+          goto cleanup;
         }
         if (previous != NULL) {
           previous->next = current;
@@ -4078,6 +4087,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
   if (csoundGetDebug(csound) & DEBUG_SEMANTICS)
     csound->Message(csound, "[End Verifying AST]\n");
 
+cleanup:
   cs_cons_free_complete(csound, activeLoopStack);
   cs_cons_free(csound, typeTable->labelList);
   typeTable->labelList = parentLabelList;
