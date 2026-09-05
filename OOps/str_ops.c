@@ -297,7 +297,8 @@ int32_t str_changed_k(CSOUND *csound, STRCHGD *p)
 int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
   int64_t kcnt = p->h.insdshead->kcounter;
-  size_t size = (int32_t) strlen(p->str1->data) + strlen(p->str2->data);
+  size_t firstLength = strlen(p->str1->data);
+  size_t size = firstLength + strlen(p->str2->data);
   if(size >= MAX_STRINGDAT_SIZE) {
      if(is_perf_thread(&p->h))
      return csound->PerfError(csound, &p->h,
@@ -332,7 +333,7 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
       p->r->data = temp;
       p->r->size = alloc_size;
     }
-    memcpy(p->r->data, p->str1->data, p->str1->size);
+    memcpy(p->r->data, p->str1->data, firstLength + 1);
     strcat(p->r->data, p->str2->data);
     return OK;
   }
@@ -385,7 +386,7 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
        p->r->data = temp;
        p->r->size = alloc_size;
     }
-     memcpy(p->r->data, p->str1->data, p->r->size - 1);
+     memcpy(p->r->data, p->str1->data, firstLength + 1);
      strcat(p->r->data,ostr);
      csound->Free(csound, ostr);
      return OK;

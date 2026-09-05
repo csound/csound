@@ -581,6 +581,7 @@ def runTest():
         ["test_instr_redefinition.csd", "allow instr redefinition"],
         ["test_instr0_labels.csd", "test labels in instr0 space"],
         ["test_string.csd", "test string assignment and printing"],
+        ["test_strcat_buffer_capacity.csd", "strcat copies text rather than buffer capacity"],
         [
             "test_strstrip_reallocation.csd",
             "test strstrip reallocation and termination",
