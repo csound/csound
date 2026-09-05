@@ -37,12 +37,17 @@ in stdenvWasm.mkDerivation {
 
     echo "Link together plugin_example.wasm"
     $CC \
-      -Wl,-z,stack-size=131072 \
+      -shared \
+      -nostdlib \
+      -nostartfiles \
+      -Wl,--experimental-pic \
+      -Wl,--no-entry \
       -Wl,--import-table \
       -Wl,--import-memory \
-      -Wl,--export-all \
-      -Wl,--no-entry \
-      -lwasi-emulated-signal -lwasi-emulated-mman \
+      -Wl,--import-undefined \
+      -Wl,--export=__wasm_call_ctors \
+      -Wl,--export=csound_opcode_init \
+      -Wl,--export=csoundModuleInfo \
       plugin_example.o -o plugin_example.wasm
   '';
 
