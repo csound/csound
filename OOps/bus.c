@@ -678,16 +678,10 @@ int32_t csoundSetControlChannelHints(CSOUND *csound, const char *name,
 }
 
 /**
- * Returns special parameters (assuming there are any) of a control channel,
- * previously set with csoundSetControlChannelHints().
- * If the channel exists, is a control channel, and has the special parameters
- * assigned, then the default, minimum, and maximum value is stored in *dflt,
- * *min, and *max, respectively, and a positive value that is one of
- * CSOUND_CONTROL_CHANNEL_INT, CSOUND_CONTROL_CHANNEL_LIN, and
- * CSOUND_CONTROL_CHANNEL_EXP is returned.
- * In any other case, *dflt, *min, and *max are not changed, and the return
- * value is zero if the channel exists, is a control channel, but has no
- * special parameters set; otherwise, a negative error code is returned.
+ * Copies a control channel's hints into *hints and returns CSOUND_SUCCESS.
+ * The caller must free hints->attributes if it is non-NULL.
+ * Returns CSOUND_ERROR and leaves *hints unchanged if the name is NULL,
+ * the channel does not exist, is not a control channel, or has no hints.
  */
 int32_t csoundGetControlChannelHints(CSOUND *csound, const char *name,
                                      controlChannelHints_t *hints){
