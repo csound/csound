@@ -297,12 +297,15 @@
     MYFLT value;
     FUNC *ftp;
     int32  ctlno;
+    int32_t chan;
 
     if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127))
       return csound->InitError(csound, Str("illegal controller number"));
+    else if (UNLIKELY((chan = (int32_t) *p->ichan - 1) < 0 ||
+                      chan > 1023 || !csound->m_chnbp[chan]))
+      return csound->InitError(csound, Str("illegal midi channel"));
     else {
-      value = (MYFLT) (csound->m_chnbp[(int32_t) *p->ichan-1]->ctl_val[ctlno]
-                       * oneTOf7bit);
+      value = (MYFLT) (csound->m_chnbp[chan]->ctl_val[ctlno] * oneTOf7bit);
       if (*p->ifn > 0) {
         if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
           return NOTOK;               /* if valid ftable,use value as index   */
@@ -606,5 +609,4 @@
     }
     return OK;
 }
-
 
