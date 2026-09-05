@@ -472,7 +472,7 @@
          tab = ftp->ftable;
       /* clamp it */
       value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
-      phase = value * (p->ftp->flen - 1); /* gab-A1 */
+      phase = value * (ftp->flen - 1); /* gab-A1 */
       /* but here it also does use the guard point */
       tmp = tab[(int32)phase];
       value = tmp + (tab[(int32)phase+1] - tmp) * (phase - (int32) phase);
