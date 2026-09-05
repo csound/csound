@@ -12,6 +12,10 @@
 #include <stdlib.h>
 #include "csoundCore.h"
 #include "gtest/gtest.h"
+#include <cstring>
+extern "C" {
+#include "str_ops.h"
+}
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
 #define csoundReadScore(a,b) csoundEventString(a,b,0)
@@ -888,4 +892,35 @@ TEST_F (OrcCompileTests, testAssert)
     // Perform one k-cycle to execute the instrument
     csoundPerformKsmps(csound);
     ASSERT_EQ (6, csoundErrCnt(csound));
+}
+
+TEST_F (OrcCompileTests, StrcatDoesNotCopyUnusedInputCapacity)
+{
+    char firstData[128]{};
+    char outputData[128];
+    char suffixData[] = "[]";
+    std::strcpy(firstData, "i");
+    std::memset(outputData, 'x', sizeof(outputData));
+    outputData[0] = '\0';
+    STRINGDAT first{};
+    STRINGDAT suffix{};
+    STRINGDAT output{};
+    first.data = firstData;
+    first.size = sizeof(firstData);
+    suffix.data = suffixData;
+    suffix.size = sizeof(suffixData);
+    output.data = outputData;
+    output.size = 8;
+    STRCAT_OP op{};
+    INSDS context{};
+    op.h.insdshead = &context;
+    op.r = &output;
+    op.str1 = &first;
+    op.str2 = &suffix;
+
+    ASSERT_EQ(OK, strcat_opcode(csound, &op));
+    EXPECT_STREQ("i[]", output.data);
+    for (size_t i = output.size; i < sizeof(outputData); i++) {
+        EXPECT_EQ('x', outputData[i]) << "write beyond output capacity at " << i;
+    }
 }
