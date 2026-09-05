@@ -1559,17 +1559,18 @@ int32_t in(CSOUND *csound, INM *p)
     return csound->InitError(csound,
                              "local sampling rate not supported\n");
 
-  uint32_t offset = p->h.insdshead->ksmps_offset*sizeof(MYFLT);
+  uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t nsmps = CS_KSMPS - early;
   if (csound->inchnls != 1)
     return csound->PerfError(csound,
                              &(p->h),
                              "Wrong numnber of input channels\n");
   CSOUND_SPIN_SPINLOCK
-    if (UNLIKELY(offset)) memset(p->ar, '\0', offset);
-  memcpy(&p->ar[offset], CS_SPIN, (CS_KSMPS-early) * sizeof(MYFLT)-offset);
+    if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(MYFLT));
+  memcpy(&p->ar[offset], CS_SPIN, (nsmps-offset) * sizeof(MYFLT));
   if (UNLIKELY(early))
-    memset(&p->ar[CS_KSMPS-early], '\0', early * sizeof(MYFLT));
+    memset(&p->ar[nsmps], '\0', early * sizeof(MYFLT));
   CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
