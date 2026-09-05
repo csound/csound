@@ -752,6 +752,8 @@ static void *csoundFileOpenInternal(
             tmp_sf = open_file_snd(csound, name, SFM_READ, &sfinfo);
           if (type == CSFILE_SND_W)
             tmp_sf = open_file_snd(csound, name, SFM_WRITE, &sfinfo);
+          if (tmp_sf != (SNDFILE*) NULL)
+            fullName = (char*) name;
         }
         /* fallback to open with fd */
         if (tmp_sf == (SNDFILE*) NULL) {
