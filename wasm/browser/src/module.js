@@ -594,8 +594,8 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
        * @type {WasmInst} */
       const pluginInstance = new WebAssembly.Instance(plugin, pluginOptions);
 
-      if (typeof pluginInstance.exports.__wasm_apply_data_relocs === "function") {
-        pluginInstance.exports.__wasm_apply_data_relocs();
+      if (typeof pluginInstance.exports["__wasm_apply_data_relocs"] === "function") {
+        pluginInstance.exports["__wasm_apply_data_relocs"]();
       }
       pluginInstance.exports.__wasm_call_ctors();
       pluginMemoryAllocation = 0;
