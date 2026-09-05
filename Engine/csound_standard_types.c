@@ -715,15 +715,13 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
             return NOTOK;
         }
         destination->data = (MYFLT *)csound->Calloc(csound, requiredBytes);
-        if (UNLIKELY(csound_array_initialize_element_range(
-                       csound, destination, requiredBytes, 0, capacity,
-                       ctx) != OK)) {
+        if (UNLIKELY(destination->data == NULL)) {
             csound->Free(csound, var);
-            csound->Free(csound, destination->data);
-            destination->data = NULL;
             csound_free_array_storage(csound, destination);
             return NOTOK;
         }
+        csound_array_initialize_element_range_with_variable(
+          csound, destination, 0, capacity, var);
         destination->allocated = requiredBytes;
         csound->Free(csound, var);
     }

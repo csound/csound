@@ -895,6 +895,10 @@ def runTest():
         ["arrays/arrays_S_local.csd", "local S[]"],
         ["arrays/arrays_S_global.csd", "global S[]"],
         [
+            "arrays/test_builtin_array_udo_growth.csd",
+            "numeric and string UDO arrays can grow during performance",
+        ],
+        [
             "arrays/array_get_inline.csd",
             "tests parsing and eval of inline array[getters]",
         ],

@@ -533,6 +533,51 @@ TEST_F (TypeSystemTests, testArrayGetErrorsUseExplicitPhase)
     EXPECT_EQ(2, perfErrorCalls);
 }
 
+TEST_F (TypeSystemTests, testArraySetValidationErrorsUseExplicitPhase)
+{
+    MYFLT data[2]{};
+    MYFLT value = FL(1.0);
+    MYFLT index = FL(-1.0);
+    MYFLT secondIndex = FL(0.0);
+    int32_t sizes[] = {1, 1};
+    ARRAYDAT array{};
+    ARRAY_SET set{};
+    OPTXT optext{};
+    INSDS context{};
+    array.data = data;
+    array.sizes = sizes;
+    array.arrayType = &CS_VAR_TYPE_I;
+    array.arrayMemberSize = sizeof(MYFLT);
+    array.allocated = sizeof(data);
+    set.h.optext = &optext;
+    set.h.insdshead = &context;
+    set.arrayDat = &array;
+    set.value = &value;
+    set.indexes[0] = &index;
+    set.indexes[1] = &secondIndex;
+    auto *const originalInitError = csound->InitError;
+    auto *const originalPerfError = csound->PerfError;
+    initErrorCalls = perfErrorCalls = 0;
+    csound->InitError = countInitError;
+    csound->PerfError = countPerfError;
+
+    // Missing index, wrong rank, negative index, multidimensional bounds.
+    const int32_t argumentCounts[] = {2, 3, 3, 4};
+    const int32_t dimensions[] = {1, 2, 1, 2};
+    for (int i = 0; i < 4; i++) {
+        optext.t.inArgCount = argumentCounts[i];
+        array.dimensions = dimensions[i];
+        index = i == 3 ? FL(1.0) : FL(-1.0);
+        EXPECT_EQ(NOTOK, array_set_init(csound, &set));
+        EXPECT_EQ(NOTOK, array_set(csound, &set));
+    }
+    csound->InitError = originalInitError;
+    csound->PerfError = originalPerfError;
+    EXPECT_EQ(4, initErrorCalls);
+    EXPECT_EQ(4, perfErrorCalls);
+    EXPECT_EQ(FL(0.0), data[0]);
+}
+
 TEST_F (TypeSystemTests, testManagedArrayCapacityInitializesOnlyNewElements)
 {
     const CS_TYPE *elementType;
@@ -607,6 +652,52 @@ TEST_F (TypeSystemTests, testArrayCapacityReusesPreparedElementVariable)
     EXPECT_EQ(FL(41.0), array.data[0]);
 
     csound_free_array_storage(csound, &array);
+}
+
+TEST_F (TypeSystemTests, testArrayCopyReusesPreparedElementVariable)
+{
+    CS_TYPE probeType{
+      const_cast<char *>("RangeProbe"),
+      const_cast<char *>("range initialization probe"),
+      CS_ARG_TYPE_BOTH,
+      createRangeProbe,
+      nullptr,
+      nullptr,
+      nullptr,
+      0
+    };
+    ARRAYDAT source{};
+    ARRAYDAT destination{};
+
+    source.arrayType = &probeType;
+    ASSERT_EQ(OK, csound_array_ensure_capacity(csound, &source, 3, nullptr));
+    source.dimensions = 1;
+    source.sizes = static_cast<int32_t *>(
+      csound->Calloc(csound, sizeof(int32_t)));
+    source.sizes[0] = 3;
+    source.data[0] = FL(41.0);
+    rangeConstructorCalls = 0;
+    rangeInitializerCalls = 0;
+
+    ASSERT_EQ(OK, csound_array_copy_independent(
+                    csound, &destination, &source, nullptr,
+                    CSOUND_ARRAY_COPY_ALLOW_ALLOCATION));
+    EXPECT_EQ(1, rangeConstructorCalls);
+    EXPECT_EQ(3, rangeInitializerCalls);
+    EXPECT_EQ(FL(41.0), destination.data[0]);
+
+    rangeConstructorCalls = 0;
+    rangeInitializerCalls = 0;
+    source.data[0] = FL(42.0);
+    EXPECT_EQ(OK, csound_array_copy_independent(
+                    csound, &destination, &source, nullptr,
+                    CSOUND_ARRAY_COPY_ALLOW_ALLOCATION));
+    EXPECT_EQ(0, rangeConstructorCalls);
+    EXPECT_EQ(0, rangeInitializerCalls);
+    EXPECT_EQ(FL(42.0), destination.data[0]);
+
+    csound_free_array_storage(csound, &destination);
+    csound_free_array_storage(csound, &source);
 }
 
 TEST_F (TypeSystemTests, testAudioArrayStrideChecksLocalKsmpsDirection)
