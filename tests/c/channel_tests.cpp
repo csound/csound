@@ -58,6 +58,29 @@ TEST_F (ChannelTests, ControlChannelParams)
     ASSERT_TRUE(hints2.max == 10);
 }
 
+TEST_F (ChannelTests, ChnparamsWithoutHints)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        chn_k "plain", 3
+        itype, imode, ictltype, idflt, imin, imax chnparams "plain"
+        chnset itype, "type"
+        chnset imode, "mode"
+        chnset ictltype, "ctltype"
+        chnset idflt, "default"
+        chnset imin, "min"
+        chnset imax, "max"
+    )ORC"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    EXPECT_EQ(CSOUND_CONTROL_CHANNEL,
+              csoundGetControlChannel(csound, "type", nullptr));
+    EXPECT_EQ(3, csoundGetControlChannel(csound, "mode", nullptr));
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "ctltype", nullptr));
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "default", nullptr));
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "min", nullptr));
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "max", nullptr));
+}
+
 TEST_F (ChannelTests, ControlChannel)
 {
     csoundCompileOrc(csound, orc1);
