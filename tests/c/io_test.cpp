@@ -623,6 +623,23 @@ TEST_F (IOTests, testAudioHostBased)
     csoundReset(csound);
 }
 
+TEST_F (IOTests, testCtrl14InitWithTable)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        giTable ftgen 0, 0, 8, -2, 0, 0.25, 0.5, 0.75, 1, 0.75, 0.5, 0.25
+        initc14 1, 1, 33, 1/3
+        iresult ctrl14 1, 1, 33, 2, 10, giTable
+        chnset iresult, "ctrl14-result"
+    )ORC", 0));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    // The table maps 1/3 to 7/12; scaling to [2, 10] gives 20/3.
+    EXPECT_NEAR(20.0 / 3.0,
+                csoundGetControlChannel(csound, "ctrl14-result", nullptr),
+                1e-5);
+}
+
 TEST_F (IOTests, testMidiModules)
 {
     char *name, *type;

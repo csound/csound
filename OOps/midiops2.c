@@ -370,7 +370,6 @@
 
       if (*p->ifn > 0) {
         /* linear interpolation routine */
-        /* linear interpolation routine */
         FUNC *ftp = csound->FTFind(csound, p->ifn); /* gab-A1 */
         MYFLT phase, tmp, *tab;
          if (UNLIKELY(ftp == NULL))
@@ -380,7 +379,7 @@
       /* clamp it */
       value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
       phase = value * (ftp->flen - 1); /* gab-A1 */
-      /* but here it also does use the guard point */
+      /* interpolate between adjacent samples */
       tmp = tab[(int32)phase];
       value = tmp + (tab[(int32)phase+1] - tmp) * (phase - (int32) phase);
       }
