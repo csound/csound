@@ -78,10 +78,17 @@ static int32_t udo_copy_value(CSOUND *csound, const CS_VARIABLE *variable,
   if (independent && variable->varType == &CS_VAR_TYPE_ARRAY) {
     const ARRAYDAT *sourceArray = (const ARRAYDAT *)source;
 
-    return csound_array_copy_independent(
-      csound, (ARRAYDAT *)destination, sourceArray, ctx,
-      allowAllocation ? CSOUND_ARRAY_COPY_ALLOW_ALLOCATION
-                      : CSOUND_ARRAY_COPY_NO_ALLOCATION);
+    /* Structured values reserve storage at init. Audio arrays also need the
+       checked path because the copy context determines their sample span.
+       Other built-in arrays keep their existing resizable copy semantics. */
+    if (sourceArray->arrayType != NULL &&
+        (sourceArray->arrayType->userDefinedType ||
+         sourceArray->arrayType == &CS_VAR_TYPE_A)) {
+      return csound_array_copy_independent(
+        csound, (ARRAYDAT *)destination, sourceArray, ctx,
+        allowAllocation ? CSOUND_ARRAY_COPY_ALLOW_ALLOCATION
+                        : CSOUND_ARRAY_COPY_NO_ALLOCATION);
+    }
   }
   if (independent && variable->varType->userDefinedType) {
     return csound_copy_struct_value(
