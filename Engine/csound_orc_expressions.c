@@ -388,6 +388,10 @@ static TREE *create_cond_expression(CSOUND *csound,
   TREE *xx;
   char *eq;
 
+  if (b == NULL) {
+    return NULL;
+  }
+
   typeTable->labelList =
     cs_cons(csound,
             csoundStrdup(csound, L1->value->lexeme), typeTable->labelList);
@@ -396,6 +400,11 @@ static TREE *create_cond_expression(CSOUND *csound,
             csoundStrdup(csound, L2->value->lexeme), typeTable->labelList);
   left = get_arg_type2(csound, c, typeTable);
   right  = get_arg_type2(csound, d, typeTable);
+  if (left == NULL || right == NULL) {
+    if (left != NULL) csound->Free(csound, left);
+    if (right != NULL) csound->Free(csound, right);
+    return NULL;
+  }
   if (left[0]=='c') left[0] = 'i';
   if (right[0]=='c') right[0] = 'i';
   last = tree_tail(b);
@@ -882,6 +891,9 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   if (is_boolean_expression_node(root->left)) {
     anchor = create_boolean_expression(csound, root->left,
                                        line, locn, typeTable, initContext);
+    if (anchor == NULL) {
+      return NULL;
+    }
     last = tree_tail(anchor);
     /* TODO - Free memory of old left node
        freetree */
@@ -889,6 +901,9 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   } else if (is_expression_node(root->left)) {
     anchor = create_expression(csound, root->left, line, locn, typeTable,
                                initContext);
+    if (anchor == NULL) {
+      return NULL;
+    }
 
     /* TODO - Free memory of old left node
        freetree */
@@ -902,6 +917,9 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     TREE * newRight = create_boolean_expression(csound,
                                                 root->right, line, locn,
                                                 typeTable, initContext);
+    if (newRight == NULL) {
+      return NULL;
+    }
     if (anchor == NULL) {
       anchor = newRight;
     }
@@ -919,7 +937,9 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     TREE * newRight = create_expression(csound, root->right, line,
                                         locn, typeTable, initContext);
     TREE * remaining = root->right->next;
-
+    if (newRight == NULL) {
+      return NULL;
+    }
 
     if (anchor == NULL) {
       anchor = newRight;
@@ -1884,7 +1904,9 @@ TREE* expand_if_statement(CSOUND* csound,
       create_boolean_expression(csound, left, right->line,
                                 right->locn, typeTable,
                                 right->type == IGOTO_TOKEN);
-
+    if (expressionNodes == NULL) {
+      return NULL;
+    }
 
     anchor = tree_append(anchor, expressionNodes);
 
@@ -1929,6 +1951,9 @@ TREE* expand_if_statement(CSOUND* csound,
                                   tempLeft->line, tempLeft->locn,
                                   typeTable,
                                   tempRight->type == ITHEN_TOKEN);
+      if (expressionNodes == NULL) {
+        return NULL;
+      }
 
       anchor = tree_append(anchor, expressionNodes);
 
@@ -2236,6 +2261,9 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
       typeTable,
       initContext
     );
+    if (expressionNodes == NULL) {
+      return NULL;
+    }
     anchor = tree_append(anchor, expressionNodes);
     last = tree_tail(anchor);
   }

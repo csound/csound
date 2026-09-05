@@ -361,6 +361,113 @@ endin
     ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
 }
 
+class StructInitConditionTests
+    : public OrcCompileTests,
+      public ::testing::WithParamInterface<const char *> {};
+
+TEST_P (StructInitConditionTests, rejectsPerformanceRead)
+{
+    std::string orchestra = R"(
+struct Box value:i
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  index:k init 0
+)";
+    orchestra += GetParam();
+    orchestra += "\nendin\n";
+    csoundCreateMessageBuffer(csound, 0);
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra.c_str()));
+    std::string messages;
+    while (csoundGetMessageCnt(csound) > 0) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_NE(std::string::npos,
+              messages.find("struct array index must be i-rate during init"));
+    csoundDestroyMessageBuffer(csound);
+}
+
+TEST_P (StructInitConditionTests, acceptsInitRead)
+{
+    std::string orchestra = R"(
+struct Box value:i
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  index:i init 0
+)";
+    orchestra += GetParam();
+    orchestra += "\nendin\n";
+    EXPECT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra.c_str()));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Expressions, StructInitConditionTests,
+    ::testing::Values(
+        "if ((boxes[index].value + 0) > 0) ithen\n prints \"yes\"\n endif",
+        "if (0 < (boxes[index].value + 0)) ithen\n prints \"yes\"\n endif",
+        "if (((boxes[index].value + 0) > 0) && (1 < 2)) ithen\n"
+        " prints \"yes\"\n endif",
+        "if ((1 < 2) && ((boxes[index].value + 0) > 0)) ithen\n"
+        " prints \"yes\"\n endif",
+        "value:i = (((boxes[index].value + 0) > 0) ? 1 : 2)",
+        "if ((boxes[index].value + 0) > 0) igoto done\n done:",
+        "if (1 > 2) ithen\n prints \"no\"\n"
+        " elseif ((boxes[index].value + 0) > 0) ithen\n prints \"yes\"\n endif"));
+
+TEST_F (OrcCompileTests, testRejectsPerformanceStructReadByInitUdo)
+{
+    const char *orchestra = R"(
+struct Box value:i
+declare PrintBox(item:Box):()
+
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  index:k init 0
+  PrintBox boxes[index]
+endin
+
+opcode PrintBox(item:Box):void
+  printfi "VALUE=%f\n", 1, item.value
+endop
+)";
+
+    csoundCreateMessageBuffer(csound, 0);
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    std::string messages;
+    while (csoundGetMessageCnt(csound) > 0) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_NE(std::string::npos,
+              messages.find("init-only UDO PrintBox cannot take a "
+                            "performance-only struct array read"));
+    csoundDestroyMessageBuffer(csound);
+}
+
+TEST_F (OrcCompileTests, testRejectsNestedPerformanceStructReadByInitUdo)
+{
+    const char *orchestra = R"(
+struct Box value:i
+struct Holder item:Box
+opcode PrintBox(item:Box):void
+  printfi "VALUE=%f\n", 1, item.value
+endop
+
+instr 1
+  box:Box init 37
+  holder:Holder init box
+  holders:Holder[] fillarray holder
+  index:k init 0
+  PrintBox holders[index].item
+endin
+)";
+
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+}
+
 TEST_F (OrcCompileTests, testReuse)
 {
     int32_t result;
