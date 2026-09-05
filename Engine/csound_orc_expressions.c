@@ -56,7 +56,7 @@ static int32_t opcode_uses_expression_types_only(const char* name)
      !strcmp(name, "typeof") || !strcmp(name, "typecheck"));
 }
 
-static int32_t opcode_is_init_only_value_consumer(OENTRY* entry)
+int32_t opcode_is_init_only_value_consumer(const OENTRY* entry)
 {
   const char* name;
 
