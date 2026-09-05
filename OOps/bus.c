@@ -1701,12 +1701,14 @@ int32_t chnparams_opcode_init(CSOUND *csound, CHNPARAMS_OPCODE *p)
   if ((err & 15) == CSOUND_CONTROL_CHANNEL) {
     controlChannelHints_t hints;
     err = csoundGetControlChannelHints(csound, (char*) p->iname->data, &hints);
-    if (UNLIKELY(err > 0))
-      *(p->ictltype) = (MYFLT) err;
-    *(p->ictltype) = hints.behav;
-    *(p->idflt) = hints.dflt;
-    *(p->imin) = hints.min;
-    *(p->imax) = hints.max;
+    if (LIKELY(err == CSOUND_SUCCESS)) {
+      *(p->ictltype) = hints.behav;
+      *(p->idflt) = hints.dflt;
+      *(p->imin) = hints.min;
+      *(p->imax) = hints.max;
+      if (hints.attributes != NULL)
+        csound->Free(csound, hints.attributes);
+    }
   }
   return OK;
 }
