@@ -1538,10 +1538,10 @@ int32_t logbasetwoa(CSOUND *csound, EVAL *p)
   }
   for (n = offset; n < nsmps; n++) {
     MYFLT aa = a[n];
-    int32_t n = (int32_t)((aa -(FL(1.0)/INTERVAL)) / (INTERVAL-FL(1.0)/INTERVAL)
-                          *  STEPS + FL(0.5));
-    if (n<0 || n>STEPS) r[n] = LOG(aa)*ONEdLOG2;
-    else                r[n] = csound->logbase2[n];
+    int32_t indx = (int32_t)((aa -(FL(1.0)/INTERVAL)) / (INTERVAL-FL(1.0)/INTERVAL)
+                             *  STEPS + FL(0.5));
+    if (indx<0 || indx>STEPS) r[n] = LOG(aa)*ONEdLOG2;
+    else                     r[n] = csound->logbase2[indx];
   }
   return OK;
 }
