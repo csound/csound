@@ -1048,7 +1048,7 @@ int32_t loscil3_phs(CSOUND *csound, LOSCPHS *p)
   }
   if (p->stereo) {
     ar2 = p->ar2;
-    if (UNLIKELY(n)) memset(ar1, '\0', n*sizeof(MYFLT));
+    if (UNLIKELY(n)) memset(ar2, '\0', n*sizeof(MYFLT));
     if (UNLIKELY(early)) memset(&ar2[nsmps], '\0', early*sizeof(MYFLT));
     goto phsck2;
   }
@@ -1266,7 +1266,7 @@ int32_t loscil3(CSOUND *csound, LOSC *p)
   }
   if (p->stereo) {
     ar2 = p->ar2;
-    if (UNLIKELY(n)) memset(ar1, '\0', n*sizeof(MYFLT));
+    if (UNLIKELY(n)) memset(ar2, '\0', n*sizeof(MYFLT));
     if (UNLIKELY(early)) memset(&ar2[nsmps], '\0', early*sizeof(MYFLT));
     goto phsck2;
   }
