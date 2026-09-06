@@ -842,18 +842,21 @@ static void rtclose_(CSOUND *csound)
 {
     DEVPARAMS *dev;
 
-    dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
+    /* The engine fade is already queued; let ALSA play it before closing. */
+    dev = (DEVPARAMS*) (*(csound->GetRtPlayUserData(csound)));
     if (dev != NULL) {
-      *(csound->GetRtRecordUserData(csound)) = NULL;
-      if (dev->handle != NULL)
+      *(csound->GetRtPlayUserData(csound)) = NULL;
+      if (dev->handle != NULL) {
+        snd_pcm_drain(dev->handle);
         snd_pcm_close(dev->handle);
+      }
       if (dev->buf != NULL)
         csound->Free(csound, dev->buf);
       csound->Free(csound,dev);
     }
-    dev = (DEVPARAMS*) (*(csound->GetRtPlayUserData(csound)));
+    dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
     if (dev != NULL) {
-      *(csound->GetRtPlayUserData(csound)) = NULL;
+      *(csound->GetRtRecordUserData(csound)) = NULL;
       if (dev->handle != NULL)
         snd_pcm_close(dev->handle);
       if (dev->buf != NULL)

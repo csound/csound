@@ -133,6 +133,10 @@ static void rtclose_(CSOUND *csound)
         void** playdata = csound->GetRtPlayUserData(csound);
 //      Generator * gen = (Generator *)*csound->GetRtPlayUserData(csound);
         Generator * gen = (Generator *)*playdata;
+        if (gen != NULL && gen->mFrameRate > 0 && gen->mChans > 0) {
+          size_t frames = gen->mBufSize / (sizeof(float) * gen->mChans);
+          snooze((bigtime_t) (1000000.0 * frames / gen->mFrameRate));
+        }
         delete gen;
         *playdata = NULL;
 }

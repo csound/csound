@@ -87,8 +87,9 @@ static void psignal(int sig, char *str)
 }
 #endif
 
-static CSOUND *_csound = NULL;
-static int perf_flag = 1;
+static volatile sig_atomic_t perf_flag = 1;
+static volatile sig_atomic_t received_signal = 0;
+
 static void signal_handler(int sig) {
 #if defined(SIGPIPE)
     if (sig == (int) SIGPIPE) {
@@ -98,19 +99,21 @@ static void signal_handler(int sig) {
       return;
     }
 #endif
+    if ((sig == (int) SIGINT || sig == (int) SIGTERM)) {
+      if (received_signal) {
+        /* Second Ctrl-C: force-exit immediately */
+        _exit(1);
+      }
+      received_signal = sig;
+      /* Let main() return from csoundPerformKsmps so it can render the
+         interrupt fade and shut down from a safe context. */
+      perf_flag = 0;
+      return;
+    }
 #ifndef __wasm__
     psignal(sig, "\ncsound command");
 #endif
-    if ((sig == (int) SIGINT || sig == (int) SIGTERM)) {
-      if (_csound) {
-        perf_flag = 0;
-        csoundDestroy(_csound);
-      }
-      if (logFile != NULL)
-        fclose(logFile);
-      exit(1);
-    }
-    exit(1);
+    _exit(1);
 }
 
 static const int sigs[] = {
@@ -209,21 +212,28 @@ int main(int argc, char **argv)
 
     /*  Create Csound. */
     csound = csoundCreate(NULL, NULL);
-    _csound = csound;
     /*  One complete performance cycle. */
      result = csoundCompile(csound, argc, (const char **)argv);
      if(!result) {
       result = csoundStart(csound);
       while (!result && perf_flag)
         result = csoundPerformKsmps(csound);
+      if (!result && received_signal) {
+        uint32_t fadeFrames = (uint32_t) (csoundGetSr(csound) / 50.0);
+        result = csoundPerformOutputFade(csound, fadeFrames);
+      }
      }
      errs = csoundErrCnt(csound);
      /* delete Csound instance */
      csoundDestroy(csound);
-     _csound = NULL;
+     if (received_signal) {
+#ifndef __wasm__
+       psignal((int) received_signal, "\ncsound command");
+#endif
+     }
     /* close log file */
     if (logFile != NULL)
       fclose(logFile);
 
-    return (result >= 0 ? errs : -result);
+    return (received_signal ? 1 : (result >= 0 ? errs : -result));
 }

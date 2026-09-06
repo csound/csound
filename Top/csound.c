@@ -73,6 +73,7 @@
 
 int32_t init0(CSOUND *csound);
 int32_t kperf(CSOUND *csound);
+void csound_close_audio(CSOUND *);
 int32_t csound_cleanup(CSOUND *);
 int32_t get_time_resolution(void);
 
@@ -931,6 +932,7 @@ static const CSOUND cenviron_ = {
     1U,           /*  nframes             */
     NULL, NULL,   /*  pin, pout           */
     0,            /*dither                */
+    0, 0,         /* outputFadeFrames, outputFadePos */
   },
   0,              /*  warped              */
   0,              /*  sstrlen             */
@@ -1876,6 +1878,10 @@ static void reset(CSOUND *csound) {
   uintptr_t length;
   uintptr_t end, start;
   int32_t n = 0;
+
+  /* Close audio before worker shutdown. csound_cleanup() safely repeats
+     this idempotent operation for direct cleanup callers. */
+  csound_close_audio(csound);
 
   // stop multicore threads if still running
   if (csound->oparms->numThreads > 1 &&
