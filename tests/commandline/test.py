@@ -884,8 +884,21 @@ def runTest():
         ["arrays/arrays_k_global.csd", "global k[]"],
         ["arrays/arrays_a_local.csd", "local a[]"],
         ["arrays/arrays_a_global.csd", "global a[]"],
+        [
+            "arrays/test_audio_array_setksmps_udo.csd",
+            "audio-array UDO copy keeps the caller stride across setksmps",
+        ],
+        [
+            "arrays/test_audio_array_local_setksmps_output_fail.csd",
+            "reject a local-ksmps audio array that cannot fit the caller",
+            1,
+        ],
         ["arrays/arrays_S_local.csd", "local S[]"],
         ["arrays/arrays_S_global.csd", "global S[]"],
+        [
+            "arrays/test_builtin_array_udo_growth.csd",
+            "numeric and string UDO arrays can grow during performance",
+        ],
         [
             "arrays/array_get_inline.csd",
             "tests parsing and eval of inline array[getters]",
@@ -897,6 +910,15 @@ def runTest():
         [
             "arrays/test_struct_array_reshape_copy.csd",
             "reshaping a struct-array copy preserves its source",
+        ],
+        [
+            "arrays/test_reshape_fractional_dimension_fail.csd",
+            "reject fractional reshape dimensions",
+            1,
+        ],
+        [
+            "arrays/test_managed_struct_array_paths.csd",
+            "managed struct-array writes share one ownership path",
         ],
         [
             "arrays/test_struct_array_k_write_after_copy.csd",

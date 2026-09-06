@@ -42,7 +42,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
   ARRAYDAT* arrayDat = p->arrayDat;
   int32_t i;
-  size_t elementCount, capacity, bytes;
+  size_t elementCount, capacity;
 
   int32_t inArgCount = p->INOCOUNT;
 
@@ -97,54 +97,31 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
                              Str("array_init: array dimensions overflow"));
   }
 
-  {
-    // Safety: check for NULL arrayType
+  // Safety: check for NULL arrayType
+  if (arrayDat->arrayType == NULL) {
+    // Try to recover by extracting struct type from opcode name
+    const char* opname = p->h.optext && p->h.optext->t.oentry ? p->h.optext->t.oentry->opname : NULL;
+    if (opname && strncmp(opname, "init.", 5) == 0) {
+      const char* typeName = opname + 5; // Skip "init." prefix
+      CS_TYPE* structType = (CS_TYPE*)csoundGetTypeWithVarTypeName(csound->typePool, typeName);
+      if (structType) {
+        arrayDat->arrayType = structType;
+      }
+    }
+
     if (arrayDat->arrayType == NULL) {
-      // Try to recover by extracting struct type from opcode name
-      const char* opname = p->h.optext && p->h.optext->t.oentry ? p->h.optext->t.oentry->opname : NULL;
-      if (opname && strncmp(opname, "init.", 5) == 0) {
-        const char* typeName = opname + 5; // Skip "init." prefix
-        CS_TYPE* structType = (CS_TYPE*)csoundGetTypeWithVarTypeName(csound->typePool, typeName);
-        if (structType) {
-          arrayDat->arrayType = structType;
-        }
-      }
-
-      if (arrayDat->arrayType == NULL) {
-        csound_free_array_storage(csound, arrayDat);
-        return csound->InitError(csound, "array_init: arrayType is NULL - struct type information missing");
-      }
-    }
-
-    CS_VARIABLE* var = array_element_create_variable(
-      csound, arrayDat->arrayType, p->h.insdshead);
-    char *mem;
-    if (UNLIKELY(var == NULL || var->memBlockSize <= 0 ||
-                 var->initializeVariableMemory == NULL)) {
-      if (var != NULL)
-        csound->Free(csound, var);
       csound_free_array_storage(csound, arrayDat);
-      return csound->InitError(csound, "%s",
-                               Str("array_init: invalid element type"));
+      return csound->InitError(csound, "array_init: arrayType is NULL - struct type information missing");
     }
-    arrayDat->arrayMemberSize = var->memBlockSize;
-    capacity = elementCount > 0 ? elementCount : 1;
-    if (UNLIKELY(csound_array_allocation_size(
-                   arrayDat->arrayMemberSize, capacity, &bytes) != OK)) {
-      csound->Free(csound, var);
-      csound_free_array_storage(csound, arrayDat);
-      return csound->InitError(csound, "%s",
-                               Str("array_init: allocation size overflow"));
-    }
-    arrayDat->allocated = bytes;
-    arrayDat->data = csound->Calloc(csound, bytes);
-    mem = (char *) arrayDat->data;
-    for (size_t index = 0; index < capacity; index++) {
-      var->initializeVariableMemory(csound, var,
-        (MYFLT*)(mem + index * (size_t)var->memBlockSize));
-    }
-    csound->Free(csound, var);
+  }
 
+  capacity = elementCount > 0 ? elementCount : 1;
+  if (UNLIKELY(csound_array_ensure_capacity(
+                 csound, arrayDat, capacity, p->h.insdshead) != OK)) {
+    csound_free_array_storage(csound, arrayDat);
+    return csound->InitError(csound, "%s",
+                             Str("array_init: could not allocate or initialize "
+                                 "elements"));
   }
   return OK;
 }
@@ -319,32 +296,22 @@ int32_t array_err(CSOUND* csound, ARRAY_SET *p)
   return csound->InitError(csound,  "%s", Str("Cannot set i-array at k-rate\n"));
 }
 
-int32_t array_set_init(CSOUND *csound, ARRAY_SET *p)
+static int32_t array_set_common(CSOUND *csound, ARRAY_SET *p,
+                                int32_t initializing)
 {
   ARRAYDAT *dat = p->arrayDat;
 
   if (UNLIKELY(dat == NULL)) {
-    return csound->InitError(csound, "%s", Str("array_set: NULL array"));
+    return initializing
+      ? csound->InitError(csound, "%s", Str("array_set: NULL array"))
+      : csound->PerfError(csound, &p->h, "%s",
+                          Str("array_set: NULL array"));
   }
-  if (UNLIKELY(csound_array_prepare_write(csound, dat,
-                                          p->h.insdshead) != OK)) {
-    return csound->InitError(csound, "%s",
-                             Str("array_set: could not detach shared array"));
-  }
-  return array_set(csound, p);
-}
-
-int32_t array_set(CSOUND* csound, ARRAY_SET *p)
-{
-  ARRAYDAT* dat = p->arrayDat;
-
-  if (UNLIKELY(dat == NULL)) {
-    return csound->PerfError(csound, &(p->h), Str("array_set: NULL array"));
-  }
-  if (UNLIKELY(csound_array_try_prepare_write(
-                 csound, dat, p->h.insdshead) != OK)) {
-    return csound->PerfError(csound, &p->h, "%s",
-                             Str("array_set: could not detach shared array"));
+  if (UNLIKELY(csound_array_prepare_opcode_write(
+                 csound, dat, &p->h, initializing,
+                 Str("array_set: could not prepare array for writing"))
+               != OK)) {
+    return NOTOK;
   }
   MYFLT* mem = (MYFLT*)dat->data;
   int32_t i;
@@ -375,17 +342,24 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
   }
 
   if (UNLIKELY(indefArgCount == 0)) {
-    csound->ErrorMsg(csound, "%s", Str("Error: no indexes set for array set\n"));
-    return CSOUND_ERROR;
+    return initializing
+      ? csound->InitError(csound, "%s", Str("Error: no indexes set for array set\n"))
+      : csound->PerfError(csound, &p->h, "%s",
+                          Str("Error: no indexes set for array set\n"));
   }
   if (UNLIKELY(indefArgCount!=dat->dimensions)) {
     /* Allow arrays with no metadata (e.g., signal-as-array views) by treating
        them as flat 1-D arrays addressed with a single index. */
     if (!(dat && dat->dimensions == 0)) {
-      return csound->PerfError(csound, &(p->h),
-                               Str("Array dimension %d does not match "
-                                   "for dimensions %d\n"),
-                               indefArgCount, dat->dimensions);
+      return initializing
+        ? csound->InitError(csound,
+                            Str("Array dimension %d does not match "
+                                "for dimensions %d\n"),
+                            indefArgCount, dat->dimensions)
+        : csound->PerfError(csound, &p->h,
+                            Str("Array dimension %d does not match "
+                                "for dimensions %d\n"),
+                            indefArgCount, dat->dimensions);
     }
   }
 
@@ -424,7 +398,13 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     end = (int)(*p->indexes[i]);
     if (dat->dimensions > 0 && dat->sizes != NULL) {
       if (UNLIKELY(end < 0))
-        return csound->PerfError(csound, &(p->h), Str("Array index %d out of range (negative) for dimension %d"), end, i+1);
+        return initializing
+          ? csound->InitError(csound,
+                              Str("Array index %d out of range (negative) for dimension %d"),
+                              end, i+1)
+          : csound->PerfError(csound, &p->h,
+                              Str("Array index %d out of range (negative) for dimension %d"),
+                              end, i+1);
       if (UNLIKELY(end >= dat->sizes[i])) {
         /* Auto-grow 1-D numeric arrays on demand to accommodate writes from fillarray */
         if (!(dat->arrayType && dat->arrayType->userDefinedType) && dat->dimensions == 1) {
@@ -443,10 +423,15 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
           dat->sizes[0] = newSize;
           mem = (MYFLT*)dat->data;
         } else {
-          return csound->PerfError(csound, &(p->h),
-                                   Str("Array index %d out of range (0,%d) "
-                                       "for dimension %d"),
-                                   end, dat->sizes[i]-1, i+1);
+          return initializing
+            ? csound->InitError(csound,
+                                Str("Array index %d out of range (0,%d) "
+                                    "for dimension %d"),
+                                end, dat->sizes[i]-1, i+1)
+            : csound->PerfError(csound, &p->h,
+                                Str("Array index %d out of range (0,%d) "
+                                    "for dimension %d"),
+                                end, dat->sizes[i]-1, i+1);
         }
       }
       index = (index * dat->sizes[i]) + end;
@@ -504,16 +489,31 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
   return OK;
 }
 
-int32_t array_get(CSOUND* csound, ARRAY_GET *p)
+int32_t array_set_init(CSOUND *csound, ARRAY_SET *p)
+{
+  return array_set_common(csound, p, 1);
+}
+
+int32_t array_set(CSOUND *csound, ARRAY_SET *p)
+{
+  return array_set_common(csound, p, 0);
+}
+
+#define ARRAY_GET_PHASE_ERROR(...)                                      \
+  (initializing                                                         \
+   ? csound->InitError(csound, __VA_ARGS__)                             \
+   : csound->PerfError(csound, &(p->h), __VA_ARGS__))
+
+static int32_t array_get_common(CSOUND *csound, ARRAY_GET *p,
+                                int32_t initializing)
 {
   ARRAYDAT* dat = p->arrayDat;
 
 
 
-  if (dat == NULL) {
-    csound->ErrorMsg(csound, "ERROR: array_get called with NULL arrayDat!\n");
-    return NOTOK;
-  }
+  if (UNLIKELY(dat == NULL))
+    return ARRAY_GET_PHASE_ERROR(
+      "%s", Str("array_get: array metadata is NULL"));
 
   MYFLT* mem = dat->data;
   int32_t i;
@@ -523,13 +523,13 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
   char *element;
 
   if (UNLIKELY(mem == NULL)) {
-    return csound->PerfError(csound, &(p->h), Str("array_get: array data is NULL"));
+    return ARRAY_GET_PHASE_ERROR(Str("array_get: array data is NULL"));
   }
 
 
   if (UNLIKELY(indefArgCount == 0))
-    return csound->PerfError(csound, &(p->h),
-                             "%s", Str("Error: no indexes set for array get"));
+    return ARRAY_GET_PHASE_ERROR(
+      "%s", Str("Error: no indexes set for array get"));
   if (UNLIKELY(indefArgCount!=dat->dimensions)) {
     /* Allow arrays with no metadata (e.g., signal-as-array views) by treating
        them as flat 1-D arrays addressed with a single index. */
@@ -554,16 +554,14 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
           csound->Warning(csound, "array_get: recovered from corrupted dimensions (was %d), set to %d with size %d\n",
                           orig_dimensions, dat->dimensions, dat->sizes[0]);
         } else {
-          return csound->PerfError(csound, &(p->h),
-                                   Str("Array dimension %d out of range "
-                                       "for dimensions %d"),
-                                   indefArgCount, orig_dimensions);
+          return ARRAY_GET_PHASE_ERROR(
+            Str("Array dimension %d out of range for dimensions %d"),
+            indefArgCount, orig_dimensions);
         }
       } else {
-        return csound->PerfError(csound, &(p->h),
-                                 Str("Array dimension %d out of range "
-                                     "for dimensions %d"),
-                                 indefArgCount, dat ? dat->dimensions : -1);
+        return ARRAY_GET_PHASE_ERROR(
+          Str("Array dimension %d out of range for dimensions %d"),
+          indefArgCount, dat ? dat->dimensions : -1);
       }
     }
   }
@@ -582,11 +580,11 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     if (needsAutoSizing) {
       /* Size recovery changes array metadata. Detach a structured view first
          so a read from malformed legacy metadata cannot resize its siblings. */
-      if (UNLIKELY(csound_array_try_prepare_write(
-                     csound, dat, p->h.insdshead) != OK)) {
-        return csound->PerfError(
-          csound, &p->h, "%s",
-          Str("array_get: could not detach shared array metadata"));
+      if (UNLIKELY(csound_array_prepare_opcode_write(
+                     csound, dat, &p->h, initializing,
+                     Str("array_get: could not prepare array metadata"))
+                   != OK)) {
+        return NOTOK;
       }
       mem = dat->data;
       // Set a default size for struct arrays that were declared but not properly initialized
@@ -628,10 +626,9 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     end = (int)(*p->indexes[i]);
     if (dat->dimensions > 0 && dat->sizes != NULL) {
       if (UNLIKELY(end>=dat->sizes[i]) || UNLIKELY(end<0))
-        return csound->PerfError(csound, &(p->h),
-                                 Str("Array index %d out of range (0,%d) "
-                                     "for dimension %d"),
-                                 end, dat->sizes[i]-1, i+1);
+        return ARRAY_GET_PHASE_ERROR(
+          Str("Array index %d out of range (0,%d) for dimension %d"),
+          end, dat->sizes[i]-1, i+1);
       index = (index * dat->sizes[i]) + end;
     } else {
       /* No metadata: assume 1-D flat array and use the provided index */
@@ -646,9 +643,9 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
   if (dat->dimensions == 0 && dat->arrayType == &CS_VAR_TYPE_A) {
     int k = index;
     if (UNLIKELY(k < 0 || k >= (int)csound->ksmps)) {
-      return csound->PerfError(csound, &(p->h),
-                               Str("Sample index %d out of range (0,%d)"),
-                               k, (int)csound->ksmps - 1);
+      return ARRAY_GET_PHASE_ERROR(
+        Str("Sample index %d out of range (0,%d)"),
+        k, (int)csound->ksmps - 1);
     }
     if (LIKELY(mem != NULL && p->out != NULL)) {
       MYFLT* vec = (MYFLT*) mem; /* base of the a-signal vector */
@@ -661,15 +658,13 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
                (size_t)index >
                  (SIZE_MAX - (size_t)dat->arrayMemberSize) /
                    (size_t)dat->arrayMemberSize)) {
-    return csound->PerfError(csound, &(p->h), "%s",
-                             Str("Invalid array element offset"));
+    return ARRAY_GET_PHASE_ERROR("%s", Str("Invalid array element offset"));
   }
   size_t offset = (size_t)index * (size_t)dat->arrayMemberSize;
   size_t allocatedBytes = csound_array_allocated_bytes(csound, dat);
   if (UNLIKELY(allocatedBytes > 0 &&
                offset + (size_t)dat->arrayMemberSize > allocatedBytes)) {
-    return csound->PerfError(
-      csound, &(p->h),
+    return ARRAY_GET_PHASE_ERROR(
       Str("Array element %d exceeds allocated storage (%zu + %d > %zu)"),
       index, offset, dat->arrayMemberSize, allocatedBytes);
   }
@@ -681,20 +676,15 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
      arrays retain shared backing storage through the normal type copy path. */
   if (dat->arrayType && dat->arrayType->userDefinedType) {
     if (UNLIKELY(p->out == NULL)) {
-      return csound->PerfError(csound, &(p->h), "%s",
-                               Str("Invalid struct output"));
+      return ARRAY_GET_PHASE_ERROR("%s", Str("Invalid struct output"));
     }
     dat->arrayType->copyValue(csound, dat->arrayType,
                               (void *)p->out, (void *)element,
                               p->h.insdshead);
   } else {
     if (UNLIKELY(element == NULL)) {
-      /* Report error in the correct phase */
-      if (csound->mode == 2) {
-        return csound->PerfError(csound, &(p->h), "%s", Str("array-variable not initialised"));
-      } else {
-        return csound->InitError(csound, "%s", Str("array-variable not initialised"));
-      }
+      return ARRAY_GET_PHASE_ERROR(
+        "%s", Str("array-variable not initialised"));
     }
     if (dat->arrayType == &CS_VAR_TYPE_S) {
       STRINGDAT* src = (STRINGDAT *)element;
@@ -714,6 +704,19 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
   }
   return OK;
 }
+
+#undef ARRAY_GET_PHASE_ERROR
+
+int32_t array_get_init(CSOUND *csound, ARRAY_GET *p)
+{
+  return array_get_common(csound, p, 1);
+}
+
+int32_t array_get(CSOUND *csound, ARRAY_GET *p)
+{
+  return array_get_common(csound, p, 0);
+}
+
 int32_t tabarithset(CSOUND *csound, TABARITH *p)
 {
 
@@ -3850,10 +3853,10 @@ int32_t trim_prepare(CSOUND *csound, TRIM *p)
   if (UNLIKELY(p->tab == NULL)) {
     return csound->InitError(csound, "%s", Str("Array not initialised"));
   }
-  if (UNLIKELY(csound_array_prepare_write(csound, p->tab,
-                                          p->h.insdshead) != OK)) {
-    return csound->InitError(csound, "%s",
-                             Str("Could not prepare array for trim"));
+  if (UNLIKELY(csound_array_prepare_opcode_write(
+                 csound, p->tab, &p->h, 1,
+                 Str("trim: could not prepare array for writing")) != OK)) {
+    return NOTOK;
   }
   return OK;
 }
