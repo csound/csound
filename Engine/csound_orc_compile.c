@@ -59,24 +59,6 @@ int32_t merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
 OENTRY* find_opcode(CSOUND*, char*);
 void sanitize(CSOUND *csound);
 
-static int32_t udo_entry_matches_definition(const OENTRY *entry,
-                                            const OPCODINFO *opinfo) {
-  const OPCODINFO *called;
-
-  if (entry == NULL || opinfo == NULL ||
-      entry->init != (SUBR)useropcdset || entry->useropinfo == NULL) {
-    return 0;
-  }
-  called = (const OPCODINFO *)entry->useropinfo;
-  return called == opinfo ||
-         (called->name != NULL && opinfo->name != NULL &&
-          called->intypes != NULL && opinfo->intypes != NULL &&
-          called->outtypes != NULL && opinfo->outtypes != NULL &&
-          strcmp(called->name, opinfo->name) == 0 &&
-          strcmp(called->intypes, opinfo->intypes) == 0 &&
-          strcmp(called->outtypes, opinfo->outtypes) == 0);
-}
-
 static int32_t udo_entry_is_init_control(CSOUND *csound,
                                          const INSTRTXT *ip,
                                          const TEXT *text) {
@@ -85,7 +67,10 @@ static int32_t udo_entry_is_init_control(CSOUND *csound,
   if (ip == NULL || text == NULL || text->oentry == NULL) {
     return 0;
   }
-  if (strcmp(text->oentry->opname, "goto") == 0) {
+  if (strcmp(text->oentry->opname, "goto") == 0 ||
+      strcmp(text->oentry->opname, "cggoto.0") == 0) {
+    /* Generated switch control does not itself require a performance pass.
+       Any opcode reached by the branch is inspected independently below. */
     return 1;
   }
   if (strcmp(text->oentry->opname, "cngoto") != 0 ||
@@ -97,17 +82,21 @@ static int32_t udo_entry_is_init_control(CSOUND *csound,
   return variable != NULL && variable->varType == &CS_VAR_TYPE_b;
 }
 
+static int32_t variable_has_perf_type(const CS_VARIABLE *variable) {
+  const CS_TYPE *type = variable->varType;
+  const CS_TYPE *subtype = variable->subType;
+  return type == &CS_VAR_TYPE_A || type == &CS_VAR_TYPE_K ||
+         type == &CS_VAR_TYPE_B || type == &CS_VAR_TYPE_W ||
+         type == &CS_VAR_TYPE_F || subtype == &CS_VAR_TYPE_A ||
+         subtype == &CS_VAR_TYPE_K || subtype == &CS_VAR_TYPE_B ||
+         subtype == &CS_VAR_TYPE_W || subtype == &CS_VAR_TYPE_F;
+}
+
 static int32_t udo_pool_has_perf_types(const CS_VAR_POOL *pool) {
   const CS_VARIABLE *variable = pool != NULL ? pool->head : NULL;
 
   while (variable != NULL) {
-    const CS_TYPE *type = variable->varType;
-    const CS_TYPE *subtype = variable->subType;
-    if (type == &CS_VAR_TYPE_A || type == &CS_VAR_TYPE_K ||
-        type == &CS_VAR_TYPE_B || type == &CS_VAR_TYPE_W ||
-        type == &CS_VAR_TYPE_F || subtype == &CS_VAR_TYPE_A ||
-        subtype == &CS_VAR_TYPE_K || subtype == &CS_VAR_TYPE_B ||
-        subtype == &CS_VAR_TYPE_W || subtype == &CS_VAR_TYPE_F) {
+    if (variable_has_perf_type(variable)) {
       return 1;
     }
     variable = variable->next;
@@ -115,11 +104,19 @@ static int32_t udo_pool_has_perf_types(const CS_VAR_POOL *pool) {
   return 0;
 }
 
-/* Check if a UDO definition has any perf-time opcodes. A direct recursive
-   call inherits this definition's rate and is not independent evidence that
-   the body performs. */
-static int32_t udo_has_perf_opcodes(CSOUND *csound, INSTRTXT *ip,
-                                    OPCODINFO *opinfo) {
+static OPCODINFO *udo_called_definition(const OENTRY *entry) {
+  if (entry == NULL || entry->init != (SUBR)useropcdset ||
+      entry->useropinfo == NULL) {
+    return NULL;
+  }
+  return (OPCODINFO *)entry->useropinfo;
+}
+
+/* A UDO call is classified after every definition in this compilation has
+   been built. Ignoring calls here lets mutually recursive, init-only UDOs
+   reach the same fixed point as direct recursion. */
+static int32_t udo_has_intrinsic_perf(CSOUND *csound, INSTRTXT *ip,
+                                      OPCODINFO *opinfo) {
   OPTXT *optxt = (OPTXT *) ip;
   if (opinfo != NULL &&
       (udo_pool_has_perf_types(opinfo->in_arg_pool) ||
@@ -131,7 +128,7 @@ static int32_t udo_has_perf_opcodes(CSOUND *csound, INSTRTXT *ip,
     if (ttp->oentry == NULL) continue;
     if (strcmp(ttp->oentry->opname, "$label") == 0) continue;
     if (strcmp(ttp->oentry->opname, "endop") == 0) break;
-    if (udo_entry_matches_definition(ttp->oentry, opinfo)) {
+    if (udo_called_definition(ttp->oentry) != NULL) {
       continue;
     }
     if (udo_entry_is_init_control(csound, ip, ttp)) {
@@ -142,6 +139,111 @@ static int32_t udo_has_perf_opcodes(CSOUND *csound, INSTRTXT *ip,
     }
   }
   return 0;
+}
+
+static int32_t udo_calls_perf_definition(OPCODINFO *opinfo) {
+  OPTXT *optxt = opinfo != NULL ? (OPTXT *)opinfo->ip : NULL;
+
+  while (optxt != NULL && (optxt = optxt->nxtop) != NULL) {
+    OPCODINFO *called = udo_called_definition(optxt->t.oentry);
+    if (called == NULL || called == opinfo) {
+      continue;
+    }
+    if (called->oentry != NULL && called->oentry->perf != NULL) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static void classify_udo_rates(CSOUND *csound, ENGINE_STATE *engineState) {
+  INSTRTXT *instrument;
+  int32_t changed;
+
+  /* Seed each definition from its own body. Calls are ignored in this pass so
+     an init-only recursion cycle starts at the all-init fixed point. */
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    if (instrument->opcode_info != NULL) {
+      OPCODINFO *opinfo = instrument->opcode_info;
+      opinfo->oentry->perf = udo_has_intrinsic_perf(
+        csound, instrument, opinfo) ? (SUBR)useropcd : NULL;
+    }
+  }
+
+  do {
+    changed = 0;
+    for (instrument = engineState->instxtanchor.nxtinstxt;
+         instrument != NULL; instrument = instrument->nxtinstxt) {
+      OPCODINFO *opinfo = instrument->opcode_info;
+      if (opinfo != NULL && opinfo->oentry->perf == NULL &&
+          udo_calls_perf_definition(opinfo)) {
+        opinfo->oentry->perf = (SUBR)useropcd;
+        changed = 1;
+      }
+    }
+  } while (changed);
+}
+
+/* Expression lowering sees provisional UDO callbacks. Once their rates are
+   final, reject performance-only struct temporaries passed to init-only UDOs.
+   UDOs take values, including wrappers around type-only built-ins.
+   Follow member getters too, so selecting a nested struct keeps the phase of
+   the array read. Only generated temporaries are tracked: user variables can
+   have separate init and performance assignments. */
+static void verify_udo_struct_read_phases(CSOUND *csound,
+                                         ENGINE_STATE *engineState) {
+  INSTRTXT *instrument;
+
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    CS_HASH_TABLE *perfReads = NULL;
+    OPTXT *optxt = (OPTXT *)instrument;
+
+    while ((optxt = optxt->nxtop) != NULL) {
+      TEXT *text = &optxt->t;
+      OENTRY *entry = text->oentry;
+      TEXT *source = NULL;
+      int32_t i;
+
+      if (entry == NULL) continue;
+      if (udo_called_definition(entry) != NULL && entry->perf == NULL &&
+          perfReads != NULL && text->inlist != NULL) {
+        for (i = 0; i < text->inlist->count; i++) {
+          source = cs_hash_table_get(csound, perfReads,
+                                      text->inlist->arg[i]);
+          if (source != NULL) {
+            synterr(csound,
+                    Str("init-only UDO %s cannot take a performance-only "
+                        "struct array read; "
+                        "convert the index explicitly, line %d\n"),
+                    entry->opname, source->linenum);
+          }
+        }
+      }
+
+      source = NULL;
+      if (strcmp(entry->opname, "##array_get_struct") == 0 &&
+          entry->init == NULL) {
+        source = text;
+      }
+      else if (perfReads != NULL && text->inlist != NULL &&
+               text->inlist->count > 0 &&
+               (strcmp(entry->opname, "##member_get") == 0 ||
+                strncmp(entry->opname, "##member_get.", 13) == 0)) {
+        source = cs_hash_table_get(csound, perfReads, text->inlist->arg[0]);
+      }
+      if (source != NULL && text->outlist != NULL) {
+        for (i = 0; i < text->outlist->count; i++) {
+          char *name = text->outlist->arg[i];
+          if (name[0] != '#') continue;
+          if (perfReads == NULL) perfReads = cs_hash_table_create(csound);
+          cs_hash_table_put(csound, perfReads, name, source);
+        }
+      }
+    }
+    if (perfReads != NULL) cs_hash_table_free(csound, perfReads);
+  }
 }
 
 
@@ -1902,6 +2004,122 @@ void merge_state_realtime(CSOUND *csound, ENGINE_STATE *engineState,
     csoundUnlockMutex(csound->init_pass_threadlock);
 }
 
+typedef struct init_getter_use {
+  TEXT *text;
+  OENTRY *initEntry;
+  int32_t uses;
+  int32_t blocked;
+  struct init_getter_use *next;
+} INIT_GETTER_USE;
+
+/* A generated getter may outlive expression lowering's provisional UDO rates.
+   Keep its init copy, but omit performance copies when every value consumer
+   runs only at init. User variables, xout wiring, and two-phase consumers keep
+   their existing schedules. Repeating this pass lets a final init-only array
+   lookup establish the phase of preceding member getters. */
+static int32_t specialize_init_getters(CSOUND *csound,
+                                       ENGINE_STATE *engineState) {
+  INSTRTXT *instrument;
+  int32_t changed = 0;
+
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    CS_HASH_TABLE *getters = NULL;
+    CS_HASH_TABLE *perfValues = NULL;
+    INIT_GETTER_USE *head = NULL;
+    INIT_GETTER_USE *use;
+    OPTXT *op;
+
+    for (op = instrument->nxtop; op != NULL; op = op->nxtop) {
+      TEXT *text = &op->t;
+      OENTRY *entry = text->oentry;
+      OENTRY *initEntry;
+      CS_VARIABLE *variable;
+      const char *name;
+      if (entry == NULL || entry->init == NULL || entry->perf == NULL ||
+          text->outlist == NULL || text->outlist->count != 1 ||
+          text->outlist->arg[0][0] != '#') continue;
+      name = entry->opname;
+      if (!strcmp(name, "##member_get") ||
+          !strncmp(name, "##member_get.", 13)) {
+        initEntry = find_opcode(csound, "##member_get_init");
+      }
+      else if (!strncmp(name, "##array_get.", 12)) {
+        initEntry = find_opcode(csound, "##array_get_init");
+      }
+      else continue;
+      variable = csoundFindVariableWithName(csound, instrument->varPool,
+                                             text->outlist->arg[0]);
+      /* An init consumer does not change the declared rate of numeric,
+         audio, boolean, or spectral results, including array elements. */
+      if (variable == NULL || variable_has_perf_type(variable)) continue;
+      if (getters == NULL) getters = cs_hash_table_create(csound);
+      use = csound->Calloc(csound, sizeof(INIT_GETTER_USE));
+      use->text = text;
+      use->initEntry = initEntry;
+      use->next = head;
+      head = use;
+      cs_hash_table_put(csound, getters, text->outlist->arg[0], use);
+    }
+    if (getters == NULL) continue;
+
+    for (op = instrument->nxtop; op != NULL; op = op->nxtop) {
+      TEXT *text = &op->t;
+      OENTRY *entry = text->oentry;
+      int32_t unavailable;
+      int32_t getter;
+      int32_t i;
+      if (entry == NULL) continue;
+      unavailable = entry->init == NULL;
+      getter = !strncmp(entry->opname, "##array_get", 11) ||
+               !strncmp(entry->opname, "##member_get", 12);
+      if (text->inlist != NULL) {
+        for (i = 0; i < text->inlist->count; i++) {
+          char *name = text->inlist->arg[i];
+          use = cs_hash_table_get(csound, getters, name);
+          if (use != NULL) {
+            use->uses++;
+            if (!opcode_is_init_only_value_consumer(entry)) use->blocked = 1;
+          }
+          if (getter && perfValues != NULL &&
+              cs_hash_table_get(csound, perfValues, name) != NULL) {
+            unavailable = 1;
+          }
+        }
+      }
+      if (text->outlist != NULL) {
+        for (i = 0; i < text->outlist->count; i++) {
+          char *name = text->outlist->arg[i];
+          use = cs_hash_table_get(csound, getters, name);
+          if (use != NULL && (use->text != text || unavailable)) {
+            use->blocked = 1;
+          }
+          /* A getter fed by a performance-only temporary has no init value.
+             Preserve it, including the later struct-read diagnostic. */
+          if (unavailable && name[0] == '#') {
+            if (perfValues == NULL) perfValues = cs_hash_table_create(csound);
+            cs_hash_table_put(csound, perfValues, name, text);
+          }
+        }
+      }
+    }
+    while (head != NULL) {
+      use = head;
+      head = use->next;
+      if (use->uses > 0 && !use->blocked) {
+        use->text->oentry = use->initEntry;
+        use->text->opcod = strsav_string(csound, engineState,
+                                         use->initEntry->opname);
+        changed = 1;
+      }
+      csound->Free(csound, use);
+    }
+    cs_hash_table_free(csound, getters);
+    if (perfValues != NULL) cs_hash_table_free(csound, perfValues);
+  }
+  return changed;
+}
+
 /**
  * Compile the given TREE node into structs
 
@@ -2157,12 +2375,6 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
         // replace ip oentry by the UDO oentry
         ((OPTXT *)instrtxt)->t.oentry = opinfo->oentry;
 
-        // remove dummy perf routine from init-time opcodes
-        if (!udo_has_perf_opcodes(csound, instrtxt, opinfo)) {
-          opinfo->oentry->perf = NULL;
-        }
-
-        build_user_opcode_rewire_plan(csound, opinfo);
       }
 
       break;
@@ -2184,6 +2396,18 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
         print_tree(csound, NULL, current);
     }
     current = current->next;
+  }
+
+  classify_udo_rates(csound, engineState);
+  while (specialize_init_getters(csound, engineState)) {
+    classify_udo_rates(csound, engineState);
+  }
+  verify_udo_struct_read_phases(csound, engineState);
+  for (ip = engineState->instxtanchor.nxtinstxt;
+       ip != NULL; ip = ip->nxtinstxt) {
+    if (ip->opcode_info != NULL) {
+      build_user_opcode_rewire_plan(csound, ip->opcode_info);
+    }
   }
 
 

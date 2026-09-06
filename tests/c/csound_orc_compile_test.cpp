@@ -49,6 +49,9 @@ public:
 extern "C" {
     extern int32_t args_required (const char* arrayName);
     extern char** split_args (CSOUND* csound, const char* argString);
+    extern OENTRY* find_opcode_new (CSOUND* csound, const char* opname,
+                                    const char* outArgsFound,
+                                    const char* inArgsFound);
 }
 
 TEST_F (OrcCompileTests, testArgsRequired)
@@ -87,6 +90,224 @@ TEST_F (OrcCompileTests, testSplitArgs)
     ASSERT_STREQ ("k", results[2]);
     ASSERT_STREQ ("a", results[3]);
     csound->Free(csound, results);
+}
+
+TEST_F (OrcCompileTests, testMutuallyRecursiveUdoRateInference)
+{
+    const char* orchestra = R"(
+struct RateValue value:i, values:i[]
+rateValues@global:RateValue[] init 1
+
+declare RateInitEven(depth:i):(i)
+declare RateInitOdd(depth:i):(i)
+declare RatePerfEven(depth:i):(i)
+declare RatePerfOdd(depth:i):(i)
+
+opcode RateInitEven(depth:i):i
+  result:i init 1
+  switch depth
+    case 0
+    default
+      result = RateInitOdd(depth - 1)
+  endsw
+  xout result
+endop
+
+opcode RateInitOdd(depth:i):i
+  result:i init 1
+  if (depth > 0) ithen
+    result = RateInitEven(depth - 1)
+  endif
+  xout result
+endop
+
+opcode RateInitRead(index:i):i
+  value:RateValue init rateValues[index]
+  result:i init value.values[0]
+  xout result
+endop
+
+opcode RateInitWhile(index:i):i
+  result:i init 0
+  ; Keep the member read nested so loop expansion must preserve init context.
+  while ((rateValues[index].value + 0) < 1) do
+    result += 1
+    break
+  od
+  xout result
+endop
+
+opcode RatePerfWhile(index:k):i
+  result:i init 0
+  while ((rateValues[index].value + 0) < 1) do
+    result += 1
+    break
+  od
+  xout result
+endop
+
+opcode RatePerfEven(depth:i):i
+  result:i init 1
+  if (depth > 0) ithen
+    result = RatePerfOdd(depth - 1)
+  endif
+  xout result
+endop
+
+opcode RatePerfOdd(depth:i):i
+  result:i init 1
+  printks "", 1
+  if (depth > 0) ithen
+    result = RatePerfEven(depth - 1)
+  endif
+  xout result
+endop
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+
+    OENTRY* initEven = find_opcode_new(csound, "RateInitEven", "i", "i");
+    OENTRY* initOdd = find_opcode_new(csound, "RateInitOdd", "i", "i");
+    OENTRY* initRead = find_opcode_new(csound, "RateInitRead", "i", "i");
+    OENTRY* initWhile = find_opcode_new(csound, "RateInitWhile", "i", "i");
+    OENTRY* perfWhile = find_opcode_new(csound, "RatePerfWhile", "i", "k");
+    OENTRY* perfEven = find_opcode_new(csound, "RatePerfEven", "i", "i");
+    OENTRY* perfOdd = find_opcode_new(csound, "RatePerfOdd", "i", "i");
+
+    ASSERT_NE(nullptr, initEven);
+    ASSERT_NE(nullptr, initOdd);
+    ASSERT_NE(nullptr, initRead);
+    ASSERT_NE(nullptr, initWhile);
+    ASSERT_NE(nullptr, perfWhile);
+    ASSERT_NE(nullptr, perfEven);
+    ASSERT_NE(nullptr, perfOdd);
+    EXPECT_EQ(nullptr, initEven->perf);
+    EXPECT_EQ(nullptr, initOdd->perf);
+    EXPECT_EQ(nullptr, initRead->perf);
+    EXPECT_EQ(nullptr, initWhile->perf);
+    EXPECT_NE(nullptr, perfWhile->perf);
+    EXPECT_NE(nullptr, perfEven->perf);
+    EXPECT_NE(nullptr, perfOdd->perf);
+}
+
+
+TEST_F (OrcCompileTests, testInitOnlyGeneratedGetterConsumers)
+{
+    const char* orchestra = R"(
+struct GetterValue text:S, children:GetterValue[]
+getterValues@global:GetterValue[] init 1
+getterStrings@global:S[] fillarray "hello"
+getterNumbers@global:k[] init 1
+
+opcode GetterLength(input:S):i
+  xout strlen(input)
+endop
+opcode GetterDiscard(input:S):void
+  length:i = strlen(input)
+endop
+opcode GetterMember(index:i):i
+  result:i = GetterLength(getterValues[index].text)
+  xout result
+endop
+opcode GetterString(index:i):void
+  GetterDiscard(getterStrings[index])
+endop
+opcode GetterChild(index:i):GetterValue
+  xout getterValues[index].children[0]
+endop
+opcode GetterChildExplicit(index:i):GetterValue
+  result:GetterValue init getterValues[index].children[0]
+  xout result
+endop
+opcode GetterPerf(input:S):k
+  result:k = strlenk(input)
+  xout result
+endop
+opcode GetterPerfMember(index:i):k
+  result:k = GetterPerf(getterValues[index].text)
+  xout result
+endop
+opcode GetterPerfString(index:i):k
+  result:k = GetterPerf(getterStrings[index])
+  xout result
+endop
+opcode GetterPerfNumber(index:i):k
+  xout getterNumbers[index]
+endop
+opcode GetterOutput(index:i):S
+  xout getterValues[index].text
+endop
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    const char* initNames[] = {"GetterMember", "GetterString", "GetterChild",
+                              "GetterChildExplicit"};
+    const char* initOutputs[] = {"i", "", ":GetterValue;", ":GetterValue;"};
+    for (int i = 0; i < 4; ++i) {
+        OENTRY* entry = find_opcode_new(csound, initNames[i], initOutputs[i], "i");
+        ASSERT_NE(nullptr, entry) << initNames[i];
+        EXPECT_EQ(nullptr, entry->perf) << initNames[i];
+    }
+    const char* perfNames[] = {"GetterPerfMember", "GetterPerfString",
+                              "GetterPerfNumber", "GetterOutput"};
+    for (int i = 0; i < 4; ++i) {
+        OENTRY* entry = find_opcode_new(csound, perfNames[i], i == 3 ? "S" : "k", "i");
+        ASSERT_NE(nullptr, entry) << perfNames[i];
+        EXPECT_NE(nullptr, entry->perf) << perfNames[i];
+    }
+}
+
+TEST_F (OrcCompileTests, testInitGetterRecursiveFrameReuse)
+{
+    const char* orchestra = R"(
+struct BranchValue text:S
+branchValues@global:BranchValue[] init 1
+branch:BranchValue init "hello"
+branchValues[0] init branch
+
+opcode BranchLength(input:S):i
+  xout strlen(input)
+endop
+opcode BranchRead():i
+  result:i = BranchLength(branchValues[0].text)
+  xout result
+endop
+opcode CountGetterBranches(depth:i):i
+  length:i = BranchRead()
+  result:i = length
+  if (depth > 0) then
+    left:i = CountGetterBranches(depth - 1)
+    right:i = CountGetterBranches(depth - 1)
+    result = left + right
+  endif
+  xout result
+endop
+instr 1
+  result:i = CountGetterBranches(12)
+  chnset result, "branch-result"
+endin
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(20480, csoundGetControlChannel(csound, "branch-result", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+
+    OENTRY* entry = find_opcode_new(csound, "CountGetterBranches", "i", "i");
+    ASSERT_NE(nullptr, entry);
+    OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+    ASSERT_NE(nullptr, info);
+    int instances = 0;
+    for (INSDS* frame = info->ip->instance; frame != nullptr;
+         frame = frame->nxtinstance) {
+        ++instances;
+    }
+    // Completed branches reuse frames; only recursion depth sets the bound.
+    EXPECT_LE(instances, 16);
 }
 
 TEST_F (OrcCompileTests, testCompile)
@@ -136,6 +357,239 @@ TEST_F (OrcCompileTests, testNestedExpressionFailurePropagates)
         "endin\n";
 
     ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testRejectsKRateIndexStructAggregateInit)
+{
+    const char *instrument = R"(
+struct Box value:i
+
+instr 1
+  first:Box init 10
+  second:Box init 20
+  boxes:Box[] fillarray first, second
+  index:k = 1
+  copy:Box init boxes[index]
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testRejectsKRateExpressionStructAggregateInit)
+{
+    const char *instrument = R"(
+struct Box value:i
+
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  index:k init 0
+  copy:Box init boxes[index + 0]
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testRejectsKInitializedOutputStructAggregateInit)
+{
+    const char *instrument = R"(
+struct Box value:i
+
+opcode InitializedIndex, K, 0
+  index:k init 1
+  xout index
+endop
+
+instr 1
+  first:Box init 10
+  second:Box init 20
+  boxes:Box[] fillarray first, second
+  copy:Box init boxes[InitializedIndex()]
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testRejectsKRateStructMemberAggregateInit)
+{
+    const char *instrument = R"(
+struct Box value:i
+struct Selection index:k
+
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  selection:Selection init 0
+  copy:Box init boxes[selection.index]
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testRejectsKArrayElementStructAggregateInit)
+{
+    const char *instrument = R"(
+struct Box value:i
+
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  indices:k[] fillarray 0
+  index:i init 0
+  copy:Box init boxes[indices[index]]
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testRejectsKRateIndexNestedStructAggregateInit)
+{
+    const char *instrument = R"(
+struct Inner value:i
+struct Outer inner:Inner
+
+instr 1
+  inner:Inner init 37
+  outer:Outer init inner
+  outers:Outer[] fillarray outer
+  index:k init 0
+  copy:Inner init outers[index].inner
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testRejectsKRateIndexInitConsumer)
+{
+    const char *instrument = R"(
+struct Box value:i
+
+opcode PrintAt(items:Box[], index:k):void
+  printfi "VALUE=%f\n", 1, items[index].value
+endop
+
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  index:k init 0
+  PrintAt(boxes, index)
+endin
+)";
+
+    ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+class StructInitConditionTests
+    : public OrcCompileTests,
+      public ::testing::WithParamInterface<const char *> {};
+
+TEST_P (StructInitConditionTests, rejectsPerformanceRead)
+{
+    std::string orchestra = R"(
+struct Box value:i
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  index:k init 0
+)";
+    orchestra += GetParam();
+    orchestra += "\nendin\n";
+    csoundCreateMessageBuffer(csound, 0);
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra.c_str()));
+    std::string messages;
+    while (csoundGetMessageCnt(csound) > 0) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_NE(std::string::npos,
+              messages.find("struct array index must be i-rate during init"));
+    csoundDestroyMessageBuffer(csound);
+}
+
+TEST_P (StructInitConditionTests, acceptsInitRead)
+{
+    std::string orchestra = R"(
+struct Box value:i
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  index:i init 0
+)";
+    orchestra += GetParam();
+    orchestra += "\nendin\n";
+    EXPECT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra.c_str()));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Expressions, StructInitConditionTests,
+    ::testing::Values(
+        "if ((boxes[index].value + 0) > 0) ithen\n prints \"yes\"\n endif",
+        "if (0 < (boxes[index].value + 0)) ithen\n prints \"yes\"\n endif",
+        "if (((boxes[index].value + 0) > 0) && (1 < 2)) ithen\n"
+        " prints \"yes\"\n endif",
+        "if ((1 < 2) && ((boxes[index].value + 0) > 0)) ithen\n"
+        " prints \"yes\"\n endif",
+        "value:i = (((boxes[index].value + 0) > 0) ? 1 : 2)",
+        "if ((boxes[index].value + 0) > 0) igoto done\n done:",
+        "if (1 > 2) ithen\n prints \"no\"\n"
+        " elseif ((boxes[index].value + 0) > 0) ithen\n prints \"yes\"\n endif"));
+
+TEST_F (OrcCompileTests, testRejectsPerformanceStructReadByInitUdo)
+{
+    const char *orchestra = R"(
+struct Box value:i
+declare PrintBox(item:Box):()
+
+instr 1
+  box:Box init 37
+  boxes:Box[] fillarray box
+  index:k init 0
+  PrintBox boxes[index]
+endin
+
+opcode PrintBox(item:Box):void
+  printfi "VALUE=%f\n", 1, item.value
+endop
+)";
+
+    csoundCreateMessageBuffer(csound, 0);
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    std::string messages;
+    while (csoundGetMessageCnt(csound) > 0) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_NE(std::string::npos,
+              messages.find("init-only UDO PrintBox cannot take a "
+                            "performance-only struct array read"));
+    csoundDestroyMessageBuffer(csound);
+}
+
+TEST_F (OrcCompileTests, testRejectsNestedPerformanceStructReadByInitUdo)
+{
+    const char *orchestra = R"(
+struct Box value:i
+struct Holder item:Box
+opcode PrintBox(item:Box):void
+  printfi "VALUE=%f\n", 1, item.value
+endop
+
+instr 1
+  box:Box init 37
+  holder:Holder init box
+  holders:Holder[] fillarray holder
+  index:k init 0
+  PrintBox holders[index].item
+endin
+)";
+
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
 }
 
 TEST_F (OrcCompileTests, testReuse)
