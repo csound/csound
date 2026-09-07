@@ -1128,6 +1128,11 @@ static MYFLT read_expression(CSOUND *csound)
             flushlin(csound);
             return FL(0.0);
           }
+          while (*op != '(' && *op != '[') {
+            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            op--; pv--;
+            *pv = v;
+          }
           if (UNLIKELY(*op != '(')) {
             csound->inerrcnt++;
             csound->ErrorMsg(csound,
@@ -1135,11 +1140,6 @@ static MYFLT read_expression(CSOUND *csound)
             print_input_backtrace(csound, 1, csoundErrorMsg);
             flushlin(csound);
             return *pv;
-          }
-          while (*op != '(') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
-            op--; pv--;
-            *pv = v;
           }
           type = 1;
           op--; c = getscochar(csound, 1); break;
