@@ -1166,6 +1166,14 @@ static MYFLT read_expression(CSOUND *csound)
           if (UNLIKELY(!type)) {
             scorerr(csound, Str("missing operand before closing bracket in []"));
           }
+          if (UNLIKELY(*op != '[')) {
+            csound->inerrcnt++;
+            csound->ErrorMsg(csound,
+                             Str("score error: unmatched ']' in [] expression"));
+            print_input_backtrace(csound, 1, csoundErrorMsg);
+            flushlin(csound);
+            return *pv;
+          }
           while (*op != '[') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
