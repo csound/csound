@@ -222,7 +222,7 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
       num = ftbl[(int32_t)(PHMOD1(fphs*k)*flen)]
         - r * ftbl[(int32_t)(PHMOD1(fphs*km1)*flen)]
         - p->rtn * ftbl[(int32_t)(PHMOD1(fphs*kpn)*flen)]
-        + p->rtnp1 * ftbl[(int32_t)(PHMOD1(fphs*kpnm1))]*flen;
+        + p->rtnp1 * ftbl[(int32_t)(PHMOD1(fphs*kpnm1)*flen)];
       if (LIKELY(denom > FL(0.0002) || denom < -FL(0.0002))) {
         ar[n] = last = num / denom * scal;
       }
