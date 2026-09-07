@@ -3,7 +3,7 @@
 -ndm0
 </CsOptions>
 <CsInstruments>
-#include "libassert.orc"
+#include "../libassert.orc"
 
 instr 1
   src:S[][] init 2, 3
