@@ -396,7 +396,8 @@ static int32_t oscbnkset(CSOUND *csound, OSCBNK *p)
     csound->AuxAlloc(csound, i, &(p->auxdata));
   p->osc = (OSCBNK_OSC *) p->auxdata.auxp;
 
-  memset(p->outft, 0, p->outft_len*sizeof(MYFLT));
+  if (p->outft != NULL)
+    memset(p->outft, 0, p->outft_len*sizeof(MYFLT));
 
   p->floatph = (!IS_POW_TWO(p->flen1)) | (!IS_POW_TWO(p->flen2));
   /* initialise oscillators */
