@@ -911,7 +911,7 @@ static int32_t cols_perf_S(CSOUND *csound, FFT *p) {
   STRINGDAT* dest = (STRINGDAT*)p->out->data;
   int32_t i;
   int32_t index = (int32_t)(*((MYFLT *)p->in2));
-  if (LIKELY(index < p->in->sizes[0])) {
+  if (LIKELY(index >= 0 && index < p->in->sizes[1])) {
     mem += index;
     for (i = 0; i<p->in->sizes[0]; i++) {
       dat->arrayType->copyValue(csound, dat->arrayType, (void*)dest, (void*)mem,
@@ -992,22 +992,16 @@ static int32_t set_cols_i(CSOUND *csound, FFT *p) {
 }
 
 static int32_t set_cols_perf_S(CSOUND *csound, FFT *p) {
-  ARRAYDAT* dat = p->in;      /* The data in 2_D array */
-  STRINGDAT* mem = (STRINGDAT*)dat->data;
+  STRINGDAT* mem = (STRINGDAT*)p->in->data;
   STRINGDAT* dest = (STRINGDAT*)p->out->data;
   int32_t i;
   int32_t index = (int32_t)(*((MYFLT *)p->in2));
-  if (LIKELY(index < p->in->sizes[0])) {
-    index = (index * dat->sizes[1]);
-    //printf("%d : %d\n", index, dat->sizes[1]);
-    mem += index;
-    //incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
-    //printf("*** mem = %p dst = %p\n", mem, dest);
+  if (LIKELY(index >= 0 && index < p->out->sizes[1])) {
+    dest += index;
     for (i = 0; i<p->in->sizes[0]; i++) {
-      dat->arrayType->copyValue(csound, dat->arrayType, (void*)mem, (void*)dest,
-                                p->h.insdshead);
-      //printf("*** copies i=%d: %s -> %s\n", i,(char*)(mem->data),(char*)(dest->data));
-      dest += p->in->sizes[1];
+      p->in->arrayType->copyValue(csound, p->in->arrayType,
+                                  (void*)dest, (void*)mem, p->h.insdshead);
+      dest += p->out->sizes[1];
       mem  += 1;
     }
     return OK;
