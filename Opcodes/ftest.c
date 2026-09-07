@@ -141,6 +141,9 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
   srcfil = csound->FTFind(csound, &ff->e.p[5]);
   if (srcfil==NULL)
     return csound->InitError(csound, "%s", Str("ftable number does not exist\n"));
+  if (UNLIKELY(ftp->flen < srcfil->flen))
+    return csound->FtError(ff, "%s",
+                           Str("wave table size is smaller than source table size"));
   if (UNLIKELY(nargs < 3))
     csound->Warning(csound, "%s", Str("insufficient arguments"));
   fp_filter = srcfil->ftable;
