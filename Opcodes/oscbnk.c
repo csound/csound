@@ -623,6 +623,7 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
     /* save amplitude and phase */
     o->osc_amp = a;
     o->osc_phs = ph;
+    o->osc_phsf = phf;
   }
   p->init_k = 0;
   return OK;
