@@ -876,7 +876,7 @@ static int32_t grain2(CSOUND *csound, GRAIN2 *p)
         if (w_interp) a += (pos - n)*(w_ft[n+1] - a);
         o->window_phsf += wf;
         if (o->window_phsf >= FL(1.0)) {
-          o->window_phs = PHMOD1(o->window_phs);       /* new grain    */
+          o->window_phsf = PHMOD1(o->window_phsf);     /* new grain    */
           grain2_init_grain(p, o);
           /* grain frequency */
           if (f_nolock) {

@@ -582,6 +582,7 @@ def runTest():
         ["test_voice_init.csd", "voice initializes its SingWave helper"],
         ["test_grain3_overlap_regression.csd", "grain3 should not fail with false overlap error"],
         ["test_grain3_float_interpolation.csd", "grain3 float-path interpolation should stay positive"],
+        ["test_grain2_float_window_wrap.csd", "grain2 wraps non-power-of-two window phase"],
         ["test_gbuzz_nonpower_phase.csd", "gbuzz scales non-power-of-two table indexes correctly"],
         ["test_envlpx_float_interpolation.csd", "envlpx interpolates non-power-of-two tables correctly"],
         ["test_instr_redefinition.csd", "allow instr redefinition"],
