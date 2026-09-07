@@ -739,7 +739,7 @@ static int32_t rows_init(CSOUND *csound, FFT *p) {
 
 static int32_t rows_perf(CSOUND *csound, FFT *p) {
   int32_t start = *((MYFLT *)p->in2);
-  if (LIKELY(start < p->in->sizes[0])) {
+  if (LIKELY(start >= 0 && start < p->in->sizes[0])) {
     int32_t bytes =  p->in->sizes[1]*sizeof(MYFLT);
     start *= p->in->sizes[1];
     memcpy(p->out->data,p->in->data+start,bytes);
@@ -757,7 +757,7 @@ static int32_t rows_perf_S(CSOUND *csound, FFT *p)
   STRINGDAT* dest = (STRINGDAT*)p->out->data;
   int32_t i;
   int32_t index = (int32_t)(*((MYFLT *)p->in2));
-  if (LIKELY(index < p->in->sizes[0])) {
+  if (LIKELY(index >= 0 && index < p->in->sizes[0])) {
     index = (index * dat->sizes[1]);
     //printf("%d : %d\n", index, dat->sizes[1]);
     mem += index;
@@ -804,7 +804,7 @@ static int32_t set_rows_perf_S(CSOUND *csound, FFT *p)
 static int32_t rows_i(CSOUND *csound, FFT *p) {
   if (rows_init(csound,p) == OK) {
     int32_t start = *((MYFLT *)p->in2);
-    if (LIKELY(start < p->in->sizes[0])) {
+    if (LIKELY(start >= 0 && start < p->in->sizes[0])) {
       int32_t bytes =  p->in->sizes[1]*sizeof(MYFLT);
       start *= p->in->sizes[1];
       memcpy(p->out->data,p->in->data+start,bytes);
@@ -878,7 +878,7 @@ static int32_t cols_init(CSOUND *csound, FFT *p) {
 static int32_t cols_perf(CSOUND *csound, FFT *p) {
   int32_t start = *((MYFLT *)p->in2);
 
-  if (LIKELY(start < p->in->sizes[1])) {
+  if (LIKELY(start >= 0 && start < p->in->sizes[1])) {
     int32_t j,i,collen =  p->in->sizes[1], len = p->in->sizes[0];
     for (j=0,i=start; j < len; i+=collen, j++) {
       p->out->data[j] = p->in->data[i];
@@ -892,7 +892,7 @@ static int32_t cols_perf(CSOUND *csound, FFT *p) {
 static int32_t cols_i(CSOUND *csound, FFT *p) {
   if (cols_init(csound, p) == OK) {
     int32_t start = *((MYFLT *)p->in2);
-    if (LIKELY(start < p->in->sizes[1])) {
+    if (LIKELY(start >= 0 && start < p->in->sizes[1])) {
       int32_t j,i,collen =  p->in->sizes[1], len = p->in->sizes[0];
       for (j=0,i=start; j < len; i+=collen, j++) {
         p->out->data[j] = p->in->data[i];

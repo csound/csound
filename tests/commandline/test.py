@@ -895,6 +895,7 @@ def runTest():
         ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],
         ["arrays/test_empty_array_init.csd", "test zero-length array initialization"],
         ["arrays/test_getcol_string.csd", "getcol accepts the last string-array column"],
+        ["arrays/test_getrow_negative.csd", "reject negative getrow index", 1],
         [
             "arrays/test_struct_array_reshape_copy.csd",
             "reshaping a struct-array copy preserves its source",
