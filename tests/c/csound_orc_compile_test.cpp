@@ -864,6 +864,27 @@ i 1 0 -1
   result = csoundPerformKsmps(csound);
 }
 
+TEST (ScoreCompileTests, testUnmatchedScoreParenthesis)
+{
+  CSOUND *csound = csoundCreate(NULL, NULL);
+  const char* csd = R"(
+<CsoundSynthesizer>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+instr 1
+endin
+</CsInstruments>
+<CsScore>
+i1 0 1 [1)
+</CsScore>
+</CsoundSynthesizer>
+  )";
+  EXPECT_EQ(CSOUND_ERROR, csoundCompileCSD(csound, csd, 1, 0));
+  csoundDestroy(csound);
+}
+
 TEST_F (OrcCompileTests, testAssert)
 {
     int32_t result;
