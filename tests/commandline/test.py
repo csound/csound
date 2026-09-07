@@ -695,6 +695,10 @@ def runTest():
             "test multiple operations on multiple array types",
         ],
         [
+            "test_tablemix_nonpower_source.csd",
+            "test tableimix wraps a non-power-of-two source table",
+        ],
+        [
             "prints_number_no_crash.csd",
             "test prints does not crash when given a number arguments"
         ],

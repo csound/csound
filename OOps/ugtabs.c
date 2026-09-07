@@ -717,7 +717,7 @@ int32_t table_mix(CSOUND *csound, TABLMIX *p) {
                       Str("table: could not find ftable %d"), (int32_t) *p->tab1);
       return NOTOK;
     }
-    np21 = isPowerOfTwo(ftp->flen) ? 0 : 1;
+    np21 = isPowerOfTwo(ftp1->flen) ? 0 : 1;
 
     if (UNLIKELY((ftp2 = csound->FTFind(csound, p->tab2)) == NULL)) {
       csound->Warning(csound,
