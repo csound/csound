@@ -845,6 +845,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
 
       p->left = indx;             /*      and keep track of where you are */
       p->lphs = phs;
+      p->fphs = fphs;
       return OK;
     err1:
       return csound->PerfError(csound, &(p->h), "%s", Str("vco: not initialised"));
