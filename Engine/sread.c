@@ -1121,7 +1121,20 @@ static MYFLT read_expression(CSOUND *csound)
           *++op = c; c = getscochar(csound, 1); break;
         case ')':
           if (UNLIKELY(!type)) {
-            scorerr(csound, Str("missing operand before ')' in [] expression"));
+            csound->inerrcnt++;
+            csound->ErrorMsg(csound,
+                             Str("score error: missing operand before ')' in [] expression"));
+            print_input_backtrace(csound, 1, csoundErrorMsg);
+            flushlin(csound);
+            return FL(0.0);
+          }
+          if (UNLIKELY(*op != '(')) {
+            csound->inerrcnt++;
+            csound->ErrorMsg(csound,
+                             Str("score error: unmatched ')' in [] expression"));
+            print_input_backtrace(csound, 1, csoundErrorMsg);
+            flushlin(csound);
+            return *pv;
           }
           while (*op != '(') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
