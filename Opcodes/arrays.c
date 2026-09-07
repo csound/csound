@@ -911,7 +911,7 @@ static int32_t cols_perf_S(CSOUND *csound, FFT *p) {
   STRINGDAT* dest = (STRINGDAT*)p->out->data;
   int32_t i;
   int32_t index = (int32_t)(*((MYFLT *)p->in2));
-  if (LIKELY(index < p->in->sizes[0])) {
+  if (LIKELY(index >= 0 && index < p->in->sizes[1])) {
     mem += index;
     for (i = 0; i<p->in->sizes[0]; i++) {
       dat->arrayType->copyValue(csound, dat->arrayType, (void*)dest, (void*)mem,
