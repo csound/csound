@@ -1166,6 +1166,11 @@ static MYFLT read_expression(CSOUND *csound)
           if (UNLIKELY(!type)) {
             scorerr(csound, Str("missing operand before closing bracket in []"));
           }
+          while (*op != '[' && *op != '(') {
+            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            op--; pv--;
+            *pv = v;
+          }
           if (UNLIKELY(*op != '[')) {
             csound->inerrcnt++;
             csound->ErrorMsg(csound,
@@ -1173,11 +1178,6 @@ static MYFLT read_expression(CSOUND *csound)
             print_input_backtrace(csound, 1, csoundErrorMsg);
             flushlin(csound);
             return *pv;
-          }
-          while (*op != '[') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
-            op--; pv--;
-            *pv = v;
           }
           //printf("done ]*** *op=%c v=%lg (%c)\n", *op, *pv, c);
           //getscochar(csound, 1);
