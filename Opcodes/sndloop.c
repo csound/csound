@@ -362,6 +362,7 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
     }
 
     buffer[durs] = buffer[0]; /* for wrap-around interpolation */
+    if (nchnls == 2) buffer[durs + 1] = buffer[1];
     p->strts     = starts/nchnls;
     p->durs      = durs/nchnls;
     p->ndx       = FL(0.0);   /* lookup index */
