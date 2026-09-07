@@ -3879,6 +3879,9 @@ int32_t tabslice(CSOUND *csound, TABSLICE *p) {
   int32_t end   = (int32_t) *p->end >= 0 ? *p->end :
     p->tabin->sizes[0] - 1;
   int32_t inc   = (int32_t) *p->inc;
+  if (UNLIKELY(inc<=0))
+    return csound->InitError(csound, "%s",
+                             Str("slice increment must be positive"));
   int32_t size = (end - start)/inc + 1;
 
   int32_t i, destIndex;
@@ -3892,9 +3895,6 @@ int32_t tabslice(CSOUND *csound, TABSLICE *p) {
     return csound->InitError(csound, "%s",
                              Str("slice larger than original size"));
   }
-  if (UNLIKELY(inc<=0))
-    return csound->InitError(csound, "%s",
-                             Str("slice increment must be positive"));
   if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
 
