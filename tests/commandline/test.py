@@ -553,6 +553,10 @@ def runTest():
             "expected failure: GEN42 probability total overflows",
             1,
         ],
+        [
+            "test_ftest_wave_short_destination.csd",
+            "reject an undersized wave table without crashing",
+        ],
         ["test_ftload_binary_args_ownership.csd", "test binary ftload does not share args ownership"],
         ["test_getftargs_empty_after_ftload.csd", "test getftargs returns empty args after binary ftload"],
         ["test_fail_compilestr.csd", "testing clean compilestr fail"],
@@ -580,6 +584,7 @@ def runTest():
         ["test_grain3_float_interpolation.csd", "grain3 float-path interpolation should stay positive"],
         ["test_gbuzz_nonpower_phase.csd", "gbuzz scales non-power-of-two table indexes correctly"],
         ["test_vco_float_phase_state.csd", "vco preserves float phase between blocks"],
+        ["test_envlpx_float_interpolation.csd", "envlpx interpolates non-power-of-two tables correctly"],
         ["test_instr_redefinition.csd", "allow instr redefinition"],
         ["test_instr0_labels.csd", "test labels in instr0 space"],
         ["test_string.csd", "test string assignment and printing"],

@@ -1455,7 +1455,7 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
       v1 = *ftab++;
       fact = (v1 + (*ftab - v1) * fract);
       phsf += p->kif;
-      if (phs >= FL(1.0)) {  
+      if (phsf >= FL(1.0)) {
         p->val = *(ftp->ftable + ftp->flen - 1); // unlikely to have ext gp
         if (UNLIKELY(!p->val)) {
           return csound->PerfError(csound, &(p->h),
@@ -1614,11 +1614,11 @@ int32_t envlpx(CSOUND *csound, ENVLPX *p)
         p->phs = phs;
       } else {
         MYFLT posf = phsf*flen;
-        fract = pos - (int32_t) posf;
+        fract = posf - (int32_t) posf;
         v1 = ftab[(int32_t) posf];
         fact = (v1 + (ftab[(int32_t)posf+1] - v1) * fract);
         phsf += p->kif;
-        if (phs >= FL(1.0)) {
+        if (phsf >= FL(1.0)) {
           p->val = ftab[flen - 1]; // unlikely to have ext gp
           p->val -= p->asym;
           phsf = FL(-1.0);
@@ -1809,7 +1809,7 @@ int32_t knvlpxr(CSOUND *csound, ENVLPR *p)
         MYFLT v1 = *ftab++;
         fact = (v1 + (*ftab - v1) * fract);
         phsf += p->kif;
-        if (phs  < FL(1.0) || p->rlsing)  
+        if (phsf < FL(1.0) || p->rlsing)
           p->val = fact;
         else {
           p->val = *(ftp->ftable + ftp->flen - 1);
@@ -1898,13 +1898,13 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
         } else {
           MYFLT fpos = phsf*flen;
           fract = fpos - (int32_t) fpos;
-          v1 = ftab[pos];
-          fact = (v1 + (ftab[pos+1] - v1) * fract);
+          v1 = ftab[(int32_t) fpos];
+          fact = (v1 + (ftab[(int32_t) fpos+1] - v1) * fract);
           phsf += p->kif;
-          if (phs >= 1.) {
+          if (phsf >= 1.) {
             val = ftab[p->ftp->flen];
             val -= p->asym;
-            phs = -1;
+            phsf = -1;
           }
           else val = fact;      
           p->phsf = phsf;
