@@ -852,6 +852,7 @@ def runTest():
             "test_keyword_spacing.csd",
             "test keyword spacing (if(, elseif(, etc.)",
         ],
+        ["test_mvmfilter_mixed_rate.csd", "test mvmfilter with mixed input rates"],
         ["test_dbap.csd", "test dbap and dbapgains opcodes"],
         ["test_compress_control_gain.csd", "compressors update gain when ratio or knee controls change"],
         ["test_generic_chan.csd", "testing generic bus channel"],
