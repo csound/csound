@@ -338,7 +338,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
         /* if the envelope is finished */
         /* the grain is also finished */
 
-        if (UNLIKELY(envindex[j] > envtablesize))
+        if (UNLIKELY(envindex[j] >= envtablesize))
           streamon[j] = 0;
       }
 
