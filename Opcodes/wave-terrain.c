@@ -111,24 +111,48 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
 static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
 {
   uint32_t srcpos = 0;
-  uint32_t dstpos = (uint32_t)MYFLT2LONG(*p->ipos);
+  uint32_t dstpos;
+  MYFLT *source;
+  MYFLT *sourceCopy = NULL;
 
   FUNC *fsrc = csound->FTFind(csound, p->isrc); /* Source table */
   FUNC *fdst = csound->FTFind(csound, p->idst); /* Destination table */
+
+  if (UNLIKELY(fsrc == NULL || fdst == NULL))
+    return NOTOK;
 
   if (UNLIKELY(fsrc->flen > fdst->flen)) {
     return csound->InitError(csound,  "%s",  Str("Source table must be same size or "
                                          "smaller than dest table\n"));
   }
 
+  /* Validate before converting the position or writing the first sample. */
+  if (UNLIKELY(!(*p->ipos >= FL(0.0) &&
+                 (double)*p->ipos < (double)fdst->flen)))
+    return csound->InitError(csound, "%s",
+                            Str("scanhammer: position must be within the "
+                                "destination table"));
+
+  /* A fractional position selects the point below it. */
+  dstpos = (uint32_t)floor((double)*p->ipos);
+
+  source = fsrc->ftable;
+  if (UNLIKELY(fsrc == fdst && dstpos != 0)) {
+    size_t sourceBytes = (size_t)fsrc->flen * sizeof(MYFLT);
+    sourceCopy = csound->Malloc(csound, sourceBytes);
+    memcpy(sourceCopy, source, sourceBytes);
+    source = sourceCopy;
+  }
+
   for (srcpos=0; srcpos<fsrc->flen; srcpos++) {
 
-    fdst->ftable[dstpos] = fsrc->ftable[srcpos] * *p->imode;
+    fdst->ftable[dstpos] = source[srcpos] * *p->imode;
 
-    if (++dstpos > fdst->flen) {
+    if (++dstpos >= fdst->flen) {
       dstpos = 0;
     }
   }
+  if (sourceCopy != NULL) csound->Free(csound, sourceCopy);
   return OK;
 }
 
