@@ -912,6 +912,7 @@ static int32_t grain3set(CSOUND *csound, GRAIN3 *p)
   p->init_k = 1;
   p->mode = i & 0x7E;
   p->x_phs = OSCBNK_PHSMAX;
+  p->x_phsf = FL(1.0);
 
   p->ovrlap = (int32_t) MYFLT2LONG(*(p->imaxovr));        /* max. overlap */
   p->ovrlap = (p->ovrlap < 1 ? 1 : p->ovrlap) + 1;
