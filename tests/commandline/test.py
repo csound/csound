@@ -794,6 +794,7 @@ def runTest():
             1,
         ],
         ["test_sa.csd", "test sample accurate mode"],
+        ["test_wguide_sample_offset.csd", "waveguides align audio-rate frequencies with note starts"],
         [
             "test_local_ksmps_sample_accurate.csd",
             "test sample-accurate local ksmps offsets",
