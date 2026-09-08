@@ -192,22 +192,40 @@ int32_t ko1set(CSOUND *csound, OSCIL1 *p)
 
   if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
     return NOTOK;
-  if(IS_POW_TWO(ftp->flen)) {
-  if (UNLIKELY(*p->idur <= FL(0.0))) {
-    p->phs = MAXLEN-1;
-  }
-  else p->phs = 0;
-  p->kinc = (int32_t) (CS_KICVT / *p->idur);
-  if (p->kinc==0) p->kinc = 1;
-  } else {
-    if (UNLIKELY(*p->idur <= FL(0.0)))
-      p->fphs = 1. - 1./ftp->flen;
-    else p->fphs = FL(0.0);
-    p->kinc = 0;
-    p->inc = 1./(*p->idur*CS_EKR);
-  }
+  if (UNLIKELY(!isfinite(*p->idur)))
+    return csound->InitError(csound, "%s",
+                            Str("oscil1: duration must be finite"));
+
   p->ftp = ftp;
   p->dcnt = (int32_t)(*p->idel * CS_EKR);
+  if (IS_POW_TWO(ftp->flen)) {
+    if (*p->idur == FL(0.0)) {
+      p->phs = MAXLEN;
+      p->kinc = 1; /* Select the fixed-point table path. */
+      p->dcnt = -1;
+    }
+    else {
+      double increment = CS_KICVT / *p->idur;
+      p->phs = *p->idur < FL(0.0) ? MAXLEN - 1 : 0;
+      /* A scan shorter than one control period reaches the end in one step. */
+      if (increment >= MAXLEN) p->kinc = MAXLEN;
+      else if (increment <= -MAXLEN) p->kinc = -MAXLEN;
+      else p->kinc = (int32_t) increment;
+      if (p->kinc == 0) p->kinc = *p->idur < FL(0.0) ? -1 : 1;
+    }
+  }
+  else {
+    p->kinc = 0;
+    if (*p->idur == FL(0.0)) {
+      p->fphs = 1.;
+      p->inc = 0.;
+      p->dcnt = -1;
+    }
+    else {
+      p->fphs = *p->idur < FL(0.0) ? 1. - 1./ftp->flen : 0.;
+      p->inc = 1./(*p->idur*CS_EKR);
+    }
+  }
 
   return OK;
 }
@@ -261,27 +279,37 @@ int32_t kosc1(CSOUND *csound, OSCIL1 *p)
 int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
 {
   FUNC        *ftp;
-  MYFLT       fract, v1, *ftab, fphs = p->fphs;
+  MYFLT       fract, v1, *ftab;
+  double      fphs = p->fphs;
   int32_t     phs = p->phs, dcnt;
 
   ftp = p->ftp;
   if (UNLIKELY(ftp==NULL)) goto err1;
   phs = p->phs;
-  if(p->kinc != 0) {
-  fract = PFRAC(phs);
-  ftab = ftp->ftable + (phs >> ftp->lobits);
-  v1 = *ftab++;
-  *p->rslt = (v1 + (*ftab - v1) * fract) * *p->kamp;
-  } else {
-    fphs = p->fphs;
-    fract = fphs - (int64_t) fphs;
-    ftab = ftp->ftable + (size_t) (fphs*ftp->flen);
-    v1 = *ftab++;
-    *p->rslt = (v1 + (*ftab - v1) * fract) * *p->kamp;
+  if (p->kinc != 0) {
+    if (phs >= MAXLEN)
+      *p->rslt = ftp->ftable[ftp->flen] * *p->kamp;
+    else {
+      fract = PFRAC(phs);
+      ftab = ftp->ftable + (phs >> ftp->lobits);
+      v1 = *ftab++;
+      *p->rslt = (v1 + (*ftab - v1) * fract) * *p->kamp;
+    }
+  }
+  else {
+    double position = fphs * ftp->flen;
+    if (position >= ftp->flen)
+      *p->rslt = ftp->ftable[ftp->flen] * *p->kamp;
+    else {
+      uint32_t index = (uint32_t) position;
+      fract = (MYFLT)(position - index);
+      ftab = ftp->ftable + index;
+      v1 = *ftab++;
+      *p->rslt = (v1 + (*ftab - v1) * fract) * *p->kamp;
+    }
   }
   if ((dcnt = p->dcnt) > 0) {
     dcnt--;
-    p->dcnt = dcnt;
   }
   else if (dcnt == 0) {
     if(p->kinc != 0) {
@@ -308,6 +336,7 @@ int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
     p->fphs = fphs;
     }
   }
+  p->dcnt = dcnt;
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
