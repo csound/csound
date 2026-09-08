@@ -338,7 +338,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
         /* if the envelope is finished */
         /* the grain is also finished */
 
-        if (UNLIKELY(envindex[j] > envtablesize))
+        if (UNLIKELY(envindex[j] >= envtablesize))
           streamon[j] = 0;
       }
 
@@ -668,6 +668,11 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
         if (index[j]  < 0)
           index[j] += dataframes;
 
+        if (UNLIKELY(envindex[j] >= envtablesize)) {
+          streamon[j] = 0;
+          continue;
+        }
+
         /* sum all the grain streams */
         tndx = (int32_t)index[j]*chans;
         endx = (int32_t) envindex[j];
@@ -692,7 +697,7 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
 
         /* if the envelope is finished */
         /* the grain is also finished */
-        if (envindex[j] > envtablesize)
+        if (envindex[j] >= envtablesize)
           streamon[j] = 0;
       }
 

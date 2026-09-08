@@ -591,6 +591,8 @@ def runTest():
         ["test_grain4_subsample_length.csd", "reject sub-sample grain4 source length", 1],
         ["test_grain4_zero_pitch.csd", "reject a selected zero grain4 pitch", 1],
         ["test_flooper_stereo_guard.csd", "flooper preserves the stereo wrap sample"],
+        ["test_diskgrain_envelope_bounds.csd", "diskgrain stops at envelope table bounds"],
+        ["test_syncloop_envelope_end.csd", "syncloop retires grains at the envelope end"],
         ["test_gbuzz_nonpower_phase.csd", "gbuzz scales non-power-of-two table indexes correctly"],
         ["test_oscbnk_float_phase_state.csd", "oscbnk preserves non-power-of-two oscillator phase"],
         ["test_vco_float_phase_state.csd", "vco preserves non-power-of-two oscillator phase"],
