@@ -594,6 +594,7 @@ def runTest():
         ["test_diskgrain_envelope_bounds.csd", "diskgrain stops at envelope table bounds"],
         ["test_syncloop_envelope_end.csd", "syncloop retires grains at the envelope end"],
         ["test_gbuzz_nonpower_phase.csd", "gbuzz scales non-power-of-two table indexes correctly"],
+        ["test_space_trajectory_endpoint.csd", "space and spdist handle the last trajectory frame"],
         ["test_oscbnk_float_phase_state.csd", "oscbnk preserves non-power-of-two oscillator phase"],
         ["test_vco_float_phase_state.csd", "vco preserves non-power-of-two oscillator phase"],
         ["test_envlpx_float_interpolation.csd", "envlpx interpolates non-power-of-two tables correctly"],
