@@ -584,6 +584,7 @@ def runTest():
         ["test_grain3_float_interpolation.csd", "grain3 float-path interpolation should stay positive"],
         ["test_grain3_float_density_start.csd", "grain3 float path should start its first grain immediately"],
         ["test_grain2_float_window_wrap.csd", "grain2 wraps non-power-of-two window phase"],
+        ["test_partikkel_float_table_index.csd", "partikkel uses the scaled index for float table lookup"],
         ["test_grain4_correctness.csd", "grain4 handles envelopes, boundaries, and unused pitches"],
         ["test_grain4_region_rounding.csd", "grain4 preserves sample rounding for source regions"],
         ["test_grain4_zero_length.csd", "reject zero grain4 source length", 1],
