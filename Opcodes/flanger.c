@@ -133,6 +133,7 @@ static int32_t wguide1(CSOUND *csound, WGUIDE1 *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (p->xdelcod) { /* delay changes at audio-rate */
+      freq_del += offset;
       for (n                 = offset; n<nsmps; n++) {
         /*---------------- delay -----------------------*/
         MYFLT fd             = *freq_del++;
@@ -265,6 +266,8 @@ static int32_t wguide2(CSOUND *csound, WGUIDE2 *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (p->xdel1cod) { /* delays change at audio-rate */
+      freq_del1 += offset;
+      freq_del2 += offset;
       for (n=offset;n<nsmps;n++) {
         MYFLT fd1 = *freq_del1++;
         MYFLT fd2 = *freq_del2++;
