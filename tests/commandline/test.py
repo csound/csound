@@ -584,6 +584,7 @@ def runTest():
         ["test_grain3_float_interpolation.csd", "grain3 float-path interpolation should stay positive"],
         ["test_grain2_float_window_wrap.csd", "grain2 wraps non-power-of-two window phase"],
         ["test_flooper_stereo_guard.csd", "flooper preserves the stereo wrap sample"],
+        ["test_diskgrain_envelope_bounds.csd", "diskgrain stops at envelope table bounds"],
         ["test_gbuzz_nonpower_phase.csd", "gbuzz scales non-power-of-two table indexes correctly"],
         ["test_oscbnk_float_phase_state.csd", "oscbnk preserves non-power-of-two oscillator phase"],
         ["test_vco_float_phase_state.csd", "vco preserves non-power-of-two oscillator phase"],
