@@ -120,6 +120,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
       }
       else
         p->kneemul = FL(1.0);
+      p->newenv = 1;
     }
     if (*p->katt != p->curatt) {
       if ((p->curatt = *p->katt) < CS_ONEDSR)
