@@ -22,8 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
-      - uses: cachix/install-nix-action@v31
+        uses: actions/checkout@v7.0.1
+      - uses: cachix/install-nix-action@v31.11.1
         with:
           nix_path: ${{ env.nix_path }}
       - uses: cachix/cachix-action@v17
@@ -38,13 +38,13 @@ jobs:
           nix-env -f '<nixpkgs>' -iA zip
           zip -r lib.zip lib
       - name: Archive Wasm Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: lib
           path: ${{ env.wasm_bin_dir }}/lib.zip
       - name: Archive command-line test sources
         continue-on-error: false
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: wasm-commandline-test-sources
           path: |
@@ -58,16 +58,16 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Download Wasm artifact from build job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: lib
           path: ${{ runner.temp }}/wasm-commandline-source/wasm
       - name: Download matching command-line test sources
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: wasm-commandline-test-sources
           path: ${{ runner.temp }}/wasm-commandline-source
-      - uses: cachix/install-nix-action@v31
+      - uses: cachix/install-nix-action@v31.11.1
         with:
           nix_path: ${{ env.nix_path }}
       - name: Uncompress Wasm artifact
@@ -92,8 +92,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v5
-      - uses: cachix/install-nix-action@v31
+        uses: actions/checkout@v7.0.1
+      - uses: cachix/install-nix-action@v31.11.1
         with:
           nix_path: ${{ env.nix_path }}
       - uses: cachix/cachix-action@v17
@@ -101,7 +101,7 @@ jobs:
           name: csound
           authToken: ${{ secrets.CACHIX_TOKEN }}
       - name: Download Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: lib
       - name: Uncompress freshly compiled wasm artifacts
@@ -147,7 +147,7 @@ jobs:
           rm tests/_results.junit.xml
       - name: Publish Test Report
         if: always()
-        uses: mikepenz/action-junit-report@v6
+        uses: mikepenz/action-junit-report@v6.5.0
         with:
           report_paths: "**/tests/*.junit.xml"
           annotate_only: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}

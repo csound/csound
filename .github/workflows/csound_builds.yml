@@ -24,13 +24,13 @@ jobs:
       release: ${{ steps.check_pr.outputs.has_label }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
       - name: Update version
         id: tag
-        uses: anothrNick/github-tag-action@1.36.0
+        uses: anothrNick/github-tag-action@1.75.0
         env:
           PRERELEASE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
@@ -86,7 +86,7 @@ jobs:
       UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
@@ -136,15 +136,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.3.3
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -216,7 +216,7 @@ jobs:
             libportmidi-dev
 
       - name: Checkout Csound
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
@@ -227,7 +227,7 @@ jobs:
       # se we include them and add those formats for libsndfile
       - name: Cache static codec chain
         id: cache-static-deps
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: ${{ env.DEPS_PREFIX }}
           key: |
@@ -526,7 +526,7 @@ jobs:
           fi
 
       - name: Upload artefacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: csound-linux-minimal-x86_64
           path: dist/
@@ -543,7 +543,7 @@ jobs:
         run: brew install bison flex
 
       - name: Checkout Source Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
@@ -558,7 +558,7 @@ jobs:
         run: |
           ./build.sh
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.1
         if: github.ref == 'refs/heads/develop'
         with:
           name: Csound-For-iOS-${{env.CSOUND_VERSION}}
@@ -571,15 +571,15 @@ jobs:
       VERSION: v1
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.3.3
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -624,7 +624,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
@@ -652,7 +652,7 @@ jobs:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
@@ -686,7 +686,7 @@ jobs:
           cp -r Daisy/include arm-cortex-m7
 
       - name: Upload zip
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-arm-cortex-m7
           path: arm-cortex-m7
@@ -699,7 +699,7 @@ jobs:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
@@ -785,7 +785,7 @@ jobs:
           pkgbuild --identifier com.csound.csound7Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
 
       - name: Upload zip
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-beta
           path: ./CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
@@ -796,15 +796,15 @@ jobs:
     if: false
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.3.3
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -833,15 +833,15 @@ jobs:
     if: false
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.3.3
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -872,15 +872,15 @@ jobs:
       VERSION: v1
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.3.3
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -931,15 +931,15 @@ jobs:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.3.3
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -992,7 +992,7 @@ jobs:
 
       - name: Upload installer
 #        if: github.ref == 'refs/heads/develop'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-installer
           path: ./Csound7-windows_x86_64-*.exe
@@ -1000,7 +1000,7 @@ jobs:
 
       - name: Upload zip
 #        if: github.ref == 'refs/heads/develop'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-binaries
           path: |
@@ -1021,15 +1021,15 @@ jobs:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.3.3
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -1084,7 +1084,7 @@ jobs:
 
       - name: Upload installer
 #        if: github.ref == 'refs/heads/develop'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: Csound_i386-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-installer
           path: ./Csound7-windows_x86-*.exe
@@ -1092,7 +1092,7 @@ jobs:
 
       - name: Upload zip
 #        if: github.ref == 'refs/heads/develop'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: Csound_i386-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-i386-binaries
           path: |
@@ -1111,15 +1111,15 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.3.3
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -1157,15 +1157,15 @@ jobs:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.3.3
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -1208,7 +1208,7 @@ jobs:
 
       - name: Upload zip
 #       if: github.ref == 'refs/heads/develop'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: Csound_i386-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-mingw-binaries
           path: |
@@ -1228,15 +1228,15 @@ jobs:
       VERSION: v1
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.3.3
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -1289,13 +1289,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           submodules: true
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -1305,7 +1305,7 @@ jobs:
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Set up Emscripten
-        uses: mymindstorm/setup-emsdk@v14
+        uses: mymindstorm/setup-emsdk@v16
         with:
           version: 3.1.64
           actions-cache-folder: emsdk-cache
@@ -1333,7 +1333,7 @@ jobs:
         run: brew install swig bison flex
 
       - name: Checkout Source Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
@@ -1367,7 +1367,7 @@ jobs:
           sh update.sh
           sh release.sh
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.1
         #if: github.ref == 'refs/heads/develop'
         with:
           name: CsoundForAndroid-${{env.CSOUND_VERSION}}
@@ -1393,55 +1393,55 @@ jobs:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Download Windows installer
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-installer
           path: csound-windows-${{env.CSOUND_VERSION}}
 
       - name: Download Windows binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-binaries
           path: csound-windows-i386-${{env.CSOUND_VERSION}}
 
       - name: Download Windows 32-bit installer
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: Csound_i386-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-installer
           path: csound-windows-i386-installer-${{env.CSOUND_VERSION}}
 
       - name: Download Windows 32-bit binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: Csound_i386-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-i386-binaries
           path: csound-windows-i386-${{env.CSOUND_VERSION}}
 
       - name: Download macOS installer
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-beta
           path: csound-macos-${{env.CSOUND_VERSION}}
 
       - name: Download arm-cortex-m7 package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-arm-cortex-m7
           path: csound-arm-cortex-m7-${{env.CSOUND_VERSION}}
 
       - name: Download iOS artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: Csound-For-iOS-${{env.CSOUND_VERSION}}
           path: csound-ios-${{env.CSOUND_VERSION}}
 
       - name: Download Android artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: CsoundForAndroid-${{env.CSOUND_VERSION}}
           path: csound-android-${{env.CSOUND_VERSION}}
 
       - name: Download Linux minimal artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: csound-linux-minimal-x86_64
           path: csound-linux-minimal-x86_64-${{env.CSOUND_VERSION}}
@@ -1460,7 +1460,7 @@ jobs:
         run: ls -l
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3.0.3
         with:
           token: ${{ secrets.SERVICE_ACCOUNT_PAT }}
           tag_name: ${{ env.CSOUND_VERSION }}
