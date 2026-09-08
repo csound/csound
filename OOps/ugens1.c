@@ -210,15 +210,15 @@ int32_t klnseg(CSOUND *csound, LINSEG *p)
   if (UNLIKELY(p->segsrem)) {                   /* done if no more segs */
     if (--p->curcnt <= 0) {           /* if done cur segment  */
       SEG *segp = p->cursegp;
+    nextseg:
       if (UNLIKELY(!(--p->segsrem)))  {
         p->curval = segp->nxtpt;      /* advance the cur val  */
         return OK;
       }
       p->cursegp = ++segp;            /*   find the next      */
       if (UNLIKELY(!(p->curcnt = segp->cnt))) { /*   nonlen = discontin */
-        p->curval = segp->nxtpt;      /*   poslen = new slope */
-        /*          p->curval += p->curinc;  ??????? */
-        return OK;
+        *p->rslt = p->curval = segp->nxtpt;
+        goto nextseg;                /* skip instantaneous segments */
       }
       else {
         p->curinc = (segp->nxtpt - p->curval) / segp->cnt;
@@ -306,19 +306,20 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
   //printf("len = %f\n", len);
   if (UNLIKELY(len<=FL(0.0)))
     len = (int32_t) MAXSEGDUR;// FL(10000.0); /* MIDI case set int32_t */
-  nsegs = 6;          /* DADSR */
+  nsegs = 6;          /* dummy segment followed by DADSR */
   if ((segp = (SEG *) p->auxch.auxp) == NULL ||
-      nsegs*sizeof(SEG) < (uint32_t)p->auxch.size) {
+      nsegs*sizeof(SEG) > p->auxch.size) {
     csound->AuxAlloc(csound, (size_t) nsegs * sizeof(SEG), &p->auxch);
     p->cursegp = segp = (SEG *) p->auxch.auxp;
     segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
   }
-  else if (**argp > FL(0.0))
+  else if (**argp >= FL(0.0))
     memset(p->auxch.auxp, 0, (size_t)nsegs*sizeof(SEG));
-  if (**argp <= FL(0.0))  return OK;       /* if idur1 <= 0, skip init  */
+  if (**argp < FL(0.0))  return OK;        /* negative attack skips init */
   p->curval = 0.0;
   p->curcnt = 0;
-  p->cursegp = segp - 1;      /* else setup null seg0 */
+  p->curinc = p->curainc = 0.0;
+  p->cursegp = segp++;        /* keep the dummy segment inside the allocation */
   p->segsrem = nsegs;
   //printf("args: %f %f %f %f %f\n",
   //       *argp[0], *argp[1], *argp[2], *argp[3],* argp[4]);
@@ -326,6 +327,8 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
   dur = (double)*argp[4];
   segp->nxtpt = FL(0.0);
   segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5));
+  if (UNLIKELY((segp->acnt = (int32_t)(dur * CS_ESR + FL(0.5))) < 0))
+    segp->acnt = 0;
   //printf("delay: dur=%f cnt=%d\n", dur, segp->cnt);
   segp++;
   /* Attack */
@@ -367,10 +370,15 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
   //printf("release: dur=%f cnt=%d acnt=%d nxt=%f\n",
   //       dur, segp->cnt, segp->acnt, segp->nxtpt);
   if (midip) {
+    double relcount = (double)*argp[5] * CS_EKR + 0.5;
+    if (UNLIKELY(!isfinite(*argp[5]) ||
+                 relcount >= (double)(INT_MAX / CS_KSMPS) + 1.0))
+      return csound->InitError(csound, Str("madsr: release override is out of range"));
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = relestim;
-    /*  VL 4-1-2011 was (int32_t)(*argp[5] * CS_EKR + FL(0.5));
-        this seems to fix it */
+    /* A negative override follows the instrument's longest release. */
+    p->xtra = *argp[5] < FL(0.0) ? -1 : (int32_t)relcount;
+    if (p->xtra > relestim)
+      relestim = p->xtra;
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int32_t)relestim;
   }
@@ -433,7 +441,7 @@ int32_t klnsegr(CSOUND *csound, LINSEG *p)
       segp = ++p->cursegp;               /*   else find nextseg  */
     newi:
       if (!(p->curcnt = segp->cnt)) {    /*   nonlen = discontin */
-        p->curval = segp->nxtpt;         /*     reload & rechk   */
+        *p->rslt = p->curval = segp->nxtpt; /* apply the jump before output */
         goto chk2;
       }                                  /*   else get new slope */
       p->curinc = (segp->nxtpt - p->curval) / segp->cnt;
