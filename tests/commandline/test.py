@@ -590,6 +590,7 @@ def runTest():
         ["test_grain4_zero_length.csd", "reject zero grain4 source length", 1],
         ["test_grain4_subsample_length.csd", "reject sub-sample grain4 source length", 1],
         ["test_grain4_zero_pitch.csd", "reject a selected zero grain4 pitch", 1],
+        ["test_fof2_correctness.csd", "fof and fof2 preserve grain duration and octave amplitudes at edge values"],
         ["test_flooper_stereo_guard.csd", "flooper preserves the stereo wrap sample"],
         ["test_diskgrain_envelope_bounds.csd", "diskgrain stops at envelope table bounds"],
         ["test_syncloop_envelope_end.csd", "syncloop retires grains at the envelope end"],
