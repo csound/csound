@@ -849,6 +849,7 @@ def runTest():
             "test_keyword_spacing.csd",
             "test keyword spacing (if(, elseif(, etc.)",
         ],
+        ["test_mvmfilter_mixed_rate.csd", "test mvmfilter with mixed input rates"],
         ["test_dbap.csd", "test dbap and dbapgains opcodes"],
         ["test_generic_chan.csd", "testing generic bus channel"],
         ["test_generic_chan_no_match.csd", "testing type mismatch for bus channel", 1],

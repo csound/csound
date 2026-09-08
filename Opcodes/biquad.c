@@ -1691,10 +1691,12 @@ static int32_t vco(CSOUND *csound, VCO *p)
       }
 
       for(n = offset; n < nsmps; n++) {
-        if (asigtau && tau[n] > FL(0.0)) {
-          r1 = exp(-1 / (tau[n]*fs));
-        } else {
-          r1 = 0;
+        if (asigtau) {
+          if (tau[n] > FL(0.0)) {
+            r1 = exp(-1 / (tau[n]*fs));
+          } else {
+            r1 = 0;
+          }
         }
 
         if (asigf0) {
