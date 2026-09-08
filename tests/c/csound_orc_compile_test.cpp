@@ -139,6 +139,63 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Combine(::testing::Values("space", "spdist"),
                        ::testing::Values(0, 1, 2)));
 
+class OLABufferTests : public OrcCompileTests,
+                      public ::testing::WithParamInterface<MYFLT> {};
+
+TEST_P(OLABufferTests, ValidatesOverlapBeforeIntegerArithmetic)
+{
+    const MYFLT overlap = GetParam();
+    const bool valid = overlap == 1 || overlap == 2 || overlap == 4;
+    const char *instrument = R"(
+sr = 48000
+ksmps = 1
+nchnls = 1
+0dbfs = 1
+instr 1
+  kFrame[] fillarray 1, 1, 1, 1, 1, 1, 1, 1
+  iOverlap chnget "overlap"
+  aOut olabuffer kFrame, iOverlap
+  out aOut
+endin
+schedule(1, 0, 0.001)
+)";
+
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    csoundCreateMessageBuffer(csound, 0);
+    ASSERT_EQ(csoundCompileOrc(csound, instrument), CSOUND_SUCCESS);
+    csoundSetControlChannel(csound, "overlap", overlap);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    if (valid) {
+        // Once all frames contain ones, overlap-add must sum to the factor.
+        for (int sample = 0; sample < 24; ++sample) {
+            ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+            if (sample >= 8)
+                EXPECT_EQ(csoundGetSpout(csound)[0], overlap);
+        }
+    }
+    else {
+        // A crash cannot satisfy this assertion, unlike an expected CLI failure.
+        EXPECT_NE(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+        bool reportedOverlapError = false;
+        while (csoundGetMessageCnt(csound)) {
+            const char *message = csoundGetFirstMessage(csound);
+            if (message && strstr(message, "olabuffer: Error,"))
+                reportedOverlapError = true;
+            csoundPopFirstMessage(csound);
+        }
+        EXPECT_TRUE(reportedOverlapError);
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    OverlapFactors, OLABufferTests,
+    ::testing::Values(FL(0.0), FL(-1.0), FL(0.5), FL(3.0), FL(8.0),
+                      FL(2147483648.0), std::numeric_limits<MYFLT>::infinity(),
+                      -std::numeric_limits<MYFLT>::infinity(),
+                      std::numeric_limits<MYFLT>::quiet_NaN(),
+                      FL(1.0), FL(2.0), FL(4.0)));
+
 TEST_F (OrcCompileTests, testArgsRequired)
 {
     ASSERT_EQ (1, args_required("a"));

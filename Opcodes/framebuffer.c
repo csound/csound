@@ -201,10 +201,10 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 {
     MYFLT overlapCount = *self->overlapArgument;
 
-    if (UNLIKELY(floor(overlapCount) != overlapCount)) {
+    if (UNLIKELY(overlapCount <= FL(0.0) || floor(overlapCount) != overlapCount)) {
 
-      csound->Die(csound,
-                  "%s", Str("olabuffer: Error, overlap factor must be an integer"));
+      csound->Die(csound, "%s",
+                  Str("olabuffer: Error, overlap factor must be a positive integer"));
     }
 
     ARRAYDAT *array = (ARRAYDAT *) self->inputArgument;
@@ -217,7 +217,8 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 
     int32_t frameSampleCount = array->sizes[0];
 
-    if (UNLIKELY(frameSampleCount <= (int32_t)overlapCount)) {
+    /* Check the bound before converting the overlap factor to int32_t. */
+    if (UNLIKELY((double)frameSampleCount <= (double)overlapCount)) {
 
       csound->Die(csound,
                   "%s", Str("olabuffer: Error, k-rate array size must be "
