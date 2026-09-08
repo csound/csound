@@ -582,6 +582,7 @@ def runTest():
         ["test_voice_init.csd", "voice initializes its SingWave helper"],
         ["test_grain3_overlap_regression.csd", "grain3 should not fail with false overlap error"],
         ["test_grain3_float_interpolation.csd", "grain3 float-path interpolation should stay positive"],
+        ["test_grain3_float_density_start.csd", "grain3 float path should start its first grain immediately"],
         ["test_grain2_float_window_wrap.csd", "grain2 wraps non-power-of-two window phase"],
         ["test_grain4_correctness.csd", "grain4 handles envelopes, boundaries, and unused pitches"],
         ["test_grain4_region_rounding.csd", "grain4 preserves sample rounding for source regions"],
