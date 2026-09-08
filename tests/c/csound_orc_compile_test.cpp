@@ -13,6 +13,9 @@
 #include "csoundCore.h"
 #include "gtest/gtest.h"
 #include <cstring>
+#include <cmath>
+#include <limits>
+#include <tuple>
 extern "C" {
 #include "str_ops.h"
 }
@@ -50,6 +53,88 @@ extern "C" {
     extern int32_t args_required (const char* arrayName);
     extern char** split_args (CSOUND* csound, const char* argString);
 }
+
+TEST_F (OrcCompileTests, testSpaceTrajectoryGuardPoint)
+{
+    csoundCreateMessageBuffer(csound, 0);
+    csoundSetOption(csound, "-n -d -m0");
+    const char *orc = R"(
+sr = 48000
+ksmps = 1
+nchnls = 4
+0dbfs = 1
+giPos ftgen 1, 0, 4, -2, -1, -1, 1, 1
+instr 1
+  asig = 1
+  a1, a2, a3, a4 space asig, 1, .01, 0, 0, 0
+  kdist spdist 1, .01, 0, 0
+  chnset kdist, "distance"
+  out a1, a2, a3, a4
+endin
+)";
+    ASSERT_EQ(0, csoundCompileOrc(csound, orc));
+    csoundReadScore(csound, "i 1 0 .01\n");
+    ASSERT_EQ(0, csoundStart(csound));
+    MYFLT *table = nullptr;
+    ASSERT_EQ(4, csoundGetTable(csound, &table, 1));
+    // Even a zero interpolation weight must not read beyond the last pair.
+    table[4] = std::numeric_limits<MYFLT>::quiet_NaN();
+    csoundPerformKsmps(csound);
+    ASSERT_EQ(0, csoundErrCnt(csound));
+    const MYFLT *output = csoundGetSpout(csound);
+    EXPECT_NEAR(0, output[0], 1e-6);
+    EXPECT_NEAR(1, output[1], 1e-6);
+    EXPECT_NEAR(0, output[2], 1e-6);
+    EXPECT_NEAR(0, output[3], 1e-6);
+    int32_t error = 0;
+    EXPECT_NEAR(std::sqrt(2.0),
+                csoundGetControlChannel(csound, "distance", &error), 1e-6);
+    EXPECT_EQ(0, error);
+    csoundDestroyMessageBuffer(csound);
+}
+
+class SpaceTrajectoryErrorTests : public OrcCompileTests,
+    public ::testing::WithParamInterface<std::tuple<const char *, int>> {};
+
+TEST_P(SpaceTrajectoryErrorTests, ReportsInvalidInput)
+{
+    const char *opcode = std::get<0>(GetParam());
+    int invalid = std::get<1>(GetParam());
+    csoundCreateMessageBuffer(csound, 0);
+    csoundSetOption(csound, "-n -d -m0");
+    std::string orc = "sr = 48000\nksmps = 1\nnchnls = 1\n0dbfs = 1\n"
+                      "chn_k \"time\", 1\n"
+                      "giPos ftgen 1, 0, ";
+    orc += invalid == 0 ? "1, -2, 1\n" : "4, -2, -1, -1, 1, 1\n";
+    orc += "instr 1\nktime chnget \"time\"\n";
+    if (std::strcmp(opcode, "space") == 0)
+        orc += "asig = 1\na1, a2, a3, a4 space asig, 1, ktime, 0, 0, 0\n";
+    else
+        orc += "kdist spdist 1, ktime, 0, 0\n";
+    orc += "endin\n";
+    ASSERT_EQ(0, csoundCompileOrc(csound, orc.c_str()));
+    MYFLT time = invalid == 1 ? std::numeric_limits<MYFLT>::quiet_NaN() :
+                 invalid == 2 ? std::numeric_limits<MYFLT>::infinity() : 0;
+    csoundSetControlChannel(csound, "time", time);
+    csoundReadScore(csound, "i 1 0 .01\n");
+    ASSERT_EQ(0, csoundStart(csound));
+    csoundPerformKsmps(csound);
+    EXPECT_EQ(1, csoundErrCnt(csound));
+    std::string messages;
+    while (csoundGetMessageCnt(csound)) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_NE(std::string::npos, messages.find(invalid == 0 ?
+              "trajectory table must contain an xy pair" :
+              "trajectory time must be finite"));
+    csoundDestroyMessageBuffer(csound);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    SpaceAndSpdist, SpaceTrajectoryErrorTests,
+    ::testing::Combine(::testing::Values("space", "spdist"),
+                       ::testing::Values(0, 1, 2)));
 
 TEST_F (OrcCompileTests, testArgsRequired)
 {
