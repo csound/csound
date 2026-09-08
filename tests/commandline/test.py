@@ -598,6 +598,7 @@ def runTest():
         ["test_vco_float_phase_state.csd", "vco preserves non-power-of-two oscillator phase"],
         ["test_envlpx_float_interpolation.csd", "envlpx interpolates non-power-of-two tables correctly"],
         ["test_oscil1i.csd", "oscil1i interpolates scans and holds their endpoints"],
+        ["test_sndwarp_bounds.csd", "sndwarp and sndwarpst bound sample indexes and handle zero time scale"],
         ["test_instr_redefinition.csd", "allow instr redefinition"],
         ["test_instr0_labels.csd", "test labels in instr0 space"],
         ["test_string.csd", "test string assignment and printing"],
