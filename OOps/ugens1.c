@@ -210,15 +210,15 @@ int32_t klnseg(CSOUND *csound, LINSEG *p)
   if (UNLIKELY(p->segsrem)) {                   /* done if no more segs */
     if (--p->curcnt <= 0) {           /* if done cur segment  */
       SEG *segp = p->cursegp;
-    nextseg:
       if (UNLIKELY(!(--p->segsrem)))  {
         p->curval = segp->nxtpt;      /* advance the cur val  */
         return OK;
       }
       p->cursegp = ++segp;            /*   find the next      */
       if (UNLIKELY(!(p->curcnt = segp->cnt))) { /*   nonlen = discontin */
-        *p->rslt = p->curval = segp->nxtpt;
-        goto nextseg;                /* skip instantaneous segments */
+        p->curval = segp->nxtpt;      /*   poslen = new slope */
+        /*          p->curval += p->curinc;  ??????? */
+        return OK;
       }
       else {
         p->curinc = (segp->nxtpt - p->curval) / segp->cnt;
@@ -289,115 +289,188 @@ int32_t linseg(CSOUND *csound, LINSEG *p)
                            Str("linseg: not initialised (arate)\n"));
 }
 
-/* **** ADSR is just a construction and use of linseg */
+/* The ADSR family shares timing and release handling at both rates. */
 
-#define MAXSEGDUR (INT_MAX/CS_ESR)
+enum { ADSR_DELAY, ADSR_ATTACK, ADSR_DECAY, ADSR_SUSTAIN, ADSR_RELEASE,
+       ADSR_DONE };
 
-static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
+static int32_t adsr_count(CSOUND *csound, double duration, double rate,
+                          int32_t *count)
 {
-  SEG         *segp;
-  int32_t     nsegs;
-  MYFLT       **argp = p->argums;
-  double      dur;
-  MYFLT       len = csound->curip->p3.value;
-  MYFLT       release = *argp[3];
-  int32_t     relestim;
-
-  //printf("len = %f\n", len);
-  if (UNLIKELY(len<=FL(0.0)))
-    len = (int32_t) MAXSEGDUR;// FL(10000.0); /* MIDI case set int32_t */
-  nsegs = 6;          /* dummy segment followed by DADSR */
-  if ((segp = (SEG *) p->auxch.auxp) == NULL ||
-      nsegs*sizeof(SEG) > p->auxch.size) {
-    csound->AuxAlloc(csound, (size_t) nsegs * sizeof(SEG), &p->auxch);
-    p->cursegp = segp = (SEG *) p->auxch.auxp;
-    segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
-  }
-  else if (**argp >= FL(0.0))
-    memset(p->auxch.auxp, 0, (size_t)nsegs*sizeof(SEG));
-  if (**argp < FL(0.0))  return OK;        /* negative attack skips init */
-  p->curval = 0.0;
-  p->curcnt = 0;
-  p->curinc = p->curainc = 0.0;
-  p->cursegp = segp++;        /* keep the dummy segment inside the allocation */
-  p->segsrem = nsegs;
-  //printf("args: %f %f %f %f %f\n",
-  //       *argp[0], *argp[1], *argp[2], *argp[3],* argp[4]);
-  /* Delay */
-  dur = (double)*argp[4];
-  segp->nxtpt = FL(0.0);
-  segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5));
-  if (UNLIKELY((segp->acnt = (int32_t)(dur * CS_ESR + FL(0.5))) < 0))
-    segp->acnt = 0;
-  //printf("delay: dur=%f cnt=%d\n", dur, segp->cnt);
-  segp++;
-  /* Attack */
-  dur = (double)*argp[0];
-  segp->nxtpt = FL(1.0);
-  segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5));
-  if (UNLIKELY((segp->acnt = (int32_t)(dur * csound->esr + FL(0.5))) < 0))
-    segp->acnt = 0;
-  //printf("attack: dur=%f cnt=%d acnt=%d nxt=%f\n",
-  //       dur, segp->cnt, segp->acnt, segp->nxtpt);
-  segp++;
-  /* Decay */
-  dur = *argp[1];
-  segp->nxtpt = *argp[2];
-  segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5));
-  if (UNLIKELY((segp->acnt = (int32_t)(dur * csound->esr + FL(0.5))) < 0))
-    segp->acnt = 0;
-  //printf("decay: dur=%f cnt=%d acnt=%d nxt=%f\n",
-  //       dur, segp->cnt, segp->acnt, segp->nxtpt);
-  segp++;
-  /* Sustain */
-  /* Should use p3 from score, but how.... */
-  dur = len - *argp[4] - *argp[0] - *argp[1] - *argp[3];
-  if (!midip && dur <0.0)
-    csound->Warning(csound, Str("length of ADSR note too short"));
-  segp->nxtpt = *argp[2];
-  segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5));
-  if (UNLIKELY((segp->acnt = (int32_t)(dur * csound->esr + FL(0.5))) < 0))
-    segp->acnt = 0;
-  //printf("sustain: dur=%f cnt=%d acnt=%d nxt=%f\n",
-  //       dur, segp->cnt, segp->acnt, segp->nxtpt);
-  segp++;
-  /* Release */
-  // **FIXME is this needed? dur = *argp[3];
-  segp->nxtpt = FL(0.0);
-  segp->cnt = (int32_t)(release * CS_EKR + FL(0.5));
-  if (UNLIKELY((segp->acnt = (int32_t)(release * csound->esr + FL(0.5))) < 0))
-    segp->acnt = 0;
-  //printf("release: dur=%f cnt=%d acnt=%d nxt=%f\n",
-  //       dur, segp->cnt, segp->acnt, segp->nxtpt);
-  if (midip) {
-    double relcount = (double)*argp[5] * CS_EKR + 0.5;
-    if (UNLIKELY(!isfinite(*argp[5]) ||
-                 relcount >= (double)(INT_MAX / CS_KSMPS) + 1.0))
-      return csound->InitError(csound, Str("madsr: release override is out of range"));
-    relestim = (p->cursegp + p->segsrem - 1)->cnt;
-    /* A negative override follows the instrument's longest release. */
-    p->xtra = *argp[5] < FL(0.0) ? -1 : (int32_t)relcount;
-    if (p->xtra > relestim)
-      relestim = p->xtra;
-    if (relestim > p->h.insdshead->xtratim)
-      p->h.insdshead->xtratim = (int32_t)relestim;
-  }
-  else
-    p->xtra = 0L;
+  double n = floor(duration * rate + 0.5);
+  if (UNLIKELY(!isfinite(duration) || duration < 0.0 ||
+               !isfinite(n) || n > INT_MAX))
+    return csound->InitError(csound,
+                            Str("ADSR: duration is negative or out of range"));
+  *count = (int32_t)n;
   return OK;
 }
 
-int32_t adsrset(CSOUND *csound, LINSEG *p)
+static int32_t adsr_init(CSOUND *csound, ADSR *p, int32_t midi,
+                         int32_t exponential)
 {
-  return adsrset1(csound, p, 0);
+  MYFLT **args = p->argums;
+  double rate = IS_ASIG_ARG(p->rslt) ? CS_ESR : CS_EKR;
+  double length = p->h.insdshead->p3.value;
+  int32_t counts[5], release, override = -1, length_count, i;
+  const int32_t inputs[4] = {4, 0, 1, 3};
+  const int32_t stages[4] = {ADSR_DELAY, ADSR_ATTACK, ADSR_DECAY, ADSR_RELEASE};
+
+  /* Preserve the historical negative-attack skip, but initialize zero. */
+  if (isfinite(*args[0]) && *args[0] < FL(0.0))
+    return OK;
+  if (UNLIKELY(!isfinite(*args[2]) || (exponential && *args[2] < FL(0.0))))
+    return csound->InitError(csound, Str("ADSR: invalid sustain level"));
+  for (i = 0; i < 4; i++) {
+    if (adsr_count(csound, *args[inputs[i]], rate, &counts[stages[i]]) != OK)
+      return NOTOK;
+  }
+  counts[ADSR_SUSTAIN] = 0;
+  if (!midi && length > 0.0) {
+    int64_t sustain;
+    if (adsr_count(csound, length, rate, &length_count) != OK)
+      return NOTOK;
+    sustain = (int64_t)length_count - counts[ADSR_DELAY] - counts[ADSR_ATTACK]
+              - counts[ADSR_DECAY] - counts[ADSR_RELEASE];
+    if (sustain < 0)
+      csound->Warning(csound, Str("length of ADSR note too short"));
+    else
+      counts[ADSR_SUSTAIN] = (int32_t)sustain;
+  }
+  if (midi) {
+    if (!isfinite(*args[5]))
+      return csound->InitError(csound, Str("ADSR: invalid release override"));
+    if (adsr_count(csound, *args[3], CS_EKR, &release) != OK)
+      return NOTOK;
+    if (*args[5] >= FL(0.0)) {
+      if (adsr_count(csound, *args[5], CS_EKR, &override) != OK)
+        return NOTOK;
+      if (override > release)
+        release = override;
+    }
+    if (release > p->h.insdshead->xtratim)
+      p->h.insdshead->xtratim = release;
+  }
+  memcpy(p->counts, counts, sizeof(counts));
+  p->scale = IS_ASIG_ARG(p->rslt) ? CS_KSMPS : 1;
+  p->xtra = override;
+  p->midi = midi;
+  p->exponential = exponential;
+  p->hold = midi || length <= 0.0;
+  p->sustain = *args[2];
+  p->stage = -1;
+  p->remaining = 0;
+  p->value = p->target = p->increment = 0.0;
+  p->multiplier = 1.0;
+  p->initialized = 1;
+  return OK;
 }
 
-int32_t madsrset(CSOUND *csound, LINSEG *p)
+static void adsr_stage(ADSR *p, int32_t stage, int64_t count)
 {
-  return adsrset1(csound, p, 1);
+  p->stage = stage;
+  p->remaining = count;
+  p->target = stage == ADSR_ATTACK ? 1.0 :
+    (stage == ADSR_DECAY || stage == ADSR_SUSTAIN ? p->sustain : 0.0);
+  p->increment = 0.0;
+  p->multiplier = 1.0;
+  if (count == 0) {
+    p->value = p->target;
+    return;
+  }
+  if (p->exponential && stage != ADSR_DELAY && stage != ADSR_SUSTAIN) {
+    double logtarget;
+    /* Retain the exponential attack's positive starting floor. */
+    if (stage == ADSR_ATTACK)
+      p->value = 0.001;
+    if (p->value == 0.0 || count == 1)
+      return;
+    if (p->target == 0.0) {
+      /* Do not turn a silent or very quiet release into a rising ramp. */
+      logtarget = p->value > 0.001 ? log(0.001) : log(p->value) + log(0.001);
+    }
+    else
+      logtarget = log(p->target);
+    p->multiplier = exp((logtarget - log(p->value)) / (double)count);
+  }
+  else
+    p->increment = (p->target - p->value) / (double)count;
+}
+
+static double adsr_next(ADSR *p)
+{
+  double value;
+  if (!p->initialized)
+    return 0.0;
+  if (p->midi && p->h.insdshead->relesing && p->stage < ADSR_RELEASE) {
+    int64_t count = p->xtra >= 0 ? p->xtra : p->h.insdshead->xtratim;
+    adsr_stage(p, ADSR_RELEASE, count * p->scale);
+  }
+  while (p->remaining == 0) {
+    if (p->stage == ADSR_SUSTAIN && p->hold)
+      return p->value;
+    if (p->stage >= ADSR_RELEASE) {
+      p->stage = ADSR_DONE;
+      return p->value = 0.0;
+    }
+    adsr_stage(p, p->stage + 1, p->counts[p->stage + 1]);
+  }
+  value = p->value;
+  if (--p->remaining == 0)
+    p->value = p->target;
+  else if (p->exponential)
+    p->value *= p->multiplier;
+  else
+    p->value += p->increment;
+  return value;
+}
+
+int32_t adsrset(CSOUND *csound, ADSR *p)
+{
+  return adsr_init(csound, p, 0, 0);
+}
+
+int32_t madsrset(CSOUND *csound, ADSR *p)
+{
+  return adsr_init(csound, p, 1, 0);
+}
+
+int32_t xdsrset(CSOUND *csound, ADSR *p)
+{
+  return adsr_init(csound, p, 0, 1);
+}
+
+int32_t mxdsrset(CSOUND *csound, ADSR *p)
+{
+  return adsr_init(csound, p, 1, 1);
+}
+
+int32_t kadsr(CSOUND *csound, ADSR *p)
+{
+  IGN(csound);
+  *p->rslt = (MYFLT)adsr_next(p);
+  return OK;
+}
+
+int32_t aadsr(CSOUND *csound, ADSR *p)
+{
+  IGN(csound);
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early = p->h.insdshead->ksmps_no_end;
+  uint32_t n, nsmps = CS_KSMPS;
+  if (UNLIKELY(offset))
+    memset(p->rslt, 0, offset * sizeof(MYFLT));
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(p->rslt + nsmps, 0, early * sizeof(MYFLT));
+  }
+  for (n = offset; n < nsmps; n++)
+    p->rslt[n] = (MYFLT)adsr_next(p);
+  return OK;
 }
 
 /* End of ADSR */
+
 
 int32_t lsgrset(CSOUND *csound, LINSEG *p)
 {
@@ -441,7 +514,7 @@ int32_t klnsegr(CSOUND *csound, LINSEG *p)
       segp = ++p->cursegp;               /*   else find nextseg  */
     newi:
       if (!(p->curcnt = segp->cnt)) {    /*   nonlen = discontin */
-        *p->rslt = p->curval = segp->nxtpt; /* apply the jump before output */
+        p->curval = segp->nxtpt;         /*     reload & rechk   */
         goto chk2;
       }                                  /*   else get new slope */
       p->curinc = (segp->nxtpt - p->curval) / segp->cnt;
@@ -768,86 +841,7 @@ int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) 
   return OK;
 }
 
-/* **** XDSR is just a construction and use of expseg */
 
-int32_t xdsrset(CSOUND *csound, EXXPSEG *p)
-{
-  XSEG    *segp;
-  int32_t     nsegs;
-  MYFLT   **argp = p->argums;
-  MYFLT   len = csound->curip->p3.value;
-  MYFLT   delay = *argp[4], attack = *argp[0], decay = *argp[1];
-  MYFLT   sus, dur;
-  MYFLT   release = *argp[3];
-
-  if (UNLIKELY(len<FL(0.0))) len = FL(100000.0); /* MIDI case set long */
-  if (csound->curip->p3.value-delay-attack-decay<FL(0.0))
-    csound->Warning(csound, Str("length of XADSR note too short"));
-  len -= release;                      /* len is time remaining */
-  if (UNLIKELY(len<FL(0.0))) { /* Odd case of release time greater than dur */
-    release = csound->curip->p3.value; len = FL(0.0);
-  }
-  nsegs = 5;          /* DXDSR */
-  if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
-      nsegs*sizeof(XSEG) < (uint32_t)p->auxch.size) {
-    csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
-    segp = (XSEG *) p->auxch.auxp;
-  }
-  segp[nsegs-1].cnt = MAXPOS;         /* set endcount for safety */
-  if (**argp <= FL(0.0))  return OK;  /* if idur1 <= 0, skip init  */
-  p->cursegp = segp;                  /* else setup null seg0 */
-  p->segsrem = nsegs;
-  delay += FL(0.001);
-  if (delay > len) {delay = len; len -= delay;}
-  attack -= FL(0.001);
-  if (attack > len) {attack = len; len -= attack;}
-  if (decay > len) {decay = len; len -= decay;}
-  sus = len-attack-decay;
-  segp[0].val = FL(0.001);   /* Like zero start, but exponential */
-  segp[0].mlt = FL(1.0);
-  segp[0].cnt = (int32_t) (delay*CS_EKR + FL(0.5));
-  segp[0].amlt =  FL(1.0);
-  segp[0].acnt = (int32_t) (delay*CS_ESR + FL(0.5));
-  dur = attack*CS_EKR;
-  segp[1].val = FL(0.001);
-  segp[1].mlt = POWER(FL(1000.0), FL(1.0)/dur);
-  segp[1].cnt = (int32_t) (dur + FL(0.5));
-  dur = attack*CS_ESR;
-  segp[1].amlt = POWER(FL(1000.0), FL(1.0)/dur);
-  segp[1].acnt = (int32_t) (dur + FL(0.5));
-  //printf("attack: %f %f %d / %f %d\n",
-  //       segp[1].val,segp[1].mlt,segp[1].cnt,segp[1].amlt, segp[1].acnt);
-  dur = decay*CS_EKR;
-  segp[2].val = FL(1.0);
-  segp[2].mlt = POWER(*argp[2], FL(1.0)/dur);
-  segp[2].cnt = (int32_t) (dur + FL(0.5));
-  dur = decay*CS_ESR;
-  segp[2].amlt = POWER(*argp[2], FL(1.0)/dur);
-  segp[2].acnt = (int32_t) (dur + FL(0.5));
-  //printf("decay: %f %f %d %f %d\n",
-  //       segp[2].val,segp[2].mlt,segp[2].cnt,segp[2].amlt, segp[2].acnt);
-  segp[3].val = *argp[2];
-  segp[3].mlt = FL(1.0);
-  segp[3].cnt = (int32_t) (sus*CS_EKR + FL(0.5));
-
-  segp[3].amlt = FL(1.0);
-  segp[3].acnt = (int32_t) (sus*CS_ESR + FL(0.5));
-  //printf("sustain: %f %f %d %f %d\n",
-  //       segp[3].val,segp[3].mlt,segp[3].cnt,segp[3].amlt, segp[3].acnt);
-  dur = release*CS_EKR;
-  segp[4].val = *argp[2];
-  segp[4].mlt = POWER(FL(0.001)/(*argp[2]), FL(1.0)/dur);
-  segp[4].cnt = MAXPOS; /*(int32_t) (dur + FL(0.5)); */
-
-  dur = release*CS_ESR;
-  segp[4].amlt = POWER(FL(0.001)/(*argp[2]), FL(1.0)/dur);
-  segp[4].acnt = MAXPOS; /*(int32_t) (dur + FL(0.5)); */
-  //printf("releaase: %f %f %d %f %d\n",
-  //       segp[4].val,segp[4].mlt,segp[4].cnt,segp[4].amlt, segp[4].acnt);
-  return OK;
-}
-
-/* end of XDSR */
 
 int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
 {
@@ -955,50 +949,7 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
   return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
 }
 
-/* **** MXDSR is just a construction and use of expseg */
 
-int32_t mxdsrset(CSOUND *csound, EXPSEG *p)
-{
-  int32_t         relestim;
-  SEG         *segp;
-  int32_t         nsegs;
-  MYFLT       **argp = p->argums;
-  MYFLT       delay = *argp[4], attack = *argp[0], decay = *argp[1];
-  MYFLT       rel = *argp[3];
-
-  nsegs = 4;          /* DXDSR */
-  if ((segp = (SEG *) p->auxch.auxp) == NULL ||
-      nsegs*sizeof(SEG) < (uint32_t)p->auxch.size) {
-    csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(SEG), &p->auxch);
-    segp = (SEG *) p->auxch.auxp;
-  }
-  if (**argp <= FL(0.0))  return OK;  /* if idur1 <= 0, skip init  */
-  p->cursegp = segp-1;                /* else setup null seg0 */
-  p->segsrem = nsegs+1;
-  p->curval = FL(0.001);
-  p->curcnt = 0;                      /* else setup null seg0 */
-  delay += FL(0.001);
-  attack -= FL(0.001);
-  segp[0].nxtpt = FL(0.001);
-  segp[0].cnt = (int32_t) (delay*CS_EKR + FL(0.5));
-  segp[0].acnt = (int32_t) (delay*CS_ESR + FL(0.5));
-  segp[1].nxtpt = FL(1.0);
-  segp[1].cnt = (int32_t) (attack*CS_EKR + FL(0.5));
-  segp[1].acnt = (int32_t) (attack*CS_ESR + FL(0.5));
-  segp[2].nxtpt = *argp[2];
-  segp[2].cnt = (int32_t) (decay*CS_EKR + FL(0.5));
-  segp[2].acnt = (int32_t) (decay*CS_ESR + FL(0.5));
-  segp[3].nxtpt = FL(0.001);
-  segp[3].cnt = (int32_t) (rel*CS_EKR + FL(0.5));
-  segp[3].acnt = (int32_t) (rel*CS_ESR + FL(0.5));
-  relestim = (int32_t)(p->cursegp + p->segsrem - 1)->cnt;
-  p->xtra = relestim;//(int32_t)(*argp[5] * CS_EKR + FL(0.5)); /* Release time?? */
-  if (relestim > p->h.insdshead->xtratim)
-    p->h.insdshead->xtratim = relestim;
-  return OK;
-}
-
-/* end of MXDSR */
 
 int32_t kxpsegr(CSOUND *csound, EXPSEG *p)
 {

@@ -10,7 +10,7 @@ sr = 8000
 ksmps = $TEST_KSMPS
 nchnls = 1
 0dbfs = 1
-instr 1
+instr 1, 2
   kcount init 0
   kphase init 0
   if kcount == int(.008 * kr + .5) then
@@ -20,10 +20,17 @@ instr 1
 ENVELOPES:
   iattack = i(kphase) == 0 ? .001 : 0
   ilevel = i(kphase) == 0 ? .75 : .25
-  aa adsr iattack, .001, ilevel, .002
-  am madsr iattack, .001, ilevel, .002
-  ka adsr iattack, .001, ilevel, .002
-  km madsr iattack, .001, ilevel, .002
+  if p1 == 1 then
+    aa adsr iattack, .001, ilevel, .002
+    am madsr iattack, .001, ilevel, .002
+    ka adsr iattack, .001, ilevel, .002
+    km madsr iattack, .001, ilevel, .002
+  else
+    aa xadsr iattack, .001, ilevel, .002
+    am mxadsr iattack, .001, ilevel, .002
+    ka xadsr iattack, .001, ilevel, .002
+    km mxadsr iattack, .001, ilevel, .002
+  endif
   rireturn
   kaa downsamp aa
   kam downsamp am
@@ -38,5 +45,6 @@ endin
 </CsInstruments>
 <CsScore>
 i 1 0 .03
+i 2 0 .03
 </CsScore>
 </CsoundSynthesizer>
