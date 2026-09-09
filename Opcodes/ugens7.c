@@ -143,7 +143,9 @@ static int32_t fof(CSOUND *csound, FOFS *p)
         p->fundphs &= PHMASK;
       
       if ((ovp = p->basovrlap.nxtfree) == NULL) goto err2;
-      if (newpulse(csound, p, ovp, amp, fund, form)) {   /* init new fof */
+      int32_t pulse = newpulse(csound, p, ovp, amp, fund, form);
+      if (UNLIKELY(pulse < 0)) goto err3;
+      if (pulse) {                                  /* init new fof */
         ovp->nxtact = p->basovrlap.nxtact;     /* & link into  */
         p->basovrlap.nxtact = ovp;             /*   actlist    */
         p->basovrlap.nxtfree = ovp->nxtfree;
@@ -243,6 +245,9 @@ static int32_t fof(CSOUND *csound, FOFS *p)
  err2:
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("FOF needs more overlaps"));
+ err3:
+    return csound->PerfError(csound, &(p->h),
+                             "%s", Str("FOF rise time exceeds supported range"));
 }
 
 static int32_t newpulse(CSOUND *csound,
@@ -303,20 +308,18 @@ static int32_t newpulse(CSOUND *csound,
       }
       ovp->risincf = (CS_ONEDSR / *p->kris);
       double rise_samples = 1. / ovp->risincf;
-      rismps = rise_samples >= (double) INT32_MAX ? INT32_MAX :
-        (int32_t) rise_samples;
+      if (UNLIKELY(rise_samples > (double) INT32_MAX))
+        return NOTOK;
+      rismps = (int32_t) rise_samples;
     } else {
       if (*form < FL(0.0) && ovp->formphs != 0)
         ovp->risphs = (int32)((MAXLEN - ovp->formphs) / -*form / *p->kris);
       else
         ovp->risphs = (int32)(ovp->formphs / *form / *p->kris);
       ovp->risinc = (int32)(CS_SICVT / *p->kris);
-      if (UNLIKELY(ovp->risinc <= 0)) {
-        ovp->risinc = 1;
-        rismps = MAXLEN;
-      }
-      else
-        rismps = MAXLEN / ovp->risinc;
+      if (UNLIKELY(ovp->risinc <= 0))
+        return NOTOK;
+      rismps = MAXLEN / ovp->risinc;
     }
   }
   else {

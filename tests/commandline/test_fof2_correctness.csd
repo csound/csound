@@ -64,8 +64,8 @@ instr 3
 endin
 
 instr 4
-  ; Exercise zero fixed-point rise increments and float rise counts
-  ; beyond INT32_MAX. With zero bandwidth the constant grain stays at 1.
+  ; Valid rises may exceed the grain duration.
+  ; With zero bandwidth the constant grain stays at 1.
   aFof fof 1, 0, 100, 0, 0, p4, 0.00025, 0, 1, p5, p5, p3
   aFof2 fof2 1, 0, 100, 0, 0, p4, 0.00025, 0, 1, p5, p5, p3, 0, 0
   kCount init 0
@@ -109,9 +109,9 @@ i3 0 0.001 2 1
 i3 0.002 0.001 1 8
 i3 0.002 0.001 2 8
 i4 0 0.001 0.001 1
-i4 0 0.001 22370 1
+i4 0 0.001 349 1
 i4 0 0.001 0.001 2
-i4 0 0.001 50000 2
+i4 0 0.001 44739 2
 e
 </CsScore>
 </CsoundSynthesizer>
