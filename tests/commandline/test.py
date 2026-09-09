@@ -930,6 +930,7 @@ def runTest():
         ["test_follow_period.csd", "test follow period handling"],
         ["test_follow_invalid_period.csd", "reject invalid follow period", 1],
         ["test_compress_control_gain.csd", "compressors update gain when ratio or knee controls change"],
+        ["test_gain_sample_end.csd", "test gain sample-accurate note end"],
         ["test_distort_sample_offset.csd", "test distort sample-accurate onset"],
         ["test_distort_istor_first_init.csd", "test distort state-preserving first init"],
         ["test_distort_invalid_kdist.csd", "reject non-finite distort amount", 1],
