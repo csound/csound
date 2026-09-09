@@ -35,19 +35,44 @@
 
 int32_t vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 {
-    uint32 n = (int32_t)(*p->imaxd * ESR)+1;
+    double samples;
+    int32_t maxd;
+    size_t bytes;
 
-    if (!*p->istod) {
-      if (p->aux.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux.size)
-        /* allocate space for delay buffer */
-        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
-      else {     /*    make sure buffer is empty       */
-        memset(p->aux.auxp, '\0', n*sizeof(MYFLT));
-      }
-      p->left = 0;
+    if (*p->istod) {
+      if (UNLIKELY(p->aux.auxp == NULL))
+        return csound->InitError(csound, "%s", Str("vdelay: no buffer to preserve"));
+      return OK;
     }
-    p->maxd = n - 1;
+    samples = (double)*p->imaxd * ESR;
+    if (UNLIKELY(!isfinite(samples) || samples < 0.0 || samples >= INT_MAX))
+      return csound->InitError(csound, "%s", Str("vdelay: invalid maximum delay"));
+    maxd = (int32_t)samples;
+    if (maxd < 1) maxd = 1;
+    if (UNLIKELY((size_t)maxd > SIZE_MAX / sizeof(MYFLT) - 1))
+      return csound->InitError(csound, "%s", Str("vdelay: delay buffer too large"));
+    bytes = ((size_t)maxd + 1) * sizeof(MYFLT);
+    if (p->aux.auxp == NULL || bytes > p->aux.size)
+      csound->AuxAlloc(csound, bytes, &p->aux);
+    else
+      memset(p->aux.auxp, 0, bytes);
+    p->left = 0;
+    p->maxd = maxd;
     return OK;
+}
+
+/* Wrap before converting to an index, including delays beyond imaxd. */
+static double vdelay_readpos(MYFLT delay, MYFLT esr, int32_t maxd, int32_t indx)
+{
+    double samples = (double)delay * esr;
+    double pos;
+    if (UNLIKELY(!isfinite(samples))) return -1.0;
+    if (UNLIKELY(samples <= -maxd || samples >= maxd))
+      samples = fmod(samples, (double)maxd);
+    pos = indx - samples;
+    if (pos < 0.0) pos += maxd;
+    if (pos >= maxd) pos -= maxd;
+    return pos;
 }
 
 int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
@@ -73,32 +98,14 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 
     if (IS_ASIG_ARG(p->adel)) {          /*      if delay is a-rate      */
       for (nn=offset; nn<nsmps; nn++) {
-        MYFLT  fv1, fv2;
+        double fv1;
         int32_t   v1, v2;
 
         buf[indx] = in[nn];
-        fv1 = indx - (del[nn]) * esr;
-        /* Make sure Inside the buffer      */
-        /*
-         * The following has been fixed by adding a cast and making a
-         * ">=" instead of a ">" comparison. The order of the comparisons
-         * has been swapped as well (a bit of a nit, but comparing a
-         * possibly negative number to an unsigned isn't a good idea--and
-         * broke on Alpha).
-         * heh 981101
-         */
-        while (UNLIKELY(fv1 < FL(0.0)))
-          fv1 += (MYFLT)maxd;
-        while (UNLIKELY(fv1 >= (MYFLT)maxd))
-          fv1 -= (MYFLT)maxd;
-
-        if (LIKELY(fv1 < maxd - 1)) /* Find next sample for interpolation      */
-          fv2 = fv1 + FL(1.0);
-        else
-          fv2 = FL(0.0);
-
+        fv1 = vdelay_readpos(del[nn], esr, maxd, indx);
+        if (UNLIKELY(fv1 < 0.0)) goto errdel;
         v1 = (int32_t)fv1;
-        v2 = (int32_t)fv2;
+        v2 = v1 == maxd - 1 ? 0 : v1 + 1;
         out[nn] = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
 
         if (UNLIKELY(++indx == maxd))
@@ -109,27 +116,14 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     else {                      /* and, if delay is k-rate */
       MYFLT fdel=*del;
       for (nn=offset; nn<nsmps; nn++) {
-        MYFLT  fv1, fv2;
+        double fv1;
         int32_t   v1, v2;
 
         buf[indx] = in[nn];
-        fv1 = indx - fdel * esr;
-        /* Make sure inside the buffer      */
-        /*
-         * See comment above--same fix applied here.  heh 981101
-         */
-        while (UNLIKELY(fv1 < FL(0.0)))
-          fv1 += (MYFLT)maxd;
-        while (UNLIKELY(fv1 >= (MYFLT)maxd))
-          fv1 -= (MYFLT)maxd;
-
-        if (LIKELY(fv1 < maxd - 1)) /* Find next sample for interpolation      */
-          fv2 = fv1 + FL(1.0);
-        else
-          fv2 = FL(0.0);
-
+        fv1 = vdelay_readpos(fdel, esr, maxd, indx);
+        if (UNLIKELY(fv1 < 0.0)) goto errdel;
         v1 = (int32_t)fv1;
-        v2 = (int32_t)fv2;
+        v2 = v1 == maxd - 1 ? 0 : v1 + 1;
         out[nn] = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
 
         if (UNLIKELY(++indx == maxd)) indx = 0;   /*      Advance current pointer */
@@ -141,6 +135,9 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
  err1:
     return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
+ errdel:
+    return csound->PerfError(csound, &(p->h),
+                             Str("vdelay: invalid delay"));
 }
 
 int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
@@ -157,7 +154,6 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
 
     if (UNLIKELY(buf==NULL)) goto err1;            /* RWD fix */
     maxd = p->maxd;
-    if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -167,21 +163,14 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
 
     if (IS_ASIG_ARG(p->adel)) {              /*      if delay is a-rate      */
       for (nn=offset; nn<nsmps; nn++) {
-        MYFLT  fv1;
+        double fv1;
         int32_t   v0, v1, v2, v3;
 
         buf[indx] = in[nn];      /* IV Oct 2001 */
-        fv1 = del[nn] * (-esr);
+        fv1 = vdelay_readpos(del[nn], esr, maxd, indx);
+        if (UNLIKELY(fv1 < 0.0)) goto errdel;
         v1 = (int32_t)fv1;
-        fv1 -= (MYFLT) v1;
-        v1 += (int32_t)indx;
-        /* Make sure Inside the buffer      */
-        if ((v1 < 0L) || (fv1 < FL(0.0))) {
-          fv1++; v1--; while (UNLIKELY(v1 < 0L)) v1 += (int32_t)maxd;
-        }
-        else {
-          while (UNLIKELY(v1 >= (int32_t)maxd)) v1 -= (int32_t)maxd;
-        }
+        fv1 -= v1;
         /* Find next sample for interpolation      */
         v2 = (v1 == (int32_t)(maxd - 1UL) ? 0L : v1 + 1L);
 
@@ -206,26 +195,23 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
       };
     }
     else {                      /* and, if delay is k-rate */
-      MYFLT  fv1, w, x, y, z;
+      double fv1;
+      MYFLT w, x, y, z;
       int32_t   v0, v1, v2, v3;
 
-      fv1 = *del * -esr; v1 = (int32_t)fv1; fv1 -= (MYFLT) v1;
-      v1 += (int32_t)indx;
-      /* Make sure Inside the buffer      */
-      if ((v1 < 0L) || (fv1 < FL(0.0))) {
-        fv1++; v1--; while (UNLIKELY(v1 < 0L)) v1 += (int32_t)maxd;
-      }
-      else {
-        while (UNLIKELY(v1 >= (int32_t)maxd)) v1 -= (int32_t)maxd;
-      }
+      fv1 = vdelay_readpos(*del, esr, maxd, indx);
+      if (UNLIKELY(fv1 < 0.0)) goto errdel;
+      v1 = (int32_t)fv1;
+      fv1 -= v1;
 
       if (maxd<4) {
         for (nn=offset; nn<nsmps; nn++) {
+          buf[indx] = in[nn];
           /* Find next sample for interpolation      */
           v2 = (v1 == (int32_t)(maxd - 1UL) ? 0L : v1 + 1L);
           out[nn] = buf[v1] + fv1 * (buf[v2] - buf[v1]);
           if (UNLIKELY(++v1 >= (int32_t)maxd)) v1 -= (int32_t)maxd;
-              if (UNLIKELY(++indx >= maxd)) indx -= maxd;
+          if (UNLIKELY(++indx >= maxd)) indx -= maxd;
         }
       }
       else {
@@ -252,6 +238,9 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
  err1:
     return csound->PerfError(csound, &(p->h),
                              Str("vdelay3: not initialised"));
+ errdel:
+    return csound->PerfError(csound, &(p->h),
+                             Str("vdelay3: invalid delay"));
 }
 
 /* vdelayx, vdelayxs, vdelayxq, vdelayxw, vdelayxws, vdelayxwq */
