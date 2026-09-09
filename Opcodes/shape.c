@@ -425,16 +425,27 @@ typedef struct {
 
 int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
 {
-    MYFLT  phs;
-    int32   longphs;
+    double phs = (double)*p->initphase;
 
-    if ((phs = *p->initphase) >= FL(0.0)) {
-      if (UNLIKELY((longphs = (int32)phs))) {
+    if (UNLIKELY(!isfinite(phs)))
+      return csound->InitError(csound, "%s", Str("syncphasor: invalid phase"));
+    if (phs >= 0.0) {
+      if (UNLIKELY(phs >= 1.0)) {
         csound->Warning(csound, "%s", Str("init phase truncation\n"));
       }
-      p->curphase = phs - (MYFLT)longphs;
+      p->curphase = phs - floor(phs);
     }
     return OK;
+}
+
+static int32_t syncphasor_advance(double *phase, double increment)
+{
+    double next = *phase + increment;
+    int32_t wrapped;
+    if (UNLIKELY(!isfinite(next))) return NOTOK;
+    wrapped = next >= 1.0 || next < 0.0;
+    *phase = next - floor(next);
+    return wrapped;
 }
 
 int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
@@ -452,10 +463,14 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
     syncin = p->asyncin;
     phase = p->curphase;
     cpsIsARate = IS_ASIG_ARG(p->xcps); /* check first input arg rate */
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) {
+      memset(out, '\0', offset*sizeof(MYFLT));
+      memset(syncout, '\0', offset*sizeof(MYFLT));
+    }
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&syncout[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (cpsIsARate) {
       MYFLT *cps = p->xcps;
@@ -466,23 +481,17 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
           syncout[n] = FL(1.0);        /* send sync whenever syncin */
         }
         else {
-          incr = (double)(cps[n] * CS_ONEDSR);
+          int32_t wrapped;
+          incr = (double)cps[n] * CS_ONEDSR;
           out[n] = (MYFLT)phase;
-          phase += incr;
-          if (phase >= 1.0) {
-            phase -= 1.0;
-            syncout[n] = FL(1.0);        /* send sync when phase wraps */
-          }
-          else if (phase < 0.0) {
-            phase += 1.0;
-            syncout[n] = FL(1.0);
-          }
-          else syncout[n] = FL(0.0);
+          wrapped = syncphasor_advance(&phase, incr);
+          if (UNLIKELY(wrapped == NOTOK)) goto err1;
+          syncout[n] = wrapped ? FL(1.0) : FL(0.0);
         }
       }
     }
     else {
-      incr = (double)(*p->xcps * CS_ONEDSR);
+      incr = (double)*p->xcps * CS_ONEDSR;
       for (n=offset; n<nsmps; n++) {
         if (syncin[n] != FL(0.0)) {        /* non-zero triggers reset */
           phase = 0.0;
@@ -491,21 +500,17 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
         }
         else {
           out[n] = (MYFLT)phase;
-          phase += incr;
-          if (phase >= 1.0) {
-            phase -= 1.0;
-            syncout[n] = FL(1.0);        /* send sync when phase wraps */
-          }
-          else if (phase < 0.0) {
-            phase += 1.0;
-            syncout[n] = FL(1.0);
-          }
-          else syncout[n] = FL(0.0);
+          int32_t wrapped = syncphasor_advance(&phase, incr);
+          if (UNLIKELY(wrapped == NOTOK)) goto err1;
+          syncout[n] = wrapped ? FL(1.0) : FL(0.0);
         }
       }
     }
     p->curphase = phase;
     return OK;
+ err1:
+    return csound->PerfError(csound, &(p->h),
+                             Str("syncphasor: invalid frequency"));
 }
 
 
