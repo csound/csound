@@ -217,11 +217,11 @@ static int32_t locsend(CSOUND *csound, LOCSEND *p)
       }
     }
     n = (nsmps-offset)*sizeof(MYFLT);
-    memcpy(p->r1+offset, q->rrev1, n);
-    memcpy(p->r2+offset, q->rrev2, n);
+    memcpy(p->r1+offset, q->rrev1+offset, n);
+    memcpy(p->r2+offset, q->rrev2+offset, n);
     if (p->OUTOCOUNT == 4) {
-      memcpy(p->r3+offset, q->rrev3, n);
-      memcpy(p->r4+offset, q->rrev4, n);
+      memcpy(p->r3+offset, q->rrev3+offset, n);
+      memcpy(p->r4+offset, q->rrev4+offset, n);
     }
     return OK;
 }
