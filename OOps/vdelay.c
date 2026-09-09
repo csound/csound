@@ -62,18 +62,24 @@ int32_t vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 }
 
 /* Wrap before converting to an index, including delays beyond imaxd. */
-static double vdelay_readpos(MYFLT delay, MYFLT esr, int32_t maxd, int32_t indx)
-{
-    double samples = (double)delay * esr;
-    double pos;
-    if (UNLIKELY(!isfinite(samples))) return -1.0;
-    if (UNLIKELY(samples <= -maxd || samples >= maxd))
-      samples = fmod(samples, (double)maxd);
-    pos = indx - samples;
-    if (pos < 0.0) pos += maxd;
-    if (pos >= maxd) pos -= maxd;
-    return pos;
-}
+#define VDELAY_READPOS(result, delay, esr, maxd, indx)                    \
+  do {                                                                   \
+    double vdelay_samples_ = (double)(delay) * (double)(esr);            \
+    double vdelay_maxd_ = (double)(maxd);                                \
+    double vdelay_pos_;                                                  \
+    int32_t vdelay_indx_ = (indx);                                       \
+    if (UNLIKELY(!isfinite(vdelay_samples_)))                            \
+      vdelay_pos_ = -1.0;                                                \
+    else {                                                               \
+      if (UNLIKELY(vdelay_samples_ <= -vdelay_maxd_ ||                   \
+                   vdelay_samples_ >= vdelay_maxd_))                     \
+        vdelay_samples_ = fmod(vdelay_samples_, vdelay_maxd_);           \
+      vdelay_pos_ = vdelay_indx_ - vdelay_samples_;                      \
+      if (vdelay_pos_ < 0.0) vdelay_pos_ += vdelay_maxd_;                \
+      if (vdelay_pos_ >= vdelay_maxd_) vdelay_pos_ -= vdelay_maxd_;      \
+    }                                                                    \
+    (result) = vdelay_pos_;                                              \
+  } while (0)
 
 int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 {
@@ -102,7 +108,7 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
         int32_t   v1, v2;
 
         buf[indx] = in[nn];
-        fv1 = vdelay_readpos(del[nn], esr, maxd, indx);
+        VDELAY_READPOS(fv1, del[nn], esr, maxd, indx);
         if (UNLIKELY(fv1 < 0.0)) goto errdel;
         v1 = (int32_t)fv1;
         v2 = v1 == maxd - 1 ? 0 : v1 + 1;
@@ -120,7 +126,7 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
         int32_t   v1, v2;
 
         buf[indx] = in[nn];
-        fv1 = vdelay_readpos(fdel, esr, maxd, indx);
+        VDELAY_READPOS(fv1, fdel, esr, maxd, indx);
         if (UNLIKELY(fv1 < 0.0)) goto errdel;
         v1 = (int32_t)fv1;
         v2 = v1 == maxd - 1 ? 0 : v1 + 1;
@@ -167,7 +173,7 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
         int32_t   v0, v1, v2, v3;
 
         buf[indx] = in[nn];      /* IV Oct 2001 */
-        fv1 = vdelay_readpos(del[nn], esr, maxd, indx);
+        VDELAY_READPOS(fv1, del[nn], esr, maxd, indx);
         if (UNLIKELY(fv1 < 0.0)) goto errdel;
         v1 = (int32_t)fv1;
         fv1 -= v1;
@@ -199,7 +205,7 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
       MYFLT w, x, y, z;
       int32_t   v0, v1, v2, v3;
 
-      fv1 = vdelay_readpos(*del, esr, maxd, indx);
+      VDELAY_READPOS(fv1, *del, esr, maxd, indx);
       if (UNLIKELY(fv1 < 0.0)) goto errdel;
       v1 = (int32_t)fv1;
       fv1 -= v1;
@@ -242,6 +248,8 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
     return csound->PerfError(csound, &(p->h),
                              Str("vdelay3: invalid delay"));
 }
+
+#undef VDELAY_READPOS
 
 /* vdelayx, vdelayxs, vdelayxq, vdelayxw, vdelayxws, vdelayxwq */
 /* coded by Istvan Varga, Mar 2001 */
