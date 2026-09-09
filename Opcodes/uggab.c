@@ -1435,7 +1435,7 @@ static int32_t random3_set(CSOUND *csound, RANDOM3 *p)
     p->df1      = FL(0.0);
     p->initflag = 1;
     p->rangeMin_cod = IS_ASIG_ARG(p->rangeMin);
-    p->rangeMax_cod = IS_ASIG_ARG(p->rangeMin);
+    p->rangeMax_cod = IS_ASIG_ARG(p->rangeMax);
     p->phs      = 0.0;
     return OK;
 }
@@ -1444,6 +1444,12 @@ static int32_t random3(CSOUND *csound, RANDOM3 *p)
 {
     MYFLT       x, c3= p->c3, c2= p->c2;
     MYFLT       f0 = p->num0, df0= p->df0;
+    MYFLT       cpsMin = *p->cpsMin, cpsMax = *p->cpsMax;
+
+    if (UNLIKELY(!isfinite(cpsMin) || !isfinite(cpsMax) ||
+                 cpsMin < FL(0.0) || cpsMax < FL(0.0)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("rspline: rates must be finite and non-negative"));
 
     if (p->initflag) {
       p->initflag = 0;
@@ -1453,9 +1459,9 @@ static int32_t random3(CSOUND *csound, RANDOM3 *p)
     if (p->phs >= 1.0) {
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
-      p->si = (randGab(csound) * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
-      while (p->phs > 1.0)
-        p->phs -= 1.0;
+      p->si = (randGab(csound) * (cpsMax-cpsMin) + cpsMin)*CS_ONEDKR;
+      if (p->phs > 1.0)
+        p->phs = p->phs - ceil(p->phs) + 1.0;
       f0     = p->num0 = p->num1;
       f1     = p->num1 = p->num2;
       f2     = p->num2 = randGab(csound);
@@ -1486,11 +1492,18 @@ static int32_t random3a(CSOUND *csound, RANDOM3 *p)
     uint32_t n, nsmps = CS_KSMPS;
     double      phs = p->phs, si = p->si;
 
+    if (UNLIKELY(!isfinite(cpsMin) || !isfinite(cpsMax) ||
+                 cpsMin < FL(0.0) || cpsMax < FL(0.0)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("rspline: rates must be finite and non-negative"));
+
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    if (rangeMin_cod) rangeMin += offset;
+    if (rangeMax_cod) rangeMax += offset;
     if (p->initflag) {
       p->initflag = 0;
       n = offset;
@@ -1502,10 +1515,10 @@ static int32_t random3a(CSOUND *csound, RANDOM3 *p)
         MYFLT   slope, resd1, resd0, f2, f1;
       next:
         si =  (randGab(csound)  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
-        while (phs > 1.0) phs -= 1.0;
+        if (phs > 1.0) phs = phs - ceil(phs) + 1.0;
         f0     = p->num0 = p->num1;
         f1     = p->num1 = p->num2;
-        f2     = p->num2 = BiRandGab(csound);
+        f2     = p->num2 = randGab(csound);
         df0    = p->df0 = p->df1;
         p->df1 = ( f2 - f0 ) * FL(0.5);
         slope  = f1 - f0;
