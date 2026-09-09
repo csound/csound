@@ -677,6 +677,109 @@ endin
     EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
 }
 
+class StringArrayInitConsumerTests
+    : public OrcCompileTests,
+      public ::testing::WithParamInterface<const char *> {};
+
+TEST_P (StringArrayInitConsumerTests, rejectsPerformanceRead)
+{
+    std::string orchestra =
+        "declare PrintWord(word:S):()\n"
+        "instr 1\n"
+        "  Swords[] fillarray \"first\", \"changed\"\n"
+        "  kIndex init 1\n"
+        "  ";
+    orchestra += GetParam();
+    orchestra += "\nendin\n"
+                 "opcode PrintWord(word:S):void\n"
+                 "  prints \"%s\", word\n"
+                 "endop\n";
+    csoundCreateMessageBuffer(csound, 0);
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra.c_str()));
+    std::string messages;
+    while (csoundGetMessageCnt(csound) > 0) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_NE(std::string::npos, messages.find("performance-only string array read"));
+    EXPECT_NE(std::string::npos, messages.find("i(kIndex)"));
+    EXPECT_NE(std::string::npos, messages.find("performance-time consumer"));
+    EXPECT_NE(std::string::npos, messages.find("line 5"));
+    csoundDestroyMessageBuffer(csound);
+}
+
+TEST_P (StringArrayInitConsumerTests, acceptsExplicitInitRead)
+{
+    std::string statement = GetParam();
+    size_t index = statement.find("[kIndex]");
+    ASSERT_NE(std::string::npos, index);
+    statement.replace(index, strlen("[kIndex]"), "[i(kIndex)]");
+    std::string orchestra =
+        "declare PrintWord(word:S):()\n"
+        "instr 1\n"
+        "  Swords[] fillarray \"first\", \"changed\"\n"
+        "  kIndex init 1\n" + statement + "\nendin\n"
+        "opcode PrintWord(word:S):void\n"
+        "  prints \"%s\", word\n"
+        "endop\n";
+    EXPECT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra.c_str()));
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    StringArrays, StringArrayInitConsumerTests,
+    ::testing::Values(
+        "prints \"INIT=[%s]\\n\", Swords[kIndex]",
+        "printfi \"INIT=[%s]\\n\", 1, Swords[kIndex]",
+        "Scopy strcpy Swords[kIndex]",
+        "Scopy = strcpy(Swords[kIndex])",
+        "Scopy init Swords[kIndex]",
+        "printf \"LENGTH=%d\\n\", 1, strlen(Swords[kIndex])",
+        "PrintWord Swords[kIndex]"));
+
+TEST_F (OrcCompileTests, testStringArrayInitAndPerformanceValues)
+{
+    const char *orchestra = R"(
+sr = 48000
+ksmps = 32
+nchnls = 1
+opcode PrintWord(word:S):void
+  printf "UDO=[%s]\n", 1, word
+endop
+instr 1
+  Swords[] fillarray "first", "changed"
+  kIndex init 1
+  prints "INIT=[%s]\n", Swords[i(kIndex)]
+  Scopy strcpy Swords[i(kIndex)]
+  prints "COPY=[%s]\n", Scopy
+  Svalue = Swords[kIndex]
+  printf "PERF=[%s]\n", kIndex + 1, Swords[kIndex]
+  printf "ASSIGN=[%s]\n", kIndex + 1, Svalue
+  PrintWord Swords[kIndex]
+  printtype Swords[kIndex]
+  kIndex = 0
+endin
+)";
+    csoundCreateMessageBuffer(csound, 0);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.01\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    std::string messages;
+    while (csoundGetMessageCnt(csound) > 0) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    for (const char *expected : {"INIT=[changed]", "COPY=[changed]",
+                                "PERF=[changed]", "PERF=[first]",
+                                "ASSIGN=[changed]", "ASSIGN=[first]",
+                                "UDO=[changed]"}) {
+        EXPECT_NE(std::string::npos, messages.find(expected)) << expected;
+    }
+    csoundDestroyMessageBuffer(csound);
+}
+
 TEST_F (OrcCompileTests, testReuse)
 {
     int32_t result;
