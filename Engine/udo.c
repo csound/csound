@@ -2336,8 +2336,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                        !udo_audio_array_range_valid(
                          targetStride, 0, 1))) {
             return csound->PerfError(
-              csound, &p->h,
-              "UDO audio-array input layout changed during performance");
+              csound, &p->h, "%s",
+              Str("UDO audio-array input layout changed during performance"));
           }
 
           for (size_t j = 0; j < count; j++) {
@@ -2383,8 +2383,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                        !udo_audio_array_range_valid(
                          targetStride, ofs, 1))) {
             return csound->PerfError(
-              csound, &p->h,
-              "UDO audio-array output layout changed during performance");
+              csound, &p->h, "%s",
+              Str("UDO audio-array output layout changed during performance"));
           }
 
           for (size_t j = 0; j < count; j++) {
@@ -2461,8 +2461,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                        !udo_audio_array_range_valid(
                          targetStride, 0, localSamples))) {
             return csound->PerfError(
-              csound, &p->h,
-              "UDO audio-array input layout changed during performance");
+              csound, &p->h, "%s",
+              Str("UDO audio-array input layout changed during performance"));
           }
 
           for (size_t j = 0; j < count; j++) {
@@ -2513,8 +2513,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                        !udo_audio_array_range_valid(
                          targetStride, ofs, localSamples))) {
             return csound->PerfError(
-              csound, &p->h,
-              "UDO audio-array output layout changed during performance");
+              csound, &p->h, "%s",
+              Str("UDO audio-array output layout changed during performance"));
           }
           for (size_t j = 0; j < count; j++) {
             MYFLT* in = src->data +
@@ -2569,8 +2569,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                          strideSamples, 0, (size_t)g_ksmps +
                                            (size_t)early))) {
             return csound->PerfError(
-              csound, &p->h,
-              "UDO audio-array output layout changed during performance");
+              csound, &p->h, "%s",
+              Str("UDO audio-array output layout changed during performance"));
           }
 
           if (offset) {
