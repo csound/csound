@@ -80,44 +80,52 @@ static int32_t kwrap(CSOUND *csound, WRAP *p)
 
 /*---------------------------------------------------------------------*/
 
-static MYFLT mirror_value(MYFLT input, MYFLT lower, MYFLT upper)
-{
-    double value = input, low = lower, high = upper;
-    double width, remainder, lowrem;
-    int quotient, lowquot, odd;
-
-    if (low >= high) {
-      double sum = low + high;
-      return (MYFLT)(isfinite(sum) ? sum * 0.5 : low * 0.5 + high * 0.5);
-    }
-    if (value >= low && value <= high) return input;
-    if (!isfinite(value) || !isfinite(low) || !isfinite(high))
-      return (MYFLT)NAN;
-
-    width = high - low;
-    if (!isfinite(width)) {
-      /* Such a wide finite interval needs at most one reflection. */
-      return (MYFLT)(value > high ? high - (value - high)
-                                  : low + (low - value));
-    }
-
-    /* Reduce separately: value - low can overflow or lose the low offset. */
-    remainder = remquo(value, width, &quotient);
-    lowrem = remquo(low, width, &lowquot);
-    remainder -= lowrem;
-    odd = (quotient % 2 != 0) != (lowquot % 2 != 0);
-    if (remainder < 0.0) {
-      remainder += width;
-      odd = !odd;
-    }
-    /* Quotient parity selects the direction without doubling the width. */
-    return (MYFLT)(odd ? high - remainder : low + remainder);
-}
+#define MIRROR_VALUE(output, input, lower, upper) do {                         \
+    double mirror_input = (input), low = (lower), high = (upper);              \
+    double width, remainder, lowrem;                                           \
+    int quotient, lowquot, odd;                                                \
+                                                                               \
+    if (low >= high) {                                                         \
+      double sum = low + high;                                                 \
+      (output) = (MYFLT)(isfinite(sum) ? sum * 0.5                             \
+                                     : low * 0.5 + high * 0.5);                \
+      break;                                                                   \
+    }                                                                          \
+    if (mirror_input >= low && mirror_input <= high) {                         \
+      (output) = (MYFLT)mirror_input;                                          \
+      break;                                                                   \
+    }                                                                          \
+    if (!isfinite(mirror_input) || !isfinite(low) || !isfinite(high)) {        \
+      (output) = (MYFLT)NAN;                                                   \
+      break;                                                                   \
+    }                                                                          \
+                                                                               \
+    width = high - low;                                                        \
+    if (!isfinite(width)) {                                                    \
+      /* Such a wide finite interval needs at most one reflection. */          \
+      (output) = (MYFLT)(mirror_input > high                                   \
+                         ? high - (mirror_input - high)                        \
+                         : low + (low - mirror_input));                        \
+      break;                                                                   \
+    }                                                                          \
+                                                                               \
+    /* Reduce separately: input - low can overflow or lose the low offset. */  \
+    remainder = remquo(mirror_input, width, &quotient);                        \
+    lowrem = remquo(low, width, &lowquot);                                     \
+    remainder -= lowrem;                                                       \
+    odd = (quotient % 2 != 0) != (lowquot % 2 != 0);                           \
+    if (remainder < 0.0) {                                                     \
+      remainder += width;                                                      \
+      odd = !odd;                                                              \
+    }                                                                          \
+    /* Quotient parity selects the direction without doubling the width. */    \
+    (output) = (MYFLT)(odd ? high - remainder : low + remainder);              \
+} while (0)
 
 static int32_t kmirror(CSOUND *csound, WRAP *p)
 {
     IGN(csound);
-    *p->xdest = mirror_value(*p->xsig, *p->xlow, *p->xhigh);
+    MIRROR_VALUE(*p->xdest, *p->xsig, *p->xlow, *p->xhigh);
     return OK;
 }
 
@@ -141,7 +149,7 @@ static int32_t mirror(CSOUND *csound, WRAP *p)
       memset(&adest[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (xlow >= xhigh)  {
-      xaverage = mirror_value(FL(0.0), xlow, xhigh);
+      MIRROR_VALUE(xaverage, FL(0.0), xlow, xhigh);
       for (n=offset;n<nsmps;n++) {
         adest[n] = xaverage;
       }
@@ -149,7 +157,7 @@ static int32_t mirror(CSOUND *csound, WRAP *p)
     }
 
     for (n=offset;n<nsmps;n++) {
-      adest[n] = mirror_value(asig[n], xlow, xhigh);
+      MIRROR_VALUE(adest[n], asig[n], xlow, xhigh);
     }
     return OK;
 }
