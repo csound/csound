@@ -433,13 +433,14 @@ int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
       if (UNLIKELY(phs >= 1.0)) {
         csound->Warning(csound, "%s", Str("init phase truncation\n"));
       }
-      p->curphase = phs - floor(phs);
+      p->curphase = phs - FLOOR(phs);
     }
     return OK;
 }
 
 int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
 {
+    /* Keep floor() below: FLOOR() would narrow the phase in float builds. */
     double      phase;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

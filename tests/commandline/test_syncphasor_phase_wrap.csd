@@ -34,8 +34,27 @@ instr 1
   kcount += 1
 endin
 
+instr 2
+  ; Rounding the double phase to float before flooring can make it negative.
+  asyncin = 0
+  acps = 0.0003
+  akphase, aksync syncphasor 0.0003, asyncin, 0.99999994
+  aaphase, aasync syncphasor acps, asyncin, 0.99999994
+  kkphase downsamp akphase
+  kaphase downsamp aaphase
+  if !(kkphase >= 0 && kaphase >= 0) then
+    printks "negative syncphasor phase: k=%.12f a=%.12f\n", 0, kkphase, kaphase
+    exitnowk(-1)
+  endif
+  kfirst init 1
+  if kfirst == 1 then
+    gkchecks += 1
+    kfirst = 0
+  endif
+endin
+
 instr 99
-  if i(gkchecks) != 6 then
+  if i(gkchecks) != 7 then
     prints "not all syncphasor checks ran\n"
     exitnow(-1)
   endif
@@ -49,6 +68,7 @@ i 1 0 .001 8400 0 .05 1 0
 i 1 0 .001 -8400 0 .95 1 0
 i 1 0 .001 100 1.75 .7625 0 .75
 i 1 0 .001 100 1e20 .0125 0 0
+i 2 0 .001
 i 99 .002 .001
 </CsScore>
 </CsoundSynthesizer>
