@@ -438,16 +438,6 @@ int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
     return OK;
 }
 
-static int32_t syncphasor_advance(double *phase, double increment)
-{
-    double next = *phase + increment;
-    int32_t wrapped;
-    if (UNLIKELY(!isfinite(next))) return NOTOK;
-    wrapped = next >= 1.0 || next < 0.0;
-    *phase = next - floor(next);
-    return wrapped;
-}
-
 int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
 {
     double      phase;
@@ -481,12 +471,13 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
           syncout[n] = FL(1.0);        /* send sync whenever syncin */
         }
         else {
-          int32_t wrapped;
+          double next;
           incr = (double)cps[n] * CS_ONEDSR;
           out[n] = (MYFLT)phase;
-          wrapped = syncphasor_advance(&phase, incr);
-          if (UNLIKELY(wrapped == NOTOK)) goto err1;
-          syncout[n] = wrapped ? FL(1.0) : FL(0.0);
+          next = phase + incr;
+          if (UNLIKELY(!isfinite(next))) goto err1;
+          syncout[n] = (next >= 1.0 || next < 0.0) ? FL(1.0) : FL(0.0);
+          phase = next - floor(next);
         }
       }
     }
@@ -499,10 +490,11 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
           syncout[n] = FL(1.0);        /* send sync whenever syncin */
         }
         else {
+          double next = phase + incr;
           out[n] = (MYFLT)phase;
-          int32_t wrapped = syncphasor_advance(&phase, incr);
-          if (UNLIKELY(wrapped == NOTOK)) goto err1;
-          syncout[n] = wrapped ? FL(1.0) : FL(0.0);
+          if (UNLIKELY(!isfinite(next))) goto err1;
+          syncout[n] = (next >= 1.0 || next < 0.0) ? FL(1.0) : FL(0.0);
+          phase = next - floor(next);
         }
       }
     }
