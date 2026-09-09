@@ -58,7 +58,8 @@ static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
       if (UNLIKELY((olaps = (int32)*p->iolaps) <= 0)) {
         return csound->InitError(csound, "%s", Str("illegal value for iolaps"));
       }
-      if (*p->iphs >= FL(0.0))
+      if (*p->iphs >= FL(0.0) || p->auxch.auxp == NULL ||
+          p->auxch.size < (size_t)olaps * sizeof(OVRLAP))
         csound->AuxAlloc(csound, (size_t)olaps * sizeof(OVRLAP), &p->auxch);
       ovp = &p->basovrlap;
       nxtovp = (OVRLAP *) p->auxch.auxp;
@@ -142,7 +143,9 @@ static int32_t fof(CSOUND *csound, FOFS *p)
         p->fundphs &= PHMASK;
       
       if ((ovp = p->basovrlap.nxtfree) == NULL) goto err2;
-      if (newpulse(csound, p, ovp, amp, fund, form)) {   /* init new fof */
+      int32_t pulse = newpulse(csound, p, ovp, amp, fund, form);
+      if (UNLIKELY(pulse < 0)) goto err3;
+      if (pulse) {                                  /* init new fof */
         ovp->nxtact = p->basovrlap.nxtact;     /* & link into  */
         p->basovrlap.nxtact = ovp;             /*   actlist    */
         p->basovrlap.nxtfree = ovp->nxtfree;
@@ -242,6 +245,9 @@ static int32_t fof(CSOUND *csound, FOFS *p)
  err2:
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("FOF needs more overlaps"));
+ err3:
+    return csound->PerfError(csound, &(p->h),
+                             "%s", Str("FOF rise time exceeds supported range"));
 }
 
 static int32_t newpulse(CSOUND *csound,
@@ -249,17 +255,25 @@ static int32_t newpulse(CSOUND *csound,
 {
   MYFLT   octamp = *amp, oct;
   int32   rismps, newexp = 0;
+  /* Keep the original sample-count rounding in single-precision builds. */
+  MYFLT   grain_samples = *p->kdur * CS_ESR;
 
-  if ((ovp->timrem = (int32)(*p->kdur * CS_ESR)) > p->durtogo &&
+  if (!(grain_samples >= 1.0))
+    ovp->timrem = 1;
+  else if (grain_samples >= (double) INT32_MAX)
+    ovp->timrem = INT32_MAX;
+  else
+    ovp->timrem = (int32) grain_samples;
+  if (ovp->timrem > p->durtogo &&
       (*p->iskip==FL(0.0))) /* ringtime */
     return(0);
   if ((oct = *p->koct) > FL(0.0)) {                   /* octaviation */
-    int64_t csnt = -1;
-    int64_t ioct = (int64_t) oct;
-    int64_t bitpat = ~(csnt << ioct);
-    if (bitpat & ++p->fofcount)
+    int64_t ioct = oct >= (MYFLT) INT64_MAX ? 64 : (int64_t) oct;
+    uint64_t bitpat = ioct < 64 ? (UINT64_C(1) << ioct) - 1 : UINT64_MAX;
+    uint64_t fofcount = (uint64_t) ++p->fofcount;
+    if (bitpat & fofcount)
       return(0);
-    if ((bitpat += 1) & p->fofcount)
+    if (++bitpat & fofcount)
       octamp *= (FL(1.0) + ioct - oct);
   }
   if(p->floatph) {
@@ -293,13 +307,18 @@ static int32_t newpulse(CSOUND *csound,
         
       }
       ovp->risincf = (CS_ONEDSR / *p->kris);
-      rismps = (int32_t) (1. / ovp->risincf);  
+      double rise_samples = 1. / ovp->risincf;
+      if (UNLIKELY(rise_samples > (double) INT32_MAX))
+        return NOTOK;
+      rismps = (int32_t) rise_samples;
     } else {
       if (*form < FL(0.0) && ovp->formphs != 0)
         ovp->risphs = (int32)((MAXLEN - ovp->formphs) / -*form / *p->kris);
       else
         ovp->risphs = (int32)(ovp->formphs / *form / *p->kris);
       ovp->risinc = (int32)(CS_SICVT / *p->kris);
+      if (UNLIKELY(ovp->risinc <= 0))
+        return NOTOK;
       rismps = MAXLEN / ovp->risinc;
     }
   }
