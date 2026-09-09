@@ -525,19 +525,18 @@ static int32_t distort(CSOUND *csound, DISTORT *p)
   /* IV - Dec 28 2002 */
   shape1 += pregain;
   shape2 -= pregain;
-  postgain *= FL(0.5);
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n=offset; n<nsmps; n++) {
+    MYFLT norm;
     sig    = in[n];
-    /* Generate tanh distortion and output the result */
-    out[n] =                          /* IV - Dec 28 2002: optimised */
-      ((EXP(sig * shape1) - EXP(sig * shape2))
-       / COSH(sig * pregain))
-      * postgain;
+    norm = FABS(sig * pregain);
+    /* Scale by the largest denominator exponent to avoid overflow. */
+    out[n] = ((EXP(sig * shape1 - norm) - EXP(sig * shape2 - norm))
+              / (FL(1.0) + EXP(FL(-2.0) * norm))) * postgain;
   }
   return OK;
 }
