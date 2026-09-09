@@ -159,6 +159,12 @@ static int32_t ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* p)
    Coefficients (k0, k1, k2, ... ) are k-rate multipliers of each Chebyshev
    polynomial starting with the zero-order polynomial T0(x) = 1, then
    T1(x) = x, T2(x) = 2x^2 - 1, etc. */
+/*
+ * Known limitation: expanding high-order Chebyshev terms can overflow even
+ * when the final series is finite. Keep this implementation unchanged for
+ * its established behavior and faster low-order sample loop. Use
+ * chebyshevpoly2 for direct evaluation; do not apply that fix here.
+ */
 static int32_t ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
 {
     int32_t     i, j;
@@ -223,6 +229,133 @@ static int32_t ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
       out[n] = sum;
     }
 
+    return OK;
+}
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *aout, *ain, *kcoefficients[VARGMAX-1];
+    AUXCH   coeff;
+    int32_t count;
+} CHEBPOLY2;
+
+static int32_t ChebyshevPoly2Init(CSOUND* csound, CHEBPOLY2* p)
+{
+    p->count = GetInputArgCnt((OPDS *)p) - 1;
+    if (UNLIKELY(p->count < 1))
+      return csound->InitError(csound, "%s",
+                               Str("chebyshevpoly2: no coefficients"));
+    csound->AuxAlloc(csound, (size_t)p->count * sizeof(double), &p->coeff);
+    return OK;
+}
+
+static int32_t ChebyshevPolynomial2(CSOUND* csound, CHEBPOLY2* p)
+{
+    int32_t i, count = p->count;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT *out = p->aout;
+    MYFLT *in = p->ain;
+    double *coeff = (double*)p->coeff.auxp;
+    IGN(csound);
+
+    for (i = 0; i < count; ++i)
+      coeff[i] = (double)*p->kcoefficients[i];
+    if (UNLIKELY(offset)) memset(out, 0, offset * sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], 0, early * sizeof(MYFLT));
+    }
+    if (count == 1) {
+      MYFLT value = (MYFLT)coeff[0];
+      for (n = offset; n < nsmps; ++n) out[n] = value;
+    }
+    else if (count == 2) {
+      double c0 = coeff[0], c1 = coeff[1];
+      for (n = offset; n < nsmps; ++n)
+        out[n] = (MYFLT)(c0 + (double)in[n] * c1);
+    }
+    else {
+      int32_t last = count - 1;
+      /* Keep the recurrence here: this loop runs once per audio sample. */
+      for (n = offset; n < nsmps; ++n) {
+        double x = (double)in[n];
+        double b0, b1 = 0.0, b2 = 0.0;
+        for (i = last; i >= 1; --i) {
+          b0 = 2.0 * x * b1 - b2 + coeff[i];
+          b2 = b1;
+          b1 = b0;
+        }
+        out[n] = (MYFLT)(x * b1 - b2 + coeff[0]);
+      }
+    }
+    return OK;
+}
+
+typedef struct {
+    OPDS     h;
+    MYFLT    *aout, *ain;
+    ARRAYDAT *coefficients;
+} CHEBPOLY2ARRAY;
+
+static int32_t ChebyshevPoly2ArrayInit(CSOUND* csound, CHEBPOLY2ARRAY* p)
+{
+    ARRAYDAT *coeff = p->coefficients;
+    if (UNLIKELY(coeff->data == NULL || coeff->sizes == NULL ||
+                 coeff->dimensions != 1 || coeff->sizes[0] < 1))
+      return csound->InitError(csound, "%s",
+                               Str("chebyshevpoly2: coefficients must be "
+                                   "a non-empty one-dimensional array"));
+    return OK;
+}
+
+static int32_t ChebyshevPolynomial2Array(CSOUND* csound, CHEBPOLY2ARRAY* p)
+{
+    ARRAYDAT *coefficients = p->coefficients;
+    int32_t i, count;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT *out = p->aout;
+    MYFLT *in = p->ain;
+    MYFLT *coeff;
+
+    if (UNLIKELY(coefficients->data == NULL || coefficients->sizes == NULL ||
+                 coefficients->dimensions != 1 || coefficients->sizes[0] < 1))
+      return csound->PerfError(csound, &p->h,
+                               Str("chebyshevpoly2: coefficients must be "
+                                   "a non-empty one-dimensional array"));
+    count = coefficients->sizes[0];
+    coeff = (MYFLT*)coefficients->data;
+    if (UNLIKELY(offset)) memset(out, 0, offset * sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], 0, early * sizeof(MYFLT));
+    }
+    if (count == 1) {
+      MYFLT value = coeff[0];
+      for (n = offset; n < nsmps; ++n) out[n] = value;
+    }
+    else if (count == 2) {
+      double c0 = (double)coeff[0], c1 = (double)coeff[1];
+      for (n = offset; n < nsmps; ++n)
+        out[n] = (MYFLT)(c0 + (double)in[n] * c1);
+    }
+    else {
+      int32_t last = count - 1;
+      /* Keep the recurrence here: this loop runs once per audio sample. */
+      for (n = offset; n < nsmps; ++n) {
+        double x = (double)in[n];
+        double b0, b1 = 0.0, b2 = 0.0;
+        for (i = last; i >= 1; --i) {
+          b0 = 2.0 * x * b1 - b2 + (double)coeff[i];
+          b2 = b1;
+          b1 = b0;
+        }
+        out[n] = (MYFLT)(x * b1 - b2 + (double)coeff[0]);
+      }
+    }
     return OK;
 }
 
@@ -576,6 +709,12 @@ static OENTRY shape_localops[] =
    { "polynomial", S(POLYNOMIAL), 0,  "a", "az", NULL, (SUBR)Polynomial },
    { "chebyshevpoly", S(CHEBPOLY), 0, "a", "az",
      (SUBR)ChebyshevPolyInit, (SUBR)ChebyshevPolynomial },
+   { "chebyshevpoly2", S(CHEBPOLY2), 0, "a", "az",
+     (SUBR)ChebyshevPoly2Init, (SUBR)ChebyshevPolynomial2 },
+   { "chebyshevpoly2", S(CHEBPOLY2ARRAY), 0, "a", "ak[]",
+     (SUBR)ChebyshevPoly2ArrayInit, (SUBR)ChebyshevPolynomial2Array },
+   { "chebyshevpoly2", S(CHEBPOLY2ARRAY), 0, "a", "ai[]",
+     (SUBR)ChebyshevPoly2ArrayInit, (SUBR)ChebyshevPolynomial2Array },
    { "pdclip", S(PD_CLIP), 0,  "a", "akkop", NULL, (SUBR)PDClip },
    { "pdhalf", S(PD_HALF), 0,  "a", "akop", NULL, (SUBR)PDHalfX },
    { "pdhalfy", S(PD_HALF), 0,  "a", "akop", NULL, (SUBR)PDHalfY },

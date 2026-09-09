@@ -935,6 +935,8 @@ def runTest():
         ["test_distort_invalid_kdist.csd", "reject non-finite distort amount", 1],
         ["test_distort_invalid_ihp.csd", "reject non-finite distort filter frequency", 1],
         ["test_distort1_large_pregain.csd", "test distort1 with large pregain"],
+        ["test_chebyshevpoly_high_order.csd", "test high-order Chebyshev evaluation"],
+        ["test_chebyshevpoly2_empty_array.csd", "reject empty Chebyshev coefficients", 1],
         ["test_generic_chan.csd", "testing generic bus channel"],
         ["test_generic_chan_no_match.csd", "testing type mismatch for bus channel", 1],
         ["test_bus_channels.csd", "testing bus channels"],
