@@ -39,7 +39,7 @@ typedef struct {
    MYFLT fspeed ;
 
    MYFLT gain ;
-   MYFLT power ;
+   double power ;    /* Limit cancellation drift in the running sum. */
    MYFLT powerBuffer[POWER_BUFSIZE] ;
    MYFLT *powerPos ;
    MYFLT kthr;

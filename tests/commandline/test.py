@@ -948,6 +948,7 @@ def runTest():
         ["test_lag_state.csd", "lag state and partial audio blocks"],
         ["test_compress_control_gain.csd", "compressors update gain when ratio or knee controls change"],
         ["test_gain_sample_end.csd", "test gain sample-accurate note end"],
+        ["test_dam_gain.csd", "dam unity gain, timing, and moving level"],
         ["test_distort_sample_offset.csd", "test distort sample-accurate onset"],
         ["test_distort_istor_first_init.csd", "test distort state-preserving first init"],
         ["test_distort_invalid_kdist.csd", "reject non-finite distort amount", 1],
