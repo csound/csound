@@ -1299,8 +1299,15 @@ int32_t gain(CSOUND *csound, GAIN *p)
 
     q = p->prvq;
     asig = p->asig;
-    if (UNLIKELY(early)) nsmps -= early;
-    for (n = offset; n < nsmps-early; n++) {
+    ar = p->ar;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    if (UNLIKELY(offset >= nsmps))
+      return OK;
+    for (n = offset; n < nsmps; n++) {
       double as = (double)asig[n];
       q = c1 * as * as + c2 * q;
     }
@@ -1309,12 +1316,6 @@ int32_t gain(CSOUND *csound, GAIN *p)
       a = *p->krms / sqrt(q);
     else
       a = *p->krms;
-    ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
       inc = diff / (double)(nsmps-offset);
@@ -1352,6 +1353,8 @@ int32_t balance(CSOUND *csound, BALANCE *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    if (UNLIKELY(offset >= nsmps))
+      return OK;
     for (n = offset; n < nsmps; n++) {
       double as = (double)asig[n];
       double cs = (double)csig[n];
