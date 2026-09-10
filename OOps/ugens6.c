@@ -29,8 +29,13 @@
 
 int32_t downset(CSOUND *csound, DOWNSAMP *p)
 {
-    if (UNLIKELY((p->len = (uint32_t)*p->ilen) > CS_KSMPS))
-      return csound->InitError(csound, "ilen > ksmps");
+    double length = (double)*p->ilen;
+
+    /* Check the truncated length before converting to an unsigned integer. */
+    if (UNLIKELY(!(length > -1.0 && length < (double)CS_KSMPS + 1.0)))
+      return csound->InitError(csound, "%s",
+                               Str("downsamp: window length out of range"));
+    p->len = (uint32_t)length;
     return OK;
 }
 
@@ -40,7 +45,7 @@ int32_t downsamp(CSOUND *csound, DOWNSAMP *p)
     MYFLT       *asig, sum;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int32_t len, n;
+    uint32_t len, n;
 
     if (p->len <= 1)
       *p->kr = p->asig[offset];
@@ -48,7 +53,7 @@ int32_t downsamp(CSOUND *csound, DOWNSAMP *p)
       asig = p->asig;
       sum = FL(0.0);
       len = p->len;
-      if (len>(int32_t)(CS_KSMPS-early)) len = early;
+      if (len > CS_KSMPS - early) len = CS_KSMPS - early;
       for (n=offset; n<len; n++) {
         sum += asig[n];
       }
