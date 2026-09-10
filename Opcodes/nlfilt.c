@@ -47,6 +47,9 @@ static int32_t nlfiltset(CSOUND *csound, NLFILT *p)
     return OK;
 } /* end nlfset(p) */
 
+/* Compatibility: retain nlfilt's historical two-sample feedback delay offset
+   and output clipping. Do not change these audible behaviors here; nlfilt2
+   implements the corrected recurrence. Delay indices must still stay in bounds. */
 static int32_t nlfilt(CSOUND *csound, NLFILT *p)
 {
     MYFLT   *ar;
@@ -72,10 +75,9 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
     else if (L >= MAX_DELAY) {
       L = (MYFLT) MAX_DELAY;
     }
-    nmL = point - (int32_t) (L) - 1;
+    nmL = (point - (int32_t) (L) + 2*MAX_DELAY - 1) % MAX_DELAY;
     if (UNLIKELY(nm1 < 0)) nm1 += MAX_DELAY;      /* Deal with the wrapping */
     if (UNLIKELY(nm2 < 0)) nm2 += MAX_DELAY;
-    if (UNLIKELY(nmL < 0)) nmL += MAX_DELAY;
     ynm1 = fp[nm1];                     /* Pick up running values */
     ynm2 = fp[nm2];
     ynmL = fp[nmL];
@@ -146,7 +148,8 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     else if (L >= MAX_DELAY) {
       L = (MYFLT) MAX_DELAY;
     }
-    nmL = point - (int32_t) (L) - 1;
+    /* point holds Y[n-1], so Y[n-L] is L-1 places behind it. */
+    nmL = point - (int32_t) (L) + 1;
     if (UNLIKELY(nm1 < 0)) nm1 += MAX_DELAY;      /* Deal with the wrapping */
     if (UNLIKELY(nm2 < 0)) nm2 += MAX_DELAY;
     if (UNLIKELY(nmL < 0)) nmL += MAX_DELAY;
@@ -164,19 +167,13 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     }
     for (n=offset; n<nsmps; n++) {
       MYFLT yn;
-      MYFLT out;
       yn = a * ynm1 + b * ynm2 + d * ynmL * ynmL - C;
       yn += in[n] * dvmaxamp;           /* Must work in small amplitudes  */
-      out = yn * maxampd2;              /* Write output */
-      if (out > maxamp)
-        out = maxampd2;
-      else if (out < -maxamp)
-        out = -maxampd2;
-      ar[n] = out;
+      yn = TANH(yn);
+      ar[n] = yn * maxampd2;            /* Output the same state we feed back. */
       if (UNLIKELY(++point == MAX_DELAY)) {
         point = 0;
       }
-      yn = TANH(yn);
       fp[point] = yn;                   /* and delay line */
       if (UNLIKELY(++nmL == MAX_DELAY)) {
         nmL = 0;
