@@ -431,7 +431,6 @@ static int32_t resony(CSOUND *csound, RESONY *p)
 static int32_t fold_set(CSOUND *csound, FOLD *p)
 {
     IGN(csound);
-    p->sample_index = 0;
     p->index = 0.0;
     p->value = FL(0.0);         /* This was not initialised -- JPff */
     return OK;
@@ -439,7 +438,6 @@ static int32_t fold_set(CSOUND *csound, FOLD *p)
 
 static int32_t fold(CSOUND *csound, FOLD *p)
 {
-    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -447,23 +445,24 @@ static int32_t fold(CSOUND *csound, FOLD *p)
     MYFLT *asig = p->asig;
     MYFLT kincr = *p->kincr;
     double index = p->index;
-    int32 sample_index = p->sample_index;
     MYFLT value = p->value;
+    if (UNLIKELY(!isfinite(kincr) || kincr < FL(1.0)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("fold: increment must be finite and >= 1"));
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      if (index < (double)sample_index) {
+      if (index <= 0.0) {
         index += (double)kincr;
-        ar[n]  = value = asig[n];
+        value = asig[n];
       }
-      else ar[n]= value;
-      sample_index++;
+      ar[n] = value;
+      index -= 1.0;
     }
     p->index = index;
-    p->sample_index = sample_index;
     p->value = value;
     return OK;
 }

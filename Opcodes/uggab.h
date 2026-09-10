@@ -62,7 +62,6 @@ typedef struct {
     OPDS        h;
     MYFLT       *ar, *asig, *kincr ;
     double      index;
-    int32       sample_index;
     MYFLT       value;
 } FOLD;
 
