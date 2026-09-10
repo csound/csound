@@ -12,6 +12,7 @@ endif()
 
 if(BUILD_TESTS)
   add_executable(unittests
+        array_ops_test.cpp
         channel_tests.cpp
         csound_data_structures_test.cpp
         csound_debug_callback_test.cpp
