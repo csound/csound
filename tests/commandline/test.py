@@ -640,6 +640,7 @@ def runTest():
         ["test_oscbnk_float_phase_state.csd", "oscbnk preserves non-power-of-two oscillator phase"],
         ["test_vco_float_phase_state.csd", "vco preserves non-power-of-two oscillator phase"],
         ["test_envlpx_float_interpolation.csd", "envlpx interpolates non-power-of-two tables correctly"],
+        ["test_transeg_curves.csd", "transeg family curve stability and timing"],
         ["test_rspline_mixed_rates.csd", "test rspline mixed-rate bounds"],
         ["test_rspline_rate_parity.csd", "test rspline audio and control parity"],
         ["test_rspline_sample_offset.csd", "test rspline audio bounds at note onset"],
