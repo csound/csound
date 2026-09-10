@@ -1775,13 +1775,13 @@ int32_t am_fm(CSOUND *csound, AMFM *p) {
       memset(&fm[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (UNLIKELY(offset)) {
-      memset(&am[nsmps], '\0', offset*sizeof(MYFLT));
-      memset(&fm[nsmps], '\0', offset*sizeof(MYFLT));
+      memset(am, '\0', offset*sizeof(MYFLT));
+      memset(fm, '\0', offset*sizeof(MYFLT));
     }
 
     for (n=offset; n < nsmps; n++) {
-      am[n] = HYPOT(re[n], im[n]);
       ph = ATAN2(im[n], re[n]);
+      am[n] = HYPOT(re[n], im[n]);
       f = ph - oph;
       oph = ph;
       if (f >= PI) f -= 2*PI;
