@@ -44,6 +44,9 @@ typedef struct  {
         OPDS    h;
         MYFLT   *trig, *ndx, *maxtics, *ifn, *outargs[VARGMAX];
         int32_t             numouts, currtic, old_ndx;
+        int32_t max_tics;
+        uint32_t flen, numseq;
+        uint64_t stride;
         MYFLT *table;
 } SPLIT_TRIG;
 
@@ -193,39 +196,69 @@ static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
     */
 
     FUNC *ftp;
+    double maxtics = (double)*p->maxtics;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
       return csound->InitError(csound, "%s", Str("splitrig: incorrect table number"));
     }
     p->table = ftp->ftable;
     p->numouts =  p->INOCOUNT-4;
+    if (UNLIKELY(p->numouts < 1 || ftp->flen < (uint32_t)p->numouts))
+      return csound->InitError(csound, "%s",
+                               Str("splitrig: table cannot hold one tick"));
+    if (UNLIKELY(!(maxtics >= 1.0 && maxtics < (double)INT32_MAX + 1.0)))
+      return csound->InitError(csound, "%s",
+                               Str("splitrig: invalid maximum tick count"));
+    p->max_tics = (int32_t)maxtics;
+    p->stride = (uint64_t)p->numouts * p->max_tics + 1;
+    /* The allocated guard point may hold the final tick value. */
+    p->flen = ftp->flen;
+    p->numseq = (uint32_t)(p->flen / p->stride + 1);
     p->currtic = 0;
+    p->old_ndx = -1;
     return OK;
 }
 
 static int32_t split_trig(CSOUND *csound, SPLIT_TRIG *p)
 {
-     IGN(csound);
     int32_t j;
     int32_t numouts =  p->numouts;
     MYFLT **outargs = p->outargs;
 
     if (*p->trig) {
-      int32_t ndx = (int32_t) *p->ndx * (numouts * (int32_t) *p->maxtics + 1);
-      int32_t numtics =  (int32_t) p->table[ndx];
-      MYFLT *table = &(p->table[ndx+1]);
-      int32_t kndx = (int32_t) *p->ndx;
-      int32_t currtic;
+      double index = (double)*p->ndx;
+      double ticks;
+      uint32_t ndx, available;
+      int32_t kndx, numtics, currtic;
+      MYFLT *table;
+
+      /* Preserve truncation toward zero, but check before converting. */
+      if (UNLIKELY(!(index > -1.0 && index < (double)p->numseq)))
+        return csound->PerfError(csound, &(p->h), "%s",
+                                 Str("splitrig: sequence index out of range"));
+      kndx = (int32_t)index;
+      ndx = (uint32_t)(kndx * p->stride);
+      ticks = (double)p->table[ndx];
+      available = (p->flen - ndx) / numouts;
+      if (UNLIKELY(!(ticks >= 1.0 &&
+                     ticks < (double)p->max_tics + 1.0 &&
+                     ticks < (double)available + 1.0)))
+        return csound->PerfError(csound, &(p->h), "%s",
+                                 Str("splitrig: invalid sequence tick count"));
+      numtics = (int32_t)ticks;
+      table = &p->table[ndx+1];
 
       if (kndx != p->old_ndx) {
         p->currtic = 0;
         p->old_ndx = kndx;
       }
+      /* A table write may shorten the selected sequence between triggers. */
+      if (UNLIKELY(p->currtic >= numtics)) p->currtic = 0;
       currtic = p->currtic;
 
       for (j = 0; j < numouts; j++)
         *outargs[j] = table[j +  currtic * numouts ];
 
-      p->currtic = (currtic +1) % numtics;
+      p->currtic = (currtic + 1 == numtics ? 0 : currtic + 1);
 
     }
 
