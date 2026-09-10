@@ -897,6 +897,7 @@ def runTest():
         ["test_vdelay_reinit.csd", "test variable delay state across reinit"],
         ["test_vdelay_invalid_maximum.csd", "reject invalid maximum delay", 1],
         ["test_vdelay_invalid_delay.csd", "reject non-finite delay", 1],
+        ["test_random_rate_correctness.csd", "randomi and randomh rate handling"],
         ["test_atonex_order_one.csd", "test atonex order-one filtering"],
         ["test_filterx_istor_first_init.csd", "test filter state on first init"],
         ["test_filterx_order_growth.csd", "test filter state after order growth"],
