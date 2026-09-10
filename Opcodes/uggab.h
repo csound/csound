@@ -199,7 +199,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *min, *max, *xcps, *mode, *fstval;
         int16   cpscod;
-        int32   phs;
+        uint32_t phs;
         MYFLT   num1, num2, dfdmax;
 } RANDOMI;
 
@@ -209,7 +209,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *min, *max, *xcps, *mode, *fstval;
         int16   cpscod;
-        int32   phs;
+        uint32_t phs;
         MYFLT   num1;
 } RANDOMH;
 
