@@ -25,38 +25,61 @@
 #include <math.h>
 #include <inttypes.h>
 
+/* These comparisons also reject NaN and infinity before integer casts. */
+#define VECTOR_INDEX_VALID(index_, length_)                               \
+    ((index_) >= FL(0.0) && (index_) < (MYFLT)(length_))
+
+/* Preserve the k/a-rate wrap behavior without an fmod call. */
+#define VECTOR_WRAP_INDEX(index_, length_) \
+    do { \
+      if (UNLIKELY((index_) >= (length_))) \
+        (index_) %= (length_); \
+    } while (0)
+
 static int32_t mtable_i(CSOUND *csound,MTABLEI *p)
 {
     FUNC *ftp;
     int32_t j, nargs;
-    MYFLT *table, xbmul = FL(0.0), **out = p->outargs;
+    int64_t len;
+    MYFLT *table, xbmul, **out = p->outargs;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, "%s", Str("vtablei: incorrect table number"));
     }
     table = ftp->ftable;
     nargs = p->INOCOUNT-4;
-    if (*p->ixmode)
-      xbmul = (MYFLT) (ftp->flen / nargs);
+    if (UNLIKELY(nargs < 1))
+      return csound->InitError(csound, "%s", Str("vtablei: no vector elements"));
+    len = ftp->flen / nargs;
+    if (UNLIKELY(len < 1))
+      return csound->InitError(csound, "%s", Str("vtablei: table is too short"));
+    xbmul = (MYFLT)len;
 
     if (*p->kinterp) {
       MYFLT     v1, v2 ;
       MYFLT fndx = (*p->ixmode) ? *p->xndx * xbmul : *p->xndx;
-      int64_t indx = (int64_t) fndx;
+      int64_t indx, indxp1;
+      if (UNLIKELY(!VECTOR_INDEX_VALID(fndx, len)))
+        return csound->InitError(csound, "%s", Str("vtablei: index out of range"));
+      indx = (int64_t)fndx;
       MYFLT fract = fndx - indx;
+      indxp1 = (indx + 1) * nargs;
+      if (indxp1 + nargs > (int64_t)ftp->flen + 1)
+        indxp1 = 0;
+      indx *= nargs;
       for (j=0; j < nargs; j++) {
-        if (UNLIKELY((indx + 1) * nargs + j >= ftp->flen + 1)) {
-          return csound->InitError(csound, "%s", Str("vtablei: reading past end of table"));
-        }
-        v1 = table[indx * nargs + j];
-        v2 = table[(indx + 1) * nargs + j];
+        v1 = table[indx + j];
+        v2 = table[indxp1 + j];
         **out++ = v1 + (v2 - v1) * fract;
       }
     }
     else {
-      int64_t indx =
-        (*p->ixmode) ? (int64_t)(*p->xndx * xbmul) : (int64_t) *p->xndx;
+      MYFLT fndx = (*p->ixmode) ? *p->xndx * xbmul : *p->xndx;
+      int64_t indx;
+      if (UNLIKELY(!VECTOR_INDEX_VALID(fndx, len)))
+        return csound->InitError(csound, "%s", Str("vtablei: index out of range"));
+      indx = (int64_t)fndx * nargs;
       for (j=0; j < nargs; j++)
-        **out++ =  table[indx * nargs + j];
+        **out++ = table[indx + j];
     }
     return OK;
 }
@@ -69,10 +92,13 @@ static int32_t mtable_set(CSOUND *csound,MTABLE *p) /*  mtab by G.Maldonado */
     }
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-4;
+    if (UNLIKELY(p->nargs < 1))
+      return csound->InitError(csound, "%s", Str("vtable: no vector elements"));
     p->len = ftp->flen / p->nargs;
-    p->pfn = (int64_t) *p->xfn;
-    if (*p->ixmode)
-      p->xbmul = (MYFLT) ftp->flen / p->nargs;
+    if (UNLIKELY(p->len < 1))
+      return csound->InitError(csound, "%s", Str("vtable: table is too short"));
+    p->pfn = *p->xfn;
+    p->xbmul = (MYFLT)p->len;
     return OK;
 }
 
@@ -82,17 +108,19 @@ static int32_t mtable_k(CSOUND *csound,MTABLE *p)
     MYFLT **out = p->outargs;
     MYFLT *table;
     int64_t len;
-    if (p->pfn != (int64_t)*p->xfn) {
+    if (p->pfn != *p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTFind(csound, p->xfn) ) == NULL)) {
         return csound->PerfError(csound, &(p->h),
                                  "%s", Str("vtablek: incorrect table number"));
       }
-      p->pfn = (int64_t)*p->xfn;
+      p->pfn = *p->xfn;
       p->ftable = ftp->ftable;
       p->len = ftp->flen / nargs;
-      if (*p->ixmode)
-        p->xbmul = (MYFLT) ftp->flen / nargs;
+      if (UNLIKELY(p->len < 1))
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("vtablek: table is too short"));
+      p->xbmul = (MYFLT)p->len;
     }
     table= p->ftable;
     len = p->len;
@@ -103,10 +131,12 @@ static int32_t mtable_k(CSOUND *csound,MTABLE *p)
       int64_t indxp1;
       MYFLT     v1, v2 ;
       fndx = (*p->ixmode) ? *p->xndx * p->xbmul : *p->xndx;
-      if (fndx >= len)
-        fndx = (MYFLT) fmod(fndx, len);
+      if (UNLIKELY(!VECTOR_INDEX_VALID(fndx, INT64_MAX)))
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("vtablek: index out of range"));
       indx = (int64_t) fndx;
       fract = fndx - indx;
+      VECTOR_WRAP_INDEX(indx, len);
       indxp1 = (indx < len-1) ? (indx+1) * nargs : 0;
       indx *=nargs;
       for (j=0; j < nargs; j++) {
@@ -116,8 +146,14 @@ static int32_t mtable_k(CSOUND *csound,MTABLE *p)
       }
     }
     else {
-      int64_t indx = (*p->ixmode) ? ((int64_t)(*p->xndx * p->xbmul) % len) * nargs :
-                                 ((int64_t) *p->xndx % len ) * nargs ;
+      MYFLT fndx = (*p->ixmode) ? *p->xndx * p->xbmul : *p->xndx;
+      int64_t indx;
+      if (UNLIKELY(!VECTOR_INDEX_VALID(fndx, INT64_MAX)))
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("vtablek: index out of range"));
+      indx = (int64_t)fndx;
+      VECTOR_WRAP_INDEX(indx, len);
+      indx *= nargs;
       for (j=0; j < nargs; j++)
         **out++ =  table[indx + j];
     }
@@ -136,21 +172,24 @@ static int32_t mtable_a(CSOUND *csound,MTABLE *p)
     MYFLT *xndx = p->xndx, xbmul;
     int64_t len;
 
-    if (p->pfn != (int64_t)*p->xfn) {
+    if (p->pfn != *p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTFind(csound, p->xfn) ) == NULL)) {
         return csound->PerfError(csound, &(p->h),
                                  "%s", Str("vtablea: incorrect table number"));
       }
-      p->pfn = (int64_t)*p->xfn;
+      p->pfn = *p->xfn;
       p->ftable = ftp->ftable;
       p->len = ftp->flen / nargs;
-      if (ixmode)
-        p->xbmul = (MYFLT) ftp->flen / nargs;
+      if (UNLIKELY(p->len < 1))
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("vtablea: table is too short"));
+      p->xbmul = (MYFLT)p->len;
     }
     table = p->ftable;
     len = p->len;
     xbmul = p->xbmul;
+    xndx += offset;
     if (UNLIKELY(offset))
       for (j=0; j < nargs; j++)
         memset(out[j], '\0', offset*sizeof(MYFLT));
@@ -167,10 +206,12 @@ static int32_t mtable_a(CSOUND *csound,MTABLE *p)
       for (k=offset; k<nsmps; k++) {
         MYFLT   v1, v2 ;
         fndx = (ixmode) ? *xndx++ * xbmul : *xndx++;
-        if (fndx >= len)
-          fndx = (MYFLT) fmod(fndx, len);
+        if (UNLIKELY(!VECTOR_INDEX_VALID(fndx, INT64_MAX)))
+          return csound->PerfError(csound, &(p->h),
+                                   "%s", Str("vtablea: index out of range"));
         indx = (int64_t) fndx;
         fract = fndx - indx;
+        VECTOR_WRAP_INDEX(indx, len);
         indxp1 = (indx < len-1) ? (indx+1) * nargs : 0L;
         indx *=nargs;
         for (j=0; j < nargs; j++) {
@@ -183,8 +224,14 @@ static int32_t mtable_a(CSOUND *csound,MTABLE *p)
     }
     else {
       for (k=offset; k<nsmps; k++) {
-        int64_t indx = (ixmode) ? ((int64_t)(*xndx++ * xbmul)%len) * nargs :
-                               ((int64_t) *xndx++ %len) * nargs;
+        MYFLT fndx = (ixmode) ? *xndx++ * xbmul : *xndx++;
+        int64_t indx;
+        if (UNLIKELY(!VECTOR_INDEX_VALID(fndx, INT64_MAX)))
+          return csound->PerfError(csound, &(p->h),
+                                   "%s", Str("vtablea: index out of range"));
+        indx = (int64_t)fndx;
+        VECTOR_WRAP_INDEX(indx, len);
+        indx *= nargs;
         for (j=0; j < nargs; j++) {
           out[j][k] =  table[indx + j];
         }
@@ -197,15 +244,21 @@ static int32_t mtab_i(CSOUND *csound,MTABI *p)
 {
     FUNC *ftp;
     int32_t j, nargs;
-    int64_t indx;
+    int64_t indx, len;
     MYFLT *table, **out = p->outargs;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, "%s", Str("vtabi: incorrect table number"));
     }
     table = ftp->ftable;
     nargs = p->INOCOUNT-2;
-
-    indx = (int64_t) *p->xndx;
+    if (UNLIKELY(nargs < 1))
+      return csound->InitError(csound, "%s", Str("vtabi: no vector elements"));
+    len = ftp->flen / nargs;
+    if (UNLIKELY(len < 1))
+      return csound->InitError(csound, "%s", Str("vtabi: table is too short"));
+    if (UNLIKELY(!VECTOR_INDEX_VALID(*p->xndx, len)))
+      return csound->InitError(csound, "%s", Str("vtabi: index out of range"));
+    indx = (int64_t)*p->xndx;
     for (j=0; j < nargs; j++)
       **out++ =  table[indx * nargs + j];
     return OK;
@@ -219,14 +272,17 @@ static int32_t mtab_set(CSOUND *csound,MTAB *p)     /* mtab by G.Maldonado */
     }
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-2;
+    if (UNLIKELY(p->nargs < 1))
+      return csound->InitError(csound, "%s", Str("vtab: no vector elements"));
     p->len = ftp->flen / p->nargs;
-    p->pfn = (int64_t) *p->xfn;
+    if (UNLIKELY(p->len < 1))
+      return csound->InitError(csound, "%s", Str("vtab: table is too short"));
+    p->pfn = *p->xfn;
     return OK;
 }
 
 static int32_t mtab_k(CSOUND *csound,MTAB *p)
 {
-    IGN(csound);
     int32_t j, nargs = p->nargs;
     MYFLT **out = p->outargs;
     MYFLT *table;
@@ -234,7 +290,12 @@ static int32_t mtab_k(CSOUND *csound,MTAB *p)
 
     table= p->ftable;
     len = p->len;
-    indx = ((int64_t) *p->xndx % len ) * nargs ;
+    if (UNLIKELY(!VECTOR_INDEX_VALID(*p->xndx, INT64_MAX)))
+      return csound->PerfError(csound, &(p->h),
+                               "%s", Str("vtabk: index out of range"));
+    indx = (int64_t)*p->xndx;
+    VECTOR_WRAP_INDEX(indx, len);
+    indx *= nargs;
     for (j=0; j < nargs; j++)
       **out++ =  table[indx + j];
     return OK;
@@ -242,7 +303,6 @@ static int32_t mtab_k(CSOUND *csound,MTAB *p)
 
 static int32_t mtab_a(CSOUND *csound,MTAB *p)
 {
-     IGN(csound);
     int32_t j, nargs = p->nargs;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -253,6 +313,7 @@ static int32_t mtab_a(CSOUND *csound,MTAB *p)
     int64_t len;
     table = p->ftable;
     len = p->len;
+    xndx += offset;
     if (UNLIKELY(offset))
       for (j=0; j < nargs; j++)
         memset(out[j], '\0', offset*sizeof(MYFLT));
@@ -262,7 +323,14 @@ static int32_t mtab_a(CSOUND *csound,MTAB *p)
         memset(&out[j][nsmps], '\0', early*sizeof(MYFLT));
     }
     for (k=offset;k<nsmps;k++) {
-      int64_t indx = ((int64_t) *xndx++ %len) * nargs;
+      MYFLT fndx = *xndx++;
+      int64_t indx;
+      if (UNLIKELY(!VECTOR_INDEX_VALID(fndx, INT64_MAX)))
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("vtaba: index out of range"));
+      indx = (int64_t)fndx;
+      VECTOR_WRAP_INDEX(indx, len);
+      indx *= nargs;
       for (j=0; j < nargs; j++) {
         out[j][k] =  table[indx + j];
       }
@@ -276,16 +344,22 @@ static int32_t mtablew_i(CSOUND *csound,MTABLEIW *p)
 {
     FUNC *ftp;
     int32_t j, nargs;
-    int64_t indx;
-    MYFLT *table, xbmul = FL(0.0), **in = p->inargs;
+    int64_t indx, len;
+    MYFLT fndx, *table, **in = p->inargs;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, "%s", Str("vtablewi: incorrect table number"));
     }
     table = ftp->ftable;
     nargs = p->INOCOUNT-3;
-    if (*p->ixmode)
-      xbmul = (MYFLT) (ftp->flen / nargs);
-    indx = (*p->ixmode) ? (int64_t)(*p->xndx * xbmul) : (int64_t) *p->xndx;
+    if (UNLIKELY(nargs < 1))
+      return csound->InitError(csound, "%s", Str("vtablewi: no vector elements"));
+    len = ftp->flen / nargs;
+    if (UNLIKELY(len < 1))
+      return csound->InitError(csound, "%s", Str("vtablewi: table is too short"));
+    fndx = (*p->ixmode) ? *p->xndx * (MYFLT)len : *p->xndx;
+    if (UNLIKELY(!VECTOR_INDEX_VALID(fndx, len)))
+      return csound->InitError(csound, "%s", Str("vtablewi: index out of range"));
+    indx = (int64_t)fndx;
     for (j=0; j < nargs; j++)
       table[indx * nargs + j] = **in++;
     return OK;
@@ -299,10 +373,13 @@ static int32_t mtablew_set(CSOUND *csound,MTABLEW *p)   /* mtabw by G.Maldonado 
     }
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-3;
+    if (UNLIKELY(p->nargs < 1))
+      return csound->InitError(csound, "%s", Str("vtablew: no vector elements"));
     p->len = ftp->flen / p->nargs;
-    p->pfn = (int64_t) *p->xfn;
-    if (*p->ixmode)
-      p->xbmul = (MYFLT) ftp->flen / p->nargs;
+    if (UNLIKELY(p->len < 1))
+      return csound->InitError(csound, "%s", Str("vtablew: table is too short"));
+    p->pfn = *p->xfn;
+    p->xbmul = (MYFLT)p->len;
     return OK;
 }
 
@@ -312,22 +389,31 @@ static int32_t mtablew_k(CSOUND *csound,MTABLEW *p)
     MYFLT **in = p->inargs;
     MYFLT *table;
     int64_t len, indx;
-    if (p->pfn != (int64_t)*p->xfn) {
+    if (p->pfn != *p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTFind(csound, p->xfn) ) == NULL)) {
         return csound->PerfError(csound, &(p->h),
                                  "%s", Str("vtablewk: incorrect table number"));
       }
-      p->pfn = (int64_t)*p->xfn;
+      p->pfn = *p->xfn;
       p->ftable = ftp->ftable;
       p->len = ftp->flen / nargs;
-      if (*p->ixmode)
-        p->xbmul = (MYFLT) ftp->flen / nargs;
+      if (UNLIKELY(p->len < 1))
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("vtablewk: table is too short"));
+      p->xbmul = (MYFLT)p->len;
     }
     table= p->ftable;
     len = p->len;
-    indx = (*p->ixmode) ? ((int64_t)(*p->xndx * p->xbmul) % len) * nargs :
-                          ((int64_t) *p->xndx % len ) * nargs ;
+    {
+      MYFLT fndx = (*p->ixmode) ? *p->xndx * p->xbmul : *p->xndx;
+      if (UNLIKELY(!VECTOR_INDEX_VALID(fndx, INT64_MAX)))
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("vtablewk: index out of range"));
+      indx = (int64_t)fndx;
+      VECTOR_WRAP_INDEX(indx, len);
+      indx *= nargs;
+    }
     for (j=0; j < nargs; j++)
       table[indx + j] = **in++;
     return OK;
@@ -345,25 +431,34 @@ static int32_t mtablew_a(CSOUND *csound,MTABLEW *p)
     MYFLT *xndx = p->xndx, xbmul;
     int64_t len;
 
-    if (p->pfn != (int64_t)*p->xfn) {
+    if (p->pfn != *p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTFind(csound, p->xfn) ) == NULL)) {
         return csound->PerfError(csound, &(p->h),
                                  "%s", Str("vtablewa: incorrect table number"));
       }
-      p->pfn = (int64_t)*p->xfn;
+      p->pfn = *p->xfn;
       p->ftable = ftp->ftable;
       p->len = ftp->flen / nargs;
-      if (ixmode)
-        p->xbmul = (MYFLT) ftp->flen / nargs;
+      if (UNLIKELY(p->len < 1))
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("vtablewa: table is too short"));
+      p->xbmul = (MYFLT)p->len;
     }
     table = p->ftable;
     len = p->len;
     xbmul = p->xbmul;
+    xndx += offset;
     if (UNLIKELY(early)) nsmps -= early;
     for (k=offset; k<nsmps; k++) {
-      int64_t indx = (ixmode) ? ((int64_t)(*xndx++ * xbmul)%len) * nargs :
-                             ((int64_t) *xndx++ %len) * nargs;
+      MYFLT fndx = (ixmode) ? *xndx++ * xbmul : *xndx++;
+      int64_t indx;
+      if (UNLIKELY(!VECTOR_INDEX_VALID(fndx, INT64_MAX)))
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("vtablewa: index out of range"));
+      indx = (int64_t)fndx;
+      VECTOR_WRAP_INDEX(indx, len);
+      indx *= nargs;
       for (j=0; j < nargs; j++) {
         table[indx + j] = in[j][k];
       }
@@ -377,13 +472,20 @@ static int32_t mtabw_i(CSOUND *csound, MTABIW *p)
 {
     FUNC *ftp;
     int32_t j, nargs;
-    int64_t indx;
+    int64_t indx, len;
     MYFLT *table, **in = p->inargs;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL)) {
       return csound->InitError(csound, "%s", Str("vtabwi: incorrect table number"));
     }
     table = ftp->ftable;
     nargs = p->INOCOUNT-2;
+    if (UNLIKELY(nargs < 1))
+      return csound->InitError(csound, "%s", Str("vtabwi: no vector elements"));
+    len = ftp->flen / nargs;
+    if (UNLIKELY(len < 1))
+      return csound->InitError(csound, "%s", Str("vtabwi: table is too short"));
+    if (UNLIKELY(!VECTOR_INDEX_VALID(*p->xndx, len)))
+      return csound->InitError(csound, "%s", Str("vtabwi: index out of range"));
     indx = (int64_t) *p->xndx;
     for (j=0; j < nargs; j++)
       table[indx * nargs + j] = **in++;
@@ -394,12 +496,16 @@ static int32_t mtabw_set(CSOUND *csound,MTABW *p)   /* mtabw by G.Maldonado */
 {
     FUNC *ftp;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL)) {
-      return csound->InitError(csound, "%s", Str("vtablew: incorrect table number"));
+      return csound->InitError(csound, "%s", Str("vtabw: incorrect table number"));
     }
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-2;
+    if (UNLIKELY(p->nargs < 1))
+      return csound->InitError(csound, "%s", Str("vtabw: no vector elements"));
     p->len = ftp->flen / p->nargs;
-    p->pfn = (int64_t) *p->xfn;
+    if (UNLIKELY(p->len < 1))
+      return csound->InitError(csound, "%s", Str("vtabw: table is too short"));
+    p->pfn = *p->xfn;
     return OK;
 }
 
@@ -409,19 +515,27 @@ static int32_t mtabw_k(CSOUND *csound,MTABW *p)
     MYFLT **in = p->inargs;
     MYFLT *table;
     int64_t len, indx;
-    if (p->pfn != (int64_t)*p->xfn) {
+    if (p->pfn != *p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTFind(csound, p->xfn) ) == NULL)) {
         return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("vtablewk: incorrect table number"));
+                                 "%s", Str("vtabwk: incorrect table number"));
       }
-      p->pfn = (int64_t)*p->xfn;
+      p->pfn = *p->xfn;
       p->ftable = ftp->ftable;
       p->len = ftp->flen / nargs;
+      if (UNLIKELY(p->len < 1))
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("vtabwk: table is too short"));
     }
     table= p->ftable;
     len = p->len;
-    indx = ((int64_t) *p->xndx % len ) * nargs ;
+    if (UNLIKELY(!VECTOR_INDEX_VALID(*p->xndx, INT64_MAX)))
+      return csound->PerfError(csound, &(p->h),
+                               "%s", Str("vtabwk: index out of range"));
+    indx = (int64_t)*p->xndx;
+    VECTOR_WRAP_INDEX(indx, len);
+    indx *= nargs;
     for (j=0; j < nargs; j++)
       table[indx + j] = **in++;
     return OK;
@@ -438,27 +552,41 @@ static int32_t mtabw_a(CSOUND *csound,MTABW *p)
     MYFLT *xndx = p->xndx;
     int64_t len;
 
-    if (p->pfn != (int64_t)*p->xfn) {
+    if (p->pfn != *p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTFind(csound, p->xfn) ) == NULL)) {
         return csound->PerfError(csound, &(p->h),
                                  "%s", Str("vtabwa: incorrect table number"));
       }
-      p->pfn = (int64_t)*p->xfn;
+      p->pfn = *p->xfn;
       p->ftable = ftp->ftable;
       p->len = ftp->flen / nargs;
+      if (UNLIKELY(p->len < 1))
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("vtabwa: table is too short"));
     }
     table = p->ftable;
     len = p->len;
+    xndx += offset;
     if (UNLIKELY(early)) nsmps -= early;
     for (k=offset; k<nsmps; k++) {
-      int64_t indx = ((int64_t) *xndx++ %len) * nargs;
+      MYFLT fndx = *xndx++;
+      int64_t indx;
+      if (UNLIKELY(!VECTOR_INDEX_VALID(fndx, INT64_MAX)))
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("vtabwa: index out of range"));
+      indx = (int64_t)fndx;
+      VECTOR_WRAP_INDEX(indx, len);
+      indx *= nargs;
       for (j=0; j < nargs; j++) {
         table[indx + j] = in[j][k];
       }
     }
     return OK;
 }
+
+#undef VECTOR_INDEX_VALID
+#undef VECTOR_WRAP_INDEX
 
 /* The following opcodes come from CsoundAV/vectorial.c */
 

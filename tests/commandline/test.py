@@ -716,6 +716,8 @@ def runTest():
         ["test_opcode_as_function.csd", "test expression"],
         ["test_fsig_udo.csd", "UDO with f-sig arg"],
         ["test_karrays_udo.csd", "UDO with k[] arg"],
+        ["test_vector_table_correctness.csd", "vector table indexing"],
+        ["test_vector_table_invalid_index.csd", "reject invalid vector table index", 1],
         ["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
         ["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)", 1],
         ["test_tabslice_increment.csd", "reject zero tabslice increment", 1],
