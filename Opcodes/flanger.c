@@ -27,14 +27,29 @@
 
 static int32_t flanger_set (CSOUND *csound, FLANGER *p)
 {
-    /*---------------- delay  -----------------------*/
-    p->maxdelay = (uint32) fabs(*p->maxd  * CS_ESR);
-    if ((*p->iskip != 0) || (p->aux.auxp==NULL)) {
-      csound->AuxAlloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
+    MYFLT maxDelaySeconds = FABS(*p->maxd);
+    double maxDelaySamples = (double)maxDelaySeconds * CS_ESR;
+    uint32 maxDelay, bufferSize;
+
+    if (UNLIKELY(!(maxDelaySamples >= 0.0) ||
+                 maxDelaySamples > (double)(UINT32_MAX - 2U)))
+      return csound->InitError(csound, "%s",
+                               Str("flanger: invalid maximum delay"));
+    maxDelay = (uint32)maxDelaySamples;
+    if ((double)maxDelay < maxDelaySamples)
+      maxDelay++;
+    bufferSize = maxDelay + 1U;
+    if (UNLIKELY((size_t)bufferSize > SIZE_MAX / sizeof(MYFLT)))
+      return csound->InitError(csound, "%s",
+                               Str("flanger: delay buffer too large"));
+    if (*p->iskip == 0 || p->aux.auxp == NULL ||
+        p->maxdelay != bufferSize) {
+      csound->AuxAlloc(csound, (size_t)bufferSize * sizeof(MYFLT), &p->aux);
       p->left = 0;
       p->yt1 = FL(0.0);
-      p->fmaxd = (MYFLT) p->maxdelay;
     }
+    p->maxdelay = bufferSize;
+    p->maxDelaySeconds = maxDelaySeconds;
     return OK;
 }
 
@@ -44,13 +59,14 @@ static int32_t flanger(CSOUND *csound, FLANGER *p)
     uint32 indx = p->left;
     MYFLT *out = p->ar;  /* assign object data to local variables   */
     MYFLT *in = p->asig;
-    MYFLT maxdelay = p->fmaxd, maxdelayM1 = maxdelay-1;
+    uint32 maxdelay = p->maxdelay;
+    MYFLT maxDelaySeconds = p->maxDelaySeconds;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
     MYFLT *freq_del = p->xdel;
     MYFLT feedback =  *p->kfeedback;
-    MYFLT fv1;
-    int32 v2;
-    int32 v1;
+    double fv1;
+    uint32 v2;
+    uint32 v1;
     MYFLT yt1= p->yt1;
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -64,15 +80,24 @@ static int32_t flanger(CSOUND *csound, FLANGER *p)
     }
     freq_del += offset;
     for (n=offset; n<nsmps; n++) {
+      MYFLT delay = *freq_del++;
+
                 /*---------------- delay -----------------------*/
+      if (UNLIKELY(!(delay >= FL(0.0) && delay <= maxDelaySeconds)))
+        return csound->PerfError(csound, &(p->h), "%s",
+                                 Str("flanger: delay is outside imaxd"));
       buf[indx] = in[n] + (yt1 * feedback);
-      fv1 = indx - (*freq_del++ * CS_ESR); /* Make sure inside the buffer*/
-      while (fv1 < 0)
-        fv1 += maxdelay;
-      while (fv1 >= maxdelay) fv1 -= maxdelay; /* Is this necessary? JPff */
-      v1 = (int32)fv1;
-      v2 = (fv1 < maxdelayM1)? v1+1 : 0; /*Find next sample for interpolation*/
-      out[n] = yt1 = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
+      fv1 = (double)indx - (double)delay * CS_ESR;
+      if (fv1 < 0.0)
+        fv1 += (double)maxdelay;
+      if (fv1 >= (double)maxdelay)
+        fv1 -= (double)maxdelay;
+      v1 = (uint32)fv1;
+      v2 = v1 + 1U;
+      if (v2 == maxdelay)
+        v2 = 0;
+      out[n] = yt1 =
+        buf[v1] + (MYFLT)(fv1 - v1) * (buf[v2] - buf[v1]);
       if (UNLIKELY(++indx == maxdelay))
         indx = 0;                      /* Advance current pointer */
     }
@@ -347,4 +372,3 @@ int32_t flanger_init_(CSOUND *csound)
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }
-
