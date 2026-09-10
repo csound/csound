@@ -873,6 +873,13 @@ def runTest():
         ["test_vdelay_reinit.csd", "test variable delay state across reinit"],
         ["test_vdelay_invalid_maximum.csd", "reject invalid maximum delay", 1],
         ["test_vdelay_invalid_delay.csd", "reject non-finite delay", 1],
+        ["test_repluck_correctness.csd", "test plucked-string waveguide limits"],
+        ["test_repluck_sample_offset.csd", "test repluck sample-accurate input"],
+        [
+            "test_repluck_invalid_frequency.csd",
+            "reject invalid plucked-string frequencies",
+            1,
+        ],
         ["test_atonex_order_one.csd", "test atonex order-one filtering"],
         ["test_filterx_istor_first_init.csd", "test filter state on first init"],
         ["test_filterx_order_growth.csd", "test filter state after order growth"],
