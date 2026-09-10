@@ -25,7 +25,7 @@
 #include "emugens_common.h"
 
 #define LOG001 FL(-6.907755278982137)
-#define CALCSLOPE(next,prev,nsmps) ((next - prev)/nsmps)
+#define CALCSLOPE(next,prev,nsmps) (((next) - (prev))/(nsmps))
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
@@ -155,7 +155,7 @@ static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
     } else {
         // faust uses tau2pole = exp(-1 / (lag*sr))
         b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
-        *p->out = y0 + b1 * (y1 - y0);
+        *p->out = y1 = y0 + b1 * (y1 - y0);
         p->lag = lag;
         p->y1 = y1;
         p->b1 = b1;
@@ -192,6 +192,9 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
 
     SAMPLE_ACCURATE
 
+    if (UNLIKELY(offset >= nsmps))
+        return OK;
+
     const MYFLT* restrict in = p->in;
     MYFLT lag = *p->lagtime;
     MYFLT y0, y1;
@@ -201,7 +204,7 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
         y1 = p->y1;
     else {
         p->started = 1;
-        y1 = in[0];
+        y1 = in[offset];
     }
 
     if (lag == p->lag) {
@@ -213,7 +216,7 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
     } else {
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
-        MYFLT b1_slope = CALCSLOPE(p->b1, b1, nsmps);
+        MYFLT b1_slope = CALCSLOPE(p->b1, b1, nsmps - offset);
         p->lag = lag;
         for (n=offset; n<nsmps; n++) {
             b1 += b1_slope;
@@ -319,6 +322,9 @@ lagud_a(CSOUND *csound, LagUD *p) {
 
     SAMPLE_ACCURATE
 
+    if (UNLIKELY(offset >= nsmps))
+        return OK;
+
     const MYFLT* restrict in = p->in;
     MYFLT lagu = *p->lagtimeU;
     MYFLT lagd = *p->lagtimeD;
@@ -327,16 +333,11 @@ lagud_a(CSOUND *csound, LagUD *p) {
     MYFLT b1u  = p->b1u;
     MYFLT b1d  = p->b1d;
 
-    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early))  {
-      nsmps -= early;
-      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
-    }
     if(LIKELY(p->started))
         y1 = p->y1;
     else {
         p->started = 1;
-        y1 = in[0];
+        y1 = in[offset];
     }
 
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
@@ -356,10 +357,10 @@ lagud_a(CSOUND *csound, LagUD *p) {
         MYFLT sr = CS_ESR;
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1u = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
-        MYFLT b1u_slope = CALCSLOPE(p->b1u, b1u, nsmps);
+        MYFLT b1u_slope = CALCSLOPE(p->b1u, b1u, nsmps - offset);
         p->lagu = lagu;
         p->b1d  = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
-        MYFLT b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps);
+        MYFLT b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps - offset);
         p->lagd = lagd;
         for (n=offset; n<nsmps; n++) {
             MYFLT y0 = in[n];
