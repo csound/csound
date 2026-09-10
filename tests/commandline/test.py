@@ -583,6 +583,7 @@ def runTest():
         ["test_fillarray_audio.csd", "test Arr:a[] = [sig:a]"],
         ["test_fold_sampling.csd", "test fold sampling schedule"],
         ["test_fold_invalid_increment.csd", "reject invalid fold increment", 1],
+        ["test_sum_product_input_reuse.csd", "sum/product input reuse and inactive output"],
         ["test_oversample.csd", "test oversampling in new-style UDO"],
         ["test_pvs_np2.csd", "test pvsanal/synth with np2 size"],
         [
