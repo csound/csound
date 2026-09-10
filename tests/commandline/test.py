@@ -836,6 +836,7 @@ def runTest():
             1,
         ],
         ["test_sa.csd", "test sample accurate mode"],
+        ["test_gain_sample_bounds.csd", "gain RMS and output over partial blocks"],
         ["test_eqfil_sample_offset.csd", "eqfil advances state only for active samples"],
         [
             "test_audio_input_sample_bounds.csd",
