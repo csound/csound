@@ -306,25 +306,39 @@ static int32_t product(CSOUND *csound, SUM *p)
 
 static int32_t rsnsety(CSOUND *csound, RESONY *p)
 {
-    int32_t scale;
+    double order = (double)*p->ord;
+    double scale_value = (double)*p->iscl;
+    size_t state_size;
+    int32_t clear_state = !*p->istor;
+    int32_t new_loop, scale;
     uint32_t nsmps = CS_KSMPS;
-    p->scale = scale = (int32_t) *p->iscl;
-    if ((p->loop = (int32_t) MYFLT2LONG(*p->ord)) < 1)
-      p->loop = 4;  /* default value */
-    if (!*p->istor && (p->aux.auxp == NULL ||
-                      (uint32_t) (p->loop * 2 * sizeof(MYFLT)) > p->aux.size))
-      csound->AuxAlloc(csound, (size_t) (p->loop * 2 * sizeof(MYFLT)), &p->aux);
-    p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
+    if (UNLIKELY(!isfinite(scale_value) || scale_value < (double)INT32_MIN ||
+                 scale_value > (double)INT32_MAX)) {
+      return csound->InitError(csound, Str("illegal reson iscl value: %f"),
+                               *p->iscl);
+    }
+    p->scale = scale = (int32_t)scale_value;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound, Str("illegal reson iscl value: %f"),
                                        *p->iscl);
     }
-    if (!(*p->istor)) {
-      memset(p->yt1, 0, p->loop*sizeof(MYFLT));
-      memset(p->yt2, 0, p->loop*sizeof(MYFLT));
-      /* for (j = 0; j < p->loop; j++) */
-      /*   p->yt1[j] = p->yt2[j] = FL(0.0); */
+    if (UNLIKELY(!isfinite(order) || order > (double)INT32_MAX - 0.5))
+      return csound->InitError(csound, Str("resony: invalid order %f"),
+                               *p->ord);
+    new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
+    if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(MYFLT))))
+      return csound->InitError(csound, Str("resony: order is too large"));
+    clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
+    p->loop = new_loop;
+    state_size = (size_t)p->loop * 2 * sizeof(MYFLT);
+    if (p->aux.auxp == NULL || state_size > p->aux.size) {
+      csound->AuxAlloc(csound, state_size, &p->aux);
+      clear_state = 1;
     }
+    p->yt1 = (MYFLT*)p->aux.auxp;
+    p->yt2 = p->yt1 + p->loop;
+    if (clear_state)
+      memset(p->yt1, 0, state_size);
     if (p->buffer.auxp == NULL || p->buffer.size<nsmps*sizeof(MYFLT))
       csound->AuxAlloc(csound, (size_t)(nsmps*sizeof(MYFLT)), &p->buffer);
     return OK;

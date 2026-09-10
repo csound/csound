@@ -130,6 +130,11 @@ int32_t tone(CSOUND *csound, TONE *p)
 
 int32_t tonsetx(CSOUND *csound, TONEX *p)
 {                   /* From Gabriel Maldonado, modified for arbitrary order */
+    double order = (double)*p->ord;
+    size_t state_size;
+    int32_t clear_state = !*p->istor;
+    int32_t new_loop;
+
     {
       double b;
       p->prvhp = *p->khp;
@@ -137,14 +142,22 @@ int32_t tonsetx(CSOUND *csound, TONEX *p)
       p->c2 = b - sqrt(b * b - 1.0);
       p->c1 = 1.0 - p->c2;
     }
-    if (UNLIKELY((p->loop = (int32_t) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
-    if (!*p->istor && (p->aux.auxp == NULL ||
-                    (uint32_t)(p->loop*sizeof(double)) > p->aux.size))
-        csound->AuxAlloc(csound, (int32_t)(p->loop*sizeof(double)), &p->aux);
-    p->yt1 = (double*)p->aux.auxp;
-    if (LIKELY(!(*p->istor))) {
-    memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
+    if (UNLIKELY(!isfinite(order) || order > (double)INT32_MAX - 0.5))
+      return csound->InitError(csound, Str("tonex: invalid order %f"),
+                               *p->ord);
+    new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
+    if (UNLIKELY((size_t)new_loop > SIZE_MAX / sizeof(double)))
+      return csound->InitError(csound, Str("tonex: order is too large"));
+    clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
+    p->loop = new_loop;
+    state_size = (size_t)p->loop * sizeof(double);
+    if (p->aux.auxp == NULL || state_size > p->aux.size) {
+      csound->AuxAlloc(csound, state_size, &p->aux);
+      clear_state = 1;
     }
+    p->yt1 = (double*)p->aux.auxp;
+    if (clear_state)
+      memset(p->yt1, 0, state_size); /* Punning zero and 0.0 */
     return OK;
 }
 
@@ -173,7 +186,7 @@ int32_t tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified
     }
     for (j=0; j< lp; j++) {
       /* Should *yt1 be reset to something?? */
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         double x = c1 * ar[n] + c2 * yt1[j];
         yt1[j] = x;
         ar[n] = (MYFLT)x;
@@ -260,7 +273,7 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    for (j=1; j<lp; j++) {
+    for (j=0; j<lp; j++) {
       for (n=offset; n<nsmps; n++) {
         double sig = (double)ar[n];
         double x = c2 * (yt1[j] + sig);
@@ -273,8 +286,14 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
 
 int32_t rsnset(CSOUND *csound, RESON *p)
 {
+    double scale_value = (double)*p->iscl;
     int32_t scale;
-    p->scale = scale = (int32_t)*p->iscl;
+    if (UNLIKELY(!isfinite(scale_value) || scale_value < (double)INT32_MIN ||
+                 scale_value > (double)INT32_MAX)) {
+      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+                               *p->iscl);
+    }
+    p->scale = scale = (int32_t)scale_value;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound, Str("illegal reson iscl value, %f"),
                                        *p->iscl);
@@ -385,24 +404,40 @@ int32_t reson(CSOUND *csound, RESON *p)
 
 int32_t rsnsetx(CSOUND *csound, RESONX *p)
 {                               /* Gabriel Maldonado, modifies for arb order */
-    int32_t scale;
-    p->scale = scale = (int32_t) *p->iscl;
-    if ((p->loop = (int32_t) (*p->ord + FL(0.5))) < 1)
-      p->loop = 4; /* default value */
-    if (!*p->istor && (p->aux.auxp == NULL ||
-                       (uint32_t)(p->loop*2*sizeof(double)) > p->aux.size))
-      csound->AuxAlloc(csound, (int32_t)(p->loop*2*sizeof(double)), &p->aux);
-    p->yt1 = (double*)p->aux.auxp; p->yt2 = (double*)p->aux.auxp + p->loop;
+    double order = (double)*p->ord;
+    double scale_value = (double)*p->iscl;
+    size_t state_size;
+    int32_t clear_state = !*p->istor;
+    int32_t new_loop, scale;
+    if (UNLIKELY(!isfinite(scale_value) || scale_value < (double)INT32_MIN ||
+                 scale_value > (double)INT32_MAX)) {
+      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+                               *p->iscl);
+    }
+    p->scale = scale = (int32_t)scale_value;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound, Str("illegal reson iscl value, %f"),
                                        *p->iscl);
     }
+    if (UNLIKELY(!isfinite(order) || order > (double)INT32_MAX - 0.5))
+      return csound->InitError(csound, Str("resonx: invalid order %f"),
+                               *p->ord);
+    new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
+    if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(double))))
+      return csound->InitError(csound, Str("resonx: order is too large"));
+    clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
+    p->loop = new_loop;
+    state_size = (size_t)p->loop * 2 * sizeof(double);
+    if (p->aux.auxp == NULL || state_size > p->aux.size) {
+      csound->AuxAlloc(csound, state_size, &p->aux);
+      clear_state = 1;
+    }
+    p->yt1 = (double*)p->aux.auxp;
+    p->yt2 = p->yt1 + p->loop;
     p->prvcf = p->prvbw = -100.0;
 
-    if (!(*p->istor)) {
-      memset(p->yt1, 0, p->loop*sizeof(double));
-      memset(p->yt2, 0, p->loop*sizeof(double));
-    }
+    if (clear_state)
+      memset(p->yt1, 0, state_size);
     return OK;
 }
 
