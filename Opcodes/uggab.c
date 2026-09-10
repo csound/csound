@@ -744,9 +744,8 @@ static int32_t lpsholdp(CSOUND *csound, LOOPSEGP *p)
 static int32_t lineto_set(CSOUND *csound, LINETO *p)
 {
     IGN(csound);
-    p->current_time = FL(0.0);
-    p->incr=FL(0.0);
-    p->old_time=FL(0.0);
+    p->remaining = 0.0;
+    p->incr = FL(0.0);
     p->flag = 1;
     return OK;
 }
@@ -756,24 +755,22 @@ static int32_t lineto(CSOUND *csound, LINETO *p)
     IGN(csound);
     if (UNLIKELY(p->flag)) {
       p->val_incremented = p->current_val = *p->ksig;
-      p->flag=0;
+      p->flag = 0;
     }
-    /* printf("lineto: ktime=%lf ksig=%lf\n " */
-    /*        "old_time=%lf val_inc=%lf incr=%lf val=%lf\n", */
-    /*        *p->ktime, *p->ksig, p->old_time, p->val_incremented, p->incr, */
-    /*        p->current_val); */
-    if (*p->ksig != p->current_val && p->current_time > p->old_time) {
-      p->old_time = *p->ktime;
-      p->val_incremented = p->current_val;
-      p->current_time = FL(0.0);
-      p->incr = (*p->ksig - p->current_val)
-                / ((int32) (CS_EKR * p->old_time) -1); /* by experiment */
-      p->current_val = *p->ksig;
-    }
-    else if (p->current_time < p->old_time) {
+    if (p->remaining > 0.0) {
       p->val_incremented += p->incr;
+      if (--p->remaining == 0.0)
+        p->val_incremented = p->current_val;
     }
-    p->current_time += 1/CS_EKR;
+    /* Accept a new target only after the current ramp has finished. */
+    if (p->remaining <= 0.0 && *p->ksig != p->current_val) {
+      p->current_val = *p->ksig;
+      p->remaining = ceil(*p->ktime * CS_EKR);
+      if (p->remaining > 0.0)
+        p->incr = (p->current_val - p->val_incremented) / p->remaining;
+      else
+        p->val_incremented = p->current_val;
+    }
     *p->kr = p->val_incremented;
     return OK;
 }
@@ -781,9 +778,8 @@ static int32_t lineto(CSOUND *csound, LINETO *p)
 static int32_t tlineto_set(CSOUND *csound, LINETO2 *p)
 {
     IGN(csound);
-    p->current_time = FL(0.0);
-    p->incr=FL(0.0);
-    p->old_time=FL(1.0);
+    p->remaining = 0.0;
+    p->incr = FL(0.0);
     p->flag = 1;
     return OK;
 }
@@ -793,19 +789,21 @@ static int32_t tlineto(CSOUND *csound, LINETO2 *p)
     IGN(csound);
     if (UNLIKELY(p->flag)) {
       p->val_incremented = p->current_val = *p->ksig;
-      p->flag=0;
+      p->flag = 0;
     }
     if (*p->ktrig) {
-      p->old_time = *p->ktime;
-      /* p->val_incremented = p->current_val; */
-      p->current_time = FL(0.0);
-      p->incr = (*p->ksig - p->current_val)
-                / ((int32) (CS_EKR * p->old_time) + 1);
       p->current_val = *p->ksig;
+      p->remaining = ceil(*p->ktime * CS_EKR);
+      /* A retrigger starts from the output, not the previous target. */
+      if (p->remaining > 0.0)
+        p->incr = (p->current_val - p->val_incremented) / p->remaining;
+      else
+        p->val_incremented = p->current_val;
     }
-    else if (p->current_time < p->old_time) {
-      p->current_time += CS_ONEDKR;
+    else if (p->remaining > 0.0) {
       p->val_incremented += p->incr;
+      if (--p->remaining == 0.0)
+        p->val_incremented = p->current_val;
     }
     *p->kr = p->val_incremented;
     return OK;

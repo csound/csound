@@ -98,14 +98,16 @@ typedef struct {
 typedef struct {  /* gab f1 */
         OPDS    h;
         MYFLT   *kr, *ksig, *ktime;
-        MYFLT   current_val, current_time, incr, val_incremented, old_time;
+        MYFLT   current_val, incr, val_incremented;
+        double  remaining;
         int32_t flag;
 } LINETO;
 
 typedef struct {  /* gab f1 */
         OPDS    h;
         MYFLT   *kr, *ksig, *ktime, *ktrig;
-        MYFLT   current_val, current_time, incr, val_incremented, old_time;
+        MYFLT   current_val, incr, val_incremented;
+        double  remaining;
         int32_t flag;
 } LINETO2;
 
