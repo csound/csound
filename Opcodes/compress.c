@@ -48,6 +48,7 @@ typedef struct {        /* this now added from 07/01 */
     MYFLT   prvq, prvd, min_rms;
     MYFLT   midphs, maxphs, begval, endval;
     FUNC    *ftp;
+    int32_t initialized;
 } DIST;
 
 static int32_t compset(CSOUND *csound, CMPRS *p)
@@ -211,6 +212,9 @@ static int32_t distset(CSOUND *csound, DIST *p)
     FUNC    *ftp;
 
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) return NOTOK;
+    if (UNLIKELY(!isfinite(*p->ihp)))
+      return csound->InitError(csound, "%s",
+                               Str("distort: half-power frequency must be finite"));
     p->ftp = ftp;
     p->maxphs = (MYFLT)ftp->flen;       /* set ftable params    */
     p->midphs = p->maxphs * FL(0.5);
@@ -220,17 +224,18 @@ static int32_t distset(CSOUND *csound, DIST *p)
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
     p->min_rms = csound->Get0dBFS(csound) * DV32768;
-    if (!*p->istor) {
+    if (!*p->istor || !p->initialized || !isfinite(p->prvq) ||
+        p->prvq < FL(0.0) || !isfinite(p->prvd) || p->prvd <= FL(0.0)) {
       p->prvq = FL(0.0);
       p->prvd = FL(1000.0) * p->min_rms;
     }
+    p->initialized = 1;
 
     return OK;
 }
 
 static int32_t distort(CSOUND *csound, DIST *p)
 {
-    IGN(csound);
     MYFLT   *ar, *asig;
     MYFLT   q, rms, dist, dnew, dcur, dinc;
     FUNC    *ftp = p->ftp;
@@ -239,45 +244,59 @@ static int32_t distort(CSOUND *csound, DIST *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     asig = p->asig;
-    q = p->prvq;
-    for (n=offset; n<nsmps-early; n++) {
-      q = p->c1 * asig[n] * asig[n] + p->c2 * q;
-    }
-    p->prvq = q;
-    rms = SQRT(q);    /* get running rms      */
-    if (rms < p->min_rms)
-      rms = p->min_rms;
-    if ((dist = *p->kdist) < FL(0.001))
-      dist = FL(0.001);
-    dnew = rms / dist;                  /* & compress factor    */
-    dcur = p->prvd;
-    asig = p->asig;
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    dinc = (dnew - dcur) / nsmps;
+    if (UNLIKELY(offset >= nsmps))
+      return OK;
+    q = p->prvq;
+    for (n=offset; n<nsmps; n++) {
+      q = p->c1 * asig[n] * asig[n] + p->c2 * q;
+    }
+    if (UNLIKELY(!isfinite(q)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("distort: input level is out of range"));
+    rms = SQRT(q);    /* get running rms      */
+    if (rms < p->min_rms)
+      rms = p->min_rms;
+    dist = *p->kdist;
+    if (UNLIKELY(!isfinite(dist)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("distort: distortion amount must be finite"));
+    if (dist < FL(0.001))
+      dist = FL(0.001);
+    dnew = rms / dist;                  /* & compress factor    */
+    if (UNLIKELY(!isfinite(dnew) || dnew <= FL(0.0)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("distort: distortion amount is out of range"));
+    p->prvq = q;
+    dcur = p->prvd;
+    dinc = (dnew - dcur) / (nsmps - offset);
     for (n=offset; n<nsmps; n++) {
       MYFLT sig, phs, val;
       sig = asig[n] / dcur;             /* compress the sample  */
       phs = p->midphs * (FL(1.0) + sig); /* as index into table  */
-      if (UNLIKELY(phs <= FL(0.0)))
-        val = p->begval;
-      else if (UNLIKELY(phs >= p->maxphs))        /* check sticky bits    */
-        val = p->endval;
-      else {
+      if (LIKELY(phs > FL(0.0) && phs < p->maxphs)) {
         int32  iphs = (int32)phs;
         MYFLT frac = phs - (MYFLT)iphs; /* waveshape the samp   */
         MYFLT *fp = ftp->ftable + iphs;
         val = *fp++;
         val += (*fp - val) * frac;
       }
+      else if (phs <= FL(0.0))
+        val = p->begval;
+      else if (phs >= p->maxphs)                 /* check sticky bits    */
+        val = p->endval;
+      else                                    /* unordered index: NaN */
+        return csound->PerfError(csound, &(p->h), "%s",
+                                 Str("distort: signal produced a non-finite index"));
       ar[n] = val * dcur;               /* and restor the amp   */
       dcur += dinc;
     }
-    p->prvd = dcur;
+    p->prvd = (isfinite(dcur) && dcur > FL(0.0) ? dcur : dnew);
 
     return OK;
 }
