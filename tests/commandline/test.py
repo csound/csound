@@ -578,6 +578,7 @@ def runTest():
         ["test_seqtime2_timing.csd", "seqtime2 event timing and loop order"],
         ["test_seqtime2_invalid_range.csd", "reject invalid seqtime2 ranges", 1],
         ["test_trighold_initial_trigger.csd", "trighold preserves its full duration after init and reinit"],
+        ["test_triggered_envelope_timing.csd", "triggered envelope restart and segment timing"],
         ["test_udo_local_pool.csd", "test udos for separate local var pool"],
         ["test_ternary_expr.csd", "test ternary expr for backwards compatibility"],
         ["test_array_expr_opcall.csd", "test array expr in opcall"],
