@@ -641,6 +641,8 @@ static int32_t trscale_process(CSOUND *csound, _PTRANS *p)
         else
           frameout[i] = framein[i];
         outfr = framein[i + 1] * scale;
+        if (UNLIKELY(!(outfr >= FL(0.0))))
+          outfr = FL(0.0);
         frameout[i + 1] = (float) (outfr < nyq ? outfr : nyq);
         frameout[i + 2] = framein[i + 2];
         id = (int32_t) framein[i + 3];
@@ -670,6 +672,8 @@ static int32_t trshift_process(CSOUND *csound, _PTRANS *p)
         else
           frameout[i] = framein[i];
         outfr = framein[i + 1] + shift;
+        if (UNLIKELY(!(outfr >= FL(0.0))))
+          outfr = FL(0.0);
         frameout[i + 1] = (float) (outfr < nyq ? outfr : nyq);
         frameout[i + 2] = framein[i + 2];
         id = (int32_t) framein[i + 3];
@@ -1023,9 +1027,11 @@ static int32_t trfil_process(CSOUND *csound, _PSFIL *p)
       if (UNLIKELY(amnt < 0))
         amnt = 0;
       do {
-        fr = FABS(framein[i + 1]);
-        if (UNLIKELY(!(fr <= nyq)))
-          fr = fr > nyq ? nyq : FL(0.0);
+        fr = framein[i + 1];
+        if (UNLIKELY(!(fr >= FL(0.0))))
+          fr = FL(0.0);
+        else if (UNLIKELY(fr > nyq))
+          fr = nyq;
         pos = fr * len / nyq;
         /* At Nyquist, use the guard point without reading beyond it. */
         if (UNLIKELY(pos >= len))
