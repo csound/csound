@@ -24,12 +24,10 @@
     Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 #include <stdlib.h>
-#include <complex.h>
 
 #ifdef _MSC_VER
 #define _USE_MATH_DEFINES
 #endif
-#include <math.h>
 #include <math.h>
 #ifdef BUILD_PLUGINS
 #include "csdl.h"
@@ -38,15 +36,10 @@
 #endif
 #include "interlocks.h"
 
-#ifdef ANDROID
-float crealf(_Complex float);
-float cimagf(_Complex float);
-#endif
-
 typedef struct {
     OPDS h;
     MYFLT *out, *stretch, *winsize, *ifn;
-    MYFLT start_pos, displace_pos;
+    double start_pos, displace_pos;
     MYFLT *window;
     MYFLT *old_windowed_buf;
     MYFLT *hinv_buf;
@@ -66,7 +59,7 @@ typedef struct {
 
 static void compute_block(CSOUND *csound, PAULSTRETCH *p)
 {
-    uint32_t istart_pos = floor(p->start_pos);
+    uint32_t istart_pos = (uint32_t)p->start_pos;
     uint32_t pos;
     uint32_t i;
     uint32_t windowsize = p->windowsize;
@@ -85,25 +78,17 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
         tmp[i] = FL(0.0);
       }
     }
-    /* re-order bins and take FFT */
-    tmp[p->windowsize] = tmp[1];
-    tmp[p->windowsize + 1] = FL(0.0);
     csound->RealFFT(csound, p->setup, tmp);
+    /* Unpack Nyquist after the FFT; DC has no imaginary component. */
+    tmp[p->windowsize] = tmp[1];
+    tmp[1] = FL(0.0);
+    tmp[p->windowsize + 1] = FL(0.0);
     /* randomize phase */
     for (i = 0; i < windowsize + 2; i += 2) {
       MYFLT mag = HYPOT(tmp[i], tmp[i + 1]);
-      // Android 5.1 does not seem to have cexpf ...
-      // complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * PI);
-      // so ...
       MYFLT  x = (((MYFLT)rand() / RAND_MAX) * 2 * PI);
-#ifdef MSVC
-      // TODO - Double check this is equivalent to non-windows complex definition
-          _Fcomplex ph = { cos(x), sin(x) };
-#else
-      complex double ph =  cos(x) + I*sin(x);
-#endif
-      tmp[i] = mag * (MYFLT)crealf(ph);
-      tmp[i + 1] = mag * (MYFLT)cimagf(ph);
+      tmp[i] = mag * COS(x);
+      tmp[i + 1] = mag * SIN(x);
     }
 
     /* re-order bins and take inverse FFT */
@@ -118,25 +103,41 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
       }
       old_windowed_buf[i] = tmp[i];
     }
-    p->start_pos += p->displace_pos;
+    /* Keep emitting the overlap tail, then silence, after the source ends. */
+    if (p->displace_pos >= (double)p->ft->flen - p->start_pos)
+      p->start_pos = p->ft->flen;
+    else
+      p->start_pos += p->displace_pos;
 }
 
 static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
 {
     FUNC *ftp = csound->FTFind(csound, p->ifn);
     uint32_t i = 0;
-    uint32_t size;
+    size_t size;
+    double samples = (double)CS_ESR * (double)*p->winsize;
+    double stretch = (double)*p->stretch;
 
     if (ftp == NULL)
       return csound->InitError(csound, "%s", Str("paulstretch: table not found"));
 
+    if (UNLIKELY(!(stretch > 0.0) || !isfinite(stretch)))
+      return csound->InitError(csound, "%s",
+                               Str("paulstretch: stretch must be finite and positive"));
+    /* RealFFT uses signed byte counts internally and needs two spare samples. */
+    if (UNLIKELY(!(samples >= 0.0 &&
+                   samples < (double)(INT32_MAX / sizeof(MYFLT) - 2))))
+      return csound->InitError(csound, "%s",
+                               Str("paulstretch: invalid window size"));
     p->ft = ftp;
-    p->windowsize = (uint32_t)FLOOR((CS_ESR * *p->winsize));
+    p->windowsize = (uint32_t)samples;
     if (p->windowsize < 16) {
       p->windowsize = 16;
     }
+    /* Real FFT bins and the two equal overlap halves require an even size. */
+    p->windowsize &= ~1u;
     p->half_windowsize = p->windowsize / 2;
-    p->displace_pos = (p->windowsize * FL(0.5)) / *p->stretch;
+    p->displace_pos = (double)p->half_windowsize / stretch;
 
     size = sizeof(MYFLT) * p->windowsize;
     csound->AuxAlloc(csound, size, &(p->m_window));
@@ -184,7 +185,6 @@ static int32_t paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
     MYFLT *out = p->out;
 
     if (UNLIKELY(offset)) {
-      memset(p->out, '\0', offset*sizeof(MYFLT));
       memset(p->out, '\0', offset*sizeof(MYFLT));
     }
     if (UNLIKELY(early)) {

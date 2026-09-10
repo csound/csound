@@ -26,6 +26,7 @@ if(BUILD_TESTS)
         engine_test.cpp
         io_test.cpp
         osc_blob_test.cpp
+        paulstretch_test.cpp
         server_test.cpp
         csound_plugin_opcode_test.cpp
         perfthread_test.cpp
