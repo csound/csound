@@ -299,72 +299,93 @@ static int32_t sndloop_process(CSOUND *csound, sndloop *p)
 static int32_t flooper_init(CSOUND *csound, flooper *p)
 {
     MYFLT *tab, *buffer, a = FL(0.0), inc;
-    int32 cfds;
-    int32 starts;
-    int32 durs;
-    int32 len, i, nchnls;
+    double cfds_f, starts_f, durs_f;
+    int32 cfds, starts, durs, i, nchnls;
+    uint32_t len;
+    size_t buffer_size;
 
     p->sfunc = csound->FTFind(csound, p->ifn) ;  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,"%s", Str("function table not found\n"));
     }
-    cfds = (int32) (*(p->cfd)*p->sfunc->gen01args.sample_rate);
-    starts = (int32) (*(p->start)*p->sfunc->gen01args.sample_rate);
-    durs = (int32)  (*(p->dur)*p->sfunc->gen01args.sample_rate);
+    cfds_f = (double)*p->cfd * p->sfunc->gen01args.sample_rate;
+    starts_f = (double)*p->start * p->sfunc->gen01args.sample_rate;
+    durs_f = (double)*p->dur * p->sfunc->gen01args.sample_rate;
+
+    if (UNLIKELY(!isfinite(starts_f) || starts_f < 0.0))
+      return csound->InitError(csound, "%s",
+                               Str("loop start must be finite and non-negative\n"));
+    if (UNLIKELY(!isfinite(durs_f) || durs_f < 1.0))
+      return csound->InitError(csound, "%s",
+                               Str("loop duration must be at least one sample\n"));
+    if (UNLIKELY(!isfinite(cfds_f) || cfds_f < 0.0))
+      return csound->InitError(csound, "%s",
+                               Str("crossfade must be finite and non-negative\n"));
+    if (UNLIKELY(starts_f > INT32_MAX || durs_f > INT32_MAX ||
+                 cfds_f > INT32_MAX))
+      return csound->InitError(csound, "%s",
+                               Str("loop parameters exceed the supported range\n"));
+
+    cfds = (int32)cfds_f;
+    starts = (int32)starts_f;
+    durs = (int32)durs_f;
 
     if (UNLIKELY(cfds > durs))
       return csound->InitError(csound,
                                "%s", Str("crossfade longer than loop duration\n"));
 
-    tab = p->sfunc->ftable,  /* func table pointer */
-    len = p->sfunc->flen;    /* function table length */
+    tab = p->sfunc->ftable;  /* func table pointer */
     nchnls = p->sfunc->nchanls;
     if (UNLIKELY((uint32_t) nchnls != p->OUTOCOUNT)) {
      return
        csound->InitError(csound,
                          "%s", Str("function table channel count does not match output"));
     }
-    if (UNLIKELY(starts > len)) {
+    len = p->sfunc->flen / (uint32_t)nchnls;
+    if (UNLIKELY((uint32_t)starts >= len)) {
       return csound->InitError(csound,"%s", Str("start time beyond end of table\n"));
     }
 
-    if (UNLIKELY(starts+durs+cfds > len)) {
+    if (UNLIKELY((uint64_t)starts + (uint64_t)durs + (uint64_t)cfds > len)) {
       return csound->InitError(csound,"%s", Str("table not long enough for loop\n"));
     }
 
+    buffer_size = ((size_t)durs + 1u) * (size_t)nchnls * sizeof(MYFLT);
     if (p->buffer.auxp==NULL ||               /* allocate memory if necessary */
-        p->buffer.size<(durs+1)*sizeof(MYFLT)*nchnls)
-      csound->AuxAlloc(csound,(durs+1)*sizeof(MYFLT)*nchnls, &p->buffer);
+        p->buffer.size < buffer_size)
+      csound->AuxAlloc(csound, buffer_size, &p->buffer);
 
-    inc = FL(1.0)/cfds;       /* fade envelope incr/decr */
+    inc = (cfds > 0 ? FL(1.0)/cfds : FL(0.0)); /* fade envelope incr/decr */
     buffer = p->buffer.auxp;   /* loop memory */
 
     /* we now write the loop into memory */
-    durs *= nchnls;
-    starts *= nchnls;
-    cfds *= nchnls;
-    for (i=0; i < durs; i+=nchnls) {
+    for (i=0; i < durs; i++) {
+      size_t dst = (size_t)i * (size_t)nchnls;
+      size_t src = ((size_t)starts + (size_t)i) * (size_t)nchnls;
       if (i < cfds) {
-        buffer[i] = a*tab[i+starts];
-        if(nchnls == 2) buffer[i+1] = a*tab[i+starts+1];
+        buffer[dst] = a*tab[src];
+        if(nchnls == 2) buffer[dst+1] = a*tab[src+1];
         a += inc;
       }
       else {
-        buffer[i] = tab[i+starts];
-        if(nchnls == 2) buffer[i+1] = tab[i+starts+1];
+        buffer[dst] = tab[src];
+        if(nchnls == 2) buffer[dst+1] = tab[src+1];
       }
     }
     /*  crossfade section */
-    for (i=0; i  < cfds; i+=nchnls) {
-      buffer[i] += a*tab[i+starts+durs];
-      if(nchnls == 2) buffer[i+1] += a*tab[i+starts+durs+1];
+    for (i=0; i < cfds; i++) {
+      size_t dst = (size_t)i * (size_t)nchnls;
+      size_t src = ((size_t)starts + (size_t)durs + (size_t)i) *
+                   (size_t)nchnls;
+      buffer[dst] += a*tab[src];
+      if(nchnls == 2) buffer[dst+1] += a*tab[src+1];
       a -= inc;
     }
 
-    buffer[durs] = buffer[0]; /* for wrap-around interpolation */
-    if (nchnls == 2) buffer[durs + 1] = buffer[1];
-    p->strts     = starts/nchnls;
-    p->durs      = durs/nchnls;
+    buffer[(size_t)durs*nchnls] = buffer[0]; /* wrap interpolation */
+    if (nchnls == 2) buffer[(size_t)durs*nchnls + 1u] = buffer[1];
+    p->strts     = starts;
+    p->durs      = durs;
     p->ndx       = FL(0.0);   /* lookup index */
     p->loop_off  = 1;
     p->nchnls = nchnls;
@@ -387,14 +408,15 @@ static int32_t flooper_process(CSOUND *csound, flooper *p)
 
     pitch *= p->sfunc->gen01args.sample_rate/CS_ESR;
 
-    if (UNLIKELY(offset)) memset(aout[0], '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) {
+      memset(aout[0], '\0', offset*sizeof(MYFLT));
+      if(nchnls == 2) memset(aout[1], '\0', offset*sizeof(MYFLT));
+    }
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&aout[0][nsmps], '\0', early*sizeof(MYFLT));
-      if(nchnls == 2) {
-        if (UNLIKELY(offset)) memset(aout[1], '\0', offset*sizeof(MYFLT));
+      if(nchnls == 2)
         memset(&aout[1][nsmps], '\0', early*sizeof(MYFLT));
-      }
     }
 
     for (i=offset; i < nsmps; i++) {
@@ -490,21 +512,21 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     FUNC *func;
 
     func = csound->FTFind(csound, p->ifn);
-    sr = p->sfunc->gen01args.sample_rate;
 
     if(p->sfunc != func) {
     p->sfunc = func;
     if (UNLIKELY(func == NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("table %d invalid\n"), (int32_t) *p->ifn);
-    if (p->ndx[0] >= p->sfunc->flen)
-       p->ndx[0] = (double) p->sfunc->flen - 1.0;
+    if (p->ndx[0] >= p->sfunc->flen/p->sfunc->nchanls)
+       p->ndx[0] = (double) p->sfunc->flen/p->sfunc->nchanls - 1.0;
 
     if(p->nchnls != p->sfunc->nchanls) {
        csound->Warning(csound,
           "%s", Str("function table channels do not match opcode outputs"));
       }
     }
+    sr = p->sfunc->gen01args.sample_rate;
     tab = p->sfunc->ftable;
     len = p->sfunc->flen/p->sfunc->nchanls;
     pitch *= p->sfunc->gen01args.sample_rate/CS_ESR;
@@ -520,20 +542,19 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
 
     /* loop parameters & check */
     if (pitch < FL(0.0)) pitch = FL(0.0);
-    if (UNLIKELY(offset)) memset(aout[0], '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) {
+      memset(aout[0], '\0', offset*sizeof(MYFLT));
+      if(onchnls == 2) memset(aout[1], '\0', offset*sizeof(MYFLT));
+    }
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&aout[0][nsmps], '\0', early*sizeof(MYFLT));
-      if(onchnls == 2) {
-        if (UNLIKELY(offset)) memset(aout[1], '\0', offset*sizeof(MYFLT));
+      if(onchnls == 2)
         memset(&aout[1][nsmps], '\0', early*sizeof(MYFLT));
-      }
     }
 
     if (*firsttime) {
       int32_t loopsize;
-      /* offset non zero only if firsttime */
-      if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
       loop_start = (int32_t) (*p->loop_start*sr);
       loop_end =   (int32_t) (*p->loop_end*sr);
       p->lstart = loop_start = loop_start < 0 ? 0 : loop_start;
@@ -648,7 +669,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
           tndx0 *= nchnls;
           out[0] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
           if(onchnls == 2) {
-            tndx0 *= nchnls;
+            tndx0 += 1;
             out[1] = amp*(tab[tndx0] + frac0*(tab[tndx0+nchnls] - tab[tndx0]));
           }
           ndx[0] += pitch;
