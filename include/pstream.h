@@ -43,10 +43,10 @@
 
   asig      pvsynth fsig[,iinit]
 
-  asig      pvsadsyn fsig,inoscs,kfmod[,ibin,ibinoffset,iinit]
+  asig      pvsadsyn fsig,inoscs,kfmod[,ibinoffset,ibinincr,iinit]
 
-    ibin:       starting bin (defualt 0)
-    ibinoffset: distance between successive bins (default 1)
+    ibinoffset: starting bin (default 0)
+    ibinincr:   distance between successive bins (default 1)
     kfmod:      multiplier; 1 = no change, 2 = up one octave.
 
   fsig      pvscross fsrc,fdest,kamp1,kamp2
@@ -158,15 +158,15 @@ typedef struct {
         PVSDAT  *fsig;
         MYFLT   *n_oscs;
         MYFLT   *kfmod;
-        MYFLT   *ibin;          /* default  0 */
-        MYFLT   *ibinoffset;    /* default 1  */
+        MYFLT   *ibinoffset;    /* default 0 */
+        MYFLT   *ibinincr;      /* default 1 */
         MYFLT   *init;          /* not yet implemented  */
         /* internal */
         int32    outptr;
         uint32   lastframe;
         /* check these against fsig vals */
-        int32    overlap,winsize,fftsize,wintype,format,noscs;
-        int32    maxosc;
+        int32    overlap,winsize,fftsize,wintype,format,startbin;
+        int32    binincr,lastbin;
         float   one_over_overlap,pi_over_sr, one_over_sr;
         float   fmod;
         AUXCH   a;
