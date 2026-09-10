@@ -358,7 +358,6 @@ typedef struct {
     MYFLT *irnd;
     MYFLT freqA4;
     int32_t rnd;
-    int32_t skip;
 } PITCHCONV_ARR;
 
 
@@ -366,20 +365,18 @@ static int32_t
 ftom_arr(CSOUND *csound, PITCHCONV_ARR *p) {
     MYFLT x, *indata, *outdata;
     int32_t i;
-    if(p->skip) {
-        p->skip = 0;
-        return OK;
-    }
     MYFLT a4 = p->freqA4;
-    IGN(csound);
+    int32_t numitems = p->inarr->sizes[0];
+    if (UNLIKELY(ARRAY_ENSURESIZE_PERF(csound, p->outarr, numitems) != OK))
+        return NOTOK;
     indata = p->inarr->data;
     outdata = p->outarr->data;
-    for(i=0; i < p->inarr->sizes[0]; i++) {
+    for(i=0; i < numitems; i++) {
         x = indata[i];
         outdata[i] = FL(12.0) * LOG2(x / a4) + FL(69.0);
     }
     if(UNLIKELY(p->rnd)) {
-        for(i=0; i < p->inarr->sizes[0]; i++) {
+        for(i=0; i < numitems; i++) {
             outdata[i] = (MYFLT)MYFLT2LRND(outdata[i]);
         }
     }
@@ -393,26 +390,19 @@ ftom_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
     if (UNLIKELY(tabinit(csound, p->outarr, p->inarr->sizes[0],
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
-    p->skip = 0;
-    ftom_arr(csound, p);
-    p->skip = 1;
-    return OK;
+    return ftom_arr(csound, p);
 }
 
 static int32_t
 mtof_arr(CSOUND *csound, PITCHCONV_ARR *p) {
     MYFLT x, *indata, *outdata;
     int32_t i;
-    if(p->skip) {
-        p->skip = 0;
-        return OK;
-    }
     MYFLT a4 = p->freqA4;
-    IGN(csound);
+    int32_t numitems = p->inarr->sizes[0];
+    if (UNLIKELY(ARRAY_ENSURESIZE_PERF(csound, p->outarr, numitems) != OK))
+        return NOTOK;
     indata = p->inarr->data;
     outdata = p->outarr->data;
-    int32_t numitems = p->inarr->sizes[0];
-    ARRAY_ENSURESIZE_PERF(csound, p->outarr, numitems);
     for(i=0; i < numitems; i++) {
         x = indata[i];
         outdata[i] = POWER(FL(2.0), (x - FL(69.0)) / FL(12.0)) * a4;
@@ -426,10 +416,7 @@ mtof_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
     if (UNLIKELY(tabinit(csound, p->outarr, p->inarr->sizes[0],
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
-    p->skip = 0;
-    mtof_arr(csound, p);
-    p->skip = 1;
-    return OK;
+    return mtof_arr(csound, p);
 }
 
 /*
