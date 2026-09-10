@@ -3307,15 +3307,11 @@ int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
                              "%s", Str("array-variable not a vector"));
 
 
-  if (UNLIKELY(offset)) memset(ans, '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    memset(&ans[nsmps], '\0', early*sizeof(MYFLT));
-  }
+  nsmps -= early;
 
   for (i=1; i<t->dimensions; i++) numarrays *= t->sizes[i];
 
-  memset(&ans[offset], '\0', nsmps*sizeof(MYFLT));
+  memset(ans, '\0', CS_KSMPS*sizeof(MYFLT));
 
   int32_t numarrays4 = numarrays - (numarrays % 4);
 
