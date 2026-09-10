@@ -534,22 +534,11 @@ static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
     memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
 
-  if (UNLIKELY(p->afc[0] <= FL(0.0)))     {
-    memcpy(&out[offset], &in[offset], (nsmps-offset)*sizeof(MYFLT));
-    return OK;
-  }
-
-  /* if (p->afc[0] != p->lkf)      { */
-  /*   p->lkf = p->afc[0]; */
-  /*   c = tan((double)(CS_PIDSR * p->lkf)); */
-
-  /*   a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c); */
-  /*   a[2] = -(a[1] + a[1]); */
-  /*   a[3] = a[1]; */
-  /*   a[4] = 2.0 * ( c*c - 1.0) * a[1]; */
-  /*   a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1]; */
-  /* } */
   for (nn=offset; nn<nsmps; nn++) {
+    if (UNLIKELY(p->afc[nn] <= FL(0.0))) {
+      out[nn] = in[nn];
+      continue;
+    }
     if (p->afc[nn] != p->lkf)      {
       double c;
       p->lkf = p->afc[nn];
@@ -584,11 +573,6 @@ static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter      
   in = p->ain;
   out = p->sr;
 
-  if (UNLIKELY(*p->afc <= FL(0.0)))     {
-    memset(out, 0, CS_KSMPS*sizeof(MYFLT));
-    return OK;
-  }
-
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
     nsmps -= early;
@@ -596,6 +580,10 @@ static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter      
   }
 
   for (nn=offset; nn<nsmps; nn++) {
+    if (UNLIKELY(p->afc[nn] <= FL(0.0))) {
+      out[nn] = FL(0.0);
+      continue;
+    }
     if (p->afc[nn] != p->lkf) {
       double c;
       p->lkf = p->afc[nn];
@@ -629,7 +617,7 @@ static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter   
 
   in = p->ain;
   out = p->sr;
-  if (UNLIKELY(p->kbw[0] <= FL(0.0)))     {
+  if (!asgbw && UNLIKELY(*p->kbw <= FL(0.0))) {
     memset(out, 0, CS_KSMPS*sizeof(MYFLT));
     return OK;
   }
@@ -642,6 +630,10 @@ static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter   
   for (nn=offset; nn<nsmps; nn++) {
     MYFLT bw, fr;
     bw = (asgbw ? p->kbw[nn] : *p->kbw);
+    if (asgbw && UNLIKELY(bw <= FL(0.0))) {
+      out[nn] = FL(0.0);
+      continue;
+    }
     fr = (asgfr ? p->kfo[nn] : *p->kfo);
     if (bw != p->lkb || fr != p->lkf) {
       double c, d;
@@ -685,14 +677,19 @@ static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter
     nsmps -= early;
     memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
-  if (UNLIKELY(p->kbw[0] <= FL(0.0)))     {
-    memcpy(&out[offset], &in[offset], (nsmps-offset)*sizeof(MYFLT));
+  if (!asgbw && UNLIKELY(*p->kbw <= FL(0.0))) {
+    if (out != in)
+      memcpy(&out[offset], &in[offset], (nsmps-offset)*sizeof(MYFLT));
     return OK;
   }
 
   for (nn=offset; nn<nsmps; nn++) {
     MYFLT bw, fr;
     bw = (asgbw ? p->kbw[nn] : *p->kbw);
+    if (asgbw && UNLIKELY(bw <= FL(0.0))) {
+      out[nn] = in[nn];
+      continue;
+    }
     fr = (asgfr ? p->kfo[nn] : *p->kfo);
     if (bw != p->lkb || fr != p->lkf) {
       double c, d;
