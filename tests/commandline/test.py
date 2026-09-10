@@ -807,6 +807,8 @@ def runTest():
             "test_audio_input_sample_bounds.csd",
             "audio input opcodes align partial-block input frames",
         ],
+        ["test_downsamp_sample_bounds.csd", "test downsamp partial blocks"],
+        ["test_downsamp_invalid_window.csd", "reject invalid downsamp window", 1],
         ["test_wguide_sample_offset.csd", "waveguides align audio-rate frequencies with note starts"],
         ["test_locsend_sample_offset.csd", "locsend aligns reverb sends with note starts"],
         [
