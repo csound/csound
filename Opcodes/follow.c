@@ -31,10 +31,22 @@
 
 static int32_t flwset(CSOUND *csound, FOL *p)
 {
+    double sample_rate = (double)CS_ESR;
+    /* Preserve MYFLT rounding before checking the integer conversion. */
+    double length = (double)(*p->len * CS_ESR);
+
     p->wgh = p->max = FL(0.0);
-    p->length = (int32)(*p->len * CS_ESR);
+    if (UNLIKELY(!(length >= (double)INT32_MIN &&
+                   length <= (double)INT32_MAX)))
+      return csound->InitError(csound, Str("follow: invalid period %f"),
+                               *p->len);
+    p->length = (int32)length;
     if (UNLIKELY(p->length<=0L)) {           /* RWD's suggestion */
       csound->Warning(csound, "%s", Str("follow - zero length!"));
+      if (UNLIKELY(!(sample_rate >= 1.0 &&
+                     sample_rate <= (double)INT32_MAX)))
+        return csound->InitError(csound, "%s",
+                                 Str("follow: sample rate is out of range"));
       p->length = (int32)CS_ESR;
     }
     p->count = p->length;
