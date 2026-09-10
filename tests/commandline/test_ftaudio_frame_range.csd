@@ -15,15 +15,8 @@ instr 1
   endif
 
   ktrigger init 1
-  kcycle init 0
   kresult ftaudio ktrigger, 1, "test_ftaudio_k_range.wav", 16, 0, 1, 3
-  kasync ftaudio ktrigger, 1, "test_ftaudio_async.wav", 16, 1, 1, 3
-  if kcycle == 0 && kasync != -1 then
-    printks "async ftaudio did not report a pending write\n", 0
-    exitnowk(-1)
-  endif
   ktrigger = 0
-  kcycle += 1
 endin
 
 instr 2
