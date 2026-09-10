@@ -393,9 +393,12 @@ static int32_t resony(CSOUND *csound, RESONY *p)
     int32_t loop = p->loop;
     if (UNLIKELY(loop==0))
       return csound->InitError(csound, "%s", Str("loop cannot be zero"));
+    if (UNLIKELY(*p->kcf == FL(0.0)))
+      return csound->PerfError(csound, &(p->h),
+                               "%s", Str("resony: base frequency must be nonzero"));
     {
       MYFLT   sep = (*p->sep / (MYFLT) loop);
-      int32_t     flag = (int32_t) *p->iflag;
+      int32_t     flag = (*p->iflag != FL(0.0));
       MYFLT   *buffer = (MYFLT*) (p->buffer.auxp);
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -415,7 +418,7 @@ static int32_t resony(CSOUND *csound, RESONY *p)
 
       for (j = 0; j < loop; j++) {
         if (flag)                     /* linear separation in hertz */
-          cosf = (MYFLT) cos((cf = (double) (*p->kcf * sep * j))
+          cosf = (MYFLT) cos((cf = (double) (*p->kcf + sep * j))
                              * (double) CS_TPIDSR);
         else                          /* logarithmic separation in octaves */
           cosf = (MYFLT) cos((cf = (double) (*p->kcf * pow(2.0, sep * j)))
