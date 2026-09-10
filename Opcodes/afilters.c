@@ -45,24 +45,36 @@ static int32_t atonset(CSOUND *csound, TONE *p)
 
 static int32_t atonsetx(CSOUND *csound, TONEX *p)
 {                   /* From Gabriel Maldonado, modified for arbitrary order */
-  {
-    double b;
-    p->prvhp = *p->khp;
-    b = 2.0 - cos((double)(*p->khp * CS_TPIDSR));
-    p->c2 = b - sqrt(b * b - 1.0);
-    p->c1 = 1.0 - p->c2;
-  }
-  if (UNLIKELY((p->loop = (int32_t) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
-  if (!*p->istor && (p->aux.auxp == NULL ||
-                     (uint32_t)(p->loop*sizeof(double)) > p->aux.size))
-    csound->AuxAlloc(csound, (int32_t)(p->loop*sizeof(double)), &p->aux);
-  p->yt1 = (double*)p->aux.auxp;
-  if (LIKELY(!(*p->istor))) {
-    memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
-  }
-  return OK;
-}
+    double order = (double)*p->ord;
+    size_t state_size;
+    int32_t clear_state = !*p->istor;
+    int32_t new_loop;
 
+    {
+      double b;
+      p->prvhp = *p->khp;
+      b = 2.0 - cos((double)(*p->khp * CS_TPIDSR));
+      p->c2 = b - sqrt(b * b - 1.0);
+      p->c1 = 1.0 - p->c2;
+    }
+    if (UNLIKELY(!isfinite(order) || order > (double)INT32_MAX - 0.5))
+      return csound->InitError(csound, Str("tonex: invalid order %f"),
+                               *p->ord);
+    new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
+    if (UNLIKELY((size_t)new_loop > SIZE_MAX / sizeof(double)))
+      return csound->InitError(csound, Str("tonex: order is too large"));
+    clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
+    p->loop = new_loop;
+    state_size = (size_t)p->loop * sizeof(double);
+    if (p->aux.auxp == NULL || state_size > p->aux.size) {
+      csound->AuxAlloc(csound, state_size, &p->aux);
+      clear_state = 1;
+    }
+    p->yt1 = (double*)p->aux.auxp;
+    if (clear_state)
+      memset(p->yt1, 0, state_size); /* Punning zero and 0.0 */
+    return OK;
+}
 
 static int32_t arsnset(CSOUND *csound, RESON *p)
 {
@@ -406,70 +418,73 @@ static int32_t tonea(CSOUND *csound, TONE *p)
   return OK;
 }
 
-static int32_t tonexa(CSOUND *csound, TONEX *p) /* From G Maldonado, modified */
+static int32_t tonexa(CSOUND *csound, TONEX *p)
 {
-  MYFLT       *ar = p->ar;
-  double      c2 = p->c2, *yt1 = p->yt1,c1 = p->c1;
-  uint32_t    offset = p->h.insdshead->ksmps_offset;
-  uint32_t    early  = p->h.insdshead->ksmps_no_end;
-  uint32_t    n, nsmps = CS_KSMPS;
-  int32_t     j, lp = p->loop;
-
-  memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
-  if (UNLIKELY(offset))  memset(ar, '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-  }
-  for (j=0; j< lp; j++) {
-    /* Should *yt1 be reset to something?? */
-    for (n=offset; n<nsmps; n++) {
-      double x;
-      if (p->khp[n] != p->prvhp) {
-        double b;
-        p->prvhp = (double)p->khp[n];
-        b = 2.0 - cos(p->prvhp * (double)CS_TPIDSR);
-        p->c2 = b - sqrt(b * b - 1.0);
-        p->c1 = 1.0 - p->c2;
-      }
-      x = c1 * ar[n] + c2 * yt1[j];
-      yt1[j] = x;
-      ar[n] = (MYFLT)x;
-    }
-  }
-  return OK;
-}
-
-static int32_t atonexa(CSOUND *csound, TONEX *p) /* Gabriel Maldonado, modified */
-{
-  MYFLT       *ar = p->ar;
-  double      c2 = p->c2, *yt1 = p->yt1;
+  MYFLT *ar = p->ar, *asig = p->asig;
+  double c1 = p->c1, c2 = p->c2, prvhp = p->prvhp;
+  double *yt1 = p->yt1;
   uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  int32_t  j, lp = p->loop;
-  MYFLT    prvhp = p->prvhp;
+  int32_t j, lp = p->loop;
 
-  memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
   if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
   }
-  for (j=1; j<lp; j++) {
-    for (n=offset; n<nsmps; n++) {
-      double sig = (double)ar[n];
-      double x;
-      if (p->khp[n] != prvhp) {
-        double b;
-        prvhp = p->khp[n];
-        b = 2.0 - cos((double)(p->prvhp * CS_TPIDSR));
-        c2 = b - sqrt(b * b - 1.0);
-      }
-      x = c2 * (yt1[j] + sig);
-      yt1[j] = x - sig;            /* yt1 contains yt1-xt1 */
-      ar[n] = (MYFLT)x;
+  for (n=offset; n<nsmps; n++) {
+    MYFLT sample = asig[n];
+    if (p->khp[n] != prvhp) {
+      double b;
+      prvhp = p->khp[n];
+      b = 2.0 - cos(prvhp * (double)CS_TPIDSR);
+      c2 = b - sqrt(b * b - 1.0);
+      c1 = 1.0 - c2;
     }
+    /* All stages use this sample's cutoff, including when it aliases ar. */
+    for (j=0; j<lp; j++) {
+      double x = c1 * sample + c2 * yt1[j];
+      yt1[j] = x;
+      sample = (MYFLT)x;
+    }
+    ar[n] = sample;
+  }
+  p->c1 = c1;
+  p->c2 = c2;
+  p->prvhp = prvhp;
+  return OK;
+}
+
+static int32_t atonexa(CSOUND *csound, TONEX *p)
+{
+  MYFLT *ar = p->ar, *asig = p->asig;
+  double c2 = p->c2, prvhp = p->prvhp;
+  double *yt1 = p->yt1;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early = p->h.insdshead->ksmps_no_end;
+  uint32_t n, nsmps = CS_KSMPS;
+  int32_t j, lp = p->loop;
+
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+  }
+  for (n=offset; n<nsmps; n++) {
+    MYFLT sample = asig[n];
+    if (p->khp[n] != prvhp) {
+      double b;
+      prvhp = p->khp[n];
+      b = 2.0 - cos(prvhp * (double)CS_TPIDSR);
+      c2 = b - sqrt(b * b - 1.0);
+    }
+    for (j=0; j<lp; j++) {
+      double x = c2 * (yt1[j] + sample);
+      yt1[j] = x - sample;
+      sample = (MYFLT)x;
+    }
+    ar[n] = sample;
   }
   p->c2 = c2;
   p->prvhp = prvhp;
@@ -723,7 +738,7 @@ static OENTRY afilts_localops[] =
     { "areson.aa", sizeof(RESON), 0,"a","aaaoo",(SUBR)arsnset,(SUBR)aresonaa},
     { "areson.ak", sizeof(RESON), 0,"a","aakoo",(SUBR)arsnset,(SUBR)aresonak},
     { "areson.ka", sizeof(RESON), 0,"a","akaoo",(SUBR)arsnset,(SUBR)aresonka},
-    { "atone.a",  sizeof(TONE),   0,"a","ako",  (SUBR)atonset,(SUBR)atonea  },
+    { "atone.a",  sizeof(TONE),   0,"a","aao",  (SUBR)atonset,(SUBR)atonea  },
     { "atonex.a", sizeof(TONEX),  0, "a","aaoo",(SUBR)atonsetx,(SUBR)atonexa},
     { "tone.a",  sizeof(TONE),    0,"a","aao",  (SUBR)atonset,(SUBR)tonea   },
     { "tonex.a", sizeof(TONEX),   0,"a","aaoo", (SUBR)atonsetx,(SUBR)tonexa },

@@ -174,8 +174,8 @@ int32_t tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified
       double b;
       p->prvhp = (double)*p->khp;
       b = 2.0 - cos(p->prvhp * (double)CS_TPIDSR);
-      p->c2 = b - sqrt(b * b - 1.0);
-      p->c1 = 1.0 - p->c2;
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
+      p->c1 = c1 = 1.0 - c2;
     }
 
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
@@ -263,7 +263,7 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
       double b;
       p->prvhp = *p->khp;
       b = 2.0 - cos((double)(*p->khp * CS_TPIDSR));
-      p->c2 = b - sqrt(b * b - 1.0);
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
       /*p->c1 = 1. - p->c2;*/
     }
 
