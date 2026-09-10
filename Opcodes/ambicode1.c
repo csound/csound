@@ -92,7 +92,6 @@ typedef struct {
     /* Input arguments: */
     MYFLT *isetup;
     ARRAYDAT *tabin;
-    uint32_t dim;
 } AMBIDA;
 
 /* ------------------------------------------------------------------------- */
@@ -417,15 +416,17 @@ abformdec(CSOUND * csound, AMBID * p) {
         memset(p->aouts[1], '\0', offset*sizeof(MYFLT));
         memset(p->aouts[2], '\0', offset*sizeof(MYFLT));
         memset(p->aouts[3], '\0', offset*sizeof(MYFLT));
+        memset(p->aouts[4], '\0', offset*sizeof(MYFLT));
       }
-     if (UNLIKELY(early)) {
-      sampleCount -= early;
-      memset(&p->aouts[0][sampleCount], '\0', early*sizeof(MYFLT));
-      memset(&p->aouts[1][sampleCount], '\0', early*sizeof(MYFLT));
-      memset(&p->aouts[2][sampleCount], '\0', early*sizeof(MYFLT));
-      memset(&p->aouts[3][sampleCount], '\0', early*sizeof(MYFLT));
-    }
-     /* This is a second order decoder provided by Bruce Wiggins. It is
+      if (UNLIKELY(early)) {
+        sampleCount -= early;
+        memset(&p->aouts[0][sampleCount], '\0', early*sizeof(MYFLT));
+        memset(&p->aouts[1][sampleCount], '\0', early*sizeof(MYFLT));
+        memset(&p->aouts[2][sampleCount], '\0', early*sizeof(MYFLT));
+        memset(&p->aouts[3][sampleCount], '\0', early*sizeof(MYFLT));
+        memset(&p->aouts[4][sampleCount], '\0', early*sizeof(MYFLT));
+      }
+      /* This is a second order decoder provided by Bruce Wiggins. It is
          optimised for high frequency use within a dual-band decoder,
          however it has good a low-frequency response. It is not quite
          'in-phase' but it is not far off. */
@@ -454,19 +455,6 @@ abformdec(CSOUND * csound, AMBID * p) {
       }
       else {
         /* This is the full matrix. */
-        if (UNLIKELY(offset)) {
-          memset(p->aouts[0], '\0', offset*sizeof(MYFLT));
-          memset(p->aouts[1], '\0', offset*sizeof(MYFLT));
-          memset(p->aouts[2], '\0', offset*sizeof(MYFLT));
-          memset(p->aouts[3], '\0', offset*sizeof(MYFLT));
-        }
-        if (UNLIKELY(early)) {
-          sampleCount -= early;
-          memset(&p->aouts[0][sampleCount], '\0', early*sizeof(MYFLT));
-          memset(&p->aouts[1][sampleCount], '\0', early*sizeof(MYFLT));
-          memset(&p->aouts[2][sampleCount], '\0', early*sizeof(MYFLT));
-          memset(&p->aouts[3][sampleCount], '\0', early*sizeof(MYFLT));
-        }
         for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
           w = p->ains[0][sampleIndex];
           x = p->ains[1][sampleIndex];
@@ -690,6 +678,9 @@ ibformdec_a(CSOUND * csound, AMBIDA * p) {
     if (p->tabout->data==NULL || p->tabout->dimensions!=1)
       return csound->InitError(csound,
                                "%s", Str("bformdec1 output array not initialised"));
+    if (p->tabin->data==NULL || p->tabin->dimensions!=1)
+      return csound->InitError(csound,
+                               "%s", Str("bformdec1 input array not initialised"));
     dim = p->tabin->sizes[0];
     /* All we do in here is police our parameters. */
     if (UNLIKELY(dim != 4 &&
@@ -703,7 +694,7 @@ ibformdec_a(CSOUND * csound, AMBIDA * p) {
                                "%s", Str("The isetup value should be between 1 and 5."));
     }
     else {
-      p->dim = dim = p->tabout->sizes[0];
+      dim = p->tabout->sizes[0];
       /* Then we check the output arguments. */
       if (*(p->isetup) == 1 && dim == 2) {
         /* Stereo. */
@@ -751,7 +742,6 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
     uint32_t sampleCount = CS_KSMPS, sampleIndex;
     uint32_t ksmps = sampleCount;
     MYFLT p0, q, u, v, w, x, y, z;
-    uint32_t dim = p->dim;
     MYFLT *tabin = p->tabin->data, *tabout = p->tabout->data;
 
     switch ((int32_t
@@ -814,19 +804,21 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
         memset(&tabout[ksmps], '\0', offset*sizeof(MYFLT));
         memset(&tabout[2*ksmps], '\0', offset*sizeof(MYFLT));
         memset(&tabout[3*ksmps], '\0', offset*sizeof(MYFLT));
+        memset(&tabout[4*ksmps], '\0', offset*sizeof(MYFLT));
       }
-     if (UNLIKELY(early)) {
-      sampleCount -= early;
-      memset(&tabout[sampleCount], '\0', early*sizeof(MYFLT));
-      memset(&tabout[ksmps+sampleCount], '\0', early*sizeof(MYFLT));
-      memset(&tabout[2*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
-      memset(&tabout[3*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
-    }
-     /* This is a second order decoder provided by Bruce Wiggins. It is
+      if (UNLIKELY(early)) {
+        sampleCount -= early;
+        memset(&tabout[sampleCount], '\0', early*sizeof(MYFLT));
+        memset(&tabout[ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+        memset(&tabout[2*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+        memset(&tabout[3*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+        memset(&tabout[4*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
+      }
+      /* This is a second order decoder provided by Bruce Wiggins. It is
          optimised for high frequency use within a dual-band decoder,
          however it has good a low-frequency response. It is not quite
          'in-phase' but it is not far off. */
-      if (dim == 4) {
+      if (p->tabin->sizes[0] == 4) {
         /* Matrix truncated to first order (not ideal). */
         for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
           w = tabin[sampleIndex];
@@ -851,19 +843,6 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
       }
       else {
         /* This is the full matrix. */
-        if (UNLIKELY(offset)) {
-          memset(&tabout[0], '\0', offset*sizeof(MYFLT));
-          memset(&tabout[ksmps], '\0', offset*sizeof(MYFLT));
-          memset(&tabout[2*ksmps], '\0', offset*sizeof(MYFLT));
-          memset(&tabout[3*ksmps], '\0', offset*sizeof(MYFLT));
-        }
-        if (UNLIKELY(early)) {
-          sampleCount -= early;
-          memset(&tabout[0+sampleCount], '\0', early*sizeof(MYFLT));
-          memset(&tabout[ksmps+sampleCount], '\0', early*sizeof(MYFLT));
-          memset(&tabout[2*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
-          memset(&tabout[3*ksmps+sampleCount], '\0', early*sizeof(MYFLT));
-        }
         for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++) {
           w = tabin[sampleIndex];
           x = tabin[ksmps+sampleIndex];
