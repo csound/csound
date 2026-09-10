@@ -906,6 +906,13 @@ def runTest():
         ["test_adsr_zero_reinit.csd", "ADSR reinitialization with zero attack"],
         ["test_madsr_release_override.csd", "madsr release overrides"],
         ["test_mvmfilter_mixed_rate.csd", "test mvmfilter with mixed input rates"],
+        ["test_flanger_buffer.csd", "test flanger buffer limits and reinit"],
+        [
+            "test_flanger_invalid_maximum.csd",
+            "reject invalid flanger maximum delay",
+            1,
+        ],
+        ["test_flanger_invalid_delay.csd", "reject non-finite flanger delay", 1],
         ["test_vdelay_buffers.csd", "test short and wrapped variable delays"],
         ["test_vdelay_reinit.csd", "test variable delay state across reinit"],
         ["test_vdelay_invalid_maximum.csd", "reject invalid maximum delay", 1],
