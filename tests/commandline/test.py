@@ -852,6 +852,7 @@ def runTest():
         ["test_gain_sample_bounds.csd", "gain RMS and output over partial blocks"],
         ["test_eqfil_sample_offset.csd", "eqfil advances state only for active samples"],
         ["test_svfilter_state.csd", "svfilter reset, preserved state, and input reuse"],
+        ["test_phaser_reinit.csd", "phaser reset and preserved state on reinit"],
         [
             "test_audio_input_sample_bounds.csd",
             "audio input opcodes align partial-block input frames",
