@@ -596,6 +596,13 @@ def runTest():
             "pvsadsyn rejects invalid bin increments",
             1,
         ],
+        ["test_repluck_correctness.csd", "test plucked-string waveguide limits"],
+        ["test_repluck_sample_offset.csd", "test repluck sample-accurate input"],
+        [
+            "test_repluck_invalid_frequency.csd",
+            "reject invalid plucked-string frequencies",
+            1,
+        ],
         ["test_voice_init.csd", "voice initializes its SingWave helper"],
         ["test_grain3_overlap_regression.csd", "grain3 should not fail with false overlap error"],
         ["test_grain3_float_interpolation.csd", "grain3 float-path interpolation should stay positive"],
