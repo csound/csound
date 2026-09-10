@@ -459,10 +459,12 @@ trig_k(CSOUND *csound, Trig *p) {
 }
 
 static int32_t trig_init(CSOUND *csound, Trig *p) {
+    IGN(csound);
     p->counter = 0;
     p->prevtrig = FL(0.0);
     p->level = FL(0.0);
-    trig_k(csound, p);
+    /* Set the initial output without consuming the first performance trigger. */
+    *p->out = *p->in > FL(0.0) ? *p->in : FL(0.0);
     return OK;
 }
 
