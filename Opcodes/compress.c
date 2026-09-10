@@ -279,20 +279,20 @@ static int32_t distort(CSOUND *csound, DIST *p)
       MYFLT sig, phs, val;
       sig = asig[n] / dcur;             /* compress the sample  */
       phs = p->midphs * (FL(1.0) + sig); /* as index into table  */
-      if (UNLIKELY(isnan(phs)))
-        return csound->PerfError(csound, &(p->h), "%s",
-                                 Str("distort: signal produced a non-finite index"));
-      else if (UNLIKELY(phs <= FL(0.0)))
-        val = p->begval;
-      else if (UNLIKELY(phs >= p->maxphs))        /* check sticky bits    */
-        val = p->endval;
-      else {
+      if (LIKELY(phs > FL(0.0) && phs < p->maxphs)) {
         int32  iphs = (int32)phs;
         MYFLT frac = phs - (MYFLT)iphs; /* waveshape the samp   */
         MYFLT *fp = ftp->ftable + iphs;
         val = *fp++;
         val += (*fp - val) * frac;
       }
+      else if (phs <= FL(0.0))
+        val = p->begval;
+      else if (phs >= p->maxphs)                 /* check sticky bits    */
+        val = p->endval;
+      else                                    /* unordered index: NaN */
+        return csound->PerfError(csound, &(p->h), "%s",
+                                 Str("distort: signal produced a non-finite index"));
       ar[n] = val * dcur;               /* and restor the amp   */
       dcur += dinc;
     }
