@@ -901,6 +901,8 @@ def runTest():
         ["test_atonex_order_one.csd", "test atonex order-one filtering"],
         ["test_filterx_istor_first_init.csd", "test filter state on first init"],
         ["test_filterx_order_growth.csd", "test filter state after order growth"],
+        ["test_dcblock2_order_reinit.csd", "test dcblock2 order changes"],
+        ["test_dcblock2_invalid_order.csd", "reject invalid dcblock2 order", 1],
         ["test_dbap.csd", "test dbap and dbapgains opcodes"],
         ["test_compress_control_gain.csd", "compressors update gain when ratio or knee controls change"],
         ["test_distort_sample_offset.csd", "test distort sample-accurate onset"],
