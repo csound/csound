@@ -36,7 +36,8 @@ typedef struct {
     MYFLT   *xndx, *xfn, *kinterp, *ixmode, *outargs[VARGMAX];
     int32_t     nargs;
     MYFLT   xbmul;
-    int64_t    pfn, len;
+    MYFLT   pfn;
+    int64_t len;
     MYFLT   *ftable;
 } MTABLE;
 
@@ -50,7 +51,8 @@ typedef struct {
     MYFLT   *xndx, *xfn, *ixmode, *inargs[VARGMAX];
     int32_t     nargs;
     MYFLT   xbmul;
-    int64_t    pfn, len;
+    MYFLT   pfn;
+    int64_t len;
     MYFLT   *ftable;
 } MTABLEW;
 
@@ -64,7 +66,8 @@ typedef struct {
     MYFLT   *xndx, *xfn, *inargs[VARGMAX];
     int32_t     nargs;
  /* MYFLT   xbmul; */
-    int64_t    pfn, len;
+    MYFLT   pfn;
+    int64_t len;
     MYFLT   *ftable;
 } MTABW;
 
@@ -78,7 +81,8 @@ typedef struct {
     MYFLT   *xndx, *xfn, *outargs[VARGMAX];
     int32_t     nargs;
  /* MYFLT   xbmul; */
-    int64_t    pfn, len;
+    MYFLT   pfn;
+    int64_t len;
     MYFLT   *ftable;
 } MTAB;
 
@@ -218,4 +222,3 @@ typedef struct {
     (csound->holdrand = csound->holdrand * -214013 + 2531011) * oneUp31Bit)*/
 
 #endif
-
