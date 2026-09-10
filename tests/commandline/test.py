@@ -647,6 +647,7 @@ def runTest():
         ["test_rspline_invalid_rate.csd", "reject invalid rspline rates", 1],
         ["test_oscil1i.csd", "oscil1i interpolates scans and holds their endpoints"],
         ["test_sndwarp_bounds.csd", "sndwarp and sndwarpst bound sample indexes and handle zero time scale"],
+        ["test_wterrain2_phase.csd", "wterrain2 phase stability and direction changes"],
         ["test_instr_redefinition.csd", "allow instr redefinition"],
         ["test_instr0_labels.csd", "test labels in instr0 space"],
         ["test_string.csd", "test string assignment and printing"],
