@@ -633,6 +633,7 @@ def runTest():
         ["test_gbuzz_nonpower_phase.csd", "gbuzz scales non-power-of-two table indexes correctly"],
         ["test_pan2_input_aliasing.csd", "pan2 preserves input samples when outputs reuse them"],
         ["test_space_trajectory_endpoint.csd", "space and spdist handle the last trajectory frame"],
+        ["test_physmod_vibrato_bounds.csd", "test waveguide vibrato bounds"],
         ["test_oscbnk_float_phase_state.csd", "oscbnk preserves non-power-of-two oscillator phase"],
         ["test_vco_float_phase_state.csd", "vco preserves non-power-of-two oscillator phase"],
         ["test_envlpx_float_interpolation.csd", "envlpx interpolates non-power-of-two tables correctly"],
