@@ -1568,7 +1568,8 @@ int32_t in(CSOUND *csound, INM *p)
                              "Wrong numnber of input channels\n");
   CSOUND_SPIN_SPINLOCK
     if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(MYFLT));
-  memcpy(&p->ar[offset], CS_SPIN, (nsmps-offset) * sizeof(MYFLT));
+  memcpy(&p->ar[offset], &CS_SPIN[offset],
+         (nsmps-offset) * sizeof(MYFLT));
   if (UNLIKELY(early))
     memset(&p->ar[nsmps], '\0', early * sizeof(MYFLT));
   CSOUND_SPIN_SPINUNLOCK
@@ -1589,9 +1590,8 @@ int32_t inarray(CSOUND *csound, INA *p)
 {
   MYFLT *data = p->tabout->data;
   uint32_t n = p->tabout->sizes[0];
-  uint32_t offset = p->h.insdshead->ksmps_offset*sizeof(MYFLT);
+  uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
-  MYFLT *sp = CS_SPIN;
   uint32_t m, nsmps =CS_KSMPS, i;
   uint32_t ksmps = nsmps;
 
@@ -1606,8 +1606,9 @@ int32_t inarray(CSOUND *csound, INA *p)
       memset(&data[nsmps+i*ksmps], '\0', early*sizeof(MYFLT));
   }
   for (m = offset; m < nsmps; m++) {
+    MYFLT *frame = &CS_SPIN[m*csound->inchnls];
     for (i = 0; i < n; i++)
-      data[m+i*ksmps] = *sp++;
+      data[m+i*ksmps] = frame[i];
   }
   CSOUND_SPIN_SPINUNLOCK
     return OK;
@@ -1635,7 +1636,7 @@ int32_t ins(CSOUND *csound, INS *p)
     memset(&p->ar1[nsmps], '\0', early * sizeof(MYFLT));
     memset(&p->ar2[nsmps], '\0', early * sizeof(MYFLT));
   }
-  for (n=offset, k=0; n<nsmps; n++, k+=2) {
+  for (n=offset, k=offset*2; n<nsmps; n++, k+=2) {
     ar1[n] = sp[k];
     ar2[n] = sp[k+1];
   }
@@ -1668,7 +1669,7 @@ int32_t inq(CSOUND *csound, INQ *p)
     memset(&ar3[nsmps], '\0', early * sizeof(MYFLT));
     memset(&ar4[nsmps], '\0', early * sizeof(MYFLT));
   }
-  for (n=offset, k=0; n<nsmps; n++, k+=4) {
+  for (n=offset, k=offset*4; n<nsmps; n++, k+=4) {
     ar1[n] = sp[k];
     ar2[n] = sp[k+1];
     ar3[n] = sp[k+2];
@@ -1707,7 +1708,7 @@ int32_t inh(CSOUND *csound, INH *p)
     memset(&ar5[nsmps], '\0', early * sizeof(MYFLT));
     memset(&ar6[nsmps], '\0', early * sizeof(MYFLT));
   }
-  for (n=offset, k=0; n<nsmps; n++, k+=6) {
+  for (n=offset, k=offset*6; n<nsmps; n++, k+=6) {
     ar1[n] = sp[k];
     ar2[n] = sp[k+1];
     ar3[n] = sp[k+2];
@@ -1753,7 +1754,7 @@ int32_t ino(CSOUND *csound, INO *p)
     memset(&ar7[nsmps], '\0', early * sizeof(MYFLT));
     memset(&ar8[nsmps], '\0', early * sizeof(MYFLT));
   }
-  for (n=offset, k=0; n<nsmps; n++, k+=8) {
+  for (n=offset, k=offset*8; n<nsmps; n++, k+=8) {
     ar1[n] = sp[k];
     ar2[n] = sp[k+1];
     ar3[n] = sp[k+2];
@@ -1767,42 +1768,40 @@ int32_t ino(CSOUND *csound, INO *p)
     return OK;
 }
 
-static int32_t inn(CSOUND *csound, INALL *p, uint32_t n)
-{
-  MYFLT *sp = CS_SPIN, **ara = p->ar;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t m, nsmps =CS_KSMPS, i;
-  if (UNLIKELY(csound->inchnls != (int32_t) n))
-    return csound->PerfError(csound,
-                             &(p->h),
-                             "Wrong numnber of input channels\n");
-
-  CSOUND_SPIN_SPINLOCK
-    if (UNLIKELY(offset))
-      for (i = 0; i < n; i++)
-        memset(ara[i], '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    for (i = 0; i < n; i++)
-      memset(ara[i], '\0', early*sizeof(MYFLT));
-  }
-  for (m = offset; m < nsmps; m++) {
-    for (i = 0; i < n; i++)
-      *ara[i] = *sp++;
-  }
-  CSOUND_SPIN_SPINUNLOCK
-    return OK;
-}
+#define INN(N)                                                          \
+  do {                                                                  \
+    uint32_t offset = p->h.insdshead->ksmps_offset;                     \
+    uint32_t early = p->h.insdshead->ksmps_no_end;                      \
+    uint32_t m, nsmps = CS_KSMPS, i;                                   \
+    MYFLT *sp, **ara = p->ar;                                          \
+    if (UNLIKELY(csound->inchnls != (int32_t)(N)))                      \
+      return csound->PerfError(csound, &(p->h),                         \
+                               "Wrong numnber of input channels\n");  \
+    sp = &CS_SPIN[offset*(N)];                                         \
+    CSOUND_SPIN_SPINLOCK                                                \
+      if (UNLIKELY(offset))                                             \
+        for (i = 0; i < (N); i++)                                      \
+          memset(ara[i], '\0', offset*sizeof(MYFLT));                   \
+    if (UNLIKELY(early)) {                                             \
+      nsmps -= early;                                                   \
+      for (i = 0; i < (N); i++)                                        \
+        memset(&ara[i][nsmps], '\0', early*sizeof(MYFLT));             \
+    }                                                                  \
+    for (m = offset; m < nsmps; m++)                                   \
+      for (i = 0; i < (N); i++)                                        \
+        ara[i][m] = *sp++;                                              \
+    CSOUND_SPIN_SPINUNLOCK                                              \
+    return OK;                                                         \
+  } while (0)
 
 int32_t in16(CSOUND *csound, INALL *p)
 {
-  return inn(csound, p, 16u);
+  INN(16u);
 }
 
 int32_t in32(CSOUND *csound, INALL *p)
 {
-  return inn(csound, p, 32u);
+  INN(32u);
 }
 
 int32_t inch1_set(CSOUND *csound, INCH1 *p)
@@ -1835,7 +1834,7 @@ int32_t inch_opcode1(CSOUND *csound, INCH1 *p)
     p->init = 0;
   }
   else {
-    sp = CS_SPIN + (ch - 1);
+    sp = CS_SPIN + offset*csound->inchnls + (ch - 1);
     ain = p->ar;
     if (UNLIKELY(offset)) memset(ain, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1865,7 +1864,7 @@ int32_t inch_opcode(CSOUND *csound, INCH *p)
   uint32_t nc, nChannels = p->INOCOUNT;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS, ch;
+  uint32_t n, nsmps = CS_KSMPS, end = nsmps - early, ch;
   MYFLT *sp, *ain;
   if (UNLIKELY(nChannels != p->OUTOCOUNT))
     return
@@ -1885,14 +1884,12 @@ int32_t inch_opcode(CSOUND *csound, INCH *p)
       memset(p->ar[nc], 0, sizeof(MYFLT)*nsmps);
       p->init = 0;
     } else {
-      sp = CS_SPIN + (ch - 1);
+      sp = CS_SPIN + offset*csound->inchnls + (ch - 1);
       ain = p->ar[nc];
       if (UNLIKELY(offset)) memset(ain, '\0', offset*sizeof(MYFLT));
-      if (UNLIKELY(early)) {
-        nsmps -= early;
-        memset(&ain[nsmps], '\0', early*sizeof(MYFLT));
-      }
-      for (n = offset; n < nsmps; n++) {
+      if (UNLIKELY(early))
+        memset(&ain[end], '\0', early*sizeof(MYFLT));
+      for (n = offset; n < end; n++) {
         ain[n] = *sp;
         sp += csound->inchnls;
       }
@@ -1907,24 +1904,23 @@ int32_t inall_opcode(CSOUND *csound, INALL *p)
 {
   uint32_t n = (int32_t)p->OUTOCOUNT, m;
   uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t    i,j = 0, k = 0, nsmps = CS_KSMPS;
-  uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
+  uint32_t i, j = 0, nsmps = CS_KSMPS;
+  uint32_t end = nsmps - p->h.insdshead->ksmps_no_end;
   MYFLT *spin = CS_SPIN;
 
   CSOUND_SPIN_SPINLOCK
     m = (n < (uint32_t)csound->inchnls ? n : (uint32_t)csound->inchnls);
   for (j=0; j<nsmps; j++)
-    if (j<offset || j>early) {
+    if (j<offset || j>=end) {
       for (i=0 ; i < n; i++)
         p->ar[i][j] = FL(0.0);
     }
     else {
       for (i=0; i<m; i++) {
-        p->ar[i][j] = spin[k + i];
+        p->ar[i][j] = spin[j*csound->inchnls + i];
       }
       for ( ; i < n; i++)
         p->ar[i][j] = FL(0.0);
-      k += csound->inchnls;
     }
   CSOUND_SPIN_SPINUNLOCK
     return OK;
