@@ -803,6 +803,7 @@ def runTest():
             1,
         ],
         ["test_sa.csd", "test sample accurate mode"],
+        ["test_eqfil_sample_offset.csd", "eqfil advances state only for active samples"],
         [
             "test_audio_input_sample_bounds.csd",
             "audio input opcodes align partial-block input frames",
