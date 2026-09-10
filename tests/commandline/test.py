@@ -582,6 +582,7 @@ def runTest():
         ["test_fillarray_audio.csd", "test Arr:a[] = [sig:a]"],
         ["test_oversample.csd", "test oversampling in new-style UDO"],
         ["test_pvs_np2.csd", "test pvsanal/synth with np2 size"],
+        ["test_trfilter_frequency_bounds.csd", "test trfilter frequency bounds"],
         [
             "test_pvsadsyn_last_bin.csd",
             "pvsadsyn accepts a stepped selection ending at the last bin",
