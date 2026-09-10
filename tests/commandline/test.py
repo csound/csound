@@ -579,6 +579,20 @@ def runTest():
         ["test_fillarray_audio.csd", "test Arr:a[] = [sig:a]"],
         ["test_oversample.csd", "test oversampling in new-style UDO"],
         ["test_pvs_np2.csd", "test pvsanal/synth with np2 size"],
+        [
+            "test_pvsadsyn_last_bin.csd",
+            "pvsadsyn accepts a stepped selection ending at the last bin",
+        ],
+        [
+            "test_pvsadsyn_invalid_count.csd",
+            "pvsadsyn rejects an out-of-range oscillator count",
+            1,
+        ],
+        [
+            "test_pvsadsyn_invalid_increment.csd",
+            "pvsadsyn rejects invalid bin increments",
+            1,
+        ],
         ["test_voice_init.csd", "voice initializes its SingWave helper"],
         ["test_grain3_overlap_regression.csd", "grain3 should not fail with false overlap error"],
         ["test_grain3_float_interpolation.csd", "grain3 float-path interpolation should stay positive"],
