@@ -40,7 +40,7 @@
 static int32_t svfset(CSOUND *csound, SVF *p)
 {
     IGN(csound);
-    if (*p->iskip) {
+    if (!*p->iskip) {
       /* set initial delay states to 0 */
       p->ynm1 = p->ynm2 = FL(0.0);
     }
@@ -96,8 +96,9 @@ static int32_t svf(CSOUND *csound, SVF *p)
          */
         if (*p->iscl) scale = q1;
       }
+      MYFLT sample = in[n];
       low[n]  = low2 = ynm2 + f1 * ynm1;
-      high[n] = high2 = scale * in[n] - low2 - q1 * ynm1;
+      high[n] = high2 = scale * sample - low2 - q1 * ynm1;
       band[n] = band2 = f1 * high2 + ynm1;
       ynm1    = band2;
       ynm2    = low2;
