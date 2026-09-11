@@ -211,8 +211,6 @@ int32_t EulerPhi (int32_t n);
 int32_t FareyLength (int32_t n);
 MYFLT Digest (int32_t n);
 void float2frac (CSOUND *csound, MYFLT in, int32_t *p, int32_t *q);
-void float_to_cfrac (CSOUND *csound, double r, int32_t n,
-                     int32_t a[], int32_t p[], int32_t q[]);
 
 /* a filter and table copy opcode for filtering tables containing
    Farey Sequences generated with fateytable GEN */
@@ -228,8 +226,6 @@ int32_t tablefilterset(CSOUND *csound, TABFILT *p)
    IGN(csound);
     p->pdft = 0;
     p->psft = 0;
-    *p->ftype = 1;
-    *p->threshold = 7;
     return OK;
 }
 
@@ -349,32 +345,26 @@ static int32_t dotablefilter (CSOUND *csound, TABFILT *p)
     int32 indx = 0;              /* Index to be added to offsets */
     int32 indx2 = 0; /*index into source table*/
     MYFLT *based, *bases;       /* Base addresses of the two tables.*/
-    int32 masks;                 /* Binary masks for the source table */
+    int32 sourcelength;
     MYFLT *pdest, *ps;
     MYFLT threshold;
     int32 ftype;
     MYFLT previous = FL(0.0);
-    //int32 sourcelength;
 
     ftype = (int32) *p->ftype;
     threshold = Digest (*p->threshold);
     loopcount = p->funcd->flen;
-    //sourcelength = loopcount;
 
-    /* Now get the base addresses and length masks of the tables. */
+    /* Source and destination tables may have different lengths. */
     based  = p->funcd->ftable;
     bases = p->funcs->ftable;
-    masks = p->funcs->lenmask;
+    sourcelength = p->funcs->flen;
 
     do {
-      /* Create source pointers by ANDing index with mask, and adding to base
-       * address. This causes source  addresses to wrap around if the
-       * destination table is longer.
-       * Destination address is simply the index plus the base address since
-       * we know we will be writing within the table.          */
-
-      pdest = based  + indx;
-      ps    = bases  + (masks & indx2);
+      if (indx2 == sourcelength)
+        indx2 = 0;
+      pdest = based + indx;
+      ps = bases + indx2;
       switch (ftype) {
       default:
       case 0:
@@ -622,89 +612,36 @@ MYFLT Digest (int32_t n)
     }
 }
 
-/* interface for the function float_to_cfrac, which is a
-   continued fraction expansion
-   in order to convert a real number <in>
-   into an integer fraction <num, denom> with an error less than 10^-5 */
+/* Return the first continued-fraction approximation within 10^-5.
+   Stop before an exact remainder is inverted or a convergent exceeds int32. */
 void float2frac (CSOUND *csound, MYFLT in, int32_t *num, int32_t *denom)
 {
-#define  N (10)
-    int32_t a[N+1];
-    int32_t p[N+2];
-    int32_t q[N+2];
-    int32_t P = 0; int32_t Q = 0;
+    IGN(csound);
+    double value = fabs((double)in), x = value;
+    int64_t prevnum = 1, prevden = 0, oldnum = 0, oldden = 1;
     int32_t i;
 
-    float_to_cfrac (csound, (double)in, N, a, p, q);
-
-    for (i=0; i <= N; i++) {
-      double temp;
-      float error;
-      if (!q[i+1])
-        continue;
-      temp = (double) p[i+1] / (double) q[i+1];
-      error = in - temp;
-      if ((fabs(error)) < 0.00001) {
-        P = p[i+1];
-        Q = q[i+1];
+    *num = *denom = 0;
+    for (i = 0; i <= 10; i++) {
+      int64_t a, nextnum, nextden;
+      if (!(x <= INT32_MAX))
         break;
+      a = (int64_t)x;
+      nextnum = a * prevnum + oldnum;
+      nextden = a * prevden + oldden;
+      if (nextnum > INT32_MAX || nextden > INT32_MAX)
+        break;
+      if (fabs(value - (double)nextnum / nextden) < 0.00001) {
+        *num = in < FL(0.0) ? -(int32_t)nextnum : (int32_t)nextnum;
+        *denom = (int32_t)nextden;
+        return;
       }
+      if (x == (double)a)
+        break;
+      oldnum = prevnum; oldden = prevden;
+      prevnum = nextnum; prevden = nextden;
+      x = 1.0 / (x - (double)a);
     }
-    *num = P;
-    *denom = Q;
-}
-
-/* continued fraction expansion */
-void float_to_cfrac (CSOUND *csound, double r, int32_t n,
-                     int32_t a[], int32_t p[], int32_t q[])
-{
-    int32_t i;
-    double r_copy;
-    double *x;
-
-    if (r == 0.0) {
-      memset(a, 0, sizeof(int32_t)*(n+1));
-      /* for (i = 0; i <= n; i++) {  */
-      /*   a[i] = 0;  */
-      /* }  */
-      memset(p, 0, sizeof(int32_t)*(n+2));
-      /* for (i = 0; i <= n+1; i++) {  */
-      /*   p[i] = 0;  */
-      /* }  */
-      memset(q, 0, sizeof(int32_t)*(n+2));
-      /* for ( i = 0; i <= n+1; i++ ) {  */
-      /*   q[i] = 0;  */
-      /* }  */
-      return;
-    }
-
-    x = csound->Calloc(csound, (n+1)* sizeof(double));
-
-    r_copy = fabs (r);
-
-    p[0] = 1;
-    q[0] = 0;
-
-    p[1] = (int32_t) r_copy;
-    q[1] = 1;
-    x[0] = r_copy;
-    a[0] = (int32_t) x[0];
-
-    for (i = 1; i <= n; i++) {
-      x[i] = 1.0 / (x[i-1] - (double) a[i-1]);
-      a[i] = (int32_t
-              ) x[i];
-      p[i+1] = a[i] * p[i] + p[i-1];
-      q[i+1] = a[i] * q[i] + q[i-1];
-    }
-
-    if (r < 0.0) {
-      for (i = 0; i <= n+1; i++) {
-        p[i] = -p[i];
-      }
-    }
-
-    csound->Free(csound, x);
 }
 
 #define S sizeof
