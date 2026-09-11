@@ -962,6 +962,7 @@ def runTest():
         ["test_dcblock2_order_reinit.csd", "test dcblock2 order changes"],
         ["test_dcblock2_invalid_order.csd", "reject invalid dcblock2 order", 1],
         ["test_dbap.csd", "test dbap and dbapgains opcodes"],
+        ["test_dbap_zero_weights.csd", "dbap zero weights and weighted gain normalization"],
         ["test_follow_period.csd", "test follow period handling"],
         ["test_follow_invalid_period.csd", "reject invalid follow period", 1],
         ["test_lag_state.csd", "lag state and partial audio blocks"],
