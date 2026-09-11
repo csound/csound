@@ -1273,6 +1273,7 @@ else()
         Opcodes/arrayops.cpp
         Opcodes/bformdec2.cpp
         Opcodes/padsynth_gen.cpp
+        Opcodes/pvsops.cpp
         Opcodes/signalflowgraph.cpp)
 endif()
 
