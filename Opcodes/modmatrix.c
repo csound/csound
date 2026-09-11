@@ -29,7 +29,8 @@ Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 
 static int32_t modmatrix_init(CSOUND *csound, MODMATRIX *m)
 {
-    uint32_t size;
+    size_t size, cells, vectors;
+    double nummod = *m->inummod, numparm = *m->inumparm;
 
     m->restab = csound->FTFind(csound, m->ires);
     m->modtab = csound->FTFind(csound, m->imod);
@@ -44,28 +45,43 @@ static int32_t modmatrix_init(CSOUND *csound, MODMATRIX *m)
     if (UNLIKELY(!m->mattab))
         return INITERROR("unable to load routing matrix table");
 
-    m->nummod = (int32_t)*m->inummod;
-    m->numparm = (int32_t)*m->inumparm;
-    if (UNLIKELY(m->nummod <= 0))
+    if (UNLIKELY(!(nummod >= 1.0 && nummod < (double)INT32_MAX + 1.0)))
         return INITERROR("number of modulators must be a positive integer");
-    if (UNLIKELY(m->numparm <= 0))
+    if (UNLIKELY(!(numparm >= 1.0 && numparm < (double)INT32_MAX + 1.0)))
         return INITERROR("number of parameters must be a positive integer");
+    m->nummod = (int32_t)nummod;
+    m->numparm = (int32_t)numparm;
+    if (UNLIKELY(m->modtab->flen < (uint32_t)m->nummod))
+        return INITERROR("modulator table is too short");
+    if (UNLIKELY(m->parmtab->flen < (uint32_t)m->numparm ||
+                 m->restab->flen < (uint32_t)m->numparm))
+        return INITERROR("parameter or result table is too short");
+    /* Check the matrix before multiplying its dimensions. */
+    if (UNLIKELY((uint32_t)m->nummod >
+                 m->mattab->flen / (uint32_t)m->numparm))
+        return INITERROR("routing matrix table is too short");
 
     /* Malloc one big chunk instead of several small ones, we need (worst case):
        MYFLTs - nummod*numparm, nummod, numparm
        ints - nummod, numparm */
-    size =  (m->nummod*m->numparm + m->nummod + m->numparm)*sizeof(MYFLT) +
-            (m->nummod + m->numparm)*sizeof(int32_t);
+    cells = (size_t)m->nummod * m->numparm;
+    vectors = (size_t)m->nummod + m->numparm;
+    if (UNLIKELY(cells > SIZE_MAX / sizeof(MYFLT) ||
+                 vectors > (SIZE_MAX - cells * sizeof(MYFLT)) /
+                           (sizeof(MYFLT) + sizeof(int32_t))))
+        return INITERROR("matrix is too large");
+    size = cells * sizeof(MYFLT) + vectors * (sizeof(MYFLT) + sizeof(int32_t));
     if (m->aux.auxp == NULL || m->aux.size < size)
         csound->AuxAlloc(csound, size, &m->aux);
     if (UNLIKELY(m->aux.auxp == NULL))
         return INITERROR("memory allocation error");
 
     m->proc_mat = (MYFLT *)m->aux.auxp;
-    m->mod_map = (int32_t *)(m->proc_mat + m->nummod*m->numparm);
-    m->parm_map = m->mod_map + m->nummod;
-    m->remap_mod = (MYFLT *)(m->parm_map + m->numparm);
+    /* Keep MYFLTs together so odd map lengths cannot misalign doubles. */
+    m->remap_mod = m->proc_mat + cells;
     m->remap_parm = m->remap_mod + m->nummod;
+    m->mod_map = (int32_t *)(m->remap_parm + m->numparm);
+    m->parm_map = m->mod_map + m->nummod;
 
     m->scanned = 0;
     m->doscan = 1;
@@ -86,7 +102,7 @@ static void scan_modulation_matrix(CSOUND *csound, MODMATRIX *m)
     /* Scan for rows containing only zero */
     k = 0;
     for (i = 0; i < m->nummod; ++i) {
-        MYFLT *cur = &m->mattab->ftable[m->numparm*i];
+        MYFLT *cur = &m->mattab->ftable[(size_t)m->numparm*i];
 
         for (j = 0; j < m->numparm; ++j) {
             if (*cur++ != FL(0.0)) {
@@ -101,17 +117,15 @@ static void scan_modulation_matrix(CSOUND *csound, MODMATRIX *m)
     k = 0;
     /* Scan for columns containing only zero */
     for (i = 0; i < m->numparm; ++i) {
-        MYFLT *cur = &m->mattab->ftable[i];
         int32_t nonzero = coltab[i];
 
         if (!nonzero) {
             /* Columns is not previously marked as being non-zero, scan it */
             for (j = 0; j < m->nummod; ++j) {
-                if (*cur != FL(0.0)) {
+                if (m->mattab->ftable[(size_t)j*m->numparm+i] != FL(0.0)) {
                     nonzero = 1;
                     break;
                 }
-                cur += m->numparm;
             }
         }
         if (nonzero) {
@@ -126,7 +140,7 @@ static void scan_modulation_matrix(CSOUND *csound, MODMATRIX *m)
     matval = m->proc_mat;
     for (i = 0; i < m->nummod_scanned; ++i) {
         int32_t mod = m->mod_map[i];
-        MYFLT *row = &m->mattab->ftable[mod*m->numparm];
+        MYFLT *row = &m->mattab->ftable[(size_t)mod*m->numparm];
 
         for (j = 0; j < m->numparm_scanned; ++j) {
             int32_t parm = m->parm_map[j];
@@ -151,15 +165,14 @@ static void process(CSOUND *csound, MODMATRIX *m)
     for (; col < (m->numparm & ~7); col += 8) {
         __m128 acc1 = _mm_setzero_ps();
         __m128 acc2 = _mm_setzero_ps();
-        float *curmod = &m->mattab->ftable[col];
 
         for (row = 0; row < m->nummod; ++row) {
+            float *curmod = &m->mattab->ftable[(size_t)row*m->numparm+col];
             __m128 srcval = _mm_load1_ps(&src[row]);
             __m128 modcoef1 = _mm_loadu_ps(curmod);
             __m128 modcoef2 = _mm_loadu_ps(curmod + 4);
             acc1 = _mm_add_ps(acc1, _mm_mul_ps(srcval, modcoef1));
             acc2 = _mm_add_ps(acc2, _mm_mul_ps(srcval, modcoef2));
-            curmod += m->numparm;
         }
         __m128 params1 = _mm_loadu_ps(&m->parmtab->ftable[col]);
         __m128 params2 = _mm_loadu_ps(&m->parmtab->ftable[col + 4]);
@@ -171,16 +184,14 @@ static void process(CSOUND *csound, MODMATRIX *m)
         __m128d acc1 = _mm_setzero_pd();
         __m128d acc2 = _mm_setzero_pd();
 
-        double *curmod = &m->mattab->ftable[col];
-
         for (row = 0; row < m->nummod; ++row) {
+            double *curmod = &m->mattab->ftable[(size_t)row*m->numparm+col];
             __m128d srcval = _mm_load1_pd(&src[row]);
             __m128d modcoef1 = _mm_loadu_pd(curmod);
             __m128d modcoef2 = _mm_loadu_pd(curmod + 2);
 
             acc1 = _mm_add_pd(acc1, _mm_mul_pd(srcval, modcoef1));
             acc2 = _mm_add_pd(acc2, _mm_mul_pd(srcval, modcoef2));
-            curmod += m->numparm;
         }
         __m128d params1 = _mm_loadu_pd(&m->parmtab->ftable[col]);
         __m128d params2 = _mm_loadu_pd(&m->parmtab->ftable[col + 2]);
@@ -193,11 +204,9 @@ static void process(CSOUND *csound, MODMATRIX *m)
        width not divisible by four */
     for (; col < m->numparm; ++col) {
         MYFLT acc = FL(0.0);
-        MYFLT *curmod = &m->mattab->ftable[col];
 
         for (row = 0; row < m->nummod; ++row) {
-            acc += (*curmod)*src[row];
-            curmod += m->numparm;
+            acc += m->mattab->ftable[(size_t)row*m->numparm+col]*src[row];
         }
         m->restab->ftable[col] = m->parmtab->ftable[col] + acc;
     }
@@ -214,15 +223,14 @@ static void process_scanned(CSOUND *csound, MODMATRIX *m)
         m->remap_mod[i] = m->modtab->ftable[m->mod_map[i]];
     for (i = 0; i < m->numparm_scanned; ++i)
         m->remap_parm[i] = m->parmtab->ftable[m->parm_map[i]];
-    memcpy(m->restab->ftable, m->parmtab->ftable, m->numparm*sizeof(MYFLT));
+    if (m->restab != m->parmtab)
+        memcpy(m->restab->ftable, m->parmtab->ftable, m->numparm*sizeof(MYFLT));
 
     for (; col < m->numparm_scanned; ++col) {
         MYFLT acc = FL(0.0);
-        MYFLT *curmod = &m->proc_mat[col];
 
         for (row = 0; row < m->nummod_scanned; ++row) {
-            acc += (*curmod)*src[row];
-            curmod += m->numparm_scanned;
+            acc += m->proc_mat[(size_t)row*m->numparm_scanned+col]*src[row];
         }
         m->restab->ftable[m->parm_map[col]] += acc;
     }
@@ -233,7 +241,7 @@ modmatrix(CSOUND *csound, MODMATRIX *m)
 {
     /* We wait until the update signal has gone low again before actually
        preprocessing a matrix */
-    if (*m->kupdate > FL(0.0) && !m->doscan) {
+    if (*m->kupdate != FL(0.0) && !m->doscan) {
         m->doscan = 1;
         m->scanned = 0;
     } else if (*m->kupdate == FL(0.0) && m->doscan) {
