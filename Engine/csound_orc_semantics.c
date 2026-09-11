@@ -2615,9 +2615,12 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
       TREE *arg = right->right;
       int32_t hasExpressionArg = 0;
 
-      while (arg != NULL && !hasExpressionArg) {
-        hasExpressionArg = is_expression_node(arg) ||
-                           is_boolean_expression_node(arg);
+      while (arg != NULL) {
+        handle_negative_number(csound, arg);
+        if (!hasExpressionArg) {
+          hasExpressionArg = is_expression_node(arg) ||
+                             is_boolean_expression_node(arg);
+        }
         arg = arg->next;
       }
 

@@ -1676,3 +1676,36 @@ TEST_F (OrcCompileTests, StrcatDoesNotCopyUnusedInputCapacity)
         EXPECT_EQ('x', outputData[i]) << "write beyond output capacity at " << i;
     }
 }
+
+/* Functional init(-1) used to fail: unary minus is an expression, so
+   convert_statement_to_opcall type-checked init in isolation and matched a
+   multi-out overload ("out-args != 1"). Positive init(1) never hit that path. */
+TEST_F (OrcCompileTests, testFunctionalInitUnaryNumericLiteral)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    const char *orchestra = R"(
+instr 1
+  k_neg = init(-1)
+  k_pos = init(1)
+  k_uplus = init(+1)
+  i_neg = init(-2)
+  k_classic init -3
+  chnset k_neg, "k_neg"
+  chnset k_pos, "k_pos"
+  chnset k_uplus, "k_uplus"
+  chnset i_neg, "i_neg"
+  chnset k_classic, "k_classic"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(-1, csoundGetControlChannel(csound, "k_neg", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "k_pos", &error));
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "k_uplus", &error));
+    EXPECT_EQ(-2, csoundGetControlChannel(csound, "i_neg", &error));
+    EXPECT_EQ(-3, csoundGetControlChannel(csound, "k_classic", &error));
+}

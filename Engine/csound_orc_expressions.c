@@ -1104,6 +1104,13 @@ static TREE *create_synthetic_label(CSOUND *csound, int32 count)
 
 void handle_negative_number(CSOUND* csound, TREE* root)
 {
+  /* Fold unary +/- of a numeric literal into a constant token so
+     k = init(-1) is the same shape as k = init(1). Otherwise the
+     unary node is an expression and T_FUNCTION type-check matches a
+     multi-out init overload. */
+  if (root == NULL || root->right == NULL || root->right->value == NULL) {
+    return;
+  }
   if (root->type == S_UMINUS &&
       (root->right->type == INTEGER_TOKEN ||
        root->right->type == NUMBER_TOKEN)) {
@@ -1116,6 +1123,17 @@ void handle_negative_number(CSOUND* csound, TREE* root)
     root->value = root->right->type == INTEGER_TOKEN ?
       make_int(csound, negativeNumber, NULL) : make_num(csound, negativeNumber, NULL);
     root->value->lexeme = negativeNumber;
+  }
+  else if (root->type == S_UPLUS &&
+           (root->right->type == INTEGER_TOKEN ||
+            root->right->type == NUMBER_TOKEN)) {
+    int32_t len = (int32_t) strlen(root->right->value->lexeme);
+    char* positiveNumber = csound->Malloc(csound, len + 1);
+    strcpy(positiveNumber, root->right->value->lexeme);
+    root->type = root->right->type;
+    root->value = root->right->type == INTEGER_TOKEN ?
+      make_int(csound, positiveNumber, NULL) : make_num(csound, positiveNumber, NULL);
+    root->value->lexeme = positiveNumber;
   }
 }
 
