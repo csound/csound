@@ -521,7 +521,7 @@ int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
     for (n=offset; n < ksmps; n++) {
       for (i=0,j=lag; i < len; i++) {
         cor[lag] += buff1[i]*buff2[j];
-        if (++j == len) j = 0;
+        j = j != len - 1 ? j+1 : 0;
       }
       buff2[lag++] = s[n];
 
