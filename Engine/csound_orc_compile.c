@@ -186,13 +186,15 @@ static void classify_udo_rates(CSOUND *csound, ENGINE_STATE *engineState) {
 }
 
 /* Expression lowering sees provisional UDO callbacks. Once their rates are
-   final, reject performance-only struct temporaries passed to init-only UDOs.
+   final, reject performance-only array reads passed to init-only consumers.
+   String reads need this check for built-ins too, including function calls
+   nested inside performance-time statements.
    UDOs take values, including wrappers around type-only built-ins.
    Follow member getters too, so selecting a nested struct keeps the phase of
    the array read. Only generated temporaries are tracked: user variables can
    have separate init and performance assignments. */
-static void verify_udo_struct_read_phases(CSOUND *csound,
-                                         ENGINE_STATE *engineState) {
+static void verify_array_read_phases(CSOUND *csound,
+                                      ENGINE_STATE *engineState) {
   INSTRTXT *instrument;
 
   for (instrument = engineState->instxtanchor.nxtinstxt;
@@ -207,12 +209,21 @@ static void verify_udo_struct_read_phases(CSOUND *csound,
       int32_t i;
 
       if (entry == NULL) continue;
-      if (udo_called_definition(entry) != NULL && entry->perf == NULL &&
+      if (opcode_is_init_only_value_consumer(entry) &&
           perfReads != NULL && text->inlist != NULL) {
         for (i = 0; i < text->inlist->count; i++) {
           source = cs_hash_table_get(csound, perfReads,
                                       text->inlist->arg[i]);
-          if (source != NULL) {
+          if (source == NULL) continue;
+          if (strcmp(source->oentry->opname, "##array_get.K") == 0) {
+            synterr(csound,
+                    Str("init-only opcode %s cannot take a performance-only "
+                        "string array read; use i(kIndex) for an init-time "
+                        "index or a performance-time consumer such as printf, "
+                        "line %d\n"),
+                    entry->opname, source->linenum);
+          }
+          else if (udo_called_definition(entry) != NULL) {
             synterr(csound,
                     Str("init-only UDO %s cannot take a performance-only "
                         "struct array read; "
@@ -226,6 +237,15 @@ static void verify_udo_struct_read_phases(CSOUND *csound,
       if (strcmp(entry->opname, "##array_get_struct") == 0 &&
           entry->init == NULL) {
         source = text;
+      }
+      else if (strcmp(entry->opname, "##array_get.K") == 0 &&
+               entry->init == NULL && text->outlist != NULL &&
+               text->outlist->count == 1) {
+        CS_VARIABLE *variable = csoundFindVariableWithName(
+          csound, instrument->varPool, text->outlist->arg[0]);
+        if (variable != NULL && variable->varType == &CS_VAR_TYPE_S) {
+          source = text;
+        }
       }
       else if (perfReads != NULL && text->inlist != NULL &&
                text->inlist->count > 0 &&
@@ -2402,7 +2422,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   while (specialize_init_getters(csound, engineState)) {
     classify_udo_rates(csound, engineState);
   }
-  verify_udo_struct_read_phases(csound, engineState);
+  verify_array_read_phases(csound, engineState);
   for (ip = engineState->instxtanchor.nxtinstxt;
        ip != NULL; ip = ip->nxtinstxt) {
     if (ip->opcode_info != NULL) {
