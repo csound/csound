@@ -44,6 +44,7 @@ CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 
 int32_t is_expression_node(TREE *node);
 int32_t is_boolean_expression_node(TREE *node);
+void handle_negative_number(CSOUND *csound, TREE *root);
 int32_t is_statement_expansion_required(TREE* root);
 void handle_optional_args(CSOUND *csound, TREE *l);
 TREE* tree_append(TREE *head, TREE *node);
