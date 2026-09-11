@@ -1279,6 +1279,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
       b     = *p->b;
       hstep = *p->hstep;
       skip  = (int32) *p->skip;
+      if (skip < 1) skip = 1;
       x     = p->valx;
       y     = p->valy;
       z     = p->valz;
@@ -1296,13 +1297,14 @@ static int32_t vco(CSOUND *csound, VCO *p)
       }
 
       for (n=offset; n<nsmps; n++) {
+        int32 remaining = skip;
         do {
           xx   =      x+hstep*s*(y-x);
           yy   =      y+hstep*(-x*z+r*x-y);
           z    =      z+hstep*(x*y-b*z);
           x    =      xx;
           y    =      yy;
-        } while (--skip>0);
+        } while (--remaining>0);
 
         /* Output the results */
         outx[n] = x;
