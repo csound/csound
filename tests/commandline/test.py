@@ -543,6 +543,8 @@ def runTest():
             "test_gen41_gen42_bounds.csd",
             "test bounded GEN41 and GEN42 probability rounding",
         ],
+        ["test_farey_counts.csd", "Farey lengths and generator endpoints in every output mode"],
+        ["test_farey_invalid_order.csd", "reject invalid Farey sequence orders", 1],
         [
             "test_gen41_nonfinite_total.csd",
             "expected failure: GEN41 probability total overflows",
