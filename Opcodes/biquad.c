@@ -954,11 +954,12 @@ static int32_t vco(CSOUND *csound, VCO *p)
     static int32_t pareqset(CSOUND *csound, PAREQ *p)
     {
       IGN(csound);
-      /* The equalizer filter is initialised to zero.    */
-      if (*p->iskip == FL(0.0)) {
+      /* Initialize once before honoring iskip. */
+      if (*p->iskip == FL(0.0) || !p->initialized) {
         p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;
         p->prv_fc = p->prv_v = p->prv_q = FL(-1.0);
         p->imode = (int32_t) MYFLT2LONG(*p->mode);
+        p->initialized = 1;
       }
       return OK;
     } /* end pareqset(p) */
