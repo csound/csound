@@ -963,6 +963,8 @@ def runTest():
         ["test_nestedap_state.csd", "nestedap reset, mode changes, and preserved state"],
         ["test_nestedap_invalid_delay.csd", "reject invalid nestedap delay layout", 1],
         ["test_random_rate_correctness.csd", "randomi and randomh rate handling"],
+        ["test_pinker_sequence.csd", "pinker preserves its noise sequence across block sizes"],
+        ["test_pinker_sample_bounds.csd", "pinker clears inactive samples"],
         ["test_gausstrig_frequency_mode.csd", "gausstrig frequency-change and first-impulse modes"],
         ["test_mirror_bounds.csd", "test mirror boundaries and large inputs"],
         ["test_atonex_order_one.csd", "test atonex order-one filtering"],
