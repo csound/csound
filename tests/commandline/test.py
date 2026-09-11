@@ -572,6 +572,8 @@ def runTest():
         ["test_splitrig_sequences.csd", "splitrig sequence selection and changing tick counts"],
         ["test_splitrig_invalid_layout.csd", "splitrig rejects invalid maximum tick counts", 1],
         ["test_splitrig_invalid_sequence.csd", "splitrig rejects invalid indexes and tick counts", 1],
+        ["test_sequ_ranges.csd", "sequ ranges, permutations, state, and timing"],
+        ["test_sequ_invalid_state.csd", "reject missing sequstate registration", 1],
         ["test_trighold_initial_trigger.csd", "trighold preserves its full duration after init and reinit"],
         ["test_udo_local_pool.csd", "test udos for separate local var pool"],
         ["test_ternary_expr.csd", "test ternary expr for backwards compatibility"],
