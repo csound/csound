@@ -931,9 +931,6 @@ def runTest():
         ["test_shift_array_state.csd", "shiftin and shiftout sample state"],
         ["test_shift_array_invalid_inputs.csd", "shift arrays reject invalid inputs", 1],
         ["test_sa.csd", "test sample accurate mode"],
-        ["test_counter_state.csd", "counter state and slot reuse"],
-        ["test_counter_deleted.csd", "counter readers reject deleted objects", 1],
-        ["test_counter_invalid_handle.csd", "counter rejects invalid handles", 1],
         ["test_diode_ladder_saturation.csd", "diode_ladder saturation and filter history"],
         ["test_pareq_initial_state.csd", "pareq first skip, reset, and preserved state"],
         ["test_gain_sample_bounds.csd", "gain RMS and output over partial blocks"],
@@ -1131,6 +1128,12 @@ def runTest():
               ]
     
     if not csoundExecutable.lower().endswith((".wasm", ".cwasm")):
+        # WASI builds omit counter.c and its opcodes.
+        tests += [
+            ["test_counter_state.csd", "counter state and slot reuse"],
+            ["test_counter_deleted.csd", "counter readers reject deleted objects", 1],
+            ["test_counter_invalid_handle.csd", "counter rejects invalid handles", 1],
+        ]
         tests += parcsTests           
 
 
