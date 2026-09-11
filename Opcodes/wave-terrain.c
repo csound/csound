@@ -134,7 +134,7 @@ static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
                                 "destination table"));
 
   /* A fractional position selects the point below it. */
-  dstpos = (uint32_t)floor((double)*p->ipos);
+  dstpos = (uint32_t)*p->ipos;
 
   source = fsrc->ftable;
   if (UNLIKELY(fsrc == fdst && dstpos != 0)) {
