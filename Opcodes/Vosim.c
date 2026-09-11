@@ -110,7 +110,8 @@ void vosim_event(CSOUND* csound, VOSIM *p)
   }
   if(p->floatph) {
     p->pulseincf = *p->kform * CS_ONEDSR;
-    p->pulsephsf = (p->pulseinc >= 0) ? 1. : -1.; 
+    /* Match the integer path's reverse start just below phase one. */
+    p->pulsephsf = (p->pulseincf >= 0) ? 1.0 : -1.0 / MAXLEN;
   } else {  
     p->pulseinc = (int32)(*p->kform * CS_SICVT);
     p->pulsephs = (p->pulseinc >= 0)? MAXLEN : -1;   /* starts a new pulse */
@@ -120,11 +121,6 @@ void vosim_event(CSOUND* csound, VOSIM *p)
   p->pulseamp = *p->amp + p->ampdecay;
   /* if negative, table is read alternately back-/forward */
   p->lenfact  = *p->kpulsemul;
-  /* reduce table rate, since it's increased at pulse start */
-  if (p->lenfact != FL(0.0)) {
-    if(p->floatph)  p->pulseincf /= p->lenfact;
-    else p->pulseinc /= p->lenfact;
-  }
 }
 
 
@@ -132,19 +128,31 @@ void vosim_event(CSOUND* csound, VOSIM *p)
  * Post:
  *    pulstogo is decremented or zero.
  *    0 <= pulsephs < FMAXLEN.
+ *    The pulse factor applies only after the first pulse of an event.
  */
-void vosim_pulse(CSOUND* csound, VOSIM *p)
+void vosim_pulse(CSOUND* csound, VOSIM *p, int32_t first)
 {
   IGN(csound);
   int32 pulselen;
   if(p->floatph) {
     p->pulsephsf = PHMOD1(p->pulsephsf);
-    p->pulseincf *= p->lenfact;
+    if (p->pulsephsf >= 1.0) p->pulsephsf = 0.0;
+    if (!first) {
+      p->pulseincf *= p->lenfact;
+      if (p->lenfact < FL(0.0)) {
+        p->pulsephsf = (1.0 - 1.0 / MAXLEN) - p->pulsephsf;
+        if (p->pulsephsf < 0.0) p->pulsephsf = 0.0;
+      }
+    }
     pulselen = (p->pulseincf != FL(0.0))?
       (int32) FABS(1. / p->pulseincf) : INT_MAX;
   } else {
     p->pulsephs &= PHMASK;
-    p->pulseinc *= p->lenfact;
+    if (!first) {
+      p->pulseinc *= p->lenfact;
+      if (p->lenfact < FL(0.0))
+        p->pulsephs = PHMASK - p->pulsephs;
+    }
     /* If pulse can't fit in remaining event time, skip and generate silence */
     pulselen = (p->pulseinc != FL(0.0))?
       (int32)FABS(FMAXLEN / p->pulseinc) : INT_MAX;
@@ -162,9 +170,8 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   MYFLT *ar = p->ar;
-  MYFLT *ftdata, pulsephsf = p->pulsephsf, pulseincf = p->pulseincf;
+  MYFLT *ftdata;
   int32  lobits, floatph = p->floatph, flen;
-  MYFLT pulseamp = p->pulseamp;
 
   FUNC *ftp = p->ftable;
   if (UNLIKELY(ftp == NULL)) goto err1;
@@ -179,21 +186,23 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
   }
   for (n=offset; n<nsmps; n++) {
     /* new event? */
-    if (p->timrem == 0)
+    int32_t first = (p->timrem == 0);
+    if (first)
       vosim_event(csound, p);
 
     /* new pulse? */
-    if (p->pulsephs >= MAXLEN || p->pulsephs < 0)
-      vosim_pulse(csound, p);
+    if (floatph ? (p->pulsephsf >= 1.0 || p->pulsephsf < 0.0) :
+                  (p->pulsephs >= MAXLEN || p->pulsephs < 0))
+      vosim_pulse(csound, p, first);
 
     if (p->pulstogo > 0) {
       /* produce one sample */
       if(floatph) {
-        ar[n] = *(ftdata + (size_t) (PHMOD1(pulsephsf)*flen)) * pulseamp;
-        pulsephsf += pulseincf;
+        ar[n] = ftdata[(size_t)(p->pulsephsf * flen)] * p->pulseamp;
+        p->pulsephsf += p->pulseincf;
       } else {
         p->pulsephs &= PHMASK;
-        ar[n] = *(ftdata + (p->pulsephs >> lobits)) * pulseamp;
+        ar[n] = *(ftdata + (p->pulsephs >> lobits)) * p->pulseamp;
         p->pulsephs += p->pulseinc;
       }
       --p->timrem;
@@ -209,7 +218,6 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
       n--;
     }
   }
-  p->pulsephsf = pulsephsf;
   return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
