@@ -664,6 +664,8 @@ def runTest():
         ["test_rspline_invalid_rate.csd", "reject invalid rspline rates", 1],
         ["test_oscil1i.csd", "oscil1i interpolates scans and holds their endpoints"],
         ["test_trigphasor_range.csd", "trigphasor starts, wraps, and resets within its range"],
+        ["test_unwrap_state.csd", "unwrap input and phase history"],
+        ["test_unwrap_invalid_mode.csd", "unwrap rejects invalid modes", 1],
         ["test_squinewave_state.csd", "squinewave sample offsets and phase reset"],
         ["test_sndwarp_bounds.csd", "sndwarp and sndwarpst bound sample indexes and handle zero time scale"],
         ["test_wterrain2_phase.csd", "wterrain2 phase stability and direction changes"],
