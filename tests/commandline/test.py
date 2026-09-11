@@ -942,6 +942,7 @@ def runTest():
         ["test_dbap.csd", "test dbap and dbapgains opcodes"],
         ["test_follow_period.csd", "test follow period handling"],
         ["test_follow_invalid_period.csd", "reject invalid follow period", 1],
+        ["test_lag_state.csd", "lag state and partial audio blocks"],
         ["test_compress_control_gain.csd", "compressors update gain when ratio or knee controls change"],
         ["test_gain_sample_end.csd", "test gain sample-accurate note end"],
         ["test_distort_sample_offset.csd", "test distort sample-accurate onset"],
