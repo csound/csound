@@ -70,7 +70,7 @@ static inline void spout_interleave(CSOUND *csound, int32_t scal) {
    nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
    if (spoutrem > (int32_t) csound->libsndStatics.outbufrem) {
-     end = csound->libsndStatics.outbufrem/nchnls;
+     end = start + csound->libsndStatics.outbufrem/nchnls;
    }
   spoutrem -= (end-start)*nchnls;
   csound->libsndStatics.outbufrem -= (end-start)*nchnls;
