@@ -840,10 +840,12 @@ static int32_t statevar_init(CSOUND *csound,statevar *p)
   IGN(csound);
   if (*p->istor==FL(0.0)) {
     p->bpd = p->lpd = p->lp = 0.0;
-    p->oldfreq = FL(0.0);
-    p->oldres = FL(0.0);
   }
+  /* Coefficients depend on oversampling even when filter history is kept. */
+  p->oldfreq = -FL(1.0);
+  p->oldres = -FL(1.0);
   if (*p->osamp<=FL(0.0)) p->ostimes = 3;
+  else if (*p->osamp<FL(1.0)) p->ostimes = 1;
   else p->ostimes = (int32_t) *p->osamp;
   return OK;
 }
