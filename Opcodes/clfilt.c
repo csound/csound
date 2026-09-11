@@ -99,8 +99,8 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
           csound->Warning(csound, Str("passband ripple must be non-zero in "
                                       "clfilt. Set to %f"), pbr);
         }
-        eps = sqrt(pow(10.0,(pbr/10.0))-1.0);
-        aleph = 0.5/nsec*log(1.0/eps + sqrt(1.0/eps/eps +1.0));
+        eps = sqrt(expm1((double)pbr * (log(10.0) / 10.0)));
+        aleph = 0.5/nsec * asinh(1.0/eps);
         for (m=0;m<=nsec-1;m++) {
           bethe = PI*((m + 0.5)/(2.0*nsec) + 0.5);
           p->alpha[m] = (MYFLT)(sinh(aleph)*cos(bethe));
@@ -146,8 +146,9 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
           csound->Warning(csound, Str("stopband attenuation must be non-zero "
                                       "in clfilt. Set to %f"), sbr);
         }
-        eps = sqrt(1.0/(pow(10.0,-(sbr/10.0))-1.0));
-        aleph = 0.5/nsec*log(1.0/eps + sqrt(1.0/eps/eps +1.0));
+        /* Work with inverse epsilon directly for the Type II poles. */
+        aleph = 0.5/nsec *
+          asinh(sqrt(expm1(-(double)sbr * (log(10.0) / 10.0))));
         for (m=0;m<=nsec-1;m++) {
           zee = PI*(m + 0.5)/(2.0*nsec);
           bethe = PI*((m + 0.5)/(2.0*nsec) + 0.5);
@@ -203,8 +204,8 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
           csound->Warning(csound, Str("passband ripple must be non-zero "
                                       "in clfilt. Set to %f"), pbr);
         }
-        eps = sqrt((pow(10.0,(pbr/10.0))-1.0));
-        aleph = 0.5/nsec*log(1.0/eps + sqrt(1.0/eps/eps +1.0));
+        eps = sqrt(expm1((double)pbr * (log(10.0) / 10.0)));
+        aleph = 0.5/nsec * asinh(1.0/eps);
         for (m=0;m<=nsec-1;m++) {
           bethe = PI*((m + 0.5)/(2.0*nsec) + 0.5);
           p->alpha[m] = (MYFLT)(sinh(aleph)*cos(bethe));
@@ -250,8 +251,9 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
           csound->Warning(csound, Str("stopband attenuation must be non-zero "
                                       "in clfilt. Set to %f"), sbr);
         }
-        eps = sqrt(1.0/(pow(10.0,-(sbr/10.0))-1.0));
-        aleph = 0.5/nsec*log(1.0/eps + sqrt(1.0/eps/eps +1.0));
+        /* Work with inverse epsilon directly for the Type II poles. */
+        aleph = 0.5/nsec *
+          asinh(sqrt(expm1(-(double)sbr * (log(10.0) / 10.0))));
         for (m=0;m<=nsec-1;m++) {
           zee = PI*(m + 0.5)/(2.0*nsec);
           bethe = PI*((m + 0.5)/(2.0*nsec) + 0.5);
