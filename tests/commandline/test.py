@@ -608,6 +608,7 @@ def runTest():
             1,
         ],
         ["test_hilbert2_state.csd", "hilbert2 input reuse, partial blocks and reinit"],
+        ["test_gtf_complex_state.csd", "gtf complex impulse response and sample bounds"],
         ["test_repluck_correctness.csd", "test plucked-string waveguide limits"],
         ["test_repluck_sample_offset.csd", "test repluck sample-accurate input"],
         [
