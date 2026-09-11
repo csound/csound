@@ -874,6 +874,8 @@ def runTest():
         ["test_syncphasor_invalid_frequency.csd", "reject invalid syncphasor frequency", 1],
         ["test_pvsosc_frames.csd", "pvsosc frame timing and harmonic selection"],
         ["test_pvsosc_invalid_parameters.csd", "reject invalid pvsosc parameters", 1],
+        ["test_pvsbufread_frames.csd", "PVS buffer spectrum and circular reads"],
+        ["test_pvsbuffer_invalid_inputs.csd", "PVS buffers reject invalid inputs", 1],
         ["test_sa.csd", "test sample accurate mode"],
         ["test_diode_ladder_saturation.csd", "diode_ladder saturation and filter history"],
         ["test_pareq_initial_state.csd", "pareq first skip, reset, and preserved state"],
