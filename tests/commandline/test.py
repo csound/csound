@@ -998,6 +998,9 @@ def runTest():
         ["test_raw_strings.csd", "test new-style raw strings"],
         ["test_min_max_values.csd", "test MIN_VALUE and MAX_VALUE math constants"],
         ["test_minmax_accumulator_bounds.csd", "min/max accumulators preserve inactive samples"],
+        ["test_counter_state.csd", "counter state and slot reuse"],
+        ["test_counter_deleted.csd", "counter readers reject deleted objects", 1],
+        ["test_counter_invalid_handle.csd", "counter rejects invalid handles", 1],
         ["test_all_math_constants.csd", "test all builtin math constant macros"],
         [
             "test_op_precedence.csd",
@@ -1128,12 +1131,6 @@ def runTest():
               ]
     
     if not csoundExecutable.lower().endswith((".wasm", ".cwasm")):
-        # WASI builds omit counter.c and its opcodes.
-        tests += [
-            ["test_counter_state.csd", "counter state and slot reuse"],
-            ["test_counter_deleted.csd", "counter readers reject deleted objects", 1],
-            ["test_counter_invalid_handle.csd", "counter rejects invalid handles", 1],
-        ]
         tests += parcsTests           
 
 

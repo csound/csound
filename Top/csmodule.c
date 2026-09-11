@@ -1349,8 +1349,8 @@ CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
 #if defined(LINUX) || defined(__MACH__)
     cpumeter_localops_init,
 #endif
-#if !(defined(__wasi__))
     counter_localops_init,
+#if !(defined(__wasi__))
     system_localops_init,
 #ifndef NO_SERIAL_OPCODES
     serial_localops_init,
