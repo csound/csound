@@ -2316,15 +2316,25 @@ int32_t waveset(CSOUND *csound, BARRI *p)
 
 int32_t medfiltset(CSOUND *csound, MEDFILT *p)
 {
-    int32_t maxwind = (int32_t)MYFLT2LONG(*p->imaxsize);
-    int32_t auxsize = 2*sizeof(MYFLT)*maxwind;
+    int32_t maxwind;
+    size_t auxsize;
+
+    if (*p->iskip != FL(0.0) && p->b.auxp != NULL)
+      return OK;
+    if (UNLIKELY(!(*p->imaxsize >= FL(1.0) &&
+                   (double)*p->imaxsize <= INT32_MAX &&
+                   (double)*p->imaxsize <= SIZE_MAX / (2 * sizeof(MYFLT)))))
+      return csound->InitError(csound,
+                               Str("median: invalid maximum window size"));
+    maxwind = MYFLT2LONG(*p->imaxsize);
+    auxsize = 2 * sizeof(MYFLT) * (size_t)maxwind;
     p->ind = 0;
     p->maxwind = maxwind;
 
-    if (p->b.auxp==NULL || p->b.size < (size_t)auxsize)
-      csound->AuxAlloc(csound, (size_t)auxsize, &p->b);
+    if (p->b.auxp == NULL || p->b.size < auxsize)
+      csound->AuxAlloc(csound, auxsize, &p->b);
     else
-      if (*p->iskip!=FL(0.0)) memset(p->b.auxp, 0, auxsize);
+      memset(p->b.auxp, 0, auxsize);
     p->buff = (MYFLT*)p->b.auxp;
     p->med = &(p->buff[maxwind]);
     return OK;
@@ -2337,7 +2347,7 @@ int32_t medfilt(CSOUND *csound, MEDFILT *p)
     MYFLT *buffer = p->buff;
     MYFLT *med = p->med;
     int32_t maxwind = p->maxwind;
-    int32_t kwind = MYFLT2LONG(*p->kwind);
+    int32_t kwind;
     int32_t index = p->ind;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2346,12 +2356,17 @@ int32_t medfilt(CSOUND *csound, MEDFILT *p)
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("median: not initialised (arate)\n"));
     }
-    if (UNLIKELY(kwind > maxwind)) {
+    if (UNLIKELY(!(*p->kwind >= FL(1.0))))
+      return csound->PerfError(csound, &(p->h),
+                               Str("median: window size must be at least 1"));
+    if (UNLIKELY((double)*p->kwind > maxwind)) {
       csound->Warning(csound,
-                      Str("median: window (%d)larger than maximum(%d); truncated"),
-                      kwind, maxwind);
+                      Str("median: window (%g) larger than maximum (%d); truncated"),
+                      *p->kwind, maxwind);
       kwind = maxwind;
     }
+    else
+      kwind = MYFLT2LONG(*p->kwind);
     if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -2393,18 +2408,23 @@ int32_t kmedfilt(CSOUND *csound, MEDFILT *p)
     MYFLT *med = p->med;
     MYFLT x = *p->asig;
     int32_t maxwind = p->maxwind;
-    int32_t kwind = MYFLT2LONG(*p->kwind);
+    int32_t kwind;
     int32_t index = p->ind;
     if (UNLIKELY(p->b.auxp==NULL)) {
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("median: not initialised (krate)\n"));
     }
-    if (UNLIKELY(kwind > maxwind)) {
+    if (UNLIKELY(!(*p->kwind >= FL(1.0))))
+      return csound->PerfError(csound, &(p->h),
+                               Str("median: window size must be at least 1"));
+    if (UNLIKELY((double)*p->kwind > maxwind)) {
       csound->Warning(csound,
-                      Str("median: window (%d)larger than maximum(%d); truncated"),
-                      kwind, maxwind);
+                      Str("median: window (%g) larger than maximum (%d); truncated"),
+                      *p->kwind, maxwind);
       kwind = maxwind;
     }
+    else
+      kwind = MYFLT2LONG(*p->kwind);
     buffer[index++] = x;
     if (kwind<=index) {        /* all in centre */
       memcpy(&med[0], &buffer[index-kwind], kwind*sizeof(MYFLT));
