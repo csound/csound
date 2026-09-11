@@ -144,6 +144,8 @@ typedef struct _pvsbin {
     MYFLT   *kamp, *kfreq;
     PVSDAT  *fin;
     MYFLT   *kbin;
+    uint32_t lastframe;
+    MYFLT amp, freq;
 } PVSBIN;
 
 typedef struct _pvsfreez {

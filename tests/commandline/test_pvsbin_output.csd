@@ -20,15 +20,21 @@ opcode BinReference, aa, ai
 endop
 
 instr 1
-  ; Read the current frame, including bin changes between frame updates.
+  ; Accept bin changes only when a new PVS frame arrives.
   kCycle init 0
   kCycle += 1
   kBins[] init 1026
   fInput pvsosc .5, p4, 4, 1024, 256
   kFrame pvs2tab kBins, fInput
   kBin = (kCycle % 3 == 1 ? 64.75 : (kCycle % 3 == 2 ? 128 : 512.75))
-  kExpectedAmp = kBins[2 * int(kBin)]
-  kExpectedFreq = kBins[2 * int(kBin) + 1]
+  kLastFrame init 0
+  kExpectedAmp init 0
+  kExpectedFreq init 0
+  if kFrame > kLastFrame then
+    kExpectedAmp = kBins[2 * int(kBin)]
+    kExpectedFreq = kBins[2 * int(kBin) + 1]
+    kLastFrame = kFrame
+  endif
   ; Overwrite both buffers so stale samples cannot pass as held values.
   aAmp = -1
   aFreq = -1

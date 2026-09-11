@@ -1165,8 +1165,21 @@ static int32_t pvsoscprocess(CSOUND *csound, PVSOSC *p)
 }
 
 
+static int32_t pvsbinset(CSOUND *csound, PVSBIN *p)
+{
+  IGN(csound);
+  p->lastframe = 0;
+  p->amp = p->freq = FL(0.0);
+  return OK;
+}
+
 static int32_t pvsbinprocess(CSOUND *csound, PVSBIN *p)
 {
+  if (!p->fin->sliding && p->lastframe >= p->fin->framecount) {
+    *p->kamp = p->amp;
+    *p->kfreq = p->freq;
+    return OK;
+  }
   double bin = *p->kbin;
   int32_t NB = p->fin->sliding ? p->fin->NB : p->fin->N / 2 + 1;
   int32_t pos;
@@ -1189,8 +1202,9 @@ static int32_t pvsbinprocess(CSOUND *csound, PVSBIN *p)
   }
   else {
     float *fin = (float *)p->fin->frame.auxp;
-    *p->kamp = (MYFLT)fin[2 * pos];
-    *p->kfreq = (MYFLT)fin[2 * pos + 1];
+    *p->kamp = p->amp = (MYFLT)fin[2 * pos];
+    *p->kfreq = p->freq = (MYFLT)fin[2 * pos + 1];
+    p->lastframe = p->fin->framecount;
   }
   return OK;
 }
@@ -1199,14 +1213,16 @@ static int32_t pvsbinprocessa(CSOUND *csound, PVSBIN *p)
 {
   double bin = *p->kbin;
   int32_t NB = p->fin->sliding ? p->fin->NB : p->fin->N / 2 + 1;
-  int32_t pos;
+  int32_t pos = 0;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  if (UNLIKELY(!(bin >= 0.0 && bin < NB)))
-    return csound->PerfError(csound, &(p->h), "%s",
-                             Str("pvsbin: bin index out of range"));
-  pos = (int32_t)bin;
+  if (p->fin->sliding || p->lastframe < p->fin->framecount) {
+    if (UNLIKELY(!(bin >= 0.0 && bin < NB)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("pvsbin: bin index out of range"));
+    pos = (int32_t)bin;
+  }
   if (UNLIKELY(offset)) {
     memset(p->kamp, 0, offset * sizeof(MYFLT));
     memset(p->kfreq, 0, offset * sizeof(MYFLT));
@@ -1224,13 +1240,16 @@ static int32_t pvsbinprocessa(CSOUND *csound, PVSBIN *p)
     }
   }
   else {
-    float *fin = (float *)p->fin->frame.auxp;
-    MYFLT amp = (MYFLT)fin[2 * pos];
-    MYFLT freq = (MYFLT)fin[2 * pos + 1];
-    /* Hold the current frame, including blocks without a new frame. */
+    if (p->lastframe < p->fin->framecount) {
+      float *fin = (float *)p->fin->frame.auxp;
+      p->amp = (MYFLT)fin[2 * pos];
+      p->freq = (MYFLT)fin[2 * pos + 1];
+      p->lastframe = p->fin->framecount;
+    }
+    /* Hold the bin chosen at the last PVS frame update. */
     for (n = offset; n < nsmps; n++) {
-      p->kamp[n] = amp;
-      p->kfreq[n] = freq;
+      p->kamp[n] = p->amp;
+      p->kfreq[n] = p->freq;
     }
   }
   return OK;
@@ -2802,8 +2821,8 @@ static OENTRY localops[] = {
   {"pvstencil", sizeof(PVSTENCIL), TR, "f", "fkki", (SUBR) pvstencilset,
    (SUBR) pvstencil},
   {"pvsinit", sizeof(PVSINI),0,  "f", "ioopo", (SUBR) pvsinit, NULL, NULL},
-  {"pvsbin", sizeof(PVSBIN),0, "kk", "fk", NULL, (SUBR) pvsbinprocess},
-  {"pvsbin", sizeof(PVSBIN),0, "aa", "fk", NULL, (SUBR) pvsbinprocessa},
+  {"pvsbin", sizeof(PVSBIN),0, "kk", "fk", (SUBR) pvsbinset, (SUBR) pvsbinprocess},
+  {"pvsbin", sizeof(PVSBIN),0, "aa", "fk", (SUBR) pvsbinset, (SUBR) pvsbinprocessa},
   {"pvsfreeze", sizeof(PVSFREEZE),0, "f", "fkk", (SUBR) pvsfreezeset,
    (SUBR) pvsfreezeprocess, NULL},
   {"pvsmooth", sizeof(PVSFREEZE),0, "f", "fxx", (SUBR) pvsmoothset,
