@@ -190,28 +190,30 @@ typedef struct _cent {
 
 static int32_t cent_i(CSOUND *csound, CENT *p)
 {
-    int32_t fftsize = *p->ifftsize;
+    MYFLT requested = *p->ifftsize;
+    uint32_t i;
+    MYFLT *win;
+    if (UNLIKELY(!(requested >= FL(2.0) && requested <= (1U << 30))))
+      return csound->InitError(csound, "%s", Str("centroid: FFT size out of range"));
     p->count = 0;
-    p->fsize = 1;
-    while(fftsize >>= 1) p->fsize <<= 1;
-    if (p->fsize < *p->ifftsize) {
-      p->fsize <<= 1;
+    p->fsize = 2;
+    while (p->fsize < requested) p->fsize <<= 1;
+    if (p->fsize != requested)
       csound->Warning(csound,
                       Str("centroid requested fftsize = %.0f, actual = %d\n"),
-                      *p->ifftsize, p->fsize);
-    }
+                      requested, p->fsize);
+    if (UNLIKELY(p->fsize > SIZE_MAX / sizeof(MYFLT)))
+      return csound->InitError(csound, "%s", Str("centroid: FFT size out of range"));
     if (p->frame.auxp == NULL || p->frame.size < p->fsize*sizeof(MYFLT))
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->frame);
     if (p->windowed.auxp == NULL || p->windowed.size < p->fsize*sizeof(MYFLT))
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->windowed);
-    if (p->win.auxp == NULL || p->win.size < p->fsize*sizeof(MYFLT)) {
-      uint32_t i;
-      MYFLT *win;
+    if (p->win.auxp == NULL || p->win.size < p->fsize*sizeof(MYFLT))
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->win);
-      win = (MYFLT *) p->win.auxp;
+    /* Rebuild even when a smaller transform reuses the allocation. */
+    win = (MYFLT *) p->win.auxp;
     for (i=0; i < p->fsize; i++)
       win[i] = 0.5 - 0.5*cos(i*TWOPI/p->fsize);
-    }
     p->old = 0;
     memset(p->frame.auxp, 0, p->fsize*sizeof(MYFLT));
     memset(p->windowed.auxp, 0, p->fsize*sizeof(MYFLT));
@@ -252,11 +254,12 @@ static int32_t cent_k(CSOUND *csound, CENT *p)
         else k++;
       }
       csound->RealFFT(csound, p->setup, windowed);
-      cf=FL(0.5)*binsize;
-      mag = fabs(windowed[0])/fsize;
-      c += mag*cf;
+      /* Real FFT packing stores DC and Nyquist separately. */
+      d = fabs(windowed[0])/fsize;
+      mag = fabs(windowed[1])/fsize;
+      c = mag * (FL(0.5)*CS_ESR);
       d += mag;
-      cf += binsize;
+      cf = binsize;
       for (i=2; i < fsize; i+=2, cf += binsize) {
         windowed[i] /= fsize;
         windowed[i+1] /= fsize;

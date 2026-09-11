@@ -746,6 +746,8 @@ def runTest():
         ["test_opcode_as_function.csd", "test expression"],
         ["test_fsig_udo.csd", "UDO with f-sig arg"],
         ["test_pvs_spectral_moments.csd", "test spectral centroid and bandwidth"],
+        ["test_centroid_state.csd", "centroid FFT windows and bin frequencies"],
+        ["test_centroid_invalid_size.csd", "reject invalid centroid sizes", 1],
         ["test_karrays_udo.csd", "UDO with k[] arg"],
         ["test_vector_table_correctness.csd", "vector table indexing"],
         ["test_vector_table_invalid_index.csd", "reject invalid vector table index", 1],
