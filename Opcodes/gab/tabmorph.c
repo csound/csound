@@ -22,6 +22,9 @@
 #endif
 #include "interlocks.h"
 
+#define TABMORPH_WEIGHT(x) \
+    ((x) < FL(0.0) ? FL(0.0) : ((x) > FL(1.0) ? FL(1.0) : (x)))
+
 typedef struct {
         OPDS    h;
         MYFLT   *out, *xindex, *xinterpoint, *xtabndx1, *xtabndx2,
@@ -93,8 +96,7 @@ static int32_t tabmorph(CSOUND *csound, TABMORPH *p)
     val2 = tab2val1 * (1-tabndx2frac) + tab2val2 * tabndx2frac;
 
     interpoint = *p->xinterpoint;
-    interpoint = (interpoint < 0 ? 0 : (interpoint > 1.0 ? 1.0 : interpoint));
-    /* interpoint -= (int32_t) interpoint;  to limit to zero to 1 range */
+    interpoint = TABMORPH_WEIGHT(interpoint);
 
     *p->out = val1 * (1 - interpoint) + val2 * interpoint;
     return OK;
@@ -145,7 +147,7 @@ static int32_t tabmorphi(CSOUND *csound, TABMORPH *p) /* interpolation */
     val2  = val2a + (val2b-val2a) * index_frac;
 
     interpoint = *p->xinterpoint;
-    interpoint -= (int32_t) interpoint; /* to limit to zero to 1 range */
+    interpoint = TABMORPH_WEIGHT(interpoint);
 
     *p->out = val1 * (1 - interpoint) + val2 * interpoint;
     return OK;
@@ -161,7 +163,7 @@ static int32_t atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-ra
     int32_t      tablen = p->length;
     MYFLT *out = p->out;
     MYFLT *index = p->xindex;
-    MYFLT *interpoint = p->xinterpoint;
+    const MYFLT *interpoint = p->xinterpoint;
     MYFLT *tabndx1 = p->xtabndx1;
     MYFLT *tabndx2 = p->xtabndx2;
 
@@ -210,9 +212,9 @@ static int32_t atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-ra
 
       val2  = val2a + (val2b-val2a) * index_frac;
 
-      interpoint[n] -= (int32_t) interpoint[n]; /* to limit to zero to 1 range */
+      MYFLT weight = TABMORPH_WEIGHT(interpoint[n]);
 
-      out[n] = val1 * (1 - interpoint[n]) + val2 * interpoint[n];
+      out[n] = val1 * (1 - weight) + val2 * weight;
     }
     return OK;
 }
@@ -246,7 +248,7 @@ static int32_t atabmorphi(CSOUND *csound, TABMORPH *p)
     tabndx2int %= p->numOfTabs;
 
     interpoint = *p->xinterpoint;
-    interpoint -= (int32_t) interpoint; /* to limit to zero to 1 range */
+    interpoint = TABMORPH_WEIGHT(interpoint);
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -349,8 +351,7 @@ static int32_t tabmorph_array(CSOUND *csound, TABMORPH_ARR *p)
     val2 = tab2val1 * (1-tabndx2frac) + tab2val2 * tabndx2frac;
 
     interpoint = *p->xinterpoint;
-    interpoint = (interpoint < 0 ? 0 : (interpoint > 1.0 ? 1.0 : interpoint));
-    /* interpoint -= (int32_t) interpoint;  to limit to zero to 1 range */
+    interpoint = TABMORPH_WEIGHT(interpoint);
 
     *p->out = val1 * (1 - interpoint) + val2 * interpoint;
     return OK;
@@ -401,7 +402,7 @@ static int32_t tabmorphi_array(CSOUND *csound, TABMORPH_ARR *p) /* interpolation
     val2  = val2a + (val2b-val2a) * index_frac;
 
     interpoint = *p->xinterpoint;
-    interpoint -= (int32_t) interpoint; /* to limit to zero to 1 range */
+    interpoint = TABMORPH_WEIGHT(interpoint);
 
     *p->out = val1 * (1 - interpoint) + val2 * interpoint;
     return OK;
@@ -417,7 +418,7 @@ static int32_t atabmorphia_array(CSOUND *csound, TABMORPH_ARR *p) /* all argumen
     int32_t      tablen = p->length;
     MYFLT *out = p->out;
     MYFLT *index = p->xindex;
-    MYFLT *interpoint = p->xinterpoint;
+    const MYFLT *interpoint = p->xinterpoint;
     MYFLT *tabndx1 = p->xtabndx1;
     MYFLT *tabndx2 = p->xtabndx2;
 
@@ -466,9 +467,9 @@ static int32_t atabmorphia_array(CSOUND *csound, TABMORPH_ARR *p) /* all argumen
 
       val2  = val2a + (val2b-val2a) * index_frac;
 
-      interpoint[n] -= (int32_t) interpoint[n]; /* to limit to zero to 1 range */
+      MYFLT weight = TABMORPH_WEIGHT(interpoint[n]);
 
-      out[n] = val1 * (1 - interpoint[n]) + val2 * interpoint[n];
+      out[n] = val1 * (1 - weight) + val2 * weight;
     }
     return OK;
 }
@@ -502,7 +503,7 @@ static int32_t atabmorphi_array(CSOUND *csound, TABMORPH_ARR *p)
     tabndx2int %= p->numOfTabs;
 
     interpoint = *p->xinterpoint;
-    interpoint -= (int32_t) interpoint; /* to limit to zero to 1 range */
+    interpoint = TABMORPH_WEIGHT(interpoint);
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
