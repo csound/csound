@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <future>
 #include <thread>
 #include "gtest/gtest.h"
@@ -685,4 +686,65 @@ TEST_F (IOTests, testMidiHostBased)
     while(ret == 0) ret = csoundPerformKsmps(csound);
     ASSERT_TRUE (ret > 0);
     csoundReset(csound);
+}
+
+/* Host-implemented audio IO with -n leaves the software buffer at -b
+   (default IOBUFSAMPS: 128 on macOS, 256 on Windows). spout_interleave()
+   must still copy the full k-cycle into spout when ksmps exceeds that
+   buffer. Before the start-relative `end` fix, pass 2 set end == start
+   and left the rest of spout as the kperf memset zeros. */
+TEST_F (IOTests, testSpoutFilledWhenKsmpsExceedsSoftwareBuffer)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-d"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-b128"), CSOUND_SUCCESS);
+    csoundSetHostAudioIO(csound);
+
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      sr = 48000
+      ksmps = 512
+      nchnls = 2
+      0dbfs = 1
+      instr 1
+        a_out = poscil(0.1, 400)
+        outs(a_out, a_out)
+      endin
+    )", 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1\n", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundGetKsmps(csound), (uint32_t) 512);
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    const MYFLT *spout = csoundGetSpout(csound);
+    ASSERT_NE(spout, nullptr);
+    const uint32_t ksmps = csoundGetKsmps(csound);
+    const uint32_t nchnls = csoundGetChannels(csound, 0);
+    ASSERT_EQ(nchnls, (uint32_t) 2);
+
+    int32_t zerosAfterFirst = 0;
+    MYFLT peak = FL(0.0);
+    MYFLT maxStep = FL(0.0);
+    MYFLT prev = spout[0];
+    for (uint32_t i = 0; i < ksmps; ++i) {
+      MYFLT sample = spout[i * nchnls];
+      if (i > 0 && sample == FL(0.0))
+        zerosAfterFirst++;
+      if (std::fabs((double) sample) > (double) peak)
+        peak = sample >= FL(0.0) ? sample : -sample;
+      MYFLT step = sample - prev;
+      if (step < FL(0.0))
+        step = -step;
+      if (step > maxStep)
+        maxStep = step;
+      prev = sample;
+    }
+
+    /* 0.1 * sin(2*pi*400*t) at 48 kHz: max adjacent step ~ 0.00524. */
+    const MYFLT expectedMaxStep =
+      (MYFLT) (0.1 * 2.0 * 3.14159265358979323846 * 400.0 / 48000.0 * 1.5);
+    EXPECT_GT(peak, (MYFLT) 0.05) << "expected a sounding 400 Hz tone";
+    EXPECT_LT(zerosAfterFirst, 2)
+      << "trailing k-cycle frames were left as kperf zeros (ksmps > -b)";
+    EXPECT_LT(maxStep, expectedMaxStep)
+      << "discontinuity inside the k-cycle (max step " << maxStep << ")";
 }
