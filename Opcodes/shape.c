@@ -73,6 +73,7 @@ static int32_t PowerShape(CSOUND* csound, POWER_SHAPE* p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     amt = *(p->kshapeamount);
+    maxampl = p->maxamplitude;
     invmaxampl = p->one_over_maxamp;
     if (amt == FL(0.0)) {                    /* treat zero-power with care */
       for (n=offset; n<nsmps; n++) {
@@ -80,11 +81,10 @@ static int32_t PowerShape(CSOUND* csound, POWER_SHAPE* p)
         if (cur == FL(0.0))
           out[n] = FL(0.0);               /* make 0^0 = 0 for continuity */
         else
-          out[n] = FL(1.0)/invmaxampl;    /* otherwise, x^0 = 1.0 */
+          out[n] = cur < FL(0.0) ? -maxampl : maxampl;
       }
     }
     else {
-      maxampl = p->maxamplitude;
       for (n=offset; n<nsmps; n++) {
         cur = in[n] * invmaxampl;
         if (cur < FL(0.0))                /* treat negatives with care */
