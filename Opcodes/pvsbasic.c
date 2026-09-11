@@ -2186,48 +2186,50 @@ static int32_t pvswarp(CSOUND *csound, PVSWARP *p)
 
 static int32_t pvsblurset(CSOUND *csound, PVSBLUR *p)
 {
-  float   *delay;
-  int32    N = p->fin->N, i, j;
-  int32_t     olap = p->fin->overlap;
-  int32_t     delayframes, framesize = N + 2;
+  int32_t N = p->fin->N, olap = p->fin->overlap;
+  int32_t i, j, capacity;
+  double maxdel = *p->maxdel, frames;
+  size_t frame_bytes, delay_bytes;
+  float *delay;
+
   if (UNLIKELY(p->fin == p->fout))
     csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
-  if (p->fin->sliding) {
-    csound->InitError(csound, "%s", Str("pvsblur does not work sliding yet"));
-    delayframes = (int32_t) (FL(0.5) + *p->maxdel * CS_ESR);
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(MYFLT) * CS_KSMPS * (N + 2))
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
-                       &p->fout->frame);
+  if (UNLIKELY(p->fin->sliding))
+    return csound->InitError(csound, "%s",
+                             Str("pvsblur does not work sliding yet"));
+  if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) || olap <= 0 ||
+               (size_t)(N + 2) > SIZE_MAX / sizeof(float)))
+    return csound->InitError(csound, "%s", Str("pvsblur: invalid frame size"));
+  if (UNLIKELY(p->fin->format != PVS_AMP_FREQ &&
+               p->fin->format != PVS_AMP_PHASE))
+    return csound->InitError(csound, "%s",
+                             Str("pvsblur: format must be amp-freq or amp-phase"));
 
-    if (p->delframes.auxp == NULL ||
-        p->delframes.size < (N + 2) * sizeof(MYFLT) * CS_KSMPS * delayframes)
-      csound->AuxAlloc(csound,
-                       (N + 2) * sizeof(MYFLT) * CS_KSMPS * delayframes,
-                       &p->delframes);
-  }
-  else
-    {
-      p->frpsec = CS_ESR / olap;
+  p->frpsec = (double)CS_ESR / olap;
+  frames = maxdel * p->frpsec;
+  if (UNLIKELY(!(maxdel >= 0.0 && frames <= INT32_MAX)))
+    return csound->InitError(csound, "%s", Str("pvsblur: invalid maximum delay"));
+  p->maxframes = (int32_t)frames;
+  capacity = p->maxframes > 0 ? p->maxframes : 1;
+  frame_bytes = (size_t)(N + 2) * sizeof(float);
+  if (UNLIKELY((size_t)capacity > SIZE_MAX / frame_bytes))
+    return csound->InitError(csound, "%s", Str("pvsblur: delay buffer too large"));
+  delay_bytes = frame_bytes * capacity;
 
-      delayframes = (int32_t) (*p->maxdel * p->frpsec);
-
-      if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < sizeof(float) * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-
-      if (p->delframes.auxp == NULL ||
-          p->delframes.size < (N + 2) * sizeof(float) * CS_KSMPS * delayframes)
-        csound->AuxAlloc(csound, (N + 2) * sizeof(float) * delayframes,
-                         &p->delframes);
-    }
-  delay = (float *) p->delframes.auxp;
-
-  for (j = 0; j < framesize * delayframes; j += framesize)
+  if (p->fout->frame.auxp == NULL || p->fout->frame.size < frame_bytes)
+    csound->AuxAlloc(csound, frame_bytes, &p->fout->frame);
+  if (p->delframes.auxp == NULL || p->delframes.size < delay_bytes)
+    csound->AuxAlloc(csound, delay_bytes, &p->delframes);
+  memset(p->fout->frame.auxp, 0, frame_bytes);
+  delay = (float *)p->delframes.auxp;
+  for (j = 0; j < capacity; j++) {
+    float *frame = delay + (size_t)j * (N + 2);
     for (i = 0; i < N + 2; i += 2) {
-      delay[i + j] = 0.0f;
-      delay[i + j + 1] = i * CS_ESR / N;
+      frame[i] = 0.0f;
+      frame[i + 1] = p->fin->format == PVS_AMP_FREQ ?
+        (i / 2) * ((double)CS_ESR / N) : 0.0f;
     }
+  }
 
   p->fout->N = N;
   p->fout->overlap = olap;
@@ -2237,101 +2239,64 @@ static int32_t pvsblurset(CSOUND *csound, PVSBLUR *p)
   p->fout->framecount = 1;
   p->lastframe = 0;
   p->count = 0;
-  p->fout->sliding = p->fin->sliding;
-  p->fout->NB = p->fin->NB;
+  p->fout->sliding = 0;
+  p->fout->NB = N / 2 + 1;
   return OK;
 }
 
 static int32_t pvsblur(CSOUND *csound, PVSBLUR *p)
 {
-  int32    j, i, N = p->fout->N, first, framesize = N + 2;
-  int32    countr = p->count;
-  double  amp = 0.0, freq = 0.0;
-  int32_t     delayframes = (int32_t) (*p->kdel * p->frpsec);
-  int32_t     kdel = delayframes * framesize;
-  int32_t     mdel = (int32_t) (*p->maxdel * p->frpsec) * framesize;
-  float   *fin = (float *) p->fin->frame.auxp;
-  float   *fout = (float *) p->fout->frame.auxp;
-  float   *delay = (float *) p->delframes.auxp;
+  float *fin = (float *)p->fin->frame.auxp;
+  float *fout = (float *)p->fout->frame.auxp;
+  float *delay = (float *)p->delframes.auxp;
 
-  if (UNLIKELY(fout == NULL || delay == NULL)) goto err1;
+  if (UNLIKELY(fout == NULL || delay == NULL))
+    return csound->PerfError(csound, &(p->h), "%s",
+                             Str("pvsblur: not initialised"));
 
-  if (p->fin->sliding) {
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32_t NB = p->fin->NB;
-    kdel = kdel >= 0 ? (kdel < mdel ? kdel : mdel - framesize) : 0;
-    for (n=0; n<offset; n++) {
-      CMPLX   *fout = (CMPLX *) p->fout->frame.auxp +NB*n;
-      for (i = 0; i < NB; i++) fout[i].re = fout[i].im = FL(0.0);
-    }
-    for (n=offset; n<nsmps; n++) {
-      CMPLX   *fin = (CMPLX *) p->fin->frame.auxp +NB*n;
-      CMPLX   *fout = (CMPLX *) p->fout->frame.auxp +NB*n;
-      CMPLX   *delay = (CMPLX *) p->delframes.auxp +NB*n;
-
-      for (i = 0; i < NB; i++) {
-        delay[countr + i] = fin[i];
-        if (kdel) {
-          if ((first = countr - kdel) < 0)
-            first += mdel;
-
-          for (j = first; j != countr; j = (j + framesize) % mdel) {
-            amp += delay[j + i].re;
-            freq += delay[j + i].im;
-          }
-
-          fout[i].re = (MYFLT) (amp / delayframes);
-          fout[i].im = (MYFLT) (freq / delayframes);
-          amp = freq = FL(0.0);
-        }
-        else {
-          fout[i] = fin[i];
-        }
-      }
-    }
-    countr += (N + 2);
-    p->count = countr < mdel ? countr : 0;
-    return OK;
-  }
   if (p->lastframe < p->fin->framecount) {
+    int32_t i, first, delayframes, framesize = p->fout->N + 2;
+    int32_t capacity = p->maxframes > 0 ? p->maxframes : 1;
+    double frames = (double)*p->kdel * p->frpsec;
+    float *current = delay + (size_t)p->count * framesize;
 
-    kdel = kdel >= 0 ? (kdel < mdel ? kdel : mdel - framesize) : 0;
+    frames = frames < 0.0 ? 0.0 :
+      (frames > p->maxframes ? p->maxframes : frames);
+    if (UNLIKELY(!(frames >= 0.0)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("pvsblur: invalid blur time"));
+    delayframes = (int32_t)frames;
+    first = p->count - delayframes;
+    if (first < 0)
+      first += capacity;
 
-    for (i = 0; i < N + 2; i += 2) {
-
-      delay[countr + i] = fin[i];
-      delay[countr + i + 1] = fin[i + 1];
-
-      if (kdel) {
-
-        if ((first = countr - kdel) < 0)
-          first += mdel;
-
-        for (j = first; j != countr; j = (j + framesize) % mdel) {
-          amp += delay[j + i];
-          freq += delay[j + i + 1];
+    for (i = 0; i < framesize; i += 2) {
+      double amp = fin[i], freq = fin[i + 1];
+      if (delayframes > 0) {
+        int32_t j, frame = first;
+        amp = freq = 0.0;
+        for (j = 0; j < delayframes; j++) {
+          const float *past = delay + (size_t)frame * framesize + i;
+          amp += past[0];
+          freq += past[1];
+          if (++frame == capacity)
+            frame = 0;
         }
-
-        fout[i] = (float) (amp / delayframes);
-        fout[i + 1] = (float) (freq / delayframes);
-        amp = freq = 0.;
+        amp /= delayframes;
+        freq /= delayframes;
       }
-      else {
-        fout[i] = fin[i];
-        fout[i + 1] = fin[i + 1];
-      }
+      /* At the maximum window, this slot still holds the oldest frame.
+         Read it before replacing it with the current input. */
+      current[i] = fin[i];
+      current[i + 1] = fin[i + 1];
+      fout[i] = (float)amp;
+      fout[i + 1] = (float)freq;
     }
-
     p->fout->framecount = p->lastframe = p->fin->framecount;
-    countr += (N + 2);
-    p->count = countr < mdel ? countr : 0;
+    if (++p->count == capacity)
+      p->count = 0;
   }
-
   return OK;
- err1:
-  return csound->PerfError(csound, &(p->h),
-                           "%s", Str("pvsblur: not initialised"));
 }
 
 /* pvstencil  */
