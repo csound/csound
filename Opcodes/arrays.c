@@ -1077,36 +1077,60 @@ static int32_t shiftout_perf(CSOUND *csound, FFT *p) {
 }
 
 
-static int32_t unwrap_set(CSOUND *csound, FFT *p) {
+typedef struct {
+  OPDS h;
+  ARRAYDAT *out, *in;
+  MYFLT *mode;
+  AUXCH mem;
+  int32_t size, unwrap;
+} UNWRAP;
+
+static int32_t unwrap_set(CSOUND *csound, UNWRAP *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
+  if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                            Str("unwrap: expected one-dimensional arrays"));
+  if (UNLIKELY(*p->mode != FL(0) && *p->mode != FL(1)))
+    return csound->InitError(csound, "%s", Str("unwrap: mode must be 0 or 1"));
   int32_t N = p->in->sizes[0];
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
-  if(*((MYFLT *)p->in2) != FL(0)) {
-    csound->AuxAlloc(csound, N*sizeof(float), &p->mem);
-    memset(p->mem.auxp, 0, N*sizeof(float));
+  p->size = N;
+  p->unwrap = *p->mode == FL(1);
+  if (p->unwrap && N > 0) {
+    csound->AuxAlloc(csound, (size_t) N*sizeof(MYFLT), &p->mem);
   }
   return OK;
 }
 
-
-static int32_t unwrap(CSOUND *csound, FFT *p) {
-  if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");;
-  int32_t i,siz = p->in->sizes[0];
-  int32_t mode = (int32_t) *((MYFLT *)p->in2);
-  MYFLT *phs = p->out->data;
-  if(mode == 0) { // wrap
-  for (i=0; i < siz; i++) {
-    while (phs[i] >= PI) phs[i] -= TWOPI;
-    while (phs[i] < -PI) phs[i] += TWOPI;
+/* Reduce large phase jumps in one step, keeping the interval [-pi, pi). */
+static inline double unwrap_phase(double phase) {
+  if (phase >= PI || phase < -PI) {
+    phase = fmod(phase, TWOPI);
+    if (phase >= PI) phase -= TWOPI;
+    else if (phase < -PI) phase += TWOPI;
   }
-  } else {  // unwrap
+  return phase;
+}
+
+static int32_t unwrap(CSOUND *csound, UNWRAP *p) {
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->in->sizes[0] != p->size || p->out->dimensions != 1))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("unwrap: array shape changed"));
+  if (UNLIKELY(tabcheck(csound, p->out, p->size, &p->h) != OK))
+    return NOTOK;
+  int32_t i;
+  MYFLT *in = p->in->data;
+  MYFLT *phs = p->out->data;
+  if (!p->unwrap) {
+    for (i=0; i < p->size; i++)
+      phs[i] = (MYFLT) unwrap_phase(in[i]);
+  } else {
     MYFLT *ophs = (MYFLT *) p->mem.auxp;
-    for (i=0; i < siz; i++) {
-      while (ophs[i] - phs[i] >= PI) phs[i] -= 2*PI;
-      while (ophs[i] - phs[i] < -PI) phs[i] += 2*PI;
+    for (i=0; i < p->size; i++) {
+      phs[i] = (MYFLT) (ophs[i] + unwrap_phase((double) in[i] - ophs[i]));
       ophs[i] = phs[i];
     }
   }
@@ -1484,7 +1508,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR) shiftin_init, (SUBR) shiftin_perf},
     {"shiftout", sizeof(FFT), 0, "a","k[]o",
      (SUBR) shiftout_init, (SUBR) shiftout_perf},
-    {"unwrap", sizeof(FFT), 0, "k[]","k[]o",
+    {"unwrap", sizeof(UNWRAP), 0, "k[]","k[]o",
      (SUBR) unwrap_set, (SUBR) unwrap},
     {"dct", sizeof(FFT), 0, "k[]","k[]",
      (SUBR) init_dct, (SUBR) kdct, NULL},
