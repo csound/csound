@@ -849,6 +849,7 @@ def runTest():
         ["test_syncphasor_invalid_phase.csd", "reject invalid syncphasor phase", 1],
         ["test_syncphasor_invalid_frequency.csd", "reject invalid syncphasor frequency", 1],
         ["test_sa.csd", "test sample accurate mode"],
+        ["test_diode_ladder_saturation.csd", "diode_ladder saturation and filter history"],
         ["test_gain_sample_bounds.csd", "gain RMS and output over partial blocks"],
         ["test_eqfil_sample_offset.csd", "eqfil advances state only for active samples"],
         ["test_svfilter_state.csd", "svfilter reset, preserved state, and input reuse"],
