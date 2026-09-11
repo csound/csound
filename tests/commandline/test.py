@@ -851,6 +851,8 @@ def runTest():
         ["test_splice_instance.csd", "test splicing instr order"],
         ["test_create_init_perf_delete.csd", "testing new instance opcodes"],
         ["test_complex_numbers.csd", "testing complex number operations"],
+        ["test_ftconv_impulse_length.csd", "ftconv impulse length and partition state"],
+        ["test_ftconv_invalid_sizes.csd", "ftconv rejects invalid sizes", 1],
         ["test_rfft.csd", "testing real-to-complex and complex-to-real fft"],
         ["test_quadrature_osc.csd", "testing quadrature oscillator"],
         [
