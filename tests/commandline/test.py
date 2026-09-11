@@ -615,6 +615,7 @@ def runTest():
         ["test_partikkel_float_table_index.csd", "partikkel uses the scaled index for float table lookup"],
         ["test_grain4_correctness.csd", "grain4 handles envelopes, boundaries, and unused pitches"],
         ["test_gendy_correctness.csd", "gendy handles audio blocks and bounded integer state"],
+        ["test_looptseg_curves.csd", "looptseg curve stability"],
         ["test_grain4_region_rounding.csd", "grain4 preserves sample rounding for source regions"],
         ["test_grain4_zero_length.csd", "reject zero grain4 source length", 1],
         ["test_grain4_subsample_length.csd", "reject sub-sample grain4 source length", 1],

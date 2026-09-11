@@ -600,9 +600,15 @@ static int32_t looptseg(CSOUND *csound, LOOPTSEG *p)
         MYFLT v2 = (j!=nsegs-1)?*(p->argums[j+1].start):*(p->argums[0].start);
         if (alpha==FL(0.0))
           *p->out = v1 + (v2 - v1) * fract;
+        else if (alpha > FL(0.0))
+          /* Keep exponents nonpositive to avoid overflow.  expm1 also
+             preserves the linear limit when the curve is close to zero. */
+          *p->out = v1 + (v2 - v1) *
+            exp((double)alpha * (fract - 1.0)) *
+            (expm1(-(double)alpha * fract) / expm1(-(double)alpha));
         else
-          *p->out = v1 +
-            (v2 - v1) * (FL(1.0)-EXP(alpha*fract))/(FL(1.0)-EXP(alpha));
+          *p->out = v1 + (v2 - v1) *
+            (expm1((double)alpha * fract) / expm1((double)alpha));
         break;
       }
     }
