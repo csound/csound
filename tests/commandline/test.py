@@ -929,6 +929,7 @@ def runTest():
         ["test_adsr_zero_reinit.csd", "ADSR reinitialization with zero attack"],
         ["test_madsr_release_override.csd", "madsr release overrides"],
         ["test_mvmfilter_mixed_rate.csd", "test mvmfilter with mixed input rates"],
+        ["test_lowres_audio.csd", "test lowres audio parameters and input reuse"],
         ["test_flanger_buffer.csd", "test flanger buffer limits and reinit"],
         [
             "test_flanger_invalid_maximum.csd",
