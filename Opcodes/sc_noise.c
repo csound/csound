@@ -260,6 +260,8 @@ static int32_t gausstrig_initk(CSOUND* csound, GAUSSTRIG *p)
 static int32_t gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
 {
     MYFLT frq, dev;
+    if (p->mmode && p->count > 0 && *p->kfrq != p->frq0)
+      p->first = 1;  /* Recalculate the pending delay at the new frequency. */
     p->frq0 = *p->kfrq;
     frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
     dev = *p->kdev;
@@ -308,8 +310,6 @@ static int32_t gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
       *p->out = *p->kamp;
     }
     else {
-      if (p->mmode && *p->kfrq != p->frq0)
-        p->count = 0;
       *p->out = FL(0.0);
     }
     p->count--;
@@ -323,6 +323,8 @@ static int32_t gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out = p->out;
     MYFLT frq, dev;
+    if (p->mmode && p->count > 0 && *p->kfrq != p->frq0)
+      p->first = 1;  /* Once per block: kfrq cannot change within the loop. */
     p->frq0 = *p->kfrq;
     frq = (p->frq0 > FL(0.001) ? p->frq0 : FL(0.001));
     dev = *p->kdev;
@@ -379,8 +381,6 @@ static int32_t gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
         out[n] = *p->kamp;
       }
       else {
-        if (p->mmode && *p->kfrq != p->frq0)
-          p->count = 0;
         out[n] = FL(0.0);
       }
       p->count--;
