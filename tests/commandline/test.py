@@ -601,6 +601,7 @@ def runTest():
             "pvsadsyn rejects invalid bin increments",
             1,
         ],
+        ["test_hilbert2_state.csd", "hilbert2 input reuse, partial blocks and reinit"],
         ["test_repluck_correctness.csd", "test plucked-string waveguide limits"],
         ["test_repluck_sample_offset.csd", "test repluck sample-accurate input"],
         [

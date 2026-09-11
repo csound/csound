@@ -1532,9 +1532,10 @@ static int32_t hilbert_init(CSOUND *csound, HILB *p) {
     }
 
     size = N*sizeof(MYFLT);
-    if (p->win.auxp == NULL || p->win.size < size) {
-      MYFLT x = FL(2.0)*PI_F/N;
+    if (p->win.auxp == NULL || p->win.size < size)
       csound->AuxAlloc(csound, size, &p->win);
+    {
+      MYFLT x = FL(2.0)*PI_F/N;
       for (i=0; i < N; i++)
         ((MYFLT *)p->win.auxp)[i] = FL(0.5) - FL(0.5)*COS((MYFLT)i*x);
     }
@@ -1594,9 +1595,10 @@ static int32_t hilbert_proc(CSOUND *csound, HILB *p) {
         off += fftsize;
         p->off = off = off%(fftsize*decim);
       }
+      MYFLT input = in[n];
       out[0][n] = out[1][n] = FL(0.0);
       for (i = 0; i < decim; i++) {
-        inframe[iframecnt[i]+i*fftsize] = in[n];
+        inframe[iframecnt[i]+i*fftsize] = input;
         iframecnt[i] = iframecnt[i] == fftsize-1 ? 0 : iframecnt[i]+1;
         k = 2*i*fftsize;
         out[0][n] += outframe[oframecnt[i]+k];
@@ -1663,9 +1665,10 @@ static int32_t hilbert_array_init(CSOUND *csound, HILBA *p) {
     }
 
     size = N*sizeof(MYFLT);
-    if (p->win.auxp == NULL || p->win.size < size) {
-      MYFLT x = FL(2.0)*PI_F/N;
+    if (p->win.auxp == NULL || p->win.size < size)
       csound->AuxAlloc(csound, size, &p->win);
+    {
+      MYFLT x = FL(2.0)*PI_F/N;
       for (i=0; i < N; i++)
         ((MYFLT *)p->win.auxp)[i] = FL(0.5) - FL(0.5)*COS((MYFLT)i*x);
     }
@@ -1701,7 +1704,7 @@ static int32_t hilbert_array_proc(CSOUND *csound, HILBA *p) {
 
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(out, '\0', early*sizeof(COMPLEXDAT));
+      memset(&out[nsmps], '\0', early*sizeof(COMPLEXDAT));
     }
     if (UNLIKELY(offset)) {
         memset(out, '\0', offset*sizeof(COMPLEXDAT));
