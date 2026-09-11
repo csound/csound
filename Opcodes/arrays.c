@@ -583,41 +583,54 @@ static int32_t ctor_i(CSOUND *csound, FFT *p) {
 static int32_t init_window(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
+  if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                            Str("window: expected one-dimensional arrays"));
+  if (UNLIKELY(*p->f != FL(0) && *p->f != FL(1)))
+    return csound->InitError(csound, "%s", Str("window: type must be 0 or 1"));
   int32_t   N = p->in->sizes[0];
-  int32_t   i,type = (int32_t) *p->f;
+  int32_t   i;
   MYFLT *w;
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
-  if (p->mem.auxp == 0 || p->mem.size < N*sizeof(MYFLT))
-    csound->AuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
+  p->n = N;
+  if (N > 0 && (p->mem.auxp == 0 || p->mem.size < (size_t) N*sizeof(MYFLT)))
+    csound->AuxAlloc(csound, (size_t) N*sizeof(MYFLT), &p->mem);
   w = (MYFLT *) p->mem.auxp;
-  switch(type) {
-  case 0:
+  if (*p->f == FL(0)) {
     for (i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*TWOPI/N);
-    break;
-  case 1:
-  default:
+  } else {
     for (i = 0; i < N; i++)
       w[i] = 0.5 - 0.5*cos(i*TWOPI/N);
-    //for (i = 0; i < N/2; i++)
-    //w[i+N/2] = w[N/2-i-1];
   }
   return OK;
 }
 
 static int32_t perf_window(CSOUND *csound, FFT *p) {
-  IGN(csound);
-  int32_t i,end = p->out->sizes[0], off = *((MYFLT *)p->in2);
+  int32_t i, end = p->n, off;
+  double offset = *((MYFLT *)p->in2);
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->in->sizes[0] != end || p->out->dimensions != 1))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("window: array shape changed"));
+  if (UNLIKELY(tabcheck(csound, p->out, end, &p->h) != OK))
+    return NOTOK;
+  if (UNLIKELY(offset < 0 || !isfinite(offset)))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("window: offset must be finite and non-negative"));
+  if (end == 0) return OK;
+  /* Reduce before converting to an index; offsets may span many windows. */
+  if (offset >= end) offset = fmod(offset, end);
+  off = (int32_t) offset;
+  if (off) off = end - off;
   MYFLT *in, *out, *w;
   in = p->in->data;
   out = p->out->data;
   w = (MYFLT *) p->mem.auxp;
-  /*while (off < 0) off += end;
-    for (i=0;i<end;i++)
-    out[(i+off)%end] = in[i]*w[i];*/
-  if(off) off = end - off;
-  for(i=0;i<end;i++)
-    out[i] = in[i]*w[(i+off)%end];
+  for(i=0;i<end;i++) {
+    out[i] = in[i]*w[off];
+    if (++off == end) off = 0;
+  }
   return OK;
 
 }
