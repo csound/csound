@@ -28,7 +28,7 @@
 /*
 The iConfigTab is made up of the following parameters:
 f #  time size -2  inactive_flag1 inactive_flag2 ... inactiveflagN
-a 1 value means that corresponding parameter is left unchanged by the HVS opcode
+a -1 value means that corresponding parameter is left unchanged by the HVS opcode
 
 
 The iPositionsTab is made up of the positions of the snapshots
@@ -49,6 +49,18 @@ element 2 represents the third element of iSnapTab and so on.
 Obviously, iOutTab size must be >= inumParms.
 
 */
+
+/* Keep both interpolation vertices inside the grid, including at coordinate 1. */
+#define HVS_COORDINATE(value, count, pos, frac) do {                       \
+    MYFLT scaled_ = (value) * ((count) - 1);                              \
+    if (scaled_ <= FL(0.0)) {                                            \
+      (pos) = 0; (frac) = FL(0.0);                                       \
+    } else if (scaled_ >= (count) - 1) {                                  \
+      (pos) = (count) - 2; (frac) = FL(1.0);                              \
+    } else {                                                            \
+      (pos) = (int32_t)scaled_; (frac) = scaled_ - (pos);                  \
+    }                                                                   \
+} while (0)
 
 typedef struct {
         OPDS    h;
@@ -80,7 +92,7 @@ static int32_t hvs1_set(CSOUND *csound, HVS1 *p)
     else {
       if (UNLIKELY((ftp = csound->FTFind(csound, p->iConfigTab)) == NULL))
         return csound->InitError(csound, "%s", Str("hvs: no config table"));
-      p->outTable = ftp->ftable;
+      p->confTable = ftp->ftable;
       p->iconfFlag = 1;
     }
     return OK;
@@ -90,13 +102,11 @@ static int32_t hvs1_set(CSOUND *csound, HVS1 *p)
 static int32_t hvs1(CSOUND *csound, HVS1 *p)
 {
     IGN(csound);
-    MYFLT x = *p->kx * (*p->inumPointsX-1);
-    int32_t posX = (int32_t) x;
-
-    MYFLT fracX = x - posX;
-
+    int32_t posX;
+    MYFLT fracX;
     int32_t noc = (int32_t) *p->inumParms;
-//      int32_t linesX = (int32_t) *p->inumPointsX;
+    int32_t pointsX = (int32_t) *p->inumPointsX;
+    HVS_COORDINATE(*p->kx, pointsX, posX, fracX);
 
     int32_t ndx1 = (int32_t) p->posTable[posX];
     int32_t ndx2 = (int32_t) p->posTable[posX+1];
@@ -167,7 +177,7 @@ static int32_t hvs2_set(CSOUND *csound, HVS2 *p)
     else {
       if (UNLIKELY((ftp = csound->FTFind(csound, p->iConfigTab)) == NULL))
         return csound->InitError(csound, "%s", Str("hvs: no config table"));
-      p->outTable = ftp->ftable;
+      p->confTable = ftp->ftable;
       p->iconfFlag = 1;
     }
     return OK;
@@ -177,16 +187,13 @@ static int32_t hvs2_set(CSOUND *csound, HVS2 *p)
 static int32_t hvs2(CSOUND *csound, HVS2 *p)
 {
     IGN(csound);
-    MYFLT x = *p->kx * (*p->inumlinesX-1);
-    MYFLT y = *p->ky * (*p->inumlinesY-1);
-    int32_t posX = (int32_t) x;
-    int32_t posY = (int32_t) y;
-
-    MYFLT fracX = x - posX;
-    MYFLT fracY = y - posY;
-
+    int32_t posX, posY;
+    MYFLT fracX, fracY;
     int32_t noc = (int32_t) *p->inumParms;
     int32_t linesX = (int32_t) *p->inumlinesX;
+    int32_t linesY = (int32_t) *p->inumlinesY;
+    HVS_COORDINATE(*p->kx, linesX, posX, fracX);
+    HVS_COORDINATE(*p->ky, linesY, posY, fracY);
 
     int32_t ndx1 = (int32_t) p->posTable[posX   + posY     * linesX];
     int32_t ndx2 = (int32_t) p->posTable[posX+1 + posY     * linesX];
@@ -258,9 +265,10 @@ static int32_t hvs3_set(CSOUND *csound, HVS3 *p)
     if (UNLIKELY((ftp = csound->FTFind(csound, p->iSnapTab)) == NULL))
       return csound->InitError(csound, "%s", Str("hvs: No snap table"));
     p->snapTable = ftp->ftable;
-    if (UNLIKELY(*p->inumlinesX < 2 || *p->inumlinesY < 2))
-      return csound->InitError(csound, "%s", Str("hvs3: a square area must be "
-                                           "delimited by 2 lines at least"));
+    if (UNLIKELY(*p->inumlinesX < 2 || *p->inumlinesY < 2 ||
+                 *p->inumlinesZ < 2))
+      return csound->InitError(csound, "%s",
+                              Str("hvs3: each axis must have at least 2 points"));
 
 
     if (LIKELY(*p->iConfigTab == 0))
@@ -268,7 +276,7 @@ static int32_t hvs3_set(CSOUND *csound, HVS3 *p)
     else {
       if ((ftp = csound->FTFind(csound, p->iConfigTab)) == NULL)
         return csound->InitError(csound, "%s", Str("hvs: no config table"));
-      p->outTable = ftp->ftable;
+      p->confTable = ftp->ftable;
       p->iconfFlag = 1;
     }
     return OK;
@@ -278,21 +286,16 @@ static int32_t hvs3_set(CSOUND *csound, HVS3 *p)
 static int32_t hvs3(CSOUND *csound, HVS3 *p)
 {
     IGN(csound);
-    MYFLT x = *p->kx * (*p->inumlinesX-1);
-    MYFLT y = *p->ky * (*p->inumlinesY-1);
-    MYFLT z = *p->kz * (*p->inumlinesZ-1);
-    int32_t posX = (int32_t) x;
-    int32_t posY = (int32_t) y;
-    int32_t posZ = (int32_t) z;
-
-
-    MYFLT fracX = x - posX;
-    MYFLT fracY = y - posY;
-    MYFLT fracZ = z - posZ;
-
-    int32_t noc         = (int32_t) *p->inumParms;
-    int32_t linesX      = (int32_t) *p->inumlinesX;
-    int32_t linesXY  = linesX * (int32_t) *p->inumlinesY;
+    int32_t posX, posY, posZ;
+    MYFLT fracX, fracY, fracZ;
+    int32_t noc = (int32_t) *p->inumParms;
+    int32_t linesX = (int32_t) *p->inumlinesX;
+    int32_t linesY = (int32_t) *p->inumlinesY;
+    int32_t linesZ = (int32_t) *p->inumlinesZ;
+    int32_t linesXY = linesX * linesY;
+    HVS_COORDINATE(*p->kx, linesX, posX, fracX);
+    HVS_COORDINATE(*p->ky, linesY, posY, fracY);
+    HVS_COORDINATE(*p->kz, linesZ, posZ, fracZ);
 
     int32_t ndx1 = (int32_t) p->posTable[posX  +posY    *linesX+posZ*linesXY];
     int32_t ndx2 = (int32_t) p->posTable[posX+1+posY    *linesX+posZ*linesXY];
@@ -367,6 +370,8 @@ static int32_t hvs3(CSOUND *csound, HVS3 *p)
     }
     return OK;
 }
+
+#undef HVS_COORDINATE
 
 /* -------------------------------------------------------------------- */
 
@@ -518,4 +523,3 @@ int32_t hvs_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(hvs_localops[0]),
                                  (int32_t) (sizeof(hvs_localops) / sizeof(OENTRY)));
 }
-

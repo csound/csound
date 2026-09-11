@@ -643,6 +643,7 @@ def runTest():
         ["test_pan2_input_aliasing.csd", "pan2 preserves input samples when outputs reuse them"],
         ["test_bformdec1_surround.csd", "bformdec1 preserves partial blocks and selects the input order"],
         ["test_space_trajectory_endpoint.csd", "space and spdist handle the last trajectory frame"],
+        ["test_hvs_interpolation.csd", "HVS configuration and grid endpoints"],
         ["test_physmod_vibrato_bounds.csd", "test waveguide vibrato bounds"],
         ["test_oscbnk_float_phase_state.csd", "oscbnk preserves non-power-of-two oscillator phase"],
         ["test_vco_float_phase_state.csd", "vco preserves non-power-of-two oscillator phase"],
