@@ -935,6 +935,7 @@ def runTest():
         ["test_vdelay_reinit.csd", "test variable delay state across reinit"],
         ["test_vdelay_invalid_maximum.csd", "reject invalid maximum delay", 1],
         ["test_vdelay_invalid_delay.csd", "reject non-finite delay", 1],
+        ["test_comb_units.csd", "comb family delay units, rate handling and partial blocks"],
         ["test_random_rate_correctness.csd", "randomi and randomh rate handling"],
         ["test_mirror_bounds.csd", "test mirror boundaries and large inputs"],
         ["test_atonex_order_one.csd", "test atonex order-one filtering"],
