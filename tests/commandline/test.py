@@ -878,6 +878,7 @@ def runTest():
         ["test_diode_ladder_saturation.csd", "diode_ladder saturation and filter history"],
         ["test_pareq_initial_state.csd", "pareq first skip, reset, and preserved state"],
         ["test_gain_sample_bounds.csd", "gain RMS and output over partial blocks"],
+        ["test_lufs_power.csd", "lufs full scale, gates, reset, and sample bounds"],
         ["test_eqfil_sample_offset.csd", "eqfil advances state only for active samples"],
         ["test_areson_audio.csd", "test areson audio coefficients and preserved state"],
         ["test_svfilter_state.csd", "svfilter reset, preserved state, and input reuse"],
