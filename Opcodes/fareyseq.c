@@ -32,7 +32,6 @@
 #include <math.h>
 #include <time.h>
 
-#define MAX_PFACTOR 16
 const int32_t MAX_PRIMES = 1229;
 const int32_t primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
                       47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103,
@@ -168,11 +167,6 @@ const int32_t primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
                       9851, 9857, 9859, 9871, 9883, 9887, 9901, 9907, 9923,
                       9929, 9931, 9941, 9949, 9967, 9973};
 
-typedef struct pfactor_ {
-    int32_t expon;
-    int32_t base;
-} PFACTOR;
-
 /* opcodes striuctures */
 typedef struct {
     OPDS h;
@@ -207,6 +201,7 @@ int32_t tablefilter (CSOUND*,TABFILT *p);
 int32_t tablefilterset (CSOUND*,TABFILT *p);
 int32_t tableifilter (CSOUND*, TABFILT *p);
 int32_t fareylen (CSOUND*, FAREYLEN *p);
+int32_t fareyleni (CSOUND*, FAREYLEN *p);
 int32_t tableshuffle (CSOUND*, TABSHUFFLE *p);
 int32_t tableshuffleset (CSOUND*, TABSHUFFLE *p);
 int32_t tableishuffle (CSOUND *, TABSHUFFLE *p);
@@ -214,7 +209,6 @@ int32_t tableishuffle (CSOUND *, TABSHUFFLE *p);
 /* utility functions */
 int32_t EulerPhi (int32_t n);
 int32_t FareyLength (int32_t n);
-int32_t PrimeFactors (int32_t n, PFACTOR p[]);
 MYFLT Digest (int32_t n);
 void float2frac (CSOUND *csound, MYFLT in, int32_t *p, int32_t *q);
 void float_to_cfrac (CSOUND *csound, double r, int32_t n,
@@ -527,9 +521,28 @@ static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
 
 int32_t fareylen (CSOUND *csound, FAREYLEN *p)
 {
-    IGN(csound);
-    int32_t n = (int32_t) *p->kn;
-    *p->kr = (MYFLT) FareyLength (n);
+    int32_t length;
+    if (UNLIKELY(!(*p->kn >= FL(1.0) && (double)*p->kn <= INT32_MAX)))
+      return csound->PerfError(csound, &(p->h),
+                               Str("fareylen: invalid sequence order"));
+    length = FareyLength((int32_t)*p->kn);
+    if (UNLIKELY(length == 0))
+      return csound->PerfError(csound, &(p->h),
+                               Str("fareylen: sequence length exceeds int32 range"));
+    *p->kr = (MYFLT)length;
+    return OK;
+}
+
+int32_t fareyleni (CSOUND *csound, FAREYLEN *p)
+{
+    int32_t length;
+    if (UNLIKELY(!(*p->kn >= FL(1.0) && (double)*p->kn <= INT32_MAX)))
+      return csound->InitError(csound, Str("fareylen: invalid sequence order"));
+    length = FareyLength((int32_t)*p->kn);
+    if (UNLIKELY(length == 0))
+      return csound->InitError(csound,
+                               Str("fareylen: sequence length exceeds int32 range"));
+    *p->kr = (MYFLT)length;
     return OK;
 }
 
@@ -537,74 +550,30 @@ int32_t fareylen (CSOUND *csound, FAREYLEN *p)
 
 int32_t EulerPhi (int32_t n)
 {
-    int32_t i = 0;
-    //int32_t pcount;
-    MYFLT result;
-    PFACTOR p[MAX_PFACTOR];
-    memset(p, 0, sizeof(PFACTOR)*MAX_PFACTOR);
-
-    if (n == 1)
-      return 1;
-    if (n == 0)
-      return 0;
-    (void)PrimeFactors (n, p);
-
-    result = (MYFLT)n;
-    for (i = 0; i < MAX_PFACTOR; i++) {
-      int32_t q = p[i].base;
-      if (!q)
-        break;
-      result *= (FL(1.0) - FL(1.0) / (MYFLT) q);
+    int32_t prime, result = n;
+    for (prime = 2; prime <= n / prime; prime++) {
+      if (n % prime == 0) {
+        result -= result / prime;
+        do {
+          n /= prime;
+        } while (n % prime == 0);
+      }
     }
-    return (int32_t) result;
+    if (n > 1)
+      result -= result / n;
+    return result;
 }
 
 int32_t FareyLength (int32_t n)
 {
-    int32_t i = 1;
-    int32_t result = 1;
-    n++;
-    for (; i < n; i++)
-      result += EulerPhi (i);
+    int32_t i, result = 1;
+    for (i = 1; i <= n; i++) {
+      int32_t phi = EulerPhi(i);
+      if (phi > INT32_MAX - result)
+        return 0;
+      result += phi;
+    }
     return result;
-}
-
-
-int32_t PrimeFactors (int32_t n, PFACTOR p[])
-{
-    int32_t i = 0; int32_t j = 0;
-    int32_t i_exp = 0;
-    int32_t pcount = 0;
-
-    if (!n)
-      return pcount;
-
-    while (i < MAX_PRIMES)
-      {
-        int32_t aprime = primes[i++];
-        if (j == MAX_PFACTOR || aprime > n) {
-          return pcount;
-        }
-        if (n == aprime)
-          {
-            p[j].expon = 1;
-            p[j].base = n;
-            return (++pcount);
-          }
-        i_exp = 0;
-        while (!(n % aprime))
-          {
-            i_exp++;
-            n /= aprime;
-          }
-        if (i_exp)
-          {
-            p[j].expon = i_exp;
-            p[j].base = aprime;
-            ++pcount; ++j;
-          }
-      }
-    return j;
 }
 
 /* ----------------------------------------------- *
@@ -744,7 +713,7 @@ static OENTRY fareyseq_localops[] = {
     {"tablefilteri", S(TABFILT),TB,  "i", "iiii", (SUBR) tableifilter,NULL,NULL},
     {"tablefilter", S(TABFILT), TB,  "k", "kkkk",
                                 (SUBR) tablefilterset, (SUBR) tablefilter, NULL},
-    {"fareyleni", S(FAREYLEN), TR,  "i", "i", (SUBR) fareylen, NULL, NULL},
+    {"fareyleni", S(FAREYLEN), TR,  "i", "i", (SUBR) fareyleni, NULL, NULL},
     {"fareylen", S(FAREYLEN), TR,  "k", "k", NULL, (SUBR) fareylen, NULL},
     {"tableshufflei", S(TABSHUFFLE), TB,  "", "i",
                                       (SUBR) tableishuffle, NULL, NULL},
