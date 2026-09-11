@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cmath>
 #include <future>
+#include <string>
 #include <thread>
 #include "gtest/gtest.h"
 #define __BUILDING_LIBCSOUND
@@ -688,11 +689,11 @@ TEST_F (IOTests, testMidiHostBased)
     csoundReset(csound);
 }
 
-/* Host-implemented audio IO with -n leaves the software buffer at -b
-   (default IOBUFSAMPS: 128 on macOS, 256 on Windows). spout_interleave()
-   must still copy the full k-cycle into spout when ksmps exceeds that
-   buffer. Before the start-relative `end` fix, pass 2 set end == start
-   and left the rest of spout as the kperf memset zeros. */
+/* Host-implemented audio IO with -n used to leave -b at IOBUFSAMPS.
+   initialise_io() now raises -b to ksmps (and scales -B). This still
+   asserts a continuous spout when the CSD asks for ksmps > the requested
+   -b. The start-relative `end` fix in spout_interleave() remains for the
+   continuation path if that split ever runs. */
 TEST_F (IOTests, testSpoutFilledWhenKsmpsExceedsSoftwareBuffer)
 {
     ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
@@ -747,4 +748,94 @@ TEST_F (IOTests, testSpoutFilledWhenKsmpsExceedsSoftwareBuffer)
       << "trailing k-cycle frames were left as kperf zeros (ksmps > -b)";
     EXPECT_LT(maxStep, expectedMaxStep)
       << "discontinuity inside the k-cycle (max step " << maxStep << ")";
+}
+
+static std::string ioTestDrainMessages(CSOUND *csound)
+{
+    std::string messages;
+    while (csoundGetMessageCnt(csound)) {
+      messages += csoundGetFirstMessage(csound);
+      csoundPopFirstMessage(csound);
+    }
+    return messages;
+}
+
+/* Host IO with -n skips the -odac clamp in initialise_io(), so default
+   -b stays at IOBUFSAMPS. ksmps > -b should raise -b to ksmps, scale -B
+   to keep the original b:B ratio, and warn. */
+TEST_F (IOTests, testSoftwareBufferClampedToKsmpsPreservesBRatio)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-b128"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-B512"), CSOUND_SUCCESS);
+    csoundSetHostAudioIO(csound);
+
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      sr = 48000
+      ksmps = 512
+      nchnls = 2
+      0dbfs = 1
+      instr 1
+        a_out = poscil(0.1, 400)
+        outs(a_out, a_out)
+      endin
+    )", 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1\n", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    const OPARMS *params = csoundGetParams(csound);
+    ASSERT_NE(params, nullptr);
+    const uint32_t nchnls = csoundGetChannels(csound, 0);
+    ASSERT_EQ(nchnls, (uint32_t) 2);
+    EXPECT_EQ(params->outbufsamps, 512 * (int32_t) nchnls)
+      << "expected -b raised from 128 to ksmps";
+    EXPECT_EQ(params->oMaxLag, 2048)
+      << "expected -B scaled 512 * (512/128) to preserve b:B";
+
+    std::string messages = ioTestDrainMessages(csound);
+    EXPECT_NE(std::string::npos, messages.find("increasing -b"))
+      << "expected a warning that -b was raised; got:\n" << messages;
+
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    const MYFLT *spout = csoundGetSpout(csound);
+    ASSERT_NE(spout, nullptr);
+    MYFLT peak = FL(0.0);
+    for (uint32_t i = 0; i < 512; ++i) {
+      MYFLT sample = spout[i * nchnls];
+      if (sample < FL(0.0))
+        sample = -sample;
+      if (sample > peak)
+        peak = sample;
+    }
+    EXPECT_GT(peak, (MYFLT) 0.05) << "expected a sounding 400 Hz tone";
+}
+
+TEST_F (IOTests, testSoftwareBufferUnchangedWhenKsmpsFits)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-b128"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-B512"), CSOUND_SUCCESS);
+    csoundSetHostAudioIO(csound);
+
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      sr = 48000
+      ksmps = 64
+      nchnls = 2
+      0dbfs = 1
+      instr 1
+        a_out = poscil(0.1, 400)
+        outs(a_out, a_out)
+      endin
+    )", 0), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    const OPARMS *params = csoundGetParams(csound);
+    ASSERT_NE(params, nullptr);
+    const uint32_t nchnls = csoundGetChannels(csound, 0);
+    EXPECT_EQ(params->outbufsamps, 128 * (int32_t) nchnls);
+    EXPECT_EQ(params->oMaxLag, 512);
+
+    std::string messages = ioTestDrainMessages(csound);
+    EXPECT_EQ(std::string::npos, messages.find("increasing -b"))
+      << "did not expect a -b clamp warning; got:\n" << messages;
 }
