@@ -1004,6 +1004,8 @@ def runTest():
         ["test_filterx_order_growth.csd", "test filter state after order growth"],
         ["test_resony_spacing.csd", "test resony frequency spacing and bandwidth"],
         ["test_resony_zero_base.csd", "reject undefined resony bandwidth scaling", 1],
+        ["test_filter2_state.csd", "test filter2 and zfilter2 state and order limits"],
+        ["test_filter2_invalid_parameters.csd", "reject invalid filter2 orders and coefficient counts", 1],
         ["test_dcblock2_order_reinit.csd", "test dcblock2 order changes"],
         ["test_dcblock2_invalid_order.csd", "reject invalid dcblock2 order", 1],
         ["test_dbap.csd", "test dbap and dbapgains opcodes"],
