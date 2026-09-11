@@ -89,11 +89,13 @@
 ArgumentType Framebuffer_getArgumentType(CSOUND *csound, MYFLT *argument);
 void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self);
 
-void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self);
+int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self);
 
 int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
 {
-    OLABuffer_checkArgumentSanity(csound, self);
+    int32_t result = OLABuffer_checkArgumentSanity(csound, self);
+    if (UNLIKELY(result != OK))
+      return result;
     self->inputArray = (ARRAYDAT *)self->inputArgument;
     self->frameSamplesCount = self->inputArray->sizes[0];
     self->framesCount = *self->overlapArgument;
@@ -197,46 +199,48 @@ int32_t OLABuffer_process(CSOUND *csound, OLABuffer *self)
     return OK;
 }
 
-void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
+int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 {
     MYFLT overlapCount = *self->overlapArgument;
 
-    if (UNLIKELY(floor(overlapCount) != overlapCount)) {
+    if (UNLIKELY(overlapCount <= FL(0.0) || floor(overlapCount) != overlapCount)) {
 
-      csound->Die(csound,
-                  "%s", Str("olabuffer: Error, overlap factor must be an integer"));
+      return csound->InitError(csound, "%s",
+                  Str("olabuffer: Error, overlap factor must be a positive integer"));
     }
 
     ARRAYDAT *array = (ARRAYDAT *) self->inputArgument;
 
     if (UNLIKELY(array->dimensions != 1)) {
 
-      csound->Die(csound, "%s",
+      return csound->InitError(csound, "%s",
                   Str("olabuffer: Error, k-rate array must be one dimensional"));
     }
 
     int32_t frameSampleCount = array->sizes[0];
 
-    if (UNLIKELY(frameSampleCount <= (int32_t)overlapCount)) {
+    /* Check the bound before converting the overlap factor to int32_t. */
+    if (UNLIKELY((double)frameSampleCount <= (double)overlapCount)) {
 
-      csound->Die(csound,
+      return csound->InitError(csound,
                   "%s", Str("olabuffer: Error, k-rate array size must be "
                       "larger than ovelap factor"));
     }
 
     if (UNLIKELY(frameSampleCount % (int32_t)overlapCount != 0)) {
 
-      csound->Die(csound, "%s", Str("olabuffer: Error, overlap factor must be "
+      return csound->InitError(csound, "%s", Str("olabuffer: Error, overlap factor must be "
                               "an integer multiple of k-rate array size"));
     }
 
     if (UNLIKELY(frameSampleCount / (int32_t)overlapCount <
                  (int32_t) self->h.insdshead->ksmps)) {
 
-      csound->Die(csound, "%s", Str("olabuffer: Error, k-rate array size divided "
+      return csound->InitError(csound, "%s", Str("olabuffer: Error, k-rate array size divided "
                               "by overlap factor must be larger than or equal "
                               "to ksmps"));
     }
+    return OK;
 }
 
 int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
