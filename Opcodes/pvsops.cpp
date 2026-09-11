@@ -307,90 +307,91 @@ struct TVConv : csnd::Plugin<1, 6> {
 };
 
 
+// Keep the shared sample update free of function calls in the audio loop.
+#define GTADSR_TICK()                                                       \
+  do {                                                                      \
+    if (gate) {                                                             \
+      if (a > 0) {                                                          \
+        e = --a == 0 ? MYFLT(1) : e + ainc;                                 \
+      } else if (d > 0) {                                                   \
+        e = --d == 0 ? s : e + (s - 1) * dfac;                              \
+        if (e < s) e = s;                                                   \
+      } else {                                                              \
+        e = s;                                                              \
+      }                                                                     \
+    } else {                                                                \
+      e = e < MYFLT(0.00001) ? MYFLT(0) : e * rfac;                         \
+    }                                                                       \
+  } while (0)
+
 struct Gtadsr : public csnd::Plugin<1,6> {
-  uint64_t a,d;
-  MYFLT e,ainc,dfac;
-  uint64_t t;
+  uint64_t a, d;
+  MYFLT e, ainc, dfac;
+  double rfac;
+  bool gate;
 
   int32_t init() {
-    t = 0;
+    gate = false;
     e = MYFLT(0);
     return OK;
   }
 
-  int32_t kperf() {
-    MYFLT gate = inargs[5];
-    MYFLT s = inargs[3];
-    s = s  > 0  ? (s < 1 ? s : 1.) : 0.;
-    if(gate > 0) {
-      if(t == 0) {
-        a = inargs[1]*this->kr();
-	d = inargs[2]*this->kr();
-	if(a < 1) a = 1;
-	if(d < 1) d = 1;
-	ainc = 1./a;
-	dfac = 1./d;
-      }
-      if (t < a && e < (1 - ainc))
-       e +=  ainc;
-     else if (t < a + d && e > s)
-       e += (s - 1) * dfac;
-     else
-       e = s;
-      t += 1;
-    } else {
-      if (e < 0.00001)
-        e = 0;
-      else
-        e *= pow(0.001, 1. / (inargs[4]*this->kr()));
-      t = 0;   
+  // Gate and envelope parameters are control-rate inputs in all variants.
+  int32_t prepare(MYFLT rate) {
+    bool nextgate = inargs[5] > 0;
+    if (nextgate && !gate) {
+      MYFLT attack = inargs[1] * rate;
+      MYFLT decay = inargs[2] * rate;
+      // 2^64 is the first value outside the range of uint64_t.
+      if (!(attack >= 0 && attack < 18446744073709551616.0 &&
+            decay >= 0 && decay < 18446744073709551616.0))
+        return csound->perf_error("gtadsr: attack and decay times out of range", this);
+      // Preserve the one-step minimum for zero and sub-step stage times.
+      a = attack < 1 ? 1 : static_cast<uint64_t>(attack);
+      d = decay < 1 ? 1 : static_cast<uint64_t>(decay);
+      // A new gate starts the full attack from the current release level.
+      ainc = (1 - e) / a;
+      dfac = 1. / d;
+    } else if (!nextgate) {
+      rfac = inargs[4] > 0 ? pow(0.001, 1. / (inargs[4] * rate)) : 0;
     }
-    outargs[0] = e*inargs[0];
+    gate = nextgate;
+    return OK;
+  }
+
+  int32_t kperf() {
+    if (prepare(this->kr()) != OK)
+      return NOTOK;
+    MYFLT s = inargs[3];
+    s = s > 0 ? (s < 1 ? s : 1.) : 0.;
+    GTADSR_TICK();
+    outargs[0] = e * inargs[0];
     return OK;
   }
 
   int32_t aperf() {
-    MYFLT gate = inargs[5];
+    if (offset >= nsmps)
+      return OK;
+    if (prepare(this->sr()) != OK)
+      return NOTOK;
     MYFLT s = inargs[3];
     s = s > 0 ? (s < 1 ? s : 1.) : 0.;
-    MYFLT *sig  = NULL, amp = MYFLT(0);
-    if(csound->is_asig(inargs(0)))
-       sig = inargs(0);
+    MYFLT *sig = NULL, amp = MYFLT(0);
+    if (csound->is_asig(inargs(0)))
+      sig = inargs(0);
     else
       amp = inargs[0];
     MYFLT *out = outargs(0);
 
-    for(auto n = offset; n < nsmps; n++) {
-       if(gate > 0) {
-      if(t == 0) {
-        a = inargs[1]*this->sr();
-	d = inargs[2]*this->sr();
-	if(a < 1) a = 1;
-	if(d < 1) d = 1;
-	ainc = 1./a;
-	dfac = 1./d;
-      }
-      if (t < a && e < (1 - ainc))
-       e +=  ainc;
-     else if (t < a + d && e > s)
-       e += (s - 1) * dfac;
-     else
-       e = s;
-      t += 1;
-    } else {
-      if (e < 0.00001)
-        e = 0;
-      else
-        e *= pow(0.001, 1. / (inargs[4]*this->sr()));
-      t = 0;   
-    }
-       out[n] = sig ? sig[n]*e : amp*e;
- 
+    for (auto n = offset; n < nsmps; n++) {
+      GTADSR_TICK();
+      out[n] = sig ? sig[n] * e : amp * e;
     }
     return OK;
   }
-  
 };
+
+#undef GTADSR_TICK
 
 
 
