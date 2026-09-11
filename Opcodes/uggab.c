@@ -294,12 +294,26 @@ static int32_t sum_(CSOUND *csound, SUM *p)
         accum[k] += in0[k];
       }
     }
-    memcpy(p->ar+offset, accum+offset, (nsmps - offset)*sizeof(MYFLT));
+    memcpy(p->ar, accum, CS_KSMPS*sizeof(MYFLT));
 
     return OK;
 }
 
 /* Actually by JPff but after Gabriel */
+static int32_t product_init(CSOUND *csound, SUM *p)
+{
+    if (UNLIKELY(p->INOCOUNT == 0))
+      return csound->InitError(csound, Str("product requires an input"));
+    /* Keep existing scratch space sized on reinit. */
+    if (p->aux.auxp != NULL)
+      return sum_init(csound, p);
+    for (int32_t i = 1; i < p->INOCOUNT; ++i) {
+      if (p->ar == p->argums[i])
+        return sum_init(csound, p);
+    }
+    return OK;
+}
+
 static int32_t product(CSOUND *csound, SUM *p)
 {
     IGN(csound);
@@ -307,7 +321,8 @@ static int32_t product(CSOUND *csound, SUM *p)
     uint32_t  offset = p->h.insdshead->ksmps_offset;
     uint32_t  early  = p->h.insdshead->ksmps_no_end;
     uint32_t   k, nsmps = CS_KSMPS;
-    MYFLT *ar = p->ar, **args = p->argums;
+    MYFLT *ar = p->aux.auxp != NULL ? (MYFLT *)p->aux.auxp : p->ar;
+    MYFLT **args = p->argums;
     MYFLT *ag = *args;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -315,13 +330,16 @@ static int32_t product(CSOUND *csound, SUM *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    memcpy(&ar[offset], &ag[offset], sizeof(MYFLT)*(nsmps-offset));
+    if (ar != ag)
+      memcpy(&ar[offset], &ag[offset], sizeof(MYFLT)*(nsmps-offset));
     while (--count) {
       ag = *(++args);                   /* over all arguments */
       for (k=offset; k<nsmps; k++) {
         ar[k] *= ag[k];                 /* Over audio vector */
       }
     }
+    if (ar != p->ar)
+      memcpy(p->ar, ar, CS_KSMPS*sizeof(MYFLT));
     return OK;
 }
 
@@ -1667,7 +1685,7 @@ static OENTRY localops[] = {
                                 (SUBR)Duserrnd_set,(SUBR)aDiscreteUserRand },
 { "trigger",  S(TRIG),  0, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
 { "sum",      S(SUM),   0, "a", "y",    (SUBR)sum_init, (SUBR)sum_               },
-{ "product",  S(SUM),   0, "a", "y",    NULL, (SUBR)product           },
+{ "product",  S(SUM),   0, "a", "y",    (SUBR)product_init, (SUBR)product },
 { "resony",  S(RESONY), 0, "a", "akkikooo", (SUBR)rsnsety, (SUBR)resony }
 };
 
