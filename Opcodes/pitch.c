@@ -1709,6 +1709,31 @@ int32_t impulse(CSOUND *csound, IMPULSE *p)
 /* or                                                                     */
 /*         y0 + (y1 - y0) * t if alpha is zero                            */
 /* ********************************************************************** */
+/* Positive curves run backward from the endpoint so all exponents stay
+   nonpositive. expm1 preserves small curves without subtracting near equals. */
+static void trnseg_coefficients(NSEG *segp, double start, double end,
+                               double curve, double samples)
+{
+    segp->x = curve > 0.0 ? -curve : 0.0;
+    segp->val = curve > 0.0 ? end : start;
+    if (samples <= 0.0) {
+      segp->alpha = segp->c1 = 0.0;
+      return;
+    }
+    segp->alpha = curve / samples;
+    if (curve == 0.0)
+      segp->c1 = (end - start) / samples;
+    else if (curve > 0.0)
+      segp->c1 = (start - end) / -expm1(-curve);
+    else
+      segp->c1 = (end - start) / -expm1(curve);
+}
+
+/* A rounded segment length can advance a positive curve past its endpoint. */
+#define TRNSEG_VALUE(p, segp) \
+    ((segp)->val - (p)->curinc * \
+     expm1((p)->curx < 0.0 ? (p)->curx : 0.0))
+
 int32_t trnset(CSOUND *csound, TRANSEG *p)
 {
     NSEG        *segp;
@@ -1739,18 +1764,12 @@ int32_t trnset(CSOUND *csound, TRANSEG *p)
       MYFLT nxtval = **argp++;
       MYFLT d = dur * CS_ESR;
       if ((segp->acnt = segp->cnt = (int32)MYFLT2LONG(d)) < 0)
-        segp->cnt = 0;
+        segp->acnt = segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
       segp->nxtpt = nxtval;
       segp->val = val;
-      if (alpha == FL(0.0)) {
-        segp->c1 = (nxtval-val)/d;
-      }
-      else {
-        segp->c1 = (nxtval - val)/(FL(1.0) - EXP(alpha));
-      }
-      segp->alpha = alpha/d;
+      trnseg_coefficients(segp, val, nxtval, alpha, d);
       val = nxtval;
       segp++;
     } while (--nsegs);
@@ -1792,19 +1811,13 @@ int32_t trnset_bkpt(CSOUND *csound, TRANSEG *p)
       dur -= totdur;
       totdur += dur;
       d = dur * CS_ESR;
-      if ((segp->cnt = (int32)MYFLT2LONG(d)) < 0)
-        segp->cnt = 0;
+      if ((segp->acnt = segp->cnt = (int32)MYFLT2LONG(d)) < 0)
+        segp->acnt = segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
       segp->nxtpt = nxtval;
       segp->val = val;
-      if (alpha == FL(0.0)) {
-        segp->c1 = (nxtval-val)/d;
-      }
-      else {
-        segp->c1 = (nxtval - val)/(FL(1.0) - EXP(alpha));
-      }
-      segp->alpha = alpha/d;
+      trnseg_coefficients(segp, val, nxtval, alpha, d);
       val = nxtval;
       segp++;
     } while (--nsegs);
@@ -1818,7 +1831,7 @@ int32_t ktrnseg(CSOUND *csound, TRANSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
-      csound->PerfError(csound,&(p->h),
+      return csound->PerfError(csound,&(p->h),
                         "%s", Str("Error: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
@@ -1836,14 +1849,13 @@ int32_t ktrnseg(CSOUND *csound, TRANSEG *p)
         }
         p->curinc = segp->c1;
         p->alpha = segp->alpha;
-        p->curx = FL(0.0);
+        p->curx = segp->x;
       }
       p->curx += (MYFLT)CS_KSMPS*p->alpha;
       if (p->alpha == FL(0.0))
         p->curval += p->curinc*CS_KSMPS;   /* advance the cur val  */
       else
-        p->curval = p->cursegp->val + p->curinc *
-          (FL(1.0) - EXP(p->curx));
+        p->curval = TRNSEG_VALUE(p, p->cursegp);
     }
     return OK;
 }
@@ -1881,7 +1893,7 @@ int32_t trnseg(CSOUND *csound, TRANSEG *p)
         }                                 /*   poslen = new slope */
         p->curinc = segp->c1;
         p->alpha = segp->alpha;
-        p->curx = FL(0.0);
+        p->curx = segp->x;
         p->curval = val;
       }
       if (p->alpha == FL(0.0)) {
@@ -1891,8 +1903,7 @@ int32_t trnseg(CSOUND *csound, TRANSEG *p)
       else {
           rs[n] = val;
           p->curx += p->alpha;
-          val = segp->val + p->curinc *
-            (FL(1.0) - EXP(p->curx));
+          val = TRNSEG_VALUE(p, segp);
        }
     }
     else{
@@ -1937,20 +1948,13 @@ int32_t trnsetr(CSOUND *csound, TRANSEG *p)
       MYFLT nxtval = **argp++;
       MYFLT d = dur * CS_ESR;
       if ((segp->acnt = segp->cnt = (int32)(d + FL(0.5))) < 0)
-        segp->cnt = 0;
+        segp->acnt = segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
       segp->nxtpt = nxtval;
       segp->val = val;
-      if (alpha == FL(0.0)) {
-        segp->c1 = (nxtval-val)/d;
-        //printf("alpha zero val=%f c1=%f\n", segp->val, segp->c1);
-      }
-      else {
-        p->lastalpha = alpha;
-        segp->c1 = (nxtval - val)/(FL(1.0) - EXP(alpha));
-      }
-      segp->alpha = alpha/d;
+      p->lastalpha = alpha;
+      trnseg_coefficients(segp, val, nxtval, alpha, d);
       val = nxtval;
       segp++;
       p->finalval = nxtval;
@@ -1977,7 +1981,7 @@ int32_t ktrnsegr(CSOUND *csound, TRANSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
-      csound->PerfError(csound,&(p->h),
+      return csound->PerfError(csound,&(p->h),
                         "%s", Str("Error: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
@@ -1989,16 +1993,8 @@ int32_t ktrnsegr(CSOUND *csound, TRANSEG *p)
           p->segsrem--;
         }                               /*   get univ relestim  */
         segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
-        if (segp->alpha == FL(0.0)) {
-          segp->c1 = (p->finalval-p->curval)/(segp->cnt*CS_KSMPS);
-          //printf("finalval = %f curval = %f, cnt = %d c1 = %f\n",
-          //       p->finalval, p->curval, segp->cnt, segp->c1);
-        }
-        else {
-          segp->c1 = (p->finalval - p->curval)/(FL(1.0) - EXP(p->lastalpha));
-          segp->alpha = p->lastalpha/(segp->cnt*CS_KSMPS);
-          segp->val = p->curval;
-        }
+        trnseg_coefficients(segp, p->curval, p->finalval, p->lastalpha,
+                            (double)segp->cnt * CS_KSMPS);
         goto newm;                      /*   and set new curmlt */
       }
       if (--p->curcnt <= 0) {           /* if done cur segment  */
@@ -2015,16 +2011,15 @@ int32_t ktrnsegr(CSOUND *csound, TRANSEG *p)
         }
         p->curinc = segp->c1;
         p->alpha = segp->alpha;
-        p->curx = FL(0.0);
+        p->curx = segp->x;
       }
+      p->curx += (double)CS_KSMPS * p->alpha;
       if (p->alpha == FL(0.0)) {
         p->curval += p->curinc *CS_KSMPS;   /* advance the cur val  */
         //printf("curval = %f\n", p->curval);
       }
       else
-        p->curval = p->cursegp->val + (p->curinc) *
-          (FL(1.0) - EXP(p->curx));
-      p->curx +=  (MYFLT)CS_KSMPS* p->alpha;
+        p->curval = TRNSEG_VALUE(p, p->cursegp);
     }
     return OK;
 }
@@ -2054,15 +2049,8 @@ int32_t trnsegr(CSOUND *csound, TRANSEG *p)
           p->segsrem--;
         }                                 /*   get univ relestim  */
         segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
-        if (segp->alpha == FL(0.0)) {
-          segp->c1 = (p->finalval-val)/segp->acnt;
-        }
-        else {
-          /* this is very wrong */
-          segp->c1 = (p->finalval - val)/(FL(1.0) - EXP(p->lastalpha));
-          segp->alpha = p->lastalpha/segp->acnt;
-          segp->val = val;
-        }
+        trnseg_coefficients(segp, val, p->finalval, p->lastalpha,
+                            segp->acnt);
         goto newm;                        /*   and set new curmlt */
       }
       if (--p->curcnt <= 0) {             /*  if done cur segment */
@@ -2081,7 +2069,7 @@ int32_t trnsegr(CSOUND *csound, TRANSEG *p)
         }                                 /*   poslen = new slope */
         p->curinc = segp->c1;
         p->alpha = segp->alpha;
-        p->curx = FL(0.0);
+        p->curx = segp->x;
         p->curval = val;
       }
       if (p->alpha == FL(0.0)) {
@@ -2092,7 +2080,7 @@ int32_t trnsegr(CSOUND *csound, TRANSEG *p)
         segp = p->cursegp;
           rs[n] = val;
           p->curx += p->alpha;
-          val = segp->val + p->curinc * (FL(1.0) - EXP(p->curx));
+          val = TRNSEG_VALUE(p, segp);
       }
     }
     else {
@@ -2104,6 +2092,8 @@ int32_t trnsegr(CSOUND *csound, TRANSEG *p)
 
     return OK;
 }
+
+#undef TRNSEG_VALUE
 
 extern int32 randint31(int32);
 

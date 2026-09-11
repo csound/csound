@@ -265,9 +265,9 @@ typedef struct {
 
 typedef struct {
         int32   cnt,acnt;
-        MYFLT   alpha;
+        double  alpha, x;
         MYFLT   val, nxtpt;
-        MYFLT   c1;
+        double  c1;
 } NSEG;
 
 typedef struct {
@@ -276,8 +276,8 @@ typedef struct {
         NSEG    *cursegp;
         int32   nsegs;
         int32   segsrem, curcnt;
-        MYFLT   curval, curinc, alpha;
-        MYFLT   curx;
+        MYFLT   curval;
+        double  curinc, alpha, curx;
         AUXCH   auxch;
         int32   xtra;
         MYFLT   finalval, lastalpha;
