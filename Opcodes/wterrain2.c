@@ -193,9 +193,9 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
 
     uint32_t kfunc = (uint32_t)*p->kfunc;
     if(kfunc>7) kfunc = 7;
-    MYFLT period = 1;
     MYFLT sizx = p->sizx, sizy = p->sizy;
-    MYFLT theta = p->theta;
+    double theta = p->theta;
+    double increment = (double)pch * (TWOPI / CS_ESR);
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
@@ -220,10 +220,11 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
       aout[i] = p->xarr[xloc] * p->yarr[yloc] * amp;
 
       /* MOVE SCANNING POINT ROUND THE ELLIPSE */
-      theta += pch*((period*TWOPI_F) / CS_ESR);
+      theta += increment;
     }
 
-    p->theta = theta;
+    /* Keep phase precision across blocks, including in float builds. */
+    p->theta = fmod(theta, TWOPI);
     return OK;
 }
 
