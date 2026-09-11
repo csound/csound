@@ -1053,153 +1053,114 @@ static int32_t pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
 
 static int32_t pvsoscset(CSOUND *csound, PVSOSC *p)
 {
-  int32_t     i;
-  int32    N = (int32) *p->framesize;
+  double size = *p->framesize;
+  double overlap = *p->olap, winsize = *p->winsize;
+  int32_t N, i;
+
+  if (UNLIKELY(!(size >= 2.0 && size <= INT32_MAX - 2 &&
+                 size <= (double)SIZE_MAX / sizeof(float) - 2)))
+    return csound->InitError(csound, "%s", Str("pvsosc: invalid frame size"));
+  N = (int32_t)size;
+  if (UNLIKELY(N & 1))
+    return csound->InitError(csound, "%s", Str("pvsosc: frame size must be even"));
+  if (overlap == 0.0)
+    overlap = N / 4;
+  if (winsize == 0.0)
+    winsize = N;
+  if (UNLIKELY(!(overlap >= 1.0 && overlap <= INT32_MAX &&
+                 winsize >= 1.0 && winsize <= INT32_MAX)))
+    return csound->InitError(csound, "%s",
+                             Str("pvsosc: invalid overlap or window size"));
+  if (UNLIKELY(!(*p->wintype >= INT32_MIN && *p->wintype <= (double)INT32_MAX)))
+    return csound->InitError(csound, "%s", Str("pvsosc: invalid window type"));
+  if (UNLIKELY(*p->format != PVS_AMP_FREQ))
+    return csound->InitError(csound, "%s", Str("pvsosc: format must be amp-freq"));
 
   p->fout->N = N;
-  p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
-  p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
-  p->fout->wintype = (int32) *p->wintype;
-  p->fout->format = (int32) *p->format;
+  p->fout->NB = N / 2 + 1;
+  p->fout->overlap = (int32_t)overlap;
+  p->fout->winsize = (int32_t)winsize;
+  p->fout->wintype = (int32_t)*p->wintype;
+  p->fout->format = PVS_AMP_FREQ;
   p->fout->framecount = 0;
   p->fout->sliding = 0;
-  if (p->fout->overlap<(int32_t)CS_KSMPS || p->fout->overlap<=10) {
-    return csound->InitError(csound, "%s", Str("pvsosc does not work while sliding"));
-#ifdef SOME_FINE_DAY
-    CMPLX *bframe;
-    int32_t NB = 1+N/2;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t n, nsmps = CS_KSMPS;
+  if (UNLIKELY(p->fout->overlap < (int32_t)CS_KSMPS ||
+               p->fout->overlap <= 10))
+    return csound->InitError(csound, "%s",
+                             Str("pvsosc does not work while sliding"));
 
-    p->fout->NB = NB;
-    p->fout->sliding = 1;
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < CS_KSMPS*sizeof(MYFLT) * (N + 2))
-      csound->AuxAlloc(csound,
-                       (N + 2) * CS_KSMPS* sizeof(MYFLT), &p->fout->frame);
-    else memset(p->fout->frame.auxp,
-                '\0', (N + 2) * CS_KSMPS* sizeof(MYFLT));
-    bframe = (CMPLX *)p->fout->frame.auxp;
-    for (n=0; n<nsmps; n++)
-      for (i = 0; i < NB; i++) {
-        bframe[i+NB*n].re = FL(0.0);
-        bframe[i+NB*n].im = (n<offset ? FL(0.0) : i * N * CS_ONEDSR);
-      }
-    return OK;
-#endif
-  }
-  else
-    {
-      float   *bframe;
-      int32_t j;
-      if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < sizeof(float) * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-      bframe = (float *) p->fout->frame.auxp;
-      for (i = j = 0; i < N + 2; i += 2, j++) {
-        //bframe[i] = 0.0f;
-        bframe[i + 1] = j * N * CS_ONEDSR;
-      }
-      p->lastframe = 1;
-      p->incr = (MYFLT)CS_KSMPS/p->fout->overlap;
+  if (p->fout->frame.auxp == NULL ||
+      p->fout->frame.size < sizeof(float) * (size_t)(N + 2))
+    csound->AuxAlloc(csound, (size_t)(N + 2) * sizeof(float),
+                     &p->fout->frame);
+  {
+    float *bframe = (float *)p->fout->frame.auxp;
+    for (i = 0; i < N + 2; i += 2) {
+      bframe[i] = 0.0f;
+      bframe[i + 1] = (i / 2) * (CS_ESR / N);
     }
+  }
+  /* Produce the first frame immediately, then keep the hop remainder. */
+  p->samplecount = p->fout->overlap;
   return OK;
 }
 
 static int32_t pvsoscprocess(CSOUND *csound, PVSOSC *p)
 {
-  int32_t     i, harm, type;
-  int32    framesize;
-  MYFLT   famp, ffun,w;
-  float   *fout;
-  double  cfbin,a;
-  float   amp, freq;
-  int32_t     cbin, k, n;
+  if (p->samplecount >= (uint32_t)p->fout->overlap) {
+    int32_t i, n, k, cbin, harm = 1;
+    int32_t framesize = p->fout->N + 2;
+    double wave = *p->type;
+    int32_t type = (wave >= 0.5 && wave <= 3.5) ?
+      (int32_t)MYFLT2LRND(wave) : 0;
+    MYFLT famp = *p->ka;
+    double ffun = *p->kf;
+    MYFLT w = CS_ESR / p->fout->N;
+    float *fout = (float *)p->fout->frame.auxp;
+    int32_t step = type == 2 ? 2 : 1;
 
-  famp = *p->ka;
-  ffun = *p->kf;
-  type = (int32_t)MYFLT2LRND(*p->type);
-  fout = (float *) p->fout->frame.auxp;
+    if (UNLIKELY(!(ffun >= 0.0)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("pvsosc: frequency must be non-negative"));
+    memset(fout, 0, sizeof(float) * (size_t)framesize);
+    /* Zero and above-Nyquist fundamentals have no oscillating partials. */
+    if (ffun > 0.0 && ffun <= CS_ESR * 0.5) {
+      if (type >= 1 && type <= 3) {
+        double count = (CS_ESR * 0.5) / ffun;
+        if (UNLIKELY(!(count < INT32_MAX)))
+          return csound->PerfError(csound, &(p->h), "%s",
+                                   Str("pvsosc: frequency is too low"));
+        harm = (int32_t)count;
+      }
+      if (type == 1)
+        famp *= FL(1.456) / pow(harm, FL(1.0) / FL(2.4));
+      else if (type == 2)
+        famp *= FL(1.456) / POWER((MYFLT)harm, FL(0.25));
+      else if (type == 3)
+        famp *= FL(1.456) / POWER((MYFLT)harm, FL(1.0) / FL(160.0));
+      else
+        famp *= FL(1.456);
 
-  framesize = p->fout->N + 2;
-
-  if (p->fout->sliding) {
-    CMPLX *fout;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32_t NB = p->fout->NB;
-    harm = (int32_t)(CS_ESR/(2*ffun));
-    if (type==1) famp *= FL(1.456)/POWER((MYFLT)harm, FL(1.0)/FL(2.4));
-    else if (type==2) famp *= FL(1.456)/POWER((MYFLT)harm, FL(0.25));
-    else if (type==3) famp *= FL(1.456)/POWER((MYFLT)harm, FL(1.0)/FL(160.0));
-    else {
-      harm = 1;
-      famp *= FL(1.456);
-    }
-
-    for (n=0; n<nsmps; n++) {
-      int32_t m;
-      fout = (CMPLX*) p->fout->frame.auxp + n*NB;
-      w = CS_ESR/p->fout->N;
-      /*         harm = (int32_t)(CS_ESR/(2*ffun)); */
-      memset(fout, '\0', NB*sizeof(CMPLX));
-      if (n<offset) continue;
-      for (m=1; m <= harm; m++) {
-        if (type == 3) amp = famp/(harm);
-        else amp = (famp/m);
-        freq = ffun*m;
-        cfbin = freq/w;
+      for (n = 1; n <= harm; n += step) {
+        float amp = (type == 3 ? famp / harm : famp / n);
+        float freq = ffun * n;
+        double cfbin = freq / w;
         cbin = (int32_t)MYFLT2LRND(cfbin);
-        if (cbin != 0)     {
-          for (i=cbin-1;i < cbin+3 &&i < NB ; i++) {
-            if (i-cfbin == 0) a = 1;
-            else a = sin(i-cfbin)/(i-cfbin);
-            fout[i].re = amp*a*a*a;
-            fout[i].im = freq;
+        if (cbin != 0) {
+          for (i = cbin - 1, k = i * 2;
+               i < cbin + 3 && i < framesize / 2; i++, k += 2) {
+            double distance = i - cfbin;
+            double a = (distance == 0.0 ? 1.0 : sin(distance) / distance);
+            fout[k] = amp * a * a * a;
+            fout[k + 1] = freq;
           }
-          if (type==2) m++;
         }
       }
     }
-    return OK;
+    p->fout->framecount++;
+    p->samplecount -= p->fout->overlap;
   }
-  if (p->lastframe > p->fout->framecount) {
-    w = CS_ESR/p->fout->N;
-    harm = (int32_t)(CS_ESR/(2*ffun));
-    if (type==1) famp *= FL(1.456)/pow(harm, FL(1.0)/FL(2.4));
-    else if (type==2) famp *= FL(1.456)/POWER(harm, FL(0.25));
-    else if (type==3) famp *= FL(1.456)/POWER(harm, FL(1.0)/FL(160.0));
-    else {
-      harm = 1;
-      famp *= FL(1.456);
-    }
-    memset(fout, 0, sizeof(float)*framesize);
-    /* for (i = 0; i < framesize; i ++) fout[i] = 0.f; */
-
-    for (n=1; n <= harm; n++) {
-      if (type == 3) amp = famp/(harm);
-      else amp = (famp/n);
-      freq = ffun*n;
-      cfbin = freq/w;
-      cbin = (int32_t)MYFLT2LRND(cfbin);
-      if (cbin != 0)     {
-        for (i=cbin-1,k = (cbin-1)<<1;i < cbin+3 &&i < framesize/2 ; i++, k+=2) {
-          //k = i<<1;
-          if (i-cfbin == 0) a = 1;
-          else a = sin(i-cfbin)/(i-cfbin);
-          fout[k] = amp*a*a*a;
-          fout[k+1] = freq;
-        }
-        if (type==2) n++;
-      }
-    }
-    p->fout->framecount = p->lastframe;
-  }
-  p->incr += p->incr;
-  if (p->incr > 1) {
-    p->incr = (MYFLT)CS_KSMPS/p->fout->overlap;
-    p->lastframe++;
-  }
+  p->samplecount += CS_KSMPS;
   return OK;
 }
 

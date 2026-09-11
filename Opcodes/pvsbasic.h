@@ -136,8 +136,7 @@ typedef struct _pvsosc {
     PVSDAT  *fout;
     MYFLT   *ka, *kf, *type;
     MYFLT   *framesize, *olap, *winsize, *wintype, *format;
-    MYFLT incr;
-    uint32  lastframe;
+    uint32_t samplecount;
 } PVSOSC;
 
 typedef struct _pvsbin {
@@ -222,4 +221,3 @@ static int32_t
 pvstencil(CSOUND *, PVSTENCIL *p);
 
 #endif
-
