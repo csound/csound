@@ -122,20 +122,21 @@ static int32_t aresonaa(CSOUND *csound, RESON *p)
       }
       if (p->kbw[n] != (MYFLT)p->prvbw) {
         p->prvbw = (double)p->kbw[n];
-        p->c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
+        p->c3 = c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
         flag = 1;
       }
       if (flag) {
         c3p1 = p->c3 + 1.0;
         c3t4 = p->c3 * 4.0;
         omc3 = 1.0 - p->c3;
-        p->c2 = c3t4 * p->cosf / c3p1;
+        p->c2 = c2 = c3t4 * p->cosf / c3p1;
         c2sqr = p->c2 * p->c2;
         if (p->scale == 1)                        /* i.e. 1 - A(reson) */
-          p->c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
+          p->c1 = c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
         else if (p->scale == 2)                 /* i.e. D - A(reson) */
-          p->c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
-        else p->c1 = 0.0;                        /* cannot tell        */
+          p->c1 = c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
+        else p->c1 = c1 = 0.0;                        /* cannot tell        */
+        flag = 0;
       }
       ans = c1 * sig + c2 * yt1 - c3 * yt2;
       yt2 = yt1;
@@ -154,20 +155,21 @@ static int32_t aresonaa(CSOUND *csound, RESON *p)
       }
       if (p->kbw[n] != (MYFLT)p->prvbw) {
         p->prvbw = (double)p->kbw[n];
-        p->c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
+        p->c3 = c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
         flag = 1;
       }
       if (flag) {
         c3p1 = p->c3 + 1.0;
         c3t4 = p->c3 * 4.0;
         omc3 = 1.0 - p->c3;
-        p->c2 = c3t4 * p->cosf / c3p1;
+        p->c2 = c2 = c3t4 * p->cosf / c3p1;
         c2sqr = p->c2 * p->c2;
         if (p->scale == 1)                        /* i.e. 1 - A(reson) */
-          p->c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
+          p->c1 = c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
         else if (p->scale == 2)                 /* i.e. D - A(reson) */
-          p->c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
-        else p->c1 = 0.0;                        /* cannot tell        */
+          p->c1 = c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
+        else p->c1 = c1 = 0.0;                        /* cannot tell        */
+        flag = 0;
       }
       ans = c1 * sig + c2 * yt1 - c3 * yt2;
       yt2 = yt1;
@@ -183,7 +185,7 @@ static int32_t aresonak(CSOUND *csound, RESON *p)
 {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
+  uint32_t flag = 0, n, nsmps = CS_KSMPS;
   MYFLT       *ar, *asig;
   double      c3p1, c3t4, omc3, c2sqr; /* 1/RMS = root2 (rand) */
   /*      or 1/.5  (sine) */
@@ -192,16 +194,7 @@ static int32_t aresonak(CSOUND *csound, RESON *p)
   if (*p->kbw != (MYFLT)p->prvbw) {
     p->prvbw = (double)*p->kbw;
     p->c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
-    c3p1 = p->c3 + 1.0;
-    c3t4 = p->c3 * 4.0;
-    omc3 = 1.0 - p->c3;
-    p->c2 = c3t4 * p->cosf / c3p1;
-    c2sqr = p->c2 * p->c2;
-    if (p->scale == 1)                        /* i.e. 1 - A(reson) */
-      p->c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
-    else if (p->scale == 2)                 /* i.e. D - A(reson) */
-      p->c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
-    else p->c1 = 0.0;                        /* cannot tell        */
+    flag = 1;
   }
   asig = p->asig;
   ar = p->ar;
@@ -218,16 +211,20 @@ static int32_t aresonak(CSOUND *csound, RESON *p)
       if (p->kcf[n] != (MYFLT)p->prvcf) {
         p->prvcf = (double)p->kcf[n];
         p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
+        flag = 1;
+      }
+      if (flag) {
         c3p1 = p->c3 + 1.0;
         c3t4 = p->c3 * 4.0;
         omc3 = 1.0 - p->c3;
-        p->c2 = c3t4 * p->cosf / c3p1;
+        p->c2 = c2 = c3t4 * p->cosf / c3p1;
         c2sqr = p->c2 * p->c2;
         if (p->scale == 1)                        /* i.e. 1 - A(reson) */
-          p->c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
+          p->c1 = c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
         else if (p->scale == 2)                 /* i.e. D - A(reson) */
-          p->c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
-        else p->c1 = 0.0;                        /* cannot tell        */
+          p->c1 = c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
+        else p->c1 = c1 = 0.0;                        /* cannot tell        */
+        flag = 0;
       }
       ans = c1 * sig + c2 * yt1 - c3 * yt2;
       yt2 = yt1;
@@ -242,16 +239,20 @@ static int32_t aresonak(CSOUND *csound, RESON *p)
       if (p->kcf[n] != (MYFLT)p->prvcf) {
         p->prvcf = (double)p->kcf[n];
         p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
+        flag = 1;
+      }
+      if (flag) {
         c3p1 = p->c3 + 1.0;
         c3t4 = p->c3 * 4.0;
         omc3 = 1.0 - p->c3;
-        p->c2 = c3t4 * p->cosf / c3p1;
+        p->c2 = c2 = c3t4 * p->cosf / c3p1;
         c2sqr = p->c2 * p->c2;
         if (p->scale == 1)                        /* i.e. 1 - A(reson) */
-          p->c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
+          p->c1 = c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
         else if (p->scale == 2)                 /* i.e. D - A(reson) */
-          p->c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
-        else p->c1 = 0.0;                        /* cannot tell        */
+          p->c1 = c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
+        else p->c1 = c1 = 0.0;                        /* cannot tell        */
+        flag = 0;
       }
       ans = c1 * sig + c2 * yt1 - c3 * yt2;
       yt2 = yt1;
@@ -267,7 +268,7 @@ static int32_t aresonka(CSOUND *csound, RESON *p)
 {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
+  uint32_t flag = 0, n, nsmps = CS_KSMPS;
   MYFLT       *ar, *asig;
   double      c3p1, c3t4, omc3, c2sqr; /* 1/RMS = root2 (rand) */
   /*      or 1/.5  (sine) */
@@ -276,16 +277,7 @@ static int32_t aresonka(CSOUND *csound, RESON *p)
   if (*p->kcf != (MYFLT)p->prvcf) {
     p->prvcf = (double)*p->kcf;
     p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
-    c3p1 = p->c3 + 1.0;
-    c3t4 = p->c3 * 4.0;
-    omc3 = 1.0 - p->c3;
-    p->c2 = c3t4 * p->cosf / c3p1;
-    c2sqr = p->c2 * p->c2;
-    if (p->scale == 1)                        /* i.e. 1 - A(reson) */
-      p->c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
-    else if (p->scale == 2)                 /* i.e. D - A(reson) */
-      p->c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
-    else p->c1 = 0.0;                        /* cannot tell        */
+    flag = 1;
   }
   asig = p->asig;
   ar = p->ar;
@@ -301,17 +293,21 @@ static int32_t aresonka(CSOUND *csound, RESON *p)
       double ans;
       if (p->kbw[n] != (MYFLT)p->prvbw) {
         p->prvbw = (double)p->kbw[n];
-        p->c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
+        p->c3 = c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
+        flag = 1;
+      }
+      if (flag) {
         c3p1 = p->c3 + 1.0;
         c3t4 = p->c3 * 4.0;
         omc3 = 1.0 - p->c3;
-        p->c2 = c3t4 * p->cosf / c3p1;
+        p->c2 = c2 = c3t4 * p->cosf / c3p1;
         c2sqr = p->c2 * p->c2;
         if (p->scale == 1)                        /* i.e. 1 - A(reson) */
-          p->c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
+          p->c1 = c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
         else if (p->scale == 2)                 /* i.e. D - A(reson) */
-          p->c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
-        else p->c1 = 0.0;                        /* cannot tell        */
+          p->c1 = c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
+        else p->c1 = c1 = 0.0;                        /* cannot tell        */
+        flag = 0;
       }
       ans = c1 * sig + c2 * yt1 - c3 * yt2;
       yt2 = yt1;
@@ -325,17 +321,21 @@ static int32_t aresonka(CSOUND *csound, RESON *p)
       double ans;
       if (p->kbw[n] != (MYFLT)p->prvbw) {
         p->prvbw = (double)p->kbw[n];
-        p->c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
+        p->c3 = c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
+        flag = 1;
+      }
+      if (flag) {
         c3p1 = p->c3 + 1.0;
         c3t4 = p->c3 * 4.0;
         omc3 = 1.0 - p->c3;
-        p->c2 = c3t4 * p->cosf / c3p1;
+        p->c2 = c2 = c3t4 * p->cosf / c3p1;
         c2sqr = p->c2 * p->c2;
         if (p->scale == 1)                        /* i.e. 1 - A(reson) */
-          p->c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
+          p->c1 = c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
         else if (p->scale == 2)                 /* i.e. D - A(reson) */
-          p->c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
-        else p->c1 = 0.0;                        /* cannot tell        */
+          p->c1 = c1 = 2.0 - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
+        else p->c1 = c1 = 0.0;                        /* cannot tell        */
+        flag = 0;
       }
       ans = c1 * sig + c2 * yt1 - c3 * yt2;
       yt2 = yt1;

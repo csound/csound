@@ -856,6 +856,7 @@ def runTest():
         ["test_sa.csd", "test sample accurate mode"],
         ["test_gain_sample_bounds.csd", "gain RMS and output over partial blocks"],
         ["test_eqfil_sample_offset.csd", "eqfil advances state only for active samples"],
+        ["test_areson_audio.csd", "test areson audio coefficients and preserved state"],
         ["test_svfilter_state.csd", "svfilter reset, preserved state, and input reuse"],
         [
             "test_audio_input_sample_bounds.csd",
