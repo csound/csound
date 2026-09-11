@@ -964,6 +964,8 @@ def runTest():
         ],
         ["test_flanger_invalid_delay.csd", "reject non-finite flanger delay", 1],
         ["test_vdelay_buffers.csd", "test short and wrapped variable delays"],
+        ["test_framebuffer_state.csd", "test framebuffer history and sample boundaries"],
+        ["test_framebuffer_invalid_size.csd", "reject invalid framebuffer sizes", 1],
         ["test_vdelay_reinit.csd", "test variable delay state across reinit"],
         ["test_vdelay_invalid_maximum.csd", "reject invalid maximum delay", 1],
         ["test_vdelay_invalid_delay.csd", "reject non-finite delay", 1],
