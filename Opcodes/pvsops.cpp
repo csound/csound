@@ -307,28 +307,26 @@ struct TVConv : csnd::Plugin<1, 6> {
 };
 
 
-// Keep the shared sample update free of function calls in the audio loop.
-#define GTADSR_TICK()                                                       \
-  do {                                                                      \
-    if (gate) {                                                             \
-      if (a > 0) {                                                          \
-        e = --a == 0 ? MYFLT(1) : e + ainc;                                 \
-      } else if (d > 0) {                                                   \
-        e = --d == 0 ? s : e + (s - 1) * dfac;                              \
-        if (e < s) e = s;                                                   \
-      } else {                                                              \
-        e = s;                                                              \
-      }                                                                     \
-    } else {                                                                \
-      e = e < MYFLT(0.00001) ? MYFLT(0) : e * rfac;                         \
-    }                                                                       \
-  } while (0)
-
 struct Gtadsr : public csnd::Plugin<1,6> {
   uint64_t a, d;
   MYFLT e, ainc, dfac;
   double rfac;
   bool gate;
+
+  void process(MYFLT s) {
+    if (gate) {
+      if (a > 0) {
+        e = --a == 0 ? MYFLT(1) : e + ainc;
+      } else if (d > 0) {
+        e = --d == 0 ? s : e + (s - 1) * dfac;
+        if (e < s) e = s;
+      } else {
+        e = s;
+      }
+    } else {
+      e = e < MYFLT(0.00001) ? MYFLT(0) : e * rfac;
+    }
+  }
 
   int32_t init() {
     gate = false;
@@ -364,7 +362,7 @@ struct Gtadsr : public csnd::Plugin<1,6> {
       return NOTOK;
     MYFLT s = inargs[3];
     s = s > 0 ? (s < 1 ? s : 1.) : 0.;
-    GTADSR_TICK();
+    process(s);
     outargs[0] = e * inargs[0];
     return OK;
   }
@@ -384,14 +382,12 @@ struct Gtadsr : public csnd::Plugin<1,6> {
     MYFLT *out = outargs(0);
 
     for (auto n = offset; n < nsmps; n++) {
-      GTADSR_TICK();
+      process(s);
       out[n] = sig ? sig[n] * e : amp * e;
     }
     return OK;
   }
 };
-
-#undef GTADSR_TICK
 
 
 
