@@ -10,7 +10,7 @@ nchnls = 1
 gkChecks init 0
 
 instr 1
-  kInput[] fillarray 1, 4, -4, 0, 24*$M_PI+.25, -24*$M_PI-.25, 1e20, -1e20
+  kInput[] fillarray 1, 4, -4, 0, 24*$M_PI+.25, -24*$M_PI-.25, 32*$M_PI, -32*$M_PI
   kExpected[] fillarray 1, 4-2*$M_PI, -4+2*$M_PI, 0, .25, -.25
   kCopy[] init 8
   kIndex = 0

@@ -1104,16 +1104,6 @@ static int32_t unwrap_set(CSOUND *csound, UNWRAP *p) {
   return OK;
 }
 
-/* Reduce large phase jumps in one step, keeping the interval [-pi, pi). */
-static inline double unwrap_phase(double phase) {
-  if (phase >= PI || phase < -PI) {
-    phase = fmod(phase, TWOPI);
-    if (phase >= PI) phase -= TWOPI;
-    else if (phase < -PI) phase += TWOPI;
-  }
-  return phase;
-}
-
 static int32_t unwrap(CSOUND *csound, UNWRAP *p) {
   if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
                p->in->sizes[0] != p->size || p->out->dimensions != 1))
@@ -1125,12 +1115,18 @@ static int32_t unwrap(CSOUND *csound, UNWRAP *p) {
   MYFLT *in = p->in->data;
   MYFLT *phs = p->out->data;
   if (!p->unwrap) {
-    for (i=0; i < p->size; i++)
-      phs[i] = (MYFLT) unwrap_phase(in[i]);
+    for (i=0; i < p->size; i++) {
+      phs[i] = in[i];
+      while (phs[i] >= PI) phs[i] -= TWOPI;
+      while (phs[i] < -PI) phs[i] += TWOPI;
+    }
   } else {
     MYFLT *ophs = (MYFLT *) p->mem.auxp;
     for (i=0; i < p->size; i++) {
-      phs[i] = (MYFLT) (ophs[i] + unwrap_phase((double) in[i] - ophs[i]));
+      double phase = (double) in[i] - ophs[i];
+      while (phase >= PI) phase -= TWOPI;
+      while (phase < -PI) phase += TWOPI;
+      phs[i] = (MYFLT) (ophs[i] + phase);
       ophs[i] = phs[i];
     }
   }
