@@ -972,6 +972,8 @@ def runTest():
         ["test_nestedap_invalid_delay.csd", "reject invalid nestedap delay layout", 1],
         ["test_random_rate_correctness.csd", "randomi and randomh rate handling"],
         ["test_pinker_sequence.csd", "pinker preserves its noise sequence across block sizes"],
+        ["test_cell_state.csd", "cell generation, reset, and table reuse"],
+        ["test_cell_invalid_inputs.csd", "cell rejects invalid sizes and rule indices", 1],
         ["test_pinker_sample_bounds.csd", "pinker clears inactive samples"],
         ["test_gausstrig_frequency_mode.csd", "gausstrig frequency-change and first-impulse modes"],
         ["test_mirror_bounds.csd", "test mirror boundaries and large inputs"],
