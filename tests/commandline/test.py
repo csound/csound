@@ -961,6 +961,8 @@ def runTest():
         ["test_mvmfilter_mixed_rate.csd", "test mvmfilter with mixed input rates"],
         ["test_lowres_audio.csd", "test lowres audio parameters and input reuse"],
         ["test_flanger_buffer.csd", "test flanger buffer limits and reinit"],
+        ["test_liveconv_clear_state.csd", "liveconv clear and reload state"],
+        ["test_liveconv_invalid_partition.csd", "liveconv rejects invalid partitions", 1],
         [
             "test_flanger_invalid_maximum.csd",
             "reject invalid flanger maximum delay",

@@ -210,21 +210,6 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf, MYFLT *IR_Data,
 
     } while (--nPartitions);
 }
-static inline int32_t buf_bytes_alloc(int32_t partSize, int32_t nPartitions)
-{
-    int32_t nSmps;
-
-    nSmps = (partSize << 1);                            /* tmpBuf     */
-    nSmps += ((partSize << 1) * nPartitions);           /* ringBuf    */
-    nSmps += ((partSize << 1) * nPartitions);           /* IR_Data    */
-    nSmps += ((partSize << 1));                         /* outBuf */
-    nSmps *= (int32_t) sizeof(MYFLT);                   /* Buffer type MYFLT */
-
-    nSmps += (nPartitions+1) * (int32_t) sizeof(load_t);/* Load/unload structure */
-    /* One load/unload pr. partitions and an extra for buffering is sufficient */
-
-    return nSmps;
-}
 
 static void set_buf_pointers(liveconv_t *p, int32_t partSize, int32_t nPartitions)
 {
@@ -246,11 +231,16 @@ static void set_buf_pointers(liveconv_t *p, int32_t partSize, int32_t nPartition
 static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
 {
     FUNC    *ftp;       // function table
-    int32_t     n, nBytes;
+    int32_t     n;
+    double part = nearbyint((double) *p->iPartLen);
 
     /* set p->partSize to the initial partition length, iPartLen */
-    p->partSize = MYFLT2LRND(*(p->iPartLen));
-    if (UNLIKELY(p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0)) {
+    p->initDone = 0;
+    if (UNLIKELY(!(part >= 4 && part <= INT32_MAX / 2)))
+      return csound->InitError(csound, "%s",
+                               Str("liveconv: invalid impulse response partition length"));
+    p->partSize = (int32_t) part;
+    if (UNLIKELY((p->partSize & (p->partSize - 1)) != 0)) {
       // Must be a power of 2 at least as large as 4
       return csound->InitError(csound, "%s",
                                Str("liveconv: invalid impulse response "
@@ -263,15 +253,18 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
       return NOTOK; /* ftfind should already have printed the error message */
 
     /* Calculate the total length  */
-    n = (int32_t) ftp->flen;
-    if (UNLIKELY(n <= 0)) {
+    if (UNLIKELY(ftp->flen == 0 || ftp->flen > INT32_MAX)) {
       return csound->InitError(csound, "%s",
                                Str("liveconv: invalid length, or insufficient"
                                    " IR data for convolution"));
     }
+    n = (int32_t) ftp->flen;
 
     // Compute the number of partitions (total length / partition size)
-    p->nPartitions = (n + (p->partSize - 1)) / p->partSize;
+    p->nPartitions = (n - 1) / p->partSize + 1;
+    /* FFT and ring-buffer indices use signed 32-bit sample counts. */
+    if (UNLIKELY(p->nPartitions > INT32_MAX / (p->partSize * 2)))
+      return csound->InitError(csound, "%s", Str("liveconv: impulse response too large"));
 
     /*
     ** Calculate the amount of aux space to allocate (in bytes) and
@@ -279,9 +272,13 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     ** Function of partition size and number of partitions
     */
 
-    nBytes = buf_bytes_alloc(p->partSize, p->nPartitions);
-    if (nBytes != (int32_t) p->auxData.size)
-      csound->AuxAlloc(csound, (int32) nBytes, &(p->auxData));
+    uint64_t bytes = ((uint64_t) p->nPartitions + 1) *
+                     ((uint64_t) p->partSize * 4 * sizeof(MYFLT) + sizeof(load_t));
+    if (UNLIKELY(bytes > SIZE_MAX))
+      return csound->InitError(csound, "%s", Str("liveconv: impulse response too large"));
+    size_t nBytes = (size_t) bytes;
+    if (p->auxData.auxp == NULL || nBytes != p->auxData.size)
+      csound->AuxAlloc(csound, nBytes, &p->auxData);
 
     /*
     ** From here on is initialization of data
@@ -326,7 +323,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
 {
     MYFLT       *x, *rBuf;
     FUNC        *ftp;       // function table
-    int32_t         i, k, n, nSamples, rBufPos, updateIR, clearBuf, nPart, cnt;
+    int32_t         i, k, n, nSamples, rBufPos, nPart, cnt;
 
     load_t      *load_ptr;
     // uint32_t                numLoad = p->nPartitions + 1;
@@ -339,9 +336,8 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
     if (UNLIKELY(p->initDone <= 0)) goto err1;
 
     ftp = csound->FTFind(csound, p->iFTNum);
+    if (UNLIKELY(ftp == NULL)) return NOTOK;
     nSamples = p->partSize;   /* Length of partition */
-                              /* Pointer to a partition of the ring buffer */
-    rBuf = &(p->ringBuf[p->rbCnt * (nSamples << 1)]);
 
     if (UNLIKELY(offset))
       memset(p->aOut, '\0', offset*sizeof(MYFLT));
@@ -351,8 +347,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
     }
 
     /* If clear flag is set: empty buffers and reset indexes */
-    clearBuf = MYFLT2LRND(*(p->kClear));
-    if (clearBuf) {
+    if (*p->kClear != FL(0)) {
 
       /* clear ring buffer to zero */
       n = (nSamples << 1) * p->nPartitions;
@@ -365,6 +360,8 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
       /* clear output buffers to zero */
       memset(p->outBuf, 0, (nSamples << 1)*sizeof(MYFLT));
     }
+    /* A clear may have changed the partition receiving the next input. */
+    rBuf = &p->ringBuf[p->rbCnt * (nSamples << 1)];
 
     /*
     ** How to handle the kUpdate input:
@@ -377,12 +374,11 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
 
       // The buffer before the head position is the temporary buffer
       load_ptr = previous_load(&p->loader, p->loader.head);
-      updateIR = MYFLT2LRND(*(p->kUpdate));
-      if (updateIR == 1) {
+      if (*p->kUpdate == FL(1)) {
         load_ptr->status = LOADING;
         load_ptr->pos = 0;
       }
-      else if (updateIR == -1) {
+      else if (*p->kUpdate == FL(-1)) {
         load_ptr->status = UNLOADING;
         load_ptr->pos = 0;
       }
@@ -425,7 +421,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
           for (k = 0; k < nSamples; k++) {
             /* Fill IR_Data with scaled IR data, or zero if outside the IR buffer */
             p->IR_Data[n + k] =
-              (cnt < (int32_t)ftp->flen) ? ftp->ftable[cnt] : FL(0.0);
+              ((uint32_t) cnt < ftp->flen) ? ftp->ftable[cnt] : FL(0.0);
             cnt++;
           }
 
