@@ -753,6 +753,8 @@ def runTest():
         ["test_pitch_conversion_arrays.csd", "pitch conversion arrays update each control cycle"],
         ["test_cps_table_pitch.csd", "tuning-table pitch endpoints and negative pitches"],
         ["test_cps_missing_table.csd", "reject missing pitch tuning tables", 1],
+        ["test_pitchac_blocks.csd", "pitchac analysis windows and partial blocks"],
+        ["test_pitchac_invalid_size.csd", "pitchac rejects invalid buffer sizes", 1],
         ["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)", 1],
         ["test_tabslice_increment.csd", "reject zero tabslice increment", 1],
         ["test_tablefilter_values.csd", "tablefilter parameters, rational values, and table wrapping"],
