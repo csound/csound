@@ -354,36 +354,35 @@ static int32_t resonz(CSOUND *csound, RESONZ *p)
     return OK;
 }
 
+static void phaser_grow_state(CSOUND *csound, AUXCH *state, size_t size)
+{
+    if (state->size < size) {
+      size_t oldSize = state->size;
+      void *saved = csound->Malloc(csound, oldSize);
+      memcpy(saved, state->auxp, oldSize);
+      csound->AuxAlloc(csound, size, state);
+      memcpy(state->auxp, saved, oldSize);
+      csound->Free(csound, saved);
+    }
+}
+
 static int32_t phaser1set(CSOUND *csound, PHASER1 *p)
 {
     int32_t  loop = (int32_t) MYFLT2LONG(*p->iorder);
     int32_t  nBytes = (int32_t) loop * (int32_t) sizeof(MYFLT);
 
     if (*p->istor == FL(0.0) || p->auxx.auxp == NULL ||
-        (int32_t)p->auxx.size<nBytes || p->auxy.auxp == NULL ||
-        (int32_t)p->auxy.size<nBytes) {
+        p->auxy.auxp == NULL) {
       csound->AuxAlloc(csound, nBytes, &p->auxx);
       csound->AuxAlloc(csound, nBytes, &p->auxy);
-      p->xnm1 = (MYFLT *) p->auxx.auxp;
-      p->ynm1 = (MYFLT *) p->auxy.auxp;
+      p->feedback = FL(0.0);
     }
-    else if ((int32_t) p->auxx.size < nBytes || (int32_t) p->auxy.size < nBytes) {
-      /* Existing arrays too small so copy */
-      void    *tmp1, *tmp2;
-      size_t  oldSize1 = (size_t) p->auxx.size;
-      size_t  oldSize2 = (size_t) p->auxy.size;
-      tmp1 = csound->Malloc(csound, oldSize1 + oldSize2);
-      tmp2 = (char*) tmp1 + (int32_t) oldSize1;
-      memcpy(tmp1, p->auxx.auxp, oldSize1);
-      memcpy(tmp2, p->auxy.auxp, oldSize2);
-      csound->AuxAlloc(csound, nBytes, &p->auxx);
-      csound->AuxAlloc(csound, nBytes, &p->auxy);
-      memcpy(p->auxx.auxp, tmp1, oldSize1);
-      memcpy(p->auxy.auxp, tmp2, oldSize2);
-      csound->Free(csound, tmp1);
-      p->xnm1 = (MYFLT *) p->auxx.auxp;
-      p->ynm1 = (MYFLT *) p->auxy.auxp;
+    else {
+      phaser_grow_state(csound, &p->auxx, (size_t)nBytes);
+      phaser_grow_state(csound, &p->auxy, (size_t)nBytes);
     }
+    p->xnm1 = (MYFLT *) p->auxx.auxp;
+    p->ynm1 = (MYFLT *) p->auxy.auxp;
     p->loop = loop;
     return OK;
 }
@@ -447,15 +446,17 @@ static int32_t phaser2set(CSOUND *csound, PHASER2 *p)
     }
     loop = p->loop = (int32_t) MYFLT2LONG(*p->order);
 
-    if (*p->iskip==0 || p->aux1.auxp==NULL || p->aux2.auxp==NULL ||
-        p->aux1.size<(size_t)loop*sizeof(MYFLT) ||
-        p->aux2.size< (size_t)loop*sizeof(MYFLT)) {
-
+    if (*p->iskip==0 || p->aux1.auxp==NULL || p->aux2.auxp==NULL) {
       csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux1);
       csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux2);
-      p->nm1 = (MYFLT *) p->aux1.auxp;
-      p->nm2 = (MYFLT *) p->aux2.auxp;
+      p->feedback = FL(0.0);
     }
+    else {
+      phaser_grow_state(csound, &p->aux1, (size_t)loop*sizeof(MYFLT));
+      phaser_grow_state(csound, &p->aux2, (size_t)loop*sizeof(MYFLT));
+    }
+    p->nm1 = (MYFLT *) p->aux1.auxp;
+    p->nm2 = (MYFLT *) p->aux2.auxp;
     return OK;
 }
 
