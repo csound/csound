@@ -99,7 +99,7 @@ typedef struct {
     MYFLT   *curp, out1, out2, out3;
     MYFLT   *beg1p, *beg2p, *beg3p, *end1p, *end2p, *end3p;
     MYFLT   *del1p, *del2p, *del3p;
-    int32   npts;
+    int32   npts, imode;
     AUXCH   auxch;
 } NESTEDAP;
 
