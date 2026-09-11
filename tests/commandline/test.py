@@ -963,6 +963,8 @@ def runTest():
             1,
         ],
         ["test_flanger_invalid_delay.csd", "reject non-finite flanger delay", 1],
+        ["test_dconv_history.csd", "test dconv history, reset, and sample bounds"],
+        ["test_dconv_invalid_size.csd", "reject invalid dconv sizes", 1],
         ["test_vdelay_buffers.csd", "test short and wrapped variable delays"],
         ["test_vdelay_reinit.csd", "test variable delay state across reinit"],
         ["test_vdelay_invalid_maximum.csd", "reject invalid maximum delay", 1],

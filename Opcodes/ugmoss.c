@@ -37,22 +37,25 @@
 static int32_t dconvset(CSOUND *csound, DCONV *p)
 {
     FUNC *ftp;
+    double len = *p->isize;
+    size_t nbytes;
 
-    p->len = (int32_t)*p->isize;
+    if (UNLIKELY(!(len >= 1.0)))
+      return csound->InitError(csound, "%s", Str("dconv: isize must be at least 1"));
     if (LIKELY((ftp = csound->FTFind(csound,
                                         p->ifn)) != NULL)) {   /* find table */
       p->ftp = ftp;
-      if ((uint32_t)ftp->flen < p->len)
-        p->len = ftp->flen; /* correct len if flen shorter */
+      /* Limit to the table before converting a possibly large request. */
+      p->len = len >= ftp->flen ? ftp->flen : (uint32_t)len;
     }
     else {
       return csound->InitError(csound, "%s", Str("No table for dconv"));
     }
-    if (p->sigbuf.auxp == NULL ||
-        p->sigbuf.size < (uint32_t)(p->len*sizeof(MYFLT)))
-      csound->AuxAlloc(csound, p->len*sizeof(MYFLT), &p->sigbuf);
+    nbytes = (size_t)p->len * sizeof(MYFLT);
+    if (p->sigbuf.auxp == NULL || p->sigbuf.size < nbytes)
+      csound->AuxAlloc(csound, nbytes, &p->sigbuf);
     else
-      memset(p->sigbuf.auxp, '\0', p->len*sizeof(MYFLT));
+      memset(p->sigbuf.auxp, '\0', nbytes);
     p->curp = (MYFLT *)p->sigbuf.auxp;
     return OK;
 }
@@ -60,11 +63,11 @@ static int32_t dconvset(CSOUND *csound, DCONV *p)
 static int32_t dconv(CSOUND *csound, DCONV *p)
 {
     IGN(csound);
-    int32_t i = 0;
+    uint32_t i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t len = p->len;
+    uint32_t len = p->len;
     MYFLT *ar, *ain, *ftp, *startp, *endp, *curp;
     MYFLT sum;
 
@@ -88,8 +91,9 @@ static int32_t dconv(CSOUND *csound, DCONV *p)
       curp = startp;                            /* correct the ptr */
       while (i<len)
         sum += (*curp++ * ftp[i++]);            /* finish the convolution */
-      if (--curp < startp)
-        curp += len;                            /* correct for last curp++ */
+      if (curp == startp)
+        curp = endp;
+      --curp;                                  /* stay within the buffer */
       ar[n] = sum;
     }
 
