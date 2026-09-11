@@ -488,6 +488,15 @@ static int32_t fold(CSOUND *csound, FOLD *p)
 /* by Gab Maldonado. Under GNU license with a special exception for
    Canonical Csound addition */
 
+/* Normalize before lookup as well as after advancing the loop. */
+#define LOOPSEG_WRAP_PHASE(phs) do {                                    \
+    if ((phs) < 0.0 || (phs) >= 1.0) {                                  \
+      (phs) -= floor(phs);                                              \
+      /* A tiny negative phase can round up to one. */                  \
+      if ((phs) >= 1.0) (phs) = 0.0;                                    \
+    }                                                                   \
+} while (0)
+
 static int32_t loopseg_set(CSOUND *csound, LOOPSEG *p)
 {
     p->nsegs   = p->INOCOUNT-3;
@@ -511,6 +520,7 @@ static int32_t loopseg(CSOUND *csound, LOOPSEG *p)
       phs=p->phs=*p->iphase;
     else
       phs=p->phs;
+    LOOPSEG_WRAP_PHASE(phs);
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
@@ -519,7 +529,7 @@ static int32_t loopseg(CSOUND *csound, LOOPSEG *p)
 
     for ( j=0; j <nsegs; j+=2)
       durtot += argp[j];
-    for ( j=0; j < nsegs; j+=2) {
+    for ( j=0; j < nsegs-1; j+=2) {
       beg_seg += argp[j] / durtot;
       end_seg = beg_seg + argp[j+2] / durtot;
 
@@ -533,10 +543,7 @@ static int32_t loopseg(CSOUND *csound, LOOPSEG *p)
       }
     }
     phs    += si;
-    while (phs >= 1.0)
-      phs -= 1.0;
-    while (phs < 0.0 )
-      phs += 1.0;
+    LOOPSEG_WRAP_PHASE(phs);
     p->phs = phs;
     return OK;
 }
@@ -554,6 +561,7 @@ static int32_t loopxseg(CSOUND *csound, LOOPSEG *p)
       phs=p->phs=*p->iphase;
     else
       phs=p->phs;
+    LOOPSEG_WRAP_PHASE(phs);
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
@@ -562,7 +570,7 @@ static int32_t loopxseg(CSOUND *csound, LOOPSEG *p)
 
     for ( j=0; j <nsegs; j+=2)
       durtot += argp[j];
-    for ( j=0; j < nsegs; j+=2) {
+    for ( j=0; j < nsegs-1; j+=2) {
       beg_seg += argp[j] / durtot;
       end_seg = beg_seg + argp[j+2] / durtot;
 
@@ -576,10 +584,7 @@ static int32_t loopxseg(CSOUND *csound, LOOPSEG *p)
       }
     }
     phs    += si;
-    while (phs >= 1.0)
-      phs -= 1.0;
-    while (phs < 0.0 )
-      phs += 1.0;
+    LOOPSEG_WRAP_PHASE(phs);
     p->phs = phs;
     return OK;
 }
@@ -604,6 +609,7 @@ static int32_t looptseg(CSOUND *csound, LOOPTSEG *p)
       phs=p->phs=*p->iphase;
     else
       phs=p->phs;
+    LOOPSEG_WRAP_PHASE(phs);
 
     for ( j=0; j<nsegs; j++)
       durtot += *(p->argums[j].time);
@@ -631,10 +637,7 @@ static int32_t looptseg(CSOUND *csound, LOOPTSEG *p)
       }
     }
     phs    += si;
-    while (UNLIKELY(phs >= 1.0))
-      phs -= 1.0;
-    while (UNLIKELY(phs < 0.0 ))
-      phs += 1.0;
+    LOOPSEG_WRAP_PHASE(phs);
     p->phs = phs;
     return OK;
 }
@@ -652,6 +655,7 @@ static int32_t lpshold(CSOUND *csound, LOOPSEG *p)
       phs=p->phs=*p->iphase;
     else
       phs=p->phs;
+    LOOPSEG_WRAP_PHASE(phs);
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
@@ -659,7 +663,7 @@ static int32_t lpshold(CSOUND *csound, LOOPSEG *p)
     for ( j=0; j <nsegs; j+=2)
       durtot += argp[j];
 
-    for ( j=0; j < nsegs; j+=2) {
+    for ( j=0; j < nsegs-1; j+=2) {
       beg_seg += argp[j] / durtot;
       end_seg = beg_seg + argp[j+2] / durtot;
       if (beg_seg <= phs && end_seg > phs) {
@@ -670,10 +674,7 @@ static int32_t lpshold(CSOUND *csound, LOOPSEG *p)
       }
     }
     phs    += si;
-    while (phs >= 1.0)
-      phs -= 1.0;
-    while (phs < 0.0 )
-      phs += 1.0;
+    LOOPSEG_WRAP_PHASE(phs);
     p->phs = phs;
     return OK;
 }
@@ -697,10 +698,7 @@ static int32_t loopsegp(CSOUND *csound, LOOPSEGP *p)
 
     phs = *p->kphase;
 
-    while (phs >= FL(1.0))
-      phs -= FL(1.0);
-    while (phs < FL(0.0))
-      phs += FL(1.0);
+    LOOPSEG_WRAP_PHASE(phs);
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
@@ -709,7 +707,7 @@ static int32_t loopsegp(CSOUND *csound, LOOPSEGP *p)
 
     for ( j=0; j <nsegs; j+=2)
       durtot += argp[j];
-    for ( j=0; j < nsegs; j+=2) {
+    for ( j=0; j < nsegs-1; j+=2) {
       beg_seg += argp[j] / durtot;
       end_seg = beg_seg + argp[j+2] / durtot;
 
@@ -736,10 +734,7 @@ static int32_t lpsholdp(CSOUND *csound, LOOPSEGP *p)
 
     phs = *p->kphase;
 
-    while (phs >= FL(1.0))
-      phs -= FL(1.0);
-    while (phs < FL(0.0))
-      phs += FL(1.0);
+    LOOPSEG_WRAP_PHASE(phs);
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
@@ -748,7 +743,7 @@ static int32_t lpsholdp(CSOUND *csound, LOOPSEGP *p)
 
     for ( j=0; j <nsegs; j+=2)
       durtot += argp[j];
-    for ( j=0; j < nsegs; j+=2) {
+    for ( j=0; j < nsegs-1; j+=2) {
       beg_seg += argp[j] / durtot;
       end_seg = beg_seg + argp[j+2] / durtot;
 
@@ -761,6 +756,8 @@ static int32_t lpsholdp(CSOUND *csound, LOOPSEGP *p)
     }
     return OK;
 }
+
+#undef LOOPSEG_WRAP_PHASE
 
 /* by Gab Maldonado. Under GNU license with a special exception
    for Canonical Csound addition */
