@@ -31,8 +31,8 @@
 #include "interlocks.h"
 #include <math.h>
 
-#define LOGCURVE(x,y) ((LOG(x * (y-FL(1.0))+FL(1.0)))/(LOG(y)))
-#define EXPCURVE(x,y) ((EXP(x * LOG(y))-FL(1.0))/(y-FL(1.0)))
+#define LOGCURVE(x,y) (log1p((double)(x) * ((double)(y)-1.0)) / log((double)(y)))
+#define EXPCURVE(x,y) (expm1((double)(x) * log((double)(y))) / ((double)(y)-1.0))
 #define GAINSLIDER(x) (FL(0.000145) * EXP(x * FL(0.06907)))
 
 typedef struct _scale {
@@ -131,7 +131,8 @@ static int32_t expcurve_perf(CSOUND *csound, expcurve *p)
     IGN(csound);
     MYFLT ki = *p->kin;
     MYFLT ks = *p->ksteepness;
-    if (ks <= FL(1.0)) *p->kout = ki;
+    if (ks <= FL(1.0) || ki == FL(0.0) || ki == FL(1.0))
+      *p->kout = ki;
     else
       *p->kout = EXPCURVE(ki, ks);
 
@@ -145,7 +146,8 @@ static int32_t logcurve_perf(CSOUND *csound, logcurve *p)
     IGN(csound);
     MYFLT ki = *p->kin;
     MYFLT ks = *p->ksteepness;
-    if (ks == FL(1.0)) *p->kout = ki;
+    if (ks == FL(1.0) || ki == FL(0.0) || ki == FL(1.0))
+      *p->kout = ki;
     else
       *p->kout = LOGCURVE(ki, ks);
 
