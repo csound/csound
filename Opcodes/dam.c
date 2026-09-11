@@ -50,8 +50,10 @@ static int32_t daminit(CSOUND *csound, DAM *p)
    /* the computed values are stored in the opcode data structure p */
    /* for later use in the main processing                          */
 
-    p->rspeed = (*p->rtime)*CS_ONEDSR*FL(1000.0);
-    p->fspeed = (*p->ftime)*CS_ONEDSR*FL(1000.0);
+    p->rspeed = *p->rtime > FL(0.0) ? CS_ONEDSR / *p->rtime
+                                  : (MYFLT)INFINITY;
+    p->fspeed = *p->ftime > FL(0.0) ? CS_ONEDSR / *p->ftime
+                                  : (MYFLT)INFINITY;
     p->kthr = -FL(1.0);
     return OK;
 }
@@ -67,9 +69,10 @@ static int32_t dam(CSOUND *csound, DAM *p)
     MYFLT threshold;
     MYFLT gain;
     MYFLT comp1,comp2;
+    MYFLT exponent;
     MYFLT *powerPos;
     MYFLT *powerBuffer;
-    MYFLT power;
+    double power;
     MYFLT tg;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -80,7 +83,7 @@ static int32_t dam(CSOUND *csound, DAM *p)
      */
     if (p->kthr < FL(0.0)) {
       MYFLT x = (p->kthr = *(p->kthreshold))/(MYFLT)POWER_BUFSIZE;
-      p->power = p->kthr;
+      p->power = (double)x * POWER_BUFSIZE;
       /* Initialise table as threshhold changed */
       for (i=0;i<POWER_BUFSIZE;i++) {
         p->powerBuffer[i] = x;
@@ -94,6 +97,8 @@ static int32_t dam(CSOUND *csound, DAM *p)
     gain        = p->gain;
     comp1       = *(p->icomp1);
     comp2       = *(p->icomp2);
+    exponent    = comp2 != FL(0.0) ? FL(1.0)/comp2 - FL(1.0)
+                                  : (MYFLT)INFINITY;
     powerPos    = p->powerPos;
     powerBuffer = p->powerBuffer;
     power       = p->power;
@@ -108,31 +113,39 @@ static int32_t dam(CSOUND *csound, DAM *p)
 
         /* Estimates the current power level */
 
+      power -= *powerPos;
       *powerPos = FABS(ain[i])/(MYFLT)(POWER_BUFSIZE*ROOT2);
       power    += (*powerPos++);
       if ((powerPos-powerBuffer)==POWER_BUFSIZE) {
         powerPos = p->powerBuffer;
       }
-      power -= (*powerPos);
+      if (power < FL(0.0)) power = FL(0.0);
 
       /* Looks where the power is related to the threshold
          and compute target gain */
 
       if (power>threshold) {
-        tg = ((power-threshold)*comp1+threshold)/power;
+        tg = comp1 + (FL(1.0)-comp1)*(threshold/power);
+      }
+      else if (power > FL(0.0)) {
+        tg = POWER(power/threshold, exponent);
       }
       else {
-        tg = threshold*(POWER((power/threshold),
-                                     FL(1.0)/comp2))/power;
+        /* Compression tends to zero gain at silence; unity stays unity.
+           Expansion has no finite limit, so retain its current gain. */
+        tg = comp2 < FL(1.0) ? FL(0.0)
+             : comp2 == FL(1.0) ? FL(1.0) : gain;
       }
 
       /* move gain toward target */
 
       if (gain<tg) {
         gain += p->rspeed;
+        if (gain>tg) gain = tg;
       }
-      else {
+      else if (gain>tg) {
         gain -= p->fspeed;
+        if (gain<tg) gain = tg;
       }
 
       /* compute output */
