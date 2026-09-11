@@ -941,6 +941,7 @@ def runTest():
         ["test_random_rate_correctness.csd", "randomi and randomh rate handling"],
         ["test_mirror_bounds.csd", "test mirror boundaries and large inputs"],
         ["test_atonex_order_one.csd", "test atonex order-one filtering"],
+        ["test_tonex_cutoff.csd", "tonex/atonex cutoff updates, stages, and input reuse"],
         ["test_filterx_istor_first_init.csd", "test filter state on first init"],
         ["test_filterx_order_growth.csd", "test filter state after order growth"],
         ["test_dcblock2_order_reinit.csd", "test dcblock2 order changes"],
