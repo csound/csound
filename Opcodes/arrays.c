@@ -1022,57 +1022,106 @@ static int32_t cols_init_S(CSOUND *csound, FFT *p) {
   return NOTOK;
 }
 
-static int32_t shiftin_init(CSOUND *csound, FFT *p) {
+typedef struct {
+  OPDS h;
+  ARRAYDAT *out;
+  MYFLT *in;
+  uint32_t size, n;
+} SHIFTIN;
 
-  int32_t sizs = CS_KSMPS;
-  if(p->out->sizes[0] < sizs)
-    if (UNLIKELY(tabinit(csound, p->out, sizs, p->h.insdshead) != OK))
-      return csound_array_init_resize_error(csound);
+typedef struct {
+  OPDS h;
+  MYFLT *out;
+  ARRAYDAT *in;
+  MYFLT *offset;
+  uint32_t size, n;
+} SHIFTOUT;
+
+static int32_t shiftin_init(CSOUND *csound, SHIFTIN *p) {
+  int32_t size = CS_KSMPS;
+  if (UNLIKELY(p->out->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                            Str("shiftin: expected a one-dimensional array"));
+  if (p->out->sizes != NULL && p->out->sizes[0] > size)
+    size = p->out->sizes[0];
+  if (UNLIKELY(tabinit(csound, p->out, size, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
+  p->size = size;
   p->n = 0;
   return OK;
 }
 
-static int32_t shiftin_perf(CSOUND *csound, FFT *p) {
-  IGN(csound);
-  uint32_t  siz =  p->out->sizes[0], n = p->n;
-  MYFLT *in = ((MYFLT *) p->in);
-  if (n + CS_KSMPS < siz) {
-    memcpy(p->out->data+n,in,CS_KSMPS*sizeof(MYFLT));
+static int32_t shiftin_perf(CSOUND *csound, SHIFTIN *p) {
+  if (UNLIKELY(p->out->sizes == NULL || p->out->dimensions != 1 ||
+               p->out->sizes[0] != (int32_t) p->size))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("shiftin: array shape changed"));
+  if (UNLIKELY(tabcheck(csound, p->out, p->size, &p->h) != OK))
+    return NOTOK;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t count = CS_KSMPS - p->h.insdshead->ksmps_no_end - offset;
+  uint32_t n = p->n, remaining = p->size - n;
+  MYFLT *in = p->in + offset;
+  if (count == 0) return OK;
+  if (count < remaining) {
+    memcpy(p->out->data+n, in, count*sizeof(MYFLT));
+    n += count;
   }
   else {
-    int32_t num = siz - n;
-    memcpy(p->out->data+n,in,num*sizeof(MYFLT));
-    memcpy(p->out->data,in+num,(CS_KSMPS-num)*sizeof(MYFLT));
+    memcpy(p->out->data+n, in, remaining*sizeof(MYFLT));
+    if (count > remaining)
+      memcpy(p->out->data, in+remaining, (count-remaining)*sizeof(MYFLT));
+    n = count - remaining;
   }
-  p->n = (n + CS_KSMPS)%siz;
+  p->n = n;
   return OK;
 }
 
 
-static int32_t shiftout_init(CSOUND *csound, FFT *p) {
+static int32_t shiftout_init(CSOUND *csound, SHIFTOUT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
+  if (UNLIKELY(p->in->dimensions != 1))
+    return csound->InitError(csound, "%s",
+                            Str("shiftout: expected a one-dimensional array"));
   int32_t siz = p->in->sizes[0];
-  p->n = ((int32_t)*((MYFLT *)p->in2) % siz);
-  if (UNLIKELY((uint32_t) siz < CS_KSMPS))
+  if (UNLIKELY(siz < (int32_t) CS_KSMPS))
     return csound->InitError(csound, "%s", Str("input array too small\n"));
+  double offset = *p->offset;
+  if (UNLIKELY(!isfinite(offset)))
+    return csound->InitError(csound, "%s",
+                            Str("shiftout: offset must be finite"));
+  offset = fmod(trunc(offset), siz);
+  if (offset < 0) offset += siz;
+  p->n = (uint32_t) offset;
+  p->size = siz;
   return OK;
 }
 
-static int32_t shiftout_perf(CSOUND *csound, FFT *p) {
-  IGN(csound);
-  uint32_t siz =  p->in->sizes[0], n = p->n;
-  MYFLT *out = ((MYFLT *) p->out);
-
-  if (n + CS_KSMPS < siz) {
-    memcpy(out,p->in->data+n,CS_KSMPS*sizeof(MYFLT));
+static int32_t shiftout_perf(CSOUND *csound, SHIFTOUT *p) {
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->in->sizes[0] != (int32_t) p->size))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("shiftout: array shape changed"));
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early = p->h.insdshead->ksmps_no_end;
+  uint32_t end = CS_KSMPS - early, count = end - offset;
+  uint32_t n = p->n, remaining = p->size - n;
+  if (offset) memset(p->out, 0, offset*sizeof(MYFLT));
+  if (early) memset(p->out+end, 0, early*sizeof(MYFLT));
+  if (count == 0) return OK;
+  MYFLT *out = p->out + offset;
+  if (count < remaining) {
+    memcpy(out, p->in->data+n, count*sizeof(MYFLT));
+    n += count;
   }
   else {
-    int32_t num = siz - n;
-    memcpy(out,p->in->data+n,num*sizeof(MYFLT));
-    memcpy(out+num,p->in->data,(CS_KSMPS-num)*sizeof(MYFLT));
+    memcpy(out, p->in->data+n, remaining*sizeof(MYFLT));
+    if (count > remaining)
+      memcpy(out+remaining, p->in->data, (count-remaining)*sizeof(MYFLT));
+    n = count - remaining;
   }
-  p->n = (n + CS_KSMPS)%siz;
+  p->n = n;
   return OK;
 }
 
@@ -1480,9 +1529,9 @@ static OENTRY arrayvars_localops[] =
      (SUBR) set_cols_init, (SUBR) set_cols_perf, NULL},
     {"setcol", sizeof(FFT), 0, "S[]","S[]k",
      (SUBR) set_cols_init_S, (SUBR) set_cols_perf_S, NULL},
-    {"shiftin", sizeof(FFT), 0, "k[]","a",
+    {"shiftin", sizeof(SHIFTIN), 0, "k[]","a",
      (SUBR) shiftin_init, (SUBR) shiftin_perf},
-    {"shiftout", sizeof(FFT), 0, "a","k[]o",
+    {"shiftout", sizeof(SHIFTOUT), 0, "a","k[]o",
      (SUBR) shiftout_init, (SUBR) shiftout_perf},
     {"unwrap", sizeof(FFT), 0, "k[]","k[]o",
      (SUBR) unwrap_set, (SUBR) unwrap},
