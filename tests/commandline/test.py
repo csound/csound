@@ -939,6 +939,7 @@ def runTest():
         ["test_gen01.csd", "testing GEN01 importing files"],
         ["test_raw_strings.csd", "test new-style raw strings"],
         ["test_min_max_values.csd", "test MIN_VALUE and MAX_VALUE math constants"],
+        ["test_minmax_accumulator_bounds.csd", "min/max accumulators preserve inactive samples"],
         ["test_all_math_constants.csd", "test all builtin math constant macros"],
         [
             "test_op_precedence.csd",
