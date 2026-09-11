@@ -214,15 +214,25 @@ typedef struct _pvsmorph {
 
 static int32_t sndloop_init(CSOUND *csound, sndloop *p)
 {
-    p->durs = (int32) (*(p->dur)*CS_ESR); /* dur in samps */
-    p->cfds = (int32) (*(p->cfd)*CS_ESR); /* fade in samps */
+    double durs = *(p->dur)*CS_ESR, cfds = *(p->cfd)*CS_ESR;
+    if (UNLIKELY(!(durs >= 1.0 && durs <= INT32_MAX &&
+                   durs <= SIZE_MAX / sizeof(MYFLT) &&
+                   cfds >= 0.0 && cfds <= INT32_MAX)))
+      return csound->InitError(csound, "%s",
+                               Str("sndloop: invalid loop or crossfade duration"));
+    p->durs = (int32)durs;
+    p->cfds = (int32)cfds;
     if (UNLIKELY(p->durs < p->cfds))
       return
         csound->InitError(csound, "%s", Str("crossfade cannot be longer than loop\n"));
 
-    p->inc  = FL(1.0)/p->cfds;    /* inc/dec */
+    if (UNLIKELY(p->durs > INT32_MAX - p->cfds))
+      return csound->InitError(csound, "%s",
+                               Str("sndloop: recording is too long"));
+    p->inc  = p->cfds ? FL(1.0)/p->cfds : FL(0.0);
     p->a    = FL(0.0);
     p->wp   = 0;                  /* intialise write pointer */
+    p->rp   = 0.0;
     p->rst  = 1;                  /* reset the rec control */
     if (p->buffer.auxp==NULL ||
        p->buffer.size<p->durs*sizeof(MYFLT)) /* allocate memory if necessary */
@@ -232,8 +242,7 @@ static int32_t sndloop_init(CSOUND *csound, sndloop *p)
 
 static int32_t sndloop_process(CSOUND *csound, sndloop *p)
 {
-     IGN(csound);
-    int32_t on = (int32_t) *(p->on), recon;
+    int32_t on = FABS(*p->on) >= FL(1.0), recon;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -241,7 +250,15 @@ static int32_t sndloop_process(CSOUND *csound, sndloop *p)
     double rp = p->rp;
     MYFLT a = p->a, inc = p->inc;
     MYFLT *out = p->out, *sig = p->sig, *buffer = p->buffer.auxp;
-    MYFLT pitch = *(p->pitch);
+    double pitch = *(p->pitch);
+
+    /* Reduce the step once per control block, so sample wrapping is bounded. */
+    if (UNLIKELY(!(pitch > -durs && pitch < durs))) {
+      pitch = fmod(pitch, (double)durs);
+      if (UNLIKELY(!(pitch > -durs && pitch < durs)))
+        return csound->PerfError(csound, &p->h, "%s",
+                                 Str("sndloop: invalid pitch ratio"));
+    }
 
     if (on) recon = p->rst; /* restart recording if switched on again */
     else recon = 0;  /* else do not record */
@@ -271,20 +288,23 @@ static int32_t sndloop_process(CSOUND *csound, sndloop *p)
         if (wp == durs+cfds) {  /* end of recording */
           recon = 0;  /* OFF */
           p->rst = 0; /* reset to 0 */
-          p->rp = (MYFLT) wp; /* rp pointer to start from here */
+          /* Continue after the samples already used by the crossfade. */
+          rp = cfds < durs ? cfds : 0;
         }
       }
       else {
         if (on) { /* if opcode is ON */
           out[i] = buffer[(int32_t)rp]; /* output the looped sound */
           rp += pitch;        /* read pointer increment */
-          while (rp >= durs) rp -= durs; /* wrap-around */
-          while (rp < 0) rp += durs;
+          if (rp < 0) rp += durs;
+          /* The addition above can round up to durs. */
+          if (rp >= durs) rp -= durs;
         }
         else {   /* if opocde is OFF */
           out[i] = sig[i]; /* copy input to the output */
           p->rst = 1;   /* reset: ready for new recording */
           wp = 0; /* zero write pointer */
+          a = FL(0.0);
         }
       }
     }
