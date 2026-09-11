@@ -157,7 +157,13 @@ instr 1
   aOut olabuffer kFrame, iOverlap
   out aOut
 endin
+instr 2
+  kCount init 0
+  kCount += 1
+  chnset kCount, "alive"
+endin
 schedule(1, 0, 0.001)
+schedule(2, 0, 0.001)
 )";
 
     ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
@@ -175,8 +181,13 @@ schedule(1, 0, 0.001)
         }
     }
     else {
-        // A crash cannot satisfy this assertion, unlike an expected CLI failure.
-        EXPECT_NE(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+        // Reject this instrument while the other one keeps performing.
+        for (int sample = 0; sample < 24; ++sample)
+            ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+        EXPECT_EQ(csoundErrCnt(csound), 1);
+        int error = 0;
+        EXPECT_EQ(csoundGetControlChannel(csound, "alive", &error), FL(24.0));
+        EXPECT_EQ(error, 0);
         bool reportedOverlapError = false;
         while (csoundGetMessageCnt(csound)) {
             const char *message = csoundGetFirstMessage(csound);
