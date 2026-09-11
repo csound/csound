@@ -103,7 +103,8 @@ static inline void set_lp_rbj(double lp[7], double fc, double q, double sr)
 
 static int32_t exciter_init(CSOUND *csound, EXCITER *p)
 {
-    p->freq_old =  p->ceil_old = FL(0.0);
+    /* Zero is a valid cutoff and must also rebuild coefficients on reinit. */
+    p->freq_old = p->ceil_old = FL(-1.0);
     p->hp1[5] = p->hp2[5] = p->hp3[5] = p->hp4[5] = 0.0;
     p->hp1[6] = p->hp2[6] = p->hp3[6] = p->hp4[6] = 0.0;
     p->lp1[5] = p->lp2[5] = 0.0;
