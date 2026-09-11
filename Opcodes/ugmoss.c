@@ -704,6 +704,7 @@ static int32_t vcomb(CSOUND *csound, VCOMB *p)
     uint32_t      xlpt, maxlpt = (uint32)p->maxlpt;
     MYFLT       *ar, *asig, *rp, *endp, *startp, *wp, *lpt;
     MYFLT       g = p->g;
+    MYFLT timeScale = *p->insmps != 0 ? CS_ONEDSR : FL(1.0);
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
@@ -717,18 +718,19 @@ static int32_t vcomb(CSOUND *csound, VCOMB *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (p->lpta) {                               /* if xlpt is a-rate */
-      lpt = p->xlpt;
+      lpt = p->xlpt + offset;
       for (n=offset; n<nsmps; n++) {
         xlpt = (uint32)((*p->insmps != 0) ? *lpt : *lpt * CS_ESR);
         if (xlpt > maxlpt) xlpt = maxlpt;
         if ((rp = wp - xlpt) < startp) rp += maxlpt;
         if ((p->rvt != *p->krvt) || (p->lpt != *lpt)) {
           p->rvt = *p->krvt, p->lpt = *lpt;
-          g = p->g = POWER(FL(0.001), (p->lpt / p->rvt));
+          g = p->g = POWER(FL(0.001), (p->lpt * timeScale / p->rvt));
         }
         lpt++;
-        ar[n] = *rp++;
-        *wp++ = (ar[n] * g) + asig[n];
+        MYFLT output = *rp++;
+        *wp++ = (output * g) + asig[n];
+        ar[n] = output;
         if (wp >= endp) wp = startp;
         //if (rp >= endp) rp = startp;
       }
@@ -740,11 +742,12 @@ static int32_t vcomb(CSOUND *csound, VCOMB *p)
       if ((rp = wp - xlpt) < startp) rp += maxlpt;
       if ((p->rvt != *p->krvt) || (p->lpt != *p->xlpt)) {
         p->rvt = *p->krvt, p->lpt = *p->xlpt;
-        g = p->g = POWER(FL(0.001), (p->lpt / p->rvt));
+        g = p->g = POWER(FL(0.001), (p->lpt * timeScale / p->rvt));
       }
       for (n=offset; n<nsmps; n++) {
-        ar[n] = *rp++;
-        *wp++ = (ar[n] * g) + asig[n];
+        MYFLT output = *rp++;
+        *wp++ = (output * g) + asig[n];
+        ar[n] = output;
         if (wp >= endp) wp = startp;
         if (rp >= endp) rp = startp;
       }
@@ -764,6 +767,7 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
     uint32_t xlpt, maxlpt = (uint32)p->maxlpt;
     MYFLT       *ar, *asig, *rp, *startp, *endp, *wp, *lpt;
     MYFLT       y, z, g = p->g;
+    MYFLT timeScale = *p->insmps != 0 ? CS_ONEDSR : FL(1.0);
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
@@ -784,7 +788,7 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
         if ((rp = wp - xlpt) < startp) rp += maxlpt;
         if ((p->rvt != *p->krvt) || (p->lpt != lpt[n])) {
           p->rvt = *p->krvt, p->lpt = lpt[n];
-          g = p->g = POWER(FL(0.001), (p->lpt / p->rvt));
+          g = p->g = POWER(FL(0.001), (p->lpt * timeScale / p->rvt));
         }
         y = *rp++;
         *wp++ = z = y * g + asig[n];
@@ -800,7 +804,7 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
       if ((rp = wp - xlpt) < startp) rp += maxlpt;
       if ((p->rvt != *p->krvt) || (p->lpt != *p->xlpt)) {
         p->rvt = *p->krvt, p->lpt = *p->xlpt;
-        g = p->g = POWER(FL(0.001), (p->lpt / p->rvt));
+        g = p->g = POWER(FL(0.001), (p->lpt * timeScale / p->rvt));
       }
       for (n=offset; n<nsmps; n++) {
         y = *rp++;
