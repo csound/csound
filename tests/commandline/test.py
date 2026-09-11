@@ -607,6 +607,8 @@ def runTest():
             "pvsadsyn rejects invalid bin increments",
             1,
         ],
+        ["test_pvsbin_output.csd", "pvsbin output rates, bin changes, and partial blocks"],
+        ["test_pvsbin_invalid_bin.csd", "reject invalid pvsbin indices", 1],
         ["test_hilbert2_state.csd", "hilbert2 input reuse, partial blocks and reinit"],
         ["test_gtf_complex_state.csd", "gtf complex impulse response and sample bounds"],
         ["test_repluck_correctness.csd", "test plucked-string waveguide limits"],

@@ -1165,78 +1165,72 @@ static int32_t pvsoscprocess(CSOUND *csound, PVSOSC *p)
 }
 
 
-static int32_t pvsbinset(CSOUND *csound, PVSBIN *p)
-{
-   IGN(csound);
-  p->lastframe = 0;
-  return OK;
-}
-
 static int32_t pvsbinprocess(CSOUND *csound, PVSBIN *p)
 {
-   IGN(csound);
-  int32    framesize, pos;
+  double bin = *p->kbin;
+  int32_t NB = p->fin->sliding ? p->fin->NB : p->fin->N / 2 + 1;
+  int32_t pos;
+  if (UNLIKELY(!(bin >= 0.0 && bin < NB)))
+    return csound->PerfError(csound, &(p->h), "%s",
+                             Str("pvsbin: bin index out of range"));
+  pos = (int32_t)bin;
   if (p->fin->sliding) {
-    CMPLX *fin = (CMPLX *) p->fin->frame.auxp;
-    framesize = p->fin->NB;
-    pos=*p->kbin;
-    if (pos >= 0 && pos < framesize) {
-      *p->kamp = (MYFLT)fin[pos].re;
-      *p->kfreq = (MYFLT)fin[pos].im;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t end = CS_KSMPS - p->h.insdshead->ksmps_no_end;
+    CMPLX *fin = (CMPLX *)p->fin->frame.auxp;
+    if (UNLIKELY(offset >= end)) {
+      *p->kamp = *p->kfreq = FL(0.0);
+      return OK;
     }
+    /* A control-rate output reads the first active sample. */
+    fin += (size_t)offset * NB + pos;
+    *p->kamp = fin->re;
+    *p->kfreq = fin->im;
   }
-  else
-    {
-      float   *fin;
-      fin = (float *) p->fin->frame.auxp;
-      if (p->lastframe < p->fin->framecount) {
-        framesize = p->fin->N + 2;
-        pos=*p->kbin*2;
-        if (pos >= 0 && pos < framesize) {
-          *p->kamp = (MYFLT)fin[pos];
-          *p->kfreq = (MYFLT)fin[pos+1];
-        }
-        p->lastframe = p->fin->framecount;
-      }
-    }
+  else {
+    float *fin = (float *)p->fin->frame.auxp;
+    *p->kamp = (MYFLT)fin[2 * pos];
+    *p->kfreq = (MYFLT)fin[2 * pos + 1];
+  }
   return OK;
 }
 
 static int32_t pvsbinprocessa(CSOUND *csound, PVSBIN *p)
 {
-   IGN(csound);
-  int32    framesize, pos;
+  double bin = *p->kbin;
+  int32_t NB = p->fin->sliding ? p->fin->NB : p->fin->N / 2 + 1;
+  int32_t pos;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early = p->h.insdshead->ksmps_no_end;
+  uint32_t n, nsmps = CS_KSMPS;
+  if (UNLIKELY(!(bin >= 0.0 && bin < NB)))
+    return csound->PerfError(csound, &(p->h), "%s",
+                             Str("pvsbin: bin index out of range"));
+  pos = (int32_t)bin;
+  if (UNLIKELY(offset)) {
+    memset(p->kamp, 0, offset * sizeof(MYFLT));
+    memset(p->kfreq, 0, offset * sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(p->kamp + nsmps, 0, early * sizeof(MYFLT));
+    memset(p->kfreq + nsmps, 0, early * sizeof(MYFLT));
+  }
   if (p->fin->sliding) {
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t k, nsmps = CS_KSMPS;
-    CMPLX *fin = (CMPLX *) p->fin->frame.auxp;
-    int32_t NB = p->fin->NB;
-    pos = *p->kbin;
-    if (pos >= 0 && pos < NB) {
-      for (k=0; k<offset; k++)  p->kamp[k]  = p->kfreq[k] = FL(0.0);
-      for (k=offset; k<nsmps; k++) {
-        p->kamp[k]  = (MYFLT)fin[pos+NB*k].re;
-        p->kfreq[k] = (MYFLT)fin[pos+NB*k].im;
-      }
+    CMPLX *fin = (CMPLX *)p->fin->frame.auxp;
+    for (n = offset; n < nsmps; n++) {
+      p->kamp[n] = fin[pos + (size_t)NB * n].re;
+      p->kfreq[n] = fin[pos + (size_t)NB * n].im;
     }
   }
   else {
-    float   *fin;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t k, nsmps = CS_KSMPS;
-    fin = (float *) p->fin->frame.auxp;
-    if (p->lastframe < p->fin->framecount) {
-      framesize = p->fin->N + 2;
-      pos=*p->kbin*2;
-      if (pos >= 0 && pos < framesize) {
-        memset(p->kamp, '\0', offset*sizeof(MYFLT));
-        memset(p->kfreq, '\0', offset*sizeof(MYFLT));
-        for (k=offset; k<nsmps; k++) {
-          p->kamp[k]  = (MYFLT)fin[pos];
-          p->kfreq[k] = (MYFLT)fin[pos+1];
-        }
-        p->lastframe = p->fin->framecount;
-      }
+    float *fin = (float *)p->fin->frame.auxp;
+    MYFLT amp = (MYFLT)fin[2 * pos];
+    MYFLT freq = (MYFLT)fin[2 * pos + 1];
+    /* Hold the current frame, including blocks without a new frame. */
+    for (n = offset; n < nsmps; n++) {
+      p->kamp[n] = amp;
+      p->kfreq[n] = freq;
     }
   }
   return OK;
@@ -2808,8 +2802,8 @@ static OENTRY localops[] = {
   {"pvstencil", sizeof(PVSTENCIL), TR, "f", "fkki", (SUBR) pvstencilset,
    (SUBR) pvstencil},
   {"pvsinit", sizeof(PVSINI),0,  "f", "ioopo", (SUBR) pvsinit, NULL, NULL},
-  {"pvsbin", sizeof(PVSBIN),0, "ss", "fk", (SUBR) pvsbinset,
-   (SUBR) pvsbinprocess, (SUBR) pvsbinprocessa},
+  {"pvsbin", sizeof(PVSBIN),0, "kk", "fk", NULL, (SUBR) pvsbinprocess},
+  {"pvsbin", sizeof(PVSBIN),0, "aa", "fk", NULL, (SUBR) pvsbinprocessa},
   {"pvsfreeze", sizeof(PVSFREEZE),0, "f", "fkk", (SUBR) pvsfreezeset,
    (SUBR) pvsfreezeprocess, NULL},
   {"pvsmooth", sizeof(PVSFREEZE),0, "f", "fxx", (SUBR) pvsmoothset,
