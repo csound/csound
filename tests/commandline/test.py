@@ -591,6 +591,7 @@ def runTest():
             "test_pvsadsyn_last_bin.csd",
             "pvsadsyn accepts a stepped selection ending at the last bin",
         ],
+        ["test_fmanal_samples.csd", "fmanal input reuse and partial blocks"],
         [
             "test_pvsadsyn_invalid_count.csd",
             "pvsadsyn rejects an out-of-range oscillator count",
