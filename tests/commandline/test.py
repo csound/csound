@@ -729,6 +729,7 @@ def runTest():
         ["test_vector_table_correctness.csd", "vector table indexing"],
         ["test_vector_table_invalid_index.csd", "reject invalid vector table index", 1],
         ["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
+        ["test_pitch_conversion_arrays.csd", "pitch conversion arrays update each control cycle"],
         ["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)", 1],
         ["test_tabslice_increment.csd", "reject zero tabslice increment", 1],
         ["test_tabsum_ranges.csd", "tabsum handles valid table ranges"],
