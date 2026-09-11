@@ -797,6 +797,8 @@ def runTest():
             "test_tablemix_nonpower_source.csd",
             "test tableimix wraps a non-power-of-two source table",
         ],
+        ["test_ftmorf_tables.csd", "test ftmorf interpolation and index limits"],
+        ["test_ftmorf_changed_tables.csd", "reject invalid changed ftmorf tables", 1],
         [
             "prints_number_no_crash.csd",
             "test prints does not crash when given a number arguments"

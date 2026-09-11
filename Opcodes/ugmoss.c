@@ -861,25 +861,37 @@ static int32_t ftmorfset(CSOUND *csound, FTMORF *p)
 
 static int32_t ftmorf(CSOUND *csound, FTMORF *p)
 {
-    uint32_t j = 0;
-    int32_t i;
+    uint32_t j, i;
+    double ndx = *p->kftndx;
     MYFLT f;
     FUNC *ftp1, *ftp2;
 
-    if (*p->kftndx >= p->ftfn->flen) *p->kftndx = (MYFLT)(p->ftfn->flen - 1);
-    i = (int32_t)*p->kftndx;
-    f = *p->kftndx - i;
-    if (p->ftndx != *p->kftndx && p->ftfn->ftable) {
-      p->ftndx = *p->kftndx;
-      MYFLT tbl1 = *(p->ftfn->ftable + i++);
-      MYFLT tbl2 = *(p->ftfn->ftable + i--);
-      ftp1 = csound->FTFind(csound, &tbl1);
-      ftp2 = csound->FTFind(csound, &tbl2);
-     if(ftp2)
-      do {
-            *(p->resfn->ftable + j) = (*(ftp1->ftable + j) * (1-f)) +
-              (*(ftp2->ftable + j) * f);
-      } while (++j < p->len);
+    /* Clamp locally: the input can also be used by other opcodes. */
+    if (ndx < 0.0)
+      ndx = 0.0;
+    else if (ndx > (double)p->ftfn->flen - 1.0)
+      ndx = (double)p->ftfn->flen - 1.0;
+    else if (UNLIKELY(!(ndx >= 0.0)))
+      return csound->PerfError(csound, &(p->h),
+                              "%s", Str("ftmorf: invalid index"));
+    if (p->ftndx != ndx) {
+      i = (uint32_t)ndx;
+      f = (MYFLT)(ndx - i);
+      ftp1 = csound->FTFind(csound, &p->ftfn->ftable[i]);
+      ftp2 = f != FL(0.0) ?
+        csound->FTFind(csound, &p->ftfn->ftable[i + 1]) : ftp1;
+      /* The table list may have changed since initialisation. */
+      if (UNLIKELY(ftp1 == NULL || ftp2 == NULL))
+        return csound->PerfError(csound, &(p->h),
+                                "%s", Str("ftmorf: source table does not exist"));
+      if (UNLIKELY(ftp1->flen != p->len || ftp2->flen != p->len))
+        return csound->PerfError(csound, &(p->h),
+                                "%s", Str("ftmorf: source table has wrong size"));
+      /* Interpolating readers also need the source tables' guard points. */
+      for (j = 0; j <= p->len; j++)
+        p->resfn->ftable[j] = ftp1->ftable[j] * (FL(1.0) - f) +
+                             ftp2->ftable[j] * f;
+      p->ftndx = (MYFLT)ndx;
     }
     return OK;
 }
