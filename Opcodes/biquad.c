@@ -1050,59 +1050,59 @@ static int32_t vco(CSOUND *csound, VCO *p)
 
     static int32_t nestedapset(CSOUND *csound, NESTEDAP *p)
     {
-      int32    npts, npts1=0, npts2=0, npts3=0;
-      void    *auxp;
+      int32_t npts, npts1, npts2 = 0, npts3 = 0;
+      double samples;
+      size_t size;
+      int32_t mode;
 
       if (*p->istor && p->auxch.auxp != NULL)
         return OK;
-
-      npts2 = (int32)(*p->del2 * CS_ESR);
-      npts3 = (int32)(*p->del3 * CS_ESR);
-      npts1 = (int32)(*p->del1 * CS_ESR) - npts2 -npts3;
-
-      if (UNLIKELY(((int32)(*p->del1 * CS_ESR)) <=
-                   ((int32)(*p->del2 * CS_ESR) +
-                    (int32)(*p->del3 * CS_ESR)))) {
-        return csound->InitError(csound, "%s", Str("illegal delay time"));
+      if (UNLIKELY(*p->mode != FL(1.0) && *p->mode != FL(2.0) &&
+                   *p->mode != FL(3.0)))
+        return csound->InitError(csound, Str("nestedap: mode must be 1, 2 or 3"));
+      mode = (int32_t)*p->mode;
+      samples = *p->del1 * CS_ESR;
+      if (UNLIKELY(!(samples >= 1.0 && samples <= INT32_MAX &&
+                     samples <= SIZE_MAX / sizeof(MYFLT))))
+        return csound->InitError(csound, Str("nestedap: invalid outer delay"));
+      npts = (int32_t)samples;
+      if (mode >= 2) {
+        samples = *p->del2 * CS_ESR;
+        if (UNLIKELY(!(samples >= 1.0 && samples < npts)))
+          return csound->InitError(csound, Str("nestedap: invalid second delay"));
+        npts2 = (int32_t)samples;
       }
-      npts = npts1 + npts2 + npts3;
-      /* new space if reqd */
-      if ((auxp = p->auxch.auxp) == NULL || npts != p->npts) {
-        csound->AuxAlloc(csound, (size_t)npts*sizeof(MYFLT), &p->auxch);
-        //auxp = p->auxch.auxp;
-        p->npts = npts;
-
-        if (*p->mode == FL(1.0)) {
-          if (UNLIKELY(npts1 <= 0)) {
-            return csound->InitError(csound, "%s", Str("illegal delay time"));
-          }
-          p->beg1p = (MYFLT *) p->auxch.auxp;
-          p->end1p = (MYFLT *) p->auxch.endp;
-        }
-        else if (*p->mode == FL(2.0)) {
-          if (UNLIKELY(npts1 <= 0 || npts2 <= 0)) {
-            return csound->InitError(csound, "%s", Str("illegal delay time"));
-          }
-          p->beg1p = (MYFLT *)  p->auxch.auxp;
-          p->beg2p = p->beg1p + npts1;
-          p->end1p = p->beg2p - 1;
-          p->end2p = (MYFLT *)  p->auxch.endp;
-        }
-        else if (*p->mode == FL(3.0)) {
-          if (UNLIKELY(npts1 <= 0 || npts2 <= 0 || npts3 <= 0)) {
-            return csound->InitError(csound, "%s", Str("illegal delay time"));
-          }
-          p->beg1p = (MYFLT *) p->auxch.auxp;
-          p->beg2p = (MYFLT *) p->auxch.auxp + (int32)npts1;
-          p->beg3p = (MYFLT *) p->auxch.auxp + (int32)npts1 + (int32)npts2;
-          p->end1p = p->beg2p - 1;
-          p->end2p = p->beg3p - 1;
-          p->end3p = (MYFLT *) p->auxch.endp;
-        }
+      if (mode == 3) {
+        samples = *p->del3 * CS_ESR;
+        if (UNLIKELY(!(samples >= 1.0 && samples < npts - npts2)))
+          return csound->InitError(csound, Str("nestedap: invalid third delay"));
+        npts3 = (int32_t)samples;
       }
-      /* else if requested */
-      else if (!(*p->istor)) {
-        memset(auxp, 0, npts*sizeof(int32));
+      npts1 = npts - npts2 - npts3;
+      size = (size_t)npts * sizeof(MYFLT);
+      if (p->auxch.auxp == NULL || npts != p->npts)
+        csound->AuxAlloc(csound, size, &p->auxch);
+      else
+        memset(p->auxch.auxp, 0, size);
+      p->npts = npts;
+      p->imode = mode;
+
+      /* Rebuild the layout even when the total allocation size is unchanged. */
+      p->beg1p = (MYFLT *)p->auxch.auxp;
+      p->beg2p = p->beg3p = NULL;
+      p->end2p = p->end3p = NULL;
+      p->end1p = p->beg1p + npts;
+      /* Nested modes historically shorten the outer stages by one sample.
+         Keep these endpoints and the filter equations for sound compatibility. */
+      if (mode >= 2) {
+        p->beg2p = p->beg1p + npts1;
+        p->end1p = p->beg2p - 1;
+        p->end2p = p->beg1p + npts;
+      }
+      if (mode == 3) {
+        p->beg3p = p->beg2p + npts2;
+        p->end2p = p->beg3p - 1;
+        p->end3p = p->beg1p + npts;
       }
       p->del1p = p->beg1p;
       p->del2p = p->beg2p;
@@ -1134,7 +1134,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
         memset(&outp[nsmps], '\0', early*sizeof(MYFLT));
       }
       /* Ordinary All-Pass Filter */
-      if (*p->mode == FL(1.0)) {
+      if (p->imode == 1) {
 
         del1p = p->del1p;
         end1p = p->end1p;
@@ -1156,7 +1156,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
       }
 
       /* Single Nested All-Pass Filter */
-      else if (*p->mode == FL(2.0)) {
+      else if (p->imode == 2) {
 
         del1p = p->del1p;
         end1p = p->end1p;
@@ -1192,7 +1192,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
       }
 
       /* Double Nested All-Pass Filter */
-      else if (*p->mode == FL(3.0)) {
+      else if (p->imode == 3) {
 
         del1p = p->del1p;
         end1p = p->end1p;
