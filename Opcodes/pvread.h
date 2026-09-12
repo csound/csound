@@ -26,7 +26,7 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kfreq, *kamp, *ktimpnt,  *ifilno, *ibin;
+    MYFLT   *kfreq, *kamp, *ktimpnt,  *ifilno, *ibin, *ifiletime;
     int32   kcnt;
     int32   baseFr, maxFr, frSiz, prFlg;
     /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */

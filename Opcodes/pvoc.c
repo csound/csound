@@ -44,23 +44,23 @@ int32_t     pvinterpset_S(CSOUND *, void *);
 
 static OENTRY pvoc_localops[] =
   {
-   { "pvoc",      S(PVOC),      0, "a",  "kkSoooo", pvset_S, pvoc        },
-   { "pvoc.i",      S(PVOC),      0, "a",  "kkioooo", pvset, pvoc        },
+   { "pvoc",      S(PVOC),      0, "a",  "kkSooooo", pvset_S, pvoc        },
+   { "pvoc.i",      S(PVOC),      0, "a",  "kkiooooo", pvset, pvoc        },
 { "tableseg",  S(TABLESEG),  TR, "",   "iim",     tblesegset, ktableseg, NULL  },
 { "ktableseg", S(TABLESEG),  _QQ|TR, "",   "iim",  tblesegset, ktableseg, NULL },
 { "tablexseg", S(TABLESEG),  TW, "",   "iin",     tblesegset, ktablexseg, NULL },
    { "vpvoc",     S(VPVOC),     TR, "a",  "kkSoo",   vpvset_S, vpvoc        },
    { "vpvoc.i",     S(VPVOC),     TR, "a",  "kkioo",   vpvset, vpvoc        },
-{ "pvread",    S(PVREAD),  0,  "kk", "kSi",     pvreadset_S, pvread, NULL      },
-{ "pvread.i",    S(PVREAD),  0,  "kk", "kii",     pvreadset, pvread, NULL      },
-   { "pvcross",   S(PVCROSS), 0,  "a",  "kkSkko",  pvcrossset_S, pvcross    },
-{ "pvbufread", S(PVBUFREAD),0, "",   "kS",      pvbufreadset_S, pvbufread, NULL},
-   { "pvinterp",  S(PVINTERP), 0, "a",  "kkSkkkkkk", pvinterpset_S, pvinterp},
-   { "pvcross.i",   S(PVCROSS), 0,  "a",  "kkikko",  pvcrossset, pvcross    },
-{ "pvbufread.i", S(PVBUFREAD),0, "",   "ki",      pvbufreadset, pvbufread, NULL},
-   { "pvinterp.i",  S(PVINTERP), 0, "a",  "kkikkkkkk", pvinterpset, pvinterp},
-   { "pvadd",     S(PVADD),   0,  "a",  "kkSiiopooo", pvaddset_S, pvadd     },
-   { "pvadd.i",     S(PVADD),   0,  "a",  "kkiiiopooo", pvaddset, pvadd     }
+{ "pvread",    S(PVREAD),  0,  "kk", "kSio",     pvreadset_S, pvread, NULL      },
+{ "pvread.i",    S(PVREAD),  0,  "kk", "kiio",     pvreadset, pvread, NULL      },
+   { "pvcross",   S(PVCROSS), 0,  "a",  "kkSkkoo",  pvcrossset_S, pvcross    },
+{ "pvbufread", S(PVBUFREAD),0, "",   "kSo",      pvbufreadset_S, pvbufread, NULL},
+   { "pvinterp",  S(PVINTERP), 0, "a",  "kkSkkkkkko", pvinterpset_S, pvinterp},
+   { "pvcross.i",   S(PVCROSS), 0,  "a",  "kkikkoo",  pvcrossset, pvcross    },
+{ "pvbufread.i", S(PVBUFREAD),0, "",   "kio",      pvbufreadset, pvbufread, NULL},
+   { "pvinterp.i",  S(PVINTERP), 0, "a",  "kkikkkkkko", pvinterpset, pvinterp},
+   { "pvadd",     S(PVADD),   0,  "a",  "kkSiiopoooo", pvaddset_S, pvadd     },
+   { "pvadd.i",     S(PVADD),   0,  "a",  "kkiiiopoooo", pvaddset, pvadd     }
 };
 
 PVOC_GLOBALS *PVOC_AllocGlobals(CSOUND *csound)

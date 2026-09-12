@@ -93,7 +93,7 @@ int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
   p->frPtr = (float*) pp.data;
   p->maxFr = pp.nframes - 1;
   p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
-  p->frPrtim = p->asr / (MYFLT) frInc;
+  p->frPrtim = (*p->ifiletime != FL(0.0) ? p->asr : CS_ESR) / (MYFLT) frInc;
   p->prFlg = 1;       /* true */
   /* amplitude scale for PVOC */
   /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
@@ -209,7 +209,7 @@ int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
   /* highest possible frame index */
   p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
   /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-  p->frPrtim = p->asr / (MYFLT) frInc;
+  p->frPrtim = (*p->ifiletime != FL(0.0) ? p->asr : CS_ESR) / (MYFLT) frInc;
   /* factor by which to mulitply 'real' time index to get frame index */
   /* amplitude scale for PVOC */
   /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
@@ -401,7 +401,7 @@ int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
   /* highest possible frame index */
   p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
   /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-  p->frPrtim = p->asr / (MYFLT) frInc;
+  p->frPrtim = (*p->ifiletime != FL(0.0) ? p->asr : CS_ESR) / (MYFLT) frInc;
   /* factor by which to mulitply 'real' time index to get frame index */
   /* amplitude scale for PVOC */
   /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);

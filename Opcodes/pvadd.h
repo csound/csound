@@ -34,7 +34,7 @@
 typedef struct {
     OPDS    h;
     MYFLT   *rslt, *ktimpnt, *kfmod, *ifilno, *ifn, *ibins;
-    MYFLT   *ibinoffset, *ibinincr, *imode, *ifreqlim, *igatefun;
+    MYFLT   *ibinoffset, *ibinincr, *imode, *ifreqlim, *igatefun, *ifiletime;
     FUNC    *ftp, *AmpGateFunc;
     AUXCH   auxch;
     MYFLT   *oscphase, *buf, PvMaxAmp;
