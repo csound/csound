@@ -25,6 +25,8 @@
 #include <csoundCore.h>
 #include <csound_rtaudio.h>
 #include <AudioUnit/AudioUnit.h>
+#include <string.h>
+#include "../../../InOut/rt_audio_fade.h"
 
 
 typedef struct  {
@@ -33,8 +35,9 @@ typedef struct  {
   int32_t ret;
   int32_t nsmps, insmps;
   bool audioin;
+  volatile int32_t closing;
+  volatile int32_t outputDone;
 } AUNIT_PARAMS;
-
 
 OSStatus audio_callback(void *inRefCon,
                         AudioUnitRenderActionFlags *ioActionFlags,
@@ -53,23 +56,48 @@ OSStatus audio_callback(void *inRefCon,
   int32_t insmps = engine->insmps;
   const MYFLT *spout = csoundGetSpout(csound);
   MYFLT *spin = csoundGetSpin(csound);
-  int32_t *buffer;
+  SInt32 *buffer;
+
+  if(ATOMIC_GET(engine->closing)) {
+    RT_AUDIO_FADE fade;
+    if(ATOMIC_GET(engine->outputDone)) {
+      for(k = 0; k < nchnls; k++)
+        memset(ioData->mBuffers[k].mData, 0,
+               (size_t) inNumberFrames * sizeof(SInt32));
+      return noErr;
+    }
+    rt_audio_fade_begin(&fade, (int32_t) inNumberFrames*nchnls, nchnls);
+    for(frame = 0; frame < (int32_t) inNumberFrames; frame++) {
+      MYFLT gain = rt_audio_fade_next_gain(&fade);
+      if(nsmps >= ksmps)
+        nsmps = 0;
+      for(k = 0; k < nchnls; k++) {
+        buffer = (SInt32 *) ioData->mBuffers[k].mData;
+        buffer[frame] =
+          (SInt32) lrintf((float) (spout[nsmps+k] * gain * coef));
+      }
+      nsmps += nchnls;
+    }
+    engine->nsmps = nsmps;
+    ATOMIC_SET(engine->outputDone, 1);
+    return noErr;
+  }
 
   if(engine->audioin)
   AudioUnitRender(engine->aunit, ioActionFlags, inTimeStamp, 1,
                     inNumberFrames, ioData);
   
-  for(frame = 0; frame < inNumberFrames; frame++) {
+  for(frame = 0; frame < (int32_t) inNumberFrames; frame++) {
 
     if(engine->audioin) {
       for (k = 0; k < inchnls; k++){
-	buffer = (int32_t *) ioData->mBuffers[k].mData;
-	spin[insmps++] =(1./coef)*buffer[frame];
+        buffer = (SInt32 *) ioData->mBuffers[k].mData;
+	spin[insmps++] = (1./coef)*buffer[frame];
       }
     }
 
     for(k = 0; k < nchnls; k++) {
-      buffer = (int32_t *)ioData->mBuffers[k].mData;
+      buffer = (SInt32 *)ioData->mBuffers[k].mData;
       buffer[frame] = (SInt32)lrintf(spout[nsmps++] * coef);
     }
     if(nsmps == ksmps) {
@@ -82,7 +110,7 @@ OSStatus audio_callback(void *inRefCon,
   engine->nsmps = nsmps;
   engine->insmps = insmps;
   engine->ret = ret;
-  return 0;
+  return noErr;
 }
 
 static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
@@ -160,6 +188,8 @@ static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
   else cdata = *data;
   data = csoundGetRtPlayUserData(csound);
   *data = cdata;
+  ATOMIC_SET(cdata->closing, 0);
+  ATOMIC_SET(cdata->outputDone, 0);
 
   AudioStreamBasicDescription format;
 
@@ -218,14 +248,23 @@ static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
 static void close_io(CSOUND *csound) {
 
   AUNIT_PARAMS *cdata = (AUNIT_PARAMS *)
-    *(csound->GetRtPlayUserData(csound));  
+    *(csound->GetRtPlayUserData(csound));
+  int32_t outputEnabled = cdata != NULL;
+  if(cdata == NULL)
+    cdata = (AUNIT_PARAMS *) *(csound->GetRtRecordUserData(csound));
   if(cdata) {
+    int32_t wait = 200;
+    ATOMIC_SET(cdata->closing, 1);
+    *(csound->GetRtPlayUserData(csound)) = NULL;
+    *(csound->GetRtRecordUserData(csound)) = NULL;
+    while(outputEnabled && wait-- > 0 &&
+          !ATOMIC_GET(cdata->outputDone))
+      csound->Sleep((size_t) 1);
     AudioOutputUnitStop(cdata->aunit);
     AudioUnitUninitialize(cdata->aunit);
     AudioComponentInstanceDispose(cdata->aunit);
   }
   if(cdata) csound->Free(csound, cdata);
-  cdata = NULL;
 }
 
 static void  audio_output(CSOUND *csound, const MYFLT *outbuff, int32_t nbytes) {

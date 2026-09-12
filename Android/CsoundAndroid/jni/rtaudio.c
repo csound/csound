@@ -26,6 +26,7 @@
 #include <android/log.h>
 #include <stdint.h>
 #include <time.h>
+#include "../../../InOut/rt_audio_fade.h"
 
 #ifdef USE_DOUBLE
 #error "REQUIRES FLOATS BUILD"
@@ -37,6 +38,8 @@ typedef struct  {
   CSOUND *csound;
   void *incb;
   int32_t cnt;
+  volatile int32_t closing;
+  volatile int32_t outputDone;
 } AAUDIO_PARAMS;
 
 static void audio_output(CSOUND *csound,
@@ -53,6 +56,8 @@ static aaudio_data_callback_result_t
    CSOUND *csound = cdata->csound;
    float *samples = (float *) audioData;
    int32_t chns = cdata->nchnls;
+   if(ATOMIC_GET(cdata->closing))
+     return AAUDIO_CALLBACK_RESULT_STOP;
    // check for pause flag
    if(*(int *)csoundQueryGlobalVariable(csound,"::paused::"))
      return AAUDIO_CALLBACK_RESULT_CONTINUE;
@@ -74,6 +79,20 @@ static aaudio_data_callback_result_t
   const MYFLT *bufo = csoundGetSpout(csound);
   MYFLT *bufi = csoundGetSpin(csound);
   memset(samples, 0, numFrames*chns*sizeof(float));
+  if(ATOMIC_GET(cdata->closing)) {
+    RT_AUDIO_FADE fade;
+    rt_audio_fade_begin(&fade, numFrames*chns, chns);
+    for(int32_t i = 0; i < numFrames; i++, n++) {
+      MYFLT gain = rt_audio_fade_next_gain(&fade);
+      if(n >= ksmps)
+        n = 0;
+      for(int32_t channel = 0; channel < chns; channel++)
+        samples[i*chns + channel] = (float) (bufo[n*chns + channel] * gain);
+    }
+    cdata->cnt = n;
+    ATOMIC_SET(cdata->outputDone, 1);
+    return AAUDIO_CALLBACK_RESULT_STOP;
+  }
   // check for pause flag
   if(*(int *)csoundQueryGlobalVariable(csound,"::paused::"))
      return AAUDIO_CALLBACK_RESULT_CONTINUE;
@@ -86,7 +105,10 @@ static aaudio_data_callback_result_t
                                   bufi,nsmps);
       }
       res = csoundPerformKsmps(csound);
-      if(res != 0) return AAUDIO_CALLBACK_RESULT_STOP;
+      if(res != 0) {
+        ATOMIC_SET(cdata->outputDone, 1);
+        return AAUDIO_CALLBACK_RESULT_STOP;
+      }
       n = 0;
     }
     memcpy(samples+i*chns, bufo+n*chns,
@@ -133,12 +155,15 @@ static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
       cdata->stream = stream;
       cdata->csound = csound;
       cdata->cnt = 0;
+      ATOMIC_SET(cdata->closing, 0);
+      ATOMIC_SET(cdata->outputDone, 0);
       aaudio_stream_state_t state = AAudioStream_getState(cdata->stream);
       if (state == AAUDIO_STREAM_STATE_OPEN) {
         AAudioStream_requestStart(cdata->stream);
         csound->Message(csound, "AAUDIO output opened\n");
         return OK;
       }
+      AAudioStream_close(stream);
      }
     csound->Free(csound, cdata);
     *data = NULL;
@@ -185,6 +210,7 @@ static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
          csound->Message(csound, "AAUDIO input opened\n");
          return OK;
        }
+       AAudioStream_close(stream);
      }
      csound->Free(csound, cdata);
      *data = NULL;  
@@ -205,38 +231,43 @@ static void close_io(CSOUND *csound) {
   aaudio_stream_state_t inputState;
   aaudio_stream_state_t nextState;
   AAUDIO_PARAMS *cdata = (AAUDIO_PARAMS *)
-    *(csound->GetRtRecordUserData(csound));
+    *(csound->GetRtPlayUserData(csound));
   if(cdata && cdata->stream) {
+    int32_t wait = 200;
+    ATOMIC_SET(cdata->closing, 1);
+    while(wait-- > 0 && !ATOMIC_GET(cdata->outputDone))
+      csound->Sleep((size_t) 1);
     inputState = AAudioStream_getState(cdata->stream);
     nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     AAudioStream_requestStop(cdata->stream);
-    csound->Message(csound, "requested AAudio input stop\n");
+    csound->Message(csound, "requested AAudio output stop\n");
     AAudioStream_waitForStateChange(cdata->stream, 
                                 inputState, 
                                 &nextState, 
                                 timeout);
     AAudioStream_close(cdata->stream);
-    csound->Message(csound, "closed AAudio input\n");
+    csound->Message(csound, "closed AAudio output\n");
+    *(csound->GetRtPlayUserData(csound)) = NULL;
     csound->Free(csound, cdata);
-    *(csound->GetRtRecordUserData(csound)) = NULL;
   }
   cdata = (AAUDIO_PARAMS *)
-    *(csound->GetRtPlayUserData(csound));
+    *(csound->GetRtRecordUserData(csound));
   if(cdata && cdata->stream) {
+    ATOMIC_SET(cdata->closing, 1);
     inputState = AAudioStream_getState(cdata->stream);
     nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     AAudioStream_requestStop(cdata->stream);
-    csound->Message(csound, "requested AAudio output stop\n");   
+    csound->Message(csound, "requested AAudio input stop\n");
     AAudioStream_waitForStateChange(cdata->stream, 
                                     inputState, 
                                     &nextState, 
                                     timeout);    
     AAudioStream_close(cdata->stream);
-    csound->Message(csound, "closed AAudio output\n");
+    csound->Message(csound, "closed AAudio input\n");
     if(cdata->incb)
       csound->DestroyCircularBuffer(csound, cdata->incb);
+    *(csound->GetRtRecordUserData(csound)) = NULL;
     csound->Free(csound, cdata);
-    *(csound->GetRtPlayUserData(csound)) = NULL;
   }
 }
 

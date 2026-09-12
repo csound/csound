@@ -42,6 +42,7 @@ typedef struct rtWinMMDevice_ {
     void      (*rec_conv)(int32_t, void*, MYFLT*);
     int64_t   prv_time;
     float     timeConv, bufTime;
+    HGLOBAL   bufferHandles[MAXBUFFERS];
     WAVEHDR   buffers[MAXBUFFERS];
 } rtWinMMDevice;
 
@@ -106,6 +107,7 @@ static int32_t allocate_buffers(CSOUND *csound, rtWinMMDevice *dev,
         return err_msg(csound, Str("memory allocation failure"));
       }
       dev->buffers[i].lpData = (LPSTR) GlobalLock(ptr);
+      dev->bufferHandles[i] = ptr;
       memset((void*) dev->buffers[i].lpData, 0, (size_t) bufBytes);
       dev->buffers[i].dwBufferLength = (DWORD) bufBytes;
       if (is_playback)
@@ -476,23 +478,39 @@ static void rtclose_(CSOUND *csound)
       for (i = 0; i < inDev->nBuffers; i++) {
         waveInUnprepareHeader(inDev->inDev, (LPWAVEHDR) &(inDev->buffers[i]),
                               sizeof(WAVEHDR));
-        GlobalUnlock((HGLOBAL) inDev->buffers[i].lpData);
-        GlobalFree((HGLOBAL) inDev->buffers[i].lpData);
+        GlobalUnlock(inDev->bufferHandles[i]);
+        GlobalFree(inDev->bufferHandles[i]);
       }
       waveInClose(inDev->inDev);
       csound->Free(csound,inDev);
     }
     if (outDev != NULL) {
-      volatile DWORD  *dwFlags = &(outDev->buffers[outDev->cur_buf].dwFlags);
-      while (!(*dwFlags & WHDR_DONE))
+      int32_t waitMs = MYFLT2LRND(outDev->bufTime * outDev->nBuffers) + 50;
+      int32_t pending;
+      if (waitMs < 50)
+        waitMs = 50;
+      if (waitMs > 2000)
+        waitMs = 2000;
+      do {
+        pending = 0;
+        for (i = 0; i < outDev->nBuffers; i++) {
+          if (!(outDev->buffers[i].dwFlags & WHDR_DONE)) {
+            pending = 1;
+            break;
+          }
+        }
+        if (!pending)
+          break;
         Sleep(1);
-      waveOutReset(outDev->outDev);
+      } while (--waitMs > 0);
+      if (pending)
+        waveOutReset(outDev->outDev);
       for (i = 0; i < outDev->nBuffers; i++) {
         waveOutUnprepareHeader(outDev->outDev,
                                (LPWAVEHDR) &(outDev->buffers[i]),
                                sizeof(WAVEHDR));
-        GlobalUnlock((HGLOBAL) outDev->buffers[i].lpData);
-        GlobalFree((HGLOBAL) outDev->buffers[i].lpData);
+        GlobalUnlock(outDev->bufferHandles[i]);
+        GlobalFree(outDev->bufferHandles[i]);
       }
       waveOutClose(outDev->outDev);
       csound->Free(csound,outDev);

@@ -43,6 +43,7 @@ typedef struct {
   MYFLT sr, sysr;
   int32_t buframes;
   int32_t cbflag;
+  int32_t drained;
   CSOUND *csound;
 } RTPW;
 
@@ -88,6 +89,12 @@ static void rtpw_out_callback(void *p) {
   spa_system_eventfd_write(rtpw->cloop->system, rtpw->cbflag, 1);
 }
 
+static void rtpw_drained(void *p) {
+  RTPW *rtpw = (RTPW *) p;
+  rtpw->drained = 1;
+  pw_thread_loop_signal(rtpw->loop, false);
+}
+
 static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
   RTPW *rtpw = (RTPW *) *csound->GetRtPlayUserData(csound);
   int32_t nframes = nbytes/(sizeof(MYFLT)*rtpw->nchnls);
@@ -116,6 +123,7 @@ static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
 static const struct pw_stream_events stream_events_out = {
   PW_VERSION_STREAM_EVENTS,
   .process = rtpw_out_callback,
+  .drained = rtpw_drained,
 };
 
 static int32_t list_outputs(CSOUND *csound);
@@ -371,32 +379,42 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   return OK;
 }
 
-static void  rtpw_close(CSOUND *csound) {
-  void **p = csound->GetRtPlayUserData(csound);
-  RTPW *rtpw = (RTPW *) *p;
-  if(rtpw != NULL) {
-    pw_thread_loop_lock(rtpw->loop);
-    pw_stream_destroy(rtpw->stream);
-    pw_thread_loop_unlock(rtpw->loop);
-    pw_thread_loop_stop(rtpw->loop);
-    pw_thread_loop_destroy(rtpw->loop);
-    csound->Free(csound, rtpw->cbuffer);
-    csound->Free(csound, rtpw);
-    *p  = NULL;
+static void rtpw_close_one(CSOUND *csound, void **data, int32_t output) {
+  RTPW *rtpw = (RTPW *) *data;
+  if(rtpw == NULL)
+    return;
+
+  *data = NULL;
+  if(output) {
+    uint32_t index;
+    int32_t queued, timeout;
+    queued = spa_ringbuffer_get_read_index(&rtpw->ring, &index);
+    if(queued < 0) queued = 0;
+    timeout = ((queued + rtpw->buframes) * 1000) / (int32_t) rtpw->sr + 100;
+    if(timeout > 2000) timeout = 2000;
+    while(timeout-- > 0 &&
+          spa_ringbuffer_get_read_index(&rtpw->ring, &index) > 0)
+      csound->Sleep((size_t) 1);
   }
-  p = csound->GetRtRecordUserData(csound);
-  rtpw = (RTPW *) *p;
-  if(rtpw != NULL) {
-    pw_thread_loop_lock(rtpw->loop);
-    pw_stream_destroy(rtpw->stream);
-    pw_thread_loop_unlock(rtpw->loop);
-    pw_thread_loop_stop(rtpw->loop);
-    pw_thread_loop_destroy(rtpw->loop);
-    csound->Free(csound, rtpw->cbuffer);
-    csound->Free(csound, rtpw);
-    *p  = NULL;
+
+  pw_thread_loop_lock(rtpw->loop);
+  if(output) {
+    rtpw->drained = 0;
+    if(pw_stream_flush(rtpw->stream, true) == 0 && !rtpw->drained)
+      pw_thread_loop_timed_wait(rtpw->loop, 2);
   }
-  return;
+  pw_stream_destroy(rtpw->stream);
+  pw_thread_loop_unlock(rtpw->loop);
+  pw_thread_loop_stop(rtpw->loop);
+  spa_system_close(rtpw->cloop->system, rtpw->cbflag);
+  pw_thread_loop_destroy(rtpw->loop);
+  csound->Free(csound, rtpw->cbuffer);
+  csound->Free(csound, rtpw);
+}
+
+static void rtpw_close(CSOUND *csound) {
+  rtpw_close_one(csound, csound->GetRtPlayUserData(csound), 1);
+  rtpw_close_one(csound, csound->GetRtRecordUserData(csound), 0);
 }
 
 

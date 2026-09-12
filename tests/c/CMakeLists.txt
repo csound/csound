@@ -31,6 +31,7 @@ if(BUILD_TESTS)
         server_test.cpp
         csound_plugin_opcode_test.cpp
         perfthread_test.cpp
+        rt_audio_fade_test.cpp
         csound_test_sndfile.cpp
         analysis_file_safety_test.cpp
         test_new_type.cpp
