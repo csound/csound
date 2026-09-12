@@ -914,6 +914,7 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     if (strt == end) {
       /* trivial case: empty output */
       dst[0] = '\0';
+      p->Sdst->timestamp = kcnt;
       return OK;
     }
     if (strt > end) {
