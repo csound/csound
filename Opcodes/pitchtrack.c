@@ -637,6 +637,8 @@ int32_t plltrack_set(CSOUND *csound, PLLTRACK *p)
 int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
 {
     int32_t ksmps, i, k;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
     MYFLT _0dbfs;
     double a0[6], a1[6], a2[6], b1[6], b2[6];
     double *mem1[6], *mem2[6];
@@ -645,27 +647,22 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
     double scal,esr;
     BIQUAD *biquad = p->fils;
     MYFLT *asig=p->asig,kd=*p->kd,klpf,klpfQ,klf,khf,kthresh;
-    MYFLT *freq=p->freq, *lock =p->lock, itmp = asig[0];
-    int32_t
-      itest = 0;
+    MYFLT *freq=p->freq, *lock =p->lock;
 
     _0dbfs = csound->Get0dBFS(csound);
     ksmps = CS_KSMPS;
     esr = CS_ESR;
     scal = 2.0*CS_PIDSR;
 
-    /* check for muted input & bypass */
-    if (ksmps > 1){
-    for (i=0; i < ksmps; i++) {
-      if (asig[i] != 0.0 && asig[i] != itmp) {
-        itest = 1;
-        break;
-      }
-      itmp = asig[i];
+    if (UNLIKELY(offset)) {
+      memset(freq, 0, offset * sizeof(MYFLT));
+      memset(lock, 0, offset * sizeof(MYFLT));
     }
-    if (!itest)  return OK;
-    } else if (*asig == 0.0) return OK;
-
+    if (UNLIKELY(early)) {
+      ksmps -= early;
+      memset(&freq[ksmps], 0, early * sizeof(MYFLT));
+      memset(&lock[ksmps], 0, early * sizeof(MYFLT));
+    }
 
     if (*p->klpf == 0) klpf = 20.0;
     else klpf = *p->klpf;
@@ -718,7 +715,8 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
     xce = &p->xce;
     ace = &p->ace;
 
-    for (i=0; i < ksmps; i++){
+    /* Process constant input and let filter state decay during silence. */
+    for (i=offset; i < ksmps; i++){
       double input = (double) (asig[i]/_0dbfs), env;
       double w, y, icef = 0.99, fosc, xd, c, s, oc;
 

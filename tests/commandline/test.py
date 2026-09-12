@@ -765,6 +765,7 @@ def runTest():
         ["test_vector_table_invalid_index.csd", "reject invalid vector table index", 1],
         ["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
         ["test_pitch_conversion_arrays.csd", "pitch conversion arrays update each control cycle"],
+        ["test_plltrack_samples.csd", "plltrack constant input, silence, and sample bounds"],
         ["test_cps_table_pitch.csd", "tuning-table pitch endpoints and negative pitches"],
         ["test_ptrack_analysis.csd", "ptrack active samples and consistent analysis sizes"],
         ["test_cps_missing_table.csd", "reject missing pitch tuning tables", 1],
