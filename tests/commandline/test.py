@@ -631,6 +631,8 @@ def runTest():
         ["test_gendy_correctness.csd", "gendy handles audio blocks and bounded integer state"],
         ["test_lorenz_skip.csd", "lorenz integration steps per sample"],
         ["test_looptseg_curves.csd", "looptseg curve stability"],
+        ["test_gtadsr_stages.csd", "gtadsr stage endpoints, retriggering and sample offsets"],
+        ["test_gtadsr_invalid_times.csd", "reject out-of-range gtadsr stage times", 1],
         ["test_loop_envelope_phase.csd", "loop envelope phase wrapping and retriggers"],
         ["test_grain4_region_rounding.csd", "grain4 preserves sample rounding for source regions"],
         ["test_grain4_zero_length.csd", "reject zero grain4 source length", 1],
