@@ -163,6 +163,10 @@ static int32_t moogladder_process(CSOUND *csound, moogladder *p)
   return OK;
 }
 
+/* Legacy moogladder caches the block's first resonance even after it changes.
+   Returning to that value can retain the previous feedback gain. Preserve
+   this audible behavior for existing scores; fix it only in moogladder2.
+   Its audio resonance also retains the historical lack of a negative clamp. */
 static int32_t moogladder_process_aa(CSOUND *csound, moogladder *p)
 {
   MYFLT   *out = p->out;
@@ -359,6 +363,8 @@ static int32_t moogladder_process_ak(CSOUND *csound, moogladder *p)
   return OK;
 }
 
+/* Legacy moogladder does not clamp negative audio resonance within the block.
+   Preserve this behavior for existing scores; use moogladder2 for the fix. */
 static int32_t moogladder_process_ka(CSOUND *csound, moogladder *p)
 {
   MYFLT   *out = p->out;
@@ -558,6 +564,8 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
 
+  if (cres < 0) cres = 0;
+
   if (p->oldfreq != cfreq || p->oldres != cres) {
     double  f, fc, fc2, fc3, fcr;
     p->oldfreq = cfreq;
@@ -587,7 +595,9 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
     memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (i = offset; i < nsmps; i++) {
-    if (p->oldfreq != freq[i] || p->oldres != res[i]) {
+    MYFLT resonance = res[i];
+    if (resonance < 0) resonance = 0;
+    if (p->oldfreq != freq[i] || p->oldres != resonance) {
       double  f, fc, fc2, fc3, fcr;
       p->oldfreq = freq[i];
       /* sr is half the actual filter sampling rate  */
@@ -599,10 +609,10 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
       fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
       acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
       tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
-      p->oldres = cres;
+      p->oldres = resonance;
       p->oldacr = acr;
       p->oldtune = tune;
-      res4 = 4.0*(double)res[i]*acr;
+      res4 = 4.0*(double)resonance*acr;
     }
     /* oversampling  */
     for (j = 0; j < 2; j++) {
@@ -785,7 +795,9 @@ static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
     memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (i = offset; i < nsmps; i++) {
-    if (cres != res[i]) {
+    MYFLT resonance = res[i];
+    if (resonance < 0) resonance = 0;
+    if (cres != resonance) {
       double  f, fc, fc2, fc3, fcr;
       /* sr is half the actual filter sampling rate  */
       fc =  (double)(freq/CS_ESR);
@@ -796,7 +808,7 @@ static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
       fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
       acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
       tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
-      p->oldres = cres = res[i];
+      p->oldres = cres = resonance;
       p->oldacr = acr;
       p->oldtune = tune;
       res4 = 4.0*(double)cres*acr;
