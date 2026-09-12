@@ -652,6 +652,7 @@ def runTest():
         ["test_fof2_float_rise_range.csd", "reject fof2 rise beyond the float-phase range", 1],
         ["test_cmp_operator_text.csd", "cmp operator text and array lengths"],
         ["test_cmp_invalid_operator.csd", "reject malformed cmp operators", 3],
+        ["test_pconvolve_frames.csd", "pconvolve impulse frames and channel selection"],
         ["test_flooper_stereo_guard.csd", "flooper preserves the stereo wrap sample"],
         ["test_flooper_stereo_frame_bounds.csd", "reject flooper ranges past stereo frames", 1],
         ["test_sndloop_state.csd", "sndloop recording, playback, and partial blocks"],
