@@ -26,7 +26,7 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ktimpnt, *ifilno;
+    MYFLT   *ktimpnt, *ifilno, *ifiletime;
     int32   maxFr, frSiz, prFlg;
     /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
     MYFLT   frPktim, frPrtim, asr, scale;
@@ -40,7 +40,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *rslt, *ktimpnt, *kfmod, *ifilno,
             *kfreqscale1, *kfreqscale2, *kampscale1, *kampscale2,
-            *kfreqinterp, *kampinterp;
+            *kfreqinterp, *kampinterp, *ifiletime;
     int32   kcnt;
     int32   baseFr, maxFr, frSiz, prFlg, opBpos;
      /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
@@ -62,7 +62,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *rslt, *ktimpnt, *kfmod, *ifilno,
-            *kampscale1, *kampscale2, *ispecwp;
+            *kampscale1, *kampscale2, *ispecwp, *ifiletime;
     int32   kcnt;
     int32   baseFr, maxFr, frSiz, prFlg, opBpos;
     /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
