@@ -119,6 +119,9 @@ static int32_t biquada(CSOUND *csound, BIQUAD *p)
 /* translated to C by Hans Mikelson            *****************************/
 /***************************************************************************/
 
+/* moogvcf historically applies 0dBFS scaling in addition to iscale.
+   Keep this known defect for compatibility with existing scores; moogvcf2
+   uses iscale alone. Do not change the legacy scaling to match moogvcf2. */
 static int32_t moogvcfset(CSOUND *csound, MOOGVCF *p)
 {
   if (*p->iskip==FL(0.0)) {
@@ -127,8 +130,16 @@ static int32_t moogvcfset(CSOUND *csound, MOOGVCF *p)
   }
   p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
   p->rezcod = IS_ASIG_ARG(p->res) ? 1 : 0;
-  if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->Get0dBFS(csound);
+  p->fullscale = csound->Get0dBFS(csound);
+  if ((p->maxint = *p->max)==FL(0.0)) p->maxint = p->fullscale;
 
+  return OK;
+}
+
+static int32_t moogvcf2set(CSOUND *csound, MOOGVCF *p)
+{
+  moogvcfset(csound, p);
+  p->fullscale = FL(1.0);
   return OK;
 }
 
@@ -146,7 +157,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
   double dmax = 1.0/max;
   double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
   double y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
-  MYFLT zerodb = csound->Get0dBFS(csound);
+  MYFLT zerodb = p->fullscale;
 
   in      = p->in;
   out     = p->out;
@@ -1741,7 +1752,7 @@ static OENTRY localops[] = {
 { "moogvcf", S(MOOGVCF), 0, "a", "axxpo",
                                (SUBR)moogvcfset,  (SUBR)moogvcf },
 { "moogvcf2", S(MOOGVCF),0, "a", "axxoo",
-                               (SUBR)moogvcfset,  (SUBR)moogvcf },
+                               (SUBR)moogvcf2set,  (SUBR)moogvcf },
 { "rezzy", S(REZZY),     0, "a", "axxoo", (SUBR)rezzyset,  (SUBR)rezzy },
 { "bqrez", S(REZZY),     0, "a", "axxoo", (SUBR)bqrezset,  (SUBR)bqrez },
 { "distort1", S(DISTORT),TR,  "a", "akkkko",  NULL,      (SUBR)distort   },

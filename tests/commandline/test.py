@@ -1078,6 +1078,7 @@ def runTest():
         ["test_powershape_zero_exponent.csd", "powershape preserves sign at zero exponent"],
         ["test_mode_zero_parameters.csd", "mode recovers from zero frequency and Q"],
         ["test_vbap_sample_ramps.csd", "VBAP active-sample ramps and zak channels"],
+        ["test_moogvcf2_scaling.csd", "moogvcf2 scaling and legacy moogvcf compatibility"],
         ["test_chebyshevpoly2_empty_array.csd", "reject empty Chebyshev coefficients", 1],
         ["test_generic_chan.csd", "testing generic bus channel"],
         ["test_generic_chan_no_match.csd", "testing type mismatch for bus channel", 1],
