@@ -12,7 +12,7 @@ gkChecks init 0
 instr 1
   kCycle init 0
   kCycle += 1
-  kTick metro2 2, p4, -1, p5
+  kTick metro2 2, p4, -1, p5, 1
   iPhase = frac(p5)
   iHeld = (iPhase == 0 || iPhase == p4 ? 1 : 0)
   kPosition = iPhase*16+kCycle-iHeld
@@ -41,7 +41,7 @@ instr 2
   kCycle init 0
   kCycle += 1
   kFrequency = (kCycle == 2 ? p4 : 0)
-  kTick metro2 kFrequency, .5, -1
+  kTick metro2 kFrequency, .5, -1, 0, 1
   kExpected = (kCycle == 1 ? 1 : (kCycle == 2 ? -1 : 0))
   if kTick != kExpected then
     printks "metro2 fast frequency %g cycle %g: %g expected %g\n", 0, p4, kCycle, kTick, kExpected
@@ -58,7 +58,7 @@ instr 3
   kCycle init 0
   kCycle += 1
   kSwing = (kCycle < 5 ? .5 : .75)
-  kTick metro2 2, kSwing, -1
+  kTick metro2 2, kSwing, -1, 0, 1
   kExpected = (kCycle == 1 || kCycle == 17 ? 1 : (kCycle == 13 || kCycle == 29 ? -1 : 0))
   if kTick != kExpected then
     printks "metro2 changing swing cycle %g: %g expected %g\n", 0, kCycle, kTick, kExpected
