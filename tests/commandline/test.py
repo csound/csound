@@ -623,6 +623,7 @@ def runTest():
         ["test_grain2_float_window_wrap.csd", "grain2 wraps non-power-of-two window phase"],
         ["test_partikkel_float_table_index.csd", "partikkel uses the scaled index for float table lookup"],
         ["test_grain4_correctness.csd", "grain4 handles envelopes, boundaries, and unused pitches"],
+        ["test_vosim_pulses.csd", "vosim pulse state, table paths, and direction changes"],
         ["test_gendy_correctness.csd", "gendy handles audio blocks and bounded integer state"],
         ["test_lorenz_skip.csd", "lorenz integration steps per sample"],
         ["test_looptseg_curves.csd", "looptseg curve stability"],
