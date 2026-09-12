@@ -261,7 +261,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar;
         MYFLT   *amp, *freq, *offset;
-        uint32_t     next;
+        int64_t      next;       /* -1 means no further impulses */
 } IMPULSE;
 
 typedef struct {

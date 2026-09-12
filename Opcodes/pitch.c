@@ -1693,7 +1693,15 @@ int32_t clip(CSOUND *csound, CLIP *p)
 
 int32_t impulse_set(CSOUND *csound, IMPULSE *p)
 {
-    p->next = (uint32_t)MYFLT2LONG(*p->offset * CS_ESR);
+    double delay = *p->offset;
+    double samples = delay < 0.0 ? -delay : delay * CS_ESR;
+    if (UNLIKELY(!(samples < (double)INT64_MAX)))
+      return csound->InitError(csound, "%s", Str("mpulse: invalid initial delay"));
+#if defined(USE_LRINT) || defined(MSVC)
+    /* Preserve the initial-delay rounding used by MYFLT2LONG. */
+    samples = nearbyint(samples);
+#endif
+    p->next = (int64_t)samples;
     return OK;
 }
 
@@ -1701,34 +1709,37 @@ int32_t impulse(CSOUND *csound, IMPULSE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32_t next = p->next;
+    uint32_t n = offset, nsmps = CS_KSMPS - early;
+    int64_t next = p->next, interval;
     MYFLT *ar = p->ar;
-    if (next<0) next = -next;
-    if (UNLIKELY(next < (int32)nsmps)) { /* Impulse in this frame */
-      MYFLT frq = *p->freq;     /* Freq at k-rate */
-      int32_t sfreq;                /* Converted to samples */
-      if (frq == FL(0.0)) sfreq = INT_MAX; /* Zero means infinite */
-      else if (frq < FL(0.0)) sfreq = -(int32_t)frq; /* Negative cnts in sample */
-      else sfreq = (int32_t)(frq*CS_ESR); /* Normal case */
-      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (UNLIKELY(early)) {
-        nsmps -= early;
-        memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-      }
-      for (n=offset;n<nsmps;n++) {
-        if (UNLIKELY(next-- == 0)) {
-          ar[n] = *p->amp;
-          next = sfreq - 1;     /* Note can be less than k-rate */
-        }
-        else ar[n] = FL(0.0);
-      }
+
+    memset(ar, 0, CS_KSMPS*sizeof(MYFLT));
+    if (next < 0 || offset >= nsmps)
+      return OK;
+    if (next >= nsmps-offset) {
+      p->next = next - (nsmps-offset);
+      return OK;
     }
-    else {                      /* Nothing this time so just fill */
-      memset(ar, 0, nsmps*sizeof(MYFLT));
-      next -= nsmps;
+
+    /* Read the interval only in a block containing an impulse. */
+    double seconds = *p->freq;
+    double samples = seconds < 0.0 ? -seconds : seconds * CS_ESR;
+    if (UNLIKELY(!(samples < (double)INT64_MAX)))
+      return csound->PerfError(csound, &p->h, "%s", Str("mpulse: invalid interval"));
+    interval = (int64_t)samples;
+    if (seconds != 0.0 && interval == 0)
+      interval = 1; /* A nonzero interval cannot be shorter than one sample. */
+
+    while (next < nsmps-n) {
+      n += (uint32_t)next;
+      ar[n++] = *p->amp;
+      if (interval == 0) {
+        p->next = -1; /* Zero interval means one impulse, with no countdown. */
+        return OK;
+      }
+      next = interval - 1;
     }
-    p->next = next;
+    p->next = next - (nsmps-n);
     return OK;
 }
 
