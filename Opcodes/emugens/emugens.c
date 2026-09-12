@@ -1233,66 +1233,66 @@ static const int32_t _pc2alt[] = {0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 2, 0};
 static const char _alts[] = " #b";
 
 static int32_t
-mton(CSOUND *csound, MTON *p) {
-    char *dst;
-    MYFLT m = *p->kmidi;
-    int32_t maxsize = 7; // 4C#+99\0
-    if (p->Sdst->data == NULL) {
-        p->Sdst->data = csound->Calloc(csound, maxsize);
+mton_common(CSOUND *csound, MTON *p, int32_t init) {
+    double m = (double)*p->kmidi;
+    double whole = floor(m);
+    /* Leave room for a carry when rounding cents to the next note. */
+    if (UNLIKELY(!(whole >= INT32_MIN && whole < INT32_MAX))) {
+        return init ? INITERR(Str("mton: note number out of range"))
+                    : PERFERR(Str("mton: note number out of range"));
+    }
+    int32_t note = (int32_t)whole;
+    int32_t cents = (int32_t)round((m - whole) * 100.0);
+    if (cents > 50) {
+        cents -= 100;
+        note += 1;
+    }
+    int32_t octave = note / 12 - 1;
+    int32_t pc = note % 12;
+    if (pc < 0) {
+        pc += 12;
+        octave -= 1;
+    }
+
+    /* Enough for any int32 note's signed octave, accidental and cents. */
+    const int32_t maxsize = 24;
+    if (p->Sdst->data == NULL || p->Sdst->size < maxsize) {
+        char *data = csound->ReAlloc(csound, p->Sdst->data, maxsize);
+        if (UNLIKELY(data == NULL)) {
+            return init ? INITERR(Str("memory allocation failure"))
+                        : PERFERR(Str("memory allocation failure"));
+        }
+        p->Sdst->data = data;
         p->Sdst->size = maxsize;
     }
-    dst = (char*) p->Sdst->data;
-    int32_t octave = (int32_t) (m / 12 - 1);
-    int32_t pc = (int32_t)m % 12;
-    int32_t cents = round((m - floor(m)) * 100.0);
-    int32_t sign, cursor;
-
-    if (cents == 0) {
-        sign = 0;
-    } else if (cents <= 50) {
-        sign = 1;
-    } else {
-        cents = 100 - cents;
-        sign = -1;
-        pc += 1;
-        if (pc == 12) {
-            pc = 0;
-            octave += 1;
-        }
-    }
-    if(octave >= 0) {
-        dst[0] = '0' + octave;
-        cursor = 1;
-    } else {
-        dst[0] = '-';
-        dst[1] = '0' - octave;
-        cursor = 2;
-    }
-    dst[cursor] = 'A' + _pc2idx[pc];
-    cursor += 1;
+    char *dst = p->Sdst->data;
+    int32_t cursor = snprintf(dst, maxsize, "%d%c", octave,
+                              'A' + _pc2idx[pc]);
     int32_t alt = _pc2alt[pc];
-    if(alt > 0) {
+    if (alt > 0)
         dst[cursor++] = _alts[alt];
-    }
-    if(sign == 1) {
-        dst[cursor++] = '+';
-        if (cents < 10) {
-            dst[cursor++] = '0' + cents;
-        } else if(cents != 50) {
-            dst[cursor++] = '0' + (int32_t)(cents / 10);
-            dst[cursor++] = '0' + (cents % 10);
-        }
-    } else if(sign == -1) {
-        dst[cursor++] = '-';
-        if(cents < 10) {
-            dst[cursor++] = '0' + cents;
-        } else if(cents != 50) {
-            dst[cursor++] = '0' + (int32_t)(cents / 10);
-            dst[cursor++] = '0' + (cents % 10);
+    if (cents != 0) {
+        dst[cursor++] = cents > 0 ? '+' : '-';
+        if (cents < 0)
+            cents = -cents;
+        if (cents != 50) {
+            if (cents >= 10)
+                dst[cursor++] = '0' + cents / 10;
+            dst[cursor++] = '0' + cents % 10;
         }
     }
     dst[cursor] = '\0';
     return OK;
+}
+
+static int32_t
+mton_init(CSOUND *csound, MTON *p) {
+    return mton_common(csound, p, 1);
+}
+
+static int32_t
+mton(CSOUND *csound, MTON *p) {
+    return mton_common(csound, p, 0);
 }
 
 /*
@@ -3114,8 +3114,8 @@ static OENTRY emugens_localops[] = {
     { "ntom.i", S(NTOM), 0,  "i", "S", (SUBR)ntom },
     { "ntom.k", S(NTOM), 0,  "k", "S", (SUBR)ntom, (SUBR)ntom },
 
-    { "mton.i", S(MTON), 0,  "S", "i", (SUBR)mton },
-    { "mton.k", S(MTON), 0,  "S", "k", (SUBR)mton, (SUBR)mton },
+    { "mton.i", S(MTON), 0,  "S", "i", (SUBR)mton_init },
+    { "mton.k", S(MTON), 0,  "S", "k", (SUBR)mton_init, (SUBR)mton },
 
     { "ntof.i", S(NTOM), 0,  "i", "S", (SUBR)ntof },
     { "ntof.k", S(NTOM), 0,  "k", "S", (SUBR)ntof, (SUBR)ntof },
