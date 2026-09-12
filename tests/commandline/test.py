@@ -670,6 +670,8 @@ def runTest():
         ["test_crossfm_correctness.csd", "test crossed FM and PM correctness"],
         ["test_foscil_phase_state.csd", "foscil and foscili phase initialization and advancement"],
         ["test_pan2_input_aliasing.csd", "pan2 preserves input samples when outputs reuse them"],
+        ["test_svn_drive.csd", "svn drive, transfer tables and parameter rates"],
+        ["test_svn_invalid_tables.csd", "svn rejects missing tables and invalid domains", 3],
         ["test_bformdec1_surround.csd", "bformdec1 preserves partial blocks and selects the input order"],
         ["test_space_trajectory_endpoint.csd", "space and spdist handle the last trajectory frame"],
         ["test_hvs_interpolation.csd", "HVS configuration and grid endpoints"],
