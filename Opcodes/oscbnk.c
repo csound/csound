@@ -181,7 +181,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
       MYFLT frac, pos = o->LFO1phsf*p->flen1;
       n = (int32_t) pos;
       frac = pos - n;
-      lfo1val = p->l1t[n] + frac*(p->l1t[n+1] - p->l1t[n+1]);
+      lfo1val = p->l1t[n] + frac*(p->l1t[n+1] - p->l1t[n]);
       /* update phase */
       f = o->LFO1frq * p->lf1_scl + p->lf1_ofs;
       o->LFO1phsf = PHMOD1(o->LFO1phsf + f);
@@ -190,7 +190,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
       MYFLT frac, pos = o->LFO2phsf*p->flen2;
       n = (int32_t) pos;
       frac = pos - n;
-      lfo2val = p->l2t[n] + frac*(p->l2t[n+1] - p->l2t[n+1]);
+      lfo2val = p->l2t[n] + frac*(p->l2t[n+1] - p->l2t[n]);
       /* update phase */
       f = o->LFO2frq * p->lf2_scl + p->lf2_ofs;
       o->LFO2phsf = PHMOD1(o->LFO2phsf + f);
