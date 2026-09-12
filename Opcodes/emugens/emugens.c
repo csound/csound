@@ -238,7 +238,7 @@ lincos_perf(CSOUND *csound, LINLIN1 *p) {
 
    2d linear interpolation (normalized)
 
-   Given values for four points at (0, 0), (0, 1), (1, 0), (1, 1),
+   Given values for four points at (0, 0), (1, 0), (0, 1), (1, 1),
    calculate the interpolated value at a given coord (x, y) inside this square
 
    inputs: kx, ky, v00, v10, v01, v11
@@ -247,8 +247,8 @@ lincos_perf(CSOUND *csound, LINLIN1 *p) {
 
    This is conceptually the same as:
 
-   ky0 = scale(kx, v01, v00)
-   ky1 = scale(kx, v11, v10)
+   ky0 = scale(kx, v10, v00)
+   ky1 = scale(kx, v11, v01)
    kout = scale(ky, ky1, ky0)
 
  */
@@ -261,8 +261,8 @@ typedef struct {
 
 static int32_t xyscalei_init(CSOUND *csound, XYSCALE *p) {
     IGN(csound);
-    p->d0 = (*p->v01) - (*p->v00);
-    p->d1 = (*p->v11) - (*p->v10);
+    p->d0 = (*p->v10) - (*p->v00);
+    p->d1 = (*p->v11) - (*p->v01);
     return OK;
 }
 
@@ -271,7 +271,7 @@ static int32_t xyscalei(CSOUND *csound, XYSCALE *p) {
     // x, y: between 0-1
     MYFLT x = *p->kx;
     MYFLT y0 = x * (p->d0) + (*p->v00);
-    MYFLT y1 = x * (p->d1) + (*p->v10);
+    MYFLT y1 = x * (p->d1) + (*p->v01);
     *p->kout = (*p->ky) * (y1 - y0) + y0;
     return OK;
 }
@@ -281,10 +281,10 @@ static int32_t xyscale(CSOUND *csound, XYSCALE *p) {
     // x, y: between 0-1
     // x, y will interpolate between the values at the 4 corners
     MYFLT v00 = *p->v00;
-    MYFLT v10 = *p->v10;
+    MYFLT v01 = *p->v01;
     MYFLT x = *p->kx;
-    MYFLT y0 = x * (*p->v01 - v00) + v00;
-    MYFLT y1 = x * (*p->v11 - v10) + v10;
+    MYFLT y0 = x * (*p->v10 - v00) + v00;
+    MYFLT y1 = x * (*p->v11 - v01) + v01;
     *p->kout = (*p->ky) * (y1 - y0) + y0;
     return OK;
 }
