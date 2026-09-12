@@ -243,8 +243,8 @@ typedef struct {
     int32       grd_Rows[GRD_MAX_RANDOM_ROWS];
     int32       grd_NumRows;    /* Number of rows (octave bands of noise) */
     int32       grd_RunningSum; /* Used to optimize summing of generators. */
-    int32_t         grd_Index;      /* Incremented each sample. */
-    int32_t         grd_IndexMask;  /* Index wrapped by ANDing with this mask. */
+    uint32_t    grd_Index;      /* Incremented modulo 2^32 each sample. */
+    uint32_t    grd_IndexMask;  /* Index wrapped by ANDing with this mask. */
     MYFLT       grd_Scalar;     /* Used to scale to normalize generated noise. */
 } PINKISH;
 
