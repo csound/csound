@@ -168,15 +168,31 @@ int32_t lphasor(CSOUND *csound, LPHASOR *p)
       phs += (p->dir ? trns : -trns);
       if (loop_mode) {
         dir = (trns < 0.0 ? !(p->dir) : p->dir);
-        if (dir && (phs >= lpe)) {
-          phs += lpt * (double)((int32_t)((lps - phs) / lpt));
+        if (loop_mode == 3) {
+          if ((dir && phs >= lpe) || (!dir && phs <= lps)) {
+            double distance = dir ? phs - lpe : lps - phs;
+            double period = lpt + lpt;
+            /* Two reflections restore the incoming direction. */
+            if (distance >= period)
+              distance -= period * floor(distance / period);
+            if (distance < lpt) {
+              phs = dir ? lpe - distance : lps + distance;
+              p->dir = !p->dir;
+            }
+            else {
+              phs = dir ? lps + (distance - lpt) : lpe - (distance - lpt);
+            }
+          }
+        }
+        else if (dir && (phs >= lpe)) {
+          phs -= lpt * floor((phs - lps) / lpt);
           if (loop_mode & 2) {
             phs = lps + lpe - phs;  /* reverse direction */
             p->dir = !(p->dir);
           }
         }
         else if (!dir && (phs <= lps)) {
-          phs += lpt * (double)((int32_t)((lpe - phs) / lpt));
+          phs += lpt * floor((lpe - phs) / lpt);
           if (loop_mode & 1) {
             phs = lps + lpe - phs;  /* reverse direction */
             p->dir = !(p->dir);
