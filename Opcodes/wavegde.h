@@ -78,7 +78,7 @@ static MYFLT filter3FIR(filter3*,MYFLT);      /* convolution filter routine */
 typedef circularBuffer guideRail; /* It's just a circular buffer really */
 
 /* guideRail member functions */
-static MYFLT guideRailAccess(guideRail*,len_t);  /* delay line access routine */
+static inline MYFLT guideRailAccess(guideRail*,len_t);  /* delay line access routine */
 static void guideRailUpdate(guideRail*,MYFLT);   /* delay line update routine */
 
 /* waveguide -- abstract base class definition for waveguide classes */
