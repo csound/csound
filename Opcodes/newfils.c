@@ -3630,9 +3630,10 @@ int32_t ms_encod(CSOUND *csound, MIDSID *p) {
     memset(&s[nsmps], '\0', early*sizeof(MYFLT));
   }
 
-  for(i=0; i < nsmps; i++) {
-    m[i] = l[i] + r[i];
-    s[i] = l[i] - r[i];
+  for(i=offset; i < nsmps; i++) {
+    MYFLT left = l[i], right = r[i];
+    m[i] = left + right;
+    s[i] = left - right;
   }
   return OK;
 }
@@ -3655,7 +3656,7 @@ int32_t ms_decod(CSOUND *csound, MIDSID *p) {
     memset(&r[nsmps], '\0', early*sizeof(MYFLT));
   }
 
-  for(i=0; i < nsmps; i++) {
+  for(i=offset; i < nsmps; i++) {
     MYFLT mm, ss;
     mm = m[i]*wm1;
     ss = s[i]*w;
