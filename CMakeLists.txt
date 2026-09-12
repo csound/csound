@@ -1252,7 +1252,7 @@ set(mp3in_SRCS
 
 
 if(NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
-    # Only include C++ opcodes for non-WASI builds
+    # Full set of C++ opcodes for non-WASI builds
     set(cppops_SRCS
        Opcodes/ampmidid.cpp
        Opcodes/mixer.cpp
@@ -1270,6 +1270,7 @@ if(NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
 else()
     # Limited C++ opcodes for WASI builds
     set(cppops_SRCS
+        Opcodes/arrayops.cpp
         Opcodes/bformdec2.cpp
         Opcodes/padsynth_gen.cpp
         Opcodes/signalflowgraph.cpp)
