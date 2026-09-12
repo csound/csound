@@ -126,46 +126,66 @@ static int32_t pvsgain(CSOUND *csound, PVSGAIN *p)
 
 static int32_t pvsinit(CSOUND *csound, PVSINI *p)
 {
-  int32_t     i;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
-  float   *bframe;
-  int32    N = (int32) *p->framesize;
+  double size = *p->framesize;
+  double overlap = *p->olap, winsize = *p->winsize;
+  int32_t N, i;
+  size_t bytes, samples;
+  MYFLT binsize;
+
+  if (UNLIKELY(!(size >= 2.0 && size <= INT32_MAX - 2)))
+    return csound->InitError(csound, "%s", Str("pvsinit: invalid frame size"));
+  N = (int32_t)size;
+  if (UNLIKELY(N & 1))
+    return csound->InitError(csound, "%s", Str("pvsinit: frame size must be even"));
+  if (overlap == 0.0)
+    overlap = N / 4;
+  if (winsize == 0.0)
+    winsize = N;
+  if (UNLIKELY(!(overlap >= 1.0 && overlap <= INT32_MAX &&
+                 winsize >= 1.0 && winsize <= INT32_MAX)))
+    return csound->InitError(csound, "%s",
+                             Str("pvsinit: invalid overlap or window size"));
+  if (UNLIKELY(!(*p->wintype >= INT32_MIN && *p->wintype <= (double)INT32_MAX)))
+    return csound->InitError(csound, "%s", Str("pvsinit: invalid window type"));
+  if (UNLIKELY(*p->format != PVS_AMP_FREQ &&
+               *p->format != PVS_AMP_PHASE && *p->format != PVS_COMPLEX))
+    return csound->InitError(csound, "%s", Str("pvsinit: unsupported format"));
 
   p->fout->N = N;
-  p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
-  p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
-  p->fout->wintype = (int32) *p->wintype;
-  p->fout->format = (int32) *p->format;
+  p->fout->NB = N / 2 + 1;
+  p->fout->overlap = (int32_t)overlap;
+  p->fout->winsize = (int32_t)winsize;
+  p->fout->wintype = (int32_t)*p->wintype;
+  p->fout->format = (int32_t)*p->format;
   p->fout->framecount = 1;
-  p->fout->sliding = 0;
-  if (p->fout->overlap < (int32_t)nsmps || p->fout->overlap <=10) {
-    int32_t NB = 1+N/2;
-    MYFLT *bframe;
-    p->fout->NB = NB;
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size * CS_KSMPS < sizeof(float) * (N + 2))
-      csound->AuxAlloc(csound, (N + 2) * nsmps * sizeof(float),
-                       &p->fout->frame);
-    p->fout->sliding = 1;
-    bframe = (MYFLT *) p->fout->frame.auxp;
-    for (n=0; n<nsmps; n++)
-      for (i = 0; i < N + 2; i += 2) {
-        bframe[i+n*NB] = FL(0.0);
-        bframe[i+n*NB + 1] =
-          (n<offset || n>nsmps-early ? FL(0.0) :(i >>1) * N * CS_ONEDSR);
-      }
-  }
-  else {
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(float) * (N + 2)) {
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+  p->fout->sliding = (p->fout->overlap < (int32_t)CS_KSMPS ||
+                      p->fout->overlap <= 10);
+  samples = p->fout->sliding ? CS_KSMPS : 1;
+  bytes = p->fout->sliding ? sizeof(MYFLT) : sizeof(float);
+  if (UNLIKELY((size_t)N + 2 > SIZE_MAX / bytes / samples))
+    return csound->InitError(csound, "%s", Str("pvsinit: frame size is too large"));
+  bytes *= ((size_t)N + 2) * samples;
+  if (p->fout->frame.auxp == NULL || p->fout->frame.size < bytes)
+    csound->AuxAlloc(csound, bytes, &p->fout->frame);
+  else
+    memset(p->fout->frame.auxp, 0, bytes);
+
+  /* Silent amp/freq frames retain bin frequencies; phase and complex
+     frames start with both components zero. */
+  binsize = CS_ESR / N;
+  if (p->fout->format == PVS_AMP_FREQ) {
+    if (p->fout->sliding) {
+      uint32_t n, offset = p->h.insdshead->ksmps_offset;
+      uint32_t nsmps = CS_KSMPS - p->h.insdshead->ksmps_no_end;
+      CMPLX *bframe = (CMPLX *)p->fout->frame.auxp;
+      for (n = offset; n < nsmps; n++)
+        for (i = 0; i < p->fout->NB; i++)
+          bframe[(size_t)n * p->fout->NB + i].im = i * binsize;
     }
-    bframe = (float *) p->fout->frame.auxp;
-    for (i = 0; i < N + 2; i += 2) {
-      //bframe[i] = 0.0f;
-      bframe[i + 1] = (i >>1) * N * CS_ONEDSR;
+    else {
+      float *bframe = (float *)p->fout->frame.auxp;
+      for (i = 0; i < N + 2; i += 2)
+        bframe[i + 1] = (float)((i / 2) * binsize);
     }
   }
   p->lastframe = 0;
