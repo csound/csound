@@ -915,6 +915,9 @@ def runTest():
         ],
         ["test_wgpluck_excitation.csd", "wgpluck excitation reuse and partial blocks"],
         ["test_bformenc1_input_reuse.csd", "bformenc1 input reuse in scalar and array outputs"],
+        ["test_metro2_timing.csd", "metro2 corrected startup, swing, and bounded phase timing"],
+        ["test_metro2_legacy_timing.csd", "metro2 preserves legacy timing by default"],
+        ["test_metro2_invalid_parameters.csd", "reject invalid metro2 phase, frequency, and swing", 1],
         ["test_syncphasor_phase_wrap.csd", "test syncphasor phase wrapping"],
 
         ["test_phasorbnk_phase_state.csd", "phasorbnk bank resizing and phase state"],
