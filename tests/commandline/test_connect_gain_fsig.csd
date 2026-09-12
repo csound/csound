@@ -94,7 +94,8 @@ instr SlidingSource
   atone oscili aenv, 1875
   fsig pvsanal atone, 256, 1, 256, 1
   adirect, afreq pvsbin fsig, 10
-  kdirect rms adirect
+  ; Check current bin samples without an RMS filter's decay tail.
+  kdirect max_k abs(adirect), 1, 1
   gkampSlidingDirect = kdirect
   outletf "fout", fsig
 endin
@@ -102,7 +103,7 @@ endin
 instr SlidingSink
   fsig inletf "fin"
   ainlet, afreq pvsbin fsig, 10
-  kinlet rms ainlet
+  kinlet max_k abs(ainlet), 1, 1
   if timeinstk() == 300 then
     if gkampSlidingDirect > 0.001 then
       printks "connect sliding fsig decay setup failed: direct amp=%f\n", 0, gkampSlidingDirect
