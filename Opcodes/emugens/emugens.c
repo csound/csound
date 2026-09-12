@@ -1367,25 +1367,20 @@ typedef struct {
     int32_t mode;
 } Cmp2_array1;
 
-static int32_t op2mode(char *op, int64_t opsize) {
-    int32_t mode;
-    if (op[0] == '>') {
-        mode = (opsize == 1) ? 0 : 1;
-    } else if (op[0] == '<') {
-        mode = (opsize == 1) ? 2 : 3;
-    } else if (op[0] == '=') {
-        mode = 4;
-    } else if (op[0] == '!' && op[1] == '=') {
-        mode = 5;
-    } else {
-        return -1;
-    }
-    return mode;
+static int32_t op2mode(const char *op) {
+    if (strcmp(op, ">") == 0) return 0;
+    if (strcmp(op, ">=") == 0) return 1;
+    if (strcmp(op, "<") == 0) return 2;
+    if (strcmp(op, "<=") == 0) return 3;
+    /* Keep the historical single-equals alias. */
+    if (strcmp(op, "==") == 0 || strcmp(op, "=") == 0) return 4;
+    if (strcmp(op, "!=") == 0) return 5;
+    return -1;
 }
 
 static int32_t
 cmp_init(CSOUND *csound, Cmp *p) {
-    int32_t mode = (int32_t) op2mode(p->op->data, p->op->size-1);
+    int32_t mode = op2mode(p->op->data);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
                            "Expecting <, <=, >, >=, ==, !="));
@@ -1399,7 +1394,7 @@ cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
     int32_t N = p->in->sizes[0];
     if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
-    int32_t mode = (int32_t) op2mode(p->op->data, p->op->size-1);
+    int32_t mode = op2mode(p->op->data);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
                            "Expecting <, <=, >, >=, ==, !="));
@@ -1418,7 +1413,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
     // grow the array if necessary
     if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
-    int32_t mode = (int32_t) op2mode(p->op->data, p->op->size-1);
+    int32_t mode = op2mode(p->op->data);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
                            "Expecting <, <=, >, >=, ==, !="));
@@ -1433,23 +1428,13 @@ cmp2array1_init(CSOUND *csound, Cmp2_array1 *p) {
     if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
 
-    char *op1 = (char*)p->op1->data;
-    int64_t op1size = p->op1->size - 1;
-    char *op2 = (char*)p->op2->data;
-    int64_t op2size = p->op2->size - 1;
-    int32_t mode;
-
-    if (op1[0] == '<') {
-        mode = (op1size == 1) ? 0 : 1;
-        if(op2[0] == '<')
-            mode += 2 * ((op2size == 1) ? 0 : 1);
-        else
-            return INITERR(Str("cmp (ternary comparator): operator 2 expected <"));
-    }
-    else {
-        return INITERR(Str("cmp (ternary comparator): operator 1 expected <"));
-    }
-    p->mode = mode;
+    int32_t mode1 = op2mode(p->op1->data);
+    int32_t mode2 = op2mode(p->op2->data);
+    if (mode1 != 2 && mode1 != 3)
+        return INITERR(Str("cmp (ternary comparator): operator 1 expected < or <="));
+    if (mode2 != 2 && mode2 != 3)
+        return INITERR(Str("cmp (ternary comparator): operator 2 expected < or <="));
+    p->mode = (mode1 - 2) + 2 * (mode2 - 2);
     return OK;
 }
 
@@ -1544,7 +1529,8 @@ cmp_ak(CSOUND *csound, Cmp *p) {
 static int32_t
 cmparray1_k(CSOUND *csound, Cmp_array1 *p) {
     int32_t L = p->in->sizes[0];
-    ARRAY_ENSURESIZE_PERF(csound, p->out, L);
+    if (UNLIKELY(ARRAY_ENSURESIZE_PERF(csound, p->out, L) != OK))
+        return NOTOK;
 
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
@@ -1588,7 +1574,8 @@ cmparray1_k(CSOUND *csound, Cmp_array1 *p) {
 
 static int32_t
 cmparray1_i(CSOUND *csound, Cmp_array1 *p) {
-    cmparray1_init(csound, p);
+    if (UNLIKELY(cmparray1_init(csound, p) != OK))
+        return NOTOK;
     return cmparray1_k(csound, p);
 }
 
@@ -1596,7 +1583,8 @@ cmparray1_i(CSOUND *csound, Cmp_array1 *p) {
 static int32_t
 cmp2array1_k(CSOUND *csound, Cmp2_array1 *p) {
     int32_t L = p->in->sizes[0];
-    ARRAY_ENSURESIZE_PERF(csound, p->out, L);
+    if (UNLIKELY(ARRAY_ENSURESIZE_PERF(csound, p->out, L) != OK))
+        return NOTOK;
 
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
@@ -1636,14 +1624,18 @@ cmp2array1_k(CSOUND *csound, Cmp2_array1 *p) {
 
 static int32_t
 cmp2array1_i(CSOUND *csound, Cmp2_array1 *p) {
-    cmp2array1_init(csound, p);
+    if (UNLIKELY(cmp2array1_init(csound, p) != OK))
+        return NOTOK;
     return cmp2array1_k(csound, p);
 }
 
 static int32_t
 cmparray2_k(CSOUND *csound, Cmp_array2 *p) {
-    int32_t L = p->in1->sizes[0];
-    ARRAY_ENSURESIZE_PERF(csound, p->out, L);
+    int32_t N1 = p->in1->sizes[0];
+    int32_t N2 = p->in2->sizes[0];
+    int32_t L = N1 < N2 ? N1 : N2;
+    if (UNLIKELY(ARRAY_ENSURESIZE_PERF(csound, p->out, L) != OK))
+        return NOTOK;
 
     MYFLT *out = p->out->data;
     MYFLT *in1  = p->in1->data;
@@ -1686,7 +1678,8 @@ cmparray2_k(CSOUND *csound, Cmp_array2 *p) {
 
 static int32_t
 cmparray2_i(CSOUND *csound, Cmp_array2 *p) {
-    cmparray2_init(csound, p);
+    if (UNLIKELY(cmparray2_init(csound, p) != OK))
+        return NOTOK;
     return cmparray2_k(csound, p);
 }
 
