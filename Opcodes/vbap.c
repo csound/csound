@@ -1619,7 +1619,7 @@ int32_t vbap(CSOUND *csound, VBAP *p) /* during note performance: */
   MYFLT *outptr, *inptr;
   MYFLT ogain, ngain, gainsubstr;
   MYFLT invfloatn;
-  int32_t j;
+  int32_t j, channel, in_place = -1;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -1633,10 +1633,16 @@ int32_t vbap(CSOUND *csound, VBAP *p) /* during note performance: */
   /* write audio to result audio streams weighted
      with gain factors*/
   if (UNLIKELY(early)) nsmps -= early;
-  invfloatn =  FL(1.0)/(nsmps-offset);
-  for (j=0; j<cnt; j++) {
+  invfloatn = (nsmps > offset ? FL(1.0)/(nsmps-offset) : FL(0.0));
+  /* Render an output that reuses the input after all other channels. */
+  for (channel=0; channel<cnt+(in_place >= 0); channel++) {
+    j = (channel < cnt ? channel : in_place);
     inptr      = p->audio;
     outptr     = p->out_array[j];
+    if (channel < cnt && outptr == p->audio) {
+      in_place = j;
+      continue;
+    }
     ogain      = p->q.beg_gains[j];
     ngain      = p->q.end_gains[j];
     gainsubstr = ngain - ogain;
@@ -1647,10 +1653,9 @@ int32_t vbap(CSOUND *csound, VBAP *p) /* during note performance: */
       if (ngain != ogain) {
         for (i = offset; i < nsmps; i++) {
           outptr[i] = inptr[i] *
-            (ogain + (MYFLT)(i+1) * invfloatn * gainsubstr);
+            (ogain + (MYFLT)(i-offset+1) * invfloatn * gainsubstr);
         }
-        p->q.curr_gains[j]= ogain +
-          (MYFLT)(i) * invfloatn * gainsubstr;
+        p->q.curr_gains[j] = ngain;
       }
       else {
         for (i=offset; i<nsmps; ++i) {
@@ -1670,7 +1675,7 @@ int32_t vbap_a(CSOUND *csound, VBAPA *p) /* during note performance: */
   MYFLT *outptr, *inptr;
   MYFLT ogain, ngain, gainsubstr;
   MYFLT invfloatn;
-  int32_t j;
+  int32_t j, channel, in_place = -1;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -1686,9 +1691,15 @@ int32_t vbap_a(CSOUND *csound, VBAPA *p) /* during note performance: */
   /* write audio to result audio streams weighted
      with gain factors*/
   if (UNLIKELY(early)) nsmps -= early;
-  invfloatn =  FL(1.0)/(nsmps-offset);
-  for (j=0; j<cnt; j++) {
+  invfloatn = (nsmps > offset ? FL(1.0)/(nsmps-offset) : FL(0.0));
+  /* Render an output that reuses the input after all other channels. */
+  for (channel=0; channel<cnt+(in_place >= 0); channel++) {
+    j = (channel < cnt ? channel : in_place);
     outptr     = &p->tabout->data[j*ksmps];
+    if (channel < cnt && outptr == p->audio) {
+      in_place = j;
+      continue;
+    }
     inptr      = p->audio;
     ogain      = p->q.beg_gains[j];
     ngain      = p->q.end_gains[j];
@@ -1699,10 +1710,9 @@ int32_t vbap_a(CSOUND *csound, VBAPA *p) /* during note performance: */
       if (ngain != ogain) {
         for (i = offset; i < nsmps; i++) {
           outptr[i] = inptr[i] *
-            (ogain + (MYFLT)(i+1) * invfloatn * gainsubstr);
+            (ogain + (MYFLT)(i-offset+1) * invfloatn * gainsubstr);
         }
-        p->q.curr_gains[j]= ogain +
-          (MYFLT)(i) * invfloatn * gainsubstr;
+        p->q.curr_gains[j] = ngain;
       }
       else {
         for (i=offset; i<nsmps; ++i)
@@ -1916,7 +1926,7 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
                              "%s", Str("vbap system NOT configured.\nMissing"
                                        " vbaplsinit opcode in orchestra?"));
   //printf("**** size = %d\n", p->q.ls_set_am);
-  if (UNLIKELY(tabinit(csound, p->tabout, p->q.ls_set_am,
+  if (UNLIKELY(tabinit(csound, p->tabout, p->q.ls_am,
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   cnt = p->q.number = p->tabout->sizes[0];
@@ -1965,7 +1975,7 @@ int32_t vbap_moving(CSOUND *csound, VBAP_MOVING *p)
   MYFLT *outptr, *inptr;
   MYFLT ogain, ngain, gainsubstr;
   MYFLT invfloatn;
-  int32_t j;
+  int32_t j, channel, in_place = -1;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -1982,10 +1992,16 @@ int32_t vbap_moving(CSOUND *csound, VBAP_MOVING *p)
   /* write audio to resulting audio streams weighted
      with gain factors*/
   if (UNLIKELY(early)) nsmps -= early;
-  invfloatn = FL(1.0)/(nsmps-offset);
-  for (j=0; j<cnt ;j++) {
+  invfloatn = (nsmps > offset ? FL(1.0)/(nsmps-offset) : FL(0.0));
+  /* Render an output that reuses the input after all other channels. */
+  for (channel=0; channel<cnt+(in_place >= 0); channel++) {
+    j = (channel < cnt ? channel : in_place);
     inptr = p->audio;
     outptr = p->out_array[j];
+    if (channel < cnt && outptr == p->audio) {
+      in_place = j;
+      continue;
+    }
     if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
     ogain  = p->q.beg_gains[j];
@@ -1995,10 +2011,9 @@ int32_t vbap_moving(CSOUND *csound, VBAP_MOVING *p)
       if (ngain != ogain) {
         for (i = offset; i < nsmps; i++) {
           outptr[i] = inptr[i] *
-            (ogain + (MYFLT)(i+1) * invfloatn * gainsubstr);
+            (ogain + (MYFLT)(i-offset+1) * invfloatn * gainsubstr);
         }
-        p->q.curr_gains[j]= ogain +
-          (MYFLT)(i) * invfloatn * gainsubstr;
+        p->q.curr_gains[j] = ngain;
       }
       else
         for (i=offset; i<nsmps; ++i)
@@ -2300,7 +2315,7 @@ int32_t vbap_moving_a(CSOUND *csound, VBAPA_MOVING *p)
   MYFLT *outptr, *inptr;
   MYFLT ogain, ngain, gainsubstr;
   MYFLT invfloatn;
-  int32_t j;
+  int32_t j, channel, in_place = -1;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2318,11 +2333,16 @@ int32_t vbap_moving_a(CSOUND *csound, VBAPA_MOVING *p)
   /* write audio to resulting audio streams weighted
      with gain factors*/
   if (UNLIKELY(early)) nsmps -= early;
-  invfloatn = FL(1.0)/(nsmps-offset);
-  //outptr = p->tabout->data;
-  for (j=0; j<cnt ;j++) {
+  invfloatn = (nsmps > offset ? FL(1.0)/(nsmps-offset) : FL(0.0));
+  /* Render an output that reuses the input after all other channels. */
+  for (channel=0; channel<cnt+(in_place >= 0); channel++) {
+    j = (channel < cnt ? channel : in_place);
     inptr = p->audio;
     outptr = &p->tabout->data[j*ksmps];
+    if (channel < cnt && outptr == p->audio) {
+      in_place = j;
+      continue;
+    }
     if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
     ogain  = p->q.beg_gains[j];
@@ -2332,10 +2352,9 @@ int32_t vbap_moving_a(CSOUND *csound, VBAPA_MOVING *p)
       if (ngain != ogain) {
         for (i = offset; i < nsmps; i++) {
           outptr[i] = inptr[i] *
-            (ogain + (MYFLT)(i+1) * invfloatn * gainsubstr);
+            (ogain + (MYFLT)(i-offset+1) * invfloatn * gainsubstr);
         }
-        p->q.curr_gains[j]= ogain +
-          (MYFLT)(i) * invfloatn * gainsubstr;
+        p->q.curr_gains[j] = ngain;
       }
       else
         for (i=offset; i<nsmps; ++i)
@@ -2457,7 +2476,7 @@ int32_t vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
      with gain factors */
   outptr = p->out_array;
   if (UNLIKELY(early)) nsmps -= early;
-  invfloatn =  FL(1.0)/(nsmps-offset);
+  invfloatn = (nsmps > offset ? FL(1.0)/(nsmps-offset) : FL(0.0));
   for (j=0; j<n; j++) {
     inptr = p->audio;
     ogain = p->beg_gains[j];
@@ -2469,10 +2488,9 @@ int32_t vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
       if (ngain != ogain) {
         for (i = offset; i < nsmps; i++) {
           outptr[i] = inptr[i] *
-            (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
+            (ogain + (MYFLT)(i-offset+1) * invfloatn * gainsubstr);
         }
-        p->curr_gains[j]= ogain +
-          (MYFLT) (i) * invfloatn * gainsubstr;
+        p->curr_gains[j] = ngain;
       }
       else {
         for (i=offset; i<nsmps; ++i)
@@ -2480,7 +2498,7 @@ int32_t vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
       }
     else
       memset(outptr, 0, nsmps*sizeof(MYFLT));
-    outptr += nsmps;
+    outptr += CS_KSMPS;
   }
   return OK;
 }
@@ -2611,8 +2629,7 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("outz index < 0. No output."));
   }
-  if ((int32_t)*p->layout==0) strcpy(name, "vbap_ls_table");
-  else snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout==0);
+  snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout);
   /* Now read from the array in za space and write to the output. */
   p->out_array     = zastart + (indx * CS_KSMPS);/* outputs */
   csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
@@ -2620,7 +2637,10 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
   p->beg_gains     = p->curr_gains + p->n;
   p->end_gains     = p->beg_gains + p->n;
   p->updated_gains = p->end_gains + p->n;
-  ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
+  ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
+  if (UNLIKELY(ls_table == NULL))
+    return csound->InitError(csound, Str("could not find layout table no.%d"),
+                             (int32_t)*p->layout);
   p->dim           = (int32_t) ls_table[0];   /* reading in loudspeaker info */
   p->ls_am         = (int32_t) ls_table[1];
   p->ls_set_am     = (int32_t) ls_table[2];
@@ -2682,14 +2702,12 @@ int32_t vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
 
   /* write audio to resulting audio streams weighted
      with gain factors */
-  invfloatn =  FL(1.0)/(nsmps-offset);
+  if (UNLIKELY(early)) nsmps -= early;
+  invfloatn = (nsmps > offset ? FL(1.0)/(nsmps-offset) : FL(0.0));
   outptr = p->out_array;
-  if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
-  }
   for (j=0; j<p->n ;j++) {
+    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
     inptr = p->audio;
     ogain = p->beg_gains[j];
     ngain = p->end_gains[j];
@@ -2698,16 +2716,16 @@ int32_t vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
       if (ngain != ogain) {
         for (i = offset; i < nsmps; i++) {
           outptr[i] = inptr[i] *
-            (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
+            (ogain + (MYFLT)(i-offset+1) * invfloatn * gainsubstr);
         }
-        p->curr_gains[j] =  ogain +
-          (MYFLT) (i) * invfloatn * gainsubstr;
+        p->curr_gains[j] = ngain;
       }
       else
         for (i=offset; i<nsmps; ++i)
           outptr[i] = inptr[i] * ogain;
     else
       memset(outptr, 0, nsmps*sizeof(MYFLT));
+    outptr += CS_KSMPS;
   }
   return OK;
 }
@@ -2911,8 +2929,7 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
   int32_t     i, j, indx;
   MYFLT   *ls_table, *ptr;
   LS_SET  *ls_set_ptr;
-  int32_t n = p->n;
-  p->n = (int32_t)MYFLT2LONG(*p->numb); /* Set size */
+  int32_t n = p->n = (int32_t)MYFLT2LONG(*p->numb); /* Set size */
   /* Check to see this index is within the limits of za space.    */
   MYFLT* zastart;
   int64_t zalast = GetZaBounds(csound, &zastart);
@@ -2935,6 +2952,8 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
   /* reading in loudspeaker info */
   ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
                                                           "vbap_ls_table_0"));
+  if (UNLIKELY(ls_table == NULL))
+    return csound->InitError(csound, "%s", Str("could not find layout table no.0"));
   p->dim           = (int32_t) ls_table[0];
   p->ls_am         = (int32_t) ls_table[1];
   p->ls_set_am     = (int32_t) ls_table[2];
