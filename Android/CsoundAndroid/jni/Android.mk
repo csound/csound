@@ -278,6 +278,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/dbap.c \
 $(CSOUND_SRC_ROOT)/Opcodes/tl/fractalnoise.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/emugens/emugens.c \
 $(CSOUND_SRC_ROOT)/Opcodes/emugens/scugens.c \
+$(CSOUND_SRC_ROOT)/Opcodes/stm.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_semantics.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_structs.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_expressions.c \
