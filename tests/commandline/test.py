@@ -988,6 +988,7 @@ def runTest():
         ["test_mirror_bounds.csd", "test mirror boundaries and large inputs"],
         ["test_atonex_order_one.csd", "test atonex order-one filtering"],
         ["test_tonex_cutoff.csd", "tonex/atonex cutoff updates, stages, and input reuse"],
+        ["test_tonek_initial_cutoff.csd", "tonek/atonek initial cutoff and reinitialization"],
         ["test_filterx_istor_first_init.csd", "test filter state on first init"],
         ["test_butterworth_audio.csd", "test Butterworth audio parameters and partial blocks"],
         ["test_clfilt_ripple.csd", "clfilt small ripple and coefficient updates"],
