@@ -140,6 +140,7 @@ abformenc(CSOUND * csound, AMBIC * p) {
     double angle, elevation, x, y, z;
     MYFLT coefficients[16], coefficient, * output, * input;
     MYFLT x2, y2, z2;
+    int32_t inputChannel = -1;
 
     /* Find basic mode & angles: */
     sampleCount = CS_KSMPS;
@@ -200,10 +201,24 @@ abformenc(CSOUND * csound, AMBIC * p) {
       coefficient = coefficients[channelIndex];
       input = p->ain;
       output = p->aouts[channelIndex];
+      /* Keep the input intact until the other channels have read it. */
+      if (output == input) {
+        inputChannel = channelIndex;
+        continue;
+      }
       if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) memset(&output[sampleCount], '\0', early*sizeof(MYFLT));
       for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++)
         output[sampleIndex] = coefficient * input[sampleIndex];
+    }
+
+    if (inputChannel >= 0) {
+      output = p->ain;
+      coefficient = coefficients[inputChannel];
+      if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&output[sampleCount], '\0', early*sizeof(MYFLT));
+      for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++)
+        output[sampleIndex] *= coefficient;
     }
 
     return OK;
@@ -219,6 +234,7 @@ abformenc_a(CSOUND * csound, AMBICA * p) {
     double angle, elevation, x, y, z;
     MYFLT coefficients[16], coefficient, * output, * input;
     MYFLT x2, y2, z2;
+    int32_t inputChannel = -1;
 
     /* Find basic mode & angles: */
     ksmps = sampleCount = CS_KSMPS;
@@ -279,10 +295,24 @@ abformenc_a(CSOUND * csound, AMBICA * p) {
       coefficient = coefficients[channelIndex];
       input = p->ain;
       output = &p->tabout->data[ksmps*channelIndex];
+      /* Keep the input intact until the other channels have read it. */
+      if (output == input) {
+        inputChannel = channelIndex;
+        continue;
+      }
       if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) memset(&output[sampleCount], '\0', early*sizeof(MYFLT));
       for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++)
         output[sampleIndex] = coefficient * input[sampleIndex];
+    }
+
+    if (inputChannel >= 0) {
+      output = p->ain;
+      coefficient = coefficients[inputChannel];
+      if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(&output[sampleCount], '\0', early*sizeof(MYFLT));
+      for (sampleIndex = offset; sampleIndex < sampleCount; sampleIndex++)
+        output[sampleIndex] *= coefficient;
     }
 
     return OK;
