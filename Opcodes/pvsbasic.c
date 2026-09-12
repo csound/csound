@@ -355,10 +355,10 @@ typedef struct _pvsdiskin {
   MYFLT *ioff;
   MYFLT *ichn;
   MYFLT *interp;
-  double  pos;
+  double  pos, rate;
   uint32 oldpos;
   int32_t chans, chn;
-  int32_t pvfile;
+  int32_t pvfile, opened;
   int32_t scnt;
   uint32  flen;
   AUXCH buffer;
@@ -366,19 +366,31 @@ typedef struct _pvsdiskin {
 
 #define FSIGBUFRAMES 2
 
+static int32_t pvsdiskin_destroy(CSOUND *csound, void *pp)
+{
+  pvsdiskin *p = (pvsdiskin *) pp;
+  if (p->opened) {
+    csound->PVOC_CloseFile(csound, p->pvfile);
+    p->opened = 0;
+  }
+  return OK;
+}
+
 static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
 {
-  int32_t N;
+  int32_t N, frames;
+  size_t framebytes;
   WAVEFORMATEX fmt;
   PVOCDATA   pvdata;
   char fname[MAXNAME];
 
+  pvsdiskin_destroy(csound, p);
   if (stringname==0){
     if (IsStringCode(*p->file))
-      strncpy(fname,csound->GetArgString(csound, *p->file), MAXNAME);
+      strNcpy(fname,csound->GetArgString(csound, *p->file), MAXNAME);
     else csound->StringArg2Name(csound, fname, p->file, "pvoc.",0);
   }
-  else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME);
+  else strNcpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME);
 
   if (UNLIKELY(p->fout->sliding))
     return csound->InitError(csound,
@@ -389,6 +401,15 @@ static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
                            Str("pvsdiskin: could not open file %s\n"),
                              fname);
 
+  p->opened = 1;
+  frames = csound->PVOC_FrameCount(csound, p->pvfile);
+  if (UNLIKELY(fmt.nChannels == 0 || frames < fmt.nChannels ||
+               frames % fmt.nChannels != 0 || fmt.nSamplesPerSec == 0 ||
+               pvdata.dwOverlap < CS_KSMPS || pvdata.dwOverlap < 10)) {
+    pvsdiskin_destroy(csound, p);
+    return csound->InitError(csound, "%s",
+                            Str("pvsdiskin: invalid frame count or analysis rate"));
+  }
   N = (pvdata.nAnalysisBins-1)*2;
   p->chans = fmt.nChannels;
 
@@ -396,14 +417,12 @@ static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
       p->fout->frame.size < sizeof(float) * (N + 2))
     csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
 
-  if (p->buffer.auxp == NULL ||
-      p->buffer.size < sizeof(float) * (N + 2) * FSIGBUFRAMES * p->chans)
-    csound->AuxAlloc(csound,
-                     (N + 2) * sizeof(float) * FSIGBUFRAMES * p->chans,
-                     &p->buffer);
+  framebytes = (size_t)(N + 2) * sizeof(float) * p->chans;
+  if (p->buffer.auxp == NULL || p->buffer.size < framebytes * FSIGBUFRAMES)
+    csound->AuxAlloc(csound, framebytes * FSIGBUFRAMES, &p->buffer);
 
-  p->flen = csound->PVOC_FrameCount(csound, p->pvfile) - 1;
-
+  p->flen = frames / p->chans;
+  p->rate = (double)fmt.nSamplesPerSec / CS_ESR;
 
   p->fout->N = N;
   p->fout->overlap =  pvdata.dwOverlap;
@@ -425,7 +444,7 @@ static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
   p->fout->format = pvdata.wAnalFormat;
   p->fout->framecount = 1;
   p->scnt = p->fout->overlap;
-  p->pos = *p->ioff * CS_ESR/N;
+  p->pos = (double)*p->ioff * ((double)fmt.nSamplesPerSec / pvdata.dwOverlap);
   p->oldpos = -1;
 
   p->chn = (int32_t) (*p->ichn <= p->chans ? *p->ichn : p->chans) -1;
@@ -455,20 +474,28 @@ static int32_t pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
   float amp = (float) (*p->kgain * csound->Get0dBFS(csound));
 
   if (p->scnt >= overlap) {
+    if (UNLIKELY(!isfinite(pos)))
+      return csound->PerfError(csound, &p->h, "%s",
+                              Str("pvsdiskin: non-finite playback position"));
+    if (pos >= p->flen || pos < 0.0) {
+      pos -= p->flen * floor(pos / p->flen);
+      if (pos >= p->flen) pos = 0.0;
+    }
     posi = (uint32_t) pos;
     if (posi != p->oldpos) {
-      /*
-        read new frame
-        PVOC_Rewind() is now PVOC_fseek() adapted to work
-        as fseek(), using the last argument as
-        offset
-      */
-      while(pos >= p->flen) pos -= p->flen;
-      while(pos < 0) pos += p->flen;
-      csound->PVOC_fseek(csound,p->pvfile, pos);
-      (void)csound->PVOC_GetFrames(csound, p->pvfile, buffer, 2*p->chans);
-      p->oldpos = posi = (uint32_t)pos;
-
+      int32_t count = posi + 1 < p->flen ? 2 * p->chans : p->chans;
+      if (UNLIKELY(csound->PVOC_fseek(csound, p->pvfile, posi * p->chans) != 0 ||
+                   csound->PVOC_GetFrames(csound, p->pvfile, buffer, count) != count))
+        goto read_error;
+      if (count == p->chans) {
+        /* The final frame interpolates into the first frame of the loop. */
+        if (UNLIKELY(csound->PVOC_fseek(csound, p->pvfile, 0) != 0 ||
+                     csound->PVOC_GetFrames(csound, p->pvfile,
+                         buffer + (size_t)(N + 2) * p->chans,
+                         p->chans) != p->chans))
+          goto read_error;
+      }
+      p->oldpos = posi;
     }
     if (*p->interp) {
       /* interpolate */
@@ -484,13 +511,16 @@ static int32_t pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
       }
 
 
-    p->pos += (*p->kspeed * p->chans);
+    p->pos = pos + (double)*p->kspeed * p->rate;
     p->scnt -= overlap;
     p->fout->framecount++;
   }
   p->scnt += CS_KSMPS;
 
   return OK;
+read_error:
+  return csound->PerfError(csound, &p->h, "%s",
+                          Str("pvsdiskin: could not read analysis frame"));
 }
 
 typedef struct _pvst {
@@ -2818,9 +2848,9 @@ static OENTRY localops[] = {
   {"pvsosc", sizeof(PVSOSC),0, "f", "kkkioopo", (SUBR) pvsoscset,
    (SUBR) pvsoscprocess, NULL},
   {"pvsdiskin", sizeof(pvsdiskin),0, "f", "SkkopP",(SUBR) pvsdiskinset_S,
-   (SUBR) pvsdiskinproc, NULL},
+   (SUBR) pvsdiskinproc, (SUBR) pvsdiskin_destroy},
   {"pvsdiskin.i", sizeof(pvsdiskin),0, "f", "ikkopP",(SUBR) pvsdiskinset,
-   (SUBR) pvsdiskinproc, NULL},
+   (SUBR) pvsdiskinproc, (SUBR) pvsdiskin_destroy},
   {"pvstanal", sizeof(PVST1),0, "f", "kkkkPPoooP",
    (SUBR) pvstanalset1, (SUBR) pvstanal1, NULL},
   {"pvstanal", sizeof(PVST),0, "FFFFFFFFFFFFFFFF", "kkkkPPoooP",
