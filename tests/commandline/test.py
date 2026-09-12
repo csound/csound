@@ -961,6 +961,7 @@ def runTest():
             "test_keyword_spacing.csd",
             "test keyword spacing (if(, elseif(, etc.)",
         ],
+        ["test_linenr_stage_transition.csd", "linenr attack and release transitions within audio blocks"],
         ["test_adsr_zero_stages.csd", "ADSR zero-length stages and delay"],
         ["test_xadsr_zero_stages.csd", "exponential ADSR zero stages and short attacks"],
         ["test_adsr_early_release.csd", "ADSR note-off during delay, attack, and decay"],
