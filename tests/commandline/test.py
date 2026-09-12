@@ -1022,6 +1022,8 @@ def runTest():
         ["test_babo_invalid_room.csd", "reject invalid babo room dimensions", 1],
         ["test_random_rate_correctness.csd", "randomi and randomh rate handling"],
         ["test_pinker_sequence.csd", "pinker preserves its noise sequence across block sizes"],
+        ["test_cell_state.csd", "cell generation, reset, and table reuse"],
+        ["test_cell_invalid_inputs.csd", "cell rejects invalid sizes and rule indices", 1],
         ["test_pinker_sample_bounds.csd", "pinker clears inactive samples"],
         ["test_noise_amplitude_offset.csd", "noise amplitude offsets and filter state"],
         ["test_pinkish_sample_state.csd", "pinkish amplitude offsets, seeds, and preserved state"],
