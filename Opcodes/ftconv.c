@@ -112,19 +112,6 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
     } while (--nPartitions);
 }
 
-static inline int32_t buf_bytes_alloc(int32_t nChannels,
-                                      int32_t partSize, int32_t nPartitions)
-{
-    int32_t nSmps;
-
-    nSmps = (partSize << 1);                                /* tmpBuf     */
-    nSmps += ((partSize << 1) * nPartitions);               /* ringBuf    */
-    nSmps += ((partSize << 1) * nChannels * nPartitions);   /* IR_Data    */
-    nSmps += ((partSize << 1) * nChannels);                 /* outBuffers */
-
-    return ((int32_t) sizeof(MYFLT) * nSmps);
-}
-
 static void set_buf_pointers(FTCONV *p,
                              int32_t nChannels, int32_t partSize,
                              int32_t nPartitions)
@@ -149,99 +136,87 @@ static void set_buf_pointers(FTCONV *p,
 
 static int32_t ftconv_init(CSOUND *csound, FTCONV *p)
 {
-    FUNC    *ftp;
-    int32_t     i, j, k, n, nBytes, skipSamples;
-    //MYFLT   FFTscale;
+    FUNC *ftp;
+    int32_t i, j, k, n;
+    int32_t nChannels = (int32_t) p->OUTOCOUNT;
+    double part = nearbyint((double) *p->iPartLen);
+    double skip = nearbyint((double) *p->iSkipSamples);
+    double length = nearbyint((double) *p->iTotLen);
 
-    /* check parameters */
-    p->nChannels = (int32_t) p->OUTOCOUNT;
-    if (UNLIKELY(p->nChannels < 1 || p->nChannels > FTCONV_MAXCHN)) {
+    if (UNLIKELY(nChannels < 1 || nChannels > FTCONV_MAXCHN))
       return csound->InitError(csound, "%s", Str("ftconv: invalid number of channels"));
-    }
-    /* partition length */
-    p->partSize = MYFLT2LRND(*(p->iPartLen));
-    if (UNLIKELY(p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0)) {
-      return csound->InitError(csound, "%s", Str("ftconv: invalid impulse response "
-                                           "partition length"));
-    }
+    if (UNLIKELY(!(part >= 4 && part <= INT32_MAX / 2)))
+      return csound->InitError(csound, "%s",
+                              Str("ftconv: invalid impulse response partition length"));
+    int32_t partSize = (int32_t) part;
+    if (UNLIKELY((partSize & (partSize - 1)) != 0))
+      return csound->InitError(csound, "%s",
+                              Str("ftconv: invalid impulse response partition length"));
+    if (UNLIKELY(!(skip >= INT32_MIN && skip <= INT32_MAX &&
+                   length >= INT32_MIN && length <= INT32_MAX)))
+      return csound->InitError(csound, "%s", Str("ftconv: invalid impulse response range"));
     ftp = csound->FTFind(csound, p->iFTNum);
     if (UNLIKELY(ftp == NULL))
-      return NOTOK; /* ftfind should already have printed the error message */
-    /* calculate total length / number of partitions */
-    n = (int32_t) ftp->flen / p->nChannels;
-    skipSamples = MYFLT2LRND(*(p->iSkipSamples));
-    n -= skipSamples;
-    if (MYFLT2LRND(*(p->iTotLen)) > 0 && n > MYFLT2LRND(*(p->iTotLen)))
-      n = MYFLT2LRND(*(p->iTotLen));
-    if (UNLIKELY(n <= 0)) {
-      return csound->InitError(csound,
-                               "%s", Str("ftconv: invalid length, or insufficient"
-                                   " IR data for convolution"));
-    }
-    p->nPartitions = (n + (p->partSize - 1)) / p->partSize;
-    /* calculate the amount of aux space to allocate (in bytes) */
-    nBytes = buf_bytes_alloc(p->nChannels, p->partSize, p->nPartitions);
-    if (nBytes != (int32_t) p->auxData.size)
-      csound->AuxAlloc(csound, (int32) nBytes, &(p->auxData));
-    else if (p->initDone > 0 && *(p->iSkipInit) != FL(0.0))
-      return OK;    /* skip initialisation if requested */
-    /* if skipping samples: check for possible truncation of IR */
-    /*
-      if (skipSamples > 0 && (parm->msglevel & WARNMSG)) {
-      n = skipSamples * p->nChannels;
-      if (n > (int32_t) ftp->flen)
-        n = (int32_t) ftp->flen;
-      for (i = 0; i < n; i++) {
-        if (UNLIKELY(ftp->ftable[i] != FL(0.0))) {
-          csound->Warning(csound,
-                          "%s", Str("ftconv: skipped non-zero samples, "
-                              "impulse response may be truncated\n"));
-          break;
-        }
-      }
-      }*/
-    /* initialise buffer pointers */
-    set_buf_pointers(p, p->nChannels, p->partSize, p->nPartitions);
-    /* clear ring buffer to zero */
-    n = (p->partSize << 1) * p->nPartitions;
-    memset(p->ringBuf, 0, n*sizeof(MYFLT));
-    /* for (i = 0; i < n; i++) */
-    /*   p->ringBuf[i] = FL(0.0); */
-    /* initialise buffer index */
+      return NOTOK;
+
+    int64_t tableFrames = ftp->flen / nChannels;
+    int64_t skipSamples = (int64_t) skip;
+    int64_t irLength = tableFrames - skipSamples;
+    if (length > 0 && irLength > (int64_t) length)
+      irLength = (int64_t) length;
+    if (UNLIKELY(irLength <= 0 || irLength > INT32_MAX))
+      return csound->InitError(csound, "%s",
+                              Str("ftconv: invalid length, or insufficient IR data for convolution"));
+    int32_t nPartitions = (int32_t) ((irLength - 1) / partSize + 1);
+    /* FFT and ring-buffer indices use signed 32-bit sample counts. */
+    if (UNLIKELY(nPartitions > INT32_MAX / (partSize << 1)))
+      return csound->InitError(csound, "%s", Str("ftconv: impulse response too large"));
+    uint64_t nSamples = (uint64_t) (partSize << 1) *
+                       (nChannels + 1) * ((uint64_t) nPartitions + 1);
+    if (UNLIKELY(nSamples > SIZE_MAX / sizeof(MYFLT)))
+      return csound->InitError(csound, "%s", Str("ftconv: impulse response too large"));
+    size_t nBytes = (size_t) nSamples * sizeof(MYFLT);
+
+    /* Equal allocation sizes do not imply equal partition layouts. */
+    if (p->initDone > 0 && *p->iSkipInit != FL(0) &&
+        p->nChannels == nChannels && p->partSize == partSize &&
+        p->nPartitions == nPartitions)
+      return OK;
+    p->initDone = 0;
+    p->nChannels = nChannels;
+    p->partSize = partSize;
+    p->nPartitions = nPartitions;
+    if (p->auxData.auxp == NULL || nBytes != p->auxData.size)
+      csound->AuxAlloc(csound, nBytes, &p->auxData);
+    set_buf_pointers(p, nChannels, partSize, nPartitions);
+    n = (partSize << 1) * nPartitions;
+    memset(p->ringBuf, 0, (size_t) n * sizeof(MYFLT));
     p->cnt = 0;
     p->rbCnt = 0;
-    /* calculate FFT of impulse response partitions, in reverse order */
-    /* also apply FFT amplitude scale here */
-    //FFTscale = csound->GetInverseRealFFTScale(csound, (p->partSize << 1));
-    p->fwdsetup = csound->RealFFTSetup(csound,(p->partSize << 1), FFT_FWD);
-    p->invsetup = csound->RealFFTSetup(csound,(p->partSize << 1), FFT_INV);
-    for (j = 0; j < p->nChannels; j++) {
-      i = (skipSamples * p->nChannels) + j;           /* table read position */
-      n = (p->partSize << 1) * (p->nPartitions - 1);  /* IR write position */
+    p->fwdsetup = csound->RealFFTSetup(csound, (partSize << 1), FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound, (partSize << 1), FFT_INV);
+    /* Store IR partitions in reverse order, padding beyond the requested end. */
+    for (j = 0; j < nChannels; j++) {
+      int64_t frame = skipSamples;
+      int64_t endFrame = skipSamples + irLength;
+      n = (partSize << 1) * (nPartitions - 1);
       do {
-        for (k = 0; k < p->partSize; k++) {
-          if (i >= 0 && i < (int32_t) ftp->flen)
-            p->IR_Data[j][n + k] = ftp->ftable[i];// * FFTscale;
+        for (k = 0; k < partSize; k++, frame++) {
+          if (frame >= 0 && frame < tableFrames && frame < endFrame)
+            p->IR_Data[j][n + k] = ftp->ftable[frame * nChannels + j];
           else
             p->IR_Data[j][n + k] = FL(0.0);
-          i += p->nChannels;
         }
-        /* pad second half of IR to zero */
-        for (k = p->partSize; k < (p->partSize << 1); k++)
+        for (k = partSize; k < (partSize << 1); k++)
           p->IR_Data[j][n + k] = FL(0.0);
-        /* calculate FFT */
-        csound->RealFFT(csound, p->fwdsetup, &(p->IR_Data[j][n]));
-        n -= (p->partSize << 1);
+        csound->RealFFT(csound, p->fwdsetup, &p->IR_Data[j][n]);
+        n -= (partSize << 1);
       } while (n >= 0);
     }
-    /* clear output buffers to zero */
-    /*memset(p->outBuffers, 0, p->nChannels*(p->partSize << 1)*sizeof(MYFLT));*/
-    for (j = 0; j < p->nChannels; j++) {
-      for (i = 0; i < (p->partSize << 1); i++)
+    for (j = 0; j < nChannels; j++)
+      for (i = 0; i < (partSize << 1); i++)
         p->outBuffers[j][i] = FL(0.0);
-    }
     p->initDone = 1;
-
     return OK;
 }
 
@@ -317,4 +292,3 @@ int32_t ftconv_init_(CSOUND *csound)
                                 (int32_t (*)(CSOUND *, void *)) ftconv_perf,
                                 NULL);
 }
-
