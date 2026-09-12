@@ -670,6 +670,7 @@ def runTest():
         ["test_rspline_large_rate.csd", "test rspline with a large finite rate"],
         ["test_rspline_invalid_rate.csd", "reject invalid rspline rates", 1],
         ["test_oscil1i.csd", "oscil1i interpolates scans and holds their endpoints"],
+        ["test_osciln_repeat_state.csd", "osciln and oscilx complete their table repeats"],
         ["test_trigphasor_range.csd", "trigphasor starts, wraps, and resets within its range"],
         ["test_unwrap_state.csd", "unwrap input and phase history"],
         ["test_unwrap_invalid_mode.csd", "unwrap rejects invalid modes", 1],

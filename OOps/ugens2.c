@@ -345,63 +345,76 @@ int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
 
 int32_t oscnset(CSOUND *csound, OSCILN *p)
 {
+    FUNC *ftp = csound->FTFind(csound, p->ifn);
+    double repeats = *p->itimes;
+    double frequency = *p->ifrq;
+    double advance;
 
-    FUNC        *ftp;
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
-      p->ftp = ftp;
-      p->inc = ftp->flen * *p->ifrq * CS_ONEDSR;
-      p->index = FL(0.0);
-      p->maxndx = ftp->flen - FL(1.0);
-      p->ntimes = (int32_t)*p->itimes;
-      return OK;
+    if (UNLIKELY(ftp == NULL)) return NOTOK;
+    if (UNLIKELY(!(repeats >= 0.0 && repeats < 2147483648.0)))
+      return csound->InitError(csound, "%s", Str("osciln: invalid repeat count"));
+    if (UNLIKELY(frequency < 0.0 || !isfinite(frequency)))
+      return csound->InitError(csound, "%s", Str("osciln: invalid frequency"));
+
+    p->ftp = ftp;
+    p->ntimes = (int32_t)repeats;
+    p->phase = 0.0;
+    advance = frequency / CS_ESR;
+    /* Split at init time: even several cycles per sample need no wrapping
+       function in the audio loop. Larger advances finish on the first sample. */
+    if (advance >= p->ntimes) {
+      p->cycles = p->ntimes;
+      p->inc = 0.0;
     }
-    else return NOTOK;
+    else {
+      p->cycles = (int32_t)advance;
+      p->inc = advance - p->cycles;
+    }
+    return OK;
 }
 
 int32_t osciln(CSOUND *csound, OSCILN *p)
 {
   MYFLT *rs = p->rslt;
   uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
+  uint32_t early = p->h.insdshead->ksmps_no_end;
+  uint32_t n = offset, nsmps = CS_KSMPS;
 
-  if (UNLIKELY(p->ftp==NULL)) goto err1;
-  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(p->ftp == NULL))
+    return csound->PerfError(csound, &(p->h), Str("osciln: not initialised"));
+  if (UNLIKELY(offset)) memset(rs, 0, offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rs[nsmps], 0, early*sizeof(MYFLT));
   }
-  if (p->ntimes) {
+  if (p->ntimes > 0) {
     MYFLT *ftbl = p->ftp->ftable;
     MYFLT amp = *p->kamp;
-    MYFLT ndx = p->index;
-    MYFLT inc = p->inc;
-    MYFLT maxndx = p->maxndx;
-    for (n=offset; n<nsmps; n++) {
-      rs[n] = ftbl[(int32_t)ndx] * amp;
-      if (UNLIKELY((ndx += inc) > maxndx)) {
-        if (--p->ntimes)
-          ndx -= maxndx;
-        else if (UNLIKELY(n==nsmps))
-          return OK;
-        else
-          goto putz;
+    double phase = p->phase, inc = p->inc;
+    double length = p->ftp->flen;
+    int32_t remaining = p->ntimes, cycles = p->cycles;
+
+    for (; n < nsmps; n++) {
+      rs[n] = ftbl[(int32_t)(phase * length)] * amp;
+      phase += inc;
+      if (phase >= 1.0) {
+        phase -= 1.0;
+        remaining--;
+      }
+      remaining -= cycles;
+      if (remaining <= 0) {
+        remaining = 0;
+        phase = 0.0;
+        n++; /* Keep the sample just emitted. */
+        break;
       }
     }
-    p->index = ndx;
+    p->phase = phase;
+    p->ntimes = remaining;
   }
-  else {
-    n=0;              /* Can jump out of previous loop into this one */
-  putz:
+  if (n < nsmps)
     memset(&rs[n], 0, (nsmps-n)*sizeof(MYFLT));
-    /* for (; n<nsmps; n++) { */
-    /*   rs[n] = FL(0.0); */
-    /* } */
-  }
   return OK;
- err1:
-  return csound->PerfError(csound, &(p->h),
-                           Str("osciln: not initialised"));
 }
 
 /* Oscillators */
