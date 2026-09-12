@@ -41,15 +41,13 @@
 
 int32_t phsset(CSOUND *csound, PHSOR *p)
 {
-  double phs = (double)*p->iphs;
-  if (UNLIKELY(!isfinite(phs)))
-    return csound->InitError(csound, "%s", Str("phasor: initial phase must be finite"));
-  if (phs >= 0.0) {
-    if (UNLIKELY(phs >= 1.0)) {
+  MYFLT       phs;
+  int32_t  longphs;
+  if ((phs = *p->iphs) >= FL(0.0)) {
+    if (UNLIKELY((longphs = (int32_t)phs))) {
       csound->Warning(csound, Str("init phase truncation\n"));
-      phs -= floor(phs);
     }
-    p->curphs = phs;
+    p->curphs = phs - (MYFLT)longphs;
   }
   return OK;
 }
@@ -150,13 +148,6 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
   return OK;
 }
 
-/* Reduce whole cycles before addition so large increments retain the phase.
-   For control-rate frequency, reduce only once per control block. */
-#define PHASOR_REDUCE_INCREMENT(incr) do {                         \
-  if (UNLIKELY((incr) >= 1.0 || (incr) <= -1.0))                    \
-    (incr) -= trunc(incr);                                         \
-} while (0)
-
 /* A phase just below one can round to one in MYFLT. Wrap the output,
    retaining the more precise internal phase for the next sample. */
 #define PHASOR_OUTPUT(phase)                                      \
@@ -166,11 +157,9 @@ int32_t kphsor(CSOUND *csound, PHSOR *p)
 {
   IGN(csound);
   double      phs;
-  double incr = (double)*p->xcps * CS_ONEDKR;
-  PHASOR_REDUCE_INCREMENT(incr);
   phs = p->curphs;
   *p->sr = PHASOR_OUTPUT(phs);
-  if (UNLIKELY((phs += incr) >= 1.0))
+  if (UNLIKELY((phs += (double)*p->xcps * CS_ONEDKR) >= 1.0))
     phs -= 1.0;
   else if (UNLIKELY(phs < 0.0))
     phs += 1.0;
@@ -200,7 +189,6 @@ int32_t phsor(CSOUND *csound, PHSOR *p)
     MYFLT *cps = p->xcps;
     for (n=offset; n<nsmps; n++) {
       incr = (double)(cps[n] * onedsr);
-      PHASOR_REDUCE_INCREMENT(incr);
       rs[n] = PHASOR_OUTPUT(phase);
       phase += incr;
       if (UNLIKELY(phase >= 1.0))
@@ -211,7 +199,6 @@ int32_t phsor(CSOUND *csound, PHSOR *p)
   }
   else {
     incr = (double)(*p->xcps * onedsr);
-    PHASOR_REDUCE_INCREMENT(incr);
     for (n=offset; n<nsmps; n++) {
       rs[n] = PHASOR_OUTPUT(phase);
       phase += incr;
