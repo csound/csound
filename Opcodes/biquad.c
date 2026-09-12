@@ -1614,15 +1614,22 @@ static int32_t vco(CSOUND *csound, VCO *p)
         }
         if (asgq) kq = p->kq[n];
         if (lfq != kfq || lq != kq) {
-          double kfreq  = kfq*TWOPI;
-          double kalpha = (CS_ESR/kfreq);
-          double kbeta  = kalpha*kalpha;
-          d      = 0.5*kalpha;
-
           lq = kq; lfq = kfq;
-          a0     = 1.0/ (kbeta+d/kq);
-          a1     = a0 * (1.0-2.0*kbeta);
-          a2     = a0 * (kbeta-d/kq);
+          if (UNLIKELY(kfq == FL(0.0) || kq == FL(0.0))) {
+            /* Zero frequency or Q silences the resonator. Clear feedback
+               so a later positive value can start from finite state. */
+            a0 = a1 = a2 = d = 0.0;
+            ynm1 = ynm2 = 0.0;
+          }
+          else {
+            double kfreq  = kfq*TWOPI;
+            double kalpha = (CS_ESR/kfreq);
+            double kbeta  = kalpha*kalpha;
+            d      = 0.5*kalpha;
+            a0     = 1.0/ (kbeta+d/kq);
+            a1     = a0 * (1.0-2.0*kbeta);
+            a2     = a0 * (kbeta-d/kq);
+          }
         }
         xn = (double)p->ain[n];
 
