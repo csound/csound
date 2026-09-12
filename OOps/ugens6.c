@@ -900,21 +900,24 @@ int32_t delay1(CSOUND *csound, DELAY1 *p)
 {
     IGN(csound);
     MYFLT       *ar, *asig;
+    MYFLT       last;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
 
     ar = p->ar;
-    /* asig = p->asig - 1; */
     asig = p->asig;
-    ar[offset] = p->sav1;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    if (UNLIKELY(offset >= nsmps)) return OK;
+    /* Preserve both endpoints when input and output share the buffer. */
+    last = asig[nsmps-1];
     memmove(&ar[offset+1], &asig[offset], sizeof(MYFLT)*(nsmps-1-offset));
-    p->sav1 = asig[nsmps-1];
+    ar[offset] = p->sav1;
+    p->sav1 = last;
     return OK;
 }
 
