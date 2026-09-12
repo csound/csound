@@ -888,6 +888,7 @@ def runTest():
         ["test_gain_sample_bounds.csd", "gain RMS and output over partial blocks"],
         ["test_eqfil_sample_offset.csd", "eqfil advances state only for active samples"],
         ["test_areson_audio.csd", "test areson audio coefficients and preserved state"],
+        ["test_aresonk_complement.csd", "aresonk selects the notch filter at control rate"],
         ["test_svfilter_state.csd", "svfilter reset, preserved state, and input reuse"],
         ["test_statevar_oversampling.csd", "statevar oversampling and preserved filter history"],
         ["test_moogladder2_resonance.csd", "moogladder2 resonance changes and parameter-rate parity"],

@@ -1491,7 +1491,6 @@ const OENTRY opcodlst_1[] = {
   { "tonek",  S(TONE),0,     "k",     "kko",  (SUBR)tonset,  (SUBR)ktone, NULL },
   { "atonek", S(TONE),0,     "k",     "kko",  (SUBR)tonset,  (SUBR)katone, NULL},
   { "resonk", S(RESON),0,    "k",     "kkkpo",(SUBR)rsnset,  (SUBR)kreson, NULL},
-  { "aresonk",S(RESON),0,    "k",     "kkkpo",(SUBR)rsnset,  (SUBR)kreson, NULL},
   { "aresonk",S(RESON),0,    "k",     "kkkpo",(SUBR)rsnset,  (SUBR)kareson, NULL},
   { "limit.i", S(LIMIT),0,   "i",     "iii",  (SUBR)klimit,  NULL,    NULL      },
   { "limit.k",  S(LIMIT),0,   "k",     "kkk",  NULL,          (SUBR)klimit, NULL },
