@@ -698,6 +698,7 @@ def runTest():
         ["test_instr0_labels.csd", "test labels in instr0 space"],
         ["test_string.csd", "test string assignment and printing"],
         ["test_strcat_buffer_capacity.csd", "strcat copies text rather than buffer capacity"],
+        ["test_string_search.csd", "string search overlaps and empty strings"],
         [
             "test_strstrip_reallocation.csd",
             "test strstrip reallocation and termination",
