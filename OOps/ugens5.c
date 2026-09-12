@@ -67,8 +67,9 @@ int32_t kport(CSOUND *csound, PORT *p)
 int32_t tonset(CSOUND *csound, TONE *p)
 {
     double b;
+    double omega = IS_ASIG_ARG(p->ar) ? CS_TPIDSR : CS_ONEDKR * TWOPI;
     p->prvhp = (double)*p->khp;
-    b = 2.0 - cos((double)(p->prvhp * CS_TPIDSR));
+    b = 2.0 - cos(p->prvhp * omega);
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
 
