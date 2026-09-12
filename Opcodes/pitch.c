@@ -2139,6 +2139,7 @@ int32_t varicol(CSOUND *csound, VARI *p)
       nsmps -= early;
       memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
     }
+    if (ampinc) kamp += offset;
     for (n=offset; n<nsmps; n++) {
       MYFLT rnd = FL(2.0) * (MYFLT) rand_31(csound) / FL(2147483645) - FL(1.0);
       lastx = lastx * beta + sq1mb2 * rnd;
