@@ -36,7 +36,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr, *xcps, *kswng, *iamp, *iphs;
         double  amp2, curphs, curphs2, swng_init;
-        int32_t flag, flag2;
+        int32_t flag;
 } METRO2;
 //
 
@@ -121,59 +121,72 @@ static int32_t metrobpm(CSOUND *csound, METRO *p)
 static int32_t metro2_set(CSOUND *csound, METRO2 *p)
 {
     double phs = *p->iphs;
-    double swng = *p->kswng;
-    int32  longphs;
-    p->amp2 = *p->iamp;
 
-    if (phs >= 0.0) {
-      if (UNLIKELY((longphs = (int32)phs)))
-        csound->Warning(csound, "%s", Str("metro2:init phase truncation"));
-      p->curphs = (MYFLT)phs - (MYFLT)longphs;
-      p->curphs2 = (MYFLT)phs - (MYFLT)longphs + 1.0 - (MYFLT)swng;
+    if (UNLIKELY(!isfinite(phs) || phs < 0.0))
+      return csound->InitError(csound, "%s", Str("metro2: invalid initial phase"));
+    if (UNLIKELY(phs >= 1.0)) {
+      csound->Warning(csound, "%s", Str("metro2:init phase truncation"));
+      phs -= floor(phs);
     }
+    p->amp2 = *p->iamp;
+    p->curphs = phs;
+    p->curphs2 = 0.0;
     p->flag = 1;
-    p->flag2 = 1;
-    p->swng_init = (MYFLT)swng;
+    p->swng_init = 0.0;
     return OK;
 }
 
 static int32_t metro2(CSOUND *csound, METRO2 *p)
 {
-    double      phs= p->curphs;
-    double      phs2= p->curphs2;
-    double      phs2_init = p->swng_init;
-    double      amp2= p->amp2;
-    double      swng= *p->kswng;
-    IGN(csound);
-// MAIN TICK
-    if (phs == 0.0 && p->flag) {
-      *p->sr = FL(1.0);
+    double phs = p->curphs, phs2 = p->curphs2;
+    double swng = *p->kswng;
+    double frequency = *p->xcps, increment, threshold;
+
+    if (UNLIKELY(!(swng >= 0.0 && swng <= 1.0)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                              Str("metro2: swing must be between 0 and 1"));
+    if (UNLIKELY(!isfinite(frequency) || frequency < 0.0))
+      return csound->PerfError(csound, &(p->h), "%s",
+                              Str("metro2: frequency must be finite and nonnegative"));
+
+    /* An exact initial tick must hold both clocks for the same cycle.
+       At coincident endpoints, retain the documented initial main tick. */
+    if (p->flag) {
+      /* k-rate expressions may not have a value during initialization. */
+      p->swng_init = swng;
+      phs2 = phs - swng;
+      if (phs2 < 0.0) phs2 += 1.0;
+      p->curphs2 = phs2;
       p->flag = 0;
+      if (phs == 0.0 || phs2 == 0.0) {
+        *p->sr = phs == 0.0 ? FL(1.0) : (MYFLT)p->amp2;
+        return OK;
+      }
     }
-    else if ((phs += *p->xcps * CS_ONEDKR * 0.5) >= 1.0 ) {
-      *p->sr = FL(1.0);
-      phs -= 1.0;
-      p->flag = 0;
-    }
+
+    /* At most one output tick fits in a control cycle. Keep two whole
+       periods so even a swing change across its full range crosses a tick. */
+    if (UNLIKELY(frequency >= 6.0 * CS_EKR))
+      increment = 2.0 + fmod(frequency, 2.0 * CS_EKR) / (2.0 * CS_EKR);
     else
-      *p->sr = FL(0.0);
+      increment = frequency * (0.5 * CS_ONEDKR);
+    phs += increment;
+    phs2 += increment;
+    *p->sr = FL(0.0);
+    if (phs >= 1.0) {
+      *p->sr = FL(1.0);
+      phs -= floor(phs);
+    }
+
+    threshold = 1.0 + swng - p->swng_init;
+    if (phs2 >= threshold) {
+      *p->sr = (MYFLT)p->amp2;
+      phs2 -= floor(phs2 - threshold) + 1.0;
+    }
     p->curphs = phs;
-
-// SWINGING TICK
-    if (phs2 == 0.0 && p->flag2) {
-      *p->sr = FL(amp2);
-      p->flag2 = 0;
-    }
-    else if ((phs2 += *p->xcps * CS_ONEDKR * 0.5) >= (1.0 + swng - phs2_init) ) {
-      *p->sr = FL(amp2);
-      phs2 -= 1.0;
-      p->flag2 = 0;
-    }
     p->curphs2 = phs2;
-
     return OK;
 }
-//
 
 static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
 {
