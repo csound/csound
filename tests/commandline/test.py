@@ -750,6 +750,8 @@ def runTest():
         ["test_pvs_spectral_moments.csd", "test spectral centroid and bandwidth"],
         ["test_karrays_udo.csd", "UDO with k[] arg"],
         ["test_vector_table_correctness.csd", "vector table indexing"],
+        ["test_modmatrix_tables.csd", "test modmatrix layout, updates, and sparse processing"],
+        ["test_modmatrix_invalid_tables.csd", "reject invalid modmatrix dimensions and table sizes", 1],
         ["test_vector_table_invalid_index.csd", "reject invalid vector table index", 1],
         ["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
         ["test_pitch_conversion_arrays.csd", "pitch conversion arrays update each control cycle"],
