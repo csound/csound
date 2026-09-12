@@ -1111,7 +1111,6 @@ if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     set(HAVE_PTHREAD 0)
     # Disable shared libraries for WASI to avoid -shared flag warning
     set(BUILD_SHARED_LIBS OFF)
-    list(REMOVE_ITEM externs_SRCS Opcodes/counter.c)
     list(REMOVE_ITEM externs_SRCS Opcodes/serial.c)
     list(REMOVE_ITEM externs_SRCS Opcodes/system_call.c)
     if(BUILD_WASI_BROWSER)
