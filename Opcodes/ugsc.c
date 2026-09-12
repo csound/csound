@@ -808,7 +808,7 @@ static OENTRY localops[] =
    { "resonz", S(RESONZ),   0, "a", "axxoo",   (SUBR)resonzset, (SUBR)resonz},
    { "lowpass2.kk", S(LP2), 0, "a", "akko",    (SUBR)lp2_set, (SUBR)lp2     },
    { "lowpass2.aa", S(LP2), 0, "a", "aaao",    (SUBR)lp2_set, (SUBR)lp2aa   },
-   { "lowpass2.ak", S(LP2), 0, "a", "aakao",   (SUBR)lp2_set, (SUBR)lp2ak   },
+   { "lowpass2.ak", S(LP2), 0, "a", "aako",   (SUBR)lp2_set, (SUBR)lp2ak   },
    { "lowpass2.ka", S(LP2), 0, "a", "akao",    (SUBR)lp2_set, (SUBR)lp2ka   },
    { "phaser2", S(PHASER2), 0, "a", "akkkkkko",(SUBR)phaser2set,(SUBR)phaser2},
    { "phaser1", S(PHASER1), 0, "a", "akkko", (SUBR)phaser1set,(SUBR)phaser1},
