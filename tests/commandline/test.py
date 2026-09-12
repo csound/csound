@@ -648,6 +648,7 @@ def runTest():
         ["test_syncloop_envelope_end.csd", "syncloop retires grains at the envelope end"],
         ["test_gbuzz_nonpower_phase.csd", "gbuzz scales non-power-of-two table indexes correctly"],
         ["test_crossfm_correctness.csd", "test crossed FM and PM correctness"],
+        ["test_foscil_phase_state.csd", "foscil and foscili phase initialization and advancement"],
         ["test_pan2_input_aliasing.csd", "pan2 preserves input samples when outputs reuse them"],
         ["test_bformdec1_surround.csd", "bformdec1 preserves partial blocks and selects the input order"],
         ["test_space_trajectory_endpoint.csd", "space and spdist handle the last trajectory frame"],
