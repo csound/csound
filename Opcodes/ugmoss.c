@@ -415,6 +415,24 @@ static int32_t xor_ka(CSOUND *csound, AOP *p)
     return OK;
 }
 
+/* Use unsigned left shifts so negative values and discarded high bits do not
+   cause signed overflow. Mask counts to the word width, preserving the usual
+   machine-shift behavior. Right shifts retain their signed arithmetic result. */
+#ifdef USE_DOUBLE
+typedef int64_t BITSHIFT_INT;
+typedef uint64_t BITSHIFT_UINT;
+#define BITSHIFT_MASK 63U
+#else
+typedef int32_t BITSHIFT_INT;
+typedef uint32_t BITSHIFT_UINT;
+#define BITSHIFT_MASK 31U
+#endif
+#define BITSHIFT_LEFT(value, count) \
+    ((BITSHIFT_INT)((BITSHIFT_UINT)(value) << \
+                   ((BITSHIFT_UINT)(count) & BITSHIFT_MASK)))
+#define BITSHIFT_RIGHT(value, count) \
+    ((value) >> ((BITSHIFT_UINT)(count) & BITSHIFT_MASK))
+
 static int32_t shift_left_kk(CSOUND *csound, AOP *p)
 {
     IGN(csound);
@@ -425,7 +443,7 @@ static int32_t shift_left_kk(CSOUND *csound, AOP *p)
     int64_t input1 = MYFLT2LRND64(*p->a);
     int64_t input2 = MYFLT2LRND64(*p->b);
 #endif 
-    *p->r = (MYFLT) (input1 << input2);
+    *p->r = (MYFLT) BITSHIFT_LEFT(input1, input2);
     return OK;
 }
 
@@ -444,7 +462,7 @@ static int32_t shift_left_aa(CSOUND *csound, AOP *p)
       nsmps -= early;
       memset(&r[nsmps], '\0', early*sizeof(MYFLT));
     }
-    for (n = 0; n < nsmps; n++) {
+    for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE        
       int32_t  input1, input2;
       input1 = MYFLT2LRND(in1[n]);
@@ -454,7 +472,7 @@ static int32_t shift_left_aa(CSOUND *csound, AOP *p)
       input1 = MYFLT2LRND64(in1[n]);
       input2 = MYFLT2LRND64(in2[n]);
 #endif  
-      r[n] = (MYFLT)(input1 << input2);
+      r[n] = (MYFLT)BITSHIFT_LEFT(input1, input2);
     }
     return OK;
 }
@@ -468,9 +486,9 @@ static int32_t shift_left_ak(CSOUND *csound, AOP *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->b);
+      int32_t input2 = MYFLT2LRND(*p->b);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->b);
+      int64_t input2 = MYFLT2LRND64(*p->b);
 #endif   
 
     if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
@@ -480,11 +498,11 @@ static int32_t shift_left_ak(CSOUND *csound, AOP *p)
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input2 = MYFLT2LRND(in1[n]);
+      int32_t input1 = MYFLT2LRND(in1[n]);
 #else
-      int64_t input2 = MYFLT2LRND64(in1[n]);
+      int64_t input1 = MYFLT2LRND64(in1[n]);
 #endif
-      r[n] = (MYFLT)(input1 << input2);
+      r[n] = (MYFLT)BITSHIFT_LEFT(input1, input2);
     }
     return OK;
 }
@@ -514,7 +532,7 @@ static int32_t shift_left_ka(CSOUND *csound, AOP *p)
 #else
       int64_t input2 = MYFLT2LRND64(in2[n]);
 #endif
-      r[n] = (MYFLT)(input1 << input2);
+      r[n] = (MYFLT)BITSHIFT_LEFT(input1, input2);
     }
     return OK;
 }
@@ -529,7 +547,7 @@ static int32_t shift_right_kk(CSOUND *csound, AOP *p)
     int64_t input1 = MYFLT2LRND64(*p->a);
     int64_t input2 = MYFLT2LRND64(*p->b);
 #endif 
-    *p->r = (MYFLT) (input1 >> input2);
+    *p->r = (MYFLT) BITSHIFT_RIGHT(input1, input2);
     return OK;
 }
 
@@ -548,7 +566,7 @@ static int32_t shift_right_aa(CSOUND *csound, AOP *p)
       nsmps -= early;
       memset(&r[nsmps], '\0', early*sizeof(MYFLT));
     }
-    for (n = 0; n < nsmps; n++) {
+    for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE        
       int32_t  input1, input2;
       input1 = MYFLT2LRND(in1[n]);
@@ -558,7 +576,7 @@ static int32_t shift_right_aa(CSOUND *csound, AOP *p)
       input1 = MYFLT2LRND64(in1[n]);
       input2 = MYFLT2LRND64(in2[n]);
 #endif  
-      p->r[n] = (MYFLT) (input1 >> input2);
+      p->r[n] = (MYFLT) BITSHIFT_RIGHT(input1, input2);
     }
     return OK;
 }
@@ -572,9 +590,9 @@ static int32_t shift_right_ak(CSOUND *csound, AOP *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->b);
+      int32_t input2 = MYFLT2LRND(*p->b);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->b);
+      int64_t input2 = MYFLT2LRND64(*p->b);
 #endif   
 
     if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
@@ -584,11 +602,11 @@ static int32_t shift_right_ak(CSOUND *csound, AOP *p)
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input2 = MYFLT2LRND(in1[n]);
+      int32_t input1 = MYFLT2LRND(in1[n]);
 #else
-      int64_t input2 = MYFLT2LRND64(in1[n]);
+      int64_t input1 = MYFLT2LRND64(in1[n]);
 #endif
-      p->r[n] = (MYFLT) (input1 >> input2);
+      p->r[n] = (MYFLT) BITSHIFT_RIGHT(input1, input2);
     }
     return OK;
 }
@@ -618,7 +636,7 @@ static int32_t shift_right_ka(CSOUND *csound, AOP *p)
 #else
       int64_t input2 = MYFLT2LRND64(in2[n]);
 #endif
-      p->r[n] = (MYFLT) (input1 >> input2);
+      p->r[n] = (MYFLT) BITSHIFT_RIGHT(input1, input2);
     }
     return OK;
 }
