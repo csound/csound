@@ -611,6 +611,7 @@ def runTest():
         ["test_arrayops_current_length.csd", "array math and sorting follow current input lengths"],
         ["test_arrayops_short_second.csd", "array math rejects a shortened second input", 1],
         ["test_dot_short_second.csd", "dot rejects a shortened second input", 1],
+        ["test_changed2_arrays.csd", "changed2 array dimensions, resizing and first-cycle state"],
         ["test_gtf_complex_state.csd", "gtf complex impulse response and sample bounds"],
         ["test_repluck_correctness.csd", "test plucked-string waveguide limits"],
         ["test_repluck_sample_offset.csd", "test repluck sample-accurate input"],

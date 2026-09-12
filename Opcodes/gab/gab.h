@@ -112,7 +112,7 @@ typedef struct {
     OPDS     h;
     MYFLT    *ktrig;
     ARRAYDAT *chk;
-    int32_t  size;
+    size_t   size;
     int32_t  cnt;
     AUXCH    old_chk;
 } ISACHANGED;
