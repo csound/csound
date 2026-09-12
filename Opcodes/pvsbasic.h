@@ -198,8 +198,8 @@ typedef struct _pvsblur {
     MYFLT   *kdel;
     MYFLT   *maxdel;
     AUXCH   delframes;
-    MYFLT   frpsec;
-    int32   count;
+    double  frpsec;
+    int32_t count, maxframes;
     uint32  lastframe;
 } PVSBLUR;
 

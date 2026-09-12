@@ -593,6 +593,8 @@ def runTest():
         ["test_sum_product_input_reuse.csd", "sum/product input reuse and inactive output"],
         ["test_oversample.csd", "test oversampling in new-style UDO"],
         ["test_pvs_np2.csd", "test pvsanal/synth with np2 size"],
+        ["test_pvsblur_window.csd", "pvsblur delay window, startup, and reset"],
+        ["test_pvsblur_invalid_parameters.csd", "reject invalid pvsblur parameters", 1],
         ["test_trfilter_frequency_bounds.csd", "test trfilter frequency bounds"],
         [
             "test_pvsadsyn_last_bin.csd",
