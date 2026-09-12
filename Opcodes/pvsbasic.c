@@ -1278,6 +1278,8 @@ static int32_t pvsbinprocessa(CSOUND *csound, PVSBIN *p)
 static int32_t pvsmoothset(CSOUND *csound, PVSMOOTH *p)
 {
   int32    N = p->fin->N;
+  size_t state_bytes = (size_t)(N + 2) *
+    (p->fin->sliding ? sizeof(MYFLT) : sizeof(float));
 
   if (UNLIKELY(p->fin == p->fout))
     csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
@@ -1288,20 +1290,17 @@ static int32_t pvsmoothset(CSOUND *csound, PVSMOOTH *p)
         p->fout->frame.size < sizeof(MYFLT) * CS_KSMPS * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
                        &p->fout->frame);
-    if (p->del.auxp == NULL ||
-        p->del.size < sizeof(MYFLT) * CS_KSMPS * (N + 2))
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
-                       &p->del);
   }
   else
     {
       if (p->fout->frame.auxp == NULL ||
           p->fout->frame.size < sizeof(float) * (N + 2))
         csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-      if (p->del.auxp == NULL || p->del.size < sizeof(float) * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->del);
     }
-  memset(p->del.auxp, 0, (N + 2) * sizeof(float));
+  /* Keep one previous value per bin, independent of the control block size. */
+  if (p->del.auxp == NULL || p->del.size < state_bytes)
+    csound->AuxAlloc(csound, state_bytes, &p->del);
+  memset(p->del.auxp, 0, state_bytes);
   p->fout->N = N;
   p->fout->overlap = p->fin->overlap;
   p->fout->winsize = p->fin->winsize;
@@ -1333,32 +1332,41 @@ static int32_t pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
     CMPLX *fout, *fin, *del;
     double  costh1, costh2, coef1, coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t NB = p->fin->NB;
-    ffa = ffa < 0.0 ? 0.0 : (ffa > 1.0 ? 1.0 : ffa);
-    ffr = ffr < 0.0 ? 0.0 : (ffr > 1.0 ? 1.0 : ffr);
-    costh1 = 2.0 - cos(PI * ffa);
-    costh2 = 2.0 - cos(PI * ffr);
-    coef1 = sqrt(costh1 * costh1 - 1.0) - costh1;
-    coef2 = sqrt(costh2 * costh2 - 1.0) - costh2;
+    int32_t amp_audio = IS_ASIG_ARG(p->kfra);
+    int32_t freq_audio = IS_ASIG_ARG(p->kfrf);
+    if (!amp_audio) {
+      ffa = ffa < 0.0 ? 0.0 : (ffa > 1.0 ? 1.0 : ffa);
+      costh1 = 2.0 - cos(PI * ffa);
+      coef1 = sqrt(costh1 * costh1 - 1.0) - costh1;
+    }
+    if (!freq_audio) {
+      ffr = ffr < 0.0 ? 0.0 : (ffr > 1.0 ? 1.0 : ffr);
+      costh2 = 2.0 - cos(PI * ffr);
+      coef2 = sqrt(costh2 * costh2 - 1.0) - costh2;
+    }
 
-    for (n=0; n<offset; n++)
-      for (i=0; i<NB; i++) {
-        fout = (CMPLX*) p->fout->frame.auxp +NB*n;
-        del = (CMPLX*) p->del.auxp +NB*n;
-        fout[i].re = fout[i].im = del[i].re = del[i].im = FL(0.0);
-      }
+    fout = (CMPLX*)p->fout->frame.auxp;
+    if (UNLIKELY(offset))
+      memset(fout, 0, (size_t)offset * NB * sizeof(CMPLX));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(fout + (size_t)nsmps * NB, 0,
+             (size_t)early * NB * sizeof(CMPLX));
+    }
+    del = (CMPLX*)p->del.auxp;
     for (n=offset; n<nsmps; n++) {
       fout = (CMPLX*) p->fout->frame.auxp +NB*n;
       fin = (CMPLX*) p->fin->frame.auxp +NB*n;
-      del = (CMPLX*) p->del.auxp +NB*n;
-      if (IS_ASIG_ARG(p->kfra)) {
+      if (amp_audio) {
         ffa = (double)  p->kfra[n];
         ffa = ffa < 0.0 ? 0.0 : (ffa > 1.0 ? 1.0 : ffa);
         costh1 = 2.0 - cos(PI * ffa);
         coef1 = sqrt(costh1 * costh1 - 1.0) - costh1;
       }
-      if (IS_ASIG_ARG(p->kfrf)) {
+      if (freq_audio) {
         ffr = (double)  p->kfrf[n];
         ffr = ffr < 0.0 ? 0.0 : (ffr > 1.0 ? 1.0 : ffr);
         costh2 = 2.0 - cos(PI * ffr);
@@ -2845,7 +2853,7 @@ static OENTRY localops[] = {
   {"pvsbin", sizeof(PVSBIN),0, "aa", "fk", (SUBR) pvsbinset, (SUBR) pvsbinprocessa},
   {"pvsfreeze", sizeof(PVSFREEZE),0, "f", "fkk", (SUBR) pvsfreezeset,
    (SUBR) pvsfreezeprocess, NULL},
-  {"pvsmooth", sizeof(PVSFREEZE),0, "f", "fxx", (SUBR) pvsmoothset,
+  {"pvsmooth", sizeof(PVSMOOTH),0, "f", "fxx", (SUBR) pvsmoothset,
    (SUBR) pvsmoothprocess, NULL},
   {"pvsosc", sizeof(PVSOSC),0, "f", "kkkioopo", (SUBR) pvsoscset,
    (SUBR) pvsoscprocess, NULL},
