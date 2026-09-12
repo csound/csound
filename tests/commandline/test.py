@@ -881,6 +881,8 @@ def runTest():
         ["test_syncphasor_invalid_phase.csd", "reject invalid syncphasor phase", 1],
         ["test_syncphasor_invalid_frequency.csd", "reject invalid syncphasor frequency", 1],
         ["test_pvsinit_invalid_parameters.csd", "reject invalid pvsinit parameters", 1],
+        ["test_pvstencil_gain.csd", "pvstencil gain and reused FFT/sliding outputs"],
+        ["test_pvstencil_invalid_inputs.csd", "reject invalid pvstencil inputs", 1],
         ["test_pvsosc_frames.csd", "pvsosc frame timing and harmonic selection"],
         ["test_pvsosc_invalid_parameters.csd", "reject invalid pvsosc parameters", 1],
         ["test_shift_array_state.csd", "shiftin and shiftout sample state"],
