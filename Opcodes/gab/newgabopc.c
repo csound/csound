@@ -201,6 +201,13 @@ typedef struct  {       /* gab d5*/
   MYFLT   lastvalue;
 } TRANGERAND;
 
+static int32_t trRangeRand_set(CSOUND *csound, TRANGERAND *p)
+{
+  IGN(csound);
+  p->lastvalue = FL(0.0);
+  return OK;
+}
+
 static int32_t trRangeRand(CSOUND *csound, TRANGERAND *p)
 { /* gab d5*/
   if (*p->ktrig)
@@ -248,7 +255,7 @@ static OENTRY localops[] = {
   { "vtable1k",       S(MTABLE1),         TR,   "",  "kz",
                   (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL },
   { "trandom",        S(TRANGERAND),          0,      "k", "kkk",
-                    NULL,                                   (SUBR)trRangeRand },
+                    (SUBR)trRangeRand_set,                   (SUBR)trRangeRand },
   { "lposcilsa", S(LPOSC_ST),  TR,  "aa","akkkio",
                              (SUBR)lposc_stereo_set, (SUBR)lposca_stereo},
   { "lposcilsa2", S(LPOSC_ST), TR,  "aa","akkkio",
