@@ -497,7 +497,8 @@ static int32_t bpfx_k(CSOUND *csound, BPFX *p);
 
 
 static int32 bpfx_i(CSOUND *csound, BPFX *p) {
-    bpfx_init(csound, p);
+    if (bpfx_init(csound, p) != OK)
+        return NOTOK;
     return bpfx_k(csound, p);
 }
 
@@ -517,10 +518,10 @@ static inline int32_t bpfx_find(MYFLT **data, MYFLT x, int32_t datalen, int32_t 
     if (x>=*data[datalen-2])
         return -2;
     if(lastidx >= 0) {
-        if(lastidx < datalen - 4 && *data[lastidx] <= x && x < *data[lastidx+2])
+        if(lastidx < datalen - 2 && *data[lastidx] <= x && x < *data[lastidx+2])
             return lastidx;
         // search next pair
-        if(lastidx < datalen - 6 && *data[lastidx+2] <= x && x < *data[lastidx+4])
+        if(lastidx < datalen - 4 && *data[lastidx+2] <= x && x < *data[lastidx+4])
             return lastidx+2;
     }
     // binary search
@@ -531,12 +532,12 @@ static inline int32_t bpfx_find(MYFLT **data, MYFLT x, int32_t datalen, int32_t 
 
     while (pairmin < pairmax) {
         pairmid = (pairmax + pairmin) / 2;
-        if (*data[pairmid * 2] < x)
+        if (*data[pairmid * 2] <= x)
             pairmin = pairmid + 1;
         else
             pairmax = pairmid;
     }
-    // now the right pair is in pairmin
+    // Select the segment starting at an exact interior breakpoint.
     return (pairmin-1)*2;
 }
 
@@ -607,7 +608,8 @@ static int32_t bpfxcos_k(CSOUND *csound, BPFX *p) {
 }
 
 static int32 bpfxcos_i(CSOUND *csound, BPFX *p) {
-    bpfx_init(csound, p);
+    if (bpfx_init(csound, p) != OK)
+        return NOTOK;
     return bpfxcos_k(csound, p);
 }
 
@@ -632,7 +634,7 @@ static inline int64_t bpfarr_find(MYFLT x, MYFLT *xs, int64_t xslen, int64_t las
     if(x >= xs[xslen-1]) {
         return -2;
     }
-    if(lastidx >= 0 && lastidx < xslen-2 && xs[lastidx] <= x && x < xs[lastidx+1]) {
+    if(lastidx >= 0 && lastidx < xslen-1 && xs[lastidx] <= x && x < xs[lastidx+1]) {
         return lastidx;
     }
 
@@ -642,24 +644,30 @@ static inline int64_t bpfarr_find(MYFLT x, MYFLT *xs, int64_t xslen, int64_t las
 
     while (imin < imax) {
         imid = (imax + imin) / 2;
-        if (xs[imid] < x)
+        if (xs[imid] <= x)
             imin = imid + 1;
         else
             imax = imid;
     }
-    // now the right pair is in pairmin
+    // Select the segment starting at an exact interior breakpoint.
     return imin - 1;
 }
 
 
+/* Point arrays must remain nonempty when their values change at k-rate. */
+#define BPF_POINTS_VALID(a) ((a)->dimensions == 1 && (a)->sizes != NULL && \
+                             (a)->sizes[0] > 0 && (a)->data != NULL)
+
 static int32_t bpf_k_kKK_init(CSOUND *csound, BPF_k_kKK *p) {
-    IGN(csound);
+    if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys)))
+        return INITERR(Str("bpf: expected nonempty one-dimensional point arrays"));
     p->lastidx = -1;
     return OK;
 }
 
 static int32_t bpf_k_kKK_kr(CSOUND *csound, BPF_k_kKK *p) {
-    IGN(csound);
+    if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys)))
+        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays"));
     int64_t numxs = p->xs->sizes[0];
     int64_t numys = p->ys->sizes[0];
     int64_t N = numxs < numys ? numxs : numys;
@@ -694,13 +702,15 @@ static int32_t bpf_k_kKK_kr(CSOUND *csound, BPF_k_kKK *p) {
 
 
 static int32_t bpf_k_kKK_ir(CSOUND *csound, BPF_k_kKK *p) {
-    bpf_k_kKK_init(csound, p);
+    if (bpf_k_kKK_init(csound, p) != OK)
+        return NOTOK;
     return bpf_k_kKK_kr(csound, p);
 }
 
 
 static int32_t bpfcos_k_kKK_kr(CSOUND *csound, BPF_k_kKK *p) {
-    IGN(csound);
+    if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys)))
+        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays"));
     int32_t numxs = p->xs->sizes[0];
     int32_t numys = p->ys->sizes[0];
     int32_t N = numxs < numys ? numxs : numys;
@@ -711,14 +721,13 @@ static int32_t bpfcos_k_kKK_kr(CSOUND *csound, BPF_k_kKK *p) {
     MYFLT x0, y0, x1, y1, dx;
     if(i == -1) {
         *p->y = ys[0];
+        p->lastidx = -1;
         return OK;
     }
     if(i == -2) {
         *p->y = ys[N-1];
+        p->lastidx = -1;
         return OK;
-    }
-    if(UNLIKELY(i == -3)) {
-        return NOTOK;
     }
     x0 = xs[i];
     x1 = xs[i+1];
@@ -726,11 +735,13 @@ static int32_t bpfcos_k_kKK_kr(CSOUND *csound, BPF_k_kKK *p) {
     y1 = ys[i+1];
     dx = ((x-x0) / (x1-x0)) * PI + PI;
     *p->y = y0 + ((y1 - y0) * (1 + COS(dx)) / 2.0);
+    p->lastidx = i;
     return OK;
 }
 
 static int32_t bpfcos_k_kKK_ir(CSOUND *csound, BPF_k_kKK *p) {
-    bpf_k_kKK_init(csound, p);
+    if (bpf_k_kKK_init(csound, p) != OK)
+        return NOTOK;
     return bpfcos_k_kKK_kr(csound, p);
 }
 
@@ -738,7 +749,8 @@ static int32_t bpfcos_k_kKK_ir(CSOUND *csound, BPF_k_kKK *p) {
 // ay bpf ax, kxs[], kys[]
 
 static int32_t bpf_a_aKK_kr(CSOUND *csound, BPF_k_kKK *p) {
-    IGN(csound);
+    if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys)))
+        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays"));
     int64_t numxs = p->xs->sizes[0];
     int64_t numys = p->ys->sizes[0];
     int64_t N = numxs < numys ? numxs : numys;
@@ -783,7 +795,8 @@ static int32_t bpf_a_aKK_kr(CSOUND *csound, BPF_k_kKK *p) {
 }
 
 static int32_t bpfcos_a_aKK_kr(CSOUND *csound, BPF_k_kKK *p) {
-    IGN(csound);
+    if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys)))
+        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays"));
     int64_t numxs = p->xs->sizes[0];
     int64_t numys = p->ys->sizes[0];
     int64_t N = numxs < numys ? numxs : numys;
@@ -836,13 +849,17 @@ typedef struct {
 } BPF_kk_kKKK;
 
 static int32_t bpf_kk_kKKK_init(CSOUND *csound, BPF_kk_kKKK *p) {
-    IGN(csound);
+    if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys) ||
+                 !BPF_POINTS_VALID(p->zs)))
+        return INITERR(Str("bpf: expected nonempty one-dimensional point arrays"));
     p->lastidx = -1;
     return OK;
 }
 
 static int32_t bpf_kk_kKKK_kr(CSOUND *csound, BPF_kk_kKKK *p) {
-    IGN(csound);
+    if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys) ||
+                 !BPF_POINTS_VALID(p->zs)))
+        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays"));
     int32_t numxs = p->xs->sizes[0];
     int32_t numys = p->ys->sizes[0];
     int32_t numzs = p->zs->sizes[0];
@@ -879,10 +896,13 @@ static int32_t bpf_kk_kKKK_kr(CSOUND *csound, BPF_kk_kKKK *p) {
 }
 
 static int32_t bpf_kk_kKKK_ir(CSOUND *csound, BPF_kk_kKKK *p) {
-    bpf_kk_kKKK_init(csound, p);
+    if (bpf_kk_kKKK_init(csound, p) != OK)
+        return NOTOK;
     return bpf_kk_kKKK_kr(csound, p);
 }
 
+
+#undef BPF_POINTS_VALID
 
 // kys[] bpf kxs[], kx0, ky0, kx1, ky1, ...
 typedef struct {

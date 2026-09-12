@@ -769,6 +769,8 @@ def runTest():
         ["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)", 1],
         ["test_tabslice_increment.csd", "reject zero tabslice increment", 1],
         ["test_tablefilter_values.csd", "tablefilter parameters, rational values, and table wrapping"],
+        ["test_bpf_breakpoints.csd", "bpf and bpfcos exact breakpoints across rates"],
+        ["test_bpf_invalid_points.csd", "reject empty or incomplete bpf points", 1],
         ["test_tabsum_ranges.csd", "tabsum handles valid table ranges"],
         ["test_tabsum_invalid_range.csd", "tabsum rejects out-of-range indexes", 1],
         ["test_newstyle_passbycopy.csd", "test newstyle udo with setksmps"],
