@@ -127,7 +127,7 @@ static int32_t load_cv_file(CSOUND *csound, const char *filnam,
     cvh.channel = (int32_t) strtol(p, &p, 10);
     cvh.Hlen = (int32_t) strtol(p, &p, 10);
     cvh.Format = (int32_t) strtol(p, &p, 10);
-    cvh.headBsize = sizeof(int32)*8 + sizeof(MYFLT);
+    cvh.headBsize = sizeof(CVSTRUCT);
     memcpy(&all[0], &cvh, sizeof(CVSTRUCT));
 
     /* Read data until end, pack as MYFLTs */

@@ -32,6 +32,7 @@ typedef struct {
     int32_t     nchanls; /* number of channels we are actually processing */
     MYFLT   *H,*cvlut,*outhead,*outail,*obufend;
     AUXCH   auxch;    /* use AUXDS to manage the following buffer spaces */
+    MYFLT   *input;   /* [ksmps] saved when output shares the input buffer */
     MYFLT   *fftbuf;  /* [Hlenpadded + 2] (general FFT working buffer) */
     MYFLT   *olap;    /* [(Hlen - 1) * nchnls] (samples to overlap on next run) */
     MYFLT   *outbuf;  /* (to store output audio if
@@ -66,4 +67,3 @@ typedef struct {
     int32   outCount;   /* number of valid samples in the outbuf */
     void    *fwdsetup, *invsetup;   /* setup for FFT */
 } PCONVOLVE;
-
