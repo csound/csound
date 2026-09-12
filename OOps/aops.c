@@ -817,20 +817,26 @@ int32_t frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac par
   return OK;
 }
 
-#ifdef MYFLOOR
-#undef MYFLOOR
+/* Match MYFLT2LRND's tie behavior without narrowing the result to int32_t. */
+#if defined(USE_LRINT) || defined(MSVC) || \
+    (defined(HAVE_GCC3) && defined(__i386__) && !defined(__ICC))
+#  ifdef USE_DOUBLE
+#    define ROUND_VALUE nearbyint
+#  else
+#    define ROUND_VALUE nearbyintf
+#  endif
+#else
+#  ifdef USE_DOUBLE
+#    define ROUND_VALUE round
+#  else
+#    define ROUND_VALUE roundf
+#  endif
 #endif
-#define MYFLOOR(x) ((int32_t)((double)(x) >= 0.0 ? (x) : (x) - 0.99999999))
-
-#ifdef MYCEIL
-#undef MYCEIL
-#endif
-#define MYCEIL(x) ((int32_t)((double)(x) >= 0.0 ? (x) + 0.99999999 : (x)))
 
 int32_t int1_round(CSOUND *csound, EVAL *p)         /* round to nearest integer */
 {
   IGN(csound);
-  *p->r = (MYFLT) MYFLT2LRND(*p->a);
+  *p->r = ROUND_VALUE(*p->a);
   return OK;
 }
 
@@ -848,14 +854,14 @@ int32_t int1a_round(CSOUND *csound, EVAL *p)        /* round to nearest integer 
     memset(&r[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n = offset; n < nsmps; n++)
-    r[n] = (MYFLT)MYFLT2LRND(a[n]);
+    r[n] = ROUND_VALUE(a[n]);
   return OK;
 }
 
 int32_t int1_floor(CSOUND *csound, EVAL *p)         /* round down */
 {
   IGN(csound);
-  *p->r = (MYFLT)(MYFLOOR(*p->a));
+  *p->r = FLOOR(*p->a);
   return OK;
 }
 
@@ -873,14 +879,14 @@ int32_t int1a_floor(CSOUND *csound, EVAL *p)        /* round down */
     memset(&r[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n = offset; n < nsmps; n++)
-    r[n] = (MYFLT)(MYFLOOR(a[n]));
+    r[n] = FLOOR(a[n]);
   return OK;
 }
 
 int32_t int1_ceil(CSOUND *csound, EVAL *p)          /* round up */
 {
   IGN(csound);
-  *p->r = (MYFLT)(MYCEIL(*p->a));
+  *p->r = CEIL(*p->a);
   return OK;
 }
 
@@ -898,7 +904,7 @@ int32_t int1a_ceil(CSOUND *csound, EVAL *p)         /* round up */
     memset(&r[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n = offset; n < nsmps; n++)
-    r[n] = (MYFLT)(MYCEIL(a[n]));
+    r[n] = CEIL(a[n]);
   return OK;
 }
 
