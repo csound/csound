@@ -34,9 +34,14 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->floatph = !IS_POW_TWO(p->ftp->flen);
-      if (*p->iphs >= 0) {
-        p->lphs = (int32_t)(*p->iphs * FL(0.5) * FMAXLEN);
-        p->fphs = *p->iphs;
+      double phase = *p->iphs;
+      if (UNLIKELY(!isfinite(phase)))
+        return csound->InitError(csound, "%s", Str("buzz: invalid initial phase"));
+      if (phase >= 0.0) {
+        phase *= 0.5; /* The sine quotient uses theta/2. */
+        phase -= floor(phase);
+        p->lphs = (int32_t)(phase * FMAXLEN);
+        p->fphs = phase;
       }
       p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
       p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
@@ -46,13 +51,27 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
     return NOTOK;
 }
 
+/* Keep non-power-of-two phase calculations in double precision. */
+#define BUZZ_WRAP(phase) do {                                      \
+    if ((phase) >= 1.0 || (phase) < 0.0) (phase) -= floor(phase);    \
+    if ((phase) >= 1.0) (phase) = 0.0;                             \
+  } while (0)
+
+/* Remove whole cycles before addition to retain the fractional phase. */
+#define BUZZ_INCREMENT(increment) do {                              \
+    if ((increment) >= 1.0 || (increment) <= -1.0)                  \
+      (increment) -= trunc(increment);                            \
+  } while (0)
+
 int32_t buzz(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
-    MYFLT       *ar, *ampp, *cpsp, *ftbl;
-    int32_t       phs, inc, lobits, dwnphs, tnp1, lenmask,
-      floatph = p->floatph, flen = p->ftp->flen;
-    MYFLT       sicvt2, over2n, scal, num, denom, incf;
+    MYFLT       *ar, *ampp, *cpsp, *ftbl, amp;
+    int32_t       phs, inc, lobits, dwnphs, lenmask,
+      floatph = p->floatph, flen;
+    uint32_t tnp1;
+    MYFLT       sicvt2, over2n, scal, num, denom, harmonics;
+    double incf;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
@@ -62,6 +81,7 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
     ftbl = ftp->ftable;
+    flen = ftp->flen;
 
     if(floatph) sicvt2 = CS_ONEDSR*FL(0.5);
     else sicvt2 = CS_SICVT * FL(0.5); /* for theta/2  */
@@ -70,14 +90,22 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     lenmask = ftp->lenmask;
     ampp = p->xamp;
     cpsp = p->xcps;
-    if ((nn = (int32_t)*p->knh) < 0) nn = -nn;
+    harmonics = FABS(*p->knh);
+    if (UNLIKELY(!(harmonics < 2147483648.0)))
+      return csound->PerfError(csound, &(p->h),
+                               Str("buzz: invalid harmonic count"));
+    nn = (int32_t)harmonics;
     if (UNLIKELY(nn == 0)) {     /* fix nn = knh */
       nn = 1;
     }
-    tnp1 = (nn<<1) + 1;          /* calc 2n + 1 */
+    tnp1 = 2U * (uint32_t)nn + 1U;          /* calc 2n + 1 */
     over2n = FL(0.5) / (MYFLT)nn;
-    scal = *ampp * over2n;
-    if(floatph) incf = *cpsp * sicvt2;
+    amp = *ampp;
+    scal = amp * over2n;
+    if(floatph) {
+      incf = *cpsp * sicvt2;
+      BUZZ_INCREMENT(incf);
+    }
     else inc = (int32_t)(*cpsp * sicvt2);
     ar = p->ar;
     phs = p->lphs;
@@ -88,8 +116,10 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      if (p->ampcod)
-        scal = ampp[n] * over2n;
+      if (p->ampcod) {
+        amp = ampp[n];
+        scal = amp * over2n;
+      }
       if(!floatph) {
       if (p->cpscod)
         inc = (int32_t)(cpsp[n] * sicvt2);
@@ -99,19 +129,24 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
         num = ftbl[dwnphs * tnp1 & lenmask];
         ar[n] = (num / denom - FL(1.0)) * scal;
       }
-      else ar[n] = *ampp;
+      else ar[n] = amp;
       phs += inc;
       phs &= PHMASK;
       } else {
-      if (p->cpscod)
+      if (p->cpscod) {
         incf = cpsp[n] * sicvt2;
+        BUZZ_INCREMENT(incf);
+      }
       denom = ftbl[(int32_t) (phsf*flen)];
       if (denom > FL(0.0002) || denom < -FL(0.0002)) {
-        num = ftbl[(int32_t)(PHMOD1(phsf * tnp1)*flen)];
+        double numerator_phase = phsf * tnp1;
+        BUZZ_WRAP(numerator_phase);
+        num = ftbl[(int32_t)(numerator_phase*flen)];
         ar[n] = (num / denom - FL(1.0)) * scal;
       }
-      else ar[n] = *ampp;
-      phsf = PHMOD1(incf+phsf);
+      else ar[n] = amp;
+      phsf += incf;
+      BUZZ_WRAP(phsf);
       }
     }
     p->lphs = phs;
@@ -120,6 +155,9 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
  err1:
     return csound->PerfError(csound, &(p->h), Str("buzz: not initialised"));
 }
+
+#undef BUZZ_WRAP
+#undef BUZZ_INCREMENT
 
 int32_t gbzset(CSOUND *csound, GBUZZ *p)
 {
