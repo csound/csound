@@ -872,6 +872,10 @@ def runTest():
             1,
         ],
         ["test_syncphasor_phase_wrap.csd", "test syncphasor phase wrapping"],
+
+        ["test_phasorbnk_phase_state.csd", "phasorbnk phase wrapping and bank state"],
+
+        ["test_phasorbnk_invalid_inputs.csd", "reject invalid phasorbnk bank sizes and indices", 1],
         ["test_syncphasor_invalid_phase.csd", "reject invalid syncphasor phase", 1],
         ["test_syncphasor_invalid_frequency.csd", "reject invalid syncphasor frequency", 1],
         ["test_pvsosc_frames.csd", "pvsosc frame timing and harmonic selection"],
