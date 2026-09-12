@@ -41,13 +41,15 @@
 
 int32_t phsset(CSOUND *csound, PHSOR *p)
 {
-  MYFLT       phs;
-  int32_t  longphs;
-  if ((phs = *p->iphs) >= FL(0.0)) {
-    if (UNLIKELY((longphs = (int32_t)phs))) {
+  double phs = (double)*p->iphs;
+  if (UNLIKELY(!isfinite(phs)))
+    return csound->InitError(csound, "%s", Str("phasor: initial phase must be finite"));
+  if (phs >= 0.0) {
+    if (UNLIKELY(phs >= 1.0)) {
       csound->Warning(csound, Str("init phase truncation\n"));
+      phs -= floor(phs);
     }
-    p->curphs = phs - (MYFLT)longphs;
+    p->curphs = phs;
   }
   return OK;
 }
@@ -148,12 +150,27 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
   return OK;
 }
 
+/* Reduce whole cycles before addition so large increments retain the phase.
+   For control-rate frequency, reduce only once per control block. */
+#define PHASOR_REDUCE_INCREMENT(incr) do {                         \
+  if (UNLIKELY((incr) >= 1.0 || (incr) <= -1.0))                    \
+    (incr) -= trunc(incr);                                         \
+} while (0)
+
+/* A phase just below one can round to one in MYFLT. Wrap the output,
+   retaining the more precise internal phase for the next sample. */
+#define PHASOR_OUTPUT(phase)                                      \
+  ((MYFLT)(phase) == FL(1.0) ? FL(0.0) : (MYFLT)(phase))
+
 int32_t kphsor(CSOUND *csound, PHSOR *p)
 {
   IGN(csound);
   double      phs;
-  *p->sr = (MYFLT)(phs = p->curphs);
-  if (UNLIKELY((phs += (double)*p->xcps * CS_ONEDKR) >= 1.0))
+  double incr = (double)*p->xcps * CS_ONEDKR;
+  PHASOR_REDUCE_INCREMENT(incr);
+  phs = p->curphs;
+  *p->sr = PHASOR_OUTPUT(phs);
+  if (UNLIKELY((phs += incr) >= 1.0))
     phs -= 1.0;
   else if (UNLIKELY(phs < 0.0))
     phs += 1.0;
@@ -183,25 +200,25 @@ int32_t phsor(CSOUND *csound, PHSOR *p)
     MYFLT *cps = p->xcps;
     for (n=offset; n<nsmps; n++) {
       incr = (double)(cps[n] * onedsr);
-      rs[n] = (MYFLT)phase;
+      PHASOR_REDUCE_INCREMENT(incr);
+      rs[n] = PHASOR_OUTPUT(phase);
       phase += incr;
-      if (UNLIKELY((MYFLT)phase >= FL(1.0))) /* VL convert to MYFLT
-                                                to avoid rounded output
-                                                exceeding 1.0 on float version */
+      if (UNLIKELY(phase >= 1.0))
         phase -= 1.0;
-      else if (UNLIKELY((MYFLT)phase < FL(0.0)))
+      else if (UNLIKELY(phase < 0.0))
         phase += 1.0;
     }
   }
   else {
     incr = (double)(*p->xcps * onedsr);
+    PHASOR_REDUCE_INCREMENT(incr);
     for (n=offset; n<nsmps; n++) {
-      rs[n] = (MYFLT)phase;
+      rs[n] = PHASOR_OUTPUT(phase);
       phase += incr;
-      if (UNLIKELY((MYFLT)phase >= FL(1.0))) {
+      if (UNLIKELY(phase >= 1.0)) {
         phase -= 1.0;
       }
-      else if (UNLIKELY((MYFLT)phase < FL(0.0)))
+      else if (UNLIKELY(phase < 0.0))
         phase += 1.0;
     }
   }

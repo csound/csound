@@ -1094,6 +1094,7 @@ def runTest():
         ["test_vbap_sample_ramps.csd", "VBAP active-sample ramps and zak channels"],
         ["test_moogvcf2_scaling.csd", "moogvcf2 scaling and legacy moogvcf compatibility"],
         ["test_mpulse_sample_timing.csd", "mpulse delay units and sample scheduling"],
+        ["test_phasor_phase_wrap.csd", "phasor whole-cycle wrapping and phase state"],
         ["test_chebyshevpoly2_empty_array.csd", "reject empty Chebyshev coefficients", 1],
         ["test_generic_chan.csd", "testing generic bus channel"],
         ["test_generic_chan_no_match.csd", "testing type mismatch for bus channel", 1],
