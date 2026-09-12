@@ -666,6 +666,7 @@ def runTest():
         ["test_xyscale_corner_order.csd", "xyscale corner coordinates and interpolation"],
         ["test_lowpass2_mixed_rate.csd", "lowpass2 input rates and optional state preservation"],
         ["test_pvsdiskin_frame_position.csd", "pvsdiskin offsets, channel interpolation, and loop state"],
+        ["test_trandom_note_state.csd", "trandom starts each note with fresh held state"],
         ["test_flooper_stereo_guard.csd", "flooper preserves the stereo wrap sample"],
         ["test_flooper_stereo_frame_bounds.csd", "reject flooper ranges past stereo frames", 1],
         ["test_sndloop_state.csd", "sndloop recording, playback, and partial blocks"],
