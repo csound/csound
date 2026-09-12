@@ -169,9 +169,9 @@ static int32_t ftconv_init(CSOUND *csound, FTCONV *p)
                               Str("ftconv: invalid length, or insufficient IR data for convolution"));
     int32_t nPartitions = (int32_t) ((irLength - 1) / partSize + 1);
     /* FFT and ring-buffer indices use signed 32-bit sample counts. */
-    if (UNLIKELY(nPartitions > INT32_MAX / (partSize * 2)))
+    if (UNLIKELY(nPartitions > INT32_MAX / (partSize << 1)))
       return csound->InitError(csound, "%s", Str("ftconv: impulse response too large"));
-    uint64_t nSamples = (uint64_t) (partSize * 2) *
+    uint64_t nSamples = (uint64_t) (partSize << 1) *
                        (nChannels + 1) * ((uint64_t) nPartitions + 1);
     if (UNLIKELY(nSamples > SIZE_MAX / sizeof(MYFLT)))
       return csound->InitError(csound, "%s", Str("ftconv: impulse response too large"));
@@ -189,17 +189,17 @@ static int32_t ftconv_init(CSOUND *csound, FTCONV *p)
     if (p->auxData.auxp == NULL || nBytes != p->auxData.size)
       csound->AuxAlloc(csound, nBytes, &p->auxData);
     set_buf_pointers(p, nChannels, partSize, nPartitions);
-    n = (partSize * 2) * nPartitions;
+    n = (partSize << 1) * nPartitions;
     memset(p->ringBuf, 0, (size_t) n * sizeof(MYFLT));
     p->cnt = 0;
     p->rbCnt = 0;
-    p->fwdsetup = csound->RealFFTSetup(csound, partSize * 2, FFT_FWD);
-    p->invsetup = csound->RealFFTSetup(csound, partSize * 2, FFT_INV);
+    p->fwdsetup = csound->RealFFTSetup(csound, (partSize << 1), FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound, (partSize << 1), FFT_INV);
     /* Store IR partitions in reverse order, padding beyond the requested end. */
     for (j = 0; j < nChannels; j++) {
       int64_t frame = skipSamples;
       int64_t endFrame = skipSamples + irLength;
-      n = (partSize * 2) * (nPartitions - 1);
+      n = (partSize << 1) * (nPartitions - 1);
       do {
         for (k = 0; k < partSize; k++, frame++) {
           if (frame >= 0 && frame < tableFrames && frame < endFrame)
@@ -207,14 +207,14 @@ static int32_t ftconv_init(CSOUND *csound, FTCONV *p)
           else
             p->IR_Data[j][n + k] = FL(0.0);
         }
-        for (k = partSize; k < partSize * 2; k++)
+        for (k = partSize; k < (partSize << 1); k++)
           p->IR_Data[j][n + k] = FL(0.0);
         csound->RealFFT(csound, p->fwdsetup, &p->IR_Data[j][n]);
-        n -= partSize * 2;
+        n -= (partSize << 1);
       } while (n >= 0);
     }
     for (j = 0; j < nChannels; j++)
-      for (i = 0; i < partSize * 2; i++)
+      for (i = 0; i < (partSize << 1); i++)
         p->outBuffers[j][i] = FL(0.0);
     p->initDone = 1;
     return OK;
