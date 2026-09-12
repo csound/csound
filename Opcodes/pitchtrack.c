@@ -473,7 +473,11 @@ typedef struct _pitchaf{
 } PITCHAF;
 
 int32_t pitchafset(CSOUND *csound, PITCHAF *p){
-    int32_t siz = (int32_t)(CS_ESR/ (*p->iflow));
+    double samples = CS_ESR / (double)*p->iflow;
+    if (UNLIKELY(!(samples >= 1.0 && samples <= INT32_MAX &&
+                   samples <= SIZE_MAX / sizeof(MYFLT))))
+      return csound->InitError(csound, "%s", Str("pitchac: invalid lowest frequency"));
+    int32_t siz = (int32_t)samples;
     if (p->buff1.auxp == NULL || p->buff1.size < siz*sizeof(MYFLT))
       csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->buff1);
     else
@@ -496,23 +500,34 @@ int32_t pitchafset(CSOUND *csound, PITCHAF *p){
 int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
 {
 
-    int32_t lag = p->lag,n, i, j, imax = 0, len = p->len,
-      ksmps = CS_KSMPS;
+    int32_t lag = p->lag,n, i, j, len = p->len;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    int32_t ksmps = CS_KSMPS - p->h.insdshead->ksmps_no_end;
+    double samples;
+    int32_t nextlen;
+    if (UNLIKELY(!(*p->kfmin > FL(0.0))))
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("pitchac: minimum frequency must be positive"));
+    samples = CS_ESR / (double)*p->kfmin;
+    if (UNLIKELY(!(samples >= 1.0)))
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("pitchac: minimum frequency exceeds sample rate"));
+    nextlen = samples >= p->size ? p->size : (int32_t)samples;
     MYFLT *buff1 = (MYFLT *)p->buff1.auxp;
     MYFLT *buff2 = (MYFLT *)p->buff2.auxp;
     MYFLT *cor = (MYFLT *)p->cor.auxp;
     MYFLT *s = p->asig, pitch;
-    //MYFLT ifmax = *p->kfmax;
 
-    for (n=0; n < ksmps; n++) {
+    for (n=offset; n < ksmps; n++) {
       for (i=0,j=lag; i < len; i++) {
         cor[lag] += buff1[i]*buff2[j];
-        j = j != len ? j+1 : 0;
+        j = j != len - 1 ? j+1 : 0;
       }
       buff2[lag++] = s[n];
 
       if (lag == len) {
-        float max = 0.0f;
+        MYFLT max = FL(0.0);
+        int32_t imax = 0;
         for (i=0; i < len; i++) {
           if (cor[i] > max) {
             max = cor[i];
@@ -521,17 +536,16 @@ int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
           buff1[i] = buff2[i];
           cor[i] = FL(0.0);
         }
-        len = CS_ESR/(*p->kfmin);
-        if (len > p->size) len = p->size;
+        if (imax) {
+          pitch = CS_ESR/imax;
+          if (pitch <= *p->kfmax) p->pitch = pitch;
+        }
+        len = nextlen;
         lag  =  0;
       }
     }
     p->lag = lag;
     p->len = len;
-    if (imax) {
-      pitch = CS_ESR/imax;
-      if (pitch <= *p->kfmax) p->pitch = pitch;
-    }
     *p->kpitch = p->pitch;
 
     return OK;
@@ -759,7 +773,7 @@ static OENTRY pitchtrack_localops[] =
   {
    {"ptrack", S(PITCHTRACK), 0,  "kk", "aio",
     (SUBR)pitchtrackinit, (SUBR)pitchtrackprocess},
-   {"pitchac", S(PITCHTRACK), 0,  "k", "akki",
+   {"pitchac", S(PITCHAF), 0,  "k", "akki",
     (SUBR)pitchafset, (SUBR)pitchafproc},
    {"plltrack", S(PLLTRACK), 0,  "aa", "akOOOOO",
     (SUBR)plltrack_set, (SUBR)plltrack_perf}
