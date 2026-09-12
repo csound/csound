@@ -1482,7 +1482,10 @@ static int32_t vco(CSOUND *csound, VCO *p)
           mu    = 0.0;
           sigma = -1.0;
         }
-        alpha = (beta + 1.0 + chi*gamma) * 0.5;
+        /* Band-pass gain follows the low/high-pass center gain (2 * rez).
+           The high-pass numerator gives an unwanted cot(theta/2) factor. */
+        alpha = mode == 2 ? (beta + 1.0) * sin2
+                          : (beta + 1.0 + chi*gamma) * 0.5;
 
         for (n=offset; n<nsmps; n++) {                        /* do ksmp times   */
           /* Handle a-rate modulation of fco and rez */
@@ -1498,7 +1501,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
             cos2 = cos(theta);
             beta = (rez - sin2) / (rez + sin2);
             gamma = (beta + 1.0) * cos2;
-            alpha = (beta + 1.0 + chi*gamma) * 0.5;
+            alpha = mode == 2 ? (beta + 1.0) * sin2
+                              : (beta + 1.0 + chi*gamma) * 0.5;
           }
           xn     = (double)in[n];   /* Get the next sample */
           yn     = alpha*(xn + mu*xnm1 + sigma*xnm2) + gamma*ynm1 - beta*ynm2;

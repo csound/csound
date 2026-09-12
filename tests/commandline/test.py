@@ -937,6 +937,7 @@ def runTest():
         ["test_sa.csd", "test sample accurate mode"],
         ["test_diode_ladder_saturation.csd", "diode_ladder saturation and filter history"],
         ["test_pareq_initial_state.csd", "pareq first skip, reset, and preserved state"],
+        ["test_bqrez_response.csd", "bqrez mode responses and band-pass center gain"],
         ["test_gain_sample_bounds.csd", "gain RMS and output over partial blocks"],
         ["test_eqfil_sample_offset.csd", "eqfil advances state only for active samples"],
         ["test_areson_audio.csd", "test areson audio coefficients and preserved state"],
