@@ -871,6 +871,7 @@ def runTest():
             "reject managed opcode-object output access",
             1,
         ],
+        ["test_wgpluck_excitation.csd", "wgpluck excitation reuse and partial blocks"],
         ["test_syncphasor_phase_wrap.csd", "test syncphasor phase wrapping"],
         ["test_syncphasor_invalid_phase.csd", "reject invalid syncphasor phase", 1],
         ["test_syncphasor_invalid_frequency.csd", "reject invalid syncphasor frequency", 1],
