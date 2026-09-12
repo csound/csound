@@ -1493,26 +1493,24 @@ static int32_t pvsmix(CSOUND *csound, PVSMIX *p)
 static int32_t pvsfilterset(CSOUND *csound, PVSFILTER *p)
 {
   int32    N = p->fin->N;
+  size_t bytes = ((size_t)N + 2) * sizeof(float);
 
   if (UNLIKELY(p->fin == p->fout || p->fil == p->fout))
     csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
-  if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
-                 (p->fout->format == PVS_AMP_PHASE))))
+  if (UNLIKELY(!((p->fin->format == PVS_AMP_FREQ) ||
+                 (p->fin->format == PVS_AMP_PHASE))))
     return csound->InitError(csound, "%s", Str("pvsfilter: signal format "
                                          "must be amp-phase or amp-freq."));
   p->fout->sliding = 0;
   if (p->fin->sliding) {
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(MYFLT) * CS_KSMPS * (N + 2))
-      csound->AuxAlloc(csound, sizeof(MYFLT) * CS_KSMPS * (N + 2),
-                       &p->fout->frame);
+    bytes = sizeof(MYFLT) * CS_KSMPS * ((size_t)N + 2);
     p->fout->NB = p->fin->NB;
     p->fout->sliding = 1;
   }
+  if (p->fout->frame.auxp == NULL || p->fout->frame.size < bytes)
+    csound->AuxAlloc(csound, bytes, &p->fout->frame);
   else
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(float) * (N + 2))
-      csound->AuxAlloc(csound, sizeof(float) * (N + 2), &p->fout->frame);
+    memset(p->fout->frame.auxp, 0, bytes);
   p->fout->N = N;
   p->fout->overlap = p->fin->overlap;
   p->fout->winsize = p->fin->winsize;
@@ -1538,24 +1536,30 @@ static int32_t pvsfilter(CSOUND *csound, PVSFILTER *p)
 
   if (p->fin->sliding) {
     int32_t NB = p->fout->NB;
+    int32_t asig = IS_ASIG_ARG(p->kdepth);
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     CMPLX *fin, *fout, *fil;
     MYFLT g = *p->gain;
     kdepth = kdepth >= FL(0.0) ? (kdepth <= FL(1.0) ? kdepth*g : g) : FL(0.0);
-    dirgain = (FL(1.0) - kdepth)*g;
-    for (n=0; n<offset; n++) {
-      fout = (CMPLX *)p->fout->frame.auxp + NB*n;
-      for (i = 0; i < NB; i++) fout[i].re = fout[i].im = FL(0.0);
+    /* Both the direct and filtered parts receive the output gain once. */
+    dirgain = g - kdepth;
+    if (UNLIKELY(offset))
+      memset(p->fout->frame.auxp, 0, sizeof(CMPLX)*(size_t)NB*offset);
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset((CMPLX *)p->fout->frame.auxp + (size_t)NB*nsmps, 0,
+             sizeof(CMPLX)*(size_t)NB*early);
     }
     for (n=offset; n<nsmps; n++) {
-      fin = (CMPLX *)p->fin->frame.auxp + NB*n;
-      fout = (CMPLX *)p->fout->frame.auxp + NB*n;
-      fil = (CMPLX *)p->fil->frame.auxp + NB*n;
-      if (IS_ASIG_ARG(p->kdepth)) {
+      fin = (CMPLX *)p->fin->frame.auxp + (size_t)NB*n;
+      fout = (CMPLX *)p->fout->frame.auxp + (size_t)NB*n;
+      fil = (CMPLX *)p->fil->frame.auxp + (size_t)NB*n;
+      if (asig) {
         kdepth = p->kdepth[n] >= FL(0.0) ?
           (p->kdepth[n] <= FL(1.0) ? p->kdepth[n]*g : g) : FL(0.0);
-        dirgain = (FL(1.0) - kdepth)*g;
+        dirgain = g - kdepth;
       }
       for (i = 0; i < NB; i++) {
         fout[i].re = fin[i].re * (dirgain + fil[i].re * kdepth);
