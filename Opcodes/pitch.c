@@ -1225,13 +1225,6 @@ int32_t phsbnkset(CSOUND *csound, PHSORBNK *p)
     return OK;
 }
 
-/* Remove whole cycles before adding, retaining the phase for large increments.
-   With control-rate frequency this runs only once per control block. */
-#define PHSBNK_REDUCE_INCREMENT(incr) do {                            \
-    if (UNLIKELY((incr) >= 1.0 || (incr) <= -1.0))                   \
-      (incr) -= trunc(incr);                                        \
-  } while (0)
-
 int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
 {
     double  phs;
@@ -1250,9 +1243,7 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
     index = (int32_t)*p->kindx;
 
     *p->sr = (MYFLT)(phs = curphs[index]);
-    double incr = *p->xcps * CS_ONEDKR;
-    PHSBNK_REDUCE_INCREMENT(incr);
-    if (UNLIKELY((phs += incr) >= 1.0))
+    if (UNLIKELY((phs += *p->xcps * CS_ONEDKR) >= 1.0))
       phs -= 1.0;
     else if (UNLIKELY(phs < 0.0)) /* patch from Matthew Scala */
       phs += 1.0;
@@ -1292,7 +1283,6 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
       MYFLT *cps = p->xcps;
       for (n=offset; n<nsmps; n++) {
         incr = (double)(cps[n] * CS_ONEDSR);
-        PHSBNK_REDUCE_INCREMENT(incr);
         rs[n] = (MYFLT)phase;
         phase += incr;
         if (UNLIKELY(phase >= 1.0))
@@ -1303,7 +1293,6 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     }
     else {
       incr = (double)(*p->xcps * CS_ONEDSR);
-      PHSBNK_REDUCE_INCREMENT(incr);
       for (n=offset; n<nsmps; n++) {
         rs[n] = (MYFLT)phase;
         phase += incr;
@@ -1316,8 +1305,6 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     curphs[index] = phase;
     return OK;
 }
-
-#undef PHSBNK_REDUCE_INCREMENT
 
 /* Opcodes from rasmus ekman */
 

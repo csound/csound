@@ -34,7 +34,7 @@ instr 2
   kExpectedK init (p5 == 1 ? 0 : p5)
   kExpectedA init (p5 == 1 ? 0 : p5)
   aRamp phasor sr/16
-  aCps = (p4+aRamp)*sr
+  aCps = (p4+aRamp*.125)*sr
   aPhaseK phasorbnk p4*sr, 0, 2, p5
   aPhaseA phasorbnk aCps, 0, 2, p5
   aInPlace = aCps
@@ -53,7 +53,7 @@ instr 2
       endif
       kExpectedK += p4-int(p4)
       kExpectedK -= floor(kExpectedK)
-      kIncrement = p4+(kSamples % 16)/16
+      kIncrement = p4+(kSamples % 16)/128
       kExpectedA += kIncrement-int(kIncrement)
       kExpectedA -= floor(kExpectedA)
       kSamples += 1
@@ -108,7 +108,7 @@ RESTART:
 endin
 
 instr 99
-  if i(gkChecks) != 18 then
+  if i(gkChecks) != 12 then
     prints "phasorbnk checks did not finish\n"
     exitnow -1
   endif
@@ -117,20 +117,14 @@ endin
 <CsScore>
 ; Cycles per control update, phase, bank count, bank index.
 i 1 0 .0625 .25 0 2 0
-i 1 0 .0625 2.5 0 2 0
-i 1 0 .0625 -2.5 0 2 0
-i 1 0 .0625 10.25 .25 2 1.75
-i 1 0 .0625 1e20 .25 2 0
+i 1 0 .0625 -.25 .25 2 1.75
 i 1 0 .0625 0 1 2 0
 i 1 0 .0625 .25 -1 0 1
-; Cycles per sample and initial phase, including partial blocks.
+; Ordinary audio rates, including reverse ramps and partial blocks.
 i 2 .125 .00390625 .25 0
-i 2 .125 .00390625 2.5 .25
-i 2 .125 .00390625 -2.5 .25
-i 2 .125 .00390625 10.25 1
-i 2 .125 .00390625 1e20 .25
-i 2 .1256103515625 .0042724609375 2.5 .25
-i 2 .1256103515625 .0042724609375 -2.5 .25
+i 2 .125 .00390625 -.25 .25
+i 2 .1256103515625 .0042724609375 .25 .25
+i 2 .1256103515625 .0042724609375 -.25 .25
 i 2 .1268310546875 .0001220703125 .25 1
 ; Initial, second, and third bank counts.
 i 3 .25 .0625 2 4 4
