@@ -61,7 +61,7 @@ typedef struct {
     int32   curPart;    /* "current" segment in convBuf */
 
     AUXCH   output;             /* circular buf accumulating output samples */
-    int32   outBufSiz;  /* hlenpadded or 2*ksmps, whichever is greater */
+    size_t  outBufSiz;  /* hlenpadded or 2*ksmps, whichever is greater */
     MYFLT   *outWrite, *outRead; /* i/o pointers to the output buf */
     int32   outCount;   /* number of valid samples in the outbuf */
     void    *fwdsetup, *invsetup;   /* setup for FFT */
