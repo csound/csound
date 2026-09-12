@@ -1185,21 +1185,43 @@ int32_t phsbnkset(CSOUND *csound, PHSORBNK *p)
     int32_t    n, count;
     double  *curphs;
 
-    count = (int32_t)MYFLT2LONG(*p->icnt);
-    if (UNLIKELY(count < 2))
-      count = 2;
+    if (UNLIKELY(!((double)*p->icnt <= (double)INT32_MAX - 0.5)))
+      return csound->InitError(csound, "%s", Str("phasorbnk: invalid bank size"));
+    count = *p->icnt < FL(2.0) ? 2 : (int32_t)MYFLT2LONG(*p->icnt);
+    if (UNLIKELY((size_t)count > SIZE_MAX / sizeof(double)))
+      return csound->InitError(csound, "%s", Str("phasorbnk: bank size too large"));
 
-    if (p->curphs.auxp==NULL || p->curphs.size < (size_t)sizeof(double)*count)
-      csound->AuxAlloc(csound, (size_t)sizeof(double)*count, &p->curphs);
+    if (p->curphs.auxp==NULL || p->curphs.size < sizeof(double)*(size_t)count) {
+      /* AuxAlloc clears a resized buffer, even when initialization is skipped. */
+      double *saved = NULL;
+      size_t oldBytes = sizeof(double)*(size_t)p->count;
+      if (*p->iphs < FL(0.0) && p->curphs.auxp != NULL) {
+        saved = csound->Malloc(csound, oldBytes);
+        memcpy(saved, p->curphs.auxp, oldBytes);
+      }
+      csound->AuxAlloc(csound, sizeof(double)*(size_t)count, &p->curphs);
+      if (saved != NULL) {
+        memcpy(p->curphs.auxp, saved, oldBytes);
+        csound->Free(csound, saved);
+      }
+    }
+    else if (*p->iphs < FL(0.0) && count > p->count) {
+      memset((double*)p->curphs.auxp + p->count, 0,
+             sizeof(double)*(size_t)(count - p->count));
+    }
 
     curphs = (double*)p->curphs.auxp;
     if (*p->iphs > 1) {
-      for (n=0; n<count;n++)
+      for (n=0; n<count;n++) {
         curphs[n] = (double) rand_31(csound) / 2147483645.0;
+        if (curphs[n] == 1.0) curphs[n] = 0.0;
+      }
     }
     else if ((phs = *p->iphs) >= 0) {
+      if (phs == 1.0) phs = 0.0;
       for (n=0; n<count;n++) curphs[n] = phs;
     }
+    p->count = count;
     return OK;
 }
 
@@ -1207,18 +1229,18 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
 {
     double  phs;
     double  *curphs = (double*)p->curphs.auxp;
-    uint64_t     size = p->curphs.size / sizeof(double);
-    int32_t     index = (int32_t)(*p->kindx);
+    int32_t     index;
 
     if (UNLIKELY(curphs == NULL)) {
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("phasorbnk: not initialised"));
     }
 
-    if (UNLIKELY(index<0 || (uint64_t) index>=size)) {
+    if (UNLIKELY(!(*p->kindx >= FL(0.0) && (double)*p->kindx < p->count))) {
       *p->sr = FL(0.0);
-      return NOTOK;
+      return csound->PerfError(csound, &p->h, "%s", Str("phasorbnk: invalid index"));
     }
+    index = (int32_t)*p->kindx;
 
     *p->sr = (MYFLT)(phs = curphs[index]);
     if (UNLIKELY((phs += *p->xcps * CS_ONEDKR) >= 1.0))
@@ -1237,18 +1259,18 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     MYFLT   *rs;
     double  phase, incr;
     double  *curphs = (double*)p->curphs.auxp;
-    uint64_t     size = p->curphs.size / sizeof(double);
-    int32_t     index = (int32_t)(*p->kindx);
+    int32_t     index;
 
     if (UNLIKELY(curphs == NULL)) {
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("phasorbnk: not initialised"));
     }
 
-    if (UNLIKELY(index<0 || (uint64_t) index>=size)) {
-      *p->sr = FL(0.0);
-      return NOTOK;
+    if (UNLIKELY(!(*p->kindx >= FL(0.0) && (double)*p->kindx < p->count))) {
+      memset(p->sr, 0, nsmps*sizeof(MYFLT));
+      return csound->PerfError(csound, &p->h, "%s", Str("phasorbnk: invalid index"));
     }
+    index = (int32_t)*p->kindx;
 
     rs = p->sr;
     phase = curphs[index];

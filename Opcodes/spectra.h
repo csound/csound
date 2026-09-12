@@ -224,6 +224,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr, *xcps, *kindx, *icnt, *iphs;
         AUXCH   curphs;
+        int32_t count;
 } PHSORBNK;
 
 /* pinkish opcode... Two methods for generating pink noise */

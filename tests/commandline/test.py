@@ -887,6 +887,10 @@ def runTest():
         ],
         ["test_wgpluck_excitation.csd", "wgpluck excitation reuse and partial blocks"],
         ["test_syncphasor_phase_wrap.csd", "test syncphasor phase wrapping"],
+
+        ["test_phasorbnk_phase_state.csd", "phasorbnk bank resizing and phase state"],
+
+        ["test_phasorbnk_invalid_inputs.csd", "reject invalid phasorbnk bank sizes and indices", 1],
         ["test_syncphasor_invalid_phase.csd", "reject invalid syncphasor phase", 1],
         ["test_syncphasor_invalid_frequency.csd", "reject invalid syncphasor frequency", 1],
         ["test_pvsinit_invalid_parameters.csd", "reject invalid pvsinit parameters", 1],
