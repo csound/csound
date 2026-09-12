@@ -279,14 +279,16 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
       float *frame1, *frame2;
       frames = handle->frames-1;
       ftab = csound->FTFind(csound, p->strt);
+      if (UNLIKELY(ftab == NULL)) return NOTOK;
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
-        csound->PerfError(csound, &(p->h),
+        return csound->PerfError(csound, &(p->h),
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab = tab1 = ftab->ftable;
       ftab = csound->FTFind(csound, p->end);
+      if (UNLIKELY(ftab == NULL)) return NOTOK;
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
-        csound->PerfError(csound, &(p->h),
+        return csound->PerfError(csound, &(p->h),
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab2 = ftab->ftable;
