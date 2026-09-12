@@ -682,6 +682,7 @@ def runTest():
         ["test_pan2_input_aliasing.csd", "pan2 preserves input samples when outputs reuse them"],
         ["test_delay1_samples.csd", "delay1 input reuse, active samples and retained state"],
         ["test_freeverb_samples.csd", "freeverb input reuse and partial-block history"],
+        ["test_otafilter_samples.csd", "otafilter output bounds, overdrive and input reuse"],
         ["test_bformdec1_surround.csd", "bformdec1 preserves partial blocks and selects the input order"],
         ["test_bformdec2_samples.csd", "bformdec2 sample bounds, input reuse and decoder responses"],
         ["test_space_trajectory_endpoint.csd", "space and spdist handle the last trajectory frame"],
