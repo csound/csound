@@ -886,6 +886,7 @@ def runTest():
         ["test_areson_audio.csd", "test areson audio coefficients and preserved state"],
         ["test_svfilter_state.csd", "svfilter reset, preserved state, and input reuse"],
         ["test_statevar_oversampling.csd", "statevar oversampling and preserved filter history"],
+        ["test_moogladder2_resonance.csd", "moogladder2 resonance changes and parameter-rate parity"],
         ["test_phaser_reinit.csd", "phaser reset and preserved state on reinit"],
         [
             "test_audio_input_sample_bounds.csd",
