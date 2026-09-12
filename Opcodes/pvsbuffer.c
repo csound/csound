@@ -212,7 +212,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      end /= (sr/N);
      strt = (int32_t)(strt < 0 ? 0 : strt > N/2 ? N/2 : strt);
      end = (int32_t)(end <= strt ? N/2 + 2 : end > N/2 + 2 ? N/2 + 2 : end);
-     frames = handle->frames-1;
+     frames = handle->frames;
      pos = *p->ktime*(sr/overlap);
 
      if (p->iclear) memset(fout, 0, sizeof(float)*(N+2));
@@ -277,7 +277,7 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     overlap = p->fout->overlap;
     if (p->scnt >= overlap) {
       float *frame1, *frame2;
-      frames = handle->frames-1;
+      frames = handle->frames;
       ftab = csound->FTFind(csound, p->strt);
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
         csound->PerfError(csound, &(p->h),

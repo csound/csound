@@ -889,6 +889,7 @@ def runTest():
         ["test_pvsinit_invalid_parameters.csd", "reject invalid pvsinit parameters", 1],
         ["test_pvsosc_frames.csd", "pvsosc frame timing and harmonic selection"],
         ["test_pvsosc_invalid_parameters.csd", "reject invalid pvsosc parameters", 1],
+        ["test_pvsbufread_circular_frames.csd", "PVS buffer last-frame interpolation and circular reads"],
         ["test_shift_array_state.csd", "shiftin and shiftout sample state"],
         ["test_shift_array_invalid_inputs.csd", "shift arrays reject invalid inputs", 1],
         ["test_sa.csd", "test sample accurate mode"],
