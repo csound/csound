@@ -920,6 +920,8 @@ def runTest():
         ["test_metro2_timing.csd", "metro2 corrected startup, swing, and bounded phase timing"],
         ["test_metro2_legacy_timing.csd", "metro2 preserves legacy timing by default"],
         ["test_metro2_invalid_parameters.csd", "reject invalid metro2 phase, frequency, and swing", 1],
+        ["test_scantable_phase.csd", "scantable circular phase and table state"],
+        ["test_scantable_invalid_frequency.csd", "reject non-finite scantable frequency", 1],
         ["test_syncphasor_phase_wrap.csd", "test syncphasor phase wrapping"],
 
         ["test_phasorbnk_phase_state.csd", "phasorbnk bank resizing and phase state"],
