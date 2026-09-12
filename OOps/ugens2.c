@@ -54,17 +54,30 @@ int32_t phsset(CSOUND *csound, PHSOR *p)
 
 int32_t ephsset(CSOUND *csound, EPHSOR *p)
 {
-  MYFLT       phs;
-  int32_t  longphs;
-  if ((phs = *p->iphs) >= FL(0.0)) {
-    if (UNLIKELY((longphs = (int32_t)phs))) {
+  double phs = (double)*p->iphs;
+  if (UNLIKELY(!isfinite(phs)))
+    return csound->InitError(csound, "%s", Str("ephasor: initial phase must be finite"));
+  if (phs >= 0.0) {
+    if (UNLIKELY(phs >= 1.0)) {
       csound->Warning(csound, Str("init phase truncation\n"));
+      phs -= floor(phs);
     }
-    p->curphs = phs - (MYFLT)longphs;
+    p->curphs = phs;
   }
   p->b = 1.0;
   return OK;
 }
+
+/* Remove whole cycles before addition so large increments retain the phase.
+   Keep the wrap event: it also resets the exponential output. */
+#define EPHASOR_INCREMENT(incr, wrapped) do {                         \
+    (wrapped) = (incr) >= 1.0 || (incr) <= -1.0;                       \
+    if (UNLIKELY(wrapped)) (incr) -= trunc(incr);                       \
+  } while (0)
+
+/* A double phase just below one may round to one in a float build. */
+#define EPHASOR_OUTPUT(phase)                                        \
+  ((MYFLT)(phase) < FL(1.0) ? (MYFLT)(phase) : FL(0.0))
 
 int32_t ephsor(CSOUND *csound, EPHSOR *p)
 {
@@ -75,21 +88,27 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
     MYFLT       *rs, *aphs, onedsr = CS_ONEDSR;
     double      b = p->b;
     double      incr, R = *p->kR;
+    int32_t     whole_cycle;
 
   rs = p->sr;
-  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+  aphs = p->aphs;
+  if (UNLIKELY(offset)) {
+    memset(rs, '\0', offset*sizeof(MYFLT));
+    memset(aphs, '\0', offset*sizeof(MYFLT));
+  }
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&aphs[nsmps], '\0', early*sizeof(MYFLT));
   }
-  aphs = p->aphs;
   phase = p->curphs;
   if (IS_ASIG_ARG(p->xcps)) {
     MYFLT *cps = p->xcps;
     for (n=offset; n<nsmps; n++) {
       incr = (double)(cps[n] * onedsr);
+      EPHASOR_INCREMENT(incr, whole_cycle);
       rs[n] = (MYFLT) b;
-      aphs[n] = (MYFLT) phase;
+      aphs[n] = EPHASOR_OUTPUT(phase);
       phase += incr;
       b *= R;
       if (UNLIKELY(phase >= 1.0)) {
@@ -100,13 +119,16 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
         phase += 1.0;
         b = pow(R, 1.0+phase);
       }
+      else if (UNLIKELY(whole_cycle))
+        b = pow(R, 1.0+phase);
     }
   }
   else {
     incr = (double)(*p->xcps * onedsr);
+    EPHASOR_INCREMENT(incr, whole_cycle);
     for (n=offset; n<nsmps; n++) {
       rs[n] = (MYFLT) b;
-      aphs[n] = (MYFLT) phase;
+      aphs[n] = EPHASOR_OUTPUT(phase);
       phase += incr;
       b *= R;
       if (UNLIKELY(phase >= 1.0)) {
@@ -117,6 +139,8 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
         phase += 1.0;
         b = pow(R, 1.0+phase);
       }
+      else if (UNLIKELY(whole_cycle))
+        b = pow(R, 1.0+phase);
     }
   }
   p->curphs = phase;
