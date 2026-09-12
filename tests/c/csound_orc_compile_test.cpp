@@ -16,6 +16,7 @@
 #include <cmath>
 #include <limits>
 #include <tuple>
+#include <vector>
 extern "C" {
 #include "str_ops.h"
 }
@@ -206,6 +207,76 @@ INSTANTIATE_TEST_SUITE_P(
                       -std::numeric_limits<MYFLT>::infinity(),
                       std::numeric_limits<MYFLT>::quiet_NaN(),
                       FL(1.0), FL(2.0), FL(4.0)));
+
+struct ScanhammerCase {
+    const char *name;
+    int source;
+    int destination;
+    MYFLT position;
+    MYFLT gain;
+    bool valid;
+    std::vector<MYFLT> expected;
+};
+
+class ScanhammerTests : public OrcCompileTests,
+                       public ::testing::WithParamInterface<ScanhammerCase> {};
+
+TEST_P(ScanhammerTests, CopiesWithinDestinationBounds)
+{
+    const auto &test = GetParam();
+    const char *instrument = R"(
+sr = 48000
+ksmps = 1
+nchnls = 1
+giSource ftgen 1, 0, 3, -2, 10, 20, 123
+giDestination ftgen 2, 0, 5, -2, 1, 2, 3, 4, 99
+instr 1
+  iSource chnget "source"
+  iDestination chnget "destination"
+  iPosition chnget "position"
+  iGain chnget "gain"
+  scanhammer iSource, iDestination, iPosition, iGain
+endin
+schedule(1, 0, 0.001)
+)";
+
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    csoundCreateMessageBuffer(csound, 0);
+    ASSERT_EQ(csoundCompileOrc(csound, instrument), CSOUND_SUCCESS);
+    csoundSetControlChannel(csound, "source", test.source);
+    csoundSetControlChannel(csound, "destination", test.destination);
+    csoundSetControlChannel(csound, "position", test.position);
+    csoundSetControlChannel(csound, "gain", test.gain);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundErrCnt(csound), test.valid ? 0 : 1);
+
+    // Check every point, including untouched values and the separate guard.
+    // Invalid input must leave the existing destination unchanged.
+    MYFLT *table = nullptr;
+    ASSERT_EQ(csoundGetTable(csound, &table, 2),
+              static_cast<int>(test.expected.size()) - 1);
+    ASSERT_NE(table, nullptr);
+    for (size_t index = 0; index < test.expected.size(); ++index)
+        EXPECT_EQ(table[index], test.expected[index]) << "index " << index;
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    TableCopies, ScanhammerTests,
+    ::testing::Values(
+        ScanhammerCase{"Wrap", 1, 2, 3, 1, true, {20, 2, 3, 10, 99}},
+        ScanhammerCase{"RoundedEnd", 1, 2, FL(3.75), 1, true,
+                       {20, 2, 3, 10, 99}},
+        ScanhammerCase{"InPlaceWrap", 2, 2, 1, 1, true, {4, 1, 2, 3, 99}},
+        ScanhammerCase{"MissingSource", 99, 2, 0, 1, false, {1, 2, 3, 4, 99}},
+        ScanhammerCase{"MissingDestination", 1, 99, 0, 1, false, {1, 2, 3, 4, 99}},
+        ScanhammerCase{"NegativePosition", 1, 2, -1, 1, false, {1, 2, 3, 4, 99}},
+        ScanhammerCase{"PositionAtLength", 1, 2, 4, 1, false, {1, 2, 3, 4, 99}},
+        ScanhammerCase{"NaNPosition", 1, 2, std::numeric_limits<MYFLT>::quiet_NaN(),
+                       1, false, {1, 2, 3, 4, 99}}),
+    [](const ::testing::TestParamInfo<ScanhammerCase> &info) {
+        return info.param.name;
+    });
 
 TEST_F (OrcCompileTests, testArgsRequired)
 {
