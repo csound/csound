@@ -859,6 +859,8 @@ def runTest():
         ["test_create_init_perf_delete.csd", "testing new instance opcodes"],
         ["test_complex_numbers.csd", "testing complex number operations"],
         ["test_rfft.csd", "testing real-to-complex and complex-to-real fft"],
+        ["test_window_offsets.csd", "window offsets and array reinitialization"],
+        ["test_window_invalid_inputs.csd", "window rejects invalid inputs", 1],
         ["test_quadrature_osc.csd", "testing quadrature oscillator"],
         [
             "test_schedule_named_instance.csd",
