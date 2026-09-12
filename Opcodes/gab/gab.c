@@ -31,6 +31,7 @@
 #include "gab.h"
 #include <math.h>
 #include "interlocks.h"
+#include "arrays.h"
 
 #define FLT_MAX ((MYFLT)0x7fffffff)
 
@@ -741,7 +742,7 @@ static int32_t isChanged(CSOUND *csound,ISCHANGED *p)
     }
   }
   *p->ktrig = (MYFLT) ktrig;
-  p->cnt++;
+  p->cnt = 1;
   return OK;
 }
 
@@ -753,17 +754,21 @@ static int32_t isChanged2_set(CSOUND *csound,ISCHANGED *p)
 }
 
 /* changed in array */
+static int32_t isAChanged_size(ARRAYDAT *arr, size_t *size)
+{
+  size_t count;
+  if (csound_array_member_count(arr, &count) != OK)
+    return NOTOK;
+  return csound_array_allocation_size(arr->arrayMemberSize, count, size);
+}
+
 static int32_t isAChanged_set(CSOUND *csound, ISACHANGED *p)
 {
-  int32_t size = 0, i;
-  ARRAYDAT *arr = p->chk;
-  //char *tmp;
-  for (i=0; i<arr->dimensions; i++) size += arr->sizes[i];
-  size *= arr->arrayMemberSize;
-  csound->AuxAlloc(csound, size, &p->old_chk);
-  /* tmp = (char*)p->old_chk.auxp; */
-  /* for (i=0; i<size; i++) tmp[i]=rand()&0xff; */
-  /* memset(p->old_chk.auxp, '\0', size); */
+  size_t size;
+  if (UNLIKELY(isAChanged_size(p->chk, &size) != OK))
+    return csound->InitError(csound, "%s", Str("changed2: invalid array size"));
+  if (size > p->old_chk.size)
+    csound->AuxAlloc(csound, size, &p->old_chk);
   p->size = size;
   p->cnt = 0;
   return OK;
@@ -772,14 +777,23 @@ static int32_t isAChanged_set(CSOUND *csound, ISACHANGED *p)
 
 static int32_t isAChanged(CSOUND *csound,ISACHANGED *p)
 {
-  IGN(csound);
   ARRAYDAT *chk = p->chk;
-  void *old_chk = p->old_chk.auxp;
-  int32_t size = p->size;
-  int32_t ktrig = memcmp(chk->data, old_chk, size);
-  memcpy(old_chk, chk->data, size);
+  size_t size;
+  int32_t ktrig;
+  if (UNLIKELY(isAChanged_size(chk, &size) != OK))
+    return csound->PerfError(csound, &(p->h), "%s",
+                             Str("changed2: invalid array size"));
+  ktrig = size != p->size;
+  if (size > p->old_chk.size)
+    csound->AuxAlloc(csound, size, &p->old_chk);
+  if (size != 0) {
+    if (p->cnt && !ktrig)
+      ktrig = memcmp(chk->data, p->old_chk.auxp, size);
+    memcpy(p->old_chk.auxp, chk->data, size);
+  }
   *p->ktrig = (p->cnt && ktrig)?FL(1.0):FL(0.0);
-  p->cnt++;
+  p->size = size;
+  p->cnt = 1;
   return OK;
 }
 
