@@ -661,50 +661,57 @@ static int32_t not_a(CSOUND *csound, AOP *p)
 
 static int32_t vcombset(CSOUND *csound, VCOMB *p)
 {
-    int32_t        lpsiz, nbytes;
-
-    if (*p->insmps != FL(0.0)) {
-      if (UNLIKELY((lpsiz = MYFLT2LONG(*p->imaxlpt)) <= 0)) {
-        return csound->InitError(csound, "%s", Str("illegal loop time"));
-      }
-    }
-    else if (UNLIKELY((lpsiz = (int32)(*p->imaxlpt * CS_ESR)) <= 0)) {
+    MYFLT samples = *p->insmps != FL(0) ? *p->imaxlpt : *p->imaxlpt * CS_ESR;
+    if (UNLIKELY(!((double) samples >= 1.0 &&
+                   (double) samples <= INT32_MAX &&
+                   (double) samples <= SIZE_MAX / sizeof(MYFLT)))) {
       return csound->InitError(csound, "%s", Str("illegal loop time"));
     }
-    nbytes = lpsiz * sizeof(MYFLT);
-    if (p->auxch.auxp == NULL || nbytes != (int32_t)p->auxch.size) {
-      csound->AuxAlloc(csound, (size_t)nbytes, &p->auxch);
+    uint32_t lpsiz = (uint32_t) samples;
+    size_t nbytes = (size_t) lpsiz * sizeof(MYFLT);
+    if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
+      csound->AuxAlloc(csound, nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       if (UNLIKELY(p->pntr==NULL)) {
         return csound->InitError(csound, "%s", Str("could not allocate memory"));
       }
     }
     else if (!(*p->istor)) {
-      int32_t *fp = (int32_t *) p->auxch.auxp;
-      p->pntr = (MYFLT *) fp;
+      p->pntr = (MYFLT *) p->auxch.auxp;
       memset(p->pntr, 0, nbytes);
-      /* do   /\* Seems to assume sizeof(int32)=sizeof(MYFLT) *\/ */
-      /*   *fp++ = 0; */
-      /* while (--lpsiz); */
     }
     p->rvt = FL(0.0);
-    p->lpt = FL(0.0);
+    p->lpt = 0;
     p->g   = FL(0.0);
     p->lpta = IS_ASIG_ARG(p->xlpt) ? 1 : 0;
-    if (*p->insmps == 0) p->maxlpt = *p->imaxlpt * CS_ESR;
-    else p->maxlpt = *p->imaxlpt;
+    p->maxlpt = lpsiz;
     return OK;
 }
+
+/* Feedback requires at least one sample of delay. Bound before conversion. */
+#define VCOMB_DELAY(value, scale, maximum, result) do {                   \
+    MYFLT delaySamples = (value) * (scale);                              \
+    (result) = !(delaySamples >= FL(1)) ? 1 :                             \
+      ((double) delaySamples >= (maximum) ? (maximum) :                   \
+       (uint32_t) delaySamples);                                        \
+  } while (0)
+
+/* Wrap an integer index without first forming a pointer before the array. */
+#define VCOMB_READ(write, start, size, delay, read) do {                   \
+    uint32_t writeIndex = (uint32_t) ((write) - (start));                 \
+    (read) = (start) + (writeIndex >= (delay) ? writeIndex - (delay) :     \
+                       (size) - ((delay) - writeIndex));                \
+  } while (0)
 
 static int32_t vcomb(CSOUND *csound, VCOMB *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
-    uint32_t      xlpt, maxlpt = (uint32)p->maxlpt;
+    uint32_t      xlpt, maxlpt = p->maxlpt;
     MYFLT       *ar, *asig, *rp, *endp, *startp, *wp, *lpt;
     MYFLT       g = p->g;
-    MYFLT timeScale = *p->insmps != 0 ? CS_ONEDSR : FL(1.0);
+    MYFLT sampleScale = *p->insmps != 0 ? FL(1.0) : CS_ESR;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
@@ -720,29 +727,27 @@ static int32_t vcomb(CSOUND *csound, VCOMB *p)
     if (p->lpta) {                               /* if xlpt is a-rate */
       lpt = p->xlpt + offset;
       for (n=offset; n<nsmps; n++) {
-        xlpt = (uint32)((*p->insmps != 0) ? *lpt : *lpt * CS_ESR);
-        if (xlpt > maxlpt) xlpt = maxlpt;
-        if ((rp = wp - xlpt) < startp) rp += maxlpt;
-        if ((p->rvt != *p->krvt) || (p->lpt != *lpt)) {
-          p->rvt = *p->krvt, p->lpt = *lpt;
-          g = p->g = POWER(FL(0.001), (p->lpt * timeScale / p->rvt));
+        VCOMB_DELAY(*lpt, sampleScale, maxlpt, xlpt);
+        VCOMB_READ(wp, startp, maxlpt, xlpt, rp);
+        if ((p->rvt != *p->krvt) || (p->lpt != xlpt)) {
+          p->rvt = *p->krvt, p->lpt = xlpt;
+          g = p->g = p->rvt == FL(0) ? FL(0) :
+            POWER(FL(0.001), (p->lpt * CS_ONEDSR / p->rvt));
         }
         lpt++;
         MYFLT output = *rp++;
         *wp++ = (output * g) + asig[n];
         ar[n] = output;
         if (wp >= endp) wp = startp;
-        //if (rp >= endp) rp = startp;
       }
     }
     else {                                       /* if xlpt is k-rate */
-      xlpt = (uint32) ((*p->insmps != 0) ? *p->xlpt
-                                                  : *p->xlpt * CS_ESR);
-      if (xlpt > maxlpt) xlpt = maxlpt;
-      if ((rp = wp - xlpt) < startp) rp += maxlpt;
-      if ((p->rvt != *p->krvt) || (p->lpt != *p->xlpt)) {
-        p->rvt = *p->krvt, p->lpt = *p->xlpt;
-        g = p->g = POWER(FL(0.001), (p->lpt * timeScale / p->rvt));
+      VCOMB_DELAY(*p->xlpt, sampleScale, maxlpt, xlpt);
+      VCOMB_READ(wp, startp, maxlpt, xlpt, rp);
+      if ((p->rvt != *p->krvt) || (p->lpt != xlpt)) {
+        p->rvt = *p->krvt, p->lpt = xlpt;
+        g = p->g = p->rvt == FL(0) ? FL(0) :
+            POWER(FL(0.001), (p->lpt * CS_ONEDSR / p->rvt));
       }
       for (n=offset; n<nsmps; n++) {
         MYFLT output = *rp++;
@@ -764,10 +769,10 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    uint32_t xlpt, maxlpt = (uint32)p->maxlpt;
+    uint32_t xlpt, maxlpt = p->maxlpt;
     MYFLT       *ar, *asig, *rp, *startp, *endp, *wp, *lpt;
     MYFLT       y, z, g = p->g;
-    MYFLT timeScale = *p->insmps != 0 ? CS_ONEDSR : FL(1.0);
+    MYFLT sampleScale = *p->insmps != 0 ? FL(1.0) : CS_ESR;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
@@ -783,28 +788,26 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
     if (p->lpta) {                                      /* if xlpt is a-rate */
       lpt = p->xlpt;
       for (n=offset; n<nsmps; n++) {
-        xlpt = (uint32)((*p->insmps != 0) ? lpt[n] : lpt[n] * CS_ESR);
-        if (xlpt > maxlpt) xlpt = maxlpt;
-        if ((rp = wp - xlpt) < startp) rp += maxlpt;
-        if ((p->rvt != *p->krvt) || (p->lpt != lpt[n])) {
-          p->rvt = *p->krvt, p->lpt = lpt[n];
-          g = p->g = POWER(FL(0.001), (p->lpt * timeScale / p->rvt));
+        VCOMB_DELAY(lpt[n], sampleScale, maxlpt, xlpt);
+        VCOMB_READ(wp, startp, maxlpt, xlpt, rp);
+        if ((p->rvt != *p->krvt) || (p->lpt != xlpt)) {
+          p->rvt = *p->krvt, p->lpt = xlpt;
+          g = p->g = p->rvt == FL(0) ? FL(0) :
+            POWER(FL(0.001), (p->lpt * CS_ONEDSR / p->rvt));
         }
         y = *rp++;
         *wp++ = z = y * g + asig[n];
         ar[n] = y - g * z;
         if (wp >= endp) wp = startp;
-        //if (rp >= endp) rp = startp;
       }
     }
     else {                                              /* if xlpt is k-rate */
-      xlpt = (uint32) ((*p->insmps != 0) ? *p->xlpt
-                                         : *p->xlpt * CS_ESR);
-      if (xlpt > maxlpt) xlpt = maxlpt;
-      if ((rp = wp - xlpt) < startp) rp += maxlpt;
-      if ((p->rvt != *p->krvt) || (p->lpt != *p->xlpt)) {
-        p->rvt = *p->krvt, p->lpt = *p->xlpt;
-        g = p->g = POWER(FL(0.001), (p->lpt * timeScale / p->rvt));
+      VCOMB_DELAY(*p->xlpt, sampleScale, maxlpt, xlpt);
+      VCOMB_READ(wp, startp, maxlpt, xlpt, rp);
+      if ((p->rvt != *p->krvt) || (p->lpt != xlpt)) {
+        p->rvt = *p->krvt, p->lpt = xlpt;
+        g = p->g = p->rvt == FL(0) ? FL(0) :
+            POWER(FL(0.001), (p->lpt * CS_ONEDSR / p->rvt));
       }
       for (n=offset; n<nsmps; n++) {
         y = *rp++;
@@ -820,6 +823,9 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("valpass: not initialised"));
 }
+
+#undef VCOMB_DELAY
+#undef VCOMB_READ
 
 static int32_t ftmorfset(CSOUND *csound, FTMORF *p)
 {

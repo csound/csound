@@ -998,6 +998,8 @@ def runTest():
         ["test_flanger_invalid_delay.csd", "reject non-finite flanger delay", 1],
         ["test_vdelay_buffers.csd", "test short and wrapped variable delays"],
         ["test_vdelay_reinit.csd", "test variable delay state across reinit"],
+        ["test_vcomb_delay_feedback.csd", "variable comb delay and feedback"],
+        ["test_vcomb_invalid_size.csd", "variable comb rejects invalid sizes", 1],
         ["test_vdelay_invalid_maximum.csd", "reject invalid maximum delay", 1],
         ["test_vdelay_invalid_delay.csd", "reject non-finite delay", 1],
         ["test_comb_units.csd", "comb family delay units, rate handling and partial blocks"],
