@@ -1185,7 +1185,7 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
  * ipos    strindex    Sstr1, Sstr2
  * kpos    strindexk   Sstr1, Sstr2
  *
- * Return the position of the first occurence of Sstr2 in Sstr1,
+ * Return the position of the first occurrence of Sstr2 in Sstr1,
  * or -1 if not found. If Sstr2 is empty, 0 is returned.
  */
 
@@ -1193,21 +1193,10 @@ int32_t strindex_opcode(CSOUND *csound, STRINDEX_OP *p)
 {
   const char  *s1 = (char*) p->Ssrc1->data;
   const char  *s2 = (char*) p->Ssrc2->data;
-  int32_t         i, j;
+  const char  *match = strstr(s1, s2);
 
   (void) csound;
-  /* search substring from left to right, */
-  /* and return position of first match */
-  i = j = 0;
-  while (s2[j] != '\0') {
-    if (s1[i] == '\0') {
-      *(p->ipos) = -FL(1.0);
-      return OK;
-    }
-    j = (s1[i] != s2[j] ? 0 : j + 1);
-    i++;
-  }
-  *(p->ipos) = (MYFLT) (i - j);
+  *(p->ipos) = match != NULL ? (MYFLT) (match - s1) : -FL(1.0);
 
   return OK;
 }
@@ -1216,7 +1205,7 @@ int32_t strindex_opcode(CSOUND *csound, STRINDEX_OP *p)
  * ipos    strrindex   Sstr1, Sstr2
  * kpos    strrindexk  Sstr1, Sstr2
  *
- * Return the position of the last occurence of Sstr2 in Sstr1,
+ * Return the position of the last occurrence of Sstr2 in Sstr1,
  * or -1 if not found. If Sstr2 is empty, the length of Sstr1 is
  * returned.
  */
@@ -1225,24 +1214,22 @@ int32_t strrindex_opcode(CSOUND *csound, STRINDEX_OP *p)
 {
   const char  *s1 = (char*) p->Ssrc1->data;
   const char  *s2 = (char*) p->Ssrc2->data;
-  int32_t         i, j, k;
+  size_t len1 = strlen(s1), len2 = strlen(s2);
+  size_t pos;
 
   (void) csound;
-  /* search substring from left to right, */
-  /* and return position of last match */
-  i = j = 0;
-  k = -1;
-  while (1) {
-    if (s2[j] == '\0') {
-      k = i - j;
-      j = 0;
-    }
-    if (s1[i] == '\0')
+  *(p->ipos) = -FL(1.0);
+  if (len2 > len1)
+    return OK;
+  /* Visit every candidate from the right, including overlapping matches.
+     An empty substring matches at the end of the source string. */
+  pos = len1 - len2;
+  do {
+    if (memcmp(s1 + pos, s2, len2) == 0) {
+      *(p->ipos) = (MYFLT) pos;
       break;
-    j = (s1[i] != s2[j] ? 0 : j + 1);
-    i++;
-  }
-  *(p->ipos) = (MYFLT) k;
+    }
+  } while (pos-- != 0);
 
   return OK;
 }
