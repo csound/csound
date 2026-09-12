@@ -1002,6 +1002,8 @@ def runTest():
         ["test_butterworth_audio.csd", "test Butterworth audio parameters and partial blocks"],
         ["test_clfilt_ripple.csd", "clfilt small ripple and coefficient updates"],
         ["test_filterx_order_growth.csd", "test filter state after order growth"],
+        ["test_resony_spacing.csd", "test resony frequency spacing and bandwidth"],
+        ["test_resony_zero_base.csd", "reject undefined resony bandwidth scaling", 1],
         ["test_dcblock2_order_reinit.csd", "test dcblock2 order changes"],
         ["test_dcblock2_invalid_order.csd", "reject invalid dcblock2 order", 1],
         ["test_dbap.csd", "test dbap and dbapgains opcodes"],

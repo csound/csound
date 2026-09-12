@@ -345,6 +345,11 @@ static int32_t product(CSOUND *csound, SUM *p)
 
 static int32_t rsnsety(CSOUND *csound, RESONY *p)
 {
+    /* icorrect opts into base-relative linear spacing; old calls keep
+       the original spacing and integer conversion of isepmode. */
+    if (UNLIKELY(*p->icorrect != FL(0.0) && *p->icorrect != FL(1.0)))
+      return csound->InitError(csound, "%s",
+                               Str("resony: icorrect must be 0 or 1"));
     double order = (double)*p->ord;
     double scale_value = (double)*p->iscl;
     size_t state_size;
@@ -393,9 +398,13 @@ static int32_t resony(CSOUND *csound, RESONY *p)
     int32_t loop = p->loop;
     if (UNLIKELY(loop==0))
       return csound->InitError(csound, "%s", Str("loop cannot be zero"));
+    if (UNLIKELY(*p->icorrect && *p->kcf == FL(0.0)))
+      return csound->PerfError(csound, &(p->h),
+                               "%s", Str("resony: base frequency must be nonzero"));
     {
       MYFLT   sep = (*p->sep / (MYFLT) loop);
-      int32_t     flag = (int32_t) *p->iflag;
+      int32_t     flag = *p->icorrect ? (*p->iflag != FL(0.0)) :
+                        (int32_t)*p->iflag;
       MYFLT   *buffer = (MYFLT*) (p->buffer.auxp);
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -414,7 +423,10 @@ static int32_t resony(CSOUND *csound, RESONY *p)
       yt2 = p->yt2;
 
       for (j = 0; j < loop; j++) {
-        if (flag)                     /* linear separation in hertz */
+        if (flag && *p->icorrect)      /* linear separation in hertz */
+          cosf = (MYFLT) cos((cf = (double) (*p->kcf + sep * j))
+                             * (double) CS_TPIDSR);
+        else if (flag)                /* original linear spacing */
           cosf = (MYFLT) cos((cf = (double) (*p->kcf * sep * j))
                              * (double) CS_TPIDSR);
         else                          /* logarithmic separation in octaves */
@@ -1688,7 +1700,7 @@ static OENTRY localops[] = {
 { "trigger",  S(TRIG),  0, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
 { "sum",      S(SUM),   0, "a", "y",    (SUBR)sum_init, (SUBR)sum_               },
 { "product",  S(SUM),   0, "a", "y",    (SUBR)product_init, (SUBR)product },
-{ "resony",  S(RESONY), 0, "a", "akkikooo", (SUBR)rsnsety, (SUBR)resony }
+{ "resony",  S(RESONY), 0, "a", "akkikoooo", (SUBR)rsnsety, (SUBR)resony }
 };
 
 int32_t uggab_init_(CSOUND *csound)
