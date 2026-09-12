@@ -605,6 +605,7 @@ def runTest():
             "pvsadsyn rejects an out-of-range oscillator count",
             1,
         ],
+        ["test_pvsfreeze_state.csd", "pvsfreeze note state, reinit, and partial blocks"],
         [
             "test_pvsadsyn_invalid_increment.csd",
             "pvsadsyn rejects invalid bin increments",

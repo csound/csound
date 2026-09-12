@@ -971,7 +971,10 @@ int32_t pvstanal1(CSOUND *csound, PVST1 *p)
 
 static int32_t pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
 {
-  int32    N = p->fin->N;
+  int32 N = p->fin->N;
+  size_t state_bytes = (size_t)(N + 2) *
+    (p->fin->sliding ? sizeof(MYFLT) : sizeof(float));
+  size_t output_bytes = state_bytes * (p->fin->sliding ? CS_KSMPS : 1);
 
   if (UNLIKELY(p->fin == p->fout))
     csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
@@ -982,32 +985,21 @@ static int32_t pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
   p->fout->format = p->fin->format;
   p->fout->framecount = 1;
   p->lastframe = 0;
-
-  p->fout->NB = (N/2)+1;
+  p->fout->NB = (N / 2) + 1;
   p->fout->sliding = p->fin->sliding;
-  if (p->fin->sliding) {
-    uint32_t nsmps = CS_KSMPS;
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(MYFLT) * (N + 2) * nsmps)
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * nsmps,
-                       &p->fout->frame);
-    if (p->freez.auxp == NULL ||
-        p->freez.size < sizeof(MYFLT) * (N + 2) * nsmps)
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * nsmps, &p->freez);
-  }
-  else
-    {
-      if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < sizeof(float) * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-      if (p->freez.auxp == NULL || p->freez.size < sizeof(float) * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->freez);
 
-      if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
-                     (p->fout->format == PVS_AMP_PHASE))))
-        return csound->InitError(csound, "%s", Str("pvsfreeze: signal format "
+  if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
+                 (p->fout->format == PVS_AMP_PHASE))))
+    return csound->InitError(csound, "%s", Str("pvsfreeze: signal format "
                                              "must be amp-phase or amp-freq."));
-    }
+  if (p->fout->frame.auxp == NULL || p->fout->frame.size < output_bytes)
+    csound->AuxAlloc(csound, output_bytes, &p->fout->frame);
+  if (p->freez.auxp == NULL || p->freez.size < state_bytes)
+    csound->AuxAlloc(csound, state_bytes, &p->freez);
+  /* Each note starts without a captured spectrum, including reused instances.
+     Sliding mode also needs only one stored amplitude/frequency pair per bin. */
+  memset(p->freez.auxp, 0, state_bytes);
+  memset(p->fout->frame.auxp, 0, output_bytes);
   return OK;
 }
 
@@ -1016,18 +1008,23 @@ static int32_t pvssfreezeprocess(CSOUND *csound, PVSFREEZE *p)
    IGN(csound);
   int32_t i;
   uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   int32_t NB = p->fin->NB;
   MYFLT freeza = *p->kfra, freezf = *p->kfrf;
   CMPLX *fz = (CMPLX*)p->freez.auxp;
+  CMPLX *fout = (CMPLX*)p->fout->frame.auxp;
 
-  for (n=0; n<offset; n++) {
-    CMPLX *fo = (CMPLX*)p->fout->frame.auxp + n*NB;
-    for (i = 0; i < NB; i++) fo[i].re = fo[i].im = FL(0.0);
+  if (UNLIKELY(offset))
+    memset(fout, 0, (size_t)offset * NB * sizeof(CMPLX));
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(fout + (size_t)nsmps * NB, 0,
+           (size_t)early * NB * sizeof(CMPLX));
   }
   for (n=offset; n<nsmps; n++) {
-    CMPLX *fo = (CMPLX*)p->fout->frame.auxp + n*NB;
-    CMPLX *fi = (CMPLX*)p->fin->frame.auxp + n*NB;
+    CMPLX *fo = fout + (size_t)n * NB;
+    CMPLX *fi = (CMPLX*)p->fin->frame.auxp + (size_t)n * NB;
     for (i = 0; i < NB; i++) {
       if (freeza < 1)
         fz[i].re = fi[i].re;
@@ -1052,12 +1049,10 @@ static int32_t pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
   fout = (float *) p->fout->frame.auxp;
   fin = (float *) p->fin->frame.auxp;
   freez = (float *) p->freez.auxp;
-   int32    N = p->fin->N;
 
   framesize = p->fin->N + 2;
 
   if (p->lastframe < p->fin->framecount) {
-    memset(fout, 0, sizeof(float)*(N+2));
     for (i = 0; i < framesize; i += 2) {
       if (freeza < 1)
         freez[i] = fin[i];
