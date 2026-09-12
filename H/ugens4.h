@@ -38,7 +38,8 @@ typedef struct {
 typedef struct {
   OPDS    h;
   MYFLT   *ar, *xamp, *xcps, *kn, *kk, *kr, *ifn, *iphs;
-  int16   ampcod, cpscod, prvn;
+  int16   ampcod, cpscod;
+  int32_t prvn;
   MYFLT   prvr, twor, rsqp1, rtn, rtnp1, rsumr;
   int32    lphs;
   FUNC    *ftp;
