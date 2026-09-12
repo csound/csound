@@ -211,7 +211,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      strt /= (sr/N);
      end /= (sr/N);
      strt = (int32_t)(strt < 0 ? 0 : strt > N/2 ? N/2 : strt);
-     end = (int32_t)(end <= strt ? N/2 + 2 : end > N/2 + 2 ? N/2 + 2 : end);
+     end = (int32_t)(end <= strt ? N/2 : end > N/2 ? N/2 : end);
      frames = handle->frames-1;
      pos = *p->ktime*(sr/overlap);
 
@@ -225,7 +225,8 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
        frame2 = buffer + (N + 2)*(posi != frames-1 ? posi+1 : 0);
        frac = pos - posi;
 
-       for (i=strt; i < end; i+=2){
+       /* Each bin contains an amplitude and a frequency. */
+       for (i=2*strt; i <= 2*end; i+=2){
          fout[i] = frame1[i] + frac*(frame2[i] - frame1[i]);
          fout[i+1] = frame1[i+1] + frac*(frame2[i+1] - frame1[i+1]);
        }
