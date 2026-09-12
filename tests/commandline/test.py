@@ -645,6 +645,8 @@ def runTest():
         ["test_fof2_float_rise_range.csd", "reject fof2 rise beyond the float-phase range", 1],
         ["test_flooper_stereo_guard.csd", "flooper preserves the stereo wrap sample"],
         ["test_flooper_stereo_frame_bounds.csd", "reject flooper ranges past stereo frames", 1],
+        ["test_sndloop_state.csd", "sndloop recording, playback, and partial blocks"],
+        ["test_sndloop_invalid_size.csd", "sndloop rejects invalid recording sizes", 1],
         ["test_flooper_zero_duration.csd", "reject zero flooper duration", 1],
         ["test_flooper2_sample_offset.csd", "flooper2 handles partial blocks and stereo bounce"],
         ["test_ftaudio_frame_range.csd", "ftaudio writes bounded stereo frame ranges"],
