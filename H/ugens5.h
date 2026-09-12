@@ -74,7 +74,8 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig;
-        MYFLT   *circbuf, *circjp, *jp2lim;
+        MYFLT   *circbuf, *circjp, *jp2lim, *coefs;
+        int32_t npoles;
         LPREAD  *lpread;
         AUXCH   aux;
 
@@ -90,7 +91,8 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *kfrqratio;
-        MYFLT   *past, prvratio, d, prvout;
+        MYFLT   *past, *coefs, prvratio, d, prvout;
+        int32_t npoles;
         LPREAD  *lpread;
         AUXCH   aux;
 } LPFRESON;
