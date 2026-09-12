@@ -1356,18 +1356,32 @@ typedef struct _centr{
 } CENTR;
 
 static int32_t array_centroid(CSOUND *csound, CENTR *p) {
-  if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+  if(p->in->sizes == NULL || p->in->dimensions != 1 || p->in->sizes[0] < 2)
+    return NOTOK;
   MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
   int32_t NP1 = p->in->sizes[0];
-  MYFLT f = CS_ESR/(2*(NP1 - 1)),cf;
+  MYFLT f = CS_ESR/(FL(2.0)*(NP1 - 1)),cf;
   int32_t i;
-  cf = f*FL(0.5);
-  for (i=0; i < NP1-1; i++, cf+=f) {
+  cf = FL(0.0);
+  for (i=0; i < NP1; i++, cf+=f) {
     a += in[i];
     b += in[i]*cf;
   }
   *p->out = a > FL(0.0) ? b/a : FL(0.0);
+  return OK;
+}
+
+static int32_t array_centroid_i(CSOUND *csound, CENTR *p) {
+  if (UNLIKELY(array_centroid(csound, p) != OK))
+    return csound->InitError(csound, "%s",
+                            Str("centroid: expected at least two magnitude bins"));
+  return OK;
+}
+
+static int32_t array_centroid_k(CSOUND *csound, CENTR *p) {
+  if (UNLIKELY(array_centroid(csound, p) != OK))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("centroid: expected at least two magnitude bins"));
   return OK;
 }
 
@@ -1581,9 +1595,9 @@ static OENTRY arrayvars_localops[] =
     {"mfb", sizeof(MFB), 0, "i[]","i[]iii",
      (SUBR)mfbi, NULL, NULL},
     {"centroid", sizeof(CENTR), 0, "i","i[]",
-     (SUBR) array_centroid, NULL, NULL},
+     (SUBR) array_centroid_i, NULL, NULL},
     {"centroid", sizeof(CENTR), 0, "k","k[]", NULL,
-     (SUBR)array_centroid, NULL},
+     (SUBR)array_centroid_k, NULL},
     {"interleave", sizeof(INTERL), 0, "i[]","i[]i[]",
      (SUBR)interleave_i},
     {"interleave", sizeof(INTERL), 0, "k[]","k[]k[]",
