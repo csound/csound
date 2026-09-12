@@ -368,13 +368,15 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
 int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
 {
 
-    int32_t i, winsize = *p->size*2, powtwo, tmp;
+    int32_t i, winsize, powtwo, tmp;
+    MYFLT requested = *p->size * FL(2.0);
     MYFLT *tmpb;
 
-    if (UNLIKELY(winsize < MINWINSIZ || winsize > MAXWINSIZ)) {
+    if (UNLIKELY(!(requested >= MINWINSIZ && requested <= MAXWINSIZ))) {
       csound->Warning(csound, Str("ptrack: FFT size out of range; using %d\n"),
                       winsize = DEFAULTWINSIZ);
     }
+    else winsize = (int32_t) requested;
 
     tmp = winsize;
     powtwo = -1;
@@ -388,7 +390,8 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
       csound->Warning(csound, Str("ptrack: FFT size not a power of 2; using %d\n"),
                       winsize = (1 << powtwo));
     }
-    p->hopsize = *p->size;
+    /* Use the corrected size for both allocation and analysis. */
+    p->hopsize = winsize / 2;
     if (!p->signal.auxp || p->signal.size < p->hopsize*sizeof(MYFLT)) {
       csound->AuxAlloc(csound, p->hopsize*sizeof(MYFLT), &p->signal);
     }
@@ -416,7 +419,7 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
         tmpb[2*i+1] = -(MYFLT)sin((PI*i)/(winsize));
 
     p->cnt = 0;
-    if (*p->peak == 0 || *p->peak > MAXPEAKNOS)
+    if (!(*p->peak >= FL(1.0) && *p->peak <= MAXPEAKNOS))
       p->numpks = DEFAULTPEAKNOS;
     else
       p->numpks = *p->peak;
@@ -443,14 +446,15 @@ int32_t pitchtrackprocess(CSOUND *csound, PITCHTRACK *p)
     MYFLT *buf = (MYFLT *)p->signal.auxp;
     int32_t pos = p->cnt, h = p->hopsize;
     MYFLT scale = p->dbfs;
-    int32_t ksmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    int32_t ksmps = CS_KSMPS - p->h.insdshead->ksmps_no_end;
 
-    for (i=0; i<ksmps; i++,pos++) {
+    for (i=offset; i<ksmps; i++) {
+      buf[pos++] = sig[i]*scale;
       if (pos == h) {
         ptrack(csound,p);
         pos = 0;
       }
-      buf[pos] = sig[i]*scale;
     }
     //if (p->cps)
     *p->freq = p->cps;

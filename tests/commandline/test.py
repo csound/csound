@@ -763,6 +763,7 @@ def runTest():
         ["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
         ["test_pitch_conversion_arrays.csd", "pitch conversion arrays update each control cycle"],
         ["test_cps_table_pitch.csd", "tuning-table pitch endpoints and negative pitches"],
+        ["test_ptrack_analysis.csd", "ptrack active samples and consistent analysis sizes"],
         ["test_cps_missing_table.csd", "reject missing pitch tuning tables", 1],
         ["test_pitchac_blocks.csd", "pitchac analysis windows and partial blocks"],
         ["test_pitchac_invalid_size.csd", "pitchac rejects invalid buffer sizes", 1],
