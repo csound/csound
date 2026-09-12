@@ -1275,6 +1275,8 @@ int32_t linenr(CSOUND *csound, LINENR *p)
     memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n=offset; n<nsmps; n++) {
+    flag = 0;
+    val = FL(1.0);
     if (p->cnt1 > 0L) {
       flag = 1;
       val = p->lin1;
@@ -1283,8 +1285,7 @@ int32_t linenr(CSOUND *csound, LINENR *p)
     }
     if (p->h.insdshead->relesing) {
       flag = 1;
-      val = p->cnt1==0L ? val2 :val*val2;
-      //val *= val2;              /* If val = val2 jumps */
+      val *= val2;
       val2 *= p->mlt2;
     }
     if (flag) {
