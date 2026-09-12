@@ -2375,6 +2375,12 @@ static int32_t pvstencilset(CSOUND *csound, PVSTENCIL *p)
   uint32_t i;
   int32    chans = N / 2 + 1;
   MYFLT   *ftable;
+  size_t bytes;
+
+  if (UNLIKELY(p->fin->format != PVS_AMP_FREQ &&
+               p->fin->format != PVS_AMP_PHASE))
+    return csound->InitError(csound, "%s", Str("pvstencil: signal format "
+                                         "must be amp-phase or amp-freq."));
 
   p->fout->N = N;
   p->fout->overlap = p->fin->overlap;
@@ -2385,27 +2391,17 @@ static int32_t pvstencilset(CSOUND *csound, PVSTENCIL *p)
   p->lastframe = 0;
 
   p->fout->NB = chans;
-  if (p->fin->sliding) {
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(MYFLT) * (N + 2) * CS_KSMPS)
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
-                       &p->fout->frame);
-    p->fout->sliding = 1;
-  }
+  p->fout->sliding = p->fin->sliding;
+  bytes = ((size_t)N + 2) * (p->fin->sliding ?
+          sizeof(MYFLT) * CS_KSMPS : sizeof(float));
+  if (p->fout->frame.auxp == NULL || p->fout->frame.size < bytes)
+    csound->AuxAlloc(csound, bytes, &p->fout->frame);
   else
-    {
-      if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < sizeof(float) * (N + 2))
-        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    memset(p->fout->frame.auxp, 0, bytes);
 
-      if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
-                     (p->fout->format == PVS_AMP_PHASE))))
-        return csound->InitError(csound, "%s", Str("pvstencil: signal format "
-                                             "must be amp-phase or amp-freq."));
-    }
   p->func = csound->FTFind(csound, p->ifn);
-  if (p->func == NULL)
-    return OK;
+  if (UNLIKELY(p->func == NULL))
+    return NOTOK;
 
   if (UNLIKELY(p->func->flen + 1 < (uint32_t)chans))
     return csound->InitError(csound, "%s", Str("pvstencil: ftable needs to equal "
@@ -2435,24 +2431,24 @@ static int32_t pvstencil(CSOUND *csound, PVSTENCIL *p)
     p->fout->wintype = p->fin->wintype;
     ftable = p->func->ftable;
     for (n=0; n<offset; n++) {
-      CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
+      CMPLX *fout = (CMPLX *) p->fout->frame.auxp + (size_t)n*NB;
       for (i = 0; i < NB; i++) fout[i].re = fout[i].im = FL(0.0);
     }
     for (n=nsmps-early; n<nsmps; n++) {
-      CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
+      CMPLX *fout = (CMPLX *) p->fout->frame.auxp + (size_t)n*NB;
       for (i = 0; i < NB; i++) fout[i].re = fout[i].im = FL(0.0);
     }
     nsmps -= early;
     for (n=offset; n<nsmps; n++) {
-      CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
-      CMPLX *fin  = (CMPLX *) p->fin->frame.auxp  + n*NB;
+      CMPLX *fout = (CMPLX *) p->fout->frame.auxp + (size_t)n*NB;
+      CMPLX *fin  = (CMPLX *) p->fin->frame.auxp  + (size_t)n*NB;
       for (i = 0; i < NB; i++) {
         if (fin[i].re > ftable[i] * masklevel)
           fout[i].re = fin[i].re;   /* Just copy */
         else {
           fout[i].re = fin[i].re * g; /* or apply gain */
         }
-        fout[i].im = fin[i].im * g;
+        fout[i].im = fin[i].im;
       }
     }
   }
