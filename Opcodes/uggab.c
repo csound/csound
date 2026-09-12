@@ -1092,6 +1092,11 @@ static int32_t jitters_set(CSOUND *csound, JITTERS *p)
     return OK;
 }
 
+/* Start the next segment at phase zero even at an exact boundary. */
+#define JSPLINE_WRAP(phase) do {                                    \
+    if ((phase) >= 1.0) (phase) -= floor(phase);                     \
+  } while (0)
+
 static int32_t jitters(CSOUND *csound, JITTERS *p)
 {
     MYFLT       x, c3= p->c3, c2= p->c2;
@@ -1107,8 +1112,7 @@ static int32_t jitters(CSOUND *csound, JITTERS *p)
     next:
       p->si = (randGab(csound) * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
       if (p->si == 0) p->si = 1; /* Is this necessary? */
-      while (p->phs > 1.0)
-        p->phs -= 1.0;
+      JSPLINE_WRAP(p->phs);
       f0 = p->num0 = p->num1;
       f1 = p->num1 = p->num2;
       f2 = p->num2 = BiRandGab(csound);
@@ -1142,6 +1146,8 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    if (UNLIKELY(offset >= nsmps)) return OK;
+    if (cod) amp += offset;
     if (p->initflag) {
       p->initflag = 0;
       n = offset;
@@ -1154,8 +1160,7 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
       next:
         si =  (randGab(csound)  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
         if (si == 0) si = 1; /* Is this necessary? */
-        while (phs > 1.0)
-          phs -= 1.0;
+        JSPLINE_WRAP(phs);
         f0 = p->num0 = p->num1;
         f1 = p->num1 = p->num2;
         f2 = p->num2 = BiRandGab(csound);

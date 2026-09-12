@@ -663,6 +663,7 @@ def runTest():
         ["test_rspline_mixed_rates.csd", "test rspline mixed-rate bounds"],
         ["test_rspline_rate_parity.csd", "test rspline audio and control parity"],
         ["test_rspline_sample_offset.csd", "test rspline audio bounds at note onset"],
+        ["test_jspline_sample_state.csd", "jspline amplitude offsets and exact segment boundaries"],
         ["test_rspline_large_rate.csd", "test rspline with a large finite rate"],
         ["test_rspline_invalid_rate.csd", "reject invalid rspline rates", 1],
         ["test_oscil1i.csd", "oscil1i interpolates scans and holds their endpoints"],
