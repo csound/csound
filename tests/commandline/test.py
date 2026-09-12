@@ -654,6 +654,7 @@ def runTest():
         ["test_hvs_interpolation.csd", "HVS configuration and grid endpoints"],
         ["test_physmod_vibrato_bounds.csd", "test waveguide vibrato bounds"],
         ["test_oscbnk_float_phase_state.csd", "oscbnk preserves non-power-of-two oscillator phase"],
+        ["test_oscbnk_lfo_interpolation.csd", "oscbnk interpolates both LFO tables"],
         ["test_vco_float_phase_state.csd", "vco preserves non-power-of-two oscillator phase"],
         ["test_envlpx_float_interpolation.csd", "envlpx interpolates non-power-of-two tables correctly"],
         ["test_transeg_curves.csd", "transeg family curve stability and timing"],
