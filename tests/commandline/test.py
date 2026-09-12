@@ -984,6 +984,7 @@ def runTest():
         ["test_random_rate_correctness.csd", "randomi and randomh rate handling"],
         ["test_pinker_sequence.csd", "pinker preserves its noise sequence across block sizes"],
         ["test_pinker_sample_bounds.csd", "pinker clears inactive samples"],
+        ["test_pinkish_sample_state.csd", "pinkish amplitude offsets, seeds, and preserved state"],
         ["test_gausstrig_frequency_mode.csd", "gausstrig frequency-change and first-impulse modes"],
         ["test_mirror_bounds.csd", "test mirror boundaries and large inputs"],
         ["test_atonex_order_one.csd", "test atonex order-one filtering"],

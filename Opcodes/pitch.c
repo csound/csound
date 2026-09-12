@@ -1325,9 +1325,9 @@ int32_t pinkset(CSOUND *csound, PINKISH *p)
       p->ampinc = 0;
     }
     /* Unless we're reinitializing a tied note, zero coefs */
-    if (*p->iskip != FL(1.0)) {
+    if (*p->iskip == FL(0.0)) {
       if (*p->imethod == GARDNER_PINK)
-        GardnerPink_init(csound,p);
+        return GardnerPink_init(csound,p);
       else                                      /* Filter method */
         p->b0 = p->b1 = p->b2 = p->b3 = p->b4 = p->b5 = p->b6 = FL(0.0);
     }
@@ -1450,23 +1450,28 @@ int32_t GardnerPink_init(CSOUND *csound, PINKISH *p)
       /* Warn if user tried but failed to give sensible number */
       if (UNLIKELY(*p->iparam1 != FL(0.0)))
         csound->Warning(csound, Str("pinkish: Gardner method requires 4-%d bands. "
-                                    "Default %"PRIi32" substituted for %d.\n"),
+                                    "Default %"PRIi32" substituted for %g.\n"),
                         GRD_MAX_RANDOM_ROWS, p->grd_NumRows,
-                        (int32_t) *p->iparam1);
+                        (double) *p->iparam1);
     }
 
     /* Seed random generator by user value or by time (default) */
     if (*p->iseed != FL(0.0)) {
-      if (*p->iseed > -1.0 && *p->iseed < 1.0)
-        p->randSeed = (uint32) (*p->iseed * (MYFLT)0x80000000);
-      else p->randSeed = (uint32) *p->iseed;
+      double seed = *p->iseed;
+      if (UNLIKELY(!isfinite(seed)))
+        return csound->InitError(csound, "%s", Str("pinkish: invalid seed"));
+      if (seed > -1.0 && seed < 1.0)
+        seed *= 2147483648.0;
+      /* Convert the truncated seed modulo 2^32, including negative seeds. */
+      seed = fmod(trunc(seed), 4294967296.0);
+      if (seed < 0.0) seed += 4294967296.0;
+      p->randSeed = (uint32_t) seed;
     }
     else p->randSeed = (uint32) csound->GetRandomSeedFromTime();
 
     numRows = p->grd_NumRows;
     p->grd_Index = 0;
-    if (numRows == 32) p->grd_IndexMask = 0xFFFFFFFF;
-    else p->grd_IndexMask = (1<<numRows) - 1;
+    p->grd_IndexMask = UINT32_MAX >> (32 - numRows);
 
     /* Calculate reasonable maximum signed random value. */
     /* Tweaked to get sameish peak value over all numRows values (re) */
@@ -1494,7 +1499,8 @@ int32_t GardnerPink_perf(CSOUND *csound, PINKISH *p)
 {
     IGN(csound);
     MYFLT *aout, *amp, scalar;
-    int32 *rows, rowIndex, indexMask, randSeed, newRandom;
+    int32 *rows, randSeed, newRandom;
+    uint32_t rowIndex, indexMask;
     int32 runningSum, sum, ampinc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t n, nsmps = CS_KSMPS - p->h.insdshead->ksmps_no_end;
@@ -1502,6 +1508,7 @@ int32_t GardnerPink_perf(CSOUND *csound, PINKISH *p)
     aout        = p->aout;
     amp         = p->xin;
     ampinc      = p->ampinc;    /* Used to increment user amp if a-rate */
+    if (ampinc) amp += offset;
     scalar      = p->grd_Scalar;
     rowIndex    = p->grd_Index;
     indexMask   = p->grd_IndexMask;
@@ -1518,7 +1525,7 @@ int32_t GardnerPink_perf(CSOUND *csound, PINKISH *p)
         /* Determine how many trailing zeros in PinkIndex. */
         /* This algorithm will hang if n==0 so test first. */
         int32_t numZeros = 0;
-        int32_t n = rowIndex;
+        uint32_t n = rowIndex;
         while( (n & 1) == 0 ) {
           n = n >> 1;
           numZeros++;
