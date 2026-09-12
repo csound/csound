@@ -910,6 +910,7 @@ def runTest():
             1,
         ],
         ["test_wgpluck_excitation.csd", "wgpluck excitation reuse and partial blocks"],
+        ["test_bformenc1_input_reuse.csd", "bformenc1 input reuse in scalar and array outputs"],
         ["test_syncphasor_phase_wrap.csd", "test syncphasor phase wrapping"],
 
         ["test_phasorbnk_phase_state.csd", "phasorbnk bank resizing and phase state"],
