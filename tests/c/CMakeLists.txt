@@ -29,6 +29,7 @@ if(BUILD_TESTS)
         osc_blob_test.cpp
         pvsinit_test.cpp
         paulstretch_test.cpp
+        mixer_test.cpp
         server_test.cpp
         csound_plugin_opcode_test.cpp
         perfthread_test.cpp
