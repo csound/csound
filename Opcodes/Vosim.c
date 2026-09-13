@@ -48,7 +48,7 @@
 typedef struct {
   OPDS h;
   MYFLT *ar, *amp, *kfund, *kform, *kdamp, *knofpulse, *kpulsemul,
-    *iftab, *iskip;
+    *iftab, *iskip, *icorrect;
   FUNC *ftable;
   int32 timrem;    /* samples left of event */
   int32 pulstogo;  /* count of pulses to produce in burst */
@@ -121,6 +121,9 @@ void vosim_event(CSOUND* csound, VOSIM *p)
   p->pulseamp = *p->amp + p->ampdecay;
   /* if negative, table is read alternately back-/forward */
   p->lenfact  = *p->kpulsemul;
+  /* Preserve the legacy integer path's divide/multiply rounding. */
+  if (!p->floatph && *p->icorrect == FL(0.0) && p->lenfact != FL(0.0))
+    p->pulseinc /= p->lenfact;
 }
 
 
@@ -128,7 +131,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
  * Post:
  *    pulstogo is decremented or zero.
  *    0 <= pulsephs < FMAXLEN.
- *    The pulse factor applies only after the first pulse of an event.
+ *    In corrected mode, the pulse factor applies only after the first pulse.
  */
 void vosim_pulse(CSOUND* csound, VOSIM *p, int32_t first)
 {
@@ -148,7 +151,9 @@ void vosim_pulse(CSOUND* csound, VOSIM *p, int32_t first)
       (int32) FABS(1. / p->pulseincf) : INT_MAX;
   } else {
     p->pulsephs &= PHMASK;
-    if (!first) {
+    if (*p->icorrect == FL(0.0)) {
+      p->pulseinc *= p->lenfact;
+    } else if (!first) {
       p->pulseinc *= p->lenfact;
       if (p->lenfact < FL(0.0))
         p->pulsephs = PHMASK - p->pulsephs;
@@ -172,6 +177,8 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
   MYFLT *ar = p->ar;
   MYFLT *ftdata;
   int32  lobits, floatph = p->floatph, flen;
+  /* Legacy power-of-two output holds this amplitude for the whole block. */
+  MYFLT pulseamp = p->pulseamp;
 
   FUNC *ftp = p->ftable;
   if (UNLIKELY(ftp == NULL)) goto err1;
@@ -202,7 +209,8 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
         p->pulsephsf += p->pulseincf;
       } else {
         p->pulsephs &= PHMASK;
-        ar[n] = *(ftdata + (p->pulsephs >> lobits)) * p->pulseamp;
+        ar[n] = *(ftdata + (p->pulsephs >> lobits)) *
+          (*p->icorrect != FL(0.0) ? p->pulseamp : pulseamp);
         p->pulsephs += p->pulseinc;
       }
       --p->timrem;
@@ -226,12 +234,14 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
 
 
 /* ar   vosim   kamp, kFund, kForm, kDamp, kPulseCount, kPulseFactor,
-   ifn [, iskip] */
+   ifn [, iskip, icorrect]
+   icorrect defaults to zero: preserve legacy power-of-two table behavior.
+   Non-power-of-two tables always use the corrected path. */
 
 #define S(x)    sizeof(x)
 
 static OENTRY vosim_localops[] = {
-  { "vosim", S(VOSIM), TR,  "a", "kkkkkkio", (SUBR)vosimset, (SUBR)vosim }
+  { "vosim", S(VOSIM), TR,  "a", "kkkkkkioo", (SUBR)vosimset, (SUBR)vosim }
 };
 
 

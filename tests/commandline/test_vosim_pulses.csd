@@ -15,8 +15,10 @@ giOther ftgen 0, 0, -12, -2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2
 instr 1
  iStart = round(p2*sr)
  iLength = round(p3*sr)
- aPow vosim 1, 128, p4, .25, p6, p5, giPow
+ aPow vosim 1, 128, p4, .25, p6, p5, giPow, 0, 1
  aOther vosim 1, 128, p4, .25, p6, p5, giOther
+ aOtherZero vosim 1, 128, p4, .25, p6, p5, giOther, 0, 0
+ aOtherOne vosim 1, 128, p4, .25, p6, p5, giOther, 0, 1
  kBlock init 0
  kIndex = 0
  while kIndex < ksmps do
@@ -47,7 +49,10 @@ instr 1
   endif
   kPow vaget kIndex, aPow
   kOther vaget kIndex, aOther
-  if !(abs(kPow-kExpected)+abs(kOther-kExpected) < .00001) then
+  kOtherZero vaget kIndex, aOtherZero
+  kOtherOne vaget kIndex, aOtherOne
+  if !(abs(kPow-kExpected)+abs(kOther-kExpected) + \
+       abs(kOtherZero-kExpected)+abs(kOtherOne-kExpected) < .00001) then
    printks "vosim form=%g factor=%g sample=%g pow=%g other=%g expected=%g\n", 0, p4, p5, kPosition, kPow, kOther, kExpected
    exitnowk(-1)
   endif
@@ -59,8 +64,34 @@ instr 1
  kBlock += 1
 endin
 
+instr 2
+ aDefault vosim 1, 128, 512, .25, 3, 1, giPow
+ aZero vosim 1, 128, 512, .25, 3, 1, giPow, 0, 0
+ aStopped vosim 1, 128, 512, .25, 3, 0, giPow, 0, 0
+ kBlock init 0
+ ; Legacy output uses the amplitude saved at the start of each block.
+ kAmplitude = kBlock == 0 ? 0 : (kBlock%4 == 0 ? .25 : \
+              (kBlock%4 == 1 ? 1 : (kBlock%4 == 2 ? .75 : 0)))
+ kIndex = 0
+ while kIndex < ksmps do
+  kExpected = kAmplitude * (kIndex < 8 ? 1 : 2)
+  kDefault vaget kIndex, aDefault
+  kZero vaget kIndex, aZero
+  kStopped vaget kIndex, aStopped
+  if !(abs(kDefault-kExpected)+abs(kZero-kExpected)+abs(kStopped) < .00001) then
+   printks "vosim legacy block=%g sample=%g default=%g zero=%g expected=%g\n", 0, kBlock, kIndex, kDefault, kZero, kExpected
+   exitnowk(-1)
+  endif
+  kIndex += 1
+ od
+ if kBlock == 0 then
+  gkChecks += 1
+ endif
+ kBlock += 1
+endin
+
 instr 99
- if i(gkChecks) != 10 then
+ if i(gkChecks) != 11 then
   prints "vosim checks did not complete\n"
   exitnow(-1)
  endif
@@ -77,7 +108,8 @@ i 1 .1875 .015625 512 .5 3
 i 1 .21875 .015625 0 1 3
 i 1 .25 .015625 512 1 0
 i 1 .2818603515625 .0123291015625 512 -1 3
-i 99 .3125 .001
+i 2 .3125 .03125
+i 99 .359375 .001
 e
 </CsScore>
 </CsoundSynthesizer>
