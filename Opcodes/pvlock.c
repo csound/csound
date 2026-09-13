@@ -1698,9 +1698,13 @@ static int32_t hilbert_array_proc(CSOUND *csound, HILBA *p) {
     MYFLT *inframe = (MYFLT *) p->inframe.auxp;
     MYFLT *outframe = (MYFLT *) p->outframe.auxp;
     MYFLT *win = (MYFLT *) p->win.auxp;
-    COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
+    COMPLEXDAT *out;
     MYFLT *in = p->in;
     MYFLT scal = decim < 4 ? 1 : 16./(3*decim);
+
+    if (UNLIKELY(tabcheck(csound, p->out, CS_KSMPS, &p->h) != OK))
+      return NOTOK;
+    out = (COMPLEXDAT *) p->out->data;
 
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -1730,6 +1734,7 @@ static int32_t hilbert_array_proc(CSOUND *csound, HILBA *p) {
         p->off = off = off%(fftsize*decim);
       }
       out[n].real = out[n].imag = FL(0.0);
+      out[n].isPolar = 0;
       for (i = 0; i < decim; i++) {
         inframe[iframecnt[i]+i*fftsize] = in[n];
         iframecnt[i] = iframecnt[i] == fftsize-1 ? 0 : iframecnt[i]+1;
