@@ -517,7 +517,7 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
 {
     FUNC    *ftp, *freqtp, *amptp;
     MYFLT   *ar, *ftbl, *freqtbl, *amptbl, *prevAmp;
-    MYFLT   amp0, amp, cps0, cps, ampIncr, amp2, incf;
+    MYFLT   amp0, amp, cps0, cps, ampIncr, amp2, incf, onedsamps;
     int32   phs, inc, lobits;
     double  *fphs, phsf;
     int32   *lphs;
@@ -550,10 +550,10 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
 
     ar = p->sr;
     memset(ar, 0, nsmps*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
+    nsmps -= early;
+    if (UNLIKELY(offset >= nsmps)) return OK;
+    /* Reach the next amplitude target over this block's active samples. */
+    onedsamps = FL(1.0) / (nsmps - offset);
 
     for (c=0; c<count; c++) {
       amp2 = prevAmp[c];
@@ -561,11 +561,11 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
       cps = freqtbl[c] * cps0;
 
       if(!interp) // linear
-        ampIncr = (amp - amp2) * CS_ONEDKSMPS;
+        ampIncr = (amp - amp2) * onedsamps;
       else { // expon
         amp = amp > 0 ? amp : odbfs*0.0001;
         amp2 = amp2 > 0 ? amp2 : odbfs*0.0001;
-        ampIncr = pow(amp/amp2, CS_ONEDKSMPS);
+        ampIncr = pow(amp/amp2, onedsamps);
       }
 
       if(!floatph) {

@@ -674,6 +674,7 @@ def runTest():
         ["test_harmon_state.csd", "harmon234 partial blocks and pulse state"],
         ["test_harmon_invalid_size.csd", "harmon234 rejects unsupported history sizes", 1],
         ["test_buzz_amplitude_phase.csd", "buzz current amplitude and phase across table types"],
+        ["test_adsynt2_ramps.csd", "adsynt2 linear and exponential ramps across partial blocks"],
         ["test_crossfm_correctness.csd", "test crossed FM and PM correctness"],
         ["test_foscil_phase_state.csd", "foscil and foscili phase initialization and advancement"],
         ["test_pan2_input_aliasing.csd", "pan2 preserves input samples when outputs reuse them"],
