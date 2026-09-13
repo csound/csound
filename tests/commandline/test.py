@@ -501,6 +501,7 @@ def runTest():
         ["test_schedwhen.csd", "schedwhen opcode"],
         ["test_filepeak_channels.csd", "filepeak stored and scanned channel peaks"],
         ["test_bbcut_envelopes.csd", "bbcut mono and stereo envelopes across cuts and stutters"],
+        ["test_prepiano_state.csd", "prepiano stereo scans, single string and preparation tables"],
         ["test_parse_error_unary.csd", "expected failure: unary parse error", 1],
         ["test_parse_error_unary_not.csd", "expected failure: unary ! parse error", 1],
         ["test_parse_error_unary_minus.csd", "expected failure: unary - parse error", 1],

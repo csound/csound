@@ -208,18 +208,19 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
 
 /* Prepared Piano string */
 
+/* Preparation records use the sample type of their function tables. */
 typedef struct {
-  double pos;                   /* position along string of rattle */
-  double massden;               /* mass density ratio (rattle/string) */
-  double freq;                  /* fundamental freq. of rattle */
-  double length;                /* vertical length of rattle */
+  MYFLT pos;                    /* position along string of rattle */
+  MYFLT massden;                /* mass density ratio (rattle/string) */
+  MYFLT freq;                   /* fundamental freq. of rattle */
+  MYFLT length;                 /* vertical length of rattle */
 } RATTLE;
 
 typedef struct {
-  double pos;                   /* position along string of rubber */
-  double massden;               /* mass density ratio (rubber/string) */
-  double freq;                  /* fundamental freq. of rubber */
-  double loss;                  /* loss parameter of rubber */
+  MYFLT pos;                    /* position along string of rubber */
+  MYFLT massden;                /* mass density ratio (rubber/string) */
+  MYFLT freq;                   /* fundamental freq. of rubber */
+  MYFLT loss;                   /* loss parameter of rubber */
 } RUBBER;
 
 typedef struct {
@@ -294,7 +295,8 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
       }
 
       for (n=0; n<NS; n++) {
-        double detune_spread = (D*n/(NS-1.0) - D*0.5)/1200.0;
+        double detune_spread = NS == 1 ? 0.0 :
+          (D*n/(NS-1.0) - D*0.5)/1200.0;
         c[n] = 2.0*f0*pow(2.0, detune_spread);
       }
 
@@ -375,6 +377,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
     double COSNW2 = 0;
     double SIN1W2 = 0;
     double COS1W2 = 0;
+    MYFLT e0dbfs = csound->Get0dBFS(csound);
 
     if (p->stereo) {
       double f1 = (*p->scanfreq - FL(0.5)* *p->scanspread)/CS_ESR;
@@ -472,7 +475,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
       if (p->rubber_num) {
         /* do this only if at least one rubber is specified */
         for (qq=0; qq<p->rubber_num; qq++) {
-          int32_t rubber_index = (int32_t)(2+p->rubber[0].pos*N);
+          int32_t rubber_index = (int32_t)(2+p->rubber[qq].pos*N);
           MYFLT force = 0.0;
           for (n=0; n<NS; n++) {
             MYFLT pos;
@@ -538,21 +541,21 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
         for (qq=0; qq<NS; qq++) {
           out += (1-xofrac)*w[xoint*NS+qq]+xofrac*w[(xoint+1)*NS+qq];
         }
-        ar[t] = FL(200.0)*out*csound->Get0dBFS(csound);
+        ar[t] = FL(200.0)*out*e0dbfs;
         if (p->stereo) {
-          /* Need to deal with stereo version here */
           xx = SINNW2*COS1W2 + COSNW2*SIN1W2;
           yy = COSNW2*COS1W2 - SINNW2*SIN1W2;
+          SINNW2 = xx;
+          COSNW2 = yy;
           xo = xoctr + xoamp*SINNW2;
           /*        xo = xoctr+xoamp*(MYFLT)sin(TWOPI*(*p->scanfreq)*n*dt); */
           xoint = (int32_t)(xo*N)+2;
           xofrac = xo*N - xoint + FL(2.0);
+          out = FL(0.0);
           for (qq=0; qq<NS; qq++) {
             out += (1-xofrac)*w[xoint*NS+qq]+xofrac*w[(xoint+1)*NS+qq];
           }
-          ar1[t] = FL(200.0)*out*csound->Get0dBFS(csound);
-          SINNW2 = xx;
-          COSNW2 = yy;
+          ar1[t] = FL(200.0)*out*e0dbfs;
         }
         step++;
       }
