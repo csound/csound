@@ -765,6 +765,8 @@ static int32_t hilbert_array(CSOUND *csound, HILBERTA *p)
     uint32_t n, nsmps = CS_KSMPS;
     int32_t j;
 
+    if (UNLIKELY(tabcheck(csound, p->out, CS_KSMPS, &p->h) != OK))
+      return NOTOK;
     coef = p->coef;
     out = (COMPLEXDAT *) p->out->data;
     in = p->in;
@@ -793,6 +795,7 @@ static int32_t hilbert_array(CSOUND *csound, HILBERTA *p)
       }
       out[n].real = yn2;
       out[n].imag = yn1;
+      out[n].isPolar = 0;
     }
     return OK;
 }

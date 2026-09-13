@@ -619,6 +619,7 @@ def runTest():
         ["test_pvsbin_output.csd", "pvsbin output rates, bin changes, and partial blocks"],
         ["test_pvsbin_invalid_bin.csd", "reject invalid pvsbin indices", 1],
         ["test_hilbert2_state.csd", "hilbert2 input reuse, partial blocks and reinit"],
+        ["test_hilbert_array_format.csd", "hilbert array format and length after output reuse"],
         ["test_arrayops_current_length.csd", "array math and sorting follow current input lengths"],
         ["test_arrayops_short_second.csd", "array math rejects a shortened second input", 1],
         ["test_dot_short_second.csd", "dot rejects a shortened second input", 1],
