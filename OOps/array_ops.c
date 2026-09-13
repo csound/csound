@@ -3417,31 +3417,42 @@ int32_t tabscaleset(CSOUND *csound, TABSCALE *p)
 
 int32_t tabscale(CSOUND *csound, TABSCALE *p)
 {
-  IGN(csound);
   MYFLT min = *p->kmin, max = *p->kmax;
-  int32_t strt = (int32_t)MYFLT2LRND(*p->kstart),
-    end = (int32_t)MYFLT2LRND(*p->kend);
+  double left = *p->kstart, right = *p->kend;
+  int32_t strt, end, size;
   ARRAYDAT *t = p->tab;
   MYFLT tmin;
   MYFLT tmax;
   int32_t i;
   MYFLT range;
 
-  tmin = t->data[strt];
-  tmax = tmin;
+  if (UNLIKELY(t->dimensions != 1 || t->sizes == NULL))
+    return csound->PerfError(csound, &(p->h),
+                             "%s", Str("array-variable not a vector"));
+  size = t->sizes[0];
+  if (size == 0) return OK;
+  if (UNLIKELY(t->data == NULL))
+    return csound->PerfError(csound, &(p->h),
+                             "%s", Str("array-variable not initialised"));
 
-  // Correct start and ending points
-  if (end<0) end = t->sizes[0];
-  else if (end>t->sizes[0]) end = t->sizes[0];
-  if (strt<0) strt = 0;
-  else if (strt>t->sizes[0]) strt = t->sizes[0];
+  /* Clamp before integer conversion and before reading the selected range. */
+  strt = left <= 0.0 ? 0 :
+         left < size ? (int32_t)MYFLT2LRND(left) : size;
+  end = right >= 0.0 && right < size ? (int32_t)MYFLT2LRND(right) : size;
   if (end<strt) {
     int32_t x = end; end = strt; strt = x;
   }
+  if (strt == end) return OK;
+  tmin = tmax = t->data[strt];
   // get data range
   for (i=strt+1; i<end; i++) {
     if (t->data[i]<tmin) tmin = t->data[i];
     if (t->data[i]>tmax) tmax = t->data[i];
+  }
+  /* A constant input has no span; map it to the first target endpoint. */
+  if (tmax == tmin || max == min) {
+    for (i=strt; i<end; i++) t->data[i] = min;
+    return OK;
   }
   range = (max-min)/(tmax-tmin);
   for (i=strt; i<end; i++) {
