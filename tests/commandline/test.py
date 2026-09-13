@@ -685,6 +685,8 @@ def runTest():
         ["test_delay1_samples.csd", "delay1 input reuse, active samples and retained state"],
         ["test_freeverb_samples.csd", "freeverb input reuse and partial-block history"],
         ["test_otafilter_samples.csd", "otafilter output bounds, overdrive and input reuse"],
+        ["test_svn_drive.csd", "svn drive, transfer tables and parameter rates"],
+        ["test_svn_invalid_tables.csd", "svn rejects missing tables and invalid domains", 3],
         ["test_bformdec1_surround.csd", "bformdec1 preserves partial blocks and selects the input order"],
         ["test_bformdec2_samples.csd", "bformdec2 sample bounds, input reuse and decoder responses"],
         ["test_space_trajectory_endpoint.csd", "space and spdist handle the last trajectory frame"],
