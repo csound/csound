@@ -33,8 +33,6 @@
 #include "interlocks.h"
 #include "arrays.h"
 
-#define FLT_MAX ((MYFLT)0x7fffffff)
-
 static int32_t krsnsetx(CSOUND *csound, KRESONX *p)
 /* Gabriel Maldonado, modified for arb order  */
 {
@@ -803,17 +801,8 @@ static int32_t isAChanged(CSOUND *csound,ISACHANGED *p)
 static int32_t partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
 {
   IGN(csound);
-  int32_t flag = (int32_t) *p->imaxflag;
-  switch (flag) {
-  case 1:
-    p->max = 0; break;
-  case 2:
-    p->max = -FLT_MAX; break;
-  case 3:
-    p->max = FLT_MAX; break;
-  case 4:
-    p->max = 0; break;
-  }
+  *p->kout = FL(0.0);
+  p->max = FL(0.0);
   p->counter = 0;
   return OK;
 }
@@ -827,29 +816,33 @@ static int32_t partial_maximum(CSOUND *csound,P_MAXIMUM *p)
   MYFLT *a = p->asig;
   MYFLT max = p->max;
   if (UNLIKELY(early)) nsmps -= early;
+  if (UNLIKELY(offset >= nsmps)) return OK;
+  /* Seed extrema from the signal instead of imposing a fixed value limit. */
+  if (p->counter == 0 && (flag == 2 || flag == 3))
+    max = a[offset];
+  p->counter += nsmps - offset;
   switch(flag) {
   case 1: /* absolute maximum */
     for (n=offset; n<nsmps; n++) {
       MYFLT temp;
       if ((temp = FABS(a[n])) > max) max = temp;
     }
-    if (max > p->max) p->max = max;
+    p->max = max;
     break;
   case 2: /* actual maximum */
     for (n=offset; n<nsmps; n++) {
       if (a[n] > max) max = a[n];
     }
-    if (max > p->max) p->max = max;
+    p->max = max;
     break;
   case 3: /* actual minimum */
     for (n=offset; n<nsmps; n++) {
       if (a[n] < max) max = a[n];
     }
-    if (max < p->max) p->max = max;
+    p->max = max;
     break;
   case 4: { /* average */
     MYFLT temp = FL(0.0);
-    p->counter += nsmps;
     for (n=offset; n<nsmps; n++) {
       temp += a[n];
     }
@@ -861,22 +854,9 @@ static int32_t partial_maximum(CSOUND *csound,P_MAXIMUM *p)
                              "%s", Str("max_k: invalid imaxflag value"));
   }
   if (*p->ktrig) {
-    switch (flag) {
-    case 4:
-      *p->kout = p->max / (MYFLT) p->counter;
-      p->counter = 0;
-      p->max = FL(0.0);
-      break;
-    case 1:
-      *p->kout = p->max;
-      p->max = 0; break;
-    case 2:
-      *p->kout = p->max;
-      p->max = -FLT_MAX; break;
-    case 3:
-      *p->kout = p->max;
-      p->max = FLT_MAX; break;
-    }
+    *p->kout = flag == 4 ? p->max / (MYFLT)p->counter : p->max;
+    p->counter = 0;
+    p->max = FL(0.0);
   }
   return OK;
 }

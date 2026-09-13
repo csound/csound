@@ -126,7 +126,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *kout, *asig, *ktrig, *imaxflag;
     MYFLT   max;
-    int32_t     counter;
+    uint64_t    counter;
 } P_MAXIMUM;
 
 /* From fractals.h */
