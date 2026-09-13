@@ -1,10 +1,11 @@
-#define __BUILDING_LIBCSOUND
-#include "csoundCore.h"
-#include "../../Opcodes/pvoc.h"
 #include "gtest/gtest.h"
 
 #include <algorithm>
 #include <string>
+
+#define __BUILDING_LIBCSOUND
+#include "csoundCore.h"
+#include "../../Opcodes/pvoc.h"
 
 namespace {
 
