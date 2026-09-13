@@ -859,13 +859,18 @@ int32_t hsboscil(CSOUND *csound, HSBOSC   *p)
 int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 {
     MYFLT srate, downs;
-    int32  size, minperi, maxperi, downsamp, upsamp, msize, bufsize;
+    int32  size, minperi, maxperi, downsamp, upsamp;
+    size_t msize, bufsize;
+    double minperiod, maxperiod, period, requested, blocksize, maxmedian;
     uint32_t interval;
     uint32_t nsmps = CS_KSMPS;
 
-    p->inerr = 0;
+    p->inerr = 1;
 
     downs = *p->idowns;
+    if (UNLIKELY(!(downs >= -(double)INT32_MAX + 1 &&
+                   downs <= (double)INT32_MAX - 1)))
+      return csound->InitError(csound, Str("pitchamdf: invalid resampling factor"));
     if (downs < (-FL(1.9))) {
       upsamp = (int32_t)MYFLT2LONG((-downs));
       downsamp = 0;
@@ -879,27 +884,38 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
       upsamp = 0;
     }
 
-    minperi = (int32)(srate / *p->imaxcps);
-    maxperi = (int32)(FL(0.5)+srate / *p->imincps);
+    if (UNLIKELY(!(*p->imincps > 0 && *p->imaxcps > *p->imincps)))
+      return csound->InitError(csound, Str("pitchamdf: invalid frequency range"));
+    minperiod = (double)srate / *p->imaxcps;
+    maxperiod = 0.5 + (double)srate / *p->imincps;
+    if (UNLIKELY(!(minperiod >= 1 && maxperiod < INT32_MAX)))
+      return csound->InitError(csound, Str("pitchamdf: frequency range is too wide"));
+    minperi = (int32_t)minperiod;
+    maxperi = (int32_t)maxperiod;
     if (UNLIKELY(maxperi <= minperi)) {
-      p->inerr = 1;
       return csound->InitError(csound,
-                               "%s", Str("pitchamdf: maxcps must be > mincps !"));
+                               "%s", Str("pitchamdf: frequency range has no distinct periods"));
     }
 
     if (*p->iexcps < 1)
-        interval = maxperi;
+        requested = maxperi;
     else
-        interval = (uint32_t)(srate / *p->iexcps);
-    if (interval < nsmps) {
-      if (downsamp)
-        interval = nsmps / downsamp;
-      else
-        interval = nsmps * upsamp;
-    }
+        requested = (double)srate / *p->iexcps;
+    if (UNLIKELY(!(requested >= 0 && requested < INT32_MAX)))
+      return csound->InitError(csound, Str("pitchamdf: invalid analysis interval"));
+    /* At least one control block, measured at the resampled rate. */
+    blocksize = downsamp ? ceil((double)nsmps / downsamp) :
+      (double)nsmps * upsamp;
+    if (requested < blocksize)
+      requested = blocksize;
+    if (UNLIKELY(requested > INT32_MAX - maxperi))
+      return csound->InitError(csound, Str("pitchamdf: analysis window is too large"));
+    interval = (uint32_t)requested;
 
     size = maxperi + interval;
-    bufsize = sizeof(MYFLT)*(size + interval + 2);
+    if (UNLIKELY((size_t)size > SIZE_MAX / sizeof(MYFLT)))
+      return csound->InitError(csound, Str("pitchamdf: analysis window is too large"));
+    bufsize = sizeof(MYFLT) * (size_t)size;
 
     p->srate = srate;
     p->downsamp = downsamp;
@@ -911,9 +927,20 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     p->index = 0;
     p->lastval = FL(0.0);
     if (*p->icps < 1)
-        p->peri = (minperi + maxperi) / 2;
-    else
-        p->peri = (int32_t)(srate / *p->icps);
+        p->peri = minperi + (maxperi - minperi) / 2;
+    else {
+      period = (double)srate / *p->icps;
+      if (UNLIKELY(!(period >= minperi && period < (double)maxperi + 1)))
+        return csound->InitError(csound, Str("pitchamdf: initial pitch is outside the range"));
+      p->peri = (int32_t)period;
+    }
+
+    /* Three arrays share each median allocation; validate before rounding. */
+    maxmedian = (double)(SIZE_MAX / sizeof(MYFLT) / 3 - 1) / 2;
+    if (maxmedian > (INT32_MAX - 3) / 6)
+      maxmedian = (INT32_MAX - 3) / 6;
+    if (UNLIKELY(!(*p->irmsmedi < maxmedian && *p->imedi < maxmedian)))
+      return csound->InitError(csound, Str("pitchamdf: median window is too large"));
 
     if (*p->irmsmedi < 1)
         p->rmsmedisize = 0;
@@ -922,7 +949,7 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     p->rmsmediptr = 0;
 
     if (p->rmsmedisize) {
-      msize = p->rmsmedisize * 3 * sizeof(MYFLT);
+      msize = (size_t)p->rmsmedisize * 3 * sizeof(MYFLT);
       if (p->rmsmedian.auxp==NULL || p->rmsmedian.size < (size_t)msize)
         csound->AuxAlloc(csound, msize, &p->rmsmedian);
       else {
@@ -937,7 +964,7 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     p->mediptr = 0;
 
     if (p->medisize) {
-      msize = p->medisize * 3 * sizeof(MYFLT);
+      msize = (size_t)p->medisize * 3 * sizeof(MYFLT);
       if (p->median.auxp==NULL || p->median.size < (size_t)msize)
         csound->AuxAlloc(csound, (size_t)msize, &p->median);
       else {
@@ -950,6 +977,7 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     }
     else
       memset(p->buffer.auxp, 0, bufsize);
+    p->inerr = 0;
     return OK;
 }
 
@@ -1020,9 +1048,9 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
     MYFLT  upsmp = (MYFLT)upsamp;
     MYFLT  lastval = p->lastval;
     MYFLT  newval, delta;
-    int32  readp = p->readp;
+    int64_t readp = p->readp + (int64_t)p->h.insdshead->ksmps_offset;
     int32  interval = size - maxperi;
-    int32_t    nsmps = CS_KSMPS;
+    int32_t    nsmps = CS_KSMPS - p->h.insdshead->ksmps_no_end;
     int32_t    i;
     int32  i1, i2;
     MYFLT  val, rms;
@@ -1033,12 +1061,15 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("pitchamdf: not initialised"));
     }
+    if (UNLIKELY(p->h.insdshead->ksmps_offset >= (uint32_t)nsmps))
+      return OK;
 
     if (upsamp) {
-      while (1) {
-        newval = asig[readp++];
-        delta = (newval-lastval) / upsmp;
-        lastval = newval;
+      while (readp < nsmps) {
+        MYFLT sample = asig[readp++];
+        delta = (sample-lastval) / upsmp;
+        newval = lastval;
+        lastval = sample;
 
         for (i=0; i<upsamp; i++) {
           newval += delta;
@@ -1047,14 +1078,14 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
           if (index == size) {
             peri = minperi;
             accmin = FL(0.0);
-            for (i2 = 0; i2 < size; ++i2) {
+            for (i2 = 0; i2 < interval; ++i2) {
               diff = buffer[i2+minperi] - buffer[i2];
               if (diff > 0) accmin += diff;
               else          accmin -= diff;
             }
             for (i1 = minperi + 1; i1 <= maxperi; ++i1) {
               acc = FL(0.0);
-              for (i2 = 0; i2 < size; ++i2) {
+              for (i2 = 0; i2 < interval; ++i2) {
                 diff = buffer[i1+i2] - buffer[i2];
                 if (diff > 0) acc += diff;
                 else          acc -= diff;
@@ -1065,7 +1096,7 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
               }
             }
 
-            for (i1 = 0; i1 < interval; i1++)
+            for (i1 = 0; i1 < maxperi; i1++)
               buffer[i1] = buffer[i1+interval];
             index = maxperi;
 
@@ -1084,28 +1115,27 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
             }
           }
         }
-        if (readp >= nsmps) break;
       }
-      readp = readp % nsmps;
+      readp = 0;
       p->lastval = lastval;
     }
     else {
       int32  downsamp = p->downsamp;
-      while (1) {
+      while (readp < nsmps) {
         buffer[index++] = asig[readp];
         readp += downsamp;
 
         if (index == size) {
           peri = minperi;
           accmin = FL(0.0);
-          for (i2 = 0; i2 < size; ++i2) {
+          for (i2 = 0; i2 < interval; ++i2) {
             diff = buffer[i2+minperi] - buffer[i2];
             if (diff > FL(0.0)) accmin += diff;
             else                accmin -= diff;
           }
           for (i1 = minperi + 1; i1 <= maxperi; ++i1) {
             acc = FL(0.0);
-            for (i2 = 0; i2 < size; ++i2) {
+            for (i2 = 0; i2 < interval; ++i2) {
               diff = buffer[i1+i2] - buffer[i2];
               if (diff > FL(0.0)) acc += diff;
               else                acc -= diff;
@@ -1116,7 +1146,7 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
             }
           }
 
-          for (i1 = 0; i1 < interval; i1++)
+          for (i1 = 0; i1 < maxperi; i1++)
             buffer[i1] = buffer[i1+interval];
           index = maxperi;
 
@@ -1134,16 +1164,14 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
             p->mediptr = mediptr;
           }
         }
-
-        if (readp >= nsmps) break;
       }
-      readp = readp % nsmps;
+      readp -= nsmps;
     }
-    buffer = &buffer[(index + size - peri) % size];
+    /* The buffer is linear history; samples before note onset are zero. */
     sum = 0.0;
-    for (i1=0; i1<peri; i1++) {
+    for (i1 = (index > peri ? index - peri : 0); i1 < index; i1++) {
       val = buffer[i1];
-      sum += (double)(val * val);
+      sum += (double)val * (double)val;
     }
     if (UNLIKELY(peri==0))      /* How xould thus happen??? */
       rms = FL(0.0);
