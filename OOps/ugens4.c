@@ -166,10 +166,14 @@ int32_t gbzset(CSOUND *csound, GBUZZ *p)
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->floatph = !IS_POW_TWO(p->ftp->flen);
-      if (*p->iphs >= 0) {
-        p->lphs = (int32_t)(*p->iphs * FMAXLEN);
-        p->prvr = FL(0.0);
-        p->fphs  = *p->iphs;
+      double phase = *p->iphs;
+      if (UNLIKELY(!isfinite(phase)))
+        return csound->InitError(csound, "%s", Str("gbuzz: invalid initial phase"));
+      if (phase >= 0.0) {
+        phase -= floor(phase);
+        p->lphs = (int32_t)(phase * FMAXLEN);
+        p->fphs = phase;
+        p->prvn = 0; /* Force coefficient calculation, including kmul=0. */
       }
       p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
       p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
@@ -182,28 +186,47 @@ int32_t gbzset(CSOUND *csound, GBUZZ *p)
 
 
 
+/* Keep harmonic phase reduction in double precision, including negative k. */
+#define GBUZZ_COS(harmonic) \
+    ftbl[(int32_t)((fphs * (harmonic) - floor(fphs * (harmonic))) * flen)]
+
+#define GBUZZ_INCREMENT(inc) do {                 \
+    if ((inc) >= 1.0 || (inc) <= -1.0)           \
+      (inc) -= trunc(inc);                      \
+  } while (0)
+
 int32_t gbuzz(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
-    MYFLT       *ar, *ampp, *cpsp, *ftbl, incf;
-    int32_t       phs, inc, lobits, lenmask, k, km1, kpn, kpnm1,
-      floatph = p->floatph, flen = p->ftp->flen;
+    MYFLT       *ar, *ampp, *cpsp, *ftbl;
+    double incf;
+    int32_t       phs, inc, lobits, lenmask,
+      floatph = p->floatph, flen;
+    int64_t k, km1, kpn, kpnm1;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       r, absr, num, denom, scal, last = p->last;
-    int32_t       nn, lphs = p->lphs;
+    int32_t       nn;
+    uint32_t lphs = (uint32_t)p->lphs;
     double fphs = p->fphs;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
     ftbl = ftp->ftable;
+    flen = ftp->flen;
     lobits = ftp->lobits;
     lenmask = ftp->lenmask;
     ampp = p->xamp;
     cpsp = p->xcps;
-    k = (int32_t)*p->kk;                   /* fix k and n  */
-    if ((nn = (int32_t)*p->kn)<0) nn = -nn;
+    double harmonics = fabs((double)*p->kn);
+    double lowest = (double)*p->kk;
+    if (UNLIKELY(!(harmonics < 2147483648.0) ||
+                 !(lowest >= INT32_MIN && lowest < 2147483648.0)))
+      return csound->PerfError(csound, &(p->h),
+                               Str("gbuzz: invalid harmonic range"));
+    k = (int32_t)lowest;
+    nn = (int32_t)harmonics;
     if (UNLIKELY(nn == 0)) {              /* n must be > 0 */
       nn = 1;
     }
@@ -219,11 +242,14 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
         p->rsumr = FL(1.0) / nn;
       else p->rsumr = (FL(1.0) - absr) / (FL(1.0) - FABS(p->rtn));
       p->prvr = r;
-      p->prvn = (int16)nn;
+      p->prvn = nn;
     }
     scal =  *ampp * p->rsumr;
 
-    if(floatph) incf = *cpsp * CS_ONEDSR;
+    if(floatph) {
+      incf = (double)*cpsp * CS_ONEDSR;
+      GBUZZ_INCREMENT(incf);
+    }
     else inc = (int32_t)(*cpsp * CS_SICVT);
 
     ar = p->ar;
@@ -240,13 +266,19 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
         inc = (int32_t)(cpsp[n] * CS_SICVT);
       phs = lphs >>lobits;
       denom = p->rsqp1 - p->twor * ftbl[phs];
-      num = ftbl[phs * k & lenmask]
-        - r * ftbl[phs * km1 & lenmask]
-        - p->rtn * ftbl[phs * kpn & lenmask]
-        + p->rtnp1 * ftbl[phs * kpnm1 & lenmask];
+      num = ftbl[(uint32_t)phs * (uint32_t)k & lenmask]
+        - r * ftbl[(uint32_t)phs * (uint32_t)km1 & lenmask]
+        - p->rtn * ftbl[(uint32_t)phs * (uint32_t)kpn & lenmask]
+        + p->rtnp1 * ftbl[(uint32_t)phs * (uint32_t)kpnm1 & lenmask];
       if (LIKELY(denom > FL(0.0002) || denom < -FL(0.0002))) {
         ar[n] = last = num / denom * scal;
       }
+      /* At exact peaks the sign follows the cosine sum, not the last sample. */
+      else if (r == FL(1.0) && ftbl[phs] == FL(1.0))
+        ar[n] = last = (p->ampcod ? ampp[n] : *ampp);
+      else if (r == FL(-1.0) && ftbl[phs] == FL(-1.0))
+        ar[n] = last = (k & 1 ? -(p->ampcod ? ampp[n] : *ampp)
+                              : (p->ampcod ? ampp[n] : *ampp));
       else if (last<0)
         ar[n] = last = - (p->ampcod ? ampp[n] : *ampp);
       else
@@ -254,21 +286,30 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
       lphs += inc;
       lphs &= PHMASK;
       } else {
-      if (p->cpscod)
-        incf = (int32_t)(cpsp[n] * CS_ONEDSR);
+      if (p->cpscod) {
+        incf = (double)cpsp[n] * CS_ONEDSR;
+        GBUZZ_INCREMENT(incf);
+      }
       denom = p->rsqp1 - p->twor * ftbl[(int32_t)(fphs*flen)];
-      num = ftbl[(int32_t)(PHMOD1(fphs*k)*flen)]
-        - r * ftbl[(int32_t)(PHMOD1(fphs*km1)*flen)]
-        - p->rtn * ftbl[(int32_t)(PHMOD1(fphs*kpn)*flen)]
-        + p->rtnp1 * ftbl[(int32_t)(PHMOD1(fphs*kpnm1)*flen)];
+      num = GBUZZ_COS(k)
+        - r * GBUZZ_COS(km1)
+        - p->rtn * GBUZZ_COS(kpn)
+        + p->rtnp1 * GBUZZ_COS(kpnm1);
       if (LIKELY(denom > FL(0.0002) || denom < -FL(0.0002))) {
         ar[n] = last = num / denom * scal;
       }
+      else if (r == FL(1.0) && ftbl[(int32_t)(fphs*flen)] == FL(1.0))
+        ar[n] = last = (p->ampcod ? ampp[n] : *ampp);
+      else if (r == FL(-1.0) && ftbl[(int32_t)(fphs*flen)] == FL(-1.0))
+        ar[n] = last = (k & 1 ? -(p->ampcod ? ampp[n] : *ampp)
+                              : (p->ampcod ? ampp[n] : *ampp));
       else if (last<0)
         ar[n] = last = - (p->ampcod ? ampp[n] : *ampp);
       else
         ar[n] = last = (p->ampcod ? ampp[n] : *ampp);
-      fphs = PHMOD1(incf+fphs);
+      fphs += incf;
+      if (fphs >= 1.0 || fphs < 0.0)
+        fphs -= floor(fphs);
       }
     }
     p->last = last;
