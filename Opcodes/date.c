@@ -26,6 +26,13 @@
 #include "csoundCore.h"
 #endif
 #include <time.h>
+#include <limits.h>
+
+#ifdef USE_DOUBLE
+#define DATE_EPOCH 0
+#else
+#define DATE_EPOCH 1262304000    /* 1 Jan 2010 */
+#endif
 
 #ifndef __wasi__
 #include <errno.h>
@@ -54,12 +61,7 @@ typedef struct {
 static int32_t datemyfltset(CSOUND *csound, DATEMYFLT *p)
 {
     IGN(csound);
-#ifdef USE_DOUBLE
-    const time_t base = 0;
-#else
-    /*    time_t base = 946684800; */  /* 1 Jan 2000 */
-    const time_t base = 1262304000;    /* 1 Jan 2010 */
-#endif
+    const time_t base = DATE_EPOCH;
 #ifdef LINUX
     struct timespec tp;
     clock_gettime(CLOCK_REALTIME, &tp);
@@ -86,22 +88,20 @@ static int32_t datestringset(CSOUND *csound, DATESTRING *p)
 {
     time_t  temp_time;
     char    *time_string;
-    /* char *q; */
-    int32_t tmp;
-
-#if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
-   tmp = (int32_t) MYFLT2LRND(*(p->timstmp));
-#else
-  tmp = (int32_t) (*(p->timstmp) + FL(0.5));
-#endif
-    if (tmp <= 0) temp_time = time(NULL);
-    else         temp_time = (time_t)tmp;
+    if (*p->timstmp < FL(0.0)) temp_time = time(NULL);
+    else {
+      /* Match date's epoch and round before converting to the host time type. */
+      double seconds = floor((double)*p->timstmp + 0.5) + DATE_EPOCH;
+      double limit = ldexp(1.0, sizeof(time_t) * CHAR_BIT -
+                          ((time_t)-1 < (time_t)0));
+      if (UNLIKELY(!(seconds >= 0.0 && seconds < limit)))
+        return csound->InitError(csound, "%s", Str("dates: time out of range"));
+      temp_time = (time_t)seconds;
+    }
 
     time_string = ctime(&temp_time);
-    /*    printf("Timestamp = %f\ntimestring=>%s<\n", *p->timstmp, time_string); */
-
-    /* q = strchr(time_string, '\n'); */
-    /* if (q) *q='\0'; */
+    if (UNLIKELY(time_string == NULL))
+      return csound->InitError(csound, "%s", Str("dates: time out of range"));
     if (p->Stime_->data != NULL) csound->Free(csound, p->Stime_->data);
     p->Stime_->data = csound->Strdup(csound, time_string);
     p->Stime_->size = strlen(time_string)+1;
