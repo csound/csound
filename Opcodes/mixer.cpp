@@ -22,6 +22,8 @@
 */
 #include <map>
 #include <vector>
+#include <cmath>
+#include <limits>
 #include "OpcodeBase.hpp"
 
 using namespace csound;
@@ -43,10 +45,15 @@ using namespace csound;
  * std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix = 0;
  */
 
+static bool validMixerIndex(MYFLT value) {
+  return value >= FL(0.0) &&
+         (double)value < std::ldexp(1.0, std::numeric_limits<size_t>::digits);
+}
+
 /**
  * Creates the buss if it does not already exist.
  */
-static void createBuss(CSOUND *csound, size_t buss, int32_t ksmps) {
+static int32_t createBuss(CSOUND *csound, size_t buss, int32_t ksmps) {
 #ifdef ENABLE_MIXER_IDEBUG
   csound->Message(csound, "createBuss: csound %p buss %d...\n", csound, buss);
 #endif
@@ -64,10 +71,14 @@ static void createBuss(CSOUND *csound, size_t buss, int32_t ksmps) {
     csound->Message(csound, "createBuss: created buss.\n");
 #endif
   } else {
+    if ((*busses)[csound][buss][0].size() != (size_t)ksmps)
+      return csound->InitError(csound, "%s",
+                              "mixer: a bus cannot mix different ksmps values");
 #ifdef ENABLE_MIXER_IDEBUG
     csound->Message(csound, "createBuss: buss already exists.\n");
 #endif
   }
+  return OK;
 }
 
 /**
@@ -90,9 +101,12 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel> {
     warn(csound, "MixerSetLevel::init...\n");
 #endif
     csound::QueryGlobalPointer(csound, "matrix", matrix);
+    if (!validMixerIndex(*isend) || !validMixerIndex(*ibuss))
+      return csound->InitError(csound, "%s", "mixer: invalid send or bus index");
     send = static_cast<size_t>(*isend);
     buss = static_cast<size_t>(*ibuss);
-    createBuss(csound, buss, opds.insdshead->ksmps);
+    if (createBuss(csound, buss, opds.insdshead->ksmps) != OK)
+      return NOTOK;
     (*matrix)[csound][send][buss] = *kgain;
 #ifdef ENABLE_MIXER_IDEBUG
     warn(csound, "MixerSetLevel::init: csound %p send %d buss %d gain %f\n",
@@ -131,9 +145,12 @@ struct MixerGetLevel : public OpcodeBase<MixerGetLevel> {
     warn(csound, "MixerGetLevel::init...\n");
 #endif
     csound::QueryGlobalPointer(csound, "matrix", matrix);
+    if (!validMixerIndex(*isend) || !validMixerIndex(*ibuss))
+      return csound->InitError(csound, "%s", "mixer: invalid send or bus index");
     send = static_cast<size_t>(*isend);
     buss = static_cast<size_t>(*ibuss);
-    createBuss(csound, buss, opds.insdshead->ksmps);
+    if (createBuss(csound, buss, opds.insdshead->ksmps) != OK)
+      return NOTOK;
     return OK;
   }
   int32_t noteoff(CSOUND *) { return OK; }
@@ -172,9 +189,14 @@ struct MixerSend : public OpcodeBase<MixerSend> {
 #endif
     csound::QueryGlobalPointer(csound, "busses", busses);
     csound::QueryGlobalPointer(csound, "matrix", matrix);
+    if (!validMixerIndex(*isend) || !validMixerIndex(*ibuss))
+      return csound->InitError(csound, "%s", "mixer: invalid send or bus index");
+    if (!(*ichannel >= FL(0.0) && *ichannel < csound->GetNchnls(csound)))
+      return csound->InitError(csound, "%s", "mixer: channel index out of range");
     send = static_cast<size_t>(*isend);
     buss = static_cast<size_t>(*ibuss);
-    createBuss(csound, buss, opds.insdshead->ksmps);
+    if (createBuss(csound, buss, opds.insdshead->ksmps) != OK)
+      return NOTOK;
     channel = static_cast<size_t>(*ichannel);
     frames = opds.insdshead->ksmps;
     busspointer = &(*busses)[csound][buss][channel].front();
@@ -191,7 +213,8 @@ struct MixerSend : public OpcodeBase<MixerSend> {
     warn(csound, "MixerSend::audio...\n");
 #endif
     MYFLT gain = (*matrix)[csound][send][buss];
-    for (size_t i = 0; i < frames; i++) {
+    size_t end = frames - opds.insdshead->ksmps_no_end;
+    for (size_t i = opds.insdshead->ksmps_offset; i < end; i++) {
       busspointer[i] += (ainput[i] * gain);
     }
 #ifdef ENABLE_MIXER_KDEBUG
@@ -224,10 +247,15 @@ struct MixerReceive : public OpcodeBase<MixerReceive> {
   std::map<CSOUND *, std::map<size_t, std::vector<std::vector<MYFLT>>>> *busses;
   int32_t init(CSOUND *csound) {
     csound::QueryGlobalPointer(csound, "busses", busses);
+    if (!validMixerIndex(*ibuss))
+      return csound->InitError(csound, "%s", "mixer: invalid bus index");
+    if (!(*ichannel >= FL(0.0) && *ichannel < csound->GetNchnls(csound)))
+      return csound->InitError(csound, "%s", "mixer: channel index out of range");
     buss = static_cast<size_t>(*ibuss);
     channel = static_cast<size_t>(*ichannel);
     frames = opds.insdshead->ksmps;
-    createBuss(csound, buss, opds.insdshead->ksmps);
+    if (createBuss(csound, buss, opds.insdshead->ksmps) != OK)
+      return NOTOK;
 #ifdef ENABLE_MIXER_IDEBUG
     warn(csound, "MixerReceive::init...\n");
 #endif
@@ -246,9 +274,16 @@ struct MixerReceive : public OpcodeBase<MixerReceive> {
 #else
     IGN(csound);
 #endif
-    for (size_t i = 0; i < frames; i++) {
+    size_t offset = opds.insdshead->ksmps_offset;
+    size_t end = frames - opds.insdshead->ksmps_no_end;
+    size_t i = 0;
+    for (; i < offset; i++)
+      aoutput[i] = FL(0.0);
+    for (; i < end; i++) {
       aoutput[i] = busspointer[i];
     }
+    for (; i < frames; i++)
+      aoutput[i] = FL(0.0);
 #ifdef ENABLE_MIXER_KDEBUG
     warn(csound, "MixerReceive::audio aoutput %p busspointer %p\n", aoutput,
          buss);
