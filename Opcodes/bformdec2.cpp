@@ -894,9 +894,9 @@ typedef struct {
 
 typedef struct FCOMPLEX {double r,i;} fcomplex;
 
-static double readFilter(HOAMBDEC*, int32_t, int32_t);
-static void insertFilter(HOAMBDEC*,double, int32_t);
-static void process_nfc(CSOUND*,HOAMBDEC*, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t);
+static inline double readFilter(HOAMBDEC*, int32_t, int32_t);
+static inline void insertFilter(HOAMBDEC*,double, int32_t);
+static inline void process_nfc(HOAMBDEC*, int32_t, int32_t, MYFLT*, int32_t);
 
 #ifndef MAX
 #define MAX(a,b) ((a>b)?(a):(b))
@@ -1348,14 +1348,14 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       // (  0.1767766953,  0.2165063509, -0.2165063509)
       //(  0.1767766953,  0.2165063509, -0.2165063509)
 
-      double M_lf[8][4] = { { const1, const2, const2, 0.0 },
-                            { const1, const2, const2, 0.0 },
-                            { const1, -const2, const2, 0.0 },
-                            { const1, -const2, const2, 0.0 },
-                            { const1, -const2, -const2, 0.0 },
-                            { const1, -const2, -const2, 0.0 },
-                            { const1, const2, -const2, 0.0 },
-                            { const1, const2, -const2, 0.0 } };
+      double M_lf[8][4] = { { const1, const2, const2, -const2 },
+                            { const1, const2, const2, const2 },
+                            { const1, -const2, const2, -const2 },
+                            { const1, -const2, const2, const2 },
+                            { const1, -const2, -const2, -const2 },
+                            { const1, -const2, -const2, const2 },
+                            { const1, const2, -const2, -const2 },
+                            { const1, const2, -const2, const2 } };
 
       for (int32_t i = 0; i < 8; i++) {
         for (int32_t j = 0; j < 4; j++) {
@@ -1746,7 +1746,7 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
     /* Outer loop */
     if (UNLIKELY(offset)) {
       for (j = 0; j < n_outs; j++) {
-        memset(&out[j], '\0', offset*sizeof(MYFLT));
+        memset(&out[j*ksmps], '\0', offset*sizeof(MYFLT));
       }}
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -1758,7 +1758,8 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
     // ***** FIX MEMORY ALOCATION *****
     //double poleSamp[p->n_signals],inSamp[p->n_signals];
     //double zeroSamp_lf[p->n_signals],zeroSamp_hf[p->n_signals];
-    double poleSamp[36],inSamp[36];
+    double poleSamp[36];
+    MYFLT inSamp[36];
     double zeroSamp_lf[36],zeroSamp_hf[36];
     //double poleSamp_nfc[p->n_signals],inSamp_nfc[p->n_signals],zeroSamp_nfc[p->n_signals];
 
@@ -1786,15 +1787,25 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
     out_A = (MYFLT*)p->out_A.auxp;
     out_binaural0 = (MYFLT*)p->out_binaural0.auxp;
     out_binaural1 = (MYFLT*)p->out_binaural1.auxp;
+    int32_t decoder = (int32_t)*p->band;
+    double (*matrix)[MAX_INPUTS] = decoder == 1 ? p->M_lf : p->M_hf;
+    MYFLT *decoded = (isetup == 21 || isetup == 31) ? out_A : out;
 
     for (n=offset; n<nsmps; n++) {
 
       if (isetup == 1) { // Stereo configuration. Nor band splitting nor near field compensation.
+        MYFLT w = in[n], y = in[2*ksmps+n];
         /* Left: */
-        out[n] = in[n]*SQRT(FL(0.5)) + in[2*ksmps+n]*FL(0.5);    // w*sqrt(0.5) + y*0.5;
+        out[n] = w*SQRT(FL(0.5)) + y*FL(0.5);
         /* Right: */
-        out[ksmps+n] = in[n]*SQRT(FL(0.5)) - in[2*ksmps+n]*FL(0.5);    // w*sqrt(0.5) - y*0.5;
+        out[ksmps+n] = w*SQRT(FL(0.5)) - y*FL(0.5);
         continue;
+      }
+
+      /* Read every input before an output can overwrite a shared array. */
+      for (j = 0; j < p->n_signals; j++) {
+        int32_t in_ix = p->horizontal ? dict_3dto2d[j] : j;
+        inSamp[j] = in[in_ix*ksmps+n];
       }
 
       out_binaural0[n] = 0.0;
@@ -1823,12 +1834,18 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
           signal_order = order_signals3d[j];
 
         if (signal_order != 0) {
-          if ((int)*(p->r)!=-1)
-            process_nfc(csound,p,signal_order,n,j,in_ix,CS_ESR,CS_KSMPS);
+          if (*p->r != FL(-1.0))
+            process_nfc(p,signal_order,j,&inSamp[j],CS_ESR);
+        }
+
+        if (decoder == 1 || decoder == 2) {
+          /* A single decoder uses its full-band matrix, without a crossover. */
+          for (int32_t o = 0; o < n_outs_A; o++)
+            decoded[o*ksmps+n] += (MYFLT)(matrix[o][in_ix] * inSamp[j]);
+          continue;
         }
 
         // band splitting
-        inSamp[j] = in[in_ix*ksmps+n];
         poleSamp[j] = inSamp[j];
         zeroSamp_lf[j] = 0.0;
         zeroSamp_hf[j] = 0.0;
@@ -1851,23 +1868,9 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
         y_hf = (p->b_hf[0])*poleSamp[j] + zeroSamp_hf[j];
         y_lf = (p->b_lf[0])*poleSamp[j] + zeroSamp_lf[j];
 
-        for (int32_t o = 0; o < n_outs_A; o++) {
-          if (isetup == 21 || isetup == 31) { //binaural
-            switch((int)*(p->band)) {
-            case 0: out_A[o*ksmps+n] += (MYFLT) ((p->M_lf[o][in_ix])*y_lf - (p->M_hf[o][in_ix])*y_hf); break;
-            case 1: out_A[o*ksmps+n] += (MYFLT) y_lf; break;
-            case 2: out_A[o*ksmps+n] += (MYFLT) y_hf; break;
-            default: ;
-            }
-          } else {
-            switch((int)*(p->band)) {
-            case 0: out[o*ksmps+n] += (MYFLT) ((p->M_lf[o][in_ix])*y_lf - (p->M_hf[o][in_ix])*y_hf); break;
-            case 1: out[o*ksmps+n] += (MYFLT) y_lf; break;
-            case 2: out[o*ksmps+n] += (MYFLT) y_hf; break;
-            default: ;
-            }
-          }
-        }
+        if (decoder == 0)
+          for (int32_t o = 0; o < n_outs_A; o++)
+            decoded[o*ksmps+n] += (MYFLT)(p->M_lf[o][in_ix]*y_lf - p->M_hf[o][in_ix]*y_hf);
       }
     }
 
@@ -1896,24 +1899,14 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
  * (adapted from  csound/Opcodes/hrtfopcodes.c)
  *
  */
-static double readFilter(HOAMBDEC* p, int32_t i, int32_t j)
+static inline double readFilter(HOAMBDEC* p, int32_t i, int32_t j)
 {
-
-    double* readPoint; /* Generic pointer address */
-    int32_t delay;
-    /* Calculate the address of the index for this read */
-    readPoint = p->currPos[j] - i;
-    delay = p->ndelay;
-
-    /* Wrap around for time-delay if necessary */
-    if (readPoint < ((double*)p->delay[j].auxp) )
-      readPoint += delay;
-    else
-      /* Wrap for time-advance if necessary */
-      if (readPoint > ((double*)p->delay[j].auxp + (delay-1)) )
-        readPoint -= delay;
-
-    return *readPoint; /* Dereference read address for delayed value */
+    double *base = (double*)p->delay[j].auxp;
+    int32_t index = (int32_t)(p->currPos[j] - base) - i;
+    /* Wrap the index before forming a pointer outside the delay array. */
+    if (index < 0) index += p->ndelay;
+    else if (index >= p->ndelay) index -= p->ndelay;
+    return base[index];
 }
 
 
@@ -1924,7 +1917,7 @@ static double readFilter(HOAMBDEC* p, int32_t i, int32_t j)
  * (adapted from  csound/Opcodes/hrtfopcodes.c)
  *
  */
-static void insertFilter(HOAMBDEC* p, double val, int32_t j)
+static inline void insertFilter(HOAMBDEC* p, double val, int32_t j)
 {
 
     int32_t delay;
@@ -1944,13 +1937,13 @@ static void insertFilter(HOAMBDEC* p, double val, int32_t j)
  * This code was adapted from The Ambisonic Decoder Toolbox
  *
  */
-static void process_nfc(CSOUND *csound, HOAMBDEC* p, int32_t signal_order, int32_t n, int32_t j, int32_t in_ix, int32_t sr,
-                        int32_t ksmps)
+static inline void process_nfc(HOAMBDEC* p, int32_t signal_order, int32_t j,
+                               MYFLT *sample, int32_t sr)
 {
     //char buffer[50];
 
     double d; // meters
-    if ((int)*(p->r) == 0) {
+    if (*p->r == FL(0.0)) {
       d = 1.0;
     } else {
       d = (double)*(p->r);
@@ -1959,7 +1952,6 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int32_t signal_order, int32
     double c = 343.2; // m/s
     double omega = c/(d*sr);
     double gain = 1.0;
-    MYFLT *in = p->in->data;
     //MYFLT *out = p->out->data;
     //  1  1
 
@@ -1969,12 +1961,12 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int32_t signal_order, int32
       double d1 = 0.0 - (2.0 * b1) / g1;
       double g = gain/g1;
 
-      double fTemp0 = (g * in[in_ix*ksmps+n]);
+      double fTemp0 = (g * *sample);
       double fTemp1 = (d1 * p->fRec0[j][1]);
       p->fRec2[j][0] = (fTemp0 + p->fRec2[j][1] + fTemp1);
       p->fRec0[j][0] = p->fRec2[j][0];
       double fRec1 = (fTemp1 + fTemp0);
-      in[in_ix*ksmps+n] = (MYFLT) fRec1;
+      *sample = (MYFLT) fRec1;
       p->fRec2[j][1] = p->fRec2[j][0];
       p->fRec0[j][1] = p->fRec0[j][0];
     }
@@ -1991,7 +1983,7 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int32_t signal_order, int32
       double d2 = 0.0 - (4.0 * b2) / g2;
       double g = gain/g2;
 
-      double fTemp0 = (g * in[in_ix*ksmps+n]);
+      double fTemp0 = (g * *sample);
       double fTemp1 = (d2 * p->fRec0[j][1]);
       double fTemp2 = (d1 * p->fRec3[j][1]);
       p->fRec5[j][0] = (fTemp0 + (fTemp1 + (p->fRec5[j][1] + fTemp2)));
@@ -2000,7 +1992,7 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int32_t signal_order, int32
       p->fRec2[j][0] = (p->fRec3[j][0] + p->fRec2[j][1]);
       p->fRec0[j][0] =  p->fRec2[j][0];
       float fRec1 = fRec4;
-      in[in_ix*ksmps+n] = (MYFLT) fRec1;
+      *sample = (MYFLT) fRec1;
       p->fRec5[j][1] = p->fRec5[j][0];
       p->fRec3[j][1] = p->fRec3[j][0];
       p->fRec2[j][1] = p->fRec2[j][0];
@@ -2025,7 +2017,7 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int32_t signal_order, int32
 
       double g = gain/(g3*g2);
       double fTemp0 = (d3 * p->fRec0[j][1]);
-      double fTemp1 = (g * in[in_ix*ksmps+n]);
+      double fTemp1 = (g * *sample);
       double fTemp2 = (d2 * p->fRec3[j][1]);
       double fTemp3 = (d1 * p->fRec6[j][1]);
       p->fRec8[j][0] = (fTemp1 + (fTemp2 + (p->fRec8[j][1] + fTemp3)));
@@ -2037,7 +2029,7 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int32_t signal_order, int32
       p->fRec2[j][0] = (fTemp0 + (fRec4 + p->fRec2[j][1]));
       p->fRec0[j][0] = p->fRec2[j][0];
       float fRec1 = (fRec4 + fTemp0);
-      in[in_ix*ksmps+n] = (MYFLT) fRec1;
+      *sample = (MYFLT) fRec1;
       p->fRec8[j][1] = p->fRec8[j][0];
       p->fRec6[j][1] = p->fRec6[j][0];
       p->fRec5[j][1] = p->fRec5[j][0];
@@ -2071,7 +2063,7 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int32_t signal_order, int32
       double fTemp1 = (d3 * p->fRec3[j][1]);
       double fTemp2 = (d2 * p->fRec6[j][1]);
       double fTemp3 = (d1 * p->fRec9[j][1]);
-      double fTemp4 = (g * in[in_ix*ksmps+n]);
+      double fTemp4 = (g * *sample);
       p->fRec11[j][0] = ((fTemp2 + (p->fRec11[j][1] + fTemp3)) + fTemp4);
       p->fRec9[j][0] = p->fRec11[j][0];
       double fRec10 = ((fTemp3 + fTemp2) + fTemp4);
@@ -2084,7 +2076,7 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int32_t signal_order, int32
       p->fRec2[j][0] = (p->fRec3[j][0] + p->fRec2[j][1]);
       p->fRec0[j][0] = p->fRec2[j][0];
       double fRec1 = fRec4;
-      in[in_ix*ksmps+n] = (MYFLT) fRec1;
+      *sample = (MYFLT) fRec1;
       p->fRec11[j][1] = p->fRec11[j][0];
       p->fRec9[j][1] = p->fRec9[j][0];
       p->fRec8[j][1] = p->fRec8[j][0];
@@ -2127,7 +2119,7 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int32_t signal_order, int32
       double fTemp2 = (d3 * p->fRec6[j][1]);
       double fTemp3 = (d2 * p->fRec9[j][1]);
       double fTemp4 = (d1 * p->fRec12[j][1]);
-      double fTemp5 = (g * in[in_ix*ksmps+n]);
+      double fTemp5 = (g * *sample);
       p->fRec14[j][0] = ((fTemp3 + (p->fRec14[j][1] + fTemp4)) + fTemp5);
       p->fRec12[j][0] = p->fRec14[j][0];
       double fRec13 = ((fTemp4 + fTemp3) + fTemp5);
@@ -2143,7 +2135,7 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int32_t signal_order, int32
       p->fRec2[j][0] = (fTemp0 + (fRec4 + p->fRec2[j][1]));
       p->fRec0[j][0] = p->fRec2[j][0];
       double fRec1 = (fRec4 + fTemp0);
-      in[in_ix*ksmps+n] = (MYFLT) fRec1;
+      *sample = (MYFLT) fRec1;
       p->fRec14[j][1] = p->fRec14[j][0];
       p->fRec12[j][1] = p->fRec12[j][0];
       p->fRec11[j][1] = p->fRec11[j][0];
