@@ -133,7 +133,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *kr, *koutrig,  *ktrig, *kx, *ky, *kmaxIter;
-    MYFLT   oldx, oldy;
+    MYFLT   oldx, oldy, oldMaxIter;
     int32_t oldCount;
 } MANDEL;
 

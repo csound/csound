@@ -639,6 +639,8 @@ def runTest():
         ["test_grain4_correctness.csd", "grain4 handles envelopes, boundaries, and unused pitches"],
         ["test_gendy_correctness.csd", "gendy handles audio blocks and bounded integer state"],
         ["test_lorenz_skip.csd", "lorenz integration steps per sample"],
+        ["test_mandel_state.csd", "mandel trigger, iteration cache and boundary points"],
+        ["test_mandel_invalid_limit.csd", "mandel rejects an unrepresentable iteration limit", 1],
         ["test_looptseg_curves.csd", "looptseg curve stability"],
         ["test_gtadsr_stages.csd", "gtadsr stage endpoints, retriggering and sample offsets"],
         ["test_gtadsr_invalid_times.csd", "reject out-of-range gtadsr stage times", 1],

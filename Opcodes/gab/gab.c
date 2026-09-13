@@ -886,28 +886,33 @@ static int32_t partial_maximum(CSOUND *csound,P_MAXIMUM *p)
 static int32_t mandel_set(CSOUND *csound,MANDEL *p)
 {
   IGN(csound);
-  p->oldx=-99999; /*probably unused values  */
-  p->oldy=-99999;
+  p->oldx = p->oldy = p->oldMaxIter = FL(0.0);
   p->oldCount = -1;
   return OK;
 }
 
 static int32_t mandel(CSOUND *csound,MANDEL *p)
 {
-  IGN(csound);
   MYFLT px=*p->kx, py=*p->ky;
-  if (*p->ktrig && (px != p->oldx || py != p->oldy)) {
-    int32_t maxIter = (int32_t) *p->kmaxIter, j;
+  MYFLT limit = *p->kmaxIter;
+  if (*p->ktrig && (p->oldCount < 0 || px != p->oldx || py != p->oldy ||
+                   limit != p->oldMaxIter)) {
+    if (UNLIKELY(!((double)limit >= 0.0 && (double)limit <= INT32_MAX)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("mandel: iteration limit out of range"));
+    int32_t maxIter = (int32_t) limit, j;
     MYFLT x=FL(0.0), y=FL(0.0), newx, newy;
+    /* Preserve the historical zero-based escape count. */
     for (j=0; j<maxIter; j++) {
       newx = x*x - y*y + px;
       newy = FL(2.0)*x*y + py;
       x=newx;
       y=newy;
-      if (x*x+y*y >= FL(4.0)) break;
+      if (x*x+y*y > FL(4.0)) break;
     }
     p->oldx = px;
     p->oldy = py;
+    p->oldMaxIter = limit;
     if (p->oldCount != j) *p->koutrig = FL(1.0);
     else *p->koutrig = FL(0.0);
     *p->kr = (MYFLT) (p->oldCount = j);
