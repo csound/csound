@@ -2397,6 +2397,18 @@ int32_t vps_process(CSOUND *csound, VPS *p) {
   return OK;
 }
 
+/* Saturate before converting the lookup position to an unsigned index. */
+#define OTA_NLF(result, table, value, scale, length) do {                 \
+  double pos_ = ((value) * (scale) + 0.5) * (length);                    \
+  if (!(pos_ > 0.0)) (result) = (table)[0];                              \
+  else if (pos_ >= (length)) (result) = (table)[(length)-1];             \
+  else {                                                               \
+    size_t index_ = (size_t)pos_;                                       \
+    (result) = (MYFLT)((table)[index_] + (pos_ - index_) *               \
+      ((table)[index_ + 1] - (table)[index_]));                          \
+  }                                                                    \
+} while (0)
+
 typedef struct vcfnl {
   OPDS h;
   MYFLT *y, *y1, *x, *f, *r, *kn, *istor;
@@ -2463,21 +2475,25 @@ int32_t vcfnl_perfk(CSOUND *csound, VCFNL *p) {
   }
   if (UNLIKELY(offset)) {
     memset(y, '\0', offset*sizeof(MYFLT));
+    memset(y1, '\0', offset*sizeof(MYFLT));
   }
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&y1[nsmps], '\0', early*sizeof(MYFLT));
   }
  
   for (i=offset; i<nsmps; i++) {
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
     o = (G[3]*x[i] + ss)/(1. + k*G[3]);
-    u = G[0]*nlf(tab,(x[i] - k*o)*kn,max,size)*kno1;
+    OTA_NLF(u, tab, (x[i] - k*o)*kn, max, size);
+    u *= G[0]*kno1;
     for(j = 0; j < 3; j++) {
       w = u + s[j];
       s[j] = u - A*w;
-      u = G[0]*nlf(tab,w*kn,max,size)*kno1;
+      OTA_NLF(u, tab, w*kn, max, size);
+      u *= G[0]*kno1;
       if(j == 1) y1[i] = s[1];
     }
     s[3] = u - A*o;
@@ -2500,10 +2516,12 @@ int32_t vcfnl_perfak(CSOUND *csound, VCFNL *p) {
   
   if (UNLIKELY(offset)) {
     memset(y, '\0', offset*sizeof(MYFLT));
+    memset(y1, '\0', offset*sizeof(MYFLT));
   }
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&y1[nsmps], '\0', early*sizeof(MYFLT));
   }
  
   for (i=offset; i<nsmps; i++) {
@@ -2516,11 +2534,13 @@ int32_t vcfnl_perfak(CSOUND *csound, VCFNL *p) {
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
     o = (G[3]*x[i] + ss)/(1. + k*G[3]);
-    u = G[0]*nlf(tab,(x[i] - k*o)*kn,max,size)*kno1;
+    OTA_NLF(u, tab, (x[i] - k*o)*kn, max, size);
+    u *= G[0]*kno1;
     for(j = 0; j < 3; j++) {
       w = u + s[j];
       s[j] = u - A*w;
-      u = G[0]*nlf(tab,w*kn,max,size)*kno1;
+      OTA_NLF(u, tab, w*kn, max, size);
+      u *= G[0]*kno1;
       if(j == 1) y1[i] = s[1];
     }
     s[3] = u - A*o;
@@ -2553,10 +2573,12 @@ int32_t vcfnl_perfka(CSOUND *csound, VCFNL *p) {
   }
   if (UNLIKELY(offset)) {
     memset(y, '\0', offset*sizeof(MYFLT));
+    memset(y1, '\0', offset*sizeof(MYFLT));
   }
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&y1[nsmps], '\0', early*sizeof(MYFLT));
   }
  
   for (i=offset; i<nsmps; i++) {
@@ -2564,11 +2586,13 @@ int32_t vcfnl_perfka(CSOUND *csound, VCFNL *p) {
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
     o = (G[3]*x[i] + ss)/(1. + k*G[3]);
-    u = G[0]*nlf(tab,(x[i] - k*o)*kn,max,size)*kno1;
+    OTA_NLF(u, tab, (x[i] - k*o)*kn, max, size);
+    u *= G[0]*kno1;
     for(j = 0; j < 3; j++) {
       w = u + s[j];
       s[j] = u - A*w;
-      u = G[0]*nlf(tab,w*kn,max,size)*kno1;
+      OTA_NLF(u, tab, w*kn, max, size);
+      u *= G[0]*kno1;
       if(j == 1) y1[i] = s[1];
     }
     s[3] = u - A*o;
@@ -2591,10 +2615,12 @@ int32_t vcfnl_perfaa(CSOUND *csound, VCFNL *p) {
   
   if (UNLIKELY(offset)) {
     memset(y, '\0', offset*sizeof(MYFLT));
+    memset(y1, '\0', offset*sizeof(MYFLT));
   }
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&y1[nsmps], '\0', early*sizeof(MYFLT));
   }
  
   for (i=offset; i<nsmps; i++) {
@@ -2608,11 +2634,13 @@ int32_t vcfnl_perfaa(CSOUND *csound, VCFNL *p) {
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
     o = (G[3]*x[i] + ss)/(1. + k*G[3]);
-    u = G[0]*nlf(tab,(x[i] - k*o)*kn,max,size)*kno1;
+    OTA_NLF(u, tab, (x[i] - k*o)*kn, max, size);
+    u *= G[0]*kno1;
     for(j = 0; j < 3; j++) {
       w = u + s[j];
       s[j] = u - A*w;
-      u = G[0]*nlf(tab,w*kn,max,size)*kno1;
+      OTA_NLF(u, tab, w*kn, max, size);
+      u *= G[0]*kno1;
       if(j == 1) y1[i] = s[1];
     }
     s[3] = u - A*o;
@@ -2622,6 +2650,8 @@ int32_t vcfnl_perfaa(CSOUND *csound, VCFNL *p) {
 }
 
 
+
+#undef OTA_NLF
 
 typedef struct vcf {
   OPDS h;
