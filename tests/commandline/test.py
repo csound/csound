@@ -641,6 +641,7 @@ def runTest():
         ["test_partikkel_float_table_index.csd", "partikkel uses the scaled index for float table lookup"],
         ["test_grain4_correctness.csd", "grain4 handles envelopes, boundaries, and unused pitches"],
         ["test_vosim_pulses.csd", "vosim pulse state, table paths, and direction changes"],
+        ["test_fog_table_phase.csd", "fog table phase, interpolation, envelope and sample offsets"],
         ["test_gendy_correctness.csd", "gendy handles audio blocks and bounded integer state"],
         ["test_lorenz_skip.csd", "lorenz integration steps per sample"],
         ["test_mandel_state.csd", "mandel trigger, iteration cache and boundary points"],
