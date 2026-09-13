@@ -30,128 +30,101 @@
 
 int32_t tblesegset(CSOUND *csound, TABLESEG *p)
 {
-  TSEG    *segp;
-  int32_t     nsegs;
-  MYFLT   **argp, dur;
-  FUNC    *nxtfunc, *curfunc;
-  int32    flength;
+  TSEG *segp;
+  MYFLT **argp = p->argums;
+  FUNC *first, *current, *next;
+  int32_t i, nsegs = p->INOCOUNT >> 1;
+  PVOC_GLOBALS *globals;
 
-  if (UNLIKELY(!(p->INOCOUNT & 1))) {
+  p->cursegp = NULL;
+  if (UNLIKELY(p->INOCOUNT < 3 || !(p->INOCOUNT & 1)))
     return csound->InitError(csound, "%s",
                              Str("incomplete number of input arguments"));
-  }
 
-  {
-    PVOC_GLOBALS  *p_ = PVOC_GetGlobals(csound);
-    p_->tbladr = p;
-  }
-
-  nsegs = (p->INOCOUNT >> 1);  /* count segs & alloc if nec */
-
-  if ((segp = (TSEG *) p->auxch.auxp) == NULL ||
-      p->auxch.size<(nsegs+1)*sizeof(TSEG)) {
-    csound->AuxAlloc(csound, (size_t)(nsegs+1)*sizeof(TSEG), &p->auxch);
-    p->cursegp = segp = (TSEG *) p->auxch.auxp;
-    (segp+nsegs)->cnt = MAXPOS;
-  }
-  argp = p->argums;
-  if (UNLIKELY((nxtfunc = csound->FTFind(csound, *argp++)) == NULL))
+  first = current = csound->FTFind(csound, *argp++);
+  if (UNLIKELY(first == NULL))
     return NOTOK;
-  flength = nxtfunc->flen;
-  p->outfunc =
-    (FUNC*) csound->Calloc(csound, sizeof(FUNC));
-  p->outfunc->ftable =
-    (MYFLT*)csound->Calloc(csound, (1 + flength) * sizeof(MYFLT));
-  p->outfunc->flen = nxtfunc->flen;
-  p->outfunc->lenmask = nxtfunc->lenmask;
-  p->outfunc->lobits = nxtfunc->lobits;
-  p->outfunc->lomask = nxtfunc->lomask;
-  p->outfunc->lodiv = nxtfunc->lodiv;
-  //memset(p->outfunc->ftable, 0, sizeof(MYFLT)*(flength+1)); not needed -- calloc
-  if (**argp <= 0.0)  return OK;         /* if idur1 <= 0, skip init  */
-  p->cursegp = segp;                      /* else proceed from 1st seg */
-  segp--;
-  do {
-    segp++;                 /* init each seg ..  */
-    curfunc = nxtfunc;
-    dur = **argp++;
-    if (UNLIKELY((nxtfunc = csound->FTFind(csound, *argp++)) == NULL))
-      return OK;
-    if (LIKELY(dur > FL(0.0))) {
-      segp->d = dur * CS_EKR;
-      segp->function =  curfunc;
-      segp->nxtfunction = nxtfunc;
-      segp->cnt = (int32) (segp->d + FL(0.5));
-    }
-    else break;             /*  .. til 0 dur or done */
-  } while (--nsegs);
-  segp++;
-  segp->d = FL(0.0);
-  segp->cnt = MAXPOS;         /* set last cntr to infin */
-  segp->function =  nxtfunc;
-  segp->nxtfunction = nxtfunc;
+  csound->AuxAlloc(csound, (size_t)(nsegs + 1) * sizeof(TSEG), &p->auxch);
+  segp = (TSEG *)p->auxch.auxp;
+  for (i = 0; i < nsegs; i++) {
+    double cycles = (double)**argp++ * (double)CS_EKR;
+    if (UNLIKELY(!(cycles >= 0.0 && cycles < (double)INT32_MAX)))
+      return csound->InitError(csound, "%s",
+                               Str("tableseg: invalid segment duration"));
+    next = csound->FTFind(csound, *argp++);
+    if (UNLIKELY(next == NULL))
+      return NOTOK;
+    if (UNLIKELY(next->flen != first->flen))
+      return csound->InitError(csound, "%s",
+                               Str("tableseg: tables must have the same size"));
+    segp[i].function = current;
+    segp[i].nxtfunction = next;
+    segp[i].duration = segp[i].cnt = (int32_t)(cycles + 0.5);
+    current = next;
+  }
+  /* The final table is held without a countdown. */
+  segp[nsegs].function = segp[nsegs].nxtfunction = current;
+
+  csound->AuxAlloc(csound, ((size_t)first->flen + 1) * sizeof(MYFLT),
+                   &p->outaux);
+  p->outfunc = &p->outtable;
+  p->outfunc->ftable = (MYFLT *)p->outaux.auxp;
+  p->outfunc->flen = first->flen;
+  p->outfunc->lenmask = first->lenmask;
+  p->outfunc->lobits = first->lobits;
+  p->outfunc->lomask = first->lomask;
+  p->outfunc->lodiv = first->lodiv;
+  memcpy(p->outfunc->ftable, first->ftable,
+         ((size_t)first->flen + 1) * sizeof(MYFLT));
+  p->cursegp = segp;
+  p->nsegs = nsegs;
+  globals = PVOC_GetGlobals(csound);
+  if (UNLIKELY(globals == NULL))
+    return NOTOK;
+  globals->tbladr = p;
+  return OK;
+}
+
+static int32_t tableseg_perf(CSOUND *csound, TABLESEG *p, int32_t quadratic)
+{
+  TSEG *segp = p->cursegp;
+  MYFLT fraction = FL(0.0), *curtab, *nxttab, *out;
+  uint32_t i;
+
+  if (UNLIKELY(segp == NULL))
+    return csound->PerfError(csound, &(p->h), "%s",
+                             Str("tableseg: not initialised"));
+  /* Resolve completed and zero-length stages before reading their tables. */
+  while (p->nsegs > 0 && segp->cnt == 0) {
+    segp++;
+    p->nsegs--;
+  }
+  p->cursegp = segp;
+  if (p->nsegs > 0) {
+    fraction = (MYFLT)(segp->duration - segp->cnt) / segp->duration;
+    segp->cnt--;
+  }
+  if (quadratic)
+    fraction *= fraction;
+  curtab = segp->function->ftable;
+  nxttab = segp->nxtfunction->ftable;
+  out = p->outfunc->ftable;
+  /* vpvoc also reads the guard point for the Nyquist bin. */
+  for (i = 0; i <= p->outfunc->flen; i++)
+    out[i] = curtab[i] + (nxttab[i] - curtab[i]) * fraction;
   return OK;
 }
 
 int32_t ktableseg(CSOUND *csound, TABLESEG *p)
 {
-  TSEG        *segp;
-  MYFLT       *curtab, *nxttab,curval, nxtval, durovercnt=FL(0.0);
-  int32_t         i;
-  int32        flength, upcnt;
-
-  /* RWD fix */
-  if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
-  segp = p->cursegp;
-  curtab = segp->function->ftable;
-  nxttab = segp->nxtfunction->ftable;
-  upcnt = (int32)segp->d-segp->cnt;
-  if (upcnt > 0)
-    durovercnt = segp->d/upcnt;
-  while (--segp->cnt < 0)
-    p->cursegp = ++segp;
-  flength = segp->function->flen;
-  for (i=0; i<flength; i++) {
-    curval = curtab[i];
-    nxtval = nxttab[i];
-    if (durovercnt > FL(0.0))
-      p->outfunc->ftable[i] = (curval + ((nxtval - curval) / durovercnt));
-    else
-      p->outfunc->ftable[i] = curval;
-  }
-  return OK;
- err1:
-  return csound->PerfError(csound, &(p->h), "%s",
-                           Str("tableseg: not initialised"));
+  return tableseg_perf(csound, p, 0);
 }
 
+/* tablexseg has historically used a quadratic curve, although the manual
+   calls it exponential. Keep that curve for compatibility with old scores. */
 int32_t ktablexseg(CSOUND *csound, TABLESEG *p)
 {
-  TSEG        *segp;
-  MYFLT       *curtab, *nxttab,curval, nxtval, cntoverdur=FL(0.0);
-  int32_t         i;
-  int32        flength, upcnt;
-
-  /* RWD fix */
-  if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
-  segp = p->cursegp;
-  curtab = segp->function->ftable;
-  nxttab = segp->nxtfunction->ftable;
-  upcnt = (int32)segp->d-segp->cnt;
-  if (upcnt > 0) cntoverdur = upcnt/ segp->d;
-  while(--segp->cnt < 0)
-    p->cursegp = ++segp;
-  flength = segp->function->flen;
-  for (i=0; i<flength; i++) {
-    curval = curtab[i];
-    nxtval = nxttab[i];
-    p->outfunc->ftable[i] =
-      (curval + ((nxtval - curval) * (cntoverdur*cntoverdur)));
-  }
-  return OK;
- err1:
-  return csound->PerfError(csound, &(p->h), "%s",
-                           Str("tablexseg: not initialised"));
+  return tableseg_perf(csound, p, 1);
 }
 
 /************************************************************/
@@ -226,6 +199,9 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
                              Str("PVOC frame %ld seems too small in %s"),
                              (long) p->frSiz, pvfilnam);
   }
+  if (UNLIKELY(p->tableseg->outfunc->flen < (uint32_t)p->frSiz / 2))
+    return csound->InitError(csound, "%s",
+                             Str("vpvoc: spectral envelope table is too short"));
   if (UNLIKELY(chans != 1)) {
     return csound->InitError(csound, Str("%d chans (not 1) in PVOC file %s"),
                              (int32_t) chans, pvfilnam);
@@ -389,4 +365,3 @@ int32_t vpvoc(CSOUND *csound, VPVOC *p)
   return csound->PerfError(csound, &(p->h),
                            "%s", Str("PVOC timpnt < 0"));
 }
-
