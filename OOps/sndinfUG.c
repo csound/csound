@@ -318,10 +318,12 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
     else {
       double  *peaks;
       size_t  nBytes;
-      if (UNLIKELY(channel > sfinfo.channels))
+      if (UNLIKELY(channel > sfinfo.channels)) {
+        csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
         return csound->InitError(csound,
                                  Str("Input channel for peak exceeds number "
                                 "of channels in file"));
+      }
       nBytes = sizeof(double)* sfinfo.channels;
       peaks = (double*)csound->Malloc(csound, nBytes);
       if (csound->SndfileCommand(csound,sf, SFC_GET_MAX_ALL_CHANNELS, peaks, (int32_t) nBytes) == SFLIB_FALSE) {
@@ -330,8 +332,11 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
         if (csound->SndfileCommand(csound,sf, SFC_CALC_NORM_MAX_ALL_CHANNELS, peaks, (int32_t) nBytes) == 0)
           peakVal = peaks[channel - 1];
       }
+      else
+        peakVal = peaks[channel - 1];
       csound->Free(csound, peaks);
     }
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     if (UNLIKELY(peakVal < 0.0))
       return csound->InitError(csound, Str("filepeak: error getting peak value"));
     /* scale output consistently with soundin opcode (see diskin2.c) */
@@ -342,8 +347,6 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
       *p->r1 = (MYFLT)(peakVal * (double)csound->e0dbfs);
     else
       *p->r1 = (MYFLT)peakVal;
-    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
-
     return OK;
 }
 
