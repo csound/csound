@@ -148,11 +148,17 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
   return OK;
 }
 
+/* A phase just below one can round to one in MYFLT. Wrap the output,
+   retaining the more precise internal phase for the next sample. */
+#define PHASOR_OUTPUT(phase)                                      \
+  ((MYFLT)(phase) == FL(1.0) ? FL(0.0) : (MYFLT)(phase))
+
 int32_t kphsor(CSOUND *csound, PHSOR *p)
 {
   IGN(csound);
   double      phs;
-  *p->sr = (MYFLT)(phs = p->curphs);
+  phs = p->curphs;
+  *p->sr = PHASOR_OUTPUT(phs);
   if (UNLIKELY((phs += (double)*p->xcps * CS_ONEDKR) >= 1.0))
     phs -= 1.0;
   else if (UNLIKELY(phs < 0.0))
@@ -183,25 +189,23 @@ int32_t phsor(CSOUND *csound, PHSOR *p)
     MYFLT *cps = p->xcps;
     for (n=offset; n<nsmps; n++) {
       incr = (double)(cps[n] * onedsr);
-      rs[n] = (MYFLT)phase;
+      rs[n] = PHASOR_OUTPUT(phase);
       phase += incr;
-      if (UNLIKELY((MYFLT)phase >= FL(1.0))) /* VL convert to MYFLT
-                                                to avoid rounded output
-                                                exceeding 1.0 on float version */
+      if (UNLIKELY(phase >= 1.0))
         phase -= 1.0;
-      else if (UNLIKELY((MYFLT)phase < FL(0.0)))
+      else if (UNLIKELY(phase < 0.0))
         phase += 1.0;
     }
   }
   else {
     incr = (double)(*p->xcps * onedsr);
     for (n=offset; n<nsmps; n++) {
-      rs[n] = (MYFLT)phase;
+      rs[n] = PHASOR_OUTPUT(phase);
       phase += incr;
-      if (UNLIKELY((MYFLT)phase >= FL(1.0))) {
+      if (UNLIKELY(phase >= 1.0)) {
         phase -= 1.0;
       }
-      else if (UNLIKELY((MYFLT)phase < FL(0.0)))
+      else if (UNLIKELY(phase < 0.0))
         phase += 1.0;
     }
   }
