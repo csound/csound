@@ -961,9 +961,12 @@ static int32_t wuterset(CSOUND *csound, WUTER *p)
 
   p->totalEnergy     = FL(0.0);
 
-  p->center_freqs0   = p->res_freq0 = WUTR_CENTER_FREQ0;
-  p->center_freqs1   = p->res_freq1 = WUTR_CENTER_FREQ1;
-  p->center_freqs2   = p->res_freq2 = WUTR_CENTER_FREQ2;
+  p->center_freqs0 = p->res_freq0 =
+    *p->freq == FL(0.0) ? WUTR_CENTER_FREQ0 : *p->freq;
+  p->center_freqs1 = p->res_freq1 =
+    *p->freq1 == FL(0.0) ? WUTR_CENTER_FREQ1 : *p->freq1;
+  p->center_freqs2 = p->res_freq2 =
+    *p->freq2 == FL(0.0) ? WUTR_CENTER_FREQ2 : *p->freq2;
   p->num_objectsSave = p->num_objects = WUTR_NUM_SOURCES;
   p->soundDecay      = WUTR_SOUND_DECAY;
   p->systemDecay     = WUTR_SYSTEM_DECAY;
@@ -971,13 +974,13 @@ static int32_t wuterset(CSOUND *csound, WUTER *p)
   p->gains0          = p->gains1 = p->gains2 = temp;
   p->coeffs01        = WUTR_RESON * WUTR_RESON;
   p->coeffs00        = -WUTR_RESON * FL(2.0) *
-    COS(WUTR_CENTER_FREQ0 * CS_TPIDSR);
+    COS(p->res_freq0 * CS_TPIDSR);
   p->coeffs11        = WUTR_RESON * WUTR_RESON;
   p->coeffs10        = -WUTR_RESON * FL(2.0) *
-    COS(WUTR_CENTER_FREQ1 * CS_TPIDSR);
+    COS(p->res_freq1 * CS_TPIDSR);
   p->coeffs21        = WUTR_RESON * WUTR_RESON;
   p->coeffs20        = -WUTR_RESON * FL(2.0) *
-    COS(WUTR_CENTER_FREQ2 * CS_TPIDSR);
+    COS(p->res_freq2 * CS_TPIDSR);
   /* Note On */
   p->shakeEnergy     = *p->amp * CS_ONEDDBFS * MAX_SHAKE * FL(0.1);
   p->shake_damp      = FL(0.0);
@@ -996,15 +999,14 @@ static int32_t wuter(CSOUND *csound, WUTER *p)
   uint32_t n, nsmps = CS_KSMPS;
   MYFLT data;
   MYFLT lastOutput;
+  MYFLT fullscale = csound->Get0dBFS(csound);
+  /* Retain the original random spread and arithmetic at the default pitches. */
+  MYFLT freq0 = p->res_freq0 / FL(0.75);
+  MYFLT freq2 = p->res_freq2 / FL(1.25);
 
   if (*p->num_tubes != FL(0.0) && *p->num_tubes != p->num_objects) {
     p->num_objects = *p->num_tubes;
     if (p->num_objects < FL(1.0)) p->num_objects = FL(1.0);
-  }
-  if (*p->freq != FL(0.0) && *p->freq != p->res_freq0) {
-    p->res_freq0 = *p->freq;
-    p->coeffs00 = -WUTR_RESON * FL(2.0) *
-      COS(p->res_freq0 * CS_TPIDSR);
   }
   if (*p->damp != FL(0.0) && *p->damp != p->shake_damp) {
     p->shake_damp = *p->damp;
@@ -1014,16 +1016,6 @@ static int32_t wuter(CSOUND *csound, WUTER *p)
     p->shake_maxSave = *p->shake_max;
     p->shakeEnergy += p->shake_maxSave * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
-  }
-  if (*p->freq1 != FL(0.0) && *p->freq1 != p->res_freq1) {
-    p->res_freq1 = *p->freq1;
-    p->coeffs10 = -WUTR_RESON * FL(2.0) *
-      COS(p->res_freq1 * CS_TPIDSR);
-  }
-  if (*p->freq2 != FL(0.0) && *p->freq2 != p->res_freq2) {
-    p->res_freq2 = *p->freq2;
-    p->coeffs20 = -WUTR_RESON * FL(2.0) *
-      COS(p->res_freq2 * CS_TPIDSR);
   }
   //if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
   if ((--p->kloop) == 0) {
@@ -1050,9 +1042,8 @@ static int32_t wuter(CSOUND *csound, WUTER *p)
         int32_t j;
         sndLevel = shakeEnergy;
         j = my_random(csound, 3);
-        /* ******** Stange that there is no use of freq0 and freq2  */
         if (j == 0)   {
-          p->center_freqs0 = p->res_freq1 *
+          p->center_freqs0 = freq0 *
             (FL(0.75) + (FL(0.25) * noise_tick(csound)));
           p->gains0 = FABS(noise_tick(csound));
         }
@@ -1062,7 +1053,7 @@ static int32_t wuter(CSOUND *csound, WUTER *p)
           p->gains1 = FABS(noise_tick(csound));
         }
         else  {
-          p->center_freqs2 = p->res_freq1 *
+          p->center_freqs2 = freq2 *
             (FL(1.25) + (FL(0.25) * noise_tick(csound)));
           p->gains2 = FABS(noise_tick(csound));
         }
@@ -1116,7 +1107,7 @@ static int32_t wuter(CSOUND *csound, WUTER *p)
 
       lastOutput   = p->finalZ2 - p->finalZ0;
       lastOutput  *= FL(0.005);
-      ar[n]        = lastOutput*csound->Get0dBFS(csound);
+      ar[n]        = lastOutput*fullscale;
     }
     p->shakeEnergy = shakeEnergy;
     p->sndLevel = sndLevel;
