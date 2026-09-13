@@ -176,7 +176,7 @@ static MYFLT noise_tick(CSOUND *csound)
 #define STIX1_SOUND_DECAY FL(0.96)
 #define STIX1_SYSTEM_DECAY FL(0.998)
 #define STIX1_GAIN        FL(30.0)
-#define STIX1_NUM_BEANS   FL(2.0)
+#define STIX1_NUM_BEANS   FL(30.0)
 #define STIX1_CENTER_FREQ FL(5500.0)
 #define STIX1_RESON       FL(0.6)
 /************************ Crunch1 ***************************/
@@ -313,7 +313,7 @@ static int32_t sekereset(CSOUND *csound, SEKERE *p)
   p->coeffs0 = - SEKE_RESON * FL(2.0) *
     COS(SEKE_CENTER_FREQ * CS_TPIDSR);
   /* Note On */
-  p->shakeEnergy = *p->amp * MAX_SHAKE * FL(0.1);
+  p->shakeEnergy = *p->amp * CS_ONEDDBFS * MAX_SHAKE * FL(0.1);
   if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
   p->last_num = FL(0.0);
   return OK;
@@ -337,6 +337,7 @@ static int32_t sekere(CSOUND *csound, SEKERE *p)
   MYFLT coeff0   = p->coeffs0;
   MYFLT coeff1   = p->coeffs1;
   MYFLT gain     = p->gain;
+  MYFLT fullscale = csound->Get0dBFS(csound);
 
   if (*p->num_beads != p->last_num) {
     p->last_num = *p->num_beads;
@@ -384,11 +385,11 @@ static int32_t sekere(CSOUND *csound, SEKERE *p)
     outputs0 = input;                     /* calculations */
     p->finalZ2 = p->finalZ1;
     p->finalZ1 = p->finalZ0;
-    p->finalZ0 = p->outputs1;
+    p->finalZ0 = outputs1;
     data = p->finalZ0 - p->finalZ2;
     /*          if (data > 10000.0f)        data = 10000.0f; */
     /*          if (data < -10000.0f) data = -10000.0f; */
-    ar[n] = data * FL(0.0005) * csound->Get0dBFS(csound) ;
+    ar[n] = data * FL(0.0005) * fullscale;
     /*        } */
     /*        else { */
     /*          ar[n] = 0.0f; */
@@ -426,7 +427,7 @@ static int32_t sandset(CSOUND *csound, SEKERE *p)
   /* Note On */
   p->shakeEnergy = *p->amp * CS_ONEDDBFS * MAX_SHAKE * FL(0.1);
   if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
-  p->last_num = FL(128.0);
+  p->last_num = FL(0.0);
   return OK;
 }
 
@@ -453,7 +454,7 @@ static int32_t stixset(CSOUND *csound, SEKERE *p)
   /* Note On */
   p->shakeEnergy = *p->amp * CS_ONEDDBFS * MAX_SHAKE * FL(0.1);
   if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
-  p->last_num = FL(30.0);
+  p->last_num = FL(0.0);
   return OK;
 }
 
