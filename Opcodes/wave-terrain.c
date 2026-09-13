@@ -211,7 +211,9 @@ static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
     p->fdamp  = fdamp;
     p->fvel   = fvel;
 
-    p->size = (MYFLT)fpoint->flen;
+    if (UNLIKELY(fpoint->flen == 0))
+      return csound->InitError(csound, "%s", Str("Scantable: tables must not be empty"));
+    p->size = fpoint->flen;
 
     /* ALLOCATE SPACE FOR NEW POINTS AND VELOCITIES */
     csound->AuxAlloc(csound, fpoint->flen * sizeof(MYFLT), &p->newloca);
@@ -233,7 +235,7 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT force, fc1, fc2;
-    int32_t next, last;
+    uint32_t next, last;
 
     /* DECLARE */
     FUNC *fpoint = p->fpoint;
@@ -241,10 +243,18 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
     FUNC *fstiff = p->fstiff;
     FUNC *fdamp  = p->fdamp;
     FUNC *fvel   = p->fvel;
-    MYFLT inc    = p->size * *(p->kpch) * CS_ONEDSR;
+    double pitch = *p->kpch, inc;
     MYFLT amp    = *(p->kamp);
-    MYFLT pos    = p->pos;
+    double pos   = p->pos;
     MYFLT *aout  = p->aout;
+
+    if (UNLIKELY(!isfinite(pitch)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                              Str("Scantable: frequency must be finite"));
+    /* A whole number of scans per sample leaves the same read position. */
+    if (UNLIKELY(pitch >= CS_ESR || pitch <= -CS_ESR))
+      pitch = fmod(pitch, CS_ESR);
+    inc = p->size * (pitch / CS_ESR);
 
 /* CALCULATE NEW POSITIONS
  *
@@ -254,18 +264,10 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
  * a mass of zero means immovable, so as to allow fixed points
  */
 
-    /* For all except end points  */
-    for (i=0; i!=p->size; i++) {
-
-      /* set up conditions for end-points */
-      last = i - 1;
-      next = i + 1;
-      if (UNLIKELY(i == p->size - 1)) {
-        next = 0;
-      }
-      else if (UNLIKELY(i == 0)) {
-        last = (int32_t)p->size - 1;
-      }
+    for (i=0; i<p->size; i++) {
+      /* Circular neighbors, including a one-point string. */
+      last = i == 0 ? p->size - 1 : i - 1;
+      next = i + 1 == p->size ? 0 : i + 1;
 
       if (UNLIKELY(fmass->ftable[i] == 0)) {
         /* if the mass is zero... */
@@ -293,12 +295,13 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
     for (i=offset; i<nsmps; i++) {
 
       /* NO INTERPOLATION */
-      aout[i] = fpoint->ftable[(int32_t)pos] * amp;
+      aout[i] = fpoint->ftable[(uint32_t)pos] * amp;
 
-      pos += inc /* p->size * *(p->kpch) * CS_ONEDSR */;
-      if (UNLIKELY(pos > p->size)) {
+      pos += inc;
+      if (UNLIKELY(pos < 0.0))
+        pos += p->size;
+      if (UNLIKELY(pos >= p->size))
         pos -= p->size;
-      }
     }
     p->pos = pos;
 
@@ -308,6 +311,8 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
      */
     memcpy(fpoint->ftable, p->newloc, p->size*sizeof(MYFLT));
     memcpy(fvel->ftable, p->newvel, p->size*sizeof(MYFLT));
+    fpoint->ftable[p->size] = fpoint->ftable[0];
+    fvel->ftable[p->size] = fvel->ftable[0];
     return OK;
 }
 

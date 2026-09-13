@@ -80,9 +80,9 @@ typedef struct {
   AUXCH newloca;
   AUXCH newvela;
   MYFLT *newloc, *newvel;
-  MYFLT size;
+  uint32_t size;
 
-  MYFLT pos;
+  double pos;
   FUNC *fpoint;
   FUNC *fmass;
   FUNC *fstiff;
