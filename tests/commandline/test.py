@@ -662,6 +662,7 @@ def runTest():
         ["test_lposcilsa_amplitude_reuse.csd", "stereo loop amplitude reuse and default sample rate"],
         ["test_bitshift_audio_operands.csd", "bitshift operands, counts and partial blocks"],
         ["test_gbuzz_audio_phase.csd", "gbuzz phase and coefficient state"],
+        ["test_mton_note_names.csd", "mton octaves, cent rounding and output reuse"],
         ["test_flooper_stereo_guard.csd", "flooper preserves the stereo wrap sample"],
         ["test_flooper_stereo_frame_bounds.csd", "reject flooper ranges past stereo frames", 1],
         ["test_sndloop_state.csd", "sndloop recording, playback, and partial blocks"],
