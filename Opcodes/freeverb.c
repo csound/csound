@@ -127,7 +127,7 @@ static int32_t freeverb_init(CSOUND *csound, FREEVERB *p)
       nbytes += allpass_nbytes(p, allpass_delays[i][0]);
       nbytes += allpass_nbytes(p, allpass_delays[i][1]);
     }
-    nbytes += (int32_t) sizeof(MYFLT) * (int32_t) CS_KSMPS;
+    nbytes += 2 * (int32_t) sizeof(MYFLT) * (int32_t) CS_KSMPS;
     /* allocate space if size has changed */
     if (nbytes != (int32_t) p->auxData.size)
       csound->AuxAlloc(csound, (int32) nbytes, &(p->auxData));
@@ -175,7 +175,8 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
     int32_t             i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
+    uint32_t n, nsmps = CS_KSMPS - early;
+    MYFLT *tmpBuf = p->tmpBuf, *left = p->tmpBuf;
 
     /* check if opcode was correctly initialised */
     if (UNLIKELY(p->auxData.size <= 0L || p->auxData.auxp == NULL)) goto err1;
@@ -193,11 +194,11 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
       damp1 = p->dampValue;
     damp2 = 1.0 - damp1;
     /* comb filters (left channel) */
-    memset(p->tmpBuf,0, sizeof(MYFLT)*nsmps);
+    memset(tmpBuf,0, sizeof(MYFLT)*nsmps);
     for (i = 0; i < NR_COMB; i++) {
       combp = p->Comb[i][0];
-      for (n = 0; n < nsmps; n++) {
-        p->tmpBuf[n] += combp->buf[combp->bufPos];
+      for (n = offset; n < nsmps; n++) {
+        tmpBuf[n] += combp->buf[combp->bufPos];
         x = (double) combp->buf[combp->bufPos];
         combp->filterState = (combp->filterState * damp1) + (x * damp2);
         x = combp->filterState * feedback + (double) p->aInL[n];
@@ -209,32 +210,24 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
     /* allpass filters (left channel) */
     for (i = 0; i < NR_ALLPASS; i++) {
       allpassp = p->AllPass[i][0];
-      for (n = 0; n < nsmps; n++) {
-        x = (double) allpassp->buf[allpassp->bufPos] - (double) p->tmpBuf[n];
+      for (n = offset; n < nsmps; n++) {
+        x = (double) allpassp->buf[allpassp->bufPos] - (double) tmpBuf[n];
         allpassp->buf[allpassp->bufPos] *= (MYFLT) allPassFeedBack;
-        allpassp->buf[allpassp->bufPos] += p->tmpBuf[n];
+        allpassp->buf[allpassp->bufPos] += tmpBuf[n];
         if (UNLIKELY(++(allpassp->bufPos) >= allpassp->nSamples))
           allpassp->bufPos = 0;
-        p->tmpBuf[n] = (MYFLT) x;
+        tmpBuf[n] = (MYFLT) x;
       }
     }
 
-    /* write left channel output */
-    if (UNLIKELY(offset)) memset(p->aOutL, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&p->aOutL[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n = offset; n < nsmps; n++)
-      p->aOutL[n] = p->tmpBuf[n] * (MYFLT) fixedGain;
+    /* Keep the left result until both inputs have been consumed. */
+    tmpBuf += CS_KSMPS;
     /* comb filters (right channel) */
-    memset(p->tmpBuf, 0, sizeof(MYFLT)*nsmps);
-    /* for (n = 0; n < nsmps; n++) */
-    /*   p->tmpBuf[n] = FL(0.0); */
+    memset(tmpBuf, 0, sizeof(MYFLT)*nsmps);
     for (i = 0; i < NR_COMB; i++) {
       combp = p->Comb[i][1];
-      for (n = 0; n < nsmps; n++) {
-        p->tmpBuf[n] += combp->buf[combp->bufPos];
+      for (n = offset; n < nsmps; n++) {
+        tmpBuf[n] += combp->buf[combp->bufPos];
         x = (double) combp->buf[combp->bufPos];
         combp->filterState = (combp->filterState * damp1) + (x * damp2);
         x = combp->filterState * feedback + (double) p->aInR[n];
@@ -246,24 +239,27 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
     /* allpass filters (right channel) */
     for (i = 0; i < NR_ALLPASS; i++) {
       allpassp = p->AllPass[i][1];
-      for (n = 0; n < nsmps; n++) {
-        x = (double) allpassp->buf[allpassp->bufPos] - (double) p->tmpBuf[n];
+      for (n = offset; n < nsmps; n++) {
+        x = (double) allpassp->buf[allpassp->bufPos] - (double) tmpBuf[n];
         allpassp->buf[allpassp->bufPos] *= (MYFLT) allPassFeedBack;
-        allpassp->buf[allpassp->bufPos] += p->tmpBuf[n];
+        allpassp->buf[allpassp->bufPos] += tmpBuf[n];
         if (UNLIKELY(++(allpassp->bufPos) >= allpassp->nSamples))
           allpassp->bufPos = 0;
-        p->tmpBuf[n] = (MYFLT) x;
+        tmpBuf[n] = (MYFLT) x;
       }
     }
-    nsmps = CS_KSMPS;
-    /* write right channel output */
-    if (UNLIKELY(offset)) memset(p->aOutR, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) {
+      memset(p->aOutL, '\0', offset*sizeof(MYFLT));
+      memset(p->aOutR, '\0', offset*sizeof(MYFLT));
+    }
     if (UNLIKELY(early)) {
-      nsmps -= early;
+      memset(&p->aOutL[nsmps], '\0', early*sizeof(MYFLT));
       memset(&p->aOutR[nsmps], '\0', early*sizeof(MYFLT));
     }
-    for (n = offset; n < nsmps; n++)
-      p->aOutR[n] = p->tmpBuf[n] * (MYFLT) fixedGain;
+    for (n = offset; n < nsmps; n++) {
+      p->aOutL[n] = left[n] * (MYFLT) fixedGain;
+      p->aOutR[n] = tmpBuf[n] * (MYFLT) fixedGain;
+    }
 
     return OK;
  err1:
