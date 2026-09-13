@@ -207,7 +207,7 @@ static int32_t cabasaset(CSOUND *csound, CABASA *p)
   p->coeffs1 = CABA_RESON * CABA_RESON;
   p->coeffs0 = - CABA_RESON * FL(2.0) * COS(CABA_CENTER_FREQ * CS_TPIDSR);
   /* Note On */
-  p->shakeEnergy = *p->amp * MAX_SHAKE * FL(0.1);
+  p->shakeEnergy = *p->amp * CS_ONEDDBFS * MAX_SHAKE * FL(0.1);
   if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
   p->last_num = FL(0.0);
   return OK;
@@ -220,6 +220,7 @@ static int32_t cabasa(CSOUND *csound, CABASA *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   MYFLT data;
+  MYFLT fullscale = csound->Get0dBFS(csound);
   /* Use locals for speed */
   MYFLT shakeEnergy = p->shakeEnergy;
   MYFLT systemDecay = p->systemDecay;
@@ -279,7 +280,7 @@ static int32_t cabasa(CSOUND *csound, CABASA *p)
     data =  outputs0 - outputs1;
     /*          if (data > 10000.0f)        data = 10000.0f; */
     /*          if (data < -10000.0f) data = -10000.0f; */
-    ar[n] = data * FL(0.0005) * csound->Get0dBFS(csound) ;
+    ar[n] = data * FL(0.0005) * fullscale;
     /*        } */
     /*        else { */
     /*          *ar++ = 0.0f; */
