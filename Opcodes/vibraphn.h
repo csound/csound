@@ -44,8 +44,7 @@ typedef struct Vibraphn {
     MYFLT       strikePosition;
     MYFLT       stickHardness;
     int32_t         first;
-    int32_t
-    kloop;
+    double      kloop;
 } VIBRAPHN;
 
 #endif
