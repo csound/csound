@@ -302,7 +302,7 @@ typedef struct {
         MYFLT   *ar, *ain, *rep, *len;
         AUXCH   auxch;
         int32_t     length;         /* Length of buffer */
-        int32_t     cnt;            /* Repetions of current cycle */
+        double      cnt;            /* Repetitions of current cycle */
         int32_t     start;          /* Start of current cycle */
         int32_t     current;        /* takeout point */
         int32_t     direction;      /* Need to check direction of crossing */
