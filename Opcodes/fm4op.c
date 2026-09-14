@@ -470,38 +470,35 @@ int32_t wurley(CSOUND *csound, FM4OP *p)
 /*                                                       */
 /*********************************************************/
 
-MYFLT FM4Alg3_tick(FM4OP *p, MYFLT c1, MYFLT c2)
+static inline MYFLT FM4Alg3_tick(FM4OP *p, MYFLT c1, MYFLT c2,
+                                MYFLT vibratoDepth)
 {
     MYFLT       temp;
     MYFLT       lastOutput;
 
-    temp = *p->modDepth * FL(0.2) *
+    MYFLT vibrato = FL(1.0) + vibratoDepth *
       Wave_tick(&p->v_time, (int32_t)p->vibWave->flen,
                 p->vibWave->ftable, p->v_rate, FL(0.0));
-    p->w_rate[0] = p->baseFreq * (FL(1.0) + temp) * p->ratios[0];
-    p->w_rate[1] = p->baseFreq * (FL(1.0) + temp) * p->ratios[1];
-    p->w_rate[2] = p->baseFreq * (FL(1.0) + temp) * p->ratios[2];
-    p->w_rate[3] = p->baseFreq * (FL(1.0) + temp) * p->ratios[3];
 
     temp = p->gains[2] * ADSR_tick(&p->adsr[2]) *
       Wave_tick(&p->w_time[2], (int32_t)p->waves[2]->flen, p->waves[2]->ftable,
-                p->w_rate[2], p->w_phase[2]);
+                p->w_rate[2] * vibrato, p->w_phase[2]);
     p->w_phase[1] = p->waves[1]->flen * temp;
     p->w_phase[3] = p->waves[3]->flen * p->twozero.lastOutput;
     temp = (FL(1.0) - (c2 * FL(0.5))) * p->gains[3] * ADSR_tick(&p->adsr[3]) *
       Wave_tick(&p->w_time[3], (int32_t)p->waves[3]->flen, p->waves[3]->ftable,
-                p->w_rate[3], p->w_phase[3]);
+                p->w_rate[3] * vibrato, p->w_phase[3]);
     TwoZero_tick(&p->twozero, temp);
 
     temp += c2 * FL(0.5) * p->gains[1] * ADSR_tick(&p->adsr[1]) *
       Wave_tick(&p->w_time[1], (int32_t)p->waves[1]->flen, p->waves[1]->ftable,
-                p->w_rate[1], p->w_phase[1]);
+                p->w_rate[1] * vibrato, p->w_phase[1]);
     temp = temp * c1;
 
     p->w_phase[0] = p->waves[0]->flen * temp;
     temp = p->gains[0] * ADSR_tick(&p->adsr[0]) *
       Wave_tick(&p->w_time[0], (int32_t)p->waves[0]->flen, p->waves[0]->ftable,
-                p->w_rate[0], p->w_phase[0]);
+                p->w_rate[0] * vibrato, p->w_phase[0]);
 
     lastOutput = temp * FL(0.5);
     return lastOutput;
@@ -512,6 +509,7 @@ int32_t heavymetset(CSOUND *csound, FM4OP *p)
     if (UNLIKELY(make_FM4Op(csound,p))) return NOTOK;
     if (UNLIKELY(FM4Op_loadWaves(csound,p))) return NOTOK;  /* Mixed -- 2 x sine;
                                                      1 x fwavblnk */
+    p->v_time = FL(0.0);
     FM4Op_setRatio(p, 0, FL(1.00)         );
     FM4Op_setRatio(p, 1, FL(4.00) * FL(0.999));
     FM4Op_setRatio(p, 2, FL(3.00) * FL(1.001));
@@ -525,7 +523,6 @@ int32_t heavymetset(CSOUND *csound, FM4OP *p)
     /*      ADSR_setAll(&p->adsr[2], FL(0.001), 0.0020f, FL(1.0), 0.0002f); */
     /*      ADSR_setAll(&p->adsr[3], 0.050f, 0.0010f, FL(0.2), 0.0002f); */
     p->twozero.gain = FL(2.0);
-    /*     p->v_rate = 5.5 * p->vibWave->flen * CS_ONEDSR;  Vib rate */
     ADSR_keyOn(&p->adsr[0]);
     ADSR_keyOn(&p->adsr[1]);
     ADSR_keyOn(&p->adsr[2]);
@@ -539,9 +536,11 @@ int32_t heavymet(CSOUND *csound, FM4OP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    MYFLT       fullscale = AMP_SCALE;
+    MYFLT       amp = *p->amp * (FL(1.0) / fullscale);
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
+    MYFLT       vibratoDepth = *p->modDepth * FL(0.2);
     MYFLT       temp;
 
     p->baseFreq = *p->frequency;
@@ -550,6 +549,7 @@ int32_t heavymet(CSOUND *csound, FM4OP *p)
     p->gains[2] = amp * FM4Op_gains[91];
     p->gains[3] = amp * FM4Op_gains[68];
 
+    /* Convert Hz to each oscillator table's samples per audio sample. */
     temp         = p->baseFreq * CS_ONEDSR;
     p->w_rate[0] = temp * p->ratios[0] * p->waves[0]->flen;
     p->w_rate[1] = temp * p->ratios[1] * p->waves[1]->flen;
@@ -563,8 +563,8 @@ int32_t heavymet(CSOUND *csound, FM4OP *p)
     }
     for (n=offset;n<nsmps;n++) {
       MYFLT   lastOutput;
-      lastOutput = FM4Alg3_tick(p, c1, c2);
-      ar[n] = lastOutput*AMP_SCALE*FL(2.0);
+      lastOutput = FM4Alg3_tick(p, c1, c2, vibratoDepth);
+      ar[n] = lastOutput*fullscale*FL(2.0);
     }
     return OK;
 }
