@@ -2258,45 +2258,29 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
    cased on code by Miller Puckette
 */
 
-static int32_t calc_derivatives(CSOUND *csound, BOB *p, double *dstate,
-                                double *state, MYFLT in)
-{
-  MYFLT  freq = *p->freq;
-  MYFLT  res = *p->res;
-  double k = TWOPI * freq;
-  double sat = *p->sat;
-  double satinv = 1.0/sat;
-
-  double satstate0 = sat * tanh(state[0] * satinv);
-  double satstate1 = sat * tanh(state[1] * satinv);
-  double satstate2 = sat * tanh(state[2] * satinv);
-
-  dstate[0] = k *
-    (sat * tanh((in - res * state[3]) * satinv) - satstate0);
-  dstate[1] = k * (satstate0 - satstate1);
-  dstate[2] = k * (satstate1 - satstate2);
-  dstate[3] = k * (satstate2 - (sat * tanh(state[3]*satinv)));
-
-  return OK;
-}
+/* Each RK4 stage uses the same sample and coefficients.  Keep the
+   derivative calculation inline without writing into opcode inputs. */
+#define BOB_DERIVATIVES(dst, state) do {                                \
+  const double *s_ = (state);                                           \
+  double sat0_ = sa * tanh(s_[0] * satinv);                             \
+  double sat1_ = sa * tanh(s_[1] * satinv);                             \
+  double sat2_ = sa * tanh(s_[2] * satinv);                             \
+  (dst)[0] = k * (sa * tanh((input - rs * s_[3]) * satinv) - sat0_);    \
+  (dst)[1] = k * (sat0_ - sat1_);                                       \
+  (dst)[2] = k * (sat1_ - sat2_);                                       \
+  (dst)[3] = k * (sat2_ - sa * tanh(s_[3] * satinv));                   \
+} while (0)
 
 static int32_t bob_init(CSOUND *csound,BOB *p)
 {
-  IGN(csound);
-  if (*p->istor==FL(0.0)) {
-    p->oldfreq = FL(0.0);
-    p->oldres = FL(0.0);
-    p->oldsat = FL(0.0);
-  }
+  if (*p->istor == FL(0.0))
+    memset(p->state, 0, sizeof(p->state));
 
-  if (*p->osamp<=FL(0.0)) p->ostimes = 2;
-  else if (*p->osamp< FL(1.0)) p->ostimes = 1;
+  if (*p->osamp <= FL(0.0)) p->ostimes = 2;
+  else if (*p->osamp < FL(1.0)) p->ostimes = 1;
+  else if (UNLIKELY(!(*p->osamp < 2147483648.0)))
+    return csound->InitError(csound, Str("bob: oversampling count is too large"));
   else p->ostimes = (int32_t) *p->osamp;
-
-  int32_t i;
-  for (i = 0; i < DIM; i++) {
-    p->state[i] = 0;
-  }
 
   return OK;
 }
@@ -2331,37 +2315,38 @@ static int32_t bob_process(CSOUND *csound,BOB *p)
     MYFLT fr = (asgfr ? freq[i] : *freq);
     MYFLT rs = (asgrs ? res[i] : *res);
     MYFLT sa = (asgsa ? sat[i] : *sat);
-    *p->freq = fr;
-    *p->res = rs;
-    *p->sat = sa;
-
-    if (p->oldfreq != fr|| p->oldres != rs || p->oldsat != sa) {
-      p->oldfreq = fr;
-      p->oldres = rs;
-      p->oldsat = sa;
+    double input = in[i];
+    double k = TWOPI * fr;
+    /* At zero saturation all derivatives vanish, so retain the state. */
+    if (UNLIKELY(sa == FL(0.0))) {
+      out[i] = p->state[3];
+      continue;
     }
+    double satinv = 1.0 / sa;
 
     for (j=0; j<ostimes; j++) {
-      //solver_rungekutte
-      calc_derivatives(csound,p, deriv1, tempstate, in[i]);
+      /* Classical fourth-order Runge-Kutta step. */
+      BOB_DERIVATIVES(deriv1, p->state);
       for (l = 0; l < DIM; l++)
         tempstate[l] = p->state[l] + 0.5 * stepsize * deriv1[l];
-      calc_derivatives(csound,p, deriv2, tempstate, in[i]);
+      BOB_DERIVATIVES(deriv2, tempstate);
       for (l = 0; l < DIM; l++)
         tempstate[l] = p->state[l] + 0.5 * stepsize * deriv2[l];
-      calc_derivatives(csound,p, deriv3, tempstate, in[i]);
+      BOB_DERIVATIVES(deriv3, tempstate);
       for (l = 0; l < DIM; l++)
-        tempstate[l] = p->state[l] + 0.5 * stepsize * deriv3[l];
-      calc_derivatives(csound,p, deriv4, tempstate, in[i]);
+        tempstate[l] = p->state[l] + stepsize * deriv3[l];
+      BOB_DERIVATIVES(deriv4, tempstate);
       for (l = 0; l < DIM; l++)
         p->state[l] += (1./6.) * stepsize *
           (deriv1[l] + 2 * deriv2[l] + 2 * deriv3[l] +
            deriv4[l]);
     }
-    out[i] = p->state[0];
+    out[i] = p->state[3];
   }
   return OK;
 }
+
+#undef BOB_DERIVATIVES
 
 typedef struct vps {
   OPDS h;
