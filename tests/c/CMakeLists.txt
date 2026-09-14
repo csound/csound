@@ -31,6 +31,7 @@ if(BUILD_TESTS)
         paulstretch_test.cpp
         mixer_test.cpp
         tableseg_test.cpp
+        ftgentmp_test.cpp
         server_test.cpp
         csound_plugin_opcode_test.cpp
         perfthread_test.cpp

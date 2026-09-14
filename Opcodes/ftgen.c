@@ -22,10 +22,15 @@
 #include "soundio.h"
 #include <math.h>
 
+typedef struct ftgentmp_table {
+  int32_t fno;
+  struct ftgentmp_table *next;
+} FTGENTMP_TABLE;
+
 typedef struct {
   OPDS    h;
   MYFLT   *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX-5];
-  int32_t fno;
+  FTGENTMP_TABLE *tables;
 } FTGEN;
 
 typedef struct {
@@ -54,11 +59,19 @@ typedef struct namedgen {
 
 static int32_t ftable_delete(CSOUND *csound, FTGEN *p)
 {
-  int32_t err = csound->FTDelete(csound, p->fno);
-  if (UNLIKELY(err != OK))
-    csound->ErrorMsg(csound, Str("Error deleting ftable %d"),
-                     p->fno);
-  return err;
+  int32_t result = OK;
+  while (p->tables != NULL) {
+    FTGENTMP_TABLE *table = p->tables;
+    int32_t err;
+    p->tables = table->next;
+    err = csound->FTDelete(csound, table->fno);
+    if (UNLIKELY(err != OK)) {
+      csound->ErrorMsg(csound, Str("Error deleting ftable %d"), table->fno);
+      result = err;
+    }
+    csound->Free(csound, table);
+  }
+  return result;
 }
 
 /* set up and call any GEN routine */
@@ -161,56 +174,39 @@ static int32_t ftgen_SS(CSOUND *csound, FTGEN *p) {
   return ftgen_(csound,p,1,1);
 }
 
-static int32_t ftgentmp(CSOUND *csound, FTGEN *p)
+static int32_t ftgentmp_(CSOUND *csound, FTGEN *p,
+                          int32_t istring1, int32_t istring2)
 {
-  int32_t   p1;
-  if (UNLIKELY(ftgen(csound, p) != OK))
+  if (UNLIKELY(ftgen_(csound, p, istring1, istring2) != OK))
     return NOTOK;
-  p1 = (int32_t) MYFLT2LRND(*p->p1);
-  if (p1)
-    return OK;
-  p->fno = (int32_t) MYFLT2LRND(*p->ifno);
+  if (MYFLT2LRND(*p->p1) == 0 && *p->ifno > FL(0.0)) {
+    FTGENTMP_TABLE *table = csound->Malloc(csound, sizeof(FTGENTMP_TABLE));
+    table->fno = (int32_t) MYFLT2LRND(*p->ifno);
+    /* Reinit can create more tables; retain each until the note ends. */
+    table->next = p->tables;
+    p->tables = table;
+  }
   return OK;
 }
 
+static int32_t ftgentmp(CSOUND *csound, FTGEN *p)
+{
+  return ftgentmp_(csound, p, 0, 0);
+}
 
 static int32_t ftgentmp_S(CSOUND *csound, FTGEN *p)
 {
-  int32_t   p1;
-
-  if (UNLIKELY(ftgen_(csound, p,0,1) != OK))
-    return NOTOK;
-  p1 = (int32_t) MYFLT2LRND(*p->p1);
-  if (p1)
-    return OK;
-  p->fno = (int32_t) MYFLT2LRND(*p->ifno);
-  return OK;
+  return ftgentmp_(csound, p, 0, 1);
 }
 
 static int32_t ftgentmp_Si(CSOUND *csound, FTGEN *p)
 {
-  int32_t   p1;
-
-  if (UNLIKELY(ftgen_(csound, p,1,0) != OK))
-    return NOTOK;
-  p1 = (int32_t) MYFLT2LRND(*p->p1);
-  if (p1)
-    return OK;
-  p->fno = (int32_t) MYFLT2LRND(*p->ifno);
-  return OK;
+  return ftgentmp_(csound, p, 1, 0);
 }
 
 static int32_t ftgentmp_SS(CSOUND *csound, FTGEN *p)
 {
-  int32_t   p1;
-
-  if (UNLIKELY(ftgen_(csound, p,1,1) != OK))
-    return NOTOK;
-  p1 = (int32_t) MYFLT2LRND(*p->p1);
-  if (p1)
-    return OK;
-  p->fno = (int32_t) MYFLT2LRND(*p->ifno);
-  return OK;
+  return ftgentmp_(csound, p, 1, 1);
 }
 
 static int32_t ftfree_deinit(CSOUND *csound, FTFREE *p)

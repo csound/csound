@@ -1030,6 +1030,7 @@ def runTest():
             "-odac -d -+rtaudio=dummy",
         ],
         ["test_named_instr_ramps.csd", "test named instrument ramps"],
+        ["test_ftgentmp_cleanup.csd", "ftgentmp table lifetime across reinit and note reuse"],
         ["test_gen01.csd", "testing GEN01 importing files"],
         ["test_raw_strings.csd", "test new-style raw strings"],
         ["test_min_max_values.csd", "test MIN_VALUE and MAX_VALUE math constants"],
