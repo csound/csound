@@ -18,12 +18,25 @@
 import * as Comlink from "../utils/comlink.js";
 import MessagePortState from "../utils/message-port-state";
 import { AUDIO_STATE, RING_BUFFER_SIZE } from "../constants";
+import {
+  applyAudioFade,
+  createAudioFade,
+  getAudioFadeRemainingFrames,
+} from "../utils/audio-fade";
 import { instantiateAudioPacket } from "./common.utils";
 import { logWorkletWorker as log } from "../logger";
 
 const VANILLA_INPUT_WRITE_BUFFER_LEN = 2048;
 
 const activeNodes = new Map();
+
+const copyAudioFrames = (source, destination, readIndex, frameCount) => {
+  const firstFrameCount = Math.min(frameCount, RING_BUFFER_SIZE - readIndex);
+  destination.set(source.subarray(readIndex, readIndex + firstFrameCount));
+  if (firstFrameCount < frameCount) {
+    destination.set(source.subarray(0, frameCount - firstFrameCount), firstFrameCount);
+  }
+};
 
 /**
  * @function
@@ -43,7 +56,12 @@ function processSharedArrayBuffer(inputs, outputs) {
     delete this.startPromiz;
   }
 
-  if (!this.sharedArrayBuffer || isPaused || !isPerforming || isStopped) {
+  if (
+    !this.sharedArrayBuffer ||
+    (isPaused && !this.audioFade) ||
+    (!isPerforming && !this.audioFade) ||
+    (isStopped && !this.audioFade)
+  ) {
     this.isPerformingLastTime = isPerforming;
     this.firstBufferReady = false;
     this.notifiedOnce = false;
@@ -64,6 +82,41 @@ function processSharedArrayBuffer(inputs, outputs) {
   if (this.bufferLength !== bufferLength) {
     this.bufferLength = bufferLength;
     Atomics.store(this.sharedArrayBuffer, AUDIO_STATE.BUFFER_LEN, bufferLength);
+  }
+
+  if (this.audioFade) {
+    const availableFrames = Atomics.load(
+      this.sharedArrayBuffer,
+      AUDIO_STATE.AVAIL_OUT_BUFS,
+    );
+    const frameCount = Math.min(availableFrames, bufferLength);
+    writeableOutputChannels.forEach((channelBuffer) => channelBuffer.fill(0));
+    if (frameCount > 0) {
+      const nextReadIndex = (this.outputReadIndex + frameCount) % RING_BUFFER_SIZE;
+      writeableOutputChannels.forEach((channelBuffer, channelIndex) => {
+        copyAudioFrames(
+          this.sabOutputChannels[channelIndex],
+          channelBuffer,
+          this.outputReadIndex,
+          frameCount,
+        );
+      });
+      this.outputReadIndex = nextReadIndex;
+      Atomics.sub(this.sharedArrayBuffer, AUDIO_STATE.AVAIL_OUT_BUFS, frameCount);
+      Atomics.store(
+        this.sharedArrayBuffer,
+        AUDIO_STATE.OUTPUT_READ_INDEX,
+        this.outputReadIndex,
+      );
+      applyAudioFade(this.audioFade, writeableOutputChannels, frameCount);
+    }
+    if (
+      frameCount === 0 ||
+      getAudioFadeRemainingFrames(this.audioFade) === 0
+    ) {
+      this.audioFade = undefined;
+    }
+    return true;
   }
 
   const nextInputWriteIndex =
@@ -171,6 +224,33 @@ function processVanillaBuffers(inputs, outputs) {
   const writeableInputChannels = inputs && inputs[0];
   const writeableOutputChannels = outputs && outputs[0];
   const bufferLength = writeableOutputChannels ? writeableOutputChannels[0].length : 0;
+
+  if (this.audioEnded) {
+    writeableOutputChannels.forEach((channelBuffer) => channelBuffer.fill(0));
+    const frameCount = Math.min(this.vanillaAvailableFrames, bufferLength);
+    if (this.audioFade && frameCount > 0) {
+      const nextReadIndex = (this.vanillaOutputReadIndex + frameCount) % RING_BUFFER_SIZE;
+      writeableOutputChannels.forEach((channelBuffer, channelIndex) => {
+        copyAudioFrames(
+          this.vanillaOutputChannels[channelIndex],
+          channelBuffer,
+          this.vanillaOutputReadIndex,
+          frameCount,
+        );
+      });
+      this.vanillaOutputReadIndex = nextReadIndex;
+      this.vanillaAvailableFrames -= frameCount;
+      applyAudioFade(this.audioFade, writeableOutputChannels, frameCount);
+    }
+    if (
+      !this.audioFade ||
+      frameCount === 0 ||
+      getAudioFadeRemainingFrames(this.audioFade) === 0
+    ) {
+      this.audioFade = undefined;
+    }
+    return true;
+  }
 
   const nextOutputReadIndex =
     writeableOutputChannels && writeableOutputChannels.length > 0
@@ -280,6 +360,8 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     this.resume = this.resume.bind(this);
     /** @export */
     this.terminate = this.terminate.bind(this);
+    /** @export */
+    this.beginFadeOut = this.beginFadeOut.bind(this);
     this.isPaused = false;
     this.isTerminated = false;
     // this.sampleRate = sampleRate;
@@ -290,6 +372,8 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     this.outputReadIndex = 0;
     this.bufferUnderrunCount = 0;
     this.bufferLength = 0;
+    this.audioFade = undefined;
+    this.audioEnded = false;
 
     // NON-SAB PROCESS
     this.isPerformingLastTime = false;
@@ -332,7 +416,13 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
       this.updateVanillaFrames = this.updateVanillaFrames.bind(this);
     }
     Comlink.expose(
-      { initialize, pause: this.pause, resume: this.resume, terminate: this.terminate },
+      {
+        initialize,
+        pause: this.pause,
+        resume: this.resume,
+        terminate: this.terminate,
+        beginFadeOut: this.beginFadeOut,
+      },
       this.port,
     );
     log(`Worker thread was constructed`)();
@@ -403,6 +493,23 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     );
   }
 
+  beginFadeOut() {
+    this.audioEnded = true;
+    if (this.audioFade) {
+      return getAudioFadeRemainingFrames(this.audioFade);
+    }
+
+    const frameCount = this.sharedArrayBuffer
+      ? Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.AVAIL_OUT_BUFS)
+      : this.vanillaAvailableFrames;
+    if (frameCount <= 0) {
+      return 0;
+    }
+
+    this.audioFade = createAudioFade(frameCount);
+    return frameCount;
+  }
+
   terminate() {
     this.isTerminated = true;
     this.isPaused = false;
@@ -425,7 +532,9 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
       ((outputs && outputs[0]) || []).forEach((array) => array.fill(0));
       return false;
     }
-    return this.isPaused || !this.messagePortsReady ? true : this.actualProcess(inputs, outputs);
+    return this.isPaused && !this.audioFade || !this.messagePortsReady
+      ? true
+      : this.actualProcess(inputs, outputs);
   }
 }
 

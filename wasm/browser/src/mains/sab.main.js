@@ -211,6 +211,9 @@ class SharedArrayBufferMainThread {
       return;
     }
     let performanceEndState;
+    let userProvidedSampleRate;
+    let userProvidedNchnls;
+    let userProvidedNchnlsInput;
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         log(
@@ -236,23 +239,9 @@ class SharedArrayBufferMainThread {
         this.callbackBuffer = {};
         log(`event: realtimePerformanceEnded received, beginning cleanup`)();
         // Preserve audio configuration while re-initializing SAB runtime state.
-        const userProvidedSampleRate = Atomics.load(this.audioStatePointer, AUDIO_STATE.SAMPLE_RATE);
-        const userProvidedNchnls = Atomics.load(this.audioStatePointer, AUDIO_STATE.NCHNLS);
-        const userProvidedNchnlsInput = Atomics.load(this.audioStatePointer, AUDIO_STATE.NCHNLS_I);
-
-        // re-initialize SAB
-        initialSharedState.forEach((value, index) => {
-          Atomics.store(this.audioStatePointer, index, value);
-        });
-        if (userProvidedSampleRate > -1) {
-          Atomics.store(this.audioStatePointer, AUDIO_STATE.SAMPLE_RATE, userProvidedSampleRate);
-        }
-        if (userProvidedNchnls > -1) {
-          Atomics.store(this.audioStatePointer, AUDIO_STATE.NCHNLS, userProvidedNchnls);
-        }
-        if (userProvidedNchnlsInput > -1) {
-          Atomics.store(this.audioStatePointer, AUDIO_STATE.NCHNLS_I, userProvidedNchnlsInput);
-        }
+        userProvidedSampleRate = Atomics.load(this.audioStatePointer, AUDIO_STATE.SAMPLE_RATE);
+        userProvidedNchnls = Atomics.load(this.audioStatePointer, AUDIO_STATE.NCHNLS);
+        userProvidedNchnlsInput = Atomics.load(this.audioStatePointer, AUDIO_STATE.NCHNLS_I);
         performanceEndState = newPlayState;
         break;
       }
@@ -277,6 +266,20 @@ class SharedArrayBufferMainThread {
       await this.audioWorker.onPlayStateChange(newPlayState, performanceGeneration);
     } catch (error) {
       console.error(error);
+    }
+    if (performanceEndState === "realtimePerformanceEnded") {
+      initialSharedState.forEach((value, index) => {
+        Atomics.store(this.audioStatePointer, index, value);
+      });
+      if (userProvidedSampleRate > -1) {
+        Atomics.store(this.audioStatePointer, AUDIO_STATE.SAMPLE_RATE, userProvidedSampleRate);
+      }
+      if (userProvidedNchnls > -1) {
+        Atomics.store(this.audioStatePointer, AUDIO_STATE.NCHNLS, userProvidedNchnls);
+      }
+      if (userProvidedNchnlsInput > -1) {
+        Atomics.store(this.audioStatePointer, AUDIO_STATE.NCHNLS_I, userProvidedNchnlsInput);
+      }
     }
     if (performanceEndState) {
       this.markPerformanceEndState(performanceEndState, performanceGeneration);
