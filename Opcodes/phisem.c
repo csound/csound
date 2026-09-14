@@ -662,8 +662,8 @@ static int32_t tambourset(CSOUND *csound, TAMBOURINE *p)
 
   p->shake_maxSave = FL(0.0);
   p->sndLevel = FL(0.0);
-  p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
-    - (int32_t)(CS_EKR * *p->dettack);
+  p->kloop = trunc(p->h.insdshead->offtim * CS_EKR)
+    - trunc((double)CS_EKR * *p->dettack);
 
   p->outputs00       = FL(0.0);
   p->outputs01       = FL(0.0);
@@ -681,6 +681,8 @@ static int32_t tambourset(CSOUND *csound, TAMBOURINE *p)
   p->soundDecay      = TAMB_SOUND_DECAY;
   p->systemDecay     = TAMB_SYSTEM_DECAY;
   p->gain            = FL(24.0) / TAMB_NUM_TIMBRELS;
+  /* Reset the cache with the shell coefficients, also on reused notes. */
+  p->res_freq        = TAMB_SHELL_FREQ;
   p->res_freq1       = TAMB_CYMB_FREQ1;
   p->res_freq2       = TAMB_CYMB_FREQ2;
   temp               = LOG((MYFLT)TAMB_NUM_TIMBRELS) * TAMB_GAIN /
@@ -713,6 +715,7 @@ static int32_t tambourine(CSOUND *csound, TAMBOURINE *p)
   MYFLT data;
   MYFLT temp_rand;
   MYFLT lastOutput;
+  MYFLT fullscale = csound->Get0dBFS(csound);
 
   if (*p->num_timbrels != FL(0.0) && *p->num_timbrels != p->num_objects) {
     p->num_objects = *p->num_timbrels;
@@ -744,7 +747,7 @@ static int32_t tambourine(CSOUND *csound, TAMBOURINE *p)
       COS(p->res_freq2 * CS_TPIDSR);
   }
   if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if ((--p->kloop) == 0) {
+  if (p->kloop > 0 && --p->kloop == 0) {
     p->shakeEnergy = FL(0.0);
   }
 
@@ -794,7 +797,7 @@ static int32_t tambourine(CSOUND *csound, TAMBOURINE *p)
       p->finalZ0 += p->gains2 * p->outputs21;
       data = p->finalZ0 - p->finalZ2;         /* Extra zero(s) for shape */
       lastOutput = data * FL(0.0009);
-      ar[n] = lastOutput*csound->Get0dBFS(csound);
+      ar[n] = lastOutput*fullscale;
     }
     p->shakeEnergy = shakeEnergy;
     p->sndLevel = sndLevel;

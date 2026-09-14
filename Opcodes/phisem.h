@@ -188,7 +188,7 @@ typedef struct Tambour {
     MYFLT       res_freq1;
     MYFLT       res_freq2;
     MYFLT       shake_damp;
-    int32_t         kloop;
+    double          kloop;
 } TAMBOURINE;
 
 typedef struct Bamboo {
