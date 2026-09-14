@@ -36,6 +36,7 @@
 #include "csound_orc_semantics.h"
 #include "csound_orc_compile.h"
 #include "entry.h"
+#include "opcode_deprecation.h"
 
 
 static CS_VAR_POOL *find_global_annotation(char *varName,
@@ -2891,45 +2892,22 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                                root->value->optype, rightArgString);
   }
 
-  /* check for deprecation */
-  if(oentry && oentry->deprecated) {
-    if(oentry->deprecated == 1) {
-      if(csound->oparms->error_deprecated) {
-        synterr(csound, "opcode %s is deprecated, line %d,"
-                " columns %d-%d",
-                oentry->opname,
-                root->line, root->value->first_column,
-                root->value->last_column);
-        csoundMessage(csound, Str(" %s %s %s\n"),
-                        leftArgString ? leftArgString : "",
-                        oentry->opname, rightArgString ? rightArgString : "");
-        return 0;
-       }
-      else csoundWarning(csound, "opcode %s is deprecated, line %d",
-                         oentry->opname, root->line);
+  /* Check the resolved overload, including legacy _QQ registrations. */
+  if (oentry && (oentry->deprecated || (oentry->flags & _QQ))) {
+    char message[512];
+    csoundOpcodeDeprecationMessage(oentry->opname, oentry->deprecated == 2,
+                                  message, sizeof(message));
+    if (csound->oparms->error_deprecated) {
+      synterr(csound, "%s, line %d, columns %d-%d", message,
+              root->line, root->value->first_column, root->value->last_column);
+      csoundMessage(csound, Str(" %s %s %s\n"),
+                    leftArgString ? leftArgString : "",
+                    oentry->opname, rightArgString ? rightArgString : "");
+      return 0;
     }
-    else if(oentry->deprecated == 2) {
-      if(csound->oparms->error_deprecated) {
-        synterr(csound, "opcode %s has been renamed"
-                " (uppercase to lowercase / underscores removed), line %d"
-                " columns %d-%d",
-                oentry->opname, root->line,root->value->first_column,
-                root->value->last_column);
-        csoundMessage(csound, Str(" %s %s %s\n"),
-                        leftArgString ? leftArgString : "",
-                        oentry->opname, rightArgString ? rightArgString : "");
-        return 0;
-       }
-      else csoundWarning(csound, "opcode %s has been renamed"
-                         " (uppercase to lowercase / underscores removed), line %d"
-                         " columns %d-%d",
-                         oentry->opname, root->line,
-                         root->value->first_column,
-                         root->value->last_column);
-    }
-   }
-
-
+    if (!(csound->oparms->msglevel & CS_NOQQ))
+      csoundWarning(csound, "%s, line %d", message, root->line);
+  }
 
   if (UNLIKELY(oentry == NULL)) {
     int32_t i;

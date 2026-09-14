@@ -1407,9 +1407,9 @@ const OENTRY opcodlst_1[] = {
   { "filevalid.k", S(FILEVALID),0,    "k",   "i",    NULL, filevalid, NULL    },
   /*  { "nlalp", S(NLALP),0,          "a",  "akkoo", nlalp_set, nlalp }, */
   { "ptableiw",  S(TABLEW),TW|_QQ,  "", "iiiooo", (SUBR)tablew_init, NULL, NULL},
-  { "ptablew.kk", S(TABLEW),TB,    "", "kkiooo",(SUBR)tabl_setup,
+  { "ptablew.kk", S(TABLEW),TB|_QQ,    "", "kkiooo",(SUBR)tabl_setup,
     (SUBR)tablew_kontrol, NULL          },
-  { "ptablew.aa", S(TABLEW),TB,    "", "aaiooo",(SUBR)tabl_setup,
+  { "ptablew.aa", S(TABLEW),TB|_QQ,    "", "aaiooo",(SUBR)tabl_setup,
     (SUBR)tablew_audio               },
   { "tableiw",  S(TABL),TW|_QQ,  "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
   { "tablew",  S(TABL),TW,     "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},

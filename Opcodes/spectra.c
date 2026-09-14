@@ -22,6 +22,10 @@
 */
 
 // #include "csdl.h"
+/* The deprecated w-signal opcodes retain their legacy behavior.
+ * Consult H/opcode_deprecations.def and docs/opcode-deprecation.md before
+ * changing them. These rules do not freeze other opcodes in this file.
+ */
 #ifdef BUILD_PLUGINS
 #include "csdl.h"
 #else

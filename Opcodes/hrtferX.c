@@ -49,6 +49,10 @@
  * the old and new HRTFs (probably a project in itself).
  ***************************************************************/
 
+/* Legacy opcode behavior in this file is retained for compatibility.
+ * Consult H/opcode_deprecations.def and docs/opcode-deprecation.md before
+ * correcting historical output; use the supported replacement for new work.
+ */
 #ifdef BUILD_PLUGINS
 #include "csdl.h"
 #else

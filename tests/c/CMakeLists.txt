@@ -35,6 +35,7 @@ if(BUILD_TESTS)
         table_copy_test.cpp
         ftgentmp_test.cpp
         gen01_test.cpp
+        opcode_deprecation_test.cpp
         server_test.cpp
         csound_plugin_opcode_test.cpp
         perfthread_test.cpp
