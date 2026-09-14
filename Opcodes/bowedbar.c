@@ -50,20 +50,19 @@ static void make_DLineN(CSOUND *csound, DLINEN *p, int32 length)
     p->lastOutput = FL(0.0);
 }
 
-static void DLineN_setDelay(CSOUND *csound, DLINEN *p, int32_t lag)
+static void DLineN_setDelay(CSOUND *csound, DLINEN *p, double lag)
 {
     if (UNLIKELY(lag > p->length-1)) {                   /* if delay is too big, */
       csound->Warning(csound, Str("DLineN: Delay length too big ... setting to "
                                   "maximum length of %d.\n"), p->length - 1);
-      p->outPoint = p->inPoint + 1;            /* force delay to max_length */
+      lag = p->length - 1;
     }
-    else
-      p->outPoint = p->inPoint - (int32) lag;   /* read chases write */
-    while (p->outPoint<0)
+    p->outPoint = p->inPoint - (int32) lag;   /* read chases write */
+    if (p->outPoint<0)
       p->outPoint += p->length;                /* modulo maximum length */
 }
 
-static void DLineN_tick(DLINEN *p, MYFLT sample) /*  Take one, yield one */
+static inline void DLineN_tick(DLINEN *p, MYFLT sample) /*  Take one, yield one */
 {
     MYFLT *xx = (MYFLT*)p->inputs.auxp;
     xx[p->inPoint++] = sample;   /* Input next sample */
@@ -91,23 +90,33 @@ int32_t bowedbarset(CSOUND *csound, BOWEDBAR *p)
     make_ADSR(&p->adsr, CS_ESR);
     ADSR_setAllTimes(csound, &p->adsr, FL(0.02), FL(0.005), FL(0.9), FL(0.01));
 
-    if (LIKELY(*p->lowestFreq>=FL(0.0))) {      /* If no init skip */
-      if (*p->lowestFreq!=FL(0.0))
-        p->length = (int32) (CS_ESR / *p->lowestFreq + FL(1.0));
-      else if (*p->frequency!=FL(0.0))
-        p->length = (int32) (CS_ESR / *p->frequency + FL(1.0));
-      else {
+    if (LIKELY(*p->lowestFreq >= FL(0.0))) {
+      MYFLT lowest = *p->lowestFreq;
+      double length;
+      if (lowest == FL(0.0)) lowest = *p->frequency;
+      if (lowest == FL(0.0)) {
         csound->Warning(csound,
                         "%s", Str("unknown lowest frequency for bowed bar -- "
-                            "assuming 50Hz\n"));
-        p->length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
+                                 "assuming 50Hz\n"));
+        lowest = FL(50.0);
       }
+      if (lowest > FL(1568.0)) lowest = FL(1568.0);
+      length = (double)CS_ESR / lowest + 1.0;
+      /* Leave room for the extra sample in make_DLineN. */
+      if (UNLIKELY(!(length >= 1.0 && length < INT32_MAX &&
+                     length < SIZE_MAX / sizeof(MYFLT))))
+        return csound->InitError(csound, "%s",
+                                Str("Bowedbar: invalid lowest frequency"));
+      p->length = (int32_t)length;
     }
+    if (UNLIKELY(p->length < 1))
+      return csound->InitError(csound, "%s",
+                              Str("Bowedbar: delay line is not initialized"));
 
     p->nr_modes = NR_MODES;
     for (i = 0; i<NR_MODES; i++) {
       make_DLineN(csound, &p->delay[i], p->length);
-      DLineN_setDelay(csound, &p->delay[i], (int32_t)(p->length/p->modes[i]));
+      DLineN_setDelay(csound, &p->delay[i], (double)p->length / p->modes[i]);
       BiQuad_clear(&p->bandpass[i]);
     }
 /*     p->gains[0] = FL(0.0); */
@@ -134,7 +143,9 @@ int32_t bowedbar(CSOUND *csound, BOWEDBAR *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+    MYFLT       fullscale = AMP_SCALE;
+    MYFLT       amp = *p->amp * (FL(1.0) / fullscale);
+    MYFLT       frequency = *p->frequency;
     int32 k;
     int32_t i;
     MYFLT       maxVelocity;
@@ -142,23 +153,27 @@ int32_t bowedbar(CSOUND *csound, BOWEDBAR *p)
 
     if (p->lastpress != *p->bowPress)
       p->bowTabl.slope = p->lastpress = *p->bowPress;
-    if (p->freq != *p->frequency) {
-      p->freq = *p->frequency;
-      if (p->freq > FL(1568.0)) p->freq = FL(1568.0);
-
-      p->length = (int32_t)(CS_ESR/p->freq);
+    if (frequency > FL(1568.0)) frequency = FL(1568.0);
+    if (UNLIKELY(!(frequency > FL(0.0))))
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("Bowedbar: frequency must be positive"));
+    if (p->freq != frequency) {
+      /* Keep the allocated capacity in p->length for note reuse. */
+      double period = floor((double)CS_ESR / frequency);
+      p->freq = frequency;
       p->nr_modes = NR_MODES;   /* reset for frequency shift */
       for (i = 0; i<NR_MODES; i++) {
-        if ((int32_t)(p->length/p->modes[i]) > 4)
-          DLineN_setDelay(csound, &p->delay[i], (int32_t)(p->length/p->modes[i]));
-        else    {
+        double lag = floor(period / p->modes[i]);
+        if (lag > 4.0)
+          DLineN_setDelay(csound, &p->delay[i], lag);
+        else {
           p->nr_modes = i;
           break;
         }
       }
       if (UNLIKELY(p->nr_modes==0))
-        return csound->InitError(csound,
-                                 "%s", Str("Bowedbar: cannot have zero modes\n"));
+        return csound->PerfError(csound, &p->h, "%s",
+                                 Str("Bowedbar: cannot have zero modes\n"));
       for (i=0; i<p->nr_modes; i++) {
         MYFLT R = FL(1.0) - p->freq * p->modes[i] * CS_PIDSR;
         BiQuad_clear(&p->bandpass[i]);
@@ -183,7 +198,7 @@ int32_t bowedbar(CSOUND *csound, BOWEDBAR *p)
       p->lastBowPos = *p->bowposition;
     }
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-    if ((--p->kloop) == 0) {
+    if (p->kloop > 0 && --p->kloop == 0) {
       ADSR_setReleaseRate(csound, &p->adsr, (FL(1.0) - amp) * FL(0.005));
       p->adsr.target = FL(0.0);
       p->adsr.rate = p->adsr.releaseRate;
@@ -227,7 +242,7 @@ int32_t bowedbar(CSOUND *csound, BOWEDBAR *p)
         data += p->bandpass[k].lastOutput;
       }
 
-      ar[n] = data * AMP_SCALE * FL(20.0); /* 20 is an experimental value */
+      ar[n] = data * fullscale * FL(20.0); /* 20 is an experimental value */
     }
     return OK;
 }
