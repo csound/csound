@@ -30,6 +30,7 @@ if(BUILD_TESTS)
         pvsinit_test.cpp
         paulstretch_test.cpp
         mixer_test.cpp
+        tableseg_test.cpp
         server_test.cpp
         csound_plugin_opcode_test.cpp
         perfthread_test.cpp

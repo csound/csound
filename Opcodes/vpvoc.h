@@ -24,8 +24,7 @@
 
 typedef struct {
     FUNC    *function, *nxtfunction;
-    MYFLT   d;
-    int32   cnt;
+    int32   duration, cnt;
 } TSEG;
 
 typedef struct {
@@ -34,7 +33,8 @@ typedef struct {
     TSEG    *cursegp;
     FUNC    *outfunc;
     int32   nsegs;
-    AUXCH   auxch;
+    AUXCH   auxch, outaux;
+    FUNC    outtable;
 } TABLESEG;
 
 typedef struct {
