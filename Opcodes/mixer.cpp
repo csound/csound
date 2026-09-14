@@ -334,19 +334,25 @@ struct MixerClear : public OpcodeBase<MixerClear> {
 extern "C" {
 
 static OENTRY localops[] = {
+  CSOUND_DEPRECATED_OPCODE("MixerSetLevel", "mixersetlevel", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   {(char *)"MixerSetLevel", sizeof(MixerSetLevel), _CW,  (char *)"",
    (char *)"iik", (SUBR)&MixerSetLevel::init_, (SUBR)&MixerSetLevel::kontrol_,
    0, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("MixerSetLevel_i", "mixersetleveli", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   {(char *)"MixerSetLevel_i", sizeof(MixerSetLevel), _CW,  (char *)"",
    (char *)"iii", (SUBR)&MixerSetLevel::init_, 0, 0, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("MixerGetLevel", "mixergetlevel", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   {(char *)"MixerGetLevel", sizeof(MixerGetLevel), _CR,  (char *)"k",
    (char *)"ii", (SUBR)&MixerGetLevel::init_, (SUBR)&MixerGetLevel::kontrol_,
    0, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("MixerSend", "mixersend", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   {(char *)"MixerSend", sizeof(MixerSend), _CW,  (char *)"", (char *)"aiii",
    (SUBR)&MixerSend::init_, (SUBR)&MixerSend::audio_, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("MixerReceive", "mixerreceive", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   {(char *)"MixerReceive", sizeof(MixerReceive), _CR,  (char *)"a",
    (char *)"ii", (SUBR)&MixerReceive::init_, (SUBR)&MixerReceive::audio_,
    0, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("MixerClear", "mixerclear", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   {(char *)"MixerClear", sizeof(MixerClear), 0,  (char *)"", (char *)"",
    (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_, NULL, NULL, 2},
   /* aliases */

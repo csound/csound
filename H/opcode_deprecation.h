@@ -1,5 +1,6 @@
 /* Internal metadata for deprecated opcode diagnostics and maintenance policy.
- * The catalog is H/opcode_deprecations.def; see docs/opcode-deprecation.md.
+ * H/opcode_deprecations.def is generated from local source descriptors.
+ * See docs/opcode-deprecation.md before changing historical behavior.
  * This does not extend OENTRY or the plugin ABI.
  */
 #ifndef CSOUND_OPCODE_DEPRECATION_H

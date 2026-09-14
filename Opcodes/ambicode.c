@@ -21,7 +21,7 @@
     Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 /* Legacy opcode behavior in this file is retained for compatibility.
- * Consult H/opcode_deprecations.def and docs/opcode-deprecation.md before
+ * Read the local CSOUND_DEPRECATED_OPCODE markers and docs/opcode-deprecation.md before
  * correcting historical output; use the supported replacement for new work.
  */
 #include "stdopcod.h"
@@ -46,6 +46,8 @@ typedef struct {
             v[8], k[8], l[8], m[8], n[8], o[8], p[8], q[8];
 } AMBID;
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("bformenc")
 static int32_t iambicode(CSOUND *csound, AMBIC *p)
 {
     csound->Warning(csound,
@@ -132,6 +134,8 @@ static void ambicode_set_coefficients(AMBIC *p)
     p->q = 3.0 * p->x * (p->x * p->x - 3.0 * p->y * p->y);
 }
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("bformenc")
 static int32_t aambicode(CSOUND *csound, AMBIC *p)
 {
     IGN(csound);
@@ -330,6 +334,8 @@ static void ambideco_set_coefficients(AMBID *p, double alpha, double beta,
       (p->x[index] * p->x[index] - 3.0 * p->y[index] * p->y[index]);
 }
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("bformdec")
 static int32_t iambideco(CSOUND *csound, AMBID *p)
 {
     int32_t setup = (int32_t)*p->isetup;
@@ -641,6 +647,8 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
     return OK;
 }
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("bformdec")
 static int32_t aambideco(CSOUND *csound, AMBID *p)
 {
      IGN(csound);
@@ -738,8 +746,10 @@ static int32_t aambideco(CSOUND *csound, AMBID *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  CSOUND_DEPRECATED_OPCODE("bformenc", "bformenc1", FROZEN, "Known inaccurate legacy encoder; bformenc1 omits the old gain arguments.")
   { "bformenc", S(AMBIC), _QQ,  "mmmmmmmmmmmmmmmm", "akkPPPP",
                             (SUBR)iambicode,  (SUBR)aambicode },
+  CSOUND_DEPRECATED_OPCODE("bformdec", "bformdec1", FROZEN, "Known inaccurate legacy decoder; use the supported decoder for new code.")
   { "bformdec", S(AMBID), _QQ,  "mmmmmmmm", "iaaay",
                             (SUBR)iambideco, (SUBR)aambideco }
 };

@@ -757,14 +757,18 @@ static int32_t scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
 
 static OENTRY localops[] =
   {
+   CSOUND_DEPRECATED_OPCODE("xscanu", "scanu", LEGACY, "Review matrix layout and scan setup when migrating; not a drop-in rename.")
    { "xscanu", S(PSCSNUX),_QQ|TR, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init_S,
      (SUBR)scsnux },
    { "xscanu", S(PSCSNUX),_QQ|TR, "", "iiiiiiikkkkiikkaii", (SUBR)scsnux_init,
      (SUBR)scsnux },
+   CSOUND_DEPRECATED_OPCODE("xscans", "scans", LEGACY, "Review matrix layout and scan setup when migrating; not a drop-in rename.")
    { "xscans", S(PSCSNSX),  _QQ|TR,  "a", "kkiio",         (SUBR)scsnsx_init,
      (SUBR)scsnsx},
+   CSOUND_DEPRECATED_OPCODE("xscanmap", "scanmap", LEGACY, "Review matrix layout and scan setup when migrating; not a drop-in rename.")
    { "xscanmap", S(PSCSNMAPX),_QQ|TR, "kk", "ikko",        (SUBR)scsnmapx_init,
      (SUBR)scsnmapx,NULL },
+   CSOUND_DEPRECATED_OPCODE("xscansmap", "scansmap", LEGACY, "Review matrix layout and scan setup when migrating; not a drop-in rename.")
    { "xscansmap", S(PSCSNMAPX),_QQ|TR,"",   "kkikko",      (SUBR)scsnmapx_init,
      (SUBR)scsnsmapx,NULL }
 };

@@ -256,14 +256,22 @@ static int32_t count_del(CSOUND *csound, COUNTER* p)
 
 /* All counter operations share state, including across instrument instances. */
 static OENTRY counter_localops[] = {
+  CSOUND_DEPRECATED_OPCODE("cntCreate", "cntcreate", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "cntCreate", S(CNTSET), IB,  "i", "pop", (SUBR)setcnt, NULL, NULL, NULL, 2   },
   { "count", S(COUNTER), IB,  "k", "o", (SUBR)count_init, (SUBR)count_perf },
+  CSOUND_DEPRECATED_OPCODE("count_i", "counti", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "count_i", S(COUNTER), IB,  "i", "o", (SUBR)count_init_perf, NULL, NULL, NULL, 2 },
+  CSOUND_DEPRECATED_OPCODE("cntCycles", "cntcycles", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "cntCycles", S(COUNTER), IB,  "k", "o", (SUBR)count_init, (SUBR)count_cycles, NULL, NULL, 2 },
+  CSOUND_DEPRECATED_OPCODE("cntRead", "cntread", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "cntRead", S(COUNTER), IB,  "k", "o", (SUBR)count_init, (SUBR)count_read, NULL, NULL, 2 },
+  CSOUND_DEPRECATED_OPCODE("cntReset", "cntreset", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "cntReset", S(COUNTER), IB,  "", "o", (SUBR)count_init0, (SUBR)count_reset, NULL, NULL, 2 },
+  CSOUND_DEPRECATED_OPCODE("cntState", "cntstate", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "cntState", S(CNTSTATE), IB,  "kkk", "o", (SUBR)count_init3, (SUBR)count_state, NULL, NULL, 2 },
+  CSOUND_DEPRECATED_OPCODE("cntDelete", "cntdelete", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "cntDelete", S(COUNTER), IB,  "k", "k", NULL, (SUBR)count_del, NULL, NULL, 2 },
+  CSOUND_DEPRECATED_OPCODE("cntDelete_i", "cntdeletei", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "cntDelete_i", S(COUNTER), IB,  "i", "i", (SUBR)count_del, NULL, NULL, NULL, 2 },
   /* aliases */
   { "cntcreate", S(CNTSET), IB,  "i", "pop", (SUBR)setcnt, NULL, NULL   },

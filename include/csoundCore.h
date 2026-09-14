@@ -58,6 +58,20 @@
 extern "C" {
 #endif /*  __cplusplus */
 
+/* Source annotations, consumed by scripts/opcode_deprecations.py.
+ * These expand to nothing: no runtime cost and no plugin ABI change.
+ * Keep the descriptor beside its opcode registration. A frozen function must
+ * also carry CSOUND_PRESERVE_LEGACY_BEHAVIOR immediately before its definition.
+ * See docs/opcode-deprecation.md before changing historical behavior.
+ */
+#define CSOUND_DEPRECATED_OPCODE(name, replacement, policy, note)
+
+/* STOP: known legacy behavior is retained for compatibility. Do not correct
+ * historical output under this opcode name without a maintainer decision.
+ * See the CSOUND_DEPRECATED_OPCODE descriptor in the same source file.
+ */
+#define CSOUND_PRESERVE_LEGACY_BEHAVIOR(name)
+
 /** @name Arguments, opcodes, and instrument defs */
 /**@{ */
 
@@ -98,7 +112,7 @@ extern "C" {
     SUBR    deinit;
     void    *useropinfo; /* user opcode parameters */
     int32_t deprecated;  /* 1: deprecated, 2: renamed; see
-                           H/opcode_deprecations.def and
+                           local CSOUND_DEPRECATED_OPCODE descriptors and
                            docs/opcode-deprecation.md before behavior changes. */
   } OENTRY;
 
