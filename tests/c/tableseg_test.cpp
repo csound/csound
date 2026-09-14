@@ -77,7 +77,7 @@ TEST_P(TablesegTests, RoundedDurationsReachEachBreakpoint)
     for (int cycle = 0; cycle < 12; ++cycle) {
         ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS) << messages();
         double fraction = cycle < 5 ? cycle / 5.0 : (cycle - 5) / 3.0;
-        fraction = std::min(fraction, 1.0);
+        fraction = (std::min)(fraction, 1.0);
         if (quadratic()) fraction *= fraction;
         const double base = cycle < 5 ? 10 * fraction : 10 + 10 * fraction;
         ASSERT_NO_FATAL_FAILURE(expectTable(base));
@@ -89,7 +89,7 @@ TEST_P(TablesegTests, ZeroAndSubcycleStagesAdvanceImmediately)
     ASSERT_NO_FATAL_FAILURE(compile("1,0,2,.000244140625,3,.0078125,1"));
     for (int cycle = 0; cycle < 8; ++cycle) {
         ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS) << messages();
-        double fraction = std::min(cycle / 4.0, 1.0);
+        double fraction = (std::min)(cycle / 4.0, 1.0);
         if (quadratic()) fraction *= fraction;
         ASSERT_NO_FATAL_FAILURE(expectTable(20 * (1 - fraction)));
     }
