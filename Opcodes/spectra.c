@@ -203,6 +203,8 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
       SPECset(csound, specp, (int32_t)ncoefs);  /* prep the spec dspace */
       specp->downsrcp = dwnp;                /*  & record its source */
   }
+  memset(dwnp->auxch.auxp, 0, dwnp->npts * sizeof(MYFLT));
+  memset(specp->auxch.auxp, 0, specp->npts * sizeof(MYFLT));
   for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &    */
     octp->curp = octp->begp;
     for (fltp=octp->feedback,n=6; n--; )
@@ -251,18 +253,20 @@ static const MYFLT bicoefs[] = {
 int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 {
   MYFLT   a, b, *dftp, *sigp = p->signal, SIG, yt1, yt2;
-  int32_t     nocts, nsmps = p->nsmps, winlen;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  int32_t     nocts, winlen;
+  uint32_t n, nsmps = p->nsmps, offset = 0, end = nsmps;
   DOWNDAT *downp = &p->downsig;
   OCTDAT  *octp;
   SPECDAT *specp;
   double  c;
 
-    if (UNLIKELY(early)) nsmps -= early;
-    do {
-      SIG = *sigp++;                        /* for each source sample:     */
-      if (offset--) SIG = FL(0.0);          /* for sample accuracy         */
+    if (p->nsmps > 1) {
+      offset = p->h.insdshead->ksmps_offset;
+      end -= p->h.insdshead->ksmps_no_end;
+    }
+    for (n = 0; n < nsmps; n++) {
+      /* Keep full-block timing by padding inactive audio samples with zeros. */
+      SIG = (n < offset || n >= end) ? FL(0.0) : sigp[n];
       octp = downp->octdata;                /*   align onto top octave     */
       nocts = downp->nocts;
       do {                                  /*   then for each oct:        */
@@ -286,7 +290,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
           SIG += (*coefp++ * yt2);
         }
       } while (!(++octp->scount & 01) && octp++); /* send alt samps to nxtoct */
-    } while (--nsmps);
+    }
 
     if (p->disprd)                               /* if displays requested,   */
       if (!(--p->dcountdown)) {                  /*   on countdown           */
