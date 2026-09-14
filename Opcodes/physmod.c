@@ -731,6 +731,8 @@ int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
   if (UNLIKELY(p->length<=0)) goto err1;
   while (outputPointer<0)
     outputPointer += p->length;        /* modulo table length            */
+  while (outputPointer >= p->length)
+    outputPointer -= p->length;
   p->outPoint = (int32_t) outputPointer;    /* Integer part of delay          */
   p->alpha = FL(1.0) + p->outPoint - outputPointer;/* fractional part of delay */
   if (p->alpha<FL(0.1)) {
@@ -738,6 +740,8 @@ int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
     p->outPoint++;                        /*  cancellation.  Keeps allpass  */
     p->alpha += FL(1.0);                  /*  delay in range of .1 to 1.1   */
   }
+  if (p->outPoint >= p->length)
+    p->outPoint -= p->length;
   p->coeff = (FL(1.0)-p->alpha)/(FL(1.0)+p->alpha); /* coefficient for all pass*/
   return 0;
  err1:
