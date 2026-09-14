@@ -1143,8 +1143,10 @@ static OENTRY socksend_localops[] =
      (SUBR) send_sendS },
    { "stsend", S(SOCKSEND), 0, "", "aSi", (SUBR) init_ssend,
      (SUBR) send_ssend, (SUBR) stsend_deinit },
+  CSOUND_DEPRECATED_OPCODE("OSCsend", "oscsend", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "OSCsend", S(OSCSEND2), 0, "", "kSkSN", (SUBR)osc_send2_init,
     (SUBR)osc_send2, (SUBR) oscsend_deinit, NULL, 2 },
+  CSOUND_DEPRECATED_OPCODE("OSCbundle", "oscbundle", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "OSCbundle", S(OSCBUNDLE), 0, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
     (SUBR)oscbundle_perf, (SUBR) oscbundle_deinit, NULL, 2 },
   /* aliases */

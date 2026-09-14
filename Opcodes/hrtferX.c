@@ -50,7 +50,7 @@
  ***************************************************************/
 
 /* Legacy opcode behavior in this file is retained for compatibility.
- * Consult H/opcode_deprecations.def and docs/opcode-deprecation.md before
+ * Read the local CSOUND_DEPRECATED_OPCODE markers and docs/opcode-deprecation.md before
  * correcting historical output; use the supported replacement for new work.
  */
 #ifdef BUILD_PLUGINS
@@ -73,6 +73,8 @@ static const int32_t elevation_data[N_ELEV] = {56, 60, 72, 72, 72, 72, 72,
 #define ROUND(x) ((int32_t)floor((x)+FL(0.5)))
 #define GET_NFAZ(el_index)      ((elevation_data[el_index] / 2) + 1)
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("hrtfer")
 static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
 {
     // int32_t    i; /* standard loop counter */
@@ -154,6 +156,8 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
 
 /********************** a-rate code ***********************************/
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("hrtfer")
 static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 {
     MYFLT      *aLeft, *aRight; /* audio output streams */
@@ -452,6 +456,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 
 static OENTRY hrtferX_localops[] =
   {
+   CSOUND_DEPRECATED_OPCODE("hrtfer", "hrtfstat", FROZEN, "Legacy HRTFcompact behavior is frozen; hrtfstat uses different data and arguments. See PR #3009.")
    { "hrtfer",   sizeof(HRTFER), _QQ,  "aa", "akkS",
      (SUBR)hrtferxkSet, (SUBR)hrtferxk},
 };

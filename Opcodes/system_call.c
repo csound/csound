@@ -131,6 +131,7 @@ call_system_k(CSOUND *csound, SYSTEM *p)
 static OENTRY system_localops[] = {
   { "system", S(SYSTEM), 0,  "k", "kSO",
                        (SUBR)call_system_set,(SUBR)call_system_k},
+  CSOUND_DEPRECATED_OPCODE("system_i", "systemi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "system_i", S(SYSTEM), 0, "i", "iSo", (SUBR)call_system_i, NULL, NULL, NULL, 2},
   { "systemi", S(SYSTEM), 0,  "i", "iSo", (SUBR)call_system_i} /* alias */
 };

@@ -65,6 +65,7 @@ rewindscore(CSOUND *csound, SCOREPOS *p){
 
 
 static OENTRY scoreline_localops[] = {
+  CSOUND_DEPRECATED_OPCODE("scoreline_i", "scorelinei", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   {"scoreline_i", sizeof(INMESS), 0,  "", "S", (SUBR)messi, NULL, NULL, NULL, 2},
   {"scorelinei", sizeof(INMESS), 0,  "", "S", (SUBR)messi, NULL, NULL}, /* alias */
   {"scoreline", sizeof(INMESS), 0,  "", "Sk", NULL, (SUBR)messk, NULL},

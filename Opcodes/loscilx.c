@@ -1145,6 +1145,7 @@ static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
 /* ------------------------------------------------------------------------ */
 
 static OENTRY loscilx_localops[] = {
+  CSOUND_DEPRECATED_OPCODE("sndload", NULL, LEGACY, "The manual says the loaded data cannot be used; remove the call and load audio through a supported reader.")
   { "sndload",  sizeof(SNDLOAD_OPCODE), _QQ,   "",                 "iooooojjoo",
     (SUBR) sndload_opcode_init, (SUBR) NULL, (SUBR) NULL                      },
   { "sndload.S",  sizeof(SNDLOAD_OPCODE), _QQ,   "",                 "Sooooojjoo",

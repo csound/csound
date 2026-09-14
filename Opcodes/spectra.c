@@ -23,8 +23,8 @@
 
 // #include "csdl.h"
 /* The deprecated w-signal opcodes retain their legacy behavior.
- * Consult H/opcode_deprecations.def and docs/opcode-deprecation.md before
- * changing them. These rules do not freeze other opcodes in this file.
+ * Read the local CSOUND_DEPRECATED_OPCODE markers and the policy in
+ * docs/opcode-deprecation.md before changing them. These rules do not freeze other opcodes in this file.
  */
 #ifdef BUILD_PLUGINS
 #include "csdl.h"
@@ -61,6 +61,8 @@ void SPECset(CSOUND *p, SPECDAT *specdp, int32_t npts)
 
 static const char *outstring[] = {"mag", "db", "mag sqrd", "root mag"};
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("spectrum")
 int32_t spectset(CSOUND *csound, SPECTRUM *p)
 /* spectrum - calcs disc Fourier transform of */
 /* oct-downsampled data outputs coefs (mag, */
@@ -252,6 +254,8 @@ static const MYFLT bicoefs[] = {
   FL(0.3661840), FL(0.0837990), FL(0.3867783), FL(0.6764264), FL(0.3867783)
 };
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("spectrum")
 int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 {
   MYFLT   a, b, *dftp, *sigp = p->signal, SIG, yt1, yt2;
@@ -873,6 +877,8 @@ int32_t specsum(CSOUND *csound, SPECSUM *p)
                            "%s", Str("specsum: not initialised"));
 }
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("specaddm")
 int32_t spadmset(CSOUND *csound, SPECADDM *p)
 {
   SPECDAT *inspec1p = p->wsig1;
@@ -904,6 +910,8 @@ int32_t spadmset(CSOUND *csound, SPECADDM *p)
   return OK;
 }
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("specaddm")
 int32_t specaddm(CSOUND *csound, SPECADDM *p)
 {
   if (UNLIKELY((p->wsig1->auxch.auxp==NULL) || /* RWD fix */
@@ -1252,18 +1260,27 @@ int32_t specfilt(CSOUND *csound, SPECFILT *p)
 #define S       sizeof
 
 static OENTRY spectra_localops[] = {
+  CSOUND_DEPRECATED_OPCODE("spectrum", NULL, FROZEN, "Legacy constant-Q w-signal analysis is frozen. PVS analysis is not a drop-in replacement. See PR #3008.")
   { "spectrum", S(SPECTRUM),_QQ, "w", "kiiiqoooo",
     (SUBR)spectset,(SUBR)spectrum },
   { "spectrum", S(SPECTRUM),_QQ, "w", "aiiiqoooo",
     (SUBR)spectset,(SUBR)spectrum },
+  CSOUND_DEPRECATED_OPCODE("specaddm", NULL, FROZEN, "Legacy weighted addition is frozen, including the unused multiplier. See PR #3007.")
   { "specaddm", S(SPECADDM),_QQ, "w", "wwp", (SUBR)spadmset,  (SUBR)specaddm},
+  CSOUND_DEPRECATED_OPCODE("specdiff", NULL, LEGACY, "Part of the legacy constant-Q w-signal chain; no direct replacement is documented.")
   { "specdiff", S(SPECDIFF),_QQ, "w", "w",   (SUBR)spdifset,  (SUBR)specdiff},
+  CSOUND_DEPRECATED_OPCODE("specscal", NULL, LEGACY, "Part of the legacy constant-Q w-signal chain; no direct replacement is documented.")
   { "specscal", S(SPECSCAL),_QQ, "w", "wii", (SUBR)spsclset,  (SUBR)specscal},
+  CSOUND_DEPRECATED_OPCODE("spechist", NULL, LEGACY, "Part of the legacy constant-Q w-signal chain; no direct replacement is documented.")
   { "spechist", S(SPECHIST),_QQ, "w", "w",   (SUBR)sphstset,  (SUBR)spechist},
+  CSOUND_DEPRECATED_OPCODE("specfilt", NULL, LEGACY, "Part of the legacy constant-Q w-signal chain; no direct replacement is documented.")
   { "specfilt", S(SPECFILT),_QQ, "w", "wi",  (SUBR)spfilset,  (SUBR)specfilt},
+  CSOUND_DEPRECATED_OPCODE("specptrk", NULL, LEGACY, "Part of the legacy constant-Q w-signal chain; no direct replacement is documented.")
   { "specptrk", S(SPECPTRK),_QQ, "kk", "wkiiiiiioqooo",
     (SUBR)sptrkset,(SUBR)specptrk},
+  CSOUND_DEPRECATED_OPCODE("specsum", NULL, LEGACY, "Part of the legacy constant-Q w-signal chain; no direct replacement is documented.")
   { "specsum",  S(SPECSUM), _QQ, "k", "wo",  (SUBR)spsumset,  (SUBR)specsum },
+  CSOUND_DEPRECATED_OPCODE("specdisp", NULL, LEGACY, "Part of the legacy constant-Q w-signal chain; no direct replacement is documented.")
   { "specdisp", S(SPECDISP),_QQ, "",  "wio", (SUBR)spdspset,  (SUBR)specdisp},
   { "pitch", S(PITCH),   0,     "kk", "aiiiiqooooojo",
     (SUBR)pitchset, (SUBR)pitch },
