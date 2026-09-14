@@ -83,7 +83,7 @@ istor: defaults to 1, initialise the internal delay buffers
 on startup. 0 means no initialisation.
 
 BOB:
-ar bob asig, kcf, kres, ksat [, istor, iosamps]
+ar bob asig, xcf, xres, xsat [, iosamps, istor]
 
 Bob is a port of bob~ filter object from Pd.
 The design is based on the papers by Tim Stilson,
@@ -91,18 +91,17 @@ Timothy E. Stinchcombe, and Antti Huovilainen.
 Ported from PD code by Gleb Rogozinsky, Summer of 2020
 
 asig: input signal
-kcf: cutoff frequency (Hz)
-kres: resonance amount. Nominally, a value of 4 should be the limit
+xcf: cutoff frequency (Hz)
+xres: resonance amount. Nominally, a value of 4 should be the limit
 of stability -- above that, the filter oscillates.
-ksat: saturation. This parameter determines at what signal level
-the "transistors" in the model saturate. The maximum output amplitude
-is about 2/3 of that value.
+xsat: saturation. This parameter determines at what signal level
+the "transistors" in the model saturate.
 iosamps: number of times of oversampling used in the filtering process.
 This will determine the maximum sharpness of the filter resonance (Q).
 More oversampling allows higher Qs, less oversampling will limit the resonance.
-The default is 3 times (iosamps=0).
-istor: defaults to 1, initialise the internal delay buffers
-on startup. 0 means no initialisation.
+The default is 2 times (iosamps=0).
+istor: defaults to 0, which clears the filter state.
+A nonzero value retains the previous state.
 */
 
 #ifndef _NEWFILS_H
@@ -180,9 +179,6 @@ typedef struct _bob {
   MYFLT   *istor;
 
   int32_t ostimes;
-  MYFLT   oldfreq;
-  MYFLT   oldres;
-  MYFLT   oldsat;
   double  state[DIM];
 } BOB;
 
