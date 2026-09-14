@@ -40,6 +40,16 @@
 #include "vibraphn.h"
 #include <math.h>
 #include "interlocks.h"
+
+/* Reduce whole table turns at control rate so each sample wraps once. */
+static void Modal4_setVibratoRate(Modal4 *m, MYFLT frequency)
+{
+  double rate = frequency;
+  if (rate >= m->sr || rate <= -m->sr)
+    rate = fmod(rate, m->sr);
+  m->v_rate = rate * m->vibr->flen / m->sr;
+}
+
 static int32_t make_Modal4(CSOUND *csound,
                            Modal4 *m, MYFLT *ifn, MYFLT vgain, MYFLT vrate)
 {
@@ -60,7 +70,8 @@ static int32_t make_Modal4(CSOUND *csound,
   make_BiQuad(&m->filters[3]);
   make_OnePole(&m->onepole);
 
-  m->v_rate = vrate; /* 6.0; */
+  m->v_time = 0.0;
+  Modal4_setVibratoRate(m, vrate);
   m->vibrGain = vgain; /* 0.05; */
 
   /*     m->directGain = 0.0; */
@@ -114,7 +125,7 @@ void Modal4_setRatioAndReson(CSOUND *csound,
   if (ratio<0)
     temp = -ratio;
   else
-    temp = ratio * m->baseFreq;
+    temp = m->ratios[whichOne] * m->baseFreq;
   BiQuad_setFreqAndReson(m->filters[whichOne], temp,reson);
 }
 
@@ -154,11 +165,20 @@ static void Modal4_damp(CSOUND *csound, Modal4 *m, MYFLT amplitude)
   }
 }
 
-static MYFLT Modal4_tick(Modal4 *m)
+/* Share the sample code without adding a call at each output sample. */
+#if defined(__GNUC__)
+# define MODAL4_INLINE static inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+# define MODAL4_INLINE static __forceinline
+#else
+# define MODAL4_INLINE static inline
+#endif
+MODAL4_INLINE MYFLT Modal4_tick(Modal4 *m)
 {
   MYFLT temp,temp2;
   int32 itemp;
-  MYFLT temp_time, alpha, lastOutput;
+  double temp_time;
+  MYFLT alpha, lastOutput;
   int32_t length = (int32_t)m->wave->flen;
 
   m->w_time += m->w_rate;                  /*  Update current time          */
@@ -182,7 +202,7 @@ static MYFLT Modal4_tick(Modal4 *m)
 #endif
 
   itemp = (int32) temp_time;               /* Integer part of time address  */
-  alpha = temp_time - (MYFLT)itemp;      /* fractional part of time address */
+  alpha = temp_time - itemp;      /* fractional part of time address */
   lastOutput = m->wave->ftable[itemp];     /*  Do linear interpolation      */
   lastOutput = lastOutput +                /*  same as alpha*data[temp+1]   */
     (alpha * (m->wave->ftable[itemp+1] -
@@ -200,10 +220,12 @@ static MYFLT Modal4_tick(Modal4 *m)
   if (m->vibrGain != 0.0) {
     /*  Tick on vibrato table  */
     m->v_time += m->v_rate;              /*  Update current time    */
-    while (m->v_time >= m->vibr->flen)   /*  Check for end of sound */
-      m->v_time -= m->vibr->flen;        /*  loop back to beginning */
-    while (m->v_time < FL(0.0))          /*  Check for end of sound */
-      m->v_time += m->vibr->flen;        /*  loop back to beginning */
+    if (m->v_time >= m->vibr->flen)
+      m->v_time -= m->vibr->flen;
+    else if (m->v_time < 0.0)
+      m->v_time += m->vibr->flen;
+    /* Wrapping a small negative phase can round up to the table end. */
+    if (UNLIKELY(!(m->v_time < m->vibr->flen))) m->v_time = 0.0;
 
     temp_time = m->v_time;
 
@@ -219,7 +241,7 @@ static MYFLT Modal4_tick(Modal4 *m)
 
     itemp = (int32) temp_time;    /*  Integer part of time address    */
     /*  fractional part of time address */
-    alpha = temp_time - (MYFLT)itemp;
+    alpha = temp_time - itemp;
     lastOutput = m->vibr->ftable[itemp]; /* Do linear interpolation */
     /*  same as alpha*data[itemp+1] + (1-alpha)data[temp] */
     lastOutput = /*m->v)*/lastOutput +
@@ -231,6 +253,8 @@ static MYFLT Modal4_tick(Modal4 *m)
 
   return (temp2 + temp2);
 }
+
+#undef MODAL4_INLINE
 
 /*******************************************/
 /*  Marimba SubClass of Modal4 Instrument, */
@@ -250,6 +274,8 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
   FUNC        *ftp;
   p->m4.sr = CS_ESR;
   p->m4.h = p->h;
+  /* Set the new pitch before folding any of its mode ratios. */
+  m->baseFreq = *p->frequency;
 
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL))
     p->m4.wave = ftp;
@@ -309,33 +335,35 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
   Modal4_setFreq(csound, m, *p->frequency);
   p->first = 1;
   {
-    int32_t relestim = (int32_t) (CS_EKR * *p->dettack);
-    /* 0.1 second decay extention */
+    double relestim = trunc(CS_EKR * *p->dettack);
+    if (relestim < 0.0) relestim = 0.0;
+    if (UNLIKELY(!(relestim <= INT32_MAX)))
+      return csound->InitError(csound, Str("invalid modal release time"));
     if (relestim > p->h.insdshead->xtratim)
-      p->h.insdshead->xtratim = relestim;
+      p->h.insdshead->xtratim = (int32_t)relestim;
+    p->kloop = trunc(p->h.insdshead->offtim * CS_EKR) - relestim;
   }
-  p->kloop = (int32_t) ((int32_t) (p->h.insdshead->offtim * CS_EKR)
-                        - (int32_t) (CS_EKR * *p->dettack));
   return OK;
 }
 
 int32_t marimba(CSOUND *csound, MARIMBA *p)
 {
   Modal4      *m = &(p->m4);
+  MYFLT fullscale = AMP_SCALE;
   MYFLT       *ar = p->ar;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
   uint32_t    n, nsmps = CS_KSMPS;
-  MYFLT       amp = (*p->amplitude) * AMP_RSCALE; /* Normalise */
+  MYFLT       amp = (*p->amplitude) * (FL(1.0) / fullscale); /* Normalise */
 
   if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if ((--p->kloop) == 0) {
+  if (p->kloop > 0 && (--p->kloop) == 0) {
     Modal4_damp(csound, m, FL(1.0) - (amp * FL(0.03)));
   }
-  p->m4.v_rate = *p->vibFreq; /* 6.0; */
+  Modal4_setVibratoRate(m, *p->vibFreq);
   p->m4.vibrGain = *p->vibAmt; /* 0.05; */
   if (UNLIKELY(p->first)) {
-    Modal4_strike(csound, m, *p->amplitude * AMP_RSCALE);
+    Modal4_strike(csound, m, *p->amplitude * (FL(1.0) / fullscale));
     Modal4_setFreq(csound, m, *p->frequency);
     p->first = 0;
   }
@@ -354,7 +382,7 @@ int32_t marimba(CSOUND *csound, MARIMBA *p)
         p->multiStrike -= 1;
       }
     lastOutput = Modal4_tick(m);
-    ar[n] = lastOutput*AMP_SCALE*FL(0.5);
+    ar[n] = lastOutput*fullscale*FL(0.5);
   }
   return OK;
 }
@@ -376,6 +404,8 @@ int32_t vibraphnset(CSOUND *csound, VIBRAPHN *p)
   FUNC        *ftp;
   p->m4.sr = CS_ESR;
   p->m4.h = p->h;
+  /* Set the new pitch before folding any of its mode ratios. */
+  m->baseFreq = *p->frequency;
 
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL))
     p->m4.wave = ftp;         /* Expect an impulslything */
@@ -411,28 +441,38 @@ int32_t vibraphnset(CSOUND *csound, VIBRAPHN *p)
   Modal4_strike(csound, m, *p->amplitude * AMP_RSCALE);
   Modal4_setFreq(csound, m, *p->frequency);
   p->first = 1;
+  {
+    double relestim = trunc(CS_EKR * *p->dettack);
+    if (relestim < 0.0) relestim = 0.0;
+    if (UNLIKELY(!(relestim <= INT32_MAX)))
+      return csound->InitError(csound, Str("invalid modal release time"));
+    if (relestim > p->h.insdshead->xtratim)
+      p->h.insdshead->xtratim = (int32_t)relestim;
+    p->kloop = trunc(p->h.insdshead->offtim * CS_EKR) - relestim;
+  }
   return OK;
 }
 
 int32_t vibraphn(CSOUND *csound, VIBRAPHN *p)
 {
   Modal4      *m = &(p->m4);
+  MYFLT fullscale = AMP_SCALE;
   MYFLT       *ar = p->ar;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
   uint32_t    n, nsmps = CS_KSMPS;
-  MYFLT       amp = (*p->amplitude)*AMP_RSCALE; /* Normalise */
+  MYFLT       amp = (*p->amplitude)*(FL(1.0) / fullscale); /* Normalise */
 
   if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if ((--p->kloop) == 0) {
+  if (p->kloop > 0 && (--p->kloop) == 0) {
     Modal4_damp(csound, m, FL(1.0) - (amp * FL(0.03)));
   }
   if (UNLIKELY(p->first)) {
-    Modal4_strike(csound, m, *p->amplitude * AMP_RSCALE);
+    Modal4_strike(csound, m, *p->amplitude * (FL(1.0) / fullscale));
     Modal4_setFreq(csound, m, *p->frequency);
     p->first = 0;
   }
-  p->m4.v_rate = *p->vibFreq;
+  Modal4_setVibratoRate(m, *p->vibFreq);
   p->m4.vibrGain =*p->vibAmt;
   if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -441,7 +481,7 @@ int32_t vibraphn(CSOUND *csound, VIBRAPHN *p)
   }
   for (n=offset;n<nsmps;n++) {
     MYFLT     lastOutput = Modal4_tick(m);
-    ar[n] = lastOutput*FL(8.0)*AMP_SCALE;/* Times 8 as seems too quiet */
+    ar[n] = lastOutput*FL(8.0)*fullscale;/* Times 8 as seems too quiet */
   }
   return OK;
 }
@@ -466,6 +506,8 @@ int32_t agogobelset(CSOUND *csound, VIBRAPHN *p)
   MYFLT       temp;
   p->m4.sr = CS_ESR;
   p->m4.h = p->h;
+  /* Set the new pitch before folding any of its mode ratios. */
+  m->baseFreq = *p->frequency;
 
   /* Expect an impulslything */
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->m4.wave = ftp;
@@ -499,21 +541,23 @@ int32_t agogobelset(CSOUND *csound, VIBRAPHN *p)
   /* Strike */
   Modal4_strike(csound, m, *p->amplitude*AMP_RSCALE);
   Modal4_setFreq(csound, m, *p->frequency);
+  p->first = 1;
   return OK;
 }
 
 int32_t agogobel(CSOUND *csound, VIBRAPHN *p)
 {
   Modal4      *m = &(p->m4);
+  MYFLT fullscale = AMP_SCALE;
   MYFLT       *ar = p->ar;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
   uint32_t    n, nsmps = CS_KSMPS;
 
-  p->m4.v_rate = *p->vibFreq;
+  Modal4_setVibratoRate(m, *p->vibFreq);
   p->m4.vibrGain =*p->vibAmt;
   if (UNLIKELY(p->first)) {
-    Modal4_strike(csound, m, *p->amplitude * AMP_RSCALE);
+    Modal4_strike(csound, m, *p->amplitude * (FL(1.0) / fullscale));
     Modal4_setFreq(csound, m, *p->frequency);
     p->first = 0;
   }
@@ -524,7 +568,7 @@ int32_t agogobel(CSOUND *csound, VIBRAPHN *p)
   }
   for (n=offset;n<nsmps;n++) {
     MYFLT     lastOutput = Modal4_tick(m);
-    ar[n] = lastOutput*AMP_SCALE;
+    ar[n] = lastOutput*fullscale;
   }
   return OK;
 }
