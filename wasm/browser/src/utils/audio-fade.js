@@ -1,12 +1,9 @@
 export const nextAudioFadeGain = (fade) => {
-  let gain;
-  if (fade.lengthFrames <= 1 || fade.positionFrames >= fade.lengthFrames) {
-    gain = 0;
-  } else {
-    gain =
-      (fade.lengthFrames - fade.positionFrames - 1) /
-      (fade.lengthFrames - 1);
-  }
+  const gain =
+    fade.lengthFrames <= 1 || fade.positionFrames >= fade.lengthFrames
+      ? 0
+      : (fade.lengthFrames - fade.positionFrames - 1) /
+        (fade.lengthFrames - 1);
   fade.positionFrames += 1;
   return gain;
 };
