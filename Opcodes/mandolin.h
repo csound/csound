@@ -59,11 +59,11 @@ typedef struct Mandolin {
     OneZero     filter2;
     int32       length;
     MYFLT       lastFreq;
-    MYFLT       lastLength;
+    double      lastLength;
+    MYFLT       lastDetune;
+    MYFLT       lastPluck;
     int32       dampTime;
     int32_t         waveDone;
-    int32_t
-    kloop;
 } MANDOL;
 
 #endif
