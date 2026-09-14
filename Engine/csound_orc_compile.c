@@ -3069,13 +3069,6 @@ static void debug_print(CSOUND *csound) {
 }
 
 #include "interlocks.h"
-void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o) {
-  char *name = o->lexeme;
-  OENTRY *ep = find_opcode(csound, name);
-  if (UNLIKELY((ep->flags &_QQ) && !(csound->oparms_.msglevel&CS_NOQQ)))
-    csound->Warning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
-}
-
 int32_t query_reversewrite_opcode(CSOUND *csound, ORCTOKEN *o) {
   char *name = o->lexeme;
   OENTRY *ep = find_opcode(csound, name);
