@@ -1,5 +1,13 @@
 <CsoundSynthesizer>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test string-array",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 instr 1
 ;create
 SArr[] init 4

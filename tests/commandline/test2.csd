@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "Simple Test, 2 Channel",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ;
 sr=44100
 ksmps=1

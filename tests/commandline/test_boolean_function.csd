@@ -5,6 +5,14 @@
 <CsInstruments>
 
 
+/* Csound-test
+{
+  "description": "test boolean function in conditionals",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 opcode Test(i:i,j:i):b
  xout (i == j)
 endop

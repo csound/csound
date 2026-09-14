@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test array expr in opcall",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 instr 1
 ; keep original opcall using an array expression
 sig:k sumarray fillarray(1,2,3)*2

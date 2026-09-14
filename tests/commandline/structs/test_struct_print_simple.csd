@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test simple struct printing",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr	=	44100
 ksmps	=	1
 nchnls	=	2

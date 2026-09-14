@@ -3,6 +3,14 @@
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "delay1 input reuse, active samples and retained state",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=1024
 ksmps=16
 nchnls=1

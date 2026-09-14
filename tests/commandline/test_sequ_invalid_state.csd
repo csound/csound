@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject missing sequstate registration",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "sequstate: no active sequence"
+    ]
+  }
+}
+*/
 #ifndef ID
 #define ID #0#
 #endif

@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test struct member access",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 44100
 ksmps = 64
 nchnls = 2

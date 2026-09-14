@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "testing real-to-complex and complex-to-real fft",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 instr 1
 test6:k[] = [1, 2, 3, 4, 5, 6]
 spec6:Complex[] = rfft(test6)

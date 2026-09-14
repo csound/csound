@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "testing complex number operations",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 opcode assert,0,kk
 k1, k2 xin
 if k1 != k2 then

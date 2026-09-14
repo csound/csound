@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test zero-length array initialization",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 struct Box value:i
 
 instr 1

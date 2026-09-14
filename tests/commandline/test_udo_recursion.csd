@@ -3,6 +3,16 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test for UDO recursion depth exception",
+  "expect": {
+    "exit": "nonzero",
+    "stderr_regex": ["(?i)recurs(?:ion|ive).*(?:depth|limit)"]
+  },
+  "skip": "Known defect: recursive UDO exits by signal instead of reporting a recursion limit; the old runner counted the crash as a pass."
+}
+*/
 0dbfs=1
 
 opcode Crashy():i

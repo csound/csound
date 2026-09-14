@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "read/write to struct member of struct",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr	=	44100
 ksmps	=	1
 nchnls	=	2

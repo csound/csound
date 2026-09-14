@@ -6,6 +6,7 @@
 import logging
 import locale
 import os
+import re
 import shlex
 import shutil
 import stat
@@ -16,16 +17,18 @@ import time
 from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-##csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
+from test_metadata import discover_tests
+
 csoundExecutable = ""
-sourceDirectory = "."
+sourceDirectory = os.path.dirname(os.path.abspath(__file__))
 runtimeExecutable = None
 runtimeArguments = []
-expectedFailures = set()
+selectedTests = set()
+testProfile = None
+listOnly = False
 outputEncoding = locale.getpreferredencoding(False) or "utf-8"
 
 # Parallel execution configuration
-enable_parallel = True  # Default to parallel execution
 max_workers = None  # None = auto-detect based on CPU count
 test_timeout = 300  # 5 minutes timeout per test
 verbose_logging = False
@@ -47,56 +50,60 @@ def setup_logging():
 logger = setup_logging()
 
 
-class Test:
-    def __init__(self, fileName, description="", expected=True):
-        self.fileName = fileName
-        self.description = description
-        self.expected = expected
+def is_normal_nonzero_exit(return_code):
+    """Signals and Windows exception statuses never satisfy an expected error."""
+    return 0 < return_code < 0x80000000 and return_code != 0x40000015
 
 
 class TestResult:
-    """Container for test execution results with ordering information."""
-
-    def __init__(
-        self, test_index, test_data, return_code, cs_output, execution_time, error=None
-    ):
+    def __init__(self, test_index, test_data, return_code, cs_output,
+                 execution_time, error=None, stderr_output="", stdout_output=""):
         self.test_index = test_index
         self.test_data = test_data
         self.return_code = return_code
         self.cs_output = cs_output
         self.execution_time = execution_time
         self.error = error
-        self.filename = test_data[0]
-        self.description = test_data[1]
-        self.expected_result = (
-            1 if len(test_data) == 3 or self.filename in expectedFailures else 0
-        )
+        self.filename = test_data.filename
+        self.description = test_data.description
+        self.stderr_output = stderr_output
+        self.stdout_output = stdout_output
+
+    @property
+    def mismatches(self):
+        missing = []
+        for stream in ("stderr", "stdout"):
+            output = getattr(self, stream + "_output")
+            for pattern in self.test_data.expect.get(stream, []):
+                if pattern not in output:
+                    missing.append(f"{stream} missing substring {pattern!r}")
+            for pattern in self.test_data.expect.get(stream + "_regex", []):
+                if re.search(pattern, output) is None:
+                    missing.append(f"{stream} missing regex {pattern!r}")
+        return missing
 
     @property
     def passed(self):
-        """Check if test passed based on return code and expected result."""
         if self.error is not None:
             return False
-        return (self.return_code == 0) == (self.expected_result == 0)
-
-    @property
-    def status_line(self):
-        """Generate status line for test output."""
-        if self.passed:
-            return "[pass] - "
+        expected = self.test_data.expect["exit"]
+        if expected == 0:
+            status_matches = self.return_code == 0
         else:
-            return "[FAIL] - "
+            status_matches = is_normal_nonzero_exit(self.return_code) and (
+                expected == "nonzero" or self.return_code == expected)
+        return status_matches and not self.mismatches
 
     def get_formatted_output(self, counter, verbose=False):
-        """Get formatted output for this test result."""
-        status = self.status_line
-        output = f"{status}Test {counter}: {self.description} ({self.filename})\n"
-        output += (
-            f"\tReturn Code: {self.return_code}\tExpected: {self.expected_result}\n"
-        )
+        status = "[pass]" if self.passed else "[FAIL]"
+        output = f"{status} Test {counter}: {self.description} ({self.filename})\n"
+        output += (f"\tReturn Code: {self.return_code}\tExpected: "
+                   f"{self.test_data.expect['exit']}\n")
         if self.error:
             output += f"\tError: {self.error}\n"
-        if verbose and self.execution_time:
+        for mismatch in self.mismatches:
+            output += f"\t{mismatch}\n"
+        if verbose:
             output += f"\tExecution Time: {self.execution_time:.2f}s\n"
         return output
 
@@ -152,11 +159,7 @@ def make_tree_writable(root):
 
 @contextmanager
 def runtime_working_directory():
-    """Provide runtimes with a writable copy mounted at their current cwd."""
-    if not runtimeExecutable:
-        yield None
-        return
-
+    """Run against a writable fixture copy without changing the source tree."""
     with tempfile.TemporaryDirectory(prefix="csound-commandline-tests-") as root:
         working_directory = os.path.join(root, "tests")
         shutil.copytree(sourceDirectory, working_directory)
@@ -171,17 +174,16 @@ def execute_single_test(test_index, test_data, run_args, working_directory=None)
     Args:
         test_index: Index of the test in the original test list
         test_data: Test data tuple [filename, description,
-            optional_expected_result, optional_run_args,
-            optional_application_args, optional_stack_limit_kb]
+            metadata from the CSD comment]
         run_args: Arguments to pass to csound
     Returns:
         TestResult object containing execution results
     """
-    filename = test_data[0]
-    desc = test_data[1]
-    test_run_args = test_data[3] if len(test_data) >= 4 else run_args
-    application_args = test_data[4] if len(test_data) >= 5 else ""
-    stack_limit_kb = test_data[5] if len(test_data) >= 6 else None
+    filename = test_data.filename
+    desc = test_data.description
+    test_run_args = test_data.args
+    application_args = test_data.application_args
+    stack_limit_kb = test_data.stack_limit_kb
 
     logger.debug(f"Starting test {test_index + 1}: {filename} - {desc}")
     start_time = time.time()
@@ -254,7 +256,13 @@ def execute_single_test(test_index, test_data, run_args, working_directory=None)
                     error=f"Test timed out after {test_timeout} seconds",
                 )
 
-            cs_output = collect_process_output(stderr_file, result.stdout)
+            stderr_file.flush()
+            stderr_file.seek(0)
+            stderr_output = decode_process_output(stderr_file.read())
+            stdout_output = decode_process_output(result.stdout)
+            cs_output = stderr_output
+            if stdout_output:
+                cs_output += "\n[STDOUT CAPTURED]:\n" + stdout_output
 
         execution_time = time.time() - start_time
 
@@ -262,7 +270,8 @@ def execute_single_test(test_index, test_data, run_args, working_directory=None)
             f"Completed test {test_index + 1}: {filename} in {execution_time:.2f}s"
         )
 
-        return TestResult(test_index, test_data, return_code, cs_output, execution_time)
+        return TestResult(test_index, test_data, return_code, cs_output, execution_time,
+                          stderr_output=stderr_output, stdout_output=stdout_output)
 
     except Exception as e:
         execution_time = time.time() - start_time
@@ -283,7 +292,7 @@ def run_tests_parallel(
     Run tests in parallel using ThreadPoolExecutor.
 
     Args:
-        tests: List of test data tuples
+        tests: List of discovered test cases
         run_args: Arguments to pass to csound
         max_workers: Maximum number of worker threads (None for auto-detect)
         result_callback: Function to call when each test completes (for collecting results)
@@ -367,7 +376,7 @@ def run_tests_sequential(
     Run tests sequentially (original behavior).
 
     Args:
-        tests: List of test data tuples
+        tests: List of discovered test cases
         run_args: Arguments to pass to csound
         result_callback: Function to call when each test completes (for collecting results)
 
@@ -402,10 +411,12 @@ EXECUTION OPTIONS:
 STANDARD OPTIONS:
     --csound-executable=<path>     Path to csound executable
     --opcode7dir64=<path>          Set OPCODE7DIR64 environment variable
-    --source-dir=<path>            Source directory for tests (default: .)
+    --source-dir=<path>            Test directory (default: this script's directory)
     --runtime-executable=<path>    Runtime executable placed before the Csound module
     --runtime-arg=<arg>            Runtime argument; repeat once per argument
-    --expected-failure=<file>      Treat a nonzero result as expected for this test
+    --test=<relative.csd>          Run one test; repeat to select several
+    --list                         List discovered tests and skip reasons
+    --profile=native|wasm          Select in-file platform expectations
     --runtime-environment=<path>   Deprecated executable-path-only alias
     --help                         Show this help message
 
@@ -445,984 +456,32 @@ def runTest():
     if verbose_logging:
         print("Verbose logging enabled")
 
-    tests = [
-        ["test1.csd", "Simple Test, Single Channel"],
-        ["test2.csd", "Simple Test, 2 Channel"],
-        ["test3.csd", "Simple Test, using i-rate variables, 2 Channel"],
-        ["test4.csd", "Simple Test, using k-rate variables, 2 Channel"],
-        ["test5.csd", "Simple Test, using global i-rate variables, 2 Channel"],
-        ["test6.csd", "Testing Pfields"],
-        ["test7.csd", "Testing expressions, no functions"],
-        ["test8.csd", "Testing multi-part expressions, no functions"],
-        ["test9.csd", "Unused Label (to test labels get parsed)"],
-        ["test10.csd", "kgoto going to a label"],
-        ["test11.csd", "if-kgoto going to a label, boolean expressions"],
-        ["test12.csd", "Simple if-then statement"],
-        ["test13.csd", "function call"],
-        ["test14.csd", "polymorphic test, 0xffff (init)"],
-        ["test15.csd", "pluck test, 0xffff (init)"],
-        ["test16.csd", "Simple if-then with multiple statements in body"],
-        ["test17.csd", "Simple if-then-else with multiple statements in body"],
-        ["test18.csd", "if-then-elseif with no else block"],
-        ["test19.csd", "if-elseif-else"],
-        ["test20.csd", "if-elseif-else with inner if-elseif-else blocks"],
-        ["test21.csd", "if-elseif-else with multiple elseif blocks"],
-        ["test22.csd", "simple UDO"],
-        ["test23.csd", "named instrument"],
-        ##        ["test24.csd", "la_i opcodes"],
-        ["test43.csd", "mixed numbered and named instruments"],
-        ["test25.csd", "polymorphic test, 0xfffd (peak)"],
-        ["test26.csd", "polymorphic test, 0xfffc (divz)"],
-        ["test27.csd", "polymorphic test, 0xfffb (chnget)"],
-        ["test28.csd", "label test"],
-        ["test29.csd", "bit operations test"],
-        ["test30.csd", "multi-numbered instrument test"],
-        ["test31.csd", "i-rate conditional test"],
-        ["test32.csd", "continuation lines test"],
-        ["test33.csd", "using named instrument from score (testing score strings)"],
-        ["test34.csd", "tertiary conditional expressions"],
-        ["test35.csd", "test of passign"],
-        ["test36.csd", "opcode with all input args optional (passign)"],
-        ["test37.csd", "Testing in and out"],
-        ["test38.csd", "Testing simple macro"],
-        ["test39.csd", "Testing macro with argument"],
-        ["test40.csd", "Testing i^j"],
-        ["test41.csd", "if statement with = instead of =="],
-        ["test42.csd", "extended string"],
-        ["test44.csd", "expected failure with in-arg given to in opcode", 1],
-        ["test45.csd", "if-goto with expression in boolean comparison"],
-        ["test46.csd", "if-then with expression in boolean comparison"],
-        ["test47.csd", "until loop and k[]"],
-        ["test48.csd", "expected failure with variable used before defined", 1],
-        ["test_local_ksmps_global_fail.csd", "test failing use of global var with local ksmps",  1],
-        ["test_local_ksmps_global_struct_k.csd", "allow global k-rate struct member with local ksmps"],
-        ["test_local_ksmps_global_struct_a_fail.csd", "reject global a-rate struct member with local ksmps", 1],
-        ["test_local_ksmps_global_struct_copy_fail.csd", "reject global struct containing audio with local ksmps", 1],
-        ["test_schedwhen.csd", "schedwhen opcode"],
-        ["test_filepeak_channels.csd", "filepeak stored and scanned channel peaks"],
-        ["test_bbcut_envelopes.csd", "bbcut mono and stereo envelopes across cuts and stutters"],
-        ["test_prepiano_state.csd", "prepiano stereo scans, single string and preparation tables"],
-        ["test_parse_error_unary.csd", "expected failure: unary parse error", 1],
-        ["test_parse_error_unary_not.csd", "expected failure: unary ! parse error", 1],
-        ["test_parse_error_unary_minus.csd", "expected failure: unary - parse error", 1],
-        ["test_parse_error_unary_plus.csd", "expected failure: unary + parse error", 1],
-        ["test_parse_error_binary.csd", "expected failure: binary parse error", 1],
-        ["test_parse_error_div.csd", "expected failure: binary / parse error", 1],
-        ["test_parse_error_pow.csd", "expected failure: binary ^ parse error", 1],
-        ["test_parse_error_mod.csd", "expected failure: binary % parse error", 1],
-        ["test_parse_error_bitor.csd", "expected failure: binary | parse error", 1],
-        ["test_parse_error_bitand.csd", "expected failure: binary & parse error", 1],
-        ["test_parse_error_bitxor.csd", "expected failure: binary # parse error", 1],
-        ["test_parse_error_shift_left.csd", "expected failure: binary << parse error", 1],
-        ["test_parse_error_shift_right.csd", "expected failure: binary >> parse error", 1],
-        ["test_parse_error_lt.csd", "expected failure: binary < parse error", 1],
-        ["test_parse_error_gt.csd", "expected failure: binary > parse error", 1],
-        ["test_parse_error_le.csd", "expected failure: binary <= parse error", 1],
-        ["test_parse_error_ge.csd", "expected failure: binary >= parse error", 1],
-        ["test_parse_error_neq.csd", "expected failure: binary != parse error", 1],
-        ["test_parse_error_eqeq.csd", "expected failure: binary == parse error", 1],
-        ["test_parse_error_assign_expr.csd", "expected failure: binary = parse error", 1],
-        ["test_parse_error_and.csd", "expected failure: binary && parse error", 1],
-        ["test_parse_error_or.csd", "expected failure: binary || parse error", 1],
-        ["test_parse_error_ternary.csd", "expected failure: ternary parse error", 1],
-        ["test_parse_error_instr_missing_id.csd", "expected failure: instr missing id", 1],
-        ["test_parse_error_opcode_missing_name.csd", "expected failure: opcode missing name", 1],
-        ["test_parse_error_opcode_missing_endop.csd", "expected failure: opcode missing endop", 1],
-        ["test_parse_error_udo_missing_inargs.csd", "expected failure: udo missing inargs", 1],
-        ["test_parse_error_udo_missing_commas.csd", "expected failure: udo missing commas", 1],
-        ["test_parse_error_udo_missing_arglist.csd", "expected failure: udo missing arg list", 1],
-        ["test_gen28_malformed.csd", "reject malformed GEN28 trajectory", 1],
-        ["test_gen28_truncated.csd", "reject truncated GEN28 trajectory", 1],
-        ["test_gen28_terminal_point.csd", "keep GEN28 terminal point values"],
-        ["test_gen44_matrix_valid.csd", "load a valid GEN44 matrix"],
-        ["test_gen44_matrix_resize.csd", "resize a short GEN44 table"],
-        ["test_gen44_matrix_oversized.csd", "reject an oversized GEN44 matrix", 1],
-        ["test_gen44_matrix_negative.csd", "reject a negative GEN44 matrix size", 1],
-        ["test_gen44_matrix_zero.csd", "reject a zero GEN44 matrix size", 1],
-        ["test_gen44_matrix_malformed.csd", "reject a malformed GEN44 matrix size", 1],
-        ["test_gen44_matrix_missing_close.csd", "reject a GEN44 header without >", 1],
-        ["test_gen49_defer.csd", "test GEN49 deferred length"],
-        [
-            "test_gen41_gen42_bounds.csd",
-            "test bounded GEN41 and GEN42 probability rounding",
-        ],
-        ["test_farey_counts.csd", "Farey lengths and generator endpoints in every output mode"],
-        ["test_farey_invalid_order.csd", "reject invalid Farey sequence orders", 1],
-        [
-            "test_gen41_nonfinite_total.csd",
-            "expected failure: GEN41 probability total overflows",
-            1,
-        ],
-        [
-            "test_gen42_nonfinite_total.csd",
-            "expected failure: GEN42 probability total overflows",
-            1,
-        ],
-        [
-            "test_ftest_wave_short_destination.csd",
-            "reject an undersized wave table without crashing",
-        ],
-        ["test_tabmorph_weights.csd", "tabmorph weight endpoints and input preservation"],
-        ["test_ftload_binary_args_ownership.csd", "test binary ftload does not share args ownership"],
-        ["test_getftargs_empty_after_ftload.csd", "test getftargs returns empty args after binary ftload"],
-        ["test_fail_compilestr.csd", "testing clean compilestr fail"],
-        [
-            "test_realtime_compile_opcodes.csd",
-            "test realtime init-thread compile opcodes",
-        ],
-        ["test_global_struct_var.csd", "testing global structure var"],
-        ["test_setscorepos.csd", "testing setscorepos and rewindscore"],
-        ["test_instr0_call.csd", "testing ability to call instr 0"],
-        ["test_splitrig_sequences.csd", "splitrig sequence selection and changing tick counts"],
-        ["test_splitrig_invalid_layout.csd", "splitrig rejects invalid maximum tick counts", 1],
-        ["test_splitrig_invalid_sequence.csd", "splitrig rejects invalid indexes and tick counts", 1],
-        ["test_sequ_ranges.csd", "sequ ranges, permutations, state, and timing"],
-        ["test_sequ_invalid_state.csd", "reject missing sequstate registration", 1],
-        ["test_seqtime2_timing.csd", "seqtime2 event timing and loop order"],
-        ["test_seqtime2_invalid_range.csd", "reject invalid seqtime2 ranges", 1],
-        ["test_trighold_initial_trigger.csd", "trighold preserves its full duration after init and reinit"],
-        ["test_udo_local_pool.csd", "test udos for separate local var pool"],
-        ["test_ternary_expr.csd", "test ternary expr for backwards compatibility"],
-        ["test_array_expr_opcall.csd", "test array expr in opcall"],
-        ["test_shadowing_for_loop.csd", "test local shadowing of vars in for loop"],
-        [
-            "test_shadowing_implicit.csd",
-            "test local shadowing of global vars for implicit types",
-        ],
-        ["test_opcode_with_opt_ins.csd", "test opcode with opt ins only"],
-        ["test_fillarray_audio.csd", "test Arr:a[] = [sig:a]"],
-        ["test_fold_sampling.csd", "test fold sampling schedule"],
-        ["test_fold_invalid_increment.csd", "reject invalid fold increment", 1],
-        ["test_sum_product_input_reuse.csd", "sum/product input reuse and inactive output"],
-        ["test_oversample.csd", "test oversampling in new-style UDO"],
-        ["test_pvs_np2.csd", "test pvsanal/synth with np2 size"],
-        ["test_pvsblur_window.csd", "pvsblur delay window, startup, and reset"],
-        ["test_pvsblur_invalid_parameters.csd", "reject invalid pvsblur parameters", 1],
-        ["test_trfilter_frequency_bounds.csd", "test trfilter frequency bounds"],
-        [
-            "test_pvsadsyn_last_bin.csd",
-            "pvsadsyn accepts a stepped selection ending at the last bin",
-        ],
-        ["test_pvsmooth_history.csd", "pvsmooth sample history, reset, and partial blocks"],
-        ["test_fmanal_samples.csd", "fmanal input reuse and partial blocks"],
-        [
-            "test_pvsadsyn_invalid_count.csd",
-            "pvsadsyn rejects an out-of-range oscillator count",
-            1,
-        ],
-        ["test_pvsfreeze_state.csd", "pvsfreeze note state, reinit, and partial blocks"],
-        [
-            "test_pvsadsyn_invalid_increment.csd",
-            "pvsadsyn rejects invalid bin increments",
-            1,
-        ],
-        ["test_pvsbin_output.csd", "pvsbin output rates, bin changes, and partial blocks"],
-        ["test_pvsbin_invalid_bin.csd", "reject invalid pvsbin indices", 1],
-        ["test_hilbert2_state.csd", "hilbert2 input reuse, partial blocks and reinit"],
-        ["test_hilbert_array_format.csd", "hilbert array format and length after output reuse"],
-        ["test_arrayops_current_length.csd", "array math and sorting follow current input lengths"],
-        ["test_scalearray_ranges.csd", "scalearray ranges, constant input and current array length"],
-        ["test_arrayops_short_second.csd", "array math rejects a shortened second input", 1],
-        ["test_dot_short_second.csd", "dot rejects a shortened second input", 1],
-        ["test_changed2_arrays.csd", "changed2 array dimensions, resizing and first-cycle state"],
-        ["test_ephasor_phase.csd", "ephasor phase wrapping, exponential resets and sample bounds"],
-        ["test_gtf_complex_state.csd", "gtf complex impulse response and sample bounds"],
-        ["test_repluck_correctness.csd", "test plucked-string waveguide limits"],
-        ["test_repluck_sample_offset.csd", "test repluck sample-accurate input"],
-        [
-            "test_repluck_invalid_frequency.csd",
-            "reject invalid plucked-string frequencies",
-            1,
-        ],
-        ["test_voice_init.csd", "voice initializes its SingWave helper"],
-        ["test_grain3_overlap_regression.csd", "grain3 should not fail with false overlap error"],
-        ["test_grain3_float_interpolation.csd", "grain3 float-path interpolation should stay positive"],
-        ["test_grain3_float_density_start.csd", "grain3 float path should start its first grain immediately"],
-        ["test_grain2_float_window_wrap.csd", "grain2 wraps non-power-of-two window phase"],
-        ["test_partikkel_float_table_index.csd", "partikkel uses the scaled index for float table lookup"],
-        ["test_grain4_correctness.csd", "grain4 handles envelopes, boundaries, and unused pitches"],
-        ["test_vosim_pulses.csd", "vosim pulse state, table paths, and direction changes"],
-        ["test_fog_table_phase.csd", "fog table phase, interpolation, envelope and sample offsets"],
-        ["test_gendy_correctness.csd", "gendy handles audio blocks and bounded integer state"],
-        ["test_lorenz_skip.csd", "lorenz integration steps per sample"],
-        ["test_mandel_state.csd", "mandel trigger, iteration cache and boundary points"],
-        ["test_mandel_invalid_limit.csd", "mandel rejects an unrepresentable iteration limit", 1],
-        ["test_looptseg_curves.csd", "looptseg curve stability"],
-        ["test_gtadsr_stages.csd", "gtadsr stage endpoints, retriggering and sample offsets"],
-        ["test_gtadsr_invalid_times.csd", "reject out-of-range gtadsr stage times", 1],
-        ["test_loop_envelope_phase.csd", "loop envelope phase wrapping and retriggers"],
-        ["test_grain4_region_rounding.csd", "grain4 preserves sample rounding for source regions"],
-        ["test_grain4_zero_length.csd", "reject zero grain4 source length", 1],
-        ["test_grain4_subsample_length.csd", "reject sub-sample grain4 source length", 1],
-        ["test_grain4_zero_pitch.csd", "reject a selected zero grain4 pitch", 1],
-        ["test_fof2_correctness.csd", "fof and fof2 preserve grain duration and octave amplitudes at edge values"],
-        ["test_fof_fixed_rise_range.csd", "reject fof rise beyond the fixed-phase range", 1],
-        ["test_fof_float_rise_range.csd", "reject fof rise beyond the float-phase range", 1],
-        ["test_fof2_fixed_rise_range.csd", "reject fof2 rise beyond the fixed-phase range", 1],
-        ["test_fof2_float_rise_range.csd", "reject fof2 rise beyond the float-phase range", 1],
-        ["test_cmp_operator_text.csd", "cmp operator text and array lengths"],
-        ["test_cmp_invalid_operator.csd", "reject malformed cmp operators", 3],
-        ["test_pconvolve_frames.csd", "pconvolve impulse frames and channel selection"],
-        ["test_lposcilsa_amplitude_reuse.csd", "stereo loop amplitude reuse and default sample rate"],
-        ["test_bitshift_audio_operands.csd", "bitshift operands, counts and partial blocks"],
-        ["test_gbuzz_audio_phase.csd", "gbuzz phase and coefficient state"],
-        ["test_mton_note_names.csd", "mton octaves, cent rounding and output reuse"],
-        ["test_xyscale_corner_order.csd", "xyscale corner coordinates and interpolation"],
-        ["test_lowpass2_mixed_rate.csd", "lowpass2 input rates and optional state preservation"],
-        ["test_pvsdiskin_frame_position.csd", "pvsdiskin offsets, channel interpolation, and loop state"],
-        ["test_trandom_note_state.csd", "trandom starts each note with fresh held state"],
-        ["test_flooper_stereo_guard.csd", "flooper preserves the stereo wrap sample"],
-        ["test_flooper_stereo_frame_bounds.csd", "reject flooper ranges past stereo frames", 1],
-        ["test_sndloop_state.csd", "sndloop recording, playback, and partial blocks"],
-        ["test_sndloop_invalid_size.csd", "sndloop rejects invalid recording sizes", 1],
-        ["test_flooper_zero_duration.csd", "reject zero flooper duration", 1],
-        ["test_flooper2_sample_offset.csd", "flooper2 handles partial blocks and stereo bounce"],
-        ["test_ftaudio_frame_range.csd", "ftaudio writes bounded stereo frame ranges"],
-        ["test_ftaudio_async.csd", "ftaudio starts a background write and cleans it up"],
-        ["test_ftaudio_negative_begin.csd", "reject a negative ftaudio start frame", 1],
-        ["test_ftaudio_end_bounds.csd", "reject an ftaudio end past the table", 1],
-        ["test_diskgrain_envelope_bounds.csd", "diskgrain stops at envelope table bounds"],
-        ["test_syncloop_envelope_end.csd", "syncloop retires grains at the envelope end"],
-        ["test_gbuzz_nonpower_phase.csd", "gbuzz scales non-power-of-two table indexes correctly"],
-        ["test_harmon_state.csd", "harmon234 partial blocks and pulse state"],
-        ["test_harmon_invalid_size.csd", "harmon234 rejects unsupported history sizes", 1],
-        ["test_buzz_amplitude_phase.csd", "buzz current amplitude and phase across table types"],
-        ["test_adsynt2_ramps.csd", "adsynt2 linear and exponential ramps across partial blocks"],
-        ["test_crossfm_correctness.csd", "test crossed FM and PM correctness"],
-        ["test_foscil_phase_state.csd", "foscil and foscili phase initialization and advancement"],
-        ["test_pan2_input_aliasing.csd", "pan2 preserves input samples when outputs reuse them"],
-        ["test_delay1_samples.csd", "delay1 input reuse, active samples and retained state"],
-        ["test_freeverb_samples.csd", "freeverb input reuse and partial-block history"],
-        ["test_otafilter_samples.csd", "otafilter output bounds, overdrive and input reuse"],
-        ["test_svn_drive.csd", "svn drive, transfer tables and parameter rates"],
-        ["test_svn_invalid_tables.csd", "svn rejects missing tables and invalid domains", 3],
-        ["test_midside_samples.csd", "mid/side input reuse and partial audio blocks"],
-        ["test_bformdec1_surround.csd", "bformdec1 preserves partial blocks and selects the input order"],
-        ["test_bformdec2_samples.csd", "bformdec2 sample bounds, input reuse and decoder responses"],
-        ["test_space_trajectory_endpoint.csd", "space and spdist handle the last trajectory frame"],
-        ["test_hvs_interpolation.csd", "HVS configuration and grid endpoints"],
-        ["test_physmod_vibrato_bounds.csd", "test waveguide vibrato bounds"],
-        ["test_oscbnk_float_phase_state.csd", "oscbnk preserves non-power-of-two oscillator phase"],
-        ["test_oscbnk_lfo_interpolation.csd", "oscbnk interpolates both LFO tables"],
-        ["test_vco_float_phase_state.csd", "vco preserves non-power-of-two oscillator phase"],
-        ["test_envlpx_float_interpolation.csd", "envlpx interpolates non-power-of-two tables correctly"],
-        ["test_transeg_curves.csd", "transeg family curve stability and timing"],
-        ["test_curve_precision.csd", "expcurve and logcurve precision and endpoints"],
-        ["test_rspline_mixed_rates.csd", "test rspline mixed-rate bounds"],
-        ["test_rspline_rate_parity.csd", "test rspline audio and control parity"],
-        ["test_rspline_sample_offset.csd", "test rspline audio bounds at note onset"],
-        ["test_jspline_sample_state.csd", "jspline amplitude offsets and exact segment boundaries"],
-        ["test_rspline_large_rate.csd", "test rspline with a large finite rate"],
-        ["test_rspline_invalid_rate.csd", "reject invalid rspline rates", 1],
-        ["test_oscil1i.csd", "oscil1i interpolates scans and holds their endpoints"],
-        ["test_osciln_repeat_state.csd", "osciln and oscilx complete their table repeats"],
-        ["test_trigphasor_range.csd", "trigphasor starts, wraps, and resets within its range"],
-        ["test_unwrap_state.csd", "unwrap input and phase history"],
-        ["test_unwrap_invalid_mode.csd", "unwrap rejects invalid modes", 1],
-        ["test_squinewave_state.csd", "squinewave sample offsets and phase reset"],
-        ["test_sndwarp_bounds.csd", "sndwarp and sndwarpst bound sample indexes and handle zero time scale"],
-        ["test_wterrain2_phase.csd", "wterrain2 phase stability and direction changes"],
-        ["test_instr_redefinition.csd", "allow instr redefinition"],
-        ["test_instr0_labels.csd", "test labels in instr0 space"],
-        ["test_string.csd", "test string assignment and printing"],
-        ["test_strcat_buffer_capacity.csd", "strcat copies text rather than buffer capacity"],
-        ["test_strsub_state.csd", "substring results propagate through string assignments"],
-        ["test_string_search.csd", "string search overlaps and empty strings"],
-        [
-            "test_strstrip_reallocation.csd",
-            "test strstrip reallocation and termination",
-        ],
-        [
-            "test_string_preprocessor_whitespace.csd",
-            "preserve function-like whitespace inside strings",
-        ],
-        ["test_sprintf.csd", "test string assignment and printing"],
-        [
-            "test_sprintf2.csd",
-            "test string assignment and printing that causes reallocation",
-        ],
-        ["test_switch_statement.csd", "tests the new switch statement operator"],
-        ["nested_strings.csd", "test nested strings works with schedule [issue #861]"],
-        ["test_label_within_if_block.csd", "test label within if block"],
-        ["test_labels.csd", "test labels with tab and space indentation"],
-        ["test_newstyle_udo_optargs.csd", "test newstyle UDO optional args"],
-        [
-            "test_arrays.csd",
-            "test k-array with single dimension, assignment to expression value",
-        ],
-        [
-            "test_arrays2.csd",
-            "test gk-array with single dimension, assignment to expression value",
-        ],
-        [
-            "test_arrays3.csd",
-            "test k-array with single dimension, assignment with number",
-        ],
-        [
-            "test_arrays_multi.csd",
-            "test multi-dimensionsl k-array, assigment to number and expression",
-        ],
-        ["test_arrays_string.csd", "test string-array"],
-        ["test_arrays_string2.csd", "test simple string-array assignment"],
-        [
-            "test_arrays_static_init.csd",
-            "test arrays initialized with static initializer (i.e. kvals = [0,1,2])",
-        ],
-        ["test_asig_as_array.csd", "test using a-sig with array get/set syntax"],
-        [
-            "test_arrays_negative_dimension_fail.csd",
-            "test expected failure with negative dimension size and array",
-            1,
-        ],
-        [
-            "arrays/test_arrays_zero_dimension_fail.csd",
-            "test expected failure with zero dimension in multi-dimensional array",
-            1,
-        ],
-        ["test_iarr_operators.csd", "test i[] operators"],
-        ["test_booleans.csd", "tests using boolean data-types"],
-        ["test_boolean_function.csd", "test boolean function in conditionals"],
-        ["test_type_eq.csd", "test type equality operator"],
-        ["test_audio_in.csd", "test the parsing of the 'in' operator as opcode"],
-        [
-            "test_empty_conditional_branches.csd",
-            "tests that empty branches do not cause compiler issues",
-        ],
-        [
-            "test_empty_instr.csd",
-            "tests that empty instruments do not cause compiler issues",
-        ],
-        ["test_empty_udo.csd", "tests that empty UDOs do not cause compiler issues"],
-        ["test_semantics_undefined_var.csd", "test undefined var", 1],
-        ["test_opcall_expr.csd", "test expression in opcall"],
-        ["test_invalid_expression.csd", "test expression", 1],
-        ["test_invalid_ternary.csd", "test expression", 1],
-        ["test_for_in.csd", "for in loop"],
-        ["test_for_in2.csd", "for in loop (2nd form)"],
-        ["test_for_loop_index_var_typed.csd", "for in loop with typed index var"],
-        ["test_opcode_as_function.csd", "test expression"],
-        ["test_fsig_udo.csd", "UDO with f-sig arg"],
-        ["test_pvs_spectral_moments.csd", "test spectral centroid and bandwidth"],
-        ["test_centroid_state.csd", "centroid FFT windows and bin frequencies"],
-        ["test_centroid_invalid_size.csd", "reject invalid centroid sizes", 1],
-        ["test_karrays_udo.csd", "UDO with k[] arg"],
-        ["test_vector_table_correctness.csd", "vector table indexing"],
-        ["test_vector_table_invalid_index.csd", "reject invalid vector table index", 1],
-        ["test_vaops_indices.csd", "test audio buffer index reads and writes"],
-        ["test_vaops_invalid_indices.csd", "reject invalid audio buffer indices", 1],
-        ["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
-        ["test_pitch_conversion_arrays.csd", "pitch conversion arrays update each control cycle"],
-        ["test_plltrack_samples.csd", "plltrack constant input, silence, and sample bounds"],
-        ["test_cps_table_pitch.csd", "tuning-table pitch endpoints and negative pitches"],
-        ["test_ptrack_analysis.csd", "ptrack active samples and consistent analysis sizes"],
-        ["test_cps_missing_table.csd", "reject missing pitch tuning tables", 1],
-        ["test_pitchac_blocks.csd", "pitchac analysis windows and partial blocks"],
-        ["test_pitchac_invalid_size.csd", "pitchac rejects invalid buffer sizes", 1],
-        ["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)", 1],
-        ["test_tabslice_increment.csd", "reject zero tabslice increment", 1],
-        ["test_tablefilter_values.csd", "tablefilter parameters, rational values, and table wrapping"],
-        ["test_bpf_breakpoints.csd", "bpf and bpfcos exact breakpoints across rates"],
-        ["test_bpf_invalid_points.csd", "reject empty or incomplete bpf points", 1],
-        ["test_tabsum_ranges.csd", "tabsum handles valid table ranges"],
-        ["test_tabsum_invalid_range.csd", "tabsum rejects out-of-range indexes", 1],
-        ["test_newstyle_passbycopy.csd", "test newstyle udo with setksmps"],
-        ["test_polymorphic_udo.csd", "test polymorphic udo"],
-        ["test_udo_a_array.csd", "test udo with a-array"],
-        ["test_udo_2d_array.csd", "test udo with 2d-array"],
-        ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
-        [
-            "test_compilestr_udo_redefine_assert.csd",
-            "test UDO redefinition via compilestr",
-        ],
-        [
-            "test_array_function_call.csd",
-            "test synthesizing an array arg from a function-call",
-        ],
-        [
-            "test_explicit_types.csd",
-            "test typed identifiers (i.e. signals:a[], sigLeft:a)",
-        ],
-        ["test_parser3_opcall_ambiguities.csd", "test T_OPCALL ambiguities"],
-        ["test_new_udo_syntax.csd", "test new-style UDO syntax"],
-        [
-            "test_new_udo_syntax_explicit_types.csd",
-            "test new-style UDO syntax with explicit types",
-        ],
-        [
-            "test_udo_array_args_implied_types.csd",
-            "test new-style UDO with array args using implied types",
-        ],
-        [
-            "test_multiple_return.csd",
-            "test multiple return from express (i.. a1,a2 = xx())",
-        ],
-        [
-            "test_array_operations.csd",
-            "test multiple operations on multiple array types",
-        ],
-        [
-            "test_tablemix_nonpower_source.csd",
-            "test tableimix wraps a non-power-of-two source table",
-        ],
-        ["test_ftmorf_tables.csd", "test ftmorf interpolation and index limits"],
-        ["test_ftmorf_changed_tables.csd", "reject invalid changed ftmorf tables", 1],
-        [
-            "prints_number_no_crash.csd",
-            "test prints does not crash when given a number arguments"
-        ],
-        [
-            "test_newlines_within_function_calls.csd",
-            "test newlines allowed within function calls",
-        ],
-        ["test_comma_newline.csd", "test commas followed by newlines"],
-        [
-            "test_bool_with_explicit_type.csd",
-            "test use of explicit type in bool expression",
-        ],
-        [
-            "test_fail_typed_ident_expression.csd",
-            "expected failure: explicit type annotation used in expression",
-            1,
-        ],
-        ["test_explicit_globals.csd", "test global declaration of explicit types"],
-        [
-            "test_mismatched_type_shadowing.csd",
-            "test explicitly typed locals shadow globals with complete array metadata",
-        ],
-        [
-            "test_fail_redefine.csd",
-            "syntax error on redefinition of local var by global var in same context",
-            1,
-        ],
-        ["test_var_redefine.csd", "test variable redefinition"],
-        ["test_declare.csd", "test declare keyword (CS7)"],
-        ["test_sub_str.csd", "test raw string embedded in raw string"],
-        ["test_plusname.csd", "test +Name for instr name"],
-        ["test_isactive.csd", "test isactive and isperforming"],
-        [
-            "test_unary_expressions.csd",
-            "various unary operators in various expressions",
-        ],
-        ["test_opassign.csd", "test +=, ==, *= and /="],
-        ["testnewline.csd", "test newline in statements"],
-        ["test_string_in_event.csd", "test multiple strings in realtime event"],
-        ["testmidichannels.csd", "test use of mapped multiport channels"],
-        ["test_midi_default.csd", "test midi default instr"],
-        ["test_midi_tempo.csd", "test tempo reading from midifile"],
-        ["test_midifiletempo_override.csd", "test midifiletempo before playback"],
-        ["test_instr_type.csd", "test instr type and variables"],
-        ["test_delete_instr.csd", "test creating and deleting instr"],
-        ["test_create_instr.csd", "testing creating and scheduling instr"],
-        ["test_instance_type.csd", "testing instance type"],
-        ["test_play_opcode.csd", "testing play opcode"],
-        ["test_splice_instance.csd", "test splicing instr order"],
-        ["test_create_init_perf_delete.csd", "testing new instance opcodes"],
-        ["test_complex_numbers.csd", "testing complex number operations"],
-        ["test_ftconv_impulse_length.csd", "ftconv impulse length and partition state"],
-        ["test_ftconv_invalid_sizes.csd", "ftconv rejects invalid sizes", 1],
-        ["test_rfft.csd", "testing real-to-complex and complex-to-real fft"],
-        ["test_window_offsets.csd", "window offsets and array reinitialization"],
-        ["test_window_invalid_inputs.csd", "window rejects invalid inputs", 1],
-        ["test_quadrature_osc.csd", "testing quadrature oscillator"],
-        [
-            "test_schedule_named_instance.csd",
-            "testing schedule with named instr instance",
-        ],
-        [
-            "test_instr_type_var_new_compilation.csd",
-            "testing schedule of named instr in new compilations",
-        ],
-        ["test_redef_array.csd", "test redef of OpcodeDef by an array"],
-        ["test_ambiguous_opcall.csd", "test ambiguous opcall examples"],
-        ["test_opcode_type.csd", "tests opcode type"],
-        ["test_opcode_obj_loop.csd", "tests array of opcode objects in loops"],
-        ["test_opcode_getp.csd", "tests numeric opcode-object output access"],
-        [
-            "test_opcode_getp_managed_fail.csd",
-            "reject managed opcode-object output access",
-            1,
-        ],
-        ["test_wgpluck_excitation.csd", "wgpluck excitation reuse and partial blocks"],
-        ["test_bformenc1_input_reuse.csd", "bformenc1 input reuse in scalar and array outputs"],
-        ["test_metro2_timing.csd", "metro2 corrected startup, swing, and bounded phase timing"],
-        ["test_metro2_legacy_timing.csd", "metro2 preserves legacy timing by default"],
-        ["test_metro2_invalid_parameters.csd", "reject invalid metro2 phase, frequency, and swing", 1],
-        ["test_scantable_phase.csd", "scantable circular phase and table state"],
-        ["test_scantable_invalid_frequency.csd", "reject non-finite scantable frequency", 1],
-        ["test_syncphasor_phase_wrap.csd", "test syncphasor phase wrapping"],
-
-        ["test_phasorbnk_phase_state.csd", "phasorbnk bank resizing and phase state"],
-
-        ["test_phasorbnk_invalid_inputs.csd", "reject invalid phasorbnk bank sizes and indices", 1],
-        ["test_syncphasor_invalid_phase.csd", "reject invalid syncphasor phase", 1],
-        ["test_syncphasor_invalid_frequency.csd", "reject invalid syncphasor frequency", 1],
-        ["test_pvsinit_invalid_parameters.csd", "reject invalid pvsinit parameters", 1],
-        ["test_pvstencil_gain.csd", "pvstencil gain and reused FFT/sliding outputs"],
-        ["test_pvstencil_invalid_inputs.csd", "reject invalid pvstencil inputs", 1],
-        ["test_pvsfilter_gain.csd", "pvsfilter gain and sliding sample range"],
-        ["test_pvsfilter_invalid_format.csd", "reject unsupported pvsfilter input format", 1],
-        ["test_pvsosc_frames.csd", "pvsosc frame timing and harmonic selection"],
-        ["test_pvsosc_invalid_parameters.csd", "reject invalid pvsosc parameters", 1],
-        ["test_shift_array_state.csd", "shiftin and shiftout sample state"],
-        ["test_shift_array_invalid_inputs.csd", "shift arrays reject invalid inputs", 1],
-        ["test_sa.csd", "test sample accurate mode"],
-        ["test_diode_ladder_saturation.csd", "diode_ladder saturation and filter history"],
-        ["test_pareq_initial_state.csd", "pareq first skip, reset, and preserved state"],
-        ["test_bqrez_response.csd", "bqrez mode responses and band-pass center gain"],
-        ["test_gain_sample_bounds.csd", "gain RMS and output over partial blocks"],
-        ["test_eqfil_sample_offset.csd", "eqfil advances state only for active samples"],
-        ["test_areson_audio.csd", "test areson audio coefficients and preserved state"],
-        ["test_aresonk_complement.csd", "aresonk selects the notch filter at control rate"],
-        ["test_svfilter_state.csd", "svfilter reset, preserved state, and input reuse"],
-        ["test_statevar_oversampling.csd", "statevar oversampling and preserved filter history"],
-        ["test_moogladder2_resonance.csd", "moogladder2 resonance changes and parameter-rate parity"],
-        ["test_phaser_reinit.csd", "phaser reset and preserved state on reinit"],
-        [
-            "test_audio_input_sample_bounds.csd",
-            "audio input opcodes align partial-block input frames",
-        ],
-        ["test_downsamp_sample_bounds.csd", "test downsamp partial blocks"],
-        ["test_downsamp_invalid_window.csd", "reject invalid downsamp window", 1],
-        ["test_wguide_sample_offset.csd", "waveguides align audio-rate frequencies with note starts"],
-        ["test_locsend_sample_offset.csd", "locsend aligns reverb sends with note starts"],
-        [
-            "test_local_ksmps_sample_accurate.csd",
-            "test sample-accurate local ksmps offsets",
-        ],
-        [
-            "test_local_ksmps_sample_accurate.csd",
-            "test sample-accurate local ksmps offsets with PARCS",
-            None,
-            ["-nd", "--num-threads=2"],
-        ],
-        ["test_overload_selection.csd", "test wrong annotation case"],
-        ["test_unschedule.csd", "test unscheduling events"],
-        ["diskin_excess_channels.csd", "test sample accurate mode"],
-        # Keep the CSD's null realtime backend: its RMS checks require paced
-        # performance; suite-wide -n can outrun the asynchronous I/O worker.
-        ["test_async_diskin.csd", "test diskin in rt async mode", None, ""],
-        ["test_diskin2_nested_reuse.csd", "test nested diskin2 instance reuse"],
-        ["test_midifile_ops.csd", "testing midifile opcodes"],
-        ["test_midifile_malformed.csd", "reject malformed MIDI files"],
-        ["test_midifile_loop.csd", "testing midifile tempo set, pos, loop"],
-        ["test_midifile_seek_tempo.csd", "testing tempo restoration after midifilepos"],
-        ["test_midifile_time.csd", "testing midifile time counting"],
-        ["test_csound_object.csd", "test Csound object opcodes"],
-        ["test_true_false.csd", "testing true/false booleans"],
-        [
-            "test_break_continue.csd",
-            "testing break/continue statements in while/until/for loops",
-        ],
-        [
-            "test_break_outside_loop_fails.csd",
-            "testing break outside loop gives parser error",
-            1,
-        ],
-        [
-            "test_continue_outside_loop_fails.csd",
-            "testing continue outside loop gives parser error",
-            1,
-        ],
-        [
-            "test_osc_server.csd",
-            "test OSC in udp server",
-            0,
-            "-odac -d -+rtaudio=dummy",
-        ],
-        ["test_named_instr_ramps.csd", "test named instrument ramps"],
-        ["test_ftgentmp_cleanup.csd", "ftgentmp table lifetime across reinit and note reuse"],
-        ["test_gen01.csd", "testing GEN01 importing files"],
-        ["test_raw_strings.csd", "test new-style raw strings"],
-        ["test_min_max_values.csd", "test MIN_VALUE and MAX_VALUE math constants"],
-        ["test_minmax_accumulator_bounds.csd", "min/max accumulators preserve inactive samples"],
-        ["test_maxk_accumulation.csd", "maxk active sample counts, extrema and trigger state"],
-        ["test_counter_state.csd", "counter state and slot reuse"],
-        ["test_counter_deleted.csd", "counter readers reject deleted objects", 1],
-        ["test_counter_invalid_handle.csd", "counter rejects invalid handles", 1],
-        ["test_all_math_constants.csd", "test all builtin math constant macros"],
-        [
-            "test_op_precedence.csd",
-            "test bitwise operator precedence vs equality",
-        ],
-        [
-            "test_keyword_spacing.csd",
-            "test keyword spacing (if(, elseif(, etc.)",
-        ],
-        ["test_linenr_stage_transition.csd", "linenr attack and release transitions within audio blocks"],
-        ["test_adsr_zero_stages.csd", "ADSR zero-length stages and delay"],
-        ["test_xadsr_zero_stages.csd", "exponential ADSR zero stages and short attacks"],
-        ["test_adsr_early_release.csd", "ADSR note-off during delay, attack, and decay"],
-        ["test_adsr_sample_offset.csd", "ADSR sample-accurate starts"],
-        ["test_adsr_zero_reinit.csd", "ADSR reinitialization with zero attack"],
-        ["test_madsr_release_override.csd", "madsr release overrides"],
-        ["test_mvmfilter_mixed_rate.csd", "test mvmfilter with mixed input rates"],
-        ["test_lowres_audio.csd", "test lowres audio parameters and input reuse"],
-        ["test_flanger_buffer.csd", "test flanger buffer limits and reinit"],
-        [
-            "test_flanger_invalid_maximum.csd",
-            "reject invalid flanger maximum delay",
-            1,
-        ],
-        ["test_flanger_invalid_delay.csd", "reject non-finite flanger delay", 1],
-        ["test_dconv_history.csd", "test dconv history, reset, and sample bounds"],
-        ["test_dconv_invalid_size.csd", "reject invalid dconv sizes", 1],
-        ["test_vdelay_buffers.csd", "test short and wrapped variable delays"],
-        ["test_framebuffer_state.csd", "test framebuffer history and sample boundaries"],
-        ["test_framebuffer_invalid_size.csd", "reject invalid framebuffer sizes", 1],
-        ["test_vdelay_reinit.csd", "test variable delay state across reinit"],
-        ["test_vcomb_delay_feedback.csd", "variable comb delay and feedback"],
-        ["test_vcomb_invalid_size.csd", "variable comb rejects invalid sizes", 1],
-        ["test_vdelay_invalid_maximum.csd", "reject invalid maximum delay", 1],
-        ["test_vdelay_invalid_delay.csd", "reject non-finite delay", 1],
-        ["test_comb_units.csd", "comb family delay units, rate handling and partial blocks"],
-        ["test_nestedap_state.csd", "nestedap reset, mode changes, and preserved state"],
-        ["test_nestedap_invalid_delay.csd", "reject invalid nestedap delay layout", 1],
-        ["test_babo_state.csd", "babo feedback delays and reset"],
-        ["test_babo_invalid_room.csd", "reject invalid babo room dimensions", 1],
-        ["test_random_rate_correctness.csd", "randomi and randomh rate handling"],
-        ["test_pinker_sequence.csd", "pinker preserves its noise sequence across block sizes"],
-        ["test_cell_state.csd", "cell generation, reset, and table reuse"],
-        ["test_cell_invalid_inputs.csd", "cell rejects invalid sizes and rule indices", 1],
-        ["test_pinker_sample_bounds.csd", "pinker clears inactive samples"],
-        ["test_noise_amplitude_offset.csd", "noise amplitude offsets and filter state"],
-        ["test_pinkish_sample_state.csd", "pinkish amplitude offsets, seeds, and preserved state"],
-        ["test_gausstrig_frequency_mode.csd", "gausstrig frequency-change and first-impulse modes"],
-        ["test_mirror_bounds.csd", "test mirror boundaries and large inputs"],
-        ["test_atonex_order_one.csd", "test atonex order-one filtering"],
-        ["test_tonex_cutoff.csd", "tonex/atonex cutoff updates, stages, and input reuse"],
-        ["test_tonek_initial_cutoff.csd", "tonek/atonek initial cutoff and reinitialization"],
-        ["test_filterx_istor_first_init.csd", "test filter state on first init"],
-        ["test_butterworth_audio.csd", "test Butterworth audio parameters and partial blocks"],
-        ["test_clfilt_ripple.csd", "clfilt small ripple and coefficient updates"],
-        ["test_filterx_order_growth.csd", "test filter state after order growth"],
-        ["test_resony_spacing.csd", "test resony frequency spacing and bandwidth"],
-        ["test_resony_zero_base.csd", "reject undefined resony bandwidth scaling", 1],
-        ["test_filter2_state.csd", "test filter2 and zfilter2 state and order limits"],
-        ["test_filter2_invalid_parameters.csd", "reject invalid filter2 orders and coefficient counts", 1],
-        ["test_dcblock2_order_reinit.csd", "test dcblock2 order changes"],
-        ["test_dcblock2_invalid_order.csd", "reject invalid dcblock2 order", 1],
-        ["test_dbap.csd", "test dbap and dbapgains opcodes"],
-        ["test_dbap_zero_weights.csd", "dbap zero weights and weighted gain normalization"],
-        ["test_follow_period.csd", "test follow period handling"],
-        ["test_follow_invalid_period.csd", "reject invalid follow period", 1],
-        ["test_median_state.csd", "median reset, preserved history, and partial blocks"],
-        ["test_median_invalid_maximum.csd", "reject invalid median maximum window", 1],
-        ["test_median_invalid_window.csd", "reject invalid median window", 1],
-        ["test_lag_state.csd", "lag state and partial audio blocks"],
-        ["test_lineto_ramp_timing.csd", "lineto/tlineto duration, endpoints, and retriggering"],
-        ["test_compress_control_gain.csd", "compressors update gain when ratio or knee controls change"],
-        ["test_gain_sample_end.csd", "test gain sample-accurate note end"],
-        ["test_dam_gain.csd", "dam unity gain, timing, and moving level"],
-        ["test_distort_sample_offset.csd", "test distort sample-accurate onset"],
-        ["test_distort_istor_first_init.csd", "test distort state-preserving first init"],
-        ["test_distort_invalid_kdist.csd", "reject non-finite distort amount", 1],
-        ["test_distort_invalid_ihp.csd", "reject non-finite distort filter frequency", 1],
-        ["test_distort1_large_pregain.csd", "test distort1 with large pregain"],
-        ["test_exciter_filter_init.csd", "exciter zero cutoffs and filter reinitialization"],
-        ["test_nlfilt2_feedback.csd", "test nonlinear filter feedback and output"],
-        ["test_chebyshevpoly_high_order.csd", "test high-order Chebyshev evaluation"],
-        ["test_powershape_zero_exponent.csd", "powershape preserves sign at zero exponent"],
-        ["test_mode_zero_parameters.csd", "mode recovers from zero frequency and Q"],
-        ["test_vbap_sample_ramps.csd", "VBAP active-sample ramps and zak channels"],
-        ["test_moogvcf2_scaling.csd", "moogvcf2 scaling and legacy moogvcf compatibility"],
-        ["test_mpulse_sample_timing.csd", "mpulse delay units and sample scheduling"],
-        ["test_phasor_phase_wrap.csd", "phasor rounded output and phase state"],
-        ["test_rounding_values.csd", "floor, ceil, and round preserve numeric values"],
-        ["test_chebyshevpoly2_empty_array.csd", "reject empty Chebyshev coefficients", 1],
-        ["test_generic_chan.csd", "testing generic bus channel"],
-        ["test_generic_chan_no_match.csd", "testing type mismatch for bus channel", 1],
-        ["test_bus_channels.csd", "testing bus channels"],
-        [
-            "test_commandline_args.csd",
-            "command line application arguments after -- are available through argv",
-            0,
-            "-nd",
-            '-- concert.orc "first violin" --logfile=ignored ""',
-        ],
-        [
-            "test_csoptions_args.csd",
-            "CsOptions application arguments after -- are available through argv",
-            0,
-            "-nd",
-        ],
-        [
-            "test_commandline_overrides_csoptions_args.csd",
-            "command line application arguments override CsOptions arguments",
-            0,
-            "-nd",
-            '-- concert.orc "first violin" --logfile=ignored ""',
-        ],
-        ["signalflowgraphtest.csd", "test signal-flow graph opcodes"],
-        [
-            "test_signalflowgraph_lifetime.csd",
-            "test signal-flow graph cleanup and ftgenonce",
-        ],
-        [
-            "test_connect_gain.csd",
-            "test connect i-rate gain (omit, unity, non-unity, fan-in, duplicate)",
-        ],
-        [
-            "test_connect_gain_fsig.csd",
-            "test connect i-rate gain on active non-sliding fsig inlets",
-        ],
-    ]
-
-    parcsTests = [
-         [ "test_parcs_instance_overlap.csd",
-                "PARCS does not enter one instrument instance twice"], 
-          ["test_parcs_perf_error.csd", "PARCS exits on perf error",1]
-              ]
-    
-    if not csoundExecutable.lower().endswith((".wasm", ".cwasm")):
-        tests += parcsTests           
-
-
-
-        tests += [[ "test_parcs_local_ksmps_kcounter.csd",
-                   "PARCS kcounter test with local ksmps"]]
-
-    arrayTests = [
-        ["arrays/arrays_i_local.csd", "local i[]"],
-        ["arrays/arrays_i_global.csd", "global i[]"],
-        ["arrays/arrays_k_local.csd", "local k[]"],
-        ["arrays/arrays_k_global.csd", "global k[]"],
-        ["arrays/arrays_a_local.csd", "local a[]"],
-        ["arrays/arrays_a_global.csd", "global a[]"],
-        ["arrays/arrays_S_local.csd", "local S[]"],
-        ["arrays/arrays_S_global.csd", "global S[]"],
-        [
-            "arrays/array_get_inline.csd",
-            "tests parsing and eval of inline array[getters]",
-        ],
-        ["arrays/arrays_for_loop.csd", "tests for loops over array types"],
-        ["arrays/test_redef_fail.csd", "fail on redefinition of variable by array", 1],
-        ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],
-        ["arrays/test_empty_array_init.csd", "test zero-length array initialization"],
-        ["arrays/test_getcol_string.csd", "getcol accepts the last string-array column"],
-        ["arrays/test_getrow_negative.csd", "reject negative getrow index", 1],
-        [
-            "arrays/test_struct_array_reshape_copy.csd",
-            "reshaping a struct-array copy preserves its source",
-        ],
-        [
-            "arrays/test_struct_array_k_write_after_copy.csd",
-            "k-rate writes use prepared struct-array copy storage",
-        ],
-        [
-            "arrays/test_opcode_array_managed_fail.csd",
-            "reject managed scalar transfers through Opcode arrays",
-            1,
-        ],
-        [
-            "arrays/test_chncleararray_managed_fail.csd",
-            "reject byte-wise clearing of managed array channels",
-            1,
-        ],
-        [
-            "arrays/test_chngeta_local_ksmps.csd",
-            "read audio channel arrays with a local ksmps",
-        ],
-        ["test_local_ksmps_out.csd", "test output with local ksmps"],
-        ["test_local_ksmps_in.csd", "test input with local ksmps"],
-        ["complex_array_test.csd", "testing complex array ops"],
-        ["test_array_channels.csd", "testing bus channels holding arrays"],
-        ["fft_array_test.csd", "testing complex fft array ops"],
-        ["rfft_array_test.csd", "testing complex rfft array ops"],
-        ["test_k_i_array_args.csd", "testing k[] in-arg with i[] var"],
-        ["test_gen_array.csd", "testing genarray shorthand"],
-        ["test_array_scalar_set.csd", "testing array scalar setting"],
-        ["test_array_annotation.csd", "testing array type annotation for opcodes"],
-        ["test_slice_array.csd", "testing slice shorthand"],
-        ["arrays/array_a_arithm.csd", "test audio array arithmetic operations"],
-        ["arrays/test_array_copy.csd", "test array copy operations"],
-        ["test_arrays_constant_index.csd", "test arrays with constant index"],
-        ["test_arrays_in_udo.csd", "test arrays in UDO"],
-        ["test_array_in_expression.csd", "test expressions involving arrays"],
-    ]
-
-    structTests = [
-        ["structs/test_structs.csd", "basic struct test"],
-        ["structs/test_sub_structs.csd", "read/write to struct member of struct"],
-        ["structs/test_struct_arrays.csd", "arrays of structs"],
-        [
-            "structs/test_current_limitations.csd",
-            "test current struct implementation limitations",
-        ],
-        ["structs/test_nested_structs.csd", "test nested struct types"],
-        ["structs/test_nested_types.csd", "test nested type definitions"],
-        [
-            "structs/test_simple_struct_assignment.csd",
-            "test struct-to-struct assignment",
-        ],
-        [
-            "structs/test_single_member_init.csd",
-            "test single member struct initialization",
-        ],
-        ["structs/test_struct_arrays_2.csd", "test struct-to-struct references"],
-        ["structs/test_struct_arrays_recursive.csd", "test recursive struct arrays"],
-        ["structs/test_struct_assign.csd", "test struct assignment"],
-        ["structs/test_struct_debug.csd", "test struct debugging"],
-        ["structs/test_struct_member_access.csd", "test struct member access"],
-        ["structs/test_struct_print_simple.csd", "test simple struct printing"],
-        ["structs/test_struct_print_simple2.csd", "test simple struct printing 2"],
-        ["structs/test_structs_2.csd", "test structs 2"],
-        [
-            "structs/test_nonexistent_member.csd",
-            "test what breaking example with structs",
-            1,
-        ],
-        [
-            "structs/test_struct_array_direct_member_access.csd",
-            "test direct member access on struct array elements",
-        ],
-        [
-            "structs/test_struct_array_nested_member_access.csd",
-            "test nested member access on struct array elements",
-        ],
-        [
-            "structs/test_struct_array_k_index_member_access.csd",
-            "test k-rate index member access on struct array elements",
-        ],
-        [
-            "structs/test_struct_array_member_copy_fail.csd",
-            "copying struct-array member out of a struct",
-        ],
-        [
-            "structs/test_struct_array_member_with_scalar.csd",
-            "copying a struct-array member containing scalar fields",
-        ],
-        [
-            "structs/test_struct_member_array_struct_set.csd",
-            "assigning into a struct-array member inside a struct",
-        ],
-        [
-            "structs/test_recursive_struct_member_array_direct_index.csd",
-            "direct indexing of recursive struct-array members",
-        ],
-        [
-            "structs/test_struct_array_nested_condition_arg.csd",
-            "nested struct-array member reads inside boolean expression args",
-        ],
-        [
-            "structs/test_struct_init_partial_member_fails.csd",
-            "fail when struct init provides only some members",
-            "fail",
-        ],
-        [
-            "structs/test_string_array_direct_member_index.csd",
-            "direct indexing of a string-array struct member",
-        ],
-        [
-            "structs/test_struct_arate_members.csd",
-            "a-rate struct member write/read with ksmps above parse-time default",
-        ],
-        [
-            "structs/test_struct_arate_members_negative.csd",
-            "fail when a-rate struct members are initialized with constants",
-            "fail",
-        ],
-        ["test_exitnowk.csd", "perf-time exitnow opcode"],
-        ["test_udt_channel.csd", "testing user-defined type channel"],
-        ["test_udt_chan_no_match.csd", "testing unmatched udt channel", 1],
-    ]
-
-    udoTests = [
-        ["udo/fail_no_xin.csd", "fail due to no xin", 1],
-        ["udo/fail_no_xout.csd", "fail due to no xout", 1],
-        ["udo/fail_invalid_xin.csd", "fail due to invalid xin", 1],
-        ["udo/fail_invalid_xout.csd", "fail due to invalid xout", 1],
-        ["udo/test_udo_const_inargs.csd", "correct polymorphic UDO entry found"],
-        ["udo/test_udo_xout_const.csd", "Constants as xout inputs work"],
-        ["udo/pass_by_ref.csd", "Pass-by-ref works with new-style UDOs"],
-        [
-            "udo/test_deep_udo_deactivation.csd",
-            "deep UDO chains deactivate without exhausting the C stack",
-            None,
-            runArgs,
-            "",
-            256,
-        ],
-        ["udo/test_args_in.csd", "Pass-by-ref connects args correctly."],
-        ["udo/test_K_type.csd", "K-type arguments work with pass-by-ref"],
-        [
-            "udo/test_init_only_udo_frame_lifetime.csd",
-            "Init-only UDO frames release structured temporary values",
-        ],
-        [
-            "udo/test_init_only_udo_nested_cleanup.csd",
-            "Retained nested UDO cleanup survives overlapping frame reuse",
-        ],
-        [
-            "udo/test_init_only_udo_reserved_refs.csd",
-            "Recycled init-only UDOs restore reserved instance references",
-        ],
-        [
-            "udo/test_udo_init_only_conditional_perf_chain.csd",
-            "init-only UDOs in conditionals do not install perf chains",
-        ],
-        ["udo/crashing_test.csd", "test for UDO crashing", 1],
-        ["udo/test_udo_array_set.csd", "test UDO array setting"],
-        [
-            "test_udo_optional_after_instr.csd",
-            "test new-style UDO optional args defined after instr",
-        ],
-        ["test_udo_recursion.csd", "test for UDO recursion depth exception", 1]
-    ]
-
-    maxallocTests = [
-        ["test_maxalloc_turnoff_lt_0.csd", "Test maxalloc opcode less than 0", 1],
-        ["test_maxalloc_turnoff_gt_2.csd", "Test maxalloc opcode greater than 2", 1],
-        ["test_maxalloc_turnoff_default.csd", "Test maxalloc opcode defaults 0"],
-        ["test_maxalloc_turnoff_eq_0.csd", "Test maxalloc opcode value of 0"],
-        ["test_maxalloc_turnoff_eq_1.csd", "Test maxalloc opcode value of 1"],
-        ["test_maxalloc_turnoff_eq_2.csd", "Test maxalloc opcode value of 2"],
-    ]
-
-    pfieldTests = [
-        [
-            "test_pfields_array.csd",
-            "Test dynamic allocation of pfields, schedule and ftgen",
-        ],
-        ["test_schedule.csd", "Test pfields on all forms of schedule"],
-        [
-            "test_schedule_instr.csd",
-            "Test pfields on all forms of schedule with instance",
-        ],
-        ["test_event_pfields.csd", "Test pfields on all forms of event"],
-        ["test_recursive_schedule.csd", "Test recursive events"],
-        ["test_file_table.csd", "Test ftgen gen01 file input"],
-        ["test_midifile.csd", "Test midi file input (-F)"],
-    ]
-
-    mkirTests = [
-      ["test_deconv.csd", "test deconv opcode"],
-      ["test_ideconv.csd", "test init-time deconv opcode"],
-      ["test_gen_deconv.csd", "test deconv gen"]
-    ]
-
-    tests += arrayTests
-    tests += structTests
-    tests += udoTests
-    tests += maxallocTests
-    tests += pfieldTests
-    tests += mkirTests
-
-    unknownExpectedFailures = expectedFailures.difference(test[0] for test in tests)
-    if unknownExpectedFailures:
-        logger.error(
-            "Unknown expected-failure tests: %s",
-            ", ".join(sorted(unknownExpectedFailures)),
-        )
+    profile = testProfile or ("wasm" if csoundExecutable.lower().endswith(
+        (".wasm", ".cwasm", ".js")) else "native")
+    try:
+        tests = discover_tests(sourceDirectory, profile)
+        unknown = selectedTests.difference(test.filename for test in tests)
+        if unknown:
+            raise ValueError(f"unknown tests: {', '.join(sorted(unknown))}")
+        if selectedTests:
+            tests = [test for test in tests if test.filename in selectedTests]
+    except ValueError as error:
+        logger.error("%s", error)
         return 1
-    if expectedFailures:
-        logger.info(
-            "Runtime-specific expected failures: %s",
-            ", ".join(sorted(expectedFailures)),
-        )
+    for test in tests:
+        if test.skip:
+            print(f"[skip] {test.filename}: {test.skip}")
+        elif listOnly:
+            print(test.filename)
+    if listOnly:
+        return 0
+    skipped = [test for test in tests if test.skip]
+    tests = [test for test in tests if not test.skip]
+    if not tests:
+        logger.error("No runnable tests selected")
+        return 1
 
-    output = ""
-
-    retVals = []
+    output = "".join(f"[skip] {test.filename}: {test.skip}\n" for test in skipped)
 
     testPass = 0
     testFail = 0
@@ -1436,7 +495,7 @@ def runTest():
         csOutput = result.cs_output
 
         # Count pass/fail
-        nonlocal testPass, testFail, testFailMessages, output, retVals
+        nonlocal testPass, testFail, testFailMessages, output
         if result.passed:
             testPass += 1
         else:
@@ -1472,12 +531,10 @@ def runTest():
             output += f"Error: {result.error}\n"
         if result.execution_time:
             output += f"Execution Time: {result.execution_time:.2f}s\n"
+        output += formatted_output
         output += "%s\n\n" % ("=" * 80)
         output += csOutput
         output += "\n\n"
-
-        # Maintain backward compatibility for retVals
-        retVals.append(result.test_data + [retVal, csOutput])
 
         # Return formatted output for later display
         return formatted_output
@@ -1507,7 +564,8 @@ def runTest():
             print(formatted_output)
 
     print("%s\n\n" % ("=" * 80))
-    print("Tests Passed: %i\nTests Failed: %i\n" % (testPass, testFail))
+    print("Tests Passed: %i\nTests Failed: %i\nTests Skipped: %i\n" %
+          (testPass, testFail, len(skipped)))
 
     if testFail > 0:
         print("[FAILED TESTS]\n\n%s" % testFailMessages)
@@ -1522,17 +580,15 @@ def runTest():
         logger.info(f"Parallel execution with {actual_workers} workers")
         logger.info(f"Average time per test: {avg_time_per_test:.2f}s")
 
-    f = open("results.txt", "w")
-    f.write(output)
-    f.flush()
-    f.close()
+    with open("results.txt", "w", encoding="utf-8") as report:
+        report.write(output)
 
     return testFail
 
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        for arg in sys.argv:
+        for arg in sys.argv[1:]:
             if arg == "--help":
                 showHelp()
                 sys.exit(0)
@@ -1546,7 +602,7 @@ if __name__ == "__main__":
                 csoundExecutable = arg[20:]
                 print(csoundExecutable)
             elif arg.startswith("--opcode7dir64="):
-                os.environ["OPCODE7DIR64"] = arg[15:]
+                os.environ["OPCODE7DIR64"] = os.path.abspath(arg[15:])
                 print(os.environ["OPCODE7DIR64"])
             elif arg.startswith("--source-dir="):
                 sourceDirectory = arg[13:]
@@ -1561,8 +617,14 @@ if __name__ == "__main__":
                 )
             elif arg.startswith("--runtime-arg="):
                 runtimeArguments.append(arg[14:])
-            elif arg.startswith("--expected-failure="):
-                expectedFailures.add(arg[19:])
+            elif arg.startswith("--test="):
+                selectedTests.add(arg[7:])
+            elif arg == "--list":
+                listOnly = True
+            elif arg.startswith("--profile="):
+                testProfile = arg[10:]
+                if testProfile not in ("native", "wasm"):
+                    sys.exit("Unknown profile: " + testProfile)
             elif arg.startswith("--workers="):
                 try:
                     max_workers = int(arg[10:])
@@ -1586,5 +648,8 @@ if __name__ == "__main__":
                     )
                     sys.exit(1)
 
+            else:
+                sys.exit("Unknown argument: " + arg)
+
     results = runTest()
-    sys.exit(results)
+    sys.exit(1 if results else 0)

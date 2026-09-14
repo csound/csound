@@ -3,6 +3,14 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject malformed MIDI files",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ksmps = 32
 nchnls = 1
 

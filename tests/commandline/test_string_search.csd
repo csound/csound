@@ -3,6 +3,14 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "string search overlaps and empty strings",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 1024
 ksmps = 16
 nchnls = 1

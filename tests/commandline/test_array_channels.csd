@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "testing bus channels holding arrays",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 nchnls=2
 
 clearDimensions@global:i[] fillarray 2

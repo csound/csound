@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid nestedap delay layout",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "nestedap: invalid third delay"
+    ]
+  }
+}
+*/
 #ifndef MODE
 #define MODE #3#
 #endif

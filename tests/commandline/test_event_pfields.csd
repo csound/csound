@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "Test pfields on all forms of event",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 nchnls = 1
 0dbfs = 1
 

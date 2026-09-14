@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test udo with 2d-array",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 opcode one_dim, 0, k[]
 kArr[] xin
 endop

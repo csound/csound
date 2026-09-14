@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test instr type and variables",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 opcode assert(var1:InstrDef,var2:InstrDef):void
 if nstrnum(var1) != nstrnum(var2) then
   prints "assert error for instrument number\n"

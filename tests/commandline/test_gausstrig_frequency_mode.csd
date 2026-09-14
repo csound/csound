@@ -3,6 +3,14 @@
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "gausstrig frequency-change and first-impulse modes",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 8000
 ksmps = 8
 nchnls = 1

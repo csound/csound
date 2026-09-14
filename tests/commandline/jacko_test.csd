@@ -4,6 +4,15 @@ csound -m255 -M0 -+rtmidi=null -RWf --midi-key=4 --midi-velocity=5 -o jacko_test
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "jacko_test.csd",
+  "expect": {
+    "exit": 0
+  },
+  "skip": "Interactive demo requiring a JACK server and external connections."
+}
+*/
 ; Unit tests for the Jack opcodes.
 ; To do:
 ; -- Python score generator and client runner.

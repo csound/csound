@@ -4,6 +4,18 @@
 ; ==============================================
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "fail due to no xin",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "syntax error, invalid xin statement for UDO: defined 'i', found '(null)'",
+      "syntax error, testUDO UDO"
+    ]
+  }
+}
+*/
 sr	=	44100
 ksmps	=	1
 ;nchnls	=	2

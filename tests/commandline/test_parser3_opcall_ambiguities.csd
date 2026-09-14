@@ -1,5 +1,13 @@
 <CsoundSynthesizer>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test T_OPCALL ambiguities",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=44100
 ksmps=32
 nchnls=2

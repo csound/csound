@@ -1,5 +1,14 @@
 <CsoundSynthesizer>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "contrib/multiple_strings_in_scoreline2.csd",
+  "expect": {
+    "exit": 0,
+    "stderr": ["Hello string world!"]
+  }
+}
+*/
 /*
 only one string more than in the previous example.
 now the output is:
@@ -14,7 +23,7 @@ S1 strget p4
 S2 strget p5
 S3 strget p6
 S4 strget p7
-printf_i "%s %s %s %s%s\n", 1, S1, S2, S3, S4
+printf_i "%s %s %s%s\n", 1, S1, S2, S3, S4
 endin
 </CsInstruments>
 <CsScore>

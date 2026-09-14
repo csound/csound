@@ -3,6 +3,14 @@
 -n -d -m128
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "strcat copies text rather than buffer capacity",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ksmps = 1
 instr 1
   Stext init "A long string reserves more storage than its next value needs. Shortening it must not make strcat copy that spare capacity."

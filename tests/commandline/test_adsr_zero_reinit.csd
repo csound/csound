@@ -3,6 +3,14 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "ADSR reinitialization with zero attack",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 8000
 #ifndef TEST_KSMPS
 #define TEST_KSMPS #8#

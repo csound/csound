@@ -3,6 +3,17 @@
 -odac -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "errors/malformed-array.csd",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "Unable to find opcode entry for '='"
+    ]
+  }
+}
+*/
 ; Try to provoke array parsing/compile errors (unmatched bracket / malformed array)
 instr 1
   ; invalid array syntax in ORC/score region

@@ -4,6 +4,24 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "command line application arguments override CsOptions arguments",
+  "expect": {
+    "exit": 0
+  },
+  "args": [
+    "-nd"
+  ],
+  "application_args": [
+    "--",
+    "concert.orc",
+    "first violin",
+    "--logfile=ignored",
+    ""
+  ]
+}
+*/
 instr 1
   Sarguments:S[] argv
 

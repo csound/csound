@@ -3,6 +3,14 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "gendy handles audio blocks and bounded integer state",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 8000
 ksmps = 64
 nchnls = 1

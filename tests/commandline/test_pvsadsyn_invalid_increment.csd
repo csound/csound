@@ -3,6 +3,19 @@
 -n -d
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "pvsadsyn rejects invalid bin increments",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "pvsadsyn: ibinincr must be positive and no larger than the number of bins.",
+      "pvsadsyn: ibinoffset out of range.",
+      "pvsadsyn: ibinoffset + ((inoscs - 1) * ibinincr) too large."
+    ]
+  }
+}
+*/
 sr = 48000
 ksmps = 32
 nchnls = 1

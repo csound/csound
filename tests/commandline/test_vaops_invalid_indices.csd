@@ -3,6 +3,20 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid audio buffer indices",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "Out of range in vaget.k",
+      "Out of range in vaset.k",
+      "Out of range in vasigget.k",
+      "Out of range in vasigset.k"
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 32
 nchnls = 1

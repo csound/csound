@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "tests array of opcode objects in loops",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs=1
 
 instr 1

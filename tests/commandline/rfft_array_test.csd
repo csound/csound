@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "testing complex rfft array ops",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 48000
 ksmps = 32
 nchnls = 1

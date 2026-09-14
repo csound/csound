@@ -5,6 +5,14 @@
 <CsInstruments>
 
 
+/* Csound-test
+{
+  "description": "test +Name for instr name",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 instr +MyInstr
 endin
 

@@ -3,6 +3,14 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "tuning-table pitch endpoints and negative pitches",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 8192
 ksmps = 16
 nchnls = 1

@@ -4,6 +4,14 @@ Test that using xout in a UDO with a constant works.
 <CsoundSynthesizer>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "Constants as xout inputs work",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr	=	48000
 ksmps	=	1
 nchnls	=	2

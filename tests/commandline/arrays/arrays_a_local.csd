@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "local a[]",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ;test local aArrays
 ;jh march 2013
 

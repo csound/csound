@@ -3,6 +3,14 @@
 -n -d --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "read audio channel arrays with a local ksmps",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 32
 ksmps = 8
 nchnls = 1

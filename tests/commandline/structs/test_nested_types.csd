@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test nested type definitions",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 44100
 ksmps = 1
 nchnls = 1

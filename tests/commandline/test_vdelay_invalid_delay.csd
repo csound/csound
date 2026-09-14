@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject non-finite delay",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "vdelay3: invalid delay"
+    ]
+  }
+}
+*/
 sr = 8000
 ksmps = 1
 nchnls = 1

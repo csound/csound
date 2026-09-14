@@ -8,6 +8,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test named instrument ramps",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 48000
 ksmps = 64
 nchnls = 2

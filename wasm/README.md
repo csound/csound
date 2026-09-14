@@ -67,9 +67,9 @@ nix-build ./src/csound-tests.nix
 The test derivation also defaults to the local Nix system. Pass
 `--argstr system x86_64-linux` to select a configured Linux builder explicitly.
 It uses Wasmtime from the pinned Nixpkgs, disables audio with `-nd`, and runs the
-cases listed in `tests/commandline/test.py`. The OSC socket case still executes,
-but its nonzero result is expected because this WASI Preview-1 build has no
-socket creation or UDP send support.
+CSD files discovered under `tests/commandline`. Each file declares its own
+expectations, including WebAssembly overrides. The OSC and asynchronous
+`ftaudio` cases check the diagnostics for unavailable sockets and threads.
 
 For releases, publish a new `@csound/wasm-bin` version before updating and
 publishing `@csound/browser`; older binary packages do not contain the new

@@ -3,6 +3,14 @@
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "gtf complex impulse response and sample bounds",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 8192
 ksmps = 16
 nchnls = 1

@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "copying a struct-array member containing scalar fields",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 44100
 ksmps = 1
 nchnls = 1

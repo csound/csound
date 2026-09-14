@@ -3,6 +3,14 @@
 -n -d -m128
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "assigning into a struct-array member inside a struct",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 #include "../libassert.orc"
 
 0dbfs = 1

@@ -3,6 +3,14 @@
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "linenr attack and release transitions within audio blocks",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 1024
 ksmps = 16
 nchnls = 1

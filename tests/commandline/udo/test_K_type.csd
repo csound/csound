@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "K-type arguments work with pass-by-ref",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 ksmps = 32
 

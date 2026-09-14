@@ -3,6 +3,22 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "shift arrays reject invalid inputs",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "input array too small",
+      "shiftout: expected a one-dimensional array",
+      "shiftin: expected a one-dimensional array",
+      "shiftout: offset must be finite",
+      "shiftout: array shape changed",
+      "shiftin: array shape changed"
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 32
 nchnls = 1

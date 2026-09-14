@@ -3,6 +3,14 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "changed2 array dimensions, resizing and first-cycle state",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 1024
 ksmps = 16
 nchnls = 1

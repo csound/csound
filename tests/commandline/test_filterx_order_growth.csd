@@ -3,6 +3,14 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test filter state after order growth",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 8000
 ksmps = 8
 nchnls = 1

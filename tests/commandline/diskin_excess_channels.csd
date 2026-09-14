@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test sample accurate mode",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 nchnls = 2
 0dbfs = 1
 

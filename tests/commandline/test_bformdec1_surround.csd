@@ -3,6 +3,14 @@
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "bformdec1 preserves partial blocks and selects the input order",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 8000
 ksmps = 16
 nchnls = 1

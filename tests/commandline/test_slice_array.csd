@@ -3,6 +3,14 @@
 -n 
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "testing slice shorthand",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 
 instr 1

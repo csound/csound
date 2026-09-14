@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "variable comb rejects invalid sizes",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "illegal loop time"
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 32
 nchnls = 1

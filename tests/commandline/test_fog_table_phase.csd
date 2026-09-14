@@ -3,6 +3,14 @@
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "fog table phase, interpolation, envelope and sample offsets",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 8192
 ksmps = 16
 nchnls = 1

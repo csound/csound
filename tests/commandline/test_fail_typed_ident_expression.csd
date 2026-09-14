@@ -4,6 +4,17 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "expected failure: explicit type annotation used in expression",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "syntax error, unexpected T_TYPED_IDENT"
+    ]
+  }
+}
+*/
 ; Explicit type annotations are legal on declaration sites, but not inside
 ; regular expressions. This should fail to parse if the lexer returns
 ; T_TYPED_IDENT consistently inside instruments.

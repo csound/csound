@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "counter rejects invalid handles",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "counter: invalid handle"
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 64
 nchnls = 1

@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "testing creating and scheduling instr",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 
 myinstr:InstrDef = create({{

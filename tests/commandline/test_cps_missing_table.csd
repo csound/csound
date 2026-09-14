@@ -3,6 +3,18 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject missing pitch tuning tables",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "Invalid ftable no. 100.000000",
+      "No tuning table 100"
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 16
 nchnls = 1

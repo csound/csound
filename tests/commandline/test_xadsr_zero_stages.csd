@@ -3,6 +3,14 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "exponential ADSR zero stages and short attacks",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 #ifndef TEST_KSMPS
 #define TEST_KSMPS #8#
 #endif

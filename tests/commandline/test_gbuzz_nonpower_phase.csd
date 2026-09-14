@@ -3,6 +3,14 @@
 -d -m0 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "gbuzz scales non-power-of-two table indexes correctly",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=48000
 ksmps=1
 nchnls=1

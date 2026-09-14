@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid follow period",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "follow: invalid period"
+    ]
+  }
+}
+*/
 sr = 48000
 ksmps = 32
 nchnls = 1

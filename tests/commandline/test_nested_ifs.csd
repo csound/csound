@@ -2,6 +2,14 @@
 
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test_nested_ifs.csd",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 44100
 ksmps = 1
 nchnls = 2

@@ -3,6 +3,14 @@
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "wterrain2 phase stability and direction changes",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 8000
 ksmps = 16
 nchnls = 1

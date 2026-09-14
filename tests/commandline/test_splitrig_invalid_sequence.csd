@@ -3,6 +3,18 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "splitrig rejects invalid indexes and tick counts",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "splitrig: sequence index out of range",
+      "splitrig: invalid sequence tick count"
+    ]
+  }
+}
+*/
 sr = 48000
 ksmps = 32
 nchnls = 1

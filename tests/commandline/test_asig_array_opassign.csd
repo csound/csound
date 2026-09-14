@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test_asig_array_opassign.csd",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 44100
 ksmps = 32
 nchnls = 2

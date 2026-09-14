@@ -3,6 +3,14 @@
 -o dac
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test ambiguous opcall examples",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 44100
 ksmps = 64
 nchnls = 2

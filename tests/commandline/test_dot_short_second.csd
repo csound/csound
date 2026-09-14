@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "dot rejects a shortened second input",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "second input array is too short"
+    ]
+  }
+}
+*/
 sr = 1024
 ksmps = 16
 nchnls = 1

@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "polymorphic test, 0xffff (init)",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ;
 sr=44100
 ksmps=1

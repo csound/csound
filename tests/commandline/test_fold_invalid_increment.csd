@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid fold increment",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "fold: increment must be finite and >= 1"
+    ]
+  }
+}
+*/
 sr = 8000
 ksmps = 1
 nchnls = 1

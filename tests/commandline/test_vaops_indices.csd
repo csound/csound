@@ -3,6 +3,14 @@
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test audio buffer index reads and writes",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 8192
 ksmps = 32
 nchnls = 1

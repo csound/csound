@@ -3,6 +3,15 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test_ir.csd",
+  "expect": {
+    "exit": 0
+  },
+  "skip": "Manual impulse-response workflow: requires generated ir.wav and external fox.wav."
+}
+*/
 0dbfs=1
 
 isw ftgen 1,0,0,-1,"ir.wav",0,0,1

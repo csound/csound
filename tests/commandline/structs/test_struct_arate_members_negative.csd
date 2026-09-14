@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "fail when a-rate struct members are initialized with constants",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      ":AudioBus; init cc"
+    ]
+  }
+}
+*/
 ; initializing a-rate struct members takes a-rate arguments only:
 ; the auto-generated init entry has "aa" intypes and constants are
 ; not promoted to a-rate, so this must be a compile error.

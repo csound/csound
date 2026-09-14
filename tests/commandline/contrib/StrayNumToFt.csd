@@ -21,6 +21,14 @@ iftlen - the length of the elements written to the function table (usually this 
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "contrib/StrayNumToFt.csd",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
   opcode StrayLen, i, Sjj
 ;returns the number of elements in Stray. elements are defined by two seperators as ASCII coded characters: isep1 defaults to 32 (= space), isep2 defaults to 9 (= tab). if just one seperator is used, isep2 equals isep1
 Stray, isepA, isepB xin

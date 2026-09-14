@@ -3,6 +3,14 @@
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "pitchac analysis windows and partial blocks",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 8192
 ksmps = 64
 nchnls = 1

@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "tests the new switch statement operator",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 // switch in UDO must not break xout typing or branch logic
 opcode switch_xout_value, i, i
   iCond xin

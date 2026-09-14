@@ -5,6 +5,14 @@
 <CsInstruments>
 
 
+/* Csound-test
+{
+  "description": "Test dynamic allocation of pfields, schedule and ftgen",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 44100
 ksmps = 64
 nchnls = 2

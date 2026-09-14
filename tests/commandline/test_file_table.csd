@@ -4,6 +4,14 @@
 </CsOptions>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "Test ftgen gen01 file input",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr     = 44100
 ksmps  = 64
 nchnls = 2

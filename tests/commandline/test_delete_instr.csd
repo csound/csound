@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test creating and deleting instr",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 
 

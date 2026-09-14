@@ -3,6 +3,14 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test array arithmetic (i.e. k[] + k[]",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 opcode assert_equal, 0, kk
   kActual, kExpected xin
   if kActual != kExpected then

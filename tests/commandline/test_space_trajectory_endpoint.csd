@@ -3,6 +3,14 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "space and spdist handle the last trajectory frame",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 48000
 ksmps = 16
 nchnls = 4

@@ -3,6 +3,14 @@
 -n -d
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test output with local ksmps",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 32
 ksmps = 8
 nchnls = 2

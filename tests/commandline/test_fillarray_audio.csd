@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test Arr:a[] = [sig:a]",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 instr 1
  Arr:a[] = [oscili(0.5,440)]

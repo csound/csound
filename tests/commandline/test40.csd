@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "Testing i^j",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=44100
 ksmps=1
 nchnls=1

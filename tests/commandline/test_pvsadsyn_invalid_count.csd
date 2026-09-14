@@ -3,6 +3,17 @@
 -n -d
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "pvsadsyn rejects an out-of-range oscillator count",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "pvsadsyn: bad value for inoscs"
+    ]
+  }
+}
+*/
 sr = 48000
 ksmps = 32
 nchnls = 1

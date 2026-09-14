@@ -3,6 +3,14 @@
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "maxk active sample counts, extrema and trigger state",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=1024
 ksmps=16
 nchnls=1

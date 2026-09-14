@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test new-style raw strings",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 instr 1
  prints R{ "type": "checkBox",

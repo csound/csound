@@ -3,6 +3,14 @@
 -i test_input_ramp_16.wav -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "audio input opcodes align partial-block input frames",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 32
 ksmps = 8
 nchnls = 1

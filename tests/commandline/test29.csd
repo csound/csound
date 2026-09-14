@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "bit operations test",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ;
 sr=44100
 ksmps=10

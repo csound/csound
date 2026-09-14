@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test realtime init-thread compile opcodes",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 48000
 ksmps = 64
 nchnls = 1

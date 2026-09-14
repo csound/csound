@@ -1,5 +1,13 @@
 <CsoundSynthesizer>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test udo with S[] arg returning S",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ksmps = 32
 
 opcode str_join, S, SS[] 

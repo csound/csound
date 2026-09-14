@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test_array_name.csd",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs=1
 
 gauss[] init 1 //

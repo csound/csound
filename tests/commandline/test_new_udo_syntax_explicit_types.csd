@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test new-style UDO syntax with explicit types",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr	=	44100
 ksmps	=	1
 nchnls	=	2

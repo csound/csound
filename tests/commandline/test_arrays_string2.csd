@@ -3,6 +3,14 @@
 -dnm0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test simple string-array assignment",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 instr 1
 S_Arr[]   init     4
 S_Arr[0] =  "a"

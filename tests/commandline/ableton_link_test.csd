@@ -78,6 +78,15 @@ accuracy of a really good performing musician.
 -m0 -d -odac
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "ableton_link_test.csd",
+  "expect": {
+    "exit": 0
+  },
+  "skip": "Interactive demo requiring an Ableton Link peer."
+}
+*/
 sr = 44100
 ksmps = 10
 nchnls = 2

@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test strstrip reallocation and termination",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 instr 1
   Sunit = "hello world with lots of leading and trailing spaces to force a realloc"
   Scontent2 strcat Sunit, Sunit

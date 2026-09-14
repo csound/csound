@@ -3,6 +3,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test use of mapped multiport channels",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 
 instr 1

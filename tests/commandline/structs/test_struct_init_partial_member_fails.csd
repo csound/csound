@@ -4,6 +4,17 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "fail when struct init provides only some members",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      ":Point; init c"
+    ]
+  }
+}
+*/
 sr = 44100
 ksmps = 1
 nchnls = 1

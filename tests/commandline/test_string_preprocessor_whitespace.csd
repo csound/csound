@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "preserve function-like whitespace inside strings",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 opcode AssertString(actual:S, prefix:S, suffix:S):i
   space:S = sprintf("%c", 32)
   expected:S = prefix

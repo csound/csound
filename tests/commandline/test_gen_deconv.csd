@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test deconv gen",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs=1
 nchnls = 2
 

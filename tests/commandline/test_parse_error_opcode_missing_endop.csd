@@ -4,6 +4,17 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "expected failure: opcode missing endop",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "syntax error, unexpected INSTR_TOKEN"
+    ]
+  }
+}
+*/
 ; Test: opcode definition missing endop.
 ; Expected: parse failure without any crash.
 

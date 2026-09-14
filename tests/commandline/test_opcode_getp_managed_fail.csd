@@ -4,6 +4,17 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "reject managed opcode-object output access",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "getp does not support managed outputs"
+    ]
+  }
+}
+*/
 sr = 1000
 ksmps = 10
 nchnls = 1

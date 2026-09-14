@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid plucked-string frequencies",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "repluck/wgpluck2: invalid frequency"
+    ]
+  }
+}
+*/
 sr = 48000
 ksmps = 32
 nchnls = 1

@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "continuation lines test",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 instr 1
 
 isrc = 1

@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "testing quadrature oscillator",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 nchnls = 2
 
 instr 1

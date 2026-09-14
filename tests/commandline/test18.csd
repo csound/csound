@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "if-then-elseif with no else block",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=44100
 ksmps=1
 nchnls=2

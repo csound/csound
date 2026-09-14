@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject a zero GEN44 matrix size",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "GEN44: Invalid matrix size"
+    ]
+  }
+}
+*/
 sr = 48000
 ksmps = 32
 nchnls = 1

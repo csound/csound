@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test newstyle UDO optional args",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 44100
 0dbfs=1
 nchnls = 2

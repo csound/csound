@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test unscheduling events",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 
 instr 1

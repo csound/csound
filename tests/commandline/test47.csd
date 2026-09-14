@@ -3,6 +3,14 @@
 </CsOptions>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "until loop and k[]",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr     = 44100
 ksmps  = 300
 nchnls = 1

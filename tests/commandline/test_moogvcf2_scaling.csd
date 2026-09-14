@@ -3,6 +3,14 @@
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "moogvcf2 scaling and legacy moogvcf compatibility",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 #ifndef FS
 #define FS #32768#
 #endif

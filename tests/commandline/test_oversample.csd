@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test oversampling in new-style UDO",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 
 

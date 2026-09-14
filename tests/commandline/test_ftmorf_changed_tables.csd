@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid changed ftmorf tables",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "ftmorf: source table has wrong size"
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 32
 nchnls = 1

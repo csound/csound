@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "Testing macro with argument",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=44100
 ksmps=1
 nchnls=1

@@ -3,6 +3,14 @@
 -ndm0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test multiple operations on multiple array types",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ksmps = 32
 
 /****UDOs for printing one-dim arrays****/

@@ -1,5 +1,13 @@
 <CsoundSynthesizer>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "contrib/multiple_strings_in_scoreline2a.csd",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 /*
 now replacing instr test with instr 1.
 works again

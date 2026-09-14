@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "testing GEN01 importing files",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 
 ;; Raw Input

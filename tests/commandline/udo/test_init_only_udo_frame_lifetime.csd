@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "Init-only UDO frames release structured temporary values",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 struct ScoreNode label:S, children:ScoreNode[]
 
 opcode CountScoreBranches(depth:i):i

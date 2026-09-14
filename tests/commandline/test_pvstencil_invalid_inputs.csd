@@ -3,6 +3,19 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid pvstencil inputs",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "Invalid ftable no. 999.000000",
+      "pvstencil: ftable needs to equal the number of bins",
+      "pvstencil: signal format must be amp-phase or amp-freq."
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 16
 nchnls = 1

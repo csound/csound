@@ -2,6 +2,14 @@
 
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test using a-sig with array get/set syntax",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 44100
 ksmps = 4
 nchnls = 2

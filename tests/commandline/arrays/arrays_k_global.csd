@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "global k[]",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ;test global iArrays
 ;jh march 2013
 

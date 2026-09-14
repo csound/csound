@@ -3,6 +3,18 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject malformed cmp operators",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "cmp: unknown operator. Expecting <, <=, >, >=, ==, !=",
+      "cmp (ternary comparator): operator 2 expected < or <="
+    ]
+  }
+}
+*/
 instr 1
   iValues[] fillarray 0, 1, 2
   iScalar[] cmp iValues, "<>", 1

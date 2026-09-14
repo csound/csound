@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test arrays initialized with static initializer (i.e. kvals = [0,1,2])",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 opcode print_str_array(vals:S[]):void
   icounter = 0 
   Sres = ""

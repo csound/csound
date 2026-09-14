@@ -1,5 +1,13 @@
 <CsoundSynthesizer>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "init-only UDOs in conditionals do not install perf chains",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=48000
 ksmps=64
 nchnls=2

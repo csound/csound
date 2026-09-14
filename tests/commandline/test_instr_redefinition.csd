@@ -3,6 +3,14 @@
 -n --allow-redefinition
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "allow instr redefinition",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 
 givar init 0

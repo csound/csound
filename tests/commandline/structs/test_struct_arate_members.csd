@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "a-rate struct member write/read with ksmps above parse-time default",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ; a-rate struct members must survive ksmps larger than the parse-time
 ; default (10): member buffers are sized when the struct type is defined,
 ; before the header applies, so initializeStructVar has to refresh

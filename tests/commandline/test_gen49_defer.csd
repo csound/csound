@@ -3,6 +3,14 @@
 -n 
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test GEN49 deferred length",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs=1
 
 

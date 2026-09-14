@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "if-elseif-else with inner if-elseif-else blocks",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=44100
 ksmps=1
 nchnls=2

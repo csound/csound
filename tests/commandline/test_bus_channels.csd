@@ -5,6 +5,14 @@
 <CsInstruments>
 
 
+/* Csound-test
+{
+  "description": "testing bus channels",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 instr 1
  cvar@global:k chnexport "test",3
  chnset 1, "test"

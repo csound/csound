@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test ternary expr for backwards compatibility",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs=1
 
 instr 1

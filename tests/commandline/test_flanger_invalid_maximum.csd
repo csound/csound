@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid flanger maximum delay",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "flanger: invalid maximum delay"
+    ]
+  }
+}
+*/
 sr = 8000
 ksmps = 1
 nchnls = 1

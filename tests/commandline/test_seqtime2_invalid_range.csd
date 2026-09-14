@@ -3,6 +3,18 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid seqtime2 ranges",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "seqtime2: index or loop out of range",
+      "seqtime2: incorrect table number or size"
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 64
 nchnls = 1

@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject unsupported pvsfilter input format",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "pvsfilter: signal format must be amp-phase or amp-freq."
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 16
 nchnls = 1

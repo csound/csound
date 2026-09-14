@@ -3,6 +3,14 @@
 -n -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "correct polymorphic UDO entry found",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 
 opcode phs(icount, iperiod):i

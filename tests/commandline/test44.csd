@@ -1,6 +1,17 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "expected failure with in-arg given to in opcode",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "syntax error, Unable to find opcode entry for 'in'"
+    ]
+  }
+}
+*/
 sr=44100
 ksmps=1
 nchnls=1

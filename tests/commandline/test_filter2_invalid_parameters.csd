@@ -3,6 +3,19 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid filter2 orders and coefficient counts",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "Filter order out of bounds: (1 <= nb <= 51, 0 <= na <= 50)",
+      "filter2: not enough coefficients",
+      "zfilter2: not enough coefficients"
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 32
 nchnls = 1

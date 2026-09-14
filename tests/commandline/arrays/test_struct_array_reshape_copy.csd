@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "reshaping a struct-array copy preserves its source",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 1000
 ksmps = 10
 nchnls = 1

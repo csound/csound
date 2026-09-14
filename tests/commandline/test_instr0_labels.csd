@@ -4,6 +4,14 @@
 ; ==============================================
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test labels in instr0 space",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr	=	44100
 ksmps	=	1
 ;nchnls	=	2

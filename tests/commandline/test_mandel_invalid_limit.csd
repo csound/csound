@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "mandel rejects an unrepresentable iteration limit",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "mandel: iteration limit out of range"
+    ]
+  }
+}
+*/
 sr=1024
 ksmps=16
 nchnls=1

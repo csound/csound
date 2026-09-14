@@ -2,6 +2,14 @@
 
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "Test maxalloc opcode defaults 0",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr	=	44100
 ksmps	=	1
 nchnls	=	2

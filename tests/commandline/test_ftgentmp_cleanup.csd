@@ -3,6 +3,14 @@
 -n -d
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "ftgentmp table lifetime across reinit and note reuse",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 8192
 ksmps = 16
 nchnls = 1

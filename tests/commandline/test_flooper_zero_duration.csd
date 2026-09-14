@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject zero flooper duration",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "loop duration must be at least one sample"
+    ]
+  }
+}
+*/
 sr = 44100
 ksmps = 8
 nchnls = 2

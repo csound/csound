@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "named instrument",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=48000
 ksmps=1
 nchnls=2

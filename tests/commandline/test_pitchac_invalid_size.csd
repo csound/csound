@@ -3,6 +3,19 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "pitchac rejects invalid buffer sizes",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "pitchac: invalid lowest frequency",
+      "pitchac: minimum frequency must be positive",
+      "pitchac: minimum frequency exceeds sample rate"
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 64
 nchnls = 1

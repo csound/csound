@@ -4,6 +4,17 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "expected failure: binary | parse error",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "syntax error, unexpected ENDIN_TOKEN"
+    ]
+  }
+}
+*/
 ; Test: binary '|' missing RHS.
 ; Expected: parse failure without any crash.
 

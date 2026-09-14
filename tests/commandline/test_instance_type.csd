@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "testing instance type",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 myInstrument:InstrDef = createinstr({{
                         out oscili(p4,p5)
                         }})

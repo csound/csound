@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "Simple if-then-else with multiple statements in body",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ;
 sr=44100
 ksmps=1

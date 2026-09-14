@@ -3,6 +3,17 @@
 -ndm0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject negative getrow index",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "requested row is out of range"
+    ]
+  }
+}
+*/
 sr = 44100
 ksmps = 32
 nchnls = 1

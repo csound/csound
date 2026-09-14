@@ -2,6 +2,17 @@
 
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "Test maxalloc opcode less than 0",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "maxalloc: invalid mode parameter"
+    ]
+  }
+}
+*/
 sr	=	44100
 ksmps	=	1
 nchnls	=	2

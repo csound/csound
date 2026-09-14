@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject non-finite distort amount",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "distort: distortion amount must be finite"
+    ]
+  }
+}
+*/
 sr = 8000
 ksmps = 8
 nchnls = 1

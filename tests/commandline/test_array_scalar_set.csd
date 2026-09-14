@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "testing array scalar setting",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs=1
 
 

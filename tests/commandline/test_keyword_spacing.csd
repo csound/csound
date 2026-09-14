@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test keyword spacing (if(, elseif(, etc.)",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 instr 1
   ival = 1
   

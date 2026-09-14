@@ -8,6 +8,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test signal-flow graph opcodes",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 /* Written by Michael Gogins */
 ; Initialize the global variables.
 sr = 48000

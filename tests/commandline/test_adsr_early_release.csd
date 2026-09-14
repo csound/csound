@@ -3,6 +3,14 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "ADSR note-off during delay, attack, and decay",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 #ifndef TEST_KSMPS
 #define TEST_KSMPS #8#
 #endif

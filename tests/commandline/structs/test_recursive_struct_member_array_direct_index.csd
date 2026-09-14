@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "direct indexing of recursive struct-array members",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 struct InstrumentNote pitch:i
 struct InstrumentShelf names:S[], notes:InstrumentNote[], length:i, hasParent:i, parent:InstrumentShelf[]
 

@@ -2,6 +2,14 @@
 
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test_arrays_fail1.csd",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 44100
 ksmps = 1
 nchnls = 2

@@ -3,6 +3,17 @@
 -ndm0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject zero tabslice increment",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "slice increment must be positive"
+    ]
+  }
+}
+*/
 opcode assertK,0,kk
   kActual, kExpected xin
   if kActual != kExpected then

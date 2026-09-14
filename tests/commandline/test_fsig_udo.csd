@@ -5,6 +5,14 @@
 <CsInstruments>
 
 
+/* Csound-test
+{
+  "description": "UDO with f-sig arg",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 opcode Test,f,f
 
 fs1 xin

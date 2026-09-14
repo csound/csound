@@ -3,6 +3,14 @@
 -n -F catherine.mid -T
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "Test midi file input (-F)",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs=1
 
 instr 1

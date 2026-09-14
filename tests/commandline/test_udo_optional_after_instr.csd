@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test new-style UDO optional args defined after instr",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr	= 48000
 ksmps	=	64
 nchnls	=	2

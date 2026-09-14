@@ -3,6 +3,17 @@
 -odac -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "errors/unknown-opcode.csd",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "unable to find opcode with name: nosuchopcode"
+    ]
+  }
+}
+*/
 sr = 44100
 ksmps = 32
 nchnls = 2

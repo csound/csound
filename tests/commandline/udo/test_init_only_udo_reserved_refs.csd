@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "Recycled init-only UDOs restore reserved instance references",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 1000
 ksmps = 10
 nchnls = 1

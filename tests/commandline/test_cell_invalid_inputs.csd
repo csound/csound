@@ -3,6 +3,18 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "cell rejects invalid sizes and rule indices",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "cell: invalid num of elements",
+      "cell: rule index out of range"
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 64
 nchnls = 1

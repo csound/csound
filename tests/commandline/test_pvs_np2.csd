@@ -1,5 +1,13 @@
 <CsoundSynthesizer>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test pvsanal/synth with np2 size",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 instr 1
  asig vco2 p4, p5
  fs1 pvsanal asig,1000,250,1000,1

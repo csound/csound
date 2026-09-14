@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "testing break/continue statements in while/until/for loops",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 // Test break jumps to right target
 instr 1
     sum:i = 0

@@ -3,6 +3,18 @@
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test sample-accurate local ksmps offsets with PARCS",
+  "expect": {
+    "exit": 0
+  },
+  "args": [
+    "-nd",
+    "--num-threads=2"
+  ]
+}
+*/
 sr = 32
 ksmps = 16
 nchnls = 2

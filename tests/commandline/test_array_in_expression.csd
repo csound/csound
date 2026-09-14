@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test expressions involving arrays",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs = 1
 instr 1
 kA[] fillarray 1, 2, 3

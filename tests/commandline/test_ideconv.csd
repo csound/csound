@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test init-time deconv opcode",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs=1
 
 ifn ftgen 1,0,0,-1,"sweep.wav",0,0,1

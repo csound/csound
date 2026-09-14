@@ -3,6 +3,14 @@
 -F -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "testing midifile opcodes",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs=1
 
 gimf midifileopen "rain.mid", 1

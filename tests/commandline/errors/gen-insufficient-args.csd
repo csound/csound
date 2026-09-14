@@ -3,6 +3,17 @@
 -odac -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "errors/gen-insufficient-args.csd",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "insufficient gen arguments"
+    ]
+  }
+}
+*/
 ; Intentionally malformed GEN line in the score to provoke fgens errors
 instr 1
   a1 poscil 0.1, 440, 1

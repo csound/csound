@@ -3,6 +3,18 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid centroid sizes",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "centroid: FFT size out of range",
+      "centroid: expected at least two magnitude bins"
+    ]
+  }
+}
+*/
 #ifndef SIZE
 #define SIZE #0#
 #endif

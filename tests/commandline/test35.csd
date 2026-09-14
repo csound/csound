@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test of passign",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
           instr 8
 
 idur,iamp,iskiptime,iattack,irelease,irvbtime,irvbgain  passign   3

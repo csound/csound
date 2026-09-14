@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "testing true/false booleans",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 instr 1
 test:b = true
 if true then

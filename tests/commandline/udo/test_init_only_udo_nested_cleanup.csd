@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "Retained nested UDO cleanup survives overlapping frame reuse",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr = 1000
 ksmps = 10
 nchnls = 1

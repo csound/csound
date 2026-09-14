@@ -3,6 +3,24 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid pvsosc parameters",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "pvsosc: invalid frame size",
+      "pvsosc: frame size must be even",
+      "pvsosc: invalid overlap or window size",
+      "pvsosc does not work while sliding",
+      "pvsosc: invalid window type",
+      "pvsosc: format must be amp-freq",
+      "pvsosc: frequency must be non-negative",
+      "pvsosc: frequency is too low"
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 32
 nchnls = 1

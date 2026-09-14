@@ -3,6 +3,17 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "reject invalid syncphasor phase",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "syncphasor: invalid phase"
+    ]
+  }
+}
+*/
 sr = 8000
 ksmps = 1
 nchnls = 1

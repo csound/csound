@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "local k[]",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ;test local kArrays
 ;jh march 2013
 

@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "padsynth_gen.csd",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=96000
 ksmps=1
 nchnls=2

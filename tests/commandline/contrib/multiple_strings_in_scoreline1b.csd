@@ -1,5 +1,13 @@
 <CsoundSynthesizer>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "contrib/multiple_strings_in_scoreline1b.csd",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 /*
 testing long strings
 looks like this is the reason for the bug

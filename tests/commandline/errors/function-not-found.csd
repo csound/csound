@@ -3,6 +3,17 @@
 -odac -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "errors/function-not-found.csd",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "unable to find opcode with name: not_a_function"
+    ]
+  }
+}
+*/
 sr = 44100
 ksmps = 32
 nchnls = 2

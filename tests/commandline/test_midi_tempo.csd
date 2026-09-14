@@ -3,6 +3,14 @@
 -n -F rain.mid -T
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test tempo reading from midifile",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs=1
 nchnls=1
 ksmps=64

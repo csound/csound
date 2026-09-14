@@ -1,6 +1,14 @@
 <CsoundSynthesizer>
 
 <CsInstruments>
+/* Csound-test
+{
+  "description": "Unused Label (to test labels get parsed)",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ;
 sr=44100
 ksmps=1

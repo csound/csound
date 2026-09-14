@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "testing clean compilestr fail",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 ires = compilestr({{
 instr 1
   nonsense()

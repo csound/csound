@@ -3,6 +3,14 @@
 -n -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test tableimix wraps a non-power-of-two source table",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 #include "libassert.orc"
 
 sr = 44100

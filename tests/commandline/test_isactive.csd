@@ -4,6 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test isactive and isperforming",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 instr 1
  xtratim 0.1
  actv:b = isactive(this)

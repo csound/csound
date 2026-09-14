@@ -4,6 +4,15 @@
 </CsOptions>
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test diskin in rt async mode",
+  "expect": {
+    "exit": 0
+  },
+  "args": []
+}
+*/
 gkVictimPerfCycles init 0
 gkVictimInitCompleted init 0
 gkTurnoffAttempts init 0

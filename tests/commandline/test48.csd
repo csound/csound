@@ -1,5 +1,17 @@
 <CsoundSynthesizer>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "expected failure with variable used before defined",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "syntax error, get_arg_type2: Variable 'amod' used before defined",
+      "syntax error, Variable type for amod could not be determined"
+    ]
+  }
+}
+*/
 nchnls = 1
 
 instr 1

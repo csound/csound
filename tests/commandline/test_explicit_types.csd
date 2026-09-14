@@ -4,6 +4,14 @@
 ; ==============================================
 <CsInstruments>
 
+/* Csound-test
+{
+  "description": "test typed identifiers (i.e. signals:a[], sigLeft:a)",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr	=	44100
 ksmps	=	1
 nchnls	=	2

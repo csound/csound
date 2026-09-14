@@ -3,6 +3,14 @@
 -n -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "test_bitwise_and_in_conditional.csd",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 #include "libassert.orc"
 
 instr 1

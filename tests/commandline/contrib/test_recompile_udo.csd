@@ -4,6 +4,14 @@
 <CsInstruments>
 
 
+/* Csound-test
+{
+  "description": "contrib/test_recompile_udo.csd",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=44100
 ksmps=32
 nchnls=2

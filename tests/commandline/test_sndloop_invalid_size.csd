@@ -3,6 +3,19 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "sndloop rejects invalid recording sizes",
+  "expect": {
+    "exit": "nonzero",
+    "stderr": [
+      "sndloop: invalid loop or crossfade duration",
+      "crossfade cannot be longer than loop",
+      "sndloop: recording is too long"
+    ]
+  }
+}
+*/
 sr = 8192
 ksmps = 64
 nchnls = 1

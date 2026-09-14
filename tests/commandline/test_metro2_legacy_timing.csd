@@ -3,6 +3,14 @@
 -n -d -m0
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "metro2 preserves legacy timing by default",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 sr=1024
 ksmps=64
 nchnls=1

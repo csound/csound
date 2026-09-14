@@ -3,6 +3,14 @@
 -n
 </CsOptions>
 <CsInstruments>
+/* Csound-test
+{
+  "description": "tests opcode type",
+  "expect": {
+    "exit": 0
+  }
+}
+*/
 0dbfs=1
 
 instr 1
