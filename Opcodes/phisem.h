@@ -333,7 +333,6 @@ typedef struct Sleighbells {
     MYFLT       res_freq3;
     MYFLT       res_freq4;
     MYFLT       shake_damp;
-    int32_t
-    kloop;
+    double      kloop;
 } SLEIGHBELLS;
 #endif

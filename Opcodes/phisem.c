@@ -1129,9 +1129,15 @@ static int32_t sleighset(CSOUND *csound, SLEIGHBELLS *p)
 
   p->shake_maxSave = FL(0.0);
   p->sndLevel = FL(0.0);
-  p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
-    - (int32_t)(CS_EKR * *p->dettack);
+  /* Preserve whole-control-cycle timing without narrowing to int32_t. */
+  p->kloop = trunc(p->h.insdshead->offtim * CS_EKR)
+    - trunc((double)CS_EKR * *p->dettack);
+  if (p->h.insdshead->offtim >= 0.0 && p->kloop < 1.0)
+    p->kloop = 1.0;
 
+  p->finalZ0 = FL(0.0);
+  p->finalZ1 = FL(0.0);
+  p->finalZ2 = FL(0.0);
   p->outputs00 = FL(0.0);
   p->outputs01 = FL(0.0);
   p->outputs10 = FL(0.0);
@@ -1185,6 +1191,7 @@ static int32_t sleighbells(CSOUND *csound, SLEIGHBELLS *p)
   MYFLT data;
   MYFLT temp_rand;
   MYFLT lastOutput;
+  MYFLT fullscale = csound->Get0dBFS(csound);
 
   if (*p->num_bells != FL(0.0) && *p->num_bells != p->num_objects) {
     p->num_objects = *p->num_bells;
@@ -1215,7 +1222,7 @@ static int32_t sleighbells(CSOUND *csound, SLEIGHBELLS *p)
       COS(p->res_freq2 * CS_TPIDSR);
   }
   if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if ((--p->kloop) == 0) {
+  if (p->kloop > 0 && --p->kloop == 0) {
     p->shakeEnergy = FL(0.0);
   }
 
@@ -1286,7 +1293,7 @@ static int32_t sleighbells(CSOUND *csound, SLEIGHBELLS *p)
       p->finalZ0   = data;
       data         = p->finalZ2 - p->finalZ0;
       lastOutput   = data * FL(0.001);
-      ar[n]        = lastOutput*csound->Get0dBFS(csound);
+      ar[n]        = lastOutput*fullscale;
     }
     p->shakeEnergy = shakeEnergy;
     p->sndLevel = sndLevel;
