@@ -140,7 +140,7 @@ typedef struct Guiro {
     MYFLT       finalZ1;
     MYFLT       finalZ2;
     MYFLT       decayScale;
-    int32_t         kloop;
+    double          kloop;
 } GUIRO;
 
 typedef struct Tambour {

@@ -495,8 +495,11 @@ static int32_t guiroset(CSOUND *csound, GUIRO *p)
   p->baseGain = FL(0.0);
 
   p->sndLevel = FL(0.0);
-  p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
-    - (int32_t)(CS_EKR * *p->dettack);
+  p->kloop = trunc(p->h.insdshead->offtim * CS_EKR)
+    - trunc((double)CS_EKR * *p->dettack);
+
+  if (p->h.insdshead->offtim >= 0.0 && p->kloop < 1.0)
+    p->kloop = 1.0;
 
   p->outputs00    = FL(0.0);
   p->outputs01    = FL(0.0);
@@ -543,12 +546,13 @@ static int32_t guiro(CSOUND *csound, GUIRO *p)
   uint32_t n, nsmps = CS_KSMPS;
   MYFLT lastOutput;
 
-  if (*p->num_teeth != FL(0.0) &&
-      (int32)(*p->num_teeth+FL(0.5)) != p->num_objects) {
-    p->num_objects = *p->num_teeth;
-    if (p->num_objects < FL(1.0)) p->num_objects = FL(1.0);
-    p->gains0 = p->gains1 = LOG((MYFLT)p->num_objects) * GUIR_GAIN /
-      (MYFLT) p->num_objects;
+  if (*p->num_teeth != FL(0.0)) {
+    MYFLT teeth = *p->num_teeth;
+    if (teeth < FL(1.0)) teeth = FL(1.0);
+    if (teeth != p->num_objects) {
+      p->num_objects = teeth;
+      p->gains0 = p->gains1 = LOG(teeth) * GUIR_GAIN / teeth;
+    }
   }
 
   if (*p->damp != FL(0.0) && *p->damp != p->shake_damp) {
@@ -572,7 +576,7 @@ static int32_t guiro(CSOUND *csound, GUIRO *p)
       COS(p->res_freq2 * CS_TPIDSR);
   }
   if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if ((--p->kloop) == 0) {
+  if (p->kloop > 0 && --p->kloop == 0) {
     p->shakeEnergy = FL(0.0);
     p->ratchetPos = 0;
   }
@@ -599,7 +603,7 @@ static int32_t guiro(CSOUND *csound, GUIRO *p)
     MYFLT finalZ2      = p->finalZ2;
     MYFLT gains0       = p->gains0;
     MYFLT gains1       = p->gains1;
-    MYFLT amp          = *p->amp*csound->Get0dBFS(csound);
+    MYFLT amp          = *p->amp; /* Already in output amplitude units. */
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
