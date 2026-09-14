@@ -1050,14 +1050,15 @@ int32_t FMVoice(CSOUND *csound, FM4OPV *q)
 /*                                                       */
 /*********************************************************/
 
-MYFLT FM4Alg4_tick(CSOUND *csound, FM4OP *p, MYFLT c1, MYFLT c2)
+static inline MYFLT FM4Alg4_tick(FM4OP *p, MYFLT c1, MYFLT c2,
+                                 MYFLT modDepth)
 {
     MYFLT       temp;
     MYFLT       lastOutput;
 
     temp = Wave_tick(&p->v_time, (int32_t)p->vibWave->flen,
                      p->vibWave->ftable, p->v_rate, FL(0.0)) *
-      *p->modDepth * FL(0.2);
+      modDepth * FL(0.2);
     temp = p-> baseFreq * (FL(1.0) + temp)* CS_ONEDSR;
     p->w_rate[0] = p->ratios[0] * temp * p->waves[0]->flen;
     p->w_rate[1] = p->ratios[1] * temp * p->waves[1]->flen;
@@ -1094,6 +1095,7 @@ int32_t percfluteset(CSOUND *csound, FM4OP *p)
     if (UNLIKELY(FM4Op_loadWaves(csound,p)))
       return NOTOK;  /* 3 x sines; 1 x fwavblnk */
 
+    p->v_time = FL(0.0);
     FM4Op_setRatio(p, 0, FL(1.50)            );
     FM4Op_setRatio(p, 1, FL(3.00) * FL(0.995));
     FM4Op_setRatio(p, 2, FL(2.99) * FL(1.005));
@@ -1126,9 +1128,11 @@ int32_t percflute(CSOUND *csound, FM4OP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    MYFLT       fullscale = AMP_SCALE;
+    MYFLT       amp = *p->amp * (FL(1.0) / fullscale);
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
+    MYFLT       modDepth = *p->modDepth;
 
     p->baseFreq = *p->frequency;
     p->gains[0] = amp * FM4Op_gains[99] * FL(0.5);
@@ -1143,8 +1147,8 @@ int32_t percflute(CSOUND *csound, FM4OP *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset;n<nsmps;n++) {
-      MYFLT   lastOutput = FM4Alg4_tick(csound, p, c1, c2);
-      ar[n] = lastOutput*AMP_SCALE*FL(2.0);
+      MYFLT   lastOutput = FM4Alg4_tick(p, c1, c2, modDepth);
+      ar[n] = lastOutput*fullscale*FL(2.0);
     }
     return OK;
 }
