@@ -81,26 +81,7 @@ typedef struct FM4OP {
 } FM4OP;
 
 typedef struct FM4OPV {
-    OPDS        h;
-    MYFLT       *ar;                  /* Output */
-    MYFLT       *amp, *frequency;
-    MYFLT       *control1, *control2, *modDepth; /* Control1 doubles as vowel */
-    MYFLT       *vibFreq;
-    MYFLT       *ifn0, *ifn1, *ifn2, *ifn3, *vifn;
-
-    ADSR        adsr[4];
-    FUNC        *waves[4];
-    MYFLT       w_rate[4];
-    MYFLT       w_time[4];
-    MYFLT       w_phase[4];
-    FUNC        *vibWave;
-    MYFLT       v_rate;         /* Parameters for vibrato */
-    MYFLT       v_time;         /* Parameters for vibrato */
-/*     MYFLT    v_phaseOffset; */
-    TwoZero     twozero;
-    MYFLT       baseFreq;
-    MYFLT       ratios[4];
-    MYFLT       gains[4];
+    FM4OP       fm;
     MYFLT       tilt[3];
     MYFLT       mods[3];
     MYFLT       last_control;
