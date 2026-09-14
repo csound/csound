@@ -749,30 +749,41 @@ int32_t arduinoStop(CSOUND* csound, ARD_START* p)
 #define S(x)    sizeof(x)
 
 static OENTRY serial_localops[] = {
+    CSOUND_DEPRECATED_OPCODE("serialBegin", "serialbegin", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { (char *)"serialBegin", S(SERIALBEGIN), 0,  (char *)"i", (char *)"So",
       (SUBR)serialBegin, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("serialEnd", "serialend", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { (char *)"serialEnd", S(SERIALEND), 0, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialEnd, (SUBR)NULL, (SUBR)NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("serialWrite_i", "serialwritei", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { (char *)"serialWrite_i", S(SERIALWRITE), 0,  (char *)"", (char *)"ii",
       (SUBR)serialWrite, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL, 2 },
     { (char *)"serialWrite_i.S", S(SERIALWRITE), 0, (char *)"", (char *)"iS",
       (SUBR)serialWrite_S, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("serialWrite", "serialwrite", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { (char *)"serialWrite", S(SERIALWRITE), WR, (char *)"", (char *)"ik",
       (SUBR)NULL, (SUBR)serialWrite, (SUBR)NULL, (SUBR)NULL, 2 },
     { (char *)"serialWrite.S", S(SERIALWRITE), WR, (char *)"", (char *)"iS",
       (SUBR)NULL, (SUBR)serialWrite_S, (SUBR)NULL, (SUBR)NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("serialRead", "serialread", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { (char *)"serialRead", S(SERIALREAD), 0, (char *)"k", (char *)"i",
       (SUBR)NULL, (SUBR)serialRead, (SUBR)NULL, (SUBR)NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("serialPrint", "serialprint", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { (char *)"serialPrint", S(SERIALPRINT), WR, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL, (SUBR)NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("serialFlush", "serialflush", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { (char *)"serialFlush", S(SERIALFLUSH), 0, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL, (SUBR)NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("arduinoStart", "arduinostart", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "arduinoStart", S(ARD_START), 0,  "i", "So", (SUBR)arduinoStart, NULL,
       (SUBR) arduino_deinit, (SUBR)NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("arduinoRead", "arduinoread", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "arduinoRead", S(ARD_READ), 0, "k", "iio",
       (SUBR)arduinoReadSetup, (SUBR)arduinoRead, (SUBR)NULL, (SUBR)NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("arduinoReadF", "arduinoreadf", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "arduinoReadF", S(ARD_READF), 0, "k", "iiii",
       (SUBR)arduinoReadFSetup, (SUBR)arduinoReadF, (SUBR)NULL, (SUBR)NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("arduinoStop", "arduinostop", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "arduinoStop", S(ARD_START), 0,  "", "i", (SUBR)arduinoStop, NULL,
       (SUBR)NULL, (SUBR)NULL, 2 },
     /* aliases */

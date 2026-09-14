@@ -334,6 +334,7 @@ const OENTRY opcodlst_1[] = {
   { "fillarray.", sizeof(TABFILL), 0, ".[]", "*", (SUBR)tabfill },
   { "string2array.S", sizeof(TABFILLF), 0, "i[]", "S", (SUBR)tabsfill },
   { "string2array.s", sizeof(TABFILLF), 0, "k[]", "S", (SUBR)tabsfill },
+  CSOUND_DEPRECATED_OPCODE("array", "fillarray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "array.k", sizeof(TABFILL), _QQ, "k[]", "m", (SUBR)tabfill     },
   { "array.i", sizeof(TABFILL), _QQ, "i[]", "m", (SUBR)tabfill     },
   { "array.a", sizeof(A2ARR), 0, "k[]", "a", (SUBR)asig2array_init,
@@ -636,12 +637,14 @@ const OENTRY opcodlst_1[] = {
     (SUBR)tabclearset, (SUBR)tabclear  },
   { "clear", sizeof(TABCLEAR), 0, "", "k[]",
     (SUBR)tabclearset, (SUBR)tabcleark  },
+  CSOUND_DEPRECATED_OPCODE("maxtab", "maxarray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "maxtab.k",sizeof(TABQUERY),_QQ, "kz", "k[]",
     (SUBR) tabqset, (SUBR) tabmax },
   { "maxarray.i", sizeof(TABQUERY), 0, "iI", "i[]",
     (SUBR) tabmax1, NULL  },
   { "maxarray.k", sizeof(TABQUERY), 0, "kz", "k[]",
     (SUBR) tabqset,(SUBR) tabmax },
+  CSOUND_DEPRECATED_OPCODE("mintab", "minarray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "mintab.k", sizeof(TABQUERY),_QQ, "kz", "k[]",
     (SUBR) tabqset, (SUBR) tabmin },
   { "minarray.i", sizeof(TABQUERY),0, "iI", "i[]",(SUBR) tabmin1 },
@@ -649,12 +652,14 @@ const OENTRY opcodlst_1[] = {
     (SUBR) tabmin },
   { "sumarray.i", sizeof(TABQUERY1),0, "i", "i[]",
     (SUBR) tabsum1   },
+  CSOUND_DEPRECATED_OPCODE("sumtab", "sumarray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "sumtab", sizeof(TABQUERY1),_QQ, "k", "k[]",
     (SUBR) tabqset1, (SUBR) tabsum },
   { "sumarray.k", sizeof(TABQUERY1),0, "k", "k[]",
     (SUBR) tabqset1, (SUBR) tabsum },
   { "sumarray.a", sizeof(TABQUERY1),0, "a", "a[]",
     (SUBR) tabqset1, (SUBR) tabsuma1 },
+  CSOUND_DEPRECATED_OPCODE("scalet", "scalearray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "scalet", sizeof(TABSCALE), _QQ|WI, "",  "k[]kkOJ",
     (SUBR) tabscaleset,(SUBR) tabscale },
   { "scalearray.1", sizeof(TABSCALE), WI, "",  "i[]iiOJ",
@@ -669,9 +674,13 @@ const OENTRY opcodlst_1[] = {
   { "=.K", sizeof(TABCPY), 0, "k[]", "k[]", (SUBR)tabcopyk_init, (SUBR)tabcopyk },
   { "=._", sizeof(TABCPY), 0, ".[]", ".[]", (SUBR)tabcopyk_init, (SUBR)tabcopy },
   { "=.L", sizeof(TABCPY), 0, ".[]", ".[]", (SUBR)tabcopy2, (SUBR)tabcopy2 },
+  CSOUND_DEPRECATED_OPCODE("tabgen", "genarray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "tabgen", sizeof(TABGEN), _QQ, "k[]", "iip", (SUBR) tabgen, NULL    },
+  CSOUND_DEPRECATED_OPCODE("tabmap_i", "maparrayi", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "tabmap_i", sizeof(TABMAP), _QQ, "k[]", "k[]S", (SUBR) tabmap_set   },
+  CSOUND_DEPRECATED_OPCODE("tabmapi", "maparrayi", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "tabmapi", sizeof(TABMAP), _QQ, "k[]", "k[]S", (SUBR) tabmap_set   }, /* Alias */
+  CSOUND_DEPRECATED_OPCODE("tabmap", "maparray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "tabmap", sizeof(TABMAP), _QQ, "k[]", "k[]S", (SUBR) tabmap_set,
     (SUBR) tabmap_perf},
   { "tabmap", sizeof(TABMAP), _QQ, "k[]", "k[]S", (SUBR) tabmap_set,
@@ -679,13 +688,16 @@ const OENTRY opcodlst_1[] = {
   { "genarray.i", sizeof(TABGEN),0, "i[]", "iip", (SUBR) tabgen, NULL   },
   { "genarray.ki", sizeof(TABGEN),0, "k[]", "iip", (SUBR)tabgen, NULL, NULL},
   { "genarray.k", sizeof(TABGEN),0, "k[]", "kkp", NULL, (SUBR)tabgen    },
+  CSOUND_DEPRECATED_OPCODE("genarray_i", "genarrayi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "genarray_i", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL, NULL, 2},
   { "genarrayi", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL}, /* Alias */
   { "maparray.i", sizeof(TABMAP), 0, "i[]", "i[]S", (SUBR) tabmap_set },
+  CSOUND_DEPRECATED_OPCODE("maparray_i", "maparrayi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "maparray_i", sizeof(TABMAP),0, "k[]", "k[]S", (SUBR) tabmap_set, NULL, NULL, NULL, 2},
   { "maparrayi", sizeof(TABMAP),0, "k[]", "k[]S", (SUBR) tabmap_set    },  /* Alias */
   { "maparray.k", sizeof(TABMAP), 0, "k[]", "k[]S", (SUBR) tabmap_set,
     (SUBR) tabmap_perf          },
+  CSOUND_DEPRECATED_OPCODE("tabslice", "slicearray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "tabslice", sizeof(TABSLICE), _QQ, "k[]", "k[]iip",
     NULL, (SUBR) tabslice, NULL },
   { "slicearray.i", sizeof(TABSLICE), 0, "i[]", "i[]ijp",
@@ -711,9 +723,12 @@ const OENTRY opcodlst_1[] = {
   { "trim.i", sizeof(TRIM), WI, "", "i[]i", (SUBR)trim_i, NULL },
   { "trim.k", sizeof(TRIM), WI, "", ".[]k", (SUBR)trim_prepare,
     (SUBR)trim },
+  CSOUND_DEPRECATED_OPCODE("trim_i", "trimi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "trim_i", sizeof(TRIM), WI, "", ".[]i", (SUBR)trim_i, NULL, NULL, NULL, 2 },
   { "trimi", sizeof(TRIM), WI, "", ".[]i", (SUBR)trim_i, NULL },  /* alias */
+  CSOUND_DEPRECATED_OPCODE("copy2ftab", "copya2ftab", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "copy2ftab", sizeof(TABCOPY), TW|_QQ, "", "k[]k", NULL, (SUBR) tab2ftab },
+  CSOUND_DEPRECATED_OPCODE("copy2ttab", "copyf2array", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "copy2ttab", sizeof(TABCOPY), TR|_QQ, "", "k[]k", NULL, (SUBR) ftab2tab },
   { "copya2ftab.ii", sizeof(TABCOPY2), TW, "", "i[]io",
     (SUBR) tab2ftab_offset_i },
@@ -726,6 +741,7 @@ const OENTRY opcodlst_1[] = {
   { "copya2ftab.kk", sizeof(TABCOPY2), TW, "", "k[]kO", NULL ,
     (SUBR) tab2ftab_offset },
   { "copyf2array.i", sizeof(TABCOPY), TR, "", "i[]i", (SUBR) ftab2tabi },
+  CSOUND_DEPRECATED_OPCODE("lentab", "lenarray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "lentab.i", sizeof(TABQUERY1), _QQ, "i", "k[]p", (SUBR) tablength },
   { "lentab.k", sizeof(TABQUERY1), _QQ, "k", "k[]p", NULL, (SUBR) tablength },
   { "lenarray.ix", sizeof(TABQUERY1), 0, "i", ".[]p", (SUBR) tablength },
@@ -1103,16 +1119,19 @@ const OENTRY opcodlst_1[] = {
     (SUBR)table3r_kontrol                                                   },
   { "table3.a", S(TABL),TR,       "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)table3r_audio                                                     },
+  CSOUND_DEPRECATED_OPCODE("ptable", "table", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "ptable.i",  S(TABLE),TR|_QQ, "i",    "iiooo",(SUBR)tabler_init       },
   { "ptable.k",  S(TABLE),TR|_QQ,      "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tabler_kontrol                                                    },
   { "ptable.a",  S(TABLE),TR|_QQ,      "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tabler_audio                                                      },
+  CSOUND_DEPRECATED_OPCODE("ptablei", "tablei", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "ptablei.i", S(TABLE),TR|_QQ, "i",    "iiooo",(SUBR)tableir_init      },
   { "ptablei.k", S(TABLE),TR|_QQ,      "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tableir_kontrol                                                   },
   { "ptablei.a", S(TABLE),TR|_QQ,      "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tableir_audio                                                     },
+  CSOUND_DEPRECATED_OPCODE("ptable3", "table3", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "ptable3.i", S(TABLE),TR|_QQ, "i",    "iiooo",(SUBR)table3r_init      },
   { "ptable3.k", S(TABLE),TR|_QQ,      "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)table3r_kontrol                                                   },
@@ -1211,8 +1230,10 @@ const OENTRY opcodlst_1[] = {
     sndinset_S, soundin, (SUBR) diskin2_async_deinit   },
   { "soundin.i",S(DISKIN2),0,"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm","ioooo",
     sndinset, soundin, (SUBR) diskin2_async_deinit   },
+  CSOUND_DEPRECATED_OPCODE("soundout", "fout", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "soundout",S(SNDOUT), _QQ,    "",    "aSo",  sndoutset_S, soundout, soundout_deinit},
   { "soundout.i",S(SNDOUT), _QQ,    "",    "aio",  sndoutset, soundout, soundout_deinit },
+  CSOUND_DEPRECATED_OPCODE("soundouts", "fout", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "soundouts",S(SNDOUTS),_QQ,   "",    "aaSo", sndoutset_S, soundouts, soundout_deinit},
   { "soundouts.i",S(SNDOUTS),_QQ,   "",    "aaio", sndoutset, soundouts, soundout_deinit},
   { "in.a",   S(INM),0,            "a",    "",     NULL,   in      },
@@ -1220,19 +1241,33 @@ const OENTRY opcodlst_1[] = {
   { "in.q",   S(INQ),0,            "aaaa",    "",     NULL,   inq      },
   { "in.A",   S(INA),0,            "a[]",  "",     (SUBR)inarray_set,   inarray },
    /* start deprecated */
+  CSOUND_DEPRECATED_OPCODE("ins", "in", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "ins",    S(INS),0,            "aa",   "",     NULL,   ins  , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("inq", "in", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "inq",    S(INQ),0,            "aaaa", "",     NULL,   inq  , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("outs", "out", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "outs",   S(OUTX),IR,           "",     "y",    ochn,   outall , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("outq", "out", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "outq",   S(OUTX),IR,           "",     "y",    ochn,   outall , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("outh", "out", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "outh",   S(OUTX),IR,           "",     "y",    ochn,   outall , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("outo", "out", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "outo",   S(OUTX),IR,           "",     "y",    ochn,   outall , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("outx", "out", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "outx",   S(OUTX),IR,           "",     "y",    ochn,   outall , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("out32", "out", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "out32",  S(OUTX),IR,           "",     "y",    ochn,   outall , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("outs1", "outch", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "outs1",  S(OUTM),IR,           "",     "a",    NULL,   outs1  , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("outs2", "outch", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "outs2",  S(OUTM),IR,          "",     "a",    och2,   outs2   , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("outq1", "outch", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "outq1",  S(OUTM),IR,           "",     "a",    NULL,   outs1  , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("outq2", "outch", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "outq2",  S(OUTM),IR,          "",     "a",    och2,   outs2   , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("outq3", "outch", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "outq3",  S(OUTM),IR,          "",     "a",    och3,   outq3   , NULL, NULL, 1},
+  CSOUND_DEPRECATED_OPCODE("outq4", "outch", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "outq4",  S(OUTM),IR,          "",     "a",    och2,   outq4   , NULL, NULL, 1},
   /* end deprecated */
   { "out.a",  S(OUTX),IR,           "",     "y",    ochn,   outall },
@@ -1274,6 +1309,7 @@ const OENTRY opcodlst_1[] = {
   { "readk4.i", S(KREAD4),0,        "kkkk", "iii",   krd4set_p, kread4     },
   { "readks", S(KREADS),0,        "S",    "Si",    krdsset_S, kreads       },
   { "readks.i", S(KREADS),0,        "S",    "ii",    krdsset_p, kreads     },
+  CSOUND_DEPRECATED_OPCODE("xyin", NULL, LEGACY, "No direct replacement is documented; choose a host or GUI input method for the application.")
   { "xyin",   S(XYIN), _QQ,       "kk",   "iiiiioo",xyinset,NULL          },
   { "tempest",  S(TEMPEST),0,     "k","kiiiiiiiiiop",tempeset,tempest},
   { "tempo",    S(TEMPO),0,       "",     "ki",   tempo_set,tempo           },
@@ -1406,11 +1442,14 @@ const OENTRY opcodlst_1[] = {
   { "filevalid.k", S(FILEVALID),0,    "k",   "S",    NULL, filevalid_S, NULL    },
   { "filevalid.k", S(FILEVALID),0,    "k",   "i",    NULL, filevalid, NULL    },
   /*  { "nlalp", S(NLALP),0,          "a",  "akkoo", nlalp_set, nlalp }, */
+  CSOUND_DEPRECATED_OPCODE("ptableiw", "tablew", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "ptableiw",  S(TABLEW),TW|_QQ,  "", "iiiooo", (SUBR)tablew_init, NULL, NULL},
+  CSOUND_DEPRECATED_OPCODE("ptablew", "tablew", LEGACY, "Use tablew with the matching signal rate; i-rate writing has different timing.")
   { "ptablew.kk", S(TABLEW),TB|_QQ,    "", "kkiooo",(SUBR)tabl_setup,
     (SUBR)tablew_kontrol, NULL          },
   { "ptablew.aa", S(TABLEW),TB|_QQ,    "", "aaiooo",(SUBR)tabl_setup,
     (SUBR)tablew_audio               },
+  CSOUND_DEPRECATED_OPCODE("tableiw", "tablew", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "tableiw",  S(TABL),TW|_QQ,  "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
   { "tablew",  S(TABL),TW,     "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
   { "tablew.kk", S(TABL),TW,      "", "kkiooo",(SUBR)tabl_setup,
@@ -1575,6 +1614,7 @@ const OENTRY opcodlst_1[] = {
   { "event", S(LINEVENT),0,        "",     "S:InstrDef;z",  NULL, event_opcode_Instr, NULL   },
   { "event", S(LINEVENT),0,        "",     "Sz",  NULL, event_opcode, NULL   },
   { "event.S", S(LINEVENT),0,        "",    "SSz",  NULL, event_opcode_S, NULL   },
+  CSOUND_DEPRECATED_OPCODE("event_i", "eventi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "event_i.instr", S(LINEVENT),0,     "",     "S:InstrDef;m",  event_opcode_i_Instr, NULL, NULL, NULL, 2  },
   { "event_i", S(LINEVENT),0,     "",     "Sim",  event_opcode_i, NULL, NULL, NULL, 2  },
   { "event_i.S", S(LINEVENT),0,     "",    "SSm",  event_opcode_i_S, NULL, NULL, NULL, 2  },
@@ -1724,6 +1764,7 @@ const OENTRY opcodlst_1[] = {
   { "instrstr.k", S(NSTRSTR),0,       "S",    "k",    NULL, nstrstr, NULL      },
   { "nstrstr", S(NSTRSTR),0,        "S",    "i",    nstrstr, NULL, NULL      },
   { "nstrstr.k", S(NSTRSTR),0,       "S",    "k",    NULL, nstrstr, NULL      },
+  CSOUND_DEPRECATED_OPCODE("turnoff2_i", "turnoff2i", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "turnoff2_i.instr",S(TURNOFF2),_CW,     "",  ":InstrDef;oo",  turnoff2Instr, NULL, NULL, NULL, 2 },
   { "turnoff2i.instr",S(TURNOFF2),_CW,     "",  ":InstrDef;oo",  turnoff2Instr, NULL     }, /* alias */
   { "turnoff2_i.S",S(TURNOFF2),_CW,     "",     "Soo",  turnoff2S, NULL, NULL, NULL, 2     },
@@ -1820,6 +1861,7 @@ const OENTRY opcodlst_1[] = {
      (SUBR) sprintf_opcode, NULL, NULL                     },
   {  "sprintfk", S(SPRINTF_OP),WR,    "S",    "SUN",
      (SUBR) sprintf_opcode, (SUBR) sprintf_opcode, NULL           },
+  CSOUND_DEPRECATED_OPCODE("printf_i", "printfi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   {  "printf_i", S(PRINTF_OP),0,     "",     "SiN", /* SiTN */
      (SUBR) printf_opcode_init, NULL, NULL, NULL, 2                 },
   {  "printfi", S(PRINTF_OP),0,     "",     "SiN", /* SiTN */
@@ -1870,6 +1912,7 @@ const OENTRY opcodlst_1[] = {
      (SUBR) strrindex_opcode, NULL, NULL                   },
   {  "strrindexk", S(STRINDEX_OP),0,  "k",   "SS",
      (SUBR) strrindex_opcode, (SUBR) strrindex_opcode, NULL       },
+  CSOUND_DEPRECATED_OPCODE("print_type", "printtype", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   {  "print_type", S(PRINT_TYPE_OP),0,  "",   ".",
      (SUBR) print_type_opcode, NULL, NULL, NULL, 2       },
   {  "printtype", S(PRINT_TYPE_OP),0,  "",   ".",
@@ -1943,9 +1986,13 @@ const OENTRY opcodlst_1[] = {
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
   {  "changed2.S", S(STRCHGD),0,  "k",   "S",
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
+  CSOUND_DEPRECATED_OPCODE("loop_lt", "looplt", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "loop_lt.i", S(LOOP_OPS), 0, "", "iiil", (SUBR) loop_l_i, NULL, NULL, NULL, 2 },
+  CSOUND_DEPRECATED_OPCODE("loop_le", "loople", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "loop_le.i", S(LOOP_OPS), 0, "", "iiil", (SUBR) loop_le_i, NULL, NULL, NULL, 2 },
+  CSOUND_DEPRECATED_OPCODE("loop_gt", "loopgt", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "loop_gt.i", S(LOOP_OPS), 0, "", "iiil", (SUBR) loop_g_i, NULL, NULL, NULL, 2 },
+  CSOUND_DEPRECATED_OPCODE("loop_ge", "loopge", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "loop_ge.i", S(LOOP_OPS), 0, "", "iiil", (SUBR) loop_ge_i, NULL, NULL, NULL, 2 },
   { "loop_lt.k", S(LOOP_OPS), 0, "", "kkkl", NULL, (SUBR) loop_l_p, NULL, NULL, 2 },
   { "loop_le.k", S(LOOP_OPS), 0, "", "kkkl", NULL, (SUBR) loop_le_p, NULL, NULL, 2 },
@@ -2032,16 +2079,21 @@ const OENTRY opcodlst_1[] = {
     (SUBR) chnmix_opcode_init, (SUBR) notinit_opcode_stub  },
   { "chnclear",    S(CHNCLEAR),        _CW,       "",             "W",
     (SUBR) chnclear_opcode_init, (SUBR) notinit_opcode_stub },
+  CSOUND_DEPRECATED_OPCODE("chnclear_array", "chncleararray", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "chnclear_array",    S(CHNCLEAR),        _CW,       "",             "W",
     (SUBR) chnclear_opcode_init_ARRAY, (SUBR) notinit_opcode_stub, NULL, NULL, 2 },
+  CSOUND_DEPRECATED_OPCODE("chn_k", "chnk", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "chn_k",       S(CHN_OPCODE_K),    _CW,       "",             "SiooooooooN",
     (SUBR) chn_k_opcode_init, NULL, NULL,  NULL, 2                   },
   { "chn_k",       S(CHN_OPCODE_K),    _CW,       "",             "SSooooooooN",
     (SUBR) chn_k_opcode_init_S, NULL, NULL,  NULL, 2 },
+  CSOUND_DEPRECATED_OPCODE("chn_a", "chna", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "chn_a",       S(CHN_OPCODE),      _CW,       "",             "Si",
     (SUBR) chn_a_opcode_init, NULL, NULL,  NULL, 2                   },
+  CSOUND_DEPRECATED_OPCODE("chn_S", "chnS", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "chn_S",       S(CHN_OPCODE),      _CW,       "",             "Si",
     (SUBR) chn_S_opcode_init, NULL, NULL,  NULL, 2                   },
+  CSOUND_DEPRECATED_OPCODE("chn_array", "chnarray", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "chn_array",    S(CHN_OPCODE_ARRAY),        _CW,       "",             "SiSi[]",
     (SUBR) chn_opcode_init_ARRAY, NULL, NULL,  NULL, 2  },
   /* Aliases */
@@ -2143,6 +2195,7 @@ const OENTRY opcodlst_1[] = {
     (SUBR)monitora_init, (SUBR)monitora_perf},
   { "outrg", S(OUTRANGE), IR, "", "ky",
     (SUBR)outRange_i, (SUBR)outRange},
+  CSOUND_DEPRECATED_OPCODE("nchnls_hw", "nchnlshw", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "nchnls_hw", S(ASSIGN), 0, "ii", "", (SUBR)hw_channels, NULL, NULL, NULL, 2 },
   { "nchnlshw", S(ASSIGN), 0, "ii", "", (SUBR)hw_channels}, /* alias */
   { "midic7.i",S(MIDICTL2),0,   "i", "iiio", (SUBR)imidic7, NULL, NULL  },
@@ -2325,6 +2378,7 @@ const OENTRY opcodlst_1[] = {
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
     (SUBR)sliderTable_i64f, (SUBR)sliderTable64f, (SUBR)NULL },
+  CSOUND_DEPRECATED_OPCODE("sliderKawai", "sliderkawai", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "sliderKawai", S(SLIDERKAWAI),  0, "kkkkkkkkkkkkkkkk",
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
@@ -2371,6 +2425,7 @@ const OENTRY opcodlst_1[] = {
   {"resonbnk", S(RESONB), 0,  "a", "ak[]kkipoo",
    (SUBR) resonbnk_init, (SUBR) resonbnk},
   { "inrg", S(INRANGE), WI, "", "ky", (SUBR)inRange_i, (SUBR)inRange },
+  CSOUND_DEPRECATED_OPCODE("OSClisten", "osclisten", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "OSClisten", S(ROSC), 0, "kNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
     "SS", NULL, (SUBR) readOSC_perf, NULL, NULL, 2},
   { "OSClisten", S(ROSCA), 0, "kk[]",

@@ -1073,20 +1073,28 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
 
 static OENTRY wpfilters_localops[] =
   {
+  CSOUND_DEPRECATED_OPCODE("zdf_1pole", "zdf1pole", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "zdf_1pole", sizeof(ZDF_1POLE), 0,"a","axOo", 
     (SUBR)zdf_1pole_init, (SUBR)zdf_1pole_perf, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("zdf_1pole_mode", "zdf1polemode", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "zdf_1pole_mode", sizeof(ZDF_1POLE_MODE), 0,"aa","axo", 
     (SUBR)zdf_1pole_mode_init, (SUBR)zdf_1pole_mode_perf, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("zdf_2pole", "zdf2pole", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "zdf_2pole", sizeof(ZDF_2POLE), 0,"a","axxOo", 
     (SUBR)zdf_2pole_init, (SUBR)zdf_2pole_perf, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("zdf_2pole_mode", "zdf2polemode", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "zdf_2pole_mode", sizeof(ZDF_2POLE_MODE), 0,"aaa","axxo", 
     (SUBR)zdf_2pole_mode_init, (SUBR)zdf_2pole_mode_perf, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("zdf_ladder", "zdfladder", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "zdf_ladder", sizeof(ZDF_LADDER), 0,"a","axxo", 
     (SUBR)zdf_ladder_init, (SUBR)zdf_ladder_perf, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("diode_ladder", "diodeladder", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "diode_ladder", sizeof(DIODE_LADDER), 0,"a","axxOPo", 
     (SUBR)diode_ladder_init, (SUBR)diode_ladder_perf, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("K35_lpf", "k35lpf", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "K35_lpf", sizeof(K35_LPF), 0,"a","axxOPo", 
     (SUBR)k35_lpf_init, (SUBR)k35_lpf_perf, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("K35_hpf", "k35hpf", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "K35_hpf", sizeof(K35_LPF), 0,"a","axxOPo", 
     (SUBR)k35_hpf_init, (SUBR)k35_hpf_perf, NULL, NULL, 2},
    /* aliases */

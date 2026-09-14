@@ -1558,6 +1558,7 @@ static OENTRY localops[] = {
     (SUBR) ficlose_opcode_S,  (SUBR) NULL,        (SUBR) NULL, NULL},
   { "ficlose.S",  S(FICLOSE),     0,  "",     "i",
     (SUBR) ficlose_opcode,  (SUBR) NULL,        (SUBR) NULL, NULL },
+  CSOUND_DEPRECATED_OPCODE("fin", "diskin2", LEGACY, "Adapt the file-reading arguments and output assignment; not a drop-in rename.")
   { "fin.a",      S(INFILE),     WI|_QQ,  "",      "Siiy",
     (SUBR) infile_set_S,    (SUBR) infile_act, (SUBR) infile_deinit},
   { "fin.A",      S(INFILEA),    WI,  "",     "Siia[]",

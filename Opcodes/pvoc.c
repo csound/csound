@@ -47,6 +47,7 @@ static OENTRY pvoc_localops[] =
    { "pvoc",      S(PVOC),      0, "a",  "kkSooooo", pvset_S, pvoc        },
    { "pvoc.i",      S(PVOC),      0, "a",  "kkiooooo", pvset, pvoc        },
 { "tableseg",  S(TABLESEG),  TR, "",   "iim",     tblesegset, ktableseg, NULL  },
+CSOUND_DEPRECATED_OPCODE("ktableseg", "tableseg", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
 { "ktableseg", S(TABLESEG),  _QQ|TR, "",   "iim",  tblesegset, ktableseg, NULL },
 { "tablexseg", S(TABLESEG),  TW, "",   "iin",     tblesegset, ktablexseg, NULL },
    { "vpvoc",     S(VPVOC),     TR, "a",  "kkSoo",   vpvset_S, vpvoc        },
