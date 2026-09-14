@@ -52,8 +52,7 @@ typedef struct Shaker {
     MYFLT       shakeEnergy;
     MYFLT       noiseGain;
     MYFLT       gain_norm;
-    int32_t
-    kloop;
+    double      kloop;
     MYFLT       freq;
 } SHAKER;
 
