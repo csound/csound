@@ -1374,7 +1374,13 @@ int32_t evxset(CSOUND *csound, ENVLPX *p)
       }
       p->mlt2 = POWER(*p->iatdec, (CS_ONEDKR / *p->idec));
     }
+    else p->mlt2 = 1.0;
     p->cnt1 = cnt1;
+    if (cnt1 == 0) {
+      /* With no steady stage there is no curve offset to remove later. */
+      if (p->phs < 0) p->val = ftp->ftable[ftp->flen];
+      asym = FL(0.0);
+    }
     p->asym = asym;
   }
   return OK;
@@ -1409,14 +1415,14 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
       }
       p->phs = phs;
     } else {
-      MYFLT pos = phsf*ftp->flen;
+      double pos = phsf * ftp->flen;
       fract = pos - (int32_t) pos;
       ftab = ftp->ftable + (int32_t) pos;
       v1 = *ftab++;
       fact = (v1 + (*ftab - v1) * fract);
       phsf += p->kif;
       if (phsf >= FL(1.0)) {
-        p->val = *(ftp->ftable + ftp->flen - 1); // unlikely to have ext gp
+        p->val = *(ftp->ftable + ftp->flen);
         if (UNLIKELY(!p->val)) {
           return csound->PerfError(csound, &(p->h),
                                    Str("envlpx rise func ends with zero"));
@@ -1515,7 +1521,13 @@ int32_t aevxset(CSOUND *csound, ENVLPX *p)
       }
       p->mlt2 = POWER(*p->iatdec, (CS_ONEDSR / *p->idec));
     }
+    else p->mlt2 = 1.0;
     p->cnt1 = cnt1;
+    if (cnt1 == 0) {
+      /* With no steady stage there is no curve offset to remove later. */
+      if (p->phs < 0) p->val = ftp->ftable[ftp->flen];
+      asym = FL(0.0);
+    }
     p->asym = asym;
   }
   return OK;
@@ -1531,7 +1543,7 @@ int32_t envlpx(CSOUND *csound, ENVLPX *p)
   int64_t pos, lobits, lomask;
   MYFLT      fact, *xamp, *rslt, val, asym, mlt, mlt2, v1, fract, *ftab, lodiv;
   int32_t    asgsg = IS_ASIG_ARG(p->xamp), floatph = p->floatph, check,
-    flen = p->ftp->flen;
+    flen;
   double phsf;
   xamp = p->xamp;
   rslt = p->rslt;
@@ -1543,6 +1555,7 @@ int32_t envlpx(CSOUND *csound, ENVLPX *p)
   if (UNLIKELY(p->ftp==NULL))
     return csound->PerfError(csound, &(p->h),
                              Str("envlpx(krate): not initialised"));
+  flen = p->ftp->flen;
   ftab = p->ftp->ftable;
   lobits = p->ftp->lobits;
   lomask = p->ftp->lomask;
@@ -1573,14 +1586,13 @@ int32_t envlpx(CSOUND *csound, ENVLPX *p)
         }
         p->phs = phs;
       } else {
-        MYFLT posf = phsf*flen;
+        double posf = phsf * flen;
         fract = posf - (int32_t) posf;
         v1 = ftab[(int32_t) posf];
         fact = (v1 + (ftab[(int32_t)posf+1] - v1) * fract);
         phsf += p->kif;
         if (phsf >= FL(1.0)) {
-          p->val = ftab[flen - 1]; // unlikely to have ext gp
-          p->val -= p->asym;
+          val = ftab[flen] - asym;
           phsf = FL(-1.0);
         }
         p->phsf = phsf;
@@ -1652,9 +1664,12 @@ int32_t evrset(CSOUND *csound, ENVLPR *p)
     return csound->InitError(csound, Str("rise func ends with zero"));
   }
   p->mlt1 = POWER(iatss, CS_ONEDKR);
+  p->rlscnt = 0;
+  p->rindep = (*p->irind != FL(0.0));
+  p->atdec = 1.0;
   if (*p->idec > FL(0.0)) {
     int32_t rlscnt = (int32_t)(*p->idec * CS_EKR + FL(0.5));
-    if ((p->rindep = (int32_t)*p->irind))
+    if (p->rindep)
       p->rlscnt = rlscnt;
     else if (rlscnt > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int32_t)rlscnt;
@@ -1713,9 +1728,12 @@ int32_t aevrset(CSOUND *csound, ENVLPR *p)
     return csound->InitError(csound, Str("rise func ends with zero"));
   }
   p->mlt1 = POWER(iatss, CS_ONEDSR);
+  p->rlscnt = 0;
+  p->rindep = (*p->irind != FL(0.0));
+  p->atdec = 1.0;
   if (*p->idec > FL(0.0)) {
     int32_t rlscnt = (int32_t)(*p->idec * CS_EKR + FL(0.5));
-    if ((p->rindep = (int32_t)*p->irind))
+    if (p->rindep)
       p->rlscnt = rlscnt;
     else if (rlscnt > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int32_t)rlscnt;
@@ -1763,7 +1781,7 @@ int32_t knvlpxr(CSOUND *csound, ENVLPR *p)
         }
         p->phs = phs;
       } else {
-        MYFLT pos = phsf*ftp->flen;
+        double pos = phsf * ftp->flen;
         MYFLT fract = pos - (int32_t) pos;
         MYFLT *ftab = ftp->ftable + (int32_t) pos;
         MYFLT v1 = *ftab++;
@@ -1772,7 +1790,7 @@ int32_t knvlpxr(CSOUND *csound, ENVLPR *p)
         if (phsf < FL(1.0) || p->rlsing)
           p->val = fact;
         else {
-          p->val = *(ftp->ftable + ftp->flen - 1);
+          p->val = *(ftp->ftable + ftp->flen);
           p->val -= p->asym;
           phsf = FL(-1.0);
         }
@@ -1796,12 +1814,12 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  int32_t  rlscnt;
+  double rlscnt;
   int64_t lobits, lomask, pos;
   int32_t phs = p->phs;
   MYFLT fact, *xamp, *rslt, val, asym, mlt, v1, fract, *ftab, lodiv;
   int32_t    asgsg = IS_ASIG_ARG(p->xamp), check, floatph = p->floatph,
-    flen = p->ftp->flen;
+    flen;
   double phsf;
 
   xamp = p->xamp;
@@ -1814,6 +1832,7 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
   if (UNLIKELY(p->ftp==NULL))
     return csound->PerfError(csound, &(p->h),
                              Str("envlpx(krate): not initialised"));
+  flen = p->ftp->flen;
   ftab = p->ftp->ftable;
   lobits = p->ftp->lobits;
   lomask = p->ftp->lomask;
@@ -1848,25 +1867,27 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
           v1 = ftab[pos];
           fact = (v1 + (ftab[pos+1] - v1) * fract);
           phs += p->ki;
-          if (phs >= MAXLEN) {
+          if (phs < MAXLEN || p->rlsing)
+            val = fact;
+          else {
             val = ftab[p->ftp->flen];
             val -= p->asym;
             phs = -1;
           }
-          else val = fact;      /* JPff: in case very early release */
           p->phs = phs;
         } else {
-          MYFLT fpos = phsf*flen;
+          double fpos = phsf * flen;
           fract = fpos - (int32_t) fpos;
           v1 = ftab[(int32_t) fpos];
           fact = (v1 + (ftab[(int32_t) fpos+1] - v1) * fract);
           phsf += p->kif;
-          if (phsf >= 1.) {
+          if (phsf < 1.0 || p->rlsing)
+            val = fact;
+          else {
             val = ftab[p->ftp->flen];
             val -= p->asym;
             phsf = -1;
           }
-          else val = fact;      
           p->phsf = phsf;
         }
       }
