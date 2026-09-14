@@ -970,6 +970,7 @@ int32_t brass(CSOUND *csound, BRASS *p)
 int32_t tubebellset(void*,void*);
 int32_t tubebell(void*,void*);
 int32_t rhodeset(void*,void*);
+int32_t rhode(void*,void*);
 int32_t wurleyset(void*,void*);
 int32_t wurley(void*,void*);
 int32_t heavymetset(void*,void*);
@@ -1008,7 +1009,7 @@ static OENTRY physmod_localops[] =
     { "voice", S(VOICF),   TR, "a", "kkkkkkii",(SUBR)voicformset,(SUBR)voicform},
     { "fmbell",  S(FM4OP), TR, "a", "kkkkkkjjjjjo",
       (SUBR)tubebellset,(SUBR)tubebell},
-    { "fmrhode", S(FM4OP), TR, "a", "kkkkkkiiiii",(SUBR)rhodeset,(SUBR)tubebell},
+    { "fmrhode", S(FM4OP), TR, "a", "kkkkkkiiiii",(SUBR)rhodeset,(SUBR)rhode},
     { "fmwurlie", S(FM4OP),TR, "a", "kkkkkkiiiii",(SUBR)wurleyset,(SUBR)wurley },
     { "fmmetal", S(FM4OP), TR, "a", "kkkkkkiiiii",
       (SUBR)heavymetset, (SUBR)heavymet},
