@@ -221,7 +221,16 @@ void FM4Op_keyOff(FM4OP *p)
 /*                                                       */
 /*********************************************************/
 
-MYFLT FM4Alg5_tick(FM4OP *p, MYFLT c1, MYFLT c2)
+#if defined(__GNUC__)
+# define FM4PAIR_INLINE static inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+# define FM4PAIR_INLINE static __forceinline
+#else
+# define FM4PAIR_INLINE static inline
+#endif
+
+FM4PAIR_INLINE MYFLT FM4Alg5_tick(FM4OP *p, MYFLT c1, MYFLT c2,
+                                  MYFLT modDepth)
 {
     MYFLT       temp,temp2;
     MYFLT       lastOutput;
@@ -231,7 +240,7 @@ MYFLT FM4Alg5_tick(FM4OP *p, MYFLT c1, MYFLT c2)
                 p->w_rate[1], p->w_phase[1]);
     temp = temp * c1;
     p->w_phase[0] = p->waves[0]->flen * temp; /* addPhaseOffset */
-    p->w_phase[3] = p->waves[0]->flen * p->twozero.lastOutput;
+    p->w_phase[3] = p->waves[3]->flen * p->twozero.lastOutput;
     temp =  p->gains[3] * ADSR_tick(&p->adsr[3]) *
       Wave_tick(&p->w_time[3], (int32_t)p->waves[3]->flen, p->waves[3]->ftable,
                 p->w_rate[3], p->w_phase[3]);
@@ -247,12 +256,14 @@ MYFLT FM4Alg5_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 
     temp2 = Wave_tick(&p->v_time, (int32_t)p->vibWave->flen,
                       p->vibWave->ftable, p->v_rate, FL(0.0)) *
-      *p->modDepth; /* Calculate amplitude mod */
+      modDepth; /* Calculate amplitude mod */
     temp = temp * (FL(1.0) + temp2); /*  and apply it to output */
 
     lastOutput = temp * FL(0.5);
     return  lastOutput;
 }
+
+#undef FM4PAIR_INLINE
 
 /***************************************************************/
 /*  Tubular Bell (Orch. Chime) Subclass of Algorithm 5 (TX81Z) */
@@ -269,6 +280,7 @@ int32_t tubebellset(CSOUND *csound, FM4OP *p)
     if (UNLIKELY(FM4Op_loadWaves(csound,p)))
       return NOTOK; /* 4 x "rawwaves/sinewave.raw" */
 
+    p->v_time = FL(0.0);
     FM4Op_setRatio(p, 0, FL(1.0)   * FL(0.995));
     FM4Op_setRatio(p, 1, FL(1.414) * FL(0.995));
     FM4Op_setRatio(p, 2, FL(1.0)   * FL(1.005));
@@ -301,22 +313,25 @@ int32_t tubebellset(CSOUND *csound, FM4OP *p)
     return OK;
 }
 
-int32_t tubebell(CSOUND *csound, FM4OP *p)
+static int32_t FM4Pair_perform(CSOUND *csound, FM4OP *p, int32_t rhodes)
 {
-    MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    MYFLT       fullscale = AMP_SCALE;
+    MYFLT       amp = *p->amp * (FL(1.0) / fullscale);
     MYFLT       *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
+    MYFLT       modDepth = *p->modDepth;
 
     /* Set Freq */
     p->baseFreq = *p->frequency;
-    p->gains[0] = amp * FM4Op_gains[94];
-    p->gains[1] = amp * FM4Op_gains[76];
+    /* Keep the gain ratios chosen by each instrument's init routine. */
+    p->gains[0] = amp * FM4Op_gains[rhodes ? 99 : 94];
+    p->gains[1] = amp * FM4Op_gains[rhodes ? 90 : 76];
     p->gains[2] = amp * FM4Op_gains[99];
-    p->gains[3] = amp * FM4Op_gains[71];
+    p->gains[3] = amp * FM4Op_gains[rhodes ? 67 : 71];
     p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * CS_ONEDSR;
     p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * CS_ONEDSR;
     p->w_rate[2] = p->baseFreq * p->ratios[2] * p->waves[2]->flen * CS_ONEDSR;
@@ -329,10 +344,20 @@ int32_t tubebell(CSOUND *csound, FM4OP *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset;n<nsmps;n++) {
-      MYFLT   lastOutput = FM4Alg5_tick(p, c1, c2);
-      ar[n] = lastOutput*AMP_SCALE*FL(1.8);
+      MYFLT   lastOutput = FM4Alg5_tick(p, c1, c2, modDepth);
+      ar[n] = lastOutput*fullscale*FL(1.8);
     }
     return OK;
+}
+
+int32_t tubebell(CSOUND *csound, FM4OP *p)
+{
+    return FM4Pair_perform(csound, p, 0);
+}
+
+int32_t rhode(CSOUND *csound, FM4OP *p)
+{
+    return FM4Pair_perform(csound, p, 1);
 }
 
 /*****************************************************************/
@@ -349,6 +374,7 @@ int32_t rhodeset(CSOUND *csound, FM4OP *p)
     if (UNLIKELY(FM4Op_loadWaves(csound,p))) return NOTOK; /* 3 times "sinewave.raw";
                                                     1 x fwavblnk.raw */
 
+    p->v_time = FL(0.0);
     FM4Op_setRatio(p, 0, FL(1.0));
     FM4Op_setRatio(p, 1, FL(0.5));
     FM4Op_setRatio(p, 2, FL(1.0));
@@ -394,6 +420,7 @@ int32_t wurleyset(CSOUND *csound, FM4OP *p)
     if (UNLIKELY(FM4Op_loadWaves(csound,p))) return NOTOK; /* 3 x "sinewave.raw";
                                                     1 x fwavblnk.raw */
 
+    p->v_time = FL(0.0);
     FM4Op_setRatio(p, 0, FL(1.0));
     FM4Op_setRatio(p, 1, FL(4.05));
     FM4Op_setRatio(p, 2, -FL(510.0));
@@ -426,13 +453,15 @@ int32_t wurleyset(CSOUND *csound, FM4OP *p)
 
 int32_t wurley(CSOUND *csound, FM4OP *p)
 {
-    MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    MYFLT       fullscale = AMP_SCALE;
+    MYFLT       amp = *p->amp * (FL(1.0) / fullscale);
     MYFLT       *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
+    MYFLT       modDepth = *p->modDepth;
 
     /* Set Freq */
     p->baseFreq = *p->frequency;
@@ -452,8 +481,8 @@ int32_t wurley(CSOUND *csound, FM4OP *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset;n<nsmps;n++) {
-      MYFLT   lastOutput = FM4Alg5_tick(p, c1, c2);
-      ar[n] = lastOutput*AMP_SCALE*FL(1.9);
+      MYFLT   lastOutput = FM4Alg5_tick(p, c1, c2, modDepth);
+      ar[n] = lastOutput*fullscale*FL(1.9);
     }
     return OK;
 }
