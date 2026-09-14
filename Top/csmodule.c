@@ -1298,14 +1298,14 @@ typedef int32_t (*INITFN2)(CSOUND *);
  int32_t sfont_ModuleCreate(CSOUND *csound);
  int32_t newgabopc_ModuleInit(CSOUND *csound);
  int32_t csoundModuleInit_signalflowgraph(CSOUND *csound);
+ int32_t arrayops_init_modules(CSOUND *csound);
+ int32_t pvsops_init_modules(CSOUND *csound);
  #ifndef __wasi__
  int32_t csoundModuleInit_ampmidid(CSOUND *csound);
  int32_t csoundModuleCreate_mixer(CSOUND *csound);
  int32_t csoundModuleInit_mixer(CSOUND *csound);
  int32_t csoundModuleInit_doppler(CSOUND *csound);
- int32_t arrayops_init_modules(CSOUND *csound);
  int32_t lfsr_init_modules(CSOUND *csound);
- int32_t pvsops_init_modules(CSOUND *csound);
  int32_t trigEnv_init_modules(CSOUND *csound);
  #endif
  #ifndef BARE_METAL
@@ -1349,8 +1349,8 @@ CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
 #if defined(LINUX) || defined(__MACH__)
     cpumeter_localops_init,
 #endif
-#if !(defined(__wasi__))
     counter_localops_init,
+#if !(defined(__wasi__))
     system_localops_init,
 #ifndef NO_SERIAL_OPCODES
     serial_localops_init,
@@ -1401,14 +1401,14 @@ CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
     sfont_ModuleCreate,
     sfont_ModuleInit,
     csoundModuleInit_signalflowgraph,
+    arrayops_init_modules,
+    pvsops_init_modules,
 #if !defined(__wasi__)
     csoundModuleInit_ampmidid,
     csoundModuleCreate_mixer,
     csoundModuleInit_mixer,
     csoundModuleInit_doppler,
-    arrayops_init_modules,
     lfsr_init_modules,
-    pvsops_init_modules,
     trigEnv_init_modules,
     csoundModuleInit_fractalnoise,
 #endif

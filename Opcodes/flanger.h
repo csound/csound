@@ -27,9 +27,9 @@ typedef struct {
         MYFLT   *ar, *asig, *xdel, *kfeedback, *maxd, *iskip;
         MYFLT   yt1; /* filter instance variables */
         AUXCH   aux;  /* delay instance variables */
-        int32   left;
+        uint32  left;
         uint32  maxdelay;
-        MYFLT   fmaxd;
+        MYFLT   maxDelaySeconds;
 } FLANGER;
 
 typedef struct {
@@ -56,4 +56,3 @@ typedef struct {
         MYFLT   old_out;
         int16   xdel1cod, xdel2cod;
 } WGUIDE2;
-

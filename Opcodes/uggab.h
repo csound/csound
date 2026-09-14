@@ -51,7 +51,7 @@ typedef struct {
 
 typedef struct {
     OPDS        h;
-    MYFLT       *ar, *asig, *kcf, *kbw, *ord, *sep, *iflag, *iscl, *istor;
+    MYFLT       *ar, *asig, *kcf, *kbw, *ord, *sep, *iflag, *iscl, *istor, *icorrect;
     int32_t     scale, loop;
     AUXCH       aux;
     AUXCH       buffer;
@@ -62,7 +62,6 @@ typedef struct {
     OPDS        h;
     MYFLT       *ar, *asig, *kincr ;
     double      index;
-    int32       sample_index;
     MYFLT       value;
 } FOLD;
 
@@ -99,14 +98,16 @@ typedef struct {
 typedef struct {  /* gab f1 */
         OPDS    h;
         MYFLT   *kr, *ksig, *ktime;
-        MYFLT   current_val, current_time, incr, val_incremented, old_time;
+        MYFLT   current_val, incr, val_incremented;
+        double  remaining;
         int32_t flag;
 } LINETO;
 
 typedef struct {  /* gab f1 */
         OPDS    h;
         MYFLT   *kr, *ksig, *ktime, *ktrig;
-        MYFLT   current_val, current_time, incr, val_incremented, old_time;
+        MYFLT   current_val, incr, val_incremented;
+        double  remaining;
         int32_t flag;
 } LINETO2;
 
@@ -199,7 +200,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *min, *max, *xcps, *mode, *fstval;
         int16   cpscod;
-        int32   phs;
+        uint32_t phs;
         MYFLT   num1, num2, dfdmax;
 } RANDOMI;
 
@@ -209,7 +210,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *min, *max, *xcps, *mode, *fstval;
         int16   cpscod;
-        int32   phs;
+        uint32_t phs;
         MYFLT   num1;
 } RANDOMH;
 

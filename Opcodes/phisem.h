@@ -140,7 +140,7 @@ typedef struct Guiro {
     MYFLT       finalZ1;
     MYFLT       finalZ2;
     MYFLT       decayScale;
-    int32_t         kloop;
+    double          kloop;
 } GUIRO;
 
 typedef struct Tambour {
@@ -188,7 +188,7 @@ typedef struct Tambour {
     MYFLT       res_freq1;
     MYFLT       res_freq2;
     MYFLT       shake_damp;
-    int32_t         kloop;
+    double          kloop;
 } TAMBOURINE;
 
 typedef struct Bamboo {
@@ -333,7 +333,6 @@ typedef struct Sleighbells {
     MYFLT       res_freq3;
     MYFLT       res_freq4;
     MYFLT       shake_damp;
-    int32_t
-    kloop;
+    double      kloop;
 } SLEIGHBELLS;
 #endif

@@ -40,7 +40,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *out, *in, *fco, *res, *max, *iskip;
     double  xnm1, y1nm1, y2nm1, y3nm1, y1n, y2n, y3n, y4n;
-    MYFLT   maxint;
+    MYFLT   maxint, fullscale;
     int16   fcocod, rezcod;
 } MOOGVCF;
 
@@ -89,7 +89,7 @@ typedef struct {
     double xnm1, xnm2, ynm1, ynm2;
     MYFLT  prv_fc, prv_v, prv_q;
     double b0, b1, b2, a1, a2;
-    int32_t imode;
+    int32_t imode, initialized;
 } PAREQ;
 
 typedef struct {
@@ -99,7 +99,7 @@ typedef struct {
     MYFLT   *curp, out1, out2, out3;
     MYFLT   *beg1p, *beg2p, *beg3p, *end1p, *end2p, *end3p;
     MYFLT   *del1p, *del2p, *del3p;
-    int32   npts;
+    int32   npts, imode;
     AUXCH   auxch;
 } NESTEDAP;
 

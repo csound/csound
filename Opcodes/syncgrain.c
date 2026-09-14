@@ -95,10 +95,11 @@ static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
     MYFLT      pscale =  p->sfunc->gen01args.sample_rate/CS_ESR;
 
     pitch  = *p->pitch * pscale;
-    fperiod = FABS(p->sfunc->gen01args.sample_rate/(*p->fr));
+    /* Grain timing counts output samples; pitch and start positions use pscale. */
+    fperiod = FABS(CS_ESR/(*p->fr));
     //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
-    grsize = p->sfunc->gen01args.sample_rate * *p->grsize;
+    grsize = CS_ESR * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
     envincr = envtablesize/grsize;
     prate = *p->prate * pscale;
@@ -258,12 +259,16 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
                               loop_start, loop_end, loopsize);     */
 
     pitch  = *p->pitch * pscale;
-    fperiod = FABS(sr/(*p->fr));
+    /* Grain timing counts output samples; loop points remain source samples. */
+    fperiod = FABS(CS_ESR/(*p->fr));
     //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
-    grsize = sr * *p->grsize;
+    grsize = CS_ESR * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
-    if (loopsize <= 0) loopsize = grsize;
+    if (loopsize <= 0) {
+      loopsize = grsize * pscale;
+      if (loopsize < 1) loopsize = 1;
+    }
     envincr = envtablesize/grsize;
     prate = *p->prate * pscale;
 
@@ -338,7 +343,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
         /* if the envelope is finished */
         /* the grain is also finished */
 
-        if (UNLIKELY(envindex[j] > envtablesize))
+        if (UNLIKELY(envindex[j] >= envtablesize))
           streamon[j] = 0;
       }
 
@@ -668,6 +673,11 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
         if (index[j]  < 0)
           index[j] += dataframes;
 
+        if (UNLIKELY(envindex[j] >= envtablesize)) {
+          streamon[j] = 0;
+          continue;
+        }
+
         /* sum all the grain streams */
         tndx = (int32_t)index[j]*chans;
         endx = (int32_t) envindex[j];
@@ -692,7 +702,7 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
 
         /* if the envelope is finished */
         /* the grain is also finished */
-        if (envindex[j] > envtablesize)
+        if (envindex[j] >= envtablesize)
           streamon[j] = 0;
       }
 

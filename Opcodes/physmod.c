@@ -35,6 +35,22 @@
 #include <math.h>
 #include "interlocks.h"
 
+#define WG_WRAP_VIBRATO_PHASE(phase_, length_)                         \
+  do {                                                                 \
+    MYFLT _length = (MYFLT)(length_);                                  \
+    if (UNLIKELY(!((phase_) >= FL(0.0) && (phase_) < _length))) {      \
+      if ((phase_) >= _length && (phase_) < FL(2.0) * _length)         \
+        (phase_) -= _length;                                           \
+      else if ((phase_) < FL(0.0) && (phase_) >= -_length)             \
+        (phase_) += _length;                                           \
+      else                                                             \
+        (phase_) -= FLOOR((phase_) / _length) * _length;               \
+      /* Negative wrapping can round up to the table length. */       \
+      if (UNLIKELY(!((phase_) >= FL(0.0) && (phase_) < _length)))      \
+        (phase_) = FL(0.0);                                            \
+    }                                                                  \
+  } while (0)
+
 
 /* ************************************** */
 /*  Waveguide Clarinet model ala Smith    */
@@ -126,6 +142,10 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
   else {                                      /* Expect sine wave */
     return csound->InitError(csound, "%s", Str("No table for Clarinet"));
   }
+  if (UNLIKELY(ftp->flen < 1)) {
+    return csound->InitError(csound, "%s",
+                             Str("Clarinet vibrato table is empty"));
+  }
   if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
     if (*p->lowestFreq)
       p->length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
@@ -213,20 +233,14 @@ int32_t clarin(CSOUND *csound, CLARIN *p)
     breathPressure += breathPressure * nGain * Noise_tick(csound,&p->noise);
     /* Tick on vibrato table   */
     vTime += p->v_rate;            /*  Update current time    */
-    while (vTime >= v_len)         /*  Check for end of sound */
-      vTime -= v_len;              /*  loop back to beginning */
-    while (vTime < FL(0.0))        /*  Check for end of sound */
-      vTime += v_len;              /*  loop back to beginning */
+    WG_WRAP_VIBRATO_PHASE(vTime, v_len);
 
     temp_time = vTime;
 
 #ifdef have_phase
     if (p->v_phaseOffset != FL(0.0)) {
       temp_time += p->v_phaseOffset;   /*  Add phase offset       */
-      while (temp_time >= v_len)       /*  Check for end of sound */
-        temp_time -= v_len;            /*  loop back to beginning */
-      while (temp_time < FL(0.0))      /*  Check for end of sound */
-        temp_time += v_len;            /*  loop back to beginning */
+      WG_WRAP_VIBRATO_PHASE(temp_time, v_len);
     }
 #endif
     temp = (int32_t) temp_time;    /*  Integer part of time address    */
@@ -293,6 +307,10 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                   /* Expect sine wave */
     return csound->InitError(csound, "%s", Str("No table for Flute"));
+  }
+  if (UNLIKELY(ftp->flen < 1)) {
+    return csound->InitError(csound, "%s",
+                             Str("Flute vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
     if (*p->lowestFreq!=FL(0.0)) {
@@ -422,20 +440,14 @@ int32_t flute(CSOUND *csound, FLUTE *p)
     randPress = noisegain*Noise_tick(csound,&p->noise); /* Random Deviation */
     /* Tick on vibrato table */
     v_time += p->v_rate;            /*  Update current time    */
-    while (v_time >= v_len)         /*  Check for end of sound */
-      v_time -= v_len;              /*  loop back to beginning */
-    while (v_time < FL(0.0))        /*  Check for end of sound */
-      v_time += v_len;              /*  loop back to beginning */
+    WG_WRAP_VIBRATO_PHASE(v_time, v_len);
 
     temp_time = v_time;
 
 #ifdef phase_offset
     if (p->v_phaseOffset != FL(0.0)) {
       temp_time += p->v_phaseOffset;/*  Add phase offset       */
-      while (temp_time >= v_len)    /*  Check for end of sound */
-        temp_time -= v_len;         /*  loop back to beginning */
-      while (temp_time < FL(0.0))   /*  Check for end of sound */
-        temp_time += v_len;         /*  loop back to beginning */
+      WG_WRAP_VIBRATO_PHASE(temp_time, v_len);
     }
 #endif
 
@@ -507,6 +519,10 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
     return csound->InitError(csound, "%s", Str("No table for wgbow vibrato"));
+  }
+  if (UNLIKELY(ftp->flen < 1)) {
+    return csound->InitError(csound, "%s",
+                             Str("wgbow vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
     if (*p->lowestFreq!=FL(0.0)) {
@@ -638,20 +654,14 @@ int32_t bowed(CSOUND *csound, BOWED *p)
       MYFLT   temp_time, alpha;
       /* Tick on vibrato table */
       p->v_time += p->v_rate;              /*  Update current time    */
-      while (p->v_time >= p->vibr->flen)   /*  Check for end of sound */
-        p->v_time -= p->vibr->flen;        /*  loop back to beginning */
-      while (p->v_time < FL(0.0))          /*  Check for end of sound */
-        p->v_time += p->vibr->flen;        /*  loop back to beginning */
+      WG_WRAP_VIBRATO_PHASE(p->v_time, p->vibr->flen);
 
       temp_time = p->v_time;
 
 #ifdef phase_offset
       if (p->v_phaseOffset != FL(0.0)) {
         temp_time += p->v_phaseOffset;     /*  Add phase offset       */
-        while (temp_time >= p->vibr->flen) /*  Check for end of sound */
-          temp_time -= p->vibr->flen;      /*  loop back to beginning */
-        while (temp_time < FL(0.0))        /*  Check for end of sound */
-          temp_time += p->vibr->flen;      /*  loop back to beginning */
+        WG_WRAP_VIBRATO_PHASE(temp_time, p->vibr->flen);
       }
 #endif
       temp = (int32_t) temp_time;    /*  Integer part of time address    */
@@ -721,6 +731,8 @@ int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
   if (UNLIKELY(p->length<=0)) goto err1;
   while (outputPointer<0)
     outputPointer += p->length;        /* modulo table length            */
+  while (outputPointer >= p->length)
+    outputPointer -= p->length;
   p->outPoint = (int32_t) outputPointer;    /* Integer part of delay          */
   p->alpha = FL(1.0) + p->outPoint - outputPointer;/* fractional part of delay */
   if (p->alpha<FL(0.1)) {
@@ -728,6 +740,8 @@ int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
     p->outPoint++;                        /*  cancellation.  Keeps allpass  */
     p->alpha += FL(1.0);                  /*  delay in range of .1 to 1.1   */
   }
+  if (p->outPoint >= p->length)
+    p->outPoint -= p->length;
   p->coeff = (FL(1.0)-p->alpha)/(FL(1.0)+p->alpha); /* coefficient for all pass*/
   return 0;
  err1:
@@ -800,6 +814,10 @@ int32_t brassset(CSOUND *csound, BRASS *p)
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
     return csound->InitError(csound, "%s", Str("No table for Brass"));
+  }
+  if (UNLIKELY(ftp->flen < 1)) {
+    return csound->InitError(csound, "%s",
+                             Str("Brass vibrato table is empty"));
   }
   p->frq = *p->frequency;     /* Remember */
   if (*p->lowestFreq>=FL(0.0)) {
@@ -910,20 +928,14 @@ int32_t brass(CSOUND *csound, BRASS *p)
     breathPressure = maxPressure * ADSR_tick(&p->adsr);
     /* Tick on vibrato table */
     vTime += p->v_rate;            /*  Update current time    */
-    while (vTime >= v_len)         /*  Check for end of sound */
-      vTime -= v_len;              /*  loop back to beginning */
-    while (vTime < FL(0.0))        /*  Check for end of sound */
-      vTime += v_len;              /*  loop back to beginning */
+    WG_WRAP_VIBRATO_PHASE(vTime, v_len);
 
     temp_time = vTime;
 
 #ifdef phase_offset
     if (p->v_phaseOffset != FL(0.0)) {
       temp_time += p->v_phaseOffset;   /*  Add phase offset       */
-      while (temp_time >= v_len)       /*  Check for end of sound */
-        temp_time -= v_len;            /*  loop back to beginning */
-      while (temp_time < FL(0.0))      /*  Check for end of sound */
-        temp_time += v_len;            /*  loop back to beginning */
+      WG_WRAP_VIBRATO_PHASE(temp_time, v_len);
     }
 #endif
 
@@ -962,6 +974,7 @@ int32_t brass(CSOUND *csound, BRASS *p)
 int32_t tubebellset(void*,void*);
 int32_t tubebell(void*,void*);
 int32_t rhodeset(void*,void*);
+int32_t rhode(void*,void*);
 int32_t wurleyset(void*,void*);
 int32_t wurley(void*,void*);
 int32_t heavymetset(void*,void*);
@@ -1000,7 +1013,7 @@ static OENTRY physmod_localops[] =
     { "voice", S(VOICF),   TR, "a", "kkkkkkii",(SUBR)voicformset,(SUBR)voicform},
     { "fmbell",  S(FM4OP), TR, "a", "kkkkkkjjjjjo",
       (SUBR)tubebellset,(SUBR)tubebell},
-    { "fmrhode", S(FM4OP), TR, "a", "kkkkkkiiiii",(SUBR)rhodeset,(SUBR)tubebell},
+    { "fmrhode", S(FM4OP), TR, "a", "kkkkkkiiiii",(SUBR)rhodeset,(SUBR)rhode},
     { "fmwurlie", S(FM4OP),TR, "a", "kkkkkkiiiii",(SUBR)wurleyset,(SUBR)wurley },
     { "fmmetal", S(FM4OP), TR, "a", "kkkkkkiiiii",
       (SUBR)heavymetset, (SUBR)heavymet},
@@ -1024,4 +1037,3 @@ static OENTRY physmod_localops[] =
 
 
 LINKAGE_BUILTIN(physmod_localops)
-

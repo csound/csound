@@ -1121,12 +1121,25 @@ static MYFLT read_expression(CSOUND *csound)
           *++op = c; c = getscochar(csound, 1); break;
         case ')':
           if (UNLIKELY(!type)) {
-            scorerr(csound, Str("missing operand before ')' in [] expression"));
+            csound->inerrcnt++;
+            csound->ErrorMsg(csound,
+                             Str("score error: missing operand before ')' in [] expression"));
+            print_input_backtrace(csound, 1, csoundErrorMsg);
+            flushlin(csound);
+            return FL(0.0);
           }
-          while (*op != '(') {
+          while (*op != '(' && *op != '[') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
+          }
+          if (UNLIKELY(*op != '(')) {
+            csound->inerrcnt++;
+            csound->ErrorMsg(csound,
+                             Str("score error: unmatched ')' in [] expression"));
+            print_input_backtrace(csound, 1, csoundErrorMsg);
+            flushlin(csound);
+            return *pv;
           }
           type = 1;
           op--; c = getscochar(csound, 1); break;
@@ -1153,10 +1166,18 @@ static MYFLT read_expression(CSOUND *csound)
           if (UNLIKELY(!type)) {
             scorerr(csound, Str("missing operand before closing bracket in []"));
           }
-          while (*op != '[') {
+          while (*op != '[' && *op != '(') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
+          }
+          if (UNLIKELY(*op != '[')) {
+            csound->inerrcnt++;
+            csound->ErrorMsg(csound,
+                             Str("score error: unmatched ']' in [] expression"));
+            print_input_backtrace(csound, 1, csoundErrorMsg);
+            flushlin(csound);
+            return *pv;
           }
           //printf("done ]*** *op=%c v=%lg (%c)\n", *op, *pv, c);
           //getscochar(csound, 1);

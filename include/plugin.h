@@ -828,27 +828,27 @@ public:
 
   /** vector beginning
    */
-  iterator begin() { return &ptrs[0]; }
+  iterator begin() { return ptrs.data(); }
 
   /** vector end
    */
-  iterator end() { return  &ptrs[N]; }
+  iterator end() { return ptrs.data() + N; }
 
   /** vector beginning
    */
-  const_iterator begin() const { return (const MYFLT **)&ptrs[0]; }
+  const_iterator begin() const { return (const MYFLT **)ptrs.data(); }
 
   /** vector end
    */
-  const_iterator end() const { return (const MYFLT **)&ptrs[N]; }
+  const_iterator end() const { return (const MYFLT **)(ptrs.data() + N); }
 
   /** vector beginning
    */
-  const_iterator cbegin() const { return (const MYFLT **)&ptrs[0]; }
+  const_iterator cbegin() const { return (const MYFLT **)ptrs.data(); }
 
   /** vector end
    */
-  const_iterator cend() const { return (const MYFLT **)&ptrs[N]; }
+  const_iterator cend() const { return (const MYFLT **)(ptrs.data() + N); }
 
   /** parameter data (MYFLT pointer) at index n
    */

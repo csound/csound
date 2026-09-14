@@ -192,13 +192,16 @@ BaboMemory_end(const BaboMemory *this)
  * common delay/tapline methods
  */
 
-static void
+static int32_t
 _Babo_common_delay_create(CSOUND *csound, BaboDelay *this, MYFLT max_time)
 {
-    size_t num_floats =
-      (size_t)MYFLT2LRND((MYFLT)ceil((double)(max_time*this->sr)));
+    double samples = ceil((double)(max_time * this->sr));
 
-    BaboMemory_create(csound, &this->core, num_floats);
+    if (UNLIKELY(!(samples >= 1.0 && samples <= INT32_MAX &&
+                   samples <= SIZE_MAX / sizeof(MYFLT))))
+        return csound->InitError(csound, "%s", Str("Babo: delay size out of range"));
+    BaboMemory_create(csound, &this->core, (size_t)samples);
+    return OK;
 }
 
 /*
@@ -208,7 +211,8 @@ _Babo_common_delay_create(CSOUND *csound, BaboDelay *this, MYFLT max_time)
 static BaboDelay *
 BaboDelay_create(CSOUND *csound, BaboDelay *this, MYFLT max_time)
 {
-    _Babo_common_delay_create(csound, this, max_time);
+    if (_Babo_common_delay_create(csound, this, max_time) != OK)
+        return NULL;
 
     this->input = BaboMemory_start(&this->core);
 
@@ -226,14 +230,14 @@ BaboDelay_input(BaboDelay *this, MYFLT input)
     return input;
 }
 
-static MYFLT
+static inline MYFLT
 BaboDelay_output(const BaboDelay *this)
 {
-    size_t num_samples = BaboMemory_samples(&this->core);
-    MYFLT *output_ptr = this->input - (num_samples - 1);
+    /* Reading one slot ahead preserves the existing N - 1 sample delay. */
+    MYFLT *output_ptr = this->input + 1;
 
-    if (output_ptr < BaboMemory_start(&this->core))
-        output_ptr += num_samples;
+    if (output_ptr == BaboMemory_end(&this->core))
+        output_ptr = BaboMemory_start(&this->core);
 
     return *output_ptr;
 }
@@ -252,7 +256,8 @@ BaboTapline_create(CSOUND *csound, BaboTapline *this, MYFLT x, MYFLT y, MYFLT z)
 {
     MYFLT max_time = (FL(2.0) * SQRT((x*x) + (y*y) + (z*z))) / sound_speed;
 
-    _Babo_common_delay_create(csound, (BaboDelay *) this, max_time);
+    if (_Babo_common_delay_create(csound, (BaboDelay *) this, max_time) != OK)
+        return NULL;
 
     this->input = BaboMemory_start(&this->core);
 
@@ -420,7 +425,7 @@ BaboLowPass_create(BaboLowPass *this, MYFLT decay, MYFLT hidecay, MYFLT norm)
 
     this->a0 = (real_decay + real_hidecay) * FL(0.25);
     this->a1 = (real_decay - real_hidecay) * FL(0.5);
-    this->z1 = this->z2 = FL(0.0);
+    this->input = this->z1 = this->z2 = FL(0.0);
 
     return this;
 }
@@ -449,7 +454,8 @@ BaboNode_create(CSOUND *csound, BaboNode *this, MYFLT time,
                 MYFLT min_time, MYFLT decay,
     MYFLT hidecay)
 {
-    BaboDelay_create(csound, &this->delay, time);
+    if (BaboDelay_create(csound, &this->delay, time) == NULL)
+        return NULL;
     BaboLowPass_create(&this->filter, decay, hidecay, time/min_time);
 
     return this;
@@ -621,8 +627,9 @@ BaboMatrix_create(CSOUND *csound,
     BaboMatrix_create_FDN(this, diffusion);
 
     for (i = 0; i < BABO_NODES; ++i)
-        BaboNode_create(csound, &this->node[i], delays[i],
-                        min_delay, decay, hidecay);
+        if (BaboNode_create(csound, &this->node[i], delays[i],
+                            min_delay, decay, hidecay) == NULL)
+            return NULL;
 
     return this;
 }
@@ -752,18 +759,6 @@ set_expert_values(CSOUND *csound, BABO *p)
     p->early_diffuse= load_value_or_default(ftp, n++, BABO_DEFAULT_DIFFUSE);
 }
 
-static void
-verify_coherence(CSOUND *csound, BABO *p)
-{
-    if (UNLIKELY(*(p->lx) <= FL(0.0) ||
-                 *(p->ly) <= FL(0.0) ||
-                 *(p->lz) <= FL(0.0))) {
-      csound->Warning(csound, Str("Babo: resonator dimensions are incorrect "
-                              "(%.1f, %.1f, %.1f)"),
-                  *(p->lx), *(p->ly), *(p->lz));
-    }
-}
-
 /*
  * OPCODE FUNCTIONS - baboset(), babo()
  *
@@ -775,19 +770,29 @@ static int32_t
 baboset(CSOUND *csound, void *entry)
 {
     BABO *p = (BABO *) entry;   /* assuming the engine is right... :)   */
+    int32_t i;
+    if (UNLIKELY(!(*p->lx > FL(0.0) && *p->ly > FL(0.0) &&
+                   *p->lz > FL(0.0))))
+        return csound->InitError(csound, "%s",
+                                 Str("Babo: room dimensions must be positive"));
     p->tapline.sr = CS_ESR;
     p->matrix_delay.sr = CS_ESR;
+    for (i = 0; i < BABO_NODES; ++i)
+        p->matrix.node[i].delay.sr = CS_ESR;
     set_defaults(csound,p);
-    verify_coherence(csound,p);        /* exits if call is wrong */
 
-    BaboTapline_create(csound,&p->tapline, *(p->lx), *(p->ly), *(p->lz));
-    BaboDelay_create(csound, &p->matrix_delay,
-                     BaboTapline_maxtime(csound, &p->tapline));
-    BaboMatrix_create(csound, &p->matrix, p->diffusion_coeff, *(p->lx),
-                      *(p->ly), *(p->lz), p->decay, p->hidecay, p->early_diffuse);
+    if (BaboTapline_create(csound, &p->tapline, *p->lx, *p->ly, *p->lz) == NULL ||
+        BaboDelay_create(csound, &p->matrix_delay,
+                         BaboTapline_maxtime(csound, &p->tapline)) == NULL ||
+        BaboMatrix_create(csound, &p->matrix, p->diffusion_coeff, *p->lx,
+                          *p->ly, *p->lz, p->decay, p->hidecay,
+                          p->early_diffuse) == NULL)
+        return NOTOK;
     return OK;
 }
 
+/* Legacy babo leaves early-reflection tap sample rates at zero and ignores
+   the direct-signal gain. Preserve that sound; babo2 supplies both values. */
 static int32_t
 babo(CSOUND *csound, void *entry)
 {

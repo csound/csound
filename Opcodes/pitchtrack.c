@@ -368,13 +368,15 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
 int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
 {
 
-    int32_t i, winsize = *p->size*2, powtwo, tmp;
+    int32_t i, winsize, powtwo, tmp;
+    MYFLT requested = *p->size * FL(2.0);
     MYFLT *tmpb;
 
-    if (UNLIKELY(winsize < MINWINSIZ || winsize > MAXWINSIZ)) {
+    if (UNLIKELY(!(requested >= MINWINSIZ && requested <= MAXWINSIZ))) {
       csound->Warning(csound, Str("ptrack: FFT size out of range; using %d\n"),
                       winsize = DEFAULTWINSIZ);
     }
+    else winsize = (int32_t) requested;
 
     tmp = winsize;
     powtwo = -1;
@@ -388,7 +390,8 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
       csound->Warning(csound, Str("ptrack: FFT size not a power of 2; using %d\n"),
                       winsize = (1 << powtwo));
     }
-    p->hopsize = *p->size;
+    /* Use the corrected size for both allocation and analysis. */
+    p->hopsize = winsize / 2;
     if (!p->signal.auxp || p->signal.size < p->hopsize*sizeof(MYFLT)) {
       csound->AuxAlloc(csound, p->hopsize*sizeof(MYFLT), &p->signal);
     }
@@ -416,7 +419,7 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
         tmpb[2*i+1] = -(MYFLT)sin((PI*i)/(winsize));
 
     p->cnt = 0;
-    if (*p->peak == 0 || *p->peak > MAXPEAKNOS)
+    if (!(*p->peak >= FL(1.0) && *p->peak <= MAXPEAKNOS))
       p->numpks = DEFAULTPEAKNOS;
     else
       p->numpks = *p->peak;
@@ -443,14 +446,15 @@ int32_t pitchtrackprocess(CSOUND *csound, PITCHTRACK *p)
     MYFLT *buf = (MYFLT *)p->signal.auxp;
     int32_t pos = p->cnt, h = p->hopsize;
     MYFLT scale = p->dbfs;
-    int32_t ksmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    int32_t ksmps = CS_KSMPS - p->h.insdshead->ksmps_no_end;
 
-    for (i=0; i<ksmps; i++,pos++) {
+    for (i=offset; i<ksmps; i++) {
+      buf[pos++] = sig[i]*scale;
       if (pos == h) {
         ptrack(csound,p);
         pos = 0;
       }
-      buf[pos] = sig[i]*scale;
     }
     //if (p->cps)
     *p->freq = p->cps;
@@ -473,7 +477,11 @@ typedef struct _pitchaf{
 } PITCHAF;
 
 int32_t pitchafset(CSOUND *csound, PITCHAF *p){
-    int32_t siz = (int32_t)(CS_ESR/ (*p->iflow));
+    double samples = CS_ESR / (double)*p->iflow;
+    if (UNLIKELY(!(samples >= 1.0 && samples <= INT32_MAX &&
+                   samples <= SIZE_MAX / sizeof(MYFLT))))
+      return csound->InitError(csound, "%s", Str("pitchac: invalid lowest frequency"));
+    int32_t siz = (int32_t)samples;
     if (p->buff1.auxp == NULL || p->buff1.size < siz*sizeof(MYFLT))
       csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->buff1);
     else
@@ -496,23 +504,34 @@ int32_t pitchafset(CSOUND *csound, PITCHAF *p){
 int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
 {
 
-    int32_t lag = p->lag,n, i, j, imax = 0, len = p->len,
-      ksmps = CS_KSMPS;
+    int32_t lag = p->lag,n, i, j, len = p->len;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    int32_t ksmps = CS_KSMPS - p->h.insdshead->ksmps_no_end;
+    double samples;
+    int32_t nextlen;
+    if (UNLIKELY(!(*p->kfmin > FL(0.0))))
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("pitchac: minimum frequency must be positive"));
+    samples = CS_ESR / (double)*p->kfmin;
+    if (UNLIKELY(!(samples >= 1.0)))
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("pitchac: minimum frequency exceeds sample rate"));
+    nextlen = samples >= p->size ? p->size : (int32_t)samples;
     MYFLT *buff1 = (MYFLT *)p->buff1.auxp;
     MYFLT *buff2 = (MYFLT *)p->buff2.auxp;
     MYFLT *cor = (MYFLT *)p->cor.auxp;
     MYFLT *s = p->asig, pitch;
-    //MYFLT ifmax = *p->kfmax;
 
-    for (n=0; n < ksmps; n++) {
+    for (n=offset; n < ksmps; n++) {
       for (i=0,j=lag; i < len; i++) {
         cor[lag] += buff1[i]*buff2[j];
-        j = j != len ? j+1 : 0;
+        j = j != len - 1 ? j+1 : 0;
       }
       buff2[lag++] = s[n];
 
       if (lag == len) {
-        float max = 0.0f;
+        MYFLT max = FL(0.0);
+        int32_t imax = 0;
         for (i=0; i < len; i++) {
           if (cor[i] > max) {
             max = cor[i];
@@ -521,17 +540,16 @@ int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
           buff1[i] = buff2[i];
           cor[i] = FL(0.0);
         }
-        len = CS_ESR/(*p->kfmin);
-        if (len > p->size) len = p->size;
+        if (imax) {
+          pitch = CS_ESR/imax;
+          if (pitch <= *p->kfmax) p->pitch = pitch;
+        }
+        len = nextlen;
         lag  =  0;
       }
     }
     p->lag = lag;
     p->len = len;
-    if (imax) {
-      pitch = CS_ESR/imax;
-      if (pitch <= *p->kfmax) p->pitch = pitch;
-    }
     *p->kpitch = p->pitch;
 
     return OK;
@@ -619,6 +637,8 @@ int32_t plltrack_set(CSOUND *csound, PLLTRACK *p)
 int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
 {
     int32_t ksmps, i, k;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
     MYFLT _0dbfs;
     double a0[6], a1[6], a2[6], b1[6], b2[6];
     double *mem1[6], *mem2[6];
@@ -627,27 +647,22 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
     double scal,esr;
     BIQUAD *biquad = p->fils;
     MYFLT *asig=p->asig,kd=*p->kd,klpf,klpfQ,klf,khf,kthresh;
-    MYFLT *freq=p->freq, *lock =p->lock, itmp = asig[0];
-    int32_t
-      itest = 0;
+    MYFLT *freq=p->freq, *lock =p->lock;
 
     _0dbfs = csound->Get0dBFS(csound);
     ksmps = CS_KSMPS;
     esr = CS_ESR;
     scal = 2.0*CS_PIDSR;
 
-    /* check for muted input & bypass */
-    if (ksmps > 1){
-    for (i=0; i < ksmps; i++) {
-      if (asig[i] != 0.0 && asig[i] != itmp) {
-        itest = 1;
-        break;
-      }
-      itmp = asig[i];
+    if (UNLIKELY(offset)) {
+      memset(freq, 0, offset * sizeof(MYFLT));
+      memset(lock, 0, offset * sizeof(MYFLT));
     }
-    if (!itest)  return OK;
-    } else if (*asig == 0.0) return OK;
-
+    if (UNLIKELY(early)) {
+      ksmps -= early;
+      memset(&freq[ksmps], 0, early * sizeof(MYFLT));
+      memset(&lock[ksmps], 0, early * sizeof(MYFLT));
+    }
 
     if (*p->klpf == 0) klpf = 20.0;
     else klpf = *p->klpf;
@@ -700,7 +715,8 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
     xce = &p->xce;
     ace = &p->ace;
 
-    for (i=0; i < ksmps; i++){
+    /* Process constant input and let filter state decay during silence. */
+    for (i=offset; i < ksmps; i++){
       double input = (double) (asig[i]/_0dbfs), env;
       double w, y, icef = 0.99, fosc, xd, c, s, oc;
 
@@ -759,7 +775,7 @@ static OENTRY pitchtrack_localops[] =
   {
    {"ptrack", S(PITCHTRACK), 0,  "kk", "aio",
     (SUBR)pitchtrackinit, (SUBR)pitchtrackprocess},
-   {"pitchac", S(PITCHTRACK), 0,  "k", "akki",
+   {"pitchac", S(PITCHAF), 0,  "k", "akki",
     (SUBR)pitchafset, (SUBR)pitchafproc},
    {"plltrack", S(PLLTRACK), 0,  "aa", "akOOOOO",
     (SUBR)plltrack_set, (SUBR)plltrack_perf}

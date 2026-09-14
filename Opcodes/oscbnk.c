@@ -181,7 +181,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
       MYFLT frac, pos = o->LFO1phsf*p->flen1;
       n = (int32_t) pos;
       frac = pos - n;
-      lfo1val = p->l1t[n] + frac*(p->l1t[n+1] - p->l1t[n+1]);
+      lfo1val = p->l1t[n] + frac*(p->l1t[n+1] - p->l1t[n]);
       /* update phase */
       f = o->LFO1frq * p->lf1_scl + p->lf1_ofs;
       o->LFO1phsf = PHMOD1(o->LFO1phsf + f);
@@ -190,7 +190,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
       MYFLT frac, pos = o->LFO2phsf*p->flen2;
       n = (int32_t) pos;
       frac = pos - n;
-      lfo2val = p->l2t[n] + frac*(p->l2t[n+1] - p->l2t[n+1]);
+      lfo2val = p->l2t[n] + frac*(p->l2t[n+1] - p->l2t[n]);
       /* update phase */
       f = o->LFO2frq * p->lf2_scl + p->lf2_ofs;
       o->LFO2phsf = PHMOD1(o->LFO2phsf + f);
@@ -396,7 +396,8 @@ static int32_t oscbnkset(CSOUND *csound, OSCBNK *p)
     csound->AuxAlloc(csound, i, &(p->auxdata));
   p->osc = (OSCBNK_OSC *) p->auxdata.auxp;
 
-  memset(p->outft, 0, p->outft_len*sizeof(MYFLT));
+  if (p->outft != NULL)
+    memset(p->outft, 0, p->outft_len*sizeof(MYFLT));
 
   p->floatph = (!IS_POW_TWO(p->flen1)) | (!IS_POW_TWO(p->flen2));
   /* initialise oscillators */
@@ -623,6 +624,7 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
     /* save amplitude and phase */
     o->osc_amp = a;
     o->osc_phs = ph;
+    o->osc_phsf = phf;
   }
   p->init_k = 0;
   return OK;
@@ -876,7 +878,7 @@ static int32_t grain2(CSOUND *csound, GRAIN2 *p)
         if (w_interp) a += (pos - n)*(w_ft[n+1] - a);
         o->window_phsf += wf;
         if (o->window_phsf >= FL(1.0)) {
-          o->window_phs = PHMOD1(o->window_phs);       /* new grain    */
+          o->window_phsf = PHMOD1(o->window_phsf);     /* new grain    */
           grain2_init_grain(p, o);
           /* grain frequency */
           if (f_nolock) {
@@ -910,6 +912,7 @@ static int32_t grain3set(CSOUND *csound, GRAIN3 *p)
   p->init_k = 1;
   p->mode = i & 0x7E;
   p->x_phs = OSCBNK_PHSMAX;
+  p->x_phsf = FL(1.0);
 
   p->ovrlap = (int32_t) MYFLT2LONG(*(p->imaxovr));        /* max. overlap */
   p->ovrlap = (p->ovrlap < 1 ? 1 : p->ovrlap) + 1;

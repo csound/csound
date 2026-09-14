@@ -224,6 +224,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr, *xcps, *kindx, *icnt, *iphs;
         AUXCH   curphs;
+        int32_t count;
 } PHSORBNK;
 
 /* pinkish opcode... Two methods for generating pink noise */
@@ -243,8 +244,8 @@ typedef struct {
     int32       grd_Rows[GRD_MAX_RANDOM_ROWS];
     int32       grd_NumRows;    /* Number of rows (octave bands of noise) */
     int32       grd_RunningSum; /* Used to optimize summing of generators. */
-    int32_t         grd_Index;      /* Incremented each sample. */
-    int32_t         grd_IndexMask;  /* Index wrapped by ANDing with this mask. */
+    uint32_t    grd_Index;      /* Incremented modulo 2^32 each sample. */
+    uint32_t    grd_IndexMask;  /* Index wrapped by ANDing with this mask. */
     MYFLT       grd_Scalar;     /* Used to scale to normalize generated noise. */
 } PINKISH;
 
@@ -260,14 +261,14 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar;
         MYFLT   *amp, *freq, *offset;
-        uint32_t     next;
+        int64_t      next;       /* -1 means no further impulses */
 } IMPULSE;
 
 typedef struct {
         int32   cnt,acnt;
-        MYFLT   alpha;
+        double  alpha, x;
         MYFLT   val, nxtpt;
-        MYFLT   c1;
+        double  c1;
 } NSEG;
 
 typedef struct {
@@ -276,8 +277,8 @@ typedef struct {
         NSEG    *cursegp;
         int32   nsegs;
         int32   segsrem, curcnt;
-        MYFLT   curval, curinc, alpha;
-        MYFLT   curx;
+        MYFLT   curval;
+        double  curinc, alpha, curx;
         AUXCH   auxch;
         int32   xtra;
         MYFLT   finalval, lastalpha;

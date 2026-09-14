@@ -36,29 +36,29 @@ endop
 
 opcode ResolveCatalog(input:Catalog):Catalog
   if (input.id >= 0) then
-    stored:Catalog = catalogRegistry[input.id]
+    stored:Catalog init catalogRegistry[input.id]
     if (stored.id == input.id) then
-      result:Catalog = stored
+      result:Catalog init stored
     else
-      result:Catalog = input
+      result:Catalog init input
     endif
   else
-    result:Catalog = input
+    result:Catalog init input
   endif
   xout result
 endop
 
 opcode AppendCatalog(input:Catalog, key:S):Catalog
-  result:Catalog = ResolveCatalog(input)
+  result:Catalog init ResolveCatalog(input)
   keys:S[] init result.length + 1
 
   if (result.length > 0) then
     for index in [0 ... result.length - 1] do
-      keys[index] = result.keys[index]
+      keys[index] init result.keys[index]
     od
   endif
-  keys[result.length] = key
-  result.keys = keys
+  keys[result.length] init key
+  result.keys init keys
   result.length += 1
   xout result
 endop

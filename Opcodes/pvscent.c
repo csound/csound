@@ -37,6 +37,7 @@ static int32_t pvscentset(CSOUND *csound, PVSCENT *p)
 {
     *p->ans = FL(0.0);
     p->lastframe = 0;
+    p->old = FL(0.0);
     if (UNLIKELY(!((p->fin->format==PVS_AMP_FREQ) ||
                    (p->fin->format==PVS_AMP_PHASE))))
       return csound->InitError(csound,
@@ -52,9 +53,10 @@ static int32_t pvscent(CSOUND *csound, PVSCENT *p)
     MYFLT d = FL(0.0);
     MYFLT j, binsize = CS_ESR/(MYFLT)N;
     if (p->fin->sliding) {
-      CMPLX *fin = (CMPLX*) p->fin->frame.auxp;
       int32_t NB = p->fin->NB;
-      for (i=0, j=FL(0.5)*binsize; i<NB; i++, j += binsize) {
+      CMPLX *fin = (CMPLX*) p->fin->frame.auxp +
+        p->h.insdshead->ksmps_offset*NB;
+      for (i=0, j=FL(0.0); i<NB; i++, j += binsize) {
         c += fin[i].re*j;
         d += fin[i].re;
       }
@@ -63,11 +65,9 @@ static int32_t pvscent(CSOUND *csound, PVSCENT *p)
     else {
       float *fin = (float *) p->fin->frame.auxp;
       if (p->lastframe < p->fin->framecount) {
-        // printf("N=%d binsize=%f\n", N, binsize);
-        for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
+        for (i=0,j=FL(0.0); i<N+2; i+=2, j += binsize) {
           c += fin[i]*j;         /* This ignores phase */
           d += fin[i];
-          //printf("%d (%f) sig=%f c=%f d=%f\n", i,j,fin[i],c,d);
         }
         p->lastframe = p->fin->framecount;
         p->old = (d==FL(0.0) ? FL(0.0) : c/d);
@@ -88,8 +88,6 @@ static int32_t pvsscent(CSOUND *csound, PVSCENT *p)
       uint32_t n, nsmps = CS_KSMPS;
       int32 i,N = p->fin->N;
 
-      MYFLT c = FL(0.0);
-      MYFLT d = FL(0.0);
       MYFLT j, binsize = CS_ESR/(MYFLT)N;
       int32_t NB = p->fin->NB;
       if (UNLIKELY(offset)) memset(a, '\0', offset*sizeof(MYFLT));
@@ -99,7 +97,8 @@ static int32_t pvsscent(CSOUND *csound, PVSCENT *p)
       }
       for (n=offset; n<nsmps; n++) {
         CMPLX *fin = (CMPLX*) p->fin->frame.auxp + n*NB;
-        for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
+        MYFLT c = FL(0.0), d = FL(0.0);
+        for (i=0,j=FL(0.0); i<NB; i++, j += binsize) {
           c += j*fin[i].re;         /* This ignores phase */
           d += fin[i].re;
         }
@@ -116,20 +115,20 @@ static int32_t pvsscent(CSOUND *csound, PVSCENT *p)
       MYFLT d = FL(0.0);
       MYFLT j, binsize = CS_ESR/(MYFLT)N;
       float *fin = (float *) p->fin->frame.auxp;
-      nsmps -= early;
-      for (n=offset; n<nsmps; n++) {
-        if (p->lastframe < p->fin->framecount) {
-          for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
-            c += fin[i]*j;         /* This ignores phase */
-            d += fin[i];
-          }
-          old = a[n] = (d==FL(0.0) ? FL(0.0) : c/d);
-          p->lastframe = p->fin->framecount;
-        }
-        else {
-          a[n] = old;
-        }
+      if (UNLIKELY(offset)) memset(a, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        nsmps -= early;
+        memset(&a[nsmps], '\0', early*sizeof(MYFLT));
       }
+      if (p->lastframe < p->fin->framecount) {
+        for (i=0,j=FL(0.0); i<N+2; i+=2, j += binsize) {
+          c += fin[i]*j;         /* This ignores phase */
+          d += fin[i];
+        }
+        old = (d==FL(0.0) ? FL(0.0) : c/d);
+        p->lastframe = p->fin->framecount;
+      }
+      for (n=offset; n<nsmps; n++) a[n] = old;
       p->old = old;
     }
     return OK;
@@ -142,36 +141,37 @@ static int32_t pvsbandw(CSOUND *csound, PVSCENT *p)
     MYFLT d = FL(0.0);
     MYFLT j, binsize = CS_ESR/(MYFLT)N;
     if (p->fin->sliding) {
-      CMPLX *fin = (CMPLX*) p->fin->frame.auxp;
       int32_t NB = p->fin->NB;
+      CMPLX *fin = (CMPLX*) p->fin->frame.auxp +
+        p->h.insdshead->ksmps_offset*NB;
       MYFLT cd;
-      for (i=0, j=FL(0.5)*binsize; i<NB; i++, j += binsize) {
+      for (i=0, j=FL(0.0); i<NB; i++, j += binsize) {
         c += fin[i].re*j;
         d += fin[i].re;
       }
       cd = (d==FL(0.0) ? FL(0.0) : c/d);
       c = FL(0.0);
-      for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
+      for (i=0,j=FL(0.0); i<NB; i++, j += binsize) {
         c += fin[i].re*(j - cd)*(j - cd);
       }
-      *p->ans = SQRT(c);
+      *p->ans = (d==FL(0.0) ? FL(0.0) : SQRT(c/d));
     }
     else {
       float *fin = (float *) p->fin->frame.auxp;
       if (p->lastframe < p->fin->framecount) {
         // compute centroid
         MYFLT cd;
-        for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
+        for (i=0,j=FL(0.0); i<N+2; i+=2, j += binsize) {
           c += fin[i]*j;         /* This ignores phase */
           d += fin[i];
         }
         cd = (d==FL(0.0) ? FL(0.0) : c/d);
         c = FL(0.0);
-        for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
+        for (i=0,j=FL(0.0); i<N+2; i+=2, j += binsize) {
           c += fin[i]*(j - cd)*(j - cd);
         }
         p->lastframe = p->fin->framecount;
-        p->old = *p->ans = SQRT(c);
+        p->old = (d==FL(0.0) ? FL(0.0) : SQRT(c/d));
       }
       *p->ans = p->old;
     }
@@ -190,28 +190,30 @@ typedef struct _cent {
 
 static int32_t cent_i(CSOUND *csound, CENT *p)
 {
-    int32_t fftsize = *p->ifftsize;
+    MYFLT requested = *p->ifftsize;
+    uint32_t i;
+    MYFLT *win;
+    if (UNLIKELY(!(requested >= FL(2.0) && requested <= (1U << 30))))
+      return csound->InitError(csound, "%s", Str("centroid: FFT size out of range"));
     p->count = 0;
-    p->fsize = 1;
-    while(fftsize >>= 1) p->fsize <<= 1;
-    if (p->fsize < *p->ifftsize) {
-      p->fsize <<= 1;
+    p->fsize = 2;
+    while (p->fsize < requested) p->fsize <<= 1;
+    if (p->fsize != requested)
       csound->Warning(csound,
                       Str("centroid requested fftsize = %.0f, actual = %d\n"),
-                      *p->ifftsize, p->fsize);
-    }
+                      requested, p->fsize);
+    if (UNLIKELY(p->fsize > SIZE_MAX / sizeof(MYFLT)))
+      return csound->InitError(csound, "%s", Str("centroid: FFT size out of range"));
     if (p->frame.auxp == NULL || p->frame.size < p->fsize*sizeof(MYFLT))
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->frame);
     if (p->windowed.auxp == NULL || p->windowed.size < p->fsize*sizeof(MYFLT))
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->windowed);
-    if (p->win.auxp == NULL || p->win.size < p->fsize*sizeof(MYFLT)) {
-      uint32_t i;
-      MYFLT *win;
+    if (p->win.auxp == NULL || p->win.size < p->fsize*sizeof(MYFLT))
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->win);
-      win = (MYFLT *) p->win.auxp;
+    /* Rebuild even when a smaller transform reuses the allocation. */
+    win = (MYFLT *) p->win.auxp;
     for (i=0; i < p->fsize; i++)
       win[i] = 0.5 - 0.5*cos(i*TWOPI/p->fsize);
-    }
     p->old = 0;
     memset(p->frame.auxp, 0, p->fsize*sizeof(MYFLT));
     memset(p->windowed.auxp, 0, p->fsize*sizeof(MYFLT));
@@ -252,11 +254,12 @@ static int32_t cent_k(CSOUND *csound, CENT *p)
         else k++;
       }
       csound->RealFFT(csound, p->setup, windowed);
-      cf=FL(0.5)*binsize;
-      mag = fabs(windowed[0])/fsize;
-      c += mag*cf;
+      /* Real FFT packing stores DC and Nyquist separately. */
+      d = fabs(windowed[0])/fsize;
+      mag = fabs(windowed[1])/fsize;
+      c = mag * (FL(0.5)*CS_ESR);
       d += mag;
-      cf += binsize;
+      cf = binsize;
       for (i=2; i < fsize; i+=2, cf += binsize) {
         windowed[i] /= fsize;
         windowed[i+1] /= fsize;

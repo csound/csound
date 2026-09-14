@@ -28,8 +28,6 @@
 
 #include "interlocks.h"
 
-#define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
-
 typedef struct {
         OPDS    h;
         MYFLT   *kout, *kindx, *avar;
@@ -53,71 +51,74 @@ typedef struct {
 
 static int32_t vaget(CSOUND *csound, VA_GET *p)
 {
-    int32 ndx = (int32) MYFLOOR((double)*p->kindx);
+    double index = *p->kindx;
+    uint32_t ndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    if(LIKELY(ndx >= 0 && ndx < (int32) CS_KSMPS)) {
-    if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
-      csound->Warning(csound, "index %d outside sample-accurate bounds (%d, %d]",
+    if (UNLIKELY(!(index >= 0.0 && index < (double)CS_KSMPS)))
+      return csound->PerfError(csound, &(p->h),
+                              Str("Out of range in vaget.k (%g)"), index);
+    /* A checked nonnegative index truncates to the same sample as floor. */
+    ndx = (uint32_t)index;
+    if (UNLIKELY(ndx < offset || ndx >= CS_KSMPS-early))
+      csound->Warning(csound, "index %u outside sample-accurate bounds [%u, %u)",
                       ndx, offset, CS_KSMPS-early);
     *p->kout = p->avar[ndx];
     return OK;
-    } else
-      return csound->PerfError(csound, &(p->h),
-                               Str("Out of range in vaget.k (%d)"), ndx);
-
 }
 
 static int32_t vaset(CSOUND *csound, VA_SET *p)
 {
-    int32 ndx = (int32) MYFLOOR((double)*p->kindx);
+    double index = *p->kindx;
+    uint32_t ndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    if(LIKELY(ndx >= 0 && ndx < (int32) CS_KSMPS)) {
-    if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
-      csound->Warning(csound, "index %d outside sample-accurate bounds (%d, %d]",
+    if (UNLIKELY(!(index >= 0.0 && index < (double)CS_KSMPS)))
+      return csound->PerfError(csound, &(p->h),
+                              Str("Out of range in vaset.k (%g)"), index);
+    ndx = (uint32_t)index;
+    if (UNLIKELY(ndx < offset || ndx >= CS_KSMPS-early))
+      csound->Warning(csound, "index %u outside sample-accurate bounds [%u, %u)",
                       ndx, offset, CS_KSMPS-early);
-     p->avar[ndx] = *p->kval;
-     return OK;
-    }
-    else return csound->PerfError(csound, &(p->h),
-                               Str("Out of range in vaset.k (%d)"), ndx);
+    p->avar[ndx] = *p->kval;
+    return OK;
 }
 
 
 static int32_t vasigget(CSOUND *csound, VASIG_GET *p)
 {
-    int32 ndx = (int32) MYFLOOR((double)*p->kindx);
+    double index = *p->kindx;
+    uint32_t ndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 
-    if(LIKELY(ndx >= 0 && ndx < (int32) CS_KSMPS)) {
-    if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
-      csound->Warning(csound, "index %d outside sample-accurate bounds (%d, %d]",
+    if (UNLIKELY(!(index >= 0.0 && index < (double)CS_KSMPS)))
+      return csound->PerfError(csound, &(p->h),
+                              Str("Out of range in vasigget.k (%g)"), index);
+    ndx = (uint32_t)index;
+    if (UNLIKELY(ndx < offset || ndx >= CS_KSMPS-early))
+      csound->Warning(csound, "index %u outside sample-accurate bounds [%u, %u)",
                       ndx, offset, CS_KSMPS-early);
     *p->kout = p->avar[ndx];
     return OK;
-    } else
-      return csound->PerfError(csound, &(p->h),
-                               Str("Out of range in vasigget.k (%d)"), ndx);
 }
 
 static int32_t vasigset(CSOUND *csound, VASIG_SET *p)
 {
-    int32 ndx = (int32) MYFLOOR((double)*p->kindx);
+    double index = *p->kindx;
+    uint32_t ndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 
-    if(LIKELY(ndx >= 0 && ndx < (int32) CS_KSMPS)) {
-    if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
-      csound->Warning(csound, "index %d outside sample-accurate bounds (%d, %d]",
+    if (UNLIKELY(!(index >= 0.0 && index < (double)CS_KSMPS)))
+      return csound->PerfError(csound, &(p->h),
+                              Str("Out of range in vasigset.k (%g)"), index);
+    ndx = (uint32_t)index;
+    if (UNLIKELY(ndx < offset || ndx >= CS_KSMPS-early))
+      csound->Warning(csound, "index %u outside sample-accurate bounds [%u, %u)",
                       ndx, offset, CS_KSMPS-early);
-     p->avar[ndx] = *p->kval;
-     return OK;
-    }
-    else return csound->PerfError(csound, &(p->h),
-                               Str("Out of range in vasigset.k (%d)"), ndx);
-
+    p->avar[ndx] = *p->kval;
+    return OK;
 }
 
 #define S(x)    sizeof(x)

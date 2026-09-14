@@ -41,10 +41,21 @@ inline MYFLT limx(MYFLT f, MYFLT v1, MYFLT v2) {
   return f > v1 ? (f < v2 ? f : v2) : v1;
 }
 
+/* Keep output length current without allocating during performance. */
+template <std::size_t Inputs>
+struct ArrayOutput : csnd::Plugin<1, Inputs> {
+  int32_t prepare_output() {
+    auto &in = this->inargs.myfltvec_data(0);
+    auto *out = reinterpret_cast<ARRAYDAT *>(this->outargs(0));
+    return tabcheck(reinterpret_cast<CSOUND *>(this->csound), out,
+                    in.len(), this);
+  }
+};
+
 /** k-rate operator
     kout[] op kin[]
  */
-template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
+template <MYFLT (*op)(MYFLT)> struct ArrayOp : ArrayOutput<1> {
   int32_t process(csnd::myfltvec &out, csnd::myfltvec &in) {
     std::transform(in.begin(), in.end(), out.begin(),
                    [](MYFLT f) { return op(f); });
@@ -54,12 +65,14 @@ template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
   int32_t init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    out.init(csound, in.len(), this->insdshead);
+    if (out.init(csound, in.len(), this->insdshead) != OK)
+      return csound->init_error(Str_noop("cannot initialize output array"));
     if (!is_perf()) process(out, in);
     return OK;
   }
 
   int32_t kperf() {
+    if (prepare_output() != OK) return NOTOK;
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0));
   }
 };
@@ -67,7 +80,7 @@ template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
 /** k-rate binary operator
     kout[] op kin1[], kin2[]
  */
-template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
+template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : ArrayOutput<2> {
 
   int32_t process(csnd::myfltvec &out, csnd::myfltvec &in1, csnd::myfltvec &in2) {
     std::transform(in1.begin(), in1.end(), in2.begin(), out.begin(),
@@ -81,11 +94,15 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
     csnd::myfltvec &in2 = inargs.myfltvec_data(1);
     if (UNLIKELY(in2.len() < in1.len()))
       return csound->init_error(Str_noop("second input array is too short\n"));
-    out.init(csound, in1.len(), this->insdshead);
+    if (out.init(csound, in1.len(), this->insdshead) != OK)
+      return csound->init_error(Str_noop("cannot initialize output array"));
     if (!is_perf()) process(out, in1, in2);
     return OK;
   }
   int32_t kperf() {
+    if (UNLIKELY(inargs.myfltvec_data(1).len() < inargs.myfltvec_data(0).len()))
+      return csound->perf_error(Str_noop("second input array is too short"), this);
+    if (prepare_output() != OK) return NOTOK;
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0),
                    inargs.myfltvec_data(1));
   }
@@ -94,7 +111,7 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
 /** k-rate binary operator with array and scalar
     kout[] op kin1[], kin2
  */
-template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : csnd::Plugin<1, 2> {
+template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : ArrayOutput<2> {
 
   int32_t process(csnd::myfltvec &out, csnd::myfltvec &in, MYFLT v) {
     for (MYFLT *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
@@ -105,12 +122,14 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : csnd::Plugin<1, 2> {
   int32_t init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    out.init(csound, in.len(), this->insdshead);
+    if (out.init(csound, in.len(), this->insdshead) != OK)
+      return csound->init_error(Str_noop("cannot initialize output array"));
     if (!is_perf()) process(out, in, inargs[1]);
     return OK;
   }
 
   int32_t kperf() {
+    if (prepare_output() != OK) return NOTOK;
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0),
                    inargs[1]);
   }
@@ -120,7 +139,7 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : csnd::Plugin<1, 2> {
     kout[] op kin1[], kin2, kin3
  */
 template <MYFLT (*trop)(MYFLT, MYFLT, MYFLT)>
-struct ArrayOp4 : csnd::Plugin<1, 3> {
+struct ArrayOp4 : ArrayOutput<3> {
 
   int32_t process(csnd::myfltvec &out, csnd::myfltvec &in, MYFLT v1, MYFLT v2) {
     for (MYFLT *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
@@ -131,12 +150,14 @@ struct ArrayOp4 : csnd::Plugin<1, 3> {
   int32_t init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    out.init(csound, in.len(), this->insdshead);
+    if (out.init(csound, in.len(), this->insdshead) != OK)
+      return csound->init_error(Str_noop("cannot initialize output array"));
     if(!is_perf()) process(out, in, inargs[1], inargs[2]);
     return OK;
   }
 
   int32_t kperf() {
+    if (prepare_output() != OK) return NOTOK;
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0), inargs[1],
                    inargs[2]);
   }
@@ -145,9 +166,10 @@ struct ArrayOp4 : csnd::Plugin<1, 3> {
 /** k-rate operator
     kout[] sort[a,d] kin[]
  */
-template <typename T> struct ArraySort : csnd::Plugin<1, 1> {
+template <typename T> struct ArraySort : ArrayOutput<1> {
   int32_t process(csnd::myfltvec &out, csnd::myfltvec &in) {
-    std::copy(in.begin(), in.end(), out.begin());
+    if (out.begin() != in.begin())
+      std::copy(in.begin(), in.end(), out.begin());
     std::sort(out.begin(), out.end(), T());
     return OK;
   }
@@ -155,12 +177,14 @@ template <typename T> struct ArraySort : csnd::Plugin<1, 1> {
   int32_t init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    out.init(csound, in.len(), this->insdshead);
+    if (out.init(csound, in.len(), this->insdshead) != OK)
+      return csound->init_error(Str_noop("cannot initialize output array"));
     if (!is_perf()) process(out, in);
     return OK;
   }
 
   int32_t kperf() {
+    if (prepare_output() != OK) return NOTOK;
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0));
   }
 };
@@ -183,6 +207,8 @@ struct Dot : csnd::Plugin<1, 2> {
   }
 
   int32_t kperf() {
+    if (UNLIKELY(inargs.myfltvec_data(1).len() < inargs.myfltvec_data(0).len()))
+      return csound->perf_error(Str_noop("second input array is too short"), this);
     outargs[0] = process(inargs.myfltvec_data(0), inargs.myfltvec_data(1));
     return OK;
   }
@@ -236,9 +262,9 @@ static void onload(csnd::Csound *csound) {
                                    csnd::thread::i);
   csnd::plugin<ArrayOp<std::fabs>>(csound, "abs", "k[]", "k[]",
                                    csnd::thread::ik);
-  csnd::plugin<ArrayOp<std::log10>>(csound, "log2", "i[]", "i[]",
+  csnd::plugin<ArrayOp<std::log2>>(csound, "log2", "i[]", "i[]",
                                     csnd::thread::i);
-  csnd::plugin<ArrayOp<std::log10>>(csound, "log2", "k[]", "k[]",
+  csnd::plugin<ArrayOp<std::log2>>(csound, "log2", "k[]", "k[]",
                                     csnd::thread::ik);
   csnd::plugin<ArrayOp<std::log10>>(csound, "log10", "i[]", "i[]",
                                     csnd::thread::i);

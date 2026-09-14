@@ -359,7 +359,8 @@ MYFLT get_k(DBAP_STATE *dbap, MYFLT p) {
         k_den += (b * b * w * w) / POWER(d, pfac);
     }
 
-    MYFLT k = k_num / SQRT(k_den);
+    /* All-zero speaker weights mute the output. */
+    MYFLT k = k_den == FL(0.0) ? FL(0.0) : k_num / SQRT(k_den);
     return k;
 }
 

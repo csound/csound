@@ -839,10 +839,10 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
     if (strrchr(buffer,DIRSEP)) {
       PARM->alt_stack[PARM->macro_stack_ptr].path = PARM->path;
-      printf("setting path from %s to ", PARM->path);
       PARM->path = strdup(buffer); /* wasteful! */
       *(strrchr(PARM->path,DIRSEP)) = '\0';
-      printf("%s\n",PARM->path);
+      csound->DebugMsg(csound, "setting path from %s to %s",
+                       PARM->alt_stack[PARM->macro_stack_ptr].path, PARM->path);
     }
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
     PARM->alt_stack[PARM->macro_stack_ptr].included = 1;

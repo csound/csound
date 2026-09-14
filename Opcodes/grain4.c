@@ -54,6 +54,7 @@ static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
     int32_t    tmplong1, tmplong2;
     MYFLT       tmpfloat1;
     MYFLT       pitch[4];
+    double      gstart_samples, glength_samples;
 
     /* call ftfind() to get the function table...*/
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
@@ -101,39 +102,61 @@ static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
                                            "for the number of pitches"));
     }
     if ( *p->ipshift !=FL(0.0) ) {
-      if (UNLIKELY(*p->ipitch1 < FL(0.0) )) {
+      if (UNLIKELY(!isfinite(*p->ipitch1) ||
+                   *p->ipitch1 <= FL(0.0) )) {
         return
           csound->InitError(csound,
                             "%s", Str("granule_set: ipitch1 must be greater then zero"));
       }
-      if (UNLIKELY(*p->ipitch2 < FL(0.0) )) {
+      if (UNLIKELY(*p->ipshift >= FL(2.0) &&
+                   (!isfinite(*p->ipitch2) || *p->ipitch2 <= FL(0.0)) )) {
         return
           csound->InitError(csound,
                             "%s", Str("granule_set: ipitch2 must be greater then zero"));
       }
-      if (UNLIKELY(*p->ipitch3 < FL(0.0) )) {
+      if (UNLIKELY(*p->ipshift >= FL(3.0) &&
+                   (!isfinite(*p->ipitch3) || *p->ipitch3 <= FL(0.0)) )) {
         return
           csound->InitError(csound,
                             "%s", Str("granule_set: ipitch3 must be greater then zero"));
       }
-      if (UNLIKELY(*p->ipitch4 < FL(0.0) )) {
+      if (UNLIKELY(*p->ipshift >= FL(4.0) &&
+                   (!isfinite(*p->ipitch4) || *p->ipitch4 <= FL(0.0)) )) {
         return
           csound->InitError(csound,
                             "%s", Str("granule_set: ipitch4 must be greater then zero"));
       }
     }
 
-    if (UNLIKELY((*p->igskip < 0) || (*p->igskip * CS_ESR > ftp->flen) )) {
+    /* Preserve MYFLT sample rounding before checking the range in double. */
+    gstart_samples = (MYFLT) (*p->igskip * CS_ESR);
+    if (UNLIKELY(!isfinite(gstart_samples) || gstart_samples < 0.0 ||
+                 gstart_samples > (double) INT32_MAX ||
+                 gstart_samples > (double) ftp->flen)) {
       return csound->InitError(csound, "%s", Str("granule_set: must be positive and "
                                            "less than function table length"));
+    }
+    glength_samples = (MYFLT) (*p->ilength * CS_ESR);
+    if (UNLIKELY(!isfinite(glength_samples) || glength_samples < 1.0)) {
+      return csound->InitError(csound, "%s",
+                               Str("granule_set: ilength must span at least one sample"));
+    }
+    if (UNLIKELY(glength_samples > (double) INT32_MAX)) {
+      return csound->InitError(csound, "%s",
+                               Str("granule_set: ilength is too large"));
     }
     if (UNLIKELY(*p->igskip_os < 0)) {
       return csound->InitError(csound, "%s", Str("granule_set: "
                                            "igskip_os must be greater then 0"));
     }
 
-    p->gstart = (int32)(*p->igskip * CS_ESR);
-    p->glength = (int32)(*p->ilength * CS_ESR);
+    p->gstart = (int32)gstart_samples;
+    p->glength = (int32)glength_samples;
+    if (UNLIKELY(p->glength > INT32_MAX - p->gstart ||
+                 (uint32_t) p->glength > ftp->flen - (uint32_t) p->gstart)) {
+      return csound->InitError(csound, "%s", Str("granule_set: Illegal combination "
+                                           "of igskip and ilength"));
+    }
     p->gend = p->gstart + p->glength;
 
     if (UNLIKELY(*p->kgap < 0)) {
@@ -173,7 +196,7 @@ static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
       p->fpnt[nvoice] = 0;
       p->cnt[nvoice]  = 0;
       p->phs[nvoice]  = FL(0.0);
-      p->gskip[nvoice] = (int32)(*p->igskip * CS_ESR);
+      p->gskip[nvoice] = p->gstart;
       p->gap[nvoice] = (int32)(*p->kgap * CS_ESR);
     }
 
@@ -240,7 +263,7 @@ static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
       ftp->flen = tmplong2;
     }
 
-    if (UNLIKELY(p->gend > (int32_t) ftp->flen)) {
+    if (UNLIKELY((uint32_t) p->gend > ftp->flen)) {
       return csound->InitError(csound, "%s", Str("granule_set: Illegal combination "
                                            "of igskip and ilength"));
     }
@@ -340,28 +363,41 @@ static int32_t graingenv4(CSOUND *csound, GRAINV4 *p)
              tmpfpnt = *gskip + *fpnt;
          }
 
+         if (tmpfpnt >= gend)
+           tmpfpnt = gstart + (tmpfpnt - gend);
+
          att_len = (int32)(*gsize * *p->iatt * FL(0.01));
          dec_len = (int32)(*gsize * *p->idec * FL(0.01));
          att_sus =  *gsize -  dec_len;
 
          if (*fpnt < att_sus) {
-           tmpfloat1 = (FL(1.0) * *fpnt) / att_len;
-           envlop = ((tmpfloat1 >=FL(1.0)) ? FL(1.0) : tmpfloat1);
+           if (att_len > 0) {
+             tmpfloat1 = (FL(1.0) * *fpnt) / att_len;
+             envlop = ((tmpfloat1 >=FL(1.0)) ? FL(1.0) : tmpfloat1);
+           }
+           else
+             envlop = FL(1.0);
          }
-         else
+         else if (dec_len > 0)
            envlop =
              ((MYFLT)(dec_len - (MYFLT)(*fpnt - att_sus)))/((MYFLT)dec_len);
+         else
+           envlop = FL(1.0);
 
          v1 = *(ftbl + tmpfpnt);
 
          tmpfpnt = tmpfpnt + *mode;
          if (tmpfpnt < gstart)
-           tmpfpnt = gend - (gstart - tmpfpnt) + 1;
-         if (tmpfpnt > gend)
-           tmpfpnt = gstart + (tmpfpnt - gend) - 1;
+           tmpfpnt = gend - (gstart - tmpfpnt);
+         if (tmpfpnt >= gend)
+           tmpfpnt = gstart + (tmpfpnt - gend);
 
          if (*p->ifnenv > 0) {
-           tmplong3 = (int32)(envlop * flen_env) -1L;
+           tmplong3 = (int32)(envlop * (flen_env - 1));
+           if (tmplong3 < 0)
+             tmplong3 = 0;
+           else if (tmplong3 >= flen_env)
+             tmplong3 = flen_env - 1;
            envlop = *(ftbl_env + tmplong3);
          }
 

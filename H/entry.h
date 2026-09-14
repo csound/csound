@@ -175,6 +175,7 @@ int32_t csgset_bkpt(CSOUND *, void *), cosseg(CSOUND *, void *);
 int32_t csgrset(CSOUND *, void *);
 int32_t kcssegr(CSOUND *, void *), cossegr(CSOUND *, void *);
 int32_t madsrset(CSOUND *, void *), adsrset(CSOUND *, void *);
+int32_t kadsr(CSOUND *, void *), aadsr(CSOUND *, void *);
 int32_t xdsrset(CSOUND *, void *), mxdsrset(CSOUND *, void *);
 int32_t expseg2(CSOUND *, void *), xsgset(CSOUND *, void *);
 int32_t kxpseg(CSOUND *, void *), expseg(CSOUND *, void *);

@@ -137,8 +137,16 @@
 
 typedef struct FCOMPLEX {double r,i;} fcomplex;
 
-static double readFilter(FILTER*, int32_t);
-static void insertFilter(FILTER*,double);
+/* Both opcode structs have these fields. Do not cast between their types.
+ * Delay arguments are positive and no greater than ndelay. */
+#define FILTER_READ(p, i) \
+    ((p)->currPos - (double*)(p)->delay.auxp >= (i) ? \
+     (p)->currPos[-(i)] : (p)->currPos[(p)->ndelay - (i)])
+#define FILTER_INSERT(p, val) do { \
+    *(p)->currPos = (val); \
+    if (++(p)->currPos == (double*)(p)->delay.auxp + (p)->ndelay) \
+      (p)->currPos = (double*)(p)->delay.auxp; \
+  } while (0)
 
 #ifndef MAX
 #define MAX(a,b) ((a>b)?(a):(b))
@@ -154,7 +162,7 @@ static void expandPoly(fcomplex[], double[], int32_t);
 static void complex2polar(fcomplex[],fpolar[], int32_t);
 static void polar2complex(fpolar[],fcomplex[], int32_t);
 static void sortRoots(fcomplex roots[], int32_t dim);
-static int32_t sortfun(fpolar *a, fpolar *b);
+static int sortfun(const void *a, const void *b);
 static void nudgeMags(fpolar a[], fcomplex b[], int32_t dim, double fact);
 static void nudgePhases(fpolar a[], fcomplex b[], int32_t dim, double fact);
 
@@ -177,17 +185,19 @@ static int32_t ifilter(CSOUND *csound, FILTER* p)
      * we must copy the i-vars into the p structure.
      */
 
+    /* Check before conversion; retain truncation of fractional orders. */
+    if (UNLIKELY(!(*p->nb >= 1 && *p->nb < MAXZEROS + 2 &&
+                   *p->na > -1 && *p->na < MAXPOLES + 1)))
+      return csound->InitError(csound, "%s", Str("Filter order out of bounds: "
+                                           "(1 <= nb <= 51, 0 <= na <= 50)"));
     p->numa = (int32_t)*p->na;
     p->numb = (int32_t)*p->nb;
-
-    /* First check bounds on initialization arguments */
-    if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
-                 (p->numa<0) || (p->numa>MAXPOLES)))
-      return csound->InitError(csound, "%s", Str("Filter order out of bounds: "
-                                           "(1 <= nb < 51, 0 <= na <= 50)"));
+    if (UNLIKELY(p->INOCOUNT < 3 + p->numb + p->numa))
+      return csound->InitError(csound, "%s", Str("filter2: not enough coefficients"));
 
     /* Calculate the total delay in samples and allocate memory for it */
-    p->ndelay = MAX(p->numb-1,p->numa);
+    /* The sample loop stores state even for a gain-only filter. */
+    p->ndelay = MAX(1, MAX(p->numb-1,p->numa));
 
     csound->AuxAlloc(csound, p->ndelay * sizeof(double), &p->delay);
 
@@ -206,7 +216,7 @@ static int32_t ifilter(CSOUND *csound, FILTER* p)
 /* izfilter - initialize z-plane controllable filter */
 static int32_t izfilter(CSOUND *csound, ZFILTER *p)
 {
-    fcomplex a[MAXPOLES];
+    fcomplex a[MAXPOLES+1];
     fcomplex *roots;
     double *coeffs;
     int32_t i, dim;
@@ -215,17 +225,17 @@ static int32_t izfilter(CSOUND *csound, ZFILTER *p)
      * we must copy the i-vars into the p structure.
      */
 
+    if (UNLIKELY(!(*p->nb >= 1 && *p->nb < MAXZEROS + 2 &&
+                   *p->na > -1 && *p->na < MAXPOLES + 1)))
+      return csound->InitError(csound, "%s", Str("Filter order out of bounds: "
+                                           "(1 <= nb <= 51, 0 <= na <= 50)"));
     p->numa = (int32_t)*p->na;
     p->numb = (int32_t)*p->nb;
-
-    /* First check bounds on initialization arguments */
-    if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
-                 (p->numa<0) || (p->numa>MAXPOLES)))
-      return csound->InitError(csound, "%s", Str("Filter order out of bounds: "
-                                           "(1 <= nb < 51, 0 <= na <= 50)"));
+    if (UNLIKELY(p->INOCOUNT < 5 + p->numb + p->numa))
+      return csound->InitError(csound, "%s", Str("zfilter2: not enough coefficients"));
 
     /* Calculate the total delay in samples and allocate memory for it */
-    p->ndelay = MAX(p->numb-1,p->numa);
+    p->ndelay = MAX(1, MAX(p->numb-1,p->numa));
 
     csound->AuxAlloc(csound, p->ndelay * sizeof(double), &p->delay);
 
@@ -234,6 +244,9 @@ static int32_t izfilter(CSOUND *csound, ZFILTER *p)
 
     for (i=0; i<p->numb+p->numa; i++)
       p->dcoeffs[i] = (double)*p->coeffs[i];
+
+    if (p->numa == 0)
+      return OK;
 
     /* Add auxillary root memory */
     csound->AuxAlloc(csound, p->numa * sizeof(fcomplex), &p->roots);
@@ -247,8 +260,7 @@ static int32_t izfilter(CSOUND *csound, ZFILTER *p)
     for (i=dim-1; i>=0; i--)
       a[i] = Complex(coeffs[dim-i-1],0.0);
 
-    /* NRIC root finding routine, a[0..M] roots[1..M] */
-    zroots(csound, a, dim,  roots-1/*POLEISH*/);
+    zroots(csound, a, dim, roots);
 
     /* Sort roots into descending order of magnitudes */
     sortRoots(roots, dim);
@@ -295,17 +307,17 @@ static int32_t afilter(CSOUND *csound, FILTER* p)
         /* Do poles first */
         /* Sum of products of a's and delays */
         if (i<p->numa)
-          poleSamp += -(a[i])*readFilter(p,i+1);
+          poleSamp += -(a[i])*FILTER_READ(p,i+1);
 
         /* Now do the zeros */
         if (i<(p->numb-1))
-          zeroSamp += (b[i])*readFilter(p,i+1);
+          zeroSamp += (b[i])*FILTER_READ(p,i+1);
 
       }
 
       p->out[n] = (MYFLT)((b0)*poleSamp + zeroSamp);
       /* update filter delay line */
-      insertFilter(p, poleSamp);
+      FILTER_INSERT(p, poleSamp);
     }
     return OK;
 }
@@ -339,17 +351,17 @@ static int32_t kfilter(CSOUND *csound, FILTER* p)
       /* Do poles first */
       /* Sum of products of a's and delays */
       if (i<p->numa)
-        poleSamp += -(a[i])*readFilter(p,i+1);
+        poleSamp += -(a[i])*FILTER_READ(p,i+1);
 
       /* Now do the zeros */
       if (i<(p->numb-1))
-        zeroSamp += (b[i])*readFilter(p,i+1);
+        zeroSamp += (b[i])*FILTER_READ(p,i+1);
     }
 
     *p->out = (MYFLT)((b0)*poleSamp + zeroSamp);
 
     /* update filter delay line */
-    insertFilter(p, poleSamp);
+    FILTER_INSERT(p, poleSamp);
     return OK;
 }
 
@@ -389,12 +401,14 @@ static int32_t azfilter(CSOUND *csound, ZFILTER* p)
 
     int32_t dim = p->numa;
 
-    /* Nudge pole magnitudes */
-    complex2polar(roots,B,dim);
-    nudgeMags(B,roots,dim,kmagf);
-    nudgePhases(B,roots,dim,kphsf);
-    polar2complex(B,C,dim);
-    expandPoly(C,a,dim);
+    if (dim > 0) {
+      /* Nudge pole magnitudes and phases. */
+      complex2polar(roots,B,dim);
+      nudgeMags(B,roots,dim,kmagf);
+      nudgePhases(B,roots,dim,kphsf);
+      polar2complex(B,C,dim);
+      expandPoly(C,a,dim);
+    }
 
     /* C now contains the complex roots of the nudged filter */
     /* and a contains their associated real coefficients. */
@@ -416,63 +430,19 @@ static int32_t azfilter(CSOUND *csound, ZFILTER* p)
         /* Do poles first */
         /* Sum of products of a's and delays */
         if (i<p->numa)
-          poleSamp += -(a[i])*readFilter((FILTER*)p,i+1);
+          poleSamp += -(a[i])*FILTER_READ(p,i+1);
 
         /* Now do the zeros */
         if (i<(p->numb-1))
-          zeroSamp += (b[i])*readFilter((FILTER*)p,i+1);
+          zeroSamp += (b[i])*FILTER_READ(p,i+1);
       }
 
       p->out[n] = (MYFLT)((b0)*poleSamp + zeroSamp);
 
       /* update filter delay line */
-      insertFilter((FILTER*)p, poleSamp);
+      FILTER_INSERT(p, poleSamp);
     }
     return OK;
-}
-
-/* readFilter -- delay-line access routine
- *
- * Reads sample x[n-i] from a previously established delay line.
- * With this syntax i is +ve for a time delay and -ve for a time advance.
- *
- * The use of explicit indexing rather than implicit index incrementing
- * allows multiple lattice structures to access the same delay line.
- *
- */
-static double readFilter(FILTER* p, int32_t i)
-{
-    double* readPoint; /* Generic pointer address */
-
-    /* Calculate the address of the index for this read */
-    readPoint = p->currPos - i;
-
-    /* Wrap around for time-delay if necessary */
-    if (readPoint < ((double*)p->delay.auxp) )
-      readPoint += p->ndelay;
-    else
-      /* Wrap for time-advance if necessary */
-      if (readPoint > ((double*)p->delay.auxp + (p->ndelay-1)) )
-        readPoint -= p->ndelay;
-
-    return *readPoint; /* Dereference read address for delayed value */
-}
-
-/* insertFilter -- delay-line update routine
- *
- * Inserts the passed value into the currPos and increments the
- * currPos pointer modulo the length of the delay line.
- *
- */
-static void insertFilter(FILTER* p, double val)
-{
-    /* Insert the passed value into the delay line */
-    *p->currPos = val;
-
-    /* Update the currPos pointer and wrap modulo the delay length */
-    if (((double*) (++p->currPos)) >
-        ((double*)p->delay.auxp + (p->ndelay-1)) )
-      p->currPos -= p->ndelay;
 }
 
 /* Compute polynomial coefficients from the roots */
@@ -482,7 +452,7 @@ static void insertFilter(FILTER* p, double val)
 static void expandPoly(fcomplex roots[], double a[], int32_t dim)
 {
     int32_t j,k;
-    fcomplex z[MAXPOLES],d[MAXPOLES];
+    fcomplex z[MAXPOLES+1],d[MAXPOLES];
 
     z[0] = Complex(1.0, 0.0);
     for (j=1;j<=dim;j++)
@@ -530,8 +500,7 @@ static void sortRoots(fcomplex roots[], int32_t dim)
     complex2polar(roots, plr, dim);
 
     /* Sort by their magnitudes */
-    qsort(plr, dim, sizeof(fpolar),
-          (int32_t(*)(const void *, const void * ))sortfun);
+    qsort(plr, dim, sizeof(fpolar), sortfun);
 
     /* Convert back to complex form */
     polar2complex(plr,roots,dim);
@@ -539,8 +508,9 @@ static void sortRoots(fcomplex roots[], int32_t dim)
 }
 
 /* Comparison function for sorting in DECREASING order */
-static int32_t sortfun(fpolar *a, fpolar *b)
+static int sortfun(const void *av, const void *bv)
 {
+    const fpolar *a = (const fpolar*)av, *b = (const fpolar*)bv;
     if (a->mag<b->mag)
       return 1;
     else if (a->mag==b->mag)
@@ -573,6 +543,9 @@ static void nudgeMags(fpolar a[], fcomplex b[], int32_t dim, double fact)
       for (i=0;i<dim;i++)
         if (fabs(b[i].i)>eps) /* Check if pole is complex */
           break;
+
+      if (i == dim)
+        return;
 
       nudgefact = 1 + (1/a[i].mag-1)*fact;
 
@@ -610,7 +583,7 @@ static void nudgePhases(fpolar a[], fcomplex b[], int32_t dim, double fact)
     if (fact>0 && fact<=1) {
       /* Find the largest angled non-real pole */
       for (i=0;i<dim;i++)
-        if (a[i].ph>phmax)
+        if (fabs(b[i].i)>eps && a[i].ph>phmax)
           phmax = a[i].ph;
 
       phmax /= PI; /* Normalize to radian frequency */
@@ -717,7 +690,7 @@ static void zroots(CSOUND *csound,fcomplex a[], int32_t m, fcomplex roots[])
       x = Complex(0.0,0.0);
       laguer(csound,ad,j,&x,&its);
       if (fabs(x.i) <= 2.0*EPS*fabs(x.r)) x.i = 0.0;
-      roots[j] = x;
+      roots[j-1] = x;
       b = ad[j];
       for (jj=j-1; jj>=0; jj--) {
         c = ad[jj];
@@ -726,11 +699,11 @@ static void zroots(CSOUND *csound,fcomplex a[], int32_t m, fcomplex roots[])
       }
     }
     /*    if (poleish) */
-    for (j=1; j<=m; j++)
+    for (j=0; j<m; j++)
       laguer(csound,a,m,&roots[j],&its);
-    for (j=2; j<=m; j++) {
+    for (j=1; j<m; j++) {
       x = roots[j];
-      for (i=j-1; i>=1; i--) {
+      for (i=j-1; i>=0; i--) {
         if (roots[i].r <= x.r) break;
         roots[i+1] = roots[i];
       }

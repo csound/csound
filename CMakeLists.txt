@@ -1111,7 +1111,6 @@ if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     set(HAVE_PTHREAD 0)
     # Disable shared libraries for WASI to avoid -shared flag warning
     set(BUILD_SHARED_LIBS OFF)
-    list(REMOVE_ITEM externs_SRCS Opcodes/counter.c)
     list(REMOVE_ITEM externs_SRCS Opcodes/serial.c)
     list(REMOVE_ITEM externs_SRCS Opcodes/system_call.c)
     if(BUILD_WASI_BROWSER)
@@ -1252,7 +1251,7 @@ set(mp3in_SRCS
 
 
 if(NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
-    # Only include C++ opcodes for non-WASI builds
+    # Full set of C++ opcodes for non-WASI builds
     set(cppops_SRCS
        Opcodes/ampmidid.cpp
        Opcodes/mixer.cpp
@@ -1270,8 +1269,10 @@ if(NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
 else()
     # Limited C++ opcodes for WASI builds
     set(cppops_SRCS
+        Opcodes/arrayops.cpp
         Opcodes/bformdec2.cpp
         Opcodes/padsynth_gen.cpp
+        Opcodes/pvsops.cpp
         Opcodes/signalflowgraph.cpp)
 endif()
 

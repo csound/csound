@@ -201,7 +201,6 @@ static int32_t pluckGetSamps(CSOUND *csound, WGPLUCK* p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     len_t n,nsmps=CS_KSMPS;
 /*    int32_t i = 0; */
-    MYFLT *fdbk = p->afdbk;
     /* set the delay element to pickup at */
     len_t pickupSamp=(len_t)(M * *p->pickupPos);
     if (UNLIKELY(pickupSamp<1)) pickupSamp = 1;
@@ -212,6 +211,8 @@ static int32_t pluckGetSamps(CSOUND *csound, WGPLUCK* p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset;n<nsmps;n++) {
+        /* The output may reuse the excitation buffer. */
+        MYFLT excitation = p->afdbk[n];
         ar[n] = guideRailAccess(&p->wg.upperRail,pickupSamp)
                +guideRailAccess(&p->wg.lowerRail,M-pickupSamp);
         yrM = guideRailAccess(&p->wg.upperRail,M-1);/* wave into the nut */
@@ -220,7 +221,7 @@ static int32_t pluckGetSamps(CSOUND *csound, WGPLUCK* p)
         yl0 = guideRailAccess(&p->wg.lowerRail,0);  /* wave into bridge */
         yr0 = -filter3FIR(&p->bridge,yl0);   /* bridge reflection filter */
         yr0 = filterAllpass(&p->wg,yr0);     /* allpass tuning filter */
-        yr0 += *fdbk++;           /* Surely better to inject here */
+        yr0 += excitation;
         guideRailUpdate(&p->wg.upperRail,yr0);    /* update the upper rail*/
         guideRailUpdate(&p->wg.lowerRail,ylM);    /* update the lower rail*/
       }
@@ -261,14 +262,14 @@ static inline int32_t circularBufferCircularBuffer(CSOUND *csound,
 #define guideRailGuideRail(csound,gr,d) circularBufferCircularBuffer(csound, gr,d)
 
 /* ::access -- waveguide rail access routine */
-static MYFLT guideRailAccess(guideRail* gr, len_t pos)
+static inline MYFLT guideRailAccess(guideRail* gr, len_t pos)
 {
-    MYFLT *s = gr->pointer - pos;
-    while (s < gr->data)
-      s += gr->size;
-    while (s > gr->endPoint)
-      s -= gr->size;
-    return *s;
+    len_t index = (gr->pointer - gr->data) - pos;
+    while (index < 0)
+      index += gr->size;
+    while (index >= gr->size)
+      index -= gr->size;
+    return gr->data[index];
 }
 
 /* ::FIR -- direct convolution filter routine */

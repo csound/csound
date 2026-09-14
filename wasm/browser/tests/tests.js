@@ -1369,6 +1369,60 @@ e
       assert.property(cs, "getMemory");
     });
 
+    it("bounds formatted WASM messages to the message buffer", function () {
+      const csound = cs.csoundCreate();
+      const wasm = cs.wasm.exports;
+      const message = "x".repeat(8192);
+      const text = new TextEncoder().encode(message + "\0");
+      const pointer = wasm.allocStringMem(text.length);
+      const newline = wasm.allocStringMem(2);
+      const log = sinon.stub(console, "log");
+
+      try {
+        new Uint8Array(cs.getMemory().buffer, pointer, text.length).set(text);
+        new Uint8Array(cs.getMemory().buffer, newline, 2).set([10, 0]);
+        wasm.csoundMessageS(csound, 0, pointer, 0);
+        wasm.csoundMessageS(csound, 0, newline, 0);
+        assert.deepEqual(log.args, [["x".repeat(4095)]]);
+      } finally {
+        log.restore();
+        wasm.freeStringMem(newline);
+        wasm.freeStringMem(pointer);
+        cs.csoundDestroy(csound);
+      }
+    });
+
+    it("handles a WASM message encoding error without throwing", function () {
+      const csound = cs.csoundCreate();
+      const wasm = cs.wasm.exports;
+      const format = wasm.allocStringMem(4);
+      const wideString = wasm.allocStringMem(8);
+      const args = wasm.allocStringMem(8);
+      const followingMessage = wasm.allocStringMem(4);
+      const log = sinon.stub(console, "log");
+
+      try {
+        const memory = cs.getMemory().buffer;
+        new Uint8Array(memory, format, 4).set([37, 108, 115, 0]); // %ls
+        const data = new DataView(memory);
+        // A lone surrogate cannot be encoded as a multibyte character.
+        data.setUint32(wideString, 0xd800, true);
+        data.setUint32(wideString + 4, 0, true);
+        data.setUint32(args, wideString, true);
+        new Uint8Array(memory, followingMessage, 4).set([111, 107, 10, 0]);
+        assert.doesNotThrow(() => wasm.csoundMessageS(csound, 0, format, args));
+        wasm.csoundMessageS(csound, 0, followingMessage, 0);
+        assert.deepEqual(log.args, [["ok"]]);
+      } finally {
+        log.restore();
+        wasm.freeStringMem(followingMessage);
+        wasm.freeStringMem(args);
+        wasm.freeStringMem(wideString);
+        wasm.freeStringMem(format);
+        cs.csoundDestroy(csound);
+      }
+    });
+
     it("reuses resources after failed plugin loads", async function () {
       const { libcsound } = await import(url);
       const badPlugin = Uint8Array.from(

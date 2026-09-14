@@ -297,12 +297,15 @@
     MYFLT value;
     FUNC *ftp;
     int32  ctlno;
+    int32_t chan;
 
     if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127))
       return csound->InitError(csound, Str("illegal controller number"));
+    else if (UNLIKELY((chan = (int32_t) *p->ichan - 1) < 0 ||
+                      chan > 1023 || !csound->m_chnbp[chan]))
+      return csound->InitError(csound, Str("illegal midi channel"));
     else {
-      value = (MYFLT) (csound->m_chnbp[(int32_t) *p->ichan-1]->ctl_val[ctlno]
-                       * oneTOf7bit);
+      value = (MYFLT) (csound->m_chnbp[chan]->ctl_val[ctlno] * oneTOf7bit);
       if (*p->ifn > 0) {
         if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
           return NOTOK;               /* if valid ftable,use value as index   */
@@ -370,7 +373,6 @@
 
       if (*p->ifn > 0) {
         /* linear interpolation routine */
-        /* linear interpolation routine */
         FUNC *ftp = csound->FTFind(csound, p->ifn); /* gab-A1 */
         MYFLT phase, tmp, *tab;
          if (UNLIKELY(ftp == NULL))
@@ -379,8 +381,8 @@
          tab = ftp->ftable;
       /* clamp it */
       value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
-      phase = value * (p->ftp->flen - 1); /* gab-A1 */
-      /* but here it also does use the guard point */
+      phase = value * (ftp->flen - 1); /* gab-A1 */
+      /* interpolate between adjacent samples */
       tmp = tab[(int32)phase];
       value = tmp + (tab[(int32)phase+1] - tmp) * (phase - (int32) phase);
       }
@@ -469,7 +471,7 @@
          tab = ftp->ftable;
       /* clamp it */
       value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
-      phase = value * (p->ftp->flen - 1); /* gab-A1 */
+      phase = value * (ftp->flen - 1); /* gab-A1 */
       /* but here it also does use the guard point */
       tmp = tab[(int32)phase];
       value = tmp + (tab[(int32)phase+1] - tmp) * (phase - (int32) phase);
@@ -606,5 +608,4 @@
     }
     return OK;
 }
-
 

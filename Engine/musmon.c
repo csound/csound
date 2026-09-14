@@ -201,12 +201,22 @@ MYFLT initialise_io(CSOUND *csound) {
           * O->outbufsamps;
         if (O->oMaxLag <= O->outbufsamps && O->outbufsamps > 1)
           O->outbufsamps >>= 1;
-        if(O->outbufsamps < csound->ksmps) {
-          O->outbufsamps = csound->ksmps;
-          O->oMaxLag = csound->ksmps*2;
-        }
       }
       O->inbufsamps = O->outbufsamps;
+    }
+    /* Host/embedded IO skips the rtaudio block above, so default -b can
+       stay below ksmps. Raise -b and scale -B to keep the original ratio. */
+    if (O->outbufsamps > 0 && O->outbufsamps < (int32_t) csound->ksmps) {
+      int32_t old_b = (int32_t) O->outbufsamps;
+      int32_t new_b = (int32_t) csound->ksmps;
+      if (!O->oMaxLag)
+        O->oMaxLag = IODACSAMPS;
+      csound->Warning(csound, Str(
+        "-b (%d) < ksmps (%d); increasing -b to %d and scaling -B to preserve b:B\n"),
+                      old_b, new_b, new_b);
+      O->oMaxLag = (int32_t) (((int64_t) O->oMaxLag * new_b) / old_b);
+      O->outbufsamps = new_b;
+      O->inbufsamps = new_b;
     }
      csound->ErrorMsg(csound, Str("audio buffered in %d sample-frame blocks\n"),
                     (int32_t) O->outbufsamps);

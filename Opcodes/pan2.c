@@ -68,22 +68,25 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
       memset(&al[nsmps], '\0', early*sizeof(MYFLT));
     }
+    /* Either output may share the input buffer. Read each sample first. */
     switch (type) {
     case 0:
       {
         if (asgp) {
           for (n=offset; n<nsmps; n++) {
+            MYFLT sample = ain[n];
             MYFLT kangl = HALFPI_F * pan[n];
-            ar[n] = ain[n] * SIN(kangl);
-            al[n] = ain[n] * COS(kangl);
+            ar[n] = sample * SIN(kangl);
+            al[n] = sample * COS(kangl);
           }
         }
         else {
           MYFLT kangl = HALFPI_F * *pan;
           s = SIN(kangl); c = COS(kangl);
           for (n=offset; n<nsmps; n++) {
-            ar[n] = ain[n] * s;
-            al[n] = ain[n] * c;
+            MYFLT sample = ain[n];
+            ar[n] = sample * s;
+            al[n] = sample * c;
           }
         }
         break;
@@ -92,9 +95,10 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
       {
         if (asgp) {
           for (n=offset; n<nsmps; n++) {
+            MYFLT sample = ain[n];
             MYFLT kangl = pan[n];
-            ar[n] = ain[n] * SQRT(kangl);
-            al[n] = ain[n] * SQRT(FL(1.0)-kangl);
+            ar[n] = sample * SQRT(kangl);
+            al[n] = sample * SQRT(FL(1.0)-kangl);
           }
         }
         else {
@@ -102,8 +106,9 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
           s = SQRT(kangl);
           c = SQRT(FL(1.0)-kangl);
           for (n=offset; n<nsmps; n++) {
-            ar[n] = ain[n] * s;
-            al[n] = ain[n] * c;
+            MYFLT sample = ain[n];
+            ar[n] = sample * s;
+            al[n] = sample * c;
           }
         }
         break;
@@ -112,9 +117,10 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
       {
         MYFLT kangl = *pan;
         for (n=offset; n<nsmps; n++) {
+          MYFLT sample = ain[n];
           if (asgp) kangl = pan[n];
-          ar[n] = ain[n] * kangl;
-          al[n] = ain[n] * (FL(1.0)-kangl);
+          ar[n] = sample * kangl;
+          al[n] = sample * (FL(1.0)-kangl);
         }
         break;
       }
@@ -123,13 +129,14 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
         MYFLT kangl, l, r;
         if (asgp) {
           for (n=offset; n<nsmps; n++) {
+            MYFLT sample = ain[n];
             kangl = pan[n];
             c = COS(HALFPI*kangl);
             s = SIN(HALFPI*kangl);
             l = ROOT2*(c+s)*0.5;
             r = ROOT2*(c-s)*0.5;
-            al[n] = ain[n] * l;
-            ar[n] = ain[n] * r;
+            al[n] = sample * l;
+            ar[n] = sample * r;
           }
         }
         else {
@@ -139,8 +146,9 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
           s = ROOT2*(cc+ss)*0.5;
           c = ROOT2*(cc-ss)*0.5;
           for (n=offset; n<nsmps; n++) {
-            al[n] = ain[n] * s;
-            ar[n] = ain[n] * c;
+            MYFLT sample = ain[n];
+            al[n] = sample * s;
+            ar[n] = sample * c;
           }
         }
         break;

@@ -235,7 +235,7 @@ void csoundInputMessage(CSOUND *csound, const char *message) {
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       int32_t extralloc = (int32_t) (STA(Linep) + size - STA(Linebufend));
-      csound->Message(csound, "realloc %d\n", extralloc);
+      csound->DebugMsg(csound, "realloc %d", extralloc);
       // csound->Message(csound, "extralloc: %d %d %d\n",
       //                 extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
       // FIXME -- Coverity points out that this test is always false

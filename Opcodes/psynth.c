@@ -641,6 +641,8 @@ static int32_t trscale_process(CSOUND *csound, _PTRANS *p)
         else
           frameout[i] = framein[i];
         outfr = framein[i + 1] * scale;
+        if (UNLIKELY(!(outfr >= FL(0.0))))
+          outfr = FL(0.0);
         frameout[i + 1] = (float) (outfr < nyq ? outfr : nyq);
         frameout[i + 2] = framein[i + 2];
         id = (int32_t) framein[i + 3];
@@ -670,6 +672,8 @@ static int32_t trshift_process(CSOUND *csound, _PTRANS *p)
         else
           frameout[i] = framein[i];
         outfr = framein[i + 1] + shift;
+        if (UNLIKELY(!(outfr >= FL(0.0))))
+          outfr = FL(0.0);
         frameout[i + 1] = (float) (outfr < nyq ? outfr : nyq);
         frameout[i + 2] = framein[i + 2];
         id = (int32_t) framein[i + 3];
@@ -1011,7 +1015,8 @@ static int32_t trfil_process(CSOUND *csound, _PSFIL *p)
     MYFLT   *fil = p->tab->ftable;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int32_t i = 0, id /* = (int32_t) framein[3]*/, len = p->len, end = p->numbins * 4;
+    int32_t i = 0, id /* = (int32_t) framein[3]*/, len = p->len,
+            end = p->numbins * 4;
 
     if (p->lastframe < p->fin->framecount) {
       MYFLT   fr, pos = FL(0.0), frac = FL(0.0);
@@ -1023,14 +1028,19 @@ static int32_t trfil_process(CSOUND *csound, _PSFIL *p)
         amnt = 0;
       do {
         fr = framein[i + 1];
-        if (UNLIKELY(fr > nyq))
+        if (UNLIKELY(!(fr >= FL(0.0))))
+          fr = FL(0.0);
+        else if (UNLIKELY(fr > nyq))
           fr = nyq;
-        //if (fr < 0)
-        fr = FABS(fr);
         pos = fr * len / nyq;
-        posi = (int32_t) pos;
-        frac = pos - posi;
-        gain = fil[posi] + frac * (fil[posi + 1] - fil[posi]);
+        /* At Nyquist, use the guard point without reading beyond it. */
+        if (UNLIKELY(pos >= len))
+          gain = fil[len];
+        else {
+          posi = (int32_t) pos;
+          frac = pos - posi;
+          gain = fil[posi] + frac * (fil[posi + 1] - fil[posi]);
+        }
         frameout[i] = (float) (framein[i] * (FL(1.0) - amnt + gain * amnt));
         frameout[i + 1] = fr;
         frameout[i + 2] = framein[i + 2];

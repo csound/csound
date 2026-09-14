@@ -118,8 +118,10 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     int32_t i;
     PVSDAT  *fs = p->fsig;
     int32_t N = fs->N;
-    int32_t noscs,n_oscs;
-    int32_t startbin,binoffset;
+    int32_t numbins,n_oscs;
+    int32_t startbin,binincr;
+    int64_t lastbin;
+    double value;
     MYFLT *p_x;
 
     if (UNLIKELY(fs->sliding))
@@ -130,10 +132,11 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     p->winsize = fs->winsize;
     p->wintype = fs->wintype;
     p->fftsize = N;
-    noscs   = N/2 + 1;                     /* max possible */
-    n_oscs = (int32_t) *p->n_oscs;    /* user param*/
-    if (UNLIKELY(n_oscs <=0))
-      csound->InitError(csound, Str("pvadsyn: bad value for inoscs\n"));
+    numbins = N/2 + 1;                     /* max possible */
+    value = (double)*p->n_oscs;
+    if (UNLIKELY(!(value >= 1.0 && value < (double)numbins + 1.0)))
+      return csound->InitError(csound, Str("pvsadsyn: bad value for inoscs\n"));
+    n_oscs = (int32_t)value;             /* user param */
     /* remove this when I know how to do it... */
     if (UNLIKELY(fs->format != PVS_AMP_FREQ))
       return csound->InitError(csound,
@@ -144,19 +147,26 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
                as have to set/reset each osc when started and stopped */
 
     /* check bin params */
-    startbin = (int32_t) *p->ibin;            /* default 0 */
-    binoffset = (int32_t) *p->ibinoffset; /* default 1 */
-    if (UNLIKELY(startbin < 0 || startbin > noscs))
+    value = (double)*p->ibinoffset;
+    if (UNLIKELY(!(value > -1.0 && value < (double)numbins)))
       return csound->InitError(csound,
-                               Str("pvsadsyn: ibin parameter out of range.\n"));
-    if (UNLIKELY(startbin + n_oscs > noscs))
+                               Str("pvsadsyn: ibinoffset out of range.\n"));
+    startbin = (int32_t)value;                 /* default 0 */
+    value = (double)*p->ibinincr;
+    if (UNLIKELY(!(value >= 1.0 && value < (double)numbins + 1.0)))
       return csound->InitError(csound,
-                               Str("pvsadsyn: ibin + inoscs too large.\n"));
-    /* calc final max bin target */
-    p->maxosc = startbin + (n_oscs * binoffset);
-    if (UNLIKELY(p->maxosc > noscs))
+                               Str("pvsadsyn: ibinincr must be positive and "
+                                   "no larger than the number of bins.\n"));
+    binincr = (int32_t)value;                  /* default 1 */
+    lastbin = (int64_t)startbin +
+              (int64_t)(n_oscs - 1) * (int64_t)binincr;
+    if (UNLIKELY(lastbin >= numbins))
       return csound->InitError(csound, Str("pvsadsyn: "
-                              "ibin + (inoscs * ibinoffset) too large."));
+                              "ibinoffset + ((inoscs - 1) * ibinincr) "
+                              "too large."));
+    p->startbin = startbin;
+    p->binincr = binincr;
+    p->lastbin = (int32_t)lastbin;
 
     p->outptr = 0;
     p->lastframe = 0;
@@ -165,16 +175,16 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     p->one_over_overlap = (float)(FL(1.0) / p->overlap);
     /* alloc for all oscs;
        in case we can do something with them dynamically, one day */
-    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->a);
-    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->x);
-    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->y);
-    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->amps);
-    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->lastamps);
-    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->freqs);
+    csound->AuxAlloc(csound, numbins * sizeof(MYFLT),&p->a);
+    csound->AuxAlloc(csound, numbins * sizeof(MYFLT),&p->x);
+    csound->AuxAlloc(csound, numbins * sizeof(MYFLT),&p->y);
+    csound->AuxAlloc(csound, numbins * sizeof(MYFLT),&p->amps);
+    csound->AuxAlloc(csound, numbins * sizeof(MYFLT),&p->lastamps);
+    csound->AuxAlloc(csound, numbins * sizeof(MYFLT),&p->freqs);
     csound->AuxAlloc(csound, p->overlap * sizeof(MYFLT),&p->outbuf);
     /* initialize oscbank */
     p_x = (MYFLT *) p->x.auxp;
-    for (i=0;i < noscs;i++)
+    for (i=0;i < numbins;i++)
       p_x[i] = FL(1.0);
 
     return OK;
@@ -193,7 +203,7 @@ static inline MYFLT fastoscil(MYFLT *a, MYFLT *x, MYFLT *y)
 static void adsyn_frame(CSOUND *csound, PVADS *p)
 {
     int32_t i,j;
-    int32_t startbin,lastbin,binoffset;
+    int32_t startbin,lastbin,binincr;
     MYFLT *outbuf = (MYFLT *) (p->outbuf.auxp);
 
     float *frame;        /* RWD MUST be 32bit */
@@ -211,12 +221,12 @@ static void adsyn_frame(CSOUND *csound, PVADS *p)
     amps      = (MYFLT *) p->amps.auxp;
     freqs     = (MYFLT *) p->freqs.auxp;
     lastamps  = (MYFLT *) p->lastamps.auxp;
-    startbin  = (int32_t) *p->ibin;
-    binoffset = (int32_t) *p->ibinoffset;
-    lastbin   = p->maxosc;
+    startbin  = p->startbin;
+    binincr   = p->binincr;
+    lastbin   = p->lastbin;
 
     /*update amps, freqs*/
-    for (i=startbin;i < lastbin;i+= binoffset) {
+    for (i=startbin;i <= lastbin;i+=binincr) {
       amps[i] = frame[i*2];
       /* lazy: force all freqs positive! */
       freqs[i] = ffac * FABS(frame[(i*2)+1]);
@@ -232,7 +242,7 @@ static void adsyn_frame(CSOUND *csound, PVADS *p)
        If compiler cannot inline fastoscil,
        would be worth doing so by hand here ?
      */
-    for (i=startbin;i < lastbin;i+=binoffset) {
+    for (i=startbin;i <= lastbin;i+=binincr) {
       MYFLT thisamp = lastamps[i];
       MYFLT delta_amp = (amps[i] - thisamp) * p->one_over_overlap;
 

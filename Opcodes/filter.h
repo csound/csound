@@ -45,7 +45,6 @@ typedef struct {
   MYFLT *in;        /* input signal */
   MYFLT *nb, *na;   /* filter-order input arguments */
   MYFLT *coeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient input arguments */
-  MYFLT *d1,*d2;    /* These allow ZFILTER to access FILTER routines */
 
   int32_t numa;         /* i-var p-time storage registers */
   int32_t numb;

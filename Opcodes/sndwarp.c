@@ -142,7 +142,8 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
 
         if (*p->itimemode!=0)
           exp[i].offset=(CS_ESR * *timewarpby)+p->begin;
-        else
+        /* A zero time scale repeats the window at its current offset. */
+        else if (*timewarpby != FL(0.0))
           exp[i].offset += (MYFLT)exp[i].wsize/(*timewarpby);
 
         exp[i].cnt=0;
@@ -154,6 +155,8 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
 
         frIndx =(MYFLT)((exp[i].cnt * *resample)  + exp[i].offset);
         exp[i].cnt += 1;
+        /* Hold the first frame when reading before the start of the table. */
+        if (frIndx < FL(0.0)) frIndx = FL(0.0);
         if (frIndx > (MYFLT)p->maxFr) { /* not past last one */
           frIndx = (MYFLT)p->maxFr;
           if (p->prFlg) {
@@ -306,7 +309,8 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
 
         if (*p->itimemode!=0)
           exp[i].offset=(CS_ESR * *timewarpby)+p->begin;
-        else
+        /* A zero time scale repeats the window at its current offset. */
+        else if (*timewarpby != FL(0.0))
           exp[i].offset += (MYFLT)exp[i].wsize/(*timewarpby);
 
         exp[i].cnt=0;
@@ -317,6 +321,8 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
       skipover:
         frIndx =(MYFLT)(exp[i].cnt * *resample)  + (MYFLT)exp[i].offset;
         exp[i].cnt += 1;
+        /* Hold the first frame when reading before the start of the table. */
+        if (frIndx < FL(0.0)) frIndx = FL(0.0);
         if (frIndx > (MYFLT)p->maxFr) {  /* not past last one */
           frIndx = (MYFLT)p->maxFr;
           if (p->prFlg) {

@@ -54,17 +54,30 @@ int32_t phsset(CSOUND *csound, PHSOR *p)
 
 int32_t ephsset(CSOUND *csound, EPHSOR *p)
 {
-  MYFLT       phs;
-  int32_t  longphs;
-  if ((phs = *p->iphs) >= FL(0.0)) {
-    if (UNLIKELY((longphs = (int32_t)phs))) {
+  double phs = (double)*p->iphs;
+  if (UNLIKELY(!isfinite(phs)))
+    return csound->InitError(csound, "%s", Str("ephasor: initial phase must be finite"));
+  if (phs >= 0.0) {
+    if (UNLIKELY(phs >= 1.0)) {
       csound->Warning(csound, Str("init phase truncation\n"));
+      phs -= floor(phs);
     }
-    p->curphs = phs - (MYFLT)longphs;
+    p->curphs = phs;
   }
   p->b = 1.0;
   return OK;
 }
+
+/* Remove whole cycles before addition so large increments retain the phase.
+   Keep the wrap event: it also resets the exponential output. */
+#define EPHASOR_INCREMENT(incr, wrapped) do {                         \
+    (wrapped) = (incr) >= 1.0 || (incr) <= -1.0;                       \
+    if (UNLIKELY(wrapped)) (incr) -= trunc(incr);                       \
+  } while (0)
+
+/* A double phase just below one may round to one in a float build. */
+#define EPHASOR_OUTPUT(phase)                                        \
+  ((MYFLT)(phase) < FL(1.0) ? (MYFLT)(phase) : FL(0.0))
 
 int32_t ephsor(CSOUND *csound, EPHSOR *p)
 {
@@ -75,21 +88,27 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
     MYFLT       *rs, *aphs, onedsr = CS_ONEDSR;
     double      b = p->b;
     double      incr, R = *p->kR;
+    int32_t     whole_cycle;
 
   rs = p->sr;
-  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+  aphs = p->aphs;
+  if (UNLIKELY(offset)) {
+    memset(rs, '\0', offset*sizeof(MYFLT));
+    memset(aphs, '\0', offset*sizeof(MYFLT));
+  }
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&aphs[nsmps], '\0', early*sizeof(MYFLT));
   }
-  aphs = p->aphs;
   phase = p->curphs;
   if (IS_ASIG_ARG(p->xcps)) {
     MYFLT *cps = p->xcps;
     for (n=offset; n<nsmps; n++) {
       incr = (double)(cps[n] * onedsr);
+      EPHASOR_INCREMENT(incr, whole_cycle);
       rs[n] = (MYFLT) b;
-      aphs[n] = (MYFLT) phase;
+      aphs[n] = EPHASOR_OUTPUT(phase);
       phase += incr;
       b *= R;
       if (UNLIKELY(phase >= 1.0)) {
@@ -100,13 +119,16 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
         phase += 1.0;
         b = pow(R, 1.0+phase);
       }
+      else if (UNLIKELY(whole_cycle))
+        b = pow(R, 1.0+phase);
     }
   }
   else {
     incr = (double)(*p->xcps * onedsr);
+    EPHASOR_INCREMENT(incr, whole_cycle);
     for (n=offset; n<nsmps; n++) {
       rs[n] = (MYFLT) b;
-      aphs[n] = (MYFLT) phase;
+      aphs[n] = EPHASOR_OUTPUT(phase);
       phase += incr;
       b *= R;
       if (UNLIKELY(phase >= 1.0)) {
@@ -117,6 +139,8 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
         phase += 1.0;
         b = pow(R, 1.0+phase);
       }
+      else if (UNLIKELY(whole_cycle))
+        b = pow(R, 1.0+phase);
     }
   }
   p->curphs = phase;
@@ -124,11 +148,17 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
   return OK;
 }
 
+/* A phase just below one can round to one in MYFLT. Wrap the output,
+   retaining the more precise internal phase for the next sample. */
+#define PHASOR_OUTPUT(phase)                                      \
+  ((MYFLT)(phase) == FL(1.0) ? FL(0.0) : (MYFLT)(phase))
+
 int32_t kphsor(CSOUND *csound, PHSOR *p)
 {
   IGN(csound);
   double      phs;
-  *p->sr = (MYFLT)(phs = p->curphs);
+  phs = p->curphs;
+  *p->sr = PHASOR_OUTPUT(phs);
   if (UNLIKELY((phs += (double)*p->xcps * CS_ONEDKR) >= 1.0))
     phs -= 1.0;
   else if (UNLIKELY(phs < 0.0))
@@ -159,25 +189,23 @@ int32_t phsor(CSOUND *csound, PHSOR *p)
     MYFLT *cps = p->xcps;
     for (n=offset; n<nsmps; n++) {
       incr = (double)(cps[n] * onedsr);
-      rs[n] = (MYFLT)phase;
+      rs[n] = PHASOR_OUTPUT(phase);
       phase += incr;
-      if (UNLIKELY((MYFLT)phase >= FL(1.0))) /* VL convert to MYFLT
-                                                to avoid rounded output
-                                                exceeding 1.0 on float version */
+      if (UNLIKELY(phase >= 1.0))
         phase -= 1.0;
-      else if (UNLIKELY((MYFLT)phase < FL(0.0)))
+      else if (UNLIKELY(phase < 0.0))
         phase += 1.0;
     }
   }
   else {
     incr = (double)(*p->xcps * onedsr);
     for (n=offset; n<nsmps; n++) {
-      rs[n] = (MYFLT)phase;
+      rs[n] = PHASOR_OUTPUT(phase);
       phase += incr;
-      if (UNLIKELY((MYFLT)phase >= FL(1.0))) {
+      if (UNLIKELY(phase >= 1.0)) {
         phase -= 1.0;
       }
-      else if (UNLIKELY((MYFLT)phase < FL(0.0)))
+      else if (UNLIKELY(phase < 0.0))
         phase += 1.0;
     }
   }
@@ -192,22 +220,40 @@ int32_t ko1set(CSOUND *csound, OSCIL1 *p)
 
   if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
     return NOTOK;
-  if(IS_POW_TWO(ftp->flen)) {
-  if (UNLIKELY(*p->idur <= FL(0.0))) {
-    p->phs = MAXLEN-1;
-  }
-  else p->phs = 0;
-  p->kinc = (int32_t) (CS_KICVT / *p->idur);
-  if (p->kinc==0) p->kinc = 1;
-  } else {
-    if (UNLIKELY(*p->idur <= FL(0.0)))
-      p->fphs = 1. - 1./ftp->flen;
-    else p->fphs = FL(0.0);
-    p->kinc = 0;
-    p->inc = 1./(*p->idur*CS_EKR);
-  }
+  if (UNLIKELY(!isfinite(*p->idur)))
+    return csound->InitError(csound, "%s",
+                            Str("oscil1: duration must be finite"));
+
   p->ftp = ftp;
   p->dcnt = (int32_t)(*p->idel * CS_EKR);
+  if (IS_POW_TWO(ftp->flen)) {
+    if (*p->idur == FL(0.0)) {
+      p->phs = MAXLEN;
+      p->kinc = 1; /* Select the fixed-point table path. */
+      p->dcnt = -1;
+    }
+    else {
+      double increment = CS_KICVT / *p->idur;
+      p->phs = *p->idur < FL(0.0) ? MAXLEN - 1 : 0;
+      /* A scan shorter than one control period reaches the end in one step. */
+      if (increment >= MAXLEN) p->kinc = MAXLEN;
+      else if (increment <= -MAXLEN) p->kinc = -MAXLEN;
+      else p->kinc = (int32_t) increment;
+      if (p->kinc == 0) p->kinc = *p->idur < FL(0.0) ? -1 : 1;
+    }
+  }
+  else {
+    p->kinc = 0;
+    if (*p->idur == FL(0.0)) {
+      p->fphs = 1.;
+      p->inc = 0.;
+      p->dcnt = -1;
+    }
+    else {
+      p->fphs = *p->idur < FL(0.0) ? 1. - 1./ftp->flen : 0.;
+      p->inc = 1./(*p->idur*CS_EKR);
+    }
+  }
 
   return OK;
 }
@@ -261,27 +307,37 @@ int32_t kosc1(CSOUND *csound, OSCIL1 *p)
 int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
 {
   FUNC        *ftp;
-  MYFLT       fract, v1, *ftab, fphs = p->fphs;
+  MYFLT       fract, v1, *ftab;
+  double      fphs = p->fphs;
   int32_t     phs = p->phs, dcnt;
 
   ftp = p->ftp;
   if (UNLIKELY(ftp==NULL)) goto err1;
   phs = p->phs;
-  if(p->kinc != 0) {
-  fract = PFRAC(phs);
-  ftab = ftp->ftable + (phs >> ftp->lobits);
-  v1 = *ftab++;
-  *p->rslt = (v1 + (*ftab - v1) * fract) * *p->kamp;
-  } else {
-    fphs = p->fphs;
-    fract = fphs - (int64_t) fphs;
-    ftab = ftp->ftable + (size_t) (fphs*ftp->flen);
-    v1 = *ftab++;
-    *p->rslt = (v1 + (*ftab - v1) * fract) * *p->kamp;
+  if (p->kinc != 0) {
+    if (phs >= MAXLEN)
+      *p->rslt = ftp->ftable[ftp->flen] * *p->kamp;
+    else {
+      fract = PFRAC(phs);
+      ftab = ftp->ftable + (phs >> ftp->lobits);
+      v1 = *ftab++;
+      *p->rslt = (v1 + (*ftab - v1) * fract) * *p->kamp;
+    }
+  }
+  else {
+    double position = fphs * ftp->flen;
+    if (position >= ftp->flen)
+      *p->rslt = ftp->ftable[ftp->flen] * *p->kamp;
+    else {
+      uint32_t index = (uint32_t) position;
+      fract = (MYFLT)(position - index);
+      ftab = ftp->ftable + index;
+      v1 = *ftab++;
+      *p->rslt = (v1 + (*ftab - v1) * fract) * *p->kamp;
+    }
   }
   if ((dcnt = p->dcnt) > 0) {
     dcnt--;
-    p->dcnt = dcnt;
   }
   else if (dcnt == 0) {
     if(p->kinc != 0) {
@@ -308,6 +364,7 @@ int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
     p->fphs = fphs;
     }
   }
+  p->dcnt = dcnt;
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
@@ -316,63 +373,76 @@ int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
 
 int32_t oscnset(CSOUND *csound, OSCILN *p)
 {
+    FUNC *ftp = csound->FTFind(csound, p->ifn);
+    double repeats = *p->itimes;
+    double frequency = *p->ifrq;
+    double advance;
 
-    FUNC        *ftp;
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
-      p->ftp = ftp;
-      p->inc = ftp->flen * *p->ifrq * CS_ONEDSR;
-      p->index = FL(0.0);
-      p->maxndx = ftp->flen - FL(1.0);
-      p->ntimes = (int32_t)*p->itimes;
-      return OK;
+    if (UNLIKELY(ftp == NULL)) return NOTOK;
+    if (UNLIKELY(!(repeats >= 0.0 && repeats < 2147483648.0)))
+      return csound->InitError(csound, "%s", Str("osciln: invalid repeat count"));
+    if (UNLIKELY(frequency < 0.0 || !isfinite(frequency)))
+      return csound->InitError(csound, "%s", Str("osciln: invalid frequency"));
+
+    p->ftp = ftp;
+    p->ntimes = (int32_t)repeats;
+    p->phase = 0.0;
+    advance = frequency / CS_ESR;
+    /* Split at init time: even several cycles per sample need no wrapping
+       function in the audio loop. Larger advances finish on the first sample. */
+    if (advance >= p->ntimes) {
+      p->cycles = p->ntimes;
+      p->inc = 0.0;
     }
-    else return NOTOK;
+    else {
+      p->cycles = (int32_t)advance;
+      p->inc = advance - p->cycles;
+    }
+    return OK;
 }
 
 int32_t osciln(CSOUND *csound, OSCILN *p)
 {
   MYFLT *rs = p->rslt;
   uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
+  uint32_t early = p->h.insdshead->ksmps_no_end;
+  uint32_t n = offset, nsmps = CS_KSMPS;
 
-  if (UNLIKELY(p->ftp==NULL)) goto err1;
-  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(p->ftp == NULL))
+    return csound->PerfError(csound, &(p->h), Str("osciln: not initialised"));
+  if (UNLIKELY(offset)) memset(rs, 0, offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rs[nsmps], 0, early*sizeof(MYFLT));
   }
-  if (p->ntimes) {
+  if (p->ntimes > 0) {
     MYFLT *ftbl = p->ftp->ftable;
     MYFLT amp = *p->kamp;
-    MYFLT ndx = p->index;
-    MYFLT inc = p->inc;
-    MYFLT maxndx = p->maxndx;
-    for (n=offset; n<nsmps; n++) {
-      rs[n] = ftbl[(int32_t)ndx] * amp;
-      if (UNLIKELY((ndx += inc) > maxndx)) {
-        if (--p->ntimes)
-          ndx -= maxndx;
-        else if (UNLIKELY(n==nsmps))
-          return OK;
-        else
-          goto putz;
+    double phase = p->phase, inc = p->inc;
+    double length = p->ftp->flen;
+    int32_t remaining = p->ntimes, cycles = p->cycles;
+
+    for (; n < nsmps; n++) {
+      rs[n] = ftbl[(int32_t)(phase * length)] * amp;
+      phase += inc;
+      if (phase >= 1.0) {
+        phase -= 1.0;
+        remaining--;
+      }
+      remaining -= cycles;
+      if (remaining <= 0) {
+        remaining = 0;
+        phase = 0.0;
+        n++; /* Keep the sample just emitted. */
+        break;
       }
     }
-    p->index = ndx;
+    p->phase = phase;
+    p->ntimes = remaining;
   }
-  else {
-    n=0;              /* Can jump out of previous loop into this one */
-  putz:
+  if (n < nsmps)
     memset(&rs[n], 0, (nsmps-n)*sizeof(MYFLT));
-    /* for (; n<nsmps; n++) { */
-    /*   rs[n] = FL(0.0); */
-    /* } */
-  }
   return OK;
- err1:
-  return csound->PerfError(csound, &(p->h),
-                           Str("osciln: not initialised"));
 }
 
 /* Oscillators */

@@ -75,7 +75,7 @@ static int32_t equ_process(CSOUND *csound, equ *p)
       ksmps -= early;
       memset(&out[ksmps], '\0', early*sizeof(MYFLT));
     }
-    for (i=0; i < ksmps; i++){
+    for (i=offset; i < ksmps; i++){
       w = (double)(in[i]) + d*(1.0 + a)*z1 - a*z2;
       y = w*a - d*(1.0 + a)*z1 + z2;
       z2 = z1;

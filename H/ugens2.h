@@ -59,8 +59,8 @@ typedef struct {
 typedef struct  {
         OPDS    h;
         MYFLT   *rslt, *kamp, *ifrq, *ifn, *itimes;
-        MYFLT   index, inc, maxndx;
-        int32   ntimes;
+        double  phase, inc;
+        int32_t ntimes, cycles;
         FUNC    *ftp;
 } OSCILN;
 

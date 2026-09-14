@@ -67,8 +67,9 @@ int32_t kport(CSOUND *csound, PORT *p)
 int32_t tonset(CSOUND *csound, TONE *p)
 {
     double b;
+    double omega = IS_ASIG_ARG(p->ar) ? CS_TPIDSR : CS_ONEDKR * TWOPI;
     p->prvhp = (double)*p->khp;
-    b = 2.0 - cos((double)(p->prvhp * CS_TPIDSR));
+    b = 2.0 - cos(p->prvhp * omega);
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
 
@@ -130,6 +131,11 @@ int32_t tone(CSOUND *csound, TONE *p)
 
 int32_t tonsetx(CSOUND *csound, TONEX *p)
 {                   /* From Gabriel Maldonado, modified for arbitrary order */
+    double order = (double)*p->ord;
+    size_t state_size;
+    int32_t clear_state = !*p->istor;
+    int32_t new_loop;
+
     {
       double b;
       p->prvhp = *p->khp;
@@ -137,14 +143,22 @@ int32_t tonsetx(CSOUND *csound, TONEX *p)
       p->c2 = b - sqrt(b * b - 1.0);
       p->c1 = 1.0 - p->c2;
     }
-    if (UNLIKELY((p->loop = (int32_t) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
-    if (!*p->istor && (p->aux.auxp == NULL ||
-                    (uint32_t)(p->loop*sizeof(double)) > p->aux.size))
-        csound->AuxAlloc(csound, (int32_t)(p->loop*sizeof(double)), &p->aux);
-    p->yt1 = (double*)p->aux.auxp;
-    if (LIKELY(!(*p->istor))) {
-    memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
+    if (UNLIKELY(!isfinite(order) || order > (double)INT32_MAX - 0.5))
+      return csound->InitError(csound, Str("tonex: invalid order %f"),
+                               *p->ord);
+    new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
+    if (UNLIKELY((size_t)new_loop > SIZE_MAX / sizeof(double)))
+      return csound->InitError(csound, Str("tonex: order is too large"));
+    clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
+    p->loop = new_loop;
+    state_size = (size_t)p->loop * sizeof(double);
+    if (p->aux.auxp == NULL || state_size > p->aux.size) {
+      csound->AuxAlloc(csound, state_size, &p->aux);
+      clear_state = 1;
     }
+    p->yt1 = (double*)p->aux.auxp;
+    if (clear_state)
+      memset(p->yt1, 0, state_size); /* Punning zero and 0.0 */
     return OK;
 }
 
@@ -161,8 +175,8 @@ int32_t tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified
       double b;
       p->prvhp = (double)*p->khp;
       b = 2.0 - cos(p->prvhp * (double)CS_TPIDSR);
-      p->c2 = b - sqrt(b * b - 1.0);
-      p->c1 = 1.0 - p->c2;
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
+      p->c1 = c1 = 1.0 - c2;
     }
 
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
@@ -173,7 +187,7 @@ int32_t tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified
     }
     for (j=0; j< lp; j++) {
       /* Should *yt1 be reset to something?? */
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         double x = c1 * ar[n] + c2 * yt1[j];
         yt1[j] = x;
         ar[n] = (MYFLT)x;
@@ -250,7 +264,7 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
       double b;
       p->prvhp = *p->khp;
       b = 2.0 - cos((double)(*p->khp * CS_TPIDSR));
-      p->c2 = b - sqrt(b * b - 1.0);
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
       /*p->c1 = 1. - p->c2;*/
     }
 
@@ -260,7 +274,7 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    for (j=1; j<lp; j++) {
+    for (j=0; j<lp; j++) {
       for (n=offset; n<nsmps; n++) {
         double sig = (double)ar[n];
         double x = c2 * (yt1[j] + sig);
@@ -273,8 +287,14 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
 
 int32_t rsnset(CSOUND *csound, RESON *p)
 {
+    double scale_value = (double)*p->iscl;
     int32_t scale;
-    p->scale = scale = (int32_t)*p->iscl;
+    if (UNLIKELY(!isfinite(scale_value) || scale_value < (double)INT32_MIN ||
+                 scale_value > (double)INT32_MAX)) {
+      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+                               *p->iscl);
+    }
+    p->scale = scale = (int32_t)scale_value;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound, Str("illegal reson iscl value, %f"),
                                        *p->iscl);
@@ -385,24 +405,40 @@ int32_t reson(CSOUND *csound, RESON *p)
 
 int32_t rsnsetx(CSOUND *csound, RESONX *p)
 {                               /* Gabriel Maldonado, modifies for arb order */
-    int32_t scale;
-    p->scale = scale = (int32_t) *p->iscl;
-    if ((p->loop = (int32_t) (*p->ord + FL(0.5))) < 1)
-      p->loop = 4; /* default value */
-    if (!*p->istor && (p->aux.auxp == NULL ||
-                       (uint32_t)(p->loop*2*sizeof(double)) > p->aux.size))
-      csound->AuxAlloc(csound, (int32_t)(p->loop*2*sizeof(double)), &p->aux);
-    p->yt1 = (double*)p->aux.auxp; p->yt2 = (double*)p->aux.auxp + p->loop;
+    double order = (double)*p->ord;
+    double scale_value = (double)*p->iscl;
+    size_t state_size;
+    int32_t clear_state = !*p->istor;
+    int32_t new_loop, scale;
+    if (UNLIKELY(!isfinite(scale_value) || scale_value < (double)INT32_MIN ||
+                 scale_value > (double)INT32_MAX)) {
+      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+                               *p->iscl);
+    }
+    p->scale = scale = (int32_t)scale_value;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound, Str("illegal reson iscl value, %f"),
                                        *p->iscl);
     }
+    if (UNLIKELY(!isfinite(order) || order > (double)INT32_MAX - 0.5))
+      return csound->InitError(csound, Str("resonx: invalid order %f"),
+                               *p->ord);
+    new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
+    if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(double))))
+      return csound->InitError(csound, Str("resonx: order is too large"));
+    clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
+    p->loop = new_loop;
+    state_size = (size_t)p->loop * 2 * sizeof(double);
+    if (p->aux.auxp == NULL || state_size > p->aux.size) {
+      csound->AuxAlloc(csound, state_size, &p->aux);
+      clear_state = 1;
+    }
+    p->yt1 = (double*)p->aux.auxp;
+    p->yt2 = p->yt1 + p->loop;
     p->prvcf = p->prvbw = -100.0;
 
-    if (!(*p->istor)) {
-      memset(p->yt1, 0, p->loop*sizeof(double));
-      memset(p->yt2, 0, p->loop*sizeof(double));
-    }
+    if (clear_state)
+      memset(p->yt1, 0, state_size);
     return OK;
 }
 
@@ -1001,10 +1037,14 @@ int32_t lprsnset(CSOUND *csound, LPRESON *p)
    /* get adr lpread struct */
 
     p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
-    csound->AuxAlloc(csound, (int32)((q->npoles<<1)*sizeof(MYFLT)), &p->aux);
+    if (UNLIKELY(q->npoles < 1 || (q->storePoles && q->npoles > MAXPOLES)))
+      return csound->InitError(csound, Str("lpreson: unsupported pole count"));
+    p->npoles = q->npoles;
+    csound->AuxAlloc(csound, (size_t)q->npoles * 3 * sizeof(MYFLT), &p->aux);
    /* Initialize pointer to circular buffer (for filtering) */
     p->circjp = p->circbuf = (MYFLT*)p->aux.auxp;
-    p->jp2lim = p->circbuf + (q->npoles << 1);  /* npoles det circbuflim */
+    p->jp2lim = p->circbuf + (size_t)q->npoles * 2;
+    p->coefs = p->jp2lim;
     return OK;
 }
 
@@ -1016,7 +1056,6 @@ int32_t lprsnset(CSOUND *csound, LPRESON *p)
 
 int32_t lpreson(CSOUND *csound, LPRESON *p)
 {
-    IGN(csound);
     LPREAD   *q = p->lpread;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1027,6 +1066,12 @@ int32_t lpreson(CSOUND *csound, LPRESON *p)
     double   polyReal[MAXPOLES+1], polyImag[MAXPOLES+1];
     int32_t  i, nn;
     double   pm,pp;
+    MYFLT    *coefs = q->kcoefs;
+
+    if (UNLIKELY(q->npoles != p->npoles ||
+                 (q->storePoles && q->npoles > MAXPOLES)))
+      return csound->PerfError(csound, &(p->h),
+                               Str("lpreson: analysis changed; reinitialize the filter"));
 
     jp = p->circjp;
     jp2 = jp + q->npoles;
@@ -1048,10 +1093,11 @@ int32_t lpreson(CSOUND *csound, LPRESON *p)
       /*     DumpPoles(q->npoles,poleReal,poleImag,0,"About to filter"); */
       InvertPoles(q->npoles,poleReal,poleImag);
       synthetize(q->npoles,poleReal,poleImag,polyReal,polyImag);
-      coefp = q->kcoefs;
+      /* Other LPC consumers still need the original poles from lpread. */
+      coefs = p->coefs;
       for (i=0; i<q->npoles; i++) {
         /* MR_WHY - somthing with the atan2 ? */
-        coefp[i] = -(MYFLT)polyReal[q->npoles-i];
+        coefs[i] = -(MYFLT)polyReal[q->npoles-i];
       }
     }
 
@@ -1068,7 +1114,7 @@ int32_t lpreson(CSOUND *csound, LPRESON *p)
       csound->Message(csound, "Asig=%f\n", *asig);
 #endif
       x = asig[n];
-      coefp = q->kcoefs;              /* using lpread interp coefs */
+      coefp = coefs;
       pastp = jp;
       nn = q->npoles;
       do {
@@ -1113,14 +1159,16 @@ int32_t lpfrsnset(CSOUND *csound, LPFRESON *p)
 
     p->lpread = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
     if(p->lpread->npoles < 2) {
-      return csound->InitError(csound, Str("Too few poles (> 2)"));
+      return csound->InitError(csound, Str("lpfreson: at least two poles are required"));
     }
 
     p->prvratio = FL(1.0);
     p->d = FL(0.0);
     p->prvout = FL(0.0);
-    csound->AuxAlloc(csound, (int32)(p->lpread->npoles*sizeof(MYFLT)), &p->aux);
+    p->npoles = p->lpread->npoles;
+    csound->AuxAlloc(csound, (size_t)p->npoles * 2 * sizeof(MYFLT), &p->aux);
     p->past = (MYFLT*)p->aux.auxp;
+    p->coefs = p->past + p->npoles;
 
     return OK;
 }
@@ -1136,8 +1184,13 @@ int32_t lpfreson(CSOUND *csound, LPFRESON *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, n, nsmps = CS_KSMPS;
-    MYFLT    *coefp, *pastp, *pastp1, *rslt = p->ar, *asig = p->asig;
+    MYFLT    *coefp, *pastp, *rslt = p->ar, *asig = p->asig;
     MYFLT    x, temp1, temp2, ampscale, cq;
+    MYFLT    *coefs = q->kcoefs;
+
+    if (UNLIKELY(q->npoles != p->npoles || q->storePoles))
+      return csound->PerfError(csound, &(p->h),
+                               Str("lpfreson: analysis changed; reinitialize the filter"));
 
     if (*p->kfrqratio != p->prvratio) {             /* for new freqratio */
       if (*p->kfrqratio <= FL(0.0)) {
@@ -1149,14 +1202,14 @@ int32_t lpfreson(CSOUND *csound, LPFRESON *p)
       p->prvratio = *p->kfrqratio;
     }
     if (p->d != FL(0.0)) {                          /* for non-zero d,   */
-      coefp = q->kcoefs;
-      nn = q->npoles - 1;
-      do {
-        temp1 = p->d * *coefp++;                    /*    shift formants */
-        *coefp += temp1;
+      /* Shift a private copy so consumers of the same LPC slot stay independent. */
+      coefs = p->coefs;
+      coefs[0] = q->kcoefs[0];
+      for (nn = 1; nn < (uint32_t)q->npoles; nn++) {
+        temp1 = p->d * coefs[nn-1];
+        coefs[nn] = q->kcoefs[nn] + temp1;
       }
-      while (--nn);
-      ampscale = FL(1.0) / (FL(1.0) - p->d * *coefp); /*    & reset scales */
+      ampscale = FL(1.0) / (FL(1.0) - p->d * coefs[q->npoles-1]);
       cq = (FL(1.0) - p->d * p->d) * ampscale;
     }
     else {
@@ -1171,19 +1224,17 @@ int32_t lpfreson(CSOUND *csound, LPFRESON *p)
     }
     for (n=offset; n<nsmps; n++) {
       nn = q->npoles - 1;
-      pastp  = pastp1 = p->past + nn;
-      temp1 = *pastp;
-      *pastp = cq * x - p->d * *pastp;
-      pastp--;
+      pastp = p->past;
+      temp1 = pastp[nn];
+      pastp[nn] = cq * x - p->d * pastp[nn];
       do {
-        temp2 = *pastp;
-        *pastp = (*pastp1 - *pastp) * p->d + temp1;
-        pastp--;   pastp1--;
+        temp2 = pastp[nn-1];
+        pastp[nn-1] = (pastp[nn] - pastp[nn-1]) * p->d + temp1;
         temp1 = temp2;
       } while (--nn);
       x = asig[n];
       pastp = p->past;
-      coefp = q->kcoefs;
+      coefp = coefs;
       nn = q->npoles;
       do  {
         x += *coefp++ * *pastp++;
@@ -1264,8 +1315,15 @@ int32_t gain(CSOUND *csound, GAIN *p)
 
     q = p->prvq;
     asig = p->asig;
-    if (UNLIKELY(early)) nsmps -= early;
-    for (n = offset; n < nsmps-early; n++) {
+    ar = p->ar;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    if (UNLIKELY(offset >= nsmps))
+      return OK;
+    for (n = offset; n < nsmps; n++) {
       double as = (double)asig[n];
       q = c1 * as * as + c2 * q;
     }
@@ -1274,12 +1332,6 @@ int32_t gain(CSOUND *csound, GAIN *p)
       a = *p->krms / sqrt(q);
     else
       a = *p->krms;
-    ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
       inc = diff / (double)(nsmps-offset);
@@ -1317,6 +1369,8 @@ int32_t balance(CSOUND *csound, BALANCE *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    if (UNLIKELY(offset >= nsmps))
+      return OK;
     for (n = offset; n < nsmps; n++) {
       double as = (double)asig[n];
       double cs = (double)csig[n];

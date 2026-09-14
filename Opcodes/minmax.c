@@ -48,22 +48,18 @@ typedef struct {
     MYFLT   *xout, *xin1, *xin2toN[VARGMAX-1];
 } MINMAX;
 
-/* Which implementation is faster ?? */
+/* Accumulators may hold samples from other note instances. Leave samples
+   outside this note's active range unchanged. */
 static int32_t MaxAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
     IGN(csound);
     MYFLT   cur;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
+    uint32_t n, nsmps = CS_KSMPS - early;
     MYFLT   *out = p->accum;
     MYFLT   *in = p->ain;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
     for (n=offset; n<nsmps; n++) {
       cur = in[n];
       if (UNLIKELY(cur > out[n]))
@@ -79,15 +75,10 @@ static int32_t MinAccumulate(CSOUND *csound, MINMAXACCUM *p)
     MYFLT   cur;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
+    uint32_t n, nsmps = CS_KSMPS - early;
     MYFLT   *out = p->accum;
     MYFLT   *in = p->ain;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
     for (n=offset; n<nsmps; n++) {
       cur = in[n];
       if (UNLIKELY(cur < out[n]))
@@ -103,16 +94,11 @@ static int32_t MaxAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
+    uint32_t n, nsmps = CS_KSMPS - early;
     MYFLT   *out = p->accum;
     MYFLT   *in = p->ain;
     MYFLT   inabs;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
     for (n=offset; n<nsmps; n++) {
       inabs = FABS(in[n]);
       if (UNLIKELY(inabs > out[n]))
@@ -127,16 +113,11 @@ static int32_t MinAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
+    uint32_t n, nsmps = CS_KSMPS - early;
     MYFLT   *out = p->accum;
     MYFLT   *in = p->ain;
     MYFLT   inabs;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
     for (n=offset; n<nsmps; n++) {
       inabs = FABS(in[n]);
       if (UNLIKELY(inabs < out[n]))

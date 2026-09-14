@@ -163,6 +163,10 @@ static int32_t moogladder_process(CSOUND *csound, moogladder *p)
   return OK;
 }
 
+/* Legacy moogladder caches the block's first resonance even after it changes.
+   Returning to that value can retain the previous feedback gain. Preserve
+   this audible behavior for existing scores; fix it only in moogladder2.
+   Its audio resonance also retains the historical lack of a negative clamp. */
 static int32_t moogladder_process_aa(CSOUND *csound, moogladder *p)
 {
   MYFLT   *out = p->out;
@@ -359,6 +363,8 @@ static int32_t moogladder_process_ak(CSOUND *csound, moogladder *p)
   return OK;
 }
 
+/* Legacy moogladder does not clamp negative audio resonance within the block.
+   Preserve this behavior for existing scores; use moogladder2 for the fix. */
 static int32_t moogladder_process_ka(CSOUND *csound, moogladder *p)
 {
   MYFLT   *out = p->out;
@@ -558,6 +564,8 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
 
+  if (cres < 0) cres = 0;
+
   if (p->oldfreq != cfreq || p->oldres != cres) {
     double  f, fc, fc2, fc3, fcr;
     p->oldfreq = cfreq;
@@ -587,7 +595,9 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
     memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (i = offset; i < nsmps; i++) {
-    if (p->oldfreq != freq[i] || p->oldres != res[i]) {
+    MYFLT resonance = res[i];
+    if (resonance < 0) resonance = 0;
+    if (p->oldfreq != freq[i] || p->oldres != resonance) {
       double  f, fc, fc2, fc3, fcr;
       p->oldfreq = freq[i];
       /* sr is half the actual filter sampling rate  */
@@ -599,10 +609,10 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
       fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
       acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
       tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
-      p->oldres = cres;
+      p->oldres = resonance;
       p->oldacr = acr;
       p->oldtune = tune;
-      res4 = 4.0*(double)res[i]*acr;
+      res4 = 4.0*(double)resonance*acr;
     }
     /* oversampling  */
     for (j = 0; j < 2; j++) {
@@ -785,7 +795,9 @@ static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
     memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (i = offset; i < nsmps; i++) {
-    if (cres != res[i]) {
+    MYFLT resonance = res[i];
+    if (resonance < 0) resonance = 0;
+    if (cres != resonance) {
       double  f, fc, fc2, fc3, fcr;
       /* sr is half the actual filter sampling rate  */
       fc =  (double)(freq/CS_ESR);
@@ -796,7 +808,7 @@ static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
       fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
       acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
       tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
-      p->oldres = cres = res[i];
+      p->oldres = cres = resonance;
       p->oldacr = acr;
       p->oldtune = tune;
       res4 = 4.0*(double)cres*acr;
@@ -840,10 +852,12 @@ static int32_t statevar_init(CSOUND *csound,statevar *p)
   IGN(csound);
   if (*p->istor==FL(0.0)) {
     p->bpd = p->lpd = p->lp = 0.0;
-    p->oldfreq = FL(0.0);
-    p->oldres = FL(0.0);
   }
+  /* Coefficients depend on oversampling even when filter history is kept. */
+  p->oldfreq = -FL(1.0);
+  p->oldres = -FL(1.0);
   if (*p->osamp<=FL(0.0)) p->ostimes = 3;
+  else if (*p->osamp<FL(1.0)) p->ostimes = 1;
   else p->ostimes = (int32_t) *p->osamp;
   return OK;
 }
@@ -2244,45 +2258,29 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
    cased on code by Miller Puckette
 */
 
-static int32_t calc_derivatives(CSOUND *csound, BOB *p, double *dstate,
-                                double *state, MYFLT in)
-{
-  MYFLT  freq = *p->freq;
-  MYFLT  res = *p->res;
-  double k = TWOPI * freq;
-  double sat = *p->sat;
-  double satinv = 1.0/sat;
-
-  double satstate0 = sat * tanh(state[0] * satinv);
-  double satstate1 = sat * tanh(state[1] * satinv);
-  double satstate2 = sat * tanh(state[2] * satinv);
-
-  dstate[0] = k *
-    (sat * tanh((in - res * state[3]) * satinv) - satstate0);
-  dstate[1] = k * (satstate0 - satstate1);
-  dstate[2] = k * (satstate1 - satstate2);
-  dstate[3] = k * (satstate2 - (sat * tanh(state[3]*satinv)));
-
-  return OK;
-}
+/* Each RK4 stage uses the same sample and coefficients.  Keep the
+   derivative calculation inline without writing into opcode inputs. */
+#define BOB_DERIVATIVES(dst, state) do {                                \
+  const double *s_ = (state);                                           \
+  double sat0_ = sa * tanh(s_[0] * satinv);                             \
+  double sat1_ = sa * tanh(s_[1] * satinv);                             \
+  double sat2_ = sa * tanh(s_[2] * satinv);                             \
+  (dst)[0] = k * (sa * tanh((input - rs * s_[3]) * satinv) - sat0_);    \
+  (dst)[1] = k * (sat0_ - sat1_);                                       \
+  (dst)[2] = k * (sat1_ - sat2_);                                       \
+  (dst)[3] = k * (sat2_ - sa * tanh(s_[3] * satinv));                   \
+} while (0)
 
 static int32_t bob_init(CSOUND *csound,BOB *p)
 {
-  IGN(csound);
-  if (*p->istor==FL(0.0)) {
-    p->oldfreq = FL(0.0);
-    p->oldres = FL(0.0);
-    p->oldsat = FL(0.0);
-  }
+  if (*p->istor == FL(0.0))
+    memset(p->state, 0, sizeof(p->state));
 
-  if (*p->osamp<=FL(0.0)) p->ostimes = 2;
-  else if (*p->osamp< FL(1.0)) p->ostimes = 1;
+  if (*p->osamp <= FL(0.0)) p->ostimes = 2;
+  else if (*p->osamp < FL(1.0)) p->ostimes = 1;
+  else if (UNLIKELY(!(*p->osamp < 2147483648.0)))
+    return csound->InitError(csound, Str("bob: oversampling count is too large"));
   else p->ostimes = (int32_t) *p->osamp;
-
-  int32_t i;
-  for (i = 0; i < DIM; i++) {
-    p->state[i] = 0;
-  }
 
   return OK;
 }
@@ -2317,37 +2315,38 @@ static int32_t bob_process(CSOUND *csound,BOB *p)
     MYFLT fr = (asgfr ? freq[i] : *freq);
     MYFLT rs = (asgrs ? res[i] : *res);
     MYFLT sa = (asgsa ? sat[i] : *sat);
-    *p->freq = fr;
-    *p->res = rs;
-    *p->sat = sa;
-
-    if (p->oldfreq != fr|| p->oldres != rs || p->oldsat != sa) {
-      p->oldfreq = fr;
-      p->oldres = rs;
-      p->oldsat = sa;
+    double input = in[i];
+    double k = TWOPI * fr;
+    /* At zero saturation all derivatives vanish, so retain the state. */
+    if (UNLIKELY(sa == FL(0.0))) {
+      out[i] = p->state[3];
+      continue;
     }
+    double satinv = 1.0 / sa;
 
     for (j=0; j<ostimes; j++) {
-      //solver_rungekutte
-      calc_derivatives(csound,p, deriv1, tempstate, in[i]);
+      /* Classical fourth-order Runge-Kutta step. */
+      BOB_DERIVATIVES(deriv1, p->state);
       for (l = 0; l < DIM; l++)
         tempstate[l] = p->state[l] + 0.5 * stepsize * deriv1[l];
-      calc_derivatives(csound,p, deriv2, tempstate, in[i]);
+      BOB_DERIVATIVES(deriv2, tempstate);
       for (l = 0; l < DIM; l++)
         tempstate[l] = p->state[l] + 0.5 * stepsize * deriv2[l];
-      calc_derivatives(csound,p, deriv3, tempstate, in[i]);
+      BOB_DERIVATIVES(deriv3, tempstate);
       for (l = 0; l < DIM; l++)
-        tempstate[l] = p->state[l] + 0.5 * stepsize * deriv3[l];
-      calc_derivatives(csound,p, deriv4, tempstate, in[i]);
+        tempstate[l] = p->state[l] + stepsize * deriv3[l];
+      BOB_DERIVATIVES(deriv4, tempstate);
       for (l = 0; l < DIM; l++)
         p->state[l] += (1./6.) * stepsize *
           (deriv1[l] + 2 * deriv2[l] + 2 * deriv3[l] +
            deriv4[l]);
     }
-    out[i] = p->state[0];
+    out[i] = p->state[3];
   }
   return OK;
 }
+
+#undef BOB_DERIVATIVES
 
 typedef struct vps {
   OPDS h;
@@ -2383,6 +2382,18 @@ int32_t vps_process(CSOUND *csound, VPS *p) {
   return OK;
 }
 
+/* Saturate before converting the lookup position to an unsigned index. */
+#define OTA_NLF(result, table, value, scale, length) do {                 \
+  double pos_ = ((value) * (scale) + 0.5) * (length);                    \
+  if (!(pos_ > 0.0)) (result) = (table)[0];                              \
+  else if (pos_ >= (length)) (result) = (table)[(length)-1];             \
+  else {                                                               \
+    size_t index_ = (size_t)pos_;                                       \
+    (result) = (MYFLT)((table)[index_] + (pos_ - index_) *               \
+      ((table)[index_ + 1] - (table)[index_]));                          \
+  }                                                                    \
+} while (0)
+
 typedef struct vcfnl {
   OPDS h;
   MYFLT *y, *y1, *x, *f, *r, *kn, *istor;
@@ -2414,9 +2425,8 @@ int32_t vcfnl_init(CSOUND *csound, VCFNL *p) {
     int32_t i;
     csound->CreateGlobalVariable(csound,"::TANH::",sizeof(MYFLT)*(TABSIZE+1));
     tab =  csound->QueryGlobalVariable(csound, "::TANH::");
-    MYFLT step  = 8./TABSIZE, x = -4.;
-    for(i=0; i <= TABSIZE; x += step, i++)
-      tab[i] = TANH(x);
+    for(i=0; i <= TABSIZE; i++)
+      tab[i] = tanh((double)i * (8.0 / TABSIZE) - 4.0);
   }
   tab[TABSIZE] = tab[TABSIZE-1];
   p->max = .125;
@@ -2449,21 +2459,25 @@ int32_t vcfnl_perfk(CSOUND *csound, VCFNL *p) {
   }
   if (UNLIKELY(offset)) {
     memset(y, '\0', offset*sizeof(MYFLT));
+    memset(y1, '\0', offset*sizeof(MYFLT));
   }
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&y1[nsmps], '\0', early*sizeof(MYFLT));
   }
  
   for (i=offset; i<nsmps; i++) {
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
     o = (G[3]*x[i] + ss)/(1. + k*G[3]);
-    u = G[0]*nlf(tab,(x[i] - k*o)*kn,max,size)*kno1;
+    OTA_NLF(u, tab, (x[i] - k*o)*kn, max, size);
+    u *= G[0]*kno1;
     for(j = 0; j < 3; j++) {
       w = u + s[j];
       s[j] = u - A*w;
-      u = G[0]*nlf(tab,w*kn,max,size)*kno1;
+      OTA_NLF(u, tab, w*kn, max, size);
+      u *= G[0]*kno1;
       if(j == 1) y1[i] = s[1];
     }
     s[3] = u - A*o;
@@ -2486,10 +2500,12 @@ int32_t vcfnl_perfak(CSOUND *csound, VCFNL *p) {
   
   if (UNLIKELY(offset)) {
     memset(y, '\0', offset*sizeof(MYFLT));
+    memset(y1, '\0', offset*sizeof(MYFLT));
   }
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&y1[nsmps], '\0', early*sizeof(MYFLT));
   }
  
   for (i=offset; i<nsmps; i++) {
@@ -2502,11 +2518,13 @@ int32_t vcfnl_perfak(CSOUND *csound, VCFNL *p) {
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
     o = (G[3]*x[i] + ss)/(1. + k*G[3]);
-    u = G[0]*nlf(tab,(x[i] - k*o)*kn,max,size)*kno1;
+    OTA_NLF(u, tab, (x[i] - k*o)*kn, max, size);
+    u *= G[0]*kno1;
     for(j = 0; j < 3; j++) {
       w = u + s[j];
       s[j] = u - A*w;
-      u = G[0]*nlf(tab,w*kn,max,size)*kno1;
+      OTA_NLF(u, tab, w*kn, max, size);
+      u *= G[0]*kno1;
       if(j == 1) y1[i] = s[1];
     }
     s[3] = u - A*o;
@@ -2539,10 +2557,12 @@ int32_t vcfnl_perfka(CSOUND *csound, VCFNL *p) {
   }
   if (UNLIKELY(offset)) {
     memset(y, '\0', offset*sizeof(MYFLT));
+    memset(y1, '\0', offset*sizeof(MYFLT));
   }
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&y1[nsmps], '\0', early*sizeof(MYFLT));
   }
  
   for (i=offset; i<nsmps; i++) {
@@ -2550,11 +2570,13 @@ int32_t vcfnl_perfka(CSOUND *csound, VCFNL *p) {
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
     o = (G[3]*x[i] + ss)/(1. + k*G[3]);
-    u = G[0]*nlf(tab,(x[i] - k*o)*kn,max,size)*kno1;
+    OTA_NLF(u, tab, (x[i] - k*o)*kn, max, size);
+    u *= G[0]*kno1;
     for(j = 0; j < 3; j++) {
       w = u + s[j];
       s[j] = u - A*w;
-      u = G[0]*nlf(tab,w*kn,max,size)*kno1;
+      OTA_NLF(u, tab, w*kn, max, size);
+      u *= G[0]*kno1;
       if(j == 1) y1[i] = s[1];
     }
     s[3] = u - A*o;
@@ -2577,10 +2599,12 @@ int32_t vcfnl_perfaa(CSOUND *csound, VCFNL *p) {
   
   if (UNLIKELY(offset)) {
     memset(y, '\0', offset*sizeof(MYFLT));
+    memset(y1, '\0', offset*sizeof(MYFLT));
   }
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&y1[nsmps], '\0', early*sizeof(MYFLT));
   }
  
   for (i=offset; i<nsmps; i++) {
@@ -2594,11 +2618,13 @@ int32_t vcfnl_perfaa(CSOUND *csound, VCFNL *p) {
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
     o = (G[3]*x[i] + ss)/(1. + k*G[3]);
-    u = G[0]*nlf(tab,(x[i] - k*o)*kn,max,size)*kno1;
+    OTA_NLF(u, tab, (x[i] - k*o)*kn, max, size);
+    u *= G[0]*kno1;
     for(j = 0; j < 3; j++) {
       w = u + s[j];
       s[j] = u - A*w;
-      u = G[0]*nlf(tab,w*kn,max,size)*kno1;
+      OTA_NLF(u, tab, w*kn, max, size);
+      u *= G[0]*kno1;
       if(j == 1) y1[i] = s[1];
     }
     s[3] = u - A*o;
@@ -2608,6 +2634,8 @@ int32_t vcfnl_perfaa(CSOUND *csound, VCFNL *p) {
 }
 
 
+
+#undef OTA_NLF
 
 typedef struct vcf {
   OPDS h;
@@ -3232,6 +3260,19 @@ int32_t skf_perfka(CSOUND *csound, SKF *p) {
 }
 
 
+/* Clamp the transfer-function coordinate before converting it to an index. */
+#define SVN_NLF(result, table, value, scale, length) do {                  \
+  double pos_ = ((value) * (scale) + 0.5) * (length);                    \
+  if (!(pos_ > 0.0)) (result) = (table)[0];                              \
+  else if (pos_ >= (length)) (result) = (table)[length];                 \
+  else {                                                               \
+    size_t index_;                                                      \
+    index_ = (size_t)pos_;                                              \
+    (result) = (table)[index_] + (pos_ - index_) *                       \
+      ((table)[index_ + 1] - (table)[index_]);                           \
+  }                                                                    \
+} while (0)
+
 typedef struct _svn {
   OPDS h;
   MYFLT *yh,*yl,*yb,*yr,*x,*f,*q,*kn,*ifn,*inm,*mx,*istor;
@@ -3241,6 +3282,7 @@ typedef struct _svn {
   double piosr;
   MYFLT *tab, max;
   int32_t size;
+  FUNC *norm;
 } SVN;
 
 
@@ -3248,6 +3290,15 @@ typedef struct _svn {
 int32_t svn_init(CSOUND *csound, SVN *p) {
   double w2;
   double *s = p->s;
+  if (UNLIKELY((*p->ifn != FL(0.0) || *p->inm != FL(0.0)) &&
+               (!(*p->mx > FL(0.0)) || !isfinite(*p->mx))))
+    return csound->InitError(csound,
+                            Str("svn: table domain must be positive and finite"));
+  p->norm = NULL;
+  if (*p->inm != FL(0.0)) {
+    p->norm = csound->FTFind(csound, p->inm);
+    if (UNLIKELY(p->norm == NULL)) return NOTOK;
+  }
   p->piosr = PI/CS_ESR;
   p->w = TAN(*p->f*p->piosr);
   w2 = p->w*p->w;
@@ -3262,9 +3313,8 @@ int32_t svn_init(CSOUND *csound, SVN *p) {
       int32_t i;
       csound->CreateGlobalVariable(csound,"::TANH::",sizeof(MYFLT)*(TABSIZE+1));
       tab =  csound->QueryGlobalVariable(csound, "::TANH::");
-      MYFLT step  = 8./TABSIZE, x = -4.;
-      for(i=0; i <= TABSIZE; x += step, i++)
-        tab[i] = TANH(x);
+      for(i=0; i <= TABSIZE; i++)
+        tab[i] = tanh((double)i * (8.0 / TABSIZE) - 4.0);
     }
     tab[TABSIZE] = tab[TABSIZE-1];
     p->max = .125;
@@ -3272,9 +3322,10 @@ int32_t svn_init(CSOUND *csound, SVN *p) {
     p->size = TABSIZE;
   } else {
     FUNC *ftab = csound->FTFind(csound, p->ifn);
+    if (UNLIKELY(ftab == NULL)) return NOTOK;
     p->tab = ftab->ftable;
     p->size = ftab->flen;
-    p->max = 1./(*p->mx*2);
+    p->max = 0.5 / *p->mx;
   }
   return OK;
 }
@@ -3284,13 +3335,13 @@ int32_t svn_perfkk(CSOUND *csound, SVN *p) {
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
-  MYFLT *x = p->x , kn = *p->kn, kno1;
+  MYFLT *x = p->x , kn = *p->kn, gain;
   double u, w = p->w, fac = p->fac, Q = p->Q, D;
   double *s = p->s;
-  MYFLT *tab = p->tab, *tn = NULL;
+  MYFLT *tab = p->tab;
   double max = p->max, mx = *p->mx;
-  int32_t size = p->size, sz = 0;
-  FUNC *ftab = csound->FTFind(csound, p->inm);
+  int32_t size = p->size;
+  FUNC *ftab = p->norm;
   double scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
   D = 1./Q;
@@ -3321,18 +3372,21 @@ int32_t svn_perfkk(CSOUND *csound, SVN *p) {
 
   if(kn > 0.) {
     if(ftab != NULL) {
-      tn = ftab->ftable;
-      sz = ftab->flen;
       if(kn > mx) kn = mx;
-    } else kn /= max;
-    kno1 = 1./kn;
+      gain = ftab->ftable[(size_t)(ftab->flen * ((double)kn / mx))];
+    } else {
+      kn /= max;
+      gain = 1./kn;
+    }
     for (i=offset; i<nsmps; i++) {
       u = x[i]*iscal;
       yh[i] = (u - (D + w) * s[0] - s[1])*fac;
-      u = w * nlf(tab,yh[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      SVN_NLF(u, tab, yh[i]*kn, max, size);
+      u *= w * gain;
       yb[i] = u + s[0];
       s[0] = yb[i] + u;
-      u = w * nlf(tab,yb[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      SVN_NLF(u, tab, yb[i]*kn, max, size);
+      u *= w * gain;
       yl[i] = u + s[1];
       s[1] =  yl[i] + u;
       yr[i] = (yh[i] + yl[i])*scal;
@@ -3365,13 +3419,13 @@ int32_t svn_perfak(CSOUND *csound, SVN *p) {
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
-  MYFLT *x = p->x , kn = *p->kn > 0 ? *p->kn : .0001, kno1, *f = p->f;
+  MYFLT *x = p->x , kn = *p->kn, gain, *f = p->f;
   double u, w, fac, Q = p->Q, D;
   double *s = p->s;
-  MYFLT *tab = p->tab, *tn = NULL;
+  MYFLT *tab = p->tab;
   double max = p->max, mx = *p->mx;
-  int32_t size = p->size, sz = 0;
-  FUNC *ftab = csound->FTFind(csound, p->inm);
+  int32_t size = p->size;
+  FUNC *ftab = p->norm;
   double scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
   Q = p->Q = *p->q >  0.5 ? *p->q : 0.5;
@@ -3393,21 +3447,23 @@ int32_t svn_perfak(CSOUND *csound, SVN *p) {
 
   if(kn > 0.) {
     if(ftab != NULL) {
-      tn = ftab->ftable;
-      sz = ftab->flen;
       if(kn > mx) kn = mx;
+      gain = ftab->ftable[(size_t)(ftab->flen * ((double)kn / mx))];
+    } else {
+      kn /= max;
+      gain = 1./kn;
     }
-    if (kn < 0) kn = 0.;
-    kno1 = 1./kn;
     for (i=offset; i<nsmps; i++) {
       w = TAN(f[i]*p->piosr);
       fac = 1./(1. + w*D + w*w);
       u = x[i]*iscal;
       yh[i] = (u - (D + w) * s[0] - s[1])*fac;
-      u = w * nlf(tab,yh[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      SVN_NLF(u, tab, yh[i]*kn, max, size);
+      u *= w * gain;
       yb[i] = u + s[0];
       s[0] = yb[i] + u;
-      u = w * nlf(tab,yb[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      SVN_NLF(u, tab, yb[i]*kn, max, size);
+      u *= w * gain;
       yl[i] = u + s[1];
       s[1] =  yl[i] + u;
       yr[i] = (yh[i] + yl[i])*scal;
@@ -3441,13 +3497,13 @@ int32_t svn_perfka(CSOUND *csound, SVN *p) {
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
-  MYFLT *x = p->x,  kn = *p->kn > 0 ? *p->kn : .0001, kno1, *q = p->q;
+  MYFLT *x = p->x,  kn = *p->kn, gain, *q = p->q;
   double u, w = p->w, w2, fac = p->fac, D;
   double *s = p->s;
-  MYFLT *tab = p->tab, *tn = NULL;
+  MYFLT *tab = p->tab;
   double max = p->max, mx = *p->mx;
-  int32_t size = p->size, sz = 0;
-  FUNC *ftab = csound->FTFind(csound, p->inm);
+  int32_t size = p->size;
+  FUNC *ftab = p->norm;
   double scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
   w2 = w*w;
@@ -3474,21 +3530,23 @@ int32_t svn_perfka(CSOUND *csound, SVN *p) {
 
   if(kn > 0.) {
     if(ftab != NULL) {
-      tn = ftab->ftable;
-      sz = ftab->flen;
       if(kn > mx) kn = mx;
+      gain = ftab->ftable[(size_t)(ftab->flen * ((double)kn / mx))];
+    } else {
+      kn /= max;
+      gain = 1./kn;
     }
-    if (kn < 0) kn = 0.;
-    kno1 = 1./kn;
     for (i=offset; i<nsmps; i++) {
       D = 1./(q[i] >  0.5 ? q[i] : 0.5);
       fac = 1./(1. + w*D + w2);
       u = x[i]*iscal;
       yh[i] = (u - (D + w) * s[0] - s[1])*fac;
-      u = w * nlf(tab,yh[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      SVN_NLF(u, tab, yh[i]*kn, max, size);
+      u *= w * gain;
       yb[i] = u + s[0];
       s[0] = yb[i] + u;
-      u = w * nlf(tab,yb[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      SVN_NLF(u, tab, yb[i]*kn, max, size);
+      u *= w * gain;
       yl[i] = u + s[1];
       s[1] =  yl[i] + u;
       yr[i] = (yh[i] + yl[i])*scal;
@@ -3523,13 +3581,13 @@ int32_t svn_perfaa(CSOUND *csound, SVN *p) {
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
-  MYFLT *x = p->x ,kn = *p->kn > 0 ? *p->kn : .0001, kno1, *f = p->f, *q = p->q;
+  MYFLT *x = p->x ,kn = *p->kn, gain, *f = p->f, *q = p->q;
   double u, w, fac, D;
   double *s = p->s;
-  MYFLT *tab = p->tab, *tn = NULL;
+  MYFLT *tab = p->tab;
   double max = p->max, mx = *p->mx;
-  int32_t size = p->size, sz = 0;
-  FUNC *ftab = csound->FTFind(csound, p->inm);
+  int32_t size = p->size;
+  FUNC *ftab = p->norm;
   double scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
 
@@ -3549,12 +3607,12 @@ int32_t svn_perfaa(CSOUND *csound, SVN *p) {
 
   if(kn > 0.) {
     if(ftab != NULL) {
-      tn = ftab->ftable;
-      sz = ftab->flen;
       if(kn > mx) kn = mx;
+      gain = ftab->ftable[(size_t)(ftab->flen * ((double)kn / mx))];
+    } else {
+      kn /= max;
+      gain = 1./kn;
     }
-    if (kn < 0) kn = 0.;
-    kno1 = 1./kn;
 
     for (i=offset; i<nsmps; i++) {
       D = 1./(q[i] >  0.5 ? q[i] : 0.5);
@@ -3562,10 +3620,12 @@ int32_t svn_perfaa(CSOUND *csound, SVN *p) {
       fac = 1./(1. + w*D + w*w);
       u = x[i]*iscal;
       yh[i] = (u - (D + w) * s[0] - s[1])*fac;
-      u = w * nlf(tab,yh[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      SVN_NLF(u, tab, yh[i]*kn, max, size);
+      u *= w * gain;
       yb[i] = u + s[0];
       s[0] = yb[i] + u;
-      u = w * nlf(tab,yb[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      SVN_NLF(u, tab, yb[i]*kn, max, size);
+      u *= w * gain;
       yl[i] = u + s[1];
       s[1] =  yl[i] + u;
       yr[i] = (yh[i] + yl[i])*scal;
@@ -3595,6 +3655,8 @@ int32_t svn_perfaa(CSOUND *csound, SVN *p) {
   return OK;
 }
 
+#undef SVN_NLF
+
 typedef struct midsid {
   OPDS h;
   MYFLT *a0, *a1, *a2, *a3, *kw;
@@ -3616,9 +3678,10 @@ int32_t ms_encod(CSOUND *csound, MIDSID *p) {
     memset(&s[nsmps], '\0', early*sizeof(MYFLT));
   }
 
-  for(i=0; i < nsmps; i++) {
-    m[i] = l[i] + r[i];
-    s[i] = l[i] - r[i];
+  for(i=offset; i < nsmps; i++) {
+    MYFLT left = l[i], right = r[i];
+    m[i] = left + right;
+    s[i] = left - right;
   }
   return OK;
 }
@@ -3641,7 +3704,7 @@ int32_t ms_decod(CSOUND *csound, MIDSID *p) {
     memset(&r[nsmps], '\0', early*sizeof(MYFLT));
   }
 
-  for(i=0; i < nsmps; i++) {
+  for(i=offset; i < nsmps; i++) {
     MYFLT mm, ss;
     mm = m[i]*wm1;
     ss = s[i]*w;

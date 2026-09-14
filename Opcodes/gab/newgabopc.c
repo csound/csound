@@ -77,7 +77,6 @@ typedef struct  {
   OPDS    h;
   MYFLT   *out1, *out2, *amp, *freq, *kloop, *kend, *ift, *iphs;
   int64_t    tablen;
-  MYFLT   fsr;
   MYFLT *ft; /*table */
   double  phs, fsrUPsr /* , looplength */;
   int64_t    phs_int;
@@ -92,7 +91,7 @@ static int32_t lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
   if (UNLIKELY(!(fsr = ftp->gen01args.sample_rate))) {
     csound->Message(csound, "%s", Str("lposcil: no sample rate stored in function;"
                                       " assuming=sr\n"));
-    p->fsr=CS_ESR;
+    fsr = CS_ESR;
   }
   p->fsrUPsr = fsr/CS_ESR;
   p->ft     = ftp->ftable;
@@ -141,11 +140,12 @@ static int32_t lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
   }
   for (n=offset; n<nsmps; n++) {
     double fract;
+    MYFLT amplitude = amp[n];
     MYFLT *curr_samp1 = ft + (int64_t) *phs * 2;
     MYFLT *curr_samp2 = curr_samp1 +1;
     fract= *phs - (int64_t) *phs;
-    out1[n] = amp[n] * (MYFLT)(*curr_samp1 +(*(curr_samp1+2)-*curr_samp1)*fract);
-    out2[n] = amp[n] * (MYFLT)(*curr_samp2 +(*(curr_samp2+2)-*curr_samp2)*fract);
+    out1[n] = amplitude * (MYFLT)(*curr_samp1 +(*(curr_samp1+2)-*curr_samp1)*fract);
+    out2[n] = amplitude * (MYFLT)(*curr_samp2 +(*(curr_samp2+2)-*curr_samp2)*fract);
     *phs += si;
     while (*phs  >= end) *phs -= looplength;
     while (*phs  < loop) *phs += looplength;
@@ -181,9 +181,10 @@ static int32_t lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
     memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n=offset; n<nsmps; n++) {
+    MYFLT amplitude = amp[n];
     MYFLT *curr_samp1 = ft + *phs * 2;
-    out1[n] = amp[n] * (MYFLT) *curr_samp1 ;
-    out2[n] = amp[n] * (MYFLT) *(curr_samp1+1) ;
+    out1[n] = amplitude * (MYFLT) *curr_samp1 ;
+    out2[n] = amplitude * (MYFLT) *(curr_samp1+1) ;
     *phs += si;
     while (*phs  >= end) *phs -= looplength;
     while (*phs  < loop) *phs += looplength;
@@ -200,6 +201,13 @@ typedef struct  {       /* gab d5*/
   MYFLT   *out, *ktrig, *min, *max;
   MYFLT   lastvalue;
 } TRANGERAND;
+
+static int32_t trRangeRand_set(CSOUND *csound, TRANGERAND *p)
+{
+  IGN(csound);
+  p->lastvalue = FL(0.0);
+  return OK;
+}
 
 static int32_t trRangeRand(CSOUND *csound, TRANGERAND *p)
 { /* gab d5*/
@@ -248,7 +256,7 @@ static OENTRY localops[] = {
   { "vtable1k",       S(MTABLE1),         TR,   "",  "kz",
                   (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL },
   { "trandom",        S(TRANGERAND),          0,      "k", "kkk",
-                    NULL,                                   (SUBR)trRangeRand },
+                    (SUBR)trRangeRand_set,                   (SUBR)trRangeRand },
   { "lposcilsa", S(LPOSC_ST),  TR,  "aa","akkkio",
                              (SUBR)lposc_stereo_set, (SUBR)lposca_stereo},
   { "lposcilsa2", S(LPOSC_ST), TR,  "aa","akkkio",

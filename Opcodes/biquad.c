@@ -119,6 +119,9 @@ static int32_t biquada(CSOUND *csound, BIQUAD *p)
 /* translated to C by Hans Mikelson            *****************************/
 /***************************************************************************/
 
+/* moogvcf historically applies 0dBFS scaling in addition to iscale.
+   Keep this known defect for compatibility with existing scores; moogvcf2
+   uses iscale alone. Do not change the legacy scaling to match moogvcf2. */
 static int32_t moogvcfset(CSOUND *csound, MOOGVCF *p)
 {
   if (*p->iskip==FL(0.0)) {
@@ -127,8 +130,16 @@ static int32_t moogvcfset(CSOUND *csound, MOOGVCF *p)
   }
   p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
   p->rezcod = IS_ASIG_ARG(p->res) ? 1 : 0;
-  if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->Get0dBFS(csound);
+  p->fullscale = csound->Get0dBFS(csound);
+  if ((p->maxint = *p->max)==FL(0.0)) p->maxint = p->fullscale;
 
+  return OK;
+}
+
+static int32_t moogvcf2set(CSOUND *csound, MOOGVCF *p)
+{
+  moogvcfset(csound, p);
+  p->fullscale = FL(1.0);
   return OK;
 }
 
@@ -146,7 +157,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
   double dmax = 1.0/max;
   double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
   double y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
-  MYFLT zerodb = csound->Get0dBFS(csound);
+  MYFLT zerodb = p->fullscale;
 
   in      = p->in;
   out     = p->out;
@@ -525,19 +536,18 @@ static int32_t distort(CSOUND *csound, DISTORT *p)
   /* IV - Dec 28 2002 */
   shape1 += pregain;
   shape2 -= pregain;
-  postgain *= FL(0.5);
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n=offset; n<nsmps; n++) {
+    MYFLT norm;
     sig    = in[n];
-    /* Generate tanh distortion and output the result */
-    out[n] =                          /* IV - Dec 28 2002: optimised */
-      ((EXP(sig * shape1) - EXP(sig * shape2))
-       / COSH(sig * pregain))
-      * postgain;
+    norm = FABS(sig * pregain);
+    /* Scale by the largest denominator exponent to avoid overflow. */
+    out[n] = ((EXP(sig * shape1 - norm) - EXP(sig * shape2 - norm))
+              / (FL(1.0) + EXP(FL(-2.0) * norm))) * postgain;
   }
   return OK;
 }
@@ -845,6 +855,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
 
       p->left = indx;             /*      and keep track of where you are */
       p->lphs = phs;
+      p->fphs = fphs;
       return OK;
     err1:
       return csound->PerfError(csound, &(p->h), "%s", Str("vco: not initialised"));
@@ -954,11 +965,12 @@ static int32_t vco(CSOUND *csound, VCO *p)
     static int32_t pareqset(CSOUND *csound, PAREQ *p)
     {
       IGN(csound);
-      /* The equalizer filter is initialised to zero.    */
-      if (*p->iskip == FL(0.0)) {
+      /* Initialize once before honoring iskip. */
+      if (*p->iskip == FL(0.0) || !p->initialized) {
         p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;
         p->prv_fc = p->prv_v = p->prv_q = FL(-1.0);
         p->imode = (int32_t) MYFLT2LONG(*p->mode);
+        p->initialized = 1;
       }
       return OK;
     } /* end pareqset(p) */
@@ -1050,59 +1062,59 @@ static int32_t vco(CSOUND *csound, VCO *p)
 
     static int32_t nestedapset(CSOUND *csound, NESTEDAP *p)
     {
-      int32    npts, npts1=0, npts2=0, npts3=0;
-      void    *auxp;
+      int32_t npts, npts1, npts2 = 0, npts3 = 0;
+      double samples;
+      size_t size;
+      int32_t mode;
 
       if (*p->istor && p->auxch.auxp != NULL)
         return OK;
-
-      npts2 = (int32)(*p->del2 * CS_ESR);
-      npts3 = (int32)(*p->del3 * CS_ESR);
-      npts1 = (int32)(*p->del1 * CS_ESR) - npts2 -npts3;
-
-      if (UNLIKELY(((int32)(*p->del1 * CS_ESR)) <=
-                   ((int32)(*p->del2 * CS_ESR) +
-                    (int32)(*p->del3 * CS_ESR)))) {
-        return csound->InitError(csound, "%s", Str("illegal delay time"));
+      if (UNLIKELY(*p->mode != FL(1.0) && *p->mode != FL(2.0) &&
+                   *p->mode != FL(3.0)))
+        return csound->InitError(csound, Str("nestedap: mode must be 1, 2 or 3"));
+      mode = (int32_t)*p->mode;
+      samples = *p->del1 * CS_ESR;
+      if (UNLIKELY(!(samples >= 1.0 && samples <= INT32_MAX &&
+                     samples <= SIZE_MAX / sizeof(MYFLT))))
+        return csound->InitError(csound, Str("nestedap: invalid outer delay"));
+      npts = (int32_t)samples;
+      if (mode >= 2) {
+        samples = *p->del2 * CS_ESR;
+        if (UNLIKELY(!(samples >= 1.0 && samples < npts)))
+          return csound->InitError(csound, Str("nestedap: invalid second delay"));
+        npts2 = (int32_t)samples;
       }
-      npts = npts1 + npts2 + npts3;
-      /* new space if reqd */
-      if ((auxp = p->auxch.auxp) == NULL || npts != p->npts) {
-        csound->AuxAlloc(csound, (size_t)npts*sizeof(MYFLT), &p->auxch);
-        //auxp = p->auxch.auxp;
-        p->npts = npts;
-
-        if (*p->mode == FL(1.0)) {
-          if (UNLIKELY(npts1 <= 0)) {
-            return csound->InitError(csound, "%s", Str("illegal delay time"));
-          }
-          p->beg1p = (MYFLT *) p->auxch.auxp;
-          p->end1p = (MYFLT *) p->auxch.endp;
-        }
-        else if (*p->mode == FL(2.0)) {
-          if (UNLIKELY(npts1 <= 0 || npts2 <= 0)) {
-            return csound->InitError(csound, "%s", Str("illegal delay time"));
-          }
-          p->beg1p = (MYFLT *)  p->auxch.auxp;
-          p->beg2p = p->beg1p + npts1;
-          p->end1p = p->beg2p - 1;
-          p->end2p = (MYFLT *)  p->auxch.endp;
-        }
-        else if (*p->mode == FL(3.0)) {
-          if (UNLIKELY(npts1 <= 0 || npts2 <= 0 || npts3 <= 0)) {
-            return csound->InitError(csound, "%s", Str("illegal delay time"));
-          }
-          p->beg1p = (MYFLT *) p->auxch.auxp;
-          p->beg2p = (MYFLT *) p->auxch.auxp + (int32)npts1;
-          p->beg3p = (MYFLT *) p->auxch.auxp + (int32)npts1 + (int32)npts2;
-          p->end1p = p->beg2p - 1;
-          p->end2p = p->beg3p - 1;
-          p->end3p = (MYFLT *) p->auxch.endp;
-        }
+      if (mode == 3) {
+        samples = *p->del3 * CS_ESR;
+        if (UNLIKELY(!(samples >= 1.0 && samples < npts - npts2)))
+          return csound->InitError(csound, Str("nestedap: invalid third delay"));
+        npts3 = (int32_t)samples;
       }
-      /* else if requested */
-      else if (!(*p->istor)) {
-        memset(auxp, 0, npts*sizeof(int32));
+      npts1 = npts - npts2 - npts3;
+      size = (size_t)npts * sizeof(MYFLT);
+      if (p->auxch.auxp == NULL || npts != p->npts)
+        csound->AuxAlloc(csound, size, &p->auxch);
+      else
+        memset(p->auxch.auxp, 0, size);
+      p->npts = npts;
+      p->imode = mode;
+
+      /* Rebuild the layout even when the total allocation size is unchanged. */
+      p->beg1p = (MYFLT *)p->auxch.auxp;
+      p->beg2p = p->beg3p = NULL;
+      p->end2p = p->end3p = NULL;
+      p->end1p = p->beg1p + npts;
+      /* Nested modes historically shorten the outer stages by one sample.
+         Keep these endpoints and the filter equations for sound compatibility. */
+      if (mode >= 2) {
+        p->beg2p = p->beg1p + npts1;
+        p->end1p = p->beg2p - 1;
+        p->end2p = p->beg1p + npts;
+      }
+      if (mode == 3) {
+        p->beg3p = p->beg2p + npts2;
+        p->end2p = p->beg3p - 1;
+        p->end3p = p->beg1p + npts;
       }
       p->del1p = p->beg1p;
       p->del2p = p->beg2p;
@@ -1134,7 +1146,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
         memset(&outp[nsmps], '\0', early*sizeof(MYFLT));
       }
       /* Ordinary All-Pass Filter */
-      if (*p->mode == FL(1.0)) {
+      if (p->imode == 1) {
 
         del1p = p->del1p;
         end1p = p->end1p;
@@ -1156,7 +1168,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
       }
 
       /* Single Nested All-Pass Filter */
-      else if (*p->mode == FL(2.0)) {
+      else if (p->imode == 2) {
 
         del1p = p->del1p;
         end1p = p->end1p;
@@ -1192,7 +1204,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
       }
 
       /* Double Nested All-Pass Filter */
-      else if (*p->mode == FL(3.0)) {
+      else if (p->imode == 3) {
 
         del1p = p->del1p;
         end1p = p->end1p;
@@ -1279,6 +1291,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
       b     = *p->b;
       hstep = *p->hstep;
       skip  = (int32) *p->skip;
+      if (skip < 1) skip = 1;
       x     = p->valx;
       y     = p->valy;
       z     = p->valz;
@@ -1296,13 +1309,14 @@ static int32_t vco(CSOUND *csound, VCO *p)
       }
 
       for (n=offset; n<nsmps; n++) {
+        int32 remaining = skip;
         do {
           xx   =      x+hstep*s*(y-x);
           yy   =      y+hstep*(-x*z+r*x-y);
           z    =      z+hstep*(x*y-b*z);
           x    =      xx;
           y    =      yy;
-        } while (--skip>0);
+        } while (--remaining>0);
 
         /* Output the results */
         outx[n] = x;
@@ -1468,7 +1482,10 @@ static int32_t vco(CSOUND *csound, VCO *p)
           mu    = 0.0;
           sigma = -1.0;
         }
-        alpha = (beta + 1.0 + chi*gamma) * 0.5;
+        /* Band-pass gain follows the low/high-pass center gain (2 * rez).
+           The high-pass numerator gives an unwanted cot(theta/2) factor. */
+        alpha = mode == 2 ? (beta + 1.0) * sin2
+                          : (beta + 1.0 + chi*gamma) * 0.5;
 
         for (n=offset; n<nsmps; n++) {                        /* do ksmp times   */
           /* Handle a-rate modulation of fco and rez */
@@ -1484,7 +1501,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
             cos2 = cos(theta);
             beta = (rez - sin2) / (rez + sin2);
             gamma = (beta + 1.0) * cos2;
-            alpha = (beta + 1.0 + chi*gamma) * 0.5;
+            alpha = mode == 2 ? (beta + 1.0) * sin2
+                              : (beta + 1.0 + chi*gamma) * 0.5;
           }
           xn     = (double)in[n];   /* Get the next sample */
           yn     = alpha*(xn + mu*xnm1 + sigma*xnm2) + gamma*ynm1 - beta*ynm2;
@@ -1611,15 +1629,22 @@ static int32_t vco(CSOUND *csound, VCO *p)
         }
         if (asgq) kq = p->kq[n];
         if (lfq != kfq || lq != kq) {
-          double kfreq  = kfq*TWOPI;
-          double kalpha = (CS_ESR/kfreq);
-          double kbeta  = kalpha*kalpha;
-          d      = 0.5*kalpha;
-
           lq = kq; lfq = kfq;
-          a0     = 1.0/ (kbeta+d/kq);
-          a1     = a0 * (1.0-2.0*kbeta);
-          a2     = a0 * (kbeta-d/kq);
+          if (UNLIKELY(kfq == FL(0.0) || kq == FL(0.0))) {
+            /* Zero frequency or Q silences the resonator. Clear feedback
+               so a later positive value can start from finite state. */
+            a0 = a1 = a2 = d = 0.0;
+            ynm1 = ynm2 = 0.0;
+          }
+          else {
+            double kfreq  = kfq*TWOPI;
+            double kalpha = (CS_ESR/kfreq);
+            double kbeta  = kalpha*kalpha;
+            d      = 0.5*kalpha;
+            a0     = 1.0/ (kbeta+d/kq);
+            a1     = a0 * (1.0-2.0*kbeta);
+            a2     = a0 * (kbeta-d/kq);
+          }
         }
         xn = (double)p->ain[n];
 
@@ -1690,10 +1715,12 @@ static int32_t vco(CSOUND *csound, VCO *p)
       }
 
       for(n = offset; n < nsmps; n++) {
-        if (asigtau && tau[n] > FL(0.0)) {
-          r1 = exp(-1 / (tau[n]*fs));
-        } else {
-          r1 = 0;
+        if (asigtau) {
+          if (tau[n] > FL(0.0)) {
+            r1 = exp(-1 / (tau[n]*fs));
+          } else {
+            r1 = 0;
+          }
         }
 
         if (asigf0) {
@@ -1729,7 +1756,7 @@ static OENTRY localops[] = {
 { "moogvcf", S(MOOGVCF), 0, "a", "axxpo",
                                (SUBR)moogvcfset,  (SUBR)moogvcf },
 { "moogvcf2", S(MOOGVCF),0, "a", "axxoo",
-                               (SUBR)moogvcfset,  (SUBR)moogvcf },
+                               (SUBR)moogvcf2set,  (SUBR)moogvcf },
 { "rezzy", S(REZZY),     0, "a", "axxoo", (SUBR)rezzyset,  (SUBR)rezzy },
 { "bqrez", S(REZZY),     0, "a", "axxoo", (SUBR)bqrezset,  (SUBR)bqrez },
 { "distort1", S(DISTORT),TR,  "a", "akkkko",  NULL,      (SUBR)distort   },

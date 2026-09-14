@@ -678,16 +678,10 @@ int32_t csoundSetControlChannelHints(CSOUND *csound, const char *name,
 }
 
 /**
- * Returns special parameters (assuming there are any) of a control channel,
- * previously set with csoundSetControlChannelHints().
- * If the channel exists, is a control channel, and has the special parameters
- * assigned, then the default, minimum, and maximum value is stored in *dflt,
- * *min, and *max, respectively, and a positive value that is one of
- * CSOUND_CONTROL_CHANNEL_INT, CSOUND_CONTROL_CHANNEL_LIN, and
- * CSOUND_CONTROL_CHANNEL_EXP is returned.
- * In any other case, *dflt, *min, and *max are not changed, and the return
- * value is zero if the channel exists, is a control channel, but has no
- * special parameters set; otherwise, a negative error code is returned.
+ * Copies a control channel's hints into *hints and returns CSOUND_SUCCESS.
+ * The caller must free hints->attributes if it is non-NULL.
+ * Returns CSOUND_ERROR and leaves *hints unchanged if the name is NULL,
+ * the channel does not exist, is not a control channel, or has no hints.
  */
 int32_t csoundGetControlChannelHints(CSOUND *csound, const char *name,
                                      controlChannelHints_t *hints){
@@ -1701,12 +1695,14 @@ int32_t chnparams_opcode_init(CSOUND *csound, CHNPARAMS_OPCODE *p)
   if ((err & 15) == CSOUND_CONTROL_CHANNEL) {
     controlChannelHints_t hints;
     err = csoundGetControlChannelHints(csound, (char*) p->iname->data, &hints);
-    if (UNLIKELY(err > 0))
-      *(p->ictltype) = (MYFLT) err;
-    *(p->ictltype) = hints.behav;
-    *(p->idflt) = hints.dflt;
-    *(p->imin) = hints.min;
-    *(p->imax) = hints.max;
+    if (LIKELY(err == CSOUND_SUCCESS)) {
+      *(p->ictltype) = hints.behav;
+      *(p->idflt) = hints.dflt;
+      *(p->imin) = hints.min;
+      *(p->imax) = hints.max;
+      if (hints.attributes != NULL)
+        csound->Free(csound, hints.attributes);
+    }
   }
   return OK;
 }
@@ -3079,7 +3075,9 @@ int32_t csoundArrayDataDimensions(const ARRAYDAT *adat) {
 }
 
 const char *csoundArrayDataType(const ARRAYDAT *adat) {
-  return adat->arrayType->varTypeName;
+  if(adat && adat->arrayType)
+   return adat->arrayType->varTypeName;
+  else return NULL;
 }
 
 const int32_t *csoundArrayDataSizes(const ARRAYDAT *adat){

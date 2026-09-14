@@ -249,7 +249,7 @@ static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
     p->maxFr    = pp.nframes - 1;
     p->asr      = pp.srate;
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = CS_ESR / (MYFLT) pp.overlap;
+    p->frPrtim = (*p->ifiletime != FL(0.0) ? p->asr : CS_ESR) / (MYFLT) pp.overlap;
     return OK;
 }
 

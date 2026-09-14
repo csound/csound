@@ -71,7 +71,8 @@ static int32_t hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       
     }
 
     if (*p->kfc <= FL(0.0))     {
-      memcpy(&out[offset], &in[offset], (nsmps-offset)*sizeof(MYFLT));
+      if (out != in)
+        memcpy(&out[offset], &in[offset], (nsmps-offset)*sizeof(MYFLT));
       return OK;
     }
 

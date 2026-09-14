@@ -633,6 +633,17 @@ static int32_t diode_ladder_perf(CSOUND* csound,
 
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
     MYFLT k = k_arate ? 0.0 : *p->kval;
+    MYFLT nlp = *p->nlp;
+    double saturation = *p->saturation;
+    double normalization = 1.0;
+
+    if (nlp == 1.0) {
+      /* tanh(saturation * input) / tanh(saturation) tends to input at zero. */
+      if (saturation == 0.0)
+        nlp = 0.0;
+      else
+        normalization = tanh(saturation);
+    }
 
     if (UNLIKELY(offset)) {
       memset(p->out, '\0', offset*sizeof(MYFLT));
@@ -701,11 +712,11 @@ static int32_t diode_ladder_perf(CSOUND* csound,
       SIGMA = (SG1 * fbo1) + (SG2 * fbo2) + (SG3 * fbo3) + (SG4 * fb4);
 
       // non-linear processing
-      if (*p->nlp == 1.0) {
-        in = (1.0 / tanh(*p->saturation)) * tanh(*p->saturation * in);
+      if (nlp == 1.0) {
+        in = tanh(saturation * in) / normalization;
       }
-      else if (*p->nlp == 2.0) {
-        in = tanh(*p->saturation * in);
+      else if (nlp == 2.0) {
+        in = tanh(saturation * in);
       }
 
       // form input to loop

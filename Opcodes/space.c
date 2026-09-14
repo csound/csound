@@ -40,6 +40,9 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
     if (*p->ifn > 0) {
       if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
         return NOTOK;
+      if (UNLIKELY(ftp->flen < 2))
+        return csound->InitError(csound, "%s",
+                                Str("trajectory table must contain an xy pair"));
       p->ftp = ftp;
     }
 
@@ -71,8 +74,9 @@ static int32_t space(CSOUND *csound, SPACE *p)
     MYFLT   sqrt2 = SQRT(FL(2.0));
     MYFLT   fabxndx, fabyndx;
     FUNC    *ftp;
-    int32    indx, length, halflen;
-    MYFLT   v1, v2, fract, ndx;
+    uint32_t indx, halflen;
+    MYFLT   fract;
+    double  ndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -81,13 +85,14 @@ static int32_t space(CSOUND *csound, SPACE *p)
     if (*p->ifn > 0) { /* get xy vals from function table */
       if (UNLIKELY((ftp = p->ftp) == NULL)) goto err1;
 
-      ndx = *p->time * RESOLUTION; /* when data is res. frames/second */
-      length = ftp->flen;
-      halflen = (int32)(length * FL(0.5));
-      indx = (int32) floor(ndx);
-      fract = ndx - indx;
+      if (UNLIKELY(!isfinite(*p->time)))
+        return csound->PerfError(csound, &(p->h), "%s",
+                                Str("trajectory time must be finite"));
+      ndx = (double)*p->time * RESOLUTION;
+      halflen = ftp->flen / 2;
 
-      if (ndx > (halflen-1)) {
+      /* Clamp before converting to an integer or reading the next xy pair. */
+      if (ndx >= (halflen-1)) {
         indx  = halflen - 1;
         fract = FL(0.0);
       }
@@ -95,14 +100,17 @@ static int32_t space(CSOUND *csound, SPACE *p)
         indx  = 0L;
         fract = FL(0.0);
       }
+      else {
+        indx = (uint32_t)ndx;
+        fract = (MYFLT)(ndx - indx);
+      }
 
-      v1 = *(ftp->ftable + (indx*2));
-      v2 = *(ftp->ftable + (indx*2) + 2);
-      xndx = v1 + (v2 - v1) * fract;
-
-      v1 = *(ftp->ftable + (indx*2) + 1);
-      v2 = *(ftp->ftable + (indx*2) + 3);
-      yndx = v1 + (v2 - v1) * fract;
+      xndx = ftp->ftable[indx*2];
+      yndx = ftp->ftable[indx*2 + 1];
+      if (fract != FL(0.0)) {
+        xndx += (ftp->ftable[indx*2 + 2] - xndx) * fract;
+        yndx += (ftp->ftable[indx*2 + 3] - yndx) * fract;
+      }
     }
     else { /* get xy vals from input arguments */
       xndx = *p->kx;
@@ -208,6 +216,9 @@ static int32_t spdistset(CSOUND *csound, SPDIST *p)
    if (*p->ifn > 0) {
      if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
        return NOTOK;
+     if (UNLIKELY(ftp->flen < 2))
+       return csound->InitError(csound, "%s",
+                               Str("trajectory table must contain an xy pair"));
      p->ftp = ftp;
    }
    return OK;
@@ -218,21 +229,23 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
     MYFLT      *r;
     MYFLT       distance, xndx, yndx;
     FUNC       *ftp;
-    int32       indx, length, halflen;
-    MYFLT       v1, v2, fract, ndx;
+    uint32_t    indx, halflen;
+    MYFLT       fract;
+    double      ndx;
 
     r = p->r;
 
     if (*p->ifn > 0) {
       if (UNLIKELY((ftp = p->ftp)==NULL)) goto err1;
 
-      ndx = *p->time * RESOLUTION; /* when data is 10 frames/second */
-      length = ftp->flen;
-      halflen = (int32)(length * FL(0.5));
-      indx = (int32) floor(ndx);
-      fract = ndx - indx;
+      if (UNLIKELY(!isfinite(*p->time)))
+        return csound->PerfError(csound, &(p->h), "%s",
+                                Str("trajectory time must be finite"));
+      ndx = (double)*p->time * RESOLUTION;
+      halflen = ftp->flen / 2;
 
-      if (ndx > (halflen-1)) {
+      /* Clamp before converting to an integer or reading the next xy pair. */
+      if (ndx >= (halflen-1)) {
         indx  = halflen - 1;
         fract = FL(0.0);
       }
@@ -240,14 +253,17 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
         indx  = 0L;
         fract = FL(0.0);
       }
+      else {
+        indx = (uint32_t)ndx;
+        fract = (MYFLT)(ndx - indx);
+      }
 
-      v1 = *(ftp->ftable + (indx+indx));
-      v2 = *(ftp->ftable + (indx+indx) + 2);
-      xndx = v1 + (v2 - v1) * fract;
-
-      v1 = *(ftp->ftable + (indx+indx) + 1);
-      v2 = *(ftp->ftable + (indx+indx) + 3);
-      yndx = v1 + (v2 - v1) * fract;
+      xndx = ftp->ftable[indx*2];
+      yndx = ftp->ftable[indx*2 + 1];
+      if (fract != FL(0.0)) {
+        xndx += (ftp->ftable[indx*2 + 2] - xndx) * fract;
+        yndx += (ftp->ftable[indx*2 + 3] - yndx) * fract;
+      }
     }
     else { /* get xy vals from input arguments */
       xndx = *p->kx;

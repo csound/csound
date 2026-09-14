@@ -202,15 +202,10 @@ static int32_t BBCutMono(CSOUND *csound, BBCUTMONO *p)
 
         p->repeatsampdone = 0;
 
-        /* determine envelope size - default is always 0 if enveloping off,
-           128 if on; */
-
-        /* envsize must be at most a quarter of repeatsamplelength */
-        if ((p->Envelopingon) ==1) {
-          if (p->repeatlengthsamp<256) {
-            p->envsize = p->repeatlengthsamp/4;
-          }
-        }
+        /* Recompute for every cut: short cuts must not shorten later ramps. */
+        if (p->Envelopingon == 1)
+          p->envsize = p->repeatlengthsamp < 256 ?
+            p->repeatlengthsamp/4 : 64;
 
       }
 
@@ -225,7 +220,7 @@ static int32_t BBCutMono(CSOUND *csound, BBCUTMONO *p)
         if (p->repeatsampdone<p->envsize) {
           /* used sinusoid- prefer exponential */
         /* envmult= sin(PI*0.5*(((MYFLT)(p->repeatsampdone))/(MYFLT)p->envsize)); */
-          envmult = (EXP((p->repeatsampdone)/(p->envsize))-FL(1.0))/
+          envmult = (EXP((MYFLT)p->repeatsampdone/p->envsize)-FL(1.0))/
             FL(1.7182818284590);
         }
 
@@ -449,15 +444,10 @@ static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
 
         p->repeatsampdone = 0;
 
-        /* determine envelope size- default is always 0 if enveloping off,
-           128 if on; */
-
-        /* envsize must be at most a quarter of repeatsamplelength */
-        if (p->Envelopingon ==1) {
-          if (p->repeatlengthsamp<256) {
-            p->envsize = p->repeatlengthsamp/4;
-          }
-        }
+        /* Recompute for every cut: short cuts must not shorten later ramps. */
+        if (p->Envelopingon == 1)
+          p->envsize = p->repeatlengthsamp < 256 ?
+            p->repeatlengthsamp/4 : 64;
       }
 
       /* AUDIO OUT- some changes for buffer access */
@@ -474,8 +464,7 @@ static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
           /* used sinusoid- prefer exponential */
           /* envmult = sin(PI*0.5*(((MYFLT)(p->repeatsampdone))/
              (MYFLT)p->envsize)); */
-          envmult = (EXP((p->repeatsampdone)/
-                                (p->envsize))-
+          envmult = (EXP((MYFLT)p->repeatsampdone/p->envsize)-
                      FL(1.0))/FL(1.7182818284590);
         }
 

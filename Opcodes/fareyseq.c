@@ -32,7 +32,6 @@
 #include <math.h>
 #include <time.h>
 
-#define MAX_PFACTOR 16
 const int32_t MAX_PRIMES = 1229;
 const int32_t primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
                       47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103,
@@ -168,11 +167,6 @@ const int32_t primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
                       9851, 9857, 9859, 9871, 9883, 9887, 9901, 9907, 9923,
                       9929, 9931, 9941, 9949, 9967, 9973};
 
-typedef struct pfactor_ {
-    int32_t expon;
-    int32_t base;
-} PFACTOR;
-
 /* opcodes striuctures */
 typedef struct {
     OPDS h;
@@ -207,6 +201,7 @@ int32_t tablefilter (CSOUND*,TABFILT *p);
 int32_t tablefilterset (CSOUND*,TABFILT *p);
 int32_t tableifilter (CSOUND*, TABFILT *p);
 int32_t fareylen (CSOUND*, FAREYLEN *p);
+int32_t fareyleni (CSOUND*, FAREYLEN *p);
 int32_t tableshuffle (CSOUND*, TABSHUFFLE *p);
 int32_t tableshuffleset (CSOUND*, TABSHUFFLE *p);
 int32_t tableishuffle (CSOUND *, TABSHUFFLE *p);
@@ -214,11 +209,8 @@ int32_t tableishuffle (CSOUND *, TABSHUFFLE *p);
 /* utility functions */
 int32_t EulerPhi (int32_t n);
 int32_t FareyLength (int32_t n);
-int32_t PrimeFactors (int32_t n, PFACTOR p[]);
 MYFLT Digest (int32_t n);
 void float2frac (CSOUND *csound, MYFLT in, int32_t *p, int32_t *q);
-void float_to_cfrac (CSOUND *csound, double r, int32_t n,
-                     int32_t a[], int32_t p[], int32_t q[]);
 
 /* a filter and table copy opcode for filtering tables containing
    Farey Sequences generated with fateytable GEN */
@@ -234,8 +226,6 @@ int32_t tablefilterset(CSOUND *csound, TABFILT *p)
    IGN(csound);
     p->pdft = 0;
     p->psft = 0;
-    *p->ftype = 1;
-    *p->threshold = 7;
     return OK;
 }
 
@@ -355,32 +345,26 @@ static int32_t dotablefilter (CSOUND *csound, TABFILT *p)
     int32 indx = 0;              /* Index to be added to offsets */
     int32 indx2 = 0; /*index into source table*/
     MYFLT *based, *bases;       /* Base addresses of the two tables.*/
-    int32 masks;                 /* Binary masks for the source table */
+    int32 sourcelength;
     MYFLT *pdest, *ps;
     MYFLT threshold;
     int32 ftype;
     MYFLT previous = FL(0.0);
-    //int32 sourcelength;
 
     ftype = (int32) *p->ftype;
     threshold = Digest (*p->threshold);
     loopcount = p->funcd->flen;
-    //sourcelength = loopcount;
 
-    /* Now get the base addresses and length masks of the tables. */
+    /* Source and destination tables may have different lengths. */
     based  = p->funcd->ftable;
     bases = p->funcs->ftable;
-    masks = p->funcs->lenmask;
+    sourcelength = p->funcs->flen;
 
     do {
-      /* Create source pointers by ANDing index with mask, and adding to base
-       * address. This causes source  addresses to wrap around if the
-       * destination table is longer.
-       * Destination address is simply the index plus the base address since
-       * we know we will be writing within the table.          */
-
-      pdest = based  + indx;
-      ps    = bases  + (masks & indx2);
+      if (indx2 == sourcelength)
+        indx2 = 0;
+      pdest = based + indx;
+      ps = bases + indx2;
       switch (ftype) {
       default:
       case 0:
@@ -527,9 +511,28 @@ static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
 
 int32_t fareylen (CSOUND *csound, FAREYLEN *p)
 {
-    IGN(csound);
-    int32_t n = (int32_t) *p->kn;
-    *p->kr = (MYFLT) FareyLength (n);
+    int32_t length;
+    if (UNLIKELY(!(*p->kn >= FL(1.0) && (double)*p->kn <= INT32_MAX)))
+      return csound->PerfError(csound, &(p->h),
+                               Str("fareylen: invalid sequence order"));
+    length = FareyLength((int32_t)*p->kn);
+    if (UNLIKELY(length == 0))
+      return csound->PerfError(csound, &(p->h),
+                               Str("fareylen: sequence length exceeds int32 range"));
+    *p->kr = (MYFLT)length;
+    return OK;
+}
+
+int32_t fareyleni (CSOUND *csound, FAREYLEN *p)
+{
+    int32_t length;
+    if (UNLIKELY(!(*p->kn >= FL(1.0) && (double)*p->kn <= INT32_MAX)))
+      return csound->InitError(csound, Str("fareylen: invalid sequence order"));
+    length = FareyLength((int32_t)*p->kn);
+    if (UNLIKELY(length == 0))
+      return csound->InitError(csound,
+                               Str("fareylen: sequence length exceeds int32 range"));
+    *p->kr = (MYFLT)length;
     return OK;
 }
 
@@ -537,74 +540,30 @@ int32_t fareylen (CSOUND *csound, FAREYLEN *p)
 
 int32_t EulerPhi (int32_t n)
 {
-    int32_t i = 0;
-    //int32_t pcount;
-    MYFLT result;
-    PFACTOR p[MAX_PFACTOR];
-    memset(p, 0, sizeof(PFACTOR)*MAX_PFACTOR);
-
-    if (n == 1)
-      return 1;
-    if (n == 0)
-      return 0;
-    (void)PrimeFactors (n, p);
-
-    result = (MYFLT)n;
-    for (i = 0; i < MAX_PFACTOR; i++) {
-      int32_t q = p[i].base;
-      if (!q)
-        break;
-      result *= (FL(1.0) - FL(1.0) / (MYFLT) q);
+    int32_t prime, result = n;
+    for (prime = 2; prime <= n / prime; prime++) {
+      if (n % prime == 0) {
+        result -= result / prime;
+        do {
+          n /= prime;
+        } while (n % prime == 0);
+      }
     }
-    return (int32_t) result;
+    if (n > 1)
+      result -= result / n;
+    return result;
 }
 
 int32_t FareyLength (int32_t n)
 {
-    int32_t i = 1;
-    int32_t result = 1;
-    n++;
-    for (; i < n; i++)
-      result += EulerPhi (i);
+    int32_t i, result = 1;
+    for (i = 1; i <= n; i++) {
+      int32_t phi = EulerPhi(i);
+      if (phi > INT32_MAX - result)
+        return 0;
+      result += phi;
+    }
     return result;
-}
-
-
-int32_t PrimeFactors (int32_t n, PFACTOR p[])
-{
-    int32_t i = 0; int32_t j = 0;
-    int32_t i_exp = 0;
-    int32_t pcount = 0;
-
-    if (!n)
-      return pcount;
-
-    while (i < MAX_PRIMES)
-      {
-        int32_t aprime = primes[i++];
-        if (j == MAX_PFACTOR || aprime > n) {
-          return pcount;
-        }
-        if (n == aprime)
-          {
-            p[j].expon = 1;
-            p[j].base = n;
-            return (++pcount);
-          }
-        i_exp = 0;
-        while (!(n % aprime))
-          {
-            i_exp++;
-            n /= aprime;
-          }
-        if (i_exp)
-          {
-            p[j].expon = i_exp;
-            p[j].base = aprime;
-            ++pcount; ++j;
-          }
-      }
-    return j;
 }
 
 /* ----------------------------------------------- *
@@ -653,89 +612,36 @@ MYFLT Digest (int32_t n)
     }
 }
 
-/* interface for the function float_to_cfrac, which is a
-   continued fraction expansion
-   in order to convert a real number <in>
-   into an integer fraction <num, denom> with an error less than 10^-5 */
+/* Return the first continued-fraction approximation within 10^-5.
+   Stop before an exact remainder is inverted or a convergent exceeds int32. */
 void float2frac (CSOUND *csound, MYFLT in, int32_t *num, int32_t *denom)
 {
-#define  N (10)
-    int32_t a[N+1];
-    int32_t p[N+2];
-    int32_t q[N+2];
-    int32_t P = 0; int32_t Q = 0;
+    IGN(csound);
+    double value = fabs((double)in), x = value;
+    int64_t prevnum = 1, prevden = 0, oldnum = 0, oldden = 1;
     int32_t i;
 
-    float_to_cfrac (csound, (double)in, N, a, p, q);
-
-    for (i=0; i <= N; i++) {
-      double temp;
-      float error;
-      if (!q[i+1])
-        continue;
-      temp = (double) p[i+1] / (double) q[i+1];
-      error = in - temp;
-      if ((fabs(error)) < 0.00001) {
-        P = p[i+1];
-        Q = q[i+1];
+    *num = *denom = 0;
+    for (i = 0; i <= 10; i++) {
+      int64_t a, nextnum, nextden;
+      if (!(x <= INT32_MAX))
         break;
+      a = (int64_t)x;
+      nextnum = a * prevnum + oldnum;
+      nextden = a * prevden + oldden;
+      if (nextnum > INT32_MAX || nextden > INT32_MAX)
+        break;
+      if (fabs(value - (double)nextnum / nextden) < 0.00001) {
+        *num = in < FL(0.0) ? -(int32_t)nextnum : (int32_t)nextnum;
+        *denom = (int32_t)nextden;
+        return;
       }
+      if (x == (double)a)
+        break;
+      oldnum = prevnum; oldden = prevden;
+      prevnum = nextnum; prevden = nextden;
+      x = 1.0 / (x - (double)a);
     }
-    *num = P;
-    *denom = Q;
-}
-
-/* continued fraction expansion */
-void float_to_cfrac (CSOUND *csound, double r, int32_t n,
-                     int32_t a[], int32_t p[], int32_t q[])
-{
-    int32_t i;
-    double r_copy;
-    double *x;
-
-    if (r == 0.0) {
-      memset(a, 0, sizeof(int32_t)*(n+1));
-      /* for (i = 0; i <= n; i++) {  */
-      /*   a[i] = 0;  */
-      /* }  */
-      memset(p, 0, sizeof(int32_t)*(n+2));
-      /* for (i = 0; i <= n+1; i++) {  */
-      /*   p[i] = 0;  */
-      /* }  */
-      memset(q, 0, sizeof(int32_t)*(n+2));
-      /* for ( i = 0; i <= n+1; i++ ) {  */
-      /*   q[i] = 0;  */
-      /* }  */
-      return;
-    }
-
-    x = csound->Calloc(csound, (n+1)* sizeof(double));
-
-    r_copy = fabs (r);
-
-    p[0] = 1;
-    q[0] = 0;
-
-    p[1] = (int32_t) r_copy;
-    q[1] = 1;
-    x[0] = r_copy;
-    a[0] = (int32_t) x[0];
-
-    for (i = 1; i <= n; i++) {
-      x[i] = 1.0 / (x[i-1] - (double) a[i-1]);
-      a[i] = (int32_t
-              ) x[i];
-      p[i+1] = a[i] * p[i] + p[i-1];
-      q[i+1] = a[i] * q[i] + q[i-1];
-    }
-
-    if (r < 0.0) {
-      for (i = 0; i <= n+1; i++) {
-        p[i] = -p[i];
-      }
-    }
-
-    csound->Free(csound, x);
 }
 
 #define S sizeof
@@ -744,7 +650,7 @@ static OENTRY fareyseq_localops[] = {
     {"tablefilteri", S(TABFILT),TB,  "i", "iiii", (SUBR) tableifilter,NULL,NULL},
     {"tablefilter", S(TABFILT), TB,  "k", "kkkk",
                                 (SUBR) tablefilterset, (SUBR) tablefilter, NULL},
-    {"fareyleni", S(FAREYLEN), TR,  "i", "i", (SUBR) fareylen, NULL, NULL},
+    {"fareyleni", S(FAREYLEN), TR,  "i", "i", (SUBR) fareyleni, NULL, NULL},
     {"fareylen", S(FAREYLEN), TR,  "k", "k", NULL, (SUBR) fareylen, NULL},
     {"tableshufflei", S(TABSHUFFLE), TB,  "", "i",
                                       (SUBR) tableishuffle, NULL, NULL},

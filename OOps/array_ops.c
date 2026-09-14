@@ -3307,15 +3307,11 @@ int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
                              "%s", Str("array-variable not a vector"));
 
 
-  if (UNLIKELY(offset)) memset(ans, '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    memset(&ans[nsmps], '\0', early*sizeof(MYFLT));
-  }
+  nsmps -= early;
 
   for (i=1; i<t->dimensions; i++) numarrays *= t->sizes[i];
 
-  memset(&ans[offset], '\0', nsmps*sizeof(MYFLT));
+  memset(ans, '\0', CS_KSMPS*sizeof(MYFLT));
 
   int32_t numarrays4 = numarrays - (numarrays % 4);
 
@@ -3421,31 +3417,42 @@ int32_t tabscaleset(CSOUND *csound, TABSCALE *p)
 
 int32_t tabscale(CSOUND *csound, TABSCALE *p)
 {
-  IGN(csound);
   MYFLT min = *p->kmin, max = *p->kmax;
-  int32_t strt = (int32_t)MYFLT2LRND(*p->kstart),
-    end = (int32_t)MYFLT2LRND(*p->kend);
+  double left = *p->kstart, right = *p->kend;
+  int32_t strt, end, size;
   ARRAYDAT *t = p->tab;
   MYFLT tmin;
   MYFLT tmax;
   int32_t i;
   MYFLT range;
 
-  tmin = t->data[strt];
-  tmax = tmin;
+  if (UNLIKELY(t->dimensions != 1 || t->sizes == NULL))
+    return csound->PerfError(csound, &(p->h),
+                             "%s", Str("array-variable not a vector"));
+  size = t->sizes[0];
+  if (size == 0) return OK;
+  if (UNLIKELY(t->data == NULL))
+    return csound->PerfError(csound, &(p->h),
+                             "%s", Str("array-variable not initialised"));
 
-  // Correct start and ending points
-  if (end<0) end = t->sizes[0];
-  else if (end>t->sizes[0]) end = t->sizes[0];
-  if (strt<0) strt = 0;
-  else if (strt>t->sizes[0]) strt = t->sizes[0];
+  /* Clamp before integer conversion and before reading the selected range. */
+  strt = left <= 0.0 ? 0 :
+         left < size ? (int32_t)MYFLT2LRND(left) : size;
+  end = right >= 0.0 && right < size ? (int32_t)MYFLT2LRND(right) : size;
   if (end<strt) {
     int32_t x = end; end = strt; strt = x;
   }
+  if (strt == end) return OK;
+  tmin = tmax = t->data[strt];
   // get data range
   for (i=strt+1; i<end; i++) {
     if (t->data[i]<tmin) tmin = t->data[i];
     if (t->data[i]>tmax) tmax = t->data[i];
+  }
+  /* A constant input has no span; map it to the first target endpoint. */
+  if (tmax == tmin || max == min) {
+    for (i=strt; i<end; i++) t->data[i] = min;
+    return OK;
   }
   range = (max-min)/(tmax-tmin);
   for (i=strt; i<end; i++) {
@@ -3879,6 +3886,9 @@ int32_t tabslice(CSOUND *csound, TABSLICE *p) {
   int32_t end   = (int32_t) *p->end >= 0 ? *p->end :
     p->tabin->sizes[0] - 1;
   int32_t inc   = (int32_t) *p->inc;
+  if (UNLIKELY(inc<=0))
+    return csound->InitError(csound, "%s",
+                             Str("slice increment must be positive"));
   int32_t size = (end - start)/inc + 1;
 
   int32_t i, destIndex;
@@ -3892,9 +3902,6 @@ int32_t tabslice(CSOUND *csound, TABSLICE *p) {
     return csound->InitError(csound, "%s",
                              Str("slice larger than original size"));
   }
-  if (UNLIKELY(inc<=0))
-    return csound->InitError(csound, "%s",
-                             Str("slice increment must be positive"));
   if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
 

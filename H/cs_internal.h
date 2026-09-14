@@ -186,13 +186,20 @@ extern "C" {
     char    *input_struct_path;
   } PBR_SEED_ENTRY;
 
+  typedef struct pbr_alias_entry {
+    char    *name;             /* owned copy of the UDO-local variable name */
+    int32_t ar_index;          /* slot in UOPCODE.ar holding caller storage */
+  } PBR_ALIAS_ENTRY;
+
   typedef struct pbr_rewire_plan {
     int32_t init_count;
     int32_t perf_count;
     int32_t seed_count;
+    int32_t alias_count;
     PBR_REWIRE_ENTRY *init_entries;
     PBR_REWIRE_ENTRY *perf_entries;
     PBR_SEED_ENTRY   *seed_entries;
+    PBR_ALIAS_ENTRY  *aliases;
   } PBR_REWIRE_PLAN;
 
   typedef struct opcodinfo {

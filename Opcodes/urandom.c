@@ -41,6 +41,7 @@ typedef struct {
     MYFLT   *imin;
     MYFLT   *imax;
     int32_t     ur;
+    int32_t     opened;
     MYFLT   mul;
     MYFLT   add;
 } URANDOM;
@@ -48,15 +49,23 @@ typedef struct {
 static int32_t urand_deinit(CSOUND *csound, URANDOM *p)
 {
      IGN(csound);
-    close(p->ur);
+    if (p->opened) {
+      close(p->ur);
+      p->opened = 0;
+    }
     return OK;
 }
 
 static int32_t urand_init(CSOUND *csound, URANDOM *p)
 {
-    int32_t ur = open("/dev/urandom", O_RDONLY);
-    if (UNLIKELY(ur<0)) return NOTOK;
-    p->ur = ur;
+    /* Reinit changes the range but can keep the existing descriptor. */
+    if (!p->opened) {
+      int32_t ur = open("/dev/urandom", O_RDONLY);
+      if (UNLIKELY(ur < 0))
+        return csound->InitError(csound, "%s", Str("urandom: cannot open /dev/urandom"));
+      p->ur = ur;
+      p->opened = 1;
+    }
     p->mul = FL(0.5)*(*p->imax - *p->imin);
     p->add = FL(0.5)*(*p->imax + *p->imin);
     return OK;
@@ -79,8 +88,14 @@ static int32_t urand_run(CSOUND *csound, URANDOM *p)
 
 static int32_t urand_irate(CSOUND *csound, URANDOM *p)
 {
-    if (LIKELY(urand_init(csound,p)==OK)) return urand_run(csound,p);
-    else return NOTOK;
+    int32_t result;
+    if (UNLIKELY(urand_init(csound,p) != OK))
+      return NOTOK;
+    result = urand_run(csound,p);
+    urand_deinit(csound,p);
+    if (UNLIKELY(result != OK))
+      return csound->InitError(csound, "%s", Str("urandom: cannot read /dev/urandom"));
+    return OK;
 }
 
 static int32_t urand_arun(CSOUND *csound, URANDOM *p)

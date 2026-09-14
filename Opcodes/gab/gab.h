@@ -112,7 +112,7 @@ typedef struct {
     OPDS     h;
     MYFLT    *ktrig;
     ARRAYDAT *chk;
-    int32_t  size;
+    size_t   size;
     int32_t  cnt;
     AUXCH    old_chk;
 } ISACHANGED;
@@ -126,14 +126,14 @@ typedef struct {
     OPDS    h;
     MYFLT   *kout, *asig, *ktrig, *imaxflag;
     MYFLT   max;
-    int32_t     counter;
+    uint64_t    counter;
 } P_MAXIMUM;
 
 /* From fractals.h */
 typedef struct {
     OPDS    h;
     MYFLT   *kr, *koutrig,  *ktrig, *kx, *ky, *kmaxIter;
-    MYFLT   oldx, oldy;
+    MYFLT   oldx, oldy, oldMaxIter;
     int32_t oldCount;
 } MANDEL;
 

@@ -583,41 +583,54 @@ static int32_t ctor_i(CSOUND *csound, FFT *p) {
 static int32_t init_window(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
+  if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                            Str("window: expected one-dimensional arrays"));
+  if (UNLIKELY(*p->f != FL(0) && *p->f != FL(1)))
+    return csound->InitError(csound, "%s", Str("window: type must be 0 or 1"));
   int32_t   N = p->in->sizes[0];
-  int32_t   i,type = (int32_t) *p->f;
+  int32_t   i;
   MYFLT *w;
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
-  if (p->mem.auxp == 0 || p->mem.size < N*sizeof(MYFLT))
-    csound->AuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
+  p->n = N;
+  if (N > 0 && (p->mem.auxp == 0 || p->mem.size < (size_t) N*sizeof(MYFLT)))
+    csound->AuxAlloc(csound, (size_t) N*sizeof(MYFLT), &p->mem);
   w = (MYFLT *) p->mem.auxp;
-  switch(type) {
-  case 0:
+  if (*p->f == FL(0)) {
     for (i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*TWOPI/N);
-    break;
-  case 1:
-  default:
+  } else {
     for (i = 0; i < N; i++)
       w[i] = 0.5 - 0.5*cos(i*TWOPI/N);
-    //for (i = 0; i < N/2; i++)
-    //w[i+N/2] = w[N/2-i-1];
   }
   return OK;
 }
 
 static int32_t perf_window(CSOUND *csound, FFT *p) {
-  IGN(csound);
-  int32_t i,end = p->out->sizes[0], off = *((MYFLT *)p->in2);
+  int32_t i, end = p->n, off;
+  double offset = *((MYFLT *)p->in2);
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->in->sizes[0] != end || p->out->dimensions != 1))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("window: array shape changed"));
+  if (UNLIKELY(tabcheck(csound, p->out, end, &p->h) != OK))
+    return NOTOK;
+  if (UNLIKELY(offset < 0 || !isfinite(offset)))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("window: offset must be finite and non-negative"));
+  if (end == 0) return OK;
+  /* Reduce before converting to an index; offsets may span many windows. */
+  if (offset >= end) offset = fmod(offset, end);
+  off = (int32_t) offset;
+  if (off) off = end - off;
   MYFLT *in, *out, *w;
   in = p->in->data;
   out = p->out->data;
   w = (MYFLT *) p->mem.auxp;
-  /*while (off < 0) off += end;
-    for (i=0;i<end;i++)
-    out[(i+off)%end] = in[i]*w[i];*/
-  if(off) off = end - off;
-  for(i=0;i<end;i++)
-    out[i] = in[i]*w[(i+off)%end];
+  for(i=0;i<end;i++) {
+    out[i] = in[i]*w[off];
+    if (++off == end) off = 0;
+  }
   return OK;
 
 }
@@ -739,7 +752,7 @@ static int32_t rows_init(CSOUND *csound, FFT *p) {
 
 static int32_t rows_perf(CSOUND *csound, FFT *p) {
   int32_t start = *((MYFLT *)p->in2);
-  if (LIKELY(start < p->in->sizes[0])) {
+  if (LIKELY(start >= 0 && start < p->in->sizes[0])) {
     int32_t bytes =  p->in->sizes[1]*sizeof(MYFLT);
     start *= p->in->sizes[1];
     memcpy(p->out->data,p->in->data+start,bytes);
@@ -757,7 +770,7 @@ static int32_t rows_perf_S(CSOUND *csound, FFT *p)
   STRINGDAT* dest = (STRINGDAT*)p->out->data;
   int32_t i;
   int32_t index = (int32_t)(*((MYFLT *)p->in2));
-  if (LIKELY(index < p->in->sizes[0])) {
+  if (LIKELY(index >= 0 && index < p->in->sizes[0])) {
     index = (index * dat->sizes[1]);
     //printf("%d : %d\n", index, dat->sizes[1]);
     mem += index;
@@ -804,7 +817,7 @@ static int32_t set_rows_perf_S(CSOUND *csound, FFT *p)
 static int32_t rows_i(CSOUND *csound, FFT *p) {
   if (rows_init(csound,p) == OK) {
     int32_t start = *((MYFLT *)p->in2);
-    if (LIKELY(start < p->in->sizes[0])) {
+    if (LIKELY(start >= 0 && start < p->in->sizes[0])) {
       int32_t bytes =  p->in->sizes[1]*sizeof(MYFLT);
       start *= p->in->sizes[1];
       memcpy(p->out->data,p->in->data+start,bytes);
@@ -878,7 +891,7 @@ static int32_t cols_init(CSOUND *csound, FFT *p) {
 static int32_t cols_perf(CSOUND *csound, FFT *p) {
   int32_t start = *((MYFLT *)p->in2);
 
-  if (LIKELY(start < p->in->sizes[1])) {
+  if (LIKELY(start >= 0 && start < p->in->sizes[1])) {
     int32_t j,i,collen =  p->in->sizes[1], len = p->in->sizes[0];
     for (j=0,i=start; j < len; i+=collen, j++) {
       p->out->data[j] = p->in->data[i];
@@ -892,7 +905,7 @@ static int32_t cols_perf(CSOUND *csound, FFT *p) {
 static int32_t cols_i(CSOUND *csound, FFT *p) {
   if (cols_init(csound, p) == OK) {
     int32_t start = *((MYFLT *)p->in2);
-    if (LIKELY(start < p->in->sizes[1])) {
+    if (LIKELY(start >= 0 && start < p->in->sizes[1])) {
       int32_t j,i,collen =  p->in->sizes[1], len = p->in->sizes[0];
       for (j=0,i=start; j < len; i+=collen, j++) {
         p->out->data[j] = p->in->data[i];
@@ -911,7 +924,7 @@ static int32_t cols_perf_S(CSOUND *csound, FFT *p) {
   STRINGDAT* dest = (STRINGDAT*)p->out->data;
   int32_t i;
   int32_t index = (int32_t)(*((MYFLT *)p->in2));
-  if (LIKELY(index < p->in->sizes[0])) {
+  if (LIKELY(index >= 0 && index < p->in->sizes[1])) {
     mem += index;
     for (i = 0; i<p->in->sizes[0]; i++) {
       dat->arrayType->copyValue(csound, dat->arrayType, (void*)dest, (void*)mem,
@@ -992,22 +1005,16 @@ static int32_t set_cols_i(CSOUND *csound, FFT *p) {
 }
 
 static int32_t set_cols_perf_S(CSOUND *csound, FFT *p) {
-  ARRAYDAT* dat = p->in;      /* The data in 2_D array */
-  STRINGDAT* mem = (STRINGDAT*)dat->data;
+  STRINGDAT* mem = (STRINGDAT*)p->in->data;
   STRINGDAT* dest = (STRINGDAT*)p->out->data;
   int32_t i;
   int32_t index = (int32_t)(*((MYFLT *)p->in2));
-  if (LIKELY(index < p->in->sizes[0])) {
-    index = (index * dat->sizes[1]);
-    //printf("%d : %d\n", index, dat->sizes[1]);
-    mem += index;
-    //incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
-    //printf("*** mem = %p dst = %p\n", mem, dest);
+  if (LIKELY(index >= 0 && index < p->out->sizes[1])) {
+    dest += index;
     for (i = 0; i<p->in->sizes[0]; i++) {
-      dat->arrayType->copyValue(csound, dat->arrayType, (void*)mem, (void*)dest,
-                                p->h.insdshead);
-      //printf("*** copies i=%d: %s -> %s\n", i,(char*)(mem->data),(char*)(dest->data));
-      dest += p->in->sizes[1];
+      p->in->arrayType->copyValue(csound, p->in->arrayType,
+                                  (void*)dest, (void*)mem, p->h.insdshead);
+      dest += p->out->sizes[1];
       mem  += 1;
     }
     return OK;
@@ -1028,91 +1035,160 @@ static int32_t cols_init_S(CSOUND *csound, FFT *p) {
   return NOTOK;
 }
 
-static int32_t shiftin_init(CSOUND *csound, FFT *p) {
+typedef struct {
+  OPDS h;
+  ARRAYDAT *out;
+  MYFLT *in;
+  uint32_t size, n;
+} SHIFTIN;
 
-  int32_t sizs = CS_KSMPS;
-  if(p->out->sizes[0] < sizs)
-    if (UNLIKELY(tabinit(csound, p->out, sizs, p->h.insdshead) != OK))
-      return csound_array_init_resize_error(csound);
+typedef struct {
+  OPDS h;
+  MYFLT *out;
+  ARRAYDAT *in;
+  MYFLT *offset;
+  uint32_t size, n;
+} SHIFTOUT;
+
+static int32_t shiftin_init(CSOUND *csound, SHIFTIN *p) {
+  int32_t size = CS_KSMPS;
+  if (UNLIKELY(p->out->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                            Str("shiftin: expected a one-dimensional array"));
+  if (p->out->sizes != NULL && p->out->sizes[0] > size)
+    size = p->out->sizes[0];
+  if (UNLIKELY(tabinit(csound, p->out, size, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
+  p->size = size;
   p->n = 0;
   return OK;
 }
 
-static int32_t shiftin_perf(CSOUND *csound, FFT *p) {
-  IGN(csound);
-  uint32_t  siz =  p->out->sizes[0], n = p->n;
-  MYFLT *in = ((MYFLT *) p->in);
-  if (n + CS_KSMPS < siz) {
-    memcpy(p->out->data+n,in,CS_KSMPS*sizeof(MYFLT));
+static int32_t shiftin_perf(CSOUND *csound, SHIFTIN *p) {
+  if (UNLIKELY(p->out->sizes == NULL || p->out->dimensions != 1 ||
+               p->out->sizes[0] != (int32_t) p->size))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("shiftin: array shape changed"));
+  if (UNLIKELY(tabcheck(csound, p->out, p->size, &p->h) != OK))
+    return NOTOK;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t count = CS_KSMPS - p->h.insdshead->ksmps_no_end - offset;
+  uint32_t n = p->n, remaining = p->size - n;
+  MYFLT *in = p->in + offset;
+  if (count == 0) return OK;
+  if (count < remaining) {
+    memcpy(p->out->data+n, in, count*sizeof(MYFLT));
+    n += count;
   }
   else {
-    int32_t num = siz - n;
-    memcpy(p->out->data+n,in,num*sizeof(MYFLT));
-    memcpy(p->out->data,in+num,(CS_KSMPS-num)*sizeof(MYFLT));
+    memcpy(p->out->data+n, in, remaining*sizeof(MYFLT));
+    if (count > remaining)
+      memcpy(p->out->data, in+remaining, (count-remaining)*sizeof(MYFLT));
+    n = count - remaining;
   }
-  p->n = (n + CS_KSMPS)%siz;
+  p->n = n;
   return OK;
 }
 
 
-static int32_t shiftout_init(CSOUND *csound, FFT *p) {
+static int32_t shiftout_init(CSOUND *csound, SHIFTOUT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
+  if (UNLIKELY(p->in->dimensions != 1))
+    return csound->InitError(csound, "%s",
+                            Str("shiftout: expected a one-dimensional array"));
   int32_t siz = p->in->sizes[0];
-  p->n = ((int32_t)*((MYFLT *)p->in2) % siz);
-  if (UNLIKELY((uint32_t) siz < CS_KSMPS))
+  if (UNLIKELY(siz < (int32_t) CS_KSMPS))
     return csound->InitError(csound, "%s", Str("input array too small\n"));
+  double offset = *p->offset;
+  if (UNLIKELY(!isfinite(offset)))
+    return csound->InitError(csound, "%s",
+                            Str("shiftout: offset must be finite"));
+  offset = fmod(trunc(offset), siz);
+  if (offset < 0) offset += siz;
+  p->n = (uint32_t) offset;
+  p->size = siz;
   return OK;
 }
 
-static int32_t shiftout_perf(CSOUND *csound, FFT *p) {
-  IGN(csound);
-  uint32_t siz =  p->in->sizes[0], n = p->n;
-  MYFLT *out = ((MYFLT *) p->out);
-
-  if (n + CS_KSMPS < siz) {
-    memcpy(out,p->in->data+n,CS_KSMPS*sizeof(MYFLT));
+static int32_t shiftout_perf(CSOUND *csound, SHIFTOUT *p) {
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->in->sizes[0] != (int32_t) p->size))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("shiftout: array shape changed"));
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early = p->h.insdshead->ksmps_no_end;
+  uint32_t end = CS_KSMPS - early, count = end - offset;
+  uint32_t n = p->n, remaining = p->size - n;
+  if (offset) memset(p->out, 0, offset*sizeof(MYFLT));
+  if (early) memset(p->out+end, 0, early*sizeof(MYFLT));
+  if (count == 0) return OK;
+  MYFLT *out = p->out + offset;
+  if (count < remaining) {
+    memcpy(out, p->in->data+n, count*sizeof(MYFLT));
+    n += count;
   }
   else {
-    int32_t num = siz - n;
-    memcpy(out,p->in->data+n,num*sizeof(MYFLT));
-    memcpy(out+num,p->in->data,(CS_KSMPS-num)*sizeof(MYFLT));
+    memcpy(out, p->in->data+n, remaining*sizeof(MYFLT));
+    if (count > remaining)
+      memcpy(out+remaining, p->in->data, (count-remaining)*sizeof(MYFLT));
+    n = count - remaining;
   }
-  p->n = (n + CS_KSMPS)%siz;
+  p->n = n;
   return OK;
 }
 
 
-static int32_t unwrap_set(CSOUND *csound, FFT *p) {
+typedef struct {
+  OPDS h;
+  ARRAYDAT *out, *in;
+  MYFLT *mode;
+  AUXCH mem;
+  int32_t size, unwrap;
+} UNWRAP;
+
+static int32_t unwrap_set(CSOUND *csound, UNWRAP *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
+  if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                            Str("unwrap: expected one-dimensional arrays"));
+  if (UNLIKELY(*p->mode != FL(0) && *p->mode != FL(1)))
+    return csound->InitError(csound, "%s", Str("unwrap: mode must be 0 or 1"));
   int32_t N = p->in->sizes[0];
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
-  if(*((MYFLT *)p->in2) != FL(0)) {
-    csound->AuxAlloc(csound, N*sizeof(float), &p->mem);
-    memset(p->mem.auxp, 0, N*sizeof(float));
+  p->size = N;
+  p->unwrap = *p->mode == FL(1);
+  if (p->unwrap && N > 0) {
+    csound->AuxAlloc(csound, (size_t) N*sizeof(MYFLT), &p->mem);
   }
   return OK;
 }
 
-
-static int32_t unwrap(CSOUND *csound, FFT *p) {
-  if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");;
-  int32_t i,siz = p->in->sizes[0];
-  int32_t mode = (int32_t) *((MYFLT *)p->in2);
+static int32_t unwrap(CSOUND *csound, UNWRAP *p) {
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->in->sizes[0] != p->size || p->out->dimensions != 1))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("unwrap: array shape changed"));
+  if (UNLIKELY(tabcheck(csound, p->out, p->size, &p->h) != OK))
+    return NOTOK;
+  int32_t i;
+  MYFLT *in = p->in->data;
   MYFLT *phs = p->out->data;
-  if(mode == 0) { // wrap
-  for (i=0; i < siz; i++) {
-    while (phs[i] >= PI) phs[i] -= TWOPI;
-    while (phs[i] < -PI) phs[i] += TWOPI;
-  }
-  } else {  // unwrap
+  if (!p->unwrap) {
+    for (i=0; i < p->size; i++) {
+      phs[i] = in[i];
+      while (phs[i] >= PI) phs[i] -= TWOPI;
+      while (phs[i] < -PI) phs[i] += TWOPI;
+    }
+  } else {
     MYFLT *ophs = (MYFLT *) p->mem.auxp;
-    for (i=0; i < siz; i++) {
-      while (ophs[i] - phs[i] >= PI) phs[i] -= 2*PI;
-      while (ophs[i] - phs[i] < -PI) phs[i] += 2*PI;
+    for (i=0; i < p->size; i++) {
+      double phase = (double) in[i] - ophs[i];
+      while (phase >= PI) phase -= TWOPI;
+      while (phase < -PI) phase += TWOPI;
+      phs[i] = (MYFLT) (ophs[i] + phase);
       ophs[i] = phs[i];
     }
   }
@@ -1280,18 +1356,32 @@ typedef struct _centr{
 } CENTR;
 
 static int32_t array_centroid(CSOUND *csound, CENTR *p) {
-  if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+  if(p->in->sizes == NULL || p->in->dimensions != 1 || p->in->sizes[0] < 2)
+    return NOTOK;
   MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
   int32_t NP1 = p->in->sizes[0];
-  MYFLT f = CS_ESR/(2*(NP1 - 1)),cf;
+  MYFLT f = CS_ESR/(FL(2.0)*(NP1 - 1)),cf;
   int32_t i;
-  cf = f*FL(0.5);
-  for (i=0; i < NP1-1; i++, cf+=f) {
+  cf = FL(0.0);
+  for (i=0; i < NP1; i++, cf+=f) {
     a += in[i];
     b += in[i]*cf;
   }
   *p->out = a > FL(0.0) ? b/a : FL(0.0);
+  return OK;
+}
+
+static int32_t array_centroid_i(CSOUND *csound, CENTR *p) {
+  if (UNLIKELY(array_centroid(csound, p) != OK))
+    return csound->InitError(csound, "%s",
+                            Str("centroid: expected at least two magnitude bins"));
+  return OK;
+}
+
+static int32_t array_centroid_k(CSOUND *csound, CENTR *p) {
+  if (UNLIKELY(array_centroid(csound, p) != OK))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("centroid: expected at least two magnitude bins"));
   return OK;
 }
 
@@ -1486,11 +1576,11 @@ static OENTRY arrayvars_localops[] =
      (SUBR) set_cols_init, (SUBR) set_cols_perf, NULL},
     {"setcol", sizeof(FFT), 0, "S[]","S[]k",
      (SUBR) set_cols_init_S, (SUBR) set_cols_perf_S, NULL},
-    {"shiftin", sizeof(FFT), 0, "k[]","a",
+    {"shiftin", sizeof(SHIFTIN), 0, "k[]","a",
      (SUBR) shiftin_init, (SUBR) shiftin_perf},
-    {"shiftout", sizeof(FFT), 0, "a","k[]o",
+    {"shiftout", sizeof(SHIFTOUT), 0, "a","k[]o",
      (SUBR) shiftout_init, (SUBR) shiftout_perf},
-    {"unwrap", sizeof(FFT), 0, "k[]","k[]o",
+    {"unwrap", sizeof(UNWRAP), 0, "k[]","k[]o",
      (SUBR) unwrap_set, (SUBR) unwrap},
     {"dct", sizeof(FFT), 0, "k[]","k[]",
      (SUBR) init_dct, (SUBR) kdct, NULL},
@@ -1505,9 +1595,9 @@ static OENTRY arrayvars_localops[] =
     {"mfb", sizeof(MFB), 0, "i[]","i[]iii",
      (SUBR)mfbi, NULL, NULL},
     {"centroid", sizeof(CENTR), 0, "i","i[]",
-     (SUBR) array_centroid, NULL, NULL},
+     (SUBR) array_centroid_i, NULL, NULL},
     {"centroid", sizeof(CENTR), 0, "k","k[]", NULL,
-     (SUBR)array_centroid, NULL},
+     (SUBR)array_centroid_k, NULL},
     {"interleave", sizeof(INTERL), 0, "i[]","i[]i[]",
      (SUBR)interleave_i},
     {"interleave", sizeof(INTERL), 0, "k[]","k[]k[]",

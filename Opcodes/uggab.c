@@ -80,24 +80,52 @@ static int32_t kwrap(CSOUND *csound, WRAP *p)
 
 /*---------------------------------------------------------------------*/
 
+#define MIRROR_VALUE(output, input, lower, upper) do {                         \
+    double mirror_input = (input), low = (lower), high = (upper);              \
+    double width, remainder, lowrem;                                           \
+    int quotient, lowquot, odd;                                                \
+                                                                               \
+    if (low >= high) {                                                         \
+      double sum = low + high;                                                 \
+      (output) = (MYFLT)(isfinite(sum) ? sum * 0.5                             \
+                                     : low * 0.5 + high * 0.5);                \
+      break;                                                                   \
+    }                                                                          \
+    if (mirror_input >= low && mirror_input <= high) {                         \
+      (output) = (MYFLT)mirror_input;                                          \
+      break;                                                                   \
+    }                                                                          \
+    if (!isfinite(mirror_input) || !isfinite(low) || !isfinite(high)) {        \
+      (output) = (MYFLT)NAN;                                                   \
+      break;                                                                   \
+    }                                                                          \
+                                                                               \
+    width = high - low;                                                        \
+    if (!isfinite(width)) {                                                    \
+      /* Such a wide finite interval needs at most one reflection. */          \
+      (output) = (MYFLT)(mirror_input > high                                   \
+                         ? high - (mirror_input - high)                        \
+                         : low + (low - mirror_input));                        \
+      break;                                                                   \
+    }                                                                          \
+                                                                               \
+    /* Reduce separately: input - low can overflow or lose the low offset. */  \
+    remainder = remquo(mirror_input, width, &quotient);                        \
+    lowrem = remquo(low, width, &lowquot);                                     \
+    remainder -= lowrem;                                                       \
+    odd = (quotient % 2 != 0) != (lowquot % 2 != 0);                           \
+    if (remainder < 0.0) {                                                     \
+      remainder += width;                                                      \
+      odd = !odd;                                                              \
+    }                                                                          \
+    /* Quotient parity selects the direction without doubling the width. */    \
+    (output) = (MYFLT)(odd ? high - remainder : low + remainder);              \
+} while (0)
+
 static int32_t kmirror(CSOUND *csound, WRAP *p)
 {
     IGN(csound);
-    MYFLT  xsig, xlow, xhigh;
-    xsig = *p->xsig;
-    xhigh= *p->xhigh;
-    xlow = *p->xlow;
-
-    if (xlow >= xhigh) *p->xdest = (xlow + xhigh)*FL(0.5);
-    else {
-      while ((xsig > xhigh) || (xsig < xlow)) {
-        if (xsig > xhigh)
-          xsig = xhigh + xhigh - xsig;
-        else
-          xsig = xlow + xlow - xsig;
-      }
-      *p->xdest = xsig;
-    }
+    MIRROR_VALUE(*p->xdest, *p->xsig, *p->xlow, *p->xhigh);
     return OK;
 }
 
@@ -105,7 +133,7 @@ static int32_t mirror(CSOUND *csound, WRAP *p)
 {
     IGN(csound);
     MYFLT       *adest, *asig;
-    MYFLT       xlow, xhigh, xaverage, xsig;
+    MYFLT       xlow, xhigh, xaverage;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
@@ -121,7 +149,7 @@ static int32_t mirror(CSOUND *csound, WRAP *p)
       memset(&adest[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (xlow >= xhigh)  {
-      xaverage = (xlow + xhigh)*FL(0.5);
+      MIRROR_VALUE(xaverage, FL(0.0), xlow, xhigh);
       for (n=offset;n<nsmps;n++) {
         adest[n] = xaverage;
       }
@@ -129,14 +157,7 @@ static int32_t mirror(CSOUND *csound, WRAP *p)
     }
 
     for (n=offset;n<nsmps;n++) {
-      xsig = asig[n];
-      while ((xsig > xhigh) || ( xsig < xlow )) {
-        if (xsig > xhigh)
-          xsig = xhigh + xhigh - xsig;
-        else
-          xsig = xlow + xlow - xsig;
-      }
-      adest[n] = xsig;
+      MIRROR_VALUE(adest[n], asig[n], xlow, xhigh);
     }
     return OK;
 }
@@ -273,12 +294,26 @@ static int32_t sum_(CSOUND *csound, SUM *p)
         accum[k] += in0[k];
       }
     }
-    memcpy(p->ar+offset, accum+offset, (nsmps - offset)*sizeof(MYFLT));
+    memcpy(p->ar, accum, CS_KSMPS*sizeof(MYFLT));
 
     return OK;
 }
 
 /* Actually by JPff but after Gabriel */
+static int32_t product_init(CSOUND *csound, SUM *p)
+{
+    if (UNLIKELY(p->INOCOUNT == 0))
+      return csound->InitError(csound, Str("product requires an input"));
+    /* Keep existing scratch space sized on reinit. */
+    if (p->aux.auxp != NULL)
+      return sum_init(csound, p);
+    for (int32_t i = 1; i < p->INOCOUNT; ++i) {
+      if (p->ar == p->argums[i])
+        return sum_init(csound, p);
+    }
+    return OK;
+}
+
 static int32_t product(CSOUND *csound, SUM *p)
 {
     IGN(csound);
@@ -286,7 +321,8 @@ static int32_t product(CSOUND *csound, SUM *p)
     uint32_t  offset = p->h.insdshead->ksmps_offset;
     uint32_t  early  = p->h.insdshead->ksmps_no_end;
     uint32_t   k, nsmps = CS_KSMPS;
-    MYFLT *ar = p->ar, **args = p->argums;
+    MYFLT *ar = p->aux.auxp != NULL ? (MYFLT *)p->aux.auxp : p->ar;
+    MYFLT **args = p->argums;
     MYFLT *ag = *args;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -294,37 +330,59 @@ static int32_t product(CSOUND *csound, SUM *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    memcpy(&ar[offset], &ag[offset], sizeof(MYFLT)*(nsmps-offset));
+    if (ar != ag)
+      memcpy(&ar[offset], &ag[offset], sizeof(MYFLT)*(nsmps-offset));
     while (--count) {
       ag = *(++args);                   /* over all arguments */
       for (k=offset; k<nsmps; k++) {
         ar[k] *= ag[k];                 /* Over audio vector */
       }
     }
+    if (ar != p->ar)
+      memcpy(p->ar, ar, CS_KSMPS*sizeof(MYFLT));
     return OK;
 }
 
 static int32_t rsnsety(CSOUND *csound, RESONY *p)
 {
-    int32_t scale;
+    /* icorrect opts into base-relative linear spacing; old calls keep
+       the original spacing and integer conversion of isepmode. */
+    if (UNLIKELY(*p->icorrect != FL(0.0) && *p->icorrect != FL(1.0)))
+      return csound->InitError(csound, "%s",
+                               Str("resony: icorrect must be 0 or 1"));
+    double order = (double)*p->ord;
+    double scale_value = (double)*p->iscl;
+    size_t state_size;
+    int32_t clear_state = !*p->istor;
+    int32_t new_loop, scale;
     uint32_t nsmps = CS_KSMPS;
-    p->scale = scale = (int32_t) *p->iscl;
-    if ((p->loop = (int32_t) MYFLT2LONG(*p->ord)) < 1)
-      p->loop = 4;  /* default value */
-    if (!*p->istor && (p->aux.auxp == NULL ||
-                      (uint32_t) (p->loop * 2 * sizeof(MYFLT)) > p->aux.size))
-      csound->AuxAlloc(csound, (size_t) (p->loop * 2 * sizeof(MYFLT)), &p->aux);
-    p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
+    if (UNLIKELY(!isfinite(scale_value) || scale_value < (double)INT32_MIN ||
+                 scale_value > (double)INT32_MAX)) {
+      return csound->InitError(csound, Str("illegal reson iscl value: %f"),
+                               *p->iscl);
+    }
+    p->scale = scale = (int32_t)scale_value;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound, Str("illegal reson iscl value: %f"),
                                        *p->iscl);
     }
-    if (!(*p->istor)) {
-      memset(p->yt1, 0, p->loop*sizeof(MYFLT));
-      memset(p->yt2, 0, p->loop*sizeof(MYFLT));
-      /* for (j = 0; j < p->loop; j++) */
-      /*   p->yt1[j] = p->yt2[j] = FL(0.0); */
+    if (UNLIKELY(!isfinite(order) || order > (double)INT32_MAX - 0.5))
+      return csound->InitError(csound, Str("resony: invalid order %f"),
+                               *p->ord);
+    new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
+    if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(MYFLT))))
+      return csound->InitError(csound, Str("resony: order is too large"));
+    clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
+    p->loop = new_loop;
+    state_size = (size_t)p->loop * 2 * sizeof(MYFLT);
+    if (p->aux.auxp == NULL || state_size > p->aux.size) {
+      csound->AuxAlloc(csound, state_size, &p->aux);
+      clear_state = 1;
     }
+    p->yt1 = (MYFLT*)p->aux.auxp;
+    p->yt2 = p->yt1 + p->loop;
+    if (clear_state)
+      memset(p->yt1, 0, state_size);
     if (p->buffer.auxp == NULL || p->buffer.size<nsmps*sizeof(MYFLT))
       csound->AuxAlloc(csound, (size_t)(nsmps*sizeof(MYFLT)), &p->buffer);
     return OK;
@@ -340,9 +398,13 @@ static int32_t resony(CSOUND *csound, RESONY *p)
     int32_t loop = p->loop;
     if (UNLIKELY(loop==0))
       return csound->InitError(csound, "%s", Str("loop cannot be zero"));
+    if (UNLIKELY(*p->icorrect && *p->kcf == FL(0.0)))
+      return csound->PerfError(csound, &(p->h),
+                               "%s", Str("resony: base frequency must be nonzero"));
     {
       MYFLT   sep = (*p->sep / (MYFLT) loop);
-      int32_t     flag = (int32_t) *p->iflag;
+      int32_t     flag = *p->icorrect ? (*p->iflag != FL(0.0)) :
+                        (int32_t)*p->iflag;
       MYFLT   *buffer = (MYFLT*) (p->buffer.auxp);
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -361,7 +423,10 @@ static int32_t resony(CSOUND *csound, RESONY *p)
       yt2 = p->yt2;
 
       for (j = 0; j < loop; j++) {
-        if (flag)                     /* linear separation in hertz */
+        if (flag && *p->icorrect)      /* linear separation in hertz */
+          cosf = (MYFLT) cos((cf = (double) (*p->kcf + sep * j))
+                             * (double) CS_TPIDSR);
+        else if (flag)                /* original linear spacing */
           cosf = (MYFLT) cos((cf = (double) (*p->kcf * sep * j))
                              * (double) CS_TPIDSR);
         else                          /* logarithmic separation in octaves */
@@ -396,7 +461,6 @@ static int32_t resony(CSOUND *csound, RESONY *p)
 static int32_t fold_set(CSOUND *csound, FOLD *p)
 {
     IGN(csound);
-    p->sample_index = 0;
     p->index = 0.0;
     p->value = FL(0.0);         /* This was not initialised -- JPff */
     return OK;
@@ -404,7 +468,6 @@ static int32_t fold_set(CSOUND *csound, FOLD *p)
 
 static int32_t fold(CSOUND *csound, FOLD *p)
 {
-    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -412,29 +475,39 @@ static int32_t fold(CSOUND *csound, FOLD *p)
     MYFLT *asig = p->asig;
     MYFLT kincr = *p->kincr;
     double index = p->index;
-    int32 sample_index = p->sample_index;
     MYFLT value = p->value;
+    if (UNLIKELY(!isfinite(kincr) || kincr < FL(1.0)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("fold: increment must be finite and >= 1"));
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      if (index < (double)sample_index) {
+      if (index <= 0.0) {
         index += (double)kincr;
-        ar[n]  = value = asig[n];
+        value = asig[n];
       }
-      else ar[n]= value;
-      sample_index++;
+      ar[n] = value;
+      index -= 1.0;
     }
     p->index = index;
-    p->sample_index = sample_index;
     p->value = value;
     return OK;
 }
 
 /* by Gab Maldonado. Under GNU license with a special exception for
    Canonical Csound addition */
+
+/* Normalize before lookup as well as after advancing the loop. */
+#define LOOPSEG_WRAP_PHASE(phs) do {                                    \
+    if ((phs) < 0.0 || (phs) >= 1.0) {                                  \
+      (phs) -= floor(phs);                                              \
+      /* A tiny negative phase can round up to one. */                  \
+      if ((phs) >= 1.0) (phs) = 0.0;                                    \
+    }                                                                   \
+} while (0)
 
 static int32_t loopseg_set(CSOUND *csound, LOOPSEG *p)
 {
@@ -459,6 +532,7 @@ static int32_t loopseg(CSOUND *csound, LOOPSEG *p)
       phs=p->phs=*p->iphase;
     else
       phs=p->phs;
+    LOOPSEG_WRAP_PHASE(phs);
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
@@ -467,7 +541,7 @@ static int32_t loopseg(CSOUND *csound, LOOPSEG *p)
 
     for ( j=0; j <nsegs; j+=2)
       durtot += argp[j];
-    for ( j=0; j < nsegs; j+=2) {
+    for ( j=0; j < nsegs-1; j+=2) {
       beg_seg += argp[j] / durtot;
       end_seg = beg_seg + argp[j+2] / durtot;
 
@@ -481,10 +555,7 @@ static int32_t loopseg(CSOUND *csound, LOOPSEG *p)
       }
     }
     phs    += si;
-    while (phs >= 1.0)
-      phs -= 1.0;
-    while (phs < 0.0 )
-      phs += 1.0;
+    LOOPSEG_WRAP_PHASE(phs);
     p->phs = phs;
     return OK;
 }
@@ -502,6 +573,7 @@ static int32_t loopxseg(CSOUND *csound, LOOPSEG *p)
       phs=p->phs=*p->iphase;
     else
       phs=p->phs;
+    LOOPSEG_WRAP_PHASE(phs);
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
@@ -510,7 +582,7 @@ static int32_t loopxseg(CSOUND *csound, LOOPSEG *p)
 
     for ( j=0; j <nsegs; j+=2)
       durtot += argp[j];
-    for ( j=0; j < nsegs; j+=2) {
+    for ( j=0; j < nsegs-1; j+=2) {
       beg_seg += argp[j] / durtot;
       end_seg = beg_seg + argp[j+2] / durtot;
 
@@ -524,10 +596,7 @@ static int32_t loopxseg(CSOUND *csound, LOOPSEG *p)
       }
     }
     phs    += si;
-    while (phs >= 1.0)
-      phs -= 1.0;
-    while (phs < 0.0 )
-      phs += 1.0;
+    LOOPSEG_WRAP_PHASE(phs);
     p->phs = phs;
     return OK;
 }
@@ -552,6 +621,7 @@ static int32_t looptseg(CSOUND *csound, LOOPTSEG *p)
       phs=p->phs=*p->iphase;
     else
       phs=p->phs;
+    LOOPSEG_WRAP_PHASE(phs);
 
     for ( j=0; j<nsegs; j++)
       durtot += *(p->argums[j].time);
@@ -566,17 +636,20 @@ static int32_t looptseg(CSOUND *csound, LOOPTSEG *p)
         MYFLT v2 = (j!=nsegs-1)?*(p->argums[j+1].start):*(p->argums[0].start);
         if (alpha==FL(0.0))
           *p->out = v1 + (v2 - v1) * fract;
+        else if (alpha > FL(0.0))
+          /* Keep exponents nonpositive to avoid overflow.  expm1 also
+             preserves the linear limit when the curve is close to zero. */
+          *p->out = v1 + (v2 - v1) *
+            exp((double)alpha * (fract - 1.0)) *
+            (expm1(-(double)alpha * fract) / expm1(-(double)alpha));
         else
-          *p->out = v1 +
-            (v2 - v1) * (FL(1.0)-EXP(alpha*fract))/(FL(1.0)-EXP(alpha));
+          *p->out = v1 + (v2 - v1) *
+            (expm1((double)alpha * fract) / expm1((double)alpha));
         break;
       }
     }
     phs    += si;
-    while (UNLIKELY(phs >= 1.0))
-      phs -= 1.0;
-    while (UNLIKELY(phs < 0.0 ))
-      phs += 1.0;
+    LOOPSEG_WRAP_PHASE(phs);
     p->phs = phs;
     return OK;
 }
@@ -594,6 +667,7 @@ static int32_t lpshold(CSOUND *csound, LOOPSEG *p)
       phs=p->phs=*p->iphase;
     else
       phs=p->phs;
+    LOOPSEG_WRAP_PHASE(phs);
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
@@ -601,7 +675,7 @@ static int32_t lpshold(CSOUND *csound, LOOPSEG *p)
     for ( j=0; j <nsegs; j+=2)
       durtot += argp[j];
 
-    for ( j=0; j < nsegs; j+=2) {
+    for ( j=0; j < nsegs-1; j+=2) {
       beg_seg += argp[j] / durtot;
       end_seg = beg_seg + argp[j+2] / durtot;
       if (beg_seg <= phs && end_seg > phs) {
@@ -612,10 +686,7 @@ static int32_t lpshold(CSOUND *csound, LOOPSEG *p)
       }
     }
     phs    += si;
-    while (phs >= 1.0)
-      phs -= 1.0;
-    while (phs < 0.0 )
-      phs += 1.0;
+    LOOPSEG_WRAP_PHASE(phs);
     p->phs = phs;
     return OK;
 }
@@ -639,10 +710,7 @@ static int32_t loopsegp(CSOUND *csound, LOOPSEGP *p)
 
     phs = *p->kphase;
 
-    while (phs >= FL(1.0))
-      phs -= FL(1.0);
-    while (phs < FL(0.0))
-      phs += FL(1.0);
+    LOOPSEG_WRAP_PHASE(phs);
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
@@ -651,7 +719,7 @@ static int32_t loopsegp(CSOUND *csound, LOOPSEGP *p)
 
     for ( j=0; j <nsegs; j+=2)
       durtot += argp[j];
-    for ( j=0; j < nsegs; j+=2) {
+    for ( j=0; j < nsegs-1; j+=2) {
       beg_seg += argp[j] / durtot;
       end_seg = beg_seg + argp[j+2] / durtot;
 
@@ -678,10 +746,7 @@ static int32_t lpsholdp(CSOUND *csound, LOOPSEGP *p)
 
     phs = *p->kphase;
 
-    while (phs >= FL(1.0))
-      phs -= FL(1.0);
-    while (phs < FL(0.0))
-      phs += FL(1.0);
+    LOOPSEG_WRAP_PHASE(phs);
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
@@ -690,7 +755,7 @@ static int32_t lpsholdp(CSOUND *csound, LOOPSEGP *p)
 
     for ( j=0; j <nsegs; j+=2)
       durtot += argp[j];
-    for ( j=0; j < nsegs; j+=2) {
+    for ( j=0; j < nsegs-1; j+=2) {
       beg_seg += argp[j] / durtot;
       end_seg = beg_seg + argp[j+2] / durtot;
 
@@ -704,15 +769,16 @@ static int32_t lpsholdp(CSOUND *csound, LOOPSEGP *p)
     return OK;
 }
 
+#undef LOOPSEG_WRAP_PHASE
+
 /* by Gab Maldonado. Under GNU license with a special exception
    for Canonical Csound addition */
 
 static int32_t lineto_set(CSOUND *csound, LINETO *p)
 {
     IGN(csound);
-    p->current_time = FL(0.0);
-    p->incr=FL(0.0);
-    p->old_time=FL(0.0);
+    p->remaining = 0.0;
+    p->incr = FL(0.0);
     p->flag = 1;
     return OK;
 }
@@ -722,24 +788,22 @@ static int32_t lineto(CSOUND *csound, LINETO *p)
     IGN(csound);
     if (UNLIKELY(p->flag)) {
       p->val_incremented = p->current_val = *p->ksig;
-      p->flag=0;
+      p->flag = 0;
     }
-    /* printf("lineto: ktime=%lf ksig=%lf\n " */
-    /*        "old_time=%lf val_inc=%lf incr=%lf val=%lf\n", */
-    /*        *p->ktime, *p->ksig, p->old_time, p->val_incremented, p->incr, */
-    /*        p->current_val); */
-    if (*p->ksig != p->current_val && p->current_time > p->old_time) {
-      p->old_time = *p->ktime;
-      p->val_incremented = p->current_val;
-      p->current_time = FL(0.0);
-      p->incr = (*p->ksig - p->current_val)
-                / ((int32) (CS_EKR * p->old_time) -1); /* by experiment */
-      p->current_val = *p->ksig;
-    }
-    else if (p->current_time < p->old_time) {
+    if (p->remaining > 0.0) {
       p->val_incremented += p->incr;
+      if (--p->remaining == 0.0)
+        p->val_incremented = p->current_val;
     }
-    p->current_time += 1/CS_EKR;
+    /* Accept a new target only after the current ramp has finished. */
+    if (p->remaining <= 0.0 && *p->ksig != p->current_val) {
+      p->current_val = *p->ksig;
+      p->remaining = ceil(*p->ktime * CS_EKR);
+      if (p->remaining > 0.0)
+        p->incr = (p->current_val - p->val_incremented) / p->remaining;
+      else
+        p->val_incremented = p->current_val;
+    }
     *p->kr = p->val_incremented;
     return OK;
 }
@@ -747,9 +811,8 @@ static int32_t lineto(CSOUND *csound, LINETO *p)
 static int32_t tlineto_set(CSOUND *csound, LINETO2 *p)
 {
     IGN(csound);
-    p->current_time = FL(0.0);
-    p->incr=FL(0.0);
-    p->old_time=FL(1.0);
+    p->remaining = 0.0;
+    p->incr = FL(0.0);
     p->flag = 1;
     return OK;
 }
@@ -759,19 +822,21 @@ static int32_t tlineto(CSOUND *csound, LINETO2 *p)
     IGN(csound);
     if (UNLIKELY(p->flag)) {
       p->val_incremented = p->current_val = *p->ksig;
-      p->flag=0;
+      p->flag = 0;
     }
     if (*p->ktrig) {
-      p->old_time = *p->ktime;
-      /* p->val_incremented = p->current_val; */
-      p->current_time = FL(0.0);
-      p->incr = (*p->ksig - p->current_val)
-                / ((int32) (CS_EKR * p->old_time) + 1);
       p->current_val = *p->ksig;
+      p->remaining = ceil(*p->ktime * CS_EKR);
+      /* A retrigger starts from the output, not the previous target. */
+      if (p->remaining > 0.0)
+        p->incr = (p->current_val - p->val_incremented) / p->remaining;
+      else
+        p->val_incremented = p->current_val;
     }
-    else if (p->current_time < p->old_time) {
-      p->current_time += CS_ONEDKR;
+    else if (p->remaining > 0.0) {
       p->val_incremented += p->incr;
+      if (--p->remaining == 0.0)
+        p->val_incremented = p->current_val;
     }
     *p->kr = p->val_incremented;
     return OK;
@@ -1039,6 +1104,11 @@ static int32_t jitters_set(CSOUND *csound, JITTERS *p)
     return OK;
 }
 
+/* Start the next segment at phase zero even at an exact boundary. */
+#define JSPLINE_WRAP(phase) do {                                    \
+    if ((phase) >= 1.0) (phase) -= floor(phase);                     \
+  } while (0)
+
 static int32_t jitters(CSOUND *csound, JITTERS *p)
 {
     MYFLT       x, c3= p->c3, c2= p->c2;
@@ -1054,8 +1124,7 @@ static int32_t jitters(CSOUND *csound, JITTERS *p)
     next:
       p->si = (randGab(csound) * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
       if (p->si == 0) p->si = 1; /* Is this necessary? */
-      while (p->phs > 1.0)
-        p->phs -= 1.0;
+      JSPLINE_WRAP(p->phs);
       f0 = p->num0 = p->num1;
       f1 = p->num1 = p->num2;
       f2 = p->num2 = BiRandGab(csound);
@@ -1089,6 +1158,8 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    if (UNLIKELY(offset >= nsmps)) return OK;
+    if (cod) amp += offset;
     if (p->initflag) {
       p->initflag = 0;
       n = offset;
@@ -1101,8 +1172,7 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
       next:
         si =  (randGab(csound)  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
         if (si == 0) si = 1; /* Is this necessary? */
-        while (phs > 1.0)
-          phs -= 1.0;
+        JSPLINE_WRAP(phs);
         f0 = p->num0 = p->num1;
         f1 = p->num1 = p->num2;
         f2 = p->num2 = BiRandGab(csound);
@@ -1284,6 +1354,21 @@ static int32_t aRangeRand(CSOUND *csound, RANGERAND *p)
     return OK;
 }
 
+/* Higher rates can emit only one new value per output sample.  Keep their
+   phase remainder while forcing that update. */
+#define RANDOM_PHASE_INCREMENT(inc_, rate_, scale_)                        \
+    do {                                                                  \
+      MYFLT scaled_ = (rate_) * (scale_);                                 \
+      if (LIKELY(scaled_ > FL(0.0) && scaled_ < FMAXLEN))                 \
+        (inc_) = (uint32_t)scaled_;                                       \
+      else if (UNLIKELY(!(scaled_ > FL(0.0))))                            \
+        (inc_) = 0U;                                                      \
+      else if (scaled_ < (MYFLT)UINT64_MAX)                              \
+        (inc_) = MAXLEN + (uint32_t)((uint64_t)scaled_ & PHMASK);         \
+      else                                                                \
+        (inc_) = MAXLEN;                                                  \
+    } while (0)
+
 /* mode and fstval arguments added */
 /* by Francois Pinot, jan. 2011    */
 static int32_t randomi_set(CSOUND *csound, RANDOMI *p)
@@ -1317,8 +1402,11 @@ static int32_t randomi_set(CSOUND *csound, RANDOMI *p)
 
 static int32_t krandomi(CSOUND *csound, RANDOMI *p)
 {
+    uint32_t inc;
+
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * (*p->max - *p->min) + *p->min;
-    p->phs += (int32)(*p->xcps * CS_KICVT);
+    RANDOM_PHASE_INCREMENT(inc, *p->xcps, CS_KICVT);
+    p->phs += inc;
     if (p->phs >= MAXLEN) {
       p->phs   &= PHMASK;
       p->num1   = p->num2;
@@ -1330,7 +1418,7 @@ static int32_t krandomi(CSOUND *csound, RANDOMI *p)
 
 static int32_t randomi(CSOUND *csound, RANDOMI *p)
 {
-    int32       phs = p->phs, inc;
+    uint32_t    phs = p->phs, inc = 0U;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -1341,17 +1429,20 @@ static int32_t randomi(CSOUND *csound, RANDOMI *p)
     min = *p->min;
     amp =  (*p->max - min);
     ar = p->ar;
-    inc = (int32)(*cpsp++ * CS_SICVT);
+    if (p->cpscod)
+      cpsp += offset;
+    else
+      RANDOM_PHASE_INCREMENT(inc, *cpsp, CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
+      if (p->cpscod)
+        RANDOM_PHASE_INCREMENT(inc, *cpsp++, CS_SICVT);
       ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * amp + min;
       phs += inc;
-      if (p->cpscod)
-        inc = (int32)(*cpsp++ * CS_SICVT);
       if (phs >= MAXLEN) {
         phs &= PHMASK;
         p->num1 = p->num2;
@@ -1386,8 +1477,11 @@ static int32_t randomh_set(CSOUND *csound, RANDOMH *p)
 
 static int32_t krandomh(CSOUND *csound, RANDOMH *p)
 {
+    uint32_t inc;
+
     *p->ar = p->num1 * (*p->max - *p->min) + *p->min;
-    p->phs += (int32)(*p->xcps * CS_KICVT);
+    RANDOM_PHASE_INCREMENT(inc, *p->xcps, CS_KICVT);
+    p->phs += inc;
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
       p->num1 = randGab(csound);
@@ -1397,7 +1491,7 @@ static int32_t krandomh(CSOUND *csound, RANDOMH *p)
 
 static int32_t randomh(CSOUND *csound, RANDOMH *p)
 {
-    int32       phs = p->phs, inc;
+    uint32_t    phs = p->phs, inc = 0U;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -1408,17 +1502,20 @@ static int32_t randomh(CSOUND *csound, RANDOMH *p)
     min  = *p->min;
     amp  = (*p->max - min);
     ar   = p->ar;
-    inc  = (int32)(*cpsp++ * CS_SICVT);
+    if (p->cpscod)
+      cpsp += offset;
+    else
+      RANDOM_PHASE_INCREMENT(inc, *cpsp, CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
+      if (p->cpscod)
+        RANDOM_PHASE_INCREMENT(inc, *cpsp++, CS_SICVT);
       ar[n]     = p->num1 * amp + min;
       phs      += inc;
-      if (p->cpscod)
-        inc     = (int32)(*cpsp++ * CS_SICVT);
       if (phs >= MAXLEN) {
         phs    &= PHMASK;
         p->num1 = randGab(csound);
@@ -1428,6 +1525,8 @@ static int32_t randomh(CSOUND *csound, RANDOMH *p)
     return OK;
 }
 
+#undef RANDOM_PHASE_INCREMENT
+
 static int32_t random3_set(CSOUND *csound, RANDOM3 *p)
 {
     p->num1     = randGab(csound);
@@ -1435,7 +1534,7 @@ static int32_t random3_set(CSOUND *csound, RANDOM3 *p)
     p->df1      = FL(0.0);
     p->initflag = 1;
     p->rangeMin_cod = IS_ASIG_ARG(p->rangeMin);
-    p->rangeMax_cod = IS_ASIG_ARG(p->rangeMin);
+    p->rangeMax_cod = IS_ASIG_ARG(p->rangeMax);
     p->phs      = 0.0;
     return OK;
 }
@@ -1444,6 +1543,12 @@ static int32_t random3(CSOUND *csound, RANDOM3 *p)
 {
     MYFLT       x, c3= p->c3, c2= p->c2;
     MYFLT       f0 = p->num0, df0= p->df0;
+    MYFLT       cpsMin = *p->cpsMin, cpsMax = *p->cpsMax;
+
+    if (UNLIKELY(!isfinite(cpsMin) || !isfinite(cpsMax) ||
+                 cpsMin < FL(0.0) || cpsMax < FL(0.0)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("rspline: rates must be finite and non-negative"));
 
     if (p->initflag) {
       p->initflag = 0;
@@ -1453,9 +1558,9 @@ static int32_t random3(CSOUND *csound, RANDOM3 *p)
     if (p->phs >= 1.0) {
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
-      p->si = (randGab(csound) * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
-      while (p->phs > 1.0)
-        p->phs -= 1.0;
+      p->si = (randGab(csound) * (cpsMax-cpsMin) + cpsMin)*CS_ONEDKR;
+      if (p->phs > 1.0)
+        p->phs = p->phs - ceil(p->phs) + 1.0;
       f0     = p->num0 = p->num1;
       f1     = p->num1 = p->num2;
       f2     = p->num2 = randGab(csound);
@@ -1486,11 +1591,18 @@ static int32_t random3a(CSOUND *csound, RANDOM3 *p)
     uint32_t n, nsmps = CS_KSMPS;
     double      phs = p->phs, si = p->si;
 
+    if (UNLIKELY(!isfinite(cpsMin) || !isfinite(cpsMax) ||
+                 cpsMin < FL(0.0) || cpsMax < FL(0.0)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("rspline: rates must be finite and non-negative"));
+
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    if (rangeMin_cod) rangeMin += offset;
+    if (rangeMax_cod) rangeMax += offset;
     if (p->initflag) {
       p->initflag = 0;
       n = offset;
@@ -1502,10 +1614,10 @@ static int32_t random3a(CSOUND *csound, RANDOM3 *p)
         MYFLT   slope, resd1, resd0, f2, f1;
       next:
         si =  (randGab(csound)  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
-        while (phs > 1.0) phs -= 1.0;
+        if (phs > 1.0) phs = phs - ceil(phs) + 1.0;
         f0     = p->num0 = p->num1;
         f1     = p->num1 = p->num2;
-        f2     = p->num2 = BiRandGab(csound);
+        f2     = p->num2 = randGab(csound);
         df0    = p->df0 = p->df1;
         p->df1 = ( f2 - f0 ) * FL(0.5);
         slope  = f1 - f0;
@@ -1587,8 +1699,8 @@ static OENTRY localops[] = {
                                 (SUBR)Duserrnd_set,(SUBR)aDiscreteUserRand },
 { "trigger",  S(TRIG),  0, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
 { "sum",      S(SUM),   0, "a", "y",    (SUBR)sum_init, (SUBR)sum_               },
-{ "product",  S(SUM),   0, "a", "y",    NULL, (SUBR)product           },
-{ "resony",  S(RESONY), 0, "a", "akkikooo", (SUBR)rsnsety, (SUBR)resony }
+{ "product",  S(SUM),   0, "a", "y",    (SUBR)product_init, (SUBR)product },
+{ "resony",  S(RESONY), 0, "a", "akkikoooo", (SUBR)rsnsety, (SUBR)resony }
 };
 
 int32_t uggab_init_(CSOUND *csound)

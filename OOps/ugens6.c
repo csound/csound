@@ -29,8 +29,13 @@
 
 int32_t downset(CSOUND *csound, DOWNSAMP *p)
 {
-    if (UNLIKELY((p->len = (uint32_t)*p->ilen) > CS_KSMPS))
-      return csound->InitError(csound, "ilen > ksmps");
+    double length = (double)*p->ilen;
+
+    /* Check the truncated length before converting to an unsigned integer. */
+    if (UNLIKELY(!(length > -1.0 && length < (double)CS_KSMPS + 1.0)))
+      return csound->InitError(csound, "%s",
+                               Str("downsamp: window length out of range"));
+    p->len = (uint32_t)length;
     return OK;
 }
 
@@ -40,7 +45,7 @@ int32_t downsamp(CSOUND *csound, DOWNSAMP *p)
     MYFLT       *asig, sum;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int32_t len, n;
+    uint32_t len, n;
 
     if (p->len <= 1)
       *p->kr = p->asig[offset];
@@ -48,7 +53,7 @@ int32_t downsamp(CSOUND *csound, DOWNSAMP *p)
       asig = p->asig;
       sum = FL(0.0);
       len = p->len;
-      if (len>(int32_t)(CS_KSMPS-early)) len = early;
+      if (len > CS_KSMPS - early) len = CS_KSMPS - early;
       for (n=offset; n<len; n++) {
         sum += asig[n];
       }
@@ -895,21 +900,24 @@ int32_t delay1(CSOUND *csound, DELAY1 *p)
 {
     IGN(csound);
     MYFLT       *ar, *asig;
+    MYFLT       last;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
 
     ar = p->ar;
-    /* asig = p->asig - 1; */
     asig = p->asig;
-    ar[offset] = p->sav1;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    if (UNLIKELY(offset >= nsmps)) return OK;
+    /* Preserve both endpoints when input and output share the buffer. */
+    last = asig[nsmps-1];
     memmove(&ar[offset+1], &asig[offset], sizeof(MYFLT)*(nsmps-1-offset));
-    p->sav1 = asig[nsmps-1];
+    ar[offset] = p->sav1;
+    p->sav1 = last;
     return OK;
 }
 
@@ -948,6 +956,7 @@ int32_t comb(CSOUND *csound, COMB *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       coef = p->coef;
+    MYFLT loopTime = *p->insmps != 0 ? *p->ilpt * CS_ONEDSR : *p->ilpt;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     if (p->prvt != *p->krvt) {
@@ -958,7 +967,7 @@ int32_t comb(CSOUND *csound, COMB *p)
        * on Alpha. So if the result would be less than 1.0e-16, we
        * just say it's zero and don't call exp().  heh 981101
        */
-      double exp_arg = (double)(log001 * *p->ilpt / p->prvt);
+      double exp_arg = (double)(log001 * loopTime / p->prvt);
       if (UNLIKELY(exp_arg < -36.8413615))    /* ln(1.0e-16) */
         coef = p->coef = FL(0.0);
       else
@@ -990,9 +999,12 @@ int32_t comb(CSOUND *csound, COMB *p)
 
 int32_t invcomb(CSOUND *csound, COMB *p)
 {
-    int32_t n, nsmps = CS_KSMPS;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       coef = p->coef;
+    MYFLT loopTime = *p->insmps != 0 ? *p->ilpt * CS_ONEDSR : *p->ilpt;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     if (p->prvt != *p->krvt) {
@@ -1003,7 +1015,7 @@ int32_t invcomb(CSOUND *csound, COMB *p)
        * on Alpha. So if the result would be less than 1.0e-16, we
        * just say it is zero and do not call exp().  heh 981101
        */
-      double exp_arg = (double)(log001 * *p->ilpt / p->prvt);
+      double exp_arg = (double)(log001 * loopTime / p->prvt);
       if (UNLIKELY(exp_arg < -36.8413615))    /* ln(1.0e-16) */
         coef = p->coef = FL(0.0);
       else
@@ -1012,9 +1024,14 @@ int32_t invcomb(CSOUND *csound, COMB *p)
     xp = p->pntr;
     endp = (MYFLT *) p->auxch.endp;
     ar = p->ar;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
     asig = p->asig;
     MYFLT out;
-    for (n=0; n<nsmps; n++) {
+    for (n=offset; n<nsmps; n++) {
       out = *xp;
       ar[n] = (*xp = asig[n])-coef*out;
       if (UNLIKELY(++xp >= endp))
@@ -1035,11 +1052,13 @@ int32_t alpass(CSOUND *csound, COMB *p)
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       y, z;
     MYFLT       coef = p->coef;
+    MYFLT loopTime = *p->insmps != 0 ? *p->ilpt * CS_ONEDSR : *p->ilpt;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
-    if (p->prvt != *p->krvt) {
+    int32_t audioRvt = IS_ASIG_ARG(p->krvt);
+    if (!audioRvt && p->prvt != *p->krvt) {
       p->prvt = *p->krvt;
-      coef = p->coef = EXP(log001 * *p->ilpt / p->prvt);
+      coef = p->coef = EXP(log001 * loopTime / p->prvt);
     }
     xp = p->pntr;
     endp = (MYFLT *) p->auxch.endp;
@@ -1050,12 +1069,27 @@ int32_t alpass(CSOUND *csound, COMB *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     asig = p->asig;
-    for (n=offset; n<nsmps; n++) {
-      y = *xp;
-      *xp++ = z = coef * y + asig[n];
-      ar[n] = y - coef * z;
-      if (UNLIKELY(xp >= endp))
-        xp = (MYFLT *) p->auxch.auxp;
+    if (audioRvt) {
+      for (n=offset; n<nsmps; n++) {
+        if (p->prvt != p->krvt[n]) {
+          p->prvt = p->krvt[n];
+          coef = p->coef = EXP(log001 * loopTime / p->prvt);
+        }
+        y = *xp;
+        *xp++ = z = coef * y + asig[n];
+        ar[n] = y - coef * z;
+        if (UNLIKELY(xp >= endp))
+          xp = (MYFLT *) p->auxch.auxp;
+      }
+    }
+    else {
+      for (n=offset; n<nsmps; n++) {
+        y = *xp;
+        *xp++ = z = coef * y + asig[n];
+        ar[n] = y - coef * z;
+        if (UNLIKELY(xp >= endp))
+          xp = (MYFLT *) p->auxch.auxp;
+      }
     }
     p->pntr = xp;
     return OK;

@@ -35,6 +35,7 @@
 #include "csound_orc_expressions.h"
 #include "csound_orc_semantics.h"
 #include "csound_orc_compile.h"
+#include "entry.h"
 
 
 static CS_VAR_POOL *find_global_annotation(char *varName,
@@ -2614,9 +2615,12 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
       TREE *arg = right->right;
       int32_t hasExpressionArg = 0;
 
-      while (arg != NULL && !hasExpressionArg) {
-        hasExpressionArg = is_expression_node(arg) ||
-                           is_boolean_expression_node(arg);
+      while (arg != NULL) {
+        handle_negative_number(csound, arg);
+        if (!hasExpressionArg) {
+          hasExpressionArg = is_expression_node(arg) ||
+                             is_boolean_expression_node(arg);
+        }
         arg = arg->next;
       }
 
@@ -2833,8 +2837,6 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   opcodeName = root->value->lexeme;
   leftArgString = get_arg_string_from_tree(csound, left, typeTable);
   rightArgString = get_arg_string_from_tree(csound, right, typeTable);
-
-
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
@@ -3498,6 +3500,15 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentry.outypes = csoundStrdup(csound, oentry.outypes);
   oentry.intypes = csoundStrdup(csound, temp);
   csoundAppendOpcodes(csound, &oentry, 1);
+
+  /* Register an exact copy constructor without shadowing member-based
+     constructors for the same struct. */
+  oentry.opname = csoundStrdup(csound, oentry.opname);
+  oentry.outypes = csoundStrdup(csound, type->varTypeName);
+  oentry.intypes = csoundStrdup(csound, type->varTypeName);
+  oentry.dsblksiz = sizeof(ASSIGN);
+  oentry.init = copy_var_generic_init;
+  csoundAppendOpcodes(csound, &oentry, 1);
   return 1;
 }
 
@@ -3780,6 +3791,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
 
       current = expand_if_statement(csound, current, typeTable);
+      if (current == NULL) {
+        anchor = NULL;
+        goto cleanup;
+      }
 
       if (previous != NULL) {
         previous->next = current;
@@ -3794,12 +3809,19 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       if (!verify_until_statement(csound, current, typeTable)) {
         synterr(csound, "loop conditional expression not valid, line %d",
                 current->line - 2);
-        return NULL;
+        csound->Free(csound, targets);
+        anchor = NULL;
+        goto cleanup;
       }
 
       current = expand_until_statement(csound, current,
                                        typeTable, current->type==WHILE_TOKEN,
                                        targets);
+      if (current == NULL) {
+        csound->Free(csound, targets);
+        anchor = NULL;
+        goto cleanup;
+      }
 
       if (previous != NULL) {
         previous->next = current;
@@ -4042,6 +4064,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
       if (is_statement_expansion_required(current)) {
         current = expand_statement(csound, current, typeTable);
+        if (current == NULL) {
+          anchor = NULL;
+          goto cleanup;
+        }
         if (previous != NULL) {
           previous->next = current;
         }
@@ -4064,6 +4090,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
   if (csoundGetDebug(csound) & DEBUG_SEMANTICS)
     csound->Message(csound, "[End Verifying AST]\n");
 
+cleanup:
   cs_cons_free_complete(csound, activeLoopStack);
   cs_cons_free(csound, typeTable->labelList);
   typeTable->labelList = parentLabelList;

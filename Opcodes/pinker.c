@@ -37,17 +37,17 @@
 typedef struct {
   OPDS h;
   MYFLT *ar;
-  int32_t   inc;
-  int32_t   dec;
-  int32 accu;
-  int32 lfsr;
-  unsigned char cnt;
+  uint32_t inc;
+  uint32_t dec;
+  uint32_t accu;
+  uint32_t lfsr;
+  uint8_t cnt;
   int32_t offset;
 } PINKER;
 
 #define PINK_BIAS   FL(440.0)
 
-static int32_t instance_cnt = 0;    /* Is tis thread-safe? */
+static uint32_t instance_cnt = 0;    /* Is tis thread-safe? */
 
 // Let preprocessor and compiler calculate two lookup tables for 12-tap
 // FIR filter with these coefficients:
@@ -90,21 +90,24 @@ static const int32_t ind[] = {     0, 0x0800, 0x0400, 0x0800,
  /* generate samples of pink noise */
 static int32_t pink_perf(CSOUND* csound, PINKER *p)
 {
-    int32_t inc    =   p->inc;
-    int32_t dec    =   p->dec;
-    int32 accu =   p->accu;
-    int32 lfsr   =   p->lfsr;
-    int32_t cnt    =   p->cnt;
-    int32_t bit;
+    uint32_t inc    =   p->inc;
+    uint32_t dec    =   p->dec;
+    uint32_t accu =   p->accu;
+    uint32_t lfsr   =   p->lfsr;
+    uint8_t cnt    =   p->cnt;
+    uint32_t bit;
     int32_t n, nn, nsmps = CS_KSMPS;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int32_t mask;
+    uint32_t mask;
     float yy;
     MYFLT *out = p->ar;
+    MYFLT scale = csound->Get0dBFS(csound);
     int32_t loffset = p->offset;
+    if (UNLIKELY(offset)) memset(out, 0, offset * sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
+      memset(&out[nsmps], 0, early * sizeof(MYFLT));
     }
     for (n=offset, nn=loffset; n<nsmps; n++, nn++) {
       int32_t k = nn%16;   /* algorithm is in 16 sample chunks */
@@ -118,19 +121,12 @@ static int32_t pink_perf(CSOUND* csound, PINKER *p)
 
       if (k==0) mask = pnmask[cnt++];
       else mask = ind[k];
-      bit = lfsr >> 31;            /* spill random to all bits        */
+      bit = 0u - (lfsr >> 31);     /* spill random to all bits        */
       dec &= ~mask;                /* blank old decrement bit         */
       lfsr <<= 1;                  /* shift lfsr                      */
       dec |= inc & mask;           /* copy increment to decrement bit */
       inc ^= bit & mask;           /* new random bit                  */
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#endif
-      *((int32_t *)(&yy)) = accu;      /* save biased value as float      */
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+      memcpy(&yy, &accu, sizeof(yy)); /* save biased value as float      */
       //printf("yy = %f ", yy);
       accu += inc - dec;           /* integrate                       */
       lfsr ^= bit & 0x46000001;    /* update lfsr                     */
@@ -139,7 +135,7 @@ static int32_t pink_perf(CSOUND* csound, PINKER *p)
       //printf("out = %f a,b = %f,%f mask = %.8x dec,inc = %x,%x acc = %x\n",
       //       yy, pfira[lfsr & 0x3F], pfirb[lfsr >>6 & 0x3F],
       //       mask, dec, inc, accu);
-      out[n] = yy*csound->Get0dBFS(csound);
+      out[n] = yy*scale;
     /* PINK(mask);   PINK(0x0800); PINK(0x0400); PINK(0x0800); */
     /* PINK(0x0200); PINK(0x0800); PINK(0x0400); PINK(0x0800); */
     /* PINK(0x0100); PINK(0x0800); PINK(0x0400); PINK(0x0800); */
@@ -157,16 +153,10 @@ static int32_t pink_perf(CSOUND* csound, PINKER *p)
 static int32_t pink_init(CSOUND *csound, PINKER *p)      // constructor
 {
     IGN(csound);
-    p->lfsr  = 0x5EED41F5 + instance_cnt++;   // seed for lfsr,
+    const float bias = PINK_BIAS;
+    p->lfsr  = 0x5EED41F5u + instance_cnt++;   // seed for lfsr,
                                               // decorrelate multiple instances
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-#endif
-    *((float*)(&p->accu))  = PINK_BIAS;       // init float hack
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+    memcpy(&p->accu, &bias, sizeof(bias));
     p->cnt = 0;                               // counter from zero
     p->inc   = 0x0CCC;                        // balance initial states to avoid DC
     p->dec   = 0x0CCC;

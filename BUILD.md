@@ -176,10 +176,10 @@ installed, then we run the normal cmake build.
 ```
 sudo apt-get update
 sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev \
-portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev \
-default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid \
-ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex \
-libportsmf-dev libeigen3-dev libcunit1-dev gettext libsamplerate0-dev
+portaudio19-dev libportmidi-dev libpulse-dev swig \
+default-jdk liblo-dev \
+ladspa-sdk dssi-dev bison flex \
+gettext libsamplerate0-dev
 mkdir build
 cd build
 cmake ..

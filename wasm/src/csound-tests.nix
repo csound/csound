@@ -22,6 +22,7 @@ pkgs.runCommand "csound-wasm-commandline-tests" {
   chmod -R u+w commandline-tests
   cd commandline-tests
 
+  # WASI cannot create the helper thread used by asynchronous ftaudio.
   python3 test.py \
     --runtime-executable=wasmtime \
     --runtime-arg=run \
@@ -30,6 +31,7 @@ pkgs.runCommand "csound-wasm-commandline-tests" {
     --runtime-arg=--allow-precompiled \
     --runtime-arg=--dir=. \
     --expected-failure=test_osc_server.csd \
+    --expected-failure=test_ftaudio_async.csd \
     --csound-executable="$csound_module" \
     --source-dir=. \
     --workers=${toString workers} \

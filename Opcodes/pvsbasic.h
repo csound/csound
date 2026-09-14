@@ -136,8 +136,7 @@ typedef struct _pvsosc {
     PVSDAT  *fout;
     MYFLT   *ka, *kf, *type;
     MYFLT   *framesize, *olap, *winsize, *wintype, *format;
-    MYFLT incr;
-    uint32  lastframe;
+    uint32_t samplecount;
 } PVSOSC;
 
 typedef struct _pvsbin {
@@ -145,7 +144,8 @@ typedef struct _pvsbin {
     MYFLT   *kamp, *kfreq;
     PVSDAT  *fin;
     MYFLT   *kbin;
-    uint32  lastframe;
+    uint32_t lastframe;
+    MYFLT amp, freq;
 } PVSBIN;
 
 typedef struct _pvsfreez {
@@ -198,8 +198,8 @@ typedef struct _pvsblur {
     MYFLT   *kdel;
     MYFLT   *maxdel;
     AUXCH   delframes;
-    MYFLT   frpsec;
-    int32   count;
+    double  frpsec;
+    int32_t count, maxframes;
     uint32  lastframe;
 } PVSBLUR;
 
@@ -222,4 +222,3 @@ static int32_t
 pvstencil(CSOUND *, PVSTENCIL *p);
 
 #endif
-

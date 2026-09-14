@@ -119,6 +119,10 @@ int32_t squinewave_init(CSOUND* csound, SQUINEWAVE *p)
 
     // Skip setting phase only if we have been inited at least once
     p->init_phase = (*p->iphase < 0 && p->Min_Sweep > 1.0) ? 0 : 1;
+    if (p->init_phase) {
+      p->hardsync_phase = p->hardsync_inc = 0.0;
+      p->neg_freq = 0;
+    }
     p->Min_Sweep = *p->iminsweep;
 
     // Allow range 4-sr/100
@@ -165,7 +169,7 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
     const double Max_Sweep_Inc = 1.0 / Min_Sweep;
     const double Max_Sync_Freq = p->Max_Sync_Freq;
 
-    MYFLT *aout = &p->aout[0];
+    MYFLT *aout = &p->aout[ksmps_offset];
     const MYFLT * const freq_sig = p->acps;
     const MYFLT * const clip_sig = p->aclip;
     const MYFLT * const skew_sig = p->askew;
@@ -179,12 +183,12 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
     int32_t sync = find_sync(p->sync_sig, ksmps_offset, ksmps_end);
 
     // Set main phase so it matches sweep_phase
-    if (p->init_phase) {
-      const double freq = fabs(freq_sig[0]);
+    if (p->init_phase && ksmps_offset < ksmps_end) {
+      const double freq = fabs(freq_sig[ksmps_offset]);
       const double phase_inc = Maxphase_By_sr * freq;
       const double min_sweep = phase_inc * Min_Sweep;
-      const double skew = 1.0 - Clamp(skew_sig[0], -1.0, 1.0);
-      const double clip = 1.0 - Clamp(clip_sig[0], 0.0, 1.0);
+      const double skew = 1.0 - Clamp(skew_sig[ksmps_offset], -1.0, 1.0);
+      const double clip = 1.0 - Clamp(clip_sig[ksmps_offset], 0.0, 1.0);
       const double midpoint = Clamp(skew, min_sweep, 2.0 - min_sweep);
 
       // Init phase range 0-2, has 4 segment parts (sweep down,
@@ -266,6 +270,12 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
           sweep_phase = 2.0 - sweep_phase;
         }
         neg_freq = (raw_freq < 0);
+      }
+
+      /* A stopped oscillator holds its phase, even with a zero-length sweep. */
+      if (freq == 0.0) {
+        *aout++ = cos(PI * sweep_phase);
+        continue;
       }
 
       const double phase_inc = Maxphase_By_sr * freq;

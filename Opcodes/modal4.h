@@ -47,8 +47,8 @@ typedef struct Modal4 {
     BiQuad      filters[4];
     OnePole     onepole;
     FUNC        *vibr;
-    MYFLT       v_rate;         /* Parameters for vibrato */
-    MYFLT       v_time;
+    double      v_rate;         /* Parameters for vibrato */
+    double      v_time;
     MYFLT       v_phaseOffset;
     MYFLT       v_lastOutput;
     MYFLT       vibrGain;

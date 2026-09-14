@@ -859,13 +859,18 @@ int32_t hsboscil(CSOUND *csound, HSBOSC   *p)
 int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 {
     MYFLT srate, downs;
-    int32  size, minperi, maxperi, downsamp, upsamp, msize, bufsize;
+    int32  size, minperi, maxperi, downsamp, upsamp;
+    size_t msize, bufsize;
+    double minperiod, maxperiod, period, requested, blocksize, maxmedian;
     uint32_t interval;
     uint32_t nsmps = CS_KSMPS;
 
-    p->inerr = 0;
+    p->inerr = 1;
 
     downs = *p->idowns;
+    if (UNLIKELY(!(downs >= -(double)INT32_MAX + 1 &&
+                   downs <= (double)INT32_MAX - 1)))
+      return csound->InitError(csound, Str("pitchamdf: invalid resampling factor"));
     if (downs < (-FL(1.9))) {
       upsamp = (int32_t)MYFLT2LONG((-downs));
       downsamp = 0;
@@ -879,27 +884,38 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
       upsamp = 0;
     }
 
-    minperi = (int32)(srate / *p->imaxcps);
-    maxperi = (int32)(FL(0.5)+srate / *p->imincps);
+    if (UNLIKELY(!(*p->imincps > 0 && *p->imaxcps > *p->imincps)))
+      return csound->InitError(csound, Str("pitchamdf: invalid frequency range"));
+    minperiod = (double)srate / *p->imaxcps;
+    maxperiod = 0.5 + (double)srate / *p->imincps;
+    if (UNLIKELY(!(minperiod >= 1 && maxperiod < INT32_MAX)))
+      return csound->InitError(csound, Str("pitchamdf: frequency range is too wide"));
+    minperi = (int32_t)minperiod;
+    maxperi = (int32_t)maxperiod;
     if (UNLIKELY(maxperi <= minperi)) {
-      p->inerr = 1;
       return csound->InitError(csound,
-                               "%s", Str("pitchamdf: maxcps must be > mincps !"));
+                               "%s", Str("pitchamdf: frequency range has no distinct periods"));
     }
 
     if (*p->iexcps < 1)
-        interval = maxperi;
+        requested = maxperi;
     else
-        interval = (uint32_t)(srate / *p->iexcps);
-    if (interval < nsmps) {
-      if (downsamp)
-        interval = nsmps / downsamp;
-      else
-        interval = nsmps * upsamp;
-    }
+        requested = (double)srate / *p->iexcps;
+    if (UNLIKELY(!(requested >= 0 && requested < INT32_MAX)))
+      return csound->InitError(csound, Str("pitchamdf: invalid analysis interval"));
+    /* At least one control block, measured at the resampled rate. */
+    blocksize = downsamp ? ceil((double)nsmps / downsamp) :
+      (double)nsmps * upsamp;
+    if (requested < blocksize)
+      requested = blocksize;
+    if (UNLIKELY(requested > INT32_MAX - maxperi))
+      return csound->InitError(csound, Str("pitchamdf: analysis window is too large"));
+    interval = (uint32_t)requested;
 
     size = maxperi + interval;
-    bufsize = sizeof(MYFLT)*(size + interval + 2);
+    if (UNLIKELY((size_t)size > SIZE_MAX / sizeof(MYFLT)))
+      return csound->InitError(csound, Str("pitchamdf: analysis window is too large"));
+    bufsize = sizeof(MYFLT) * (size_t)size;
 
     p->srate = srate;
     p->downsamp = downsamp;
@@ -911,9 +927,20 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     p->index = 0;
     p->lastval = FL(0.0);
     if (*p->icps < 1)
-        p->peri = (minperi + maxperi) / 2;
-    else
-        p->peri = (int32_t)(srate / *p->icps);
+        p->peri = minperi + (maxperi - minperi) / 2;
+    else {
+      period = (double)srate / *p->icps;
+      if (UNLIKELY(!(period >= minperi && period < (double)maxperi + 1)))
+        return csound->InitError(csound, Str("pitchamdf: initial pitch is outside the range"));
+      p->peri = (int32_t)period;
+    }
+
+    /* Three arrays share each median allocation; validate before rounding. */
+    maxmedian = (double)(SIZE_MAX / sizeof(MYFLT) / 3 - 1) / 2;
+    if (maxmedian > (INT32_MAX - 3) / 6)
+      maxmedian = (INT32_MAX - 3) / 6;
+    if (UNLIKELY(!(*p->irmsmedi < maxmedian && *p->imedi < maxmedian)))
+      return csound->InitError(csound, Str("pitchamdf: median window is too large"));
 
     if (*p->irmsmedi < 1)
         p->rmsmedisize = 0;
@@ -922,7 +949,7 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     p->rmsmediptr = 0;
 
     if (p->rmsmedisize) {
-      msize = p->rmsmedisize * 3 * sizeof(MYFLT);
+      msize = (size_t)p->rmsmedisize * 3 * sizeof(MYFLT);
       if (p->rmsmedian.auxp==NULL || p->rmsmedian.size < (size_t)msize)
         csound->AuxAlloc(csound, msize, &p->rmsmedian);
       else {
@@ -937,7 +964,7 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     p->mediptr = 0;
 
     if (p->medisize) {
-      msize = p->medisize * 3 * sizeof(MYFLT);
+      msize = (size_t)p->medisize * 3 * sizeof(MYFLT);
       if (p->median.auxp==NULL || p->median.size < (size_t)msize)
         csound->AuxAlloc(csound, (size_t)msize, &p->median);
       else {
@@ -950,6 +977,7 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     }
     else
       memset(p->buffer.auxp, 0, bufsize);
+    p->inerr = 0;
     return OK;
 }
 
@@ -1020,9 +1048,9 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
     MYFLT  upsmp = (MYFLT)upsamp;
     MYFLT  lastval = p->lastval;
     MYFLT  newval, delta;
-    int32  readp = p->readp;
+    int64_t readp = p->readp + (int64_t)p->h.insdshead->ksmps_offset;
     int32  interval = size - maxperi;
-    int32_t    nsmps = CS_KSMPS;
+    int32_t    nsmps = CS_KSMPS - p->h.insdshead->ksmps_no_end;
     int32_t    i;
     int32  i1, i2;
     MYFLT  val, rms;
@@ -1033,12 +1061,15 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("pitchamdf: not initialised"));
     }
+    if (UNLIKELY(p->h.insdshead->ksmps_offset >= (uint32_t)nsmps))
+      return OK;
 
     if (upsamp) {
-      while (1) {
-        newval = asig[readp++];
-        delta = (newval-lastval) / upsmp;
-        lastval = newval;
+      while (readp < nsmps) {
+        MYFLT sample = asig[readp++];
+        delta = (sample-lastval) / upsmp;
+        newval = lastval;
+        lastval = sample;
 
         for (i=0; i<upsamp; i++) {
           newval += delta;
@@ -1047,14 +1078,14 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
           if (index == size) {
             peri = minperi;
             accmin = FL(0.0);
-            for (i2 = 0; i2 < size; ++i2) {
+            for (i2 = 0; i2 < interval; ++i2) {
               diff = buffer[i2+minperi] - buffer[i2];
               if (diff > 0) accmin += diff;
               else          accmin -= diff;
             }
             for (i1 = minperi + 1; i1 <= maxperi; ++i1) {
               acc = FL(0.0);
-              for (i2 = 0; i2 < size; ++i2) {
+              for (i2 = 0; i2 < interval; ++i2) {
                 diff = buffer[i1+i2] - buffer[i2];
                 if (diff > 0) acc += diff;
                 else          acc -= diff;
@@ -1065,7 +1096,7 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
               }
             }
 
-            for (i1 = 0; i1 < interval; i1++)
+            for (i1 = 0; i1 < maxperi; i1++)
               buffer[i1] = buffer[i1+interval];
             index = maxperi;
 
@@ -1084,28 +1115,27 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
             }
           }
         }
-        if (readp >= nsmps) break;
       }
-      readp = readp % nsmps;
+      readp = 0;
       p->lastval = lastval;
     }
     else {
       int32  downsamp = p->downsamp;
-      while (1) {
+      while (readp < nsmps) {
         buffer[index++] = asig[readp];
         readp += downsamp;
 
         if (index == size) {
           peri = minperi;
           accmin = FL(0.0);
-          for (i2 = 0; i2 < size; ++i2) {
+          for (i2 = 0; i2 < interval; ++i2) {
             diff = buffer[i2+minperi] - buffer[i2];
             if (diff > FL(0.0)) accmin += diff;
             else                accmin -= diff;
           }
           for (i1 = minperi + 1; i1 <= maxperi; ++i1) {
             acc = FL(0.0);
-            for (i2 = 0; i2 < size; ++i2) {
+            for (i2 = 0; i2 < interval; ++i2) {
               diff = buffer[i1+i2] - buffer[i2];
               if (diff > FL(0.0)) acc += diff;
               else                acc -= diff;
@@ -1116,7 +1146,7 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
             }
           }
 
-          for (i1 = 0; i1 < interval; i1++)
+          for (i1 = 0; i1 < maxperi; i1++)
             buffer[i1] = buffer[i1+interval];
           index = maxperi;
 
@@ -1134,16 +1164,14 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
             p->mediptr = mediptr;
           }
         }
-
-        if (readp >= nsmps) break;
       }
-      readp = readp % nsmps;
+      readp -= nsmps;
     }
-    buffer = &buffer[(index + size - peri) % size];
+    /* The buffer is linear history; samples before note onset are zero. */
     sum = 0.0;
-    for (i1=0; i1<peri; i1++) {
+    for (i1 = (index > peri ? index - peri : 0); i1 < index; i1++) {
       val = buffer[i1];
-      sum += (double)(val * val);
+      sum += (double)val * (double)val;
     }
     if (UNLIKELY(peri==0))      /* How xould thus happen??? */
       rms = FL(0.0);
@@ -1185,21 +1213,43 @@ int32_t phsbnkset(CSOUND *csound, PHSORBNK *p)
     int32_t    n, count;
     double  *curphs;
 
-    count = (int32_t)MYFLT2LONG(*p->icnt);
-    if (UNLIKELY(count < 2))
-      count = 2;
+    if (UNLIKELY(!((double)*p->icnt <= (double)INT32_MAX - 0.5)))
+      return csound->InitError(csound, "%s", Str("phasorbnk: invalid bank size"));
+    count = *p->icnt < FL(2.0) ? 2 : (int32_t)MYFLT2LONG(*p->icnt);
+    if (UNLIKELY((size_t)count > SIZE_MAX / sizeof(double)))
+      return csound->InitError(csound, "%s", Str("phasorbnk: bank size too large"));
 
-    if (p->curphs.auxp==NULL || p->curphs.size < (size_t)sizeof(double)*count)
-      csound->AuxAlloc(csound, (size_t)sizeof(double)*count, &p->curphs);
+    if (p->curphs.auxp==NULL || p->curphs.size < sizeof(double)*(size_t)count) {
+      /* AuxAlloc clears a resized buffer, even when initialization is skipped. */
+      double *saved = NULL;
+      size_t oldBytes = sizeof(double)*(size_t)p->count;
+      if (*p->iphs < FL(0.0) && p->curphs.auxp != NULL) {
+        saved = csound->Malloc(csound, oldBytes);
+        memcpy(saved, p->curphs.auxp, oldBytes);
+      }
+      csound->AuxAlloc(csound, sizeof(double)*(size_t)count, &p->curphs);
+      if (saved != NULL) {
+        memcpy(p->curphs.auxp, saved, oldBytes);
+        csound->Free(csound, saved);
+      }
+    }
+    else if (*p->iphs < FL(0.0) && count > p->count) {
+      memset((double*)p->curphs.auxp + p->count, 0,
+             sizeof(double)*(size_t)(count - p->count));
+    }
 
     curphs = (double*)p->curphs.auxp;
     if (*p->iphs > 1) {
-      for (n=0; n<count;n++)
+      for (n=0; n<count;n++) {
         curphs[n] = (double) rand_31(csound) / 2147483645.0;
+        if (curphs[n] == 1.0) curphs[n] = 0.0;
+      }
     }
     else if ((phs = *p->iphs) >= 0) {
+      if (phs == 1.0) phs = 0.0;
       for (n=0; n<count;n++) curphs[n] = phs;
     }
+    p->count = count;
     return OK;
 }
 
@@ -1207,18 +1257,18 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
 {
     double  phs;
     double  *curphs = (double*)p->curphs.auxp;
-    uint64_t     size = p->curphs.size / sizeof(double);
-    int32_t     index = (int32_t)(*p->kindx);
+    int32_t     index;
 
     if (UNLIKELY(curphs == NULL)) {
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("phasorbnk: not initialised"));
     }
 
-    if (UNLIKELY(index<0 || (uint64_t) index>=size)) {
+    if (UNLIKELY(!(*p->kindx >= FL(0.0) && (double)*p->kindx < p->count))) {
       *p->sr = FL(0.0);
-      return NOTOK;
+      return csound->PerfError(csound, &p->h, "%s", Str("phasorbnk: invalid index"));
     }
+    index = (int32_t)*p->kindx;
 
     *p->sr = (MYFLT)(phs = curphs[index]);
     if (UNLIKELY((phs += *p->xcps * CS_ONEDKR) >= 1.0))
@@ -1237,18 +1287,18 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     MYFLT   *rs;
     double  phase, incr;
     double  *curphs = (double*)p->curphs.auxp;
-    uint64_t     size = p->curphs.size / sizeof(double);
-    int32_t     index = (int32_t)(*p->kindx);
+    int32_t     index;
 
     if (UNLIKELY(curphs == NULL)) {
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("phasorbnk: not initialised"));
     }
 
-    if (UNLIKELY(index<0 || (uint64_t) index>=size)) {
-      *p->sr = FL(0.0);
-      return NOTOK;
+    if (UNLIKELY(!(*p->kindx >= FL(0.0) && (double)*p->kindx < p->count))) {
+      memset(p->sr, 0, nsmps*sizeof(MYFLT));
+      return csound->PerfError(csound, &p->h, "%s", Str("phasorbnk: invalid index"));
     }
+    index = (int32_t)*p->kindx;
 
     rs = p->sr;
     phase = curphs[index];
@@ -1325,9 +1375,9 @@ int32_t pinkset(CSOUND *csound, PINKISH *p)
       p->ampinc = 0;
     }
     /* Unless we're reinitializing a tied note, zero coefs */
-    if (*p->iskip != FL(1.0)) {
+    if (*p->iskip == FL(0.0)) {
       if (*p->imethod == GARDNER_PINK)
-        GardnerPink_init(csound,p);
+        return GardnerPink_init(csound,p);
       else                                      /* Filter method */
         p->b0 = p->b1 = p->b2 = p->b3 = p->b4 = p->b5 = p->b6 = FL(0.0);
     }
@@ -1450,23 +1500,28 @@ int32_t GardnerPink_init(CSOUND *csound, PINKISH *p)
       /* Warn if user tried but failed to give sensible number */
       if (UNLIKELY(*p->iparam1 != FL(0.0)))
         csound->Warning(csound, Str("pinkish: Gardner method requires 4-%d bands. "
-                                    "Default %"PRIi32" substituted for %d.\n"),
+                                    "Default %"PRIi32" substituted for %g.\n"),
                         GRD_MAX_RANDOM_ROWS, p->grd_NumRows,
-                        (int32_t) *p->iparam1);
+                        (double) *p->iparam1);
     }
 
     /* Seed random generator by user value or by time (default) */
     if (*p->iseed != FL(0.0)) {
-      if (*p->iseed > -1.0 && *p->iseed < 1.0)
-        p->randSeed = (uint32) (*p->iseed * (MYFLT)0x80000000);
-      else p->randSeed = (uint32) *p->iseed;
+      double seed = *p->iseed;
+      if (UNLIKELY(!isfinite(seed)))
+        return csound->InitError(csound, "%s", Str("pinkish: invalid seed"));
+      if (seed > -1.0 && seed < 1.0)
+        seed *= 2147483648.0;
+      /* Convert the truncated seed modulo 2^32, including negative seeds. */
+      seed = fmod(trunc(seed), 4294967296.0);
+      if (seed < 0.0) seed += 4294967296.0;
+      p->randSeed = (uint32_t) seed;
     }
     else p->randSeed = (uint32) csound->GetRandomSeedFromTime();
 
     numRows = p->grd_NumRows;
     p->grd_Index = 0;
-    if (numRows == 32) p->grd_IndexMask = 0xFFFFFFFF;
-    else p->grd_IndexMask = (1<<numRows) - 1;
+    p->grd_IndexMask = UINT32_MAX >> (32 - numRows);
 
     /* Calculate reasonable maximum signed random value. */
     /* Tweaked to get sameish peak value over all numRows values (re) */
@@ -1494,7 +1549,8 @@ int32_t GardnerPink_perf(CSOUND *csound, PINKISH *p)
 {
     IGN(csound);
     MYFLT *aout, *amp, scalar;
-    int32 *rows, rowIndex, indexMask, randSeed, newRandom;
+    int32 *rows, randSeed, newRandom;
+    uint32_t rowIndex, indexMask;
     int32 runningSum, sum, ampinc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t n, nsmps = CS_KSMPS - p->h.insdshead->ksmps_no_end;
@@ -1502,6 +1558,7 @@ int32_t GardnerPink_perf(CSOUND *csound, PINKISH *p)
     aout        = p->aout;
     amp         = p->xin;
     ampinc      = p->ampinc;    /* Used to increment user amp if a-rate */
+    if (ampinc) amp += offset;
     scalar      = p->grd_Scalar;
     rowIndex    = p->grd_Index;
     indexMask   = p->grd_IndexMask;
@@ -1518,7 +1575,7 @@ int32_t GardnerPink_perf(CSOUND *csound, PINKISH *p)
         /* Determine how many trailing zeros in PinkIndex. */
         /* This algorithm will hang if n==0 so test first. */
         int32_t numZeros = 0;
-        int32_t n = rowIndex;
+        uint32_t n = rowIndex;
         while( (n & 1) == 0 ) {
           n = n >> 1;
           numZeros++;
@@ -1664,7 +1721,15 @@ int32_t clip(CSOUND *csound, CLIP *p)
 
 int32_t impulse_set(CSOUND *csound, IMPULSE *p)
 {
-    p->next = (uint32_t)MYFLT2LONG(*p->offset * CS_ESR);
+    double delay = *p->offset;
+    double samples = delay < 0.0 ? -delay : delay * CS_ESR;
+    if (UNLIKELY(!(samples < (double)INT64_MAX)))
+      return csound->InitError(csound, "%s", Str("mpulse: invalid initial delay"));
+#if defined(USE_LRINT) || defined(MSVC)
+    /* Preserve the initial-delay rounding used by MYFLT2LONG. */
+    samples = nearbyint(samples);
+#endif
+    p->next = (int64_t)samples;
     return OK;
 }
 
@@ -1672,34 +1737,37 @@ int32_t impulse(CSOUND *csound, IMPULSE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32_t next = p->next;
+    uint32_t n = offset, nsmps = CS_KSMPS - early;
+    int64_t next = p->next, interval;
     MYFLT *ar = p->ar;
-    if (next<0) next = -next;
-    if (UNLIKELY(next < (int32)nsmps)) { /* Impulse in this frame */
-      MYFLT frq = *p->freq;     /* Freq at k-rate */
-      int32_t sfreq;                /* Converted to samples */
-      if (frq == FL(0.0)) sfreq = INT_MAX; /* Zero means infinite */
-      else if (frq < FL(0.0)) sfreq = -(int32_t)frq; /* Negative cnts in sample */
-      else sfreq = (int32_t)(frq*CS_ESR); /* Normal case */
-      if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-      if (UNLIKELY(early)) {
-        nsmps -= early;
-        memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-      }
-      for (n=offset;n<nsmps;n++) {
-        if (UNLIKELY(next-- == 0)) {
-          ar[n] = *p->amp;
-          next = sfreq - 1;     /* Note can be less than k-rate */
-        }
-        else ar[n] = FL(0.0);
-      }
+
+    memset(ar, 0, CS_KSMPS*sizeof(MYFLT));
+    if (next < 0 || offset >= nsmps)
+      return OK;
+    if (next >= nsmps-offset) {
+      p->next = next - (nsmps-offset);
+      return OK;
     }
-    else {                      /* Nothing this time so just fill */
-      memset(ar, 0, nsmps*sizeof(MYFLT));
-      next -= nsmps;
+
+    /* Read the interval only in a block containing an impulse. */
+    double seconds = *p->freq;
+    double samples = seconds < 0.0 ? -seconds : seconds * CS_ESR;
+    if (UNLIKELY(!(samples < (double)INT64_MAX)))
+      return csound->PerfError(csound, &p->h, "%s", Str("mpulse: invalid interval"));
+    interval = (int64_t)samples;
+    if (seconds != 0.0 && interval == 0)
+      interval = 1; /* A nonzero interval cannot be shorter than one sample. */
+
+    while (next < nsmps-n) {
+      n += (uint32_t)next;
+      ar[n++] = *p->amp;
+      if (interval == 0) {
+        p->next = -1; /* Zero interval means one impulse, with no countdown. */
+        return OK;
+      }
+      next = interval - 1;
     }
-    p->next = next;
+    p->next = next - (nsmps-n);
     return OK;
 }
 
@@ -1709,6 +1777,31 @@ int32_t impulse(CSOUND *csound, IMPULSE *p)
 /* or                                                                     */
 /*         y0 + (y1 - y0) * t if alpha is zero                            */
 /* ********************************************************************** */
+/* Positive curves run backward from the endpoint so all exponents stay
+   nonpositive. expm1 preserves small curves without subtracting near equals. */
+static void trnseg_coefficients(NSEG *segp, double start, double end,
+                               double curve, double samples)
+{
+    segp->x = curve > 0.0 ? -curve : 0.0;
+    segp->val = curve > 0.0 ? end : start;
+    if (samples <= 0.0) {
+      segp->alpha = segp->c1 = 0.0;
+      return;
+    }
+    segp->alpha = curve / samples;
+    if (curve == 0.0)
+      segp->c1 = (end - start) / samples;
+    else if (curve > 0.0)
+      segp->c1 = (start - end) / -expm1(-curve);
+    else
+      segp->c1 = (end - start) / -expm1(curve);
+}
+
+/* A rounded segment length can advance a positive curve past its endpoint. */
+#define TRNSEG_VALUE(p, segp) \
+    ((segp)->val - (p)->curinc * \
+     expm1((p)->curx < 0.0 ? (p)->curx : 0.0))
+
 int32_t trnset(CSOUND *csound, TRANSEG *p)
 {
     NSEG        *segp;
@@ -1739,18 +1832,12 @@ int32_t trnset(CSOUND *csound, TRANSEG *p)
       MYFLT nxtval = **argp++;
       MYFLT d = dur * CS_ESR;
       if ((segp->acnt = segp->cnt = (int32)MYFLT2LONG(d)) < 0)
-        segp->cnt = 0;
+        segp->acnt = segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
       segp->nxtpt = nxtval;
       segp->val = val;
-      if (alpha == FL(0.0)) {
-        segp->c1 = (nxtval-val)/d;
-      }
-      else {
-        segp->c1 = (nxtval - val)/(FL(1.0) - EXP(alpha));
-      }
-      segp->alpha = alpha/d;
+      trnseg_coefficients(segp, val, nxtval, alpha, d);
       val = nxtval;
       segp++;
     } while (--nsegs);
@@ -1792,19 +1879,13 @@ int32_t trnset_bkpt(CSOUND *csound, TRANSEG *p)
       dur -= totdur;
       totdur += dur;
       d = dur * CS_ESR;
-      if ((segp->cnt = (int32)MYFLT2LONG(d)) < 0)
-        segp->cnt = 0;
+      if ((segp->acnt = segp->cnt = (int32)MYFLT2LONG(d)) < 0)
+        segp->acnt = segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
       segp->nxtpt = nxtval;
       segp->val = val;
-      if (alpha == FL(0.0)) {
-        segp->c1 = (nxtval-val)/d;
-      }
-      else {
-        segp->c1 = (nxtval - val)/(FL(1.0) - EXP(alpha));
-      }
-      segp->alpha = alpha/d;
+      trnseg_coefficients(segp, val, nxtval, alpha, d);
       val = nxtval;
       segp++;
     } while (--nsegs);
@@ -1818,7 +1899,7 @@ int32_t ktrnseg(CSOUND *csound, TRANSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
-      csound->PerfError(csound,&(p->h),
+      return csound->PerfError(csound,&(p->h),
                         "%s", Str("Error: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
@@ -1836,14 +1917,13 @@ int32_t ktrnseg(CSOUND *csound, TRANSEG *p)
         }
         p->curinc = segp->c1;
         p->alpha = segp->alpha;
-        p->curx = FL(0.0);
+        p->curx = segp->x;
       }
       p->curx += (MYFLT)CS_KSMPS*p->alpha;
       if (p->alpha == FL(0.0))
         p->curval += p->curinc*CS_KSMPS;   /* advance the cur val  */
       else
-        p->curval = p->cursegp->val + p->curinc *
-          (FL(1.0) - EXP(p->curx));
+        p->curval = TRNSEG_VALUE(p, p->cursegp);
     }
     return OK;
 }
@@ -1881,7 +1961,7 @@ int32_t trnseg(CSOUND *csound, TRANSEG *p)
         }                                 /*   poslen = new slope */
         p->curinc = segp->c1;
         p->alpha = segp->alpha;
-        p->curx = FL(0.0);
+        p->curx = segp->x;
         p->curval = val;
       }
       if (p->alpha == FL(0.0)) {
@@ -1891,8 +1971,7 @@ int32_t trnseg(CSOUND *csound, TRANSEG *p)
       else {
           rs[n] = val;
           p->curx += p->alpha;
-          val = segp->val + p->curinc *
-            (FL(1.0) - EXP(p->curx));
+          val = TRNSEG_VALUE(p, segp);
        }
     }
     else{
@@ -1937,20 +2016,13 @@ int32_t trnsetr(CSOUND *csound, TRANSEG *p)
       MYFLT nxtval = **argp++;
       MYFLT d = dur * CS_ESR;
       if ((segp->acnt = segp->cnt = (int32)(d + FL(0.5))) < 0)
-        segp->cnt = 0;
+        segp->acnt = segp->cnt = 0;
       else
         segp->cnt = (int32)(dur * CS_EKR);
       segp->nxtpt = nxtval;
       segp->val = val;
-      if (alpha == FL(0.0)) {
-        segp->c1 = (nxtval-val)/d;
-        //printf("alpha zero val=%f c1=%f\n", segp->val, segp->c1);
-      }
-      else {
-        p->lastalpha = alpha;
-        segp->c1 = (nxtval - val)/(FL(1.0) - EXP(alpha));
-      }
-      segp->alpha = alpha/d;
+      p->lastalpha = alpha;
+      trnseg_coefficients(segp, val, nxtval, alpha, d);
       val = nxtval;
       segp++;
       p->finalval = nxtval;
@@ -1977,7 +2049,7 @@ int32_t ktrnsegr(CSOUND *csound, TRANSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
-      csound->PerfError(csound,&(p->h),
+      return csound->PerfError(csound,&(p->h),
                         "%s", Str("Error: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
@@ -1989,16 +2061,8 @@ int32_t ktrnsegr(CSOUND *csound, TRANSEG *p)
           p->segsrem--;
         }                               /*   get univ relestim  */
         segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
-        if (segp->alpha == FL(0.0)) {
-          segp->c1 = (p->finalval-p->curval)/(segp->cnt*CS_KSMPS);
-          //printf("finalval = %f curval = %f, cnt = %d c1 = %f\n",
-          //       p->finalval, p->curval, segp->cnt, segp->c1);
-        }
-        else {
-          segp->c1 = (p->finalval - p->curval)/(FL(1.0) - EXP(p->lastalpha));
-          segp->alpha = p->lastalpha/(segp->cnt*CS_KSMPS);
-          segp->val = p->curval;
-        }
+        trnseg_coefficients(segp, p->curval, p->finalval, p->lastalpha,
+                            (double)segp->cnt * CS_KSMPS);
         goto newm;                      /*   and set new curmlt */
       }
       if (--p->curcnt <= 0) {           /* if done cur segment  */
@@ -2015,16 +2079,15 @@ int32_t ktrnsegr(CSOUND *csound, TRANSEG *p)
         }
         p->curinc = segp->c1;
         p->alpha = segp->alpha;
-        p->curx = FL(0.0);
+        p->curx = segp->x;
       }
+      p->curx += (double)CS_KSMPS * p->alpha;
       if (p->alpha == FL(0.0)) {
         p->curval += p->curinc *CS_KSMPS;   /* advance the cur val  */
         //printf("curval = %f\n", p->curval);
       }
       else
-        p->curval = p->cursegp->val + (p->curinc) *
-          (FL(1.0) - EXP(p->curx));
-      p->curx +=  (MYFLT)CS_KSMPS* p->alpha;
+        p->curval = TRNSEG_VALUE(p, p->cursegp);
     }
     return OK;
 }
@@ -2054,15 +2117,8 @@ int32_t trnsegr(CSOUND *csound, TRANSEG *p)
           p->segsrem--;
         }                                 /*   get univ relestim  */
         segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
-        if (segp->alpha == FL(0.0)) {
-          segp->c1 = (p->finalval-val)/segp->acnt;
-        }
-        else {
-          /* this is very wrong */
-          segp->c1 = (p->finalval - val)/(FL(1.0) - EXP(p->lastalpha));
-          segp->alpha = p->lastalpha/segp->acnt;
-          segp->val = val;
-        }
+        trnseg_coefficients(segp, val, p->finalval, p->lastalpha,
+                            segp->acnt);
         goto newm;                        /*   and set new curmlt */
       }
       if (--p->curcnt <= 0) {             /*  if done cur segment */
@@ -2081,7 +2137,7 @@ int32_t trnsegr(CSOUND *csound, TRANSEG *p)
         }                                 /*   poslen = new slope */
         p->curinc = segp->c1;
         p->alpha = segp->alpha;
-        p->curx = FL(0.0);
+        p->curx = segp->x;
         p->curval = val;
       }
       if (p->alpha == FL(0.0)) {
@@ -2092,7 +2148,7 @@ int32_t trnsegr(CSOUND *csound, TRANSEG *p)
         segp = p->cursegp;
           rs[n] = val;
           p->curx += p->alpha;
-          val = segp->val + p->curinc * (FL(1.0) - EXP(p->curx));
+          val = TRNSEG_VALUE(p, segp);
       }
     }
     else {
@@ -2104,6 +2160,8 @@ int32_t trnsegr(CSOUND *csound, TRANSEG *p)
 
     return OK;
 }
+
+#undef TRNSEG_VALUE
 
 extern int32 randint31(int32);
 
@@ -2142,6 +2200,7 @@ int32_t varicol(CSOUND *csound, VARI *p)
       nsmps -= early;
       memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
     }
+    if (ampinc) kamp += offset;
     for (n=offset; n<nsmps; n++) {
       MYFLT rnd = FL(2.0) * (MYFLT) rand_31(csound) / FL(2147483645) - FL(1.0);
       lastx = lastx * beta + sq1mb2 * rnd;
@@ -2326,15 +2385,25 @@ int32_t waveset(CSOUND *csound, BARRI *p)
 
 int32_t medfiltset(CSOUND *csound, MEDFILT *p)
 {
-    int32_t maxwind = (int32_t)MYFLT2LONG(*p->imaxsize);
-    int32_t auxsize = 2*sizeof(MYFLT)*maxwind;
+    int32_t maxwind;
+    size_t auxsize;
+
+    if (*p->iskip != FL(0.0) && p->b.auxp != NULL)
+      return OK;
+    if (UNLIKELY(!(*p->imaxsize >= FL(1.0) &&
+                   (double)*p->imaxsize <= INT32_MAX &&
+                   (double)*p->imaxsize <= SIZE_MAX / (2 * sizeof(MYFLT)))))
+      return csound->InitError(csound,
+                               Str("median: invalid maximum window size"));
+    maxwind = MYFLT2LONG(*p->imaxsize);
+    auxsize = 2 * sizeof(MYFLT) * (size_t)maxwind;
     p->ind = 0;
     p->maxwind = maxwind;
 
-    if (p->b.auxp==NULL || p->b.size < (size_t)auxsize)
-      csound->AuxAlloc(csound, (size_t)auxsize, &p->b);
+    if (p->b.auxp == NULL || p->b.size < auxsize)
+      csound->AuxAlloc(csound, auxsize, &p->b);
     else
-      if (*p->iskip!=FL(0.0)) memset(p->b.auxp, 0, auxsize);
+      memset(p->b.auxp, 0, auxsize);
     p->buff = (MYFLT*)p->b.auxp;
     p->med = &(p->buff[maxwind]);
     return OK;
@@ -2347,7 +2416,7 @@ int32_t medfilt(CSOUND *csound, MEDFILT *p)
     MYFLT *buffer = p->buff;
     MYFLT *med = p->med;
     int32_t maxwind = p->maxwind;
-    int32_t kwind = MYFLT2LONG(*p->kwind);
+    int32_t kwind;
     int32_t index = p->ind;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2356,12 +2425,17 @@ int32_t medfilt(CSOUND *csound, MEDFILT *p)
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("median: not initialised (arate)\n"));
     }
-    if (UNLIKELY(kwind > maxwind)) {
+    if (UNLIKELY(!(*p->kwind >= FL(1.0))))
+      return csound->PerfError(csound, &(p->h),
+                               Str("median: window size must be at least 1"));
+    if (UNLIKELY((double)*p->kwind > maxwind)) {
       csound->Warning(csound,
-                      Str("median: window (%d)larger than maximum(%d); truncated"),
-                      kwind, maxwind);
+                      Str("median: window (%g) larger than maximum (%d); truncated"),
+                      *p->kwind, maxwind);
       kwind = maxwind;
     }
+    else
+      kwind = MYFLT2LONG(*p->kwind);
     if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -2403,18 +2477,23 @@ int32_t kmedfilt(CSOUND *csound, MEDFILT *p)
     MYFLT *med = p->med;
     MYFLT x = *p->asig;
     int32_t maxwind = p->maxwind;
-    int32_t kwind = MYFLT2LONG(*p->kwind);
+    int32_t kwind;
     int32_t index = p->ind;
     if (UNLIKELY(p->b.auxp==NULL)) {
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("median: not initialised (krate)\n"));
     }
-    if (UNLIKELY(kwind > maxwind)) {
+    if (UNLIKELY(!(*p->kwind >= FL(1.0))))
+      return csound->PerfError(csound, &(p->h),
+                               Str("median: window size must be at least 1"));
+    if (UNLIKELY((double)*p->kwind > maxwind)) {
       csound->Warning(csound,
-                      Str("median: window (%d)larger than maximum(%d); truncated"),
-                      kwind, maxwind);
+                      Str("median: window (%g) larger than maximum (%d); truncated"),
+                      *p->kwind, maxwind);
       kwind = maxwind;
     }
+    else
+      kwind = MYFLT2LONG(*p->kwind);
     buffer[index++] = x;
     if (kwind<=index) {        /* all in centre */
       memcpy(&med[0], &buffer[index-kwind], kwind*sizeof(MYFLT));

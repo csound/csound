@@ -40,7 +40,7 @@
 static int32_t svfset(CSOUND *csound, SVF *p)
 {
     IGN(csound);
-    if (*p->iskip) {
+    if (!*p->iskip) {
       /* set initial delay states to 0 */
       p->ynm1 = p->ynm2 = FL(0.0);
     }
@@ -96,8 +96,9 @@ static int32_t svf(CSOUND *csound, SVF *p)
          */
         if (*p->iscl) scale = q1;
       }
+      MYFLT sample = in[n];
       low[n]  = low2 = ynm2 + f1 * ynm1;
-      high[n] = high2 = scale * in[n] - low2 - q1 * ynm1;
+      high[n] = high2 = scale * sample - low2 - q1 * ynm1;
       band[n] = band2 = f1 * high2 + ynm1;
       ynm1    = band2;
       ynm2    = low2;
@@ -353,36 +354,35 @@ static int32_t resonz(CSOUND *csound, RESONZ *p)
     return OK;
 }
 
+static void phaser_grow_state(CSOUND *csound, AUXCH *state, size_t size)
+{
+    if (state->size < size) {
+      size_t oldSize = state->size;
+      void *saved = csound->Malloc(csound, oldSize);
+      memcpy(saved, state->auxp, oldSize);
+      csound->AuxAlloc(csound, size, state);
+      memcpy(state->auxp, saved, oldSize);
+      csound->Free(csound, saved);
+    }
+}
+
 static int32_t phaser1set(CSOUND *csound, PHASER1 *p)
 {
     int32_t  loop = (int32_t) MYFLT2LONG(*p->iorder);
     int32_t  nBytes = (int32_t) loop * (int32_t) sizeof(MYFLT);
 
     if (*p->istor == FL(0.0) || p->auxx.auxp == NULL ||
-        (int32_t)p->auxx.size<nBytes || p->auxy.auxp == NULL ||
-        (int32_t)p->auxy.size<nBytes) {
+        p->auxy.auxp == NULL) {
       csound->AuxAlloc(csound, nBytes, &p->auxx);
       csound->AuxAlloc(csound, nBytes, &p->auxy);
-      p->xnm1 = (MYFLT *) p->auxx.auxp;
-      p->ynm1 = (MYFLT *) p->auxy.auxp;
+      p->feedback = FL(0.0);
     }
-    else if ((int32_t) p->auxx.size < nBytes || (int32_t) p->auxy.size < nBytes) {
-      /* Existing arrays too small so copy */
-      void    *tmp1, *tmp2;
-      size_t  oldSize1 = (size_t) p->auxx.size;
-      size_t  oldSize2 = (size_t) p->auxy.size;
-      tmp1 = csound->Malloc(csound, oldSize1 + oldSize2);
-      tmp2 = (char*) tmp1 + (int32_t) oldSize1;
-      memcpy(tmp1, p->auxx.auxp, oldSize1);
-      memcpy(tmp2, p->auxy.auxp, oldSize2);
-      csound->AuxAlloc(csound, nBytes, &p->auxx);
-      csound->AuxAlloc(csound, nBytes, &p->auxy);
-      memcpy(p->auxx.auxp, tmp1, oldSize1);
-      memcpy(p->auxy.auxp, tmp2, oldSize2);
-      csound->Free(csound, tmp1);
-      p->xnm1 = (MYFLT *) p->auxx.auxp;
-      p->ynm1 = (MYFLT *) p->auxy.auxp;
+    else {
+      phaser_grow_state(csound, &p->auxx, (size_t)nBytes);
+      phaser_grow_state(csound, &p->auxy, (size_t)nBytes);
     }
+    p->xnm1 = (MYFLT *) p->auxx.auxp;
+    p->ynm1 = (MYFLT *) p->auxy.auxp;
     p->loop = loop;
     return OK;
 }
@@ -446,15 +446,17 @@ static int32_t phaser2set(CSOUND *csound, PHASER2 *p)
     }
     loop = p->loop = (int32_t) MYFLT2LONG(*p->order);
 
-    if (*p->iskip==0 || p->aux1.auxp==NULL || p->aux2.auxp==NULL ||
-        p->aux1.size<(size_t)loop*sizeof(MYFLT) ||
-        p->aux2.size< (size_t)loop*sizeof(MYFLT)) {
-
+    if (*p->iskip==0 || p->aux1.auxp==NULL || p->aux2.auxp==NULL) {
       csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux1);
       csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux2);
-      p->nm1 = (MYFLT *) p->aux1.auxp;
-      p->nm2 = (MYFLT *) p->aux2.auxp;
+      p->feedback = FL(0.0);
     }
+    else {
+      phaser_grow_state(csound, &p->aux1, (size_t)loop*sizeof(MYFLT));
+      phaser_grow_state(csound, &p->aux2, (size_t)loop*sizeof(MYFLT));
+    }
+    p->nm1 = (MYFLT *) p->aux1.auxp;
+    p->nm2 = (MYFLT *) p->aux2.auxp;
     return OK;
 }
 
@@ -763,6 +765,8 @@ static int32_t hilbert_array(CSOUND *csound, HILBERTA *p)
     uint32_t n, nsmps = CS_KSMPS;
     int32_t j;
 
+    if (UNLIKELY(tabcheck(csound, p->out, CS_KSMPS, &p->h) != OK))
+      return NOTOK;
     coef = p->coef;
     out = (COMPLEXDAT *) p->out->data;
     in = p->in;
@@ -791,6 +795,7 @@ static int32_t hilbert_array(CSOUND *csound, HILBERTA *p)
       }
       out[n].real = yn2;
       out[n].imag = yn1;
+      out[n].isPolar = 0;
     }
     return OK;
 }
@@ -806,7 +811,7 @@ static OENTRY localops[] =
    { "resonz", S(RESONZ),   0, "a", "axxoo",   (SUBR)resonzset, (SUBR)resonz},
    { "lowpass2.kk", S(LP2), 0, "a", "akko",    (SUBR)lp2_set, (SUBR)lp2     },
    { "lowpass2.aa", S(LP2), 0, "a", "aaao",    (SUBR)lp2_set, (SUBR)lp2aa   },
-   { "lowpass2.ak", S(LP2), 0, "a", "aakao",   (SUBR)lp2_set, (SUBR)lp2ak   },
+   { "lowpass2.ak", S(LP2), 0, "a", "aako",   (SUBR)lp2_set, (SUBR)lp2ak   },
    { "lowpass2.ka", S(LP2), 0, "a", "akao",    (SUBR)lp2_set, (SUBR)lp2ka   },
    { "phaser2", S(PHASER2), 0, "a", "akkkkkko",(SUBR)phaser2set,(SUBR)phaser2},
    { "phaser1", S(PHASER1), 0, "a", "akkko", (SUBR)phaser1set,(SUBR)phaser1},

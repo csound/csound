@@ -21,6 +21,10 @@ if(Python3_FOUND)
                 "PYTHONPATH=${CMAKE_SOURCE_DIR}/Python")
         endif()
 
+        if(TARGET csound-bin)
+            list(APPEND _pytest_env "CSOUND_TEST_EXECUTABLE=$<TARGET_FILE:csound-bin>")
+        endif()
+
         add_custom_target(pytests
             COMMAND ${CMAKE_COMMAND} -E env ${_pytest_env}
                     ${Python3_EXECUTABLE} -m unittest discover

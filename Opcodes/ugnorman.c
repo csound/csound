@@ -2234,17 +2234,18 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
 /*********** ATSBUFREAD *************************************/
 /************************************************************/
 
-static int32_t atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
+static int32_t atsbufreadset_common(CSOUND *csound, ATSBUFREAD *p,
+                                     int32_t istring)
 {
   char    atsfilname[MAXNAME];
   MEMFIL  *mfp;
   ATS_DATA_LOC *fltp;
   ATSSTRUCT *atsh;
-  int32_t  type, n_partials;
+  int32_t  type, n_partials, count, first, step;
   int32_t  memsize;            /* the size of the memory to request for AUX */
 
   /* load memfile */
-  p->swapped = load_atsfile(csound, p, &mfp, atsfilname, p->ifileno, 0);
+  p->swapped = load_atsfile(csound, p, &mfp, atsfilname, p->ifileno, istring);
   if (UNLIKELY(p->swapped < 0))
     return NOTOK;
   atsh = (ATSSTRUCT*) mfp->beginp;
@@ -2267,47 +2268,51 @@ static int32_t atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
     n_partials = (int32_t) atsh->npartials;
   }
 
-  /* we need room for 2 * (1 table + 2 for 20 and 20,000 hz) */
-  /* (one sorted one unsorted) */
-  memsize = 2 * ((int32_t) *(p->iptls) + 2);
+  /* Check the selected partials before converting indices or allocating. */
+  if (UNLIKELY(!(*p->iptls >= FL(1.0) && (double)*p->iptls <= n_partials &&
+                 *p->iptloffset >= FL(0.0) && (double)*p->iptloffset < n_partials &&
+                 *p->iptlincr >= FL(1.0) && (double)*p->iptlincr <= n_partials)))
+    return csound->InitError(csound, "%s", Str("ATSBUFREAD: invalid partial selection"));
+  count = (int32_t)*p->iptls;
+  first = (int32_t)*p->iptloffset;
+  step = (int32_t)*p->iptlincr;
+  if (UNLIKELY(count != *p->iptls || first != *p->iptloffset ||
+               step != *p->iptlincr ||
+               count - 1 > (n_partials - 1 - first) / step))
+    return csound->InitError(csound, Str("ATSBUFREAD: Partial out of range, "
+                                        "max partial is %i"), n_partials);
 
+  /* One sorted and one unsorted table, each with two boundary entries. */
+  memsize = 2 * (count + 2);
   csound->AuxAlloc(csound, (size_t)memsize * sizeof(ATS_DATA_LOC), &p->auxch);
-
   fltp = (ATS_DATA_LOC *) p->auxch.auxp;
   p->table = fltp;
-  p->utable = fltp + ((int32_t) *(p->iptls) + 2);
-
-  /* check to see if partial is valid */
-  if (UNLIKELY((int32_t)(*p->iptloffset+ *p->iptls * *p->iptlincr) > n_partials ||
-               (int32_t)(*p->iptloffset) < 0)) {
-    return csound->InitError(csound, Str("ATSBUFREAD: Partial out of range, "
-                                         "max partial is %i"), n_partials);
-  }
+  p->utable = fltp + count + 2;
 
   /* set up partial locations and frame increments */
 
   switch (type) {
   case 1:
-    p->firstpartial = 1 + 2 * (*p->iptloffset);
-    p->partialinc = 2;
+    p->firstpartial = 1 + 2 * first;
+    p->partialinc = 2 * step;
     p->frmInc = n_partials * 2 + 1;
     break;
 
   case 2:
-    p->firstpartial = 1 + 3 * (*p->iptloffset);
-    p->partialinc = 3;
+    p->firstpartial = 1 + 3 * first;
+    p->partialinc = 3 * step;
     p->frmInc = n_partials * 3 + 1;
     break;
 
   case 3:
-    p->firstpartial = 1 + 2 * (*p->iptloffset);
-    p->partialinc = 2;
+    p->firstpartial = 1 + 2 * first;
+    p->partialinc = 2 * step;
     p->frmInc = n_partials * 2 + 26;
     break;
 
   case 4:
-    p->firstpartial = 1 + 3 * (*p->iptloffset);
-    p->partialinc = 3;
+    p->firstpartial = 1 + 3 * first;
+    p->partialinc = 3 * step;
     p->frmInc = n_partials * 3 + 26;
     break;
 
@@ -2319,114 +2324,26 @@ static int32_t atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
   /* to make interpolation easier later */
   p->table[0].freq = p->utable[0].freq = 20;
   p->table[0].amp = p->utable[0].amp = 0;
-  p->table[(int32_t) *p->iptls + 1].freq =
-    p->utable[(int32_t) *p->iptls + 1].freq =
+  p->table[count + 1].freq =
+    p->utable[count + 1].freq =
     20000;
-  p->table[(int32_t) *p->iptls + 1].amp =
-    p->utable[(int32_t) *p->iptls + 1].amp = 0;
+  p->table[count + 1].amp =
+    p->utable[count + 1].amp = 0;
 
   *(get_atsbufreadaddrp(csound)) = p;
 
   return OK;
+}
+
+static int32_t atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
+{
+  return atsbufreadset_common(csound, p, 0);
 }
 
 static int32_t atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
 {
-  char    atsfilname[MAXNAME];
-  MEMFIL  *mfp;
-  ATS_DATA_LOC *fltp;
-  ATSSTRUCT *atsh;
-  int32_t type, n_partials;
-  int32_t memsize;            /* the size of the memory to request for AUX */
-
-  /* load memfile */
-  p->swapped = load_atsfile(csound, p, &mfp, atsfilname, p->ifileno, 1);
-  if (UNLIKELY(p->swapped < 0))
-    return NOTOK;
-  atsh = (ATSSTRUCT*) mfp->beginp;
-
-  /* get past the header to the data, point frptr at time 0 */
-  p->datastart = (double *) atsh + 10;
-  p->prFlg = 1;               /* true */
-
-  /* is swapped? */
-  if (p->swapped == 1) {
-    p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
-    p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-    type = (int32_t) bswap(&atsh->type);
-    n_partials = (int32_t) bswap(&atsh->npartials);
-  }
-  else {
-    p->maxFr = (int32_t) atsh->nfrms - 1;
-    p->timefrmInc = atsh->nfrms / atsh->dur;
-    type = (int32_t) atsh->type;
-    n_partials = (int32_t) atsh->npartials;
-  }
-
-  /* we need room for 2 * (1 table + 2 for 20 and 20,000 hz) */
-  /* (one sorted one unsorted) */
-  memsize = 2 * ((int32_t) *(p->iptls) + 2);
-
-  csound->AuxAlloc(csound, (size_t)memsize * sizeof(ATS_DATA_LOC), &p->auxch);
-
-  fltp = (ATS_DATA_LOC *) p->auxch.auxp;
-  p->table = fltp;
-  p->utable = fltp + ((int32_t) *(p->iptls) + 2);
-
-  /* check to see if partial is valid */
-  if (UNLIKELY((int32_t)(*p->iptloffset + *p->iptls * *p->iptlincr) >
-               n_partials ||
-               (int32_t)(*p->iptloffset) < 0)) {
-    return csound->InitError(csound,  Str("ATSBUFREAD: Partial out of range, "
-                                         "max partial is %i"), n_partials);
-  }
-
-  /* set up partial locations and frame increments */
-
-  switch (type) {
-  case 1:
-    p->firstpartial = 1 + 2 * (*p->iptloffset);
-    p->partialinc = 2;
-    p->frmInc = n_partials * 2 + 1;
-    break;
-
-  case 2:
-    p->firstpartial = 1 + 3 * (*p->iptloffset);
-    p->partialinc = 3;
-    p->frmInc = n_partials * 3 + 1;
-    break;
-
-  case 3:
-    p->firstpartial = 1 + 2 * (*p->iptloffset);
-    p->partialinc = 2;
-    p->frmInc = n_partials * 2 + 26;
-    break;
-
-  case 4:
-    p->firstpartial = 1 + 3 * (*p->iptloffset);
-    p->partialinc = 3;
-    p->frmInc = n_partials * 3 + 26;
-    break;
-
-  default:
-    return csound->InitError(csound, "%s", Str("ATSBUFREAD: Type not implemented"));
-  }
-
-  /* put 20 hertz = 0amp and 20000 hz = 0amp */
-  /* to make interpolation easier later */
-  p->table[0].freq = p->utable[0].freq = 20;
-  p->table[0].amp = p->utable[0].amp = 0;
-  p->table[(int32_t) *p->iptls + 1].freq =
-    p->utable[(int32_t) *p->iptls + 1].freq =
-    20000;
-  p->table[(int32_t) *p->iptls + 1].amp =
-    p->utable[(int32_t) *p->iptls + 1].amp = 0;
-
-  *(get_atsbufreadaddrp(csound)) = p;
-
-  return OK;
+  return atsbufreadset_common(csound, p, 1);
 }
-
 
 static int32_t mycomp(const void *p1, const void *p2)
 {
@@ -2463,14 +2380,14 @@ static void FetchBUFPartials(ATSBUFREAD *p,
     if (p->swapped == 1) {
       for (i = 0; i < npartials; i++) {                   /* calc amplitude */
         buf[i].amp = buf2[i].amp = bswap(&frm_0[partialloc]);
-        buf[i].freq = buf2[i].freq = bswap(&frm_0[partialloc + 1]);
+        buf[i].freq = buf2[i].freq = *p->kfmod * bswap(&frm_0[partialloc + 1]);
         partialloc += p->partialinc;
       }
     }
     else {
       for (i = 0; i < npartials; i++) {
         buf[i].amp = buf2[i].amp = frm_0[partialloc];      /* calc amplitude */
-        buf[i].freq = buf2[i].freq = frm_0[partialloc + 1];
+        buf[i].freq = buf2[i].freq = *p->kfmod * frm_0[partialloc + 1];
         partialloc += p->partialinc;
       }
     }

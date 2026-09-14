@@ -970,16 +970,14 @@ extern "C" {
                                           controlChannelHints_t hints);
 
   /**
-   * Returns special parameters (assuming there are any) of a control channel,
-   * previously set with csoundSetControlChannelHints() or the chnparams
-   * opcode.
-   * If the channel exists, is a control channel, the channel hints
-   * are stored in the preallocated controlChannelHints_t structure. The
-   * attributes member of the structure will be allocated inside this function
-   * so it is necessary to free it explicitly in the host.
+   * Copies a control channel's hints, previously set with
+   * csoundSetControlChannelHints() or the chn_k opcode, into *hints.
+   * The caller supplies the controlChannelHints_t structure and must free
+   * its attributes member if it is non-NULL.
    *
-   * The return value is zero if the channel exists and is a control
-   * channel, otherwise, an error code is returned.
+   * Returns CSOUND_SUCCESS on success. Returns CSOUND_ERROR and leaves
+   * *hints unchanged if the name is NULL, the channel does not exist,
+   * is not a control channel, or has no hints.
    */
   PUBLIC int32_t csoundGetControlChannelHints(CSOUND *, const char *name,
                                           controlChannelHints_t *hints);

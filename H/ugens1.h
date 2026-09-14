@@ -59,6 +59,16 @@ typedef struct {
 
 typedef struct {
   OPDS    h;
+  MYFLT   *rslt, *argums[6];
+  int32_t counts[5], stage, xtra;
+  int32_t midi, exponential, hold, initialized;
+  uint32_t scale;
+  int64_t remaining;
+  double sustain, value, target, increment, multiplier;
+} ADSR;
+
+typedef struct {
+  OPDS    h;
   MYFLT   *rslt, *argums[VARGMAX];
   SEG     *cursegp;
   int32   nsegs;
@@ -130,4 +140,3 @@ typedef struct {
   int32   nsegs;
   AUXCH   auxch;
 } EXPSEG2;                         /*gab-A1*/
-

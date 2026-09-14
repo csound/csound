@@ -406,7 +406,7 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
     return csound->PerfError(csound,&(p->h),
                              Str("pvsanal: Not Initialised.\n"));
   }
-  ain = p->ain;               /* The input samples */
+  ain = p->ain + offset;      /* The active input samples */
   loc = p->inptr;             /* Circular buffer */
   nsmps -= early;
   for (i=offset; i < nsmps; i++) {
