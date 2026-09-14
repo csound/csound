@@ -66,12 +66,16 @@ static void make_FormSwep(FormSwep *p)
 /*     p->poleCoeffs[0] = 2.0*aReson*(MYFLT)cos((double)(twopi*aFreq/esr)); */
 /* } */
 
-void FormSwep_setStates(FormSwep *p, MYFLT aFreq, MYFLT aReson, MYFLT aGain)
+static void FormSwep_setStates(OPDS *pp, FormSwep *p, MYFLT aFreq,
+                               MYFLT aReson, MYFLT aGain)
 {
     p->dirty = 0;
     p->freq  = p->targetFreq  = p->currentFreq  = aFreq;
     p->reson = p->targetReson = p->currentReson = aReson;
     p->gain  = p->targetGain  = p->currentGain  = aGain;
+    p->poleCoeffs[1] = -(aReson * aReson);
+    p->poleCoeffs[0] = FL(2.0) * aReson *
+      COS(2 * pp->insdshead->pidsr * aFreq);
 }
 
 void FormSwep_setTargets(FormSwep *p, MYFLT aFreq, MYFLT aReson, MYFLT aGain)
@@ -91,7 +95,8 @@ MYFLT FormSwep_tick(OPDS *pp,
 {
     MYFLT temp;
 
-    if (p->dirty) {
+    /* Keep the pending target when a zero rate pauses the sweep. */
+    if (p->dirty && p->sweepRate != FL(0.0)) {
       p->sweepState += p->sweepRate;
       if (p->sweepState>= FL(1.0)) {
         p->sweepState   = FL(1.0);
@@ -119,7 +124,7 @@ MYFLT FormSwep_tick(OPDS *pp,
     return temp;
 }
 
-static MYFLT Samp_tick(Wave *p)
+static inline MYFLT Samp_tick(Wave *p)
 {
     int32    temp, temp1;
     MYFLT   temp_time, alpha;
@@ -179,7 +184,8 @@ int32_t Moog1set(CSOUND *csound, MOOG1 *p)
     p->attk.time = p->attk.phase = FL(0.0);
     p->loop.time = p->loop.phase = FL(0.0);
     p->vibr.time = p->vibr.phase = FL(0.0);
-    p->oldfilterQ = p->oldfilterRate = FL(0.0);
+    /* Force the first control block to apply zero values too. */
+    p->oldfilterQ = p->oldfilterRate = -FL(1.0);
     ADSR_setAllTimes(csound, &p->adsr, FL(0.001), FL(1.5), FL(0.6), FL(0.250));
     ADSR_setAll(csound, &p->adsr, FL(0.05), FL(0.00003), FL(0.6), FL(0.0002));
     ADSR_keyOn(&p->adsr);
@@ -188,7 +194,8 @@ int32_t Moog1set(CSOUND *csound, MOOG1 *p)
 
 int32_t Moog1(CSOUND *csound, MOOG1 *p)
 {
-    MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    MYFLT       fullscale = AMP_SCALE;
+    MYFLT       amp = *p->amp * (FL(1.0) / fullscale);
     MYFLT       *ar = p->ar;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
@@ -204,9 +211,9 @@ int32_t Moog1(CSOUND *csound, MOOG1 *p)
     if (*p->filterQ != p->oldfilterQ) {
       p->oldfilterQ = *p->filterQ;
       temp = p->oldfilterQ + FL(0.05);
-      FormSwep_setStates(&p->filters[0], FL(2000.0), temp,
+      FormSwep_setStates(&p->h, &p->filters[0], FL(2000.0), temp,
                          FL(2.0) * (FL(1.0) - temp));
-      FormSwep_setStates(&p->filters[1], FL(2000.0), temp,
+      FormSwep_setStates(&p->h, &p->filters[1], FL(2000.0), temp,
                          FL(2.0) * (FL(1.0) - temp));
       temp = p->oldfilterQ + FL(0.099);
       FormSwep_setTargets(&p->filters[0],   FL(0.0), temp,
@@ -294,7 +301,7 @@ int32_t Moog1(CSOUND *csound, MOOG1 *p)
 #ifdef DEBUG
       csound->Message(csound, "Filter2_tick: %f\n", output);
 #endif
-      ar[n] = output*AMP_SCALE*FL(8.0);
+      ar[n] = output*fullscale*FL(8.0);
     }
     return OK;
 }
