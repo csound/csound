@@ -54,5 +54,8 @@
 // Declare but not defined
 #define UNDEFINED (0x0800)
 
-//Deprecated
+/* Deprecated legacy opcode. Replacement and maintenance policy live in
+ * H/opcode_deprecations.def; see docs/opcode-deprecation.md before changing
+ * historical behavior. Prefer a supported replacement for new behavior.
+ */
 #define _QQ (0x8000)

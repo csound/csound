@@ -140,9 +140,8 @@ static int opcode_cmp_func(const void *a, const void *b) {
         ((opcodeListEntry *)lst)[cnt].intypes = s;
         s += ((int32_t)strlen(ep->intypes) + 1);
         ((opcodeListEntry *)lst)[cnt].flags = ep->flags;
-        ((opcodeListEntry *)lst)[cnt].deprecated = ep->deprecated;
-        // if (ep->flags&_QQ) printf("DEPRICATED: %s\n", ep->opname);
-        // if (ep->flags&_QQ) *deprec++;
+        ((opcodeListEntry *)lst)[cnt].deprecated =
+          ep->deprecated ? ep->deprecated : ((ep->flags & _QQ) ? 1 : 0);
         cnt++;
       }
       temp = temp->next;

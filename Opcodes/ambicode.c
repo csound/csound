@@ -20,6 +20,10 @@
     License along with Csound; if not, write to the Free Software
     Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
+/* Legacy opcode behavior in this file is retained for compatibility.
+ * Consult H/opcode_deprecations.def and docs/opcode-deprecation.md before
+ * correcting historical output; use the supported replacement for new work.
+ */
 #include "stdopcod.h"
 #include "interlocks.h"
 #include <math.h>
