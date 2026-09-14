@@ -585,7 +585,7 @@ int32_t heavymet(CSOUND *csound, FM4OP *p)
 /*                                                        */
 /**********************************************************/
 
-MYFLT FM4Alg8_tick(FM4OP *p, MYFLT c1, MYFLT c2)
+static inline MYFLT FM4Alg8_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 {
     MYFLT       temp;
     MYFLT       lastOutput;
@@ -619,10 +619,13 @@ MYFLT FM4Alg8_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 int32_t b3set(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
-    MYFLT       temp = p->baseFreq * CS_ONEDSR;
+    MYFLT       temp;
 
     if (UNLIKELY(make_FM4Op(csound,p))) return NOTOK;
     if (UNLIKELY(FM4Op_loadWaves(csound,p))) return NOTOK;         /* sines */
+    p->baseFreq = *p->frequency;
+    p->v_time = FL(0.0);
+    temp = p->baseFreq * CS_ONEDSR;
     FM4Op_setRatio(p, 0, FL(0.999));
     FM4Op_setRatio(p, 1, FL(1.997));
     FM4Op_setRatio(p, 2, FL(3.006));
@@ -650,17 +653,29 @@ int32_t b3set(CSOUND *csound, FM4OP *p)
 
 int32_t hammondB3(CSOUND *csound, FM4OP *p)
 {
-    MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    MYFLT       fullscale = AMP_SCALE;
+    MYFLT       amp = *p->amp * (FL(1.0) / fullscale);
     MYFLT       *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-     uint32_t n, nsmps = CS_KSMPS;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
     MYFLT       temp;
+    MYFLT       baseRate;
     MYFLT       moddep  = *p->modDepth;
 
     p->baseFreq = *p->frequency;
+    baseRate = p->baseFreq * CS_ONEDSR;
+    if (moddep > FL(0.0))
+      p->v_rate = *p->vibFreq * p->vibWave->flen * CS_ONEDSR;
+    else {
+      /* Restore the unmodulated pitch when vibrato is disabled. */
+      p->w_rate[0] = p->ratios[0] * baseRate * p->waves[0]->flen;
+      p->w_rate[1] = p->ratios[1] * baseRate * p->waves[1]->flen;
+      p->w_rate[2] = p->ratios[2] * baseRate * p->waves[2]->flen;
+      p->w_rate[3] = p->ratios[3] * baseRate * p->waves[3]->flen;
+    }
     p->gains[0] = amp * FM4Op_gains[95];
     p->gains[1] = amp * FM4Op_gains[95];
     p->gains[2] = amp * FM4Op_gains[99];
@@ -673,20 +688,17 @@ int32_t hammondB3(CSOUND *csound, FM4OP *p)
     for (n=offset;n<nsmps;n++) {
       MYFLT   lastOutput;
       if (moddep > FL(0.0)) {
-        p->v_rate = *p->vibFreq * p->vibWave->flen * CS_ONEDSR;
         temp = FL(1.0) + (moddep * FL(0.1) *
                           Wave_tick(&p->v_time, (int32_t)p->vibWave->flen,
                                     p->vibWave->ftable, p->v_rate, FL(0.0)));
-        temp *= p->baseFreq * CS_ONEDSR;
+        temp *= baseRate;
         p->w_rate[0] = p->ratios[0] * temp * p->waves[0]->flen;
         p->w_rate[1] = p->ratios[1] * temp * p->waves[1]->flen;
         p->w_rate[2] = p->ratios[2] * temp * p->waves[2]->flen;
         p->w_rate[3] = p->ratios[3] * temp * p->waves[3]->flen;
       }
-      // *** if modDepth is zero it looks as if w_rate should be initialised
-      // *** but it make no difference ***
       lastOutput = FM4Alg8_tick(p, c1, c2);
-      ar[n]= lastOutput*AMP_SCALE;
+      ar[n] = lastOutput * fullscale;
     }
     return OK;
 }
