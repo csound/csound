@@ -9,6 +9,9 @@
 #include "csound_circular_buffer.h"
 #include "gtest/gtest.h"
 #include <limits>
+#include <atomic>
+#include <chrono>
+#include <thread>
 
 class CircularBufferTests : public ::testing::Test {
 public:
@@ -113,6 +116,60 @@ TEST_F (CircularBufferTests, RejectsNonPositiveTransferCounts)
     EXPECT_EQ(csoundReadCircularBuffer(csound, rb, &value, -1), 0);
     EXPECT_EQ(csoundPeekCircularBuffer(csound, rb, &value, -1), 0);
     EXPECT_EQ(csoundCheckCircularBuffer(csound, rb, 0), 0);
+    EXPECT_EQ(csoundCheckCircularBuffer(csound, rb, 1), 512);
+}
+
+TEST_F (CircularBufferTests, ConcurrentTransfersPreserveSampleOrder)
+{
+    const int total = 100000;
+    float initial[512];
+    for (int i = 0; i < 512; ++i) initial[i] = (float) i;
+    ASSERT_EQ(csoundWriteCircularBuffer(csound, rb, initial, 512), 512);
+    ASSERT_EQ(csoundWriteCircularBuffer(csound, rb, initial, 1), 0);
+
+    std::atomic<bool> stop(false);
+    int produced = 512;
+    std::thread writer([&]() {
+        float block[73];
+        while (produced < total && !stop.load()) {
+            int count = total - produced;
+            if (count > 73) count = 73;
+            for (int i = 0; i < count; ++i) block[i] = (float) (produced + i);
+            int written = csoundWriteCircularBuffer(csound, rb, block, count);
+            produced += written;
+            if (written == 0) std::this_thread::yield();
+        }
+    });
+
+    int consumed = 0;
+    bool ordered = true;
+    const auto deadline = std::chrono::steady_clock::now() +
+                          std::chrono::seconds(10);
+    while (consumed < total && ordered &&
+           std::chrono::steady_clock::now() < deadline) {
+        float peeked[127], block[127];
+        int count = 1 + consumed % 127;
+        int available = csoundPeekCircularBuffer(csound, rb, peeked, count);
+        if (available == 0) {
+            std::this_thread::yield();
+            continue;
+        }
+        int read = csoundReadCircularBuffer(csound, rb, block, available);
+        ordered = read == available;
+        for (int i = 0; i < read; ++i) {
+            if (block[i] != (float) (consumed + i) || block[i] != peeked[i])
+                ordered = false;
+        }
+        consumed += read;
+    }
+    stop.store(true);
+    writer.join();
+
+    EXPECT_TRUE(ordered);
+    EXPECT_EQ(consumed, total);
+    EXPECT_EQ(produced, total);
+    EXPECT_EQ(csoundCheckCircularBuffer(csound, rb, 0), 0);
+    EXPECT_EQ(csoundReadCircularBuffer(csound, rb, initial, 1), 0);
     EXPECT_EQ(csoundCheckCircularBuffer(csound, rb, 1), 512);
 }
 
