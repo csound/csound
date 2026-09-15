@@ -8,6 +8,7 @@
 #include "csound.h"
 #include "csound_circular_buffer.h"
 #include "gtest/gtest.h"
+#include <limits>
 
 class CircularBufferTests : public ::testing::Test {
 public:
@@ -92,6 +93,27 @@ TEST_F (CircularBufferTests, testRequestedCapacity)
 
     read = csoundReadCircularBuffer(csound, rb, &val, 1);
     ASSERT_EQ (read, 0);
+}
+
+TEST_F (CircularBufferTests, RejectsInvalidDimensions)
+{
+    EXPECT_EQ(csoundCreateCircularBuffer(csound, 0, sizeof(float)), nullptr);
+    EXPECT_EQ(csoundCreateCircularBuffer(csound, -1, sizeof(float)), nullptr);
+    EXPECT_EQ(csoundCreateCircularBuffer(csound, 1, 0), nullptr);
+    EXPECT_EQ(csoundCreateCircularBuffer(csound, 1, -1), nullptr);
+    EXPECT_EQ(csoundCreateCircularBuffer(
+                  csound, std::numeric_limits<int32_t>::max(), sizeof(float)),
+              nullptr);
+}
+
+TEST_F (CircularBufferTests, RejectsNonPositiveTransferCounts)
+{
+    float value = 1.0f;
+    EXPECT_EQ(csoundWriteCircularBuffer(csound, rb, &value, -1), 0);
+    EXPECT_EQ(csoundReadCircularBuffer(csound, rb, &value, -1), 0);
+    EXPECT_EQ(csoundPeekCircularBuffer(csound, rb, &value, -1), 0);
+    EXPECT_EQ(csoundCheckCircularBuffer(csound, rb, 0), 0);
+    EXPECT_EQ(csoundCheckCircularBuffer(csound, rb, 1), 512);
 }
 
 TEST_F (CircularBufferTests, testReadWriteDiffSizes)
