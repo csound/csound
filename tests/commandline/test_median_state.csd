@@ -1,16 +1,14 @@
+<CsTest>
+description = "median reset, preserved history, and partial blocks"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "median reset, preserved history, and partial blocks",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 8192
 ksmps = 16
 nchnls = 1

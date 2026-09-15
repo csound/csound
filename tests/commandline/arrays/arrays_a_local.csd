@@ -1,17 +1,15 @@
+<CsTest>
+description = "local a[]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -d
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "local a[]",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;test local aArrays
 ;jh march 2013
 

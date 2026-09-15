@@ -1,16 +1,14 @@
+<CsTest>
+description = "Pass-by-ref connects args correctly."
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "Pass-by-ref connects args correctly.",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs=1
 opcode Test(sig:k,fn:i):(a)
  a1 flooper2 sig,1,0, 3, 0.1,fn

@@ -1,14 +1,12 @@
+<CsTest>
+description = "test24.csd"
+skip = "Requires the optional la_i linear algebra opcodes."
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test24.csd",
-  "expect": {
-    "exit": 0
-  },
-  "skip": "Requires the optional la_i linear algebra opcodes."
-}
-*/
 sr=48000
 ksmps=1
 nchnls=2

@@ -1,17 +1,15 @@
+<CsTest>
+description = "test keyword spacing (if(, elseif(, etc.)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0 
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test keyword spacing (if(, elseif(, etc.)",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 instr 1
   ival = 1
   

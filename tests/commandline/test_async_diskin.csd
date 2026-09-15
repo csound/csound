@@ -1,18 +1,16 @@
+<CsTest>
+description = "test diskin in rt async mode"
+args = []
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -+rtaudio=null --realtime -d -m128
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test diskin in rt async mode",
-  "expect": {
-    "exit": 0
-  },
-  "args": []
-}
-*/
 gkVictimPerfCycles init 0
 gkVictimInitCompleted init 0
 gkTurnoffAttempts init 0

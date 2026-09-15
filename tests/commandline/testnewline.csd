@@ -1,13 +1,11 @@
+<CsTest>
+description = "test newline in statements"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test newline in statements",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs = 1
 instr 1
 a1 = vco2(p4/3, p5) +

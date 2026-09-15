@@ -1,17 +1,15 @@
+<CsTest>
+description = "test local shadowing of global vars for implicit types"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test local shadowing of global vars for implicit types",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 opcode image,i,i
   i1 xin
   xout i1*5

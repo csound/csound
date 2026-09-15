@@ -1,16 +1,14 @@
+<CsTest>
+description = "mpulse delay units and sample scheduling"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "mpulse delay units and sample scheduling",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 8192
 ksmps = 16
 nchnls = 1

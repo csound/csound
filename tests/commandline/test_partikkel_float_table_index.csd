@@ -1,17 +1,15 @@
+<CsTest>
+description = "partikkel uses the scaled index for float table lookup"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n 
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "partikkel uses the scaled index for float table lookup",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 1
 nchnls = 2

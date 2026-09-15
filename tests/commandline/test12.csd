@@ -1,14 +1,12 @@
+<CsTest>
+description = "Simple if-then statement"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>
-/* Csound-test
-{
-  "description": "Simple if-then statement",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;
 sr=44100
 ksmps=1

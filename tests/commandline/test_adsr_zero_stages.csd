@@ -1,16 +1,14 @@
+<CsTest>
+description = "ADSR zero-length stages and delay"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "ADSR zero-length stages and delay",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 #ifndef TEST_KSMPS
 #define TEST_KSMPS #8#
 #endif

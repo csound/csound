@@ -1,14 +1,12 @@
+<CsTest>
+description = "pluck test, 0xffff (init)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>
-/* Csound-test
-{
-  "description": "pluck test, 0xffff (init)",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;
 sr = 48000
 ksmps = 16

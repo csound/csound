@@ -1,21 +1,16 @@
+<CsTest>
+description = "fail due to invalid xout"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, invalid xout statement for UDO: defined 'i', found 'ic'", "syntax error, testUDO UDO"]
+</CsTest>
 <CsoundSynthesizer>
 ;<CsOptions>
 ;</CsOptions>
 ; ==============================================
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "fail due to invalid xout",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "syntax error, invalid xout statement for UDO: defined 'i', found 'ic'",
-      "syntax error, testUDO UDO"
-    ]
-  }
-}
-*/
 sr	=	44100
 ksmps	=	1
 ;nchnls	=	2

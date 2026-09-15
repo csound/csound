@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject non-finite flanger delay"
+
+[expect]
+exit = "nonzero"
+stderr = ["flanger: delay is outside imaxd"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject non-finite flanger delay",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "flanger: delay is outside imaxd"
-    ]
-  }
-}
-*/
 sr = 8000
 ksmps = 1
 nchnls = 1

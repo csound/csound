@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject invalid dconv sizes"
+
+[expect]
+exit = "nonzero"
+stderr = ["dconv: isize must be at least 1"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject invalid dconv sizes",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "dconv: isize must be at least 1"
-    ]
-  }
-}
-*/
 sr = 8192
 ksmps = 32
 nchnls = 1

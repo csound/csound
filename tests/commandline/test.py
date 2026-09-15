@@ -174,7 +174,7 @@ def execute_single_test(test_index, test_data, run_args, working_directory=None)
     Args:
         test_index: Index of the test in the original test list
         test_data: Test data tuple [filename, description,
-            metadata from the CSD comment]
+            metadata from the CSD's <CsTest> block]
         run_args: Arguments to pass to csound
     Returns:
         TestResult object containing execution results

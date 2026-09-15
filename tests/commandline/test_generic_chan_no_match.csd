@@ -1,20 +1,16 @@
+<CsTest>
+description = "testing type mismatch for bus channel"
+
+[expect]
+exit = "nonzero"
+stderr = ["chnget.k: not initialised"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "testing type mismatch for bus channel",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "chnget.k: not initialised"
-    ]
-  }
-}
-*/
 ; Expected failure test.
 ; Writes a generic Complex value to the software bus, then attempts to
 ; read the same channel through the primitive k-rate control-channel

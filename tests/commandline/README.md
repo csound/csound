@@ -4,19 +4,20 @@ The runner discovers every `.csd` below this directory, including subdirectories
 and runs them in path order. There is no Python test list or filename convention.
 A new CSD runs automatically and expects exit status zero by default.
 
-Put expectations in a JSON block inside a Csound comment, just after
-`<CsInstruments>`. For example:
+Put TOML metadata inside a `<CsTest>` block at the top of the file, before
+`<CsoundSynthesizer>`. For example:
 
 ```csound
-/* Csound-test
-{
-  "description": "reject managed opcode-array outputs",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": ["Opcode[] run does not support managed array output elements"]
-  }
-}
-*/
+<CsTest>
+description = "reject managed opcode-array outputs"
+
+[expect]
+exit = "nonzero"
+stderr = ["Opcode[] run does not support managed array output elements"]
+</CsTest>
+<CsoundSynthesizer>
+...
+</CsoundSynthesizer>
 ```
 
 `expect.exit` is an exact status from 0 to 255, or `"nonzero"`. An expected
@@ -25,9 +26,10 @@ statuses, timeouts, and runner errors always fail.
 
 `stderr` and `stdout` are lists of required substrings. `stderr_regex` and
 `stdout_regex` are lists of Python regular expressions, matched with `search`.
-**All** listed checks must match on their named stream. JSON escapes apply:
-write `"Opcode\\[\\]"` to match literal brackets. Match the stable diagnostic,
-not a whole Csound log with version strings, times, or source line numbers.
+**All** listed checks must match on their named stream. Use TOML literal strings
+to avoid escaping regex backslashes: `'Opcode\[\]'` matches literal brackets.
+Match the stable diagnostic, not a whole Csound log with version strings, times,
+or source line numbers.
 Successful tests can declare output checks too.
 
 Other optional fields:
@@ -43,12 +45,28 @@ Other optional fields:
   `--profile` overrides that choice. This replaces the old
   `--expected-failure=<file>` argument; keep platform exceptions in the CSD too.
 
+Keep top-level fields such as `args` and `skip` before any TOML table headings.
+For example, a WASM override uses its own table:
+
+```toml
+[profiles.wasm.expect]
+exit = "nonzero"
+stderr = ["unable to find opcode with name: OSCsend"]
+```
+
 Unknown keys, invalid expressions, and malformed metadata fail the run before
-any Csound process starts. Csound itself ignores the comment, so files still
-work when run directly. Tests run against a temporary writable copy of the
-fixtures, with the copy's root as their working directory. Generated files do
+any Csound process starts. Csound ignores the metadata before
+`<CsoundSynthesizer>`, so files still work when run directly. Tests run against a
+temporary writable copy of the fixtures, with the copy's root as their working directory. Generated files do
 not change the checkout. Tests running in parallel must use distinct output
 filenames and ports.
+
+The runner uses `tomllib` from Python 3.11 or later. On older Python versions,
+install the `tomli` fallback with that interpreter:
+
+```sh
+python3 -m pip install -r tests/commandline/requirements.txt
+```
 
 From the project root:
 

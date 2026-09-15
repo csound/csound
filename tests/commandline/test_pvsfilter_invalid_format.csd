@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject unsupported pvsfilter input format"
+
+[expect]
+exit = "nonzero"
+stderr = ["pvsfilter: signal format must be amp-phase or amp-freq."]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject unsupported pvsfilter input format",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "pvsfilter: signal format must be amp-phase or amp-freq."
-    ]
-  }
-}
-*/
 sr = 8192
 ksmps = 16
 nchnls = 1

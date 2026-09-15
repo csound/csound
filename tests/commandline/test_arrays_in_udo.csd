@@ -1,16 +1,14 @@
+<CsTest>
+description = "test arrays in UDO"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test arrays in UDO",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr=64
 ksmps=64
 nchnls=1

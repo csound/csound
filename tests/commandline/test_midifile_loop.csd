@@ -1,16 +1,14 @@
+<CsTest>
+description = "testing midifile tempo set, pos, loop"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -F catherine.mid -T 
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "testing midifile tempo set, pos, loop",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs=1
 nchnls=1
 

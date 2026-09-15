@@ -1,16 +1,14 @@
+<CsTest>
+description = "gbuzz phase and coefficient state"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "gbuzz phase and coefficient state",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr=1024
 ksmps=16
 nchnls=1

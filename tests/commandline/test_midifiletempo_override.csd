@@ -1,16 +1,14 @@
+<CsTest>
+description = "test midifiletempo before playback"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test midifiletempo before playback",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs=1
 nchnls=1
 ksmps=64

@@ -1,17 +1,15 @@
+<CsTest>
+description = "test nested struct types"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test nested struct types",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 1
 nchnls = 1

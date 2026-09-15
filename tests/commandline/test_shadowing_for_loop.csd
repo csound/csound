@@ -1,17 +1,15 @@
+<CsTest>
+description = "test local shadowing of vars in for loop"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test local shadowing of vars in for loop",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 instr 1
 for partials,count in [1,2.78,5.18,8.16,11.66,15.64,19.99] do
  S1 = sprintf("partial %d\n",count+1)

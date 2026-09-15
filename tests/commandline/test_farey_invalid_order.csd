@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject invalid Farey sequence orders"
+
+[expect]
+exit = "nonzero"
+stderr = ["fareylen: invalid sequence order"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject invalid Farey sequence orders",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "fareylen: invalid sequence order"
-    ]
-  }
-}
-*/
 #ifndef ORDER
 #define ORDER #0#
 #endif

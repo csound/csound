@@ -1,16 +1,14 @@
+<CsTest>
+description = "phasor rounded output and phase state"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "phasor rounded output and phase state",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 1
 nchnls = 1

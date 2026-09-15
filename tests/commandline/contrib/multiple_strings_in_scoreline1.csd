@@ -1,13 +1,11 @@
+<CsTest>
+description = "contrib/multiple_strings_in_scoreline1.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "contrib/multiple_strings_in_scoreline1.csd",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 instr test ;fine
 S1 strget p4
 S2 strget p5

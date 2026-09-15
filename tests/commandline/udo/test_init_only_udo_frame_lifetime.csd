@@ -1,17 +1,15 @@
+<CsTest>
+description = "Init-only UDO frames release structured temporary values"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "Init-only UDO frames release structured temporary values",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 struct ScoreNode label:S, children:ScoreNode[]
 
 opcode CountScoreBranches(depth:i):i

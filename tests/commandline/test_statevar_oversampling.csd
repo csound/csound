@@ -1,16 +1,14 @@
+<CsTest>
+description = "statevar oversampling and preserved filter history"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "statevar oversampling and preserved filter history",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 8000
 ksmps = 1
 nchnls = 1

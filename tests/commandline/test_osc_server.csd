@@ -1,31 +1,19 @@
+<CsTest>
+description = "test OSC in udp server"
+args = ["-odac", "-d", "-+rtaudio=dummy"]
+
+[expect]
+exit = 0
+
+[profiles.wasm.expect]
+exit = "nonzero"
+stderr = ["unable to find opcode with name: OSCsend"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac --port=7001
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test OSC in udp server",
-  "expect": {
-    "exit": 0
-  },
-  "args": [
-    "-odac",
-    "-d",
-    "-+rtaudio=dummy"
-  ],
-  "profiles": {
-    "wasm": {
-      "expect": {
-        "exit": "nonzero",
-        "stderr_regex": [
-          "(?:error creating socket|bind failed)"
-        ]
-      }
-    }
-  }
-}
-*/
 0dbfs=1
 
 instr 1

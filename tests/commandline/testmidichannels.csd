@@ -1,16 +1,14 @@
+<CsTest>
+description = "test use of mapped multiport channels"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test use of mapped multiport channels",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs = 1
 
 instr 1

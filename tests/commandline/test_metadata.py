@@ -1,12 +1,22 @@
 """Discover CSD tests and read their in-file expectations."""
 
-import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
+try:
+    import tomllib
+except ModuleNotFoundError:
+    try:
+        import tomli as tomllib
+    except ModuleNotFoundError as error:
+        raise SystemExit("Python before 3.11 needs tomli: install "
+                         "tests/commandline/requirements.txt") from error
 
-HEADER = re.compile(r"^/\* Csound-test\s*\n(.*?)^\*/", re.M | re.S)
+
+HEADER = re.compile(r"^[ \t]*<CsTest>[ \t]*\n(.*?)^[ \t]*</CsTest>[ \t]*$",
+                    re.M | re.S)
+SYNTHESIZER = re.compile(r"^[ \t]*<CsoundSynthesi[sz]er>", re.M)
 
 
 @dataclass
@@ -20,15 +30,6 @@ class TestCase:
     skip: str = ""
 
 
-def _object(pairs):
-    result = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError(f"duplicate metadata key: {key}")
-        result[key] = value
-    return result
-
-
 def _strings(value, name):
     if not isinstance(value, list) or not all(isinstance(x, str) for x in value):
         raise ValueError(f"{name} must be a list of strings")
@@ -37,7 +38,7 @@ def _strings(value, name):
 
 def validate_expectation(expect):
     if not isinstance(expect, dict) or "exit" not in expect:
-        raise ValueError("expect must be an object with an exit value")
+        raise ValueError("expect must be a table with an exit value")
     allowed = {"exit", "stderr", "stderr_regex", "stdout", "stdout_regex"}
     if set(expect) - allowed:
         raise ValueError(f"unknown expectation keys: {sorted(set(expect) - allowed)}")
@@ -62,12 +63,16 @@ def load_test(path, root, profile="native"):
     filename = path.relative_to(root).as_posix()
     try:
         source = path.read_text(encoding="utf-8-sig")
-        headers = HEADER.findall(source)
-        if len(headers) > 1 or source.count("/* Csound-test") != len(headers):
-            raise ValueError("expected one complete Csound-test comment")
-        data = json.loads(headers[0], object_pairs_hook=_object) if headers else {}
-        if not isinstance(data, dict):
-            raise ValueError("test metadata must be an object")
+        # Only the preamble belongs to the runner. Tag-like strings in the
+        # orchestra or score are Csound input, not test metadata.
+        start = SYNTHESIZER.search(source)
+        preamble = source[:start.start()] if start else source
+        headers = HEADER.findall(preamble)
+        if (len(headers) > 1 or preamble.count("<CsTest>") != len(headers)
+                or preamble.count("</CsTest>") != len(headers)):
+            raise ValueError("expected one complete <CsTest> block before "
+                             "<CsoundSynthesizer>")
+        data = tomllib.loads(headers[0]) if headers else {}
         allowed = {"description", "expect", "args", "application_args",
                    "stack_limit_kb", "skip", "profiles"}
         if set(data) - allowed:

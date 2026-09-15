@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject fof2 rise beyond the float-phase range"
+
+[expect]
+exit = "nonzero"
+stderr = ["FOF rise time exceeds supported range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject fof2 rise beyond the float-phase range",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "FOF rise time exceeds supported range"
-    ]
-  }
-}
-*/
 sr = 48000
 ksmps = 1
 nchnls = 1

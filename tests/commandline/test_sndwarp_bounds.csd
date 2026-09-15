@@ -1,16 +1,14 @@
+<CsTest>
+description = "sndwarp and sndwarpst bound sample indexes and handle zero time scale"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "sndwarp and sndwarpst bound sample indexes and handle zero time scale",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 8000
 ksmps = 1
 nchnls = 1

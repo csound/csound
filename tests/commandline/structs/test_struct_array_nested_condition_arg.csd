@@ -1,17 +1,15 @@
+<CsTest>
+description = "nested struct-array member reads inside boolean expression args"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "nested struct-array member reads inside boolean expression args",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 struct Item label:S, children:Item[]
 struct Control kind:i, enabled:i
 

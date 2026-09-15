@@ -1,16 +1,14 @@
+<CsTest>
+description = "test distort sample-accurate onset"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test distort sample-accurate onset",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 64000
 ksmps = 8
 nchnls = 1

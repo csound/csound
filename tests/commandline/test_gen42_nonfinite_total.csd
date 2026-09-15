@@ -1,19 +1,15 @@
+<CsTest>
+description = "expected failure: GEN42 probability total overflows"
+
+[expect]
+exit = "nonzero"
+stderr = ["Gen42: probability total must be finite"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "expected failure: GEN42 probability total overflows",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "Gen42: probability total must be finite"
-    ]
-  }
-}
-*/
 sr = 44100
 ksmps = 32
 nchnls = 1

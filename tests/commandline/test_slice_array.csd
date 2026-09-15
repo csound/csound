@@ -1,16 +1,14 @@
+<CsTest>
+description = "testing slice shorthand"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n 
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "testing slice shorthand",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs = 1
 
 instr 1

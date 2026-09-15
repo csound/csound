@@ -1,16 +1,14 @@
+<CsTest>
+description = "test input with local ksmps"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -i test_values.wav -n -d
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test input with local ksmps",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 32
 ksmps = 8
 nchnls = 1

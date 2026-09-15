@@ -1,17 +1,15 @@
+<CsTest>
+description = "test polymorphic udo"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 ;<CsOptions>
 ;</CsOptions>
 ; ==============================================
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test polymorphic udo",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr	=	44100
 ksmps	=	1
 nchnls	=	2

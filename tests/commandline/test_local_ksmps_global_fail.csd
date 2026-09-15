@@ -1,3 +1,10 @@
+<CsTest>
+description = "test failing use of global var with local ksmps"
+
+[expect]
+exit = "nonzero"
+stderr = ["local ksmps not permitted with global audio vars", "inherited local ksmps not permitted with global audio vars"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d
@@ -5,18 +12,6 @@
 <CsInstruments>
 
 
-/* Csound-test
-{
-  "description": "test failing use of global var with local ksmps",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "local ksmps not permitted with global audio vars",
-      "inherited local ksmps not permitted with global audio vars"
-    ]
-  }
-}
-*/
 gatest init 0
 gaatest[] init 2
 gktest init 0

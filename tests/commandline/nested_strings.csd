@@ -1,16 +1,14 @@
+<CsTest>
+description = "test nested strings works with schedule [issue #861]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test nested strings works with schedule [issue #861]",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 instr 1
 
 Seval = p4

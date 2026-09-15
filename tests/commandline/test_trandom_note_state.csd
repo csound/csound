@@ -1,16 +1,14 @@
+<CsTest>
+description = "trandom starts each note with fresh held state"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "trandom starts each note with fresh held state",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 1024
 ksmps = 16
 nchnls = 1

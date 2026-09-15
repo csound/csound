@@ -1,14 +1,12 @@
+<CsTest>
+description = "polymorphic test, 0xfffc (divz)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>
-/* Csound-test
-{
-  "description": "polymorphic test, 0xfffc (divz)",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;
 sr=44100
 ksmps=10

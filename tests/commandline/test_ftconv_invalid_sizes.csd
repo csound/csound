@@ -1,21 +1,15 @@
+<CsTest>
+description = "ftconv rejects invalid sizes"
+
+[expect]
+exit = "nonzero"
+stderr = ["ftconv: invalid impulse response partition length", "ftconv: invalid impulse response range", "ftconv: invalid length, or insufficient IR data for convolution"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "ftconv rejects invalid sizes",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "ftconv: invalid impulse response partition length",
-      "ftconv: invalid impulse response range",
-      "ftconv: invalid length, or insufficient IR data for convolution"
-    ]
-  }
-}
-*/
 sr = 8192
 ksmps = 32
 nchnls = 1

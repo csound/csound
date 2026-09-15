@@ -1,27 +1,17 @@
+<CsTest>
+description = "command line application arguments after -- are available through argv"
+args = ["-nd"]
+application_args = ["--", "concert.orc", "first violin", "--logfile=ignored", ""]
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "command line application arguments after -- are available through argv",
-  "expect": {
-    "exit": 0
-  },
-  "args": [
-    "-nd"
-  ],
-  "application_args": [
-    "--",
-    "concert.orc",
-    "first violin",
-    "--logfile=ignored",
-    ""
-  ]
-}
-*/
 instr 1
   Sarguments:S[] argv
 

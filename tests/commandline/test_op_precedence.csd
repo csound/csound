@@ -1,16 +1,14 @@
+<CsTest>
+description = "test bitwise operator precedence vs equality"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test bitwise operator precedence vs equality",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 #include "libassert.orc"
 
 instr 1

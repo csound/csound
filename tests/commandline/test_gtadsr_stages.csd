@@ -1,16 +1,14 @@
+<CsTest>
+description = "gtadsr stage endpoints, retriggering and sample offsets"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "gtadsr stage endpoints, retriggering and sample offsets",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 8192
 ksmps = 16
 nchnls = 1

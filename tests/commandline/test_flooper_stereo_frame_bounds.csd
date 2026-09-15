@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject flooper ranges past stereo frames"
+
+[expect]
+exit = "nonzero"
+stderr = ["start time beyond end of table"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject flooper ranges past stereo frames",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "start time beyond end of table"
-    ]
-  }
-}
-*/
 sr = 44100
 ksmps = 8
 nchnls = 2

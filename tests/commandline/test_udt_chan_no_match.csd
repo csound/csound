@@ -1,20 +1,16 @@
+<CsTest>
+description = "testing unmatched udt channel"
+
+[expect]
+exit = "nonzero"
+stderr = ["channel type did not match argument"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "testing unmatched udt channel",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "channel type did not match argument"
-    ]
-  }
-}
-*/
 ; Expected failure test.
 ; Writes one UDT layout to a generic channel, then attempts to read it
 ; back as a different UDT layout. The init-time type mismatch is the

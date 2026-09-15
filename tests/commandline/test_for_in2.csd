@@ -1,16 +1,14 @@
+<CsTest>
+description = "for in loop (2nd form)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "for in loop (2nd form)",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs = 1
 seed(0)
 

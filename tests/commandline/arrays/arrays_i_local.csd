@@ -1,17 +1,15 @@
+<CsTest>
+description = "local i[]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -dnm0
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "local i[]",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;test local iArrays
 ;jh march 2013
 

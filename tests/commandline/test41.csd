@@ -1,14 +1,12 @@
+<CsTest>
+description = "if statement with = instead of =="
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>
-/* Csound-test
-{
-  "description": "if statement with = instead of ==",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;
 sr=44100
 ksmps=1

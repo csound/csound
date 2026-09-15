@@ -1,17 +1,15 @@
+<CsTest>
+description = "global a[]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -d
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "global a[]",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;test global aArrays
 ;jh march 2013 (using code from iain mccurdy)
 

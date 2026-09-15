@@ -1,16 +1,14 @@
+<CsTest>
+description = "reject an undersized wave table without crashing"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -d -m0 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject an undersized wave table without crashing",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr=48000
 ksmps=32
 nchnls=1

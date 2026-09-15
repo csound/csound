@@ -1,17 +1,15 @@
+<CsTest>
+description = "Pass-by-ref works with new-style UDOs"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 --nosound
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "Pass-by-ref works with new-style UDOs",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 48000
 ksmps	= 64
 nchnls	= 2

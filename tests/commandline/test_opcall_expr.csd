@@ -1,17 +1,15 @@
+<CsTest>
+description = "test expression in opcall"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test expression in opcall",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 opcode Test(var1:i,var2:i):void
  if var1 != var2 then
    prints "error\n"

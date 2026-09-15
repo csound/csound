@@ -1,16 +1,14 @@
+<CsTest>
+description = "prepiano stereo scans, single string and preparation tables"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "prepiano stereo scans, single string and preparation tables",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 32
 nchnls = 2

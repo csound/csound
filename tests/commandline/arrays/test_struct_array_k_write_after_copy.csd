@@ -1,17 +1,15 @@
+<CsTest>
+description = "k-rate writes use prepared struct-array copy storage"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "k-rate writes use prepared struct-array copy storage",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 1000
 ksmps = 10
 nchnls = 1

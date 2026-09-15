@@ -1,17 +1,15 @@
+<CsTest>
+description = "for in loop with typed index var"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "for in loop with typed index var",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 instr 1
 arr:k[] init 3
 for var:S, ndx:k in ["1", "2", "3"] do

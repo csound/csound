@@ -1,17 +1,13 @@
+<CsTest>
+description = "test expected failure with negative dimension size and array"
+
+[expect]
+exit = "nonzero"
+stderr = ["Error: sizes must be >= 0 for array initialization"]
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test expected failure with negative dimension size and array",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "Error: sizes must be >= 0 for array initialization"
-    ]
-  }
-}
-*/
 sr	=	44100
 ksmps	=	1
 nchnls	=	2

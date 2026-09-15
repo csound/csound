@@ -1,19 +1,15 @@
+<CsTest>
+description = "unwrap rejects invalid modes"
+
+[expect]
+exit = "nonzero"
+stderr = ["unwrap: mode must be 0 or 1"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "unwrap rejects invalid modes",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "unwrap: mode must be 0 or 1"
-    ]
-  }
-}
-*/
 sr = 8192
 ksmps = 32
 nchnls = 1

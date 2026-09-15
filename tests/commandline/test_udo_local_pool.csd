@@ -1,16 +1,14 @@
+<CsTest>
+description = "test udos for separate local var pool"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test udos for separate local var pool",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs = 1
 
 Sresult = "anything"

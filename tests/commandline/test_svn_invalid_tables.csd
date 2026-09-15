@@ -1,20 +1,15 @@
+<CsTest>
+description = "svn rejects missing tables and invalid domains"
+
+[expect]
+exit = "nonzero"
+stderr = ["Invalid ftable no. 999.000000", "svn: table domain must be positive and finite"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "svn rejects missing tables and invalid domains",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "Invalid ftable no. 999.000000",
-      "svn: table domain must be positive and finite"
-    ]
-  }
-}
-*/
 sr=1024
 ksmps=16
 nchnls=1

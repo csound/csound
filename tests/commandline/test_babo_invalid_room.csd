@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject invalid babo room dimensions"
+
+[expect]
+exit = "nonzero"
+stderr = ["Babo: room dimensions must be positive"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject invalid babo room dimensions",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "Babo: room dimensions must be positive"
-    ]
-  }
-}
-*/
 #ifndef SIZE
 #define SIZE #0#
 #endif

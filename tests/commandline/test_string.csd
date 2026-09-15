@@ -1,13 +1,11 @@
+<CsTest>
+description = "test string assignment and printing"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test string assignment and printing",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 instr 1
 Sres = "TEST"
 puts Sres, 1

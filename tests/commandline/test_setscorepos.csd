@@ -1,16 +1,14 @@
+<CsTest>
+description = "testing setscorepos and rewindscore"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "testing setscorepos and rewindscore",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 gi1 init 2
 instr 1
   prints "Top...\n"

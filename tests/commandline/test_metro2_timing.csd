@@ -1,16 +1,14 @@
+<CsTest>
+description = "metro2 corrected startup, swing, and bounded phase timing"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "metro2 corrected startup, swing, and bounded phase timing",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 1024
 ksmps = 64
 nchnls = 1

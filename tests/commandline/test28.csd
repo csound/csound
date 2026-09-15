@@ -1,14 +1,12 @@
+<CsTest>
+description = "label test"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>
-/* Csound-test
-{
-  "description": "label test",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;
 sr=44100
 ksmps=10

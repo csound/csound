@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject invalid dcblock2 order"
+
+[expect]
+exit = "nonzero"
+stderr = ["dcblock2: invalid order"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject invalid dcblock2 order",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "dcblock2: invalid order"
-    ]
-  }
-}
-*/
 sr = 8000
 ksmps = 8
 nchnls = 1

@@ -1,17 +1,15 @@
+<CsTest>
+description = "test newlines allowed within function calls"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>
 ; ==============================================
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test newlines allowed within function calls",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr	=	48000
 ksmps	=	1
 nchnls	=	2

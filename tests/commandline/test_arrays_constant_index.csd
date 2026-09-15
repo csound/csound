@@ -1,3 +1,9 @@
+<CsTest>
+description = "test arrays with constant index"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -d  
@@ -5,14 +11,6 @@
 <CsInstruments>
 
 
-/* Csound-test
-{
-  "description": "test arrays with constant index",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 instr 1
 kS[] init 2
 kS[0] = 1

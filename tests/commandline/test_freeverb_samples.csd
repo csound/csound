@@ -1,16 +1,14 @@
+<CsTest>
+description = "freeverb input reuse and partial-block history"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "freeverb input reuse and partial-block history",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr=8192
 ksmps=16
 nchnls=1

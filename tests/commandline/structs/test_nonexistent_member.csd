@@ -1,20 +1,16 @@
+<CsTest>
+description = "test what breaking example with structs"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, No member 'nonexistent' found for variable"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test what breaking example with structs",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "syntax error, No member 'nonexistent' found for variable"
-    ]
-  }
-}
-*/
 sr = 44100
 ksmps = 1
 nchnls = 1

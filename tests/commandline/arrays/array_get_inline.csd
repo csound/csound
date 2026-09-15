@@ -1,17 +1,15 @@
+<CsTest>
+description = "tests parsing and eval of inline array[getters]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "tests parsing and eval of inline array[getters]",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ksmps = 32
 
 opcode toStrArray, S[], S

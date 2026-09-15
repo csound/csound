@@ -2,7 +2,6 @@
 """Check test discovery, expectations, and subprocess handling without Csound."""
 
 import importlib.util
-import json
 from pathlib import Path
 import sys
 import tempfile
@@ -26,15 +25,15 @@ class MetadataTests(unittest.TestCase):
     def write(self, name="test.csd", metadata=None, raw=None):
         path = self.root / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        header = "" if metadata is None else "/* Csound-test\n" + json.dumps(metadata) + "\n*/\n"
+        header = "" if metadata is None else "<CsTest>\n" + metadata + "\n</CsTest>\n"
         path.write_text(raw if raw is not None else
-                        "<CsoundSynthesizer>\n<CsInstruments>\n" + header +
+                        header + "<CsoundSynthesizer>\n<CsInstruments>\n" +
                         "</CsInstruments>\n</CsoundSynthesizer>\n")
         return path
 
     def test_discovery_is_recursive_sorted_and_needs_no_registration(self):
         self.write("z.csd")
-        self.write("arrays/a.csd", {"description": "array example"})
+        self.write("arrays/a.csd", 'description = "array example"')
         self.write("ignore.txt")
         cases = discover_tests(self.root)
         self.assertEqual([case.filename for case in cases], ["arrays/a.csd", "z.csd"])
@@ -44,43 +43,76 @@ class MetadataTests(unittest.TestCase):
         self.assertEqual(len(discover_tests(self.root)), 3)
 
     def test_special_arguments_preserve_empty_strings_and_spaces(self):
-        path = self.write(metadata={"args": [],
-                                   "application_args": ["--", "first violin", ""],
-                                   "stack_limit_kb": 256})
+        path = self.write(metadata='''
+args = []
+application_args = ["--", "first violin", ""]
+stack_limit_kb = 256
+''')
         case = load_test(path, self.root)
         self.assertEqual(case.args, [])
         self.assertEqual(case.application_args, ["--", "first violin", ""])
         self.assertEqual(case.stack_limit_kb, 256)
 
     def test_profile_expectation_and_skip_live_in_the_csd(self):
-        path = self.write(metadata={"profiles": {"wasm": {
-            "expect": {"exit": "nonzero", "stderr": ["no threads"]}}}})
+        path = self.write(metadata='''
+[profiles.wasm.expect]
+exit = "nonzero"
+stderr = ["no threads"]
+''')
         self.assertEqual(load_test(path, self.root).expect, {"exit": 0})
         self.assertEqual(load_test(path, self.root, "wasm").expect["exit"], "nonzero")
-        path = self.write(metadata={"profiles": {"wasm": {"skip": "Needs threads"}}})
+        path = self.write(metadata='profiles.wasm.skip = "Needs threads"')
         self.assertFalse(load_test(path, self.root).skip)
         self.assertEqual(load_test(path, self.root, "wasm").skip, "Needs threads")
 
     def test_invalid_metadata_fails_with_filename(self):
-        for data in ({"typo": 1}, {"expect": {"exit": "nonzero"}},
-                     {"expect": {"exit": True}}, {"expect": {"exit": -11}},
-                     {"expect": {"exit": 0, "stderr": [""]}},
-                     {"expect": {"exit": 0, "stderr_regex": ["["]}},
-                     {"args": "-n"}, {"stack_limit_kb": -1},
-                     {"profiles": {"wasm": {"skip": True}}}):
+        for data in ('typo = 1', 'expect.exit = "nonzero"',
+                     'expect.exit = true', 'expect.exit = -11',
+                     'expect = {exit = 0, stderr = [""]}',
+                     'expect = {exit = 0, stderr_regex = ["["]}',
+                     'args = "-n"', 'stack_limit_kb = -1',
+                     'profiles.wasm.skip = true'):
             with self.subTest(data=data):
                 path = self.write(metadata=data)
                 with self.assertRaisesRegex(ValueError, "test.csd:"):
                     load_test(path, self.root)
 
     def test_malformed_duplicate_and_unclosed_headers_are_errors(self):
-        for source in ('/* Csound-test\n{\n*/',
-                       '/* Csound-test\n{}',
-                       '/* Csound-test\n{}\n*/\n/* Csound-test\n{}\n*/',
-                       '/* Csound-test\n{"skip":"a","skip":"b"}\n*/'):
+        for source in ('<CsTest>\nexpect = [\n</CsTest>',
+                       '<CsTest>\nexit = 0',
+                       '</CsTest>',
+                       '<CsTest>\n</CsTest>\n<CsTest>\n</CsTest>',
+                       '<CsTest>\nskip="a"\nskip="b"\n</CsTest>',
+                       '<CsTest>\n[expect]\n[expect]\n</CsTest>',
+                       '<CsTest>\n{"expect": {"exit": 0}}\n</CsTest>'):
             with self.subTest(source=source):
                 with self.assertRaises(ValueError):
                     load_test(self.write(raw=source), self.root)
+
+    def test_toml_comments_literal_regex_and_multiline_arrays(self):
+        path = self.write(metadata=r'''
+# Literal strings keep regular-expression backslashes unchanged.
+description = "check brackets"
+[expect]
+exit = "nonzero"
+stderr_regex = [
+    'Opcode\[\] failure',
+]
+''')
+        case = load_test(path, self.root)
+        self.assertEqual(case.description, "check brackets")
+        self.assertEqual(case.expect["stderr_regex"], [r"Opcode\[\] failure"])
+
+    def test_metadata_is_read_only_before_synthesizer_tag(self):
+        for tag in ("CsoundSynthesizer", "CsoundSynthesiser"):
+            with self.subTest(tag=tag):
+                path = self.write(raw=f"<{tag}>\n<CsInstruments>\n"
+                                      'Stext = "<CsTest>"\n'
+                                      f"</CsInstruments>\n</{tag}>\n")
+                self.assertEqual(load_test(path, self.root).expect, {"exit": 0})
+                path = self.write(raw='<CsTest>\nskip="manual"\n</CsTest>\n'
+                                      + path.read_text())
+                self.assertEqual(load_test(path, self.root).skip, "manual")
 
     def test_empty_directory_is_not_a_passing_suite(self):
         with self.assertRaisesRegex(ValueError, "no .csd tests"):

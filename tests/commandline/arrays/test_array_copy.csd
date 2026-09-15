@@ -1,16 +1,14 @@
+<CsTest>
+description = "test array copy operations"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>
 ; ==============================================
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test array copy operations",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 48000
 ksmps = 10
 ;nchnls = 2

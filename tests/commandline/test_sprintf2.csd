@@ -1,13 +1,11 @@
+<CsTest>
+description = "test string assignment and printing that causes reallocation"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test string assignment and printing that causes reallocation",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr        = 44100
 ksmps     = 256
 nchnls    = 2

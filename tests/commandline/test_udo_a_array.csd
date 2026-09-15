@@ -1,13 +1,11 @@
+<CsTest>
+description = "test udo with a-array"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test udo with a-array",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ksmps = 32
 
 opcode test1, k[], 0

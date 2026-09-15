@@ -1,16 +1,14 @@
+<CsTest>
+description = "test variable redefinition"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test variable redefinition",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs=1
 test@global:i init 1 // variable declared
 

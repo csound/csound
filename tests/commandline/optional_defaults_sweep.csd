@@ -1,16 +1,14 @@
+<CsTest>
+description = "optional_defaults_sweep.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -v
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "optional_defaults_sweep.csd",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 10
 nchnls = 1

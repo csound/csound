@@ -1,19 +1,15 @@
+<CsTest>
+description = "counter readers reject deleted objects"
+
+[expect]
+exit = "nonzero"
+stderr = ["counter: counter has been deleted"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "counter readers reject deleted objects",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "counter: counter has been deleted"
-    ]
-  }
-}
-*/
 sr = 8192
 ksmps = 64
 nchnls = 1

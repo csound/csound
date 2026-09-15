@@ -1,16 +1,14 @@
+<CsTest>
+description = "trighold preserves its full duration after init and reinit"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "trighold preserves its full duration after init and reinit",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 8000
 ksmps = 8
 nchnls = 1

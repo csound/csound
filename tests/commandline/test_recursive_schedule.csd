@@ -1,17 +1,15 @@
+<CsTest>
+description = "Test recursive events"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "Test recursive events",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 nchnls = 1
 0dbfs = 1
 

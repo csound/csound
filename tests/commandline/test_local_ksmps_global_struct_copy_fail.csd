@@ -1,20 +1,16 @@
+<CsTest>
+description = "reject global struct containing audio with local ksmps"
+
+[expect]
+exit = "nonzero"
+stderr = ["local ksmps not permitted with global audio vars"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "reject global struct containing audio with local ksmps",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "local ksmps not permitted with global audio vars"
-    ]
-  }
-}
-*/
 sr = 8000
 ksmps = 8
 nchnls = 1

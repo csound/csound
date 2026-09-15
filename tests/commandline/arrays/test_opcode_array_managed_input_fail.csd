@@ -1,20 +1,16 @@
+<CsTest>
+description = "reject managed input transfers through Opcode arrays"
+
+[expect]
+exit = "nonzero"
+stderr = ["Opcode[] run does not support managed array input elements"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "reject managed input transfers through Opcode arrays",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "Opcode[] run does not support managed array input elements"
-    ]
-  }
-}
-*/
 sr = 1000
 ksmps = 10
 nchnls = 1

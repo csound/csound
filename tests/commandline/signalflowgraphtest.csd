@@ -1,3 +1,9 @@
+<CsTest>
+description = "test signal-flow graph opcodes"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 ; Select audio/midi flags here according to platform
@@ -8,14 +14,6 @@
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test signal-flow graph opcodes",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 /* Written by Michael Gogins */
 ; Initialize the global variables.
 sr = 48000

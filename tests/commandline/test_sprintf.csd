@@ -1,16 +1,14 @@
+<CsTest>
+description = "test string assignment and printing"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test string assignment and printing",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 32
 nchnls = 2

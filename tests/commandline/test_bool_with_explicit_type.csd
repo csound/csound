@@ -1,16 +1,14 @@
+<CsTest>
+description = "test use of explicit type in bool expression"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test use of explicit type in bool expression",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs = 1
 
 instr 1

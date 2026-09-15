@@ -1,16 +1,14 @@
+<CsTest>
+description = "test redef of OpcodeDef by an array"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test redef of OpcodeDef by an array",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs = 1
 
 partials@global:k[] init 7

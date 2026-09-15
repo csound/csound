@@ -1,17 +1,15 @@
+<CsTest>
+description = "test k-rate index member access on struct array elements"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test k-rate index member access on struct array elements",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 1
 nchnls = 2

@@ -1,16 +1,14 @@
+<CsTest>
+description = "test_gen23.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test_gen23.csd",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs = 1
 
 // test for GEN23 as example for file based GEN routines

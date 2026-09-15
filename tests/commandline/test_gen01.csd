@@ -1,17 +1,15 @@
+<CsTest>
+description = "testing GEN01 importing files"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "testing GEN01 importing files",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs = 1
 
 ;; Raw Input

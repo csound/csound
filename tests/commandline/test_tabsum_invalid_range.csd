@@ -1,19 +1,15 @@
+<CsTest>
+description = "tabsum rejects out-of-range indexes"
+
+[expect]
+exit = "nonzero"
+stderr = ["tabsum: range is outside table bounds"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "tabsum rejects out-of-range indexes",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "tabsum: range is outside table bounds"
-    ]
-  }
-}
-*/
 sr = 48000
 ksmps = 32
 nchnls = 1

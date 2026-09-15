@@ -1,16 +1,14 @@
+<CsTest>
+description = "test GEN49 deferred length"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n 
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test GEN49 deferred length",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs=1
 
 

@@ -1,20 +1,16 @@
+<CsTest>
+description = "reject managed output transfers through Opcode arrays"
+
+[expect]
+exit = "nonzero"
+stderr_regex = ["Opcode\\[\\] run does not support managed array output elements"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "reject managed output transfers through Opcode arrays",
-  "expect": {
-    "exit": "nonzero",
-    "stderr_regex": [
-      "Opcode\\[\\] run does not support managed array output elements"
-    ]
-  }
-}
-*/
 sr = 1000
 ksmps = 10
 nchnls = 1

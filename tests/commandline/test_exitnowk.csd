@@ -1,17 +1,15 @@
+<CsTest>
+description = "perf-time exitnow opcode"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "perf-time exitnow opcode",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 instr 1
 if timeinstk() == 1 then
   if 0 != 0 then

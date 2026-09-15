@@ -1,16 +1,14 @@
+<CsTest>
+description = "opcode with all input args optional (passign)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "opcode with all input args optional (passign)",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 instr 1
  iv1,iv2,iv3,iv4,S5,S6 passign 
 print iv1

@@ -1,16 +1,14 @@
+<CsTest>
+description = "pvsdiskin offsets, channel interpolation, and loop state"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "pvsdiskin offsets, channel interpolation, and loop state",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 #ifndef TEST_SR
 #define TEST_SR #1024#
 #end

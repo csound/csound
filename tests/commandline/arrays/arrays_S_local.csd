@@ -1,17 +1,15 @@
+<CsTest>
+description = "local S[]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -dnm0
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "local S[]",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;test local SArrays 
 ;(same code in instr 1 and 2, different values)
 ;create and fill string array at i-time, modify at k-time

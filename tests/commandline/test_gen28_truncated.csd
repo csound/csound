@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject truncated GEN28 trajectory"
+
+[expect]
+exit = "nonzero"
+stderr = ["GEN28: malformed trajectory point 2"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject truncated GEN28 trajectory",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "GEN28: malformed trajectory point 2"
-    ]
-  }
-}
-*/
 sr = 48000
 ksmps = 32
 nchnls = 1

@@ -1,17 +1,15 @@
+<CsTest>
+description = "testing schedule with named instr instance"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "testing schedule with named instr instance",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 opcode assert(inst1:i, inst2:i):void
 if inst1 != inst2 then
  exitnow(-1)

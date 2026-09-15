@@ -1,22 +1,18 @@
+<CsTest>
+description = "PARCS does not enter one instrument instance twice"
+
+[expect]
+exit = 0
+
+[profiles.wasm]
+skip = "PARCS requires native worker threads."
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d  -j 4
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "PARCS does not enter one instrument instance twice",
-  "expect": {
-    "exit": 0
-  },
-  "profiles": {
-    "wasm": {
-      "skip": "PARCS requires native worker threads."
-    }
-  }
-}
-*/
 sr = 48000
 ksmps = 1
 nchnls = 1

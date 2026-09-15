@@ -1,19 +1,15 @@
+<CsTest>
+description = "errors/diskin-missing-file.csd"
+
+[expect]
+exit = "nonzero"
+stderr = ["diskin2: THIS_FILE_DOES_NOT_EXIST_12345.wav: failed to open file"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "errors/diskin-missing-file.csd",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "diskin2: THIS_FILE_DOES_NOT_EXIST_12345.wav: failed to open file"
-    ]
-  }
-}
-*/
 sr = 44100
 ksmps = 32
 nchnls = 2

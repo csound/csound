@@ -1,16 +1,14 @@
+<CsTest>
+description = "testing quadrature oscillator"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "testing quadrature oscillator",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 nchnls = 2
 
 instr 1

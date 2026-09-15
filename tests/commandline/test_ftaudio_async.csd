@@ -1,26 +1,18 @@
+<CsTest>
+description = "ftaudio starts a background write and cleans it up"
+
+[expect]
+exit = 0
+
+[profiles.wasm.expect]
+exit = "nonzero"
+stderr = ["Error creating thread"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "ftaudio starts a background write and cleans it up",
-  "expect": {
-    "exit": 0
-  },
-  "profiles": {
-    "wasm": {
-      "expect": {
-        "exit": "nonzero",
-        "stderr": [
-          "Error creating thread"
-        ]
-      }
-    }
-  }
-}
-*/
 sr = 44100
 ksmps = 8
 nchnls = 1

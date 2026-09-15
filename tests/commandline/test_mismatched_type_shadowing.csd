@@ -1,17 +1,15 @@
+<CsTest>
+description = "test explicitly typed locals shadow globals with complete array metadata"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test explicitly typed locals shadow globals with complete array metadata",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 myvar@global:i init 2
 myarr@global:i[] fillarray 1, 2, 3
 

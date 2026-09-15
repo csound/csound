@@ -1,16 +1,12 @@
+<CsTest>
+description = "test functions on arrays (i.e. tabgen)"
+
+[expect]
+exit = "nonzero"
+stderr = ["Array index 9 out of range (0,5) for dimension 1"]
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test functions on arrays (i.e. tabgen)",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "Array index 9 out of range (0,5) for dimension 1"
-    ]
-  }
-}
-*/
 instr 1 ;; lentab
   kS[] init 2
   printk2 lentab(kS)

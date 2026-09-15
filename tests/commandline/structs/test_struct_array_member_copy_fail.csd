@@ -1,17 +1,15 @@
+<CsTest>
+description = "copying struct-array member out of a struct"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "copying struct-array member out of a struct",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 1
 nchnls = 1

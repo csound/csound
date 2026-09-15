@@ -1,16 +1,14 @@
+<CsTest>
+description = "bitshift operands, counts and partial blocks"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "bitshift operands, counts and partial blocks",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr=1024
 ksmps=16
 nchnls=1

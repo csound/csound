@@ -1,22 +1,15 @@
+<CsTest>
+description = "window rejects invalid inputs"
+
+[expect]
+exit = "nonzero"
+stderr = ["window: type must be 0 or 1", "window: expected one-dimensional arrays", "window: offset must be finite and non-negative", "window: array shape changed"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "window rejects invalid inputs",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "window: type must be 0 or 1",
-      "window: expected one-dimensional arrays",
-      "window: offset must be finite and non-negative",
-      "window: array shape changed"
-    ]
-  }
-}
-*/
 sr = 8192
 ksmps = 32
 nchnls = 1

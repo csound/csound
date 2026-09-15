@@ -1,15 +1,13 @@
+<CsTest>
+description = "test k-array with single dimension, assignment to expression value"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test k-array with single dimension, assignment to expression value",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 1
 nchnls = 2

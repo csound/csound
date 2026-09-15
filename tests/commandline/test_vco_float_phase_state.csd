@@ -1,16 +1,14 @@
+<CsTest>
+description = "vco preserves non-power-of-two oscillator phase"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -d -m0 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "vco preserves non-power-of-two oscillator phase",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 1000
 ksmps = 8
 nchnls = 1

@@ -1,17 +1,15 @@
+<CsTest>
+description = "test +=, ==, *= and /="
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test +=, ==, *= and /=",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 opcode Assert,i,ii
  i1,i2 xin
  if i1 != i2  then

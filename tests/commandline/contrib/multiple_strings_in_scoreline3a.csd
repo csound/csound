@@ -1,13 +1,11 @@
+<CsTest>
+description = "contrib/multiple_strings_in_scoreline3a.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "contrib/multiple_strings_in_scoreline3a.csd",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 /*
 as in 2a again replaced named instr by numbered.
 seems to work but wrong output:

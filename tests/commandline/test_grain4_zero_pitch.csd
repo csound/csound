@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject a selected zero grain4 pitch"
+
+[expect]
+exit = "nonzero"
+stderr = ["granule_set: ipitch1 must be greater then zero"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject a selected zero grain4 pitch",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "granule_set: ipitch1 must be greater then zero"
-    ]
-  }
-}
-*/
 sr = 8000
 ksmps = 1
 nchnls = 1

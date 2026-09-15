@@ -1,17 +1,15 @@
+<CsTest>
+description = "test nested diskin2 instance reuse"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test nested diskin2 instance reuse",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 gkUdoFirst init 0
 gkUdoSecond init 0
 gkSubFirst init 0

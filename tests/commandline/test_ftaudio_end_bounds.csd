@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject an ftaudio end past the table"
+
+[expect]
+exit = "nonzero"
+stderr = ["ftaudio: illegal range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject an ftaudio end past the table",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "ftaudio: illegal range"
-    ]
-  }
-}
-*/
 sr = 44100
 ksmps = 8
 nchnls = 1

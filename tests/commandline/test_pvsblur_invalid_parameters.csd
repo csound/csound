@@ -1,22 +1,15 @@
+<CsTest>
+description = "reject invalid pvsblur parameters"
+
+[expect]
+exit = "nonzero"
+stderr = ["pvsblur: invalid maximum delay", "pvsblur does not work sliding yet", "pvsblur: invalid frame size", "pvsblur: format must be amp-freq or amp-phase"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject invalid pvsblur parameters",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "pvsblur: invalid maximum delay",
-      "pvsblur does not work sliding yet",
-      "pvsblur: invalid frame size",
-      "pvsblur: format must be amp-freq or amp-phase"
-    ]
-  }
-}
-*/
 sr = 8192
 ksmps = 32
 nchnls = 1

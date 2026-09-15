@@ -1,20 +1,16 @@
+<CsTest>
+description = "expected failure: unary + parse error"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unexpected NEWLINE"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "expected failure: unary + parse error",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "syntax error, unexpected NEWLINE"
-    ]
-  }
-}
-*/
 ; Test: unary '+' missing operand.
 ; Expected: parse failure without any crash.
 

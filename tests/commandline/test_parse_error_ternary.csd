@@ -1,20 +1,16 @@
+<CsTest>
+description = "expected failure: ternary parse error"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unexpected ')'"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "expected failure: ternary parse error",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "syntax error, unexpected ')'"
-    ]
-  }
-}
-*/
 ; Test: ternary missing RHS.
 ; Expected: parse failure without any crash.
 

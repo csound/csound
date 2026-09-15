@@ -1,14 +1,12 @@
+<CsTest>
+description = "kgoto going to a label"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>
-/* Csound-test
-{
-  "description": "kgoto going to a label",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;
 sr=44100
 ksmps=1

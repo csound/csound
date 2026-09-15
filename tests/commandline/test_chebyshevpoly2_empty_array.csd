@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject empty Chebyshev coefficients"
+
+[expect]
+exit = "nonzero"
+stderr = ["chebyshevpoly2: coefficients must be a non-empty one-dimensional array"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject empty Chebyshev coefficients",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "chebyshevpoly2: coefficients must be a non-empty one-dimensional array"
-    ]
-  }
-}
-*/
 sr = 8000
 ksmps = 8
 nchnls = 1

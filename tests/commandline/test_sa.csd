@@ -1,16 +1,14 @@
+<CsTest>
+description = "test sample accurate mode"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n --sample-accurate
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test sample accurate mode",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs = 1
 ksmps = 10
 

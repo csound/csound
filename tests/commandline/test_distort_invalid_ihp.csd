@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject non-finite distort filter frequency"
+
+[expect]
+exit = "nonzero"
+stderr = ["distort: half-power frequency must be finite"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject non-finite distort filter frequency",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "distort: half-power frequency must be finite"
-    ]
-  }
-}
-*/
 sr = 8000
 ksmps = 8
 nchnls = 1

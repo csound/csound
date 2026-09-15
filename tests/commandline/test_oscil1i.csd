@@ -1,16 +1,14 @@
+<CsTest>
+description = "oscil1i interpolates scans and holds their endpoints"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "oscil1i interpolates scans and holds their endpoints",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 8192
 ksmps = 1
 nchnls = 1

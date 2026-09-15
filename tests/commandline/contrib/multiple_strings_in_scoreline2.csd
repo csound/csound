@@ -1,14 +1,12 @@
+<CsTest>
+description = "contrib/multiple_strings_in_scoreline2.csd"
+
+[expect]
+exit = 0
+stderr = ["Hello string world!"]
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "contrib/multiple_strings_in_scoreline2.csd",
-  "expect": {
-    "exit": 0,
-    "stderr": ["Hello string world!"]
-  }
-}
-*/
 /*
 only one string more than in the previous example.
 now the output is:

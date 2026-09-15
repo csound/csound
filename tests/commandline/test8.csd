@@ -1,14 +1,12 @@
+<CsTest>
+description = "Testing multi-part expressions, no functions"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>
-/* Csound-test
-{
-  "description": "Testing multi-part expressions, no functions",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;
 sr=44100
 ksmps=1

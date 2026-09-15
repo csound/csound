@@ -1,16 +1,14 @@
+<CsTest>
+description = "testing genarray shorthand"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "testing genarray shorthand",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 0dbfs = 1
 
 instr 1

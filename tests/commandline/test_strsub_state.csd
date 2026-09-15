@@ -1,16 +1,14 @@
+<CsTest>
+description = "substring results propagate through string assignments"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "substring results propagate through string assignments",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 1024
 ksmps = 16
 nchnls = 1

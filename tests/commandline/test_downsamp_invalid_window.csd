@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject invalid downsamp window"
+
+[expect]
+exit = "nonzero"
+stderr = ["downsamp: window length out of range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject invalid downsamp window",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "downsamp: window length out of range"
-    ]
-  }
-}
-*/
 sr = 8000
 ksmps = 8
 nchnls = 1

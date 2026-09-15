@@ -1,20 +1,15 @@
+<CsTest>
+description = "splitrig rejects invalid maximum tick counts"
+
+[expect]
+exit = "nonzero"
+stderr = ["splitrig: invalid maximum tick count", "splitrig: table cannot hold one tick"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "splitrig rejects invalid maximum tick counts",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "splitrig: invalid maximum tick count",
-      "splitrig: table cannot hold one tick"
-    ]
-  }
-}
-*/
 sr = 48000
 ksmps = 32
 nchnls = 1

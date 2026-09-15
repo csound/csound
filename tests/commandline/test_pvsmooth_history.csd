@@ -1,16 +1,14 @@
+<CsTest>
+description = "pvsmooth sample history, reset, and partial blocks"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "pvsmooth sample history, reset, and partial blocks",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 8192
 ksmps = 32
 nchnls = 1

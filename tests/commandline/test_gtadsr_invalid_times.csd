@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject out-of-range gtadsr stage times"
+
+[expect]
+exit = "nonzero"
+stderr = ["gtadsr: attack and decay times out of range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject out-of-range gtadsr stage times",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "gtadsr: attack and decay times out of range"
-    ]
-  }
-}
-*/
 sr = 8192
 ksmps = 16
 nchnls = 1

@@ -1,16 +1,14 @@
+<CsTest>
+description = "test bounded GEN41 and GEN42 probability rounding"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test bounded GEN41 and GEN42 probability rounding",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 32
 nchnls = 1

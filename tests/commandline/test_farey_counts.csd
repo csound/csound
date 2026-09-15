@@ -1,16 +1,14 @@
+<CsTest>
+description = "Farey lengths and generator endpoints in every output mode"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "Farey lengths and generator endpoints in every output mode",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 8192
 ksmps = 16
 nchnls = 1

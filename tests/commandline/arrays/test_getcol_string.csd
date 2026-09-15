@@ -1,16 +1,14 @@
+<CsTest>
+description = "getcol accepts the last string-array column"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -ndm0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "getcol accepts the last string-array column",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 #include "../libassert.orc"
 
 instr 1

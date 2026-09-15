@@ -1,15 +1,13 @@
+<CsTest>
+description = "Test maxalloc opcode value of 0"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "Test maxalloc opcode value of 0",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr	=	44100
 ksmps	=	1
 nchnls	=	2

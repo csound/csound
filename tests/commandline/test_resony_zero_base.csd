@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject undefined resony bandwidth scaling"
+
+[expect]
+exit = "nonzero"
+stderr = ["resony: base frequency must be nonzero"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject undefined resony bandwidth scaling",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "resony: base frequency must be nonzero"
-    ]
-  }
-}
-*/
 sr = 8000
 ksmps = 16
 nchnls = 1

@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject sub-sample grain4 source length"
+
+[expect]
+exit = "nonzero"
+stderr = ["granule_set: ilength must span at least one sample"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject sub-sample grain4 source length",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "granule_set: ilength must span at least one sample"
-    ]
-  }
-}
-*/
 sr = 8000
 ksmps = 1
 nchnls = 1

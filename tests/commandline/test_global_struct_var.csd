@@ -1,16 +1,14 @@
+<CsTest>
+description = "testing global structure var"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n 
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "testing global structure var",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 struct MyType val0:i, val1:i
 tmpVal@global:MyType init 8, 88
 tmpVal2@global:MyType init 4, 44

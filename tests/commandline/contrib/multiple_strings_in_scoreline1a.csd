@@ -1,16 +1,14 @@
+<CsTest>
+description = "contrib/multiple_strings_in_scoreline1a.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -+max_str_len=1000 ;this does not help
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "contrib/multiple_strings_in_scoreline1a.csd",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 /*
 testing long strings
 looks like this is the reason for the bug

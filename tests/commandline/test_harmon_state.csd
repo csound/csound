@@ -1,16 +1,14 @@
+<CsTest>
+description = "harmon234 partial blocks and pulse state"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "harmon234 partial blocks and pulse state",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 8192
 ksmps = 64
 nchnls = 1

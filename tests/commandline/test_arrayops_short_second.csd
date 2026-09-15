@@ -1,19 +1,15 @@
+<CsTest>
+description = "array math rejects a shortened second input"
+
+[expect]
+exit = "nonzero"
+stderr = ["second input array is too short"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "array math rejects a shortened second input",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "second input array is too short"
-    ]
-  }
-}
-*/
 sr = 1024
 ksmps = 16
 nchnls = 1

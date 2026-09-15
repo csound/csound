@@ -1,17 +1,15 @@
+<CsTest>
+description = "global i[]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -dnm0
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "global i[]",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;test global iArrays
 ;jh march 2013
 

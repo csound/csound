@@ -1,21 +1,15 @@
+<CsTest>
+description = "reject invalid metro2 phase, frequency, and swing"
+
+[expect]
+exit = "nonzero"
+stderr = ["metro2: invalid initial phase", "metro2: frequency must be finite and nonnegative", "metro2: swing must be between 0 and 1"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject invalid metro2 phase, frequency, and swing",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "metro2: invalid initial phase",
-      "metro2: frequency must be finite and nonnegative",
-      "metro2: swing must be between 0 and 1"
-    ]
-  }
-}
-*/
 sr = 1024
 ksmps = 64
 nchnls = 1

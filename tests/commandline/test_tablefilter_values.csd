@@ -1,16 +1,14 @@
+<CsTest>
+description = "tablefilter parameters, rational values, and table wrapping"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "tablefilter parameters, rational values, and table wrapping",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 8192
 ksmps = 16
 nchnls = 1

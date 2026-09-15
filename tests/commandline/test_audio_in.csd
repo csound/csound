@@ -1,14 +1,12 @@
+<CsTest>
+description = "test the parsing of the 'in' operator as opcode"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 -+rtaudio=dummy
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test the parsing of the 'in' operator as opcode",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr=44100
 ksmps=1
 nchnls=1

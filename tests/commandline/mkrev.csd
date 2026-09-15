@@ -1,17 +1,15 @@
+<CsTest>
+description = "mkrev.csd"
+skip = "Manual impulse-response workflow: requires generated sweep.wav."
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -o rev.wav -W -f
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "mkrev.csd",
-  "expect": {
-    "exit": 0
-  },
-  "skip": "Manual impulse-response workflow: requires generated sweep.wav."
-}
-*/
 0dbfs=1
 
 instr 1

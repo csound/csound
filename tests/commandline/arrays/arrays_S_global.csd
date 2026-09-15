@@ -1,17 +1,15 @@
+<CsTest>
+description = "global S[]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -dnm0
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "global S[]",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;test global SArrays
 ;jh march 2013
 

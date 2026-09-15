@@ -1,16 +1,14 @@
+<CsTest>
+description = "test connect i-rate gain (omit, unity, non-unity, fan-in, duplicate)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test connect i-rate gain (omit, unity, non-unity, fan-in, duplicate)",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 48000
 ksmps = 32
 nchnls = 1

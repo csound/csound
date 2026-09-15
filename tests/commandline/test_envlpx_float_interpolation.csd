@@ -1,16 +1,14 @@
+<CsTest>
+description = "envlpx interpolates non-power-of-two tables correctly"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -d -m0 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "envlpx interpolates non-power-of-two tables correctly",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr=48000
 ksmps=1
 nchnls=1

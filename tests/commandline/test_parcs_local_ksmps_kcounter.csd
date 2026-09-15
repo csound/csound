@@ -1,21 +1,17 @@
+<CsTest>
+description = "PARCS kcounter test with local ksmps"
+
+[expect]
+exit = 0
+
+[profiles.wasm]
+skip = "PARCS requires native worker threads."
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d  -j 2
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "PARCS kcounter test with local ksmps",
-  "expect": {
-    "exit": 0
-  },
-  "profiles": {
-    "wasm": {
-      "skip": "PARCS requires native worker threads."
-    }
-  }
-}
-*/
 sr = 64
 ksmps = 8
 nchnls = 1

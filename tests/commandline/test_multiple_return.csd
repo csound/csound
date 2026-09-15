@@ -1,14 +1,12 @@
+<CsTest>
+description = "test multiple return from express (i.. a1,a2 = xx())"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test multiple return from express (i.. a1,a2 = xx())",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr	=	44100
 ksmps	=	1
 nchnls	=	2

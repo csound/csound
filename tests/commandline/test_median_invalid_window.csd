@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject invalid median window"
+
+[expect]
+exit = "nonzero"
+stderr = ["median: window size must be at least 1"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject invalid median window",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "median: window size must be at least 1"
-    ]
-  }
-}
-*/
 #ifndef WINDOW
 #define WINDOW #0#
 #endif

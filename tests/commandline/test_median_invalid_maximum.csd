@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject invalid median maximum window"
+
+[expect]
+exit = "nonzero"
+stderr = ["median: invalid maximum window size"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject invalid median maximum window",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "median: invalid maximum window size"
-    ]
-  }
-}
-*/
 #ifndef MAXIMUM
 #define MAXIMUM #0#
 #endif

@@ -1,17 +1,15 @@
+<CsTest>
+description = "test for =.generic copy on k-rate only"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test for =.generic copy on k-rate only",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ksmps = 32
 
 instr copy_one_dim_i2i

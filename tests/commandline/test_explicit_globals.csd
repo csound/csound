@@ -1,17 +1,15 @@
+<CsTest>
+description = "test global declaration of explicit types"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test global declaration of explicit types",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 myvar@global:i init 0
 myarr@global:i[] fillarray 1,2,3
 

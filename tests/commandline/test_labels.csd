@@ -1,17 +1,15 @@
+<CsTest>
+description = "test labels with tab and space indentation"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test labels with tab and space indentation",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 32
 nchnls = 2

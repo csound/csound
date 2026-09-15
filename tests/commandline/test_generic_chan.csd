@@ -1,17 +1,15 @@
+<CsTest>
+description = "testing generic bus channel"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "testing generic bus channel",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ; Verifies that a non-UDT generic type can round-trip through the
 ; generic software bus. We write a Complex value, read it back through
 ; chnget, then assert both components at k-time.

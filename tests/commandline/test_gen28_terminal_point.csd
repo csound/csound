@@ -1,16 +1,14 @@
+<CsTest>
+description = "keep GEN28 terminal point values"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "keep GEN28 terminal point values",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 48000
 ksmps = 32
 nchnls = 1

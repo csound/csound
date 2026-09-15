@@ -1,16 +1,14 @@
+<CsTest>
+description = "pvsosc frame timing and harmonic selection"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "pvsosc frame timing and harmonic selection",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 8192
 ksmps = 32
 nchnls = 1

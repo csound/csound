@@ -1,23 +1,15 @@
+<CsTest>
+description = "reject invalid pvsinit parameters"
+
+[expect]
+exit = "nonzero"
+stderr = ["pvsinit: invalid frame size", "pvsinit: frame size must be even", "pvsinit: invalid overlap or window size", "pvsinit: invalid window type", "pvsinit: unsupported format"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject invalid pvsinit parameters",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "pvsinit: invalid frame size",
-      "pvsinit: frame size must be even",
-      "pvsinit: invalid overlap or window size",
-      "pvsinit: invalid window type",
-      "pvsinit: unsupported format"
-    ]
-  }
-}
-*/
 sr = 8192
 ksmps = 16
 nchnls = 1

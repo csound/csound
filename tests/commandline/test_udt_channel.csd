@@ -1,17 +1,15 @@
+<CsTest>
+description = "testing user-defined type channel"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "testing user-defined type channel",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ; Struct under test: one k-rate member and one i-rate member.
 struct Test val1:k, val2:i
 

@@ -1,14 +1,12 @@
+<CsTest>
+description = "mixed numbered and named instruments"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>
-/* Csound-test
-{
-  "description": "mixed numbered and named instruments",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 ;
 sr=44100
 ksmps=10

@@ -1,17 +1,15 @@
+<CsTest>
+description = "test struct member access"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test struct member access",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 64
 nchnls = 2

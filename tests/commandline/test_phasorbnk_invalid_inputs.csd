@@ -1,20 +1,15 @@
+<CsTest>
+description = "reject invalid phasorbnk bank sizes and indices"
+
+[expect]
+exit = "nonzero"
+stderr = ["phasorbnk: invalid bank size", "phasorbnk: invalid index"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject invalid phasorbnk bank sizes and indices",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "phasorbnk: invalid bank size",
-      "phasorbnk: invalid index"
-    ]
-  }
-}
-*/
 sr = 8192
 ksmps = 16
 nchnls = 1

@@ -1,16 +1,14 @@
+<CsTest>
+description = "ftaudio writes bounded stereo frame ranges"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "ftaudio writes bounded stereo frame ranges",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 8
 nchnls = 1

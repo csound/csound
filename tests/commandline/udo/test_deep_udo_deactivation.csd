@@ -1,21 +1,17 @@
+<CsTest>
+description = "deep UDO chains deactivate without exhausting the C stack"
+args = ["-nd"]
+application_args = []
+stack_limit_kb = 256
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "deep UDO chains deactivate without exhausting the C stack",
-  "expect": {
-    "exit": 0
-  },
-  "args": [
-    "-nd"
-  ],
-  "application_args": [],
-  "stack_limit_kb": 256
-}
-*/
 sr = 44100
 ksmps = 32
 nchnls = 1

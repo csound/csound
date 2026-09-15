@@ -1,3 +1,9 @@
+<CsTest>
+description = "UDO with k[] arg"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -d  
@@ -5,14 +11,6 @@
 <CsInstruments>
 
 
-/* Csound-test
-{
-  "description": "UDO with k[] arg",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 opcode Test,k,k[]
 
 kS[] xin

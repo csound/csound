@@ -1,19 +1,15 @@
+<CsTest>
+description = "reject non-finite scantable frequency"
+
+[expect]
+exit = "nonzero"
+stderr = ["Scantable: frequency must be finite"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "reject non-finite scantable frequency",
-  "expect": {
-    "exit": "nonzero",
-    "stderr": [
-      "Scantable: frequency must be finite"
-    ]
-  }
-}
-*/
 sr = 8192
 ksmps = 16
 nchnls = 1

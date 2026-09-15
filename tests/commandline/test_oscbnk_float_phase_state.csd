@@ -1,16 +1,14 @@
+<CsTest>
+description = "oscbnk preserves non-power-of-two oscillator phase"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "oscbnk preserves non-power-of-two oscillator phase",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 1000
 kr = 125
 ksmps = 8

@@ -1,17 +1,15 @@
+<CsTest>
+description = "test dbap and dbapgains opcodes"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -o dac
 </CsOptions>
 <CsInstruments>
 
-/* Csound-test
-{
-  "description": "test dbap and dbapgains opcodes",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 sr = 44100
 ksmps = 1
 nchnls = 8

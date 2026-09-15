@@ -1,16 +1,14 @@
+<CsTest>
+description = "test wrong annotation case"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
 </CsOptions>
 <CsInstruments>
-/* Csound-test
-{
-  "description": "test wrong annotation case",
-  "expect": {
-    "exit": 0
-  }
-}
-*/
 opcode Test,kk,k
 var:k xin
 b:k = var
