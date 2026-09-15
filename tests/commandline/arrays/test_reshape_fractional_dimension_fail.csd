@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject fractional reshape dimensions"
+
+[expect]
+exit = "nonzero"
+stderr = ["reshapearray: dimension 0 must be a positive integer"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128
