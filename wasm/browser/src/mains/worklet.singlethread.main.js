@@ -107,6 +107,22 @@ class SingleThreadAudioWorkletMainThread {
     }
   }
 
+  async beginFadeOut() {
+    if (!this.workletProxy) {
+      return 0;
+    }
+    return (await this.workletProxy["beginFadeOut"]()) || 0;
+  }
+
+  async waitForFadeOut(frameCount) {
+    if (!frameCount) {
+      return;
+    }
+    const sampleRate = this.audioContext && this.audioContext.sampleRate;
+    const fadeMs = (1000 * frameCount) / (sampleRate || 44100);
+    await new Promise((resolve) => setTimeout(resolve, fadeMs + 20));
+  }
+
   async onPlayStateChange(newPlayState) {
     if (this.currentPlayState === newPlayState || !this.publicEvents) {
       return;
@@ -125,6 +141,8 @@ class SingleThreadAudioWorkletMainThread {
       }
 
       case "realtimePerformanceEnded": {
+        const fadeFrames = await this.beginFadeOut();
+        await this.waitForFadeOut(fadeFrames);
         releaseMicrophoneStream(this);
         this.midiPortStarted = false;
         this.currentPlayState = undefined;
