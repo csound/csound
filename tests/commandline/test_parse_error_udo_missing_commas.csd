@@ -1,3 +1,10 @@
+<CsTest>
+description = "expected failure: udo missing commas"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unexpected UDO_IDENT, expecting ',' or '('"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

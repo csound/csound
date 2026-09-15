@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing tempo restoration after midifilepos"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

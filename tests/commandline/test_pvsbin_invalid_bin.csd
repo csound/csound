@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid pvsbin indices"
+
+[expect]
+exit = "nonzero"
+stderr = ["pvsbin: bin index out of range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

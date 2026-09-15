@@ -1,3 +1,9 @@
+<CsTest>
+description = "test filter state on first init"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test resony frequency spacing and bandwidth"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

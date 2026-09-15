@@ -1,3 +1,9 @@
+<CsTest>
+description = "audio input opcodes align partial-block input frames"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -i test_input_ramp_16.wav -n -d -m0 --sample-accurate

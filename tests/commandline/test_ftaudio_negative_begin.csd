@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject a negative ftaudio start frame"
+
+[expect]
+exit = "nonzero"
+stderr = ["ftaudio: illegal range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

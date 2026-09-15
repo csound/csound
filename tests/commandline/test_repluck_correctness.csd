@@ -1,3 +1,9 @@
+<CsTest>
+description = "test plucked-string waveguide limits"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "bformdec1 preserves partial blocks and selects the input order"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

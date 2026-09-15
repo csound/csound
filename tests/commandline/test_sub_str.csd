@@ -1,3 +1,9 @@
+<CsTest>
+description = "test raw string embedded in raw string"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

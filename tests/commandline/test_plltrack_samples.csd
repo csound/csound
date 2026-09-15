@@ -1,3 +1,9 @@
+<CsTest>
+description = "plltrack constant input, silence, and sample bounds"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

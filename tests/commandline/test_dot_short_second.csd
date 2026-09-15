@@ -1,3 +1,10 @@
+<CsTest>
+description = "dot rejects a shortened second input"
+
+[expect]
+exit = "nonzero"
+stderr = ["second input array is too short"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

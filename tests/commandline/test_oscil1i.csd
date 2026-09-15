@@ -1,3 +1,9 @@
+<CsTest>
+description = "oscil1i interpolates scans and holds their endpoints"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

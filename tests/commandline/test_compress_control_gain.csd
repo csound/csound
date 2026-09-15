@@ -1,3 +1,9 @@
+<CsTest>
+description = "compressors update gain when ratio or knee controls change"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

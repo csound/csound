@@ -1,3 +1,9 @@
+<CsTest>
+description = "test rspline mixed-rate bounds"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

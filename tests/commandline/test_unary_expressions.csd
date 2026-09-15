@@ -1,3 +1,9 @@
+<CsTest>
+description = "various unary operators in various expressions"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

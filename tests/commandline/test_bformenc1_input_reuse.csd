@@ -1,3 +1,9 @@
+<CsTest>
+description = "bformenc1 input reuse in scalar and array outputs"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

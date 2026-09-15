@@ -1,3 +1,9 @@
+<CsTest>
+description = "pvsadsyn accepts a stepped selection ending at the last bin"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

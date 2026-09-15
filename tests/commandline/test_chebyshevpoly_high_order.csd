@@ -1,3 +1,9 @@
+<CsTest>
+description = "test high-order Chebyshev evaluation"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "lowpass2 input rates and optional state preservation"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

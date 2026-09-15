@@ -1,3 +1,9 @@
+<CsTest>
+description = "noise amplitude offsets and filter state"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

@@ -1,3 +1,9 @@
+<CsTest>
+description = "syncloop retires grains at the envelope end"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

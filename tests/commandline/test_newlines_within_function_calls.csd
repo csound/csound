@@ -1,3 +1,9 @@
+<CsTest>
+description = "test newlines allowed within function calls"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>

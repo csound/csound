@@ -1,3 +1,9 @@
+<CsTest>
+description = "nested struct-array member reads inside boolean expression args"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

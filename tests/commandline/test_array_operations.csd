@@ -1,3 +1,9 @@
+<CsTest>
+description = "test multiple operations on multiple array types"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -ndm0

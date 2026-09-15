@@ -1,3 +1,10 @@
+<CsTest>
+description = "pvsadsyn rejects invalid bin increments"
+
+[expect]
+exit = "nonzero"
+stderr = ["pvsadsyn: ibinincr must be positive and no larger than the number of bins.", "pvsadsyn: ibinoffset out of range.", "pvsadsyn: ibinoffset + ((inoscs - 1) * ibinincr) too large."]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test nested type definitions"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

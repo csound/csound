@@ -1,3 +1,10 @@
+<CsTest>
+description = "harmon234 rejects unsupported history sizes"
+
+[expect]
+exit = "nonzero"
+stderr = ["harmon234: lowest pitch is out of range", "harmon234: pitch estimate is out of range", "harmon234: voice frequency is out of range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

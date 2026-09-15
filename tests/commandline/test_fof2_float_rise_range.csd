@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject fof2 rise beyond the float-phase range"
+
+[expect]
+exit = "nonzero"
+stderr = ["FOF rise time exceeds supported range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

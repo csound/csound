@@ -1,3 +1,10 @@
+<CsTest>
+description = "counter rejects invalid handles"
+
+[expect]
+exit = "nonzero"
+stderr = ["counter: invalid handle"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

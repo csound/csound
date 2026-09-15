@@ -1,3 +1,10 @@
+<CsTest>
+description = "expected failure: udo missing arg list"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unexpected '=', expecting NEWLINE"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

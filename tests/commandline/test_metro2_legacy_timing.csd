@@ -1,3 +1,9 @@
+<CsTest>
+description = "metro2 preserves legacy timing by default"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

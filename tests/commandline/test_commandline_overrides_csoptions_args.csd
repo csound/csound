@@ -1,3 +1,11 @@
+<CsTest>
+description = "command line application arguments override CsOptions arguments"
+args = ["-nd"]
+application_args = ["--", "concert.orc", "first violin", "--logfile=ignored", ""]
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -- options.orc "viola section" --from=csoptions ""

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test new-style raw strings"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

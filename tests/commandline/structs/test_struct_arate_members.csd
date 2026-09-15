@@ -1,3 +1,9 @@
+<CsTest>
+description = "a-rate struct member write/read with ksmps above parse-time default"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

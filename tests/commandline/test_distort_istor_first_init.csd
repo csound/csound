@@ -1,3 +1,9 @@
+<CsTest>
+description = "test distort state-preserving first init"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

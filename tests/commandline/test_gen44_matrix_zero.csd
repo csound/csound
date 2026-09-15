@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject a zero GEN44 matrix size"
+
+[expect]
+exit = "nonzero"
+stderr = ["GEN44: Invalid matrix size"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

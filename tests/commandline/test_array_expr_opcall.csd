@@ -1,3 +1,9 @@
+<CsTest>
+description = "test array expr in opcall"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,3 +1,9 @@
+<CsTest>
+description = "tests using boolean data-types"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

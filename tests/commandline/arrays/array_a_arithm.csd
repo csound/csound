@@ -1,3 +1,9 @@
+<CsTest>
+description = "test audio array arithmetic operations"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -m128

@@ -1,3 +1,9 @@
+<CsTest>
+description = "tests parsing and eval of inline array[getters]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

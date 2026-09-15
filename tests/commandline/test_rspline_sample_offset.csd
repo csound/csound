@@ -1,3 +1,9 @@
+<CsTest>
+description = "test rspline audio bounds at note onset"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

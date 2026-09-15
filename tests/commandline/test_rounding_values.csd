@@ -1,3 +1,9 @@
+<CsTest>
+description = "floor, ceil, and round preserve numeric values"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

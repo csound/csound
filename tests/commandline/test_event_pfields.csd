@@ -1,3 +1,9 @@
+<CsTest>
+description = "Test pfields on all forms of event"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

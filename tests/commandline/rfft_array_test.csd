@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing complex rfft array ops"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

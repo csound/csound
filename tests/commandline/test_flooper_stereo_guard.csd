@@ -1,3 +1,9 @@
+<CsTest>
+description = "flooper preserves the stereo wrap sample"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

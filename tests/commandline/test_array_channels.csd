@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing bus channels holding arrays"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

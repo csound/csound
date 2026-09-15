@@ -1,3 +1,10 @@
+<CsTest>
+description = "errors/syntax-error.csd"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unexpected ERROR_TOKEN"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -m0

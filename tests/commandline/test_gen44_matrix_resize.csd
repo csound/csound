@@ -1,3 +1,9 @@
+<CsTest>
+description = "resize a short GEN44 table"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

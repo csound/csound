@@ -1,3 +1,9 @@
+<CsTest>
+description = "otafilter output bounds, overdrive and input reuse"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

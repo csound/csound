@@ -1,3 +1,9 @@
+<CsTest>
+description = "test sample accurate mode"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n --sample-accurate

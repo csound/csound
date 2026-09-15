@@ -1,3 +1,9 @@
+<CsTest>
+description = "grain3 float-path interpolation should stay positive"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

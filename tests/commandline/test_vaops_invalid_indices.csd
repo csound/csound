@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid audio buffer indices"
+
+[expect]
+exit = "nonzero"
+stderr = ["Out of range in vaget.k", "Out of range in vaset.k", "Out of range in vasigget.k", "Out of range in vasigset.k"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

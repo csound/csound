@@ -1,3 +1,9 @@
+<CsTest>
+description = "bbcut mono and stereo envelopes across cuts and stutters"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

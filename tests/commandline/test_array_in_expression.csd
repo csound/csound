@@ -1,3 +1,9 @@
+<CsTest>
+description = "test expressions involving arrays"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

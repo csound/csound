@@ -1,3 +1,9 @@
+<CsTest>
+description = "moogladder2 resonance changes and parameter-rate parity"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

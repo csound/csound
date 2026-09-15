@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing complex number operations"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

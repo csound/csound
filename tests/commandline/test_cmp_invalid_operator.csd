@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject malformed cmp operators"
+
+[expect]
+exit = "nonzero"
+stderr = ["cmp: unknown operator. Expecting <, <=, >, >=, ==, !=", "cmp (ternary comparator): operator 2 expected < or <="]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "powershape preserves sign at zero exponent"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

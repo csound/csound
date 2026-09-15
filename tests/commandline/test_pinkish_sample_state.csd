@@ -1,3 +1,9 @@
+<CsTest>
+description = "pinkish amplitude offsets, seeds, and preserved state"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

@@ -1,3 +1,9 @@
+<CsTest>
+description = "reshaping a struct-array copy preserves its source"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject non-finite distort amount"
+
+[expect]
+exit = "nonzero"
+stderr = ["distort: distortion amount must be finite"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

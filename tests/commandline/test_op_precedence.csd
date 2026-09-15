@@ -1,3 +1,9 @@
+<CsTest>
+description = "test bitwise operator precedence vs equality"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "sum/product input reuse and inactive output"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

@@ -1,3 +1,9 @@
+<CsTest>
+description = "oscbnk interpolates both LFO tables"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

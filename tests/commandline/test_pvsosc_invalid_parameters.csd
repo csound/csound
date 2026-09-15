@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid pvsosc parameters"
+
+[expect]
+exit = "nonzero"
+stderr = ["pvsosc: invalid frame size", "pvsosc: frame size must be even", "pvsosc: invalid overlap or window size", "pvsosc does not work while sliding", "pvsosc: invalid window type", "pvsosc: format must be amp-freq", "pvsosc: frequency must be non-negative", "pvsosc: frequency is too low"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

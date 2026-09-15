@@ -1,3 +1,9 @@
+<CsTest>
+description = "global a[]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -d

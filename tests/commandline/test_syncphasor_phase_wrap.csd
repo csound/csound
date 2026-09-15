@@ -1,3 +1,9 @@
+<CsTest>
+description = "test syncphasor phase wrapping"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

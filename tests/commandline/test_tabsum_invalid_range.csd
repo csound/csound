@@ -1,3 +1,10 @@
+<CsTest>
+description = "tabsum rejects out-of-range indexes"
+
+[expect]
+exit = "nonzero"
+stderr = ["tabsum: range is outside table bounds"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

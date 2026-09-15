@@ -1,3 +1,9 @@
+<CsTest>
+description = "test nested diskin2 instance reuse"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

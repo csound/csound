@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject byte-wise clearing of managed array channels"
+
+[expect]
+exit = "nonzero"
+stderr = ["chncleararray: channel 'instrument-records' has managed elements"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

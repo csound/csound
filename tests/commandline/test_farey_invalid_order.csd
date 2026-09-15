@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid Farey sequence orders"
+
+[expect]
+exit = "nonzero"
+stderr = ["fareylen: invalid sequence order"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

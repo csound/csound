@@ -1,3 +1,9 @@
+<CsTest>
+description = "looptseg curve stability"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

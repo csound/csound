@@ -1,3 +1,10 @@
+<CsTest>
+description = "errors/unknown-opcode.csd"
+
+[expect]
+exit = "nonzero"
+stderr = ["unable to find opcode with name: nosuchopcode"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -m0

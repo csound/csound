@@ -1,3 +1,10 @@
+<CsTest>
+description = "ableton_link_test_force.csd"
+skip = "Interactive demo requiring an Ableton Link peer."
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsLicense>
 T E S T S   F O R   A B L E T O N   L I N K   O P C O D E S

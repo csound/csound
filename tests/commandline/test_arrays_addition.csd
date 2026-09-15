@@ -1,3 +1,9 @@
+<CsTest>
+description = "test array arithmetic (i.e. k[] + k[]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "load a valid GEN44 matrix"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

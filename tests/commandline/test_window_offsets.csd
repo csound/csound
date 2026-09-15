@@ -1,3 +1,9 @@
+<CsTest>
+description = "window offsets and array reinitialization"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test connect i-rate gain (omit, unity, non-unity, fan-in, duplicate)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

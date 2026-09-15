@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject managed opcode-object output access"
+
+[expect]
+exit = "nonzero"
+stderr = ["getp does not support managed outputs"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test named instrument ramps"
+
+[expect]
+exit = 0
+</CsTest>
 ; Test for named instrument ramps
 ; Related to issue: https://github.com/csound/csound/issues/2201
 ; Fixed by PR: https://github.com/csound/csound/pull/2335

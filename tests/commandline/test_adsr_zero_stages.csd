@@ -1,3 +1,9 @@
+<CsTest>
+description = "ADSR zero-length stages and delay"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

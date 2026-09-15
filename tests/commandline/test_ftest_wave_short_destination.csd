@@ -1,3 +1,9 @@
+<CsTest>
+description = "reject an undersized wave table without crashing"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -d -m0 -n

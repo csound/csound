@@ -1,3 +1,9 @@
+<CsTest>
+description = "grain4 preserves sample rounding for source regions"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

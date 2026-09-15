@@ -1,3 +1,9 @@
+<CsTest>
+description = "test labels with tab and space indentation"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test signal-flow graph opcodes"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 ; Select audio/midi flags here according to platform

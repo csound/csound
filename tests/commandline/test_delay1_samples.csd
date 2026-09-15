@@ -1,3 +1,9 @@
+<CsTest>
+description = "delay1 input reuse, active samples and retained state"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

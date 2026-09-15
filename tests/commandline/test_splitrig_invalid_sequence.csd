@@ -1,3 +1,10 @@
+<CsTest>
+description = "splitrig rejects invalid indexes and tick counts"
+
+[expect]
+exit = "nonzero"
+stderr = ["splitrig: sequence index out of range", "splitrig: invalid sequence tick count"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

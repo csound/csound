@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing real-to-complex and complex-to-real fft"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

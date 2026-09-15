@@ -1,3 +1,10 @@
+<CsTest>
+description = "expected failure: unary + parse error"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unexpected NEWLINE"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

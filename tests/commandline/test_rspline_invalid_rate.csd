@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid rspline rates"
+
+[expect]
+exit = "nonzero"
+stderr = ["rspline: rates must be finite and non-negative"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test type equality operator"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

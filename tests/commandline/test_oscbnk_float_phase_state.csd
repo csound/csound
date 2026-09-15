@@ -1,3 +1,9 @@
+<CsTest>
+description = "oscbnk preserves non-power-of-two oscillator phase"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

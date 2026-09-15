@@ -1,3 +1,9 @@
+<CsTest>
+description = "gbuzz scales non-power-of-two table indexes correctly"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -d -m0 -n

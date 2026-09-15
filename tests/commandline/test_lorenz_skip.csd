@@ -1,3 +1,9 @@
+<CsTest>
+description = "lorenz integration steps per sample"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

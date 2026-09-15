@@ -1,3 +1,10 @@
+<CsTest>
+description = "test sample-accurate local ksmps offsets with PARCS"
+args = ["-nd", "--num-threads=2"]
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

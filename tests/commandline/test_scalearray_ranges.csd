@@ -1,3 +1,9 @@
+<CsTest>
+description = "scalearray ranges, constant input and current array length"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

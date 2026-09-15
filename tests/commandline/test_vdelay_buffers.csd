@@ -1,3 +1,9 @@
+<CsTest>
+description = "test short and wrapped variable delays"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

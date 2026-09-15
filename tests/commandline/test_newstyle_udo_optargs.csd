@@ -1,3 +1,9 @@
+<CsTest>
+description = "test newstyle UDO optional args"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

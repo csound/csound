@@ -1,3 +1,9 @@
+<CsTest>
+description = "pvsosc frame timing and harmonic selection"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

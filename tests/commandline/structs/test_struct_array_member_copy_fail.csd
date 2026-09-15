@@ -1,3 +1,9 @@
+<CsTest>
+description = "copying struct-array member out of a struct"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

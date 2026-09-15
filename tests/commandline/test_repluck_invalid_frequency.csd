@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid plucked-string frequencies"
+
+[expect]
+exit = "nonzero"
+stderr = ["repluck/wgpluck2: invalid frequency"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

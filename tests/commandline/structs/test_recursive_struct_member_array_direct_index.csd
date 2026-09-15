@@ -1,3 +1,9 @@
+<CsTest>
+description = "direct indexing of recursive struct-array members"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

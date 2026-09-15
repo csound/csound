@@ -1,3 +1,9 @@
+<CsTest>
+description = "test synthesizing an array arg from a function-call"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

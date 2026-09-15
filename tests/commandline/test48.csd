@@ -1,3 +1,10 @@
+<CsTest>
+description = "expected failure with variable used before defined"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, get_arg_type2: Variable 'amod' used before defined", "syntax error, Variable type for amod could not be determined"]
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 nchnls = 1

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test splicing instr order"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

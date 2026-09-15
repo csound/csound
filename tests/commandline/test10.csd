@@ -1,3 +1,9 @@
+<CsTest>
+description = "kgoto going to a label"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

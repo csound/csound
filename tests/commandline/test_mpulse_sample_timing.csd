@@ -1,3 +1,9 @@
+<CsTest>
+description = "mpulse delay units and sample scheduling"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

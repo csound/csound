@@ -1,3 +1,9 @@
+<CsTest>
+description = "buzz current amplitude and phase across table types"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

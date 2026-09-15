@@ -1,3 +1,9 @@
+<CsTest>
+description = "pan2 preserves input samples when outputs reuse them"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

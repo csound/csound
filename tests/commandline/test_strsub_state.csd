@@ -1,3 +1,9 @@
+<CsTest>
+description = "substring results propagate through string assignments"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

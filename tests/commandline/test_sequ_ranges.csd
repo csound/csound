@@ -1,3 +1,9 @@
+<CsTest>
+description = "sequ ranges, permutations, state, and timing"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

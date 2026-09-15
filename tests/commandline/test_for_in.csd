@@ -1,3 +1,9 @@
+<CsTest>
+description = "for in loop"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,3 +1,9 @@
+<CsTest>
+description = "dbap zero weights and weighted gain normalization"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

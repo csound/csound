@@ -1,3 +1,9 @@
+<CsTest>
+description = "Farey lengths and generator endpoints in every output mode"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "Testing i^j"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

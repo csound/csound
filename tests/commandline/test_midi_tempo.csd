@@ -1,3 +1,9 @@
+<CsTest>
+description = "test tempo reading from midifile"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -F rain.mid -T

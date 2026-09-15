@@ -1,3 +1,9 @@
+<CsTest>
+description = "test follow period handling"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

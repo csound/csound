@@ -1,3 +1,9 @@
+<CsTest>
+description = "space and spdist handle the last trajectory frame"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

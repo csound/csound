@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing new instance opcodes"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

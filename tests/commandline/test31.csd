@@ -1,3 +1,9 @@
+<CsTest>
+description = "i-rate conditional test"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid dconv sizes"
+
+[expect]
+exit = "nonzero"
+stderr = ["dconv: isize must be at least 1"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

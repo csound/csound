@@ -1,3 +1,9 @@
+<CsTest>
+description = "adsynt2 linear and exponential ramps across partial blocks"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

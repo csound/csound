@@ -1,3 +1,9 @@
+<CsTest>
+description = "tabsum handles valid table ranges"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

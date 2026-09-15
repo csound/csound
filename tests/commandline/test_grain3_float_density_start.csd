@@ -1,3 +1,9 @@
+<CsTest>
+description = "grain3 float path should start its first grain immediately"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test input with local ksmps"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -i test_values.wav -n -d

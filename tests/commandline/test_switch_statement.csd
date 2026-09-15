@@ -1,3 +1,9 @@
+<CsTest>
+description = "tests the new switch statement operator"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing midifile time counting"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -F catherine.mid -T

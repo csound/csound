@@ -1,3 +1,9 @@
+<CsTest>
+description = "test struct-to-struct assignment"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

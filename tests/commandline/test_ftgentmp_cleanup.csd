@@ -1,3 +1,9 @@
+<CsTest>
+description = "ftgentmp table lifetime across reinit and note reuse"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d

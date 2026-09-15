@@ -1,3 +1,9 @@
+<CsTest>
+description = "K-type arguments work with pass-by-ref"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid dcblock2 order"
+
+[expect]
+exit = "nonzero"
+stderr = ["dcblock2: invalid order"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

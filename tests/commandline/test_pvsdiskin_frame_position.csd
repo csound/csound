@@ -1,3 +1,9 @@
+<CsTest>
+description = "pvsdiskin offsets, channel interpolation, and loop state"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

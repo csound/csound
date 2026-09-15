@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid pvstencil inputs"
+
+[expect]
+exit = "nonzero"
+stderr = ["Invalid ftable no. 999.000000", "pvstencil: ftable needs to equal the number of bins", "pvstencil: signal format must be amp-phase or amp-freq."]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

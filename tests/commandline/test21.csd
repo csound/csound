@@ -1,3 +1,9 @@
+<CsTest>
+description = "if-elseif-else with multiple elseif blocks"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

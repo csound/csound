@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid syncphasor phase"
+
+[expect]
+exit = "nonzero"
+stderr = ["syncphasor: invalid phase"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid nestedap delay layout"
+
+[expect]
+exit = "nonzero"
+stderr = ["nestedap: invalid third delay"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

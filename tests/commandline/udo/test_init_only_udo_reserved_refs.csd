@@ -1,3 +1,9 @@
+<CsTest>
+description = "Recycled init-only UDOs restore reserved instance references"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

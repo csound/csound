@@ -1,3 +1,10 @@
+<CsTest>
+description = "cell rejects invalid sizes and rule indices"
+
+[expect]
+exit = "nonzero"
+stderr = ["cell: invalid num of elements", "cell: rule index out of range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "pconvolve impulse frames and channel selection"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

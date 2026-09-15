@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject unsupported pvsfilter input format"
+
+[expect]
+exit = "nonzero"
+stderr = ["pvsfilter: signal format must be amp-phase or amp-freq."]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "ephasor phase wrapping, exponential resets and sample bounds"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

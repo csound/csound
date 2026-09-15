@@ -1,3 +1,9 @@
+<CsTest>
+description = "phaser reset and preserved state on reinit"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

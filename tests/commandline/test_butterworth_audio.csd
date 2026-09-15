@@ -1,3 +1,9 @@
+<CsTest>
+description = "test Butterworth audio parameters and partial blocks"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

@@ -1,3 +1,9 @@
+<CsTest>
+description = "local S[]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -dnm0

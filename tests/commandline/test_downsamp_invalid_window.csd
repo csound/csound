@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid downsamp window"
+
+[expect]
+exit = "nonzero"
+stderr = ["downsamp: window length out of range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

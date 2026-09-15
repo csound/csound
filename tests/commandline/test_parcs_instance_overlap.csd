@@ -1,3 +1,12 @@
+<CsTest>
+description = "PARCS does not enter one instrument instance twice"
+
+[expect]
+exit = 0
+
+[profiles.wasm]
+skip = "PARCS requires native worker threads."
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d  -j 4

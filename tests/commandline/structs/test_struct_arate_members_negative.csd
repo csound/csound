@@ -1,3 +1,10 @@
+<CsTest>
+description = "fail when a-rate struct members are initialized with constants"
+
+[expect]
+exit = "nonzero"
+stderr = [":AudioBus; init cc"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test framebuffer history and sample boundaries"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

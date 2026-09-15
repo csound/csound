@@ -1,3 +1,9 @@
+<CsTest>
+description = "hilbert array format and length after output reuse"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

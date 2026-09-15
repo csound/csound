@@ -1,3 +1,9 @@
+<CsTest>
+description = "test connect i-rate gain on active non-sliding fsig inlets"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

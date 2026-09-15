@@ -1,3 +1,10 @@
+<CsTest>
+description = "shift arrays reject invalid inputs"
+
+[expect]
+exit = "nonzero"
+stderr = ["input array too small", "shiftout: expected a one-dimensional array", "shiftin: expected a one-dimensional array", "shiftout: offset must be finite", "shiftout: array shape changed", "shiftin: array shape changed"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

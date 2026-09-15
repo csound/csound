@@ -1,3 +1,9 @@
+<CsTest>
+description = "test getftargs returns empty args after binary ftload"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

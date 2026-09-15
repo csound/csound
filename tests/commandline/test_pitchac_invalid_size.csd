@@ -1,3 +1,10 @@
+<CsTest>
+description = "pitchac rejects invalid buffer sizes"
+
+[expect]
+exit = "nonzero"
+stderr = ["pitchac: invalid lowest frequency", "pitchac: minimum frequency must be positive", "pitchac: minimum frequency exceeds sample rate"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

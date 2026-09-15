@@ -1,3 +1,9 @@
+<CsTest>
+description = "test distort1 with large pregain"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

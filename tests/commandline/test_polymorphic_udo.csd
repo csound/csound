@@ -1,3 +1,9 @@
+<CsTest>
+description = "test polymorphic udo"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 ;<CsOptions>
 ;</CsOptions>

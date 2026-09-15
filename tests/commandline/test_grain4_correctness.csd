@@ -1,3 +1,9 @@
+<CsTest>
+description = "grain4 handles envelopes, boundaries, and unused pitches"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

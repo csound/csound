@@ -1,3 +1,9 @@
+<CsTest>
+description = "test ternary expr for backwards compatibility"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

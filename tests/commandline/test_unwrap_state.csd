@@ -1,3 +1,9 @@
+<CsTest>
+description = "unwrap input and phase history"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

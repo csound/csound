@@ -1,3 +1,9 @@
+<CsTest>
+description = "gausstrig frequency-change and first-impulse modes"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

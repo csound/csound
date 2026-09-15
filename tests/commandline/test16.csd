@@ -1,3 +1,9 @@
+<CsTest>
+description = "Simple if-then with multiple statements in body"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

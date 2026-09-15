@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing k[] in-arg with i[] var"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

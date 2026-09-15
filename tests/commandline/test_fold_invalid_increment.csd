@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid fold increment"
+
+[expect]
+exit = "nonzero"
+stderr = ["fold: increment must be finite and >= 1"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "bformdec2 sample bounds, input reuse and decoder responses"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

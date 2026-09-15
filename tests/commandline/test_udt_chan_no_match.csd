@@ -1,3 +1,10 @@
+<CsTest>
+description = "testing unmatched udt channel"
+
+[expect]
+exit = "nonzero"
+stderr = ["channel type did not match argument"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

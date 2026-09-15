@@ -1,3 +1,9 @@
+<CsTest>
+description = "test init-time deconv opcode"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

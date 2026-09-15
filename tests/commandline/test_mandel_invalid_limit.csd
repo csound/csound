@@ -1,3 +1,10 @@
+<CsTest>
+description = "mandel rejects an unrepresentable iteration limit"
+
+[expect]
+exit = "nonzero"
+stderr = ["mandel: iteration limit out of range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

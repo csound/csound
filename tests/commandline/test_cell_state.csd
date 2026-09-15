@@ -1,3 +1,9 @@
+<CsTest>
+description = "cell generation, reset, and table reuse"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

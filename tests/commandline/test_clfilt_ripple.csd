@@ -1,3 +1,9 @@
+<CsTest>
+description = "clfilt small ripple and coefficient updates"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test_nested_ifs.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

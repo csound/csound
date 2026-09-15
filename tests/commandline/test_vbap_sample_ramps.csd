@@ -1,3 +1,9 @@
+<CsTest>
+description = "VBAP active-sample ramps and zak channels"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

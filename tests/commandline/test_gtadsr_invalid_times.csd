@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject out-of-range gtadsr stage times"
+
+[expect]
+exit = "nonzero"
+stderr = ["gtadsr: attack and decay times out of range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

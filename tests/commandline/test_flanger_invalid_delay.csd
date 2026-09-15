@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject non-finite flanger delay"
+
+[expect]
+exit = "nonzero"
+stderr = ["flanger: delay is outside imaxd"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

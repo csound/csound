@@ -1,3 +1,9 @@
+<CsTest>
+description = "test prints does not crash when given a number arguments"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>

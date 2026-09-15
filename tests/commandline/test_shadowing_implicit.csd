@@ -1,3 +1,9 @@
+<CsTest>
+description = "test local shadowing of global vars for implicit types"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

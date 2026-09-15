@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid vector table index"
+
+[expect]
+exit = "nonzero"
+stderr = ["vtabi: index out of range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

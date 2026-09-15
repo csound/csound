@@ -1,3 +1,9 @@
+<CsTest>
+description = "grain3 should not fail with false overlap error"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 sr = 48000

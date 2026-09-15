@@ -1,3 +1,9 @@
+<CsTest>
+description = "test wrong annotation case"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing instance type"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

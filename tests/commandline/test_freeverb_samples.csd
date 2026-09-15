@@ -1,3 +1,9 @@
+<CsTest>
+description = "freeverb input reuse and partial-block history"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

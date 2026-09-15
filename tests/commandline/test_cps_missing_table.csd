@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject missing pitch tuning tables"
+
+[expect]
+exit = "nonzero"
+stderr = ["Invalid ftable no. 100.000000", "No tuning table 100"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

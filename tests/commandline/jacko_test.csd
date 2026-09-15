@@ -1,3 +1,10 @@
+<CsTest>
+description = "jacko_test.csd"
+skip = "Interactive demo requiring a JACK server and external connections."
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 csound -m255 -M0 -+rtmidi=null -RWf --midi-key=4 --midi-velocity=5 -o jacko_test.wav

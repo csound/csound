@@ -1,3 +1,9 @@
+<CsTest>
+description = "if-goto with expression in boolean comparison"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

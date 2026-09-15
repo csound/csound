@@ -1,3 +1,9 @@
+<CsTest>
+description = "test pvsanal/synth with np2 size"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 instr 1

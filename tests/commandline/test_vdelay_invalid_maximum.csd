@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid maximum delay"
+
+[expect]
+exit = "nonzero"
+stderr = ["vdelay: invalid maximum delay"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "splitrig sequence selection and changing tick counts"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

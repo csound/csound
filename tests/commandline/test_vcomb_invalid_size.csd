@@ -1,3 +1,10 @@
+<CsTest>
+description = "variable comb rejects invalid sizes"
+
+[expect]
+exit = "nonzero"
+stderr = ["illegal loop time"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

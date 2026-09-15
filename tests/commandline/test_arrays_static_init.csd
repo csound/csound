@@ -1,3 +1,9 @@
+<CsTest>
+description = "test arrays initialized with static initializer (i.e. kvals = [0,1,2])"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

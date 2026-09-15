@@ -1,3 +1,9 @@
+<CsTest>
+description = "eqfil advances state only for active samples"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

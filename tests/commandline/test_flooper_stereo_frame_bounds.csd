@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject flooper ranges past stereo frames"
+
+[expect]
+exit = "nonzero"
+stderr = ["start time beyond end of table"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

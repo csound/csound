@@ -1,3 +1,9 @@
+<CsTest>
+description = "test binary ftload does not share args ownership"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

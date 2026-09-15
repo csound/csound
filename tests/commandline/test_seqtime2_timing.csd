@@ -1,3 +1,9 @@
+<CsTest>
+description = "seqtime2 event timing and loop order"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

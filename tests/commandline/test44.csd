@@ -1,3 +1,10 @@
+<CsTest>
+description = "expected failure with in-arg given to in opcode"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, Unable to find opcode entry for 'in'"]
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

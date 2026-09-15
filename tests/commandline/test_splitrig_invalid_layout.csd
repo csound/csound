@@ -1,3 +1,10 @@
+<CsTest>
+description = "splitrig rejects invalid maximum tick counts"
+
+[expect]
+exit = "nonzero"
+stderr = ["splitrig: invalid maximum tick count", "splitrig: table cannot hold one tick"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

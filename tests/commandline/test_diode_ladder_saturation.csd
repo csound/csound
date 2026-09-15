@@ -1,3 +1,9 @@
+<CsTest>
+description = "diode_ladder saturation and filter history"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

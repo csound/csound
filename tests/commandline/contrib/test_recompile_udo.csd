@@ -1,3 +1,9 @@
+<CsTest>
+description = "contrib/test_recompile_udo.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>

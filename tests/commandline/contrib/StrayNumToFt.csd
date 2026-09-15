@@ -1,3 +1,9 @@
+<CsTest>
+description = "contrib/StrayNumToFt.csd"
+
+[expect]
+exit = 0
+</CsTest>
 /****************************************************************************
 ift, iftlen StrayNumToFt Stray [, iftno [, isep1 [, isep2]]]
 Converts a string-array which just consists of numbers or simple math expressions to a function table

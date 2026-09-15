@@ -1,3 +1,9 @@
+<CsTest>
+description = "UDO with k[] arg"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -d  

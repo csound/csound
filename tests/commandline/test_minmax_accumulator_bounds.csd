@@ -1,3 +1,9 @@
+<CsTest>
+description = "min/max accumulators preserve inactive samples"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

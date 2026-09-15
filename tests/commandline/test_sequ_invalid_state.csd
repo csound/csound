@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject missing sequstate registration"
+
+[expect]
+exit = "nonzero"
+stderr = ["sequstate: no active sequence"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

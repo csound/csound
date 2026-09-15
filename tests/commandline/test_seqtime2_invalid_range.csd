@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid seqtime2 ranges"
+
+[expect]
+exit = "nonzero"
+stderr = ["seqtime2: index or loop out of range", "seqtime2: incorrect table number or size"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

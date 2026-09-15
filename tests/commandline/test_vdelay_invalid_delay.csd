@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject non-finite delay"
+
+[expect]
+exit = "nonzero"
+stderr = ["vdelay3: invalid delay"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

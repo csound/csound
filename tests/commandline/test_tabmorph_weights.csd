@@ -1,3 +1,9 @@
+<CsTest>
+description = "tabmorph weight endpoints and input preservation"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

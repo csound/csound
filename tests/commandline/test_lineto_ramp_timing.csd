@@ -1,3 +1,9 @@
+<CsTest>
+description = "lineto/tlineto duration, endpoints, and retriggering"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

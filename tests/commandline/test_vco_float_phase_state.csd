@@ -1,3 +1,9 @@
+<CsTest>
+description = "vco preserves non-power-of-two oscillator phase"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -d -m0 -n

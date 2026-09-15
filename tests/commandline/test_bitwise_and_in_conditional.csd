@@ -1,3 +1,9 @@
+<CsTest>
+description = "test_bitwise_and_in_conditional.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0

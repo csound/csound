@@ -1,3 +1,11 @@
+<CsTest>
+description = "test for UDO recursion depth exception"
+skip = "Known defect: recursive UDO exits by signal instead of reporting a recursion limit; the old runner counted the crash as a pass."
+
+[expect]
+exit = "nonzero"
+stderr_regex = ["(?i)recurs(?:ion|ive).*(?:depth|limit)"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

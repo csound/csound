@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject zero flooper duration"
+
+[expect]
+exit = "nonzero"
+stderr = ["loop duration must be at least one sample"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

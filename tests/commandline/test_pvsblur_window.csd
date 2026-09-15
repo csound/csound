@@ -1,3 +1,9 @@
+<CsTest>
+description = "pvsblur delay window, startup, and reset"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

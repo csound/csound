@@ -1,3 +1,10 @@
+<CsTest>
+description = "test expression"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unable to find ternary operator for types 'b ? i : f'"]
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 instr 1

@@ -1,3 +1,9 @@
+<CsTest>
+description = "diskgrain stops at envelope table bounds"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

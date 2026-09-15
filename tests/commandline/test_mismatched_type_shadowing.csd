@@ -1,3 +1,9 @@
+<CsTest>
+description = "test explicitly typed locals shadow globals with complete array metadata"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,3 +1,9 @@
+<CsTest>
+description = "vosim pulse state, table paths, and direction changes"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test midi default instr"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -F catherine.mid -T --midi-velocity-amp=4 --midi-key-cps=5

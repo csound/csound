@@ -1,3 +1,10 @@
+<CsTest>
+description = "testing type mismatch for bus channel"
+
+[expect]
+exit = "nonzero"
+stderr = ["chnget.k: not initialised"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,3 +1,10 @@
+<CsTest>
+description = "test diskin in rt async mode"
+args = []
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -+rtaudio=null --realtime -d -m128

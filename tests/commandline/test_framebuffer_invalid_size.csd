@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid framebuffer sizes"
+
+[expect]
+exit = "nonzero"
+stderr = ["framebuffer: size must be at least ksmps and fit in int32", "framebuffer: input array size must be positive and no greater than buffer size", "framebuffer: Error, k-rate array input must be one dimensional", "framebuffer: invalid input array size"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

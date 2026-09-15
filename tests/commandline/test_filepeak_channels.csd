@@ -1,3 +1,9 @@
+<CsTest>
+description = "filepeak stored and scanned channel peaks"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

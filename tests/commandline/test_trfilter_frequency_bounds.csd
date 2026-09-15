@@ -1,3 +1,9 @@
+<CsTest>
+description = "test trfilter frequency bounds"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

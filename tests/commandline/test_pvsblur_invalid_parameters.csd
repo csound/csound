@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid pvsblur parameters"
+
+[expect]
+exit = "nonzero"
+stderr = ["pvsblur: invalid maximum delay", "pvsblur does not work sliding yet", "pvsblur: invalid frame size", "pvsblur: format must be amp-freq or amp-phase"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

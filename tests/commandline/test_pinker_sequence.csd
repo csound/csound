@@ -1,3 +1,9 @@
+<CsTest>
+description = "pinker preserves its noise sequence across block sizes"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

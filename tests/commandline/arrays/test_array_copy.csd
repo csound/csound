@@ -1,3 +1,9 @@
+<CsTest>
+description = "test array copy operations"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>

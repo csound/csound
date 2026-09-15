@@ -1,3 +1,9 @@
+<CsTest>
+description = "preserve function-like whitespace inside strings"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

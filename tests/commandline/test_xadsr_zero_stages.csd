@@ -1,3 +1,9 @@
+<CsTest>
+description = "exponential ADSR zero stages and short attacks"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

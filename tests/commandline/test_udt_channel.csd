@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing user-defined type channel"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

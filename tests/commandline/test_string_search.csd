@@ -1,3 +1,9 @@
+<CsTest>
+description = "string search overlaps and empty strings"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

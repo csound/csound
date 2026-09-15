@@ -1,3 +1,9 @@
+<CsTest>
+description = "pareq first skip, reset, and preserved state"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

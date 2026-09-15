@@ -1,3 +1,10 @@
+<CsTest>
+description = "test functions on arrays (i.e. tabgen)"
+
+[expect]
+exit = "nonzero"
+stderr = ["Array index 9 out of range (0,5) for dimension 1"]
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 instr 1 ;; lentab

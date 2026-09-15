@@ -1,3 +1,10 @@
+<CsTest>
+description = "unwrap rejects invalid modes"
+
+[expect]
+exit = "nonzero"
+stderr = ["unwrap: mode must be 0 or 1"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

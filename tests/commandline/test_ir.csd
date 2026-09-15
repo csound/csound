@@ -1,3 +1,10 @@
+<CsTest>
+description = "test_ir.csd"
+skip = "Manual impulse-response workflow: requires generated ir.wav and external fox.wav."
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

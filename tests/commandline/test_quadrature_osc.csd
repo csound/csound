@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing quadrature oscillator"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

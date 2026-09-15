@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject an oversized GEN44 matrix"
+
+[expect]
+exit = "nonzero"
+stderr = ["GEN44: Matrix size is too large"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

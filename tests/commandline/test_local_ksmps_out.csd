@@ -1,3 +1,9 @@
+<CsTest>
+description = "test output with local ksmps"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d

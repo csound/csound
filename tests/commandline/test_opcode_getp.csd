@@ -1,3 +1,9 @@
+<CsTest>
+description = "tests numeric opcode-object output access"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

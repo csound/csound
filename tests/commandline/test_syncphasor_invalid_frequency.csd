@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid syncphasor frequency"
+
+[expect]
+exit = "nonzero"
+stderr = ["syncphasor: invalid frequency"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

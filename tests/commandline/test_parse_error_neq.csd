@@ -1,3 +1,10 @@
+<CsTest>
+description = "expected failure: binary != parse error"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unexpected ENDIN_TOKEN"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

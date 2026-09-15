@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid changed ftmorf tables"
+
+[expect]
+exit = "nonzero"
+stderr = ["ftmorf: source table has wrong size"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

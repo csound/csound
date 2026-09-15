@@ -1,3 +1,9 @@
+<CsTest>
+description = "Testing simple macro"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test tableimix wraps a non-power-of-two source table"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0

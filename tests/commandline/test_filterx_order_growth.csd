@@ -1,3 +1,9 @@
+<CsTest>
+description = "test filter state after order growth"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

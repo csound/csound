@@ -1,3 +1,9 @@
+<CsTest>
+description = "gtadsr stage endpoints, retriggering and sample offsets"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

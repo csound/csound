@@ -1,3 +1,10 @@
+<CsTest>
+description = "CsOptions application arguments after -- are available through argv"
+args = ["-nd"]
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -- options.orc "viola section" --from=csoptions ""

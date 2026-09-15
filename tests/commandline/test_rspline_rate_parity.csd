@@ -1,3 +1,9 @@
+<CsTest>
+description = "test rspline audio and control parity"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

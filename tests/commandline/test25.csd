@@ -1,3 +1,9 @@
+<CsTest>
+description = "polymorphic test, 0xfffd (peak)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

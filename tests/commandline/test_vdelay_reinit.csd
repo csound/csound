@@ -1,3 +1,9 @@
+<CsTest>
+description = "test variable delay state across reinit"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

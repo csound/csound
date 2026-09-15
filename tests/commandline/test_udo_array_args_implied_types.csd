@@ -1,3 +1,9 @@
+<CsTest>
+description = "test new-style UDO with array args using implied types"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

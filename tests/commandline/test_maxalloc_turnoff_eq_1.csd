@@ -1,3 +1,9 @@
+<CsTest>
+description = "Test maxalloc opcode value of 1"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

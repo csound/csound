@@ -1,3 +1,12 @@
+<CsTest>
+description = "sndloop rejects invalid recording sizes"
+
+# Each of the eight invalid notes must fail initialization. On 32-bit builds,
+# the last case exceeds the allocation-size limit before the sample-count check.
+[expect]
+exit = 8
+stderr = ["sndloop: invalid loop or crossfade duration", "crossfade cannot be longer than loop"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

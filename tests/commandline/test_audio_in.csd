@@ -1,3 +1,9 @@
+<CsTest>
+description = "test the parsing of the 'in' operator as opcode"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 -+rtaudio=dummy
 <CsInstruments>

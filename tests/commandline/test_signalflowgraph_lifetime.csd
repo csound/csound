@@ -1,3 +1,9 @@
+<CsTest>
+description = "test signal-flow graph cleanup and ftgenonce"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

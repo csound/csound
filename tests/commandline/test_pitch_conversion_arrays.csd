@@ -1,3 +1,9 @@
+<CsTest>
+description = "pitch conversion arrays update each control cycle"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

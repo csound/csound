@@ -1,3 +1,9 @@
+<CsTest>
+description = "test filter2 and zfilter2 state and order limits"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

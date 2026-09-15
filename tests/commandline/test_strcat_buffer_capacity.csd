@@ -1,3 +1,9 @@
+<CsTest>
+description = "strcat copies text rather than buffer capacity"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

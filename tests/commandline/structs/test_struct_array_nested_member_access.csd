@@ -1,3 +1,9 @@
+<CsTest>
+description = "test nested member access on struct array elements"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

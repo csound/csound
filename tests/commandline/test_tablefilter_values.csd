@@ -1,3 +1,9 @@
+<CsTest>
+description = "tablefilter parameters, rational values, and table wrapping"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

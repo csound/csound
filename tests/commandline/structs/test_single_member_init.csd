@@ -1,3 +1,9 @@
+<CsTest>
+description = "test single member struct initialization"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

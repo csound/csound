@@ -1,3 +1,9 @@
+<CsTest>
+description = "test struct member access"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0

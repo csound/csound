@@ -1,3 +1,9 @@
+<CsTest>
+description = "Retained nested UDO cleanup survives overlapping frame reuse"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

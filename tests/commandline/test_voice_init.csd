@@ -1,3 +1,9 @@
+<CsTest>
+description = "voice initializes its SingWave helper"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0

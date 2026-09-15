@@ -1,3 +1,9 @@
+<CsTest>
+description = "cmp operator text and array lengths"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

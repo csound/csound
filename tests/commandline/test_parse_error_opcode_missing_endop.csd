@@ -1,3 +1,10 @@
+<CsTest>
+description = "expected failure: opcode missing endop"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unexpected INSTR_TOKEN"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

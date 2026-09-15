@@ -1,3 +1,9 @@
+<CsTest>
+description = "Pass-by-ref works with new-style UDOs"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 --nosound

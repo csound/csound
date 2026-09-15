@@ -1,3 +1,9 @@
+<CsTest>
+description = "test realtime init-thread compile opcodes"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -+rtaudio=null -d --realtime

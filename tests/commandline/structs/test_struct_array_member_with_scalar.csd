@@ -1,3 +1,9 @@
+<CsTest>
+description = "copying a struct-array member containing scalar fields"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

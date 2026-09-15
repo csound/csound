@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject empty or incomplete bpf points"
+
+[expect]
+exit = "nonzero"
+stderr = ["bpf: expected nonempty one-dimensional point arrays", "bpf: data length should be even (pairs of x, y)"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

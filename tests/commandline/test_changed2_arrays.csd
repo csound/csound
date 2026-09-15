@@ -1,3 +1,9 @@
+<CsTest>
+description = "changed2 array dimensions, resizing and first-cycle state"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

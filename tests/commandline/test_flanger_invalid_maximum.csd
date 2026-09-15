@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid flanger maximum delay"
+
+[expect]
+exit = "nonzero"
+stderr = ["flanger: invalid maximum delay"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

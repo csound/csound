@@ -30,8 +30,6 @@ pkgs.runCommand "csound-wasm-commandline-tests" {
     --runtime-arg=-Ccache=n \
     --runtime-arg=--allow-precompiled \
     --runtime-arg=--dir=. \
-    --expected-failure=test_osc_server.csd \
-    --expected-failure=test_ftaudio_async.csd \
     --csound-executable="$csound_module" \
     --source-dir=. \
     --workers=${toString workers} \

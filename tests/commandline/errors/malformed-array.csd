@@ -1,3 +1,10 @@
+<CsTest>
+description = "errors/malformed-array.csd"
+
+[expect]
+exit = "nonzero"
+stderr = ["Unable to find opcode entry for '='"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -m0

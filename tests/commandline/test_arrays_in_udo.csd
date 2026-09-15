@@ -1,3 +1,9 @@
+<CsTest>
+description = "test arrays in UDO"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

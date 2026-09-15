@@ -1,3 +1,9 @@
+<CsTest>
+description = "test crossed FM and PM correctness"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

@@ -1,3 +1,10 @@
+<CsTest>
+description = "fail due to invalid xout"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, invalid xout statement for UDO: defined 'i', found 'ic'", "syntax error, testUDO UDO"]
+</CsTest>
 <CsoundSynthesizer>
 ;<CsOptions>
 ;</CsOptions>

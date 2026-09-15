@@ -1,3 +1,9 @@
+<CsTest>
+description = "test multiple strings in realtime event"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

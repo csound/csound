@@ -1,3 +1,9 @@
+<CsTest>
+description = "svn drive, transfer tables and parameter rates"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

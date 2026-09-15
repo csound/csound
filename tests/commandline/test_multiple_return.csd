@@ -1,3 +1,9 @@
+<CsTest>
+description = "test multiple return from express (i.. a1,a2 = xx())"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

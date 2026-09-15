@@ -1,3 +1,9 @@
+<CsTest>
+description = "bqrez mode responses and band-pass center gain"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

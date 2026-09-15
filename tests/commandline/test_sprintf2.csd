@@ -1,3 +1,9 @@
+<CsTest>
+description = "test string assignment and printing that causes reallocation"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 sr        = 44100

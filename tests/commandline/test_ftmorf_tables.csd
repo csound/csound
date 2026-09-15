@@ -1,3 +1,9 @@
+<CsTest>
+description = "test ftmorf interpolation and index limits"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

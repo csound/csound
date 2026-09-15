@@ -1,3 +1,10 @@
+<CsTest>
+description = "pvsadsyn rejects an out-of-range oscillator count"
+
+[expect]
+exit = "nonzero"
+stderr = ["pvsadsyn: bad value for inoscs"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d

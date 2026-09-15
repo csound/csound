@@ -1,3 +1,9 @@
+<CsTest>
+description = "test dbap and dbapgains opcodes"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -o dac

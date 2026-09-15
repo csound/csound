@@ -1,3 +1,9 @@
+<CsTest>
+description = "pvstencil gain and reused FFT/sliding outputs"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

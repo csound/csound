@@ -1,3 +1,9 @@
+<CsTest>
+description = "Test recursive events"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

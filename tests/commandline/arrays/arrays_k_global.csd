@@ -1,3 +1,9 @@
+<CsTest>
+description = "global k[]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -dnm0

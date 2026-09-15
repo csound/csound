@@ -1,3 +1,9 @@
+<CsTest>
+description = "tonek/atonek initial cutoff and reinitialization"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

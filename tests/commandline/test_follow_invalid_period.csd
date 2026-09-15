@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid follow period"
+
+[expect]
+exit = "nonzero"
+stderr = ["follow: invalid period"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

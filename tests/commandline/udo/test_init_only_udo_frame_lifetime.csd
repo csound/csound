@@ -1,3 +1,9 @@
+<CsTest>
+description = "Init-only UDO frames release structured temporary values"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

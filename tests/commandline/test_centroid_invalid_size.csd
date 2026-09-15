@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject invalid centroid sizes"
+
+[expect]
+exit = "nonzero"
+stderr = ["centroid: FFT size out of range", "centroid: expected at least two magnitude bins"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "grain2 wraps non-power-of-two window phase"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -96,6 +96,16 @@ if(Python3_Interpreter_FOUND)
       VERBATIM
     )
   endif()
+  add_custom_target(csdtest-harness-tests
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_harness.py
+    VERBATIM
+  )
+  add_dependencies(csdtests csdtest-harness-tests)
+  add_dependencies(csdtests-verbose csdtest-harness-tests)
+  if(TARGET csound-bin)
+    add_dependencies(csdtests csound-bin)
+    add_dependencies(csdtests-verbose csound-bin)
+  endif()
 else()
   message(STATUS "Python3 not found; not creating commandline test targets.")
 endif()

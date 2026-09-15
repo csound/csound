@@ -1,3 +1,9 @@
+<CsTest>
+description = "test creating and deleting instr"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,3 +1,10 @@
+<CsTest>
+description = "expected failure: explicit type annotation used in expression"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unexpected T_TYPED_IDENT"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

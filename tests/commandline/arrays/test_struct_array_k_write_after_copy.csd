@@ -1,3 +1,9 @@
+<CsTest>
+description = "k-rate writes use prepared struct-array copy storage"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

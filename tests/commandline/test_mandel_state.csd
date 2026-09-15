@@ -1,3 +1,9 @@
+<CsTest>
+description = "mandel trigger, iteration cache and boundary points"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

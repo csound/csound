@@ -1,3 +1,9 @@
+<CsTest>
+description = "allow global k-rate struct member with local ksmps"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d

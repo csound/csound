@@ -1,3 +1,9 @@
+<CsTest>
+description = "pvsfilter gain and sliding sample range"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

@@ -1,3 +1,9 @@
+<CsTest>
+description = "padsynth_gen.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

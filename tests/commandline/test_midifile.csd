@@ -1,3 +1,9 @@
+<CsTest>
+description = "Test midi file input (-F)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -F catherine.mid -T

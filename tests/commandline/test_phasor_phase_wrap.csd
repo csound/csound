@@ -1,3 +1,9 @@
+<CsTest>
+description = "phasor rounded output and phase state"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

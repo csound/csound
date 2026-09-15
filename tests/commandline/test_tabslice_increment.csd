@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject zero tabslice increment"
+
+[expect]
+exit = "nonzero"
+stderr = ["slice increment must be positive"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -ndm0

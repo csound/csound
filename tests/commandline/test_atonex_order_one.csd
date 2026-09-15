@@ -1,3 +1,9 @@
+<CsTest>
+description = "test atonex order-one filtering"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject negative getrow index"
+
+[expect]
+exit = "nonzero"
+stderr = ["requested row is out of range"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -ndm0

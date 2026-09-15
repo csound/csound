@@ -1,3 +1,9 @@
+<CsTest>
+description = "test declare keyword (CS7)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

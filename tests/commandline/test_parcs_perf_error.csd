@@ -1,3 +1,13 @@
+<CsTest>
+description = "PARCS exits on perf error"
+
+[expect]
+exit = "nonzero"
+stderr = ["Array index 2 out of range (0,0) for dimension 1"]
+
+[profiles.wasm]
+skip = "PARCS requires native worker threads."
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 -j 4

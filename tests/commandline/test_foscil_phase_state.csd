@@ -1,3 +1,9 @@
+<CsTest>
+description = "foscil and foscili phase initialization and advancement"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate

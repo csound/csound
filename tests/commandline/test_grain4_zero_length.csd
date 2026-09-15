@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject zero grain4 source length"
+
+[expect]
+exit = "nonzero"
+stderr = ["granule_set: ilength must span at least one sample"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

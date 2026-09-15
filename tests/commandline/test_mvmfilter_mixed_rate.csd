@@ -1,3 +1,9 @@
+<CsTest>
+description = "test mvmfilter with mixed input rates"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "pvsbin output rates, bin changes, and partial blocks"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0 --sample-accurate
