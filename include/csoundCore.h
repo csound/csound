@@ -579,6 +579,8 @@ typedef struct {
     MYFLT   channel;
     MYFLT   sample_rate;
     char    strarg[SSTRSIZ];
+    int32_t deferred_length;
+    int32_t deferred_guardreq;
   } GEN01ARGS;
 
 
