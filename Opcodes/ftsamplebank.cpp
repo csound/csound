@@ -23,6 +23,8 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <limits>
+#include <locale>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -37,7 +39,7 @@ using namespace csound;
    tables number 'index' and upwards.
    It return the number of samples loaded */
 int32_t loadSamplesToTables(CSOUND *csound, int32_t index, char *directory,
-                        int32_t skiptime, int32_t format, int32_t channel);
+                        MYFLT skiptime, int32_t format, int32_t channel);
 
 //-----------------------------------------------------------------
 //      i-rate class
@@ -127,7 +129,7 @@ public:
 //      load samples into function tables
 //-----------------------------------------------------------------
 int32_t loadSamplesToTables(CSOUND *csound, int32_t index, char *directory,
-                        int32_t skiptime, int32_t format, int32_t channel) {
+                        MYFLT skiptime, int32_t format, int32_t channel) {
 
   if (directory) {
     DIR *dir = opendir(directory);
@@ -177,6 +179,8 @@ int32_t loadSamplesToTables(CSOUND *csound, int32_t index, char *directory,
       // push statements to score, starting with table number 'index'
       for (int32_t y = 0; (size_t)y < fileNames.size(); y++) {
         std::ostringstream statement;
+        statement.imbue(std::locale::classic());
+        statement.precision(std::numeric_limits<MYFLT>::max_digits10);
         statement << "f" << index + y << " 0 0 1 \"" << fileNames[y] << "\" "
                   << skiptime << " " << format << " " << channel << "\n";
         // csound->MessageS(csound, CSOUNDMSG_ORCH, statement.str().c_str());
