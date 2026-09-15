@@ -386,12 +386,12 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
                         "- read-only variable",
                         instr_num(csound, ((INSTREF *) p->args[0])->instr));
   else {
-    EVTBLK  evt;
+    EVTBLK  evt = {0};
     INSDS *ip;
     int32_t res, i;
     INSTREF *ref = (INSTREF *) p->args[0];
-    char  pfields[PMAX+1] = {0};
-    evt.p = (MYFLT *) pfields;
+    MYFLT pfields[PMAX+1] = {0};
+    evt.p = pfields;
     res = instr_num(csound, ref->instr);
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
@@ -399,6 +399,8 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
     evt.p[1] = FL(res);
     evt.p[2] = FL(0.0);
     evt.p[3] = -1;
+    evt.p2orig = evt.p[2];
+    evt.p3orig = evt.p[3];
     for (i = 4; i <= evt.pcnt; i++)
       evt.p[i] = *p->args[i-3];
 
@@ -434,9 +436,11 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
         }
         return OK;
       }
-      else return csound->InitError(csound,
-                                    "could not initialise instr %d",
-                                    res);
+      else {
+        free_instance(csound, ip);
+        return csound->InitError(csound,
+                                 "could not initialise instr %d", res);
+      }
     } else return csound->InitError(csound,
                                     "could not instantiate instr %d",
                                     res);
@@ -472,15 +476,17 @@ int32_t create_instance_opcode(CSOUND *csound, CREATE_INSTANCE *p) {
     runs only at i-time
 */
 int32_t init_instance_opcode(CSOUND *csound, INIT_INSTANCE *p) {
-  EVTBLK evt;
-  char  pfields[PMAX+1] = {0};
-  evt.p = (MYFLT *) pfields;
+  EVTBLK evt = {0};
+  MYFLT pfields[PMAX+1] = {0};
+  evt.p = pfields;
   INSTANCEREF *ref = (INSTANCEREF *) p->args[0];
   int32_t i;
   if(ref->instance != NULL) {
     evt.p[1] = FL(ref->instance->insno);
     evt.p[2] = FL(0.0);
     evt.p[3] = -1;
+    evt.p2orig = evt.p[2];
+    evt.p3orig = evt.p[3];
     evt.strarg = NULL;
     evt.scnt = 0;
     evt.opcod = 'i';
@@ -517,11 +523,14 @@ int32_t perf_instance_opcode(CSOUND *csound, PERF_INSTR *p) {
         }
       // Ensure the instance is initialised; if not, try to initialise now using the same args
       if (!ip->init_done) {
-        EVTBLK evt; char pfields[PMAX+1] = {0}; evt.p = (MYFLT*) pfields;
+        EVTBLK evt = {0};
+        MYFLT pfields[PMAX+1] = {0};
+        evt.p = pfields;
         evt.p[1] = FL(ip->insno); evt.p[2] = FL(0.0); evt.p[3] = -1;
+        evt.p2orig = evt.p[2]; evt.p3orig = evt.p[3];
         evt.strarg = NULL; evt.scnt = 0; evt.opcod = 'i';
         evt.pcnt = p->INOCOUNT + 2;
-        for (int32_t i = 4; i <= evt.pcnt; i++) evt.p[i] = *p->args[i-3];
+        for (int32_t i = 4; i <= evt.pcnt; i++) evt.p[i] = *p->args[i-4];
         int32_t ierr = init_instance(csound, ip, &evt);
         if (UNLIKELY(ierr != OK))
           return csound->PerfError(csound, &(p->h),
@@ -536,8 +545,7 @@ int32_t perf_instance_opcode(CSOUND *csound, PERF_INSTR *p) {
                                ip->insno);
     }
   }
-  else csound->PerfError(csound, &(p->h),
-                         "NULL instance\n");
+  else return csound->PerfError(csound, &(p->h), "NULL instance\n");
   return OK;
 }
 /** Instance deletion
