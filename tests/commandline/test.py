@@ -72,13 +72,14 @@ class TestResult:
     @property
     def mismatches(self):
         missing = []
-        for stream in ("stderr", "stdout"):
-            output = getattr(self, stream + "_output")
+        for stream, outputs in (("stderr", (self.stderr_output,)),
+                                ("stdout", (self.stdout_output,)),
+                                ("output", (self.stderr_output, self.stdout_output))):
             for pattern in self.test_data.expect.get(stream, []):
-                if pattern not in output:
+                if not any(pattern in output for output in outputs):
                     missing.append(f"{stream} missing substring {pattern!r}")
             for pattern in self.test_data.expect.get(stream + "_regex", []):
-                if re.search(pattern, output) is None:
+                if not any(re.search(pattern, output) for output in outputs):
                     missing.append(f"{stream} missing regex {pattern!r}")
         return missing
 

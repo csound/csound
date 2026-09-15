@@ -3,7 +3,7 @@ description = "contrib/multiple_strings_in_scoreline2.csd"
 
 [expect]
 exit = 0
-stderr = ["Hello string world!"]
+output = ["Hello string world!"]
 </CsTest>
 <CsoundSynthesizer>
 <CsInstruments>

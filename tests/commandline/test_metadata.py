@@ -39,7 +39,8 @@ def _strings(value, name):
 def validate_expectation(expect):
     if not isinstance(expect, dict) or "exit" not in expect:
         raise ValueError("expect must be a table with an exit value")
-    allowed = {"exit", "stderr", "stderr_regex", "stdout", "stdout_regex"}
+    allowed = {"exit", "stderr", "stderr_regex", "stdout", "stdout_regex",
+               "output", "output_regex"}
     if set(expect) - allowed:
         raise ValueError(f"unknown expectation keys: {sorted(set(expect) - allowed)}")
     status = expect["exit"]

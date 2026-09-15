@@ -71,6 +71,10 @@ stderr = ["no threads"]
                      'expect.exit = true', 'expect.exit = -11',
                      'expect = {exit = 0, stderr = [""]}',
                      'expect = {exit = 0, stderr_regex = ["["]}',
+                     'expect = {exit = 0, output = "text"}',
+                     'expect = {exit = 0, output = [""]}',
+                     'expect = {exit = 0, output_regex = ["["]}',
+                     'expect = {exit = "nonzero", output = ["error"]}',
                      'args = "-n"', 'stack_limit_kb = -1',
                      'profiles.wasm.skip = true'):
             with self.subTest(data=data):
@@ -136,6 +140,23 @@ class ResultTests(unittest.TestCase):
 
     def test_stdout_cannot_satisfy_stderr_expectations(self):
         self.assertFalse(self.result(stderr="", stdout="wanted diagnostic").passed)
+
+    def test_output_expectations_accept_either_stream(self):
+        expect = {"exit": 0, "output": ["Hello string world!"],
+                  "output_regex": [r"count=\d+"]}
+        for stderr, stdout in (("Hello string world! count=42", ""),
+                               ("", "Hello string world! count=42"),
+                               ("count=42", "Hello string world!")):
+            with self.subTest(stderr=stderr, stdout=stdout):
+                self.assertTrue(self.result(0, stderr, stdout, expect=expect).passed)
+        self.assertFalse(self.result(0, "", "count=42", expect=expect).passed)
+        self.assertFalse(self.result(0, "Hello string world!", "", expect=expect).passed)
+
+    def test_output_patterns_cannot_span_separate_streams(self):
+        for field in ("output", "output_regex"):
+            with self.subTest(field=field):
+                self.assertFalse(self.result(0, "Hello ", "world!", expect={
+                    "exit": 0, field: ["Hello world!"]}).passed)
 
     def test_all_substrings_and_regexes_must_match_on_the_right_stream(self):
         expect = {"exit": 0, "stderr": ["first", "second"],

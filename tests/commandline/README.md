@@ -32,6 +32,11 @@ Match the stable diagnostic, not a whole Csound log with version strings, times,
 or source line numbers.
 Successful tests can declare output checks too.
 
+Use `output` or `output_regex` when the text may appear on either stream.
+Csound's ordinary printed messages use stdout on Windows and stderr on Unix.
+Each pattern must match within one stream; the runner does not join the streams
+for matching. Expected failures still need an explicit stderr diagnostic.
+
 Other optional fields:
 
 - `description`: what the test checks; defaults to its relative path.
