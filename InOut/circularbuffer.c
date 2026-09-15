@@ -24,10 +24,11 @@
 
 typedef struct _circular_buffer {
   char *buffer;
-  int32_t wp;
+  int32_t  wp;
   int32_t rp;
   int32_t numelem;
   int32_t elemsize; /* in number of bytes */
+  spin_lock_t lock;
 } circular_buffer;
 
 int32_t csoundGetSizeCircularBuffer(CSOUND *csound, void *p) {
@@ -65,12 +66,13 @@ void *csoundCreateCircularBuffer(CSOUND *csound, int32_t numelem, int32_t elemsi
       return NULL;
     }
     memset(p->buffer, 0, buffer_size);
+    csoundSpinLockInit(&p->lock);
     return (void *)p;
 }
 
 static int32_t checkspace(circular_buffer *p, int32_t writeCheck){
-    int32_t wp = ATOMIC_GET(p->wp), rp = ATOMIC_GET(p->rp);
-    int32_t numelem = p->numelem, res;
+    csoundSpinLock(&p->lock);
+    int32_t wp = p->wp, rp = p->rp, numelem = p->numelem, res;
     if(writeCheck){
       if (wp > rp) res = rp - wp + numelem - 1;
       else if (wp < rp) res = rp - wp - 1;
@@ -81,6 +83,7 @@ static int32_t checkspace(circular_buffer *p, int32_t writeCheck){
       else if (wp < rp) res = wp - rp + numelem;
       else res = 0;
     }
+    csoundSpinUnLock(&p->lock);
     return res;
 }
 
@@ -113,7 +116,13 @@ int32_t csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int32_t ite
           rp = 0;
         }
       }
-      ATOMIC_SET(((circular_buffer *)p)->rp, rp);
+#if defined(MSVC)
+      InterlockedExchange(&((circular_buffer *)p)->rp, rp);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+      __atomic_exchange_n(&((circular_buffer *)p)->rp,rp, __ATOMIC_SEQ_CST);
+#else
+      ((circular_buffer *)p)->rp = rp;
+#endif
       return itemsread;
     }
 }
@@ -158,7 +167,13 @@ void csoundFlushCircularBuffer(CSOUND *csound, void *p)
         rp++;
         if(rp == numelem) rp = 0;
     }
-    ATOMIC_SET(((circular_buffer *)p)->rp, rp);
+#if defined(MSVC)
+      InterlockedExchange(&((circular_buffer *)p)->rp, rp);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+      __atomic_store_n(&((circular_buffer *)p)->rp,rp, __ATOMIC_SEQ_CST);
+#else
+      ((circular_buffer *)p)->rp = rp;
+#endif
 }
 
 
@@ -180,7 +195,13 @@ int32_t csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int32
                (size_t) elemsize);
         if(wp == numelem) wp = 0;
     }
-    ATOMIC_SET(((circular_buffer *)p)->wp, wp);
+#if defined(MSVC)
+      InterlockedExchange(&((circular_buffer *)p)->wp, wp);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+      __atomic_store_n(&((circular_buffer *)p)->wp,wp, __ATOMIC_SEQ_CST);
+#else
+      ((circular_buffer *)p)->wp = wp;
+#endif
     return itemswrite;
 }
 
