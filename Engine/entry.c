@@ -336,9 +336,10 @@ const OENTRY opcodlst_1[] = {
   { "fillarray.", sizeof(TABFILL), 0, ".[]", "*", (SUBR)tabfill },
   { "string2array.S", sizeof(TABFILLF), 0, "i[]", "S", (SUBR)tabsfill },
   { "string2array.s", sizeof(TABFILLF), 0, "k[]", "S", (SUBR)tabsfill },
-  CSOUND_DEPRECATED_OPCODE("array", "fillarray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
+  CSOUND_DEPRECATED_OPCODE("array", "fillarray", LEGACY, "Only the value-list initializer is deprecated; audio-to-array conversion remains supported.")
   { "array.k", sizeof(TABFILL), _QQ, "k[]", "m", (SUBR)tabfill     },
   { "array.i", sizeof(TABFILL), _QQ, "i[]", "m", (SUBR)tabfill     },
+  /* Supported audio conversion; the deprecation above applies to initializers. */
   { "array.a", sizeof(A2ARR), 0, "k[]", "a", (SUBR)asig2array_init,
     (SUBR)asig2array_perf},
   { "a.A", sizeof(ARR2A), 0, "a", "k[]", NULL, (SUBR)array2asig_perf},

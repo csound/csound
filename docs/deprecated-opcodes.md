@@ -36,7 +36,7 @@ before changing historical behavior. Replacements may need different arguments o
 | `arduinoReadF` | `arduinoreadf` | ALIAS | Renamed alias; maintain the shared implementation through its supported name. |
 | `arduinoStart` | `arduinostart` | ALIAS | Renamed alias; maintain the shared implementation through its supported name. |
 | `arduinoStop` | `arduinostop` | ALIAS | Renamed alias; maintain the shared implementation through its supported name. |
-| `array` | `fillarray` | LEGACY | Retained for compatibility; put new behavior in the supported replacement. |
+| `array` | `fillarray` | LEGACY | Only the value-list initializer is deprecated; audio-to-array conversion remains supported. |
 | `bformdec` | `bformdec1` | FROZEN | Known inaccurate legacy decoder; use the supported decoder for new code. |
 | `bformenc` | `bformenc1` | FROZEN | Known inaccurate legacy encoder; bformenc1 omits the old gain arguments. |
 | `chn_S` | `chnS` | ALIAS | Renamed alias; maintain the shared implementation through its supported name. |

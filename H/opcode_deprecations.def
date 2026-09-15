@@ -32,7 +32,7 @@ CSOUND_OPCODE_DEPRECATION("arduinoRead", "arduinoread", ALIAS, "Renamed alias; m
 CSOUND_OPCODE_DEPRECATION("arduinoReadF", "arduinoreadf", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
 CSOUND_OPCODE_DEPRECATION("arduinoStart", "arduinostart", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
 CSOUND_OPCODE_DEPRECATION("arduinoStop", "arduinostop", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
-CSOUND_OPCODE_DEPRECATION("array", "fillarray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
+CSOUND_OPCODE_DEPRECATION("array", "fillarray", LEGACY, "Only the value-list initializer is deprecated; audio-to-array conversion remains supported.")
 CSOUND_OPCODE_DEPRECATION("bformdec", "bformdec1", FROZEN, "Known inaccurate legacy decoder; use the supported decoder for new code.")
 CSOUND_OPCODE_DEPRECATION("bformenc", "bformenc1", FROZEN, "Known inaccurate legacy encoder; bformenc1 omits the old gain arguments.")
 CSOUND_OPCODE_DEPRECATION("chn_S", "chnS", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
