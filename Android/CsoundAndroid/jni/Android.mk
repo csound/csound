@@ -42,6 +42,7 @@ $(CSOUND_SRC_ROOT)/Engine/memalloc.c \
 $(CSOUND_SRC_ROOT)/Engine/memfiles.c \
 $(CSOUND_SRC_ROOT)/Engine/musmon.c \
 $(CSOUND_SRC_ROOT)/Engine/namedins.c \
+$(CSOUND_SRC_ROOT)/Engine/opcode_deprecation.c \
 $(CSOUND_SRC_ROOT)/Engine/rdscor.c \
 $(CSOUND_SRC_ROOT)/Engine/scsort.c \
 $(CSOUND_SRC_ROOT)/Engine/scxtract.c \
