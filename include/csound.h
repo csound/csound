@@ -1365,6 +1365,7 @@ extern "C" {
    * number given by table, which should exist in the engine.
    * The input array should be at least as long as the table
    * size plus one (guard point required).
+   * Does nothing if the table does not exist when the copy runs.
    * This function is threadsafe and can also be run asynchronously
    */
   PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
@@ -1372,9 +1373,10 @@ extern "C" {
 
 
    /** 
-   * Copies a function table number given by table, 
-   * which should exist in the engine, into the array ptable,
-   * and have enough space to accommodate the array size.
+   * Copies the function table given by table into the array ptable,
+   * excluding the guard point. The destination must have room for
+   * the full table length returned by csoundTableLength().
+   * Does nothing if the table does not exist when the copy runs.
    * This function is threadsafe and can also be run asynchronously
    */
   PUBLIC void csoundTableCopyOut(CSOUND *csound, int32_t table,
