@@ -15,8 +15,10 @@ ksmps = 32
 nchnls = 1
 0dbfs = 1
 
+; Each weight is finite in both float and double builds; their sum overflows.
+giWeight = $M_MAX_VALUE / 2
 giInvalid ftgen 1, 0, -8, -41, \
-  10, 1e308, 20, 1e308, 30, 1e308
+  10, giWeight, 20, giWeight, 30, giWeight
 </CsInstruments>
 <CsScore>
 e

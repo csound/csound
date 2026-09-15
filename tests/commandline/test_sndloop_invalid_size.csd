@@ -1,14 +1,10 @@
 <CsTest>
 description = "sndloop rejects invalid recording sizes"
 
+# Each of the eight invalid notes must fail initialization. On 32-bit builds,
+# the last case exceeds the allocation-size limit before the sample-count check.
 [expect]
-exit = "nonzero"
-stderr = ["sndloop: invalid loop or crossfade duration", "crossfade cannot be longer than loop", "sndloop: recording is too long"]
-
-# WASM32 rejects the largest case at the allocation-size check, before the
-# combined loop/crossfade length can overflow the sample count.
-[profiles.wasm.expect]
-exit = "nonzero"
+exit = 8
 stderr = ["sndloop: invalid loop or crossfade duration", "crossfade cannot be longer than loop"]
 </CsTest>
 <CsoundSynthesizer>
