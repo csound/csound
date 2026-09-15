@@ -229,8 +229,7 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int32_t attr,
 
 /**
  * Creates a buffer for storing messages printed by Csound.
- * Should be called after creating a Csound instance; note that
- * the message buffer uses the host data pointer, and the buffer
+ * Should be called after creating a Csound instance. The buffer
  * should be freed by calling csoundDestroyMessageBuffer() before
  * deleting the Csound instance.
  * If 'toStdOut' is non-zero, the messages are also printed to
@@ -370,7 +369,6 @@ void  csoundDestroyMessageBuffer(CSOUND *csound) {
   while (csoundGetMessageCnt(csound) > 0) {
     csoundPopFirstMessage(csound);
   }
-  csoundSetHostData(csound, NULL);
   csoundDestroyMutex(pp->mutex_);
   free((void *)pp);
 }
@@ -380,19 +378,31 @@ static void csoundMessageBufferCallback_1_(CSOUND *csound, int32_t attr,
   csMsgBuffer *pp = (csMsgBuffer *)csound->message_buffer;
   csMsgStruct *p;
   int32_t len;
+  size_t capacity = pp->buf ? 16384 : 0;
+  va_list args_copy;
 
   csoundLockMutex(pp->mutex_);
-  len = vsnprintf(pp->buf, 16384, fmt, args); // FIXEDME: this can overflow
-  va_end(args);
-  if (UNLIKELY((uint32_t)len >= (uint32_t)16384)) {
+  va_copy(args_copy, args);
+  len = vsnprintf(pp->buf, capacity, fmt, args_copy);
+  va_end(args_copy);
+  if (UNLIKELY(len < 0)) {
     csoundUnlockMutex(pp->mutex_);
-    fprintf(stderr, Str("csound: internal error: message buffer overflow\n"));
-    exit(-1);
+    return;
   }
   p = (csMsgStruct *)malloc(sizeof(csMsgStruct) + (size_t)len);
+  if (UNLIKELY(p == NULL)) {
+    csoundUnlockMutex(pp->mutex_);
+    return;
+  }
   p->nxt = (csMsgStruct *)NULL;
   p->attr = attr;
-  strcpy(&(p->s[0]), pp->buf);
+  if ((size_t)len < capacity)
+    memcpy(p->s, pp->buf, (size_t)len + 1);
+  else {
+    va_copy(args_copy, args);
+    vsnprintf(p->s, (size_t)len + 1, fmt, args_copy);
+    va_end(args_copy);
+  }
   if (pp->firstMsg == (csMsgStruct *)0) {
     pp->firstMsg = p;
   } else {
@@ -405,33 +415,19 @@ static void csoundMessageBufferCallback_1_(CSOUND *csound, int32_t attr,
 
 static void csoundMessageBufferCallback_2_(CSOUND *csound, int32_t attr,
                                            const char *fmt, va_list args) {
-  csMsgBuffer *pp = (csMsgBuffer *)csound->message_buffer;
-  csMsgStruct *p;
-  int32_t len = 0;
-  va_list args_save;
+  va_list args_copy;
 
-  va_copy(args_save, args);
+  va_copy(args_copy, args);
   switch (attr & CSOUNDMSG_TYPE_MASK) {
   case CSOUNDMSG_ERROR:
   case CSOUNDMSG_REALTIME:
   case CSOUNDMSG_WARNING:
-    len = vfprintf(stderr, fmt, args);
+    vfprintf(stderr, fmt, args_copy);
     break;
   default:
-    len = vfprintf(stdout, fmt, args);
+    vfprintf(stdout, fmt, args_copy);
   }
-  va_end(args);
-  p = (csMsgStruct *)malloc(sizeof(csMsgStruct) + (size_t)len);
-  p->nxt = (csMsgStruct *)NULL;
-  p->attr = attr;
-  vsnprintf(&(p->s[0]), len, fmt, args_save);
-  va_end(args_save);
-  csoundLockMutex(pp->mutex_);
-  if (pp->firstMsg == (csMsgStruct *)NULL)
-    pp->firstMsg = p;
-  else
-    pp->lastMsg->nxt = p;
-  pp->lastMsg = p;
-  pp->msgCnt++;
-  csoundUnlockMutex(pp->mutex_);
+  va_end(args_copy);
+  /* A failed console write must not affect the buffered message's size. */
+  csoundMessageBufferCallback_1_(csound, attr, fmt, args);
 }
