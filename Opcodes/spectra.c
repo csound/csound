@@ -891,8 +891,9 @@ int32_t spadmset(CSOUND *csound, SPECADDM *p)
   if (npts != p->waddm->npts) {                 /* if out does not match ins */
     SPECset(csound,
             p->waddm, (int32_t)npts);              /*       reinit the out spec */
-    p->waddm->downsrcp = inspec1p->downsrcp;
   }
+  p->mul2 = *p->imul2;
+  p->waddm->downsrcp = inspec1p->downsrcp;
   p->waddm->ktimprd = inspec1p->ktimprd;        /* pass the other specinfo */
   p->waddm->nfreqs = inspec1p->nfreqs;
   p->waddm->dbout = inspec1p->dbout;
@@ -1252,7 +1253,7 @@ static OENTRY spectra_localops[] = {
     (SUBR)spectset,(SUBR)spectrum },
   { "spectrum", S(SPECTRUM),_QQ, "w", "aiiiqoooo",
     (SUBR)spectset,(SUBR)spectrum },
-  { "specaddm", S(SPECADDM),_QQ, "w", "wwp", (SUBR)spadmset,  (SUBR)specaddm},
+  { "specaddm", S(SPECADDM),_QQ, "w", "wwo", (SUBR)spadmset,  (SUBR)specaddm},
   { "specdiff", S(SPECDIFF),_QQ, "w", "w",   (SUBR)spdifset,  (SUBR)specdiff},
   { "specscal", S(SPECSCAL),_QQ, "w", "wii", (SUBR)spsclset,  (SUBR)specscal},
   { "spechist", S(SPECHIST),_QQ, "w", "w",   (SUBR)sphstset,  (SUBR)spechist},
