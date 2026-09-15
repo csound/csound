@@ -2306,18 +2306,25 @@ int32_t lpf18db(CSOUND *csound, LPF18 *p)
 
 int32_t wavesetset(CSOUND *csound, BARRI *p)
 {
-    if (*p->len == FL(0.0))
-      p->length = 1 + (int32_t)(p->h.insdshead->p3.value * CS_ESR * FL(0.5));
+    double length = *p->len;
+    if (length == 0.0)
+      length = p->h.insdshead->p3.value * CS_ESR * 0.5;
+    if (length < 1.0)
+      length = CS_ESR;
     else
-      p->length = 1 + (int32_t)*p->len;
-    if (UNLIKELY(p->length <= 1)) p->length = (int32_t)CS_ESR;
-    csound->AuxAlloc(csound, (int32)p->length*sizeof(MYFLT), &p->auxch);
+      length = floor(length) + 1.0;
+    if (UNLIKELY(!(length >= 2.0 && length <= INT32_MAX &&
+                   length <= SIZE_MAX / sizeof(MYFLT))))
+      return csound->InitError(csound, Str("waveset: invalid buffer length"));
+    p->length = (int32_t)length;
+    csound->AuxAlloc(csound, (size_t)p->length * sizeof(MYFLT), &p->auxch);
     p->cnt = 1;
     p->start = 0;
     p->current = 0;
     p->end = 0;
     p->direction = 1;
-    p->lastsamp = FL(1.0);
+    /* The first nonzero sample establishes the initial sign. */
+    p->lastsamp = FL(0.0);
     p->noinsert = 0;
     return OK;
 }
@@ -2340,13 +2347,13 @@ int32_t waveset(CSOUND *csound, BARRI *p)
     if (p->noinsert) goto output;
     for (n=offset;n<nsmps;n++) {                        /* Deal with inputs */
       *insert++ = in[n];
-      if (++index ==  p->start) {
-        p->noinsert = 1;
-        break;
-      }
-      if (index==p->length) {   /* Input wrapping */
+      if (++index == p->length) {   /* Input wrapping */
         index = 0;
         insert = (MYFLT*)(p->auxch.auxp);
+      }
+      if (index == p->start) {
+        p->noinsert = 1;
+        break;
       }
     }
  output:
@@ -2354,13 +2361,9 @@ int32_t waveset(CSOUND *csound, BARRI *p)
     index = p->current;
     insert = (MYFLT*)(p->auxch.auxp) + index;
     for (n=offset;n<nsmps;n++) {
-      MYFLT samp = *insert++;
-      index ++;
-      if (index==p->length) {
-        index = 0;
-        insert = (MYFLT*)(p->auxch.auxp);
-      }
-      if (samp != FL(0.0) && p->lastsamp*samp < FL(0.0)) {
+      MYFLT samp = *insert;
+      if ((samp > FL(0.0) && p->lastsamp < FL(0.0)) ||
+          (samp < FL(0.0) && p->lastsamp > FL(0.0))) {
         if (p->direction == 1)
           p->direction = -1;    /* First cross */
         else {                  /* Second cross */
@@ -2371,13 +2374,23 @@ int32_t waveset(CSOUND *csound, BARRI *p)
             p->noinsert = 0;
           }
           else {
+            /* This crossing starts the next cycle.  Emit the first
+               sample of the repeated cycle instead. */
             index = p->start;
             insert = (MYFLT*)(p->auxch.auxp) + index;
+            samp = *insert;
+            p->lastsamp = FL(0.0);
           }
         }
       }
       if (samp != FL(0.0)) p->lastsamp = samp;
       out[n] = samp;
+      if (++index == p->length) {
+        index = 0;
+        insert = (MYFLT*)(p->auxch.auxp);
+      }
+      else
+        insert++;
     }
     p->current = index;
     return OK;
