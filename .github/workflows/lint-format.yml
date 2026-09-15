@@ -1,0 +1,52 @@
+name: Lint Format
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+      - run: |
+          python3 scripts/run-clang-format.py -r \
+            Engine \
+            Frontends \
+            H \
+            include \
+            InOut \
+            OOps \
+            Opcodes \
+            Top \
+            util \
+            util1 \
+            util2
+      - name: Failure message
+        if: ${{ failure() }}
+        run: |
+          FAILURE_MESSAGE=$(cat << EOF
+          We detected an incorrect code formatting
+          to fix the issue, please run the following
+          command and try again.
+
+          python3 scripts/run-clang-format.py -r --in-place \
+            Engine \
+            Frontends \
+            H \
+            include \
+            InOut \
+            OOps \
+            Opcodes \
+            Top \
+            util \
+            util1 \
+            util2
+
+          EOF
+          )
+
+          echo $FAILURE_MESSAGE
