@@ -101,3 +101,17 @@ opcode pages. It includes renamed aliases as well as legacy implementations.
 The manual-only markers for `ptablew`, `sclag`, `sclagud`, `scphasor`, and `sctrig`
 are now reflected in their registrations. `tb` is a documentation family name;
 its actual `tb0`–`tb15` and setup opcodes have individual entries.
+
+The old manual's [deprecated chapter on master](https://github.com/csound/manual/blob/0a02e042aea19376c1ceefc6073b0bfcf57497d9/deprecated/top.xml)
+lists 51 opcode entries. Of these, 36 names still have source registrations and
+appear in the catalog; `tb` covers the family described above. The other 14 names
+have no remaining registrations: `clock`, `instimek`, `instimes`, `is16b14`,
+`is32b14`, `islider8`, `islider16`, `islider32`, `islider64`, `itablecopy`,
+`itablegpw`, `itablemix`, `itablew`, and `peakk`.
+The [Csound 6 chapter](https://github.com/csound/manual/blob/127544bf0397ec8d032a53151e4f86977ad87ea0/deprecated/top.xml)
+also lists 69 older spellings that no longer have registrations. Commented-out
+entries and the separate historical/abandoned section are not active deprecations.
+
+The old `fin` page includes its audio-array form, so that registration now carries
+the same deprecation flag as its scalar forms. The old `array` page describes a
+value-list initializer; its separate audio-to-array conversion remains supported.

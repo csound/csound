@@ -1561,7 +1561,7 @@ static OENTRY localops[] = {
   CSOUND_DEPRECATED_OPCODE("fin", "diskin2", LEGACY, "Adapt the file-reading arguments and output assignment; not a drop-in rename.")
   { "fin.a",      S(INFILE),     WI|_QQ,  "",      "Siiy",
     (SUBR) infile_set_S,    (SUBR) infile_act, (SUBR) infile_deinit},
-  { "fin.A",      S(INFILEA),    WI,  "",     "Siia[]",
+  { "fin.A",      S(INFILEA),    WI|_QQ,  "",     "Siia[]",
     (SUBR) infile_set_A,    (SUBR) infile_arr, (SUBR) infilea_deinit},
   { "fin.i",      S(INFILE),     WI|_QQ,  "",     "iiiy",
     (SUBR) infile_set,      (SUBR) infile_act, (SUBR) infile_deinit},

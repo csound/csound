@@ -120,6 +120,25 @@ TEST_F(OpcodeDeprecationCompiler, SupportedOpcodeHasNoDeprecationWarning)
     EXPECT_EQ(messages().find("deprecated"), std::string::npos);
 }
 
+TEST_F(OpcodeDeprecationCompiler, FinArrayGetsReplacementAndStrictError)
+{
+    const char *body = "aChannels[] init 2\nfin \"unused.wav\",0,0,aChannels";
+    ASSERT_EQ(compile(body), CSOUND_SUCCESS) << messages();
+    EXPECT_NE(messages().find("opcode fin is deprecated; use diskin2 instead"),
+              std::string::npos);
+    ASSERT_EQ(csoundSetOption(csound, "--error-deprecated"), CSOUND_SUCCESS);
+    EXPECT_NE(compile(body), CSOUND_SUCCESS);
+    EXPECT_NE(messages().find("use diskin2 instead"), std::string::npos);
+}
+
+TEST_F(OpcodeDeprecationCompiler, AudioArrayConversionRemainsSupported)
+{
+    ASSERT_EQ(csoundSetOption(csound, "--error-deprecated"), CSOUND_SUCCESS);
+    ASSERT_EQ(compile("aSig init 0\nkSamples[] = array(aSig)"), CSOUND_SUCCESS)
+        << messages();
+    EXPECT_EQ(messages().find("deprecated"), std::string::npos);
+}
+
 static int32_t customInit(CSOUND *, void *) { return CSOUND_SUCCESS; }
 
 TEST_F(OpcodeDeprecationCompiler, CatalogDoesNotDeprecateUnmarkedOverload)
