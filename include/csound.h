@@ -948,7 +948,8 @@ extern "C" {
    * the list. In the case of no channels or an error, *lst is set to NULL.
    * Notes: the caller is responsible for freeing the list returned in *lst
    * with csoundDeleteChannelList(). The name pointers may become invalid
-   * after calling csoundReset().
+   * after calling csoundReset(). Hints attributes are borrowed from the
+   * channel and may become invalid when its hints are changed.
    */
   PUBLIC int32_t csoundListChannels(CSOUND *, controlChannelInfo_t **lst);
 
@@ -972,8 +973,10 @@ extern "C" {
   /**
    * Copies a control channel's hints, previously set with
    * csoundSetControlChannelHints() or the chn_k opcode, into *hints.
-   * The caller supplies the controlChannelHints_t structure and must free
-   * its attributes member if it is non-NULL.
+   * The caller supplies the controlChannelHints_t structure and releases
+   * its attributes with csoundDeleteControlChannelHints(). These attributes
+   * use Csound's allocator, so they must not be passed to free(). Release
+   * them before resetting or destroying the Csound instance.
    *
    * Returns CSOUND_SUCCESS on success. Returns CSOUND_ERROR and leaves
    * *hints unchanged if the name is NULL, the channel does not exist,
@@ -981,6 +984,15 @@ extern "C" {
    */
   PUBLIC int32_t csoundGetControlChannelHints(CSOUND *, const char *name,
                                           controlChannelHints_t *hints);
+
+  /**
+   * Releases attributes returned by csoundGetControlChannelHints() using
+   * the same Csound instance, and sets hints->attributes to NULL.
+   * The caller owns the hints structure; this function does not free it.
+   * Calling it again after the attributes have been released is harmless.
+   */
+  PUBLIC void csoundDeleteControlChannelHints(CSOUND *csound,
+                                             controlChannelHints_t *hints);
 
   /**
    * locks access to the channel allowing access to data in
