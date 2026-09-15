@@ -30,6 +30,11 @@ extern "C" {
   /** @}*/
   /** @defgroup CIRCULARBUFFER Circular buffer functions
    *
+   * A buffer supports one writer and one reader at a time. Peeking and flushing
+   * belong to the reader; they must not run alongside another read operation.
+   * Stop both sides before destroying the buffer. Cross-thread use requires a
+   * build with atomic operations enabled.
+   *
    *  @{ */
    /**
    * Create circular buffer with numelem number of elements. The
