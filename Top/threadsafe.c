@@ -418,9 +418,8 @@ void csound_table_copy_out(CSOUND *csound, int32_t table, MYFLT *ptable) {
   if (csound->oparms->realtime)
     csoundLockMutex(csound->init_pass_threadlock);
   len = csoundGetTable(csound, &ftab, table);
-  if (UNLIKELY(len > 0x00ffffff))
-    len = 0x00ffffff; // As coverity is unhappy
-  memcpy(ptable, ftab, (size_t)(len * sizeof(MYFLT)));
+  if (LIKELY(len > 0))
+    memcpy(ptable, ftab, (size_t)len * sizeof(MYFLT));
   if (csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
 }
@@ -433,9 +432,8 @@ void csound_table_copy_in(CSOUND *csound, int32_t table, const MYFLT *ptable) {
   if (csound->oparms->realtime)
     csoundLockMutex(csound->init_pass_threadlock);
   len = csoundGetTable(csound, &ftab, table);
-  if (UNLIKELY(len > 0x00ffffff))
-    len = 0x00ffffff; // As coverity is unhappy
-  memcpy(ftab, ptable, (size_t)((len+1) * sizeof(MYFLT))); // + guard point
+  if (LIKELY(len > 0))
+    memcpy(ftab, ptable, ((size_t)len + 1) * sizeof(MYFLT)); // + guard point
   if (csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
 }
