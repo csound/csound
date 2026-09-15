@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <string.h>
+#include <atomic>
+#include <string>
+#include <thread>
+#include <vector>
 #include "gtest/gtest.h"
 #include "csound.h"
 #include "csound_type_system.h"
@@ -770,4 +774,88 @@ TEST_F (ChannelTests, AudioChannel)
       pow += sample[i]*sample[i];
     }
     ASSERT_TRUE(pow > 0);
+}
+
+TEST_F (ChannelTests, ConcurrentStringChannelResize)
+{
+    constexpr size_t maxLength = 65536;
+    std::vector<char> output(maxLength + 1);
+    csoundSetStringChannel(csound, "shared", "a");
+    csoundGetStringChannel(csound, "shared", output.data());
+    std::atomic<int> ready{0};
+    std::atomic<int> finished{0};
+    std::atomic<bool> invalid{false};
+    auto waitForStart = [&]() {
+        ++ready;
+        while (ready.load() != 3)
+            std::this_thread::yield();
+    };
+    auto write = [&](char fill) {
+        waitForStart();
+        for (size_t length = 128; length <= maxLength; length += 128) {
+            const std::string value(length, fill);
+            csoundSetStringChannel(csound, "shared", value.c_str());
+        }
+        ++finished;
+    };
+    std::thread first(write, 'a');
+    std::thread second(write, 'b');
+    std::thread reader([&]() {
+        waitForStart();
+        do {
+            csoundGetStringChannel(csound, "shared", output.data());
+            const size_t length = strlen(output.data());
+            if (length == 0 || length > maxLength ||
+                (output[0] != 'a' && output[0] != 'b')) {
+                invalid.store(true);
+            } else {
+                for (size_t i = 1; i < length; ++i)
+                    if (output[i] != output[0]) invalid.store(true);
+            }
+        } while (finished.load() != 2);
+    });
+    first.join();
+    second.join();
+    reader.join();
+    EXPECT_FALSE(invalid.load());
+    csoundGetStringChannel(csound, "shared", output.data());
+    EXPECT_EQ(strlen(output.data()), maxLength);
+}
+
+TEST_F (ChannelTests, StringOpcodesDuringHostResize)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        sr = 48000
+        ksmps = 32
+        nchnls = 1
+        chn_S "read", 3
+        chn_S "write", 3
+        instr 1
+          Svalue chnget "read"
+          chnset Svalue, "write"
+        endin
+    )ORC"));
+    csoundEventString(csound, "i 1 0 60", 0);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    std::atomic<bool> finished{false};
+    std::thread writer([&]() {
+        for (size_t length = 128; length <= 65536; length += 128) {
+            const std::string value(length, 'x');
+            csoundSetStringChannel(csound, "read", value.c_str());
+            csoundSetStringChannel(csound, "write", value.c_str());
+        }
+        finished.store(true);
+    });
+    int result = 0;
+    do {
+        result = csoundPerformKsmps(csound);
+    } while (!finished.load() && result == 0);
+    writer.join();
+    EXPECT_EQ(result, 0);
+    // An unchanged string must release its lock before the next block.
+    EXPECT_EQ(csoundPerformKsmps(csound), 0);
+    EXPECT_EQ(csoundPerformKsmps(csound), 0);
+    std::vector<char> output(65537);
+    csoundGetStringChannel(csound, "write", output.data());
+    EXPECT_EQ(std::string(output.data()), std::string(65536, 'x'));
 }

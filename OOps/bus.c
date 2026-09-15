@@ -1131,11 +1131,12 @@ int32_t chnget_opcode_perf_S(CSOUND* csound, CHNGET* p){
   if (UNLIKELY(err))
     return print_chn_err(p, err);
 
-  if (s!=NULL && ((STRINGDAT*) p->fp)->data!=NULL &&
-      strcmp(s, ((STRINGDAT*) p->fp)->data)==0)
-    return OK;
-
   csoundSpinLock(p->lock);
+  if (s!=NULL && ((STRINGDAT*) p->fp)->data!=NULL &&
+      strcmp(s, ((STRINGDAT*) p->fp)->data)==0) {
+    csoundSpinUnLock(p->lock);
+    return OK;
+  }
 
   if (((STRINGDAT*) p->fp)->data!=NULL)
     {
@@ -1417,13 +1418,15 @@ int32_t chnset_opcode_perf_S(CSOUND* csound, CHNGET* p)
     return err;
 
   if (s==NULL) return NOTOK;
-  if (((STRINGDAT*) p->fp)->data
-      && strcmp(s, ((STRINGDAT*) p->fp)->data)==0)
-    return OK;
-
   p->lock = lock = (spin_lock_t*)
     get_channel_lock(csound, (char*) p->iname->data);
   csoundSpinLock(lock);
+
+  if (((STRINGDAT*) p->fp)->data
+      && strcmp(s, ((STRINGDAT*) p->fp)->data)==0) {
+    csoundSpinUnLock(lock);
+    return OK;
+  }
 
   STRINGDAT* dest = (STRINGDAT*) p->fp;
   size_t len = strlen(s);
@@ -2930,7 +2933,6 @@ void csoundSetStringChannel(CSOUND *csound, const char *name,
   if (csoundGetChannelPtr(csound, (void **) &stringdat, name,
                           CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)
       == CSOUND_SUCCESS){
-    size_t   size = stringdat->size; //csoundGetChannelDatasize(csound, name);
     spin_lock_t *lock = (spin_lock_t *) get_channel_lock(csound, (char*) name);
 
     if (lock != NULL) {
@@ -2938,7 +2940,7 @@ void csoundSetStringChannel(CSOUND *csound, const char *name,
     }
 
     size_t len = strlen(string);
-    if (len >= (uint32_t) size) {
+    if (len >= stringdat->size) {
       stringdat->data = csound->ReAlloc(csound, stringdat->data, len + 1);
       stringdat->size = len + 1;
     }
@@ -2962,9 +2964,9 @@ void csoundGetStringChannel(CSOUND *csound, const char *name,
                           CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
       == CSOUND_SUCCESS){
     spin_lock_t *lock = (spin_lock_t *) get_channel_lock(csound, (char*) name);
-    chstring = pstring->data;
     if (lock != NULL)
       csoundSpinLock(lock);
+    chstring = pstring->data;
     if (string != NULL && chstring != NULL) {
       n2 = (int32_t) strlen(chstring);
       strNcpy(string,chstring, n2+1);
