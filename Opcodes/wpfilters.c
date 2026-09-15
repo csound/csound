@@ -466,6 +466,8 @@ static int32_t zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
 
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
     MYFLT q = q_arate ? 0.0 : *p->q;
+    if (!q_arate)
+      q = (q < 0.5) ? 0.5 : (q > 25.0) ? 25.0 : q;
 
     if (UNLIKELY(offset)) {
       memset(p->out, '\0', offset*sizeof(MYFLT));
@@ -834,6 +836,8 @@ static int32_t k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
 
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
     MYFLT q = q_arate ? 0.0 : *p->q;
+    if (!q_arate)
+      q = (q > 10.0) ? 10.0 : (q < 1.0) ? 1.0 : q;
 
     int32_t nonlinear = MYFLT2LONG(*p->nonlinear);
     double saturation = *p->saturation;
@@ -973,6 +977,8 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
 
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
     MYFLT q = q_arate ? 0.0 : *p->q;
+    if (!q_arate)
+      q = (q > 10.0) ? 10.0 : (q < 1.0) ? 1.0 : q;
 
     int32_t
       nonlinear = MYFLT2LONG(*p->nonlinear);
