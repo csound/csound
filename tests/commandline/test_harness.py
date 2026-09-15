@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check test discovery, expectations, and subprocess handling without Csound."""
 
+import ast
 import importlib.util
 from pathlib import Path
 import sys
@@ -186,14 +187,17 @@ class ProcessTests(unittest.TestCase):
 
     def test_runtime_wrapper_preserves_module_path_and_arguments(self):
         script = self.script('import sys\nprint(repr(sys.argv[1:]))\n')
-        module = self.root / "module with spaces.cwasm"
-        case = TestCase("nested/test.csd", "runtime", {
-            "exit": 0, "stdout": [str(module), "'--runtime-option'", "'nested/test.csd'"]})
-        with mock.patch.object(HARNESS, "runtimeExecutable", sys.executable), \
-             mock.patch.object(HARNESS, "runtimeArguments", [str(script), "--runtime-option"]), \
-             mock.patch.object(HARNESS, "csoundExecutable", str(module)):
-            result = HARNESS.execute_single_test(0, case, [], str(self.root))
-        self.assertTrue(result.passed, result.get_formatted_output(1) + result.cs_output)
+        for name in ("module with spaces.cwasm", r"module\with\backslashes.cwasm"):
+            with self.subTest(name=name):
+                module = self.root / name
+                case = TestCase("nested/test.csd", "runtime")
+                with mock.patch.object(HARNESS, "runtimeExecutable", sys.executable), \
+                     mock.patch.object(HARNESS, "runtimeArguments", [str(script), "--runtime-option"]), \
+                     mock.patch.object(HARNESS, "csoundExecutable", str(module)):
+                    result = HARNESS.execute_single_test(0, case, [], str(self.root))
+                self.assertTrue(result.passed, result.get_formatted_output(1) + result.cs_output)
+                self.assertEqual(ast.literal_eval(result.stdout_output),
+                                 ["--runtime-option", str(module), "-nd", "nested/test.csd"])
 
     def test_timeout_and_missing_executable_do_not_satisfy_negative_test(self):
         script = self.script('import time\ntime.sleep(5)\n')
