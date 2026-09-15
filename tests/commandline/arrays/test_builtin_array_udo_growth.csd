@@ -1,3 +1,6 @@
+<CsTest>
+description = "numeric and string UDO arrays can grow during performance"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

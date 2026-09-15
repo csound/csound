@@ -1,3 +1,6 @@
+<CsTest>
+description = "managed struct-array writes share one ownership path"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m128

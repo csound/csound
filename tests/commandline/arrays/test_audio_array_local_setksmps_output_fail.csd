@@ -1,3 +1,10 @@
+<CsTest>
+description = "reject a local-ksmps audio array that cannot fit the caller"
+
+[expect]
+exit = "nonzero"
+stderr = ["could not prepare UDO output"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0

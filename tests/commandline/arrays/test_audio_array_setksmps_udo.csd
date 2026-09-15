@@ -1,3 +1,6 @@
+<CsTest>
+description = "audio-array UDO copy keeps the caller stride across setksmps"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -m0
