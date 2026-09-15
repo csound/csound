@@ -279,7 +279,8 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
     }
 
     /* VL 11.01.05 for deferred GEN01, it's called in gen01raw */
-    ftresdisp(&ff, ftp);           /* rescale and display     */
+    if (ftp->flen != 0)
+      ftresdisp(&ff, ftp);         /* rescale and display loaded tables */
 
     *ftpp = ftp;
     /* keep original arguments, from GEN number  */
@@ -2311,13 +2312,19 @@ static int32_t gen01(FGDATA *ff, FUNC *ftp)
       /* We're deferring the soundfile load until performance time,
          so allocate the function table descriptor, save the arguments,
          and get out */
-      ftp = ftalloc(ff);
+      if (ftp == NULL)
+        ftp = ftalloc(ff);
       ftp->gen01args.gen01 = ff->e.p[4];
       ftp->gen01args.ifilno = ff->e.p[5];
       ftp->gen01args.iskptim = ff->e.p[6];
       ftp->gen01args.iformat = ff->e.p[7];
       ftp->gen01args.channel = ff->e.p[8];
-      strNcpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ);
+      if (ff->e.strarg != NULL)
+        strNcpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ);
+      ftp->gen01args.deferred_length = ff->flen;
+      ftp->gen01args.deferred_guardreq = ff->guardreq;
+      /* A zero length tells FTFind and csoundGetTable to load on first use. */
+      ftp->flen = 0;
       return OK;
     }
     return gen01raw(ff, ftp);
@@ -3112,27 +3119,45 @@ int32_t resize_table(CSOUND *csound, RESIZE *p)
 static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int32_t fno)
 {
     FGDATA  ff;
-    char    *strarg;
+    MYFLT   pfields[9] = { FL(0.0) };
+    char    strarg[SSTRSIZ];
     FUNC    *ftp = csound->flist[fno];
+    MYFLT   *args = ftp->args;
+    int32_t argcnt = ftp->argcnt, result;
 
     /* The soundfile hasn't been loaded yet, so call GEN01 */
-    strarg = csound->Malloc(csound, strlen(ftp->gen01args.strarg)+1);
-    strcpy(strarg, ftp->gen01args.strarg);
+    strNcpy(strarg, ftp->gen01args.strarg, sizeof(strarg));
     memset(&ff, 0, sizeof(FGDATA));
     ff.csound = csound;
     ff.fno = fno;
+    ff.flen = ftp->gen01args.deferred_length;
+    ff.guardreq = ftp->gen01args.deferred_guardreq;
     ff.e.strarg = strarg;
     ff.e.opcod = 'f';
     ff.e.pcnt = 8;
+    ff.e.p = pfields;
     ff.e.p[1] = (MYFLT) fno;
+    ff.e.p[3] = (MYFLT) ff.flen;
     ff.e.p[4] = ftp->gen01args.gen01;
     ff.e.p[5] = ftp->gen01args.ifilno;
     ff.e.p[6] = ftp->gen01args.iskptim;
     ff.e.p[7] = ftp->gen01args.iformat;
     ff.e.p[8] = ftp->gen01args.channel;
-    if (UNLIKELY(gen01raw(&ff, ftp) != 0)) {
+    /* A deferred-size load replaces the table header. Keep its arguments
+       alive across that replacement and attach them to the loaded table. */
+    ftp->args = NULL;
+    ftp->flen = ff.flen;
+    result = gen01raw(&ff, ftp);
+    ftp = csound->flist[fno];
+    ftp->args = args;
+    ftp->argcnt = argcnt;
+    ftp->sr = csound->esr;
+    if (UNLIKELY(result != 0)) {
+      ftp->flen = 0;
       csoundErrorMsg(csound, Str("Deferred load of '%s' failed"), strarg);
       return NULL;
     }
-    return csound->flist[fno];
+    if (ff.e.p[3] != FL(0.0))
+      ftresdisp(&ff, ftp);
+    return ftp;
 }
