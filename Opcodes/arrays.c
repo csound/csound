@@ -1265,6 +1265,7 @@ typedef struct _MFB {
   MYFLT *up;
   MYFLT *len;
   AUXCH  bins;
+  int32_t bands;
 } MFB;
 
 static inline MYFLT f2mel(MYFLT f) {
@@ -1273,49 +1274,62 @@ static inline MYFLT f2mel(MYFLT f) {
 
 static inline int32_t mel2bin(MYFLT m, int32_t N, MYFLT sr) {
   MYFLT f = 700.*(exp(m/1125.) - 1.);
-  return  (int32_t)(f/(sr/(2*N)));
+  MYFLT bin = f/(sr/(FL(2.0)*N));
+  /* Clip before the integer conversion, including frequencies above Nyquist. */
+  if (bin >= N + 1) return N + 1;
+  return (int32_t)bin;
 }
 
 static int32_t mfb_init(CSOUND *csound, MFB *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
-  int32_t   L = *p->len;
-  int32_t N = p->in->sizes[0];
-  if (LIKELY(L < N)) {
-    if (UNLIKELY(tabinit(csound, p->out, L, p->h.insdshead) != OK))
-      return csound_array_init_resize_error(csound);
-  }
-  else
+  if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1))
     return csound->InitError(csound, "%s",
-                             Str("mfb: filter bank size exceeds input array length"));
-  if (p->bins.auxp == NULL || p->bins.size < (L+2)*sizeof(int32_t))
-    csound->AuxAlloc(csound, (L+2)*sizeof(MYFLT), &p->bins);
+                            Str("mfb: expected one-dimensional arrays"));
+  int32_t N = p->in->sizes[0];
+  if (UNLIKELY(!(*p->len >= FL(1.0) && *p->len < N)))
+    return csound->InitError(csound, "%s",
+                            Str("mfb: band count must be positive and less than input length"));
+  int32_t L = (int32_t)*p->len;
+  if (UNLIKELY(tabinit(csound, p->out, L, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
+  p->bands = L;
+  size_t bytes = ((size_t)L + 2)*sizeof(int32_t);
+  if (p->bins.auxp == NULL || p->bins.size < bytes)
+    csound->AuxAlloc(csound, bytes, &p->bins);
   return OK;
 }
 
 static int32_t mfb(CSOUND *csound, MFB *p) {
-  /* FIXME: Init cals tabinit but not checked in erf? */
+  int32_t L = p->bands;
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->in->sizes[0] <= L || p->out->dimensions != 1))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("mfb: invalid array shape"));
+  if (UNLIKELY(tabcheck(csound, p->out, L, &p->h) != OK))
+    return NOTOK;
+  MYFLT low = *p->low, high = *p->up;
+  if (UNLIKELY(!(low >= FL(0.0) && high >= low) || !isfinite(high)))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("mfb: frequencies must be finite, non-negative and ordered"));
   int32_t i,j;
   int32_t *bin = (int32_t *) p->bins.auxp;
   MYFLT start,max,end;
   MYFLT g = FL(0.0), incr, decr;
-  int32_t L = p->out->sizes[0];
   int32_t N = p->in->sizes[0];
   MYFLT sum = FL(0.0);
   MYFLT *out = p->out->data;
   MYFLT *in = p->in->data;
   MYFLT sr = CS_ESR;
 
-  start = f2mel(*p->low);
-  end = f2mel(*p->up);
+  start = f2mel(low);
+  end = f2mel(high);
   incr = (end-start)/(L+1);
 
 
 
-  for (i=0;i<L+2;i++) {
-    bin[i] = (int32_t) mel2bin(start,N-1,sr);
-
-    if (bin[i] > N) bin[i] = N;
+  for (size_t edge = 0; edge < (size_t)L + 2; edge++) {
+    bin[edge] = mel2bin(start,N-1,sr);
     start += incr;
   }
 
@@ -1323,8 +1337,9 @@ static int32_t mfb(CSOUND *csound, MFB *p) {
     start = bin[i];
     max = bin[i+1];
     end = bin[i+2];
-    incr =  1.0/(max - start);
-    decr =  1.0/(end - max);
+    /* A narrow Mel band can map two or all three edges to the same FFT bin. */
+    incr = max > start ? FL(1.0)/(max - start) : FL(0.0);
+    decr = end > max ? FL(1.0)/(end - max) : FL(0.0);
     for (j=start; j < max; j++) {
       sum += in[j]*g;
       g += incr;
@@ -1334,7 +1349,7 @@ static int32_t mfb(CSOUND *csound, MFB *p) {
       sum += in[j]*g;
       g -= decr;
     }
-    out[i] = sum/(end - start);
+    out[i] = end > start ? sum/(end - start) : FL(0.0);
 
     g = FL(0.0);
     sum = FL(0.0);
