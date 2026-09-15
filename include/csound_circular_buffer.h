@@ -37,6 +37,8 @@ extern "C" {
    *@code
    * void *rb = csoundCreateCircularBuffer(csound, 1024, sizeof(MYFLT));
    *@endcode
+   * Returns NULL if numelem or elemsize is not positive, the extra slot used
+   * internally cannot be represented, or the allocation size overflows.
    */
   PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound,
                                           int32_t numelem, int32_t elemsize);
