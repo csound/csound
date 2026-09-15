@@ -591,7 +591,18 @@ else()
     endif()
 endif()
 
-# set default user plugin directory
+# set default user plugin directory (independent of CS_OPCODE_DIR)
+if(APPLE)
+    # dir relative to $HOME
+    if(USE_DOUBLE)
+      set(DEFAULT_USER_PLUGINDIR "Library/csound/${APIVERSION}/plugins64")
+   else()
+      set(DEFAULT_USER_PLUGINDIR "Library/csound/${APIVERSION}/plugins")
+    endif()
+
+    add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
+endif()
+
 if(CS_OPCODE_DIR STREQUAL "")
 if(APPLE)
     if(BUILD_INSTALLER)
@@ -602,15 +613,6 @@ if(APPLE)
 
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
     set(DEFAULT_OPCODEDIR "${CS_FRAMEWORK_FULL_PATH}")
-
-    # dir relative to $HOME
-    if(USE_DOUBLE)
-      set(DEFAULT_USER_PLUGINDIR "Library/csound/${APIVERSION}/plugins64")
-   else()
-      set(DEFAULT_USER_PLUGINDIR "Library/csound/${APIVERSION}/plugins")
-    endif()
-
-    add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 else()
    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_OPCODE_DIR}\"")
