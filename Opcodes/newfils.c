@@ -1003,25 +1003,36 @@ typedef struct _mvcf {
   double fr, w;
 } mvclpf24;
 
-double exp2ap(double x) {
-  int32_t i = (int32_t) (floor(x));
-  x -= i;
-  return ldexp(1 + x * (0.6930 +
-                        x * (0.2416 + x * (0.0517 +
-                                           x * 0.0137))), i);
-}
-
-
 int32_t mvclpf24_init(CSOUND *csound, mvclpf24 *p){
   IGN(csound);
   if (!*p->skipinit){
     p->c1 = p->c2  = p->c3 =
       p->c4 = p->c5 = FL(0.0);
     p->fr = FL(0.0);
+    p->w = 0.0;
   }
   return OK;
 }
 #define CBASE 261.62556416
+
+/* The coefficient maps below already saturate below sr. Avoid taking log2
+   outside their useful range, including zero and underflowed cutoff ratios. */
+#define MVC_PREWARP(result, cutoff, tuning) do {                         \
+  double mvc_freq = (cutoff);                                           \
+  double mvc_ratio = mvc_freq / CBASE;                                  \
+  if (!(mvc_ratio > 0.0))                                               \
+    (result) = 0.0;                                                    \
+  else if (mvc_freq >= CS_ESR)                                         \
+    (result) = 2.0;                                                    \
+  else {                                                               \
+    double mvc_t = log2(mvc_ratio) + (tuning);                           \
+    int32_t mvc_i = (int32_t)floor(mvc_t);                               \
+    mvc_t -= mvc_i;                                                    \
+    (result) = ldexp(1 + mvc_t * (0.6930 +                               \
+                 mvc_t * (0.2416 + mvc_t * (0.0517 +                     \
+                 mvc_t * 0.0137))), mvc_i) / CS_ESR;                    \
+  }                                                                    \
+} while (0)
 
 int32_t mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
@@ -1034,9 +1045,8 @@ int32_t mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
   MYFLT scal = csound->Get0dBFS(csound);
 
   if (p->fr != *p->freq) {
-    MYFLT fr = log2(*p->freq/CBASE);
-    p->fr  = *p->freq;
-    w = exp2ap(fr + 10.82)/CS_ESR;
+    p->fr = *p->freq;
+    MVC_PREWARP(w, *p->freq, 10.82);
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
       w *= 0.6;
@@ -1078,7 +1088,6 @@ int32_t mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
   MYFLT *in = p->in, res, *freq = p->freq;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t;
-  int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -1093,13 +1102,7 @@ int32_t mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
   }
 
   for (i=offset; i < nsmps; i++){
-    t  = log2(freq[i]/CBASE) + 10.82;
-    wi = (int32_t) (floor(t));
-    t -= wi;
-    t  = ldexp(1 + t * (0.6930 +
-                        t * (0.2416 + t * (0.0517 +
-                                           t * 0.0137))), wi);
-    w  = t/CS_ESR;
+    MVC_PREWARP(w, freq[i], 10.82);
     if (w < 0.8)
       w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -1137,9 +1140,8 @@ int32_t mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
   MYFLT scal = csound->Get0dBFS(csound);
 
   if (p->fr != *p->freq) {
-    MYFLT fr = log2(*p->freq/CBASE);
-    p->fr  = *p->freq;
-    w = exp2ap(fr + 10.82)/CS_ESR;
+    p->fr = *p->freq;
+    MVC_PREWARP(w, *p->freq, 10.82);
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
       w *= 0.6;
@@ -1181,7 +1183,6 @@ int32_t mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
   MYFLT *in = p->in, *res = p->res, *freq = p->freq;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t;
-  int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -1194,13 +1195,7 @@ int32_t mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
   }
 
   for (i=offset; i < nsmps; i++){
-    t = log2(freq[i]/CBASE) + 10.82;
-    wi = (int32_t) (floor(t));
-    t -= wi;
-    t = ldexp(1 + t * (0.6930 +
-                       t * (0.2416 + t * (0.0517 +
-                                          t * 0.0137))), wi);
-    w = t/CS_ESR;
+    MVC_PREWARP(w, freq[i], 10.82);
     if (w < 0.8)
       w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -1239,9 +1234,8 @@ int32_t mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
   MYFLT scal = csound->Get0dBFS(csound);
 
   if (p->fr != *p->freq) {
-    MYFLT fr = log2(*p->freq/CBASE);
-    p->fr  = *p->freq;
-    w = exp2ap(fr + 10.71)/CS_ESR;
+    p->fr = *p->freq;
+    MVC_PREWARP(w, *p->freq, 10.71);
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
       w *= 0.6;
@@ -1282,7 +1276,6 @@ int32_t mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
   MYFLT *in = p->in, res, *freq = p->freq ;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t;
-  int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -1297,13 +1290,7 @@ int32_t mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
   }
 
   for (i=offset; i < nsmps; i++){
-    t = log2(freq[i]/CBASE) + 10.71;
-    wi = (int32_t) (floor(t));
-    t -= wi;
-    t = ldexp(1 + t * (0.6930 +
-                       t * (0.2416 + t * (0.0517 +
-                                          t * 0.0137))), wi);
-    w = t/CS_ESR;
+    MVC_PREWARP(w, freq[i], 10.71);
     if (w < 0.8)
       w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -1339,9 +1326,8 @@ int32_t mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
   MYFLT scal = csound->Get0dBFS(csound);
 
   if (p->fr != *p->freq) {
-    MYFLT fr = log2(*p->freq/CBASE);
-    p->fr  = *p->freq;
-    w = exp2ap(fr + 10.71)/CS_ESR;
+    p->fr = *p->freq;
+    MVC_PREWARP(w, *p->freq, 10.71);
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
       w *= 0.6;
@@ -1381,7 +1367,6 @@ int32_t mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
   MYFLT *in = p->in, *res = p->res, *freq = p->freq ;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x, t;
-  int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -1394,13 +1379,7 @@ int32_t mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
   }
 
   for (i=offset; i < nsmps; i++){
-    t = log2(freq[i]/CBASE) + 10.71;
-    wi = (int32_t) (floor(t));
-    t -= wi;
-    t = ldexp(1 + t * (0.6930 +
-                       t * (0.2416 + t * (0.0517 +
-                                          t * 0.0137))), wi);
-    w = t/CS_ESR;
+    MVC_PREWARP(w, freq[i], 10.71);
     if (w < 0.8)
       w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -1437,9 +1416,8 @@ int32_t mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
   MYFLT scal = csound->Get0dBFS(csound);
 
   if (p->fr != *p->freq) {
-    MYFLT fr = log2(*p->freq/CBASE);
-    p->fr  = *p->freq;
-    w = exp2ap(fr + 9.70)/CS_ESR;
+    p->fr = *p->freq;
+    MVC_PREWARP(w, *p->freq, 9.70);
     if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
       w *= 0.6748;
@@ -1503,8 +1481,7 @@ int32_t mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, res, *freq = p->freq;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-    c4 = p->c4, c5 = p->c5, w, x, t, d;
-  int32_t wi;
+    c4 = p->c4, c5 = p->c5, w, x, d;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -1518,13 +1495,7 @@ int32_t mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
   }
 
   for (i=offset; i < nsmps; i++){
-    t = log2(freq[i]/CBASE) + 9.70;
-    wi = (int32_t) (floor(t));
-    t -= wi;
-    t = ldexp(1 + t * (0.6930 +
-                       t * (0.2416 + t * (0.0517 +
-                                          t * 0.0137))), wi);
-    w = t/CS_ESR;
+    MVC_PREWARP(w, freq[i], 9.70);
     if (w < 0.75)
       w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
@@ -1586,9 +1557,8 @@ int32_t mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
   MYFLT scal = csound->Get0dBFS(csound);
 
   if (p->fr != *p->freq) {
-    MYFLT fr = log2(*p->freq/CBASE);
-    p->fr  = *p->freq;
-    w = exp2ap(fr + 9.70)/CS_ESR;
+    p->fr = *p->freq;
+    MVC_PREWARP(w, *p->freq, 9.70);
     if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
       w *= 0.6748;
@@ -1654,8 +1624,7 @@ int32_t mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, *res = p->res, *freq = p->freq;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-    c4 = p->c4, c5 = p->c5, w, t, x, d;
-  int32_t wi;
+    c4 = p->c4, c5 = p->c5, w, x, d;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -1668,13 +1637,7 @@ int32_t mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
   }
 
   for (i=offset; i < nsmps; i++){
-    t = log2(freq[i]/CBASE) + 9.70;
-    wi = (int32_t) (floor(t));
-    t -= wi;
-    t = ldexp(1 + t * (0.6930 +
-                       t * (0.2416 + t * (0.0517 +
-                                          t * 0.0137))), wi);
-    w = t/CS_ESR;
+    MVC_PREWARP(w, freq[i], 9.70);
     if (w < 0.75)
       w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
@@ -1744,6 +1707,7 @@ int32_t mvclpf24_4_init(CSOUND *csound, mvclpf24_4 *p){
     p->c1 = p->c2  = p->c3 =
       p->c4 = p->c5 = FL(0.0);
     p->fr = FL(0.0);
+    p->w = 0.0;
   }
   return OK;
 }
@@ -1760,9 +1724,8 @@ int32_t mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
   MYFLT scal = csound->Get0dBFS(csound);
 
   if (p->fr != *p->freq) {
-    MYFLT fr = log2(*p->freq/CBASE);
-    p->fr  = *p->freq;
-    w = exp2ap(fr + 9.70)/CS_ESR;
+    p->fr = *p->freq;
+    MVC_PREWARP(w, *p->freq, 9.70);
     if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
       w *= 0.6748;
@@ -1841,8 +1804,7 @@ int32_t mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
     *out2 = p->out2, *out3 = p->out3;
   MYFLT *in = p->in, res, *freq = p->freq;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-    c4 = p->c4, c5 = p->c5, w, x, t, d;
-  int32_t wi;
+    c4 = p->c4, c5 = p->c5, w, x, d;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -1865,13 +1827,7 @@ int32_t mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
   }
 
   for (i=offset; i < nsmps; i++){
-    t = log2(freq[i]/CBASE) + 9.70;
-    wi = (int32_t) (floor(t));
-    t -= wi;
-    t = ldexp(1 + t * (0.6930 +
-                       t * (0.2416 + t * (0.0517 +
-                                          t * 0.0137))), wi);
-    w = t/CS_ESR;
+    MVC_PREWARP(w, freq[i], 9.70);
     if (w < 0.75)
       w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
@@ -1935,9 +1891,8 @@ int32_t mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
   MYFLT scal = csound->Get0dBFS(csound);
 
   if (p->fr != *p->freq) {
-    MYFLT fr = log2(*p->freq/CBASE);
-    p->fr  = *p->freq;
-    w = exp2ap(fr + 9.70)/CS_ESR;
+    p->fr = *p->freq;
+    MVC_PREWARP(w, *p->freq, 9.70);
     if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
       w *= 0.6748;
@@ -2015,8 +1970,7 @@ int32_t mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
     *out2 = p->out2, *out3 = p->out3;
   MYFLT *in = p->in, *res = p->res, *freq = p->freq;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-    c4 = p->c4, c5 = p->c5, w, x, t, d;
-  int32_t wi;
+    c4 = p->c4, c5 = p->c5, w, x, d;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2037,13 +1991,7 @@ int32_t mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
   }
 
   for (i=offset; i < nsmps; i++){
-    t = log2(freq[i]/CBASE) + 9.70;
-    wi = (int32_t) (floor(t));
-    t -= wi;
-    t = ldexp(1 + t * (0.6930 +
-                       t * (0.2416 + t * (0.0517 +
-                                          t * 0.0137))), wi);
-    w = t/CS_ESR;
+    MVC_PREWARP(w, freq[i], 9.70);
     if (w < 0.75)
       w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
@@ -2115,6 +2063,7 @@ int32_t mvchpf24_init(CSOUND *csound, mvchpf24 *p){
     p->c1 = p->c2  = p->c3 =
       p->c4 = p->c5 = p->x = FL(0.0);
     p->fr = FL(0.0);
+    p->w = HUGE_VAL; /* Zero cutoff is the infinite-w limit of this filter. */
   }
   return OK;
 }
@@ -2130,9 +2079,9 @@ int32_t mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
   MYFLT scal = csound->Get0dBFS(csound);
 
   if (p->fr != *p->freq) {
-    MYFLT fr = log2(*p->freq/CBASE);
-    p->fr  = *p->freq;
-    w = CS_ESR/exp2ap(fr+ 9.2);
+    p->fr = *p->freq;
+    MVC_PREWARP(w, *p->freq, 9.2);
+    w = w > 0.0 ? 1.0 / w : HUGE_VAL;
     if (w < FL(2.0)) w = FL(2.0);
     p->w = w;
   } else w = p->w;
@@ -2189,7 +2138,6 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
   MYFLT *in = p->in, *freq = p->freq;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
     c4 = p->c4, c5 = p->c5, w, x = p->x, t, d, y;
-  int32_t wi;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2204,13 +2152,8 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
   }
 
   for (i=offset; i < nsmps; i++){
-    t = log2(freq[i]/CBASE) + 9.70;
-    wi = (int32_t) (floor(t));
-    t -= wi;
-    t = ldexp(1 + t * (0.6930 +
-                       t * (0.2416 + t * (0.0517 +
-                                          t * 0.0137))), wi);
-    w = CS_ESR/t;
+    MVC_PREWARP(w, freq[i], 9.2);
+    w = w > 0.0 ? 1.0 / w : HUGE_VAL;
     if (w < FL(2.0)) w = FL(2.0);
 
     x = y = in[i]/scal  - 0.3 * x;
@@ -2250,6 +2193,9 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
 
   return OK;
 }
+
+#undef MVC_PREWARP
+#undef CBASE
 
 /* Bob is a port of bob~ filter object from Pd.
    The design is based on the papers by Tim Stilson,
@@ -3748,12 +3694,12 @@ static OENTRY localops[] =
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3_aa},
     {"mvclpf4", sizeof(mvclpf24_4), 0, "aaaa", "akko",
      (SUBR) mvclpf24_4_init, (SUBR) mvclpf24_perf4},
-    {"mvclpf4", sizeof(mvclpf24), 0, "aaaa", "aako",
-     (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf4_ak},
-    {"mvclpf4", sizeof(mvclpf24), 0, "aaaa", "akao",
-     (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf4_ka},
-    {"mvclpf4", sizeof(mvclpf24), 0, "aaaa", "aaao",
-     (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf4_aa},
+    {"mvclpf4", sizeof(mvclpf24_4), 0, "aaaa", "aako",
+     (SUBR) mvclpf24_4_init, (SUBR) mvclpf24_perf4_ak},
+    {"mvclpf4", sizeof(mvclpf24_4), 0, "aaaa", "akao",
+     (SUBR) mvclpf24_4_init, (SUBR) mvclpf24_perf4_ka},
+    {"mvclpf4", sizeof(mvclpf24_4), 0, "aaaa", "aaao",
+     (SUBR) mvclpf24_4_init, (SUBR) mvclpf24_perf4_aa},
     {"moogladder.kk", sizeof(moogladder), 0, "a", "akko",
      (SUBR) moogladder_init, (SUBR) moogladder_process },
     {"moogladder.aa", sizeof(moogladder), 0, "a", "aaao",

@@ -116,6 +116,8 @@ if(BUILD_TESTS)
 
     include(GoogleTest)
     gtest_discover_tests(unittests)
+    set_property(DIRECTORY APPEND PROPERTY TEST_INCLUDE_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/server_test_locks.cmake")
     message(STATUS "Building unit tests")
 else()
     message(STATUS "Not building unit tests")
