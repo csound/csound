@@ -640,6 +640,8 @@ static int32_t set_control_channel_hints(CSOUND *csound, CHNENTRY *pp,
   if (UNLIKELY((pp->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL))
     return CSOUND_ERROR;
   if  (hints.behav == CSOUND_CONTROL_CHANNEL_NO_HINTS) {
+    csound->Free(csound, pp->hints.attributes);
+    pp->hints.attributes = NULL;
     pp->hints.behav = CSOUND_CONTROL_CHANNEL_NO_HINTS;
     return 0;
   }
@@ -655,13 +657,17 @@ static int32_t set_control_channel_hints(CSOUND *csound, CHNENTRY *pp,
     return CSOUND_ERROR;
   }
 
-  pp->hints = hints;
+  /* Copy first: hints may come from csoundListChannels() and alias pp. */
+  char *attributes = NULL;
   if (hints.attributes) {
-    pp->hints.attributes
+    attributes
       = (char *) csound->Malloc(csound,
                                 (strlen(hints.attributes) + 1)* sizeof(char));
-    strcpy(pp->hints.attributes, hints.attributes);
+    strcpy(attributes, hints.attributes);
   }
+  csound->Free(csound, pp->hints.attributes);
+  hints.attributes = attributes;
+  pp->hints = hints;
   return CSOUND_SUCCESS;
 }
 
@@ -679,7 +685,7 @@ int32_t csoundSetControlChannelHints(CSOUND *csound, const char *name,
 
 /**
  * Copies a control channel's hints into *hints and returns CSOUND_SUCCESS.
- * The caller must free hints->attributes if it is non-NULL.
+ * The caller releases attributes with csoundDeleteControlChannelHints().
  * Returns CSOUND_ERROR and leaves *hints unchanged if the name is NULL,
  * the channel does not exist, is not a control channel, or has no hints.
  */
@@ -704,6 +710,13 @@ int32_t csoundGetControlChannelHints(CSOUND *csound, const char *name,
     strcpy(hints->attributes, pp->hints.attributes);
   }
   return 0;
+}
+
+void csoundDeleteControlChannelHints(CSOUND *csound,
+                                     controlChannelHints_t *hints)
+{
+  csound->Free(csound, hints->attributes);
+  hints->attributes = NULL;
 }
 
 
@@ -1700,8 +1713,7 @@ int32_t chnparams_opcode_init(CSOUND *csound, CHNPARAMS_OPCODE *p)
       *(p->idflt) = hints.dflt;
       *(p->imin) = hints.min;
       *(p->imax) = hints.max;
-      if (hints.attributes != NULL)
-        csound->Free(csound, hints.attributes);
+      csoundDeleteControlChannelHints(csound, &hints);
     }
   }
   return OK;
