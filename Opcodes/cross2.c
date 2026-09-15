@@ -28,18 +28,19 @@
 
 #define CH_THRESH       1.19209e-7
 #define CHOP(a) (a < CH_THRESH ? CH_THRESH : a)
+/* lineaprox processes the doubled FFT buffer in groups of 16 samples. */
+#define CROSS2_MIN_FFT_SIZE 8U
+/* cross2 transforms 2 * size samples. pfht's trig tables are defined through
+   the k = 15 case, so the largest safe analysis size is 2^16. */
+#define CROSS2_MAX_FFT_SIZE 65536U
 
-static int32 plog2(int32 x)
+static uint32_t cross2_next_power_of_two(uint32_t x)
 {
-    int32 mask, i;
+    uint32_t n = 2U;
 
-    if (x == 0) return (-1);
-    x--;
-
-    for (mask = ~1 , i = 0; ; mask = mask+mask, i++) {
-      if (x == 0) return (i);
-      x = x & mask;
-    }
+    while (n < x)
+      n <<= 1;
+    return n;
 }
 
 static void getmag(MYFLT *x, int32 size)
@@ -307,22 +308,32 @@ static void pfht(MYFLT *fz, int32 n)
 
 static int32_t Xsynthset(CSOUND *csound, CON *p)
 {
-    uint32_t    flen, bufsize;
+    uint32_t    flen, overlap;
+    size_t      bufsize;
     MYFLT       *b;
     FUNC        *ftp;
-    MYFLT       ovlp = *p->ovlp;
+    MYFLT       len = *p->len, ovlp = *p->ovlp;
 
-    flen = (int32)*p->len;
-    if (UNLIKELY(flen<1))
+    if (UNLIKELY(!isfinite(len) || len < FL(1.0)))
       return csound->InitError(csound, "%s", Str("cross2: length must be at least 1"));
-    p->m = plog2(flen);
-    flen = 1 << p->m;
+    if (UNLIKELY(len > (MYFLT)CROSS2_MAX_FFT_SIZE))
+      return csound->InitError(csound, "%s",
+                               Str("cross2: length is too large"));
 
-    if (ovlp < FL(2.0)) ovlp = FL(2.0);
-    else if (ovlp > (MYFLT)(flen+flen)) ovlp = (MYFLT)(flen+flen);
-    ovlp = (MYFLT)(1 << (int32_t)plog2((int32)ovlp));
+    flen = cross2_next_power_of_two((uint32_t)len);
+    if (flen < CROSS2_MIN_FFT_SIZE)
+      flen = CROSS2_MIN_FFT_SIZE;
 
-    bufsize = 10 * flen * sizeof(MYFLT);
+    if (UNLIKELY(!isfinite(ovlp)))
+      return csound->InitError(csound, "%s",
+                               Str("cross2: overlap must be finite"));
+    if (ovlp < FL(2.0))
+      ovlp = FL(2.0);
+    else if (ovlp > (MYFLT)flen)
+      ovlp = (MYFLT)flen;
+    overlap = cross2_next_power_of_two((uint32_t)ovlp);
+
+    bufsize = (size_t)10 * flen * sizeof(MYFLT);
 
     if (p->mem.auxp == NULL || bufsize > p->mem.size)
       csound->AuxAlloc(csound, bufsize, &p->mem);
@@ -340,8 +351,10 @@ static int32_t Xsynthset(CSOUND *csound, CON *p)
       p->win = ftp;
     else return NOTOK;
 
+    p->size = (int32_t)flen;
+    p->overlap = (int32_t)overlap;
+    p->hop = (int32_t)(flen / overlap);
     p->count = 0;
-    p->s_ovlp = ovlp;
     return OK;
 }
 
@@ -363,8 +376,8 @@ static int32_t Xsynth(CSOUND *csound, CON *p)
     buf1 = p->buffer_in1;
     buf2 = p->buffer_in2;
 
-    size = (int32)*p->len;
-    div = size / (int32)p->s_ovlp;
+    size = p->size;
+    div = p->hop;
     rfn = (MYFLT)p->win->flen / (MYFLT)size; /* Moved here for efficiency */
 
     n = p->count;
@@ -424,7 +437,7 @@ static int32_t Xsynth(CSOUND *csound, CON *p)
         for (i =  n + size - div ; i < n + size ; i++)
           outbuf[i&mask] = FL(0.0);
 
-        window = FL(5.0) / p->s_ovlp;
+        window = FL(5.0) / (MYFLT)p->overlap;
 
         for (i = 0 ; i < size ; i++)
           outbuf[(i+n)&mask] += x[i] * window;
