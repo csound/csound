@@ -23,6 +23,7 @@
 
 #include <math.h>
 #include "emugens_common.h"
+#include "interlocks.h"
 
 #define LOG001 FL(-6.907755278982137)
 #define CALCSLOPE(next,prev,nsmps) (((next) - (prev))/(nsmps))
@@ -658,95 +659,103 @@ phasor_k_kk(CSOUND *csound, Phasor *p) {
 #define S(x)    sizeof(x)
 
 static OENTRY scugens_localops[] = {
+    CSOUND_DEPRECATED_OPCODE("sc_lag", "lag", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     {"sc_lag",    S(LAG0),   0,  "k", "kk",
      (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next, NULL, NULL, 2},
-    {"sclag",    S(LAG0),   0,  "k", "kk",
+    CSOUND_DEPRECATED_OPCODE("sclag", "lag", ALIAS, "Deprecated alias documented in the manual; use the supported name.")
+    {"sclag",    S(LAG0),   _QQ,  "k", "kk",
      (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next}, /* alias */
     {"lag",    S(LAG0),   0,  "k", "kk",
      (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
 
     {"sc_lag",    S(LAG0),   0,  "k", "kki",
      (SUBR)lag0_init_initial_value, (SUBR)lag0k_next, NULL, NULL, 2},
-    {"sclag",    S(LAG0),   0,  "k", "kki",
+    {"sclag",    S(LAG0),   _QQ,  "k", "kki",
      (SUBR)lag0_init_initial_value, (SUBR)lag0k_next}, /* alias */
     {"lag",    S(LAG0),   0,  "k", "kki",
      (SUBR)lag0_init_initial_value, (SUBR)lag0k_next},
 
     {"sc_lag",    S(LAG0),    0,  "a", "aki",
      (SUBR)laga_init_initial_value, (SUBR)laga_next, NULL, NULL, 2},
-    {"sclag",    S(LAG0),    0,  "a", "aki",
+    {"sclag",    S(LAG0),    _QQ,  "a", "aki",
      (SUBR)laga_init_initial_value, (SUBR)laga_next}, /* alias*/
     {"lag",    S(LAG0),    0,  "a", "aki",
      (SUBR)laga_init_initial_value, (SUBR)laga_next},
 
     {"sc_lag",    S(LAG0),    0,  "a", "ak",
      (SUBR)laga_init_no_initial_value, (SUBR)laga_next, NULL, NULL, 2},
-    {"sclag",    S(LAG0),    0,  "a", "ak",
+    {"sclag",    S(LAG0),    _QQ,  "a", "ak",
      (SUBR)laga_init_no_initial_value, (SUBR)laga_next}, /* alias */
     {"lag",    S(LAG0),    0,  "a", "ak",
      (SUBR)laga_init_no_initial_value, (SUBR)laga_next},
 
+    CSOUND_DEPRECATED_OPCODE("sc_lagud", "lagud", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     {"sc_lagud",  S(LagUD),  0,  "k", "kkki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_k, NULL, NULL, 2 },
-    {"sclagud",  S(LagUD),  0,  "k", "kkki",
+    CSOUND_DEPRECATED_OPCODE("sclagud", "lagud", ALIAS, "Deprecated alias documented in the manual; use the supported name.")
+    {"sclagud",  S(LagUD),  _QQ,  "k", "kkki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_k }, /* alias */
     {"lagud",  S(LagUD),  0,  "k", "kkki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_k },
 
     {"sc_lagud",  S(LagUD),  0,  "a", "akki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_a, NULL, NULL, 2 },
-    {"sclagud",  S(LagUD),  0,  "a", "akki",
+    {"sclagud",  S(LagUD),  _QQ,  "a", "akki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_a }, /* alias */
     {"lagud",  S(LagUD),  0,  "a", "akki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_a },
 
     {"sc_lagud",  S(LagUD),  0,  "k", "kkk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k, NULL, NULL, 2 },
-    {"sclagud",  S(LagUD),  0,  "k", "kkk",
+    {"sclagud",  S(LagUD),  _QQ,  "k", "kkk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k }, /* alias */
     {"lagud",  S(LagUD),  0,  "k", "kkk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k },
 
     {"sc_lagud",  S(LagUD),  0,  "a", "akk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a, NULL, NULL, 2 },
-    {"sclagud",  S(LagUD),  0,  "a", "akk",
+    {"sclagud",  S(LagUD),  _QQ,  "a", "akk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a }, /* alias */
     {"lagud",  S(LagUD),  0,  "a", "akk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },
 
 
+    CSOUND_DEPRECATED_OPCODE("sc_trig", "trighold", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     {"sc_trig",   S(Trig),   0,  "k", "kk",    (SUBR)trig_init, (SUBR)trig_k, NULL, NULL, 2 },
-    {"sctrig",   S(Trig),   0,  "k", "kk",    (SUBR)trig_init, (SUBR)trig_k }, /* alias */
+    CSOUND_DEPRECATED_OPCODE("sctrig", "trighold", ALIAS, "Deprecated alias documented in the manual; use the supported name.")
+    {"sctrig",   S(Trig),   _QQ,  "k", "kk",    (SUBR)trig_init, (SUBR)trig_k }, /* alias */
     {"trighold",   S(Trig),   0,  "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
 
     {"sc_trig",   S(Trig),   0,  "a", "ak",    (SUBR)trig_init, (SUBR)trig_a, NULL, NULL, 2 },
-    {"sctrig",   S(Trig),   0,  "a", "ak",    (SUBR)trig_init, (SUBR)trig_a }, /* alias */
+    {"sctrig",   S(Trig),   _QQ,  "a", "ak",    (SUBR)trig_init, (SUBR)trig_a }, /* alias */
     {"trighold",   S(Trig),   0,  "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
 
+    CSOUND_DEPRECATED_OPCODE("sc_phasor", "trigphasor", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     {"sc_phasor", S(Phasor), 0,  "k", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_k_kk, NULL, NULL, 2},
-    {"scphasor", S(Phasor), 0,  "k", "kkkkO",
+    CSOUND_DEPRECATED_OPCODE("scphasor", "trigphasor", ALIAS, "Deprecated alias documented in the manual; use the supported name.")
+    {"scphasor", S(Phasor), _QQ,  "k", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_k_kk }, /* alias */
     {"trigphasor", S(Phasor), 0,  "k", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_k_kk },
 
     {"sc_phasor", S(Phasor), 0,  "a", "akkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_ak, NULL, NULL, 2 },
-    {"scphasor", S(Phasor), 0,  "a", "akkkO",
+    {"scphasor", S(Phasor), _QQ,  "a", "akkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_ak }, /* alias */
     {"trigphasor", S(Phasor), 0,  "a", "akkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_ak },
 
     {"sc_phasor", S(Phasor), 0,  "a", "aakkO",
      (SUBR)phasor_init, (SUBR)phasor_a_aa, NULL, NULL, 2 },
-    {"scphasor", S(Phasor), 0,  "a", "aakkO",
+    {"scphasor", S(Phasor), _QQ,  "a", "aakkO",
      (SUBR)phasor_init, (SUBR)phasor_a_aa }, /* alias */
     {"trigphasor", S(Phasor), 0,  "a", "aakkO",
      (SUBR)phasor_init, (SUBR)phasor_a_aa },
 
     {"sc_phasor", S(Phasor), 0,  "a", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_kk, NULL, NULL, 2 },
-    {"scphasor", S(Phasor), 0,  "a", "kkkkO",
+    {"scphasor", S(Phasor), _QQ,  "a", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_kk }, /* alias */
 
     {"trigphasor", S(Phasor), 0,  "a", "kkkkO",

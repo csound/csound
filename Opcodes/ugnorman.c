@@ -2974,36 +2974,46 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+    CSOUND_DEPRECATED_OPCODE("ATSread", "atsread", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "ATSread",        S(ATSREAD),       0,   "kk",   "kSi",
       (SUBR) atsreadset_S,          (SUBR) atsread,         (SUBR) NULL, NULL, 2 },
     { "ATSread.i",        S(ATSREAD),       0,    "kk",   "kii",
       (SUBR) atsreadset,          (SUBR) atsread,         (SUBR) NULL, NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("ATSreadnz", "atsreadnz", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "ATSreadnz",      S(ATSREADNZ),      0,   "k",    "kSi",
       (SUBR) atsreadnzset_S,        (SUBR) atsreadnz,       (SUBR) NULL, NULL, 2 },
     { "ATSreadnz.i",      S(ATSREADNZ),      0,   "k",    "kii",
       (SUBR) atsreadnzset,        (SUBR) atsreadnz,       (SUBR) NULL, NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("ATSadd", "atsadd", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "ATSadd",         S(ATSADD),          TR,   "a",    "kkSiiopo",
       (SUBR) atsaddset_S,            (SUBR) atsadd,         (SUBR) NULL, NULL, 2 },
     { "ATSadd.i",         S(ATSADD),          TR,   "a",    "kkiiiopo",
       (SUBR) atsaddset,            (SUBR) atsadd,         (SUBR) NULL, NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("ATSaddnz", "atsaddnz", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "ATSaddnz",       S(ATSADDNZ),       0,   "a",    "kSiop",
       (SUBR) atsaddnzset_S,            (SUBR) atsaddnz,      (SUBR) NULL, NULL, 2 },
     { "ATSaddnz.i",       S(ATSADDNZ),       0,   "a",    "kiiop",
       (SUBR) atsaddnzset,            (SUBR) atsaddnz,      (SUBR) NULL, NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("ATSsinnoi", "atssinnoi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "ATSsinnoi",      S(ATSSINNOI),       0,  "a",    "kkkkSiop",
       (SUBR) atssinnoiset_S,            (SUBR) atssinnoi,    (SUBR) NULL, NULL, 2 },
     { "ATSsinnoi.i",      S(ATSSINNOI),       0,  "a",    "kkkkiiop",
       (SUBR) atssinnoiset,            (SUBR) atssinnoi,     (SUBR) NULL, NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("ATSbufread", "atsbufread", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "ATSbufread",     S(ATSBUFREAD),      TW,  "",     "kkSiop",
         (SUBR) atsbufreadset_S,       (SUBR) atsbufread,      (SUBR) NULL, NULL, 2 },
     { "ATSbufread.i",     S(ATSBUFREAD),    TW,  "",     "kkiiop",
         (SUBR) atsbufreadset,       (SUBR) atsbufread,      (SUBR) NULL, NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("ATSpartialtap", "atspartialtap", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "ATSpartialtap",  S(ATSPARTIALTAP),   0,  "kk",   "i",
         (SUBR) atspartialtapset,    (SUBR) atspartialtap,   (SUBR) NULL, NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("ATSinterpread", "atsinterpread", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "ATSinterpread",  S(ATSINTERPREAD),   0,  "k",    "k",
         (SUBR) atsinterpreadset,    (SUBR) atsinterpread,   (SUBR) NULL, NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("ATScross", "atscross", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "ATScross",       S(ATSCROSS),        TR,   "a",    "kkSikkiopoo",
         (SUBR) atscrossset_S,            (SUBR) atscross, NULL, NULL, 2  },
+    CSOUND_DEPRECATED_OPCODE("ATSinfo", "atsinfo", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "ATSinfo",        S(ATSINFO),         0, "i",    "Si",
       (SUBR) atsinfo_S, (SUBR) NULL, (SUBR) NULL, NULL, 2 },
     { "ATScross.i",       S(ATSCROSS),        TR,   "a",    "kkiikkiopoo",

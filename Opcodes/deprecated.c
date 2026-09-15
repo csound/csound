@@ -661,15 +661,20 @@ static int32_t pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
  /* ------------------------------------------------------------------------ */
 
 static OENTRY localops[] = { 
+  CSOUND_DEPRECATED_OPCODE("stack", NULL, LEGACY, "Retained for compatibility; no direct replacement is documented.")
   { "stack",  sizeof(STACK_OPCODE), SK|_QQ,   "",   "i",
       (SUBR) stack_opcode_init, (SUBR) NULL,                      (SUBR) NULL },
+  CSOUND_DEPRECATED_OPCODE("push", NULL, LEGACY, "Retained for compatibility; no direct replacement is documented.")
   { "push",   sizeof(PUSH_OPCODE),  SK|_QQ,   "",   "N",
       (SUBR) push_opcode_init,  (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
+  CSOUND_DEPRECATED_OPCODE("pop", NULL, LEGACY, "Retained for compatibility; no direct replacement is documented.")
   { "pop",    sizeof(POP_OPCODE),   SK|_QQ, 
                                    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
       (SUBR) pop_opcode_init,   (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
+  CSOUND_DEPRECATED_OPCODE("push_f", NULL, LEGACY, "Retained for compatibility; no direct replacement is documented.")
   { "push_f", sizeof(PUSH_OPCODE),  SK|_QQ,   "",   "f",
       (SUBR) push_f_opcode_init, (SUBR) notinit_opcode_stub_perf, (SUBR) NULL },
+  CSOUND_DEPRECATED_OPCODE("pop_f", NULL, LEGACY, "Retained for compatibility; no direct replacement is documented.")
   { "pop_f",  sizeof(POP_OPCODE),   SK|_QQ,   "f",   "",
       (SUBR) pop_f_opcode_init,  (SUBR) notinit_opcode_stub_perf, (SUBR) NULL }
 };

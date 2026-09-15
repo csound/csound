@@ -854,6 +854,7 @@ static OENTRY sockrecv_localops[] = {
   { "strecv", S(SOCKRECVT), 0, "az", "Si",
     (SUBR) init_srecv,
     (SUBR) send_srecv, NULL },
+  CSOUND_DEPRECATED_OPCODE("OSCraw", "oscraw", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "OSCraw", S(RAWOSC), 0, "S[]k", "i",
     (SUBR) init_raw_osc, (SUBR) perf_raw_osc,
     (SUBR) destroy_raw_osc, NULL, 2},

@@ -2,6 +2,14 @@
 find_package(Python3 COMPONENTS Interpreter)
 
 if(Python3_FOUND)
+    if(BUILD_TESTS)
+        add_test(NAME opcode_deprecation_catalog
+            COMMAND ${Python3_EXECUTABLE}
+                ${CMAKE_SOURCE_DIR}/scripts/opcode_deprecations.py --check)
+        add_test(NAME opcode_deprecation_source_policy
+            COMMAND ${Python3_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/test_opcode_deprecations.py)
+    endif()
     # Collect all test_*.py files in this directory
     file(GLOB PYTHON_TEST_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test_*.py")
 

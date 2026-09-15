@@ -909,67 +909,117 @@ static int32_t mandel(CSOUND *csound,MANDEL *p)
 OENTRY gab_localops[] = {
   {"resonxk", S(KRESONX),    0,    "k",    "kkkooo",
                             (SUBR) krsnsetx, (SUBR) kresonx, NULL },
+  CSOUND_DEPRECATED_OPCODE("tab_i", "tabi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "tab_i",S(FASTAB),       TR,    "i",    "iio", (SUBR) fastabi, NULL, NULL, NULL, 2 },
   { "tabi",S(FASTAB),       TR,    "i",    "iio", (SUBR) fastabi, NULL, NULL }, /* alias*/
   { "tab",S(FASTAB),         TR,    "a",    "xio",
                             (SUBR) fastab_set, (SUBR) fastab },
   { "tab.k",S(FASTAB),       TR,    "k",    "kio",
                             (SUBR) fastab_set, (SUBR)fastabk, NULL },
+  CSOUND_DEPRECATED_OPCODE("tabw_i", "tabwi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "tabw_i",S(FASTAB),      TW,    "",    "iiio", (SUBR) fastabiw, NULL, NULL, NULL, 2 },
   { "tabwi",S(FASTAB),      TW,    "",    "iiio", (SUBR) fastabiw, NULL, NULL }, /* alias*/
   { "tabw",S(FASTAB),        TW,    "",    "kkio",
                             (SUBR)fastab_set, (SUBR)fastabkw          },
   { "tabw",S(FASTAB),        TW,    "",    "aaio",
                             (SUBR)fastab_set, (SUBR)fastabw     },
+  CSOUND_DEPRECATED_OPCODE("tb0_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb0_init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab0_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb1_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb1_init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab1_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb2_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb2_init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab2_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb3_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb3_init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab3_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb4_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb4_init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab4_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb5_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb5_init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab5_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb6_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb6_init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab6_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb7_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb7_init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab7_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb8_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb8_init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab8_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb9_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb9_init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab9_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb10_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb10_init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab10_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb11_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb11_init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab11_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb12_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb12_init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab12_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb13_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb13_init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab13_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb14_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb14_init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab14_init, NULL, NULL, NULL, 2},
+  CSOUND_DEPRECATED_OPCODE("tb15_init", "tab", ALIAS, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb15_init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab15_init, NULL, NULL, NULL, 2},
   /* aliases */
+  CSOUND_DEPRECATED_OPCODE("tb0init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb0init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab0_init},
+  CSOUND_DEPRECATED_OPCODE("tb1init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb1init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab1_init},
+  CSOUND_DEPRECATED_OPCODE("tb2init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb2init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab2_init},
+  CSOUND_DEPRECATED_OPCODE("tb3init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb3init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab3_init},
+  CSOUND_DEPRECATED_OPCODE("tb4init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb4init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab4_init},
+  CSOUND_DEPRECATED_OPCODE("tb5init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb5init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab5_init},
+  CSOUND_DEPRECATED_OPCODE("tb6init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb6init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab6_init},
+  CSOUND_DEPRECATED_OPCODE("tb7init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb7init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab7_init},
+  CSOUND_DEPRECATED_OPCODE("tb8init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb8init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab8_init},
+  CSOUND_DEPRECATED_OPCODE("tb9init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb9init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab9_init},
+  CSOUND_DEPRECATED_OPCODE("tb10init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb10init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab10_init},
+  CSOUND_DEPRECATED_OPCODE("tb11init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb11init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab11_init},
+  CSOUND_DEPRECATED_OPCODE("tb12init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb12init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab12_init},
+  CSOUND_DEPRECATED_OPCODE("tb13init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb13init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab13_init},
+  CSOUND_DEPRECATED_OPCODE("tb14init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb14init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab14_init},
+  CSOUND_DEPRECATED_OPCODE("tb15init", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb15init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab15_init},
   /* tbx_t (t-rate version removed here) */
+  CSOUND_DEPRECATED_OPCODE("tb0", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb0.i",      S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab0_i_tmp    },
+  CSOUND_DEPRECATED_OPCODE("tb1", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb1.i",      S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab1_i_tmp    },
+  CSOUND_DEPRECATED_OPCODE("tb2", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb2.i",      S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab2_i_tmp    },
+  CSOUND_DEPRECATED_OPCODE("tb3", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb3.i",      S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab3_i_tmp    },
+  CSOUND_DEPRECATED_OPCODE("tb4", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb4.i",      S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab4_i_tmp    },
+  CSOUND_DEPRECATED_OPCODE("tb5", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb5.i",      S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab5_i_tmp    },
+  CSOUND_DEPRECATED_OPCODE("tb6", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb6.i",      S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab6_i_tmp    },
+  CSOUND_DEPRECATED_OPCODE("tb7", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb7.i",      S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab7_i_tmp    },
+  CSOUND_DEPRECATED_OPCODE("tb8", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb8.i",      S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab8_i_tmp    },
+  CSOUND_DEPRECATED_OPCODE("tb9", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb9.i",      S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab9_i_tmp    },
+  CSOUND_DEPRECATED_OPCODE("tb10", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb10.i",     S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab10_i_tmp   },
+  CSOUND_DEPRECATED_OPCODE("tb11", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb11.i",     S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab11_i_tmp   },
+  CSOUND_DEPRECATED_OPCODE("tb12", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb12.i",     S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab12_i_tmp   },
+  CSOUND_DEPRECATED_OPCODE("tb13", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb13.i",     S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab13_i_tmp   },
+  CSOUND_DEPRECATED_OPCODE("tb14", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb14.i",     S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab14_i_tmp   },
+  CSOUND_DEPRECATED_OPCODE("tb15", "tab", LEGACY, "Use tab expressions directly; the old table-slot setup is not needed.")
   { "tb15.i",     S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab15_i_tmp   },
   { "tb0.k",  S(FASTB), _QQ|TR,   "k",    "k",    NULL, (SUBR) tab0_k_tmp  },
   { "tb1.k",  S(FASTB), _QQ|TR,   "k",    "k",    NULL, (SUBR) tab1_k_tmp  },
@@ -1003,6 +1053,7 @@ OENTRY gab_localops[] = {
                             (SUBR) isChanged2_set, (SUBR)isChanged, NULL },
   { "changed2.A", S(ISACHANGED), 0,      "k",     ".[]",
                             (SUBR) isAChanged_set, (SUBR)isAChanged, NULL },
+  CSOUND_DEPRECATED_OPCODE("max_k", "maxk", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "max_k",  S(P_MAXIMUM), 0,       "k",    "aki",
             (SUBR) partial_maximum_set, (SUBR) partial_maximum, NULL, NULL, 2 },
   { "maxk",  S(P_MAXIMUM), 0,       "k",    "aki",

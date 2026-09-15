@@ -56,6 +56,15 @@ the BUILD.md file at the top level directory of this repository.
 Information about build pipelines with Azure and Github actions is given in
 [DockerFiles/Readme.md](DockerFiles/ReadMe.md).
 
+# DEPRECATED OPCODES
+
+Before changing a deprecated opcode, check the [maintenance policy](docs/opcode-deprecation.md)
+and [replacement catalog](docs/deprecated-opcodes.md). These record which names
+are aliases and which historical behavior remains for compatibility. Source files
+carry `CSOUND_DEPRECATED_OPCODE` descriptors beside registrations and
+`CSOUND_PRESERVE_LEGACY_BEHAVIOR` markers above frozen functions. Read them before
+changing historical output.
+
 # CONTRIBUTORS
 
 Csound contains contributions from musicians, scientists, and programmers
