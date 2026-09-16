@@ -31,7 +31,7 @@ typedef struct {
   OPDS    h;
   MYFLT    *xfn, *outargs[VARGMAX];
   int32_t nargs;
-  int64_t  pfn;
+  MYFLT    pfn;
   MYFLT   *ftable;
 } MTABLE1;
 
@@ -41,9 +41,13 @@ static int32_t  mtable1_set(CSOUND *csound, MTABLE1 *p) /* mtab by G.Maldonado *
   FUNC *ftp;
   if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL))
     return csound->InitError(csound, "%s", Str("vtable1: incorrect table number"));
-  p->ftable = ftp->ftable;
   p->nargs = p->INOCOUNT-1;
-  p->pfn = (int64_t) *p->xfn;
+  if (UNLIKELY(p->nargs < 1))
+    return csound->InitError(csound, "%s", Str("vtable1k: no vector elements"));
+  if (UNLIKELY((uint32_t)p->nargs > ftp->flen))
+    return csound->InitError(csound, "%s", Str("vtable1k: table is too short"));
+  p->ftable = ftp->ftable;
+  p->pfn = *p->xfn;
   return OK;
 }
 
@@ -52,12 +56,15 @@ static int32_t  mtable1_k(CSOUND *csound, MTABLE1 *p)
   int32_t j, nargs = p->nargs;
   MYFLT **out = p->outargs;
   MYFLT *table;
-  if (p->pfn != (int64_t)*p->xfn) {
+  if (p->pfn != *p->xfn) {
     FUNC *ftp;
     if (UNLIKELY( (ftp = csound->FTFind(csound, p->xfn) ) == NULL))
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("vtable1: incorrect table number"));
-    p->pfn = (int64_t)*p->xfn;
+    if (UNLIKELY((uint32_t)nargs > ftp->flen))
+      return csound->PerfError(csound, &(p->h),
+                              "%s", Str("vtable1k: table is too short"));
+    p->pfn = *p->xfn;
     p->ftable = ftp->ftable;
   }
   table= p->ftable;
