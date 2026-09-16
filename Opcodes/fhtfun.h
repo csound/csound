@@ -29,8 +29,7 @@ typedef struct{
     MYFLT         *buffer_in1, *buffer_in2, *buffer_out;
     FUNC          *win;
     MYFLT         *in1, *in2, *w;
-    int32         m, count;
-    MYFLT         s_ovlp;
+    int32         size, overlap, hop, count;
 } CON;
 
 /* typedef struct{ */
