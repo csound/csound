@@ -394,18 +394,35 @@ static int32_t ifft_i(CSOUND *csound, FFT *p) {
 static int32_t init_recttopol(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
-  int32_t   N = p->in->sizes[0];
+  int32_t N = p->in->sizes[0];
+  if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1 ||
+               N < 2 || (N & 1)))
+    return csound->InitError(csound, "%s",
+                            Str("expected a one-dimensional packed real spectrum of even length"));
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
 
+static int32_t prepare_packed_conversion(CSOUND *csound, FFT *p) {
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->out->dimensions != 1 || p->in->sizes[0] < 2 ||
+               (p->in->sizes[0] & 1)))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("expected a one-dimensional packed real spectrum of even length"));
+  return tabcheck(csound, p->out, p->in->sizes[0], &p->h);
+}
+
 static int32_t perf_recttopol(CSOUND *csound, FFT *p) {
-  IGN(csound);
+  if (UNLIKELY(prepare_packed_conversion(csound, p) != OK))
+    return NOTOK;
   int32_t i, end = p->out->sizes[0];
   MYFLT *in, *out, mag, ph;
   in = p->in->data;
   out = p->out->data;
+  /* DC and Nyquist remain real values in the packed spectrum. */
+  out[0] = in[0];
+  out[1] = in[1];
   for (i=2;i<end;i+=2 ) {
     mag = HYPOT(in[i], in[i+1]);
     ph = ATAN2(in[i+1],in[i]);
@@ -415,11 +432,14 @@ static int32_t perf_recttopol(CSOUND *csound, FFT *p) {
 }
 
 static int32_t perf_poltorect(CSOUND *csound, FFT *p) {
-  IGN(csound);
+  if (UNLIKELY(prepare_packed_conversion(csound, p) != OK))
+    return NOTOK;
   int32_t i, end = p->out->sizes[0];
   MYFLT *in, *out, re, im;
   in = p->in->data;
   out = p->out->data;
+  out[0] = in[0];
+  out[1] = in[1];
   for (i=2;i<end;i+=2) {
     re = in[i]*COS(in[i+1]);
     im = in[i]*SIN(in[i+1]);
@@ -429,36 +449,41 @@ static int32_t perf_poltorect(CSOUND *csound, FFT *p) {
 }
 
 static int32_t init_poltorect2(CSOUND *csound, FFT *p) {
-  if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL || p->in2->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
-  if(p->in2->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
-  if (LIKELY(p->in2->sizes[0] == p->in->sizes[0])) {
-    int32_t   N = p->in2->sizes[0];
-    if (UNLIKELY(tabinit(csound, p->out, N*2 - 2,
-                         p->h.insdshead) != OK))
-      return csound_array_init_resize_error(csound);
-    return OK;
-  } else return csound->InitError(csound,
-                                  Str("in array sizes do not match: %d and %d\n"),
-                                  p->in2->sizes[0],p->in->sizes[0]);
+  int32_t N = p->in->sizes[0];
+  if (UNLIKELY(p->in->dimensions != 1 || p->in2->dimensions != 1 ||
+               p->out->dimensions > 1 || p->in2->sizes[0] != N ||
+               N < 2 || N > INT32_MAX/2+1))
+    return csound->InitError(csound, "%s",
+                            Str("pol2rect: expected equal-length one-dimensional magnitude and phase arrays"));
+  if (UNLIKELY(tabinit(csound, p->out, (N-1)*2,
+                       p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
+  return OK;
 }
 
-
 static int32_t perf_poltorect2(CSOUND *csound, FFT *p) {
-  IGN(csound);
-  int32_t i,j, end = p->in->sizes[0]-1;
-  MYFLT *mags, *phs, *out, re, im;
-  mags = p->in->data;
-  phs = p->in2->data;
-  out = p->out->data;
-  for (i=2,j=1;j<end;i+=2, j++) {
-    re = mags[j]*COS(phs[j]);
-    im = mags[j]*SIN(phs[j]);
-    out[i] = re; out[i+1] = im;
+  if (UNLIKELY(p->in->sizes == NULL || p->in2->sizes == NULL ||
+               p->in->dimensions != 1 || p->in2->dimensions != 1 ||
+               p->out->dimensions != 1 ||
+               p->in->sizes[0] != p->in2->sizes[0] ||
+               p->in->sizes[0] < 2 || p->in->sizes[0] > INT32_MAX/2+1))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("pol2rect: expected equal-length one-dimensional magnitude and phase arrays"));
+  int32_t j, end = p->in->sizes[0]-1;
+  if (UNLIKELY(tabcheck(csound, p->out, end*2, &p->h) != OK))
+    return NOTOK;
+  MYFLT *mags = p->in->data, *phs = p->in2->data, *out = p->out->data;
+  MYFLT dc = mags[0]*COS(phs[0]), nyquist = mags[end]*COS(phs[end]);
+  /* Expand backwards so either input can supply the output storage. */
+  for (j=end-1;j>0;j--) {
+    MYFLT re = mags[j]*COS(phs[j]);
+    MYFLT im = mags[j]*SIN(phs[j]);
+    out[2*j] = re; out[2*j+1] = im;
   }
-  out[0] = mags[0]*COS(phs[0]);
-  out[1] = mags[end]*COS(phs[end]);
+  out[0] = dc;
+  out[1] = nyquist;
   return OK;
 }
 
