@@ -833,18 +833,18 @@ static int32_t SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
+          if (*p->ienv > 1) { ExpEnvelope }
+          else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
-            if (*p->ienv > 1) { ExpEnvelope }
-            else if (*p->ienv > 0) { LinEnvelope }
             { Linear_interpolation Mono_out Looped }
           }
         }
         else if (*phs < *end) {
+          if (*p->ienv > 1) { ExpEnvelope }
+          else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
             double si = *sampinc * freq[n];
-            if (*p->ienv > 1) { ExpEnvelope }
-            else if (*p->ienv > 0) { LinEnvelope }
             { Linear_interpolation Mono_out Unlooped }
           }
         }
@@ -860,16 +860,16 @@ static int32_t SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
         double si = *sampinc * freq;
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
+          if (*p->ienv > 1) { ExpEnvelope }
+          else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            if (*p->ienv > 1) { ExpEnvelope }
-            else if (*p->ienv > 0) { LinEnvelope }
             { Linear_interpolation Mono_out Looped }
           }
         }
         else if (*phs < *end) {
+          if (*p->ienv > 1) { ExpEnvelope }
+          else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            if (*p->ienv > 1) { ExpEnvelope }
-            else if (*p->ienv > 0) { LinEnvelope }
             { Linear_interpolation Mono_out Unlooped }
           }
         }
@@ -1704,8 +1704,8 @@ static int32_t fill_SfStruct(CSOUND *csound)
                 else {
                   splitType *split;
                   split = &layer->split[ll];
-                  split->attack = split->decay = split->sustain =
-                    split->release = FL(0.0);
+                  split->attack = split->decay = split->release = FL(0.0);
+                  split->sustain = FL(1.0);
                   if (GoverridingRootKey != UNUSE)
                     split->overridingRootKey = (SBYTE) GoverridingRootKey;
                   if (GcoarseTune != UNUSE)
@@ -1812,8 +1812,10 @@ static int32_t fill_SfStruct(CSOUND *csound)
                       /* csound->Message(csound, "dec: %f\n", split->decay); */
                       break;
                     case sustainVolEnv:          /*sustain */
-                      split->sustain = POWER(FL(10.0),
-                                             -igen[m].genAmount.shAmount/FL(20.0));
+                      /* SoundFont sustain is attenuation in centibels. */
+                      split->sustain = igen[m].genAmount.shAmount > 0 ?
+                        POWER(FL(10.0), -igen[m].genAmount.shAmount/FL(200.0)) :
+                        FL(1.0);
                       /* csound->Message(csound, "sus: %f\n", split->sustain); */
                       break;
                     case releaseVolEnv:          /*release */
