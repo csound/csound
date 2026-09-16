@@ -1410,8 +1410,8 @@ CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
     csoundModuleInit_mixer,
     csoundModuleInit_doppler,
     lfsr_init_modules,
-    csoundModuleInit_fractalnoise,
 #endif
+    csoundModuleInit_fractalnoise,
 #if !defined(BARE_METAL) && !defined(__wasi__)
     csoundModuleInit_ftsamplebank,
 #endif
