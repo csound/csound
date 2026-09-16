@@ -26,6 +26,7 @@
 #include "csoundCore.h"
 #include "cmath.h"
 #include <math.h>
+#include <float.h>
 
 int32_t ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
 {
@@ -219,7 +220,7 @@ static MYFLT pcauchrand(CSOUND *csound, MYFLT a)
 
 static MYFLT betarand(CSOUND *csound, MYFLT range, MYFLT a, MYFLT b)
 {
-    double  r1, r2;
+    double  r1, r2, u, v;
     double aa, bb;
     if (UNLIKELY(a <= FL(0.0) || b <= FL(0.0)))
       return FL(0.0);
@@ -230,14 +231,25 @@ static MYFLT betarand(CSOUND *csound, MYFLT range, MYFLT a, MYFLT b)
       do {
         tmp = csoundRandMT(&(csound->randState_));
       } while (!tmp);
-      r1 = pow(UInt32toFlt(tmp), 1.0 / aa);
+      u = UInt32toFlt(tmp);
+      r1 = pow(u, 1.0 / aa);
       do {
         tmp = csoundRandMT(&(csound->randState_));
       } while (!tmp);
-      r2 = r1 + pow(UInt32toFlt(tmp), 1.0 / bb);
+      v = UInt32toFlt(tmp);
+      r2 = r1 + pow(v, 1.0 / bb);
     } while (r2 > 1.0);
 
-    return (((MYFLT)r1 / (MYFLT)r2) * range);
+    if (UNLIKELY(r2 < DBL_MIN)) {
+      /* Recover the ratio from the same draws, without rejecting underflows.
+         Scale before dividing to avoid overflowing both logarithms when
+         the shape parameters are very small. */
+      double d = aa >= bb ? (log(v) - log(u)*(bb/aa))/bb :
+                            (log(v)*(aa/bb) - log(u))/aa;
+      double w = exp(-fabs(d));
+      return (MYFLT)(d > 0.0 ? w/(1.0+w) : 1.0/(1.0+w)) * range;
+    }
+    return (MYFLT)(r1 / r2) * range;
 }
 
 /* weibull distribution routine */
@@ -693,7 +705,7 @@ int32_t abeta(CSOUND *csound, PRAND *p)     /* Beta random functions   */
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
-    for (n = 0; n < nsmps; n++)
+    for (n = offset; n < nsmps; n++)
       out[n] = betarand(csound, arg1, arg2, arg3);
     return OK;
 }
