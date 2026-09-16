@@ -980,7 +980,7 @@ jobs:
           }
           $hash = (Get-FileHash $redistPath -Algorithm SHA256).Hash
           $size = (Get-Item $redistPath).Length
-          Write-Host "Downloaded vc_redist.x64.exe — SHA256: $hash Size: $size bytes"
+          Write-Host "Downloaded vc_redist.x64.exe - SHA256: $hash Size: $size bytes"
           iscc /o. installer\\windows\\csound7_x64_github.iss
 
       - name: Upload installer
@@ -1066,7 +1066,7 @@ jobs:
           }
           $hash = (Get-FileHash $redistPath -Algorithm SHA256).Hash
           $size = (Get-Item $redistPath).Length
-          Write-Host "Downloaded vc_redist.x86.exe — SHA256: $hash Size: $size bytes"
+          Write-Host "Downloaded vc_redist.x86.exe - SHA256: $hash Size: $size bytes"
           iscc /o. installer\\windows\\csound7_x86_github.iss
 
       - name: Upload installer
