@@ -27,6 +27,7 @@ if(BUILD_TESTS)
         seed_state_test.cpp
         engine_test.cpp
         io_test.cpp
+        local_ksmps_test.cpp
         osc_blob_test.cpp
         pvsinit_test.cpp
         paulstretch_test.cpp
