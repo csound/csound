@@ -137,9 +137,8 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *ihandle, *fname;
-    /* iascii=0 open ascii (default), iflag=1 open binary */
+    /* 0: text write, 1: text read, 2: binary write, 3: binary read */
     MYFLT   *iascii;
-    FOUT_FILE *f;
 } FIOPEN;
 
 typedef struct {
