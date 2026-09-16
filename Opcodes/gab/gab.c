@@ -607,105 +607,106 @@ static int32_t exitnow(CSOUND *csound, EXITNOW *p)
 
 static int32_t tabrec_set(CSOUND *csound,TABREC *p)
 {
-  IGN(csound);
   p->recording = 0;
   p->currtic = 0;
   p->ndx = 0;
   p->numins = p->INOCOUNT-4;
+  if (UNLIKELY(p->numins < 1))
+    return csound->InitError(csound, "%s", Str("tabrec: no input signals"));
   return OK;
 }
 
 static int32_t tabrec_k(CSOUND *csound,TABREC *p)
 {
   if (*p->ktrig_start) {
-    if (*p->kfn != p->old_fn) {
-      FUNC *ftp = csound->FTFind(csound, p->kfn);
-      if (UNLIKELY(ftp == NULL))
-        return csound->PerfError(csound, &(p->h),
-                                 Str("Invalid ftable no. %f"), *p->kfn);
-      p->tablen = (int64_t) ftp->flen;
-      *(p->table++) = *p->numtics;
-      p->old_fn = *p->kfn;
-    }
+    FUNC *ftp = csound->FTFind(csound, p->kfn);
+    if (UNLIKELY(ftp == NULL))
+      return csound->PerfError(csound, &(p->h),
+                              Str("Invalid ftable no. %f"), *p->kfn);
+    if (UNLIKELY(ftp->flen <= (uint32_t)p->numins))
+      return csound->PerfError(csound, &(p->h), "%s",
+                              Str("tabrec: table has no complete frame"));
+    if (UNLIKELY(!(*p->numtics > FL(0.0))))
+      return csound->PerfError(csound, &(p->h), "%s",
+                              Str("tabrec: tick count must be positive"));
+    /* Keep the tick-count header separate from the recorded frames. */
+    ftp->ftable[0] = *p->numtics;
+    p->table = ftp->ftable + 1;
+    p->tablen = (int64_t)ftp->flen - 1;
     p->recording = 1;
     p->ndx = 0;
     p->currtic = 0;
   }
-  if (*p->ktrig_stop) {
-
-    if (p->currtic >= *p->numtics) {
-      p->recording = 0;
-      return OK;
-    }
-    p->currtic++;
-  }
   if (p->recording) {
-    int64_t j, curr_frame = p->ndx * p->numins;
-
-    MYFLT *table = p->table;
-    MYFLT **inargs = p->inargs;
-    if (curr_frame + p->numins < p->tablen) {
-      /* record only if table is not full */
-      for (j = 0; j < p->numins; j++)
-        table[curr_frame + j] = *inargs[j];
+    int32_t j;
+    if (*p->ktrig_stop) {
+      if (UNLIKELY(!(*p->numtics > FL(0.0))))
+        return csound->PerfError(csound, &(p->h), "%s",
+                                Str("tabrec: tick count must be positive"));
+      p->currtic++;
     }
-    (p->ndx)++;
+    for (j = 0; j < p->numins; j++)
+      p->table[p->ndx + j] = *p->inargs[j];
+    p->ndx += p->numins;
+    /* Include the cycle of the last stop pulse, then stop immediately. */
+    if (p->ndx + p->numins > p->tablen ||
+        (*p->ktrig_stop && p->currtic >= *p->numtics))
+      p->recording = 0;
   }
   return OK;
 }
 /*-------------------------*/
 static int32_t tabplay_set(CSOUND *csound,TABPLAY *p)
 {
-  /*   FUNC *ftp; */
-  /* if ((ftp = csound->FTFind(p->ifn)) == NULL) { */
-  /*   csound->InitError(csound, Str("tabplay: incorrect table number")); */
-  /*   return; */
-  /* } */
-  /*  p->table = ftp->ftable; */
-  /*  p->tablen = ftp->flen; */
-  IGN(csound);
   p->playing = 0;
   p->currtic = 0;
   p->ndx = 0;
   p->numouts = p->INOCOUNT-3;
+  p->table = NULL;
+  if (UNLIKELY(p->numouts < 1))
+    return csound->InitError(csound, "%s", Str("tabplay: no output signals"));
   return OK;
 }
 
 static int32_t tabplay_k(CSOUND *csound,TABPLAY *p)
 {
   if (*p->ktrig) {
-    if (*p->kfn != p->old_fn) {
-      FUNC *ftp = csound->FTFind(csound, p->kfn);
-      if (UNLIKELY(ftp == NULL))
-        return csound->PerfError(csound, &(p->h),
-                                 Str("Invalid ftable no. %f"), *p->kfn);
-      p->tablen = (int64_t) ftp->flen;
+    FUNC *ftp = csound->FTFind(csound, p->kfn);
+    if (UNLIKELY(ftp == NULL))
+      return csound->PerfError(csound, &(p->h),
+                              Str("Invalid ftable no. %f"), *p->kfn);
+    if (UNLIKELY(ftp->flen <= (uint32_t)p->numouts))
+      return csound->PerfError(csound, &(p->h), "%s",
+                              Str("tabplay: table has no complete frame"));
+    if (UNLIKELY(!(*p->numtics > FL(0.0))))
+      return csound->PerfError(csound, &(p->h), "%s",
+                              Str("tabplay: tick count must be positive"));
+    if (p->table == NULL || *p->kfn != p->old_fn ||
+        p->table != ftp->ftable + 1) {
       p->currtic = 0;
       p->ndx = 0;
-      *(p->table++) = *p->numtics;
       p->old_fn = *p->kfn;
     }
+    p->table = ftp->ftable + 1;
+    p->tablen = (int64_t)ftp->flen - 1;
     p->playing = 1;
-    if (p->currtic == 0)
+    if (p->currtic == 0 || p->currtic >= *p->numtics) {
       p->ndx = 0;
-    if (p->currtic >= *p->numtics) {
-      p->playing = 0;
-      return OK;
+      p->currtic = 0;
     }
     p->currtic++;
-    p->currtic %= (int64_t) *p->numtics;
-
+    if (p->currtic >= *p->numtics)
+      p->currtic = 0;
   }
   if (p->playing) {
-    int64_t j, curr_frame = p->ndx * p->numouts;
-    MYFLT *table = p->table;
-    MYFLT **outargs = p->outargs;
-    if (UNLIKELY(curr_frame + p->numouts < p->tablen)) {
-      /* play only if ndx is inside table */
+    int32_t j;
+    if (p->ndx + p->numouts <= p->tablen) {
       for (j = 0; j < p->numouts; j++)
-        *outargs[j] = table[curr_frame+j];
+        *p->outargs[j] = p->table[p->ndx+j];
+      p->ndx += p->numouts;
     }
-    (p->ndx)++;
+    if (p->ndx + p->numouts > p->tablen)
+      p->playing = 0;
   }
   return OK;
 }

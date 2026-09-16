@@ -88,15 +88,17 @@ typedef struct {
     OPDS    h;
     MYFLT   *ktrig_start, *ktrig_stop, *numtics, *kfn, *inargs[VARGMAX];
     int32_t recording, numins;
-    int64_t currtic, ndx, tablen;
-    MYFLT   *table, old_fn;
+    double currtic;
+    int64_t ndx, tablen;
+    MYFLT   *table;
 } TABREC;
 
 typedef struct {
     OPDS    h;
     MYFLT   *ktrig, *numtics, *kfn, *outargs[VARGMAX];
     int32_t playing, numouts;
-    int64_t currtic, ndx, tablen;
+    double currtic;
+    int64_t ndx, tablen;
     MYFLT   *table, old_fn;
 } TABPLAY;
 
