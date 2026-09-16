@@ -3,7 +3,7 @@ description = "puts tracks nonpositive triggers and honors the newline option"
 
 [expect]
 exit = 0
-stderr_regex = [
+output_regex = [
   '(?m)^ONCE\r?\nPULSE 2\r?\nPULSE 5\r?\nPULSE 7\r?\nPULSE 8\r?\nEND TRIGGERS\r?$',
   '(?m)^NEWLINE 1\r?\nLEFTRIGHT\r?\nPERFLEFTPERFRIGHT\r?$',
   '(?m)^NEWLINE 0\r?\nLEFT\r?\nRIGHT\r?\nPERFLEFT\r?\nPERFRIGHT\r?$',
