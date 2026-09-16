@@ -46,9 +46,8 @@ static CS_NOINLINE int32_t fout_deinit(CSOUND *csound, FOUT_FILE *p)
       p->idx = 0;
       if (pp->refCount) {
         pp->refCount--;
-        /* VL 29/08/07: files were not being closed properly,
-           changed check to 0 */
-        if (pp->refCount == 0/*0x80000000U*/) {
+        /* The high bit records a pending ficlose, not another user. */
+        if ((pp->refCount & 0x7fffffffU) == 0) {
           pp->file = (SNDFILE*) NULL;
           pp->raw = (FILE*) NULL;
           csound->Free(csound, pp->name);
@@ -75,7 +74,8 @@ static CS_NOINLINE int32_t fout_deinit(CSOUND *csound, FOUT_FILE *p)
 static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
                                              int32_t fileType, MYFLT *iFile,
                                              int32_t isString,
-                                             void *fileParams, int32_t forceSync)
+                                             void *fileParams, int32_t forceSync,
+                                             int32_t *handle)
 {
   STDOPCOD_GLOBALS  *pp =  (STDOPCOD_GLOBALS*)
     csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
@@ -83,6 +83,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
   int32_t               idx, csFileType;
   const OPARMS *oparms = csound->GetOParms(csound);
 
+  if (handle != NULL) *handle = -1;
 
   if (p != (FOUT_FILE*) NULL) p->async = 0;
   if (fp != NULL) {
@@ -97,8 +98,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
       p->need_deinit = 1;
       fout_deinit(csound, (void*) p);
     }
-    else
-      p->need_deinit = 1;
+    p->need_deinit = 1;
   }
   /* get file name, */
   if (isString) name = csound->Strdup(csound, ((STRINGDAT *)iFile)->data);
@@ -126,15 +126,19 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
   if (fileType == CSFILE_STD) {
     for (idx = 0; idx <= pp->file_num; idx++) {
       if (pp->file_opened[idx].raw != (FILE*) NULL &&
-          strcmp(pp->file_opened[idx].name, name) == 0)
+          strcmp(pp->file_opened[idx].name, name) == 0) {
+        csound->Free(csound, name);
         goto returnHandle;
+      }
     }
   }
   else {
     for (idx = 0; idx <= pp->file_num; idx++) {
       if (pp->file_opened[idx].file != (SNDFILE*) NULL &&
-          strcmp(pp->file_opened[idx].name, name) == 0)
+          strcmp(pp->file_opened[idx].name, name) == 0) {
+        csound->Free(csound, name);
         goto returnHandle;
+      }
     }
   }
   /* allocate new file handle, or use an already existing unused one */
@@ -172,6 +176,9 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
       csound->Free(csound, name);
       return NULL;
     }
+    /* Set buffering only on a new stream, before any reads or writes. */
+    if (csFileType == CSFTYPE_OTHER_BINARY)
+      setbuf(f, NULL);
     pp->file_opened[idx].raw = f;
     pp->file_opened[idx].fd = fd;
   }
@@ -235,6 +242,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
 
  returnHandle:
   /* return 'idx' as file handle */
+  if (handle != NULL) *handle = idx;
   if (fp != NULL) {
     if (fileType == CSFILE_STD)
       *((FILE**) fp) = pp->file_opened[idx].raw;
@@ -431,7 +439,7 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p)
   p->f.bufsize =  (int32_t) p->buf.size;
   sfinfo.channels = p->nargs;
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
-                    p->fname, istring, &sfinfo, 0) != NULL) 
+                    p->fname, istring, &sfinfo, 0, NULL) != NULL)
     n = p->f.idx - 1;
   else return NOTOK;
 
@@ -481,7 +489,7 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
   p->f.bufsize = (int32_t)  p->buf.size;
   sfinfo.channels = len;
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
-                    p->fname, 1, &sfinfo, 0) != NULL){
+                    p->fname, 1, &sfinfo, 0, NULL) != NULL){
     n = p->f.idx - 1;
   }
   else return NOTOK;
@@ -548,7 +556,7 @@ static int32_t koutfile_set_(CSOUND *csound, KOUTFILE *p, int32_t istring)
   }
   p->f.bufsize =(int32_t)  p->buf.size;
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
-                    p->fname, istring, &sfinfo, 0) != NULL)
+                    p->fname, istring, &sfinfo, 0, NULL) != NULL)
     n = p->f.idx - 1;
   else return NOTOK;
 
@@ -570,33 +578,24 @@ static int32_t koutfile_set_S(CSOUND *csound, KOUTFILE *p){
 /* syntax:
    ihandle fiopen "filename" [, iascii]
 */
-int32_t fiopen_deinit(CSOUND *csound, FIOPEN *p) {
-  if(p->f) {
-    fout_deinit(csound, p->f);
-    p->f = NULL;
-  }
-  return OK;
-}
-
 /* open a file and return its handle  */
 /* the handle is simply a stack index */
 
 static int32_t fiopen_(CSOUND *csound, FIOPEN *p, int32_t istring)
 {
   char    *omodes[] = {"w", "r", "wb", "rb"};
-  FILE    *rfp = (FILE*) NULL;
-  int32_t     idx = (int32_t) MYFLT2LRND(*p->iascii), n;
+  int32_t     idx = (int32_t) MYFLT2LRND(*p->iascii), handle;
     
   if (idx < 0 || idx > 3)
     idx = 0;
-  p->f = fout_open_file(csound, (FOUT_FILE*) NULL, &rfp, CSFILE_STD,
-                        p->fname, istring, omodes[idx], 1);
-  if(p->f != NULL) n = p->f->idx - 1;
-  else return NOTOK;
+  /* A fiopen handle lasts until ficlose or the end of performance; it is
+     not a borrower tied to the lifetime of this opcode instance. */
+  fout_open_file(csound, NULL, NULL, CSFILE_STD,
+                 p->fname, istring, omodes[idx], 1, &handle);
+  if (handle < 0)
+    return NOTOK;
       
-  if (idx > 1)
-    setbuf(rfp, NULL);
-  *p->ihandle = (MYFLT) n;
+  *p->ihandle = (MYFLT) handle;
 
   return OK;
 }
@@ -841,7 +840,7 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
   }
   p->f.bufsize =  (int32_t) p->buf.size;
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
-                    p->fname, istring, &sfinfo, 0) != NULL) {
+                    p->fname, istring, &sfinfo, 0, NULL) != NULL) {
     n = p->f.idx - 1;
   }
   else return NOTOK;
@@ -904,7 +903,7 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
   }
   p->f.bufsize =  (int32_t) p->buf.size;
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
-                    p->fname, 1, &sfinfo, 0) != NULL) {
+                    p->fname, 1, &sfinfo, 0, NULL) != NULL) {
     n = p->f.idx - 1;
   }
   else return NOTOK;
@@ -1077,7 +1076,7 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
   p->f.bufsize = (int32_t) p->buf.size;
 
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
-                    p->fname, istring, &sfinfo, 0) != NULL) {
+                    p->fname, istring, &sfinfo, 0, NULL) != NULL) {
     n = p->f.idx - 1;
   }
   else return NOTOK;
@@ -1160,7 +1159,7 @@ static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
   int32_t     idx = (int32_t) MYFLT2LRND(*p->iflag);
 
   p->f = fout_open_file(csound, (FOUT_FILE*) NULL, &fp, CSFILE_STD,
-                        p->fname, istring, omodes[idx], 0);
+                        p->fname, istring, omodes[idx], 0, NULL);
   if(p->f == NULL) return NOTOK;
   nargs = p->INOCOUNT - 3;
   switch ((int32_t) MYFLT2LRND(*p->iflag)) {
@@ -1273,11 +1272,11 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
 
   if (p->h.perf != (SUBR) NULL) {     /* fprintks */
     pp = fout_open_file(csound, &(p->f), NULL, CSFILE_STD,
-                        p->fname, istring, "w", 1);
+                        p->fname, istring, "w", 1, NULL);
     if (UNLIKELY(pp == NULL)) return NOTOK;
   } else {                             /* fprints */
     fout_open_file(csound, (FOUT_FILE*) NULL, &(p->f.f), CSFILE_STD,
-                   p->fname, istring, "w", 1);
+                   p->fname, istring, "w", 1, NULL);
     if (UNLIKELY(p->f.f  == NULL)) return NOTOK;
   }
   //setvbuf(p->f.f, (char*)NULL, _IOLBF, BUFSIZ); /* Seems a good option */
@@ -1551,9 +1550,9 @@ static OENTRY localops[] = {
   { "foutir",     S(IOUTFILE_R),  0,  "",     "iiim",
     (SUBR) ioutfile_set_r,  (SUBR) ioutfile_r,  (SUBR) NULL, NULL},
   { "fiopen",     S(FIOPEN),      0,  "i",    "Si",
-    (SUBR) fiopen_S,          (SUBR) NULL,        (SUBR) fiopen_deinit, NULL},
+    (SUBR) fiopen_S,          (SUBR) NULL,        (SUBR) NULL, NULL},
   { "fiopen.i",     S(FIOPEN),      0,  "i",    "ii",
-    (SUBR) fiopen,          (SUBR) NULL,        (SUBR) fiopen_deinit, NULL},
+    (SUBR) fiopen,          (SUBR) NULL,        (SUBR) NULL, NULL},
   { "ficlose",    S(FICLOSE),     0,  "",     "S",
     (SUBR) ficlose_opcode_S,  (SUBR) NULL,        (SUBR) NULL, NULL},
   { "ficlose.S",  S(FICLOSE),     0,  "",     "i",
