@@ -5,9 +5,7 @@ env:
 
 on:
   push:
-    branches:
-      - master
-      - develop
+    branches: [master, develop, fix/windows-installer]
   pull_request:
     branches:
       - develop
