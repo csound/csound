@@ -170,7 +170,7 @@ private:
   int32_t iConst0;
   MYFLT fConst1;
   MYFLT fConst2;
-  int32_t iRec8[2];
+  uint32_t iRec8[2];
   MYFLT fConst3;
   MYFLT fConst4;
   MYFLT fConst5;
@@ -330,6 +330,7 @@ public:
     int32_t nn = ((OPDATA *)p)->h.insdshead->ksmps;
     uint32_t offset = ((OPDATA *)p)->h.insdshead->ksmps_offset;
     uint32_t early = ((OPDATA *)p)->h.insdshead->ksmps_no_end;
+    const uint32_t seed = (uint32_t)*csound->RandSeed31(csound);
     MYFLT fSlow0 = POWER(FL(10.0), (FL(0.08333333333333333) * fslider0));
     MYFLT fSlow1 = EXP(-(fConst3 * fSlow0));
     MYFLT fSlow2 = EXP(-(fConst5 * fSlow0));
@@ -369,9 +370,13 @@ public:
       memset(&output0[nn], '\0', early * sizeof(MYFLT));
     }
     for (int32_t i = offset; i < nn; i++) {
-      iRec8[0] = (*csound->RandSeed31(csound) + (1103515245 * iRec8[1]));
+      // The generator wraps at 32 bits, then produces signed noise samples.
+      iRec8[0] = seed + 1103515245U * iRec8[1];
+      const int32_t noise = iRec8[0] <= INT32_MAX
+                               ? (int32_t)iRec8[0]
+                               : -1 - (int32_t)(UINT32_MAX - iRec8[0]);
       fRec7[0] =
-          -((fConst8 * fRec7[2]) + (fConst7 * fRec7[1])) + (iRec8[0] * dv2_31);
+          -((fConst8 * fRec7[2]) + (fConst7 * fRec7[1])) + (noise * dv2_31);
       fRec6[0] =
           (0 - (((fConst14 * fRec6[2]) + (fConst13 * fRec6[1])) -
                 ((fSlow4 * fRec7[1]) + (fRec7[0] + (fSlow3 * fRec7[2])))));
@@ -434,10 +439,12 @@ int32_t fractalnoise_cleanup(CSOUND *csound, FRACTALNOISE *p) {
 }
 
 int32_t fractalnoise_init(CSOUND *csound, FRACTALNOISE *p) {
-  p->faust = new mydsp;
-  p->cs_interface = new csUI;
+  if (p->faust == nullptr) {
+    p->faust = new mydsp;
+    p->cs_interface = new csUI;
+    p->faust->buildUserInterface(p->cs_interface);
+  }
   p->faust->init((int32_t)CS_ESR);
-  p->faust->buildUserInterface(p->cs_interface);
   return OK;
 }
 
