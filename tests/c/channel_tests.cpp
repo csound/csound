@@ -405,6 +405,7 @@ TEST_F (ChannelTests, ChnHints)
     ASSERT_EQ(hints.width, 50);
     ASSERT_EQ(hints.height, 100);
     ASSERT_STREQ(hints.attributes, "testattr");
+    csoundDeleteControlChannelHints(csound, &hints);
 }
 
 TEST_F (ChannelTests, StringChannel)
@@ -858,4 +859,89 @@ TEST_F (ChannelTests, StringOpcodesDuringHostResize)
     std::vector<char> output(65537);
     csoundGetStringChannel(csound, "write", output.data());
     EXPECT_EQ(std::string(output.data()), std::string(65536, 'x'));
+}
+
+TEST_F (ChannelTests, ControlChannelHintsRelease)
+{
+    csoundSetControlChannel(csound, "gain", 0);
+    controlChannelHints_t hints{};
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.max = 1;
+    hints.dflt = .5;
+    char attributes[] = "label=Gain";
+    hints.attributes = attributes;
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+
+    controlChannelHints_t first{}, second{};
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &first));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &second));
+    EXPECT_NE(first.attributes, second.attributes);
+    EXPECT_STREQ(first.attributes, attributes);
+    csoundDeleteControlChannelHints(csound, &first);
+    EXPECT_EQ(first.attributes, nullptr);
+    EXPECT_EQ(first.dflt, .5);
+    csoundDeleteControlChannelHints(csound, &first);
+    EXPECT_STREQ(second.attributes, attributes);
+    csoundDeleteControlChannelHints(csound, &second);
+}
+
+TEST_F (ChannelTests, ControlChannelHintsReplacement)
+{
+    csoundSetControlChannel(csound, "gain", 0);
+    controlChannelHints_t hints{};
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.max = 1;
+    char attributes[] = "label=Gain";
+    hints.attributes = attributes;
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    controlChannelHints_t copy{};
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &copy));
+
+    // A caller can pass the channel's borrowed attributes back to the setter.
+    controlChannelInfo_t *list = nullptr;
+    ASSERT_EQ(csoundListChannels(csound, &list), 1);
+    EXPECT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", list[0].hints));
+    csoundDeleteChannelList(csound, list);
+    EXPECT_STREQ(copy.attributes, attributes);
+    csoundDeleteControlChannelHints(csound, &copy);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &copy));
+    EXPECT_STREQ(copy.attributes, attributes);
+    csoundDeleteControlChannelHints(csound, &copy);
+
+    // Rejecting an update must leave the original attributes intact.
+    hints.min = 2;
+    EXPECT_EQ(CSOUND_ERROR, csoundSetControlChannelHints(csound, "gain", hints));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &copy));
+    EXPECT_STREQ(copy.attributes, attributes);
+    csoundDeleteControlChannelHints(csound, &copy);
+    hints.min = 0;
+    hints.attributes = nullptr;
+    EXPECT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &copy));
+    EXPECT_EQ(copy.attributes, nullptr);
+    csoundDeleteControlChannelHints(csound, &copy);
+
+    hints.attributes = attributes;
+    EXPECT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    hints.behav = CSOUND_CONTROL_CHANNEL_NO_HINTS;
+    EXPECT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    EXPECT_EQ(CSOUND_ERROR, csoundGetControlChannelHints(csound, "gain", &copy));
+    ASSERT_EQ(csoundListChannels(csound, &list), 1);
+    EXPECT_EQ(list[0].hints.attributes, nullptr);
+    csoundDeleteChannelList(csound, list);
+}
+
+TEST_F (ChannelTests, ChnparamsWithAttributes)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        chn_k "hinted", 3, 2, 0.5, 0, 1, 10, 10, 50, 100, "label=Gain"
+        itype, imode, ictltype, idflt, imin, imax chnparams "hinted"
+        chnset ictltype, "behavior"
+        chnset idflt, "default"
+        chnset imax, "maximum"
+    )ORC"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    EXPECT_EQ(csoundGetControlChannel(csound, "behavior", nullptr), 2);
+    EXPECT_EQ(csoundGetControlChannel(csound, "default", nullptr), .5);
+    EXPECT_EQ(csoundGetControlChannel(csound, "maximum", nullptr), 1);
 }
