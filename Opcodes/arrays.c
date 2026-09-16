@@ -700,14 +700,18 @@ static int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p) {
     MYFLT *ceps = p->out->data;
     MYFLT coefs = *p->coefs;
     float *fin = (float *) p->fin->frame.auxp;
+    if (UNLIKELY(!(coefs >= FL(0.0))))
+      return csound->PerfError(csound, &p->h, "%s",
+                              Str("cepstrum coefficient count must be nonnegative"));
     for (i=j=0; i < N; i+=2, j++) {
       ceps[j] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
     }
-    ceps[N/2] = fin[N/2];
+    ceps[N/2] = fin[N];
     csound->RealFFT(csound, p->setup, ceps);
     if (coefs) {
       // lifter coefs
-      for (i=coefs*2; i < N/2; i++) ceps[i] = 0.0;
+      for (i = coefs*2 < N/2 ? (int32_t)(coefs*2) : N/2;
+           i < N/2; i++) ceps[i] = 0.0;
       ceps[N/2] = 0.0;
     }
     p->lastframe = p->fin->framecount;
@@ -735,6 +739,9 @@ static int32_t perf_ceps(CSOUND *csound, FFT *p) {
   MYFLT *ceps = p->out->data;
   MYFLT coefs = *((MYFLT *)p->in2);
   MYFLT *mags = (MYFLT *) p->in->data;
+  if (UNLIKELY(!(coefs >= FL(0.0))))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("cepstrum coefficient count must be nonnegative"));
   for (i=0; i < siz; i++) {
     ceps[i] = log(mags[i] > 0.0 ? mags[i] : 1e-20);
   }
@@ -742,7 +749,8 @@ static int32_t perf_ceps(CSOUND *csound, FFT *p) {
   csound->RealFFT(csound, p->setup, ceps);
   if (coefs) {
     // lifter coefs
-    for (i=coefs*2; i < siz; i++) ceps[i] = 0.0;
+    for (i = coefs*2 < siz ? (int32_t)(coefs*2) : siz;
+         i < siz; i++) ceps[i] = 0.0;
     ceps[siz] = 0.0;
   }
   return OK;
@@ -770,7 +778,8 @@ static int32_t perf_iceps(CSOUND *csound, FFT *p) {
   for (i=0; i < siz; i++) {
     out[i] = exp(spec[i]);
   }
-  out[siz] = spec[siz];       /* Writes outside data allocated */
+  /* The final magnitude is carried outside the FFT-packed coefficients. */
+  out[siz] = p->in->data[siz];
   return OK;
 }
 
