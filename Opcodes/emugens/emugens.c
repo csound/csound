@@ -2568,14 +2568,20 @@ typedef struct {
 
 static int32_t
 ftexists_init(CSOUND *csound, FTEXISTS *p) {
-    int32_t ifn = (int)*p->ifn;
-    if(ifn == 0) {
-      if(csound->GetDebug(csound) & DEBUG_OPCODES)
-        csound->Message(csound, "%s", Str("ftexists: table number is 0"));
-      *p->iout = 0.;
+    double number = (double)*p->ifn;
+    *p->iout = FL(0.0);
+    if (number > -2.0 && number < (double)INT32_MAX + 1.0) {
+        int32_t ifn = (int32_t)number;
+        MYFLT *args;
+        /* Preserve FTFind's built-in sine aliases, 0 and -1. */
+        if (ifn <= 0) {
+            *p->iout = FL(1.0);
+            return OK;
+        }
+        /* Query metadata without reporting errors or loading deferred GEN01 data.
+           A table can exist with an empty argument list, for example after ftload. */
+        *p->iout = csoundGetTableArgs(csound, &args, ifn) >= 0;
     }
-    FUNC *ftp = csound->FTFind(csound, p->ifn);
-    *p->iout = (ftp != NULL) ? 1.0 : 0.0;
     return OK;
 }
 
