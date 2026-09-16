@@ -165,8 +165,7 @@ typedef struct {
     STRINGDAT *fmt;
     MYFLT  *argums[VARGMAX-2];
     FOUT_FILE f;
-    char    txtstring[8192];    /* Place to store the string printed */
+    char    txtstring[8193];    /* Up to 8192 characters plus the terminator. */
 } FPRINTF;
 
 #endif  /* FOUT_H */
-
