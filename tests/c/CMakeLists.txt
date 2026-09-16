@@ -51,6 +51,7 @@ if(BUILD_TESTS)
         serial_test.cpp
         joystick_test.cpp
         arduino_test.cpp
+        cpumeter_test.cpp
         osc_blob_test.cpp
         pvsinit_test.cpp
         paulstretch_test.cpp
