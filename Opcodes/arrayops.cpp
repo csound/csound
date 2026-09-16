@@ -251,7 +251,7 @@ static void onload(csnd::Csound *csound) {
   csnd::plugin<ArrayOp<std::trunc>>(csound, "int", "i[]", "i[]",
                                     csnd::thread::i);
   csnd::plugin<ArrayOp<std::trunc>>(csound, "int", "k[]", "k[]",
-                                    csnd::thread::i);
+                                    csnd::thread::ik);
   csnd::plugin<ArrayOp<frac>>(csound, "frac", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<frac>>(csound, "frac", "k[]", "k[]", csnd::thread::ik);
   csnd::plugin<ArrayOp<std::exp2>>(csound, "powoftwo", "i[]", "i[]",
