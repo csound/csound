@@ -2519,28 +2519,38 @@ int32_t pcount(CSOUND *csound, PFIELD *p)
 
 int32_t pvalue(CSOUND *csound, PFIELD *p)
 {
-  int32_t n = (int32_t)(*p->index);
-  if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
+  if (UNLIKELY(csound->init_event == NULL ||
+               !(*p->index >= FL(1.0) &&
+                 (double)*p->index < (double)csound->init_event->pcnt + 1.0))) {
     return csound->InitError(csound, "%s", Str("invalid p field index"));
   }
+  int32_t n = (int32_t)(*p->index);
   *p->ians = csound->init_event->p[n];
   return OK;
 }
 
+char *get_string_arg_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt);
+
 int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
 {
-  int32_t n = (int32_t)(*p->index);
-  if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
+  if (UNLIKELY(csound->init_event == NULL ||
+               !(*p->index >= FL(1.0) &&
+                 (double)*p->index < (double)csound->init_event->pcnt + 1.0))) {
     return csound->InitError(csound, "%s", Str("invalid p field index"));
   }
+  int32_t n = (int32_t)(*p->index);
+  MYFLT value = csound->init_event->p[n];
+  if (UNLIKELY(!IsStringCode(value)))
+    return csound->InitError(csound, Str("pindex: p-field %d is not a string"), n);
 
+  /* The value and its string storage must come from the same event, including
+     in subinstruments where pindex reads the host's p-fields. */
+  char *str = csound->Strdup(csound,
+                           get_string_arg_from_evt(csound, value,
+                                                   csound->init_event));
   if (p->ians->data!=NULL) csound->Free(csound, p->ians->data);
-
-  if (LIKELY(IsStringCode(csound->init_event->p[n]))) {
-    p->ians->data = csound->Strdup(csound,
-                                   csound->GetArgString(csound, csound->init_event->p[n]));
-    p->ians->size = strlen(p->ians->data) + 1;
-  }
+  p->ians->data = str;
+  p->ians->size = strlen(str) + 1;
   return OK;
 }
 
@@ -2581,7 +2591,8 @@ int32_t pinit(CSOUND *csound, PINIT *p)
             strOut->data = NULL;
             strOut->size = 0;
           }
-          const char* srcStr = csound->GetArgString(csound, csound->init_event->p[n+start]);
+          const char *srcStr = get_string_arg_from_evt(
+              csound, csound->init_event->p[n+start], csound->init_event);
           if (srcStr != NULL) {
             strOut->data = csound->Strdup(csound, srcStr);
             strOut->size = strlen(strOut->data) + 1;
