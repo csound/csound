@@ -74,7 +74,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
     MYFLT   scaleFac;
-    int32   currpos;
+    int64_t currpos;
     int32_t     flag;
     int32_t     nargs;
     int32_t     buf_pos;
@@ -90,7 +90,7 @@ typedef struct {
     MYFLT   *fname, *iskpfrms, *iflag;
     ARRAYDAT *tabout;
     MYFLT   scaleFac;
-    int32   currpos;
+    int64_t currpos;
     int32_t     flag;
     int32_t     chn;
     int32_t     buf_pos;
@@ -105,13 +105,13 @@ typedef struct {
     OPDS    h;
     MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
     MYFLT   scaleFac;
-    int32   currpos;
+    int64_t currpos;
     int32_t     flag;
     int32_t     nargs;
     int32_t     buf_pos;
     int32_t     guard_pos;
     int32_t     frames;
-    int32_t     remain;
+    uint32_t    remain;
     AUXCH   buf;
     FOUT_FILE f;
 } KINFILE;
