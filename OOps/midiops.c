@@ -929,42 +929,76 @@ int32_t presetctrl_init(CSOUND *csound, PRESETCTRL *p)
     return OK;
 }
 
-// Store a set of crtrlinits as a preset, allocating a number if necessary
-int32_t presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
+/* Return a slot only after its tag and allocation size are known to fit. */
+static int32_t presetctrl_slot(CSOUND *csound, OPDS *h, PRESET_GLOB *q,
+                              MYFLT number, int32_t count)
 {
-    PRESET_GLOB *q = p->q;
-    int32_t *slot;
-    int32_t i;
-    int32_t tag = (int)*p->itag - 1;
-    if (tag<0) {
-      for (i=0; i<q->max_num; i++)
-        if (q->presets[i]==NULL) { tag=i; break;}
-      if (i>=q->max_num) tag = q->max_num;
+    int32_t tag, i, new_count;
+    int32_t **presets, *slot;
+    if (UNLIKELY(!(number >= 0 && (double)number < INT32_MAX))) {
+      csound->PerfError(csound, h, Str("ctrlpreset: invalid preset tag"));
+      return -1;
+    }
+    tag = (int32_t)number - 1;
+    if (tag < 0) {
+      for (tag = 0; tag < q->max_num; tag++)
+        if (q->presets[tag] == NULL) break;
     }
     if (tag >= q->max_num) {
-      int32_t** tt = q->presets;
-      int32_t size = tag-q->max_num;
-      if (size<10) size = 10;
-      tt = (int32_t **)csound->ReAlloc(csound,
-                                    tt, (q->max_num+size)*sizeof(int*));
-      if (tt == NULL)
-        return csound->InitError(csound, "%s",
-                                 Str("Failed to allocate presets\n"));
-      for (i=0; i<size; i++) tt[i+q->max_num] = 0;
-      q->presets = tt;
-      q->max_num += size;
+      if (UNLIKELY(tag == INT32_MAX)) {
+        csound->PerfError(csound, h, Str("ctrlpreset: too many presets"));
+        return -1;
+      }
+      new_count = tag + 1;
+      if (q->max_num <= INT32_MAX - 10 && new_count < q->max_num + 10)
+        new_count = q->max_num + 10;
+      if (UNLIKELY((size_t)new_count > SIZE_MAX / sizeof(*presets))) {
+        csound->PerfError(csound, h, Str("ctrlpreset: too many presets"));
+        return -1;
+      }
+      presets = (int32_t **)csound->ReAlloc(csound, q->presets,
+                                          (size_t)new_count * sizeof(*presets));
+      if (UNLIKELY(presets == NULL)) {
+        csound->PerfError(csound, h, Str("Failed to allocate presets"));
+        return -1;
+      }
+      for (i = q->max_num; i < new_count; i++) presets[i] = NULL;
+      q->presets = presets;
+      q->max_num = new_count;
     }
     slot = q->presets[tag];
-    if (slot) csound->Free(csound, slot);
-    q->presets[tag] = (int32_t*) csound->Malloc(csound, sizeof(int)*(p->INOCOUNT));
-    slot = q->presets[tag];
-    slot[0] = p->INOCOUNT;
-    slot[1] = (int)(*p->chnl);
-    for (i=0; i<slot[0]-2; i++)
-      slot[i+2]= (int)*p->ctrls[i];
-    /* for (i=0; i<slot[0];i++) printf("%d ", slot[i]); */
-    /* printf("\n"); */
-    *p->inum = (MYFLT)tag+1;
+    if (slot == NULL || slot[0] != count) {
+      slot = (int32_t *)csound->ReAlloc(csound, slot,
+                                      (size_t)count * sizeof(*slot));
+      if (UNLIKELY(slot == NULL)) {
+        csound->PerfError(csound, h, Str("Failed to allocate preset"));
+        return -1;
+      }
+      q->presets[tag] = slot;
+      slot[0] = count;
+    }
+    return tag;
+}
+
+int32_t presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
+{
+    int32_t count = p->INOCOUNT, i, tag, *slot;
+    if (UNLIKELY(count < 4 || count > 66 || (count & 1)))
+      return csound->PerfError(csound, &p->h,
+                              Str("ctrlpreset: expected controller/value pairs"));
+    if (UNLIKELY(!(*p->chnl >= 1 && *p->chnl < 17)))
+      return csound->PerfError(csound, &p->h,
+                              Str("ctrlpreset: channel must be in 1..16"));
+    for (i = 0; i < count - 2; i++)
+      if (UNLIKELY(!(*p->ctrls[i] >= 0 && *p->ctrls[i] < 128)))
+        return csound->PerfError(csound, &p->h,
+                                Str("ctrlpreset: controller and value must be in 0..127"));
+    tag = presetctrl_slot(csound, &p->h, p->q, *p->itag, count);
+    if (UNLIKELY(tag < 0)) return NOTOK;
+    slot = p->q->presets[tag];
+    slot[1] = (int32_t)*p->chnl;
+    for (i = 0; i < count - 2; i++) slot[i + 2] = (int32_t)*p->ctrls[i];
+    *p->inum = (MYFLT)tag + 1;
     return OK;
 }
 
@@ -986,43 +1020,27 @@ int32_t presetctrl1_init(CSOUND *csound, PRESETCTRL1 *p)
     return OK;
 }
 
-// Store a set of crtrlinits as a preset, allocating a number if necessary
 int32_t presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
 {
-    PRESET_GLOB *q = p->q;
-    int32_t *slot;
-    int32_t i;
-    int32_t tag = (int)*p->itag - 1;
-    if (tag<0) {
-      for (i=0; i<q->max_num; i++)
-        if (q->presets[i]==NULL) { tag=i; break;}
-      if (i>=q->max_num) tag = q->max_num;
-    }
-    if (tag >= q->max_num) {
-      int32_t** tt = q->presets;
-      int32_t size = tag-q->max_num;
-      if (size<10) size = 10;
-      tt = (int32_t**)csound->ReAlloc(csound,
-                                  tt, (q->max_num+size)*sizeof(int*));
-      if (tt == NULL)
-        return csound->InitError(csound, "%s",
-                                 Str("Failed to allocate presets\n"));
-      for (i=0; i<size; i++) tt[i+q->max_num] = 0;
-      q->presets = tt;
-      q->max_num += size;
-    }
-    slot = q->presets[tag];
-    if (slot) csound->Free(csound, slot);
-    q->presets[tag] = (int32_t*) csound->Malloc(csound,
-                                            sizeof(int)*(1+p->arr->sizes[0]));
-    slot = q->presets[tag];
-    slot[0] = p->arr->sizes[0];
-    slot[1] = (int)(p->arr->data[1]);
-    for (i=2; i<=slot[0]; i++)
-      slot[i]= (int)p->arr->data[i];
-    /* for (i=0; i<slot[0];i++) printf("%d ", slot[i]); */
-    /* printf("\n"); */
-    *p->inum = (MYFLT)tag+1;
+    int32_t count, i, tag, *slot;
+    if (UNLIKELY(p->arr->dimensions != 1 || p->arr->sizes == NULL ||
+                 p->arr->data == NULL || p->arr->sizes[0] < 2 ||
+                 (p->arr->sizes[0] & 1)))
+      return csound->PerfError(csound, &p->h,
+                              Str("ctrlpreset: expected a controller preset array"));
+    count = p->arr->sizes[0];
+    if (UNLIKELY(! (p->arr->data[1] >= 1 && p->arr->data[1] < 17)))
+      return csound->PerfError(csound, &p->h,
+                              Str("ctrlpreset: channel must be in 1..16"));
+    for (i = 2; i < count; i++)
+      if (UNLIKELY(!(p->arr->data[i] >= 0 && p->arr->data[i] < 128)))
+        return csound->PerfError(csound, &p->h,
+                                Str("ctrlpreset: controller and value must be in 0..127"));
+    tag = presetctrl_slot(csound, &p->h, p->q, *p->itag, count);
+    if (UNLIKELY(tag < 0)) return NOTOK;
+    slot = p->q->presets[tag];
+    for (i = 1; i < count; i++) slot[i] = (int32_t)p->arr->data[i];
+    *p->inum = (MYFLT)tag + 1;
     return OK;
 }
 
@@ -1040,10 +1058,15 @@ int32_t selectctrl_init(CSOUND *csound, SELECTCTRL *p)
 int32_t selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
 {
     PRESET_GLOB *q = p->q;
-    int32_t tag = (int)*p->inum-1;
+    int32_t tag;
     int32_t i;
     int32_t* slot;
-    if (tag>=q->max_num ||NULL==(slot = q->presets[tag])) {
+    if (UNLIKELY(!(*p->inum >= 1 &&
+                   (double)*p->inum < (double)q->max_num + 1)))
+      return csound->PerfError(csound, &p->h,
+                              Str("No such preset %g\n"), *p->inum);
+    tag = (int32_t)*p->inum - 1;
+    if (NULL == (slot = q->presets[tag])) {
       return csound->PerfError(csound, &p->h, Str("No such preset %d\n"), tag+1);
     }
     {
@@ -1053,7 +1076,6 @@ int32_t selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
       for (i=2; i<nargs; i+=2) {
         int32_t val = slot[i+1];
         ctlval[slot[i]] = val;
-        printf("control %d value %d\n", slot[i], val);
       }
     }
     return OK;
