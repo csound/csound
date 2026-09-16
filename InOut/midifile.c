@@ -853,7 +853,7 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
       // also if number of databytes is less than 1
       i++; continue;
     }
-    nBytes -= n;
+    nBytes -= n + (port != 0);
     if (UNLIKELY(nBytes < 0)) {
       csound->Message(csound, Str(" *** buffer overflow while reading "
                                   "MIDI file events\n"));
@@ -865,7 +865,6 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
       // optional port mapping offset
       *buf++ = (uint8_t) (0x80 | port);
       nRead++;
-      nBytes--;
     }
     if (n > 1) *buf++ = mf->eventList[i].d1;
     if (n > 2) *buf++ = mf->eventList[i].d2;
@@ -890,7 +889,7 @@ int32_t csoundMIDIFileRead(CSOUND *csound, unsigned char *buf,
       midifile->counter += 1./midifile->temposcal;
       midifile->global_kcounter = csound->global_kcounter;
     }
-    n += midi_file_read(csound, midifile, buf+n, nbytes);
+    n += midi_file_read(csound, midifile, buf+n, nbytes-n);
     midifile = midifile->nxt;
   }
   return n;
@@ -948,6 +947,8 @@ int32_t midi_file_opcode(CSOUND *csound, void *p) {
   MFILE *pp = (MFILE *) p;
   // non-op if triggered by midi
   if(GetEventType(&(pp->h)) == 0) {
+    if (UNLIKELY(!(*pp->port >= 0 && *pp->port < MIDIMAXPORTS)))
+      return csound->InitError(csound, Str("midifileopen: port out of range"));
     *pp->res = midi_file_open(csound, pp->mfile->data,
                               (uint8_t) *pp->port);
   }
@@ -971,7 +972,7 @@ int32_t midi_file_mute(CSOUND *csound, void *p) {
       mf->mute = mf->mute ? 0 : 1;
       if(mf->mute) {
         for(int i = 0; i < 16; i++)
-          AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
+          AllNotesOff(csound, csound->m_chnbp[i + MAXCHAN * mf->port]);
       }
     }
   }
@@ -986,7 +987,7 @@ int32_t midi_file_pause(CSOUND *csound, void *p) {
     if(mf && mf->pause == 0)  {
       mf->pause = 1;
       for(int i = 0; i < 16; i++)
-        AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
+        AllNotesOff(csound, csound->m_chnbp[i + MAXCHAN * mf->port]);
     }
   }
   return OK;
@@ -1009,9 +1010,11 @@ int32_t midi_file_rewind(CSOUND *csound, void *p) {
   MFILE *pp = (MFILE *) p;
   if(GetEventType(&(pp->h)) == 0) {
     midifile_t *mf = find_midifile(csound, (int32_t) *pp->res);
+    if (mf == NULL)
+      return OK;
     if(mf->pause == 0) { // if not paused ...
       for(int i = 0; i < 16; i++)
-        AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
+        AllNotesOff(csound, csound->m_chnbp[i + MAXCHAN * mf->port]);
     }
     mf->counter = 0;
     mf->currentTempo = initial_tempo(mf);
@@ -1026,7 +1029,7 @@ int32_t midi_file_len(CSOUND *csound, void *p) {
   int32_t num = (int32_t) *((MYFLT *)pp->mfile);
   midifile_t *mf = find_midifile(csound, (int32_t) num);
   if(mf)
-    *pp->res = mf->eventList[mf->nEvents-1].kcnt/csoundGetKr(csound);
+    *pp->res = mf->totalKcnt/csoundGetKr(csound);
   else *pp->res = 0.0;
   return OK;
 }
@@ -1081,7 +1084,7 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
       posk = pos*csoundGetKr(csound);
       if(mf->pause == 0) { // if not paused ...
       for(i = 0; i < 16; i++)
-        AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
+        AllNotesOff(csound, csound->m_chnbp[i + MAXCHAN * mf->port]);
       }
       // wind up/down event list indices
       for(i = 0; i < mf->nEvents; i++)
@@ -1122,7 +1125,7 @@ int32_t midi_file_get_event(CSOUND *csound, void *pp) {
     int32_t i = (int32_t) *p->kevt;
     if(i >= 0 && i < mf->nEvents) {
       *p->kstat = mf->eventList[i].st & 0xF0;
-      *p->kchn = ((mf->eventList[i].st & 0x0F) + 1)*mf->port;
+      *p->kchn = (mf->eventList[i].st & 0x0F) + 1 + MAXCHAN * mf->port;
       *p->kdat1 = mf->eventList[i].d1;
       *p->kdat2 = mf->eventList[i].d2;
       *p->ktime = mf->eventList[i].kcnt/csoundGetKr(csound);
