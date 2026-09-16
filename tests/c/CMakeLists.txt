@@ -33,6 +33,7 @@ if(BUILD_TESTS)
         paulstretch_test.cpp
         mixer_test.cpp
         midi_file_test.cpp
+        midiarp_test.cpp
         tableseg_test.cpp
         table_copy_test.cpp
         ftgentmp_test.cpp

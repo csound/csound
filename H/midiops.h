@@ -166,14 +166,11 @@ typedef struct {
   OPDS    h;
   MYFLT   *noteOut, *counter;
   MYFLT   *arpRate, *arpMode;
-  int32_t metroTick;
   double  curphs;
   int32_t flag;
-  int32_t status, chan, data1, data2,
-    noteCnt, noteIndex, maxNumNotes,
-    direction;
+  int32_t noteCnt, noteIndex, direction;
   int32_t notes[10];
-  int32_t sortedNotes[10];
+  int32_t channels[10];
   int32_t     local_buf_index;
 } MIDIARP;
 
