@@ -544,55 +544,76 @@ static int32_t perf_logarray(CSOUND *csound, FFT *p) {
 static int32_t init_rtoc(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
-  int32_t   N = p->in->sizes[0];
+  int32_t N = p->in->sizes[0];
+  if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1 ||
+               N > INT32_MAX/2))
+    return csound->InitError(csound, "%s",
+                            Str("r2c: invalid array shape or size"));
   if (UNLIKELY(tabinit(csound, p->out, N*2, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
 
-static int32_t perf_rtoc(CSOUND *csound, FFT *p) {
-  IGN(csound);
-  int32_t i,j, end = p->out->sizes[0];
-  MYFLT *in, *out;
-  in = p->in->data;
-  out = p->out->data;
-  for (i=0,j=0;i<end;i+=2,j++) {
-    out[i] = in[j];
-    out[i+1] = FL(0.0);
+static int32_t rtoc_copy(FFT *p) {
+  int32_t j = p->out->sizes[0]/2;
+  MYFLT *in = p->in->data, *out = p->out->data;
+  /* Expand backwards so writes do not destroy a reused input. */
+  while (j-- > 0) {
+    out[2*j] = in[j];
+    out[2*j+1] = FL(0.0);
   }
   return OK;
 }
 
+static int32_t perf_rtoc(CSOUND *csound, FFT *p) {
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->out->dimensions != 1 || p->in->sizes[0] > INT32_MAX/2))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("r2c: invalid array shape or size"));
+  if (UNLIKELY(tabcheck(csound, p->out, p->in->sizes[0]*2, &p->h) != OK))
+    return NOTOK;
+  return rtoc_copy(p);
+}
+
 static int32_t rtoc_i(CSOUND *csound, FFT *p) {
   if (LIKELY(init_rtoc(csound,p) == OK))
-    return perf_rtoc(csound, p);
+    return rtoc_copy(p);
   else return NOTOK;
 }
 
 static int32_t init_ctor(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
-  int32_t   N = p->in->sizes[0];
+  int32_t N = p->in->sizes[0];
+  if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1 || (N & 1)))
+    return csound->InitError(csound, "%s",
+                            Str("c2r: expected a one-dimensional array of complex pairs"));
   if (UNLIKELY(tabinit(csound, p->out, N/2, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
 
+static int32_t ctor_copy(FFT *p) {
+  int32_t j, end = p->out->sizes[0];
+  MYFLT *in = p->in->data, *out = p->out->data;
+  for (j=0;j<end;j++)
+    out[j] = in[2*j];
+  return OK;
+}
 
 static int32_t perf_ctor(CSOUND *csound, FFT *p) {
-  IGN(csound);
-  int32_t i,j, end = p->out->sizes[0];
-  MYFLT *in, *out;
-  in = p->in->data;
-  out = p->out->data;
-  for (i=0,j=0;j<end;i+=2,j++)
-    out[j] = in[i];
-  return OK;
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->out->dimensions != 1 || (p->in->sizes[0] & 1)))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("c2r: expected a one-dimensional array of complex pairs"));
+  if (UNLIKELY(tabcheck(csound, p->out, p->in->sizes[0]/2, &p->h) != OK))
+    return NOTOK;
+  return ctor_copy(p);
 }
 
 static int32_t ctor_i(CSOUND *csound, FFT *p) {
   if (LIKELY(init_ctor(csound,p) == OK))
-    return perf_ctor(csound, p);
+    return ctor_copy(p);
   else return NOTOK;
 }
 
