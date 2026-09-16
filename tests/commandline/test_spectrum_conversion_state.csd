@@ -15,7 +15,18 @@ gkChecks init 0
 opcode Check, 0, kk
   kActual, kExpected xin
   if !(abs(kActual-kExpected) < 1e-10) then
-    printks "spectrum conversion: expected %g, got %g\n", 0, kExpected, kActual
+    printks "spectrum conversion: expected %.12g, got %.12g\n", 0, kExpected, kActual
+    exitnowk -1
+  endif
+endop
+
+opcode CheckRoundTrip, 0, kk
+  kActual, kExpected xin
+  ; Magnitude and phase rounding limits the reconstructed interior bins.
+  iFloat = (16777217 == 16777216 ? 1 : 0)
+  kTolerance = (iFloat == 1 ? 1e-6*max(1, abs(kExpected)) : 1e-10)
+  if !(abs(kActual-kExpected) < kTolerance) then
+    printks "spectrum round trip: expected %.12g, got %.12g\n", 0, kExpected, kActual
     exitnowk -1
   endif
 endop
@@ -60,8 +71,13 @@ instr 1
   Check kLength, kN
   kJ = 0
   while kJ < kN do
-    Check kRect[kJ], kInput[kJ]
-    Check kReuse[kJ], kInput[kJ]
+    if kJ < 2 then
+      Check kRect[kJ], kInput[kJ]
+    else
+      CheckRoundTrip kRect[kJ], kInput[kJ]
+    endif
+    ; Reusing input storage must produce the same result as a separate output.
+    Check kReuse[kJ], kRect[kJ]
     kJ += 1
   od
 
