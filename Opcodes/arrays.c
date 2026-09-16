@@ -1447,13 +1447,18 @@ static int32_t interleave_i (CSOUND *csound, INTERL *p) {
     return csound->InitError(csound, "array not initialised\n");
   if(p->b->dimensions == 1 &&
      p->c->dimensions == 1 &&
+     p->a->dimensions <= 1 &&
      p->b->sizes[0] == p->c->sizes[0]) {
-    int32_t len = p->b->sizes[0], i,j;
+    int32_t len = p->b->sizes[0], i;
+    if (UNLIKELY(len > INT32_MAX/2))
+      return csound->InitError(csound, "%s", Str("interleave: array too large"));
     if (UNLIKELY(tabinit(csound, p->a, len*2, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
-    for(i = 0, j = 0; i < len; i++,j+=2) {
-      p->a->data[j] =  p->b->data[i];
-      p->a->data[j+1] = p->c->data[i];
+    /* Work backwards and read each pair before writing to allow input reuse. */
+    for (i = len; i-- > 0;) {
+      MYFLT left = p->b->data[i], right = p->c->data[i];
+      p->a->data[2*i] = left;
+      p->a->data[2*i+1] = right;
     }
     return OK;
   }
@@ -1461,11 +1466,20 @@ static int32_t interleave_i (CSOUND *csound, INTERL *p) {
 }
 
 static int32_t interleave_perf (CSOUND *csound, INTERL *p) {
-  int32_t len = p->b->sizes[0], i,j;
-  tabcheck(csound, p->a, len*2, &(p->h));
-  for(i = 0, j = 0; i < len; i++,j+=2) {
-    p->a->data[j] =  p->b->data[i];
-    p->a->data[j+1] = p->c->data[i];
+  if (UNLIKELY(p->b->sizes == NULL || p->c->sizes == NULL ||
+               p->b->dimensions != 1 || p->c->dimensions != 1 ||
+               p->a->dimensions != 1 || p->b->sizes[0] != p->c->sizes[0]))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("interleave: expected equal-length one-dimensional inputs"));
+  int32_t len = p->b->sizes[0], i;
+  if (UNLIKELY(len > INT32_MAX/2))
+    return csound->PerfError(csound, &p->h, "%s", Str("interleave: array too large"));
+  if (UNLIKELY(tabcheck(csound, p->a, len*2, &p->h) != OK))
+    return NOTOK;
+  for (i = len; i-- > 0;) {
+    MYFLT left = p->b->data[i], right = p->c->data[i];
+    p->a->data[2*i] = left;
+    p->a->data[2*i+1] = right;
   }
   return OK;
 }
@@ -1508,9 +1522,14 @@ static int32_t deinterleave_i (CSOUND *csound, INTERL *p) {
 }
 
 static int32_t deinterleave_perf (CSOUND *csound, INTERL *p) {
+  if (UNLIKELY(p->c->sizes == NULL || p->c->dimensions != 1 ||
+               p->a->dimensions != 1 || p->b->dimensions != 1))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("deinterleave: expected one-dimensional arrays"));
   int32_t len = p->c->sizes[0]/2, i,j;
-  tabcheck(csound, p->a, len, &(p->h));
-  tabcheck(csound, p->b, len, &(p->h));
+  if (UNLIKELY(tabcheck(csound, p->a, len, &p->h) != OK ||
+               tabcheck(csound, p->b, len, &p->h) != OK))
+    return NOTOK;
   for(i = 0, j = 0; i < len; i++,j+=2) {
     p->a->data[i] =  p->c->data[j];
     p->b->data[i] = p->c->data[j+1];
