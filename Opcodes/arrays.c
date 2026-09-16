@@ -465,33 +465,50 @@ static int32_t perf_poltorect2(CSOUND *csound, FFT *p) {
 static int32_t init_mags(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
-  int32_t   N = p->in->sizes[0];
+  int32_t N = p->in->sizes[0];
+  if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1 ||
+               N < 2 || (N & 1)))
+    return csound->InitError(csound, "%s",
+                            Str("expected a one-dimensional packed real spectrum of even length"));
   if (UNLIKELY(tabinit(csound, p->out, N/2+1, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
 
+static int32_t prepare_spectrum_output(CSOUND *csound, FFT *p) {
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->out->dimensions != 1 || p->in->sizes[0] < 2 ||
+               (p->in->sizes[0] & 1)))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("expected a one-dimensional packed real spectrum of even length"));
+  return tabcheck(csound, p->out, p->in->sizes[0]/2+1, &p->h);
+}
+
 static int32_t perf_mags(CSOUND *csound, FFT *p) {
-  IGN(csound);
+  if (UNLIKELY(prepare_spectrum_output(csound, p) != OK))
+    return NOTOK;
   int32_t i,j, end = p->out->sizes[0];
-  MYFLT *in, *out;
-  in = p->in->data;
-  out = p->out->data;
+  MYFLT *in = p->in->data, *out = p->out->data;
+  /* Preserve Nyquist before an in-place write to out[1]. */
+  MYFLT nyquist = in[1];
   for (i=2,j=1;j<end-1;i+=2,j++)
     out[j] = HYPOT(in[i],in[i+1]);
   out[0] = fabs(in[0]);
-  out[end-1] = fabs(in[1]);
+  out[end-1] = fabs(nyquist);
   return OK;
 }
 
 static int32_t perf_phs(CSOUND *csound, FFT *p) {
-  IGN(csound);
+  if (UNLIKELY(prepare_spectrum_output(csound, p) != OK))
+    return NOTOK;
   int32_t i,j, end = p->out->sizes[0];
-  MYFLT *in, *out;
-  in = p->in->data;
-  out = p->out->data;
+  MYFLT *in = p->in->data, *out = p->out->data;
+  MYFLT dc = in[0], nyquist = in[1];
   for (i=2,j=1;j<end-1;i+=2,j++)
     out[j] = ATAN2(in[i+1],in[i]);
+  /* The two real-only bins have phase zero or pi according to their sign. */
+  out[0] = dc < FL(0.0) ? PI : FL(0.0);
+  out[end-1] = nyquist < FL(0.0) ? PI : FL(0.0);
   return OK;
 }
 
@@ -1245,15 +1262,15 @@ static int32_t dctinv(CSOUND *csound, FFT *p) {
 }
 
 static int32_t perf_pows(CSOUND *csound, FFT *p) {
-  IGN(csound);
+  if (UNLIKELY(prepare_spectrum_output(csound, p) != OK))
+    return NOTOK;
   int32_t i,j, end = p->out->sizes[0];
-  MYFLT *in, *out;
-  in = p->in->data;
-  out = p->out->data;
+  MYFLT *in = p->in->data, *out = p->out->data;
+  MYFLT nyquist = in[1];
   for (i=2,j=1;j<end-1;i+=2,j++)
     out[j] = in[i]*in[i]+in[i+1]*in[i+1];
   out[0] = in[0]*in[0];
-  out[end-1] = in[1]*in[1];
+  out[end-1] = nyquist*nyquist;
   return OK;
 }
 
