@@ -59,7 +59,8 @@ endin
 f 1 0 -6 -2 0 0 0 0 0 0
 f 2 0 -3 -2 0 0.2 0
 f 3 0 -3 -2 0 0 0
-f 4 0 -6 -2 0 0.2 0 0 0.2 3.141592653589793
+; Opposite signed radii at phase zero avoid rounding pi in float builds.
+f 4 0 -6 -2 0 0.2 0 0 -0.2 0
 f 5 0 128 -2 0
 f 6 0 -3 -2 0 0.99 0
 f 7 0 -3 -2 0 0.99 0
