@@ -446,197 +446,149 @@ int32_t strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
 /* perform a sprintf-style format -- based on code by Matt J. Ingalls */
 
 static CS_NOINLINE int32_t
-sprintf_opcode_(CSOUND *csound,
-		void *p,          /* opcode data structure pointer       */
-		STRINGDAT *str,   /* pointer to space for output string  */
-		const char *fmt,  /* format string                       */
-		MYFLT **kvals,    /* array of argument pointers          */
-		int32_t numVals,      /* number of arguments             */
-		int32_t strCode)      /* bit mask for string arguments   */
+sprintf_opcode_(CSOUND *csound, void *p, STRINGDAT *str, const char *fmt,
+                MYFLT **kvals, int32_t numVals)
 {
-  int32_t     len = 0;
-  char    *strseg, *outstring = str->data;
-  MYFLT   *parm = NULL;
-  int32_t     i = 0, j = 0, n;
-  const char  *segwaiting = NULL;
-  int32_t     maxChars, siz = (int32_t) strlen(fmt) + numVals*7 + 1;
+  size_t len = 0, i = 0, maxChars;
+  int32_t j = 0, n;
+  const char *segwaiting = NULL, *error = NULL;
+  char *strseg;
+  MYFLT *parm;
 
-  for (i = 0; i < numVals; i++) {
-    if (UNLIKELY(IS_ASIG_ARG(kvals[i]))) {
+  if (UNLIKELY(((OPDS*)p)->optext->t.inArgCount > 31))
+    return StrOp_ErrMsg(p, Str("too many arguments"));
+  /* Check all aliases before a write or reallocation can change an input. */
+  if (UNLIKELY(fmt == str->data))
+    return StrOp_ErrMsg(p, Str("output argument may not be "
+                             "the same as any of the input args"));
+  for (j = 0; j < numVals; j++) {
+    if (UNLIKELY(IS_ASIG_ARG(kvals[j])))
       return StrOp_ErrMsg(p, Str("a-rate argument not allowed"));
-    }
+    if (IS_STR_ARG(kvals[j]) &&
+        UNLIKELY(((STRINGDAT*)kvals[j])->data == str->data))
+      return StrOp_ErrMsg(p, Str("output argument may not be "
+                               "the same as any of the input args"));
   }
+  j = 0;
 
-  if (UNLIKELY((int32_t) ((OPDS*) p)->optext->t.inArgCount > 31)){
-    StrOp_ErrMsg(p, Str("too many arguments"));
-    return NOTOK;
+  /* Preserve literal copying when there are no format arguments. */
+  size_t initialSize = numVals == 0 ? strlen(fmt) + 1 : 64;
+  if (str->data == NULL || str->size < initialSize) {
+    char *data = csound->ReAlloc(csound, str->data, initialSize);
+    if (UNLIKELY(data == NULL))
+      return StrOp_ErrMsg(p, Str("memory allocation failure"));
+    str->data = data;
+    str->size = initialSize;
   }
-  if (numVals==0) {
+  if (numVals == 0) {
     strcpy(str->data, fmt);
     return OK;
   }
 
-  strseg = csound->Malloc(csound, siz);
-  i = 0;
-
+  /* A segment is never longer than the original format string. */
+  strseg = csound->Malloc(csound, strlen(fmt) + 1);
   while (1) {
-    if (UNLIKELY(i >= siz)) {
-      // return StrOp_ErrMsg(p, "format string too long");
-      siz *= 2;
-      strseg = csound->ReAlloc(csound, strseg, siz);
-    }
     if (*fmt != '%' && *fmt != '\0') {
       strseg[i++] = *fmt++;
       continue;
     }
     if (fmt[0] == '%' && fmt[1] == '%') {
-      strseg[i++] = *fmt++;   /* Odd code: %% is usually % and as we
-				 know the value of *fmt the loads are
-				 unnecessary */
       strseg[i++] = *fmt++;
-
+      strseg[i++] = *fmt++;
       continue;
     }
 
-    /* if already a segment waiting, then lets print it */
     if (segwaiting != NULL) {
-
-      maxChars = (int32_t)(str->size - len);
       strseg[i] = '\0';
       if (UNLIKELY(numVals <= 0)) {
-	csound->Free(csound, strseg);
-	return StrOp_ErrMsg(p, Str("insufficient arguments for format"));
+        error = Str("insufficient arguments for format");
+        goto fail;
       }
       numVals--;
-      /* if (UNLIKELY((*segwaiting == 's' && !(strCode & 1)) || */
-      /*              (*segwaiting != 's' && (strCode & 1)))) { */
-      /*   return StrOp_ErrMsg(p, "argument type inconsistent with format"); */
-      /* } */
-      strCode >>= 1;
       parm = kvals[j++];
-
-      switch (*segwaiting) {
-      case 'd':
-      case 'i':
-      case 'o':
-      case 'x':
-      case 'X':
-      case 'u':
-      case 'c':
-	if (strlen(strseg) + 24 > (size_t)maxChars) {
-	  size_t offs = outstring - str->data;
-	  str->data = csound->ReAlloc(csound, str->data,
-				      str->size  + 24);
-	  if(str->data == NULL) {
-	    return StrOp_ErrMsg(p, Str("memory allocation failure"));
-	  }
-	  str->size += 24;
-	  maxChars += 24;
-	  outstring = str->data + offs;
-	}
-	n = snprintf(outstring, maxChars, strseg, (int32_t) MYFLT2LRND(*parm));
-	break;
-      case 'e':
-      case 'E':
-      case 'f':
-      case 'F':
-      case 'g':
-      case 'G':
-	{
-	//printf("%d %d \n", str->size, strlen(str->data));
-	int32_t max_double_chars = 18;
-	if (strlen(strseg) + max_double_chars  > (uint32_t)maxChars) {
-	  size_t offs = outstring - str->data;
-	  str->data = csound->ReAlloc(csound, str->data, str->size  + max_double_chars );
-	  if(str->data == NULL) {
-	    return StrOp_ErrMsg(p, Str("memory allocation failure"));
-	  }
-	  str->size += max_double_chars;
-	  maxChars += max_double_chars;
-	  outstring = str->data + offs;
-	  //printf("maxchars = %d  %s\n", maxChars, strseg);
-	}
-	//printf("%d %d \n", str->size, strlen(str->data));
-	n = snprintf(outstring, maxChars, strseg, (double)*parm);
-	}
-	break;
-      case 's':
-	if (LIKELY(IS_STR_ARG(parm))) {
-          STRINGDAT *sparm = (STRINGDAT*)parm;
-	  if (UNLIKELY(sparm->data == str->data)) {
-	    csound->Free(csound, strseg);
-	    return StrOp_ErrMsg(p, Str("output argument may not be "
-				       "the same as any of the input args"));
-	  }
-	  if (UNLIKELY(strlen(sparm->data)+strlen(strseg) >= (uint32_t)maxChars)) {
-	    size_t offs = outstring - str->data;
-	    size_t xtra = strlen(sparm->data) + strlen(strseg) + 1;
-	    str->data = csound->ReAlloc(csound, str->data,
-					str->size + xtra);
-	    if(str->data == NULL){
-	      return StrOp_ErrMsg(p, Str("memory allocation failure"));
-	    }
-	    str->size += xtra;
-	    maxChars += xtra;
-	    outstring = str->data + offs;
-	  }
-	  n = snprintf(outstring, maxChars, strseg, sparm->data);
-	}
-	else return StrOp_ErrMsg(p, Str("Not string type for %%s"));
-	break;
-      default:
-	csound->Free(csound, strseg);
-	return StrOp_ErrMsg(p, Str("invalid format string"));
+      if (UNLIKELY(IS_STR_ARG(parm) != (*segwaiting == 's'))) {
+        error = Str("argument type inconsistent with format");
+        goto fail;
       }
-      if (n < 0 || n >= maxChars) {
-	/* safely detected excess string length */
-	size_t offs = outstring - str->data;
-	str->data = csound->ReAlloc(csound, str->data, maxChars*2);
-	if (str->data == NULL) {
-	  return StrOp_ErrMsg(p, Str("memory allocation failure"));
-	}
-	outstring = str->data + offs;
-	str->size = maxChars*2;
-	// VL: Coverity says this is unused. (which is true)
-	// maxChars += str->size;
-
+      while (1) {
+        maxChars = str->size - len;
+        switch (*segwaiting) {
+        case 'd': case 'i': case 'c':
+          n = snprintf(str->data + len, maxChars, strseg,
+                       (int)MYFLT2LRND(*parm));
+          break;
+        case 'o': case 'x': case 'X': case 'u':
+          n = snprintf(str->data + len, maxChars, strseg,
+                       (unsigned int)MYFLT2LRND(*parm));
+          break;
+        case 'e': case 'E': case 'f': case 'F': case 'g': case 'G':
+          n = snprintf(str->data + len, maxChars, strseg, (double)*parm);
+          break;
+        case 's':
+          n = snprintf(str->data + len, maxChars, strseg,
+                       ((STRINGDAT*)parm)->data);
+          break;
+        default:
+          error = Str("invalid format string");
+          goto fail;
+        }
+        if (UNLIKELY(n < 0)) {
+          error = Str("formatting failed");
+          goto fail;
+        }
+        if ((size_t)n < maxChars)
+          break;
+        if (UNLIKELY((size_t)n >= SIZE_MAX - len)) {
+          error = Str("formatted string is too long");
+          goto fail;
+        }
+        size_t size = len + (size_t)n + 1;
+        char *data = csound->ReAlloc(csound, str->data, size);
+        if (UNLIKELY(data == NULL)) {
+          error = Str("memory allocation failure");
+          goto fail;
+        }
+        str->data = data;
+        str->size = size;
+        /* Retry this segment; snprintf's return value includes unwritten text. */
       }
-      outstring += n;
-      len += n;
+      len += (size_t)n;
       i = 0;
     }
 
     if (*fmt == '\0')
       break;
-    /* copy the '%' */
     strseg[i++] = *fmt++;
-    /* find the format code */
     segwaiting = fmt;
-
-    while (!isalpha(*segwaiting) && *segwaiting != '\0')
+    /* Only fixed widths/precisions are supported. Reject '*' and positional
+       arguments rather than passing a mismatched argument list to snprintf. */
+    while (*segwaiting != '\0' &&
+           strchr("-+ #0.123456789", *segwaiting) != NULL)
       segwaiting++;
+    if (*segwaiting == '\0' ||
+        strchr("diouxXeEfFgGcs", *segwaiting) == NULL) {
+      error = Str("invalid format string");
+      goto fail;
+    }
   }
   if (UNLIKELY(numVals > 0)) {
-    csound->Free(csound, strseg);
-    return StrOp_ErrMsg(p, Str("too many arguments for format"));
+    error = Str("too many arguments for format");
+    goto fail;
   }
   csound->Free(csound, strseg);
   return OK;
+
+ fail:
+  csound->Free(csound, strseg);
+  return StrOp_ErrMsg(p, error);
 }
 
 int32_t sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
-  size_t size = strlen(p->sfmt->data) + 13*((size_t) p->INOCOUNT);
-  //printf("%d %d \n", p->r->size, strlen(p->r->data));
-  if (p->r->data == NULL || p->r->size < size) {
-    /* this 10 is 1n incorrect guess which is OK with numbers*/
-    p->r->data = csound->Calloc(csound, size);
-    p->r->size = size;
-  }
   if (UNLIKELY(sprintf_opcode_(csound, p, p->r,
 			       (char*) p->sfmt->data, &(p->args[0]),
-			       (int32_t) p->INOCOUNT - 1,0) == NOTOK)) {
-    ((char*) p->r->data)[0] = '\0';
+			       (int32_t) p->INOCOUNT - 1) == NOTOK)) {
+    if (p->r->data != NULL) p->r->data[0] = '\0';
     return NOTOK;
   }
   p->r->timestamp = p->h.insdshead->kcounter;
@@ -651,7 +603,7 @@ static CS_NOINLINE int32_t printf_opcode_(CSOUND *csound, PRINTF_OP *p)
   buf.data = csound->Calloc(csound, buf.size);
 
   err = sprintf_opcode_(csound, p, &buf, (char*) p->sfmt->data, &(p->args[0]),
-			(int32_t) p->INOCOUNT - 2,0);
+			(int32_t) p->INOCOUNT - 2);
   if (LIKELY(err == OK))
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf.data);
   csound->Free(csound, buf.data);
