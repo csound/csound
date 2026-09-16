@@ -162,6 +162,8 @@ static int32_t readf_delete(CSOUND *csound, void *p)
     READF *pp = (READF*)p;
 
     if (pp->fd) fclose(pp->fd);
+    pp->fd = NULL;
+    pp->lineno = 0;
     return OK;
 }
 
@@ -173,12 +175,13 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
       name[1023] = '\0';
     }
     else csound->StringArg2Name(csound, name, p->Sfile, "input.", 0);
+    readf_delete(csound, p);
     p->fd = fopen(name, "r");
     p->lineno = 0;
     if (p->Sline->size < MAXLINE) {
       if (p->Sline->data != NULL) csound->Free(csound, p->Sline->data);
       p->Sline->data = (char *) csound->Calloc(csound, MAXLINE);
-    p->Sline->size = MAXLINE;
+      p->Sline->size = MAXLINE;
     }
     if (UNLIKELY(p->fd==NULL))
       return csound->InitError(csound, "%s", Str("readf: failed to open file"));
@@ -197,11 +200,17 @@ static int32_t readf_init_S(CSOUND *csound, READF *p){
 static int32_t readf(CSOUND *csound, READF *p)
 {
     p->Sline->data[0] = '\0';
-    if (UNLIKELY(p->fd && (fgets(p->Sline->data,
-                                 (int32_t)p->Sline->size-1, p->fd)==NULL))) {
+    if (p->fd == NULL) {
+      *p->line = -1;
+      return OK;
+    }
+    if (UNLIKELY(fgets(p->Sline->data,
+                       (int32_t)p->Sline->size-1, p->fd)==NULL)) {
       int32_t ff = feof(p->fd);
       fclose(p->fd);
       p->fd = NULL;
+      /* Keep EOF distinct from a reader that has not opened its file yet. */
+      p->lineno = -1;
       if (ff) {
         *p->line = -1;
         return OK;
@@ -216,17 +225,17 @@ static int32_t readf(CSOUND *csound, READF *p)
 
 static int32_t readfi(CSOUND *csound, READF *p)
 {
-    if (p->fd==NULL)
+    if (p->fd==NULL && p->lineno==0)
       if (UNLIKELY(readf_init(csound, p)!= OK))
-        return csound->InitError(csound, "%s", Str("readi failed to initialise"));
+        return NOTOK;
     return readf(csound, p);
 }
 
 static int32_t readfi_S(CSOUND *csound, READF *p)
 {
-    if (p->fd==NULL)
+    if (p->fd==NULL && p->lineno==0)
       if (UNLIKELY(readf_init_S(csound, p)!= OK))
-        return csound->InitError(csound, "%s", Str("readi failed to initialise"));
+        return NOTOK;
     return readf(csound, p);
 }
 
@@ -238,8 +247,10 @@ static OENTRY date_localops[] =
       (SUBR)datemyfltset },
     { "dates",  sizeof(DATESTRING), 0,  "S",    "j", (SUBR)datestringset },
     { "pwd",    sizeof(GETCWD),     0,  "S",    "",  (SUBR)getcurdir     },
-    { "readfi", sizeof(READF),      0,  "Si",   "i", (SUBR)readfi,       },
-    { "readfi.S", sizeof(READF),    0,  "Si",   "S", (SUBR)readfi_S,     },
+    { "readfi", sizeof(READF),      0,  "Si",   "i", (SUBR)readfi,
+      NULL, (SUBR)readf_delete },
+    { "readfi.S", sizeof(READF),    0,  "Si",   "S", (SUBR)readfi_S,
+      NULL, (SUBR)readf_delete },
     { "readf",  sizeof(READF),      0,  "Sk",   "i", (SUBR)readf_init,
       (SUBR)readf, (SUBR)readf_delete                                                          },
     { "readf.S",  sizeof(READF),    0,  "Sk",   "S", (SUBR)readf_init_S,
