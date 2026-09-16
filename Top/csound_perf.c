@@ -145,12 +145,10 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
           insds->spout += lksmps;
         }
         insds->ksmps_offset = offset;
-        if (UNLIKELY(early)) {
-          n -= (early * csound->nchnls);
-          insds->ksmps_no_end = early % lksmps;
-        }
+        n -= early * csound->nchnls;
         for (i = start; i < n;
              i += incr, insds->spin += insmps, insds->spout += lksmps) {
+          insds->ksmps_no_end = i + incr >= n ? early % lksmps : 0;
           opstart = (OPDS *)insds;
           csound->mode = 2;
           while (error == 0 &&
@@ -161,6 +159,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
             opstart = opstart->insdshead->pds;
           }
           csound->mode = 0;
+          insds->ksmps_offset = 0;
           insds->kcounter++;
         }
       }
@@ -367,12 +366,10 @@ int32_t kperf(CSOUND *csound) {
               ip->spout += lksmps;
             }
             ip->ksmps_offset = offset;
-            if (UNLIKELY(early)) {
-              n -= (early * csound->nchnls);
-              ip->ksmps_no_end = early % lksmps;
-            }
+            n -= early * csound->nchnls;
             for (i = start; i < n;
                  i += incr, ip->spin += insmps, ip->spout += lksmps) {
+              ip->ksmps_no_end = i + incr >= n ? early % lksmps : 0;
               ip->kcounter++;
               opstart = (OPDS *)ip;
               csound->mode = 2;
@@ -384,6 +381,7 @@ int32_t kperf(CSOUND *csound) {
                 opstart = opstart->insdshead->pds;
               }
               csound->mode = 0;
+              ip->ksmps_offset = 0;
             }
           }
         }

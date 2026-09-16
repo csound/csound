@@ -2204,7 +2204,6 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
     }
     this_instr->ksmps_offset = ofs;
     ofs = start;
-    if (UNLIKELY(early)) this_instr->ksmps_no_end = early % lksmps;
     do {
       this_instr->kcounter++;
       /* copy a-sig inputs, accounting for offset */
@@ -2253,8 +2252,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
         current = current->next;
       }
 
-      this_instr->ksmps_offset = 0; /* reset sample-accuracy offset for UDO */
-      this_instr->ksmps_no_end = 0;  /* reset end of loop samples for UDO */
+      this_instr->ksmps_offset = ofs == start ? offset % lksmps : 0;
+      this_instr->ksmps_no_end = ofs + lksmps >= g_ksmps ? early % lksmps : 0;
 
       /*  run each opcode  */
       if ((opstart = (OPDS *) (this_instr->nxtp)) != NULL) {
@@ -3005,6 +3004,9 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
   ip->spout = (MYFLT*) p->saved_spout.auxp;
   memset(ip->spout, 0, csound->nspout*sizeof(MYFLT));
 
+  ip->ksmps_offset = p->h.insdshead->ksmps_offset;
+  ip->ksmps_no_end = p->h.insdshead->ksmps_no_end;
+
   /* update release flag */
   ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
   /*  run each opcode  */
@@ -3044,12 +3046,10 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
       ip->spout += lksmps;
     }
     ip->ksmps_offset = offset;
-    if (early) {
-      n -= (early*csound->nchnls);
-      ip->ksmps_no_end = early % lksmps;
-    }
+    n -= early * csound->nchnls;
 
     for (i=start; i < n; i+=incr, ip->spin+=insmps, ip->spout+=lksmps) {
+      ip->ksmps_no_end = i + incr >= n ? early % lksmps : 0;
       ip->kcounter++;
       if ((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
         int32_t error = 0;
@@ -3066,6 +3066,7 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
           }
         } while (error == 0 && (CS_PDS = CS_PDS->nxtp));
       }
+      ip->ksmps_offset = 0;
     }
     ip->spout = (MYFLT*) p->saved_spout.auxp;
   }

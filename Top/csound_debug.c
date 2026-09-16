@@ -1083,14 +1083,13 @@ int32_t kperf_debug(CSOUND *csound) {
               ip->spout += lksmps;
             }
             ip->ksmps_offset = offset;
-            if (UNLIKELY(early)) {
-              n -= (early * csound->nchnls);
-              ip->ksmps_no_end = early % lksmps;
-            }
+            n -= early * csound->nchnls;
 
             for (i = start; i < n;
                  i += incr, ip->spin += insmps, ip->spout += lksmps) {
+              ip->ksmps_no_end = i + incr >= n ? early % lksmps : 0;
               opcode_perf_debug(csound, data, ip);
+              ip->ksmps_offset = 0;
               ip->kcounter++;
             }
           }
