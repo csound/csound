@@ -49,6 +49,7 @@ if(BUILD_TESTS)
         lfsr_test.cpp
         serial_test.cpp
         joystick_test.cpp
+        arduino_test.cpp
         osc_blob_test.cpp
         pvsinit_test.cpp
         paulstretch_test.cpp
