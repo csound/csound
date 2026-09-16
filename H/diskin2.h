@@ -42,11 +42,18 @@ typedef struct diskin2 {
     MYFLT   *iBufSize;
     MYFLT   *iSkipInit;
     MYFLT   *forceSync;
+    MYFLT   *iEnd;
  /* ------------------------------------- */
     MYFLT   WinSize;
     MYFLT   BufSize;
     MYFLT   SkipInit;
     MYFLT   fforceSync;
+    MYFLT   EndTime;
+    int32_t useEnd;
+    int32_t hasEnd;
+    int32_t loopStart;
+    int32_t loopEnd;
+    int32_t loopLength;
 
     int32_t initDone;
     int32_t nChannels;
@@ -95,11 +102,18 @@ typedef struct diskin2_array {
     MYFLT   *iBufSize;
     MYFLT   *iSkipInit;
     MYFLT   *forceSync;
+    MYFLT   *iEnd;
  /* ------------------------------------- */
     MYFLT   WinSize;
     MYFLT   BufSize;
     MYFLT   SkipInit;
     MYFLT   fforceSync;
+    MYFLT   EndTime;
+    int32_t     useEnd;
+    int32_t     hasEnd;
+    int32_t     loopStart;
+    int32_t     loopEnd;
+    int32_t     loopLength;
     int32_t     initDone;
     int32_t     nChannels;
     int32_t     bufSize;            /* in sample frames, power of two */
