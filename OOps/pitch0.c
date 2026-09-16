@@ -81,9 +81,12 @@ int32_t instcount(CSOUND *csound, INSTCNT *p)
     else if (n==0) {  /* Count all instruments */
       int32_t tot = 1;
       for (n=1; n<csound->engineState.maxinsno; n++)
-        if (csound->engineState.instrtxtp[n]) /* If it exists */
+        if (csound->engineState.instrtxtp[n]) { /* If it exists */
           tot += ((*p->opt) ? csound->engineState.instrtxtp[n]->instcnt :
                               csound->engineState.instrtxtp[n]->active);
+          if (*p->norel && !*p->opt)
+            tot -= csound->engineState.instrtxtp[n]->pending_release;
+        }
       *p->cnt = (MYFLT)tot;
     }
     else {
@@ -91,7 +94,7 @@ int32_t instcount(CSOUND *csound, INSTCNT *p)
       *p->cnt = ((*p->opt) ?
                  (MYFLT) csound->engineState.instrtxtp[n]->instcnt :
                  (MYFLT) csound->engineState.instrtxtp[n]->active);
-      if (*p->norel)
+      if (*p->norel && !*p->opt)
         *p->cnt -= csound->engineState.instrtxtp[n]->pending_release;
     }
 
@@ -110,16 +113,19 @@ int32_t instcount_S(CSOUND *csound, INSTCNT *p)
     else if (n==0) {  /* Count all instruments */
       int32_t tot = 1;
       for (n=1; n<csound->engineState.maxinsno; n++)
-        if (csound->engineState.instrtxtp[n]) /* If it exists */
+        if (csound->engineState.instrtxtp[n]) { /* If it exists */
           tot += ((*p->opt) ? csound->engineState.instrtxtp[n]->instcnt :
                               csound->engineState.instrtxtp[n]->active);
+          if (*p->norel && !*p->opt)
+            tot -= csound->engineState.instrtxtp[n]->pending_release;
+        }
       *p->cnt = (MYFLT)tot;
     }
     else {
       *p->cnt = ((*p->opt) ?
                  (MYFLT) csound->engineState.instrtxtp[n]->instcnt :
                  (MYFLT) csound->engineState.instrtxtp[n]->active);
-      if (*p->norel)
+      if (*p->norel && !*p->opt)
         *p->cnt -= csound->engineState.instrtxtp[n]->pending_release;
     }
 
