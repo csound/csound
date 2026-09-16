@@ -86,12 +86,14 @@ static inline void diskin2_get_sample(CSOUND *csound,
 {
     int32_t  bufPos, i;
 
+    if (p->hasEnd && !p->wrapMode && fPos >= p->loopEnd)
+      return;
     if (p->wrapMode) {
-      if (UNLIKELY(fPos >= p->fileLength)){
-        fPos -= p->fileLength;
+      if (UNLIKELY(fPos >= p->loopEnd)){
+        fPos -= p->loopLength;
       }
-      else if (UNLIKELY(fPos < 0L)){
-        fPos += p->fileLength;
+      else if (UNLIKELY(fPos < p->loopStart)){
+        fPos += p->loopLength;
       }
     }
     bufPos = (int32_t)(fPos - p->bufStartPos);
@@ -224,6 +226,8 @@ int32_t diskin2_init(CSOUND *csound, DISKIN2 *p) {
     p->WinSize = *p->iWinSize;
     p->BufSize =  *p->iBufSize;
     p->fforceSync = *p->forceSync;
+    p->EndTime = *p->iEnd;
+    p->useEnd = (p->INOCOUNT > 9);
     return diskin2_init_(csound,p,0);
 }
 
@@ -232,6 +236,8 @@ int32_t diskin2_init_S(CSOUND *csound, DISKIN2 *p) {
     p->WinSize = *p->iWinSize;
     p->BufSize =  *p->iBufSize;
     p->fforceSync = *p->forceSync;
+    p->EndTime = *p->iEnd;
+    p->useEnd = (p->INOCOUNT > 9);
     return diskin2_init_(csound,p,1);
 }
 
@@ -242,6 +248,8 @@ int32_t diskin_init(CSOUND *csound, DISKIN2 *p){
     p->WinSize = 2;
     p->BufSize = 0;
     p->fforceSync = 0;
+    p->EndTime = FL(0.0);
+    p->useEnd = 0;
     return diskin2_init_(csound,p,0);
 }
 
@@ -250,6 +258,8 @@ int32_t diskin_init_S(CSOUND *csound, DISKIN2 *p){
     p->WinSize = 2;
     p->BufSize = 0;
     p->fforceSync = 0;
+    p->EndTime = FL(0.0);
+    p->useEnd = 0;
     return diskin2_init_(csound,p,1);
 }
 
@@ -264,6 +274,8 @@ int32_t sndinset(CSOUND *csound, DISKIN2 *p) {
     p->WinSize = 2;
     p->BufSize = 0;
     p->fforceSync = 0;
+    p->EndTime = FL(0.0);
+    p->useEnd = 0;
     ret = diskin2_init_(csound,p,0);
     return ret;
 }
@@ -276,6 +288,8 @@ int32_t sndinset_S(CSOUND *csound, DISKIN2 *p){
     p->WinSize = 2;
     p->BufSize = 0;
     p->fforceSync = 0;
+    p->EndTime = FL(0.0);
+    p->useEnd = 0;
     ret = diskin2_init_(csound,p,1);
     return ret;
 }
@@ -1097,6 +1111,34 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     if (UNLIKELY(p->pos_frac < (int64_t)0))
       p->pos_frac += ((int64_t)p->fileLength << POS_FRAC_SHIFT);
   }
+  p->hasEnd = 0;
+  p->loopStart = 0;
+  p->loopEnd = p->fileLength;
+  p->loopLength = p->fileLength;
+  if (p->useEnd && p->fileLength > 0) {
+    double  endd = (double)p->EndTime * (double)CS_ESR * p->warpScale;
+    int32_t endFrame;
+    if (UNLIKELY(endd < 0.0))
+      endd = 0.0;
+    endFrame = (int32_t)(endd + 0.5);
+    if (endFrame > p->fileLength)
+      endFrame = p->fileLength;
+    p->loopEnd = endFrame;
+    p->hasEnd = 1;
+    if (p->wrapMode) {
+      int32_t startFrame = (int32_t)(p->pos_frac >> POS_FRAC_SHIFT);
+      if (UNLIKELY(startFrame >= endFrame)) {
+        csound->Warning(csound, Str("diskin2: iend is not after iskiptime, "
+                                    "looping the whole file\n"));
+        p->hasEnd = 0;
+        p->loopEnd = p->fileLength;
+      }
+      else {
+        p->loopStart = startFrame;
+        p->loopLength = endFrame - startFrame;
+      }
+    }
+  }
   p->pos_frac_inc = (int64_t)0;
   p->prv_kTranspose = FL(0.0);
   p->transpose = FL(1.0);
@@ -1261,13 +1303,13 @@ static inline void diskin2_file_pos_inc(DISKIN2 *p, int32_t *ndx)
     p->pos_frac += p->pos_frac_inc;
     *ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
     if (p->wrapMode) {
-      if (*ndx >= p->fileLength) {
-        *ndx -= p->fileLength;
-        p->pos_frac -= ((int64_t)p->fileLength << POS_FRAC_SHIFT);
+      if (*ndx >= p->loopEnd) {
+        *ndx -= p->loopLength;
+        p->pos_frac -= ((int64_t)p->loopLength << POS_FRAC_SHIFT);
       }
-      else if (*ndx < 0L) {
-        *ndx += p->fileLength;
-        p->pos_frac += ((int64_t)p->fileLength << POS_FRAC_SHIFT);
+      else if (*ndx < p->loopStart) {
+        *ndx += p->loopLength;
+        p->pos_frac += ((int64_t)p->loopLength << POS_FRAC_SHIFT);
       }
     }
 }
@@ -1797,13 +1839,13 @@ static inline void diskin2_file_pos_inc_array(DISKIN2_ARRAY *p, int32_t *ndx)
     p->pos_frac += p->pos_frac_inc;
     *ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
     if (p->wrapMode) {
-      if (*ndx >= p->fileLength) {
-        *ndx -= p->fileLength;
-        p->pos_frac -= ((int64_t)p->fileLength << POS_FRAC_SHIFT);
+      if (*ndx >= p->loopEnd) {
+        *ndx -= p->loopLength;
+        p->pos_frac -= ((int64_t)p->loopLength << POS_FRAC_SHIFT);
       }
-      else if (*ndx < 0L) {
-        *ndx += p->fileLength;
-        p->pos_frac += ((int64_t)p->fileLength << POS_FRAC_SHIFT);
+      else if (*ndx < p->loopStart) {
+        *ndx += p->loopLength;
+        p->pos_frac += ((int64_t)p->loopLength << POS_FRAC_SHIFT);
       }
     }
 }
@@ -1815,12 +1857,14 @@ static inline void diskin2_get_sample_array(CSOUND *csound,
     int32_t ksmps = CS_KSMPS;
     MYFLT *aOut = (MYFLT *) p->aOut->data;
 
+    if (p->hasEnd && !p->wrapMode && fPos >= p->loopEnd)
+      return;
     if (p->wrapMode) {
-      if (UNLIKELY(fPos >= p->fileLength)){
-        fPos -= p->fileLength;
+      if (UNLIKELY(fPos >= p->loopEnd)){
+        fPos -= p->loopLength;
       }
-      else if (UNLIKELY(fPos < 0L)){
-        fPos += p->fileLength;
+      else if (UNLIKELY(fPos < p->loopStart)){
+        fPos += p->loopLength;
       }
     }
     bufPos = (int32_t)(fPos - p->bufStartPos);
@@ -2306,6 +2350,34 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       if (UNLIKELY(p->pos_frac < (int64_t)0))
         p->pos_frac += ((int64_t)p->fileLength << POS_FRAC_SHIFT);
     }
+    p->hasEnd = 0;
+    p->loopStart = 0;
+    p->loopEnd = p->fileLength;
+    p->loopLength = p->fileLength;
+    if (p->useEnd && p->fileLength > 0) {
+      double  endd = (double)p->EndTime * (double)CS_ESR * p->warpScale;
+      int32_t endFrame;
+      if (UNLIKELY(endd < 0.0))
+        endd = 0.0;
+      endFrame = (int32_t)(endd + 0.5);
+      if (endFrame > p->fileLength)
+        endFrame = p->fileLength;
+      p->loopEnd = endFrame;
+      p->hasEnd = 1;
+      if (p->wrapMode) {
+        int32_t startFrame = (int32_t)(p->pos_frac >> POS_FRAC_SHIFT);
+        if (UNLIKELY(startFrame >= endFrame)) {
+          csound->Warning(csound, Str("diskin2: iend is not after iskiptime, "
+                                      "looping the whole file\n"));
+          p->hasEnd = 0;
+          p->loopEnd = p->fileLength;
+        }
+        else {
+          p->loopStart = startFrame;
+          p->loopLength = endFrame - startFrame;
+        }
+      }
+    }
     p->pos_frac_inc = (int64_t)0;
     p->prv_kTranspose = FL(0.0);
     /* allocate and initialise buffers */
@@ -2647,6 +2719,8 @@ int32_t diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p) {
     p->WinSize = *p->iWinSize;
     p->BufSize =  *p->iBufSize;
     p->fforceSync = *p->forceSync;
+    p->EndTime = *p->iEnd;
+    p->useEnd = (p->INOCOUNT > 9);
     return diskin2_init_array(csound,p,0);
 }
 
@@ -2655,6 +2729,8 @@ int32_t diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p) {
     p->WinSize = *p->iWinSize;
     p->BufSize =  *p->iBufSize;
     p->fforceSync = *p->forceSync;
+    p->EndTime = *p->iEnd;
+    p->useEnd = (p->INOCOUNT > 9);
     return diskin2_init_array(csound,p,1);
 }
 
@@ -2665,6 +2741,8 @@ int32_t diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p){
     p->WinSize = 2;
     p->BufSize = 0;
     p->fforceSync = 0;
+    p->EndTime = FL(0.0);
+    p->useEnd = 0;
     return diskin2_init_array(csound,p,0);
 }
 
@@ -2673,6 +2751,8 @@ int32_t diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p){
     p->WinSize = 2;
     p->BufSize = 0;
     p->fforceSync = 0;
+    p->EndTime = FL(0.0);
+    p->useEnd = 0;
     return diskin2_init_array(csound,p,1);
 }
 
