@@ -13,34 +13,38 @@ ksmps = 32
 gkChecks init 0
 
 instr 1
-  seed p4
+  ; Score fields are MYFLT: use seeds exactly representable at that precision.
+  iWide = (16777217 > 16777216 ? 1 : 0)
+  iSeed = (iWide == 1 ? p4 : p6)
+  iExpected = (iWide == 1 ? p5 : p7)
+  seed iSeed
   iState getseed
-  if iState != p5 then
-    prints "seed %g: expected state %g, got %g\n", p4, p5, iState
+  if iState != iExpected then
+    prints "seed %g: expected state %g, got %g\n", iSeed, iExpected, iState
     exitnow -1
   endif
   iFirst unirand 1
-  seed p4
+  seed iSeed
   iAgain unirand 1
   if iFirst != iAgain then
-    prints "seed %g: repeated seed changed the random sequence\n", p4
+    prints "seed %g: repeated seed changed the random sequence\n", iSeed
     exitnow -1
   endif
-  if p4 != p5 then
-    seed p5
+  if iSeed != iExpected then
+    seed iExpected
     iReduced unirand 1
     if iFirst == iReduced then
-      prints "seed %g: lost high bits of the Mersenne Twister seed\n", p4
+      prints "seed %g: lost high bits of the Mersenne Twister seed\n", iSeed
       exitnow -1
     endif
   endif
-  seed p4
+  seed iSeed
   kDust dust 1, kr
   kDust2 dust2 1, kr
   kPrevious init -1
   kCycle timeinstk
   if kDust <= 0 || kDust >= 1 || kDust2 <= -1 || kDust2 >= 1 || kDust == kPrevious then
-    printks "seed %g: random generator stalled, dust=%g dust2=%g\n", 0, p4, kDust, kDust2
+    printks "seed %g: random generator stalled, dust=%g dust2=%g\n", 0, iSeed, kDust, kDust2
     exitnowk -1
   endif
   kPrevious = kDust
@@ -64,13 +68,15 @@ instr 99
 endin
 </CsInstruments>
 <CsScore>
-i1 0 .01 1 1
-i1 .02 .01 1234 1234
-i1 .04 .01 2147483646 1
-i1 .06 .01 2147483647 1
-i1 .08 .01 2147483648 2
-i1 .1 .01 4294967292 1
-i1 .12 .01 4294967295 3
+; Double seed/state pairs, followed by float seed/state pairs.
+; Clock-seed unit tests cover the exact integer boundaries in both builds.
+i1 0 .01 1 1 1 1
+i1 .02 .01 1234 1234 1234 1234
+i1 .04 .01 2147483646 1 16777216 16777216
+i1 .06 .01 2147483647 1 2147483520 2147483520
+i1 .08 .01 2147483648 2 2147483648 2
+i1 .1 .01 4294967292 1 2147483904 258
+i1 .12 .01 4294967295 3 2147484160 514
 i99 .14 .001
 </CsScore>
 </CsoundSynthesizer>
