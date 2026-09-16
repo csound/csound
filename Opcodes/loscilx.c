@@ -299,7 +299,10 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     else if (ftp->gen01args.sample_rate > FL(0.0))
       frqScale = (double) ftp->gen01args.sample_rate / (double) CS_ESR;
     p->ampScale = FL(1.0);
-    p->nFrames = ftp->flenfrms + 1L;
+    p->nFrames = ftp->flenfrms;
+    if (UNLIKELY(p->nFrames < 1))
+      return csound->InitError(csound, "%s",
+                              Str("loscilx: table contains no complete frames"));
   }
   if (*(p->istrt) >= FL(0.0))
     p->curPos = loscilx_convert_phase((double) *(p->istrt));
@@ -448,7 +451,10 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
     else if (ftp->gen01args.sample_rate > FL(0.0))
       frqScale = (double) ftp->gen01args.sample_rate / (double) CS_ESR;
     p->ampScale = FL(1.0);
-    p->nFrames = ftp->flenfrms + 1L;
+    p->nFrames = ftp->flenfrms;
+    if (UNLIKELY(p->nFrames < 1))
+      return csound->InitError(csound, "%s",
+                              Str("loscilx: table contains no complete frames"));
   }
   if (*(p->istrt) >= FL(0.0))
     p->curPos = loscilx_convert_phase((double) *(p->istrt));
@@ -596,10 +602,14 @@ static int32_t loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
     winFact = (MYFLT) (((double) p->winFact - tmp1) * tmp2 + tmp1);
   }
   ampScale = *(p->xamp) * p->ampScale;
-  if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) {
+    for (j = 0; j < p->nChannels; j++)
+      memset(p->ar[j], '\0', offset*sizeof(MYFLT));
+  }
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&p->ar[nsmps], '\0', early*sizeof(MYFLT));
+    for (j = 0; j < p->nChannels; j++)
+      memset(&p->ar[j][nsmps], '\0', early*sizeof(MYFLT));
   }
   for (i = offset; i<nsmps; i++) {
 
