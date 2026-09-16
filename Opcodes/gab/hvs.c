@@ -21,6 +21,7 @@
 #include "csoundCore.h"
 #endif
 #include "interlocks.h"
+#include <float.h>
 
 
 /* -------------------------------------------------------------------- */
@@ -392,94 +393,73 @@ typedef struct {
 
 static int32_t vphaseseg_set(CSOUND *csound, VPSEG *p)
 {
-    TSEG2       *segp;
-    int32_t nsegs,j;
-    MYFLT       **argp;
-    double dur, durtot = 0.0, prevphs;
+    TSEG2 *segp;
+    int32_t nsegs, j;
+    MYFLT **argp = p->argums;
+    double durtot = 0.0, position = 0.0;
     FUNC *nxtfunc, *curfunc, *ftp;
+    size_t bytes;
 
-    nsegs = p->nsegs =((p->INOCOUNT-3) >> 1);    /* count segs & alloc if nec */
+    if (UNLIKELY(p->INOCOUNT < 6 || (p->INOCOUNT & 1)))
+      return csound->InitError(csound, "%s",
+                              Str("vphaseseg: expected table/distance pairs and a final table"));
+    nsegs = (p->INOCOUNT - 4) / 2;
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ioutfunc)) == NULL))
+      return csound->InitError(csound, "%s", Str("vphaseseg: invalid output table"));
+    if (UNLIKELY(!(*p->ielements >= FL(0.0) &&
+                   (double)*p->ielements <= INT32_MAX &&
+                   (double)*p->ielements <= ftp->flen)))
+      return csound->InitError(csound, "%s", Str("vphaseseg: invalid number of elements"));
+    p->elements = (int32_t)*p->ielements;
+    p->vector = ftp->ftable;
 
-    if ((segp = (TSEG2 *) p->auxch.auxp) == NULL) {
-      csound->AuxAlloc(csound, (int64_t)(nsegs+1)*sizeof(TSEG2), &p->auxch);
-      p->cursegp = segp = (TSEG2 *) p->auxch.auxp;
-      //(segp+nsegs)->cnt = MAXPOS;
-    }
-    argp = p->argums;
+    bytes = (size_t)(nsegs + 1) * sizeof(TSEG2);
+    if (p->auxch.auxp == NULL || p->auxch.size < bytes)
+      csound->AuxAlloc(csound, bytes, &p->auxch);
+    p->cursegp = segp = (TSEG2 *)p->auxch.auxp;
     if (UNLIKELY((nxtfunc = csound->FTFind(csound, *argp++)) == NULL))
-      return csound->InitError(csound,
-                               "%s", Str("vphaseseg: the first function is "
-                                   "invalid or missing"));
-    if (LIKELY((ftp = csound->FTFind(csound, p->ioutfunc)) != NULL)) {
-      p->vector = ftp->ftable;
-      p->elements = (int32_t) *p->ielements;
-    }
-    else return csound->InitError(csound, "%s", Str("Failed to find ftable"));
-    if (UNLIKELY(p->elements > (int32_t)ftp->flen))
-      return csound->InitError(csound,
-                               "%s", Str("vphaseseg: invalid num. of elements"));
-    /* vector = p->vector; */
-    /* flength = p->elements; */
-
-    memset(p->vector, 0, sizeof(MYFLT)*p->elements);
-    /* do      *vector++ = FL(0.0); */
-    /* while (--flength); */
-
-    if (UNLIKELY(**argp <= 0.0))  return NOTOK; /* if idur1 <= 0, skip init  */
-    //p->cursegp = tempsegp =segp;              /* else proceed from 1st seg */
-
-    segp--;
-    do {
-      segp++;                 /* init each seg ..  */
+      return csound->InitError(csound, "%s", Str("vphaseseg: invalid source table"));
+    if (UNLIKELY(nxtfunc->flen < (uint32_t)p->elements))
+      return csound->InitError(csound, "%s", Str("vphaseseg: source table too short"));
+    for (j = 0; j < nsegs; ++j) {
+      double dur = **argp++;
       curfunc = nxtfunc;
-      dur = **argp++;
+      if (UNLIKELY(!(dur > 0.0)))
+        return csound->InitError(csound, "%s", Str("vphaseseg: distances must be positive"));
       if (UNLIKELY((nxtfunc = csound->FTFind(csound, *argp++)) == NULL))
-        return csound->InitError(csound,
-                                 "%s", Str("vphaseseg: function invalid or missing"));
-      if (LIKELY(dur > 0.0f)) {
-        durtot+=dur;
-        segp->d = dur; // ekr;
-        segp->function = curfunc;
-        segp->nxtfunction = nxtfunc;
-        //segp->cnt = (int64_t) (segp->d + .5);
-      }
-      else break;             /*  .. til 0 dur or done */
-    } while (--nsegs);
-    segp++;
-
-    segp->function =  nxtfunc;
-    segp->nxtfunction = nxtfunc;
-    nsegs = (int32_t) p->nsegs;
-
-    segp = p->cursegp;
-
-    for (j=0; j< nsegs; j++)
-      segp[j].d /= durtot;
-
-    /* This could be a memmove */
-    for (j=nsegs-1; j>= 0; j--)
-      segp[j+1].d = segp[j].d;
-
-    segp[0].d = prevphs = 0.0;
-
-    for (j=0; j<= nsegs; j++) {
-      segp[j].d += prevphs;
-      prevphs = segp[j].d;
+        return csound->InitError(csound, "%s", Str("vphaseseg: invalid source table"));
+      if (UNLIKELY(nxtfunc->flen < (uint32_t)p->elements))
+        return csound->InitError(csound, "%s", Str("vphaseseg: source table too short"));
+      durtot += dur;
+      segp[j].d = dur;
+      segp[j].function = curfunc;
+      segp[j].nxtfunction = nxtfunc;
     }
-    return OK;
+    if (UNLIKELY(durtot > DBL_MAX))
+      return csound->InitError(csound, "%s", Str("vphaseseg: total distance must be finite"));
 
+    for (j = 0; j < nsegs; ++j) {
+      double dur = segp[j].d;
+      segp[j].d = position / durtot;
+      position += dur;
+    }
+    /* Avoid leaving a rounding gap below the end of the phase range. */
+    segp[nsegs].d = 1.0;
+    segp[nsegs].function = segp[nsegs].nxtfunction = nxtfunc;
+    p->nsegs = nsegs;
+    memset(p->vector, 0, sizeof(MYFLT) * p->elements);
+    return OK;
 }
 
 static int32_t vphaseseg(CSOUND *csound, VPSEG *p)
 {
-    IGN(csound);
     TSEG2       *segp = p->cursegp;
     double phase = *p->kphase, partialPhase = 0.0;
     int32_t j, flength;
     MYFLT   *curtab = NULL, *nxttab = NULL, curval, nxtval, *vector;
 
-    while (phase >= 1.0) phase -= 1.0;
-    while (phase < 0.0) phase = 0.0;
+    if (phase >= 1.0) phase -= floor(phase);
+    else if (phase < 0.0) phase = 0.0;
 
     for (j = 0; j < p->nsegs; j++) {
       TSEG2 *seg = &segp[j], *seg1 = &segp[j+1];
@@ -490,15 +470,16 @@ static int32_t vphaseseg(CSOUND *csound, VPSEG *p)
         break;
       }
     }
-    if (UNLIKELY(curtab==NULL)) return NOTOK;
+    if (UNLIKELY(curtab == NULL))
+      return csound->PerfError(csound, &p->h, "%s", Str("vphaseseg: invalid phase"));
 
     flength = p->elements;
     vector = p->vector;
-    do {
+    for (j = 0; j < flength; ++j) {
       curval = *curtab++;
       nxtval = *nxttab++;
       *vector++ = (MYFLT) (curval + ((nxtval - curval) * partialPhase));
-    } while (--flength);
+    }
     return OK;
 }
 /* -------------------------------------------------------------------- */
