@@ -825,6 +825,8 @@ TEST_F (ChannelTests, ConcurrentStringChannelResize)
 
 TEST_F (ChannelTests, StringOpcodesDuringHostResize)
 {
+    // Let the host finish the test, regardless of simulated score time.
+    ASSERT_EQ(csoundSetOption(csound, "--daemon"), CSOUND_SUCCESS);
     ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
         sr = 48000
         ksmps = 32
@@ -836,7 +838,8 @@ TEST_F (ChannelTests, StringOpcodesDuringHostResize)
           chnset Svalue, "write"
         endin
     )ORC"));
-    csoundEventString(csound, "i 1 0 60", 0);
+    // Keep both string opcodes active throughout all host-side resizes.
+    csoundEventString(csound, "i 1 0 -1", 0);
     ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
     std::atomic<bool> finished{false};
     std::thread writer([&]() {
