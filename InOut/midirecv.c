@@ -347,7 +347,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       chn->aftouch = mep->dat1;                 /* chanl (all-key) Press */
       break;
     case PCHBEND_TYPE:
-      chn->pchbend = (MYFLT)(((mep->dat2 - 64) << 7) + mep->dat1)/FL(8192.0);
+      chn->pchbend = (MYFLT)((mep->dat2 - 64) * 128 + mep->dat1)/FL(8192.0);
       break;
     case SYSTEM_TYPE:           /* sys_common 1-3 only:  chan contains which */
       switch(mep->chan) {
