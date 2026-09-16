@@ -54,8 +54,7 @@ typedef struct  {
         OPDS    h;
         MYFLT   *ktrig, *kphs, *ifn, *args[VARGMAX];
         MYFLT endSeq, *table, oldPhs;
-        int32_t numParm, endIndex, prevIndex, nextIndex ;
-        MYFLT prevActime, nextActime;
+        int32_t numParm, endIndex;
         int32_t initFlag;
 
 } TIMEDSEQ;
@@ -354,107 +353,87 @@ static int32_t split_trig(CSOUND *csound, SPLIT_TRIG *p)
 
 static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
 {
-    FUNC *ftp;
-    MYFLT *table;
-    uint32_t j;
-    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))  return NOTOK;
-    table = p->table = ftp->ftable;
-    p->numParm = p->INOCOUNT-2; /* ? */
-    for (j = 0; j < ftp->flen; j+= p->numParm) {
-      if (table[j] < 0) {
-        p->endSeq = table[j+1];
-        p->endIndex = j/p->numParm;
-        break;
+    FUNC *ftp = csound->FTFind(csound, p->ifn);
+    uint32_t row, rows;
+    MYFLT previous = FL(0.0);
+    if (UNLIKELY(ftp == NULL)) return NOTOK;
+    p->numParm = p->INOCOUNT - 2;
+    if (UNLIKELY(p->numParm < 2))
+      return csound->InitError(csound, "%s",
+                              Str("timedseq: rows need at least an event and time"));
+    p->table = ftp->ftable;
+    rows = ftp->flen / p->numParm;
+    for (row = 0; row < rows; row++) {
+      MYFLT *event = p->table + (size_t)row * p->numParm;
+      if (event[0] < 0) {
+        if (UNLIKELY(row == 0 || !(event[1] > 0) ||
+                     !isfinite(event[1]) || event[1] < previous))
+          return csound->InitError(csound, "%s",
+                                  Str("timedseq: invalid sequence end"));
+        p->endSeq = event[1];
+        p->endIndex = row;
+        p->initFlag = 1;
+        *p->ktrig = FL(0.0);
+        return OK;
       }
+      if (UNLIKELY(!(event[1] >= previous) || !isfinite(event[1])))
+        return csound->InitError(csound, "%s",
+                                Str("timedseq: event times must be sorted and nonnegative"));
+      previous = event[1];
     }
-    p->initFlag = 1;
-    return OK;
+    return csound->InitError(csound, "%s",
+                            Str("timedseq: missing complete end row"));
 }
 
 static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 {
-     IGN(csound);
-    MYFLT *table = p->table, minDist = CS_ONEDKR;
-    MYFLT phs = *p->kphs, endseq = p->endSeq;
-    int32_t  j,k, numParm = p->numParm, endIndex = p->endIndex;
-    while (phs > endseq)
-      phs -=endseq;
-    while (phs < 0 )
-      phs +=endseq;
+    MYFLT phs = *p->kphs, delta, distance;
+    MYFLT endseq = p->endSeq;
+    int32_t lo = 0, hi = p->endIndex, index, j;
+    int32_t reverse;
 
-    if (p->initFlag) {
-    prev:
-      for (j=0,k=endIndex; j < endIndex; j++, k--) {
-        if (table[j*numParm + 1] > phs ) {
-          p->nextActime = table[j*numParm + 1];
-          p->nextIndex = j;
-          p->prevActime = table[(j-1)*numParm + 1];
-          p->prevIndex = j-1;
-          break;
-        }
-        if (table[k*numParm + 1] < phs ) {
-          p->nextActime = table[(k+1)*numParm + 1];
-          p->nextIndex = k+1;
-          p->prevActime = table[k*numParm + 1];
-          p->prevIndex = k;
-          break;
-        }
-      }
-      if (phs == p->prevActime&& p->prevIndex != -1 )  {
-        *p->ktrig = 1;
-        for (j=0; j < numParm; j++) {
-          *p->args[j]=table[p->prevIndex*numParm + j];
-        }
-      }
-      else if (phs == p->nextActime && p->nextIndex != -1 )  {
-        *p->ktrig = 1;
-        for (j=0; j < numParm; j++) {
-          *p->args[j]=table[p->nextIndex*numParm + j];
-        }
-      }
-      /*p->oldPhs = phs; */
-      p->initFlag=0;
+    *p->ktrig = FL(0.0);
+    if (phs < 0 || phs >= endseq) {
+      phs = FMOD(phs, endseq);
+      if (phs < 0) phs += endseq;
+    }
+    if (UNLIKELY(!(phs >= 0 && phs < endseq)))
+      return csound->PerfError(csound, &p->h, "%s",
+                              Str("timedseq: invalid time pointer"));
+    delta = p->initFlag ? FL(0.0) : phs - p->oldPhs;
+    p->oldPhs = phs;
+    /* A wrapped phase cannot distinguish a large jump from a loop crossing.
+       Use the shorter path, as for a forward or reverse phasor. */
+    if (delta > endseq * FL(0.5)) delta -= endseq;
+    else if (delta < -endseq * FL(0.5)) delta += endseq;
+    if (!p->initFlag && delta == 0) return OK;
+    reverse = delta < 0;
+
+    /* Find the last crossed row in the direction of travel. The end marker
+       is never an event. Only one row can be returned per control cycle. */
+    while (lo < hi) {
+      int32_t mid = lo + (hi - lo) / 2;
+      MYFLT time = p->table[(size_t)mid * p->numParm + 1];
+      if (time < phs || (!reverse && time == phs)) lo = mid + 1;
+      else hi = mid;
+    }
+    if (reverse) {
+      index = lo == p->endIndex ? 0 : lo;
+      distance = p->table[(size_t)index * p->numParm + 1] - phs;
+      if (lo == p->endIndex) distance += endseq;
     }
     else {
-      if (phs > p->nextActime || phs < p->prevActime) {
-        for (j=0; j < numParm; j++) {
-          *p->args[j]=table[p->nextIndex*numParm + j];
-        }
-        if (table[p->nextIndex*numParm] != -1) /* if it is not end locator */
-          /**p->ktrig = 1; */
-          *p->ktrig = table[p->nextIndex*numParm + 3];
-        if (phs > p->nextActime) {
-          if (p->prevIndex > p->nextIndex && p->oldPhs < phs) {
-            /* there is a phase jump */
-            *p->ktrig = 0;
-            goto fine;
-          }
-          if (fabs(phs-p->nextActime) > minDist)
-            goto prev;
-
-          p->prevActime = table[p->nextIndex*numParm + 1];
-          p->prevIndex = p->nextIndex;
-          p->nextIndex = (p->nextIndex + 1) % endIndex;
-          p->nextActime = table[p->nextIndex*numParm + 1];
-        }
-        else {
-          if (fabs(phs-p->nextActime) > minDist)
-            goto prev;
-
-          p->nextActime = table[p->prevIndex*numParm + 1]; /*p->nextActime+1; */
-          p->nextIndex = p->prevIndex;
-          p->prevIndex = (p->prevIndex - 1);
-          if (p->prevIndex < 0) {
-            p->prevIndex += p->endIndex;
-          }
-          p->prevActime = table[p->prevIndex*numParm + 1]; /*p->nextActime+1; */
-        }
-      }
-      else
-        *p->ktrig = 0;
-    fine:
-      p->oldPhs = phs;
+      index = lo == 0 ? p->endIndex - 1 : lo - 1;
+      distance = phs - p->table[(size_t)index * p->numParm + 1];
+      if (lo == 0) distance += endseq;
     }
+    if ((p->initFlag && distance == 0) ||
+        (!p->initFlag && distance < (reverse ? -delta : delta))) {
+      MYFLT *event = p->table + (size_t)index * p->numParm;
+      for (j = 0; j < p->numParm; j++) *p->args[j] = event[j];
+      *p->ktrig = FL(1.0);
+    }
+    p->initFlag = 0;
     return OK;
 }
 
