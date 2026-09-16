@@ -74,26 +74,24 @@ int32_t apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
 
 int32_t seedrand(CSOUND *csound, PRAND *p)
 {
-    uint32_t  seedVal = (uint32_t)0;
-    int32_t xx = (int32_t)((double)*p->out + 0.5);
+    double rounded = (double)*p->out + 0.5;
+    if (UNLIKELY(!(rounded >= 0.0 && rounded < 4294967296.0)))
+      return csound->InitError(csound, Str("seed: value out of range"));
+    uint32_t seedVal = (uint32_t)rounded;
     int32_t *holdrand = (int32_t *) csound->QueryGlobalVariable(csound, "::HOLDRAND::");
 
-    if (xx > FL(0.0))
-      seedVal = (uint32_t)xx;
-    else if (xx==0) {
+    if (seedVal == 0) {
       seedVal = (uint32_t)csound->GetRandomSeedFromTime();
       if(csoundGetDebug(csound) & DEBUG_RUNTIME)
        csound->Message(csound, Str("Seeding from current time %u\n"),
                               (uint32_t)seedVal);
     }
-    else
-      csound->Warning(csound, Str("Seeding with %u\n"), (uint32_t)seedVal);
     csound->SeedRandMT(&(csound->randState_), NULL, seedVal);
     *holdrand = (int32_t)(seedVal & (uint32_t) 0x7FFFFFFF);
     while (seedVal >= (uint32_t)0x7FFFFFFE)
       seedVal -= (uint32_t)0x7FFFFFFE;
-    if (seedVal==0) csound->randSeed1 = ((int32_t)1);
-    csound->randSeed1 = ((int32_t)seedVal);
+    /* Zero would keep the 31-bit generator at zero on every call. */
+    csound->randSeed1 = seedVal == 0 ? 1 : (int32_t)seedVal;
 
     return OK;
 }
