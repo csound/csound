@@ -1672,22 +1672,23 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   lcurip->ksmps_no_end = parent_ip->ksmps_no_end;
   lcurip->tieflag = parent_ip->tieflag;
   lcurip->reinitflag = parent_ip->reinitflag;
-  /* parent_ip is walked to the outermost caller for inherited p-fields;
-     saved_curip remains the immediate caller used to restore engine state. */
   /* copy all p-fields, including p1 (will this work ?) */
   if (tp->pmax > 3) {         /* requested number of p-fields */
+    /* Inherit p-fields from callers without changing the immediate parent
+       used below for note state and performance-rate selection. */
+    INSDS *pfield_ip = parent_ip;
     uint32 n = tp->pmax, pcnt = 0;
     while (pcnt < n) {
-      if ((i = csound->engineState.instrtxtp[parent_ip->insno]->pmax) > pcnt) {
+      if ((i = csound->engineState.instrtxtp[pfield_ip->insno]->pmax) > pcnt) {
         if (i > n) i = n;
         /* copy next block of p-fields */
-        memcpy(&(lcurip->p1) + pcnt, &(parent_ip->p1) + pcnt,
+        memcpy(&(lcurip->p1) + pcnt, &(pfield_ip->p1) + pcnt,
                (size_t) ((i - pcnt) * sizeof(CS_VAR_MEM)));
         pcnt = i;
       }
       /* top level instr reached */
-      if (parent_ip->opcod_iobufs == NULL) break;
-      parent_ip = ((OPCOD_IOBUFS*) parent_ip->opcod_iobufs)->parent_ip;
+      if (pfield_ip->opcod_iobufs == NULL) break;
+      pfield_ip = ((OPCOD_IOBUFS*) pfield_ip->opcod_iobufs)->parent_ip;
     }
   } else {
     memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(CS_VAR_MEM));
