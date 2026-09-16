@@ -236,6 +236,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
     pp->file_opened[idx].file = sf;
     pp->file_opened[idx].fd = fd;
     pp->file_opened[idx].do_scale = do_scale;
+    pp->file_opened[idx].nchnls = ((SFLIB_INFO*) fileParams)->channels;
   }
   /* store file information */
   pp->file_opened[idx].name = name;
@@ -256,6 +257,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
     }
     else {
       p->sf = pp->file_opened[idx].file;
+      p->nchnls = pp->file_opened[idx].nchnls;
       p->f = (FILE*) NULL;
     }
     p->idx = idx + 1;
@@ -813,13 +815,16 @@ int32_t infile_deinit(CSOUND *csound, INFILE *p) {
 static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
 {
   SFLIB_INFO sfinfo;
-  int32_t     n, buf_reqd;
+  int32_t     n;
+  size_t      buf_reqd;
   p->nargs = p->INOCOUNT - 3;
+  if (UNLIKELY(!(*p->iskpfrms >= FL(0.0) &&
+                 (double)*p->iskpfrms <= INT32_MAX)))
+    return csound->InitError(csound, "%s", Str("invalid frame skip"));
   p->currpos = MYFLT2LRND(*p->iskpfrms);
   p->flag = 1;
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
   sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
-  /* Following code is seriously broken*/
   if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
     sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
   else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
@@ -831,19 +836,25 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
     p->frames = CS_KSMPS;
   else
     p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
-  if (CS_KSMPS >= 512)
-    buf_reqd = CS_KSMPS * sfinfo.channels;
-  else
-    buf_reqd = (1 + (int32_t)(512 / CS_KSMPS)) * CS_KSMPS * p->nargs;
-  if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
-    csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
-  }
-  p->f.bufsize =  (int32_t) p->buf.size;
+  if (UNLIKELY(sfinfo.channels <= 0 ||
+               sfinfo.channels > INT32_MAX / 4 / sizeof(MYFLT) / p->frames))
+    return csound->InitError(csound, "%s", Str("invalid file channel count"));
+  /* Keep the asynchronous queue's existing headroom. */
+  p->f.bufsize = p->frames * sfinfo.channels * sizeof(MYFLT);
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
                     p->fname, istring, &sfinfo, 0, NULL) != NULL) {
     n = p->f.idx - 1;
   }
   else return NOTOK;
+
+  if (UNLIKELY(p->f.nchnls != p->nargs)) {
+    fout_deinit(csound, &p->f);
+    return csound->InitError(csound, "%s",
+                             Str("file channels do not match input arguments"));
+  }
+  buf_reqd = (size_t)p->frames * p->f.nchnls * sizeof(MYFLT);
+  if (p->buf.auxp == NULL || p->buf.size < buf_reqd)
+    csound->AuxAlloc(csound, buf_reqd, &p->buf);
 
   if (((STDOPCOD_GLOBALS*)
        csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))
@@ -852,11 +863,11 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
   else
     p->scaleFac = FL(1.0);
     
-  p->guard_pos = p->frames * p->nargs;
-  p->buf_pos = p->guard_pos;
+  p->guard_pos = p->buf_pos = p->remain = 0;
 
-  if (p->f.async == 1)
-    csound->FSeekAsync(csound,p->f.fd, p->currpos*p->f.nchnls, SEEK_SET);
+  if (p->f.async == 1 &&
+      csound->FSeekAsync(csound, p->f.fd, (int32_t)p->currpos, SEEK_SET) < 0)
+    p->flag = 0;
 
   return OK;
 }
@@ -877,7 +888,11 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
 {
 
   SFLIB_INFO sfinfo;
-  int32_t     n, buf_reqd;
+  int32_t     n;
+  size_t      buf_reqd;
+  if (UNLIKELY(!(*p->iskpfrms >= FL(0.0) &&
+                 (double)*p->iskpfrms <= INT32_MAX)))
+    return csound->InitError(csound, "%s", Str("invalid frame skip"));
   p->currpos = MYFLT2LRND(*p->iskpfrms);
   p->flag = 1;
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
@@ -888,25 +903,32 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
     sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
   else
     sfinfo.format = 0;
-  sfinfo.channels = p->INOCOUNT - 3;
+  sfinfo.channels = (p->tabout->dimensions == 1 && p->tabout->sizes != NULL
+                     ? p->tabout->sizes[0] : 1);
   if (CS_KSMPS >= 512)
     p->frames = CS_KSMPS;
   else
     p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
-  p->chn = sfinfo.channels;
-  if (CS_KSMPS >= 512)
-    buf_reqd = CS_KSMPS * sfinfo.channels;
-  else
-    buf_reqd = (1 + (int32_t)(512 / CS_KSMPS)) * CS_KSMPS * sfinfo.channels;
-  if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
-    csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
-  }
-  p->f.bufsize =  (int32_t) p->buf.size;
+  if (UNLIKELY(sfinfo.channels <= 0 ||
+               sfinfo.channels > INT32_MAX / 4 / sizeof(MYFLT) / p->frames))
+    return csound->InitError(csound, "%s", Str("invalid file channel count"));
+  /* Keep the asynchronous queue's existing headroom. */
+  p->f.bufsize = p->frames * sfinfo.channels * sizeof(MYFLT);
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
                     p->fname, 1, &sfinfo, 0, NULL) != NULL) {
     n = p->f.idx - 1;
   }
   else return NOTOK;
+
+  p->chn = p->f.nchnls;
+  if (UNLIKELY(p->f.nchnls <= 0 ||
+               p->f.nchnls > INT32_MAX / p->frames)) {
+    fout_deinit(csound, &p->f);
+    return csound->InitError(csound, "%s", Str("invalid file channel count"));
+  }
+  buf_reqd = (size_t)p->frames * p->f.nchnls * sizeof(MYFLT);
+  if (p->buf.auxp == NULL || p->buf.size < buf_reqd)
+    csound->AuxAlloc(csound, buf_reqd, &p->buf);
 
   if (((STDOPCOD_GLOBALS*)
        csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))
@@ -915,10 +937,10 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
   else
     p->scaleFac = FL(1.0);
 
-  p->guard_pos = p->frames * p->chn;
-  p->buf_pos = p->guard_pos;
-  if (p->f.async == 1)
-    csound->FSeekAsync(csound,p->f.fd, p->currpos*p->f.nchnls, SEEK_SET);
+  p->guard_pos = p->buf_pos = p->remain = 0;
+  if (p->f.async == 1 &&
+      csound->FSeekAsync(csound, p->f.fd, (int32_t)p->currpos, SEEK_SET) < 0)
+    p->flag = 0;
 
   if (UNLIKELY(tabinit(csound, p->tabout, p->chn,
                        p->h.insdshead) != OK)) {
@@ -928,112 +950,103 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
   return OK;
 }
 
+/* Refill only between copy runs. SndfileRead returns frames, ReadAsync
+   returns samples. Keep any incomplete asynchronous frame for the next read. */
+#define INFILE_REFILL(p, buf) do {                                      \
+    if ((p)->f.async == 0) {                                            \
+      int64_t got = csound->SndfileSeek(csound, (p)->f.sf,                \
+                                       (p)->currpos, SEEK_SET);         \
+      if (got >= 0)                                                    \
+        got = csound->SndfileRead(csound, (p)->f.sf, (buf), (p)->frames);  \
+      (p)->remain = got > 0 ? (uint32_t)got : 0;                         \
+      (p)->currpos += (p)->remain;                                      \
+      (p)->guard_pos = (p)->remain * (p)->f.nchnls;                       \
+      if ((p)->remain == 0) (p)->flag = 0;                               \
+    } else {                                                           \
+      int32_t tail = (p)->guard_pos - (p)->buf_pos;                       \
+      for (int32_t t = 0; t < tail; t++)                                \
+        (buf)[t] = (buf)[(p)->buf_pos + t];                              \
+      (p)->guard_pos = tail + csound->ReadAsync(csound, (p)->f.fd,        \
+                           (buf) + tail, (p)->frames * (p)->f.nchnls     \
+                                         - tail);                      \
+      (p)->remain = (p)->guard_pos / (p)->f.nchnls;                       \
+    }                                                                  \
+    (p)->buf_pos = 0;                                                   \
+  } while (0)
+
 static int32_t infile_act(CSOUND *csound, INFILE *p)
 {
   uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t i, k, j = offset;
-  uint32_t nsmps = CS_KSMPS, ksmps, nargs = p->nargs;
-  MYFLT *buf = (MYFLT *) p->buf.auxp;
+  uint32_t early = p->h.insdshead->ksmps_no_end;
+  uint32_t nsmps = CS_KSMPS - early;
+  uint32_t i, j = offset, channels = p->nargs;
+  MYFLT *buf = (MYFLT *)p->buf.auxp;
 
-  ksmps = nsmps;
-  if (UNLIKELY(offset))
-    for (i = 0; i < nargs; i++)
-      memset(p->argums[i], '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    for (i = 0; i < nargs; i++)
-      memset(&p->argums[i][nsmps], '\0', early*sizeof(MYFLT));
+  for (i = 0; i < channels; i++) {
+    if (UNLIKELY(offset))
+      memset(&p->argums[i][0], 0, offset * sizeof(MYFLT));
+    if (UNLIKELY(early))
+      memset(&p->argums[i][nsmps], 0, early * sizeof(MYFLT));
   }
-  if (p->flag) {
-    if (p->buf_pos >= p->guard_pos) {
-      if (UNLIKELY(p->f.async == 0)) {
-        csound->SndfileSeek(csound, p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
-        p->remain = (uint32_t) csound->SndfileRead(csound, p->f.sf, (MYFLT*) buf,
-                                                   p->frames);
-        p->remain /= p->f.nchnls;
-      } else {
-        p->remain = csound->ReadAsync(csound,p->f.fd,(MYFLT *)buf,
-                                      p->frames*p->f.nchnls);
-        p->remain /= p->f.nchnls;
-      }
-      p->currpos += p->frames;
-      p->buf_pos = 0;
-    }
-    if (p->remain < nsmps)
-      nsmps = p->remain;
-    for (k = (uint32_t)p->buf_pos; j < nsmps; j++)
-      for (i = 0; i < nargs; i++)
+  while (j < nsmps && p->flag) {
+    uint32_t count, stop, k;
+    if (p->remain == 0)
+      INFILE_REFILL(p, buf);
+    if (p->remain == 0)
+      break;
+    count = nsmps - j;
+    if (count > p->remain)
+      count = p->remain;
+    stop = j + count;
+    k = p->buf_pos;
+    for (; j < stop; j++)
+      for (i = 0; i < channels; i++)
         p->argums[i][j] = buf[k++] * p->scaleFac;
     p->buf_pos = k;
-    p->remain -= ksmps;
-    if (p->remain <= 0 && p->buf_pos < p->guard_pos) {
-      p->flag = 0;
-      for (; j < ksmps; j++)
-        for (i = 0; i < nargs; i++)
-          p->argums[i][j] = FL(0.0);
-    }
-    return OK;
+    p->remain -= count;
   }
-  for ( ; j < ksmps; j++)
-    for (i = 0; i < nargs; i++)
-      p->argums[i][j] = FL(0.0);
-
+  for (i = 0; i < channels; i++)
+    if (j < nsmps)
+      memset(&p->argums[i][j], 0, (nsmps - j) * sizeof(MYFLT));
   return OK;
 }
 
 static int32_t infile_arr(CSOUND *csound, INFILEA *p)
 {
   uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t i, k, j = offset;
-  uint32_t nsmps = CS_KSMPS, ksmps, chn = p->chn;
-  MYFLT *buf = (MYFLT *) p->buf.auxp;
+  uint32_t early = p->h.insdshead->ksmps_no_end;
+  uint32_t nsmps = CS_KSMPS - early;
+  uint32_t i, j = offset, channels = p->chn;
+  MYFLT *buf = (MYFLT *)p->buf.auxp;
   MYFLT *data = p->tabout->data;
+  size_t stride = p->tabout->arrayMemberSize / sizeof(MYFLT);
 
-  ksmps = nsmps;
-  if (UNLIKELY(offset))
-    for (i = 0; i < chn; i++)
-      memset(&data[i*chn], '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    for (i = 0; i < chn; i++)
-      memset(&data[i*chn+nsmps], '\0', early*sizeof(MYFLT));
+  for (i = 0; i < channels; i++) {
+    if (UNLIKELY(offset))
+      memset(&data[i * stride + 0], 0, offset * sizeof(MYFLT));
+    if (UNLIKELY(early))
+      memset(&data[i * stride + nsmps], 0, early * sizeof(MYFLT));
   }
-  if (p->flag) {
-    if (p->buf_pos >= p->guard_pos) {
-      if (UNLIKELY(p->f.async == 0)) {
-        csound->SndfileSeek(csound,p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
-        p->remain = (uint32_t) csound->SndfileRead(csound, p->f.sf, (MYFLT*) buf,
-                                                   p->frames);
-        p->remain /= p->f.nchnls;
-      } else {
-        p->remain = csound->ReadAsync(csound,p->f.fd,(MYFLT *)buf,
-                                      p->frames*p->f.nchnls);
-        p->remain /= p->f.nchnls;
-      }
-      p->currpos += p->frames;
-      p->buf_pos = 0;
-    }
-    if (p->remain < nsmps)
-      nsmps = p->remain;
-    for (k = (uint32_t)p->buf_pos; j < nsmps; j++)
-      for (i = 0; i < chn; i++)
-        data[i*chn+j] = buf[k++] * p->scaleFac;
+  while (j < nsmps && p->flag) {
+    uint32_t count, stop, k;
+    if (p->remain == 0)
+      INFILE_REFILL(p, buf);
+    if (p->remain == 0)
+      break;
+    count = nsmps - j;
+    if (count > p->remain)
+      count = p->remain;
+    stop = j + count;
+    k = p->buf_pos;
+    for (; j < stop; j++)
+      for (i = 0; i < channels; i++)
+        data[i * stride + j] = buf[k++] * p->scaleFac;
     p->buf_pos = k;
-    p->remain -= ksmps;
-    if (p->remain <= 0 && p->buf_pos < p->guard_pos) {
-      p->flag = 0;
-      for (; j < ksmps; j++)
-        for (i = 0; i < chn; i++)
-          data[i*chn+j] = FL(0.0);
-    }
-    return OK;
+    p->remain -= count;
   }
-  for ( ; j < ksmps; j++)
-    for (i = 0; i < chn; i++)
-      data[i*chn+j] = FL(0.0);
-
+  for (i = 0; i < channels; i++)
+    if (j < nsmps)
+      memset(&data[i * stride + j], 0, (nsmps - j) * sizeof(MYFLT));
   return OK;
 }
 
@@ -1045,7 +1058,8 @@ int32_t kinfile_deinit(CSOUND *csound, KINFILE *p) {
 static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
 {
   SFLIB_INFO sfinfo;
-  int32_t     n, buf_reqd;
+  int32_t     n;
+  size_t      buf_reqd;
 
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
   sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_EKR);
@@ -1058,6 +1072,9 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
   sfinfo.channels = p->INOCOUNT - 3;
 
   p->nargs = p->INOCOUNT - 3;
+  if (UNLIKELY(!(*p->iskpfrms >= FL(0.0) &&
+                 (double)*p->iskpfrms <= INT32_MAX)))
+    return csound->InitError(csound, "%s", Str("invalid frame skip"));
   p->currpos = MYFLT2LRND(*p->iskpfrms);
   p->flag = 1;
 
@@ -1066,20 +1083,26 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
   else
     p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
 
-  if (CS_KSMPS >= 512)
-    buf_reqd = CS_KSMPS *   sfinfo.channels;
-  else
-    buf_reqd = (1 + (int32_t)(512 / CS_KSMPS)) * CS_KSMPS * p->nargs;
-  if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
-    csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
-  }
-  p->f.bufsize = (int32_t) p->buf.size;
+  if (UNLIKELY(sfinfo.channels <= 0 ||
+               sfinfo.channels > INT32_MAX / 4 / sizeof(MYFLT) / p->frames))
+    return csound->InitError(csound, "%s", Str("invalid file channel count"));
+  /* Keep the asynchronous queue's existing headroom. */
+  p->f.bufsize = p->frames * sfinfo.channels * sizeof(MYFLT);
 
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
                     p->fname, istring, &sfinfo, 0, NULL) != NULL) {
     n = p->f.idx - 1;
   }
   else return NOTOK;
+
+  if (UNLIKELY(p->f.nchnls != p->nargs)) {
+    fout_deinit(csound, &p->f);
+    return csound->InitError(csound, "%s",
+                             Str("file channels do not match input arguments"));
+  }
+  buf_reqd = (size_t)p->frames * p->f.nchnls * sizeof(MYFLT);
+  if (p->buf.auxp == NULL || p->buf.size < buf_reqd)
+    csound->AuxAlloc(csound, buf_reqd, &p->buf);
 
 
   if (((STDOPCOD_GLOBALS*)
@@ -1089,11 +1112,11 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
   else
     p->scaleFac = FL(1.0);
 
-  p->guard_pos = p->frames * p->nargs;
-  p->buf_pos = p->guard_pos;
+  p->guard_pos = p->buf_pos = p->remain = 0;
 
-  if (p->f.async == 1)
-    csound->FSeekAsync(csound,p->f.fd, p->currpos*p->f.nchnls, SEEK_SET);
+  if (p->f.async == 1 &&
+      csound->FSeekAsync(csound, p->f.fd, (int32_t)p->currpos, SEEK_SET) < 0)
+    p->flag = 0;
 
   return OK;
 }
@@ -1109,38 +1132,23 @@ static int32_t kinfile_set_S(CSOUND *csound, KINFILE *p){
 
 static int32_t kinfile(CSOUND *csound, KINFILE *p)
 {
-  int32_t   i, k;
-  int32_t nargs = p->nargs;
-  MYFLT *buf = (MYFLT *) p->buf.auxp;
+  int32_t i;
+  MYFLT *buf = (MYFLT *)p->buf.auxp;
 
-  if (p->flag) {
-    if (p->buf_pos >= p->guard_pos) {
-      if (UNLIKELY(p->f.async == 0)) {
-        csound->SndfileSeek(csound,p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
-        p->remain = (uint32_t) csound->SndfileRead(csound, p->f.sf, (MYFLT*) buf,
-                                                   p->frames);
-        p->remain /= p->f.nchnls;
-      } else {
-        p->remain = csound->ReadAsync(csound,p->f.fd,(MYFLT *)buf,
-                                      p->frames*p->f.nchnls);
-        p->remain /= p->f.nchnls;
-      }
-      p->currpos += p->frames;
-      p->buf_pos = 0;
-    }
-    if (p->remain > 0) {
-      for (i = 0, k = p->buf_pos; i < nargs; i++)
-        p->argums[i][0] = buf[k++] * p->scaleFac;
-      p->buf_pos = k;
-      p->remain--;
-      return OK;
-    }
-    p->flag = 0;
+  if (p->flag && p->remain == 0)
+    INFILE_REFILL(p, buf);
+  if (p->remain > 0) {
+    for (i = 0; i < p->nargs; i++)
+      *p->argums[i] = buf[p->buf_pos++] * p->scaleFac;
+    p->remain--;
+  } else {
+    for (i = 0; i < p->nargs; i++)
+      *p->argums[i] = FL(0.0);
   }
-  for (i = 0; i < nargs; i++)
-    p->argums[i][0] = FL(0.0);
   return OK;
 }
+
+#undef INFILE_REFILL
 
 int32_t i_infile_deinit(CSOUND *csound, I_INFILE *p) {
   if(p->f) {

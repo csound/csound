@@ -40,6 +40,7 @@ struct fileinTag {
     void        *fd;          /* file handle returned by CSOUND::FileOpen */
     char        *name;        /* short name */
     int32_t         do_scale;     /* non-zero if 0dBFS scaling should be applied */
+    int32_t         nchnls;       /* sound-file channels, including reused handles */
     uint32      refCount;   /* reference count, | 0x80000000 if close reqd */
 };
 
