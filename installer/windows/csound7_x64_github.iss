@@ -49,13 +49,12 @@ OutputDir="installer\windows"
 OutputBaseFilename="{#AppName}-windows_x86_64-{#AppMinVersion}-{#BuildNumber}"
 Compression=lzma
 SolidCompression=yes
+; Visual C++ Redistributable is installed via bundled vc_redist.x64.exe (see [Files]/[Run]).
+; Requires elevation — the redist installer writes to HKLM / WinSxS.
+PrivilegesRequired=admin
+PrivilegesRequiredOverridesAllowed=dialog
 ; Set the default folder to be the Csound root (otherwise defaults to where the script is located)
 SourceDir="../../"
-
-; Microsoft C/C++ runtime libraries
-#define VCREDIST_CRT_DIR GetEnv("VCREDIST_CRT_DIR")
-#define VCREDIST_CXXAMP_DIR GetEnv("VCREDIST_CXXAMP_DIR")
-#define VCREDIST_OPENMP_DIR GetEnv("VCREDIST_OPENMP_DIR")
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
@@ -108,9 +107,11 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Source: "*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
-Source: "{#VCREDIST_CRT_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
-Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
-Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
+; Visual C++ Redistributable installer — bundled offline (Microsoft signed).
+; Previously loose VCRUNTIME/MSVCP/VCOMP/VCAMP DLLs were copied to {app}\bin,
+; which triggered Windows Defender false positives. Now the official
+; vc_redist.x64.exe is staged to {tmp} and executed in [Run].
+Source: "installer\windows\vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Components: core
 
 Source: "Python\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
@@ -186,10 +187,50 @@ Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; Workin
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"OPCODE7DIR64"; ValueData:"{#APP_PLUGINS64}"; Flags: preservestringtype uninsdeletevalue;  Components: core
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"RAWWAVE_PATH"; ValueData:"{#APP_SAMPLES}"; Flags: preservestringtype uninsdeletevalue;  Components: core
 
+[Run]
+; Install Visual C++ 2015-2022 Redistributable (x64) silently.
+; Exit codes: 0 = success, 1638 = newer already installed, 3010 = success + reboot required.
+; Check function avoids re-running when runtime already present.
+Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing Visual C++ Redistributable (x64)..."; Flags: waituntilterminated; Check: VCRedistNeedsInstall; Components: core
+
 [Tasks]
 Name: modifypath; Description: &Add application directory to your PATH environment variable; Components: core;
 
 [Code]
+// VC++ Redistributable detection — x64
+// Registry keys used by VS 2015-2022 redist (HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64).
+// If Installed=1 and version Bld is at least a recent baseline, skip the bundled installer.
+// The [Run] entry still treats exit code 1638 (already newer) as success — this check is an optimisation.
+function VCRedistNeedsInstall: Boolean;
+var
+  Installed: Cardinal;
+  Bld: Cardinal;
+begin
+  Result := True;
+  if RegQueryDWordValue(HKLM64, 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64', 'Installed', Installed) then
+  begin
+    if Installed = 1 then
+    begin
+      if RegQueryDWordValue(HKLM64, 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64', 'Bld', Bld) then
+      begin
+        // 34318 ≈ VS 2022 17.8; lower threshold still covers 2015-2022 family
+        if Bld >= 34318 then
+          Result := False;
+      end
+      else
+        // Installed flag present but no Bld — consider it installed
+        Result := False;
+    end;
+  end;
+  // Also check DevDiv servicing key as fallback (covers some update paths)
+  if Result then
+  begin
+    if RegQueryDWordValue(HKLM64, 'SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Installed', Installed) then
+      if Installed = 1 then
+        Result := False;
+  end;
+end;
+
 //	ModPathName defines the name of the task defined above
 //	ModPathType defines whether the 'user' or 'system' path will be modified;
 //		this will default to user if anything other than system is set

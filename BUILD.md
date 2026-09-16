@@ -229,14 +229,20 @@ cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.c
 cmake --build build --config Release
 ```
 
-If you wish to build the installer, use the following commands. The first four set the location of the MS C/C++ runtime libraries that need to be packaged with Csound. Note that the `C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build` path might need updating depending on your installed version of Visual Studio:
+If you wish to build the installer, download the Visual C++ Redistributable installer (pinned to VS 2022 / `vs/17` stable, bundled offline) and then run Inno Setup. The installer will run `vc_redist.x64.exe` silently during Csound installation so loose VCRUNTIME DLLs are no longer shipped (avoids Windows Defender false positives). The redistributable requires admin elevation (`PrivilegesRequired=admin`).
+
+For 64-bit:
 
 ```powershell
-$Env:RedistVersion = Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-$Env:VCREDIST_CRT_DIR = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CRT"
-$Env:VCREDIST_CXXAMP_DIR = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CXXAMP"
-$Env:VCREDIST_OPENMP_DIR = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.OpenMP"
+Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x64.exe -OutFile installer/windows/vc_redist.x64.exe
 iscc /o. installer\windows\csound7_x64_github.iss
+```
+
+For 32-bit:
+
+```powershell
+Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x86.exe -OutFile installer/windows/vc_redist.x86.exe
+iscc /o. installer\windows\csound7_x86_github.iss
 ```
 
 If you wish to customize the build in any way, you can modify the `Custom-vs.cmake` file in the `platform\windows` directory. For common options, refer to "Useful CMake Options" above.
