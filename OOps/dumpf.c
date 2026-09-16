@@ -591,79 +591,48 @@ int32_t krd4set_p(CSOUND *csound, KREAD4 *p)
 
 static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t nk)
 {
-    int32_t   len;
-    char  inbuf[256];
-    int32_t in_comment = 0;
-
-    switch(format) {               /* place formatted kvals into outbuf */
+    MYFLT values[4];
+    int32_t i;
+    /* Read a complete set before replacing the held output values. */
+    switch (format) {
     case 1: {
-      int8_t *bp = (int8_t*)inbuf;
-      len = nk;
-      if ((unsigned)len != fread(inbuf, 1, len, ifd)) break;        /* now read the buffer */
-      while (nk--)
-        *kp++ = (MYFLT)*bp++;
+      int8_t inbuf[4];
+      if (fread(inbuf, sizeof(inbuf[0]), nk, ifd) != (size_t)nk)
+        return;
+      for (i = 0; i < nk; i++)
+        values[i] = (MYFLT)inbuf[i];
       break;
     }
     case 4: {
-      int16_t *bp = (int16_t*)inbuf;
-      len = nk * 2;
-      if ((unsigned)len != fread(inbuf, 1, len, ifd)) break;        /* now read the buffer */
-      while (nk--)
-        *kp++ = (MYFLT)*bp++;
+      int16_t inbuf[4];
+      if (fread(inbuf, sizeof(inbuf[0]), nk, ifd) != (size_t)nk)
+        return;
+      for (i = 0; i < nk; i++)
+        values[i] = (MYFLT)inbuf[i];
       break;
     }
     case 5: {
-      int32_t *bp = (int32_t*)inbuf;
-      len = nk * 4;
-      if ((unsigned)len != fread(inbuf, 1, len, ifd)) break;        /* now read the buffer */
-      while (nk--)
-        *kp++ = (MYFLT)*bp++;
+      int32_t inbuf[4];
+      if (fread(inbuf, sizeof(inbuf[0]), nk, ifd) != (size_t)nk)
+        return;
+      for (i = 0; i < nk; i++)
+        values[i] = (MYFLT)inbuf[i];
       break;
     }
     case 6: {
-      float *bp = (float*)inbuf;
-      len = nk * sizeof(float);
-      if ((unsigned)len != fread(inbuf, 1, len, ifd)) break;        /* now read the buffer */
-      while (nk--)
-        *kp++ = (MYFLT)*bp++;
+      float inbuf[4];
+      if (fread(inbuf, sizeof(inbuf[0]), nk, ifd) != (size_t)nk)
+        return;
+      for (i = 0; i < nk; i++)
+        values[i] = (MYFLT)inbuf[i];
       break;
     }
     case 7:
-      while (nk--) {
-        char *bp = inbuf;
-        int32_t c;
-        /* NOTE: could use nextval() in Engine/fgens.c instead */
-        do {                    /* Skip whitespace and comments */
-          c = getc(ifd);
-          switch (c) {
-            case EOF: return;
-            case '\n': in_comment = 0; break;
-            case '#': case ';': case '<': in_comment = 1; break;
-            default: break;
-          }
-          *bp = (char)c;
-        } while (isspace(*bp) || in_comment);
-        do {                    /* Absorb digits */
-          c = getc(ifd);
-          if (c == EOF) return;
-          if ((unsigned)(bp - inbuf + 1) >= sizeof(inbuf)) return;
-          *(++bp) = (char)c;
-        } while (isdigit(*bp) ||
-                 *bp=='-' || *bp=='+' || *bp=='.' || *bp=='e' ||*bp=='E');
-        ungetc(*bp, ifd); //fseek(ifd, -1L, SEEK_CUR);
-        *bp = '\0';
-#ifndef USE_DOUBLE
-        CS_SSCANF(inbuf,"%f", kp);
-#else
-        CS_SSCANF(inbuf,"%lf", kp);
-#endif
-        kp++;
-      }
-      break;
     case 8:
-      while (nk--) {
-        char *bp = inbuf;
-        int32_t c;
+      for (i = 0; i < nk; i++) {
+        char inbuf[256];
+        size_t len = 0;
+        int32_t c, in_comment = 0;
         do {                    /* Skip whitespace and comments */
           c = getc(ifd);
           switch (c) {
@@ -672,95 +641,78 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
             case '#': case ';': case '<': in_comment = 1; break;
             default: break;
           }
-          *bp = (char)c;
-        } while (isspace(*bp) || in_comment);
-        do {                    /* Absorb digits and such*/
+        } while (isspace(c) || in_comment);
+        do {
+          if (len == sizeof(inbuf) - 1)
+            return;
+          inbuf[len++] = (char)c;
           c = getc(ifd);
-          if (c == EOF) return;
-          if ((unsigned)(bp - inbuf + 1) >= sizeof(inbuf)) return;
-          *(++bp) = (char)c;
-        } while (!isspace(*bp));
-        (void)ungetc(*bp, ifd); //fseek(ifd, -1L, SEEK_CUR);
-        *bp = '\0';
+        } while (c != EOF &&
+                 (format == 8 ? !isspace(c) :
+                  (isdigit(c) || c == '-' || c == '+' || c == '.' ||
+                   c == 'e' || c == 'E')));
+        if (c != EOF)
+          ungetc(c, ifd);
+        inbuf[len] = '\0';
 #ifndef USE_DOUBLE
-        CS_SSCANF(inbuf,"%f", kp);
+        if (CS_SSCANF(inbuf, "%f", &values[i]) != 1)
 #else
-        CS_SSCANF(inbuf,"%lf", kp);
+        if (CS_SSCANF(inbuf, "%lf", &values[i]) != 1)
 #endif
-        kp++;
+          return;
       }
       break;
-    default: csound->Warning(csound,Str("unknown kdump format"));
+    default:
+      csound->Warning(csound, Str("unknown readk format"));
+      return;
     }
+    for (i = 0; i < nk; i++)
+      kp[i] = values[i];
 }
 
 int32_t kread(CSOUND *csound, KREAD *p)
 {
-    MYFLT kval[4];
-
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(csound, kval, p->f, p->format, 1);
-      *p->k1 = p->k[0] = kval[0];
+      nkread(csound, p->k, p->f, p->format, 1);
     }
-    else *p->k1 = p->k[0];
+    *p->k1 = p->k[0];
     return OK;
 }
 
 int32_t kread2(CSOUND *csound, KREAD2 *p)
 {
-    MYFLT kval[4];
-
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(csound, kval, p->f, p->format, 2);
-      *p->k1 = p->k[0] = kval[0];
-      *p->k2 = p->k[1] = kval[1];
+      nkread(csound, p->k, p->f, p->format, 2);
     }
-    else {
-      *p->k1 = p->k[0];
-      *p->k2 = p->k[1];
-    }
+    *p->k1 = p->k[0];
+    *p->k2 = p->k[1];
     return OK;
 }
 
 int32_t kread3(CSOUND *csound, KREAD3 *p)
 {
-    MYFLT kval[4];
-
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(csound, kval, p->f, p->format, 3);
-      *p->k1 = p->k[0] = kval[0];
-      *p->k2 = p->k[1] = kval[1];
-      *p->k3 = p->k[2] = kval[2];
+      nkread(csound, p->k, p->f, p->format, 3);
     }
-    else {
-      *p->k1 = p->k[0];
-      *p->k2 = p->k[1];
-      *p->k3 = p->k[2];
-    }
+    *p->k1 = p->k[0];
+    *p->k2 = p->k[1];
+    *p->k3 = p->k[2];
     return OK;
 }
 
 int32_t kread4(CSOUND *csound, KREAD4 *p)
 {
-    MYFLT kval[4];
-
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(csound, kval, p->f, p->format, 4);
-      *p->k1 = p->k[0] = kval[0];
-      *p->k2 = p->k[1] = kval[1];
-      *p->k3 = p->k[2] = kval[2];
-      *p->k4 = p->k[3] = kval[3];
+      nkread(csound, p->k, p->f, p->format, 4);
     }
-    else {
-      *p->k1 = p->k[0];
-      *p->k2 = p->k[1];
-      *p->k3 = p->k[2];
-      *p->k4 = p->k[3];
-    }
+    *p->k1 = p->k[0];
+    *p->k2 = p->k[1];
+    *p->k3 = p->k[2];
+    *p->k4 = p->k[3];
     return OK;
 }
 
@@ -781,12 +733,8 @@ int32_t krdsset_S(CSOUND *csound, KREADS *p)
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
-    p->lasts = (char*)csound->Calloc(csound, INITSIZE);
+    p->lasts = (char*)csound->ReAlloc(csound, p->lasts, INITSIZE);
     p->lasts[0] = '\0';
-     if (p->str->data == NULL) {
-       p->str->data = csound->Calloc(csound, INITSIZE);
-        p->str->size = INITSIZE;
-    }
     return OK;
 }
 
@@ -808,12 +756,8 @@ int32_t krdsset_p(CSOUND *csound, KREADS *p)
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
-    p->lasts = (char*)csound->Malloc(csound, INITSIZE);
+    p->lasts = (char*)csound->ReAlloc(csound, p->lasts, INITSIZE);
     p->lasts[0] = '\0';
-     if (p->str->data == NULL) {
-       p->str->data = csound->Calloc(csound, INITSIZE);
-       p->str->size = INITSIZE;
-    }
     return OK;
 }
 
@@ -823,9 +767,14 @@ int32_t kreads(CSOUND *csound, KREADS *p)
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       if (UNLIKELY(fgets(p->lasts, INITSIZE-1,  p->f)==NULL)) {
-        csound->PerfError(csound, &(p->h), Str("Read failure in readks"));
+        return csound->PerfError(csound, &(p->h), Str("Read failure in readks"));
       }
     }
+    if (p->str->size < INITSIZE) {
+      p->str->data = csound->ReAlloc(csound, p->str->data, INITSIZE);
+      p->str->size = INITSIZE;
+    }
     strNcpy((char*) p->str->data, p->lasts, INITSIZE);
+    p->str->timestamp = p->h.insdshead->kcounter;
     return OK;
 }
