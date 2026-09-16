@@ -3,7 +3,7 @@ description = "Formatted strings retain complete fields and suffixes when buffer
 
 [expect]
 exit = 0
-stderr_regex = [
+output_regex = [
   '(?m)^PRINTF:0{4095}7:0{511}9:END\r?$',
   '(?m)^LITERAL:L{4096}:END\r?$',
   '(?m)^PERF:0{511}7:END\r?$'
