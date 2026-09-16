@@ -1273,6 +1273,7 @@ else()
     set(cppops_SRCS
         Opcodes/arrayops.cpp
         Opcodes/bformdec2.cpp
+        Opcodes/ftsamplebank.cpp
         Opcodes/padsynth_gen.cpp
         Opcodes/pvsops.cpp
         Opcodes/signalflowgraph.cpp
