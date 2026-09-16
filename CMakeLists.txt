@@ -1275,7 +1275,8 @@ else()
         Opcodes/bformdec2.cpp
         Opcodes/padsynth_gen.cpp
         Opcodes/pvsops.cpp
-        Opcodes/signalflowgraph.cpp)
+        Opcodes/signalflowgraph.cpp
+        Opcodes/trigEnvSegs.cpp)
 endif()
 
 list(APPEND libcsound_SRCS)
