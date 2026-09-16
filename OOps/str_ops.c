@@ -706,118 +706,71 @@ int32_t strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
   return OK;
 }
 
-int32_t strtol_opcode_S(CSOUND *csound, STRSET_OP *p)
+/* Keep the integer range the same on platforms with 32- or 64-bit long.
+   Accumulate the magnitude so the negative limit cannot overflow int32_t. */
+static int32_t parse_strtol(void *p, const char *s, MYFLT *result)
 {
+  uint32_t value = 0, radix = 10, limit = INT32_MAX;
+  int32_t negative = 0;
 
-  IGN(csound);
-  char  *s = NULL;
-  int32_t   sgn = 0, radix = 10;
-  int32_t  x = 0;
-
-  s = (char*) p->str->data;
-  while (isblank(*s)) s++;
+  if (UNLIKELY(s == NULL))
+    return StrOp_ErrMsg(p, Str("empty string"));
+  while (isblank((unsigned char)*s)) s++;
   if (UNLIKELY(*s == '\0'))
     return StrOp_ErrMsg(p, Str("empty string"));
   if (*s == '+') s++;
-  else if (*s == '-') sgn++, s++;
+  else if (*s == '-') {
+    negative = 1;
+    limit++;
+    s++;
+  }
   if (*s == '0') {
-    if (s[1] == 'x' || s[1] == 'X')
-      radix = 16, s += 2;
-    else if (s[1] != '\0')
-      radix = 8, s++;
-    else {
-      *p->indx = FL(0.0);
-      return OK;
-    }
+    if (s[1] == 'x' || s[1] == 'X') {
+      radix = 16;
+      s += 2;
+    } else
+      radix = 8;
   }
   if (UNLIKELY(*s == '\0'))
     return StrOp_ErrMsg(p, Str("invalid format"));
-  switch (radix) {
-  case 8:
-    while (*s >= '0' && *s <= '7') x = (x * 8L) + (int32_t) (*s++ - '0');
-    break;
-  case 10:
-    while (isdigit(*s)) x = (x * 10L) + (int32_t) (*s++ - '0');
-    break;
-  default:
-    while (1) {
-      if (isdigit(*s))
-	x = (x * 16L) + (int32_t) (*s++ - '0');
-      else if (*s >= 'A' && *s <= 'F')
-	x = (x * 16L) + (int32_t) (*s++ - 'A') + 10L;
-      else if (*s >= 'a' && *s <= 'f')
-	x = (x * 16L) + (int32_t) (*s++ - 'a') + 10L;
-      else
-	break;
-    }
-  }
-  if (UNLIKELY(*s != '\0'))
-    return StrOp_ErrMsg(p, Str("invalid format"));
-  if (sgn) x = -x;
-  *p->indx = (MYFLT) x;
-
+  do {
+    uint32_t digit;
+    if (*s >= '0' && *s <= '9')
+      digit = *s - '0';
+    else if (*s >= 'A' && *s <= 'F')
+      digit = *s - 'A' + 10;
+    else if (*s >= 'a' && *s <= 'f')
+      digit = *s - 'a' + 10;
+    else
+      return StrOp_ErrMsg(p, Str("invalid format"));
+    if (UNLIKELY(digit >= radix))
+      return StrOp_ErrMsg(p, Str("invalid format"));
+    if (UNLIKELY(value > (limit - digit) / radix))
+      return StrOp_ErrMsg(p, Str("integer out of range"));
+    value = value * radix + digit;
+  } while (*++s != '\0');
+  *result = (MYFLT)(negative ? -(int64_t)value : (int64_t)value);
   return OK;
 }
 
+int32_t strtol_opcode_S(CSOUND *csound, STRSET_OP *p)
+{
+  IGN(csound);
+  return parse_strtol(p, p->str->data, p->indx);
+}
 
 int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
 {
-  char  *s = NULL;
-  int32_t   sgn = 0, radix = 10;
-  int32_t   x = 0L;
+  const char *s = NULL;
 
   if (IsStringCode(*p->str))
     s = csoundGetArgString(csound, *p->str);
-  else {
+  else if (*p->str >= FL(0.0) && (double)*p->str <= INT32_MAX) {
     int32_t ndx = (int32_t) MYFLT2LRND(*p->str);
-    if (ndx >= 0 && ndx <= (int32_t) csound->strsmax && csound->strsets != NULL)
+    if (ndx <= (int32_t)csound->strsmax && csound->strsets != NULL)
       s = csound->strsets[ndx];
   }
-  if (UNLIKELY(s == NULL))
-    return StrOp_ErrMsg(p, Str("empty string"));
-
-  while (isblank(*s)) s++;
-  if (UNLIKELY(*s == '\0'))
-    return StrOp_ErrMsg(p, Str("empty string"));
-  if (*s == '+') s++;
-  else if (*s == '-') sgn++, s++;
-  if (*s == '0') {
-    if (s[1] == 'x' || s[1] == 'X')
-      radix = 16, s += 2;
-    else if (s[1] != '\0')
-      radix = 8, s++;
-    else {
-      *p->indx = FL(0.0);
-      return OK;
-    }
-  }
-  if (UNLIKELY(*s == '\0'))
-    return StrOp_ErrMsg(p, Str("invalid format"));
-  switch (radix) {
-  case 8:
-    while (*s >= '0' && *s <= '7') x = (x * 8L) + (int32_t) (*s++ - '0');
-    break;
-  case 10:
-    while (isdigit(*s)) x = (x * 10L) + (int32_t) (*s++ - '0');
-    break;
-  default:
-    while (1) {
-      if (isdigit(*s))
-	x = (x * 16L) + (int32_t) (*s++ - '0');
-      else if (*s >= 'A' && *s <= 'F')
-	x = (x * 16L) + (int32_t) (*s++ - 'A') + 10L;
-      else if (*s >= 'a' && *s <= 'f')
-	x = (x * 16L) + (int32_t) (*s++ - 'a') + 10L;
-      else
-	break;
-    }
-  }
-  if (UNLIKELY(*s != '\0'))
-    return StrOp_ErrMsg(p, Str("invalid format"));
-  if (sgn) x = -x;
-  *p->indx = (MYFLT) x;
-
-  return OK;
+  return parse_strtol(p, s, p->indx);
 }
 
 /**
