@@ -22,6 +22,16 @@ opcode Check, 0, kk
   endif
 endop
 
+opcode CheckReconstruction, 0, kkk
+  kActual, kExpected, kMagnitude xin
+  ; Float phases round pi and other angles, so allow a few rounding errors
+  ; scaled by magnitude, including when the expected component is zero.
+  if !(abs(kActual - kExpected) <= 1e-6 * max(1, kMagnitude)) then
+    printks "spectrum reconstruction: expected %g, got %g\n", 0, kExpected, kActual
+    exitnowk -1
+  endif
+endop
+
 instr 1
   kInput[] init 8
   kMagReuse[] init 8
@@ -82,8 +92,8 @@ instr 1
     Check kPowReuse[kJ], kPow[kJ]
     Check kPhsReuse[kJ], kPhase[kJ]
     ; Magnitude and phase must reconstruct both components, including DC/Nyquist.
-    Check kMag[kJ]*cos(kPhase[kJ]), kReal
-    Check kMag[kJ]*sin(kPhase[kJ]), kImag
+    CheckReconstruction kMag[kJ]*cos(kPhase[kJ]), kReal, kMag[kJ]
+    CheckReconstruction kMag[kJ]*sin(kPhase[kJ]), kImag, kMag[kJ]
     kJ += 1
   od
   gkChecks += 1
