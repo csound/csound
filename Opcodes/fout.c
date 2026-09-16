@@ -1269,8 +1269,6 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
   char    *sdest = p->txtstring;
   FOUT_FILE* pp;
 
-  memset(p->txtstring, 0, 8192); /* Nasty to have exposed constant in code */
-
   if (p->h.perf != (SUBR) NULL) {     /* fprintks */
     pp = fout_open_file(csound, &(p->f), NULL, CSFILE_STD,
                         p->fname, istring, "w", 1);
@@ -1280,19 +1278,15 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
                    p->fname, istring, "w", 1);
     if (UNLIKELY(p->f.f  == NULL)) return NOTOK;
   }
-  //setvbuf(p->f.f, (char*)NULL, _IOLBF, BUFSIZ); /* Seems a good option */
-  /* Copy the string to the storage place in PRINTKS.
-   *
-   * We will look out for certain special codes and write special
-   * bytes directly to the string.
-   *
-   * There is probably a more elegant way of doing this, then using
-   * the look flag.  I could use goto - but I would rather not.      */
-  /* This is really a if then else if...
-   * construct and is currently grotty -- JPff */
-  do {
-    char temp  = *sarg++;
-    char tempn = *sarg--;
+  /* Expand the legacy escape codes, leaving room for the terminator. */
+  while (*sarg) {
+    char temp = sarg[0];
+    char tempn = sarg[1];
+    size_t needed = ((temp == '~' && tempn != '~') ||
+                     (temp == '%' && tempn == '%')) ? 2 : 1;
+    if ((size_t)(sdest - p->txtstring) + needed >= sizeof(p->txtstring))
+      return csound->InitError(csound,
+                              Str("expanded format exceeds 8192 characters"));
     /* Look for a single caret and insert an escape char.  */
     if ((temp  == '^') && (tempn != '^')) {
       *sdest++ = 0x1B; /* ESC */
@@ -1316,7 +1310,7 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
       sarg++;
     }
     /* Look for \n, \N etc */
-    else if (temp == '\\') {
+    else if (temp == '\\' && tempn != '\0') {
       switch (tempn) {
       case 'r': case 'R':
         *sdest++ = '\r';
@@ -1351,6 +1345,11 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
     else if (temp == '%') {
       /* an extra option to specify tab and return as %t and %r */
       switch (tempn) {
+      case '%':
+        *sdest++ = '%';
+        *sdest++ = '%';
+        sarg++;
+        break;
       case 'r': case 'R':
         *sdest++ = '\r';
         sarg++;
@@ -1378,7 +1377,9 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
       *sdest++ = temp;
     }
     /* Increment pointer and process next character until end of string.  */
-  } while (*++sarg != 0);
+    sarg++;
+  }
+  *sdest = '\0';
   return OK;
 }
 
@@ -1389,139 +1390,144 @@ static int32_t fprintf_set(CSOUND *csound, FPRINTF *p){
 static int32_t fprintf_set_S(CSOUND *csound, FPRINTF *p){
   return fprintf_set_(csound,p,1);
 }
-/* perform a sprintf-style format -- matt ingalls */
-void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
+/* Format one conversion at a time, checking its argument and output size. */
+static const char *fprints_format(CSOUND *csound, FPRINTF *p,
+                                 char *out, size_t size)
 {
-  char strseg[8192];
-  int32_t len = 8192;
-  int32_t i = 0, j = 0;
-  char *segwaiting = 0;
+  const char *fmt = p->txtstring;
+  size_t used = 0;
+  int32_t arg = 0;
+  char spec[sizeof(p->txtstring)];
+
+  out[0] = '\0';
   while (*fmt) {
-    if (*fmt == '%') {
-      /* if already a segment waiting, then lets print it */
-      if (segwaiting) {
-        strseg[i] = '\0';
-        switch (*segwaiting) {
-        case '%':
-          strncpy(outstring, "%%", len);
-          j--;
-          break;
-        case 'd':
-        case 'i':
-        case 'o':
-        case 'x':
-        case 'X':
-        case 'u':
-        case 'c':
-          snprintf(outstring, len, strseg, (int32_t) MYFLT2LRND(*kvals[j]));
-          break;
-        case 'h':
-          snprintf(outstring, len, strseg, (int16) MYFLT2LRND(*kvals[j]));
-          break;
-        case 'l':
-          snprintf(outstring, len, strseg, (int32) MYFLT2LRND(*kvals[j]));
-          break;
-        case 's':
-          snprintf(outstring, len, strseg, ((STRINGDAT*)(kvals[j]))->data);
-          break;
-        default:
-          snprintf(outstring, len, strseg, *kvals[j]);
-          break;
-        }
-        len -= strlen(outstring);
-        outstring += strlen(outstring);
-        i = 0;
-        segwaiting = 0;
+    const char *start;
+    MYFLT *value;
+    int32_t length = 0, n;
+    char conversion;
 
-        /* prevent potential problems */
-        /* if user didnt give enough input params */
-        if (j < numVals-1)
-          j++;
-      }
-      /* copy the '%' */
-      strseg[i++] = *fmt++;
-
-      /* find the format code */
-      segwaiting = fmt;
-      while (*segwaiting && !isalpha(*segwaiting) && !(*segwaiting=='%'))
-        segwaiting++;
+    if (*fmt != '%' || fmt[1] == '%') {
+      if (used == size - 1)
+        return Str("formatted output exceeds 8192 characters");
+      out[used++] = *fmt++;
+      if (fmt[-1] == '%')
+        fmt++;
+      out[used] = '\0';
+      continue;
     }
-    else
-      strseg[i++] = *fmt++;
-  }
-
-  if (i) {
-    strseg[i] = '\0';
-    if (segwaiting) {
-      switch (*segwaiting) {
-      case '%':
-        strncpy(outstring, "%%", len);
-        j--;
-        break;
-      case 'd':
-      case 'i':
-      case 'o':
-      case 'x':
-      case 'X':
-      case 'u':
-      case 'c':
-        snprintf(outstring, len, strseg, (int32_t) MYFLT2LRND(*kvals[j]));
-        break;
-      case 'h':
-        snprintf(outstring, len, strseg, (int16) MYFLT2LRND(*kvals[j]));
-        break;
-      case 'l':
-        snprintf(outstring, len, strseg, (int64_t) MYFLT2LRND(*kvals[j]));
-        break;
-      case 's':
-        snprintf(outstring, len, strseg, ((STRINGDAT*)(kvals[j]))->data);
-        break;
-
-      default:
-        snprintf(outstring, len, strseg, *kvals[j]);
-        break;
+    start = fmt++;
+    while (*fmt && strchr("-+ #0", *fmt))
+      fmt++;
+    while (isdigit((unsigned char)*fmt))
+      fmt++;
+    if (*fmt == '.') {
+      fmt++;
+      while (isdigit((unsigned char)*fmt))
+        fmt++;
+    }
+    if (*fmt == 'h') {
+      length = -1;
+      if (*++fmt == 'h') {
+        length = -2;
+        fmt++;
       }
     }
-    else
-      snprintf(outstring, len, "%s", strseg);
-  }
+    else if (*fmt == 'l') {
+      length = 1;
+      if (*++fmt == 'l') {
+        length = 2;
+        fmt++;
+      }
+    }
+    conversion = *fmt;
+    if (!conversion || !strchr("diouxXcseEfFgGaA", conversion))
+      return Str("invalid format conversion");
+    if ((strchr("cs", conversion) && length != 0) ||
+        (strchr("eEfFgGaA", conversion) && length != 0 && length != 1))
+      return Str("invalid format length modifier");
+    fmt++;
+    memcpy(spec, start, (size_t)(fmt - start));
+    spec[fmt - start] = '\0';
 
+    if (arg >= p->INOCOUNT - 2)
+      return Str("insufficient arguments for format");
+    value = p->argums[arg++];
+    if (conversion == 's') {
+      if (!IS_STR_ARG(value))
+        return Str("string argument required for %s");
+      n = snprintf(out + used, size - used, spec, ((STRINGDAT*)value)->data);
+    }
+    else {
+      if (IS_STR_ARG(value) || IS_ASIG_ARG(value))
+        return Str("scalar numeric argument required for format");
+      if (strchr("dic", conversion)) {
+        if (length == 2)
+          n = snprintf(out + used, size - used, spec,
+                       (long long)MYFLT2LRND(*value));
+        else if (length == 1)
+          n = snprintf(out + used, size - used, spec,
+                       (long)MYFLT2LRND(*value));
+        else
+          n = snprintf(out + used, size - used, spec,
+                       (int)MYFLT2LRND(*value));
+      }
+      else if (strchr("ouxX", conversion)) {
+        if (length == 2)
+          n = snprintf(out + used, size - used, spec,
+                       (unsigned long long)MYFLT2LRND(*value));
+        else if (length == 1)
+          n = snprintf(out + used, size - used, spec,
+                       (unsigned long)MYFLT2LRND(*value));
+        else
+          n = snprintf(out + used, size - used, spec,
+                       (unsigned int)MYFLT2LRND(*value));
+      }
+      else
+        n = snprintf(out + used, size - used, spec, (double)*value);
+    }
+    if (n < 0)
+      return Str("format conversion failed");
+    if ((size_t)n >= size - used)
+      return Str("formatted output exceeds 8192 characters");
+    used += (size_t)n;
+  }
+  return NULL;
+}
+
+static int32_t fprintf_output(CSOUND *csound, FPRINTF *p, int32_t init)
+{
+  char string[sizeof(p->txtstring)];
+  const char *error = fprints_format(csound, p, string, sizeof(string));
+
+  if (error == NULL &&
+      (fprintf(p->f.f, "%s", string) < 0 || fflush(p->f.f) != 0))
+    error = Str("file write failed");
+  if (error != NULL) {
+    if (init)
+      return csound->InitError(csound, "%s", error);
+    return csound->PerfError(csound, &p->h, "%s", error);
+  }
+  return OK;
 }
 
 static int32_t fprintf_k(CSOUND *csound, FPRINTF *p)
 {
-  char    string[8192];
-
-  (void) csound;
-  sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
-  fprintf(p->f.f, "%s", string);
-  fflush(p->f.f);
-  return OK;
+  return fprintf_output(csound, p, 0);
 }
 
 /* i-rate fprints */
 static int32_t fprintf_i(CSOUND *csound, FPRINTF *p)
 {
-  char    string[8192];
-
   if (UNLIKELY(fprintf_set(csound, p) != OK))
     return NOTOK;
-  sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
-  fprintf(p->f.f,"%s", string);
-  fflush(p->f.f);
-  return OK;
+  return fprintf_output(csound, p, 1);
 }
 
 static int32_t fprintf_i_S(CSOUND *csound, FPRINTF *p)
 {
-  char    string[8192];
-
   if (UNLIKELY(fprintf_set_S(csound, p) != OK))
     return NOTOK;
-  sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
-  fprintf(p->f.f, "%s", string);
-  fflush(p->f.f);
-  return OK;
+  return fprintf_output(csound, p, 1);
 }
 
 #define S(x)    sizeof(x)
