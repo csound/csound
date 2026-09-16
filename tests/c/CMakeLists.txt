@@ -26,6 +26,7 @@ if(BUILD_TESTS)
         csound_circular_buffer_test.cpp
         seed_state_test.cpp
         engine_test.cpp
+        doppler_test.cpp
         io_test.cpp
         osc_blob_test.cpp
         pvsinit_test.cpp
