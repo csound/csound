@@ -686,6 +686,7 @@ int32_t printf_opcode_perf(CSOUND *csound, PRINTF_OP *p)
 
 int32_t puts_opcode_init(CSOUND *csound, PUTS_OP *p)
 {
+    p->noNewLine = (*p->no_newline != FL(0.0));
     if (*p->ktrig > FL(0.0)) {
         if (!p->noNewLine)
           csound->Message(csound, "%s\n", (char*) p->str->data);
@@ -699,13 +700,14 @@ int32_t puts_opcode_init(CSOUND *csound, PUTS_OP *p)
 
 int32_t puts_opcode_perf(CSOUND *csound, PUTS_OP *p)
 {
-  if (*p->ktrig != p->prv_ktrig && *p->ktrig > FL(0.0)) {
-    p->prv_ktrig = *p->ktrig;
+  MYFLT ktrig = *p->ktrig;
+  if (ktrig != p->prv_ktrig && ktrig > FL(0.0)) {
     if (!p->noNewLine)
       csound->Message(csound, "%s\n", (char*) p->str->data);
     else
       csound->Message(csound, "%s", (char*) p->str->data);
   }
+  p->prv_ktrig = ktrig;
 
   return OK;
 }
