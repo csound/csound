@@ -622,14 +622,14 @@ int32_t pgmin_set(CSOUND *csound, PGMIN *p)
 
 int32_t pgmin(CSOUND *csound, PGMIN *p)
 {
-    unsigned char *temp;
+    const unsigned char *temp;
     if (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
       int32_t st,ch,d1;
       temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
-      st = *temp & (unsigned char) 0xf0;
-      ch = (*temp & 0x0f) + 1;
-      d1 = *++temp;
-      /*       d2 = *++temp; */
+      /* The input buffer stores status and channel separately. */
+      st = temp[0];
+      ch = temp[1];
+      d1 = temp[2];
       if (st == 0xC0 && (p->watch==0 || p->watch==ch)) {
         *p->pgm = (MYFLT)1+d1;
         *p->chn = (MYFLT)ch;
@@ -657,19 +657,19 @@ int32_t ctlin_set(CSOUND *csound, CTLIN *p)
 
 int32_t ctlin(CSOUND *csound, CTLIN *p)
 {
-    unsigned char *temp;
+    const unsigned char *temp;
     if  (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
       int32_t st,ch,d1,d2;
       temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
-      st = *temp & (unsigned char) 0xf0;
-      ch = (*temp & 0x0f) + 1;
-      d1 = *++temp;
-      d2 = *++temp;
+      st = temp[0];
+      ch = temp[1];
+      d1 = temp[2];
+      d2 = temp[3];
       if (st == 0xB0 &&
           (p->watch1==0 || p->watch1==ch) &&
-          (p->watch2==0 || p->watch2==d2)) {
-        *p->data = (MYFLT)d1;
-        *p->numb = (MYFLT)d2;
+          (p->watch2==0 || p->watch2==d1)) {
+        *p->data = (MYFLT)d2;
+        *p->numb = (MYFLT)d1;
         *p->chn = (MYFLT)ch;
       }
       else {
