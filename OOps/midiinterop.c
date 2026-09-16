@@ -152,7 +152,12 @@ int32_t midipitchbend(CSOUND *csound, MIDIPITCHBEND *p)
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
-    scale = (*p->hhigh - *p->olow) * dv127;
+    /* Pitch bend is already bipolar and normalized. Explicit scales follow
+       pchbend. Preserve the old scaling when the upper argument is omitted:
+       existing scores and the manual's example rely on the default output. */
+    scale = *p->hhigh - *p->olow;
+    if (p->INOCOUNT < 3)
+      scale *= dv127;
     *p->xpitchbend = *p->olow + p->h.insdshead->m_chnbp->pchbend * scale;
     return OK;
 }
