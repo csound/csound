@@ -348,15 +348,15 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.lodiv = (MYFLT)strtol(s1, &endptr, 10);
+      header.lodiv = (MYFLT)csound->Strtod(s1, &endptr);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.cvtbas = (MYFLT)strtol(s1, &endptr, 10);
+      header.cvtbas = (MYFLT)csound->Strtod(s1, &endptr);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.cpscvt = (MYFLT)strtol(s1, &endptr, 10);
+      header.cpscvt = (MYFLT)csound->Strtod(s1, &endptr);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))) { goto err4; }
       s1 = strchr(s, ' ')+1;
@@ -566,9 +566,10 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
         fprintf(file,"lenmask: %d\n", ftp->lenmask);
         fprintf(file,"lobits: %d\n",ftp->lobits);
         fprintf(file,"lomask: %d\n",ftp->lomask);
-        fprintf(file,"lodiv: %f\n",ftp->lodiv);
-        fprintf(file,"cvtbas: %f\n",ftp->cvtbas);
-        fprintf(file,"cpscvt: %f\n",ftp->cpscvt);
+        /* Keep enough digits to round-trip double-precision MYFLT values. */
+        fprintf(file,"lodiv: %.17g\n",ftp->lodiv);
+        fprintf(file,"cvtbas: %.17g\n",ftp->cvtbas);
+        fprintf(file,"cpscvt: %.17g\n",ftp->cpscvt);
         fprintf(file,"loopmode1: %d\n", (int32_t) ftp->loopmode1);
         fprintf(file,"loopmode2: %d\n", (int32_t) ftp->loopmode2);
         fprintf(file,"begin1: %d\n",ftp->begin1);
@@ -580,12 +581,12 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
         fprintf(file,"nchnls: %d\n",ftp->nchanls);
         fprintf(file,"fno: %d\n",ftp->fno);
 
-        fprintf(file,"gen01args.gen01: %f\n",ftp->gen01args.gen01);
-        fprintf(file,"gen01args.ifilno: %f\n",ftp->gen01args.ifilno);
-        fprintf(file,"gen01args.iskptim: %f\n",ftp->gen01args.iskptim);
-        fprintf(file,"gen01args.iformat: %f\n",ftp->gen01args.iformat);
-        fprintf(file,"gen01args.channel: %f\n",ftp->gen01args.channel);
-        fprintf(file,"gen01args.sample_rate: %f\n",
+        fprintf(file,"gen01args.gen01: %.17g\n",ftp->gen01args.gen01);
+        fprintf(file,"gen01args.ifilno: %.17g\n",ftp->gen01args.ifilno);
+        fprintf(file,"gen01args.iskptim: %.17g\n",ftp->gen01args.iskptim);
+        fprintf(file,"gen01args.iformat: %.17g\n",ftp->gen01args.iformat);
+        fprintf(file,"gen01args.channel: %.17g\n",ftp->gen01args.channel);
+        fprintf(file,"gen01args.sample_rate: %.17g\n",
                 ftp->gen01args.sample_rate);
         /* WARNING! skips ftp->gen01args.strarg from saving/loading in
            text format */
@@ -593,7 +594,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
 
         for (j = 0; j <= flen; j++) {
           MYFLT val = table[j];
-          fprintf(file,"%f\n",val);
+          fprintf(file,"%.17g\n",val);
         }
         fprintf(file,"---------END OF TABLE---------------\n");
       }
@@ -613,6 +614,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
  err3:
   return err_func(csound, &(p->h), "%s", Str("ftsave: unable to open file"));
  err4:
+  csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
   return err_func(csound, &(p->h), "%s", Str("ftsave: failed to write file"));
 }
 
