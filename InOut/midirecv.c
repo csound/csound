@@ -378,7 +378,7 @@ void m_chn_init_all(CSOUND *csound)
            csound->engineState.instrtxtp[defaultinsno] == NULL);
     if (defaultinsno > (int32_t) csound->engineState.maxinsno)
       defaultinsno = 0;         /* no instruments */
-    for (chan = (int16_t) 0; chan < (int16_t) MIDIMAXPORTS; chan++) {
+    for (chan = (int16_t) 0; chan < (int16_t) (MIDIMAXPORTS * MAXCHAN); chan++) {
       /* alloc a midi control blk for midi channel */
       /*  & assign default instrument number       */
       csound->m_chnbp[chan] =
@@ -579,7 +579,7 @@ int32_t sens_midi(CSOUND *csound)
             MIDI backend modules can now insert a port number coded in
             this way to allow for separate mapping of devices
           */
-          int32_t port = *(p->bufp++) & 0x0F;
+          int32_t port = *(p->bufp++) & 0x7F;
           if(port >= MIDIMAXPORTS) {
             csoundWarning(csound, Str("port: %d exceeds max number of ports %d"
                                       ", mapping to port 0"), port, MIDIMAXPORTS);
