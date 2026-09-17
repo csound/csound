@@ -81,7 +81,7 @@
  *      knum -- Integer output.
  */
 
-#include <time.h>
+#include <cmath>
 #include <plugin.h>
 
 struct LFSR : csnd::Plugin<1, 3> {
@@ -91,16 +91,18 @@ struct LFSR : csnd::Plugin<1, 3> {
     uint8_t length_;
     uint8_t probability_;
     uint32_t shift_register_;
+    int32_t random_;
 
     uint32_t _process() {
         uint32_t shift_register = shift_register_;
+        CSOUND *engine = csound->get_csound();
 
         // Toggle LSB; there might be better random options
-        if (255 == probability_ || static_cast<uint8_t>((rand() % (255 + 1)) < probability_)) {
+        if (255 == probability_ || (engine->Rand31(&random_) % 256) < probability_) {
             shift_register ^= 0x1;
         }
 
-        uint32_t lsb_mask = 0x1 << (length_ - 1);
+        uint32_t lsb_mask = 0x1u << (length_ - 1);
         if (shift_register & 0x1) {
             shift_register = (shift_register >> 1) | lsb_mask;
         } else {
@@ -109,7 +111,8 @@ struct LFSR : csnd::Plugin<1, 3> {
 
         // hack... don't turn all zero ...
         if (!shift_register) {
-            shift_register |= ((rand() % (0x2 + 1)) << (length_ - 1));
+            shift_register |= (static_cast<uint32_t>(engine->Rand31(&random_) % 3)
+                               << (length_ - 1));
         }
 
         shift_register_ = shift_register;
@@ -117,11 +120,22 @@ struct LFSR : csnd::Plugin<1, 3> {
     }
 
     int32_t init() {
-      srand((uint32_t) time(NULL));
-
-        length_ = inargs[0];
-        probability_ = inargs[1];
-        shift_register_ = in_count() == 3 ? inargs[2] : 0xffffffff;
+        if (!(inargs[0] >= 1 && inargs[0] < 32))
+            return csound->init_error("lfsr: register length must be 1 to 31");
+        if (!(inargs[1] >= 1 && inargs[1] < 256))
+            return csound->init_error("lfsr: probability must be 1 to 255");
+        double seed = in_count() == 3 ? static_cast<double>(inargs[2]) : -1.0;
+        if (!std::isfinite(seed))
+            return csound->init_error("lfsr: seed must be finite");
+        // Convert bit patterns modulo 2^32, including the documented -1.
+        // Keep the conversion in double precision even in float builds.
+        seed = std::fmod(std::trunc(seed), 4294967296.0);
+        if (seed < 0) seed += 4294967296.0;
+        length_ = static_cast<uint8_t>(inargs[0]);
+        probability_ = static_cast<uint8_t>(inargs[1]);
+        shift_register_ = static_cast<uint32_t>(seed);
+        CSOUND *engine = csound->get_csound();
+        random_ = engine->Rand31(engine->RandSeed31(engine));
 
         return OK;
     }
