@@ -23,6 +23,7 @@
 #include "csoundCore.h" /*                                      AOPS.C  */
 #include "aops.h"
 #include "arrays.h"
+#include "arrays_internal.h"
 #include <math.h>
 #include <time.h>
 
@@ -1590,6 +1591,10 @@ int32_t inarray_set(CSOUND *csound, INA *p){
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
                              "local sampling rate not supported\n");
+  /* Reused instances may now need more samples per array element. */
+  if (p->tabout->data != NULL &&
+      (size_t)p->tabout->arrayMemberSize < CS_KSMPS * sizeof(MYFLT))
+    csound_free_array_storage(csound, p->tabout);
   if (UNLIKELY(tabinit(csound, p->tabout, csound->inchnls,
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
@@ -1603,7 +1608,7 @@ int32_t inarray(CSOUND *csound, INA *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t m, nsmps =CS_KSMPS, i;
-  uint32_t ksmps = nsmps;
+  size_t ksmps = p->tabout->arrayMemberSize / sizeof(MYFLT);
 
   if ((int32_t)n>csound->inchnls) n = csound->inchnls;
   CSOUND_SPIN_SPINLOCK
@@ -1938,7 +1943,7 @@ int32_t inall_opcode(CSOUND *csound, INALL *p)
 
 inline static int32_t outn(CSOUND *csound, uint32_t k,
                            uint32_t n, MYFLT **asig,
-                           INSDS *p, MYFLT *arr)
+                           INSDS *p, ARRAYDAT *arr)
 {
   uint32_t nsmps = p->ksmps, ksmps = csound->ksmps,  i, j;
   MYFLT *spout = p->spout;
@@ -1948,9 +1953,9 @@ inline static int32_t outn(CSOUND *csound, uint32_t k,
   n -= k;
   k *= ksmps;
   for (i=0; i<n; i++) {
-    // input comes from array of asigs
-    // or ksmps-interleaved audio array
-    MYFLT *p = asig ? asig[i] : &arr[k];
+    /* The source array stride may differ from the global output stride. */
+    MYFLT *p = asig ? asig[i] :
+      (MYFLT *)((char *)arr->data + (size_t)i * arr->arrayMemberSize);
     for (j=offset; j < early; j++) {
       spout[k+j] += p[j];
     }
@@ -2004,15 +2009,17 @@ int32_t outq4(CSOUND *csound, OUTM *p)
 int32_t outch(CSOUND *csound, OUTCH *p)
 {
   uint32_t count = p->INOCOUNT, n, ch, nchnls = csound->nchnls;
-  int32_t ret;
+  int32_t ret = OK;
   if (UNLIKELY((count&1)!=0))
     return csound->PerfError(csound, &(p->h),
              Str("outch must have an even number of arguments"));
   for(n=0; n < count; n+=2) {
-    ch = (int32_t) *p->args[n] - 1;
-    if (ch < nchnls)
+    MYFLT channel = *p->args[n];
+    if (channel >= FL(1.0) && (double)channel < (double)nchnls + 1) {
+      ch = (uint32_t)channel - 1;
       ret = outn(csound, ch, ch+1, &p->args[n+1],
                  p->h.insdshead, NULL);
+    }
   }
   return ret;
 }
@@ -2050,7 +2057,6 @@ int32_t outarr_init(CSOUND *csound, OUTARRAY *p)
 int32_t outarr(CSOUND *csound, OUTARRAY *p)
 {
   uint32_t n = p->tabin->sizes[0];
-  MYFLT *data = p->tabin->data;
   int32_t ret;
   if (n>csound->nchnls) {
     if (p->nowarn==0) {
@@ -2061,7 +2067,7 @@ int32_t outarr(CSOUND *csound, OUTARRAY *p)
     n = csound->nchnls;
     p->nowarn = 1;
   }
-  ret = outn(csound, 0, n, NULL, p->h.insdshead, data);
+  ret = outn(csound, 0, n, NULL, p->h.insdshead, p->tabin);
   return ret;
 }
 
