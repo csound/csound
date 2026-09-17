@@ -13,7 +13,7 @@ exit = 0
 sr = 1024
 ksmps = 16
 nchnls = 1
-gkFinalCycle init 0
+gkCyclesRendered init 0
 
 instr 1
   kBefore lastcycle
@@ -23,19 +23,21 @@ instr 1
   kAfter lastcycle
 
   ; Both placements must produce 0 on every cycle except the final one.
-  kCycle timeinstk
-  kExpected = (kCycle == 12 ? 1 : 0)
+  ; Cycle indices start at zero.
+  kCycleIndex eventcycles
+  kExpected = (kCycleIndex == 11 ? 1 : 0)
   if kBefore != kExpected || kAfter != kExpected then
-    printks "p3 extension: cycle %g, expected %g, before %g, after %g\n", 0, kCycle, kExpected, kBefore, kAfter
+    printks "p3 extension: cycle index %g, expected pulse %g, before %g, after %g\n", 0, kCycleIndex, kExpected, kBefore, kAfter
     exitnowk -1
   endif
-  gkFinalCycle = kCycle
+  ; Include the current cycle in the total.
+  gkCyclesRendered = kCycleIndex + 1
 endin
 
 instr 99
   ; Check after the note ends, so an early or late note end cannot pass.
-  if i(gkFinalCycle) != 12 then
-    prints "Expected the note to end on cycle %g, got %g\n", 12, i(gkFinalCycle)
+  if i(gkCyclesRendered) != 12 then
+    prints "Expected %g rendered cycles, got %g\n", 12, i(gkCyclesRendered)
     exitnow -1
   endif
 endin
