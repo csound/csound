@@ -146,9 +146,11 @@ TEST_P(DctTests, MatrixOutputReportsError)
   run("kIn[] init 4\nkOut[] init 2,2\nkOut dctinv kIn", {}, "expected one-dimensional arrays");
 }
 
-INSTANTIATE_TEST_SUITE_P(Backends, DctTests, ::testing::Values(0, 1
+const int dctBackends[] = {0, 1
 #ifdef __MACH__
-                                                           , 2
+                         , 2
 #endif
-                                                           ));
+};
+
+INSTANTIATE_TEST_SUITE_P(Backends, DctTests, ::testing::ValuesIn(dctBackends));
 }
