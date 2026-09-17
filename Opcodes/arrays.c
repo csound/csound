@@ -1243,52 +1243,56 @@ static int32_t unwrap(CSOUND *csound, UNWRAP *p) {
 }
 
 
-static int32_t init_dct(CSOUND *csound, FFT *p) {
-  if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
-  int32_t   N = p->in->sizes[0];
-  if (UNLIKELY(p->in->dimensions > 1))
+static int32_t init_dct_common(CSOUND *csound, FFT *p, int32_t direction) {
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->out->dimensions > 1))
     return csound->InitError(csound, "%s",
-                             Str("dct: only one-dimensional arrays allowed"));
+                            Str("dct/dctinv: expected one-dimensional arrays"));
+  int32_t N = p->in->sizes[0];
+  /* DCT uses a real FFT of length 4*N, whose largest supported size is 2^28. */
+  if (UNLIKELY(N < 1 || N > (1 << 26) || (N & (N - 1))))
+    return csound->InitError(csound, "%s",
+                            Str("dct/dctinv: size must be a power of two "
+                                "between 1 and 2^26"));
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
-  p->setup =  csound->DCTSetup(csound,N,FFT_FWD);
+  p->n = N;
+  p->setup = csound->DCTSetup(csound, N, direction);
   return OK;
 }
 
+static int32_t init_dct(CSOUND *csound, FFT *p) {
+  return init_dct_common(csound, p, FFT_FWD);
+}
+
+static int32_t init_dctinv(CSOUND *csound, FFT *p) {
+  return init_dct_common(csound, p, FFT_INV);
+}
+
 static int32_t kdct(CSOUND *csound, FFT *p) {
-  // FIXME: IF N changes value do we need a check
-  int32_t N = p->out->sizes[0];
-  memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
-  csound->DCT(csound,p->setup,p->out->data);
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->out->dimensions != 1))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("dct/dctinv: expected one-dimensional arrays"));
+  if (UNLIKELY(p->in->sizes[0] != p->n))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("dct/dctinv: input size changed; "
+                                "reinitialise the opcode"));
+  if (UNLIKELY(tabcheck(csound, p->out, p->n, &p->h) != OK))
+    return NOTOK;
+  memmove(p->out->data, p->in->data, (size_t)p->n * sizeof(MYFLT));
+  csound->DCT(csound, p->setup, p->out->data);
   return OK;
 }
 
 static int32_t dct(CSOUND *csound, FFT *p) {
-  if (!init_dct(csound,p)) {
-    kdct(csound,p);
-    return OK;
-  } else return NOTOK;
-}
-
-static int32_t init_dctinv(CSOUND *csound, FFT *p) {
-  if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
-  int32_t   N = p->in->sizes[0];
-  if (UNLIKELY(p->in->dimensions > 1))
-    return csound->InitError(csound, "%s",
-                             Str("dctinv: only one-dimensional arrays allowed"));
-  if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
-    return csound_array_init_resize_error(csound);
-  p->setup =  csound->DCTSetup(csound,N,FFT_INV);
-  return OK;
+  if (init_dct(csound, p) != OK) return NOTOK;
+  return kdct(csound, p);
 }
 
 static int32_t dctinv(CSOUND *csound, FFT *p) {
-  if (LIKELY(!init_dctinv(csound,p))) {
-    kdct(csound,p);
-    return OK;
-  } else return NOTOK;
+  if (init_dctinv(csound, p) != OK) return NOTOK;
+  return kdct(csound, p);
 }
 
 static int32_t perf_pows(CSOUND *csound, FFT *p) {
