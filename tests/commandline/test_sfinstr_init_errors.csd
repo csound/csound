@@ -8,7 +8,7 @@ stderr = ["invalid soundfont", "instrument out of range", "too many matching sam
 <CsOptions>
 -n -d -m0
 </CsOptions>
-<CsFileB filename="sfinstr-envelope.sf2">
+<CsFileB filename="sfinstr-init-errors.sf2">
 UklGRtQHAABzZmJrTElTVDwAAABJTkZPaWZpbAQAAAACAAEAaXNuZwgAAABFTVU4MDAwAElOQU0U
 AAAARW52ZWxvcGUgcmVncmVzc2lvbgBMSVNUaAIAAHNkdGFzbXBsXAIAAAAQABAAEAAQABAAEAAQ
 ABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAA
@@ -50,7 +50,7 @@ AQAAAAEAAAAEAAAAAAAAAQA=
 sr=1024
 ksmps=32
 nchnls=1
-giFont sfload "sfinstr-envelope.sf2"
+giFont sfload "sfinstr-init-errors.sf2"
 sfpassign 0, giFont, 0
 instr 1
  aL,aR sfinstr 100,60,1,0,p4,p5
