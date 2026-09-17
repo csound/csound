@@ -1276,6 +1276,7 @@ else()
         Opcodes/padsynth_gen.cpp
         Opcodes/pvsops.cpp
         Opcodes/signalflowgraph.cpp
+        Opcodes/tl/fractalnoise.cpp
         Opcodes/trigEnvSegs.cpp)
 endif()
 
