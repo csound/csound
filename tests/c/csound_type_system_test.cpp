@@ -636,3 +636,52 @@ TEST_F (TypeSystemTests, testStructuredArrayCopyAndWriteClaimAreSerialized)
 //    CU_ASSERT_PTR_EQUAL(var, var2);
 //    
 //}
+
+TEST_F(TypeSystemTests, StringCopiesUseTheCallingInstrumentCycle)
+{
+    const CS_TYPE* type = csound->GetType(csound, "S");
+    INSDS local{};
+    local.kcounter = 17;
+    csound->kcounter = 3;
+    STRINGDAT source{const_cast<char*>("short"), 6, 0, -1};
+    STRINGDAT destination{};
+
+    type->copyValue(csound, type, &destination, &source, &local);
+    EXPECT_STREQ("short", destination.data);
+    EXPECT_EQ(17, destination.timestamp);
+
+    source.data = const_cast<char*>("a longer string");
+    source.size = 16;
+    local.kcounter++;
+    type->copyValue(csound, type, &destination, &source, &local);
+    EXPECT_STREQ("a longer string", destination.data);
+    EXPECT_EQ(18, destination.timestamp);
+
+    source.data = const_cast<char*>("");
+    source.size = 1;
+    local.kcounter++;
+    type->copyValue(csound, type, &destination, &source, &local);
+    EXPECT_STREQ("", destination.data);
+    EXPECT_EQ(19, destination.timestamp);
+
+    local.kcounter++;
+    type->copyValue(csound, type, &destination, &destination, &local);
+    EXPECT_EQ(20, destination.timestamp);
+    csound->Free(csound, destination.data);
+}
+
+TEST_F(TypeSystemTests, StringCopiesWithoutInstrumentUseTheGlobalCycle)
+{
+    const CS_TYPE* type = csound->GetType(csound, "S");
+    csound->kcounter = 3;
+    STRINGDAT source{const_cast<char*>("text"), 5, 0, -1};
+    STRINGDAT destination{};
+
+    type->copyValue(csound, type, &destination, &source, nullptr);
+    EXPECT_STREQ("text", destination.data);
+    EXPECT_EQ(3, destination.timestamp);
+    csound->kcounter++;
+    type->copyValue(csound, type, &destination, &destination, nullptr);
+    EXPECT_EQ(4, destination.timestamp);
+    csound->Free(csound, destination.data);
+}
