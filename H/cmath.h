@@ -43,7 +43,7 @@ typedef struct  {
         MYFLT   *ar, *arg1, *xamp, *xcps;
         MYFLT   *iseed;
         MYFLT   dfdmax, num1, num2;
-        int32_t   phs;
+        uint32_t  phs;
         int32_t     ampcod, cpscod;
 } PRANDI;
 
