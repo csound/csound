@@ -34,9 +34,6 @@
 #include "csound_standard_types.h"
 #include "fgens.h"
 
-void csoundInputMessage(CSOUND *, const char *);
-void sense_line(CSOUND *csound, void *userData);
-
 MYFLT named_instr_find(CSOUND *csound, char *s);
 static const char *errmsg_1 =
   Str_noop("event: param 1 must be"
@@ -379,86 +376,85 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
 
 
 
-/* from aops.h */
-int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
+/* Keep string p-fields in the event, without converting numbers to text. */
+static int32_t schedule_string_event(CSOUND *csound, SCHED *p, MYFLT insno)
+{
+    EVTBLK evt = {0};
+    MYFLT pfields[VARGMAX];
+    size_t bytes = 1;
+    int32_t i, result;
+    char *next;
 
-static void add_string_arg(char *s, const char *arg) {
-  int32_t offs = (int32_t) strlen(s) ;
-  //char *c = s;
-  s += offs;
-  *s++ = ' ';
-
-  *s++ ='\"';
-  while(*arg != '\0') {
-    if(*arg == '\"')
-      *s++ = '\\';
-    *s++ = *arg++;
-  }
-
-  *s++ = '\"';
-  *s = '\0';
-  //printf("%s \n", c);
+    evt.opcod = 'i';
+    evt.pcnt = p->INOCOUNT;
+    pfields[0] = insno;
+    pfields[1] = *p->when;
+    pfields[2] = *p->dur;
+    for (i = 3; i < evt.pcnt; ++i) {
+      MYFLT *arg = p->argums[i - 3];
+      if (GetTypeForArg(arg) == &CS_VAR_TYPE_S) {
+        size_t length = strlen(((STRINGDAT *) arg)->data) + 1;
+        if (UNLIKELY(length > SIZE_MAX - bytes))
+          return CSOUND_MEMORY;
+        bytes += length;
+      }
+    }
+    evt.strarg = csound->Malloc(csound, bytes);
+    if (UNLIKELY(evt.strarg == NULL))
+      return CSOUND_MEMORY;
+    next = evt.strarg;
+    for (i = 3; i < evt.pcnt; ++i) {
+      MYFLT *arg = p->argums[i - 3];
+      if (GetTypeForArg(arg) == &CS_VAR_TYPE_S) {
+        const char *text = ((STRINGDAT *) arg)->data;
+        size_t length = strlen(text) + 1;
+        /* Use the same string indices as score events. */
+        union {
+          MYFLT value;
+          int32_t word[sizeof(MYFLT) / sizeof(int32_t)];
+        } code;
+        code.value = SSTRCOD;
+#ifdef USE_DOUBLE
+        code.word[(byte_order() + 1) & 1] += evt.scnt++;
+#else
+        code.word[0] += evt.scnt++;
+#endif
+        pfields[i] = code.value;
+        memcpy(next, text, length);
+        next += length;
+      }
+      else
+        pfields[i] = *arg;
+    }
+    *next = '\0';
+    result = insert_event_at_sample(csound, &evt, pfields,
+                                    csound->icurTimeSamples);
+    csound->Free(csound, evt.strarg);
+    return result;
 }
-
-void sensLine(CSOUND *csound, void *userData);
 
 int32_t schedule_N(CSOUND *csound, SCHED *p)
 {
-    int32_t i;
-    MYFLT insno = *p->which;
-    int32_t argno = p->INOCOUNT+1;
-    char s[16384], sf[64];
-    if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR) {
+    MYFLT insno;
+    CS_TYPE *type = GetTypeForArg(p->which);
+    if (type == &CS_VAR_TYPE_INSTR) {
       INSTREF *ref = (INSTREF *) p->which;
       insno = (MYFLT) instr_num(csound, ref->instr);
-    } else if (GetTypeForArg(p->which) != &CS_VAR_TYPE_I &&
-           GetTypeForArg(p->which) != &CS_VAR_TYPE_C &&
-           GetTypeForArg(p->which) != &CS_VAR_TYPE_P)
-      return csound->InitError(csound, "instrument argument invalid\n");
-
-    snprintf(s, 16384, "i %f %f %f", insno, *p->when, *p->dur);
-    for (i=4; i < argno ; i++) {
-       MYFLT *arg = p->argums[i-4];
-       if (csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S) {
-           add_string_arg(s, ((STRINGDAT *)arg)->data);
-       }
-       else {
-         snprintf(sf, 64, " %f", *arg);
-         if(strlen(s) < 16384)
-          strncat(s, sf, 16384-strlen(s));
-       }
     }
-
-    csoundInputMessage(csound, s);
-    sense_line(csound, NULL);
-    return OK;
+    else if (type == &CS_VAR_TYPE_I || type == &CS_VAR_TYPE_C ||
+             type == &CS_VAR_TYPE_P || type == &CS_VAR_TYPE_K)
+      insno = *p->which;
+    else
+      return csound->InitError(csound, "instrument argument invalid\n");
+    return schedule_string_event(csound, p, insno);
 }
 
 int32_t schedule_SN(CSOUND *csound, SCHED *p)
 {
-    int32_t i;
-    int32_t argno = p->INOCOUNT+1;
-    // compensate for sensline happening at the end of kcycle
-    MYFLT when = *p->when < 1/csound->ekr ?
-      *p->when : *p->when - 1/csound->ekr;
-    char s[16384], sf[64];
-    snprintf(s, 16384, "i \"%s\" %f %f", ((STRINGDAT *)p->which)->data, when, *p->dur);
-    for (i=4; i < argno ; i++) {
-       MYFLT *arg = p->argums[i-4];
-        if (csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
-           add_string_arg(s, ((STRINGDAT *)arg)->data);
-        else {
-         snprintf(sf, 64, " %f", *arg);
-         if(strlen(s) < 16384)
-          strncat(s, sf, 16384-strlen(s));
-       }
-    }
-
-    csoundInputMessage(csound, s);
-    sense_line(csound, NULL);
-    return OK;
+    MYFLT insno = named_instr_find(csound, ((STRINGDAT *) p->which)->data);
+    if (UNLIKELY(insno == FL(0.0))) return NOTOK;
+    return schedule_string_event(csound, p, insno);
 }
-
 
 
 int32_t ifschedule(CSOUND *csound, WSCHED *p)

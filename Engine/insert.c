@@ -955,7 +955,6 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
   int32_t  n, error = 0;
   INSTANCE_INIT_RESULT initResult;
   MYFLT  *flp, *fep;
-  MYFLT newp1 = 0;
 
   if (UNLIKELY(csound->advanceCnt))
     return 0;
@@ -998,11 +997,6 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       return(0);
     }
   }
-  /* If named ensure we have the fraction */
-  if (csound->engineState.instrtxtp[insno]->insname && newevtp->strarg)
-    newp1 = named_instr_find(csound, newevtp->strarg);
-
-  newevtp->p[1] = newp1 != 0 ? newp1 : newevtp->p[1];
   /* if find this insno, active, with indef (tie) & matching p1
      and tie was not suppressed */
   for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
