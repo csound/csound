@@ -1824,61 +1824,67 @@ typedef struct {
 static int32_t
 ftset_init(CSOUND *csound, FTSET *p) {
     IGN(csound);
-    p->lastTabnum = -1;
+    p->tab = NULL;
     return OK;
 }
 
 static int32_t
-ftset_common(CSOUND *csound, FTSET *p) {
-    IGN(csound);
-    FUNC *tab = p->tab;
-    MYFLT *data = tab->ftable;
-    int32_t tablen = tab->flen;
-    int32_t start = (int32_t)*p->kstart;
-    int32_t end = (int32_t)*p->kend;
-    int32_t step = (int32_t)*p->kstep;
+ftset_common(CSOUND *csound, FTSET *p, int32_t init) {
+    double number = (double)*p->tabnum;
+    if (UNLIKELY(!(number >= INT32_MIN && number <= INT32_MAX)))
+        return init ? INITERR(Str("ftset: table number out of range"))
+                    : PERFERR(Str("ftset: table number out of range"));
+    /* Use the same rounding as FTFind when caching the table number. */
+    int32_t tabnum = MYFLT2LONG(*p->tabnum);
+    if (p->tab == NULL || tabnum != p->lastTabnum) {
+        p->tab = csound->FTFind(csound, p->tabnum);
+        if (UNLIKELY(p->tab == NULL))
+            return init ? INITERRF(Str("Table %g not found"), *p->tabnum)
+                        : PERFERRF(Str("Table %g not found"), *p->tabnum);
+        p->lastTabnum = tabnum;
+    }
+    MYFLT *data = p->tab->ftable;
+    int32_t tablen = p->tab->flen;
+    double startval = (double)*p->kstart;
+    double endval = (double)*p->kend;
+    double stepval = (double)*p->kstep;
+    if (UNLIKELY(!(startval >= 0 && startval <= tablen &&
+                   endval >= -tablen && endval < (double)INT32_MAX + 1 &&
+                   stepval >= 1 && stepval < (double)INT32_MAX + 1)))
+        return init ? INITERR(Str("ftset: invalid slice bounds or step"))
+                    : PERFERR(Str("ftset: invalid slice bounds or step"));
+    int32_t start = (int32_t)startval;
+    int32_t end = (int32_t)endval;
+    int32_t step = (int32_t)stepval;
     MYFLT value = *p->value;
 
-    if(end <= 0)
-        end += tab->flen;
-    else if(end > tablen)
+    if (end <= 0)
+        end += tablen;
+    else if (end > tablen)
         end = tablen;
+    if (start >= end)
+        return OK;
 
-    if(step == 1 && value == 0) {
-        // special case: clear the table, use memset
+    if (step == 1 && value == 0) {
         memset(data + start, '\0', sizeof(MYFLT) * (end - start));
         return OK;
     }
 
-    for(int32_t i=start; i<end; i+=step) {
+    /* The final increment can exceed INT32_MAX even for a valid slice. */
+    for (int64_t i = start; i < end; i += step)
         data[i] = value;
-    }
     return OK;
 }
 
 static int32_t
 ftset_k(CSOUND *csound, FTSET *p) {
-    int32_t tabnum = (int)(*p->tabnum);
-    FUNC *tab;
-    if(UNLIKELY(tabnum != p->lastTabnum)) {
-        tab = csound->FTFind(csound, p->tabnum);
-        if(UNLIKELY(tab == NULL))
-            return PERFERRF(Str("Table %d not found"), tabnum);
-        p->tab = tab;
-        p->lastTabnum = tabnum;
-    } else if(UNLIKELY(p->tab == NULL))
-        return PERFERR(Str("Table not set"));
-
-    return ftset_common(csound, p);
+    return ftset_common(csound, p, 0);
 }
 
 static int32_t
 ftset_i(CSOUND *csound, FTSET *p) {
-    FUNC *tab = csound->FTFind(csound, p->tabnum);
-    if(UNLIKELY(tab == NULL))
-        return INITERRF(Str("Table %d not found"), (int)(*p->tabnum));
-    p->tab = tab;
-    return ftset_common(csound, p);
+    ftset_init(csound, p);
+    return ftset_common(csound, p, 1);
 }
 
 /*
