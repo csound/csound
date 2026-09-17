@@ -2645,6 +2645,17 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
 
   /* ---- delayk and vdel_k opcodes ---- */
 
+  /* Both delay lines include one slot for the current input value. */
+  static int32_t delayk_npts(MYFLT delay, MYFLT kr)
+  {
+    double samples = (double)(delay * kr) + 1.5;
+    size_t maxpts = SIZE_MAX / sizeof(MYFLT);
+    if (maxpts > INT32_MAX) maxpts = INT32_MAX;
+    if (!(delay >= FL(0.0) && samples < (double)maxpts + 1.0))
+      return 0;
+    return (int32_t)samples;
+  }
+
   static int32_t delaykset(CSOUND *csound, DELAYK *p)
   {
     int32_t npts, mode = (int32_t) MYFLT2LONG(*p->imode) & 3;
@@ -2652,15 +2663,15 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
     if (mode & 1) return OK;            /* skip initialisation */
     p->mode = mode;
     /* calculate delay time */
-    npts = (int32_t) (*p->idel * CS_EKR + FL(1.5));
+    npts = delayk_npts(*p->idel, CS_EKR);
     if (UNLIKELY(npts < 1))
-      return csound->InitError(csound, "%s", Str("delayk: invalid delay time "
-                                           "(must be >= 0)"));
+      return csound->InitError(csound, "%s", Str("delayk: delay time is negative or too large"));
     p->readp = 0; p->npts = npts;
     /* allocate space for delay buffer */
+    size_t nbytes = (size_t)npts * sizeof(MYFLT);
     if (p->aux.auxp == NULL ||
-        (uint32_t)(npts * sizeof(MYFLT)) > p->aux.size) {
-      csound->AuxAlloc(csound, (int32) (npts * sizeof(MYFLT)), &p->aux);
+        nbytes > p->aux.size) {
+      csound->AuxAlloc(csound, nbytes, &p->aux);
     }
     p->init_k = npts - 1;
     return OK;
@@ -2677,7 +2688,8 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
     if (p->readp >= p->npts)
       p->readp = 0;                         /* wrap index */
     if (p->init_k) {
-      *(p->ar) = (p->mode & 2 ? *(p->ksig) : FL(0.0));  /* initial delay */
+      /* Slot zero holds the first input until this initial delay ends. */
+      *(p->ar) = (p->mode & 2 ? buf[0] : FL(0.0));
       p->init_k--;
     }
     else
@@ -2693,15 +2705,15 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
       return OK;                /* skip initialisation */
     p->mode = mode;
     /* calculate max. delay time */
-    npts = (int32_t) (*p->imdel * CS_EKR + FL(1.5));
+    npts = delayk_npts(*p->imdel, CS_EKR);
     if (UNLIKELY(npts < 1))
-      return csound->InitError(csound, "%s", Str("vdel_k: invalid max delay time "
-                                           "(must be >= 0)"));
+      return csound->InitError(csound, "%s", Str("vdel_k: maximum delay time is negative or too large"));
     p->wrtp = 0; p->npts = npts;
     /* allocate space for delay buffer */
+    size_t nbytes = (size_t)npts * sizeof(MYFLT);
     if (p->aux.auxp == NULL ||
-        (uint32_t)(npts * sizeof(MYFLT)) > p->aux.size) {
-      csound->AuxAlloc(csound, (int32) (npts * sizeof(MYFLT)), &p->aux);
+        nbytes > p->aux.size) {
+      csound->AuxAlloc(csound, nbytes, &p->aux);
     }
     p->init_k = npts;           /* not -1 this time ! */
     return OK;
@@ -2715,13 +2727,13 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
     if (UNLIKELY(!buf))
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("vdel_k: not initialised"));
+    /* Round like delayk, and check the range before converting to an index. */
+    double samples = (double)(*p->kdel * CS_EKR) + 0.5;
+    if (UNLIKELY(!(*p->kdel >= FL(0.0) && samples < npts)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("vdel_k: delay time outside buffer range"));
+    n = (int32_t)samples;
     buf[p->wrtp] = *(p->ksig);              /* write input signal to buffer */
-    /* calculate delay time */
-    n = (int32_t) MYFLT2LONG(*(p->kdel) * CS_EKR);
-    if (UNLIKELY(n < 0))
-      return csound->PerfError(csound, &(p->h),
-                               "%s", Str("vdel_k: invalid delay time "
-                                   "(must be >= 0)"));
     n = p->wrtp - n;
     if (++p->wrtp >= npts) p->wrtp = 0;         /* wrap index */
     if (p->init_k) {
@@ -2736,7 +2748,7 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
       p->init_k--;
     }
     else {
-      while (n < 0) n += npts;
+      if (n < 0) n += npts;
       *(p->ar) = buf[n];                        /* read output signal */
     }
     return OK;
