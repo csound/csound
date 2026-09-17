@@ -148,7 +148,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             build-essential cmake ninja-build python3 libgtest-dev \
-            libsndfile1-dev bison flex gettext
+            libsndfile1-dev libasound2-dev bison flex gettext
 
       - name: Configure 64-bit float build
         env:
