@@ -56,6 +56,16 @@ static const MYFLT bicoefs[] = {
 
 #define rand_31(x) (x->Rand31(csound->RandSeed31(csound)) - 1)
 
+/* Clamp octave positions before forming pointers into the analysis arrays. */
+static int32_t pitch_bin(MYFLT octave, int32_t nfreqs, int32_t base,
+                         int32_t low, int32_t high)
+{
+    MYFLT bin = octave * nfreqs;
+    if (!(bin > base + low)) return low;
+    if (bin >= base + high) return high;
+    return (int32_t)bin - base;
+}
+
 int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
 {
     double  b;                          /* For RMS */
@@ -64,9 +74,9 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
     OCTDAT  *octp;
     DOWNDAT *dwnp = &p->downsig;
     SPECDAT *specp = &p->wsig;
-    int32   npts, nptls, nn, lobin;
+    int32   npts, nptls, nn;
     int32_t     *dstp, ptlmax;
-    MYFLT   fnfreqs, rolloff, *oct0p, *flop, *fhip, *fundp, *fendp, *fp;
+    MYFLT   fnfreqs, rolloff;
     MYFLT   weight, weightsum, dbthresh, ampthresh;
 
                                 /* RMS of input signal */
@@ -77,18 +87,18 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
                                 /* End of rms */
                                 /* Initialise spectrum */
     /* for mac roundoff */
-    p->timcount = (int32_t)(CS_EKR * *p->iprd + FL(0.001));
-    nocts = (int32_t)*p->iocts; if (UNLIKELY(nocts<=0)) nocts = 6;
-    nfreqs = (int32_t)*p->ifrqs; if (UNLIKELY(nfreqs<=0)) nfreqs = 12;
+    double period = CS_EKR * *p->iprd + 0.001;
+    if (UNLIKELY(!(period >= 1.0 && period <= INT32_MAX)))
+      return csound->InitError(csound, "%s", Str("illegal iprd"));
+    p->timcount = (int32_t)period;
+    if (UNLIKELY(!(*p->iocts < MAXOCTS + 1)))
+      return csound->InitError(csound, "%s", Str("illegal iocts"));
+    if (UNLIKELY(!(*p->ifrqs < MAXFRQS + 1)))
+      return csound->InitError(csound, "%s", Str("illegal ifrqs"));
+    nocts = *p->iocts < FL(1.0) ? 6 : (int32_t)*p->iocts;
+    nfreqs = *p->ifrqs < FL(1.0) ? 12 : (int32_t)*p->ifrqs;
     ncoefs = nocts * nfreqs;
     Q = *p->iq; if (UNLIKELY(Q<=FL(0.0))) Q = FL(15.0);
-
-    if (UNLIKELY(p->timcount <= 0))
-      return csound->InitError(csound, "%s", Str("illegal iprd"));
-    if (UNLIKELY(nocts > MAXOCTS))
-      return csound->InitError(csound, "%s", Str("illegal iocts"));
-    if (UNLIKELY(nfreqs > MAXFRQS))
-      return csound->InitError(csound, "%s", Str("illegal ifrqs"));
 
     if (nocts != dwnp->nocts ||
         nfreqs != p->nfreqs  || /* if anything has changed */
@@ -96,14 +106,11 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
       double      basfrq, curfrq, frqmlt, Qfactor;
       double      theta, a, windamp, onedws, pidws;
       MYFLT       *sinp, *cosp;
-      int32_t         k, sumk, windsiz, halfsiz, *wsizp, *woffp;
-      int32       auxsiz, bufsiz;
-      int32       majr, minr, totsamps;
+      int32_t     k, windsiz, halfsiz, *wsizp, *woffp;
+      int32_t     bufsiz, majr, minr;
+      int64_t     sumk, auxsiz, totsamps;
       double      hicps,locps,oct;      /*   must alloc anew */
 
-      p->nfreqs = nfreqs;
-      p->curq = Q;
-      p->ncoefs = ncoefs;
       dwnp->srate = CS_ESR;
       hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
       oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
@@ -114,7 +121,10 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
       Qfactor = Q * dwnp->srate;
       curfrq = basfrq;
       for (sumk=0,wsizp=p->winlen,woffp=p->offset,n=nfreqs; n--; ) {
-        *wsizp++ = k = (int32_t)(Qfactor/curfrq) | 01;  /* calc odd wind sizes */
+        double length = Qfactor / curfrq;
+        if (UNLIKELY(!(length >= 2.0 && length < INT32_MAX)))
+          return csound->InitError(csound, "%s", Str("illegal iq"));
+        *wsizp++ = k = (int32_t)length | 01;  /* calc odd wind sizes */
         *woffp++ = (*(p->winlen) - k) / 2;          /* & symmetric offsets */
         sumk += k;                                  /*    and find total   */
         curfrq *= frqmlt;
@@ -122,6 +132,12 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
       windsiz = *(p->winlen);
       auxsiz = (windsiz + 2*sumk) * sizeof(MYFLT);   /* calc lcl space rqd */
 
+      minr = windsiz >> 1;
+      majr = windsiz - minr;
+      totsamps = (int64_t)majr * nocts + ((int64_t)minr << nocts) - minr;
+      if (UNLIKELY(auxsiz > INT32_MAX ||
+                   totsamps > INT32_MAX / (int32_t)sizeof(MYFLT)))
+        return csound->InitError(csound, "%s", Str("pitch: analysis size too large"));
       csound->AuxAlloc(csound, (size_t)auxsiz, &p->auxch1); /* & alloc auxspace  */
 
       fltp = (MYFLT *) p->auxch1.auxp;
@@ -151,8 +167,7 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
       dwnp->nocts = nocts;
       minr = windsiz >> 1;                  /* sep odd windsiz into maj, min */
       majr = windsiz - minr;                /*      & calc totsamps reqd     */
-      totsamps = (majr*nocts) + (minr<<nocts) - minr;
-      DOWNset(csound, dwnp, totsamps);      /* csoundAuxalloc in DOWNDAT struct */
+      DOWNset(csound, dwnp, (int32_t)totsamps);      /* csoundAuxalloc in DOWNDAT struct */
       fltp = (MYFLT *) dwnp->auxch.auxp;    /*  & distrib to octdata */
       for (n=nocts,octp=dwnp->octdata+(nocts-1); n--; octp--) {
         bufsiz = majr + minr;
@@ -161,12 +176,17 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
       }
       SPECset(csound, specp, (int32)ncoefs);/* prep the spec dspace */
       specp->downsrcp = dwnp;               /*  & record its source */
+      p->nfreqs = nfreqs;
+      p->curq = Q;
+      p->ncoefs = ncoefs;
     }
     for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &  */
       octp->curp = octp->begp;
       memset(octp->feedback, '\0', 6*sizeof(MYFLT));
       octp->scount = 0;
     }
+    memset(dwnp->auxch.auxp, 0, dwnp->npts * sizeof(MYFLT));
+    memset(specp->auxch.auxp, 0, specp->npts * sizeof(MYFLT));
     specp->nfreqs = p->nfreqs;               /* save the spec descriptors */
     specp->dbout = 0;
     specp->ktimstamp = 0;                    /* init specdata to not new  */
@@ -180,8 +200,9 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
       p->winpts = npts;
     }
     if (UNLIKELY(*p->inptls<=FL(0.0))) nptls = 4;
-    else nptls = (int32)*p->inptls;
-    if (UNLIKELY(nptls > MAXPTL)) {
+    else if (*p->inptls >= FL(1.0) && *p->inptls < MAXPTL + 1)
+      nptls = (int32)*p->inptls;
+    else {
       return csound->InitError(csound, "%s", Str("illegal no of partials"));
     }
     if (UNLIKELY(*p->irolloff<=FL(0.0))) p->rolloff = FL(0.6);
@@ -211,22 +232,12 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
       }
       p->rolloff = 1;
     }
-    lobin = (int32)(specp->downsrcp->looct * fnfreqs);
-    oct0p = p->fundp - lobin;           /* virtual loc of oct 0 */
-
-    flop = oct0p + (int32_t)(*p->ilo * fnfreqs);
-    fhip = oct0p + (int32_t)(*p->ihi * fnfreqs);
-    fundp = p->fundp;
-    fendp = fundp + specp->npts;
-    if (flop < fundp) flop = fundp;
-    if (UNLIKELY(fhip > fendp)) fhip = fendp;
-    if (UNLIKELY(flop >= fhip)) {                 /* chk hi-lo range valid */
+    p->basebin = (int32_t)(specp->downsrcp->looct * fnfreqs);
+    p->lowbin = pitch_bin(*p->ilo, specp->nfreqs, p->basebin, 0, npts);
+    p->highbin = pitch_bin(*p->ihi, specp->nfreqs, p->basebin, 0, npts);
+    if (UNLIKELY(p->lowbin >= p->highbin))
       return csound->InitError(csound, "%s", Str("illegal lo-hi values"));
-    }
-    for (fp = fundp; fp < flop; )
-      *fp++ = FL(0.0);                  /* clear unused lo and hi range */
-    for (fp = fhip; fp < fendp; )
-      *fp++ = FL(0.0);
+    memset(p->fundp, 0, npts * sizeof(MYFLT));
 
     dbthresh = *p->idbthresh;           /* thresholds: */
     ampthresh = (MYFLT)exp((double)dbthresh * LOG10D20);
@@ -234,12 +245,14 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
     p->threshoff = ampthresh * FL(0.5);
     p->threshon *= weightsum;
     p->threshoff *= weightsum;
-    p->oct0p = oct0p;                   /* virtual loc of oct 0 */
     p->confact = *p->iconf;
-    p->flop = flop;
-    p->fhip = fhip;
     p->playing = 0;
     p->kvalsav = (*p->istrt>=FL(0.0) ? *p->istrt : (*p->ilo+*p->ihi)*FL(0.5));
+    /* A broad requested range may extend beyond the available spectrum. */
+    MYFLT low = (MYFLT)(p->basebin + p->lowbin) / p->nfreqs;
+    MYFLT high = (MYFLT)(p->basebin + p->highbin - 1) / p->nfreqs;
+    if (!(p->kvalsav >= low)) p->kvalsav = low;
+    if (p->kvalsav > high) p->kvalsav = high;
     p->kval = p->kinc = FL(0.0);
     p->kavl = p->kanc = FL(0.0);
     p->jmpcount =  0;
@@ -360,12 +373,13 @@ int32_t pitch(CSOUND *csound, PITCH *p)
 
       if (UNLIKELY(inp==NULL)) goto err1;            /* RWD fix */
       kval = p->playing == PLAYING ? p->kval : p->kvalsav;
-      lobin = (int32)((kval - kvar) * specp->nfreqs);/* set lims of frq interest */
-      hibin = (int32)((kval + kvar) * specp->nfreqs);
-      if ((flop = p->oct0p + lobin) < p->flop)  /*       as fundp bin pntrs */
-        flop = p->flop;
-      if ((fhip = p->oct0p + hibin) > p->fhip)  /*       within hard limits */
-        fhip = p->fhip;
+      lobin = pitch_bin(kval - kvar, specp->nfreqs, p->basebin,
+                        p->lowbin, p->highbin);
+      hibin = pitch_bin(kval + kvar, specp->nfreqs, p->basebin,
+                        p->lowbin, p->highbin);
+      if (UNLIKELY(lobin >= hibin)) goto silent;
+      flop = p->fundp + lobin;
+      fhip = p->fundp + hibin;
       ilop = inp + (flop - p->fundp);           /* similar for input bins   */
       ihip = inp + (fhip - p->fundp);
       inp = ilop;
@@ -377,8 +391,9 @@ int32_t pitch(CSOUND *csound, PITCH *p)
           pdist = p->pdist + 1;
           pmult = p->pmult + 1;
           for (nn = p->nptls; --nn; ) {
-            if ((inp2 = inp + *pdist++) >= endp)
-              break;
+            int32_t distance = *pdist++;
+            if (distance >= endp - inp) break;
+            inp2 = inp + distance;
             sum += *inp2 * *pmult++;
           }
           *fp++ = sum;
@@ -389,8 +404,9 @@ int32_t pitch(CSOUND *csound, PITCH *p)
           sum = *inp;
           pdist = p->pdist + 1;
           for (nn = p->nptls; --nn; ) {
-            if ((inp2 = inp + *pdist++) >= endp)
-              break;
+            int32_t distance = *pdist++;
+            if (distance >= endp - inp) break;
+            inp2 = inp + distance;
             sum += *inp2;
           }
           *fp++ = sum;
@@ -409,14 +425,7 @@ int32_t pitch(CSOUND *csound, PITCH *p)
       }
       else {
         if (fmax < p->threshoff) {      /* playing & threshoff ? */
-          if (p->playing == PLAYING)
-            p->kvalsav = p->kval;       /*   save val & turn off */
-          p->kval = FL(0.0);
-          p->kavl = FL(0.0);
-          p->kinc = FL(0.0);
-          p->kanc = FL(0.0);
-          p->playing = 0;
-          goto output;
+          goto silent;
         }
       }
       a = fmaxp>flop ? *(fmaxp-1) : FL(0.0);    /* calc a refined bin no */
@@ -428,12 +437,14 @@ int32_t pitch(CSOUND *csound, PITCH *p)
       if (denom != FL(0.0))
         delta = FL(0.5) * (c - a) / denom;
       else delta = FL(0.0);
-      realbin = (fmaxp - p->oct0p) + delta;     /* get modified bin number  */
+      realbin = (fmaxp - p->fundp + p->basebin) + delta;     /* get modified bin number  */
       kval = realbin / specp->nfreqs;           /*     & cvt to true decoct */
 
       if (p->playing == STARTING) {             /* STARTING mode:           */
         absdiff = FABS(kval - p->kvalsav);// < FL(0.0)) absdiff = -absdiff;
-        confirms = (int32_t)(absdiff * p->confact); /* get interval dependency  */
+        MYFLT count = absdiff * p->confact;
+        confirms = !(count > FL(0.0)) ? 0 :
+          (count < INT32_MAX ? (int32_t)count : INT32_MAX); /* get interval dependency  */
         if (UNLIKELY(p->jmpcount < confirms)) {
           p->jmpcount += 1;               /* if not enough confirms,  */
           goto output;                    /*    must wait some more   */
@@ -445,7 +456,9 @@ int32_t pitch(CSOUND *csound, PITCH *p)
         }
       } else {                                  /* PLAYING mode:            */
         absdiff = FABS(kval - p->kval);
-        confirms = (int32_t)(absdiff * p->confact); /* get interval dependency  */
+        MYFLT count = absdiff * p->confact;
+        confirms = !(count > FL(0.0)) ? 0 :
+          (count < INT32_MAX ? (int32_t)count : INT32_MAX); /* get interval dependency  */
         if (p->jmpcount < confirms) {
           p->jmpcount += 1;               /* if not enough confirms,  */
           p->kinc = FL(0.0);              /*    must wait some more   */
@@ -457,6 +470,11 @@ int32_t pitch(CSOUND *csound, PITCH *p)
       fmax += delta * (c - a) * FL(0.25); /* get modified amp */
       p->kavl = fmax;
     }
+    goto output;
+ silent:
+    if (p->playing == PLAYING) p->kvalsav = p->kval;
+    p->kval = p->kavl = p->kinc = p->kanc = FL(0.0);
+    p->playing = 0;
  output:
     *p->koct = p->kval;                   /* output true decoct & amp */
     *p->kamp = p->kavl * FL(4.0);
