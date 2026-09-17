@@ -132,8 +132,8 @@ jobs:
             exit 1
           fi
 
-  linux_float64_ubsan:
-    name: Linux 64-bit float type-system tests (UBSan)
+  linux64_float_ubsan:
+    name: 64-bit Linux / 32-bit float type-system tests (UBSan)
     runs-on: ubuntu-latest
     env:
       UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
@@ -150,14 +150,14 @@ jobs:
             build-essential cmake ninja-build python3 libgtest-dev \
             libsndfile1-dev libasound2-dev bison flex gettext
 
-      - name: Configure 64-bit float build
+      - name: Configure 32-bit floats on 64-bit Linux
         env:
           CFLAGS: -fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer
           CXXFLAGS: -fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer
           LDFLAGS: -fsanitize=undefined
         run: |
           test "$(getconf LONG_BIT)" = 64
-          cmake -S . -B build-float64 -G Ninja \
+          cmake -S . -B build-linux64-float -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
             -DUSE_DOUBLE=OFF \
             -DUSE_ASA=OFF \
@@ -169,11 +169,11 @@ jobs:
             -DUSE_CURL=OFF
 
       - name: Build unit tests
-        run: cmake --build build-float64 --target unittests --parallel "$(nproc)"
+        run: cmake --build build-linux64-float --target unittests --parallel "$(nproc)"
 
       - name: Run type-system tests
         run: >
-          ctest --test-dir build-float64
+          ctest --test-dir build-linux64-float
           --tests-regex '^TypeSystemTests\.'
           --parallel "$(nproc)"
           --output-on-failure
