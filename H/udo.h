@@ -4,8 +4,10 @@
 #include "csoundCore.h"
 #include "srconvert.h"
 
+struct opcodinfo;
+
 typedef struct {
-    OPCODINFO *opcode_info;
+    struct opcodinfo *opcode_info;
     void    *uopcode_struct;
     INSDS   *parent_ip;
     int32   iflag;
@@ -113,7 +115,7 @@ int32_t useropcd_local_ksmps(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_copy(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_ref(CSOUND *, UOPCODE *);
 void recycle_init_only_udo_instances(CSOUND *, INSDS *);
-void build_user_opcode_rewire_plan(CSOUND *, OPCODINFO *);
+void build_user_opcode_rewire_plan(CSOUND *, struct opcodinfo *);
 void free_opcode_info_chain(CSOUND *);
 
 /* Caller storage a pass-by-ref UDO argument was rewired onto, or NULL when
