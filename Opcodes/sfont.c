@@ -384,6 +384,9 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
               notnum  <= split->maxNoteRange &&
               vel     >= split->minVelRange  &&
               vel     <= split->maxVelRange) {
+            if (UNLIKELY(spltNum >= MAXSPLT))
+              return csound->InitError(csound, "%s",
+                                      Str("SoundFont: too many matching sample zones"));
             sfSample *sample = split->sample;
             
             DWORD start=sample->dwStart;
@@ -743,6 +746,9 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
               notnum <= split->maxNoteRange &&
               vel >= split->minVelRange  &&
               vel <= split->maxVelRange) {
+            if (UNLIKELY(spltNum >= MAXSPLT))
+              return csound->InitError(csound, "%s",
+                                      Str("SoundFont: too many matching sample zones"));
             sfSample *sample = split->sample;
             DWORD start=sample->dwStart;
             double freq, orgfreq;
@@ -984,13 +990,16 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
 {
     sfontg *globals;
     SFBANK *sf;
-    int32_t index = (int32_t) *p->sfBank;
+    int32_t index;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    if (UNLIKELY(index>=MAX_SFPRESET))
+    if (UNLIKELY(!(*p->sfBank >= FL(0.0) &&
+                   *p->sfBank < globals->currSFndx)))
       return csound->InitError(csound, "%s", Str("invalid soundfont"));
+    index = (int32_t)*p->sfBank;
     sf = &globals->sfArray[index];
     if (*p->iskip && p->spltNum)  return OK;
-    if (UNLIKELY(*p->instrNum >  sf->instrs_num)) {
+    if (UNLIKELY(!(*p->instrNum >= FL(0.0) &&
+                   *p->instrNum < sf->instrs_num))) {
       return csound->InitError(csound, "%s", Str("sfinstr: instrument out of range"));
     }
     else {
@@ -1007,6 +1016,9 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
             notnum <= split->maxNoteRange &&
             vel >= split->minVelRange  &&
             vel <= split->maxVelRange) {
+          if (UNLIKELY(spltNum >= MAXSPLT))
+            return csound->InitError(csound, "%s",
+                                    Str("SoundFont: too many matching sample zones"));
           sfSample *sample = split->sample;
           DWORD start=sample->dwStart;
           MYFLT attenuation, pan;
@@ -1259,15 +1271,18 @@ static int32_t SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 
 static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
 {
-    int32_t index = (int32_t) *p->sfBank;
+    int32_t index;
     sfontg *globals;
     SFBANK *sf;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    if (UNLIKELY(index<0 || index>=globals->currSFndx))
+    if (UNLIKELY(!(*p->sfBank >= FL(0.0) &&
+                   *p->sfBank < globals->currSFndx)))
       return csound->InitError(csound, "%s", Str("invalid soundfont"));
+    index = (int32_t)*p->sfBank;
 
     sf = &globals->sfArray[index];
-    if (UNLIKELY( *p->instrNum >  sf->instrs_num)) {
+    if (UNLIKELY(!(*p->instrNum >= FL(0.0) &&
+                   *p->instrNum < sf->instrs_num))) {
       return csound->InitError(csound, "%s", Str("sfinstr: instrument out of range"));
     }
     else {
@@ -1285,6 +1300,9 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
             notnum <= split->maxNoteRange &&
             vel >= split->minVelRange  &&
             vel     <= split->maxVelRange) {
+          if (UNLIKELY(spltNum >= MAXSPLT))
+            return csound->InitError(csound, "%s",
+                                    Str("SoundFont: too many matching sample zones"));
           sfSample *sample = split->sample;
           DWORD start=sample->dwStart;
           double freq, orgfreq;
@@ -1564,6 +1582,27 @@ static void ChangeByteOrder(char *fmt, char *p, int32 size)
 #define ChangeByteOrder(fmt, p, size) /* nothing */
 #endif
 
+/* Instrument global zones supply defaults; local zones can override them. */
+static void setEnvelopeGenerator(splitType *split, int32_t generator,
+                                 int32_t amount)
+{
+    switch (generator) {
+    case attackVolEnv:
+      split->attack = POWER(FL(2.0), amount / FL(1200.0));
+      break;
+    case decayVolEnv:
+      split->decay = POWER(FL(2.0), amount / FL(1200.0));
+      break;
+    case sustainVolEnv:
+      /* SoundFont sustain is attenuation in centibels. */
+      split->sustain = amount > 0 ? POWER(FL(10.0), -amount / FL(200.0)) : FL(1.0);
+      break;
+    case releaseVolEnv:
+      split->release = POWER(FL(2.0), amount / FL(1200.0));
+      break;
+    }
+}
+
 static int32_t fill_SfStruct(CSOUND *csound)
 {
     int32_t j, k, i, l, m, size, iStart, iEnd, kk, ll, mStart, mEnd;
@@ -1639,6 +1678,8 @@ static int32_t fill_SfStruct(CSOUND *csound)
               int32_t GsampleModes=UNUSE, GcoarseTune=UNUSE, GfineTune=UNUSE;
               int32_t Gpan=UNUSE, GinitialAttenuation=UNUSE,GscaleTuning=UNUSE;
               int32_t GoverridingRootKey = UNUSE;
+              splitType globalEnvelope;
+              splitDefaults(&globalEnvelope);
 
               layer->num  = pgen[i].genAmount.wAmount;
               layer->name = inst[layer->num].achInstName;
@@ -1694,6 +1735,11 @@ static int32_t fill_SfStruct(CSOUND *csound)
                     case initialAttenuation:
                       GinitialAttenuation = igen[m].genAmount.shAmount;
                       break;
+                    case attackVolEnv: case decayVolEnv:
+                    case sustainVolEnv: case releaseVolEnv:
+                      setEnvelopeGenerator(&globalEnvelope, igen[m].sfGenOper,
+                                           igen[m].genAmount.shAmount);
+                      break;
                     case keyRange:
                       break;
                     case velRange:
@@ -1704,8 +1750,10 @@ static int32_t fill_SfStruct(CSOUND *csound)
                 else {
                   splitType *split;
                   split = &layer->split[ll];
-                  split->attack = split->decay = split->release = FL(0.0);
-                  split->sustain = FL(1.0);
+                  split->attack = globalEnvelope.attack;
+                  split->decay = globalEnvelope.decay;
+                  split->sustain = globalEnvelope.sustain;
+                  split->release = globalEnvelope.release;
                   if (GoverridingRootKey != UNUSE)
                     split->overridingRootKey = (SBYTE) GoverridingRootKey;
                   if (GcoarseTune != UNUSE)
@@ -1800,28 +1848,10 @@ static int32_t fill_SfStruct(CSOUND *csound)
                       // csound->Message(csound, "del: %f\n",
                       //                 (double) igen[m].genAmount.shAmount);
                       break;
-                    case attackVolEnv:           /*attack */
-                      split->attack = POWER(FL(2.0),
-                                            igen[m].genAmount.shAmount/FL(1200.0));
-                      /* csound->Message(csound, "att: %f\n", split->attack ); */
-                      break;
-                      /* case holdVolEnv: */             /*hold   35 */
-                    case decayVolEnv:            /*decay */
-                      split->decay = POWER(FL(2.0),
-                                           igen[m].genAmount.shAmount/FL(1200.0));
-                      /* csound->Message(csound, "dec: %f\n", split->decay); */
-                      break;
-                    case sustainVolEnv:          /*sustain */
-                      /* SoundFont sustain is attenuation in centibels. */
-                      split->sustain = igen[m].genAmount.shAmount > 0 ?
-                        POWER(FL(10.0), -igen[m].genAmount.shAmount/FL(200.0)) :
-                        FL(1.0);
-                      /* csound->Message(csound, "sus: %f\n", split->sustain); */
-                      break;
-                    case releaseVolEnv:          /*release */
-                      split->release = POWER(FL(2.0),
-                                             igen[m].genAmount.shAmount/FL(1200.0));
-                      /* csound->Message(csound, "rel: %f\n", split->release); */
+                    case attackVolEnv: case decayVolEnv:
+                    case sustainVolEnv: case releaseVolEnv:
+                      setEnvelopeGenerator(split, igen[m].sfGenOper,
+                                           igen[m].genAmount.shAmount);
                       break;
                     case keynum:
                       /*csound->Message(csound, "");*/
@@ -1880,6 +1910,8 @@ static int32_t fill_SfStruct(CSOUND *csound)
         int32_t GsampleModes=UNUSE, GcoarseTune=UNUSE, GfineTune=UNUSE;
         int32_t Gpan=UNUSE, GinitialAttenuation=UNUSE,GscaleTuning=UNUSE;
         int32_t GoverridingRootKey = UNUSE;
+        splitType globalEnvelope;
+        splitDefaults(&globalEnvelope);
 
         instru[j].name = inst[j].achInstName;
         if (strcmp(instru[j].name,"EOI")==0) {
@@ -1939,6 +1971,11 @@ static int32_t fill_SfStruct(CSOUND *csound)
               case initialAttenuation:
                 GinitialAttenuation = igen[m].genAmount.shAmount;
                 break;
+              case attackVolEnv: case decayVolEnv:
+              case sustainVolEnv: case releaseVolEnv:
+                setEnvelopeGenerator(&globalEnvelope, igen[m].sfGenOper,
+                                     igen[m].genAmount.shAmount);
+                break;
               case keyRange:
                 break;
               case velRange:
@@ -1949,6 +1986,10 @@ static int32_t fill_SfStruct(CSOUND *csound)
           else {
             splitType *split;
             split = &instru[j].split[ll];
+            split->attack = globalEnvelope.attack;
+            split->decay = globalEnvelope.decay;
+            split->sustain = globalEnvelope.sustain;
+            split->release = globalEnvelope.release;
             if (GoverridingRootKey != UNUSE)
               split->overridingRootKey = (SBYTE) GoverridingRootKey;
             if (GcoarseTune != UNUSE)
@@ -2037,6 +2078,11 @@ static int32_t fill_SfStruct(CSOUND *csound)
               case endloopAddrsCoarseOffset:
                 split->endLoopOffset += igen[m].genAmount.shAmount * 32768;
                 break;
+              case attackVolEnv: case decayVolEnv:
+              case sustainVolEnv: case releaseVolEnv:
+                setEnvelopeGenerator(split, igen[m].sfGenOper,
+                                     igen[m].genAmount.shAmount);
+                break;
               case keynum:
                 /*csound->Message(csound, "");*/
                 break;
@@ -2088,6 +2134,10 @@ static void splitDefaults(splitType *split)
     split->scaleTuning        = 100;
     split->initialAttenuation = 0;
     split->pan                = 0;
+    split->attack             = FL(0.0);
+    split->decay              = FL(0.0);
+    split->sustain            = FL(1.0);
+    split->release            = FL(0.0);
 }
 
 static int32_t chunk_read(CSOUND *csound, FILE *fil, CHUNK *chunk)
@@ -2361,6 +2411,9 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
               notnum  <= split->maxNoteRange &&
               vel     >= split->minVelRange  &&
               vel     <= split->maxVelRange) {
+            if (UNLIKELY(spltNum >= MAXSPLT))
+              return csound->InitError(csound, "%s",
+                                      Str("SoundFont: too many matching sample zones"));
             sfSample *sample = split->sample;
             DWORD start=sample->dwStart;
             MYFLT attenuation;
