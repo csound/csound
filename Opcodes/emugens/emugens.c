@@ -1713,61 +1713,78 @@ typedef struct {
 } TABSLICE;
 
 static int32_t
-tabslice_init(CSOUND *csound, TABSLICE *p) {
-    FUNC *ftpsrc, *ftpdst;
-    ftpsrc = csound->FTFind(csound, p->fnsrc);
-    if(UNLIKELY(ftpsrc == NULL))
-        return INITERRF("Source table not found: %d", (int)(*p->fnsrc));
-    p->ftpsrc = ftpsrc;
-    ftpdst = csound->FTFind(csound, p->fndst);
-    if(UNLIKELY(ftpdst == NULL))
-        return INITERRF("Destination table not found: %d", (int)(*p->fndst));
-    p->ftpdst = ftpdst;
+tabslice_tables(CSOUND *csound, TABSLICE *p, int32_t init) {
+    double source = (double)*p->fnsrc, dest = (double)*p->fndst;
+    if (UNLIKELY(!(source >= INT32_MIN && source <= INT32_MAX &&
+                   dest >= INT32_MIN && dest <= INT32_MAX)))
+        return init ? INITERR(Str("ftslice: table number out of range"))
+                    : PERFERR(Str("ftslice: table number out of range"));
+    p->ftpsrc = csound->FTFind(csound, p->fnsrc);
+    if (UNLIKELY(p->ftpsrc == NULL))
+        return init ? INITERRF(Str("Source table not found: %g"), *p->fnsrc)
+                    : PERFERRF(Str("Source table not found: %g"), *p->fnsrc);
+    p->ftpdst = csound->FTFind(csound, p->fndst);
+    if (UNLIKELY(p->ftpdst == NULL))
+        return init ? INITERRF(Str("Destination table not found: %g"), *p->fndst)
+                    : PERFERRF(Str("Destination table not found: %g"), *p->fndst);
     return OK;
 }
 
 static int32_t
-tabslice_k(CSOUND *csound, TABSLICE *p) {
-    IGN(csound);
+tabslice_init(CSOUND *csound, TABSLICE *p) {
+    return tabslice_tables(csound, p, 1);
+}
+
+static int32_t
+tabslice_copy(CSOUND *csound, TABSLICE *p, int32_t init) {
     FUNC *ftpsrc = p->ftpsrc;
     FUNC *ftpdst = p->ftpdst;
-    int32_t start = (int32_t)*p->kstart;
-    int32_t end = (int32_t)*p->kend;
-    int32_t step = (int32_t)*p->kstep;
-    if(end < 1)
+    double startval = (double)*p->kstart;
+    double endval = (double)*p->kend;
+    double stepval = (double)*p->kstep;
+    if (UNLIKELY(!(startval >= 0 && startval <= ftpsrc->flen &&
+                   endval >= INT32_MIN && endval < (double)INT32_MAX + 1 &&
+                   stepval >= 1 && stepval < (double)INT32_MAX + 1)))
+        return init ? INITERR(Str("ftslice: invalid slice bounds or step"))
+                    : PERFERR(Str("ftslice: invalid slice bounds or step"));
+    int32_t start = (int32_t)startval;
+    int32_t end = (int32_t)endval;
+    int32_t step = (int32_t)stepval;
+    if (end < 1 || end > (int32_t)ftpsrc->flen)
         end = ftpsrc->flen;
-    int32_t numitems = (int32_t) (ceil((end - start) / (float)step));
+    if (start >= end)
+        return OK;
+    /* Count exactly, without rounding through float or overflowing a sum. */
+    int32_t numitems = 1 + (end - start - 1) / step;
     if (numitems > (int32_t)ftpdst->flen)
         numitems = (int32_t)ftpdst->flen;
     MYFLT *src = ftpsrc->ftable;
     MYFLT *dst = ftpdst->ftable;
 
-    int32_t i, j=start;
-    for(i=0; i<numitems; i++) {
+    /* A large step can take the final index beyond INT32_MAX. */
+    int64_t j = start;
+    for (int32_t i = 0; i < numitems; i++, j += step)
         dst[i] = src[j];
-        j += step;
-    }
     return OK;
+}
+
+static int32_t
+tabslice_k(CSOUND *csound, TABSLICE *p) {
+    return tabslice_copy(csound, p, 0);
 }
 
 static int32_t
 tabslice_allk(CSOUND *csound, TABSLICE *p) {
-    p->ftpsrc = csound->FTFind(csound, p->fnsrc);
-    if(UNLIKELY(p->ftpsrc == NULL))
-        return PERFERRF("Source table not found: %d", (int)*p->fnsrc);
-    p->ftpdst = csound->FTFind(csound, p->fndst);
-    if(UNLIKELY(p->ftpdst == NULL))
-        return PERFERRF("Destination table not found: %d", (int)*p->fnsrc);
-    return tabslice_k(csound, p);
+    if (UNLIKELY(tabslice_tables(csound, p, 0) != OK))
+        return NOTOK;
+    return tabslice_copy(csound, p, 0);
 }
 
 static int32_t
 tabslice_i(CSOUND *csound, TABSLICE *p) {
-    int32_t error = tabslice_init(csound, p);
-    if(error)
+    if (UNLIKELY(tabslice_tables(csound, p, 1) != OK))
         return NOTOK;
-    return tabslice_k(csound, p);
-    return OK;
+    return tabslice_copy(csound, p, 1);
 }
 
 /*
