@@ -2990,17 +2990,16 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
   uint32_t frame, chan;
   uint32_t nsmps = CS_KSMPS;
   INSDS *ip = p->ip;
-  int32_t done = ATOMIC_GET(p->ip->init_done);
-
-  if (UNLIKELY(!done)) /* init not done, exit */
-    return OK;
-
-  if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
+  if (UNLIKELY(ip == NULL)) {                /* IV - Oct 26 2002 */
     return csoundPerfError(csound, &(p->h), "%s",
                            Str("subinstr: not initialised"));
   }
 
-  /* copy current spout buffer and clear it */
+  if (UNLIKELY(!ATOMIC_GET(ip->init_done) || !ATOMIC_GET8(ip->actflg)))
+    goto clear_outputs;
+
+  /* Output channels retain the global stride used by out(). */
+  ip->spin = p->parent_ip->spin;
   ip->spout = (MYFLT*) p->saved_spout.auxp;
   memset(ip->spout, 0, csound->nspout*sizeof(MYFLT));
 
@@ -3009,13 +3008,15 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
 
   /* update release flag */
   ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
-  /*  run each opcode  */
-  if (csound->ksmps == ip->ksmps) {
+  /* Run one parent block, splitting it only for a smaller child block. */
+  if (nsmps == ip->ksmps) {
     int32_t error = 0;
     ip->kcounter++;
     if ((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
       CS_PDS->insdshead->pds = NULL;
       do {
+        if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(ip->actflg)))
+          goto clear_outputs;
         error = (*CS_PDS->perf)(csound, CS_PDS);
         if (CS_PDS->insdshead->pds != NULL) {
           CS_PDS = CS_PDS->insdshead->pds;
@@ -3026,14 +3027,12 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
 
   }
   else {
-    int32_t i, n = csound->nspout, start = 0;
+    int32_t i, n = nsmps * csound->nchnls, start = 0;
     int32_t lksmps = ip->ksmps;
     int32_t incr = csound->nchnls*lksmps;
     int32_t insmps = csound->inchnls * lksmps;
     int32_t offset =  ip->ksmps_offset;
     int32_t early = ip->ksmps_no_end;
-    ip->spin = csound->spin;
-    ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
 
     /* we have to deal with sample-accurate code
        whole CS_KSMPS blocks are offset here, the
@@ -3055,10 +3054,8 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
         int32_t error = 0;
         CS_PDS->insdshead->pds = NULL;
         do {
-          if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))){
-            memset(p->ar, 0, sizeof(MYFLT)*CS_KSMPS*p->OUTOCOUNT);
-            goto endin;
-          }
+          if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(ip->actflg)))
+            goto clear_outputs;
           error = (*CS_PDS->perf)(csound, CS_PDS);
           if (CS_PDS->insdshead->pds != NULL) {
             CS_PDS = CS_PDS->insdshead->pds;
@@ -3068,16 +3065,23 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
       }
       ip->ksmps_offset = 0;
     }
-    ip->spout = (MYFLT*) p->saved_spout.auxp;
   }
+  if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(ip->actflg)))
+    goto clear_outputs;
+  ip->spout = (MYFLT*) p->saved_spout.auxp;
   /* copy outputs */
   for (chan = 0; chan < p->OUTOCOUNT; chan++) {
-    for (pbuf = ip->spout + chan*nsmps, frame = 0;
+    for (pbuf = ip->spout + chan*csound->ksmps, frame = 0;
          frame < nsmps; frame++) {
       p->ar[chan][frame] = pbuf[frame];
     }
   }
+  goto endin;
+ clear_outputs:
+  for (chan = 0; chan < p->OUTOCOUNT; chan++)
+    memset(p->ar[chan], 0, nsmps * sizeof(MYFLT));
  endin:
+  ip->spout = (MYFLT*) p->saved_spout.auxp;
   CS_PDS = saved_pds;
   /* check if instrument was deactivated (e.g. by perferror) */
   if (!p->ip) {                                  /* loop to last opds */
