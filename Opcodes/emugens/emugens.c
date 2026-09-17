@@ -111,33 +111,40 @@ typedef struct {
 
 
 static int32_t linlinarr1_init(CSOUND *csound, LINLINARR1 *p) {
+    if (UNLIKELY(p->xs->dimensions != 1 || p->xs->sizes == NULL ||
+                   p->ys->dimensions > 1))
+        return INITERR(Str("linlin: expected one-dimensional arrays"));
     int32_t numitems = p->xs->sizes[0];
     if (UNLIKELY(tabinit(csound, p->ys, numitems,
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
-    CHECKARR1D(p->xs);
-    CHECKARR1D(p->ys);
     return OK;
 }
 
 
 static int32_t
-linlinarr1_perf(CSOUND *csound, LINLINARR1 *p) {
+linlinarr1_common(CSOUND *csound, LINLINARR1 *p, int32_t init) {
+    if (UNLIKELY(p->xs->dimensions != 1 || p->xs->sizes == NULL ||
+                   p->ys->dimensions != 1))
+        return init ? INITERR(Str("linlin: expected one-dimensional arrays"))
+                    : PERFERR(Str("linlin: expected one-dimensional arrays"));
     const MYFLT x0 = *p->kx0;
     const MYFLT y0 = *p->ky0;
     const MYFLT x1 = *p->kx1;
     const MYFLT y1 = *p->ky1;
 
     if (UNLIKELY(x0 == x1)) {
-        return csound->PerfError(csound, &(p->h), "%s",
-                                 Str("linlin.k: Division by zero"));
+        return init ? INITERR(Str("linlin: Division by zero"))
+                    : PERFERR(Str("linlin: Division by zero"));
     }
     MYFLT fact = 1/(x1 - x0) * (y1 - y0);
 
     int32_t numitems = p->xs->sizes[0];
-    ARRAY_ENSURESIZE_PERF(csound, p->ys, numitems);
-    MYFLT* restrict out = p->ys->data;
-    const MYFLT* restrict in = p->xs->data;
+    if (!init && UNLIKELY(tabcheck(csound, p->ys, numitems, &p->h) != OK))
+        return NOTOK;
+    /* Input and output may be the same array. */
+    MYFLT *out = p->ys->data;
+    const MYFLT *in = p->xs->data;
     int32_t i;
     for(i=0; i<numitems; i++) {
         out[i] = (in[i] - x0) * fact + y0;
@@ -147,9 +154,15 @@ linlinarr1_perf(CSOUND *csound, LINLINARR1 *p) {
 
 
 static int32_t
+linlinarr1_perf(CSOUND *csound, LINLINARR1 *p) {
+    return linlinarr1_common(csound, p, 0);
+}
+
+static int32_t
 linlinarr1_i(CSOUND *csound, LINLINARR1 *p) {
-    linlinarr1_init(csound, p);
-    return linlinarr1_perf(csound, p);
+    if (UNLIKELY(linlinarr1_init(csound, p) != OK))
+        return NOTOK;
+    return linlinarr1_common(csound, p, 1);
 }
 
 typedef struct {
@@ -159,35 +172,44 @@ typedef struct {
     MYFLT *kx;
     ARRAYDAT *A, *B;
     MYFLT *kx0, *kx1;
-    int32_t numitems;
 } BLENDARRAY;
 
 static int32_t
 blendarray_init(CSOUND *csound, BLENDARRAY *p) {
+    if (UNLIKELY(p->A->dimensions != 1 || p->A->sizes == NULL ||
+                   p->B->dimensions != 1 || p->B->sizes == NULL ||
+                   p->out->dimensions > 1))
+        return INITERR(Str("linlin: expected one-dimensional arrays"));
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
     int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
     if (UNLIKELY(tabinit(csound, p->out, numitems,
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
-    p->numitems = numitems;
     return OK;
 }
 
 static int32_t
-blendarray_perf(CSOUND *csound, BLENDARRAY *p)
+blendarray_common(CSOUND *csound, BLENDARRAY *p, int32_t init)
 {
+    if (UNLIKELY(p->A->dimensions != 1 || p->A->sizes == NULL ||
+                   p->B->dimensions != 1 || p->B->sizes == NULL ||
+                   p->out->dimensions != 1))
+        return init ? INITERR(Str("linlin: expected one-dimensional arrays"))
+                    : PERFERR(Str("linlin: expected one-dimensional arrays"));
     MYFLT x0 = *p->kx0;
     MYFLT x1 = *p->kx1;
     MYFLT x = *p->kx;
 
     if (UNLIKELY(x0 == x1)) {
-        return PERFERR(Str("linlin: Division by zero"));
+        return init ? INITERR(Str("linlin: Division by zero"))
+                    : PERFERR(Str("linlin: Division by zero"));
     }
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
     int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
-    ARRAY_ENSURESIZE_PERF(csound, p->out, numitems);
+    if (!init && UNLIKELY(tabcheck(csound, p->out, numitems, &p->h) != OK))
+        return NOTOK;
 
     MYFLT *out = p->out->data;
     MYFLT *A = p->A->data;
@@ -204,9 +226,15 @@ blendarray_perf(CSOUND *csound, BLENDARRAY *p)
 }
 
 static int32_t
+blendarray_perf(CSOUND *csound, BLENDARRAY *p) {
+    return blendarray_common(csound, p, 0);
+}
+
+static int32_t
 blendarray_i(CSOUND *csound, BLENDARRAY *p) {
-    blendarray_init(csound, p);
-    return blendarray_perf(csound, p);
+    if (UNLIKELY(blendarray_init(csound, p) != OK))
+        return NOTOK;
+    return blendarray_common(csound, p, 1);
 }
 
 
