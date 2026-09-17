@@ -1564,7 +1564,7 @@ const OENTRY opcodlst_1[] = {
   { "schedwhen", S(WSCHED),0,     "",     "kkkkm",ifschedule, kschedule, NULL },
   { "schedwhen", S(WSCHED),0,     "",     "kSkkm",ifschedule, kschedule, NULL },
 
-  { "schedkwhen.instr", S(TRIGINSTR),0, "",     ":InstrDef;kkkkz",triginset, ktriginstr, NULL },
+  { "schedkwhen.instr", S(TRIGINSTR),0, "",     "kkk:InstrDef;kz",triginset, ktriginstr, NULL },
   { "schedkwhen", S(TRIGINSTR),0, "",     "kkkkkz",triginset, ktriginstr, NULL },
   { "schedkwhen.S", S(TRIGINSTR),0, "",    "kkkSkz",
     triginset_S, ktriginstr_S, NULL },
