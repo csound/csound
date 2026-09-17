@@ -38,18 +38,23 @@ typedef struct _autocorr {
   ARRAYDAT *out;
   ARRAYDAT *in;
   AUXCH mem;
-  int32_t N;
   int32_t FN;
 } AUTOCORR;
 
 int32_t init_autocorr(CSOUND *csound, AUTOCORR *p) {
-  if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->out->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                            Str("autocorr: expected one-dimensional arrays"));
   int32_t N = p->in->sizes[0], fn;
-  for(fn=2; fn < N*2-1; fn*=2);
-  if (p->mem.auxp == 0 || p->mem.size < fn*sizeof(MYFLT))
-    csound->AuxAlloc(csound, fn*sizeof(MYFLT), &p->mem);
-  p->N = N;
+  /* The real FFT supports powers of two up to 2^28. Zero padding
+     needs at least 2*N-1 samples. Check before doing signed arithmetic. */
+  if (UNLIKELY(N < 0 || N > (1 << 27)))
+    return csound->InitError(csound, "%s",
+                            Str("autocorr: input array too large"));
+  for (fn = 2; fn < N * 2 - 1; fn *= 2);
+  if (p->mem.auxp == NULL || p->mem.size < (size_t)fn * sizeof(MYFLT))
+    csound->AuxAlloc(csound, (size_t)fn * sizeof(MYFLT), &p->mem);
   p->FN = fn;
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
@@ -57,10 +62,20 @@ int32_t init_autocorr(CSOUND *csound, AUTOCORR *p) {
 }
 
 int32_t perf_autocorr(CSOUND *csound, AUTOCORR *p) {
-  MYFLT *r = p->out->data;
-  MYFLT *buf = (MYFLT *) p->mem.auxp;
-  MYFLT *s = p->in->data;
-  csound->AutoCorrelation(csound,r,s,p->N,buf,p->FN);
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->out->dimensions != 1))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("autocorr: expected one-dimensional arrays"));
+  int32_t N = p->in->sizes[0];
+  if (UNLIKELY(N > p->FN / 2))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("autocorr: input array exceeds FFT workspace; "
+                                "reinitialise with the larger size"));
+  if (UNLIKELY(tabcheck(csound, p->out, N, &p->h) != OK))
+    return NOTOK;
+  if (N != 0)
+    csound->AutoCorrelation(csound, p->out->data, p->in->data, N,
+                            (MYFLT *)p->mem.auxp, p->FN);
   return OK;
 }
 
