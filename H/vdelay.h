@@ -111,11 +111,11 @@ typedef struct {
         MYFLT   *out, *in, *time, *hdif, *istor;
         MYFLT   *inumCombs, *ifnCombs, *inumAlpas, *ifnAlpas;
         /* Used to be [Combs]- and [Alpas]-sized arrays */
-        int32_t     numCombs, numAlpas;
+        int32_t     numCombs, numAlpas, initialized;
         MYFLT   **cbuf_cur, **abuf_cur;
         MYFLT   **pcbuf_cur, **pabuf_cur;
         MYFLT   *c_time, *c_gain, *a_time, *a_gain;
-        const MYFLT *c_orggains, *a_orggains;
+        MYFLT   *c_orggains, *a_orggains;
         MYFLT   *z, *g;        /* [Combs] */
         AUXCH   temp;
         AUXCH   caux, aaux;
