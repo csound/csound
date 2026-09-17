@@ -45,8 +45,9 @@ void checkExpression(const std::string& expression, MYFLT expected,
     }
     int result = csoundCompileCSD(csound,
                                  mode == 0 ? path.c_str() : csd.c_str(), mode, 0);
-    if (!path.empty())
+    if (!path.empty()) {
         EXPECT_EQ(0, std::remove(path.c_str()));
+    }
     if (error) {
         EXPECT_NE(CSOUND_SUCCESS, result);
         std::string messages;

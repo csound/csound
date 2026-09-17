@@ -628,10 +628,10 @@ int32_t xsgset(CSOUND *csound, EXXPSEG *p)
  experr:
   n = segp - p->cursegp + 1;
   if (val == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n));
   else if (nxtval == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
-  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n+1));
+  return csound->InitError(csound, Str("ival%lld sign conflict"), (long long) (n+1));
 }
 
 int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
@@ -687,10 +687,10 @@ int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
  experr:
   n = segp - p->cursegp + 1;
   if (val == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n));
   else if (nxtval == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
-  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n+1));
+  return csound->InitError(csound, Str("ival%lld sign conflict"), (long long) (n+1));
 }
 
 
@@ -749,10 +749,10 @@ int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
  experr:
   n = segp - p->cursegp + 1;
   if (val == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n));
   else if (nxtval == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
-  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n+1));
+  return csound->InitError(csound, Str("ival%lld sign conflict"), (long long) (n+1));
 }
 
 int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
@@ -805,10 +805,10 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
  experr:
   n = segp - p->cursegp + 1;
   if (val == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n));
   else if (nxtval == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
-  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n+1));
+  return csound->InitError(csound, Str("ival%lld sign conflict"), (long long) (n+1));
 }
 
 /***************************************/
@@ -943,10 +943,10 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
  experr:
   n = segp - p->cursegp;// + 2;
   if (prvpt == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n));
   else if (segp->nxtpt == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
-  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n+1));
+  return csound->InitError(csound, Str("ival%lld sign conflict"), (long long) (n+1));
 }
 
 

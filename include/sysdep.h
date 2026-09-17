@@ -328,12 +328,18 @@ typedef unsigned long       uintptr_t;
 #  define CS_NOINLINE   __attribute__ ((__noinline__))
 /* a function that never returns (e.g. csoundDie()) */
 #  define CS_NORETURN   __attribute__ ((__noreturn__))
+/* MinGW's ANSI stdio supports C99 formats such as %zu and %lld. */
+#  if defined(__MINGW32__) && defined(__USE_MINGW_ANSI_STDIO) && __USE_MINGW_ANSI_STDIO
+#    define CS_PRINTF_FORMAT __gnu_printf__
+#  else
+#    define CS_PRINTF_FORMAT __printf__
+#  endif
 /* printf-style function with first argument as format string */
-#  define CS_PRINTF1    __attribute__ ((__format__ (__printf__, 1, 2)))
+#  define CS_PRINTF1    __attribute__ ((__format__ (CS_PRINTF_FORMAT, 1, 2)))
 /* printf-style function with second argument as format string */
-#  define CS_PRINTF2    __attribute__ ((__format__ (__printf__, 2, 3)))
+#  define CS_PRINTF2    __attribute__ ((__format__ (CS_PRINTF_FORMAT, 2, 3)))
 /* printf-style function with third argument as format string */
-#  define CS_PRINTF3    __attribute__ ((__format__ (__printf__, 3, 4)))
+#  define CS_PRINTF3    __attribute__ ((__format__ (CS_PRINTF_FORMAT, 3, 4)))
 /* a function with no side effects or dependencies on volatile data */
 #  define CS_PURE       __attribute__ ((__pure__))
 #else
@@ -366,13 +372,13 @@ typedef unsigned long       uintptr_t;
 #    define MYFLT2LRND(x) (x > LONG_MIN && x < (double)LONG_MAX ? \
                            (int32) lrintf((float) (x)) : 0)
 #  else
-#    define MYFLT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? \
+#    define MYFLT2LONG(x) (x > LONG_MIN && x < (double)LONG_MAX ? \
                            (int32) lrint((double) (x)) : 0)
-#    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? \
+#    define MYFLT2LRND(x) (x > LONG_MIN && x < (double)LONG_MAX ? \
                            (int32) lrint((double) (x)) : 0)
-#    define MYFLT2LONG64(x) (x > LONG_MIN && x < LONG_MAX ? \
+#    define MYFLT2LONG64(x) (x > LONG_MIN && x < (double)LONG_MAX ? \
                            (int64_t) lrintl((double) (x)) : 0)
-#    define MYFLT2LRND64(x) (x > LONG_MIN && x < LONG_MAX ? \
+#    define MYFLT2LRND64(x) (x > LONG_MIN && x < (double)LONG_MAX ? \
                            (int64_t) lrintl((double) (x)) : 0)
 #  endif
 #elif defined(MSVC)

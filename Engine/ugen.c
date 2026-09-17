@@ -637,11 +637,11 @@ bool csoundUgenVarSetString(UGEN_VAR* var, const char* str) {
         return true;
     }
     size_t len = strlen(str);
-    if (sd->data == NULL || sd->size < (int64_t)(len + 1)) {
+    if (sd->data == NULL || sd->size < len + 1) {
         CSOUND* csound = var->csound;
         if (sd->data != NULL) csound->Free(csound, sd->data);
         sd->data = csound->Calloc(csound, len + 1);
-        sd->size = (int64_t)(len + 1);
+        sd->size = len + 1;
     }
     memcpy(sd->data, str, len + 1);
     return true;

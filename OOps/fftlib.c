@@ -2237,7 +2237,7 @@ static void rfft4pt(MYFLT *ioptr)
   /***   RADIX 8 rfft     ***/
   MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
   MYFLT t0r, t0i, t1r, t1i;
-  MYFLT w0r = 1.0 / ROOT2;    /* cos(pi/4)   */
+  MYFLT w0r = FL(1.0 / ROOT2);    /* cos(pi/4)   */
   const MYFLT Two = FL(2.0);
   const MYFLT scale = FL(0.5);
 
@@ -2308,9 +2308,9 @@ static void rfft4pt(MYFLT *ioptr)
 static void rfft8pt(MYFLT *ioptr)
 {
   /***   RADIX 16 rfft    ***/
-  MYFLT w0r = 1.0 / ROOT2;    /* cos(pi/4)   */
-  MYFLT w1r = MYCOSPID8;        /* cos(pi/8)     */
-  MYFLT w1i = MYSINPID8;        /* sin(pi/8)     */
+  MYFLT w0r = FL(1.0 / ROOT2);    /* cos(pi/4)   */
+  MYFLT w1r = FL(MYCOSPID8);        /* cos(pi/8)     */
+  MYFLT w1i = FL(MYSINPID8);        /* sin(pi/8)     */
   MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
   MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
   MYFLT t0r, t0i, t1r, t1i;
@@ -2704,7 +2704,7 @@ static void rifft4pt(MYFLT *ioptr, MYFLT scale)
   /***   RADIX 8 rifft    ***/
   MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
   MYFLT t0r, t0i, t1r, t1i;
-  MYFLT w0r = 1.0 / ROOT2;    /* cos(pi/4)   */
+  MYFLT w0r = FL(1.0 / ROOT2);    /* cos(pi/4)   */
   const MYFLT Two = FL(2.0);
 
   /* bit reversed load */
@@ -2774,8 +2774,8 @@ static void rifft8pt(MYFLT *ioptr, MYFLT scale)
 {
   /***   RADIX 16 rifft   ***/
   MYFLT w0r = (MYFLT) (1.0 / ROOT2);    /* cos(pi/4)    */
-  MYFLT w1r = MYCOSPID8;                  /* cos(pi/8)    */
-  MYFLT w1i = MYSINPID8;                  /* sin(pi/8)    */
+  MYFLT w1r = FL(MYCOSPID8);                  /* cos(pi/8)    */
+  MYFLT w1i = FL(MYSINPID8);                  /* sin(pi/8)    */
   MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
   MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
   MYFLT t0r, t0i, t1r, t1i;

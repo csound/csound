@@ -28,8 +28,12 @@
 //#define ARCH_IA64
 
 #ifdef WIN32
+#ifndef HAVE_IO_H
 #define HAVE_IO_H
+#endif
+#ifndef HAVE_CONIO_H
 #define HAVE_CONIO_H
+#endif
 #undef OSS
 #endif
 

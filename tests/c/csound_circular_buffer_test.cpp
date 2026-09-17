@@ -192,7 +192,7 @@ TEST_F (CircularBufferTests, testPeeking)
 TEST_F (CircularBufferTests, testCheckSpace)
 {
     int32_t i;
-    float buf[SIZ];
+    float buf[SIZ] = {};
     i = csoundWriteCircularBuffer(csound, rb, buf, SIZ);
     ASSERT_EQ(i, SIZ);
     i = csoundCheckCircularBuffer(csound, rb, 1);

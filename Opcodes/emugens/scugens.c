@@ -175,7 +175,7 @@ static int32_t laga_init_no_initial_value(CSOUND *csound, LAG0 *p) {
     p->b1 = FL(0.0);
     p->sr = CS_ESR;
     p->started = 0;
-    p->y1 = -INF;
+    p->y1 = FL(-INF);
     return OK;
 }
 
