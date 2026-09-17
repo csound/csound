@@ -32,6 +32,7 @@ if(BUILD_TESTS)
         score_expression_test.cpp
         schedkwhen_test.cpp
         schedule_string_test.cpp
+        nxtpow2_test.cpp
         engine_test.cpp
         io_test.cpp
         local_ksmps_test.cpp
