@@ -288,9 +288,9 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
 
 /* Make buffers to hold data */
 #if PHASE_INTERP == 3
-    csound->AuxAlloc(csound, 6*len*sizeof(MYFLT), &p->aux_x);
+    csound->AuxAlloc(csound, 7*len*sizeof(MYFLT), &p->aux_x);
 #else
-    csound->AuxAlloc(csound, 5*len*sizeof(MYFLT), &p->aux_x);
+    csound->AuxAlloc(csound, 6*len*sizeof(MYFLT), &p->aux_x);
 #endif
     p->x0 = (MYFLT*)p->aux_x.auxp;
     p->x1 = p->x0 + len;
@@ -299,6 +299,9 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     p->v = p->ext + len;
 #if PHASE_INTERP == 3
     p->x3 = p->v + len;
+    p->ewin = p->x3 + len;
+#else
+    p->ewin = p->v + len;
 #endif
 
     /* Initialize them ... */
@@ -416,23 +419,28 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     pp = scansyn_getGlobals(csound);
     p->pp = pp;
 
-    /* Make external force window if we haven't so far */
-    if (pp->ewin == NULL) {
+    /* Each network needs a force window matching its own mass count. */
+    {
       uint32_t i;
-      MYFLT arg =  PI_F/(len-1);
-      pp->ewin = (MYFLT*) csound->Calloc(csound, len * sizeof(MYFLT));
-      for (i = 0 ; i != len-1 ; i++)
-        pp->ewin[i] = SQRT(SIN(arg*i));
-      pp->ewin[i] = FL(0.0); /* You get NaN otherwise */
+      if (len > 1) {
+        MYFLT arg = PI_F/(len-1);
+        for (i = 0; i < len-1; i++)
+          p->ewin[i] = SQRT(SIN(arg*i));
+      }
+      p->ewin[len-1] = FL(0.0); /* Avoid roundoff at sin(pi). */
     }
 
     /* Throw data into list or use table */
     p->id = (int32_t) *p->i_id;
     if (p->id < 0) {
-      FUNC *ftp = csound->FTFind(csound, p->i_id);
+      MYFLT table = -(*p->i_id);
+      FUNC *ftp = csound->FTFind(csound, &table);
       if (UNLIKELY(ftp == NULL)) {
         return csound->InitError(csound, "%s", Str("scanu: invalid id table"));
       }
+      if (UNLIKELY(ftp->flen < len))
+        return csound->InitError(csound, "%s",
+                                 Str("scanu: output table is too short"));
       p->out = ftp->ftable;
     }
     else {
@@ -504,7 +512,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
           MYFLT a = FL(0.0);
                                 /* Throw in audio drive */
 
-          v[i] += p->ext[exti++] * pp->ewin[i];
+          v[i] += p->ext[exti++] * p->ewin[i];
           if (UNLIKELY(exti >= len))
             exti = 0;
                                 /* And push feedback */
