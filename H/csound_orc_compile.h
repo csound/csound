@@ -38,7 +38,6 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt);
 int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async);
 int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async);
 uint8_t file_to_int(CSOUND *csound, const char *name);
-void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o);
 int32_t query_reversewrite_opcode(CSOUND *csound, ORCTOKEN *o);
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
 void merge_state(CSOUND *csound, ENGINE_STATE *engineState,

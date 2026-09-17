@@ -59,7 +59,6 @@ ORCTOKEN *make_token(CSOUND *csound, char *s, void *);
 TREE* copy_node(CSOUND*, TREE*);
 extern void csp_orc_sa_print_list(CSOUND*);
 
-void query_deprecated_opcode(CSOUND *, ORCTOKEN *);
 int32_t  query_reversewrite_opcode(CSOUND *, ORCTOKEN *);
 
 
