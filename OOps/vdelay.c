@@ -822,28 +822,37 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
 
 int32_t multitap_set(CSOUND *csound, MDEL *p)
 {
-    uint32_t n, i;
-    MYFLT max = FL(0.0);
+    uint32_t i, ntaps = (p->INOCOUNT - 1) / 2;
+    int32_t max = 0;
+    int32_t *delays;
+    size_t bytes;
 
-    //if (UNLIKELY(p->INOCOUNT/2 == (MYFLT)p->INOCOUNT*FL(0.5)))
-    /* Should this test just be p->INOCOUNT&1 ==  */
-    if (UNLIKELY((p->INOCOUNT&1)==0))
+    if (UNLIKELY((p->INOCOUNT & 1) == 0))
       return csound->InitError(csound, Str("Wrong input count in multitap\n"));
 
-    for (i = 0; i < p->INOCOUNT - 1; i += 2) {
-      if (max < *p->ndel[i]) max = *p->ndel[i];
+    bytes = (size_t)ntaps * sizeof(int32_t);
+    if (bytes > p->tapdel.size)
+      csound->AuxAlloc(csound, bytes, &p->tapdel);
+    delays = (int32_t *)p->tapdel.auxp;
+    for (i = 0; i < ntaps; i++) {
+      double samples = (double)(CS_ESR * *p->ndel[2*i]);
+      if (UNLIKELY(!(samples >= 0.0 && samples < INT32_MAX)))
+        return csound->InitError(csound, Str("multitap: invalid delay time"));
+      delays[i] = (int32_t)samples;
+      if (max < delays[i]) max = delays[i];
     }
 
-    n = (uint32_t)(CS_ESR * max * sizeof(MYFLT));
-    if (p->aux.auxp == NULL ||    /* allocate space for delay buffer */
-        n > p->aux.size)
-      csound->AuxAlloc(csound, n, &p->aux);
-    else {
-      memset(p->aux.auxp, 0, n);
-    }
+    /* Keep the current input as well as the longest delayed sample. */
+    p->max = max + 1;
+    if (UNLIKELY((size_t)p->max > SIZE_MAX / sizeof(MYFLT)))
+      return csound->InitError(csound, Str("multitap: delay buffer too large"));
+    bytes = (size_t)p->max * sizeof(MYFLT);
+    if (p->aux.auxp == NULL || bytes > p->aux.size)
+      csound->AuxAlloc(csound, bytes, &p->aux);
+    else
+      memset(p->aux.auxp, 0, bytes);
 
     p->left = 0;
-    p->max = (int32_t)(CS_ESR * max);
     return OK;
 }
 
@@ -855,7 +864,9 @@ int32_t multitap_play(CSOUND *csound, MDEL *p)
     uint32_t i, n, nsmps = CS_KSMPS;
     MYFLT *out = p->sr, *in = p->ain;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
-    MYFLT max = (MYFLT)p->max;
+    int32_t max = p->max;
+    const int32_t *delays = (const int32_t *)p->tapdel.auxp;
+    uint32_t ntaps = (p->INOCOUNT - 1) / 2;
 
     if (UNLIKELY(buf==NULL)) goto err1;           /* RWD fix */
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -867,14 +878,14 @@ int32_t multitap_play(CSOUND *csound, MDEL *p)
       MYFLT v = FL(0.0);
       buf[indx] = in[n];        /*      Write input     */
 
-      if (UNLIKELY(++indx == max)) indx = 0;   /*      Advance input pointer   */
-      for (i = 0; i < p->INOCOUNT - 1; i += 2) {
-        delay = indx - (int32_t)(CS_ESR * *p->ndel[i]);
+      for (i = 0; i < ntaps; i++) {
+        delay = indx - delays[i];
         if (UNLIKELY(delay < 0))
-          delay += (int32_t)max;
-        v += buf[delay] * *p->ndel[i+1]; /*      Write output    */
+          delay += max;
+        v += buf[delay] * *p->ndel[2*i+1]; /*      Write output    */
       }
       out[n] = v;
+      if (UNLIKELY(++indx == max)) indx = 0;
     }
     p->left = indx;
     return OK;
