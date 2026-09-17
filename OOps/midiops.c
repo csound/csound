@@ -848,14 +848,20 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
 
 int32_t savectrl_init(CSOUND *csound, SAVECTRL *p)
 {
-    int16 chnl = (int16)(*p->chnl - FL(0.5));
+    int16 chnl;
     int16 i, j, nargs = p->INOCOUNT-1;
     MYFLT **argp = p->ctrls;
-    int16 ctlno;
-    p->ivals = (csound->m_chnbp[chnl])->ctl_val;
+    if (UNLIKELY(!(*p->chnl >= 1 &&
+                   *p->chnl < MIDIMAXPORTS * MAXCHAN + 1)))
+      return csound->InitError(csound, "%s",
+                               Str("ctrlsave: MIDI channel out of range"));
+    chnl = (int16)(*p->chnl - FL(0.5));
+    if (UNLIKELY(csound->m_chnbp[chnl] == NULL))
+      return csound->InitError(csound, "%s",
+                               Str("ctrlsave: MIDI channel is not initialized"));
+    p->ivals = csound->m_chnbp[chnl]->ctl_val;
     for (i=0; i<nargs; i++) {
-      ctlno = (int16)*argp[i];
-      if (ctlno < FL(0.0) || ctlno > FL(127.0))
+      if (UNLIKELY(!(*argp[i] >= 0 && *argp[i] < 128)))
         return csound->InitError(csound, Str("Value out of range [0,127]\n"));
     }
     if (UNLIKELY(tabinit(csound, p->arr, 2+2*nargs,
@@ -876,7 +882,8 @@ int32_t savectrl_perf(CSOUND *csound, SAVECTRL *p)
     int16 nargs = p->nargs, i, j;
     MYFLT **argp = p->ctrls;
     MYFLT *ctlval = p->ivals;
-    tabcheck(csound, p->arr, 2+2*nargs, &p->h);
+    if (UNLIKELY(tabcheck(csound, p->arr, 2+2*nargs, &p->h) != OK))
+      return NOTOK;
     for (i=0, j=3; i<nargs; i++, j+=2) {
       MYFLT val = ctlval[(int16)*argp[i]];
       p->arr->data[j] = val;
@@ -893,8 +900,13 @@ int32_t printctrl_init(CSOUND *csound, PRINTCTRL *p)
 
 int32_t printctrl_init1(CSOUND *csound, PRINTCTRL *p)
 {
-    p->fout = fopen(p->file->data, "a");
-    if (p->fout==NULL) return NOTOK;
+    if (p->fdch.fd != NULL)
+      csoundFDClose(csound, &p->fdch);
+    p->fdch.fd = csound->FileOpen(csound, &p->fout, CSFILE_STD,
+                                 p->file->data, "a", "", CSFTYPE_OTHER_TEXT, 0);
+    if (UNLIKELY(p->fdch.fd == NULL))
+      return csound->InitError(csound, Str("Cannot open %s"), p->file->data);
+    csoundFDRecord(csound, &p->fdch);
     return OK;
 }
 
@@ -902,7 +914,23 @@ int32_t printctrl_init1(CSOUND *csound, PRINTCTRL *p)
 int32_t printctrl(CSOUND *csound, PRINTCTRL *p)
 {
     MYFLT *d = p->arr->data;
-    int32_t n = (int)d[0], i;
+    int32_t n, i;
+    if (UNLIKELY(p->arr->dimensions != 1 || p->arr->sizes == NULL ||
+                 d == NULL || p->arr->sizes[0] < 2))
+      return csound->PerfError(csound, &p->h, "%s",
+                              Str("ctrlprint: expected a controller array"));
+    if (UNLIKELY(!(d[0] >= 0 &&
+                   (double)d[0] <= (p->arr->sizes[0]-2)/2)))
+      return csound->PerfError(csound, &p->h, "%s",
+                              Str("ctrlprint: controller count exceeds array bounds"));
+    n = (int32_t)d[0];
+    if (UNLIKELY(!(d[1] >= 1 && d[1] < MIDIMAXPORTS * MAXCHAN + 1)))
+      return csound->PerfError(csound, &p->h, "%s",
+                              Str("ctrlprint: MIDI channel out of range"));
+    for (i = 2; i < 2+2*n; i++)
+      if (UNLIKELY(!(d[i] >= 0 && d[i] < 128)))
+        return csound->PerfError(csound, &p->h, "%s",
+                                Str("ctrlprint: controller and value must be in 0..127"));
     fprintf(p->fout, "\n ctrlinit\t%d", (int)d[1]);
     for (i=0; i<n; i++)
       fprintf(p->fout, ", %d,%d", (int)d[2+2*i], (int)d[3+2*i]);
@@ -1113,7 +1141,12 @@ int32_t printpresets_init(CSOUND *csound, PRINTPRESETS *p)
 
 int32_t printpresets_init1(CSOUND *csound, PRINTPRESETS *p)
 {
-    p->fout = fopen(p->file->data, "a");
-    if (p->fout==NULL) return NOTOK;
+    if (p->fdch.fd != NULL)
+      csoundFDClose(csound, &p->fdch);
+    p->fdch.fd = csound->FileOpen(csound, &p->fout, CSFILE_STD,
+                                 p->file->data, "a", "", CSFTYPE_OTHER_TEXT, 0);
+    if (UNLIKELY(p->fdch.fd == NULL))
+      return csound->InitError(csound, Str("Cannot open %s"), p->file->data);
+    csoundFDRecord(csound, &p->fdch);
     return OK;
 }
