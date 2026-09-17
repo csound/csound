@@ -16,6 +16,7 @@ if(BUILD_TESTS)
         audio_array_io_test.cpp
         channel_tests.cpp
         controller_print_test.cpp
+        printsk_test.cpp
         csound_data_structures_test.cpp
         csound_debug_callback_test.cpp
         csound_debugger_test.cpp
