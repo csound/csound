@@ -1,13 +1,20 @@
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
 #include "gtest/gtest.h"
+#include <cstdio>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <utility>
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 
 namespace {
 void checkExpression(const std::string& expression, MYFLT expected,
-                     const char* error = nullptr)
+                     const char* error = nullptr, int mode = 1)
 {
     SCOPED_TRACE(expression);
     std::unique_ptr<CSOUND, decltype(&csoundDestroy)> engine(
@@ -21,7 +28,25 @@ void checkExpression(const std::string& expression, MYFLT expected,
       "instr 1\nchnset p4,\"result\"\nendin\n"
       "</CsInstruments>\n<CsScore>\ni 1 0 .01 [" + expression +
       "]\n</CsScore>\n</CsoundSynthesizer>\n";
-    int result = csoundCompileCSD(csound, csd.c_str(), 1, 0);
+    std::string path;
+    if (mode == 0) {
+#ifdef _WIN32
+        int processId = _getpid();
+#else
+        int processId = getpid();
+#endif
+        path = ::testing::TempDir() + "csound-score-expression-" +
+               std::to_string(processId) + ".csd";
+        std::ofstream file(path, std::ios::binary);
+        ASSERT_TRUE(file.is_open());
+        file << csd;
+        file.close();
+        ASSERT_TRUE(file.good());
+    }
+    int result = csoundCompileCSD(csound,
+                                 mode == 0 ? path.c_str() : csd.c_str(), mode, 0);
+    if (!path.empty())
+        EXPECT_EQ(0, std::remove(path.c_str()));
     if (error) {
         EXPECT_NE(CSOUND_SUCCESS, result);
         std::string messages;
@@ -55,6 +80,12 @@ TEST(ScoreExpressionTests, PreservesArithmeticAndGrouping)
       {"~*0+1", 1}}) {
         checkExpression(item.first, item.second);
     }
+}
+
+TEST(ScoreExpressionTests, HandlesFileInputAndScoreErrors)
+{
+    checkExpression("2+3", 5, nullptr, 0);
+    checkExpression("2^", 0, "missing operand before closing bracket", 0);
 }
 
 TEST(ScoreExpressionTests, AcceptsNumberBufferBoundary)

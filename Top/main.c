@@ -525,14 +525,27 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text, int32_t asy
 }
 
 int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t async) {
-  if(mode == 0) {
-  CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
-  if (LIKELY(tt != NULL)) {
-    int32_t res = compile_csd_txt(csound, tt->body, async);
-    corfile_rm(csound, &tt);
-    return res;
-   } else return CSOUND_ERROR;
-  } else return compile_csd_txt(csound, str, async);
+  jmp_buf savedExitJmp;
+  CORFIL *volatile input = NULL;
+  int32_t result;
+
+  /* Score errors must return to this active API call, not an earlier one. */
+  memcpy(savedExitJmp, csound->exitjmp, sizeof(jmp_buf));
+  if ((result = setjmp(csound->exitjmp)) != 0) {
+    result = (result - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS;
+  } else if (mode == 0) {
+    input = copy_to_corefile(csound, str, NULL, 0);
+    result = input != NULL ? compile_csd_txt(csound, input->body, async)
+                           : CSOUND_ERROR;
+  } else {
+    result = compile_csd_txt(csound, str, async);
+  }
+  if (input != NULL) {
+    CORFIL *file = input;
+    corfile_rm(csound, &file);
+  }
+  memcpy(csound->exitjmp, savedExitJmp, sizeof(jmp_buf));
+  return result;
 }
 
 extern int32_t playopen_dummy(CSOUND *, const csRtAudioParams *parm);
