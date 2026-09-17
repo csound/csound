@@ -37,6 +37,7 @@ if(BUILD_TESTS)
         pvsinit_test.cpp
         paulstretch_test.cpp
         mixer_test.cpp
+        multitap_test.cpp
         midi_file_test.cpp
         tableseg_test.cpp
         table_copy_test.cpp

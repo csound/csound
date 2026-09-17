@@ -65,7 +65,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *sr, *ain, *ndel[VARGMAX-1];
-        AUXCH   aux;
+        AUXCH   aux, tapdel;
         int32   left, max;
 } MDEL;
 
