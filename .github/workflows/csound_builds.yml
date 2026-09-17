@@ -132,6 +132,53 @@ jobs:
             exit 1
           fi
 
+  linux_float64_ubsan:
+    name: Linux 64-bit float type-system tests (UBSan)
+    runs-on: ubuntu-latest
+    env:
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build python3 libgtest-dev \
+            libsndfile1-dev bison flex gettext
+
+      - name: Configure 64-bit float build
+        env:
+          CFLAGS: -fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer
+          CXXFLAGS: -fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer
+          LDFLAGS: -fsanitize=undefined
+        run: |
+          test "$(getconf LONG_BIT)" = 64
+          cmake -S . -B build-float64 -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DUSE_DOUBLE=OFF \
+            -DUSE_ASA=OFF \
+            -DBUILD_TESTS=ON \
+            -DBUILD_STATIC_LIBRARY=ON \
+            -DBUILD_UTILITIES=OFF \
+            -DBUILD_INSTALLER=OFF \
+            -DUSE_MP3=OFF \
+            -DUSE_CURL=OFF
+
+      - name: Build unit tests
+        run: cmake --build build-float64 --target unittests --parallel "$(nproc)"
+
+      - name: Run type-system tests
+        run: >
+          ctest --test-dir build-float64
+          --tests-regex '^TypeSystemTests\.'
+          --parallel "$(nproc)"
+          --output-on-failure
+          --no-tests=error
+
   linux_build_vcpkg:
     name: Linux/Ubuntu build (vcpkg)
     runs-on: ubuntu-latest
