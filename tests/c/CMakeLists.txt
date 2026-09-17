@@ -40,6 +40,7 @@ if(BUILD_TESTS)
         engine_test.cpp
         io_test.cpp
         local_ksmps_test.cpp
+        linlin_array_test.cpp
         lfsr_test.cpp
         osc_blob_test.cpp
         pvsinit_test.cpp
