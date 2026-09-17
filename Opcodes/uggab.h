@@ -137,8 +137,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *out, *gamp, *amp1, *cps1, *amp2, *cps2, *amp3, *cps3, *option;
-        int32_t flag;
-        int32   phs1,phs2,phs3;
+        uint32_t phs1,phs2,phs3;
         MYFLT   num1a,num2a, dfdmax1, num1b,num2b, dfdmax2, num1c,num2c, dfdmax3;
 } JITTER2;
 
