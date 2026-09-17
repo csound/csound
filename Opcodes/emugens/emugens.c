@@ -919,27 +919,30 @@ typedef struct {
 
 
 static int32_t bpf_K_Km_init(CSOUND *csound, BPF_K_Km *p) {
-    if (UNLIKELY(tabinit(csound, p->out, p->in->sizes[0],
-                         p->h.insdshead) != OK)) {
-        return csound_array_init_resize_error(csound);
-    }
-    p->lastidx = -1;
+    if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes == NULL ||
+                   p->out->dimensions > 1))
+        return INITERR(Str("bpf: expected one-dimensional arrays"));
     int32_t datalen = p->INOCOUNT - 1;
     if(datalen % 2)
         return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
     if(datalen < 4)
-        return INITERRF(Str("At least two pairs are needed, got %d"), datalen%2);
+        return INITERRF(Str("At least two pairs are needed, got %d"), datalen/2);
     if(datalen >= BPF_MAXPOINTS)
         return INITERR(Str("bpf: too many pargs (max=256)"));
     int32_t N = p->in->sizes[0];
     if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
+    p->lastidx = -1;
     return OK;
 }
 
 static int32_t bpf_K_Km_kr(CSOUND *csound, BPF_K_Km *p) {
+    if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes == NULL ||
+                   p->out->dimensions != 1))
+        return PERFERR(Str("bpf: expected one-dimensional arrays"));
     int32_t N = p->in->sizes[0];
-    ARRAY_ENSURESIZE_PERF(csound, p->out, N);
+    if (UNLIKELY(tabcheck(csound, p->out, N, &p->h) != OK))
+        return NOTOK;
 
     MYFLT **data = p->data;
     MYFLT *out = p->out->data;
@@ -1097,8 +1100,12 @@ static int32_t bpfcos_a_am_kr(CSOUND *csound, BPF_a_am *p) {
 // kys[] bpfcos kxs[], kx0, ky0, kx1, ky1, ...
 
 static int32_t bpfcos_K_Km_kr(CSOUND *csound, BPF_K_Km *p) {
+    if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes == NULL ||
+                   p->out->dimensions != 1))
+        return PERFERR(Str("bpf: expected one-dimensional arrays"));
     int32_t N = p->in->sizes[0];
-    ARRAY_ENSURESIZE_PERF(csound, p->out, N);
+    if (UNLIKELY(tabcheck(csound, p->out, N, &p->h) != OK))
+        return NOTOK;
 
     MYFLT **data = p->data;
     MYFLT *out = p->out->data;
