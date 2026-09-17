@@ -1001,19 +1001,59 @@ static int32_t getop(CSOUND *csound)        /* get next legal opcode */
     return(c);
 }
 
-static MYFLT read_expression(CSOUND *csound)
+#define SCORE_EXPR_STACK_SIZE 30
+#define SCORE_EXPR_NUMBER_SIZE 100
+
+typedef struct {
+  char ops[SCORE_EXPR_STACK_SIZE];
+  MYFLT values[SCORE_EXPR_STACK_SIZE];
+  int32_t opCount, valueCount;
+} SCORE_EXPR;
+
+static void score_expr_push_op(CSOUND *csound, SCORE_EXPR *expr, char op)
 {
-      char  stack[30];
-      MYFLT vv[30];
-      char  *op = stack - 1;
-      MYFLT *pv = vv - 1;
-      char  buffer[100];
-      int32_t   i, c;
-      int32_t   type = 0;  /* 1 -> expecting binary operator,')', or ']'; else 0 */
-      *++op = '[';
+  if (UNLIKELY(expr->opCount == SCORE_EXPR_STACK_SIZE))
+    scorerr(csound, Str("score expression operator stack full"));
+  expr->ops[expr->opCount++] = op;
+}
+
+static void score_expr_push_value(CSOUND *csound, SCORE_EXPR *expr, MYFLT value)
+{
+  if (UNLIKELY(expr->valueCount == SCORE_EXPR_STACK_SIZE))
+    scorerr(csound, Str("score expression value stack full"));
+  expr->values[expr->valueCount++] = value;
+}
+
+static void score_expr_reduce(CSOUND *csound, SCORE_EXPR *expr)
+{
+  if (UNLIKELY(expr->valueCount < 2))
+    scorerr(csound, Str("missing operand in score expression"));
+  MYFLT right = expr->values[--expr->valueCount];
+  MYFLT left = expr->values[expr->valueCount - 1];
+  expr->values[expr->valueCount - 1] =
+    operate(csound, left, right, expr->ops[--expr->opCount]);
+}
+
+static void score_expr_append_char(CSOUND *csound, char *buffer,
+                                   int32_t *length, int32_t c)
+{
+  if (UNLIKELY(*length == SCORE_EXPR_NUMBER_SIZE - 1))
+    scorerr(csound, Str("number too long in score expression"));
+  buffer[(*length)++] = (char)c;
+}
+
+static MYFLT read_expression(CSOUND *csound, int32_t depth)
+{
+      SCORE_EXPR expr = {{0}, {0}, 0, 0};
+      char buffer[SCORE_EXPR_NUMBER_SIZE];
+      int32_t i, c;
+      int32_t type = 0; /* 1: expecting an operator or closing delimiter */
+      if (UNLIKELY(depth >= SCORE_EXPR_STACK_SIZE))
+        scorerr(csound, Str("score expression nested too deeply"));
+      score_expr_push_op(csound, &expr, '[');
       c = getscochar(csound, 1);
-      do {
-        //printf("read_expression: c=%c\n", c);
+      for (;;) {
+        char top = expr.ops[expr.opCount - 1];
         switch (c) {
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9':
@@ -1025,24 +1065,23 @@ static MYFLT read_expression(CSOUND *csound)
  parseNumber:
           i = 0;
           do {
-            buffer[i++] = c;
+            score_expr_append_char(csound, buffer, &i, c);
             c = getscochar(csound, 1);
           } while (isdigit(c) || c == '.');
           if (c == 'e' || c == 'E') {
-            buffer[i++] = c;
+            score_expr_append_char(csound, buffer, &i, c);
             c = getscochar(csound, 1);
             if (c == '+' || c == '-') {
-              buffer[i++] = c;
+              score_expr_append_char(csound, buffer, &i, c);
               c = getscochar(csound, 1);
             }
             while (isdigit(c)) {
-              buffer[i++] = c;
+              score_expr_append_char(csound, buffer, &i, c);
               c = getscochar(csound, 1);
             }
           }
           buffer[i] = '\0';
-          //printf("****>>%s<<\n", buffer);
-          *++pv = stof(csound, buffer);
+          score_expr_push_value(csound, &expr, stof(csound, buffer));
           type = 1;
           break;
         case '~':
@@ -1050,8 +1089,8 @@ static MYFLT read_expression(CSOUND *csound)
             scorerr(csound, Str("illegal placement of operator ~ in [] "
                                 "expression"));
           }
-          *++pv = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1)
-                  / FL(2147483645);
+          score_expr_push_value(csound, &expr,
+            (MYFLT)(csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645));
           type = 1;
           c = getscochar(csound, 1);
           break;
@@ -1066,25 +1105,25 @@ static MYFLT read_expression(CSOUND *csound)
             c = getscochar(csound, 1);
             if (c=='@') { k = 1; c = getscochar(csound, 1);}
             while (isdigit(c)) {
-              n = 10*n + c - '0';
+              if (UNLIKELY(n > (INT32_MAX - (c - '0')) / 10))
+                scorerr(csound, Str("integer overflow in @ expression"));
+              n = 10*n + (c - '0');
               c = getscochar(csound, 1);
             }
             i = 1;
             while (i<=n-k && i< 0x4000000) i <<= 1;
-            *++pv = (MYFLT)(i+k);
+            score_expr_push_value(csound, &expr, (MYFLT)(i+k));
             type = 1;
           }
           break;
         case '+': case '-':
           if (!type)
             goto parseNumber;
-          if (*op != '[' && *op != '(') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
-            op--; pv--;
-            *pv = v;
+          if (top != '[' && top != '(') {
+            score_expr_reduce(csound, &expr);
           }
           type = 0;
-          *++op = c; c = getscochar(csound, 1); break;
+          score_expr_push_op(csound, &expr, c); c = getscochar(csound, 1); break;
         case '*':
         case '/':
         case '%':
@@ -1092,13 +1131,11 @@ static MYFLT read_expression(CSOUND *csound)
             scorerr(csound, Str("illegal placement of operator %c in [] "
                                 "expression"), c);
           }
-          if (*op == '*' || *op == '/' || *op == '%') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
-            op--; pv--;
-            *pv = v;
+          if (top == '*' || top == '/' || top == '%') {
+            score_expr_reduce(csound, &expr);
           }
           type = 0;
-          *++op = c; c = getscochar(csound, 1); break;
+          score_expr_push_op(csound, &expr, c); c = getscochar(csound, 1); break;
         case '&':
         case '|':
         case '#':
@@ -1106,19 +1143,17 @@ static MYFLT read_expression(CSOUND *csound)
             scorerr(csound, Str("illegal placement of operator %c in [] "
                                 "expression"), c);
           }
-          if (*op == '|' || *op == '&' || *op == '#') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
-            op--; pv--;
-            *pv = v;
+          if (top == '|' || top == '&' || top == '#') {
+            score_expr_reduce(csound, &expr);
           }
           type = 0;
-          *++op = c; c = getscochar(csound, 1); break;
+          score_expr_push_op(csound, &expr, c); c = getscochar(csound, 1); break;
         case '(':
           if (UNLIKELY(type)) {
             scorerr(csound, Str("illegal placement of '(' in [] expression"));
           }
           type = 0;
-          *++op = c; c = getscochar(csound, 1); break;
+          score_expr_push_op(csound, &expr, c); c = getscochar(csound, 1); break;
         case ')':
           if (UNLIKELY(!type)) {
             csound->inerrcnt++;
@@ -1128,62 +1163,56 @@ static MYFLT read_expression(CSOUND *csound)
             flushlin(csound);
             return FL(0.0);
           }
-          while (*op != '(' && *op != '[') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
-            op--; pv--;
-            *pv = v;
+          while (expr.ops[expr.opCount - 1] != '(' &&
+                 expr.ops[expr.opCount - 1] != '[') {
+            score_expr_reduce(csound, &expr);
           }
-          if (UNLIKELY(*op != '(')) {
+          if (UNLIKELY(expr.ops[expr.opCount - 1] != '(')) {
             csound->inerrcnt++;
             csound->ErrorMsg(csound,
                              Str("score error: unmatched ')' in [] expression"));
             print_input_backtrace(csound, 1, csoundErrorMsg);
             flushlin(csound);
-            return *pv;
+            return expr.values[expr.valueCount - 1];
           }
           type = 1;
-          op--; c = getscochar(csound, 1); break;
+          --expr.opCount; c = getscochar(csound, 1); break;
         case '^':
+          if (UNLIKELY(!type))
+            scorerr(csound, Str("missing operand before '^' in [] expression"));
           type = 0;
-          *++op = c; c = getscochar(csound, 1); break;
+          score_expr_push_op(csound, &expr, c); c = getscochar(csound, 1); break;
         case '[':
           if (UNLIKELY(type)) {
             scorerr(csound, Str("illegal placement of '[' in [] expression"));
           }
           type = 1;
           {
-            //int i;
-            MYFLT x;
-            //for (i=0;i<=pv-vv;i++) printf(" %lf ", vv[i]);
-            //printf("| %d\n", pv-vv);
-            x = read_expression(csound);
-            *++pv = x;
-            //printf("recursion gives %lf (%lf)\n", x,*(pv-1));
-            //for (i=0;i<pv-vv;i++) printf(" %lf ", vv[i]); printf("| %d\n", pv-vv);
+            MYFLT x = read_expression(csound, depth + 1);
+            score_expr_push_value(csound, &expr, x);
             c = getscochar(csound, 1); break;
           }
         case ']':
           if (UNLIKELY(!type)) {
             scorerr(csound, Str("missing operand before closing bracket in []"));
           }
-          while (*op != '[' && *op != '(') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
-            op--; pv--;
-            *pv = v;
+          while (expr.ops[expr.opCount - 1] != '[' &&
+                 expr.ops[expr.opCount - 1] != '(') {
+            score_expr_reduce(csound, &expr);
           }
-          if (UNLIKELY(*op != '[')) {
+          if (UNLIKELY(expr.ops[expr.opCount - 1] != '[')) {
             csound->inerrcnt++;
             csound->ErrorMsg(csound,
                              Str("score error: unmatched ']' in [] expression"));
             print_input_backtrace(csound, 1, csoundErrorMsg);
             flushlin(csound);
-            return *pv;
+            return expr.values[expr.valueCount - 1];
           }
-          //printf("done ]*** *op=%c v=%lg (%c)\n", *op, *pv, c);
-          //getscochar(csound, 1);
-          /* c = '$'; */ return *pv;
+          return expr.values[expr.valueCount - 1];
         case '$':
-          break;
+        case EOF:
+          scorerr(csound, Str("missing closing bracket in score expression"));
+          return FL(0.0);
         case ' ':               /* Ignore spaces */
           c = getscochar(csound, 1);
           continue;
@@ -1191,8 +1220,7 @@ static MYFLT read_expression(CSOUND *csound)
           scorerr(csound, Str("illegal character %c(%.2x) in [] expression"),
                   c, c);
         }
-      } while (c != '$');
-      return *pv;
+      }
 }
 
 
@@ -1204,7 +1232,7 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
     if ((c = sget1(csound)) == EOF)     /* get 1st non-white,non-comment c  */
       return(0);
     if (c=='[') {
-      MYFLT xx = read_expression(csound);
+      MYFLT xx = read_expression(csound, 0);
       //printf("****xx=%a\n", xx);
       //printf("nxp = %p\n", (csound->sread.nxp));
       snprintf((csound->sread.sp) = (csound->sread.nxp), 28, "%a$", xx);
