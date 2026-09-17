@@ -180,6 +180,73 @@ TEST_F (TypeSystemTests, testGetVarSimpleName)
     ASSERT_STREQ ("StestString", csoundGetVarSimpleName(csound, "[S]testString"));
 }
 
+TEST_F (TypeSystemTests, testVariablePoolAlignment)
+{
+    CS_VAR_POOL* pool = csoundCreateVarPool(csound);
+    const CS_TYPE* types[] = {
+      &CS_VAR_TYPE_K, &CS_VAR_TYPE_A, &CS_VAR_TYPE_S, &CS_VAR_TYPE_K
+    };
+    const char* names[] = {"kFirst", "aOdd", "SValue", "kLast"};
+    csound->ksmps = 3;
+
+    auto checkLayout = [&]() {
+        size_t bytes = pool->poolSize +
+          pool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET);
+        EXPECT_EQ(0u, bytes % alignof(OPDS));
+        MYFLT* data = static_cast<MYFLT*>(csound->Calloc(csound, bytes));
+        size_t previousEnd = 0;
+        for (CS_VARIABLE* var = pool->head; var; var = var->next) {
+            size_t valueOffset = var->memBlockIndex * sizeof(MYFLT);
+            size_t headerOffset = valueOffset - CS_VAR_TYPE_OFFSET;
+            EXPECT_GE(headerOffset, previousEnd);
+            EXPECT_EQ(0u, headerOffset % alignof(CS_VAR_MEM));
+            EXPECT_EQ(0u, valueOffset % alignof(CS_VAR_MEM));
+            previousEnd = valueOffset + var->memBlockSize;
+            EXPECT_LE(previousEnd, bytes);
+            auto* header = reinterpret_cast<CS_VAR_MEM*>(
+              reinterpret_cast<char*>(data) + headerOffset);
+            header->varType = var->varType;
+            memset(data + var->memBlockIndex, 0, var->memBlockSize);
+        }
+        for (CS_VARIABLE* var = pool->head; var; var = var->next) {
+            auto* header = reinterpret_cast<CS_VAR_MEM*>(
+              reinterpret_cast<char*>(data + var->memBlockIndex) -
+              CS_VAR_TYPE_OFFSET);
+            EXPECT_EQ(var->varType, header->varType);
+        }
+        csound->Free(csound, data);
+    };
+
+    for (int i = 0; i < 4; ++i) {
+        CS_VARIABLE* var = csoundCreateVariable(
+          csound, csound->typePool, types[i], const_cast<char*>(names[i]), nullptr);
+        ASSERT_NE(nullptr, var);
+        ASSERT_EQ(0, csoundAddVariable(csound, pool, var));
+        checkLayout();
+        var->memBlock = static_cast<CS_VAR_MEM*>(csound->Calloc(
+          csound, CS_VAR_TYPE_OFFSET + var->memBlockSize));
+        var->memBlock->varType = var->varType;
+    }
+    EXPECT_EQ(sizeof(MYFLT), static_cast<size_t>(pool->head->memBlockSize));
+    EXPECT_EQ(3 * sizeof(MYFLT),
+              static_cast<size_t>(pool->head->next->memBlockSize));
+    csoundRecalculateVarPoolMemory(csound, pool);
+    checkLayout();
+
+    csound->ksmps = 5;
+    csoundReallocateVarPoolMemory(csound, pool);
+    int32_t resizedPoolSize = pool->poolSize;
+    csoundRecalculateVarPoolMemory(csound, pool);
+    EXPECT_EQ(resizedPoolSize, pool->poolSize);
+    EXPECT_EQ(5 * sizeof(MYFLT),
+              static_cast<size_t>(pool->head->next->memBlockSize));
+    checkLayout();
+
+    for (CS_VARIABLE* var = pool->head; var; var = var->next)
+        csound->Free(csound, var->memBlock);
+    csoundFreeVarPool(csound, pool);
+}
+
 TEST_F (TypeSystemTests, testArrayCopyPreservesDestinationCapacity)
 {
     int32_t sourceSize = 2;
