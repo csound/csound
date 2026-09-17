@@ -53,8 +53,17 @@
 #include "interlocks.h"
 #include <math.h>
 #include <ctype.h>
+#include <limits.h>
+#include <stdint.h>
 
 #include "zak.h"
+
+/* Invalid conversions become an out-of-range index. Keep truncation toward
+ * zero for valid fractional indices, including negative modulation indices.
+ * INT32_MAX is reserved: zakinit limits the highest location below it. */
+#define ZAK_INDEX(value) \
+    ((double)(value) >= -(double)INT32_MAX && \
+     (double)(value) < (double)INT32_MAX ? (int32_t)(value) : INT32_MAX)
 
 /*****************************************************************************/
 /*****************************************************************************/
@@ -79,7 +88,7 @@
 
 int32_t zakinit(CSOUND *csound, ZAKINIT *p)
 {
-    size_t    length;
+    size_t    length, audioCount, controlCount;
     ZAK_GLOBALS* zak;
     zak = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
     /* Check to see this is the first time zakinit() has been called.
@@ -90,10 +99,17 @@ int32_t zakinit(CSOUND *csound, ZAKINIT *p)
                                "%s", Str("zakinit should only be called once."));
     }
 
-    if (UNLIKELY((*p->isizea <= 0) || (*p->isizek <= 0))) {
-      return csound->InitError(csound, "%s", Str("zakinit: both isizea and isizek "
-                                           "should be > 0."));
-    }
+    if (UNLIKELY(!(*p->isizea > 0 && *p->isizek > 0 &&
+                   (double)*p->isizea < INT32_MAX &&
+                   (double)*p->isizek < INT32_MAX)))
+      return csound->InitError(csound, "%s",
+                               Str("zakinit: sizes out of range"));
+    audioCount = (size_t)(int32_t)*p->isizea + 1;
+    controlCount = (size_t)(int32_t)*p->isizek + 1;
+    if (UNLIKELY(audioCount > SIZE_MAX / sizeof(MYFLT) / CS_KSMPS ||
+                 controlCount > SIZE_MAX / sizeof(MYFLT)))
+      return csound->InitError(csound, "%s",
+                               Str("zakinit: sizes out of range"));
     /* Allocate memory for zk space.
      * This is all set to 0 and there will be an error report if the
      * memory cannot be allocated. */
@@ -105,7 +121,7 @@ int32_t zakinit(CSOUND *csound, ZAKINIT *p)
                            Str("zakinit: failed to allocate globals"));
     zak = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
     zak->zklast = (int32_t) *p->isizek;
-    length = (zak->zklast + 1) * sizeof(MYFLT);
+    length = controlCount * sizeof(MYFLT);
     zak->zalast = (int32_t) *p->isizea;
     zak->zkstart = (MYFLT*) csound->Calloc(csound, length);
 
@@ -115,7 +131,7 @@ int32_t zakinit(CSOUND *csound, ZAKINIT *p)
      * memory cannot be allocated.       */
 
 
-    length = (zak->zalast + 1L) * sizeof(MYFLT) * CS_KSMPS;
+    length = audioCount * sizeof(MYFLT) * CS_KSMPS;
     zak->zastart = (MYFLT*) csound->Calloc(csound, length);
     return OK;
 }
@@ -131,7 +147,7 @@ int32_t zkset(CSOUND *csound, ZKR *p)
 {
     ZAK_GLOBALS* zak =
       (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
-    if (UNLIKELY(zak->zkstart == NULL)) {
+    if (UNLIKELY(zak == NULL || zak->zkstart == NULL)) {
       return csound->InitError(csound, "%s", Str("No zk space: "
                                            "zakinit has not been called yet."));
     }
@@ -150,7 +166,7 @@ int32_t zkr(CSOUND *csound, ZKR *p)
     ZAK_GLOBALS* zak = (ZAK_GLOBALS*) p->zz;
 
     /* Check to see this index is within the limits of zk space. */
-    indx = (int32_t) *p->ndx;
+    indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zklast)) {
       *p->rslt = FL(0.0);
       csound->Warning(csound, "%s", Str("zkr index > isizek. Returning 0."));
@@ -189,7 +205,7 @@ int32_t zir(CSOUND *csound, ZKR *p)
     /* if (UNLIKELY(zak == NULL)) */
     /*   return NOTOK; */
     /* Check to see this index is within the limits of zk space. */
-    indx = (int32_t) *p->ndx;
+    indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zklast)) {
       csound->Warning(csound, "%s", Str("zir index > isizek. Returning 0."));
       *p->rslt = FL(0.0);
@@ -216,7 +232,7 @@ int32_t zkw(CSOUND *csound, ZKW *p)
     ZAK_GLOBALS* zak = (ZAK_GLOBALS*) p->zz;
 
     /* Check to see this index is within the limits of zk space. */
-    indx = (int32_t) *p->ndx;
+    indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zklast)) {
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("zkw index > isizek. Not writing."));
@@ -251,7 +267,7 @@ int32_t ziw(CSOUND *csound, ZKW *p)
     zak = p->zz;
     /* if (UNLIKELY(zak==NULL)) */
     /*   return NOTOK; */
-    indx = (int32_t) *p->ndx;
+    indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zklast)) {
       return csound->InitError(csound, "%s", Str("ziw index > isizek. Not writing."));
     }
@@ -278,7 +294,7 @@ int32_t zkwm(CSOUND *csound, ZKWM *p)
     ZAK_GLOBALS* zak = (ZAK_GLOBALS*) p->zz;
 
     /* Check to see this index is within the limits of zk space.   */
-    indx = (int32_t) *p->ndx;
+    indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zklast)) {
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("zkwm index > isizek. Not writing."));
@@ -317,7 +333,7 @@ int32_t ziwm(CSOUND *csound, ZKWM *p)
     if (UNLIKELY(zkset(csound, (ZKR*) p) != OK))
       return NOTOK;
     zak  = (ZAK_GLOBALS*) p->zz;
-    indx = (int32_t) *p->ndx;
+    indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zklast)) {
       return csound->InitError(csound,
                                "%s", Str("ziwm index > isizek. Not writing."));
@@ -355,7 +371,7 @@ int32_t zkmod(CSOUND *csound, ZKMOD *p)
      * the normal conversion rules to apply to negative numbers -
      * so -2.3 is converted to -2.                               */
 
-    if ((indx = (int32_t)*p->zkmod) == 0) {
+    if ((indx = ZAK_INDEX(*p->zkmod)) == 0) {
       *p->rslt = *p->sig;
       return OK;
     }
@@ -389,7 +405,7 @@ int32_t zkcl(CSOUND *csound, ZKCL *p)
 {
     MYFLT       *writeloc;
     ZAK_GLOBALS* zak = (ZAK_GLOBALS*) p->zz;
-    int32_t first = (int32_t) *p->first, last = (int32_t) *p->last, loopcount;
+    int32_t first = ZAK_INDEX(*p->first), last = ZAK_INDEX(*p->last), loopcount;
 
     /* Check to see both kfirst and klast are within the limits of zk space
      * and that last is >= first.                */
@@ -453,7 +469,7 @@ int32_t zar(CSOUND *csound, ZAR *p)
     writeloc = p->rslt;
 
     /* Check to see this index is within the limits of za space.    */
-    indx = (int32_t) *p->ndx;
+    indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zalast)) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
       return csound->PerfError(csound, &(p->h),
@@ -467,7 +483,7 @@ int32_t zar(CSOUND *csound, ZAR *p)
     else {
       /* Now read from the array in za space and write to the destination.
        * See notes in zkr() on pointer arithmetic.     */
-      readloc = zak->zastart + (indx * CS_KSMPS);
+      readloc = zak->zastart + ((size_t)indx * CS_KSMPS);
       if (UNLIKELY(offset)) memset(writeloc, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -499,7 +515,7 @@ int32_t zarg(CSOUND *csound, ZARG *p)
     kgain = *p->kgain;
 
     /* Check to see this index is within the limits of za space.    */
-    indx = (int32_t) *p->ndx;
+    indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zalast)) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
       return csound->PerfError(csound, &(p->h),
@@ -514,7 +530,7 @@ int32_t zarg(CSOUND *csound, ZARG *p)
       else {
         /* Now read from the array in za space multiply by kgain and write
          * to the destination.       */
-        readloc = zak->zastart + (indx * CS_KSMPS);
+        readloc = zak->zastart + ((size_t)indx * CS_KSMPS);
         if (UNLIKELY(offset)) memset(writeloc, '\0', offset*sizeof(MYFLT));
         if (UNLIKELY(early)) {
           nsmps -= early;
@@ -545,7 +561,7 @@ int32_t zaw(CSOUND *csound, ZAW *p)
     /* Set up the pointer for the source of data to write.    */
     readloc = p->sig;
     /* Check to see this index is within the limits of za space.     */
-    indx = (int32_t) *p->ndx;
+    indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zalast)) {
       return csound->PerfError(csound, &(p->h),
                                  "%s", Str("zaw index > isizea. Not writing."));
@@ -556,7 +572,7 @@ int32_t zaw(CSOUND *csound, ZAW *p)
     }
     else {
         /* Now write to the array in za space pointed to by indx.    */
-      writeloc = zak->zastart + (indx * CS_KSMPS);
+      writeloc = zak->zastart + ((size_t)indx * CS_KSMPS);
       if (UNLIKELY(offset)) memset(writeloc, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         nsmps -= early;
@@ -586,7 +602,7 @@ int32_t zawm(CSOUND *csound, ZAWM *p)
 
     readloc = p->sig;
     /* Check to see this index is within the limits of za space.    */
-    indx = (int32_t) *p->ndx;
+    indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zalast)) {
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("zaw index > isizea. Not writing."));
@@ -597,7 +613,7 @@ int32_t zawm(CSOUND *csound, ZAWM *p)
     }
     else {
       /* Now write to the array in za space pointed to by indx.    */
-      writeloc = zak->zastart + (indx * CS_KSMPS);
+      writeloc = zak->zastart + ((size_t)indx * CS_KSMPS);
       if (*p->mix == 0) {
         /* Normal write mode.  */
         if (UNLIKELY(offset)) memset(writeloc, '\0', offset*sizeof(MYFLT));
@@ -645,7 +661,7 @@ int32_t zamod(CSOUND *csound, ZAMOD *p)
       memset(&writeloc[nsmps], '\0', early*sizeof(MYFLT));
     }
     /* If zkmod = 0, then just copy input to output.    */
-    if ((indx = (int32_t) *p->zamod) == 0) {
+    if ((indx = ZAK_INDEX(*p->zamod)) == 0) {
       memcpy(&writeloc[offset], &readsig[offset], (nsmps-offset)*sizeof(MYFLT));
       return OK;
     }
@@ -660,8 +676,7 @@ int32_t zamod(CSOUND *csound, ZAMOD *p)
                                "%s", Str("zamod kzamod > isizea. Not writing."));
     }
     else {                      /* Now read the values from za space.    */
-      readloc = zak->zastart + (indx * CS_KSMPS);
-      if (UNLIKELY(early)) nsmps -= early;
+      readloc = zak->zastart + ((size_t)indx * CS_KSMPS);
       if (mflag == 0) {
         for (n=offset; n<nsmps; n++) {
           writeloc[n] = readsig[n] + readloc[n];
@@ -683,10 +698,11 @@ int32_t zacl(CSOUND *csound, ZACL *p)
 {
     MYFLT       *writeloc;
     ZAK_GLOBALS* zak = (ZAK_GLOBALS*) p->zz;
-    int32_t first, last, loopcount;
+    int32_t first, last;
+    size_t loopcount;
 
-    first = (int32_t) *p->first;
-    last  = (int32_t) *p->last;
+    first = ZAK_INDEX(*p->first);
+    last  = ZAK_INDEX(*p->last);
     if(last == -1)
         last = first;
 
@@ -707,8 +723,8 @@ int32_t zacl(CSOUND *csound, ZACL *p)
                                    "%s", Str("zacl first > last. Not clearing."));
         }
         else {  /* Now clear the appropriate locations in za space. */
-          loopcount = (last - first + 1) * CS_KSMPS;
-          writeloc = zak->zastart + (first * CS_KSMPS);
+          loopcount = (size_t)(last - first + 1) * CS_KSMPS;
+          writeloc = zak->zastart + ((size_t)first * CS_KSMPS);
           memset(writeloc, 0, loopcount*sizeof(MYFLT));
         }
       }
