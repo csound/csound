@@ -337,7 +337,7 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
   if (dev == NULL || dev[0] == '\0')
     devnum =
       portMidi_getPackedDeviceID((int32_t)Pm_GetDefaultOutputDeviceID(), 1);
-  else if (UNLIKELY(dev[0] < '0' || dev[0] > '9' && dev[0] != 'a' && dev[0] != 'm')) {
+  else if (UNLIKELY(dev[0] < '0' || (dev[0] > '9' && dev[0] != 'a' && dev[0] != 'm'))) {
     portMidiErrMsg(csound, Str("error: must specify a device number (>=0), "
                                "not a name"));
     return -1;

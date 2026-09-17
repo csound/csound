@@ -623,13 +623,13 @@ static int32_t expseg_init(CSOUND *csound, MYFLT **args, int32_t nargs,
     val = next;
     next = *args[2*n + 2];
     if (UNLIKELY(val == FL(0.0)))
-      return csound->InitError(csound, Str("ival%lld is zero"), (int64_t)n+1);
+      return csound->InitError(csound, Str("ival%lld is zero"), (long long)n+1);
     if (UNLIKELY(next == FL(0.0)))
-      return csound->InitError(csound, Str("ival%lld is zero"), (int64_t)n+2);
+      return csound->InitError(csound, Str("ival%lld is zero"), (long long)n+2);
     if (UNLIKELY(!((val > FL(0.0) && next > FL(0.0)) ||
                    (val < FL(0.0) && next < FL(0.0)))))
       return csound->InitError(csound,
-                               Str("ival%lld sign conflict"), (int64_t)n+2);
+                               Str("ival%lld sign conflict"), (long long)n+2);
 
     count = (double)dur * rate;
     audio_count = (double)dur * sample_rate;
@@ -816,10 +816,10 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
  experr:
   n = segp - p->cursegp;// + 2;
   if (prvpt == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n));
   else if (segp->nxtpt == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
-  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n+1));
+  return csound->InitError(csound, Str("ival%lld sign conflict"), (long long) (n+1));
 }
 
 

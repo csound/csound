@@ -168,8 +168,12 @@ TEST_F(ControllerPrintTests, ClosesFilesOnReinitNoteEndAndReuse)
     for (int i = 0; i < 70; ++i) {
       csoundPerformKsmps(csound);
       EXPECT_LE(openFiles(), 1) << "cycle " << i;
-      if (i == 5 || i == 45) EXPECT_EQ(1, openFiles());
-      if (i == 30 || i == 69) EXPECT_EQ(0, openFiles());
+      if (i == 5 || i == 45) {
+        EXPECT_EQ(1, openFiles());
+      }
+      if (i == 30 || i == 69) {
+        EXPECT_EQ(0, openFiles());
+      }
     }
     EXPECT_EQ(0, csound->inerrcnt + csound->perferrcnt) << messages();
     EXPECT_NE(std::string::npos, contents().find(presets ? "ctrlpreset" : "ctrlinit"));

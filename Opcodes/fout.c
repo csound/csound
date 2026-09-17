@@ -1450,7 +1450,7 @@ static const char *fprints_format(CSOUND *csound, FPRINTF *p,
 {
   const char *fmt = p->txtstring;
   size_t used = 0;
-  int32_t arg = 0;
+  uint32_t arg = 0;
   char spec[sizeof(p->txtstring)];
 
   out[0] = '\0';

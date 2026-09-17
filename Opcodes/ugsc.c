@@ -749,7 +749,7 @@ static int32_t hilbertset_array(CSOUND *csound, HILBERTA *p)
     if (UNLIKELY(tabinit(csound, p->out, CS_KSMPS,
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
-    for(int k=0; k < CS_KSMPS; k++)
+    for(uint32_t k=0; k < CS_KSMPS; k++)
       ((COMPLEXDAT *)p->out->data)[k].isPolar = 0;  
     return OK;
 }

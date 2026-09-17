@@ -353,7 +353,7 @@ static int32_t product_init(CSOUND *csound, SUM *p)
     /* Keep existing scratch space sized on reinit. */
     if (p->aux.auxp != NULL)
       return sum_init(csound, p);
-    for (int32_t i = 1; i < p->INOCOUNT; ++i) {
+    for (uint32_t i = 1; i < p->INOCOUNT; ++i) {
       if (p->ar == p->argums[i])
         return sum_init(csound, p);
     }

@@ -177,8 +177,9 @@ schedule(2, 0, 0.001)
         // Once all frames contain ones, overlap-add must sum to the factor.
         for (int sample = 0; sample < 24; ++sample) {
             ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
-            if (sample >= 8)
+            if (sample >= 8) {
                 EXPECT_EQ(csoundGetSpout(csound)[0], overlap);
+            }
         }
     }
     else {

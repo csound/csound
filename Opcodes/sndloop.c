@@ -1274,7 +1274,7 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
         for (i=0; i < N; i+=2) {
           a  = (j ? fin[i] : (fexc[i] = ffr[i]));
           maxa = maxa < a ? a : maxa;
-          if (a <= 0) a = 1e-20;
+          if (a <= 0) a = FL(1e-20);
           fenv[i/2] = log(a);
         }
         if (coefs < 1) coefs = 80;
