@@ -27,6 +27,7 @@ if(BUILD_TESTS)
         csound_type_system_test.cpp
         csound_circular_buffer_test.cpp
         seed_state_test.cpp
+        trigseq_test.cpp
         score_expression_test.cpp
         schedkwhen_test.cpp
         schedule_string_test.cpp
