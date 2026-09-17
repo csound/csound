@@ -190,6 +190,7 @@ typedef struct {
   ARRAYDAT *arr;
   STRINGDAT *file;
   FILE    *fout;
+  FDCH    fdch;
 } PRINTCTRL;
 
 typedef struct {
@@ -225,6 +226,7 @@ typedef struct {
   OPDS    h;
   STRINGDAT *file;
   FILE    *fout;
+  FDCH    fdch;
 } PRINTPRESETS;
 
 int32_t event_type(CSOUND *csound, void *p);
