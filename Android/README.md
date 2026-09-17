@@ -38,6 +38,11 @@ Once this is run, the JNI libs are located in ./CsoundAndroid/libs and
 the Java sources in ./CsoundAndroid/src. These can be imported into
 an Android Studio project.
 
+`Android.mk` regenerates the parser when its grammar changes, including when
+calling `ndk-build` directly. Bison must be on `PATH`, or set
+`CSOUND_BISON=/path/to/bison` when calling the build. Generated parser files in
+`CsoundAndroid/jni` are local build output and are not checked into Git.
+
 Alternatively, running the `update.sh` script updates the
 CsoundAndroid project on CsoundForAndroid. This should then be
 ready to be used in an Android Studio application.
@@ -49,6 +54,5 @@ Release Script
 
 The `release.sh` can be used to create a release package containing
 the CsoundForAndroid Android Studio project. 
-
 
 
