@@ -32,6 +32,7 @@ if(BUILD_TESTS)
         csound_circular_buffer_test.cpp
         vibrato_test.cpp
         pitch_test.cpp
+        delayk_test.cpp
         seed_state_test.cpp
         trigseq_test.cpp
         interpolated_random_test.cpp
