@@ -24,6 +24,7 @@
 #include "emugens_common.h"
 #include "interlocks.h"
 #include "arrays.h"
+#include "udo.h"
 #include <ctype.h>
 
 #define SAMPLE_ACCURATE \
@@ -2594,17 +2595,18 @@ ftexists_init(CSOUND *csound, FTEXISTS *p) {
 typedef struct {
     OPDS h;
     MYFLT *out;
-    int32_t extracycles;
+    INSDS *owner;
     int32_t fired;
 } LASTCYCLE;
 
 static int32_t
 lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
     IGN(csound);
-    if (p->h.insdshead->xtratim == 0)
-        p->h.insdshead->xtratim = 1;
-    /* Later init opcodes can extend the note or its release. */
-    p->extracycles = -1;
+    /* UDOs keep an init-time copy of their caller's off time. The outer
+       instrument owns the scheduled end time, including later changes. */
+    p->owner = p->h.insdshead;
+    while (p->owner->opcod_iobufs != NULL)
+        p->owner = ((OPCOD_IOBUFS *)p->owner->opcod_iobufs)->parent_ip;
     *p->out = FL(0.0);
     p->fired = 0;
     return OK;
@@ -2614,10 +2616,16 @@ static int32_t
 lastcycle(CSOUND *csound, LASTCYCLE *p) {
     IGN(csound);
     *p->out = FL(0.0);
-    if (!p->fired && p->h.insdshead->relesing) {
-        if (p->extracycles < 0)
-            p->extracycles = p->h.insdshead->xtratim;
-        if (--p->extracycles <= 0) {
+    if (!p->fired && p->owner->offtim >= 0.0 &&
+        (p->owner->relesing || p->owner->xtratim == 0)) {
+        /* With an explicit release, off time becomes the final end time only
+           after the engine enters release. Account for a partial final block
+           before converting that time to the opcode's local cycle count. */
+        double endtime = p->owner->offtim -
+                         p->owner->no_end / (double)p->owner->esr;
+        double endsample = floor(endtime * (double)CS_ESR + 0.5);
+        double endcycle = ceil(endsample / CS_KSMPS);
+        if ((double)CS_KCNT >= endcycle) {
             *p->out = FL(1.0);
             p->fired = 1;
         }

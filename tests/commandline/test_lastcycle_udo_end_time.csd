@@ -1,5 +1,5 @@
 <CsTest>
-description = "lastcycle resets its state when an instance is reused with a shorter or no release"
+description = "lastcycle in nested UDOs follows later duration and release changes"
 [expect]
 exit = 0
 </CsTest>
@@ -15,19 +15,29 @@ ksmps = 16
 nchnls = 1
 gkCyclesRendered init 0
 
+opcode FinalCycle, k, 0
+  kLast lastcycle
+  xout kLast
+endop
+
+opcode WrappedFinalCycle, k, 0
+  kLast FinalCycle
+  xout kLast
+endop
+
 instr 1
-  iRelease = p4
-  iExpectedCycles = p5
-  kBefore lastcycle
-  xtratim iRelease
-  kAfter lastcycle
+  kBefore WrappedFinalCycle
+  ; Extend p3 from four to eight cycles after the first lastcycle initializes.
+  p3 += .0625
+  xtratim p4
+  kAfter WrappedFinalCycle
 
   ; Both placements must produce 0 on every cycle except the final one.
   ; Cycle indices start at zero.
   kCycleIndex eventcycles
-  kExpected = (kCycleIndex == iExpectedCycles - 1 ? 1 : 0)
+  kExpected = (kCycleIndex == p5 - 1 ? 1 : 0)
   if kBefore != kExpected || kAfter != kExpected then
-    printks "instance reuse: cycle index %g, expected pulse %g, before %g, after %g\n", 0, kCycleIndex, kExpected, kBefore, kAfter
+    printks "nested UDO: cycle index %g, expected pulse %g, before %g, after %g\n", 0, kCycleIndex, kExpected, kBefore, kAfter
     exitnowk -1
   endif
   ; Include the current cycle in the total.
@@ -43,14 +53,12 @@ instr 99
 endin
 </CsInstruments>
 <CsScore>
-; Each note finishes before the next, allowing instance reuse.
-;     start   p3       release  expected total cycles
-i1    0       .0625   .0625    8
-i99   .1875   .001    8
-i1    .25     .0625   .03125   6
-i99   .375    .001    6
-i1    .5      .0625   0        4
-i99   .625    .001    4
+; The later p3 change gives eight cycles, with no release extension.
+i1 .5 .0625 0 8
+i99 .75 .001 8
+; Repeat with four release cycles added after the first UDO initializes.
+i1 1 .0625 .0625 12
+i99 1.25 .001 12
 e
 </CsScore>
 </CsoundSynthesizer>
