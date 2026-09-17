@@ -22,6 +22,12 @@ import MessagePortState from "../utils/message-port-state";
 import libcsoundFactory from "../libcsound";
 import loadWasm from "../module";
 import { clearArray } from "../utils/clear-array";
+import {
+  createAudioFade,
+  fillAudioFade,
+  getAudioFadeRemainingFrames,
+  nextAudioFadeGain,
+} from "../utils/audio-fade";
 import { logSinglethreadWorkletWorker as log } from "../logger";
 
 const singlethreadWorkerRender =
@@ -80,6 +86,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.libraryCsound = undefined;
     this.combined = undefined;
     this.rtmidiQueue = [];
+    this.audioFade = undefined;
+    this.lastOutput = [];
 
     /** @suppress {checkTypes} */
     this.sampleRate = globalThis.sampleRate;
@@ -92,6 +100,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.stop = this.stop.bind(this);
     /** @export */
     this.terminate = this.terminate.bind(this);
+    /** @export */
+    this.beginFadeOut = this.beginFadeOut.bind(this);
     /** @export */
     this.process = this.process.bind(this);
     /** @export */
@@ -210,6 +220,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.running = false;
     this.started = false;
     this.result = 0;
+    this.audioFade = undefined;
+    this.lastOutput = [];
 
     const cs = this.csound;
 
@@ -229,6 +241,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   stop() {
+    this.beginFadeOut();
     // Ensure process() cannot keep advancing DSP after a manual stop.
     this.running = false;
     this.started = false;
@@ -286,12 +299,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
     if (this.isRendering || this.isPaused || !this.csoundOutputBuffer || !this.running) {
       const output = outputs[0];
-      const bufferLength = output[0].length;
-      for (let index = 0; index < bufferLength; index++) {
-        for (let channel = 0; channel < this.nchnls; channel++) {
-          const outputChannel = output[channel];
-          outputChannel[index] = 0;
+      if (this.audioFade) {
+        fillAudioFade(this.audioFade, output, this.lastOutput);
+        if (getAudioFadeRemainingFrames(this.audioFade) === 0) {
+          this.audioFade = undefined;
         }
+      } else {
+        output.forEach((channel) => channel.fill(0));
       }
       return true;
     }
@@ -335,9 +349,12 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         if (result !== 0) {
           this.running = false;
           this.started = false;
+          this.beginFadeOut();
           this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
         }
       }
+
+      const outputGain = result === 0 ? 1 : nextAudioFadeGain(this.audioFade);
 
       /* Check if MEMGROWTH occured from csoundPerformKsmps or otherwise. If so,
       rest output ant input buffers to new pointer locations. */
@@ -371,7 +388,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       if (this.nchnls === output.length) {
         for (const [channel, outputChannel] of output.entries()) {
           /** @suppress {checkTypes} */
-          outputChannel[index] = result === 0 ? csOut[cnt * nchnls + channel] / zerodBFS : 0;
+          outputChannel[index] =
+            result === 0
+              ? csOut[cnt * nchnls + channel] / zerodBFS
+              : (this.lastOutput[channel] || 0) * outputGain;
+          if (result === 0) {
+            this.lastOutput[channel] = outputChannel[index];
+          }
         }
       } else if (this.nchnls === 2 && output.length === 1) {
         const outputChannel = output[0];
@@ -380,7 +403,10 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           const right = csOut[cnt * nchnls + 1] / zerodBFS;
           outputChannel[index] = 0.5 * (left + right);
         } else {
-          outputChannel[index] = 0;
+          outputChannel[index] = (this.lastOutput[0] || 0) * outputGain;
+        }
+        if (result === 0) {
+          this.lastOutput[0] = outputChannel[index];
         }
       } else if (this.nchnls === 1 && output.length === 2) {
         const outChan0 = output[0];
@@ -391,8 +417,12 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           outChan0[index] = value;
           outChan1[index] = value;
         } else {
-          outChan0[index] = 0;
-          outChan1[index] = 0;
+          outChan0[index] = (this.lastOutput[0] || 0) * outputGain;
+          outChan1[index] = (this.lastOutput[1] || 0) * outputGain;
+        }
+        if (result === 0) {
+          this.lastOutput[0] = outChan0[index];
+          this.lastOutput[1] = outChan1[index];
         }
       } else {
         // FIXME: we do not support other cases at this time
@@ -401,6 +431,9 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
     this.cnt = cnt;
     this.result = result;
+    if (this.audioFade && getAudioFadeRemainingFrames(this.audioFade) === 0) {
+      this.audioFade = undefined;
+    }
 
     return true;
   }
@@ -414,6 +447,16 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     const cs = this.csound;
     const outputName = this.libraryCsound.csoundGetOutputName(cs) || "";
     return outputName.includes("dac");
+  }
+
+  beginFadeOut() {
+    if (this.audioFade) {
+      return getAudioFadeRemainingFrames(this.audioFade);
+    }
+
+    const fadeFrames = Math.max(1, Math.round((this.sampleRate || 1) / 50));
+    this.audioFade = createAudioFade(fadeFrames);
+    return fadeFrames;
   }
 
   async start() {

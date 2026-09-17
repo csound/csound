@@ -94,6 +94,22 @@ class AudioWorkletMainThread {
     }
   }
 
+  async beginFadeOut() {
+    if (!this.workletProxy) {
+      return 0;
+    }
+    return (await this.workletProxy["beginFadeOut"]()) || 0;
+  }
+
+  async waitForFadeOut(frameCount) {
+    if (!frameCount) {
+      return;
+    }
+    const sampleRate = this.audioContext && this.audioContext.sampleRate;
+    const fadeMs = (1000 * frameCount) / (sampleRate || 44100);
+    await new Promise((resolve) => setTimeout(resolve, fadeMs + 20));
+  }
+
   createWorkletNode(audioContext, inputsCount, contextUid) {
     const processorOptions = {};
 
@@ -148,6 +164,8 @@ class AudioWorkletMainThread {
         break;
       }
       case "realtimePerformanceEnded": {
+        const fadeFrames = await this.beginFadeOut();
+        await this.waitForFadeOut(fadeFrames);
         log(
           "event received: realtimePerformanceEnded" + !this.csoundWorkerMain.hasSharedArrayBuffer
             ? ` cleaning up ports`
