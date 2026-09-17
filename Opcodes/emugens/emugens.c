@@ -24,6 +24,11 @@
 #include "emugens_common.h"
 #include "interlocks.h"
 #include "arrays.h"
+#ifndef __BUILDING_LIBCSOUND
+/* udo.h only needs this private type as an opaque pointer in plugin builds. */
+typedef struct opcodinfo OPCODINFO;
+#endif
+#include "udo.h"
 #include <ctype.h>
 
 #define SAMPLE_ACCURATE \
@@ -2600,39 +2605,19 @@ ftexists_init(CSOUND *csound, FTEXISTS *p) {
 typedef struct {
     OPDS h;
     MYFLT *out;
-    int32_t extracycles;
-    int32_t numcycles;
-    // 0 - tied note, has extra time;
-    // 1 - fixed p3, no extra time
-    // 2 - fixed p3, extra time
-    int32_t mode;
+    INSDS *owner;
     int32_t fired;
 } LASTCYCLE;
 
 static int32_t
 lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
-    MYFLT p3 = p->h.insdshead->p3.value;
-    p->numcycles = p3 < 0 ? 0 :
-        (int)(p->h.insdshead->offtim * CS_EKR + 0.5);
-    p->extracycles = p->h.insdshead->xtratim;
-    if(p->extracycles == 0) {
-        p->h.insdshead->xtratim = 1;
-        p->extracycles = 1;
-        // MSG(Str("lastcycle: adding an extra cycle to the duration of the event\n"));
-    }
-    p->numcycles += p->extracycles;
-    if(p3 < 0) {
-        p->mode = 0;
-    }
-    else if (p->extracycles > 0) {
-        p->mode = 2;
-    } else {
-      csound->Warning(csound, "%s",
-                      Str("lastcycle: no extra time defined, turnoff2 will"
-                          " not be detected\n"));
-        p->mode = 1;
-    }
-    *p->out = 0;
+    IGN(csound);
+    /* UDOs keep an init-time copy of their caller's off time. The outer
+       instrument owns the scheduled end time, including later changes. */
+    p->owner = p->h.insdshead;
+    while (p->owner->opcod_iobufs != NULL)
+        p->owner = ((OPCOD_IOBUFS *)p->owner->opcod_iobufs)->parent_ip;
+    *p->out = FL(0.0);
     p->fired = 0;
     return OK;
 }
@@ -2640,39 +2625,20 @@ lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
 static int32_t
 lastcycle(CSOUND *csound, LASTCYCLE *p) {
     IGN(csound);
-    if(p->fired == 1) {
-        // this prevents double firing in the case were a lower instr turns
-        // us off
-        *p->out = 0;
-        return OK;
-    }
-    switch(p->mode) {
-    case 1:
-        p->numcycles--;
-        if(p->numcycles == 0) {
-            *p->out = 1;
+    *p->out = FL(0.0);
+    if (!p->fired && p->owner->offtim >= 0.0 &&
+        (p->owner->relesing || p->owner->xtratim == 0)) {
+        /* With an explicit release, off time becomes the final end time only
+           after the engine enters release. Account for a partial final block
+           before converting that time to the opcode's local cycle count. */
+        double endtime = p->owner->offtim -
+                         p->owner->no_end / (double)p->owner->esr;
+        double endsample = floor(endtime * (double)CS_ESR + 0.5);
+        double endcycle = ceil(endsample / CS_KSMPS);
+        if ((double)CS_KCNT >= endcycle) {
+            *p->out = FL(1.0);
             p->fired = 1;
         }
-        break;
-    case 2:
-        p->numcycles--;
-        if(p->h.insdshead->relesing) {
-            p->extracycles--;
-        }
-        if(p->numcycles == 0 || p->extracycles == 0) {
-            *p->out = 1;
-            p->fired = 1;
-        }
-        break;
-    case 0:
-        if (p->h.insdshead->relesing) {
-            p->extracycles -= 1;
-            if(p->extracycles == 0) {
-                *p->out = 1;
-                p->fired = 1;
-            }
-        }
-        break;
     }
     return OK;
 }
