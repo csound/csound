@@ -24,6 +24,10 @@
 #include "emugens_common.h"
 #include "interlocks.h"
 #include "arrays.h"
+#ifndef __BUILDING_LIBCSOUND
+/* udo.h only needs this private type as an opaque pointer in plugin builds. */
+typedef struct opcodinfo OPCODINFO;
+#endif
 #include "udo.h"
 #include <ctype.h>
 
