@@ -1878,63 +1878,66 @@ typedef struct {
     OPDS h;
     ARRAYDAT *out;
     MYFLT *ifn, *kstart, *kend, *kstep;
-    FUNC * ftp;
-    int32_t numitems;
+    FUNC *ftp;
 } TAB2ARRAY;
 
-static int
-tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
-    FUNC *ftp;
-    ftp = csound->FTFind(csound, p->ifn);
-    if (UNLIKELY(ftp == NULL))
+static int32_t
+tab2array_common(CSOUND *csound, TAB2ARRAY *p, int32_t init, int32_t copy) {
+    if (init) {
+        double number = (double)*p->ifn;
+        if (UNLIKELY(!(number >= INT32_MIN && number <= INT32_MAX)))
+            return INITERR(Str("tab2array: table number out of range"));
+        p->ftp = csound->FTFind(csound, p->ifn);
+        if (UNLIKELY(p->ftp == NULL))
+            return NOTOK;
+    }
+    if (UNLIKELY(p->out->dimensions > 1))
+        return init ? INITERR(Str("tab2array: expected a one-dimensional output"))
+                    : PERFERR(Str("tab2array: expected a one-dimensional output"));
+    double startval = (double)*p->kstart;
+    double endval = (double)*p->kend;
+    double stepval = (double)*p->kstep;
+    if (UNLIKELY(!(startval >= 0 && startval <= p->ftp->flen &&
+                   endval >= INT32_MIN && endval < (double)INT32_MAX + 1 &&
+                   stepval >= 1 && stepval < (double)INT32_MAX + 1)))
+        return init ? INITERR(Str("tab2array: invalid slice bounds or step"))
+                    : PERFERR(Str("tab2array: invalid slice bounds or step"));
+    int32_t start = (int32_t)startval;
+    int32_t end = (int32_t)endval;
+    int32_t step = (int32_t)stepval;
+    if (end < 1 || end > (int32_t)p->ftp->flen)
+        end = p->ftp->flen;
+    int32_t numitems = end > start ? 1 + (end - start - 1) / step : 0;
+    if (init) {
+        if (UNLIKELY(tabinit(csound, p->out, numitems, p->h.insdshead) != OK))
+            return csound_array_init_resize_error(csound);
+    } else if (UNLIKELY(tabcheck(csound, p->out, numitems, &p->h) != OK)) {
         return NOTOK;
-    p->ftp = ftp;
-    int32_t start = (int)*p->kstart;
-    int32_t end   = (int)*p->kend;
-    int32_t step  = (int)*p->kstep;
-    if (end < 1)
-        end = ftp->flen;
-    int32_t numitems = (int) (ceil((end - start) / (float)step));
-    if(numitems < 0) {
-        return PERFERR(Str("tab2array: cannot copy a negative number of items"));
     }
-    if (UNLIKELY(tabinit(csound, p->out, numitems,
-                         p->h.insdshead) != OK))
-      return csound_array_init_resize_error(csound);
-    p->numitems = numitems;
+    if (copy) {
+        MYFLT *out = p->out->data;
+        MYFLT *table = p->ftp->ftable;
+        /* The final step can exceed INT32_MAX even for a valid slice. */
+        int64_t index = start;
+        for (int32_t i = 0; i < numitems; i++, index += step)
+            out[i] = table[index];
+    }
     return OK;
 }
 
-static int
+static int32_t
+tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
+    return tab2array_common(csound, p, 1, 0);
+}
+
+static int32_t
 tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
-    FUNC *ftp = p->ftp;
-    int32_t start = (int)*p->kstart;
-    int32_t end   = (int)*p->kend;
-    int32_t step  = (int)*p->kstep;
-    if (end < 1)
-        end = ftp->flen;
-    int32_t numitems = (int) (ceil((end - start) / (double)step));
-    if(numitems < 0)
-        return PERFERR(Str("tab2array: cannot copy a negative number of items"));
-
-    ARRAY_ENSURESIZE_PERF(csound, p->out, numitems);
-    p->numitems = numitems;
-
-    MYFLT *out   = p->out->data;
-    MYFLT *table = ftp->ftable;
-
-    int32_t i, j=0;
-    for(i=start; i<end; i+=step) {
-        out[j++] = table[i];
-    }
-    return OK;
+    return tab2array_common(csound, p, 0, 1);
 }
 
-static int
+static int32_t
 tab2array_i(CSOUND *csound, TAB2ARRAY *p) {
-    if(tab2array_init(csound, p) == OK)
-        return tab2array_k(csound, p);
-    return NOTOK;
+    return tab2array_common(csound, p, 1, 1);
 }
 
 
