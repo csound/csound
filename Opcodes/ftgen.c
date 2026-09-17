@@ -746,9 +746,9 @@ static int32_t getftargs_init(CSOUND *csound, FTARGS *p)
 static int32_t getftargs_process(CSOUND *csound, FTARGS *p)
 {
   if (*p->ktrig != p->prv_ktrig && *p->ktrig > FL(0.0)) {
-    p->prv_ktrig = *p->ktrig;
     p->status = getftargs(csound, p);
   }
+  p->prv_ktrig = *p->ktrig;
 
   return p->status;
 
@@ -777,6 +777,7 @@ static int32_t getftargs(CSOUND *csound, FTARGS *p)
       p->Scd->data = (char*) csound->ReAlloc(csound, p->Scd->data, 1);
     }
     p->Scd->data[0] = '\0';
+    p->Scd->timestamp = p->h.insdshead->kcounter;
     return OK;
   }
 
@@ -797,6 +798,7 @@ static int32_t getftargs(CSOUND *csound, FTARGS *p)
       curr += snprintf(curr, end-curr, "%g ", src->args[i]);
     }
   }
+  p->Scd->timestamp = p->h.insdshead->kcounter;
 
   return OK;
 }
