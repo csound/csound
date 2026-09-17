@@ -28,6 +28,7 @@ if(BUILD_TESTS)
         csound_circular_buffer_test.cpp
         seed_state_test.cpp
         score_expression_test.cpp
+        schedkwhen_test.cpp
         engine_test.cpp
         io_test.cpp
         local_ksmps_test.cpp

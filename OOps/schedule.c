@@ -671,7 +671,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname);
 int32_t triginset(CSOUND *csound, TRIGINSTR *p)
 {
     p->prvmintim = *p->mintime;
-    p->timrem = 0;
+    p->timrem = p->prvktim = 0;
     /* An instrument is initialised before kcounter is incremented for
        this k-cycle, and begins playing after kcounter++.
        Therefore, if we should start something at the very first k-cycle of
@@ -694,7 +694,7 @@ int32_t triginset(CSOUND *csound, TRIGINSTR *p)
 int32_t triginset_S(CSOUND *csound, TRIGINSTR *p)
 {
     p->prvmintim = *p->mintime;
-    p->timrem = 0;
+    p->timrem = p->prvktim = 0;
     /* An instrument is initialised before kcounter is incremented for
        this k-cycle, and begins playing after kcounter++.
        Therefore, if we should start something at the very first k-cycle of
@@ -723,6 +723,10 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (stringname)
       insno = (int32_t)csoundStringArg2Insno_p(csound, ((STRINGDAT*)p->args[0])->data);
+    else if (GetTypeForArg(p->args[0]) == &CS_VAR_TYPE_INSTR) {
+      INSTREF *ref = (INSTREF *) p->args[0];
+      insno = instr_num(csound, ref->instr);
+    }
     else if (IsStringCode(*p->args[0])) {
       char *ss = csoundGetArgString(csound, *p->args[0]);
       insno = (int32_t)csoundStringArg2Insno_p(csound, ss);
@@ -747,8 +751,8 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     EVTBLK  evt;
     char    name[512];
     memset(&evt, 0, sizeof(EVTBLK));
-    char  pfields[PMAX+1] = {0};
-    evt.p = (MYFLT *) pfields;
+    MYFLT pfields[PMAX+1];
+    evt.p = pfields;
 
     if (p->timrem > 0)
       p->timrem--;
@@ -761,14 +765,16 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       if (timrem > 0) {
         /* Adjust countdown for new mintime */
         p->timrem += timrem - p->prvktim;
-        p->prvktim = timrem;
       }
       else
         p->timrem = 0;
+      p->prvktim = timrem > 0 ? timrem : 0;
       p->prvmintim = *p->mintime;
     }
 
-    if (*p->args[0] >= FL(0.0) || IsStringCode(*p->args[0])) {
+    int32_t instrref = GetTypeForArg(p->args[0]) == &CS_VAR_TYPE_INSTR;
+    if (stringname || instrref ||
+        *p->args[0] >= FL(0.0) || IsStringCode(*p->args[0])) {
       /* Check for rate limit on event generation */
       if (*p->mintime > FL(0.0) && p->timrem > 0)
         return OK;
@@ -795,6 +801,10 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       /*evt.strarg = ((STRINGDAT*)p->args[0])->data;
         evt.p[1] = SSTRCOD;*/
     }
+    else if (instrref) {
+      INSTREF *ref = (INSTREF *) p->args[0];
+      evt.p[1] = (MYFLT) instr_num(csound, ref->instr);
+    }
     else if (IsStringCode(*p->args[0])) {
       unquote(name, csoundGetArgString(csound, *p->args[0]), 512);
       evt.p[1] = csound->StringArg2Insno(csound,name, 1);
@@ -802,10 +812,6 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       /* evt.strarg = name; */
       evt.scnt = 0;
       /* evt.p[1] = SSTRCOD; */
-    }
-    else if (GetTypeForArg(p->args[0]) == &CS_VAR_TYPE_INSTR) {
-      INSTREF *ref = (INSTREF *) p->args[0];
-      evt.p[1] = (MYFLT) instr_num(csound, ref->instr);
     }
     else {
       evt.strarg = NULL; evt.scnt = 0;
@@ -829,6 +835,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       p->timrem = (int32_t) (*p->mintime * CS_EKR + FL(0.5));
     else
       p->timrem = 0;
+    p->prvktim = p->timrem;
     return
       (insert_event_at_sample(csound, &evt, evt.p+1,
                                     starttime) == 0 ? OK : NOTOK);
