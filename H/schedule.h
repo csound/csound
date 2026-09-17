@@ -98,7 +98,8 @@ typedef struct {
   MYFLT *ktrig, *kstart, *kloop, *initndx, *kfn, *outargs[VARGMAX];
   int32  ndx;
   int32_t   nargs, done;
-  int32  pfn;
+  uint32_t groups;
+  MYFLT pfn;
   MYFLT *table;
 } TRIGSEQ;
 
