@@ -40,6 +40,7 @@ if(BUILD_TESTS)
         midi_file_test.cpp
         tableseg_test.cpp
         table_copy_test.cpp
+        ftset_test.cpp
         ftgentmp_test.cpp
         gen01_test.cpp
         server_test.cpp
