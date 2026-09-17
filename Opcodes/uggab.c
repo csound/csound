@@ -845,6 +845,21 @@ static int32_t tlineto(CSOUND *csound, LINETO2 *p)
 /* by Gabriel Maldonado. Under GNU license with a special exception
    for Canonical Csound addition */
 
+/* Higher rates can emit only one new value per output sample.  Keep their
+   phase remainder while forcing that update. */
+#define RANDOM_PHASE_INCREMENT(inc_, rate_, scale_)                        \
+    do {                                                                  \
+      MYFLT scaled_ = (rate_) * (scale_);                                 \
+      if (LIKELY(scaled_ > FL(0.0) && scaled_ < FMAXLEN))                 \
+        (inc_) = (uint32_t)scaled_;                                       \
+      else if (UNLIKELY(!(scaled_ > FL(0.0))))                            \
+        (inc_) = 0U;                                                      \
+      else if (scaled_ < (MYFLT)UINT64_MAX)                              \
+        (inc_) = MAXLEN + (uint32_t)((uint64_t)scaled_ & PHMASK);         \
+      else                                                                \
+        (inc_) = MAXLEN;                                                  \
+    } while (0)
+
 static int32_t vibrato_set(CSOUND *csound, VIBRATO *p)
 {
     FUNC        *ftp;
@@ -852,15 +867,18 @@ static int32_t vibrato_set(CSOUND *csound, VIBRATO *p)
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0 && *p->iphs<1.0)
-        p->lphs = (((int64_t)(*p->iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
+        p->lphs = (double)*p->iphs * ftp->flen;
       else if (UNLIKELY(*p->iphs>=1.0))
         return csound->InitError(csound, "%s", Str("vibrato@ Phase out of range"));
     }
     else return NOTOK;
-    p->xcpsAmpRate = randGab(csound) *(*p->cpsMaxRate - *p->cpsMinRate) +
-      *p->cpsMinRate;
-    p->xcpsFreqRate = randGab(csound) *(*p->ampMaxRate - *p->ampMinRate) +
+    p->xcpsAmpRate = randGab(csound) *(*p->ampMaxRate - *p->ampMinRate) +
       *p->ampMinRate;
+    p->xcpsFreqRate = randGab(csound) *(*p->cpsMaxRate - *p->cpsMinRate) +
+      *p->cpsMinRate;
+    p->phsAmpRate = p->phsFreqRate = 0;
+    p->num1amp = p->num2amp = p->num1freq = p->num2freq = FL(0.0);
+    p->dfdmaxAmp = p->dfdmaxFreq = FL(0.0);
     p->tablen = ftp->flen;
     p->tablenUPkr = p->tablen * CS_ONEDKR;
     return OK;
@@ -870,6 +888,7 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
 {
     FUNC        *ftp;
     double      phs, inc;
+    uint32_t    rateInc;
     MYFLT       *ftab, fract, v1;
     MYFLT       RandAmountAmp,RandAmountFreq;
 
@@ -893,7 +912,8 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
     while (phs < 0.0 )
       phs += p->tablen;
     p->lphs = phs;
-    p->phsAmpRate += (int32)(p->xcpsAmpRate * CS_KICVT);
+    RANDOM_PHASE_INCREMENT(rateInc, p->xcpsAmpRate, CS_KICVT);
+    p->phsAmpRate += rateInc;
     if (p->phsAmpRate >= MAXLEN) {
       p->xcpsAmpRate =  randGab(csound)  * (*p->ampMaxRate - *p->ampMinRate) +
         *p->ampMinRate;
@@ -902,7 +922,8 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
       p->num2amp = BiRandGab(csound) ;
       p->dfdmaxAmp = (p->num2amp - p->num1amp) / FMAXLEN;
     }
-    p->phsFreqRate += (int32)(p->xcpsFreqRate * CS_KICVT);
+    RANDOM_PHASE_INCREMENT(rateInc, p->xcpsFreqRate, CS_KICVT);
+    p->phsFreqRate += rateInc;
     if (p->phsFreqRate >= MAXLEN) {
       p->xcpsFreqRate =  randGab(csound)  * (*p->cpsMaxRate - *p->cpsMinRate) +
         *p->cpsMinRate;
@@ -928,15 +949,17 @@ static int32_t vibr_set(CSOUND *csound, VIBR *p)
                                          g.maldonado@agora.stm.it */
 #define cpsMinRate      FL(1.19377)
 #define cpsMaxRate      FL(2.28100)
-#define iphs            FL(0.0)
 
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
-      p->lphs = (((int32)(iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
+      p->lphs = 0.0;
     }
     else return NOTOK;
-    p->xcpsAmpRate = randGab(csound)  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
-    p->xcpsFreqRate = randGab(csound)  * (ampMaxRate - ampMinRate) + ampMinRate;
+    p->xcpsAmpRate = randGab(csound)  * (ampMaxRate - ampMinRate) + ampMinRate;
+    p->xcpsFreqRate = randGab(csound)  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
+    p->phsAmpRate = p->phsFreqRate = 0;
+    p->num1amp = p->num2amp = p->num1freq = p->num2freq = FL(0.0);
+    p->dfdmaxAmp = p->dfdmaxFreq = FL(0.0);
     p->tablen = ftp->flen;
     p->tablenUPkr = p->tablen * CS_ONEDKR;
     return OK;
@@ -946,6 +969,7 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
 {
     FUNC        *ftp;
     double      phs, inc;
+    uint32_t    rateInc;
     MYFLT       *ftab, fract, v1;
     MYFLT       rAmountAmp,rAmountFreq;
 
@@ -972,7 +996,8 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
       phs += p->tablen;
     p->lphs = phs;
 
-    p->phsAmpRate += (int32)(p->xcpsAmpRate * CS_KICVT);
+    RANDOM_PHASE_INCREMENT(rateInc, p->xcpsAmpRate, CS_KICVT);
+    p->phsAmpRate += rateInc;
     if (p->phsAmpRate >= MAXLEN) {
       p->xcpsAmpRate =  randGab(csound)  * (ampMaxRate - ampMinRate) + ampMinRate;
       p->phsAmpRate &= PHMASK;
@@ -981,7 +1006,8 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
       p->dfdmaxAmp = (p->num2amp - p->num1amp) / FMAXLEN;
     }
 
-    p->phsFreqRate += (int32)(p->xcpsFreqRate * CS_KICVT);
+    RANDOM_PHASE_INCREMENT(rateInc, p->xcpsFreqRate, CS_KICVT);
+    p->phsFreqRate += rateInc;
     if (p->phsFreqRate >= MAXLEN) {
       p->xcpsFreqRate =  randGab(csound)  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
       p->phsFreqRate &= PHMASK;
@@ -995,7 +1021,6 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
 #undef  ampMaxRate
 #undef  cpsMinRate
 #undef  cpsMaxRate
-#undef  iphs
     return OK;
 }
 
@@ -1353,21 +1378,6 @@ static int32_t aRangeRand(CSOUND *csound, RANGERAND *p)
     }
     return OK;
 }
-
-/* Higher rates can emit only one new value per output sample.  Keep their
-   phase remainder while forcing that update. */
-#define RANDOM_PHASE_INCREMENT(inc_, rate_, scale_)                        \
-    do {                                                                  \
-      MYFLT scaled_ = (rate_) * (scale_);                                 \
-      if (LIKELY(scaled_ > FL(0.0) && scaled_ < FMAXLEN))                 \
-        (inc_) = (uint32_t)scaled_;                                       \
-      else if (UNLIKELY(!(scaled_ > FL(0.0))))                            \
-        (inc_) = 0U;                                                      \
-      else if (scaled_ < (MYFLT)UINT64_MAX)                              \
-        (inc_) = MAXLEN + (uint32_t)((uint64_t)scaled_ & PHMASK);         \
-      else                                                                \
-        (inc_) = MAXLEN;                                                  \
-    } while (0)
 
 /* mode and fstval arguments added */
 /* by Francois Pinot, jan. 2011    */

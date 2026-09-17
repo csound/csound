@@ -117,7 +117,8 @@ typedef struct {
         MYFLT   *ampMinRate, *ampMaxRate, *cpsMinRate, *cpsMaxRate, *ifn, *iphs;
         MYFLT   xcpsAmpRate, xcpsFreqRate;
         double  lphs, tablenUPkr;
-        int32   tablen, phsAmpRate, phsFreqRate;
+        int32   tablen;
+        uint32_t phsAmpRate, phsFreqRate;
         MYFLT   num1amp, num2amp, num1freq, num2freq, dfdmaxAmp, dfdmaxFreq;
         FUNC    *ftp;
 } VIBRATO;
@@ -127,7 +128,8 @@ typedef struct {
         MYFLT   *out, *AverageAmp,*AverageFreq,*ifn;
         MYFLT   xcpsAmpRate, xcpsFreqRate;
         double  lphs, tablenUPkr;
-        int32   tablen, phsAmpRate, phsFreqRate;
+        int32   tablen;
+        uint32_t phsAmpRate, phsFreqRate;
         MYFLT   num1amp, num2amp, num1freq, num2freq, dfdmaxAmp, dfdmaxFreq;
         FUNC    *ftp;
 } VIBR;
