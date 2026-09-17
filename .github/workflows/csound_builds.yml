@@ -680,15 +680,39 @@ jobs:
       - name: Install dependencies
         run: |
           brew install libogg flac lame libvorbis mpg123 opus libsndfile portaudio libsamplerate liblo portmidi
-          brew install bison flex jack googletest
+          brew install bison flex jack
+
+      - name: Checkout GoogleTest
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: google/googletest
+          ref: 063de7e9578f82b369302001269680b4b1553359 # v1.18.0
+          path: .ci/googletest
+          persist-credentials: false
+
+      - name: Build GoogleTest with AddressSanitizer
+        run: |
+          # Match Csound's sanitizer and deployment target. Mixing an ASan
+          # executable with Homebrew's unsanitized GoogleTest can give libc++
+          # container-overflow reports during test discovery.
+          cmake -S .ci/googletest -B "$RUNNER_TEMP/googletest-build" \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/googletest" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer" \
+            -DBUILD_GMOCK=OFF
+          cmake --build "$RUNNER_TEMP/googletest-build" --parallel "$(sysctl -n hw.ncpu)"
+          cmake --install "$RUNNER_TEMP/googletest-build"
 
       - name: Configure build
-        run: cmake -B build -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
+        run: >
+          cmake -B build -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
+          -DGTest_DIR="$RUNNER_TEMP/googletest/lib/cmake/GTest"
       - name: Build Csound
         run: cmake --build build --config Debug
 
       - name: Run unit tests
-        run: ctest --test-dir build -j$(sysctl -n hw.ncpu) --output-on-failure
+        run: ctest --test-dir build -j"$(sysctl -n hw.ncpu)" --output-on-failure
       - name: Run CSD tests
         run: cmake --build build --target csdtests
 

@@ -12,6 +12,7 @@ endif()
 
 if(BUILD_TESTS)
   add_executable(unittests
+        array_matrix_setters_test.cpp
         array_ops_test.cpp
         audio_array_io_test.cpp
         autocorr_test.cpp
