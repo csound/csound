@@ -14,6 +14,7 @@ if(BUILD_TESTS)
   add_executable(unittests
         array_ops_test.cpp
         audio_array_io_test.cpp
+        autocorr_test.cpp
         channel_tests.cpp
         controller_print_test.cpp
         csound_data_structures_test.cpp
