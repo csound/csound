@@ -29,6 +29,7 @@ if(BUILD_TESTS)
         seed_state_test.cpp
         score_expression_test.cpp
         schedkwhen_test.cpp
+        schedule_string_test.cpp
         engine_test.cpp
         io_test.cpp
         local_ksmps_test.cpp
