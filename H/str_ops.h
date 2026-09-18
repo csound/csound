@@ -161,7 +161,6 @@ int32_t     strget_init(CSOUND *, void *);
 int32_t     commandline_args_init(CSOUND *, ARGV_OP *);
 int32_t     strcpy_opcode_p(CSOUND *, void *);
 int32_t     strcpy_opcode_S(CSOUND *, void *);
-int32_t     strassign_k(CSOUND *, void *);
 int32_t     strcat_opcode(CSOUND *, void *);
 int32_t     strcmp_opcode(CSOUND *, void *);
 int32_t     sprintf_opcode(CSOUND *, void *);
