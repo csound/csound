@@ -44,6 +44,7 @@ if(BUILD_TESTS)
         paulstretch_test.cpp
         mixer_test.cpp
         multitap_test.cpp
+        nreverb_test.cpp
         midi_file_test.cpp
         tableseg_test.cpp
         table_copy_test.cpp
