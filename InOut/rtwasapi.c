@@ -307,7 +307,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             if (O->msglevel || O->odebug)
                 csound->Warning(csound,
                                 Str("WASAPI: Requested device %d out of range, using default"),
-                                devnum);
+                                (int)devnum);
             /* Fall back to default device */
             hr = pEnumerator->lpVtbl->GetDefaultAudioEndpoint(
                 pEnumerator, isInput ? eCapture : eRender, eConsole, &pDevice);

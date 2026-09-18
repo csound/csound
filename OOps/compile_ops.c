@@ -398,7 +398,7 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
   
   if(esmps >= ksmps) {
    for(uint32_t i=0; i < ksmps; i++) {
-    if(csobj->nsmps == esmps) {
+    if((uint32_t)csobj->nsmps == esmps) {
       *p->r = csoundPerformKsmps(engine);             
       csobj->nsmps = 0;
     }
@@ -413,7 +413,7 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
    }
   } else {
     for(uint32_t j = 0; j < ksmps; j++) {
-      if(csobj->nsmps == esmps) {
+      if((uint32_t)csobj->nsmps == esmps) {
       *p->r = csoundPerformKsmps(engine);
        csobj->nsmps = 0;
       }
