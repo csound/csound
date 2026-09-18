@@ -2248,7 +2248,6 @@ int32_t kinvalS(CSOUND *csound, INVAL *p)
   else {
     ((STRINGDAT *)p->value)->data[0]  = '\0';
   }
-  ((STRINGDAT *)p->value)->timestamp = p->h.insdshead->kcounter;
 
   return OK;
 }
