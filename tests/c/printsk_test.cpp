@@ -2,6 +2,7 @@
 #include "csoundCore.h"
 #include "gtest/gtest.h"
 #include <string>
+#include <filesystem>
 
 namespace {
 class PrintskTests : public ::testing::TestWithParam<const char *> {
@@ -27,22 +28,20 @@ protected:
     return result;
   }
 
-  void start(const std::string &body,
-             const std::string &score = "i 1 0 .003\nf 0 .004\n")
+  // Keep the orchestra readable in standalone CSDs. The host checks exact
+  // spaces/newlines and output from individual cycles, not just substrings.
+  void start(const char *fixture, const char *caseNumber = nullptr)
   {
-    const std::string csd =
-      "<CsoundSynthesizer>\n<CsInstruments>\n"
-      "sr=1000\nksmps=1\nnchnls=1\ninstr 1\n" + body +
-      "\nendin\n</CsInstruments>\n<CsScore>\n" + score +
-      "</CsScore>\n</CsoundSynthesizer>";
-    ASSERT_EQ(0, csoundCompileCSD(csound, csd.c_str(), 1, 0)) << messages();
+    const std::string opcode = std::string("--omacro:PRINT_OPCODE=") + GetParam();
+    ASSERT_EQ(0, csoundSetOption(csound, opcode.c_str()));
+    if (caseNumber) {
+      const std::string option = std::string("--smacro:CASE=") + caseNumber;
+      ASSERT_EQ(0, csoundSetOption(csound, option.c_str()));
+    }
+    const auto path = std::filesystem::path(__FILE__).parent_path() / "fixtures" / fixture;
+    ASSERT_EQ(0, csoundCompileCSD(csound, path.string().c_str(), 0, 0)) << messages();
     ASSERT_EQ(0, csoundStart(csound)) << messages();
     messages();
-  }
-
-  std::string line(const std::string &arguments)
-  {
-    return std::string(GetParam()) + " " + arguments + "\n";
   }
 
   std::string ending()
@@ -61,13 +60,13 @@ protected:
 TEST_P(PrintskTests, LongLiteral)
 {
   const std::string literal(8192, 'a');
-  start(line("\"" + literal + "\""));
+  ASSERT_NO_FATAL_FAILURE(start("printsk_long_literal.csd"));
   EXPECT_EQ(literal + ending(), step());
 }
 
 TEST_P(PrintskTests, MultipleWideFields)
 {
-  start(line("\"prefix:%3000d:%3000.2f:end\", 7, 2.5"));
+  ASSERT_NO_FATAL_FAILURE(start("printsk_wide_fields.csd"));
   const std::string expected = "prefix:" + std::string(2999, ' ') + "7:" +
     std::string(2996, ' ') + "2.50:end" + ending();
   EXPECT_EQ(expected, step());
@@ -77,18 +76,14 @@ TEST_P(PrintskTests, MultipleWideFields)
 TEST_P(PrintskTests, LongStringAndLiteralSegments)
 {
   const std::string value(5000, 'v'), prefix(3000, 'p'), suffix(3000, 's');
-  start(line("\"" + prefix + "%s:%d" + suffix + "\", \"" + value + "\", 8"));
+  ASSERT_NO_FATAL_FAILURE(start("printsk_long_segments.csd"));
   EXPECT_EQ(prefix + value + ":8" + suffix + ending(), step());
 }
 
 TEST_P(PrintskTests, ChangingFormatLength)
 {
   const std::string longer(4000, 'L');
-  start("kCycle init 0\nkCycle += 1\nSfmt init \"%d\"\n"
-        "if kCycle == 1 then\nSfmt strcpyk \"%d\"\n"
-        "elseif kCycle == 2 then\nSfmt strcpyk \"" + longer + "%d\"\n"
-        "elseif kCycle == 3 then\nSfmt strcpyk \"[%d]\"\nendif\n" +
-        line("Sfmt, kCycle"));
+  ASSERT_NO_FATAL_FAILURE(start("printsk_changing_format.csd"));
   EXPECT_EQ("1" + ending(), step());
   EXPECT_EQ(longer + "2" + ending(), step());
   EXPECT_EQ("[3]" + ending(), step());
@@ -96,13 +91,13 @@ TEST_P(PrintskTests, ChangingFormatLength)
 
 TEST_P(PrintskTests, ConversionTypesAndEscapedPercent)
 {
-  start(line("\"%d %u %x %.2f %s %%\", -3, 4, 15, 1.25, \"ok\""));
+  ASSERT_NO_FATAL_FAILURE(start("printsk_conversions.csd"));
   EXPECT_EQ("-3 4 f 1.25 ok %" + ending(), step());
 }
 
 TEST_P(PrintskTests, ReusedNote)
 {
-  start(line("\"%3000d\", p4"), "i 1 0 .001 1\ni 1 .002 .001 2\nf 0 .004\n");
+  ASSERT_NO_FATAL_FAILURE(start("printsk_reused_note.csd"));
   EXPECT_EQ(std::string(2999, ' ') + "1" + ending(), step());
   step();
   EXPECT_EQ(std::string(2999, ' ') + "2" + ending(), step());
@@ -110,18 +105,21 @@ TEST_P(PrintskTests, ReusedNote)
 
 TEST_P(PrintskTests, RejectsInvalidFormatsAndTypes)
 {
-  for (const char *arguments : {"\"%*f\", 1", "\"%ld\", 1",
-                               "\"%s\", 1", "\"%f\", \"text\"",
-                               "\"%d %d\", 1", "\"%d\", 1, 2"}) {
+  // Instrument numbers in printsk_invalid_format.csd name each rejection.
+  for (const char *caseNumber : {"1", "2", "3", "4", "5", "6"}) {
+    SCOPED_TRACE(caseNumber);
     csoundReset(csound);
     csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "-n -d -m0");
-    start(line(arguments));
+    ASSERT_NO_FATAL_FAILURE(start("printsk_invalid_format.csd", caseNumber));
     csoundPerformKsmps(csound);
-    EXPECT_GT(csound->perferrcnt, 0) << arguments << messages();
+    EXPECT_GT(csound->perferrcnt, 0) << messages();
   }
 }
 
 INSTANTIATE_TEST_SUITE_P(PrintOpcodes, PrintskTests,
-                        ::testing::Values("printsk", "println"));
+                        ::testing::Values("printsk", "println"),
+                        [](const ::testing::TestParamInfo<const char *> &info) {
+                          return info.param;
+                        });
 }
