@@ -472,8 +472,6 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
       STRINGDAT *dat = (STRINGDAT *) &(pp->var->memBlock->value);
       dat->size = 128;
       dat->data = csound->Calloc(csound, 128*sizeof(char));
-      // these are currently unused but we initialise them here
-      dat->timestamp = 0;
       dat->refcount = 0;
     }
   } // otherwise setup is incomplete, will be finished up later

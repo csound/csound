@@ -63,7 +63,6 @@ int32_t s_opcode(CSOUND *csound, STRGET_OP *p){
 
 int32_t s_opcode_k(CSOUND *csound, STRGET_OP *p){
   snprintf(p->r->data, p->r->size, "%f", *p->indx);
-  p->r->timestamp = p->h.insdshead->kcounter;
   return OK;
 }
 
@@ -135,7 +134,6 @@ void strset_option(CSOUND *csound, char *s)
 int32_t strget_init(CSOUND *csound, STRGET_OP *p)
 {
   int32_t   indx;
-  p->r->timestamp = 0;
   if (IsStringCode(*(p->indx))) {
     char *ss = csound->init_event->strarg;
     if (ss == NULL)
@@ -179,10 +177,9 @@ int32_t commandline_args_init(CSOUND *csound, ARGV_OP *p)
   for (int32_t index = 0; index < count; index++) {
     const char *argument = csoundGetCommandLineArg(csound, index);
     STRINGDAT source = {
-      (char *) argument,
-      strlen(argument) + 1,
-      0,
-      -1
+      .data = (char *) argument,
+      .size = strlen(argument) + 1,
+      .refcount = -1
     };
     char *destination = (char *) p->args->data +
       ((size_t) index * p->args->arrayMemberSize);
@@ -217,9 +214,6 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
 }
 
 
-/* this opcode is i-time only, so no need to make
-   any adjustments regarding update counts
-*/
 extern char* get_strarg(CSOUND *csound, MYFLT p, char *strarg);
 int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
@@ -285,7 +279,6 @@ int32_t str_changed_k(CSOUND *csound, STRCHGD *p)
 /* rewritten VL Feb 22 */
 int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
-  int64_t kcnt = p->h.insdshead->kcounter;
   size_t firstLength = strlen(p->str1->data);
   size_t size = firstLength + strlen(p->str2->data);
   if(size >= MAX_STRINGDAT_SIZE) {
@@ -298,7 +291,6 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 		       "strcat: requested alloc size exceeds max (%u bytes)",
 		       MAX_STRINGDAT_SIZE);
    }
-  p->r->timestamp = kcnt;
   if(p->str1 != p->r && p->str2 != p->r) {
     // VL: simple case, inputs are not the output
     if (size >= p->r->size) {
@@ -580,7 +572,6 @@ int32_t sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
     if (p->r->data != NULL) p->r->data[0] = '\0';
     return NOTOK;
   }
-  p->r->timestamp = p->h.insdshead->kcounter;
   return OK;
 }
 
@@ -774,7 +765,6 @@ int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
 
 int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
 {
-  int64_t kcnt = p->h.insdshead->kcounter;
     const char  *src;
     char        *dst;
     int32_t    strt, end;
@@ -810,7 +800,6 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     if (strt == end) {
       /* trivial case: empty output */
       dst[0] = '\0';
-      p->Sdst->timestamp = kcnt;
       return OK;
     }
     if (strt > end) {
@@ -862,7 +851,6 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       } while (++i < len);
       dst[i] = '\0';
     }
-  p->Sdst->timestamp = kcnt;
   return OK;
 }
 
@@ -919,7 +907,6 @@ int32_t strlen_opcode(CSOUND *csound, STRLEN_OP *p)
 
 int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
 {
-  int64_t kcnt = p->h.insdshead->kcounter;
     const char  *src;
     char        *dst;
     int32_t         i;
@@ -944,7 +931,6 @@ int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
       dst[i] = (char) (islower(tmp) ? (unsigned char) toupper(tmp) : tmp);
     }
     dst[i] = '\0';
-    p->Sdst->timestamp = kcnt;
 
   return OK;
 }
@@ -952,7 +938,6 @@ int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
 int32_t strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
 {
 
-  int64_t kcnt = p->h.insdshead->kcounter;
     const char  *src;
     char        *dst;
     int32_t         i;
@@ -977,7 +962,6 @@ int32_t strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
       dst[i] = (char) (isupper(tmp) ? (unsigned char) tolower(tmp) : tmp);
     }
     dst[i] = '\0';
-    p->Sdst->timestamp = kcnt;
   return OK;
 }
 

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <atomic>
+#include <filesystem>
 #include <string>
 #include <thread>
 #include <vector>
@@ -947,4 +948,34 @@ TEST_F (ChannelTests, ChnparamsWithAttributes)
     EXPECT_EQ(csoundGetControlChannel(csound, "behavior", nullptr), 2);
     EXPECT_EQ(csoundGetControlChannel(csound, "default", nullptr), .5);
     EXPECT_EQ(csoundGetControlChannel(csound, "maximum", nullptr), 1);
+}
+
+TEST_F(ChannelTests, StringAssignmentFollowsInputCallback)
+{
+    std::string input = "initial";
+    csoundSetHostData(csound, &input);
+    csoundSetInputChannelCallback(csound,
+        [](CSOUND *cs, const char *, void *output, const void *) {
+            const auto *text = static_cast<const std::string *>(csoundGetHostData(cs));
+            strcpy(static_cast<char *>(output), text->c_str());
+        });
+    const auto path = std::filesystem::path(__FILE__).parent_path() /
+                      "fixtures" / "string_callback_copy.csd";
+    ASSERT_EQ(csoundCompileCSD(csound, path.string().c_str(), 0, 0), 0);
+    ASSERT_EQ(csoundStart(csound), 0);
+
+    // A downstream assignment must see changed, repeated and empty text.
+    for (const char *text : {"initial", "changed", "changed", "", "last"}) {
+        input = text;
+        ASSERT_EQ(csoundPerformKsmps(csound), 0);
+        char output[64];
+        csoundGetStringChannel(csound, "copy", output);
+        EXPECT_STREQ(output, text);
+    }
+    csoundSetInputChannelCallback(csound, nullptr);
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    char output[64];
+    csoundGetStringChannel(csound, "copy", output);
+    EXPECT_STREQ(output, "");
+    csoundSetHostData(csound, nullptr);
 }

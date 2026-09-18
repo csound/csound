@@ -1294,7 +1294,6 @@ mton_common(CSOUND *csound, MTON *p, int32_t init) {
         }
     }
     dst[cursor] = '\0';
-    p->Sdst->timestamp = p->h.insdshead->kcounter;
     return OK;
 }
 

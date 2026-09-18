@@ -699,7 +699,6 @@ static void var_init_memory_string(CSOUND *csound, CS_VARIABLE* var, MYFLT* memb
     STRINGDAT *str = (STRINGDAT *)memblock;
     str->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
     str->size = DEFAULT_STRING_SIZE;
-    str->timestamp = 0;
     str->refcount = 0;  // Initialize refcount (0 = unmanaged)
 }
 
