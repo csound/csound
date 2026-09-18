@@ -1,5 +1,5 @@
 <CsTest>
-description = "getftargs tracks every trigger and publishes string updates"
+description = "getftargs tracks trigger changes and string assignments copy its current output"
 
 [expect]
 exit = 0
@@ -41,7 +41,6 @@ endin
 
 instr 2
   ; Table zero has no saved GEN arguments, so it also exercises empty output.
-  Sexpected = (p4 == 0 ? "" : "3 5 7")
   kCycle init 0
   kTrig init 0
   kCycle += 1
@@ -49,13 +48,11 @@ instr 2
   Sargs getftargs p4, kTrig
   Scopy strcpyk "untouched"
   Scopy = Sargs
-  if kTrig > 0 then
-    if strcmpk(Scopy, Sexpected) != 0 then
-      printks "getftargs update did not reach string assignment for table %d\n", 0, p4
-      exitnowk(-1)
-    endif
-  elseif strcmpk(Scopy, "untouched") != 0 then
-    printks "getftargs marked an unchanged string as updated\n", 0
+  Sexpected = (kCycle >= 2 && p4 != 0 ? "3 5 7" : "")
+  ; Assignment copies the current text even on cycles without a refresh.
+  ; The trigger still controls when getftargs itself changes its output.
+  if strcmpk(Sargs, Sexpected) != 0 || strcmpk(Scopy, Sexpected) != 0 then
+    printks "getftargs output or copy is wrong for table %d on cycle %d\n", 0, p4, kCycle
     exitnowk(-1)
   endif
   if kCycle == 4 then

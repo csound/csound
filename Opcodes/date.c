@@ -200,7 +200,6 @@ static int32_t readf_init_S(CSOUND *csound, READF *p){
 static int32_t readf(CSOUND *csound, READF *p)
 {
     p->Sline->data[0] = '\0';
-    p->Sline->timestamp = p->h.insdshead->kcounter;
     if (p->fd == NULL) {
       *p->line = -1;
       return OK;

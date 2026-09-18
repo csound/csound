@@ -208,17 +208,6 @@ static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
   return NOTOK;
 }
 
-int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
-  if(p->r != p->str) {
-  if((uint64_t)p->str->timestamp == p->h.insdshead->kcounter) {
-  CS_TYPE *strType = GetTypeForArg(p->str);
-  strType->copyValue(csound, strType, p->r, p->str, p->h.insdshead);
-  //printf("copy \n");
-  }
-  }
-  return  OK;
-}
-
 int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
   CS_TYPE *strType = GetTypeForArg(p->str);
