@@ -28,6 +28,21 @@
 #include <math.h>
 #include <inttypes.h>
 
+/* iwrap semantics:
+     0  : no looping (play once)
+     1  : hard wrap (original behaviour)
+     n>1: loop, crossfade the loop boundary over n sample frames to
+          remove clicking. The loop is shortened by n frames, following
+          flooper2 implementation */
+#define DISKIN2_XFADE_MAX         4096
+
+#if defined(__GNUC__) || defined(__clang__)
+#  define ALWAYS_INLINE  inline __attribute__ ((__always_inline__))
+#elif defined(_MSC_VER)
+#  define ALWAYS_INLINE  __forceinline
+#else
+#  define ALWAYS_INLINE  inline
+#endif
 
 static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
                                             DISKIN2 *p, int32_t bufReadPos)
@@ -80,7 +95,7 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
 /* of opcode 'p', at sample index 'n' (0 <= n < ksmps), with amplitude  */
 /* scale 'scl'.                                                         */
 
-static inline void diskin2_get_sample(CSOUND *csound,
+static ALWAYS_INLINE void diskin2_get_sample(CSOUND *csound,
                                       DISKIN2 *p, int32_t fPos, int32_t n,
                                       MYFLT scl)
 {
@@ -218,6 +233,40 @@ static const int32_t diskin2_format_table[11] = {
   TYPE2SF(TYP_RAW)  | AE_24INT,
   TYPE2SF(TYP_RAW)  | AE_DOUBLE
 };
+
+/* iwrap > 1 requests a loop crossfade of that many frames, capped at
+   DISKIN2_XFADE_MAX and at half the loop length so the shortened loop keeps at
+   least half its frames; the same reader routine serves the synchronous and
+   asynchronous paths. */
+static void diskin2_xf_setup(CSOUND *csound, DISKIN2_XF *xf,
+                             int32_t wrapMode, MYFLT iWrapMode, int32_t loopLength,
+                             int32_t nChannels)
+{
+    xf->len = 0;
+    xf->ready = 0;
+    xf->count = 0;
+    xf->dir = 0;
+    xf->headEnd = (int64_t)0;
+    xf->buf = NULL;
+    if (wrapMode && iWrapMode > FL(1.0)) {
+      int32_t n, len, maxLen;
+      MYFLT w = iWrapMode > (MYFLT)DISKIN2_XFADE_MAX ? (MYFLT)DISKIN2_XFADE_MAX
+                                                     : iWrapMode;
+      len = (int32_t)w;
+      if (len < 2) len = 2;
+      /* The loop is shortened by the crossfade, so cap it at half the loop to
+         keep at least half the frames and never run past the loop start. */
+      maxLen = loopLength / 2;
+      if (len > maxLen) len = maxLen;
+      if (len >= 2) {
+        xf->len = len;
+        n = len * nChannels * (int32_t)sizeof(MYFLT);
+        if (n != (int32_t)xf->aux.size)
+          csound->AuxAlloc(csound, (int32_t) n, &(xf->aux));
+        xf->buf = (MYFLT*) (xf->aux.auxp);
+      }
+    }
+}
 
 static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname);
 
@@ -998,7 +1047,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   char    name[1024];
   void    *fd;
   SFLIB_INFO sfinfo;
-  int32_t     n;
+  int32_t     n, asyncMode;
 
   /* check number of channels */
   p->oChannels = (int32_t)(p->OUTOCOUNT);
@@ -1142,6 +1191,13 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   p->pos_frac_inc = (int64_t)0;
   p->prv_kTranspose = FL(0.0);
   p->transpose = FL(1.0);
+  /* Set up the crossfade state before anything can read it: the synchronous
+     perf path uses it directly, and the asynchronous reader must not observe a
+     half-initialised xf after the instance is published. */
+  asyncMode = (csound->oparms->realtime == 1 && p->fforceSync == 0 &&
+               diskin2_async_available(csound, 0));
+  diskin2_xf_setup(csound, &p->xf, p->wrapMode, *(p->iWrapMode),
+                   p->loopLength, p->nChannels);
   /* allocate and initialise buffers */
   p->bufSize = diskin2_calc_buffer_size(p, MYFLT2LONG(p->BufSize));
   n = 2 * p->bufSize * p->nChannels * (int32_t)sizeof(MYFLT);
@@ -1152,15 +1208,14 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   p->buf = (MYFLT*) (p->auxData.auxp);
   p->prvBuf = (MYFLT*) p->buf + (int32_t)n;
   memset(p->buf, 0, n*sizeof(MYFLT));
-  
-  if (csound->oparms->realtime == 1 && p->fforceSync == 0 &&
-      diskin2_async_available(csound, 0)) {
+
+  if (asyncMode) {
 #ifdef __EMSCRIPTEN__
     DISKIN2 **top, *current;
 #endif
     p->csound = csound;
     int32_t numelem =  p->bufSize*p->nChannels;
-    
+
      /* circular buffer is allocated once per opcode
         instance and will be freed by csoundReset
         we also make sure size is compatible
@@ -1298,6 +1353,88 @@ int32_t diskin2_async_deinit(CSOUND *csound, DISKIN2 *p)
   return OK;
 }
 
+/* Loop crossfade (async, enabled by iwrap > 1).
+
+   The loophead (the first `len` output frames after `loopStart`, or
+   before `loopEnd` when playing backwards) is recorded into `buf`. At the
+   opposite loop end the audio is linearly xfaded into the rec head,
+   NB: we follow flooper2 for the implementation, the loop is thus shortened
+   by the crossfade size.
+
+   */
+static inline void diskin2_xfade(DISKIN2_XF *x, int32_t nch,
+                                 int64_t pos, int64_t inc,
+                                 int32_t loopStart, int32_t loopEnd,
+                                 MYFLT *frame, int32_t stride)
+{
+    int32_t chn, F = x->len, dir = (inc > 0 ? 1 : -1);
+    int64_t origin, span, dist;
+    MYFLT   t, idxf, fr;
+    int32_t idx0, idx1;
+
+    if (UNLIKELY(F <= 0 || inc == 0))
+      return;
+
+    /* span is the crossfade length in position units, positive in both
+       directions; dist below is the distance travelled from the relevant
+       loop edge, also positive in both directions. */
+    span = (int64_t)F * (inc > 0 ? inc : -inc);
+
+    if (x->dir != dir) {
+        /* playback direction changed: any stored or partial head is invalid */
+        x->ready = 0;
+        x->count = 0;
+        x->dir = dir;
+    }
+
+    if (!x->ready) {
+        /* Capture the reference head while it is being played: the first F
+           frames after loopStart (forward), or before loopEnd (backward). */
+        origin = (int64_t)(dir > 0 ? loopStart : loopEnd) << POS_FRAC_SHIFT;
+        dist = (pos - origin) * dir;
+        if (dist < 0 || dist > span) {
+            if (x->count > 0 && x->count < F)
+              x->count = 0;             /* incomplete, retry next cycle */
+            return;
+        }
+        for (chn = 0; chn < nch; chn++)
+          x->buf[x->count * nch + chn] = frame[chn * stride];
+        if (++x->count >= F) {
+          x->headEnd = pos + inc;
+          x->ready = 1;
+        }
+        return;
+    }
+
+    /* Blend the outgoing audio into the captured head near the boundary:
+       dist is the distance from pos to the opposite loop edge. */
+    origin = (int64_t)(dir > 0 ? loopEnd : loopStart) << POS_FRAC_SHIFT;
+    dist = (origin - pos) * dir;
+    if (dist < 0 || dist > span)
+      return;
+    t = FL(1.0) - (MYFLT)((double)dist / (double)span);
+    if (t <= FL(0.0))
+      return;
+    if (t > FL(1.0))
+      t = FL(1.0);
+    /* 0 < t <= 1 and F >= 2, so idx0 is always in [0, F-1] */
+    idxf = t * (MYFLT)(F - 1);
+    idx0 = (int32_t)idxf;
+    idx1 = (idx0 + 1 < F ? idx0 + 1 : idx0);
+    fr = idxf - (MYFLT)idx0;
+    for (chn = 0; chn < nch; chn++) {
+        MYFLT live = frame[chn * stride];
+        MYFLT h0 = x->buf[idx0 * nch + chn];
+        MYFLT h1 = x->buf[idx1 * nch + chn];
+        MYFLT head = h0 + fr * (h1 - h0);
+        frame[chn * stride] = live + t * (head - live);
+    }
+}
+
+#define DISKIN2_XFADE(p, frame, stride)                                     \
+    diskin2_xfade(&(p)->xf, (p)->nChannels, (p)->pos_frac, (p)->pos_frac_inc, \
+                  (p)->loopStart, (p)->loopEnd, (frame), (stride))
+
 static inline void diskin2_file_pos_inc(DISKIN2 *p, int32_t *ndx)
 {
     p->pos_frac += p->pos_frac_inc;
@@ -1314,9 +1451,30 @@ static inline void diskin2_file_pos_inc(DISKIN2 *p, int32_t *ndx)
     }
 }
 
-
-int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
+static inline void diskin2_file_pos_inc_xf(DISKIN2 *p, int32_t *ndx)
 {
+    p->pos_frac += p->pos_frac_inc;
+    *ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
+    /* Only reached by the crossfade readers (xf.len > 0 implies wrapMode), and
+       loopLength == loopEnd - loopStart, so one unsigned compare covers both
+       past-the-end and before-the-start */
+    if (UNLIKELY((uint32_t) (*ndx - p->loopStart) >= (uint32_t) p->loopLength)) {
+      if (p->xf.ready)
+        p->pos_frac = p->xf.headEnd;
+      else {
+        p->xf.count = 0;
+        p->pos_frac += (*ndx >= p->loopEnd ? -1 : 1) *
+                       ((int64_t) p->loopLength << POS_FRAC_SHIFT);
+      }
+      *ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
+    }
+}
+
+
+static ALWAYS_INLINE int32_t
+diskin2_perf_synchronous_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
+{
+
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t      nsmps = CS_KSMPS;
@@ -1354,7 +1512,12 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
           ndx++;                      /* round to nearest sample */
         diskin2_get_sample(csound, p, ndx, nn, FL(1.0));
         /* update file position */
-        diskin2_file_pos_inc(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut[0] + nn, CS_KSMPS);
+          diskin2_file_pos_inc_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc(p, &ndx);
       }
       break;
     case 2:                   /* ---- linear interpolation ---- */
@@ -1366,7 +1529,12 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
         ndx++;
         diskin2_get_sample(csound, p, ndx, nn, a1);
         /* update file position */
-        diskin2_file_pos_inc(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut[0] + nn, CS_KSMPS);
+          diskin2_file_pos_inc_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc(p, &ndx);
       }
       break;
     case 4:                   /* ---- cubic interpolation ---- */
@@ -1386,7 +1554,12 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
         ndx++;                                /* sample +2 */
         diskin2_get_sample(csound, p, ndx, nn, a3);
         /* update file position */
-        diskin2_file_pos_inc(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut[0] + nn, CS_KSMPS);
+          diskin2_file_pos_inc_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc(p, &ndx);
       }
       break;
     default:                  /* ---- sinc interpolation ---- */
@@ -1485,7 +1658,12 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
           }
         }
         /* update file position */
-        diskin2_file_pos_inc(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut[0] + nn, CS_KSMPS);
+          diskin2_file_pos_inc_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc(p, &ndx);
       }
     }
     /* apply 0dBFS scale and copy to outputs */
@@ -1500,11 +1678,26 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
  file_error:
     csound->ErrorMsg(csound, Str("diskin2: file descriptor closed or invalid\n"));
     return NOTOK;
+
+}
+
+int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
+{
+    return diskin2_perf_synchronous_(csound, p, 0);
+}
+
+static int32_t diskin2_perf_synchronous_xfade(CSOUND *csound, DISKIN2 *p)
+{
+    return diskin2_perf_synchronous_(csound, p, 1);
 }
 
 
-void diskin_file_read(CSOUND *csound, DISKIN2 *p)
+
+
+static ALWAYS_INLINE void
+diskin_file_read_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
 {
+
     /* nsmps is bufsize in frames */
     int32_t nsmps = csound->CheckCircularBuffer(csound, p->cb, 1)/p->nChannels;
     int32_t i, nn;
@@ -1542,7 +1735,14 @@ void diskin_file_read(CSOUND *csound, DISKIN2 *p)
           ndx++;                      /* round to nearest sample */
         diskin2_get_sample(csound, p, ndx, nn, FL(1.0));
         /* update file position */
-        diskin2_file_pos_inc(p, &ndx);
+        /* xf is a constant known at compile time, so the compiler can eliminate
+           the branch when inlining, for this and the other cases below */
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut_buf + nn * p->nChannels, 1);
+          diskin2_file_pos_inc_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc(p, &ndx);
       }
       break;
     case 2:                   /* ---- linear interpolation ---- */
@@ -1554,7 +1754,12 @@ void diskin_file_read(CSOUND *csound, DISKIN2 *p)
         ndx++;
         diskin2_get_sample(csound, p, ndx, nn, a1);
         /* update file position */
-        diskin2_file_pos_inc(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut_buf + nn * p->nChannels, 1);
+          diskin2_file_pos_inc_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc(p, &ndx);
       }
       break;
     case 4:                   /* ---- cubic interpolation ---- */
@@ -1574,7 +1779,12 @@ void diskin_file_read(CSOUND *csound, DISKIN2 *p)
         ndx++;                                /* sample +2 */
         diskin2_get_sample(csound, p, ndx, nn, a3);
         /* update file position */
-        diskin2_file_pos_inc(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut_buf + nn * p->nChannels, 1);
+          diskin2_file_pos_inc_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc(p, &ndx);
       }
       break;
     default:                  /* ---- sinc interpolation ---- */
@@ -1673,7 +1883,12 @@ void diskin_file_read(CSOUND *csound, DISKIN2 *p)
           }
         }
         /* update file position */
-        diskin2_file_pos_inc(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut_buf + nn * p->nChannels, 1);
+          diskin2_file_pos_inc_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc(p, &ndx);
       }
     }
     {
@@ -1692,7 +1907,19 @@ void diskin_file_read(CSOUND *csound, DISKIN2 *p)
       } while(nc && diskin2_instance_running(csound, p));
 #endif
     }
+
 }
+
+void diskin_file_read(CSOUND *csound, DISKIN2 *p)
+{
+    diskin_file_read_(csound, p, 0);
+}
+
+static void diskin_file_read_xfade(CSOUND *csound, DISKIN2 *p)
+{
+    diskin_file_read_(csound, p, 1);
+}
+
 
 
 int32_t diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
@@ -1747,7 +1974,8 @@ static uintptr_t diskin_io_thread(void *p)
     current = *((DISKIN2 **)
                 csound->QueryGlobalVariable(csound, "DISKIN_INST"));
     while (current) {
-      diskin_file_read(csound, current);
+      if (current->xf.len) diskin_file_read_xfade(csound, current);
+      else diskin_file_read(csound, current);
       current = current->nxt;
     }
   }
@@ -1759,7 +1987,9 @@ static uintptr_t diskin_io_thread(void *p)
 
 
 int32_t diskin2_perf(CSOUND *csound, DISKIN2 *p) {
-    if (!p->async) return diskin2_perf_synchronous(csound, p);
+    if (!p->async)
+      return p->xf.len ? diskin2_perf_synchronous_xfade(csound, p)
+                       : diskin2_perf_synchronous(csound, p);
     else return diskin2_perf_asynchronous(csound, p);
 }
 
@@ -1850,7 +2080,26 @@ static inline void diskin2_file_pos_inc_array(DISKIN2_ARRAY *p, int32_t *ndx)
     }
 }
 
-static inline void diskin2_get_sample_array(CSOUND *csound,
+static inline void diskin2_file_pos_inc_array_xf(DISKIN2_ARRAY *p, int32_t *ndx)
+{
+    p->pos_frac += p->pos_frac_inc;
+    *ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
+    /* Only reached by the crossfade readers (xf.len > 0 implies wrapMode), and
+       loopLength == loopEnd - loopStart, so one unsigned compare covers both
+       past-the-end and before-the-start */
+    if (UNLIKELY((uint32_t) (*ndx - p->loopStart) >= (uint32_t) p->loopLength)) {
+      if (p->xf.ready)
+        p->pos_frac = p->xf.headEnd;
+      else {
+        p->xf.count = 0;
+        p->pos_frac += (*ndx >= p->loopEnd ? -1 : 1) *
+                       ((int64_t) p->loopLength << POS_FRAC_SHIFT);
+      }
+      *ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
+    }
+}
+
+static ALWAYS_INLINE void diskin2_get_sample_array(CSOUND *csound,
                                             DISKIN2_ARRAY *p, int32_t fPos,
                                             int32_t n, MYFLT scl) {
     int32_t  bufPos, i;
@@ -1948,7 +2197,10 @@ int32_t diskin2_async_deinit_array(CSOUND *csound, DISKIN2_ARRAY *p)
   return OK;
 }
 
-void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p) {
+static ALWAYS_INLINE void
+diskin_file_read_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t xf)
+{
+
     /* nsmps is bufsize in frames */
     int32_t nsmps = csound->CheckCircularBuffer(csound, p->cb, 1)/p->nChannels;
     int32_t i, nn;
@@ -1984,7 +2236,12 @@ void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p) {
           ndx++;                      /* round to nearest sample */
         diskin2_get_sample_array(csound, p, ndx, nn, FL(1.0));
         /* update file position */
-        diskin2_file_pos_inc_array(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut_buf + nn * p->nChannels, 1);
+          diskin2_file_pos_inc_array_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc_array(p, &ndx);
       }
       break;
     case 2:                   /* ---- linear interpolation ---- */
@@ -1996,7 +2253,12 @@ void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p) {
         ndx++;
         diskin2_get_sample_array(csound, p, ndx, nn, a1);
         /* update file position */
-        diskin2_file_pos_inc_array(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut_buf + nn * p->nChannels, 1);
+          diskin2_file_pos_inc_array_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc_array(p, &ndx);
       }
       break;
     case 4:                   /* ---- cubic interpolation ---- */
@@ -2016,7 +2278,12 @@ void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p) {
         ndx++;                                /* sample +2 */
         diskin2_get_sample_array(csound, p, ndx, nn, a3);
         /* update file position */
-        diskin2_file_pos_inc_array(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut_buf + nn * p->nChannels, 1);
+          diskin2_file_pos_inc_array_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc_array(p, &ndx);
       }
       break;
     default:                  /* ---- sinc interpolation ---- */
@@ -2115,7 +2382,12 @@ void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p) {
           }
         }
         /* update file position */
-        diskin2_file_pos_inc_array(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut_buf + nn * p->nChannels, 1);
+          diskin2_file_pos_inc_array_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc_array(p, &ndx);
       }
     }
     {
@@ -2134,7 +2406,19 @@ void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p) {
       } while(nc && diskin2_array_instance_running(csound, p));
 #endif
     }
+
 }
+
+void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
+{
+    diskin_file_read_array_(csound, p, 0);
+}
+
+static void diskin_file_read_array_xfade(CSOUND *csound, DISKIN2_ARRAY *p)
+{
+    diskin_file_read_array_(csound, p, 1);
+}
+
 
 #ifndef __EMSCRIPTEN__
 static uintptr_t diskin2_io_loop(CSOUND *csound, int32_t array)
@@ -2171,12 +2455,14 @@ static uintptr_t diskin2_io_loop(CSOUND *csound, int32_t array)
 
         if (array) {
           DISKIN2_ARRAY *item = (DISKIN2_ARRAY *) current;
-          diskin_file_read_array(csound, item);
+          if (item->xf.len) diskin_file_read_array_xfade(csound, item);
+          else diskin_file_read_array(csound, item);
           readers = &item->asyncReaders;
         }
         else {
           DISKIN2 *item = (DISKIN2 *) current;
-          diskin_file_read(csound, item);
+          if (item->xf.len) diskin_file_read_xfade(csound, item);
+          else diskin_file_read(csound, item);
           readers = &item->asyncReaders;
         }
         diskin2_release_async_instance(csound, state, entry, owner,
@@ -2204,7 +2490,8 @@ static uintptr_t diskin_io_thread_array(void *p)
                 csound->QueryGlobalVariable(csound, "DISKIN_INST_ARRAY"));
     csoundSleep(wakeup > 0 ? wakeup : 1);
     while (current != NULL) {
-      diskin_file_read_array(csound, current);
+      if (current->xf.len) diskin_file_read_array_xfade(csound, current);
+      else diskin_file_read_array(csound, current);
       current = current->nxt;
     }
   }
@@ -2221,7 +2508,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     char    name[1024];
     void    *fd;
     SFLIB_INFO sfinfo;
-    int32_t     n;
+    int32_t     n, asyncMode;
     ARRAYDAT *t = p->aOut;
 
     /* if already open, close old file first */
@@ -2380,6 +2667,12 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     }
     p->pos_frac_inc = (int64_t)0;
     p->prv_kTranspose = FL(0.0);
+    /* See diskin2_init_: set up the crossfade state before anything can read
+       it (synchronous perf path or published asynchronous reader). */
+    asyncMode = (csound->oparms->realtime == 1 && p->fforceSync == 0 &&
+                 diskin2_async_available(csound, 1));
+    diskin2_xf_setup(csound, &p->xf, p->wrapMode, *(p->iWrapMode),
+                     p->loopLength, p->nChannels);
     /* allocate and initialise buffers */
     p->bufSize = diskin2_calc_buffer_size_array(p, MYFLT2LONG(p->BufSize));
     n = 2 * p->bufSize * p->nChannels * (int32_t)sizeof(MYFLT);
@@ -2392,8 +2685,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
 
     memset(p->buf, 0, n*sizeof(MYFLT));
 
-    if (csound->oparms->realtime == 1 && p->fforceSync == 0 &&
-        diskin2_async_available(csound, 1)) {
+    if (asyncMode) {
 #ifdef __EMSCRIPTEN__
       DISKIN2_ARRAY **top, *current;
 #endif
@@ -2495,8 +2787,10 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
 }
 
 
-int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
+static ALWAYS_INLINE int32_t
+diskin2_perf_synchronous_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t xf)
 {
+
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t nsmps = CS_KSMPS, ksmps = CS_KSMPS;
@@ -2537,7 +2831,12 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
           ndx++;                      /* round to nearest sample */
         diskin2_get_sample_array(csound, p, ndx, nn, FL(1.0));
         /* update file position */
-        diskin2_file_pos_inc_array(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut->data + nn, CS_KSMPS);
+          diskin2_file_pos_inc_array_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc_array(p, &ndx);
       }
       break;
     case 2:                   /* ---- linear interpolation ---- */
@@ -2549,7 +2848,12 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
         ndx++;
         diskin2_get_sample_array(csound, p, ndx, nn, a1);
         /* update file position */
-        diskin2_file_pos_inc_array(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut->data + nn, CS_KSMPS);
+          diskin2_file_pos_inc_array_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc_array(p, &ndx);
       }
       break;
     case 4:                   /* ---- cubic interpolation ---- */
@@ -2569,7 +2873,12 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
         ndx++;                                /* sample +2 */
         diskin2_get_sample_array(csound, p, ndx, nn, a3);
         /* update file position */
-        diskin2_file_pos_inc_array(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut->data + nn, CS_KSMPS);
+          diskin2_file_pos_inc_array_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc_array(p, &ndx);
       }
       break;
     default:                  /* ---- sinc interpolation ---- */
@@ -2668,7 +2977,12 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
           }
         }
         /* update file position */
-        diskin2_file_pos_inc_array(p, &ndx);
+        if (xf) {
+          DISKIN2_XFADE(p, p->aOut->data + nn, CS_KSMPS);
+          diskin2_file_pos_inc_array_xf(p, &ndx);
+        }
+        else
+          diskin2_file_pos_inc_array(p, &ndx);
       }
     }
     /* apply 0dBFS scale */
@@ -2679,7 +2993,20 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
  file_error:
     csound->ErrorMsg(csound, Str("diskin2: file descriptor closed or invalid\n"));
     return NOTOK;
+
 }
+
+int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
+{
+    return diskin2_perf_synchronous_array_(csound, p, 0);
+}
+
+static int32_t diskin2_perf_synchronous_array_xfade(CSOUND *csound, DISKIN2_ARRAY *p)
+{
+    return diskin2_perf_synchronous_array_(csound, p, 1);
+}
+
+
 
 int32_t diskin2_perf_asynchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
 {
@@ -2757,7 +3084,9 @@ int32_t diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p){
 }
 
 int32_t diskin2_perf_array(CSOUND *csound, DISKIN2_ARRAY *p) {
-    if (!p->async) return diskin2_perf_synchronous_array(csound, p);
+    if (!p->async)
+      return p->xf.len ? diskin2_perf_synchronous_array_xfade(csound, p)
+                       : diskin2_perf_synchronous_array(csound, p);
     else return diskin2_perf_asynchronous_array(csound, p);
 }
 

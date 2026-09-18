@@ -30,6 +30,19 @@
 #define POS_FRAC_SCALE  0x10000000
 #define POS_FRAC_MASK   0x0FFFFFFF
 
+/* Loop crossfade state (enabled by iwrap > 1 in asynchronous mode only),
+   shared by the scalar and array readers so that one crossfade routine
+   serves every output layout. */
+typedef struct {
+    int32_t len;                /* crossfade length in frames, 0 = disabled */
+    int32_t ready;              /* loop head captured */
+    int32_t count;              /* number of head frames captured so far */
+    int32_t dir;                /* playback direction the head was captured in */
+    int64_t headEnd;            /* position to resume from after loop wrap */
+    MYFLT   *buf;               /* captured loop head (len * channels) */
+    AUXCH   aux;                /* storage for buf */
+} DISKIN2_XF;
+
 typedef struct diskin2 {
     OPDS    h;
     MYFLT   *out[DISKIN2_MAXCHN];
@@ -54,6 +67,8 @@ typedef struct diskin2 {
     int32_t loopStart;
     int32_t loopEnd;
     int32_t loopLength;
+
+    DISKIN2_XF xf;               /* loop crossfade state */
 
     int32_t initDone;
     int32_t nChannels;
@@ -114,6 +129,9 @@ typedef struct diskin2_array {
     int32_t     loopStart;
     int32_t     loopEnd;
     int32_t     loopLength;
+
+    DISKIN2_XF   xf;             /* loop crossfade state */
+
     int32_t     initDone;
     int32_t     nChannels;
     int32_t     bufSize;            /* in sample frames, power of two */
