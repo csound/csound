@@ -2,7 +2,8 @@
 description = "tab2array stops before writing when a slice outgrows its output"
 [expect]
 exit = "nonzero"
-stderr = ["Array too small", "Output unchanged"]
+stderr = ["Array too small"]
+output = ["Output unchanged"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
