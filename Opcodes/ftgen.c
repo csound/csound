@@ -279,7 +279,8 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
 {
   MYFLT **argp = p->argums;
   FUNC  *ftp;
-  char  filename[MAXNAME];
+  char  generated_name[MAXNAME];
+  const char *filename;
   int32_t   nargs = GetInputArgCnt((OPDS *)p) - 2;
   FILE  *file = NULL;
   int32_t   (*err_func)(CSOUND *, OPDS *, const char *, ...);
@@ -300,11 +301,13 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
     goto err2;
 
   if (!istring) {
-    if (IsStringCode(*p->ifilno))
-      csound->StringArg2Name(csound, filename, p->ifilno, "ftsave.", 0);
-    else strncpy(filename, csound->GetArgString(csound,*p->ifilno), MAXNAME);
+    if (IsStringCode(*p->ifilno)) {
+      csound->StringArg2Name(csound, generated_name, p->ifilno, "ftsave.", 0);
+      filename = generated_name;
+    }
+    else filename = csound->GetArgString(csound, *p->ifilno);
   } else {
-    strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
+    filename = ((STRINGDAT *)p->ifilno)->data;
   }
 
   if (*p->iflag <= FL(0.0)) {
@@ -463,7 +466,8 @@ static int32_t ftload_kS(CSOUND *csound, FTLOAD_K *p)
 static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
 {
   MYFLT **argp = p->argums;
-  char  filename[MAXNAME];
+  char  generated_name[MAXNAME];
+  const char *filename;
   int32_t   nargs = GetInputArgCnt((OPDS *)p) - 3;
   FILE  *file = NULL;
   int32_t   (*err_func)(CSOUND *, OPDS *, const char *, ...);
@@ -481,11 +485,13 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
     goto err2;
 
   if (!istring) {
-    if (IsStringCode(*p->ifilno))
-      csound->StringArg2Name(csound, filename, p->ifilno, "ftsave.", 0);
-    else strncpy(filename, csound->GetArgString(csound,*p->ifilno), MAXNAME);
+    if (IsStringCode(*p->ifilno)) {
+      csound->StringArg2Name(csound, generated_name, p->ifilno, "ftsave.", 0);
+      filename = generated_name;
+    }
+    else filename = csound->GetArgString(csound, *p->ifilno);
   } else {
-    strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
+    filename = ((STRINGDAT *)p->ifilno)->data;
   }
 
   if (*p->iflag <= FL(0.0)) {

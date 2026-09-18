@@ -775,8 +775,8 @@ static int32_t grain2(CSOUND *csound, GRAIN2 *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t nn, nsmps = CS_KSMPS;
   int32_t  i, w_interp, g_interp, f_nolock, floatph = 0;
-  MYFLT    *aout, *ft, *w_ft, grain_frq, frq_scl, pfrac, w_pfrac, f, a, k, wf;
-  uint32   n, mask, lobits, w_mask, w_lobits, flen, wflen = p->wflen;
+  MYFLT    *aout, *ft, *w_ft, grain_frq, frq_scl, pfrac = FL(0.0), w_pfrac, f, a, k, wf;
+  uint32   n, mask = 0, lobits = 0, w_mask, w_lobits, flen, wflen = p->wflen;
   uint32   g_frq, w_frq;
   GRAIN2_OSC  *o;
   FUNC        *ftp;
@@ -991,16 +991,16 @@ static void grain3_init_grain_f(GRAIN3 *p, GRAIN2_OSC *o,
 static int32_t grain3(CSOUND *csound, GRAIN3 *p)
 {
   int32_t           i, w_interp, g_interp, f_nolock;
-  MYFLT         *aout0, *aout, *ft, *w_ft, frq_scl, pfrac, w_pfrac, f, a, k;
+  MYFLT         *aout0, *aout, *ft, *w_ft, frq_scl, pfrac = FL(0.0), w_pfrac, f, a, k;
   MYFLT         wfdivxf, w_frq_f, x_frq_f;
-  uint32        n, mask, lobits, w_mask, w_lobits;
-  uint32        *phs, frq, x_ph, x_frq, g_ph, g_frq, w_ph, w_frq;
+  uint32        n, mask = 0, lobits = 0, w_mask, w_lobits;
+  uint32        *phs, frq = 0, x_ph, x_frq, g_ph = 0, g_frq = 0, w_ph = 0, w_frq;
   GRAIN2_OSC    *o;
   FUNC          *ftp;
   uint32_t      offset = p->h.insdshead->ksmps_offset;
   uint32_t      early  = p->h.insdshead->ksmps_no_end;
   uint32_t      nn, nsmps = CS_KSMPS;
-  double        *phsf, x_phf, g_phf, g_frqf, frqf, w_phf;
+  double        *phsf, x_phf, g_phf = 0.0, g_frqf = 0.0, frqf = 0.0, w_phf = 0.0;
   int32_t       flen, wflen = p->wflen, floatph = 0;
 
   /* clear output */
@@ -1027,9 +1027,8 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
   if(!floatph)
     oscbnk_flen_setup(ftp->flen, &mask, &lobits, &pfrac);
   p->floatph = floatph;
-  if(!floatph)
-    phs = p->phase;                             /* grain phase offset   */
-  else phsf = p->phasef;
+  phs = p->phase;                             /* grain phase offset */
+  phsf = p->phasef;
 
   p->f_rnd_pow = *(p->kfrpow);        /* random distribution (frequency) */
   if ((p->f_rnd_pow == FL(0.0)) || (p->f_rnd_pow == FL(-1.0)) ||
@@ -1075,8 +1074,8 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
   if(!floatph) frq = (g_frq + OSCBNK_PHS2INT(f)) & OSCBNK_PHSMSK;
   else frqf = PHMOD1(g_frqf + f);
   if (p->mode & 0x40) {
-    g_frq = frq;            /* phase sync   */
-    g_frqf = frqf;
+    if (floatph) g_frqf = frqf;  /* phase sync */
+    else g_frq = frq;
   }
   /* calculate phase offset values for this k-cycle */
   for (nn = offset; nn <= nsmps; nn++) {
@@ -1106,8 +1105,8 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
     wfdivxf = w_frq_f / x_frq_f;
   else
     wfdivxf = w_frq_f / ((MYFLT) OSCBNK_PHSMAX * x_frq_f);
-  p->grain_frq = frq;                 /* grain frequency      */
-  p->grain_frqf = frqf;
+  if (floatph) p->grain_frqf = frqf;  /* grain frequency */
+  else p->grain_frq = frq;
   p->frq_scl = frq_scl = *(p->kfmd) * CS_ONEDSR;
   p->pm_wrap = (fabs((double) *(p->kpmd)) > 0.9 ? 1 : 0);
 
@@ -1259,8 +1258,12 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
       *(aout++) += a * k;
     }
     /* save phase */
-    o->grain_phs = g_ph; o->window_phs = w_ph;
-    o->grain_phsf = g_phf; o->window_phsf = w_phf;
+    if (floatph) {
+      o->grain_phsf = g_phf; o->window_phsf = w_phf;
+    }
+    else {
+      o->grain_phs = g_ph; o->window_phs = w_ph;
+    }
     /* next grain */
     if (++o > p->osc_max) o = p->osc;
   }
@@ -1464,8 +1467,8 @@ static int32_t kosclikt(CSOUND *csound, OSCKT *p)
 static int32_t osckkikt(CSOUND *csound, OSCKT *p)
 {
   FUNC    *ftp;
-  uint32   n, phs, lobits, mask, frq;
-  MYFLT   pfrac, *ft, v, a, *ar, phsf, xcps;
+  uint32   n, phs = p->phs, lobits = p->lobits, mask = p->mask, frq = 0;
+  MYFLT   pfrac = p->pfrac, *ft, v, a, *ar, phsf = p->phsf, xcps = FL(0.0);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t nn, nsmps = CS_KSMPS;
@@ -1520,8 +1523,8 @@ static int32_t osckkikt(CSOUND *csound, OSCKT *p)
 static int32_t osckaikt(CSOUND *csound, OSCKT *p)
 {
   FUNC    *ftp;
-  uint32   n, phs, lobits, mask;
-  MYFLT   pfrac, *ft, v, a, *ar, *xcps, phsf;
+  uint32   n, phs = p->phs, lobits = p->lobits, mask = p->mask;
+  MYFLT   pfrac = p->pfrac, *ft, v, a, *ar, *xcps, phsf = p->phsf;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t nn, nsmps=CS_KSMPS;
@@ -1590,8 +1593,8 @@ static void oscbnk_flen_setup(int32 flen, uint32 *mask,
 static int32_t oscakikt(CSOUND *csound, OSCKT *p)
 {
   FUNC    *ftp;
-  uint32   n, phs, lobits, mask, frq;
-  MYFLT   pfrac, *ft, v, *ar, *xamp, phsf, xcps;
+  uint32   n, phs = p->phs, lobits = p->lobits, mask = p->mask, frq = 0;
+  MYFLT   pfrac = p->pfrac, *ft, v, *ar, *xamp, phsf = p->phsf, xcps = FL(0.0);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t nn, nsmps = CS_KSMPS;
@@ -1651,8 +1654,8 @@ static int32_t oscakikt(CSOUND *csound, OSCKT *p)
 static int32_t oscaaikt(CSOUND *csound, OSCKT *p)
 {
   FUNC    *ftp;
-  uint32   n, phs, lobits, mask;
-  MYFLT   pfrac, *ft, v, *ar, *xcps, phsf, *xamp;
+  uint32   n, phs = p->phs, lobits = p->lobits, mask = p->mask;
+  MYFLT   pfrac = p->pfrac, *ft, v, *ar, *xcps, phsf = p->phsf, *xamp;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t nn, nsmps=CS_KSMPS;
@@ -1726,8 +1729,8 @@ static int32_t oscktpset(CSOUND *csound, OSCKTP *p)
 static int32_t oscktp(CSOUND *csound, OSCKTP *p)
 {
   FUNC    *ftp;
-  uint32_t   n, phs, lobits, mask, frq;
-  MYFLT   pfrac, *ft, v, *ar, frqf, phsf;
+  uint32_t   n, phs = p->phs, lobits = p->lobits, mask = p->mask, frq = 0;
+  MYFLT   pfrac = p->pfrac, *ft, v, *ar, frqf = FL(0.0), phsf = p->phsf;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t nn, nsmps = CS_KSMPS;
@@ -1821,8 +1824,8 @@ static int32_t oscktsset(CSOUND *csound, OSCKTS *p)
 static int32_t osckts(CSOUND *csound, OSCKTS *p)
 {
   FUNC    *ftp;
-  uint32_t   n, phs, lobits, mask, frq = 0UL;
-  MYFLT   pfrac, *ft, v, *ar, *xcps, *xamp, *async, cpsf, phsf;
+  uint32_t   n, phs = p->phs, lobits = p->lobits, mask = p->mask, frq = 0UL;
+  MYFLT   pfrac = p->pfrac, *ft, v, *ar, *xcps, *xamp, *async, cpsf = FL(0.0), phsf = p->phsf;
   int32_t     a_amp, a_cps;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
