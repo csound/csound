@@ -261,11 +261,8 @@ extern "C" {
 OENTRY oentries[] = {{
                          (char *)"doppler", sizeof(Doppler), 0, (char *)"a",
                          (char *)"akkjj", (SUBR)Doppler::init_,
-                         (SUBR)Doppler::kontrol_,
-                     },
-                     {
-                         0,  0, 0, 0, 0, 0, 0, 0, 0,
-                     }};
+                         (SUBR)Doppler::kontrol_, NULL, NULL, 0},
+                     {}};
 
 PUBLIC int32_t csoundModuleInit_doppler(CSOUND *csound) {
   int32_t status = 0;

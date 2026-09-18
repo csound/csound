@@ -86,7 +86,7 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
     /* randomize phase */
     for (i = 0; i < windowsize + 2; i += 2) {
       MYFLT mag = HYPOT(tmp[i], tmp[i + 1]);
-      MYFLT  x = (((MYFLT)rand() / RAND_MAX) * 2 * PI);
+      MYFLT  x = (((MYFLT)rand() / (MYFLT)RAND_MAX) * 2 * PI);
       tmp[i] = mag * COS(x);
       tmp[i + 1] = mag * SIN(x);
     }

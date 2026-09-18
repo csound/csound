@@ -69,14 +69,18 @@ static void FetchInOne(
 
 int32_t pvreadset_(CSOUND *csound, PVREAD *p, int32_t stringname)
 {
-  char      pvfilnam[256];
+  char generated_name[MAXNAME];
+  const char *pvfilnam;
 
   if (stringname==0){
     if (IsStringCode(*p->ifilno))
-      strncpy(pvfilnam,csound->GetArgString(csound, *p->ifilno), MAXNAME);
-    else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+      pvfilnam = csound->GetArgString(csound, *p->ifilno);
+    else {
+      csound->StringArg2Name(csound, generated_name, p->ifilno, "pvoc.", 0);
+      pvfilnam = generated_name;
+    }
   }
-  else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
+  else pvfilnam = ((STRINGDAT *)p->ifilno)->data;
 
   if (pvocex_loadfile(csound, pvfilnam, p) == OK) {
     p->prFlg = 1;

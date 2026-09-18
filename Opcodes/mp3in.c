@@ -909,17 +909,22 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
   {
     int32 filno /*= (int32) MYFLT2LRND(ff->e.p[5])*/;
     if (IsStringCode(ff->e.p[5])) {
-      if (ff->e.strarg[0] == '"') {
-        int32_t len = (int32_t) strlen(ff->e.strarg) - 2;
-        strncpy(sfname, ff->e.strarg + 1, 1024);
-        if (len >= 0 && sfname[len] == '"')
-          sfname[len] = '\0';
+      const char *name = ff->e.strarg;
+      size_t len = strlen(name);
+      if (name[0] == '"') {
+        name++;
+        len--;
+        if (len > 0 && name[len - 1] == '"') len--;
       }
-      else
-        strncpy(sfname, ff->e.strarg, 1024);
+      if (UNLIKELY(len >= sizeof(sfname)))
+        return csound->FtError(ff, "%s", Str("GEN49: filename too long"));
+      memcpy(sfname, name, len);
+      sfname[len] = '\0';
     }
     else if ((filno= (int32) MYFLT2LRND(ff->e.p[5])) >= 0)
-      snprintf(sfname, 1024, "soundin.%d", filno);   /* soundin.filno */
+      snprintf(sfname, sizeof(sfname), "soundin.%d", filno); /* soundin.filno */
+    else
+      return csound->FtError(ff, "%s", Str("GEN49: invalid file number"));
   }
   chan  = (int32_t) MYFLT2LRND(ff->e.p[7]);
   if (UNLIKELY(chan < 0)) {

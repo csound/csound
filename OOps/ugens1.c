@@ -299,9 +299,10 @@ static int32_t adsr_count(CSOUND *csound, double duration, double rate,
 {
   double n = floor(duration * rate + 0.5);
   if (UNLIKELY(!isfinite(duration) || duration < 0.0 ||
-               !isfinite(n) || n > INT_MAX))
-    return csound->InitError(csound,
-                            Str("ADSR: duration is negative or out of range"));
+               !isfinite(n) || n > INT_MAX)) {
+    csound->InitError(csound, Str("ADSR: duration is negative or out of range"));
+    return NOTOK;
+  }
   *count = (int32_t)n;
   return OK;
 }
@@ -1751,8 +1752,8 @@ int32_t knvlpxr(CSOUND *csound, ENVLPR *p)
 {
   IGN(csound);
   MYFLT  fact;
-  int32_t  rlscnt, check, phs;
-  double phsf;
+  int32_t  rlscnt, check, phs = p->phs;
+  double phsf = p->phsf;
 
   if(p->floatph) check = ((phsf = p->phsf) >= FL(0.0));
   else check = ((phs = p->phs) >= 0);
@@ -1820,7 +1821,7 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
   MYFLT fact, *xamp, *rslt, val, asym, mlt, v1, fract, *ftab, lodiv;
   int32_t    asgsg = IS_ASIG_ARG(p->xamp), check, floatph = p->floatph,
     flen;
-  double phsf;
+  double phsf = p->phsf;
 
   xamp = p->xamp;
   rslt = p->rslt;

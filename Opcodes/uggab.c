@@ -914,7 +914,7 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
     p->lphs = phs;
     RANDOM_PHASE_INCREMENT(rateInc, p->xcpsAmpRate, CS_KICVT);
     p->phsAmpRate += rateInc;
-    if (p->phsAmpRate >= MAXLEN) {
+    if (p->phsAmpRate > PHMASK) {
       p->xcpsAmpRate =  randGab(csound)  * (*p->ampMaxRate - *p->ampMinRate) +
         *p->ampMinRate;
       p->phsAmpRate &= PHMASK;
@@ -924,7 +924,7 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
     }
     RANDOM_PHASE_INCREMENT(rateInc, p->xcpsFreqRate, CS_KICVT);
     p->phsFreqRate += rateInc;
-    if (p->phsFreqRate >= MAXLEN) {
+    if (p->phsFreqRate > PHMASK) {
       p->xcpsFreqRate =  randGab(csound)  * (*p->cpsMaxRate - *p->cpsMinRate) +
         *p->cpsMinRate;
       p->phsFreqRate &= PHMASK;
@@ -998,7 +998,7 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
 
     RANDOM_PHASE_INCREMENT(rateInc, p->xcpsAmpRate, CS_KICVT);
     p->phsAmpRate += rateInc;
-    if (p->phsAmpRate >= MAXLEN) {
+    if (p->phsAmpRate > PHMASK) {
       p->xcpsAmpRate =  randGab(csound)  * (ampMaxRate - ampMinRate) + ampMinRate;
       p->phsAmpRate &= PHMASK;
       p->num1amp = p->num2amp;
@@ -1008,7 +1008,7 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
 
     RANDOM_PHASE_INCREMENT(rateInc, p->xcpsFreqRate, CS_KICVT);
     p->phsFreqRate += rateInc;
-    if (p->phsFreqRate >= MAXLEN) {
+    if (p->phsFreqRate > PHMASK) {
       p->xcpsFreqRate =  randGab(csound)  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
       p->phsFreqRate &= PHMASK;
       p->num1freq = p->num2freq;

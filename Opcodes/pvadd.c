@@ -143,8 +143,8 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   amp, frq, v1, fract, *oscphase, phasef, incrf;
-    int32    phase, incr;
+    MYFLT   amp, frq, v1, fract, *oscphase, phasef, incrf = FL(0.0);
+    int32    phase, incr = 0;
     FUNC    *ftp;
     int32    lobits, floatph = p->floatph;
 
