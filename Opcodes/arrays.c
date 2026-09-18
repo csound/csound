@@ -1226,8 +1226,8 @@ static int32_t unwrap(CSOUND *csound, UNWRAP *p) {
   if (!p->unwrap) {
     for (i=0; i < p->size; i++) {
       phs[i] = in[i];
-      while (phs[i] >= PI) phs[i] -= TWOPI;
-      while (phs[i] < -PI) phs[i] += TWOPI;
+      while (phs[i] >= PI) phs[i] = (MYFLT)(phs[i] - TWOPI);
+      while (phs[i] < -PI) phs[i] = (MYFLT)(phs[i] + TWOPI);
     }
   } else {
     MYFLT *ophs = (MYFLT *) p->mem.auxp;

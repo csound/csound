@@ -1543,7 +1543,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       if(obj[i].dataspace->init != NULL) {
         obj[i].dataspace->init(csound, obj[i].dataspace);
         // copy array args data out
-        for(j = 0; j < p->OUTOCOUNT; j++) {
+        for(j = 0; j < GetOutputArgCnt(&p->h); j++) {
            if(csoundGetTypeForArg(p->args[j]) == &CS_VAR_TYPE_ARRAY) {
             array = (ARRAYDAT *)  p->args[j]; // each inarg is an array
             size = array->arrayMemberSize;
@@ -1600,7 +1600,7 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
     obj[i].dataspace->perf(csound, obj[i].dataspace);
 
    // copy array args data out
-   for(j = 0; j < p->OUTOCOUNT; j++) {
+   for(j = 0; j < GetOutputArgCnt(&p->h); j++) {
      if(csoundGetTypeForArg(p->args[j]) == &CS_VAR_TYPE_ARRAY) {
        array = (ARRAYDAT *)  p->args[j]; // each inarg is an array
        size = array->arrayMemberSize;

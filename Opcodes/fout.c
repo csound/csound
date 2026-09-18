@@ -837,7 +837,7 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
   else
     p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
   if (UNLIKELY(sfinfo.channels <= 0 ||
-               sfinfo.channels > INT32_MAX / 4 / sizeof(MYFLT) / p->frames))
+               (size_t)sfinfo.channels > INT32_MAX / 4 / sizeof(MYFLT) / p->frames))
     return csound->InitError(csound, "%s", Str("invalid file channel count"));
   /* Keep the asynchronous queue's existing headroom. */
   p->f.bufsize = p->frames * sfinfo.channels * sizeof(MYFLT);
@@ -910,7 +910,7 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
   else
     p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
   if (UNLIKELY(sfinfo.channels <= 0 ||
-               sfinfo.channels > INT32_MAX / 4 / sizeof(MYFLT) / p->frames))
+               (size_t)sfinfo.channels > INT32_MAX / 4 / sizeof(MYFLT) / p->frames))
     return csound->InitError(csound, "%s", Str("invalid file channel count"));
   /* Keep the asynchronous queue's existing headroom. */
   p->f.bufsize = p->frames * sfinfo.channels * sizeof(MYFLT);
@@ -1084,7 +1084,7 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
     p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
 
   if (UNLIKELY(sfinfo.channels <= 0 ||
-               sfinfo.channels > INT32_MAX / 4 / sizeof(MYFLT) / p->frames))
+               (size_t)sfinfo.channels > INT32_MAX / 4 / sizeof(MYFLT) / p->frames))
     return csound->InitError(csound, "%s", Str("invalid file channel count"));
   /* Keep the asynchronous queue's existing headroom. */
   p->f.bufsize = p->frames * sfinfo.channels * sizeof(MYFLT);
