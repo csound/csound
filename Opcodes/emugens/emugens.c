@@ -2191,7 +2191,6 @@ static int32_t arrprint_str(CSOUND *csound, ARRAYDAT *arr,
                             const char *fmt, const char *label) {
     int32_t i;
     uint32_t charswritten = 0;
-    STRINGDAT *strs = (STRINGDAT *)(arr->data);
     char currline[ARRPRINT_MAXLINE];
     const uint32_t linelength = print_linelength;
     if(label != NULL)
@@ -2202,7 +2201,8 @@ static int32_t arrprint_str(CSOUND *csound, ARRAYDAT *arr,
             currline[charswritten++] = ',';
             currline[charswritten++] = ' ';
         }
-        charswritten += snprintf(currline + charswritten, ARRPRINT_MAXLINE - charswritten, fmt, strs[i].data);
+        charswritten += snprintf(currline + charswritten, ARRPRINT_MAXLINE - charswritten, fmt,
+                                 csound_string_array_element(arr, i)->data);
         if(charswritten >= linelength) {
             currline[charswritten+1] = '\0';
             csound->MessageS(csound, CSOUNDMSG_ORCH, " %s\n", (char*)currline);

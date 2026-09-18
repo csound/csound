@@ -28,6 +28,15 @@
 #include <stdint.h>
 #include <string.h>
 
+/* String elements can include padding to MYFLT alignment. Use the array's
+   byte stride rather than sizeof(STRINGDAT); callers validate the index. */
+static inline STRINGDAT *csound_string_array_element(const ARRAYDAT *array,
+                                                     size_t index)
+{
+    return (STRINGDAT *)((char *)array->data +
+                         index * (size_t)array->arrayMemberSize);
+}
+
 /* Ownership remains engine-private. Installed plugins dispatch the detach
    operation through their CSOUND instance instead of embedding that logic. */
 static inline int32_t csound_array_prepare_write(CSOUND *csound,

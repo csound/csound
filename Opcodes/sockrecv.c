@@ -707,7 +707,6 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
       return
         csound->PerfError(csound, &(p->h), "%s", Str("output array too small\n"));
 
-    STRINGDAT *str = (STRINGDAT *) p->sout->data;
     char *buf = (char *) p->buffer.auxp;
     int32_t n = 0, j = 1;
     size_t len = 0;
@@ -735,72 +734,75 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
       while(size > 0 && size < MTU)  {
         /* get address & types */
         if (n < sout->sizes[0]) {
+          STRINGDAT *str = csound_string_array_element(sout, n);
           len = strlen(buf);
           // printf("len %d size %d incr %d\n",
-          //        len, str[n].size, ((size_t) ceil((len+1)/4.)*4));
-          if (len >= str[n].size) {
-            str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
-            memset(str[n].data,0,len+1);
-            str[n].size  = len+1;
+          //        len, str->size, ((size_t) ceil((len+1)/4.)*4));
+          if (len >= str->size) {
+            str->data = csound->ReAlloc(csound, str->data, len+1);
+            memset(str->data,0,len+1);
+            str->size  = len+1;
           }
-          strncpy(str[n].data, buf, len+1);
-          //str[n].data[len] = '\0'; // explicitly terminate it.
+          strncpy(str->data, buf, len+1);
+          //str->data[len] = '\0'; // explicitly terminate it.
           n++;
           buf += ((size_t) ceil((len+1)/4.)*4);
         }
         if (n < sout->sizes[0]) {
+          STRINGDAT *str = csound_string_array_element(sout, n);
           len = strlen(buf);
-          if (len >= str[n].size) {
-            str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
-            str[n].size  = len+1;
+          if (len >= str->size) {
+            str->data = csound->ReAlloc(csound, str->data, len+1);
+            str->size  = len+1;
           }
-          strncpy(str[n].data, buf, len+1);
-          //str[n].data[str[n].size-1] = '\0'; // explicitly terminate it.
-          types = str[n].data;
+          strncpy(str->data, buf, len+1);
+          //str->data[str->size-1] = '\0'; // explicitly terminate it.
+          types = str->data;
           n++;
           buf += ((size_t) ceil((len+1)/4.)*4);
         }
         j = 1;
         // parse data
         while((c = types[j++]) != '\0' && n < sout->sizes[0]){
+          STRINGDAT *str = csound_string_array_element(sout, n);
           if (c == 'f') {
             float f = *((float *) buf);
             byteswap((char*)&f,4);
-            if (str[n].size < 32) {
-              str[n].data = csound->ReAlloc(csound, str[n].data, 32);
-              str[n].size  = 32;
+            if (str->size < 32) {
+              str->data = csound->ReAlloc(csound, str->data, 32);
+              str->size  = 32;
             }
-            snprintf(str[n].data, str[n].size, "%f", f);
+            snprintf(str->data, str->size, "%f", f);
             buf += 4;
           } else if (c == 'i') {
             int32_t d = *((int32_t *) buf);
             byteswap((char*) &d,4);
-            if (str[n].size < 32) {
-              str[n].data = csound->ReAlloc(csound, str[n].data, 32);
-              str[n].size  = 32;
+            if (str->size < 32) {
+              str->data = csound->ReAlloc(csound, str->data, 32);
+              str->size  = 32;
             }
-            snprintf(str[n].data, str[n].size, "%d", d);
+            snprintf(str->data, str->size, "%d", d);
             buf += 4;
           } else if (c == 's') {
             len = strlen(buf);
-            if (len+1 > str[n].size) {
-              str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
-              str[n].size  = len+1;
+            if (len+1 > str->size) {
+              str->data = csound->ReAlloc(csound, str->data, len+1);
+              str->size  = len+1;
             }
-            strncpy(str[n].data, buf, len+1);
-            //str[n].data[len] = '\0';
+            strncpy(str->data, buf, len+1);
+            //str->data[len] = '\0';
             len = ceil((len+1)/4.)*4;
             buf += len;
           } else if (c == 'b') {
             len = *((uint32_t *) buf);
             byteswap((char*)&len,4);
             len = ceil((len)/4.)*4;
-            if (len > str[n].size) {
-              str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
-              str[n].size  = len+1;
+            if (len > str->size) {
+              str->data = csound->ReAlloc(csound, str->data, len+1);
+              str->size  = len+1;
             }
-            strncpy(str[n].data, buf, len+1);
-            //str[n].data[len] = '\0';
+            strncpy(str->data, buf, len+1);
+            //str->data[len] = '\0';
             buf += len;
           } else if (c == 'A'){
             len = *((uint32_t *) buf);
@@ -809,13 +811,13 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
             byteswap((char*)&asize,4);
             int32_t dim = *(((uint32_t *) buf) + 8);
             byteswap((char*)&dim,4);
-            if (len*15 > str[n].size) {
-              str[n].data = csound->ReAlloc(csound, str[n].data, 15*len+1);
-              str[n].size  = len+1;
+            if (len*15 > str->size) {
+              str->data = csound->ReAlloc(csound, str->data, 15*len+1);
+              str->size  = len+1;
             }
             MYFLT *s = ((MYFLT *) (((uint32_t *) buf) + 12));
-            snprintf(str[n].data, 32, "%d:", dim);
-            char *data = str[n].data + 2;
+            snprintf(str->data, 32, "%d:", dim);
+            char *data = str->data + 2;
             snprintf(data, 32, "%d:[",size);
             data += 32;
             for(int i = 0; i < asize; i++) {
