@@ -1125,10 +1125,8 @@ int32_t chnget_opcode_init_S(CSOUND* csound, CHNGET* p)
             dest->data = csound->ReAlloc(csound, dest->data, len + 1);
             dest->size = len + 1;
           }
-          if (dest->data != NULL) {
+          if (dest->data != NULL)
             strcpy(dest->data, src->data);
-            dest->timestamp = p->h.insdshead->kcounter;
-          }
         }
       csoundSpinUnLock(p->lock);
     }
@@ -1163,10 +1161,8 @@ int32_t chnget_opcode_perf_S(CSOUND* csound, CHNGET* p){
           dest->data = csound->ReAlloc(csound, dest->data, len + 1);
           dest->size = len + 1;
         }
-      if (dest->data != NULL) {
+      if (dest->data != NULL)
         strcpy(dest->data, src->data);
-        dest->timestamp = p->h.insdshead->kcounter;
-      }
     }
   csoundSpinUnLock(p->lock);
   return OK;
@@ -1839,10 +1835,8 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
               dest->data = csound->ReAlloc(csound, dest->data, len + 1);
               dest->size = len + 1;
             }
-            if (dest->data != NULL) {
+            if (dest->data != NULL)
               strcpy(dest->data, src->data);
-              dest->timestamp = p->h.insdshead->kcounter;
-            }
             csoundSpinUnLock(p->lock);
           }
         }
@@ -1977,10 +1971,8 @@ int32_t chnget_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p)
       dest->data = csound->ReAlloc(csound, dest->data, len + 1);
       dest->size = len + 1;
     }
-    if (dest->data != NULL) {
+    if (dest->data != NULL)
       strcpy(dest->data, src->data);
-      dest->timestamp = p->h.insdshead->kcounter;
-    }
 
     csoundSpinUnLock(p->lock);
   }
