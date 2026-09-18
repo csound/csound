@@ -799,7 +799,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
             tmp_im = bwin[i+1];
           }
 
-          tmp_real += 1e-15;
+          tmp_real = (MYFLT)(tmp_real + 1e-15);
           div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
 
           ph_real = tmp_real*div;

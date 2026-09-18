@@ -505,8 +505,8 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
   if(!*p->interp) memset(p->pamp.auxp, 0, sizeof(MYFLT)*p->count);
   else { // expon
     MYFLT *pamp = (MYFLT *) p->pamp.auxp;
-    for(count = 0;count<p->count;count++) {
-      pamp[count] = 0.0001*csound->Get0dBFS(csound);
+    for(int32_t i = 0; i < p->count; i++) {
+      pamp[i] = 0.0001*csound->Get0dBFS(csound);
     }
   }
   }
