@@ -116,9 +116,8 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
     /* Check for buffer aliasing: if both STRINGDATs point to the same data buffer,
        they are either the same variable or share the same underlying memory.
-       In either case, no copy is needed - just update the timestamp. */
+       In either case, no copy is needed. */
     if (UNLIKELY(sDest->data == sSrc->data)) {
-        sDest->timestamp = csound->kcounter;
         return;
     }
 
@@ -131,7 +130,6 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
         sDest->refcount = 0;
     }
 
-    int64_t kcnt = csound->kcounter;
     if (sSrc->size > sDest->size) {
       string_resize_internal(csound, sDest, sSrc->size);
       memcpy(sDest->data, sSrc->data, sSrc->size);
@@ -139,7 +137,6 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
         strncpy(sDest->data, sSrc->data, sDest->size-1);
         sDest->data[sDest->size-1] = '\0';
     }
-    sDest->timestamp = kcnt;
 }
 
 /* The ownership implementation is private to the engine. A short-held lock

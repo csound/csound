@@ -117,7 +117,7 @@ const OENTRY opcodlst_1[] = {
   { "earlysmps", S(AOP), 0, "k", "", NULL,(SUBR) sa_early, NULL},
   { "str", S(IREF_NUM) ,0,  "S", ":InstrDef;", (SUBR) get_instr_name},
   {  "=.S",   S(STRCPY_OP),0,     "S",    "S",
-     (SUBR) strcpy_opcode_S, (SUBR) strassign_k, (SUBR) NULL, NULL    },
+     (SUBR) strcpy_opcode_S, (SUBR) strcpy_opcode_S, (SUBR) NULL, NULL    },
   /* A ternary can select a different string even if neither input changed. */
   {  "#=.S",   S(STRCPY_OP),0,     "S",    "S",
      (SUBR) strcpy_opcode_S, (SUBR) strcpy_opcode_S, (SUBR) NULL, NULL    },
