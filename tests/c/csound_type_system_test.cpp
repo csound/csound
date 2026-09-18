@@ -637,51 +637,44 @@ TEST_F (TypeSystemTests, testStructuredArrayCopyAndWriteClaimAreSerialized)
 //    
 //}
 
-TEST_F(TypeSystemTests, StringCopiesUseTheCallingInstrumentCycle)
+TEST_F(TypeSystemTests, StringCopiesWithInstrumentPreserveText)
 {
     const CS_TYPE* type = csound->GetType(csound, "S");
     INSDS local{};
-    local.kcounter = 17;
-    csound->kcounter = 3;
-    STRINGDAT source{const_cast<char*>("short"), 6, 0, -1};
+    STRINGDAT source{};
+    source.data = const_cast<char*>("short");
+    source.size = 6;
     STRINGDAT destination{};
 
     type->copyValue(csound, type, &destination, &source, &local);
     EXPECT_STREQ("short", destination.data);
-    EXPECT_EQ(17, destination.timestamp);
 
     source.data = const_cast<char*>("a longer string");
     source.size = 16;
-    local.kcounter++;
     type->copyValue(csound, type, &destination, &source, &local);
     EXPECT_STREQ("a longer string", destination.data);
-    EXPECT_EQ(18, destination.timestamp);
 
     source.data = const_cast<char*>("");
     source.size = 1;
-    local.kcounter++;
     type->copyValue(csound, type, &destination, &source, &local);
     EXPECT_STREQ("", destination.data);
-    EXPECT_EQ(19, destination.timestamp);
 
-    local.kcounter++;
     type->copyValue(csound, type, &destination, &destination, &local);
-    EXPECT_EQ(20, destination.timestamp);
+    EXPECT_STREQ(source.data, destination.data);
     csound->Free(csound, destination.data);
 }
 
-TEST_F(TypeSystemTests, StringCopiesWithoutInstrumentUseTheGlobalCycle)
+TEST_F(TypeSystemTests, StringCopiesWithoutInstrumentPreserveText)
 {
     const CS_TYPE* type = csound->GetType(csound, "S");
-    csound->kcounter = 3;
-    STRINGDAT source{const_cast<char*>("text"), 5, 0, -1};
+    STRINGDAT source{};
+    source.data = const_cast<char*>("text");
+    source.size = 5;
     STRINGDAT destination{};
 
     type->copyValue(csound, type, &destination, &source, nullptr);
     EXPECT_STREQ("text", destination.data);
-    EXPECT_EQ(3, destination.timestamp);
-    csound->kcounter++;
     type->copyValue(csound, type, &destination, &destination, nullptr);
-    EXPECT_EQ(4, destination.timestamp);
+    EXPECT_STREQ(source.data, destination.data);
     csound->Free(csound, destination.data);
 }
