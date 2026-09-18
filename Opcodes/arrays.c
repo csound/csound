@@ -1453,9 +1453,14 @@ typedef struct _inout {
 } INOUT;
 
 static int32_t nxtpow2(CSOUND *csound, INOUT *p) {
-  IGN(csound);
-  int32_t inval = (int32_t)*p->in;
-  int32_t powtwo = 2;
+  double input = (double)*p->in;
+  if (UNLIKELY(!(input >= (double)INT32_MIN &&
+                 input < (double)INT32_MAX + 1.0)))
+    return csound->InitError(csound, "%s",
+                            Str("nxtpow2: input outside 32-bit integer range"));
+  int32_t inval = (int32_t)input;
+  /* Rounding a positive int32_t up can require the extra bit for 2^31. */
+  int64_t powtwo = 2;
   while (powtwo < inval) powtwo *= 2;
   *p->out = powtwo;
   return OK;
