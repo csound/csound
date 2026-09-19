@@ -219,18 +219,11 @@ static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
       : csound->PerfError(csound, &p->h,
                           "array_set_struct: invalid element type");
   }
-  {
-    int32_t result = initializing
-      ? csound_array_prepare_write(csound, dat, p->h.insdshead)
-      : csound_array_try_prepare_write(csound, dat, p->h.insdshead);
-    if (UNLIKELY(result != OK)) {
-      return initializing
-        ? csound->InitError(
-            csound, "array_set_struct: could not detach shared array")
-        : csound->PerfError(
-            csound, &p->h,
-            "array_set_struct: could not detach shared array");
-    }
+  if (UNLIKELY(csound_array_prepare_opcode_write(
+                 csound, dat, &p->h, initializing,
+                 Str("array_set_struct: could not prepare array for writing"))
+               != OK)) {
+    return NOTOK;
   }
   if (UNLIKELY(struct_array_flat_index(csound, &p->h, "array_set_struct",
                                        dat, p->indexes, indexCount,
@@ -260,12 +253,10 @@ static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
         csound, &p->h,
         "array_set_struct: destination was not prepared during init");
     }
-    CS_VARIABLE *var = array_element_create_variable(
-      csound, dat->arrayType, p->h.insdshead);
-    if (UNLIKELY(var == NULL || var->initializeVariableMemory == NULL)) {
-      if (var != NULL) {
-        csound->Free(csound, var);
-      }
+    size_t allocated = csound_array_allocated_bytes(csound, dat);
+    if (UNLIKELY(csound_array_initialize_element_range(
+                   csound, dat, allocated, index, index + 1,
+                   p->h.insdshead) != OK)) {
       return initializing
         ? csound->InitError(
             csound, "array_set_struct: cannot initialize element")
@@ -273,8 +264,6 @@ static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
             csound, &p->h,
             "array_set_struct: cannot initialize element");
     }
-    var->initializeVariableMemory(csound, var, element);
-    csound->Free(csound, var);
   }
   if (UNLIKELY(!struct_value_matches_type(dat->arrayType, destination))) {
     return initializing
@@ -311,10 +300,11 @@ int32_t array_set_struct_init(CSOUND *csound, ARRAY_SET *p)
   /* Preparation must not perform the k-rate assignment early. It only makes
      the outer destination independent; nested value storage is copied when
      the assignment actually executes. */
-  if (UNLIKELY(csound_array_prepare_write(csound, dat,
-                                          p->h.insdshead) != OK)) {
-    return csound->InitError(
-      csound, "array_set_struct: could not prepare writable array");
+  if (UNLIKELY(csound_array_prepare_opcode_write(
+                 csound, dat, &p->h, 1,
+                 Str("array_set_struct: could not prepare array for writing"))
+               != OK)) {
+    return NOTOK;
   }
   return OK;
 }

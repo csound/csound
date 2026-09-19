@@ -52,6 +52,18 @@ static inline int32_t csound_array_try_prepare_write(CSOUND *csound,
     return csound->ArrayPrepareWrite(csound, array, ctx, 0);
 }
 
+/* Opcode writers use the engine's phase and error policy. */
+static inline int32_t csound_array_prepare_opcode_write(
+    CSOUND *csound, ARRAYDAT *array, OPDS *opds, int32_t initializing,
+    const char *errorMessage)
+{
+    if (csound == NULL || csound->ArrayPrepareOpcodeWrite == NULL) {
+        return NOTOK;
+    }
+    return csound->ArrayPrepareOpcodeWrite(
+      csound, array, opds, initializing, errorMessage);
+}
+
 /* Managed elements own memory or contain nested runtime values. They must be
    copied and cleared through their type callbacks, never as raw bytes. */
 static inline int32_t csound_array_has_managed_elements(
@@ -167,130 +179,15 @@ static inline int32_t csound_array_allocation_size(int32_t memberSize,
     return OK;
 }
 
-static inline int32_t csound_array_initialize_struct_range(
-    CSOUND *csound, const CS_TYPE *arrayType, CS_VARIABLE *var,
-    MYFLT *data, int32_t memberSize, size_t begin, size_t end)
-{
-    if (arrayType == NULL || !arrayType->userDefinedType || begin == end) {
-        return OK;
-    }
-    if (var == NULL || var->initializeVariableMemory == NULL ||
-        var->memBlockSize != memberSize) {
-        return NOTOK;
-    }
-    for (size_t i = begin; i < end; i++) {
-        void *element = (char *)data + i * (size_t)memberSize;
-        var->initializeVariableMemory(csound, var, (MYFLT *)element);
-    }
-    return OK;
-}
-
 static inline int32_t csound_array_ensure_capacity(CSOUND *csound,
                                                    ARRAYDAT *array,
                                                    size_t capacity,
                                                    INSDS *ctx)
 {
-    CS_VARIABLE *var = NULL;
-    MYFLT *newData;
-    size_t oldCapacity = 0;
-    size_t bytes;
-    int32_t memberSize = array->arrayMemberSize;
-    int32_t fresh = array->data == NULL;
-
-    if (array->arrayType == NULL || capacity == 0) {
+    if (csound == NULL || csound->ArrayEnsureCapacity == NULL) {
         return NOTOK;
     }
-    if (fresh) {
-        var = array_element_create_variable(csound, array->arrayType, ctx);
-        if (var == NULL || var->memBlockSize <= 0 ||
-            (array->arrayType->userDefinedType &&
-             var->initializeVariableMemory == NULL)) {
-            if (var != NULL) {
-                csound->Free(csound, var);
-            }
-            return NOTOK;
-        }
-        memberSize = var->memBlockSize;
-    }
-    else {
-        /* allocated == 0 marks a legacy non-owning view. Only managed
-           structured views can be detached safely before resizing. A view
-           may still reuse its known logical extent without taking ownership. */
-        if (array->allocated == 0) {
-            size_t logicalCapacity;
-
-            if (array->arrayMemberSize <= 0 ||
-                csound_array_member_count(array, &logicalCapacity) != OK ||
-                capacity > logicalCapacity) {
-                return NOTOK;
-            }
-            return OK;
-        }
-        if (array->arrayMemberSize <= 0 ||
-            array->allocated % (size_t)array->arrayMemberSize != 0) {
-            return NOTOK;
-        }
-        oldCapacity = array->allocated / (size_t)array->arrayMemberSize;
-    }
-    if (csound_array_allocation_size(memberSize, capacity,
-                                     &bytes) != OK) {
-        if (var != NULL) {
-            csound->Free(csound, var);
-        }
-        return NOTOK;
-    }
-    if (!fresh && bytes <= array->allocated) {
-        return OK;
-    }
-
-    if (!fresh && array->arrayType->userDefinedType) {
-        var = array_element_create_variable(csound, array->arrayType, ctx);
-        if (var == NULL || var->initializeVariableMemory == NULL ||
-            var->memBlockSize != memberSize) {
-            if (var != NULL) {
-                csound->Free(csound, var);
-            }
-            return NOTOK;
-        }
-    }
-    if (fresh) {
-        newData = (MYFLT *)csound->Calloc(csound, bytes);
-        if (UNLIKELY(newData == NULL)) {
-            csound->Free(csound, var);
-            return NOTOK;
-        }
-        if (UNLIKELY(csound_array_initialize_struct_range(
-                       csound, array->arrayType, var, newData, memberSize,
-                       oldCapacity, capacity) != OK)) {
-            csound->Free(csound, newData);
-            csound->Free(csound, var);
-            return NOTOK;
-        }
-        array->arrayMemberSize = memberSize;
-        array->data = newData;
-        array->allocated = bytes;
-    }
-    else {
-        newData = (MYFLT *)csound->ReAlloc(csound, array->data, bytes);
-        if (UNLIKELY(newData == NULL)) {
-            csound->Free(csound, var);
-            return NOTOK;
-        }
-        array->data = newData;
-        memset((char *)newData + array->allocated, 0,
-               bytes - array->allocated);
-        array->allocated = bytes;
-        if (UNLIKELY(csound_array_initialize_struct_range(
-                       csound, array->arrayType, var, newData, memberSize,
-                       oldCapacity, capacity) != OK)) {
-            csound->Free(csound, var);
-            return NOTOK;
-        }
-    }
-    if (var != NULL) {
-        csound->Free(csound, var);
-    }
-    return OK;
+    return csound->ArrayEnsureCapacity(csound, array, capacity, ctx);
 }
 
 /* Resize an array. Return NOTOK without publishing a new logical size when
