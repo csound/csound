@@ -30,9 +30,8 @@
 #define POS_FRAC_SCALE  0x10000000
 #define POS_FRAC_MASK   0x0FFFFFFF
 
-/* Loop crossfade state (enabled by iwrap > 1 in asynchronous mode only),
-   shared by the scalar and array readers so that one crossfade routine
-   serves every output layout. */
+/* Loop crossfade state (enabled by iwrap > 1), shared by the scalar and array
+ * versions if diskin2 */
 typedef struct {
     int32_t len;                /* crossfade length in frames, 0 = disabled */
     int32_t ready;              /* loop head captured */
