@@ -103,14 +103,6 @@ message(STATUS "CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
 project(Csound)
 
-# Opcode callbacks and platform stubs share signatures with unused parameters.
-# Keep other unused-variable and correctness diagnostics enabled.
-foreach(language C CXX)
-    if(CMAKE_${language}_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
-        add_compile_options("$<$<COMPILE_LANGUAGE:${language}>:-Wno-unused-parameter>")
-    endif()
-endforeach()
-
 enable_testing()
 
 string(TOUPPER "${CMAKE_SYSTEM_NAME}" CMAKE_SYSTEM_NAME_UPPER)
@@ -1817,6 +1809,8 @@ if(BUILD_STATIC_LIBRARY AND NOT BARE_METAL)
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
+
+csound_suppress_opcode_initializer_warnings(${libcsound_SRCS} ${libcsound_static_SRCS})
 
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)

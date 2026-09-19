@@ -483,7 +483,7 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
   MYFLT *out = p->r;
   MYFLT *in = csobj->bufferout;
    
-  if(chn < 0 || (uint32_t) chn > engine->nchnls) {
+  if(chn < 0 || (uint32_t) chn >= engine->nchnls) {
     return csound->PerfError(csound, &p->h,
                              "requested channel %d not available\n",
                              chn);
@@ -514,7 +514,7 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
   uint32_t esmps = engine->ksmps;
   MYFLT *in = p->b;
   MYFLT *out = csobj->bufferin;  
-  if(chn < 0 || (uint32_t) chn > engine->nchnls) {
+  if(chn < 0 || (uint32_t) chn >= engine->inchnls) {
     return csound->PerfError(csound, &p->h,
                              "requested channel %d not available\n",
                              chn+1);
