@@ -418,7 +418,8 @@ static TREE *create_cond_expression(CSOUND *csound,
 
   if (left[0]=='S' || right[0]=='S') {
     type = (last->left->value->lexeme[1]=='B') ?2 : 1;
-    eq = (last->left->value->lexeme[1]=='B') ?"#=.S" : "=.S";
+    /* Init-time selection must not put string copies in the perf chain. */
+    eq = type == 2 ? "#=.S" : "strcpy";
   }
   else if (left[0] == 'a' && right[0] == 'a') {
     type = 0;

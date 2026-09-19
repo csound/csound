@@ -30,6 +30,11 @@
 #include "aops.h"
 #include "arrays.h"
 
+/* Data sizes already align MYFLT. Pad pool slots for pointer-bearing type
+   headers and for the opcode state that follows the pool as well. */
+#define VAR_POOL_ALIGN(size) \
+    (((size) + sizeof(void *) - 1) & ~(sizeof(void *) - 1))
+
 /* Forward declaration for p-field string extraction */
 extern char* csoundGetArgString(CSOUND *csound, MYFLT p);
 
@@ -308,11 +313,9 @@ int32_t csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
       pool->tail = var;
     }
     cs_hash_table_put(csound, pool->table, var->varName, var);
-    // may need to revise this; var pools are accessed as MYFLT*,
-    // so need to ensure all memory is aligned to sizeof(MYFLT)
     var->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) +
       ((pool->varCount + 1) * (CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(MYFLT)));
-    pool->poolSize += var->memBlockSize;
+    pool->poolSize += VAR_POOL_ALIGN(var->memBlockSize);
     pool->varCount += 1;
     return 0;
   } else return -1;
@@ -344,7 +347,7 @@ void csoundRecalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool)
 
       current->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) +
         (varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(MYFLT));
-      pool->poolSize += current->memBlockSize;
+      pool->poolSize += VAR_POOL_ALIGN(current->memBlockSize);
 
       current = current->next;
       varCount++;
@@ -379,7 +382,7 @@ void csoundReallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
 	  varMem->varType = current->varType;
           current->memBlock = varMem;
        }
-       pool->poolSize += current->memBlockSize;
+       pool->poolSize += VAR_POOL_ALIGN(current->memBlockSize);
        current = current->next;
     }
 }

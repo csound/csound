@@ -83,6 +83,7 @@ typedef struct csdata_ {
   MYFLT sr;
   volatile int32_t inRunning;
   volatile int32_t outRunning;
+  volatile int32_t outDraining;
   UINT32 inBufferFrames;
   UINT32 outBufferFrames;
 } csdata;
@@ -131,7 +132,6 @@ static DWORD WINAPI InputThread(LPVOID lpParam)
         if (FAILED(hr)) {
             continue;
         }
-
         while (packetLength != 0 && cdata->inRunning) {
             hr = pCaptureClient->lpVtbl->GetBuffer(pCaptureClient, &pData,
                                                     &numFramesAvailable, &flags, NULL, NULL);
@@ -219,6 +219,10 @@ static DWORD WINAPI OutputThread(LPVOID lpParam)
         hr = pRenderClient->lpVtbl->ReleaseBuffer(pRenderClient, numFramesAvailable, 0);
         if (FAILED(hr)) {
             continue;
+        }
+        if (cdata->outDraining &&
+            csound->CheckCircularBuffer(csound, cdata->outcb, 0) == 0) {
+            cdata->outRunning = 0;
         }
     }
 
@@ -863,6 +867,7 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
             return -1;
         }
         
+        cdata->outDraining = 0;
         cdata->outRunning = 1;
         cdata->pOutAudioClient->lpVtbl->Start(cdata->pOutAudioClient);
         cdata->hOutThread = CreateThread(NULL, 0, OutputThread, cdata, 0, NULL);
@@ -914,14 +919,15 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int32_t nbytes)
 static void rtclose_(CSOUND *csound)
 {
     csdata *cdata;
+    UINT32 padding;
+    DWORD result;
     cdata = (csdata *)*(csound->GetRtRecordUserData(csound));
     if (cdata == NULL)
         cdata = (csdata *)*(csound->GetRtPlayUserData(csound));
 
     if (cdata != NULL) {
-        Sleep((DWORD)(1000 * csound->GetOutputBufferSize(csound) /
-                      (cdata->sr * csound->GetNchnls(csound))));
-
+        *(csound->GetRtRecordUserData(csound)) = NULL;
+        *(csound->GetRtPlayUserData(csound)) = NULL;
         if (cdata->pInAudioClient != NULL) {
             cdata->inRunning = 0;
             if (cdata->hInEvent != NULL) {
@@ -944,13 +950,25 @@ static void rtclose_(CSOUND *csound)
         }
 
         if (cdata->pOutAudioClient != NULL) {
-            cdata->outRunning = 0;
+            cdata->outDraining = 1;
             if (cdata->hOutEvent != NULL) {
                 SetEvent(cdata->hOutEvent);
             }
             if (cdata->hOutThread != NULL) {
-                WaitForSingleObject(cdata->hOutThread, INFINITE);
+                result = WaitForSingleObject(cdata->hOutThread, 2000);
+                if (result != WAIT_OBJECT_0) {
+                    cdata->outRunning = 0;
+                    if (cdata->hOutEvent != NULL)
+                        SetEvent(cdata->hOutEvent);
+                    WaitForSingleObject(cdata->hOutThread, INFINITE);
+                }
                 CloseHandle(cdata->hOutThread);
+            }
+            for (result = 0; result < 2000; result++) {
+                if (FAILED(cdata->pOutAudioClient->lpVtbl->GetCurrentPadding(
+                             cdata->pOutAudioClient, &padding)) || padding == 0)
+                    break;
+                Sleep(1);
             }
             cdata->pOutAudioClient->lpVtbl->Stop(cdata->pOutAudioClient);
             if (cdata->hOutEvent != NULL) {
@@ -972,9 +990,6 @@ static void rtclose_(CSOUND *csound)
             csound->Free(csound, cdata->inputBuffer);
             cdata->inputBuffer = NULL;
         }
-
-        *(csound->GetRtRecordUserData(csound)) = NULL;
-        *(csound->GetRtPlayUserData(csound)) = NULL;
 
         if (cdata->incb != NULL) {
             csound->DestroyCircularBuffer(csound, cdata->incb);

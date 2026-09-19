@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include "csdl.h"
+#include "rt_audio_fade.h"
 #include "soundio.h"
 
 /* Modified from BSD sources for strlcpy */
@@ -108,6 +109,8 @@ typedef struct csdata_ {
   void *incb;
   void *outcb;
   MYFLT sr;
+  int32_t complete;          /* set at close: fade out, then stop  */
+  RT_AUDIO_FADE closeFade;
 } csdata;
 
 
@@ -701,6 +704,8 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams * parm)
       csound->CreateCircularBuffer(csound,
                                    parm->bufSamp_HW*parm->nChannels,
                                    sizeof(MYFLT));
+    ATOMIC_SET(cdata->complete, 0);
+    rt_audio_fade_reset(&cdata->closeFade);
 
     return AuHAL_open(csound, parm,cdata,0);
 }
@@ -775,7 +780,17 @@ OSStatus Csound_Render(void *inRefCon,
     IGN(inBusNumber);
 
     memset(outputBuffer, 0, sizeof(MYFLT)*n);
+    /* Once closing, fade the audio still queued out to silence, as
+       Ardour does when stopping its engine, so the stream never ends
+       on a non-zero sample. The fade spans the queued audio and so
+       reaches zero exactly when the buffer drains. */
+    if (ATOMIC_GET(cdata->complete) && cdata->closeFade.lengthFrames == 0) {
+      int32_t queued = csound->CheckCircularBuffer(csound, cdata->outcb, 0);
+      rt_audio_fade_begin(&cdata->closeFade, queued, onchnls);
+    }
     n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
+    if (ATOMIC_GET(cdata->complete) && n > 0)
+      rt_audio_fade_apply(&cdata->closeFade, outputBuffer, n, onchnls);
 
     chns = ioData->mBuffers[0].mNumberChannels;
     if(chns == 1) { // non-interleaved
@@ -816,8 +831,37 @@ static void rtclose_(CSOUND *csound)
       cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
 
     if (cdata != NULL) {
-      usleep(1000*csound->GetOutputBufferSize(csound)/
-             (cdata->sr*csound->GetNchnls(csound)));
+      if (cdata->outunit != NULL) {
+        /* Mark closing so the render callback fades the queued audio out. */
+        ATOMIC_SET(cdata->complete, 1);
+
+        /* Wait until the callback has consumed the circular buffer.  The
+           timeout covers the requested queue and one render buffer, while
+           the second wait lets the final render block reach the device. */
+        int32_t waitMs = 100;
+        int32_t queued = csound->CheckCircularBuffer(csound, cdata->outcb, 0);
+        double renderMs = 0.0;
+        if (cdata->sr > 0.0 && cdata->onchnls > 0) {
+          double queueMs = 1000.0 * (double) queued /
+                           ((double) cdata->onchnls * (double) cdata->sr);
+          renderMs = 1000.0 *
+                     (double) csound->GetOutputBufferSize(csound) /
+                     ((double) cdata->onchnls * (double) cdata->sr);
+          waitMs = (int32_t) (queueMs + renderMs + 20.0);
+          if (waitMs < 50)
+            waitMs = 50;
+        }
+        do {
+          if (queued == 0)
+            break;
+          csound->Sleep(1);
+          queued = csound->CheckCircularBuffer(csound, cdata->outcb, 0);
+        } while (--waitMs > 0);
+        if (queued != 0)
+          queued = csound->CheckCircularBuffer(csound, cdata->outcb, 0);
+        if (queued == 0)
+          csound->Sleep((size_t) (renderMs + 10.0));
+      }
 
       if(cdata->inunit != NULL){
         AudioOutputUnitStop(cdata->inunit);

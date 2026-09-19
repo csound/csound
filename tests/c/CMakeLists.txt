@@ -12,10 +12,14 @@ endif()
 
 if(BUILD_TESTS)
   add_executable(unittests
+        array_matrix_setters_test.cpp
         array_ops_test.cpp
         audio_array_io_test.cpp
+        autocorr_test.cpp
+        bpf_array_test.cpp
         channel_tests.cpp
         controller_print_test.cpp
+        printsk_test.cpp
         csound_data_structures_test.cpp
         csound_debug_callback_test.cpp
         csound_debugger_test.cpp
@@ -26,9 +30,13 @@ if(BUILD_TESTS)
         csound_orc_semantics_test.cpp
         csound_type_system_test.cpp
         csound_circular_buffer_test.cpp
+        vibrato_test.cpp
         seed_state_test.cpp
+        trigseq_test.cpp
         score_expression_test.cpp
         schedkwhen_test.cpp
+        schedule_string_test.cpp
+        nxtpow2_test.cpp
         engine_test.cpp
         io_test.cpp
         local_ksmps_test.cpp
@@ -37,6 +45,8 @@ if(BUILD_TESTS)
         pvsinit_test.cpp
         paulstretch_test.cpp
         mixer_test.cpp
+        multitap_test.cpp
+        nreverb_test.cpp
         midi_file_test.cpp
         tableseg_test.cpp
         table_copy_test.cpp
@@ -45,6 +55,7 @@ if(BUILD_TESTS)
         server_test.cpp
         csound_plugin_opcode_test.cpp
         perfthread_test.cpp
+        rt_audio_fade_test.cpp
         csound_test_sndfile.cpp
         analysis_file_safety_test.cpp
         test_new_type.cpp

@@ -23,11 +23,17 @@
 
 /*                                              RTPA.C for PortAudio    */
 
+#if defined(_WIN32) && defined(_MSC_VER)
+#include <windows.h>
+#endif
 #include "csdl.h"
+#include "rt_audio_fade.h"
 #if !defined(WIN32)
 #include "soundio.h"
 #endif
 #include <portaudio.h>
+
+#define PA_BL_COREAUDIO_CLOSE_SILENCE_MS 450
 
 typedef struct PaAlsaStreamInfo {
   unsigned long   size;
@@ -39,7 +45,10 @@ typedef struct PaAlsaStreamInfo {
 typedef struct devparams_ {
   PaStream    *handle;        /* stream handle                    */
   float       *buf;           /* sample conversion buffer         */
-  int32_t      nchns;          /* number of channels               */
+  int32_t      bufSamples;    /* buffer size in samples           */
+  int32_t      sampleRate;    /* stream sample rate               */
+  int32_t      isCoreAudio;       /* CoreAudio needs a longer tail  */
+  int32_t      nchns;         /* number of channels               */
 } DEVPARAMS;
 
 typedef struct PA_BLOCKING_STREAM_ {
@@ -60,9 +69,10 @@ typedef struct PA_BLOCKING_STREAM_ {
   int32_t         paused;                 /* VL: to allow for smooth pausing  */
 #endif
   int32_t  complete;
+  RT_AUDIO_FADE closeFade;
   int32_t  ksmps;
   void *incb;
-  void *outcb;  
+  void *outcb;
 } PA_BLOCKING_STREAM;
 
 static int32_t pa_PrintErrMsg(CSOUND *csound, const char *fmt, ...)
@@ -290,7 +300,7 @@ static int32_t audio_callback(const void *input, void *output,unsigned long fram
   if (pabs->paStream == NULL)
     return paContinue;
   if (pabs->paused)
-    return (pabs->complete == 1 ? paComplete : paContinue);
+    return (ATOMIC_GET(pabs->complete) ? paComplete : paContinue);
 #endif
 
   if (pabs->mode & 1){
@@ -301,14 +311,26 @@ static int32_t audio_callback(const void *input, void *output,unsigned long fram
   }
   if (pabs->mode & 2) {
     samps = pabs->outBufSamples;
+    /* Once closing, fade the audio still queued out to silence, as
+       Ardour does when stopping its engine, so the stream never ends
+       on a non-zero sample. The fade spans the queued audio and so
+       reaches zero exactly when the buffer drains. */
+    if (ATOMIC_GET(pabs->complete) && pabs->closeFade.lengthFrames == 0) {
+      int32_t queued = csound->CheckCircularBuffer(csound, pabs->outcb, 0);
+      rt_audio_fade_begin(&pabs->closeFade, queued,
+                          pabs->outParm.nChannels);
+    }
     nout = csound->ReadCircularBuffer(csound, pabs->outcb,
                                       pabs->outputBuffer, samps);
+    if (ATOMIC_GET(pabs->complete) && nout > 0)
+      rt_audio_fade_apply(&pabs->closeFade, pabs->outputBuffer, nout,
+                          pabs->outParm.nChannels);
     for(int i = 0; i < nout; i++)
       paOutput[i] = pabs->outputBuffer[i];
   }
 
   /* Once closing, continue until queued output is drained. */
-  if (pabs->complete == 1) {
+  if (ATOMIC_GET(pabs->complete)) {
     if ((pabs->mode & 2) == 0 || nout == 0)
       return paComplete;
   }
@@ -372,7 +394,8 @@ static int32_t recopen_noblock(CSOUND *csound, const csRtAudioParams *parm)
   memcpy(&(pabs->inParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtRecordUserData(p)) = (void*) pabs;
   pabs->ksmps = parm->ksmps;
-  pabs->complete = 0;
+  ATOMIC_SET(pabs->complete, 0);
+  rt_audio_fade_reset(&pabs->closeFade);
   return 0;
 }
 
@@ -493,8 +516,9 @@ static int32_t playopen_noblock(CSOUND *csound, const csRtAudioParams *parm)
   memcpy(&(pabs->outParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtPlayUserData(p)) = (void*) pabs;
   pabs->ksmps = parm->ksmps;
-  pabs->complete = 0;
-  
+  ATOMIC_SET(pabs->complete, 0);
+  rt_audio_fade_reset(&pabs->closeFade);
+
 
   return set_device_params_noblock(p);
 }
@@ -512,11 +536,44 @@ static void rtclose_noblock(CSOUND *csound)
   if (pabs == NULL)
     return;
 
-  /* Mark completion first so callback can drain and then terminate. */
-  pabs->complete = 1;
+  /* Mark completion first so the callback drains the queued output and
+     then finishes the stream by returning paComplete. */
+  ATOMIC_SET(pabs->complete, 1);
 
   if (pabs->paStream != NULL) {
     PaStream  *stream = pabs->paStream;
+    /* Wait for the callback to drain the queued audio, bounded by one
+       hardware buffer plus host latency, so closing does not cut off
+       the audio tail abruptly (cf. rtauhal/rtwasapi). */
+    int32_t waitMs = 50;
+    if ((pabs->mode & 2) && pabs->outParm.sampleRate > 0) {
+      waitMs = (int32_t) (((double) (pabs->outParm.bufSamp_HW
+                                     + pabs->outParm.bufSamp_SW)
+                           / (double) pabs->outParm.sampleRate)
+                          * 1000.0 + 0.999) + 10;
+      if (waitMs < 50)
+        waitMs = 50;
+    }
+    while (waitMs > 0 && Pa_IsStreamActive(stream) == 1) {
+      csound->Sleep((size_t) 1);
+      waitMs--;
+    }
+    /* Some host APIs (e.g. CoreAudio) discard pending audio on
+       Pa_StopStream, so give the device time to play out the faded
+       tail before stopping; otherwise the fade is cut mid-way and a
+       click is still heard. */
+    {
+      const PaStreamInfo *info = Pa_GetStreamInfo(stream);
+      double lat = 0.005;
+      if (info != NULL && info->outputLatency > 0.0)
+        lat = info->outputLatency;
+      else if ((pabs->mode & 2) && pabs->outParm.sampleRate > 0)
+        lat = 3.0 * (double) pabs->outParm.bufSamp_SW
+              / (double) pabs->outParm.sampleRate;
+      csound->Sleep((size_t) ((int32_t) (lat * 1000.0) + 10));
+    }
+    /* If the drain timed out, stop the callback before closing so it
+       never touches the destroyed globals. */
     Pa_StopStream(stream);
     Pa_CloseStream(stream);
   }
@@ -529,6 +586,12 @@ static void rtclose_noblock(CSOUND *csound)
     csound->Free(csound,pabs->inputBuffer);
     pabs->inputBuffer = NULL;
   }
+  if (pabs->incb != NULL)
+    csound->DestroyCircularBuffer(csound, pabs->incb);
+  if (pabs->outcb != NULL)
+    csound->DestroyCircularBuffer(csound, pabs->outcb);
+  pabs->incb = NULL;
+  pabs->outcb = NULL;
   pabs->paStream = NULL;
   *(csound->GetRtRecordUserData(csound)) = NULL;
   *(csound->GetRtPlayUserData(csound)) = NULL;
@@ -573,6 +636,13 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev,
     if (devNum < 0)
       return -1;
     streamParams.device = (PaDeviceIndex) devNum;
+    {
+      const PaDeviceInfo *deviceInfo = Pa_GetDeviceInfo(streamParams.device);
+      const PaHostApiInfo *hostApiInfo = deviceInfo != NULL
+        ? Pa_GetHostApiInfo(deviceInfo->hostApi) : NULL;
+      dev->isCoreAudio = hostApiInfo != NULL &&
+                         hostApiInfo->type == paCoreAudio;
+    }
   }
   streamParams.channelCount = parm->nChannels;
   streamParams.sampleFormat = paFloat32;
@@ -599,9 +669,17 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev,
   }
   /* set up device parameters */
   dev->nchns = parm->nChannels;
+  dev->bufSamples = parm->bufSamp_SW * parm->nChannels;
+  dev->sampleRate = (int32_t) parm->sampleRate;
   dev->buf = (float*) p->Calloc(p, (size_t) (parm->bufSamp_SW
                                              * parm->nChannels
                                              * (int32_t) sizeof(float)));
+  if (UNLIKELY(dev->buf == NULL)) {
+    pa_PrintErrMsg(p, "%s", Str("Memory allocation failure"));
+    Pa_CloseStream(dev->handle);
+    dev->handle = NULL;
+    return -1;
+  }
 
   return 0;
 }
@@ -619,6 +697,10 @@ static int32_t recopen_blocking(CSOUND *csound, const csRtAudioParams *parm)
     return 0;
   /* allocate structure */
   dev = (DEVPARAMS*) csound->Calloc(csound, sizeof(DEVPARAMS));
+  if (UNLIKELY(dev == NULL)) {
+    pa_PrintErrMsg(csound, "%s", Str("Memory allocation failure"));
+    return -1;
+  }
   *(csound->GetRtRecordUserData(csound)) = (void*) dev;
   /* set up parameters and open stream */
   retval = set_device_params(csound, dev, parm, 0);
@@ -644,6 +726,10 @@ static int32_t playopen_blocking(CSOUND *csound, const csRtAudioParams *parm)
     return 0;
   /* allocate structure */
   dev = (DEVPARAMS*) csound->Calloc(csound, sizeof(DEVPARAMS));
+  if (UNLIKELY(dev == NULL)) {
+    pa_PrintErrMsg(csound, "%s", Str("Memory allocation failure"));
+    return -1;
+  }
   *(csound->GetRtPlayUserData(csound)) = (void*) dev;
   /* set up parameters and open stream */
   retval = set_device_params(csound, dev, parm, 1);
@@ -688,9 +774,62 @@ static void rtplay_blocking(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
   for (i = 0; i < (n * dev->nchns); i++)
     dev->buf[i] = (float) outbuf[i];
   err = (int32_t) Pa_WriteStream(dev->handle, dev->buf, (unsigned long) n);
-  if (UNLIKELY(err != (int32_t) paNoError && (csound->GetMessageLevel(csound) & 4)))
+  if (UNLIKELY(err != (int32_t) paNoError &&
+               (csound->GetMessageLevel(csound) & 4)))
     csound->Warning(csound, "%s",
                     Str("Buffer underrun in real-time audio output"));
+}
+
+static void pad_blocking_output_with_silence(CSOUND *csound, DEVPARAMS *dev)
+{
+  const PaStreamInfo *info = Pa_GetStreamInfo(dev->handle);
+  int32_t bufferFrames = dev->nchns > 0 ? dev->bufSamples / dev->nchns : 0;
+  int32_t padFrames = bufferFrames;
+
+  if (bufferFrames <= 0)
+    return;
+  if (info != NULL && info->outputLatency > 0.0 && dev->sampleRate > 0) {
+    double latencyFrames;
+    latencyFrames = info->outputLatency * (double) dev->sampleRate;
+    if (latencyFrames < 2147483647.0)
+      padFrames = (int32_t) (latencyFrames + 0.999999);
+  }
+  if (padFrames < bufferFrames)
+    padFrames = bufferFrames;
+  /* PortAudio 19.7 stops and resets the CoreAudio AudioUnit immediately
+     after its private blocking ring has drained. On modern macOS that can
+     still click long after the reported output latency has elapsed: testing
+     on Apple Silicon found that 400 ms still clicked while 450 ms was clean.
+     Keep feeding real zero buffers for that interval so the final rendered
+     fade clears the device before PortAudio reaches AudioUnitStop and
+     AudioUnitReset. Unlike sleeping, this does not deliberately starve the
+     BLIO callback, and no rendered audio is repeated. */
+  if (dev->isCoreAudio && dev->sampleRate > 0) {
+    int32_t closeMs = PA_BL_COREAUDIO_CLOSE_SILENCE_MS;
+    {
+      double closeFrames = (double) dev->sampleRate *
+                           (double) closeMs / 1000.0;
+      int32_t minFrames = (int32_t) (closeFrames + 0.999999);
+      if (padFrames < minFrames)
+        padFrames = minFrames;
+    }
+  }
+  if (padFrames <= 0)
+    return;
+
+  memset(dev->buf, 0, (size_t) dev->bufSamples * sizeof(float));
+  while (padFrames > 0) {
+    int32_t n = padFrames < bufferFrames ? padFrames : bufferFrames;
+    PaError err = Pa_WriteStream(dev->handle, dev->buf, (unsigned long) n);
+    if (UNLIKELY(err != paNoError && err != paOutputUnderflowed)) {
+      if (csound->GetMessageLevel(csound) & 4)
+        csound->Warning(csound, "%s",
+                        Str("Error padding real-time audio output "
+                            "with silence during close"));
+      break;
+    }
+    padFrames -= n;
+  }
 }
 
 /* close the I/O device entirely  */
@@ -699,10 +838,16 @@ static void rtclose_blocking(CSOUND *csound)
 {
   DEVPARAMS *dev;
   csound->ErrorMsg(csound, "%s", Str("closing device\n"));
-  dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
+  /* Drain output first. Stopping a separate CoreAudio input stream can
+     otherwise disturb output that is still queued on the same device. */
+  dev = (DEVPARAMS*) (*(csound->GetRtPlayUserData(csound)));
   if (dev != NULL) {
-    *(csound->GetRtRecordUserData(csound)) = NULL;
+    *(csound->GetRtPlayUserData(csound)) = NULL;
     if (dev->handle != NULL) {
+      /* Keep the CoreAudio blocking ring fed with silence long enough for
+         the fade to clear the device before PortAudio stops and resets its
+         AudioUnit. */
+      pad_blocking_output_with_silence(csound, dev);
       Pa_StopStream(dev->handle);
       Pa_CloseStream(dev->handle);
     }
@@ -710,9 +855,9 @@ static void rtclose_blocking(CSOUND *csound)
       csound->Free(csound, dev->buf);
     csound->Free(csound, dev);
   }
-  dev = (DEVPARAMS*) (*(csound->GetRtPlayUserData(csound)));
+  dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
   if (dev != NULL) {
-    *(csound->GetRtPlayUserData(csound)) = NULL;
+    *(csound->GetRtRecordUserData(csound)) = NULL;
     if (dev->handle != NULL) {
       Pa_StopStream(dev->handle);
       Pa_CloseStream(dev->handle);
