@@ -28,7 +28,7 @@ instr 1
   kBlock init 0
   kMidi = (kBlock % 2 == 0 ? p4 : 60)
   SActual mton kMidi
-  SCopy = SActual
+  SCopy strcpyk SActual
   if kBlock % 2 == 0 then
     kDifferent strcmpk SActual, SExpected
   else

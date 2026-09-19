@@ -116,8 +116,9 @@ const OENTRY opcodlst_1[] = {
   { "offsetsmps", S(AOP), 0, "k", "", NULL,(SUBR) sa_offset, NULL},
   { "earlysmps", S(AOP), 0, "k", "", NULL,(SUBR) sa_early, NULL},
   { "str", S(IREF_NUM) ,0,  "S", ":InstrDef;", (SUBR) get_instr_name},
+  /* Keep string assignment init-only, as in Csound 6; use strcpyk at perf. */
   {  "=.S",   S(STRCPY_OP),0,     "S",    "S",
-     (SUBR) strcpy_opcode_S, (SUBR) strcpy_opcode_S, (SUBR) NULL, NULL    },
+     (SUBR) strcpy_opcode_S, NULL, (SUBR) NULL, NULL    },
   /* A ternary can select a different string even if neither input changed. */
   {  "#=.S",   S(STRCPY_OP),0,     "S",    "S",
      (SUBR) strcpy_opcode_S, (SUBR) strcpy_opcode_S, (SUBR) NULL, NULL    },

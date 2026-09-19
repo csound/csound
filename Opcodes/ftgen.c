@@ -777,7 +777,6 @@ static int32_t getftargs(CSOUND *csound, FTARGS *p)
       p->Scd->data = (char*) csound->ReAlloc(csound, p->Scd->data, 1);
     }
     p->Scd->data[0] = '\0';
-    p->Scd->timestamp = p->h.insdshead->kcounter;
     return OK;
   }
 
@@ -798,7 +797,6 @@ static int32_t getftargs(CSOUND *csound, FTARGS *p)
       curr += snprintf(curr, end-curr, "%g ", src->args[i]);
     }
   }
-  p->Scd->timestamp = p->h.insdshead->kcounter;
 
   return OK;
 }

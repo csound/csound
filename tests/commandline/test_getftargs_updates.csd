@@ -1,5 +1,5 @@
 <CsTest>
-description = "getftargs tracks trigger changes and string assignments copy its current output"
+description = "getftargs tracks trigger changes and strcpyk copies its current output"
 
 [expect]
 exit = 0
@@ -47,9 +47,9 @@ instr 2
   kTrig = (kCycle % 2 == 0 ? kCycle : 0)
   Sargs getftargs p4, kTrig
   Scopy strcpyk "untouched"
-  Scopy = Sargs
+  Scopy strcpyk Sargs
   Sexpected = (kCycle >= 2 && p4 != 0 ? "3 5 7" : "")
-  ; Assignment copies the current text even on cycles without a refresh.
+  ; strcpyk copies the current text even on cycles without a refresh.
   ; The trigger still controls when getftargs itself changes its output.
   if strcmpk(Sargs, Sexpected) != 0 || strcmpk(Scopy, Sexpected) != 0 then
     printks "getftargs output or copy is wrong for table %d on cycle %d\n", 0, p4, kCycle

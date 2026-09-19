@@ -91,7 +91,7 @@ extern "C" {
     int32_t     pos;
     int32_t     arraySize;
     MYFLT**     channelPtrs;
-    STRINGDAT   *channels;
+    ARRAYDAT    *channels;
     char        chname[MAX_CHAN_NAME+1];
   } CHNGETARRAY;
 

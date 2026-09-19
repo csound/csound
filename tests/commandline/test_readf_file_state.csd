@@ -20,8 +20,8 @@ instr 1
   setksmps p4
   SText, kLine readf "readf_lines.txt"
   SNumeric, kNumeric readf 9177
-  SCopy = SText
-  SNumericCopy = SNumeric
+  SCopy strcpyk SText
+  SNumericCopy strcpyk SNumeric
   kCycle timeinstk
   kExpected = (kCycle <= 2 ? kCycle : -1)
   if kLine != kExpected || kNumeric != kExpected then

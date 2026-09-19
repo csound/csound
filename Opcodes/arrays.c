@@ -828,21 +828,15 @@ static int32_t rows_perf(CSOUND *csound, FFT *p) {
 static int32_t rows_perf_S(CSOUND *csound, FFT *p)
 {
   ARRAYDAT* dat = p->in;      /* The data in e 2_D array */
-  STRINGDAT* mem = (STRINGDAT*)dat->data;
-  STRINGDAT* dest = (STRINGDAT*)p->out->data;
   int32_t i;
   int32_t index = (int32_t)(*((MYFLT *)p->in2));
   if (LIKELY(index >= 0 && index < p->in->sizes[0])) {
     index = (index * dat->sizes[1]);
-    //printf("%d : %d\n", index, dat->sizes[1]);
-    mem += index;
-    //incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
-    //printf("*** mem = %p dst = %p\n", mem, dest);
-    for (i = 0; i<p->in->sizes[1]; i++) {
-      dat->arrayType->copyValue(csound, dat->arrayType, (void*)dest, (void*)mem, p->h.insdshead);
-      //printf("*** copies i=%d: %s -> %s\n", i,(char*)(mem->data),(char*)(dest->data));
-      dest +=1;
-      mem += 1;
+    for (i = 0; i < p->in->sizes[1]; i++) {
+      dat->arrayType->copyValue(csound, dat->arrayType,
+          csound_string_array_element(p->out, i),
+          csound_string_array_element(dat, (size_t)index + i),
+          p->h.insdshead);
     }
     return OK;
   }
@@ -968,14 +962,12 @@ static int32_t set_matrix_write(CSOUND *csound, FFT *p, int32_t column,
         p->out->data[start + (size_t)j * stride] = p->in->data[j];
   }
   else {
-    STRINGDAT *src = (STRINGDAT *)p->in->data;
-    STRINGDAT *dst = (STRINGDAT *)p->out->data;
     /* Backwards copying also supports using the first row of the output
        itself as input without overwriting values still to be read. */
     for (int32_t j = count; j-- > 0;)
       p->out->arrayType->copyValue(csound, p->out->arrayType,
-                                   dst + start + (size_t)j * stride, src + j,
-                                   p->h.insdshead);
+          csound_string_array_element(p->out, start + (size_t)j * stride),
+          csound_string_array_element(p->in, j), p->h.insdshead);
   }
   return OK;
 }
@@ -1058,17 +1050,14 @@ static int32_t cols_i(CSOUND *csound, FFT *p) {
 
 static int32_t cols_perf_S(CSOUND *csound, FFT *p) {
   ARRAYDAT* dat = p->in;      /* The data in e 2_D array */
-  STRINGDAT* mem = (STRINGDAT*)dat->data;
-  STRINGDAT* dest = (STRINGDAT*)p->out->data;
   int32_t i;
   int32_t index = (int32_t)(*((MYFLT *)p->in2));
   if (LIKELY(index >= 0 && index < p->in->sizes[1])) {
-    mem += index;
-    for (i = 0; i<p->in->sizes[0]; i++) {
-      dat->arrayType->copyValue(csound, dat->arrayType, (void*)dest, (void*)mem,
-                                p->h.insdshead);
-      dest+= 1;
-      mem += p->in->sizes[1];
+    for (i = 0; i < p->in->sizes[0]; i++) {
+      dat->arrayType->copyValue(csound, dat->arrayType,
+          csound_string_array_element(p->out, i),
+          csound_string_array_element(dat, (size_t)i * dat->sizes[1] + index),
+          p->h.insdshead);
     }
     return OK;
   }

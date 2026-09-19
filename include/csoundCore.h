@@ -305,7 +305,6 @@ typedef struct {
   struct stringdat {
     char *data;         // null-terminated string
     size_t size;        // total allocated size
-    int64_t timestamp;  // used internally for updates
     int32_t refcount;   // reference count for shared buffers (0 = unmanaged)
   };
 

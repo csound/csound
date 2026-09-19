@@ -1,5 +1,5 @@
 <CsTest>
-description = "substring results propagate through string assignments"
+description = "substring results propagate through strcpyk copies"
 
 [expect]
 exit = 0
@@ -21,13 +21,13 @@ instr 1
   SExpected[] fillarray "abc", "", "bc", "", "cba", "", "cba", "abc"
   kCycle init 0
   SPart strsubk "abc", kStarts[kCycle], kEnds[kCycle]
-  SCopy = SPart
-  SCopy2 = SCopy
+  SCopy strcpyk SPart
+  SCopy2 strcpyk SCopy
   kPart strcmpk SPart, SExpected[kCycle]
   kCopy strcmpk SCopy, SExpected[kCycle]
   kCopy2 strcmpk SCopy2, SExpected[kCycle]
   if kPart != 0 || kCopy != 0 || kCopy2 != 0 then
-    printks "strsubk assignment failed at cycle %g: '%s', '%s', '%s'\n", 0, kCycle, SPart, SCopy, SCopy2
+    printks "strsubk copy failed at cycle %g: '%s', '%s', '%s'\n", 0, kCycle, SPart, SCopy, SCopy2
     exitnowk -1
   endif
   kCycle += 1
@@ -39,7 +39,7 @@ instr 2
   SText strcpyk "abc"
   kEnd = (kCycle % 2 == 0 ? 0 : 3)
   SText strsubk SText, 3, kEnd
-  SCopy = SText
+  SCopy strcpyk SText
   SExpected strcpyk "cba"
   if kCycle % 2 != 0 then
     SExpected strcpyk ""
