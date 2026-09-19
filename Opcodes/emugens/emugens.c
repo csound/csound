@@ -2761,233 +2761,185 @@ strstrip(CSOUND *csound, STR1_1 *p) {
 
 
 typedef struct {
-    OPDS    h;
-    STRINGDAT   *sfmt;
-    MYFLT   *args[64];
-    int32_t allocatedBuf;
-    int32_t newline;
-    int32_t fmtlen;
+    OPDS h;
+    STRINGDAT *sfmt;
+    MYFLT *args[64];
     STRINGDAT buf;
-    STRINGDAT strseg;
-    int32_t initDone;
+    AUXCH strseg;
 } PRINTLN;
 
-
-int32_t printsk_init(CSOUND *csound, PRINTLN *p) {
-    size_t bufsize = 2048;
-    size_t fmtlen = strlen(p->sfmt->data);
-    int32_t numVals = (int32_t)p->INOCOUNT - 1;
-    size_t maxSegmentSize = fmtlen + numVals*7 + 1;
-
-    // Try to reuse memory from previous instances
-    if(p->buf.size < bufsize || p->strseg.size < maxSegmentSize) {
-        if(p->buf.data == NULL)
-            p->buf.data = csound->Calloc(csound, bufsize);
-        else
-            p->buf.data = csound->ReAlloc(csound, p->buf.data, bufsize);
-        p->buf.size = bufsize;
-        if(p->strseg.data == NULL)
-            p->strseg.data = csound->Malloc(csound, maxSegmentSize);
-        else
-            p->strseg.data = csound->ReAlloc(csound,
-                                             p->strseg.data, maxSegmentSize);
-        p->strseg.size = maxSegmentSize;
-        p->allocatedBuf = 1;
-    } else {
-        p->allocatedBuf = 0;
-    }
-    p->newline = 0;
-    p->fmtlen = (int32_t) fmtlen;
-    p->initDone = 1;
+static int32_t printsk_init(CSOUND *csound, PRINTLN *p)
+{
+    IGN(csound);
+    IGN(p);
     return OK;
 }
 
-int32_t println_init(CSOUND *csound, PRINTLN *p) {
-    int32_t ret = printsk_init(csound, p);
-    if(ret != OK)
-        return INITERR(Str("Error while inititalizing println"));
-    p->newline = 1;
+static int32_t printsk_deinit(CSOUND *csound, PRINTLN *p)
+{
+    csound->Free(csound, p->buf.data);
+    p->buf.data = NULL;
+    p->buf.size = 0;
     return OK;
 }
 
-
-// #define IS_AUDIO_ARG(x) (GetTypeForArg(x) == &CS_VAR_TYPE_A)
 #define IS_AUDIO_ARG(x) (!strcmp("a", GetTypeForArg(x)->varTypeName))
-
-// #define IS_STRING_ARG(x) (GetTypeForArg(x) == &CS_VAR_TYPE_S)
 #define IS_STRING_ARG(x) (!strcmp("S", GetTypeForArg(x)->varTypeName))
 
-
-// This is taken from OOps/str_ops.c, with minor modifications to adapt it
-// to plugin API
-// Memory is actually never allocated here
+/* Adapted from OOps/str_ops.c for the plugin API, with reusable buffers. */
 static int32_t
-sprintf_opcode_(CSOUND *csound,
-                PRINTLN *p,       /* opcode data structure pointer       */
-                STRINGDAT *str,   /* pointer to space for output string  */
-                const char *fmt,  /* format string                       */
-                int32_t fmtlen,       /* length of format string             */
-                MYFLT **kvals,    /* array of argument pointers          */
-                int32_t numVals,      /* number of arguments             */
-                int32_t strCode)      /* bit mask for string arguments   */
+sprintf_opcode_(CSOUND *csound, PRINTLN *p)
 {
-    if(p->initDone == 0)
-        return PERFERRF(Str("Opcode %s not initialised"), p->h.optext->t.opcod);
-    int32_t     len = 0;
-    char *outstring = str->data;
-    MYFLT *parm = NULL;
-    int32_t i = 0, j = 0, n;
-    const char *segwaiting = NULL;
-    int32_t maxChars;
-    size_t strsegsize = p->strseg.size;
-    char *strseg = p->strseg.data;
+  STRINGDAT *str = &p->buf;
+  const char *fmt = p->sfmt->data;
+  MYFLT **kvals = p->args;
+  int32_t numVals = (int32_t)p->INOCOUNT - 1;
+  size_t len = 0, i = 0, maxChars;
+  int32_t j = 0, n;
+  const char *segwaiting = NULL, *error = NULL;
+  char *strseg;
+  MYFLT *parm;
 
-    const char *fmtend = fmt+(fmtlen-0);
+  if (UNLIKELY(((OPDS*)p)->optext->t.inArgCount > 31))
+    return PERFERR(Str("too many arguments"));
+  for (j = 0; j < numVals; j++) {
+    if (UNLIKELY(IS_AUDIO_ARG(kvals[j])))
+      return PERFERR(Str("a-rate argument not allowed"));
+  }
+  j = 0;
 
-    for (i = 0; i < numVals; i++) {
-        if(UNLIKELY( IS_AUDIO_ARG(kvals[i])) )
-            return PERFERR(Str("a-rate argument not allowed"));
-    }
-
-    if (UNLIKELY((int32_t) ((OPDS*) p)->optext->t.inArgCount > 31)){
-        return PERFERR(Str("too many arguments"));
-    }
-    if (numVals==0) {
-        strcpy(str->data, fmt);
-        return OK;
-    }
-
-    i = 0;
-
-    while (1) {
-      if (UNLIKELY((size_t) i >= strsegsize)) {
-            csound->Warning(csound, "%s", "println: Allocating memory");
-            strsegsize *= 2;
-            p->strseg.data = strseg = csound->ReAlloc(csound, strseg, strsegsize);
-            p->strseg.size = strsegsize;
-        }
-        if (*fmt != '%' && fmt != fmtend && *fmt != '\0') {
-            strseg[i++] = *fmt++;
-            continue;
-        }
-        if (fmt[0] == '%' && fmt[1] == '%') {
-            strseg[i++] = *fmt++;   /* Odd code: %% is usually % and as we
-                                   know the value of *fmt the loads are
-                                   unnecessary */
-            strseg[i++] = *fmt++;
-            continue;
-        }
-
-        /* if already a segment waiting, then lets print it */
-        if (segwaiting != NULL) {
-          maxChars = (int32_t) (str->size - len);
-            strseg[i] = '\0';
-            if (UNLIKELY(numVals <= 0)) {
-                return PERFERR(Str("insufficient arguments for format"));
-            }
-            numVals--;
-            strCode >>= 1;
-            parm = kvals[j++];
-
-            switch (*segwaiting) {
-            case 'd':
-            case 'i':
-            case 'o':
-            case 'x':
-            case 'X':
-            case 'u':
-            case 'c':
-                 n = snprintf(outstring, str->size, strseg, (int32_t) MYFLT2LRND(*parm));
-                break;
-            case 'e':
-            case 'E':
-            case 'f':
-            case 'F':
-            case 'g':
-            case 'G':
-                n = snprintf(outstring, str->size, strseg, (double)*parm);
-                break;
-            case 's':
-                if(!IS_STRING_ARG(parm)) {
-                    return PERFERRF(Str("String argument expected, but type is %s"),
-                                    GetTypeForArg(parm)->varTypeName);
-                }
-                if (((STRINGDAT*)parm)->data == str->data) {
-                    return PERFERR(Str("output argument may not be "
-                                       "the same as any of the input args"));
-                }
-                if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= (uint32_t)maxChars) {
-                    size_t offs = outstring - str->data;
-                    size_t newsize = str->size  +
-                      ((STRINGDAT*)parm)->size + strlen(strseg);
-                    csound->Warning(csound, "%s",
-                                    Str("println/printsk: Allocating extra "
-                                        "memory for output string"));
-                    str->data = csound->ReAlloc(csound, str->data, newsize);
-                    if(str->data == NULL){
-                        return PERFERR(Str("memory allocation failure"));
-                    }
-                    str->size += ((STRINGDAT*)parm)->size + strlen(strseg);
-                    maxChars += ((STRINGDAT*)parm)->size + strlen(strseg);
-                    outstring = str->data + offs;
-                }
-                n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
-                break;
-            default:
-                return PERFERR(Str("invalid format string"));
-            }
-            if (n < 0 || n >= maxChars) {
-                /* safely detected excess string length */
-                size_t offs = outstring - str->data;
-                csound->Warning(csound, "%s",
-                                Str("Allocating extra memory for output string"));
-                str->data = csound->ReAlloc(csound, str->data, maxChars*2);
-                if (str->data == NULL)
-                    return PERFERR(Str("memory allocation failure"));
-                outstring = str->data + offs;
-                str->size = maxChars*2;
-            }
-            outstring += n;
-            len += n;
-            i = 0;
-        }
-        if (*fmt == '\0' || fmt == fmtend)
-            break;
-
-        /* copy the '%' */
-        strseg[i++] = *fmt++;
-        /* find the format code */
-        segwaiting = fmt;
-
-        while (!isalpha(*segwaiting) && segwaiting != fmtend && *segwaiting != '\0')
-            segwaiting++;
-    }
-    if (UNLIKELY(numVals > 0)) {
-        return PERFERR(Str("too many arguments for format"));
-    }
+  /* Preserve literal copying when there are no format arguments. */
+  size_t initialSize = numVals == 0 ? strlen(fmt) + 1 : 64;
+  if (str->data == NULL || str->size < initialSize) {
+    char *data = csound->ReAlloc(csound, str->data, initialSize);
+    if (UNLIKELY(data == NULL))
+      return PERFERR(Str("memory allocation failure"));
+    str->data = data;
+    str->size = initialSize;
+  }
+  if (numVals == 0) {
+    strcpy(str->data, fmt);
     return OK;
+  }
+
+  /* A segment is never longer than the original format string. */
+  size_t segmentSize = strlen(fmt) + 1;
+  if (p->strseg.size < segmentSize) {
+    csound->AuxAlloc(csound, segmentSize, &p->strseg);
+  }
+  strseg = p->strseg.auxp;
+  while (1) {
+    if (*fmt != '%' && *fmt != '\0') {
+      strseg[i++] = *fmt++;
+      continue;
+    }
+    if (fmt[0] == '%' && fmt[1] == '%') {
+      strseg[i++] = *fmt++;
+      strseg[i++] = *fmt++;
+      continue;
+    }
+
+    if (segwaiting != NULL) {
+      strseg[i] = '\0';
+      if (UNLIKELY(numVals <= 0)) {
+        error = Str("insufficient arguments for format");
+        goto fail;
+      }
+      numVals--;
+      parm = kvals[j++];
+      if (UNLIKELY(IS_STRING_ARG(parm) != (*segwaiting == 's'))) {
+        error = Str("argument type inconsistent with format");
+        goto fail;
+      }
+      while (1) {
+        maxChars = str->size - len;
+        switch (*segwaiting) {
+        case 'd': case 'i': case 'c':
+          n = snprintf(str->data + len, maxChars, strseg,
+                       (int)MYFLT2LRND(*parm));
+          break;
+        case 'o': case 'x': case 'X': case 'u':
+          n = snprintf(str->data + len, maxChars, strseg,
+                       (unsigned int)MYFLT2LRND(*parm));
+          break;
+        case 'e': case 'E': case 'f': case 'F': case 'g': case 'G':
+          n = snprintf(str->data + len, maxChars, strseg, (double)*parm);
+          break;
+        case 's':
+          n = snprintf(str->data + len, maxChars, strseg,
+                       ((STRINGDAT*)parm)->data);
+          break;
+        default:
+          error = Str("invalid format string");
+          goto fail;
+        }
+        if (UNLIKELY(n < 0)) {
+          error = Str("formatting failed");
+          goto fail;
+        }
+        if ((size_t)n < maxChars)
+          break;
+        if (UNLIKELY((size_t)n >= MAX_STRINGDAT_SIZE - len)) {
+          error = Str("formatted string is too long");
+          goto fail;
+        }
+        size_t size = len + (size_t)n + 1;
+        char *data = csound->ReAlloc(csound, str->data, size);
+        if (UNLIKELY(data == NULL)) {
+          error = Str("memory allocation failure");
+          goto fail;
+        }
+        str->data = data;
+        str->size = size;
+        /* Retry this segment; snprintf's return value includes unwritten text. */
+      }
+      len += (size_t)n;
+      i = 0;
+    }
+
+    if (*fmt == '\0')
+      break;
+    strseg[i++] = *fmt++;
+    segwaiting = fmt;
+    /* Only fixed widths/precisions are supported. Reject '*' and positional
+       arguments rather than passing a mismatched argument list to snprintf. */
+    while (*segwaiting != '\0' &&
+           strchr("-+ #0.123456789", *segwaiting) != NULL)
+      segwaiting++;
+    if (*segwaiting == '\0' ||
+        strchr("diouxXeEfFgGcs", *segwaiting) == NULL) {
+      error = Str("invalid format string");
+      goto fail;
+    }
+  }
+  if (UNLIKELY(numVals > 0)) {
+    error = Str("too many arguments for format");
+    goto fail;
+  }
+  return OK;
+
+ fail:
+  return PERFERR(error);
 }
 
-int32_t println_perf(CSOUND *csound, PRINTLN *p) {
-    int32_t err = sprintf_opcode_(csound, p, &p->buf,
-                                  (char*)p->sfmt->data, p->fmtlen,
-                                  &(p->args[0]), (int32_t)p->INOCOUNT - 1, 0);
-    if(err!=OK)
-        return NOTOK;
+
+static int32_t println_perf(CSOUND *csound, PRINTLN *p)
+{
+    int32_t err = sprintf_opcode_(csound, p);
+    if (err != OK)
+        return err;
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", p->buf.data);
     return OK;
 }
 
-int32_t printsk_perf(CSOUND *csound, PRINTLN *p) {
-    int32_t err = sprintf_opcode_(csound, p, &p->buf,
-                                  (char*)p->sfmt->data, p->fmtlen,
-                                  &(p->args[0]), (int32_t)p->INOCOUNT - 1, 0);
-    if(err!=OK)
-        return NOTOK;
+static int32_t printsk_perf(CSOUND *csound, PRINTLN *p)
+{
+    int32_t err = sprintf_opcode_(csound, p);
+    if (err != OK)
+        return err;
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", p->buf.data);
     return OK;
 }
-
 
 /*
 
@@ -3180,9 +3132,9 @@ static OENTRY emugens_localops[] = {
     { "strstrip.i_side", S(STR1_1), 0,  "S", "SS", (SUBR)stripside},
     { "strstrip.i", S(STR1_1), 0,  "S", "S", (SUBR)strstrip},
     { "println", S(PRINTLN), 0,  "", "SN",
-      (SUBR)println_init, (SUBR)println_perf},
+      (SUBR)printsk_init, (SUBR)println_perf, (SUBR)printsk_deinit},
     { "printsk", S(PRINTLN), 0,  "", "SN",
-      (SUBR)printsk_init, (SUBR)printsk_perf}
+      (SUBR)printsk_init, (SUBR)printsk_perf, (SUBR)printsk_deinit}
 };
 
 LINKAGE_BUILTIN(emugens_localops)
