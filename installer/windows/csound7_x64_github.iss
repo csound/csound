@@ -49,13 +49,13 @@ OutputDir="installer\windows"
 OutputBaseFilename="{#AppName}-windows_x86_64-{#AppMinVersion}-{#BuildNumber}"
 Compression=lzma
 SolidCompression=yes
+; Visual C++ Redistributable is installed via bundled vc_redist.x64.exe (see [Files]/Code).
+; Requires elevation — the redist installer writes to HKLM / WinSxS.
+; OverridesAllowed=commandline enforces admin (dialog would allow non-admin which breaks HKLM and redist).
+PrivilegesRequired=admin
+PrivilegesRequiredOverridesAllowed=commandline
 ; Set the default folder to be the Csound root (otherwise defaults to where the script is located)
 SourceDir="../../"
-
-; Microsoft C/C++ runtime libraries
-#define VCREDIST_CRT_DIR GetEnv("VCREDIST_CRT_DIR")
-#define VCREDIST_CXXAMP_DIR GetEnv("VCREDIST_CXXAMP_DIR")
-#define VCREDIST_OPENMP_DIR GetEnv("VCREDIST_OPENMP_DIR")
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
@@ -108,9 +108,11 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Source: "*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
-Source: "{#VCREDIST_CRT_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
-Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
-Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
+; Visual C++ Redistributable installer — bundled offline (Microsoft signed).
+; Previously loose VCRUNTIME/MSVCP/VCOMP/VCAMP DLLs were copied to {app}\bin,
+; which triggered Windows Defender false positives. Now the official
+; vc_redist.x64.exe is staged to {tmp} and executed in [Run].
+Source: "installer\windows\vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall; Components: core
 
 Source: "Python\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
@@ -190,6 +192,83 @@ Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environmen
 Name: modifypath; Description: &Add application directory to your PATH environment variable; Components: core;
 
 [Code]
+// VC++ Redistributable detection — x64
+// Registry keys used by VS 2015-2022 redist (HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64).
+// If Installed=1 and version Bld is at least a recent baseline, skip the bundled installer.
+// DevDiv fallback is only consulted when no versioned runtime key exists, so an old Bld
+// below the threshold does not get silently suppressed.
+function VCRedistNeedsInstall: Boolean;
+var
+  Installed: Cardinal;
+  Bld: Cardinal;
+  HasRuntimeKey: Boolean;
+begin
+  Result := True;
+  HasRuntimeKey := False;
+  if RegQueryDWordValue(HKLM64, 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64', 'Installed', Installed) then
+  begin
+    HasRuntimeKey := True;
+    if Installed = 1 then
+    begin
+      if RegQueryDWordValue(HKLM64, 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64', 'Bld', Bld) then
+      begin
+        // 34318 means VS 2022 17.8; lower threshold still covers 2015-2022 family
+        if Bld >= 34318 then
+          Result := False;
+      end
+      else
+        // Installed flag present but no Bld — consider it installed
+        Result := False;
+    end;
+  end;
+  // Only use DevDiv servicing key when no versioned runtime key exists at all
+  if Result and (not HasRuntimeKey) then
+  begin
+    if RegQueryDWordValue(HKLM64, 'SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Installed', Installed) then
+      if Installed = 1 then
+        Result := False;
+  end;
+end;
+
+procedure InstallVCRedist;
+var
+  ResultCode: Integer;
+  RedistPath: String;
+begin
+  if not VCRedistNeedsInstall then
+  begin
+    Log('VC++ Redistributable already installed — skipping bundled vc_redist.x64.exe');
+    Exit;
+  end;
+  RedistPath := ExpandConstant('{tmp}\vc_redist.x64.exe');
+  if not FileExists(RedistPath) then
+  begin
+    Log('VC++ Redistributable installer not found at ' + RedistPath + ' — skipping');
+    Exit;
+  end;
+  Log('Launching VC++ Redistributable installer: ' + RedistPath);
+  if Exec(RedistPath, '/install /quiet /norestart', '', SW_SHOW, ewWaitUntilTerminated, ResultCode) then
+  begin
+    // 0 = success, 1638 = newer already installed, 3010 = success + reboot required
+    if (ResultCode = 0) or (ResultCode = 1638) or (ResultCode = 3010) then
+    begin
+      Log(Format('VC++ Redistributable installer exit code %d treated as success', [ResultCode]));
+      if ResultCode = 3010 then
+        Log('VC++ Redistributable requests reboot — will be handled by installer restart logic');
+    end
+    else
+    begin
+      Log(Format('VC++ Redistributable installer failed with code %d — Csound may not run until runtime is installed', [ResultCode]));
+      MsgBox(Format('Visual C++ Redistributable install failed (code %d). Csound may not run until the VC++ runtime is installed. You can run vc_redist.x64.exe manually.', [ResultCode]), mbError, MB_OK);
+    end;
+  end
+  else
+  begin
+    Log(Format('Failed to launch VC++ Redistributable installer: %s', [SysErrorMessage(ResultCode)]));
+    MsgBox('Failed to launch Visual C++ Redistributable installer: ' + SysErrorMessage(ResultCode), mbError, MB_OK);
+  end;
+end;
+
 //	ModPathName defines the name of the task defined above
 //	ModPathType defines whether the 'user' or 'system' path will be modified;
 //		this will default to user if anything other than system is set
@@ -331,10 +410,13 @@ procedure CurStepChanged(CurStep: TSetupStep);
 var
 	taskname:	String;
 begin
-	taskname := ModPathName;
 	if CurStep = ssPostInstall then
+	begin
+		InstallVCRedist;
+		taskname := ModPathName;
 		if IsTaskSelected(taskname) then
 			ModPath();
+	end;
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
