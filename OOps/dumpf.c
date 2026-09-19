@@ -775,6 +775,6 @@ int32_t kreads(CSOUND *csound, KREADS *p)
       p->str->size = INITSIZE;
     }
     strNcpy((char*) p->str->data, p->lasts, INITSIZE);
-    p->str->timestamp = p->h.insdshead->kcounter;
+    
     return OK;
 }
