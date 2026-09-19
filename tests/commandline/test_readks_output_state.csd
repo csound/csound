@@ -49,7 +49,7 @@ read:
   SNumeric readks 9191, .01
   rireturn
   if kCycle >= 1 then
-    SCopy = SText
+    SCopy strcpyk SText
   endif
   if strcmpk(SText, gSLine) != 0 || strcmpk(SNumeric, gSLine) != 0 || strcmpk(SCopy, gSLine) != 0 then
     printks "readks did not read or hold the full line\n", 0
