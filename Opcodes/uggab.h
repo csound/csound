@@ -177,6 +177,25 @@ static inline MYFLT BiRandGab(CSOUND *csound) {
 }
 
 
+/* randGab can return 1, and MYFLT rounding can reach the table length.
+   Continuous lookup may return the guard point; discrete lookup must select
+   a real table element. Callers supply a nonempty table and position >= 0. */
+#define USER_RAND_LOOKUP(result, table, length, position, interpolate) do { \
+  const MYFLT *ur_table = (table);                                         \
+  uint32_t ur_length = (length);                                          \
+  MYFLT ur_position = (position);                                         \
+  if ((double)ur_position >= (double)ur_length)                            \
+    (result) = ur_table[(interpolate) ? ur_length : ur_length - 1];         \
+  else {                                                                 \
+    uint32_t ur_index = (uint32_t)ur_position;                             \
+    MYFLT ur_value = ur_table[ur_index];                                  \
+    if (interpolate)                                                      \
+      ur_value += (ur_table[ur_index + 1] - ur_value) *                    \
+                  (ur_position - ur_index);                              \
+    (result) = ur_value;                                                  \
+  }                                                                      \
+} while (0)
+
 typedef struct  {
         OPDS    h;
         MYFLT   *out, *tableNum;

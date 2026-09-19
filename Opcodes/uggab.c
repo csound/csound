@@ -1218,41 +1218,53 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
     return OK;
 }
 
-static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
-{ /* gab d5*/
-    if (p->ftp == NULL || p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
-        goto err1;
-      p->pfn = (int32)*p->tableNum;
+/* Table lookup and number validation happen once per control block. */
+static int32_t userrand_table(CSOUND *csound, MYFLT *number,
+                              FUNC **table, int32_t *previous) {
+    double value = (double)*number;
+    if (UNLIKELY(!(value >= (double)INT32_MIN &&
+                   value <= (double)INT32_MAX)))
+      return NOTOK;
+    int32_t current = MYFLT2LONG(*number);
+    if (*table == NULL || *previous != current) {
+      *table = csound->FTFind(csound, number);
+      if (UNLIKELY(*table == NULL || (*table)->flen == 0))
+        return NOTOK;
+      *previous = current;
     }
-    *p->out = p->ftp->ftable[(int32)(randGab(csound) * p->ftp->flen)];
     return OK;
- err1:
-    return csound->PerfError(csound, &(p->h),
-                             Str("Invalid ftable no. %f"),
-                             *p->tableNum);
+}
+
+static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
+{
+    if (UNLIKELY(userrand_table(csound, p->tableNum, &p->ftp, &p->pfn) != OK))
+      return csound->PerfError(csound, &p->h, Str("Invalid ftable no. %f"),
+                               *p->tableNum);
+    USER_RAND_LOOKUP(*p->out, p->ftp->ftable, p->ftp->flen,
+                     randGab(csound) * p->ftp->flen, 0);
+    return OK;
 }
 
 static int32_t iDiscreteUserRand(CSOUND *csound, DURAND *p)
 {
     p->ftp = NULL;
-    p->pfn = 0L;
-    kDiscreteUserRand(csound,p);
+    if (UNLIKELY(userrand_table(csound, p->tableNum, &p->ftp, &p->pfn) != OK))
+      return csound->InitError(csound, Str("Invalid ftable no. %f"), *p->tableNum);
+    USER_RAND_LOOKUP(*p->out, p->ftp->ftable, p->ftp->flen,
+                     randGab(csound) * p->ftp->flen, 0);
     return OK;
 }
 
 static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
-{ /* gab d5*/
+{
     MYFLT *out = p->out, *table;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS, flen;
 
-    if (p->ftp == NULL || p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
-        goto err1;
-      p->pfn = (int32)*p->tableNum;
-    }
+    if (UNLIKELY(userrand_table(csound, p->tableNum, &p->ftp, &p->pfn) != OK))
+      return csound->PerfError(csound, &p->h, Str("Invalid ftable no. %f"),
+                               *p->tableNum);
     table = p->ftp->ftable;
     flen = p->ftp->flen;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -1261,47 +1273,39 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      out[n] = table[(int32)(randGab(csound) * flen)];
+      USER_RAND_LOOKUP(out[n], table, flen, randGab(csound) * flen, 0);
     }
     return OK;
- err1:
-    return csound->PerfError(csound, &(p->h),
-                             Str("Invalid ftable no. %f"),
-                             *p->tableNum);
 }
 
 static int32_t kContinuousUserRand(CSOUND *csound, CURAND *p)
-{ /* gab d5*/
-    int32 indx;
-    MYFLT findx, fract, v1, v2;
-    if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
-        goto err1;
-      p->pfn = (int32)*p->tableNum;
-    }
-    findx = (MYFLT) (randGab(csound) * p->ftp->flen);
-    indx = (int32) findx;
-    fract = findx - indx;
-    v1 = *(p->ftp->ftable + indx);
-    v2 = *(p->ftp->ftable + indx + 1);
-    *p->out = (v1 + (v2 - v1) * fract) * (*p->max - *p->min) + *p->min;
+{
+    MYFLT value;
+    if (UNLIKELY(userrand_table(csound, p->tableNum, &p->ftp, &p->pfn) != OK))
+      return csound->PerfError(csound, &p->h, Str("Invalid ftable no. %f"),
+                               *p->tableNum);
+    USER_RAND_LOOKUP(value, p->ftp->ftable, p->ftp->flen,
+                     randGab(csound) * p->ftp->flen, 1);
+    *p->out = value * (*p->max - *p->min) + *p->min;
     return OK;
- err1:
-    return csound->PerfError(csound, &(p->h),
-                             Str("Invalid ftable no. %f"),
-                             *p->tableNum);
 }
 
 static int32_t iContinuousUserRand(CSOUND *csound, CURAND *p)
 {
-    p->pfn = 0;
-    kContinuousUserRand(csound,p);
+    MYFLT value;
+    p->ftp = NULL;
+    if (UNLIKELY(userrand_table(csound, p->tableNum, &p->ftp, &p->pfn) != OK))
+      return csound->InitError(csound, Str("Invalid ftable no. %f"), *p->tableNum);
+    USER_RAND_LOOKUP(value, p->ftp->ftable, p->ftp->flen,
+                     randGab(csound) * p->ftp->flen, 1);
+    *p->out = value * (*p->max - *p->min) + *p->min;
     return OK;
 }
 
 static int32_t Cuserrnd_set(CSOUND *csound, CURAND *p)
 {
     IGN(csound);
+    p->ftp = NULL;
     p->pfn = 0;
     return OK;
 }
@@ -1315,43 +1319,29 @@ static int32_t Duserrnd_set(CSOUND *csound, DURAND *p)
 }
 
 static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
-{ /* gab d5*/
-    MYFLT min = *p->min, rge = *p->max;
+{
+    MYFLT min = *p->min, range = *p->max - min;
     MYFLT *out = p->out, *table;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS, flen;
-    int32_t indx;
-    MYFLT findx, fract,v1,v2;
 
-    if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
-        goto err1;
-      p->pfn = (int32)*p->tableNum;
-    }
-
+    if (UNLIKELY(userrand_table(csound, p->tableNum, &p->ftp, &p->pfn) != OK))
+      return csound->PerfError(csound, &p->h, Str("Invalid ftable no. %f"),
+                               *p->tableNum);
     table = p->ftp->ftable;
     flen = p->ftp->flen;
-
-    rge -= min;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      findx = (MYFLT) (randGab(csound) * flen);
-      indx = (int32) findx;
-      fract = findx - indx;
-      v1 = table[indx];
-      v2 = table[indx+1];
-      out[n] = (v1 + (v2 - v1) * fract) * rge + min;
+      MYFLT value;
+      USER_RAND_LOOKUP(value, table, flen, randGab(csound) * flen, 1);
+      out[n] = value * range + min;
     }
     return OK;
- err1:
-    return csound->PerfError(csound, &(p->h),
-                             Str("Invalid ftable no. %f"),
-                             *p->tableNum);
 }
 
 static int32_t ikRangeRand(CSOUND *csound, RANGERAND *p)
