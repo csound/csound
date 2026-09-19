@@ -15,7 +15,8 @@ nchnls = 1
 ; Build a long string without hiding the test in a huge literal.
 opcode Repeat, S, Si
   SText, iCount xin
-  SResult = ""
+  ; Build once at init; do not clear the result on each control cycle.
+  SResult init ""
   iIndex = 0
   while iIndex < iCount do
     SResult strcat SResult, SText
