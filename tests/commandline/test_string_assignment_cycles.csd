@@ -1,5 +1,5 @@
 <CsTest>
-description = "String assignments copy current channel text in each local cycle"
+description = "strcpyk copies current channel text in each local cycle"
 [expect]
 exit = 0
 </CsTest>
@@ -22,15 +22,15 @@ instr CopyChannel
   endif
   chnset Sexpected, "text"
   Sreceived chnget "text"
-  Sfirst = Sreceived
-  Ssecond = Sfirst
+  Sfirst strcpyk Sreceived
+  Ssecond strcpyk Sfirst
   ; A channel read and both copies must agree, including empty strings.
   if strcmpk(Sreceived, Sexpected) != 0 then
     printks "Channel read failed on local cycle %d\n", 0, kCycle
     exitnowk -1
   endif
   if strcmpk(Sfirst, Sexpected) != 0 || strcmpk(Ssecond, Sexpected) != 0 then
-    printks "String assignment is stale on local cycle %d\n", 0, kCycle
+    printks "strcpyk is stale on local cycle %d\n", 0, kCycle
     exitnowk -1
   endif
 endin

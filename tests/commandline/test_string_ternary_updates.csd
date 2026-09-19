@@ -22,7 +22,7 @@ instr 1
   kCycle += 1
   kOdd = kCycle % 2
   Sliteral = (kOdd == 1 ? "odd" : "even")
-  Scopy = Sliteral
+  Scopy strcpyk Sliteral
   Svariable = (kOdd == 1 ? Sshort : Slong)
   Sempty = (kOdd == 1 ? "" : "full")
   Snested = (kCycle % 4 == 0 ? "four" : (kOdd == 1 ? "odd" : "even"))

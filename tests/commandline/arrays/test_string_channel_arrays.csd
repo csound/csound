@@ -28,8 +28,8 @@ instr 1
   SLeft sprintfk "left %d", kCycle
   SRight sprintfk "right %d", kCycle
   SValues[] init 2
-  SValues[0] = SLeft
-  SValues[1] = SRight
+  SValues[0] strcpyk SLeft
+  SValues[1] strcpyk SRight
   chnsets SValues, SNames
   SRead[] chngets SNames
   if strcmpk(SRead[0], SLeft) != 0 || strcmpk(SRead[1], SRight) != 0 then

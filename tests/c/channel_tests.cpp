@@ -950,7 +950,7 @@ TEST_F (ChannelTests, ChnparamsWithAttributes)
     EXPECT_EQ(csoundGetControlChannel(csound, "maximum", nullptr), 1);
 }
 
-TEST_F(ChannelTests, StringAssignmentFollowsInputCallback)
+TEST_F(ChannelTests, StringCopyFollowsInputCallback)
 {
     std::string input = "initial";
     csoundSetHostData(csound, &input);
@@ -964,7 +964,7 @@ TEST_F(ChannelTests, StringAssignmentFollowsInputCallback)
     ASSERT_EQ(csoundCompileCSD(csound, path.string().c_str(), 0, 0), 0);
     ASSERT_EQ(csoundStart(csound), 0);
 
-    // A downstream assignment must see changed, repeated and empty text.
+    // A downstream strcpyk must see changed, repeated and empty text.
     for (const char *text : {"initial", "changed", "changed", "", "last"}) {
         input = text;
         ASSERT_EQ(csoundPerformKsmps(csound), 0);

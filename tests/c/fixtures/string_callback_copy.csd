@@ -10,7 +10,7 @@ nchnls = 1
 instr 1
   setksmps 4
   Sreceived invalue "text"
-  Scopy = Sreceived
+  Scopy strcpyk Sreceived
   ; The host checks the copy after changing its callback's text.
   chnset Scopy, "copy"
 endin

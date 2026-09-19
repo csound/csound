@@ -39,7 +39,7 @@ instr ControlSelection
   kCycle eventcycles
   ; Neither literal changes; only the control-time condition (B) changes.
   Sselected = (kCycle % 2 == 0 ? "even" : "odd")
-  Scopy = Sselected
+  Scopy strcpyk Sselected
   if kCycle % 2 == 0 then
     Sexpected strcpyk "even"
   else

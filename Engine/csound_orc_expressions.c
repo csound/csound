@@ -1161,7 +1161,11 @@ static void collapse_last_assigment(CSOUND* csound, TREE* anchor,
   }
   char *tmp1 = get_arg_type2(csound, b->left, typeTable);
   char *tmp2 = get_arg_type2(csound, b->right, typeTable);
-  if ((b->type == '=') &&
+  /* The current parser uses T_ASSIGNMENT. String expression assignments must
+     inherit the expression's rate, including control-rate ternaries. A plain
+     string-to-string assignment still uses the init-only =.S opcode. */
+  if ((b->type == '=' ||
+       (b->type == T_ASSIGNMENT && !strcmp(tmp1, "S"))) &&
       (!strcmp(a->left->value->lexeme, b->right->value->lexeme)) &&
       (!strcmp(tmp1, tmp2))) {
     a->left = b->left;
