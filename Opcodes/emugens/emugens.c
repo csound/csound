@@ -126,16 +126,14 @@ static int32_t
 linlinarr1_common(CSOUND *csound, LINLINARR1 *p, int32_t init) {
     if (UNLIKELY(p->xs->dimensions != 1 || p->xs->sizes == NULL ||
                    p->ys->dimensions != 1))
-        return init ? INITERR(Str("linlin: expected one-dimensional arrays"))
-                    : PERFERR(Str("linlin: expected one-dimensional arrays"));
+        return INITPERFERR(init, Str("linlin: expected one-dimensional arrays"));
     const MYFLT x0 = *p->kx0;
     const MYFLT y0 = *p->ky0;
     const MYFLT x1 = *p->kx1;
     const MYFLT y1 = *p->ky1;
 
     if (UNLIKELY(x0 == x1)) {
-        return init ? INITERR(Str("linlin: Division by zero"))
-                    : PERFERR(Str("linlin: Division by zero"));
+        return INITPERFERR(init, Str("linlin: Division by zero"));
     }
     MYFLT fact = 1/(x1 - x0) * (y1 - y0);
 
@@ -195,15 +193,13 @@ blendarray_common(CSOUND *csound, BLENDARRAY *p, int32_t init)
     if (UNLIKELY(p->A->dimensions != 1 || p->A->sizes == NULL ||
                    p->B->dimensions != 1 || p->B->sizes == NULL ||
                    p->out->dimensions != 1))
-        return init ? INITERR(Str("linlin: expected one-dimensional arrays"))
-                    : PERFERR(Str("linlin: expected one-dimensional arrays"));
+        return INITPERFERR(init, Str("linlin: expected one-dimensional arrays"));
     MYFLT x0 = *p->kx0;
     MYFLT x1 = *p->kx1;
     MYFLT x = *p->kx;
 
     if (UNLIKELY(x0 == x1)) {
-        return init ? INITERR(Str("linlin: Division by zero"))
-                    : PERFERR(Str("linlin: Division by zero"));
+        return INITPERFERR(init, Str("linlin: Division by zero"));
     }
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
