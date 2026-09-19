@@ -940,6 +940,7 @@ set(libcsound_SRCS
     Engine/cfgvar.c
     Engine/corfiles.c
     Engine/entry.c
+    Engine/opcode_deprecation.c
     Engine/extract.c
     Engine/environ.c
     Engine/fgens.c

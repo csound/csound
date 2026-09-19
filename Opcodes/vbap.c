@@ -3030,15 +3030,18 @@ static OENTRY vbap_localops[] = {
     (SUBR) vbap_init,    (SUBR) vbap                   },
   { "vbap.A",      S(VBAPA), TR,   "a[]",    "akOOo",
     (SUBR) vbap_init_a,    (SUBR) vbap_a               },
+  CSOUND_DEPRECATED_OPCODE("vbap4", "vbap", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "vbap4",      S(VBAP),
     TR|_QQ,   "aaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "akOOo", (SUBR) vbap_init, (SUBR) vbap },
+  CSOUND_DEPRECATED_OPCODE("vbap8", "vbap", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "vbap8",      S(VBAP),
     TR|_QQ,   "aaaaaaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "akOOo",
     (SUBR) vbap_init,    (SUBR) vbap                   },
+  CSOUND_DEPRECATED_OPCODE("vbap16", "vbap", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "vbap16",      S(VBAP),
     TR|_QQ,   "aaaaaaaaaaaaaaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
@@ -3076,9 +3079,11 @@ static OENTRY vbap_localops[] = {
     (SUBR) vbap1_moving_init_a,    (SUBR) vbap1_moving_a },
   { "vbapzmove",  S(VBAP_ZAK_MOVING),    ZW|TR,   "",  "iiaiiim",
     (SUBR) vbap_zak_moving_init,    (SUBR) vbap_zak_moving  },
+  CSOUND_DEPRECATED_OPCODE("vbap4move", "vbapmove", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "vbap4move", S(VBAP_MOVING),   TR|_QQ,   "aaaa",
     "aiiim",
     (SUBR) vbap_moving_init, (SUBR) vbap_moving },
+  CSOUND_DEPRECATED_OPCODE("vbap8move", "vbapmove", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "vbap8move", S(VBAP_MOVING),
     TR|_QQ,   "aaaaaaaa",
     "aiiim",

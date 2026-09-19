@@ -4,6 +4,24 @@ include $(CLEAR_VARS)
 CSOUND_SRC_ROOT := ../../..
 LIBSNDFILE_SRC_DIR := $(NDK_MODULE_PATH)/libsndfile-android/jni/
 
+# Regenerate the parser for direct ndk-build calls too. The NDK reads this
+# makefile once per ABI, so define the shared generation rules only once.
+ifndef CSOUND_ANDROID_PARSER_RULES
+CSOUND_ANDROID_PARSER_RULES := 1
+CSOUND_BISON ?= bison
+$(LOCAL_PATH)/csound_orcparse.c: $(LOCAL_PATH)/$(CSOUND_SRC_ROOT)/Engine/csound_orc.y $(LOCAL_PATH)/Android.mk
+	$(CSOUND_BISON) -d -pcsound_orc --report=itemset -o $@ $<
+
+# Bison writes both files. Rebuild the pair if only the header was removed.
+ifeq ($(wildcard $(LOCAL_PATH)/csound_orcparse.h),)
+.PHONY: csound-android-parser-header-missing
+$(LOCAL_PATH)/csound_orcparse.c: csound-android-parser-header-missing
+endif
+
+$(LOCAL_PATH)/csound_orcparse.h: $(LOCAL_PATH)/csound_orcparse.c
+	@test -f $@
+endif
+
 LOCAL_MODULE   := csoundandroid
 LOCAL_C_INCLUDES := $(LIBSNDFILE_SRC_DIR) $(HOME)/include $(LOCAL_PATH)/../../../H $(LOCAL_PATH)/../../../include $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces
 
@@ -42,6 +60,7 @@ $(CSOUND_SRC_ROOT)/Engine/memalloc.c \
 $(CSOUND_SRC_ROOT)/Engine/memfiles.c \
 $(CSOUND_SRC_ROOT)/Engine/musmon.c \
 $(CSOUND_SRC_ROOT)/Engine/namedins.c \
+$(CSOUND_SRC_ROOT)/Engine/opcode_deprecation.c \
 $(CSOUND_SRC_ROOT)/Engine/rdscor.c \
 $(CSOUND_SRC_ROOT)/Engine/scsort.c \
 $(CSOUND_SRC_ROOT)/Engine/scxtract.c \
@@ -309,6 +328,10 @@ $(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
 $(CSOUND_SRC_ROOT)/Java/cs_glue.cpp
 #CsoundObj.cpp
+
+# Some sources include the generated header through csound_orc.h. Generate it
+# before compiling any of them, including on a clean parallel build.
+$(addprefix $(LOCAL_PATH)/,$(filter-out csound_orcparse.c,$(LOCAL_SRC_FILES))): | $(LOCAL_PATH)/csound_orcparse.h
 
 LOCAL_LDLIBS += -llog -lOpenSLES -laaudio -lamidi -ldl -lm -lc
 

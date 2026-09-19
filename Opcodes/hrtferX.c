@@ -49,6 +49,10 @@
  * the old and new HRTFs (probably a project in itself).
  ***************************************************************/
 
+/* Legacy opcode behavior in this file is retained for compatibility.
+ * Read the local CSOUND_DEPRECATED_OPCODE markers and docs/opcode-deprecation.md before
+ * correcting historical output; use the supported replacement for new work.
+ */
 #ifdef BUILD_PLUGINS
 #include "csdl.h"
 #else
@@ -90,6 +94,8 @@ static int32_t hrtfer_prepare_data(CSOUND *csound, MEMFIL *mfp)
     return OK;
 }
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("hrtfer")
 static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
 {
     MEMFIL *mfp;
@@ -153,6 +159,8 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
 
 /********************** a-rate code ***********************************/
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("hrtfer")
 static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 {
     MYFLT      *aLeft, *aRight; /* audio output streams */
@@ -393,6 +401,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 
 static OENTRY hrtferX_localops[] =
   {
+   CSOUND_DEPRECATED_OPCODE("hrtfer", "hrtfstat", FROZEN, "Legacy HRTFcompact behavior is frozen; hrtfstat uses different data and arguments. See PR #3009.")
    { "hrtfer",   sizeof(HRTFER), _QQ,  "aa", "akkS",
      (SUBR)hrtferxkSet, (SUBR)hrtferxk},
 };
