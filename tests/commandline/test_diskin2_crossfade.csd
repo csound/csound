@@ -10,18 +10,15 @@ output = ["diskin2 crossfade OK"]
 -n -d -m0
 </CsOptions>
 <CsInstruments>
-; Offline rendering is synchronous, so this exercises the synchronous diskin2
-; crossfade path. A short loop (0.50..0.54 s = 1764 frames) is read from the
-; existing fox.wav fixture; the crossfade length is capped at loopLength/2 = 882.
+; A short loop is read from a soundfile, the crossfade length is capped at loopLength/2
 ;
 ;   iwrap    1        hard wrap, no crossfade
-;   iwrap    1000     crossfade (capped to 882)
+;   iwrap    1000     crossfade (capped)
 ;   iwrap    1500     crossfade (capped to 882)  -> identical to iwrap=100000
 ;   iwrap    100000   crossfade (capped to 882)
-;   iwrap    4        crossfade (4 frames)       -> differs from the capped ones
+;   iwrap    128      crossfade (128 frames)       -> differs from the capped ones
 ;
-; The 1500-vs-100000 pair pins the cap to loopLength/2: a cap of loopLength-1
-; would give 1500 and 1763 and fail the "same" check.
+; The 1500-vs-100000 pair pins the cap to loopLength/2
 
 sr = 44100
 ksmps = 64
@@ -37,12 +34,14 @@ gkArrRms   init 0
 gkArrDiff  init 0
 
 instr 1
+  ;                          pitch    xfade              end
+  ;                             start
   aHard   diskin2 "fox.wav", 1, 0.50, 1,      0,0,0,0,0, 0.54
   aXf     diskin2 "fox.wav", 1, 0.50, 1000,   0,0,0,0,0, 0.54
   aHard2  diskin2 "fox.wav", 1, 0.50, 1,      0,0,0,0,0, 0.54
   aBig1   diskin2 "fox.wav", 1, 0.50, 1500,   0,0,0,0,0, 0.54
   aBig2   diskin2 "fox.wav", 1, 0.50, 100000, 0,0,0,0,0, 0.54
-  aSmall  diskin2 "fox.wav", 1, 0.50, 4,      0,0,0,0,0, 0.54
+  aSmall  diskin2 "fox.wav", 1, 0.50, 128,    0,0,0,0,0, 0.54
   aArr[]  diskin2 "fox.wav", 1, 0.50, 1000,   0,0,0,0,0, 0.54
   aArrH[] diskin2 "fox.wav", 1, 0.50, 1,      0,0,0,0,0, 0.54
 
