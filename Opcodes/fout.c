@@ -29,6 +29,7 @@
 #include "fout.h"
 #include "soundio.h"
 #include <ctype.h>
+#include <limits.h>
 
 /* remove a file reference, optionally closing the file */
 static CS_NOINLINE int32_t fout_deinit(CSOUND *csound, FOUT_FILE *p)
@@ -1150,86 +1151,109 @@ static int32_t kinfile(CSOUND *csound, KINFILE *p)
 
 #undef INFILE_REFILL
 
-int32_t i_infile_deinit(CSOUND *csound, I_INFILE *p) {
-  if(p->f) {
-    fout_deinit(csound, p->f);
-    p->f = NULL;
-  }
-  return OK;
+/* Return one for a value, zero for EOF, or an init error. */
+static int32_t fini_read_text(CSOUND *csound, FILE *fp, MYFLT *value)
+{
+  char token[256], *start, *end;
+  size_t len;
+  int32_t c;
+  double number;
+
+  do {
+    do {
+      c = getc(fp);
+    } while (c != EOF && isspace(c));
+    if (c == EOF)
+      return 0;
+    len = 0;
+    do {
+      if (len == sizeof(token) - 1)
+        return csound->InitError(csound, Str("fini: numeric token too long"));
+      token[len++] = (char)c;
+      c = getc(fp);
+    } while (c != EOF && !isspace(c));
+    token[len] = '\0';
+    /* Accept the i-statement prefix written by fouti/foutir. */
+  } while (strcmp(token, "i") == 0);
+  start = token;
+  if (token[0] == 'i' && isdigit((unsigned char)token[1]))
+    start++;
+  number = csound->Strtod(start, &end);
+  if (end == start || *end != '\0')
+    return csound->InitError(csound, Str("fini: invalid numeric data"));
+  *value = (MYFLT)number;
+  return 1;
 }
 
 static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
 {
-  int32_t     j, nargs;
-  FILE    *fp = NULL;
-  MYFLT   **args = p->argums;
-  char    *omodes[] = {"r", "r", "rb"};
-  int32_t     idx = (int32_t) MYFLT2LRND(*p->iflag);
+  int32_t j, nargs = p->INOCOUNT - 3, format;
+  FILE *fp = NULL;
+  MYFLT **args = p->argums;
+  const char *omodes[] = {"r", "r", "rb"};
+  double skip = floor((double)*p->iskpfrms);
 
-  p->f = fout_open_file(csound, (FOUT_FILE*) NULL, &fp, CSFILE_STD,
-                        p->fname, istring, omodes[idx], 0, NULL);
-  if(p->f == NULL) return NOTOK;
-  nargs = p->INOCOUNT - 3;
-  switch ((int32_t) MYFLT2LRND(*p->iflag)) {
-  case 0: /* ascii file with loop */
-    {
-      char  cf[64], *cfp;
-      int32_t   cc;
-    newcycle:
-      for (j = 0; j < nargs; j++) {
-        cfp = cf;
-        while ((*cfp = cc = getc(fp)) == 'i' || isspace(*cfp));
-        if (cc == EOF) {
-          fseek(fp, 0, SEEK_SET);
-          goto newcycle;
-        }
-        while (isdigit(*cfp) || *cfp == '.' || *cfp == '+' || *cfp == '-') {
-          *(++cfp) = (char)(cc = getc(fp));
-        }
-        *++cfp = '\0';        /* Must terminate string */
-        *(args[j]) = (MYFLT) atof(cf);
-        if (cc == EOF) {
-          fseek(fp, 0, SEEK_SET);
+  if (*p->iflag != FL(0.0) && *p->iflag != FL(1.0) &&
+      *p->iflag != FL(2.0))
+    return csound->InitError(csound, Str("fini: format must be 0, 1 or 2"));
+  if (!(skip >= 0.0 && skip <= INT32_MAX))
+    return csound->InitError(csound, Str("fini: invalid skip frame count"));
+  format = (int32_t)*p->iflag;
+  /* The stream is shared across init calls; it has no per-note borrower. */
+  fout_open_file(csound, NULL, &fp, CSFILE_STD, p->fname, istring,
+                 (void*)omodes[format], 0, NULL);
+  if (fp == NULL)
+    return NOTOK;
+
+  for (j = 0; j < nargs; j++)
+    *args[j] = FL(0.0);
+
+  /* Zero keeps the shared stream position. A positive skip selects a
+     starting frame relative to the beginning of the file. */
+  if (skip > 0.0) {
+    if (format == 2) {
+      uint64_t bytes = (uint64_t)skip * (uint64_t)nargs * sizeof(float);
+      if (bytes > LONG_MAX || fseek(fp, (long)bytes, SEEK_SET) != 0)
+        return csound->InitError(csound, Str("fini: cannot seek to frame"));
+    }
+    else {
+      int64_t count = (int64_t)skip * nargs;
+      MYFLT ignored;
+      if (fseek(fp, 0, SEEK_SET) != 0)
+        return csound->InitError(csound, Str("fini: cannot seek to frame"));
+      while (count-- > 0) {
+        int32_t status = fini_read_text(csound, fp, &ignored);
+        if (status < 0)
+          return NOTOK;
+        if (status == 0)
           break;
-        }
       }
     }
-    break;
-  case 1: /* ascii file without loop */
-    {
-      char  cf[64], *cfp;
-      int32_t   cc;
-      for (j = 0; j < nargs; j++) {
-        cfp = cf;
-        while ((*cfp = cc = getc(fp)) == 'i' || isspace(*cfp));
-        if (cc == EOF) {
-          *(args[j]) = FL(0.0);
-          break;
-        }
-        while (isdigit(*cfp) || *cfp == '.' || *cfp == '+' || *cfp == '-') {
-          *(++cfp) = cc = getc(fp);
-        }
-        *++cfp = '\0';        /* Must terminate */
-        *(args[j]) = (MYFLT) atof (cf);
-        if (cc == EOF) {
-          *(args[j]) = FL(0.0);
-          break;
-        }
-      }
-    }
-    break;
-  case 2: /* binary floats without loop */
-    if (fseek(fp, p->currpos * sizeof(float) * nargs, SEEK_SET)<0) return NOTOK;
-    p->currpos++;
-    for (j = 0; j < nargs; j++) {
-      if (1 == fread(args[j], sizeof(float), 1, fp));
-      else {
-        p->flag = 0;
-        *(args[j]) = FL(0.0);
-      }
-    }
-    break;
   }
+
+  for (j = 0; j < nargs; j++) {
+    if (format == 2) {
+      float value;
+      if (fread(&value, sizeof(value), 1, fp) != 1)
+        break;
+      *args[j] = (MYFLT)value;
+    }
+    else {
+      int32_t status = fini_read_text(csound, fp, args[j]);
+      if (status == 0 && format == 0 && !ferror(fp)) {
+        if (fseek(fp, 0, SEEK_SET) != 0)
+          return csound->InitError(csound, Str("fini: cannot rewind file"));
+        /* Retry once: empty input must not loop forever. */
+        status = fini_read_text(csound, fp, args[j]);
+      }
+      if (status < 0)
+        return NOTOK;
+      if (status == 0)
+        break;
+    }
+  }
+  if (ferror(fp))
+    return csound->InitError(csound, Str("fini: file read failed"));
   return OK;
 }
 
@@ -1582,9 +1606,9 @@ static OENTRY localops[] = {
   { "fink.i",       S(KINFILE),  WI,  "",     "iiiz",
     (SUBR) kinfile_set,     (SUBR) kinfile,     (SUBR)  kinfile_deinit, NULL},
   { "fini",       S(I_INFILE),   WI,  "",     "Siim",
-    (SUBR) i_infile_S,        (SUBR) NULL,        (SUBR)  i_infile_deinit, NULL },
+    (SUBR) i_infile_S,        (SUBR) NULL,        (SUBR) NULL, NULL },
   { "fini.i",       S(I_INFILE), WI,  "",     "iiim",
-    (SUBR) i_infile,        (SUBR) NULL,        (SUBR) i_infile_deinit, NULL}
+    (SUBR) i_infile,        (SUBR) NULL,        (SUBR) NULL, NULL}
 };
 
 int32_t fout_init_(CSOUND *csound)
