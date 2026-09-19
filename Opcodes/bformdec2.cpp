@@ -933,7 +933,8 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(p->numb-1,p->numa);
 
-    if (!isfinite(*p->type_mix) || *p->type_mix < 0 || *p->type_mix >= 3)
+    if (!isfinite(*p->type_mix) || *p->type_mix < 0 || *p->type_mix >= 3 ||
+        *p->type_mix != floor(*p->type_mix))
       return csound->InitError(csound, "%s",
                                Str("bformdec2: mix type must be 0, 1 or 2"));
     int32_t type_mix = (int)*p->type_mix;

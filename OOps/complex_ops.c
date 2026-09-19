@@ -1715,12 +1715,8 @@ int32_t complex_exp_array(CSOUND *csond, COPS1 *p) {
 
 
 /* Keep double arithmetic, rounding back to MYFLT after each wrap. */
-static inline MYFLT quadosc_wrap_phase(MYFLT phase)
-{
-  while (phase >= PI) phase = (MYFLT)(phase - TWOPI);
-  while (phase < -PI) phase = (MYFLT)(phase + TWOPI);
-  return phase;
-}
+#define WRAPPI(x) while ((x) >= PI) (x) = (MYFLT)((x) - TWOPI); \
+                  while ((x) < -PI) (x) = (MYFLT)((x) + TWOPI);
 
 int32_t quadosc_init(CSOUND *csound, QUADOSC *p) {
   MYFLT ifn = -1;
@@ -1797,7 +1793,7 @@ int32_t quadosc(CSOUND *csound, QUADOSC *p) {
     } else {
       ans[i].real = 1.;
       ans[i].imag = iphs + iinc;
-      ans[i].imag = quadosc_wrap_phase(ans[i].imag);
+      WRAPPI(ans[i].imag);
       iphs = ans[i].imag;
     }
   }
@@ -1838,7 +1834,7 @@ int32_t quadosc_audio(CSOUND *csound, QUADOSC *p) {
       iinc = ang;
       ans[i].real = 1.;
       ans[i].imag = iphs + iinc;
-      ans[i].imag = quadosc_wrap_phase(ans[i].imag);
+      WRAPPI(ans[i].imag);
       iphs = ans[i].imag;
     }
   }
