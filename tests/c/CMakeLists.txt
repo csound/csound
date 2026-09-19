@@ -16,6 +16,7 @@ if(BUILD_TESTS)
         array_ops_test.cpp
         audio_array_io_test.cpp
         autocorr_test.cpp
+        bpf_array_test.cpp
         channel_tests.cpp
         controller_print_test.cpp
         printsk_test.cpp
