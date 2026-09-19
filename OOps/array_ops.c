@@ -86,7 +86,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
   arrayDat->sizes = csound->Calloc(csound, sizeof(int32_t) * inArgCount);
   for (i = 0; i < inArgCount; i++) {
     int v = (isAudioArray && i == 0 && MYFLT2LRND(*p->isizes[i]) <= 0)
-            ? CS_KSMPS
+            ? (int32_t)CS_KSMPS
             : MYFLT2LRND(*p->isizes[i]);
     arrayDat->sizes[i] = v;
   }
@@ -431,7 +431,9 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
           int32_t newSize = end + 1;
           if (newSize <= 0) newSize = 1;
 
-          size_t newBytes = (size_t)newSize * (size_t)(dat->arrayMemberSize > 0 ? dat->arrayMemberSize : sizeof(MYFLT));
+          size_t memberSize = dat->arrayMemberSize > 0
+                              ? (size_t)dat->arrayMemberSize : sizeof(MYFLT);
+          size_t newBytes = (size_t)newSize * memberSize;
           void* newData = csound->Calloc(csound, newBytes);
           if (dat->data && dat->allocated > 0) {
             size_t toCopy = dat->allocated < newBytes ? dat->allocated : newBytes;
@@ -707,7 +709,8 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     } else {
       /* Fallback: shallow value copy for element types without copyValue */
       if (LIKELY(element != NULL && p->out != NULL)) {
-        size_t bytes = dat->arrayMemberSize > 0 ? dat->arrayMemberSize : sizeof(MYFLT);
+        size_t bytes = dat->arrayMemberSize > 0
+                       ? (size_t)dat->arrayMemberSize : sizeof(MYFLT);
         memcpy((void *)p->out, (void *)element, bytes);
       }
     }
@@ -3468,22 +3471,6 @@ int32_t tabscale1(CSOUND *csound, TABSCALE *p)
 }
 
 
-
-static int32_t get_array_total_size(ARRAYDAT* dat)
-{
-  int32_t i;
-  int32_t size;
-
-  if (UNLIKELY(dat->sizes == NULL)) {
-    return -1;
-  }
-
-  size = dat->sizes[0];
-  for (i = 1; i < dat->dimensions; i++) {
-    size *= dat->sizes[i];
-  }
-  return size;
-}
 
 int32_t tabcopy(CSOUND *csound, TABCPY *p)
 {

@@ -823,8 +823,8 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     mag = syn[ii]; 
     angledif = p->TwoPioverR * (syn[ii+1] - (i * p->Fexact));
     the_phase =  oldOutPhase[i] + angledif;
-    while(the_phase >= TWOPI) the_phase -= TWOPI;
-    while(the_phase < 0) the_phase += TWOPI;
+    while(the_phase >= TWOPI) the_phase = (MYFLT)(the_phase - TWOPI);
+    while(the_phase < 0) the_phase = (MYFLT)(the_phase + TWOPI);
     oldOutPhase[i] = the_phase;
 #ifdef USE_DOUBLE
    syn[ii+1] = mag * SIN(the_phase);

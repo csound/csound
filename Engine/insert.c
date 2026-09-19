@@ -2920,10 +2920,10 @@ static void free_unlinked_instance(CSOUND *csound, INSDS *ip)
     char *name = csound->engineState.instrtxtp[ip->insno]->insname;
     if (UNLIKELY(name))
       csound->ErrorMsg(csound, Str("instance %llu (instr %s) deleted\n"),
-                       ip->instance_id, name);
+                       (unsigned long long) ip->instance_id, name);
     else
       csound->ErrorMsg(csound, Str("instance %llu (instr %d) deleted\n"),
-                       ip->instance_id, ip->insno);
+                       (unsigned long long) ip->instance_id, ip->insno);
   }
   csound->Free(csound, ip);
 }

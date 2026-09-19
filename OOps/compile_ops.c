@@ -397,8 +397,8 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
   MYFLT *bufferin = csobj->bufferin;
   
   if(esmps >= ksmps) {
-   for(int i=0; i < ksmps; i++) {
-    if(csobj->nsmps == esmps) {
+   for(uint32_t i=0; i < ksmps; i++) {
+    if((uint32_t)csobj->nsmps == esmps) {
       *p->r = csoundPerformKsmps(engine);             
       csobj->nsmps = 0;
     }
@@ -412,8 +412,8 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
     csobj->nsmps += 1;
    }
   } else {
-    for(int j = 0; j < ksmps; j++) {
-      if(csobj->nsmps == esmps) {
+    for(uint32_t j = 0; j < ksmps; j++) {
+      if((uint32_t)csobj->nsmps == esmps) {
       *p->r = csoundPerformKsmps(engine);
        csobj->nsmps = 0;
       }
@@ -483,7 +483,7 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
   MYFLT *out = p->r;
   MYFLT *in = csobj->bufferout;
    
-  if(chn > engine->nchnls) {
+  if(chn < 0 || (uint32_t) chn >= engine->nchnls) {
     return csound->PerfError(csound, &p->h,
                              "requested channel %d not available\n",
                              chn);
@@ -494,10 +494,12 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
     if(start < 0) start += esmps;
     start *= nchnls;
     esmps *= nchnls;
-    for(int i = start+chn, j = 0; j < ksmps; i+=nchnls, j++) 
+    int i = start+chn;
+    for(uint32_t j = 0; j < ksmps; i+=nchnls, j++)
       out[j] = in[i%esmps];
   } else {
-    for(int i = chn, j = 0; j < ksmps; i+=nchnls, j++) 
+    int i = chn;
+    for(uint32_t j = 0; j < ksmps; i+=nchnls, j++)
       out[j] = in[i];
   }
   return OK;
@@ -512,7 +514,7 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
   uint32_t esmps = engine->ksmps;
   MYFLT *in = p->b;
   MYFLT *out = csobj->bufferin;  
-  if(chn > engine->nchnls) {
+  if(chn < 0 || (uint32_t) chn >= engine->inchnls) {
     return csound->PerfError(csound, &p->h,
                              "requested channel %d not available\n",
                              chn+1);
@@ -522,10 +524,12 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
     int start = csobj->nsmps;
     start *= nchnls;
     esmps *= nchnls;
-    for(int i = start+chn, j = 0; j < ksmps; i+=nchnls, j++)
+    int i = start+chn;
+    for(uint32_t j = 0; j < ksmps; i+=nchnls, j++)
       out[i%esmps] = in[j];
   } else {
-    for(int i = chn, j = 0; j < ksmps; i+=nchnls, j++)
+    int i = chn;
+    for(uint32_t j = 0; j < ksmps; i+=nchnls, j++)
       out[i] = in[j];
   }
 

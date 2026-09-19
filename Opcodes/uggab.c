@@ -307,7 +307,7 @@ static int32_t product_init(CSOUND *csound, SUM *p)
     /* Keep existing scratch space sized on reinit. */
     if (p->aux.auxp != NULL)
       return sum_init(csound, p);
-    for (int32_t i = 1; i < p->INOCOUNT; ++i) {
+    for (uint32_t i = 1; i < p->INOCOUNT; ++i) {
       if (p->ar == p->argums[i])
         return sum_init(csound, p);
     }
@@ -914,7 +914,7 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
     p->lphs = phs;
     RANDOM_PHASE_INCREMENT(rateInc, p->xcpsAmpRate, CS_KICVT);
     p->phsAmpRate += rateInc;
-    if (p->phsAmpRate >= MAXLEN) {
+    if (p->phsAmpRate > PHMASK) {
       p->xcpsAmpRate =  randGab(csound)  * (*p->ampMaxRate - *p->ampMinRate) +
         *p->ampMinRate;
       p->phsAmpRate &= PHMASK;
@@ -924,7 +924,7 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
     }
     RANDOM_PHASE_INCREMENT(rateInc, p->xcpsFreqRate, CS_KICVT);
     p->phsFreqRate += rateInc;
-    if (p->phsFreqRate >= MAXLEN) {
+    if (p->phsFreqRate > PHMASK) {
       p->xcpsFreqRate =  randGab(csound)  * (*p->cpsMaxRate - *p->cpsMinRate) +
         *p->cpsMinRate;
       p->phsFreqRate &= PHMASK;
@@ -998,7 +998,7 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
 
     RANDOM_PHASE_INCREMENT(rateInc, p->xcpsAmpRate, CS_KICVT);
     p->phsAmpRate += rateInc;
-    if (p->phsAmpRate >= MAXLEN) {
+    if (p->phsAmpRate > PHMASK) {
       p->xcpsAmpRate =  randGab(csound)  * (ampMaxRate - ampMinRate) + ampMinRate;
       p->phsAmpRate &= PHMASK;
       p->num1amp = p->num2amp;
@@ -1008,7 +1008,7 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
 
     RANDOM_PHASE_INCREMENT(rateInc, p->xcpsFreqRate, CS_KICVT);
     p->phsFreqRate += rateInc;
-    if (p->phsFreqRate >= MAXLEN) {
+    if (p->phsFreqRate > PHMASK) {
       p->xcpsFreqRate =  randGab(csound)  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
       p->phsFreqRate &= PHMASK;
       p->num1freq = p->num2freq;
@@ -1417,7 +1417,7 @@ static int32_t krandomi(CSOUND *csound, RANDOMI *p)
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * (*p->max - *p->min) + *p->min;
     RANDOM_PHASE_INCREMENT(inc, *p->xcps, CS_KICVT);
     p->phs += inc;
-    if (p->phs >= MAXLEN) {
+    if (p->phs > PHMASK) {
       p->phs   &= PHMASK;
       p->num1   = p->num2;
       p->num2   = randGab(csound);
@@ -1453,7 +1453,7 @@ static int32_t randomi(CSOUND *csound, RANDOMI *p)
         RANDOM_PHASE_INCREMENT(inc, *cpsp++, CS_SICVT);
       ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * amp + min;
       phs += inc;
-      if (phs >= MAXLEN) {
+      if (phs > PHMASK) {
         phs &= PHMASK;
         p->num1 = p->num2;
         p->num2 = randGab(csound);
@@ -1492,7 +1492,7 @@ static int32_t krandomh(CSOUND *csound, RANDOMH *p)
     *p->ar = p->num1 * (*p->max - *p->min) + *p->min;
     RANDOM_PHASE_INCREMENT(inc, *p->xcps, CS_KICVT);
     p->phs += inc;
-    if (p->phs >= MAXLEN) {
+    if (p->phs > PHMASK) {
       p->phs &= PHMASK;
       p->num1 = randGab(csound);
     }
@@ -1526,7 +1526,7 @@ static int32_t randomh(CSOUND *csound, RANDOMH *p)
         RANDOM_PHASE_INCREMENT(inc, *cpsp++, CS_SICVT);
       ar[n]     = p->num1 * amp + min;
       phs      += inc;
-      if (phs >= MAXLEN) {
+      if (phs > PHMASK) {
         phs    &= PHMASK;
         p->num1 = randGab(csound);
       }

@@ -667,7 +667,7 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
     if (*p->klpf == 0) klpf = 20.0;
     else klpf = *p->klpf;
 
-    if (*p->klpfQ == 0) klpfQ =  1./3.;
+    if (*p->klpfQ == 0) klpfQ =  FL(1./3.);
     else klpfQ = *p->klpfQ;
 
     if (*p->klf == 0) klf = 20.0;
@@ -676,7 +676,7 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
     if (*p->khf == 0) khf = 1500.0;
     else khf = *p->khf;
 
-    if (*p->kthresh == 0.0) kthresh= 0.001;
+    if (*p->kthresh == 0.0) kthresh= FL(0.001);
     else kthresh = *p->kthresh;
 
 

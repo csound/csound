@@ -340,7 +340,8 @@ static void listPorts(CSOUND *csound, int32_t isOutput){
 
 static void rtJack_RegisterPorts(RtJackGlobals *p)
 {
-    char          portName[MAX_NAME_LEN + 4];
+    /* Leave room for a full int32_t channel suffix and its terminator. */
+    char          portName[MAX_NAME_LEN + 12];
     unsigned long flags = 0UL;
     int32_t           i;
     CSOUND *csound = p->csound;
@@ -350,7 +351,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
     if (p->inputEnabled) {
       /* register input ports */
       for (i = 0; i < p->nChannels_i; i++) {
-        snprintf(portName, MAX_NAME_LEN + 4, "%s%d", p->inputPortName, i + 1);
+        snprintf(portName, sizeof(portName), "%s%d", p->inputPortName, i + 1);
         p->inPorts[i] = jack_port_register(p->client, &(portName[0]),
                                            JACK_DEFAULT_AUDIO_TYPE,
                                            flags | JackPortIsInput, 0UL);
@@ -361,7 +362,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
     if (p->outputEnabled) {
       /* register output ports */
       for (i = 0; i < p->nChannels; i++) {
-        snprintf(portName, MAX_NAME_LEN + 4, "%s%d", p->outputPortName, i + 1);
+        snprintf(portName, sizeof(portName), "%s%d", p->outputPortName, i + 1);
         p->outPorts[i] = jack_port_register(p->client, &(portName[0]),
                                             JACK_DEFAULT_AUDIO_TYPE,
                                             flags | JackPortIsOutput, 0UL);

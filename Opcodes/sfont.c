@@ -105,8 +105,7 @@ static int32_t SoundFontLoad(CSOUND *csound, char *fname)
     /*   csound->ErrorMsg(csound, Str("Sfload: cannot use globals")); */
     /*   return; */
     /* } */
-    strncpy(soundFont->name, csound->GetFileName(fd), 256);
-    //soundFont->name[255]='\0';
+    strNcpy(soundFont->name, csound->GetFileName(fd), sizeof(soundFont->name));
     if (UNLIKELY(chunk_read(csound, fil, &soundFont->chunk.main_chunk)<0))
       csound->Message(csound, "%s", Str("sfont: failed to read file\n"));
     csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);

@@ -687,7 +687,7 @@ int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
                                  int32_t localKsmps)
 {
     PVSDAT *fsig = (PVSDAT *) varData;
-    int32_t NB, total, n, i, activeKsmps;
+    int32_t NB, total, n, i;
 
     if (infoOut != NULL) {
         memset(infoOut, 0, sizeof(debug_fsig_info_t));
@@ -739,12 +739,11 @@ int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
             }
             return 0;
         }
-        activeKsmps = (localKsmps > 0) ? localKsmps : csound->ksmps;
+        activeSubframes = (localKsmps > 0) ? (uint32_t)localKsmps : csound->ksmps;
         capacitySubframes = (uint32_t)(fsig->frame.size / stride);
         if (capacitySubframes < 1) {
             capacitySubframes = 1;
         }
-        activeSubframes = (uint32_t) activeKsmps;
         if (activeSubframes > capacitySubframes) {
             activeSubframes = capacitySubframes;
         }

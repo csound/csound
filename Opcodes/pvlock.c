@@ -373,7 +373,7 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
               tmp_im = bwin[i+1];
             }
 
-            tmp_real += 1e-15;
+            tmp_real = (MYFLT)(tmp_real + 1e-15);
             div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
 
             /* phases of tmp frame */
@@ -578,7 +578,7 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
               tmp_im = bwin[i+1];
             }
 
-            tmp_real += 1e-15;
+            tmp_real = (MYFLT)(tmp_real + 1e-15);
             div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
 
             /* phases of tmp frame */
@@ -834,7 +834,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
               tmp_im = bwin[i+1];
             }
 
-            tmp_real += 1e-15;
+            tmp_real = (MYFLT)(tmp_real + 1e-15);
             div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
 
             ph_real = tmp_real*div;
@@ -1054,7 +1054,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
               tmp_im = bwin[i+1];
             }
 
-            tmp_real += 1e-15;
+            tmp_real = (MYFLT)(tmp_real + 1e-15);
             div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
 
             ph_real = tmp_real*div;
@@ -1355,7 +1355,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
                 tmp_im = bwin[i+1];
               }
 
-              tmp_real += 1e-15;
+              tmp_real = (MYFLT)(tmp_real + 1e-15);
               div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
 
               ph_real = tmp_real*div;
@@ -1680,7 +1680,7 @@ static int32_t hilbert_array_init(CSOUND *csound, HILBA *p) {
     if (UNLIKELY(tabinit(csound, p->out, CS_KSMPS,
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
-    for(int k=0; k < CS_KSMPS; k++)
+    for(uint32_t k=0; k < CS_KSMPS; k++)
       ((COMPLEXDAT *)p->out->data)[k].isPolar = 0;  
     return OK;
 }

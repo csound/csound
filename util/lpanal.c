@@ -824,7 +824,7 @@ static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
     for (xp=thislp->x; xp-thislp->x < thislp->WINDIN;++xp,++sig) {
       /* VL 24.06.21 - adding a little noise to allow pole analysis
          to be carried out with silences */
-      *xp = (double) *sig + (thislp->storePoles ? noise(0.0001) : 0.);
+      *xp = (double) *sig + (thislp->storePoles ? noise(FL(0.0001)) : 0.);
     }
 
    /* Build system to be solved */

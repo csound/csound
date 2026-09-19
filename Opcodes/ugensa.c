@@ -104,8 +104,8 @@ static int32_t fog(CSOUND *csound, FOGS *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  int32   fund_inc, form_inc, floatph = p->floatph;
-  MYFLT   fund_incf, form_incf;
+  int32   fund_inc = 0, form_inc = 0, floatph = p->floatph;
+  MYFLT   fund_incf = FL(0.0), form_incf = FL(0.0);
   /* int64_t speed_inc; */ /*JMC added last--out for phs version*/
 
   ar = p->ar;

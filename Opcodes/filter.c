@@ -192,7 +192,7 @@ static int32_t ifilter(CSOUND *csound, FILTER* p)
                                            "(1 <= nb <= 51, 0 <= na <= 50)"));
     p->numa = (int32_t)*p->na;
     p->numb = (int32_t)*p->nb;
-    if (UNLIKELY(p->INOCOUNT < 3 + p->numb + p->numa))
+    if (UNLIKELY(p->INOCOUNT < 3U + (uint32_t) p->numb + (uint32_t) p->numa))
       return csound->InitError(csound, "%s", Str("filter2: not enough coefficients"));
 
     /* Calculate the total delay in samples and allocate memory for it */
@@ -231,7 +231,7 @@ static int32_t izfilter(CSOUND *csound, ZFILTER *p)
                                            "(1 <= nb <= 51, 0 <= na <= 50)"));
     p->numa = (int32_t)*p->na;
     p->numb = (int32_t)*p->nb;
-    if (UNLIKELY(p->INOCOUNT < 5 + p->numb + p->numa))
+    if (UNLIKELY(p->INOCOUNT < 5U + (uint32_t) p->numb + (uint32_t) p->numa))
       return csound->InitError(csound, "%s", Str("zfilter2: not enough coefficients"));
 
     /* Calculate the total delay in samples and allocate memory for it */

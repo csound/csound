@@ -114,7 +114,7 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
 #if defined(WIN32) && !defined(__CYGWIN__)
     if (p->sock == SOCKET_ERROR) {
       err = WSAGetLastError();
-      csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
+      csound->InitError(csound, Str("socket failed with error: %ld\n"), (long)err);
     }
 #else
     if (UNLIKELY(p->sock < 0)) {
@@ -372,7 +372,7 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
 #if defined(WIN32) && !defined(__CYGWIN__)
     if (p->sock == SOCKET_ERROR) {
       err = WSAGetLastError();
-      csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
+      csound->InitError(csound, Str("socket failed with error: %ld\n"), (long)err);
     }
 #else
     if (UNLIKELY(p->sock < 0)) {
@@ -564,7 +564,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     bsize = 0;
     if(iarg > nargs)
      return csound->InitError(csound,
-                     "not enough args: had %lu, needed %lu\n",
+                     "not enough args: had %zu, needed %zu\n",
                       nargs, iarg);
 
     for(i=0,iarg=0; i < p->type->size-1; i++) {
