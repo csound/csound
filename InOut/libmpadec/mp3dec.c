@@ -206,8 +206,10 @@ int32_t mp3dec_uninit(mp3dec_t mp3dec)
 
     if (!mp3 || (mp3->size != sizeof(struct mp3dec_t)) || !mp3->mpadec)
       return MP3DEC_RETCODE_INVALID_HANDLE;
-    if (mp3->flags & MP3DEC_FLAG_INITIALIZED)
+    /* Opening the file can succeed before stream initialization fails. */
+    if (mp3->fd != NULL)
       mp3->csound->FileClose(mp3->csound, mp3->fd, CSFILE_CLOSE_SYNC);
+    mp3->fd = NULL;
     mp3->f = NULL;
     mp3->flags = 0;
     mpadec_uninit(mp3->mpadec);
@@ -222,8 +224,9 @@ int32_t mp3dec_reset(mp3dec_t mp3dec)
 
     if (!mp3 || (mp3->size != sizeof(struct mp3dec_t)) || !mp3->mpadec)
       return MP3DEC_RETCODE_INVALID_HANDLE;
-    if (mp3->flags & MP3DEC_FLAG_INITIALIZED)
+    if (mp3->fd != NULL)
       mp3->csound->FileClose(mp3->csound, mp3->fd, CSFILE_CLOSE_SYNC);
+    mp3->fd = NULL;
     mp3->f = NULL;
     mp3->flags = 0;
     mpadec_reset(mp3->mpadec);
