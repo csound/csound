@@ -1832,15 +1832,13 @@ static int32_t
 ftset_common(CSOUND *csound, FTSET *p, int32_t init) {
     double number = (double)*p->tabnum;
     if (UNLIKELY(!(number >= INT32_MIN && number <= INT32_MAX)))
-        return init ? INITERR(Str("ftset: table number out of range"))
-                    : PERFERR(Str("ftset: table number out of range"));
+        return INITPERFERR(init, Str("ftset: table number out of range"));
     /* Use the same rounding as FTFind when caching the table number. */
     int32_t tabnum = MYFLT2LONG(*p->tabnum);
     if (p->tab == NULL || tabnum != p->lastTabnum) {
         p->tab = csound->FTFind(csound, p->tabnum);
         if (UNLIKELY(p->tab == NULL))
-            return init ? INITERRF(Str("Table %g not found"), *p->tabnum)
-                        : PERFERRF(Str("Table %g not found"), *p->tabnum);
+            return INITPERFERRF(init, Str("Table %g not found"), *p->tabnum);
         p->lastTabnum = tabnum;
     }
     MYFLT *data = p->tab->ftable;
@@ -1851,8 +1849,7 @@ ftset_common(CSOUND *csound, FTSET *p, int32_t init) {
     if (UNLIKELY(!(startval >= 0 && startval <= tablen &&
                    endval >= -tablen && endval < (double)INT32_MAX + 1 &&
                    stepval >= 1 && stepval < (double)INT32_MAX + 1)))
-        return init ? INITERR(Str("ftset: invalid slice bounds or step"))
-                    : PERFERR(Str("ftset: invalid slice bounds or step"));
+        return INITPERFERR(init, Str("ftset: invalid slice bounds or step"));
     int32_t start = (int32_t)startval;
     int32_t end = (int32_t)endval;
     int32_t step = (int32_t)stepval;
