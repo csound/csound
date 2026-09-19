@@ -38,6 +38,7 @@ if(BUILD_TESTS)
         schedule_string_test.cpp
         nxtpow2_test.cpp
         engine_test.cpp
+        doppler_test.cpp
         io_test.cpp
         local_ksmps_test.cpp
         lfsr_test.cpp

@@ -32,8 +32,6 @@
 
 using namespace csound;
 
-/* ***************  does not deal with unaligned signals ************** */
-
 class RCLowpassFilter {
 public:
   void initialize(MYFLT sampleRate, MYFLT cutoffHz, MYFLT initialValue) {
@@ -136,6 +134,8 @@ public:
   int32_t currentIndex;
 
   int32_t init(CSOUND *csound) {
+    // Reinitialization replaces the delay history as well as the parameters.
+    noteoff(csound);
     sampleRate = opds.insdshead->esr;
     blockRate = opds.insdshead->ekr;
     blockSize = opds.insdshead->ksmps;
@@ -150,6 +150,10 @@ public:
       smoothingFilterCutoff = MYFLT(6.0); // very conservative
     } else
       smoothingFilterCutoff = *jUpdateFilterCutoff;
+    if (!(speedOfSound > MYFLT(0.0)))
+      return csound->InitError(csound, "doppler: speed of sound must be positive");
+    if (!(smoothingFilterCutoff >= MYFLT(0.0)))
+      return csound->InitError(csound, "doppler: filter cutoff must be nonnegative");
     samplesPerDistance = sampleRate / speedOfSound;
     audioInterpolator = new LinearInterpolator;
     smoothingFilter = NULL;
@@ -160,18 +164,25 @@ public:
     return OK;
   }
   int32_t kontrol(CSOUND *csound) {
+    uint32_t offset = opds.insdshead->ksmps_offset;
+    uint32_t end = blockSize - opds.insdshead->ksmps_no_end;
+    if (offset) memset(audioOutput, 0, offset * sizeof(MYFLT));
+    if (end < (uint32_t)blockSize)
+      memset(audioOutput + end, 0, (blockSize - end) * sizeof(MYFLT));
+    if (offset >= end) return OK;
     MYFLT sourcePosition = *kSourcePosition;
     MYFLT micPosition = *kMicPosition;
 
     std::vector<MYFLT> *sourceBuffer = new std::vector<MYFLT>;
-    sourceBuffer->resize(blockSize);
-    for (uint32_t inputFrame = 0; inputFrame<(uint32_t)blockSize; inputFrame++) {
-      (*sourceBuffer)[inputFrame] = audioInput[inputFrame];
+    sourceBuffer->resize(end - offset);
+    for (uint32_t inputFrame = offset; inputFrame < end; inputFrame++) {
+      (*sourceBuffer)[inputFrame - offset] = audioInput[inputFrame];
     }
     audioBufferQueue->push_back(sourceBuffer);
     sourcePositionQueue->push_back(sourcePosition);
 
     std::vector<MYFLT> *currentBuffer = audioBufferQueue->front();
+    int32_t currentSize = (int32_t)currentBuffer->size();
     MYFLT targetPosition = sourcePositionQueue->front() - micPosition;
 
     // The smoothing filter cannot be initialized at i-time,
@@ -180,13 +191,13 @@ public:
       smoothingFilter = new RCLowpassFilter();
       smoothingFilter->initialize(sampleRate, smoothingFilterCutoff,
                                   targetPosition);
-      warn(csound, "Doppler::kontrol: sizeof(MYFLT):         %10d\n",
+      warn(csound, "Doppler::kontrol: sizeof(MYFLT):         %10zu\n",
            sizeof(MYFLT));
       warn(csound, "Doppler::kontrol: PI:                    %10.3f\n", M_PI);
-      warn(csound, "Doppler::kontrol: this:                  %10p\n", this);
+      warn(csound, "Doppler::kontrol: this:                  %10p\n", (void *)this);
       warn(csound, "Doppler::kontrol: sampleRate:            %10.3f\n",
            sampleRate);
-      warn(csound, "Doppler::kontrol: blockSize:             %10.3f\n",
+      warn(csound, "Doppler::kontrol: blockSize:             %10d\n",
            blockSize);
       warn(csound, "Doppler::kontrol: blockRate:             %10.3f\n",
            blockRate);
@@ -203,8 +214,8 @@ public:
     }
 
 
-    for (size_t outputFrame = 0;
-         outputFrame < (uint32_t)blockSize;
+    for (uint32_t outputFrame = offset;
+         outputFrame < end;
          outputFrame++) {
       MYFLT position = smoothingFilter->update(targetPosition);
       MYFLT distance = std::fabs(position);
@@ -213,14 +224,15 @@ public:
       MYFLT fraction = sourceTime - targetIndex;
       relativeIndex++;
       for (; targetIndex >= currentIndex; currentIndex++) {
-        if (currentIndex >= blockSize) {
-          relativeIndex -= blockSize;
-          currentIndex -= blockSize;
-          targetIndex -= blockSize;
+        if (currentIndex >= currentSize) {
+          relativeIndex -= currentSize;
+          currentIndex -= currentSize;
+          targetIndex -= currentSize;
           delete audioBufferQueue->front();
           audioBufferQueue->pop_front();
           sourcePositionQueue->pop_front();
           currentBuffer = audioBufferQueue->front();
+          currentSize = (int32_t)currentBuffer->size();
           targetPosition = sourcePositionQueue->front() - micPosition;
         }
         audioInterpolator->put((*currentBuffer)[currentIndex]);
@@ -261,7 +273,7 @@ extern "C" {
 OENTRY oentries[] = {{
                          (char *)"doppler", sizeof(Doppler), 0, (char *)"a",
                          (char *)"akkjj", (SUBR)Doppler::init_,
-                         (SUBR)Doppler::kontrol_,
+                         (SUBR)Doppler::kontrol_, (SUBR)Doppler::deinit_,
                      },
                      {
                          0,  0, 0, 0, 0, 0, 0, 0, 0,
