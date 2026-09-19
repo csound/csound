@@ -119,9 +119,6 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
-    int32   currpos;
-    int32_t     flag;
-        FOUT_FILE *f;
 } I_INFILE;
 
 typedef struct {
