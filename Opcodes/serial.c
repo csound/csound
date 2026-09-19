@@ -111,7 +111,7 @@ typedef struct SERIAL_GLOBALS_ {
     HANDLE  handles[10];
 } SERIAL_GLOBALS;
 
-static HANDLE get_port(CSOUND *csound, int32_t port)
+static HANDLE get_port(CSOUND *csound, MYFLT port)
 {
     HANDLE hport;
     SERIAL_GLOBALS *q;
@@ -121,7 +121,13 @@ static HANDLE get_port(CSOUND *csound, int32_t port)
       csound->ErrorMsg(csound, Str("No ports available"));
       return NULL;
     }
-    hport = (HANDLE)q->handles[port];
+    if (UNLIKELY(!(port >= 0 && port < q->maxind))) {
+      csound->ErrorMsg(csound, Str("Invalid serial port"));
+      return NULL;
+    }
+    hport = q->handles[(int32_t)port];
+    if (UNLIKELY(hport == NULL))
+      csound->ErrorMsg(csound, Str("Serial port is closed"));
     return hport;
 }
 #endif
@@ -261,6 +267,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     IGN(csound);
     HANDLE hSerial;
     DCB dcbSerialParams = {0};
+    COMMTIMEOUTS timeouts = {0};
     int32_t i;
     /* NEED TO CREATE A GLOBAL FOR HANDLE */
     SERIAL_GLOBALS *q;
@@ -292,6 +299,10 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     }
     memset(&dcbSerialParams, 0, sizeof(dcbSerialParams));
     dcbSerialParams.DCBlength=sizeof(dcbSerialParams);
+    if (UNLIKELY(!GetCommState(hSerial, &dcbSerialParams))) {
+      CloseHandle(hSerial);
+      return csound->InitError(csound, Str("Cannot read serial port settings"));
+    }
     switch (baud) {
     case 1200:  dcbSerialParams.BaudRate = CBR_1200; break;
     case 2400:  dcbSerialParams.BaudRate = CBR_2400; break;
@@ -310,14 +321,22 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     dcbSerialParams.ByteSize=8;
     dcbSerialParams.StopBits=ONESTOPBIT;
     dcbSerialParams.Parity=NOPARITY;
-    SetCommState(hSerial, &dcbSerialParams);
-    for (i=0; i>q->maxind; i++) {
+    dcbSerialParams.fBinary=TRUE;
+    /* Reads must return available bytes without blocking performance. */
+    timeouts.ReadIntervalTimeout = MAXDWORD;
+    if (UNLIKELY(!SetCommState(hSerial, &dcbSerialParams) ||
+                 !SetCommTimeouts(hSerial, &timeouts))) {
+      CloseHandle(hSerial);
+      return csound->InitError(csound, Str("Cannot configure serial port"));
+    }
+    for (i=0; i<q->maxind; i++) {
       if (q->handles[i]==NULL) {
         q->handles[i] = hSerial;
         return i;
       }
     }
     if (UNLIKELY(q->maxind>=10)) {
+      CloseHandle(hSerial);
       csound->InitError(csound, Str("Number of serial handles exhausted"));
       return -1;
     }
@@ -363,9 +382,10 @@ int32_t serialEnd(CSOUND *csound, SERIALEND *p)
     SERIAL_GLOBALS *q;
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
-    if (UNLIKELY(q = NULL))
+    HANDLE port = get_port(csound, *p->port);
+    if (UNLIKELY(port == NULL))
       return csound->PerfError(csound, &(p->h), Str("Nothing to close"));
-    CloseHandle((HANDLE)q->handles[(int32_t)*p->port]);
+    if (UNLIKELY(!CloseHandle(port))) return NOTOK;
     q->handles[(int32_t)*p->port] = NULL;
 #else
     close((int32_t)*p->port);
@@ -377,7 +397,7 @@ int32_t serialWrite(CSOUND *csound, SERIALWRITE *p)
 {
     IGN(csound);
 #ifdef WIN32
-    HANDLE port = get_port(csound, (int32_t)*p->port);
+    HANDLE port = get_port(csound, *p->port);
     if (UNLIKELY(port==NULL)) return NOTOK;
 #endif
     {
@@ -386,8 +406,9 @@ int32_t serialWrite(CSOUND *csound, SERIALWRITE *p)
       if (UNLIKELY(write((int32_t)*p->port, &b, 1)<0))
         return NOTOK;
 #else
-      int32_t nbytes;
-      WriteFile(port, &b, 1, (PDWORD)&nbytes, NULL);
+      DWORD nbytes;
+      if (UNLIKELY(!WriteFile(port, &b, 1, &nbytes, NULL) || nbytes != 1))
+        return NOTOK;
 #endif
     }
     return OK;
@@ -395,35 +416,36 @@ int32_t serialWrite(CSOUND *csound, SERIALWRITE *p)
 
 int32_t serialWrite_S(CSOUND *csound, SERIALWRITE *p)
 {
-     IGN(csound);
-#ifdef WIN32
-    HANDLE port = get_port(csound, (int32_t)*p->port);
-    if (UNLIKELY(port==NULL)) return NOTOK;
-#endif
+    STRINGDAT *str = (STRINGDAT*)p->toWrite;
+    size_t length = strlen(str->data);
 #ifndef WIN32
-    if (UNLIKELY(write((int32_t)*p->port,
-                       ((STRINGDAT*)p->toWrite)->data,
-                       ((STRINGDAT*)p->toWrite)->size))!=
-        (int64_t) ((STRINGDAT*)p->toWrite)->size) /* Does Windows write behave correctly? */
-        return NOTOK;
+    IGN(csound);
+    if (UNLIKELY(write((int32_t)*p->port, str->data, length) !=
+                 (ssize_t)length))
+      return NOTOK;
 #else
-      int32_t nbytes;
-      WriteFile(port,p->toWrite, strlen((char *)p->toWrite),
-                (PDWORD)&nbytes, NULL);
+    HANDLE port = get_port(csound, *p->port);
+    DWORD nbytes;
+    if (UNLIKELY(port == NULL)) return NOTOK;
+    if (UNLIKELY(!WriteFile(port, str->data, (DWORD)length, &nbytes, NULL) ||
+                 nbytes != length))
+      return NOTOK;
 #endif
     return OK;
 }
-
 
 int32_t serialRead(CSOUND *csound, SERIALREAD *p)
 {
     IGN(csound);
     unsigned char b = 0;
 #ifdef WIN32
-    size_t bytes;
-    HANDLE port = get_port(csound, (int32_t)*p->port);
+    DWORD bytes;
+    HANDLE port = get_port(csound, *p->port);
     if (UNLIKELY(port==NULL)) return NOTOK;
-    ReadFile(port, &b, 1, (PDWORD)&bytes, NULL);
+    if (UNLIKELY(!ReadFile(port, &b, 1, &bytes, NULL))) {
+      *p->rChar = -1;
+      return NOTOK;
+    }
 #else
     ssize_t bytes;
     bytes = read((int32_t)*p->port, &b, 1);
@@ -440,10 +462,10 @@ int32_t serialPrint(CSOUND *csound, SERIALPRINT *p)
 {
     char str[32769];
 #ifdef WIN32
-    size_t bytes;
-    HANDLE port = get_port(csound, (int32_t)*p->port);
+    DWORD bytes;
+    HANDLE port = get_port(csound, *p->port);
     if (UNLIKELY(port==NULL)) return NOTOK;
-    ReadFile(port, str, 32768, (PDWORD)&bytes, NULL);
+    if (UNLIKELY(!ReadFile(port, str, 32768, &bytes, NULL))) return NOTOK;
 #else
     ssize_t bytes;
     bytes  = read((int32_t)*p->port, str, 32768);
@@ -458,8 +480,12 @@ int32_t serialPrint(CSOUND *csound, SERIALPRINT *p)
 int32_t serialFlush(CSOUND *csound, SERIALFLUSH *p)
 {
      IGN(csound);
-#if !defined(WIN32) && !defined(__wasm__)
-    tcflush(*p->port, TCIFLUSH); // who knows if this works...
+#ifdef WIN32
+    HANDLE port = get_port(csound, *p->port);
+    if (UNLIKELY(port == NULL || !PurgeComm(port, PURGE_RXCLEAR)))
+      return NOTOK;
+#elif !defined(__wasm__)
+    tcflush(*p->port, TCIFLUSH);
 #endif
     return OK;
 }
@@ -558,9 +584,9 @@ unsigned char arduino_get_byte(int32_t port)
 unsigned char arduino_get_byte(HANDLE port)
 {
     unsigned char b;
-    size_t bytes;
+    DWORD bytes;
  top:
-    ReadFile(port, &b, 1, (PDWORD)&bytes, NULL);
+    if (!ReadFile(port, &b, 1, &bytes, NULL)) goto top;
     if (bytes != 1) goto top;
     return b;
 }
@@ -750,31 +776,31 @@ int32_t arduinoStop(CSOUND* csound, ARD_START* p)
 
 static OENTRY serial_localops[] = {
     { (char *)"serialBegin", S(SERIALBEGIN), 0,  (char *)"i", (char *)"So",
-      (SUBR)serialBegin, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL, 2 },
+      (SUBR)serialBegin, (SUBR)NULL, (SUBR)NULL, NULL, 2 },
     { (char *)"serialEnd", S(SERIALEND), 0, (char *)"", (char *)"i",
-      (SUBR)NULL, (SUBR)serialEnd, (SUBR)NULL, (SUBR)NULL, 2 },
+      (SUBR)NULL, (SUBR)serialEnd, (SUBR)NULL, NULL, 2 },
     { (char *)"serialWrite_i", S(SERIALWRITE), 0,  (char *)"", (char *)"ii",
-      (SUBR)serialWrite, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL, 2 },
+      (SUBR)serialWrite, (SUBR)NULL, (SUBR)NULL, NULL, 2 },
     { (char *)"serialWrite_i.S", S(SERIALWRITE), 0, (char *)"", (char *)"iS",
-      (SUBR)serialWrite_S, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL, 2 },
+      (SUBR)serialWrite_S, (SUBR)NULL, (SUBR)NULL, NULL, 2 },
     { (char *)"serialWrite", S(SERIALWRITE), WR, (char *)"", (char *)"ik",
-      (SUBR)NULL, (SUBR)serialWrite, (SUBR)NULL, (SUBR)NULL, 2 },
+      (SUBR)NULL, (SUBR)serialWrite, (SUBR)NULL, NULL, 2 },
     { (char *)"serialWrite.S", S(SERIALWRITE), WR, (char *)"", (char *)"iS",
-      (SUBR)NULL, (SUBR)serialWrite_S, (SUBR)NULL, (SUBR)NULL, 2 },
+      (SUBR)NULL, (SUBR)serialWrite_S, (SUBR)NULL, NULL, 2 },
     { (char *)"serialRead", S(SERIALREAD), 0, (char *)"k", (char *)"i",
-      (SUBR)NULL, (SUBR)serialRead, (SUBR)NULL, (SUBR)NULL, 2 },
+      (SUBR)NULL, (SUBR)serialRead, (SUBR)NULL, NULL, 2 },
     { (char *)"serialPrint", S(SERIALPRINT), WR, (char *)"", (char *)"i",
-      (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL, (SUBR)NULL, 2 },
+      (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL, NULL, 2 },
     { (char *)"serialFlush", S(SERIALFLUSH), 0, (char *)"", (char *)"i",
-      (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL, (SUBR)NULL, 2 },
+      (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL, NULL, 2 },
     { "arduinoStart", S(ARD_START), 0,  "i", "So", (SUBR)arduinoStart, NULL,
-      (SUBR) arduino_deinit, (SUBR)NULL, 2 },
+      (SUBR) arduino_deinit, NULL, 2 },
     { "arduinoRead", S(ARD_READ), 0, "k", "iio",
-      (SUBR)arduinoReadSetup, (SUBR)arduinoRead, (SUBR)NULL, (SUBR)NULL, 2 },
+      (SUBR)arduinoReadSetup, (SUBR)arduinoRead, (SUBR)NULL, NULL, 2 },
     { "arduinoReadF", S(ARD_READF), 0, "k", "iiii",
-      (SUBR)arduinoReadFSetup, (SUBR)arduinoReadF, (SUBR)NULL, (SUBR)NULL, 2 },
+      (SUBR)arduinoReadFSetup, (SUBR)arduinoReadF, (SUBR)NULL, NULL, 2 },
     { "arduinoStop", S(ARD_START), 0,  "", "i", (SUBR)arduinoStop, NULL,
-      (SUBR)NULL, (SUBR)NULL, 2 },
+      (SUBR)NULL, NULL, 2 },
     /* aliases */
     { (char *)"serialbegin", S(SERIALBEGIN), 0,  (char *)"i", (char *)"So",
       (SUBR)serialBegin, (SUBR)NULL, (SUBR)NULL   },
