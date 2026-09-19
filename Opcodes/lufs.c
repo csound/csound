@@ -70,14 +70,13 @@ typedef struct {
         MYFLT   pwro1,pwro2,pwroST1,pwroST2;
 } LUFS2;
 
-static MYFLT filterK1(filter* fil, MYFLT s)
-{
-        MYFLT w = s - fil->x1 * fil->a1 - fil->x2 * fil->a2;
-        MYFLT ans = w * fil->b0 + fil->x1 * fil->b1 + fil->x2 * fil->b2;
-        fil->x2 = fil->x1;
-        fil->x1 = w;
-        return ans;
-}
+#define LUFS_FILTER(fil, sample, result)                                     \
+    do {                                                                    \
+        MYFLT w = (sample) - (fil).x1 * (fil).a1 - (fil).x2 * (fil).a2;        \
+        (result) = w * (fil).b0 + (fil).x1 * (fil).b1 + (fil).x2 * (fil).b2;   \
+        (fil).x2 = (fil).x1;                                                 \
+        (fil).x1 = w;                                                       \
+    } while (0)
 
 static int32_t lufs_init(CSOUND *csound, LUFS *p)
 {
@@ -157,42 +156,42 @@ static int32_t lufs_perf(CSOUND *csound, LUFS *p)
     int32_t numsmps = 4 * p->q; //  400ms block length;
     int32_t numsmpsST = 30 * p->q; // 3s block length;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    MYFLT fullscale = csound->Get0dBFS(csound);
+    MYFLT powerScale = FL(1.0) / (fullscale * fullscale);
+
+    nsmps -= p->h.insdshead->ksmps_no_end;
 
       for (i=offset; i<nsmps; i++) {
 
-        tempval   = filterK1(&p->filter1, p->in[i]);
-        tempval   = filterK1(&p->filter2, tempval);
+        LUFS_FILTER(p->filter1, p->in[i], tempval);
+        LUFS_FILTER(p->filter2, tempval, tempval);
         p->pwr_[3] += tempval * tempval;  //x^2
         p->m++;
         // new 400 ms block is finished
         if (p->m == p->q) {
           p->m = 0; // rewind of pointer
-          p->pwro = (p->pwr_[0] + p->pwr_[1] + p->pwr_[2] + p->pwr_[3])/numsmps;
+          p->pwro = (p->pwr_[0] + p->pwr_[1] + p->pwr_[2] + p->pwr_[3])
+                    * powerScale / numsmps;
           // momentary loudness of the segment - mono, LUFS
           mloudness = -0.691 + 10 * log10(p->pwro);
           *p->kmom = mloudness;
 
-          // gating of momentary power
+          // Apply both gates before adding the current block.
           if (mloudness >= -70) {
             p->mP += p->pwro;
             p->jcount++;
+            mmpower = p->mP / p->jcount;
+            Gamma = -0.691 + 10 * LOG10(mmpower) - 10;
+            if (mloudness >= Gamma) {
+              p->mPk += p->pwro;
+              p->kcount++;
+            }
           }
-          //mean momentary power
-          mmpower = p->mP / p->jcount;
-
-          // relative treshold
-          Gamma = -0.691 + 10 * LOG10(mmpower) - 10;
-
-                if (mloudness >= Gamma) {
-                        p->mPk += p->pwro;
-                        p->kcount++;
-                }
-
-                //average power
-                ampower = p->mPk / p->kcount;
-
-                // Integrated Loudness
-                *p->kint = -0.691 + 10 * LOG10(ampower);
+          // Keep the initial/reset value until a block passes the gates.
+          if (p->kcount != 0) {
+            ampower = p->mPk / p->kcount;
+            *p->kint = -0.691 + 10 * LOG10(ampower);
+          }
 
                 // next iteration prepare
                 p->pwr_[0] = p->pwr_[1];
@@ -200,11 +199,12 @@ static int32_t lufs_perf(CSOUND *csound, LUFS *p)
                 p->pwr_[2] = p->pwr_[3];
 
         // new 3 s block is finished
+                p->pwroST = 0;
                 for (z=0; z<29; z++){
                         p->pwroST += p->pwr_ST[z];
                 }
                 p->pwroST += p->pwr_[3];
-                p->pwroST /= numsmpsST;
+                p->pwroST *= powerScale / numsmpsST;
         // short-term loudness of the segment - mono, LUFS
                 *p->kst = -0.691 + 10 * log10(p->pwroST);
                 p->pwr_ST[29] = p->pwr_[3];
@@ -307,14 +307,18 @@ static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
     int32_t numsmps = 4 * p->q; //  400ms block length;
     int32_t numsmpsST = 30 * p->q; // 3s block length;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    MYFLT fullscale = csound->Get0dBFS(csound);
+    MYFLT powerScale = FL(1.0) / (fullscale * fullscale);
+
+    nsmps -= p->h.insdshead->ksmps_no_end;
 
       for (i=offset; i<nsmps; i++) {
 
-                tempval1  =     filterK1(&p->filter1, p->in1[i]);
-        tempval1  = filterK1(&p->filter2, tempval1);
+        LUFS_FILTER(p->filter1, p->in1[i], tempval1);
+        LUFS_FILTER(p->filter2, tempval1, tempval1);
 
-        tempval2  =     filterK1(&p->filter3, p->in2[i]);
-        tempval2  = filterK1(&p->filter4, tempval2);
+        LUFS_FILTER(p->filter3, p->in2[i], tempval2);
+        LUFS_FILTER(p->filter4, tempval2, tempval2);
 
         p->pwr_1[3] += tempval1 * tempval1;  //x^2
         p->pwr_2[3] += tempval2 * tempval2;  //x^2
@@ -322,32 +326,28 @@ static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
         // new 400 ms block is finished
         if (p->m == p->q) {
           p->m = 0; // rewind of pointer
-          p->pwro1 = (p->pwr_1[0] + p->pwr_1[1] + p->pwr_1[2] + p->pwr_1[3])/numsmps;
-          p->pwro2 = (p->pwr_2[0] + p->pwr_2[1] + p->pwr_2[2] + p->pwr_2[3])/numsmps;
+          p->pwro1 = (p->pwr_1[0] + p->pwr_1[1] + p->pwr_1[2] + p->pwr_1[3])
+                     * powerScale / numsmps;
+          p->pwro2 = (p->pwr_2[0] + p->pwr_2[1] + p->pwr_2[2] + p->pwr_2[3])
+                     * powerScale / numsmps;
           // momentary loudness of the segment - mono, LUFS
           mloudness = -0.691 + 10 * log10(p->pwro1 + p->pwro2);
           *p->kmom = mloudness;
-          // gating of momentary power
+          // Use the channel sum for both gates, as for momentary loudness.
           if (mloudness >= -70) {
             p->mP += p->pwro1 + p->pwro2;
             p->jcount++;
+            mmpower = p->mP / p->jcount;
+            Gamma = -0.691 + 10 * LOG10(mmpower) - 10;
+            if (mloudness >= Gamma) {
+              p->mPk += p->pwro1 + p->pwro2;
+              p->kcount++;
+            }
           }
-          //mean momentary power
-          mmpower = 0.5 * p->mP / p->jcount;
-
-          // relative treshold
-          Gamma = -0.691 + 10 * LOG10(mmpower) - 10;
-
-          if (mloudness >= Gamma) {
-            p->mPk += p->pwro1 + p->pwro2;
-            p->kcount++;
+          if (p->kcount != 0) {
+            ampower = p->mPk / p->kcount;
+            *p->kint = -0.691 + 10 * LOG10(ampower);
           }
-
-          //average power
-          ampower =  p->mPk / p->kcount;
-
-          // Integrated Loudness
-          *p->kint = -0.691 + 10 * LOG10(ampower);
 
           // next iteration prepare
           p->pwr_1[0] = p->pwr_1[1];
@@ -358,14 +358,15 @@ static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
           p->pwr_2[1] = p->pwr_2[2];
           p->pwr_2[2] = p->pwr_2[3];
           // new 3 s block is finished
+          p->pwroST1 = p->pwroST2 = 0;
           for (z=0; z<29; z++){
             p->pwroST1 += p->pwr_ST1[z];
             p->pwroST2 += p->pwr_ST2[z];
           }
           p->pwroST1 += p->pwr_1[3];
           p->pwroST2 += p->pwr_2[3];
-          p->pwroST1 /= numsmpsST;
-          p->pwroST2 /= numsmpsST;
+          p->pwroST1 *= powerScale / numsmpsST;
+          p->pwroST2 *= powerScale / numsmpsST;
           p->pwr_ST1[29] = p->pwr_1[3];
           p->pwr_ST2[29] = p->pwr_2[3];
           for (z=0; z<29; z++){
@@ -387,6 +388,8 @@ static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
     }
     return OK;
 }
+
+#undef LUFS_FILTER
 
 #define S(x) sizeof(x)
 
