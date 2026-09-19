@@ -1412,7 +1412,7 @@ CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
     lfsr_init_modules,
 #endif
     csoundModuleInit_fractalnoise,
-#if !defined(BARE_METAL) && !defined(__wasi__)
+#if !defined(BARE_METAL)
     csoundModuleInit_ftsamplebank,
 #endif
     scansyn_init_,
