@@ -364,6 +364,21 @@ int32_t iktrian(CSOUND *csound, PRAND *p)
     return OK;
 }
 
+/* Higher rates can emit only one new value per output sample.  Keep their
+   phase remainder while forcing that update. */
+#define INTERPOLATED_RANDOM_INCREMENT(inc_, rate_, scale_)                 \
+    do {                                                                   \
+      MYFLT scaled_ = (rate_) * (scale_);                                  \
+      if (LIKELY(scaled_ > FL(0.0) && scaled_ < FMAXLEN))                  \
+        (inc_) = (uint32_t)scaled_;                                        \
+      else if (UNLIKELY(!(scaled_ > FL(0.0))))                             \
+        (inc_) = 0U;                                                       \
+      else if (scaled_ < (MYFLT)UINT64_MAX)                                \
+        (inc_) = MAXLEN + (uint32_t)((uint64_t)scaled_ & PHMASK);          \
+      else                                                                 \
+        (inc_) = MAXLEN;                                                   \
+    } while (0)
+
 int32_t exprndiset(CSOUND *csound, PRANDI *p)
 {
     p->num1 = exprand(csound, *p->arg1);
@@ -377,13 +392,15 @@ int32_t exprndiset(CSOUND *csound, PRANDI *p)
 
 int32_t kexprndi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
-    /* IV - Jul 11 2002 */
+    uint32_t inc;
+    MYFLT range = *p->arg1;
+    INTERPOLATED_RANDOM_INCREMENT(inc, *p->xcps, CS_KICVT);
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
-    p->phs += (int32_t)(*p->xcps * CS_KICVT); /* phs += inc           */
+    p->phs += inc;
     if (UNLIKELY(p->phs >= MAXLEN)) {         /* when phs overflows,  */
       p->phs &= PHMASK;                       /*      mod the phs     */
       p->num1 = p->num2;                      /*      & new num vals  */
-      p->num2 = exprand(csound, *p->arg1);
+      p->num2 = exprand(csound, range);
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
@@ -397,7 +414,7 @@ int32_t iexprndi(CSOUND *csound, PRANDI *p)
 
 int32_t aexprndi(CSOUND *csound, PRANDI *p)
 {
-   int32_t       phs = p->phs, inc;
+    uint32_t phs = p->phs, inc = 0;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -406,21 +423,22 @@ int32_t aexprndi(CSOUND *csound, PRANDI *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    inc = (int32_t)(cpsp[0] * CS_SICVT);
+    if (!p->cpscod)
+      INTERPOLATED_RANDOM_INCREMENT(inc, cpsp[0], CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset;n<nsmps;n++) {
+      if (p->cpscod)
+        INTERPOLATED_RANDOM_INCREMENT(inc, cpsp[n], CS_SICVT);
       /* IV - Jul 11 2002 */
       if (p->ampcod)
         ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[n];
       else
         ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[0];
       phs += inc;                                /* phs += inc       */
-      if (p->cpscod)
-        inc = (int32_t)(cpsp[n] * CS_SICVT);  /*   (nxt inc)      */
       if (UNLIKELY(phs >= MAXLEN)) {             /* when phs o'flows */
         phs &= PHMASK;
         p->num1 = p->num2;
@@ -535,13 +553,15 @@ int32_t gaussiset(CSOUND *csound, PRANDI *p)
 
 int32_t kgaussi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
-    /* IV - Jul 11 2002 */
+    uint32_t inc;
+    MYFLT range = *p->arg1;
+    INTERPOLATED_RANDOM_INCREMENT(inc, *p->xcps, CS_KICVT);
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
-    p->phs += (int32_t)(*p->xcps * CS_KICVT); /* phs += inc           */
+    p->phs += inc;
     if (UNLIKELY(p->phs >= MAXLEN)) {           /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
       p->num1 = p->num2;                        /*      & new num vals  */
-      p->num2 = gaussrand(csound, *p->arg1);
+      p->num2 = gaussrand(csound, range);
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
@@ -555,7 +575,7 @@ int32_t igaussi(CSOUND *csound, PRANDI *p)
 
 int32_t agaussi(CSOUND *csound, PRANDI *p)
 {
-   int32_t       phs = p->phs, inc;
+    uint32_t phs = p->phs, inc = 0;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -564,21 +584,22 @@ int32_t agaussi(CSOUND *csound, PRANDI *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    inc = (int32_t)(*cpsp * CS_SICVT);
+    if (!p->cpscod)
+      INTERPOLATED_RANDOM_INCREMENT(inc, cpsp[0], CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset;n<nsmps;n++) {
+      if (p->cpscod)
+        INTERPOLATED_RANDOM_INCREMENT(inc, cpsp[n], CS_SICVT);
       /* IV - Jul 11 2002 */
       if (p->ampcod)
         ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[n];
       else
         ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[0];
       phs += inc;                                /* phs += inc       */
-      if (p->cpscod)
-        inc = (int32_t)(cpsp[n] * CS_SICVT);  /*   (nxt inc)      */
       if (UNLIKELY(phs >= MAXLEN)) {             /* when phs o'flows */
         phs &= PHMASK;
         p->num1 = p->num2;
@@ -633,13 +654,15 @@ int32_t cauchyiset(CSOUND *csound, PRANDI *p)
 
 int32_t kcauchyi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
-    /* IV - Jul 11 2002 */
+    uint32_t inc;
+    MYFLT range = *p->arg1;
+    INTERPOLATED_RANDOM_INCREMENT(inc, *p->xcps, CS_KICVT);
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
-    p->phs += (int32_t)(*p->xcps * CS_KICVT); /* phs += inc           */
+    p->phs += inc;
     if (UNLIKELY(p->phs >= MAXLEN)) {         /* when phs overflows,  */
       p->phs &= PHMASK;                       /*      mod the phs     */
       p->num1 = p->num2;                      /*      & new num vals  */
-      p->num2 = cauchrand(csound, *p->arg1);
+      p->num2 = cauchrand(csound, range);
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
@@ -653,7 +676,7 @@ int32_t icauchyi(CSOUND *csound, PRANDI *p)
 
 int32_t acauchyi(CSOUND *csound, PRANDI *p)
 {
-   int32_t       phs = p->phs, inc;
+    uint32_t phs = p->phs, inc = 0;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -662,21 +685,22 @@ int32_t acauchyi(CSOUND *csound, PRANDI *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    inc = (int32_t)(*cpsp * CS_SICVT);
+    if (!p->cpscod)
+      INTERPOLATED_RANDOM_INCREMENT(inc, cpsp[0], CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset;n<nsmps;n++) {
+      if (p->cpscod)
+        INTERPOLATED_RANDOM_INCREMENT(inc, cpsp[n], CS_SICVT);
       /* IV - Jul 11 2002 */
       if (p->ampcod)
         ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[n];
       else
         ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[0];
       phs += inc;                                /* phs += inc       */
-      if (p->cpscod)
-        inc = (int32_t)(cpsp[n] * CS_SICVT);  /*   (nxt inc)      */
       if (UNLIKELY(phs >= MAXLEN)) {             /* when phs o'flows */
         phs &= PHMASK;
         p->num1 = p->num2;
@@ -687,6 +711,8 @@ int32_t acauchyi(CSOUND *csound, PRANDI *p)
     p->phs = phs;
     return OK;
 }
+
+#undef INTERPOLATED_RANDOM_INCREMENT
 
 int32_t abeta(CSOUND *csound, PRAND *p)     /* Beta random functions   */
 {
