@@ -39,6 +39,7 @@ if(BUILD_TESTS)
         io_test.cpp
         local_ksmps_test.cpp
         lfsr_test.cpp
+        arduino_test.cpp
         osc_blob_test.cpp
         pvsinit_test.cpp
         paulstretch_test.cpp
