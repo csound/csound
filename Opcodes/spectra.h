@@ -147,7 +147,8 @@ typedef struct {
         AUXCH   auxch1, auxch2;
         int32_t     pdist[MAXPTL], nptls, rolloff;
         MYFLT   pmult[MAXPTL], confact, kvalsav, kval, kavl, kinc, kanc;
-        MYFLT   *flop, *fhip, *fundp, *oct0p, threshon, threshoff;
+        MYFLT   *fundp, threshon, threshoff;
+        int32_t basebin, lowbin, highbin;
         int32_t     winpts, jmpcount, playing;
         SPECDAT wfund;
 } PITCH;
