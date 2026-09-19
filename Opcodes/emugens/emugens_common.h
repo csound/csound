@@ -15,6 +15,12 @@
 #define PERFERR(m) (csound->PerfError(csound, &(p->h), "%s", m))
 #define PERFERRF(fmt, ...) (csound->PerfError(csound, &(p->h), fmt, __VA_ARGS__))
 
+/* Shared handlers report errors at the rate of their caller. */
+#define INITPERFERR(is_init, msg) \
+    ((is_init) ? INITERR(msg) : PERFERR(msg))
+#define INITPERFERRF(is_init, fmt, ...) \
+    ((is_init) ? INITERRF(fmt, __VA_ARGS__) : PERFERRF(fmt, __VA_ARGS__))
+
 #ifndef MAX
 #define MAX(a,b) ((a>b)?(a):(b))
 #define MIN(a,b) ((a>b)?(b):(a))
