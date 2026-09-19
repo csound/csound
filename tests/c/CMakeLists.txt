@@ -62,6 +62,10 @@ if(BUILD_TESTS)
         ../../Opcodes/osc_blob.c
     )
 
+    if(NOT BUILD_PLUGINS)
+        target_sources(unittests PRIVATE mp3_state_test.cpp)
+    endif()
+
     set(unittests_CFLAGS ${libcsound_CFLAGS})
     list(REMOVE_ITEM unittests_CFLAGS -D__BUILDING_LIBCSOUND)
     target_compile_options(unittests PRIVATE ${unittests_CFLAGS})
