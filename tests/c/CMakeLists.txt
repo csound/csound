@@ -58,6 +58,7 @@ if(BUILD_TESTS)
         analysis_file_safety_test.cpp
         test_new_type.cpp
         test_pfields.cpp
+        userrnd_test.cpp
         ugen_test.cpp
         ../../Opcodes/osc_blob.c
     )
