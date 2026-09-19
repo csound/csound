@@ -2313,16 +2313,12 @@ int32_t invalset_S(CSOUND *csound, INVAL *p)
 
 int32_t invalsetgo(CSOUND *csound, INVAL *p)
 {
-  int32_t ans = invalset(csound, p);
-  if (ans==OK) ans = kinval(csound, p);
-  return ans;
+  return invalset(csound, p);
 }
 
 int32_t invalsetSgo(CSOUND *csound, INVAL *p)
 {
-  int32_t ans = invalset_S(csound, p);
-  if (ans==OK) ans = kinval(csound, p);
-  return ans;
+  return invalset_S(csound, p);
 }
 
 
@@ -2330,6 +2326,7 @@ int32_t invalset_string(CSOUND *csound, INVAL *p)
 {
   int32_t   err;
   int32_t type;
+  STRINGDAT *out = (STRINGDAT *) p->value;
 
   /* convert numerical channel to string name */
   csound->AuxAlloc(csound, 64, &p->channelName);
@@ -2343,6 +2340,11 @@ int32_t invalset_string(CSOUND *csound, INVAL *p)
                             type);
   if (UNLIKELY(err))
     return print_chn_err(p, err);
+
+  if (out->size < 256) {
+    out->data = csound->ReAlloc(csound, out->data, 256);
+    out->size = 256;
+  }
 
   /* grab input now for use during i-pass */
   kinvalS(csound, p);
