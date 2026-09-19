@@ -541,7 +541,8 @@ static int32_t init_logarray(CSOUND *csound, FFT *p) {
 }
 
 static int32_t perf_logarray(CSOUND *csound, FFT *p) {
-  IGN(csound);
+  if (UNLIKELY(tabcheck(csound, p->out, p->in->sizes[0], &p->h) != OK))
+    return NOTOK;
   int32_t i, end = p->out->sizes[0];
   MYFLT bas = p->b;
   MYFLT *in, *out;
