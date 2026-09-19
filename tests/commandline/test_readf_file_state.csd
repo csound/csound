@@ -1,5 +1,5 @@
 <CsTest>
-description = "readf and readfi retain EOF and restart cleanly for new notes"
+description = "readf and readfi retain EOF, publish string updates and restart cleanly"
 
 [expect]
 exit = 0
@@ -17,12 +17,29 @@ giChecks init 0
 gkChecks init 0
 
 instr 1
+  setksmps p4
   SText, kLine readf "readf_lines.txt"
   SNumeric, kNumeric readf 9177
+  SCopy strcpyk SText
+  SNumericCopy strcpyk SNumeric
   kCycle timeinstk
   kExpected = (kCycle <= 2 ? kCycle : -1)
   if kLine != kExpected || kNumeric != kExpected then
     printks "readf cycle %g: expected %g, got %g and %g\n", 0, kCycle, kExpected, kLine, kNumeric
+    exitnowk -1
+  endif
+  if kCycle == 1 then
+    kText strcmpk SCopy, "first\n"
+    kNumericText strcmpk SNumericCopy, "first\n"
+  elseif kCycle == 2 then
+    kText strcmpk SCopy, "second\n"
+    kNumericText strcmpk SNumericCopy, "second\n"
+  else
+    kText strcmpk SCopy, ""
+    kNumericText strcmpk SNumericCopy, ""
+  endif
+  if kText != 0 || kNumericText != 0 then
+    printks "readf did not update its copied text on cycle %g\n", 0, kCycle
     exitnowk -1
   endif
   if kCycle > 2 then
@@ -85,15 +102,17 @@ read:
 endin
 
 instr 99
-  if giChecks != 4 || i(gkChecks) != 3 then
+  if giChecks != 4 || i(gkChecks) != 5 then
     prints "readf file state checks did not complete\n"
     exitnow -1
   endif
 endin
 </CsInstruments>
 <CsScore>
-i1 0 .01
-i1 .02 .01
+i1 0 .01 32
+i1 .02 .01 32
+i1 .04 .01 1
+i1 .06 .01 4
 ; Finish at EOF, then stop early and reuse the same instrument instance.
 i2 0 .01 5
 i2 .02 .01 1

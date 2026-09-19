@@ -1039,7 +1039,6 @@ static int32_t oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
     if(*p->kwhen != p->last) {
       int32_t i, n, size = 0, tstrs,
         dstrs, msize, buffsize = 0, tmp;
-      STRINGDAT *dest, *type;
       float fdata;
       int32_t idata, cols;
       char tstr[MAX_TYPEY_PER_BUNDLED_MESSAGE], *dstr;
@@ -1052,16 +1051,15 @@ static int32_t oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
       memset(buff, 0, 8);
       buff += 8;
       buffsize += 8;
-      dest = (STRINGDAT *) p->dest->data;
-      type = (STRINGDAT *) p->type->data;
       cols = p->arg->sizes[1];
       for(i = 0; i < p->no_msgs; i++, size = 0) {
         int32_t siz;
-        dstr = dest[i].data;
+        const char *types = csound_string_array_element(p->type, i)->data;
+        dstr = csound_string_array_element(p->dest, i)->data;
         dstrs = (int32_t) strlen(dstr)+1;
         size += ceil((dstrs)/4.)*4;
         tstr[0] = ',';
-        strncpy(tstr+1, type[i].data, MAX_TYPEY_PER_BUNDLED_MESSAGE-2);
+        strncpy(tstr+1, types, MAX_TYPEY_PER_BUNDLED_MESSAGE-2);
         tstr[MAX_TYPEY_PER_BUNDLED_MESSAGE-1]='\0';
         tstrs = (int32_t) strlen(tstr)+1;
         size += ceil((tstrs)/4.)*4;
@@ -1081,7 +1079,7 @@ static int32_t oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
         strcpy(buff,tstr);
         buff += tmp;
         for(n = 0; n < msize; n++) {
-          switch(type[i].data[n]) {
+          switch(types[n]) {
           case 'f':
           if(n < cols)
               fdata = (float) p->arg->data[cols*i+n];

@@ -746,9 +746,9 @@ static int32_t getftargs_init(CSOUND *csound, FTARGS *p)
 static int32_t getftargs_process(CSOUND *csound, FTARGS *p)
 {
   if (*p->ktrig != p->prv_ktrig && *p->ktrig > FL(0.0)) {
-    p->prv_ktrig = *p->ktrig;
     p->status = getftargs(csound, p);
   }
+  p->prv_ktrig = *p->ktrig;
 
   return p->status;
 

@@ -1,5 +1,5 @@
 <CsTest>
-description = "mton octaves, cent rounding and output reuse"
+description = "mton octaves, cent rounding, output reuse and copied string updates"
 
 [expect]
 exit = 0
@@ -16,6 +16,7 @@ nchnls = 1
 gkChecks init 0
 
 instr 1
+  setksmps p6
   SExpected strget p5
   ; Start with a short existing string to exercise output resizing.
   SInit strcpy "x"
@@ -27,6 +28,7 @@ instr 1
   kBlock init 0
   kMidi = (kBlock % 2 == 0 ? p4 : 60)
   SActual mton kMidi
+  SCopy strcpyk SActual
   if kBlock % 2 == 0 then
     kDifferent strcmpk SActual, SExpected
   else
@@ -36,6 +38,10 @@ instr 1
     printks "FAIL k-rate mton(%g): %s\n", 0, kMidi, SActual
     exitnowk -1
   endif
+  if strcmpk(SCopy, SActual) != 0 then
+    printks "FAIL copied mton(%g): %s expected %s\n", 0, kMidi, SCopy, SActual
+    exitnowk -1
+  endif
   kBlock += 1
   if kBlock == 4 then
     gkChecks += 1
@@ -43,7 +49,7 @@ instr 1
 endin
 
 instr 99
-  if i(gkChecks) != 20 then
+  if i(gkChecks) != 22 then
     prints "FAIL mton checks did not complete\n"
     exitnow -1
   endif
@@ -71,6 +77,9 @@ i 1 2 .0625 132 "10C"
 i 1 2.125 .0625 -1 "-2B"
 i 1 2.25 .0625 -0.25 "-1C-25"
 i 1 2.375 .0625 -12.25 "-2C-25"
+; String updates must use the instrument's local control cycle.
+i 1 0 .0625 60.75 "4C#-25" 1
+i 1 0 .0625 61.5 "4C#+" 4
 i 99 2.5 .015625
 e
 </CsScore>

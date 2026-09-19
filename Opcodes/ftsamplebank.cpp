@@ -242,12 +242,12 @@ static int32_t directory(CSOUND *csound, DIR_STRUCT *p) {
   if (UNLIKELY(tabinit(csound, p->outArr, numberOfFiles,
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
-  STRINGDAT *strings = (STRINGDAT *)p->outArr->data;
 
   for (int32_t i = 0; i < numberOfFiles; i++) {
     file = &fileNames[i][0u];
-    strings[i].size = strlen(file) + 1;
-    strings[i].data = csound->Strdup(csound, file);
+    STRINGDAT *string = csound_string_array_element(p->outArr, i);
+    string->size = strlen(file) + 1;
+    string->data = csound->Strdup(csound, file);
   }
 
   fileNames.clear();

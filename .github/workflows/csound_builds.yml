@@ -132,6 +132,53 @@ jobs:
             exit 1
           fi
 
+  linux64_float_ubsan:
+    name: 64-bit Linux / 32-bit float type-system tests (UBSan)
+    runs-on: ubuntu-latest
+    env:
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build python3 libgtest-dev \
+            libsndfile1-dev libasound2-dev bison flex gettext
+
+      - name: Configure 32-bit floats on 64-bit Linux
+        env:
+          CFLAGS: -fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer
+          CXXFLAGS: -fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer
+          LDFLAGS: -fsanitize=undefined
+        run: |
+          test "$(getconf LONG_BIT)" = 64
+          cmake -S . -B build-linux64-float -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DUSE_DOUBLE=OFF \
+            -DUSE_ASA=OFF \
+            -DBUILD_TESTS=ON \
+            -DBUILD_STATIC_LIBRARY=ON \
+            -DBUILD_UTILITIES=OFF \
+            -DBUILD_INSTALLER=OFF \
+            -DUSE_MP3=OFF \
+            -DUSE_CURL=OFF
+
+      - name: Build unit tests
+        run: cmake --build build-linux64-float --target unittests --parallel "$(nproc)"
+
+      - name: Run type-system tests
+        run: >
+          ctest --test-dir build-linux64-float
+          --tests-regex '^TypeSystemTests\.'
+          --parallel "$(nproc)"
+          --output-on-failure
+          --no-tests=error
+
   linux_build_vcpkg:
     name: Linux/Ubuntu build (vcpkg)
     runs-on: ubuntu-latest
@@ -633,15 +680,39 @@ jobs:
       - name: Install dependencies
         run: |
           brew install libogg flac lame libvorbis mpg123 opus libsndfile portaudio libsamplerate liblo portmidi
-          brew install bison flex jack googletest
+          brew install bison flex jack
+
+      - name: Checkout GoogleTest
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: google/googletest
+          ref: 063de7e9578f82b369302001269680b4b1553359 # v1.18.0
+          path: .ci/googletest
+          persist-credentials: false
+
+      - name: Build GoogleTest with AddressSanitizer
+        run: |
+          # Match Csound's sanitizer and deployment target. Mixing an ASan
+          # executable with Homebrew's unsanitized GoogleTest can give libc++
+          # container-overflow reports during test discovery.
+          cmake -S .ci/googletest -B "$RUNNER_TEMP/googletest-build" \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/googletest" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer" \
+            -DBUILD_GMOCK=OFF
+          cmake --build "$RUNNER_TEMP/googletest-build" --parallel "$(sysctl -n hw.ncpu)"
+          cmake --install "$RUNNER_TEMP/googletest-build"
 
       - name: Configure build
-        run: cmake -B build -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
+        run: >
+          cmake -B build -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
+          -DGTest_DIR="$RUNNER_TEMP/googletest/lib/cmake/GTest"
       - name: Build Csound
         run: cmake --build build --config Debug
 
       - name: Run unit tests
-        run: ctest --test-dir build -j$(sysctl -n hw.ncpu) --output-on-failure
+        run: ctest --test-dir build -j"$(sysctl -n hw.ncpu)" --output-on-failure
       - name: Run CSD tests
         run: cmake --build build --target csdtests
 

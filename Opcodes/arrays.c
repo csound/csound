@@ -38,18 +38,23 @@ typedef struct _autocorr {
   ARRAYDAT *out;
   ARRAYDAT *in;
   AUXCH mem;
-  int32_t N;
   int32_t FN;
 } AUTOCORR;
 
 int32_t init_autocorr(CSOUND *csound, AUTOCORR *p) {
-  if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->out->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                            Str("autocorr: expected one-dimensional arrays"));
   int32_t N = p->in->sizes[0], fn;
-  for(fn=2; fn < N*2-1; fn*=2);
-  if (p->mem.auxp == 0 || p->mem.size < fn*sizeof(MYFLT))
-    csound->AuxAlloc(csound, fn*sizeof(MYFLT), &p->mem);
-  p->N = N;
+  /* The real FFT supports powers of two up to 2^28. Zero padding
+     needs at least 2*N-1 samples. Check before doing signed arithmetic. */
+  if (UNLIKELY(N < 0 || N > (1 << 27)))
+    return csound->InitError(csound, "%s",
+                            Str("autocorr: input array too large"));
+  for (fn = 2; fn < N * 2 - 1; fn *= 2);
+  if (p->mem.auxp == NULL || p->mem.size < (size_t)fn * sizeof(MYFLT))
+    csound->AuxAlloc(csound, (size_t)fn * sizeof(MYFLT), &p->mem);
   p->FN = fn;
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
@@ -57,10 +62,20 @@ int32_t init_autocorr(CSOUND *csound, AUTOCORR *p) {
 }
 
 int32_t perf_autocorr(CSOUND *csound, AUTOCORR *p) {
-  MYFLT *r = p->out->data;
-  MYFLT *buf = (MYFLT *) p->mem.auxp;
-  MYFLT *s = p->in->data;
-  csound->AutoCorrelation(csound,r,s,p->N,buf,p->FN);
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->out->dimensions != 1))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("autocorr: expected one-dimensional arrays"));
+  int32_t N = p->in->sizes[0];
+  if (UNLIKELY(N > p->FN / 2))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("autocorr: input array exceeds FFT workspace; "
+                                "reinitialise with the larger size"));
+  if (UNLIKELY(tabcheck(csound, p->out, N, &p->h) != OK))
+    return NOTOK;
+  if (N != 0)
+    csound->AutoCorrelation(csound, p->out->data, p->in->data, N,
+                            (MYFLT *)p->mem.auxp, p->FN);
   return OK;
 }
 
@@ -813,53 +828,21 @@ static int32_t rows_perf(CSOUND *csound, FFT *p) {
 static int32_t rows_perf_S(CSOUND *csound, FFT *p)
 {
   ARRAYDAT* dat = p->in;      /* The data in e 2_D array */
-  STRINGDAT* mem = (STRINGDAT*)dat->data;
-  STRINGDAT* dest = (STRINGDAT*)p->out->data;
   int32_t i;
   int32_t index = (int32_t)(*((MYFLT *)p->in2));
   if (LIKELY(index >= 0 && index < p->in->sizes[0])) {
     index = (index * dat->sizes[1]);
-    //printf("%d : %d\n", index, dat->sizes[1]);
-    mem += index;
-    //incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
-    //printf("*** mem = %p dst = %p\n", mem, dest);
-    for (i = 0; i<p->in->sizes[1]; i++) {
-      dat->arrayType->copyValue(csound, dat->arrayType, (void*)dest, (void*)mem, p->h.insdshead);
-      //printf("*** copies i=%d: %s -> %s\n", i,(char*)(mem->data),(char*)(dest->data));
-      dest +=1;
-      mem += 1;
+    for (i = 0; i < p->in->sizes[1]; i++) {
+      dat->arrayType->copyValue(csound, dat->arrayType,
+          csound_string_array_element(p->out, i),
+          csound_string_array_element(dat, (size_t)index + i),
+          p->h.insdshead);
     }
     return OK;
   }
   else return csound->PerfError(csound,  &(p->h),
                                 "%s", Str("requested row is out of range\n"));
 }
-
-static int32_t set_rows_perf_S(CSOUND *csound, FFT *p)
-{
-  ARRAYDAT* dat = p->in;      /* The data in e 2_D array */
-  STRINGDAT* mem = (STRINGDAT*)dat->data;
-  STRINGDAT* dest = (STRINGDAT*)p->out->data;
-  int32_t i;
-  int32_t index = (int32_t)(*((MYFLT *)p->in2));
-  if (LIKELY(index < p->in->sizes[0])) {
-    index = (index * dat->sizes[1]);
-    //printf("%d : %d\n", index, dat->sizes[1]);
-    mem += index;
-    //incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
-    //printf("*** mem = %p dst = %p\n", mem, dest);
-    for (i = 0; i<p->in->sizes[1]; i++) {
-      dat->arrayType->copyValue(csound, dat->arrayType, (void*)mem, (void*)dest,  p->h.insdshead);
-      //printf("*** copies i=%d: %s -> %s\n", i,(char*)(mem->data),(char*)(dest->data));
-      dest+= 1;
-      mem += 1;
-    }
-    return OK;
-  }
-  else return csound->PerfError(csound,  &(p->h),
-                                "%s", Str("requested row is out of range\n"));
-}
-
 
 static int32_t rows_i(CSOUND *csound, FFT *p) {
   if (rows_init(csound,p) == OK) {
@@ -877,42 +860,142 @@ static int32_t rows_i(CSOUND *csound, FFT *p) {
   else return NOTOK;
 }
 
-static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p,
-                               int32_t rows, int32_t columns,
-                               INSDS *ctx)
-{
-  if (p->data==NULL || p->dimensions == 0 ||
-      (p->dimensions==2 && (p->sizes[0] < rows || p->sizes[1] < columns))) {
-    size_t ss;
-    if (p->data == NULL) {
-      CS_VARIABLE* var = csoundCreateVariableForType(
-        csound, p->arrayType, NULL, ctx);
-      p->arrayMemberSize = var->memBlockSize;
-    }
-    ss = p->arrayMemberSize*rows*columns;
-    if (p->data==NULL) {
-      p->data = (MYFLT*)csound->Calloc(csound, ss);
-      p->dimensions = 2;
-      p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t)*2);
-    }
-    else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-    p->sizes[0] = rows;  p->sizes[1] = columns;
-  }
+/* A matrix input supplies its first row, as documented for both setters. */
+static int32_t set_vector_length(const ARRAYDAT *in) {
+  if (in->sizes == NULL || in->dimensions < 1 || in->dimensions > 2)
+    return -1;
+  return in->dimensions == 1 ? in->sizes[0] :
+    (in->sizes[0] > 0 ? in->sizes[1] : 0);
 }
 
+static int32_t set_matrix_error(CSOUND *csound, FFT *p, int32_t init,
+                                const char *message) {
+  return init ? csound->InitError(csound, "%s", message) :
+    csound->PerfError(csound, &p->h, "%s", message);
+}
 
-static int32_t set_rows_init(CSOUND *csound, FFT *p) {
-  int32_t sizs = p->in->sizes[0];
-  int32_t row = *((MYFLT *)p->in2);
-  tabensure2D(csound, p->out, row+1, sizs, p->h.insdshead);
+/* Grow at initialization only. Copy by coordinates because a wider matrix
+   changes the row stride. Type callbacks keep string ownership independent. */
+static int32_t tabensure2D(CSOUND *csound, ARRAYDAT *out,
+                            int32_t rows, int32_t columns, INSDS *ctx) {
+  if (out->data != NULL && out->dimensions == 2) {
+    if (rows <= out->sizes[0] && columns <= out->sizes[1])
+      return csound_array_prepare_write(csound, out, ctx);
+    rows = rows > out->sizes[0] ? rows : out->sizes[0];
+    columns = columns > out->sizes[1] ? columns : out->sizes[1];
+  }
+  ARRAYDAT prepared = {0};
+  const CS_TYPE *arrayType = csound->GetType(csound, "[");
+  size_t count;
+  prepared.arrayType = out->arrayType;
+  prepared.dimensions = 2;
+  prepared.sizes = (int32_t *)csound->Malloc(csound, 2 * sizeof(int32_t));
+  prepared.sizes[0] = rows;
+  prepared.sizes[1] = columns;
+  if (UNLIKELY(csound_array_member_count(&prepared, &count) != OK ||
+               csound_array_ensure_capacity(csound, &prepared,
+                                            count ? count : 1, ctx) != OK)) {
+    arrayType->freeVariableMemory(csound, &prepared);
+    return NOTOK;
+  }
+  if (out->data != NULL && out->dimensions == 2) {
+    for (int32_t r = 0; r < out->sizes[0]; ++r) {
+      for (int32_t c = 0; c < out->sizes[1]; ++c) {
+        void *dst = (char *)prepared.data +
+          ((size_t)r * columns + c) * prepared.arrayMemberSize;
+        void *src = (char *)out->data +
+          ((size_t)r * out->sizes[1] + c) * out->arrayMemberSize;
+        out->arrayType->copyValue(csound, out->arrayType, dst, src, ctx);
+      }
+    }
+  }
+  arrayType->freeVariableMemory(csound, out);
+  *out = prepared;
   return OK;
 }
 
+static int32_t set_matrix_init(CSOUND *csound, FFT *p, int32_t column) {
+  int32_t length = set_vector_length(p->in);
+  double index = *((MYFLT *)p->in2);
+  if (UNLIKELY(length < 0 ||
+               (p->out->data != NULL && p->out->dimensions != 2)))
+    return csound->InitError(csound, "%s",
+                            Str("setrow/setcol: invalid array dimensions"));
+  if (UNLIKELY(!(index >= 0 && index < INT32_MAX)))
+    return csound->InitError(csound, "%s",
+                            Str("setrow/setcol: index out of range"));
+  int32_t extent = (int32_t)index + 1;
+  if (UNLIKELY(tabensure2D(csound, p->out, column ? length : extent,
+                           column ? extent : length, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
+  return OK;
+}
 
-static int32_t set_rows_init_S(CSOUND *csound, FFT *p) {
-  if (set_rows_init(csound, p)==0)
-    return set_rows_perf_S(csound, p);
-  return NOTOK;
+static int32_t set_matrix_write(CSOUND *csound, FFT *p, int32_t column,
+                                 int32_t init) {
+  int32_t length = set_vector_length(p->in);
+  double index = *((MYFLT *)p->in2);
+  if (UNLIKELY(length < 0 || p->out->dimensions != 2 ||
+               p->out->sizes == NULL))
+    return set_matrix_error(csound, p, init,
+                            Str("setrow/setcol: invalid array dimensions"));
+  if (UNLIKELY(!(index >= 0 && index < p->out->sizes[column ? 1 : 0])))
+    return set_matrix_error(csound, p, init,
+                            Str("setrow/setcol: index out of range"));
+  int32_t rows = p->out->sizes[0], columns = p->out->sizes[1];
+  if (UNLIKELY(column ? length < rows : length > columns))
+    return set_matrix_error(csound, p, init,
+                            Str("setrow/setcol: input does not fit output"));
+  if (UNLIKELY((init ? csound_array_prepare_write(csound, p->out, p->h.insdshead) :
+                csound_array_try_prepare_write(csound, p->out, p->h.insdshead))
+               != OK))
+    return set_matrix_error(csound, p, init,
+                            Str("setrow/setcol: cannot write shared array"));
+  size_t start = column ? (size_t)index : (size_t)index * columns;
+  size_t stride = column ? columns : 1;
+  int32_t count = column ? rows : length;
+  if (p->out->arrayType->freeVariableMemory == NULL) {
+    if (!column)
+      memmove(p->out->data + start, p->in->data, (size_t)count * sizeof(MYFLT));
+    else
+      for (int32_t j = count; j-- > 0;)
+        p->out->data[start + (size_t)j * stride] = p->in->data[j];
+  }
+  else {
+    /* Backwards copying also supports using the first row of the output
+       itself as input without overwriting values still to be read. */
+    for (int32_t j = count; j-- > 0;)
+      p->out->arrayType->copyValue(csound, p->out->arrayType,
+          csound_string_array_element(p->out, start + (size_t)j * stride),
+          csound_string_array_element(p->in, j), p->h.insdshead);
+  }
+  return OK;
+}
+
+static int32_t set_rows_init(CSOUND *csound, FFT *p) {
+  return set_matrix_init(csound, p, 0);
+}
+
+static int32_t set_cols_init(CSOUND *csound, FFT *p) {
+  return set_matrix_init(csound, p, 1);
+}
+
+static int32_t set_rows_perf(CSOUND *csound, FFT *p) {
+  return set_matrix_write(csound, p, 0, 0);
+}
+
+static int32_t set_cols_perf(CSOUND *csound, FFT *p) {
+  return set_matrix_write(csound, p, 1, 0);
+}
+
+static int32_t set_rows_i(CSOUND *csound, FFT *p) {
+  if (set_rows_init(csound, p) != OK) return NOTOK;
+  return set_matrix_write(csound, p, 0, 1);
+}
+
+static int32_t set_cols_i(CSOUND *csound, FFT *p) {
+  if (set_cols_init(csound, p) != OK) return NOTOK;
+  return set_matrix_write(csound, p, 1, 1);
 }
 
 static int32_t rows_init_S(CSOUND *csound, FFT *p) {
@@ -967,113 +1050,19 @@ static int32_t cols_i(CSOUND *csound, FFT *p) {
 
 static int32_t cols_perf_S(CSOUND *csound, FFT *p) {
   ARRAYDAT* dat = p->in;      /* The data in e 2_D array */
-  STRINGDAT* mem = (STRINGDAT*)dat->data;
-  STRINGDAT* dest = (STRINGDAT*)p->out->data;
   int32_t i;
   int32_t index = (int32_t)(*((MYFLT *)p->in2));
   if (LIKELY(index >= 0 && index < p->in->sizes[1])) {
-    mem += index;
-    for (i = 0; i<p->in->sizes[0]; i++) {
-      dat->arrayType->copyValue(csound, dat->arrayType, (void*)dest, (void*)mem,
-                                p->h.insdshead);
-      dest+= 1;
-      mem += p->in->sizes[1];
+    for (i = 0; i < p->in->sizes[0]; i++) {
+      dat->arrayType->copyValue(csound, dat->arrayType,
+          csound_string_array_element(p->out, i),
+          csound_string_array_element(dat, (size_t)i * dat->sizes[1] + index),
+          p->h.insdshead);
     }
     return OK;
   }
   else return csound->PerfError(csound,  &(p->h),
                                 "%s", Str("requested col is out of range\n"));
-}
-
-static int32_t set_rows_perf(CSOUND *csound, FFT *p) {
-  int32_t start = *((MYFLT *)p->in2);
-  if (UNLIKELY(start < 0 || start >= p->out->sizes[0]))
-    return csound->PerfError(csound, &(p->h),
-                             "%s", Str("Error: index out of range\n"));
-  int32_t bytes =  p->in->sizes[0]*sizeof(MYFLT);
-  start *= p->out->sizes[1];
-  memcpy(p->out->data+start,p->in->data,bytes);
-  return OK;
-}
-
-static int32_t set_rows_i(CSOUND *csound, FFT *p) {
-  int32_t start = *((MYFLT *)p->in2);
-  set_rows_init(csound, p);
-  if (UNLIKELY(start < 0 || start >= p->out->sizes[0]))
-    return csound->InitError(csound, "%s",
-                             Str("Error: index out of range\n"));
-  int32_t bytes =  p->in->sizes[0]*sizeof(MYFLT);
-  start *= p->out->sizes[1];
-  memcpy(p->out->data+start,p->in->data,bytes);
-  return OK;
-}
-
-
-static int32_t set_cols_init(CSOUND *csound, FFT *p) {
-  if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
-  int32_t siz = p->in->sizes[0];
-  int32_t col = *((MYFLT *)p->in2);
-  tabensure2D(csound, p->out, siz, col+1, p->h.insdshead);
-  return OK;
-}
-
-static int32_t set_cols_perf(CSOUND *csound, FFT *p) {
-
-  int32_t start = *((MYFLT *)p->in2);
-
-  if (UNLIKELY(start < 0 || start >= p->out->sizes[1]))
-    return csound->PerfError(csound, &(p->h),
-                             "%s", Str("Error: index out of range\n"));
-  if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes[0]<p->out->sizes[0]))
-    return csound->PerfError(csound, &(p->h),
-                             "%s", Str("Error: New column too short\n"));
-
-
-  int32_t j,i,row = p->out->sizes[1], col = p->out->sizes[0];
-  for (j=0,i=start; j < col; i+=row, j++)
-    p->out->data[i] = p->in->data[j];
-  return OK;
-}
-
-static int32_t set_cols_i(CSOUND *csound, FFT *p) {
-  int32_t start = *((MYFLT *)p->in2);
-  set_cols_init(csound,p);
-  if (UNLIKELY(start < 0 || start >= p->out->sizes[1]))
-    return csound->InitError(csound, "%s",
-                             Str("Error: index out of range\n"));
-  if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes[0]<p->out->sizes[0]))
-    return csound->InitError(csound, "%s",
-                             Str("Error: New column too short\n"));
-  int32_t j,i,row = p->out->sizes[1], col = p->out->sizes[0];
-  for (j=0,i=start; j < col; i+=row, j++)
-    p->out->data[i] = p->in->data[j];
-  return OK;
-}
-
-static int32_t set_cols_perf_S(CSOUND *csound, FFT *p) {
-  STRINGDAT* mem = (STRINGDAT*)p->in->data;
-  STRINGDAT* dest = (STRINGDAT*)p->out->data;
-  int32_t i;
-  int32_t index = (int32_t)(*((MYFLT *)p->in2));
-  if (LIKELY(index >= 0 && index < p->out->sizes[1])) {
-    dest += index;
-    for (i = 0; i<p->in->sizes[0]; i++) {
-      p->in->arrayType->copyValue(csound, p->in->arrayType,
-                                  (void*)dest, (void*)mem, p->h.insdshead);
-      dest += p->out->sizes[1];
-      mem  += 1;
-    }
-    return OK;
-  }
-  else return csound->PerfError(csound,  &(p->h),
-                                "%s", Str("requested col is out of range\n"));
-}
-
-static int32_t set_cols_init_S(CSOUND *csound, FFT *p) {
-  if (set_cols_i(csound,p)==0)
-    return set_cols_perf_S(csound, p);
-  return NOTOK;
 }
 
 static int32_t cols_init_S(CSOUND *csound, FFT *p) {
@@ -1453,9 +1442,14 @@ typedef struct _inout {
 } INOUT;
 
 static int32_t nxtpow2(CSOUND *csound, INOUT *p) {
-  IGN(csound);
-  int32_t inval = (int32_t)*p->in;
-  int32_t powtwo = 2;
+  double input = (double)*p->in;
+  if (UNLIKELY(!(input >= (double)INT32_MIN &&
+                 input < (double)INT32_MAX + 1.0)))
+    return csound->InitError(csound, "%s",
+                            Str("nxtpow2: input outside 32-bit integer range"));
+  int32_t inval = (int32_t)input;
+  /* Rounding a positive int32_t up can require the extra bit for 2^31. */
+  int64_t powtwo = 2;
   while (powtwo < inval) powtwo *= 2;
   *p->out = powtwo;
   return OK;
@@ -1650,13 +1644,13 @@ static OENTRY arrayvars_localops[] =
     {"setrow", sizeof(FFT), 0, "k[]","k[]k",
      (SUBR) set_rows_init, (SUBR) set_rows_perf, NULL},
     {"setrow.S", sizeof(FFT), 0, "S[]","S[]k",
-     (SUBR) set_rows_init_S, (SUBR) set_rows_perf_S, NULL},
+     (SUBR) set_rows_i, (SUBR) set_rows_perf, NULL},
     {"setcol", sizeof(FFT), 0, "i[]","i[]i",
      (SUBR) set_cols_i, NULL, NULL},
     {"setcol", sizeof(FFT), 0, "k[]","k[]k",
      (SUBR) set_cols_init, (SUBR) set_cols_perf, NULL},
     {"setcol", sizeof(FFT), 0, "S[]","S[]k",
-     (SUBR) set_cols_init_S, (SUBR) set_cols_perf_S, NULL},
+     (SUBR) set_cols_i, (SUBR) set_cols_perf, NULL},
     {"shiftin", sizeof(SHIFTIN), 0, "k[]","a",
      (SUBR) shiftin_init, (SUBR) shiftin_perf},
     {"shiftout", sizeof(SHIFTOUT), 0, "a","k[]o",
