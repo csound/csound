@@ -146,7 +146,7 @@ static int32_t logcurve_perf(CSOUND *csound, logcurve *p)
     IGN(csound);
     MYFLT ki = *p->kin;
     MYFLT ks = *p->ksteepness;
-    if (ks == FL(1.0) || ki == FL(0.0) || ki == FL(1.0))
+    if (ks <= FL(1.0) || ki == FL(0.0) || ki == FL(1.0))
       *p->kout = ki;
     else
       *p->kout = LOGCURVE(ki, ks);
