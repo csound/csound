@@ -2,7 +2,7 @@
 description = "compileorc returns errors without hanging or stopping the caller"
 [expect]
 exit = 0
-stderr = ["compileorc file errors handled"]
+output = ["compileorc file errors handled"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
