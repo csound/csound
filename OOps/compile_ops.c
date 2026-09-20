@@ -131,11 +131,9 @@ OSC_MESS *csoundReadOSCMessage(CSOUND *csound, const char *address,
                                const char *type){  
   OSC_MESS *p = &csound->osc_message_anchor;
   spin_lock_t *lock = &csound->osc_spinlock;
-  // no messages, just exit
-  if(p->address == NULL) return NULL;
   csoundSpinLock(lock);
   do {
-    if(p->flag &&
+    if(ATOMIC_GET(p->flag) &&
       !strcmp(p->address, address)
        && !strcmp(p->type, type)) break;
   } while((p = p->nxt) != NULL);
@@ -154,7 +152,7 @@ void csoundClearOSCMessage(OSC_MESS *mess){
 */
 const char *csoundOSCMessageGetFloat(const char *buf, MYFLT *mf) {
   float f;
-  f = *((float *) buf);
+  memcpy(&f, buf, sizeof(f));
   byteswap((char*)&f,4);
   *mf = (MYFLT) f;
   return buf + 4;
@@ -162,7 +160,7 @@ const char *csoundOSCMessageGetFloat(const char *buf, MYFLT *mf) {
 
 const char *csoundOSCMessageGetDouble(const char *buf, MYFLT *mf) {
   double f;
-  f = *((double *) buf);
+  memcpy(&f, buf, sizeof(f));
   byteswap((char*)&f,8);
   *mf = (MYFLT) f;
   return buf + 8;
@@ -174,7 +172,7 @@ const char *csoundOSCMessageGetDouble(const char *buf, MYFLT *mf) {
 */
 const char *csoundOSCMessageGetInt32(const char *buf, MYFLT *mf) {
   int32_t i;
-  i = *((int32_t *) buf);
+  memcpy(&i, buf, sizeof(i));
   byteswap((char*)&i,4);
   *mf = (MYFLT) i;
   return buf + 4;
@@ -185,7 +183,7 @@ const char *csoundOSCMessageGetInt32(const char *buf, MYFLT *mf) {
 */
 const char *csoundOSCMessageGetInt64(const char *buf, MYFLT *mf) {
   int64_t i;
-  i = *((int64_t *) buf);
+  memcpy(&i, buf, sizeof(i));
   byteswap((char*)&i,8);
   *mf = (MYFLT) i;
   return buf + 8;
@@ -195,20 +193,21 @@ const char *csoundOSCMessageGetInt64(const char *buf, MYFLT *mf) {
     returns pointer to next datum
 */
 const char *csoundOSCMessageGetChar(const char *buf, MYFLT *mf) {
-  int8_t i;
-  i = *((int8_t *) buf);
-  *mf = (MYFLT) i;
-  return buf + 1;
+  return csoundOSCMessageGetInt32(buf, mf);
 }
 
 /** Get stringdata from Osc Message data 
     returns pointer to next datum
 */
-const char *csoundOSCMessageGetString(const char *data, STRINGDAT *sdat) {
+const char *csoundOSCMessageGetString(CSOUND *csound, const char *data,
+                                     STRINGDAT *sdat) {
   size_t len = strlen(data)+1;
-  strncpy(sdat->data, data, sdat->size-1);
-  sdat->data[sdat->size-1] = '\0'; // safety
-  return data+((size_t) ceil(len/4.)*4);
+  if (len > (size_t)sdat->size) {
+    sdat->data = csound->ReAlloc(csound, sdat->data, len);
+    sdat->size = (int32_t)len;
+  }
+  memcpy(sdat->data, data, len);
+  return data+((len+3) & ~(size_t)3);
 }
 
 /** Get a number according to type 
@@ -240,19 +239,25 @@ const char *OSC_message_get_number(const char *buf,
 
 int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
   int32_t cnt = p->OUTOCOUNT - 1, i;
+  *p->kstatus = 0;
   if(cnt > 32)
     return csound->PerfError(csound, &(p->h),
                              "OSCRead exceeded max output args (>32)\n");
   OSC_MESS *mess = csoundReadOSCMessage(csound, p->address->data,
                                         p->type->data);
   if(mess != NULL) {
+    if ((size_t)cnt != strlen(p->type->data)) {
+      csoundClearOSCMessage(mess);
+      return csound->PerfError(csound, &p->h,
+                               "osclisten: output count does not match type string");
+    }
     MYFLT **out = p->out;
     const char *buf = mess->data;
     const char *type = p->type->data;
     for(i = 0; i < cnt; i++) {
       if(type[i] == 's' &&
          IS_STR_ARG(out[i])) {
-        buf = csoundOSCMessageGetString(buf, (STRINGDAT *) out[i]);
+        buf = csoundOSCMessageGetString(csound, buf, (STRINGDAT *) out[i]);
       }
       else if(IS_KSIG_ARG(p->out[i])){
         buf = OSC_message_get_number(buf, type[i], out[i]);
@@ -281,10 +286,18 @@ int32_t readOSCarray_init(CSOUND *csound, ROSCA *p) {
 }
 
 int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p) {
-  int32_t cnt = p->out->sizes[0], i;
+  int32_t cnt, i;
+  *p->kstatus = 0;
   OSC_MESS *mess = csoundReadOSCMessage(csound, p->address->data,
                                         p->type->data);
   if(mess != NULL) {
+    if (p->out->dimensions != 1 ||
+        (size_t)p->out->sizes[0] != strlen(p->type->data)) {
+      csoundClearOSCMessage(mess);
+      return csound->PerfError(csound, &p->h,
+                               "osclisten: array size does not match type string");
+    }
+    cnt = p->out->sizes[0];
     MYFLT *out = p->out->data;
     const char *buf = mess->data;
     const char *type = p->type->data;

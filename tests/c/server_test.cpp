@@ -785,6 +785,114 @@ TEST_F (ServerTests, UdpOrchestraAssemblyRejectsOversizedMessages) {
     EXPECT_NE(messages.find("UDP: orchestra message too long"), std::string::npos);
 }
 
+static std::string osc_packet(const char *address, const char *type,
+                              const std::string &payload) {
+    std::string packet(address);
+    packet.push_back('\0');
+    while (packet.size() % 4) packet.push_back('\0');
+    packet += ',';
+    packet += type;
+    packet.push_back('\0');
+    while (packet.size() % 4) packet.push_back('\0');
+    return packet + payload;
+}
+
+TEST_F (ServerTests, InternalOscRejectsTruncatedPackets) {
+    const uint16_t port = unused_udp_port();
+    ASSERT_NE(port, 0);
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      sr = 48000
+      ksmps = 32
+      nchnls = 1
+      instr 1
+        kStatus, kChar, kNumber, SText osclisten "/safe", "cds"
+        chnset kStatus, "status"
+        chnset kChar, "char"
+        chnset kNumber, "number"
+        chnset SText, "text"
+      endin
+    )", 0), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 60", 0);
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    csoundSetControlChannel(csound, "marker", 0);
+    ASSERT_EQ(csoundUDPServerStart(csound, port), CSOUND_SUCCESS);
+    auto send = [&](const std::string &packet) {
+        EXPECT_TRUE(udp_send_bytes(packet.data(), packet.size(), port));
+    };
+    auto waitMarker = [&](int value) {
+        send(osc_packet("/csound/channel/marker", "i",
+                        std::string("\0\0\0", 3) + char(value)));
+        int32_t err = 0;
+        for (int i = 0; i < 1000; i++) {
+            if (csoundGetControlChannel(csound, "marker", &err) == value) return;
+            csoundSleep(1);
+        }
+        ADD_FAILURE() << "OSC marker not received";
+    };
+    std::string payload("\0\0\0\x41\x3f\xf8\0\0\0\0\0\0", 12);
+    payload += std::string(600, 'a');
+    payload.append(4, '\0');
+    send("/bad"); // No address terminator inside the datagram.
+    send(std::string("/safe\0\0\0,cds", 12)); // No type terminator.
+    for (size_t size : {size_t(0), size_t(3), size_t(11), payload.size() - 4})
+        send(osc_packet("/safe", "cds", payload.substr(0, size)));
+    waitMarker(1);
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    int32_t err = 0;
+    EXPECT_EQ(csoundGetControlChannel(csound, "status", &err), 0);
+    send(osc_packet("/safe", "cds", payload));
+    waitMarker(2);
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundGetControlChannel(csound, "status", &err), 1);
+    EXPECT_EQ(csoundGetControlChannel(csound, "char", &err), 65);
+    EXPECT_EQ(csoundGetControlChannel(csound, "number", &err), 1.5);
+    char text[604] = {};
+    csoundGetStringChannel(csound, "text", text);
+    EXPECT_EQ(std::string(text), std::string(600, 'a'));
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundGetControlChannel(csound, "status", &err), 0);
+    ASSERT_EQ(csoundUDPServerClose(csound), CSOUND_SUCCESS);
+}
+
+TEST_F (ServerTests, InternalOscRejectsOutputCountMismatch) {
+    const uint16_t port = unused_udp_port();
+    ASSERT_NE(port, 0);
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      instr 1
+        kStatus, kOne, kTwo osclisten "/count", "i"
+      endin
+      instr 2
+        kStatus, kValues[] osclisten "/array", "i"
+        kValues[] init 2
+      endin
+    )", 0), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 60\ni 2 0 60", 0);
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundUDPServerStart(csound, port), CSOUND_SUCCESS);
+    for (const char *path : {"/count", "/array"}) {
+        const std::string packet = osc_packet(path, "i", std::string(4, '\0'));
+        ASSERT_TRUE(udp_send_bytes(packet.data(), packet.size(), port));
+    }
+    std::string messages;
+    for (int i = 0; i < 1000; i++) {
+        csoundPerformKsmps(csound);
+        while (csoundGetMessageCnt(csound) > 0) {
+            messages += csoundGetFirstMessage(csound);
+            csoundPopFirstMessage(csound);
+        }
+        if (messages.find("array size does not match") != std::string::npos &&
+            messages.find("output count does not match") != std::string::npos) break;
+        csoundSleep(1);
+    }
+    ASSERT_EQ(csoundUDPServerClose(csound), CSOUND_SUCCESS);
+    EXPECT_NE(messages.find("array size does not match"), std::string::npos);
+    EXPECT_NE(messages.find("output count does not match"), std::string::npos);
+}
+
 TEST_F (ServerTests, SockrecvBoundsUnterminatedUdpString) {
     constexpr size_t mtu = 1456;
     const uint16_t port = unused_udp_port();
