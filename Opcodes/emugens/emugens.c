@@ -2579,11 +2579,9 @@ array_binop_prepare(CSOUND *csound, BINOP_AAA *p, int32_t init,
                  csound_array_member_count(p->in1, &count1) != OK ||
                  csound_array_member_count(p->in2, &count2) != OK ||
                  count1 > INT32_MAX || count2 > INT32_MAX))
-        return init ? INITERR(Str("array bitwise: invalid array size"))
-                    : PERFERR(Str("array bitwise: invalid array size"));
+        return INITPERFERR(init, Str("array bitwise: invalid array size"));
     if (UNLIKELY(count1 != count2))
-        return init ? INITERR(Str("array bitwise: operand lengths do not match"))
-                    : PERFERR(Str("array bitwise: operand lengths do not match"));
+        return INITPERFERR(init, Str("array bitwise: operand lengths do not match"));
     /* Keep the existing flat output, using the current input lengths. */
     *numitems = (int32_t)count1;
     if (init) {
