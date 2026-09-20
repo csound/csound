@@ -4,6 +4,7 @@
 #include "csoundCore.h"
 #include "convolve.h"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cstring>
@@ -71,7 +72,7 @@ class AnalysisFileSafetyTests : public ::testing::Test {
     ASSERT_TRUE(stream.good()) << "could not write " << path;
   }
 
-  int32_t runFileOpcode(const std::string &statement)
+  int32_t runFileOpcode(const std::string &statement, MYFLT *firstSample = nullptr)
   {
     std::string csd =
       "<CsoundSynthesizer>\n"
@@ -88,6 +89,8 @@ class AnalysisFileSafetyTests : public ::testing::Test {
       result = csoundStart(csound);
     if (result == CSOUND_SUCCESS)
       result = csoundPerformKsmps(csound);
+    if (result == CSOUND_SUCCESS && firstSample != nullptr)
+      *firstSample = csoundGetSpout(csound)[0];
     csoundDestroy(csound);
     return result;
   }
@@ -211,6 +214,63 @@ TEST_F(AnalysisFileSafetyTests, ConvolveTextKeepsFinalValueWithoutNewline)
   csoundDestroy(csound);
   EXPECT_EQ(CSOUND_SUCCESS, runFileOpcode(
     "aInput init 0\naOut convolve aInput, \"" + path.generic_string() + "\""));
+}
+
+/* Two frames with 42 partials, including frequencies above the highest
+   noise band. Partial amplitudes are distinct so selection is observable. */
+std::vector<uint8_t> makeSinnoiFile(int type, bool swapped)
+{
+  std::vector<uint8_t> data;
+  for (double value : {123.0, 48000.0, 512.0, 1024.0, 42.0, 2.0,
+                       84.0, 21000.0, 1.0, static_cast<double>(type)})
+    appendNative(data, value);
+  for (int frame = 0; frame < 2; ++frame) {
+    appendNative(data, frame * 0.5);
+    for (int partial = 0; partial < 42; ++partial) {
+      appendNative(data, double((frame + 1) * (partial + 1)));
+      appendNative(data, 21000.0);
+      if (type == 2 || type == 4)
+        appendNative(data, 0.0);
+    }
+    if (type >= 3)
+      for (int band = 0; band < 25; ++band)
+        appendNative(data, 1.0);
+  }
+  if (swapped)
+    for (size_t offset = 0; offset < data.size(); offset += sizeof(double))
+      std::reverse(data.begin() + offset, data.begin() + offset + sizeof(double));
+  return data;
+}
+
+TEST_F(AnalysisFileSafetyTests, SinnoiPartialSelectionAndNoiseBounds)
+{
+  for (int type = 1; type <= 4; ++type) {
+    for (bool swapped : {false, true}) {
+      auto path = directory / ("sinnoi-" + std::to_string(type) +
+                                (swapped ? "-swapped.ats" : ".ats"));
+      ASSERT_NO_FATAL_FAILURE(writeFile(path, makeSinnoiFile(type, swapped)));
+      /* Zero frequency scaling keeps every cosine at one. */
+      const std::string file = ", 1, 0, 0, \"" + path.generic_string() + "\", ";
+      MYFLT sample = 0;
+      ASSERT_EQ(CSOUND_SUCCESS, runFileOpcode(
+        "aOut ATSsinnoi 1" + file + "42\nout aOut", &sample));
+      EXPECT_EQ(MYFLT(1806), sample); // all 42 partials in the last frame
+      ASSERT_EQ(CSOUND_SUCCESS, runFileOpcode(
+        "aOut ATSsinnoi 0.25" + file + "3, 37, 2\nout aOut", &sample));
+      EXPECT_EQ(MYFLT(180), sample); // partials 38, 40, 42 halfway between frames
+    }
+  }
+}
+
+TEST_F(AnalysisFileSafetyTests, SinnoiRejectsInvalidSelection)
+{
+  auto path = directory / "sinnoi.ats";
+  ASSERT_NO_FATAL_FAILURE(writeFile(path, makeSinnoiFile(3, false)));
+  const std::string opcode =
+    "aOut ATSsinnoi 0, 1, 0, 1, \"" + path.generic_string() + "\", ";
+  for (const char *selection : {"-1", "43", "1, -1", "1, 42",
+                                "3, 38, 2", "2, 0, 0", "2, 0, -1"})
+    EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(opcode + selection)) << selection;
 }
 
 std::vector<uint8_t> makeHetroFile()
