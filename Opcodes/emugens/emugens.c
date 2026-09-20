@@ -2478,6 +2478,43 @@ static int32_t ftprint_index(uint32_t *out, MYFLT value, uint32_t length)
     return OK;
 }
 
+/* The string-message callback accepts 1024 bytes including the terminator.
+   Keep ordinary rows in one message and split longer rows between values. */
+typedef struct {
+    char text[1024];
+    size_t used;
+} FTPRINT_ROW;
+
+static void ftprint_flush(CSOUND *csound, FTPRINT_ROW *row)
+{
+    if (row->used != 0) {
+        row->text[row->used] = '\0';
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", row->text);
+        row->used = 0;
+    }
+}
+
+static int32_t ftprint_append(CSOUND *csound, FTPRINT_ROW *row,
+                              const char *format, ...)
+{
+    va_list args, copy;
+    va_start(args, format);
+    va_copy(copy, args);
+    size_t available = sizeof(row->text) - row->used;
+    int count = vsnprintf(row->text + row->used, available, format, args);
+    va_end(args);
+    if (count >= 0 && (size_t)count >= available) {
+        /* Discard the incomplete append before sending the buffered text. */
+        ftprint_flush(csound, row);
+        available = sizeof(row->text);
+        count = vsnprintf(row->text, available, format, copy);
+    }
+    va_end(copy);
+    if (UNLIKELY(count < 0 || (size_t)count >= available)) return NOTOK;
+    row->used += (size_t)count;
+    return OK;
+}
+
 static int32_t ftprint(CSOUND *csound, FTPRINT *p, int32_t is_init)
 {
     /* Only the sign of the integer trigger matters; avoid an integer cast. */
@@ -2502,20 +2539,26 @@ static int32_t ftprint(CSOUND *csound, FTPRINT *p, int32_t is_init)
     uint32_t step = (uint32_t)*p->kstep;
     uint32_t numcols = (uint32_t)p->numcols, column = 0;
 
+    FTPRINT_ROW row = {{0}, 0};
     csound->MessageS(csound, CSOUNDMSG_ORCH, "ftable %d:\n", ftp->fno);
     for (uint32_t i = start; i < end;) {
-        if (column == 0)
-            csound->MessageS(csound, CSOUNDMSG_ORCH, " %3u: ", i);
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%.4f", ftp->ftable[i]);
-        if (++column == numcols) {
-            csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
+        if (column == 0 && ftprint_append(csound, &row, " %3u: ", i) != OK)
+            return INITPERFERR(is_init, Str("ftprint: formatting failed"));
+        column++;
+        if (ftprint_append(csound, &row, "%.4f%c", ftp->ftable[i],
+                           column == numcols ? '\n' : ' ') != OK)
+            return INITPERFERR(is_init, Str("ftprint: formatting failed"));
+        if (column == numcols) {
+            ftprint_flush(csound, &row);
             column = 0;
-        } else csound->MessageS(csound, CSOUNDMSG_ORCH, " ");
+        }
         /* Do not let the unsigned index wrap on the final increment. */
         if (step >= end - i) break;
         i += step;
     }
-    if (column != 0) csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
+    if (column != 0 && ftprint_append(csound, &row, "\n") != OK)
+        return INITPERFERR(is_init, Str("ftprint: formatting failed"));
+    ftprint_flush(csound, &row);
     return OK;
 }
 
