@@ -3949,67 +3949,61 @@ int32_t tabslice_perf(CSOUND *csound, TABSLICE *p)
 }
 
 
+/* The temporary call record holds one result and one argument, with no
+   extra opcode state or deinitialization lifetime. */
+static int32_t tabmap_function_valid(const OENTRY *opc)
+{
+  return opc != NULL && opc->dsblksiz == sizeof(AEVAL) && opc->deinit == NULL;
+}
+
 int32_t tabmap_set(CSOUND *csound, TABMAP *p)
 {
-  MYFLT *data, *tabin = p->tabin->data;
-  int32_t n, size;
-  const OENTRY *opc  = NULL;
-  AEVAL  eval;
-
-  if (UNLIKELY(p->tabin->data == NULL)||p->tabin->dimensions!=1)
-    return csound->InitError(csound, "%s", Str("array-var not initialised"));
-
-  size = p->tabin->sizes[0];
-  if (UNLIKELY(p->tab->data==NULL)) {
-    if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
-      return csound_array_init_resize_error(csound);
-    p->tab->sizes[0] = size;
-  }
-  else size = size < p->tab->sizes[0] ? size : p->tab->sizes[0];
-  data =  p->tab->data;
-
-
-  opc = csound->FindOpcode(csound, 1, p->str->data, "i", "i");
-  if (UNLIKELY(opc == NULL))
-    return csound->InitError(csound,  Str("%s not found"), p->str->data);
-  p->opc = opc;
-  for (n=0; n < size; n++) {
+  p->opc = NULL;
+  if (UNLIKELY(p->tabin->data == NULL || p->tabin->dimensions != 1 ||
+               p->tabin->sizes == NULL || p->tab->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                             Str("maparray: expected one-dimensional arrays"));
+  const OENTRY *opc = csound->FindOpcode(csound, 1, p->str->data, "i", "i");
+  if (UNLIKELY(!tabmap_function_valid(opc) || opc->init == NULL))
+    return csound->InitError(csound,
+                             Str("maparray: unsupported init-time function: %s"),
+                             p->str->data);
+  int32_t size = p->tabin->sizes[0];
+  if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
+  MYFLT *data = p->tab->data, *tabin = p->tabin->data;
+  AEVAL eval = {0};
+  eval.h = p->h;
+  for (int32_t n = 0; n < size; n++) {
     eval.a = &tabin[n];
     eval.r = &data[n];
-    opc->init(csound, (void *) &eval);
+    if (UNLIKELY(opc->init(csound, &eval) != OK)) return NOTOK;
   }
-
-  opc = csound->FindOpcode(csound, 1, p->str->data, "k", "k");
-  p->opc = opc;
+  p->opc = csound->FindOpcode(csound, 1, p->str->data, "k", "k");
   return OK;
 }
 
 int32_t tabmap_perf(CSOUND *csound, TABMAP *p)
 {
-  /* FIXME; eeds check */
-  MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
-  int32_t n, size;
-
-  const OENTRY *opc  = p->opc;
-  AEVAL  eval;
-
-  if (UNLIKELY(p->tabin->data == NULL) || p->tabin->dimensions !=1)
-    return csound->PerfError(csound,
-                             &(p->h), "%s", Str("array-var not initialised"));
-  if (UNLIKELY(p->tab->data==NULL) || p->tab->dimensions !=1)
-    return csound->PerfError(csound,
-                             &(p->h), "%s", Str("array-var not initialised"));
-  size = p->tab->sizes[0];
-
-  if (UNLIKELY(opc == NULL))
-    return csound->PerfError(csound,
-                             &(p->h), "%s", Str("map fn not found at k rate"));
-  for (n=0; n < size; n++) {
+  if (UNLIKELY(p->tabin->data == NULL || p->tabin->dimensions != 1 ||
+               p->tabin->sizes == NULL || p->tab->dimensions != 1))
+    return csound->PerfError(csound, &p->h, "%s",
+                             Str("maparray: expected one-dimensional arrays"));
+  const OENTRY *opc = p->opc;
+  if (UNLIKELY(!tabmap_function_valid(opc) || opc->perf == NULL))
+    return csound->PerfError(csound, &p->h,
+                             Str("maparray: unsupported control-rate function: %s"),
+                             p->str->data);
+  int32_t size = p->tabin->sizes[0];
+  if (UNLIKELY(tabcheck(csound, p->tab, size, &p->h) != OK)) return NOTOK;
+  MYFLT *data = p->tab->data, *tabin = p->tabin->data;
+  AEVAL eval = {0};
+  eval.h = p->h;
+  for (int32_t n = 0; n < size; n++) {
     eval.a = &tabin[n];
     eval.r = &data[n];
-    opc->perf(csound, (void *) &eval);
+    if (UNLIKELY(opc->perf(csound, &eval) != OK)) return NOTOK;
   }
-
   return OK;
 }
 
