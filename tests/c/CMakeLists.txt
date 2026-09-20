@@ -36,6 +36,7 @@ if(BUILD_TESTS)
         seed_state_test.cpp
         trigseq_test.cpp
         interpolated_random_test.cpp
+        jitter2_test.cpp
         score_expression_test.cpp
         schedkwhen_test.cpp
         schedule_string_test.cpp

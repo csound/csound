@@ -1026,23 +1026,15 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
 
 static int32_t jitter2_set(CSOUND *csound, JITTER2 *p)
 {
-    if (*p->cps1==FL(0.0) && *p->cps2==FL(0.0) && /* accept default values */
-        *p->cps2==FL(0.0) && *p->amp1==FL(0.0) &&
-        *p->amp2==FL(0.0) && *p->amp3==FL(0.0))
-      p->flag = 1;
-    else
-      p->flag = 0;
     p->dfdmax1 = p->dfdmax2 = p->dfdmax3 = FL(0.0);
     p->phs1 = p->phs2 = p->phs3 = 0;
-    p->num1a = p->num1b = p->num1c = FL(0.0); /* JPff Jul 2016 */
+    p->num1a = p->num1b = p->num1c = FL(0.0);
+    p->num2a = p->num2b = p->num2c = FL(0.0);
     if (*p->option != FL(0.0)) {
-      p->num1a   = p->num2a;
       p->num2a   = BiRandGab(csound);
       p->dfdmax1 = (p->num2a - p->num1a) / FMAXLEN;
-      p->num1b   = p->num2b;
       p->num2b   = BiRandGab(csound);
       p->dfdmax2 = (p->num2b- p->num1b) / FMAXLEN;
-      p->num1c   = p->num2c;
       p->num2c   = BiRandGab(csound);
       p->dfdmax3 = (p->num2c- p->num1c) / FMAXLEN;
     }
@@ -1052,22 +1044,29 @@ static int32_t jitter2_set(CSOUND *csound, JITTER2 *p)
 static int32_t jitter2(CSOUND *csound, JITTER2 *p)
 {
     MYFLT out1,out2,out3;
+    MYFLT cps1 = *p->cps1, cps2 = *p->cps2, cps3 = *p->cps3;
+    uint32_t inc;
     out1 = (p->num1a + (MYFLT)p->phs1 * p->dfdmax1);
     out2 = (p->num1b + (MYFLT)p->phs2 * p->dfdmax2);
     out3 = (p->num1c + (MYFLT)p->phs3 * p->dfdmax3);
 
-    if (p->flag) { /* accept default values */
-      *p->out  = (out1* FL(0.5) + out2 * FL(0.3) + out3* FL(0.2)) * *p->gamp;
-      p->phs1 += (int32) (FL(0.82071231913) * CS_KICVT);
-      p->phs2 += (int32) (FL(7.009019029039107) * CS_KICVT);
-      p->phs3 += (int32) (FL(10.0) * CS_KICVT);
+    /* All-zero controls select the historical defaults. */
+    if (cps1 == FL(0.0) && cps2 == FL(0.0) && cps3 == FL(0.0) &&
+        *p->amp1 == FL(0.0) && *p->amp2 == FL(0.0) && *p->amp3 == FL(0.0)) {
+      *p->out = (out1*FL(0.5) + out2*FL(0.3) + out3*FL(0.2)) * *p->gamp;
+      cps1 = FL(0.82071231913);
+      cps2 = FL(7.009019029039107);
+      cps3 = FL(10.0);
     }
-    else {
-      *p->out  = (out1* *p->amp1 + out2* *p->amp2 +out3* *p->amp3) * *p->gamp;
-      p->phs1 += (int32)( *p->cps1 * CS_KICVT);
-      p->phs2 += (int32)( *p->cps2 * CS_KICVT);
-      p->phs3 += (int32)( *p->cps3 * CS_KICVT);
-    }
+    else
+      *p->out = (out1* *p->amp1 + out2* *p->amp2 + out3* *p->amp3) * *p->gamp;
+
+    RANDOM_PHASE_INCREMENT(inc, cps1, CS_KICVT);
+    p->phs1 += inc;
+    RANDOM_PHASE_INCREMENT(inc, cps2, CS_KICVT);
+    p->phs2 += inc;
+    RANDOM_PHASE_INCREMENT(inc, cps3, CS_KICVT);
+    p->phs3 += inc;
     if (p->phs1 >= MAXLEN) {
       p->phs1   &= PHMASK;
       p->num1a   = p->num2a;
