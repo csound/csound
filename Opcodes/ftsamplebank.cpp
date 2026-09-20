@@ -207,101 +207,89 @@ typedef struct {
   MYFLT *extension;
 } DIR_STRUCT;
 
-/* this function will looks for files of a set type, in a particular directory
- */
-std::vector<std::string> searchDir(CSOUND *csound, char *directory,
-                                   char *extension);
+/* Collect matching directory entries in name order. */
+static int32_t searchDir(CSOUND *csound, const char *directory,
+                        const char *extension,
+                        std::vector<std::string> &fileNames);
 
 #include "arrays.h"
 
 static int32_t directory(CSOUND *csound, DIR_STRUCT *p) {
   int32_t inArgCount = p->INOCOUNT;
-  char *extension, *file;
+  const char *extension = "";
   std::vector<std::string> fileNames;
 
-  if (inArgCount == 0)
+  if (inArgCount < 1 || inArgCount > 2)
     return csound->InitError(
-        csound, "%s", Str("Error: you must pass a directory as a string."));
+        csound, "%s", Str("directory expects a path and an optional extension"));
 
-  if (inArgCount == 1) {
-    fileNames = searchDir(csound, p->directoryName->data, (char *)"");
-  }
-
-  else if (inArgCount == 2) {
+  if (inArgCount == 2) {
     CS_TYPE *argType = GetTypeForArg(p->extension);
     if (strcmp("S", argType->varTypeName) == 0) {
-      extension = csound->Strdup(csound, ((STRINGDAT *)p->extension)->data);
-      fileNames = searchDir(csound, p->directoryName->data, extension);
+      extension = ((STRINGDAT *)p->extension)->data;
     } else
       return csound->InitError(csound,
                                "%s", Str("Error: second parameter to directory"
                                    " must be a string"));
   }
 
+  if (searchDir(csound, p->directoryName->data,
+                extension != NULL ? extension : "", fileNames) != OK)
+    return NOTOK;
+
   int32_t numberOfFiles = (int32_t) fileNames.size();
   if (UNLIKELY(tabinit(csound, p->outArr, numberOfFiles,
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
-
   for (int32_t i = 0; i < numberOfFiles; i++) {
-    file = &fileNames[i][0u];
-    STRINGDAT *string = csound_string_array_element(p->outArr, i);
-    string->size = strlen(file) + 1;
-    string->data = csound->Strdup(csound, file);
+    STRINGDAT source = {const_cast<char *>(fileNames[i].c_str()),
+                        fileNames[i].size() + 1, -1};
+    STRINGDAT *destination = csound_string_array_element(p->outArr, i);
+    p->outArr->arrayType->copyValue(csound, p->outArr->arrayType,
+                                    destination, &source, p->h.insdshead);
   }
-
-  fileNames.clear();
 
   return OK;
 }
 
-//-----------------------------------------------------------------
-//      load samples into function tables
-//-----------------------------------------------------------------
-std::vector<std::string> searchDir(CSOUND *csound, char *directory,
-                                   char *extension) {
-  std::vector<std::string> fileNames;
-  if (directory) {
-    DIR *dir = opendir(directory);
-    std::string fileExtension(extension);
-    //    int32_t noOfFiles = 0;
+static int32_t searchDir(CSOUND *csound, const char *directory,
+                        const char *extension,
+                        std::vector<std::string> &fileNames) {
+  const char *path = directory != NULL ? directory : "";
+  DIR *dir = opendir(path);
+  std::string fileExtension(extension);
 
-    // check for valid path first
-    if (dir) {
-      struct dirent *ent;
-      while ((ent = readdir(dir)) != NULL) {
-        std::ostringstream fullFileName;
+  // check for valid path first
+  if (dir) {
+    struct dirent *ent;
+    while ((ent = readdir(dir)) != NULL) {
+      std::ostringstream fullFileName;
 
-        std::string fname = ent->d_name;
-        size_t lastPos = fname.find_last_of(".");
-        if (fname.length() > 0 && (fileExtension.empty() ||
-            (lastPos != std::string::npos &&
-            fname.substr(lastPos) == fileExtension))) {
-          if (strlen(directory) > 0) {
+      std::string fname = ent->d_name;
+      size_t lastPos = fname.find_last_of(".");
+      if (fname.length() > 0 && (fileExtension.empty() ||
+          (lastPos != std::string::npos &&
+          fname.substr(lastPos) == fileExtension))) {
+        if (strlen(path) > 0) {
 #if defined(WIN32)
-            fullFileName << directory << "\\" << ent->d_name;
+          fullFileName << path << "\\" << ent->d_name;
 #else
-            fullFileName << directory << "/" << ent->d_name;
+          fullFileName << path << "/" << ent->d_name;
 #endif
-          } else
-            fullFileName << ent->d_name;
+        } else
+          fullFileName << ent->d_name;
 
-          //noOfFiles++;
-          fileNames.push_back(fullFileName.str());
-        }
+        fileNames.push_back(fullFileName.str());
       }
-
-      // Sort names
-      std::sort(fileNames.begin(), fileNames.end());
-    } else {
-      csound->Message(csound, Str("Cannot find directory. "
-                                  "Error opening directory: %s\n"),
-                      directory);
     }
-    closedir(dir);
-  }
 
-  return fileNames;
+    closedir(dir);
+    // Sort names
+    std::sort(fileNames.begin(), fileNames.end());
+  } else {
+    return csound->InitError(csound, Str("cannot open directory: %s"), path);
+  }
+  return OK;
 }
 
 extern "C" {
