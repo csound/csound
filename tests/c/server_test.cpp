@@ -785,6 +785,28 @@ TEST_F (ServerTests, UdpOrchestraAssemblyRejectsOversizedMessages) {
     EXPECT_NE(messages.find("UDP: orchestra message too long"), std::string::npos);
 }
 
+TEST_F (ServerTests, InternalOscListenerRunsWithoutServer) {
+    for (int cycle = 0; cycle < 2; ++cycle) {
+        ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+        ASSERT_EQ(csoundCompileOrc(csound, R"(
+          sr = 48000
+          ksmps = 32
+          nchnls = 1
+          instr 1
+            kStatus, kValue osclisten "/idle", "i"
+            chnset kStatus, "idle_status"
+          endin
+        )", 0), CSOUND_SUCCESS);
+        ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+        csoundEventString(csound, "i 1 0 1", 0);
+        ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+        int32_t error = 0;
+        EXPECT_EQ(csoundGetControlChannel(csound, "idle_status", &error), 0);
+        EXPECT_EQ(error, CSOUND_SUCCESS);
+        csoundReset(csound);
+    }
+}
+
 static std::string osc_packet(const char *address, const char *type,
                               const std::string &payload) {
     std::string packet(address);
