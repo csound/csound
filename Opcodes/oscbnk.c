@@ -3019,6 +3019,7 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
 
   static const OENTRY localops[] =
     {
+  CSOUND_DEPRECATED_OPCODE("oscbnk", "oscilbank", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "oscbnk", sizeof(OSCBNK), TR, "a", "kkkkiikkkkikkkkkkikooooooo",
     (SUBR) oscbnkset, (SUBR) oscbnk, NULL, NULL, 2 },
    { "oscilbank",     sizeof(OSCBNK),     TR,  "a",  "kkkkiikkkkikkkkkkikooooooo",

@@ -1337,18 +1337,23 @@ static int32_t OSC_alist(CSOUND *csound, OSCLISTENA *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  CSOUND_DEPRECATED_OPCODE("OSCsend_lo", "oscsendlo", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "OSCsend_lo", S(OSCSEND), 0,  "", "kSkSN",
     (SUBR)osc_send_set, (SUBR)osc_send, (SUBR) oscsend_deinit, NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("OSCinit", "oscinit", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "OSCinit", S(OSCINIT), 0, "i", "i",
     (SUBR)osc_listener_init, NULL, (SUBR) OSC_deinit , NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("OSCinitM", "oscinitm", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "OSCinitM", S(OSCINITM), 0,  "i", "Si",
     (SUBR)osc_listener_initMulti, NULL, (SUBR) OSC_deinit , NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("OSClisten", "osclisten", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "OSClisten", S(OSCLISTEN),0,  "k", "iSSN",
     (SUBR)OSC_list_init, (SUBR)OSC_list, (SUBR) OSC_listdeinit, NULL, 2 },
     { "OSClisten", S(OSCLISTEN),0,  "k", "iSS",
     (SUBR)OSC_list_init, (SUBR)OSC_list, (SUBR) OSC_listdeinit, NULL, 2 },
     { "OSClisten", S(OSCLISTENA),0,  "kk[]", "iSS",
     (SUBR)OSC_alist_init, (SUBR)OSC_alist, (SUBR) OSC_listadeinit, NULL, 2 },
+    CSOUND_DEPRECATED_OPCODE("OSCcount", "osccount", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "OSCcount", S(OSCcount), 0,  "k", "",
     (SUBR)OSCcounter, (SUBR)OSCcounter, NULL, NULL, 2 },
   /* aliases */

@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 MACHINE="$(uname -s)"
 case "${MACHINE}" in 
@@ -11,7 +12,7 @@ echo "NDK_BUILD_COMMAND = $NDK_BUILD_CMD"
 flex -B -t ../../Engine/csound_orc.lex > jni/csound_orclex.c 
 flex -B ../../Engine/csound_pre.lex > jni/csound_prelex.c 
 flex -B ../../Engine/csound_prs.lex > jni/csound_prslex.c 
-bison -d -pcsound_orc --report=itemset -o jni/csound_orcparse.c ../../Engine/csound_orc.y
+# Android.mk generates the parser from the current grammar.
 
 rm -rf src/csnd7
 mkdir -p src/csnd7
@@ -44,5 +45,4 @@ if [ -n "$CSOUND_VERSION" ]; then
 fi
 
 $NDK_BUILD_CMD V=1 -j 6 $1
-
 
