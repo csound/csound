@@ -1190,17 +1190,14 @@ static int32_t _pcs[] = {9, 11, 0, 2, 4, 5, 7};
 
 #define FAIL -999
 
-static MYFLT ntomfunc(CSOUND *csound, char *note) {
-    char *n = note;
-    uint32_t notelen = (uint32_t) strlen(note);
+static MYFLT ntomfunc(const char *n) {
+    size_t notelen = strlen(n);
+    if (notelen < 2 || notelen > 6 || n[0] < '0' || n[0] > '9')
+        return FAIL;
     int32_t octave = n[0] - '0';
     int32_t pcidx = n[1] - 'A';
-    if (pcidx < 0 || pcidx >= 7) {
-        csound->Message(csound,
-                        Str("expecting a char between A and G, but got %c\n"),
-                        n[1]);
+    if (pcidx < 0 || pcidx >= 7)
         return FAIL;
-    }
     int32_t pc = _pcs[pcidx];
     int32_t cents = 0;
     int32_t cursor;
@@ -1213,8 +1210,13 @@ static MYFLT ntomfunc(CSOUND *csound, char *note) {
     } else {
         cursor = 2;
     }
-    int32_t rest = notelen - cursor;
+    int32_t rest = (int32_t)notelen - cursor;
     if (rest > 0) {
+        if (rest > 3 || (n[cursor] != '+' && n[cursor] != '-'))
+            return FAIL;
+        for (int32_t i = cursor + 1; i < (int32_t)notelen; i++)
+            if (n[i] < '0' || n[i] > '9')
+                return FAIL;
         int32_t sign = n[cursor] == '+' ? 1 : -1;
         if (rest == 1) {
             cents = 50;
@@ -1222,10 +1224,6 @@ static MYFLT ntomfunc(CSOUND *csound, char *note) {
             cents = n[cursor + 1] - '0';
         } else if (rest == 3) {
             cents = 10 * (n[cursor + 1] - '0') + (n[cursor + 2] - '0');
-        } else {
-            csound->Message(csound,Str("format not understood, note: "
-                                       "%s, notelen: %d\n"), n, notelen);
-            return FAIL;
         }
         cents *= sign;
     }
@@ -1234,20 +1232,27 @@ static MYFLT ntomfunc(CSOUND *csound, char *note) {
 
 
 static int32_t
-ntom(CSOUND *csound, NTOM *p) {
+ntom_common(CSOUND *csound, NTOM *p, int32_t init) {
     /*
        formats accepted: 8D+ (equals to +50 cents), 4C#, 8A-31 7Bb+30
        - no lowercase
        - octave is necessary and comes always first
        - no negative octaves, no octaves higher than 9
     */
-    MYFLT midi = ntomfunc(csound, p->notename->data);
+    MYFLT midi = ntomfunc(p->notename->data);
     if(midi == FAIL)
-        return NOTOK;
+        return INITPERFERR(init, Str("ntom: invalid note name"));
     *p->r = midi;
     return OK;
 }
 
+static int32_t ntom_init(CSOUND *csound, NTOM *p) {
+    return ntom_common(csound, p, 1);
+}
+
+static int32_t ntom(CSOUND *csound, NTOM *p) {
+    return ntom_common(csound, p, 0);
+}
 
 /*
 
@@ -1342,15 +1347,22 @@ mton(CSOUND *csound, MTON *p) {
  */
 
 static int32_t
-ntof(CSOUND *csound, NTOM *p) {
-    MYFLT midi = ntomfunc(csound, p->notename->data);
+ntof_common(CSOUND *csound, NTOM *p, int32_t init) {
+    MYFLT midi = ntomfunc(p->notename->data);
     if(midi == FAIL)
-        return NOTOK;
+        return INITPERFERR(init, Str("ntof: invalid note name"));
     MYFLT a4 = csound->GetA4(csound);
     *p->r = mtof_func(midi, a4);
     return OK;
 }
 
+static int32_t ntof_init(CSOUND *csound, NTOM *p) {
+    return ntof_common(csound, p, 1);
+}
+
+static int32_t ntof(CSOUND *csound, NTOM *p) {
+    return ntof_common(csound, p, 0);
+}
 
 /*
 
@@ -3102,14 +3114,14 @@ static OENTRY emugens_localops[] = {
     // TODO
 
 
-    { "ntom.i", S(NTOM), 0,  "i", "S", (SUBR)ntom },
-    { "ntom.k", S(NTOM), 0,  "k", "S", (SUBR)ntom, (SUBR)ntom },
+    { "ntom.i", S(NTOM), 0,  "i", "S", (SUBR)ntom_init },
+    { "ntom.k", S(NTOM), 0,  "k", "S", (SUBR)ntom_init, (SUBR)ntom },
 
     { "mton.i", S(MTON), 0,  "S", "i", (SUBR)mton_init },
     { "mton.k", S(MTON), 0,  "S", "k", (SUBR)mton_init, (SUBR)mton },
 
-    { "ntof.i", S(NTOM), 0,  "i", "S", (SUBR)ntof },
-    { "ntof.k", S(NTOM), 0,  "k", "S", (SUBR)ntof, (SUBR)ntof },
+    { "ntof.i", S(NTOM), 0,  "i", "S", (SUBR)ntof_init },
+    { "ntof.k", S(NTOM), 0,  "k", "S", (SUBR)ntof_init, (SUBR)ntof },
 
     { "cmp", S(Cmp), 0,  "a", "aSa", (SUBR)cmp_init, (SUBR)cmp_aa,},
     { "cmp", S(Cmp), 0,  "a", "aSk", (SUBR)cmp_init, (SUBR)cmp_ak },
