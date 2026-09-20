@@ -2102,8 +2102,7 @@ typedef struct {
 
     int32_t lasttrig;
     const char *printfmt;
-    char fmtdata[128];
-    const char *label;
+    AUXCH fmtdata;
 } ARRAYPRINTK;
 
 typedef struct {
@@ -2114,8 +2113,7 @@ typedef struct {
     int32_t lasttrig;
 
     const char *printfmt;
-    char fmtdata[128];
-    const char *label;
+    AUXCH fmtdata;
 } ARRAYPRINT;
 
 #define ARRPRINT_SEP (csound->MessageS(csound, CSOUNDMSG_ORCH, "\n"))
@@ -2127,318 +2125,241 @@ static const uint32_t print_linelength = 80;
 static const char default_printfmt[] = "%.4f";
 static const char default_printfmt_str[] = "\"%s\"";
 
-/** replace all occurrences of needle within src by replacement
- * and put the result in target, which should have enough memory to
- * hold the result
-*/
-
-void str_replace(char *dest, const char *src, const char *needle,
-                 const char *replacement)
-{
-    char buffer[512] = { 0 };
-    char *insert_point = &buffer[0];
-    const char *tmp = src;
-    size_t needle_len = strlen(needle);
-    size_t repl_len = strlen(replacement);
-
-    while (1) {
-        const char *p = strstr(tmp, needle);
-
-        // walked past last occurrence of needle; copy remaining part
-        if (p == NULL) {
-            strcpy(insert_point, tmp);
-            break;
+/* Each element supplies one argument. Validate that contract before passing
+   the format to printf, and preserve the historical bare %d -> %.0f alias. */
+static int32_t
+arrayprint_format(CSOUND *csound, ARRAYDAT *arr, STRINGDAT *format,
+                  AUXCH *storage, const char **result) {
+    if (UNLIKELY(arr->dimensions < 1 || arr->sizes == NULL))
+        return INITERR(Str("printarray: array not initialised"));
+    char type = arr->arrayType->varTypeName[0];
+    if (UNLIKELY(type != 'i' && type != 'k' && type != 'S'))
+        return INITERR(Str("printarray: unsupported array type"));
+    if (UNLIKELY(type == 'S' && arr->dimensions != 1))
+        return INITERR(Str("cannot print multidimensional string arrays"));
+    const char *src = format == NULL || format->data[0] == '\0'
+      ? (type == 'S' ? default_printfmt_str : default_printfmt) : format->data;
+    size_t size = strlen(src) + 3; /* One %d can expand by two characters. */
+    if (storage->size < size)
+        csound->AuxAlloc(csound, size, storage);
+    char *dst = storage->auxp;
+    int conversions = 0;
+    while (*src) {
+        if (*src != '%') {
+            *dst++ = *src++;
+            continue;
         }
-
-        // copy part before needle
-        memcpy(insert_point, tmp, p - tmp);
-        insert_point += p - tmp;
-
-        // copy replacement string
-        memcpy(insert_point, replacement, repl_len);
-        insert_point += repl_len;
-
-        // adjust pointers, move on
-        tmp = p + needle_len;
+        const char *begin = src++;
+        if (*src == '%') {
+            *dst++ = '%';
+            *dst++ = *src++;
+            continue;
+        }
+        if (UNLIKELY(++conversions > 1))
+            return INITERR(Str("printarray: format must use at most one conversion"));
+        while (*src && strchr("-+ #0", *src)) {
+            if (UNLIKELY(type == 'S' && *src != '-'))
+                return INITERR(Str("printarray: format does not match the array type"));
+            src++;
+        }
+        while (*src >= '0' && *src <= '9') src++;
+        if (*src == '.') {
+            src++;
+            while (*src >= '0' && *src <= '9') src++;
+        }
+        int long_modifier = *src == 'l';
+        if (long_modifier) src++;
+        if (type != 'S' && *src == 'd' && src == begin + 1) {
+            memcpy(dst, "%.0f", 4);
+            dst += 4;
+        } else {
+            if (UNLIKELY(*src == '\0' ||
+                         (type == 'S' ? (*src != 's' || long_modifier)
+                                      : strchr("aAeEfFgG", *src) == NULL)))
+                return INITERR(Str("printarray: format does not match the array type"));
+            size_t length = (size_t)(src - begin) + 1;
+            memcpy(dst, begin, length);
+            dst += length;
+        }
+        src++;
     }
-
-    // write altered string back to target
-    strcpy(dest, buffer);
+    *dst = '\0';
+    *result = storage->auxp;
+    return OK;
 }
-
 
 static int32_t
 arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
-    if(p->in->arrayType->varTypeName[0] == 'S' && p->in->dimensions > 1)
-        return INITERR(Str("cannot print multidimensional string arrays"));
-    if(p->in->dimensions > 2)
-        return INITERRF(Str("only 1-D and 2-D arrays supported, got %d dimensions"),
-                        p->in->dimensions);
     p->lasttrig = 0;
-    char arraytype = p->in->arrayType->varTypeName[0];
-    const char *default_fmt =
-      arraytype == 'S' ? default_printfmt_str : default_printfmt;
-    p->printfmt =
-      (p->Sfmt == NULL || strlen(p->Sfmt->data) < 2) ? default_fmt : p->Sfmt->data;
-
-    if(strstr(p->printfmt, "%d") != NULL) {
-        str_replace(p->fmtdata, p->printfmt, "%d", "%.0f"); fflush(stdout);
-        p->printfmt = p->fmtdata;
-    }
-
-    p->label = p->Slabel != NULL ? p->Slabel->data : NULL;
-    return OK;
+    return arrayprint_format(csound, p->in, p->Sfmt, &p->fmtdata, &p->printfmt);
 }
 
 static int32_t
 arrayprint_init_notrig(CSOUND *csound, ARRAYPRINT *p) {
-    if(p->in->arrayType->varTypeName[0] == 'S' && p->in->dimensions > 1)
-        return INITERR(Str("cannot print multidimensional string arrays"));
-    // if(p->in->dimensions > 2)
-    //     return INITERRF(Str("only 1-D and 2-D arrays supported, got %d dimensions"),
-    //                     p->in->dimensions);
-    char arraytype = p->in->arrayType->varTypeName[0];
-    const char *default_fmt =
-      arraytype == 'S' ? default_printfmt_str : default_printfmt;
-    p->printfmt =
-      (p->Sfmt == NULL || strlen(p->Sfmt->data) < 2) ? default_fmt : p->Sfmt->data;
-
-    if(strstr(p->printfmt, "%d") != NULL) {
-        str_replace(p->fmtdata, p->printfmt, "%d", "%.0f"); fflush(stdout);
-        p->printfmt = p->fmtdata;
-    }
-
-    p->label = p->Slabel != NULL ? p->Slabel->data : NULL;
-    return OK;
+    return arrayprint_format(csound, p->in, p->Sfmt, &p->fmtdata, &p->printfmt);
 }
 
+/* Print one element and return its full width. Large elements go directly to
+   the message handler; snprintf's required size is never used as an index. */
+static int arrprint_value(CSOUND *csound, const char *fmt, ...) {
+    char text[ARRPRINT_MAXLINE];
+    va_list args;
+    va_start(args, fmt);
+    int count = vsnprintf(text, sizeof(text), fmt, args);
+    va_end(args);
+    if (count < 0) return NOTOK;
+    if ((size_t)count < sizeof(text))
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", text);
+    else {
+        va_start(args, fmt);
+        csound->MessageV(csound, CSOUNDMSG_ORCH, fmt, args);
+        va_end(args);
+    }
+    return count;
+}
 
-// print a string arry
 static int32_t arrprint_str(CSOUND *csound, ARRAYDAT *arr,
                             const char *fmt, const char *label) {
-    int32_t i;
-    uint32_t charswritten = 0;
-    char currline[ARRPRINT_MAXLINE];
-    const uint32_t linelength = print_linelength;
-    if(label != NULL)
+    size_t width = 0;
+    if (label != NULL)
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", label);
-    // fmt = "%s";  // TODO, set default fmt according to type of array
-    for(i = 0; i < arr->sizes[0]; ++i) {
-        if(charswritten > 0) {
-            currline[charswritten++] = ',';
-            currline[charswritten++] = ' ';
-        }
-        charswritten += snprintf(currline + charswritten, ARRPRINT_MAXLINE - charswritten, fmt,
-                                 csound_string_array_element(arr, i)->data);
-        if(charswritten >= linelength) {
-            currline[charswritten+1] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_ORCH, " %s\n", (char*)currline);
-            charswritten = 0;
+    for (int32_t i = 0; i < arr->sizes[0]; i++) {
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", width ? ", " : " ");
+        if (width) width += 2;
+        int count = arrprint_value(csound, fmt,
+                                  csound_string_array_element(arr, i)->data);
+        if (count < 0) return NOTOK;
+        width += (size_t)count;
+        if (width >= print_linelength) {
+            ARRPRINT_SEP;
+            width = 0;
         }
     }
+    if (width) ARRPRINT_SEP;
+    return OK;
+}
 
-    if(charswritten > 0) {
-        currline[charswritten+1] = '\0';
-        csound->MessageS(csound, CSOUNDMSG_ORCH, " %s\n", (char*)currline);
+static int32_t _printmtx(CSOUND *csound, MYFLT *data, size_t offset,
+                         const char *fmt, int32_t numrows, int32_t numcols,
+                         int32_t startbrackets, int32_t endbrackets,
+                         int32_t margin) {
+    for (int32_t r = 0; r < numrows; r++) {
+        int32_t spaces = r == 0 ? MAX(0, margin - startbrackets) : margin + 1;
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%*s", spaces, "");
+        if (r == 0)
+            for (int32_t i = 0; i <= startbrackets; i++)
+                csound->MessageS(csound, CSOUNDMSG_ORCH, "[");
+        for (int32_t col = 0; col < numcols; col++) {
+            if (col) csound->MessageS(csound, CSOUNDMSG_ORCH, " ");
+            if (arrprint_value(csound, fmt,
+                              data[offset + (size_t)r * numcols + col]) < 0)
+                return NOTOK;
+        }
+        if (r == numrows - 1)
+            for (int32_t i = 0; i <= endbrackets; i++)
+                csound->MessageS(csound, CSOUNDMSG_ORCH, "]");
+        ARRPRINT_SEP;
     }
     return OK;
 }
 
-// Print a 2D matrix from a multidimensional array
-static int32_t _printmtx(CSOUND *csound, MYFLT *data, int32_t offset, const char *fmt,
-                         int32_t numrows, int32_t numcols,
-                         int32_t startbrackets, int32_t endbrackets, int32_t margin) {
-
-    int32_t cursor = 0;
-    char colstr[ARRPRINT_MAXLINE];
-    int32_t linelength = ARRPRINT_MAXLINE - margin - numcols;
-    for(int r=0; r < numrows; r++) {
-        if(r == 0) {
-            int spaces = MAX(0, margin - startbrackets);
-            for(int i=0; i < spaces; i++) {
-                colstr[i] = ' ';
-            }
-            for(int i=0; i < startbrackets + 1; i++) {
-                colstr[spaces + i] = '[';
-            }
-            cursor = spaces + startbrackets + 1;
-        } else {
-            int spaces = margin + 1;
-            for(int i=0; i < spaces; i++) {
-                colstr[i] = ' ';
-            }
-            cursor = spaces;
-        }
-        for(int col=0; col < numcols; col++) {
-            if(cursor >= linelength)
-                break;
-            size_t index = offset + r * numcols + col;
-            MYFLT item = data[index];
-            if(col > 0) {
-                colstr[cursor++] = ' ';
-            }
-            cursor += snprintf(colstr + cursor, ARRPRINT_MAXLINE - cursor, fmt, item);
-        }
-        if(r == numrows - 1) {
-            for(int i=0; i < endbrackets + 1; i++) {
-                colstr[cursor++] = ']';
-            }
-        }
-        colstr[cursor++] = 0;
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*)colstr);
-        cursor = 0;
+static int32_t _printsubarr(CSOUND *csound, MYFLT *data, size_t offset,
+                            const char *fmt, int32_t numdims, const int32_t *dims,
+                            int32_t startbrackets, int32_t endbrackets,
+                            int32_t margin) {
+    if (numdims == 2)
+        return _printmtx(csound, data, offset, fmt, dims[0], dims[1],
+                         startbrackets, endbrackets, margin);
+    size_t subsize = 1;
+    for (int32_t i = 1; i < numdims; i++) subsize *= (size_t)dims[i];
+    for (int32_t i = 0; i < dims[0]; i++) {
+        if (_printsubarr(csound, data, offset + (size_t)i * subsize, fmt,
+                         numdims - 1, dims + 1, (startbrackets + 1) * (i == 0),
+                         (endbrackets + 1) * (i == dims[0] - 1), margin) != OK)
+            return NOTOK;
     }
     return OK;
 }
 
-static int32_t _printsubarr(CSOUND *csound, MYFLT *data, int offset, const char *fmt, int numdims, const int *dims, int startbrackets, int endbrackets, int margin) {
-    if(numdims == 2) {
-        int numrows = dims[0];
-        int numcols = dims[1];
-        return _printmtx(csound, data, offset, fmt, numrows, numcols, startbrackets, endbrackets, margin);
-    } else {
-        int subsize = 1;
-        for(int i=1; i < numdims; i++) {
-            subsize *= dims[i];
-        }
-        for(int outerdim=0; outerdim < dims[0]; outerdim++) {
-            _printsubarr(csound, data, offset + outerdim * subsize, fmt, numdims - 1, &(dims[1]), (startbrackets + 1) * (outerdim==0), (endbrackets+1) * (outerdim == dims[0] - 1), margin);
-        }
-    }
-    return OK;
-}
-
-
-// print a numeric array
 static int32_t arrprint(CSOUND *csound, ARRAYDAT *arr,
                          const char *fmt, const char *label) {
-    MYFLT *in = arr->data;
-    int32_t dims = arr->dimensions;
-    int32_t i, j, startidx;
-    const uint32_t linelength = print_linelength;
-    char currline[ARRPRINT_MAXLINE];
-    uint32_t charswritten = 0;
-    int32_t showidx = 0;
-    if(label != NULL) {
+    if (label != NULL)
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", label);
-    }
-    switch(dims) {
-    case 1:
-        startidx = 0;
-        if (arr->sizes[0] > ARRPRINT_IDXLIMIT) {
-            showidx = 1;
-        }
-        for(i=0; i<arr->sizes[0]; i++) {
-          charswritten += snprintf(currline+charswritten, ARRPRINT_MAXLINE - charswritten, fmt, in[i]);
-            if(charswritten < linelength) {
-                currline[charswritten++] = ' ';
+    if (arr->dimensions > 2)
+        return _printsubarr(csound, arr->data, 0, fmt, arr->dimensions,
+                            arr->sizes, 0, 0, arr->dimensions + 1);
+    if (UNLIKELY(arr->dimensions < 1)) return NOTOK;
+    int32_t rows = arr->dimensions == 1 ? 1 : arr->sizes[0];
+    int32_t cols = arr->sizes[arr->dimensions - 1];
+    for (int32_t r = 0; r < rows; r++) {
+        size_t width = 0;
+        for (int32_t col = 0; col < cols; col++) {
+            if (arr->dimensions == 2 && col == 0) {
+                int count = arrprint_value(csound, " %3d: ", r);
+                if (count < 0) return NOTOK;
+                width = (size_t)count;
+            } else if (arr->dimensions == 1 && width == 0) {
+                if (cols > ARRPRINT_IDXLIMIT)
+                    csound->MessageS(csound, CSOUNDMSG_ORCH, " %3d: ", col);
+                else
+                    csound->MessageS(csound, CSOUNDMSG_ORCH, " ");
+            }
+            int count = arrprint_value(csound, fmt,
+                                       arr->data[(size_t)r * cols + col]);
+            if (count < 0) return NOTOK;
+            width += (size_t)count;
+            if (width < print_linelength) {
+                csound->MessageS(csound, CSOUNDMSG_ORCH, " ");
+                width++;
             } else {
-                currline[charswritten+1] = '\0';
-                if (showidx) {
-                    csound->MessageS(csound, CSOUNDMSG_ORCH,
-                                     " %3d: %s\n", startidx, (char*)currline);
-                } else {
-                    csound->MessageS(csound, CSOUNDMSG_ORCH,
-                                     " %s\n", (char*)currline);
-                }
-                charswritten = 0;
-                startidx = i+1;
+                ARRPRINT_SEP;
+                width = 0;
             }
         }
-        if (charswritten > 0) {
-            currline[charswritten] = '\0';
-            if (showidx) {
-                csound->MessageS(csound, CSOUNDMSG_ORCH,
-                                 " %3d: %s\n", startidx, (char*)currline);
-            } else {
-                csound->MessageS(csound, CSOUNDMSG_ORCH,
-                                 " %s\n", (char*)currline);
-            }
-        }
-        break;
-    case 2:
-        for(i=0; i<arr->sizes[0]; i++) {
-          charswritten += snprintf(currline+charswritten, ARRPRINT_MAXLINE - charswritten, " %3d: ", i);
-            for(j=0; j<arr->sizes[1]; j++) {
-              charswritten += snprintf(currline+charswritten, ARRPRINT_MAXLINE - charswritten, fmt, *in);
-                if(charswritten < linelength) {
-                    currline[charswritten++] = ' ';
-                }
-                else {
-                    currline[charswritten+1] = '\0';
-                    csound->MessageS(csound, CSOUNDMSG_ORCH,
-                                     "%s\n", (char*)currline);
-                    charswritten = 0;
-                }
-                in++;
-            }
-            if (charswritten > 0) {
-                currline[charswritten] = '\0';
-                csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*)currline);
-                charswritten = 0;
-            }
-        }
-        break;
-    default:
-        _printsubarr(csound, arr->data, 0, fmt, arr->dimensions, arr->sizes, 0, 0, arr->dimensions + 1);
-        break;
+        if (width) ARRPRINT_SEP;
     }
     return OK;
 }
 
-
-static inline int32_t
-arrprint_(CSOUND *csound, ARRAYDAT *arr, const char* fmt, const char* label) {
-    char *typename = arr->arrayType->varTypeName;
-    switch(typename[0]) {
-    case 'i':
-    case 'k':
-        return arrprint(csound, arr, fmt, label);
-    case 'S':
+static int32_t arrprint_(CSOUND *csound, ARRAYDAT *arr,
+                         const char *fmt, const char *label) {
+    if (arr->arrayType->varTypeName[0] == 'S')
         return arrprint_str(csound, arr, fmt, label);
-    }
-    return INITERRF(Str("type not supported for printing: %s"), typename);
+    return arrprint(csound, arr, fmt, label);
 }
 
 static int32_t
 arrayprint_perf(CSOUND *csound, ARRAYPRINTK *p) {
     int32_t trig = (int32_t)*p->trig;
-    int32_t ret = OK;
-    if(trig < 0 || (trig>0 && p->lasttrig<=0)) {
-        ret = arrprint_(csound, p->in, p->printfmt, p->label);
+    if (trig < 0 || (trig > 0 && p->lasttrig <= 0)) {
+        if (arrprint_(csound, p->in, p->printfmt,
+                       p->Slabel != NULL ? p->Slabel->data : NULL) != OK)
+            return PERFERR(Str("printarray: formatting failed"));
     }
     p->lasttrig = trig;
-    return ret;
+    return OK;
 }
 
 static int32_t
 arrayprint_perf_notrig(CSOUND *csound, ARRAYPRINT *p) {
-    return arrprint_(csound, p->in, p->printfmt, p->label);
+    if (arrprint_(csound, p->in, p->printfmt,
+                   p->Slabel != NULL ? p->Slabel->data : NULL) != OK)
+        return PERFERR(Str("printarray: formatting failed"));
+    return OK;
 }
 
 static int32_t
 arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
-    const char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
-    return arrprint(csound, p->in, default_printfmt, label);
+    if (arrayprint_init_notrig(csound, p) != OK) return NOTOK;
+    if (arrprint_(csound, p->in, p->printfmt,
+                   p->Slabel != NULL ? p->Slabel->data : NULL) != OK)
+        return INITERR(Str("printarray: formatting failed"));
+    return OK;
 }
 
 static int32_t
 arrayprintf_i(CSOUND *csound, ARRAYPRINT *p) {
-    char tmpfmt[256];
-    const char *fmt;
-    if(strlen(p->Sfmt->data) == 0) {
-
-        fmt = default_printfmt;
-    } else {
-        if(strstr(p->Sfmt->data, "%d") == NULL) {
-            fmt = p->Sfmt->data;
-        } else {
-            str_replace(tmpfmt, p->Sfmt->data, "%d", "%.0f");
-            fmt = tmpfmt;
-        }
-    }
-    const char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
-    return arrprint(csound, p->in, fmt, label);
+    return arrayprint_i(csound, p);
 }
 
 
