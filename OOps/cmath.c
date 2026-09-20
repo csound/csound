@@ -274,7 +274,57 @@ static MYFLT poissrand(CSOUND *csound, MYFLT lambda)
 {
     MYFLT r1, r2, r3;
 
-    if (UNLIKELY(lambda < FL(0.0))) return FL(0.0);
+    if (UNLIKELY(!(lambda > FL(0.0) && lambda <= DBL_MAX))) return FL(0.0);
+
+    if (lambda >= FL(64.0)) {
+      /* Hoermann's transformed rejection method (PTRS), 1993.
+         Keep the product method below for existing small-mean sequences. */
+      double mean = (double)lambda;
+      double b = 0.931 + 2.53 * sqrt(mean);
+      double a = -0.059 + 0.02483 * b;
+      double invAlpha = 1.1239 + 1.1328 / (b - 3.4);
+      double squeeze = 0.9277 - 3.6224 / (b - 2.0);
+      double logMean = log(mean);
+
+      for (;;) {
+        double u = UInt32toFlt(csoundRandMT(&csound->randState_)) - 0.5;
+        double v = UInt32toFlt(csoundRandMT(&csound->randState_));
+        double distance = 0.5 - fabs(u);
+        double count, logProbability;
+        if (UNLIKELY(distance == 0.0)) continue;
+        count = floor(mean + (2.0 * a / distance + b) * u + 0.43);
+        if (count < 0.0) continue;
+        if (distance >= 0.07 && v <= squeeze)
+          return (MYFLT)count;
+        if (distance < 0.013 && v > distance) continue;
+        if (count < 1.0e6) {
+          logProbability = -mean + count * logMean - lgamma(count + 1.0);
+        }
+        else {
+          /* Stirling's form avoids subtracting huge log-factorials.
+             Evaluate log(1+d)-d as a series near zero. */
+          double d = (mean - count) / count;
+          double deviance;
+          if (fabs(d) < 0.125) {
+            double term = -0.5 * d * d, sum = term, previous;
+            int32_t j = 2;
+            do {
+              previous = sum;
+              term *= -d * j / (j + 1);
+              sum += term;
+              j++;
+            } while (sum != previous);
+            deviance = count * sum;
+          }
+          else deviance = count * log1p(d) + (count - mean);
+          logProbability = deviance - 0.5 * log(count) -
+                           0.9189385332046727 - (1.0 / 12.0) / count;
+        }
+        if (log(v * invAlpha / (a / (distance * distance) + b)) <=
+            logProbability)
+          return (MYFLT)count;
+      }
+    }
 
     r1 = unirand(csound);
     r2 = EXP(-lambda);
@@ -903,9 +953,6 @@ int32_t gauss_vector(CSOUND *csound, GAUSS *p) {
       out[n] = gausscompute(csound,p);
     return OK;
 }
-
-
-
 
 
 
