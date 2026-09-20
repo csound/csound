@@ -3669,97 +3669,58 @@ int32_t tabcopy2(CSOUND *csound, TABCPY *p)
   return OK;
 }
 
+/* copya2ftab accepts a vector, not a multidimensional array. */
+static const char *array_to_ftable(CSOUND *csound, ARRAYDAT *source,
+                                   MYFLT *number, MYFLT offset)
+{
+  if (UNLIKELY(source->data == NULL || source->dimensions != 1 ||
+               source->sizes == NULL))
+    return Str("copya2ftab: expected an initialized one-dimensional array");
+  if (UNLIKELY(!((double)*number > -2.0 &&
+                 (double)*number < (double)INT32_MAX + 1.0)))
+    return Str("copya2ftab: invalid table number");
+  FUNC *ftp = csound->FTFind(csound, number);
+  if (UNLIKELY(ftp == NULL)) return Str("No table for copya2ftab");
+
+  double index = trunc((double)offset);
+  if (UNLIKELY(!(index >= 0 && index < ftp->flen)))
+    return Str("copya2ftab: offset out of bounds");
+  uint32_t start = (uint32_t)index;
+  uint32_t count = (uint32_t)source->sizes[0];
+  if (count > ftp->flen - start) count = ftp->flen - start;
+  memcpy(ftp->ftable + start, source->data, (size_t)count * sizeof(MYFLT));
+  return NULL;
+}
+
 int32_t tab2ftab(CSOUND *csound, TABCOPY *p)
 {
-  FUNC        *ftp;
-  int32_t fsize;
-  MYFLT *fdata;
-  ARRAYDAT *t = p->tab;
-  int32_t i, tlen = 0;
-
-  if (UNLIKELY(p->tab->data==NULL))
-    return csound->PerfError(csound,
-                             &(p->h), "%s", Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
-    return csound->PerfError(csound,
-                             &(p->h), "%s", Str("No table for copy2ftab"));
-  for (i=0; i<t->dimensions; i++) tlen += t->sizes[i];
-  fsize = ftp->flen;
-  fdata = ftp->ftable;
-  if (fsize<tlen) tlen = fsize;
-  memcpy(fdata, p->tab->data, sizeof(MYFLT)*tlen);
+  const char *error = array_to_ftable(csound, p->tab, p->kfn, FL(0.0));
+  if (UNLIKELY(error != NULL))
+    return csound->PerfError(csound, &p->h, "%s", error);
   return OK;
 }
 
 int32_t tab2ftabi(CSOUND *csound, TABCOPY *p)
 {
-  FUNC        *ftp;
-  int32_t fsize;
-  MYFLT *fdata;
-  ARRAYDAT *t = p->tab;
-  int32_t i, tlen = 0;
-
-  if (UNLIKELY(p->tab->data==NULL))
-    return csound->InitError(csound,  "%s", Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
-    return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
-  for (i=0; i<t->dimensions; i++) tlen += t->sizes[i];
-  fsize = ftp->flen;
-  fdata = ftp->ftable;
-  if (fsize<tlen) tlen = fsize;
-  memcpy(fdata, p->tab->data, sizeof(MYFLT)*tlen);
+  const char *error = array_to_ftable(csound, p->tab, p->kfn, FL(0.0));
+  if (UNLIKELY(error != NULL))
+    return csound->InitError(csound, "%s", error);
   return OK;
 }
 
-// copya2ftab k[], iftable, [, koffset=0]
 int32_t tab2ftab_offset(CSOUND *csound, TABCOPY2 *p)
 {
-  FUNC *ftp;
-  int32_t fsize;
-  MYFLT *fdata;
-  ARRAYDAT *t = p->tab;
-  int32_t offset = (int)(*p->offset);
-  int32_t i, tlen = 0, maxitems;
-  if (UNLIKELY(t->data==NULL))
-    return csound->PerfError(csound, &(p->h), "%s", Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
-    return csound->PerfError(csound, &(p->h), "%s", Str("No table for copy2ftab"));
-  fsize = ftp->flen;
-  if (UNLIKELY(offset >= fsize || offset < 0))
-    return csound->PerfError(csound, &(p->h), "%s", Str("Offset is out of bounds"));
-  for (i=0; i<t->dimensions; i++)
-    tlen += t->sizes[i];
-  fdata = ftp->ftable;
-  maxitems = fsize - offset;
-  if (maxitems < tlen)
-    tlen = maxitems;
-  memcpy(&(fdata[offset]), t->data, sizeof(MYFLT)*tlen);
+  const char *error = array_to_ftable(csound, p->tab, p->kfn, *p->offset);
+  if (UNLIKELY(error != NULL))
+    return csound->PerfError(csound, &p->h, "%s", error);
   return OK;
 }
 
-// copya2ftab i[], iftable, [, ioffset=0]
 int32_t tab2ftab_offset_i(CSOUND *csound, TABCOPY2 *p)
 {
-  FUNC *ftp;
-  int32_t fsize;
-  MYFLT *fdata;
-  ARRAYDAT *t = p->tab;
-  int32_t offset = (int)*p->offset;;
-  int32_t i, tlen = 0, maxitems;
-  if (UNLIKELY(t->data==NULL))
-    return csound->InitError(csound, "%s",  Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
-    return csound->InitError(csound, "%s",  Str("No table for copy2ftab"));
-  fsize = ftp->flen;
-  fdata = ftp->ftable;
-  if (UNLIKELY(offset >= fsize || offset < 0))
-    return csound->InitError(csound, "%s", Str("Offset is out of bounds"));
-  for (i=0; i<t->dimensions; i++)
-    tlen += t->sizes[i];
-  maxitems = fsize - offset;
-  if (maxitems < tlen)
-    tlen = maxitems;
-  memcpy(&(fdata[offset]), t->data, sizeof(MYFLT)*tlen);
+  const char *error = array_to_ftable(csound, p->tab, p->kfn, *p->offset);
+  if (UNLIKELY(error != NULL))
+    return csound->InitError(csound, "%s", error);
   return OK;
 }
 
