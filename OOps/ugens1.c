@@ -1918,7 +1918,7 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
   double val, y1, y2;
 
 
-  if (!(p->INOCOUNT & 1)) {
+  if (p->INOCOUNT < 3 || !(p->INOCOUNT & 1)) {
     return csound->InitError(csound, Str("incomplete number of input arguments"));
   }
 
@@ -1926,7 +1926,7 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
   nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
   //printf("****nsegs = %d\n", nsegs);
   if ((segp = (SEG *) p->auxch.auxp) == NULL ||
-      nsegs*sizeof(SEG) < (uint32_t)p->auxch.size) {
+      (1+nsegs)*sizeof(SEG) > p->auxch.size) {
     csound->AuxAlloc(csound, (int32_t)(1+nsegs)*sizeof(SEG), &p->auxch);
     p->cursegp = 1+(segp = (SEG *) p->auxch.auxp);
     segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
@@ -1956,11 +1956,11 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
   p->y2 = y2 = sp->nxtpt;
   p->x = 0.0;
   if (IS_ASIG_ARG(p->rslt)) {
-    p->inc = (y2!=y1 ? 1.0/(sp->acnt) : 0.0);
+    p->inc = (y2!=y1 && sp->acnt ? 1.0/(sp->acnt) : 0.0);
     p->curcnt = sp->acnt;
   }
   else {
-    p->inc = (y2!=y1 ? 1.0/(sp->cnt) : 0.0);
+    p->inc = (y2!=y1 && sp->cnt ? 1.0/(sp->cnt) : 0.0);
     p->curcnt = sp->cnt;
   }
   //printf("****incx, y1,y2 = %g, %f, %f\n", p->inc, p->y1, p->y2);
@@ -1976,20 +1976,21 @@ int32_t csgset_bkpt(CSOUND *csound, COSSEG *p)
   SEG *segp;
   n = csgset(csound, p);
   if (UNLIKELY(n!=0)) return n;
+  if (*p->argums[1] <= FL(0.0)) return OK;
   cnt = p->curcnt;
   nsegs = p->segsrem-1;
   segp = p->cursegp;
   if (IS_ASIG_ARG(p->rslt))
-    do {
+    while (nsegs-- > 0) {
       if (UNLIKELY(cnt > segp->acnt))
         return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
       segp->acnt -= cnt;
       cnt += segp->acnt;
       segp++;
       bkpt++;
-    } while (--nsegs);
+    }
   else
-    do {
+    while (nsegs-- > 0) {
       //csound->Message(csound, "%d/ %d: %d, %d ", nsegs, bkpt, cnt, segp->cnt);
       if (UNLIKELY(cnt > segp->cnt))
         return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
@@ -1998,7 +1999,7 @@ int32_t csgset_bkpt(CSOUND *csound, COSSEG *p)
       //csound->Message(csound, "-> %d, %d %f\n", cnt, segp->cnt, segp->nxtpt);
       segp++;
       bkpt++;
-    } while (--nsegs);
+    }
 
   return OK;
 }
@@ -2022,12 +2023,11 @@ int32_t kosseg(CSOUND *csound, COSSEG *p)
   if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;          /* RWD fix */
 
   if (LIKELY(p->segsrem)) {             /* if no more segs putk */
-    if (--p->curcnt <= 0) {             /*  if done cur segment */
+    if (p->curcnt <= 0) {             /*  if done cur segment */
       SEG *segp = p->cursegp;
     chk1:
       p->y1 = val1 = val2;
       if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
-        p->y2 = val2 = segp->nxtpt;
         goto putk;                      /*      put endval      */
       }
       //printf("new seg: %d %f\n", segp->cnt, segp->nxtpt);
@@ -2045,6 +2045,7 @@ int32_t kosseg(CSOUND *csound, COSSEG *p)
       double mu2 = (1.0-cos(x*PI))*0.5;
       *p->rslt = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
       x += inc;
+      --p->curcnt;
     }
   }
   else {
@@ -2077,12 +2078,11 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
   for (n=offset; n<nsmps; n++) {
     double mu2;
     if (LIKELY(p->segsrem)) {             /* if no more segs putk */
-      if (--p->curcnt <= 0) {             /*  if done cur segment */
+      if (p->curcnt <= 0) {             /*  if done cur segment */
         SEG *segp = p->cursegp;
       chk1:
         p->y1 = val1 = val2;
         if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
-          p->y2 = val2 = segp->nxtpt;
           goto putk;                      /*      put endval      */
         }
         val2 = p->y2 = segp->nxtpt;          /* Base of next segment */
@@ -2101,6 +2101,7 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
       //printf("****x=%f inc=%f mu2=%f\n", x, inc, mu2);
       rs[n] = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
       x += inc;
+      --p->curcnt;
     }
     else {
     putk:
@@ -2146,11 +2147,10 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
       if (p->segsrem == 1 && !p->h.insdshead->relesing) {
         goto putk;
       }
-      if (--p->curcnt <= 0) {             /*  if done cur segment */
+      if (p->curcnt <= 0) {             /*  if done cur segment */
       chk1:
         p->y1 = val1 = val2;
         if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
-          p->y2 = val2 = segp->nxtpt;
           goto putk;                      /*      put endval      */
         }
       newi:
@@ -2159,7 +2159,11 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
         inc =p->inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
         x = 0.0;
         p->cursegp = segp+1;              /*   else find the next */
-        if (UNLIKELY(!(p->curcnt = segp->acnt))) {
+        p->curcnt = segp->acnt;
+        /* The release segment starts only after note-off. */
+        if (p->segsrem == 1 && !p->h.insdshead->relesing)
+          goto putk;
+        if (UNLIKELY(!p->curcnt)) {
           val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
           inc = p->inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
           goto chk1;
@@ -2170,12 +2174,13 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
         double mu2 = (1.0-cos(x*PI))*0.5;
         val = rs[n] = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
         x += inc;
+        --p->curcnt;
         //if (x>1 || x<0) printf("x=%f out of range\n", x);
       }
     }
     else {
     putk:
-      rs[n] = (MYFLT)val1;
+      val = rs[n] = (MYFLT)val1;
     }
   }
   p->inc = inc;
@@ -2277,11 +2282,10 @@ int32_t kcssegr(CSOUND *csound, COSSEG *p)
     if (p->segsrem == 1 && !p->h.insdshead->relesing) {
       goto putk;
     }
-    if (--p->curcnt <= 0) {             /*  if done cur segment */
+    if (p->curcnt <= 0) {             /*  if done cur segment */
     chk1:
       p->y1 = val1 = val2;
       if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
-        p->y2 = val2 = segp->nxtpt;
         goto putk;                      /*      put endval      */
       }
     newi:
@@ -2289,7 +2293,11 @@ int32_t kcssegr(CSOUND *csound, COSSEG *p)
       inc = p->inc = (segp->cnt ? 1.0/(segp->cnt) : 0.0);
       x = 0.0;
       p->cursegp = segp+1;              /*   else find the next */
-      if (UNLIKELY(!(p->curcnt = segp->cnt))) {
+      p->curcnt = segp->cnt;
+      /* The release segment starts only after note-off. */
+      if (p->segsrem == 1 && !p->h.insdshead->relesing)
+        goto putk;
+      if (UNLIKELY(!p->curcnt)) {
         val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
         /* inc = */ p->inc = (segp->cnt ? 1.0/(segp->cnt) : 0.0);
         goto chk1;
@@ -2299,11 +2307,12 @@ int32_t kcssegr(CSOUND *csound, COSSEG *p)
       double mu2 = (1.0-cos(x*PI))*0.5;
       val = *p->rslt = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
       x += inc;
+      --p->curcnt;
     }
   }
   else {
   putk:
-    *p->rslt = (MYFLT)val1;
+    val = *p->rslt = (MYFLT)val1;
   }
   p->x = x;
   p->val = val;
