@@ -3,6 +3,7 @@
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
 #include "convolve.h"
+#include "lpc.h"
 
 #include <algorithm>
 #include <array>
@@ -271,6 +272,91 @@ TEST_F(AnalysisFileSafetyTests, SinnoiRejectsInvalidSelection)
   for (const char *selection : {"-1", "43", "1, -1", "1, 42",
                                 "3, 38, 2", "2, 0, 0", "2, 0, -1"})
     EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(opcode + selection)) << selection;
+}
+
+std::vector<uint8_t> makeLpcFile(int frames)
+{
+  LPHEADER header = {};
+  header.headersize = sizeof(header) + 4; // legacy four-byte padding
+  header.lpmagic = LP_MAGIC;
+  header.npoles = 2;
+  header.nvals = 6;
+  header.framrate = 100;
+  header.srate = 44100;
+  header.duration = MYFLT(frames) / 100;
+  std::vector<uint8_t> data;
+  appendNative(data, header);
+  data.resize(header.headersize, 0);
+  for (int frame = 0; frame < frames; ++frame)
+    for (MYFLT value : {MYFLT(frame + 1), MYFLT(1), MYFLT(0),
+                        MYFLT(100), MYFLT(0), MYFLT(0)})
+      appendNative(data, value);
+  return data;
+}
+
+TEST_F(AnalysisFileSafetyTests, LpreadSingleAndLongAnalysisFrames)
+{
+  for (int frames : {1, 40000}) {
+    auto path = directory / ("frames-" + std::to_string(frames) + ".lpc");
+    ASSERT_NO_FATAL_FAILURE(writeFile(path, makeLpcFile(frames)));
+    for (const char *time : {"0", "0.005", "350.005", "10000000000"}) {
+      MYFLT sample = 0;
+      ASSERT_EQ(CSOUND_SUCCESS, runFileOpcode(
+        "kRms, kOriginal, kError, kPitch lpread " + std::string(time) +
+        ", \"" + path.generic_string() + "\"\naOut = kRms\nout aOut", &sample));
+      double expected = (std::min)(double(frames), std::stod(time) * 100 + 1);
+      EXPECT_NEAR(expected, sample, 0.01) << frames << " frames at " << time;
+    }
+  }
+  /* A headerless single frame and a text file without a final newline. */
+  auto raw = makeLpcFile(1);
+  raw.erase(raw.begin(), raw.begin() + sizeof(LPHEADER) + 4);
+  auto rawPath = directory / "headerless.lpc";
+  ASSERT_NO_FATAL_FAILURE(writeFile(rawPath, raw));
+  EXPECT_EQ(CSOUND_SUCCESS, runFileOpcode(
+    "k1,k2,k3,k4 lpread 0, \"" + rawPath.generic_string() + "\", 2, 100"));
+  auto textPath = directory / "text.lpc";
+  std::string text = "LPANAL\n0 999 2 6\n100 44100 0.01\n1\n1\n0\n100\n0\n0";
+  ASSERT_NO_FATAL_FAILURE(writeFile(
+    textPath, std::vector<uint8_t>(text.begin(), text.end())));
+  EXPECT_EQ(CSOUND_SUCCESS, runFileOpcode(
+    "k1,k2,k3,k4 lpread 0, \"" + textPath.generic_string() + "\""));
+
+  /* Publish an interpolated pole analysis for a downstream filter. */
+  auto poles = makeLpcFile(1);
+  LPHEADER header;
+  std::memcpy(&header, poles.data(), sizeof(header));
+  header.lpmagic = LP_MAGIC2;
+  header.nvals = 8;
+  std::memcpy(poles.data(), &header, sizeof(header));
+  poles.resize(header.headersize);
+  for (MYFLT value : {MYFLT(1), MYFLT(1), MYFLT(0), MYFLT(100),
+                      MYFLT(.5), MYFLT(-.5), MYFLT(.5), MYFLT(.5)})
+    appendNative(poles, value);
+  auto polePath = directory / "poles.lpc";
+  ASSERT_NO_FATAL_FAILURE(writeFile(polePath, poles));
+  std::string reader = "k1,k2,k3,k4 lpread 0, \"" + polePath.generic_string() + "\"\n";
+  EXPECT_EQ(CSOUND_SUCCESS, runFileOpcode(
+    "lpslot 0\n" + reader + "lpslot 1\n" + reader +
+    "lpslot 2\nlpinterp 0,1,0.5\naIn init 1\naOut lpreson aIn\nout aOut"));
+}
+
+TEST_F(AnalysisFileSafetyTests, LpreadRejectsIncompleteDataAndEmptySlots)
+{
+  auto data = makeLpcFile(1);
+  for (size_t length : {size_t(4), data.size() - sizeof(MYFLT)}) {
+    auto path = directory / ("short-" + std::to_string(length) + ".lpc");
+    ASSERT_NO_FATAL_FAILURE(writeFile(
+      path, std::vector<uint8_t>(data.begin(), data.begin() + length)));
+    EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(
+      "k1,k2,k3,k4 lpread 0, \"" + path.generic_string() + "\""));
+  }
+  for (const char *consumer : {"aOut lpreson aIn",
+                               "aOut lpfreson aIn, 1",
+                               "kFreq, kBw lpformant 1",
+                               "lpinterp 0, 1, 0.5"})
+    EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(
+      std::string("lpslot 20\naIn init 0\n") + consumer)) << consumer;
 }
 
 std::vector<uint8_t> makeHetroFile()

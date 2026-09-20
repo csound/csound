@@ -175,15 +175,22 @@ static int32_t load_lp_file(CSOUND *csound, const char *filnam,
     //void *dummy = 0;
 
     f = fopen(filnam, "r");
+    if (UNLIKELY(f == NULL))
+      return 1;
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_LPC, 0, 0);
     all = (char *)csound->Malloc(csound, (size_t) length);
     for (i=0; i<6; i++) fgetc(f); /* Skip LPANAL */
-    if (UNLIKELY(4!=fscanf(f, "%d %d %d %d\n",
+    if (UNLIKELY(4!=fscanf(f, "%u %u %u %u\n",
                        &lph.headersize, &lph.lpmagic, &lph.npoles, &lph.nvals))) {
+      csound->Free(csound, all);
       fclose(f);
       return csound->InitError(csound, Str("Ill-formed LPC file\n"));
     }
-    ignore_value(fgets(buff, 120, f));
+    if (UNLIKELY(fgets(buff, 120, f) == NULL)) {
+      csound->Free(csound, all);
+      fclose(f);
+      return csound->InitError(csound, Str("Ill-formed LPC file\n"));
+    }
     lph.framrate = (MYFLT)csoundStrtod(buff, &p);
     lph.srate = (MYFLT)csoundStrtod(p, &p);
     lph.duration = (MYFLT)csoundStrtod(p, &p);
@@ -195,6 +202,11 @@ static int32_t load_lp_file(CSOUND *csound, const char *filnam,
     for (i=lph.headersize;;i+=sizeof(MYFLT)) {
       /* Expand as necessary */
       if (UNLIKELY(i>=length-sizeof(MYFLT)-8)) {
+        if (UNLIKELY(length > INT32_MAX - 4096)) {
+          csound->Free(csound, all);
+          fclose(f);
+          return csound->InitError(csound, Str("LPC file is too large\n"));
+        }
         //printf("expanding from %p[%d] to\n", all, length);
         all = csound->ReAlloc(csound, all, length+=4096);
         //printf("i=%d                     %p[%d]\n", i, all, length);
@@ -203,8 +215,12 @@ static int32_t load_lp_file(CSOUND *csound, const char *filnam,
       if (j) break;
       memcpy(&all[i], &x, sizeof(MYFLT));
     }
-    fclose(f);                                  /*   and close it      */
-    printf("length=%d i=%u\n", length, i);
+    if (UNLIKELY(ferror(f))) {
+      csound->Free(csound, all);
+      fclose(f);
+      return csound->InitError(csound, Str("Error reading LPC file\n"));
+    }
+    fclose(f);
     *len = i;
     all = csound->ReAlloc(csound, all, i);
     *allocp = all;
