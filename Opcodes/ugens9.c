@@ -65,12 +65,23 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
     csound->Free(csound, allocatedName);
   p->mfp = mfp;
   cvfilnam = mfp->filename;
+  if (UNLIKELY(mfp->length < (int32_t) sizeof(CVSTRUCT)))
+    return csound->InitError(csound, "%s", Str("convolve: truncated file header"));
   cvh = (CVSTRUCT *)mfp->beginp;
   if (UNLIKELY(cvh->magic != CVMAGIC)) {
     return csound->InitError(csound,
                              Str("%s not a CONVOLVE file (magic %"PRIi32")"),
                              cvfilnam, cvh->magic);
   }
+
+  if (UNLIKELY(cvh->headBsize < (int32_t) sizeof(CVSTRUCT) ||
+               cvh->headBsize > mfp->length ||
+               cvh->headBsize % sizeof(MYFLT) != 0 ||
+               cvh->src_chnls < 1 ||
+               (cvh->channel != ALLCHNLS &&
+                (cvh->channel < 1 || cvh->channel > cvh->src_chnls)) ||
+               cvh->Format != CVRECT))
+    return csound->InitError(csound, "%s", Str("convolve: invalid file header"));
 
   nchanls = (cvh->channel == ALLCHNLS ? cvh->src_chnls : 1);
 
@@ -104,6 +115,10 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
     return csound->InitError(csound, "%s", Str("convolve: invalid impulse length"));
   while (Hlenpadded < 2*Hlen-1)
     Hlenpadded <<= 1;
+  /* Use the loaded size: text files can come from a different MYFLT build. */
+  siz = ((uint64_t) Hlenpadded + 2) * nchanls * sizeof(MYFLT);
+  if (UNLIKELY(siz > (uint64_t) (mfp->length - cvh->headBsize)))
+    return csound->InitError(csound, "%s", Str("convolve: truncated spectrum data"));
   p->Hlenpadded = Hlenpadded;
   p->H = (MYFLT *) ((char *)cvh+cvh->headBsize);
   if ((p->nchanls == 1) && (*p->channel > 0))
