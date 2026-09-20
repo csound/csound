@@ -2828,15 +2828,11 @@ static void build_const_pool(CSOUND *csound, INSTRTXT *ip, char *s,
 }
 
 static void remove_global_annotation(char *varName) {
-  // find global annotation
-  if(strchr(varName, '@') != NULL) {
-    char* th;
-    char* baseType = strtok_r(varName, "@", &th);
-    char* global = strtok_r(NULL, "@", &th);
-    if(!strcmp(global, "global")) {
-      varName = baseType;
-    }
-  }
+  /* String contents are not variable annotations. */
+  if (*varName == '"') return;
+  char *annotation = strchr(varName, '@');
+  if (annotation != NULL && strcmp(annotation, "@global") == 0)
+    *annotation = '\0';
 }
 
 static CS_VARIABLE *setup_arg_for_var_name(CSOUND* csound, ARG* arg,
@@ -2911,14 +2907,10 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     arg->type = ARG_STRING;
     temp = csound->Calloc(csound, strlen(s) + 1);
     unquote_string(temp, s);
-    str->data =
-      cs_hash_table_get_key(csound, csound->engineState.stringPool, temp);
+    str->data = strsav_string(csound, engineState, temp);
     str->size = strlen(temp) + 1;
     csound->Free(csound, temp);
     arg->argPtr = str;
-    if (str->data == NULL) {
-      str->data = cs_hash_table_put_key(csound, engineState->stringPool, temp);
-    }
   }
   else if ((n = get_pfield(csound, engineState, ip, s)) >= 0) {
     arg->type = ARG_PFIELD;
