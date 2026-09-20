@@ -2568,28 +2568,44 @@ typedef struct {
     OPDS h;
     ARRAYDAT *out;
     ARRAYDAT *in1, *in2;
-    int32_t numitems;
 } BINOP_AAA;
 
 static int32_t
-array_binop_init(CSOUND *csound, BINOP_AAA *p) {
-    int32_t numitems = 1;
-    int32_t i;
-
-    for(i=0; i<p->in1->dimensions; i++) {
-        numitems *= p->in1->sizes[i];
+array_binop_prepare(CSOUND *csound, BINOP_AAA *p, int32_t init,
+                    int32_t *numitems) {
+    size_t count1, count2;
+    if (UNLIKELY(p->in1->dimensions <= 0 || p->in2->dimensions <= 0 ||
+                 p->out->dimensions > 1 ||
+                 csound_array_member_count(p->in1, &count1) != OK ||
+                 csound_array_member_count(p->in2, &count2) != OK ||
+                 count1 > INT32_MAX || count2 > INT32_MAX))
+        return init ? INITERR(Str("array bitwise: invalid array size"))
+                    : PERFERR(Str("array bitwise: invalid array size"));
+    if (UNLIKELY(count1 != count2))
+        return init ? INITERR(Str("array bitwise: operand lengths do not match"))
+                    : PERFERR(Str("array bitwise: operand lengths do not match"));
+    /* Keep the existing flat output, using the current input lengths. */
+    *numitems = (int32_t)count1;
+    if (init) {
+        if (UNLIKELY(tabinit(csound, p->out, *numitems,
+                             p->h.insdshead) != OK))
+            return csound_array_init_resize_error(csound);
+        return OK;
     }
-    if (UNLIKELY(tabinit(csound, p->out, numitems,
-                         p->h.insdshead) != OK))
-      return csound_array_init_resize_error(csound);
-    p->numitems = numitems;
-    return OK;
+    return tabcheck(csound, p->out, *numitems, &p->h);
+}
+
+static int32_t
+array_binop_init(CSOUND *csound, BINOP_AAA *p) {
+    int32_t numitems;
+    return array_binop_prepare(csound, p, 1, &numitems);
 }
 
 static int32_t
 array_or(CSOUND *csound, BINOP_AAA *p) {
-    int32_t numitems = p->numitems;
-    ARRAY_ENSURESIZE_PERF(csound, p->out, numitems);
+    int32_t numitems;
+    if (UNLIKELY(array_binop_prepare(csound, p, 0, &numitems) != OK))
+        return NOTOK;
     int32_t i;
     MYFLT *out = p->out->data;
     MYFLT *in1 = p->in1->data;
@@ -2603,15 +2619,14 @@ array_or(CSOUND *csound, BINOP_AAA *p) {
 
 static int32_t
 array_and(CSOUND *csound, BINOP_AAA *p) {
-    int32_t numitems = p->numitems;
-    ARRAY_ENSURESIZE_PERF(csound, p->out, numitems);
-
+    int32_t numitems;
+    if (UNLIKELY(array_binop_prepare(csound, p, 0, &numitems) != OK))
+        return NOTOK;
     int32_t i;
     MYFLT *out = p->out->data;
     MYFLT *in1 = p->in1->data;
     MYFLT *in2 = p->in2->data;
 
-    // TODO: ensure size AND shape
     for(i=0; i<numitems; i++) {
         *(out++) = (MYFLT)((int32_t)*(in1++) & (int32_t)*(in2++));
     }
