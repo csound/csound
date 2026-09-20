@@ -35,6 +35,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>   /* Standard types */
+#include <errno.h>
 #include <string.h>   /* String function definitions */
 
 #ifndef WIN32
@@ -508,7 +509,7 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
 
 /* Basic design:  when arduinoStart is called it opens serial line like
    serialBegin and also creates a buffer to store incoming values, and a thead
-   listen to the input. We use a 0x80 read to synchonise, and each value is
+   listen to the input. We use a 0xf8 byte to synchronise, and each value is
    packed with an index; data only sent if it changes. This can be cancelled
    with arduinoStop.
    The arduino opcode checks that there has been a call to arduinoStart and
@@ -516,8 +517,6 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
 
    Issue: it assumes that the arduino is already running the correct sketch type.
    Issue:  Can we load the sketch from csound?
-   Issue: Need to stop the listen thread.
-   Issue: Windows version incomplete
 */
 
 #define MAXSENSORS (30)
@@ -530,10 +529,12 @@ typedef struct {
 #else
     int32_t port;
 #endif
-  void *lock;
-    int32_t stop;
+    void *lock;
+    /* Windows Interlocked operations require a long, including in C++. */
+    long stop;
+    int32_t portIndex;
+    uint64_t generation;
     int32_t values[MAXSENSORS];
-    int32_t buffer[MAXSENSORS];
 } ARDUINO_GLOBALS;
 
 typedef struct {
@@ -542,6 +543,7 @@ typedef struct {
     STRINGDAT *portName;
     MYFLT *baudRate;
     ARDUINO_GLOBALS *q;
+    uint64_t generation;
 } ARD_START;
 
 typedef struct {
@@ -552,6 +554,7 @@ typedef struct {
     MYFLT *ihtim;
     ARDUINO_GLOBALS *q;
     MYFLT c1, c2, yt1;
+    uint64_t generation;
 } ARD_READ;
 
 typedef struct {
@@ -562,136 +565,160 @@ typedef struct {
     MYFLT *index2;
     MYFLT *index3;
     ARDUINO_GLOBALS *q;
+    uint64_t generation;
 } ARD_READF;
 
-#ifndef WIN32
-/* NOTE we need to remove timeout status VMIN/VTIME maybe */
-unsigned char arduino_get_byte(int32_t port)
+/* The port is nonblocking. Check cancellation even while waiting for sync
+   or the second byte of a value, and avoid spinning on an idle device. */
+static int32_t arduino_get_byte(ARDUINO_GLOBALS *q)
 {
     unsigned char b;
-    ssize_t bytes;
- top:
-    bytes = read(port, &b, 1);
-    if (bytes != 1) goto top;
-    //    printf("Read %.3x\n", b);
-    return b;
-}
-
+    while (!ATOMIC_GET(q->stop)) {
+#ifdef WIN32
+      DWORD bytes;
+      if (!ReadFile(q->port, &b, 1, &bytes, NULL)) return -1;
 #else
-
-// Attempt at Windows verson
-
-unsigned char arduino_get_byte(HANDLE port)
-{
-    unsigned char b;
-    DWORD bytes;
- top:
-    if (!ReadFile(port, &b, 1, &bytes, NULL)) goto top;
-    if (bytes != 1) goto top;
-    return b;
-}
+      ssize_t bytes = read(q->port, &b, 1);
+      if (bytes < 0 && errno != EAGAIN && errno != EWOULDBLOCK &&
+          errno != EINTR) return -1;
 #endif
+      if (bytes == 1) return b;
+      q->csound->Sleep(1);
+    }
+    return -1;
+}
 
-#define DEBUG 0
-uintptr_t arduino_listen(void *p)
+static uintptr_t arduino_listen(void *p)
 {
-#define SYN (0xf8)
-    uint32_t ans = 0;
-    uint16_t c, val;
     ARDUINO_GLOBALS *q = (ARDUINO_GLOBALS*)p;
     CSOUND *csound = q->csound;
-    if (DEBUG) printf("Q=%p\n", q);
-    // Read until we see a header word
-    while((c = arduino_get_byte(q->port))!=SYN) {
-      if (DEBUG) printf("ignore low %.2x\n", c);
-    }
-    // Should be synced now
-    while (1) {
-      uint32_t hi, low;
-      // critical region
+    int32_t low, hi;
+    while ((low = arduino_get_byte(q)) >= 0 && low != 0xf8) {}
+    if (low < 0) goto done;
+    while ((low = arduino_get_byte(q)) >= 0) {
+      if (low == 0xf8) continue;
+      hi = arduino_get_byte(q);
+      if (hi < 0) break;
+      if (hi == 0xf8) continue;
+      int32_t index = (hi >> 3) & 0x1f;
+      if (index >= MAXSENSORS) continue;
       csound->LockMutex(q->lock);
-      memcpy(q->values, q->buffer, MAXSENSORS*sizeof(int32_t));
+      q->values[index] = ((hi & 7) << 7) | (low & 0x7f);
       csound->UnlockMutex(q->lock);
-      // end critical region
-      if (q->stop)
-        //#ifndef WIN32
-        //pthread_exit(NULL);
-        //#elsex
-        return 0;
-      //#endif
-      low = arduino_get_byte(q->port);
-      if (low == SYN) continue; /* start new frame */
-      hi = arduino_get_byte(q->port);
-      if (hi == SYN) continue; /* start new frame */
-      if (DEBUG) printf("low hi = %.2x %.2x\n", low, hi);
-      val = ((hi&0x7)<<7) | (low&0x7f);
-      c = (hi>>3)&0x1f;
-      if (DEBUG) printf("In bits: va1=%.2x va2= %.2x; c1=%.2x\n",
-                        (hi&0x7)<<7,  low&0x7f, (hi>>3)&0x1f);
-      if (DEBUG) printf("Sensor %d value %d(%.2x)\n", c, val, val);
-      q->buffer[c] = val;
     }
-    return ans;
+ done:
+    ATOMIC_SET(q->stop, 1);
+    return 0;
+}
+
+static void arduino_close_port(CSOUND *csound, ARDUINO_GLOBALS *q)
+{
+#ifdef WIN32
+    SERIAL_GLOBALS *ports = (SERIAL_GLOBALS*)
+      csound->QueryGlobalVariable(csound, "serialGlobals_");
+    CloseHandle(q->port);
+    if (ports != NULL && q->portIndex >= 0 && q->portIndex < ports->maxind &&
+        ports->handles[q->portIndex] == q->port)
+      ports->handles[q->portIndex] = NULL;
+#else
+    IGN(csound);
+    close(q->port);
+#endif
+    q->portIndex = -1;
+}
+
+static void arduino_shutdown(CSOUND *csound, ARDUINO_GLOBALS *q)
+{
+    if (q->thread == NULL) return;
+    ATOMIC_SET(q->stop, 1);
+    csound->JoinThread(q->thread);
+    q->thread = NULL;
+    arduino_close_port(csound, q);
+}
+
+static int32_t arduino_reset(CSOUND *csound, void *data)
+{
+    ARDUINO_GLOBALS *q = (ARDUINO_GLOBALS*)data;
+    arduino_shutdown(csound, q);
+    csound->DestroyMutex(q->lock);
+    return OK;
 }
 
 int32_t arduino_deinit(CSOUND *csound, ARD_START *p)
-{                               /* NOT FINISHED */
-    p->q->stop = 1;
-    csound->JoinThread(p->q->thread);
-    csound->DestroyGlobalVariable(csound, "arduinoGlobals_");
-      p->q = NULL;
+{
+    if (p->q != NULL && p->generation == p->q->generation)
+      arduino_shutdown(csound, p->q);
+    p->q = NULL;
     return OK;
 }
 
 int32_t arduinoStart(CSOUND* csound, ARD_START* p)
 {
-    ARDUINO_GLOBALS *q;
-    int32_t n;
-    MYFLT xx =
-      (MYFLT)serialport_init(csound,
-                             (const char *)p->portName->data,
-                             *p->baudRate);
-    //printf("xx=%g\n", xx);
-    if (xx<0) return csound->InitError(csound, "%s",
-                                       Str("failed to open serial line\n"));
-    q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
-                                                       "arduinoGlobals_");
-    if (q!=NULL) return csound->InitError(csound, "%s",
-                                    Str("arduinoStart already running\n"));
-    if (UNLIKELY(csound->CreateGlobalVariable(csound, "arduinoGlobals_",
-                                              sizeof(ARDUINO_GLOBALS)) != 0))
-      return
-        csound->InitError(csound, "%s", Str("arduino: failed to allocate globals"));
-    q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
-                                                       "arduinoGlobals_");
-    if (q==NULL) return csound->InitError(csound, "&%s", Str("Failed to allocate\n"));
-    p->q = q;
-    q->csound = csound;
-    q->lock = csound->Create_Mutex(0);
+    ARDUINO_GLOBALS *q = (ARDUINO_GLOBALS*)
+      csound->QueryGlobalVariable(csound, "arduinoGlobals_");
+    if (q != NULL && q->thread != NULL)
+      return csound->InitError(csound, "%s", Str("arduinoStart already running\n"));
+    if (q == NULL) {
+      if (csound->CreateGlobalVariable(csound, "arduinoGlobals_", sizeof(*q)) != 0)
+        return csound->InitError(csound, "%s", Str("arduino: failed to allocate globals"));
+      q = (ARDUINO_GLOBALS*)csound->QueryGlobalVariable(csound, "arduinoGlobals_");
+      q->csound = csound;
+      q->portIndex = -1;
+      q->lock = csound->Create_Mutex(0);
+      if (q->lock == NULL) {
+        csound->DestroyGlobalVariable(csound, "arduinoGlobals_");
+        return csound->InitError(csound, "%s", Str("arduino: failed to create mutex"));
+      }
+      if (csound->RegisterResetCallback(csound, q, arduino_reset) != OK) {
+        csound->DestroyMutex(q->lock);
+        csound->DestroyGlobalVariable(csound, "arduinoGlobals_");
+        return csound->InitError(csound, "%s", Str("arduino: failed to register cleanup"));
+      }
+    }
+    int32_t port = serialport_init(csound, p->portName->data, *p->baudRate);
+    if (port < 0)
+      return csound->InitError(csound, "%s", Str("failed to open serial line\n"));
+    q->portIndex = port;
 #ifdef WIN32
-    q->port = get_port(csound, xx);
+    q->port = get_port(csound, port);
+    COMMTIMEOUTS timeouts = {0};
+    timeouts.ReadIntervalTimeout = MAXDWORD;
+    if (!SetCommTimeouts(q->port, &timeouts)) {
+      arduino_close_port(csound, q);
+      return csound->InitError(csound, "%s", Str("arduino: failed to set read timeout"));
+    }
 #else
-    q->port = xx;
+    q->port = port;
 #endif
-    for (n=0; n<MAXSENSORS; n++) q->values[n] = 0;
-    // Start listening thread
-    q->stop = 0;
-    q->thread = csound->CreateThread(arduino_listen, (void *)q);
-    *p->returnedPort = xx;
- return OK;
+    csound->LockMutex(q->lock);
+    memset(q->values, 0, sizeof(q->values));
+    q->generation++;
+    csound->UnlockMutex(q->lock);
+    ATOMIC_SET(q->stop, 0);
+    q->thread = csound->CreateThread(arduino_listen, q);
+    if (q->thread == NULL) {
+      ATOMIC_SET(q->stop, 1);
+      arduino_close_port(csound, q);
+      return csound->InitError(csound, "%s", Str("arduino: failed to create thread"));
+    }
+    p->q = q;
+    p->generation = q->generation;
+    *p->returnedPort = port;
+    return OK;
 }
 
 int32_t arduinoReadSetup(CSOUND* csound, ARD_READ* p)
 {
     p->q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "arduinoGlobals_");
-    if (p->q == NULL)
+    if (p->q == NULL || p->q->thread == NULL || *p->port != p->q->portIndex)
       return csound->InitError(csound, "%s", Str("arduinoStart not running\n"));
+    p->generation = p->q->generation;
+    p->yt1 = FL(0.0);
     /* Initialise port filter */
     if (*p->ihtim != FL(0.0)) {
       p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
       p->c1 = 1.0 - p->c2;
-      p->yt1 = FL(0.0);
     } else {
       p->c2 = FL(0.0); p->c1 = FL(1.0);
     }
@@ -702,14 +729,17 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
 {
     ARDUINO_GLOBALS *q = p->q;
     MYFLT val;
-    int32_t ind = *p->index;
-    if (ind <0 || ind>MAXSENSORS)
+    if (!(*p->index >= 0 && *p->index < MAXSENSORS))
       return csound->PerfError(csound, &p->h,
                                "%s", Str("out of range\n"));
+    int32_t ind = (int32_t)*p->index;
     csound->LockMutex(q->lock);
+    if (p->generation != q->generation || ATOMIC_GET(q->stop)) {
+      csound->UnlockMutex(q->lock);
+      return csound->PerfError(csound, &p->h, "%s", Str("arduinoStart not running\n"));
+    }
     val = (MYFLT)q->values[ind];
     csound->UnlockMutex(q->lock);
-    if (DEBUG) printf("ind %d val %d\n", ind, q->values[ind]);
     p->yt1 = p->c1 * val + p->c2 * p->yt1;
     *p->val = p->yt1;
     return OK;
@@ -719,37 +749,37 @@ int32_t arduinoReadFSetup(CSOUND* csound, ARD_READF* p)
 {
     p->q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "arduinoGlobals_");
-    if (p->q == NULL)
+    if (p->q == NULL || p->q->thread == NULL || *p->port != p->q->portIndex)
       return csound->InitError(csound, "%s", Str("arduinoStart not running\n"));
+    p->generation = p->q->generation;
     return OK;
 }
-
-typedef union {
-  float   f;
-  int32_t i;
-} JOINT;
 
 int32_t arduinoReadF(CSOUND* csound, ARD_READF* p)
 {
     ARDUINO_GLOBALS *q = p->q;
-    JOINT val;
-    int32_t ind1 = *p->index1;
-    int32_t ind2 = *p->index2;
-    int32_t ind3 = *p->index3;
-    int32_t c1, c2, c3;
-    if (ind1<0 || ind1>MAXSENSORS ||
-        ind2<0 || ind2>MAXSENSORS ||
-        ind3 <0 || ind3>MAXSENSORS)
-      return csound->PerfError(csound, &p->h,
-                               "%s", Str("out of range\n"));
+    float val;
+    if (!(*p->index1 >= 0 && *p->index1 < MAXSENSORS &&
+          *p->index2 >= 0 && *p->index2 < MAXSENSORS &&
+          *p->index3 >= 0 && *p->index3 < MAXSENSORS))
+      return csound->PerfError(csound, &p->h, "%s", Str("out of range\n"));
+    int32_t ind1 = (int32_t)*p->index1;
+    int32_t ind2 = (int32_t)*p->index2;
+    int32_t ind3 = (int32_t)*p->index3;
+    uint32_t c1, c2, c3;
     csound->LockMutex(q->lock);
+    if (p->generation != q->generation || ATOMIC_GET(q->stop)) {
+      csound->UnlockMutex(q->lock);
+      return csound->PerfError(csound, &p->h, "%s", Str("arduinoStart not running\n"));
+    }
     c1 = q->values[ind1];
     c2 = q->values[ind2];
     c3 = q->values[ind3];
     csound->UnlockMutex(q->lock);
     //printf("ind %d val %d\n", ind, q->values[ind]);
-    val.i = (c3<<22)|(c2<<12)|(c1<<2);
-    *p->val = (MYFLT)val.f;
+    uint32_t bits = (c3<<22)|(c2<<12)|(c1<<2);
+    memcpy(&val, &bits, sizeof(val));
+    *p->val = (MYFLT)val;
     return OK;
 }
 
@@ -761,10 +791,9 @@ int32_t arduinoStop(CSOUND* csound, ARD_START* p)
     if (q==NULL)
       csound->Message(csound, "%s\n", Str("arduino not running"));
     else {
-      q->stop = 1;
-      csound->JoinThread(q->thread);
-      csound->DestroyGlobalVariable(csound, "arduinoGlobals_");
-        //q->thread = NULL;
+      if (*p->returnedPort != q->portIndex && q->thread != NULL)
+        return csound->InitError(csound, "%s", Str("Invalid Arduino port"));
+      arduino_shutdown(csound, q);
     }
     return OK;
 }
