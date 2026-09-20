@@ -949,8 +949,8 @@ static int32_t events_match(CSOUND *csound,
      evt1->pcnt == evt2->pcnt) {
     int i;
     for(i = 4; i < evt1->pcnt+1; i++) {
-      // TODO: encode string in evt1
-      // for now we just ignore any string arg
+      if(IsStringCode(evt1->p[i]) != IsStringCode(evt2->p[i]))
+        return 0;
       if(IsStringCode(evt2->p[i])) {
         char *str1 = get_string_arg_from_evt(csound, evt1->p[i],evt1);
         char *str2 = get_string_arg_from_evt(csound, evt2->p[i],evt2);
@@ -1025,6 +1025,8 @@ int32_t remove_event_op(CSOUND *csound, RMEVT *p, int32_t cont) {
   EVTBLK evt;
   MYFLT pfields[VARGMAX] = {0};
   int i, pcnt = p->INOCOUNT;
+  if(UNLIKELY(pcnt < 3 || pcnt > PMAX))
+    return csound->InitError(csound, Str("unschedule: invalid argument count"));
   memset(&evt, 0, sizeof(EVTBLK));
   evt.p2orig = *p->arg[1];
   evt.p3orig = *p->arg[2];
@@ -1043,7 +1045,6 @@ int32_t remove_event_op(CSOUND *csound, RMEVT *p, int32_t cont) {
   else evt.p[1] = *p->arg[0];
 
   for(i = 2; i < pcnt+1; i++) {
-    // TODO: encode string args, ignored for now
     if(IS_STR_ARG(p->arg[i-1])) {
        STRINGDAT *str = (STRINGDAT *) p->arg[i-1];
        set_evt_strarg(csound, &evt, i, str->data);
