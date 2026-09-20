@@ -3234,58 +3234,60 @@ int32_t tabqset1(CSOUND *csound, TABQUERY1 *p)
   return csound->InitError(csound, "%s", Str("array-variable not initialised"));
 }
 
-int32_t tabmax(CSOUND *csound, TABQUERY *p)
+static const char *array_extremum(TABQUERY *p, int32_t maximum)
 {
   ARRAYDAT *t = p->tab;
-  int32_t i, size = t->sizes[0], pos = 0;;
+  size_t i, size, pos = 0;
   MYFLT ans;
 
   if (UNLIKELY(t->data == NULL))
-    return csound->PerfError(csound, &(p->h),
-                             "%s", Str("array-variable not initialised"));
-  for (i=1; i<t->dimensions; i++) size *= t->sizes[i];
+    return Str("array-variable not initialised");
+  if (UNLIKELY(csound_array_member_count(t, &size) != OK))
+    return Str("minarray/maxarray: invalid array size");
+  if (UNLIKELY(size == 0))
+    return Str("minarray/maxarray: empty array");
   ans = t->data[0];
-  for (i=1; i<size; i++)
-    if (t->data[i]>ans) {
-      ans = t->data[i];
-      pos = i;
-    }
+  if (maximum) {
+    for (i=1; i<size; i++)
+      if (t->data[i]>ans) {
+        ans = t->data[i];
+        pos = i;
+      }
+  }
+  else {
+    for (i=1; i<size; i++)
+      if (t->data[i]<ans) {
+        ans = t->data[i];
+        pos = i;
+      }
+  }
   *p->ans = ans;
   if (p->OUTOCOUNT>1) *p->pos = (MYFLT)pos;
-  return OK;
+  return NULL;
+}
+
+int32_t tabmax(CSOUND *csound, TABQUERY *p)
+{
+  const char *error = array_extremum(p, 1);
+  return error ? csound->PerfError(csound, &(p->h), "%s", error) : OK;
 }
 
 int32_t tabmax1(CSOUND *csound, TABQUERY *p)
 {
-  if (tabqset(csound, p) == OK) return tabmax(csound, p);
-  else return NOTOK;
+  const char *error = array_extremum(p, 1);
+  return error ? csound->InitError(csound, "%s", error) : OK;
 }
 
 int32_t tabmin(CSOUND *csound, TABQUERY *p)
 {
-  ARRAYDAT *t = p->tab;
-  int32_t i, size = t->sizes[0], pos = 0;
-  MYFLT ans;
-
-  if (UNLIKELY(t->data == NULL))
-    return csound->PerfError(csound, &(p->h),
-                             "%s", Str("array-variable not initialised"));
-  for (i=1; i<t->dimensions; i++) size *= t->sizes[i];
-  ans = t->data[0];
-  for (i=1; i<size; i++)
-    if (t->data[i]<ans) {
-      ans = t->data[i];
-      pos = i;
-    }
-  *p->ans = ans;
-  if (p->OUTOCOUNT>1) *p->pos = (MYFLT)pos;
-  return OK;
+  const char *error = array_extremum(p, 0);
+  return error ? csound->PerfError(csound, &(p->h), "%s", error) : OK;
 }
 
 int32_t tabmin1(CSOUND *csound, TABQUERY *p)
 {
-  if (LIKELY(tabqset(csound, p) == OK)) return tabmin(csound, p);
-  else return NOTOK;
+  const char *error = array_extremum(p, 0);
+  return error ? csound->InitError(csound, "%s", error) : OK;
 }
 
 
