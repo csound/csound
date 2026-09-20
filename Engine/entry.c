@@ -680,7 +680,7 @@ const OENTRY opcodlst_1[] = {
     (SUBR) tabmap_perf},
   { "genarray.i", sizeof(TABGEN),0, "i[]", "iip", (SUBR) tabgen, NULL   },
   { "genarray.ki", sizeof(TABGEN),0, "k[]", "iip", (SUBR)tabgen, NULL, NULL},
-  { "genarray.k", sizeof(TABGEN),0, "k[]", "kkp", NULL, (SUBR)tabgen    },
+  { "genarray.k", sizeof(TABGEN),0, "k[]", "kkp", NULL, (SUBR)tabgen_perf },
   { "genarray_i", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL, NULL, 2},
   { "genarrayi", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL}, /* Alias */
   { "maparray.i", sizeof(TABMAP), 0, "i[]", "i[]S", (SUBR) tabmap_set },
