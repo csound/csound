@@ -530,7 +530,9 @@ typedef struct {
     int32_t port;
 #endif
     void *lock;
-    int32_t stop, portIndex;
+    /* Windows Interlocked operations require a long, including in C++. */
+    long stop;
+    int32_t portIndex;
     uint64_t generation;
     int32_t values[MAXSENSORS];
 } ARDUINO_GLOBALS;
