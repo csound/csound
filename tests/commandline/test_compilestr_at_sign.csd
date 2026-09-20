@@ -2,7 +2,7 @@
 description = "compilestr preserves at signs in source and compiled string literals"
 [expect]
 exit = 0
-stderr = ["compiled@literal", "dynamic global=7"]
+output = ["compiled@literal", "dynamic global=7"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

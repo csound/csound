@@ -2,7 +2,7 @@
 description = "at signs in string literals do not act as global annotations"
 [expect]
 exit = 0
-stderr = ["name@example.org|@|name@global|@@tail@", "value@position=42", "global=42"]
+output = ["name@example.org|@|name@global|@@tail@", "value@position=42", "global=42"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
