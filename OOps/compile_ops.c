@@ -29,35 +29,34 @@ int32_t compile_orc_i(CSOUND *csound, COMPILE *p){
   size_t size=0;
   char *orc, c, *name;
 
+  *p->res = (MYFLT)(CSOUND_ERROR);
   name = ((STRINGDAT *)p->str)->data;
   fp = fopen(name, "rb");
 
   if (fp == NULL) {
     csound->Warning(csound, Str("compileorc: could not open %s\n"), name);
-    *p->res = (MYFLT)(CSOUND_ERROR);
-    return NOTOK;
+    return OK;
   }
 
-  while(!feof(fp))
-    size += fread(&c,1,1,fp);
+  while(fread(&c,1,1,fp) == 1)
+    size++;
 
-  if(size==0) {
-    fclose(fp);
-    *p->res = (MYFLT)(CSOUND_ERROR);
-    return
-      csound->InitError(csound, Str("compileorc: could not read %s\n"), name);
-  }
+  if(ferror(fp) || size == 0 || fseek(fp, 0, SEEK_SET) != 0)
+    goto read_error;
 
   orc = (char *) csound->Calloc(csound, size+1);
-  fseek(fp, 0, SEEK_SET);
   if (UNLIKELY(fread(orc,1,size,fp)!=size)) {
-    fclose(fp);
     csound->Free(csound,orc);
-    return NOTOK;
+    goto read_error;
   }
   *p->res = (MYFLT)(csound_compile_orc(csound, orc, 0));
   fclose(fp);
   csound->Free(csound,orc);
+  return OK;
+
+read_error:
+  fclose(fp);
+  csound->Warning(csound, Str("compileorc: could not read %s\n"), name);
   return OK;
 }
 
