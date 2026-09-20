@@ -920,7 +920,11 @@ int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
 
 MYFLT gausscompute(CSOUND *csound, GAUSS *p) {
   if(p->flag == 0) {
-    MYFLT u1 = unirand(csound);
+    MYFLT u1;
+    /* The uniform generator includes zero, but log(u1) must be finite. */
+    do {
+      u1 = unirand(csound);
+    } while (UNLIKELY(u1 == FL(0.0)));
     MYFLT u2 = unirand(csound);
     MYFLT z = SQRT(-2.*LOG(u1))*cos(2*PI*u2);
     p->z = SQRT(-2.*LOG(u1))*sin(2*PI*u2);

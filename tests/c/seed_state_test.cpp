@@ -1,10 +1,37 @@
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
 #include "gtest/gtest.h"
+#include <cmath>
 #include <utility>
 
 namespace {
 uint32_t clockSeed;
+
+TEST(RandomStateTests, GaussianPairSkipsZeroUniformDraw) {
+    for (int sigma : {0, 2}) {
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(csound, nullptr);
+        csoundCreateMessageBuffer(csound, 0);
+        csoundSetOption(csound, "-n");
+        ASSERT_EQ(csoundCompileOrc(csound,
+            "sr=48000\nksmps=2\nnchnls=1\n0dbfs=1\n"
+            "instr 1\naValue gauss 3, p4\nout aValue\nendin\n", 0),
+            CSOUND_SUCCESS);
+        ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+        csoundEventString(csound, sigma ? "i 1 0 .01 2" : "i 1 0 .01 0", 0);
+        csound->randState_.mti = 0;
+        csound->randState_.mt[0] = 0;
+        // The next two words temper to 0x80000000, giving uniforms near 0.5.
+        csound->randState_.mt[1] = 0x80102204u;
+        csound->randState_.mt[2] = 0x80102204u;
+        ASSERT_EQ(csoundPerformKsmps(csound), 0);
+        EXPECT_EQ(csound->randState_.mti, 3);
+        EXPECT_NEAR(csoundGetSpout(csound)[0],
+                    3.0 - sigma * std::sqrt(2.0 * std::log(2.0)), 1e-5);
+        EXPECT_NEAR(csoundGetSpout(csound)[1], 3.0, 1e-5);
+        csoundDestroy(csound);
+    }
+}
 
 TEST(RandomStateTests, BilateralExponentialHandlesMinimumSignedDraw) {
     CSOUND *csound = csoundCreate(nullptr, nullptr);
