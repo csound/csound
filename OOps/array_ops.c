@@ -3763,35 +3763,45 @@ int32_t tab2ftab_offset_i(CSOUND *csound, TABCOPY2 *p)
   return OK;
 }
 
-int32_t tabgen(CSOUND *csound, TABGEN *p)
+static const char *array_generate(CSOUND *csound, TABGEN *p)
 {
-  MYFLT *data =  p->tab->data;
   MYFLT start = *p->start;
-  MYFLT end   = *p->end;
-  MYFLT incr  = *p->incr;
+  MYFLT end = *p->end;
+  MYFLT incr = *p->incr;
 
-  int32_t i;
-  if (UNLIKELY(incr == FL(0.0))) {
-    return csound->InitError(csound, "genarray_i: incr must be non-zero");
-  }
-  int64_t sz64 = (int64_t)((end - start)/incr + 1.0);
-  if (UNLIKELY(sz64 <= 0 || sz64 > (1<<24)))
-    return csound->InitError(csound, "genarray_i: computed size (%lld) invalid",
-                             (long long)sz64);
-  int32_t size = (int32_t)sz64;
+  if (UNLIKELY(p->tab->dimensions > 1))
+    return Str("genarray: output must be one-dimensional");
+  if (UNLIKELY(incr == FL(0.0)))
+    return Str("genarray: increment must be non-zero");
+  double count = (end - start) / incr + 1.0;
+  /* Check before conversion, retaining the existing truncated size limit. */
+  if (UNLIKELY(!(count >= 1.0 && count < (1 << 24) + 1.0)))
+    return Str("genarray: sequence length out of range");
+  int32_t size = (int32_t)count;
 
   if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
-    return csound_array_init_resize_error(csound);
-  if (UNLIKELY(p->tab->data==NULL)) {
-    if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
-      return csound_array_init_resize_error(csound);
-  }
-  data =  p->tab->data;
-  for (i=0; i < size; i++) {
+    return Str("genarray: could not resize output array");
+  MYFLT *data = p->tab->data;
+  for (int32_t i = 0; i < size; i++) {
     data[i] = start;
     start += incr;
   }
+  return NULL;
+}
 
+int32_t tabgen(CSOUND *csound, TABGEN *p)
+{
+  const char *error = array_generate(csound, p);
+  if (UNLIKELY(error != NULL))
+    return csound->InitError(csound, "%s", error);
+  return OK;
+}
+
+int32_t tabgen_perf(CSOUND *csound, TABGEN *p)
+{
+  const char *error = array_generate(csound, p);
+  if (UNLIKELY(error != NULL))
+    return csound->PerfError(csound, &p->h, "%s", error);
   return OK;
 }
 

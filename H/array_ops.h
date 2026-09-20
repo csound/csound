@@ -291,6 +291,7 @@ int32_t tab2ftabi(CSOUND *csound, TABCOPY *p);
 int32_t tab2ftab_offset(CSOUND *csound, TABCOPY2 *p);
 int32_t tab2ftab_offset_i(CSOUND *csound, TABCOPY2 *p);
 int32_t tabgen(CSOUND *csound, TABGEN *p);
+int32_t tabgen_perf(CSOUND *csound, TABGEN *p);
 int32_t ftab2tabi(CSOUND *csound, TABCOPY *p);
 int32_t ftab2tab(CSOUND *csound, TABCOPY *p);
 int32_t trim_i(CSOUND *csound, TRIM *p);
