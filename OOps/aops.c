@@ -2654,8 +2654,16 @@ int32_t painit(CSOUND *csound, PAINIT *p)
 
 int32_t init_instr_ref(CSOUND *csound, IREF_INIT *p) {
   INSTRTXT **instrs = csound->GetInstrumentList(csound);
-  if(!p->out->readonly) // can write to it
-    p->out->instr = instrs[(int32_t) *p->in];
+  if(!p->out->readonly) { // can write to it
+    if (UNLIKELY(!(*p->in >= FL(0.0) &&
+                   (double)*p->in < (double)csound->engineState.maxinsno + 1)))
+      return csound->InitError(csound, "%s",
+                              Str("init: instrument number out of range"));
+    p->out->instr = instrs[(int32_t)*p->in];
+    if (UNLIKELY(p->out->instr == NULL))
+      return csound->InitError(csound, "%s",
+                              Str("init: instrument is not defined"));
+  }
   else csound->Warning(csound, "instr ref var %s is read-only: cannot copy",
                               GetOutputArgName(&(p->h),0));
   return OK;
@@ -2686,7 +2694,8 @@ int32_t get_instr_name(CSOUND *csound, IREF_NUM *p) {
     return csound->InitError(csound,
       Str("str: instrument reference is not initialized"));
   }
-  char *name = csoundStrdup(csound, p->in->instr->insname);
+  const char *name = p->in->instr->insname;
+  if (name == NULL) name = "";
   STRINGDAT *out = (STRINGDAT *) p->out;
   if(strlen(name) >= out->size) {
     csound->Free(csound, out->data);

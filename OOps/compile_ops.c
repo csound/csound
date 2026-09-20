@@ -76,9 +76,7 @@ int32_t compile_str_i(CSOUND *csound, COMPILE *p){
   return OK;
 }
 
-/* compiles a single instrument:
-   Instr new_instr Scode  -> adds new instr in free slot
-*/
+/* Compile a single instrument definition in a free slot. */
 int32_t compile_instr(CSOUND *csound, CINSTR *p) {
   INSTRTXT **instrs = csound->GetInstrumentList(csound);
   int32_t num = 1;
@@ -86,16 +84,16 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p) {
   char *code;
   const char *endin = "\n endin \n";
   // look for a free slot
-  while(instrs[num] != NULL) num++;
-  siz = strlen(p->code->data) + strlen(endin) + 16;
+  while(num <= csound->engineState.maxinsno && instrs[num] != NULL) num++;
+  siz = strlen(p->code->data) + strlen(endin) + sizeof("instr 2147483647\n");
   code = csound->Calloc(csound, siz);
   snprintf(code, siz,"instr %d\n%s%s", num, p->code->data, endin);
 
   if(csound->GetDebug(csound) & DEBUG_OPCODES) csound->Message(csound, "%s \n", code);
   // compile code
   if(csound_compile_orc(csound, code, 0) == CSOUND_SUCCESS) {
-    // pass the instrument out
-    p->instr->instr = instrs[num];
+    /* Compilation can grow and relocate the instrument table. */
+    p->instr->instr = csound->GetInstrumentList(csound)[num];
     csound->Free(csound, code);
     return OK;
   }
@@ -586,4 +584,3 @@ void add_csobj(CSOUND *csound, TYPE_POOL *pool) {
                        "", ":Csound;", (SUBR) destroy_csobj, NULL, NULL);
   
 }
-
