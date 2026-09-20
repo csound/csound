@@ -2828,11 +2828,16 @@ static void build_const_pool(CSOUND *csound, INSTRTXT *ip, char *s,
 }
 
 static void remove_global_annotation(char *varName) {
-  /* String contents are not variable annotations. */
   if (*varName == '"') return;
-  char *annotation = strchr(varName, '@');
-  if (annotation != NULL && strcmp(annotation, "@global") == 0)
-    *annotation = '\0';
+  // find global annotation
+  if(strchr(varName, '@') != NULL) {
+    char* th;
+    char* baseType = strtok_r(varName, "@", &th);
+    char* global = strtok_r(NULL, "@", &th);
+    if(!strcmp(global, "global")) {
+      varName = baseType;
+    }
+  }
 }
 
 static CS_VARIABLE *setup_arg_for_var_name(CSOUND* csound, ARG* arg,
