@@ -2,7 +2,7 @@
 description = "createinstr keeps valid references when the instrument table grows"
 [expect]
 exit = 0
-stderr = ["created instrument ran"]
+output = ["created instrument ran"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
