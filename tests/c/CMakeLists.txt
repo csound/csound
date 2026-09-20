@@ -46,6 +46,7 @@ if(BUILD_TESTS)
         local_ksmps_test.cpp
         lfsr_test.cpp
         serial_test.cpp
+        joystick_test.cpp
         osc_blob_test.cpp
         pvsinit_test.cpp
         paulstretch_test.cpp
