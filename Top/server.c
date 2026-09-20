@@ -27,6 +27,7 @@
 #define __HAIKU_CONFLICT
 
 #include "csoundCore.h"
+#include <ctype.h>
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -116,9 +117,10 @@ static void udp_socksend(CSOUND *csound, int32_t *sock, const char *addr,
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
-    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
+    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)) {
       csound->Warning(csound, Str("UDP: Winsock2 failed to start: %d"), err);
-    return;
+      return;
+    }
 #endif
 #ifdef __wasm__
     *sock = -1;
@@ -151,8 +153,9 @@ static void udp_socksend(CSOUND *csound, int32_t *sock, const char *addr,
   server_addr.sin_family = AF_INET;    /* it is an INET address */
 #if defined(WIN32) && !defined(__CYGWIN__)
   server_addr.sin_addr.S_un.S_addr = inet_addr(addr);
+  if (server_addr.sin_addr.S_un.S_addr == INADDR_NONE) return;
 #else
-  inet_aton(addr, &server_addr.sin_addr);    /* the server IP address */
+  if (inet_aton(addr, &server_addr.sin_addr) == 0) return;
 #endif
   server_addr.sin_port = htons((int32_t) port);    /* the port */
 
@@ -165,6 +168,14 @@ static void udp_socksend(CSOUND *csound, int32_t *sock, const char *addr,
 #endif
 }
 
+/* Leave the separator in place: string-channel values include that space. */
+static const char *udp_read_token(const char *text, char token[128]) {
+  int used = 0;
+  if (sscanf(text, "%127s%n", token, &used) != 1 ||
+      (text[used] != '\0' && !isspace((unsigned char)text[used])))
+    return NULL;
+  return text + used;
+}
 
 static uintptr_t udp_recv(void *pdata){
   struct sockaddr from;
@@ -182,15 +193,26 @@ static uintptr_t udp_recv(void *pdata){
   csound->Message(csound, Str("UDP server started on port %d\n"),port);
   while (p->status) {
 #ifndef __wasm__
-    received = (int32_t) recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen);
+    received = (int32_t) recvfrom(p->sock, (void *)orchestra,
+                                 MAXSTR - (orchestra - start), 0, &from, &clilen);
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (received == SOCKET_ERROR && WSAGetLastError() == WSAEMSGSIZE)
+      received = MAXSTR - (orchestra - start);
+#endif
 #endif
     if (received <= 0) {
       csoundSleep(timout ? timout : 1);
       continue;
     }
     else {
+      if (received >= MAXSTR - (orchestra - start)) {
+        orchestra = start;
+        cont = 0;
+        csound->Warning(csound, Str("UDP: orchestra message too long\n"));
+        continue;
+      }
       orchestra[received] = '\0'; // terminate string
-      if(strlen(orchestra) < 2) continue;
+      if(strlen(orchestra) < 2 && !cont && *orchestra != '{') continue;
       if (csound->oparms->echo)
         csound->Message(csound, "%s", orchestra);
       if (strncmp("!!close!!",orchestra,9)==0 ||
@@ -198,7 +220,21 @@ static uintptr_t udp_recv(void *pdata){
         csoundEventString(csound, "e 0 0", 1);
         break;
       }
-      if(*orchestra == '/') {
+      if(*orchestra == '{' || cont) {
+        char *cp;
+        if((cp = strrchr(orchestra, '}')) != NULL &&
+           (cp == start || *(cp-1) != '}')) {
+          *cp = '\0';
+          cont = 0;
+          orchestra = start;
+          csoundCompileOrc(csound, orchestra+1, 1);
+        }
+        else {
+          orchestra += received;
+          cont = 1;
+        }
+      }
+      else if(*orchestra == '/') {
         OSC_MESS mess;
         int32_t len, siz = 0;
         const char *buf = orchestra;
@@ -276,26 +312,34 @@ static uintptr_t udp_recv(void *pdata){
       }
       else if(*orchestra == '@') {
         char chn[128];
+        const char *value = udp_read_token(orchestra+1, chn);
         MYFLT val;
-        sscanf(orchestra+1, "%s", chn);
-        val = atof(orchestra+1+strlen(chn));
+        if (value == NULL) continue;
+        val = atof(value);
         csoundSetControlChannel(csound, chn, val);
       }
       else if(*orchestra == '%') {
         char chn[128];
-        char *str;
-        sscanf(orchestra+1, "%s", chn);
-        str = csoundStrdup(csound, orchestra+1+strlen(chn));
-        csoundSetStringChannel(csound, chn, str);
-        csound->Free(csound, str);
+        const char *value = udp_read_token(orchestra+1, chn);
+        if (value == NULL) continue;
+        csoundSetStringChannel(csound, chn, value);
       }
       else if(*orchestra == ':') {
         char addr[128], chn[128], *msg;
-        int32_t sport, err = 0;
+        const char *next;
+        char *end;
+        long sport;
+        int32_t err = 0;
         MYFLT val;
-        sscanf(orchestra+2, "%s", chn);
-        sscanf(orchestra+2+strlen(chn), "%s", addr);
-        sport = atoi(orchestra+3+strlen(addr)+strlen(chn));
+        if (orchestra[1] != '@' && orchestra[1] != '%') continue;
+        next = udp_read_token(orchestra+2, chn);
+        if (next == NULL) continue;
+        next = udp_read_token(next, addr);
+        if (next == NULL) continue;
+        sport = strtol(next, &end, 10);
+        if (next == end || sport < 1 || sport > 65535) continue;
+        while (isspace((unsigned char)*end)) end++;
+        if (*end != '\0') continue;
         if(*(orchestra+1) == '@') {
           size_t slen = strlen(chn);
           val = csoundGetControlChannel(csound, chn, &err);
@@ -320,32 +364,11 @@ static uintptr_t udp_recv(void *pdata){
         }
         else err = -1;
         if(!err) {
-          udp_socksend(csound, &sock, addr, sport,msg);
+          udp_socksend(csound, &sock, addr, (int32_t)sport, msg);
           csound->Free(csound, msg);
         }
         else
           csound->Warning(csound, Str("could not retrieve channel %s"), chn);
-      }
-      else if(*orchestra == '{' || cont) {
-        char *cp;
-        if((cp = strrchr(orchestra, '}')) != NULL) {
-          if(*(cp-1) != '}') {
-            *cp = '\0';
-            cont = 0;
-          }  else {
-            orchestra += received;
-            cont = 1;
-          }
-        }
-        else {
-          orchestra += received;
-          cont = 1;
-        }
-        if(!cont) {
-          orchestra = start;
-          //csound->Message(csound, "%s\n", orchestra+1);
-          csoundCompileOrc(csound, orchestra+1, 1);
-        }
       }
       else {
         //csound->Message(csound, "%s\n", orchestra);

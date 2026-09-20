@@ -25,6 +25,7 @@
 #endif
 
 #include "csound.hpp"
+#include "csound_server.h"
 #include "csPerfThread.hpp"
 
 void udp_send(const char* msg) {
@@ -711,6 +712,78 @@ TEST_F(ServerTests, OscMulticastListenerStartsAndStops)
     EXPECT_EQ(messages.find("deinit error"), std::string::npos);
 }
 #endif
+
+TEST_F (ServerTests, UdpChannelCommandsRejectInvalidFields) {
+    const uint16_t port = unused_udp_port();
+    ASSERT_NE(port, 0);
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    csoundSetControlChannel(csound, "control", 0);
+    csoundSetControlChannel(csound, "done", 0);
+    csoundSetStringChannel(csound, "text", "");
+    const std::string boundaryName(127, 'x');
+    csoundSetControlChannel(csound, boundaryName.c_str(), 0);
+    ASSERT_EQ(csoundUDPServerStart(csound, port), CSOUND_SUCCESS);
+
+    const std::vector<std::string> messages = {
+        "@ ", "% ", ":@ ", ":@control", ":%text 127.0.0.1",
+        "@" + boundaryName + "x 99",
+        "%" + std::string(256, 'x') + " value",
+        ":@" + std::string(256, 'x') + " 127.0.0.1 1234",
+        ":@control " + std::string(256, 'x') + " 1234",
+        ":@control 127.0.0.1 99999999999999999999999999",
+        "@" + boundaryName + " 3",
+        "@  control 7", "%  text hello", "@done 1"
+    };
+    for (const auto &message : messages)
+        ASSERT_TRUE(udp_send_bytes(message.data(), message.size(), port));
+    int32_t err = 0;
+    for (int i = 0; i < 1000 && csoundGetControlChannel(csound, "done", &err) != 1; i++)
+        csoundSleep(1);
+    ASSERT_EQ(csoundUDPServerClose(csound), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundGetControlChannel(csound, "done", &err), 1);
+    EXPECT_EQ(csoundGetControlChannel(csound, "control", &err), 7);
+    EXPECT_EQ(csoundGetControlChannel(csound, boundaryName.c_str(), &err), 3);
+    char text[32] = {};
+    csoundGetStringChannel(csound, "text", text);
+    EXPECT_STREQ(text, " hello");
+}
+
+TEST_F (ServerTests, UdpOrchestraAssemblyRejectsOversizedMessages) {
+    const uint16_t port = unused_udp_port();
+    ASSERT_NE(port, 0);
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    csoundSetControlChannel(csound, "done", 0);
+    ASSERT_EQ(csoundUDPServerStart(csound, port), CSOUND_SUCCESS);
+    for (const char *message : {"{", "; fragmented orchestra\n", "}", "@done 1"}) {
+        ASSERT_TRUE(udp_send_bytes(message, strlen(message), port));
+        csoundSleep(5);
+    }
+    int32_t err = 0;
+    for (int i = 0; i < 1000 && csoundGetControlChannel(csound, "done", &err) != 1; i++)
+        csoundSleep(1);
+    ASSERT_EQ(csoundGetControlChannel(csound, "done", &err), 1);
+    csoundSetControlChannel(csound, "done", 0);
+    ASSERT_TRUE(udp_send_bytes("{;", 2, port));
+    const std::string chunk(8192, ' ');
+    for (int i = 0; i < 128; i++) {
+        csoundSleep(5);
+        ASSERT_TRUE(udp_send_bytes(chunk.data(), chunk.size(), port));
+    }
+    csoundSleep(5);
+    ASSERT_TRUE(udp_send_bytes("@done 1", 7, port));
+    for (int i = 0; i < 1000 && csoundGetControlChannel(csound, "done", &err) != 1; i++)
+        csoundSleep(1);
+    ASSERT_EQ(csoundUDPServerClose(csound), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundGetControlChannel(csound, "done", &err), 1);
+    std::string messages;
+    while (csoundGetMessageCnt(csound) > 0) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_NE(messages.find("UDP: orchestra message too long"), std::string::npos);
+}
 
 TEST_F (ServerTests, SockrecvBoundsUnterminatedUdpString) {
     constexpr size_t mtu = 1456;
