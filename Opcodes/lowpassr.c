@@ -26,13 +26,22 @@
 #include "lowpassr.h"
 #include <math.h>
 
+/* Validate only when coefficients change, before dividing by either input. */
+#define LOWRES_CHECK_PARAMS(cutoff, resonance)                            \
+    do {                                                                 \
+      if (UNLIKELY(!((cutoff) > FL(0.0) && (resonance) > FL(0.0))))       \
+        return csound->PerfError(csound, &p->h, "%s",                     \
+                  Str("lowres: cutoff and resonance must be positive")); \
+    } while (0)
+
 static int32_t lowpr_set(CSOUND *csound, LOWPR *p)
 {
 
     IGN(csound);
     if (*p->istor==FL(0.0))
       p->ynm1 = p->ynm2 = 0.0;
-    p->okf = 0.0;
+    /* Force the first coefficient calculation, including invalid inputs. */
+    p->okf = NAN;
     p->okr = 0.0;
     p->k = 0.0;
     return OK;
@@ -51,9 +60,7 @@ static int32_t lowpr(CSOUND *csound, LOWPR *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
-      if (UNLIKELY(kfco<=FL(0.0)))
-        return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("Cutoff parameter must be positive"));
+      LOWRES_CHECK_PARAMS(kfco, kres);
       b = 10.0 / (kres * sqrt((double)kfco)) - 1.0;
       p->k = k = 1000.0 / (double)kfco;
       p->coef1 = coef1 = (b+2.0 * k);
@@ -106,9 +113,7 @@ static int32_t lowpraa(CSOUND *csound, LOWPR *p)
     }
     for (n=offset; n<nsmps;n++) {
       if (okf!= fco[n] || okr != res[n]) { /* Only if changed */
-        if (UNLIKELY(fco[n]<=FL(0.0)))
-          return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("Cutoff parameter must be positive"));
+        LOWRES_CHECK_PARAMS(fco[n], res[n]);
         b = 10.0 / (res[n] * sqrt((double)fco[n])) - 1.0;
         p->k = k = 1000.0 / (double)fco[n];
         p->coef1 = coef1 = (b+2.0 * k);
@@ -151,9 +156,7 @@ static int32_t lowprak(CSOUND *csound, LOWPR *p)
     }
     for (n=offset; n<nsmps;n++) {
       if (okf != fco[n] || okr != kres) { /* Only if changed */
-        if (UNLIKELY(fco[n]<=FL(0.0)))
-          return csound->PerfError(csound, &(p->h),
-                                   "%s", Str("Cutoff parameter must be positive"));
+        LOWRES_CHECK_PARAMS(fco[n], kres);
         b = 10.0 / (kres * sqrt((double)fco[n])) - 1.0;
         p->k = k = 1000.0 / (double)fco[n];
         p->coef1 = coef1 = (b+2.0 * k);
@@ -196,9 +199,7 @@ static int32_t lowprka(CSOUND *csound, LOWPR *p)
     }
     for (n=offset; n<nsmps;n++) {
       if (okf != fco || okr != res[n]) { /* Only if changed */
-        if (UNLIKELY(fco<=FL(0.0)))
-          return csound->PerfError(csound, &(p->h),
-                                   "%s", Str("Cutoff parameter must be positive"));
+        LOWRES_CHECK_PARAMS(fco, res[n]);
         b = 10.0 / (res[n] * sqrt((double)fco)) - 1.0;
         p->k = k = 1000.0 / (double)fco;
         p->coef1 = coef1 = (b+2.0 * k);
@@ -225,7 +226,8 @@ static int32_t lowpr_setx(CSOUND *csound, LOWPRX *p)
     }
     if (*p->istor == FL(0.0))
       for (j=0; j< p->loop; j++)  p->ynm1[j] = p->ynm2[j] = FL(0.0);
-    p->k = p->okf = p->okr = -FL(1.0);
+    p->k = p->okr = -FL(1.0);
+    p->okf = NAN;
     return OK;
 }
 
@@ -256,6 +258,7 @@ static int32_t lowprx(CSOUND *csound, LOWPRX *p)
       MYFLT fco = (asgf ? kfco[n] : *kfco);
       MYFLT res = (asgr ? kres[n] : *kres);
       if (p->okf != fco || p->okr != res) { /* Only if changed */
+        LOWRES_CHECK_PARAMS(fco, res);
         b = FL(10.0) / (res * SQRT(fco)) - FL(1.0);
         k = FL(1000.0) / fco;
         coef1 = (b+FL(2.0) * k);
@@ -323,6 +326,7 @@ static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
                 */
       kfco = kfcobase * (FL(1.0) + (sep * j));
 
+      LOWRES_CHECK_PARAMS(kfco, kres);
       b = FL(10.0) / ( kres * (MYFLT)sqrt((double)kfco)) - FL(1.0);
       k = FL(1000.0) / kfco;
       coef1 = (b+FL(2.0) *k);
