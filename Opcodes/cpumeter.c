@@ -40,271 +40,185 @@
 #include <limits.h>
 #include <float.h>
 
-// only available on Linux (no /proc/stat on OSX)
-#if defined(LINUX)
-/*######  Miscellaneous global stuff  ####################################*/
-#define SMLBUFSIZ (512)
-#define TEST (0)
-
-typedef unsigned long long TIC_t;
-typedef          long long SIC_t;
-
-typedef struct CPU_t {
-   TIC_t u, n, s, i, w, x, y, z; // as represented in /proc/stat
-   TIC_t u_sav, n_sav, s_sav, i_sav,
-         w_sav, x_sav, y_sav, z_sav;
-   unsigned id;  // the CPU ID number
-} CPU_t;
-
-typedef struct {
-        OPDS    h;
-        MYFLT   *k0, *kk[31], *itrig;
-        AUXCH   cpu_a;
-        CPU_t   *cpus;
-        uint32_t cpu_max;
-        int32_t     cnt, trig;
-        FILE    *fp;
-} CPUMETER;
-
-/*
-         * we preserve all cpu data in our CPU_t array which is organized
-         * as follows:
-         *    cpus[0] thru cpus[n] == tics for each separate cpu
-         *    cpus[Cpu_tot]        == tics from the 1st /proc/stat line */
-
-int32_t deinit_cpupercent(CSOUND *csound, void *pdata)
-{
-    CPUMETER *p = (CPUMETER *) pdata;
-    fclose(p->fp);
-    return OK;
-}
-
-static int32_t cpupercent_renew(CSOUND *csound, CPUMETER* p);
-
-int32_t cpupercent_init(CSOUND *csound, CPUMETER* p)
-{
-    char buf[SMLBUFSIZ];
-    int32_t k, num;
-    TIC_t id, u, n, s, i, w, x, y, z;
-    if (!(p->fp = fopen("/proc/stat", "r")))
-      return
-        csound->InitError(csound,
-                          Str("Failed to open /proc/stat: %s"), strerror(errno));
-    if (!fgets(buf, sizeof(buf), p->fp))
-      return csound->InitError(csound, Str("failed /proc/stat read"));
-    num = sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
-                 &u, &n, &s, &i, &w, &x, &y, &z);
-    for (k = 0; ; k++) {
-      if (!fgets(buf, SMLBUFSIZ, p->fp))
-        return csound->InitError(csound,Str("failed /proc/stat read"));
-      num = sscanf(buf, "cpu%llu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
-                   &id, &u, &n, &s, &i, &w, &x, &y, &z);
-      if (num<4) break;
-    }
-    p->cpu_max = k-1;
-    csound->AuxAlloc(csound,k*sizeof(CPU_t), &(p->cpu_a));
-    p->cpus = (CPU_t *) p->cpu_a.auxp;
-    k = cpupercent_renew(csound, p);
-    p->cnt = (p->trig = (int32_t)(*p->itrig * CS_ESR));
-    return k;
-}
-
-static int32_t cpupercent_renew(CSOUND *csound, CPUMETER* p)
-{
-#define TRIMz(x)  ((tz = (SIC_t)(x)) < 0 ? 0 : tz)
-    SIC_t u_frme, s_frme, n_frme, i_frme,
-      w_frme, x_frme, y_frme, z_frme, tot_frme, tz;
-    double scale;
-    uint32_t k;
-    CPU_t *cpu = p->cpus;
-    char buf[SMLBUFSIZ];
-
-    rewind(p->fp);
-    fflush(p->fp);
-    k = p->cpu_max;
-    if (!fgets(buf, SMLBUFSIZ, p->fp))
-      return csound->PerfError(csound, &(p->h),
-                               Str("failed /proc/stat read"));
-    /*num = */sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
-                     &cpu[k].u, &cpu[k].n, &cpu[k].s, &cpu[k].i,
-                     &cpu[k].w, &cpu[k].x, &cpu[k].y, &cpu[k].z);
-    u_frme = cpu[k].u - cpu[k].u_sav;
-    s_frme = cpu[k].s - cpu[k].s_sav;
-    n_frme = cpu[k].n - cpu[k].n_sav;
-    i_frme = TRIMz(cpu[k].i - cpu[k].i_sav);
-    w_frme = cpu[k].w - cpu[k].w_sav;
-    x_frme = cpu[k].x - cpu[k].x_sav;
-    y_frme = cpu[k].y - cpu[k].y_sav;
-    z_frme = cpu[k].z - cpu[k].z_sav;
-    tot_frme = u_frme + s_frme + n_frme + i_frme +
-               w_frme + x_frme + y_frme + z_frme;
-    if (tot_frme < 1) tot_frme = 1;
-    scale = 100.0 / (double)tot_frme;
-    *p->k0 = 100.0-(double)i_frme * scale;
-    if (TEST)
-      printf("**%5.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f\n",
-             (double)u_frme * scale,
-             (double)s_frme * scale,
-             (double)n_frme * scale,
-             (double)i_frme * scale,
-             (double)w_frme * scale,
-             (double)x_frme * scale,
-             (double)y_frme * scale,
-             (double)z_frme * scale
-             );
-    // remember for next time around
-    cpu[k].u_sav = cpu[k].u;
-    cpu[k].s_sav = cpu[k].s;
-    cpu[k].n_sav = cpu[k].n;
-    cpu[k].i_sav = cpu[k].i;
-    cpu[k].w_sav = cpu[k].w;
-    cpu[k].x_sav = cpu[k].x;
-    cpu[k].y_sav = cpu[k].y;
-    cpu[k].z_sav = cpu[k].z;
-
-    for (k=0; k<p->cpu_max && k+1<p->OUTOCOUNT; k++) {
-      if (!fgets(buf, SMLBUFSIZ, p->fp))
-        return csound->PerfError(csound, &(p->h),
-                                 Str("failed /proc/stat read"));
-      /*num = */ (void)sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
-                              &cpu[k].u, &cpu[k].n, &cpu[k].s, &cpu[k].i,
-                              &cpu[k].w, &cpu[k].x, &cpu[k].y, &cpu[k].z);
-      u_frme = cpu[k].u - cpu[k].u_sav;
-      s_frme = cpu[k].s - cpu[k].s_sav;
-      n_frme = cpu[k].n - cpu[k].n_sav;
-      i_frme = TRIMz(cpu[k].i - cpu[k].i_sav);
-      w_frme = cpu[k].w - cpu[k].w_sav;
-      x_frme = cpu[k].x - cpu[k].x_sav;
-      y_frme = cpu[k].y - cpu[k].y_sav;
-      z_frme = cpu[k].z - cpu[k].z_sav;
-      tot_frme = u_frme + s_frme + n_frme + i_frme +
-                 w_frme + x_frme + y_frme + z_frme;
-      if (tot_frme < 1) tot_frme = 1;
-      scale = 100.0 / (double)tot_frme;
-      //if (p->kk[k]==NULL) break;
-      *p->kk[k] = 100.0-i_frme * scale;
-      if (TEST)
-        printf("%7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f\n",
-               (double)u_frme * scale,
-               (double)s_frme * scale,
-               (double)n_frme * scale,
-               (double)i_frme * scale,
-               (double)w_frme * scale,
-               (double)x_frme * scale,
-               (double)y_frme * scale,
-               (double)z_frme * scale);
-
-      // remember for next time around
-      cpu[k].u_sav = cpu[k].u;
-      cpu[k].s_sav = cpu[k].s;
-      cpu[k].n_sav = cpu[k].n;
-      cpu[k].i_sav = cpu[k].i;
-      cpu[k].w_sav = cpu[k].w;
-      cpu[k].x_sav = cpu[k].x;
-      cpu[k].y_sav = cpu[k].y;
-      cpu[k].z_sav = cpu[k].z;
-      *p->kk[k] = 100.0-i_frme * scale;
-    }
-    return OK;
-#undef TRIMz
-}
-static int32_t cpupercent(CSOUND *csound, CPUMETER* p)
-{
-    p->cnt -= CS_KSMPS;
-    if (p->cnt< 0) {
-      int32_t n = cpupercent_renew(csound, p);
-      p->cnt = p->trig;
-      return n;
-    }
-    return OK;
-}
-
-#elif defined(__MACH__)
-
-#include <sys/sysctl.h>
-#include <sys/types.h>
+#if defined(__MACH__) && !defined(LINUX)
 #include <mach/mach.h>
 #include <mach/processor_info.h>
 #include <mach/mach_host.h>
-#define MAXCPUS 32
+#endif
+
+#define MAXCPUOUTPUTS 32
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *kk[MAXCPUS], *itrig;
-        int32_t  cnt, trig;
+    OPDS h;
+    MYFLT *kk[MAXCPUOUTPUTS], *itrig;
+    double cnt, trig;
+#if defined(LINUX)
+    FILE *fp;
+    unsigned long long previous[MAXCPUOUTPUTS][8];
+    unsigned char valid[MAXCPUOUTPUTS];
+#elif defined(__MACH__)
+    processor_info_array_t previous;
+    mach_msg_type_number_t previous_count;
+    natural_t previous_cpus;
+#endif
 } CPUMETER;
 
-int32_t cpumeter_mach(MYFLT *val, int32_t size) {
- processor_info_array_t cpuInfo;
- mach_msg_type_number_t numCpuInfo;
- unsigned numCPUs;
- 
- int mib[2U] = { CTL_HW, HW_NCPU };
- size_t sizeOfNumCPUs = sizeof(numCPUs);
- int status = sysctl(mib, 2U, &numCPUs, &sizeOfNumCPUs, NULL, 0U);
-
- if(status == 0) {
- kern_return_t err =
-   host_processor_info(mach_host_self(),
-                       PROCESSOR_CPU_LOAD_INFO, &numCPUs,
-                       &cpuInfo, &numCpuInfo);
- if(err == 0) {
- for(unsigned i = 0U; i < numCPUs; ++i) {
-   float inUse, total;
-   inUse = cpuInfo[(CPU_STATE_MAX * i) + CPU_STATE_USER] +
-       cpuInfo[(CPU_STATE_MAX * i) + CPU_STATE_SYSTEM]
-       + cpuInfo[(CPU_STATE_MAX * i) + CPU_STATE_NICE];
-   total = inUse + cpuInfo[(CPU_STATE_MAX * i) + CPU_STATE_IDLE];
-   if(i < size) val[i] = (inUse / total)*100;
- }
- }
- }
-
- return 0;
-}
-
-static int32_t cpupercent_init(CSOUND *csound, CPUMETER* p){
-    p->cnt = (p->trig = (int32_t)(*p->itrig * CS_ESR));
+static int32_t deinit_cpupercent(CSOUND *csound, CPUMETER *p)
+{
+    IGN(csound);
+#if defined(LINUX)
+    if (p->fp) fclose(p->fp);
+    p->fp = NULL;
+#elif defined(__MACH__)
+    if (p->previous)
+      vm_deallocate(mach_task_self(), (vm_address_t)p->previous,
+                    (vm_size_t)p->previous_count * sizeof(integer_t));
+    p->previous = NULL;
+    p->previous_count = p->previous_cpus = 0;
+#endif
     return OK;
 }
 
-static int32_t cpupercent(CSOUND *csound, CPUMETER* p){
-    MYFLT* val = *p->kk;
-    p->cnt -= CS_KSMPS;
-    if (p->cnt< 0) {
-      int32_t n = cpumeter_mach(val, MAXCPUS);
-      p->cnt = p->trig;
-      return n;
+#if defined(LINUX)
+static int32_t cpupercent_renew(CSOUND *csound, CPUMETER *p)
+{
+    char buf[512], label[32];
+    unsigned char seen[MAXCPUOUTPUTS] = {0};
+    uint32_t output;
+    IGN(csound);
+    rewind(p->fp);
+    while (fgets(buf, sizeof(buf), p->fp)) {
+      unsigned long long ticks[8] = {0};
+      unsigned id;
+      int field, fields;
+      double total = 0, idle = 0;
+      if (strncmp(buf, "cpu", 3) != 0) break;
+      fields = sscanf(buf, "%31s %llu %llu %llu %llu %llu %llu %llu %llu",
+                      label, &ticks[0], &ticks[1], &ticks[2], &ticks[3],
+                      &ticks[4], &ticks[5], &ticks[6], &ticks[7]);
+      if (fields < 5) return NOTOK;
+      if (strcmp(label, "cpu") == 0) output = 0;
+      else {
+        if (sscanf(label, "cpu%u", &id) != 1) return NOTOK;
+        if (id >= p->OUTOCOUNT - 1u) continue;
+        output = id + 1;
+      }
+      if (p->valid[output]) {
+        for (field = 0; field < 8; ++field) {
+          /* Linux counters can decrease, notably iowait. */
+          double delta = ticks[field] >= p->previous[output][field]
+              ? (double)(ticks[field] - p->previous[output][field]) : 0;
+          total += delta;
+          if (field == 3) idle = delta;
+        }
+      }
+      *p->kk[output] = total > 0 ? 100.0 * (total - idle) / total : 0;
+      memcpy(p->previous[output], ticks, sizeof(ticks));
+      p->valid[output] = seen[output] = 1;
+    }
+    if (!seen[0] || ferror(p->fp)) return NOTOK;
+    for (output = 1; output < p->OUTOCOUNT; ++output) {
+      if (!seen[output]) {
+        p->valid[output] = 0;
+        *p->kk[output] = FL(0.0);
+      }
+    }
+    return OK;
+}
+#elif defined(__MACH__)
+static int32_t cpupercent_renew(CSOUND *csound, CPUMETER *p)
+{
+    processor_info_array_t info;
+    mach_msg_type_number_t count;
+    natural_t cpus;
+    uint32_t output;
+    double total_all = 0, idle_all = 0;
+    host_t host = mach_host_self();
+    kern_return_t result = host_processor_info(host, PROCESSOR_CPU_LOAD_INFO,
+                                             &cpus, &info, &count);
+    mach_port_deallocate(mach_task_self(), host);
+    if (result != KERN_SUCCESS) return NOTOK;
+    if (cpus == 0 || cpus > count / CPU_STATE_MAX) {
+      vm_deallocate(mach_task_self(), (vm_address_t)info,
+                    (vm_size_t)count * sizeof(integer_t));
+      return NOTOK;
+    }
+    for (output = 0; output < p->OUTOCOUNT; ++output)
+      *p->kk[output] = FL(0.0);
+    /* A changed CPU count needs a new baseline. */
+    if (p->previous && p->previous_cpus == cpus) {
+      natural_t cpu;
+      for (cpu = 0; cpu < cpus; ++cpu) {
+        double total = 0, idle = 0;
+        int state;
+        for (state = 0; state < CPU_STATE_MAX; ++state) {
+          size_t index = (size_t)cpu * CPU_STATE_MAX + state;
+          /* Mach exposes wrapping unsigned 32-bit tick counters. */
+          uint32_t delta = (uint32_t)info[index] -
+                           (uint32_t)p->previous[index];
+          total += delta;
+          if (state == CPU_STATE_IDLE) idle = delta;
+        }
+        if (cpu + 1 < p->OUTOCOUNT)
+          *p->kk[cpu + 1] = total > 0 ? 100.0 * (total - idle) / total : 0;
+        total_all += total;
+        idle_all += idle;
+      }
+      *p->kk[0] = total_all > 0 ?
+          100.0 * (total_all - idle_all) / total_all : 0;
+    }
+    deinit_cpupercent(csound, p);
+    p->previous = info;
+    p->previous_count = count;
+    p->previous_cpus = cpus;
+    return OK;
+}
+#else
+static int32_t cpupercent_renew(CSOUND *csound, CPUMETER *p)
+{
+    IGN(csound); IGN(p);
+    return NOTOK;
+}
+#endif
+
+static int32_t cpupercent_init(CSOUND *csound, CPUMETER *p)
+{
+    uint32_t output;
+    deinit_cpupercent(csound, p);
+    if (p->OUTOCOUNT == 0)
+      return csound->InitError(csound, "%s", Str("cpumeter: no outputs"));
+    p->cnt = p->trig = (double)*p->itrig * CS_ESR;
+    if (!(p->trig >= 0 && p->trig <= DBL_MAX))
+      return csound->InitError(csound, "%s",
+                              Str("cpumeter: invalid refresh interval"));
+    for (output = 0; output < p->OUTOCOUNT; ++output)
+      *p->kk[output] = FL(0.0);
+#if defined(LINUX)
+    memset(p->valid, 0, sizeof(p->valid));
+    p->fp = fopen("/proc/stat", "r");
+    if (!p->fp)
+      return csound->InitError(csound, Str("Failed to open /proc/stat: %s"),
+                              strerror(errno));
+#endif
+    if (cpupercent_renew(csound, p) != OK) {
+      deinit_cpupercent(csound, p);
+      return csound->InitError(csound, "%s", Str("cpumeter: cannot read CPU counters"));
     }
     return OK;
 }
 
-#else // not mach not linux
-typedef struct {
-        OPDS    h;
-        MYFLT   *k0, *kk[8], *itrig;
-} CPUMETER;
-
-int32_t deinit_cpupercent(CSOUND *csound, void *p)
+static int32_t cpupercent(CSOUND *csound, CPUMETER *p)
 {
-   IGN(p);
-  csound->Message(csound, "not implemented\n");
+    p->cnt -= CS_KSMPS;
+    if (p->cnt <= 0) {
+      p->cnt = p->trig;
+      if (cpupercent_renew(csound, p) != OK)
+        return csound->PerfError(csound, &p->h, "%s",
+                                Str("cpumeter: cannot read CPU counters"));
+    }
     return OK;
 }
 
-int32_t cpupercent_init(CSOUND *csound, CPUMETER *p) {
-   IGN(p);
-  csound->Message(csound, "not implemented\n");
-  return OK;
-}
-
-int32_t cpupercent(CSOUND *c, CPUMETER *p) {
-  IGN(c);
-  IGN(p);
-  return OK;
-}
-
-#endif // not mach not linux
 typedef struct {
     OPDS   h;
     MYFLT  *ti;
@@ -325,7 +239,7 @@ systime(CSOUND *csound, SYST *p){
 
 static OENTRY cpumeter_localops[] = {
   { "cpumeter",   sizeof(CPUMETER),   0, "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "i",
-    (SUBR)cpupercent_init, (SUBR)cpupercent, NULL },
+    (SUBR)cpupercent_init, (SUBR)cpupercent, (SUBR)deinit_cpupercent },
 { "systime", sizeof(SYST),0,  "k",    "", (SUBR)systime, (SUBR)systime},
 { "systime", sizeof(SYST),0,  "i",    "", (SUBR)systime}
 };
