@@ -222,26 +222,21 @@ typedef struct _atssinnoi {
 
   double  maxFr;
   int32_t prFlg;
-  int32_t nzmemsize;
-  /* double  winsize; */   /* size of windows in analysis file, used to */
-  /* compute RMS amplitude from energy in noise band */
+  double  winsize; /* analysis window size for noise energy to amplitude */
   double  *datastart;
-  double  *nzdata;
 
   int32_t firstpartial;
   int32_t partialinc;
   int32_t firstband;
   int32_t frmInc; /* amount to increment frame pointer to get to next frame */
   double  timefrmInc;
-  int32_t npartials;
+  int32_t partials;
 
   ATS_DATA_LOC *oscbuf; /* stores band information for passing data */
 
   double  *nzbuf;       /* stores band information for passing data */
   double  *oscphase;    /* the phase of all the oscilators */
   RANDIATS *randinoise; /* a pointer to the interpolated random noise info */
-  ATSSTRUCT *atshead;
-  char    *filename;
   int32_t swapped;    /* indicates if the data file is byte swapped or not */
   double noiphase[25];
   double phaseinc[25];
