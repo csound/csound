@@ -2,7 +2,7 @@
 description = "unschedule distinguishes string and numeric fields and matches multiple strings"
 [expect]
 exit = 0
-stderr = ["string event survived", "numeric event survived"]
+output = ["string event survived", "numeric event survived"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
