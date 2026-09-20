@@ -102,16 +102,19 @@ char* get_string_arg_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt)
 void set_evt_strarg(CSOUND *csound, EVTBLK *e, int32_t pcnt, const
                     char *str) {
   int32_t scnt = e->scnt;
-  size_t strsiz = strlen(str);
+  size_t strsiz = strlen(str) + 1;
   if (e->strarg == NULL) {
-    e->strarg = csound->Malloc(csound, strsiz+1);
+    e->strarg = csound->Malloc(csound, strsiz);
     memcpy(e->strarg, str, strsiz);
   }
   else {
-    strsiz = strlen(e->strarg);
-    e->strarg = csound->ReAlloc(csound, e->strarg,
-                                strsiz+strlen(str)+1);
-    memcpy(e->strarg+strsiz, str, strlen(str));
+    size_t offset = 0;
+    int32_t i;
+    /* String codes index a list of NUL-terminated strings. */
+    for (i = 0; i < scnt; ++i)
+      offset += strlen(e->strarg + offset) + 1;
+    e->strarg = csound->ReAlloc(csound, e->strarg, offset + strsiz);
+    memcpy(e->strarg + offset, str, strsiz);
   }
 
 #ifdef USE_DOUBLE              
