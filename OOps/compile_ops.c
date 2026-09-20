@@ -365,13 +365,14 @@ static int32_t compile_csobj(CSOUND *csound, AOP *p) {
 static int32_t start_csobj(CSOUND *csound, AOP *p) {
   CS_OBJ *csobj = (CS_OBJ *) p->a;
   CSOUND *engine = csobj->csound;
-  uint32_t bsiz = (CS_KSMPS < engine->ksmps ?
-                   engine->ksmps : CS_KSMPS)*sizeof(MYFLT);
+  *p->r = csoundStart(engine);
+  if (*p->r != CSOUND_SUCCESS) return OK;
+  size_t bsiz = (size_t)(CS_KSMPS < engine->ksmps ?
+                         engine->ksmps : CS_KSMPS)*sizeof(MYFLT);
   csobj->nsmps = engine->ksmps;
   
   csobj->bufferout = (MYFLT *) csoundCalloc(csound,bsiz*engine->nchnls);
   csobj->bufferin = (MYFLT *) csoundCalloc(csound,bsiz*engine->inchnls);  
-  *p->r = csoundStart(engine);
   return OK;
 }
 
@@ -418,7 +419,7 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
        csobj->nsmps = 0;
       }
       inc = (csobj->nsmps*inchnls);
-      memcpy(spin+inc,bufferin+j*nchnls,sizeof(MYFLT)*inchnls);
+      memcpy(spin+inc,bufferin+j*inchnls,sizeof(MYFLT)*inchnls);
       inc = (csobj->nsmps*nchnls);
       memcpy(bufferout+j*nchnls,spout+inc,sizeof(MYFLT)*nchnls);      
       csobj->nsmps += 1;
@@ -476,18 +477,19 @@ static int32_t chnget_vector_csobj(CSOUND *csound, AOP *p) {
 static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
   CS_OBJ *csobj = (CS_OBJ *) p->a;
   CSOUND *engine = csobj->csound;
-  int32_t chn = (int32_t) *p->b - 1;
+  int32_t chn;
   int32_t nchnls = engine->nchnls;
   uint32_t ksmps = CS_KSMPS;
   uint32_t esmps = engine->ksmps;
   MYFLT *out = p->r;
   MYFLT *in = csobj->bufferout;
    
-  if(chn > engine->nchnls) {
+  if(UNLIKELY(!(*p->b >= FL(1.0) &&
+                 (double)*p->b < (double)nchnls + 1))) {
     return csound->PerfError(csound, &p->h,
-                             "requested channel %d not available\n",
-                             chn);
+                             "%s", Str("Csound inch: channel out of range"));
   }
+  chn = (int32_t)*p->b - 1;
 
   if(esmps >= ksmps) {
     int start = csobj->nsmps-ksmps;
@@ -506,17 +508,18 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
 static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
   CS_OBJ *csobj = (CS_OBJ *) p->r;
   CSOUND *engine = csobj->csound;
-  int32_t chn = (int32_t) *p->a-1;
+  int32_t chn;
   int32_t nchnls = engine->inchnls;
   uint32_t ksmps = CS_KSMPS;
   uint32_t esmps = engine->ksmps;
   MYFLT *in = p->b;
   MYFLT *out = csobj->bufferin;  
-  if(chn > engine->nchnls) {
+  if(UNLIKELY(!(*p->a >= FL(1.0) &&
+                 (double)*p->a < (double)nchnls + 1))) {
     return csound->PerfError(csound, &p->h,
-                             "requested channel %d not available\n",
-                             chn+1);
+                             "%s", Str("Csound outch: channel out of range"));
   }
+  chn = (int32_t)*p->a - 1;
    
   if(esmps >= ksmps) {
     int start = csobj->nsmps;
