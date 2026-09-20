@@ -70,6 +70,7 @@ static int32_t metro_set(CSOUND *csound, METRO *p)
       p->curphs = (MYFLT)phs - (MYFLT)longphs;
     }
     p->flag=1;
+    p->gate=0.0;
     return OK;
 }
 
@@ -97,18 +98,19 @@ static int32_t metrobpm(CSOUND *csound, METRO *p)
 {
     double      phs= p->curphs;
     IGN(csound);
-    p->gate = *p->kgate;
+    /* Keep the held gate in opcode state, not in the output variable. */
     if (phs == 0.0 && p->flag) {
-      *p->sr = FL(1.0);
+      p->gate = 1.0;
       p->flag = 0;
     }
     else if ((phs += *p->xcps * CS_ONEDKR/60) >= 1.0) {
-      *p->sr = FL(1.0);
-      phs -= 1.0;
+      p->gate = 1.0;
+      phs -= floor(phs);
       p->flag = 0;
     }
-    else if (phs>= p->gate)
-      *p->sr = FL(0.0);
+    else if (phs>= *p->kgate)
+      p->gate = 0.0;
+    *p->sr = (MYFLT)p->gate;
     p->curphs = phs;
     return OK;
 }
