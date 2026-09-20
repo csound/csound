@@ -2,7 +2,7 @@
 description = "ftprint handles long rows and bounded table slices"
 [expect]
 exit = 0
-stderr_regex = [' 0: (?:0\.0000 ){1023}0\.0000\n', ' 2: 3\.0000\n   3: 4\.0000\n', ' 1: 2\.0000 \n']
+output_regex = [' 0: (?:0\.0000 ){1023}0\.0000\r?\n', ' 2: 3\.0000\r?\n   3: 4\.0000\r?\n', ' 1: 2\.0000 \r?\n']
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
