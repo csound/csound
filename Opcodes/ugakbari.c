@@ -95,10 +95,13 @@ static int32_t scale_process(CSOUND *csound, scale *p)
 
 static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
 {
+    if (*p->ihtim < FL(0.0))
+      return csound->InitError(csound, "%s",
+                               Str("scale2: smoothing time must be nonnegative"));
+    p->yt1 = FL(0.0);
     if (*p->ihtim != FL(0.0)) {
       p->c2 = POWER(FL(0.5), CS_ONEDKR / *p->ihtim);
       p->c1 = FL(1.0) - p->c2;
-      p->yt1 = FL(0.0);
     } else {
       p->c2 = FL(0.0); p->c1 = FL(1.0);
     }
@@ -107,19 +110,22 @@ static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
 
 static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
 {
-    IGN(csound);
     MYFLT max = *p->imax;
     MYFLT min = *p->imin;
     MYFLT kmax = *p->kmax;
     MYFLT kmin = *p->kmin;
     MYFLT val = *p->kinval;
-    /* if (max < min) { max = min ; min = *p->imax; } */
-    /* if (kmax < kmin) { kmax = kmin ; kmin = *p->kmax; } */
+    if (UNLIKELY(!(max > min)))
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("scale2: input maximum must exceed minimum"));
     if (val > max) val = max;
     else if (val < min) val = min;
 
     val = ((val - min)/(max-min))* (kmax - kmin) + kmin;
-    p->yt1 = p->c1 * val + p->c2 * p->yt1;
+    if (p->c2 == FL(0.0))
+      p->yt1 = val;
+    else
+      p->yt1 = p->c1 * val + p->c2 * p->yt1;
     *p->koutval = p->yt1;
     return OK;
 }
