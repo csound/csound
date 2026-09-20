@@ -130,6 +130,8 @@ static int32_t fog(CSOUND *csound, FOGS *p)
     form_incf = *ptch * fogcvt;
   }
   for (n=offset;n<nsmps;n++) {
+    /* The position input may share the output buffer. */
+    MYFLT position = speed[n];
     if (p->fundphs & MAXLEN ||
         p->fundphsf >= 1.) {                       /* if phs has wrapped */
       if (floatph) 
@@ -202,7 +204,7 @@ static int32_t fog(CSOUND *csound, FOGS *p)
     }
     if(floatph) {
       p->fundphsf  += fund_incf;
-      p->spdphsf = PHMOD1(speed[n]); 
+      p->spdphsf = PHMOD1(position);
       if (p->xincod && n + 1 < nsmps) {
         if (p->ampcod)    amp++;
         if (p->fundcod)   fund_incf = (*++fund * CS_ONEDSR);
@@ -212,7 +214,7 @@ static int32_t fog(CSOUND *csound, FOGS *p)
     else {
       p->fundphs += fund_inc;
       /*          p->spdphs += speed_inc; */ /*JMC for FOG*/
-      p->spdphs = (int32)(speed[n] * FMAXLEN); /*for phs version of FOG*/
+      p->spdphs = (int32)(position * FMAXLEN); /*for phs version of FOG*/
       p->spdphs &= PHMASK; /*JMC for FOG*/
       if (p->xincod && n + 1 < nsmps) {
         if (p->ampcod)    amp++;
