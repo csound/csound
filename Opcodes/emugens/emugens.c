@@ -2468,94 +2468,74 @@ typedef struct {
     FUNC *ftp;
 } FTPRINT;
 
-static int32_t ftprint_perf(CSOUND *csound, FTPRINT *p);
-
-static int32_t
-ftprint_init(CSOUND *csound, FTPRINT *p) {
-    p->lasttrig = 0;
-    p->numcols = (int32_t)*p->inumcols;
-    if(p->numcols == 0)
-        p->numcols = 10;
-    p->ftp = csound->FTFind(csound, p->ifn);
-    int32_t trig = (int32_t)*p->ktrig;
-
-    if (trig > 0) {
-        ftprint_perf(csound, p);
-    }
+/* Negative indices count back from the exclusive table end: -1 is length. */
+static int32_t ftprint_index(uint32_t *out, MYFLT value, uint32_t length)
+{
+    double index = trunc((double)value);
+    if (index < 0) index += (double)length + 1;
+    if (UNLIKELY(!(index >= 0 && index <= length))) return NOTOK;
+    *out = (uint32_t)index;
     return OK;
 }
 
-/** allow negative indices to count from the end
- */
-static int32_t handle_negative_idx(uint32_t *out, int32_t idx, uint32_t length) {
-    if(idx >= 0) {
-        *out = (uint32_t) idx;
+static int32_t ftprint(CSOUND *csound, FTPRINT *p, int32_t is_init)
+{
+    /* Only the sign of the integer trigger matters; avoid an integer cast. */
+    int32_t trig = (*p->ktrig >= FL(1.0)) - (*p->ktrig <= -FL(1.0));
+    if (trig == 0) {
+        p->lasttrig = 0;
         return OK;
     }
-    int64_t res = (int64_t)length + idx + 1;
-    if(res < 0) {
-        return NOTOK;
-    }
-    *out = (uint32_t) res;
-    return NOTOK;
-}
-
-static int32_t
-ftprint_perf(CSOUND *csound, FTPRINT *p) {
-    int32_t trig = (int32_t)*p->ktrig;
-    if(trig == 0) {
-      p->lasttrig = 0;
-      return OK;
-    }
-    if(trig > 0 && p->lasttrig > 0)
-        return OK;
+    if (trig > 0 && p->lasttrig > 0) return OK;
     p->lasttrig = trig;
+
     FUNC *ftp = p->ftp;
-    const MYFLT *ftable = ftp->ftable;
-    const uint32_t ftplen = ftp->flen;
-    const uint32_t numcols = (uint32_t)p->numcols;
-    const uint32_t step = (uint32_t)*p->kstep;
-    uint32_t end, start;
-    int32_t error = handle_negative_idx(&start, (int32_t)*p->kstart, ftplen);
-    if(error)
-        return PERFERRF(Str("Could not handle start index: %d"),
-                        (int32_t)*p->kstart);
-    int32_t _end = (int32_t)*p->kend;
-    if(_end == 0)
-        end = ftplen;
-    else {
-        error = handle_negative_idx(&end, _end, ftplen);
-        if(error)
-            return PERFERRF(Str("Could not handle end index: %d"), _end);
+    uint32_t start, end;
+    if (UNLIKELY(ftprint_index(&start, *p->kstart, ftp->flen) != OK))
+        return INITPERFERR(is_init, Str("ftprint: start index out of range"));
+    if (trunc((double)*p->kend) == 0) end = ftp->flen;
+    else if (UNLIKELY(ftprint_index(&end, *p->kend, ftp->flen) != OK))
+        return INITPERFERR(is_init, Str("ftprint: end index out of range"));
+    if (UNLIKELY(!(*p->kstep >= FL(1.0) &&
+                   (double)*p->kstep <= UINT32_MAX)))
+        return INITPERFERR(is_init, Str("ftprint: step must be a positive integer"));
+    uint32_t step = (uint32_t)*p->kstep;
+    uint32_t numcols = (uint32_t)p->numcols, column = 0;
+
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "ftable %d:\n", ftp->fno);
+    for (uint32_t i = start; i < end;) {
+        if (column == 0)
+            csound->MessageS(csound, CSOUNDMSG_ORCH, " %3u: ", i);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%.4f", ftp->ftable[i]);
+        if (++column == numcols) {
+            csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
+            column = 0;
+        } else csound->MessageS(csound, CSOUNDMSG_ORCH, " ");
+        /* Do not let the unsigned index wrap on the final increment. */
+        if (step >= end - i) break;
+        i += step;
     }
-    const char *fmt = default_printfmt;
-    char currline[ARRPRINT_MAXLINE];
-    uint32_t i,
-             elemsprinted = 0,
-             charswritten = 0,
-             startidx = start;
-    csound->MessageS(csound, CSOUNDMSG_ORCH,
-                     "ftable %d:\n", (int32_t)*p->ifn);
-    for(i=start; i < end; i+=step) {
-        charswritten += snprintf(currline+charswritten, ARRPRINT_MAXLINE - charswritten, fmt, ftable[i]);
-        elemsprinted++;
-        if(elemsprinted < numcols) {
-            currline[charswritten++] = ' ';
-        } else {
-            currline[charswritten++] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_ORCH,
-                             " %3d: %s\n", startidx, currline);
-            startidx = i+step;
-            elemsprinted = 0;
-            charswritten = 0;
-        }
-    }
-    if(charswritten > 0) {
-        currline[charswritten] = '\0';
-        csound->MessageS(csound, CSOUNDMSG_ORCH,
-                         " %3d: %s\n", startidx, currline);
-    }
+    if (column != 0) csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
     return OK;
+}
+
+static int32_t ftprint_init(CSOUND *csound, FTPRINT *p)
+{
+    p->lasttrig = 0;
+    if (UNLIKELY(!(*p->inumcols >= FL(0.0) &&
+                   (double)*p->inumcols <= INT32_MAX)))
+        return INITERR(Str("ftprint: invalid column count"));
+    p->numcols = (int32_t)*p->inumcols;
+    if (p->numcols == 0) p->numcols = 10;
+    p->ftp = csound->FTFind(csound, p->ifn);
+    if (UNLIKELY(p->ftp == NULL)) return NOTOK;
+    if (*p->ktrig >= FL(1.0)) return ftprint(csound, p, 1);
+    return OK;
+}
+
+static int32_t ftprint_perf(CSOUND *csound, FTPRINT *p)
+{
+    return ftprint(csound, p, 0);
 }
 
 
