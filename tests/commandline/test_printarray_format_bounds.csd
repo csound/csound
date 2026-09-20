@@ -2,8 +2,8 @@
 description = "printarray handles long strings, wide fields and long integer formats"
 [expect]
 exit = 0
-stderr = ["2 %d", "END", "label-"]
-stderr_regex = ['"0{2999}1"', '0{300}2', ' {2999}2']
+output = ["2 %d", "END", "label-"]
+output_regex = ['"0{2999}1"', '0{300}2', ' {2999}2']
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
