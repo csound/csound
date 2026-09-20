@@ -6,6 +6,28 @@
 namespace {
 uint32_t clockSeed;
 
+TEST(RandomStateTests, BilateralExponentialHandlesMinimumSignedDraw) {
+    CSOUND *csound = csoundCreate(nullptr, nullptr);
+    ASSERT_NE(csound, nullptr);
+    csoundCreateMessageBuffer(csound, 0);
+    csoundSetOption(csound, "-n");
+    ASSERT_EQ(csoundCompileOrc(csound,
+        "sr=48000\nksmps=1\nnchnls=1\n0dbfs=1\n"
+        "instr 1\naValue bexprnd 1\nout aValue\nendin\n", 0),
+        CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 .01", 0);
+    // MT tempering maps this word to 0x80000000, which becomes INT32_MIN.
+    csound->randState_.mti = 0;
+    csound->randState_.mt[0] = 0x80102204u;
+    CsoundRandMTState expected = csound->randState_;
+    ASSERT_EQ(csoundRandMT(&expected), 0x80000000u);
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    EXPECT_EQ(csound->randState_.mti, 1);
+    EXPECT_EQ(csoundGetSpout(csound)[0], FL(0.0));
+    csoundDestroy(csound);
+}
+
 class SeedStateTests : public ::testing::TestWithParam<
                            std::pair<uint32_t, int32_t>> {
 protected:

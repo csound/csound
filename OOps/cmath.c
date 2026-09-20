@@ -165,7 +165,8 @@ static MYFLT biexprand(CSOUND *csound, MYFLT range)
     while ((r1 = (int32_t)csoundRandMT(&(csound->randState_)))==0);
 
     if (r1 < (int32_t)0) {
-      return -(LOG(-(r1) * (FL(1.0) / FL(2147483648.0))) * range);
+      /* Convert before negating: the draw can be INT32_MIN. */
+      return -(LOG(-(MYFLT)r1 * (FL(1.0) / FL(2147483648.0))) * range);
     }
     return (LOG(r1 * (FL(1.0) / FL(2147483648.0))) * range);
 }
