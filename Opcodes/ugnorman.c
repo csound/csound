@@ -1827,7 +1827,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
   int32_t frame = (int32_t) position;
   double frac = (double) position - frame;
   double *frm0 = p->datastart + (size_t) frame * p->frmInc;
-  double *frm1 = frame == p->maxFr ? frm0 : frm0 + p->frmInc;
+  double *nextFrame = frame == p->maxFr ? frm0 : frm0 + p->frmInc;
   int32_t i;
 
   for (i = 0; i < p->partials; i++) {
@@ -1835,15 +1835,15 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
     double amp0, amp1, freq0, freq1;
     if (p->swapped) {
       amp0 = bswap(frm0 + index);
-      amp1 = bswap(frm1 + index);
+      amp1 = bswap(nextFrame + index);
       freq0 = bswap(frm0 + index + 1);
-      freq1 = bswap(frm1 + index + 1);
+      freq1 = bswap(nextFrame + index + 1);
     }
     else {
       amp0 = frm0[index];
-      amp1 = frm1[index];
+      amp1 = nextFrame[index];
       freq0 = frm0[index + 1];
-      freq1 = frm1[index + 1];
+      freq1 = nextFrame[index + 1];
     }
     p->oscbuf[i].amp = amp0 + frac * (amp1 - amp0);
     p->oscbuf[i].freq = freq0 + frac * (freq1 - freq0);
