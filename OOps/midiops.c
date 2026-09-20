@@ -693,152 +693,111 @@ int32_t ctlin(CSOUND *csound, CTLIN *p)
  */
 
 int32_t midiarp_set(CSOUND *csound, MIDIARP *p)
-/* MIDI Arp - Jan 2017 - RW */
 {
-    int32_t cnt;
-    srand((int32_t)time(NULL));
-    p->flag=1, p->direction=2, p->noteIndex=9;
-    p->maxNumNotes=10, p->noteCnt=0, p->status=0, p->chan=0;
-    p->data1=0, p->data2=0;
-
+    IGN(csound);
+    p->flag = 1;
+    p->direction = 1;
+    p->noteIndex = p->noteCnt = 0;
+    p->curphs = 0.0;
+    *p->noteOut = *p->counter = FL(0.0);
     p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
-
-    for (cnt=0;cnt<10;cnt++)
-      p->notes[cnt] = 0;
-
     return OK;
 }
 
-void sort_notes(int32_t notes[], int32_t n)
-{
-    int32_t j,i,tmp;
-    for (i = 0; i < n; ++i) {
-      for (j = i + 1; j < n; ++j) {
-        if (notes[i] > notes[j]) {
-          tmp =  notes[i];
-          notes[i] = notes[j];
-          notes[j] = tmp;
-        }
-      }
-    }
-}
-
-void zeroNoteFromArray(int32_t notes[], int32_t noteNumber, int32_t size)
-{
-    int32_t i;
-    for (i=0;i<size;i++) {
-      if (notes[i]==noteNumber)
-        notes[i]=0;
-    }
-}
-
-int32_t metroCounter(MIDIARP *p)
-{
-    double phs = p->curphs;
-    if (phs == 0.0 && p->flag) {
-      p->metroTick = FL(1.0);
-      p->flag = 0;
-    }
-    else if ((phs += *p->arpRate * CS_ONEDKR) >= 1.0) {
-      p->metroTick = FL(1.0);
-      phs -= 1.0;
-      p->flag = 0;
-    }
-    else
-      p->metroTick = FL(0.0);
-
-    p->curphs = phs;
-    return p->metroTick;
-}
-
-
 int32_t midiarp(CSOUND *csound, MIDIARP *p)
 {
-    int32_t i=0;
-    unsigned char *temp;
-    int32_t arpmode = (int32_t)*p->arpMode;
+    int32_t mode;
+    double increment;
 
-    if (p->local_buf_index != MGLOB(MIDIINbufIndex))
-      {
-        temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
-        p->local_buf_index &= MIDIINBUFMSK;
-        p->status = (MYFLT) (*temp & (unsigned char) 0xf0);
-        p->chan   = (MYFLT) ((*temp & 0x0f) + 1);
-        p->data1  = (MYFLT) *++temp;
-        p->data2  = (MYFLT) *++temp;
+    *p->counter = FL(0.0);
+    if (UNLIKELY(!(*p->arpMode >= 0 && *p->arpMode < 4)))
+      return csound->PerfError(csound, &p->h,
+                              Str("midiarp: mode must be 0, 1, 2, or 3"));
+    mode = (int32_t) *p->arpMode;
 
-        if (p->status==144 && p->data2>0) {
-          p->notes[p->noteCnt] = p->data2;
-
-          for (i = 0 ; i < p->maxNumNotes ; i++)
-            p->sortedNotes[i] = p->notes[i];
-
-          p->noteCnt = (p->noteCnt>p->maxNumNotes-1 ?
-                        p->maxNumNotes-1 : p->noteCnt+1);
-          sort_notes(p->sortedNotes, 10);
-
+    /* Drain the messages already received before choosing a held note.
+       The buffer stores status, channel, key, velocity as separate bytes. */
+    while (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
+      const unsigned char *msg =
+        MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData;
+      int32_t i, j;
+      p->local_buf_index &= MIDIINBUFMSK;
+      if (msg[0] != NOTEON_TYPE && msg[0] != NOTEOFF_TYPE)
+        continue;
+      for (i = 0; i < p->noteCnt; i++)
+        if (p->notes[i] == msg[2] && p->channels[i] == msg[1])
+          break;
+      if (msg[0] == NOTEON_TYPE && msg[3] != 0) {
+        /* Retriggers do not add another held key. Keep the first ten keys
+           when full; ignored keys must not change the count on release. */
+        if (i < p->noteCnt || p->noteCnt == 10)
+          continue;
+        for (i = p->noteCnt; i > 0 && p->notes[i - 1] > msg[2]; i--) {
+          p->notes[i] = p->notes[i - 1];
+          p->channels[i] = p->channels[i - 1];
         }
-        else if (p->status==128 || (p->status==144 && p->data2==0)) {
-          zeroNoteFromArray(p->notes, p->data2, p->maxNumNotes);
-
-          for (i = 0 ; i < p->maxNumNotes ; i++)
-            p->sortedNotes[i] = p->notes[i];
-
-          p->noteCnt = (p->noteCnt<0 ? 0 : p->noteCnt-1);
-          sort_notes(p->sortedNotes, p->maxNumNotes);
-        }
+        p->notes[i] = msg[2];
+        p->channels[i] = msg[1];
+        if (p->noteCnt != 0 && i <= p->noteIndex)
+          p->noteIndex++;
+        p->noteCnt++;
       }
-    else p->status = FL(0.0);
-
-    if (p->noteCnt != 0) {
-      // only when some note/s are pressed
-      *p->counter = metroCounter(p);
-      if (*p->counter == 1) {
-
-        if (p->noteIndex<p->maxNumNotes && p->sortedNotes[p->noteIndex]!=0)
-          *p->noteOut = p->sortedNotes[p->noteIndex];
-
-        if (arpmode==0)
-        {
-          //up and down pattern
-            if(p->direction>0) {
-                p->noteIndex = (p->noteIndex < p->maxNumNotes-1
-                                ? p->noteIndex+1 : p->maxNumNotes - p->noteCnt);
-                if(p->noteIndex==p->maxNumNotes-1)
-                    p->direction = -2;
-            }
-            else{
-                p->noteIndex = (p->noteIndex >= p->maxNumNotes - p->noteCnt
-                                ? p->noteIndex-1 : p->maxNumNotes-1);
-                if(p->noteIndex==p->maxNumNotes-p->noteCnt)
-                    p->direction = 2;
-
-            }
+      else if (i < p->noteCnt) {
+        for (j = i; j + 1 < p->noteCnt; j++) {
+          p->notes[j] = p->notes[j + 1];
+          p->channels[j] = p->channels[j + 1];
         }
-        else if (arpmode==1) {
-          //up only pattern
-          p->noteIndex = (p->noteIndex < p->maxNumNotes-1
-                          ? p->noteIndex+1 : p->maxNumNotes - p->noteCnt);
-        }
-        else if (arpmode==2) {
-          //down only pattern
-          p->noteIndex = (p->noteIndex > p->maxNumNotes - p->noteCnt
-                          ? p->noteIndex-1 : p->maxNumNotes-1);
-        }
-        else if (arpmode==3) {
-          //random pattern
-          int32_t randIndex = ((rand() % 100)/100.f)*(p->noteCnt);
-          p->noteIndex = p->maxNumNotes-randIndex-1;
-        }
-        else{
-          csound->Message(csound,
-                          Str("Invalid arp mode selected:"
-                              " %d. Valid modes are 0, 1, 2, and 3\n"),
-                          arpmode);
-        }
+        p->noteCnt--;
+        if (i < p->noteIndex)
+          p->noteIndex--;
       }
     }
 
+    if (p->noteCnt == 0) {
+      p->flag = 1;
+      p->curphs = 0.0;
+      p->direction = 1;
+      p->noteIndex = 0;
+      return OK;
+    }
+    if (!(*p->arpRate > 0))
+      return OK;
+
+    if (p->flag) {
+      p->flag = 0;
+      p->noteIndex = mode == 2 ? p->noteCnt - 1 : 0;
+    }
+    else {
+      increment = *p->arpRate * CS_ONEDKR;
+      /* At most one trigger fits in a control cycle. */
+      if (increment >= 1.0)
+        p->curphs = 0.0;
+      else {
+        p->curphs += increment;
+        if (p->curphs < 1.0)
+          return OK;
+        p->curphs -= 1.0;
+      }
+    }
+
+    if (p->noteIndex >= p->noteCnt)
+      p->noteIndex = mode == 2 ? p->noteCnt - 1 : 0;
+    if (mode == 3)
+      p->noteIndex = csound->Rand31(&csound->randSeed1) % p->noteCnt;
+    *p->noteOut = p->notes[p->noteIndex];
+    *p->counter = FL(1.0);
+
+    if (mode == 0 && p->noteCnt > 1) {
+      if (p->noteIndex == p->noteCnt - 1)
+        p->direction = -1;
+      else if (p->noteIndex == 0)
+        p->direction = 1;
+      p->noteIndex += p->direction;
+    }
+    else if (mode == 1)
+      p->noteIndex = (p->noteIndex + 1) % p->noteCnt;
+    else if (mode == 2)
+      p->noteIndex = (p->noteIndex + p->noteCnt - 1) % p->noteCnt;
     return OK;
 }
 
