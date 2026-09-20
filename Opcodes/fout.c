@@ -243,6 +243,13 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
   pp->file_opened[idx].name = name;
 
  returnHandle:
+  if (UNLIKELY(fileType == CSFILE_SND_W &&
+               pp->file_opened[idx].nchnls !=
+                   ((SFLIB_INFO*)fileParams)->channels)) {
+    csound->InitError(csound, "%s",
+                     Str("fout: file channel count does not match input"));
+    return NULL;
+  }
   /* return 'idx' as file handle */
   if (handle != NULL) *handle = idx;
   if (fp != NULL) {
@@ -308,9 +315,15 @@ static int32_t outfile_array(CSOUND *csound, OUTFILEA *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, j, k, nsmps = CS_KSMPS;
-  uint32_t nargs = p->tabin->sizes[0];
+  uint32_t nargs = p->f.nchnls;
   MYFLT *buf = (MYFLT *) p->buf.auxp;
   MYFLT *data = p->tabin->data;
+  size_t stride = p->tabin->arrayMemberSize / sizeof(MYFLT);
+
+  if (UNLIKELY(p->tabin->dimensions != 1 ||
+               p->tabin->sizes[0] != (int32_t)nargs))
+    return csound->PerfError(csound, &p->h,
+                            "%s", Str("fout: array channel count changed"));
 
   if (UNLIKELY(early)) nsmps -= early;
   if (p->f.sf == NULL) {
@@ -318,7 +331,7 @@ static int32_t outfile_array(CSOUND *csound, OUTFILEA *p)
       FILE  *fp = p->f.f;
       for (k = offset; k < nsmps; k++) {
         for (j = 0; j < nargs; j++)
-          fprintf(fp, "%g ", data[j*CS_KSMPS+k]);
+          fprintf(fp, "%g ", data[j*stride+k]);
         fprintf(fp, "\n");
       }
     }
@@ -326,7 +339,7 @@ static int32_t outfile_array(CSOUND *csound, OUTFILEA *p)
   else {
     for (j = offset, k = p->buf_pos; j < nsmps; j++)
       for (i = 0; i < nargs; i++)
-        buf[k++] = data[i*CS_KSMPS+j] * p->scaleFac;
+        buf[k++] = data[i*stride+j] * p->scaleFac;
     p->buf_pos = k;
     if (p->buf_pos >= p->guard_pos) {
       if (p->f.async==1)
@@ -397,7 +410,7 @@ static int32_t fouta_flush_callback(CSOUND *csound, void *p_)
       csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
     else
       // csound->SndfileWriteSamples(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
-      csound->SndfileWrite(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos/p->tabin->sizes[0]); // in frames
+      csound->SndfileWrite(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos/p->f.nchnls); // in frames
   }
   return fout_deinit(csound, &(p->f));
 }
@@ -456,12 +469,22 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p)
 static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
 {
   SFLIB_INFO sfinfo;
-  int32_t     format_, n, buf_reqd;
-  int32_t len = p->tabin->sizes[0];
+  int32_t     format_, n, len;
+  size_t buf_reqd, frames;
   const OPARMS *oparms = csound->GetOParms(csound);
   STDOPCOD_GLOBALS *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                                          "STDOPC_GLOBALS");
   
+  p->buf_pos = 0;
+  if (UNLIKELY(p->tabin->dimensions != 1 || p->tabin->sizes == NULL ||
+               p->tabin->sizes[0] <= 0))
+    return csound->InitError(csound, "%s",
+                            Str("fout: expected a nonempty one-dimensional array"));
+  len = p->tabin->sizes[0];
+  frames = CS_KSMPS >= 512 ? CS_KSMPS : (1 + 512 / CS_KSMPS) * CS_KSMPS;
+  /* The asynchronous file queue also needs four times this byte count. */
+  if (UNLIKELY((size_t)len > INT32_MAX / 4 / sizeof(MYFLT) / frames))
+    return csound->InitError(csound, "%s", Str("fout: too many channels"));
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
   format_ = (int32_t) MYFLT2LRND(*p->iflag);
   if (format_ >=  51)
@@ -477,15 +500,8 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
   if (!SF2TYPE(sfinfo.format))
     sfinfo.format |= TYPE2SF(oparms->filetyp);
   sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
-  p->buf_pos = 0;
-
-
-  if (CS_KSMPS >= 512)
-    buf_reqd = p->guard_pos = CS_KSMPS * len;
-  else {
-    p->guard_pos = 512 * len;
-    buf_reqd = (1 + (int32_t)(512 / CS_KSMPS)) * p->guard_pos;
-  }
+  p->guard_pos = (CS_KSMPS >= 512 ? CS_KSMPS : 512) * len;
+  buf_reqd = frames * len;
   if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
     csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
   }
@@ -525,6 +541,13 @@ static int32_t koutfile(CSOUND *csound, KOUTFILE *p)
 }
 
 int32_t koutfile_deinit(CSOUND *csound, KOUTFILE *p) {
+  if (p->f.sf != NULL && p->buf_pos > 0) {
+    if (p->f.async == 1)
+      csound->WriteAsync(csound, p->f.fd, (MYFLT *)p->buf.auxp, p->buf_pos);
+    else
+      csound->SndfileWrite(csound, p->f.sf, (MYFLT *)p->buf.auxp,
+                          p->buf_pos / p->nargs);
+  }
   return fout_deinit(csound, &(p->f));
 }
 
