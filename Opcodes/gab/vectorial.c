@@ -2559,44 +2559,62 @@ static int32_t vphaseseg(CSOUND *csound,VPSEG *p)
 /* ------------------------- */
 static int32_t kdel_set(CSOUND *csound,KDEL *p)
 {
-    uint32 n;
-    n = (p->maxd = (int32) (*p->imaxd * CS_EKR));
-    if (n == 0) n = (p->maxd = 1);
+    int32_t n;
+    size_t maxpts = SIZE_MAX / sizeof(MYFLT), bytes;
+    double samples;
 
-    if (!*p->istod) {
-      if (p->aux.auxp == NULL || (uint32_t)(n*sizeof(MYFLT)) > p->aux.size)
-        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
-      else {
-        memset(p->aux.auxp, 0, sizeof(MYFLT)*n);
-      }
-      p->left = 0;
-    }
+    if (*p->istod)
+      return OK;
+    if (maxpts > INT32_MAX)
+      maxpts = INT32_MAX;
+    samples = (double) (*p->imaxd * CS_EKR);
+    if (UNLIKELY(!(samples >= 0 && samples < (double) maxpts + 1)))
+      return csound->InitError(csound, "%s", Str("vdelayk: invalid maximum delay"));
+    n = (int32_t) samples;
+    if (n == 0) n = 1;
+    bytes = (size_t) n * sizeof(MYFLT);
+    if (p->aux.auxp == NULL || bytes > p->aux.size)
+      csound->AuxAlloc(csound, bytes, &p->aux);
+    else
+      memset(p->aux.auxp, 0, bytes);
+    p->maxd = n;
+    p->left = 0;
     return OK;
 }
 
 static int32_t kdelay(CSOUND *csound,KDEL *p)
 {
     int64_t maxd =  p->maxd, indx, v1, v2;
-    MYFLT *buf = (MYFLT *)p->aux.auxp, fv1, fv2;
+    MYFLT *buf = (MYFLT *)p->aux.auxp;
+    double position;
 
     if (UNLIKELY(buf==NULL)) {
-      return csound->InitError(csound, "%s", Str("vdelayk: not initialised"));
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("vdelayk: not initialised"));
     }
 
     indx = p->left;
+    position = (double) indx - (double) *p->kdel * CS_EKR;
+    /* Like vdelay, the legacy delay wraps at the buffer period, including
+       the maximum delay itself. Keep that behavior for existing scores. */
+    if (UNLIKELY(!(position >= 0 && position < maxd))) {
+      if (UNLIKELY(!isfinite(position)))
+        return csound->PerfError(csound, &p->h, "%s",
+                                 Str("vdelayk: invalid delay time"));
+      position = fmod(position, (double) maxd);
+      if (position < 0) position += maxd;
+      /* Rounding a tiny negative remainder can produce exactly maxd. */
+      if (position >= maxd) position = 0;
+    }
     buf[indx] = *p->kin;
-    fv1 = indx - *p->kdel * CS_EKR;
-    while (fv1 < FL(0.0))       fv1 += (MYFLT)maxd;
-    while (fv1 >= (MYFLT)maxd) fv1 -= (MYFLT)maxd;
+    v1 = (int32_t) position;
     if (*p->interp) { /*  no interpolation */
-      *p->kr = buf[(int32) fv1];
+      *p->kr = buf[v1];
     }
     else {
-      if (fv1 < maxd - 1) fv2 = fv1 + 1;
-      else                fv2 = FL(0.0);
-      v1 = (int32)fv1;
-      v2 = (int32)fv2;
-      *p->kr = buf[v1] + (fv1 - v1) * (buf[v2]-buf[v1]);
+      v2 = v1 + 1;
+      if (v2 == maxd) v2 = 0;
+      *p->kr = buf[v1] + (MYFLT)(position - v1) * (buf[v2]-buf[v1]);
     }
     if (++(p->left) == maxd) p->left = 0;
     return OK;
