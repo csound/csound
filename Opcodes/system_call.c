@@ -35,9 +35,7 @@ typedef struct {
   MYFLT *ktrig;
   STRINGDAT *commandLine;
   MYFLT *nowait;
-  char *command;
   MYFLT prv_ktrig;
-  CSOUND *csound;
 } SYSTEM;
 
 #if defined(WIN32)
@@ -45,18 +43,27 @@ typedef struct {
 
 static void threadroutine(void *p)
 {
-    SYSTEM *pp = (SYSTEM *) p;
-    system(pp->command);
-    pp->csound->Free(pp->csound,pp->command);
+    char *command = (char *) p;
+    system(command);
+    free(command);
 }
 
 static int32_t call_system(CSOUND *csound, SYSTEM *p)
 {
+    IGN(csound);
     _flushall();
     if ( (int32_t)*p->nowait != 0 ) {
-       p->command = csound->Strdup(csound, p->commandLine->data);
-       p->csound = csound;
-      _beginthread( threadroutine, 0, p);
+      /* The worker may outlive this opcode and the Csound instance. */
+      char *command = _strdup(p->commandLine->data);
+      if (UNLIKELY(command == NULL)) {
+        *p->res = FL(-1.0);
+        return OK;
+      }
+      if (UNLIKELY(_beginthread(threadroutine, 0, command) == (uintptr_t)-1)) {
+        free(command);
+        *p->res = FL(-1.0);
+        return OK;
+      }
       *p->res = OK;
     }
     else {
