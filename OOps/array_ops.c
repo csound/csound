@@ -3879,38 +3879,72 @@ int32_t trim(CSOUND *csound, TRIM *p)
 }
 
 
-int32_t tabslice(CSOUND *csound, TABSLICE *p) {
+static const char *tabslice_bounds(TABSLICE *p, int32_t *start,
+                                   int32_t *inc, int32_t *size)
+{
+  ARRAYDAT *src = p->tabin;
+  if (UNLIKELY(src->dimensions != 1 || src->sizes == NULL ||
+               src->data == NULL || p->tab->dimensions > 1))
+    return Str("slicearray: expected one-dimensional arrays");
+  double first = (double)*p->start;
+  double last = (double)*p->end;
+  double step = (double)*p->inc;
+  if (UNLIKELY(!(step >= 1 && step < (double)INT32_MAX + 1)))
+    return Str("slice increment must be positive and fit in an integer");
+  if (UNLIKELY(!(first >= 0 && first <= src->sizes[0] &&
+                 last >= INT32_MIN && last < (double)INT32_MAX + 1)))
+    return Str("slicearray: invalid slice bounds");
+  *start = (int32_t)first;
+  *inc = (int32_t)step;
+  int32_t end = (int32_t)last;
+  if (end < 0) end = src->sizes[0] - 1;
+  if (UNLIKELY(end >= src->sizes[0]))
+    return Str("slice larger than original size");
+  /* End is inclusive; reversed ranges and an empty input have no elements. */
+  *size = end >= *start ? (end - *start) / *inc + 1 : 0;
+  return NULL;
+}
 
-  MYFLT *tabin = p->tabin->data;
-  int32_t start = (int32_t) *p->start;
-  int32_t end   = (int32_t) *p->end >= 0 ? *p->end :
-    p->tabin->sizes[0] - 1;
-  int32_t inc   = (int32_t) *p->inc;
-  if (UNLIKELY(inc<=0))
-    return csound->InitError(csound, "%s",
-                             Str("slice increment must be positive"));
-  int32_t size = (end - start)/inc + 1;
-
-  int32_t i, destIndex;
-  int32_t memMyfltSize = p->tabin->arrayMemberSize / sizeof(MYFLT);
-
-  if (UNLIKELY(size < 0))
-    return csound->InitError(csound, "%s",
-                             Str("inconsistent start, end parameters"));
-  if (UNLIKELY(p->tabin->dimensions!=1 || end >= p->tabin->sizes[0])) {
-    //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
-    return csound->InitError(csound, "%s",
-                             Str("slice larger than original size"));
+static void tabslice_copy(CSOUND *csound, TABSLICE *p, int32_t start,
+                          int32_t inc, int32_t size)
+{
+  /* Fetch storage after output preparation, which can detach an aliased array.
+     Input and output audio arrays can have different block strides. */
+  char *src = (char *)p->tabin->data;
+  char *dst = (char *)p->tab->data;
+  size_t srcStride = (size_t)p->tabin->arrayMemberSize;
+  size_t dstStride = (size_t)p->tab->arrayMemberSize;
+  for (int32_t i = 0; i < size; i++) {
+    size_t index = (size_t)start + (size_t)i * inc;
+    void *from = src + index * srcStride;
+    void *to = dst + (size_t)i * dstStride;
+    if (to != from)
+      p->tab->arrayType->copyValue(csound, p->tab->arrayType,
+                                   to, from, p->h.insdshead);
   }
+}
+
+int32_t tabslice(CSOUND *csound, TABSLICE *p)
+{
+  int32_t start, inc, size;
+  const char *error = tabslice_bounds(p, &start, &inc, &size);
+  if (UNLIKELY(error != NULL))
+    return csound->InitError(csound, "%s", error);
   if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
+  tabslice_copy(csound, p, start, inc, size);
+  return OK;
+}
 
-  for (i = start, destIndex = 0; i < end + 1; i+=inc, destIndex++) {
-    p->tab->arrayType->copyValue(csound, p->tab->arrayType,
-                                 p->tab->data + (destIndex * memMyfltSize),
-                                 tabin + (memMyfltSize * i),  p->h.insdshead);
-  }
-
+int32_t tabslice_perf(CSOUND *csound, TABSLICE *p)
+{
+  int32_t start, inc, size;
+  const char *error = tabslice_bounds(p, &start, &inc, &size);
+  if (UNLIKELY(error != NULL))
+    return csound->PerfError(csound, &p->h, "%s", error);
+  if (UNLIKELY(tabcheck(csound, p->tab, size, &p->h) != OK))
+    return NOTOK;
+  tabslice_copy(csound, p, start, inc, size);
   return OK;
 }
 

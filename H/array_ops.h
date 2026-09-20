@@ -297,6 +297,7 @@ int32_t trim_i(CSOUND *csound, TRIM *p);
 int32_t trim_prepare(CSOUND *csound, TRIM *p);
 int32_t trim(CSOUND *csound, TRIM *p);
 int32_t tabslice(CSOUND *csound, TABSLICE *p);
+int32_t tabslice_perf(CSOUND *csound, TABSLICE *p);
 int32_t tabmap_set(CSOUND *csound, TABMAP *p);
 int32_t tabmap_perf(CSOUND *csound, TABMAP *p);
 int32_t tablength(CSOUND *csound, TABQUERY1 *p);
