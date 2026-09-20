@@ -88,7 +88,7 @@ static MYFLT read_ieee(FILE* f, int32_t *end)
     double x;
     char *p = fgets(buff, 120, f);
 
-    if (p==NULL || feof(f)) {
+    if (p==NULL) {
       *end = 1;
       return FL(0.0);
     }
@@ -110,12 +110,15 @@ static int32_t load_cv_file(CSOUND *csound, const char *filnam,
     char *p;
 
     f = fopen(filnam, "r");
+    if (UNLIKELY(f == NULL))
+      return 1;
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_CVANAL, 0, 0);
     all = (char *)csound->Malloc(csound, (size_t) length);
     ignore_value(fgets(buff, 120, f)); /* Skip CVANAL */
     cvh.magic = CVMAGIC;
     p = fgets(buff, 120, f);
     if (UNLIKELY(p==NULL)) {
+      csound->Free(csound, all);
       fclose(f);
       return csoundInitError(csound, Str("Ill-formed CV file\n"));
     }
@@ -134,6 +137,11 @@ static int32_t load_cv_file(CSOUND *csound, const char *filnam,
     for (i=sizeof(CVSTRUCT);;i+=sizeof(MYFLT)) {
       /* Expand as necessary */
       if (UNLIKELY(i>=length-sizeof(MYFLT)-4)) {
+        if (UNLIKELY(length > INT32_MAX - 4096)) {
+          csound->Free(csound, all);
+          fclose(f);
+          return csoundInitError(csound, Str("CV file is too large\n"));
+        }
         //printf("expanding from %p[%d] to\n", all, length);
         all = csound->ReAlloc(csound, all, length+=4096);
         //printf("i=%d                     %p[%d]\n", i, all, length);
@@ -141,8 +149,12 @@ static int32_t load_cv_file(CSOUND *csound, const char *filnam,
       if (j) break;
       memcpy(&all[i], &x, sizeof(MYFLT));
     }
-    fclose(f);                                  /*   and close it      */
-    //printf("length=%d i=%d\n", length, i);
+    if (UNLIKELY(ferror(f))) {
+      csound->Free(csound, all);
+      fclose(f);
+      return csoundInitError(csound, Str("Error reading CV file\n"));
+    }
+    fclose(f);
     *len = i;
     all = csound->ReAlloc(csound, all, i);
     *allocp = all;
@@ -210,24 +222,21 @@ static int32_t load_file(CSOUND *csound, const char *filnam,
       return 1;                                 /*    return 1             */
     if (csFileType==CSFTYPE_HETRO) {
       char buff[8];
-      ignore_value(fgets(buff, 6, f));
-      if (strcmp(buff, "HETRO")==0) {
+      if (fgets(buff, 6, f) != NULL && strcmp(buff, "HETRO")==0) {
         fclose(f);
         return load_het_file(csound, filnam, allocp, len);
       }
     }
     else if (csFileType==CSFTYPE_CVANAL) {
       char buff[8];
-      ignore_value(fgets(buff, 7, f));
-      if (strcmp(buff, "CVANAL")==0) {
+      if (fgets(buff, 7, f) != NULL && strcmp(buff, "CVANAL")==0) {
         fclose(f);
         return load_cv_file(csound, filnam, allocp, len);
       }
     }
     else if (csFileType==CSFTYPE_LPC) {
       char buff[8];
-      ignore_value(fgets(buff, 7, f));
-      if (strcmp(buff, "LPANAL")==0) {
+      if (fgets(buff, 7, f) != NULL && strcmp(buff, "LPANAL")==0) {
         fclose(f);
         return load_lp_file(csound, filnam, allocp, len);
       }

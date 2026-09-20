@@ -2,6 +2,7 @@
 
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
+#include "convolve.h"
 
 #include <array>
 #include <cstdint>
@@ -157,6 +158,59 @@ std::vector<uint8_t> makeAtsFile()
   for (double value : values)
     appendNative(data, value);
   return data;
+}
+
+TEST_F(AnalysisFileSafetyTests, ConvolveRejectsIncompleteFiles)
+{
+  CVSTRUCT header = {};
+  header.magic = CVMAGIC;
+  header.headBsize = sizeof(header);
+  header.dataBsize = 18 * sizeof(MYFLT);
+  header.dataFormat = CVMYFLT;
+  header.samplingRate = 44100;
+  header.src_chnls = header.channel = 1;
+  header.Hlen = 8;
+  header.Format = CVRECT;
+  std::vector<uint8_t> data;
+  appendNative(data, header);
+  data.resize(sizeof(header) + header.dataBsize, 0);
+  auto path = directory / "complete.cv";
+  ASSERT_NO_FATAL_FAILURE(writeFile(path, data));
+  EXPECT_EQ(CSOUND_SUCCESS, runFileOpcode(
+    "aInput init 0\naOut convolve aInput, \"" + path.generic_string() + "\""));
+  for (size_t length : {sizeof(header) - 1, data.size() - sizeof(MYFLT)}) {
+    auto shortPath = directory / ("short-" + std::to_string(length) + ".cv");
+    ASSERT_NO_FATAL_FAILURE(writeFile(
+      shortPath, std::vector<uint8_t>(data.begin(), data.begin() + length)));
+    EXPECT_NE(CSOUND_SUCCESS, runFileOpcode(
+      "aInput init 0\naOut convolve aInput, \"" + shortPath.generic_string() + "\""));
+  }
+}
+
+TEST_F(AnalysisFileSafetyTests, ConvolveTextKeepsFinalValueWithoutNewline)
+{
+  /* The text format stores the writer's byte counts, but the loader uses
+     the current MYFLT size. Keep that cross-build use working. */
+  std::string text = "CVANAL\n44 72 36 44100 1 1 8 1\n";
+  for (int i = 0; i < 17; ++i)
+    text += "0\n";
+  text += "1.25";
+  auto path = directory / "no-final-newline.cv";
+  ASSERT_NO_FATAL_FAILURE(writeFile(
+    path, std::vector<uint8_t>(text.begin(), text.end())));
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  MEMFIL *file = csound->LoadMemoryFile(
+    csound, path.generic_string().c_str(), CSFTYPE_CVANAL, nullptr);
+  EXPECT_NE(nullptr, file);
+  if (file != nullptr) {
+    EXPECT_EQ(sizeof(CVSTRUCT) + 18 * sizeof(MYFLT), size_t(file->length));
+    MYFLT last = 0;
+    std::memcpy(&last, file->endp - sizeof(MYFLT), sizeof(MYFLT));
+    EXPECT_EQ(MYFLT(1.25), last);
+  }
+  csoundDestroy(csound);
+  EXPECT_EQ(CSOUND_SUCCESS, runFileOpcode(
+    "aInput init 0\naOut convolve aInput, \"" + path.generic_string() + "\""));
 }
 
 std::vector<uint8_t> makeHetroFile()
