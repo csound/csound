@@ -228,8 +228,9 @@ extern "C" {
     ARRAYDAT *kparm;
     MYFLT   *kmin, *kmax, *iprd, *imod, *iscl, *istor;
     int32_t     scale, ord;
-    AUXCH   y1m,y2m,y1o,y2o,y1c,y2c;
-    MYFLT kcnt;
+    AUXCH   y1m,y2m,y1o,y2o,y1c,y2c,active;
+    int32_t kcnt, period;
+    double oneds;
   } RESONB;
 
 

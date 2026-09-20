@@ -1110,44 +1110,47 @@ int32_t coef2parm(CSOUND *csound, CF2P *p) {
 /* resonator bank */
 int32_t resonbnk_init(CSOUND *csound, RESONB *p)
 {
-  int32_t scale, siz;
-  p->scale = scale = (int32_t) *p->iscl;
-  p->ord =  p->kparm->sizes[0];
-  siz = (p->ord+1)/2;
-  if (!*p->istor && (p->y1m.auxp == NULL ||
-                     (uint32_t)(siz*sizeof(double)) > p->y1m.size))
-    csound->AuxAlloc(csound, (int32_t)(siz*sizeof(double)), &p->y1m);
-  if (!*p->istor && (p->y2m.auxp == NULL ||
-                     (uint32_t)(siz*sizeof(double)) > p->y2m.size))
-    csound->AuxAlloc(csound, (int32_t)(siz*sizeof(double)), &p->y2m);
-
-  if (!*p->istor && (p->y1o.auxp == NULL ||
-                     (uint32_t)(siz*sizeof(double)) > p->y1o.size))
-    csound->AuxAlloc(csound, (int32_t)(siz*sizeof(double)), &p->y1o);
-  if (!*p->istor && (p->y2o.auxp == NULL ||
-                     (uint32_t)(siz*sizeof(double)) > p->y2o.size))
-    csound->AuxAlloc(csound, (int32_t)(siz*sizeof(double)), &p->y2o);
-
-  if (!*p->istor && (p->y1c.auxp == NULL ||
-                     (uint32_t)(siz*sizeof(double)) > p->y1c.size))
-    csound->AuxAlloc(csound, (int32_t)(siz*sizeof(double)), &p->y1c);
-  if (!*p->istor && (p->y2c.auxp == NULL ||
-                     (uint32_t)(siz*sizeof(double)) > p->y2c.size))
-    csound->AuxAlloc(csound, (int32_t)(siz*sizeof(double)), &p->y2c);
-
-  if (UNLIKELY(scale && scale != 1 && scale != 2)) {
+  if (UNLIKELY(p->kparm->dimensions != 1 || p->kparm->data == NULL ||
+               p->kparm->sizes[0] <= 0 || (p->kparm->sizes[0] & 1)))
+    return csound->InitError(csound, "%s",
+                            Str("resonbnk: expected frequency/bandwidth pairs"));
+  if (UNLIKELY(!(*p->iscl >= FL(0.0) && *p->iscl < FL(3.0))))
     return csound->InitError(csound, Str("illegal reson iscl value, %f"),
-                             *p->iscl);
+                            *p->iscl);
+  if (UNLIKELY(!(*p->iprd >= FL(1.0) && (double)*p->iprd <= INT32_MAX)))
+    return csound->InitError(csound, "%s",
+                            Str("resonbnk: interpolation period must be a positive integer"));
+  int32_t period = (int32_t)*p->iprd;
+  if (UNLIKELY(*p->iprd != (MYFLT)period))
+    return csound->InitError(csound, "%s",
+                            Str("resonbnk: interpolation period must be a positive integer"));
+
+  int32_t ord = p->kparm->sizes[0];
+  size_t bytes = (size_t)(ord / 2) * sizeof(double);
+  int32_t reset = !*p->istor || ord != p->ord;
+  AUXCH *buffers[] = { &p->y1m, &p->y2m, &p->y1o, &p->y2o,
+                      &p->y1c, &p->y2c };
+  for (size_t i = 0; i < sizeof(buffers) / sizeof(buffers[0]); ++i) {
+    if (buffers[i]->auxp == NULL || bytes > buffers[i]->size) {
+      csound->AuxAlloc(csound, bytes, buffers[i]);
+      reset = 1;
+    }
   }
-  if (!(*p->istor)) {
-    memset(p->y1m.auxp, 0, siz*sizeof(double));
-    memset(p->y2m.auxp, 0, siz*sizeof(double));
-    memset(p->y1o.auxp, 0, siz*sizeof(double));
-    memset(p->y2o.auxp, 0, siz*sizeof(double));
-    memset(p->y1c.auxp, 0, siz*sizeof(double));
-    memset(p->y2c.auxp, 0, siz*sizeof(double));
+  size_t activeBytes = (size_t)(ord / 2) * sizeof(int32_t);
+  if (p->active.auxp == NULL || activeBytes > p->active.size) {
+    csound->AuxAlloc(csound, activeBytes, &p->active);
+    reset = 1;
   }
-  p->kcnt = 0;
+  if (reset) {
+    for (size_t i = 0; i < sizeof(buffers) / sizeof(buffers[0]); ++i)
+      memset(buffers[i]->auxp, 0, bytes);
+    memset(p->active.auxp, 0, activeBytes);
+  }
+  if (reset || period != p->period) p->kcnt = 0;
+  p->ord = ord;
+  p->scale = (int32_t)*p->iscl;
+  p->period = period;
+  p->oneds = 1.0 / period;
   return OK;
 }
 
@@ -1156,12 +1159,19 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
   uint32_t    offset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
   uint32_t    n, nsmps = CS_KSMPS;
-  int32_t     j, k, ord = p->ord, mod = *p->imod;
+  int32_t     j, k, ord = p->ord, mod = (*p->imod != FL(0.0));
+  int32_t     kcnt = p->kcnt, *active = p->active.auxp;
   MYFLT       *ar,*asig;
   double      c3p1, c3t4, omc3, c2sqr, cosf,cc2,cc3;
   double      *yt1, *yt2, c1 = 1.,*c2,*c3, x, *c2o, *c3o;
   MYFLT bw, cf;
-  MYFLT kcnt = p->kcnt, prd = *p->iprd, interp, fmin = *p->kmin, fmax = *p->kmax;
+  MYFLT fmin = *p->kmin, fmax = *p->kmax;
+  double interp;
+
+  if (UNLIKELY(p->kparm->dimensions != 1 || p->kparm->data == NULL ||
+               p->kparm->sizes[0] != ord))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("resonbnk: parameter array size changed"));
 
 
   ar   = p->ar;
@@ -1181,41 +1191,54 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
 
 
   for (n=offset; n<nsmps; n++) {
-    x = asig[n];
+    const double input = asig[n];
+    x = input;
     ar[n] = 0.;
-    if(kcnt == prd) kcnt = 0;
-    interp = kcnt/prd;
+    interp = (kcnt + 1) * p->oneds;
     for (k=j=0; k < ord; j++,k+=2) {
-      if(mod) x = asig[n]; // parallel
+      if(mod) x = input; // parallel
       if(kcnt == 0) {
-        c3o[j] = c3[j]; c2o[j] = c2[j];
         cf = p->kparm->data[k];
         bw = p->kparm->data[k+1];
-        if(cf > fmin && cf < fmax) {
-          cosf = cos(cf * (double)(CS_TPIDSR));
-          c3[j] = exp(bw * (double)(csound->mtpdsr));
-          c3p1 = c3[j] + 1.0;
-          c3t4 = c3[j] * 4.0;
-          c2[j] = c3t4 * cosf / c3p1;
+        if (!(cf > fmin && cf < fmax)) {
+          active[j] = 0;
+          yt1[j] = yt2[j] = 0.;
+          continue;
+        }
+        c3o[j] = c3[j]; c2o[j] = c2[j];
+        cosf = cos(cf * (double)(CS_TPIDSR));
+        c3[j] = exp(bw * (double)(csound->mtpdsr));
+        c3p1 = c3[j] + 1.0;
+        c3t4 = c3[j] * 4.0;
+        c2[j] = c3t4 * cosf / c3p1;
+        /* Start newly enabled filters at their actual coefficients. */
+        if (!active[j]) {
+          c3o[j] = c3[j]; c2o[j] = c2[j];
+          active[j] = 1;
         }
       }
+      if (!active[j]) continue;
       cc2 = c2o[j] + (c2[j] - c2o[j])*interp;
       cc3 = c3o[j] + (c3[j] - c3o[j])*interp;
       if(p->scale) {
         omc3 = 1.0 - cc3;
         c2sqr = cc2*cc2;
         c3p1 = cc3 + 1.0;
+        double gain;
         if (p->scale == 1)
-          c1 = omc3 * sqrt(1.0 - (c2sqr / (4*cc3)));
-        else if (p->scale == 2)
-          c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
+          gain = cc3 > 0.0 ? 1.0 - c2sqr / (4.0 * cc3) : 1.0;
+        else
+          gain = (c3p1*c3p1-c2sqr) * omc3/c3p1;
+        /* Roundoff at a pole boundary must not make the gain negative. */
+        c1 = sqrt(gain > 0.0 ? gain : 0.0);
+        if (p->scale == 1) c1 *= omc3;
       }
       x = c1 * x + cc2 * yt1[j] - cc3 * yt2[j];
       yt2[j] = yt1[j];
       yt1[j] = x;
       if(mod) ar[n] += x; // parallel
     }
-    kcnt += 1;
+    if (++kcnt == p->period) kcnt = 0;
     if(!mod) ar[n] = x;
   }
   p->kcnt = kcnt;

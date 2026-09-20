@@ -33,6 +33,7 @@ if(BUILD_TESTS)
         vibrato_test.cpp
         pitch_test.cpp
         delayk_test.cpp
+        resonbnk_test.cpp
         seed_state_test.cpp
         trigseq_test.cpp
         interpolated_random_test.cpp
