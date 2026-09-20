@@ -979,3 +979,108 @@ TEST_F(ChannelTests, StringCopyFollowsInputCallback)
     EXPECT_STREQ(output, "");
     csoundSetHostData(csound, nullptr);
 }
+
+namespace {
+struct InvalueStringState {
+    std::string value;
+    int calls = 0;
+};
+
+void invalueStringInput(CSOUND* csound, const char* name,
+                        void* value, const void*)
+{
+    auto* state = static_cast<InvalueStringState*>(csoundGetHostData(csound));
+    EXPECT_TRUE(strcmp(name, "text") == 0 || strcmp(name, "7") == 0);
+    EXPECT_LT(state->value.size(), 256u);
+    strcpy(static_cast<char*>(value), state->value.c_str());
+    state->calls++;
+}
+}
+
+class InvalueStringTests : public ChannelTests,
+                           public ::testing::WithParamInterface<int> {};
+
+TEST_P(InvalueStringTests, PublishesCallbackAndEmptyUpdates)
+{
+    InvalueStringState state{"initial"};
+    csoundSetHostData(csound, &state);
+    csoundSetInputChannelCallback(csound, invalueStringInput);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--daemon"));
+    std::string orc = R"ORC(
+        sr = 1024
+        ksmps = 32
+        nchnls = 1
+        instr 1
+          setksmps )ORC" + std::to_string(GetParam()) + R"ORC(
+          Snamed invalue "text"
+          ScopyNamed strcpyk Snamed
+          Snumber invalue 7
+          ScopyNumber strcpyk Snumber
+          chnset Snamed, "named"
+          chnset ScopyNamed, "named-copy"
+          chnset Snumber, "number"
+          chnset ScopyNumber, "number-copy"
+        endin
+    )ORC";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc.c_str()));
+    csoundEventString(csound, "i 1 0 -1", 0);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    const std::vector<std::string> values{
+        "initial", "changed", "changed", "", std::string(200, 'x'), "short"
+    };
+    for (const auto& value : values) {
+        state.value = value;
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        for (const char* name : {"named", "named-copy", "number", "number-copy"}) {
+            char output[256];
+            csoundGetStringChannel(csound, name, output);
+            EXPECT_EQ(value, output) << name;
+        }
+    }
+    EXPECT_GT(state.calls, 0);
+    csoundSetInputChannelCallback(csound, nullptr);
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    for (const char* name : {"named", "named-copy", "number", "number-copy"}) {
+        char output[256];
+        csoundGetStringChannel(csound, name, output);
+        EXPECT_STREQ("", output) << name;
+    }
+    csoundSetHostData(csound, nullptr);
+}
+
+INSTANTIATE_TEST_SUITE_P(ControlBlocks, InvalueStringTests,
+                         ::testing::Values(1, 4, 32));
+
+TEST_F(ChannelTests, IrateInvalueReadsEachChannelOnce)
+{
+    int calls[2] = {0, 0};
+    csoundSetHostData(csound, calls);
+    csoundSetInputChannelCallback(csound,
+        [](CSOUND* cs, const char* name, void* value, const void*) {
+            auto* counts = static_cast<int*>(csoundGetHostData(cs));
+            int index = strcmp(name, "1") == 0 ? 0 : 1;
+            *static_cast<MYFLT*>(value) = ++counts[index];
+        });
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--daemon"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        instr 1
+          iNumber invalue 1
+          iNamed invalue "control"
+          chnset iNumber, "number-result"
+          chnset iNamed, "named-result"
+        endin
+    )ORC"));
+    csoundEventString(csound, "i 1 0 -1", 0);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_EQ(1, calls[0]);
+    EXPECT_EQ(1, calls[1]);
+    EXPECT_EQ(MYFLT(1.0), csoundGetControlChannel(csound, "number-result", nullptr));
+    EXPECT_EQ(MYFLT(1.0), csoundGetControlChannel(csound, "named-result", nullptr));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_EQ(1, calls[0]);
+    EXPECT_EQ(1, calls[1]);
+    csoundSetInputChannelCallback(csound, nullptr);
+    csoundSetHostData(csound, nullptr);
+}
