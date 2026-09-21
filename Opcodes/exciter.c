@@ -48,7 +48,6 @@ typedef struct {
   double      rs00[7], rs01[7], rs10[7], rs11[7];
   // distortion
   double      rdrive, rbdr, kpa, kpb, kna, knb, ap, an, imr, kc, srct, sq, pwrq;
-  int32_t         over;
   double      prev_med, prev_out;
   double      blend_old, drive_old;
 } EXCITER;
@@ -114,13 +113,13 @@ static int32_t exciter_init(CSOUND *csound, EXCITER *p)
     p->rdrive = p->rbdr = p->kpa = p->kpb = p->kna = p->knb = p->ap =
       p->an = p->imr = p->kc = p->srct = p->sq = p->pwrq = p->prev_med =
       p->prev_out = 0.0;
-    p->over = CS_ESR * 2 > 96000 ? 1 : 2;
     p->blend_old = p->drive_old = -1.0;
     //resample_set_params(csound, p);
     {
       double srate = (double)CS_ESR;
       double ff = 25000.0;
-      if (srate>50000) ff = srate*0.5;
+      /* The resampling filters run at 2 * srate, with Nyquist at srate. */
+      if (ff >= srate || srate > 50000) ff = srate*0.5;
       // set all filters
       set_lp_rbj(p->rs00, ff, 0.8, srate * 2);
       /* printf("resample filter: %f %f %f %f %f %f %f\n", */
@@ -174,7 +173,8 @@ static inline double distort(EXCITER *p, double in)
           kpb = p->kpb, knb = p->knb, pwrq = p->pwrq;
     //printf("in: %f\n", in);
     upsample(p, samples, in);
-    for (i = 0; i < p->over; i++) {
+    /* Upsampling and downsampling always process two samples. */
+    for (i = 0; i < 2; i++) {
       double proc = samples[i];
       double med;
       //printf("%d: %f-> ", i, proc);
