@@ -475,7 +475,11 @@ int32_t posckkt(CSOUND *csound, OSC *p)
     return csound->PerfError(csound, &(p->h),
                              Str("poscil: not initialised"));
   ft = p->ftp->ftable;
-  if (UNLIKELY(early)) nsmps -= early;
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+  }
   for (n=offset; n<nsmps; n++) {
     out[n]    = *(ft + (int32)phs)*amp;
     phs      += si;
@@ -619,7 +623,11 @@ int32_t posckk(CSOUND *csound, OSC *p)
     return csound->PerfError(csound, &(p->h),
                              Str("poscil: not initialised"));
   ft = p->ftp->ftable;
-  if (UNLIKELY(early)) nsmps -= early;
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+  }
   for (n=offset; n<nsmps; n++) {
     curr_samp = ft + (int32)phs;
     fract     = (MYFLT)(phs - (int32)phs);
@@ -1028,7 +1036,7 @@ int32_t kposc3(CSOUND *csound, OSC *p)
 static void reassign_perf(CSOUND *csound, OSC *p) {
   const char* name = p->h.optext->t.opcod;
   // check for arg types and change PDS
-  if(!strcmp(name, "oscil")) {
+  if (!strcmp(name, "oscil") || !strncmp(name, "oscil.", 6)) {
     if(IS_ASIG_ARG(p->sr)) {
     if(IS_ASIG_ARG(p->xamp) && IS_ASIG_ARG(p->xcps)) // aa
       p->h.perf = (SUBR) poscaat;
@@ -1041,7 +1049,7 @@ static void reassign_perf(CSOUND *csound, OSC *p) {
     } else // kosc
     p->h.perf = (SUBR) kposct;
   }
-  else if(!strcmp(name, "oscili")) {
+  else if (!strcmp(name, "oscili") || !strncmp(name, "oscili.", 7)) {
   if(IS_ASIG_ARG(p->sr)) {
     if(IS_ASIG_ARG(p->xamp) && IS_ASIG_ARG(p->xcps)) // aa
       p->h.perf = (SUBR) poscaa;
