@@ -1076,20 +1076,43 @@ static void reassign_perf(CSOUND *csound, OSC *p) {
   }
 }
 
-// this may select different perf if non-pow of two is used.
+/* Select the phase representation on every init, including reinit. */
+static void osc_init_phase(CSOUND *csound, OSC *p)
+{
+  int32_t len = p->ftp->flen;
+  if (IS_POW_TWO(len)) {
+    if (*p->iphs >= FL(0.0))
+      p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
+    else if (p->tablen > 0 && !IS_POW_TWO(p->tablen))
+      p->lphs = (int32_t)(p->phs / p->tablen * FMAXLEN) & PHMASK;
+    p->h.perf = p->h.optext->t.oentry->perf;
+  }
+  else {
+    if (*p->iphs >= FL(0.0))
+      p->phs = *p->iphs * len;
+    else if (p->tablen > 0) {
+      /* A negative iphs preserves the phase as a fraction of a cycle. */
+      if (IS_POW_TWO(p->tablen))
+        p->phs = (double)p->lphs / FMAXLEN * len;
+      else if (p->tablen != len)
+        p->phs = p->phs / p->tablen * len;
+    }
+    while (UNLIKELY(p->phs >= len))
+      p->phs -= len;
+    reassign_perf(csound, p);
+  }
+  p->tablen = len;
+  p->tablenUPsr = len * (FL(1.0) / CS_ESR);
+}
+
 int32_t oscset(CSOUND *csound, OSC *p)
 {
   FUNC *ftp;
   if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
     return csound->InitError(csound, Str("table not found"));
   p->ftp = ftp;
-  if(IS_POW_TWO(ftp->flen)) {
-    if (*p->iphs >= 0)
-      p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
-    return OK;
-  }
-  reassign_perf(csound, p);
-  return posc_set(csound,p);
+  osc_init_phase(csound, p);
+  return OK;
 }
 
 
@@ -1127,18 +1150,7 @@ int32_t oscsetA(CSOUND *csound, OSC *p)
   FUNC        *ftp = &p->FF;
   p->ftp = ftp;
   fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
-  if(IS_POW_TWO(ftp->flen)) {
-  if (*p->iphs >= 0)
-    p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
-  return OK; // Indentation not logical always onbeyed NEEDS FIX JPff May 10 2024
-  }
-  p->tablen     = ftp->flen;
-  p->tablenUPsr = p->tablen * (FL(1.0)/CS_ESR);
-  if (*p->iphs>=FL(0.0))
-    p->phs      = *p->iphs * p->tablen;
-  while (UNLIKELY(p->phs >= p->tablen))
-    p->phs     -= p->tablen;
-  reassign_perf(csound, p);
+  osc_init_phase(csound, p);
   return OK;
 }
 
