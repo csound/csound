@@ -455,6 +455,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
         /* do this only if at least one rattle is specified */
         for (qq=0; qq<p->rattle_num; qq++) {
           int32_t rattle_index = (int32_t)(2+p->rattle[qq].pos*N);
+          MYFLT force_sum = 0.0;
           for (n=0; n<NS; n++) {
             MYFLT pos, force, temp;
             /* calc. pos. diff between center of rattle and string */
@@ -466,34 +467,35 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
               w[rattle_index*NS+n] += -dt*dt*(TWOPI*p->rattle[qq].freq)*
                 (TWOPI*p->rattle[qq].freq)*p->rattle[qq].massden*force;
             }
-            rat[qq] = 2*rat1[qq]-rat2[qq]+(TWOPI*p->rattle[qq].freq)*
-              (TWOPI*p->rattle[qq].freq)*dt*dt*force-dt*dt*9.8;
-            rat2[qq] = rat1[qq];
-            rat1[qq] = rat[qq];
+            force_sum += force;
           }
+          /* All strings act on the same preparation during this sample. */
+          rat[qq] = 2*rat1[qq]-rat2[qq]+(TWOPI*p->rattle[qq].freq)*
+            (TWOPI*p->rattle[qq].freq)*dt*dt*force_sum-dt*dt*9.8;
+          rat2[qq] = rat1[qq];
+          rat1[qq] = rat[qq];
         }
       if (p->rubber_num) {
         /* do this only if at least one rubber is specified */
         for (qq=0; qq<p->rubber_num; qq++) {
           int32_t rubber_index = (int32_t)(2+p->rubber[qq].pos*N);
-          MYFLT force = 0.0;
+          MYFLT force_sum = 0.0;
           for (n=0; n<NS; n++) {
-            MYFLT pos;
+            MYFLT pos, force;
             /* calc. pos. diff between rubber and string */
             pos = w1[rubber_index*NS+n]-rub1[qq];
-            /* calc force (nonzero only when in contact) */
-            force += 0.5*(pos-fabs(pos));
-          }
-          for (n=0; n<NS; n++) {
+            /* Each string receives only its own contact force. */
+            force = 0.5*(pos-fabs(pos));
             w[rubber_index*NS+n] += -dt*dt*(TWOPI*p->rubber[qq].freq)*
               (TWOPI*p->rubber[qq].freq)*p->rubber[qq].massden*force;
-            rub[qq] = 2*rub1[qq]/(1+p->rubber[qq].loss*dt/2)-
-              (1-p->rubber[qq].loss*dt/2)*rub2[qq]/(1+p->rubber[qq].loss*dt*0.5)+
-              (TWOPI*p->rubber[qq].freq)*(TWOPI*p->rubber[qq].freq)*
-              dt*dt*(-rub1[qq]+force)/(1+p->rubber[qq].loss*dt*0.5);
-            rub2[qq] = rub1[qq];
-            rub1[qq] = rub[qq];
+            force_sum += force;
           }
+          rub[qq] = 2*rub1[qq]/(1+p->rubber[qq].loss*dt/2)-
+            (1-p->rubber[qq].loss*dt/2)*rub2[qq]/(1+p->rubber[qq].loss*dt*0.5)+
+            (TWOPI*p->rubber[qq].freq)*(TWOPI*p->rubber[qq].freq)*
+            dt*dt*(-rub1[qq]+force_sum)/(1+p->rubber[qq].loss*dt*0.5);
+          rub2[qq] = rub1[qq];
+          rub1[qq] = rub[qq];
         }
       }
       if (p->hammer_on) {
