@@ -46,23 +46,27 @@
         {
             "name": "windows-debug-build",
             "displayName": "Windows Debug Build",
-            "configurePreset": "windows-debug"
+            "configurePreset": "windows-debug",
+            "configuration": "Debug"
         },
         {
             "name": "windows-release-build",
             "displayName": "Windows Release Build",
-            "configurePreset": "windows-release"
+            "configurePreset": "windows-release",
+            "configuration": "Release"
         },
         {
             "name": "windows-debug-csd-tests",
             "displayName": "Windows Debug CSD Tests Build",
             "configurePreset": "windows-debug",
+            "configuration": "Debug",
             "targets": "csdtests"
         },
         {
             "name": "windows-release-csd-tests",
             "displayName": "Windows Release CSD Tests Build",
             "configurePreset": "windows-release",
+            "configuration": "Release",
             "targets": "csdtests"
         }
     ],
@@ -71,6 +75,7 @@
             "name": "windows-debug-test",
             "displayName": "Windows Debug Test",
             "configurePreset": "windows-debug",
+            "configuration": "Debug",
             "output": {
                 "outputOnFailure": true
             }
@@ -79,6 +84,7 @@
             "name": "windows-release-test",
             "displayName": "Windows Release Test",
             "configurePreset": "windows-release",
+            "configuration": "Release",
             "output": {
                 "outputOnFailure": true
             }
