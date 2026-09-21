@@ -151,6 +151,7 @@
 
 
 #include "stm.h"
+#include "arrays.h"
 #include "coreDefs.h"
 #include "csound.h"
 #include "sysdep.h"
@@ -1383,10 +1384,10 @@ int32_t graph_add_cond_edge(CSOUND *csound, GRAPH_ADD_COND_EDGE *p) {
         return csound->InitError(csound, "[stm] stmaddcondedge: graph already compiled (immutable)");
     }
 
-    STRINGDAT *items = (STRINGDAT *) p->targets->data;
     int32_t ntargets = p->targets->sizes[0];
     for (int32_t i = 0; i < ntargets; i++) {
-        if (add_edge_helper(csound, builder, p->from->data, items[i].data) == NOTOK) {
+        STRINGDAT *target = csound_string_array_element(p->targets, (size_t)i);
+        if (add_edge_helper(csound, builder, p->from->data, target->data) == NOTOK) {
             stm_registry_unlock(csound, reg);
             return csound->InitError(csound, "[stm] stmaddcondedge, something went wrong");
         }
