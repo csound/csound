@@ -24,6 +24,7 @@
 #include "csoundCore.h"
 #include "soundfile.h"
 #include "soundio.h"
+#include "sysdep.h"
 #include "diskin2.h"
 #include <math.h>
 #include <inttypes.h>
@@ -36,18 +37,25 @@
           flooper2 implementation */
 #define DISKIN2_XFADE_MAX         4096
 
-#if defined(__GNUC__) || defined(__clang__)
-#  define ALWAYS_INLINE  inline __attribute__ ((__always_inline__))
-#elif defined(_MSC_VER)
-#  define ALWAYS_INLINE  __forceinline
-#else
-#  define ALWAYS_INLINE  inline
+/* Force inlining so the compile-time xf selector folds
+   away and the two variants keep a single implementation. For debugging,
+   define an empty CS_ALWAYS_INLINE (e.g. -DCS_ALWAYS_INLINE=) to override
+   the and make these ordinary inline functions. This mirrors the same patterns
+   used in fm4op.c and modal4.c. Also pffft uses a similar approach*/
+#ifndef CS_ALWAYS_INLINE
+#  if defined(_MSC_VER)
+#    define CS_ALWAYS_INLINE  __forceinline
+#  elif defined(HAVE_GCC3) && !defined(SWIG)
+#    define CS_ALWAYS_INLINE  inline __attribute__ ((__always_inline__))
+#  else
+#    define CS_ALWAYS_INLINE  inline
+#  endif
 #endif
 
 /* Wrap a sample frame position into the loop range [loopStart, loopEnd).
    A single conditional adjustment is not enough when the position is more
    than one loop length out of range, which happens with very short loops
-   combined with fast playback or wide interpolation windows. */
+   combined with fast playback or large sync windows. */
 static inline int32_t diskin2_wrap_frame(int32_t fPos, int32_t loopStart,
                                          int32_t loopLength)
 {
@@ -128,7 +136,7 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
 /* of opcode 'p', at sample index 'n' (0 <= n < ksmps), with amplitude  */
 /* scale 'scl'.                                                         */
 
-static ALWAYS_INLINE void diskin2_get_sample(CSOUND *csound,
+static CS_ALWAYS_INLINE void diskin2_get_sample(CSOUND *csound,
                                       DISKIN2 *p, int32_t fPos, int32_t n,
                                       MYFLT scl)
 {
@@ -1380,6 +1388,14 @@ int32_t diskin2_async_deinit(CSOUND *csound, DISKIN2 *p)
   return OK;
 }
 
+/* Drop a cached crossfade head so it is captured again at the current
+   playback speed. Used whenever pos_frac_inc changes. */
+static inline void diskin2_xf_reset(DISKIN2_XF *x)
+{
+    x->ready = 0;
+    x->count = 0;
+}
+
 /* Loop crossfade (async, enabled by iwrap > 1).
 
    The loophead (the first `len` output frames after `loopStart`, or
@@ -1394,18 +1410,34 @@ static inline void diskin2_xfade(DISKIN2_XF *x, int32_t nch,
                                  int32_t loopStart, int32_t loopEnd,
                                  MYFLT *frame, int32_t stride)
 {
-    int32_t chn, F = x->len, dir = (inc > 0 ? 1 : -1);
-    int64_t origin, span, dist;
+    int32_t chn, F, dir = (inc > 0 ? 1 : -1);
+    int64_t origin, span, dist, ainc, maxSpan;
     MYFLT   t, idxf, fr;
     int32_t idx0, idx1;
 
-    if (UNLIKELY(F <= 0 || inc == 0))
+    if (UNLIKELY(x->len <= 0 || inc == 0))
       return;
 
     /* span is the crossfade length in position units, positive in both
        directions; dist below is the distance travelled from the relevant
-       loop edge, also positive in both directions. */
-    span = (int64_t)F * (inc > 0 ? inc : -inc);
+       loop edge, also positive in both directions. The crossfade may not
+       cover more than half the loop measured in source frames: otherwise a
+       playback increment above one frame would let the captured head reach
+       loopEnd, collapsing the shortened loop (and, without the speed-aware
+       cap, making the restart position land exactly on loopEnd). */
+    ainc = (inc > 0 ? inc : -inc);
+    maxSpan = (int64_t)((loopEnd - loopStart) >> 1) << POS_FRAC_SHIFT;
+    span = (int64_t)x->len * ainc;
+    if (UNLIKELY(span > maxSpan))
+      span = maxSpan;
+    F = (int32_t)(span / ainc);
+    if (UNLIKELY(F < 2)) {
+        /* too fast to crossfade this loop: fall back to a plain wrap */
+        x->ready = 0;
+        x->count = 0;
+        return;
+    }
+    span = (int64_t)F * ainc;
 
     if (x->dir != dir) {
         /* playback direction changed: any stored or partial head is invalid */
@@ -1434,7 +1466,16 @@ static inline void diskin2_xfade(DISKIN2_XF *x, int32_t nch,
     }
 
     /* Blend the outgoing audio into the captured head near the boundary:
-       dist is the distance from pos to the opposite loop edge. */
+       dist is the distance from pos to the opposite loop edge. Derive the
+       captured span from headEnd so the fade stays consistent even if the
+       playback increment changed after the head was recorded. */
+    F = x->count;
+    if (dir > 0)
+      span = x->headEnd - ((int64_t)loopStart << POS_FRAC_SHIFT);
+    else
+      span = ((int64_t)loopEnd << POS_FRAC_SHIFT) - x->headEnd;
+    if (UNLIKELY(F < 2 || span <= 0))
+      return;
     origin = (int64_t)(dir > 0 ? loopEnd : loopStart) << POS_FRAC_SHIFT;
     dist = (origin - pos) * dir;
     if (dist < 0 || dist > span)
@@ -1491,7 +1532,7 @@ static inline void diskin2_file_pos_inc_xf(DISKIN2 *p, int32_t *ndx)
 }
 
 
-static ALWAYS_INLINE int32_t
+static CS_ALWAYS_INLINE int32_t
 diskin2_perf_synchronous_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
 {
 
@@ -1510,7 +1551,7 @@ diskin2_perf_synchronous_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
       return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
-    if (*(p->kTranspose) != p->prv_kTranspose) {
+    if (UNLIKELY(*(p->kTranspose) != p->prv_kTranspose)) {
       double  f;
       p->prv_kTranspose = *(p->kTranspose);
       f = (double)p->prv_kTranspose * p->warpScale * (double)POS_FRAC_SCALE;
@@ -1519,6 +1560,8 @@ diskin2_perf_synchronous_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
 #else
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
+      /* the captured head belongs to the previous speed */
+      diskin2_xf_reset(&p->xf);
     }
     /* clear audio data buffer to zero first */
     memset(p->audioData.auxp, 0, p->audioData.size);
@@ -1714,7 +1757,7 @@ static int32_t diskin2_perf_synchronous_xfade(CSOUND *csound, DISKIN2 *p)
 
 
 
-static ALWAYS_INLINE void
+static CS_ALWAYS_INLINE void
 diskin_file_read_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
 {
 
@@ -1742,6 +1785,8 @@ diskin_file_read_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
 #else
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
+      /* the captured head belongs to the previous speed */
+      diskin2_xf_reset(&p->xf);
     }
     /* clear outputs to zero first */
     memset(aOut, 0, p->auxData2.size);
@@ -2112,7 +2157,7 @@ static inline void diskin2_file_pos_inc_array_xf(DISKIN2_ARRAY *p, int32_t *ndx)
     }
 }
 
-static ALWAYS_INLINE void diskin2_get_sample_array(CSOUND *csound,
+static CS_ALWAYS_INLINE void diskin2_get_sample_array(CSOUND *csound,
                                             DISKIN2_ARRAY *p, int32_t fPos,
                                             int32_t n, MYFLT scl) {
     int32_t  bufPos, i;
@@ -2204,7 +2249,7 @@ int32_t diskin2_async_deinit_array(CSOUND *csound, DISKIN2_ARRAY *p)
   return OK;
 }
 
-static ALWAYS_INLINE void
+static CS_ALWAYS_INLINE void
 diskin_file_read_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t xf)
 {
 
@@ -2231,6 +2276,8 @@ diskin_file_read_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t xf)
 #else
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
+      /* the captured head belongs to the previous speed */
+      diskin2_xf_reset(&p->xf);
     }
     /* clear outputs to zero first */
     memset(aOut, 0, p->auxData2.size);
@@ -2794,7 +2841,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
 }
 
 
-static ALWAYS_INLINE int32_t
+static CS_ALWAYS_INLINE int32_t
 diskin2_perf_synchronous_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t xf)
 {
 
@@ -2823,6 +2870,8 @@ diskin2_perf_synchronous_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t 
 #else
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
+      /* the captured head belongs to the previous speed */
+      diskin2_xf_reset(&p->xf);
     }
     /* clear outputs to zero first */
     for (chn = 0; chn < p->nChannels; chn++)
