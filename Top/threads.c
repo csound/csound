@@ -33,6 +33,7 @@
 #endif
 
 #include "csoundCore.h"
+#include <errno.h>
 
 #if 0
 static CS_NOINLINE void notImplementedWarning_(const char *name)
@@ -117,14 +118,18 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
     retval = (long) fork();
     if (retval == 0L) {
       /* child process */
-      if (execvp(argv[0], (char**) argv) != 0)
-        exit(-1);
-      /* this is not actually reached */
-      exit(0);
+      execvp(argv[0], (char**) argv);
+      /* Do not run the host's exit handlers or flush its copied streams. */
+      _exit(255);
     }
     else if (retval > 0L && noWait == 0) {
-      int32_t   status = 0;
-      while (waitpid((pid_t) retval, &status, 0) != (pid_t) ECHILD) {
+      int status;
+      for (;;) {
+        if (waitpid((pid_t) retval, &status, 0) < 0) {
+          if (errno == EINTR)
+            continue;
+          return -1L;
+        }
         if (WIFEXITED(status) != 0) {
           retval = (long) (WEXITSTATUS(status)) & 255L;
           return retval;
@@ -134,7 +139,6 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
           return retval;
         }
       }
-      retval = 255L;
     }
     return retval;
 }
@@ -153,10 +157,6 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
       ;
 }
 
-#endif
-
-#ifndef __wasi__
-#include <errno.h>
 #endif
 
 #include <pthread.h>
@@ -1023,8 +1023,9 @@ typedef struct barrier {
 }
 
  long csoundRunCommand(const char * const *argv, int32_t noWait) {
-    //notImplementedWarning_("csoundRunCommand");
-    return 0;
+    IGN(argv);
+    IGN(noWait);
+    return -1L;
 }
 
  void csoundSleep(size_t milliseconds) {
@@ -1247,18 +1248,10 @@ typedef struct barrier {
 }
 
  long csoundRunCommand(const char * const *argv, int32_t noWait) {
-  char *command = malloc(1024);
-  int cnt = 0, max = 1024;
-  while(argv != NULL) {
-    cnt += snprintf(command, 1024-cnt, "%s \n", *argv);
-    if(cnt > max/2) {
-      command = realloc(command, max*2);
-      max *= 2;
-    }
-  }
-  system(command);
-  free(command);
-  return 0;
+  /* C11 threads provide no process API for executing an argument vector. */
+  IGN(argv);
+  IGN(noWait);
+  return -1L;
 }
 
  void csoundSleep(size_t milliseconds) {
