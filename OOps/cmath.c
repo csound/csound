@@ -221,10 +221,48 @@ static MYFLT betarand(CSOUND *csound, MYFLT range, MYFLT a, MYFLT b)
 {
     double  r1, r2, u, v;
     double aa, bb;
-    if (UNLIKELY(a <= FL(0.0) || b <= FL(0.0)))
+    if (UNLIKELY(!(a > FL(0.0) && a <= DBL_MAX &&
+                   b > FL(0.0) && b <= DBL_MAX)))
       return FL(0.0);
 
     aa = (double)a; bb = (double)b;
+    if (aa > 1.0 || bb > 1.0) {
+      double shapes[2] = { aa, bb }, gamma[2];
+      double scale = aa > bb ? aa : bb;
+      int32_t i;
+      /* Marsaglia and Tsang (2000): beta = Gamma(a)/(Gamma(a)+Gamma(b)).
+         Scale both draws equally so their sum cannot overflow. */
+      for (i = 0; i < 2; i++) {
+        double shape = shapes[i];
+        double d = (shape < 1.0 ? shape + 1.0 : shape) - 1.0/3.0;
+        double c = (1.0/3.0) / sqrt(d);
+        double x, y, radius, volume, uniform;
+        for (;;) {
+          /* Polar method for a standard normal draw. */
+          do {
+            x = 2.0 * UInt32toFlt(csoundRandMT(&csound->randState_)) - 1.0;
+            y = 2.0 * UInt32toFlt(csoundRandMT(&csound->randState_)) - 1.0;
+            radius = x*x + y*y;
+          } while (radius >= 1.0 || radius == 0.0);
+          x *= sqrt(-2.0 * log(radius) / radius);
+          volume = 1.0 + c*x;
+          if (volume <= 0.0) continue;
+          volume = volume * volume * volume;
+          uniform = UInt32toFlt(csoundRandMT(&csound->randState_));
+          if (uniform < 1.0 - 0.0331*x*x*x*x ||
+              log(uniform) < 0.5*x*x + d*(1.0-volume+log(volume)))
+            break;
+        }
+        gamma[i] = (d / scale) * volume;
+        if (shape < 1.0) {
+          /* Gamma(shape) = Gamma(shape+1) * U^(1/shape). */
+          uniform = UInt32toFlt(csoundRandMT(&csound->randState_));
+          gamma[i] *= pow(uniform, 1.0 / shape);
+        }
+      }
+      return (MYFLT)(gamma[0] / (gamma[0] + gamma[1])) * range;
+    }
+    /* Preserve Johnk's method and its random sequence for small shapes. */
     do {
       uint32_t  tmp;
       do {
