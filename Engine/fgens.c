@@ -435,11 +435,11 @@ static int32_t gen03(FGDATA *ff, FUNC *ftp)
 static int32_t gen04(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
-    MYFLT   *valp, *rvalp, *fp = ftp->ftable;
-    int32_t     n, r;
+    MYFLT   *table, *fp = ftp->ftable;
+    int32_t     n, r = 1, limit, midpoint, span;
     FUNC    *srcftp;
     MYFLT   val, max, maxinv;
-    int32_t     srcno, srcpts, ptratio;
+    int32_t     srcno, srcpts;
 
     if (UNLIKELY(ff->e.pcnt < 6)) {
       return csoundFtError(ff, Str("insufficient arguments"));
@@ -450,18 +450,18 @@ static int32_t gen04(FGDATA *ff, FUNC *ftp)
     }
     if (!ff->e.p[6]) {
       srcpts = srcftp->flen;
-      valp   = srcftp->ftable;
-      rvalp  = NULL;
+      midpoint = 0;
     }
     else {
       srcpts = srcftp->flen >>1;
-      valp   = &srcftp->ftable[srcpts];
-      rvalp  = valp - 1;
+      midpoint = srcpts;
     }
-    if (UNLIKELY((ptratio = srcpts / ff->flen) < 1)) {
+    if (UNLIKELY(srcpts < ff->flen)) {
       return csoundFtError(ff, Str("table size too large"));
     }
-    if ((val = *valp++)) {
+    table = srcftp->ftable;
+    span = srcftp->flen - midpoint;
+    if ((val = table[midpoint])) {
       if (val < FL(0.0))      val = -val;
       max = val;
       maxinv = FL(1.0) / max;
@@ -471,16 +471,19 @@ static int32_t gen04(FGDATA *ff, FUNC *ftp)
       maxinv = FL(1.0);
     }
     *fp++ = maxinv;
-    for (n = ff->flen; n--; ) {
-      for (r = ptratio; r--; ) {
-        if ((val = *valp++)) {
+    for (n = 1; n <= ff->flen; n++) {
+      /* Map each output point across the full source, including its guard. */
+      limit = (int32_t) ((int64_t) n * span / ff->flen);
+      for ( ; r <= limit; r++) {
+        if ((val = table[midpoint + r])) {
           if (val < FL(0.0)) val = -val;
           if (val > max) {
             max = val;
             maxinv = FL(1.0) / max;
           }
         }
-        if (rvalp != NULL && (val = *rvalp--)) {
+        /* Odd source lengths have one more sample on the right. */
+        if (r <= midpoint && (val = table[midpoint - r])) {
           if (val < 0.)   val = -val;
           if (val > max) {
             max = val;
