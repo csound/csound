@@ -1393,6 +1393,20 @@ static int32_t rnd31a(CSOUND *csound, RND31 *p)
                            "%s", Str("rnd31: not initialised"));
 }
 
+/* Keep the current cycle position when first switching to a non-power-of-two
+   table. Once selected, floating phase remains active for later tables. */
+#define OSCKT_SET_TABLE(p, ftp) do {                                   \
+  if (!(p)->floatph && !IS_POW_TWO((ftp)->flen)) {                       \
+    if ((p)->ft != NULL)                                               \
+      (p)->phsf = PHMOD1((MYFLT)((double)(p)->phs / OSCBNK_PHSMAX));      \
+    (p)->floatph = 1;                                                  \
+  }                                                                   \
+  (p)->ft = (ftp)->ftable;                                              \
+  (p)->flen = (ftp)->flen;                                              \
+  if (!(p)->floatph)                                                   \
+    oscbnk_flen_setup((p)->flen, &(p)->mask, &(p)->lobits, &(p)->pfrac);   \
+} while (0)
+
 /* ---- oscilikt initialisation ---- */
 
 static int32_t oscktset(CSOUND *csound, OSCKT *p)
@@ -1424,11 +1438,8 @@ static int32_t kosclikt(CSOUND *csound, OSCKT *p)
   if (*(p->kfn) != p->oldfn || p->ft == NULL) {
     p->oldfn = *(p->kfn);
     ftp = csound->FTFind(csound, p->kfn); /* new table parameters */
-    if (UNLIKELY((ftp == NULL) || ((p->ft = ftp->ftable) == NULL))) return NOTOK;
-    p->flen = ftp->flen;
-    p->floatph |= !(IS_POW_TWO(p->flen)); // once a np2 table is used, floatph is set.
-    if(!p->floatph)
-      oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
+    if (UNLIKELY(ftp == NULL || ftp->ftable == NULL)) return NOTOK;
+    OSCKT_SET_TABLE(p, ftp);
   }
 
   /* copy object data to local variables */
@@ -1464,11 +1475,8 @@ static int32_t osckkikt(CSOUND *csound, OSCKT *p)
   if (*(p->kfn) != p->oldfn || p->ft == NULL) {
     p->oldfn = *(p->kfn);
     ftp = csound->FTFind(csound, p->kfn); /* new table parameters */
-    if (UNLIKELY((ftp == NULL) || ((p->ft = ftp->ftable) == NULL))) return NOTOK;
-      p->flen = ftp->flen;
-    p->floatph |= !(IS_POW_TWO(p->flen)); // once a np2 table is used, floatph is set.
-    if(!p->floatph)
-      oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
+    if (UNLIKELY(ftp == NULL || ftp->ftable == NULL)) return NOTOK;
+    OSCKT_SET_TABLE(p, ftp);
     floatph = p->floatph;
   }
   flen = p->flen;
@@ -1504,8 +1512,8 @@ static int32_t osckkikt(CSOUND *csound, OSCKT *p)
     ar[nn] = v * a;
   }
   /* save new phase */
-  p->phsf = phsf;
-  p->phs = phs;
+  if (floatph) p->phsf = phsf;
+  else p->phs = phs;
   return OK;
 }
 
@@ -1523,11 +1531,8 @@ static int32_t osckaikt(CSOUND *csound, OSCKT *p)
   if (*(p->kfn) != p->oldfn || p->ft == NULL) {
     p->oldfn = *(p->kfn);
     ftp = csound->FTFind(csound, p->kfn);    /* new table parameters */
-    if (UNLIKELY((ftp == NULL) || ((p->ft = ftp->ftable) == NULL))) return NOTOK;
-      p->flen = ftp->flen;
-    p->floatph |= !(IS_POW_TWO(p->flen)); // once a np2 table is used, floatph is set.
-    if(!p->floatph)
-      oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
+    if (UNLIKELY(ftp == NULL || ftp->ftable == NULL)) return NOTOK;
+    OSCKT_SET_TABLE(p, ftp);
     floatph = p->floatph;
   }
   flen = p->flen;
@@ -1548,7 +1553,7 @@ static int32_t osckaikt(CSOUND *csound, OSCKT *p)
     memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (nn=offset; nn<nsmps; nn++) {
-    MYFLT fcps = *(xcps++) * CS_ONEDSR;
+    MYFLT fcps = xcps[nn] * CS_ONEDSR;
     if(!floatph) {
     n = phs >> lobits;
     v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((int32) (phs & mask)) * pfrac;
@@ -1563,8 +1568,8 @@ static int32_t osckaikt(CSOUND *csound, OSCKT *p)
     ar[nn] = v * a;
   }
   /* save new phase */
-  p->phsf = phsf;
-  p->phs = phs;
+  if (floatph) p->phsf = phsf;
+  else p->phs = phs;
   return OK;
 }
 
@@ -1596,11 +1601,8 @@ static int32_t oscakikt(CSOUND *csound, OSCKT *p)
   if (*(p->kfn) != p->oldfn || p->ft == NULL) {
     p->oldfn = *(p->kfn);
     ftp = csound->FTFind(csound, p->kfn);    /* new table parameters */
-    if (UNLIKELY((ftp == NULL) || ((p->ft = ftp->ftable) == NULL))) return NOTOK;
-      p->flen = ftp->flen;
-    p->floatph |= !(IS_POW_TWO(p->flen)); // once a np2 table is used, floatph is set.
-    if(!p->floatph)
-      oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
+    if (UNLIKELY(ftp == NULL || ftp->ftable == NULL)) return NOTOK;
+    OSCKT_SET_TABLE(p, ftp);
     floatph = p->floatph;
   }
   flen = p->flen;
@@ -1638,11 +1640,11 @@ static int32_t oscakikt(CSOUND *csound, OSCKT *p)
     v = (ft[n] + (pos - n)*(ft[n+1] - ft[n]));
     phsf = PHMOD1(phsf + xcps);
     }
-    ar[nn] = v * *(xamp++);
+    ar[nn] = v * xamp[nn];
   }
   /* save new phase */
-  p->phsf = phsf;
-  p->phs = phs;
+  if (floatph) p->phsf = phsf;
+  else p->phs = phs;
   return OK;
 }
 
@@ -1660,11 +1662,8 @@ static int32_t oscaaikt(CSOUND *csound, OSCKT *p)
   if (*(p->kfn) != p->oldfn || p->ft == NULL) {
     p->oldfn = *(p->kfn);
     ftp = csound->FTFind(csound, p->kfn);    /* new table parameters */
-    if (UNLIKELY((ftp == NULL) || ((p->ft = ftp->ftable) == NULL))) return NOTOK;
-      p->flen = ftp->flen;
-    p->floatph |= !(IS_POW_TWO(p->flen)); // once a np2 table is used, floatph is set.
-    if(!p->floatph)
-      oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
+    if (UNLIKELY(ftp == NULL || ftp->ftable == NULL)) return NOTOK;
+    OSCKT_SET_TABLE(p, ftp);
     floatph = p->floatph;
   }
   flen = p->flen;
@@ -1685,7 +1684,7 @@ static int32_t oscaaikt(CSOUND *csound, OSCKT *p)
     memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (nn=offset; nn<nsmps; nn++) {
-    MYFLT fcps = *(xcps++) * CS_ONEDSR;
+    MYFLT fcps = xcps[nn] * CS_ONEDSR;
     if(!floatph) {
     n = phs >> lobits;
     v = ft[n++]; v += (ft[n] - v) * (MYFLT) ((int32) (phs & mask)) * pfrac;
@@ -1700,8 +1699,8 @@ static int32_t oscaaikt(CSOUND *csound, OSCKT *p)
     ar[nn] = v * xamp[nn];
   }
   /* save new phase */
-  p->phsf = phsf;
-  p->phs = phs;
+  if (floatph) p->phsf = phsf;
+  else p->phs = phs;
   return OK;
 }
 
@@ -1738,11 +1737,8 @@ static int32_t oscktp(CSOUND *csound, OSCKTP *p)
   if (*(p->kfn) != p->oldfn || p->ft == NULL) {
     p->oldfn = *(p->kfn);
     ftp = csound->FTFind(csound, p->kfn);    /* new table parameters */
-    if (UNLIKELY((ftp == NULL) || ((p->ft = ftp->ftable) == NULL))) return NOTOK;
-      p->flen = ftp->flen;
-    p->floatph |= !(IS_POW_TWO(p->flen)); // once a np2 table is used, floatph is set.
-    if(!p->floatph)
-      oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
+    if (UNLIKELY(ftp == NULL || ftp->ftable == NULL)) return NOTOK;
+    OSCKT_SET_TABLE(p, ftp);
     floatph = p->floatph;
   }
   flen = p->flen;
@@ -1798,8 +1794,8 @@ static int32_t oscktp(CSOUND *csound, OSCKTP *p)
     ar[nn] = v;
   }
   /* save new phase */
-  p->phsf = phsf;
-  p->phs = phs;
+  if (floatph) p->phsf = phsf;
+  else p->phs = phs;
   return OK;
 }
 
@@ -1837,11 +1833,8 @@ static int32_t osckts(CSOUND *csound, OSCKTS *p)
   if (*(p->kfn) != p->oldfn || p->ft == NULL) {
     p->oldfn = *(p->kfn);
     ftp = csound->FTFind(csound, p->kfn);    /* new table parameters */
-    if (UNLIKELY((ftp == NULL) || ((p->ft = ftp->ftable) == NULL))) return NOTOK;
-      p->flen = ftp->flen;
-    p->floatph |= !(IS_POW_TWO(p->flen)); // once a np2 table is used, floatph is set.
-    if(!p->floatph)
-      oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
+    if (UNLIKELY(ftp == NULL || ftp->ftable == NULL)) return NOTOK;
+    OSCKT_SET_TABLE(p, ftp);
     floatph = p->floatph;
   }
   flen = p->flen;
@@ -1867,9 +1860,9 @@ static int32_t osckts(CSOUND *csound, OSCKTS *p)
   /* initialise phase if 1st k-cycle */
   if (p->init_k) {
     p->init_k = 0;
-    cpsf = *(p->kphs) - (MYFLT) ((int32) *(p->kphs));
-    if(!floatph) phs = OSCBNK_PHS2INT(cpsf);
-    else phsf = v;
+    MYFLT initial_phase = *(p->kphs) - (MYFLT) ((int32) *(p->kphs));
+    if (!floatph) phs = OSCBNK_PHS2INT(initial_phase);
+    else phsf = initial_phase;
   }
   /* read from table with interpolation */
   if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -1900,14 +1893,15 @@ static int32_t osckts(CSOUND *csound, OSCKTS *p)
     v = (ft[n] + (pos - n)*(ft[n+1] - ft[n]));
     phsf = PHMOD1(phsf + cpsf);
     }
-    ar[nn] = v * *xamp;
-    if (a_amp) xamp++;
+    ar[nn] = v * (a_amp ? xamp[nn] : *xamp);
   }
   /* save new phase */
-  p->phs = phs;
-  p->phsf = phsf;
+  if (floatph) p->phsf = phsf;
+  else p->phs = phs;
   return OK;
 }
+
+#undef OSCKT_SET_TABLE
 
 /* ---- vco2init, vco2ft, and vco2 opcodes by Istvan Varga, Sep 2002 ---- */
 
