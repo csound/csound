@@ -2512,30 +2512,19 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
 
 /* GEN 43 (c) Victor Lazzarini, 2004 */
 
-typedef struct _pvstabledat {
-    int32    fftsize;
-    int32    overlap;
-    int32    winsize;
-    int32_t      wintype;
-    int32_t      chans;
-    int32    format;
-    int32    blockalign;
-    uint32 frames;
-} PVSTABLEDAT;
-
 static int32_t gen43(FGDATA *ff, FUNC *ftp)
 {
     CSOUND          *csound = ff->csound;
     MYFLT           *fp = ftp->ftable;
     MYFLT           *filno;
     int32_t             nvals = ff->e.pcnt - 4;
-    MYFLT           *channel;
+    MYFLT           channel;
     char            filename[MAXNAME];
     PVOCEX_MEMFILE  pp;
-    PVSTABLEDAT     p;
-    uint32          framesize, blockalign, bins;
+    uint32          framesize, bins;
+    size_t          blockalign;
     uint32          frames, i, j;
-    float           *framep, *startp;
+    const float     *startp;
     double          accum = 0.0;
 
     if (UNLIKELY(nvals != 2)) {
@@ -2550,46 +2539,41 @@ static int32_t gen43(FGDATA *ff, FUNC *ftp)
 
     if (UNLIKELY(csoundPVOCEX_LoadFile(csound, filename, &pp) != 0))
       return csoundFtError(ff, Str("Failed to load PVOC-EX file"));
-    //csoundDie(csound, Str("Failed to load PVOC-EX file"));
-    p.fftsize  = pp.fftsize;
-    p.overlap  = pp.overlap;
-    p.winsize  = pp.winsize;
-    p.wintype  = pp.wintype;
-    p.chans    = pp.chans;
-    p.format   = pp.format;
-    p.frames   = pp.nframes;
+    if (UNLIKELY(pp.chans <= 0 || pp.nframes % pp.chans != 0))
+      return csoundFtError(ff, Str("incomplete PVOC-EX channel frames"));
 
-    channel = &ff->e.p[6];
-    if (UNLIKELY(*channel > p.chans))
+    channel = ff->e.p[6];
+    if (UNLIKELY(!(channel >= FL(0.0) && channel <= pp.chans) ||
+                 channel != (int32_t) channel))
       return csoundFtError(ff, Str("illegal channel number"));
 
-    framesize = p.fftsize+1;
+    framesize = pp.fftsize+2;
     bins = framesize/2;
-    frames = p.frames;
+    frames = pp.nframes;
 
-    if (*channel > 0) {
-      startp = (float *) pp.data + (p.fftsize + 2) * ((int32_t) *channel - 1);
-      blockalign = (p.fftsize+2) * p.chans; /* only read one channel */
+    if (channel > 0) {
+      startp = pp.data + (size_t) framesize * ((int32_t) channel - 1);
+      blockalign = (size_t) framesize * pp.chans;
+      frames /= pp.chans;                 /* frames in the selected channel */
     }
     else {
-      startp = (float *) pp.data;
-      blockalign = (p.fftsize+2);           /* read all channels */
+      startp = pp.data;
+      blockalign = framesize;             /* read all channels */
     }
-
-    framep = startp;
 
     if (UNLIKELY(bins > (uint32) (ftp->flen+1))) {
       return csoundFtError(ff, Str("ftable size too small"));
     }
 
     for (i=0; i<framesize; i+=2) {
-      for (j=0; j < frames; j++, framep += blockalign) {
-        accum += framep[i];
+      for (j=0; j < frames; j++) {
+        accum += startp[j * blockalign + i];
       }
-      fp[i/2] = (MYFLT)accum/frames;
-      framep = startp;
+      fp[i/2] = (MYFLT) (accum/frames);
       accum = 0.0;
     }
+    if (bins == ftp->flen + 1)
+      ff->guardreq = 1;                    /* preserve the Nyquist bin */
     return OK;
 }
 
