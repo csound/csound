@@ -1165,6 +1165,8 @@ static int32_t gen21(FGDATA *ff, FUNC *ftp)
       case -2:  return csoundFtError(ff, Str("unknown distribution"));
       default:  return NOTOK;
     }
+    /* GEN21 preserves the distribution's level rather than normalizing it. */
+    ff->e.p[4] = -FL(21.0);
     return OK;
 }
 

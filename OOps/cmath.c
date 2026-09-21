@@ -883,17 +883,22 @@ int32_t ikpoiss(CSOUND *csound, PRAND *p)
 int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
-    int32_t  i, n;
+    int32_t  i, n, type;
     MYFLT   *ft;
     MYFLT   scale;
     int32_t nargs = ff->e.pcnt - 4;
 
+    if (UNLIKELY(!(ff->e.p[5] >= FL(1.0) && ff->e.p[5] <= FL(11.0))))
+      return -2;
+    type = (int32_t) ff->e.p[5];
+    if (UNLIKELY(ff->e.p[5] != type))
+      return -2;
     ft = ftp->ftable;
     scale = (nargs > 1 ? ff->e.p[6] : FL(1.0));
     n = ff->flen;
     if (ff->guardreq)
       n++;
-    switch ((int32_t) ff->e.p[5]) {
+    switch (type) {
     case 1:                     /* Uniform distribution */
       for (i = 0 ; i < n ; i++)
         ft[i] = unifrand(csound, scale);
@@ -927,14 +932,14 @@ int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
         ft[i] = pcauchrand(csound, scale);
       break;
     case 9:                     /* Beta distribution */
-      if (UNLIKELY(nargs < 3)) {
+      if (UNLIKELY(nargs < 4)) {
         return -1;
       }
       for (i = 0 ; i < n ; i++)
         ft[i] = betarand(csound, scale, (MYFLT) ff->e.p[7], (MYFLT) ff->e.p[8]);
       break;
     case 10:                    /* Weibull Distribution */
-      if (UNLIKELY(nargs < 2)) {
+      if (UNLIKELY(nargs < 3)) {
         return -1;
       }
       for (i = 0 ; i < n ; i++)
@@ -996,6 +1001,5 @@ int32_t gauss_vector(CSOUND *csound, GAUSS *p) {
       out[n] = gausscompute(csound,p);
     return OK;
 }
-
 
 
