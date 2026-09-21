@@ -335,7 +335,7 @@ static int32_t findzeros(int32_t M, MYFLT *a, MYCMPLX *zero,
   if (!a[0]) {
     return 0;
   }
-  memcpy(&tmpbuf[1], a, sizeof(M+1));
+  memcpy(tmpbuf, a, (M + 1) * sizeof(MYFLT));
   n1 = M;
   while (n1 > 0) {
     if (a[n1] == 0) {
@@ -357,7 +357,7 @@ static int32_t findzeros(int32_t M, MYFLT *a, MYCMPLX *zero,
         iter += 1;
         if (iter>itmax) {
           for (i=0; i<=M; i++)
-            a[i] = tmpbuf[i+1];
+            a[i] = tmpbuf[i];
           return pt;
         }
         for (i=1; i<=4; i++) {
@@ -434,7 +434,7 @@ static int32_t findzeros(int32_t M, MYFLT *a, MYCMPLX *zero,
     }
   }
   for (i=0; i<=M; i++)
-    a[i] = tmpbuf[i+1];
+    a[i] = tmpbuf[i];
 
   return pt;
 }
@@ -488,14 +488,18 @@ MYCMPLX *csoundCoef2Pole(CSOUND *csound, void *parm, MYFLT *c){
   MYCMPLX *pl = p->pl;
   MYFLT *buf = p->tmpmem, *cf = p->cf;
   int32_t i, j, M = p->M;
+  /* Trailing zero coefficients give zero poles, not reciprocal roots. */
+  while (M > 0 && c[M-1] == FL(0.0)) M--;
+  memset(pl, 0, p->M * sizeof(MYCMPLX));
+  if (M == 0) return pl;
   cf[M] = 1.0;
   for (i=0; i< (M+1)/2; i++) {
     j = M-1-i;
     cf[i] = c[j];
     cf[j] = c[i];
   }
-  findzeros(M, cf, pl, buf, MAX_ITER);
-  invertfilter(M, pl);
+  i = findzeros(M, cf, pl, buf, MAX_ITER);
+  invertfilter(i, pl);
   return pl;
 }
 
@@ -1061,48 +1065,52 @@ int32_t pvscoefs(CSOUND *csound, PVSCFS *p){
 
 /* coefficients to filter CF/BW */
 int32_t coef2parm_init(CSOUND *csound, CF2P *p) {
+  if (UNLIKELY(p->in->dimensions != 1 || p->in->data == NULL ||
+               p->in->sizes[0] <= 0))
+    return csound->InitError(csound, "%s",
+                            Str("apoleparams: expected a nonempty coefficient array"));
   p->M = p->in->sizes[0];
   p->setup = csound->LPsetup(csound,0,p->M);
   if (UNLIKELY(tabinit(csound, p->out, p->M, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
-  p->sum = 0.0;
+  if (p->previous.auxp == NULL || p->previous.size < p->M * sizeof(MYFLT))
+    csound->AuxAlloc(csound, p->M * sizeof(MYFLT), &p->previous);
+  p->valid = 0;
   return OK;
 }
 
 static int cmpfunc (const void * a, const void * b) {
   MYFLT v1 = (phsc(*((MYCMPLX *) a)));
   MYFLT v2 = (phsc(*((MYCMPLX *) b)));
-  return (int)((v1 - v2)*100000);
+  return (v1 > v2) - (v1 < v2);
 }
 
 int32_t coef2parm(CSOUND *csound, CF2P *p) {
   MYCMPLX *pl;
-  MYFLT *c = p->in->data, pm, pf, sum = 0.0;
+  MYFLT *c = p->in->data, pm, pf;
   MYFLT *pp = p->out->data, Nyq = CS_ESR/2;
+  size_t bytes = p->M * sizeof(MYFLT);
   int32_t i,j;
-  // simple check for new data
-  for(i=0; i< p->M; i++) sum += c[i];
-  if (sum != p->sum) {
-    pl = csoundCoef2Pole(csound,p->setup,c);
-    qsort(pl,p->M,sizeof(MYCMPLX),cmpfunc);
-    memset(pp,0,sizeof(MYFLT)*p->M);
-    for(i = j = 0; i < p->M; i++) {
+  if (UNLIKELY(p->in->dimensions != 1 || c == NULL ||
+               p->in->sizes[0] != p->M))
+    return csound->PerfError(csound, &p->h, "%s",
+                            Str("apoleparams: coefficient array size changed"));
+  if (p->valid && memcmp(c, p->previous.auxp, bytes) == 0)
+    return OK;
+  memcpy(p->previous.auxp, c, bytes);
+  pl = csoundCoef2Pole(csound,p->setup,c);
+  qsort(pl,p->M,sizeof(MYCMPLX),cmpfunc);
+  memset(pp,0,bytes);
+  for(i = j = 0; i < p->M && j + 1 < p->M; i++) {
+    pf = phsc(pl[i])/CS_TPIDSR;
+    if(pf > 0 && pf < Nyq) {
       pm = magc(pl[i]);
-      pf = phsc(pl[i])/CS_TPIDSR;
-      if(isnan(pf)) {
-        pp[j] = 0;
-        pp[j+1] = 0;
-      }
-      else {
-        if(pf > 0 && pf < Nyq && j < p->M) {
-          pp[j] = pf;
-          pp[j+1] = -LOG(pm)*2/CS_TPIDSR;
-          j += 2;
-        }
-      }
+      pp[j] = pf;
+      pp[j+1] = -LOG(pm)*2/CS_TPIDSR;
+      j += 2;
     }
   }
-  p->sum = sum;
+  p->valid = 1;
   return OK;
 }
 
