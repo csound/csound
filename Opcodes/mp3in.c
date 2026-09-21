@@ -902,7 +902,7 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
                              MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
                              MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                              0.0 };
-  int32_t     skip = 0, chan = 0, r;
+  int32_t     skip = 0, skipped = 0, chan = 0, r;
   FILE    *f;
   void *fd;
   int32_t p   = 0;
@@ -932,7 +932,7 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
       snprintf(sfname, 1024, "soundin.%d", filno);   /* soundin.filno */
   }
   chan  = (int32_t) MYFLT2LRND(ff->e.p[7]);
-  if (UNLIKELY(chan < 0)) {
+  if (UNLIKELY(chan < 0 || chan > 4)) {
     return csound->FtError(ff, Str("channel %d illegal"), (int32_t) chan);
   }
   switch (chan) {
@@ -987,59 +987,71 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
                      mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
                      mpainfo.duration%60);
   }
+  {
+    MYFLT skipframes = ff->e.p[6] * mpainfo.decoded_frequency;
+    if (UNLIKELY(!(skipframes >= FL(0.0) && skipframes < FL(2147483648.0)))) {
+      mp3dec_uninit(mpa);
+      return csound->FtError(ff, "%s", Str("invalid skip time"));
+    }
+    skip = (int32_t) skipframes;
+  }
   buffer = (uint8_t *)csound->Malloc(csound,size);
   bufsize = size/mpainfo.decoded_sample_size;
-  skip = (int)(ff->e.p[6] * mpainfo.frequency);
   while (skip > 0) {
     uint32_t xx = skip;
     if ((uint32_t)xx > bufsize) xx = bufsize;
-    //      printf("gen49: skipping xx\n", xx);
-    skip -=xx;
-    mp3dec_decode(mpa, buffer, mpainfo.decoded_sample_size*xx, &bufused);
+    r = mp3dec_decode(mpa, buffer, mpainfo.decoded_sample_size*xx, &bufused);
+    if (r != MP3DEC_RETCODE_OK || bufused == 0) break;
+    xx = bufused / mpainfo.decoded_sample_size;
+    skipped += xx;
+    skip -= xx;
   }
   //bufsize *= mpainfo.decoded_sample_size;
   r = mp3dec_decode(mpa, buffer, size, &bufused);
-  nchanls = (chan == 2 && mpainfo.channels == 2 ? 2 : 1);
+  nchanls = mpainfo.decoded_channels;
   if (ff->flen == 0) {    /* deferred ftalloc */
-    int32_t fsize, frames;
+    int64_t frames, fsize;
     MYFLT fno = FL(ff->fno);
-    frames = mpainfo.duration * mpainfo.frequency;
+    frames = (int64_t) mpainfo.frames * mpainfo.decoded_frame_samples - skipped;
     fsize  = frames * nchanls;
-    if (UNLIKELY((ff->flen = fsize) <= 0))
+    if (UNLIKELY(fsize <= 0)) {
+      csound->Free(csound, buffer);
+      mp3dec_uninit(mpa);
       return csound->FtError(ff, "%s", Str("deferred size, but filesize unknown"));
-    if (UNLIKELY(ff->flen > MAXLEN))
+    }
+    if (UNLIKELY(fsize > MAXLEN)) {
+      csound->Free(csound, buffer);
+      mp3dec_uninit(mpa);
       return csound->FtError(ff, "%s", Str("illegal table length"));
-    csound->FTAlloc(csound, ff->fno, fsize);
+    }
+    ff->flen = (int32_t) fsize;
+    csound->FTAlloc(csound, ff->fno, ff->flen);
     ftp = csound->FTFind(csound, &fno);
     ftp->lenmask  = 0L;
-    ftp->flenfrms = frames;
-    ftp->nchanls  = nchanls;
     fp = ftp->ftable;
     def = 1;
   }
-  ftp->gen01args.sample_rate = mpainfo.frequency;
-  ftp->cvtbas = mpainfo.frequency * ftp->sr; 
+  ftp->nchanls = nchanls;
+  ftp->flenfrms = ftp->flen / nchanls;
+  ftp->gen01args.sample_rate = mpainfo.decoded_frequency;
+  ftp->cvtbas = mpainfo.decoded_frequency / csound->GetEngineSr(csound);
   flen = ftp->flen;
   //printf("gen49: flen=%d size=%d bufsize=%d\n", flen, size, bufsize);
   while ((r == MP3DEC_RETCODE_OK) && bufused) {
     uint32_t i;
     short *bb = (short*)buffer;
     //printf("gen49: p=%d bufused=%d\n", p, bufused);
-    for (i=0; i<bufused*nchanls/mpainfo.decoded_sample_size; i++)  {
-      if (UNLIKELY(p>=flen)) {
-        csound->Free(csound,buffer);
-        //printf("gen49: i=%d p=%d exit as at end of table\n", i, p);
-        return ((mp3dec_uninit(mpa) == MP3DEC_RETCODE_OK) ? OK : NOTOK);
-      }
+    for (i=0; i<bufused / sizeof(short) && p<flen; i++)  {
       fp[p] = ((MYFLT)bb[i]/(MYFLT)0x7fff) * csound->Get0dBFS(csound);
       //printf("%d: %f %d\n", p, fp[p], bb[i]);
       p++;
     }
-    if (i <= 0) break;
+    if (i == 0 || p == flen) break;
     //printf("gen49: new buffer\n");
     r = mp3dec_decode(mpa, buffer, size, &bufused);
   }
 
+  memset(fp + p, 0, (flen + 1 - p) * sizeof(MYFLT));
   csound->Free(csound, buffer);
   r |= mp3dec_uninit(mpa);
   if (def) ftresdisp(ff, ftp);
