@@ -1,3 +1,6 @@
+<CsTest>
+description = "testing one stm writer with multicore observers"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -j2

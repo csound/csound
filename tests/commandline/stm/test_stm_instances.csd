@@ -1,3 +1,6 @@
+<CsTest>
+description = "testing shared definition and independent stm runners"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,3 +1,6 @@
+<CsTest>
+description = "testing terminal stm runner deletion"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

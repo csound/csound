@@ -1,3 +1,6 @@
+<CsTest>
+description = "testing stm opcodes"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

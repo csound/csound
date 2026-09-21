@@ -1,3 +1,6 @@
+<CsTest>
+description = "testing independent stm writers on parallel runners"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -j2

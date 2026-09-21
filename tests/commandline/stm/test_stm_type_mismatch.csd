@@ -1,3 +1,10 @@
+<CsTest>
+description = "stm rejects a builder where a definition is required"
+
+[expect]
+exit = 1
+stderr = ["[stm] stminstance: invalid definition"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

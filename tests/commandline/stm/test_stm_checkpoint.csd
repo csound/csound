@@ -1,3 +1,6 @@
+<CsTest>
+description = "testing stm checkpoint capture and resume"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

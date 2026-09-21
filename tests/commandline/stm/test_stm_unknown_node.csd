@@ -1,3 +1,10 @@
+<CsTest>
+description = "stmnext rejects an unknown node name"
+
+[expect]
+exit = 1
+stderr = ["[stm] stmnext: node 'Zeta' not found"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

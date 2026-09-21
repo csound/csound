@@ -1,3 +1,6 @@
+<CsTest>
+description = "testing sequential stm state trace"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

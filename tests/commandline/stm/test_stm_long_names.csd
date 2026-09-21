@@ -1,3 +1,6 @@
+<CsTest>
+description = "testing stm string outputs with long node names"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

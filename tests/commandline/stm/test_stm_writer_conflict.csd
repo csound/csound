@@ -1,3 +1,10 @@
+<CsTest>
+description = "stm rejects overlapping writer instruments"
+
+[expect]
+exit = 1
+stderr = ["[stm] runner already has another active writer"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -j2

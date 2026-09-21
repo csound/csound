@@ -1,3 +1,6 @@
+<CsTest>
+description = "testing stm reinit cleanup and reset cycle"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

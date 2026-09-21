@@ -1,3 +1,6 @@
+<CsTest>
+description = "testing stm transition event ring"
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
