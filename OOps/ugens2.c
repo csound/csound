@@ -1771,10 +1771,21 @@ int32_t oscaa3(CSOUND *csound, OSC   *p)
 }
 
 
+/* Keep ordinary wraps cheap; reduce larger jumps without repeated subtraction. */
+#define LPOSC_WRAP(phase, start, end, length) do {                       \
+  if ((phase) >= (end)) (phase) -= (length);                             \
+  else if ((phase) < (start)) (phase) += (length);                       \
+  if ((phase) >= (end) || (phase) < (start)) {                           \
+    (phase) = (start) + fmod((phase) - (start), (length));                \
+    if ((phase) < (start)) (phase) += (length);                          \
+  }                                                                    \
+  if ((phase) >= (end)) (phase) = (start); /* rounding at the endpoint */ \
+} while (0)
+
 int32_t lposc_set(CSOUND *csound, LPOSC *p)
 {
   FUNC   *ftp;
-  MYFLT  loop, end, looplength;
+  double loop, end, looplength;
 
   if (UNLIKELY((ftp = csound->FTFind(csound, p->ift)) == NULL))
     return NOTOK;
@@ -1791,18 +1802,20 @@ int32_t lposc_set(CSOUND *csound, LPOSC *p)
   if (UNLIKELY((loop = *p->kloop) < 0)) loop=FL(0.0);
   if ((end = *p->kend) > p->tablen || end <=0 )
     end = (MYFLT)p->tablen;
+  if (UNLIKELY(!(loop < end)))
+    return csound->InitError(csound, Str("lposcil: loop start must precede end"));
   looplength = end - loop;
 
   if (*p->iphs >= 0)
     p->phs = *p->iphs;
-  while (UNLIKELY(p->phs >= end))
-    p->phs -= looplength;
+  if (p->phs >= end || p->phs < 0)
+    LPOSC_WRAP(p->phs, loop, end, looplength);
   return OK;
 }
 
 int32_t lposca(CSOUND *csound, LPOSC *p)
 {
-  double  *phs= &p->phs;
+  double  phs = p->phs;
   double  si= *p->freq * (p->fsr/CS_ESR);
   MYFLT   *out = p->out,  *amp=p->amp;
   MYFLT   *ft =  p->ftp->ftable, *curr_samp;
@@ -1810,27 +1823,30 @@ int32_t lposca(CSOUND *csound, LPOSC *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  int32   loop, end, looplength /* = p->looplength */ ;
+  double loop, end, looplength;
 
-  if ((loop = (int32_t) *p->kloop) < 0) loop=0;
-  else if (loop > p->tablen-3) loop = p->tablen-3;
-  if ((end = (int32_t) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-  else if (end <= 2) end = 2;
-  if (end < loop+2) end = loop + 2;
+  if ((loop = *p->kloop) < 0) loop = 0;
+  if ((end = *p->kend) > p->tablen || end <= 0) end = p->tablen;
+  if (UNLIKELY(!(loop < end)))
+    return csound->PerfError(csound, &(p->h),
+                             Str("lposcil: loop start must precede end"));
   looplength = end - loop;
+  if (phs >= end || phs < 0)
+    LPOSC_WRAP(phs, loop, end, looplength);
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n=offset; n<nsmps; n++) {
-    curr_samp= ft + (int64_t)*phs;
-    fract= (MYFLT)(*phs - (int64_t)*phs);
+    curr_samp= ft + (int64_t)phs;
+    fract= (MYFLT)(phs - (int64_t)phs);
     out[n] = amp[n] * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
-    *phs += si;
-    while (*phs  >= end) *phs -= looplength;
-    while (*phs  < loop) *phs += looplength;
+    phs += si;
+    if (phs >= end || (si < 0 && phs < loop))
+      LPOSC_WRAP(phs, loop, end, looplength);
   }
+  p->phs = phs;
   return OK;
 }
 
@@ -1848,7 +1864,12 @@ int32_t lposc(CSOUND *csound, LPOSC *p)
   if ((loop = *p->kloop) < 0) loop=0;
   if ((end = *p->kend) > p->tablen || end <=0 )
     end = p->tablen;
+  if (UNLIKELY(!(loop < end)))
+    return csound->PerfError(csound, &(p->h),
+                             Str("lposcil: loop start must precede end"));
   looplength = end - loop;
+  if (phs >= end || phs < 0)
+    LPOSC_WRAP(phs, loop, end, looplength);
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -1860,7 +1881,8 @@ int32_t lposc(CSOUND *csound, LPOSC *p)
     fract = (MYFLT)(phs - (double)((int32)phs));
     out[n] = amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
     phs += si;
-    if (phs >= end) phs -= looplength;
+    if (phs >= end || (si < 0 && phs < loop))
+      LPOSC_WRAP(phs, loop, end, looplength);
   }
   p->phs = phs;
   return OK;
@@ -1881,7 +1903,12 @@ int32_t lposc3(CSOUND *csound, LPOSC *p)
 
   if (UNLIKELY((loop = *p->kloop) < 0)) loop=0;
   if ((end = *p->kend) > p->tablen || end <=0 ) end = p->tablen;
+  if (UNLIKELY(!(loop < end)))
+    return csound->PerfError(csound, &(p->h),
+                             Str("lposcil: loop start must precede end"));
   looplength = end - loop;
+  if (phs >= end || phs < 0)
+    LPOSC_WRAP(phs, loop, end, looplength);
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -1910,7 +1937,8 @@ int32_t lposc3(CSOUND *csound, LPOSC *p)
                           frsq*(FL(0.5)* y1 - y0));
     }
     phs += si;
-    while (phs >= end) phs -= looplength;
+    if (phs >= end || (si < 0 && phs < loop))
+      LPOSC_WRAP(phs, loop, end, looplength);
   }
   p->phs = phs;
   return OK;
