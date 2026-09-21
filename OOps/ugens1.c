@@ -170,7 +170,7 @@ int32_t lsgset(CSOUND *csound, LINSEG *p)
     segp->nxtpt = (double)**argp++;
     if (UNLIKELY((segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5))) < 0))
       segp->cnt = 0;
-    if (UNLIKELY((segp->acnt = (int32_t)(dur * csound->esr + FL(0.5))) < 0))
+    if (UNLIKELY((segp->acnt = (int32_t)(dur * CS_ESR + FL(0.5))) < 0))
       segp->acnt = 0;
     segp++;
   } while (--nsegs);
@@ -182,7 +182,7 @@ int32_t lsgset(CSOUND *csound, LINSEG *p)
 
 int32_t lsgset_bkpt(CSOUND *csound, LINSEG *p)
 {
-  int32_t cnt = 0, bkpt = 0;
+  int32_t cnt = 0, acnt = 0, bkpt = 0;
   int32_t nsegs;
   int32_t n;
   SEG *segp;
@@ -191,10 +191,12 @@ int32_t lsgset_bkpt(CSOUND *csound, LINSEG *p)
   nsegs = p->segsrem;
   segp = p->cursegp;
   do {
-    if (UNLIKELY(cnt > segp->cnt))
+    if (UNLIKELY(cnt > segp->cnt || acnt > segp->acnt))
       return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
     segp->cnt -= cnt;
     cnt += segp->cnt;
+    segp->acnt -= acnt;
+    acnt += segp->acnt;
     segp++;
     bkpt++;
   } while (--nsegs);
@@ -617,7 +619,7 @@ int32_t xsgset(CSOUND *csound, EXXPSEG *p)
     segp->val = val;
     segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
     segp->cnt = (int32_t) (d + FL(0.5));
-    d = dur * csound->esr;
+    d = dur * CS_ESR;
     segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
     segp->acnt = (int32_t) (d + FL(0.5));
   } while (--nsegs);
@@ -676,7 +678,7 @@ int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
     segp->val = val;
     segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
     segp->cnt = (int32_t) (d + FL(0.5));
-    d = dur * csound->esr;
+    d = dur * CS_ESR;
     segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
     segp->acnt = (int32_t) (d + FL(0.5));
   } while (--nsegs);
@@ -732,11 +734,11 @@ int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
     /*       if (dur > FL(0.0)) { */
     if (UNLIKELY(val * nxtval <= FL(0.0)))
       goto experr;
-    d = dur * csound->esr;
+    d = dur * CS_ESR;
     segp->val = val;
     segp->mlt = POWER((nxtval / val), FL(1.0)/d);
     segp->cnt = (int32_t) (d + FL(0.5));
-    d = dur * csound->esr;
+    d = dur * CS_ESR;
     segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
     segp->acnt = (int32_t) (d + FL(0.5));
     /*       } */
@@ -788,11 +790,11 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
     /*       if (dur > FL(0.0)) { */
     if (UNLIKELY(val * nxtval <= FL(0.0)))
       goto experr;
-    d = dur * csound->esr;
+    d = dur * CS_ESR;
     segp->val = val;
     segp->mlt = POWER((nxtval / val), FL(1.0)/d);
     segp->cnt = (int32_t) (d + FL(0.5));
-    d = dur * csound->esr;
+    d = dur * CS_ESR;
     segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
     segp->acnt = (int32_t) (d + FL(0.5));
     /*       } */
