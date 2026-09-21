@@ -385,6 +385,7 @@ int32_t reson(CSOUND *csound, RESON *p)
     double      yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
     int32_t     asigf = p->asigf;
     int32_t     asigw = p->asigw;
+    IGN(csound);
 
     asig = p->asig;
     ar = p->ar;
@@ -405,7 +406,7 @@ int32_t reson(CSOUND *csound, RESON *p)
       }
       if (bw != (MYFLT)p->prvbw) {
         p->prvbw = (double)bw;
-        c3 = p->c3 = exp(bw * (double)(csound->mtpdsr));
+        c3 = p->c3 = exp(bw * (double)(CS_MTPIDSR));
         flag = 1;                /* Mark as changed */
       }
       if (flag) {
@@ -480,6 +481,7 @@ int32_t resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     double      *yt1, *yt2, c1,c2,c3;
     int32_t     asgf = IS_ASIG_ARG(p->kcf);
     int32_t     asgw = IS_ASIG_ARG(p->kbw);
+    IGN(csound);
 
     ar   = p->ar;
     c1   = p->c1;
@@ -505,7 +507,7 @@ int32_t resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
         }
         if (bw != (MYFLT)p->prvbw) {
           p->prvbw = (double)bw;
-          c3 = exp(bw * (double)(csound->mtpdsr));
+          c3 = exp(bw * (double)(CS_MTPIDSR));
           flag = 1;
         }
         if (flag) {
@@ -590,6 +592,7 @@ int32_t areson(CSOUND *csound, RESON *p)
     double      c3p1, c3t4, omc3, c2sqr;//, D = 2.0; /* 1/RMS = root2 (rand) */
                                                    /*      or 1/.5  (sine) */
     double      yt1, yt2, c1, c2, c3;
+    IGN(csound);
 
     if (*p->kcf != (MYFLT)p->prvcf) {
       p->prvcf = (double)*p->kcf;
@@ -598,7 +601,7 @@ int32_t areson(CSOUND *csound, RESON *p)
     }
     if (*p->kbw != (MYFLT)p->prvbw) {
       p->prvbw = (double)*p->kbw;
-      p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
+      p->c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
       flag = 1;
     }
     if (flag) {
