@@ -64,11 +64,12 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *krmr, *krmo, *kerr, *kcps, *ktimpt, *ifilcod, *inpoles, *ifrmrate;
-        int32   headlen, npoles, nvals, lastfram16, lastmsg;
-        MYFLT   *kcoefs, framrat16;
+        int32   headlen, npoles, nvals, lastframe, lastmsg;
+        MYFLT   *kcoefs, framrate;
         int32_t     storePoles ;
         MEMFIL  *mfp;
         AUXCH   aux;
+        MYFLT   *data;
 } LPREAD;
 
 typedef struct {
