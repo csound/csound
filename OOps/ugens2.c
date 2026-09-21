@@ -1116,13 +1116,27 @@ int32_t oscset(CSOUND *csound, OSC *p)
 }
 
 
-static int32_t fill_func_from_array(ARRAYDAT *a, FUNC *f)
+int32_t oscsetA(CSOUND *csound, OSC *p)
 {
+  ARRAYDAT *a = (ARRAYDAT*)p->ifn;
+  FUNC *f = &p->FF;
   int32_t     lobits, ltest, flen, i;
   int32_t     nonpowof2_flag = 0;
+  size_t bytes;
 
+  if (UNLIKELY(a->dimensions != 1 || a->sizes == NULL || a->data == NULL ||
+               a->sizes[0] < 1 || a->sizes[0] > MAXLEN))
+    return csound->InitError(csound,
+                            Str("oscil: invalid waveform array size or dimensions"));
   flen = f->flen = a->sizes[0];
-  flen &= -2L;
+  /* Array inputs have no guard point and may move when resized. Keep an
+     init-time copy with the wraparound sample expected by interpolation. */
+  bytes = ((size_t)flen + 1) * sizeof(MYFLT);
+  if (p->arraydata.auxp == NULL || p->arraydata.size < bytes)
+    csound->AuxAlloc(csound, bytes, &p->arraydata);
+  f->ftable = (MYFLT*)p->arraydata.auxp;
+  memcpy(f->ftable, a->data, (size_t)flen * sizeof(MYFLT));
+  f->ftable[flen] = f->ftable[0];
   for (ltest = flen, lobits = 0;
        (ltest & MAXLEN) == 0L;
        lobits++, ltest <<= 1)
@@ -1131,7 +1145,6 @@ static int32_t fill_func_from_array(ARRAYDAT *a, FUNC *f)
     lobits = 0;
     nonpowof2_flag = 1;
   }
-  f->ftable   = a->data;
   f->lenmask  = ((flen & (flen - 1L)) ?
                  0L : (flen - 1L));      /*  init hdr w powof2 data  */
   f->lobits   = lobits;
@@ -1142,14 +1155,7 @@ static int32_t fill_func_from_array(ARRAYDAT *a, FUNC *f)
   f->flenfrms = flen;
   if (nonpowof2_flag)
     f->lenmask = 0xFFFFFFFF;
-  return OK;
-}
-
-int32_t oscsetA(CSOUND *csound, OSC *p)
-{
-  FUNC        *ftp = &p->FF;
-  p->ftp = ftp;
-  fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
+  p->ftp = f;
   osc_init_phase(csound, p);
   return OK;
 }
