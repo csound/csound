@@ -468,7 +468,9 @@ static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
   MYFLT p2_score_time = ff->e.p[2];
   void *setup;
   int32_t N = ff->flen;
-  if (N <= 0) return csound->FtError(ff, Str("Illegal table size %d"), N);
+  if (N < 2) return csound->FtError(ff, Str("Illegal table size %d"), N);
+  if (ff->e.pcnt < 11)
+    return csound->FtError(ff, Str("insufficient arguments"));
 
   MYFLT p5_fundamental_frequency = ff->e.p[5];
   MYFLT p6_partial_bandwidth = ff->e.p[6];
@@ -477,7 +479,7 @@ static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
   int32_t p9_profile_shape = (int)ff->e.p[9];
   // base_function_t base_function = get_base_function(p9_profile_shape);
   MYFLT p10_profile_parameter = ff->e.p[10];
-  MYFLT samplerate = ftp->sr;
+  MYFLT samplerate = ftp->gen01args.sample_rate;
   log(csound, "samplerate:                  %12d\n", (int)samplerate);
   log(csound, "p1_function_table_number:            %9.4f\n",
       p1_function_table_number);
@@ -515,8 +517,6 @@ static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
     MYFLT partial_Hz =
         p5_fundamental_frequency * p8_harmonic_stretch * ((MYFLT)partialI);
     MYFLT frequency_sample_index_normalized = partial_Hz / ((MYFLT)samplerate);
-    int32_t partial_frequency_index =
-        frequency_sample_index_normalized * ((MYFLT)N);
     MYFLT bandwidth_Hz = (std::pow(2.0, p6_partial_bandwidth / 1200.0) - 1.0) *
                          p5_fundamental_frequency *
                          std::pow(p8_harmonic_stretch * ((MYFLT)partialI),
@@ -527,8 +527,8 @@ static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
     warn(csound, "  partial_Hz:                        %9.4f\n", partial_Hz);
     warn(csound, "  frequency_sample_index_normalized: %9.4f\n",
          frequency_sample_index_normalized);
-    warn(csound, "  partial_frequency_index:   %12d\n",
-         partial_frequency_index);
+    warn(csound, "  partial_frequency_index:   %12.4f\n",
+         (double)(frequency_sample_index_normalized * N));
     warn(csound, "  bandwidth_Hz:                      %9.4f\n", bandwidth_Hz);
     warn(csound, "  bandwidth_samples:                  %12.8f\n",
          bandwidth_samples);
@@ -566,9 +566,12 @@ static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
       // warn(csound, "maximum at %d: %f\n", i, maximum);
     }
   }
-  for (int32_t i = 0; i < N; ++i) {
-    ftp->ftable[i] /= maximum * ROOT2;
+  if (maximum > FL(0.0)) {
+    for (int32_t i = 0; i < N; ++i) {
+      ftp->ftable[i] /= maximum * ROOT2;
+    }
   }
+  ftp->ftable[N] = ftp->ftable[0];
   return OK;
 }
 
