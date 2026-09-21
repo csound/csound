@@ -281,6 +281,7 @@ static void diskin2_xf_setup(CSOUND *csound, DISKIN2_XF *xf,
     xf->ready = 0;
     xf->count = 0;
     xf->dir = 0;
+    xf->changing = 0;
     xf->headEnd = (int64_t)0;
     xf->buf = NULL;
     if (wrapMode && iWrapMode > FL(1.0)) {
@@ -1396,6 +1397,22 @@ static inline void diskin2_xf_reset(DISKIN2_XF *x)
     x->count = 0;
 }
 
+/* React to a change of kTranspose (pos_frac_inc).
+
+   A discrete step invalidates the cached head, which was captured at the
+   previous speed. A continuous pitch ramp, however, changes kTranspose every
+   control period; resetting on each of those changes would restart the capture
+   before it can run to completion and leave the reader on the plain hard wrap,
+   bringing the boundary clicks back. Keep the cached head while the speed is
+   moving and refresh it only on the first change after a period of constant
+   speed. */
+static inline void diskin2_xf_speed_change(DISKIN2_XF *x)
+{
+    if (!x->changing)
+      diskin2_xf_reset(x);
+    x->changing = 1;
+}
+
 /* Loop crossfade (async, enabled by iwrap > 1).
 
    The loophead (the first `len` output frames after `loopStart`, or
@@ -1560,9 +1577,11 @@ diskin2_perf_synchronous_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
 #else
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
-      /* the captured head belongs to the previous speed */
-      diskin2_xf_reset(&p->xf);
+      /* a step invalidates the captured head; a ramp keeps it */
+      diskin2_xf_speed_change(&p->xf);
     }
+    else
+      p->xf.changing = 0;
     /* clear audio data buffer to zero first */
     memset(p->audioData.auxp, 0, p->audioData.size);
     /* file read position */
@@ -1785,9 +1804,11 @@ diskin_file_read_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
 #else
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
-      /* the captured head belongs to the previous speed */
-      diskin2_xf_reset(&p->xf);
+      /* a step invalidates the captured head; a ramp keeps it */
+      diskin2_xf_speed_change(&p->xf);
     }
+    else
+      p->xf.changing = 0;
     /* clear outputs to zero first */
     memset(aOut, 0, p->auxData2.size);
 
@@ -2276,9 +2297,11 @@ diskin_file_read_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t xf)
 #else
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
-      /* the captured head belongs to the previous speed */
-      diskin2_xf_reset(&p->xf);
+      /* a step invalidates the captured head; a ramp keeps it */
+      diskin2_xf_speed_change(&p->xf);
     }
+    else
+      p->xf.changing = 0;
     /* clear outputs to zero first */
     memset(aOut, 0, p->auxData2.size);
     /* file read position */
@@ -2870,9 +2893,11 @@ diskin2_perf_synchronous_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t 
 #else
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
-      /* the captured head belongs to the previous speed */
-      diskin2_xf_reset(&p->xf);
+      /* a step invalidates the captured head; a ramp keeps it */
+      diskin2_xf_speed_change(&p->xf);
     }
+    else
+      p->xf.changing = 0;
     /* clear outputs to zero first */
     for (chn = 0; chn < p->nChannels; chn++)
       for (nn = 0; nn < nsmps; nn++)

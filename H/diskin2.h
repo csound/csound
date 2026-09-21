@@ -37,6 +37,8 @@ typedef struct {
     int32_t ready;              /* loop head captured */
     int32_t count;              /* number of head frames captured so far */
     int32_t dir;                /* playback direction the head was captured in */
+    int32_t changing;           /* kTranspose changed in the previous period
+                                   (a continuous ramp, as opposed to a step) */
     int64_t headEnd;            /* position to resume from after loop wrap */
     MYFLT   *buf;               /* captured loop head (len * channels) */
     AUXCH   aux;                /* storage for buf */
