@@ -1095,7 +1095,7 @@ static int32_t gen20(FGDATA *ff, FUNC *ftp)
         break;
     case 3:                     /* Bartlett */
         arg = 2.0/ff->flen;
-        for (i = 0, x = 0.0 ; i < ((int32_t) ff->flen >> 1) ; i++, x++)
+        for (i = 0, x = 0.0 ; i <= ((int32_t) ff->flen >> 1) ; i++, x++)
             ft[i] = (MYFLT) (x * arg * xarg);
         for ( ; i < (int32_t) ff->flen ; i++, x++)
             ft[i] = (MYFLT) ((2.0 - x * arg) * xarg);
@@ -1114,10 +1114,10 @@ static int32_t gen20(FGDATA *ff, FUNC *ftp)
         break;
     case 6:                     /* Gaussian */
         arg = 12.0 / ff->flen;
-        for (i = 0, x = -6.0 ; i < ((int32_t) ff->flen >> 1) ; i++, x += arg)
-          ft[i] = (MYFLT)(xarg * (pow(2.718281828459,-(x*x)/(2.0*varian*varian))));
-        for (x = 0.0 ; i <= (int32_t) ff->flen ; i++, x += arg)
-          ft[i] = (MYFLT)(xarg * (pow(2.718281828459,-(x*x)/(2.0*varian*varian))));
+        for (i = 0; i <= (int32_t) ff->flen; i++) {
+          x = (i - 0.5 * ff->flen) * arg;
+          ft[i] = (MYFLT)(xarg * exp(-(x*x)/(2.0*varian*varian)));
+        }
         return OK;
     case 7:                     /* Kaiser */
       {
@@ -1136,11 +1136,10 @@ static int32_t gen20(FGDATA *ff, FUNC *ftp)
         return OK;
     case 9:                     /* Sinc */
         arg = TWOPI * varian / ff->flen;
-        for (i = 0, x = -PI * varian; i < ((int32_t) ff->flen >> 1) ; i++, x += arg)
-          ft[i] = (MYFLT) (xarg * sin(x) / x);
-        ft[i++] = (MYFLT) xarg;
-        for (x = arg ; i <= (int32_t) ff->flen ; i++, x += arg)
-          ft[i] = (MYFLT) (xarg * sin(x) / x);
+        for (i = 0; i <= (int32_t) ff->flen; i++) {
+          x = (i - 0.5 * ff->flen) * arg;
+          ft[i] = (MYFLT) (x == 0.0 ? xarg : xarg * sin(x) / x);
+        }
         return OK;
     default:
         return csoundFtError(ff, Str("No such window type!"));
