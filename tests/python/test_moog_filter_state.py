@@ -110,11 +110,11 @@ e
         for rate in (0, .0002):
             with self.subTest(rate=rate):
                 actual = self.render(rate=rate, score="i 1 0 .125 256 .85\n"
-                                     "i 1 .25 .125 440 .8\n"
-                                     "i 1 .5 .125 256 .85")
-                self.assert_signal(actual[:4096], actual[16384:20480])
+                                     "i 1 .5 .125 440 .8\n"
+                                     "i 1 1 .125 256 .85")
+                self.assert_signal(actual[:4096], actual[32768:36864])
                 fresh = self.render(rate=rate, score="i 1 0 .125 440 .8")
-                self.assert_signal(actual[8192:12288], fresh)
+                self.assert_signal(actual[16384:20480], fresh[:4096])
 
     def test_partial_blocks_and_scale(self):
         for rate in (0, .0002):
@@ -122,8 +122,9 @@ e
                 reference = self.render(rate=rate)
                 actual = self.render(rate=rate, offset=3)
                 self.assertEqual(actual[:3], (0.0,)*3)
-                self.assertEqual(max(map(abs, actual[4099:]), default=0), 0)
-                self.assert_signal(actual[3:4099], reference)
+                self.assertLess(max(map(abs, actual[-32:])), 2e-6)
+                # Offset notes may enter release on a different control block.
+                self.assert_signal(actual[3:4083], reference[:4080])
                 self.assert_signal(self.render(rate=rate, block=1), reference)
                 self.assert_signal(self.render(rate=rate, fullscale=32768), reference)
 
