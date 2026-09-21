@@ -1298,52 +1298,47 @@ static int32_t gen24(FGDATA *ff, FUNC *ftp)
 
 static int32_t gen25(FGDATA *ff, FUNC *ftp)
 {
-    int32_t     nsegs,  seglen;
-    MYFLT   *valp, *fp, *finp;
-    MYFLT   x1, x2, y1, y2, mult;
+    int32_t     nsegs, ndx;
+    MYFLT   *valp, *fp;
+    MYFLT   x1, x2, y1, y2, yy, mult;
     int32_t     nargs = ff->e.pcnt - 4;
 
     if ((nsegs = ((nargs / 2) - 1)) <= 0)
       return OK;
     valp = &ff->e.p[5];
     fp = ftp->ftable;
-    finp = fp + ff->flen;
+    x2 = *valp++; y2 = *valp++;
+    if (UNLIKELY(!(x2 >= 0 && x2 <= ff->flen))) goto gn25err2;
+    ndx = (int32_t) CEIL(x2);
     do {
-      x1 = *valp++;
-      y1 =  *valp++;
-      x2 = *valp++;
-      if (LIKELY(nsegs > 1)) {
-        y2 =  *valp++;
-      }
-      else
-        y2 = *valp;
+      x1 = x2; y1 = y2;
+      x2 = *valp++; y2 = *valp++;
       if (UNLIKELY(x2 < x1)) goto gn25err;
-      if (UNLIKELY(x1 > ff->flen || x2 > ff->flen)) goto gn25err2;
-      seglen = (int)(x2-x1);
-      if (UNLIKELY(y1 <= 0 || y2 <= 0)) goto gn25err3;
-      mult = y2/y1;
-      mult = POWER(mult, FL(1.0)/seglen);
-      while (seglen--) {
-        *fp++ = y1;
-        y1 *= mult;
-        if (fp > finp)
-          return OK;
+      if (UNLIKELY(!(x2 >= 0 && x2 <= ff->flen))) goto gn25err2;
+      if (UNLIKELY(!((y1 > 0 && y2 > 0) || (y1 < 0 && y2 < 0))))
+        goto gn25err3;
+      if (x2 == x1) continue;
+      mult = POWER(y2/y1, FL(1.0)/(x2-x1));
+      yy = y1;
+      if (ndx > x1) yy *= POWER(mult, ndx-x1);
+      while (ndx < x2) {
+        fp[ndx++] = yy;
+        yy *= mult;
       }
-      valp -= 2;
     } while (--nsegs);
-    if (fp == finp)                     /* if 2**n pnts, add guardpt */
-      *fp = y1;
+    if (ndx == x2)                     /* include the final breakpoint */
+      fp[ndx] = y2;
     return OK;
 
  gn25err:
     return csoundFtError(ff, Str("x coordinates must all be in increasing order:"));
 
  gn25err2:
-    return csoundFtError(ff, Str("x coordinate greater than function size:"));
+    return csoundFtError(ff, Str("x coordinate outside function table:"));
 
  gn25err3:
     return csoundFtError(ff,
-                   Str("illegal input val (y <= 0) for gen call, beginning:"));
+                   Str("GEN25 y values must be nonzero and have the same sign"));
 }
 
 static int32_t gen27(FGDATA *ff, FUNC *ftp)
