@@ -1852,8 +1852,14 @@ static int32_t gen33(FGDATA *ff, FUNC *ftp)
         phs = PI_F - phs; pnum = -pnum;         /* negative frequency */
       }
       /* mix to FFT data */
-      x[pnum << 1] += amp * SIN(phs);
-      x[(pnum << 1) + 1] -= amp * COS(phs);
+      if (pnum == 0 || pnum == maxp) {
+        /* DC and Nyquist are real, unpaired bins packed in x[0] and x[1]. */
+        x[pnum == 0 ? 0 : 1] += FL(2.0) * amp * SIN(phs);
+      }
+      else {
+        x[pnum << 1] += amp * SIN(phs);
+        x[(pnum << 1) + 1] -= amp * COS(phs);
+      }
     }
 
     csoundInverseRealFFT(csound, x, flen);    /* iFFT */
@@ -1875,7 +1881,8 @@ static int32_t gen33(FGDATA *ff, FUNC *ftp)
 static int32_t gen34(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
-    MYFLT   fmode, *ft, *srcft, scl;
+    MYFLT   *ft, *srcft, scl;
+    double  fmode;
     double  y0, y1, x, c, v, *xn, *cn, *vn, *tmp, amp, frq, phs;
     int32    nh, flen, srclen, i, j, k, l, bs;
     FUNC    *src;
@@ -1902,13 +1909,13 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     scl = ff->e.p[7];
     /* frequency mode */
     if (fmode < FL(0.0)) {
-      fmode = TWOPI_F / (csound->esr * -fmode); /* frequency in Hz */
+      fmode = TWOPI / (csound->esr * -fmode); /* frequency in Hz */
     }
     else if (fmode > FL(0.0)) {
-      fmode = TWOPI_F / fmode;          /* ref. sample rate */
+      fmode = TWOPI / fmode;            /* ref. sample rate */
     }
     else {
-      fmode = TWOPI_F / (MYFLT) flen;   /* partial number */
+      fmode = TWOPI / (double) flen;    /* partial number */
     }
 
     /* use blocks of 256 samples (2048 bytes) for speed */
