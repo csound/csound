@@ -341,7 +341,9 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
       return csound->InitError(csound, Str("invalid modal release time"));
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int32_t)relestim;
-    p->kloop = trunc(p->h.insdshead->offtim * CS_EKR) - relestim;
+    /* -1 waits for note-off; zero means damping has already started. */
+    p->kloop = p->h.insdshead->offtim < 0.0 ? -1.0 :
+      fmax(1.0, trunc(p->h.insdshead->offtim * CS_EKR) - relestim);
   }
   return OK;
 }
@@ -356,16 +358,16 @@ int32_t marimba(CSOUND *csound, MARIMBA *p)
   uint32_t    n, nsmps = CS_KSMPS;
   MYFLT       amp = (*p->amplitude) * (FL(1.0) / fullscale); /* Normalise */
 
-  if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if (p->kloop > 0 && (--p->kloop) == 0) {
-    Modal4_damp(csound, m, FL(1.0) - (amp * FL(0.03)));
-  }
   Modal4_setVibratoRate(m, *p->vibFreq);
   p->m4.vibrGain = *p->vibAmt; /* 0.05; */
   if (UNLIKELY(p->first)) {
     Modal4_strike(csound, m, *p->amplitude * (FL(1.0) / fullscale));
     Modal4_setFreq(csound, m, *p->frequency);
     p->first = 0;
+  }
+  if (p->kloop != 0 && p->h.insdshead->relesing) p->kloop=1;
+  if (p->kloop > 0 && (--p->kloop) == 0) {
+    Modal4_damp(csound, m, FL(1.0) - (amp * FL(0.03)));
   }
   if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -448,7 +450,9 @@ int32_t vibraphnset(CSOUND *csound, VIBRAPHN *p)
       return csound->InitError(csound, Str("invalid modal release time"));
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int32_t)relestim;
-    p->kloop = trunc(p->h.insdshead->offtim * CS_EKR) - relestim;
+    /* -1 waits for note-off; zero means damping has already started. */
+    p->kloop = p->h.insdshead->offtim < 0.0 ? -1.0 :
+      fmax(1.0, trunc(p->h.insdshead->offtim * CS_EKR) - relestim);
   }
   return OK;
 }
@@ -463,14 +467,14 @@ int32_t vibraphn(CSOUND *csound, VIBRAPHN *p)
   uint32_t    n, nsmps = CS_KSMPS;
   MYFLT       amp = (*p->amplitude)*(FL(1.0) / fullscale); /* Normalise */
 
-  if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if (p->kloop > 0 && (--p->kloop) == 0) {
-    Modal4_damp(csound, m, FL(1.0) - (amp * FL(0.03)));
-  }
   if (UNLIKELY(p->first)) {
     Modal4_strike(csound, m, *p->amplitude * (FL(1.0) / fullscale));
     Modal4_setFreq(csound, m, *p->frequency);
     p->first = 0;
+  }
+  if (p->kloop != 0 && p->h.insdshead->relesing) p->kloop=1;
+  if (p->kloop > 0 && (--p->kloop) == 0) {
+    Modal4_damp(csound, m, FL(1.0) - (amp * FL(0.03)));
   }
   Modal4_setVibratoRate(m, *p->vibFreq);
   p->m4.vibrGain =*p->vibAmt;
@@ -572,7 +576,6 @@ int32_t agogobel(CSOUND *csound, VIBRAPHN *p)
   }
   return OK;
 }
-
 
 
 
