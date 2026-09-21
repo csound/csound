@@ -53,7 +53,7 @@ static int32_t get_thread_index(CSOUND *csound, void *threadId) {
                       *(pthread_t *)current->threadId))
 #elif defined(WIN32)
     DWORD *d = (DWORD *)threadId;
-    if (*d == GetThreadId((HANDLE)current->threadId))
+    if (*d == GetThreadId(*(HANDLE *)current->threadId))
 #else
     // FIXME - need to verify this works...
     if (threadId == current->threadId)
