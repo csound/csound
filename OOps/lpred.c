@@ -1215,7 +1215,7 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
         }
         c3o[j] = c3[j]; c2o[j] = c2[j];
         cosf = cos(cf * (double)(CS_TPIDSR));
-        c3[j] = exp(bw * (double)(csound->mtpdsr));
+        c3[j] = exp(bw * (double)(CS_MTPIDSR));
         c3p1 = c3[j] + 1.0;
         c3t4 = c3[j] * 4.0;
         c2[j] = c3t4 * cosf / c3p1;
