@@ -728,7 +728,7 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
     MYFLT   *fp, *finp;
     int32    phs;
     double  x;
-    MYFLT   denom, r, scale;
+    double  denom, r, scale;
     int32_t     n, k;
     int32_t     nargs = ff->e.pcnt - 4;
 
@@ -744,43 +744,51 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
     fp = ftp->ftable;
     finp = fp + ff->flen;
     if (ff->e.pcnt == 5 || (k == 1 && r == FL(1.0))) {  /* simple "buzz" case */
-      int32_t tnp1;
-      MYFLT pdlen;
+      double tnp1, pdlen;
 
-      tnp1  = (n << 1) + 1;
-      scale = FL(0.5) / n;
-      pdlen = PI_F / (MYFLT) ff->flen;
+      tnp1  = 2.0 * n + 1.0;
+      scale = 0.5 / n;
+      pdlen = PI / (double) ff->flen;
       for (phs = 0; fp <= finp; phs++) {
         x = phs * pdlen;
         denom = sin(x);
         if (fabs(denom)<1.0e-10) //(!(denom = (MYFLT) sin(x)))
           *fp++ = FL(1.0);
-        else *fp++ = ((MYFLT) sin(tnp1 * x) / denom - FL(1.0)) * scale;
+        else *fp++ = (sin(tnp1 * x) / denom - 1.0) * scale;
       }
     }
     else {                                   /* complex "gbuzz" case */
       double  tpdlen = TWOPI / (double) ff->flen;
-      MYFLT   numer, twor, rsqp1, rtn, rtnp1, absr;
-      int32_t     km1, kpn, kpnm1;
+      double  numer, twor, rsqp1, rtn, rtnp1, absr;
+      double  km1, kpn, kpnm1;
 
-      km1   = k - 1;
-      kpn   = k + n;
+      km1   = (double) k - 1.0;
+      kpn   = (double) k + n;
       kpnm1 = kpn - 1;
       twor  = r * FL(2.0);
       rsqp1 = r * r + FL(1.0);
       rtn   = intpow(r, (int32) n);
       rtnp1 = rtn * r;
-      if ((absr =  FABS(r)) > FL(0.999) && absr < FL(1.001))
-        scale = FL(1.0) / n;
-      else scale = (FL(1.0) - absr) / (FL(1.0) - FABS(rtn));
+      if ((absr = fabs(r)) == 1.0)
+        scale = 1.0 / n;
+      else scale = (1.0 - absr) / (1.0 - fabs(rtn));
       for (phs = 0; fp <= finp; phs++) {
         x = (double) phs * tpdlen;
-        numer = (MYFLT)cos(x*k) - r * (MYFLT)cos(x*km1) - rtn*(MYFLT)cos(x*kpn)
-                + rtnp1 * (MYFLT)cos(x*kpnm1);
-        if ((denom = rsqp1 - twor * (MYFLT) cos(x)) > FL(0.0001)
+        numer = cos(x*k) - r * cos(x*km1) - rtn*cos(x*kpn)
+                + rtnp1 * cos(x*kpnm1);
+        if ((denom = rsqp1 - twor * cos(x)) > FL(0.0001)
             || denom < -FL(0.0001))
           *fp++ = numer / denom * scale;
-        else *fp++ = FL(1.0);
+        else {
+          /* Avoid cancellation in the quotient near r * exp(ix) == 1. */
+          double sum = 0.0, amp = scale;
+          int32_t j;
+          for (j = 0; j < n; j++) {
+            sum += amp * cos(x * ((double) k + j));
+            amp *= r;
+          }
+          *fp++ = sum;
+        }
       }
     }
     return OK;
