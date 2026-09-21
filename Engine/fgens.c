@@ -1570,6 +1570,8 @@ static int32_t gen30(FGDATA *ff, FUNC *ftp)
     csound->RealFFT(csound, csound->RealFFTSetup(csound,l2,FFT_FWD), x);
     x[l2] = x[1];
     x[1] = x[l2 + 1] = FL(0.0);
+    /* When enlarging, split the source Nyquist bin into a conjugate pair. */
+    if (l1 > l2) x[l2] *= FL(0.5);
     for (i = 0; i < (minh << 1); i++)
       x[i] = FL(0.0);
     x[i++] *= minfrac;
@@ -1579,6 +1581,8 @@ static int32_t gen30(FGDATA *ff, FUNC *ftp)
     x[i++] *= maxfrac;
     for ( ; i < (l1 + 2); i++)
       x[i] = FL(0.0);
+    /* When shrinking, merge the pair that becomes the destination Nyquist. */
+    if (l1 < l2) x[l1] *= FL(2.0);
     x[1] = x[l1];
     x[l1] = x[l1 + 1] = FL(0.0);
     csound->RealFFT(csound, csound->RealFFTSetup(csound,l1,FFT_INV), x);
