@@ -1188,19 +1188,22 @@ typedef struct {
 
 static int32_t _pcs[] = {9, 11, 0, 2, 4, 5, 7};
 
-#define FAIL -999
-
-static MYFLT ntomfunc(CSOUND *csound, char *note) {
-    char *n = note;
-    uint32_t notelen = (uint32_t) strlen(note);
+/* Return a parsing error, or write the pitch and return NULL. The caller
+   reports the error at the rate of the opcode that requested the conversion. */
+static const char *ntomfunc(CSOUND *csound, const char *n, MYFLT *result) {
+    size_t notelen = strlen(n);
+    if (notelen == 0)
+        return Str("note name is empty");
+    if (notelen > 6)
+        return Str("note name must have at most six characters");
+    if (n[0] < '0' || n[0] > '9')
+        return Str("octave must be a digit from 0 to 9");
+    if (notelen < 2)
+        return Str("expected a note letter after the octave");
     int32_t octave = n[0] - '0';
     int32_t pcidx = n[1] - 'A';
-    if (pcidx < 0 || pcidx >= 7) {
-        csound->Message(csound,
-                        Str("expecting a char between A and G, but got %c\n"),
-                        n[1]);
-        return FAIL;
-    }
+    if (pcidx < 0 || pcidx >= 7)
+        return Str("expected an uppercase note letter from A to G");
     int32_t pc = _pcs[pcidx];
     int32_t cents = 0;
     int32_t cursor;
@@ -1213,8 +1216,17 @@ static MYFLT ntomfunc(CSOUND *csound, char *note) {
     } else {
         cursor = 2;
     }
-    int32_t rest = notelen - cursor;
+    int32_t rest = (int32_t)notelen - cursor;
     if (rest > 0) {
+        if (n[cursor] != '+' && n[cursor] != '-')
+            return cursor == 3
+                ? Str("expected + or - after the accidental")
+                : Str("expected # or b for an accidental, or + or - for cents");
+        if (rest > 3)
+            return Str("cents must have at most two digits");
+        for (int32_t i = cursor + 1; i < (int32_t)notelen; i++)
+            if (n[i] < '0' || n[i] > '9')
+                return Str("cents must contain only decimal digits");
         int32_t sign = n[cursor] == '+' ? 1 : -1;
         if (rest == 1) {
             cents = 50;
@@ -1222,32 +1234,38 @@ static MYFLT ntomfunc(CSOUND *csound, char *note) {
             cents = n[cursor + 1] - '0';
         } else if (rest == 3) {
             cents = 10 * (n[cursor + 1] - '0') + (n[cursor + 2] - '0');
-        } else {
-            csound->Message(csound,Str("format not understood, note: "
-                                       "%s, notelen: %d\n"), n, notelen);
-            return FAIL;
         }
         cents *= sign;
     }
-    return ((octave + 1) * 12 + pc) + cents / FL(100.0);
+    *result = ((octave + 1) * 12 + pc) + cents / FL(100.0);
+    return NULL;
 }
 
 
 static int32_t
-ntom(CSOUND *csound, NTOM *p) {
+ntom_common(CSOUND *csound, NTOM *p, int32_t init) {
     /*
        formats accepted: 8D+ (equals to +50 cents), 4C#, 8A-31 7Bb+30
        - no lowercase
        - octave is necessary and comes always first
        - no negative octaves, no octaves higher than 9
     */
-    MYFLT midi = ntomfunc(csound, p->notename->data);
-    if(midi == FAIL)
-        return NOTOK;
+    MYFLT midi = 0;
+    const char *error = ntomfunc(csound, p->notename->data, &midi);
+    if (error != NULL)
+        return INITPERFERRF(init, Str("ntom: invalid note name \"%s\": %s"),
+                            p->notename->data, error);
     *p->r = midi;
     return OK;
 }
 
+static int32_t ntom_init(CSOUND *csound, NTOM *p) {
+    return ntom_common(csound, p, 1);
+}
+
+static int32_t ntom(CSOUND *csound, NTOM *p) {
+    return ntom_common(csound, p, 0);
+}
 
 /*
 
@@ -1342,15 +1360,24 @@ mton(CSOUND *csound, MTON *p) {
  */
 
 static int32_t
-ntof(CSOUND *csound, NTOM *p) {
-    MYFLT midi = ntomfunc(csound, p->notename->data);
-    if(midi == FAIL)
-        return NOTOK;
+ntof_common(CSOUND *csound, NTOM *p, int32_t init) {
+    MYFLT midi = 0;
+    const char *error = ntomfunc(csound, p->notename->data, &midi);
+    if (error != NULL)
+        return INITPERFERRF(init, Str("ntof: invalid note name \"%s\": %s"),
+                            p->notename->data, error);
     MYFLT a4 = csound->GetA4(csound);
     *p->r = mtof_func(midi, a4);
     return OK;
 }
 
+static int32_t ntof_init(CSOUND *csound, NTOM *p) {
+    return ntof_common(csound, p, 1);
+}
+
+static int32_t ntof(CSOUND *csound, NTOM *p) {
+    return ntof_common(csound, p, 0);
+}
 
 /*
 
@@ -3046,14 +3073,14 @@ static OENTRY emugens_localops[] = {
     // TODO
 
 
-    { "ntom.i", S(NTOM), 0,  "i", "S", (SUBR)ntom },
-    { "ntom.k", S(NTOM), 0,  "k", "S", (SUBR)ntom, (SUBR)ntom },
+    { "ntom.i", S(NTOM), 0,  "i", "S", (SUBR)ntom_init },
+    { "ntom.k", S(NTOM), 0,  "k", "S", (SUBR)ntom_init, (SUBR)ntom },
 
     { "mton.i", S(MTON), 0,  "S", "i", (SUBR)mton_init },
     { "mton.k", S(MTON), 0,  "S", "k", (SUBR)mton_init, (SUBR)mton },
 
-    { "ntof.i", S(NTOM), 0,  "i", "S", (SUBR)ntof },
-    { "ntof.k", S(NTOM), 0,  "k", "S", (SUBR)ntof, (SUBR)ntof },
+    { "ntof.i", S(NTOM), 0,  "i", "S", (SUBR)ntof_init },
+    { "ntof.k", S(NTOM), 0,  "k", "S", (SUBR)ntof_init, (SUBR)ntof },
 
     { "cmp", S(Cmp), 0,  "a", "aSa", (SUBR)cmp_init, (SUBR)cmp_aa,},
     { "cmp", S(Cmp), 0,  "a", "aSk", (SUBR)cmp_init, (SUBR)cmp_ak },
