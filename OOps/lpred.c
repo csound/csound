@@ -185,19 +185,15 @@ MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b,
                     int32_t N, int32_t M){
   int32_t n,m;
   MYFLT s;
-  c[0] = -LOG(b[0]);
-  c[1] = b[1];
-  for(n=2;n<N;n++){
-    if(n > M)
-      c[n] = 0;
-    else {
-      s = 0.;
-      for(m=1;m<n;m++)
-        s += (m/n)*c[m]*b[n-m];
-      c[n] = b[n] - s;
-    }
+  if (N <= 0) return c;
+  c[0] = LOG(b[0]);
+  for(n=1;n<N;n++) {
+    s = 0.;
+    /* Coefficients beyond the filter order are zero; cepstral terms are not. */
+    for(m = n > M ? n-M : 1; m<n; m++)
+      s += (MYFLT)m * c[m] * b[n-m];
+    c[n] = -(n <= M ? b[n] : FL(0.0)) - s/n;
   }
-  for(n=0;n<N;n++) c[n] *= -1;
   return c;
 }
 
@@ -212,9 +208,7 @@ MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
                     int32_t M, int32_t N){
   int32_t n,m;
   MYFLT s;
-  b[0]  = 1;
-  b[1] = -c[1];
-  for(m=2;m<M+1;m++) {
+  for(m=1;m<M+1;m++) {
     s = 0.;
     for(n=1;n<m;n++)
       s -= (m-n)*b[n]*c[m-n];
