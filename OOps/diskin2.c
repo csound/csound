@@ -44,6 +44,39 @@
 #  define ALWAYS_INLINE  inline
 #endif
 
+/* Wrap a sample frame position into the loop range [loopStart, loopEnd).
+   A single conditional adjustment is not enough when the position is more
+   than one loop length out of range, which happens with very short loops
+   combined with fast playback or wide interpolation windows. */
+static inline int32_t diskin2_wrap_frame(int32_t fPos, int32_t loopStart,
+                                         int32_t loopLength)
+{
+    int64_t  rel = (int64_t)fPos - (int64_t)loopStart;
+    if (UNLIKELY(rel < 0 || rel >= (int64_t)loopLength)) {
+      rel %= (int64_t)loopLength;
+      if (rel < 0)
+        rel += (int64_t)loopLength;
+      fPos = (int32_t)((int64_t)loopStart + rel);
+    }
+    return fPos;
+}
+
+/* Fixed point equivalent of diskin2_wrap_frame, for pos_frac. */
+static inline int64_t diskin2_wrap_pos(int64_t pos, int32_t loopStart,
+                                       int32_t loopLength)
+{
+    int64_t  start = (int64_t)loopStart << POS_FRAC_SHIFT;
+    int64_t  len = (int64_t)loopLength << POS_FRAC_SHIFT;
+    int64_t  rel = pos - start;
+    if (UNLIKELY(rel < 0 || rel >= len)) {
+      rel %= len;
+      if (rel < 0)
+        rel += len;
+      pos = start + rel;
+    }
+    return pos;
+}
+
 static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
                                             DISKIN2 *p, int32_t bufReadPos)
 {
@@ -103,14 +136,8 @@ static ALWAYS_INLINE void diskin2_get_sample(CSOUND *csound,
 
     if (p->hasEnd && !p->wrapMode && fPos >= p->loopEnd)
       return;
-    if (p->wrapMode) {
-      if (UNLIKELY(fPos >= p->loopEnd)){
-        fPos -= p->loopLength;
-      }
-      else if (UNLIKELY(fPos < p->loopStart)){
-        fPos += p->loopLength;
-      }
-    }
+    if (p->wrapMode)
+      fPos = diskin2_wrap_frame(fPos, p->loopStart, p->loopLength);
     bufPos = (int32_t)(fPos - p->bufStartPos);
     if (UNLIKELY((uint32_t) bufPos >= (uint32_t) p->bufSize)) {
       /* not in current buffer frame, need to read file */
@@ -1438,17 +1465,9 @@ static inline void diskin2_xfade(DISKIN2_XF *x, int32_t nch,
 static inline void diskin2_file_pos_inc(DISKIN2 *p, int32_t *ndx)
 {
     p->pos_frac += p->pos_frac_inc;
+    if (p->wrapMode)
+      p->pos_frac = diskin2_wrap_pos(p->pos_frac, p->loopStart, p->loopLength);
     *ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
-    if (p->wrapMode) {
-      if (*ndx >= p->loopEnd) {
-        *ndx -= p->loopLength;
-        p->pos_frac -= ((int64_t)p->loopLength << POS_FRAC_SHIFT);
-      }
-      else if (*ndx < p->loopStart) {
-        *ndx += p->loopLength;
-        p->pos_frac += ((int64_t)p->loopLength << POS_FRAC_SHIFT);
-      }
-    }
 }
 
 static inline void diskin2_file_pos_inc_xf(DISKIN2 *p, int32_t *ndx)
@@ -1460,11 +1479,12 @@ static inline void diskin2_file_pos_inc_xf(DISKIN2 *p, int32_t *ndx)
        past-the-end and before-the-start */
     if (UNLIKELY((uint32_t) (*ndx - p->loopStart) >= (uint32_t) p->loopLength)) {
       if (p->xf.ready)
-        p->pos_frac = p->xf.headEnd;
+        p->pos_frac = diskin2_wrap_pos(p->xf.headEnd, p->loopStart,
+                                       p->loopLength);
       else {
         p->xf.count = 0;
-        p->pos_frac += (*ndx >= p->loopEnd ? -1 : 1) *
-                       ((int64_t) p->loopLength << POS_FRAC_SHIFT);
+        p->pos_frac = diskin2_wrap_pos(p->pos_frac, p->loopStart,
+                                       p->loopLength);
       }
       *ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
     }
@@ -2067,17 +2087,9 @@ static int32_t diskin2_calc_buffer_size_array(DISKIN2_ARRAY *p, int32_t n_monoSa
 static inline void diskin2_file_pos_inc_array(DISKIN2_ARRAY *p, int32_t *ndx)
 {
     p->pos_frac += p->pos_frac_inc;
+    if (p->wrapMode)
+      p->pos_frac = diskin2_wrap_pos(p->pos_frac, p->loopStart, p->loopLength);
     *ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
-    if (p->wrapMode) {
-      if (*ndx >= p->loopEnd) {
-        *ndx -= p->loopLength;
-        p->pos_frac -= ((int64_t)p->loopLength << POS_FRAC_SHIFT);
-      }
-      else if (*ndx < p->loopStart) {
-        *ndx += p->loopLength;
-        p->pos_frac += ((int64_t)p->loopLength << POS_FRAC_SHIFT);
-      }
-    }
 }
 
 static inline void diskin2_file_pos_inc_array_xf(DISKIN2_ARRAY *p, int32_t *ndx)
@@ -2089,11 +2101,12 @@ static inline void diskin2_file_pos_inc_array_xf(DISKIN2_ARRAY *p, int32_t *ndx)
        past-the-end and before-the-start */
     if (UNLIKELY((uint32_t) (*ndx - p->loopStart) >= (uint32_t) p->loopLength)) {
       if (p->xf.ready)
-        p->pos_frac = p->xf.headEnd;
+        p->pos_frac = diskin2_wrap_pos(p->xf.headEnd, p->loopStart,
+                                       p->loopLength);
       else {
         p->xf.count = 0;
-        p->pos_frac += (*ndx >= p->loopEnd ? -1 : 1) *
-                       ((int64_t) p->loopLength << POS_FRAC_SHIFT);
+        p->pos_frac = diskin2_wrap_pos(p->pos_frac, p->loopStart,
+                                       p->loopLength);
       }
       *ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
     }
@@ -2108,14 +2121,8 @@ static ALWAYS_INLINE void diskin2_get_sample_array(CSOUND *csound,
 
     if (p->hasEnd && !p->wrapMode && fPos >= p->loopEnd)
       return;
-    if (p->wrapMode) {
-      if (UNLIKELY(fPos >= p->loopEnd)){
-        fPos -= p->loopLength;
-      }
-      else if (UNLIKELY(fPos < p->loopStart)){
-        fPos += p->loopLength;
-      }
-    }
+    if (p->wrapMode)
+      fPos = diskin2_wrap_frame(fPos, p->loopStart, p->loopLength);
     bufPos = (int32_t)(fPos - p->bufStartPos);
     if (UNLIKELY((uint32_t) bufPos >= (uint32_t) p->bufSize)) {
       /* not in current buffer frame, need to read file */
