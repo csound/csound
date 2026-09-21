@@ -118,7 +118,7 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
                               int32_t mode)
 {
     int32    genum, ltest;
-    int32_t  lobits, msg_enabled, i, result = 0;
+    int32_t  lobits, msg_enabled, i, gen02_auto, result = 0;
     FUNC    *ftp;
     FGDATA  ff;
     MYFLT   flen;
@@ -204,10 +204,11 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
     }
     flen =  ff.e.p[3];
     ff.flen = (int32) MYFLT2LRND(flen);
-    if (!ff.flen) {
+    gen02_auto = (genum == 2 && ff.flen == 0);
+    if (!ff.flen && !gen02_auto) {
       /* defer alloc to gen01|gen23|gen28 */
       ff.guardreq = 1;
-      if (UNLIKELY(genum != 1 && genum != 2 && genum != 23 &&
+      if (UNLIKELY(genum != 1 && genum != 23 &&
                    genum != 28 && genum != 44 && genum != 49 &&
                    genum != 53 && genum<=GENMAX)) {
         result = csoundFtError(&ff, Str("deferred size not supported"));
@@ -228,7 +229,12 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
       goto end;
     }
 
-    if (ff.flen < 0L) {
+    if (gen02_auto) {
+      /* Every supplied value belongs to the table, including odd lengths. */
+      ff.flen = ff.e.pcnt - 4;
+      flen = (MYFLT) ff.flen;
+    }
+    else if (ff.flen < 0L) {
       // flen < 0 means ALWAYS keep size as is
       ff.flen = -(ff.flen);
       flen = -flen;
@@ -256,6 +262,9 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
      // it can be suppressed by using a fractional flen
      ff.guardreq = (flen - (int32_t) flen) > 0 ? 0 : 1;
     }
+
+    if (gen02_auto)
+      ff.guardreq = 0;              /* no explicit guard value was supplied */
 
     ftp = ftalloc(&ff);              /*  alloc ftable space now  */
     ftp->lenmask  = ((ff.flen & (ff.flen - 1L)) ?
@@ -387,11 +396,7 @@ static int32_t gen02(FGDATA *ff, FUNC *ftp)
     MYFLT   *fp, *pp = &(ff->e.p[5]);
     int32_t     nvals = ff->e.pcnt - 4;
 
-    if (ff->flen==0) {
-      ff->flen = nvals;
-      ftp = ftalloc(ff);
-    }
-    else if (nvals >= (int32_t) ff->flen)
+    if (nvals > (int32_t) ff->flen)
       nvals = (int32_t) ff->flen + 1;               /* for all vals up to flen+1 */
     fp = ftp->ftable;
     while (nvals--) {
