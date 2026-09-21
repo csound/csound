@@ -571,6 +571,11 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
     p->adsr.state = ATTACK;
     p->maxVelocity = FL(0.03) + (FL(0.2) * amp);
 
+    /* Allow the envelope's 10 ms release to run after note-off. */
+    int32_t release = (int32_t)ceil(CS_EKR * 0.01);
+    if (release > p->h.insdshead->xtratim)
+      p->h.insdshead->xtratim = release;
+    p->v_time = FL(0.0);
     p->lastpress = FL(0.0);   /* Set unknown state */
     p->lastfreq = FL(0.0);
     p->lastbeta = FL(0.0);    /* Remember states */
@@ -618,9 +623,8 @@ int32_t bowed(CSOUND *csound, BOWED *p)
                     p->baseDelay *(FL(1.0) - p->lastbeta));
   }
   p->v_rate = *p->vibFreq * p->vibr->flen * CS_ONEDSR;
-  if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if ((--p->kloop) == 0) {
-    ADSR_setDecayRate(csound, &p->adsr, (FL(1.0) - p->adsr.value) * FL(0.005));
+  if (p->h.insdshead->relesing && p->adsr.state != RELEASE &&
+      p->adsr.state != CLEAR) {
     p->adsr.target = FL(0.0);
     p->adsr.rate = p->adsr.releaseRate;
     p->adsr.state = RELEASE;

@@ -77,7 +77,6 @@ typedef struct BOWED {
     MYFLT       lastbeta;
     MYFLT       lastamp;
     MYFLT       limit;
-    int32_t     kloop;
 } BOWED;
 
 #endif
