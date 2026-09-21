@@ -107,6 +107,21 @@ static void ftfree(CSOUND *csound, FUNC *ftp)
     csound->Free(csound, (void*) ftp);
 }
 
+/* Ensure that a table number has a slot before allocating its contents. */
+static void ftgrow(CSOUND *csound, int32_t fno)
+{
+    if (UNLIKELY(fno > csound->maxfnum)) {
+      int32_t i, size;
+      for (size = csound->maxfnum; size < fno; size += MAXFNUM)
+        ;
+      csound->flist = (FUNC**) csound->ReAlloc(
+          csound, csound->flist, (size + 1) * sizeof(FUNC*));
+      for (i = csound->maxfnum + 1; i <= size; i++)
+        csound->flist[i] = NULL;
+      csound->maxfnum = size;
+    }
+}
+
 /**
  * Create ftable using evtblk data, and store pointer to new table in *ftpp.
  * If mode is zero, a zero table number is ignored, otherwise a new table
@@ -159,18 +174,7 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
         csoundMessage(csound, Str("ftable %d now deleted\n"), ff.fno);
       goto cleanup;
     }
-    if (UNLIKELY(ff.fno > csound->maxfnum)) {   /* extend list if necessary */
-      FUNC  **nn;
-      int32_t   size;
-      for (size = csound->maxfnum; size < ff.fno; size += MAXFNUM)
-        ;
-      nn = (FUNC**) csound->ReAlloc(csound,
-                                    csound->flist, (size + 1) * sizeof(FUNC*));
-      csound->flist = nn;
-      for (i = csound->maxfnum + 1; i <= size; i++)
-        csound->flist[i] = NULL;                /*  Clear new section       */
-      csound->maxfnum = size;
-    }
+    ftgrow(csound, ff.fno);
     if (UNLIKELY(ff.e.pcnt <= 4)) {             /*  chk minimum arg count   */
       result = csoundFtError(&ff, Str("insufficient gen arguments"));
       goto cleanup;
@@ -305,21 +309,12 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
 int32_t csoundFTAlloc(CSOUND *csound, int32_t tableNum,
                                     int32_t len)
 {
-    int32_t   i, size;
-    FUNC  **nn, *ftp;
+    int32_t   i;
+    FUNC  *ftp;
 
     if (UNLIKELY(tableNum <= 0 || len <= 0 || len > (int32_t) MAXLEN))
       return -1;
-    if (UNLIKELY(tableNum > csound->maxfnum)) { /* extend list if necessary */
-      for (size = csound->maxfnum; size < tableNum; size += MAXFNUM)
-        ;
-      nn = (FUNC**) csound->ReAlloc(csound,
-                                    csound->flist, (size + 1) * sizeof(FUNC*));
-      csound->flist = nn;
-      for (i = csound->maxfnum + 1; i <= size; i++)
-        csound->flist[i] = NULL;            /* Clear new section            */
-      csound->maxfnum = size;
-    }
+    ftgrow(csound, tableNum);
     /* allocate space for table: the header must be zeroed, csoundFTCreate
        frees ftp->args before replacing it and would otherwise free garbage */
     ftp = csound->flist[tableNum];
@@ -877,6 +872,8 @@ static int32_t gen15(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(nargs & 01)) {
       return csoundFtError(ff, Str("uneven number of args"));
     }
+    if (UNLIKELY(nargs < 4))
+      return csoundFtError(ff, Str("insufficient arguments"));
     hsin = (MYFLT*)csound->Malloc(csound,sizeof(MYFLT)*((1+ff->e.pcnt)/2));
     nh = (nargs - 2) >>1;
     fp   = &ff->e.p[5];                         /* save p5, p6  */
@@ -889,7 +886,7 @@ static int32_t gen15(FGDATA *ff, FUNC *ftp)
       *sinp++ = h * SIN(angle);  /* and save the sine */
     }
     nargs -= nh;
-    ff->e.pcnt = (int16)(nargs + 4);            /* added by F. Pinot 16-01-2012 */
+    ff->e.pcnt = nargs + 4;            /* added by F. Pinot 16-01-2012 */
     if (UNLIKELY(gen13(ff, ftp) != OK)) {       /* call gen13   */
       csound->Free(csound,hsin);
       return NOTOK;
@@ -906,10 +903,16 @@ static int32_t gen15(FGDATA *ff, FUNC *ftp)
       *fp++ = *sinp++;                          /* & copy rem hn*sin */
     }
     nargs--;
-    ff->e.pcnt = (int16)(nargs + 4); /* added by F. Pinot 16-01-2012 */
+    ff->e.pcnt = nargs + 4; /* added by F. Pinot 16-01-2012 */
     csound->Free(csound,hsin);
-    n = gen14(ff, ftp);       /* now draw ftable   */
-    ftresdisp(ff, ftp);       /* added by F. Pinot 16-01-2012 */
+    /* With only h0, the second table has no partials and stays zero. */
+    n = nh > 1 ? gen14(ff, ftp) : OK;
+    if (n == OK)
+      ftresdisp(ff, ftp);
+    else {
+      csound->flist[ff->fno] = NULL;
+      ftfree(csound, ftp);
+    }
     ff->fno--;                /* F. Pinot, the first function table */
                               /* is scaled and displayed by csoundFTCreate */
     return n;
@@ -2186,8 +2189,10 @@ static void generate_sine_tab(CSOUND *csound)
 static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
 {
     CSOUND  *csound = ff->csound;
-    FUNC    *ftp = csound->flist[ff->fno];
+    FUNC    *ftp;
 
+    ftgrow(csound, ff->fno);
+    ftp = csound->flist[ff->fno];
 
     if (UNLIKELY(ftp != NULL)) {
       csound->Warning(csound, Str("replacing previous ftable %d"), ff->fno);
