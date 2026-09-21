@@ -53,6 +53,34 @@ const char *OSC_message_get_number(const char *buf,
                                       char type, MYFLT *out);
 #define MAXSTR 1048576 /* 1MB */
 
+/* Validate strings and their four-byte padding within the received packet. */
+static const char *osc_string_end(const char *buf, const char *end) {
+  const char *nul = memchr(buf, '\0', end - buf);
+  size_t size;
+  if (nul == NULL) return NULL;
+  size = ((size_t)(nul - buf) + 4) & ~(size_t)3;
+  return size <= (size_t)(end - buf) ? buf + size : NULL;
+}
+
+static int osc_payload_valid(const char *buf, const char *end,
+                             const char *type) {
+  for (; *type; type++) {
+    size_t size;
+    switch (*type) {
+    case 's':
+      buf = osc_string_end(buf, end);
+      if (buf == NULL) return 0;
+      continue;
+    case 'i': case 'f': case 'c': size = 4; break;
+    case 'h': case 'd': size = 8; break;
+    default: return 0;
+    }
+    if (size > (size_t)(end - buf)) return 0;
+    buf += size;
+  }
+  return buf == end;
+}
+
 /** Add OSC message to linked list
     threadsafe code
 */
@@ -63,7 +91,7 @@ static void add_OSC_message(CSOUND *csound, const OSC_MESS *mess) {
   csoundSpinLock(lock);
   while(p) {
     // check for empty slots
-    if(p->flag == 0) {
+    if(ATOMIC_GET(p->flag) == 0) {
       break;
     }
     // add a new slot if needed
@@ -83,7 +111,8 @@ static void add_OSC_message(CSOUND *csound, const OSC_MESS *mess) {
   // copy data
   p->address = csoundStrdup(csound, mess->address);
   p->type = csoundStrdup(csound, mess->type);
-  p->data = csoundCalloc(csound, mess->size);
+  p->size = mess->size;
+  p->data = csoundCalloc(csound, mess->size ? mess->size : 1);
   memcpy(p->data, mess->data, mess->size);
   ATOMIC_SET(p->flag, 1);
 }
@@ -188,7 +217,6 @@ static uintptr_t udp_recv(void *pdata){
   int32_t received, cont = 0;
   char *start = orchestra;
   size_t timout = (size_t) lround(1000/csoundGetKr(csound));
-  csoundSpinLockInit(&csound->osc_spinlock);
 
   csound->Message(csound, Str("UDP server started on port %d\n"),port);
   while (p->status) {
@@ -236,18 +264,13 @@ static uintptr_t udp_recv(void *pdata){
       }
       else if(*orchestra == '/') {
         OSC_MESS mess;
-        int32_t len, siz = 0;
-        const char *buf = orchestra;
-        len = (int32_t) strlen(buf);
-        mess.address = (char *) buf;
-        len = ((int32_t) ceil((len+1)/4.)*4);
-        buf += len;
-        siz += len;
-        len = (int32_t) strlen(buf);
-        mess.type = (char *)buf+1; // jump the starting ','
-        len = ((int32_t) ceil((len+1)/4.)*4);
-        buf += len;
-        siz += len;
+        const char *end = orchestra + received;
+        const char *buf = osc_string_end(orchestra, end);
+        if (buf == NULL || buf == end || *buf != ',') continue;
+        mess.address = orchestra;
+        mess.type = (char *)buf + 1;
+        buf = osc_string_end(buf, end);
+        if (buf == NULL || !osc_payload_valid(buf, end, mess.type)) continue;
         // parse messages
         if(!strcmp(mess.address, "/csound/compile") &&
            !strcmp(mess.type, "s")) {
@@ -266,13 +289,15 @@ static uintptr_t udp_recv(void *pdata){
                                               &arg[i]);
               if(buf == NULL) break;
             }
-            csoundEvent(csound, CS_INSTR_EVENT, arg, i, 1);
+            if (i == n)
+              csoundEvent(csound, CS_INSTR_EVENT, arg, i, 1);
             csoundFree(csound, arg);
         }
-        else if(!strncmp(mess.address, "/csound/channel",15)) {
+        else if(!strncmp(mess.address, "/csound/channel/",16)) {
           char *channel = mess.address + 16, *delim, *nxt = NULL;
           int32_t items = (int32_t) strlen(mess.type), i;
           for(i = 0; i < items; i++) {
+            if (*channel == '\0') break;
             delim = strchr(channel, '/');
             if (delim) {
               *delim = '\0';
@@ -289,7 +314,8 @@ static uintptr_t udp_recv(void *pdata){
                                               &f);
               csoundSetControlChannel(csound, channel, f);
             }
-            if(nxt) channel = nxt;
+            if(nxt) { channel = nxt; nxt = NULL; }
+            else break;
           }
         } else if(!strcmp(mess.address, "/csound/event/end") ||
                   !strcmp(mess.address, "/csound/exit") ||
@@ -299,7 +325,7 @@ static uintptr_t udp_recv(void *pdata){
         }
         else {
           mess.data = (char *) buf;
-          mess.size = received - siz;
+          mess.size = (int32_t)(end - buf);
           add_OSC_message(csound, &mess);
           continue;
         }

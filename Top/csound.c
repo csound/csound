@@ -1996,6 +1996,8 @@ static void reset(CSOUND *csound) {
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "init spinlocks\n");
   }
+  /* OSC listeners can run before the UDP server starts, also after reset. */
+  csoundSpinLockInit(&csound->osc_spinlock);
 
   if (msgcallback_ != NULL) {
     csoundSetMessageCallback(csound, msgcallback_);
