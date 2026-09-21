@@ -923,7 +923,8 @@ static int32_t gen16(FGDATA *ff, FUNC *ftp)
     int32_t remaining;
 
     fp = ftp->ftable;
-    remaining = ff->e.p[3];
+    /* p3 may be negative; use the allocated length and guard-point mode. */
+    remaining = ff->flen + ff->guardreq;
     valp = &ff->e.p[5];
     *fp++ = val = *valp++;
     while (nseg-- > 0) {
