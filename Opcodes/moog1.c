@@ -186,9 +186,15 @@ int32_t Moog1set(CSOUND *csound, MOOG1 *p)
     p->vibr.time = p->vibr.phase = FL(0.0);
     /* Force the first control block to apply zero values too. */
     p->oldfilterQ = p->oldfilterRate = -FL(1.0);
-    ADSR_setAllTimes(csound, &p->adsr, FL(0.001), FL(1.5), FL(0.6), FL(0.250));
     ADSR_setAll(csound, &p->adsr, FL(0.05), FL(0.00003), FL(0.6), FL(0.0002));
     ADSR_keyOn(&p->adsr);
+    {
+      /* The release takes at most 1 / (0.0002 * 22050) seconds.
+         Allow 250 ms for it and the filter tail. */
+      int32_t relestim = (int32_t)ceil(FL(0.25) * CS_EKR);
+      if (relestim > p->h.insdshead->xtratim)
+        p->h.insdshead->xtratim = relestim;
+    }
     return OK;
 }
 
@@ -202,6 +208,10 @@ int32_t Moog1(CSOUND *csound, MOOG1 *p)
     uint32_t    n, nsmps = CS_KSMPS;
     MYFLT       temp;
     MYFLT       vib = *p->vibAmt;
+
+    if (p->h.insdshead->relesing &&
+        p->adsr.state != RELEASE && p->adsr.state != CLEAR)
+      ADSR_keyOff(&p->adsr);
 
     p->baseFreq = *p->frequency;
     p->attk.rate = p->baseFreq * FL(0.01) * p->attk.wave->flen * CS_ONEDSR;
@@ -305,4 +315,3 @@ int32_t Moog1(CSOUND *csound, MOOG1 *p)
     }
     return OK;
 }
-
