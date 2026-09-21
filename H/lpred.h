@@ -219,7 +219,8 @@ extern "C" {
     ARRAYDAT *in;
     int32_t M;
     void *setup;
-    MYFLT sum;
+    AUXCH previous;
+    int32_t valid;
   } CF2P;
 
   typedef struct {
