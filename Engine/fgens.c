@@ -416,10 +416,10 @@ static int32_t gen03(FGDATA *ff, FUNC *ftp)
       return csoundFtError(ff, Str("illegal x interval"));
     }
     xscale = xintvl / (MYFLT)ff->flen;
-    xloc = (int32_t) (ff->e.p[5] / xscale);        /* initial xloc */
+    xloc = 0;
     nlocs = (int32_t) ff->flen + 1;
     do {                                       /* for each loc:        */
-      x     = xloc++ * xscale;
+      x     = ff->e.p[5] + xloc++ * xscale;
       coefp = coeflim;
       sum   = *--coefp;                        /* init sum to coef(n)  */
       while (coefp > coef0) {
