@@ -1,7 +1,7 @@
 <CsTest>
 [expect]
 exit = 0
-stderr = ["wind release 1 passed", "wind release 2 passed"]
+output = ["wind release 1 passed", "wind release 2 passed"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
