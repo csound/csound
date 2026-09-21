@@ -53,6 +53,7 @@ if(BUILD_TESTS)
         arduino_test.cpp
         cpumeter_test.cpp
         osc_blob_test.cpp
+        internal_osc_decode_test.cpp
         pvsinit_test.cpp
         paulstretch_test.cpp
         mixer_test.cpp

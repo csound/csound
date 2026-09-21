@@ -147,6 +147,10 @@ void csoundClearOSCMessage(OSC_MESS *mess){
   ATOMIC_SET(mess->flag, 0);
 }
 
+/* Copy numeric values out of byte storage before swapping. OSC only aligns
+   arguments to four bytes, so a double or int64_t may not be aligned for
+   direct indirection; typed reads also impose aliasing rules. */
+
 /** Get float from Osc Message data 
     returns pointer to next datum
 */
@@ -199,14 +203,14 @@ const char *csoundOSCMessageGetChar(const char *buf, MYFLT *mf) {
 /** Get stringdata from Osc Message data 
     returns pointer to next datum
 */
-const char *csoundOSCMessageGetString(CSOUND *csound, const char *data,
-                                     STRINGDAT *sdat) {
+const char *csoundOSCMessageGetString(const char *data, STRINGDAT *sdat) {
   size_t len = strlen(data)+1;
-  if (len > (size_t)sdat->size) {
-    sdat->data = csound->ReAlloc(csound, sdat->data, len);
-    sdat->size = (int32_t)len;
+  if (sdat->data != NULL && sdat->size > 0) {
+    size_t size = len < (size_t)sdat->size ? len : (size_t)sdat->size;
+    memcpy(sdat->data, data, size-1);
+    sdat->data[size-1] = '\0';
   }
-  memcpy(sdat->data, data, len);
+  /* Skip the full input, including padding, even if the output was truncated. */
   return data+((len+3) & ~(size_t)3);
 }
 
@@ -257,7 +261,7 @@ int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
     for(i = 0; i < cnt; i++) {
       if(type[i] == 's' &&
          IS_STR_ARG(out[i])) {
-        buf = csoundOSCMessageGetString(csound, buf, (STRINGDAT *) out[i]);
+        buf = csoundOSCMessageGetString(buf, (STRINGDAT *) out[i]);
       }
       else if(IS_KSIG_ARG(p->out[i])){
         buf = OSC_message_get_number(buf, type[i], out[i]);

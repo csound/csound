@@ -25,6 +25,7 @@
 #endif
 
 #include "csound.hpp"
+#include "coreDefs.h"
 #include "csound_server.h"
 #include "csPerfThread.hpp"
 
@@ -872,7 +873,7 @@ TEST_F (ServerTests, InternalOscRejectsTruncatedPackets) {
     EXPECT_EQ(csoundGetControlChannel(csound, "number", &err), 1.5);
     char text[604] = {};
     csoundGetStringChannel(csound, "text", text);
-    EXPECT_EQ(std::string(text), std::string(600, 'a'));
+    EXPECT_EQ(std::string(text), std::string(DEFAULT_STRING_SIZE - 1, 'a'));
     ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
     EXPECT_EQ(csoundGetControlChannel(csound, "status", &err), 0);
     ASSERT_EQ(csoundUDPServerClose(csound), CSOUND_SUCCESS);
