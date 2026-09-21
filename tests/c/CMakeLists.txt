@@ -70,6 +70,7 @@ if(BUILD_TESTS)
         opcode_deprecation_test.cpp
         server_test.cpp
         csound_plugin_opcode_test.cpp
+        thread_monitor_test.cpp
         perfthread_test.cpp
         thread_id_test.cpp
         rt_audio_fade_test.cpp

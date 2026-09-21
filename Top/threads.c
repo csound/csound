@@ -235,74 +235,6 @@ typedef struct barrier {
     }
 }
 
-#if !defined(ANDROID) && (/*defined(LINUX) ||*/ defined(__HAIKU__) || defined(WIN32))
-
- void *csoundCreateThreadLock(void)
-{
-    pthread_mutex_t *pthread_mutex;
-
-    pthread_mutex = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
-    if (pthread_mutex == NULL)
-      return NULL;
-    if (pthread_mutex_init(pthread_mutex, NULL) != 0) {
-      free(pthread_mutex);
-      return NULL;
-    }
-    return (void*) pthread_mutex;
-}
-
- int32_t csoundWaitThreadLock(void *lock, size_t milliseconds)
-{
-    {
-      register int32_t retval = pthread_mutex_trylock((pthread_mutex_t*) lock);
-      if (!retval)
-        return retval;
-      if (!milliseconds)
-        return retval;
-    }
-    {
-      struct timeval  tv;
-      struct timespec ts;
-      register size_t n, s;
-
-#ifndef HAVE_GETTIMEOFDAY
-      gettimeofday_(&tv, NULL);
-#else
-      gettimeofday(&tv, NULL);
-#endif
-
-      s = milliseconds / (size_t) 1000;
-      n = milliseconds - (s * (size_t) 1000);
-      s += (size_t) tv.tv_sec;
-      n = (size_t) (((int32_t) n * 1000 + (int32_t) tv.tv_usec) * 1000);
-      ts.tv_nsec = (long) (n < (size_t) 1000000000 ? n : n - 1000000000);
-      ts.tv_sec = (time_t) (n < (size_t) 1000000000 ? s : s + 1);
-      return pthread_mutex_timedlock((pthread_mutex_t*) lock, &ts);
-    }
-
-}
-
- void csoundWaitThreadLockNoTimeout(void *lock)
-{
-    pthread_mutex_lock((pthread_mutex_t*) lock);
-}
-
- void csoundNotifyThreadLock(void *lock)
-{
-    pthread_mutex_unlock((pthread_mutex_t*) lock);
-}
-
- void csoundDestroyThreadLock(void *lock)
-{
-    if (0==pthread_mutex_destroy((pthread_mutex_t*) lock))
-      free(lock);
-    else
-      perror("csoundDestroyThreadLock: ");
-}
-
-
-#else   /* LINUX */
-
 typedef struct CsoundThreadLock_s {
   pthread_mutex_t m;
   pthread_cond_t  c;
@@ -360,6 +292,8 @@ typedef struct CsoundThreadLock_s {
       else
         retval = ETIMEDOUT;
     }
+    /* A notification may arrive as the timed wait expires. */
+    if (p->s) retval = 0;
     p->s = (unsigned char) 0;
     pthread_mutex_unlock(&(p->m));
 
@@ -403,8 +337,6 @@ typedef struct CsoundThreadLock_s {
     free(threadLock);
 
 }
-
-#endif  /* !LINUX */
 
 
  void *csoundCreateBarrier(uint32_t max)
@@ -1087,62 +1019,89 @@ typedef struct barrier {
     }
 }
 
+typedef struct {
+  mtx_t mutex;
+  cnd_t condition;
+  int signaled;
+} CsoundThreadLock_t;
+
  void *csoundCreateThreadLock(void)
 {
-    mtx_t *thread_mutex;
-    thread_mutex = (mtx_t*) malloc(sizeof(mtx_t));
-    if (thread_mutex == NULL)
-      return NULL;
-    if (mtx_init(thread_mutex, mtx_timed) != 0) {
-      free(thread_mutex);
-      return NULL;
-    }
-    return (void*) thread_mutex;
+  CsoundThreadLock_t *p = malloc(sizeof(CsoundThreadLock_t));
+  if (p == NULL)
+    return NULL;
+  if (mtx_init(&p->mutex, mtx_plain) != thrd_success) {
+    free(p);
+    return NULL;
+  }
+  if (cnd_init(&p->condition) != thrd_success) {
+    mtx_destroy(&p->mutex);
+    free(p);
+    return NULL;
+  }
+  p->signaled = 1;
+  return p;
 }
-
-#include <sys/time.h>
 
  int32_t csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
-    {
-      register int32_t retval = mtx_trylock((mtx_t*) lock);
-      if (!retval)
-        return retval;
-      if (!milliseconds)
-        return retval;
+  CsoundThreadLock_t *p = lock;
+  int status = thrd_success;
+  mtx_lock(&p->mutex);
+  if (!p->signaled) {
+    if (milliseconds) {
+      struct timespec deadline;
+      if (timespec_get(&deadline, TIME_UTC) != TIME_UTC) {
+        mtx_unlock(&p->mutex);
+        return NOTOK;
+      }
+      deadline.tv_sec += milliseconds / 1000;
+      deadline.tv_nsec += (long)(milliseconds % 1000) * 1000000L;
+      if (deadline.tv_nsec >= 1000000000L) {
+        deadline.tv_nsec -= 1000000000L;
+        deadline.tv_sec++;
+      }
+      do {
+        status = cnd_timedwait(&p->condition, &p->mutex, &deadline);
+      } while (!p->signaled && status == thrd_success);
     }
-    {
-      struct timeval  tv;
-      struct timespec ts;
-      register size_t n, s;
-      gettimeofday(&tv, NULL);
-
-      s = milliseconds / (size_t) 1000;
-      n = milliseconds - (s * (size_t) 1000);
-      s += (size_t) tv.tv_sec;
-      n = (size_t) (((int32_t) n * 1000 + (int32_t) tv.tv_usec) * 1000);
-      ts.tv_nsec = (long) (n < (size_t) 1000000000 ? n : n - 1000000000);
-      ts.tv_sec = (time_t) (n < (size_t) 1000000000 ? s : s + 1);
-      return mtx_timedlock((mtx_t*) lock, &ts);
-    }
+    else
+      status = thrd_timedout;
+  }
+  /* Consume a pending notification even if the timed wait just expired. */
+  if (p->signaled) status = thrd_success;
+  p->signaled = 0;
+  mtx_unlock(&p->mutex);
+  return status == thrd_success ? OK : NOTOK;
 }
 
  void csoundWaitThreadLockNoTimeout(void *lock)
 {
-      mtx_lock((mtx_t *) lock);
+  CsoundThreadLock_t *p = lock;
+  mtx_lock(&p->mutex);
+  while (!p->signaled)
+    cnd_wait(&p->condition, &p->mutex);
+  p->signaled = 0;
+  mtx_unlock(&p->mutex);
 }
 
  void csoundNotifyThreadLock(void *lock)
 {
-      mtx_unlock((mtx_t *) lock);
+  CsoundThreadLock_t *p = lock;
+  mtx_lock(&p->mutex);
+  p->signaled = 1;
+  cnd_signal(&p->condition);
+  mtx_unlock(&p->mutex);
 }
 
  void csoundDestroyThreadLock(void *lock)
 {
-    if(lock != NULL) {
-      mtx_destroy((mtx_t *) lock);
-      free(lock);
-    }
+  CsoundThreadLock_t *p = lock;
+  if (p != NULL) {
+    cnd_destroy(&p->condition);
+    mtx_destroy(&p->mutex);
+    free(p);
+  }
 }
 
  void *csoundCreateMutex(int32_t isRecursive)
@@ -1151,7 +1110,8 @@ typedef struct barrier {
     thread_mutex = (mtx_t*) malloc(sizeof(mtx_t));
     if (thread_mutex == NULL)
       return NULL;
-    if (mtx_init(thread_mutex, isRecursive ? mtx_plain | mtx_recursive : mtx_plain) != 0) {
+    if (mtx_init(thread_mutex, isRecursive ? mtx_plain | mtx_recursive : mtx_plain)
+        != thrd_success) {
       free(thread_mutex);
       return NULL;
     }
@@ -1165,7 +1125,7 @@ typedef struct barrier {
 
  int32_t csoundLockMutexNoWait(void *mutex_)
 {
-    return mtx_trylock((mtx_t *) mutex_);
+    return mtx_trylock((mtx_t *) mutex_) == thrd_success ? OK : NOTOK;
 }
 
  void csoundUnlockMutex(void *mutex_)
@@ -1187,13 +1147,13 @@ typedef struct barrier {
     mtx_t mut;
     cnd_t cond;
     uint32_t count, max, iteration;
-} barrier_t;
+} c11_barrier_t;
 
  void *csoundCreateBarrier(uint32_t max)
 {
-  barrier_t *b;
+  c11_barrier_t *b;
   if (max == 0) return (void*) EINVAL;
-  b = (barrier_t *)malloc(sizeof(barrier_t));
+  b = (c11_barrier_t *)malloc(sizeof(c11_barrier_t));
   mtx_init(&b->mut, mtx_plain);
   cnd_init(&b->cond);
   b->count = 0;
@@ -1204,7 +1164,7 @@ typedef struct barrier {
 
  int32_t csoundDestroyBarrier(void *barrier)
 {
-  barrier_t *b = (barrier_t *)barrier;
+  c11_barrier_t *b = (c11_barrier_t *)barrier;
   if (b->count > 0) return EBUSY;
   cnd_destroy(&b->cond);
   mtx_destroy(&b->mut);
@@ -1215,7 +1175,7 @@ typedef struct barrier {
 {
   int32_t ret;
   uint32_t it;
-    barrier_t *b = (barrier_t *)barrier;
+    c11_barrier_t *b = (c11_barrier_t *)barrier;
     mtx_lock(&b->mut);
     b->count++;
     it = b->iteration;
