@@ -1348,20 +1348,21 @@ static int32_t gen25(FGDATA *ff, FUNC *ftp)
 
 static int32_t gen27(FGDATA *ff, FUNC *ftp)
 {
-    int32_t     nsegs;
-    MYFLT   *valp, *fp, *finp;
-    MYFLT   x1, x2, y1, y2, yy, seglen, incr;
+    int32_t     nsegs, ndx;
+    MYFLT   *valp, *fp;
+    MYFLT   x1, x2, y1, y2, yy, incr;
     int32_t     nargs = ff->e.pcnt - 4;
 
     if ((nsegs = ((nargs / 2) - 1)) <= 0)
       return OK;
     valp = &ff->e.p[5];
     fp = ftp->ftable;
-    finp = fp + ff->flen;
     x2 = *valp++; y2 = *valp++;
+    if (UNLIKELY(!(x2 >= 0 && x2 <= ff->flen))) goto gn27err2;
+    ndx = (int32_t) CEIL(x2);
     do {
       x1 = x2; y1 = y2;
-      x2 = *valp++;;
+      x2 = *valp++;
       if (LIKELY(nsegs > 1)) {
         y2 =  *valp++;
       }
@@ -1369,26 +1370,24 @@ static int32_t gen27(FGDATA *ff, FUNC *ftp)
         y2 = *valp;
       }
       if (UNLIKELY(x2 < x1)) goto gn27err;
-      if (UNLIKELY(x1 > ff->flen || x2 > ff->flen)) goto gn27err2;
-      seglen = x2-x1;
-      incr = (y2 - y1) / seglen;
-      yy = y1;
-      while (seglen--) {
-        *fp++ = yy;
+      if (UNLIKELY(!(x2 >= 0 && x2 <= ff->flen))) goto gn27err2;
+      if (x2 == x1) continue;
+      incr = (y2 - y1) / (x2 - x1);
+      /* Sample each segment at its actual table coordinates. */
+      yy = y1 + (ndx - x1) * incr;
+      while (ndx < x2) {
+        fp[ndx++] = yy;
         yy += incr;
-        if (fp > finp)
-          return OK;
       }
     } while (--nsegs);
-    if (fp == finp)                     /* if 2**n pnts, add guardpt */
-      *fp = y1;
+    if (ndx == x2)                     /* include the final breakpoint */
+      fp[ndx] = y2;
     return OK;
 
  gn27err:
-    printf("nsegs=%d x1,y1 = %f,%f x2,y2 = %f,%f\n", nsegs, x1, y1, x2, y2);
     return csoundFtError(ff, Str("x coordinates must all be in increasing order:"));
  gn27err2:
-    return csoundFtError(ff, Str("x coordinate greater than function size:"));
+    return csoundFtError(ff, Str("x coordinate outside function table:"));
 }
 
 /* read X Y values directly from ascii file */
