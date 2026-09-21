@@ -1,7 +1,7 @@
 <CsTest>
 [expect]
 exit = 0
-stderr = ["wgbow release passed"]
+output = ["wgbow release passed"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
