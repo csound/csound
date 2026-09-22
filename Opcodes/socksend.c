@@ -55,7 +55,7 @@ typedef struct {
   MYFLT *port, *buffersize;
   MYFLT   *format;
   AUXCH   aux;
-  int32_t     sock;
+  int32_t     sock, init_done;
   int32_t     bsize, wp;
   int32_t     ff, bwidth;
   struct sockaddr_in server_addr;
@@ -68,7 +68,7 @@ typedef struct {
   MYFLT *port, *buffersize;
   MYFLT   *format;
   AUXCH   aux;
-  int32_t     sock;
+  int32_t     sock, init_done;
   int32_t     bsize, wp;
   int32_t     ff, bwidth;
   struct sockaddr_in server_addr;
@@ -81,46 +81,77 @@ typedef struct {
   MYFLT *port, *buffersize;
   MYFLT   *format;
   AUXCH   aux;
-  int32_t     sock;
+  int32_t     sock, init_done;
   int32_t     bsize, wp;
   int32_t     ff, bwidth;
   struct sockaddr_in server_addr;
 } SOCKSENDS;
 
-#define MTU (1456)
+#define UDP_MAX_PAYLOAD 65507
+
+/* Store signed PCM16 in little-endian order without per-sample calls. */
+#define SOCKSEND_PCM16(DEST, SAMPLE, SCALE) do {                         \
+    double pcm_value = (SAMPLE) * (SCALE);                              \
+    int32_t pcm_int = pcm_value >= 32767.0 ? 32767 :                    \
+                      pcm_value <= -32768.0 ? -32768 : (int32_t)pcm_value; \
+    unsigned char *pcm_dest = (unsigned char *)(DEST);                  \
+    pcm_dest[0] = (unsigned char)pcm_int;                               \
+    pcm_dest[1] = (unsigned char)((uint16_t)pcm_int >> 8);               \
+  } while (0)
+
+static int32_t close_udp_socket(int32_t sock, int32_t *init_done)
+{
+    if (!*init_done) return OK;
+    *init_done = 0;
+#if defined(WIN32) && !defined(__CYGWIN__)
+    int32_t result = closesocket((SOCKET)sock);
+    WSACleanup();
+#else
+    int32_t result = close(sock);
+#endif
+    return result;
+}
+
+static int32_t socksend_deinit(CSOUND *csound, SOCKSEND *p)
+{
+    IGN(csound);
+    return close_udp_socket(p->sock, &p->init_done);
+}
+
+static int32_t socksends_deinit(CSOUND *csound, SOCKSENDS *p)
+{
+    IGN(csound);
+    return close_udp_socket(p->sock, &p->init_done);
+}
 
 /* UDP version one channel */
-static int32_t init_send(CSOUND *csound, SOCKSEND *p)
+static int32_t init_send_common(CSOUND *csound, SOCKSEND *p, int32_t isString)
 {
-    int32_t     bsize;
-    int32_t     bwidth = sizeof(MYFLT);
-#if defined(WIN32) && !defined(__CYGWIN__)
-    WSADATA wsaData = {0};
-    int32_t err;
-    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
-#endif
-    p->ff = (int32_t)(*p->format);
-    p->bsize = bsize = (int32_t) *p->buffersize;
-    /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
-    /*   return csound->InitError(csound,
-         Str("The buffersize must be <= %d samples " */
-    /*                                        "to fit in a udp-packet."), */
-    /*                            (int32_t) (MTU / sizeof(MYFLT))); */
-    /* } */
+    int32_t bwidth, bsize;
+    p->ff = (int32_t)*p->format;
+    bwidth = isString ? 1 : (p->ff ? sizeof(int16) : sizeof(MYFLT));
+    if (!(*p->buffersize >= FL(1.0) &&
+          *p->buffersize <= UDP_MAX_PAYLOAD / bwidth))
+      return csound->InitError(csound, "%s", Str("socksend: invalid buffer length"));
+    bsize = (int32_t)*p->buffersize;
+    p->bsize = bsize;
     p->wp = 0;
-
-    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (!p->init_done) {
 #if defined(WIN32) && !defined(__CYGWIN__)
-    if (p->sock == SOCKET_ERROR) {
-      err = WSAGetLastError();
-      csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
-    }
-#else
-    if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, "%s", Str("creating socket"));
-    }
+      WSADATA wsaData = {0};
+      int32_t err = WSAStartup(MAKEWORD(2,2), &wsaData);
+      if (UNLIKELY(err != 0))
+        return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
+      p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+      if (UNLIKELY(p->sock == SOCKET_ERROR)) {
+#if defined(WIN32) && !defined(__CYGWIN__)
+        WSACleanup();
+#endif
+        return csound->InitError(csound, "%s", Str("creating socket"));
+      }
+      p->init_done = 1;
+    }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
@@ -133,7 +164,6 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
 #endif
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
-    if (p->ff) bwidth = sizeof(int16);
     /* create a buffer to write the interleaved audio to  */
     if (p->aux.auxp == NULL || (uint32_t) (bsize * bwidth) > p->aux.size)
       /* allocate space for the buffer */
@@ -143,6 +173,16 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
     }
     p->bwidth = bwidth;
     return OK;
+}
+
+static int32_t init_send(CSOUND *csound, SOCKSEND *p)
+{
+    return init_send_common(csound, p, 0);
+}
+
+static int32_t init_send_Str(CSOUND *csound, SOCKSENDT *p)
+{
+    return init_send_common(csound, (SOCKSEND *)p, 1);
 }
 
 static int32_t send_send(CSOUND *csound, SOCKSEND *p)
@@ -158,28 +198,19 @@ static int32_t send_send(CSOUND *csound, SOCKSEND *p)
     int16   *outs = (int16 *) p->aux.auxp;
     int32_t     ff = p->ff;
 
+    double scale = ff ? 32768.0 / csound->Get0dBFS(csound) : 0;
     if (UNLIKELY(early)) nsmps -= early;
-    for (i = offset, wp = p->wp; i < nsmps; i++, wp++) {
-      if (wp == buffersize) {
-        /* send the package when we have a full buffer */
-        if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
-                            sizeof(p->server_addr)) == SOCKET_ERROR)) {
-          return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
-        }
-        wp = 0;
-      }
-      if (ff) { // Scale for 0dbfs and make LE
-        int16 val = (int16)((32768.0*asig[i])/csound->Get0dBFS(csound));
-        union cheat {
-          char  benchar[2];
-          int16 bensht;
-        } ch;
-        ch.benchar[0] = 0xFF & val;
-        ch.benchar[1] = 0xFF & (val >> 8);
-        outs[wp] = ch.bensht;
-      }
+    for (i = offset, wp = p->wp; i < nsmps; i++) {
+      if (ff)
+        SOCKSEND_PCM16(&outs[wp], asig[i], scale);
       else
         out[wp] = asig[i];
+      if (++wp == buffersize) {
+        if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
+                            sizeof(p->server_addr)) == SOCKET_ERROR))
+          return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
+        wp = 0;
+      }
     }
     p->wp = wp;
 
@@ -197,25 +228,18 @@ static int32_t send_send_k(CSOUND *csound, SOCKSEND *p)
     int32_t     ff = p->ff;
 
 
-    if (p->wp == buffersize) {
-      /* send the package when we have a full buffer */
-      if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
-                          sizeof(p->server_addr)) == SOCKET_ERROR)) {
+    if (ff) {
+      double scale = 32768.0 / csound->Get0dBFS(csound);
+      SOCKSEND_PCM16(&outs[p->wp], *ksig, scale);
+    }
+    else
+      out[p->wp] = *ksig;
+    if (++p->wp == buffersize) {
+      if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
+                          sizeof(p->server_addr)) == SOCKET_ERROR))
         return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
-      }
       p->wp = 0;
     }
-    if (ff) { // Scale for 0dbfs and make LE
-      int16 val = (int16)((32768.0* (*ksig))/csound->Get0dBFS(csound));
-      union cheat {
-        char  benchar[2];
-        int16 bensht;
-      } ch;
-      ch.benchar[0] = 0xFF & val;
-      ch.benchar[1] = 0xFF & (val >> 8);
-      outs[p->wp] = ch.bensht;
-    }
-    else out[p->wp++] = *ksig;
 
     return OK;
 }
@@ -227,13 +251,13 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     int32_t     buffersize = p->bsize;
     char    *out = (char *) p->aux.auxp;
     char    *q = p->str->data;
-    size_t     len = p->str->size;
+    size_t     len = q != NULL ? strlen(q) : 0;
 
     if (UNLIKELY(len >= (size_t) buffersize)) {
       csound->Warning(csound, "%s", Str("string truncated in socksend"));
       len = buffersize-1;
     }
-    memcpy(out, q, len);
+    if (len != 0) memcpy(out, q, len);
     memset(out+len, 0, buffersize-len);
     /* send the package with the string each time */
     if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
@@ -248,28 +272,33 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
 /* UDP version 2 channels */
 static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
 {
-    int32_t     bsize;
-    int32_t     bwidth = sizeof(MYFLT);
-#if defined(WIN32) && !defined(__CYGWIN__)
-    WSADATA wsaData = {0};
-    int32_t err;
-    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
-#endif
-
-    p->ff = (int32_t)(*p->format);
-    p->bsize = bsize = (int32_t) *p->buffersize;
-    /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
-    /*   return csound->InitError(csound,
-         Str("The buffersize must be <= %d samples " */
-    /*                                        "to fit in a udp-packet."), */
-    /*                            (int32_t) (MTU / sizeof(MYFLT))); */
-    /* } */
+    int32_t bwidth, bsize;
+    p->ff = (int32_t)*p->format;
+    bwidth = p->ff ? sizeof(int16) : sizeof(MYFLT);
+    if (!(*p->buffersize >= FL(1.0) &&
+          *p->buffersize <= UDP_MAX_PAYLOAD / bwidth))
+      return csound->InitError(csound, "%s", Str("socksend: invalid buffer length"));
+    bsize = (int32_t)*p->buffersize;
+    if (bsize < 2 || (bsize & 1))
+      return csound->InitError(csound, "%s",
+                               Str("socksends: buffer length must be even"));
+    p->bsize = bsize;
     p->wp = 0;
-
-    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, "%s", Str("creating socket"));
+    if (!p->init_done) {
+#if defined(WIN32) && !defined(__CYGWIN__)
+      WSADATA wsaData = {0};
+      int32_t err = WSAStartup(MAKEWORD(2,2), &wsaData);
+      if (UNLIKELY(err != 0))
+        return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+#endif
+      p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+      if (UNLIKELY(p->sock == SOCKET_ERROR)) {
+#if defined(WIN32) && !defined(__CYGWIN__)
+        WSACleanup();
+#endif
+        return csound->InitError(csound, "%s", Str("creating socket"));
+      }
+      p->init_done = 1;
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -283,7 +312,6 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
 #endif
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
-    if (p->ff) bwidth = sizeof(int16);
     /* create a buffer to write the interleaved audio to */
     if (p->aux.auxp == NULL || (uint32_t) (bsize * bwidth) > p->aux.size)
       /* allocate space for the buffer */
@@ -309,36 +337,23 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
     uint32_t i, nsmps = CS_KSMPS;
     int32_t     ff = p->ff;
 
+    double scale = ff ? 32768.0 / csound->Get0dBFS(csound) : 0;
     if (UNLIKELY(early)) nsmps -= early;
-    /* store the samples of the channels interleaved in the packet */
-    /* (left, right) */
-    for (i = offset, wp = p->wp; i < nsmps; i++, wp += 2) {
-      if (wp == buffersize) {
-        /* send the package when we have a full buffer */
-        if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
-                            sizeof(p->server_addr)) ==SOCKET_ERROR)) {
-          return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
-        }
-        wp = 0;
-      }
-      if (ff) { // Scale for 0dbfs and make LE
-        int16 val = 0x8000*(asigl[i]/csound->Get0dBFS(csound));
-        union {
-          char  benchar[2];
-          int16 bensht;
-        } ch;
-
-        ch.benchar[0] = 0xFF & val;
-        ch.benchar[1] = 0xFF & (val >> 8);
-        outs[wp] = ch.bensht;
-        val = 0x8000*(asigl[i+1]/csound->Get0dBFS(csound));
-        ch.benchar[0] = 0xFF & val;
-        ch.benchar[1] = 0xFF & (val >> 8);
-        outs[wp + 1] = ch.bensht;
+    for (i = offset, wp = p->wp; i < nsmps; i++) {
+      if (ff) {
+        SOCKSEND_PCM16(&outs[wp], asigl[i], scale);
+        SOCKSEND_PCM16(&outs[wp + 1], asigr[i], scale);
       }
       else {
         out[wp] = asigl[i];
         out[wp + 1] = asigr[i];
+      }
+      wp += 2;
+      if (wp == buffersize) {
+        if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
+                            sizeof(p->server_addr)) == SOCKET_ERROR))
+          return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
+        wp = 0;
       }
     }
     p->wp = wp;
@@ -665,7 +680,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 }
 
 static inline size_t aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
-    char *p = aux->auxp;
+    char *p = (char *)aux->auxp;
     aux->auxp = csound->ReAlloc(csound, p, size);
     aux->size = size;
     aux->endp = (char*)aux->auxp + size;
@@ -1132,13 +1147,13 @@ static int32_t oscbundle_deinit(CSOUND *csound, OSCBUNDLE *p)
 static OENTRY socksend_localops[] =
   {
    { "socksend.a", S(SOCKSEND), 0, "", "aSiio", (SUBR) init_send,
-     (SUBR) send_send },
+     (SUBR) send_send, (SUBR) socksend_deinit },
    { "socksend.k", S(SOCKSEND), 0, "", "kSiio", (SUBR) init_send,
-     (SUBR) send_send_k, NULL },
-   { "socksend.S", S(SOCKSENDT), 0, "", "SSiio", (SUBR) init_send,
-     (SUBR) send_send_Str, NULL },
+     (SUBR) send_send_k, (SUBR) socksend_deinit },
+   { "socksend.S", S(SOCKSENDT), 0, "", "SSiio", (SUBR) init_send_Str,
+     (SUBR) send_send_Str, (SUBR) socksend_deinit },
    { "socksends", S(SOCKSENDS), 0, "", "aaSiio", (SUBR) init_sendS,
-     (SUBR) send_sendS },
+     (SUBR) send_sendS, (SUBR) socksends_deinit },
    { "stsend", S(SOCKSEND), 0, "", "aSi", (SUBR) init_ssend,
      (SUBR) send_ssend, (SUBR) stsend_deinit },
   CSOUND_DEPRECATED_OPCODE("OSCsend", "oscsend", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
