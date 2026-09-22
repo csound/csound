@@ -84,6 +84,15 @@ if(BUILD_TESTS)
         target_sources(unittests PRIVATE mp3_state_test.cpp)
     endif()
 
+    if(UNIX AND NOT IOS AND NOT EMSCRIPTEN AND NOT BARE_METAL AND
+       NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+        target_sources(unittests PRIVATE runcommand_test.cpp)
+        if(NOT REQUIRE_PTHREADS)
+            target_compile_definitions(unittests PRIVATE
+                CSOUND_TEST_NO_PROCESS_BACKEND)
+        endif()
+    endif()
+
     set(unittests_CFLAGS ${libcsound_CFLAGS})
     list(REMOVE_ITEM unittests_CFLAGS -D__BUILDING_LIBCSOUND)
     target_compile_options(unittests PRIVATE ${unittests_CFLAGS})
