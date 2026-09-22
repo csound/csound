@@ -262,21 +262,14 @@ char phonemes[32][4] =
 
 static void VoicForm_setPhoneme(CSOUND *csound, VOICF *p, int32_t i, MYFLT sc)
 {
-    if (i>16) i = i%16;
     VoicForm_setFormantAll(p, 0,sc*phonParams[i][0][0], phonParams[i][0][1],
                            (MYFLT)pow(10.0,phonParams[i][0][2] / FL(20.0)));
-    VoicForm_setFormantAll(p, 1,sc*phonParams[i][0][0], phonParams[i][1][1],
+    VoicForm_setFormantAll(p, 1,sc*phonParams[i][1][0], phonParams[i][1][1],
                            (MYFLT)pow(10.0,phonParams[i][1][2] / FL(20.0)));
-    VoicForm_setFormantAll(p, 2,sc*phonParams[i][0][0], phonParams[i][2][1],
+    VoicForm_setFormantAll(p, 2,sc*phonParams[i][2][0], phonParams[i][2][1],
                            (MYFLT)pow(10.0,phonParams[i][2][2] / FL(20.0)));
-    VoicForm_setFormantAll(p, 3,sc*phonParams[i][0][0], phonParams[i][3][1],
+    VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0], phonParams[i][3][1],
                            (MYFLT)pow(10.0,phonParams[i][3][2] / FL(20.0)));
-     /* VoicForm_setFormantAll(p, 1,sc*phonParams[i][1][0], */
-    /*                        phonParams[i][1][1], FL(1.0)); */
-    /* VoicForm_setFormantAll(p, 2,sc*phonParams[i][2][0], */
-    /*                        phonParams[i][2][1], FL(1.0)); */
-    /* VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0], */
-    /*                        phonParams[i][3][1], FL(1.0)); */
     VoicForm_setVoicedUnVoiced(p,phonGains[i][0], phonGains[i][1]);
     csound->Message(csound,
                     Str("Found Formant: %s (number %i)\n"), phonemes[i], i);
@@ -327,9 +320,11 @@ static void make_FormSwep(FormSwep *p)
 
 int32_t voicformset(CSOUND *csound, VOICF *p)
 {
-    MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     int32_t i;
 
+    if (UNLIKELY(!(*p->phoneme >= FL(0.0) && *p->phoneme <= FL(16.0))))
+      return csound->InitError(csound, "%s",
+                               Str("voice: phoneme must be between 0 and 16"));
     p->voiced.h = p->h;
     if (UNLIKELY(make_SingWave(csound, &p->voiced, p->ifn, p->ivfn)!=OK))
       return NOTOK;
@@ -366,14 +361,12 @@ int32_t voicformset(CSOUND *csound, VOICF *p)
         csound->Warning(csound, "%s", Str("This note is too high!!\n"));
         freq = CS_ESR / FL(22.0);
       }
-      p->basef = freq;
+      p->basef = *p->frequency;
       temp = FABS(FL(1500.0) - freq) + FL(200.0);
       p->lastGain = FL(10000.0) / temp / temp;
       SingWave_setFreq(csound, &p->voiced, freq);
     }
 
-    Envelope_setTarget(&(p->voiced.envelope), amp);
-    OnePole_setPole(&p->onepole, FL(0.95) - (amp * FL(0.2))/FL(128.0));
 /*  voicprint(csound, p); */
     return OK;
 }
@@ -385,13 +378,20 @@ int32_t voicform(CSOUND *csound, VOICF *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
+    if (UNLIKELY(!(*p->phoneme >= FL(0.0) && *p->phoneme <= FL(16.0))))
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("voice: phoneme must be between 0 and 16"));
     if (p->basef != *p->frequency) {
+      MYFLT temp, freq = *p->frequency;
       p->basef = *p->frequency;
-      SingWave_setFreq(csound, &p->voiced, p->basef);
+      if (freq * FL(22.0) > CS_ESR)
+        freq = CS_ESR / FL(22.0);
+      temp = FABS(FL(1500.0) - freq) + FL(200.0);
+      p->lastGain = FL(10000.0) / temp / temp;
+      SingWave_setFreq(csound, &p->voiced, freq);
     }
-/*  OnePole_setPole(&p->onepole, 0.95 - (amp * 0.1)); */
-/*  Envelope_setTarget(&(p->voiced.envelope), amp); */
-/*  Envelope_setTarget(&p->noiseEnv, 0.95 - (amp * 0.1)); */
+    OnePole_setPole(&p->onepole,
+                   FL(0.95) - (*p->amp * AMP_RSCALE * FL(0.2))/FL(128.0));
     SingWave_setVibFreq(p->voiced, *p->vibf);
     Modulatr_setVibAmt(p->voiced.modulator, *p->vibAmt);
                                 /* Set phoneme */
@@ -400,7 +400,7 @@ int32_t voicform(CSOUND *csound, VOICF *p)
       p->ph = (int32_t)(0.5 + *p->phoneme);
       csound->Warning(csound, Str("Setting Phoneme: %d %f\n"),
                               p->ph, p->oldform);
-      VoicForm_setPhoneme(csound, p, (int32_t) *p->phoneme, p->oldform);
+      VoicForm_setPhoneme(csound, p, p->ph, p->oldform);
     }
 /*  voicprint(csound, p); */
 
@@ -429,9 +429,9 @@ int32_t voicform(CSOUND *csound, VOICF *p)
       lastOutput *= p->lastGain;
       //      printf("%f ", lastOutput);
       //      printf("->%f\n", lastOutput* AMP_SCALE);
-      ar[n] = lastOutput * FL(0.22) * AMP_SCALE * *p->amp;
+      /* The envelopes hold phoneme gains; kamp sets the output amplitude. */
+      ar[n] = lastOutput * FL(0.22) * *p->amp;
     }
 
     return OK;
 }
-
