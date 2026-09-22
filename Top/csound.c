@@ -180,8 +180,7 @@ static const char *csoundFileError(CSOUND *csound, void *ff) {
   switch (f->type) {
   case CSFILE_SND_W:
   case CSFILE_SND_R:
-    return csound->SndfileStrError(csound, ff);
-    break;
+    return csound->SndfileStrError(csound, f->sf);
   default:
     return "";
   }
