@@ -1995,10 +1995,10 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
 static int32_t gen40(FGDATA *ff, FUNC *ftp)               /*gab d5*/
 {
     CSOUND  *csound = ff->csound;
-    MYFLT   *fp = ftp->ftable, *fp_source, *fp_temp;
+    MYFLT   *fp = ftp->ftable, *fp_source;
     FUNC    *srcftp;
     int32_t     srcno, srcpts, j, k;
-    MYFLT   last_value = FL(0.0), lenratio;
+    double  total = 0.0, cumulative;
 
     if (UNLIKELY((srcno = (int32_t) ff->e.p[5]) <= 0 ||
                  srcno > csound->maxfnum         ||
@@ -2007,21 +2007,25 @@ static int32_t gen40(FGDATA *ff, FUNC *ftp)               /*gab d5*/
     }
     fp_source = srcftp->ftable;
     srcpts = srcftp->flen;
-    fp_temp = (MYFLT *) csound->Calloc(csound,srcpts*sizeof(MYFLT));
     for (j = 0; j < srcpts; j++) {
-      last_value += fp_source[j];
-      fp_temp[j] = last_value;
+      if (UNLIKELY(fp_source[j] < FL(0.0)))
+        return csoundFtError(ff, Str("GEN40: negative histogram weight"));
+      total += fp_source[j];
     }
-    lenratio = (ff->flen-1)/last_value;
+    if (UNLIKELY(!(total > 0.0) || !isfinite(total)))
+      return csoundFtError(ff,
+                          Str("GEN40: histogram total must be positive and finite"));
 
+    k = 0;
+    cumulative = fp_source[0];
     for (j = 0; j < ff->flen; j++) {
-      k=0;
-      while ( k++ < srcpts && fp_temp[k] * lenratio < j) ;
-      k--;
+      double position = ((double) j / ff->flen) * total;
+      /* Use the first bin above this quantile, skipping zero-weight bins. */
+      while (k < srcpts - 1 && cumulative <= position)
+        cumulative += fp_source[++k];
       fp[j] = (MYFLT) k;
     }
     fp[j] = fp[j-1];
-    csound->Free(csound,fp_temp);
 
     return OK;
 }
