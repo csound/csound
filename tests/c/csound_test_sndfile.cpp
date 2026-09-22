@@ -8,6 +8,15 @@
 #include "gtest/gtest.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <filesystem>
+#include <fstream>
+#include <string>
+#include <vector>
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 #include "csound.h"
 #include "csound_files.h"
 #include "csdl.h"
@@ -26,15 +35,26 @@ public:
     virtual void SetUp ()
     {
         csound = csoundCreate (NULL,NULL);
+#ifdef _WIN32
+        const auto pid = _getpid();
+#else
+        const auto pid = getpid();
+#endif
+        path = std::filesystem::temp_directory_path() /
+          ("csound-sndfile-" + std::to_string(pid) + "-" +
+           std::to_string(reinterpret_cast<uintptr_t>(csound)) + ".raw");
     }
 
     virtual void TearDown ()
     {
         csoundDestroy (csound);
         csound = nullptr;
+        std::error_code error;
+        std::filesystem::remove(path, error);
     }
 
     CSOUND* csound {nullptr};
+    std::filesystem::path path;
 };
 
 
@@ -177,7 +197,9 @@ TEST_F (SndfileTests, testWriteSndfile)
   
   SNDFILE_CALLBACKS *sfcbs = sfile_setup(csound);   
   csoundSetSndfileCallbacks(csound, sfcbs);
-  csoundSetOption (csound, "--format=raw --format=double -o test.raw");
+  const std::string options = "--format=raw --format=double -o \"" +
+                              path.generic_string() + "\"";
+  ASSERT_EQ(csoundSetOption(csound, options.c_str()), 0);
   result = csoundCompileOrc(csound, instrument, 0);
   ASSERT_TRUE (result == 0);
   csoundEventString(csound,  "i 1 0 1 0.5 440 \n", 0);
@@ -190,6 +212,14 @@ TEST_F (SndfileTests, testWriteSndfile)
 
 TEST_F (SndfileTests, testReadSndfile)
 {
+  const std::vector<MYFLT> samples(44100, MYFLT(0.25));
+  std::ofstream input(path, std::ios::binary);
+  ASSERT_TRUE(input.is_open());
+  input.write(reinterpret_cast<const char *>(samples.data()),
+              samples.size() * sizeof(MYFLT));
+  input.close();
+  ASSERT_TRUE(input.good());
+
   int32_t result;
   const char* instrument =
         "0dbfs = 1\n"
@@ -200,13 +230,21 @@ TEST_F (SndfileTests, testReadSndfile)
   
   SNDFILE_CALLBACKS *sfcbs = sfile_setup(csound); 
   csoundSetSndfileCallbacks(csound, sfcbs);
-  csoundSetOption (csound, "--format=raw --format=double -itest.raw -odac");
+  const std::string options = "--format=raw --format=double -n -i \"" +
+                              path.generic_string() + "\"";
+  ASSERT_EQ(csoundSetOption(csound, options.c_str()), 0);
   result = csoundCompileOrc(csound, instrument, 0);
   ASSERT_TRUE (result == 0);
   csoundEventString(csound,  "i 1 0 1\n", 0);
   result = csoundStart(csound);
   ASSERT_TRUE (result == 0);
-  while(!result)
+  bool heardInput = false;
+  while(!result) {
     result = csoundPerformKsmps(csound);
+    const MYFLT *output = csoundGetSpout(csound);
+    for (uint32_t i = 0; i < csoundGetKsmps(csound); ++i)
+      heardInput |= output[i] == MYFLT(0.25);
+  }
+  EXPECT_TRUE(heardInput);
 
 }
