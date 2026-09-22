@@ -529,14 +529,21 @@ if (NOT CSOUND_CXX_PRESERVES_NONFINITE)
     message(FATAL_ERROR "C++ compiler has finite-math-only enabled; Csound requires NaN and Inf checks")
 endif()
 
-check_c_compiler_flag(-std=gnu11 HAS_C11)
-if (HAS_C11)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
+# C language standard.
+# MSVC only gained /std:c11 in 19.27 and CMake only maps CMAKE_C_STANDARD to it
+# from 3.18, but we are supporting cmake >= 3.13, so probe the switch directly 
+# there. Everywhere else use CMAKE_C_STANDARD, which CMake translates to the 
+# right compiler option for the toolchain (-std=gnu11 for GCC/Clang, -std=c11, /std:c11 for clang-cl,
+#  and decays to gnu99 when C11 is unavailable.
+if(MSVC)
+    check_c_compiler_flag("/std:c11" HAS_C11)
+    if(HAS_C11)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c11")
+    endif()
 else()
-check_c_compiler_flag(-std=gnu99 HAS_GNU99)
-if (HAS_GNU99)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
-endif()
+    set(CMAKE_C_STANDARD 11)
+    set(CMAKE_C_STANDARD_REQUIRED OFF)
+    set(CMAKE_C_EXTENSIONS ON)
 endif()
 
 
