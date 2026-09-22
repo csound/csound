@@ -585,6 +585,9 @@ static int32_t diode_ladder_init(CSOUND* csound,
     return OK;
 }
 
+#if defined(__GNUC__) && !defined(__clang__)
+__attribute__((optimize("no-reciprocal-math")))
+#endif
 static int32_t diode_ladder_perf(CSOUND* csound,
                              DIODE_LADDER* p) {
 
@@ -715,6 +718,11 @@ static int32_t diode_ladder_perf(CSOUND* csound,
 
       // non-linear processing
       if (nlp == 1.0) {
+#if defined(__clang__) || defined(_MSC_VER)
+#pragma float_control(precise, on)
+#endif
+        /* A reciprocal can overflow for tiny, nonzero saturation even
+           though the quotient is finite. Keep this as a division. */
         in = tanh(saturation * in) / normalization;
       }
       else if (nlp == 2.0) {

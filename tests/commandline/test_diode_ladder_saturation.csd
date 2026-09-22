@@ -36,7 +36,9 @@ instr 1
 
  ; Applying the nonlinearity before the linear filter must give the same
  ; result, including state carried across changes in saturation.
- if p4 == 1 && kSaturation != 0 then
+ ; For this bounded input, tiny saturation has the linear limit. Do not
+ ; repeat the filter's division here: fast-math can overflow its reciprocal.
+ if p4 == 1 && abs(kSaturation) >= 1e-12 then
   aShaped = tanh(kSaturation*aInput)/tanh(kSaturation)
  elseif p4 == 2 then
   aShaped = tanh(kSaturation*aInput)
@@ -72,7 +74,7 @@ instr 1
 endin
 
 instr 99
- if i(gkChecks) != 13 then
+ if i(gkChecks) != 19 then
   prints "diode_ladder checks did not complete\n"
   exitnow(-1)
  endif
@@ -90,6 +92,12 @@ i 1 0 .025 2 0
 i 1 0 .025 2 4
 ; A tiny double-precision value whose reciprocal would overflow.
 i 1 0 .025 1 0 1e-310
+i 1 0 .025 1 0 -1e-310
+i 1 0 .025 1 1 1e-310
+i 1 0 .025 1 2 -1e-310
+i 1 0 .025 1 3 1e-310
+i 1 0 .025 1 4 -1e-310
+i 1 0 .025 1 0 1e-308
 ; Partial first and last blocks.
 i 1 .030625 .02525 1 0
 i 1 .030625 .02525 1 3
