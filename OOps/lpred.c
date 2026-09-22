@@ -118,10 +118,17 @@ void *csoundLPsetup(CSOUND *csound, int32_t N, int32_t M) {
  */
 void csoundLPfree(CSOUND *csound, void *parm) {
   LPCparam *p = (LPCparam *) parm;
+  if (p == NULL) return;
   csound->Free(csound, p->r);
   csound->Free(csound, p->b);
   csound->Free(csound, p->k);
   csound->Free(csound, p->E);
+  csound->Free(csound, p->pk);
+  csound->Free(csound, p->am);
+  csound->Free(csound, p->ftbuf);
+  csound->Free(csound, p->pl);
+  csound->Free(csound, p->cf);
+  csound->Free(csound, p->tmpmem);
   csound->Free(csound, p);
 }
 
@@ -254,7 +261,7 @@ MYFLT *csoundRealCepstrum2Pvs(CSOUND *csound, MYFLT *buf, int32_t size){
 static void pkpick(LPCparam *p){
   int32_t n = 0, i, t1 = 0, t2 = 0;
   MYFLT *r = p->r, *pk = p->pk;
-  for(int32_t i = 1; i < p->N; i++) {
+  for(int32_t i = 1; i + 1 < p->N; i++) {
     if (r[i] > r[i-1]) t1 = 1;
     else t1 = 0;
     if (r[i] >= r[i+1]) t2 = 1;
@@ -309,7 +316,7 @@ MYFLT csoundLPcps(CSOUND *csound, void *parm){
       pmx = pk[i];
     }
   }
-  return (p->cps = sr/pmx);
+  return (p->cps = mx > FL(0.0) ? sr/pmx : FL(0.0));
 }
 
 MYFLT csoundLPrms(CSOUND *csound, void *parm){
@@ -537,8 +544,43 @@ MYFLT *csoundStabiliseAllpole(CSOUND *csound, void *parm, MYFLT *c, int32_t mode
 }
 
 /* opcodes */
+static int32_t lp_free_setup(CSOUND *csound, void **setup) {
+  csound->LPfree(csound, *setup);
+  *setup = NULL;
+  return OK;
+}
+
+int32_t lpfil_deinit(CSOUND *csound, LPCFIL *p) {
+  return lp_free_setup(csound, &p->setup);
+}
+
+int32_t lpfil2_deinit(CSOUND *csound, LPCFIL2 *p) {
+  return lp_free_setup(csound, &p->setup);
+}
+
+int32_t lpred_deinit(CSOUND *csound, LPREDA *p) {
+  return lp_free_setup(csound, &p->setup);
+}
+
+int32_t lpred2_deinit(CSOUND *csound, LPREDA2 *p) {
+  return lp_free_setup(csound, &p->setup);
+}
+
+int32_t lpcpvs_deinit(CSOUND *csound, LPCPVS *p) {
+  return lp_free_setup(csound, &p->setup);
+}
+
+int32_t pvscoefs_deinit(CSOUND *csound, PVSCFS *p) {
+  return lp_free_setup(csound, &p->setup);
+}
+
+int32_t coef2parm_deinit(CSOUND *csound, CF2P *p) {
+  return lp_free_setup(csound, &p->setup);
+}
+
 /* lpcfilter - take lpred input from table */
 int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
+  lpfil_deinit(csound, p);
 
   FUNC *ft = csound->FTFind(csound, p->ifn);
 
@@ -650,6 +692,7 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
 
 /* lpcfilter - take lpred input from sig */
 int32_t lpfil2_init(CSOUND *csound, LPCFIL2 *p) {
+  lpfil2_deinit(csound, p);
   uint32_t Nbytes = *p->isiz*sizeof(MYFLT);
   uint32_t Mbytes = *p->iord*sizeof(MYFLT);
   p->M = *p->iord;
@@ -745,6 +788,7 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
 
 /* function table input */
 int32_t lpred_alloc(CSOUND *csound, LPREDA *p) {
+  lpred_deinit(csound, p);
   FUNC *ft = csound->FTFind(csound, p->ifn);
   if (ft != NULL) {
     int32_t N = *p->isiz < ft->flen ? *p->isiz : ft->flen;
@@ -798,13 +842,16 @@ int32_t lpred_run(CSOUND *csound, LPREDA *p) {
 
 /* i-time version */
 int32_t lpred_i(CSOUND *csound, LPREDA *p) {
-  if(lpred_alloc(csound,p) == OK)
-    return lpred_run(csound,p);
-  else return NOTOK;
+  int32_t status = lpred_alloc(csound, p);
+  if (status == OK)
+    status = lpred_run(csound, p);
+  lpred_deinit(csound, p);
+  return status;
 }
 
 /* audio signal input */
 int32_t lpred_alloc2(CSOUND *csound, LPREDA2 *p) {
+  lpred2_deinit(csound, p);
   int32_t N = *p->isiz;
   uint32_t Nbytes = N*sizeof(MYFLT);
   if(*p->iwin){
@@ -918,6 +965,7 @@ int32_t lpfil3_perf(CSOUND *csound, LPCFIL3 *p) {
 /* pvs <-> lpc */
 
 int32_t lpcpvs_init(CSOUND *csound, LPCPVS *p) {
+  lpcpvs_deinit(csound, p);
   int32_t N = *p->isiz;
   uint32_t Nbytes = N*sizeof(MYFLT);
   if(*p->iwin){
@@ -1004,6 +1052,9 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
           a = g/inv;
         else a = g;
         pvframe[i] = (float) a;
+        /* No detected pitch, or a pitch below one bin: keep bin centres. */
+        pvframe[i+1] = (float)(bin * sr / N);
+        if(cpsbin <= 0) continue;
         if(bin/cpsbin)
           pvframe[i+1] = cps*bin/cpsbin;
         else if ((bin+1)/cpsbin)
@@ -1022,6 +1073,7 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
 }
 
 int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
+  pvscoefs_deinit(csound, p);
   uint32_t Nbytes = (p->fin->N+2)*sizeof(MYFLT);
   uint32_t Mbytes;
   p->N = p->fin->N;
@@ -1070,6 +1122,7 @@ int32_t pvscoefs(CSOUND *csound, PVSCFS *p){
 
 /* coefficients to filter CF/BW */
 int32_t coef2parm_init(CSOUND *csound, CF2P *p) {
+  coef2parm_deinit(csound, p);
   if (UNLIKELY(p->in->dimensions != 1 || p->in->data == NULL ||
                p->in->sizes[0] <= 0))
     return csound->InitError(csound, "%s",
