@@ -624,7 +624,13 @@ typedef struct _rawosc {
   MYFLT *kflag;
   MYFLT  *port;
   AUXCH   buffer;
+#if defined(WIN32) && !defined(__CYGWIN__)
+  SOCKET sock;
+#else
   int32_t     sock;
+#endif
+  int32_t wsa_started;
+  int32_t init_done;
   /*
     AUXCH tmp;
     volatile int32_t threadon;
@@ -639,13 +645,21 @@ typedef struct _rawosc {
 
 static int32_t destroy_raw_osc(CSOUND *csound, void *pp) {
     RAWOSC *p = (RAWOSC *) pp;
-#ifndef WIN32
-    close(p->sock);
-    csound->Message(csound, "%s", Str("OSCraw: Closing socket\n"));
+    IGN(csound);
+    if (!p->init_done)
+      return OK;
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (p->sock != INVALID_SOCKET)
+      closesocket(p->sock);
+    if (p->wsa_started)
+      WSACleanup();
 #else
-    closesocket(p->sock);
-    csound->Message(csound, "%s", Str("OSCraw: Closing socket\n"));
+    if (p->sock != SOCKET_ERROR)
+      close(p->sock);
 #endif
+    p->sock = SOCKET_ERROR;
+    p->wsa_started = 0;
+    p->init_done = 0;
     return OK;
 }
 
@@ -654,24 +668,37 @@ static int32_t destroy_raw_osc(CSOUND *csound, void *pp) {
 static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
 {
     MYFLT   *buf;
+    const char *message;
+    destroy_raw_osc(csound, p);
+    p->sock = SOCKET_ERROR;
+    p->wsa_started = 0;
+    if (UNLIKELY(!(*p->port >= FL(0.0) && *p->port <= FL(65535.0))))
+      return csound->InitError(csound, "%s", Str("invalid port number"));
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+    p->wsa_started = 1;
 #endif
+    p->init_done = 1;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
+      message = Str("creating socket");
+      goto error;
+    }
 #ifndef WIN32
-    if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
-      return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
+    if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0)) {
+      message = Str("Cannot set nonblock");
+      goto error;
+    }
 #else
     u_long nMode = 1; // 1: NON-BLOCKING
-    if (ioctlsocket (p->sock, FIONBIO, &nMode) == SOCKET_ERROR)
-       return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
-#endif
-    if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, "%s", Str("creating socket"));
+    if (ioctlsocket (p->sock, FIONBIO, &nMode) == SOCKET_ERROR) {
+      message = Str("Cannot set nonblock");
+      goto error;
     }
+#endif
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
@@ -679,8 +706,10 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-                      sizeof(p->server_addr)) == SOCKET_ERROR))
-      return csound->InitError(csound, "%s", Str("bind failed"));
+                      sizeof(p->server_addr)) == SOCKET_ERROR)) {
+      message = Str("bind failed");
+      goto error;
+    }
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
@@ -691,149 +720,314 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
     }
     if(p->sout->data == NULL)
       if (UNLIKELY(tabinit(csound, p->sout, 2,
-                           p->h.insdshead) != OK))
+                           p->h.insdshead) != OK)) {
+        destroy_raw_osc(csound, p);
         return csound_array_init_resize_error(csound);
+      }
 
   return OK;
+
+ error:
+  destroy_raw_osc(csound, p);
+  return csound->InitError(csound, "%s", message);
 }
 
 
 
-static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
+static int32_t oscraw_reserve(CSOUND *csound, STRINGDAT *str, size_t len)
+{
+    if (len + 1 > str->size) {
+      char *newData = (char *) csound->ReAlloc(csound, str->data, len + 1);
+      if (newData == NULL)
+        return NOTOK;
+      str->data = newData;
+      str->size = len + 1;
+    }
+    return OK;
+}
 
-    ARRAYDAT *sout = p->sout;
-    if (sout->sizes[0] < 2 ||
-       sout->dimensions > 1)
-      return
-        csound->PerfError(csound, &(p->h), "%s", Str("output array too small\n"));
+static int32_t oscraw_store(CSOUND *csound, STRINGDAT *str,
+                            const char *data, size_t len)
+{
+    if (oscraw_reserve(csound, str, len) != OK)
+      return NOTOK;
+    if (len != 0)
+      memcpy(str->data, data, len);
+    str->data[len] = '\0';
+    return OK;
+}
 
-    char *buf = (char *) p->buffer.auxp;
-    int32_t n = 0, j = 1;
-    size_t len = 0;
-    char c;
-    memset(buf, 0, p->buffer.size);
-    uint32_t size = 0;
-    char *types  = NULL;
+static int32_t oscraw_read_string(const unsigned char **cursor,
+                                  const unsigned char *end,
+                                  const char **value, size_t *len)
+{
+    const unsigned char *nul;
+    size_t padded;
+    if (*cursor >= end ||
+        (nul = memchr(*cursor, '\0', (size_t) (end - *cursor))) == NULL)
+      return NOTOK;
+    *len = (size_t) (nul - *cursor);
+    padded = (*len + 4) & ~(size_t) 3;
+    if (padded > (size_t) (end - *cursor))
+      return NOTOK;
+    *value = (const char *) *cursor;
+    *cursor += padded;
+    return OK;
+}
+
+static int32_t oscraw_read_u32(const unsigned char **cursor,
+                               const unsigned char *end, uint32_t *value)
+{
+    if ((size_t) (end - *cursor) < sizeof(*value))
+      return NOTOK;
+    memcpy(value, *cursor, sizeof(*value));
+    byteswap((char *) value, sizeof(*value));
+    *cursor += sizeof(*value);
+    return OK;
+}
+
+static int32_t oscraw_store_array(CSOUND *csound, STRINGDAT *str,
+                                  const unsigned char *data, size_t len)
+{
+    int32_t dimensions;
+    size_t count = 1, shapeBytes, valueBytes, capacity, used = 0;
+    const unsigned char *sizes;
+    const unsigned char *values;
+    char *output;
+    int32_t i;
+    if (len < sizeof(dimensions))
+      return NOTOK;
+    memcpy(&dimensions, data, sizeof(dimensions));
+    if (dimensions < 1 || (size_t) dimensions >
+        (len - sizeof(dimensions)) / sizeof(int32_t))
+      return NOTOK;
+    shapeBytes = (size_t) dimensions * sizeof(int32_t);
+    sizes = data + sizeof(dimensions);
+    for (i = 0; i < dimensions; i++) {
+      int32_t size;
+      memcpy(&size, sizes + (size_t) i * sizeof(size), sizeof(size));
+      if (size < 0 || (size != 0 && count > SIZE_MAX / (size_t) size))
+        return NOTOK;
+      count *= (size_t) size;
+    }
+    if (count > SIZE_MAX / sizeof(MYFLT))
+      return NOTOK;
+    valueBytes = count * sizeof(MYFLT);
+    if (sizeof(dimensions) + shapeBytes > len ||
+        valueBytes > len - sizeof(dimensions) - shapeBytes)
+      return NOTOK;
+    capacity = 64 + (size_t) dimensions * 16 + count * 32;
+    if (capacity > str->size) {
+      output = (char *) csound->ReAlloc(csound, str->data, capacity);
+      if (output == NULL)
+        return NOTOK;
+      str->data = output;
+      str->size = capacity;
+    }
+    output = str->data;
+#define OSCRAW_APPEND(...) do {                                              \
+      int32_t written = snprintf(output + used, capacity - used, __VA_ARGS__); \
+      if (written < 0 || (size_t) written >= capacity - used) return NOTOK;  \
+      used += (size_t) written;                                               \
+    } while (0)
+    OSCRAW_APPEND("%d:[", dimensions);
+    for (i = 0; i < dimensions; i++) {
+      int32_t size;
+      memcpy(&size, sizes + (size_t) i * sizeof(size), sizeof(size));
+      OSCRAW_APPEND(i == 0 ? "%d" : ",%d", size);
+    }
+    OSCRAW_APPEND("]:[");
+    values = data + sizeof(dimensions) + shapeBytes;
+    for (size_t j = 0; j < count; j++) {
+      MYFLT value;
+      memcpy(&value, values + j * sizeof(value), sizeof(value));
+      OSCRAW_APPEND(j == 0 ? "%.9g" : ",%.9g", (double) value);
+    }
+    OSCRAW_APPEND("]");
+#undef OSCRAW_APPEND
+    return OK;
+}
+
+static int32_t oscraw_store_values(CSOUND *csound, STRINGDAT *str,
+                                   const unsigned char *data, size_t len,
+                                   int32_t hasCount)
+{
+    size_t count, capacity, used = 0;
+    char *output;
+    if (len % sizeof(MYFLT) != 0)
+      return NOTOK;
+    count = len / sizeof(MYFLT);
+    if (hasCount) {
+      MYFLT declared;
+      if (count == 0)
+        return NOTOK;
+      memcpy(&declared, data, sizeof(declared));
+      if (!(declared >= FL(0.0) && declared <= (MYFLT) (count - 1)))
+        return NOTOK;
+      count = (size_t) declared;
+      if (declared != (MYFLT) count)
+        return NOTOK;
+      data += sizeof(MYFLT);
+    }
+    capacity = 4 + count * 32;
+    if (oscraw_reserve(csound, str, capacity - 1) != OK)
+      return NOTOK;
+    output = str->data;
+    output[used++] = '[';
+    for (size_t i = 0; i < count; i++) {
+      MYFLT value;
+      int32_t written;
+      memcpy(&value, data + i * sizeof(value), sizeof(value));
+      written = snprintf(output + used, capacity - used,
+                         i == 0 ? "%.9g" : ",%.9g", (double) value);
+      if (written < 0 || (size_t) written >= capacity - used)
+        return NOTOK;
+      used += (size_t) written;
+    }
+    output[used++] = ']';
+    output[used] = '\0';
+    return OK;
+}
+
+static int32_t oscraw_parse_message(CSOUND *csound, RAWOSC *p,
+                                    const unsigned char *cursor,
+                                    const unsigned char *end, int32_t *count)
+{
+    ARRAYDAT *out = p->sout;
+    const char *address, *types;
+    size_t addressLen, typesLen;
+    if (oscraw_read_string(&cursor, end, &address, &addressLen) != OK ||
+        oscraw_read_string(&cursor, end, &types, &typesLen) != OK ||
+        typesLen == 0 || types[0] != ',')
+      return NOTOK;
+    if (*count < out->sizes[0] &&
+        oscraw_store(csound, csound_string_array_element(out, (*count)++),
+                     address, addressLen) != OK)
+      return NOTOK;
+    if (*count < out->sizes[0] &&
+        oscraw_store(csound, csound_string_array_element(out, (*count)++),
+                     types, typesLen) != OK)
+      return NOTOK;
+    for (size_t i = 1; i < typesLen; i++) {
+      STRINGDAT *str;
+      uint32_t raw;
+      if (*count >= out->sizes[0])
+        return OK;
+      str = csound_string_array_element(out, *count);
+      switch (types[i]) {
+      case 'f': {
+        float value;
+        if (oscraw_read_u32(&cursor, end, &raw) != OK) return NOTOK;
+        memcpy(&value, &raw, sizeof(value));
+        if (oscraw_reserve(csound, str, 31) != OK)
+          return NOTOK;
+        snprintf(str->data, str->size, "%g", (double) value);
+        break;
+      }
+      case 'i': {
+        int32_t value;
+        if (oscraw_read_u32(&cursor, end, &raw) != OK) return NOTOK;
+        memcpy(&value, &raw, sizeof(value));
+        if (oscraw_reserve(csound, str, 31) != OK)
+          return NOTOK;
+        snprintf(str->data, str->size, "%d", value);
+        break;
+      }
+      case 's': {
+        const char *value;
+        size_t len;
+        if (oscraw_read_string(&cursor, end, &value, &len) != OK ||
+            oscraw_store(csound, str, value, len) != OK)
+          return NOTOK;
+        break;
+      }
+      case 'b':
+      case 'A':
+      case 'a':
+      case 'G': {
+        const unsigned char *blob;
+        size_t padded;
+        uint64_t padded64;
+        if (oscraw_read_u32(&cursor, end, &raw) != OK)
+          return NOTOK;
+        padded64 = ((uint64_t) raw + 3) & ~(uint64_t) 3;
+        if (padded64 > (size_t) (end - cursor))
+          return NOTOK;
+        padded = (size_t) padded64;
+        blob = cursor;
+        cursor += padded;
+        if (types[i] == 'A') {
+          if (oscraw_store_array(csound, str, blob, raw) != OK) return NOTOK;
+        }
+        else if (types[i] == 'a' || types[i] == 'G') {
+          if (oscraw_store_values(csound, str, blob, raw,
+                                  types[i] == 'a') != OK)
+            return NOTOK;
+        }
+        else {
+          size_t outputLen = 2 + (size_t) raw * 2;
+          if (oscraw_reserve(csound, str, outputLen) != OK) return NOTOK;
+          str->data[0] = '0'; str->data[1] = 'x';
+          for (size_t j = 0; j < raw; j++)
+            snprintf(str->data + 2 + j * 2, 3, "%02x", blob[j]);
+        }
+        break;
+      }
+      case 'T':
+        if (oscraw_store(csound, str, "true", 4) != OK) return NOTOK;
+        break;
+      case 'F':
+        if (oscraw_store(csound, str, "false", 5) != OK) return NOTOK;
+        break;
+      case 'I':
+        if (oscraw_store(csound, str, "inf", 3) != OK) return NOTOK;
+        break;
+      case 'N':
+        if (oscraw_store(csound, str, "nil", 3) != OK) return NOTOK;
+        break;
+      default:
+        return NOTOK;
+      }
+      (*count)++;
+    }
+    return OK;
+}
+
+static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p)
+{
+    ARRAYDAT *out = p->sout;
+    unsigned char *buffer = (unsigned char *) p->buffer.auxp;
+    const unsigned char *cursor, *end;
     struct sockaddr from;
-    socklen_t clilen = sizeof(from);
-    int32_t bytes = (int32_t)
-      recvfrom(p->sock, (void *)buf, MTU-1, 0, &from, &clilen);
-    if (bytes < 0) bytes = 0;
+    socklen_t fromLen = sizeof(from);
+    int32_t bytes, count = 0;
 
-    // terminating string to satisfy coverity
-    buf[p->buffer.size-1] = '\0';
-
-    if (bytes) {
-      if (strncmp(buf,"#bundle",7) == 0) { // bundle
-        buf += 8;
-        buf += 8;
-        size = *((uint32_t *) buf);
-        byteswap((char *)&size, 4);
-        buf += 4;
-      } else size = bytes;
-      while(size > 0 && size < MTU)  {
-        /* get address & types */
-        if (n < sout->sizes[0]) {
-          STRINGDAT *str = csound_string_array_element(sout, n);
-          len = strlen(buf);
-          // printf("len %d size %d incr %d\n",
-          //        len, str->size, ((size_t) ceil((len+1)/4.)*4));
-          if (len >= str->size) {
-            str->data = csound->ReAlloc(csound, str->data, len+1);
-            memset(str->data,0,len+1);
-            str->size  = len+1;
-          }
-          strncpy(str->data, buf, len+1);
-          //str->data[len] = '\0'; // explicitly terminate it.
-          n++;
-          buf += ((size_t) ceil((len+1)/4.)*4);
-        }
-        if (n < sout->sizes[0]) {
-          STRINGDAT *str = csound_string_array_element(sout, n);
-          len = strlen(buf);
-          if (len >= str->size) {
-            str->data = csound->ReAlloc(csound, str->data, len+1);
-            str->size  = len+1;
-          }
-          strncpy(str->data, buf, len+1);
-          //str->data[str->size-1] = '\0'; // explicitly terminate it.
-          types = str->data;
-          n++;
-          buf += ((size_t) ceil((len+1)/4.)*4);
-        }
-        j = 1;
-        // parse data
-        while((c = types[j++]) != '\0' && n < sout->sizes[0]){
-          STRINGDAT *str = csound_string_array_element(sout, n);
-          if (c == 'f') {
-            float f = *((float *) buf);
-            byteswap((char*)&f,4);
-            if (str->size < 32) {
-              str->data = csound->ReAlloc(csound, str->data, 32);
-              str->size  = 32;
-            }
-            snprintf(str->data, str->size, "%f", f);
-            buf += 4;
-          } else if (c == 'i') {
-            int32_t d = *((int32_t *) buf);
-            byteswap((char*) &d,4);
-            if (str->size < 32) {
-              str->data = csound->ReAlloc(csound, str->data, 32);
-              str->size  = 32;
-            }
-            snprintf(str->data, str->size, "%d", d);
-            buf += 4;
-          } else if (c == 's') {
-            len = strlen(buf);
-            if (len+1 > str->size) {
-              str->data = csound->ReAlloc(csound, str->data, len+1);
-              str->size  = len+1;
-            }
-            strncpy(str->data, buf, len+1);
-            //str->data[len] = '\0';
-            len = ceil((len+1)/4.)*4;
-            buf += len;
-          } else if (c == 'b') {
-            len = *((uint32_t *) buf);
-            byteswap((char*)&len,4);
-            len = ceil((len)/4.)*4;
-            if (len > str->size) {
-              str->data = csound->ReAlloc(csound, str->data, len+1);
-              str->size  = len+1;
-            }
-            strncpy(str->data, buf, len+1);
-            //str->data[len] = '\0';
-            buf += len;
-          } else if (c == 'A'){
-            len = *((uint32_t *) buf);
-            byteswap((char*)&len,4);
-            int32_t asize = *(((uint32_t *) buf) + 4);
-            byteswap((char*)&asize,4);
-            int32_t dim = *(((uint32_t *) buf) + 8);
-            byteswap((char*)&dim,4);
-            if (len*15 > str->size) {
-              str->data = csound->ReAlloc(csound, str->data, 15*len+1);
-              str->size  = len+1;
-            }
-            MYFLT *s = ((MYFLT *) (((uint32_t *) buf) + 12));
-            snprintf(str->data, 32, "%d:", dim);
-            char *data = str->data + 2;
-            snprintf(data, 32, "%d:[",size);
-            data += 32;
-            for(int i = 0; i < asize; i++) {
-                snprintf(data+15*i,15,"%f,", s[i]);
-            }
-            snprintf(data+15*asize, 2, "%c", ']');
-            buf += len;
-          }
-          n++;
-        }
-        size = *((uint32_t *) buf);
-        byteswap((char *)&size, 4);
-        buf += 4;
+    *p->kflag = 0;
+    if (out->dimensions != 1 || out->sizes == NULL || out->sizes[0] < 2)
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("output array too small\n"));
+    bytes = (int32_t) recvfrom(p->sock, buffer, MTU, 0, &from, &fromLen);
+    if (bytes <= 0)
+      return OK;
+    cursor = buffer;
+    end = buffer + bytes;
+    if (bytes >= 16 && memcmp(cursor, "#bundle\0", 8) == 0) {
+      cursor += 16;  /* bundle marker and time tag */
+      while (cursor < end) {
+        uint32_t messageSize;
+        if (oscraw_read_u32(&cursor, end, &messageSize) != OK ||
+            messageSize == 0 || (messageSize & 3) != 0 ||
+            messageSize > (size_t) (end - cursor) ||
+            oscraw_parse_message(csound, p, cursor, cursor + messageSize,
+                                 &count) != OK)
+          return OK;
+        cursor += messageSize;
       }
     }
-    *p->kflag = n;
+    else if (oscraw_parse_message(csound, p, cursor, end, &count) != OK) {
+      return OK;
+    }
+    *p->kflag = count;
     return OK;
 }
 
