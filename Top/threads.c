@@ -213,6 +213,8 @@ typedef struct barrier {
  void *csoundGetCurrentThreadId(void)
 {
     pthread_t *ppthread = (pthread_t *)malloc(sizeof(pthread_t));
+    if (ppthread == NULL)
+      return NULL;
     *ppthread = pthread_self(); /* This version wastes space but works */
     return ppthread;
 }
@@ -652,6 +654,8 @@ static uint32_t __stdcall threadRoutineWrapper(void *p)
  void *csoundGetCurrentThreadId(void)
 {
     DWORD* d = malloc(sizeof(DWORD));
+    if (d == NULL)
+      return NULL;
     *d = GetCurrentThreadId();
     return (void*) d;
 }
@@ -1060,7 +1064,11 @@ typedef struct barrier {
 
  void *csoundGetCurrentThreadId(void)
 {
-  return (void *) thrd_current();
+  thrd_t *thread = (thrd_t *)malloc(sizeof(thrd_t));
+  if (thread == NULL)
+    return NULL;
+  *thread = thrd_current();
+  return thread;
 }
 
  uintptr_t csoundJoinThread(void *thread)

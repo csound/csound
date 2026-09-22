@@ -71,6 +71,7 @@ if(BUILD_TESTS)
         server_test.cpp
         csound_plugin_opcode_test.cpp
         perfthread_test.cpp
+        thread_id_test.cpp
         rt_audio_fade_test.cpp
         csound_test_sndfile.cpp
         analysis_file_safety_test.cpp
@@ -92,6 +93,10 @@ if(BUILD_TESTS)
             target_compile_definitions(unittests PRIVATE
                 CSOUND_TEST_NO_PROCESS_BACKEND)
         endif()
+    endif()
+
+    if(REQUIRE_PTHREADS)
+        target_compile_definitions(unittests PRIVATE CSOUND_TEST_PTHREADS)
     endif()
 
     set(unittests_CFLAGS ${libcsound_CFLAGS})
