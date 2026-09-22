@@ -1,0 +1,7 @@
+{
+  /* Field order differs from the string fixture. */
+  "pitch": 64,
+  "onset": 0.25,
+  "label": "plucked // literal",
+  "levels": [0.25, 0.5, 1,],
+}
