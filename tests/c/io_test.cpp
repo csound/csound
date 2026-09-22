@@ -243,6 +243,90 @@ TEST_F (IOTests, testSynchronousCloseWhileAsyncWorkerRuns)
     EXPECT_EQ(remove(asyncPath.c_str()), 0);
 }
 
+TEST_F(IOTests, testAsyncOutputDrainsBeforeClose)
+{
+    struct Writer {
+      int64_t (*write)(CSOUND *, void *, MYFLT *, int64_t);
+      int32_t (*close)(CSOUND *, void *);
+      std::thread::id closer;
+    } writer = {csound->SndfileWriteSamples, csound->SndfileClose, {}};
+    std::string path = ::testing::TempDir() + "csound_async_output_" +
+                      std::to_string(reinterpret_cast<uintptr_t>(csound)) + ".wav";
+    MYFLT samples[160], result[160];
+    for (int i = 0; i < 160; ++i) samples[i] = i / FL(256.0);
+
+    for (uint32_t flags : {CSFILE_CLOSE_SYNC, CSFILE_CLOSE_DEFER}) {
+      writer.closer = {};
+      csoundSetHostData(csound, &writer);
+      csound->SndfileWriteSamples = [](CSOUND *cs, void *sf, MYFLT *data,
+                                      int64_t count) -> int64_t {
+        auto *writer = static_cast<Writer *>(csoundGetHostData(cs));
+        return writer->write(cs, sf, data, std::min<int64_t>(count, 7));
+      };
+      csound->SndfileClose = [](CSOUND *cs, void *sf) -> int32_t {
+        auto *writer = static_cast<Writer *>(csoundGetHostData(cs));
+        writer->closer = std::this_thread::get_id();
+        return writer->close(cs, sf);
+      };
+      SFLIB_INFO info = {};
+      info.samplerate = 48000;
+      info.channels = 1;
+      info.format = TYP2SF(TYP_WAV) | AE_FLOAT;
+      void *sf = nullptr;
+      void *file = csoundFileOpenAsync(csound, &sf, CSFILE_SND_W, path.c_str(),
+                                      &info, nullptr, CSFTYPE_WAVE, 64, 0);
+      ASSERT_NE(file, nullptr);
+      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+      EXPECT_EQ(csound->WriteAsync(csound, file, samples, 160), 160u);
+      EXPECT_EQ(csoundFileClose(csound, file, flags), 0);
+      if (flags == CSFILE_CLOSE_DEFER)
+        EXPECT_EQ(writer.closer, std::thread::id());
+      csound->NotifyThreadLock(csound->file_io_threadlock);
+      csoundReset(csound);  // Join the worker before reading the closed file.
+      EXPECT_NE(writer.closer, std::thread::id());
+      EXPECT_EQ(writer.closer == std::this_thread::get_id(),
+                flags == CSFILE_CLOSE_SYNC);
+      csound->SndfileWriteSamples = writer.write;
+      csound->SndfileClose = writer.close;
+      csoundSetHostData(csound, nullptr);
+
+      info = {};
+      sf = csound->SndfileOpen(csound, path.c_str(), SFM_READ, &info);
+      ASSERT_NE(sf, nullptr);
+      EXPECT_EQ(info.frames, 160);
+      EXPECT_EQ(csound->SndfileReadSamples(csound, sf, result, 160), 160);
+      for (int i = 0; i < 160; ++i) EXPECT_EQ(result[i], samples[i]);
+      EXPECT_EQ(csound->SndfileClose(csound, sf), 0);
+      EXPECT_EQ(remove(path.c_str()), 0);
+    }
+}
+
+TEST_F(IOTests, testAsyncCloseReportsWriteFailure)
+{
+    std::string path = ::testing::TempDir() + "csound_async_error_" +
+                      std::to_string(reinterpret_cast<uintptr_t>(csound)) + ".wav";
+    SFLIB_INFO info = {};
+    info.samplerate = 48000;
+    info.channels = 1;
+    info.format = TYP2SF(TYP_WAV) | AE_FLOAT;
+    void *sf = nullptr;
+    void *file = csoundFileOpenAsync(csound, &sf, CSFILE_SND_W, path.c_str(),
+                                    &info, nullptr, CSFTYPE_WAVE, 64, 0);
+    ASSERT_NE(file, nullptr);
+    csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+    auto savedWrite = csound->SndfileWriteSamples;
+    csound->SndfileWriteSamples = [](CSOUND *, void *, MYFLT *, int64_t) -> int64_t {
+      return 0;
+    };
+    MYFLT sample = FL(0.5);
+    EXPECT_EQ(csound->WriteAsync(csound, file, &sample, 1), 1u);
+    EXPECT_EQ(csoundFileClose(csound, file, CSFILE_CLOSE_SYNC), NOTOK);
+    csound->SndfileWriteSamples = savedWrite;
+    csound->NotifyThreadLock(csound->file_io_threadlock);
+    csoundReset(csound);
+    EXPECT_EQ(remove(path.c_str()), 0);
+}
+
 TEST_F (IOTests, testSynchronousCloseReportsBorrowedFileError)
 {
     SNDFILE *fakeSndfile = reinterpret_cast<SNDFILE *>(csound);
