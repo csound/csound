@@ -2788,7 +2788,8 @@ static int32_t gen44(FGDATA *ff, FUNC *ftp)
 
 static int32_t gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
 {
-    int32_t     j, notenum, grade, numgrades, basekeymidi, nvals;
+    int32_t     j, grade, numgrades, basekeymidi, nvals;
+    int64_t     notenum;
     MYFLT   basefreq, factor, interval;
     MYFLT   *fp = ftp->ftable, *pp;
     CSOUND  *csound = ff->csound;
@@ -2798,27 +2799,36 @@ static int32_t gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
     }
     nvals       = ff->flen;
     pp          = &(ff->e.p[5]);
-    numgrades   = (int32_t) *pp++;
-    interval    = *pp++;
-    basefreq    = *pp++;
-    basekeymidi = (int32_t) *pp++;
-    if (UNLIKELY((ff->e.pcnt - 8) < numgrades)) { /* gab fixed */
+    if (UNLIKELY(ff->e.pcnt < 9))
+      return csoundFtError(ff, Str("GEN51: insufficient arguments"));
+    if (UNLIKELY(!(pp[0] >= FL(1.0) &&
+                   (double) pp[0] <= ff->e.pcnt - 8) ||
+                 pp[0] != (int32_t) pp[0]))
       return csoundFtError(ff,
-                     Str("GEN51: invalid number of p-fields (too few grades)"));
-    }
+                           Str("GEN51: invalid grade count or too few ratios"));
+    if (UNLIKELY(!((double) pp[3] >= INT32_MIN &&
+                   (double) pp[3] <= INT32_MAX) ||
+                 pp[3] != (int32_t) pp[3]))
+      return csoundFtError(ff, Str("GEN51: base key must be a 32-bit integer"));
+    numgrades   = (int32_t) pp[0];
+    interval    = pp[1];
+    basefreq    = pp[2];
+    basekeymidi = (int32_t) pp[3];
+    pp += 4;
 
+    /* A distance from a valid base key can exceed the 32-bit range. */
     for (j = 0; j < nvals; j++) {
       MYFLT x;
       notenum = j;
       if (notenum < basekeymidi) {
         notenum = basekeymidi - notenum;
         grade  = (numgrades - (notenum % numgrades)) % numgrades;
-        factor = -((MYFLT) ((int32_t) ((notenum + numgrades - 1) / numgrades)));
+        factor = -(MYFLT) ((notenum + numgrades - 1) / numgrades);
       }
       else {
         notenum = notenum - basekeymidi;
         grade  = notenum % numgrades;
-        factor = (MYFLT) ((int32_t) (notenum / numgrades));
+        factor = (MYFLT) (notenum / numgrades);
       }
       factor = POWER(interval, factor);
       x = pp[grade];
