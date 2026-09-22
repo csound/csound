@@ -138,6 +138,34 @@ SNDFILE_CALLBACKS *sfile_setup(CSOUND *csound) {
       return sfcbs;
 }
 
+TEST_F (SndfileTests, testFileErrorHandle)
+{
+  int token;
+  void *soundfile = &token;
+  auto savedError = csound->SndfileStrError;
+  auto savedClose = csound->SndfileClose;
+  csoundSetHostData(csound, soundfile);
+  csound->SndfileStrError = [](CSOUND *cs, void *handle) -> const char * {
+    EXPECT_EQ(handle, csoundGetHostData(cs));
+    return "soundfile error";
+  };
+  csound->SndfileClose = [](CSOUND *cs, void *handle) -> int32_t {
+    EXPECT_EQ(handle, csoundGetHostData(cs));
+    return 0;
+  };
+
+  for (int type : {CSFILE_SND_R, CSFILE_SND_W}) {
+    void *file = csound->CreateFileHandle(csound, &soundfile, type, "callback-test");
+    ASSERT_NE(file, nullptr);
+    EXPECT_STREQ(csound->FileError(csound, file), "soundfile error");
+    EXPECT_EQ(csound->FileClose(csound, file, CSFILE_CLOSE_SYNC), 0);
+  }
+
+  csound->SndfileStrError = savedError;
+  csound->SndfileClose = savedClose;
+  csoundSetHostData(csound, nullptr);
+}
+
 TEST_F (SndfileTests, testWriteSndfile)
 {
   int32_t result;
