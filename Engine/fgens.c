@@ -1176,37 +1176,32 @@ static int32_t gen21(FGDATA *ff, FUNC *ftp)
     return OK;
 }
 
-static MYFLT nextval(FILE *f)
+/* Return 1 for a value, 0 at EOF, and -1 for an overlong token. */
+static int32_t nextval(FILE *f, MYFLT *value)
 {
-    /* Read the next character; suppress multiple space and comments to a
-       single space */
     int32_t c;
- top:
-    c = getc(f);
- top1:
-    if (UNLIKELY(feof(f))) return NAN; /* Hope value is ignored */
-    if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
-      double d;                           /* A number starts */
-      char buff[128];
-      int32_t j = 0;
-      do {                                /* Fill buffer */
-        buff[j++] = c;
-        c = getc(f);
-      } while (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.');
-      buff[j]='\0';
-      d = atof(buff);
-      if (c==';' || c=='#') {             /* If extended with comment clear it now */
-        while ((c = getc(f)) != '\n');
+    while ((c = getc(f)) != EOF) {
+      if (c == ';' || c == '#' || c == '<') {
+        while ((c = getc(f)) != '\n' && c != EOF)
+          ;
       }
-      return (MYFLT)d;
+      else if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
+        char buff[128];
+        int32_t j = 0;
+        do {
+          if (UNLIKELY(j == sizeof(buff) - 1))
+            return -1;
+          buff[j++] = c;
+          c = getc(f);
+        } while (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.');
+        buff[j] = '\0';
+        if (c != EOF)
+          ungetc(c, f);       /* let the next call handle a comment delimiter */
+        *value = (MYFLT) atof(buff);
+        return 1;
+      }
     }
-    //else .... allow expressions in [] ?
-    while (isspace(c) || c == ',') c = getc(f);       /* Whitespace */
-    if (c==';' || c=='#' || c=='<') {     /* Comment and tag*/
-      while ((c = getc(f)) != '\n');
-    }
-    if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') goto top1;
-    goto top;
+    return 0;
 }
 
 static int32_t gen23(FGDATA *ff, FUNC *ftp)
@@ -1217,7 +1212,7 @@ static int32_t gen23(FGDATA *ff, FUNC *ftp)
     MYFLT   *fp;
     FILE    *infile;
     void    *fd;
-    int32_t     j;
+    int32_t     j, status, deferred = (ftp == NULL);
     MYFLT   tmp;
 
     fd = csound->FileOpen(csound, &infile, CSFILE_STD, ff->e.strarg, "r",
@@ -1228,37 +1223,57 @@ static int32_t gen23(FGDATA *ff, FUNC *ftp)
     if (ftp == NULL) {
       /* Start counting elements */
       ff->flen = 0;
-      do {
-        ff->flen++;
-        nextval(infile);
-      } while (!feof(infile));
-      ff->flen--; // overshoots by 1
+      while ((status = nextval(infile, &tmp)) > 0) {
+        if (UNLIKELY(++ff->flen > MAXLEN)) {
+          csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
+          return csoundFtError(ff, Str("GEN23: table too large"));
+        }
+      }
+      if (UNLIKELY(status < 0 || ferror(infile)))
+        goto readerr;
+      if (UNLIKELY(ff->flen == 0)) {
+        csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
+        return csoundFtError(ff, Str("GEN23: no numeric values"));
+      }
       csoundMessage(csound, Str("%ld elements in %s\n"),
                     (long) ff->flen, ff->e.strarg);
       rewind(infile);
       /* Allocate memory and read them in now */
-  /*  ff->flen      = ff->flen + 2;        ??? */
       ftp           = ftalloc(ff);
-      ftp->lenmask  = 0xFFFFFFFF; /* avoid the error in csoundFTFind */
+      ftp->flenfrms = ff->flen;
+      ftp->nchanls = 1;
+      ftp->gen01args.sample_rate = csound->esr;
+      ftp->lenmask = 0xFFFFFFFF;
+      if (IS_POW_TWO(ff->flen)) {
+        ftp->lenmask = ff->flen - 1;
+        for (j = ff->flen; j < MAXLEN; j <<= 1)
+          ftp->lobits++;
+      }
+      j = 1 << ftp->lobits;
+      ftp->lomask = j - 1;
+      ftp->lodiv = FL(1.0) / (MYFLT) j;
     }
     fp = ftp->ftable;
     j = 0;
-    while (!feof(infile) && j < ff->flen) fp[j++] = nextval(infile);
-    tmp = nextval(infile); // overshot value
-    if (UNLIKELY(!feof(infile)))
+    status = 0;
+    while (j < ff->flen && (status = nextval(infile, &tmp)) > 0)
+      fp[j++] = tmp;
+    if (j == ff->flen)
+      status = nextval(infile, &tmp);
+    if (UNLIKELY(status < 0 || ferror(infile)))
+      goto readerr;
+    if (UNLIKELY(status > 0))
       csound->Warning(csound,
                       Str("Number(s) after table full in GEN23, starting %f"), tmp);
     csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
-    // if (def)
-    {
-      MYFLT *tab = ftp->ftable;
-      tab[ff->flen] = tab[0];  /* guard point */
-      //ftp->flen -= 1;  /* exclude guard point */
+    fp[ff->flen] = fp[0];  /* guard point */
+    if (deferred)
       ftresdisp(ff, ftp);       /* VL: 11.01.05  for deferred alloc tables */
-    }
-
-
     return OK;
+
+ readerr:
+    csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
+    return csoundFtError(ff, Str("GEN23: error reading numeric data"));
 }
 
 static int32_t gen24(FGDATA *ff, FUNC *ftp)
