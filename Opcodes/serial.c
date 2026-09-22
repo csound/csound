@@ -243,9 +243,11 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     toptions.c_cflag &= ~CRTSCTS;
 
     toptions.c_cflag |= CREAD | CLOCAL;  // turn on READ & ignore ctrl lines
-    toptions.c_iflag &= ~(IXON | IXOFF | IXANY); // turn off s/w flow ctrl
+    /* Preserve binary input regardless of the port's previous settings. */
+    toptions.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP |
+                         INLCR | IGNCR | ICRNL | IXON | IXOFF | IXANY);
 
-    toptions.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); // make raw
+    toptions.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHONL | ISIG | IEXTEN);
     toptions.c_oflag &= ~OPOST; // make raw
 
     // see: http://unixwiz.net/techtips/termios-vmin-vtime.html
