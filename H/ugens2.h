@@ -73,6 +73,7 @@ typedef struct {
         int32       tablen;
         double      tablenUPsr;
         FUNC    FF;
+        AUXCH   arraydata;
 } OSC;
 
 typedef struct  {
