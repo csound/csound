@@ -117,7 +117,7 @@ struct _CHUNKS {
 typedef struct _CHUNKS CHUNKS;
 
 struct _SFBANK {
-        char name[256];
+        char *name;
         int32_t presets_num;
         presetType *preset;
         int32_t instrs_num;
