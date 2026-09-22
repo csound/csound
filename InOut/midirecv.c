@@ -483,12 +483,6 @@ int32_t sens_midi(CSOUND *csound)
    const OPARMS  *O = csound->oparms;
     int32_t     n;
     int16   c, type;
-    // reset sys realtime msgs
-    csound->midi_clock_pulse = 0;
-    csound->midi_start = 0;
-    csound->midi_continue = 0;
-    csound->midi_stop = 0;
-    
  nxtchr:
     if (p->bufp >= p->endatp) {
       p->bufp = &(p->mbuf[0]);

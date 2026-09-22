@@ -1277,6 +1277,12 @@ int32_t sense_events(CSOUND *csound)
   if (UNLIKELY(data && data->status == CSDEBUG_STATUS_STOPPED)) {
     return 0; /* don't process events if we're in debug mode and stopped */
   }
+  /* Clear realtime MIDI flags once per control cycle. sens_midi() may return
+     for each note message, so clearing there loses flags from earlier bytes. */
+  csound->midi_clock_pulse = 0;
+  csound->midi_start = 0;
+  csound->midi_continue = 0;
+  csound->midi_stop = 0;
   if (UNLIKELY(csound->MTrkend && O->termifend)) {   /* end of MIDI file:  */
     deactivate_all_notes(csound);
     csound->ErrorMsg(csound, Str("terminating.\n"));
