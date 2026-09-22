@@ -798,21 +798,36 @@ static int32_t gen12(FGDATA *ff, FUNC *ftp)
 {
     static const double coefs[] = { 3.5156229, 3.0899424, 1.2067492,
                                     0.2659732, 0.0360768, 0.0045813 };
+    /* Large-argument coefficients from besseli(), evaluated before exp(x). */
+    static const double largecoefs[] = {
+      0.39894228, 0.01328592, 0.00225319, -0.00157565, 0.00916281,
+      -0.02057706, 0.02635537, -0.01647633, 0.00392377
+    };
     const double *coefp, *cplim = coefs + 6;
-    double  sum, tsquare, evenpowr;
-    int32_t     n;
+    double  x, sum, tsquare, evenpowr;
+    int32_t     n, i;
     MYFLT   *fp;
-    double  xscale;
+    double  xint = fabs((double) ff->e.p[5]);
 
-    xscale = (double) ff->e.p[5] / ff->flen / 3.75;
     for (n = 0, fp = ftp->ftable; n <= ff->flen; n++) {
-      tsquare  = (double) n * xscale;
-      tsquare *= tsquare;
-      for (sum = evenpowr = 1.0, coefp = coefs; coefp < cplim; coefp++) {
-        evenpowr *= tsquare;
-        sum += *coefp * evenpowr;
+      x = xint * ((double) n / ff->flen);
+      if (x < 3.75) {
+        tsquare = x / 3.75;
+        tsquare *= tsquare;
+        for (sum = 0.0, evenpowr = 1.0, coefp = coefs;
+             coefp < cplim; coefp++) {
+          evenpowr *= tsquare;
+          sum += *coefp * evenpowr;
+        }
+        *fp++ = (MYFLT) log1p(sum);
       }
-      *fp++ = (MYFLT) log(sum);
+      else {
+        double y = 3.75 / x;
+        for (sum = largecoefs[8], i = 7; i >= 0; i--)
+          sum = sum * y + largecoefs[i];
+        /* log(exp(x) * sum / sqrt(x)), without forming exp(x). */
+        *fp++ = (MYFLT) (x - 0.5 * log(x) + log(sum));
+      }
     }
     return OK;
 }
