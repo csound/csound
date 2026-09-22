@@ -1294,7 +1294,8 @@ static int32_t gen24(FGDATA *ff, FUNC *ftp)
 
     source_amp = max - min;
     target_amp = new_max - new_min;
-    amp_ratio = target_amp/source_amp;
+    /* A constant source maps to the requested minimum, as in scalearray. */
+    amp_ratio = source_amp == FL(0.0) ? FL(0.0) : target_amp/source_amp;
 
     for (j = 0; j < srcpts; j++) {
       fp[j] = (fp_source[j]-min) * amp_ratio + new_min;
