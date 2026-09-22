@@ -234,8 +234,15 @@ static int32_t SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
     /* if (UNLIKELY(globals->soundFont==NULL)) */
     /*   return csound->InitError(csound, "%s", Str("invalid sound font")); */
 
+    if (UNLIKELY(!(*p->startNum >= FL(0.0) &&
+                   *p->startNum < MAX_SFPRESET)))
+      return csound->InitError(csound, "%s",
+                               Str("sfpassign: preset range out of bounds"));
     pHandle = (int32_t) *p->startNum;
     pnum = sf->presets_num;
+    if (UNLIKELY(pnum > MAX_SFPRESET - pHandle))
+      return csound->InitError(csound, "%s",
+                               Str("sfpassign: preset range out of bounds"));
     enableMsgs = (*p->msgs==FL(0.0));
     if (enableMsgs)
       csound->Message(csound,
@@ -2383,13 +2390,18 @@ typedef struct _sflooper {
 
 static int32_t sflooper_init(CSOUND *csound, sflooper *p)
 {
-    DWORD index = (DWORD) *p->ipresethandle;
+    DWORD index;
     presetType *preset;
     SHORT *sBase;
     int32_t layersNum, j, spltNum = 0;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
 
+    if (UNLIKELY(!(*p->ipresethandle >= FL(0.0) &&
+                   *p->ipresethandle < MAX_SFPRESET)))
+      return csound->InitError(csound, "%s",
+                               Str("sflooper: preset number out of range"));
+    index = (DWORD) *p->ipresethandle;
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
     if (!preset) {
