@@ -34,6 +34,7 @@
 #include "pvfileio.h"
 #include <errno.h>
 #include <inttypes.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include "fftlib.h"
 
@@ -894,7 +895,8 @@ static int32_t gen15(FGDATA *ff, FUNC *ftp)
     lp13 = (void*) ftp;
     ff->fno++;                                  /* alloc eq. space for fno+1 */
     ftp = ftalloc(ff);                          /* & copy header */
-    memcpy((void*) ftp, lp13, (size_t) sizeof(FUNC)-sizeof(MYFLT*));
+    /* Exclude the data pointer even when FUNC has trailing padding. */
+    memcpy((void*) ftp, lp13, offsetof(FUNC, ftable));
     ftp->fno = (int32) ff->fno;
     fp    = &ff->e.p[5];
     *fp++ = xint;                               /* restore p5, p6,   */
