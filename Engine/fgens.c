@@ -1630,10 +1630,12 @@ static int32_t gen31(FGDATA *ff, FUNC *ftp)
     for (i = 0; i < l2; i++)
       x[i] = a * f2[i];
     csoundRealFFT(csound, x, l2);
-    x[l2] = x[1];
+    /* Represent the source Nyquist bin as a conjugate pair for mixing. */
+    x[l2] = x[1] * FL(0.5);
     x[1] = x[l2 + 1] = FL(0.0);
 
     for (j = 6; j < (nargs + 3); j+=3) {
+      int64_t bin;
       n = (int32_t) (FL(0.5) + *valp++); if (n < 1) n = 1; /* frequency */
       a = *valp++;                                     /* amplitude */
       p = *valp++;                                       /* phase     */
@@ -1645,10 +1647,11 @@ static int32_t gen31(FGDATA *ff, FUNC *ftp)
       p *= TWOPI_F;
       d_re = cos((double) p); d_im = sin((double) p);
       p_re = 1.0; p_im = 0.0;   /* init. phase */
-      for (i = k = 0; (i < l1 && k <l2); i += (n << 1), k += 2) {
+      for (bin = k = 0; bin <= l1 && k <= l2;
+           bin += (int64_t) n * 2, k += 2) {
         /* mix to table */
-        y[i + 0] += a * (x[k + 0] * (MYFLT) p_re - x[k + 1] * (MYFLT) p_im);
-        y[i + 1] += a * (x[k + 1] * (MYFLT) p_re + x[k + 0] * (MYFLT) p_im);
+        y[bin + 0] += a * (x[k + 0] * (MYFLT) p_re - x[k + 1] * (MYFLT) p_im);
+        y[bin + 1] += a * (x[k + 1] * (MYFLT) p_re + x[k + 0] * (MYFLT) p_im);
         /* update phase */
         ptmp = p_re * d_re - p_im * d_im;
         p_im = p_im * d_re + p_re * d_im;
@@ -1657,7 +1660,8 @@ static int32_t gen31(FGDATA *ff, FUNC *ftp)
     }
 
     /* write dest. table */
-    y[1] = y[l1];
+    /* Merge the conjugate pair at the destination Nyquist frequency. */
+    y[1] = y[l1] * FL(2.0);
     y[l1] = y[l1 + 1] = FL(0.0);
     csoundInverseRealFFT(csound, y, l1);
     /* memcpy(f1, y, l1*sizeof(MYFLT)); */
@@ -1749,6 +1753,7 @@ static int32_t gen32(FGDATA *ff, FUNC *ftp)
         }
       }
       else {                    /* use FFT */
+        int64_t bin;
         if (i != ft) {
           ft = i;               /* new table */
           if (y == NULL)
@@ -1759,7 +1764,8 @@ static int32_t gen32(FGDATA *ff, FUNC *ftp)
           for (i = 0; i < l2; i++)
             x[i] = f2[i];
           csoundRealFFT(csound, x, l2);
-          x[l2] = x[1];
+          /* Represent the source Nyquist bin as a conjugate pair for mixing. */
+          x[l2] = x[1] * FL(0.5);
           x[1] = x[l2 + 1] = FL(0.0);
         }
         n = (int32_t) (FL(0.5) + paccess(ff,pnum[j] + 1));         /* frequency */
@@ -1771,10 +1777,11 @@ static int32_t gen32(FGDATA *ff, FUNC *ftp)
         d_re = cos ((double) p); d_im = sin ((double) p);
         p_re = 1.0; p_im = 0.0;         /* init. phase */
         if (y != NULL)
-          for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
+          for (bin = k = 0; bin <= l1 && k <= l2;
+               bin += (int64_t) n * 2, k += 2) {
             /* mix to table */
-            y[i + 0] += a * (x[k + 0] * (MYFLT) p_re - x[k + 1] * (MYFLT) p_im);
-            y[i + 1] += a * (x[k + 1] * (MYFLT) p_re + x[k + 0] * (MYFLT) p_im);
+            y[bin + 0] += a * (x[k + 0] * (MYFLT) p_re - x[k + 1] * (MYFLT) p_im);
+            y[bin + 1] += a * (x[k + 1] * (MYFLT) p_re + x[k + 0] * (MYFLT) p_im);
             /* update phase */
             ptmp = p_re * d_re - p_im * d_im;
             p_im = p_im * d_re + p_re * d_im;
@@ -1784,7 +1791,8 @@ static int32_t gen32(FGDATA *ff, FUNC *ftp)
     }
     /* write dest. table */
     if (y != NULL) {
-      y[1] = y[l1]; y[l1] = y[l1 + 1] = FL(0.0);
+      /* Merge the conjugate pair at the destination Nyquist frequency. */
+      y[1] = y[l1] * FL(2.0); y[l1] = y[l1 + 1] = FL(0.0);
       csoundInverseRealFFT(csound, y, l1);
       for (i = 0; i < l1; i++)
         f1[i] += y[i];
