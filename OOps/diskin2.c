@@ -282,6 +282,9 @@ static void diskin2_xf_setup(CSOUND *csound, DISKIN2_XF *xf,
     xf->count = 0;
     xf->dir = 0;
     xf->changing = 0;
+    xf->resets = 0;
+    xf->resetsSeen = 0;
+    xf->perfTranspose = FL(0.0);
     xf->headEnd = (int64_t)0;
     xf->buf = NULL;
     if (wrapMode && iWrapMode > FL(1.0)) {
@@ -1405,12 +1408,44 @@ static inline void diskin2_xf_reset(DISKIN2_XF *x)
    before it can run to completion and leave the reader on the plain hard wrap,
    bringing the boundary clicks back. Keep the cached head while the speed is
    moving and refresh it only on the first change after a period of constant
-   speed. */
+   speed.
+
+   This is the synchronous form, called once per control period from the reader
+   itself. The asynchronous readers cannot use it directly, because the worker
+   thread may poll them several times within one period (including when no
+   frames need reading) and would mistake each extra poll for a period of
+   constant speed; they use diskin2_xf_speed_period() instead. */
 static inline void diskin2_xf_speed_change(DISKIN2_XF *x)
 {
     if (!x->changing)
       diskin2_xf_reset(x);
     x->changing = 1;
+}
+
+/* Async: classify one control period of kTranspose, called once per period by
+   the perf thread. `changing` is the ramp state carried across periods; a
+   change that follows a period of constant speed is a genuine step, latched in
+   `resets` for the reader to consume at its own pace. An extra worker poll
+   cannot disturb this, since the perf thread only runs once per period. */
+static inline void diskin2_xf_speed_period(DISKIN2_XF *x, MYFLT transpose)
+{
+    if (transpose != x->perfTranspose) {
+      if (!x->changing)
+        x->resets++;
+      x->changing = 1;
+    }
+    else
+      x->changing = 0;
+    x->perfTranspose = transpose;
+}
+
+/* Async: apply a step latched by diskin2_xf_speed_period(), if any. */
+static inline void diskin2_xf_consume_step(DISKIN2_XF *x)
+{
+    if (x->resets != x->resetsSeen) {
+      x->resetsSeen = x->resets;
+      diskin2_xf_reset(x);
+    }
 }
 
 /* Loop crossfade (async, enabled by iwrap > 1).
@@ -1804,11 +1839,12 @@ diskin_file_read_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
 #else
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
-      /* a step invalidates the captured head; a ramp keeps it */
-      diskin2_xf_speed_change(&p->xf);
     }
-    else
-      p->xf.changing = 0;
+    /* a step latched by the perf thread invalidates the captured head; a ramp
+       keeps it. Consumed here, outside the change test, so that no poll can be
+       missed even if the perf thread updates p->transpose right after we read
+       it. */
+    diskin2_xf_consume_step(&p->xf);
     /* clear outputs to zero first */
     memset(aOut, 0, p->auxData2.size);
 
@@ -2019,6 +2055,7 @@ int32_t diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
 
     int32_t chans = p->nChannels, ochans = p->oChannels;
     p->transpose =  *p->kTranspose;
+    diskin2_xf_speed_period(&p->xf, p->transpose);
 
     if (offset || early) {
       for (chn = 0; chn < chans; chn++)
@@ -2297,11 +2334,12 @@ diskin_file_read_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t xf)
 #else
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
-      /* a step invalidates the captured head; a ramp keeps it */
-      diskin2_xf_speed_change(&p->xf);
     }
-    else
-      p->xf.changing = 0;
+    /* a step latched by the perf thread invalidates the captured head; a ramp
+       keeps it. Consumed here, outside the change test, so that no poll can be
+       missed even if the perf thread updates kTranspose right after we read
+       it. */
+    diskin2_xf_consume_step(&p->xf);
     /* clear outputs to zero first */
     memset(aOut, 0, p->auxData2.size);
     /* file read position */
@@ -3099,6 +3137,7 @@ int32_t diskin2_perf_asynchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
     void *cb = p->cb;
     int32_t chans = p->nChannels;
     MYFLT *aOut = (MYFLT *) p->aOut->data;
+    diskin2_xf_speed_period(&p->xf, *p->kTranspose);
 
     if (offset || early) {
       for (chn = 0; chn < chans; chn++)

@@ -39,6 +39,9 @@ typedef struct {
     int32_t dir;                /* playback direction the head was captured in */
     int32_t changing;           /* kTranspose changed in the previous period
                                    (a continuous ramp, as opposed to a step) */
+    volatile int32_t resets;    /* async: steps latched by the perf thread */
+    int32_t resetsSeen;         /* async: steps consumed by the reader */
+    MYFLT   perfTranspose;      /* async: previous perf period's kTranspose */
     int64_t headEnd;            /* position to resume from after loop wrap */
     MYFLT   *buf;               /* captured loop head (len * channels) */
     AUXCH   aux;                /* storage for buf */
