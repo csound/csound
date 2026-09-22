@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -124,7 +125,13 @@ TEST_P(Jitter2Tests, HistoricalDefaultsMatchExplicitControls)
         jitter("1,kAmp1,kCps1,kAmp2,kCps2,kAmp3,kCps3"),
         "i 1 0 .128 0\ni 1 .128 .128 1\nf 0 .26"));
     const auto defaults = trace(128);
-    EXPECT_EQ(trace(128), defaults);
+    const auto explicitControls = trace(128);
+    // Constant and variable controls can round differently under fast-math.
+    const MYFLT tolerance = 4 * std::numeric_limits<MYFLT>::epsilon();
+    for (size_t i = 0; i < defaults.size(); ++i) {
+        SCOPED_TRACE(i);
+        EXPECT_NEAR(explicitControls[i], defaults[i], tolerance);
+    }
 }
 
 INSTANTIATE_TEST_SUITE_P(OnsetModes, Jitter2Tests, ::testing::Values(0, 1));
