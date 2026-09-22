@@ -614,7 +614,7 @@ static int32_t gen08(FGDATA *ff, FUNC *ftp)
     MYFLT   R, x, c3, c2, c1, c0, *fp, *fplim, *valp;
     MYFLT   f2 = FL(0.0), f1, f0, df1, df0, dx01, dx12 = FL(0.0), curx;
     MYFLT   slope, resd1, resd0;
-    int32_t     nsegs, npts;
+    int32_t     nsegs;
 
 
     if (UNLIKELY((nsegs = (ff->e.pcnt - 5) >> 1) <= 0)) {
@@ -641,9 +641,7 @@ static int32_t gen08(FGDATA *ff, FUNC *ftp)
           / (dx01*dx02*dx12);
       }                                /* df1 is slope of parabola at x1 */
       else df1 = FL(0.0);
-      if ((npts = (int32_t) (dx01 - curx)) > fplim - fp)
-        npts = (int32_t) (fplim - fp);
-      if (npts > 0) {                       /* for non-trivial segment: */
+      if (curx < dx01) {                    /* segment contains a sample */
         slope = (f1 - f0) / dx01;           /*   get slope x0 to x1     */
         resd0 = df0 - slope;                /*   then residual slope    */
         resd1 = df1 - slope;                /*     at x0 and x1         */
@@ -651,7 +649,7 @@ static int32_t gen08(FGDATA *ff, FUNC *ftp)
         c2 = - (resd1 + FL(2.0)*resd0) / dx01;
         c1 = df0;                           /*   and calc cubic coefs   */
         c0 = f0;
-        for (x = curx; npts>0; --npts, x += FL(1.0)) {
+        for (x = curx; x < dx01 && fp <= fplim; x += FL(1.0)) {
           R     = c3;
           R    *= x;
           R    += c2;            /* f(x) = ((c3 x + c2) x + c1) x + c0  */
@@ -659,7 +657,7 @@ static int32_t gen08(FGDATA *ff, FUNC *ftp)
           R    += c1;
           R    *= x;
           R    += c0;
-          *fp++ = R;                        /* store n pts for this seg */
+          *fp++ = R;                        /* sample at integer positions */
         }
         curx = x;
       }
@@ -668,7 +666,7 @@ static int32_t gen08(FGDATA *ff, FUNC *ftp)
       f0    = f1;                       /*   by assuming its parameters */
       f1    = f2;
       df0   = df1;
-    } while (--nsegs && fp<fplim);      /* loop for remaining segments  */
+    } while (--nsegs && fp<=fplim);     /* include the table's guard point */
     while (fp <= fplim)
       *fp++ = f0;                       /* & repeat the last value      */
     return OK;
