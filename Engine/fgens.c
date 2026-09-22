@@ -597,9 +597,11 @@ static int32_t gen06(FGDATA *ff, FUNC *ftp)
         extremp++;
       }
       diff2 = (*inflexp - *extremp) * FL(0.5);
-      for ( ; npts > 0 && fp < finp; pntno += pntinc, npts--) {
+      for ( ; npts > 0; pntno += pntinc, npts--) {
         y = (MYFLT)pntno / *segptsp;
         *fp++ = (FL(3.0)-y) * y * y * diff2 + *extremp;
+        if (fp > finp)                 /* include the guard point, then stop */
+          return OK;
       }
       pntinc = -pntinc;
     }
