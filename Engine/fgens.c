@@ -2889,7 +2889,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
       obuf[i++] = -(FABS(ibuf[j]) * scaleFac); j++;
       obuf[i++] = FL(0.0);
     } while (i < npts);
-    obuf[1] = ibuf[j] * scaleFac;
+    obuf[1] = FABS(ibuf[j]) * scaleFac;
     setup = csound->RealFFTSetup(csound, npts, FFT_INV);
     csound->RealFFT(csound, setup, obuf);
     obuf[npts] = FL(0.0);               /* clear guard point */
@@ -2971,7 +2971,7 @@ static int32_t gen53(FGDATA *ff, FUNC *ftp)
     int32_t     nargs = ff->e.pcnt - 4;
     int32_t     mode = 0, srcftno, winftno = 0,
       srcflen, dstflen = 0, winflen = 0;
-    int32_t flag = 0;
+    int32_t flag = 0, i;
 
     if (UNLIKELY(nargs < 1)) { // fail if src is not given,
                                // ignore any extra args
@@ -2984,13 +2984,6 @@ static int32_t gen53(FGDATA *ff, FUNC *ftp)
     if (nargs > 2)
       winftno = (int32_t) MYFLT2LRND(ff->e.p[7]);
     srcflen = csoundGetTable(csound, &srcftp, srcftno);
-    if(!ftp) {
-      ff->flen = srcflen * 2;
-      ftp = ftalloc(ff);
-      flag = 1;
-    }
-    dstftp = ftp->ftable;
-    dstflen = (int32_t) ftp->flen;
     if (UNLIKELY(srcflen < 0)) {
       return csoundFtError(ff, Str("GEN53: invalid source table number"));
     }
@@ -2998,22 +2991,38 @@ static int32_t gen53(FGDATA *ff, FUNC *ftp)
       return
         csoundFtError(ff, Str("GEN53: mode must be in the range 0 to 15"));
     }
-    if (UNLIKELY((!(mode & 2) && srcflen != (dstflen >> 1)) ||
-                 ((mode & 2) && srcflen != dstflen))) {
-      // reallocate table if needed
-      if(!(mode & 2)) ftp->flen = srcflen * 2;
-      else ftp->flen = srcflen;
-      ftp->ftable = dstftp =
-        (MYFLT *) csound->ReAlloc(csound, ftp->ftable,
-                                 sizeof(MYFLT)*(ftp->flen+2));
-      dstflen = ff->flen = ftp->flen;
-    }
+    if (UNLIKELY(!(mode & 2) && srcflen > MAXLEN / 2))
+      return csoundFtError(ff, Str("GEN53: source table too large"));
+    dstflen = (mode & 2) ? srcflen : srcflen * 2;
+    if (UNLIKELY(dstflen < 4 || !IS_POW_TWO(dstflen)))
+      return csoundFtError(ff,
+                          Str("GEN53: output size must be a power of two and at least 4"));
     if (winftno) {
       winflen = csoundGetTable(csound, &winftp, winftno);
       if (UNLIKELY(winflen <= 0)) {
         return csoundFtError(ff, Str("GEN53: invalid window table"));
       }
     }
+    ff->flen = dstflen;
+    if (ftp == NULL) {
+      ftp = ftalloc(ff);
+      flag = 1;
+    }
+    else if (ftp->flen != (uint32_t) dstflen) {
+      ftp->ftable = (MYFLT *) csound->ReAlloc(csound, ftp->ftable,
+                                             sizeof(MYFLT) * (dstflen + 1));
+    }
+    /* Deferred allocation and resizing must also update the lookup header. */
+    ftp->flen = ftp->flenfrms = dstflen;
+    ftp->nchanls = 1;
+    ftp->gen01args.sample_rate = csound->esr;
+    ftp->lenmask = dstflen - 1;
+    for (i = dstflen, ftp->lobits = 0; i < MAXLEN; i <<= 1)
+      ftp->lobits++;
+    i = 1 << ftp->lobits;
+    ftp->lomask = i - 1;
+    ftp->lodiv = FL(1.0) / (MYFLT) i;
+    dstftp = ftp->ftable;
     if (mode & 2) {     /* if input data is impulse response: */
       MYFLT *tmpft;
       int32_t   i, j;
