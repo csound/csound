@@ -888,6 +888,35 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
 
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
     csound->Message(csound, "Creating boolean expression\n");
+  /* A boolean member is a value, not a binary expression. Give branch
+     expansion a named result, just as for a comparison. */
+  if (root->type == STRUCT_EXPR) {
+    char *type = get_arg_type2(csound, root, typeTable);
+    TREE *value = root;
+    if (type == NULL) {
+      return NULL;
+    }
+    outarg = get_boolean_arg(csound, typeTable, type[0] == 'B');
+    csound->Free(csound, type);
+    if (struct_expr_has_array_root(root)) {
+      anchor = expand_struct_array_member_read(csound, root, line, locn,
+                                               typeTable, initContext);
+      if (anchor == NULL) {
+        csound->Free(csound, outarg);
+        return NULL;
+      }
+      value = create_ans_token(csound,
+                               tree_tail(anchor)->left->value->lexeme);
+    }
+    add_arg(csound, outarg, NULL, typeTable, NULL);
+    opTree = create_opcode_token(csound, "=");
+    opTree->left = create_ans_token(csound, outarg);
+    opTree->right = value;
+    opTree->line = line;
+    opTree->locn = locn;
+    csound->Free(csound, outarg);
+    return tree_append(anchor, opTree);
+  }
   /* HANDLE SUB EXPRESSIONS */
   if (is_boolean_expression_node(root->left)) {
     anchor = create_boolean_expression(csound, root->left,
