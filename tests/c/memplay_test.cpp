@@ -16,7 +16,7 @@
 #endif
 
 namespace {
-class MeminTests : public ::testing::Test {
+class MemplayTests : public ::testing::Test {
 protected:
     CSOUND *csound = nullptr;
     std::filesystem::path directory, file;
@@ -31,8 +31,8 @@ protected:
     decltype(CSOUND::SndfileRead) readFrames;
     decltype(CSOUND::SndfileReadSamples) readSamples;
     decltype(CSOUND::SndfileSeek) seek;
-    static MeminTests &owner(CSOUND *cs) {
-        return *static_cast<MeminTests *>(csoundGetHostData(cs));
+    static MemplayTests &owner(CSOUND *cs) {
+        return *static_cast<MemplayTests *>(csoundGetHostData(cs));
     }
     static void *trackedOpen(CSOUND *cs, void *handle, int32_t type,
                              const char *name, void *info, const char *env,
@@ -65,7 +65,7 @@ protected:
 #endif
         auto root = std::filesystem::temp_directory_path();
         for (int n = 0; n < 100; ++n) {
-            auto candidate = root / ("csound-memin-" + std::to_string(pid) + "-" +
+            auto candidate = root / ("csound-memplay-" + std::to_string(pid) + "-" +
                               std::to_string(reinterpret_cast<uintptr_t>(this)) +
                               "-" + std::to_string(n));
             if (std::filesystem::create_directory(candidate)) {
@@ -124,13 +124,13 @@ protected:
     }
 };
 
-std::atomic<int> MeminTests::threadCalls{0};
+std::atomic<int> MemplayTests::threadCalls{0};
 
 using Playback = std::tuple<int, int, int, bool>;
-class MeminPlaybackTests : public MeminTests,
+class MemplayPlaybackTests : public MemplayTests,
                            public ::testing::WithParamInterface<Playback> {};
 
-TEST_P(MeminPlaybackTests, MatchesDiskin2) {
+TEST_P(MemplayPlaybackTests, MatchesDiskin2) {
     const auto [window, wrap, channels, array] = GetParam();
     writeFile(channels, window == 2 ? SF_FORMAT_PCM_16 : SF_FORMAT_FLOAT);
     std::string orc = "instr 1\n kSpeed linseg 1, .04, 1, .001, -.8, .04, -.8, .08, 1.3\n";
@@ -141,7 +141,7 @@ TEST_P(MeminPlaybackTests, MatchesDiskin2) {
             outputs += "a" + prefix + std::to_string(c);
         }
         if (array) outputs = "a" + prefix + "[]";
-        orc += outputs + (prefix == "M" ? " memin \"" : " diskin2 \"") +
+        orc += outputs + (prefix == "M" ? " memplay \"" : " diskin2 \"") +
             file.generic_string() + "\", kSpeed, .004, " + std::to_string(wrap) +
             ", 0, " + std::to_string(window) + ", 128, 0, 1, .028\n";
     }
@@ -171,11 +171,11 @@ TEST_P(MeminPlaybackTests, MatchesDiskin2) {
     EXPECT_EQ(csound->perferrcnt, 0) << messages();
 }
 
-INSTANTIATE_TEST_SUITE_P(Modes, MeminPlaybackTests,
+INSTANTIATE_TEST_SUITE_P(Modes, MemplayPlaybackTests,
     ::testing::Combine(::testing::Values(1, 2, 4, 16), ::testing::Values(0, 1, 16),
                        ::testing::Values(1, 2, 4), ::testing::Bool()));
 
-TEST_F(MeminTests, CacheStoresAllChannelsAndReusesTheFile) {
+TEST_F(MemplayTests, CacheStoresAllChannelsAndReusesTheFile) {
     writeFile(4);
     const std::string name = file.generic_string();
     auto *first = csound->LoadSoundFile(csound, name.c_str(), nullptr);
@@ -192,7 +192,7 @@ TEST_F(MeminTests, CacheStoresAllChannelsAndReusesTheFile) {
     EXPECT_EQ(ioCalls.load(), before);
 }
 
-TEST_F(MeminTests, RealtimePlaybackAndReinitUseOnlyCachedMemory) {
+TEST_F(MemplayTests, RealtimePlaybackAndReinitUseOnlyCachedMemory) {
     writeFile(2);
     csoundSetOption(csound, "--realtime");
     const std::string name = file.generic_string();
@@ -200,8 +200,8 @@ TEST_F(MeminTests, RealtimePlaybackAndReinitUseOnlyCachedMemory) {
     ASSERT_NE(csound->LoadSoundFile(csound, name.c_str(), nullptr), nullptr);
     std::filesystem::remove(file);
     start("instr 1\n kCycle timeinstk\n if kCycle == 5 then\n reinit AGAIN\n endif\n"
-          "AGAIN:\n aL, aR memin \"" + name + "\", 1, .004, 16, 0, 4, 128, 0, 0, .028\n"
-          "aBoth[] memin \"" + name + "\", -1, .004, 16, 0, 4, 128, 0, 0, .028\n"
+          "AGAIN:\n aL, aR memplay \"" + name + "\", 1, .004, 16, 0, 4, 128, 0, 0, .028\n"
+          "aBoth[] memplay \"" + name + "\", -1, .004, 16, 0, 4, 128, 0, 0, .028\n"
           "outch 1, aL, 2, aR, 3, aBoth[0], 4, aBoth[1]\n rireturn\n endin",
           "i1 0 .1\ni1 .12 .1");
     const int before = ioCalls;
@@ -219,13 +219,13 @@ TEST_F(MeminTests, RealtimePlaybackAndReinitUseOnlyCachedMemory) {
     EXPECT_EQ(csound->perferrcnt, 0) << messages();
 }
 
-TEST_F(MeminTests, ReinitCanPreserveTheReadPositionAndNumericNamesWork) {
+TEST_F(MemplayTests, ReinitCanPreserveTheReadPositionAndNumericNamesWork) {
     writeFile(1);
     start("strset 17, \"" + file.generic_string() + "\"\n"
           "instr 1\n kCycle timeinstk\n if kCycle == 5 then\n reinit AGAIN\n endif\n"
-          "AGAIN:\n aM memin 17, 1, 0, 1, 0, 4, 128, 1\n"
+          "AGAIN:\n aM memplay 17, 1, 0, 1, 0, 4, 128, 1\n"
           "aD diskin2 17, 1, 0, 1, 0, 4, 128, 1, 1\n"
-          "aA[] memin 17, 1, 0, 1, 0, 4, 128, 1\n"
+          "aA[] memplay 17, 1, 0, 1, 0, 4, 128, 1\n"
           "outch 1, aM, 2, aD, 3, aA[0]\n rireturn\n endin");
     double peak = 0;
     for (int n = 0; n < 100 && csoundPerformKsmps(csound) == 0; ++n) {
@@ -241,9 +241,9 @@ TEST_F(MeminTests, ReinitCanPreserveTheReadPositionAndNumericNamesWork) {
     EXPECT_EQ(csound->perferrcnt, 0) << messages();
 }
 
-TEST_F(MeminTests, ExtraScalarOutputsAreSilent) {
+TEST_F(MemplayTests, ExtraScalarOutputsAreSilent) {
     writeFile(1);
-    start("instr 1\n aL, aR memin \"" + file.generic_string() +
+    start("instr 1\n aL, aR memplay \"" + file.generic_string() +
           "\", 1, 0, 1\n outch 1, aL, 2, aR\n endin");
     double peak = 0;
     for (int n = 0; n < 100 && csoundPerformKsmps(csound) == 0; ++n) {
@@ -256,12 +256,12 @@ TEST_F(MeminTests, ExtraScalarOutputsAreSilent) {
     EXPECT_GT(peak, .1);
 }
 
-TEST_F(MeminTests, MissingFileReportsAnInitError) {
-    start("instr 1\n aL memin \"" + file.generic_string() +
+TEST_F(MemplayTests, MissingFileReportsAnInitError) {
+    start("instr 1\n aL memplay \"" + file.generic_string() +
           "\"\n outch 1, aL\n endin");
     for (int n = 0; n < 100 && csoundPerformKsmps(csound) == 0; ++n) {}
     EXPECT_GT(csound->inerrcnt, 0);
-    EXPECT_NE(messages().find("memin: could not load"), std::string::npos);
+    EXPECT_NE(messages().find("memplay: could not load"), std::string::npos);
 }
 
 }

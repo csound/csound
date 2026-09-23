@@ -326,7 +326,7 @@ int32_t diskin2_init(CSOUND *csound, DISKIN2 *p) {
     return diskin2_init_(csound,p,0,0);
 }
 
-int32_t memin_init(CSOUND *csound, DISKIN2 *p) {
+int32_t memplay_init(CSOUND *csound, DISKIN2 *p) {
     p->SkipInit = *p->iSkipInit;
     p->WinSize = *p->iWinSize;
     p->BufSize =  *p->iBufSize;
@@ -346,7 +346,7 @@ int32_t diskin2_init_S(CSOUND *csound, DISKIN2 *p) {
     return diskin2_init_(csound,p,1,0);
 }
 
-int32_t memin_init_S(CSOUND *csound, DISKIN2 *p) {
+int32_t memplay_init_S(CSOUND *csound, DISKIN2 *p) {
     p->SkipInit = *p->iSkipInit;
     p->WinSize = *p->iWinSize;
     p->BufSize =  *p->iBufSize;
@@ -1174,12 +1174,12 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname, int
   if (memory) {
     p->memfile = csound->LoadSoundFile(csound, name, &sfinfo);
     if (UNLIKELY(p->memfile == NULL))
-      return csound->InitError(csound, Str("memin: could not load '%s'"), name);
+      return csound->InitError(csound, Str("memplay: could not load '%s'"), name);
     if (UNLIKELY(p->memfile->nFrames > INT32_MAX || sfinfo.channels < 1 ||
                  sfinfo.channels > DISKIN2_MAXCHN)) {
       p->memfile = NULL;
       return csound->InitError(csound, "%s",
-                               Str("memin: file has too many frames or channels"));
+                               Str("memplay: file has too many frames or channels"));
     }
   }
   else {
@@ -1392,7 +1392,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname, int
     if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
       csound->Message(csound, "%s '%s':\n"
                       "         %d Hz, %d %s, %" PRId64 " %s\n",
-                      (memory ? Str("memin: using memory file") : Str("diskin2: opened")),
+                      (memory ? Str("memplay: using memory file") : Str("diskin2: opened")),
                       (memory ? p->memfile->fullName : csound->GetFileName(fd)),
                       sfinfo.samplerate, sfinfo.channels,
                       Str("channel(s)"),
@@ -2734,11 +2734,11 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     if (memory) {
       p->memfile = csound->LoadSoundFile(csound, name, &sfinfo);
       if (UNLIKELY(p->memfile == NULL))
-        return csound->InitError(csound, Str("memin: could not load '%s'"), name);
+        return csound->InitError(csound, Str("memplay: could not load '%s'"), name);
       if (UNLIKELY(p->memfile->nFrames > INT32_MAX || sfinfo.channels < 1)) {
         p->memfile = NULL;
         return csound->InitError(csound, "%s",
-                                 Str("memin: invalid file length or channel count"));
+                                 Str("memplay: invalid file length or channel count"));
       }
     }
     else {
@@ -2958,7 +2958,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
         csound->Message(csound, "%s '%s':\n"
                         "         %d Hz, %d %s, %"  PRId64 " %s",
-                        (memory ? Str("memin: using memory file") : Str("diskin2: opened")),
+                        (memory ? Str("memplay: using memory file") : Str("diskin2: opened")),
                         (memory ? p->memfile->fullName : csound->GetFileName(fd)),
                         sfinfo.samplerate, sfinfo.channels,
                         Str("channel(s)"),
@@ -3242,7 +3242,7 @@ int32_t diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p) {
     return diskin2_init_array(csound,p,0,0);
 }
 
-int32_t memin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p) {
+int32_t memplay_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p) {
     p->SkipInit = *p->iSkipInit;
     p->WinSize = *p->iWinSize;
     p->BufSize =  *p->iBufSize;
@@ -3262,7 +3262,7 @@ int32_t diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p) {
     return diskin2_init_array(csound,p,1,0);
 }
 
-int32_t memin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p) {
+int32_t memplay_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p) {
     p->SkipInit = *p->iSkipInit;
     p->WinSize = *p->iWinSize;
     p->BufSize =  *p->iBufSize;
@@ -3459,7 +3459,7 @@ int32_t sndoutset_S(CSOUND *csound, SNDOUT *p){
 }
 
 /* Cached files live until engine reset; note-off only invalidates the reader. */
-int32_t memin_deinit(CSOUND *csound, DISKIN2 *p)
+int32_t memplay_deinit(CSOUND *csound, DISKIN2 *p)
 {
     IGN(csound);
     p->memfile = NULL;
@@ -3467,7 +3467,7 @@ int32_t memin_deinit(CSOUND *csound, DISKIN2 *p)
     return OK;
 }
 
-int32_t memin_deinit_array(CSOUND *csound, DISKIN2_ARRAY *p)
+int32_t memplay_deinit_array(CSOUND *csound, DISKIN2_ARRAY *p)
 {
     IGN(csound);
     p->memfile = NULL;

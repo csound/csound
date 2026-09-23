@@ -1,23 +1,23 @@
-# memin
+# memplay
 
-`memin` plays an entire sound file from the engine's shared memory cache. It
+`memplay` plays an entire sound file from the engine's shared memory cache. It
 supports the same interpolation, pitch changes, reverse playback, bounded loops,
 and loop crossfades as `diskin2`.
 
 ```csound
-aLeft, aRight memin "stereo.wav", 1
+aLeft, aRight memplay "stereo.wav", 1
 
-aChannels[] memin "multichannel.wav", 1
+aChannels[] memplay "multichannel.wav", 1
 
 ; Crossfade over 128 output frames while looping from 0.2 to 0.8 seconds.
-aLoop[] memin "stereo.wav", 1, 0.2, 128, 0, 4, 0, 0, 0, 0.8
+aLoop[] memplay "stereo.wav", 1, 0.2, 128, 0, 4, 0, 0, 0, 0.8
 ```
 
 The argument order matches `diskin2`, so an existing call can change just the
 opcode name:
 
 ```text
-memin Sfile [, kpitch, iskiptime, iwrap, iformat, iwsize,
+memplay Sfile [, kpitch, iskiptime, iwrap, iformat, iwsize,
               ibufsize, iskipinit, iforceSync, iend]
 ```
 
@@ -32,7 +32,7 @@ count. Extra scalar outputs are silent.
 - `iformat` and `iwsize` follow `diskin2`; the default interpolation is cubic.
 - `ibufsize` controls the small interpolation buffers. Refills copy memory only.
 - `iskipinit` preserves the current reader on reinit when nonzero.
-- `iforceSync` is accepted for compatibility and ignored: `memin` always uses
+- `iforceSync` is accepted for compatibility and ignored: `memplay` always uses
   synchronous memory access, including with `--realtime`.
 - An explicit `iend` bounds playback in seconds. With looping enabled, the loop
   runs from `iskiptime` to `iend`, following `diskin2`'s boundary rules.
@@ -49,6 +49,6 @@ reload an existing cache entry. Decoded storage takes approximately
 There is no automatic fallback to streaming; use `diskin2` for files that should
 not stay in memory. The reader supports at most `INT32_MAX` frames.
 
-`tests/commandline/test_memin_short_loop.csd` is a self-contained example that
+`tests/commandline/test_memplay_short_loop.csd` is a self-contained example that
 creates its own source and checks short loops, wide interpolation windows, and
 fast playback.
