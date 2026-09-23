@@ -112,7 +112,7 @@ typedef struct diskin2 {
     void    *cb;
     int32_t     async;
     volatile int32_t asyncStopRequested;
-    volatile int32_t asyncReaders;
+    volatile int32_t asyncReaders; /* registration held through final cleanup */
     volatile int32_t asyncState;
     void        *asyncEntry;
     CSOUND *csound;
@@ -172,7 +172,7 @@ typedef struct diskin2_array {
   void *cb;
   int32_t  async;
   volatile int32_t asyncStopRequested;
-  volatile int32_t asyncReaders;
+  volatile int32_t asyncReaders; /* registration held through final cleanup */
   volatile int32_t asyncState;
   void *asyncEntry;
   CSOUND *csound;

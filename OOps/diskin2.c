@@ -432,6 +432,7 @@ static uintptr_t diskin2_io_loop(CSOUND *csound, int32_t array);
 
 typedef struct diskin2_async_entry {
   void *instance;
+  void **entrySlot;
   INSDS *owner;
   volatile int32_t *stopRequested;
   volatile int32_t *instanceReaders;
@@ -473,10 +474,10 @@ typedef struct {
   volatile int32_t shuttingDown;
 } DISKIN2_ASYNC_STATE;
 
-/* Lock order is registry, then entry, or owner-reference, then entry. Entry
-   activity prevents new borrows; the owner-reference lock serializes a new
-   borrow with INSDS reclamation. Disk reads and file closes run without any
-   of these locks held. */
+/* Registry and entry locks belong to init, cleanup, and disk workers. The
+   audio thread only posts stop flags. Registration holds an owner reference
+   until cleanup finishes, including gaps between worker polls. This keeps
+   turnoff from freeing a reader before the event thread removes it. */
 
 enum {
   DISKIN2_ASYNC_IDLE = 0,
@@ -591,6 +592,7 @@ static void diskin2_deactivate_entry_locked(DISKIN2_ASYNC_STATE *state,
 static void diskin2_detach_entry_locked(DISKIN2_ASYNC_ENTRY *entry)
 {
   entry->instance = NULL;
+  entry->entrySlot = NULL;
   entry->owner = NULL;
   entry->stopRequested = NULL;
   entry->instanceReaders = NULL;
@@ -692,34 +694,62 @@ static void diskin2_recycle_entry(CSOUND *csound,
   diskin2_registry_unlock(csound);
 }
 
-static void diskin2_defer_close(CSOUND *csound,
-                                DISKIN2_ASYNC_STATE *state,
-                                DISKIN2_ASYNC_ENTRY *entry)
+/* Called with the registry lock. Retirement keeps its registration reference
+   until the event thread observes the final borrow has ended. */
+static void diskin2_retire_entry_locked(DISKIN2_ASYNC_STATE *state,
+                                        DISKIN2_ASYNC_ENTRY *entry,
+                                        int32_t closeFiles)
 {
-  diskin2_registry_lock(csound);
+  diskin2_entry_lock(entry);
+  entry->active = 0;
+  diskin2_deactivate_entry_locked(state, entry, entry->array);
+  if (entry->entrySlot != NULL)
+    *entry->entrySlot = NULL;
+  entry->closeOnRelease = closeFiles;
   entry->closeNext = state->deferredCloses;
   state->deferredCloses = entry;
-  diskin2_registry_unlock(csound);
+  diskin2_entry_unlock(entry);
 }
 
 static void diskin2_drain_deferred_closes(CSOUND *csound,
-                                          DISKIN2_ASYNC_STATE *state)
+                                          DISKIN2_ASYNC_STATE *state,
+                                          int32_t shutdown)
 {
-  DISKIN2_ASYNC_ENTRY *entry;
+  DISKIN2_ASYNC_ENTRY *ready = NULL, **pending;
 
   diskin2_registry_lock(csound);
-  entry = state->deferredCloses;
-  state->deferredCloses = NULL;
+  for (int32_t array = 0; array < 2; array++) {
+    DISKIN2_ASYNC_ENTRY *entry = array ? state->activeArrayEntries :
+                                        state->activeEntries;
+    while (entry != NULL) {
+      DISKIN2_ASYNC_ENTRY *next = entry->activeNext;
+      if (ATOMIC_GET(*entry->stopRequested) || shutdown)
+        diskin2_retire_entry_locked(state, entry, 1);
+      entry = next;
+    }
+  }
+  pending = &state->deferredCloses;
+  while (*pending != NULL) {
+    DISKIN2_ASYNC_ENTRY *entry = *pending;
+    diskin2_entry_lock(entry);
+    if (!entry->borrowed) {
+      *pending = entry->closeNext;
+      entry->closeNext = ready;
+      ready = entry;
+    }
+    else
+      pending = &entry->closeNext;
+    diskin2_entry_unlock(entry);
+  }
   diskin2_registry_unlock(csound);
 
-  while (entry != NULL) {
-    DISKIN2_ASYNC_ENTRY *next = entry->closeNext;
+  while (ready != NULL) {
+    DISKIN2_ASYNC_ENTRY *entry = ready;
     INSDS *owner = entry->owner;
     volatile int32_t *instanceReaders = entry->instanceReaders;
     int32_t array = entry->array;
-
-    if (owner != NULL && owner->fdchp != NULL)
-      fdchclose(csound, owner);
+    int32_t closeFiles = entry->closeOnRelease;
+    ready = entry->closeNext;
 
     diskin2_entry_lock(entry);
     entry->closeNext = NULL;
@@ -727,90 +757,48 @@ static void diskin2_drain_deferred_closes(CSOUND *csound,
     diskin2_entry_unlock(entry);
     diskin2_recycle_entry(csound, state, entry, array);
 
-    /* The owner reference is released last. A waiter may reclaim the INSDS as
-       soon as this count reaches zero, so nothing below may dereference it. */
+    /* Match the engine's turnoff decision. If another reader still owns a
+       reference, its cleanup will close the files. If turnoff has not yet
+       marked the owner inactive, the engine will see the final decrement.
+       Retain the last reference across the close so the owner cannot be reused. */
     async_instance_lock(csound);
-    if (instanceReaders != NULL)
+    closeFiles = closeFiles && ATOMIC_GET(owner->async_ref_count) == 1 &&
+                 ATOMIC_GET8(owner->actflg) == 0 && owner->fdchp != NULL;
+    if (!closeFiles) {
       ATOMIC_DECR(*instanceReaders);
-    if (owner != NULL)
       ATOMIC_DECR(owner->async_ref_count);
-    async_instance_unlock(csound);
-    entry = next;
+      async_instance_unlock(csound);
+    }
+    else {
+      async_instance_unlock(csound);
+      fdchclose(csound, owner);
+      async_instance_lock(csound);
+      ATOMIC_DECR(*instanceReaders);
+      ATOMIC_DECR(owner->async_ref_count);
+      async_instance_unlock(csound);
+    }
   }
 }
 
-static void *diskin2_acquire_async_instance(CSOUND *csound,
-                                             DISKIN2_ASYNC_ENTRY *entry,
-                                             INSDS **owner)
+static void *diskin2_acquire_async_instance(DISKIN2_ASYNC_ENTRY *entry)
 {
   void *instance = NULL;
 
-  *owner = NULL;
-  /* Reclamation tests async_ref_count under this lock. Take it before the
-     entry lock so a zero-to-one transition cannot race with freeing owner. */
-  async_instance_lock(csound);
   diskin2_entry_lock(entry);
   if (entry->active && entry->instance != NULL &&
       !ATOMIC_GET(*entry->stopRequested)) {
     instance = entry->instance;
-    *owner = entry->owner;
     entry->borrowed = 1;
-    ATOMIC_INCR(*entry->instanceReaders);
-    ATOMIC_INCR((*owner)->async_ref_count);
   }
   diskin2_entry_unlock(entry);
-  async_instance_unlock(csound);
   return instance;
 }
 
-static void diskin2_release_async_instance(
-  CSOUND *csound, DISKIN2_ASYNC_STATE *state,
-  DISKIN2_ASYNC_ENTRY *entry, INSDS *owner,
-  volatile int32_t *instanceReaders, int32_t array)
+static void diskin2_release_async_instance(DISKIN2_ASYNC_ENTRY *entry)
 {
-  int32_t inactive;
-  int32_t closeOnRelease;
-  int32_t deferClose = 0;
-
   diskin2_entry_lock(entry);
   entry->borrowed = 0;
-  inactive = !entry->active;
-  closeOnRelease = entry->closeOnRelease;
   diskin2_entry_unlock(entry);
-
-  /* Deactivation and both diskin2 workers use this short owner lock. This
-     makes the final decrement and close handoff one transition without tying
-     either operation to the long-held allocation lock. */
-  async_instance_lock(csound);
-  if (!inactive) {
-    ATOMIC_DECR(*instanceReaders);
-    ATOMIC_DECR(owner->async_ref_count);
-  }
-  else {
-    /* Retain the last borrow until the event thread closes the owner's files.
-       With two workers, the first release decrements two to one and the second
-       performs this handoff, so neither can miss the final close. */
-    deferClose = closeOnRelease &&
-                 ATOMIC_GET(owner->async_ref_count) == 1 &&
-                 ATOMIC_GET8(owner->actflg) == 0 && owner->fdchp != NULL;
-    if (!deferClose) {
-      ATOMIC_DECR(*instanceReaders);
-      ATOMIC_DECR(owner->async_ref_count);
-    }
-  }
-  async_instance_unlock(csound);
-
-  if (!inactive)
-    return;
-
-  if (deferClose)
-    diskin2_defer_close(csound, state, entry);
-  else {
-    diskin2_entry_lock(entry);
-    diskin2_detach_entry_locked(entry);
-    diskin2_entry_unlock(entry);
-    diskin2_recycle_entry(csound, state, entry, array);
-  }
 }
 
 static int32_t diskin2_remove_async_instance(
@@ -852,7 +840,13 @@ static int32_t diskin2_add_async_instance(
   if (!ATOMIC_GET(state->shuttingDown) &&
       ATOMIC_GET(*asyncState) != DISKIN2_ASYNC_STOPPED &&
       !ATOMIC_GET(*stopRequested)) {
+    /* Init owns the instance here. Retain it before publishing to a worker. */
+    async_instance_lock(csound);
+    ATOMIC_INCR(owner->async_ref_count);
+    ATOMIC_SET(*instanceReaders, 1);
+    async_instance_unlock(csound);
     diskin2_entry_lock(entry);
+    entry->entrySlot = entrySlot;
     entry->active = 1;
     diskin2_entry_unlock(entry);
     diskin2_activate_entry_locked(state, entry, array);
@@ -895,41 +889,33 @@ static int32_t diskin2_remove_async_instance(
   volatile int32_t *asyncState, int32_t *async, int32_t array,
   int32_t terminalStop)
 {
-  DISKIN2_ASYNC_STATE *state = diskin2_async_state(csound);
+  DISKIN2_ASYNC_STATE *state;
   DISKIN2_ASYNC_ENTRY *entry;
-  int32_t releaseEntry = 0;
+  IGN(array);
 
-  if (state != NULL)
-    diskin2_registry_lock(csound);
   *async = 0;
-  ATOMIC_SET(*stopRequested, 1);
-  if (terminalStop)
+  if (terminalStop) {
     ATOMIC_SET(*asyncState, DISKIN2_ASYNC_STOPPED);
-  entry = (DISKIN2_ASYNC_ENTRY *) *entrySlot;
-  *entrySlot = NULL;
-  if (entry == NULL || state == NULL) {
-    if (state != NULL)
-      diskin2_registry_unlock(csound);
+    /* Last access to the instance: cleanup may release its reference as soon
+       as it observes this flag. No registry access on the audio thread. */
+    ATOMIC_SET(*stopRequested, 1);
     return OK;
   }
 
-  /* Stop new borrows without waiting for an in-flight disk read. The owning
-     INSDS remains unavailable for reuse until that borrow is released. */
-  diskin2_entry_lock(entry);
-  if (entry->active) {
-    entry->active = 0;
-    diskin2_deactivate_entry_locked(state, entry, array);
-    entry->closeOnRelease = terminalStop;
-    if (!entry->borrowed) {
-      diskin2_detach_entry_locked(entry);
-      releaseEntry = 1;
-    }
+  /* Reinit runs on the init thread and waits for the old registration. */
+  state = diskin2_async_state(csound);
+  if (state == NULL) {
+    ATOMIC_SET(*stopRequested, 1);
+    return OK;
   }
-  diskin2_entry_unlock(entry);
+  diskin2_registry_lock(csound);
+  /* Publish the stop and its reinit close policy together. Cleanup must not
+     mistake this for a terminal stop while reinit has made the owner inactive. */
+  ATOMIC_SET(*stopRequested, 1);
+  entry = (DISKIN2_ASYNC_ENTRY *) *entrySlot;
+  if (entry != NULL && entry->active)
+    diskin2_retire_entry_locked(state, entry, 0);
   diskin2_registry_unlock(csound);
-
-  if (releaseEntry)
-    diskin2_recycle_entry(csound, state, entry, array);
   return OK;
 }
 
@@ -1008,7 +994,7 @@ void diskin2_async_drain_deferred(CSOUND *csound)
   DISKIN2_ASYNC_STATE *state = diskin2_async_state(csound);
 
   if (state != NULL)
-    diskin2_drain_deferred_closes(csound, state);
+    diskin2_drain_deferred_closes(csound, state, 0);
 #else
   IGN(csound);
 #endif
@@ -1041,7 +1027,7 @@ void diskin2_async_shutdown(CSOUND *csound)
     csound->JoinThread(thread);
   if (arrayThread != NULL)
     csound->JoinThread(arrayThread);
-  diskin2_drain_deferred_closes(csound, state);
+  diskin2_drain_deferred_closes(csound, state, 1);
   diskin2_free_entries(csound, state->entries);
   diskin2_free_entries(csound, state->arrayEntries);
   csound->diskin2_async_state = NULL;
@@ -2652,30 +2638,24 @@ static uintptr_t diskin2_io_loop(CSOUND *csound, int32_t array)
     diskin2_registry_unlock(csound);
     while (entry != NULL) {
       DISKIN2_ASYNC_ENTRY *next;
-      INSDS *owner;
       void *current;
 
       diskin2_registry_lock(csound);
       next = entry->activeNext;
       diskin2_registry_unlock(csound);
-      current = diskin2_acquire_async_instance(csound, entry, &owner);
+      current = diskin2_acquire_async_instance(entry);
       if (current != NULL) {
-        volatile int32_t *readers;
-
         if (array) {
           DISKIN2_ARRAY *item = (DISKIN2_ARRAY *) current;
           if (item->xf.len) diskin_file_read_array_xfade(csound, item);
           else diskin_file_read_array(csound, item);
-          readers = &item->asyncReaders;
         }
         else {
           DISKIN2 *item = (DISKIN2 *) current;
           if (item->xf.len) diskin_file_read_xfade(csound, item);
           else diskin_file_read(csound, item);
-          readers = &item->asyncReaders;
         }
-        diskin2_release_async_instance(csound, state, entry, owner,
-                                       readers, array);
+        diskin2_release_async_instance(entry);
       }
       entry = next;
     }
