@@ -30,8 +30,14 @@
 #define POS_FRAC_SCALE  0x10000000
 #define POS_FRAC_MASK   0x0FFFFFFF
 
+/* Published and consumed together under csound->diskin2_async_lock. */
+typedef struct {
+    MYFLT transpose;
+    int32_t reset;              /* a step pending since the last reader poll */
+} DISKIN2_CONTROL;
+
 /* Loop crossfade state (enabled by iwrap > 1), shared by the scalar and array
- * versions if diskin2 */
+ * versions of diskin2 */
 typedef struct {
     int32_t len;                /* crossfade length in frames, 0 = disabled */
     int32_t ready;              /* loop head captured */
@@ -39,9 +45,7 @@ typedef struct {
     int32_t dir;                /* playback direction the head was captured in */
     int32_t changing;           /* kTranspose changed in the previous period
                                    (a continuous ramp, as opposed to a step) */
-    volatile int32_t resets;    /* async: steps latched by the perf thread */
-    int32_t resetsSeen;         /* async: steps consumed by the reader */
-    MYFLT   perfTranspose;      /* async: previous perf period's kTranspose */
+    DISKIN2_CONTROL control;   /* async: pitch and pending head reset */
     int64_t headEnd;            /* position to resume from after loop wrap */
     MYFLT   *buf;               /* captured loop head (len * channels) */
     AUXCH   aux;                /* storage for buf */
@@ -105,7 +109,6 @@ typedef struct diskin2 {
     volatile int32_t asyncReaders;
     volatile int32_t asyncState;
     void        *asyncEntry;
-    MYFLT     transpose;
     CSOUND *csound;
     struct diskin2  *nxt;
 } DISKIN2;

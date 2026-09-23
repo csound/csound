@@ -1341,7 +1341,11 @@ void csoundSpinLock(spin_lock_t *spinlock){
     spin_lock_t unset = 0;
     spin_lock_t set = 1;
     while (!__atomic_compare_exchange_n(spinlock, &unset, set, false,
-                                        __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)) { };
+                                        __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)) {
+      /* A failed exchange replaces the expected value with the held state.
+         Retry only against an unlocked value, never a successful 1 -> 1. */
+      unset = 0;
+    }
 }
 
 void csoundSpinUnLock(spin_lock_t *spinlock){

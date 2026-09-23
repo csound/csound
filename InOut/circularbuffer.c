@@ -116,13 +116,11 @@ int32_t csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int32_t ite
           rp = 0;
         }
       }
-#if defined(MSVC)
-      InterlockedExchange(&((circular_buffer *)p)->rp, rp);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-      __atomic_exchange_n(&((circular_buffer *)p)->rp,rp, __ATOMIC_SEQ_CST);
-#else
+      /* Publish through the same lock used by checkspace. Atomic stores
+         alone do not synchronize its plain reads or the sample copies. */
+      csoundSpinLock(&((circular_buffer *)p)->lock);
       ((circular_buffer *)p)->rp = rp;
-#endif
+      csoundSpinUnLock(&((circular_buffer *)p)->lock);
       return itemsread;
     }
 }
@@ -167,13 +165,9 @@ void csoundFlushCircularBuffer(CSOUND *csound, void *p)
         rp++;
         if(rp == numelem) rp = 0;
     }
-#if defined(MSVC)
-      InterlockedExchange(&((circular_buffer *)p)->rp, rp);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-      __atomic_store_n(&((circular_buffer *)p)->rp,rp, __ATOMIC_SEQ_CST);
-#else
-      ((circular_buffer *)p)->rp = rp;
-#endif
+    csoundSpinLock(&((circular_buffer *)p)->lock);
+    ((circular_buffer *)p)->rp = rp;
+    csoundSpinUnLock(&((circular_buffer *)p)->lock);
 }
 
 
@@ -195,13 +189,9 @@ int32_t csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int32
                (size_t) elemsize);
         if(wp == numelem) wp = 0;
     }
-#if defined(MSVC)
-      InterlockedExchange(&((circular_buffer *)p)->wp, wp);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-      __atomic_store_n(&((circular_buffer *)p)->wp,wp, __ATOMIC_SEQ_CST);
-#else
-      ((circular_buffer *)p)->wp = wp;
-#endif
+    csoundSpinLock(&((circular_buffer *)p)->lock);
+    ((circular_buffer *)p)->wp = wp;
+    csoundSpinUnLock(&((circular_buffer *)p)->lock);
     return itemswrite;
 }
 

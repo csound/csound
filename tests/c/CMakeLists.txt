@@ -188,6 +188,18 @@ if(BUILD_TESTS)
 
     include(GoogleTest)
     gtest_discover_tests(unittests)
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND NOT EMSCRIPTEN AND
+       NOT IOS AND NOT BARE_METAL AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+        add_executable(diskin2_concurrency_tests
+            diskin2_concurrency_test.cpp fixtures/diskin2_concurrency.c)
+        target_compile_options(diskin2_concurrency_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(diskin2_concurrency_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(diskin2_concurrency_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(diskin2_concurrency_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(diskin2_concurrency_tests)
+    endif()
     set_property(DIRECTORY APPEND PROPERTY TEST_INCLUDE_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/server_test_locks.cmake")
     message(STATUS "Building unit tests")
