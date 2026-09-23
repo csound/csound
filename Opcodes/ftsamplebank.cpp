@@ -107,19 +107,17 @@ public:
     *numberOfFiles =
           loadSamplesToTables(csound, *index, (char *)sDirectory->data,
                               *skiptime, *format, *channel);
-    *trigger = 0;
     return OK;
   }
 
   int32_t noteoff(CSOUND *) { return OK; }
 
   int32_t kontrol(CSOUND *csound) {
-    // if directry changes update tables..
+    // The trigger is an input: other opcodes may share it.
     if (*trigger == 1) {
       *numberOfFiles =
           loadSamplesToTables(csound, *index, (char *)sDirectory->data,
                               *skiptime, *format, *channel);
-      *trigger = 0;
     }
     return OK;
   }
