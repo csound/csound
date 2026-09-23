@@ -69,6 +69,7 @@ if(BUILD_TESTS)
         socksend_test.cpp
         sockrecv_test.cpp
         fixtures/sockrecv_test_opcode.c
+        oscsend_test.cpp
         internal_osc_decode_test.cpp
         pvsinit_test.cpp
         paulstretch_test.cpp

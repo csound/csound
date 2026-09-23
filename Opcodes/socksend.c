@@ -489,7 +489,12 @@ typedef struct {
   MYFLT *arg[32];     /* only 26 can be used, but add a few more for safety */
   AUXCH   aux;
   AUXCH   types;
-  int32_t sock, iargs;
+#if defined(WIN32) && !defined(__CYGWIN__)
+  SOCKET sock;
+#else
+  int32_t sock;
+#endif
+  int32_t ntypes;
   MYFLT   last;
   struct sockaddr_in server_addr;
   int32_t err_state;
@@ -532,9 +537,10 @@ static int32_t osc_array_blob_sizes(const ARRAYDAT *array, int32_t shaped,
 
 static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
 {
+    if (!p->init_done) return OK;
     p->init_done = 0;
-#if defined(WIN32)
-    closesocket((SOCKET)p->sock);
+#if defined(WIN32) && !defined(__CYGWIN__)
+    closesocket(p->sock);
     WSACleanup();
 #else
     close(p->sock);
@@ -559,61 +565,33 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     }
 
 
-    if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) strlen(p->type->data) + 4))
-       return csound->InitError(csound,
-                             "%s", Str("insufficient number of arguments for "
-                                 "OSC message types\n"));
-
-#if defined(WIN32) && !defined(__CYGWIN__)
-    WSADATA wsaData = {0};
-    int32_t err;
-    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
-#endif
-    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, "%s", Str("creating socket"));
+    p->ntypes = 0;
+    if (p->INOCOUNT > 4) {
+      size_t ntypes = strlen(p->type->data), nargs = 0;
+      for (size_t i = 0; i < ntypes; i++)
+        nargs += p->type->data[i] == 't' ? 2 : 1;
+      if (UNLIKELY(nargs > p->INOCOUNT - 5))
+        return csound->InitError(csound, "%s",
+                                Str("insufficient number of arguments for "
+                                    "OSC message types\n"));
+      p->ntypes = (int32_t)ntypes;
     }
-    /* create server address: where we want to send to and clear it out */
-    memset(&p->server_addr, 0, sizeof(p->server_addr));
-    p->server_addr.sin_family = AF_INET;    /* it is an INET address */
-#if defined(WIN32) && !defined(__CYGWIN__)
-    if(strcmp(p->ipaddress->data, "localhost"))
-      p->server_addr.sin_addr.S_un.S_addr =
-        inet_addr((const char *) p->ipaddress->data);
-    else
-      p->server_addr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
-#else
-     if(strcmp(p->ipaddress->data, "localhost"))
-       inet_aton((const char *) p->ipaddress->data,
-              &p->server_addr.sin_addr);    /* the server IP address */
-      else inet_aton("127.0.0.1",
-            &p->server_addr.sin_addr);
-#endif
-    p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
     if(p->INOCOUNT > 4) {
-      size_t i, iarg = p->type->size-1, nargs = p->INOCOUNT - 5;
+      int32_t i, iarg;
     STRINGDAT *s;
     ARRAYDAT *ar;
     FUNC *ft;
-    if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
-      /* allocate space for the types buffer */
-      csound->AuxAlloc(csound, strlen(p->type->data), &p->types);
-    memcpy(p->types.auxp, p->type->data, strlen(p->type->data));
+    if (p->ntypes > 0) {
+      if (p->types.auxp == NULL || (size_t)p->ntypes > p->types.size)
+        csound->AuxAlloc(csound, p->ntypes, &p->types);
+      memcpy(p->types.auxp, p->type->data, p->ntypes);
+    }
 
-    // todo: parse type to allocate memory
     bsize = 0;
-    if(iarg > nargs)
-     return csound->InitError(csound,
-                     "not enough args: had %lu, needed %lu\n",
-                      nargs, iarg);
-
-    for(i=0,iarg=0; i < p->type->size-1; i++) {
+    for(i=0,iarg=0; i < p->ntypes; i++) {
       switch(p->type->data[i]){
       case 't':
-        if (UNLIKELY(p->INOCOUNT < (uint32_t) p->type->size + 5))
-          return csound->InitError(csound, "extra argument needed for type t\n");
         bsize += 8;
         iarg+=2;
         break;
@@ -625,15 +603,15 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         iarg++;
         break;
       case 's':
-        if (UNLIKELY(!IS_STR_ARG(p->arg[i])))
+        if (UNLIKELY(!IS_STR_ARG(p->arg[iarg])))
           return csound->InitError(csound, "%s", Str("expecting a string argument\n"));
-        s = (STRINGDAT *)p->arg[i];
+        s = (STRINGDAT *)p->arg[iarg];
         bsize += strlen(s->data) + 64;
         iarg++;
         break;
       case 'l':
-      case 'h': /* OSC-accepted type name for 64bit int32_t */
-        p->type->data[i] = 'h';
+      case 'h': /* OSC type tag for a 64-bit integer */
+        ((char *)p->types.auxp)[i] = 'h';
         /* fall through */
       case 'd':
         bsize += 8;
@@ -647,7 +625,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         iarg++;
         break;
       case 'G':
-        ft = csound->FTFind(csound, p->arg[i]);
+        ft = csound->FTFind(csound, p->arg[iarg]);
         if (UNLIKELY(ft == NULL))
           return csound->InitError(csound, "%s",
                                    Str("ftable not found for OSC message\n"));
@@ -658,7 +636,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       case 'D': {
         size_t valueBytes;
         size_t blobBytes;
-        ar = (ARRAYDAT *) p->arg[i];
+        ar = (ARRAYDAT *) p->arg[iarg];
         if (UNLIKELY(osc_array_blob_sizes(
                        ar, p->type->data[i] == 'A',
                        &valueBytes, &blobBytes) != OK ||
@@ -686,7 +664,6 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     else {
       memset(p->aux.auxp, 0, bsize);
     }
-    p->iargs = (int32_t) iarg;
     } else {
       bsize = strlen(p->dest->data)+1;
       bsize = ceil(bsize/4.)*4;
@@ -698,6 +675,31 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       memset(p->aux.auxp, 0, bsize);
     }
     }
+
+    /* Open the socket only after all argument checks have passed. */
+#if defined(WIN32) && !defined(__CYGWIN__)
+    WSADATA wsaData = {0};
+    int32_t err;
+    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+#endif
+    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
+#if defined(WIN32) && !defined(__CYGWIN__)
+      WSACleanup();
+#endif
+      return csound->InitError(csound, "%s", Str("creating socket"));
+    }
+    memset(&p->server_addr, 0, sizeof(p->server_addr));
+    p->server_addr.sin_family = AF_INET;
+#if defined(WIN32) && !defined(__CYGWIN__)
+    p->server_addr.sin_addr.s_addr = inet_addr(
+      strcmp(p->ipaddress->data, "localhost") ? p->ipaddress->data : "127.0.0.1");
+#else
+    inet_aton(strcmp(p->ipaddress->data, "localhost") ?
+              p->ipaddress->data : "127.0.0.1", &p->server_addr.sin_addr);
+#endif
+    p->server_addr.sin_port = htons((int32_t)*p->port);
 
     p->last = FL(0.0);
     p->err_state = 0;
@@ -719,7 +721,8 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
     if(*p->kwhen != p->last || p->fstime) {
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
-      int32_t buffersize = 0, i, size;
+      int32_t buffersize = 0, i, iarg, size;
+      const char *types = (const char *)p->types.auxp;
       size_t bsize = p->aux.size;
       char *out = (char *) p->aux.auxp;
       size_t needed;
@@ -744,24 +747,20 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
          add a comma to the beginning of the type string.
       */
       out[buffersize] = ',';
-      /* bound the copy by the types buffer allocated at init, in case
-         the type string changed length at perf time */
-      size = (int32_t) strlen(p->type->data)+1;
-      if ((size_t) size - 1 > p->types.size)
-        size = (int32_t) p->types.size + 1;
-      /* check for b type before copying */
-      for(i = 0; i < p->iargs; i++) {
-        if(p->type->data[i] == 'b') {
-          if(*p->arg[i] == FL(0.0)) ((char *)p->types.auxp)[i] = 'F';
-          else  ((char *)p->types.auxp)[i] = 'T';
+      /* Keep the init-time types separate from the outgoing OSC tags. */
+      size = p->ntypes + 1;
+      if (p->ntypes > 0)
+        memcpy(out+buffersize+1, types, p->ntypes);
+      /* OSC booleans and blobs use different tags from the input types. */
+      for(i = 0, iarg = 0; i < p->ntypes; i++) {
+        if(types[i] == 'b') {
+          out[buffersize+1+i] = *p->arg[iarg] == FL(0.0) ? 'F' : 'T';
         }
-        else if(p->type->data[i] == 'D' ||
-                p->type->data[i] == 'A' ||
-                p->type->data[i] == 'G' ||
-                p->type->data[i] == 'a')
-          ((char *)p->types.auxp)[i] = 'b';
+        else if(types[i] == 'D' || types[i] == 'A' ||
+                types[i] == 'G' || types[i] == 'a')
+          out[buffersize+1+i] = 'b';
+        iarg += types[i] == 't' ? 2 : 1;
       }
-      memcpy(out+buffersize+1,p->types.auxp,size-1);
       size = ceil((size+1)/4.)*4;
       buffersize += size;
       /* add data to message */
@@ -774,8 +773,8 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
       STRINGDAT *s;
       ARRAYDAT *ar;
       FUNC *ft;
-      for(i = 0; i < p->iargs; i++) {
-        switch(p->type->data[i]){
+      for(i = 0, iarg = 0; i < p->ntypes; i++, iarg++) {
+        switch(types[i]){
         case 'f':
           /* realloc if necessary */
           if((size_t) buffersize + 4 > bsize) {
@@ -783,7 +782,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
           }
-          fdata = (float) *p->arg[i];
+          fdata = (float) *p->arg[iarg];
           byteswap((char *) &fdata, 4);
           memcpy(out+buffersize,&fdata, 4);
           buffersize += 4;
@@ -795,21 +794,23 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
           }
-          ddata = *p->arg[i];
+          ddata = *p->arg[iarg];
           byteswap((char *) &ddata, 8);
           memcpy(out+buffersize,&ddata, 8);
           buffersize += 8;
           break;
         case 't':
           /* realloc if necessary */
-          if((size_t) buffersize + 4 > bsize) {
+          if((size_t) buffersize + 8 > bsize) {
             aux_realloc(csound, buffersize + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
           }
-          udata = (uint64_t) MYFLT2LRND(*p->arg[i++]);
-          udata <<= 4;
-          udata |= (uint64_t) MYFLT2LRND(*p->arg[i++]);
+          /* Each half is unsigned 32-bit, so round through a wider integer. */
+          udata = (uint64_t)(uint32_t)llrint((double)*p->arg[iarg]);
+          iarg++;
+          udata <<= 32;
+          udata |= (uint32_t)llrint((double)*p->arg[iarg]);
           byteswap((char *) &udata, 8);
           memcpy(out+buffersize,&udata, 8);
           buffersize += 8;
@@ -823,7 +824,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
           }
-          data = MYFLT2LRND(*p->arg[i]);
+          data = MYFLT2LRND(*p->arg[iarg]);
           byteswap((char *) &data, 4);
           memcpy(out+buffersize,&data, 4);
           buffersize += 4;
@@ -835,13 +836,13 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
           }
-          ldata = (int64_t) (*p->arg[i]+0.5);
+          ldata = (int64_t)llrint((double)*p->arg[iarg]);
           byteswap((char *) &ldata, 8);
           memcpy(out+buffersize,&ldata, 8);
           buffersize += 8;
           break;
         case 's':
-          s = (STRINGDAT *)p->arg[i];
+          s = (STRINGDAT *)p->arg[iarg];
           size = (int32_t) strlen(s->data)+1;
           size = ceil(size/4.)*4;
           /* realloc if necessary */
@@ -854,7 +855,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           buffersize += size;
           break;
         case 'G':
-          ft = csound->FTFind(csound, p->arg[i]);
+          ft = csound->FTFind(csound, p->arg[iarg]);
           if (UNLIKELY(ft == NULL))
             return csound->PerfError(csound, &(p->h), "%s",
                                      Str("ftable not found for OSC message\n"));
@@ -877,7 +878,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           size_t requiredBytes;
           size_t offset;
           size_t shapeBytes;
-          ar = (ARRAYDAT *) p->arg[i];
+          ar = (ARRAYDAT *) p->arg[iarg];
           if (UNLIKELY(osc_array_blob_sizes(
                          ar, 1, &valueBytes, &blobBytes) != OK ||
                        (size_t)buffersize >
@@ -918,7 +919,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           size_t blobBytes;
           size_t requiredBytes;
           size_t offset;
-          ar = (ARRAYDAT *) p->arg[i];
+          ar = (ARRAYDAT *) p->arg[iarg];
           if (UNLIKELY(osc_array_blob_sizes(
                          ar, 0, &valueBytes, &blobBytes) != OK ||
                        (size_t)buffersize >
@@ -961,7 +962,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           buffersize += 4;
           mdata = CS_KSMPS;
           memcpy(out+buffersize,&mdata,sizeof(MYFLT));
-          memcpy(out+buffersize+sizeof(MYFLT),p->arg[i],CS_KSMPS*sizeof(MYFLT));
+          memcpy(out+buffersize+sizeof(MYFLT),p->arg[iarg],CS_KSMPS*sizeof(MYFLT));
           buffersize += size;
           break;
         case 'T':
