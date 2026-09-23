@@ -91,6 +91,7 @@ typedef struct diskin2 {
     MYFLT   winFact;
     double  warpScale;
     void *sf;
+    SNDMEMFILE *memfile;        /* shared decoded samples for memin */
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
@@ -152,6 +153,7 @@ typedef struct diskin2_array {
     MYFLT   winFact;
     double  warpScale;
     void *sf;
+    SNDMEMFILE *memfile;        /* shared decoded samples for memin */
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
@@ -167,6 +169,13 @@ typedef struct diskin2_array {
   CSOUND *csound;
   struct diskin2_array *nxt;
 } DISKIN2_ARRAY;
+
+int32_t memin_init(CSOUND *csound, DISKIN2 *p);
+int32_t memin_init_S(CSOUND *csound, DISKIN2 *p);
+int32_t memin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t memin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t memin_deinit(CSOUND *csound, DISKIN2 *p);
+int32_t memin_deinit_array(CSOUND *csound, DISKIN2_ARRAY *p);
 
 int32_t diskin2_init(CSOUND *csound, DISKIN2 *p);
 int32_t diskin2_init_S(CSOUND *csound, DISKIN2 *p);

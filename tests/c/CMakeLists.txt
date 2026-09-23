@@ -19,6 +19,7 @@ if(BUILD_TESTS)
         lpc_lifetime_test.cpp
         sfload_test.cpp
         lpc_cepstrum_test.cpp
+        memin_test.cpp
         bpf_array_test.cpp
         channel_tests.cpp
         controller_print_test.cpp
