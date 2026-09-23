@@ -578,6 +578,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     void          *fd;
     SNDMEMFILE    *p = NULL;
     SFLIB_INFO       tmp;
+    size_t nSamples;
 
 
     if (UNLIKELY(fileName == NULL || fileName[0] == '\0'))
@@ -615,9 +616,19 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
                        fileName, Str(csound->SndfileStrError(csound,NULL)));
       return NULL;
     }
-    p = (SNDMEMFILE*)
-            csound->Malloc(csound, sizeof(SNDMEMFILE)
-                           + (size_t)  sfinfo->frames * sizeof(MYFLT));
+    if (UNLIKELY(sfinfo->frames < 0 || sfinfo->channels < 1 ||
+                 sfinfo->samplerate < 1 ||
+                 (uint64_t)sfinfo->frames >
+                   (SIZE_MAX - sizeof(SNDMEMFILE)) / sizeof(MYFLT) /
+                   (size_t)sfinfo->channels)) {
+      csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
+      csound->ErrorMsg(csound, Str("csoundLoadSoundFile(): invalid or oversized file '%s'"),
+                       fileName);
+      return NULL;
+    }
+    nSamples = (size_t)sfinfo->frames * (size_t)sfinfo->channels;
+    p = (SNDMEMFILE*) csound->Malloc(csound, sizeof(SNDMEMFILE)
+                                    + nSamples * sizeof(MYFLT));
     /* set parameters */
     p->name = (char*) csound->Malloc(csound, strlen(fileName) + 1);
     strcpy(p->name, fileName);
@@ -666,7 +677,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
                                fileName);
       return NULL;
     }
-    p->data[p->nFrames] = 0.0f;
+    p->data[nSamples] = FL(0.0);
     csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     csound->Message(csound, "%s '%s' (sr = %d Hz, %d %s, %" PRId64 " %s) %s",
                     Str("File"), p->fullName, sfinfo->samplerate,

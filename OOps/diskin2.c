@@ -119,9 +119,16 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
         if (nsmps > (int32_t) p->bufSize)
           nsmps = (int32_t) p->bufSize;
         nsmps *= (int32_t) p->nChannels;
-        csound->SndfileSeek(csound, p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
-        /* convert sample count to mono samples and read file */
-        i = (int32_t) csound->SndfileReadSamples(csound, p->sf, p->buf, (sf_count_t) nsmps);
+        if (p->memfile != NULL) {
+          memcpy(p->buf, p->memfile->data + (size_t)p->bufStartPos * p->nChannels,
+                 (size_t)nsmps * sizeof(MYFLT));
+          i = nsmps;
+        }
+        else {
+          csound->SndfileSeek(csound, p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
+          /* convert sample count to mono samples and read file */
+          i = (int32_t) csound->SndfileReadSamples(csound, p->sf, p->buf, (sf_count_t) nsmps);
+        }
         if (UNLIKELY(i < 0))  /* error ? */
           i = 0;    /* clear entire buffer to zero */
       }
@@ -307,7 +314,7 @@ static void diskin2_xf_setup(CSOUND *csound, DISKIN2_XF *xf,
     }
 }
 
-static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname);
+static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname, int32_t memory);
 
 int32_t diskin2_init(CSOUND *csound, DISKIN2 *p) {
     p->SkipInit = *p->iSkipInit;
@@ -316,7 +323,17 @@ int32_t diskin2_init(CSOUND *csound, DISKIN2 *p) {
     p->fforceSync = *p->forceSync;
     p->EndTime = *p->iEnd;
     p->useEnd = (p->INOCOUNT > 9);
-    return diskin2_init_(csound,p,0);
+    return diskin2_init_(csound,p,0,0);
+}
+
+int32_t memplay_init(CSOUND *csound, DISKIN2 *p) {
+    p->SkipInit = *p->iSkipInit;
+    p->WinSize = *p->iWinSize;
+    p->BufSize =  *p->iBufSize;
+    p->fforceSync = FL(1.0);
+    p->EndTime = *p->iEnd;
+    p->useEnd = (p->INOCOUNT > 9);
+    return diskin2_init_(csound,p,0,1);
 }
 
 int32_t diskin2_init_S(CSOUND *csound, DISKIN2 *p) {
@@ -326,7 +343,17 @@ int32_t diskin2_init_S(CSOUND *csound, DISKIN2 *p) {
     p->fforceSync = *p->forceSync;
     p->EndTime = *p->iEnd;
     p->useEnd = (p->INOCOUNT > 9);
-    return diskin2_init_(csound,p,1);
+    return diskin2_init_(csound,p,1,0);
+}
+
+int32_t memplay_init_S(CSOUND *csound, DISKIN2 *p) {
+    p->SkipInit = *p->iSkipInit;
+    p->WinSize = *p->iWinSize;
+    p->BufSize =  *p->iBufSize;
+    p->fforceSync = FL(1.0);
+    p->EndTime = *p->iEnd;
+    p->useEnd = (p->INOCOUNT > 9);
+    return diskin2_init_(csound,p,1,1);
 }
 
 /* VL 11-01-13  diskin_init - calls diskin2_init  */
@@ -338,7 +365,7 @@ int32_t diskin_init(CSOUND *csound, DISKIN2 *p){
     p->fforceSync = 0;
     p->EndTime = FL(0.0);
     p->useEnd = 0;
-    return diskin2_init_(csound,p,0);
+    return diskin2_init_(csound,p,0,0);
 }
 
 int32_t diskin_init_S(CSOUND *csound, DISKIN2 *p){
@@ -348,7 +375,7 @@ int32_t diskin_init_S(CSOUND *csound, DISKIN2 *p){
     p->fforceSync = 0;
     p->EndTime = FL(0.0);
     p->useEnd = 0;
-    return diskin2_init_(csound,p,1);
+    return diskin2_init_(csound,p,1,0);
 }
 
 /*
@@ -364,7 +391,7 @@ int32_t sndinset(CSOUND *csound, DISKIN2 *p) {
     p->fforceSync = 0;
     p->EndTime = FL(0.0);
     p->useEnd = 0;
-    ret = diskin2_init_(csound,p,0);
+    ret = diskin2_init_(csound,p,0,0);
     return ret;
 }
 
@@ -378,7 +405,7 @@ int32_t sndinset_S(CSOUND *csound, DISKIN2 *p){
     p->fforceSync = 0;
     p->EndTime = FL(0.0);
     p->useEnd = 0;
-    ret = diskin2_init_(csound,p,1);
+    ret = diskin2_init_(csound,p,1,0);
     return ret;
 }
 
@@ -1080,7 +1107,7 @@ static int32_t diskin2_begin_async_init(CSOUND *csound, int32_t reinit,
   return cancelled;
 }
 
-static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
+static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname, int32_t memory)
 {
   double  pos;
   char    name[1024];
@@ -1094,6 +1121,11 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     return csound->InitError(csound,
                              Str("diskin2: invalid number of channels"));
   }
+  /* The engine owns cached samples; reinit only resets this reader. */
+  if (memory && p->memfile != NULL && p->initDone && p->SkipInit != FL(0.0))
+    return OK;
+  p->memfile = NULL;
+  if (memory) p->initDone = 0;
   /* if already open, close old file first */
   if (p->fdch.fd != NULL) {
     /* skip initialisation if requested */
@@ -1113,7 +1145,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
       csoundFDClose(csound, &p->fdch);
   }
   p->async = 0;
-  if (diskin2_begin_async_init(csound, p->h.insdshead->reinitflag,
+  if (!memory && diskin2_begin_async_init(csound, p->h.insdshead->reinitflag,
                               p->h.insdshead, &p->asyncState,
                               &p->asyncStopRequested))
     return OK;
@@ -1138,17 +1170,31 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   }
   else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
 
-  fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-                        "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
-  if (UNLIKELY(fd == NULL)) {
-    return csound->InitError(csound,
-                             Str("diskin2: %s: failed to open file (%s)"),
-                             name, Str(csound->SndfileStrError(csound,NULL)));
+  fd = NULL;
+  if (memory) {
+    p->memfile = csound->LoadSoundFile(csound, name, &sfinfo);
+    if (UNLIKELY(p->memfile == NULL))
+      return csound->InitError(csound, Str("memplay: could not load '%s'"), name);
+    if (UNLIKELY(p->memfile->nFrames > INT32_MAX || sfinfo.channels < 1 ||
+                 sfinfo.channels > DISKIN2_MAXCHN)) {
+      p->memfile = NULL;
+      return csound->InitError(csound, "%s",
+                               Str("memplay: file has too many frames or channels"));
+    }
   }
-  /* record file handle so that it will be closed at note-off */
-  memset(&(p->fdch), 0, sizeof(FDCH));
-  p->fdch.fd = fd;
-  csoundFDRecord(csound, &(p->fdch));
+  else {
+    fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+                          "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
+    if (UNLIKELY(fd == NULL)) {
+      return csound->InitError(csound,
+                               Str("diskin2: %s: failed to open file (%s)"),
+                               name, Str(csound->SndfileStrError(csound,NULL)));
+    }
+    /* record file handle so that it will be closed at note-off */
+    memset(&(p->fdch), 0, sizeof(FDCH));
+    p->fdch.fd = fd;
+    csoundFDRecord(csound, &(p->fdch));
+  }
 
   /* set the number of channels from file */
   p->nChannels = sfinfo.channels;
@@ -1233,7 +1279,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   /* Set up the crossfade state before anything can read it: the synchronous
      perf path uses it directly, and the asynchronous reader must not observe a
      half-initialised xf after the instance is published. */
-  asyncMode = (csound->oparms->realtime == 1 && p->fforceSync == 0 &&
+  asyncMode = (!memory && csound->oparms->realtime == 1 && p->fforceSync == 0 &&
                diskin2_async_available(csound, 0));
   diskin2_xf_setup(csound, &p->xf, p->wrapMode, *(p->iWrapMode),
                    p->loopLength, p->nChannels);
@@ -1346,8 +1392,8 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
       csound->Message(csound, "%s '%s':\n"
                       "         %d Hz, %d %s, %" PRId64 " %s\n",
-                      Str("diskin2: opened"),
-                      csound->GetFileName(fd),
+                      (memory ? Str("memplay: using memory file") : Str("diskin2: opened")),
+                      (memory ? p->memfile->fullName : csound->GetFileName(fd)),
                       sfinfo.samplerate, sfinfo.channels,
                       Str("channel(s)"),
                       (int64_t)sfinfo.frames,
@@ -1598,7 +1644,7 @@ diskin2_perf_synchronous_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
     int32_t  wsized2, warp;
 
 
-    if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
+    if (UNLIKELY(p->fdch.fd == NULL && p->memfile == NULL) ) goto file_error;
     if (!p->initDone && !p->SkipInit){
       return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
@@ -1789,7 +1835,7 @@ diskin2_perf_synchronous_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
       for (nn = offset; nn < nsmps; nn++)
         p->out[chn][nn] = p->aOut[chn][nn] * csound->e0dbfs;
       } else /* excess channels set to 0 */
-        p->out[chn][nn] = FL(0.0);
+        memset(p->out[chn], 0, CS_KSMPS * sizeof(MYFLT));
     }
     return OK;
  file_error:
@@ -2150,9 +2196,16 @@ static CS_NOINLINE void diskin2_read_buffer_array(CSOUND *csound,
         if (nsmps > (int32_t) p->bufSize)
           nsmps = (int32_t) p->bufSize;
         nsmps *= (int32_t) p->nChannels;
-        csound->SndfileSeek(csound, p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
-        /* convert sample count to mono samples and read file */
-        i = (int32_t) csound->SndfileReadSamples(csound, p->sf, p->buf, (sf_count_t) nsmps);
+        if (p->memfile != NULL) {
+          memcpy(p->buf, p->memfile->data + (size_t)p->bufStartPos * p->nChannels,
+                 (size_t)nsmps * sizeof(MYFLT));
+          i = nsmps;
+        }
+        else {
+          csound->SndfileSeek(csound, p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
+          /* convert sample count to mono samples and read file */
+          i = (int32_t) csound->SndfileReadSamples(csound, p->sf, p->buf, (sf_count_t) nsmps);
+        }
         if (UNLIKELY(i < 0))  /* error ? */
           i = 0;    /* clear entire buffer to zero */
       }
@@ -2618,7 +2671,7 @@ static uintptr_t diskin_io_thread_array(void *p)
 
 
 static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
-                                  int32_t stringname){
+                                  int32_t stringname, int32_t memory){
     double  pos;
     char    name[1024];
     void    *fd;
@@ -2626,6 +2679,11 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     int32_t     n, asyncMode;
     ARRAYDAT *t = p->aOut;
 
+    /* The engine owns cached samples; reinit only resets this reader. */
+    if (memory && p->memfile != NULL && p->initDone && p->SkipInit != FL(0.0))
+      return OK;
+    p->memfile = NULL;
+    if (memory) p->initDone = 0;
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
       /* skip initialisation if requested */
@@ -2645,7 +2703,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
         csoundFDClose(csound, &p->fdch);
     }
     p->async = 0;
-    if (diskin2_begin_async_init(csound, p->h.insdshead->reinitflag,
+    if (!memory && diskin2_begin_async_init(csound, p->h.insdshead->reinitflag,
                                 p->h.insdshead, &p->asyncState,
                                 &p->asyncStopRequested))
       return OK;
@@ -2672,17 +2730,30 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     }
     else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
 
-    fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-                           "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
-    if (UNLIKELY(fd == NULL)) {
-      return csound->InitError(csound,
-                               Str("diskin2: %s: failed to open file: %s"),
-                               name, Str(csound->SndfileStrError(csound,NULL)));
+    fd = NULL;
+    if (memory) {
+      p->memfile = csound->LoadSoundFile(csound, name, &sfinfo);
+      if (UNLIKELY(p->memfile == NULL))
+        return csound->InitError(csound, Str("memplay: could not load '%s'"), name);
+      if (UNLIKELY(p->memfile->nFrames > INT32_MAX || sfinfo.channels < 1)) {
+        p->memfile = NULL;
+        return csound->InitError(csound, "%s",
+                                 Str("memplay: invalid file length or channel count"));
+      }
     }
-    /* record file handle so that it will be closed at note-off */
-    memset(&(p->fdch), 0, sizeof(FDCH));
-    p->fdch.fd = fd;
-    csoundFDRecord(csound, &(p->fdch));
+    else {
+      fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
+      if (UNLIKELY(fd == NULL)) {
+        return csound->InitError(csound,
+                                 Str("diskin2: %s: failed to open file: %s"),
+                                 name, Str(csound->SndfileStrError(csound,NULL)));
+      }
+      /* record file handle so that it will be closed at note-off */
+      memset(&(p->fdch), 0, sizeof(FDCH));
+      p->fdch.fd = fd;
+      csoundFDRecord(csound, &(p->fdch));
+    }
 
     /* get number of channels in file */
     p->nChannels = sfinfo.channels;
@@ -2784,7 +2855,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     p->prv_kTranspose = FL(0.0);
     /* See diskin2_init_: set up the crossfade state before anything can read
        it (synchronous perf path or published asynchronous reader). */
-    asyncMode = (csound->oparms->realtime == 1 && p->fforceSync == 0 &&
+    asyncMode = (!memory && csound->oparms->realtime == 1 && p->fforceSync == 0 &&
                  diskin2_async_available(csound, 1));
     diskin2_xf_setup(csound, &p->xf, p->wrapMode, *(p->iWrapMode),
                      p->loopLength, p->nChannels);
@@ -2887,8 +2958,8 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
         csound->Message(csound, "%s '%s':\n"
                         "         %d Hz, %d %s, %"  PRId64 " %s",
-                        Str("diskin2: opened"),
-                        csound->GetFileName(fd),
+                        (memory ? Str("memplay: using memory file") : Str("diskin2: opened")),
+                        (memory ? p->memfile->fullName : csound->GetFileName(fd)),
                         sfinfo.samplerate, sfinfo.channels,
                         Str("channel(s)"),
                         (int64_t)sfinfo.frames,
@@ -2917,7 +2988,7 @@ diskin2_perf_synchronous_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t 
     MYFLT *aOut = (MYFLT *) p->aOut->data;
 
 
-    if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
+    if (UNLIKELY(p->fdch.fd == NULL && p->memfile == NULL) ) goto file_error;
     if (!p->initDone && !p->SkipInit){
       return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
@@ -3168,7 +3239,17 @@ int32_t diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p) {
     p->fforceSync = *p->forceSync;
     p->EndTime = *p->iEnd;
     p->useEnd = (p->INOCOUNT > 9);
-    return diskin2_init_array(csound,p,0);
+    return diskin2_init_array(csound,p,0,0);
+}
+
+int32_t memplay_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p) {
+    p->SkipInit = *p->iSkipInit;
+    p->WinSize = *p->iWinSize;
+    p->BufSize =  *p->iBufSize;
+    p->fforceSync = FL(1.0);
+    p->EndTime = *p->iEnd;
+    p->useEnd = (p->INOCOUNT > 9);
+    return diskin2_init_array(csound,p,0,1);
 }
 
 int32_t diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p) {
@@ -3178,7 +3259,17 @@ int32_t diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p) {
     p->fforceSync = *p->forceSync;
     p->EndTime = *p->iEnd;
     p->useEnd = (p->INOCOUNT > 9);
-    return diskin2_init_array(csound,p,1);
+    return diskin2_init_array(csound,p,1,0);
+}
+
+int32_t memplay_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p) {
+    p->SkipInit = *p->iSkipInit;
+    p->WinSize = *p->iWinSize;
+    p->BufSize =  *p->iBufSize;
+    p->fforceSync = FL(1.0);
+    p->EndTime = *p->iEnd;
+    p->useEnd = (p->INOCOUNT > 9);
+    return diskin2_init_array(csound,p,1,1);
 }
 
 /* diskin_init_array - calls diskin2_init_array  */
@@ -3190,7 +3281,7 @@ int32_t diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p){
     p->fforceSync = 0;
     p->EndTime = FL(0.0);
     p->useEnd = 0;
-    return diskin2_init_array(csound,p,0);
+    return diskin2_init_array(csound,p,0,0);
 }
 
 int32_t diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p){
@@ -3200,7 +3291,7 @@ int32_t diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p){
     p->fforceSync = 0;
     p->EndTime = FL(0.0);
     p->useEnd = 0;
-    return diskin2_init_array(csound,p,1);
+    return diskin2_init_array(csound,p,1,0);
 }
 
 int32_t diskin2_perf_array(CSOUND *csound, DISKIN2_ARRAY *p) {
@@ -3365,4 +3456,21 @@ int32_t sndoutset(CSOUND *csound, SNDOUT *p){
 
 int32_t sndoutset_S(CSOUND *csound, SNDOUT *p){
     return sndo1set_(csound,p,1);
+}
+
+/* Cached files live until engine reset; note-off only invalidates the reader. */
+int32_t memplay_deinit(CSOUND *csound, DISKIN2 *p)
+{
+    IGN(csound);
+    p->memfile = NULL;
+    p->initDone = 0;
+    return OK;
+}
+
+int32_t memplay_deinit_array(CSOUND *csound, DISKIN2_ARRAY *p)
+{
+    IGN(csound);
+    p->memfile = NULL;
+    p->initDone = 0;
+    return OK;
 }
