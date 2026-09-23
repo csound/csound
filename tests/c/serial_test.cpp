@@ -10,6 +10,9 @@
 #else
 #include <unistd.h>
 #include <fcntl.h>
+#ifndef __wasm__
+#include <poll.h>
+#endif
 #endif
 
 #ifndef NO_SERIAL_OPCODES
@@ -165,6 +168,49 @@ TEST_F(SerialTests, ReadPrintFlushAndWriteErrors) {
     EXPECT_EQ(serialWrite(csound, &writer), NOTOK);
     writeFails = true;
     EXPECT_EQ(serialWrite(csound, &writer), NOTOK);
+}
+#endif
+
+#if !defined(WIN32) && !defined(__wasm__)
+TEST_F(SerialTests, RawInputPreservesBytes) {
+    int master = posix_openpt(O_RDWR | O_NOCTTY);
+    ASSERT_GE(master, 0);
+    ASSERT_EQ(grantpt(master), 0);
+    ASSERT_EQ(unlockpt(master), 0);
+    const char *path = ptsname(master);
+    ASSERT_NE(path, nullptr);
+    int slave = open(path, O_RDWR | O_NOCTTY);
+    ASSERT_GE(slave, 0);
+    struct termios state;
+    ASSERT_EQ(tcgetattr(slave, &state), 0);
+    state.c_iflag |= ICRNL | ISTRIP | PARMRK | IXON | IXOFF;
+    state.c_lflag |= ECHONL | IEXTEN;
+    ASSERT_EQ(tcsetattr(slave, TCSANOW, &state), 0);
+
+    int fd = serialport_init(csound, path, 9600);
+    ASSERT_GE(fd, 0);
+    ASSERT_EQ(tcgetattr(fd, &state), 0);
+    EXPECT_EQ(state.c_iflag & (IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP |
+                              INLCR | IGNCR | ICRNL | IXON | IXOFF | IXANY), 0u);
+    EXPECT_EQ(state.c_lflag & (ICANON | ECHO | ECHONL | ISIG | IEXTEN), 0u);
+
+    const unsigned char bytes[] = {0, 13, 10, 17, 19, 127, 128, 255};
+    ASSERT_EQ(write(master, bytes, sizeof(bytes)), sizeof(bytes));
+    struct pollfd ready = {fd, POLLIN, 0};
+    ASSERT_EQ(poll(&ready, 1, 1000), 1);
+    MYFLT port = fd, value;
+    SERIALREAD reader = {};
+    reader.port = &port;
+    reader.rChar = &value;
+    for (unsigned char byte : bytes) {
+        EXPECT_EQ(serialRead(csound, &reader), OK);
+        EXPECT_EQ(value, byte);
+    }
+    EXPECT_EQ(serialRead(csound, &reader), OK);
+    EXPECT_EQ(value, -1);
+    close(fd);
+    close(slave);
+    close(master);
 }
 #endif
 
