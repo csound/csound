@@ -585,6 +585,21 @@ static int32_t diode_ladder_init(CSOUND* csound,
     return OK;
 }
 
+/* Protect only the normalized saturation quotient. In particular, leave the
+   per-sample feedback solve free to use reciprocal optimizations. */
+#if defined(__GNUC__) && !defined(__clang__)
+__attribute__((optimize("no-reciprocal-math")))
+#endif
+static inline double diode_ladder_normalize(double saturation, double input,
+                                            double normalization)
+{
+#if defined(__clang__) || defined(_MSC_VER)
+#pragma float_control(precise, on)
+#endif
+    /* The reciprocal can overflow even when this quotient is finite. */
+    return tanh(saturation * input) / normalization;
+}
+
 static int32_t diode_ladder_perf(CSOUND* csound,
                              DIODE_LADDER* p) {
 
@@ -715,7 +730,7 @@ static int32_t diode_ladder_perf(CSOUND* csound,
 
       // non-linear processing
       if (nlp == 1.0) {
-        in = tanh(saturation * in) / normalization;
+        in = diode_ladder_normalize(saturation, in, normalization);
       }
       else if (nlp == 2.0) {
         in = tanh(saturation * in);
