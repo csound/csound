@@ -9,6 +9,14 @@ if(Python3_FOUND)
                 --cc ${CMAKE_C_COMPILER} --cxx ${CMAKE_CXX_COMPILER}
                 --include-dir ${CMAKE_SOURCE_DIR}/include
                 --generated-include-dir ${CMAKE_BINARY_DIR}/include)
+        if(UNIX AND NOT CMAKE_CROSSCOMPILING)
+            add_test(NAME plugin_precision_compatibility
+                COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/plugin_precision.py
+                    --cc ${CMAKE_C_COMPILER} --cxx ${CMAKE_CXX_COMPILER}
+                    --include-dir ${CMAKE_SOURCE_DIR}/include
+                    --generated-include-dir ${CMAKE_BINARY_DIR}/include
+                    --library $<TARGET_FILE:${CSOUNDLIB}>)
+        endif()
     endif()
     if(BUILD_TESTS)
         add_test(NAME opcode_deprecation_catalog

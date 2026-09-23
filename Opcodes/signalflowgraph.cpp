@@ -1740,6 +1740,10 @@ PUBLIC int32_t csoundModuleInit_signalflowgraph(CSOUND *csound) {
   return err;
 }
 #ifdef BUILD_PLUGINS
+PUBLIC int32_t csoundModuleInfo(void) {
+  return CSOUND_MODULE_INFO;
+}
+
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   return csoundModuleCreate_signalflowgraph(csound);
 }

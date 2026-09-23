@@ -62,12 +62,11 @@
  * int32_t csoundModuleInfo(void)                   (optional)                    *
  * --------------------------                                                 *
  *                                                                            *
- * Returns information that can be used to determine if the plugin was built  *
- * for a compatible version of libcsound. The return value may be the sum of  *
- * any of the following two values:                                           *
- *                                                                            *
- *   ((CS_VERSION << 16) + (CS_SUBVER << 8))      API version           *
- *   (int32_t) sizeof(cs_float)                                cs_float type            *
+ * Return CSOUND_MODULE_INFO (from csdl.h) to identify the plugin ABI.         *
+ * Bits 16 and up hold CS_VERSION; bits 8-15 hold CS_SUBVER.                   *
+ * Bits 0-6 hold sizeof(cs_float); bit 7 marks USE_FLOAT (32-bit cs_double).    *
+ * A missing function or unset bit 7 denotes the legacy 64-bit cs_double ABI. *
+ * USE_FLOAT engines reject plugins without that flag before calling them.   *
  *                                                                            *
  ******************************************************************************/
 
