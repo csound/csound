@@ -3,6 +3,7 @@
 #ifdef HAVE_SOCKETS
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
+#include <ws2tcpip.h>
 typedef SOCKET TestSocket;
 #else
 #include <sys/socket.h>

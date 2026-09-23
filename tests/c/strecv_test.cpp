@@ -7,6 +7,7 @@
 #ifdef HAVE_SOCKETS
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #else
 #include <sys/socket.h>
 #include <unistd.h>
@@ -48,7 +49,7 @@ extern "C" int csound_test_strecv_recv(TestSocket, void *buffer, size_t size, in
       interruptError();
       return -1;
     }
-    size_t n = std::min({size, incoming.size() - readPosition, size_t(3)});
+    size_t n = (std::min)({size, incoming.size() - readPosition, size_t(3)});
     if (n) memcpy(buffer, incoming.data() + readPosition, n);
     readPosition += n;
     return (int)n;
