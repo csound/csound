@@ -18,6 +18,8 @@ if(BUILD_TESTS)
         autocorr_test.cpp
         lpc_lifetime_test.cpp
         sfload_test.cpp
+        stsend_test.cpp
+        fixtures/stsend_test_opcode.c
         lpc_cepstrum_test.cpp
         memplay_test.cpp
         strecv_test.cpp
