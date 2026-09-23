@@ -289,8 +289,15 @@ static void diskin2_xf_setup(CSOUND *csound, DISKIN2_XF *xf,
     xf->count = 0;
     xf->dir = 0;
     xf->changing = 0;
-    xf->control.transpose = transpose;
-    xf->control.reset = 0;
+    for (int32_t i = 0; i < 3; i++) {
+      xf->control[i].transpose = transpose;
+      xf->control[i].steps = 0;
+    }
+    xf->writeControl = 0;
+    xf->readControl = 1;
+    xf->sharedControl = 2;
+    xf->perfTranspose = transpose;
+    xf->steps = xf->stepsSeen = 0;
     xf->headEnd = (int64_t)0;
     xf->buf = NULL;
     if (wrapMode && iWrapMode > FL(1.0)) {
@@ -765,15 +772,16 @@ static void diskin2_release_async_instance(
   int32_t closeOnRelease;
   int32_t deferClose = 0;
 
-  /* Deactivation and both diskin2 workers use this short owner lock. This
-     keeps removal from recycling the entry between ending the borrow and
-     handing off the final file close. Match acquire's owner-before-entry
-     lock order. */
-  async_instance_lock(csound);
   diskin2_entry_lock(entry);
   entry->borrowed = 0;
   inactive = !entry->active;
   closeOnRelease = entry->closeOnRelease;
+  diskin2_entry_unlock(entry);
+
+  /* Deactivation and both diskin2 workers use this short owner lock. This
+     makes the final decrement and close handoff one transition without tying
+     either operation to the long-held allocation lock. */
+  async_instance_lock(csound);
   if (!inactive) {
     ATOMIC_DECR(*instanceReaders);
     ATOMIC_DECR(owner->async_ref_count);
@@ -790,7 +798,6 @@ static void diskin2_release_async_instance(
       ATOMIC_DECR(owner->async_ref_count);
     }
   }
-  diskin2_entry_unlock(entry);
   async_instance_unlock(csound);
 
   if (!inactive)
@@ -975,6 +982,7 @@ static void diskin2_free_entries(CSOUND *csound, DISKIN2_ASYNC_ENTRY *entry)
 
 int32_t diskin2_async_setup(CSOUND *csound)
 {
+#ifndef __EMSCRIPTEN__
   DISKIN2_ASYNC_STATE *state;
 
   if (csound->diskin2_async_state != NULL)
@@ -988,6 +996,9 @@ int32_t diskin2_async_setup(CSOUND *csound)
     return CSOUND_ERROR;
   }
   csound->diskin2_async_state = state;
+#else
+  IGN(csound);
+#endif
   return CSOUND_SUCCESS;
 }
 
@@ -1037,11 +1048,7 @@ void diskin2_async_shutdown(CSOUND *csound)
   realtime_spin_lock_destroy(&csound->diskin2_async_lock);
   csound->Free(csound, state);
 #else
-  if (csound->diskin2_async_state != NULL) {
-    realtime_spin_lock_destroy(&csound->diskin2_async_lock);
-    csound->Free(csound, csound->diskin2_async_state);
-    csound->diskin2_async_state = NULL;
-  }
+  IGN(csound);
 #endif
 }
 
@@ -1059,6 +1066,15 @@ void diskin2_async_prepare_shutdown(CSOUND *csound)
 
 static inline int32_t diskin2_async_available(CSOUND *csound, int32_t array)
 {
+  /* Never substitute a library lock for the audio thread's slot exchange. */
+#if defined(MSVC)
+  /* InterlockedExchange operates on an aligned 32-bit value. */
+#elif defined(HAVE_ATOMIC_BUILTIN)
+  if (!__atomic_always_lock_free(sizeof(int32_t), 0))
+    return 0;
+#else
+  return 0;
+#endif
 #if defined(__EMSCRIPTEN__)
   /* The browser host owns the worker and publishes its list and run flag as
      Csound globals. Fall back to synchronous reads if that host contract is
@@ -1471,35 +1487,56 @@ static inline void diskin2_xf_speed_change(DISKIN2_XF *x)
     x->changing = 1;
 }
 
-/* Async: classify one control period of kTranspose, called once per period by
-   the perf thread. `changing` is the ramp state carried across periods; a
-   change that follows a period of constant speed is a genuine step, latched in
-   the control record for the reader to consume at its own pace. Keep pitch
-   and reset in one handoff: a reader using an older pitch must not consume a
-   newer step. No file I/O or rendering runs under this lock. */
-static inline void diskin2_publish_control(CSOUND *csound, DISKIN2_XF *x,
-                                           MYFLT transpose)
+/* SPSC triple buffer: perf and worker each own a slot, with the third in the
+   exchange. Acquire/release transfers ownership before either side can reuse
+   a slot. Neither side waits for the other or reads a slot the other owns.
+   Only the 32-bit index is atomic; pitch and the 64-bit step count travel in
+   the same owned slot, including on targets without lock-free 64-bit atomics. */
+#define DISKIN2_CONTROL_NEW 4
+#define DISKIN2_CONTROL_INDEX 3
+
+static inline int32_t diskin2_exchange_control(DISKIN2_XF *x, int32_t value)
 {
-    csoundSpinLock(&csound->diskin2_async_lock);
-    if (transpose != x->control.transpose) {
+#if defined(MSVC)
+    return InterlockedExchange((volatile LONG *)&x->sharedControl, value);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+    return __atomic_exchange_n(&x->sharedControl, value, __ATOMIC_ACQ_REL);
+#else
+    /* Async playback is disabled by diskin2_async_available on this target. */
+    int32_t previous = x->sharedControl;
+    x->sharedControl = value;
+    return previous;
+#endif
+}
+
+/* Classify steps once per perf period. Keep their cumulative count so a step
+   survives even when the worker skips intermediate pitch updates. */
+static inline void diskin2_publish_control(DISKIN2_XF *x, MYFLT transpose)
+{
+    if (transpose != x->perfTranspose) {
       if (!x->changing)
-        x->control.reset = 1;
+        x->steps++;
       x->changing = 1;
     }
     else
       x->changing = 0;
-    x->control.transpose = transpose;
-    csoundSpinUnLock(&csound->diskin2_async_lock);
+    x->perfTranspose = transpose;
+    x->control[x->writeControl].transpose = transpose;
+    x->control[x->writeControl].steps = x->steps;
+    x->writeControl = diskin2_exchange_control(
+      x, x->writeControl | DISKIN2_CONTROL_NEW) & DISKIN2_CONTROL_INDEX;
 }
 
-static inline DISKIN2_CONTROL diskin2_read_control(CSOUND *csound, DISKIN2_XF *x)
+static inline MYFLT diskin2_read_control(DISKIN2_XF *x, int32_t *reset)
 {
     DISKIN2_CONTROL control;
-    csoundSpinLock(&csound->diskin2_async_lock);
-    control = x->control;
-    x->control.reset = 0;
-    csoundSpinUnLock(&csound->diskin2_async_lock);
-    return control;
+    if (ATOMIC_GET(x->sharedControl) & DISKIN2_CONTROL_NEW)
+      x->readControl = diskin2_exchange_control(x, x->readControl) &
+                       DISKIN2_CONTROL_INDEX;
+    control = x->control[x->readControl];
+    *reset = control.steps != x->stepsSeen;
+    x->stepsSeen = control.steps;
+    return control.transpose;
 }
 
 /* Loop crossfade (async, enabled by iwrap > 1).
@@ -1877,8 +1914,8 @@ diskin_file_read_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
     int32_t ndx;
     int32_t wsized2, warp;
     MYFLT   *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
-    DISKIN2_CONTROL control = diskin2_read_control(csound, &p->xf);
-    MYFLT transpose = control.transpose;
+    int32_t reset;
+    MYFLT transpose = diskin2_read_control(&p->xf, &reset);
 
     if (UNLIKELY(p->fdch.fd == NULL) ) return;
     if (!p->initDone && !p->SkipInit) {
@@ -1895,7 +1932,7 @@ diskin_file_read_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
     }
-    if (control.reset)
+    if (reset)
       diskin2_xf_reset(&p->xf);
     /* clear outputs to zero first */
     memset(aOut, 0, p->auxData2.size);
@@ -2106,7 +2143,7 @@ int32_t diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
     void *cb = p->cb;
 
     int32_t chans = p->nChannels, ochans = p->oChannels;
-    diskin2_publish_control(csound, &p->xf, *p->kTranspose);
+    diskin2_publish_control(&p->xf, *p->kTranspose);
 
     if (offset || early) {
       for (chn = 0; chn < chans; chn++)
@@ -2377,8 +2414,8 @@ diskin_file_read_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t xf)
     int32_t   ndx;
     int32_t     wsized2, warp;
     MYFLT  *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
-    DISKIN2_CONTROL control = diskin2_read_control(csound, &p->xf);
-    MYFLT transpose = control.transpose;
+    int32_t reset;
+    MYFLT transpose = diskin2_read_control(&p->xf, &reset);
 
     if (UNLIKELY(p->fdch.fd == NULL) ) return;
     if (!p->initDone && !p->SkipInit) {
@@ -2395,7 +2432,7 @@ diskin_file_read_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t xf)
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
     }
-    if (control.reset)
+    if (reset)
       diskin2_xf_reset(&p->xf);
     /* clear outputs to zero first */
     memset(aOut, 0, p->auxData2.size);
@@ -3216,7 +3253,7 @@ int32_t diskin2_perf_asynchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
     void *cb = p->cb;
     int32_t chans = p->nChannels;
     MYFLT *aOut = (MYFLT *) p->aOut->data;
-    diskin2_publish_control(csound, &p->xf, *p->kTranspose);
+    diskin2_publish_control(&p->xf, *p->kTranspose);
 
     if (offset || early) {
       for (chn = 0; chn < chans; chn++)

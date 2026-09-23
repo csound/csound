@@ -3,15 +3,23 @@
 #include "csoundCore.h"
 #include <math.h>
 #include <stddef.h>
-static void (*before_owner_lock)(void);
-static void test_async_instance_lock(CSOUND *csound)
+/* These tests call only perf/control/reader paths. A lock here is a realtime
+   regression, even if an uncontended lock would let the output test pass. */
+static void forbidden_control_lock(spin_lock_t *lock)
 {
-    if (before_owner_lock != NULL) {
-        void (*callback)(void) = before_owner_lock;
-        before_owner_lock = NULL;
+    IGN(lock);
+    abort();
+}
+static void (*after_control_exchange)(void);
+static int32_t test_control_exchange(int32_t *slot, int32_t value, int order)
+{
+    int32_t previous = __atomic_exchange_n(slot, value, order);
+    if (after_control_exchange != NULL) {
+        void (*callback)(void) = after_control_exchange;
+        after_control_exchange = NULL;
         callback();
     }
-    async_instance_lock(csound);
+    return previous;
 }
 static void (*after_pitch_read)(void);
 static long long test_llrint(double value)
@@ -24,10 +32,12 @@ static long long test_llrint(double value)
     return llrint(value);
 }
 #define llrint test_llrint
-#define async_instance_lock test_async_instance_lock
+#define csoundSpinLock forbidden_control_lock
+#define __atomic_exchange_n test_control_exchange
 #include "../../../OOps/diskin2.c"
 #undef llrint
-#undef async_instance_lock
+#undef csoundSpinLock
+#undef __atomic_exchange_n
 
 static CSOUND *test_csound;
 static DISKIN2 *scalar;
@@ -71,7 +81,6 @@ int64_t csound_test_diskin_pitch_step(int32_t use_array)
     ARRAYDAT output_array = {0};
     MYFLT file[64] = {0}, worker_output[2], perf_output[1], audio[1], head[2];
     int64_t result;
-    realtime_spin_lock_init(&cs.diskin2_async_lock);
     cs.CheckCircularBuffer = free_frames;
     cs.WriteCircularBuffer = write_frames;
     cs.ReadCircularBuffer = read_frames;
@@ -82,6 +91,7 @@ int64_t csound_test_diskin_pitch_step(int32_t use_array)
     array = use_array ? &array_reader : NULL;
 
 #define SETUP(p) do {                                                   \
+    diskin2_xf_setup(&cs, &(p)->xf, 0, FL(0.0), 0, 1, pitch);           \
     (p)->h.insdshead = &instance;                                       \
     (p)->kTranspose = &pitch;                                          \
     (p)->initDone = 1;                                                  \
@@ -96,7 +106,6 @@ int64_t csound_test_diskin_pitch_step(int32_t use_array)
     (p)->audioData.auxp = audio;                                       \
     (p)->xf.len = 2;                                                   \
     (p)->xf.buf = head;                                                \
-    (p)->xf.control.transpose = FL(1.0);                               \
 } while (0)
     if (use_array) {
         SETUP(array);
@@ -119,50 +128,7 @@ int64_t csound_test_diskin_pitch_step(int32_t use_array)
         result = scalar->xf.headEnd;
     }
 #undef SETUP
-    realtime_spin_lock_destroy(&cs.diskin2_async_lock);
     return result;
-}
-
-static void turnoff_during_release(void)
-{
-    diskin2_remove_instance(test_csound, scalar, 1);
-    ATOMIC_SET8(scalar->h.insdshead->actflg, 0);
-}
-
-int32_t csound_test_diskin_turnoff_during_release(void)
-{
-    CSOUND cs = {0};
-    INSDS owner = {0};
-    FDCH file = {0};
-    DISKIN2 reader = {0};
-    DISKIN2_ASYNC_STATE state = {0};
-    DISKIN2_ASYNC_ENTRY entry = {0};
-    int32_t deferred;
-    realtime_spin_lock_init(&cs.diskin2_async_lock);
-    realtime_spin_lock_init(&entry.spinlock);
-    cs.diskin2_async_state = &state;
-    reader.h.insdshead = &owner;
-    reader.asyncEntry = &entry;
-    reader.asyncReaders = 1;
-    reader.async = 1;
-    owner.async_ref_count = 1;
-    owner.actflg = 1;
-    owner.fdchp = &file;
-    entry.instance = &reader;
-    entry.owner = &owner;
-    entry.stopRequested = &reader.asyncStopRequested;
-    entry.instanceReaders = &reader.asyncReaders;
-    entry.active = entry.borrowed = 1;
-    state.activeEntries = state.activeEntryTail = &entry;
-    scalar = &reader;
-    test_csound = &cs;
-    before_owner_lock = turnoff_during_release;
-    diskin2_release_async_instance(&cs, &state, &entry, &owner,
-                                    &reader.asyncReaders, 0);
-    deferred = state.deferredCloses == &entry && owner.async_ref_count == 1;
-    realtime_spin_lock_destroy(&entry.spinlock);
-    realtime_spin_lock_destroy(&cs.diskin2_async_lock);
-    return deferred;
 }
 
 typedef struct {
@@ -175,10 +141,6 @@ void *csound_test_diskin_control_create(void)
     TEST_CONTROL *test = calloc(1, sizeof(TEST_CONTROL));
     if (test == NULL)
         return NULL;
-    if (realtime_spin_lock_init(&test->csound.diskin2_async_lock) != OK) {
-        free(test);
-        return NULL;
-    }
     diskin2_xf_setup(&test->csound, &test->xf, 0, FL(0.0), 0, 1, FL(1.0));
     return test;
 }
@@ -186,20 +148,31 @@ void *csound_test_diskin_control_create(void)
 void csound_test_diskin_control_destroy(void *context)
 {
     TEST_CONTROL *test = context;
-    realtime_spin_lock_destroy(&test->csound.diskin2_async_lock);
     free(test);
 }
 
 void csound_test_diskin_control_publish(void *context, double transpose)
 {
     TEST_CONTROL *test = context;
-    diskin2_publish_control(&test->csound, &test->xf, (MYFLT)transpose);
+    diskin2_publish_control(&test->xf, (MYFLT)transpose);
 }
 
 double csound_test_diskin_control_read(void *context, int32_t *reset)
 {
     TEST_CONTROL *test = context;
-    DISKIN2_CONTROL control = diskin2_read_control(&test->csound, &test->xf);
-    *reset = control.reset;
-    return control.transpose;
+    return diskin2_read_control(&test->xf, reset);
+}
+
+static void *paused_control;
+static void publish_while_reader_owns_slot(void)
+{
+    csound_test_diskin_control_publish(paused_control, 3);
+    csound_test_diskin_control_publish(paused_control, 3);
+    csound_test_diskin_control_publish(paused_control, 4);
+}
+
+void csound_test_diskin_pause_control_read(void *context)
+{
+    paused_control = context;
+    after_control_exchange = publish_while_reader_owns_slot;
 }

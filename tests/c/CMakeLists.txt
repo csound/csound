@@ -189,7 +189,8 @@ if(BUILD_TESTS)
     include(GoogleTest)
     gtest_discover_tests(unittests)
     if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND NOT EMSCRIPTEN AND
-       NOT IOS AND NOT BARE_METAL AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+       USE_ATOMIC_BUILTIN AND HAVE_ATOMIC_BUILTIN AND NOT IOS AND
+       NOT BARE_METAL AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
         add_executable(diskin2_concurrency_tests
             diskin2_concurrency_test.cpp fixtures/diskin2_concurrency.c)
         target_compile_options(diskin2_concurrency_tests PRIVATE ${libcsound_CFLAGS})
