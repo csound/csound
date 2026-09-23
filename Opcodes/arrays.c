@@ -90,6 +90,16 @@ typedef struct _fft {
   AUXCH mem;
 } FFT;
 
+#define PREPARE_FFT_OUTPUT(NAME, SIZE)                                  \
+  do {                                                                 \
+    if (UNLIKELY(p->in->sizes[0] != p->n))                             \
+      return csound->PerfError(csound, &p->h, "%s",                   \
+                               Str(NAME ": input size changed; "       \
+                                   "reinitialise the opcode"));        \
+    if (UNLIKELY(tabcheck(csound, p->out, (SIZE), &p->h) != OK))       \
+      return NOTOK;                                                     \
+  } while (0)
+
 
 static inline MYFLT complex_rect_real(const COMPLEXDAT *value) {
   return value->isPolar ? value->real * COS(value->imag) : value->real;
@@ -141,6 +151,7 @@ static int32_t init_fft_complex_common(CSOUND *csound, FFT *p,
 
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
+  p->n = N;
   size_t bytes = (size_t)N * 2u * sizeof(MYFLT);
   csound->AuxAlloc(csound, bytes, &p->mem);
   return OK;
@@ -168,7 +179,8 @@ static int32_t init_ifft_complex(CSOUND *csound, FFT *p) {
 }
 
 static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
-  int32_t N = p->in->sizes[0];
+  PREPARE_FFT_OUTPUT("fft/fftinv", p->n);
+  int32_t N = p->n;
   MYFLT *tmp = (MYFLT *)p->mem.auxp;
   COMPLEXDAT *c = (COMPLEXDAT *) p->in->data;
   if(p->in->arrayType == csound->GetType(csound, "Complex")) {
@@ -221,13 +233,15 @@ static int32_t init_rfft_r2c(CSOUND *csound, FFT *p) {
     return NOTOK;
   if (UNLIKELY(tabinit(csound, p->out, N/2+1, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
+  p->n = N;
   p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
   csound->AuxAlloc(csound, sizeof(MYFLT)*N, &p->mem);
   return OK;
 }
 // Typed output has N / 2 + 1 unpacked complex bins.
 static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
-  int32_t N = p->in->sizes[0];
+  PREPARE_FFT_OUTPUT("rfft", p->n/2+1);
+  int32_t N = p->n;
   MYFLT *tmp = (MYFLT *)p->mem.auxp;
   COMPLEXDAT *c = (COMPLEXDAT *) p->out->data;
   memcpy(tmp,p->in->data,N*sizeof(MYFLT));
@@ -259,6 +273,7 @@ static int32_t init_rfft_c2r(CSOUND *csound, FFT *p) {
     return NOTOK;
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
+  p->n = M;
   p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
   csound->AuxAlloc(csound, sizeof(MYFLT)*N, &p->mem);
   return OK;
@@ -266,7 +281,8 @@ static int32_t init_rfft_c2r(CSOUND *csound, FFT *p) {
 
 // M unpacked complex bins produce 2 * (M - 1) real samples.
 static int32_t perf_rfft_c2r(CSOUND *csound, FFT *p) {
-  int32_t N = p->out->sizes[0];
+  int32_t N = 2*(p->n - 1);
+  PREPARE_FFT_OUTPUT("rifft", N);
   MYFLT *tmp = (MYFLT *)p->mem.auxp;
   COMPLEXDAT *c = (COMPLEXDAT *) p->in->data;
   int32_t halfN = N >> 1;
@@ -292,12 +308,14 @@ static int32_t init_rfft(CSOUND *csound, FFT *p) {
     return NOTOK;
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
+  p->n = N;
   p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
   return OK;
 }
 
 static  int32_t perf_rfft(CSOUND *csound, FFT *p) {
-  int32_t N = p->out->sizes[0];
+  PREPARE_FFT_OUTPUT("rfft", p->n);
+  int32_t N = p->n;
   memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
   csound->RealFFT(csound,p->setup,p->out->data);
   return OK;
@@ -321,11 +339,13 @@ static int32_t init_rifft(CSOUND *csound, FFT *p) {
   p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
+  p->n = N;
   return OK;
 }
 
 static int32_t perf_rifft(CSOUND *csound, FFT *p) {
-  int32_t N = p->in->sizes[0];
+  PREPARE_FFT_OUTPUT("rifft", p->n);
+  int32_t N = p->n;
   memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
   csound->RealFFT(csound,p->setup,p->out->data);
   return OK;
@@ -337,38 +357,63 @@ static int32_t rifft_i(CSOUND *csound, FFT *p) {
   else return NOTOK;
 }
 
+static int32_t validate_packed_fft_size(CSOUND *csound, const char *opcode,
+                                        int32_t size) {
+  if (UNLIKELY(size < 2 || (size & 1)))
+    return csound->InitError(csound, "%s: %s", opcode,
+                             Str("array size must be even and at least 2"));
+  return OK;
+}
+
 static int32_t init_rfftmult(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   if(p->in2->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t   N = p->in->sizes[0];
+  if (UNLIKELY(p->in->dimensions != 1 || p->in2->dimensions != 1 ||
+               p->out->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                             Str("cmplxprod: only one-dimensional arrays allowed"));
   if (UNLIKELY(N != p->in2->sizes[0]))
     return csound->InitError(csound, "%s", Str("array sizes do not match\n"));
+  if (UNLIKELY(validate_packed_fft_size(csound, "cmplxprod", N) != OK))
+    return NOTOK;
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
+  p->n = N;
   return OK;
 }
 
 static int32_t perf_rfftmult(CSOUND *csound, FFT *p) {
-
-  int32_t N = p->out->sizes[0];
+  if (UNLIKELY(p->in2->sizes[0] != p->n))
+    return csound->PerfError(csound, &p->h, "%s",
+                             Str("cmplxprod: input size changed; "
+                                 "reinitialise the opcode"));
+  PREPARE_FFT_OUTPUT("cmplxprod", p->n);
+  int32_t N = p->n;
   csound->RealFFTMult(csound,p->out->data,p->in->data,p->in2->data,N,1);
   return OK;
 }
 
 static int32_t initialise_fft(CSOUND *csound, FFT *p) {
+  if (UNLIKELY(p->in->sizes == NULL))
+    return csound->InitError(csound, "%s", Str("array not initialised"));
   int32_t   N2 = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("fft: only one-dimensional arrays allowed"));
+  if (UNLIKELY(validate_packed_fft_size(csound, "fft", N2) != OK))
+    return NOTOK;
   if (UNLIKELY(tabinit(csound, p->out, N2, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
+  p->n = N2;
   return OK;
 }
 
 static int32_t perf_fft(CSOUND *csound, FFT *p) {
-  int32_t N2 = p->in->sizes[0];
+  PREPARE_FFT_OUTPUT("fft", p->n);
+  int32_t N2 = p->n;
   memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
   csound->ComplexFFT(csound,p->out->data,N2/2);
   return OK;
@@ -388,13 +433,17 @@ static int32_t init_ifft(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("fftinv: only one-dimensional arrays allowed"));
+  if (UNLIKELY(validate_packed_fft_size(csound, "fftinv", N2) != OK))
+    return NOTOK;
   if (UNLIKELY(tabinit(csound, p->out, N2, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
+  p->n = N2;
   return OK;
 }
 
 static int32_t perf_ifft(CSOUND *csound, FFT *p) {
-  int32_t N2 = p->out->sizes[0];
+  PREPARE_FFT_OUTPUT("fftinv", p->n);
+  int32_t N2 = p->n;
   memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
   csound->InverseComplexFFT(csound,p->out->data,N2/2);
   return OK;
@@ -405,6 +454,8 @@ static int32_t ifft_i(CSOUND *csound, FFT *p) {
     return perf_ifft(csound, p);
   else return NOTOK;
 }
+
+#undef PREPARE_FFT_OUTPUT
 
 static int32_t init_recttopol(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
