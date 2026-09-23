@@ -1027,24 +1027,24 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
     int32_t     cnt, start, finish, fnlen, j;
-    MYFLT   *pp = &ff->e.p[5], fn, amp, *fp, *fp18 = ftp->ftable, range, f;
-    double  i;
+    MYFLT   *pp = &ff->e.p[5], fn, amp, *fp, *fp18 = ftp->ftable, f;
+    double  range, position;
     FUNC    *fnp;
     int32_t     nargs = ff->e.pcnt - 4;
 
-    if (UNLIKELY((cnt = nargs >> 2) <= 0)) {
+    if (UNLIKELY(nargs < 4 || nargs % 4 != 0)) {
       return csoundFtError(ff, Str("wrong number of args"));
     }
+    cnt = nargs / 4;
     while (cnt--) {
       fn=*pp++;
       amp=*pp++;
-      start=(int)*pp++;
-      finish=(int)*pp++;
-
-      if (UNLIKELY((start>ff->flen) || (finish>=ff->flen))) {
-        /* make sure start and finish < flen */
-        return csoundFtError(ff, Str("a range given exceeds table length"));
+      if (UNLIKELY(!(pp[0] >= FL(0.0) && pp[1] >= pp[0] &&
+                     pp[1] < ff->flen))) {
+        return csoundFtError(ff, Str("GEN18: invalid destination range"));
       }
+      start=(int32_t)*pp++;
+      finish=(int32_t)*pp++;
 
       if (LIKELY((fnp=csoundFTFind(csound,&fn))!=NULL)) { /* make sure fn exists */
         fp = fnp->ftable, fnlen = fnp->flen-1;        /* and set it up */
@@ -1053,13 +1053,19 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
         return csoundFtError(ff, Str("an input function does not exist"));
       }
 
-      range = (MYFLT) (finish - start), j = start;
+      /* A one-sample range contains only the start of the source. */
+      if (start == finish) {
+        fp18[start] += amp * fp[0];
+        continue;
+      }
+      range = (double) (finish - start), j = start;
       while (j <= finish) {                      /* write the table */
         uint32_t ii;
-        f = (MYFLT)modf((fnlen*(j - start)/range), &i);
-        ii = (unsigned int)i;
-        //printf("***ii=%d f=%g\n", ii, f);
-        if (ii==fnp->flen)
+        /* Convert before multiplying: valid table sizes can overflow int32. */
+        position = (double) fnlen * (j - start) / range;
+        ii = (uint32_t) position;
+        f = (MYFLT) (position - ii);
+        if (ii == (uint32_t) fnlen)
           fp18[j++] += amp * fp[ii];
         else
           fp18[j++] += amp * ((f * (fp[ii+1] - fp[ii])) + fp[ii]);
