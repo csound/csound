@@ -4,7 +4,14 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <system_error>
 #include <unordered_set>
+
+#if defined(_WIN32)
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 
 namespace {
 class SfloadTests : public ::testing::Test {
@@ -39,16 +46,36 @@ protected:
         closeFile = csound->FileClose;
         csound->FileOpen = trackedOpen;
         csound->FileClose = trackedClose;
-        directory = std::filesystem::temp_directory_path() /
-            ("csound-sfload-" + std::to_string(reinterpret_cast<uintptr_t>(csound)));
-        ASSERT_TRUE(std::filesystem::create_directory(directory));
         source = std::filesystem::path(__FILE__).parent_path() /
                  "../../samples/sf_GMbank.sf2";
+#if defined(_WIN32)
+        const auto pid = _getpid();
+#else
+        const auto pid = getpid();
+#endif
+        const auto root = std::filesystem::temp_directory_path();
+        const std::string prefix = "csound-sfload-" + std::to_string(pid) +
+            "-" + std::to_string(reinterpret_cast<uintptr_t>(csound)) + "-";
+        // Separate processes can receive the same Csound address under ASan.
+        for (unsigned int attempt = 0; attempt < 100; ++attempt) {
+            const auto candidate = root / (prefix + std::to_string(attempt));
+            std::error_code error;
+            if (std::filesystem::create_directory(candidate, error)) {
+                directory = candidate;
+                return;
+            }
+            if (error && error != std::errc::file_exists)
+                FAIL() << "could not create " << candidate << ": " << error.message();
+        }
+        FAIL() << "could not create a unique temporary directory in " << root;
     }
     void TearDown() override
     {
         csoundDestroy(csound);
-        std::filesystem::remove_all(directory);
+        if (!directory.empty()) {
+            std::error_code error;
+            std::filesystem::remove_all(directory, error);
+        }
     }
     std::string load(const std::string &variable, const std::filesystem::path &path)
     {
