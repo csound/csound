@@ -175,13 +175,13 @@ int32_t midi_start(CSOUND *csound, void *pp) {
 
 int32_t midi_stop(CSOUND *csound, void *pp) {
   MIDIKMB * p = ((MIDIKMB *)pp);
-  *p->r = csound->midi_clock_pulse;
+  *p->r = csound->midi_stop;
   return OK;
 }
 
 int32_t midi_continue(CSOUND *csound, void *pp) {
   MIDIKMB * p = ((MIDIKMB *)pp);
-  *p->r = csound->midi_clock_pulse;
+  *p->r = csound->midi_continue;
   return OK;
 }
 
