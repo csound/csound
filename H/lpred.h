@@ -90,12 +90,12 @@ extern "C" {
    * b: array of size M+1 with M all-pole coefficients
    *   and E in place of coefficient 0 [E,c1,...,cM]
    * N: size of cepstrum array output
-   * M: all-pole filter order
+   * M: all-pole filter order, at least 2
    *
-   * returns: array with N cepstrum coefficients
+   * returns: array with N cepstrum coefficients, or NULL if M < 2
    * NB: cepstrum is computed from power spectrum
    */
-  MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c, int32_t M, int32_t N);
+  MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b, int32_t N, int32_t M);
 
   /**
    * Compute all-pole coefficients and linear prediction error
@@ -104,14 +104,15 @@ extern "C" {
    * b: array of size M+1
    * c: array of size N with cepstrum coeffs
    *
-   * M: all-pole filter order
-   * N: cepstrum size
+   * M: all-pole filter order, at least 2
+   * N: cepstrum size, at least M+1
    *
    * returns: M+1 size array with all-pole coefficients 1-M and
    * E in place of coefficient 0 [E,c1,...,cM]
+   * Returns NULL if M < 2 or N < M+1, without writing to b.
    * NB: cepstrum is expected to be computed from power spectrum
    */
-  MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b, int32_t N, int32_t M);
+  MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c, int32_t M, int32_t N);
 
   /**
    * Returns the computed RMS from LP object

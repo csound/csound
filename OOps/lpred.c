@@ -185,19 +185,18 @@ MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b,
                     int32_t N, int32_t M){
   int32_t n,m;
   MYFLT s;
-  c[0] = -LOG(b[0]);
-  c[1] = b[1];
-  for(n=2;n<N;n++){
-    if(n > M)
-      c[n] = 0;
-    else {
-      s = 0.;
-      for(m=1;m<n;m++)
-        s += (m/n)*c[m]*b[n-m];
-      c[n] = b[n] - s;
-    }
+  if (M < 2) return NULL;
+  if (N <= 0) return c;
+  c[0] = LOG(b[0]);
+  if (N == 1) return c;
+  c[1] = -b[1];
+  for(n=2;n<N;n++) {
+    s = 0.;
+    /* Coefficients beyond the filter order are zero; cepstral terms are not. */
+    for(m = n > M ? n-M : 1; m<n; m++)
+      s += (MYFLT)m * c[m] * b[n-m];
+    c[n] = -(n <= M ? b[n] : FL(0.0)) - s/n;
   }
-  for(n=0;n<N;n++) c[n] *= -1;
   return c;
 }
 
@@ -212,7 +211,8 @@ MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
                     int32_t M, int32_t N){
   int32_t n,m;
   MYFLT s;
-  b[0]  = 1;
+  if (M < 2 || N <= M) return NULL;
+  b[0] = EXP(c[0]);
   b[1] = -c[1];
   for(m=2;m<M+1;m++) {
     s = 0.;
@@ -220,7 +220,6 @@ MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
       s -= (m-n)*b[n]*c[m-n];
     b[m] = -c[m] + s/m;
   }
-  b[0] = EXP(c[0]);
   return b;
 }
 
@@ -1078,6 +1077,9 @@ int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
   uint32_t Mbytes;
   p->N = p->fin->N;
   p->M = *p->iord;
+  if (UNLIKELY(p->M < 2 || p->M >= p->N))
+    return csound->InitError(csound, "%s",
+                            Str("pvscfs: order must be at least 2 and less than the FFT size"));
   Mbytes = (p->M+1)*sizeof(MYFLT);
   p->setup = csound->LPsetup(csound,0,p->M);
   if(p->buf.auxp == NULL || Nbytes > p->buf.size)
