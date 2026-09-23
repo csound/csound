@@ -501,4 +501,40 @@ TEST_F(AnalysisFileSafetyTests, PvxMutationsFailCleanly)
   EXPECT_NE(0, loadPvx(corrupt_data_path));
 }
 
+TEST_F(AnalysisFileSafetyTests, FtloadRejectsMalformedTextFields)
+{
+  const auto path = directory / "tables.txt";
+  const std::string filename = "\"" + path.generic_string() + "\"";
+  ASSERT_EQ(0, runFileOpcode("iTable ftgen 1, 0, 8, -2, 1, 2\n"
+                            "ftsave " + filename + ", 1, iTable"));
+  std::ifstream input(path);
+  const std::string valid((std::istreambuf_iterator<char>(input)), {});
+  ASSERT_FALSE(valid.empty());
+  input.close();
+  const std::string load = "iTable ftgen 1, 0, 8, -2, 0\nftload " +
+                           filename + ", 1, iTable";
+  ASSERT_EQ(0, runFileOpcode(load));
+  for (const auto &change : std::vector<std::pair<std::string, std::string>>{
+         {"flen:", "flen"},
+         {"flen:", "flen: 4294967304"},
+         {"lodiv:", "lodiv: invalid"},
+         {"lodiv:", "lodiv: 0.5garbage"}}) {
+    std::string text = valid;
+    const size_t start = text.find(change.first);
+    ASSERT_NE(start, std::string::npos);
+    text.replace(start, text.find('\n', start) - start, change.second);
+    ASSERT_NO_FATAL_FAILURE(writeFile(path, {text.begin(), text.end()}));
+    EXPECT_NE(0, runFileOpcode(load)) << change.second;
+  }
+}
+
+TEST_F(AnalysisFileSafetyTests, FtloadReportsMissingTextDestination)
+{
+  const auto textPath = directory / "tables.txt";
+  const std::string textName = "\"" + textPath.generic_string() + "\"";
+  ASSERT_EQ(0, runFileOpcode("iTable ftgen 1, 0, 8, -2, 1, 2\n"
+                            "ftsave " + textName + ", 1, iTable"));
+  EXPECT_NE(0, runFileOpcode("ftload " + textName + ", 1, 1"));
+}
+
 } // namespace
