@@ -61,6 +61,8 @@ if(BUILD_TESTS)
         oscraw_test.cpp
         fixtures/oscraw_test_opcode.c
         socksend_test.cpp
+        sockrecv_test.cpp
+        fixtures/sockrecv_test_opcode.c
         internal_osc_decode_test.cpp
         pvsinit_test.cpp
         paulstretch_test.cpp

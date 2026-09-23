@@ -88,6 +88,7 @@ typedef struct {
   int32_t wsa_started;
   volatile int32_t threadon;
   int32_t buffsize;
+  int32_t channels;
   int32_t outsamps, rcvsamps;
   CSOUND  *cs;
   void    *thrid;
@@ -163,7 +164,8 @@ static uintptr_t udpRecv(void *pdata)
     while (p->threadon) {
       /* get the data from the socket and store it in a tmp buffer */
       if ((bytes = (int32_t) recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen)) > 0) {
-        csound->WriteCircularBuffer(csound, p->cb, tmp, bytes/sizeof(MYFLT));
+        csound->WriteCircularBuffer(csound, p->cb, tmp,
+                                    bytes/(sizeof(MYFLT)*p->channels));
       }
     }
     return (uintptr_t) 0;
@@ -256,6 +258,7 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
       memset(buf, 0, MTU);
     }
     p->buffsize = (int32_t)(p->buffer.size/sizeof(MYFLT));
+    p->channels = 1;
     p->cb = csound->CreateCircularBuffer(csound,  *p->ptr3, sizeof(MYFLT));
     /* create thread */
     p->threadon = 1;
@@ -354,7 +357,8 @@ static int32_t send_recv_k(CSOUND *csound, SOCKRECV *p)
       p->rcvsamps =
         csound->ReadCircularBuffer(csound, p->cb, p->buf, p->buffsize);
     }
-    *ksig = p->buf[p->outsamps++];
+    if (p->outsamps < p->rcvsamps)
+      *ksig = p->buf[p->outsamps++];
     return OK;
 }
 
@@ -404,6 +408,7 @@ static int32_t send_recv(CSOUND *csound, SOCKRECV *p)
       if (outsamps >= rcvsamps){
         outsamps =  0;
         rcvsamps = csound->ReadCircularBuffer(csound, p->cb, buf, p->buffsize);
+        if (rcvsamps == 0) break;
       }
       asig[i] = buf[outsamps];
       outsamps++;
@@ -464,7 +469,12 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
       buf = (MYFLT *) p->tmp.auxp;      /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
-    p->cb = csound->CreateCircularBuffer(csound,  *p->ptr4, sizeof(MYFLT));
+    /* Queue whole stereo frames so a full queue cannot split a pair. */
+    p->channels = 2;
+    p->cb = csound->CreateCircularBuffer(csound, (int32_t)*p->ptr4 / 2,
+                                        2 * sizeof(MYFLT));
+    if (UNLIKELY(p->cb == NULL))
+      return csound->InitError(csound, "%s", Str("sockrecvs: invalid buffer size"));
     /* create thread */
     p->threadon = 1;
     p->thrid = csound->CreateThread(udpRecv, (void *) p);
@@ -491,7 +501,9 @@ static int32_t send_recvS(CSOUND *csound, SOCKRECV *p)
     for(i=offset; i < nsmps ; i++){
       if (outsamps >= rcvsamps){
         outsamps =  0;
-        rcvsamps = csound->ReadCircularBuffer(csound, p->cb, buf, p->buffsize);
+        rcvsamps = 2 * csound->ReadCircularBuffer(csound, p->cb, buf,
+                                                p->buffsize / 2);
+        if (rcvsamps == 0) break;
       }
       asigl[i] = buf[outsamps++];
       asigr[i] = buf[outsamps++];
