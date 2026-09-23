@@ -292,5 +292,5 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
 PUBLIC int csoundModuleInfo(void)
 {
-        return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int) sizeof(cs_float));
+  return CSOUND_MODULE_INFO;
 }

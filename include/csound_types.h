@@ -28,6 +28,10 @@ typedef double cs_double;
 #define cs_modf modf
 #endif
 
+/* Plugin metadata: bit 7 marks the ABI with a single-precision cs_double.
+   Older loaders see an invalid sample size and reject this ABI too. */
+#define CSOUND_MODULE_USE_FLOAT 0x80
+
 /* Deprecated in CS7. Keep old host and opcode source code valid. */
 #ifndef __MYFLT_DEF
 #define __MYFLT_DEF

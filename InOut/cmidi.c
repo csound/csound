@@ -305,6 +305,5 @@ static int32_t MidiOutDeviceClose(CSOUND *csound, void *userData)
 
  int32_t csoundModuleInfo(void)
 {
-  /* does not depend on cs_float type */
-  return ((CS_VERSION << 16) + (CS_SUBVER << 8));
+  return CSOUND_MODULE_INFO;
 }

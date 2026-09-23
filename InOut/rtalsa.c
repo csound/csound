@@ -1988,5 +1988,5 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutpu
 
  int32_t csoundModuleInfo(void)
 {
-    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(cs_float));
+  return CSOUND_MODULE_INFO;
 }

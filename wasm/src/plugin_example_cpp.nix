@@ -47,6 +47,7 @@ in
         -Wl,--import-undefined \
         -Wl,--export=__wasm_call_ctors \
         -Wl,--export=csoundModuleInit \
+        -Wl,--export=csoundModuleInfo \
         -Wl,--export-if-defined=csoundModuleCreate \
         -Wl,--export-if-defined=csoundModuleDestroy \
         plugin_example_cpp.o -o plugin_example_cpp.wasm

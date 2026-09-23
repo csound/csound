@@ -7,6 +7,43 @@ import { dlinit } from "../../src/dlinit.js";
 const opcodeInit = () => 0;
 
 describe("WASM plugin registration", () => {
+  for (const [hostSampleSize, hostDoubleSize] of [[8, 8], [4, 8], [4, 4]]) {
+    for (const info of [undefined, 0, 7 << 16, (7 << 16) | 8,
+      (7 << 16) | 4, (7 << 16) | 0x84]) {
+      for (const kind of ["module", "opcode", "fgen"]) {
+        it(`checks ${kind} precision ${info} against ${hostSampleSize}/${hostDoubleSize} before registration`, () => {
+          let called = false;
+          const register = () => { called = true; };
+          const pluginExports = kind === "module"
+            ? { csoundModuleCreate: register, csoundModuleInit: register }
+            : kind === "opcode" ? { csound_opcode_init: register }
+              : { csound_fgen_init: register };
+          if (info !== undefined) {
+            pluginExports.csoundModuleInfo = () => info;
+          }
+          const host = { exports: {
+            csoundGetSizeOfCsFloat: () => hostSampleSize,
+            csoundGetSizeOfCsDouble: () => hostDoubleSize,
+            csoundWasiLoadOpcodeLibrary: register,
+          } };
+          // Table changes must also follow the compatibility check.
+          const table = { length: 1, grow: register, set: register };
+          const load = () => dlinit(host, { exports: pluginExports }, table, 1);
+          const sampleSize = info & 0x7f;
+          const matches = Boolean(info & 0x80) === (hostDoubleSize === 4) &&
+            (!sampleSize || sampleSize === hostSampleSize);
+          if (matches) {
+            load();
+            assert.equal(called, true);
+          } else {
+            assert.throws(load, /Incompatible plugin/);
+            assert.equal(called, false);
+          }
+        });
+      }
+    }
+  }
+
   it("reuses host table slots when Csound rebuilds its module state", () => {
     const calls = [];
     const hostInstance = {

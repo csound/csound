@@ -952,5 +952,5 @@ static void PaNoOpDebugPrint(const char* msg) {
 
  int32_t csoundModuleInfo(void)
 {
-  return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(cs_float));
+  return CSOUND_MODULE_INFO;
 }

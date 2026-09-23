@@ -293,6 +293,10 @@ PUBLIC int32_t csoundModuleInit_doppler(CSOUND *csound) {
 }
   
 #ifdef BUILD_PLUGINS
+PUBLIC int32_t csoundModuleInfo(void) {
+  return CSOUND_MODULE_INFO;
+}
+
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   IGN(csound);
   return 0;

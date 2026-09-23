@@ -85,7 +85,7 @@ typedef struct _pulse_globals {
 
  int32_t csoundModuleInfo(void)
 {
-    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(cs_float));
+  return CSOUND_MODULE_INFO;
 }
 
 static int32_t pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
