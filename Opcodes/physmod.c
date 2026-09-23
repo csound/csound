@@ -147,6 +147,11 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
                              Str("Clarinet vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
+    double release = ceil((double)*p->dettack * CS_EKR);
+    if (UNLIKELY(!(*p->attack >= FL(0.0) && release >= 0.0 &&
+                   release <= INT32_MAX)))
+      return csound->InitError(csound, "%s",
+                               Str("wgclar: invalid attack or release time"));
     if (*p->lowestFreq)
       p->length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
     else if (LIKELY(*p->frequency))
@@ -165,18 +170,20 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
     /*    p->noiseGain = 0.2f; */       /* Arguemnts; suggested values? */
     /*    p->vibrGain = 0.1f; */
     {
-      int32_t relestim = (int32_t)(CS_EKR * FL(0.1));
-      /* 1/10th second decay extention */
+      int32_t relestim = (int32_t)fmax(release, ceil(CS_EKR * 0.1));
+      /* Keep the decay tail, and allow the requested note-off release. */
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
     }
-    p->kloop = (int32_t) ((int32_t) (p->h.insdshead->offtim * CS_EKR)
-                          - (int32_t) (CS_EKR * *p->attack));
+    /* -1 waits for note-off; 0 means the release has already started. */
+    p->kloop = p->h.insdshead->offtim > 0.0 ?
+      fmax(1.0, ceil((p->h.insdshead->offtim - *p->dettack) * CS_EKR) + 1.0)
+      : -1.0;
 #ifdef BETA
-    csound->Message(csound, "offtim=%f  kloop=%d\n",
+    csound->Message(csound, "offtim=%f  kloop=%g\n",
                     p->h.insdshead->offtim, p->kloop);
 #endif
-    p->envelope.rate = FL(0.0);
+    p->attackPending = 1;
     p->v_time = 0;
   }
   return OK;
@@ -195,19 +202,23 @@ int32_t clarin(CSOUND *csound, CLARIN *p)
   MYFLT vibGain = *p->vibAmt;
   MYFLT vTime = p->v_time;
 
-  if (p->envelope.rate==FL(0.0)) {
-    p->envelope.rate =  amp /(*p->attack*CS_ESR);
-    p->envelope.value = p->envelope.target = FL(0.55) + amp*FL(0.30);
+  if (p->attackPending) {
+    p->envelope.target = FL(0.55) + amp*FL(0.30);
+    p->envelope.rate = *p->attack > FL(0.0) ?
+      p->envelope.target / (*p->attack * CS_ESR) : p->envelope.target;
+    p->attackPending = 0;
   }
   p->outputGain = amp + FL(0.001);
   DLineL_setDelay(&p->delayLine, /* length - approx filter delay */
                   (CS_ESR/ *p->frequency) * FL(0.5) - FL(1.5));
   p->v_rate = *p->vibFreq * p->vibr->flen * CS_ONEDSR;
   /* Check to see if into decay yet */
-  if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if ((--p->kloop) == 0) {
+  if (p->kloop != 0.0 && (p->h.insdshead->relesing ||
+                          (p->kloop > 0.0 && --p->kloop == 0.0))) {
+    p->kloop = 0.0;
     p->envelope.state = 1;  /* Start change */
-    p->envelope.rate = p->envelope.value / (*p->dettack * CS_ESR);
+    p->envelope.rate = *p->dettack > FL(0.0) ?
+      p->envelope.value / (*p->dettack * CS_ESR) : p->envelope.value;
     p->envelope.target =  FL(0.0);
 #ifdef BETA
     csound->Message(csound, "Set off phase time = %f Breath v,r = %f, %f\n",
@@ -313,6 +324,13 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
                              Str("Flute vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
+    double release = ceil((double)*p->dettack * CS_EKR);
+    if (UNLIKELY(!(*p->attack >= FL(0.0) && release >= 0.0 &&
+                   release <= INT32_MAX)))
+      return csound->InitError(csound, "%s",
+                               Str("wgflute: invalid attack or release time"));
+    if (release > p->h.insdshead->xtratim)
+      p->h.insdshead->xtratim = (int32_t)release;
     if (*p->lowestFreq!=FL(0.0)) {
       length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
       p->limit = *p->lowestFreq;
@@ -343,7 +361,9 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
 
     OnePole_setPole(&p->filter, FL(0.7) - (FL(0.1) * RATE_NORM));
     OnePole_setGain(&p->filter, -FL(1.0));
-    ADSR_setAllTimes(csound, &p->adsr, FL(0.005), FL(0.01), FL(0.8), FL(0.010));
+    ADSR_setAllTimes(csound, &p->adsr,
+                    *p->attack > FL(0.0) ? *p->attack : CS_ONEDSR,
+                    FL(0.01), FL(0.8), FL(0.010));
     /*        ADSR_setAll(&p->adsr, 0.02f, 0.05f, 0.8f, 0.001f); */
     /* Suggested values */
     /*    p->endRefl = 0.5; */
@@ -351,14 +371,12 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
     /*    p->noiseGain = 0.15; */ /* Breath pressure random component   */
     /*    p->vibrGain = 0.05;  */ /* breath periodic vibrato component  */
     /*    p->jetRatio = 0.32;  */
-    p->lastamp = FL(1.0);       /* Remember */
-    /* This should be controlled by attack */
-    ADSR_setAttackRate(csound, &p->adsr, FL(0.02));
-    p->maxPress = FL(2.3) / FL(0.8);
-    p->outputGain = FL(1.001);
+    p->lastamp = FL(-1.0);  /* Set gain from the first k-rate amplitude. */
     ADSR_keyOn(&p->adsr);
-    p->kloop = (MYFLT)((int32_t)(p->h.insdshead->offtim*CS_EKR -
-                                 CS_EKR*(*p->dettack)));
+    p->kloop = p->h.insdshead->offtim > 0.0 ?
+      fmax(1.0, ceil((p->h.insdshead->offtim - *p->dettack) * CS_EKR) + 1.0)
+      : -1.0;
+    p->v_time = FL(0.0);
 
     p->lastFreq = FL(0.0);
     p->lastJet = -FL(1.0);
@@ -383,8 +401,6 @@ int32_t flute(CSOUND *csound, FLUTE *p)
   MYFLT       jetRefl, endRefl, noisegain;
 
   if (amp!=p->lastamp) {      /* If amplitude has changed */
-    /* This should be controlled by attack */
-    ADSR_setAttackRate(csound, &p->adsr, amp * FL(0.02));
     p->maxPress = (FL(1.1) + (amp * FL(0.20))) / FL(0.8);
     p->outputGain = amp + FL(0.001);
     p->lastamp = amp;
@@ -413,9 +429,11 @@ int32_t flute(CSOUND *csound, FLUTE *p)
   }
   /* End SetFreq */
 
-  if (p->kloop>FL(0.0) && p->h.insdshead->relesing) p->kloop=FL(1.0);
-  if ((--p->kloop) == 0) {
-    p->adsr.releaseRate = p->adsr.value / (*p->dettack * CS_ESR);
+  if (p->kloop != 0.0 && (p->h.insdshead->relesing ||
+                          (p->kloop > 0.0 && --p->kloop == 0.0))) {
+    p->kloop = 0.0;
+    p->adsr.releaseRate = *p->dettack > FL(0.0) ?
+      p->adsr.value / (*p->dettack * CS_ESR) : p->adsr.value;
     p->adsr.target = FL(0.0);
     p->adsr.rate = p->adsr.releaseRate;
     p->adsr.state = RELEASE;

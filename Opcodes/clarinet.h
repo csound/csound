@@ -98,7 +98,8 @@ typedef struct CLARIN {
     Noise       noise;
     int32       length;
     MYFLT       outputGain;
-    int32       kloop;
+    double      kloop;
+    int32_t     attackPending;
 } CLARIN;
 
 /* int32_tclarinetset(CLARINET *p); */

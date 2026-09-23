@@ -72,7 +72,7 @@ typedef struct FLUTE {
     MYFLT       maxPress;
     MYFLT       vibrGain;
     MYFLT       outputGain;
-    MYFLT       kloop;
+    double      kloop;
     MYFLT       lastamp;
     MYFLT       limit;
 } FLUTE;
