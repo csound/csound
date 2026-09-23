@@ -823,15 +823,15 @@ int32_t brassset(CSOUND *csound, BRASS *p)
     return csound->InitError(csound, "%s",
                              Str("Brass vibrato table is empty"));
   }
-  p->frq = *p->frequency;     /* Remember */
   if (*p->lowestFreq>=FL(0.0)) {
+    MYFLT frequency = *p->frequency;
     if (*p->lowestFreq!=FL(0.0)) {
       p->length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
       p->limit = *p->lowestFreq;
     }
-    else if (p->frq!=FL(0.0)) {
-      p->length = (int32_t) (CS_ESR / p->frq + FL(1.0));
-      p->limit = p->frq;
+    else if (frequency!=FL(0.0)) {
+      p->length = (int32_t) (CS_ESR / frequency + FL(1.0));
+      p->limit = frequency;
     }
     else {
       csound->Warning(csound, "%s", Str("No base frequency for brass "
@@ -848,6 +848,7 @@ int32_t brassset(CSOUND *csound, BRASS *p)
 
     ADSR_setAttackRate(csound, &p->adsr, amp * FL(0.001));
 
+    p->lastamp = amp;
     p->maxPressure = amp;
     ADSR_keyOn(&p->adsr);
 
@@ -859,8 +860,9 @@ int32_t brassset(CSOUND *csound, BRASS *p)
     p->lipTarget = FL(0.0);
     /*        LipFilt_setFreq(csound, &p->lipFilter, p->frq); */
     /* End of set frequency */
-    p->frq = FL(0.0);         /* to say we do not know */
+    p->frq = FL(-1.0);        /* Update from the first k-rate frequency. */
     p->lipT = FL(0.0);
+    p->v_time = FL(0.0);
     /*     LipFilt_setFreq(csound, &p->lipFilter, */
     /*                     p->lipTarget * (MYFLT)pow(4.0,
                            (2.0* p->lipT) -1.0)); */
@@ -870,8 +872,10 @@ int32_t brassset(CSOUND *csound, BRASS *p)
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
     }
-    p->kloop = (int32_t) ((int32_t) (p->h.insdshead->offtim * CS_EKR)
-                          - (int32_t) (CS_EKR * *p->dettack));
+    /* Keep the fourth argument's existing release lead-time meaning. */
+    p->kloop = p->h.insdshead->offtim > 0.0 ?
+      fmax(1.0, ceil((p->h.insdshead->offtim - *p->dettack) * CS_EKR) + 1.0)
+      : -1.0;
   }
   return OK;
 }
@@ -889,11 +893,18 @@ int32_t brass(CSOUND *csound, BRASS *p)
   MYFLT vibGain = *p->vibAmt;
   MYFLT vTime = p->v_time;
 
+  int32_t frequencyChanged = 0;
+  if (amp != p->lastamp) {
+    ADSR_setAttackRate(csound, &p->adsr, amp * FL(0.001));
+    if (p->adsr.state == ATTACK) p->adsr.rate = p->adsr.attackRate;
+    p->lastamp = amp;
+  }
   p->v_rate = *p->vibFreq * v_len * CS_ONEDSR;
   /*   vibr->setFreq(6.137); */
   /* vibrGain = 0.05; */            /* breath periodic vibrato component  */
-  if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if ((--p->kloop) == 0) {
+  if (p->kloop != 0.0 && (p->h.insdshead->relesing ||
+                          (p->kloop > 0.0 && --p->kloop == 0.0))) {
+    p->kloop = 0.0;
     ADSR_setReleaseRate(csound, &p->adsr, amp * FL(0.005));
     ADSR_keyOff(&p->adsr);
   }
@@ -908,9 +919,9 @@ int32_t brass(CSOUND *csound, BRASS *p)
     /*  we'll play a harmonic */
     if (DLineA_setDelay(csound, &p->delayLine, p->slideTarget)) return OK;
     p->lipTarget = p->frq;
-    p->lipT = FL(0.0);                /* So other part is set */
+    frequencyChanged = 1;
   } /* End of set frequency */
-  if (*p->liptension != p->lipT) {
+  if (frequencyChanged || *p->liptension != p->lipT) {
     p->lipT = *p->liptension;
     LipFilt_setFreq(p, &p->lipFilter,
                     p->lipTarget * (MYFLT)pow(4.0,(2.0* p->lipT) -1.0));

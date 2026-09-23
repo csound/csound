@@ -113,12 +113,12 @@ typedef struct BRASS {
     int32       length;
     MYFLT       slideTarget;
     MYFLT       maxPressure;
+    MYFLT       lastamp;
     MYFLT       lipTarget;
     MYFLT       frq;            /* Remember previous value */
     MYFLT       lipT;           /* and lip tension */
     MYFLT       limit;
-    int32_t     kloop;
+    double      kloop;
 } BRASS;
 
 #endif
-
