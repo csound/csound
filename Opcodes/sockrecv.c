@@ -63,7 +63,12 @@ typedef struct {
   STRINGDAT *ipaddress;
   MYFLT *port;
   AUXCH   aux, tmp;
-  int32_t     sock, conn;
+#if defined(WIN32) && !defined(__CYGWIN__)
+  SOCKET sock, conn;
+#else
+  int32_t sock, conn;
+#endif
+  int32_t init_done;
   struct sockaddr_in server_addr;
 } SOCKRECVT;
 
@@ -515,119 +520,121 @@ static int32_t send_recvS(CSOUND *csound, SOCKRECV *p)
 }
 
 /* TCP version */
+static int32_t deinit_srecv(CSOUND *csound, SOCKRECVT *p)
+{
+    IGN(csound);
+    if (!p->init_done)
+      return OK;
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (p->conn != INVALID_SOCKET) closesocket(p->conn);
+    if (p->sock != INVALID_SOCKET) closesocket(p->sock);
+    WSACleanup();
+#else
+    if (p->conn != SOCKET_ERROR) close(p->conn);
+    if (p->sock != SOCKET_ERROR) close(p->sock);
+#endif
+    p->conn = p->sock = SOCKET_ERROR;
+    p->init_done = 0;
+    return OK;
+}
+
 static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
 {
     socklen_t clilen;
     int32_t err;
+    const char *message;
+    deinit_srecv(csound, p);
+    p->conn = p->sock = SOCKET_ERROR;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
+    p->init_done = 1;
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
-
-#if defined(WIN32) && !defined(__CYGWIN__)
-    if (p->sock == SOCKET_ERROR) {
-      err = WSAGetLastError();
-      csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
+      message = Str("creating socket");
+      goto error;
     }
-#else
-    if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, "%s", Str("creating socket"));
-    }
-#endif
 
-    /* create server address: where we want to connect to */
-
-    /* clear it out */
-    memset(&(p->server_addr), 0, sizeof(p->server_addr));
-
-    /* it is an INET address */
+    memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;
-
-    /* the server IP address, in network byte order */
 #if defined(WIN32) && !defined(__CYGWIN__)
     p->server_addr.sin_addr.S_un.S_addr =
       inet_addr((const char *) p->ipaddress->data);
 #else
-    inet_aton((const char *) p->ipaddress->data, &(p->server_addr.sin_addr));
+    inet_aton((const char *) p->ipaddress->data, &p->server_addr.sin_addr);
 #endif
-    /* the port we are going to listen on, in network byte order */
     p->server_addr.sin_port = htons((int32_t) *p->port);
 
-    /* associate the socket with the address and port */
-    err = bind(p->sock, (struct sockaddr *) &p->server_addr,
-               sizeof(p->server_addr));
-#if defined(WIN32) && !defined(__CYGWIN__)
-    if (UNLIKELY(err == SOCKET_ERROR)) {
-      err = WSAGetLastError();
-#else
-    if (UNLIKELY(err<0)) {
-      err= errno;
-#endif
-      return csound->InitError(csound, Str("bind failed (%d)"), err);
+    if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
+                      sizeof(p->server_addr)) == SOCKET_ERROR)) {
+      message = Str("bind failed");
+      goto error;
     }
-
-    /* start the socket listening for new connections -- may wait */
-    err = listen(p->sock, 5);
-#if defined(WIN32) && !defined(__CYGWIN__)
-    if (UNLIKELY(err == SOCKET_ERROR)) {
-      err = WSAGetLastError();
-#else
-    if (UNLIKELY(err<0)) {
-      err= errno;
-#endif
-      return csound->InitError(csound, Str("listen failed (%d)"), err);
+    if (UNLIKELY(listen(p->sock, 5) == SOCKET_ERROR)) {
+      message = Str("listen failed");
+      goto error;
     }
     clilen = sizeof(p->server_addr);
     p->conn = accept(p->sock, (struct sockaddr *) &p->server_addr, &clilen);
-#if defined(WIN32) && !defined(__CYGWIN__)
-    if (UNLIKELY(err == SOCKET_ERROR)) {
-      err = WSAGetLastError();
-#else
-    if (UNLIKELY(err<0)) {
-      err= errno;
-#endif
-      return csound->InitError(csound, Str("accept failed (%d)"), err);
+    if (UNLIKELY(p->conn == SOCKET_ERROR)) {
+      message = Str("accept failed");
+      goto error;
     }
     return OK;
+
+ error:
+#if defined(WIN32) && !defined(__CYGWIN__)
+    err = WSAGetLastError();
+#else
+    err = errno;
+#endif
+    deinit_srecv(csound, p);
+    return csound->InitError(csound, "%s (%d)", message, err);
 }
 
 static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
 {
-    int32_t     n, k = sizeof(MYFLT) * CS_KSMPS;
-    MYFLT       *q = p->asig;
-    if (p->sock<0) {
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
+    int32_t remaining = sizeof(MYFLT) * (CS_KSMPS - offset - early);
+    int32_t received = 0;
+    char *q = (char *) &p->asig[offset];
+
+    memset(p->asig, 0, sizeof(MYFLT) * CS_KSMPS);
+    if (!p->init_done) {
       if (p->res) *p->res = -1;
       return OK;
     }
-    memset(q, '\0', k);
- again:
-    errno = 0;
-#ifndef WIN32    
-    n = (int32_t) recv(p->conn, q, k, 0);
+    while (remaining > 0) {
+      int32_t n = (int32_t) recv(p->conn, q, remaining, 0);
+      if (n == 0) {
+        /* Discard an incomplete sample at end of stream. */
+        memset(q - received % sizeof(MYFLT), 0,
+               received % sizeof(MYFLT));
+        deinit_srecv(csound, p);
+        if (p->res) *p->res = -1;
+        return OK;
+      }
+      if (UNLIKELY(n < 0)) {
+#if defined(WIN32) && !defined(__CYGWIN__)
+        if (WSAGetLastError() == WSAEINTR) continue;
 #else
-    n = (int32_t) recv(p->conn, (char *) q, k, 0);
-#endif    
-    if (n==0) {      /* Connection broken */
-      if (p->res) *p->res = -1;
-      close(p->sock);
-      p->sock = -1;
-      return OK;
+        if (errno == EINTR) continue;
+#endif
+        deinit_srecv(csound, p);
+        if (p->res) *p->res = -1;
+        return csound->PerfError(csound, &p->h,
+                                 "%s", Str("read from socket failed"));
+      }
+      q += n;
+      remaining -= n;
+      received += n;
     }
-    if (UNLIKELY(n<0||errno!=0))
-      return csound->PerfError(csound, &(p->h),
-                               "%s", Str("read from socket failed"));
-    if (k==n) {
-      if (p->res) *p->res = sizeof(MYFLT) * CS_KSMPS;
-      return OK;
-    }
-    /* Only partialread so loop for the rest */
-    //printf("k=%d n=%d\n", k, n);
-    k = k-n;
-    q+= n;
-    goto again;
+    if (p->res) *p->res = received;
+    return OK;
 }
 
 typedef struct _rawosc {
@@ -1061,7 +1068,7 @@ static OENTRY sockrecv_localops[] = {
     (SUBR) send_recvS,  (SUBR) deinit_udpRecv },
   { "strecv", S(SOCKRECVT), 0, "az", "Si",
     (SUBR) init_srecv,
-    (SUBR) send_srecv, NULL },
+    (SUBR) send_srecv, (SUBR) deinit_srecv },
   CSOUND_DEPRECATED_OPCODE("OSCraw", "oscraw", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "OSCraw", S(RAWOSC), 0, "S[]k", "i",
     (SUBR) init_raw_osc, (SUBR) perf_raw_osc,

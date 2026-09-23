@@ -20,6 +20,8 @@ if(BUILD_TESTS)
         sfload_test.cpp
         lpc_cepstrum_test.cpp
         memplay_test.cpp
+        strecv_test.cpp
+        fixtures/strecv_test_opcode.c
         bpf_array_test.cpp
         channel_tests.cpp
         controller_print_test.cpp
