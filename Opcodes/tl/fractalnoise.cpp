@@ -58,15 +58,15 @@ class UserInterface {
 public:
   UserInterface() : fStopped(false) {}
   virtual ~UserInterface() {}
-  virtual void addButton(char *label, MYFLT *zone) = 0;
-  virtual void addToggleButton(char *label, MYFLT *zone) = 0;
-  virtual void addCheckButton(char *label, MYFLT *zone) = 0;
-  virtual void addVerticalSlider(char *label, MYFLT *zone, MYFLT init,
-                                 MYFLT min, MYFLT max, MYFLT step) = 0;
-  virtual void addHorizontalSlider(char *label, MYFLT *zone, MYFLT init,
-                                   MYFLT min, MYFLT max, MYFLT step) = 0;
-  virtual void addNumEntry(char *label, MYFLT *zone, MYFLT init, MYFLT min,
-                           MYFLT max, MYFLT step) = 0;
+  virtual void addButton(char *label, cs_float *zone) = 0;
+  virtual void addToggleButton(char *label, cs_float *zone) = 0;
+  virtual void addCheckButton(char *label, cs_float *zone) = 0;
+  virtual void addVerticalSlider(char *label, cs_float *zone, cs_float init,
+                                 cs_float min, cs_float max, cs_float step) = 0;
+  virtual void addHorizontalSlider(char *label, cs_float *zone, cs_float init,
+                                   cs_float min, cs_float max, cs_float step) = 0;
+  virtual void addNumEntry(char *label, cs_float *zone, cs_float init, cs_float min,
+                           cs_float max, cs_float step) = 0;
   virtual void openFrameBox(char *label) = 0;
   virtual void openTabBox(char *label) = 0;
   virtual void openHorizontalBox(char *label) = 0;
@@ -79,42 +79,32 @@ public:
 
 class csUI : public UserInterface {
 private:
-  MYFLT *args[2];
+  cs_float *args[2];
   int32_t ctrlCount;
 
-  void addZone(MYFLT *zone) { args[ctrlCount++] = zone; }
+  void addZone(cs_float *zone) { args[ctrlCount++] = zone; }
 
 public:
   csUI() : UserInterface(), ctrlCount(0) { args[0] = args[1] = NULL; };
   virtual ~csUI(){};
 
-  virtual void addButton(char *label, MYFLT *zone) {
+  virtual void addButton(char *label, cs_float *zone) {
     IGN(label);
     addZone(zone);
     ;
   }
-  virtual void addToggleButton(char *label, MYFLT *zone) {
+  virtual void addToggleButton(char *label, cs_float *zone) {
     IGN(label);
     addZone(zone);
     ;
   }
-  virtual void addCheckButton(char *label, MYFLT *zone) {
+  virtual void addCheckButton(char *label, cs_float *zone) {
     IGN(label);
     addZone(zone);
     ;
   }
-  virtual void addVerticalSlider(char *label, MYFLT *zone, MYFLT init,
-                                 MYFLT min, MYFLT max, MYFLT step) {
-    IGN(label);
-    IGN(init);
-    IGN(min);
-    IGN(max);
-    IGN(step);
-    addZone(zone);
-    ;
-  }
-  virtual void addHorizontalSlider(char *label, MYFLT *zone, MYFLT init,
-                                   MYFLT min, MYFLT max, MYFLT step) {
+  virtual void addVerticalSlider(char *label, cs_float *zone, cs_float init,
+                                 cs_float min, cs_float max, cs_float step) {
     IGN(label);
     IGN(init);
     IGN(min);
@@ -123,8 +113,18 @@ public:
     addZone(zone);
     ;
   }
-  virtual void addNumEntry(char *label, MYFLT *zone, MYFLT init, MYFLT min,
-                           MYFLT max, MYFLT step) {
+  virtual void addHorizontalSlider(char *label, cs_float *zone, cs_float init,
+                                   cs_float min, cs_float max, cs_float step) {
+    IGN(label);
+    IGN(init);
+    IGN(min);
+    IGN(max);
+    IGN(step);
+    addZone(zone);
+    ;
+  }
+  virtual void addNumEntry(char *label, cs_float *zone, cs_float init, cs_float min,
+                           cs_float max, cs_float step) {
     IGN(label);
     IGN(init);
     IGN(min);
@@ -140,7 +140,7 @@ public:
   virtual void show() {}
   virtual void run() {}
 
-  void updateCtrlZones(MYFLT *cs_amp, MYFLT *cs_beta) {
+  void updateCtrlZones(cs_float *cs_amp, cs_float *cs_beta) {
     *args[0] = *cs_amp;
     *args[1] = *cs_beta;
   }
@@ -160,7 +160,7 @@ public:
   virtual int32_t getNumOutputs() = 0;
   virtual void buildUserInterface(UserInterface *userInterface) = 0;
   virtual void init(int32_t samplingRate) = 0;
-  virtual void compute(CSOUND *csound, MYFLT *output, void *p) = 0;
+  virtual void compute(CSOUND *csound, cs_float *output, void *p) = 0;
 };
 
 /* FAUST generated code */
@@ -168,61 +168,61 @@ public:
 class mydsp : public dsp {
 private:
   int32_t iConst0;
-  MYFLT fConst1;
-  MYFLT fConst2;
+  cs_float fConst1;
+  cs_float fConst2;
   uint32_t iRec8[2];
-  MYFLT fConst3;
-  MYFLT fConst4;
-  MYFLT fConst5;
-  MYFLT fConst6;
-  MYFLT fConst7;
-  MYFLT fConst8;
-  MYFLT fRec7[3];
-  MYFLT fslider0;
-  MYFLT fConst9;
-  MYFLT fConst10;
-  MYFLT fConst11;
-  MYFLT fConst12;
-  MYFLT fConst13;
-  MYFLT fConst14;
-  MYFLT fRec6[3];
-  MYFLT fConst15;
-  MYFLT fConst16;
-  MYFLT fConst17;
-  MYFLT fConst18;
-  MYFLT fConst19;
-  MYFLT fConst20;
-  MYFLT fRec5[3];
-  MYFLT fConst21;
-  MYFLT fConst22;
-  MYFLT fConst23;
-  MYFLT fConst24;
-  MYFLT fConst25;
-  MYFLT fConst26;
-  MYFLT fRec4[3];
-  MYFLT fConst27;
-  MYFLT fConst28;
-  MYFLT fConst29;
-  MYFLT fConst30;
-  MYFLT fConst31;
-  MYFLT fConst32;
-  MYFLT fRec3[3];
-  MYFLT fConst33;
-  MYFLT fConst34;
-  MYFLT fConst35;
-  MYFLT fConst36;
-  MYFLT fConst37;
-  MYFLT fConst38;
-  MYFLT fRec2[3];
-  MYFLT fConst39;
-  MYFLT fConst40;
-  MYFLT fConst41;
-  MYFLT fConst42;
-  MYFLT fConst43;
-  MYFLT fConst44;
-  MYFLT fRec1[3];
-  MYFLT fRec0[2];
-  MYFLT fslider1;
+  cs_float fConst3;
+  cs_float fConst4;
+  cs_float fConst5;
+  cs_float fConst6;
+  cs_float fConst7;
+  cs_float fConst8;
+  cs_float fRec7[3];
+  cs_float fslider0;
+  cs_float fConst9;
+  cs_float fConst10;
+  cs_float fConst11;
+  cs_float fConst12;
+  cs_float fConst13;
+  cs_float fConst14;
+  cs_float fRec6[3];
+  cs_float fConst15;
+  cs_float fConst16;
+  cs_float fConst17;
+  cs_float fConst18;
+  cs_float fConst19;
+  cs_float fConst20;
+  cs_float fRec5[3];
+  cs_float fConst21;
+  cs_float fConst22;
+  cs_float fConst23;
+  cs_float fConst24;
+  cs_float fConst25;
+  cs_float fConst26;
+  cs_float fRec4[3];
+  cs_float fConst27;
+  cs_float fConst28;
+  cs_float fConst29;
+  cs_float fConst30;
+  cs_float fConst31;
+  cs_float fConst32;
+  cs_float fRec3[3];
+  cs_float fConst33;
+  cs_float fConst34;
+  cs_float fConst35;
+  cs_float fConst36;
+  cs_float fConst37;
+  cs_float fConst38;
+  cs_float fRec2[3];
+  cs_float fConst39;
+  cs_float fConst40;
+  cs_float fConst41;
+  cs_float fConst42;
+  cs_float fConst43;
+  cs_float fConst44;
+  cs_float fRec1[3];
+  cs_float fRec0[2];
+  cs_float fslider1;
 
 public:
   static void metadata(Meta *m) {
@@ -326,48 +326,48 @@ public:
                                      FL(0.0), FL(10.0), FL(0.01));
     userInterface->closeBox();
   }
-  virtual void compute(CSOUND *csound, MYFLT *output, void *p) {
+  virtual void compute(CSOUND *csound, cs_float *output, void *p) {
     int32_t nn = ((OPDATA *)p)->h.insdshead->ksmps;
     uint32_t offset = ((OPDATA *)p)->h.insdshead->ksmps_offset;
     uint32_t early = ((OPDATA *)p)->h.insdshead->ksmps_no_end;
     const uint32_t seed = (uint32_t)*csound->RandSeed31(csound);
-    MYFLT fSlow0 = POWER(FL(10.0), (FL(0.08333333333333333) * fslider0));
-    MYFLT fSlow1 = EXP(-(fConst3 * fSlow0));
-    MYFLT fSlow2 = EXP(-(fConst5 * fSlow0));
-    MYFLT fSlow3 = -fSlow2 * -fSlow1;
-    MYFLT fSlow4 = -fSlow2 - fSlow1;
-    MYFLT fSlow5 = EXP(-(fConst9 * fSlow0));
-    MYFLT fSlow6 = EXP(-(fConst11 * fSlow0));
-    MYFLT fSlow7 = -fSlow6 * -fSlow5;
-    MYFLT fSlow8 = -fSlow6 - fSlow5;
-    MYFLT fSlow9 = EXP(-(fConst15 * fSlow0));
-    MYFLT fSlow10 = EXP(-(fConst17 * fSlow0));
-    MYFLT fSlow11 = -fSlow10 * -fSlow9;
-    MYFLT fSlow12 = -fSlow10 - fSlow9;
-    MYFLT fSlow13 = EXP(-(fConst21 * fSlow0));
-    MYFLT fSlow14 = EXP(-(fConst23 * fSlow0));
-    MYFLT fSlow15 = -fSlow14 * -fSlow13;
-    MYFLT fSlow16 = (FL(0.0) - (fSlow14 + fSlow13));
-    MYFLT fSlow17 = EXP(-(fConst27 * fSlow0));
-    MYFLT fSlow18 = EXP(-(fConst29 * fSlow0));
-    MYFLT fSlow19 = -fSlow18 * -fSlow17;
-    MYFLT fSlow20 = -fSlow18 - fSlow17;
-    MYFLT fSlow21 = EXP(-(fConst33 * fSlow0));
-    MYFLT fSlow22 = EXP(-(fConst35 * fSlow0));
-    MYFLT fSlow23 = -fSlow22 * -fSlow21;
-    MYFLT fSlow24 = -fSlow22 - fSlow21;
-    MYFLT fSlow25 = EXP(-(fConst39 * fSlow0));
-    MYFLT fSlow26 = EXP(-(fConst41 * fSlow0));
-    MYFLT fSlow27 = -fSlow26 * -fSlow25;
-    MYFLT fSlow28 = -fSlow26 - fSlow25;
-    MYFLT fSlow29 = (-EXP(-(fConst1 * fSlow0)));
-    MYFLT fSlow30 = fslider1;
-    MYFLT *output0 = output;
+    cs_float fSlow0 = POWER(FL(10.0), (FL(0.08333333333333333) * fslider0));
+    cs_float fSlow1 = EXP(-(fConst3 * fSlow0));
+    cs_float fSlow2 = EXP(-(fConst5 * fSlow0));
+    cs_float fSlow3 = -fSlow2 * -fSlow1;
+    cs_float fSlow4 = -fSlow2 - fSlow1;
+    cs_float fSlow5 = EXP(-(fConst9 * fSlow0));
+    cs_float fSlow6 = EXP(-(fConst11 * fSlow0));
+    cs_float fSlow7 = -fSlow6 * -fSlow5;
+    cs_float fSlow8 = -fSlow6 - fSlow5;
+    cs_float fSlow9 = EXP(-(fConst15 * fSlow0));
+    cs_float fSlow10 = EXP(-(fConst17 * fSlow0));
+    cs_float fSlow11 = -fSlow10 * -fSlow9;
+    cs_float fSlow12 = -fSlow10 - fSlow9;
+    cs_float fSlow13 = EXP(-(fConst21 * fSlow0));
+    cs_float fSlow14 = EXP(-(fConst23 * fSlow0));
+    cs_float fSlow15 = -fSlow14 * -fSlow13;
+    cs_float fSlow16 = (FL(0.0) - (fSlow14 + fSlow13));
+    cs_float fSlow17 = EXP(-(fConst27 * fSlow0));
+    cs_float fSlow18 = EXP(-(fConst29 * fSlow0));
+    cs_float fSlow19 = -fSlow18 * -fSlow17;
+    cs_float fSlow20 = -fSlow18 - fSlow17;
+    cs_float fSlow21 = EXP(-(fConst33 * fSlow0));
+    cs_float fSlow22 = EXP(-(fConst35 * fSlow0));
+    cs_float fSlow23 = -fSlow22 * -fSlow21;
+    cs_float fSlow24 = -fSlow22 - fSlow21;
+    cs_float fSlow25 = EXP(-(fConst39 * fSlow0));
+    cs_float fSlow26 = EXP(-(fConst41 * fSlow0));
+    cs_float fSlow27 = -fSlow26 * -fSlow25;
+    cs_float fSlow28 = -fSlow26 - fSlow25;
+    cs_float fSlow29 = (-EXP(-(fConst1 * fSlow0)));
+    cs_float fSlow30 = fslider1;
+    cs_float *output0 = output;
     if (UNLIKELY(offset))
-      memset(output0, '\0', offset * sizeof(MYFLT));
+      memset(output0, '\0', offset * sizeof(cs_float));
     if (UNLIKELY(early)) {
       nn -= early;
-      memset(&output0[nn], '\0', early * sizeof(MYFLT));
+      memset(&output0[nn], '\0', early * sizeof(cs_float));
     }
     for (int32_t i = offset; i < nn; i++) {
       // The generator wraps at 32 bits, then produces signed noise samples.
@@ -397,7 +397,7 @@ public:
                 ((fSlow24 * fRec2[1]) + (fRec2[0] + (fSlow23 * fRec2[2])))));
       fRec0[0] = (((fSlow28 * fRec1[1]) + (fRec1[0] + (fSlow27 * fRec1[2]))) -
                   (fConst2 * fRec0[1]));
-      output0[i] = (MYFLT)(fSlow30 * (fRec0[0] + (fSlow29 * fRec0[1])));
+      output0[i] = (cs_float)(fSlow30 * (fRec0[0] + (fSlow29 * fRec0[1])));
       // post processing
       fRec0[1] = fRec0[0];
       fRec1[2] = fRec1[1];
@@ -423,7 +423,7 @@ public:
 
 typedef struct {
   OPDS h;
-  MYFLT *out, *kamp, *kbeta;
+  cs_float *out, *kamp, *kbeta;
   mydsp *faust;
   csUI *cs_interface;
 } FRACTALNOISE;

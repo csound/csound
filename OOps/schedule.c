@@ -34,7 +34,7 @@
 #include "csound_standard_types.h"
 #include "fgens.h"
 
-MYFLT named_instr_find(CSOUND *csound, char *s);
+cs_float named_instr_find(CSOUND *csound, char *s);
 static const char *errmsg_1 =
   Str_noop("event: param 1 must be"
            " \"a\", \"i\", \"q\", \"f\", \"d\", or \"e\"");
@@ -49,9 +49,9 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
     EVTBLK  evt;
     int32_t  res = OK;
     memset(&evt, 0, sizeof(EVTBLK));
-    MYFLT insno;
-    MYFLT   *aref = NULL;
-    MYFLT **args = p->args;
+    cs_float insno;
+    cs_float   *aref = NULL;
+    cs_float **args = p->args;
 
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e' && opcod != 'd')))
@@ -119,7 +119,7 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
     }
 
     if (opcod == 'e' && (int32_t) evt.pcnt >= 1 && *(args[0]) > 0) {
-      MYFLT pfields[2] = {*args[0], *args[0]};
+      cs_float pfields[2] = {*args[0], *args[0]};
       evt.pcnt = 2;
       return insert_event_at_sample(csound, &evt, pfields,
                                           csound->icurTimeSamples);
@@ -161,9 +161,9 @@ int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t pcnt,
     EVTBLK  evt;
     int32_t err = 0;
     memset(&evt, 0, sizeof(EVTBLK));
-    MYFLT insno;
-    MYFLT *ref = NULL;
-    MYFLT **args = p->args;
+    cs_float insno;
+    cs_float *ref = NULL;
+    cs_float **args = p->args;
     evt.pcnt = pcnt;
 
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
@@ -220,7 +220,7 @@ int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t pcnt,
 
 
     if (opcod == 'e' && (int32_t) evt.pcnt >= 1 && *args[0] > 0) {
-      MYFLT pfields[2] = {*args[0], *args[0]};
+      cs_float pfields[2] = {*args[0], *args[0]};
       evt.pcnt = 2;
       err = insert_event_at_sample(csound, &evt, pfields,
                                          csound->icurTimeSamples);
@@ -260,13 +260,13 @@ int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = p->INOCOUNT;
-    MYFLT *aref = NULL;
-    MYFLT insno;
-    MYFLT **args = p->args;
+    cs_float *aref = NULL;
+    cs_float insno;
+    cs_float **args = p->args;
 
      /* pass in the memory to hold the instance after insertion */
     evt.pinstance = (void *) p->inst;
-    *((MYFLT **)evt.pinstance) = NULL;
+    *((cs_float **)evt.pinstance) = NULL;
 
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
@@ -325,7 +325,7 @@ int32_t schedule_array(CSOUND *csound, SCHED *p)
 {
     EVTBLK pp = {0};
     ARRAYDAT *pfields = (ARRAYDAT *) p->which;
-    MYFLT *args = pfields->data;
+    cs_float *args = pfields->data;
     pp.opcod = 'i';
     pp.pcnt = pfields->sizes[0];
     insert_event_at_sample(csound, &pp, args, csound->icurTimeSamples);
@@ -343,19 +343,19 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
   if (argType == &CS_VAR_TYPE_INSTR ||
       (argType != NULL && strcmp(argType->varTypeName, "InstrDef") == 0)) {
     // handling argum[0] as instrument type
-    MYFLT insno;
+    cs_float insno;
     int32_t res;
     INSTREF *ref = (INSTREF *) p->argums[0];
     insno = instr_num(csound, ref->instr);
     p->argums[0] = &insno;
     res = insert_score_args_at_sample(csound, &evt, p->argums,
                                   csound->icurTimeSamples);
-    p->argums[0] = (MYFLT *) ref;
+    p->argums[0] = (cs_float *) ref;
     return res;
   } else if (GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_S) {
-    MYFLT insno;
+    cs_float insno;
     int32_t res;
-    MYFLT *ref = p->argums[0];
+    cs_float *ref = p->argums[0];
     insno = named_instr_find(csound, ((STRINGDAT *) p->argums[0])->data);
     if (UNLIKELY(insno == FL(0.0))) return NOTOK;
     p->argums[0] = &insno;
@@ -377,10 +377,10 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
 
 
 /* Keep string p-fields in the event, without converting numbers to text. */
-static int32_t schedule_string_event(CSOUND *csound, SCHED *p, MYFLT insno)
+static int32_t schedule_string_event(CSOUND *csound, SCHED *p, cs_float insno)
 {
     EVTBLK evt = {0};
-    MYFLT pfields[VARGMAX];
+    cs_float pfields[VARGMAX];
     size_t bytes = 1;
     int32_t i, result;
     char *next;
@@ -391,7 +391,7 @@ static int32_t schedule_string_event(CSOUND *csound, SCHED *p, MYFLT insno)
     pfields[1] = *p->when;
     pfields[2] = *p->dur;
     for (i = 3; i < evt.pcnt; ++i) {
-      MYFLT *arg = p->argums[i - 3];
+      cs_float *arg = p->argums[i - 3];
       if (GetTypeForArg(arg) == &CS_VAR_TYPE_S) {
         size_t length = strlen(((STRINGDAT *) arg)->data) + 1;
         if (UNLIKELY(length > SIZE_MAX - bytes))
@@ -404,14 +404,14 @@ static int32_t schedule_string_event(CSOUND *csound, SCHED *p, MYFLT insno)
       return CSOUND_MEMORY;
     next = evt.strarg;
     for (i = 3; i < evt.pcnt; ++i) {
-      MYFLT *arg = p->argums[i - 3];
+      cs_float *arg = p->argums[i - 3];
       if (GetTypeForArg(arg) == &CS_VAR_TYPE_S) {
         const char *text = ((STRINGDAT *) arg)->data;
         size_t length = strlen(text) + 1;
         /* Use the same string indices as score events. */
         union {
-          MYFLT value;
-          int32_t word[sizeof(MYFLT) / sizeof(int32_t)];
+          cs_float value;
+          int32_t word[sizeof(cs_float) / sizeof(int32_t)];
         } code;
         code.value = SSTRCOD;
 #ifdef USE_DOUBLE
@@ -435,11 +435,11 @@ static int32_t schedule_string_event(CSOUND *csound, SCHED *p, MYFLT insno)
 
 int32_t schedule_N(CSOUND *csound, SCHED *p)
 {
-    MYFLT insno;
+    cs_float insno;
     CS_TYPE *type = GetTypeForArg(p->which);
     if (type == &CS_VAR_TYPE_INSTR) {
       INSTREF *ref = (INSTREF *) p->which;
-      insno = (MYFLT) instr_num(csound, ref->instr);
+      insno = (cs_float) instr_num(csound, ref->instr);
     }
     else if (type == &CS_VAR_TYPE_I || type == &CS_VAR_TYPE_C ||
              type == &CS_VAR_TYPE_P || type == &CS_VAR_TYPE_K)
@@ -451,7 +451,7 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
 
 int32_t schedule_SN(CSOUND *csound, SCHED *p)
 {
-    MYFLT insno = named_instr_find(csound, ((STRINGDAT *) p->which)->data);
+    cs_float insno = named_instr_find(csound, ((STRINGDAT *) p->which)->data);
     if (UNLIKELY(insno == FL(0.0))) return NOTOK;
     return schedule_string_event(csound, p, insno);
 }
@@ -506,7 +506,7 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
 
 int32_t lfoset(CSOUND *csound, LFO *p)
 {
-    double type_value = (double)*p->type;
+    cs_double type_value = (cs_double)*p->type;
     /* Preserve truncation for valid types, checking before the conversion. */
     if (UNLIKELY(!(type_value > -1.0 && type_value < 6.0)))
       return csound->InitError(csound, Str("LFO: unknown oscillator type %g"),
@@ -515,10 +515,10 @@ int32_t lfoset(CSOUND *csound, LFO *p)
     if (type == 0) {
       int32_t i;
       if (p->auxd.auxp == NULL)
-        csound->AuxAlloc(csound, sizeof(MYFLT)*4097L, &p->auxd);
-      p->sine = (MYFLT*)p->auxd.auxp;
+        csound->AuxAlloc(csound, sizeof(cs_float)*4097L, &p->auxd);
+      p->sine = (cs_float*)p->auxd.auxp;
       for (i=0; i<4096; i++)
-        p->sine[i] = SIN(TWOPI_F*(MYFLT)i/FL(4096.0));
+        p->sine[i] = SIN(TWOPI_F*(cs_float)i/FL(4096.0));
       p->sine[4096] = p->sine[0];
     }
     p->lasttype = type;
@@ -528,9 +528,9 @@ int32_t lfoset(CSOUND *csound, LFO *p)
 
 int32_t lfok(CSOUND *csound, LFO *p)
 {
-    double phs = p->phs;
-    double inc = (double)*p->xcps / (double)CS_EKR;
-    MYFLT res;
+    cs_double phs = p->phs;
+    cs_double inc = (cs_double)*p->xcps / (cs_double)CS_EKR;
+    cs_float res;
     if (UNLIKELY(!isfinite(inc)))
       return csound->PerfError(csound, &p->h, "%s",
                                Str("LFO: frequency must be finite"));
@@ -543,15 +543,15 @@ int32_t lfok(CSOUND *csound, LFO *p)
                                Str("LFO: unknown oscillator type %d"),
                                p->lasttype);
     case 0: {                   /* Sine, with linear interpolation */
-      double position = phs * 4096.0;
+      cs_double position = phs * 4096.0;
       int32_t index = (int32_t)position;
-      double fraction = position - index;
-      res = (MYFLT)(p->sine[index] +
+      cs_double fraction = position - index;
+      res = (cs_float)(p->sine[index] +
                     (p->sine[index+1] - p->sine[index]) * fraction);
       break;
     }
     case 1:                     /* Triangle */
-      res = (MYFLT)(phs < 0.25 ? 4.0 * phs :
+      res = (cs_float)(phs < 0.25 ? 4.0 * phs :
                     phs < 0.75 ? 2.0 - 4.0 * phs : 4.0 * phs - 4.0);
       break;
     case 2:                     /* Bipolar square */
@@ -561,10 +561,10 @@ int32_t lfok(CSOUND *csound, LFO *p)
       res = phs < 0.5 ? FL(1.0) : FL(0.0);
       break;
     case 4:                     /* Sawtooth */
-      res = (MYFLT)phs;
+      res = (cs_float)phs;
       break;
     case 5:                     /* Descending sawtooth */
-      res = (MYFLT)(1.0 - phs);
+      res = (cs_float)(1.0 - phs);
       break;
     }
     LFO_ADVANCE_PHASE(phs, inc);
@@ -578,14 +578,14 @@ int32_t lfoa(CSOUND *csound, LFO *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    double phs = p->phs;
-    double inc = (double)*p->xcps / (double)CS_ESR;
-    MYFLT *ar = p->res, amp = *p->kamp, res;
+    cs_double phs = p->phs;
+    cs_double inc = (cs_double)*p->xcps / (cs_double)CS_ESR;
+    cs_float *ar = p->res, amp = *p->kamp, res;
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     if (UNLIKELY(offset >= nsmps)) return OK;
     if (UNLIKELY(!isfinite(inc)))
@@ -601,15 +601,15 @@ int32_t lfoa(CSOUND *csound, LFO *p)
                                  Str("LFO: unknown oscillator type %d"),
                                  p->lasttype);
       case 0: {                 /* Sine, with linear interpolation */
-        double position = phs * 4096.0;
+        cs_double position = phs * 4096.0;
         int32_t index = (int32_t)position;
-        double fraction = position - index;
-        res = (MYFLT)(p->sine[index] +
+        cs_double fraction = position - index;
+        res = (cs_float)(p->sine[index] +
                       (p->sine[index+1] - p->sine[index]) * fraction);
         break;
       }
       case 1:                   /* Triangle */
-        res = (MYFLT)(phs < 0.25 ? 4.0 * phs :
+        res = (cs_float)(phs < 0.25 ? 4.0 * phs :
                       phs < 0.75 ? 2.0 - 4.0 * phs : 4.0 * phs - 4.0);
         break;
       case 2:                   /* Bipolar square */
@@ -619,10 +619,10 @@ int32_t lfoa(CSOUND *csound, LFO *p)
         res = phs < 0.5 ? FL(1.0) : FL(0.0);
         break;
       case 4:                   /* Sawtooth */
-        res = (MYFLT)phs;
+        res = (cs_float)phs;
         break;
       case 5:                   /* Descending sawtooth */
-        res = (MYFLT)(1.0 - phs);
+        res = (cs_float)(1.0 - phs);
         break;
       }
       ar[n] = res * amp;
@@ -741,7 +741,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     EVTBLK  evt;
     char    name[512];
     memset(&evt, 0, sizeof(EVTBLK));
-    MYFLT pfields[PMAX+1];
+    cs_float pfields[PMAX+1];
     evt.p = pfields;
 
     if (p->timrem > 0)
@@ -793,7 +793,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     }
     else if (instrref) {
       INSTREF *ref = (INSTREF *) p->args[0];
-      evt.p[1] = (MYFLT) instr_num(csound, ref->instr);
+      evt.p[1] = (cs_float) instr_num(csound, ref->instr);
     }
     else if (IsStringCode(*p->args[0])) {
       unquote(name, csoundGetArgString(csound, *p->args[0]), 512);
@@ -845,9 +845,9 @@ int32_t ktriginstr(CSOUND *csound, TRIGINSTR *p){
    A negative endpoint reads the same group range in reverse. */
 static int32_t trigseq_range(TRIGSEQ *p, int32_t *start, int32_t *loop)
 {
-    double first = *p->kstart, last = *p->kloop;
+    cs_double first = *p->kstart, last = *p->kloop;
     if (UNLIKELY(!(first >= 0.0 && first < p->groups &&
-                   last >= -(double)p->groups && last <= p->groups)))
+                   last >= -(cs_double)p->groups && last <= p->groups)))
       return NOTOK;
     *start = (int32_t)first;
     *loop = (int32_t)last;
@@ -857,12 +857,12 @@ static int32_t trigseq_range(TRIGSEQ *p, int32_t *start, int32_t *loop)
 int32_t trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
 {
     FUNC *ftp;
-    double number = *p->kfn, index = *p->initndx;
+    cs_double number = *p->kfn, index = *p->initndx;
     p->nargs = p->INOCOUNT - 5;
     if (UNLIKELY(p->nargs <= 0))
       return csound->InitError(csound, "%s",
                                Str("trigseq: at least one output is required"));
-    if (UNLIKELY(!(number >= INT32_MIN && number <= INT32_MAX) ||
+    if (UNLIKELY(!(number >= INT32_MIN && number <= (INT32_MAX + 0.0)) ||
                  (ftp = csound->FTFind(csound, p->kfn)) == NULL ||
                  ftp->flen / p->nargs > INT32_MAX))
       return csound->InitError(csound, "%s",
@@ -881,10 +881,10 @@ int32_t trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
 int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
 {
     int32_t start, loop, j;
-    double number = *p->kfn;
+    cs_double number = *p->kfn;
     size_t offset;
     if (p->done || *p->ktrig == FL(0.0)) return OK;
-    if (UNLIKELY(!(number >= INT32_MIN && number <= INT32_MAX)))
+    if (UNLIKELY(!(number >= INT32_MIN && number <= (INT32_MAX + 0.0))))
       goto table_error;
     if (p->pfn != *p->kfn) {
       FUNC *ftp;
@@ -931,7 +931,7 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
     return csound->PerfError(csound, &(p->h), "%s",
                              Str("trigseq: group or loop out of range"));
 }
-char* get_string_arg_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt);
+char* get_string_arg_from_evt(CSOUND *csound, cs_float p, EVTBLK *evt);
 
 static int32_t events_match(CSOUND *csound,
                             EVTBLK *evt1, EVTBLK *evt2) {
@@ -1017,7 +1017,7 @@ void set_evt_strarg(CSOUND *csound, EVTBLK *e, int32_t pcnt, const
 
 int32_t remove_event_op(CSOUND *csound, RMEVT *p, int32_t cont) {
   EVTBLK evt;
-  MYFLT pfields[VARGMAX] = {0};
+  cs_float pfields[VARGMAX] = {0};
   int i, pcnt = p->INOCOUNT;
   if(UNLIKELY(pcnt < 3 || pcnt > PMAX))
     return csound->InitError(csound, Str("unschedule: invalid argument count"));

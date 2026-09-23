@@ -409,7 +409,7 @@ Note: after the message is formatted and converted into an Objective-C NSString 
 
         if ((tableLength = csoundTableLength(cs, 1)) > 0) {
 
-            table = malloc(tableLength * sizeof(MYFLT));
+            table = malloc(tableLength * sizeof(cs_float));
             csoundGetTable(cs, &table, 1);
             tableLoaded = YES;
             [self performSelectorInBackground:@selector(updataDisplayData) withObject:nil];

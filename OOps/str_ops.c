@@ -107,7 +107,7 @@ static void str_set(CSOUND *csound, int32_t ndx, const char *s)
 
 int32_t strset_init(CSOUND *csound, STRSET_OP *p)
 {
-  str_set(csound, (int32_t) MYFLT2LRND(*p->indx), p->str->data);
+  str_set(csound, (int32_t) CS_FLOAT2LRND(*p->indx), p->str->data);
   return OK;
 }
 
@@ -155,7 +155,7 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
     }
     return OK;
   }
-  indx = (int32_t)((double)*(p->indx) + (*(p->indx) >= FL(0.0) ? 0.5 : -0.5));
+  indx = (int32_t)((cs_double)*(p->indx) + (*(p->indx) >= FL(0.0) ? 0.5 : -0.5));
   if (indx < 0 || indx > (int32_t) csound->strsmax ||
       csound->strsets == NULL || csound->strsets[indx] == NULL)
     return OK;
@@ -214,7 +214,7 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
 }
 
 
-extern char* get_strarg(CSOUND *csound, MYFLT p, char *strarg);
+extern char* get_strarg(CSOUND *csound, cs_float p, char *strarg);
 int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
   if (IsStringCode(*p->indx)) {
@@ -428,13 +428,13 @@ int32_t strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
 
 static CS_NOINLINE int32_t
 sprintf_opcode_(CSOUND *csound, void *p, STRINGDAT *str, const char *fmt,
-                MYFLT **kvals, int32_t numVals)
+                cs_float **kvals, int32_t numVals)
 {
   size_t len = 0, i = 0, maxChars;
   int32_t j = 0, n;
   const char *segwaiting = NULL, *error = NULL;
   char *strseg;
-  MYFLT *parm;
+  cs_float *parm;
 
   if (UNLIKELY(((OPDS*)p)->optext->t.inArgCount > 31))
     return StrOp_ErrMsg(p, Str("too many arguments"));
@@ -496,14 +496,14 @@ sprintf_opcode_(CSOUND *csound, void *p, STRINGDAT *str, const char *fmt,
         switch (*segwaiting) {
         case 'd': case 'i': case 'c':
           n = snprintf(str->data + len, maxChars, strseg,
-                       (int)MYFLT2LRND(*parm));
+                       (int)CS_FLOAT2LRND(*parm));
           break;
         case 'o': case 'x': case 'X': case 'u':
           n = snprintf(str->data + len, maxChars, strseg,
-                       (unsigned int)MYFLT2LRND(*parm));
+                       (unsigned int)CS_FLOAT2LRND(*parm));
           break;
         case 'e': case 'E': case 'f': case 'F': case 'g': case 'G':
-          n = snprintf(str->data + len, maxChars, strseg, (double)*parm);
+          n = snprintf(str->data + len, maxChars, strseg, (cs_double)*parm);
           break;
         case 's':
           n = snprintf(str->data + len, maxChars, strseg,
@@ -607,7 +607,7 @@ int32_t printf_opcode_set(CSOUND *csound, PRINTF_OP *p)
 
 int32_t printf_opcode_perf(CSOUND *csound, PRINTF_OP *p)
 {
-  MYFLT ktrig = *p->ktrig;
+  cs_float ktrig = *p->ktrig;
   if (ktrig == p->prv_ktrig)
     return OK;
   p->prv_ktrig = ktrig;
@@ -632,7 +632,7 @@ int32_t puts_opcode_init(CSOUND *csound, PUTS_OP *p)
 
 int32_t puts_opcode_perf(CSOUND *csound, PUTS_OP *p)
 {
-  MYFLT ktrig = *p->ktrig;
+  cs_float ktrig = *p->ktrig;
   if (ktrig != p->prv_ktrig && ktrig > FL(0.0)) {
     if (!p->noNewLine)
       csound->Message(csound, "%s\n", (char*) p->str->data);
@@ -647,12 +647,12 @@ int32_t puts_opcode_perf(CSOUND *csound, PUTS_OP *p)
 int32_t strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
 {
   char    *s = NULL, *tmp;
-  double  x;
+  cs_double  x;
 
   if (IsStringCode(*p->str))
     s = csoundGetArgString(csound, *p->str);
   else {
-    int32_t ndx = (int32_t) MYFLT2LRND(*p->str);
+    int32_t ndx = (int32_t) CS_FLOAT2LRND(*p->str);
     if (ndx >= 0 && ndx <= (int32_t) csound->strsmax && csound->strsets != NULL)
       s = csound->strsets[ndx];
   }
@@ -664,7 +664,7 @@ int32_t strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
   x = csoundStrtod(s, &tmp);
   if (UNLIKELY(*tmp != '\0'))
     return StrOp_ErrMsg(p, Str("invalid format"));
-  *p->indx = (MYFLT) x;
+  *p->indx = (cs_float) x;
 
   return OK;
 }
@@ -673,7 +673,7 @@ int32_t strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
 {
   IGN(csound);
   char    *s = NULL, *tmp;
-  double  x;
+  cs_double  x;
   s = (char*) p->str->data;
   while (isblank(*s)) s++;
   if (UNLIKELY(*s == '\0'))
@@ -681,14 +681,14 @@ int32_t strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
   x = csoundStrtod(s, &tmp);
   if (UNLIKELY(*tmp != '\0'))
     return StrOp_ErrMsg(p, Str("invalid format"));
-  *p->indx = (MYFLT) x;
+  *p->indx = (cs_float) x;
 
   return OK;
 }
 
 /* Keep the integer range the same on platforms with 32- or 64-bit long.
    Accumulate the magnitude so the negative limit cannot overflow int32_t. */
-static int32_t parse_strtol(void *p, const char *s, MYFLT *result)
+static int32_t parse_strtol(void *p, const char *s, cs_float *result)
 {
   uint32_t value = 0, radix = 10, limit = INT32_MAX;
   int32_t negative = 0;
@@ -729,7 +729,7 @@ static int32_t parse_strtol(void *p, const char *s, MYFLT *result)
       return StrOp_ErrMsg(p, Str("integer out of range"));
     value = value * radix + digit;
   } while (*++s != '\0');
-  *result = (MYFLT)(negative ? -(int64_t)value : (int64_t)value);
+  *result = (cs_float)(negative ? -(int64_t)value : (int64_t)value);
   return OK;
 }
 
@@ -745,8 +745,8 @@ int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
 
   if (IsStringCode(*p->str))
     s = csoundGetArgString(csound, *p->str);
-  else if (*p->str >= FL(0.0) && (double)*p->str <= INT32_MAX) {
-    int32_t ndx = (int32_t) MYFLT2LRND(*p->str);
+  else if (*p->str >= FL(0.0) && (cs_double)*p->str <= (INT32_MAX + 0.0)) {
+    int32_t ndx = (int32_t) CS_FLOAT2LRND(*p->str);
     if (ndx <= (int32_t)csound->strsmax && csound->strsets != NULL)
       s = csound->strsets[ndx];
   }
@@ -787,8 +787,8 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     dst = (char*) p->Sdst->data;
     len = (int32_t) strlen(src);
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
-    strt = (int32_t) MYFLT2LRND(*(p->istart));
-    end = (int32_t) MYFLT2LRND(*(p->iend));
+    strt = (int32_t) CS_FLOAT2LRND(*(p->istart));
+    end = (int32_t) CS_FLOAT2LRND(*(p->iend));
 #else
     strt = (int32_t) (*(p->istart) + FL(1.5)) - 1;
     end = (int32_t) (*(p->iend) + FL(1.5)) - 1;
@@ -866,7 +866,7 @@ int32_t strchar_opcode(CSOUND *csound, STRCHAR_OP *p)
 {
   size_t     len = (int32_t) strlen((char*) p->Ssrc->data);
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
-  int32_t     pos = (int32_t) MYFLT2LRND(*(p->ipos));
+  int32_t     pos = (int32_t) CS_FLOAT2LRND(*(p->ipos));
 #else
   int32_t     pos = (int32_t) (*(p->ipos) + FL(1.5)) - 1;
 #endif
@@ -875,7 +875,7 @@ int32_t strchar_opcode(CSOUND *csound, STRCHAR_OP *p)
   if (pos < 0 || (size_t)pos >= len)
     *(p->ichr) = FL(0.0);
   else
-    *(p->ichr) = (MYFLT) ((int32_t)((unsigned char)((char*) p->Ssrc->data)[pos]));
+    *(p->ichr) = (cs_float) ((int32_t)((unsigned char)((char*) p->Ssrc->data)[pos]));
 
   return OK;
 }
@@ -891,7 +891,7 @@ int32_t strlen_opcode(CSOUND *csound, STRLEN_OP *p)
 {
   (void) csound;
   if (p->Ssrc->size)
-    *(p->ilen) = (MYFLT) strlen(p->Ssrc->data);
+    *(p->ilen) = (cs_float) strlen(p->Ssrc->data);
   else *(p->ilen) = FL(0.0);
   return OK;
 }
@@ -976,7 +976,7 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
 {
   const char  *s;
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
-  int32_t         opt = (int32_t) MYFLT2LRND(*(p->iopt));
+  int32_t         opt = (int32_t) CS_FLOAT2LRND(*(p->iopt));
 #else
   int32_t         opt = (int32_t) (*(p->iopt) + FL(0.5));
 #endif
@@ -1077,7 +1077,7 @@ int32_t strindex_opcode(CSOUND *csound, STRINDEX_OP *p)
   const char  *match = strstr(s1, s2);
 
   (void) csound;
-  *(p->ipos) = match != NULL ? (MYFLT) (match - s1) : -FL(1.0);
+  *(p->ipos) = match != NULL ? (cs_float) (match - s1) : -FL(1.0);
 
   return OK;
 }
@@ -1107,7 +1107,7 @@ int32_t strrindex_opcode(CSOUND *csound, STRINDEX_OP *p)
   pos = len1 - len2;
   do {
     if (memcmp(s1 + pos, s2, len2) == 0) {
-      *(p->ipos) = (MYFLT) pos;
+      *(p->ipos) = (cs_float) pos;
       break;
     }
   } while (pos-- != 0);

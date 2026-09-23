@@ -32,13 +32,13 @@ static DSSI_HOST *host(CSOUND *csound)
     return csound->QueryGlobalVariable(csound, "$DSSI4CS");
 }
 
-static int integer(MYFLT value, double maximum)
+static int integer(cs_float value, cs_double maximum)
 {
     return isfinite(value) && value >= 0 && value <= maximum &&
            floor(value) == value;
 }
 
-static DSSI_PLUGIN *lookup(CSOUND *csound, MYFLT id)
+static DSSI_PLUGIN *lookup(CSOUND *csound, cs_float id)
 {
     DSSI_HOST *h = host(csound);
     return h && h->count && integer(id, h->count - 1) ?
@@ -99,16 +99,16 @@ static int32_t reset(CSOUND *csound, void *data)
     return OK;
 }
 
-static double bound(DSSI_PLUGIN *p, unsigned long port, int upper)
+static cs_double bound(DSSI_PLUGIN *p, unsigned long port, int upper)
 {
     const LADSPA_PortRangeHint *hint = &p->ladspa->PortRangeHints[port];
     return (upper ? hint->UpperBound : hint->LowerBound) *
            (LADSPA_IS_HINT_SAMPLE_RATE(hint->HintDescriptor) ? p->sample_rate : 1);
 }
 
-static double interpolate(DSSI_PLUGIN *p, unsigned long port, double fraction)
+static cs_double interpolate(DSSI_PLUGIN *p, unsigned long port, cs_double fraction)
 {
-    double lo = bound(p, port, 0), hi = bound(p, port, 1);
+    cs_double lo = bound(p, port, 0), hi = bound(p, port, 1);
     LADSPA_PortRangeHintDescriptor flags = p->ladspa->PortRangeHints[port].HintDescriptor;
     if (LADSPA_IS_HINT_LOGARITHMIC(flags) && lo > 0 && hi > 0)
         return exp(log(lo) * (1 - fraction) + log(hi) * fraction);
@@ -118,7 +118,7 @@ static double interpolate(DSSI_PLUGIN *p, unsigned long port, double fraction)
 static LADSPA_Data default_control(DSSI_PLUGIN *p, unsigned long port)
 {
     LADSPA_PortRangeHintDescriptor flags = p->ladspa->PortRangeHints[port].HintDescriptor;
-    double value = 0;
+    cs_double value = 0;
     switch (flags & LADSPA_HINT_DEFAULT_MASK) {
     case LADSPA_HINT_DEFAULT_MINIMUM: value = bound(p, port, 0); break;
     case LADSPA_HINT_DEFAULT_LOW: value = interpolate(p, port, .25); break;
@@ -148,7 +148,7 @@ static void describe(CSOUND *csound, DSSI_PLUGIN *p)
                         LADSPA_IS_PORT_AUDIO(flags) ? "audio" : "control");
         if (LADSPA_IS_PORT_CONTROL(flags))
             csound->Message(csound, ", value %g, MIDI mapping %d",
-                            (double)p->control[i], p->mapping[i]);
+                            (cs_double)p->control[i], p->mapping[i]);
         csound->Message(csound, "\n");
     }
 }
@@ -278,7 +278,7 @@ static int has_synth(DSSI_PLUGIN *p)
     return p && p->dssi && (p->dssi->run_synth || p->dssi->run_multiple_synths);
 }
 
-static int32_t synth_handle(CSOUND *csound, MYFLT id, DSSI_PLUGIN **p)
+static int32_t synth_handle(CSOUND *csound, cs_float id, DSSI_PLUGIN **p)
 {
     *p = lookup(csound, id);
     return has_synth(*p) ? OK : csound->InitError(csound, "DSSI4CS: handle is not a DSSI synth");
@@ -317,10 +317,10 @@ static int32_t dssinote(CSOUND *csound, DSSINOTE *p)
 {
     if (*p->trigger == 0) return OK;
     int64_t now = event_time(&p->h);
-    double samples = (double)*p->duration * p->plugin->sample_rate;
+    cs_double samples = (cs_double)*p->duration * p->plugin->sample_rate;
     if (!integer(*p->note, 127) || !integer(*p->velocity, 127) ||
         !integer(*p->channel, 15) || !isfinite(samples) || samples < 0 ||
-        samples > (double)(INT64_MAX / 2))
+        samples > (cs_double)(INT64_MAX / 2))
         return csound->PerfError(csound, &p->h, "DSSI4CS: invalid note, velocity, channel or duration");
     if (reserve_events(csound, &p->h, p->plugin, *p->velocity ? 2 : 1, now)) return NOTOK;
     snd_seq_event_t event = {0};
@@ -367,7 +367,7 @@ static int32_t dssievent(CSOUND *csound, DSSIEVENT *p)
     if (*p->trigger == 0) return OK;
     if (!integer(*p->channel, 15) || !integer(*p->status, 0xe0) ||
         !integer(*p->data1, 127) || !integer(*p->data2, 127) ||
-        !integer(*p->offset, (double)GetLocalKsmps(&p->h) - GetKsmpsOffset(&p->h) -
+        !integer(*p->offset, (cs_double)GetLocalKsmps(&p->h) - GetKsmpsOffset(&p->h) -
                                     GetEarlySmps(&p->h) - 1))
         return csound->PerfError(csound, &p->h, "DSSI4CS: invalid MIDI event or sample offset");
     snd_seq_event_t event = {0};
@@ -407,7 +407,7 @@ static int32_t dssinrpn(CSOUND *csound, DSSINRPN *p)
     if (*p->trigger == 0) return OK;
     if (!integer(*p->channel, 15) || !integer(*p->parameter, 16383) ||
         !integer(*p->value, 16383) ||
-        !integer(*p->offset, (double)GetLocalKsmps(&p->h) - GetKsmpsOffset(&p->h) -
+        !integer(*p->offset, (cs_double)GetLocalKsmps(&p->h) - GetKsmpsOffset(&p->h) -
                             GetEarlySmps(&p->h) - 1))
         return csound->PerfError(csound, &p->h, "DSSI4CS: invalid NRPN event");
     int64_t time = event_time(&p->h) + (int64_t)*p->offset;
@@ -434,10 +434,10 @@ static int mapped(DSSI_PLUGIN *p, snd_seq_event_t *e, int apply)
         if (!match) continue;
         found = 1;
         if (apply) {
-            double f = e->data.control.value /
+            cs_double f = e->data.control.value /
                        (e->type == SND_SEQ_EVENT_CONTROLLER ? 127. : 16383.);
             LADSPA_PortRangeHintDescriptor flags = p->ladspa->PortRangeHints[i].HintDescriptor;
-            double value = interpolate(p, i, f);
+            cs_double value = interpolate(p, i, f);
             if (LADSPA_IS_HINT_TOGGLED(flags)) value = f >= .5;
             else if (LADSPA_IS_HINT_INTEGER(flags)) value = round(value);
             p->control[i] = (LADSPA_Data)value;
@@ -593,7 +593,7 @@ static int32_t dssiaudio(CSOUND *csound, DSSIAUDIO *p)
     uint32_t size = GetLocalKsmps(&p->h), offset = GetKsmpsOffset(&p->h);
     uint32_t end = size - GetEarlySmps(&p->h);
     int inputs = GetInputArgCnt(&p->h) - 1, outputs = GetOutputArgCnt(&p->h);
-    for (int i = 0; i < outputs; ++i) memset(p->out[i], 0, size * sizeof(MYFLT));
+    for (int i = 0; i < outputs; ++i) memset(p->out[i], 0, size * sizeof(cs_float));
     if (!q->active || offset >= end) return OK;
     int64_t block = block_start(&p->h);
     if (q->last_block != block) {
@@ -638,7 +638,7 @@ static int32_t dssiaudio(CSOUND *csound, DSSIAUDIO *p)
     return OK;
 }
 
-static int control_port(DSSI_PLUGIN *p, MYFLT port, int input)
+static int control_port(DSSI_PLUGIN *p, cs_float port, int input)
 {
     if (!p || !integer(port, p->ladspa->PortCount ? p->ladspa->PortCount - 1 : -1.)) return 0;
     LADSPA_PortDescriptor flags = p->ladspa->PortDescriptors[(unsigned long)port];
@@ -657,7 +657,7 @@ static int32_t dssictls_init(CSOUND *csound, DSSICTLS *p)
 static int32_t dssictls(CSOUND *csound, DSSICTLS *p)
 {
     if (*p->trigger == 0) return OK;
-    double value = *p->value;
+    cs_double value = *p->value;
     if (LADSPA_IS_HINT_SAMPLE_RATE(p->plugin->ladspa->PortRangeHints[p->index].HintDescriptor))
         value *= p->plugin->sample_rate;
     if (!isfinite(value) || fabs(value) > FLT_MAX)
@@ -735,8 +735,8 @@ static int32_t dssiprograminfo(CSOUND *csound, DSSIPROGRAMINFO *p)
         p->name->size = size;
     }
     memcpy(p->name->data, name, size);
-    *p->bank = program ? (MYFLT)program->Bank : -1;
-    *p->program = program ? (MYFLT)program->Program : -1;
+    *p->bank = program ? (cs_float)program->Bank : -1;
+    *p->program = program ? (cs_float)program->Program : -1;
     return OK;
 }
 

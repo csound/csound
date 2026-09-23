@@ -71,10 +71,10 @@ static int32_t linuxjoystick(CSOUND *csound, LINUXJOYSTICK *stick)
 
     *stick->kresult = FL(0.0);
     if (UNLIKELY(!(*stick->kdev >= FL(0.0) &&
-                   (double)*stick->kdev <= INT32_MAX)))
+                   (cs_double)*stick->kdev <= INT32_MAX)))
       return csound->PerfError(csound, &stick->h, "%s",
                               Str("joystick: invalid device number"));
-    dev = (int32_t)MYFLT2LRND(*stick->kdev);
+    dev = (int32_t)CS_FLOAT2LRND(*stick->kdev);
     /* Resolve ktab each cycle: the table may have been replaced or freed. */
     ftp = csound->FTFind(csound, stick->ktable);
     if (UNLIKELY(ftp == NULL))
@@ -120,8 +120,8 @@ static int32_t linuxjoystick(CSOUND *csound, LINUXJOYSTICK *stick)
                               Str("joystick: table too small for device data"));
     if (ftp != stick->ftp || *stick->ktable != stick->table ||
         ftp->ftable[0] != stick->numk || ftp->ftable[1] != stick->numb) {
-      ftp->ftable[0] = (MYFLT)stick->numk;
-      ftp->ftable[1] = (MYFLT)stick->numb;
+      ftp->ftable[0] = (cs_float)stick->numk;
+      ftp->ftable[1] = (cs_float)stick->numb;
       stick->ftp = ftp;
       stick->table = *stick->ktable;
       evtmask = 3;
@@ -155,9 +155,9 @@ static int32_t linuxjoystick(CSOUND *csound, LINUXJOYSTICK *stick)
       /* Higher entries still update the table, beyond the scalar mask. */
       if (evtidx < 64)
         evtmask |= UINT64_C(1) << evtidx;
-      ftp->ftable[evtidx] = (MYFLT)js.value;
+      ftp->ftable[evtidx] = (cs_float)js.value;
     }
-    *stick->kresult = (MYFLT)evtmask;
+    *stick->kresult = (cs_float)evtmask;
     return OK;
 }
 

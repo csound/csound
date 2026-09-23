@@ -59,8 +59,8 @@ typedef struct PA_BLOCKING_STREAM_ {
   int32_t         outBufSamples;
   int32_t         currentInputIndex;
   int32_t         currentOutputIndex;
-  MYFLT       *inputBuffer;
-  MYFLT       *outputBuffer;
+  cs_float       *inputBuffer;
+  cs_float       *outputBuffer;
   csRtAudioParams inParm;
   csRtAudioParams outParm;
   PaStreamParameters inputPaParameters;
@@ -239,7 +239,7 @@ static int32_t select_portaudio_device(CSOUND *csound, int32_t devNum, int32_t p
                      (play ? Str("output") : Str("input")),
                      dev_info->name);
     if(play) {
-      csound->GetSystemSr(csound, (MYFLT) dev_info->defaultSampleRate);
+      csound->GetSystemSr(csound, (cs_float) dev_info->defaultSampleRate);
       DAC_channels(csound, dev_info->maxOutputChannels);
     } else ADC_channels(csound, dev_info->maxInputChannels);
   }
@@ -273,8 +273,8 @@ static int32_t set_stream_parameters(CSOUND *csound, PaStreamParameters *sp,
   sp->channelCount = (parm->nChannels < 2 ? 2 : parm->nChannels);
 #endif  
   sp->sampleFormat = (PaSampleFormat) paFloat32;
-  sp->suggestedLatency = (PaTime) ((double) parm->bufSamp_SW
-                                   / (double) parm->sampleRate);
+  sp->suggestedLatency = (PaTime) ((cs_double) parm->bufSamp_SW
+                                   / (cs_double) parm->sampleRate);
   sp->hostApiSpecificStreamInfo = NULL;
   return 0;
 }
@@ -338,9 +338,9 @@ static int32_t audio_callback(const void *input, void *output,unsigned long fram
   return paContinue;
 }
 
-static int32_t rtrecord_noblock(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
+static int32_t rtrecord_noblock(CSOUND *csound, cs_float *inbuff_, int32_t nbytes)
 {
-  int32_t n = nbytes/sizeof(MYFLT);
+  int32_t n = nbytes/sizeof(cs_float);
   int32_t m = 0, l;
   PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtRecordUserData(csound));
   do{
@@ -357,9 +357,9 @@ static int32_t rtrecord_noblock(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
   return nbytes;
 }
 
-static void rtplay_noblock(CSOUND *csound, const MYFLT *outbuff_, int32_t nbytes)
+static void rtplay_noblock(CSOUND *csound, const cs_float *outbuff_, int32_t nbytes)
 {
-  int32_t n = nbytes/sizeof(MYFLT);
+  int32_t n = nbytes/sizeof(cs_float);
   int32_t m = 0, l;
   PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtPlayUserData(csound));
   do {
@@ -389,7 +389,7 @@ static int32_t recopen_noblock(CSOUND *csound, const csRtAudioParams *parm)
     pabs->csound = p;
   }
   pabs->incb = csound->CreateCircularBuffer(csound,parm->bufSamp_HW*parm->nChannels,
-                                            sizeof(MYFLT));
+                                            sizeof(cs_float));
   pabs->mode |= 1;
   memcpy(&(pabs->inParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtRecordUserData(p)) = (void*) pabs;
@@ -424,9 +424,9 @@ static int32_t set_device_params_noblock(CSOUND *csound)
       goto err_return;
     pabs->inBufSamples = pabs->inParm.bufSamp_SW
       * (int32_t) pabs->inputPaParameters.channelCount;
-    pabs->inputBuffer = (MYFLT*) csound->Calloc(csound,
+    pabs->inputBuffer = (cs_float*) csound->Calloc(csound,
                                                 (size_t) pabs->inBufSamples*
-                                                sizeof(MYFLT));
+                                                sizeof(cs_float));
     if (UNLIKELY(pabs->inputBuffer == NULL)) {
       pa_PrintErrMsg(csound, Str("Memory allocation failure"));
       goto err_return;
@@ -438,9 +438,9 @@ static int32_t set_device_params_noblock(CSOUND *csound)
       goto err_return;
     pabs->outBufSamples = pabs->outParm.bufSamp_SW
       * (int32_t) pabs->outputPaParameters.channelCount;
-    pabs->outputBuffer = (MYFLT*) csound->Calloc(csound,
+    pabs->outputBuffer = (cs_float*) csound->Calloc(csound,
                                                  (size_t) pabs->outBufSamples*
-                                                 sizeof(MYFLT));
+                                                 sizeof(cs_float));
     if (UNLIKELY(pabs->outputBuffer == NULL)) {
       pa_PrintErrMsg(csound, Str("Memory allocation failure"));
       goto err_return;
@@ -467,7 +467,7 @@ static int32_t set_device_params_noblock(CSOUND *csound)
                        : (PaStreamParameters*) NULL),
                       (pabs->mode & 2 ? &(pabs->outputPaParameters)
                        : (PaStreamParameters*) NULL),
-                      (double) (pabs->mode & 2 ? pabs->outParm.sampleRate
+                      (cs_double) (pabs->mode & 2 ? pabs->outParm.sampleRate
                                 : pabs->inParm.sampleRate),
                       (unsigned long) (pabs->mode & 2 ?
                                        pabs->outParm.bufSamp_SW
@@ -511,7 +511,7 @@ static int32_t playopen_noblock(CSOUND *csound, const csRtAudioParams *parm)
     pabs->csound = p;
   }
   pabs->outcb = csound->CreateCircularBuffer(csound,parm->bufSamp_HW*parm->nChannels,
-                                             sizeof(MYFLT));
+                                             sizeof(cs_float));
   pabs->mode |= 2;
   memcpy(&(pabs->outParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtPlayUserData(p)) = (void*) pabs;
@@ -547,9 +547,9 @@ static void rtclose_noblock(CSOUND *csound)
        the audio tail abruptly (cf. rtauhal/rtwasapi). */
     int32_t waitMs = 50;
     if ((pabs->mode & 2) && pabs->outParm.sampleRate > 0) {
-      waitMs = (int32_t) (((double) (pabs->outParm.bufSamp_HW
+      waitMs = (int32_t) (((cs_double) (pabs->outParm.bufSamp_HW
                                      + pabs->outParm.bufSamp_SW)
-                           / (double) pabs->outParm.sampleRate)
+                           / (cs_double) pabs->outParm.sampleRate)
                           * 1000.0 + 0.999) + 10;
       if (waitMs < 50)
         waitMs = 50;
@@ -564,12 +564,12 @@ static void rtclose_noblock(CSOUND *csound)
        click is still heard. */
     {
       const PaStreamInfo *info = Pa_GetStreamInfo(stream);
-      double lat = 0.005;
+      cs_double lat = 0.005;
       if (info != NULL && info->outputLatency > 0.0)
         lat = info->outputLatency;
       else if ((pabs->mode & 2) && pabs->outParm.sampleRate > 0)
-        lat = 3.0 * (double) pabs->outParm.bufSamp_SW
-              / (double) pabs->outParm.sampleRate;
+        lat = 3.0 * (cs_double) pabs->outParm.bufSamp_SW
+              / (cs_double) pabs->outParm.sampleRate;
       csound->Sleep((size_t) ((int32_t) (lat * 1000.0) + 10));
     }
     /* If the drain timed out, stop the callback before closing so it
@@ -646,12 +646,12 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev,
   }
   streamParams.channelCount = parm->nChannels;
   streamParams.sampleFormat = paFloat32;
-  streamParams.suggestedLatency = (PaTime) ((double) parm->bufSamp_HW
-                                            / (double) parm->sampleRate);
+  streamParams.suggestedLatency = (PaTime) ((cs_double) parm->bufSamp_HW
+                                            / (cs_double) parm->sampleRate);
   /* open stream */
   if (play) {
     err = (int32_t) Pa_OpenStream(&(dev->handle), NULL, &streamParams,
-                                  (double) parm->sampleRate,
+                                  (cs_double) parm->sampleRate,
                                   (unsigned long) parm->bufSamp_SW,
                                   (csound->GetDitherMode(csound) ?
                                    paNoFlag:paDitherOff),
@@ -659,7 +659,7 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev,
   }
   else {
     err = (int32_t) Pa_OpenStream(&(dev->handle), &streamParams, NULL,
-                                  (double) parm->sampleRate,
+                                  (cs_double) parm->sampleRate,
                                   (unsigned long) parm->bufSamp_SW,
                                   paNoFlag, NULL, NULL);
   }
@@ -743,34 +743,34 @@ static int32_t playopen_blocking(CSOUND *csound, const csRtAudioParams *parm)
 }
 
 /* get samples from ADC */
-static int32_t rtrecord_blocking(CSOUND *csound, MYFLT *inbuf, int32_t nbytes)
+static int32_t rtrecord_blocking(CSOUND *csound, cs_float *inbuf, int32_t nbytes)
 {
   DEVPARAMS *dev;
   int32_t       i, n, err;
 
   dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
   /* calculate the number of samples to record */
-  n = nbytes / (dev->nchns * (int32_t) sizeof(MYFLT));
+  n = nbytes / (dev->nchns * (int32_t) sizeof(cs_float));
   err = (int32_t) Pa_ReadStream(dev->handle, dev->buf, (unsigned long) n);
   if (UNLIKELY(err != (int32_t) paNoError && (csound->GetMessageLevel(csound) & 4)))
     csound->Warning(csound, "%s", Str("Buffer overrun in real-time audio input"));
-  /* convert samples to MYFLT */
+  /* convert samples to cs_float */
   for (i = 0; i < (n * dev->nchns); i++)
-    inbuf[i] = (MYFLT) dev->buf[i];
+    inbuf[i] = (cs_float) dev->buf[i];
 
   return nbytes;
 }
 
 /* put samples to DAC */
-static void rtplay_blocking(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
+static void rtplay_blocking(CSOUND *csound, const cs_float *outbuf, int32_t nbytes)
 {
   DEVPARAMS *dev;
   int32_t       i, n, err;
 
   dev = (DEVPARAMS*) (*(csound->GetRtPlayUserData(csound)));
   /* calculate the number of samples to play */
-  n = nbytes / (dev->nchns * (int32_t) sizeof(MYFLT));
-  /* convert samples from MYFLT */
+  n = nbytes / (dev->nchns * (int32_t) sizeof(cs_float));
+  /* convert samples from cs_float */
   for (i = 0; i < (n * dev->nchns); i++)
     dev->buf[i] = (float) outbuf[i];
   err = (int32_t) Pa_WriteStream(dev->handle, dev->buf, (unsigned long) n);
@@ -789,8 +789,8 @@ static void pad_blocking_output_with_silence(CSOUND *csound, DEVPARAMS *dev)
   if (bufferFrames <= 0)
     return;
   if (info != NULL && info->outputLatency > 0.0 && dev->sampleRate > 0) {
-    double latencyFrames;
-    latencyFrames = info->outputLatency * (double) dev->sampleRate;
+    cs_double latencyFrames;
+    latencyFrames = info->outputLatency * (cs_double) dev->sampleRate;
     if (latencyFrames < 2147483647.0)
       padFrames = (int32_t) (latencyFrames + 0.999999);
   }
@@ -807,8 +807,8 @@ static void pad_blocking_output_with_silence(CSOUND *csound, DEVPARAMS *dev)
   if (dev->isCoreAudio && dev->sampleRate > 0) {
     int32_t closeMs = PA_BL_COREAUDIO_CLOSE_SILENCE_MS;
     {
-      double closeFrames = (double) dev->sampleRate *
-                           (double) closeMs / 1000.0;
+      cs_double closeFrames = (cs_double) dev->sampleRate *
+                           (cs_double) closeMs / 1000.0;
       int32_t minFrames = (int32_t) (closeFrames + 0.999999);
       if (padFrames < minFrames)
         padFrames = minFrames;
@@ -952,5 +952,5 @@ static void PaNoOpDebugPrint(const char* msg) {
 
  int32_t csoundModuleInfo(void)
 {
-  return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+  return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(cs_float));
 }

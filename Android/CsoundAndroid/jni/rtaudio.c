@@ -43,7 +43,7 @@ typedef struct  {
 } AAUDIO_PARAMS;
 
 static void audio_output(CSOUND *csound,
-                          const MYFLT *outbuff, int32_t nbytes) {
+                          const cs_float *outbuff, int32_t nbytes) {
   // nothing to do
 }
 
@@ -76,14 +76,14 @@ static aaudio_data_callback_result_t
   CSOUND *csound = cdata->csound;
   int32_t ksmps = csoundGetKsmps(csound), res;
   int32_t chns = cdata->nchnls, n = cdata->cnt;
-  const MYFLT *bufo = csoundGetSpout(csound);
-  MYFLT *bufi = csoundGetSpin(csound);
+  const cs_float *bufo = csoundGetSpout(csound);
+  cs_float *bufi = csoundGetSpin(csound);
   memset(samples, 0, numFrames*chns*sizeof(float));
   if(ATOMIC_GET(cdata->closing)) {
     RT_AUDIO_FADE fade;
     rt_audio_fade_begin(&fade, numFrames*chns, chns);
     for(int32_t i = 0; i < numFrames; i++, n++) {
-      MYFLT gain = rt_audio_fade_next_gain(&fade);
+      cs_float gain = rt_audio_fade_next_gain(&fade);
       if(n >= ksmps)
         n = 0;
       for(int32_t channel = 0; channel < chns; channel++)
@@ -99,7 +99,7 @@ static aaudio_data_callback_result_t
   for(int i = 0;  i < numFrames; i++, n++){
     if(n == ksmps){
       int32_t nsmps = n*csound->GetNchnls_i(csound);
-      memset(bufi, 0, nsmps*sizeof(MYFLT));
+      memset(bufi, 0, nsmps*sizeof(cs_float));
       if(cdata->incb != NULL) {
        csound->ReadCircularBuffer(csound,cdata->incb,
                                   bufi,nsmps);
@@ -220,7 +220,7 @@ static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
 }
 
 
-static int32_t audio_input(CSOUND *csound, MYFLT *inbuff, int32_t nbytes){
+static int32_t audio_input(CSOUND *csound, cs_float *inbuff, int32_t nbytes){
     // nothing to do but signal the caller not to fill spin
     return -1;
 }

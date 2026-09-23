@@ -35,13 +35,13 @@
 #include "pluck.h"
 
 /* external prototypes */
-static void pluckSetFilters(CSOUND*, WGPLUCK*, MYFLT, MYFLT);
-static MYFLT *pluckShape(CSOUND*, WGPLUCK*);     /* pluck shape function */
+static void pluckSetFilters(CSOUND*, WGPLUCK*, cs_float, cs_float);
+static cs_float *pluckShape(CSOUND*, WGPLUCK*);     /* pluck shape function */
 
 /* ***** class filter3 -- JPff ****** */
 
 /* ::set -- set the coefficients */
-static inline void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
+static inline void filter3Set(filter3* filt, cs_float a0, cs_float a1)
 {
     filt->a0 = a0;
     filt->a1 = a1;
@@ -59,7 +59,7 @@ static inline void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
 /* pluck::excite -- excitation function for plucked string */
 static int32_t pluckExcite(CSOUND *csound, WGPLUCK* p)
 {
-    MYFLT *shape;
+    cs_float *shape;
     int32_t i;
     int64_t size = p->wg.upperRail.size;
 
@@ -99,8 +99,8 @@ static int32_t pluckPluck(CSOUND *csound, WGPLUCK* p)
 #endif
 
     /* Allocate auxillary memory or reallocate if size has changed */
-    csound->AuxAlloc(csound, (len_t)(ndelay/2)*sizeof(MYFLT), &p->upperData);
-    csound->AuxAlloc(csound, (len_t)(ndelay/2)*sizeof(MYFLT), &p->lowerData);
+    csound->AuxAlloc(csound, (len_t)(ndelay/2)*sizeof(cs_float), &p->upperData);
+    csound->AuxAlloc(csound, (len_t)(ndelay/2)*sizeof(cs_float), &p->lowerData);
 
 #ifdef WG_VERBOSE
     csound->Message(csound, "done.\n");
@@ -113,9 +113,9 @@ static int32_t pluckPluck(CSOUND *csound, WGPLUCK* p)
 
     waveguideWaveguide(csound,
                        (waveguide*)&p->wg,             /* waveguide       */
-                       (MYFLT)*p->freq,                /* f0 frequency    */
-                       (MYFLT*)p->upperData.auxp,      /* upper rail data */
-                       (MYFLT*)p->lowerData.auxp, CS_ESR);     /* lower rail data */
+                       (cs_float)*p->freq,                /* f0 frequency    */
+                       (cs_float*)p->upperData.auxp,      /* upper rail data */
+                       (cs_float*)p->lowerData.auxp, CS_ESR);     /* lower rail data */
 #ifdef WG_VERBOSE
     csound->Message(csound, "done.\n");
 #endif
@@ -132,20 +132,20 @@ static int32_t pluckPluck(CSOUND *csound, WGPLUCK* p)
 }
 
 /* pluck::setFilters -- frequency dependent filter calculations */
-static void pluckSetFilters(CSOUND *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
+static void pluckSetFilters(CSOUND *csound, WGPLUCK* p, cs_float A_w0, cs_float A_PI)
 {
     /* Define the required magnitude response of H1 at w0 and PI */
 
     /* Constrain attenuation specification to dB per second */
-    MYFLT NRecip = p->wg.f0 * CS_ONEDSR;  /*  N=t*CS_ESR/f0  */
-    MYFLT H1_w0 = POWER(FL(10.0),-A_w0*FL(0.05)*NRecip);
-    MYFLT H1_PI = POWER(FL(10.0),-A_PI*FL(0.05)*NRecip);
+    cs_float NRecip = p->wg.f0 * CS_ONEDSR;  /*  N=t*CS_ESR/f0  */
+    cs_float H1_w0 = POWER(FL(10.0),-A_w0*FL(0.05)*NRecip);
+    cs_float H1_PI = POWER(FL(10.0),-A_PI*FL(0.05)*NRecip);
     {
       /* The tuning filter is allpass, so no dependency for H1 */
       /* therefore solve for the coefficients of the bridge filter directly */
-      MYFLT cosw0 = COS(p->wg.w0);
-      MYFLT a1=(H1_w0+cosw0*H1_PI)/(1+cosw0);
-      MYFLT a0 = (a1 - H1_PI)*FL(0.5);
+      cs_float cosw0 = COS(p->wg.w0);
+      cs_float a1=(H1_w0+cosw0*H1_PI)/(1+cosw0);
+      cs_float a0 = (a1 - H1_PI)*FL(0.5);
       /* apply constraints on coefficients (see Sullivan)*/
       if (UNLIKELY((a0<FL(0.0))|| (a1<a0+a0))) {
         a0=FL(0.0);
@@ -156,16 +156,16 @@ static void pluckSetFilters(CSOUND *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
 }
 
 /* ::pluckShape -- the pluck function for a string */
-static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
+static cs_float *pluckShape(CSOUND *csound, WGPLUCK* p)
 {
-    MYFLT scale = *p->amp;
-    MYFLT  *shape;
+    cs_float scale = *p->amp;
+    cs_float  *shape;
     len_t len=p->wg.lowerRail.size;
     len_t i;
-    MYFLT M;
+    cs_float M;
 
     /* This memory must be freed after use */
-    shape = (MYFLT *)csound->Malloc(csound, len*sizeof(MYFLT));
+    shape = (cs_float *)csound->Malloc(csound, len*sizeof(cs_float));
     if (UNLIKELY(!shape)) {
       csound->InitError(csound,
                         "%s", Str("wgpluck:Could not allocate for initial shape"));
@@ -175,7 +175,7 @@ static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
     for (i=0;i<p->pickSamp;i++)
       shape[i] = scale*i / p->pickSamp;
 
-    M = (MYFLT)len - p->pickSamp;
+    M = (cs_float)len - p->pickSamp;
     for (i=0;i<M;i++)
       shape[p->pickSamp+i] = scale - (i*scale/M);
 
@@ -183,7 +183,7 @@ static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
 }
 
 /* ::update -- waveguide rail insert and update routine */
-static inline void guideRailUpdate(guideRail *gr,MYFLT samp)
+static inline void guideRailUpdate(guideRail *gr,cs_float samp)
 {
     *gr->pointer++ = samp;
     if (UNLIKELY(gr->pointer > gr->endPoint))
@@ -194,8 +194,8 @@ static inline void guideRailUpdate(guideRail *gr,MYFLT samp)
 static int32_t pluckGetSamps(CSOUND *csound, WGPLUCK* p)
 {
     IGN(csound);
-    MYFLT       yr0,yl0,yrM,ylM;        /* Key positions on the waveguide */
-    MYFLT *ar = p->out;    /* The sample output buffer */
+    cs_float       yr0,yl0,yrM,ylM;        /* Key positions on the waveguide */
+    cs_float *ar = p->out;    /* The sample output buffer */
     len_t M=p->wg.upperRail.size; /* Length of the guide rail */
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -205,14 +205,14 @@ static int32_t pluckGetSamps(CSOUND *csound, WGPLUCK* p)
     len_t pickupSamp=(len_t)(M * *p->pickupPos);
     if (UNLIKELY(pickupSamp<1)) pickupSamp = 1;
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset;n<nsmps;n++) {
         /* The output may reuse the excitation buffer. */
-        MYFLT excitation = p->afdbk[n];
+        cs_float excitation = p->afdbk[n];
         ar[n] = guideRailAccess(&p->wg.upperRail,pickupSamp)
                +guideRailAccess(&p->wg.lowerRail,M-pickupSamp);
         yrM = guideRailAccess(&p->wg.upperRail,M-1);/* wave into the nut */
@@ -242,7 +242,7 @@ static inline int32_t circularBufferCircularBuffer(CSOUND *csound,
                                          circularBuffer* cb, len_t N)
 {
     IGN(csound);
-    MYFLT *data = cb->data;
+    cs_float *data = cb->data;
     /* if (UNLIKELY(!data)) */
     /*   return csound->InitError(csound, */
     /*                            "%s", Str("wgpluck: Buffer memory not allocated!")); */
@@ -262,7 +262,7 @@ static inline int32_t circularBufferCircularBuffer(CSOUND *csound,
 #define guideRailGuideRail(csound,gr,d) circularBufferCircularBuffer(csound, gr,d)
 
 /* ::access -- waveguide rail access routine */
-static inline MYFLT guideRailAccess(guideRail* gr, len_t pos)
+static inline cs_float guideRailAccess(guideRail* gr, len_t pos)
 {
     len_t index = (gr->pointer - gr->data) - pos;
     while (index < 0)
@@ -273,10 +273,10 @@ static inline MYFLT guideRailAccess(guideRail* gr, len_t pos)
 }
 
 /* ::FIR -- direct convolution filter routine */
-static MYFLT filter3FIR(filter3* filt, MYFLT s)
+static cs_float filter3FIR(filter3* filt, cs_float s)
 {
     /* y[n] = c1*x[n] + c2*x[n-1] + ... + cM*x[n-M+1] */
-    MYFLT ans = filt->a0 * (s+filt->x2) + filt->a1 * filt->x1;
+    cs_float ans = filt->a0 * (s+filt->x2) + filt->a1 * filt->x1;
     filt->x2 = filt->x1;
     filt->x1 = s;
     return ans;
@@ -284,10 +284,10 @@ static MYFLT filter3FIR(filter3* filt, MYFLT s)
 
 /* ::allpass -- accurate 1st-order allpass filter routine */
 /*   c = allpass filter coefficient, input sample */
-static MYFLT filterAllpass(waveguide* wg,MYFLT s)
+static cs_float filterAllpass(waveguide* wg,cs_float s)
 {
     /* p[n] = x[n] + gp[n-1], y[n] = p[n-1] - gp[n] */
-    MYFLT q = s + wg->c*wg->p;
+    cs_float q = s + wg->c*wg->p;
     s = - wg->c * q + wg->p;
     wg->p = q;
     return s;
@@ -303,11 +303,11 @@ static MYFLT filterAllpass(waveguide* wg,MYFLT s)
  */
 static void waveguideWaveguide(CSOUND *csound,
                         waveguide* wg,
-                        MYFLT  freq,
-                        MYFLT* upperData,
-                        MYFLT* lowerData, MYFLT sr)
+                        cs_float  freq,
+                        cs_float* upperData,
+                        cs_float* lowerData, cs_float sr)
 {
-    MYFLT size, df;
+    cs_float size, df;
 
     wg->excited = 0;
     wg->p       = FL(0.0); /* tuning filter state variable */
@@ -342,10 +342,10 @@ static void waveguideWaveguide(CSOUND *csound,
 }
 
 /* Set the allpass tuning filter coefficient */
-static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
+static void waveguideSetTuning(CSOUND *csound, waveguide* wg, cs_float df)
 {
 
-  MYFLT k= (1/wg->sr) * wg->w0;
+  cs_float k= (1/wg->sr) * wg->w0;
 
   /*c = (1.0-df)/(1.0+df);*/ /* Solve for coefficient from df */
     wg->c = -sinf((k-k*df)/FL(2.0))/sinf((k+k*df)/FL(2.0));

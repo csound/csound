@@ -65,10 +65,10 @@ The template for arate perf-pass opcodes is:
         uint32_t nsmps = CS_KSMPS;
         ...
         // Clear parts of the output outside event
-        if (UNLIKELY(offset)) memset(p->res, '\0', offset*sizeof(MYFLT));
+        if (UNLIKELY(offset)) memset(p->res, '\0', offset*sizeof(cs_float));
         if (UNLIKELY(early))  {
           nsmps -= early;
-          memset(&p->res[nsmps], '\0', early*sizeof(MYFLT));
+          memset(&p->res[nsmps], '\0', early*sizeof(cs_float));
         }
         for (n=offset; n<nsmps; n++) { // Only calculate inside event
             .....

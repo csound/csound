@@ -28,8 +28,8 @@ typedef struct {
     OPDS h;
     PVSDAT *fout;
     PVSDAT *fin;
-    MYFLT  *kmrate;
-    MYFLT  *kfrate;
+    cs_float  *kmrate;
+    cs_float  *kfrate;
     uint32_t lastframe;
     uint32_t seed;
     size_t framebytes;
@@ -41,7 +41,7 @@ typedef struct {
     uint32_t next_ = ((uint32_t)product_ & UINT32_C(0x7fffffff)) +           \
                      (uint32_t)(product_ >> 31);                           \
     (state) = (next_ & UINT32_C(0x7fffffff)) + (next_ >> 31);                \
-    (value) = (MYFLT)((double)(state) * (1.0 / 2147483647.0) - 0.5);        \
+    (value) = (cs_float)((cs_double)(state) * (1.0 / 2147483647.0) - 0.5);        \
 } while (0)
 
 static int32_t pvsgendyinit(CSOUND *csound, PVSGENDY *p)
@@ -60,7 +60,7 @@ static int32_t pvsgendyinit(CSOUND *csound, PVSGENDY *p)
       return csound->InitError(csound, "%s",
                               Str("pvsgendy: invalid input frame size"));
 
-    stride = p->fin->sliding ? sizeof(MYFLT) : sizeof(float);
+    stride = p->fin->sliding ? sizeof(cs_float) : sizeof(float);
     samples = p->fin->sliding ? CS_KSMPS : 1;
     if (UNLIKELY((size_t)(N + 2) > SIZE_MAX / stride / samples))
       return csound->InitError(csound, "%s",
@@ -88,8 +88,8 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
 {
     int32_t     i, N = p->fout->N;
     uint32_t seed = p->seed;
-    MYFLT   mrate = *p->kmrate;
-    MYFLT   frate = *p->kfrate;
+    cs_float   mrate = *p->kmrate;
+    cs_float   frate = *p->kfrate;
     float   *finf = (float *) p->fin->frame.auxp;
     float   *foutf = (float *) p->fout->frame.auxp;
 
@@ -123,11 +123,11 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + (size_t)n*NB;
         CMPLX *fout = output + (size_t)n*NB;
         for (i = 0; i < NB; i++) {
-          MYFLT x;
+          cs_float x;
           PVSGENDY_RANDOM(seed, x);
           fout[i].re = fin[i].re + mrate * x;
           PVSGENDY_RANDOM(seed, x);
-          fout[i].im = fin[i].im + frate * x / (MYFLT)(i+1);
+          fout[i].im = fin[i].im + frate * x / (cs_float)(i+1);
         }
       }
       p->seed = seed;
@@ -136,9 +136,9 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
     }
     if (p->lastframe != p->fin->framecount) {
       for (i = 0; i < N + 2; i += 2) {
-        MYFLT x;
+        cs_float x;
         PVSGENDY_RANDOM(seed, x);
-        foutf[i+1] = finf[i+1] + frate * x / (MYFLT)(i+1);
+        foutf[i+1] = finf[i+1] + frate * x / (cs_float)(i+1);
         /* Ordinary frames retain their input amplitudes. */
         foutf[i] = finf[i];
       }

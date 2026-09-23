@@ -241,7 +241,7 @@ void list_opcodes(CSOUND *csound, int32_t level) {
  **/
 struct oentries *find_opcode2(CSOUND *, char *);
 void *find_or_add_constant(CSOUND *csound, CS_HASH_TABLE *constantsPool,
-                           const char *name, MYFLT value);
+                           const char *name, cs_float value);
 
 /** exclude some names
  */
@@ -375,8 +375,8 @@ int32_t opcode_info(CSOUND *csound, OPINFO *p) {
 /**
  * Set a constant (for optional arguments)
  */
-MYFLT *set_constant(CSOUND *csound, const char *name, MYFLT value) {
-  return (MYFLT *)
+cs_float *set_constant(CSOUND *csound, const char *name, cs_float value) {
+  return (cs_float *)
     ((char *)find_or_add_constant(csound, csound->engineState.constantsPool,
                           name, value) + CS_VAR_TYPE_OFFSET);
 }
@@ -398,7 +398,7 @@ CS_TYPE *check_arg_type(void *arg, CS_TYPE **types, int32_t n) {
  * expects inargs to follow outargs + 1 skip (for obj arg)
  * returns an error if args do not match
  */
-int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
+int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *args[],
                    CS_TYPE **cstypes, int32_t no, int32_t ni){
   TEXT *t = &(obj->dataspace->optext->t);
   OENTRY *ep = t->oentry;
@@ -407,15 +407,15 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
   CS_TYPE *argtype;
   int32_t n = 0, opt = 0;
   int32_t  len, i = 0;
-  MYFLT **outargs;
-  MYFLT **inargs;
+  cs_float **outargs;
+  cs_float **inargs;
   if(obj->udo_flag) {
     // udo args located at the end of udo struct
     UOPCODE *udo = (UOPCODE *) obj->dataspace;
     outargs = udo->ar;
   } else {
     // opcode args located after OPDS struct
-    outargs = (MYFLT **) (obj->dataspace + 1);
+    outargs = (cs_float **) (obj->dataspace + 1);
   }
   obj->outargp = outargs;
   // out args first
@@ -1131,9 +1131,9 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
  *  return an error
  */
 int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
-                          MYFLT *arg) {
+                          cs_float *arg) {
   if(obj->inargp != NULL) {
-    MYFLT **inargp = obj->inargp;
+    cs_float **inargp = obj->inargp;
     uint32_t n = obj->dataspace->optext->t.inArgCount;
     if(ndx > n) return NOTOK;
     if(csoundGetTypeForArg(inargp[ndx]) != csoundGetTypeForArg(arg)) {
@@ -1193,10 +1193,10 @@ int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds) {
 /**
  * check consistency of arg pointers (for perf-time)
  */
-int32_t check_consistency(OPCODEOBJ *obj, MYFLT **args,
+int32_t check_consistency(OPCODEOBJ *obj, cs_float **args,
                           int32_t no, int32_t ni) {
   int32_t n, i = no + 1;
-  MYFLT **oargs = (MYFLT **) (obj->dataspace + 1);
+  cs_float **oargs = (cs_float **) (obj->dataspace + 1);
   for(n = 0; n < no; n++)
     if(oargs[n] != args[n]) return 1;
   for(n = 0; n < ni; n++)
@@ -1404,9 +1404,9 @@ int32_t opcode_delete_array(CSOUND *csound, AOP *p) {
   ARRAYDAT  *array = (ARRAYDAT *) p->r;
   int32_t   n = array->sizes[0], i;
   OPCODEOBJ *obj= (OPCODEOBJ *) array->data;
-  MYFLT *r = p->r;
+  cs_float *r = p->r;
   for(i = 0; i < n; i++) {
-    p->r = (MYFLT *) &(obj[i]);
+    p->r = (cs_float *) &(obj[i]);
     opcode_delete(csound, p);
   }
   p->r = r;
@@ -1450,7 +1450,7 @@ static int32_t isTypeArray(OPCODEOBJ *obj, int32_t n, int32_t isInput) {
  */
 int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
   int32_t i, j, n = 0, m;
-  MYFLT *args[VARGMAX] = {0};
+  cs_float *args[VARGMAX] = {0};
   CS_TYPE *types[VARGMAX] = {0};
   ARRAYDAT  *array;
   OPCODEOBJ *obj;
@@ -1626,7 +1626,7 @@ int32_t copy_opcode_obj(CSOUND *csound, ASSIGN *p) {
 int32_t set_opcode_param(CSOUND *csound, AOP *p) {
   OPCODEOBJ *obj = (OPCODEOBJ *) p->r;
   uint32_t ndx = (uint32_t) (*p->a >= 0 ? *p->a : 0);
-  MYFLT *arg  = p->b;
+  cs_float *arg  = p->b;
   // Defensive: object not initialised yet (e.g., wrong overload picked or missing 'create')
   if (UNLIKELY(obj == NULL || obj->dataspace == NULL)) {
     return csound->PerfError(csound, &(p->h), "opcode object not initialised (setp)\n");
@@ -1643,7 +1643,7 @@ static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
                                   int32_t initializing) {
   OPCODEOBJ *obj = (OPCODEOBJ *) p->a;
   uint32_t ndx = (uint32_t) (*p->b >= 0 ? *p->b : 0);
-  MYFLT **outargs;
+  cs_float **outargs;
   CS_TYPE *destinationType;
   CS_TYPE *sourceType;
   int32_t result;

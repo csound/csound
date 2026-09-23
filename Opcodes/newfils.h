@@ -110,18 +110,18 @@ A nonzero value retains the previous state.
 
 typedef struct _moogladder {
   OPDS    h;
-  MYFLT   *out;
-  MYFLT   *in;
-  MYFLT   *freq;
-  MYFLT   *res;
-  MYFLT   *istor;
+  cs_float   *out;
+  cs_float   *in;
+  cs_float   *freq;
+  cs_float   *res;
+  cs_float   *istor;
 
-  double  delay[6];
-  double  tanhstg[3];
-  MYFLT   oldfreq;
-  MYFLT   oldres;
-  double  oldacr;
-  double  oldtune;
+  cs_double  delay[6];
+  cs_double  tanhstg[3];
+  cs_float   oldfreq;
+  cs_float   oldres;
+  cs_double  oldacr;
+  cs_double  oldtune;
 } moogladder;
 
 static int32_t moogladder_init(CSOUND *csound,moogladder *p);
@@ -129,24 +129,24 @@ static int32_t moogladder_process(CSOUND *csound,moogladder *p);
 
 typedef struct _statevar {
   OPDS    h;
-  MYFLT   *outhp;
-  MYFLT   *outlp;
-  MYFLT   *outbp;
-  MYFLT   *outbr;
-  MYFLT   *in;
-  MYFLT   *freq;
-  MYFLT   *res;
-  MYFLT   *osamp;
-  MYFLT   *istor;
+  cs_float   *outhp;
+  cs_float   *outlp;
+  cs_float   *outbp;
+  cs_float   *outbr;
+  cs_float   *in;
+  cs_float   *freq;
+  cs_float   *res;
+  cs_float   *osamp;
+  cs_float   *istor;
 
-  double  bpd;
-  double  lpd;
-  double  lp;
+  cs_double  bpd;
+  cs_double  lpd;
+  cs_double  lp;
   int32_t     ostimes;
-  MYFLT   oldfreq;
-  MYFLT   oldres;
-  double  oldq;
-  double  oldf;
+  cs_float   oldfreq;
+  cs_float   oldres;
+  cs_double  oldq;
+  cs_double  oldf;
 } statevar;
 
 static int32_t statevar_init(CSOUND *csound,statevar *p);
@@ -154,14 +154,14 @@ static int32_t statevar_process(CSOUND *csound,statevar *p);
 
 typedef struct _fofilter {
   OPDS    h;
-  MYFLT   *out;
-  MYFLT   *in;
-  MYFLT   *freq;
-  MYFLT   *ris;
-  MYFLT   *dec;
-  MYFLT   *istor;
+  cs_float   *out;
+  cs_float   *in;
+  cs_float   *freq;
+  cs_float   *ris;
+  cs_float   *dec;
+  cs_float   *istor;
 
-  double  delay[4];
+  cs_double  delay[4];
 } fofilter;
 
 static int32_t fofilter_init(CSOUND *csound,fofilter *p);
@@ -170,16 +170,16 @@ fofilter_process(CSOUND *csound,fofilter *p);
 
 typedef struct _bob {
   OPDS    h;
-  MYFLT   *out;
-  MYFLT   *in;
-  MYFLT   *freq;
-  MYFLT   *res;
-  MYFLT   *sat;
-  MYFLT   *osamp;
-  MYFLT   *istor;
+  cs_float   *out;
+  cs_float   *in;
+  cs_float   *freq;
+  cs_float   *res;
+  cs_float   *sat;
+  cs_float   *osamp;
+  cs_float   *istor;
 
   int32_t ostimes;
-  double  state[DIM];
+  cs_double  state[DIM];
 } BOB;
 
 static int32_t bob_init(CSOUND *csound,BOB *p);

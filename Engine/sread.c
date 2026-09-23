@@ -170,9 +170,9 @@ static void print_input_backtrace(CSOUND *csound, int32_t needLFs,
     return;
 }
 
-static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
+static cs_float operate(CSOUND *csound, cs_float a, cs_float b, char c)
 {
-    MYFLT ans;
+    cs_float ans;
     switch (c) {
     case '+': ans = a + b; break;
     case '-': ans = a - b; break;
@@ -180,9 +180,9 @@ static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
     case '/': ans = a / b; break;
     case '%': ans = MOD(a, b); break;
     case '^': ans = POWER(a, b); break;
-    case '&': ans = (MYFLT) (MYFLT2LRND(a) & MYFLT2LRND(b)); break;
-    case '|': ans = (MYFLT) (MYFLT2LRND(a) | MYFLT2LRND(b)); break;
-    case '#': ans = (MYFLT) (MYFLT2LRND(a) ^ MYFLT2LRND(b)); break;
+    case '&': ans = (cs_float) (CS_FLOAT2LRND(a) & CS_FLOAT2LRND(b)); break;
+    case '|': ans = (cs_float) (CS_FLOAT2LRND(a) | CS_FLOAT2LRND(b)); break;
+    case '#': ans = (cs_float) (CS_FLOAT2LRND(a) ^ CS_FLOAT2LRND(b)); break;
     default:
       csoundDie(csound, Str("Internal error op=%c"), c);
       ans = FL(0.0);    /* compiler only */
@@ -297,7 +297,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           p = &((csound->sread.bp)->text[1]);
           while (isblank(q=*p)) p++;
           if (isdigit(q) || q=='+' || q=='-' || q=='.') {
-            double  tt;
+            cs_double  tt;
             char    *tmp = p;
             tt = csoundStrtod(p, &tmp);
             //printf("tt=%lf q=%c\n", tt, q);
@@ -383,14 +383,14 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           /*         if (strchr("+-.0123456789", *p) != NULL) { */
           q = *p;
           if (isdigit(q) || q=='+' || q=='-' || q=='.') {
-            double  tt;
+            cs_double  tt;
             char    *tmp = p;
             tt = csoundStrtod(p, &tmp);
             if (tmp != p && (*tmp == '\0' || isspace(*tmp))) {
               (csound->sread.bp)->pcnt = 1;
               (csound->sread.bp)->p1val =
                 (csound->sread.bp)->p2val =
-                (csound->sread.bp)->newp2 = (MYFLT) tt;
+                (csound->sread.bp)->newp2 = (cs_float) tt;
             }
           }
           else (csound->sread.bp)->p1val =
@@ -692,7 +692,7 @@ static void ifa(CSOUND *csound)
         else break;
       }
       else switch ((csound->sread.bp)->pcnt) { /*  watch for p1,p2,p3, */
-        case 1:                           /*   & MYFLT, setinsno..*/
+        case 1:                           /*   & cs_float, setinsno..*/
           if (((csound->sread.op) == 'i' ||
                (csound->sread.op) == 'd' ||
                (csound->sread.op) == 'q') &&
@@ -1006,7 +1006,7 @@ static int32_t getop(CSOUND *csound)        /* get next legal opcode */
 
 typedef struct {
   char ops[SCORE_EXPR_STACK_SIZE];
-  MYFLT values[SCORE_EXPR_STACK_SIZE];
+  cs_float values[SCORE_EXPR_STACK_SIZE];
   int32_t opCount, valueCount;
 } SCORE_EXPR;
 
@@ -1017,7 +1017,7 @@ static void score_expr_push_op(CSOUND *csound, SCORE_EXPR *expr, char op)
   expr->ops[expr->opCount++] = op;
 }
 
-static void score_expr_push_value(CSOUND *csound, SCORE_EXPR *expr, MYFLT value)
+static void score_expr_push_value(CSOUND *csound, SCORE_EXPR *expr, cs_float value)
 {
   if (UNLIKELY(expr->valueCount == SCORE_EXPR_STACK_SIZE))
     scorerr(csound, Str("score expression value stack full"));
@@ -1028,8 +1028,8 @@ static void score_expr_reduce(CSOUND *csound, SCORE_EXPR *expr)
 {
   if (UNLIKELY(expr->valueCount < 2))
     scorerr(csound, Str("missing operand in score expression"));
-  MYFLT right = expr->values[--expr->valueCount];
-  MYFLT left = expr->values[expr->valueCount - 1];
+  cs_float right = expr->values[--expr->valueCount];
+  cs_float left = expr->values[expr->valueCount - 1];
   expr->values[expr->valueCount - 1] =
     operate(csound, left, right, expr->ops[--expr->opCount]);
 }
@@ -1042,7 +1042,7 @@ static void score_expr_append_char(CSOUND *csound, char *buffer,
   buffer[(*length)++] = (char)c;
 }
 
-static MYFLT read_expression(CSOUND *csound, int32_t depth)
+static cs_float read_expression(CSOUND *csound, int32_t depth)
 {
       SCORE_EXPR expr = {{0}, {0}, 0, 0};
       char buffer[SCORE_EXPR_NUMBER_SIZE];
@@ -1090,7 +1090,7 @@ static MYFLT read_expression(CSOUND *csound, int32_t depth)
                                 "expression"));
           }
           score_expr_push_value(csound, &expr,
-            (MYFLT)(csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645));
+            (cs_float)(csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645));
           type = 1;
           c = getscochar(csound, 1);
           break;
@@ -1112,7 +1112,7 @@ static MYFLT read_expression(CSOUND *csound, int32_t depth)
             }
             i = 1;
             while (i<=n-k && i< 0x4000000) i <<= 1;
-            score_expr_push_value(csound, &expr, (MYFLT)(i+k));
+            score_expr_push_value(csound, &expr, (cs_float)(i+k));
             type = 1;
           }
           break;
@@ -1188,7 +1188,7 @@ static MYFLT read_expression(CSOUND *csound, int32_t depth)
           }
           type = 1;
           {
-            MYFLT x = read_expression(csound, depth + 1);
+            cs_float x = read_expression(csound, depth + 1);
             score_expr_push_value(csound, &expr, x);
             c = getscochar(csound, 1); break;
           }
@@ -1232,7 +1232,7 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
     if ((c = sget1(csound)) == EOF)     /* get 1st non-white,non-comment c  */
       return(0);
     if (c=='[') {
-      MYFLT xx = read_expression(csound, 0);
+      cs_float xx = read_expression(csound, 0);
       //printf("****xx=%a\n", xx);
       //printf("nxp = %p\n", (csound->sread.nxp));
       snprintf((csound->sread.sp) = (csound->sread.nxp), 28, "%a$", xx);
@@ -1309,11 +1309,11 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
     return(1);                              /*  and report ok  */
 }
 
-MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
+cs_float stof(CSOUND *csound, char s[])            /* convert string to cs_float  */
                                     /* (assumes no white space at beginning */
 {                                   /*      but a blank or nl at end)       */
     char    *p;
-    MYFLT   x = (MYFLT) csoundStrtod(s, &p);
+    cs_float   x = (cs_float) csoundStrtod(s, &p);
     if (*p=='z') return FL(800000000000.0); /* 25367 years */
     if (UNLIKELY(s == p || !(*p == '\0' || isspace(*p)))) {
       csound->Message(csound, Str("sread: illegal number format:  "));

@@ -66,5 +66,5 @@ typedef struct RtJackGlobals_ {
     int32_t     xrunFlag;                   /* non-zero if an xrun has occured  */
     jack_client_t   *listclient;
     int32_t outDevNum, inDevNum;            /* select devs by number */
-    MYFLT sr;
+    cs_float sr;
 } RtJackGlobals;

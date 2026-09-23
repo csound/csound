@@ -86,11 +86,11 @@ static char *rcsid = "$Id$";
 #include <math.h>
 #include <assert.h>
 
-static void fft_(CSOUND *,MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t);
-static void fftmx(MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t, int32_t,
-                  int32_t*, MYFLT *, MYFLT *, MYFLT *, MYFLT *, int32_t *,
+static void fft_(CSOUND *,cs_float *, cs_float *, int32_t, int32_t, int32_t, int32_t);
+static void fftmx(cs_float *, cs_float *, int32_t, int32_t, int32_t, int32_t, int32_t,
+                  int32_t*, cs_float *, cs_float *, cs_float *, cs_float *, int32_t *,
                   int32_t[]);
-static void reals_(CSOUND *,MYFLT *, MYFLT *, int32_t, int32_t);
+static void reals_(CSOUND *,cs_float *, cs_float *, int32_t, int32_t);
 
 /*
  *-----------------------------------------------------------------------
@@ -105,7 +105,7 @@ static void reals_(CSOUND *,MYFLT *, MYFLT *, int32_t, int32_t);
  *              fft_(csound,anal,banal,one,N2,one,mtwo);
  */
 
-static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
+static void fft_(CSOUND *csound, cs_float *a, cs_float *b,
                                   int32_t nseg, int32_t n, int32_t nspn, int32_t isn)
   /*    *a,       pointer to array 'anal'  */
   /*    *b;       pointer to array 'banal' */
@@ -125,7 +125,7 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
 
     /* work space pointers */
     void        *buf;
-    MYFLT       *at, *ck, *bt, *sk;
+    cs_float       *at, *ck, *bt, *sk;
     int32_t         *np;
 
     /* reduce the pointers to input arrays - by doing this, FFT uses FORTRAN
@@ -184,12 +184,12 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
       maxf = nfac[kt];
 
     /* allocate workspace - assume no errors! */
-    buf = csound->Calloc(csound, sizeof(MYFLT) * 4 * maxf + sizeof(int32_t) * maxp);
-    at = (MYFLT*) buf;
-    ck = (MYFLT*) at + (int32_t) maxf;
-    bt = (MYFLT*) ck + (int32_t) maxf;
-    sk = (MYFLT*) bt + (int32_t) maxf;
-    np = (int32_t*) ((void*) ((MYFLT*) sk + (int32_t) maxf));
+    buf = csound->Calloc(csound, sizeof(cs_float) * 4 * maxf + sizeof(int32_t) * maxp);
+    at = (cs_float*) buf;
+    ck = (cs_float*) at + (int32_t) maxf;
+    bt = (cs_float*) ck + (int32_t) maxf;
+    sk = (cs_float*) bt + (int32_t) maxf;
+    np = (int32_t*) ((void*) ((cs_float*) sk + (int32_t) maxf));
 
     /* decrement pointers to allow FORTRAN type usage in fftmx */
     at--; bt--; ck--; sk--; np--;
@@ -208,9 +208,9 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
  *-----------------------------------------------------------------------
  */
 
-static void fftmx(MYFLT *a, MYFLT *b,
+static void fftmx(cs_float *a, cs_float *b,
                   int32_t ntot, int32_t n, int32_t nspan, int32_t isn, int32_t m,
-                  int32_t *kt, MYFLT *at, MYFLT *ck, MYFLT *bt, MYFLT *sk,
+                  int32_t *kt, cs_float *at, cs_float *ck, cs_float *bt, cs_float *sk,
                   int32_t *np, int32_t nfac[])
 {
     int32_t i,inc,
@@ -220,14 +220,14 @@ static void fftmx(MYFLT *a, MYFLT *b,
         lim,
         maxf,mm,
         nn,nt;
-    double  aa, aj, ajm, ajp, ak, akm, akp,
+    cs_double  aa, aj, ajm, ajp, ak, akm, akp,
       bb, bj, bjm, bjp, bk, bkm, bkp,
       c1, c2=0, c3=0, c72, cd,
       dr,
       rad,
       sd, s1, s2=0, s3=0, s72, s120;
 
-    double      xx;     /****** ADDED APRIL 1991 *********/
+    cs_double      xx;     /****** ADDED APRIL 1991 *********/
     inc=abs(isn);
     nt = inc*ntot;
     ks = inc*nspan;
@@ -254,10 +254,10 @@ static void fftmx(MYFLT *a, MYFLT *b,
       s120 = -s120;
       rad = -rad;}
     else {
-      ak = 1.0/(double)n;
+      ak = 1.0/(cs_double)n;
       for (j=1; j<=nt;j += inc) {
-        a[j] *= (MYFLT)ak;
-        b[j] *= (MYFLT)ak;
+        a[j] *= (cs_float)ak;
+        b[j] *= (cs_float)ak;
       }
     }
     kspan = ks;
@@ -280,7 +280,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
  */
 
  lbl40:
-    dr = (8.0 * (double)jc)/((double)kspan);
+    dr = (8.0 * (cs_double)jc)/((cs_double)kspan);
 /*************************** APRIL 1991 POW & POW2 not WORKING.. REPLACE *******
                     cd = 2.0 * (pow2 ( sin(0.5 * dr * rad)) );
 *******************************************************************************/
@@ -299,10 +299,10 @@ static void fftmx(MYFLT *a, MYFLT *b,
         k2 = kk + kspan;
         ak = a[k2];
         bk = b[k2];
-        a[k2] = (a[kk]) - (MYFLT)ak;
-        b[k2] = (b[kk]) - (MYFLT)bk;
-        a[kk] = (a[kk]) + (MYFLT)ak;
-        b[kk] = (b[kk]) + (MYFLT)bk;
+        a[k2] = (a[kk]) - (cs_float)ak;
+        b[k2] = (b[kk]) - (cs_float)bk;
+        a[kk] = (a[kk]) + (cs_float)ak;
+        b[kk] = (b[kk]) + (cs_float)bk;
         kk = k2 + kspan;
       } while (kk <= nn);
       kk -= nn;
@@ -325,8 +325,8 @@ static void fftmx(MYFLT *a, MYFLT *b,
         bk = b[kk] - b[k2];
         a[kk] = a[kk] + a[k2];
         b[kk] = b[kk] + b[k2];
-        a[k2] = (MYFLT)((c1 * ak) - (s1 * bk));
-        b[k2] = (MYFLT)((s1 * ak) + (c1 * bk));
+        a[k2] = (cs_float)((c1 * ak) - (s1 * bk));
+        b[k2] = (cs_float)((s1 * ak) + (c1 * bk));
         kk = k2 + kspan;
       } while (kk < nt);
       k2 = kk - nt;
@@ -341,7 +341,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
     if (kk <= (jc+jc)) goto lbl60;
     goto lbl40;
  lbl90:
-    s1 = ((double)((kk-1)/jc)) * dr * rad;
+    s1 = ((cs_double)((kk-1)/jc)) * dr * rad;
     c1 = cos(s1);
     s1 = sin(s1);
     mm = (k1/2 < mm+klim ? k1/2 : mm+klim);
@@ -357,16 +357,16 @@ static void fftmx(MYFLT *a, MYFLT *b,
     bk = b[kk];
     aj = a[k1] + a[k2];
     bj = b[k1] + b[k2];
-    a[kk] = (MYFLT)(ak + aj);
-    b[kk] = (MYFLT)(bk + bj);
+    a[kk] = (cs_float)(ak + aj);
+    b[kk] = (cs_float)(bk + bj);
     ak += (-0.5 * aj);
     bk += (-0.5 * bj);
     aj = (a[k1] - a[k2]) * s120;
     bj = (b[k1] - b[k2]) * s120;
-    a[k1] = (MYFLT)(ak - bj);
-    b[k1] = (MYFLT)(bk + aj);
-    a[k2] = (MYFLT)(ak + bj);
-    b[k2] = (MYFLT)(bk - aj);
+    a[k1] = (cs_float)(ak - bj);
+    b[k1] = (cs_float)(bk + aj);
+    a[k2] = (cs_float)(ak + bj);
+    b[k2] = (cs_float)(bk - aj);
     kk = k2 + kspan;
     if (kk < nn)     goto lbl100;
     kk -= nn;
@@ -412,13 +412,13 @@ static void fftmx(MYFLT *a, MYFLT *b,
     akm = a[kk] - a[k2];
     ajp = a[k1] + a[k3];
     ajm = a[k1] - a[k3];
-    a[kk] = (MYFLT)(akp + ajp);
+    a[kk] = (cs_float)(akp + ajp);
     ajp = akp - ajp;
     bkp = b[kk] + b[k2];
     bkm = b[kk] - b[k2];
     bjp = b[k1] + b[k3];
     bjm = b[k1] - b[k3];
-    b[kk] = (MYFLT)(bkp + bjp);
+    b[kk] = (cs_float)(bkp + bjp);
     bjp = bkp - bjp;
     if (isn < 0) goto lbl180;
     akp = akm - bjm;
@@ -427,12 +427,12 @@ static void fftmx(MYFLT *a, MYFLT *b,
     bkm = bkm - ajm;
     if (s1 == 0.0) goto lbl190;
  lbl160:
-    a[k1] = (MYFLT)((akp*c1) - (bkp*s1));
-    b[k1] = (MYFLT)((akp*s1) + (bkp*c1));
-    a[k2] = (MYFLT)((ajp*c2) - (bjp*s2));
-    b[k2] = (MYFLT)((ajp*s2) + (bjp*c2));
-    a[k3] = (MYFLT)((akm*c3) - (bkm*s3));
-    b[k3] = (MYFLT)((akm*s3) + (bkm*c3));
+    a[k1] = (cs_float)((akp*c1) - (bkp*s1));
+    b[k1] = (cs_float)((akp*s1) + (bkp*c1));
+    a[k2] = (cs_float)((ajp*c2) - (bjp*s2));
+    b[k2] = (cs_float)((ajp*s2) + (bjp*c2));
+    a[k3] = (cs_float)((akm*c3) - (bkm*s3));
+    b[k3] = (cs_float)((akm*s3) + (bkm*c3));
     kk = k3 + kspan;
     if (kk <= nt)   goto lbl150;
  lbl170:
@@ -450,17 +450,17 @@ static void fftmx(MYFLT *a, MYFLT *b,
     bkm = bkm + ajm;
     if (s1 != 0.0)  goto lbl160;
  lbl190:
-    a[k1] = (MYFLT)akp;
-    b[k1] = (MYFLT)bkp;
-    a[k2] = (MYFLT)ajp;
-    b[k2] = (MYFLT)bjp;
-    a[k3] = (MYFLT)akm;
-    b[k3] = (MYFLT)bkm;
+    a[k1] = (cs_float)akp;
+    b[k1] = (cs_float)bkp;
+    a[k2] = (cs_float)ajp;
+    b[k2] = (cs_float)bjp;
+    a[k3] = (cs_float)akm;
+    b[k3] = (cs_float)bkm;
     kk = k3 + kspan;
     if (kk <= nt) goto lbl150;
     goto lbl170;
  lbl200:
-    s1 = ((double)((kk-1)/jc)) * dr * rad;
+    s1 = ((cs_double)((kk-1)/jc)) * dr * rad;
     c1 = cos(s1);
     s1 = sin(s1);
     mm = (kspan < mm+klim ? kspan : mm+klim);
@@ -488,24 +488,24 @@ static void fftmx(MYFLT *a, MYFLT *b,
     bjm = b[k2] - b[k3];
     aa = a[kk];
     bb = b[kk];
-    a[kk] = (MYFLT)(aa + akp + ajp);
-    b[kk] = (MYFLT)(bb + bkp + bjp);
+    a[kk] = (cs_float)(aa + akp + ajp);
+    b[kk] = (cs_float)(bb + bkp + bjp);
     ak = (akp*c72) + (ajp*c2) + aa;
     bk = (bkp*c72) + (bjp*c2) + bb;
     aj = (akm*s72) + (ajm*s2);
     bj = (bkm*s72) + (bjm*s2);
-    a[k1] = (MYFLT)(ak - bj);
-    a[k4] = (MYFLT)(ak + bj);
-    b[k1] = (MYFLT)(bk + aj);
-    b[k4] = (MYFLT)(bk - aj);
+    a[k1] = (cs_float)(ak - bj);
+    a[k4] = (cs_float)(ak + bj);
+    b[k1] = (cs_float)(bk + aj);
+    b[k4] = (cs_float)(bk - aj);
     ak = (akp*c2) + (ajp*c72) + aa;
     bk = (bkp*c2) + (bjp*c72) + bb;
     aj = (akm*s2) - (ajm*s72);
     bj = (bkm*s2) - (bjm*s72);
-    a[k2] = (MYFLT)(ak - bj);
-    a[k3] = (MYFLT)(ak + bj);
-    b[k2] = (MYFLT)(bk + aj);
-    b[k3] = (MYFLT)(bk - aj);
+    a[k2] = (cs_float)(ak - bj);
+    a[k3] = (cs_float)(ak + bj);
+    b[k2] = (cs_float)(bk + aj);
+    b[k3] = (cs_float)(bk - aj);
     kk = k4 + kspan;
     if (kk < nn)     goto lbl220;
     kk -= nn;
@@ -524,14 +524,14 @@ static void fftmx(MYFLT *a, MYFLT *b,
     if (k==5)   goto lbl210;
     if (k==jf)  goto lbl250;
     jf = k;
-    s1 = rad/(((double)(k))/8.0);
+    s1 = rad/(((cs_double)(k))/8.0);
     c1 = cos(s1);
     s1 = sin(s1);
     ck[jf] = FL(1.0);
     sk[jf] = FL(0.0);
     for (j=1; j<k ; j++) {
-      ck[j] = (MYFLT)((ck[k])*c1 + (sk[k])*s1);
-      sk[j] = (MYFLT)((ck[k])*s1 - (sk[k])*c1);
+      ck[j] = (cs_float)((ck[k])*c1 + (sk[k])*s1);
+      sk[j] = (cs_float)((ck[k])*s1 - (sk[k])*c1);
       k--;
       ck[k] = ck[j];
       sk[k] = -(sk[j]);
@@ -557,8 +557,8 @@ static void fftmx(MYFLT *a, MYFLT *b,
       bt[j] = b[k1] - b[k2];
       k1 += kspan;
     } while (k1 < k2);
-    a[kk] = (MYFLT)ak;
-    b[kk] = (MYFLT)bk;
+    a[kk] = (cs_float)ak;
+    b[kk] = (cs_float)bk;
     k1 = kk;
     k2 = kk + kspnn;
     j = 1;
@@ -583,10 +583,10 @@ static void fftmx(MYFLT *a, MYFLT *b,
         jj -= jf;
     } while (k < jf);
     k = jf - j;
-    a[k1] = (MYFLT)(ak - bj);
-    b[k1] = (MYFLT)(bk + aj);
-    a[k2] = (MYFLT)(ak + bj);
-    b[k2] = (MYFLT)(bk - aj);
+    a[k1] = (cs_float)(ak - bj);
+    b[k1] = (cs_float)(bk + aj);
+    a[k2] = (cs_float)(ak + bj);
+    b[k2] = (cs_float)(bk - aj);
     j++;
     if (j < k)     goto lbl270;
     kk += kspnn;
@@ -615,8 +615,8 @@ static void fftmx(MYFLT *a, MYFLT *b,
     kk += kspan;
  lbl330:
     ak = a[kk];
-    a[kk] = (MYFLT)((c2*ak) - (s2 * b[kk]));
-    b[kk] = (MYFLT)((s2*ak) + (c2 * b[kk]));
+    a[kk] = (cs_float)((c2*ak) - (s2 * b[kk]));
+    b[kk] = (cs_float)((s2*ak) + (c2 * b[kk]));
     kk += kspnn;
     if (kk <= nt) goto lbl330;
     ak = s1*s2;
@@ -631,7 +631,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
     if (kk <= (jc+jc)) goto lbl300;
     goto lbl40;
  lbl340:
-    s1 = ((double)((kk-1)/jc)) * dr * rad;
+    s1 = ((cs_double)((kk-1)/jc)) * dr * rad;
     c2 = cos(s1);
     s1 = sin(s1);
     mm = (kspan < mm+klim ?  kspan :mm+klim);
@@ -666,10 +666,10 @@ static void fftmx(MYFLT *a, MYFLT *b,
     do {
       ak = a[kk];
       a[kk] = a[k2];
-      a[k2] = (MYFLT)ak;
+      a[k2] = (cs_float)ak;
       bk = b[kk];
       b[kk] = b[k2];
-      b[k2] = (MYFLT)bk;
+      b[k2] = (cs_float)bk;
       kk += inc;
       k2 += kspan;
     } while (k2 < ks);
@@ -699,10 +699,10 @@ lbl380:
         do {
           ak = a[kk];
           a[kk] = a[k2];
-          a[k2] = (MYFLT)ak;
+          a[k2] = (cs_float)ak;
           bk = b[kk];
           b[kk] = b[k2];
-          b[k2] = (MYFLT)bk;
+          b[k2] = (cs_float)bk;
           kk += inc;
           k2 += inc;
         } while (kk < k);
@@ -835,7 +835,7 @@ lbl570:
  *              reals_(csound,anal,banal,&N2,&mtwo);
  */
 
-static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int32_t n, int32_t isn)
+static void reals_(CSOUND *csound, cs_float *a, cs_float *b, int32_t n, int32_t isn)
 
   /*    *a,       a refers to an array of floats 'anal'   */
   /*    *b;       b refers to an array of floats 'banal'  */
@@ -850,14 +850,14 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int32_t n, int32_t isn)
       mm,ml,
       nf,nk,nh;
 
-    double      aa,ab,
+    cs_double      aa,ab,
       ba,bb,
       cd,cn,
       dr,
       em,
       rad,re,
       sd,sn;
-    double      xx;     /******* ADDED APRIL 1991 ******/
+    cs_double      xx;     /******* ADDED APRIL 1991 ******/
     /* adjust  input array pointers (called from C) */
     a--;        b--;
     inc = abs(isn);
@@ -868,11 +868,11 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int32_t n, int32_t isn)
         rad  = atan((double)1.0);
 ******************************/
     rad = 0.785398163397448278900;
-    dr = -4.0/(double)(nf);
+    dr = -4.0/(cs_double)(nf);
 /********************************** POW2 REMOVED APRIL 1991 *****************
                                 cd = 2.0 * (pow2(sin((double)0.5 * dr * rad)));
 *****************************************************************************/
-    xx = sin((double)0.5 * dr * rad);
+    xx = sin((cs_double)0.5 * dr * rad);
     cd = 2.0 * xx * xx;
     sd = sin(dr * rad);
 /*
@@ -898,10 +898,10 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int32_t n, int32_t isn)
       bb = b[j] - b[k];
       re = (cn*ba) + (sn*ab);
       em = (sn*ba) - (cn*ab);
-      b[k] = (MYFLT)((em-bb)*0.5);
-      b[j] = (MYFLT)((em+bb)*0.5);
-      a[k] = (MYFLT)((aa-re)*0.5);
-      a[j] = (MYFLT)((aa+re)*0.5);
+      b[k] = (cs_float)((em-bb)*0.5);
+      b[j] = (cs_float)((em+bb)*0.5);
+      a[k] = (cs_float)((aa-re)*0.5);
+      a[j] = (cs_float)((aa+re)*0.5);
       ml++;
       if (ml!=mm) {
         aa = cn - ((cd*cn)+(sd*sn));
@@ -909,7 +909,7 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int32_t n, int32_t isn)
         cn = aa;}
       else {
         mm +=lim;
-        sn = ((MYFLT)ml) * dr * rad;
+        sn = ((cs_float)ml) * dr * rad;
         cn = cos(sn);
         if (isn>0)
           cn = -cn;
@@ -919,17 +919,17 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int32_t n, int32_t isn)
     return;
 }
 
-void csoundRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+void csoundRealFFT(CSOUND *csound, cs_float *buf, int32_t FFTsize);
 /**
  * Compute in-place real FFT, allowing non power of two FFT sizes.
  *
- * buf:     array of FFTsize + 2 MYFLT values; output is in interleaved
+ * buf:     array of FFTsize + 2 cs_float values; output is in interleaved
  *          real/imaginary format (note: the real part of the Nyquist
  *          frequency is stored in buf[FFTsize], and not in buf[1]).
  * FFTsize: FFT length in samples; not required to be an integer power of two,
  *          but should be even and not have too many factors.
  */
-void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
+void csoundRealFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize)
 {
     if (!(FFTsize & (FFTsize - 1))) {
       /* if FFT size is power of two: */
@@ -953,13 +953,13 @@ void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
  * Compute in-place inverse real FFT, allowing non power of two FFT sizes.
  * The output does not need to be scaled.
  *
- * buf:     array of FFTsize + 2 MYFLT values, in interleaved real/imaginary
+ * buf:     array of FFTsize + 2 cs_float values, in interleaved real/imaginary
  *          format (note: the real part of the Nyquist frequency is stored
  *          in buf[FFTsize], and not in buf[1]).
  * FFTsize: FFT length in samples; not required to be an integer power of two,
  *          but should be even and not have too many factors.
  */
-void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
+void csoundInverseRealFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize)
 {
   if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))){
       csound->Warning(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));
@@ -971,7 +971,7 @@ void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
     buf[FFTsize] = buf[FFTsize + 1] = FL(0.0);
 }
 
-void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
+void csoundInverseComplexFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize)
 {
     if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))) {
       csound->Warning(csound,
@@ -982,7 +982,7 @@ void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
     fft_(csound, buf, &(buf[1]), 1, FFTsize, 1, 2);
 }
 
-void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
+void csoundComplexFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize)
 {
     if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))) {
       csound->Warning(csound,

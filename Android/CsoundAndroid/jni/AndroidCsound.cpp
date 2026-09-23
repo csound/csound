@@ -31,8 +31,8 @@ static JavaVM* g_vm;
 extern "C" {
 extern int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm);
 extern int androidrecopen_(CSOUND *csound, const csRtAudioParams *parm);
-extern void androidrtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes);
-extern int androidrtrecord_(CSOUND *csound, MYFLT *buffer, int nbytes);
+extern void androidrtplay_(CSOUND *csound, const cs_float *buffer, int nbytes);
+extern int androidrtrecord_(CSOUND *csound, cs_float *buffer, int nbytes);
 extern void androidrtclose_(CSOUND *csound);
 
 static void androidMessageCallback(CSOUND*, int attr, const char *format, va_list valist) {

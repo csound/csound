@@ -45,7 +45,7 @@ static int32_t lpc_import(CSOUND *csound, int32_t argc, char **argv)
     LPHEADER hdr;
     uint32_t i, j;
     char *str;
-    MYFLT *coef;
+    cs_float *coef;
 
     if (UNLIKELY(argc != 3)) {
       lpc_import_usage(csound);
@@ -92,9 +92,9 @@ static int32_t lpc_import(CSOUND *csound, int32_t argc, char **argv)
     for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);
     putc('\n', outf);
-    coef = (MYFLT *)csound->Malloc(csound, (hdr.npoles+hdr.nvals)*sizeof(MYFLT));
+    coef = (cs_float *)csound->Malloc(csound, (hdr.npoles+hdr.nvals)*sizeof(cs_float));
     for (i = 0; i<hdr.nvals; i++) {
-      if (UNLIKELY(fread(&coef[0], sizeof(MYFLT),
+      if (UNLIKELY(fread(&coef[0], sizeof(cs_float),
                          hdr.npoles, inf)!=(size_t)hdr.npoles))
         csound->Message(csound, "%s", Str("Read failure\n"));
       for (j=0; j<hdr.npoles; j++)

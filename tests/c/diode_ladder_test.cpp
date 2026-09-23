@@ -49,11 +49,11 @@ class DiodeLadderTests : public ::testing::Test {
 
 TEST_F(DiodeLadderTests, NormalizedSubnormalSaturationKeepsTheLinearLimit)
 {
-  if (sizeof(MYFLT) != sizeof(double))
-    GTEST_SKIP() << "These saturation values require double-precision MYFLT";
+  if (sizeof(cs_float) != 8)
+    GTEST_SKIP() << "These saturation values require double-precision cs_float";
 
-  volatile double tiny = 1e-310;
-  volatile double preserved = tiny * 2.0;
+  volatile cs_double tiny = 1e-310;
+  volatile cs_double preserved = tiny * 2.0;
   ASSERT_GT(preserved, 0.0) << "Subnormal inputs or results were flushed to zero";
   ASSERT_LT(preserved, 1e-308);
 
@@ -79,8 +79,8 @@ TEST_F(DiodeLadderTests, NormalizedSubnormalSaturationKeepsTheLinearLimit)
   csoundEventString(csound, "i1 0 1\n", 0);
   ASSERT_EQ(csoundStart(csound), 0);
 
-  double peak = 0.0;
-  for (double saturation : {0.0, 1e-310, -1e-310, 1e-308, -1e-308, 0.0}) {
+  cs_double peak = 0.0;
+  for (cs_double saturation : {0.0, 1e-310, -1e-310, 1e-308, -1e-308, 0.0}) {
     SCOPED_TRACE(saturation);
     csoundSetControlChannel(csound, "saturation", saturation);
     for (int block = 0; block < 3; ++block) {
@@ -88,7 +88,7 @@ TEST_F(DiodeLadderTests, NormalizedSubnormalSaturationKeepsTheLinearLimit)
 #ifdef DIODE_TEST_SSE
       ASSERT_EQ(_mm_getcsr() & 0x8040u, 0u);
 #endif
-      const MYFLT *out = csoundGetSpout(csound);
+      const cs_float *out = csoundGetSpout(csound);
       for (int n = 0; n < 16; ++n) {
         peak = std::fmax(peak, std::fabs(out[n * 6]));
         for (int ch = 1; ch < 6; ++ch) {

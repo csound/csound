@@ -101,9 +101,9 @@ static char set_output_format(OPARMS *p, char c, char outformch)
 }
 
 typedef struct scalepoint {
-  double y0;
-  double y1;
-  double yr;
+  cs_double y0;
+  cs_double y1;
+  cs_double yr;
   int32_t x0;
   int32_t x1;
   struct scalepoint *next;
@@ -112,7 +112,7 @@ typedef struct scalepoint {
 static const scalepoint stattab = { 0.0, 0.0, 0.0, 0, 0, NULL };
 
 typedef struct {
-  double     ff;
+  cs_double     ff;
   int32_t        table_used;
   scalepoint scale_table;
   scalepoint *end_table;
@@ -121,7 +121,7 @@ typedef struct {
 
 /* Static function prototypes */
 
-static void  InitScaleTable(CSOUND *,SCALE *, double, char *);
+static void  InitScaleTable(CSOUND *,SCALE *, cs_double, char *);
 static SNDFILE *SCsndgetset(CSOUND *, SCALE *, char *);
 static void  ScaleSound(CSOUND *, SCALE *, SNDFILE *, SNDFILE *, OPARMS *);
 static float FindAndReportMax(CSOUND *, SCALE *, SNDFILE *, OPARMS *);
@@ -129,8 +129,8 @@ static float FindAndReportMax(CSOUND *, SCALE *, SNDFILE *, OPARMS *);
 static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
 {
     char        *inputfile = NULL;
-    double      factor = 0.0;
-    double      maximum = 0.0;
+    cs_double      factor = 0.0;
+    cs_double      maximum = 0.0;
     char        *factorfile = NULL;
     SNDFILE     *infile = NULL, *outfile;
     void        *fd;
@@ -267,7 +267,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
         O->rewrt_hdr = 0;
       if (O->outfilename == NULL)
         O->outfilename = "test";
-      (csound->GetUtility(csound))->SetUtilSr(csound, (MYFLT)sc.p->sr);
+      (csound->GetUtility(csound))->SetUtilSr(csound, (cs_float)sc.p->sr);
       (csound->GetUtility(csound))->SetUtilNchnls(csound, sc.p->nchanls);
 
 
@@ -319,17 +319,17 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
 }
 
 static void InitScaleTable(CSOUND *csound, SCALE *thissc,
-                           double factor, char *factorfile)
+                           cs_double factor, char *factorfile)
 {
     if (factor != 0.0) thissc->ff = factor;
     else {
       FILE    *f;
-      double  samplepert = (double)thissc->p->sr;
-      double  x, y;
+      cs_double  samplepert = (cs_double)thissc->p->sr;
+      cs_double  x, y;
       if (UNLIKELY(csound->FileOpen(csound, &f, CSFILE_STD, factorfile, "r", NULL,
                                      CSFTYPE_FLOATS_TEXT, 0) == NULL))
         csound->Die(csound, Str("Failed to open %s"), factorfile);
-      while (fscanf(f, "%lf %lf\n", &x, &y) == 2) {
+      while (fscanf(f, "%" CS_DOUBLE_SCAN " %" CS_DOUBLE_SCAN "\n", &x, &y) == 2) {
         scalepoint *newpoint =
           (scalepoint*) csound->Malloc(csound, sizeof(scalepoint));
         thissc->end_table->next = newpoint;
@@ -340,7 +340,7 @@ static void InitScaleTable(CSOUND *csound, SCALE *thissc,
         newpoint->yr =
           (x == newpoint->x0 ?
            y - newpoint->y0 :
-           (y - newpoint->y0)/((double)(newpoint->x1 - newpoint->x0)));
+           (y - newpoint->y0)/((cs_double)(newpoint->x1 - newpoint->x0)));
         newpoint->next = NULL;
         thissc->end_table = newpoint;
       }
@@ -355,7 +355,7 @@ static void InitScaleTable(CSOUND *csound, SCALE *thissc,
         newpoint->next = NULL;
         newpoint->yr = (x == newpoint->x0 ?
                         -newpoint->y0 :
-                        -newpoint->y0/((double)(0x7fffffff-newpoint->x0)));
+                        -newpoint->y0/((cs_double)(0x7fffffff-newpoint->x0)));
       }
       thissc->end_table = &thissc->scale_table;
 /*      { */
@@ -372,7 +372,7 @@ static void InitScaleTable(CSOUND *csound, SCALE *thissc,
     }
 }
 
-static double gain(SCALE *thissc, int32_t i)
+static cs_double gain(SCALE *thissc, int32_t i)
 {
     if (!thissc->table_used) return thissc->ff;
     while (i<thissc->end_table->x0 ||
@@ -384,14 +384,14 @@ static double gain(SCALE *thissc, int32_t i)
         thissc->end_table = thissc->end_table->next;
     }
     return thissc->end_table->y0 +
-      thissc->end_table->yr * (double)(i - thissc->end_table->x0);
+      thissc->end_table->yr * (cs_double)(i - thissc->end_table->x0);
 }
 
 static SNDFILE *
 SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
 {
     SNDFILE *infile;
-    double  dur;
+    cs_double  dur;
     SOUNDIN *p;
 
     (csound->GetUtility(csound))->SetUtilSr(csound, FL(0.0));         /* set esr 0. with no orchestra */
@@ -403,7 +403,7 @@ SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
     if ((infile = (csound->GetUtility(csound))->SndinGetSet(csound, p)) == 0) /*open sndfil, do skptim*/
       return(0);
     p->getframes = p->framesrem;
-    dur = (double) p->getframes / p->sr;
+    dur = (cs_double) p->getframes / p->sr;
     csound->Message(csound, "%s %" PRId64 " %s (%3.1f secs)\n",
                     Str("scaling"), p->getframes, Str("sample frame"), dur);
     return(infile);
@@ -415,10 +415,10 @@ static void
 ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
            SNDFILE *outfd, OPARMS *oparms)
 {
-    MYFLT buffer[BUFFER_LEN];
+    cs_float buffer[BUFFER_LEN];
     long  read_in;
-    double tpersample;
-    double max, min;
+    cs_double tpersample;
+    cs_double max, min;
     long  mxpos, minpos;
     int32_t   maxtimes, mintimes;
     int32_t   i, j, chans = thissc->p->nchanls;
@@ -426,7 +426,7 @@ ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
     int32_t   bufferLenFrames = (int32_t) BUFFER_LEN / chans;
     int32_t   bufferLenSamples = bufferLenFrames * chans;
 
-    tpersample = 1.0 / (double) thissc->p->sr;
+    tpersample = 1.0 / (cs_double) thissc->p->sr;
     max = 0.0;  mxpos = 0; maxtimes = 0;
     min = 0.0;  minpos = 0; mintimes = 0;
     while ((read_in = (csound->GetUtility(csound))->Sndin(csound, infile, buffer,
@@ -450,24 +450,24 @@ ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
     }
     csound->Message(csound, Str("Max val %.3f at index %ld (time %.4f, chan %d) "
                                 "%d times\n"), max, (long) mxpos / (long) chans,
-                            tpersample * (double) mxpos / (double) chans,
+                            tpersample * (cs_double) mxpos / (cs_double) chans,
                             ((int32_t) mxpos % chans) + 1, (int32_t) maxtimes);
     csound->Message(csound, Str("Min val %.3f at index %ld (time %.4f, chan %d) "
                                 "%d times\n"), min, (long) minpos / (long) chans,
-                            tpersample * (double) minpos / (double) chans,
+                            tpersample * (cs_double) minpos / (cs_double) chans,
                             ((int32_t) minpos % chans) + 1, (int32_t) mintimes);
     csound->Message(csound, Str("Max scale factor = %.3f\n"),
-                            (double) csound->Get0dBFS(csound) / (max > -min ?
+                            (cs_double) csound->Get0dBFS(csound) / (max > -min ?
                                                                  max:-min));
 }
 
 static float FindAndReportMax(CSOUND *csound, SCALE *thissc,
                               SNDFILE *infile, OPARMS *oparms)
 {
-    MYFLT   buffer[BUFFER_LEN];
+    cs_float   buffer[BUFFER_LEN];
     long    read_in;
-    double  tpersample;
-    double  max, min;
+    cs_double  tpersample;
+    cs_double  max, min;
     long    mxpos, minpos;
     int32_t     maxtimes, mintimes;
     int32_t     i, chans = thissc->p->nchanls;
@@ -475,7 +475,7 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc,
     int32_t     bufferLenFrames = (int32_t) BUFFER_LEN / chans;
     int32_t     bufferLenSamples = bufferLenFrames * chans;
 
-    tpersample = 1.0 / (double) thissc->p->sr;
+    tpersample = 1.0 / (cs_double) thissc->p->sr;
     max = 0.0;  mxpos = 0; maxtimes = 0;
     min = 0.0;  minpos = 0; mintimes = 0;
     while ((read_in = (csound->GetUtility(csound))->Sndin(csound, infile, buffer,
@@ -496,14 +496,14 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc,
     }
     csound->Message(csound, Str("Max val %.3f at index %ld (time %.4f, chan %d) "
                                 "%d times\n"), max, (long) mxpos / (long) chans,
-                            tpersample * (double) mxpos / (double) chans,
+                            tpersample * (cs_double) mxpos / (cs_double) chans,
                             ((int32_t) mxpos % chans) + 1, (int32_t) maxtimes);
     csound->Message(csound, Str("Min val %.3f at index %ld (time %.4f, chan %d) "
                                 "%d times\n"), min, (long) minpos / (long) chans,
-                            tpersample * (double) minpos / (double) chans,
+                            tpersample * (cs_double) minpos / (cs_double) chans,
                             ((int32_t) minpos % chans) + 1, (int32_t) mintimes);
     csound->Message(csound, Str("Max scale factor = %.3f\n"),
-                            (double) csound->Get0dBFS(csound)/ (max > -min ?
+                            (cs_double) csound->Get0dBFS(csound)/ (max > -min ?
                                                                 max:-min));
     return (float) (max > -min ? max : -min);
 }

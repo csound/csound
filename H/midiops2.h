@@ -28,12 +28,12 @@
 
 typedef struct MIDIPGM_OP_ {
     OPDS    h;
-    MYFLT   *ipgm, *ichn;
+    cs_float   *ipgm, *ichn;
 } MIDIPGM_OP;
 
 typedef struct {
     OPDS   h;
-    MYFLT  *r, *ictlno, *imin, *imax, *ifn;
+    cs_float  *r, *ictlno, *imin, *imax, *ifn;
     int16 flag;
     FUNC *ftp;
     int32   ctlno;
@@ -41,7 +41,7 @@ typedef struct {
 
 typedef struct {
     OPDS   h;
-    MYFLT  *r, *ictlno1, *ictlno2, *imin, *imax, *ifn;
+    cs_float  *r, *ictlno1, *ictlno2, *imin, *imax, *ifn;
     int16 flag;
     FUNC *ftp;
     int32   ctlno1, ctlno2;
@@ -49,7 +49,7 @@ typedef struct {
 
 typedef struct {
     OPDS   h;
-    MYFLT  *r, *ictlno1, *ictlno2, *ictlno3, *imin, *imax, *ifn;
+    cs_float  *r, *ictlno1, *ictlno2, *ictlno3, *imin, *imax, *ifn;
     int16 flag;
     FUNC *ftp;
     int32   ctlno1, ctlno2, ctlno3;
@@ -60,7 +60,7 @@ typedef struct {
 
 typedef struct {
     OPDS   h;
-    MYFLT  *r, *ichan, *ictlno, *imin, *imax, *ifn;
+    cs_float  *r, *ichan, *ictlno, *imin, *imax, *ifn;
     int16 flag;
     FUNC *ftp;
     int32   ctlno;
@@ -68,7 +68,7 @@ typedef struct {
 
 typedef struct {
     OPDS   h;
-    MYFLT  *r, *ichan, *ictlno1, *ictlno2, *imin, *imax, *ifn;
+    cs_float  *r, *ichan, *ictlno1, *ictlno2, *imin, *imax, *ifn;
     int16 flag;
     FUNC *ftp;
     int32   ctlno1, ctlno2;
@@ -76,7 +76,7 @@ typedef struct {
 
 typedef struct {
     OPDS   h;
-    MYFLT  *r, *ichan, *ictlno1, *ictlno2, *ictlno3, *imin, *imax, *ifn;
+    cs_float  *r, *ichan, *ictlno1, *ictlno2, *ictlno3, *imin, *imax, *ifn;
     int16 flag;
     FUNC *ftp;
     int32  ctlno1, ctlno2, ctlno3;
@@ -84,17 +84,17 @@ typedef struct {
 
 typedef struct {
     OPDS   h;
-    MYFLT  *ichan, *ictlno, *ivalue;
+    cs_float  *ichan, *ictlno, *ivalue;
 } INITC7;
 
 typedef struct {
     OPDS   h;
-    MYFLT  *ichan, *ictlno1, *ictlno2, *ivalue;
+    cs_float  *ichan, *ictlno1, *ictlno2, *ivalue;
 } INITC14;
 
 typedef struct {
     OPDS   h;
-    MYFLT  *ichan, *ictlno1, *ictlno2, *ictlno3, *ivalue;
+    cs_float  *ichan, *ictlno1, *ictlno2, *ictlno3, *ivalue;
 } INITC21;
 
 #endif

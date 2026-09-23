@@ -162,7 +162,7 @@ struct DigiIn : csnd::Plugin<1, 2>
       {
 	return NOTOK;
       }
-    outargs[0] = (MYFLT)handler->digiVals[pinNumber];
+    outargs[0] = (cs_float)handler->digiVals[pinNumber];
     return OK;
   }
 };
@@ -171,7 +171,7 @@ void AudioCallback(AudioHandle::InputBuffer  in,
                    AudioHandle::OutputBuffer out,
                    size_t                    size)
 {
-  const MYFLT *spout = csoundGetSpout(csound);
+  const cs_float *spout = csoundGetSpout(csound);
   int          end   = csoundGetKsmps(csound);
   for(size_t i = 0; i < size; i++)
     {

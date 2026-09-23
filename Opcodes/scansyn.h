@@ -35,13 +35,13 @@ typedef struct SCANSYN_GLOBALS_ SCANSYN_GLOBALS;
 
 typedef struct {
     OPDS        h;
-    MYFLT       *i_init, *i_rate, *i_v, *i_m, *i_f, *i_c, *i_d;
-    MYFLT       *k_m, *k_f, *k_c, *k_d, *i_l, *i_r, *k_x, *k_y;
-    MYFLT       *a_ext, *i_disp, *i_id;
+    cs_float       *i_init, *i_rate, *i_v, *i_m, *i_f, *i_c, *i_d;
+    cs_float       *k_m, *k_f, *k_c, *k_d, *i_l, *i_r, *k_x, *k_y;
+    cs_float       *a_ext, *i_disp, *i_id;
     AUXCH       aux_f;
     AUXCH       aux_x;
-    MYFLT       *x0, *x1, *x2, *x3, *ext, *v, *ewin;
-    MYFLT       *m, *f, *c, *d, *out;
+    cs_float       *x0, *x1, *x2, *x3, *ext, *v, *ewin;
+    cs_float       *m, *f, *c, *d, *out;
     int32       idx, len, exti, rate;
     int32_t     id;
     void        *win;
@@ -54,10 +54,10 @@ typedef struct {
 
 typedef struct {
     OPDS        h;
-    MYFLT       *a_out, *k_amp, *k_freq, *i_trj, *i_id;
-    MYFLT       *interp;
+    cs_float       *a_out, *k_amp, *k_freq, *i_trj, *i_id;
+    cs_float       *interp;
     AUXCH       aux_t;
-    MYFLT       fix, phs;
+    cs_float       fix, phs;
     int32       tlen, *t;
     int32_t     oscil_interp;
     PSCSNU      *p;
@@ -65,15 +65,15 @@ typedef struct {
 
 typedef struct {
     OPDS        h;
-    MYFLT       *k_pos, *k_vel;
-    MYFLT       *i_id, *k_pamp, *k_vamp, *k_which;
+    cs_float       *k_pos, *k_vel;
+    cs_float       *i_id, *k_pamp, *k_vamp, *k_which;
     PSCSNU      *p;
 } PSCSNMAP;
 
 typedef struct {
     OPDS        h;
     ARRAYDAT    *k_pos, *k_vel;
-    MYFLT       *i_id, *k_pamp, *k_vamp;
+    cs_float       *i_id, *k_pamp, *k_vamp;
     PSCSNU      *p;
 } PSCSNMAPV;
 
@@ -87,13 +87,13 @@ typedef struct {
 
 typedef struct {
     OPDS        h;
-    MYFLT       *i_init, *i_rate, *i_v, *i_m, *i_f, *i_c, *i_d;
-    MYFLT       *k_m, *k_f, *k_c, *k_d, *i_l, *i_r, *k_x, *k_y;
-    MYFLT       *a_ext, *i_disp, *i_id;
+    cs_float       *i_init, *i_rate, *i_v, *i_m, *i_f, *i_c, *i_d;
+    cs_float       *k_m, *k_f, *k_c, *k_d, *i_l, *i_r, *k_x, *k_y;
+    cs_float       *a_ext, *i_disp, *i_id;
     AUXCH       aux_f;
     AUXCH       aux_x;
-    MYFLT       *x0, *x1, *x2, *x3, *ext, *v, rate;
-    MYFLT       *m, *c, *d, *out;
+    cs_float       *x0, *x1, *x2, *x3, *ext, *v, rate;
+    cs_float       *m, *c, *d, *out;
 #ifdef USING_CHAR
     char        *f;
 #else
@@ -111,11 +111,11 @@ typedef struct {
 
 typedef struct {
     OPDS        h;
-    MYFLT       *a_out;
-    MYFLT       *k_amp, *k_freq, *i_trj, *i_id;
-    MYFLT       *interp;
+    cs_float       *a_out;
+    cs_float       *k_amp, *k_freq, *i_trj, *i_id;
+    cs_float       *interp;
     AUXCH       aux_t;
-    MYFLT       fix, phs;
+    cs_float       fix, phs;
     int32       tlen, *t;
     int32_t     oscil_interp;
     PSCSNUX     *p;
@@ -123,8 +123,8 @@ typedef struct {
 
 typedef struct {
     OPDS        h;
-    MYFLT       *k_pos, *k_vel;
-    MYFLT       *i_id, *k_pamp, *k_vamp, *k_which;
+    cs_float       *k_pos, *k_vel;
+    cs_float       *i_id, *k_pamp, *k_vamp, *k_which;
     PSCSNUX     *p;
 } PSCSNMAPX;
 
@@ -133,7 +133,7 @@ struct SCANSYN_GLOBALS_ {
     /* scansyn.c */
     void        *scsn_list;
     /* scansynx.c */
-    MYFLT       *ewinx;
+    cs_float       *ewinx;
     void        *scsnx_list;
 };
 

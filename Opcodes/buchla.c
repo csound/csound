@@ -39,16 +39,16 @@
 typedef struct {
       OPDS        h;
   // results
-      MYFLT       *out1;
-      //MYFLT     *out2, *out3;
+      cs_float       *out1;
+      //cs_float     *out2, *out3;
   // inputs
-      MYFLT       *ain1, *aenv, *knt, *kin3, *ain4, *ksw5, *ksw6;
+      cs_float       *ain1, *aenv, *knt, *kin3, *ain4, *ksw5, *ksw6;
   // Internal
-      MYFLT       so, sx, sd, xo;
-      double      f;
+      cs_float       so, sx, sd, xo;
+      cs_double      f;
 } BUCHLA;
 
-static double kontrolconvert(CSOUND *csound, double in1, double in2);
+static cs_double kontrolconvert(CSOUND *csound, cs_double in1, cs_double in2);
 
 static int32_t warn = 0;
 int32_t poly_LPG_init(CSOUND* csound, BUCHLA *p)
@@ -64,14 +64,14 @@ int32_t poly_LPG_init(CSOUND* csound, BUCHLA *p)
 
 int32_t poly_LPG_perf(CSOUND* csound, BUCHLA *p)
 {
-    double c3, r3, rf, max_res, a, f=p->f, a1, a2, b1, b2, b3, b4;
-    double Dmas, yx, yo, yd, tanh_xo, Dx, Do;
-    MYFLT *x, *out1;
-    //MYFLT *out2, *out3;
+    cs_double c3, r3, rf, max_res, a, f=p->f, a1, a2, b1, b2, b3, b4;
+    cs_double Dmas, yx, yo, yd, tanh_xo, Dx, Do;
+    cs_float *x, *out1;
+    //cs_float *out2, *out3;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT e0dbfs = csound->Get0dBFS(csound);
+    cs_float e0dbfs = csound->Get0dBFS(csound);
 
     if (*p->ksw5 != FL(0.0))
       c3 = 4.7e-09;
@@ -95,22 +95,22 @@ int32_t poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     tanh_xo= tanh(p->xo);
 
     if (UNLIKELY(offset)) {
-      memset(out1, '\0', offset*sizeof(MYFLT));
-      /* memset(out2, '\0', offset*sizeof(MYFLT)); */
-      /* memset(out3, '\0', offset*sizeof(MYFLT)); */
+      memset(out1, '\0', offset*sizeof(cs_float));
+      /* memset(out2, '\0', offset*sizeof(cs_float)); */
+      /* memset(out3, '\0', offset*sizeof(cs_float)); */
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-      /* memset(&out2[nsmps], '\0', early*sizeof(MYFLT)); */
-      /* memset(&out3[nsmps], '\0', early*sizeof(MYFLT)); */
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+      /* memset(&out2[nsmps], '\0', early*sizeof(cs_float)); */
+      /* memset(&out3[nsmps], '\0', early*sizeof(cs_float)); */
     }
 
     if (*p->ksw6 != FL(0.0)) {
-      double txo2 = tanh_xo*tanh_xo;
-      double knt = *p->knt;
+      cs_double txo2 = tanh_xo*tanh_xo;
+      cs_double knt = *p->knt;
       for (n=offset; n<nsmps; n++) {
-        rf = kontrolconvert(csound, (double)p->aenv[n], knt);
+        rf = kontrolconvert(csound, (cs_double)p->aenv[n], knt);
         max_res = 1.0*(2.0*C1*r3+(C2+c3)*(r3+rf))/(c3*r3);
         a = clip(p->ain4[n],0.0,max_res);
         a1 =  1.0/(C1*rf);
@@ -132,15 +132,15 @@ int32_t poly_LPG_perf(CSOUND* csound, BUCHLA *p)
         p->sd = -(p->sd+(2.0/f)*a*(tanh_xo - p->xo*(1.0-txo2))) -
                  (2.0/f)*(a*(1.0-txo2)*yo - yx);
         p->xo = yo;
-        out1[n] = (MYFLT)yo*e0dbfs*25.0; /* JPff scaling */
-        /* out2[n] = (MYFLT)yx; */
-        /* out3[n] = (MYFLT)yd; */
+        out1[n] = (cs_float)yo*e0dbfs*25.0; /* JPff scaling */
+        /* out2[n] = (cs_float)yx; */
+        /* out3[n] = (cs_float)yd; */
       }
     }
     else /* if (ksw6 < 0.5) */ {
-      double knt = *p->knt;
+      cs_double knt = *p->knt;
       for (n=offset; n<nsmps; n++) {
-        rf = kontrolconvert(csound, (double)p->aenv[n], knt);
+        rf = kontrolconvert(csound, (cs_double)p->aenv[n], knt);
         max_res = 1.0*(2.0*C1*r3+(C2+c3)*(r3+rf))/(c3*r3);
         a1 =  1.0/(C1*rf);
         a2 = -(1/rf+1/r3)/C1;
@@ -169,53 +169,53 @@ int32_t poly_LPG_perf(CSOUND* csound, BUCHLA *p)
 
 typedef struct {
       OPDS        h;
-      MYFLT       *out;
-      MYFLT       *inp;
-      MYFLT       *up;
-      MYFLT       *down;
-      double      s1;
-      double      a_base;
-      double      t_up;
-      double      t_down;
+      cs_float       *out;
+      cs_float       *inp;
+      cs_float       *up;
+      cs_float       *down;
+      cs_double      s1;
+      cs_double      a_base;
+      cs_double      t_up;
+      cs_double      t_down;
 } VACTROL;
 
 int32_t vactrol_init(CSOUND *csound, VACTROL* p)
 {
     p->s1 = 0;
     p->a_base = 1000.0*PI/(CS_ESR);
-    p->t_down = *p->down<FL(0.0) ? 3.0e3 : (double)*p->down;
-    p->t_up   = *p->up<FL(0.0) ? 20.0 : (double)*p->up;
+    p->t_down = *p->down<FL(0.0) ? 3.0e3 : (cs_double)*p->down;
+    p->t_up   = *p->up<FL(0.0) ? 20.0 : (cs_double)*p->up;
     return OK;
 }
 
 int32_t vactrol_perf(CSOUND *csound, VACTROL* p)
 {
-    double s1 = p->s1;
-    double a_base = p->a_base;
-    double T_DOWN = p->t_down; // Fall time
-    double T_UP   = p->t_up; // Rise time
+    cs_double s1 = p->s1;
+    cs_double a_base = p->a_base;
+    cs_double T_DOWN = p->t_down; // Fall time
+    cs_double T_UP   = p->t_up; // Rise time
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT *in = p->inp;
-    MYFLT *out = p->out;
-    double e0db = csound->Get0dBFS(csound);
+    cs_float *in = p->inp;
+    cs_float *out = p->out;
+    cs_double e0db = csound->Get0dBFS(csound);
 
     if (UNLIKELY(offset)) {
-      memset(out, '\0', offset*sizeof(MYFLT));
+      memset(out, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
 
     for (n=offset; n<nsmps; n++) {
-      double t_down = 10.0 + T_DOWN*(1-0.9*s1);
-      double a_down = a_base /t_down;
-      double dsl = (double)in[n]/e0db - s1;
-      double x,y;
-      double t_up = 1.0 + T_UP*(1.0-0.999*s1);
-      double a_up = a_base /t_up;
+      cs_double t_down = 10.0 + T_DOWN*(1-0.9*s1);
+      cs_double a_down = a_base /t_down;
+      cs_double dsl = (cs_double)in[n]/e0db - s1;
+      cs_double x,y;
+      cs_double t_up = 1.0 + T_UP*(1.0-0.999*s1);
+      cs_double a_up = a_base /t_up;
 
       if (dsl >= 0.0)
         x = dsl*a_up/(1.0+a_up);
@@ -223,7 +223,7 @@ int32_t vactrol_perf(CSOUND *csound, VACTROL* p)
         x = dsl*a_down/(1.0+a_down);
       y = x + s1;
       s1 =  y + x;
-      out[n] = (MYFLT)y*e0db; /* JPff extra scale */
+      out[n] = (cs_float)y*e0db; /* JPff extra scale */
     }
     p->s1 = s1;
 
@@ -234,14 +234,14 @@ int32_t vactrol_perf(CSOUND *csound, VACTROL* p)
 
 //Nonlinear control circuit maps V_b to R_f (Vactrol Resistance)
 
-static double kontrolconvert(CSOUND *csound, double in1, double in2)
+static cs_double kontrolconvert(CSOUND *csound, cs_double in1, cs_double in2)
 {
-    double R1, R2;
-    double offset = 0.9999*in2 + 0.0001;
-    double zerodb = csound->Get0dBFS(csound);
-    double V3, Ia, If, Ifbound1, Ifbound2, Ifbound3;
-    double Vb = in1/zerodb;
-    double ans;
+    cs_double R1, R2;
+    cs_double offset = 0.9999*in2 + 0.0001;
+    cs_double zerodb = csound->Get0dBFS(csound);
+    cs_double V3, Ia, If, Ifbound1, Ifbound2, Ifbound3;
+    cs_double Vb = in1/zerodb;
+    cs_double ans;
 
 #define scale (0.48) // This value is tuned for appropriate input range.
     // Constants
@@ -288,7 +288,7 @@ static double kontrolconvert(CSOUND *csound, double in1, double in2)
       V3 = -Ia/(alpha*beta);
     }
     else if ( Ia < bound1) {
-      double x, w;
+      cs_double x, w;
       x = G*Ia*(R6+R7-1/(alpha*beta))/(alpha*n*VT);
       w = k0 + k1*x + k2*x*x+ k3*x*x*x;
       V3 = -(alpha/G)*n*VT*w - Ia/(alpha*beta);

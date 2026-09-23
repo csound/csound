@@ -49,42 +49,42 @@
 /*******************************************/
 
 typedef struct TwoZero {
-    MYFLT gain;
-    MYFLT lastOutput;
-    MYFLT inputs[2];
-    MYFLT zeroCoeffs[2];
+    cs_float gain;
+    cs_float lastOutput;
+    cs_float inputs[2];
+    cs_float zeroCoeffs[2];
 } TwoZero;
 
 /* ********************************************************************** */
 
 typedef struct FM4OP {
     OPDS        h;
-    MYFLT       *ar;                  /* Output */
-    MYFLT       *amp, *frequency;
-    MYFLT       *control1, *control2, *modDepth; /* Control1 doubles as vowel */
-    MYFLT       *vibFreq;
-    MYFLT       *ifn0, *ifn1, *ifn2, *ifn3, *vifn;
-    MYFLT       *opt;
+    cs_float       *ar;                  /* Output */
+    cs_float       *amp, *frequency;
+    cs_float       *control1, *control2, *modDepth; /* Control1 doubles as vowel */
+    cs_float       *vibFreq;
+    cs_float       *ifn0, *ifn1, *ifn2, *ifn3, *vifn;
+    cs_float       *opt;
     ADSR        adsr[4];
     FUNC        *waves[4];
-    MYFLT       w_rate[4];         /* Parameters for vibrato */
-    MYFLT       w_time[4];
-    MYFLT       w_phase[4];
+    cs_float       w_rate[4];         /* Parameters for vibrato */
+    cs_float       w_time[4];
+    cs_float       w_phase[4];
     FUNC        *vibWave;
-    MYFLT       v_rate;         /* Parameters for vibrato */
-    MYFLT       v_time;
-/*     MYFLT    v_phaseOffset; */
+    cs_float       v_rate;         /* Parameters for vibrato */
+    cs_float       v_time;
+/*     cs_float    v_phaseOffset; */
     TwoZero     twozero;
-    MYFLT       baseFreq;
-    MYFLT       ratios[4];
-    MYFLT       gains[4];
+    cs_float       baseFreq;
+    cs_float       ratios[4];
+    cs_float       gains[4];
 } FM4OP;
 
 typedef struct FM4OPV {
     FM4OP       fm;
-    MYFLT       tilt[3];
-    MYFLT       mods[3];
-    MYFLT       last_control;
+    cs_float       tilt[3];
+    cs_float       mods[3];
+    cs_float       last_control;
 } FM4OPV;
 
 #endif

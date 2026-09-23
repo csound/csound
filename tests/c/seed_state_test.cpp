@@ -75,7 +75,7 @@ protected:
 
 TEST_P(SeedStateTests, ClockSeedPreservesIntegerBoundaryState) {
     clockSeed = GetParam().first;
-    // The clock supplies uint32_t directly, without rounding through MYFLT.
+    // The clock supplies uint32_t directly, without rounding through cs_float.
     ASSERT_EQ(csoundCompileOrc(csound, "seed 0\n", 0), CSOUND_SUCCESS);
     ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
     EXPECT_EQ(csound->randSeed1, GetParam().second);

@@ -30,7 +30,7 @@ extern "C" {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *indx;
+    cs_float   *indx;
     STRINGDAT  *str;
 } STRSET_OP;
 
@@ -41,21 +41,21 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r;
+    cs_float   *r;
     STRINGDAT  *str;
     char *mem;
 } STRCHGD;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *indx;
-    MYFLT *str;
+    cs_float   *indx;
+    cs_float *str;
 } STRTOD_OP;
 
 typedef struct {
     OPDS    h;
     STRINGDAT   *r;
-    MYFLT   *indx;
+    cs_float   *indx;
 } STRGET_OP;
 
 typedef struct {
@@ -73,33 +73,33 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r;
+    cs_float   *r;
     STRINGDAT   *str1;
     STRINGDAT   *str2;
-    MYFLT res;
+    cs_float res;
 } STRCMP_OP;
 
 typedef struct {
     OPDS    h;
     STRINGDAT   *r;
     STRINGDAT   *sfmt;
-    MYFLT   *args[64];
+    cs_float   *args[64];
 } SPRINTF_OP;
 
 typedef struct {
     OPDS    h;
     STRINGDAT   *sfmt;
-    MYFLT   *ktrig;
-    MYFLT   *args[64];
-    MYFLT   prv_ktrig;
+    cs_float   *ktrig;
+    cs_float   *args[64];
+    cs_float   prv_ktrig;
 } PRINTF_OP;
 
 typedef struct {
     OPDS    h;
     STRINGDAT   *str;
-    MYFLT   *ktrig;
-    MYFLT   *no_newline;
-    MYFLT   prv_ktrig;
+    cs_float   *ktrig;
+    cs_float   *no_newline;
+    cs_float   prv_ktrig;
     int32_t     noNewLine;
 } PUTS_OP;
 
@@ -107,20 +107,20 @@ typedef struct {
     OPDS    h;
     STRINGDAT   *Sdst;
     STRINGDAT   *Ssrc;
-    MYFLT   *istart;
-    MYFLT   *iend;
+    cs_float   *istart;
+    cs_float   *iend;
 } STRSUB_OP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ichr;
+    cs_float   *ichr;
     STRINGDAT   *Ssrc;
-    MYFLT   *ipos;
+    cs_float   *ipos;
 } STRCHAR_OP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ilen;
+    cs_float   *ilen;
     STRINGDAT   *Ssrc;
 } STRLEN_OP;
 
@@ -133,19 +133,19 @@ typedef struct {
 typedef struct {
     OPDS    h;
     STRINGDAT   *Sdst;
-    MYFLT   *iopt;
+    cs_float   *iopt;
 } GETCFG_OP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ipos;
+    cs_float   *ipos;
     STRINGDAT   *Ssrc1;
     STRINGDAT   *Ssrc2;
 } STRINDEX_OP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *inVar;
+    cs_float   *inVar;
 } PRINT_TYPE_OP;
 
 typedef struct {

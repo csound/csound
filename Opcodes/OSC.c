@@ -52,27 +52,27 @@
 
 typedef struct {
     OPDS h;             /* default header */
-    MYFLT *kwhen;
+    cs_float *kwhen;
     STRINGDAT *host;
-    MYFLT *port;        /* UDP port */
+    cs_float *port;        /* UDP port */
     STRINGDAT *dest;
     STRINGDAT *type;
-    MYFLT *arg[ARG_CNT]; /* only 26 can be used, but add a few more for safety */
+    cs_float *arg[ARG_CNT]; /* only 26 can be used, but add a few more for safety */
     lo_address addr;
-    MYFLT last;
+    cs_float last;
     char  *lhost;
     int32_t   cnt;
     int32_t   multicast;
     CSOUND *csound;
     void *thread;
-    MYFLT lasta;
+    cs_float lasta;
 } OSCSEND;
 
 
 typedef struct osc_pat {
     struct osc_pat *next;
     union {
-      MYFLT number;
+      cs_float number;
       STRINGDAT string;
       void     *blob;
     } args[ARG_CNT-1];
@@ -99,15 +99,15 @@ typedef struct {
 /* opcode for starting the OSC listener (called once from orchestra header) */
 typedef struct {
     OPDS    h;                  /* default header */
-    MYFLT   *ihandle;
-    MYFLT   *port;              /* Port number on which to listen */
+    cs_float   *ihandle;
+    cs_float   *port;              /* Port number on which to listen */
 } OSCINIT;
 
 typedef struct {
     OPDS    h;                  /* default header */
-    MYFLT   *ihandle;
+    cs_float   *ihandle;
     STRINGDAT *group;
-    MYFLT   *port;              /* Port number on which to listen */
+    cs_float   *port;              /* Port number on which to listen */
 } OSCINITM;
 
 typedef struct osclcommon {
@@ -121,11 +121,11 @@ typedef struct osclcommon {
 
 typedef struct {
     OPDS        h;                  /* default header */
-    MYFLT       *kans;
-    MYFLT       *ihandle;
+    cs_float       *kans;
+    cs_float       *ihandle;
     STRINGDAT   *dest;
     STRINGDAT   *type;
-    MYFLT       *args[ARG_CNT];
+    cs_float       *args[ARG_CNT];
     OSC_PORT    *port;
     OSCLCOMMON  c;
     int32_t     malformedBlobWarning;
@@ -133,9 +133,9 @@ typedef struct {
 
 typedef struct {
     OPDS      h;                  /* default header */
-    MYFLT     *kans;
+    cs_float     *kans;
     ARRAYDAT  *args;
-    MYFLT     *ihandle;
+    cs_float     *ihandle;
     STRINGDAT *dest;
     STRINGDAT *type;
     OSC_PORT  *port;
@@ -172,7 +172,7 @@ static int32_t osc_send_set(CSOUND *csound, OSCSEND *p)
     if (*p->port<0)
       pp = NULL;
     else
-      snprintf(port, 8, "%d", (int32_t) MYFLT2LRND(*p->port));
+      snprintf(port, 8, "%d", (int32_t) CS_FLOAT2LRND(*p->port));
     hh = (char*) p->host->data;
     if (UNLIKELY(*hh=='\0')) {
       hh = NULL;
@@ -220,7 +220,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
     if (UNLIKELY(*p->port<0))
       pp = NULL;
     else
-      snprintf(port, 8, "%d", (int32_t) MYFLT2LRND(*p->port));
+      snprintf(port, 8, "%d", (int32_t) CS_FLOAT2LRND(*p->port));
     hh = (char*) p->host->data;
     if (UNLIKELY(*hh=='\0')) hh = NULL;
     /*
@@ -269,17 +269,17 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
       int32_t i=0;
       lo_message msg = lo_message_new();
       char *type = p->INOCOUNT > 4  ? (char*)p->type->data : "";
-      MYFLT **arg = p->arg;
+      cs_float **arg = p->arg;
       p->last = *p->kwhen;
       for (i=0; type[i]!='\0'; i++) {
         /* Need to add type checks */
         switch (type[i]) {
         case 'i':
-          lo_message_add_int32(msg, (int32_t) MYFLT2LRND(*arg[i]));
+          lo_message_add_int32(msg, (int32_t) CS_FLOAT2LRND(*arg[i]));
           break;
         case 'l':
         case 'h':
-          lo_message_add_int64(msg, (int64_t) MYFLT2LRND(*arg[i]));
+          lo_message_add_int64(msg, (int64_t) CS_FLOAT2LRND(*arg[i]));
           break;
         case 'c':
           lo_message_add_char(msg, (char) (*arg[i] + FL(0.5)));
@@ -298,7 +298,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
           lo_message_add_float(msg, (float)(*arg[i]));
           break;
         case 'd':
-          lo_message_add_double(msg, (double)(*arg[i]));
+          lo_message_add_double(msg, (cs_double)(*arg[i]));
           break;
         case 's':
           lo_message_add_string(msg, ((STRINGDAT *)arg[i])->data);
@@ -330,11 +330,11 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
             if (LIKELY((ftp=csound->FTFind(csound,arg[i]))!=NULL)) {
               len = ftp->flen;        /* and set it up */
               data = csound->Malloc(csound,
-                                    olen=/*sizeof(FUNC)-sizeof(MYFLT*)+*/
-                                         sizeof(MYFLT)*len);
-              // memcpy(data, ftp, sizeof(FUNC)-sizeof(MYFLT*));
-              memcpy(data/*+sizeof(FUNC)-sizeof(MYFLT*)*/,
-                     ftp->ftable, sizeof(MYFLT)*len);
+                                    olen=/*sizeof(FUNC)-sizeof(cs_float*)+*/
+                                         sizeof(cs_float)*len);
+              // memcpy(data, ftp, sizeof(FUNC)-sizeof(cs_float*));
+              memcpy(data/*+sizeof(FUNC)-sizeof(cs_float*)*/,
+                     ftp->ftable, sizeof(cs_float)*len);
             }
             else {
               return csound->PerfError(csound, &(p->h),
@@ -350,10 +350,10 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
         case 'a':               /* Audio as blob */
           {
             lo_blob myblob;
-            MYFLT *data = csound->Malloc(csound, sizeof(MYFLT)*(CS_KSMPS+1));
+            cs_float *data = csound->Malloc(csound, sizeof(cs_float)*(CS_KSMPS+1));
             data[0] = CS_KSMPS;
-            memcpy(&data[1], arg[i], sizeof(MYFLT)*CS_KSMPS);
-            myblob = lo_blob_new(sizeof(MYFLT)*(CS_KSMPS+1), data);
+            memcpy(&data[1], arg[i], sizeof(cs_float)*CS_KSMPS);
+            myblob = lo_blob_new(sizeof(cs_float)*(CS_KSMPS+1), data);
             lo_message_add_blob(msg, myblob);
             csound->Free(csound, data);
             lo_blob_free(myblob);
@@ -370,7 +370,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
               int32_t j, d;
               for (j=0,d=ss->dimensions; d>0; j++, d--)
                 len *= ss->sizes[j];
-              len *= sizeof(MYFLT);
+              len *= sizeof(cs_float);
             }
             else {
               return csound->PerfError(csound, &(p->h),
@@ -512,7 +512,7 @@ static inline OSC_PAT *get_pattern(CSOUND *csound,OSCLCOMMON *pp)
 
 typedef struct {
       OPDS h;             /* default header */
-      MYFLT *ans;
+      cs_float *ans;
 } OSCcount;
 
 static int32_t OSCcounter(CSOUND *csound, OSCcount *p)
@@ -520,7 +520,7 @@ static int32_t OSCcounter(CSOUND *csound, OSCcount *p)
     OSC_GLOBALS *g = alloc_globals(csound);
     if (UNLIKELY(g == NULL))
       return NOTOK;
-    *p->ans = (MYFLT)g->osccounter;
+    *p->ans = (cs_float)g->osccounter;
     return OK;
 }
 
@@ -568,19 +568,19 @@ static int32_t OSC_handler(const char *path, const char *types,
             default:              /* Should not happen */
             case 'i':
               memcpy(&value.i, (const void *) argv[i], sizeof(value.i));
-              m->args[i].number = (MYFLT) value.i; break;
+              m->args[i].number = (cs_float) value.i; break;
             case 'h':
               memcpy(&value.i64, (const void *) argv[i], sizeof(value.i64));
-              m->args[i].number = (MYFLT) value.i64; break;
+              m->args[i].number = (cs_float) value.i64; break;
             case 'c':
               memcpy(&value.c, (const void *) argv[i], sizeof(value.c));
-              m->args[i].number = (MYFLT) value.c; break;
+              m->args[i].number = (cs_float) value.c; break;
             case 'f':
               memcpy(&value.f, (const void *) argv[i], sizeof(value.f));
-              m->args[i].number = (MYFLT) value.f; break;
+              m->args[i].number = (cs_float) value.f; break;
             case 'd':
               memcpy(&value.d, (const void *) argv[i], sizeof(value.d));
-              m->args[i].number = (MYFLT) value.d; break;
+              m->args[i].number = (cs_float) value.d; break;
             case 's':
               { // ***NO CHECK THAT m->args[i] IS A STRING
                 char *src = (char *) argv[i], *dst = m->args[i].string.data;
@@ -605,7 +605,7 @@ static int32_t OSC_handler(const char *path, const char *types,
                 {
                   lo_blob *bb = (lo_blob*)m->args[i].blob;
                   int32_t size = lo_blob_datasize(bb);
-                  MYFLT *data = lo_blob_dataptr(bb);
+                  cs_float *data = lo_blob_dataptr(bb);
                   int32_t   *idata = (int32_t*)data;
                   printf("size=%d data=%.8x %.8x ...\n",size, idata[0], idata[1]);
                 }
@@ -647,7 +647,7 @@ static int32_t OSC_deinit(CSOUND *csound, OSCINIT *p)
 
 static int32_t OSC_start_port(CSOUND *csound, OSC_GLOBALS *globals,
                               lo_server_thread thread, const char *portName,
-                              MYFLT *handle)
+                              cs_float *handle)
 {
     int32_t n = globals->nPorts;
     OSC_PORT *port = (OSC_PORT*) csound->Calloc(csound, sizeof(OSC_PORT));
@@ -689,7 +689,7 @@ static int32_t OSC_start_port(CSOUND *csound, OSC_GLOBALS *globals,
     globals->ports = ports;
     globals->ports[n] = port;
     globals->nPorts = n + 1;
-    *handle = (MYFLT) n;
+    *handle = (cs_float) n;
     return n;
 }
 
@@ -879,8 +879,8 @@ static int32_t osc_malformed_blob(CSOUND *csound, OSCLISTEN *p, char type)
     return OSC_BLOB_DROPPED;
 }
 
-/* The array decoders copy raw MYFLTs, so the destination's element type
-   must be a scalar MYFLT. A fresh array has no arrayMemberSize yet; size a
+/* The array decoders copy raw cs_float values, so the destination's element type
+   must be a scalar cs_float. A fresh array has no arrayMemberSize yet; size a
    probe variable from its element type, exactly as
    csound_array_ensure_capacity() would when allocating. */
 static int32_t osc_array_element_is_myflt(CSOUND *csound,
@@ -890,13 +890,13 @@ static int32_t osc_array_element_is_myflt(CSOUND *csound,
     int32_t isMyflt;
 
     if (array->data != NULL)
-      return array->arrayMemberSize == (int32_t)sizeof(MYFLT);
+      return array->arrayMemberSize == (int32_t)sizeof(cs_float);
     if (array->arrayType == NULL)
       return 0;
     var = array_element_create_variable(csound, array->arrayType, ctx);
     if (var == NULL)
       return 0;
-    isMyflt = var->memBlockSize == (int32_t)sizeof(MYFLT);
+    isMyflt = var->memBlockSize == (int32_t)sizeof(cs_float);
     csound->Free(csound, var);
     return isMyflt;
 }
@@ -946,7 +946,7 @@ static int32_t osc_decode_direct_array(CSOUND *csound, OSCLISTEN *p,
                        Str("OSC: Failed to allocate memory for array\n"));
       return OK;
     }
-    memcpy(array->data, view.data, view.count * sizeof(MYFLT));
+    memcpy(array->data, view.data, view.count * sizeof(cs_float));
     if (resize) {
       array->sizes[array->dimensions - 1] = newLastSize;
     }
@@ -1001,7 +1001,7 @@ static int32_t osc_decode_array(CSOUND *csound, OSCLISTEN *p,
     csound->Free(csound, oldSizes);
     if (view.values.count != 0) {
       memcpy(array->data, view.values.data,
-             view.values.count * sizeof(MYFLT));
+             view.values.count * sizeof(cs_float));
     }
     return OK;
 }
@@ -1010,18 +1010,18 @@ static int32_t osc_decode_audio(CSOUND *csound, OSCLISTEN *p, int32_t index,
                                 const void *payload, size_t payloadBytes)
 {
     OSC_MYFLT_BLOB_VIEW view;
-    MYFLT *output = p->args[index];
+    cs_float *output = p->args[index];
 
     if (osc_blob_parse_audio(payload, payloadBytes, (size_t)CS_KSMPS,
                              &view) != OK) {
       return osc_malformed_blob(csound, p, 'a');
     }
     if (view.count != 0) {
-      memcpy(output, view.data, view.count * sizeof(MYFLT));
+      memcpy(output, view.data, view.count * sizeof(cs_float));
     }
     if (view.count < (size_t)CS_KSMPS) {
       memset(output + view.count, 0,
-             ((size_t)CS_KSMPS - view.count) * sizeof(MYFLT));
+             ((size_t)CS_KSMPS - view.count) * sizeof(cs_float));
     }
     return OK;
 }
@@ -1030,7 +1030,7 @@ static int32_t osc_decode_ftable(CSOUND *csound, OSCLISTEN *p, int32_t index,
                                  const void *payload, size_t payloadBytes)
 {
     OSC_MYFLT_BLOB_VIEW view;
-    int32_t fno = MYFLT2LRND(*p->args[index]);
+    int32_t fno = CS_FLOAT2LRND(*p->args[index]);
     FUNC *ftp;
 
     if (osc_blob_parse_myflts(payload, payloadBytes, &view) != OK ||
@@ -1060,7 +1060,7 @@ static int32_t osc_decode_ftable(CSOUND *csound, OSCLISTEN *p, int32_t index,
       }
     }
     if (view.count != 0) {
-      memcpy(ftp->ftable, view.data, view.count * sizeof(MYFLT));
+      memcpy(ftp->ftable, view.data, view.count * sizeof(cs_float));
       if (view.count == ftp->flen) {
         ftp->ftable[ftp->flen] = ftp->ftable[0];
       }
@@ -1220,19 +1220,19 @@ static int32_t OSC_ahandler(const char *path, const char *types,
             default:              /* Should not happen */
             case 'i':
               memcpy(&value.i, (const void *) argv[i], sizeof(value.i));
-              m->args[i].number = (MYFLT) value.i; break;
+              m->args[i].number = (cs_float) value.i; break;
             case 'h':
               memcpy(&value.i64, (const void *) argv[i], sizeof(value.i64));
-              m->args[i].number = (MYFLT) value.i64; break;
+              m->args[i].number = (cs_float) value.i64; break;
             case 'c':
               memcpy(&value.c, (const void *) argv[i], sizeof(value.c));
-              m->args[i].number = (MYFLT) value.c; break;
+              m->args[i].number = (cs_float) value.c; break;
             case 'f':
               memcpy(&value.f, (const void *) argv[i], sizeof(value.f));
-              m->args[i].number = (MYFLT) value.f; break;
+              m->args[i].number = (cs_float) value.f; break;
             case 'd':
               memcpy(&value.d, (const void *) argv[i], sizeof(value.d));
-              m->args[i].number = (MYFLT) value.d; break;
+              m->args[i].number = (cs_float) value.d; break;
             }
           }
           retval = 0;
@@ -1315,7 +1315,7 @@ static int32_t OSC_alist(CSOUND *csound, OSCLISTENA *p)
       //printf("copying args\n");
       for (i = 0; p->c.saved_types[i] != '\0'; i++) {
         //printf("%d: type %c\n", i, p->c.saved_types[i]);
-        ((MYFLT*)p->args->data)[i] = m->args[i].number;
+        ((cs_float*)p->args->data)[i] = m->args[i].number;
       }
       /* push to stack of free message structures */
       m->next = p->c.freePatterns;
@@ -1382,5 +1382,5 @@ static OENTRY localops[] = {
 
  int32_t csoundModuleInfo(void)
 {
-    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(cs_float));
 }

@@ -38,12 +38,12 @@ protected:
     ASSERT_EQ(0, csoundStart(csound)) << messages();
   }
 
-  std::vector<MYFLT> render(int block = 1)
+  std::vector<cs_float> render(int block = 1)
   {
-    std::vector<MYFLT> result;
+    std::vector<cs_float> result;
     for (int sample = 0; sample < 32; sample += block) {
       csoundPerformKsmps(csound);
-      const MYFLT *out = csoundGetSpout(csound);
+      const cs_float *out = csoundGetSpout(csound);
       result.insert(result.end(), out, out + block);
     }
     EXPECT_EQ(0, csound->inerrcnt) << messages();
@@ -54,7 +54,7 @@ protected:
   void impulse(const std::string &taps, int delay)
   {
     start("aIn mpulse 1, 0\naOut multitap aIn, " + taps + "\nout aOut");
-    std::vector<MYFLT> expected(32, 0);
+    std::vector<cs_float> expected(32, 0);
     expected[delay] = 1;
     EXPECT_EQ(expected, render());
   }
@@ -70,7 +70,7 @@ TEST_F(MultitapTests, ZeroTapWithLongerBuffer) { impulse("0, 1, 4/sr, 0", 0); }
 TEST_F(MultitapTests, TapsSumAcrossBufferWraps)
 {
   start("aIn mpulse 1, 8/sr\naOut multitap aIn, 0, 1, 3/sr, .5, 3/sr, -.25, 9/sr, 2\nout aOut", 8);
-  std::vector<MYFLT> expected(32, 0);
+  std::vector<cs_float> expected(32, 0);
   for (int source = 0; source < 32; source += 8) {
     expected[source] += 1;
     if (source + 3 < 32) expected[source + 3] += .25;
@@ -82,7 +82,7 @@ TEST_F(MultitapTests, TapsSumAcrossBufferWraps)
 TEST_F(MultitapTests, InputCanAliasOutput)
 {
   start("aIn mpulse 1, 0\naIn multitap aIn, 0, .5, 4/sr, 1\nout aIn", 8);
-  std::vector<MYFLT> expected(32, 0);
+  std::vector<cs_float> expected(32, 0);
   expected[0] = .5;
   expected[4] = 1;
   EXPECT_EQ(expected, render(8));
@@ -92,7 +92,7 @@ TEST_F(MultitapTests, PartialBlockStartsAndEnds)
 {
   start("aIn mpulse 1, 0\naOut multitap aIn, 0, 1, 4/sr, .5, 20/sr, 1\nout aOut",
         8, "i 1 .0029296875 .01953125\nf 0 .03125\n");
-  std::vector<MYFLT> expected(32, 0);
+  std::vector<cs_float> expected(32, 0);
   expected[3] = 1;
   expected[7] = .5;
   EXPECT_EQ(expected, render(8));
@@ -103,7 +103,7 @@ TEST_F(MultitapTests, ReusedNotesClearAndResizeTheBuffer)
   start("aIn mpulse 1, 0\naOut multitap aIn, p4/sr, 1\nout aOut", 1,
         "i 1 0 .0078125 2\ni 1 .0078125 .0078125 4\n"
         "i 1 .015625 .0078125 1\nf 0 .03125\n");
-  std::vector<MYFLT> expected(32, 0);
+  std::vector<cs_float> expected(32, 0);
   expected[2] = expected[12] = expected[17] = 1;
   EXPECT_EQ(expected, render());
 }
@@ -111,7 +111,7 @@ TEST_F(MultitapTests, ReusedNotesClearAndResizeTheBuffer)
 TEST_F(MultitapTests, NoTapsProduceSilence)
 {
   start("aIn mpulse 1, 0\naOut multitap aIn\nout aOut");
-  EXPECT_EQ(std::vector<MYFLT>(32, 0), render());
+  EXPECT_EQ(std::vector<cs_float>(32, 0), render());
 }
 
 TEST_F(MultitapTests, InvalidDelaysFailAtInitialization)

@@ -33,7 +33,7 @@ protected:
     std::string call(const char *out = "gkOut", const char *points = "0,0,1,1,2,0") {
         return std::string(out) + " " + GetParam() + " gkIn," + points + "\n";
     }
-    void expectArray(const char *name, std::initializer_list<double> expected) {
+    void expectArray(const char *name, std::initializer_list<cs_double> expected) {
         CS_VARIABLE *var = csoundFindVariableWithName(
             csound, csound->engineState.varPool, name);
         ASSERT_NE(var, nullptr);
@@ -41,12 +41,12 @@ protected:
         ASSERT_EQ(array->dimensions, 1);
         ASSERT_EQ(array->sizes[0], expected.size());
         int i = 0;
-        for (double value : expected) {
+        for (cs_double value : expected) {
             EXPECT_NEAR(array->data[i], value, 1e-6) << i;
             ++i;
         }
     }
-    double quarter() { return std::string(GetParam()) == "bpf" ? .25 : .1464466094067262; }
+    cs_double quarter() { return std::string(GetParam()) == "bpf" ? .25 : .1464466094067262; }
     const std::string input = "gkIn[] fillarray -0.5,0,0.25,0.5,1,1.5,2,3\n";
 };
 

@@ -45,25 +45,25 @@ typedef struct _ifd {
   /* outputs */
   PVSDAT *fout1, *fout2;
   /* inputs */
-  MYFLT  *in, *p2, *p3, *p4, *p5, *p6, *p7;
+  cs_float  *in, *p2, *p3, *p4, *p5, *p6, *p7;
   /* data */
   AUXCH   sigframe, diffsig, win, diffwin;
   AUXCH   counter;
   int32_t     fftsize, hopsize, wintype, frames;
   uint64_t cnt;
-  double  fund, factor;
-  MYFLT   norm, g;
+  cs_double  fund, factor;
+  cs_float   norm, g;
   void  *setup;
 } IFD;
 
 /* Both opcodes use the same windows, output layout, and FFT plan. */
-static int32_t ifd_setup(CSOUND *csound, IFD *p, double requested_fft,
-                        double requested_hop, MYFLT window, int32_t streaming)
+static int32_t ifd_setup(CSOUND *csound, IFD *p, cs_double requested_fft,
+                        cs_double requested_hop, cs_float window, int32_t streaming)
 {
   int32_t fftsize, hopsize, frames, i;
   size_t samples, bytes;
-  MYFLT *winf, *dwinf;
-  double alpha, fac;
+  cs_float *winf, *dwinf;
+  cs_double alpha, fac;
   PVSDAT *outputs[2] = {p->fout1, p->fout2};
 
   if (UNLIKELY(!(requested_fft >= 2 && requested_fft <= INT32_MAX-2 &&
@@ -84,7 +84,7 @@ static int32_t ifd_setup(CSOUND *csound, IFD *p, double requested_fft,
 
   frames = streaming ? fftsize / hopsize : 1;
   if (UNLIKELY(frames > INT32_MAX / fftsize ||
-               (size_t)fftsize > SIZE_MAX / sizeof(MYFLT) / frames ||
+               (size_t)fftsize > SIZE_MAX / sizeof(cs_float) / frames ||
                (size_t)fftsize+2 > SIZE_MAX / sizeof(float)))
     return csound->InitError(csound, "%s", Str("IFD: frame buffers too large"));
   p->fftsize = fftsize;
@@ -94,12 +94,12 @@ static int32_t ifd_setup(CSOUND *csound, IFD *p, double requested_fft,
   p->cnt = hopsize;
 
   samples = (size_t)frames * fftsize;
-  bytes = samples * sizeof(MYFLT);
+  bytes = samples * sizeof(cs_float);
   if (p->sigframe.auxp == NULL || p->sigframe.size < bytes)
     csound->AuxAlloc(csound, bytes, &p->sigframe);
   memset(p->sigframe.auxp, 0, bytes);
 
-  bytes = (size_t)fftsize * sizeof(MYFLT);
+  bytes = (size_t)fftsize * sizeof(cs_float);
   if (p->diffsig.auxp == NULL || p->diffsig.size < bytes)
     csound->AuxAlloc(csound, bytes, &p->diffsig);
   memset(p->diffsig.auxp, 0, bytes);
@@ -133,12 +133,12 @@ static int32_t ifd_setup(CSOUND *csound, IFD *p, double requested_fft,
     for (i = 0; i < frames; i++) counter[i] = i * hopsize;
   }
 
-  winf = (MYFLT *)p->win.auxp;
-  dwinf = (MYFLT *)p->diffwin.auxp;
+  winf = (cs_float *)p->win.auxp;
+  dwinf = (cs_float *)p->diffwin.auxp;
   alpha = window == PVS_WIN_HAMMING ? 0.54 : 0.5;
   fac = TWOPI / (fftsize-1.0);
   for (i = 0; i < fftsize; i++)
-    winf[i] = (MYFLT)(alpha - (1.0-alpha) * cos(fac*i));
+    winf[i] = (cs_float)(alpha - (1.0-alpha) * cos(fac*i));
   p->norm = 0;
   for (i = 0; i < fftsize; i++) {
     dwinf[i] = winf[i] - (i+1 < fftsize ? winf[i+1] : FL(0.0));
@@ -157,16 +157,16 @@ static int32_t ifd_init(CSOUND *csound, IFD *p)
   return ifd_setup(csound, p, *p->p2, *p->p3, *p->p4, 1);
 }
 
-static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
+static void IFAnalysis(CSOUND * csound, IFD * p, cs_float * signal)
 {
 
-  double  powerspec, da, db, a, b, ph, factor = p->factor, fund = p->fund;
-  MYFLT   scl = p->g / p->norm;
+  cs_double  powerspec, da, db, a, b, ph, factor = p->factor, fund = p->fund;
+  cs_float   scl = p->g / p->norm;
   int32_t     i2, i, fftsize = p->fftsize, hsize = p->fftsize / 2;
-  MYFLT   tmp1, tmp2;
-  MYFLT *diffwin = (MYFLT *) p->diffwin.auxp;
-  MYFLT  *win = (MYFLT *) p->win.auxp;
-  MYFLT  *diffsig = (MYFLT *) p->diffsig.auxp;
+  cs_float   tmp1, tmp2;
+  cs_float *diffwin = (cs_float *) p->diffwin.auxp;
+  cs_float  *win = (cs_float *) p->win.auxp;
+  cs_float  *diffsig = (cs_float *) p->diffsig.auxp;
   float  *output = (float *) p->fout1->frame.auxp;
   float  *outphases = (float *) p->fout2->frame.auxp;
 
@@ -202,7 +202,7 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
     if ((outphases[i] = output[i] = (float) sqrt(powerspec)) != 0.0f) {
       output[i + 1] = ((a * db - b * da) / powerspec) * factor + i2 * fund;
       ph = (float) ATAN2(b, a);
-      /*double d = ph - outphases[i + 1];
+      /*cs_double d = ph - outphases[i + 1];
         while (d > PI)
         d -= TWOPI;
         while (d < -PI)
@@ -230,8 +230,8 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
 static int32_t ifd_process(CSOUND * csound, IFD * p)
 {
   int32_t     i;
-  MYFLT  *sigin = p->in;
-  MYFLT  *sigframe = (MYFLT *) p->sigframe.auxp;
+  cs_float  *sigin = p->in;
+  cs_float  *sigframe = (cs_float *) p->sigframe.auxp;
   int32_t     fftsize = p->fftsize;
   int32_t *counter = (int32_t *) p->counter.auxp;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -271,21 +271,21 @@ static int32_t tifd_process(CSOUND * csound, IFD * p)
   uint32_t nsmps = CS_KSMPS;
 
   if(p->cnt >= hopsize){
-    MYFLT  pos = *p->in*CS_ESR;
-    MYFLT  *sigframe = (MYFLT *) p->sigframe.auxp;
-    MYFLT  pit = *p->p3;
+    cs_float  pos = *p->in*CS_ESR;
+    cs_float  *sigframe = (cs_float *) p->sigframe.auxp;
+    cs_float  pit = *p->p3;
     int32_t     fftsize = p->fftsize;
     uint32_t post;
-    MYFLT frac;
+    cs_float frac;
     FUNC *ft = csound->FTFind(csound,p->p7);
     if (UNLIKELY(ft == NULL)) {
       return csound->PerfError(csound, &(p->h),
                                "could not find table number %d\n", (int32_t) *p->p7);
     }
-    MYFLT *tab = ft->ftable;
+    cs_float *tab = ft->ftable;
     int32_t i,size = ft->flen;
     for(i=0; i < fftsize; i++){
-      MYFLT in;
+      cs_float in;
       /* Wrap before splitting the index and fraction. Wrap negatives first
          because adding size to a tiny negative can round up to size. */
       while (pos < 0) pos += size;

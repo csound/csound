@@ -64,7 +64,7 @@
  * any of the following two values:                                           *
  *                                                                            *
  *   ((CS_VERSION << 16) + (CS_SUBVER << 8))      API version                 *
- *   (int32_t) sizeof(MYFLT)                                MYFLT type        *
+ *   (int32_t) sizeof(cs_float)                                cs_float type        *
  *                                                                            *
  ******************************************************************************/
 
@@ -214,7 +214,7 @@ static int32_t check_plugin_compatibility(CSOUND *csound, const char *fname, int
   int32_t     myfltSize, minorVersion, majorVersion;
 
   myfltSize = n & 0xFF;
-  if (UNLIKELY(myfltSize != 0 && myfltSize != (int32_t) sizeof(MYFLT))) {
+  if (UNLIKELY(myfltSize != 0 && myfltSize != (int32_t) sizeof(cs_float))) {
     csoundWarning(csound, Str("not loading '%s' (uses incompatible "
                               "floating point type)"), fname);
     return -1;
@@ -641,7 +641,7 @@ int32_t csoundLoadModules(CSOUND *csound)
     return CSOUND_ERROR;
 
   /* open plugin directory */
-  dname = csoundGetEnv(csound, (sizeof(MYFLT) == sizeof(float) ?
+  dname = csoundGetEnv(csound, (sizeof(cs_float) == sizeof(float) ?
                                 plugindir_envvar : plugindir64_envvar));
   if (dname == NULL) {
 #if ENABLE_OPCODEDIR_WARNINGS
@@ -915,7 +915,7 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
   /* open plugin directory */
   // EM'2021: This seems to be dead code since opdir will never be NULL and
   // the value of dname will be discarded, see "dname = opdir" later
-  dname = csoundGetEnv(csound, (sizeof(MYFLT) == sizeof(float) ?
+  dname = csoundGetEnv(csound, (sizeof(cs_float) == sizeof(float) ?
                                 plugindir_envvar : plugindir64_envvar));
   if (dname == NULL) {
 #if ENABLE_OPCODEDIR_WARNINGS

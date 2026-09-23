@@ -134,7 +134,7 @@ int aperf() {
 
 Because audio arguments are vectors, we get these using the data() method
 for the inargs and outargs objects, which takes the argument number as
-input and returns a MYFLT pointer to the vector. MYFLT is the internal
+input and returns a cs_float pointer to the vector. cs_float is the internal
 floating-point data type used by Csound.
 
 Note that the OPDS member insdshead holds the value of the instrument
@@ -246,8 +246,8 @@ echo effect:
     asig delayline ain,idel
  */
 struct DelayLine : csnd::Plugin<1,2> {
-  csnd::AuxMem<MYFLT> delay;
-  csnd::AuxMem<MYFLT>::iterator iter;
+  csnd::AuxMem<cs_float> delay;
+  csnd::AuxMem<cs_float>::iterator iter;
 
   int init() {
     delay.allocate(csound, csound->GetSr(csound)*inargs[1]);
@@ -256,8 +256,8 @@ struct DelayLine : csnd::Plugin<1,2> {
   }
   
   int aperf() {
-    MYFLT *out = outargs.data(0);
-    MYFLT *in = inargs.data(0);
+    cs_float *out = outargs.data(0);
+    cs_float *in = inargs.data(0);
     
 
     for(uint32_t i=offset; i < nsmps; i++, iter++) {
@@ -318,9 +318,9 @@ struct Oscillator : csnd::Plugin<1,3> {
   }
   
   int aperf() {
-    MYFLT *out = outargs.data(0);
-    MYFLT amp = inargs[0];
-    MYFLT si = inargs[1]*scl;
+    cs_float *out = outargs.data(0);
+    cs_float amp = inargs[0];
+    cs_float si = inargs[1]*scl;
     
 
     for(uint32_t i=offset; i < nsmps; i++) {
@@ -397,7 +397,7 @@ objects, which have the following methods:
 * amp(float a): sets the bin amplitude to a.
 * freq(float f): sets the bin frequency to f.
 * operator*(pv_bin f): multiply the amp of a pvs bin by f.amp.
-* operator*(MYFLT f): multiply the bin amp by f
+* operator*(cs_float f): multiply the bin amp by f
 * operator*=(): unary versions of the above.
 
 The pv_bin class can also be translated into a std::complex<float>
@@ -463,7 +463,7 @@ struct PVGain : csnd::FPlugin<1, 2> {
     uint32_t i;
 
     if (framecount < fin.count()) {
-      MYFLT g = inargs[1];
+      cs_float g = inargs[1];
       std::transform(fin.begin(), fin.end(), fout.begin(),
 		    [g](csnd::pv_bin f){ return f *= g; });
       framecount = fout.count(fin.count());
@@ -531,15 +531,15 @@ class reference. A trivial example is shown below:
  */
 struct SimpleArray : csnd::Plugin<1, 1> {
   int init() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    csnd::Vector<cs_float> &out = outargs.vector_data<cs_float>(0);
+    csnd::Vector<cs_float> &in = inargs.vector_data<cs_float>(0);
     out.init(csound, in.len());
     return OK;
   }
 
   int kperf() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    csnd::Vector<cs_float> &out = outargs.vector_data<cs_float>(0);
+    csnd::Vector<cs_float> &in = inargs.vector_data<cs_float>(0);
     std::copy(in.begin(), in.end(), out.begin());
     return OK;
   }

@@ -48,291 +48,291 @@
 
 typedef struct Cabasa {
     OPDS        h;
-    MYFLT       *ar;            /* Output */
-    MYFLT       *amp;           /* How loud */
-    MYFLT       *dettack;       /* When to switch off */
-    MYFLT       *num_beads;     /* Number of beads */
-    MYFLT       *damp;
-    MYFLT       *shake_max;
+    cs_float       *ar;            /* Output */
+    cs_float       *amp;           /* How loud */
+    cs_float       *dettack;       /* When to switch off */
+    cs_float       *num_beads;     /* Number of beads */
+    cs_float       *damp;
+    cs_float       *shake_max;
 
-    MYFLT       shake_maxSave;
-    MYFLT       shakeEnergy;
-    MYFLT       outputs0;
-    MYFLT       outputs1;
-    MYFLT       coeffs0;
-    MYFLT       coeffs1;
-    MYFLT       sndLevel;
-    MYFLT       gain;
-    MYFLT       resons;
-    MYFLT       soundDecay;
-    MYFLT       systemDecay;
+    cs_float       shake_maxSave;
+    cs_float       shakeEnergy;
+    cs_float       outputs0;
+    cs_float       outputs1;
+    cs_float       coeffs0;
+    cs_float       coeffs1;
+    cs_float       sndLevel;
+    cs_float       gain;
+    cs_float       resons;
+    cs_float       soundDecay;
+    cs_float       systemDecay;
     int32       num_objects;
-    MYFLT       last_num;
-    MYFLT       totalEnergy;
+    cs_float       last_num;
+    cs_float       totalEnergy;
     int32_t     kloop;
 } CABASA;
 
 typedef struct Sekere {
     OPDS        h;
-    MYFLT       *ar;            /* Output */
-    MYFLT       *amp;           /* How loud */
-    MYFLT       *dettack;       /* How loud */
-    MYFLT       *num_beads;     /* Number of beads */
-    MYFLT       *damp;
-    MYFLT       *shake_max;
+    cs_float       *ar;            /* Output */
+    cs_float       *amp;           /* How loud */
+    cs_float       *dettack;       /* How loud */
+    cs_float       *num_beads;     /* Number of beads */
+    cs_float       *damp;
+    cs_float       *shake_max;
 
-    MYFLT       shake_maxSave;
-    MYFLT       shakeEnergy;
-    MYFLT       outputs0;
-    MYFLT       outputs1;
-    MYFLT       coeffs0;
-    MYFLT       coeffs1;
-    MYFLT       sndLevel;
-    MYFLT       gain;
-    MYFLT       resons;
-    MYFLT       soundDecay;
-    MYFLT       systemDecay;
-    MYFLT       num_objects;
-    MYFLT       last_num;
-    MYFLT       totalEnergy;
-    MYFLT       finalZ0;
-    MYFLT       finalZ1;
-    MYFLT       finalZ2;
+    cs_float       shake_maxSave;
+    cs_float       shakeEnergy;
+    cs_float       outputs0;
+    cs_float       outputs1;
+    cs_float       coeffs0;
+    cs_float       coeffs1;
+    cs_float       sndLevel;
+    cs_float       gain;
+    cs_float       resons;
+    cs_float       soundDecay;
+    cs_float       systemDecay;
+    cs_float       num_objects;
+    cs_float       last_num;
+    cs_float       totalEnergy;
+    cs_float       finalZ0;
+    cs_float       finalZ1;
+    cs_float       finalZ2;
     int32_t         kloop;
 } SEKERE;
 
 typedef struct Guiro {
     OPDS        h;
-    MYFLT       *ar;            /* Output */
-    MYFLT       *amp;
-    MYFLT       *dettack;
-    MYFLT       *num_teeth;
-    MYFLT       *damp;
-    MYFLT       *shake_max;
-    MYFLT       *freq;
-    MYFLT       *freq2;
+    cs_float       *ar;            /* Output */
+    cs_float       *amp;
+    cs_float       *dettack;
+    cs_float       *num_teeth;
+    cs_float       *damp;
+    cs_float       *shake_max;
+    cs_float       *freq;
+    cs_float       *freq2;
 
-    MYFLT       res_freqSave;
-    MYFLT       shake_damp;
-    MYFLT       shake_maxSave;
-    MYFLT       res_freq2;
+    cs_float       res_freqSave;
+    cs_float       shake_damp;
+    cs_float       shake_maxSave;
+    cs_float       res_freq2;
 
-    MYFLT       shakeEnergy;
-    MYFLT       outputs00;
-    MYFLT       outputs01;
-    MYFLT       outputs10;
-    MYFLT       outputs11;
-    MYFLT       coeffs00;
-    MYFLT       coeffs01;
-    MYFLT       coeffs10;
-    MYFLT       coeffs11;
-    MYFLT       sndLevel;
-    MYFLT       baseGain;
-    MYFLT       gains0;
-    MYFLT       gains1;
-    MYFLT       soundDecay;
-    MYFLT       systemDecay;
-    MYFLT       num_objects;
-    MYFLT       totalEnergy;
-    MYFLT       ratchet,ratchetDelta;
+    cs_float       shakeEnergy;
+    cs_float       outputs00;
+    cs_float       outputs01;
+    cs_float       outputs10;
+    cs_float       outputs11;
+    cs_float       coeffs00;
+    cs_float       coeffs01;
+    cs_float       coeffs10;
+    cs_float       coeffs11;
+    cs_float       sndLevel;
+    cs_float       baseGain;
+    cs_float       gains0;
+    cs_float       gains1;
+    cs_float       soundDecay;
+    cs_float       systemDecay;
+    cs_float       num_objects;
+    cs_float       totalEnergy;
+    cs_float       ratchet,ratchetDelta;
     int32_t         ratchetPos;
-    MYFLT       finalZ0;
-    MYFLT       finalZ1;
-    MYFLT       finalZ2;
-    MYFLT       decayScale;
-    double          kloop;
+    cs_float       finalZ0;
+    cs_float       finalZ1;
+    cs_float       finalZ2;
+    cs_float       decayScale;
+    cs_double          kloop;
 } GUIRO;
 
 typedef struct Tambour {
     OPDS        h;
-    MYFLT       *ar;            /* Output */
-    MYFLT       *amp;           /* How loud */
-    MYFLT       *dettack;       /* How loud */
-    MYFLT       *num_timbrels;
-    MYFLT       *damp;
-    MYFLT       *shake_max;
-    MYFLT       *freq;
-    MYFLT       *freq1;
-    MYFLT       *freq2;
+    cs_float       *ar;            /* Output */
+    cs_float       *amp;           /* How loud */
+    cs_float       *dettack;       /* How loud */
+    cs_float       *num_timbrels;
+    cs_float       *damp;
+    cs_float       *shake_max;
+    cs_float       *freq;
+    cs_float       *freq1;
+    cs_float       *freq2;
 
-    MYFLT       num_objectsSave;
-    MYFLT       shake_maxSave;
-    MYFLT       shakeEnergy;
-    MYFLT       outputs00;
-    MYFLT       outputs01;
-    MYFLT       outputs10;
-    MYFLT       outputs11;
-    MYFLT       outputs20;
-    MYFLT       outputs21;
-    MYFLT       coeffs00;
-    MYFLT       coeffs01;
-    MYFLT       coeffs10;
-    MYFLT       coeffs11;
-    MYFLT       coeffs20;
-    MYFLT       coeffs21;
-    MYFLT       sndLevel;
-    MYFLT       gain;
-    MYFLT       gains0;
-    MYFLT       gains1;
-    MYFLT       gains2;
-    MYFLT       resons;
-    MYFLT       soundDecay;
-    MYFLT       systemDecay;
-    MYFLT       num_objects;
-    MYFLT       totalEnergy;
-    MYFLT       finalZ0;
-    MYFLT       finalZ1;
-    MYFLT       finalZ2;
-    MYFLT       decayScale;
-    MYFLT       res_freq;
-    MYFLT       res_freq1;
-    MYFLT       res_freq2;
-    MYFLT       shake_damp;
-    double          kloop;
+    cs_float       num_objectsSave;
+    cs_float       shake_maxSave;
+    cs_float       shakeEnergy;
+    cs_float       outputs00;
+    cs_float       outputs01;
+    cs_float       outputs10;
+    cs_float       outputs11;
+    cs_float       outputs20;
+    cs_float       outputs21;
+    cs_float       coeffs00;
+    cs_float       coeffs01;
+    cs_float       coeffs10;
+    cs_float       coeffs11;
+    cs_float       coeffs20;
+    cs_float       coeffs21;
+    cs_float       sndLevel;
+    cs_float       gain;
+    cs_float       gains0;
+    cs_float       gains1;
+    cs_float       gains2;
+    cs_float       resons;
+    cs_float       soundDecay;
+    cs_float       systemDecay;
+    cs_float       num_objects;
+    cs_float       totalEnergy;
+    cs_float       finalZ0;
+    cs_float       finalZ1;
+    cs_float       finalZ2;
+    cs_float       decayScale;
+    cs_float       res_freq;
+    cs_float       res_freq1;
+    cs_float       res_freq2;
+    cs_float       shake_damp;
+    cs_double          kloop;
 } TAMBOURINE;
 
 typedef struct Bamboo {
     OPDS        h;
-    MYFLT       *ar;            /* Output */
-    MYFLT       *amp;           /* How loud */
-    MYFLT       *dettack;       /* How loud */
-    MYFLT       *num_tubes;
-    MYFLT       *damp;
-    MYFLT       *shake_max;
-    MYFLT       *freq;
-    MYFLT       *freq1;
-    MYFLT       *freq2;
+    cs_float       *ar;            /* Output */
+    cs_float       *amp;           /* How loud */
+    cs_float       *dettack;       /* How loud */
+    cs_float       *num_tubes;
+    cs_float       *damp;
+    cs_float       *shake_max;
+    cs_float       *freq;
+    cs_float       *freq1;
+    cs_float       *freq2;
 
-    MYFLT       num_objectsSave;
-    MYFLT       shake_maxSave;
-    MYFLT       shakeEnergy;
-    MYFLT       outputs00;
-    MYFLT       outputs01;
-    MYFLT       outputs10;
-    MYFLT       outputs11;
-    MYFLT       outputs20;
-    MYFLT       outputs21;
-    MYFLT       coeffs00;
-    MYFLT       coeffs01;
-    MYFLT       coeffs10;
-    MYFLT       coeffs11;
-    MYFLT       coeffs20;
-    MYFLT       coeffs21;
-    MYFLT       sndLevel;
-    MYFLT       gain;
-    MYFLT       resons;
-    MYFLT       soundDecay;
-    MYFLT       systemDecay;
-    MYFLT       num_objects;
-    MYFLT       totalEnergy;
-    MYFLT       decayScale;
-    MYFLT       res_freq0;
-    MYFLT       res_freq1;
-    MYFLT       res_freq2;
-    MYFLT       shake_damp;
+    cs_float       num_objectsSave;
+    cs_float       shake_maxSave;
+    cs_float       shakeEnergy;
+    cs_float       outputs00;
+    cs_float       outputs01;
+    cs_float       outputs10;
+    cs_float       outputs11;
+    cs_float       outputs20;
+    cs_float       outputs21;
+    cs_float       coeffs00;
+    cs_float       coeffs01;
+    cs_float       coeffs10;
+    cs_float       coeffs11;
+    cs_float       coeffs20;
+    cs_float       coeffs21;
+    cs_float       sndLevel;
+    cs_float       gain;
+    cs_float       resons;
+    cs_float       soundDecay;
+    cs_float       systemDecay;
+    cs_float       num_objects;
+    cs_float       totalEnergy;
+    cs_float       decayScale;
+    cs_float       res_freq0;
+    cs_float       res_freq1;
+    cs_float       res_freq2;
+    cs_float       shake_damp;
     int32_t         kloop;
 } BAMBOO;
 
 typedef struct Wuter {
     OPDS        h;
-    MYFLT       *ar;            /* Output */
-    MYFLT       *amp;           /* How loud */
-    MYFLT       *dettack;       /* How loud */
-    MYFLT       *num_tubes;
-    MYFLT       *damp;
-    MYFLT       *shake_max;
-    MYFLT       *freq;
-    MYFLT       *freq1;
-    MYFLT       *freq2;
+    cs_float       *ar;            /* Output */
+    cs_float       *amp;           /* How loud */
+    cs_float       *dettack;       /* How loud */
+    cs_float       *num_tubes;
+    cs_float       *damp;
+    cs_float       *shake_max;
+    cs_float       *freq;
+    cs_float       *freq1;
+    cs_float       *freq2;
 
-    MYFLT       num_objectsSave;
-    MYFLT       shake_maxSave;
-    MYFLT       shakeEnergy;
-    MYFLT       outputs00;
-    MYFLT       outputs01;
-    MYFLT       outputs10;
-    MYFLT       outputs11;
-    MYFLT       outputs20;
-    MYFLT       outputs21;
-    MYFLT       coeffs00;
-    MYFLT       coeffs01;
-    MYFLT       coeffs10;
-    MYFLT       coeffs11;
-    MYFLT       coeffs20;
-    MYFLT       coeffs21;
-    MYFLT       finalZ0;
-    MYFLT       finalZ1;
-    MYFLT       finalZ2;
-    MYFLT       sndLevel;
-    MYFLT       gains0;
-    MYFLT       gains1;
-    MYFLT       gains2;
-    MYFLT       center_freqs0;
-    MYFLT       center_freqs1;
-    MYFLT       center_freqs2;
-    MYFLT       soundDecay;
-    MYFLT       systemDecay;
-    MYFLT       num_objects;
-    MYFLT       totalEnergy;
-    MYFLT       decayScale;
-    MYFLT       res_freq0;
-    MYFLT       res_freq1;
-    MYFLT       res_freq2;
-    MYFLT       shake_damp;
+    cs_float       num_objectsSave;
+    cs_float       shake_maxSave;
+    cs_float       shakeEnergy;
+    cs_float       outputs00;
+    cs_float       outputs01;
+    cs_float       outputs10;
+    cs_float       outputs11;
+    cs_float       outputs20;
+    cs_float       outputs21;
+    cs_float       coeffs00;
+    cs_float       coeffs01;
+    cs_float       coeffs10;
+    cs_float       coeffs11;
+    cs_float       coeffs20;
+    cs_float       coeffs21;
+    cs_float       finalZ0;
+    cs_float       finalZ1;
+    cs_float       finalZ2;
+    cs_float       sndLevel;
+    cs_float       gains0;
+    cs_float       gains1;
+    cs_float       gains2;
+    cs_float       center_freqs0;
+    cs_float       center_freqs1;
+    cs_float       center_freqs2;
+    cs_float       soundDecay;
+    cs_float       systemDecay;
+    cs_float       num_objects;
+    cs_float       totalEnergy;
+    cs_float       decayScale;
+    cs_float       res_freq0;
+    cs_float       res_freq1;
+    cs_float       res_freq2;
+    cs_float       shake_damp;
     int32_t         kloop;
 } WUTER;
 
 typedef struct Sleighbells {
     OPDS        h;
-    MYFLT       *ar;            /* Output */
-    MYFLT       *amp;           /* How loud */
-    MYFLT       *dettack;       /* How loud */
-    MYFLT       *num_bells;
-    MYFLT       *damp;
-    MYFLT       *shake_max;
-    MYFLT       *freq;
-    MYFLT       *freq1;
-    MYFLT       *freq2;
+    cs_float       *ar;            /* Output */
+    cs_float       *amp;           /* How loud */
+    cs_float       *dettack;       /* How loud */
+    cs_float       *num_bells;
+    cs_float       *damp;
+    cs_float       *shake_max;
+    cs_float       *freq;
+    cs_float       *freq1;
+    cs_float       *freq2;
 
-    MYFLT       num_objectsSave;
-    MYFLT       shake_maxSave;
-    MYFLT       shakeEnergy;
-    MYFLT       outputs00;
-    MYFLT       outputs01;
-    MYFLT       outputs10;
-    MYFLT       outputs11;
-    MYFLT       outputs20;
-    MYFLT       outputs21;
-    MYFLT       outputs30;
-    MYFLT       outputs31;
-    MYFLT       outputs40;
-    MYFLT       outputs41;
-    MYFLT       coeffs00;
-    MYFLT       coeffs01;
-    MYFLT       coeffs10;
-    MYFLT       coeffs11;
-    MYFLT       coeffs20;
-    MYFLT       coeffs21;
-    MYFLT       coeffs30;
-    MYFLT       coeffs31;
-    MYFLT       coeffs40;
-    MYFLT       coeffs41;
-    MYFLT       finalZ0;
-    MYFLT       finalZ1;
-    MYFLT       finalZ2;
-    MYFLT       sndLevel;
-    MYFLT       gain;
-    MYFLT       soundDecay;
-    MYFLT       systemDecay;
-    MYFLT       num_objects;
-    MYFLT       totalEnergy;
-    MYFLT       decayScale;
-    MYFLT       res_freq0;
-    MYFLT       res_freq1;
-    MYFLT       res_freq2;
-    MYFLT       res_freq3;
-    MYFLT       res_freq4;
-    MYFLT       shake_damp;
-    double      kloop;
+    cs_float       num_objectsSave;
+    cs_float       shake_maxSave;
+    cs_float       shakeEnergy;
+    cs_float       outputs00;
+    cs_float       outputs01;
+    cs_float       outputs10;
+    cs_float       outputs11;
+    cs_float       outputs20;
+    cs_float       outputs21;
+    cs_float       outputs30;
+    cs_float       outputs31;
+    cs_float       outputs40;
+    cs_float       outputs41;
+    cs_float       coeffs00;
+    cs_float       coeffs01;
+    cs_float       coeffs10;
+    cs_float       coeffs11;
+    cs_float       coeffs20;
+    cs_float       coeffs21;
+    cs_float       coeffs30;
+    cs_float       coeffs31;
+    cs_float       coeffs40;
+    cs_float       coeffs41;
+    cs_float       finalZ0;
+    cs_float       finalZ1;
+    cs_float       finalZ2;
+    cs_float       sndLevel;
+    cs_float       gain;
+    cs_float       soundDecay;
+    cs_float       systemDecay;
+    cs_float       num_objects;
+    cs_float       totalEnergy;
+    cs_float       decayScale;
+    cs_float       res_freq0;
+    cs_float       res_freq1;
+    cs_float       res_freq2;
+    cs_float       res_freq3;
+    cs_float       res_freq4;
+    cs_float       shake_damp;
+    cs_double      kloop;
 } SLEIGHBELLS;
 #endif

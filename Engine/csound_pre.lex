@@ -32,11 +32,11 @@
 #include <inttypes.h>
 
 #ifdef USE_DOUBLE
-  #define MYFLT_MAX DBL_MAX
-  #define MYFLT_MIN DBL_MIN
+  #define CS_FLOAT_MAX DBL_MAX
+  #define CS_FLOAT_MIN DBL_MIN
 #else
-  #define MYFLT_MAX FLT_MAX
-  #define MYFLT_MIN FLT_MIN
+  #define CS_FLOAT_MAX FLT_MAX
+  #define CS_FLOAT_MIN FLT_MIN
 #endif
 
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
@@ -1391,10 +1391,10 @@ void cs_init_math_constants_macros(CSOUND *csound)
       add_math_const_macro(csound, "SQRT1_2","0.70710678118654752440");
       add_math_const_macro(csound, "INF",   "800000000000.0");/* ~25367 years */
 
-      /* MYFLT limits - use standard library macros converted to strings */
-      snprintf(buf, sizeof(buf), "%.17g", MYFLT_MAX);
+      /* cs_float limits - use standard library macros converted to strings */
+      snprintf(buf, sizeof(buf), "%.17g", CS_FLOAT_MAX);
       add_math_const_macro(csound, "MAX_VALUE", buf);
-      snprintf(buf, sizeof(buf), "%.17g", MYFLT_MIN);
+      snprintf(buf, sizeof(buf), "%.17g", CS_FLOAT_MIN);
       add_math_const_macro(csound, "MIN_VALUE", buf);
     }
 }

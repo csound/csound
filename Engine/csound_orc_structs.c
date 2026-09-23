@@ -29,9 +29,9 @@
 
 typedef struct {
   OPDS      h;
-  MYFLT*    out;
+  cs_float*    out;
   ARRAYDAT* arrayDat;
-  MYFLT*    indicies[VARGMAX];
+  cs_float*    indicies[VARGMAX];
 } STRUCT_ARRAY_GET;
 
 int findStructMemberIndex(CONS_CELL* members, char* memberName) {

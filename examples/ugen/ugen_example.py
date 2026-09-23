@@ -22,8 +22,8 @@ import sys
 import math
 import time
 
-# Shorthand for the ctypes MYFLT type
-MYFLT = ctcsound.MYFLT
+# Shorthand for the ctypes cs_float type
+cs_float = ctcsound.cs_float
 
 
 def example_single_ugen():
@@ -70,7 +70,7 @@ def example_single_ugen():
     out_var = osc.get_out_var(0)
     ptr = out_var.data_ptr
     if ptr:
-        buf = (MYFLT * ksmps).from_address(ptr)
+        buf = (cs_float * ksmps).from_address(ptr)
         samples = list(buf)
         print(f"  Generated {len(samples)} samples (ksmps={ksmps})")
         print(f"  First 8 samples: {[f'{s:.6f}' for s in samples[:8]]}")
@@ -217,11 +217,11 @@ def example_ugen_graph():
     ptr2 = osc2.get_out_var(0).data_ptr
 
     if ptr1:
-        buf1 = (MYFLT * ksmps).from_address(ptr1)
+        buf1 = (cs_float * ksmps).from_address(ptr1)
         print(f"  osc1 (440 Hz): first 8 samples = "
               f"{[f'{s:.6f}' for s in list(buf1)[:8]]}")
     if ptr2:
-        buf2 = (MYFLT * ksmps).from_address(ptr2)
+        buf2 = (cs_float * ksmps).from_address(ptr2)
         print(f"  osc2 (660 Hz): first 8 samples = "
               f"{[f'{s:.6f}' for s in list(buf2)[:8]]}")
 
@@ -303,7 +303,7 @@ def example_realtime_vibrato():
         spin = cs.spin()
         ptr = osc.get_out_var(0).data_ptr
         if ptr:
-            buf = (MYFLT * ksmps).from_address(ptr)
+            buf = (cs_float * ksmps).from_address(ptr)
             for i in range(ksmps):
                 spin[i] = buf[i]
 
@@ -394,8 +394,8 @@ def example_realtime_graph():
         ptr1 = osc1.get_out_var(0).data_ptr
         ptr2 = osc2.get_out_var(0).data_ptr
         if ptr1 and ptr2:
-            buf1 = (MYFLT * ksmps).from_address(ptr1)
-            buf2 = (MYFLT * ksmps).from_address(ptr2)
+            buf1 = (cs_float * ksmps).from_address(ptr1)
+            buf2 = (cs_float * ksmps).from_address(ptr2)
             for i in range(ksmps):
                 spin[i] = buf1[i] + buf2[i]
 
@@ -488,7 +488,7 @@ def example_ugen_wiring():
         spin = cs.spin()
         ptr = carrier.get_out_var(0).data_ptr
         if ptr:
-            buf = (MYFLT * ksmps).from_address(ptr)
+            buf = (cs_float * ksmps).from_address(ptr)
             for i in range(ksmps):
                 spin[i] = buf[i]
 

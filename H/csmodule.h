@@ -67,7 +67,7 @@
  * any of the following two values:                                           *
  *                                                                            *
  *   ((CS_VERSION << 16) + (CS_SUBVER << 8))      API version           *
- *   (int32_t) sizeof(MYFLT)                                MYFLT type            *
+ *   (int32_t) sizeof(cs_float)                                cs_float type            *
  *                                                                            *
  ******************************************************************************/
 

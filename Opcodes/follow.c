@@ -31,20 +31,20 @@
 
 static int32_t flwset(CSOUND *csound, FOL *p)
 {
-    double sample_rate = (double)CS_ESR;
-    /* Preserve MYFLT rounding before checking the integer conversion. */
-    double length = (double)(*p->len * CS_ESR);
+    cs_double sample_rate = (cs_double)CS_ESR;
+    /* Preserve cs_float rounding before checking the integer conversion. */
+    cs_double length = (cs_double)(*p->len * CS_ESR);
 
     p->wgh = p->max = FL(0.0);
-    if (UNLIKELY(!(length >= (double)INT32_MIN &&
-                   length <= (double)INT32_MAX)))
+    if (UNLIKELY(!(length >= (cs_double)INT32_MIN &&
+                   length <= (INT32_MAX + 0.0))))
       return csound->InitError(csound, Str("follow: invalid period %f"),
                                *p->len);
     p->length = (int32)length;
     if (UNLIKELY(p->length<=0L)) {           /* RWD's suggestion */
       csound->Warning(csound, "%s", Str("follow - zero length!"));
       if (UNLIKELY(!(sample_rate >= 1.0 &&
-                     sample_rate <= (double)INT32_MAX)))
+                     sample_rate <= (INT32_MAX + 0.0))))
         return csound->InitError(csound, "%s",
                                  Str("follow: sample rate is out of range"));
       p->length = (int32)CS_ESR;
@@ -60,17 +60,17 @@ static int32_t follow(CSOUND *csound, FOL *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       *in = p->in, *out = p->out;
-    MYFLT       max = p->max;
+    cs_float       *in = p->in, *out = p->out;
+    cs_float       max = p->max;
     int32       count = p->count;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT sig = FABS(in[n]);
+      cs_float sig = FABS(in[n]);
       if (sig > max) max = sig;
       if (UNLIKELY(--count == 0L)) {
         p->wgh = max;
@@ -88,11 +88,11 @@ static int32_t follow(CSOUND *csound, FOL *p)
    Bram.DeJong@rug.ac.be and James Maccartney posted on music-dsp;
    Transferred to csound by JPff, 2000 feb 12
 */
-/* Use double coefficients even with float samples. Nonpositive times
+/* Use cs_double coefficients even with float samples. Nonpositive times
    retain the existing 0.1-second fallback. */
 #define FOLLOW2_COEFFICIENT(time) \
-    exp(-6.90775527898 / ((double)CS_ESR * \
-                         ((time) <= FL(0.0) ? 0.1 : (double)(time))))
+    exp(-6.90775527898 / ((cs_double)CS_ESR * \
+                         ((time) <= FL(0.0) ? 0.1 : (cs_double)(time))))
 
 static int32_t envset(CSOUND *csound, ENV *p)
 {
@@ -110,9 +110,9 @@ static int32_t envext(CSOUND *csound, ENV *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     /* Keep small updates in the state; only round the output sample. */
-    double      envelope = p->envelope;
-    double      ga, gr;
-    MYFLT       *in = p->in, *out = p->out;
+    cs_double      envelope = p->envelope;
+    cs_double      ga, gr;
+    cs_float       *in = p->in, *out = p->out;
     if (p->lastatt!=*p->attack) {
       p->lastatt = *p->attack;
       ga = p->ga = FOLLOW2_COEFFICIENT(p->lastatt);
@@ -123,20 +123,20 @@ static int32_t envext(CSOUND *csound, ENV *p)
       gr = p->gr = FOLLOW2_COEFFICIENT(p->lastrel);
     }
     else gr = p->gr;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset;n<nsmps;n++) {
-      double inp = (double)FABS(in[n]);  /* Absolute value */
+      cs_double inp = (cs_double)FABS(in[n]);  /* Absolute value */
       if (envelope < inp) {
         envelope = inp + ga*(envelope-inp);
       }
       else {
         envelope = inp + gr*(envelope-inp);
       }
-      out[n] = (MYFLT)envelope;
+      out[n] = (cs_float)envelope;
     }
     p->envelope = envelope;
     return OK;

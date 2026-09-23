@@ -31,9 +31,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#ifndef MYFLT
 #include "sysdep.h"
-#endif
 #include "lpc.h"
 
 #define Str(x) x
@@ -50,7 +48,7 @@ int32_t main(int32_t argc, char **argv)
     LPHEADER hdr;
     uint32_t i, j;
     char *str = NULL;
-    MYFLT *coef = NULL;
+    cs_float *coef = NULL;
 
     if (argc!= 3) {
       lpc_export_usage();
@@ -97,9 +95,9 @@ int32_t main(int32_t argc, char **argv)
     if (hdr.npoles+hdr.nvals > 0
         && hdr.npoles+hdr.nvals < 0x0FFFFFFF
         && hdr.npoles > 0) {
-      coef = (MYFLT *)malloc(((uint64_t)hdr.npoles+hdr.nvals)*sizeof(MYFLT));
+      coef = (cs_float *)malloc(((uint64_t)hdr.npoles+hdr.nvals)*sizeof(cs_float));
       for (i = 0; i<floor(hdr.framrate*hdr.duration); i++) {
-        if (UNLIKELY(fread(coef, sizeof(MYFLT), hdr.npoles,inf) != hdr.npoles)) {
+        if (UNLIKELY(fread(coef, sizeof(cs_float), hdr.npoles,inf) != hdr.npoles)) {
           fprintf(stderr, Str("Read failure\n"));
           exit(1);
         }

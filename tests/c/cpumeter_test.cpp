@@ -39,13 +39,13 @@ struct Meter {
     OENTRY *entry;
     INSDS instrument = {};
     OPTXT text = {};
-    MYFLT interval = FL(0.015625);
-    std::array<MYFLT, 3> cells[32];
+    cs_float interval = FL(0.015625);
+    std::array<cs_float, 3> cells[32];
     Meter(int outputs, OENTRY *entry,
-          void (*bind)(void *, INSDS *, OPTXT *, MYFLT *, MYFLT **))
+          void (*bind)(void *, INSDS *, OPTXT *, cs_float *, cs_float **))
         : entry(entry) {
         opcode = calloc(1, entry->dsblksiz);
-        MYFLT *values[32];
+        cs_float *values[32];
         instrument.esr = 1024;
         instrument.ksmps = 8;
         text.t.outArgCount = outputs;
@@ -161,8 +161,8 @@ TEST_F(CpuMeterTests, LinuxMissingCoresAndCounterDecreases) {
 TEST_F(CpuMeterTests, LinuxFailuresReleaseFilesAndValidateInterval) {
     Meter meter(1, csound_test_linux_cpumeter_opcode(),
                 csound_test_linux_cpumeter_bind);
-    for (MYFLT interval : {MYFLT(-1), std::numeric_limits<MYFLT>::infinity(),
-                          std::numeric_limits<MYFLT>::quiet_NaN()}) {
+    for (cs_float interval : {cs_float(-1), std::numeric_limits<cs_float>::infinity(),
+                          std::numeric_limits<cs_float>::quiet_NaN()}) {
         meter.interval = interval;
         EXPECT_EQ(meter.init(csound), NOTOK);
         EXPECT_TRUE(files.empty());

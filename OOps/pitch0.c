@@ -87,13 +87,13 @@ int32_t instcount(CSOUND *csound, INSTCNT *p)
           if (*p->norel && !*p->opt)
             tot -= csound->engineState.instrtxtp[n]->pending_release;
         }
-      *p->cnt = (MYFLT)tot;
+      *p->cnt = (cs_float)tot;
     }
     else {
       //csound->Message(csound, "Instr %p \n", csound->engineState.instrtxtp[n]);
       *p->cnt = ((*p->opt) ?
-                 (MYFLT) csound->engineState.instrtxtp[n]->instcnt :
-                 (MYFLT) csound->engineState.instrtxtp[n]->active);
+                 (cs_float) csound->engineState.instrtxtp[n]->instcnt :
+                 (cs_float) csound->engineState.instrtxtp[n]->active);
       if (*p->norel && !*p->opt)
         *p->cnt -= csound->engineState.instrtxtp[n]->pending_release;
     }
@@ -119,12 +119,12 @@ int32_t instcount_S(CSOUND *csound, INSTCNT *p)
           if (*p->norel && !*p->opt)
             tot -= csound->engineState.instrtxtp[n]->pending_release;
         }
-      *p->cnt = (MYFLT)tot;
+      *p->cnt = (cs_float)tot;
     }
     else {
       *p->cnt = ((*p->opt) ?
-                 (MYFLT) csound->engineState.instrtxtp[n]->instcnt :
-                 (MYFLT) csound->engineState.instrtxtp[n]->active);
+                 (cs_float) csound->engineState.instrtxtp[n]->instcnt :
+                 (cs_float) csound->engineState.instrtxtp[n]->active);
       if (*p->norel && !*p->opt)
         *p->cnt -= csound->engineState.instrtxtp[n]->pending_release;
     }
@@ -204,8 +204,8 @@ int32_t maxalloc_S(CSOUND *csound, CPU_MAXALLOC *p)
 int32_t pfun(CSOUND *csound, PFUN *p)
 {
   if(csound->init_event != NULL) {  
-    int32_t n = (int32_t)MYFLT2LONG(*p->pnum);
-    MYFLT ans;
+    int32_t n = (int32_t)CS_FLOAT2LONG(*p->pnum);
+    cs_float ans;
     if (n<1) ans = FL(0.0);
     else ans = csound->init_event->p[n];
     /*csound->Message(csound, "p(%d) %f\n", n,ans);*/
@@ -218,13 +218,13 @@ int32_t pfun(CSOUND *csound, PFUN *p)
 int32_t pfunk_init(CSOUND *csound, PFUNK *p)
 {
   if(csound->init_event != NULL) { 
-    int32_t i, n = (int32_t)MYFLT2LONG(*p->pnum);
-    MYFLT ans, *pfield;
+    int32_t i, n = (int32_t)CS_FLOAT2LONG(*p->pnum);
+    cs_float ans, *pfield;
     if (n<1 || n>PMAX) ans = FL(0.0);
     else ans = csound->init_event->p[n];
     /* save the pfields of the current event */
     csound->AuxAlloc(csound,
-                     (csound->init_event->pcnt+1)*sizeof(MYFLT), &p->pfield);
+                     (csound->init_event->pcnt+1)*sizeof(cs_float), &p->pfield);
     pfield = p->pfield.auxp;
     for (i=1; i<=csound->init_event->pcnt; i++)
       pfield[i] = csound->init_event->p[i];
@@ -237,8 +237,8 @@ int32_t pfunk_init(CSOUND *csound, PFUNK *p)
 int32_t pfunk(CSOUND *csound, PFUNK *p)
 {
     IGN(csound);
-    int32_t n = (int32_t)MYFLT2LONG(*p->pnum);
-    MYFLT ans, *pfield;
+    int32_t n = (int32_t)CS_FLOAT2LONG(*p->pnum);
+    cs_float ans, *pfield;
     if (n<1 || n>PMAX) {
       ans = FL(0.0);
     }

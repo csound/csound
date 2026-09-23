@@ -28,21 +28,21 @@ typedef struct {
 
   OPDS h;
 
-  MYFLT *aout;
-  MYFLT *kamp;
+  cs_float *aout;
+  cs_float *kamp;
 
-  MYFLT *kpch;
+  cs_float *kpch;
 
-  MYFLT *kcx, *kcy;
-  MYFLT *krx, *kry;
+  cs_float *kcx, *kcy;
+  cs_float *krx, *kry;
 
-  MYFLT *i_tabx, *i_taby;       /* Table numbers */
+  cs_float *i_tabx, *i_taby;       /* Table numbers */
 /* Internals */
 
-  MYFLT *xarr, *yarr;           /* Actual tables */
+  cs_float *xarr, *yarr;           /* Actual tables */
 
-  MYFLT sizx, sizy;
-  double theta;
+  cs_float sizx, sizy;
+  cs_double theta;
 
 } WAVETER;
 
@@ -50,10 +50,10 @@ typedef struct {
 
   OPDS h;
 
-  MYFLT *isrc;
-  MYFLT *idst;
-  MYFLT *ipos;
-  MYFLT *imode;
+  cs_float *isrc;
+  cs_float *idst;
+  cs_float *ipos;
+  cs_float *imode;
 
   /* imode:
      0 : dest = src
@@ -66,23 +66,23 @@ typedef struct {
 
   OPDS h;
 
-  MYFLT *aout;
-  MYFLT *kamp;
-  MYFLT *kpch;
-  MYFLT *i_point;
-  MYFLT *i_mass;
-  MYFLT *i_stiff;
-  MYFLT *i_damp;
-  MYFLT *i_vel;
+  cs_float *aout;
+  cs_float *kamp;
+  cs_float *kpch;
+  cs_float *i_point;
+  cs_float *i_mass;
+  cs_float *i_stiff;
+  cs_float *i_damp;
+  cs_float *i_vel;
 
 /* End of arguments */
 
   AUXCH newloca;
   AUXCH newvela;
-  MYFLT *newloc, *newvel;
+  cs_float *newloc, *newvel;
   uint32_t size;
 
-  double pos;
+  cs_double pos;
   FUNC *fpoint;
   FUNC *fmass;
   FUNC *fstiff;

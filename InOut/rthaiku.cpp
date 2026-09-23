@@ -84,13 +84,13 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
          DPRINTF(("devName=%s devNum=%d frag size (smpls)=%d (=%d bytes) buf "
                   "size=%d\nchans=%d fmt=%d rate=%.2f\n",
                   parm->devName, parm->devNum, parm->bufSamp_SW,
-                  parm->bufSamp_SW*sizeof(MYFLT), parm->bufSamp_HW,
+                  parm->bufSamp_SW*sizeof(cs_float), parm->bufSamp_HW,
                   parm->nChannels, parm->sampleFormat, parm->sampleRate);)
-        // Note that buffer sample size is float, source is MYFLT (double!)
+        // Note that buffer sample size is float, source is cs_float (double!)
         Generator *gen =
            new Generator(parm->sampleRate, parm->nChannels,
                          parm->bufSamp_SW*sizeof(float)*parm->nChannels,
-                         sizeof(MYFLT));
+                         sizeof(cs_float));
         *playdata = gen;
         setSigAudio(csound);
         return gen->RunAudio();
@@ -99,7 +99,7 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
 
 /* get samples from ADC (not yet implemented) */
 
-static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
+static int rtrecord_(CSOUND *csound, cs_float *inbuf, int nbytes)
 {
         return -1;
 }
@@ -107,19 +107,19 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int nbytes)
+static void rtplay_(CSOUND *csound, const cs_float *outbuf, int nbytes)
 {
         Generator * gen = (Generator *)*csound->GetRtPlayUserData(csound);
         if (!gen) return;
-        if (gen->mBufSize*(sizeof(MYFLT)/sizeof(float)) < (size_t)nbytes) {
-          // we assume MYFLT === double for now...
+        if (gen->mBufSize*(sizeof(cs_float)/sizeof(float)) < (size_t)nbytes) {
+          // we assume cs_float === double for now...
           csound->ErrorMsg(csound,
                            Str("buffer mismatch! source %d <>  dest %ld\n"),
                            nbytes, gen->mBufSize);
                 return;
         }
         gen->mXferSize = nbytes;
-        gen->mDataBuf = (double *)outbuf;
+        gen->mDataBuf = (cs_double *)outbuf;
         status_t res = acquire_sem(gen->cs_sem);
         if (res != B_OK) fprintf(stderr, "cs_sem failed\n");
 }
@@ -292,5 +292,5 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
 PUBLIC int csoundModuleInfo(void)
 {
-        return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int) sizeof(MYFLT));
+        return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int) sizeof(cs_float));
 }

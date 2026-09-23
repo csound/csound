@@ -24,12 +24,12 @@
 
 typedef struct {
   int32_t    cnt, wsize, flag; /* , section; */
-        MYFLT  ampincr, ampphs, offset;
+        cs_float  ampincr, ampphs, offset;
 } WARPSECTION;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r1, *r2, *xamp, *xtimewarp, *xresample, *isampfun, *ibegin,
+    cs_float   *r1, *r2, *xamp, *xtimewarp, *xresample, *isampfun, *ibegin,
             *iwsize, *irandw, *ioverlap, *ifn, *itimemode;
     FUNC    *ftpWind, *ftpSamp;
     int32   maxFr, prFlg, flen, sampflen, nsections;
@@ -41,7 +41,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r1, *r2, *r3, *r4, *xamp, *xtimewarp, *xresample, *isampfun,
+    cs_float   *r1, *r2, *r3, *r4, *xamp, *xtimewarp, *xresample, *isampfun,
             *ibegin, *iwsize, *irandw, *ioverlap, *ifn, *itimemode;
     FUNC    *ftpWind,  *ftpSamp;
     int32   maxFr, prFlg, flen, sampflen, nsections;

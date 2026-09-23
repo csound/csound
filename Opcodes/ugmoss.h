@@ -28,7 +28,7 @@
 
 typedef struct {
   CONV_OUTPUT           out;
-  MYFLT                 *curp;
+  cs_float                 *curp;
   FUNC                  *ftp;
   AUXCH                 sigbuf;
   uint32_t          len;
@@ -36,21 +36,21 @@ typedef struct {
 
 typedef struct {
   OPDS                  h;
-  MYFLT                 *ar[CONV_MAX_OUTPUTS], *ain, *isize, *ifn;
+  cs_float                 *ar[CONV_MAX_OUTPUTS], *ain, *isize, *ifn;
   DCONV_STATE            state;
 } DCONV;
 
 typedef struct {
   OPDS                  h;
   ARRAYDAT              *ar;
-  MYFLT                 *ain, *isize, *ifn, *ichannels;
+  cs_float                 *ain, *isize, *ifn, *ichannels;
   DCONV_STATE            state;
 } DCONV_ARRAY;
 
 typedef struct {
   OPDS                  h;
-  MYFLT                 *ar, *asig, *krvt, *xlpt, *imaxlpt, *istor, *insmps;
-  MYFLT                 g, rvt, *pntr;
+  cs_float                 *ar, *asig, *krvt, *xlpt, *imaxlpt, *istor, *insmps;
+  cs_float                 g, rvt, *pntr;
   uint32_t              lpt, maxlpt;
   AUXCH                 auxch;
   int16                 lpta;
@@ -58,9 +58,9 @@ typedef struct {
 
 typedef struct {
   OPDS                  h;
-  MYFLT                 *kftndx, *iftfn, *iresfn;
+  cs_float                 *kftndx, *iftfn, *iresfn;
   FUNC                  *ftfn, *resfn;
-  MYFLT                 ftndx;
+  cs_float                 ftndx;
   uint32_t              len;
 } FTMORF;
 

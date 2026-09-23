@@ -152,7 +152,7 @@ void csoundFlushCircularBuffer(CSOUND *csound, void *p)
     int32_t remaining;
     int32_t itemsread, numelem = ((circular_buffer *)p)->numelem;
     int32_t i=0, rp = ATOMIC_GET(((circular_buffer *)p)->rp);
-    //MYFLT *buffer = ((circular_buffer *)p)->buffer;
+    //cs_float *buffer = ((circular_buffer *)p)->buffer;
     if ((remaining = checkspace(p, 0)) == 0) {
         return;
     }

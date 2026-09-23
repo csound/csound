@@ -41,7 +41,7 @@ const int16_t mpa_bitrate_table[2][3][16] = {
     { 0,  8, 16, 24, 32, 40, 48,  56,  64,  80,  96, 112, 128, 144, 160, 192 } }
 };
 
-extern void init_tables(mpadec_t mpadec, MYFLT scale, int32_t sblimit);
+extern void init_tables(mpadec_t mpadec, cs_float scale, int32_t sblimit);
 extern void decode_layer1(mpadec_t mpadec, uint8_t *buffer);
 extern void decode_layer2(mpadec_t mpadec, uint8_t *buffer);
 extern void decode_layer3(mpadec_t mpadec, uint8_t *buffer);
@@ -296,7 +296,7 @@ static int32_t first_frame(mpadec_t mpadec)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     int32_t i, skip = FALSE;
-    uint32_t framesize; MYFLT scale;
+    uint32_t framesize; cs_float scale;
 
     if (mpa->frame.channels > 1)
       i = ((mpa->config.mode == MPADEC_CONFIG_STEREO) ||
@@ -370,11 +370,11 @@ static int32_t first_frame(mpadec_t mpadec)
             mpa->tag_info.enc_padding = 0;
           } else {
             if (mpa->config.replaygain == MPADEC_CONFIG_REPLAYGAIN_RADIO) {
-              mpa->config.gain = ((MYFLT)mpa->tag_info.replay_gain[0])/10.0;
+              mpa->config.gain = ((cs_float)mpa->tag_info.replay_gain[0])/10.0;
             }
             else
               if (mpa->config.replaygain == MPADEC_CONFIG_REPLAYGAIN_AUDIOPHILE) {
-                mpa->config.gain = ((MYFLT)mpa->tag_info.replay_gain[1])/10.0;
+                mpa->config.gain = ((cs_float)mpa->tag_info.replay_gain[1])/10.0;
               }
           }
           mpa->skip_samples = mpa->tag_info.enc_delay;
@@ -476,7 +476,7 @@ int32_t mpadec_reset(mpadec_t mpadec)
 int32_t mpadec_configure(mpadec_t mpadec, mpadec_config_t *cfg)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
-    int32_t i, sblimit; MYFLT scale;
+    int32_t i, sblimit; cs_float scale;
 
     if (mpa && (mpa->size == sizeof(struct mpadec_t))) {
       if (!cfg) return MPADEC_RETCODE_INVALID_PARAMETERS;
@@ -500,11 +500,11 @@ int32_t mpadec_configure(mpadec_t mpadec, mpadec_config_t *cfg)
         mpa->config.gain = 0.0;
         if (mpa->tag_info.flags) {
           if (mpa->config.replaygain == MPADEC_CONFIG_REPLAYGAIN_RADIO) {
-            mpa->config.gain = ((MYFLT)mpa->tag_info.replay_gain[0])/10.0;
+            mpa->config.gain = ((cs_float)mpa->tag_info.replay_gain[0])/10.0;
           }
           else
             if (mpa->config.replaygain == MPADEC_CONFIG_REPLAYGAIN_AUDIOPHILE) {
-              mpa->config.gain = ((MYFLT)mpa->tag_info.replay_gain[1])/10.0;
+              mpa->config.gain = ((cs_float)mpa->tag_info.replay_gain[1])/10.0;
             }
         }
       }

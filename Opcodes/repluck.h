@@ -24,21 +24,21 @@
 #pragma once
 
 typedef struct _DelayLine {
-    MYFLT   *data;
+    cs_float   *data;
     int32_t length;
-    MYFLT   *pointer;
-    MYFLT   *end;
+    cs_float   *pointer;
+    cs_float   *end;
 } DelayLine;
 
 typedef struct  {
     OPDS    h;
-    MYFLT   *ar, *plk, *xamp, *icps, *pickup, *reflect;
-    MYFLT   *ain;
+    cs_float   *ar, *plk, *xamp, *icps, *pickup, *reflect;
+    cs_float   *ain;
     AUXCH   upper;
     AUXCH   lower;
     AUXCH   up_data;
     AUXCH   down_data;
-    MYFLT   state;
+    cs_float   state;
     int32_t     scale;
     int32_t     rail_len;
 } WGPLUCK2;
@@ -50,9 +50,9 @@ typedef struct  {
 /****************************************************/
 typedef struct{
         OPDS h;
-        MYFLT   *result, *ainput, *afr, *ifdbgain;
-        double   LPdelay, APdelay;
-        MYFLT   *Cdelay;
+        cs_float   *result, *ainput, *afr, *ifdbgain;
+        cs_double   LPdelay, APdelay;
+        cs_float   *Cdelay;
         AUXCH   aux;
         int32_t     wpointer, rpointer, size;
 } STRES;
