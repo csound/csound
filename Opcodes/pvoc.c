@@ -77,7 +77,7 @@ PVOC_GLOBALS *PVOC_AllocGlobals(CSOUND *csound)
     }
     p = (PVOC_GLOBALS*) csound->QueryGlobalVariable(csound, "pvocGlobals");
     p->csound = csound;
-    p->dsputil_sncTab = (MYFLT*) NULL;
+    p->dsputil_sncTab = (cs_float*) NULL;
     p->pvbufreadaddr = (PVBUFREAD*) NULL;
     p->tbladr = (TABLESEG*) NULL;
 

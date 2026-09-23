@@ -30,24 +30,24 @@ typedef struct ftgentmp_table {
 
 typedef struct {
   OPDS    h;
-  MYFLT   *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX-5];
+  cs_float   *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX-5];
   FTGENTMP_TABLE *tables;
 } FTGEN;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *ifilno, *iflag, *argums[VARGMAX-2];
+  cs_float   *ifilno, *iflag, *argums[VARGMAX-2];
 } FTLOAD;  /* gab 30 jul 2002 */
 
 typedef struct {
   OPDS    h;
-  MYFLT   *ifilno, *ktrig, *iflag, *argums[VARGMAX-2];
+  cs_float   *ifilno, *ktrig, *iflag, *argums[VARGMAX-2];
   FTLOAD  p;
 } FTLOAD_K; /* gab 30 jul 2002 */
 
 typedef struct {
   OPDS    h;
-  MYFLT   *iftno, *ifreeTime;
+  cs_float   *iftno, *ifreeTime;
   int32_t fno, deinit;
 } FTFREE;
 
@@ -78,7 +78,7 @@ static int32_t ftable_delete(CSOUND *csound, FTGEN *p)
 /* set up and call any GEN routine */
 static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istring2)
 {
-  MYFLT   *fp;
+  cs_float   *fp;
   FUNC    *ftp;
   EVTBLK  *ftevt;
   int32_t     n;
@@ -88,7 +88,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
   n = GetInputArgCnt((OPDS *)p);
   ftevt->pcnt = (int16) n;
   n -= 5;
-  ftevt->p = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*(ftevt->pcnt+1));
+  ftevt->p = (cs_float*) csound->Malloc(csound, sizeof(cs_float)*(ftevt->pcnt+1));
   ftevt->opcod = 'f';
   ftevt->strarg = NULL;
   fp = &ftevt->p[0];
@@ -143,7 +143,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
   }
 
   if (n > 0) {
-    MYFLT **argp = p->argums;
+    cs_float **argp = p->argums;
     fp += 6;
     do {
       *fp++ = **argp++;                               /* copy rem arglist */
@@ -155,7 +155,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
   if (UNLIKELY(n != 0))
     return csound->InitError(csound, "%s", Str("ftgen error"));
   if (ftp != NULL)
-    *p->ifno = (MYFLT) ftp->fno;                      /* record the fno */
+    *p->ifno = (cs_float) ftp->fno;                      /* record the fno */
   return OK;
 }
 
@@ -180,9 +180,9 @@ static int32_t ftgentmp_(CSOUND *csound, FTGEN *p,
 {
   if (UNLIKELY(ftgen_(csound, p, istring1, istring2) != OK))
     return NOTOK;
-  if (MYFLT2LRND(*p->p1) == 0 && *p->ifno > FL(0.0)) {
+  if (CS_FLOAT2LRND(*p->p1) == 0 && *p->ifno > FL(0.0)) {
     FTGENTMP_TABLE *table = csound->Malloc(csound, sizeof(FTGENTMP_TABLE));
-    table->fno = (int32_t) MYFLT2LRND(*p->ifno);
+    table->fno = (int32_t) CS_FLOAT2LRND(*p->ifno);
     /* Reinit can create more tables; retain each until the note ends. */
     table->next = p->tables;
     p->tables = table;
@@ -222,7 +222,7 @@ static int32_t ftfree_deinit(CSOUND *csound, FTFREE *p)
 }
 static int32_t ftfree(CSOUND *csound, FTFREE *p)
 {
-  p->fno = (int32_t) MYFLT2LRND(*p->iftno);
+  p->fno = (int32_t) CS_FLOAT2LRND(*p->iftno);
 
   if (UNLIKELY(p->fno <= 0))
     return csound->InitError(csound, Str("Invalid table number: %d"), p->fno);
@@ -250,7 +250,7 @@ static int32_t myInitError(CSOUND *csound, OPDS *p, const char *str, ...)
 static void ftload_copy_header(CSOUND *csound, FUNC *ftp,
                                const FUNC *header, size_t size)
 {
-  MYFLT *ftable = ftp->ftable;
+  cs_float *ftable = ftp->ftable;
   csound->Free(csound, ftp->args);
   memcpy(ftp, header, size);
   ftp->ftable = ftable;
@@ -277,13 +277,13 @@ static char *ftload_text_field(FILE *file, char *line, size_t size,
 
 static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
 {
-  MYFLT **argp = p->argums;
+  cs_float **argp = p->argums;
   FUNC  *ftp;
   char  filename[MAXNAME];
   int32_t   nargs = GetInputArgCnt((OPDS *)p) - 2;
   FILE  *file = NULL;
   int32_t   (*err_func)(CSOUND *, OPDS *, const char *, ...);
-  FUNC  *(*ft_func)(CSOUND *, MYFLT *);
+  FUNC  *(*ft_func)(CSOUND *, cs_float *);
   void  *fd;
 
   if (strncmp(GetOpcodeName((OPDS *)p), "ftloadk", 7) == 0) {
@@ -313,13 +313,13 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
     if (UNLIKELY(fd == NULL)) goto err3;
     while (nargs--) {
       FUNC  header;
-      int32_t   fno = (int32_t) MYFLT2LRND(**argp);
-      MYFLT fno_f = (MYFLT) fno;
+      int32_t   fno = (int32_t) CS_FLOAT2LRND(**argp);
+      cs_float fno_f = (cs_float) fno;
       size_t   n;
 
       memset(&header, 0, sizeof(FUNC));
       /* ***** Need to do byte order here ***** */
-      n = fread(&header, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ, 1, file);
+      n = fread(&header, sizeof(FUNC) - sizeof(cs_float) - SSTRSIZ, 1, file);
       if (UNLIKELY(n!=1)) goto err4;
       header.fno = (int32) fno;
       if (UNLIKELY(csound->FTAlloc(csound, fno, (int32_t) header.flen) != 0))
@@ -329,9 +329,9 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       if (ftp->flen > 0x40000000)
         return csound->InitError(csound,"%s", Str("table length too long"));
       ftload_copy_header(csound, ftp, &header,
-                         sizeof(FUNC) - sizeof(MYFLT*) - SSTRSIZ);
-      memset(ftp->ftable, 0, sizeof(MYFLT) * ((uint64_t) ftp->flen + 1));
-      n = fread(ftp->ftable, sizeof(MYFLT), ftp->flen + 1l, file);
+                         sizeof(FUNC) - sizeof(cs_float*) - SSTRSIZ);
+      memset(ftp->ftable, 0, sizeof(cs_float) * ((uint64_t) ftp->flen + 1));
+      n = fread(ftp->ftable, sizeof(cs_float), ftp->flen + 1l, file);
       if (UNLIKELY(n!=ftp->flen + 1)) goto err4;
       /* ***** Need to do byte order here ***** */
       argp++;
@@ -344,8 +344,8 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
     while (nargs--) {
       FUNC  header;
       char  s[64], *s1;
-      int32_t   fno = (int32_t) MYFLT2LRND(**argp);
-      MYFLT fno_f = (MYFLT) fno;
+      int32_t   fno = (int32_t) CS_FLOAT2LRND(**argp);
+      cs_float fno_f = (cs_float) fno;
       uint32_t  j;
       char *endptr;
 
@@ -368,7 +368,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
 #define FTLOAD_READ_FLOAT(FIELD) do {                                 \
         s1 = ftload_text_field(file, s, sizeof(s), #FIELD);            \
         if (UNLIKELY(s1 == NULL)) goto err4;                           \
-        header.FIELD = (MYFLT)csound->Strtod(s1, &endptr);              \
+        header.FIELD = (cs_float)csound->Strtod(s1, &endptr);              \
         if (UNLIKELY(endptr == s1 || !ftload_text_end(endptr)))         \
           goto err4;                                                 \
       } while (0)
@@ -408,12 +408,12 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
         ftp = ft_func(csound, &fno_f);
       }
       if (UNLIKELY(ftp == NULL || ftp->ftable == NULL)) goto err;
-      ftload_copy_header(csound, ftp, &header, sizeof(FUNC) - sizeof(MYFLT));
-      memset(ftp->ftable, 0, sizeof(MYFLT) * ((size_t)ftp->flen + 1));
+      ftload_copy_header(csound, ftp, &header, sizeof(FUNC) - sizeof(cs_float));
+      memset(ftp->ftable, 0, sizeof(cs_float) * ((size_t)ftp->flen + 1));
 
       for (j = 0; j <= ftp->flen; j++) {
         if (UNLIKELY(NULL == fgets(s, sizeof(s), file))) goto err4;
-        ftp->ftable[j] = (MYFLT)csound->Strtod(s, &endptr);
+        ftp->ftable[j] = (cs_float)csound->Strtod(s, &endptr);
         if (UNLIKELY(endptr == s || !ftload_text_end(endptr))) goto err4;
       }
       if (UNLIKELY(NULL == fgets(s, sizeof(s), file))) goto err4;
@@ -462,7 +462,7 @@ static int32_t ftload_kS(CSOUND *csound, FTLOAD_K *p)
 
 static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
 {
-  MYFLT **argp = p->argums;
+  cs_float **argp = p->argums;
   char  filename[MAXNAME];
   int32_t   nargs = GetInputArgCnt((OPDS *)p) - 3;
   FILE  *file = NULL;
@@ -497,15 +497,15 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
       //csound->Message(csound, "saving table %f \n", **argp);
       if ( *argp && (ftp = csound->FTFind(csound, *argp)) != NULL) {
         FUNC header = *ftp;
-        MYFLT *table = ftp->ftable;
+        cs_float *table = ftp->ftable;
         int32 flen = ftp->flen;
         int32_t n;
         header.args = NULL;
         header.argcnt = 0;
         header.ftable = NULL;
-        n =  (int32_t) fwrite(&header, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ, 1, file);
+        n =  (int32_t) fwrite(&header, sizeof(FUNC) - sizeof(cs_float) - SSTRSIZ, 1, file);
         if (UNLIKELY(n!=1)) goto err4;
-        n =  (int32_t) fwrite(table, sizeof(MYFLT), flen + 1, file);
+        n =  (int32_t) fwrite(table, sizeof(cs_float), flen + 1, file);
         if (UNLIKELY(n!=flen + 1)) goto err4;
       }
       else goto err;
@@ -522,7 +522,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
       if ((ftp = csound->FTFind(csound, *argp)) != NULL) {
         int32 flen = ftp->flen;
         int32 j;
-        MYFLT *table = ftp->ftable;
+        cs_float *table = ftp->ftable;
         /* IMPORTANT!! If FUNC structure and/or GEN01ARGS structure
            will be modified, the following code has to be modified too */
         fprintf(file,"======= TABLE %d size: %d values ======\n",
@@ -531,7 +531,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
         fprintf(file,"lenmask: %d\n", ftp->lenmask);
         fprintf(file,"lobits: %d\n",ftp->lobits);
         fprintf(file,"lomask: %d\n",ftp->lomask);
-        /* Keep enough digits to round-trip double-precision MYFLT values. */
+        /* Keep enough digits to round-trip double-precision cs_float values. */
         fprintf(file,"lodiv: %.17g\n",ftp->lodiv);
         fprintf(file,"cvtbas: %.17g\n",ftp->cvtbas);
         fprintf(file,"cpscvt: %.17g\n",ftp->cpscvt);
@@ -558,7 +558,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
         fprintf(file,"---------END OF HEADER--------------\n");
 
         for (j = 0; j <= flen; j++) {
-          MYFLT val = table[j];
+          cs_float val = table[j];
           fprintf(file,"%.17g\n",val);
         }
         fprintf(file,"---------END OF TABLE---------------\n");
@@ -598,7 +598,7 @@ static int32_t ftsave_k_set(CSOUND *csound, FTLOAD_K *p)
   p->p.ifilno = p->ifilno;
   p->p.iflag = p->iflag;
   memcpy(p->p.argums, p->argums,
-         sizeof(MYFLT*) * (GetInputArgCnt((OPDS *)p) - 3));
+         sizeof(cs_float*) * (GetInputArgCnt((OPDS *)p) - 3));
   return OK;
 }
 
@@ -618,7 +618,7 @@ static int32_t ftsave_kS(CSOUND *csound, FTLOAD_K *p)
 
 static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
 {
-  MYFLT   *fp;
+  cs_float   *fp;
   FUNC    *ftp;
   EVTBLK  *ftevt;
   int32_t     n;
@@ -628,7 +628,7 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
   ftevt =(EVTBLK*) csound->Malloc(csound, sizeof(EVTBLK));
   n = array->sizes[0];
   ftevt->pcnt =  n+4;
-  ftevt->p = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*(ftevt->pcnt+1));  
+  ftevt->p = (cs_float*) csound->Malloc(csound, sizeof(cs_float)*(ftevt->pcnt+1));
   ftevt->opcod = 'f';
   ftevt->strarg = NULL;
   fp = &ftevt->p[0];
@@ -658,14 +658,14 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
     }
   }
 
-  memcpy(&fp[5], array->data, n*sizeof(MYFLT));
+  memcpy(&fp[5], array->data, n*sizeof(cs_float));
   n = csound->FTCreate(csound, &ftp, ftevt, 1);         /* call the fgen */
   csound->Free(csound,ftevt->p);
   csound->Free(csound,ftevt);
   if (UNLIKELY(n != 0))
     return csound->InitError(csound, "%s", Str("ftgen error"));
   if (ftp != NULL)
-    *p->ifno = (MYFLT) ftp->fno;                      /* record the fno */
+    *p->ifno = (cs_float) ftp->fno;                      /* record the fno */
   return OK;
 }
 
@@ -684,9 +684,9 @@ static int32_t ftgen_list_i(CSOUND *csound, FTGEN *p){
 typedef struct {
   OPDS      h;
   STRINGDAT *Scd;
-  MYFLT     *ftable;
-  MYFLT     *ktrig;
-  MYFLT     prv_ktrig;
+  cs_float     *ftable;
+  cs_float     *ktrig;
+  cs_float     prv_ktrig;
   int32_t       status;
 } FTARGS;
 

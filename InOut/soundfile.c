@@ -78,36 +78,36 @@ static inline long sflib_seek(void *handle, long frames, int32_t whence) {
 }
 
 #ifndef USE_DOUBLE
-static inline long sflib_read_MYFLT(void *handle, float *ptr, long items) {
+static inline long sflib_read_cs_float(void *handle, float *ptr, long items) {
     return sf_read_float((SNDFILE *) handle, ptr, items);
 }
 
-static inline long sflib_write_MYFLT(void *handle, float *ptr, long items) {
+static inline long sflib_write_cs_float(void *handle, float *ptr, long items) {
     return sf_write_float((SNDFILE *) handle, ptr, items);
 }
 
-static inline long sflib_readf_MYFLT(void *handle, float *ptr, long items) {
+static inline long sflib_readf_cs_float(void *handle, float *ptr, long items) {
     return sf_readf_float((SNDFILE *) handle, ptr, items);
 }
 
-static inline long sflib_writef_MYFLT(void *handle, float *ptr, long items) {
+static inline long sflib_writef_cs_float(void *handle, float *ptr, long items) {
     return sf_writef_float((SNDFILE *) handle, ptr, items);
 }
 
 #else
-static inline long sflib_read_MYFLT(void *handle, double *ptr, long items) {
+static inline long sflib_read_cs_float(void *handle, cs_double *ptr, long items) {
     return sf_read_double((SNDFILE *) handle, ptr, items);
 }
 
-static inline long sflib_write_MYFLT(void *handle, double *ptr, long items) {
+static inline long sflib_write_cs_float(void *handle, cs_double *ptr, long items) {
     return sf_write_double((SNDFILE *) handle, ptr, items);
 }
 
-static inline long sflib_readf_MYFLT(void *handle, double *ptr, long items) {
+static inline long sflib_readf_cs_float(void *handle, cs_double *ptr, long items) {
     return sf_readf_double((SNDFILE *) handle, ptr, items);
 }
 
-static inline long sflib_writef_MYFLT(void *handle, double *ptr, long items) {
+static inline long sflib_writef_cs_float(void *handle, cs_double *ptr, long items) {
     return sf_writef_double((SNDFILE *) handle, ptr, items);
 }
 #endif // !USE_DOUBLE
@@ -133,19 +133,19 @@ static long sflib_seek(void *handle, long frames, int32_t whence) {
     return 0;
 }
 
-static long sflib_read_MYFLT(void *sndfile, MYFLT *ptr, long items) {
+static long sflib_read_cs_float(void *sndfile, cs_float *ptr, long items) {
     return 0;
 }
 
-static long sflib_readf_MYFLT(void *sndfile, MYFLT *ptr, long items) {
+static long sflib_readf_cs_float(void *sndfile, cs_float *ptr, long items) {
     return 0;
 }
 
-static long sflib_write_MYFLT(void *handle, MYFLT *ptr, long items) {
+static long sflib_write_cs_float(void *handle, cs_float *ptr, long items) {
     return 0;
 }
 
-static long sflib_writef_MYFLT(void *handle, MYFLT *ptr, long items) {
+static long sflib_writef_cs_float(void *handle, cs_float *ptr, long items) {
     return 0;
 }
 
@@ -159,26 +159,26 @@ static const char *sflib_strerror(void *p){
 }
 #endif
 
-int64_t csoundSndfileWrite(CSOUND *csound, void *h, MYFLT *p, int64_t frames) {
+int64_t csoundSndfileWrite(CSOUND *csound, void *h, cs_float *p, int64_t frames) {
   IGN(csound);
-  return sflib_writef_MYFLT(h, p, frames);
+  return sflib_writef_cs_float(h, p, frames);
 }
 
-int64_t csoundSndfileRead(CSOUND *csound, void *h, MYFLT *p, int64_t frames) {
+int64_t csoundSndfileRead(CSOUND *csound, void *h, cs_float *p, int64_t frames) {
   IGN(csound);
-  return sflib_readf_MYFLT(h, p, frames);
+  return sflib_readf_cs_float(h, p, frames);
 }
 
-int64_t csoundSndfileWriteSamples(CSOUND *csound, void *h, MYFLT *p,
+int64_t csoundSndfileWriteSamples(CSOUND *csound, void *h, cs_float *p,
                                    int64_t samples) {
   IGN(csound);
-  return sflib_write_MYFLT(h, p, samples);
+  return sflib_write_cs_float(h, p, samples);
 }
 
-int64_t csoundSndfileReadSamples(CSOUND *csound, void *h, MYFLT *p,
+int64_t csoundSndfileReadSamples(CSOUND *csound, void *h, cs_float *p,
                                   int64_t samples) {
   IGN(csound);
-  return sflib_read_MYFLT(h, p, samples);
+  return sflib_read_cs_float(h, p, samples);
 }
 
 int64_t csoundSndfileSeek(CSOUND *csound, void *h, int64_t frames,
@@ -222,20 +222,20 @@ int32_t csoundSndfileCommand(CSOUND *csound, void *handle, int32_t cmd,
 
 // stubs
 
-static int64_t csoundSndfileWrite_stub(CSOUND *csound, void *h, MYFLT *p, int64_t frames) {
+static int64_t csoundSndfileWrite_stub(CSOUND *csound, void *h, cs_float *p, int64_t frames) {
   return 0;
 }
 
-static int64_t csoundSndfileRead_stub(CSOUND *csound, void *h, MYFLT *p, int64_t frames) {
+static int64_t csoundSndfileRead_stub(CSOUND *csound, void *h, cs_float *p, int64_t frames) {
   return 0;
 }
 
-static int64_t csoundSndfileWriteSamples_stub(CSOUND *csound, void *h, MYFLT *p,
+static int64_t csoundSndfileWriteSamples_stub(CSOUND *csound, void *h, cs_float *p,
                                    int64_t samples) {
   return 0;
 }
 
-static int64_t csoundSndfileReadSamples_stub(CSOUND *csound, void *h, MYFLT *p,
+static int64_t csoundSndfileReadSamples_stub(CSOUND *csound, void *h, cs_float *p,
                                   int64_t samples) {
   return 0;
 }

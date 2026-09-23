@@ -25,7 +25,7 @@
 
 typedef struct  {
         OPDS    h;
-        MYFLT   *ar, *in, *a, *b, *d, *C, *L;   /* The parameter */
+        cs_float   *ar, *in, *a, *b, *d, *C, *L;   /* The parameter */
         AUXCH   delay;          /* Buffer for old values */
         int32_t     point;          /* Pointer to old values */
 } NLFILT;

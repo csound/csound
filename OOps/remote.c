@@ -446,7 +446,7 @@ int32_t insremot(CSOUND *csound, INSREMOT *p)
 /*                     (char *)p->str1 , ST(ipadrs)); */
     if (strcmp(ST(ipadrs), (char *)p->str1->data) == 0) {
       /* if client is this adrs */
-      MYFLT   **argp = p->insno;
+      cs_float   **argp = p->insno;
       int32_t rfd = 0;
       if ((rfd = CLopen(csound, (char *)p->str2->data)) < 0)
         /* open port to remote */
@@ -495,7 +495,7 @@ int32_t insglobal(CSOUND *csound, INSGLOBAL *p)
                     (char *)p->str1->data , ST(ipadrs));
     if (strcmp(ST(ipadrs), (char *)p->str1->data) == 0) {
       /* if client is this adrs */
-      MYFLT   **argp = p->insno;
+      cs_float   **argp = p->insno;
       for (nargs -= 1; nargs--; ) {
         int16 insno = (int16)**argp++;             /* for each insno */
         if (UNLIKELY(insno <= 0 || insno > 128)) {
@@ -526,7 +526,7 @@ int32_t midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
     }
     if (strcmp(ST(ipadrs), (char *)p->str1->data) == 0) {
       /* if client is this adrs */
-      MYFLT   **argp = p->chnum;
+      cs_float   **argp = p->chnum;
       int32_t  rfd;
         /* open port to remote */
       if (UNLIKELY((rfd = CLopen(csound, (char *)p->str2->data)) < 0))
@@ -574,7 +574,7 @@ int32_t midglobal(CSOUND *csound, MIDGLOBAL *p)
 /*                     (char *)p->str1 , ST(ipadrs)); */
     if (strcmp(ST(ipadrs), (char *)p->str1->data) == 0) {
       /* if client is this adrs */
-      MYFLT   **argp = p->chnum;
+      cs_float   **argp = p->chnum;
       for (nargs -= 1; nargs--; ) {
         int16 chnum = (int16)**argp++;             /* for each channel */
         if (UNLIKELY(chnum <= 0 || chnum > 16)) {
@@ -596,9 +596,9 @@ int32_t insSendevt(CSOUND *csound, EVTBLK *evt, int32_t rfd)
     REMOT_BUF *bp = &ST(CLsendbuf);
     EVTBLK *cpp = (EVTBLK *)bp->data;       /* align an EVTBLK struct */
     int32_t nn;
-    MYFLT *f, *g;
+    cs_float *f, *g;
     if(cpp->p == NULL)
-      cpp->p = csound->Calloc(csound, sizeof(MYFLT)*(PMAX+1));
+      cpp->p = csound->Calloc(csound, sizeof(cs_float)*(PMAX+1));
     cpp->pinstance = NULL;
     cpp->strarg = NULL;                     /* copy the initial header */
     cpp->scnt = 0;

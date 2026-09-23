@@ -37,7 +37,7 @@
 
 #define WG_WRAP_VIBRATO_PHASE(phase_, length_)                         \
   do {                                                                 \
-    MYFLT _length = (MYFLT)(length_);                                  \
+    cs_float _length = (cs_float)(length_);                                  \
     if (UNLIKELY(!((phase_) >= FL(0.0) && (phase_) < _length))) {      \
       if ((phase_) >= _length && (phase_) < FL(2.0) * _length)         \
         (phase_) -= _length;                                           \
@@ -73,11 +73,11 @@
 /*        more for information.               */
 /**********************************************/
 
-static inline MYFLT ReedTabl_LookUp(ReedTabl *r, MYFLT deltaP)
+static inline cs_float ReedTabl_LookUp(ReedTabl *r, cs_float deltaP)
 /*   Perform "Table Lookup" by direct clipped  */
 /*   linear function calculation               */
 {   /*   deltaP is differential reed pressure      */
-  MYFLT lastOutput = r->offSet + (r->slope * deltaP); /* basic non-lin */
+  cs_float lastOutput = r->offSet + (r->slope * deltaP); /* basic non-lin */
   if (lastOutput > FL(1.0))
     lastOutput = FL(1.0);      /* if other way, reed slams shut */
   if (lastOutput < -FL(1.0))
@@ -108,16 +108,16 @@ void make_OneZero(OneZero* z)
   z->inputs = FL(0.0);
 }
 
-MYFLT OneZero_tick(OneZero* z, MYFLT sample) /*   Perform Filter Operation  */
+cs_float OneZero_tick(OneZero* z, cs_float sample) /*   Perform Filter Operation  */
 {
-  MYFLT temp, lastOutput;
+  cs_float temp, lastOutput;
   temp = z->sgain * sample;
   lastOutput = (z->inputs * z->zeroCoeff) + temp;
   z->inputs = temp;
   return lastOutput;
 }
 
-void OneZero_setCoeff(OneZero* z, MYFLT aValue)
+void OneZero_setCoeff(OneZero* z, cs_float aValue)
 {
   z->zeroCoeff = aValue;
   if (z->zeroCoeff > FL(0.0))               /*  Normalize gain to 1.0 max  */
@@ -147,7 +147,7 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
                              Str("Clarinet vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
-    double release = ceil((double)*p->dettack * CS_EKR);
+    cs_double release = ceil((cs_double)*p->dettack * CS_EKR);
     if (UNLIKELY(!(*p->attack >= FL(0.0) && release >= 0.0 &&
                    release <= INT32_MAX)))
       return csound->InitError(csound, "%s",
@@ -191,16 +191,16 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
 
 int32_t clarin(CSOUND *csound, CLARIN *p)
 {
-  MYFLT *ar = p->ar;
+  cs_float *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-  MYFLT nGain = *p->noiseGain;
+  cs_float amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+  cs_float nGain = *p->noiseGain;
   int32_t v_len = (int32_t)p->vibr->flen;
-  MYFLT *v_data = p->vibr->ftable;
-  MYFLT vibGain = *p->vibAmt;
-  MYFLT vTime = p->v_time;
+  cs_float *v_data = p->vibr->ftable;
+  cs_float vibGain = *p->vibAmt;
+  cs_float vTime = p->v_time;
 
   if (p->attackPending) {
     p->envelope.target = FL(0.55) + amp*FL(0.30);
@@ -222,23 +222,23 @@ int32_t clarin(CSOUND *csound, CLARIN *p)
     p->envelope.target =  FL(0.0);
 #ifdef BETA
     csound->Message(csound, "Set off phase time = %f Breath v,r = %f, %f\n",
-                    (MYFLT) CS_KCNT * CS_ONEDKR,
+                    (cs_float) CS_KCNT * CS_ONEDKR,
                     p->envelope.value, p->envelope.rate);
 #endif
   }
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset;n<nsmps;n++) {
-    MYFLT   pressureDiff;
-    MYFLT   breathPressure;
+    cs_float   pressureDiff;
+    cs_float   breathPressure;
     int32    temp;
-    MYFLT   temp_time, alpha;
-    MYFLT   nextsamp;
-    MYFLT   v_lastOutput;
-    MYFLT   lastOutput;
+    cs_float   temp_time, alpha;
+    cs_float   nextsamp;
+    cs_float   v_lastOutput;
+    cs_float   lastOutput;
 
     breathPressure = Envelope_tick(&p->envelope);
     breathPressure += breathPressure * nGain * Noise_tick(csound,&p->noise);
@@ -256,7 +256,7 @@ int32_t clarin(CSOUND *csound, CLARIN *p)
 #endif
     temp = (int32_t) temp_time;    /*  Integer part of time address    */
                                    /*  fractional part of time address */
-    alpha = temp_time - (MYFLT)temp;
+    alpha = temp_time - (cs_float)temp;
     v_lastOutput = v_data[temp]; /* Do linear interpolation */
     /*  same as alpha*data[temp+1] + (1-alpha)data[temp] */
     v_lastOutput += (alpha * (v_data[temp+1] - v_lastOutput));
@@ -301,10 +301,10 @@ int32_t clarin(CSOUND *csound, CLARIN *p)
 /* nomial calculation.                        */
 /**********************************************/
 
-static inline MYFLT JetTabl_lookup(MYFLT sample) /* Perform "Table Lookup"  */
+static inline cs_float JetTabl_lookup(cs_float sample) /* Perform "Table Lookup"  */
 {                                  /* By Polynomial Calculation */
                                    /* (x^3 - x) approximates sigmoid of jet */
-  MYFLT j = sample * (sample*sample - FL(1.0));
+  cs_float j = sample * (sample*sample - FL(1.0));
   if (j > FL(1.0)) j = FL(1.0);        /* Saturation at +/- 1.0       */
   else if (j < -FL(1.0)) j = -FL(1.0);
   return j;
@@ -324,7 +324,7 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
                              Str("Flute vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
-    double release = ceil((double)*p->dettack * CS_EKR);
+    cs_double release = ceil((cs_double)*p->dettack * CS_EKR);
     if (UNLIKELY(!(*p->attack >= FL(0.0) && release >= 0.0 &&
                    release <= INT32_MAX)))
       return csound->InitError(csound, "%s",
@@ -388,17 +388,17 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
 
 int32_t flute(CSOUND *csound, FLUTE *p)
 {
-  MYFLT       *ar = p->ar;
+  cs_float       *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-  MYFLT       temp;
+  cs_float       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+  cs_float       temp;
   int32_t     v_len = (int32_t)p->vibr->flen;
-  MYFLT       *v_data = p->vibr->ftable;
-  MYFLT       v_time = p->v_time;
-  MYFLT       vibGain = *p->vibAmt;
-  MYFLT       jetRefl, endRefl, noisegain;
+  cs_float       *v_data = p->vibr->ftable;
+  cs_float       v_time = p->v_time;
+  cs_float       vibGain = *p->vibAmt;
+  cs_float       jetRefl, endRefl, noisegain;
 
   if (amp!=p->lastamp) {      /* If amplitude has changed */
     p->maxPress = (FL(1.1) + (amp * FL(0.20))) / FL(0.8);
@@ -439,20 +439,20 @@ int32_t flute(CSOUND *csound, FLUTE *p)
     p->adsr.state = RELEASE;
   }
   noisegain = *p->noiseGain; jetRefl = *p->jetRefl; endRefl = *p->endRefl;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset;n<nsmps;n++) {
     int32     temp;
-    MYFLT     temf;
-    MYFLT     temp_time, alpha;
-    MYFLT     pressDiff;
-    MYFLT     randPress;
-    MYFLT     breathPress;
-    MYFLT     lastOutput;
-    MYFLT     v_lastOutput;
+    cs_float     temf;
+    cs_float     temp_time, alpha;
+    cs_float     pressDiff;
+    cs_float     randPress;
+    cs_float     breathPress;
+    cs_float     lastOutput;
+    cs_float     v_lastOutput;
 
     breathPress = p->maxPress * ADSR_tick(&p->adsr); /* Breath Pressure */
     randPress = noisegain*Noise_tick(csound,&p->noise); /* Random Deviation */
@@ -471,7 +471,7 @@ int32_t flute(CSOUND *csound, FLUTE *p)
 
     temp = (int32_t) temp_time;        /*  Integer part of time address    */
                                        /*  fractional part of time address */
-    alpha = temp_time - (MYFLT)temp;
+    alpha = temp_time - (cs_float)temp;
     v_lastOutput = v_data[temp];    /* Do linear interpolation */
     /*  same as alpha*data[temp+1] + (1-alpha)data[temp] */
     v_lastOutput += (alpha * (v_data[temp+1] - v_lastOutput));
@@ -515,10 +515,10 @@ int32_t flute(CSOUND *csound, FLUTE *p)
 /******************************************/
 
 /*  Perform Table Lookup    */
-MYFLT BowTabl_lookup(CSOUND *csound, BowTabl *b, MYFLT sample)
+cs_float BowTabl_lookup(CSOUND *csound, BowTabl *b, cs_float sample)
 {                                              /*  sample is differential  */
-  MYFLT lastOutput;                          /*  string vs. bow velocity */
-  MYFLT input;
+  cs_float lastOutput;                          /*  string vs. bow velocity */
+  cs_float input;
   input = sample /* + b->offSet*/ ;          /*  add bias to sample      */
   input *= b->slope;                         /*  scale it                */
   lastOutput = FABS(input) + FL(0.75); /*  below min delta, frict = 1 */
@@ -532,7 +532,7 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
 {
   int32        length;
   FUNC        *ftp;
-  MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+  cs_float       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
@@ -604,12 +604,12 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
 
 int32_t bowed(CSOUND *csound, BOWED *p)
 {
-  MYFLT       *ar = p->ar;
+  cs_float       *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-  MYFLT       maxVel;
+  cs_float       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+  cs_float       maxVel;
   int32_t         freq_changed = 0;
 
   if (amp != p->lastamp) {
@@ -648,16 +648,16 @@ int32_t bowed(CSOUND *csound, BOWED *p)
     p->adsr.state = RELEASE;
   }
 
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset;n<nsmps;n++) {
-    MYFLT     bowVelocity;
-    MYFLT     bridgeRefl=FL(0.0), nutRefl=FL(0.0);
-    MYFLT     newVel=FL(0.0), velDiff=FL(0.0), stringVel=FL(0.0);
-    MYFLT     lastOutput;
+    cs_float     bowVelocity;
+    cs_float     bridgeRefl=FL(0.0), nutRefl=FL(0.0);
+    cs_float     newVel=FL(0.0), velDiff=FL(0.0), stringVel=FL(0.0);
+    cs_float     lastOutput;
 
     bowVelocity = maxVel * ADSR_tick(&p->adsr);
 
@@ -673,7 +673,7 @@ int32_t bowed(CSOUND *csound, BOWED *p)
 
     if (*p->vibAmt > FL(0.0)) {
       int32    temp;
-      MYFLT   temp_time, alpha;
+      cs_float   temp_time, alpha;
       /* Tick on vibrato table */
       p->v_time += p->v_rate;              /*  Update current time    */
       WG_WRAP_VIBRATO_PHASE(p->v_time, p->vibr->flen);
@@ -688,7 +688,7 @@ int32_t bowed(CSOUND *csound, BOWED *p)
 #endif
       temp = (int32_t) temp_time;    /*  Integer part of time address    */
       /*  fractional part of time address */
-      alpha = temp_time - (MYFLT)temp;
+      alpha = temp_time - (cs_float)temp;
       p->v_lastOutput = p->vibr->ftable[temp]; /* Do linear interpolation */
       /*  same as alpha*data[temp+1] + (1-alpha)data[temp] */
       p->v_lastOutput = p->v_lastOutput +
@@ -737,18 +737,18 @@ int32_t bowed(CSOUND *csound, BOWED *p)
 void make_DLineA(CSOUND *csound, DLineA *p, int32 max_length)
 {
   p->length = max_length;
-  csound->AuxAlloc(csound, max_length * sizeof(MYFLT), &p->inputs);
+  csound->AuxAlloc(csound, max_length * sizeof(cs_float), &p->inputs);
   p->lastIn = FL(0.0);
   p->lastOutput = FL(0.0);
   p->inPoint = 0;
   p->outPoint = max_length >> 1;
 }
 
-int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
+int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, cs_float lag)
 {
-  MYFLT outputPointer;
+  cs_float outputPointer;
   /* outPoint chases inpoint + 2 for interp and other        */
-  outputPointer = (MYFLT)p->inPoint - lag + FL(2.0);
+  outputPointer = (cs_float)p->inPoint - lag + FL(2.0);
 
   if (UNLIKELY(p->length<=0)) goto err1;
   while (outputPointer<0)
@@ -771,13 +771,13 @@ int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
   return NOTOK;
 }
 
-MYFLT DLineA_tick(DLineA *p, MYFLT sample)   /*   Take sample, yield sample */
+cs_float DLineA_tick(DLineA *p, cs_float sample)   /*   Take sample, yield sample */
 {
-  MYFLT temp;
-  ((MYFLT*)p->inputs.auxp)[p->inPoint++] = sample; /* Write input sample  */
+  cs_float temp;
+  ((cs_float*)p->inputs.auxp)[p->inPoint++] = sample; /* Write input sample  */
   if (p->inPoint >= p->length)                 /* Increment input pointer */
     p->inPoint -= p->length;                 /* modulo length           */
-  temp = ((MYFLT*)p->inputs.auxp)[p->outPoint++]; /* filter input         */
+  temp = ((cs_float*)p->inputs.auxp)[p->outPoint++]; /* filter input         */
   if (p->outPoint >= p->length)                /* Increment output pointer*/
     p->outPoint -= p->length;                /* modulo length           */
   p->lastOutput = -p->coeff * p->lastOutput;   /* delayed output          */
@@ -798,11 +798,11 @@ MYFLT DLineA_tick(DLineA *p, MYFLT sample)   /*   Take sample, yield sample */
 
 #define make_LipFilt(p) make_BiQuad(p)
 
-void LipFilt_setFreq(BRASS *p, LipFilt *pp, MYFLT frequency)
+void LipFilt_setFreq(BRASS *p, LipFilt *pp, cs_float frequency)
 {
-  MYFLT coeffs[2];
+  cs_float coeffs[2];
   coeffs[0] = FL(2.0) * FL(0.997) *
-    (MYFLT)cos(CS_TPIDSR * (double)frequency);   /* damping should  */
+    (cs_float)cos(CS_TPIDSR * (cs_double)frequency);   /* damping should  */
   coeffs[1] = -FL(0.997) * FL(0.997);                 /* change with lip */
   BiQuad_setPoleCoeffs(pp, coeffs);                    /* parameters, but */
   BiQuad_setGain(*pp, FL(0.03));                       /* not yet.        */
@@ -812,11 +812,11 @@ void LipFilt_setFreq(BRASS *p, LipFilt *pp, MYFLT frequency)
 /*              settings based on Mass/Spring/Damping     */
 /*              Maybe in TookKit97                        */
 
-MYFLT LipFilt_tick(LipFilt *p, MYFLT mouthSample, MYFLT boreSample)
+cs_float LipFilt_tick(LipFilt *p, cs_float mouthSample, cs_float boreSample)
 /*   Perform "Table Lookup" By Polynomial Calculation */
 {
-  MYFLT temp;
-  MYFLT output;
+  cs_float temp;
+  cs_float output;
   temp = mouthSample - boreSample;     /* Differential pressure        */
   temp = BiQuad_tick(p, temp);         /* Force -> position            */
   temp = temp*temp;                    /* Simple position to area mapping */
@@ -831,7 +831,7 @@ MYFLT LipFilt_tick(LipFilt *p, MYFLT mouthSample, MYFLT boreSample)
 int32_t brassset(CSOUND *csound, BRASS *p)
 {
   FUNC        *ftp;
-  MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+  cs_float amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
@@ -842,7 +842,7 @@ int32_t brassset(CSOUND *csound, BRASS *p)
                              Str("Brass vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {
-    MYFLT frequency = *p->frequency;
+    cs_float frequency = *p->frequency;
     if (*p->lowestFreq!=FL(0.0)) {
       p->length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
       p->limit = *p->lowestFreq;
@@ -882,7 +882,7 @@ int32_t brassset(CSOUND *csound, BRASS *p)
     p->lipT = FL(0.0);
     p->v_time = FL(0.0);
     /*     LipFilt_setFreq(csound, &p->lipFilter, */
-    /*                     p->lipTarget * (MYFLT)pow(4.0,
+    /*                     p->lipTarget * (cs_float)pow(4.0,
                            (2.0* p->lipT) -1.0)); */
     {
       int32_t relestim = (int32_t)(CS_EKR * FL(0.1));
@@ -900,16 +900,16 @@ int32_t brassset(CSOUND *csound, BRASS *p)
 
 int32_t brass(CSOUND *csound, BRASS *p)
 {
-  MYFLT *ar = p->ar;
+  cs_float *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-  MYFLT maxPressure = p->maxPressure = amp;
+  cs_float amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+  cs_float maxPressure = p->maxPressure = amp;
   int32_t v_len = (int32_t)p->vibr->flen;
-  MYFLT *v_data = p->vibr->ftable;
-  MYFLT vibGain = *p->vibAmt;
-  MYFLT vTime = p->v_time;
+  cs_float *v_data = p->vibr->ftable;
+  cs_float vibGain = *p->vibAmt;
+  cs_float vTime = p->v_time;
 
   int32_t frequencyChanged = 0;
   if (amp != p->lastamp) {
@@ -942,21 +942,21 @@ int32_t brass(CSOUND *csound, BRASS *p)
   if (frequencyChanged || *p->liptension != p->lipT) {
     p->lipT = *p->liptension;
     LipFilt_setFreq(p, &p->lipFilter,
-                    p->lipTarget * (MYFLT)pow(4.0,(2.0* p->lipT) -1.0));
+                    p->lipTarget * (cs_float)pow(4.0,(2.0* p->lipT) -1.0));
   }
 
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset;n<nsmps;n++) {
-    MYFLT     breathPressure;
-    MYFLT     lastOutput;
+    cs_float     breathPressure;
+    cs_float     lastOutput;
     int32_t       temp;
-    MYFLT     temp_time, alpha;
-    MYFLT     v_lastOutput;
-    MYFLT     ans;
+    cs_float     temp_time, alpha;
+    cs_float     v_lastOutput;
+    cs_float     ans;
 
     breathPressure = maxPressure * ADSR_tick(&p->adsr);
     /* Tick on vibrato table */
@@ -974,7 +974,7 @@ int32_t brass(CSOUND *csound, BRASS *p)
 
     temp = (int32_t) temp_time;            /*  Integer part of time address    */
     /*  fractional part of time address */
-    alpha = temp_time - (MYFLT)temp;
+    alpha = temp_time - (cs_float)temp;
     v_lastOutput = v_data[temp];  /* Do linear interpolation, same as */
     v_lastOutput +=               /*alpha*data[temp+1]+(1-alpha)data[temp] */
       (alpha * (v_data[temp+1] - v_lastOutput));

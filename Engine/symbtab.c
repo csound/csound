@@ -279,7 +279,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
 
     inm->outchns = i;
     opc->dsblksiz = (uint16) (sizeof(UOPCODE) +
-                              sizeof(MYFLT*) * (inm->inchns + inm->outchns));
+                              sizeof(cs_float*) * (inm->inchns + inm->outchns));
     opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
                      & (~((uint16) 15)));   /* align (needed ?) */
     opc->intypes = csoundStrdup(csound, (inm->intypes[0] == '0') ? "" :

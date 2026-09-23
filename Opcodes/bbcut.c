@@ -26,7 +26,7 @@
 
 /* my auxilliary functions */
 
-static inline int32_t roundoffint(MYFLT x)
+static inline int32_t roundoffint(cs_float x)
 {
     if (x > 0)
       return((int32_t)(x + 0.500001)); /* in case of a close rounding
@@ -37,15 +37,15 @@ static inline int32_t roundoffint(MYFLT x)
 
 static int32_t random_number(CSOUND *csound, int32_t a, int32_t b)
 {
-    MYFLT x;
-    x = (MYFLT) (csound->Rand31(csound->RandSeed31(csound)) - 1) / FL(2147483645.0);
-    return roundoffint((MYFLT) a + x * (MYFLT) (b - a));
+    cs_float x;
+    x = (cs_float) (csound->Rand31(csound->RandSeed31(csound)) - 1) / FL(2147483645.0);
+    return roundoffint((cs_float) a + x * (cs_float) (b - a));
 }
 
-static MYFLT myfltrandom(CSOUND *csound, MYFLT a, MYFLT b)
+static cs_float myfltrandom(CSOUND *csound, cs_float a, cs_float b)
 {
-    MYFLT x;
-    x = (MYFLT) (csound->Rand31(csound->RandSeed31(csound)) - 1) / FL(2147483645.0);
+    cs_float x;
+    x = (cs_float) (csound->Rand31(csound->RandSeed31(csound)) - 1) / FL(2147483645.0);
     return (a + x * (b - a));
 }
 
@@ -54,15 +54,15 @@ static int32_t BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
     /* call seed random at time now? */
     /* later for efficiency- lookup table for grain envelope */
     /* int32_t i; */
-    /* MYFLT t; */
+    /* cs_float t; */
 
     /* allocate space for a 256 point quarter sine/ exponential wavetable  */
 /*     if (p->envbuffer.auxp == NULL) { */
-/*       csound->AuxAlloc(csound, 256*sizeof(MYFLT),&p->envbuffer); */
+/*       csound->AuxAlloc(csound, 256*sizeof(cs_float),&p->envbuffer); */
 
 /*       for (i=0;i<256;++i) { */
-/*         t= (PI*0.5*(MYFLT)i)/255.0; */
-/*         ((MYFLT*) (p->envbuffer.auxp))[i]=t; */
+/*         t= (PI*0.5*(cs_float)i)/255.0; */
+/*         ((cs_float*) (p->envbuffer.auxp))[i]=t; */
 /*       } */
 /*     } */
     size_t M;                      /* A temporary */
@@ -78,7 +78,7 @@ static int32_t BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 
     /* allocate space- need no more than a half bar at current
        tempo and barlength */
-    M = ((size_t)(CS_ESR*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
+    M = ((size_t)(CS_ESR*(*p->barlength)/(*p->bps)))*sizeof(cs_float);
     if (p->repeatbuffer.auxp == NULL || p->repeatbuffer.size<M) {
       csound->AuxAlloc(csound, M, &p->repeatbuffer);
     }
@@ -94,8 +94,8 @@ static int32_t BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
     /* samp per unit= samp per bar/ subdiv */
     /* = samp per beat * beats per bar /subdiv */
     /* =(samp per sec / beats per sec)* (beats per bar/subdiv)  */
-    p->samplesperunit = roundoffint(((MYFLT)CS_ESR*(FL(1.0)/(*p->bps)))*
-                                    (*p->barlength/(MYFLT)p->Subdiv));
+    p->samplesperunit = roundoffint(((cs_float)CS_ESR*(FL(1.0)/(*p->bps)))*
+                                    (*p->barlength/(cs_float)p->Subdiv));
 
     /* enveloping */
     p->Envelopingon = roundoffint(*p->envelopingon);
@@ -115,12 +115,12 @@ static int32_t BBCutMono(CSOUND *csound, BBCUTMONO *p)
     uint32_t i, nsmps = CS_KSMPS;
     int32_t oddmax,unitproj;
     int32_t unitb,unitl,unitd;      /* temp for integer unitblock calculations */
-    MYFLT envmult,out;          /* intermedaites for enveloping grains */
+    cs_float envmult,out;          /* intermedaites for enveloping grains */
 
-    if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&p->aout[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->aout[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i=offset;i<nsmps;i++) {
       if (UNLIKELY((p->unitsdone+FL(0.000001))>=p->totalunits)) {
@@ -129,7 +129,7 @@ static int32_t BBCutMono(CSOUND *csound, BBCUTMONO *p)
         p->totalunits  = p->numbarsnow*p->Subdiv;
 
         p->unitsdone   = 0;
-        p->unitsleft   = (MYFLT)p->totalunits;    /* must reset here */
+        p->unitsleft   = (cs_float)p->totalunits;    /* must reset here */
         p->repeats     = 0;
         p->repeatsdone = 0;
         p->stutteron   = 0;
@@ -187,7 +187,7 @@ static int32_t BBCutMono(CSOUND *csound, BBCUTMONO *p)
           }
 
           /* convert integer to float */
-          p->unitblock = (MYFLT) unitb;
+          p->unitblock = (cs_float) unitb;
         }       /* end of stutter/no stutter */
 
         /* determine offset - this part is very different for the csound
@@ -219,18 +219,18 @@ static int32_t BBCutMono(CSOUND *csound, BBCUTMONO *p)
         /* envelope in */
         if (p->repeatsampdone<p->envsize) {
           /* used sinusoid- prefer exponential */
-        /* envmult= sin(PI*0.5*(((MYFLT)(p->repeatsampdone))/(MYFLT)p->envsize)); */
-          envmult = (EXP((MYFLT)p->repeatsampdone/p->envsize)-FL(1.0))/
+        /* envmult= sin(PI*0.5*(((cs_float)(p->repeatsampdone))/(cs_float)p->envsize)); */
+          envmult = (EXP((cs_float)p->repeatsampdone/p->envsize)-FL(1.0))/
             FL(1.7182818284590);
         }
 
         /* envelope out if necessary */
         if (p->repeatsampdone>=(p->repeatlengthsamp-p->envsize)) {
-          MYFLT xx = p->envsize; /* JPff patch 2019 Apr 28 */
+          cs_float xx = p->envsize; /* JPff patch 2019 Apr 28 */
           if (xx==0.0) xx = 00.1;
           /* envmult = sin(PI*0.5*
-             (((MYFLT)(p->repeatlengthsamp-p->repeatsampdone))/
-             (MYFLT)p->envsize)); */
+             (((cs_float)(p->repeatlengthsamp-p->repeatsampdone))/
+             (cs_float)p->envsize)); */
           envmult = (EXP(((p->repeatlengthsamp-p->repeatsampdone))/
                          (xx))-FL(1.0))/
             FL(1.7182818284590);
@@ -242,11 +242,11 @@ static int32_t BBCutMono(CSOUND *csound, BBCUTMONO *p)
         p->aout[i] = out;
 
         if (p->repeats>1) {     /* if recording a repeat */
-          ((MYFLT*)(p->repeatbuffer.auxp))[p->repeatsampdone] = out;
+          ((cs_float*)(p->repeatbuffer.auxp))[p->repeatsampdone] = out;
         }
       }
       else {    /* reading repeatbuffer for repeats */
-        p->aout[i] = ((MYFLT*)(p->repeatbuffer.auxp))[p->repeatsampdone];
+        p->aout[i] = ((cs_float*)(p->repeatbuffer.auxp))[p->repeatsampdone];
       }
 
       /* per sample accounting */
@@ -284,16 +284,16 @@ static int32_t BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 
     /* later for efficiency- lookup table for grain envelope */
     /* int32_t i; */
-    /* MYFLT t; */
+    /* cs_float t; */
 
        /* allocate space for a 256 point quarter sine/ exponential wavetable  */
 /*     if (p->envbuffer.auxp == NULL) { */
-/*       csound->AuxAlloc(csound, ((int32_t)(256*sizeof(MYFLT),&p->envbuffer); */
+/*       csound->AuxAlloc(csound, ((int32_t)(256*sizeof(cs_float),&p->envbuffer); */
 
 /*                 for (i=0;i<256;++i) */
 /*       { */
-/*         t= (PI*0.5*(MYFLT)i)/255.0; */
-/*         ((MYFLT*) (p->envbuffer.auxp))[i]=t; */
+/*         t= (PI*0.5*(cs_float)i)/255.0; */
+/*         ((cs_float*) (p->envbuffer.auxp))[i]=t; */
 /*       } */
 /*                 } */
 
@@ -311,7 +311,7 @@ static int32_t BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 
     /* allocate space- need no more than a half bar at current tempo
        and barlength */
-    M = 2*((size_t)(CS_ESR*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
+    M = 2*((size_t)(CS_ESR*(*p->barlength)/(*p->bps)))*sizeof(cs_float);
     if (p->repeatbuffer.auxp == NULL || p->repeatbuffer.size<M) {
       /* multiply by 2 for stereo buffer */
       csound->AuxAlloc(csound, M, &p->repeatbuffer);
@@ -327,9 +327,9 @@ static int32_t BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
     /* samp per unit= samp per bar/ subdiv */
     /* = samp per beat * beats per bar /subdiv */
     /* =(samp per sec / beats per sec)* (beats per bar/subdiv)  */
-    p->samplesperunit = roundoffint(((MYFLT)CS_ESR/
+    p->samplesperunit = roundoffint(((cs_float)CS_ESR/
                                      (*p->bps))*(*p->barlength/
-                                                 (MYFLT)p->Subdiv));
+                                                 (cs_float)p->Subdiv));
 
     /* enveloping */
     p->Envelopingon = roundoffint(*p->envelopingon);
@@ -348,16 +348,16 @@ static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
     uint32_t i, nsmps = CS_KSMPS;
     int32_t oddmax,unitproj;
     int32_t unitb,unitl,unitd;      /* temp for integer unitblock calculations */
-    MYFLT envmult,out1,out2;/* intermediates for enveloping grains */
+    cs_float envmult,out1,out2;/* intermediates for enveloping grains */
 
     if (UNLIKELY(offset)) {
-      memset(p->aout1, '\0', offset*sizeof(MYFLT));
-      memset(p->aout2, '\0', offset*sizeof(MYFLT));
+      memset(p->aout1, '\0', offset*sizeof(cs_float));
+      memset(p->aout2, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&p->aout1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&p->aout2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->aout1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&p->aout2[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i=offset;i<nsmps;i++) {
       /* a new phrase of cuts */
@@ -366,7 +366,7 @@ static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
         p->totalunits  = p->numbarsnow*p->Subdiv;
 
         p->unitsdone   = 0;
-        p->unitsleft   = (MYFLT)p->totalunits;    /* must reset here */
+        p->unitsleft   = (cs_float)p->totalunits;    /* must reset here */
         p->repeats     = 0;
         p->repeatsdone = 0;
         p->stutteron   = 0;
@@ -428,7 +428,7 @@ static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
           }
 
           /* convert integer to float */
-          p->unitblock = (MYFLT) unitb;
+          p->unitblock = (cs_float) unitb;
 
         }       /* end of stutter/no stutter */
 
@@ -462,17 +462,17 @@ static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
         /* envelope in */
         if (p->repeatsampdone<p->envsize) {
           /* used sinusoid- prefer exponential */
-          /* envmult = sin(PI*0.5*(((MYFLT)(p->repeatsampdone))/
-             (MYFLT)p->envsize)); */
-          envmult = (EXP((MYFLT)p->repeatsampdone/p->envsize)-
+          /* envmult = sin(PI*0.5*(((cs_float)(p->repeatsampdone))/
+             (cs_float)p->envsize)); */
+          envmult = (EXP((cs_float)p->repeatsampdone/p->envsize)-
                      FL(1.0))/FL(1.7182818284590);
         }
 
         /* envelope out if necessary */
         if (p->repeatsampdone>=(p->repeatlengthsamp-p->envsize)) {
-   /* envmult = sin(PI*0.5*(((MYFLT)(p->repeatlengthsamp-p->repeatsampdone))/
-      (MYFLT)p->envsize)); */
-          MYFLT xx = p->envsize;
+   /* envmult = sin(PI*0.5*(((cs_float)(p->repeatlengthsamp-p->repeatsampdone))/
+      (cs_float)p->envsize)); */
+          cs_float xx = p->envsize;
           if (xx==FL(0.0)) xx = 0.001; /* JPff patch 2019 Apr 28 */
           envmult = (EXP(((p->repeatlengthsamp-
                                           p->repeatsampdone))/
@@ -489,14 +489,14 @@ static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
 
         if (p->repeats>1) {     /* if recording a repeat */
           /* STEREO INTERLEAVED */
-          ((MYFLT*)(p->repeatbuffer.auxp))[2*p->repeatsampdone] = out1;
-          ((MYFLT*)(p->repeatbuffer.auxp))[2*p->repeatsampdone+1] = out2;
+          ((cs_float*)(p->repeatbuffer.auxp))[2*p->repeatsampdone] = out1;
+          ((cs_float*)(p->repeatbuffer.auxp))[2*p->repeatsampdone+1] = out2;
         }
 
       }
       else {    /* reading repeatbuffer for repeats */
-        p->aout1[i] = ((MYFLT*)(p->repeatbuffer.auxp))[2*p->repeatsampdone];
-        p->aout2[i] = ((MYFLT*)(p->repeatbuffer.auxp))[2*p->repeatsampdone+1];
+        p->aout1[i] = ((cs_float*)(p->repeatbuffer.auxp))[2*p->repeatsampdone];
+        p->aout2[i] = ((cs_float*)(p->repeatbuffer.auxp))[2*p->repeatsampdone+1];
       }
 
       /* per sample accounting */

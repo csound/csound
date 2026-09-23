@@ -73,7 +73,7 @@ static CS_NOINLINE int32_t fout_deinit(CSOUND *csound, FOUT_FILE *p)
 }
 
 static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
-                                             int32_t fileType, MYFLT *iFile,
+                                             int32_t fileType, cs_float *iFile,
                                              int32_t isString,
                                              void *fileParams, int32_t forceSync,
                                              int32_t *handle)
@@ -108,7 +108,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
   /* else csound->strarg2name(csound, NULL, iFile, "fout.", 0);*/
   else {
     /* or handle to previously opened file */
-    idx = (int32_t) MYFLT2LRND(*iFile);
+    idx = (int32_t) CS_FLOAT2LRND(*iFile);
     if (UNLIKELY(idx < 0 || idx > pp->file_num ||
                  (fileType == CSFILE_STD && pp->file_opened[idx].raw == NULL) ||
                  (fileType != CSFILE_STD && pp->file_opened[idx].file == NULL))) {
@@ -280,7 +280,7 @@ static int32_t outfile(CSOUND *csound, OUTFILE *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, j, k, nsmps = CS_KSMPS;
   uint32_t nargs = p->nargs;
-  MYFLT *buf = (MYFLT *) p->buf.auxp;
+  cs_float *buf = (cs_float *) p->buf.auxp;
 
   if (UNLIKELY(early)) nsmps -= early;
   if (p->f.sf == NULL) {
@@ -316,9 +316,9 @@ static int32_t outfile_array(CSOUND *csound, OUTFILEA *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, j, k, nsmps = CS_KSMPS;
   uint32_t nargs = p->f.nchnls;
-  MYFLT *buf = (MYFLT *) p->buf.auxp;
-  MYFLT *data = p->tabin->data;
-  size_t stride = p->tabin->arrayMemberSize / sizeof(MYFLT);
+  cs_float *buf = (cs_float *) p->buf.auxp;
+  cs_float *data = p->tabin->data;
+  size_t stride = p->tabin->arrayMemberSize / sizeof(cs_float);
 
   if (UNLIKELY(p->tabin->dimensions != 1 ||
                p->tabin->sizes[0] != (int32_t)nargs))
@@ -346,7 +346,7 @@ static int32_t outfile_array(CSOUND *csound, OUTFILEA *p)
         csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
       else
         //csound->SndfileWriteSamples(csound, p->f.sf, buf, p->buf_pos);
-        csound->SndfileWrite(csound, p->f.sf, (MYFLT *) buf, p->buf_pos/nargs); // in frames
+        csound->SndfileWrite(csound, p->f.sf, (cs_float *) buf, p->buf_pos/nargs); // in frames
       p->buf_pos = 0;
     }
 
@@ -393,10 +393,10 @@ static int32_t fout_flush_callback(CSOUND *csound, void *p_)
 
   if (p->f.sf != NULL && p->buf_pos > 0) {
     if (p->f.async == 1)
-      csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
+      csound->WriteAsync(csound, p->f.fd, (cs_float *) p->buf.auxp, p->buf_pos);
     else
-      // csound->SndfileWriteSamples(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
-      csound->SndfileWrite(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos/p->nargs); // in frames
+      // csound->SndfileWriteSamples(csound, p->f.sf, (cs_float *) p->buf.auxp, p->buf_pos);
+      csound->SndfileWrite(csound, p->f.sf, (cs_float *) p->buf.auxp, p->buf_pos/p->nargs); // in frames
   }
   return fout_deinit(csound, &(p->f));
 }
@@ -407,10 +407,10 @@ static int32_t fouta_flush_callback(CSOUND *csound, void *p_)
 
   if (p->f.sf != NULL && p->buf_pos > 0) {
     if (p->f.async == 1)
-      csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
+      csound->WriteAsync(csound, p->f.fd, (cs_float *) p->buf.auxp, p->buf_pos);
     else
-      // csound->SndfileWriteSamples(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
-      csound->SndfileWrite(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos/p->f.nchnls); // in frames
+      // csound->SndfileWriteSamples(csound, p->f.sf, (cs_float *) p->buf.auxp, p->buf_pos);
+      csound->SndfileWrite(csound, p->f.sf, (cs_float *) p->buf.auxp, p->buf_pos/p->f.nchnls); // in frames
   }
   return fout_deinit(csound, &(p->f));
 }
@@ -425,7 +425,7 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p)
   const OPARMS *oparms = csound->GetOParms(csound);
   
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-  format_ = (int32_t) MYFLT2LRND(*p->iflag);
+  format_ = (int32_t) CS_FLOAT2LRND(*p->iflag);
   if (format_ >= 51)
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
   else if (format_ < 0) {
@@ -437,7 +437,7 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p)
     sfinfo.format |= FORMAT2SF(oparms->outformat);
   if (!SF2TYPE(sfinfo.format))
     sfinfo.format |= TYPE2SF(oparms->filetyp);
-  sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
+  sfinfo.samplerate = (int32_t) CS_FLOAT2LRND(CS_ESR);
   p->nargs = p->INOCOUNT - 2;
   p->buf_pos = 0;
 
@@ -449,8 +449,8 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p)
     buf_reqd = CS_KSMPS *  p->nargs;
   else
     buf_reqd = (1 + (int32_t)(512 / CS_KSMPS)) * CS_KSMPS *  p->nargs;
-  if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
-    csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
+  if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(cs_float)) {
+    csound->AuxAlloc(csound, sizeof(cs_float)*buf_reqd, &p->buf);
   }
   p->f.bufsize =  (int32_t) p->buf.size;
   sfinfo.channels = p->nargs;
@@ -483,10 +483,10 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
   len = p->tabin->sizes[0];
   frames = CS_KSMPS >= 512 ? CS_KSMPS : (1 + 512 / CS_KSMPS) * CS_KSMPS;
   /* The asynchronous file queue also needs four times this byte count. */
-  if (UNLIKELY((size_t)len > INT32_MAX / 4 / sizeof(MYFLT) / frames))
+  if (UNLIKELY((size_t)len > INT32_MAX / 4 / sizeof(cs_float) / frames))
     return csound->InitError(csound, "%s", Str("fout: too many channels"));
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-  format_ = (int32_t) MYFLT2LRND(*p->iflag);
+  format_ = (int32_t) CS_FLOAT2LRND(*p->iflag);
   if (format_ >=  51)
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
   else if (format_ < 0) {
@@ -499,11 +499,11 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
     sfinfo.format |= FORMAT2SF(oparms->outformat);
   if (!SF2TYPE(sfinfo.format))
     sfinfo.format |= TYPE2SF(oparms->filetyp);
-  sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
+  sfinfo.samplerate = (int32_t) CS_FLOAT2LRND(CS_ESR);
   p->guard_pos = (CS_KSMPS >= 512 ? CS_KSMPS : 512) * len;
   buf_reqd = frames * len;
-  if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
-    csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
+  if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(cs_float)) {
+    csound->AuxAlloc(csound, sizeof(cs_float)*buf_reqd, &p->buf);
   }
   p->f.bufsize = (int32_t)  p->buf.size;
   sfinfo.channels = len;
@@ -525,7 +525,7 @@ static int32_t koutfile(CSOUND *csound, KOUTFILE *p)
 {
   int32_t   i, k;
   int32_t nargs = p->nargs;
-  MYFLT *buf = (MYFLT *) p->buf.auxp;
+  cs_float *buf = (cs_float *) p->buf.auxp;
 
   for (i = 0, k = p->buf_pos; i < nargs; i++)
     buf[k++] = p->argums[i][0] * p->scaleFac;
@@ -534,7 +534,7 @@ static int32_t koutfile(CSOUND *csound, KOUTFILE *p)
     if (p->f.async==1)
       csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
     else //csound->SndfileWriteSamples(csound, p->f.sf, buf, p->buf_pos);
-      csound->SndfileWrite(csound, p->f.sf, (MYFLT *) buf, p->buf_pos/nargs); // in frames
+      csound->SndfileWrite(csound, p->f.sf, (cs_float *) buf, p->buf_pos/nargs); // in frames
     p->buf_pos = 0;
   }
   return OK;
@@ -543,9 +543,9 @@ static int32_t koutfile(CSOUND *csound, KOUTFILE *p)
 int32_t koutfile_deinit(CSOUND *csound, KOUTFILE *p) {
   if (p->f.sf != NULL && p->buf_pos > 0) {
     if (p->f.async == 1)
-      csound->WriteAsync(csound, p->f.fd, (MYFLT *)p->buf.auxp, p->buf_pos);
+      csound->WriteAsync(csound, p->f.fd, (cs_float *)p->buf.auxp, p->buf_pos);
     else
-      csound->SndfileWrite(csound, p->f.sf, (MYFLT *)p->buf.auxp,
+      csound->SndfileWrite(csound, p->f.sf, (cs_float *)p->buf.auxp,
                           p->buf_pos / p->nargs);
   }
   return fout_deinit(csound, &(p->f));
@@ -566,8 +566,8 @@ static int32_t koutfile_set_(CSOUND *csound, KOUTFILE *p, int32_t istring)
     p->guard_pos = 512 * p->nargs;
 
   sfinfo.channels = p->nargs;
-  sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_EKR);
-  format_ = (int32_t) MYFLT2LRND(*p->iflag);
+  sfinfo.samplerate = (int32_t) CS_FLOAT2LRND(CS_EKR);
+  format_ = (int32_t) CS_FLOAT2LRND(*p->iflag);
   if ((uint32_t) format_ >= 10ul)
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
   else
@@ -577,8 +577,8 @@ static int32_t koutfile_set_(CSOUND *csound, KOUTFILE *p, int32_t istring)
     buf_reqd = CS_KSMPS *  p->nargs;
   else
     buf_reqd = (1 + (int32_t)(512 / CS_KSMPS)) * CS_KSMPS * p->nargs;
-  if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
-    csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
+  if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(cs_float)) {
+    csound->AuxAlloc(csound, sizeof(cs_float)*buf_reqd, &p->buf);
   }
   p->f.bufsize =(int32_t)  p->buf.size;
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
@@ -610,7 +610,7 @@ static int32_t koutfile_set_S(CSOUND *csound, KOUTFILE *p){
 static int32_t fiopen_(CSOUND *csound, FIOPEN *p, int32_t istring)
 {
   char    *omodes[] = {"w", "r", "wb", "rb"};
-  int32_t     idx = (int32_t) MYFLT2LRND(*p->iascii), handle;
+  int32_t     idx = (int32_t) CS_FLOAT2LRND(*p->iascii), handle;
     
   if (idx < 0 || idx > 3)
     idx = 0;
@@ -621,7 +621,7 @@ static int32_t fiopen_(CSOUND *csound, FIOPEN *p, int32_t istring)
   if (handle < 0)
     return NOTOK;
       
-  *p->ihandle = (MYFLT) handle;
+  *p->ihandle = (cs_float) handle;
 
   return OK;
 }
@@ -664,7 +664,7 @@ static int32_t ficlose_opcode_(CSOUND *csound, FICLOSE *p, int32_t istring)
     csound->Free(csound, fname);
   }
   else {
-    idx = (int32_t) MYFLT2LRND(*(p->iFile));
+    idx = (int32_t) CS_FLOAT2LRND(*(p->iFile));
     if (UNLIKELY(idx < 0 || idx > pp->file_num ||
                  pp->file_opened[idx].fd == NULL)) {
       csound->Warning(csound,
@@ -707,22 +707,22 @@ static int32_t ficlose_opcode_S(CSOUND *csound, FICLOSE *p){
 static int32_t ioutfile_set(CSOUND *csound, IOUTFILE *p)
 {
   STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-  MYFLT   **args = p->argums;
+  cs_float   **args = p->argums;
   FILE    *rfil;
   uint32_t j;
-  int32_t     n = (int32_t) MYFLT2LRND(*p->ihandle);
+  int32_t     n = (int32_t) CS_FLOAT2LRND(*p->ihandle);
   if (UNLIKELY(n < 0 || n > pp->file_num))
     return csound->InitError(csound, "%s", Str("fouti: invalid file handle"));
   rfil = pp->file_opened[n].raw;
   if (UNLIKELY(rfil == NULL))
     return csound->InitError(csound, "%s", Str("fouti: invalid file handle"));
   if (*p->iascii == 0) { /* ascii format */
-    switch ((int32_t) MYFLT2LRND(*p->iflag)) {
+    switch ((int32_t) CS_FLOAT2LRND(*p->iflag)) {
     case 1:
       {     /* with prefix (i-statement, p1, p2 and p3) */
         int32_t     p1 = (int32_t) p->h.insdshead->p1.value;
-        double  p2 = (double) CS_KCNT * CS_ONEDKR;
-        double  p3 = p->h.insdshead->p3.value;
+        cs_double  p2 = (cs_double) CS_KCNT * CS_ONEDKR;
+        cs_double  p3 = p->h.insdshead->p3.value;
         if (p3 > FL(0.0))
           fprintf(rfil, "i %i %f %f ", p1, p2, p3);
         else
@@ -734,9 +734,9 @@ static int32_t ioutfile_set(CSOUND *csound, IOUTFILE *p)
         pp->fout_kreset = CS_KCNT;
       {
         int32_t p1 = (int32_t) p->h.insdshead->p1.value;
-        double p2 = (double) (CS_KCNT - pp->fout_kreset)
+        cs_double p2 = (cs_double) (CS_KCNT - pp->fout_kreset)
           * CS_ONEDKR;
-        double p3 = p->h.insdshead->p3.value;
+        cs_double p3 = p->h.insdshead->p3.value;
         if (p3 > FL(0.0))
           fprintf(rfil, "i %i %f %f ", p1, p2, p3);
         else
@@ -748,13 +748,13 @@ static int32_t ioutfile_set(CSOUND *csound, IOUTFILE *p)
       return OK;
     }
     for (j = 0; j < p->INOCOUNT - 3; j++) {
-      fprintf(rfil, " %f", (double) *args[j]);
+      fprintf(rfil, " %f", (cs_double) *args[j]);
     }
     putc('\n', rfil);
   }
   else { /* binary format */
     for (j = 0; j < p->INOCOUNT - 3; j++) {
-      if (UNLIKELY(1!=fwrite(args[j], sizeof(MYFLT), 1, rfil))) return NOTOK;
+      if (UNLIKELY(1!=fwrite(args[j], sizeof(cs_float), 1, rfil))) return NOTOK;
     }
   }
   return OK;
@@ -777,7 +777,7 @@ static int32_t ioutfile_set_r(CSOUND *csound, IOUTFILE_R *p)
 static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
 {
   STDOPCOD_GLOBALS  *pp;
-  MYFLT **args;
+  cs_float **args;
   FILE  *rfil;
   uint32_t   j;
   int32_t n;
@@ -787,19 +787,19 @@ static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
 
   pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
   args = p->argums;
-  n = (int32_t) MYFLT2LRND(*p->ihandle);
+  n = (int32_t) CS_FLOAT2LRND(*p->ihandle);
   if (UNLIKELY(n < 0 || n > pp->file_num))
     return csound->InitError(csound, "%s", Str("fouti: invalid file handle"));
   rfil = pp->file_opened[n].raw;
   if (UNLIKELY(rfil == NULL))
     return csound->InitError(csound, "%s", Str("fouti: invalid file handle"));
   if (*p->iascii == 0) { /* ascii format */
-    switch ((int32_t) MYFLT2LRND(*p->iflag)) {
+    switch ((int32_t) CS_FLOAT2LRND(*p->iflag)) {
     case 1:
       {     /* whith prefix (i-statement, p1, p2 and p3) */
         int32_t p1 = (int32_t) p->h.insdshead->p1.value;
-        double p2 = p->counter * CS_ONEDKR;
-        double p3 = (double) (CS_KCNT - p->counter)
+        cs_double p2 = p->counter * CS_ONEDKR;
+        cs_double p3 = (cs_double) (CS_KCNT - p->counter)
           * CS_ONEDKR;
         fprintf(rfil, "i %i %f %f ", p1, p2, p3);
       }
@@ -807,8 +807,8 @@ static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
     case 2: /* with prefix (start at 0 time) */
       {
         int32_t p1 = (int32_t) p->h.insdshead->p1.value;
-        double p2 = (p->counter - pp->fout_kreset) * CS_ONEDKR;
-        double p3 = (double) (CS_KCNT - p->counter)
+        cs_double p2 = (p->counter - pp->fout_kreset) * CS_ONEDKR;
+        cs_double p3 = (cs_double) (CS_KCNT - p->counter)
           * CS_ONEDKR;
         fprintf(rfil, "i %i %f %f ", p1, p2, p3);
       }
@@ -818,13 +818,13 @@ static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
       return OK;
     }
     for (j = 0; j < p->INOCOUNT - 3; j++) {
-      fprintf(rfil, " %f", (double) *args[j]);
+      fprintf(rfil, " %f", (cs_double) *args[j]);
     }
     putc('\n', rfil);
   }
   else { /* binary format */
     for (j = 0; j < p->INOCOUNT - 3; j++) {
-      if (UNLIKELY(1!=fwrite(args[j], sizeof(MYFLT), 1, rfil))) return NOTOK;
+      if (UNLIKELY(1!=fwrite(args[j], sizeof(cs_float), 1, rfil))) return NOTOK;
     }
   }
   p->done = 0;
@@ -843,15 +843,15 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
   size_t      buf_reqd;
   p->nargs = p->INOCOUNT - 3;
   if (UNLIKELY(!(*p->iskpfrms >= FL(0.0) &&
-                 (double)*p->iskpfrms <= INT32_MAX)))
+                 (cs_double)*p->iskpfrms <= (INT32_MAX + 0.0))))
     return csound->InitError(csound, "%s", Str("invalid frame skip"));
-  p->currpos = MYFLT2LRND(*p->iskpfrms);
+  p->currpos = CS_FLOAT2LRND(*p->iskpfrms);
   p->flag = 1;
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-  sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
-  if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
+  sfinfo.samplerate = (int32_t) CS_FLOAT2LRND(CS_ESR);
+  if ((int32_t) CS_FLOAT2LRND(*p->iflag) == -2)
     sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
-  else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
+  else if ((int32_t) CS_FLOAT2LRND(*p->iflag) == -1)
     sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
   else
     sfinfo.format = 0;
@@ -861,10 +861,10 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
   else
     p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
   if (UNLIKELY(sfinfo.channels <= 0 ||
-               sfinfo.channels > INT32_MAX / 4 / sizeof(MYFLT) / p->frames))
+               sfinfo.channels > INT32_MAX / 4 / sizeof(cs_float) / p->frames))
     return csound->InitError(csound, "%s", Str("invalid file channel count"));
   /* Keep the asynchronous queue's existing headroom. */
-  p->f.bufsize = p->frames * sfinfo.channels * sizeof(MYFLT);
+  p->f.bufsize = p->frames * sfinfo.channels * sizeof(cs_float);
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
                     p->fname, istring, &sfinfo, 0, NULL) != NULL) {
     n = p->f.idx - 1;
@@ -876,7 +876,7 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
     return csound->InitError(csound, "%s",
                              Str("file channels do not match input arguments"));
   }
-  buf_reqd = (size_t)p->frames * p->f.nchnls * sizeof(MYFLT);
+  buf_reqd = (size_t)p->frames * p->f.nchnls * sizeof(cs_float);
   if (p->buf.auxp == NULL || p->buf.size < buf_reqd)
     csound->AuxAlloc(csound, buf_reqd, &p->buf);
 
@@ -915,15 +915,15 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
   int32_t     n;
   size_t      buf_reqd;
   if (UNLIKELY(!(*p->iskpfrms >= FL(0.0) &&
-                 (double)*p->iskpfrms <= INT32_MAX)))
+                 (cs_double)*p->iskpfrms <= (INT32_MAX + 0.0))))
     return csound->InitError(csound, "%s", Str("invalid frame skip"));
-  p->currpos = MYFLT2LRND(*p->iskpfrms);
+  p->currpos = CS_FLOAT2LRND(*p->iskpfrms);
   p->flag = 1;
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-  sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
-  if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
+  sfinfo.samplerate = (int32_t) CS_FLOAT2LRND(CS_ESR);
+  if ((int32_t) CS_FLOAT2LRND(*p->iflag) == -2)
     sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
-  else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
+  else if ((int32_t) CS_FLOAT2LRND(*p->iflag) == -1)
     sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
   else
     sfinfo.format = 0;
@@ -934,10 +934,10 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
   else
     p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
   if (UNLIKELY(sfinfo.channels <= 0 ||
-               sfinfo.channels > INT32_MAX / 4 / sizeof(MYFLT) / p->frames))
+               sfinfo.channels > INT32_MAX / 4 / sizeof(cs_float) / p->frames))
     return csound->InitError(csound, "%s", Str("invalid file channel count"));
   /* Keep the asynchronous queue's existing headroom. */
-  p->f.bufsize = p->frames * sfinfo.channels * sizeof(MYFLT);
+  p->f.bufsize = p->frames * sfinfo.channels * sizeof(cs_float);
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
                     p->fname, 1, &sfinfo, 0, NULL) != NULL) {
     n = p->f.idx - 1;
@@ -950,7 +950,7 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
     fout_deinit(csound, &p->f);
     return csound->InitError(csound, "%s", Str("invalid file channel count"));
   }
-  buf_reqd = (size_t)p->frames * p->f.nchnls * sizeof(MYFLT);
+  buf_reqd = (size_t)p->frames * p->f.nchnls * sizeof(cs_float);
   if (p->buf.auxp == NULL || p->buf.size < buf_reqd)
     csound->AuxAlloc(csound, buf_reqd, &p->buf);
 
@@ -1004,13 +1004,13 @@ static int32_t infile_act(CSOUND *csound, INFILE *p)
   uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t nsmps = CS_KSMPS - early;
   uint32_t i, j = offset, channels = p->nargs;
-  MYFLT *buf = (MYFLT *)p->buf.auxp;
+  cs_float *buf = (cs_float *)p->buf.auxp;
 
   for (i = 0; i < channels; i++) {
     if (UNLIKELY(offset))
-      memset(&p->argums[i][0], 0, offset * sizeof(MYFLT));
+      memset(&p->argums[i][0], 0, offset * sizeof(cs_float));
     if (UNLIKELY(early))
-      memset(&p->argums[i][nsmps], 0, early * sizeof(MYFLT));
+      memset(&p->argums[i][nsmps], 0, early * sizeof(cs_float));
   }
   while (j < nsmps && p->flag) {
     uint32_t count, stop, k;
@@ -1031,7 +1031,7 @@ static int32_t infile_act(CSOUND *csound, INFILE *p)
   }
   for (i = 0; i < channels; i++)
     if (j < nsmps)
-      memset(&p->argums[i][j], 0, (nsmps - j) * sizeof(MYFLT));
+      memset(&p->argums[i][j], 0, (nsmps - j) * sizeof(cs_float));
   return OK;
 }
 
@@ -1041,15 +1041,15 @@ static int32_t infile_arr(CSOUND *csound, INFILEA *p)
   uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t nsmps = CS_KSMPS - early;
   uint32_t i, j = offset, channels = p->chn;
-  MYFLT *buf = (MYFLT *)p->buf.auxp;
-  MYFLT *data = p->tabout->data;
-  size_t stride = p->tabout->arrayMemberSize / sizeof(MYFLT);
+  cs_float *buf = (cs_float *)p->buf.auxp;
+  cs_float *data = p->tabout->data;
+  size_t stride = p->tabout->arrayMemberSize / sizeof(cs_float);
 
   for (i = 0; i < channels; i++) {
     if (UNLIKELY(offset))
-      memset(&data[i * stride + 0], 0, offset * sizeof(MYFLT));
+      memset(&data[i * stride + 0], 0, offset * sizeof(cs_float));
     if (UNLIKELY(early))
-      memset(&data[i * stride + nsmps], 0, early * sizeof(MYFLT));
+      memset(&data[i * stride + nsmps], 0, early * sizeof(cs_float));
   }
   while (j < nsmps && p->flag) {
     uint32_t count, stop, k;
@@ -1070,7 +1070,7 @@ static int32_t infile_arr(CSOUND *csound, INFILEA *p)
   }
   for (i = 0; i < channels; i++)
     if (j < nsmps)
-      memset(&data[i * stride + j], 0, (nsmps - j) * sizeof(MYFLT));
+      memset(&data[i * stride + j], 0, (nsmps - j) * sizeof(cs_float));
   return OK;
 }
 
@@ -1086,10 +1086,10 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
   size_t      buf_reqd;
 
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-  sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_EKR);
-  if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
+  sfinfo.samplerate = (int32_t) CS_FLOAT2LRND(CS_EKR);
+  if ((int32_t) CS_FLOAT2LRND(*p->iflag) == -2)
     sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
-  else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
+  else if ((int32_t) CS_FLOAT2LRND(*p->iflag) == -1)
     sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
   else
     sfinfo.format = 0;
@@ -1097,9 +1097,9 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
 
   p->nargs = p->INOCOUNT - 3;
   if (UNLIKELY(!(*p->iskpfrms >= FL(0.0) &&
-                 (double)*p->iskpfrms <= INT32_MAX)))
+                 (cs_double)*p->iskpfrms <= (INT32_MAX + 0.0))))
     return csound->InitError(csound, "%s", Str("invalid frame skip"));
-  p->currpos = MYFLT2LRND(*p->iskpfrms);
+  p->currpos = CS_FLOAT2LRND(*p->iskpfrms);
   p->flag = 1;
 
   if (CS_KSMPS >= 512)
@@ -1108,10 +1108,10 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
     p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
 
   if (UNLIKELY(sfinfo.channels <= 0 ||
-               sfinfo.channels > INT32_MAX / 4 / sizeof(MYFLT) / p->frames))
+               sfinfo.channels > INT32_MAX / 4 / sizeof(cs_float) / p->frames))
     return csound->InitError(csound, "%s", Str("invalid file channel count"));
   /* Keep the asynchronous queue's existing headroom. */
-  p->f.bufsize = p->frames * sfinfo.channels * sizeof(MYFLT);
+  p->f.bufsize = p->frames * sfinfo.channels * sizeof(cs_float);
 
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
                     p->fname, istring, &sfinfo, 0, NULL) != NULL) {
@@ -1124,7 +1124,7 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
     return csound->InitError(csound, "%s",
                              Str("file channels do not match input arguments"));
   }
-  buf_reqd = (size_t)p->frames * p->f.nchnls * sizeof(MYFLT);
+  buf_reqd = (size_t)p->frames * p->f.nchnls * sizeof(cs_float);
   if (p->buf.auxp == NULL || p->buf.size < buf_reqd)
     csound->AuxAlloc(csound, buf_reqd, &p->buf);
 
@@ -1157,7 +1157,7 @@ static int32_t kinfile_set_S(CSOUND *csound, KINFILE *p){
 static int32_t kinfile(CSOUND *csound, KINFILE *p)
 {
   int32_t i;
-  MYFLT *buf = (MYFLT *)p->buf.auxp;
+  cs_float *buf = (cs_float *)p->buf.auxp;
 
   if (p->flag && p->remain == 0)
     INFILE_REFILL(p, buf);
@@ -1175,12 +1175,12 @@ static int32_t kinfile(CSOUND *csound, KINFILE *p)
 #undef INFILE_REFILL
 
 /* Return one for a value, zero for EOF, or an init error. */
-static int32_t fini_read_text(CSOUND *csound, FILE *fp, MYFLT *value)
+static int32_t fini_read_text(CSOUND *csound, FILE *fp, cs_float *value)
 {
   char token[256], *start, *end;
   size_t len;
   int32_t c;
-  double number;
+  cs_double number;
 
   do {
     do {
@@ -1204,7 +1204,7 @@ static int32_t fini_read_text(CSOUND *csound, FILE *fp, MYFLT *value)
   number = csound->Strtod(start, &end);
   if (end == start || *end != '\0')
     return csound->InitError(csound, Str("fini: invalid numeric data"));
-  *value = (MYFLT)number;
+  *value = (cs_float)number;
   return 1;
 }
 
@@ -1212,14 +1212,14 @@ static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
 {
   int32_t j, nargs = p->INOCOUNT - 3, format;
   FILE *fp = NULL;
-  MYFLT **args = p->argums;
+  cs_float **args = p->argums;
   const char *omodes[] = {"r", "r", "rb"};
-  double skip = floor((double)*p->iskpfrms);
+  cs_double skip = floor((cs_double)*p->iskpfrms);
 
   if (*p->iflag != FL(0.0) && *p->iflag != FL(1.0) &&
       *p->iflag != FL(2.0))
     return csound->InitError(csound, Str("fini: format must be 0, 1 or 2"));
-  if (!(skip >= 0.0 && skip <= INT32_MAX))
+  if (!(skip >= 0.0 && skip <= (INT32_MAX + 0.0)))
     return csound->InitError(csound, Str("fini: invalid skip frame count"));
   format = (int32_t)*p->iflag;
   /* The stream is shared across init calls; it has no per-note borrower. */
@@ -1241,7 +1241,7 @@ static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
     }
     else {
       int64_t count = (int64_t)skip * nargs;
-      MYFLT ignored;
+      cs_float ignored;
       if (fseek(fp, 0, SEEK_SET) != 0)
         return csound->InitError(csound, Str("fini: cannot seek to frame"));
       while (count-- > 0) {
@@ -1259,7 +1259,7 @@ static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
       float value;
       if (fread(&value, sizeof(value), 1, fp) != 1)
         break;
-      *args[j] = (MYFLT)value;
+      *args[j] = (cs_float)value;
     }
     else {
       int32_t status = fini_read_text(csound, fp, args[j]);
@@ -1291,7 +1291,7 @@ static int32_t i_infile_S(CSOUND *csound, I_INFILE *p){
 static int32_t incr(CSOUND *csound, INCR *p)
 {
   IGN(csound);
-  MYFLT *avar = p->avar, *aincr = p->aincr;
+  cs_float *avar = p->avar, *aincr = p->aincr;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -1308,7 +1308,7 @@ static int32_t clear(CSOUND *csound, CLEARS *p)
   uint32_t   nsmps = CS_KSMPS, j;
 
   for (j = 0; j < p->INOCOUNT; j++) {
-    memset(p->argums[j], 0, sizeof(MYFLT)*nsmps);
+    memset(p->argums[j], 0, sizeof(cs_float)*nsmps);
   }
   return OK;
 }
@@ -1456,7 +1456,7 @@ static const char *fprints_format(CSOUND *csound, FPRINTF *p,
   out[0] = '\0';
   while (*fmt) {
     const char *start;
-    MYFLT *value;
+    cs_float *value;
     int32_t length = 0, n;
     char conversion;
 
@@ -1517,27 +1517,27 @@ static const char *fprints_format(CSOUND *csound, FPRINTF *p,
       if (strchr("dic", conversion)) {
         if (length == 2)
           n = snprintf(out + used, size - used, spec,
-                       (long long)MYFLT2LRND(*value));
+                       (long long)CS_FLOAT2LRND(*value));
         else if (length == 1)
           n = snprintf(out + used, size - used, spec,
-                       (long)MYFLT2LRND(*value));
+                       (long)CS_FLOAT2LRND(*value));
         else
           n = snprintf(out + used, size - used, spec,
-                       (int)MYFLT2LRND(*value));
+                       (int)CS_FLOAT2LRND(*value));
       }
       else if (strchr("ouxX", conversion)) {
         if (length == 2)
           n = snprintf(out + used, size - used, spec,
-                       (unsigned long long)MYFLT2LRND(*value));
+                       (unsigned long long)CS_FLOAT2LRND(*value));
         else if (length == 1)
           n = snprintf(out + used, size - used, spec,
-                       (unsigned long)MYFLT2LRND(*value));
+                       (unsigned long)CS_FLOAT2LRND(*value));
         else
           n = snprintf(out + used, size - used, spec,
-                       (unsigned int)MYFLT2LRND(*value));
+                       (unsigned int)CS_FLOAT2LRND(*value));
       }
       else
-        n = snprintf(out + used, size - used, spec, (double)*value);
+        n = snprintf(out + used, size - used, spec, (cs_double)*value);
     }
     if (n < 0)
       return Str("format conversion failed");

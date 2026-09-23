@@ -22,7 +22,7 @@
 #include "csoundCore.h"
 #include "corfile.h"
 
-void score_event_async(CSOUND *csound, char type, const MYFLT *pfields,
+void score_event_async(CSOUND *csound, char type, const cs_float *pfields,
                            long numFields);
 void read_score_async(CSOUND *csound, const char *message);
 void csoundInputMessage(CSOUND *csound, const char *message);
@@ -32,7 +32,7 @@ void midifile_rewind_score(CSOUND *csound); /* midifile.c */
 
 
 int32_t csound_score_event(CSOUND *csound, char type,
-                                 const MYFLT *pfields, long numFields) {
+                                 const cs_float *pfields, long numFields) {
   if ((csound->engineStatus & CS_STATE_COMP) == 0) {
       csound->Message(csound,
                     Str("Csound has not started yet, no events scheduled.\n"));
@@ -50,8 +50,8 @@ int32_t csound_score_event(CSOUND *csound, char type,
 }
 
 int32_t csound_score_event_absolute(CSOUND *csound, char type,
-                                         const MYFLT *pfields, long numFields,
-                                         double time_ofs) {
+                                         const cs_float *pfields, long numFields,
+                                         cs_double time_ofs) {
   if ((csound->engineStatus & CS_STATE_COMP) == 0) {
       csound->Message(csound,
                     Str("Csound has not started yet, no events scheduled.\n"));
@@ -107,7 +107,7 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
     csoundReadScore(csound, message);
 }
 
- void csoundEvent(CSOUND *csound, int32_t type, const MYFLT *params,
+ void csoundEvent(CSOUND *csound, int32_t type, const cs_float *params,
                         int32_t nparams, int32_t async) {
   char c;
   if (type == CS_INSTR_EVENT)
@@ -138,9 +138,9 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   csound->csoundIsScorePending_ = pending;
 }
 
- void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset) {
-  double aTime;
-  MYFLT prv = (MYFLT)csound->csoundScoreOffsetSeconds_;
+ void csoundSetScoreOffsetSeconds(CSOUND *csound, cs_float offset) {
+  cs_double aTime;
+  cs_float prv = (cs_float)csound->csoundScoreOffsetSeconds_;
 
   csound->csoundScoreOffsetSeconds_ = offset;
   if (offset < FL(0.0))
@@ -149,7 +149,7 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   if (!(csound->engineStatus & CS_STATE_COMP))
     return;
   /* otherwise seek to the requested time now */
-  aTime = (double)offset - (csound->icurTimeSamples / csound->esr);
+  aTime = (cs_double)offset - (csound->icurTimeSamples / csound->esr);
   if (aTime < 0.0 || offset < prv) {
     csoundRewindScore(csound); /* will call csoundSetScoreOffsetSeconds */
     return;
@@ -157,18 +157,18 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   if (aTime > 0.0) {
     EVTBLK evt;
     memset(&evt, 0, sizeof(EVTBLK));
-    MYFLT pfields[3];
+    cs_float pfields[3];
     evt.strarg = NULL;
     evt.scnt = 0;
     evt.opcod = 'a';
     evt.pcnt = 3;
     pfields[1] =  pfields[0] = FL(0.0);
-    pfields[2] = (MYFLT)aTime;
+    pfields[2] = (cs_float)aTime;
     insert_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
   }
 }
 
- MYFLT csoundGetScoreOffsetSeconds(CSOUND *csound) {
+ cs_float csoundGetScoreOffsetSeconds(CSOUND *csound) {
   return csound->csoundScoreOffsetSeconds_;
 }
 

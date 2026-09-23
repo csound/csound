@@ -54,7 +54,7 @@ static int32_t test_control_exchange(int32_t *slot, int32_t value, int order)
     return previous;
 }
 static void (*after_pitch_read)(void);
-static long long test_llrint(double value)
+static long long test_llrint(cs_double value)
 {
     if (after_pitch_read != NULL) {
         void (*callback)(void) = after_pitch_read;
@@ -83,7 +83,7 @@ static long long test_llrint(double value)
 static CSOUND *test_csound;
 static DISKIN2 *scalar;
 static DISKIN2_ARRAY *array;
-static MYFLT pitch;
+static cs_float pitch;
 
 static int32_t free_frames(CSOUND *csound, void *cb, int32_t write)
 {
@@ -98,7 +98,7 @@ static int32_t write_frames(CSOUND *csound, void *cb, const void *data,
 
 static int32_t read_frames(CSOUND *csound, void *cb, void *data, int32_t count)
 {
-    memset(data, 0, count * sizeof(MYFLT));
+    memset(data, 0, count * sizeof(cs_float));
     return count;
 }
 
@@ -120,7 +120,7 @@ int64_t csound_test_diskin_pitch_step(int32_t use_array)
     DISKIN2 scalar_reader = {0};
     DISKIN2_ARRAY array_reader = {0};
     ARRAYDAT output_array = {0};
-    MYFLT file[64] = {0}, worker_output[2], perf_output[1], audio[1], head[2];
+    cs_float file[64] = {0}, worker_output[2], perf_output[1], audio[1], head[2];
     int64_t result;
     cs.CheckCircularBuffer = free_frames;
     cs.WriteCircularBuffer = write_frames;
@@ -192,13 +192,13 @@ void csound_test_diskin_control_destroy(void *context)
     free(test);
 }
 
-void csound_test_diskin_control_publish(void *context, double transpose)
+void csound_test_diskin_control_publish(void *context, cs_double transpose)
 {
     TEST_CONTROL *test = context;
-    diskin2_publish_control(&test->xf, (MYFLT)transpose);
+    diskin2_publish_control(&test->xf, (cs_float)transpose);
 }
 
-double csound_test_diskin_control_read(void *context, int32_t *reset)
+cs_double csound_test_diskin_control_read(void *context, int32_t *reset)
 {
     TEST_CONTROL *test = context;
     return diskin2_read_control(&test->xf, reset);
@@ -227,8 +227,8 @@ int32_t csound_test_diskin_audio_locks(int32_t use_array, int32_t stop)
     ARRAYDAT outputs = {0};
     DISKIN2_ASYNC_STATE state = {0};
     DISKIN2_ASYNC_ENTRY entry = {0};
-    MYFLT speed = FL(1.0), audio[1], output[1], sample = FL(0.5);
-    void *cb = csoundCreateCircularBuffer(cs, 4, sizeof(MYFLT));
+    cs_float speed = FL(1.0), audio[1], output[1], sample = FL(0.5);
+    void *cb = csoundCreateCircularBuffer(cs, 4, sizeof(cs_float));
     owner.ksmps = 1;
     owner.actflg = 1;
     realtime_spin_lock_init(&cs->diskin2_async_lock);

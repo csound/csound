@@ -28,166 +28,166 @@
 
 typedef struct {
     OPDS  h;
-    MYFLT *xdest, *xsig, *xlow, *xhigh;
+    cs_float *xdest, *xsig, *xlow, *xhigh;
 } WRAP;
 
 typedef struct {
     OPDS  h;
-    MYFLT *kout, *ksig, *kthreshold, *kmode;
-    MYFLT old_sig;
+    cs_float *kout, *ksig, *kthreshold, *kmode;
+    cs_float old_sig;
 } TRIG;
 
 typedef struct {
     OPDS  h;
-    MYFLT *r, *val1, *val2, *point, *imin, *imax;
-    MYFLT point_factor;
+    cs_float *r, *val1, *val2, *point, *imin, *imax;
+    cs_float point_factor;
 } INTERPOL;
 
 typedef struct {
     OPDS        h;
-    MYFLT       *ar, *argums[VARGMAX];
+    cs_float       *ar, *argums[VARGMAX];
     AUXCH       aux;
 } SUM;
 
 typedef struct {
     OPDS        h;
-    MYFLT       *ar, *asig, *kcf, *kbw, *ord, *sep, *iflag, *iscl, *istor, *icorrect;
+    cs_float       *ar, *asig, *kcf, *kbw, *ord, *sep, *iflag, *iscl, *istor, *icorrect;
     int32_t     scale, loop;
     AUXCH       aux;
     AUXCH       buffer;
-    MYFLT       *yt1, *yt2;
+    cs_float       *yt1, *yt2;
 } RESONY;
 
 typedef struct {
     OPDS        h;
-    MYFLT       *ar, *asig, *kincr ;
-    double      index;
-    MYFLT       value;
+    cs_float       *ar, *asig, *kincr ;
+    cs_double      index;
+    cs_float       value;
 } FOLD;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *freq, *retrig, *iphase, *argums[VARGMAX];
-        MYFLT   args[VARGMAX];
-        double  phs;
+        cs_float   *out, *freq, *retrig, *iphase, *argums[VARGMAX];
+        cs_float   args[VARGMAX];
+        cs_double  phs;
         int32_t     nsegs;
 } LOOPSEG;
 
 /* Complexity of args leads to confusion */
 typedef struct {
-  MYFLT *start;
-  MYFLT *type;
-  MYFLT *time;
+  cs_float *start;
+  cs_float *type;
+  cs_float *time;
 } T3SEG;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *freq, *retrig, *iphase;
+        cs_float   *out, *freq, *retrig, *iphase;
         T3SEG   argums[VARGMAX/3];
-        double  phs;
+        cs_double  phs;
         int32_t nsegs;
 } LOOPTSEG;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *kphase, *argums[VARGMAX];
-        MYFLT   args[VARGMAX];
+        cs_float   *out, *kphase, *argums[VARGMAX];
+        cs_float   args[VARGMAX];
         int32_t nsegs;
 } LOOPSEGP;
 
 typedef struct {  /* gab f1 */
         OPDS    h;
-        MYFLT   *kr, *ksig, *ktime;
-        MYFLT   current_val, incr, val_incremented;
-        double  remaining;
+        cs_float   *kr, *ksig, *ktime;
+        cs_float   current_val, incr, val_incremented;
+        cs_double  remaining;
         int32_t flag;
 } LINETO;
 
 typedef struct {  /* gab f1 */
         OPDS    h;
-        MYFLT   *kr, *ksig, *ktime, *ktrig;
-        MYFLT   current_val, incr, val_incremented;
-        double  remaining;
+        cs_float   *kr, *ksig, *ktime, *ktrig;
+        cs_float   current_val, incr, val_incremented;
+        cs_double  remaining;
         int32_t flag;
 } LINETO2;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *AverageAmp,*AverageFreq, *randAmountAmp, *randAmountFreq;
-        MYFLT   *ampMinRate, *ampMaxRate, *cpsMinRate, *cpsMaxRate, *ifn, *iphs;
-        MYFLT   xcpsAmpRate, xcpsFreqRate;
-        double  lphs, tablenUPkr;
+        cs_float   *out, *AverageAmp,*AverageFreq, *randAmountAmp, *randAmountFreq;
+        cs_float   *ampMinRate, *ampMaxRate, *cpsMinRate, *cpsMaxRate, *ifn, *iphs;
+        cs_float   xcpsAmpRate, xcpsFreqRate;
+        cs_double  lphs, tablenUPkr;
         int32   tablen;
         uint32_t phsAmpRate, phsFreqRate;
-        MYFLT   num1amp, num2amp, num1freq, num2freq, dfdmaxAmp, dfdmaxFreq;
+        cs_float   num1amp, num2amp, num1freq, num2freq, dfdmaxAmp, dfdmaxFreq;
         FUNC    *ftp;
 } VIBRATO;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *AverageAmp,*AverageFreq,*ifn;
-        MYFLT   xcpsAmpRate, xcpsFreqRate;
-        double  lphs, tablenUPkr;
+        cs_float   *out, *AverageAmp,*AverageFreq,*ifn;
+        cs_float   xcpsAmpRate, xcpsFreqRate;
+        cs_double  lphs, tablenUPkr;
         int32   tablen;
         uint32_t phsAmpRate, phsFreqRate;
-        MYFLT   num1amp, num2amp, num1freq, num2freq, dfdmaxAmp, dfdmaxFreq;
+        cs_float   num1amp, num2amp, num1freq, num2freq, dfdmaxAmp, dfdmaxFreq;
         FUNC    *ftp;
 } VIBR;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *gamp, *amp1, *cps1, *amp2, *cps2, *amp3, *cps3, *option;
+        cs_float   *out, *gamp, *amp1, *cps1, *amp2, *cps2, *amp3, *cps3, *option;
         uint32_t phs1,phs2,phs3;
-        MYFLT   num1a,num2a, dfdmax1, num1b,num2b, dfdmax2, num1c,num2c, dfdmax3;
+        cs_float   num1a,num2a, dfdmax1, num1b,num2b, dfdmax2, num1c,num2c, dfdmax3;
 } JITTER2;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *amp, *cpsMin, *cpsMax;
-        MYFLT   xcps;
+        cs_float   *ar, *amp, *cpsMin, *cpsMax;
+        cs_float   xcps;
         int32   phs;
         int32_t initflag;
-        MYFLT   num1, num2, dfdmax;
+        cs_float   num1, num2, dfdmax;
 } JITTER;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *amp, *cpsMin, *cpsMax;
-        double  si;
-        double  phs;
+        cs_float   *ar, *amp, *cpsMin, *cpsMax;
+        cs_double  si;
+        cs_double  phs;
         int32_t initflag, cod;
-        MYFLT   num0, num1, num2, df0, df1,c3, c2;
+        cs_float   num0, num1, num2, df0, df1,c3, c2;
 } JITTERS;
 
 #define oneUp31Bit      (4.656612875245796924105750827168e-10)
 
-static inline MYFLT randGab(CSOUND *csound) {
+static inline cs_float randGab(CSOUND *csound) {
   int32_t *holdrand = (int32_t *) csound->QueryGlobalVariable(csound, "::HOLDRAND::");
   uint32_t tmp = (uint32_t)*holdrand * 214013U + 2531011U;
   *holdrand = (int32_t)tmp;
-  return (MYFLT) ((double)((tmp >> 1) & 0x7fffffff) * oneUp31Bit);
+  return (cs_float) ((cs_double)((tmp >> 1) & 0x7fffffff) * oneUp31Bit);
 }
 
-static inline MYFLT BiRandGab(CSOUND *csound) {
+static inline cs_float BiRandGab(CSOUND *csound) {
   int32_t *holdrand = (int32_t *) csound->QueryGlobalVariable(csound, "::HOLDRAND::");
   uint32_t tmp = (uint32_t)*holdrand * (uint32_t)(-214013) + 2531011U;
   *holdrand = (int32_t)tmp;
-  return (MYFLT) ((double)(int32_t)tmp * oneUp31Bit);
+  return (cs_float) ((cs_double)(int32_t)tmp * oneUp31Bit);
 }
 
 
-/* randGab can return 1, and MYFLT rounding can reach the table length.
+/* randGab can return 1, and cs_float rounding can reach the table length.
    Continuous lookup may return the guard point; discrete lookup must select
    a real table element. Callers supply a nonempty table and position >= 0. */
 #define USER_RAND_LOOKUP(result, table, length, position, interpolate) do { \
-  const MYFLT *ur_table = (table);                                         \
+  const cs_float *ur_table = (table);                                         \
   uint32_t ur_length = (length);                                          \
-  MYFLT ur_position = (position);                                         \
-  if ((double)ur_position >= (double)ur_length)                            \
+  cs_float ur_position = (position);                                         \
+  if ((cs_double)ur_position >= (cs_double)ur_length)                            \
     (result) = ur_table[(interpolate) ? ur_length : ur_length - 1];         \
   else {                                                                 \
     uint32_t ur_index = (uint32_t)ur_position;                             \
-    MYFLT ur_value = ur_table[ur_index];                                  \
+    cs_float ur_value = ur_table[ur_index];                                  \
     if (interpolate)                                                      \
       ur_value += (ur_table[ur_index + 1] - ur_value) *                    \
                   (ur_position - ur_index);                              \
@@ -197,50 +197,50 @@ static inline MYFLT BiRandGab(CSOUND *csound) {
 
 typedef struct  {
         OPDS    h;
-        MYFLT   *out, *tableNum;
+        cs_float   *out, *tableNum;
         int32_t pfn;
         FUNC    *ftp;
 } DURAND;
 
 typedef struct  {
         OPDS    h;
-        MYFLT   *out, *min, *max, *tableNum;
+        cs_float   *out, *min, *max, *tableNum;
         int32_t pfn;
         FUNC    *ftp;
 } CURAND;
 
 typedef struct  {
         OPDS    h;
-        MYFLT   *out, *min, *max;
+        cs_float   *out, *min, *max;
 } RANGERAND;
 
 /* mode and fstval arguments added */
 /* by Francois Pinot, jan. 2011    */
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *min, *max, *xcps, *mode, *fstval;
+        cs_float   *ar, *min, *max, *xcps, *mode, *fstval;
         int16   cpscod;
         uint32_t phs;
-        MYFLT   num1, num2, dfdmax;
+        cs_float   num1, num2, dfdmax;
 } RANDOMI;
 
 /* mode and fstval arguments added */
 /* by Francois Pinot, jan. 2011    */
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *min, *max, *xcps, *mode, *fstval;
+        cs_float   *ar, *min, *max, *xcps, *mode, *fstval;
         int16   cpscod;
         uint32_t phs;
-        MYFLT   num1;
+        cs_float   num1;
 } RANDOMH;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *rangeMin, *rangeMax, *cpsMin, *cpsMax;
-        double  si;
-        double  phs;
+        cs_float   *ar, *rangeMin, *rangeMax, *cpsMin, *cpsMax;
+        cs_double  si;
+        cs_double  phs;
         int32_t initflag, rangeMin_cod, rangeMax_cod;
-        MYFLT   num0, num1, num2, df0, df1,c3, c2;
+        cs_float   num0, num1, num2, df0, df1,c3, c2;
 } RANDOM3;
 
 #endif /* UGGAB_H */

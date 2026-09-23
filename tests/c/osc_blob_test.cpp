@@ -20,11 +20,11 @@ void appendValue(std::vector<unsigned char>& bytes, const T& value)
 void expectViewInsidePayload(const unsigned char *payload, size_t payloadSize,
                              const OSC_MYFLT_BLOB_VIEW& view)
 {
-    ASSERT_LE(view.count, payloadSize / sizeof(MYFLT));
+    ASSERT_LE(view.count, payloadSize / sizeof(cs_float));
     if (view.count != 0) {
         ASSERT_NE(nullptr, view.data);
         EXPECT_GE(view.data, payload);
-        EXPECT_LE(view.data + view.count * sizeof(MYFLT),
+        EXPECT_LE(view.data + view.count * sizeof(cs_float),
                   payload + payloadSize);
     }
 }
@@ -34,10 +34,10 @@ void expectViewInsidePayload(const unsigned char *payload, size_t payloadSize,
 TEST(OscBlobTest, AudioCountIsClampedToCompleteSamplesAndKsmps)
 {
     std::vector<unsigned char> storage(1);
-    const MYFLT advertised = FL(10.0);
-    const std::array<MYFLT, 3> samples = {FL(1.0), FL(2.0), FL(3.0)};
+    const cs_float advertised = FL(10.0);
+    const std::array<cs_float, 3> samples = {FL(1.0), FL(2.0), FL(3.0)};
     appendValue(storage, advertised);
-    for (const MYFLT sample : samples) {
+    for (const cs_float sample : samples) {
         appendValue(storage, sample);
     }
 
@@ -45,22 +45,22 @@ TEST(OscBlobTest, AudioCountIsClampedToCompleteSamplesAndKsmps)
     ASSERT_EQ(OK, osc_blob_parse_audio(storage.data() + 1,
                                        storage.size() - 1, 2, &view));
     ASSERT_EQ(2u, view.count);
-    std::array<MYFLT, 2> decoded{};
-    std::memcpy(decoded.data(), view.data, decoded.size() * sizeof(MYFLT));
+    std::array<cs_float, 2> decoded{};
+    std::memcpy(decoded.data(), view.data, decoded.size() * sizeof(cs_float));
     EXPECT_EQ(FL(1.0), decoded[0]);
     EXPECT_EQ(FL(2.0), decoded[1]);
 }
 
 TEST(OscBlobTest, AudioRejectsInvalidCountFields)
 {
-    const std::array<MYFLT, 5> invalidCounts = {
+    const std::array<cs_float, 5> invalidCounts = {
         FL(-1.0),
         FL(1.5),
-        std::numeric_limits<MYFLT>::infinity(),
-        std::numeric_limits<MYFLT>::quiet_NaN(),
-        (MYFLT)((double)std::numeric_limits<uint32_t>::max() + 1.0)
+        std::numeric_limits<cs_float>::infinity(),
+        std::numeric_limits<cs_float>::quiet_NaN(),
+        (cs_float)((cs_double)std::numeric_limits<uint32_t>::max() + 1.0)
     };
-    for (const MYFLT count : invalidCounts) {
+    for (const cs_float count : invalidCounts) {
         OSC_MYFLT_BLOB_VIEW view{};
         EXPECT_EQ(NOTOK,
                   osc_blob_parse_audio(&count, sizeof(count), 64, &view));
@@ -79,7 +79,7 @@ TEST(OscBlobTest, NumericArrayParsesUnalignedShapeAndValues)
     appendValue(storage, rows);
     appendValue(storage, columns);
     for (int32_t i = 0; i < rows * columns; i++) {
-        const MYFLT value = (MYFLT)i;
+        const cs_float value = (cs_float)i;
         appendValue(storage, value);
     }
 
@@ -176,7 +176,7 @@ TEST(OscBlobTest, NumericArrayRejectsTruncatedAndOverflowingShapes)
 
 TEST(OscBlobTest, DirectArrayAndFtableRejectPartialSamples)
 {
-    std::array<unsigned char, sizeof(MYFLT) + 1> payload{};
+    std::array<unsigned char, sizeof(cs_float) + 1> payload{};
     OSC_MYFLT_BLOB_VIEW view{};
     EXPECT_EQ(NOTOK, osc_blob_parse_myflts(
                        payload.data(), payload.size(), &view));
@@ -189,7 +189,7 @@ TEST(OscBlobTest, MalformedPayloadFuzzKeepsViewsWithinPackets)
     std::mt19937 generator(2682);
     std::uniform_int_distribution<int> byteDistribution(0, 255);
     for (size_t payloadSize = 0; payloadSize <= 128; payloadSize++) {
-        for (size_t alignment = 0; alignment < alignof(MYFLT); alignment++) {
+        for (size_t alignment = 0; alignment < alignof(cs_float); alignment++) {
             std::vector<unsigned char> storage(payloadSize + alignment);
             for (unsigned char& byte : storage) {
                 byte = (unsigned char)byteDistribution(generator);

@@ -54,7 +54,7 @@ typedef struct STDOPCOD_GLOBALS_ {
     int32_t         file_max;
     int32_t         file_num;
     int64_t        fout_kreset;
-   /* MYFLT       *buf;
+   /* cs_float       *buf;
       int32_t         buf_size; */ /* VL - now using per instance buffer */
     /* oscbnk.c */
     uint32      oscbnk_seed;
@@ -70,8 +70,8 @@ typedef struct STDOPCOD_GLOBALS_ {
     /* space.c */
     void        *spaceaddr;
     /* gab/gab.c */
-    MYFLT       *tb_ptrs[16];       /* Left here while the rest is implemented */
-    MYFLT       *tb[16];       /* gab: updated */
+    cs_float       *tb_ptrs[16];       /* Left here while the rest is implemented */
+    cs_float       *tb[16];       /* gab: updated */
     int32_t         tb_ixmode[16]; /* gab: added */
     int32       tb_size[16];   /* gab: added */
   //OPARMS  oparms;

@@ -28,136 +28,136 @@
 /* The follwoing from CsoundAV/newopcodes.h */
 typedef struct {
     OPDS    h;
-    MYFLT   *xndx, *xfn, *kinterp, *ixmode, *outargs[VARGMAX];
+    cs_float   *xndx, *xfn, *kinterp, *ixmode, *outargs[VARGMAX];
 } MTABLEI;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *xndx, *xfn, *kinterp, *ixmode, *outargs[VARGMAX];
+    cs_float   *xndx, *xfn, *kinterp, *ixmode, *outargs[VARGMAX];
     int32_t     nargs;
-    MYFLT   xbmul;
-    MYFLT   pfn;
+    cs_float   xbmul;
+    cs_float   pfn;
     int64_t len;
-    MYFLT   *ftable;
+    cs_float   *ftable;
 } MTABLE;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *xndx, *xfn, *ixmode, *inargs[VARGMAX];
+    cs_float   *xndx, *xfn, *ixmode, *inargs[VARGMAX];
 } MTABLEIW;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *xndx, *xfn, *ixmode, *inargs[VARGMAX];
+    cs_float   *xndx, *xfn, *ixmode, *inargs[VARGMAX];
     int32_t     nargs;
-    MYFLT   xbmul;
-    MYFLT   pfn;
+    cs_float   xbmul;
+    cs_float   pfn;
     int64_t len;
-    MYFLT   *ftable;
+    cs_float   *ftable;
 } MTABLEW;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *xndx, *xfn, *inargs[VARGMAX];
+    cs_float   *xndx, *xfn, *inargs[VARGMAX];
 } MTABIW;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *xndx, *xfn, *inargs[VARGMAX];
+    cs_float   *xndx, *xfn, *inargs[VARGMAX];
     int32_t     nargs;
- /* MYFLT   xbmul; */
-    MYFLT   pfn;
+ /* cs_float   xbmul; */
+    cs_float   pfn;
     int64_t len;
-    MYFLT   *ftable;
+    cs_float   *ftable;
 } MTABW;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *xndx, *xfn, *outargs[VARGMAX];
+    cs_float   *xndx, *xfn, *outargs[VARGMAX];
 } MTABI;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *xndx, *xfn, *outargs[VARGMAX];
+    cs_float   *xndx, *xfn, *outargs[VARGMAX];
     int32_t     nargs;
- /* MYFLT   xbmul; */
-    MYFLT   pfn;
+ /* cs_float   xbmul; */
+    cs_float   pfn;
     int64_t len;
-    MYFLT   *ftable;
+    cs_float   *ftable;
 } MTAB;
 
 /* The following from CSoundAV/vectorial.h */
 typedef struct {
     OPDS    h;
-    MYFLT   *ifn, *kval, *kelements, *kdstoffset, *kverbose;
+    cs_float   *ifn, *kval, *kelements, *kdstoffset, *kverbose;
     int64_t    /*elements,*/ len/*, dstoffset*/;
-    MYFLT   *vector;
+    cs_float   *vector;
 } VECTOROP;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *ifn, *kval, *ielements, *idstoffset;
+  cs_float   *ifn, *kval, *ielements, *idstoffset;
   int64_t    /*elements,*/ len;
-  MYFLT   *vector;
+  cs_float   *vector;
 } VECTOROPI;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *ifn1, *ifn2, *kelements, *kdstoffset, *ksrcoffset, *kverbose;
+  cs_float   *ifn1, *ifn2, *kelements, *kdstoffset, *ksrcoffset, *kverbose;
   int32_t     /*elements,*/ len1, len2/*, dstoffset, srcoffset*/;
-  MYFLT   *vector1, *vector2;
+  cs_float   *vector1, *vector2;
 } VECTORSOP;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *ifn1, *ifn2, *ielements, *idstoffset, *isrcoffset;
+  cs_float   *ifn1, *ifn2, *ielements, *idstoffset, *isrcoffset;
   int32_t     /*elements,*/ len1, len2;
-  MYFLT   *vector1, *vector2;
+  cs_float   *vector1, *vector2;
 } VECTORSOPI;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifn, *kmin, *kmax, *ielements;
+    cs_float   *ifn, *kmin, *kmax, *ielements;
     int32_t     elements;
-    MYFLT   *vector;
+    cs_float   *vector;
 } VLIMIT;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifn, *krange, *kcps, *ielements, *idstoffset, *iseed, *isize, *ioffset;
+    cs_float   *ifn, *krange, *kcps, *ielements, *idstoffset, *iseed, *isize, *ioffset;
     AUXCH   auxch;
-    MYFLT   *vector;
+    cs_float   *vector;
     int32_t     elements;
     int32_t     offset;
     int64_t    phs;
-    MYFLT   *num1;
+    cs_float   *num1;
     int64_t   rand;
 } VRANDH;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifn, *krange, *kcps, *ielements, *idstoffset, *iseed, *isize, *ioffset;
+    cs_float   *ifn, *krange, *kcps, *ielements, *idstoffset, *iseed, *isize, *ioffset;
     AUXCH   auxch;
-    MYFLT   *vector;
+    cs_float   *vector;
     int32_t     elements;
     int32_t     offset;
     int64_t    phs;
-    MYFLT   *num1, *num2, *dfdmax;
+    cs_float   *num1, *num2, *dfdmax;
     int64_t   rand;
 } VRANDI;
 
 /*  TSEG definition from H/vpvoc.h */
 typedef struct {
     FUNC    *function, *nxtfunction;
-    MYFLT   d;
+    cs_float   d;
     int64_t    cnt;
 } TSEG;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ioutfunc,*ielements,*argums[VARGMAX];
+    cs_float   *ioutfunc,*ielements,*argums[VARGMAX];
     TSEG    *cursegp;
-    MYFLT   *vector;
+    cs_float   *vector;
     int32_t     elements;
     int64_t    nsegs;
     AUXCH   auxch;
@@ -165,31 +165,31 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifn, *khtim, *ielements, *ifnInit;
-    MYFLT   c1, c2, *yt1, *vector, prvhtim;
+    cs_float   *ifn, *khtim, *ielements, *ifnInit;
+    cs_float   c1, c2, *yt1, *vector, prvhtim;
     int32_t     elements;
     AUXCH   auxch;
 } VPORT;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifnOut, *ifnIn, *ifnDel, *ielements, *imaxd, *istod;
+    cs_float   *ifnOut, *ifnIn, *ifnDel, *ielements, *imaxd, *istod;
     AUXCH   aux;
-    MYFLT   **buf, *outvec, *invec, *dlyvec;
+    cs_float   **buf, *outvec, *invec, *dlyvec;
     int32   *left, maxd;
     int32_t     elements;
 } VECDEL;
 
 typedef struct {
     FUNC    *function, *nxtfunction;
-    double  d;
+    cs_double  d;
 } TSEG2;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kphase, *ioutfunc, *ielements,*argums[VARGMAX];
+    cs_float   *kphase, *ioutfunc, *ielements,*argums[VARGMAX];
     TSEG2   *cursegp;
-    MYFLT   *vector;
+    cs_float   *vector;
     int32_t     elements;
     int64_t    nsegs;
     AUXCH   auxch;
@@ -197,16 +197,16 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kr, *kin, *kdel, *imaxd, *istod, *interp;
+    cs_float   *kr, *kin, *kdel, *imaxd, *istod, *interp;
     AUXCH   aux;
     int64_t    left, maxd;
 } KDEL;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ktrig, *kreinit, *ioutFunc, *initStateFunc,
+    cs_float   *ktrig, *kreinit, *ioutFunc, *initStateFunc,
             *iRuleFunc, *ielements, *irulelen, *iradius;
-    MYFLT   *currLine, *outVec, *initVec, *ruleVec;
+    cs_float   *currLine, *outVec, *initVec, *ruleVec;
     int32_t     elements, NewOld, ruleLen;
     AUXCH   auxch;
 } CELLA;
@@ -215,10 +215,10 @@ typedef struct {
 /*
 #define oneUp31Bit      (double) (4.656612875245796924105750827168e-10)
 
-#define randGab   (MYFLT) ((double)     \
+#define randGab   (cs_float) ((double)     \
     (((csound->holdrand = csound->holdrand * 214013 + 2531011) >> 1)  \
      & 0x7fffffff) * oneUp31Bit)
-#define BiRandGab (MYFLT) ((double)     \
+#define BiRandGab (cs_float) ((double)     \
     (csound->holdrand = csound->holdrand * -214013 + 2531011) * oneUp31Bit)*/
 
 #endif

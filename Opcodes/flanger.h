@@ -24,18 +24,18 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *asig, *xdel, *kfeedback, *maxd, *iskip;
-        MYFLT   yt1; /* filter instance variables */
+        cs_float   *ar, *asig, *xdel, *kfeedback, *maxd, *iskip;
+        cs_float   yt1; /* filter instance variables */
         AUXCH   aux;  /* delay instance variables */
         uint32  left;
         uint32  maxdelay;
-        MYFLT   maxDelaySeconds;
+        cs_float   maxDelaySeconds;
 } FLANGER;
 
 typedef struct {
         OPDS    h;
-        MYFLT *ar, *asig, *xdel, *filt_khp, *kfeedback;
-        MYFLT c1, c2, yt1, prvhp; /* filter instance variables */
+        cs_float *ar, *asig, *xdel, *filt_khp, *kfeedback;
+        cs_float c1, c2, yt1, prvhp; /* filter instance variables */
         AUXCH   aux;  /* delay instance variables */
         uint32  maxd;
         int32   left;
@@ -44,15 +44,15 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT *ar, *asig, *xdel1, *xdel2, *filt_khp1;
-        MYFLT *filt_khp2, *kfeedback1, *kfeedback2;
-        MYFLT c1_1, c2_1, yt1_1, prvhp1; /* filter1 instance variables */
-        MYFLT c1_2, c2_2, yt1_2, prvhp2; /* filter1 instance variables */
+        cs_float *ar, *asig, *xdel1, *xdel2, *filt_khp1;
+        cs_float *filt_khp2, *kfeedback1, *kfeedback2;
+        cs_float c1_1, c2_1, yt1_1, prvhp1; /* filter1 instance variables */
+        cs_float c1_2, c2_2, yt1_2, prvhp2; /* filter1 instance variables */
         AUXCH   aux1;  /* delay1 instance variables */
         int32   left1;
         AUXCH   aux2;  /* delay1 instance variables */
         int32   left2;
         uint32  maxd;
-        MYFLT   old_out;
+        cs_float   old_out;
         int16   xdel1cod, xdel2cod;
 } WGUIDE2;

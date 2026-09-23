@@ -61,7 +61,7 @@ CS_VARIABLE* createConstructorProbe(void* cs, const CS_TYPE* type,
     constructorContext = ctx;
     CS_VARIABLE* var = static_cast<CS_VARIABLE*>(
       csound->Calloc(csound, sizeof(CS_VARIABLE)));
-    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(MYFLT));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(cs_float));
     return var;
 }
 
@@ -144,7 +144,7 @@ TEST_F (TypeSystemTests, testStandardCopyCallbacksDefendAgainstNullPointers)
       &CS_VAR_TYPE_INSTR_INSTANCE,
       &CS_VAR_TYPE_COMPLEX
     };
-    MYFLT value = FL(0.0);
+    cs_float value = FL(0.0);
 
     for (const CS_TYPE* type : types) {
       ASSERT_NE(nullptr, type->copyValue);
@@ -193,10 +193,10 @@ TEST_F (TypeSystemTests, testVariablePoolAlignment)
         size_t bytes = pool->poolSize +
           pool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET);
         EXPECT_EQ(0u, bytes % alignof(OPDS));
-        MYFLT* data = static_cast<MYFLT*>(csound->Calloc(csound, bytes));
+        cs_float* data = static_cast<cs_float*>(csound->Calloc(csound, bytes));
         size_t previousEnd = 0;
         for (CS_VARIABLE* var = pool->head; var; var = var->next) {
-            size_t valueOffset = var->memBlockIndex * sizeof(MYFLT);
+            size_t valueOffset = var->memBlockIndex * sizeof(cs_float);
             size_t headerOffset = valueOffset - CS_VAR_TYPE_OFFSET;
             EXPECT_GE(headerOffset, previousEnd);
             EXPECT_EQ(0u, headerOffset % alignof(CS_VAR_MEM));
@@ -227,8 +227,8 @@ TEST_F (TypeSystemTests, testVariablePoolAlignment)
           csound, CS_VAR_TYPE_OFFSET + var->memBlockSize));
         var->memBlock->varType = var->varType;
     }
-    EXPECT_EQ(sizeof(MYFLT), static_cast<size_t>(pool->head->memBlockSize));
-    EXPECT_EQ(3 * sizeof(MYFLT),
+    EXPECT_EQ(sizeof(cs_float), static_cast<size_t>(pool->head->memBlockSize));
+    EXPECT_EQ(3 * sizeof(cs_float),
               static_cast<size_t>(pool->head->next->memBlockSize));
     csoundRecalculateVarPoolMemory(csound, pool);
     checkLayout();
@@ -238,7 +238,7 @@ TEST_F (TypeSystemTests, testVariablePoolAlignment)
     int32_t resizedPoolSize = pool->poolSize;
     csoundRecalculateVarPoolMemory(csound, pool);
     EXPECT_EQ(resizedPoolSize, pool->poolSize);
-    EXPECT_EQ(5 * sizeof(MYFLT),
+    EXPECT_EQ(5 * sizeof(cs_float),
               static_cast<size_t>(pool->head->next->memBlockSize));
     checkLayout();
 
@@ -250,13 +250,13 @@ TEST_F (TypeSystemTests, testVariablePoolAlignment)
 TEST_F (TypeSystemTests, testArrayCopyPreservesDestinationCapacity)
 {
     int32_t sourceSize = 2;
-    MYFLT sourceData[] = {FL(11.0), FL(22.0)};
+    cs_float sourceData[] = {FL(11.0), FL(22.0)};
     ARRAYDAT source{};
     ARRAYDAT destination{};
 
     source.dimensions = 1;
     source.sizes = &sourceSize;
-    source.arrayMemberSize = sizeof(MYFLT);
+    source.arrayMemberSize = sizeof(cs_float);
     source.arrayType = &CS_VAR_TYPE_I;
     source.data = sourceData;
     source.allocated = sizeof(sourceData);
@@ -265,18 +265,18 @@ TEST_F (TypeSystemTests, testArrayCopyPreservesDestinationCapacity)
     destination.sizes = static_cast<int32_t *>(
       csound->Calloc(csound, sizeof(int32_t)));
     destination.sizes[0] = 8;
-    destination.arrayMemberSize = sizeof(MYFLT);
+    destination.arrayMemberSize = sizeof(cs_float);
     destination.arrayType = &CS_VAR_TYPE_I;
-    destination.allocated = sizeof(MYFLT) * 8;
-    destination.data = static_cast<MYFLT *>(
+    destination.allocated = sizeof(cs_float) * 8;
+    destination.data = static_cast<cs_float *>(
       csound->Calloc(csound, destination.allocated));
-    MYFLT *originalAllocation = destination.data;
+    cs_float *originalAllocation = destination.data;
 
     ASSERT_EQ(OK, csound_array_copy_independent(
                     csound, &destination, &source, nullptr,
                     CSOUND_ARRAY_COPY_ALLOW_ALLOCATION));
     EXPECT_EQ(originalAllocation, destination.data);
-    EXPECT_EQ(sizeof(MYFLT) * 8, destination.allocated);
+    EXPECT_EQ(sizeof(cs_float) * 8, destination.allocated);
     ASSERT_EQ(1, destination.dimensions);
     ASSERT_NE(nullptr, destination.sizes);
     EXPECT_EQ(2, destination.sizes[0]);
@@ -289,13 +289,13 @@ TEST_F (TypeSystemTests, testArrayCopyPreservesDestinationCapacity)
 TEST_F (TypeSystemTests, testIndependentArrayCopyReportsTypeMismatch)
 {
     int32_t sourceSize = 1;
-    MYFLT sourceData[] = {FL(1.0)};
+    cs_float sourceData[] = {FL(1.0)};
     ARRAYDAT source{};
     ARRAYDAT destination{};
 
     source.dimensions = 1;
     source.sizes = &sourceSize;
-    source.arrayMemberSize = sizeof(MYFLT);
+    source.arrayMemberSize = sizeof(cs_float);
     source.arrayType = &CS_VAR_TYPE_I;
     source.data = sourceData;
     source.allocated = sizeof(sourceData);
@@ -317,7 +317,7 @@ TEST_F (TypeSystemTests, testTabinitRejectsNegativeSizeWithoutMutation)
     ASSERT_NE(nullptr, array.data);
     ASSERT_NE(nullptr, array.sizes);
     array.data[0] = FL(11.0);
-    MYFLT *const data = array.data;
+    cs_float *const data = array.data;
     int32_t *const sizes = array.sizes;
     const size_t allocated = array.allocated;
 
@@ -361,7 +361,7 @@ TEST_F (TypeSystemTests, testTabinitLikeRejectsInvalidSourceWithoutMutation)
     ASSERT_NE(nullptr, destination.data);
     ASSERT_NE(nullptr, destination.sizes);
     destination.data[0] = FL(13.0);
-    MYFLT *const data = destination.data;
+    cs_float *const data = destination.data;
     int32_t *const sizes = destination.sizes;
     const size_t allocated = destination.allocated;
     source.arrayType = &CS_VAR_TYPE_I;
@@ -382,7 +382,7 @@ TEST_F (TypeSystemTests, testTabinitLikeFailureLeavesUntypedArrayUnchanged)
 {
     CS_TYPE invalidElementType{};
     int32_t sourceSizes[] = {1};
-    MYFLT sourceData = FL(0.0);
+    cs_float sourceData = FL(0.0);
     ARRAYDAT source{};
     ARRAYDAT destination{};
 
@@ -403,7 +403,7 @@ TEST_F (TypeSystemTests, testTabinitLikeFailureLeavesUntypedArrayUnchanged)
 
 TEST_F (TypeSystemTests, testTrimRejectsInt32MaxPlusOne)
 {
-    MYFLT requestedSize = (MYFLT)2147483648.0;
+    cs_float requestedSize = (cs_float)2147483648.0;
     int32_t size = 1;
 
     EXPECT_EQ(NOTOK, csound_array_size_to_int32(requestedSize, &size));
@@ -425,12 +425,12 @@ TEST_F (TypeSystemTests, testConcurrentStructuredArrayCopiesShareOneStorage)
     source.sizes = static_cast<int32_t *>(
       csound->Calloc(csound, sizeof(int32_t)));
     source.sizes[0] = 1;
-    source.arrayMemberSize = sizeof(MYFLT);
+    source.arrayMemberSize = sizeof(cs_float);
     source.arrayType = &elementType;
-    source.data = static_cast<MYFLT *>(
-      csound->Calloc(csound, sizeof(MYFLT)));
+    source.data = static_cast<cs_float *>(
+      csound->Calloc(csound, sizeof(cs_float)));
     source.data[0] = FL(17.0);
-    source.allocated = sizeof(MYFLT);
+    source.allocated = sizeof(cs_float);
 
     for (ARRAYDAT &destination : destinations) {
         destination.arrayType = &elementType;
@@ -473,19 +473,19 @@ TEST_F (TypeSystemTests, testStructuredArrayWritePreparationUsesExplicitPolicy)
     source.sizes = static_cast<int32_t *>(
       csound->Calloc(csound, sizeof(int32_t)));
     source.sizes[0] = 1;
-    source.arrayMemberSize = sizeof(MYFLT);
+    source.arrayMemberSize = sizeof(cs_float);
     source.arrayType = &elementType;
-    source.data = static_cast<MYFLT *>(
-      csound->Calloc(csound, sizeof(MYFLT)));
+    source.data = static_cast<cs_float *>(
+      csound->Calloc(csound, sizeof(cs_float)));
     source.data[0] = FL(23.0);
-    source.allocated = sizeof(MYFLT);
+    source.allocated = sizeof(cs_float);
     shared.arrayType = &elementType;
 
     CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
                                 &shared, &source, nullptr);
     ASSERT_NE(nullptr, source.storage);
     ASSERT_EQ(source.storage, shared.storage);
-    MYFLT *const originalData = source.data;
+    cs_float *const originalData = source.data;
     auto *const originalStorage = source.storage;
 
     EXPECT_EQ(NOTOK, csound_array_try_prepare_write(
@@ -498,7 +498,7 @@ TEST_F (TypeSystemTests, testStructuredArrayWritePreparationUsesExplicitPolicy)
                     csound, &source, nullptr));
     EXPECT_EQ(nullptr, source.storage);
     EXPECT_NE(originalData, source.data);
-    EXPECT_EQ(sizeof(MYFLT), source.allocated);
+    EXPECT_EQ(sizeof(cs_float), source.allocated);
     EXPECT_EQ(FL(23.0), source.data[0]);
     EXPECT_EQ(originalStorage, shared.storage);
     EXPECT_EQ(originalData, shared.data);
@@ -547,7 +547,7 @@ TEST_F (TypeSystemTests, testStructuredArrayCopyAndWriteClaimAreSerialized)
         ASSERT_NE(nullptr, elementVariable);
         ASSERT_NE(nullptr, elementVariable->initializeVariableMemory);
         source.arrayMemberSize = elementVariable->memBlockSize;
-        source.data = static_cast<MYFLT *>(
+        source.data = static_cast<cs_float *>(
           csound->Calloc(csound, (size_t)source.arrayMemberSize));
         elementVariable->initializeVariableMemory(
           csound, elementVariable, source.data);

@@ -49,16 +49,16 @@ typedef struct DSSI4CS_PLUGIN_ {
 typedef struct DSSIINIT_ {
     OPDS h;
     /* Inputs. */
-    MYFLT *iDSSIHandle;
-    MYFLT *iplugin;
-    MYFLT *iindex;
-    MYFLT *iverbose;
+    cs_float *iDSSIHandle;
+    cs_float *iplugin;
+    cs_float *iindex;
+    cs_float *iverbose;
 } DSSIINIT ;
 
 typedef struct DSSIACTIVATE_ {
     OPDS h;
-    MYFLT *iDSSIhandle;
-    MYFLT *ktrigger;
+    cs_float *iDSSIhandle;
+    cs_float *ktrigger;
     int32_t printflag;
     DSSI4CS_PLUGIN * DSSIPlugin_;
 } DSSIACTIVATE ;
@@ -66,14 +66,14 @@ typedef struct DSSIACTIVATE_ {
 typedef struct DSSIAUDIO_ {
     OPDS h;
     /* Outputs. */
-    MYFLT *aout[DSSI4CS_MAX_OUT_CHANNELS];
+    cs_float *aout[DSSI4CS_MAX_OUT_CHANNELS];
     /* Inputs. */
-    MYFLT *iDSSIhandle;
-    MYFLT *ain[DSSI4CS_MAX_IN_CHANNELS];
-/*  MYFLT *ain1; */
-/*  MYFLT *ain2; */
-/*  MYFLT *ain3; */
-/*  MYFLT *ain4; */
+    cs_float *iDSSIhandle;
+    cs_float *ain[DSSI4CS_MAX_IN_CHANNELS];
+/*  cs_float *ain1; */
+/*  cs_float *ain2; */
+/*  cs_float *ain3; */
+/*  cs_float *ain4; */
     int32_t NumInputPorts;
     int32_t NumOutputPorts;
     uint64_t * InputPorts;
@@ -86,10 +86,10 @@ typedef struct DSSIAUDIO_ {
 
 typedef struct DSSICTLS_ {
     OPDS h;
-    MYFLT *iDSSIhandle;
-    MYFLT *iport;
-    MYFLT *val;
-    MYFLT *ktrig;
+    cs_float *iDSSIhandle;
+    cs_float *iport;
+    cs_float *val;
+    cs_float *ktrig;
     /* float *Data; */
     uint64_t PortNumber;
     int32_t HintSampleRate;
@@ -98,9 +98,9 @@ typedef struct DSSICTLS_ {
 
 typedef struct DSSISYNTH_ {
     OPDS h;
-    MYFLT *aout[DSSI4CS_MAX_OUT_CHANNELS];
+    cs_float *aout[DSSI4CS_MAX_OUT_CHANNELS];
     /* Inputs. */
-    MYFLT *iDSSIhandle;
+    cs_float *iDSSIhandle;
     int32_t NumInputPorts;
     int32_t NumOutputPorts;
     uint64_t * InputPorts;
@@ -111,38 +111,38 @@ typedef struct DSSISYNTH_ {
 typedef struct DSSINOTE_ {
     OPDS h;
     /* Inputs. */
-    MYFLT *ktrigger;
-    MYFLT *iDSSIhandle;
-    MYFLT *knote;
-    MYFLT *kveloc;
-    MYFLT *kdur;
+    cs_float *ktrigger;
+    cs_float *iDSSIhandle;
+    cs_float *knote;
+    cs_float *kveloc;
+    cs_float *kdur;
 } DSSINOTE;
 
 typedef struct DSSINOTEON_ {
     OPDS h;
     /* Inputs. */
-    MYFLT *ktrigger;
-    MYFLT *iDSSIhandle;
-    MYFLT *knote;
-    MYFLT *kveloc;
+    cs_float *ktrigger;
+    cs_float *iDSSIhandle;
+    cs_float *knote;
+    cs_float *kveloc;
 } DSSINOTEON;
 
 typedef struct DSSINOTEOFF_ {
     OPDS h;
     /* Inputs. */
-    MYFLT *ktrigger;
-    MYFLT *iDSSIhandle;
-    MYFLT *knote;
-    MYFLT *kveloc;
+    cs_float *ktrigger;
+    cs_float *iDSSIhandle;
+    cs_float *knote;
+    cs_float *kveloc;
 } DSSINOTEOFF;
 
 typedef struct DSSIPGMCH_ {
     OPDS h;
     /* Inputs. */
-    MYFLT *ktrigger;
-    MYFLT *iDSSIhandle;
-    MYFLT *kprogram;
-    MYFLT *kbank;
+    cs_float *ktrigger;
+    cs_float *iDSSIhandle;
+    cs_float *kprogram;
+    cs_float *kbank;
 } DSSIPGMCH;
 
 typedef struct DSSILIST_ {

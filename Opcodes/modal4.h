@@ -40,38 +40,38 @@ typedef struct Modal4 {
 /*     int32_t              w_looping; */
     int32_t         w_myData;
     int32_t         w_allDone;
-    MYFLT       w_rate;
-    MYFLT       w_time;
-    MYFLT       w_phaseOffset;
-    MYFLT       w_lastOutput;
+    cs_float       w_rate;
+    cs_float       w_time;
+    cs_float       w_phaseOffset;
+    cs_float       w_lastOutput;
     BiQuad      filters[4];
     OnePole     onepole;
     FUNC        *vibr;
-    double      v_rate;         /* Parameters for vibrato */
-    double      v_time;
-    MYFLT       v_phaseOffset;
-    MYFLT       v_lastOutput;
-    MYFLT       vibrGain;
-    MYFLT       masterGain;
-    MYFLT       directGain;
-    MYFLT       baseFreq;
-    MYFLT       ratios[4];
-    MYFLT       resons[4];
-    MYFLT       sr;
+    cs_double      v_rate;         /* Parameters for vibrato */
+    cs_double      v_time;
+    cs_float       v_phaseOffset;
+    cs_float       v_lastOutput;
+    cs_float       vibrGain;
+    cs_float       masterGain;
+    cs_float       directGain;
+    cs_float       baseFreq;
+    cs_float       ratios[4];
+    cs_float       resons[4];
+    cs_float       sr;
 } Modal4;
 
 void Modal4_clear(Modal4 *);
-void Modal4_setFreq(CSOUND*, Modal4 *m, MYFLT frequency);
+void Modal4_setFreq(CSOUND*, Modal4 *m, cs_float frequency);
 void Modal4_setRatioAndReson(CSOUND*,Modal4 *m, int32_t
                              whichOne,
-                             MYFLT ratio, MYFLT reson);
+                             cs_float ratio, cs_float reson);
 #define Modal4_setMasterGain(m,Gain)    (m->masterGain = aGain)
 #define Modal4_setDirectGain(m,aGain)   (m->directGain = aGain)
 #define Modal4_setFiltGain(m,whichOne,gain) \
                     (BiQuad_setGain(m->filters[whichOne], gain))
-/*void Modal4_strike(CSOUND *, Modal4 *m, MYFLT amplitude);
-void Modal4_damp(CSOUND *, Modal4 *m, MYFLT amplitude);
-MYFLT Modal4_tick(Modal4 *);*/
+/*void Modal4_strike(CSOUND *, Modal4 *m, cs_float amplitude);
+void Modal4_damp(CSOUND *, Modal4 *m, cs_float amplitude);
+cs_float Modal4_tick(Modal4 *);*/
 
 #endif
 

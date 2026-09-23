@@ -26,21 +26,21 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *sr, *xcps, *iphs;
-        double  curphs;
+        cs_float   *sr, *xcps, *iphs;
+        cs_double  curphs;
 } PHSOR;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *sr,*aphs, *xcps, *kR, *iphs;
-        double  curphs;
-        double  b;
+        cs_float   *sr,*aphs, *xcps, *kR, *iphs;
+        cs_double  curphs;
+        cs_double  b;
 } EPHSOR;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *rslt, *xndx, *xfn, *ixmode, *ixoff, *iwrap;
-        MYFLT   offset;
+        cs_float   *rslt, *xndx, *xfn, *ixmode, *ixoff, *iwrap;
+        cs_float   offset;
         int32   pfn;
         int32   xbmul;
         int32_t     wrap;
@@ -49,39 +49,39 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *rslt, *idel, *kamp, *idur, *ifn;
+        cs_float   *rslt, *idel, *kamp, *idur, *ifn;
         int32   kinc, phs;
-        double   fphs, inc;
+        cs_double   fphs, inc;
         int32   dcnt;
         FUNC    *ftp;
 } OSCIL1;
 
 typedef struct  {
         OPDS    h;
-        MYFLT   *rslt, *kamp, *ifrq, *ifn, *itimes;
-        double  phase, inc;
+        cs_float   *rslt, *kamp, *ifrq, *ifn, *itimes;
+        cs_double  phase, inc;
         int32_t ntimes, cycles;
         FUNC    *ftp;
 } OSCILN;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *sr, *xamp, *xcps, *ifn, *iphs;
+        cs_float   *sr, *xamp, *xcps, *ifn, *iphs;
         int32   lphs;
-        double   phs;
+        cs_double   phs;
         FUNC    *ftp;
         int32       tablen;
-        double      tablenUPsr;
+        cs_double      tablenUPsr;
         FUNC    FF;
         AUXCH   arraydata;
 } OSC;
 
 typedef struct  {
     OPDS        h;
-    MYFLT       *out, *amp, *freq, *kloop, *kend, *ift, *iphs;
+    cs_float       *out, *amp, *freq, *kloop, *kend, *ift, *iphs;
     FUNC        *ftp;
     int32        tablen;
-    MYFLT       fsr;
-    double      phs, looplength;
+    cs_float       fsr;
+    cs_double      phs, looplength;
 } LPOSC;
 

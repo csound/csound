@@ -24,30 +24,30 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar, *asig, *kcf, *kbw, *ord, *iscl, *istor;
+    cs_float   *ar, *asig, *kcf, *kbw, *ord, *iscl, *istor;
     int32_t scale, loop;
-    MYFLT   c1, c2, c3, *yt1, *yt2, cosf, prvcf, prvbw;
+    cs_float   c1, c2, c3, *yt1, *yt2, cosf, prvcf, prvbw;
     AUXCH   aux;
 } KRESONX;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *rslt, *xndx, *xfn, *ixmode;
-    MYFLT   *table;
-    MYFLT   xbmul;
+    cs_float   *rslt, *xndx, *xfn, *ixmode;
+    cs_float   *table;
+    cs_float   xbmul;
     int32_t xmode;
     int32_t tablen;
 } FASTAB;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *ndx;
-    MYFLT   **tb_ptr;
+    cs_float   *r, *ndx;
+    cs_float   **tb_ptr;
 } FASTB;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifn;
+    cs_float   *ifn;
 } TB_INIT;
 
 /* ====================== */
@@ -55,20 +55,20 @@ typedef struct {
 /* ====================== */
 typedef struct {        /* for nlalp opcode */
     OPDS    h;          /* header */
-    MYFLT   *aresult;   /* resulting signal */
-    MYFLT   *ainsig;    /* input signal */
-    MYFLT   *klfact;    /* linear factor */
-    MYFLT   *knfact;    /* nonlinear factor */
-    MYFLT   *istor;     /* initial storage disposition */
-    double  m0;         /* energy storage */
-    double  m1;         /* energy storage */
+    cs_float   *aresult;   /* resulting signal */
+    cs_float   *ainsig;    /* input signal */
+    cs_float   *klfact;    /* linear factor */
+    cs_float   *knfact;    /* nonlinear factor */
+    cs_float   *istor;     /* initial storage disposition */
+    cs_double  m0;         /* energy storage */
+    cs_double  m1;         /* energy storage */
 } NLALP;
 
 /* end opcodes from Jens Groh */
 
 typedef struct {
     OPDS    h;
-    MYFLT   *sr, *kamp, *kcps, *ifn, *ifreqtbl, *iamptbl, *icnt, *iphs, *interp;
+    cs_float   *sr, *kamp, *kcps, *ifn, *ifreqtbl, *iamptbl, *icnt, *iphs, *interp;
     FUNC    *ftp;
     FUNC    *freqtp;
     FUNC    *amptp;
@@ -81,38 +81,38 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *retval;
+    cs_float   *retval;
 } EXITNOW;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ktrig_start, *ktrig_stop, *numtics, *kfn, *inargs[VARGMAX];
+    cs_float   *ktrig_start, *ktrig_stop, *numtics, *kfn, *inargs[VARGMAX];
     int32_t recording, numins;
-    double currtic;
+    cs_double currtic;
     int64_t ndx, tablen;
-    MYFLT   *table;
+    cs_float   *table;
 } TABREC;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ktrig, *numtics, *kfn, *outargs[VARGMAX];
+    cs_float   *ktrig, *numtics, *kfn, *outargs[VARGMAX];
     int32_t playing, numouts;
-    double currtic;
+    cs_double currtic;
     int64_t ndx, tablen;
-    MYFLT   *table, old_fn;
+    cs_float   *table, old_fn;
 } TABPLAY;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ktrig, *inargs[VARGMAX];
+    cs_float   *ktrig, *inargs[VARGMAX];
     int32_t numargs;            /* Reordered for caching */
     int32_t cnt;
-    MYFLT   old_inargs[VARGMAX];
+    cs_float   old_inargs[VARGMAX];
 } ISCHANGED;
 
 typedef struct {
     OPDS     h;
-    MYFLT    *ktrig;
+    cs_float    *ktrig;
     ARRAYDAT *chk;
     size_t   size;
     int32_t  cnt;
@@ -121,21 +121,21 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *commandLine;
+    cs_float   *commandLine;
 } CSSYSTEM;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kout, *asig, *ktrig, *imaxflag;
-    MYFLT   max;
+    cs_float   *kout, *asig, *ktrig, *imaxflag;
+    cs_float   max;
     uint64_t    counter;
 } P_MAXIMUM;
 
 /* From fractals.h */
 typedef struct {
     OPDS    h;
-    MYFLT   *kr, *koutrig,  *ktrig, *kx, *ky, *kmaxIter;
-    MYFLT   oldx, oldy, oldMaxIter;
+    cs_float   *kr, *koutrig,  *ktrig, *kx, *ky, *kmaxIter;
+    cs_float   oldx, oldy, oldMaxIter;
     int32_t oldCount;
 } MANDEL;
 

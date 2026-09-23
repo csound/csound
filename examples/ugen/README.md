@@ -142,7 +142,7 @@ UgenVar                   – typed variable handle (i/k/a/S/f)
   .get_value()            – get scalar value (i/k)
   .set_string(s)          – set string value (S)
   .get_string()           – get string value (S)
-  .data_ptr               – raw MYFLT* for audio/struct access
+  .data_ptr               – raw cs_float* for audio/struct access
   .arg_type / .size       – type and size queries
 
 UgenGraph                 – ordered collection of UGens

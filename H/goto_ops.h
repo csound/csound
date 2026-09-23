@@ -37,13 +37,13 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ndxvar, *incr, *limit;
+    cs_float   *ndxvar, *incr, *limit;
     LBLBLK  *l;
 } LOOP_OPS;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *idel, *idur;
+    cs_float   *idel, *idur;
     LBLBLK  *lblblk;
     int32   cnt1, cnt2;
 } TIMOUT;
@@ -54,7 +54,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kInsNo, *kFlags, *kRelease;
+    cs_float   *kInsNo, *kFlags, *kRelease;
 } TURNOFF2;
 
 #endif

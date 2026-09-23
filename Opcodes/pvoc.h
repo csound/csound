@@ -42,7 +42,7 @@ typedef struct PVOC_GLOBALS_ PVOC_GLOBALS;
 
 struct PVOC_GLOBALS_ {
     CSOUND    *csound;
-    MYFLT     *dsputil_sncTab;
+    cs_float     *dsputil_sncTab;
     PVBUFREAD *pvbufreadaddr;
     TABLESEG  *tbladr;
 };

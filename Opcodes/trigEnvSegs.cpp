@@ -38,7 +38,7 @@ struct TrigSegments : csnd::Plugin<1, 64>
         increments.clear();
         for (uint32_t i = 1; i < in_count(); i += 2)
         {
-            MYFLT value = inargs[i];
+            cs_float value = inargs[i];
             if (Exponential &&
                 (value == 0 || (value > 0) != (inargs[1] > 0)))
                 return csound->init_error(
@@ -54,7 +54,7 @@ struct TrigSegments : csnd::Plugin<1, 64>
         for (size_t i = 0; i < durations.size(); ++i)
         {
             // A zero-length segment jumps to its endpoint without interpolation.
-            MYFLT increment = 0;
+            cs_float increment = 0;
             if (durations[i] > 0)
                 increment = Exponential
                     ? std::pow(values[i + 1] / values[i], 1.0 / durations[i])
@@ -82,7 +82,7 @@ struct TrigSegments : csnd::Plugin<1, 64>
             outValue = values[0];
             playing = true;
         }
-        MYFLT *output = outargs(0);
+        cs_float *output = outargs(0);
         for (uint32_t i = offset; i < nsmps; ++i)
         {
             if (playing)
@@ -117,10 +117,10 @@ struct TrigSegments : csnd::Plugin<1, 64>
 
     bool playing;
     size_t segment;
-    double remaining;
-    MYFLT outValue;
-    std::vector<MYFLT> values, increments;
-    std::vector<double> durations;
+    cs_double remaining;
+    cs_float outValue;
+    std::vector<cs_float> values, increments;
+    std::vector<cs_double> durations;
 };
 
 using TrigLinseg = TrigSegments<false>;

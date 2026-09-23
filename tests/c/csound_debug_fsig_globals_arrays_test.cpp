@@ -69,12 +69,12 @@ TEST_F (DebugFsigGlobalsArraysTests, testGlobalScalarsEnumerated)
     ASSERT_NE(gkTempo, nullptr);
     ASSERT_STREQ(gkTempo->typeName, "k");
     ASSERT_NE(gkTempo->data, nullptr);
-    ASSERT_DOUBLE_EQ(*((MYFLT *)gkTempo->data), 120.0);
+    ASSERT_DOUBLE_EQ(*((cs_float *)gkTempo->data), 120.0);
 
     debug_variable_t *giBase = findVar(globals, "giBase");
     ASSERT_NE(giBase, nullptr);
     ASSERT_NE(giBase->data, nullptr);
-    ASSERT_DOUBLE_EQ(*((MYFLT *)giBase->data), 7.0);
+    ASSERT_DOUBLE_EQ(*((cs_float *)giBase->data), 7.0);
 
     /* instrument-local variables must NOT appear in the global pool */
     ASSERT_EQ(findVar(globals, "kLocal"), nullptr);
@@ -93,7 +93,7 @@ TEST_F (DebugFsigGlobalsArraysTests, testInternalGlobalsEnumerated)
     debug_variable_t *sr = findVar(globals, "sr");
     ASSERT_NE(sr, nullptr);
     ASSERT_NE(sr->data, nullptr);
-    ASSERT_GT(*((MYFLT *)sr->data), 0.0);
+    ASSERT_GT(*((cs_float *)sr->data), 0.0);
 
     csoundDebugFreeVariables(csound, globals);
 }
@@ -121,7 +121,7 @@ TEST_F (DebugFsigGlobalsArraysTests, testGlobalArraySerializable)
     ASSERT_NE(arr->data, nullptr);
 
     debug_array_info_t info;
-    MYFLT buf[8];
+    cs_float buf[8];
     int32_t total = csoundDebugSerializeArray(csound, arr->data, buf, 8, &info);
     ASSERT_EQ(total, 3);
     ASSERT_EQ(info.dimensions, 1);
@@ -375,7 +375,7 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeArrayNumeric)
     ASSERT_NE(arr->data, nullptr);
 
     debug_array_info_t info;
-    MYFLT buf[16];
+    cs_float buf[16];
     int32_t total = csoundDebugSerializeArray(csound, arr->data, buf, 16, &info);
     ASSERT_EQ(total, 4);
     ASSERT_EQ(info.dimensions, 1);
@@ -409,7 +409,7 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeArrayNonNumericReturnsZero)
     ASSERT_STREQ(arr->typeName, "[");
 
     debug_array_info_t info;
-    MYFLT buf[16];
+    cs_float buf[16];
     int32_t total = csoundDebugSerializeArray(csound, arr->data, buf, 16, &info);
     ASSERT_EQ(total, 0);
     ASSERT_STREQ(info.elementTypeName, "S");
@@ -421,7 +421,7 @@ TEST_F (DebugFsigGlobalsArraysTests, testSerializeArrayNonNumericReturnsZero)
 TEST_F (DebugFsigGlobalsArraysTests, testSerializeArrayNullSafe)
 {
     debug_array_info_t info;
-    MYFLT buf[4];
+    cs_float buf[4];
     ASSERT_EQ(csoundDebugSerializeArray(csound, NULL, buf, 4, &info), 0);
     ASSERT_EQ(csoundDebugSerializeArray(csound, NULL, buf, 4, NULL), 0);
 }

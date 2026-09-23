@@ -8,7 +8,7 @@
 namespace {
 class DctTests : public ::testing::TestWithParam<int> {
 protected:
-  void run(const std::string &body, const std::vector<MYFLT> &expected,
+  void run(const std::string &body, const std::vector<cs_float> &expected,
            const char *error = nullptr, int cycles = 1)
   {
     CSOUND *csound = csoundCreate(nullptr, nullptr);
@@ -51,12 +51,12 @@ protected:
     csoundDestroy(csound);
   }
 
-  std::vector<MYFLT> transform(const std::vector<MYFLT> &in, bool inverse = false)
+  std::vector<cs_float> transform(const std::vector<cs_float> &in, bool inverse = false)
   {
-    const double pi = std::acos(-1.0);
-    std::vector<MYFLT> out(in.size());
+    const cs_double pi = std::acos(-1.0);
+    std::vector<cs_float> out(in.size());
     for (size_t k = 0; k < in.size(); ++k) {
-      double sum = 0;
+      cs_double sum = 0;
       for (size_t n = 0; n < in.size(); ++n)
         sum += inverse ? in[n] * std::cos(pi * n * (k + .5) / in.size()) * (n ? 1 : .5)
                        : in[n] * std::cos(pi * (n + .5) * k / in.size());

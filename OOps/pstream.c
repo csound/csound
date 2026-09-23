@@ -63,7 +63,7 @@ int32_t fassign_set(CSOUND *csound, FASSIGN *p)
     /* sliding needs to be checked */
     if (p->fsrc->sliding) {
       p->fout->NB = p->fsrc->NB;
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
+      csound->AuxAlloc(csound, (N + 2) * sizeof(cs_float) * CS_KSMPS,
                        &p->fout->frame);
       return OK;
     }
@@ -95,7 +95,7 @@ int32_t fassign(CSOUND *csound, FASSIGN *p)
     //                         Str("fsig = : formats are different.\n"));
     if (p->fsrc->sliding) {
       memcpy(p->fout->frame.auxp, p->fsrc->frame.auxp,
-             sizeof(MYFLT)*(p->fsrc->N+2)*CS_KSMPS);
+             sizeof(cs_float)*(p->fsrc->N+2)*CS_KSMPS);
       return OK;
     }
 
@@ -121,8 +121,8 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     int32_t numbins,n_oscs;
     int32_t startbin,binincr;
     int64_t lastbin;
-    double value;
-    MYFLT *p_x;
+    cs_double value;
+    cs_float *p_x;
 
     if (UNLIKELY(fs->sliding))
       return csound->InitError(csound, Str("Sliding version not yet available"));
@@ -133,8 +133,8 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     p->wintype = fs->wintype;
     p->fftsize = N;
     numbins = N/2 + 1;                     /* max possible */
-    value = (double)*p->n_oscs;
-    if (UNLIKELY(!(value >= 1.0 && value < (double)numbins + 1.0)))
+    value = (cs_double)*p->n_oscs;
+    if (UNLIKELY(!(value >= 1.0 && value < (cs_double)numbins + 1.0)))
       return csound->InitError(csound, Str("pvsadsyn: bad value for inoscs\n"));
     n_oscs = (int32_t)value;             /* user param */
     /* remove this when I know how to do it... */
@@ -147,13 +147,13 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
                as have to set/reset each osc when started and stopped */
 
     /* check bin params */
-    value = (double)*p->ibinoffset;
-    if (UNLIKELY(!(value > -1.0 && value < (double)numbins)))
+    value = (cs_double)*p->ibinoffset;
+    if (UNLIKELY(!(value > -1.0 && value < (cs_double)numbins)))
       return csound->InitError(csound,
                                Str("pvsadsyn: ibinoffset out of range.\n"));
     startbin = (int32_t)value;                 /* default 0 */
-    value = (double)*p->ibinincr;
-    if (UNLIKELY(!(value >= 1.0 && value < (double)numbins + 1.0)))
+    value = (cs_double)*p->ibinincr;
+    if (UNLIKELY(!(value >= 1.0 && value < (cs_double)numbins + 1.0)))
       return csound->InitError(csound,
                                Str("pvsadsyn: ibinincr must be positive and "
                                    "no larger than the number of bins.\n"));
@@ -175,22 +175,22 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     p->one_over_overlap = (float)(FL(1.0) / p->overlap);
     /* alloc for all oscs;
        in case we can do something with them dynamically, one day */
-    csound->AuxAlloc(csound, numbins * sizeof(MYFLT),&p->a);
-    csound->AuxAlloc(csound, numbins * sizeof(MYFLT),&p->x);
-    csound->AuxAlloc(csound, numbins * sizeof(MYFLT),&p->y);
-    csound->AuxAlloc(csound, numbins * sizeof(MYFLT),&p->amps);
-    csound->AuxAlloc(csound, numbins * sizeof(MYFLT),&p->lastamps);
-    csound->AuxAlloc(csound, numbins * sizeof(MYFLT),&p->freqs);
-    csound->AuxAlloc(csound, p->overlap * sizeof(MYFLT),&p->outbuf);
+    csound->AuxAlloc(csound, numbins * sizeof(cs_float),&p->a);
+    csound->AuxAlloc(csound, numbins * sizeof(cs_float),&p->x);
+    csound->AuxAlloc(csound, numbins * sizeof(cs_float),&p->y);
+    csound->AuxAlloc(csound, numbins * sizeof(cs_float),&p->amps);
+    csound->AuxAlloc(csound, numbins * sizeof(cs_float),&p->lastamps);
+    csound->AuxAlloc(csound, numbins * sizeof(cs_float),&p->freqs);
+    csound->AuxAlloc(csound, p->overlap * sizeof(cs_float),&p->outbuf);
     /* initialize oscbank */
-    p_x = (MYFLT *) p->x.auxp;
+    p_x = (cs_float *) p->x.auxp;
     for (i=0;i < numbins;i++)
       p_x[i] = FL(1.0);
 
     return OK;
 }
 /* c/o John Lazzaro, for SAOL, and many other sources */
-static inline MYFLT fastoscil(MYFLT *a, MYFLT *x, MYFLT *y)
+static inline cs_float fastoscil(cs_float *a, cs_float *x, cs_float *y)
 {
     *x = *x - *a * *y;
     *y = *y + *a * *x;
@@ -204,23 +204,23 @@ static void adsyn_frame(CSOUND *csound, PVADS *p)
 {
     int32_t i,j;
     int32_t startbin,lastbin,binincr;
-    MYFLT *outbuf = (MYFLT *) (p->outbuf.auxp);
+    cs_float *outbuf = (cs_float *) (p->outbuf.auxp);
 
     float *frame;        /* RWD MUST be 32bit */
-    MYFLT *a,*x,*y;
-    MYFLT *amps,*freqs,*lastamps;
-    MYFLT ffac    = *p->kfmod;
-    MYFLT nyquist = CS_ESR * FL(0.5);
+    cs_float *a,*x,*y;
+    cs_float *amps,*freqs,*lastamps;
+    cs_float ffac    = *p->kfmod;
+    cs_float nyquist = CS_ESR * FL(0.5);
     /* we add to outbuf, so clear it first*/
-    memset(p->outbuf.auxp,0,p->overlap * sizeof(MYFLT));
+    memset(p->outbuf.auxp,0,p->overlap * sizeof(cs_float));
 
     frame     = (float *) p->fsig->frame.auxp;
-    a         = (MYFLT *) p->a.auxp;
-    x         = (MYFLT *) p->x.auxp;
-    y         = (MYFLT *) p->y.auxp;
-    amps      = (MYFLT *) p->amps.auxp;
-    freqs     = (MYFLT *) p->freqs.auxp;
-    lastamps  = (MYFLT *) p->lastamps.auxp;
+    a         = (cs_float *) p->a.auxp;
+    x         = (cs_float *) p->x.auxp;
+    y         = (cs_float *) p->y.auxp;
+    amps      = (cs_float *) p->amps.auxp;
+    freqs     = (cs_float *) p->freqs.auxp;
+    lastamps  = (cs_float *) p->lastamps.auxp;
     startbin  = p->startbin;
     binincr   = p->binincr;
     lastbin   = p->lastbin;
@@ -243,8 +243,8 @@ static void adsyn_frame(CSOUND *csound, PVADS *p)
        would be worth doing so by hand here ?
      */
     for (i=startbin;i <= lastbin;i+=binincr) {
-      MYFLT thisamp = lastamps[i];
-      MYFLT delta_amp = (amps[i] - thisamp) * p->one_over_overlap;
+      cs_float thisamp = lastamps[i];
+      cs_float delta_amp = (amps[i] - thisamp) * p->one_over_overlap;
 
       for (j=0;j < p->overlap;j++) {
         outbuf[j] += thisamp *  fastoscil(a+i,x+i,y+i);
@@ -254,9 +254,9 @@ static void adsyn_frame(CSOUND *csound, PVADS *p)
     }
 }
 
-static MYFLT adsyn_tick(CSOUND *csound, PVADS *p)
+static cs_float adsyn_tick(CSOUND *csound, PVADS *p)
 {
-    MYFLT *outbuf = (MYFLT *) (p->outbuf.auxp);
+    cs_float *outbuf = (cs_float *) (p->outbuf.auxp);
 
     if (p->outptr== p->fsig->overlap) {
       adsyn_frame(csound, p);
@@ -272,16 +272,16 @@ int32_t pvadsyn(CSOUND *csound, PVADS *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
 
-    MYFLT *aout = p->aout;
+    cs_float *aout = p->aout;
 
     if (UNLIKELY(p->outbuf.auxp==NULL)) {
       return csound->PerfError(csound,&(p->h),
                                Str("pvsynth: Not initialised.\n"));
     }
-    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&aout[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i=offset;i < nsmps;i++)
       aout[i] = adsyn_tick(csound, p);
@@ -314,7 +314,7 @@ int32_t pvscrosset(CSOUND *csound, PVSCROSS *p)
     //   fout->format = p->fsrc->sliding;
     if (fsrc->sliding) {
       fout->NB = fsrc->NB;
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
+      csound->AuxAlloc(csound, (N + 2) * sizeof(cs_float) * CS_KSMPS,
                        &fout->frame);
       return OK;
     }
@@ -329,8 +329,8 @@ int32_t pvscrosset(CSOUND *csound, PVSCROSS *p)
 int32_t pvscross(CSOUND *csound, PVSCROSS *p)
 {
     int32_t i,N = p->fftsize;
-    MYFLT amp1 = FABS(*p->kamp1);
-    MYFLT amp2 = FABS(*p->kamp2);
+    cs_float amp1 = FABS(*p->kamp1);
+    cs_float amp2 = FABS(*p->kamp2);
     float *fsrc = (float *) p->fsrc->frame.auxp;    /* RWD all must be 32bit */
     float *fdest = (float *) p->fdest->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;
@@ -404,7 +404,7 @@ static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
     p->format  = pp.format;
     p->chans   = pp.chans;
     p->nframes = pp.nframes;
-    p->arate   = CS_ESR / (MYFLT) pp.overlap;
+    p->arate   = CS_ESR / (cs_float) pp.overlap;
     p->membase = (float*) pp.data;
 
     if (UNLIKELY(p->overlap < (int32_t)CS_KSMPS || p->overlap < 10))
@@ -431,7 +431,7 @@ static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
     csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     /* init sig with first frame from file,
        regardless (always zero amps, but with bin freqs) */
-    p->chanoffset = (int32_t) MYFLT2LRND(*p->ichan) * (N + 2);
+    p->chanoffset = (int32_t) CS_FLOAT2LRND(*p->ichan) * (N + 2);
     memcpy((float *) p->fout->frame.auxp,               /* RWD MUST be 32bit */
            (float *) pp.data + (int32_t) p->chanoffset,    /* RWD MUST be 32bit */
            (size_t) ((int32_t) (N + 2) * (int32_t) sizeof(float)));
@@ -460,8 +460,8 @@ int32_t pvsfreadset_S(CSOUND *csound, PVSFREAD *p){
 int32_t pvsfread(CSOUND *csound, PVSFREAD *p)
 {
     int32_t i,j;
-    MYFLT pos = *p->kpos;
-    MYFLT framepos,frac;
+    cs_float pos = *p->kpos;
+    cs_float framepos,frac;
     int32_t frame1pos,/*frame2pos,*/framesize,n_mcframes;
 
     float *pmem,*pframe1,*pframe2;               /* RWD all MUST be 32bit */
@@ -493,11 +493,11 @@ int32_t pvsfread(CSOUND *csound, PVSFREAD *p)
         /* any optimizations possible here ?
            Avoid v samll frac values ? higher-order interp ? */
         //frame2pos = frame1pos+p->chans;
-        frac = framepos - (MYFLT) frame1pos;
+        frac = framepos - (cs_float) frame1pos;
         pframe1 = pmem + (frame1pos * p->blockalign) + p->chanoffset;
         pframe2 = pframe1 + p->blockalign;
         for (i=0;i < framesize;i+=2) {
-          MYFLT amp,freq;
+          cs_float amp,freq;
           j       = i+1;
           amp     = pframe1[i] + frac * (pframe2[i] - pframe1[i]);
           freq    = pframe1[j] + frac * (pframe2[j] - pframe1[j]);
@@ -518,7 +518,7 @@ int32_t pvsfread(CSOUND *csound, PVSFREAD *p)
 int32_t pvsmaskaset(CSOUND *csound, PVSMASKA *p)
 {
     uint32_t i;
-    MYFLT *ftable;
+    cs_float *ftable;
     uint32_t N = p->fsrc->N;
     uint32_t nbins = N/2 + 1;
     /* source fsig */
@@ -538,7 +538,7 @@ int32_t pvsmaskaset(CSOUND *csound, PVSMASKA *p)
     p->fout->format  = p->format;
     p->fout->sliding = p->fsrc->sliding;
     if (p->fsrc->sliding) {
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
+      csound->AuxAlloc(csound, (N + 2) * sizeof(cs_float) * CS_KSMPS,
                        &p->fout->frame);
       p->fout->NB = p->fsrc->NB;
     }
@@ -570,7 +570,7 @@ int32_t pvsmaska(CSOUND *csound, PVSMASKA *p)
 {
     int32_t i;
     int32_t /*flen, */nbins;
-    MYFLT *ftable;
+    cs_float *ftable;
     float *fout,*fsrc;                      /* RWD MUST be 32bit */
     float margin, depth = (float)*p->kdepth;
 
@@ -613,7 +613,7 @@ int32_t pvsmaska(CSOUND *csound, PVSMASKA *p)
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
-      MYFLT amp = FL(1.0);
+      cs_float amp = FL(1.0);
       nsmps -= early;
       for (n=offset; n<nsmps; n++) {
         fout = (CMPLX *) p->fout->frame.auxp +n*NB;
@@ -629,7 +629,7 @@ int32_t pvsmaska(CSOUND *csound, PVSMASKA *p)
     nbins = p->fftsize/2 + 1;
     /* only process when a new frame is ready */
     if (p->lastframe < p->fsrc->framecount) {
-      MYFLT amp = FL(1.0);
+      cs_float amp = FL(1.0);
       int32_t aindex, findex;
       for (i=0;i < nbins;i++) {
         amp = depth + margin * ftable[i];
@@ -650,7 +650,7 @@ int32_t pvsmaska(CSOUND *csound, PVSMASKA *p)
 int32_t pvsftwset(CSOUND *csound, PVSFTW *p)
 {
     int32_t i;
-    MYFLT *ftablea,*ftablef;
+    cs_float *ftablea,*ftablef;
     float *fsrc;                                        /* RWD MUST be 32bit */
     int32_t flena,flenf,nbins, N = p->fsrc->N;
     /* source fsig */
@@ -710,7 +710,7 @@ int32_t pvsftw(CSOUND *csound, PVSFTW *p)
 {
     int32_t i;
     int32_t nbins;
-    MYFLT *ftablea, *ftablef = NULL;
+    cs_float *ftablea, *ftablef = NULL;
     float *fsrc;                /* RWD MUST be 32bit */
 
     ftablea = p->outfna->ftable;
@@ -850,9 +850,9 @@ int32_t pvsinfo(CSOUND *csound, PVSINFO *p)
     /* init stage opcode : this should always be a proper fsig */
     assert(p->fsrc->frame.auxp != NULL);
 #endif
-    *p->ioverlap = (MYFLT) p->fsrc->overlap;
-    *p->inumbins = (MYFLT) (p->fsrc->N / 2) + 1;
-    *p->iwinsize = (MYFLT) p->fsrc->winsize;
-    *p->iformat  = (MYFLT) p->fsrc->format;
+    *p->ioverlap = (cs_float) p->fsrc->overlap;
+    *p->inumbins = (cs_float) (p->fsrc->N / 2) + 1;
+    *p->iwinsize = (cs_float) p->fsrc->winsize;
+    *p->iformat  = (cs_float) p->fsrc->format;
     return OK;
 }

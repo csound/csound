@@ -127,32 +127,32 @@
 typedef struct _pvsini {
     OPDS    h;
     PVSDAT  *fout;
-    MYFLT   *framesize, *olap, *winsize, *wintype, *format;
+    cs_float   *framesize, *olap, *winsize, *wintype, *format;
     uint32  lastframe;
 } PVSINI;
 
 typedef struct _pvsosc {
     OPDS    h;
     PVSDAT  *fout;
-    MYFLT   *ka, *kf, *type;
-    MYFLT   *framesize, *olap, *winsize, *wintype, *format;
+    cs_float   *ka, *kf, *type;
+    cs_float   *framesize, *olap, *winsize, *wintype, *format;
     uint32_t samplecount;
 } PVSOSC;
 
 typedef struct _pvsbin {
     OPDS    h;
-    MYFLT   *kamp, *kfreq;
+    cs_float   *kamp, *kfreq;
     PVSDAT  *fin;
-    MYFLT   *kbin;
+    cs_float   *kbin;
     uint32_t lastframe;
-    MYFLT amp, freq;
+    cs_float amp, freq;
 } PVSBIN;
 
 typedef struct _pvsfreez {
     OPDS    h;
     PVSDAT  *fout;
     PVSDAT  *fin;
-    MYFLT   *kfra, *kfrf;
+    cs_float   *kfra, *kfrf;
     AUXCH   freez;
     uint32  lastframe;
 } PVSFREEZE;
@@ -161,7 +161,7 @@ typedef struct _pvsmooth {
     OPDS    h;
     PVSDAT  *fout;
     PVSDAT  *fin;
-    MYFLT   *kfra, *kfrf;
+    cs_float   *kfra, *kfrf;
     AUXCH   del;
     uint32  lastframe;
 } PVSMOOTH;
@@ -182,8 +182,8 @@ typedef struct _pvsfilter {
     PVSDAT  *fout;
     PVSDAT  *fin;
     PVSDAT  *fil;
-    MYFLT   *kdepth;
-    MYFLT   *gain;
+    cs_float   *kdepth;
+    cs_float   *gain;
     uint32  lastframe;
 } PVSFILTER;
 
@@ -195,10 +195,10 @@ typedef struct _pvsblur {
     OPDS    h;
     PVSDAT  *fout;
     PVSDAT  *fin;
-    MYFLT   *kdel;
-    MYFLT   *maxdel;
+    cs_float   *kdel;
+    cs_float   *maxdel;
     AUXCH   delframes;
-    double  frpsec;
+    cs_double  frpsec;
     int32_t count, maxframes;
     uint32  lastframe;
 } PVSBLUR;
@@ -210,9 +210,9 @@ typedef struct _pvstencil {
     OPDS    h;
     PVSDAT  *fout;
     PVSDAT  *fin;
-    MYFLT   *kgain;
-    MYFLT   *klevel;
-    MYFLT   *ifn;
+    cs_float   *kgain;
+    cs_float   *klevel;
+    cs_float   *ifn;
     FUNC    *func;
     uint32  lastframe;
 } PVSTENCIL;

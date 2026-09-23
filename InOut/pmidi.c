@@ -611,6 +611,6 @@ static int32_t CloseMidiOutDevice_(CSOUND *csound, void *userData)
 
  int32_t csoundModuleInfo(void)
 {
-    /* does not depend on MYFLT type */
+    /* does not depend on cs_float type */
     return ((CS_VERSION << 16) + (CS_SUBVER << 8));
 }

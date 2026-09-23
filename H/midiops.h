@@ -52,121 +52,121 @@
 
 typedef struct {
     OPDS      h;
-    MYFLT     *chnl;
+    cs_float     *chnl;
     STRINGDAT *insno;
-    MYFLT     *iresetctls;
+    cs_float     *iresetctls;
 } MASSIGNS;
 
 typedef struct {
     OPDS      h;
-    MYFLT     *chnl;
-    MYFLT     *insno;
-    MYFLT     *iresetctls;
+    cs_float     *chnl;
+    cs_float     *insno;
+    cs_float     *iresetctls;
 } MASSIGN;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *chnl, *ctrls[64];
+    cs_float   *chnl, *ctrls[64];
 } CTLINIT;
 
 typedef struct {
     OPDS    h;
     STRINGDAT  *iname;
-    MYFLT   *ctrls[64];
+    cs_float   *ctrls[64];
 } CTLINITS;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *imax, *ifn;
+    cs_float   *r, *imax, *ifn;
 } MIDIAMP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *ictlno, *ilo, *ihi;
+    cs_float   *r, *ictlno, *ilo, *ihi;
     int32   ctlno;
-    MYFLT   scale, lo;
+    cs_float   scale, lo;
 } MIDICTL;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *ichano, *ictlno, *ilo, *ihi;
+    cs_float   *r, *ichano, *ictlno, *ilo, *ihi;
     int32   chano, ctlno;
-    MYFLT   scale, lo;
+    cs_float   scale, lo;
 } CHANCTL;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *iscal;
-    MYFLT   scale, prvbend, prvout;
+    cs_float   *r, *iscal;
+    cs_float   scale, prvbend, prvout;
 } MIDIKMB;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *ilo, *ihi;
+    cs_float   *r, *ilo, *ihi;
 } MIDIMAP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *ilo, *ihi;
-    MYFLT   scale, lo;
+    cs_float   *r, *ilo, *ihi;
+    cs_float   scale, lo;
 } MIDIKMAP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *olap;
+    cs_float   *olap;
 } MIDIOLAP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r;
+    cs_float   *r;
 } MIDIAGE;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *tablenum;
+    cs_float   *r, *tablenum;
     /* *numgrades, *interval, *basefreq, *basekeymidi; */
 } CPSTABLE;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ans;
+    cs_float   *ans;
 } GTEMPO;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ichn;
+    cs_float   *ichn;
 } MIDICHN;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ipgm, *inst, *ichn;
+    cs_float   *ipgm, *inst, *ichn;
 } PGMASSIGN;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *status, *chan, *data1, *data2;
+    cs_float   *status, *chan, *data1, *data2;
     int32_t     local_buf_index;        /* IV - Nov 30 2002 */
 } MIDIIN;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *pgm, *chn, *ochan;
+    cs_float   *pgm, *chn, *ochan;
     int32_t     local_buf_index;        /* IV - Nov 30 2002 */
     int32_t     watch;
 } PGMIN;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *data, *numb, *chn, *ochan, *onum;
+    cs_float   *data, *numb, *chn, *ochan, *onum;
     int32_t     local_buf_index;        /* IV - Nov 30 2002 */
     int32_t     watch1, watch2;
 } CTLIN;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *noteOut, *counter;
-  MYFLT   *arpRate, *arpMode;
-  double  curphs;
+  cs_float   *noteOut, *counter;
+  cs_float   *arpRate, *arpMode;
+  cs_double  curphs;
   int32_t flag;
   int32_t noteCnt, noteIndex, direction;
   int32_t notes[10];
@@ -177,8 +177,8 @@ typedef struct {
 typedef struct {
   OPDS    h;
   ARRAYDAT *arr;
-  MYFLT   *chnl, *ctrls[64];
-  MYFLT   *ivals;
+  cs_float   *chnl, *ctrls[64];
+  cs_float   *ivals;
   int16   nargs;
 } SAVECTRL;
 
@@ -197,25 +197,25 @@ typedef struct {
 
 typedef struct {
   OPDS    h;
-  MYFLT   *inum;
-  MYFLT   *itag;
-  MYFLT   *chnl, *ctrls[64];
-  MYFLT   *ivals;
+  cs_float   *inum;
+  cs_float   *itag;
+  cs_float   *chnl, *ctrls[64];
+  cs_float   *ivals;
   int16   nargs;
   PRESET_GLOB *q;
 } PRESETCTRL;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *inum;
-  MYFLT   *itag;
+  cs_float   *inum;
+  cs_float   *itag;
   ARRAYDAT *arr;
   PRESET_GLOB *q;
 } PRESETCTRL1;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *inum;
+  cs_float   *inum;
   PRESET_GLOB *q;
 } SELECTCTRL;
 

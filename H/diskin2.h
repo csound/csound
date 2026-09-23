@@ -32,7 +32,7 @@
 
 /* Each slot belongs to either the perf thread, the worker, or the exchange. */
 typedef struct {
-    MYFLT transpose;
+    cs_float transpose;
     uint64_t steps;             /* cumulative steps, including skipped updates */
 } DISKIN2_CONTROL;
 
@@ -49,33 +49,33 @@ typedef struct {
     int32_t sharedControl;     /* atomic slot index plus the new-data bit */
     int32_t writeControl;      /* perf thread's slot */
     int32_t readControl;       /* worker's slot */
-    MYFLT perfTranspose;       /* perf thread only */
+    cs_float perfTranspose;       /* perf thread only */
     uint64_t steps;            /* perf thread only */
     uint64_t stepsSeen;        /* worker only */
     int64_t headEnd;            /* position to resume from after loop wrap */
-    MYFLT   *buf;               /* captured loop head (len * channels) */
+    cs_float   *buf;               /* captured loop head (len * channels) */
     AUXCH   aux;                /* storage for buf */
 } DISKIN2_XF;
 
 typedef struct diskin2 {
     OPDS    h;
-    MYFLT   *out[DISKIN2_MAXCHN];
-    MYFLT   *iFileCode;
-    MYFLT   *kTranspose;
-    MYFLT   *iSkipTime;
-    MYFLT   *iWrapMode;
-    MYFLT   *iSampleFormat;
-    MYFLT   *iWinSize;
-    MYFLT   *iBufSize;
-    MYFLT   *iSkipInit;
-    MYFLT   *forceSync;
-    MYFLT   *iEnd;
+    cs_float   *out[DISKIN2_MAXCHN];
+    cs_float   *iFileCode;
+    cs_float   *kTranspose;
+    cs_float   *iSkipTime;
+    cs_float   *iWrapMode;
+    cs_float   *iSampleFormat;
+    cs_float   *iWinSize;
+    cs_float   *iBufSize;
+    cs_float   *iSkipInit;
+    cs_float   *forceSync;
+    cs_float   *iEnd;
  /* ------------------------------------- */
-    MYFLT   WinSize;
-    MYFLT   BufSize;
-    MYFLT   SkipInit;
-    MYFLT   fforceSync;
-    MYFLT   EndTime;
+    cs_float   WinSize;
+    cs_float   BufSize;
+    cs_float   SkipInit;
+    cs_float   fforceSync;
+    cs_float   EndTime;
     int32_t useEnd;
     int32_t hasEnd;
     int32_t loopStart;
@@ -95,20 +95,20 @@ typedef struct diskin2 {
     int64_t pos_frac_inc;
     int32   prvBufStartPos;
     int32   winSize;
-    MYFLT   *buf;
-    MYFLT   *prvBuf;
-    MYFLT   prv_kTranspose;
-    MYFLT   winFact;
-    double  warpScale;
+    cs_float   *buf;
+    cs_float   *prvBuf;
+    cs_float   prv_kTranspose;
+    cs_float   winFact;
+    cs_double  warpScale;
     void *sf;
     SNDMEMFILE *memfile;        /* shared decoded samples for memplay */
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
     AUXCH   audioData;
-    MYFLT   *aOut[DISKIN2_MAXCHN];
-    MYFLT   *aOut_buf;
-    MYFLT   aOut_bufsize;
+    cs_float   *aOut[DISKIN2_MAXCHN];
+    cs_float   *aOut_buf;
+    cs_float   aOut_bufsize;
     void    *cb;
     int32_t     async;
     volatile int32_t asyncStopRequested;
@@ -122,22 +122,22 @@ typedef struct diskin2 {
 typedef struct diskin2_array {
     OPDS    h;
     ARRAYDAT *aOut;
-    MYFLT   *iFileCode;
-    MYFLT   *kTranspose;
-    MYFLT   *iSkipTime;
-    MYFLT   *iWrapMode;
-    MYFLT   *iSampleFormat;
-    MYFLT   *iWinSize;
-    MYFLT   *iBufSize;
-    MYFLT   *iSkipInit;
-    MYFLT   *forceSync;
-    MYFLT   *iEnd;
+    cs_float   *iFileCode;
+    cs_float   *kTranspose;
+    cs_float   *iSkipTime;
+    cs_float   *iWrapMode;
+    cs_float   *iSampleFormat;
+    cs_float   *iWinSize;
+    cs_float   *iBufSize;
+    cs_float   *iSkipInit;
+    cs_float   *forceSync;
+    cs_float   *iEnd;
  /* ------------------------------------- */
-    MYFLT   WinSize;
-    MYFLT   BufSize;
-    MYFLT   SkipInit;
-    MYFLT   fforceSync;
-    MYFLT   EndTime;
+    cs_float   WinSize;
+    cs_float   BufSize;
+    cs_float   SkipInit;
+    cs_float   fforceSync;
+    cs_float   EndTime;
     int32_t     useEnd;
     int32_t     hasEnd;
     int32_t     loopStart;
@@ -156,19 +156,19 @@ typedef struct diskin2_array {
     int64_t pos_frac_inc;
     int32    prvBufStartPos;
     int32    winSize;
-    MYFLT   *buf;
-    MYFLT   *prvBuf;
-    MYFLT   prv_kTranspose;
-    MYFLT   winFact;
-    double  warpScale;
+    cs_float   *buf;
+    cs_float   *prvBuf;
+    cs_float   prv_kTranspose;
+    cs_float   winFact;
+    cs_double  warpScale;
     void *sf;
     SNDMEMFILE *memfile;        /* shared decoded samples for memplay */
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
     AUXCH   audioData;
-  MYFLT *aOut_buf;
-  MYFLT aOut_bufsize;
+  cs_float *aOut_buf;
+  cs_float aOut_bufsize;
   void *cb;
   int32_t  async;
   volatile int32_t asyncStopRequested;
@@ -200,16 +200,16 @@ int32_t diskin2_async_deinit_array(CSOUND *csound, DISKIN2_ARRAY *p);
 
 typedef struct {
     OPDS    h;
-    MYFLT   *aOut[DISKIN2_MAXCHN];
-    MYFLT   *iFileCode, *iSkipTime, *iSampleFormat, *iSkipInit, *iBufSize;
+    cs_float   *aOut[DISKIN2_MAXCHN];
+    cs_float   *iFileCode, *iSkipTime, *iSampleFormat, *iSkipInit, *iBufSize;
     int32_t     nChannels;
     int32_t     bufSize;            /* in sample frames (power of two) */
     int_least64_t   fileLength; /* in sample frames */
     int_least64_t   bufStartPos;
     int_least64_t   read_pos;   /* current sample frame being read */
-    MYFLT   *buf;
+    cs_float   *buf;
     void *sf;
-    MYFLT   scaleFac;
+    cs_float   scaleFac;
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
 } SOUNDIN_;
@@ -219,19 +219,19 @@ typedef struct {
 typedef struct {
      void *sf;
     void    *fd;
-    MYFLT   *outbufp, *bufend;
-    MYFLT   outbuf[SNDOUTSMPS];
+    cs_float   *outbufp, *bufend;
+    cs_float   outbuf[SNDOUTSMPS];
 } SNDCOM;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *asig, *ifilcod, *iformat;
+    cs_float   *asig, *ifilcod, *iformat;
     SNDCOM  c;
 } SNDOUT;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *asig1, *asig2, *ifilcod, *iformat;
+    cs_float   *asig1, *asig2, *ifilcod, *iformat;
     SNDCOM  c;
 } SNDOUTS;
 

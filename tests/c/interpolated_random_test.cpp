@@ -8,7 +8,7 @@
 namespace {
 class InterpolatedRandomTests : public ::testing::TestWithParam<const char *> {
 protected:
-  std::vector<MYFLT> render(int block, const std::string &rate,
+  std::vector<cs_float> render(int block, const std::string &rate,
                            bool audioRate = true, bool audioAmp = false,
                            bool alias = false, bool partial = false,
                            bool controlOutput = false)
@@ -33,11 +33,11 @@ protected:
     EXPECT_EQ(0, err);
     if (err == 0) err = csoundStart(csound);
     EXPECT_EQ(0, err);
-    std::vector<MYFLT> result;
+    std::vector<cs_float> result;
     if (err == 0) {
       for (int frame = 0; frame < 32; frame += block) {
         csoundPerformKsmps(csound);
-        const MYFLT *out = csoundGetSpout(csound);
+        const cs_float *out = csoundGetSpout(csound);
         result.insert(result.end(), out, out + block);
       }
       EXPECT_EQ(0, csound->perferrcnt);
@@ -53,7 +53,7 @@ protected:
     return result;
   }
 
-  void same(const std::vector<MYFLT> &expected, const std::vector<MYFLT> &actual)
+  void same(const std::vector<cs_float> &expected, const std::vector<cs_float> &actual)
   {
     ASSERT_EQ(32u, expected.size());
     ASSERT_EQ(expected.size(), actual.size());

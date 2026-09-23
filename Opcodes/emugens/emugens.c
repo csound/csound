@@ -33,13 +33,13 @@ typedef struct opcodinfo OPCODINFO;
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
-    MYFLT *out = p->out;                                             \
+    cs_float *out = p->out;                                             \
     uint32_t offset = p->h.insdshead->ksmps_offset;                  \
     uint32_t early = p->h.insdshead->ksmps_no_end;                   \
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));   \
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));   \
     if (UNLIKELY(early)) {                                           \
         nsmps -= early;                                              \
-        memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
+        memset(&out[nsmps], '\0', early*sizeof(cs_float));              \
     }                                                                \
 
 // needed for each opcode using audio-rate inputs/outputs
@@ -52,10 +52,10 @@ typedef struct opcodinfo OPCODINFO;
 // initialize an audio output variable, for sample-accurate offset/early end
 // this should be called for each audio output
 #define AUDIO_OUTPUT(out) \
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));   \
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));   \
     if (UNLIKELY(early)) {                                           \
         nsmps -= early;                                              \
-        memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
+        memset(&out[nsmps], '\0', early*sizeof(cs_float));              \
     }                                                                \
 
 
@@ -85,15 +85,15 @@ typedef struct opcodinfo OPCODINFO;
 
 typedef struct {
     OPDS h;
-    MYFLT *kout, *kx, *ky0, *ky1, *kx0, *kx1;
+    cs_float *kout, *kx, *ky0, *ky1, *kx0, *kx1;
 } LINLIN1;
 
 static int32_t
 linlin1_perf(CSOUND *csound, LINLIN1 *p) {
-    MYFLT x0 = *p->kx0;
-    MYFLT y0 = *p->ky0;
-    MYFLT x = *p->kx;
-    MYFLT x1 = *p->kx1;
+    cs_float x0 = *p->kx0;
+    cs_float y0 = *p->ky0;
+    cs_float x = *p->kx;
+    cs_float x1 = *p->kx1;
     if (UNLIKELY(x0 == x1)) {
         return csound->PerfError(csound, &(p->h),
                                  "%s", Str("linlin.k: Division by zero"));
@@ -106,7 +106,7 @@ typedef struct {
     OPDS h;
     // kY[] linlin kX[], ky0, ky1, kx0=0, kx1=1
     ARRAYDAT *ys, *xs;
-    MYFLT *ky0, *ky1, *kx0, *kx1;
+    cs_float *ky0, *ky1, *kx0, *kx1;
 } LINLINARR1;
 
 
@@ -127,22 +127,22 @@ linlinarr1_common(CSOUND *csound, LINLINARR1 *p, int32_t init) {
     if (UNLIKELY(p->xs->dimensions != 1 || p->xs->sizes == NULL ||
                    p->ys->dimensions != 1))
         return INITPERFERR(init, Str("linlin: expected one-dimensional arrays"));
-    const MYFLT x0 = *p->kx0;
-    const MYFLT y0 = *p->ky0;
-    const MYFLT x1 = *p->kx1;
-    const MYFLT y1 = *p->ky1;
+    const cs_float x0 = *p->kx0;
+    const cs_float y0 = *p->ky0;
+    const cs_float x1 = *p->kx1;
+    const cs_float y1 = *p->ky1;
 
     if (UNLIKELY(x0 == x1)) {
         return INITPERFERR(init, Str("linlin: Division by zero"));
     }
-    MYFLT fact = 1/(x1 - x0) * (y1 - y0);
+    cs_float fact = 1/(x1 - x0) * (y1 - y0);
 
     int32_t numitems = p->xs->sizes[0];
     if (!init && UNLIKELY(tabcheck(csound, p->ys, numitems, &p->h) != OK))
         return NOTOK;
     /* Input and output may be the same array. */
-    MYFLT *out = p->ys->data;
-    const MYFLT *in = p->xs->data;
+    cs_float *out = p->ys->data;
+    const cs_float *in = p->xs->data;
     int32_t i;
     for(i=0; i<numitems; i++) {
         out[i] = (in[i] - x0) * fact + y0;
@@ -167,9 +167,9 @@ typedef struct {
     OPDS h;
     // kOut[] linlin kx, kA[], kB[], kx0=0, kx1=1
     ARRAYDAT *out;
-    MYFLT *kx;
+    cs_float *kx;
     ARRAYDAT *A, *B;
-    MYFLT *kx0, *kx1;
+    cs_float *kx0, *kx1;
 } BLENDARRAY;
 
 static int32_t
@@ -194,9 +194,9 @@ blendarray_common(CSOUND *csound, BLENDARRAY *p, int32_t init)
                    p->B->dimensions != 1 || p->B->sizes == NULL ||
                    p->out->dimensions != 1))
         return INITPERFERR(init, Str("linlin: expected one-dimensional arrays"));
-    MYFLT x0 = *p->kx0;
-    MYFLT x1 = *p->kx1;
-    MYFLT x = *p->kx;
+    cs_float x0 = *p->kx0;
+    cs_float x1 = *p->kx1;
+    cs_float x = *p->kx;
 
     if (UNLIKELY(x0 == x1)) {
         return INITPERFERR(init, Str("linlin: Division by zero"));
@@ -207,11 +207,11 @@ blendarray_common(CSOUND *csound, BLENDARRAY *p, int32_t init)
     if (!init && UNLIKELY(tabcheck(csound, p->out, numitems, &p->h) != OK))
         return NOTOK;
 
-    MYFLT *out = p->out->data;
-    MYFLT *A = p->A->data;
-    MYFLT *B = p->B->data;
-    MYFLT y0, y1;
-    MYFLT fact = (x - x0) / (x1 - x0);
+    cs_float *out = p->out->data;
+    cs_float *A = p->A->data;
+    cs_float *B = p->B->data;
+    cs_float y0, y1;
+    cs_float fact = (x - x0) / (x1 - x0);
     int32_t i;
     for(i=0; i<numitems; i++) {
         y0 = A[i];
@@ -248,17 +248,17 @@ blendarray_i(CSOUND *csound, BLENDARRAY *p) {
 
 static int32_t
 lincos_perf(CSOUND *csound, LINLIN1 *p) {
-    MYFLT x0 = *p->kx0;
-    MYFLT y0 = *p->ky0;
-    MYFLT x = *p->kx;
-    MYFLT x1 = *p->kx1;
-    MYFLT y1 = *p->ky1;
+    cs_float x0 = *p->kx0;
+    cs_float y0 = *p->ky0;
+    cs_float x = *p->kx;
+    cs_float x1 = *p->kx1;
+    cs_float y1 = *p->ky1;
     if (UNLIKELY(x0 == x1)) {
         return PERFERR(Str("lincos: Division by zero"));
     }
     // PI is defined in csoundCore.h, use that instead of M_PI from math.h, which
     // is not defined in windows
-    MYFLT dx = ((x-x0) / (x1-x0)) * PI + PI;           // dx range pi - 2pi
+    cs_float dx = ((x-x0) / (x1-x0)) * PI + PI;           // dx range pi - 2pi
     *p->kout = y0 + ((y1 - y0) * (1 + COS(dx)) / 2.0);
     return OK;
 }
@@ -284,8 +284,8 @@ lincos_perf(CSOUND *csound, LINLIN1 *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *kout, *kx, *ky, *v00, *v10, *v01, *v11;
-    MYFLT d0, d1;
+    cs_float *kout, *kx, *ky, *v00, *v10, *v01, *v11;
+    cs_float d0, d1;
 } XYSCALE;
 
 static int32_t xyscalei_init(CSOUND *csound, XYSCALE *p) {
@@ -298,9 +298,9 @@ static int32_t xyscalei_init(CSOUND *csound, XYSCALE *p) {
 static int32_t xyscalei(CSOUND *csound, XYSCALE *p) {
     IGN(csound);
     // x, y: between 0-1
-    MYFLT x = *p->kx;
-    MYFLT y0 = x * (p->d0) + (*p->v00);
-    MYFLT y1 = x * (p->d1) + (*p->v01);
+    cs_float x = *p->kx;
+    cs_float y0 = x * (p->d0) + (*p->v00);
+    cs_float y1 = x * (p->d1) + (*p->v01);
     *p->kout = (*p->ky) * (y1 - y0) + y0;
     return OK;
 }
@@ -309,11 +309,11 @@ static int32_t xyscale(CSOUND *csound, XYSCALE *p) {
     IGN(csound);
     // x, y: between 0-1
     // x, y will interpolate between the values at the 4 corners
-    MYFLT v00 = *p->v00;
-    MYFLT v01 = *p->v01;
-    MYFLT x = *p->kx;
-    MYFLT y0 = x * (*p->v10 - v00) + v00;
-    MYFLT y1 = x * (*p->v11 - v01) + v01;
+    cs_float v00 = *p->v00;
+    cs_float v01 = *p->v01;
+    cs_float x = *p->kx;
+    cs_float y0 = x * (*p->v10 - v00) + v00;
+    cs_float y1 = x * (*p->v11 - v01) + v01;
     *p->kout = (*p->ky) * (y1 - y0) + y0;
     return OK;
 }
@@ -331,13 +331,13 @@ static int32_t xyscale(CSOUND *csound, XYSCALE *p) {
 
 typedef struct {
   OPDS h;
-  MYFLT *r, *k, *irnd;
-  MYFLT freqA4;
+  cs_float *r, *k, *irnd;
+  cs_float freqA4;
   int32_t rnd;
 } PITCHCONV;
 
-static inline MYFLT
-mtof_func(MYFLT midi, MYFLT a4) {
+static inline cs_float
+mtof_func(cs_float midi, cs_float a4) {
     return POWER(FL(2.0), (midi - FL(69.0)) / FL(12.0)) * a4;
 }
 
@@ -355,10 +355,10 @@ mtof_init(CSOUND *csound, PITCHCONV *p) {
 }
 
 static int32_t ftom(CSOUND *csound, PITCHCONV *p) {
-    MYFLT ans;
+    cs_float ans;
     IGN(csound);
     ans = FL(12.0) * LOG2(*p->k / p->freqA4) + FL(69.0);
-    if (UNLIKELY(p->rnd)) ans = (MYFLT)MYFLT2LRND(ans);
+    if (UNLIKELY(p->rnd)) ans = (cs_float)CS_FLOAT2LRND(ans);
     *p->r = ans;
     return OK;
 }
@@ -373,9 +373,9 @@ ftom_init(CSOUND *csound, PITCHCONV *p) {
 
 static int32_t pchtom(CSOUND *csound, PITCHCONV *p) {
     IGN(csound);
-    MYFLT pch = *p->k;
-    MYFLT oct = FLOOR(pch);
-    MYFLT note = pch - oct;
+    cs_float pch = *p->k;
+    cs_float oct = FLOOR(pch);
+    cs_float note = pch - oct;
     *p->r = (oct - FL(3.0)) * FL(12.0) + note * FL(100.0);
     return OK;
 }
@@ -384,17 +384,17 @@ static int32_t pchtom(CSOUND *csound, PITCHCONV *p) {
 typedef struct {
     OPDS h;
     ARRAYDAT *outarr, *inarr;
-    MYFLT *irnd;
-    MYFLT freqA4;
+    cs_float *irnd;
+    cs_float freqA4;
     int32_t rnd;
 } PITCHCONV_ARR;
 
 
 static int32_t
 ftom_arr(CSOUND *csound, PITCHCONV_ARR *p) {
-    MYFLT x, *indata, *outdata;
+    cs_float x, *indata, *outdata;
     int32_t i;
-    MYFLT a4 = p->freqA4;
+    cs_float a4 = p->freqA4;
     int32_t numitems = p->inarr->sizes[0];
     if (UNLIKELY(ARRAY_ENSURESIZE_PERF(csound, p->outarr, numitems) != OK))
         return NOTOK;
@@ -406,7 +406,7 @@ ftom_arr(CSOUND *csound, PITCHCONV_ARR *p) {
     }
     if(UNLIKELY(p->rnd)) {
         for(i=0; i < numitems; i++) {
-            outdata[i] = (MYFLT)MYFLT2LRND(outdata[i]);
+            outdata[i] = (cs_float)CS_FLOAT2LRND(outdata[i]);
         }
     }
     return OK;
@@ -424,9 +424,9 @@ ftom_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
 
 static int32_t
 mtof_arr(CSOUND *csound, PITCHCONV_ARR *p) {
-    MYFLT x, *indata, *outdata;
+    cs_float x, *indata, *outdata;
     int32_t i;
-    MYFLT a4 = p->freqA4;
+    cs_float a4 = p->freqA4;
     int32_t numitems = p->inarr->sizes[0];
     if (UNLIKELY(ARRAY_ENSURESIZE_PERF(csound, p->outarr, numitems) != OK))
         return NOTOK;
@@ -466,7 +466,7 @@ mtof_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
 
 // VL Clang complains this is unused, commenting out.
 /*
-static inline int32_t bpf_find_multidim(MYFLT x, MYFLT *xs, int32_t xslen, int32_t step, int32_t lastidx) {
+static inline int32_t bpf_find_multidim(cs_float x, cs_float *xs, int32_t xslen, int32_t step, int32_t lastidx) {
     // xslen: size of xs (number of frames, not size of array)
     // step: normally 1, can be more for the case where xs and ys (and possibly zs, etc)
     // are all embedded in the same array: [x0, y0, z0, x1, y1, z1, ...]
@@ -504,7 +504,7 @@ static inline int32_t bpf_find_multidim(MYFLT x, MYFLT *xs, int32_t xslen, int32
 
 typedef struct {
     OPDS h;
-    MYFLT *r, *x, *data[BPF_MAXPOINTS];
+    cs_float *r, *x, *data[BPF_MAXPOINTS];
     int32_t lastidx;
 } BPFX;
 
@@ -539,7 +539,7 @@ static int32 bpfx_i(CSOUND *csound, BPFX *p) {
             y data are interleaved, the index returned is the index of the x value, which is always even.
 */
 
-static inline int32_t bpfx_find(MYFLT **data, MYFLT x, int32_t datalen, int32_t lastidx) {
+static inline int32_t bpfx_find(cs_float **data, cs_float x, int32_t datalen, int32_t lastidx) {
     // returns -1 if x is less than the lowest breakpoint
     if (x <= *data[0])
         return -1;
@@ -571,10 +571,10 @@ static inline int32_t bpfx_find(MYFLT **data, MYFLT x, int32_t datalen, int32_t 
 }
 
 static int32_t bpfx_k(CSOUND *csound, BPFX *p) {
-    MYFLT x = *p->x;
-    MYFLT **data = p->data;
+    cs_float x = *p->x;
+    cs_float **data = p->data;
     int32_t datalen = p->INOCOUNT - 1;
-    MYFLT x0, x1, y0, y1;
+    cs_float x0, x1, y0, y1;
 
     int32_t idx = bpfx_find(data, x, datalen, p->lastidx);
     
@@ -605,10 +605,10 @@ static int32_t bpfx_k(CSOUND *csound, BPFX *p) {
 }
 
 static int32_t bpfxcos_k(CSOUND *csound, BPFX *p) {
-    MYFLT x = *p->x;
-    MYFLT **data = p->data;
+    cs_float x = *p->x;
+    cs_float **data = p->data;
     int32_t datalen = p->INOCOUNT - 1;
-    MYFLT x0, x1, y0, y1, dx;
+    cs_float x0, x1, y0, y1, dx;
 
     int32_t idx = bpfx_find(data, x, datalen, p->lastidx);
 
@@ -648,14 +648,14 @@ static int32 bpfxcos_i(CSOUND *csound, BPFX *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *y, *x;
+    cs_float *y, *x;
     ARRAYDAT *xs, *ys;
     int64_t lastidx;
 } BPF_k_kKK;
 
 
 
-static inline int64_t bpfarr_find(MYFLT x, MYFLT *xs, int64_t xslen, int64_t lastidx) {
+static inline int64_t bpfarr_find(cs_float x, cs_float *xs, int64_t xslen, int64_t lastidx) {
     // -1: lower bound, -2: upper bound
     if(x <= xs[0]) {
         return -1;
@@ -700,10 +700,10 @@ static int32_t bpf_k_kKK_kr(CSOUND *csound, BPF_k_kKK *p) {
     int64_t numxs = p->xs->sizes[0];
     int64_t numys = p->ys->sizes[0];
     int64_t N = numxs < numys ? numxs : numys;
-    MYFLT *xs = p->xs->data;
-    MYFLT *ys = p->ys->data;
-    MYFLT x = *p->x;
-    MYFLT x0, y0, x1, y1;
+    cs_float *xs = p->xs->data;
+    cs_float *ys = p->ys->data;
+    cs_float x = *p->x;
+    cs_float x0, y0, x1, y1;
 
     int64_t idx = bpfarr_find(x, xs, N, p->lastidx);
 
@@ -743,11 +743,11 @@ static int32_t bpfcos_k_kKK_kr(CSOUND *csound, BPF_k_kKK *p) {
     int32_t numxs = p->xs->sizes[0];
     int32_t numys = p->ys->sizes[0];
     int32_t N = numxs < numys ? numxs : numys;
-    MYFLT *xs = p->xs->data;
-    MYFLT *ys = p->ys->data;
-    MYFLT x = *p->x;
+    cs_float *xs = p->xs->data;
+    cs_float *ys = p->ys->data;
+    cs_float x = *p->x;
     int32_t i = (int32_t) bpfarr_find(x, xs, N, p->lastidx);
-    MYFLT x0, y0, x1, y1, dx;
+    cs_float x0, y0, x1, y1, dx;
     if(i == -1) {
         *p->y = ys[0];
         p->lastidx = -1;
@@ -784,20 +784,20 @@ static int32_t bpf_a_aKK_kr(CSOUND *csound, BPF_k_kKK *p) {
     int64_t numys = p->ys->sizes[0];
     int64_t N = numxs < numys ? numxs : numys;
     int64_t i;
-    MYFLT *xs = p->xs->data;
-    MYFLT *ys = p->ys->data;
-    MYFLT x0, y0, x1, y1, x;
+    cs_float *xs = p->xs->data;
+    cs_float *ys = p->ys->data;
+    cs_float x0, y0, x1, y1, x;
 
-    MYFLT *out = p->y;
-    MYFLT *in = p->x;
+    cs_float *out = p->y;
+    cs_float *in = p->x;
 
     int64_t lastidx = p->lastidx;
 
     AUDIO_OPCODE(csound, p);
     AUDIO_OUTPUT(out);
 
-    MYFLT firsty = ys[0];
-    MYFLT lasty = ys[N-1];
+    cs_float firsty = ys[0];
+    cs_float lasty = ys[N-1];
 
     for(n=offset; n<nsmps; n++) {
         x = in[n];
@@ -830,20 +830,20 @@ static int32_t bpfcos_a_aKK_kr(CSOUND *csound, BPF_k_kKK *p) {
     int64_t numys = p->ys->sizes[0];
     int64_t N = numxs < numys ? numxs : numys;
     int64_t i;
-    MYFLT *xs = p->xs->data;
-    MYFLT *ys = p->ys->data;
-    MYFLT x0, y0, x1, y1, x, dx;
+    cs_float *xs = p->xs->data;
+    cs_float *ys = p->ys->data;
+    cs_float x0, y0, x1, y1, x, dx;
 
-    MYFLT *out = p->y;
-    MYFLT *in = p->x;
+    cs_float *out = p->y;
+    cs_float *in = p->x;
 
     int64_t lastidx = p->lastidx;
 
     AUDIO_OPCODE(csound, p);
     AUDIO_OUTPUT(out);
 
-    MYFLT firsty = ys[0];
-    MYFLT lasty = ys[N-1];
+    cs_float firsty = ys[0];
+    cs_float lasty = ys[N-1];
 
     for(n=offset; n<nsmps; n++) {
         x = in[n];
@@ -872,7 +872,7 @@ static int32_t bpfcos_a_aKK_kr(CSOUND *csound, BPF_k_kKK *p) {
 // ky, kz bpf kx, kxs[], kys[], kzs[]
 typedef struct {
     OPDS h;
-    MYFLT *y, *z, *x;
+    cs_float *y, *z, *x;
     ARRAYDAT *xs, *ys, *zs;
     int64_t lastidx;
 } BPF_kk_kKKK;
@@ -895,10 +895,10 @@ static int32_t bpf_kk_kKKK_kr(CSOUND *csound, BPF_kk_kKKK *p) {
     int32_t N = numxs < numys ? numxs : numys;
     N = N < numzs ? N : numzs;
 
-    MYFLT *xs = p->xs->data;
-    MYFLT *ys = p->ys->data;
-    MYFLT *zs = p->zs->data;
-    MYFLT x = *p->x;
+    cs_float *xs = p->xs->data;
+    cs_float *ys = p->ys->data;
+    cs_float *zs = p->zs->data;
+    cs_float x = *p->x;
     int32_t i = (int32_t) bpfarr_find(x, xs, N, p->lastidx);
 
     if(i == -1) {
@@ -912,12 +912,12 @@ static int32_t bpf_kk_kKKK_kr(CSOUND *csound, BPF_kk_kKKK *p) {
         return OK;
     }
 
-    MYFLT x0 = xs[i];
-    MYFLT x1 = xs[i+1];
-    MYFLT y0 = ys[i];
-    MYFLT z0 = zs[i];
+    cs_float x0 = xs[i];
+    cs_float x1 = xs[i+1];
+    cs_float y0 = ys[i];
+    cs_float z0 = zs[i];
 
-    MYFLT dx = (x-x0)/(x1-x0);
+    cs_float dx = (x-x0)/(x1-x0);
     *p->y = dx*(ys[i+1]-y0)+y0;
     *p->z = dx*(zs[i+1]-z0)+z0;
     p->lastidx = i;
@@ -937,7 +937,7 @@ static int32_t bpf_kk_kKKK_ir(CSOUND *csound, BPF_kk_kKKK *p) {
 typedef struct {
     OPDS h;
     ARRAYDAT *out, *in;
-    MYFLT *data[BPF_MAXPOINTS];
+    cs_float *data[BPF_MAXPOINTS];
     int32_t lastidx;
 } BPF_K_Km;
 
@@ -968,13 +968,13 @@ static int32_t bpf_K_Km_kr(CSOUND *csound, BPF_K_Km *p) {
     if (UNLIKELY(tabcheck(csound, p->out, N, &p->h) != OK))
         return NOTOK;
 
-    MYFLT **data = p->data;
-    MYFLT *out = p->out->data;
-    MYFLT *in  = p->in->data;
+    cs_float **data = p->data;
+    cs_float *out = p->out->data;
+    cs_float *in  = p->in->data;
 
     int32_t datalen = p->INOCOUNT - 1;
     int32_t idx, i;
-    MYFLT x, x0, x1, y0, y1, firsty, lasty;
+    cs_float x, x0, x1, y0, y1, firsty, lasty;
     firsty = *data[1];
     lasty = *data[datalen-1];
     int32_t lastidx = p->lastidx;
@@ -1007,8 +1007,8 @@ static int32_t bpf_K_Km_kr(CSOUND *csound, BPF_K_Km *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *out, *in;
-    MYFLT *data[BPF_MAXPOINTS];
+    cs_float *out, *in;
+    cs_float *data[BPF_MAXPOINTS];
     int64_t lastidx;
 } BPF_a_am;
 
@@ -1027,19 +1027,19 @@ static int32_t bpf_a_am_init(CSOUND *csound, BPF_a_am *p) {
 
 
 static int32_t bpf_a_am_kr(CSOUND *csound, BPF_a_am *p) {
-    MYFLT *out = p->out;
-    MYFLT *in = p->in;
+    cs_float *out = p->out;
+    cs_float *in = p->in;
     uint32_t datalen = p->INOCOUNT - 1;
     int64_t lastidx = p->lastidx;
 
     AUDIO_OPCODE(csound, p);
     AUDIO_OUTPUT(out);
 
-    MYFLT **data = p->data;
+    cs_float **data = p->data;
 
     int32_t i;
 
-    MYFLT x, x0, x1, y0, y1, firsty, lasty;
+    cs_float x, x0, x1, y0, y1, firsty, lasty;
     firsty = *data[1];
     lasty = *data[datalen-1];
 
@@ -1069,19 +1069,19 @@ static int32_t bpf_a_am_kr(CSOUND *csound, BPF_a_am *p) {
 
 // ay bpfcos ax, x0, y0, x1, y1, ...
 static int32_t bpfcos_a_am_kr(CSOUND *csound, BPF_a_am *p) {
-    MYFLT *out = p->out;
-    MYFLT *in = p->in;
+    cs_float *out = p->out;
+    cs_float *in = p->in;
     uint32_t datalen = p->INOCOUNT - 1;
     int64_t lastidx = p->lastidx;
 
     AUDIO_OPCODE(csound, p);
     AUDIO_OUTPUT(out);
 
-    MYFLT **data = p->data;
+    cs_float **data = p->data;
 
     int32_t i;
 
-    MYFLT x, x0, x1, y0, y1, firsty, lasty, dx;
+    cs_float x, x0, x1, y0, y1, firsty, lasty, dx;
     firsty = *data[1];
     lasty = *data[datalen-1];
 
@@ -1131,13 +1131,13 @@ static int32_t bpfcos_K_Km_kr(CSOUND *csound, BPF_K_Km *p) {
     if (UNLIKELY(tabcheck(csound, p->out, N, &p->h) != OK))
         return NOTOK;
 
-    MYFLT **data = p->data;
-    MYFLT *out = p->out->data;
-    MYFLT *in  = p->in->data;
+    cs_float **data = p->data;
+    cs_float *out = p->out->data;
+    cs_float *in  = p->in->data;
 
     int32_t datalen = p->INOCOUNT - 1;
     int32_t idx, i;
-    MYFLT x, x0, x1, y0, y1, firsty, lasty, dx;
+    cs_float x, x0, x1, y0, y1, firsty, lasty, dx;
     firsty = *data[1];
     lasty = *data[datalen-1];
     int32_t lastidx = p->lastidx;
@@ -1182,7 +1182,7 @@ static int32_t bpfcos_K_Km_kr(CSOUND *csound, BPF_K_Km *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *r;
+    cs_float *r;
     STRINGDAT *notename;
 } NTOM;
 
@@ -1190,7 +1190,7 @@ static int32_t _pcs[] = {9, 11, 0, 2, 4, 5, 7};
 
 /* Return a parsing error, or write the pitch and return NULL. The caller
    reports the error at the rate of the opcode that requested the conversion. */
-static const char *ntomfunc(CSOUND *csound, const char *n, MYFLT *result) {
+static const char *ntomfunc(CSOUND *csound, const char *n, cs_float *result) {
     size_t notelen = strlen(n);
     if (notelen == 0)
         return Str("note name is empty");
@@ -1250,7 +1250,7 @@ ntom_common(CSOUND *csound, NTOM *p, int32_t init) {
        - octave is necessary and comes always first
        - no negative octaves, no octaves higher than 9
     */
-    MYFLT midi = 0;
+    cs_float midi = 0;
     const char *error = ntomfunc(csound, p->notename->data, &midi);
     if (error != NULL)
         return INITPERFERRF(init, Str("ntom: invalid note name \"%s\": %s"),
@@ -1278,7 +1278,7 @@ static int32_t ntom(CSOUND *csound, NTOM *p) {
 typedef struct {
     OPDS h;
     STRINGDAT *Sdst;
-    MYFLT *kmidi;
+    cs_float *kmidi;
 } MTON;
 
 //                                C  C# D D#  E  F  F# G G# A Bb B
@@ -1288,10 +1288,10 @@ static const char _alts[] = " #b";
 
 static int32_t
 mton_common(CSOUND *csound, MTON *p, int32_t init) {
-    double m = (double)*p->kmidi;
-    double whole = floor(m);
+    cs_double m = (cs_double)*p->kmidi;
+    cs_double whole = floor(m);
     /* Leave room for a carry when rounding cents to the next note. */
-    if (UNLIKELY(!(whole >= INT32_MIN && whole < INT32_MAX))) {
+    if (UNLIKELY(!(whole >= INT32_MIN && whole < (INT32_MAX + 0.0)))) {
         return init ? INITERR(Str("mton: note number out of range"))
                     : PERFERR(Str("mton: note number out of range"));
     }
@@ -1361,12 +1361,12 @@ mton(CSOUND *csound, MTON *p) {
 
 static int32_t
 ntof_common(CSOUND *csound, NTOM *p, int32_t init) {
-    MYFLT midi = 0;
+    cs_float midi = 0;
     const char *error = ntomfunc(csound, p->notename->data, &midi);
     if (error != NULL)
         return INITPERFERRF(init, Str("ntof: invalid note name \"%s\": %s"),
                             p->notename->data, error);
-    MYFLT a4 = csound->GetA4(csound);
+    cs_float a4 = csound->GetA4(csound);
     *p->r = mtof_func(midi, a4);
     return OK;
 }
@@ -1395,9 +1395,9 @@ static int32_t ntof(CSOUND *csound, NTOM *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *out, *a0;
+    cs_float *out, *a0;
     STRINGDAT *op;
-    MYFLT *a1;
+    cs_float *a1;
     int32_t mode;
 } Cmp;
 
@@ -1406,7 +1406,7 @@ typedef struct {
     ARRAYDAT *out;
     ARRAYDAT *in;
     STRINGDAT *op;
-    MYFLT *k1;
+    cs_float *k1;
     int32_t mode;
 } Cmp_array1;
 
@@ -1422,11 +1422,11 @@ typedef struct {
 typedef struct {
     OPDS h;
     ARRAYDAT *out;
-    MYFLT *a;
+    cs_float *a;
     STRINGDAT *op1;
     ARRAYDAT *in;
     STRINGDAT *op2;
-    MYFLT *b;
+    cs_float *b;
     int32_t mode;
 } Cmp2_array1;
 
@@ -1507,8 +1507,8 @@ cmp_aa(CSOUND *csound, Cmp* p) {
 
     SAMPLE_ACCURATE
 
-    MYFLT *a0 = p->a0;
-    MYFLT *a1 = p->a1;
+    cs_float *a0 = p->a0;
+    cs_float *a1 = p->a1;
 
     switch(p->mode) {
     case 0:
@@ -1551,8 +1551,8 @@ cmp_ak(CSOUND *csound, Cmp *p) {
 
     SAMPLE_ACCURATE
 
-    MYFLT *a0 = p->a0;
-    MYFLT a1 = *(p->a1);
+    cs_float *a0 = p->a0;
+    cs_float a1 = *(p->a1);
 
     switch(p->mode) {
     case 0:
@@ -1595,9 +1595,9 @@ cmparray1_k(CSOUND *csound, Cmp_array1 *p) {
     if (UNLIKELY(ARRAY_ENSURESIZE_PERF(csound, p->out, L) != OK))
         return NOTOK;
 
-    MYFLT *out = p->out->data;
-    MYFLT *in  = p->in->data;
-    MYFLT k1 = *p->k1;
+    cs_float *out = p->out->data;
+    cs_float *in  = p->in->data;
+    cs_float k1 = *p->k1;
     int32_t i;
 
     switch(p->mode) {
@@ -1649,12 +1649,12 @@ cmp2array1_k(CSOUND *csound, Cmp2_array1 *p) {
     if (UNLIKELY(ARRAY_ENSURESIZE_PERF(csound, p->out, L) != OK))
         return NOTOK;
 
-    MYFLT *out = p->out->data;
-    MYFLT *in  = p->in->data;
-    MYFLT a = *p->a;
-    MYFLT b = *p->b;
+    cs_float *out = p->out->data;
+    cs_float *in  = p->in->data;
+    cs_float a = *p->a;
+    cs_float b = *p->b;
     int32_t i;
-    MYFLT x;
+    cs_float x;
 
     switch(p->mode) {
     case 0:   // 00 -> <   <
@@ -1700,9 +1700,9 @@ cmparray2_k(CSOUND *csound, Cmp_array2 *p) {
     if (UNLIKELY(ARRAY_ENSURESIZE_PERF(csound, p->out, L) != OK))
         return NOTOK;
 
-    MYFLT *out = p->out->data;
-    MYFLT *in1  = p->in1->data;
-    MYFLT *in2  = p->in2->data;
+    cs_float *out = p->out->data;
+    cs_float *in1  = p->in1->data;
+    cs_float *in2  = p->in2->data;
     int32_t i;
     switch(p->mode) {
     case 0:
@@ -1765,16 +1765,16 @@ cmparray2_i(CSOUND *csound, Cmp_array2 *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *fnsrc, *fndst, *kstart, *kend, *kstep;
+    cs_float *fnsrc, *fndst, *kstart, *kend, *kstep;
     FUNC *ftpsrc;
     FUNC *ftpdst;
 } TABSLICE;
 
 static int32_t
 tabslice_tables(CSOUND *csound, TABSLICE *p, int32_t init) {
-    double source = (double)*p->fnsrc, dest = (double)*p->fndst;
-    if (UNLIKELY(!(source >= INT32_MIN && source <= INT32_MAX &&
-                   dest >= INT32_MIN && dest <= INT32_MAX)))
+    cs_double source = (cs_double)*p->fnsrc, dest = (cs_double)*p->fndst;
+    if (UNLIKELY(!(source >= INT32_MIN && source <= (INT32_MAX + 0.0) &&
+                   dest >= INT32_MIN && dest <= (INT32_MAX + 0.0))))
         return init ? INITERR(Str("ftslice: table number out of range"))
                     : PERFERR(Str("ftslice: table number out of range"));
     p->ftpsrc = csound->FTFind(csound, p->fnsrc);
@@ -1797,12 +1797,12 @@ static int32_t
 tabslice_copy(CSOUND *csound, TABSLICE *p, int32_t init) {
     FUNC *ftpsrc = p->ftpsrc;
     FUNC *ftpdst = p->ftpdst;
-    double startval = (double)*p->kstart;
-    double endval = (double)*p->kend;
-    double stepval = (double)*p->kstep;
+    cs_double startval = (cs_double)*p->kstart;
+    cs_double endval = (cs_double)*p->kend;
+    cs_double stepval = (cs_double)*p->kstep;
     if (UNLIKELY(!(startval >= 0 && startval <= ftpsrc->flen &&
-                   endval >= INT32_MIN && endval < (double)INT32_MAX + 1 &&
-                   stepval >= 1 && stepval < (double)INT32_MAX + 1)))
+                   endval >= INT32_MIN && endval < (INT32_MAX + 0.0) + 1 &&
+                   stepval >= 1 && stepval < (INT32_MAX + 0.0) + 1)))
         return init ? INITERR(Str("ftslice: invalid slice bounds or step"))
                     : PERFERR(Str("ftslice: invalid slice bounds or step"));
     int32_t start = (int32_t)startval;
@@ -1816,8 +1816,8 @@ tabslice_copy(CSOUND *csound, TABSLICE *p, int32_t init) {
     int32_t numitems = 1 + (end - start - 1) / step;
     if (numitems > (int32_t)ftpdst->flen)
         numitems = (int32_t)ftpdst->flen;
-    MYFLT *src = ftpsrc->ftable;
-    MYFLT *dst = ftpdst->ftable;
+    cs_float *src = ftpsrc->ftable;
+    cs_float *dst = ftpdst->ftable;
 
     /* A large step can take the final index beyond INT32_MAX. */
     int64_t j = start;
@@ -1865,7 +1865,7 @@ tabslice_i(CSOUND *csound, TABSLICE *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *tabnum, *value, *kstart, *kend, *kstep;
+    cs_float *tabnum, *value, *kstart, *kend, *kstep;
     FUNC *tab;
     int32_t lastTabnum;
 } FTSET;
@@ -1880,30 +1880,30 @@ ftset_init(CSOUND *csound, FTSET *p) {
 
 static int32_t
 ftset_common(CSOUND *csound, FTSET *p, int32_t init) {
-    double number = (double)*p->tabnum;
-    if (UNLIKELY(!(number >= INT32_MIN && number <= INT32_MAX)))
+    cs_double number = (cs_double)*p->tabnum;
+    if (UNLIKELY(!(number >= INT32_MIN && number <= (INT32_MAX + 0.0))))
         return INITPERFERR(init, Str("ftset: table number out of range"));
     /* Use the same rounding as FTFind when caching the table number. */
-    int32_t tabnum = MYFLT2LONG(*p->tabnum);
+    int32_t tabnum = CS_FLOAT2LONG(*p->tabnum);
     if (p->tab == NULL || tabnum != p->lastTabnum) {
         p->tab = csound->FTFind(csound, p->tabnum);
         if (UNLIKELY(p->tab == NULL))
             return INITPERFERRF(init, Str("Table %g not found"), *p->tabnum);
         p->lastTabnum = tabnum;
     }
-    MYFLT *data = p->tab->ftable;
+    cs_float *data = p->tab->ftable;
     int32_t tablen = p->tab->flen;
-    double startval = (double)*p->kstart;
-    double endval = (double)*p->kend;
-    double stepval = (double)*p->kstep;
+    cs_double startval = (cs_double)*p->kstart;
+    cs_double endval = (cs_double)*p->kend;
+    cs_double stepval = (cs_double)*p->kstep;
     if (UNLIKELY(!(startval >= 0 && startval <= tablen &&
-                   endval >= -tablen && endval < (double)INT32_MAX + 1 &&
-                   stepval >= 1 && stepval < (double)INT32_MAX + 1)))
+                   endval >= -tablen && endval < (INT32_MAX + 0.0) + 1 &&
+                   stepval >= 1 && stepval < (INT32_MAX + 0.0) + 1)))
         return INITPERFERR(init, Str("ftset: invalid slice bounds or step"));
     int32_t start = (int32_t)startval;
     int32_t end = (int32_t)endval;
     int32_t step = (int32_t)stepval;
-    MYFLT value = *p->value;
+    cs_float value = *p->value;
 
     if (end <= 0)
         end += tablen;
@@ -1913,7 +1913,7 @@ ftset_common(CSOUND *csound, FTSET *p, int32_t init) {
         return OK;
 
     if (step == 1 && value == 0) {
-        memset(data + start, '\0', sizeof(MYFLT) * (end - start));
+        memset(data + start, '\0', sizeof(cs_float) * (end - start));
         return OK;
     }
 
@@ -1955,15 +1955,15 @@ ftset_i(CSOUND *csound, FTSET *p) {
 typedef struct {
     OPDS h;
     ARRAYDAT *out;
-    MYFLT *ifn, *kstart, *kend, *kstep;
+    cs_float *ifn, *kstart, *kend, *kstep;
     FUNC *ftp;
 } TAB2ARRAY;
 
 static int32_t
 tab2array_common(CSOUND *csound, TAB2ARRAY *p, int32_t init, int32_t copy) {
     if (init) {
-        double number = (double)*p->ifn;
-        if (UNLIKELY(!(number >= INT32_MIN && number <= INT32_MAX)))
+        cs_double number = (cs_double)*p->ifn;
+        if (UNLIKELY(!(number >= INT32_MIN && number <= (INT32_MAX + 0.0))))
             return INITERR(Str("tab2array: table number out of range"));
         p->ftp = csound->FTFind(csound, p->ifn);
         if (UNLIKELY(p->ftp == NULL))
@@ -1972,12 +1972,12 @@ tab2array_common(CSOUND *csound, TAB2ARRAY *p, int32_t init, int32_t copy) {
     if (UNLIKELY(p->out->dimensions > 1))
         return init ? INITERR(Str("tab2array: expected a one-dimensional output"))
                     : PERFERR(Str("tab2array: expected a one-dimensional output"));
-    double startval = (double)*p->kstart;
-    double endval = (double)*p->kend;
-    double stepval = (double)*p->kstep;
+    cs_double startval = (cs_double)*p->kstart;
+    cs_double endval = (cs_double)*p->kend;
+    cs_double stepval = (cs_double)*p->kstep;
     if (UNLIKELY(!(startval >= 0 && startval <= p->ftp->flen &&
-                   endval >= INT32_MIN && endval < (double)INT32_MAX + 1 &&
-                   stepval >= 1 && stepval < (double)INT32_MAX + 1)))
+                   endval >= INT32_MIN && endval < (INT32_MAX + 0.0) + 1 &&
+                   stepval >= 1 && stepval < (INT32_MAX + 0.0) + 1)))
         return init ? INITERR(Str("tab2array: invalid slice bounds or step"))
                     : PERFERR(Str("tab2array: invalid slice bounds or step"));
     int32_t start = (int32_t)startval;
@@ -1993,8 +1993,8 @@ tab2array_common(CSOUND *csound, TAB2ARRAY *p, int32_t init, int32_t copy) {
         return NOTOK;
     }
     if (copy) {
-        MYFLT *out = p->out->data;
-        MYFLT *table = p->ftp->ftable;
+        cs_float *out = p->out->data;
+        cs_float *table = p->ftp->ftable;
         /* The final step can exceed INT32_MAX even for a valid slice. */
         int64_t index = start;
         for (int32_t i = 0; i < numitems; i++, index += step)
@@ -2053,7 +2053,7 @@ multiplying by zero always leads to an error.
 typedef struct {
     OPDS h;
     ARRAYDAT *in;
-    MYFLT *dims[20];
+    cs_float *dims[20];
 } ARRAYRESHAPE;
 
 static int32_t
@@ -2067,7 +2067,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     }
     int32_t numitems = 1;
     for(int i=0; i < numdims; i++) {
-        MYFLT dim = *(p->dims[i]);
+        cs_float dim = *(p->dims[i]);
         int32_t idim = (int32_t)dim;
         if(idim <= 0) {
             return INITERRF(Str("reshapearray: invalid dimension at index %d, a dimension must be >= 0, got %d"), i, (int)dim);
@@ -2123,7 +2123,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
 typedef struct {
     OPDS h;
     ARRAYDAT *in;
-    MYFLT *trig;
+    cs_float *trig;
     STRINGDAT *Sfmt;
     STRINGDAT *Slabel;
 
@@ -2266,7 +2266,7 @@ static int32_t arrprint_str(CSOUND *csound, ARRAYDAT *arr,
     return OK;
 }
 
-static int32_t _printmtx(CSOUND *csound, MYFLT *data, size_t offset,
+static int32_t _printmtx(CSOUND *csound, cs_float *data, size_t offset,
                          const char *fmt, int32_t numrows, int32_t numcols,
                          int32_t startbrackets, int32_t endbrackets,
                          int32_t margin) {
@@ -2290,7 +2290,7 @@ static int32_t _printmtx(CSOUND *csound, MYFLT *data, size_t offset,
     return OK;
 }
 
-static int32_t _printsubarr(CSOUND *csound, MYFLT *data, size_t offset,
+static int32_t _printsubarr(CSOUND *csound, cs_float *data, size_t offset,
                             const char *fmt, int32_t numdims, const int32_t *dims,
                             int32_t startbrackets, int32_t endbrackets,
                             int32_t margin) {
@@ -2410,17 +2410,17 @@ See also: printarray
 
 typedef struct {
     OPDS h;
-    MYFLT *ifn, *ktrig, *kstart, *kend, *kstep, *inumcols;
+    cs_float *ifn, *ktrig, *kstart, *kend, *kstep, *inumcols;
     int32_t lasttrig;
     int32_t numcols;
     FUNC *ftp;
 } FTPRINT;
 
 /* Negative indices count back from the exclusive table end: -1 is length. */
-static int32_t ftprint_index(uint32_t *out, MYFLT value, uint32_t length)
+static int32_t ftprint_index(uint32_t *out, cs_float value, uint32_t length)
 {
-    double index = trunc((double)value);
-    if (index < 0) index += (double)length + 1;
+    cs_double index = trunc((cs_double)value);
+    if (index < 0) index += (cs_double)length + 1;
     if (UNLIKELY(!(index >= 0 && index <= length))) return NOTOK;
     *out = (uint32_t)index;
     return OK;
@@ -2478,11 +2478,11 @@ static int32_t ftprint(CSOUND *csound, FTPRINT *p, int32_t is_init)
     uint32_t start, end;
     if (UNLIKELY(ftprint_index(&start, *p->kstart, ftp->flen) != OK))
         return INITPERFERR(is_init, Str("ftprint: start index out of range"));
-    if (trunc((double)*p->kend) == 0) end = ftp->flen;
+    if (trunc((cs_double)*p->kend) == 0) end = ftp->flen;
     else if (UNLIKELY(ftprint_index(&end, *p->kend, ftp->flen) != OK))
         return INITPERFERR(is_init, Str("ftprint: end index out of range"));
     if (UNLIKELY(!(*p->kstep >= FL(1.0) &&
-                   (double)*p->kstep <= UINT32_MAX)))
+                   (cs_double)*p->kstep <= (UINT32_MAX + 0.0))))
         return INITPERFERR(is_init, Str("ftprint: step must be a positive integer"));
     uint32_t step = (uint32_t)*p->kstep;
     uint32_t numcols = (uint32_t)p->numcols, column = 0;
@@ -2514,7 +2514,7 @@ static int32_t ftprint_init(CSOUND *csound, FTPRINT *p)
 {
     p->lasttrig = 0;
     if (UNLIKELY(!(*p->inumcols >= FL(0.0) &&
-                   (double)*p->inumcols <= INT32_MAX)))
+                   (cs_double)*p->inumcols <= (INT32_MAX + 0.0))))
         return INITERR(Str("ftprint: invalid column count"));
     p->numcols = (int32_t)*p->inumcols;
     if (p->numcols == 0) p->numcols = 10;
@@ -2576,12 +2576,12 @@ array_or(CSOUND *csound, BINOP_AAA *p) {
     if (UNLIKELY(array_binop_prepare(csound, p, 0, &numitems) != OK))
         return NOTOK;
     int32_t i;
-    MYFLT *out = p->out->data;
-    MYFLT *in1 = p->in1->data;
-    MYFLT *in2 = p->in2->data;
+    cs_float *out = p->out->data;
+    cs_float *in1 = p->in1->data;
+    cs_float *in2 = p->in2->data;
 
     for(i=0; i<numitems; i++) {
-        *(out++) = (MYFLT)((int32_t)*(in1++) | (int32_t)*(in2++));
+        *(out++) = (cs_float)((int32_t)*(in1++) | (int32_t)*(in2++));
     }
     return OK;
 }
@@ -2592,12 +2592,12 @@ array_and(CSOUND *csound, BINOP_AAA *p) {
     if (UNLIKELY(array_binop_prepare(csound, p, 0, &numitems) != OK))
         return NOTOK;
     int32_t i;
-    MYFLT *out = p->out->data;
-    MYFLT *in1 = p->in1->data;
-    MYFLT *in2 = p->in2->data;
+    cs_float *out = p->out->data;
+    cs_float *in1 = p->in1->data;
+    cs_float *in2 = p->in2->data;
 
     for(i=0; i<numitems; i++) {
-        *(out++) = (MYFLT)((int32_t)*(in1++) & (int32_t)*(in2++));
+        *(out++) = (cs_float)((int32_t)*(in1++) & (int32_t)*(in2++));
     }
     return OK;
 }
@@ -2605,17 +2605,17 @@ array_and(CSOUND *csound, BINOP_AAA *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *iout, *ifn;
+    cs_float *iout, *ifn;
     // FUNC *ftp;
 } FTEXISTS;
 
 static int32_t
 ftexists_init(CSOUND *csound, FTEXISTS *p) {
-    double number = (double)*p->ifn;
+    cs_double number = (cs_double)*p->ifn;
     *p->iout = FL(0.0);
-    if (number > -2.0 && number < (double)INT32_MAX + 1.0) {
+    if (number > -2.0 && number < (INT32_MAX + 0.0) + 1.0) {
         int32_t ifn = (int32_t)number;
-        MYFLT *args;
+        cs_float *args;
         /* Preserve FTFind's built-in sine aliases, 0 and -1. */
         if (ifn <= 0) {
             *p->iout = FL(1.0);
@@ -2642,7 +2642,7 @@ ftexists_init(CSOUND *csound, FTEXISTS *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *out;
+    cs_float *out;
     INSDS *owner;
     int32_t fired;
 } LASTCYCLE;
@@ -2669,11 +2669,11 @@ lastcycle(CSOUND *csound, LASTCYCLE *p) {
         /* With an explicit release, off time becomes the final end time only
            after the engine enters release. Account for a partial final block
            before converting that time to the opcode's local cycle count. */
-        double endtime = p->owner->offtim -
-                         p->owner->no_end / (double)p->owner->esr;
-        double endsample = floor(endtime * (double)CS_ESR + 0.5);
-        double endcycle = ceil(endsample / CS_KSMPS);
-        if ((double)CS_KCNT >= endcycle) {
+        cs_double endtime = p->owner->offtim -
+                         p->owner->no_end / (cs_double)p->owner->esr;
+        cs_double endsample = floor(endtime * (cs_double)CS_ESR + 0.5);
+        cs_double endcycle = ceil(endsample / CS_KSMPS);
+        if ((cs_double)CS_KCNT >= endcycle) {
             *p->out = FL(1.0);
             p->fired = 1;
         }
@@ -2800,7 +2800,7 @@ strstrip(CSOUND *csound, STR1_1 *p) {
 typedef struct {
     OPDS h;
     STRINGDAT *sfmt;
-    MYFLT *args[64];
+    cs_float *args[64];
     STRINGDAT buf;
     AUXCH strseg;
 } PRINTLN;
@@ -2829,13 +2829,13 @@ sprintf_opcode_(CSOUND *csound, PRINTLN *p)
 {
   STRINGDAT *str = &p->buf;
   const char *fmt = p->sfmt->data;
-  MYFLT **kvals = p->args;
+  cs_float **kvals = p->args;
   int32_t numVals = (int32_t)p->INOCOUNT - 1;
   size_t len = 0, i = 0, maxChars;
   int32_t j = 0, n;
   const char *segwaiting = NULL, *error = NULL;
   char *strseg;
-  MYFLT *parm;
+  cs_float *parm;
 
   if (UNLIKELY(((OPDS*)p)->optext->t.inArgCount > 31))
     return PERFERR(Str("too many arguments"));
@@ -2893,14 +2893,14 @@ sprintf_opcode_(CSOUND *csound, PRINTLN *p)
         switch (*segwaiting) {
         case 'd': case 'i': case 'c':
           n = snprintf(str->data + len, maxChars, strseg,
-                       (int)MYFLT2LRND(*parm));
+                       (int)CS_FLOAT2LRND(*parm));
           break;
         case 'o': case 'x': case 'X': case 'u':
           n = snprintf(str->data + len, maxChars, strseg,
-                       (unsigned int)MYFLT2LRND(*parm));
+                       (unsigned int)CS_FLOAT2LRND(*parm));
           break;
         case 'e': case 'E': case 'f': case 'F': case 'g': case 'G':
-          n = snprintf(str->data + len, maxChars, strseg, (double)*parm);
+          n = snprintf(str->data + len, maxChars, strseg, (cs_double)*parm);
           break;
         case 's':
           n = snprintf(str->data + len, maxChars, strseg,

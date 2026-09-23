@@ -49,20 +49,20 @@ static int32_t lowpr_set(CSOUND *csound, LOWPR *p)
 
 static int32_t lowpr(CSOUND *csound, LOWPR *p)
 {
-    double b, k = p->k;
-    MYFLT *ar, *asig;
-    double yn, ynm1, ynm2 ;
-    MYFLT kfco = *p->kfco;
-    MYFLT kres = *p->kres;
-    double coef1 = p->coef1, coef2 = p->coef2;
+    cs_double b, k = p->k;
+    cs_float *ar, *asig;
+    cs_double yn, ynm1, ynm2 ;
+    cs_float kfco = *p->kfco;
+    cs_float kres = *p->kres;
+    cs_double coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
       LOWRES_CHECK_PARAMS(kfco, kres);
-      b = 10.0 / (kres * sqrt((double)kfco)) - 1.0;
-      p->k = k = 1000.0 / (double)kfco;
+      b = 10.0 / (kres * sqrt((cs_double)kfco)) - 1.0;
+      p->k = k = 1000.0 / (cs_double)kfco;
       p->coef1 = coef1 = (b+2.0 * k);
       p->coef2 = coef2 = 1.0/(1.0 + b + k);
       p->okf = kfco; p->okr = kres; /* remember to save recalculation */
@@ -72,13 +72,13 @@ static int32_t lowpr(CSOUND *csound, LOWPR *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps;n++) {
-      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
+      ar[n] = (cs_float)(yn = (coef1 * ynm1 - k * ynm2 + (cs_double)asig[n]) * coef2);
       ynm2 = ynm1;
       ynm1 =  yn;
     }
@@ -90,13 +90,13 @@ static int32_t lowpr(CSOUND *csound, LOWPR *p)
 
 static int32_t lowpraa(CSOUND *csound, LOWPR *p)
 {
-    double b, k = p->k;
-    MYFLT *ar, *asig;
-    double yn, ynm1, ynm2 ;
-    MYFLT *fco = p->kfco;
-    MYFLT *res = p->kres;
-    MYFLT okf = p->okf, okr = p->okr;
-    double coef1 = p->coef1, coef2 = p->coef2;
+    cs_double b, k = p->k;
+    cs_float *ar, *asig;
+    cs_double yn, ynm1, ynm2 ;
+    cs_float *fco = p->kfco;
+    cs_float *res = p->kres;
+    cs_float okf = p->okf, okr = p->okr;
+    cs_double coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -106,22 +106,22 @@ static int32_t lowpraa(CSOUND *csound, LOWPR *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps;n++) {
       if (okf!= fco[n] || okr != res[n]) { /* Only if changed */
         LOWRES_CHECK_PARAMS(fco[n], res[n]);
-        b = 10.0 / (res[n] * sqrt((double)fco[n])) - 1.0;
-        p->k = k = 1000.0 / (double)fco[n];
+        b = 10.0 / (res[n] * sqrt((cs_double)fco[n])) - 1.0;
+        p->k = k = 1000.0 / (cs_double)fco[n];
         p->coef1 = coef1 = (b+2.0 * k);
         p->coef2 = coef2 = 1.0/(1.0 + b + k);
         okf = fco[n]; okr = res[n];
         /* remember to save recalculation */
       }
-      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
+      ar[n] = (cs_float)(yn = (coef1 * ynm1 - k * ynm2 + (cs_double)asig[n]) * coef2);
       ynm2 = ynm1;
       ynm1 = yn;
     }
@@ -133,13 +133,13 @@ static int32_t lowpraa(CSOUND *csound, LOWPR *p)
 
 static int32_t lowprak(CSOUND *csound, LOWPR *p)
 {
-    double b, k = p->k;
-    MYFLT *ar, *asig;
-    double yn, ynm1, ynm2 ;
-    MYFLT *fco = p->kfco;
-    MYFLT kres = *p->kres;
-    MYFLT okf = p->okf, okr = p->okr;
-    double coef1 = p->coef1, coef2 = p->coef2;
+    cs_double b, k = p->k;
+    cs_float *ar, *asig;
+    cs_double yn, ynm1, ynm2 ;
+    cs_float *fco = p->kfco;
+    cs_float kres = *p->kres;
+    cs_float okf = p->okf, okr = p->okr;
+    cs_double coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -149,21 +149,21 @@ static int32_t lowprak(CSOUND *csound, LOWPR *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps;n++) {
       if (okf != fco[n] || okr != kres) { /* Only if changed */
         LOWRES_CHECK_PARAMS(fco[n], kres);
-        b = 10.0 / (kres * sqrt((double)fco[n])) - 1.0;
-        p->k = k = 1000.0 / (double)fco[n];
+        b = 10.0 / (kres * sqrt((cs_double)fco[n])) - 1.0;
+        p->k = k = 1000.0 / (cs_double)fco[n];
         p->coef1 = coef1 = (b+2.0 * k);
         p->coef2 = coef2 = 1.0/(1.0 + b + k);
         okf = fco[n]; okr = kres; /* remember to save recalculation */
       }
-      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
+      ar[n] = (cs_float)(yn = (coef1 * ynm1 - k * ynm2 + (cs_double)asig[n]) * coef2);
       ynm2 = ynm1;
       ynm1 =  yn;
     }
@@ -176,13 +176,13 @@ static int32_t lowprak(CSOUND *csound, LOWPR *p)
 
 static int32_t lowprka(CSOUND *csound, LOWPR *p)
 {
-    double b, k = p->k;
-    MYFLT *ar, *asig;
-    double yn, ynm1, ynm2 ;
-    MYFLT fco = *p->kfco;
-    MYFLT *res = p->kres;
-    MYFLT okr = p->okr, okf = p->okf;
-    double coef1 = p->coef1, coef2 = p->coef2;
+    cs_double b, k = p->k;
+    cs_float *ar, *asig;
+    cs_double yn, ynm1, ynm2 ;
+    cs_float fco = *p->kfco;
+    cs_float *res = p->kres;
+    cs_float okr = p->okr, okf = p->okf;
+    cs_double coef1 = p->coef1, coef2 = p->coef2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -192,21 +192,21 @@ static int32_t lowprka(CSOUND *csound, LOWPR *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps;n++) {
       if (okf != fco || okr != res[n]) { /* Only if changed */
         LOWRES_CHECK_PARAMS(fco, res[n]);
-        b = 10.0 / (res[n] * sqrt((double)fco)) - 1.0;
-        p->k = k = 1000.0 / (double)fco;
+        b = 10.0 / (res[n] * sqrt((cs_double)fco)) - 1.0;
+        p->k = k = 1000.0 / (cs_double)fco;
         p->coef1 = coef1 = (b+2.0 * k);
         p->coef2 = coef2 = 1.0/(1.0 + b + k);
         okf = fco; okr = res[n]; /* remember to save recalculation */
       }
-      ar[n] = (MYFLT)(yn = (coef1 * ynm1 - k * ynm2 + (double)asig[n]) * coef2);
+      ar[n] = (cs_float)(yn = (coef1 * ynm1 - k * ynm2 + (cs_double)asig[n]) * coef2);
       ynm2 = ynm1;
       ynm1 = yn;
     }
@@ -220,7 +220,7 @@ static int32_t lowprka(CSOUND *csound, LOWPR *p)
 static int32_t lowpr_setx(CSOUND *csound, LOWPRX *p)
 {
     int32_t j;
-    if ((p->loop = (int32_t) MYFLT2LONG(*p->ord)) < 1) p->loop = 4; /*default value*/
+    if ((p->loop = (int32_t) CS_FLOAT2LONG(*p->ord)) < 1) p->loop = 4; /*default value*/
     else if (UNLIKELY(p->loop > 10)) {
       return csound->InitError(csound, "%s", Str("illegal order num. (min 1, max 10)"));
     }
@@ -234,10 +234,10 @@ static int32_t lowpr_setx(CSOUND *csound, LOWPRX *p)
 static int32_t lowprx(CSOUND *csound, LOWPRX *p)
 {
     IGN(csound);
-    MYFLT    b, k = p->k;
-    MYFLT   *ar, *asig, yn,*ynm1, *ynm2 ;
-    MYFLT    coef1 = p->coef1, coef2 = p->coef2;
-    MYFLT    *kfco = p->kfco, *kres = p->kres;
+    cs_float    b, k = p->k;
+    cs_float   *ar, *asig, yn,*ynm1, *ynm2 ;
+    cs_float    coef1 = p->coef1, coef2 = p->coef2;
+    cs_float    *kfco = p->kfco, *kres = p->kres;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -247,16 +247,16 @@ static int32_t lowprx(CSOUND *csound, LOWPRX *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
     asig = p->asig;
-    if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&p->ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->ar[nsmps], '\0', early*sizeof(cs_float));
     }
 
     ar = p->ar;
     for (n=offset;n<nsmps;n++) {
-      MYFLT fco = (asgf ? kfco[n] : *kfco);
-      MYFLT res = (asgr ? kres[n] : *kres);
+      cs_float fco = (asgf ? kfco[n] : *kfco);
+      cs_float res = (asgr ? kres[n] : *kres);
       if (p->okf != fco || p->okr != res) { /* Only if changed */
         LOWRES_CHECK_PARAMS(fco, res);
         b = FL(10.0) / (res * SQRT(fco)) - FL(1.0);
@@ -282,7 +282,7 @@ static int32_t lowprx(CSOUND *csound, LOWPRX *p)
 static int32_t lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
 {
     int32_t j;
-    if ((p->loop = (int32_t) MYFLT2LONG(*p->ord)) < 1)
+    if ((p->loop = (int32_t) CS_FLOAT2LONG(*p->ord)) < 1)
       p->loop = 4; /*default value*/
     else if (UNLIKELY(p->loop > 10)) {
       return csound->InitError(csound, "%s", Str("illegal order num. (min 1, max 10)"));
@@ -294,40 +294,40 @@ static int32_t lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
 static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 {
      IGN(csound);
-    MYFLT    b, k;
-    MYFLT   *ar, *asig, yn,*ynm1, *ynm2 ;
-    MYFLT    coef1, coef2;
-    MYFLT    kfcobase = *p->kfco;
-    MYFLT    sep = (*p->sep / p->loop);
+    cs_float    b, k;
+    cs_float   *ar, *asig, yn,*ynm1, *ynm2 ;
+    cs_float    coef1, coef2;
+    cs_float    kfcobase = *p->kfco;
+    cs_float    sep = (*p->sep / p->loop);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t      j;
 
-    MYFLT kres = *p->kres;
-    MYFLT kfco;
+    cs_float kres = *p->kres;
+    cs_float kfco;
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
     asig = p->asig;
 
-    if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&p->ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->ar[nsmps], '\0', early*sizeof(cs_float));
     }
     ar = p->ar;
     for (j=0; j< p->loop; j++) {
-      MYFLT lynm1 = ynm1[j];
-      MYFLT lynm2 = ynm2[j];
+      cs_float lynm1 = ynm1[j];
+      cs_float lynm2 = ynm2[j];
                 /*
                 linfco=log((double) kfco)*ONEtoLOG2     ;
                 linfco = linfco + (sep / p->loop)*j;
-                kfco = (MYFLT) pow(2.0,linfco);
+                kfco = (cs_float) pow(2.0,linfco);
                 */
       kfco = kfcobase * (FL(1.0) + (sep * j));
 
       LOWRES_CHECK_PARAMS(kfco, kres);
-      b = FL(10.0) / ( kres * (MYFLT)sqrt((double)kfco)) - FL(1.0);
+      b = FL(10.0) / ( kres * (cs_float)sqrt((cs_double)kfco)) - FL(1.0);
       k = FL(1000.0) / kfco;
       coef1 = (b+FL(2.0) *k);
       coef2 = FL(1.0)/(FL(1.0) + b + k);

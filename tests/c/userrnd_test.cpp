@@ -8,8 +8,8 @@
 namespace {
 TEST(UserRandomLookup, ContinuousEndpointUsesGuardPoint)
 {
-  const MYFLT table[] = {0, .25, .75, 1};
-  MYFLT value;
+  const cs_float table[] = {0, .25, .75, 1};
+  cs_float value;
   USER_RAND_LOOKUP(value, table, 3, FL(3.0), 1);
   EXPECT_EQ(1, value);
   USER_RAND_LOOKUP(value, table, 3, FL(2.5), 1);
@@ -20,8 +20,8 @@ TEST(UserRandomLookup, ContinuousEndpointUsesGuardPoint)
 
 TEST(UserRandomLookup, DiscreteEndpointExcludesGuardPoint)
 {
-  const MYFLT table[] = {2, 4, 6, 99};
-  MYFLT value;
+  const cs_float table[] = {2, 4, 6, 99};
+  cs_float value;
   USER_RAND_LOOKUP(value, table, 3, FL(3.0), 0);
   EXPECT_EQ(6, value);
   USER_RAND_LOOKUP(value, table, 3, FL(2.5), 0);
@@ -32,8 +32,8 @@ TEST(UserRandomLookup, DiscreteEndpointExcludesGuardPoint)
 
 TEST(UserRandomLookup, PositionIsEvaluatedOnce)
 {
-  const MYFLT table[] = {2, 4, 6, 99};
-  MYFLT value, position = 0;
+  const cs_float table[] = {2, 4, 6, 99};
+  cs_float value, position = 0;
   USER_RAND_LOOKUP(value, table, 3, position++, 0);
   EXPECT_EQ(1, position);
   EXPECT_EQ(2, value);
@@ -41,7 +41,7 @@ TEST(UserRandomLookup, PositionIsEvaluatedOnce)
 
 class UserRandomTests : public ::testing::TestWithParam<const char *> {
 protected:
-  void run(const std::string &body, MYFLT expected,
+  void run(const std::string &body, cs_float expected,
            const char *error = nullptr, int cycles = 2)
   {
     CSOUND *csound = csoundCreate(nullptr, nullptr);
@@ -68,7 +68,7 @@ protected:
       else {
         EXPECT_EQ(0, csound->inerrcnt);
         EXPECT_EQ(0, csound->perferrcnt);
-        const MYFLT *samples = csoundGetSpout(csound);
+        const cs_float *samples = csoundGetSpout(csound);
         for (int n = 0; n < 8; ++n) EXPECT_NEAR(expected, samples[n], 1.e-6) << n;
       }
     }
@@ -89,8 +89,8 @@ protected:
       (rate == "a" ? "\nout aValue" : "\naValue upsamp " + rate + "Value\nout aValue");
   }
 
-  MYFLT first() { return std::string(GetParam()) == "cuserrnd" ? 3 : .25; }
-  MYFLT second() { return std::string(GetParam()) == "cuserrnd" ? 5 : .75; }
+  cs_float first() { return std::string(GetParam()) == "cuserrnd" ? 3 : .25; }
+  cs_float second() { return std::string(GetParam()) == "cuserrnd" ? 5 : .75; }
 };
 
 TEST_P(UserRandomTests, InitRateConstantTable)

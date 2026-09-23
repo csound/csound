@@ -79,13 +79,13 @@ endin
     ASSERT_EQ(0, csoundCompileOrc(csound, orc));
     csoundReadScore(csound, "i 1 0 .01\n");
     ASSERT_EQ(0, csoundStart(csound));
-    MYFLT *table = nullptr;
+    cs_float *table = nullptr;
     ASSERT_EQ(4, csoundGetTable(csound, &table, 1));
     // Even a zero interpolation weight must not read beyond the last pair.
-    table[4] = std::numeric_limits<MYFLT>::quiet_NaN();
+    table[4] = std::numeric_limits<cs_float>::quiet_NaN();
     csoundPerformKsmps(csound);
     ASSERT_EQ(0, csoundErrCnt(csound));
-    const MYFLT *output = csoundGetSpout(csound);
+    const cs_float *output = csoundGetSpout(csound);
     EXPECT_NEAR(0, output[0], 1e-6);
     EXPECT_NEAR(1, output[1], 1e-6);
     EXPECT_NEAR(0, output[2], 1e-6);
@@ -117,8 +117,8 @@ TEST_P(SpaceTrajectoryErrorTests, ReportsInvalidInput)
         orc += "kdist spdist 1, ktime, 0, 0\n";
     orc += "endin\n";
     ASSERT_EQ(0, csoundCompileOrc(csound, orc.c_str()));
-    MYFLT time = invalid == 1 ? std::numeric_limits<MYFLT>::quiet_NaN() :
-                 invalid == 2 ? std::numeric_limits<MYFLT>::infinity() : 0;
+    cs_float time = invalid == 1 ? std::numeric_limits<cs_float>::quiet_NaN() :
+                 invalid == 2 ? std::numeric_limits<cs_float>::infinity() : 0;
     csoundSetControlChannel(csound, "time", time);
     csoundReadScore(csound, "i 1 0 .01\n");
     ASSERT_EQ(0, csoundStart(csound));
@@ -141,11 +141,11 @@ INSTANTIATE_TEST_SUITE_P(
                        ::testing::Values(0, 1, 2)));
 
 class OLABufferTests : public OrcCompileTests,
-                      public ::testing::WithParamInterface<MYFLT> {};
+                      public ::testing::WithParamInterface<cs_float> {};
 
 TEST_P(OLABufferTests, ValidatesOverlapBeforeIntegerArithmetic)
 {
-    const MYFLT overlap = GetParam();
+    const cs_float overlap = GetParam();
     const bool valid = overlap == 1 || overlap == 2 || overlap == 4;
     const char *instrument = R"(
 sr = 48000
@@ -203,19 +203,19 @@ schedule(2, 0, 0.001)
 INSTANTIATE_TEST_SUITE_P(
     OverlapFactors, OLABufferTests,
     ::testing::Values(FL(0.0), FL(-1.0), FL(0.5), FL(3.0), FL(8.0),
-                      FL(2147483648.0), std::numeric_limits<MYFLT>::infinity(),
-                      -std::numeric_limits<MYFLT>::infinity(),
-                      std::numeric_limits<MYFLT>::quiet_NaN(),
+                      FL(2147483648.0), std::numeric_limits<cs_float>::infinity(),
+                      -std::numeric_limits<cs_float>::infinity(),
+                      std::numeric_limits<cs_float>::quiet_NaN(),
                       FL(1.0), FL(2.0), FL(4.0)));
 
 struct ScanhammerCase {
     const char *name;
     int source;
     int destination;
-    MYFLT position;
-    MYFLT gain;
+    cs_float position;
+    cs_float gain;
     bool valid;
-    std::vector<MYFLT> expected;
+    std::vector<cs_float> expected;
 };
 
 class ScanhammerTests : public OrcCompileTests,
@@ -253,7 +253,7 @@ schedule(1, 0, 0.001)
 
     // Check every point, including untouched values and the separate guard.
     // Invalid input must leave the existing destination unchanged.
-    MYFLT *table = nullptr;
+    cs_float *table = nullptr;
     ASSERT_EQ(csoundGetTable(csound, &table, 2),
               static_cast<int>(test.expected.size()) - 1);
     ASSERT_NE(table, nullptr);
@@ -272,7 +272,7 @@ INSTANTIATE_TEST_SUITE_P(
         ScanhammerCase{"MissingDestination", 1, 99, 0, 1, false, {1, 2, 3, 4, 99}},
         ScanhammerCase{"NegativePosition", 1, 2, -1, 1, false, {1, 2, 3, 4, 99}},
         ScanhammerCase{"PositionAtLength", 1, 2, 4, 1, false, {1, 2, 3, 4, 99}},
-        ScanhammerCase{"NaNPosition", 1, 2, std::numeric_limits<MYFLT>::quiet_NaN(),
+        ScanhammerCase{"NaNPosition", 1, 2, std::numeric_limits<cs_float>::quiet_NaN(),
                        1, false, {1, 2, 3, 4, 99}}),
     [](const ::testing::TestParamInfo<ScanhammerCase> &info) {
         return info.param.name;
@@ -1509,7 +1509,7 @@ const char* event = R"(
      result = csoundStart(csound);
      ASSERT_TRUE(result == 0);
      result = csoundPerformKsmps(csound);
-    if(sizeof(MYFLT) > 4) {
+    if(sizeof(cs_float) > 4) {
     ASSERT_TRUE(result == 0);
     ASSERT_TRUE(csoundTableLength(csound,1) == pow(2,30)-1);
    }
@@ -1525,7 +1525,7 @@ TEST_F (OrcCompileTests, test0dbfs)
 
   int result = csoundCompileOrc(csound, instrument);
   ASSERT_TRUE(result == 0);
-  MYFLT val = csoundGet0dBFS(csound);
+  cs_float val = csoundGet0dBFS(csound);
   ASSERT_TRUE(val == 1.0);
 }
 
@@ -1574,7 +1574,7 @@ schedule(1,6/sr,0.5)
   result = csoundStart(csound);
   ASSERT_TRUE(result == 0);
   result = csoundPerformKsmps(csound);
-  const MYFLT *spout = csoundGetSpout(csound);
+  const cs_float *spout = csoundGetSpout(csound);
   ASSERT_TRUE(spout[5] == 0.0);
   ASSERT_TRUE(spout[6] == 1.0);
 
@@ -1611,14 +1611,14 @@ schedule(1, 0, 40 / sr, 2)
   ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
   ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
 
-  const MYFLT *spout = csoundGetSpout(csound);
+  const cs_float *spout = csoundGetSpout(csound);
   ASSERT_NE(spout, nullptr);
   constexpr int32_t blockSize = 64;
   constexpr int32_t channelCount = 2;
   constexpr int32_t endSamples[] = {24, 40};
   for (int32_t sample = 0; sample < blockSize; ++sample) {
     for (int32_t channel = 0; channel < channelCount; ++channel) {
-      const MYFLT expected =
+      const cs_float expected =
         sample < endSamples[channel] ? FL(1.0) : FL(0.0);
       EXPECT_EQ(expected, spout[sample * channelCount + channel])
         << "sample " << sample << ", channel " << channel + 1;

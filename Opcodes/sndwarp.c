@@ -31,16 +31,16 @@
 #include "stdopcod.h"
 #include "sndwarp.h"
 
-#define unirand(x) ((MYFLT) (x->Rand31((x->RandSeed31(x))) - 1) / FL(2147483645.0))
+#define unirand(x) ((cs_float) (x->Rand31((x->RandSeed31(x))) - 1) / FL(2147483645.0))
 
 /* Check before converting counts or allocating sections. Both endpoints of
    the random window range must fit the counter and allow a nonzero divisor. */
-static int32_t sndwarpcheck(CSOUND *csound, MYFLT overlap,
-                            MYFLT wsize, MYFLT randw)
+static int32_t sndwarpcheck(CSOUND *csound, cs_float overlap,
+                            cs_float wsize, cs_float randw)
 {
     if (UNLIKELY(!(overlap >= FL(1.0) &&
-                   (double)overlap <= INT32_MAX) ||
-                 overlap != (MYFLT)(int32_t)overlap))
+                   (cs_double)overlap <= INT32_MAX) ||
+                 overlap != (cs_float)(int32_t)overlap))
       return csound->InitError(csound, "%s", Str("sndwarp: ioverlap must be a "
                                                "positive integer"));
     if (UNLIKELY((size_t)(int32_t)overlap > SIZE_MAX / sizeof(WARPSECTION)))
@@ -60,7 +60,7 @@ static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
     FUNC        *ftpWind, *ftpSamp;
     WARPSECTION *exp;
     char        *auxp;
-    MYFLT       iwsize;
+    cs_float       iwsize;
 
     if (UNLIKELY(sndwarpcheck(csound, *p->ioverlap, *p->iwsize,
                               *p->irandw) != OK))
@@ -97,11 +97,11 @@ static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
       }
       else {
         exp[i].wsize = (int32_t) (iwsize + (unirand(csound) * (*p->irandw)));
-        exp[i].cnt=(int32_t)(exp[i].wsize*((MYFLT)i/nsections));
-        exp[i].ampphs = p->flen*((MYFLT)i/nsections);
+        exp[i].cnt=(int32_t)(exp[i].wsize*((cs_float)i/nsections));
+        exp[i].ampphs = p->flen*((cs_float)i/nsections);
       }
-      exp[i].offset = (MYFLT)p->begin;
-      exp[i].ampincr = (MYFLT)p->flen/(exp[i].wsize-1);
+      exp[i].offset = (cs_float)p->begin;
+      exp[i].ampincr = (cs_float)p->flen/(exp[i].wsize-1);
       /* exp[i].section = i+1;  *//* section number just used for debugging! */
 
     }
@@ -116,23 +116,23 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       frm_0,frm_1;
+    cs_float       frm_0,frm_1;
     int32       base, longphase;
-    MYFLT       frac, frIndx;
-    MYFLT       *r1, *r2, *amp, *timewarpby, *resample;
+    cs_float       frac, frIndx;
+    cs_float       *r1, *r2, *amp, *timewarpby, *resample;
     WARPSECTION *exp;
     FUNC        *ftpWind, *ftpSamp;
     int32_t         i;
-    MYFLT       v1, v2, windowamp, fract;
-    MYFLT       flen = (MYFLT)p->flen;
-    MYFLT       iwsize = *p->iwsize;
+    cs_float       v1, v2, windowamp, fract;
+    cs_float       flen = (cs_float)p->flen;
+    cs_float       iwsize = *p->iwsize;
     int32_t         overlap = p->nsections;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     r1 = p->r1;
     r2 = p->r2;
-    memset(r1, 0, nsmps*sizeof(MYFLT));
-    if (p->OUTOCOUNT >1) memset(r2, 0, nsmps*sizeof(MYFLT));
+    memset(r1, 0, nsmps*sizeof(cs_float));
+    if (p->OUTOCOUNT >1) memset(r2, 0, nsmps*sizeof(cs_float));
     exp = p->exp;
     ftpWind = p->ftpWind;
     ftpSamp = p->ftpSamp;
@@ -150,7 +150,7 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
           exp[i].offset=(CS_ESR * *timewarpby)+p->begin;
         /* A zero time scale repeats the window at its current offset. */
         else if (*timewarpby != FL(0.0))
-          exp[i].offset += (MYFLT)exp[i].wsize/(*timewarpby);
+          exp[i].offset += (cs_float)exp[i].wsize/(*timewarpby);
 
         exp[i].cnt=0;
         exp[i].wsize = (int32_t) (iwsize + (unirand(csound) * (*p->irandw)));
@@ -159,12 +159,12 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
 
       skipover:
 
-        frIndx =(MYFLT)((exp[i].cnt * *resample)  + exp[i].offset);
+        frIndx =(cs_float)((exp[i].cnt * *resample)  + exp[i].offset);
         exp[i].cnt += 1;
         /* Hold the first frame when reading before the start of the table. */
         if (frIndx < FL(0.0)) frIndx = FL(0.0);
-        if (frIndx > (MYFLT)p->maxFr) { /* not past last one */
-          frIndx = (MYFLT)p->maxFr;
+        if (frIndx > (cs_float)p->maxFr) { /* not past last one */
+          frIndx = (cs_float)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
             csound->Warning(csound, "%s", Str("SNDWARP at last sample frame"));
@@ -174,12 +174,12 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
         if (longphase > p->flen-1) longphase = p->flen-1;
         v1 = *(ftpWind->ftable + longphase);
         v2 = *(ftpWind->ftable + longphase + 1);
-        fract = (MYFLT)(exp[i].ampphs - (int32)exp[i].ampphs);
+        fract = (cs_float)(exp[i].ampphs - (int32)exp[i].ampphs);
         windowamp = v1 + (v2 - v1)*fract;
         exp[i].ampphs += exp[i].ampincr;
 
         base = (int32)frIndx;    /* index of basis frame of interpolation */
-        frac = ((MYFLT)(frIndx - (MYFLT)base));
+        frac = ((cs_float)(frIndx - (cs_float)base));
         frm_0 = *(ftpSamp->ftable + base);
         frm_1 = *(ftpSamp->ftable + (base+1));
         if (frac != FL(0.0)) {
@@ -216,7 +216,7 @@ static int32_t sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
     FUNC        *ftpWind, *ftpSamp;
     WARPSECTION *exp;
     char        *auxp;
-    MYFLT       iwsize;
+    cs_float       iwsize;
 
     if (UNLIKELY(p->OUTOCOUNT != 2 && p->OUTOCOUNT != 4)) {
       return csound->InitError(csound, "%s", Str("Wrong number of outputs "
@@ -256,11 +256,11 @@ static int32_t sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
       }
       else {
         exp[i].wsize = (int32_t) (iwsize + (unirand(csound) * (*p->irandw)));
-        exp[i].cnt=(int32_t)(exp[i].wsize*((MYFLT)i/nsections));
-        exp[i].ampphs = p->flen*((MYFLT)i/nsections);
+        exp[i].cnt=(int32_t)(exp[i].wsize*((cs_float)i/nsections));
+        exp[i].ampphs = p->flen*((cs_float)i/nsections);
       }
-      exp[i].offset = (MYFLT)p->begin;
-      exp[i].ampincr = (MYFLT)p->flen/(exp[i].wsize-1);
+      exp[i].offset = (cs_float)p->begin;
+      exp[i].ampincr = (cs_float)p->flen/(exp[i].wsize-1);
       /* exp[i].section = i+1;  *//* section number just used for debugging! */
 
     }
@@ -280,27 +280,27 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       frm10,frm11, frm20, frm21;
+    cs_float       frm10,frm11, frm20, frm21;
     int32        base, longphase;
-    MYFLT       frac, frIndx;
-    MYFLT       *r1, *r2,*r3, *r4, *amp, *timewarpby, *resample;
+    cs_float       frac, frIndx;
+    cs_float       *r1, *r2,*r3, *r4, *amp, *timewarpby, *resample;
     WARPSECTION *exp;
     FUNC        *ftpWind, *ftpSamp;
     int32_t         i;
-    MYFLT       v1, v2, windowamp, fract;
-    MYFLT       flen = (MYFLT)p->flen;
-    MYFLT       iwsize = *p->iwsize;
+    cs_float       v1, v2, windowamp, fract;
+    cs_float       flen = (cs_float)p->flen;
+    cs_float       iwsize = *p->iwsize;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
     r1 = p->r1;
     r2 = p->r2;
     r3 = p->r3;
     r4 = p->r4;
-    memset(r1, 0,nsmps*sizeof(MYFLT));
-    memset(r2, 0,nsmps*sizeof(MYFLT));
+    memset(r1, 0,nsmps*sizeof(cs_float));
+    memset(r2, 0,nsmps*sizeof(cs_float));
     if (p->OUTOCOUNT >2) {
-      memset(r3, 0,nsmps*sizeof(MYFLT));
-      memset(r4, 0,nsmps*sizeof(MYFLT));
+      memset(r3, 0,nsmps*sizeof(cs_float));
+      memset(r4, 0,nsmps*sizeof(cs_float));
     }
     exp = p->exp;
     ftpWind = p->ftpWind;
@@ -318,7 +318,7 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
           exp[i].offset=(CS_ESR * *timewarpby)+p->begin;
         /* A zero time scale repeats the window at its current offset. */
         else if (*timewarpby != FL(0.0))
-          exp[i].offset += (MYFLT)exp[i].wsize/(*timewarpby);
+          exp[i].offset += (cs_float)exp[i].wsize/(*timewarpby);
 
         exp[i].cnt=0;
         exp[i].wsize = (int32_t) (iwsize + (unirand(csound) * (*p->irandw)));
@@ -326,12 +326,12 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
         exp[i].ampincr = flen/(exp[i].wsize-1);
 
       skipover:
-        frIndx =(MYFLT)(exp[i].cnt * *resample)  + (MYFLT)exp[i].offset;
+        frIndx =(cs_float)(exp[i].cnt * *resample)  + (cs_float)exp[i].offset;
         exp[i].cnt += 1;
         /* Hold the first frame when reading before the start of the table. */
         if (frIndx < FL(0.0)) frIndx = FL(0.0);
-        if (frIndx > (MYFLT)p->maxFr) {  /* not past last one */
-          frIndx = (MYFLT)p->maxFr;
+        if (frIndx > (cs_float)p->maxFr) {  /* not past last one */
+          frIndx = (cs_float)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
             csound->Warning(csound, "%s", Str("SNDWARP at last sample frame"));
@@ -341,12 +341,12 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
         if (longphase > p->flen-1) longphase = p->flen-1;
         v1 = *(ftpWind->ftable + longphase);
         v2 = *(ftpWind->ftable + longphase + 1);
-        fract = (MYFLT)(exp[i].ampphs - (int32)exp[i].ampphs);
+        fract = (cs_float)(exp[i].ampphs - (int32)exp[i].ampphs);
         windowamp = v1 + (v2 - v1)*fract;
         exp[i].ampphs += exp[i].ampincr;
 
         base = (int32)frIndx;    /* index of basis frame of interpolation */
-        frac = ((MYFLT)(frIndx - (MYFLT)base));
+        frac = ((cs_float)(frIndx - (cs_float)base));
 
         frm10 = *(ftpSamp->ftable + (base * 2));
         frm11 = *(ftpSamp->ftable + ((base+1)*2));

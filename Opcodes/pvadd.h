@@ -33,12 +33,12 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *rslt, *ktimpnt, *kfmod, *ifilno, *ifn, *ibins;
-    MYFLT   *ibinoffset, *ibinincr, *imode, *ifreqlim, *igatefun, *ifiletime;
+    cs_float   *rslt, *ktimpnt, *kfmod, *ifilno, *ifn, *ibins;
+    cs_float   *ibinoffset, *ibinincr, *imode, *ifreqlim, *igatefun, *ifiletime;
     FUNC    *ftp, *AmpGateFunc;
     AUXCH   auxch;
-    MYFLT   *oscphase, *buf, PvMaxAmp;
-    MYFLT   frPrtim, asr;
+    cs_float   *oscphase, *buf, PvMaxAmp;
+    cs_float   frPrtim, asr;
     float   *frPtr, *pvcopy;
     int32   maxFr, frSiz, prFlg, mems;
     int32_t maxbin, floatph;

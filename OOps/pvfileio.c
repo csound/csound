@@ -50,7 +50,7 @@
  *      values must be normalised to peak of 1.0
  */
 
-/* CSOUND NB: floats must be kept as 'float', not MYFLT,
+/* CSOUND NB: floats must be kept as 'float', not cs_float,
    as only 32bit floats supported at present.
  */
 

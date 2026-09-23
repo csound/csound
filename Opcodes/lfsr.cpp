@@ -124,16 +124,16 @@ struct LFSR : csnd::Plugin<1, 3> {
             return csound->init_error("lfsr: register length must be 1 to 31");
         if (!(inargs[1] >= 1 && inargs[1] < 256))
             return csound->init_error("lfsr: probability must be 1 to 255");
-        double seed = in_count() == 3 ? static_cast<double>(inargs[2]) : -1.0;
+        cs_double seed = in_count() == 3 ? static_cast<cs_double>(inargs[2]) : -1.0;
         if (!std::isfinite(seed))
             return csound->init_error("lfsr: seed must be finite");
         // Convert bit patterns modulo 2^32, including the documented -1.
-        // Keep the conversion in double precision even in float builds.
         seed = std::fmod(std::trunc(seed), 4294967296.0);
-        if (seed < 0) seed += 4294967296.0;
         length_ = static_cast<uint8_t>(inargs[0]);
         probability_ = static_cast<uint8_t>(inargs[1]);
-        shift_register_ = static_cast<uint32_t>(seed);
+        // Add the modulus in integer arithmetic so -1 and -2 stay distinct
+        // when cs_double is float. The remainder fits in int64_t.
+        shift_register_ = static_cast<uint32_t>(static_cast<int64_t>(seed));
         CSOUND *engine = csound->get_csound();
         random_ = engine->Rand31(engine->RandSeed31(engine));
 

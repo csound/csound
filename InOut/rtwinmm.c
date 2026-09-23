@@ -37,9 +37,9 @@ typedef struct rtWinMMDevice_ {
     int32_t       seed;             /* random seed for dithering */
     int32_t       enable_buf_timer;
     /* playback sample conversion function */
-    void      (*playconv)(int32_t, MYFLT*, void*, int*);
+    void      (*playconv)(int32_t, cs_float*, void*, int*);
     /* record sample conversion function */
-    void      (*rec_conv)(int32_t, void*, MYFLT*);
+    void      (*rec_conv)(int32_t, void*, cs_float*);
     int64_t   prv_time;
     float     timeConv, bufTime;
     HGLOBAL   bufferHandles[MAXBUFFERS];
@@ -144,7 +144,7 @@ static int32_t set_format_params(CSOUND *csound, WAVEFORMATEX *wfx,
     framsize = sampsize * parm->nChannels;
     wfx->wFormatTag = (WORD) (parm->sampleFormat == AE_FLOAT ? 3 : 1);
     wfx->nChannels = (WORD) parm->nChannels;
-    wfx->nSamplesPerSec = (DWORD) ((double) parm->sampleRate + 0.5);
+    wfx->nSamplesPerSec = (DWORD) ((cs_double) parm->sampleRate + 0.5);
     wfx->nAvgBytesPerSec = (DWORD) ((int32_t) wfx->nSamplesPerSec * framsize);
     wfx->nBlockAlign = (DWORD) framsize;
     wfx->wBitsPerSample = (DWORD) (sampsize << 3);
@@ -153,64 +153,64 @@ static int32_t set_format_params(CSOUND *csound, WAVEFORMATEX *wfx,
 
 /* sample conversion routines for playback */
 
-static void MYFLT_to_short(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_short(int32_t nSmps, cs_float *inBuf, int16_t *outBuf, int32_t *seed)
 {
-    MYFLT   tmp_f;
+    cs_float   tmp_f;
     int32_t     tmp_i;
     int32_t n;
     for (n=0; n<nSmps; n++){
       int32_t rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = (((rnd) * 15625) + 1) & 0xFFFF;
       rnd += *seed;           /* triangular distribution */
-      tmp_f = (MYFLT) ((rnd>>1) - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
-      tmp_f += inBuf[n] * (MYFLT) 0x8000;
-      tmp_i = (int32_t) MYFLT2LRND(tmp_f);
+      tmp_f = (cs_float) ((rnd>>1) - 0x8000) * (FL(1.0) / (cs_float) 0x10000);
+      tmp_f += inBuf[n] * (cs_float) 0x8000;
+      tmp_i = (int32_t) CS_FLOAT2LRND(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
       outBuf[n] = (int16_t) tmp_i;
     }
 }
 
-static void MYFLT_to_short_u(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_short_u(int32_t nSmps, cs_float *inBuf, int16_t *outBuf, int32_t *seed)
 {
-    MYFLT   tmp_f;
+    cs_float   tmp_f;
     int32_t     tmp_i;
     int32_t n;
     for (n=0; n<nSmps; n++) {
       int32_t rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = rnd;
-      tmp_f = (MYFLT) (rnd - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
-      tmp_f += inBuf[n] * (MYFLT) 0x8000;
-      tmp_i = (int32_t) MYFLT2LRND(tmp_f);
+      tmp_f = (cs_float) (rnd - 0x8000) * (FL(1.0) / (cs_float) 0x10000);
+      tmp_f += inBuf[n] * (cs_float) 0x8000;
+      tmp_i = (int32_t) CS_FLOAT2LRND(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
       outBuf[n] = (int16_t) tmp_i;
     }
 }
 
-static void MYFLT_to_short_no_dither(int32_t nSmps, MYFLT *inBuf,
+static void CS_FLOAT_to_short_no_dither(int32_t nSmps, cs_float *inBuf,
                                      int16_t *outBuf, int32_t *seed)
 {
-    MYFLT   tmp_f;
+    cs_float   tmp_f;
     int32_t     tmp_i;
     int32_t n;
     for (n=0; n<nSmps; n++){
-      tmp_f = inBuf[n] * (MYFLT) 0x8000;
-      tmp_i = (int32_t) MYFLT2LRND(tmp_f);
+      tmp_f = inBuf[n] * (cs_float) 0x8000;
+      tmp_i = (int32_t) CS_FLOAT2LRND(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
       outBuf[n] = (int16_t) tmp_i;
     }
 }
 
-static void MYFLT_to_long(int32_t nSmps, MYFLT *inBuf, int32_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_long(int32_t nSmps, cs_float *inBuf, int32_t *outBuf, int32_t *seed)
 {
-    MYFLT   tmp_f;
+    cs_float   tmp_f;
     int64_t tmp_i;
     (void) seed;
     int32_t n;
     for (n=0; n<nSmps; n++) {
-      tmp_f = inBuf[n] * (MYFLT) 0x80000000UL;
+      tmp_f = inBuf[n] * (cs_float) 0x80000000UL;
       tmp_i = (int64_t) (tmp_f + (tmp_f < FL(0.0) ? FL(-0.5) : FL(0.5)));
       if (tmp_i < -((int64_t) 0x80000000UL))
         tmp_i = -((int64_t) 0x80000000UL);
@@ -219,7 +219,7 @@ static void MYFLT_to_long(int32_t nSmps, MYFLT *inBuf, int32_t *outBuf, int32_t 
     }
 }
 
-static void MYFLT_to_float(int32_t nSmps, MYFLT *inBuf, float *outBuf, int32_t *seed)
+static void CS_FLOAT_to_float(int32_t nSmps, cs_float *inBuf, float *outBuf, int32_t *seed)
 {
     (void) seed;
     int32_t n;
@@ -229,24 +229,24 @@ static void MYFLT_to_float(int32_t nSmps, MYFLT *inBuf, float *outBuf, int32_t *
 
 /* sample conversion routines for recording */
 
-static void short_to_MYFLT(int32_t nSmps, int16_t *inBuf, MYFLT *outBuf)
+static void short_to_CS_FLOAT(int32_t nSmps, int16_t *inBuf, cs_float *outBuf)
 {
     while (nSmps--)
-      *(outBuf++) = (MYFLT) *(inBuf++) * (FL(1.0) / (MYFLT) 0x8000);
+      *(outBuf++) = (cs_float) *(inBuf++) * (FL(1.0) / (cs_float) 0x8000);
 }
 
-static void long_to_MYFLT(int32_t nSmps, int32_t *inBuf, MYFLT *outBuf)
+static void long_to_CS_FLOAT(int32_t nSmps, int32_t *inBuf, cs_float *outBuf)
 {
     int32_t n;
     for (n=0; n<nSmps; n++)
-      outBuf[n] = (MYFLT) inBuf[n] * (FL(1.0) / (MYFLT) 0x80000000UL);
+      outBuf[n] = (cs_float) inBuf[n] * (FL(1.0) / (cs_float) 0x80000000UL);
 }
 
-static void float_to_MYFLT(int32_t nSmps, float *inBuf, MYFLT *outBuf)
+static void float_to_CS_FLOAT(int32_t nSmps, float *inBuf, cs_float *outBuf)
 {
     int32_t n;
     for (n=0; n<nSmps; n++)
-      outBuf[n] = (MYFLT) inBuf[n];
+      outBuf[n] = (cs_float) inBuf[n];
 }
 
 static int32_t open_device(CSOUND *csound,
@@ -327,18 +327,18 @@ static int32_t open_device(CSOUND *csound,
         case 0:
           if (csound->GetDitherMode(csound)==1)
             dev->playconv =
-                  (void (*)(int32_t, MYFLT*, void*, int*)) MYFLT_to_short;
+                  (void (*)(int32_t, cs_float*, void*, int*)) CS_FLOAT_to_short;
           else if (csound->GetDitherMode(csound)==2)
             dev->playconv =
-                  (void (*)(int32_t, MYFLT*, void*, int*)) MYFLT_to_short_u;
+                  (void (*)(int32_t, cs_float*, void*, int*)) CS_FLOAT_to_short_u;
           else
             dev->playconv =
-                  (void (*)(int32_t, MYFLT*, void*, int*)) MYFLT_to_short_no_dither;
+                  (void (*)(int32_t, cs_float*, void*, int*)) CS_FLOAT_to_short_no_dither;
           break;
         case 1: dev->playconv =
-                  (void (*)(int32_t, MYFLT*, void*, int*)) MYFLT_to_long;   break;
+                  (void (*)(int32_t, cs_float*, void*, int*)) CS_FLOAT_to_long;   break;
         case 2: dev->playconv =
-                  (void (*)(int32_t, MYFLT*, void*, int*)) MYFLT_to_float;  break;
+                  (void (*)(int32_t, cs_float*, void*, int*)) CS_FLOAT_to_float;  break;
       }
     }
     else {
@@ -354,11 +354,11 @@ static int32_t open_device(CSOUND *csound,
       }
       switch (conv_idx) {
         case 0: dev->rec_conv =
-                  (void (*)(int32_t, void*, MYFLT*)) short_to_MYFLT;  break;
+                  (void (*)(int32_t, void*, cs_float*)) short_to_CS_FLOAT;  break;
         case 1: dev->rec_conv =
-                  (void (*)(int32_t, void*, MYFLT*)) long_to_MYFLT;   break;
+                  (void (*)(int32_t, void*, cs_float*)) long_to_CS_FLOAT;   break;
         case 2: dev->rec_conv =
-                  (void (*)(int32_t, void*, MYFLT*)) float_to_MYFLT;  break;
+                  (void (*)(int32_t, void*, cs_float*)) float_to_CS_FLOAT;  break;
       }
     }
     if (UNLIKELY(allocate_buffers(csound, dev, parm, is_playback) != 0))
@@ -389,13 +389,13 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
 
 /* get samples from ADC */
 
-static int32_t rtrecord_(CSOUND *csound, MYFLT *inBuf, int32_t nbytes)
+static int32_t rtrecord_(CSOUND *csound, cs_float *inBuf, int32_t nbytes)
 {
     rtWinMMDevice   *dev = (rtWinMMDevice*) *(csound->GetRtRecordUserData(csound));
     WAVEHDR         *buf = &(dev->buffers[dev->cur_buf]);
     volatile DWORD  *dwFlags = &(buf->dwFlags);
 
-    dev->rec_conv(nbytes / (int32_t) sizeof(MYFLT), (void*) buf->lpData, inBuf);
+    dev->rec_conv(nbytes / (int32_t) sizeof(cs_float), (void*) buf->lpData, inBuf);
     while (!(*dwFlags & WHDR_DONE))
       Sleep(1);
     waveInAddBuffer(dev->inDev, (LPWAVEHDR) buf, sizeof(WAVEHDR));
@@ -418,7 +418,7 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inBuf, int32_t nbytes)
 /* eliminate MIDI jitter by requesting that both be made synchronous with */
 /* the above audio I/O blocks, i.e. by setting -b to some 1 or 2 K-prds.  */
 
-static void rtplay_(CSOUND *csound, const MYFLT *outBuf, int32_t nbytes)
+static void rtplay_(CSOUND *csound, const cs_float *outBuf, int32_t nbytes)
 {
     rtWinMMDevice   *dev = (rtWinMMDevice*) *(csound->GetRtPlayUserData(csound));
     WAVEHDR         *buf = &(dev->buffers[dev->cur_buf]);
@@ -430,8 +430,8 @@ static void rtplay_(CSOUND *csound, const MYFLT *outBuf, int32_t nbytes)
 
     while (!(*dwFlags & WHDR_DONE))
       Sleep(1);
-    dev->playconv(nbytes / (int32_t) sizeof(MYFLT),
-                  (MYFLT*) outBuf, (void*) buf->lpData, &(dev->seed));
+    dev->playconv(nbytes / (int32_t) sizeof(cs_float),
+                  (cs_float*) outBuf, (void*) buf->lpData, &(dev->seed));
     waveOutWrite(dev->outDev, (LPWAVEHDR) buf, sizeof(WAVEHDR));
     if (++(dev->cur_buf) >= dev->nBuffers)
       dev->cur_buf = 0;
@@ -452,7 +452,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outBuf, int32_t nbytes)
     timeWait = dev->bufTime;
     timeWait *= (((float) nbufs / (float) dev->nBuffers) * 0.25f + 0.875f);
     timeWait -= timeDiff;
-    i = MYFLT2LRND(timeWait);
+    i = CS_FLOAT2LRND(timeWait);
     if (i > 0)
       Sleep((DWORD) i);
 }
@@ -485,7 +485,7 @@ static void rtclose_(CSOUND *csound)
       csound->Free(csound,inDev);
     }
     if (outDev != NULL) {
-      int32_t waitMs = MYFLT2LRND(outDev->bufTime * outDev->nBuffers) + 50;
+      int32_t waitMs = CS_FLOAT2LRND(outDev->bufTime * outDev->nBuffers) + 50;
       int32_t pending;
       if (waitMs < 50)
         waitMs = 50;
@@ -796,5 +796,5 @@ static CS_NOINLINE int32_t check_name(const char *s)
 
  int32_t csoundModuleInfo(void)
 {
-    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(cs_float));
 }

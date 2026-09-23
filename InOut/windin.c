@@ -41,13 +41,13 @@ int32_t xyinset(CSOUND *csound, XYIN *p)
 
 /* int32_t xyinset(CSOUND *csound, XYIN *p) */
 /* { */
-/*     MYFLT   x, y; */
-/*     MYFLT   iymax  = *p->iymax; */
-/*     MYFLT   iymin  = *p->iymin; */
-/*     MYFLT   ixmax  = *p->ixmax; */
-/*     MYFLT   ixmin  = *p->ixmin; */
-/*     MYFLT   iyinit = *p->iyinit; */
-/*     MYFLT   ixinit = *p->ixinit; */
+/*     cs_float   x, y; */
+/*     cs_float   iymax  = *p->iymax; */
+/*     cs_float   iymin  = *p->iymin; */
+/*     cs_float   ixmax  = *p->ixmax; */
+/*     cs_float   ixmin  = *p->ixmin; */
+/*     cs_float   iyinit = *p->iyinit; */
+/*     cs_float   ixinit = *p->ixinit; */
 
 /*     if (UNLIKELY((p->timcount = (int32_t)(CS_EKR * *p->iprd + FL(0.5)))<=0)) { */
 /*       return csound->InitError(csound, Str("illegal iprd")); */

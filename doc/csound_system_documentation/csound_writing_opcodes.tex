@@ -18,7 +18,7 @@ To facilitate the latter case, Csound offers a simple opcode development API, fr
 
 The Csound language provides four basic data types: i-, k-, a- and f-types  (there is also a fifth type, w, which will not be discussed here). These are used to pass the data between opcodes, each opcode input or output parameter relating to one of these types. The Csound i-type variable is used for initialisation variables, which will assume only one value in performance. Once set, they will remain constant throughout the instrument or UDO code, unless there is a reinitialisation pass. In a plugin opcode, parameters that receive i-type variables are set inside the initialisation part of the code, because they will not change during processing.
 
-The other types are used to hold scalar (k-type) , vectorial (a-type)  and spectral-frame (f) signal variables. These will change in performance, so parameters assigned to these variables are set and modified in the opcode processing function. Scalars will hold a single value, whereas vectors hold an array of values (a vector). These values are floating-point numbers, either 32- or 64-bit, depending on the executable version used, defined in C/C++ as a custom MYFLT type. 
+The other types are used to hold scalar (k-type) , vectorial (a-type)  and spectral-frame (f) signal variables. These will change in performance, so parameters assigned to these variables are set and modified in the opcode processing function. Scalars will hold a single value, whereas vectors hold an array of values (a vector). These values are floating-point numbers, either 32- or 64-bit, depending on the executable version used, defined in C/C++ as a custom cs_float type.
 
 Plugin opcodes will use pointers to input and output parameters to read and write their input/output. The Csound engine will take care of allocating the memory used for its variables, so the opcodes only need to manipulate the pointers to the addresses of these variables. 
 
@@ -43,7 +43,7 @@ The data structure will be organised in the following fashion:
 \begin{enumerate}
 
 \item	The OPDS data structure, holding the common components of all opcodes.
-\item	The output pointers (one MYFLT pointer for each output)
+\item	The output pointers (one cs_float pointer for each output)
 \item	The input pointers (as above)
 \item	Any other internal dataspace member.
 
@@ -60,10 +60,10 @@ The Csound opcode API is defined by csdl.h, which should be included at the top 
 typedef struct  _newopc {
 
 OPDS  h;
-MYFLT *out;/* output pointer  */
-MYFLT *in1,*in2,*in3; /* input pointers */
-MYFLT  var1;  /* internal variables */
-MYFLT  var2;  
+cs_float *out;/* output pointer  */
+cs_float *in1,*in2,*in3; /* input pointers */
+cs_float  var1;  /* internal variables */
+cs_float  var2;
 
 } newopc;
 \end{lstlisting}
@@ -74,7 +74,7 @@ The initialisation function is only there to initialise any data, such as the in
 
 \begin{lstlisting}
 int newopc_init(CSOUND *csound, newopc *p){
- p->var1 = (MYFLT) 0;
+ p->var1 = (cs_float) 0;
  p->var2 = *p->in3;
 r eturn OK;
 }
@@ -86,8 +86,8 @@ The processing function implementation will depend on the type of opcode that is
 
 \begin{lstlisting}
 int newopc_process_control(CSOUND *csound, newopc *p){
- MYFLT cnt = p->var1 + *(p->in2);
- if(cnt > p->var2) cnt = (MYFLT) 0; /* check bounds */
+ cs_float cnt = p->var1 + *(p->in2);
+ if(cnt > p->var2) cnt = (cs_float) 0; /* check bounds */
  *(p->out) = *(p->in1) + cnt; /* generate output */
   p->var1 = cnt; /* keep the value of cnt */
   return OK;
@@ -96,26 +96,26 @@ int newopc_process_control(CSOUND *csound, newopc *p){
 
 \subsection{Audio-rate performance}
 
-For audio rate opcodes, because it will be generating audio signal vectors, it will require an internal loop to process the vector samples. This is not necessary with k-rate opcodes, because, as we are dealing with scalar inputs and outputs,  the function has to process only one sample at a time. If we were to make an audio version of the control opcode above (disregarding its usefulness), we could have the change the code slightly. The basic difference is that we have an audio rate output instead of control rate. In this case, our output is a whole vector (a MYFLT array) with ksmps samples, so we have to write a loop to fill it. It is important to point out that the control rate and audio rate processing functions will produce exactly the same result. The difference here is that in the audio case, we will produce ksmps samples, instead of just one  sample. However, all the vector samples will have the same value (which actually makes the audio rate function redundant, but we will use it just to illustrate our point).
+For audio rate opcodes, because it will be generating audio signal vectors, it will require an internal loop to process the vector samples. This is not necessary with k-rate opcodes, because, as we are dealing with scalar inputs and outputs,  the function has to process only one sample at a time. If we were to make an audio version of the control opcode above (disregarding its usefulness), we could have the change the code slightly. The basic difference is that we have an audio rate output instead of control rate. In this case, our output is a whole vector (a cs_float array) with ksmps samples, so we have to write a loop to fill it. It is important to point out that the control rate and audio rate processing functions will produce exactly the same result. The difference here is that in the audio case, we will produce ksmps samples, instead of just one  sample. However, all the vector samples will have the same value (which actually makes the audio rate function redundant, but we will use it just to illustrate our point).
 
 Another important thing to consider is to support the --sample-accurate mode introduced in Csound 6. For this we will need to add code to start processing at an offset (when this is given), and finish early (if that is required). The opcode will then lookup these two variables (called {\tt offset} and {\tt early}) that are passed to it from the container instrument, and act to ensure these are taken into account. Without this, the opcode would still work, but not support the sample-accurate mode.
 
 \begin{lstlisting}
 int newopc_process_audio(CSOUND *csound, newopc *p){
  int i, n = CS_KSMPS;
- MYFLT *aout = p->out;  /* output signal */
- MYFLT cnt = p->var1 + *(p->in2);
+ cs_float *aout = p->out;  /* output signal */
+ cs_float cnt = p->var1 + *(p->in2);
  uint32_t offset = p->h.insdshead->ksmps_offset;
  uint32_t early  = p->h.insdshead->ksmps_no_end;
 
  /* sample-accurate mode mechanism */
- if(offset) memset(aout, '\0', offset*sizeof(MYFLT));
+ if(offset) memset(aout, '\0', offset*sizeof(cs_float));
  if(early)) {
         n -= early;
-        memset(&aout[n], '\0', early*sizeof(MYFLT));
+        memset(&aout[n], '\0', early*sizeof(cs_float));
   }         
 
-  if(cnt > p->var2) cnt = (MYFLT) 0; /* check bounds */
+  if(cnt > p->var2) cnt = (cs_float) 0; /* check bounds */
 	
   /* processing loop    */
   for(i=offset; i < n; i++) aout[i] = *(p->in1) + cnt;

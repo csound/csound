@@ -177,7 +177,7 @@ int CsoundChannelList::SubType(int ndx)
  * control channel, or has no default value.
  */
 
-double CsoundChannelList::DefaultValue(int ndx)
+cs_double CsoundChannelList::DefaultValue(int ndx)
 {
     controlChannelHints_t hints;
     if (this->GetChannelMetaData(ndx, &hints) > 0)
@@ -191,7 +191,7 @@ double CsoundChannelList::DefaultValue(int ndx)
  * control channel, or has no minimum value.
  */
 
-double CsoundChannelList::MinValue(int ndx)
+cs_double CsoundChannelList::MinValue(int ndx)
 {
     controlChannelHints_t hints;
     if (this->GetChannelMetaData(ndx, &hints) > 0)
@@ -205,7 +205,7 @@ double CsoundChannelList::MinValue(int ndx)
  * control channel, or has no maximum value.
  */
 
-double CsoundChannelList::MaxValue(int ndx)
+cs_double CsoundChannelList::MaxValue(int ndx)
 {
     controlChannelHints_t hints;
     if (this->GetChannelMetaData(ndx, &hints) > 0)
@@ -264,7 +264,7 @@ CsoundChannelList::~CsoundChannelList()
  * CsoundMYFLTArray(int cnt)
  *
  * Allocates an array of 'cnt' floating point values, for use
- * with Csound API functions that take a MYFLT* pointer.
+ * with Csound API functions that take a cs_float* pointer.
  */
 
 /**
@@ -307,28 +307,28 @@ void CsoundMYFLTArray::Clear()
 {
     if (pp)
       free(pp);
-    p = (MYFLT*) 0;
+    p = (cs_float*) 0;
     pp = (void*) 0;
 }
 
 CsoundMYFLTArray::CsoundMYFLTArray()
 {
-    p = (MYFLT*) 0;
+    p = (cs_float*) 0;
     pp = (void*) 0;
     cp = nullptr;
 }
 
 CsoundMYFLTArray::CsoundMYFLTArray(int n)
 {
-    p = (MYFLT*) 0;
+    p = (cs_float*) 0;
     pp = (void*) 0;
     cp = nullptr;
-    if (n > 0 && (size_t) n <= SIZE_MAX / sizeof(MYFLT))
-      pp = (void*) calloc((size_t) n, sizeof(MYFLT));
+    if (n > 0 && (size_t) n <= SIZE_MAX / sizeof(cs_float))
+      pp = (void*) calloc((size_t) n, sizeof(cs_float));
     if (pp) {
-      p = (MYFLT*) pp;
+      p = (cs_float*) pp;
       for (int i = 0; i < n; i++)
-        p[i] = (MYFLT) 0;
+        p[i] = (cs_float) 0;
     }
 }
 
@@ -514,16 +514,16 @@ extern "C" {
 
   /**
   static CS_NOINLINE void InputValueCallback_wrapper(CSOUND *csound,
-                                         const char *chnName, MYFLT *value)
+                                         const char *chnName, cs_float *value)
   {
     CsoundCallbackWrapper *p;
     p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
-    *value = (MYFLT) p->InputValueCallback(chnName);
+    *value = (cs_float) p->InputValueCallback(chnName);
   }
   */
   /**
   static CS_NOINLINE void OutputValueCallback_wrapper(CSOUND *csound,
-                                          const char *chnName, MYFLT value)
+                                          const char *chnName, cs_float value)
   {
     CsoundCallbackWrapper *p;
     p = (CsoundCallbackWrapper*) csoundGetHostData(csound);

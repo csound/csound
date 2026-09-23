@@ -32,16 +32,16 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r1, *r2, *r3, *r4, *asig, *degree, *distance, *reverbamount;
-    MYFLT   prev_degree, prev_distance, distr, distrsq;
-    MYFLT   ch1, ch2, ch3, ch4;
+    cs_float   *r1, *r2, *r3, *r4, *asig, *degree, *distance, *reverbamount;
+    cs_float   prev_degree, prev_distance, distr, distrsq;
+    cs_float   ch1, ch2, ch3, ch4;
     AUXCH   auxch;
-    MYFLT   *rrev1, *rrev2, *rrev3, *rrev4;
+    cs_float   *rrev1, *rrev2, *rrev3, *rrev4;
 } LOCSIG;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r1, *r2, *r3, *r4;
+    cs_float   *r1, *r2, *r3, *r4;
     LOCSIG  *locsig;
 } LOCSEND;
 

@@ -137,9 +137,9 @@ static void warn(CSOUND *csound, const char *format, ...) {
 }
 
 /* unused
-static MYFLT profile_original(MYFLT fi, MYFLT bwi)
+static cs_float profile_original(cs_float fi, cs_float bwi)
 {
-    MYFLT x=fi/bwi;
+    cs_float x=fi/bwi;
     x*=x;
     if (x>14.71280603) {
         return 0.0;    //this avoids computing the e^(-x^2) where it's results
@@ -151,9 +151,9 @@ are very close to zero
 
 // profile(p9_profile_shape, profile_sample_index_normalized, bandwidth_samples,
 // p10_profile_parameter);
-static MYFLT profile(int32_t shape, MYFLT fi, MYFLT bwi, MYFLT a) {
-  MYFLT x = fi / bwi;
-  MYFLT y = 0;
+static cs_float profile(int32_t shape, cs_float fi, cs_float bwi, cs_float a) {
+  cs_float x = fi / bwi;
+  cs_float y = 0;
   switch (shape) {
   case 1:
     y = std::exp(-(x * x * a));
@@ -183,9 +183,9 @@ static MYFLT profile(int32_t shape, MYFLT fi, MYFLT bwi, MYFLT a) {
 #if 0
 // Keep this stuff around, it might come in handy later.
 
-#define FUNC(b) MYFLT base_function_##b(MYFLT x, MYFLT a)
+#define FUNC(b) cs_float base_function_##b(cs_float x, cs_float a)
 
-static MYFLT base_function_pulse(MYFLT x, MYFLT a)
+static cs_float base_function_pulse(cs_float x, cs_float a)
 {
     return (std::fmod(x, 1.0) < a) ? -1.0 : 1.0;
 }
@@ -385,7 +385,7 @@ FUNC(circle)
     return y;
 }
 
-typedef MYFLT (*base_function_t)(MYFLT, MYFLT);
+typedef cs_float (*base_function_t)(cs_float, cs_float);
 
 static base_function_t get_base_function(int32_t index)
 {
@@ -425,9 +425,9 @@ extern "C" {
 /*
 Original code:
 
-    MYFLT PADsynth::profile(MYFLT fi, MYFLT bwi)
+    cs_float PADsynth::profile(cs_float fi, cs_float bwi)
     {
-        MYFLT x=fi/bwi;
+        cs_float x=fi/bwi;
         x*=x;
         if (x>14.71280603) {
             return 0.0;    //this avoids computing the e^(-x^2) where it's
@@ -437,10 +437,10 @@ results are very close to zero
     };
 
     for (nh=1; nh<number_harmonics; nh++) { //for each harmonic
-        MYFLT bw_Hz;//bandwidth of the current harmonic measured in Hz
-        MYFLT bwi;
-        MYFLT fi;
-        MYFLT rF=f*relF(nh);
+        cs_float bw_Hz;//bandwidth of the current harmonic measured in Hz
+        cs_float bwi;
+        cs_float fi;
+        cs_float rF=f*relF(nh);
 
         bw_Hz=(pow(2.0,bw/1200.0)-1.0)*f*pow(relF(nh),bwscale);
 
@@ -449,8 +449,8 @@ results are very close to zero
         for (i=0; i<N/2; i++) { //here you can optimize, by avoiding to
                                // compute the profile for the full frequency
                                // (usually it's zero or very close to zero)
-            MYFLT hprofile;
-            hprofile=profile((i/(MYFLT)N)-fi,bwi);
+            cs_float hprofile;
+            hprofile=profile((i/(cs_float)N)-fi,bwi);
             freq_amp[i]+=hprofile*A[nh];
         };
     };
@@ -464,22 +464,22 @@ results are very close to zero
  */
 static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
   CSOUND *csound = ff->csound;
-  MYFLT p1_function_table_number = ff->fno;
-  MYFLT p2_score_time = ff->e.p[2];
+  cs_float p1_function_table_number = ff->fno;
+  cs_float p2_score_time = ff->e.p[2];
   void *setup;
   int32_t N = ff->flen;
   if (N < 2) return csound->FtError(ff, Str("Illegal table size %d"), N);
   if (ff->e.pcnt < 11)
     return csound->FtError(ff, Str("insufficient arguments"));
 
-  MYFLT p5_fundamental_frequency = ff->e.p[5];
-  MYFLT p6_partial_bandwidth = ff->e.p[6];
-  MYFLT p7_partial_bandwidth_scale_factor = ff->e.p[7];
-  MYFLT p8_harmonic_stretch = ff->e.p[8];
+  cs_float p5_fundamental_frequency = ff->e.p[5];
+  cs_float p6_partial_bandwidth = ff->e.p[6];
+  cs_float p7_partial_bandwidth_scale_factor = ff->e.p[7];
+  cs_float p8_harmonic_stretch = ff->e.p[8];
   int32_t p9_profile_shape = (int)ff->e.p[9];
   // base_function_t base_function = get_base_function(p9_profile_shape);
-  MYFLT p10_profile_parameter = ff->e.p[10];
-  MYFLT samplerate = ftp->gen01args.sample_rate;
+  cs_float p10_profile_parameter = ff->e.p[10];
+  cs_float samplerate = ftp->gen01args.sample_rate;
   log(csound, "samplerate:                  %12d\n", (int)samplerate);
   log(csound, "p1_function_table_number:            %9.4f\n",
       p1_function_table_number);
@@ -501,7 +501,7 @@ static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
   // The amplitudes of each partial are in pfield 11 and higher.
   // N.B.: The partials are indexed starting from 1.
   int32_t partialN = ff->e.pcnt - 10;
-  std::vector<MYFLT> A(partialN + 1);
+  std::vector<cs_float> A(partialN + 1);
   A[0] = FL(0.0);
   for (int32_t partialI = 1; partialI <= partialN; ++partialI) {
     A[partialI] = ff->e.p[11 + partialI - 1];
@@ -511,47 +511,47 @@ static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
   }
   // N.B.: An in-place IFFT of N/2 complex to N real samples is used.
   // ftable[1] contains the real part of the Nyquist frequency; we make it 0.
-  std::complex<MYFLT> *spectrum = (std::complex<MYFLT> *)ftp->ftable;
+  std::complex<cs_float> *spectrum = (std::complex<cs_float> *)ftp->ftable;
   int32_t complexN = int(N / 2.0);
   for (int32_t partialI = 1; partialI <= partialN; ++partialI) {
-    MYFLT partial_Hz =
-        p5_fundamental_frequency * p8_harmonic_stretch * ((MYFLT)partialI);
-    MYFLT frequency_sample_index_normalized = partial_Hz / ((MYFLT)samplerate);
-    MYFLT bandwidth_Hz = (std::pow(2.0, p6_partial_bandwidth / 1200.0) - 1.0) *
+    cs_float partial_Hz =
+        p5_fundamental_frequency * p8_harmonic_stretch * ((cs_float)partialI);
+    cs_float frequency_sample_index_normalized = partial_Hz / ((cs_float)samplerate);
+    cs_float bandwidth_Hz = (std::pow(2.0, p6_partial_bandwidth / 1200.0) - 1.0) *
                          p5_fundamental_frequency *
-                         std::pow(p8_harmonic_stretch * ((MYFLT)partialI),
+                         std::pow(p8_harmonic_stretch * ((cs_float)partialI),
                                   p7_partial_bandwidth_scale_factor);
-    MYFLT bandwidth_samples = bandwidth_Hz / (2.0 * samplerate);
+    cs_float bandwidth_samples = bandwidth_Hz / (2.0 * samplerate);
     log(csound, "partial[%3d]:                        %9.4f\n", partialI,
         A[partialI]);
     warn(csound, "  partial_Hz:                        %9.4f\n", partial_Hz);
     warn(csound, "  frequency_sample_index_normalized: %9.4f\n",
          frequency_sample_index_normalized);
     warn(csound, "  partial_frequency_index:   %12.4f\n",
-         (double)(frequency_sample_index_normalized * N));
+         (cs_double)(frequency_sample_index_normalized * N));
     warn(csound, "  bandwidth_Hz:                      %9.4f\n", bandwidth_Hz);
     warn(csound, "  bandwidth_samples:                  %12.8f\n",
          bandwidth_samples);
     for (int32_t fft_sample_index = 0; fft_sample_index < complexN;
          ++fft_sample_index) {
-      MYFLT fft_sample_index_normalized =
-          ((MYFLT)fft_sample_index) / ((MYFLT)N);
-      MYFLT profile_sample_index_normalized =
+      cs_float fft_sample_index_normalized =
+          ((cs_float)fft_sample_index) / ((cs_float)N);
+      cs_float profile_sample_index_normalized =
           fft_sample_index_normalized - frequency_sample_index_normalized;
-      MYFLT profile_sample =
+      cs_float profile_sample =
           profile(p9_profile_shape, profile_sample_index_normalized,
                   bandwidth_samples, p10_profile_parameter);
-      // MYFLT profile_sample =
+      // cs_float profile_sample =
       // profile_original(profile_sample_index_normalized, bandwidth_samples);
-      MYFLT real = profile_sample * A[partialI];
+      cs_float real = profile_sample * A[partialI];
       spectrum[fft_sample_index] += real;
     };
   };
   std::default_random_engine generator;
-  std::uniform_real_distribution<double> distribution(0.0, 6.28318530718);
+  std::uniform_real_distribution<cs_double> distribution(0.0, 6.28318530718);
   for (int32_t complexI = 0; complexI < complexN; ++complexI) {
-    MYFLT random_phase = distribution(generator);
-    MYFLT real = spectrum[complexI].real();
+    cs_float random_phase = distribution(generator);
+    cs_float real = spectrum[complexI].real();
     spectrum[complexI].real(real * std::cos(random_phase));
     spectrum[complexI].imag(real * std::sin(random_phase));
   };
@@ -559,7 +559,7 @@ static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
   setup = csound->RealFFTSetup(csound,N,FFT_INV);
   csound->RealFFT(csound,setup,ftp->ftable);
   // Normalize,
-  MYFLT maximum = FL(0.0);
+  cs_float maximum = FL(0.0);
   for (int32_t i = 0; i < N; ++i) {
     if (std::fabs(ftp->ftable[i]) > maximum) {
       maximum = std::fabs(ftp->ftable[i]);

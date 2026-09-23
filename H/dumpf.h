@@ -25,7 +25,7 @@
 
 typedef struct {
         OPDS   h;
-        MYFLT  *ksig, *ifilcod, *iformat, *iprd;
+        cs_float  *ksig, *ifilcod, *iformat, *iprd;
         int32_t    format;
         int32   countdown, timcount;
         FILE   *f;
@@ -34,7 +34,7 @@ typedef struct {
 
 typedef struct {
         OPDS   h;
-        MYFLT  *ksig1, *ksig2, *ifilcod, *iformat, *iprd;
+        cs_float  *ksig1, *ksig2, *ifilcod, *iformat, *iprd;
         int32_t    format;
         int32   countdown, timcount;
         FILE   *f;
@@ -43,7 +43,7 @@ typedef struct {
 
 typedef struct {
         OPDS   h;
-        MYFLT  *ksig1, *ksig2, *ksig3, *ifilcod, *iformat, *iprd;
+        cs_float  *ksig1, *ksig2, *ksig3, *ifilcod, *iformat, *iprd;
         int32_t    format;
         int32   countdown, timcount;
         FILE   *f;
@@ -52,7 +52,7 @@ typedef struct {
 
 typedef struct {
         OPDS   h;
-        MYFLT  *ksig1, *ksig2, *ksig3, *ksig4, *ifilcod, *iformat, *iprd;
+        cs_float  *ksig1, *ksig2, *ksig3, *ksig4, *ifilcod, *iformat, *iprd;
         int32_t    format;
         int32   countdown, timcount;
         FILE   *f;
@@ -61,44 +61,44 @@ typedef struct {
 
 typedef struct {
         OPDS   h;
-        MYFLT  *k1, *ifilcod, *iformat, *iprd;
-        /* MYFLT  *interp; */
+        cs_float  *k1, *ifilcod, *iformat, *iprd;
+        /* cs_float  *interp; */
         int32_t    format;
         int32   countdown, timcount;
-        MYFLT  k[4];
+        cs_float  k[4];
         FILE   *f;
         FDCH   fdch;
 } KREAD;
 
 typedef struct {
         OPDS   h;
-        MYFLT  *k1, *k2, *ifilcod, *iformat, *iprd;
-        /* MYFLT  *interp; */
+        cs_float  *k1, *k2, *ifilcod, *iformat, *iprd;
+        /* cs_float  *interp; */
         int32_t    format;
         int32   countdown, timcount;
-        MYFLT  k[4];
+        cs_float  k[4];
         FILE   *f;
         FDCH   fdch;
 } KREAD2;
 
 typedef struct {
         OPDS   h;
-        MYFLT  *k1, *k2, *k3, *ifilcod, *iformat, *iprd;
-        /* MYFLT  *interp; */
+        cs_float  *k1, *k2, *k3, *ifilcod, *iformat, *iprd;
+        /* cs_float  *interp; */
         int32_t    format;
         int32   countdown, timcount;
-        MYFLT  k[4];
+        cs_float  k[4];
         FILE   *f;
         FDCH   fdch;
 } KREAD3;
 
 typedef struct {
         OPDS   h;
-        MYFLT  *k1, *k2, *k3, *k4, *ifilcod, *iformat, *iprd;
-        /* MYFLT  *interp; */
+        cs_float  *k1, *k2, *k3, *k4, *ifilcod, *iformat, *iprd;
+        /* cs_float  *interp; */
         int32_t    format;
         int32  countdown, timcount;
-        MYFLT  k[4];
+        cs_float  k[4];
         FILE   *f;
         FDCH   fdch;
 } KREAD4;
@@ -106,7 +106,7 @@ typedef struct {
 typedef struct {
         OPDS   h;
         STRINGDAT  *str;
-        MYFLT *ifilcod, *iprd;
+        cs_float *ifilcod, *iprd;
         int32  countdown, timcount;
         char   *lasts;
         FILE   *f;

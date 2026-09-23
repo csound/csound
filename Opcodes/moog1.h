@@ -45,36 +45,36 @@
 /*******************************************/
 
 typedef struct FormSwep {
-    MYFLT       gain;
-    MYFLT       outputs[2];
-    MYFLT       poleCoeffs[2];
-    MYFLT       freq;
-    MYFLT       reson;
+    cs_float       gain;
+    cs_float       outputs[2];
+    cs_float       poleCoeffs[2];
+    cs_float       freq;
+    cs_float       reson;
     int32_t
     dirty;
-    MYFLT       targetFreq;
-    MYFLT       targetReson;
-    MYFLT       targetGain;
-    MYFLT       currentFreq;
-    MYFLT       currentReson;
-    MYFLT       currentGain;
-    MYFLT       deltaFreq;
-    MYFLT       deltaReson;
-    MYFLT       deltaGain;
-    MYFLT       sweepState;
-    MYFLT       sweepRate;
+    cs_float       targetFreq;
+    cs_float       targetReson;
+    cs_float       targetGain;
+    cs_float       currentFreq;
+    cs_float       currentReson;
+    cs_float       currentGain;
+    cs_float       deltaFreq;
+    cs_float       deltaReson;
+    cs_float       deltaGain;
+    cs_float       sweepState;
+    cs_float       sweepRate;
 } FormSwep;
 
 #define FormSwep_setSweepRate(p,aRate)  (p.sweepRate = aRate)
 #define FormSwep_clear(p)               (p.outputs[0]=p.outputs[1]=FL(0.0))
-void FormSwep_setTargets(FormSwep *, MYFLT, MYFLT, MYFLT);
-MYFLT FormSwep_tick(OPDS *, FormSwep *, MYFLT);
+void FormSwep_setTargets(FormSwep *, cs_float, cs_float, cs_float);
+cs_float FormSwep_tick(OPDS *, FormSwep *, cs_float);
 
 typedef struct Wave {
     FUNC        *wave;
-    MYFLT       rate;
-    MYFLT       time;
-    MYFLT       phase;
+    cs_float       rate;
+    cs_float       time;
+    cs_float       phase;
 } Wave;
 
 /*******************************************/
@@ -87,23 +87,23 @@ typedef struct Wave {
 
 typedef struct MOOG1 {
     OPDS        h;
-    MYFLT       *ar;                  /* Output */
-    MYFLT       *amp, *frequency;
-    MYFLT       *filterQ, *filterRate, *vibf, *vibAmt;
-    MYFLT       *iatt, *ifn, *ivfn;
+    cs_float       *ar;                  /* Output */
+    cs_float       *amp, *frequency;
+    cs_float       *filterQ, *filterRate, *vibf, *vibAmt;
+    cs_float       *iatt, *ifn, *ivfn;
 
     ADSR        adsr;
     Wave        attk;      /* Not looped */
     Wave        loop;      /* Looped */
     Wave        vibr;      /* Looped */
     OnePole     filter;
-    MYFLT       baseFreq;
-    MYFLT       attackRatio;
-    MYFLT       loopRatio;
-    MYFLT       attackGain;
-    MYFLT       loopGain;
-    MYFLT       oldfilterQ;
-    MYFLT       oldfilterRate;
+    cs_float       baseFreq;
+    cs_float       attackRatio;
+    cs_float       loopRatio;
+    cs_float       attackGain;
+    cs_float       loopGain;
+    cs_float       oldfilterQ;
+    cs_float       oldfilterRate;
     FormSwep    filters[2];
     TwoZero     twozeroes[2];
 } MOOG1;

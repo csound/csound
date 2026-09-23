@@ -32,7 +32,7 @@ typedef struct _opinfo {
 
 typedef struct _oprun {
   OPDS h;
-  MYFLT *args[VARGMAX];
+  cs_float *args[VARGMAX];
   AUXCH mem;
 } OPRUN;
 
@@ -40,8 +40,8 @@ typedef struct _oparray {
   OPDS h;
   ARRAYDAT *r;
   OPCODEREF *ref;
-  MYFLT  *n;
-  MYFLT  *ovl;
+  cs_float  *n;
+  cs_float  *ovl;
 } OPARRAY;
 
 int32_t opcode_info(CSOUND *csound, OPINFO *p);

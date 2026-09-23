@@ -90,19 +90,19 @@ class PUBLIC CsoundChannelList {
      * (counting from zero), or 0.0 if the channel does not exist, is not a
      * control channel, or has no default value.
      */
-    double DefaultValue(int ndx);
+    cs_double DefaultValue(int ndx);
     /**
      * Returns the minimum value set for the control channel at index 'ndx'
      * (counting from zero), or 0.0 if the channel does not exist, is not a
      * control channel, or has no minimum value.
      */
-    double MinValue(int ndx);
+    cs_double MinValue(int ndx);
     /**
      * Returns the maximum value set for the control channel at index 'ndx'
      * (counting from zero), or 0.0 if the channel does not exist, is not a
      * control channel, or has no maximum value.
      */
-    double MaxValue(int ndx);
+    cs_double MaxValue(int ndx);
     /**
      * Releases the memory used by the channel list. Should be called
      * before the Csound instance is destroyed or reset.
@@ -126,19 +126,19 @@ class PUBLIC CsoundChannelList {
  * CsoundMYFLTArray(int cnt)
  *
  * Allocates an array of 'cnt' floating point values, for use
- * with Csound API functions that take a MYFLT* pointer.
+ * with Csound API functions that take a cs_float* pointer.
  */
 
 class PUBLIC CsoundMYFLTArray {
  private:
-    MYFLT *p;
-    const MYFLT *cp;
+    cs_float *p;
+    const cs_float *cp;
     void  *pp;
  public:
     /**
-     * Returns a MYFLT** pointer for use with csoundGetChannelPtr().
+     * Returns a cs_float** pointer for use with csoundGetChannelPtr().
      */
-    MYFLT **GetPtr()
+    cs_float **GetPtr()
     {
       return (&p);
     }
@@ -149,25 +149,25 @@ class PUBLIC CsoundMYFLTArray {
     }
     /**
      * Returns the address of the element at index 'ndx' (counting from
-     * zero) as a MYFLT* pointer, or NULL if there is no array. Does not
+     * zero) as a cs_float* pointer, or NULL if there is no array. Does not
      * check if 'ndx' is valid.
      */
-    MYFLT *GetPtr(int ndx)
+    cs_float *GetPtr(int ndx)
     {
       if (p)
         return &(p[ndx]);
-      return (MYFLT*) 0;
+      return (cs_float*) 0;
     }
     /**
-     * Sets the array pointer to a MYFLT* value returned by a Csound
+     * Sets the array pointer to a cs_float* value returned by a Csound
      * API function (e.g. csoundGetSpin() or csoundGetSpout()).
      */
-    void SetPtr(MYFLT *ptr)
+    void SetPtr(cs_float *ptr)
     {
       p = ptr;
     }
 
-    void SetConstPtr(const MYFLT *ptr)
+    void SetConstPtr(const cs_float *ptr)
     {
       cp = ptr;
     } 
@@ -178,38 +178,38 @@ class PUBLIC CsoundMYFLTArray {
      * No error checking is done, the array is assumed to exist and the
      * index is assumed to be valid.
      */
-    void SetValue(int ndx, double value)
+    void SetValue(int ndx, cs_double value)
     {
-      p[ndx] = (MYFLT) value;
+      p[ndx] = (cs_float) value;
     }
     /**
      * Sets two floating point values starting at index 'ndx' (counting
      * from zero). No error checking is done, the array is assumed to exist
      * and the index is assumed to be valid.
      */
-    void SetValues(int ndx, double v0, double v1)
+    void SetValues(int ndx, cs_double v0, cs_double v1)
     {
-      p[ndx]     = (MYFLT) v0;  p[ndx + 1] = (MYFLT) v1;
+      p[ndx]     = (cs_float) v0;  p[ndx + 1] = (cs_float) v1;
     }
     /**
      * Sets three floating point values starting at index 'ndx' (counting
      * from zero). No error checking is done, the array is assumed to exist
      * and the index is assumed to be valid.
      */
-    void SetValues(int ndx, double v0, double v1, double v2)
+    void SetValues(int ndx, cs_double v0, cs_double v1, cs_double v2)
     {
-      p[ndx]     = (MYFLT) v0;  p[ndx + 1] = (MYFLT) v1;
-      p[ndx + 2] = (MYFLT) v2;
+      p[ndx]     = (cs_float) v0;  p[ndx + 1] = (cs_float) v1;
+      p[ndx + 2] = (cs_float) v2;
     }
     /**
      * Sets four floating point values starting at index 'ndx' (counting
      * from zero). No error checking is done, the array is assumed to exist
      * and the index is assumed to be valid.
      */
-    void SetValues(int ndx, double v0, double v1, double v2, double v3)
+    void SetValues(int ndx, cs_double v0, cs_double v1, cs_double v2, cs_double v3)
     {
-      p[ndx]     = (MYFLT) v0;  p[ndx + 1] = (MYFLT) v1;
-      p[ndx + 2] = (MYFLT) v2;  p[ndx + 3] = (MYFLT) v3;
+      p[ndx]     = (cs_float) v0;  p[ndx + 1] = (cs_float) v1;
+      p[ndx + 2] = (cs_float) v2;  p[ndx + 3] = (cs_float) v3;
     }
     /**
      * Sets five floating point values starting at index 'ndx' (counting
@@ -217,11 +217,11 @@ class PUBLIC CsoundMYFLTArray {
      * and the index is assumed to be valid.
      */
     void SetValues(int ndx,
-                   double v0, double v1, double v2, double v3, double v4)
+                   cs_double v0, cs_double v1, cs_double v2, cs_double v3, cs_double v4)
     {
-      p[ndx]     = (MYFLT) v0;  p[ndx + 1] = (MYFLT) v1;
-      p[ndx + 2] = (MYFLT) v2;  p[ndx + 3] = (MYFLT) v3;
-      p[ndx + 4] = (MYFLT) v4;
+      p[ndx]     = (cs_float) v0;  p[ndx + 1] = (cs_float) v1;
+      p[ndx + 2] = (cs_float) v2;  p[ndx + 3] = (cs_float) v3;
+      p[ndx + 4] = (cs_float) v4;
     }
     /**
      * Sets six floating point values starting at index 'ndx' (counting
@@ -229,12 +229,12 @@ class PUBLIC CsoundMYFLTArray {
      * and the index is assumed to be valid.
      */
     void SetValues(int ndx,
-                   double v0, double v1, double v2, double v3, double v4,
-                   double v5)
+                   cs_double v0, cs_double v1, cs_double v2, cs_double v3, cs_double v4,
+                   cs_double v5)
     {
-      p[ndx]     = (MYFLT) v0;  p[ndx + 1] = (MYFLT) v1;
-      p[ndx + 2] = (MYFLT) v2;  p[ndx + 3] = (MYFLT) v3;
-      p[ndx + 4] = (MYFLT) v4;  p[ndx + 5] = (MYFLT) v5;
+      p[ndx]     = (cs_float) v0;  p[ndx + 1] = (cs_float) v1;
+      p[ndx + 2] = (cs_float) v2;  p[ndx + 3] = (cs_float) v3;
+      p[ndx + 4] = (cs_float) v4;  p[ndx + 5] = (cs_float) v5;
     }
     /**
      * Sets seven floating point values starting at index 'ndx' (counting
@@ -242,13 +242,13 @@ class PUBLIC CsoundMYFLTArray {
      * and the index is assumed to be valid.
      */
     void SetValues(int ndx,
-                   double v0, double v1, double v2, double v3, double v4,
-                   double v5, double v6)
+                   cs_double v0, cs_double v1, cs_double v2, cs_double v3, cs_double v4,
+                   cs_double v5, cs_double v6)
     {
-      p[ndx]     = (MYFLT) v0;  p[ndx + 1] = (MYFLT) v1;
-      p[ndx + 2] = (MYFLT) v2;  p[ndx + 3] = (MYFLT) v3;
-      p[ndx + 4] = (MYFLT) v4;  p[ndx + 5] = (MYFLT) v5;
-      p[ndx + 6] = (MYFLT) v6;
+      p[ndx]     = (cs_float) v0;  p[ndx + 1] = (cs_float) v1;
+      p[ndx + 2] = (cs_float) v2;  p[ndx + 3] = (cs_float) v3;
+      p[ndx + 4] = (cs_float) v4;  p[ndx + 5] = (cs_float) v5;
+      p[ndx + 6] = (cs_float) v6;
     }
     /**
      * Sets eight floating point values starting at index 'ndx' (counting
@@ -256,13 +256,13 @@ class PUBLIC CsoundMYFLTArray {
      * and the index is assumed to be valid.
      */
     void SetValues(int ndx,
-                   double v0, double v1, double v2, double v3, double v4,
-                   double v5, double v6, double v7)
+                   cs_double v0, cs_double v1, cs_double v2, cs_double v3, cs_double v4,
+                   cs_double v5, cs_double v6, cs_double v7)
     {
-      p[ndx]     = (MYFLT) v0;  p[ndx + 1] = (MYFLT) v1;
-      p[ndx + 2] = (MYFLT) v2;  p[ndx + 3] = (MYFLT) v3;
-      p[ndx + 4] = (MYFLT) v4;  p[ndx + 5] = (MYFLT) v5;
-      p[ndx + 6] = (MYFLT) v6;  p[ndx + 7] = (MYFLT) v7;
+      p[ndx]     = (cs_float) v0;  p[ndx + 1] = (cs_float) v1;
+      p[ndx + 2] = (cs_float) v2;  p[ndx + 3] = (cs_float) v3;
+      p[ndx + 4] = (cs_float) v4;  p[ndx + 5] = (cs_float) v5;
+      p[ndx + 6] = (cs_float) v6;  p[ndx + 7] = (cs_float) v7;
     }
     /**
      * Sets nine floating point values starting at index 'ndx' (counting
@@ -270,14 +270,14 @@ class PUBLIC CsoundMYFLTArray {
      * and the index is assumed to be valid.
      */
     void SetValues(int ndx,
-                   double v0, double v1, double v2, double v3, double v4,
-                   double v5, double v6, double v7, double v8)
+                   cs_double v0, cs_double v1, cs_double v2, cs_double v3, cs_double v4,
+                   cs_double v5, cs_double v6, cs_double v7, cs_double v8)
     {
-      p[ndx]     = (MYFLT) v0;  p[ndx + 1] = (MYFLT) v1;
-      p[ndx + 2] = (MYFLT) v2;  p[ndx + 3] = (MYFLT) v3;
-      p[ndx + 4] = (MYFLT) v4;  p[ndx + 5] = (MYFLT) v5;
-      p[ndx + 6] = (MYFLT) v6;  p[ndx + 7] = (MYFLT) v7;
-      p[ndx + 8] = (MYFLT) v8;
+      p[ndx]     = (cs_float) v0;  p[ndx + 1] = (cs_float) v1;
+      p[ndx + 2] = (cs_float) v2;  p[ndx + 3] = (cs_float) v3;
+      p[ndx + 4] = (cs_float) v4;  p[ndx + 5] = (cs_float) v5;
+      p[ndx + 6] = (cs_float) v6;  p[ndx + 7] = (cs_float) v7;
+      p[ndx + 8] = (cs_float) v8;
     }
     /**
      * Sets ten floating point values starting at index 'ndx' (counting
@@ -285,35 +285,35 @@ class PUBLIC CsoundMYFLTArray {
      * and the index is assumed to be valid.
      */
     void SetValues(int ndx,
-                   double v0, double v1, double v2, double v3, double v4,
-                   double v5, double v6, double v7, double v8, double v9)
+                   cs_double v0, cs_double v1, cs_double v2, cs_double v3, cs_double v4,
+                   cs_double v5, cs_double v6, cs_double v7, cs_double v8, cs_double v9)
     {
-      p[ndx]     = (MYFLT) v0;  p[ndx + 1] = (MYFLT) v1;
-      p[ndx + 2] = (MYFLT) v2;  p[ndx + 3] = (MYFLT) v3;
-      p[ndx + 4] = (MYFLT) v4;  p[ndx + 5] = (MYFLT) v5;
-      p[ndx + 6] = (MYFLT) v6;  p[ndx + 7] = (MYFLT) v7;
-      p[ndx + 8] = (MYFLT) v8;  p[ndx + 9] = (MYFLT) v9;
+      p[ndx]     = (cs_float) v0;  p[ndx + 1] = (cs_float) v1;
+      p[ndx + 2] = (cs_float) v2;  p[ndx + 3] = (cs_float) v3;
+      p[ndx + 4] = (cs_float) v4;  p[ndx + 5] = (cs_float) v5;
+      p[ndx + 6] = (cs_float) v6;  p[ndx + 7] = (cs_float) v7;
+      p[ndx + 8] = (cs_float) v8;  p[ndx + 9] = (cs_float) v9;
     }
     /**
      * Returns the floating point value at index 'ndx' (counting from zero).
      * No error checking is done, the array is assumed to exist and the
      * index is assumed to be valid.
      */
-    double GetValue(int ndx)
+    cs_double GetValue(int ndx)
     {
-      return (double) p[ndx];
+      return (cs_double) p[ndx];
     }
 
-    double GetConstValue(int ndx)
+    cs_double GetConstValue(int ndx)
     {
-      return (double) cp[ndx];
+      return (cs_double) cp[ndx];
     }
     
     /**
      * Copies 'n' values to the array from a source pointer, starting at
      * index 'ndx' (counting from zero). No error checking is done.
      */
-    void SetValues(int ndx, int n, const MYFLT *src)
+    void SetValues(int ndx, int n, const cs_float *src)
     {
       for (int i = 0; i < n; i++)
         p[ndx + i] = src[i];
@@ -322,7 +322,7 @@ class PUBLIC CsoundMYFLTArray {
      * Copies 'n' values from the array to 'dst', starting at index 'ndx'
      * (counting from zero). No error checking is done.
      */
-    void GetValues(MYFLT *dst, int ndx, int n)
+    void GetValues(cs_float *dst, int ndx, int n)
     {
       for (int i = 0; i < n; i++)
         dst[i] = p[ndx + i];
@@ -410,12 +410,12 @@ class PUBLIC CsoundCallbackWrapper {
       (void) attr;
       (void) msg;
     }
-    virtual double InputValueCallback(const char *chnName)
+    virtual cs_double InputValueCallback(const char *chnName)
     {
       (void) chnName;
       return 0.0;
     }
-    virtual void OutputValueCallback(const char *chnName, double value)
+    virtual void OutputValueCallback(const char *chnName, cs_double value)
     {
       (void) chnName;
       (void) value;

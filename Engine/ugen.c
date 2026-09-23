@@ -100,14 +100,14 @@ static const CS_TYPE* ugen_arg_type_to_cs_type(UGEN_ARG_TYPE type) {
 static size_t ugen_arg_type_size(UGEN_ARG_TYPE type, int32_t ksmps) {
     switch (type) {
         case UGEN_ARG_TYPE_A:
-            return (size_t)ksmps * sizeof(MYFLT);
+            return (size_t)ksmps * sizeof(cs_float);
         case UGEN_ARG_TYPE_S:
             return CS_FLOAT_ALIGN(sizeof(STRINGDAT));
         case UGEN_ARG_TYPE_F:
             return CS_FLOAT_ALIGN(sizeof(PVSDAT));
         default:
             /* k, i, and other scalar types */
-            return sizeof(MYFLT);
+            return sizeof(cs_float);
     }
 }
 
@@ -205,12 +205,12 @@ static int32_t parse_out_types(const char* outypes, const CS_TYPE** outArray,
 }
 
 /**
- * Get the MYFLT** pointer array inside the opcode memory block.
- * After OPDS, the opcode struct contains MYFLT* pointers for
+ * Get the cs_float** pointer array inside the opcode memory block.
+ * After OPDS, the opcode struct contains cs_float* pointers for
  * outputs first, then inputs.
  */
-static MYFLT** get_arg_pointers(void* opcodeMem) {
-    return (MYFLT**)((char*)opcodeMem + sizeof(OPDS));
+static cs_float** get_arg_pointers(void* opcodeMem) {
+    return (cs_float**)((char*)opcodeMem + sizeof(OPDS));
 }
 
 /* ============================================================
@@ -373,19 +373,19 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
                            (size_t)(outCount + inCount) *
                                 CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET);
 
-    ugen->data = (MYFLT*)csound->Calloc(csound, totalDataSize);
+    ugen->data = (cs_float*)csound->Calloc(csound, totalDataSize);
     ugen->outDataOffset = (ugen->outPool->poolSize +
                            outCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET))
-                          / sizeof(MYFLT);
+                          / sizeof(cs_float);
 
     /* Wire argument pointers in the opcode memory.
-     * After OPDS, the opcode struct has MYFLT* pointers:
+     * After OPDS, the opcode struct has cs_float* pointers:
      *   p[0..outCount-1]  → output arg addresses
      *   p[outCount..outCount+inCount-1] → input arg addresses
      *
      * Each points into the data block at the correct offset,
      * skipping CS_VAR_TYPE_OFFSET for the type header. */
-    MYFLT** p = get_arg_pointers(ugen->opcodeMem);
+    cs_float** p = get_arg_pointers(ugen->opcodeMem);
 
     int32_t pIdx = 0;
     CS_VARIABLE* var = ugen->outPool->head;
@@ -393,7 +393,7 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
         /* memBlockIndex already includes per-variable header offsets
          * (set by csoundRecalculateVarPoolMemory), so it points to the
          * value slot.  The CS_VAR_MEM header lives immediately before. */
-        MYFLT* base = ugen->data + var->memBlockIndex;
+        cs_float* base = ugen->data + var->memBlockIndex;
         p[pIdx] = base;
 
         CS_VAR_MEM* varmem = (CS_VAR_MEM*)((char*)base - CS_VAR_TYPE_OFFSET);
@@ -405,7 +405,7 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
 
     var = ugen->inPool->head;
     while (var != NULL && (pIdx - outCount) < inCount) {
-        MYFLT* base = ugen->data + ugen->outDataOffset + var->memBlockIndex;
+        cs_float* base = ugen->data + ugen->outDataOffset + var->memBlockIndex;
         p[pIdx] = base;
 
         CS_VAR_MEM* varmem = (CS_VAR_MEM*)((char*)base - CS_VAR_TYPE_OFFSET);
@@ -464,7 +464,7 @@ bool csoundUgenDelete(UGEN* ugen) {
         CS_VARIABLE* var = ugen->outPool->head;
         while (var != NULL) {
             if (var->varType != NULL && var->varType->freeVariableMemory != NULL) {
-                MYFLT* base = ugen->data + var->memBlockIndex;
+                cs_float* base = ugen->data + var->memBlockIndex;
                 var->varType->freeVariableMemory(csound, base);
             }
             var = var->next;
@@ -474,7 +474,7 @@ bool csoundUgenDelete(UGEN* ugen) {
         CS_VARIABLE* var = ugen->inPool->head;
         while (var != NULL) {
             if (var->varType != NULL && var->varType->freeVariableMemory != NULL) {
-                MYFLT* base = ugen->data + ugen->outDataOffset + var->memBlockIndex;
+                cs_float* base = ugen->data + ugen->outDataOffset + var->memBlockIndex;
                 var->varType->freeVariableMemory(csound, base);
             }
             var = var->next;
@@ -519,7 +519,7 @@ bool csoundUgenSetInputVar(UGEN* ugen, int32_t inIdx, UGEN_VAR* var) {
     if (inIdx < 0 || inIdx >= ugen->inCount) return false;
 
     /* Wire the opcode's input pointer to the var's data */
-    MYFLT** p = get_arg_pointers(ugen->opcodeMem);
+    cs_float** p = get_arg_pointers(ugen->opcodeMem);
     p[ugen->outCount + inIdx] = var->data;
 
     /* Update the UGEN_VAR handle to point at the same data */
@@ -548,7 +548,7 @@ UGEN_VAR* csoundUgenVarNew(UGEN_FACTORY* factory, UGEN_ARG_TYPE type) {
     varmem->varType = ugen_arg_type_to_cs_type(type);
 
     var->csound = csound;
-    var->data = (MYFLT*)(block + CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET));
+    var->data = (cs_float*)(block + CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET));
     var->type = type;
     var->ksmps = ksmps;
     var->owned = true;
@@ -605,12 +605,12 @@ size_t csoundUgenVarGetSize(UGEN_VAR* var) {
  *  UGEN_VAR: Numeric Access (i/k scalars)
  * ============================================================ */
 
-void csoundUgenVarSetValue(UGEN_VAR* var, MYFLT value) {
+void csoundUgenVarSetValue(UGEN_VAR* var, cs_float value) {
     if (var == NULL) return;
     *(var->data) = value;
 }
 
-MYFLT csoundUgenVarGetValue(UGEN_VAR* var) {
+cs_float csoundUgenVarGetValue(UGEN_VAR* var) {
     if (var == NULL) return FL(0.0);
     return *(var->data);
 }
@@ -657,12 +657,12 @@ const char* csoundUgenVarGetString(UGEN_VAR* var) {
  *  UGEN convenience: scalar and string access by index
  * ============================================================ */
 
-void csoundUgenSetValue(UGEN* ugen, int32_t index, MYFLT value) {
+void csoundUgenSetValue(UGEN* ugen, int32_t index, cs_float value) {
     UGEN_VAR* var = csoundUgenGetInVar(ugen, index);
     if (var != NULL) csoundUgenVarSetValue(var, value);
 }
 
-MYFLT csoundUgenGetValue(UGEN* ugen, int32_t index) {
+cs_float csoundUgenGetValue(UGEN* ugen, int32_t index) {
     UGEN_VAR* var = csoundUgenGetOutVar(ugen, index);
     if (var != NULL) return csoundUgenVarGetValue(var);
     return FL(0.0);

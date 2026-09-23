@@ -33,7 +33,7 @@
 #undef OSS
 #endif
 
-#define FLOAT MYFLT
+#define FLOAT cs_float
 
 #include "sysdep.h"
 

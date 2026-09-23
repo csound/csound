@@ -30,7 +30,7 @@
 #define NR_COMB         8
 #define NR_ALLPASS      4
 
-static const double comb_delays[NR_COMB][2] = {
+static const cs_double comb_delays[NR_COMB][2] = {
     { 1116.0 / DEFAULT_SRATE, (1116.0 + STEREO_SPREAD) / DEFAULT_SRATE },
     { 1188.0 / DEFAULT_SRATE, (1188.0 + STEREO_SPREAD) / DEFAULT_SRATE },
     { 1277.0 / DEFAULT_SRATE, (1277.0 + STEREO_SPREAD) / DEFAULT_SRATE },
@@ -41,74 +41,74 @@ static const double comb_delays[NR_COMB][2] = {
     { 1617.0 / DEFAULT_SRATE, (1617.0 + STEREO_SPREAD) / DEFAULT_SRATE }
 };
 
-static const double allpass_delays[NR_ALLPASS][2] = {
+static const cs_double allpass_delays[NR_ALLPASS][2] = {
     { 556.0 / DEFAULT_SRATE, (556.0 + STEREO_SPREAD) / DEFAULT_SRATE },
     { 441.0 / DEFAULT_SRATE, (441.0 + STEREO_SPREAD) / DEFAULT_SRATE },
     { 341.0 / DEFAULT_SRATE, (341.0 + STEREO_SPREAD) / DEFAULT_SRATE },
     { 225.0 / DEFAULT_SRATE, (225.0 + STEREO_SPREAD) / DEFAULT_SRATE }
 };
 
-static const double fixedGain   = 0.015;
-static const double scaleDamp   = 0.4;
-static const double scaleRoom   = 0.28;
-static const double offsetRoom  = 0.7;
+static const cs_double fixedGain   = 0.015;
+static const cs_double scaleDamp   = 0.4;
+static const cs_double scaleRoom   = 0.28;
+static const cs_double offsetRoom  = 0.7;
 
-static const double allPassFeedBack = 0.5;
+static const cs_double allPassFeedBack = 0.5;
 
 typedef struct {
     int32_t     nSamples;
     int32_t     bufPos;
-    double  filterState;
-    MYFLT   buf[1];
+    cs_double  filterState;
+    cs_float   buf[1];
 } freeVerbComb;
 
 typedef struct {
     int32_t     nSamples;
     int32_t     bufPos;
-    MYFLT   buf[1];
+    cs_float   buf[1];
 } freeVerbAllPass;
 
 typedef struct {
     OPDS            h;
-    MYFLT           *aOutL;
-    MYFLT           *aOutR;
-    MYFLT           *aInL;
-    MYFLT           *aInR;
-    MYFLT           *kRoomSize;
-    MYFLT           *kDampFactor;
-    MYFLT           *iSampleRate;
-    MYFLT           *iSkipInit;
+    cs_float           *aOutL;
+    cs_float           *aOutR;
+    cs_float           *aInL;
+    cs_float           *aInR;
+    cs_float           *kRoomSize;
+    cs_float           *kDampFactor;
+    cs_float           *iSampleRate;
+    cs_float           *iSkipInit;
     freeVerbComb    *Comb[NR_COMB][2];
     freeVerbAllPass *AllPass[NR_ALLPASS][2];
-    MYFLT           *tmpBuf;
+    cs_float           *tmpBuf;
     AUXCH           auxData;
-    MYFLT           prvDampFactor;
-    double          dampValue;
-    double          srFact;
+    cs_float           prvDampFactor;
+    cs_double          dampValue;
+    cs_double          srFact;
 } FREEVERB;
 
-static int32_t calc_nsamples(FREEVERB *p, double delTime)
+static int32_t calc_nsamples(FREEVERB *p, cs_double delTime)
 {
-    double  sampleRate;
-    sampleRate = (double) *(p->iSampleRate);
+    cs_double  sampleRate;
+    sampleRate = (cs_double) *(p->iSampleRate);
     if (sampleRate < MIN_SRATE)
       sampleRate = DEFAULT_SRATE;
     return (int32_t) (delTime * sampleRate + 0.5);
 }
 
-static int32_t comb_nbytes(FREEVERB *p, double delTime)
+static int32_t comb_nbytes(FREEVERB *p, cs_double delTime)
 {
     int32_t nbytes;
-    nbytes = (int32_t) sizeof(freeVerbComb) - (int32_t) sizeof(MYFLT);
-    nbytes += ((int32_t) sizeof(MYFLT) * calc_nsamples(p, delTime));
+    nbytes = (int32_t) sizeof(freeVerbComb) - (int32_t) sizeof(cs_float);
+    nbytes += ((int32_t) sizeof(cs_float) * calc_nsamples(p, delTime));
     return ((nbytes + 15) & (~15));
 }
 
-static int32_t allpass_nbytes(FREEVERB *p, double delTime)
+static int32_t allpass_nbytes(FREEVERB *p, cs_double delTime)
 {
     int32_t nbytes;
-    nbytes = (int32_t) sizeof(freeVerbAllPass) - (int32_t) sizeof(MYFLT);
-    nbytes += ((int32_t) sizeof(MYFLT) * calc_nsamples(p, delTime));
+    nbytes = (int32_t) sizeof(freeVerbAllPass) - (int32_t) sizeof(cs_float);
+    nbytes += ((int32_t) sizeof(cs_float) * calc_nsamples(p, delTime));
     return ((nbytes + 15) & (~15));
 }
 
@@ -127,7 +127,7 @@ static int32_t freeverb_init(CSOUND *csound, FREEVERB *p)
       nbytes += allpass_nbytes(p, allpass_delays[i][0]);
       nbytes += allpass_nbytes(p, allpass_delays[i][1]);
     }
-    nbytes += 2 * (int32_t) sizeof(MYFLT) * (int32_t) CS_KSMPS;
+    nbytes += 2 * (int32_t) sizeof(cs_float) * (int32_t) CS_KSMPS;
     /* allocate space if size has changed */
     if (nbytes != (int32_t) p->auxData.size)
       csound->AuxAlloc(csound, (int32) nbytes, &(p->auxData));
@@ -153,12 +153,12 @@ static int32_t freeverb_init(CSOUND *csound, FREEVERB *p)
       k = calc_nsamples(p, allpass_delays[i >> 1][i & 1]);
       allpassp->nSamples = k;
       allpassp->bufPos = 0;
-      //memset(allpassp->buf, '\0', k*sizeof(MYFLT));
+      //memset(allpassp->buf, '\0', k*sizeof(cs_float));
       for (j = 0; j < k; j++)
         allpassp->buf[j] = FL(0.0);
       nbytes += allpass_nbytes(p, allpass_delays[i >> 1][i & 1]);
     }
-    p->tmpBuf = (MYFLT*) ((unsigned char*)p->auxData.auxp + (int32_t)nbytes);
+    p->tmpBuf = (cs_float*) ((unsigned char*)p->auxData.auxp + (int32_t)nbytes);
     p->prvDampFactor = -FL(1.0);
     if (*(p->iSampleRate) >= MIN_SRATE)
       p->srFact = pow((DEFAULT_SRATE / *(p->iSampleRate)), 0.8);
@@ -169,22 +169,22 @@ static int32_t freeverb_init(CSOUND *csound, FREEVERB *p)
 
 static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
 {
-    double          feedback, damp1, damp2, x;
+    cs_double          feedback, damp1, damp2, x;
     freeVerbComb    *combp;
     freeVerbAllPass *allpassp;
     int32_t             i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS - early;
-    MYFLT *tmpBuf = p->tmpBuf, *left = p->tmpBuf;
+    cs_float *tmpBuf = p->tmpBuf, *left = p->tmpBuf;
 
     /* check if opcode was correctly initialised */
     if (UNLIKELY(p->auxData.size <= 0L || p->auxData.auxp == NULL)) goto err1;
     /* calculate reverb parameters */
-    feedback = (double) *(p->kRoomSize) * scaleRoom + offsetRoom;
+    feedback = (cs_double) *(p->kRoomSize) * scaleRoom + offsetRoom;
     if (*(p->kDampFactor) != p->prvDampFactor) {
       p->prvDampFactor = *(p->kDampFactor);
-      damp1 = (double) *(p->kDampFactor) * scaleDamp;
+      damp1 = (cs_double) *(p->kDampFactor) * scaleDamp;
       /* hack to correct high frequency attenuation for sample rate */
       if (*(p->iSampleRate) >= MIN_SRATE)
         damp1 = pow(damp1, p->srFact);
@@ -194,15 +194,15 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
       damp1 = p->dampValue;
     damp2 = 1.0 - damp1;
     /* comb filters (left channel) */
-    memset(tmpBuf,0, sizeof(MYFLT)*nsmps);
+    memset(tmpBuf,0, sizeof(cs_float)*nsmps);
     for (i = 0; i < NR_COMB; i++) {
       combp = p->Comb[i][0];
       for (n = offset; n < nsmps; n++) {
         tmpBuf[n] += combp->buf[combp->bufPos];
-        x = (double) combp->buf[combp->bufPos];
+        x = (cs_double) combp->buf[combp->bufPos];
         combp->filterState = (combp->filterState * damp1) + (x * damp2);
-        x = combp->filterState * feedback + (double) p->aInL[n];
-        combp->buf[combp->bufPos] = (MYFLT) x;
+        x = combp->filterState * feedback + (cs_double) p->aInL[n];
+        combp->buf[combp->bufPos] = (cs_float) x;
         if (UNLIKELY(++(combp->bufPos) >= combp->nSamples))
           combp->bufPos = 0;
       }
@@ -211,27 +211,27 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
     for (i = 0; i < NR_ALLPASS; i++) {
       allpassp = p->AllPass[i][0];
       for (n = offset; n < nsmps; n++) {
-        x = (double) allpassp->buf[allpassp->bufPos] - (double) tmpBuf[n];
-        allpassp->buf[allpassp->bufPos] *= (MYFLT) allPassFeedBack;
+        x = (cs_double) allpassp->buf[allpassp->bufPos] - (cs_double) tmpBuf[n];
+        allpassp->buf[allpassp->bufPos] *= (cs_float) allPassFeedBack;
         allpassp->buf[allpassp->bufPos] += tmpBuf[n];
         if (UNLIKELY(++(allpassp->bufPos) >= allpassp->nSamples))
           allpassp->bufPos = 0;
-        tmpBuf[n] = (MYFLT) x;
+        tmpBuf[n] = (cs_float) x;
       }
     }
 
     /* Keep the left result until both inputs have been consumed. */
     tmpBuf += CS_KSMPS;
     /* comb filters (right channel) */
-    memset(tmpBuf, 0, sizeof(MYFLT)*nsmps);
+    memset(tmpBuf, 0, sizeof(cs_float)*nsmps);
     for (i = 0; i < NR_COMB; i++) {
       combp = p->Comb[i][1];
       for (n = offset; n < nsmps; n++) {
         tmpBuf[n] += combp->buf[combp->bufPos];
-        x = (double) combp->buf[combp->bufPos];
+        x = (cs_double) combp->buf[combp->bufPos];
         combp->filterState = (combp->filterState * damp1) + (x * damp2);
-        x = combp->filterState * feedback + (double) p->aInR[n];
-        combp->buf[combp->bufPos] = (MYFLT) x;
+        x = combp->filterState * feedback + (cs_double) p->aInR[n];
+        combp->buf[combp->bufPos] = (cs_float) x;
         if (UNLIKELY(++(combp->bufPos) >= combp->nSamples))
           combp->bufPos = 0;
       }
@@ -240,25 +240,25 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
     for (i = 0; i < NR_ALLPASS; i++) {
       allpassp = p->AllPass[i][1];
       for (n = offset; n < nsmps; n++) {
-        x = (double) allpassp->buf[allpassp->bufPos] - (double) tmpBuf[n];
-        allpassp->buf[allpassp->bufPos] *= (MYFLT) allPassFeedBack;
+        x = (cs_double) allpassp->buf[allpassp->bufPos] - (cs_double) tmpBuf[n];
+        allpassp->buf[allpassp->bufPos] *= (cs_float) allPassFeedBack;
         allpassp->buf[allpassp->bufPos] += tmpBuf[n];
         if (UNLIKELY(++(allpassp->bufPos) >= allpassp->nSamples))
           allpassp->bufPos = 0;
-        tmpBuf[n] = (MYFLT) x;
+        tmpBuf[n] = (cs_float) x;
       }
     }
     if (UNLIKELY(offset)) {
-      memset(p->aOutL, '\0', offset*sizeof(MYFLT));
-      memset(p->aOutR, '\0', offset*sizeof(MYFLT));
+      memset(p->aOutL, '\0', offset*sizeof(cs_float));
+      memset(p->aOutR, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
-      memset(&p->aOutL[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&p->aOutR[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->aOutL[nsmps], '\0', early*sizeof(cs_float));
+      memset(&p->aOutR[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
-      p->aOutL[n] = left[n] * (MYFLT) fixedGain;
-      p->aOutR[n] = tmpBuf[n] * (MYFLT) fixedGain;
+      p->aOutL[n] = left[n] * (cs_float) fixedGain;
+      p->aOutR[n] = tmpBuf[n] * (cs_float) fixedGain;
     }
 
     return OK;

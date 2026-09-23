@@ -36,11 +36,11 @@
 /*  Recoded by John ffitch 1997            */
 /*******************************************/
 
-typedef MYFLT Noise;
+typedef cs_float Noise;
 
 #define make_Noise(n) n = FL(0.0)
 
-MYFLT Noise_tick(CSOUND *, Noise *);
+cs_float Noise_tick(CSOUND *, Noise *);
 #define Noise_lastOut(n) (n)
 
 /*******************************************/
@@ -51,18 +51,18 @@ MYFLT Noise_tick(CSOUND *, Noise *);
 
 typedef struct DLineL{
     AUXCH       inputs;
-    MYFLT       lastOutput;
+    cs_float       lastOutput;
     int32        inPoint;
     int32        outPoint;
     int32        length;
-    MYFLT       alpha;
-    MYFLT       omAlpha;
+    cs_float       alpha;
+    cs_float       omAlpha;
 } DLineL;
 
 #define DLineL_lastOut(d)       ((d)->lastOutput)
 void make_DLineL(CSOUND *,DLineL *, int32);
-void DLineL_setDelay(DLineL *, MYFLT);
-MYFLT DLineL_tick(DLineL *, MYFLT);
+void DLineL_setDelay(DLineL *, cs_float);
+cs_float DLineL_tick(DLineL *, cs_float);
 
 /*******************************************/
 /*  Envelope Class, Perry R. Cook, 1995-96 */
@@ -81,19 +81,19 @@ MYFLT DLineL_tick(DLineL *, MYFLT);
 #define RATE_NORM       (FL(22050.0)/CS_ESR)
 
 typedef struct Envelope {
-    MYFLT       value;
-    MYFLT       target;
-    MYFLT       rate;
+    cs_float       value;
+    cs_float       target;
+    cs_float       rate;
     int32_t         state;
 } Envelope;
 
 void make_Envelope(Envelope*);
 void Envelope_keyOn(Envelope*);
 void Envelope_keyOff(Envelope*);
-void Envelope_setRate(CSOUND *,Envelope*, MYFLT);
-void Envelope_setTarget(Envelope*, MYFLT);
-void Envelope_setValue(Envelope*,MYFLT);
-MYFLT Envelope_tick(Envelope*);
+void Envelope_setRate(CSOUND *,Envelope*, cs_float);
+void Envelope_setTarget(Envelope*, cs_float);
+void Envelope_setValue(Envelope*,cs_float);
+cs_float Envelope_tick(Envelope*);
 void Envelope_print(CSOUND *,Envelope*);
 
 /*******************************************/
@@ -112,19 +112,19 @@ void Envelope_print(CSOUND *,Envelope*);
 /*******************************************/
 
 typedef struct OnePole {
-    MYFLT gain;                 /* Start Filter subclass */
-    MYFLT outputs;
-    /*    MYFLT *inputs; */
-/*     MYFLT lastOutput;  */          /* End */
-    MYFLT poleCoeff;
-    MYFLT sgain;
+    cs_float gain;                 /* Start Filter subclass */
+    cs_float outputs;
+    /*    cs_float *inputs; */
+/*     cs_float lastOutput;  */          /* End */
+    cs_float poleCoeff;
+    cs_float sgain;
 } OnePole;
 
 void make_OnePole(OnePole*);
 /* void OnePole_clear(OnePole*); */
-void OnePole_setPole(OnePole*, MYFLT aValue);
-void OnePole_setGain(OnePole*, MYFLT aValue);
-MYFLT OnePole_tick(OnePole*, MYFLT sample);
+void OnePole_setPole(OnePole*, cs_float aValue);
+void OnePole_setGain(OnePole*, cs_float aValue);
+cs_float OnePole_tick(OnePole*, cs_float sample);
 void OnePole_print(CSOUND*, OnePole*);
 
 /*******************************************/
@@ -138,15 +138,15 @@ void OnePole_print(CSOUND*, OnePole*);
 /*******************************************/
 
 typedef struct DCBlock {
-    MYFLT       gain;
-    MYFLT       outputs;
-    MYFLT       inputs;
-/*     MYFLT    lastOutput; */
+    cs_float       gain;
+    cs_float       outputs;
+    cs_float       inputs;
+/*     cs_float    lastOutput; */
 } DCBlock;
 
 void make_DCBlock(DCBlock*);
 /* void DCBlock_clear(DCBlock*); */
-MYFLT DCBlock_tick(DCBlock*, MYFLT);
+cs_float DCBlock_tick(DCBlock*, cs_float);
 
 /*******************************************/
 /*  ADSR Subclass of the Envelope Class,   */
@@ -168,33 +168,33 @@ MYFLT DCBlock_tick(DCBlock*, MYFLT);
 #define CLEAR   (4)
 
 typedef struct ADSR {
-    MYFLT       value;                /* Envelope subclass */
-    MYFLT       target;
-    MYFLT       rate;
+    cs_float       value;                /* Envelope subclass */
+    cs_float       target;
+    cs_float       rate;
     int32_t         state;                  /* end */
-    MYFLT       attackRate;
-    MYFLT       decayRate;
-    MYFLT       sustainLevel;
-    MYFLT       releaseRate;
-    MYFLT       sr;
+    cs_float       attackRate;
+    cs_float       decayRate;
+    cs_float       sustainLevel;
+    cs_float       releaseRate;
+    cs_float       sr;
 } ADSR;
 
-void make_ADSR(ADSR*, MYFLT sr);
+void make_ADSR(ADSR*, cs_float sr);
 void dest_ADSR(ADSR*);
 void ADSR_keyOn(ADSR*);
 void ADSR_keyOff(ADSR*);
-void ADSR_setAttackRate(CSOUND *,ADSR*, MYFLT);
-void ADSR_setDecayRate(CSOUND *,ADSR*, MYFLT);
-void ADSR_setSustainLevel(CSOUND *,ADSR*, MYFLT);
-void ADSR_setReleaseRate(CSOUND *,ADSR*, MYFLT);
-void ADSR_setAll(CSOUND *,ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
-void ADSR_setAllTimes(CSOUND *,ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
-void ADSR_setTarget(CSOUND *,ADSR*, MYFLT);
-void ADSR_setValue(CSOUND *,ADSR*, MYFLT);
-MYFLT ADSR_tick(ADSR*);
+void ADSR_setAttackRate(CSOUND *,ADSR*, cs_float);
+void ADSR_setDecayRate(CSOUND *,ADSR*, cs_float);
+void ADSR_setSustainLevel(CSOUND *,ADSR*, cs_float);
+void ADSR_setReleaseRate(CSOUND *,ADSR*, cs_float);
+void ADSR_setAll(CSOUND *,ADSR*, cs_float, cs_float, cs_float, cs_float);
+void ADSR_setAllTimes(CSOUND *,ADSR*, cs_float, cs_float, cs_float, cs_float);
+void ADSR_setTarget(CSOUND *,ADSR*, cs_float);
+void ADSR_setValue(CSOUND *,ADSR*, cs_float);
+cs_float ADSR_tick(ADSR*);
 int32_t
 ADSR_informTick(ADSR*);
-MYFLT ADSR_lastOut(ADSR*);
+cs_float ADSR_lastOut(ADSR*);
 
 /*******************************************/
 /*  BiQuad (2-pole, 2-zero) Filter Class,  */
@@ -205,26 +205,26 @@ MYFLT ADSR_lastOut(ADSR*);
 /*******************************************/
 
 typedef struct BiQuad {
-    MYFLT       gain;                 /* Start if filter subclass */
-    MYFLT       inputs[2];
-    MYFLT       lastOutput;           /* End */
-    MYFLT       poleCoeffs[2];
-    MYFLT       zeroCoeffs[2];
+    cs_float       gain;                 /* Start if filter subclass */
+    cs_float       inputs[2];
+    cs_float       lastOutput;           /* End */
+    cs_float       poleCoeffs[2];
+    cs_float       zeroCoeffs[2];
 } BiQuad;
 
 void make_BiQuad(BiQuad*);
 void dest_BiQuad(BiQuad*);
 void BiQuad_clear(BiQuad*);
-void BiQuad_setPoleCoeffs(BiQuad*, MYFLT *);
-void BiQuad_setZeroCoeffs(BiQuad*, MYFLT *);
+void BiQuad_setPoleCoeffs(BiQuad*, cs_float *);
+void BiQuad_setZeroCoeffs(BiQuad*, cs_float *);
 #define BiQuad_setGain(b,aValue)        ((b).gain = aValue)
 #define BiQuad_setEqualGainZeroes(b)    \
         { (b).zeroCoeffs[1] = -FL(1.0); (b).zeroCoeffs[0] = FL(0.0); }
 #define BiQuad_setFreqAndReson(b,freq,reson)    \
         { (b).poleCoeffs[1]= -((reson)*(reson)); \
           (b).poleCoeffs[0]= FL(2.0)*(reson)*\
-            (MYFLT)cos((double)(freq)*CS_TPIDSR); }
-MYFLT BiQuad_tick(BiQuad*, MYFLT);
+            (cs_float)cos((cs_double)(freq)*CS_TPIDSR); }
+cs_float BiQuad_tick(BiQuad*, cs_float);
 #define BiQuad_lastOut(x)       (x)->lastOutput
 
 #endif

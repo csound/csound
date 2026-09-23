@@ -61,7 +61,7 @@ int32_t nstrnumset(CSOUND *csound, NSTRNUM *p)
     *p->i_insno = -FL(1.0); return NOTOK;
   }
   else {
-    *p->i_insno = (MYFLT)res; return OK;
+    *p->i_insno = (cs_float)res; return OK;
   }
 }
 
@@ -73,7 +73,7 @@ int32_t nstrnumset_S(CSOUND *csound, NSTRNUM *p)
     *p->i_insno = -FL(1.0); return NOTOK;
   }
   else {
-    *p->i_insno = (MYFLT)res; return OK;
+    *p->i_insno = (cs_float)res; return OK;
   }
 }
 
@@ -391,7 +391,7 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
     int32_t res, i;
     INSTREF *ref = (INSTREF *) p->args[0];
     char  pfields[PMAX+1] = {0};
-    evt.p = (MYFLT *) pfields;
+    evt.p = (cs_float *) pfields;
     res = instr_num(csound, ref->instr);
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
@@ -474,7 +474,7 @@ int32_t create_instance_opcode(CSOUND *csound, CREATE_INSTANCE *p) {
 int32_t init_instance_opcode(CSOUND *csound, INIT_INSTANCE *p) {
   EVTBLK evt;
   char  pfields[PMAX+1] = {0};
-  evt.p = (MYFLT *) pfields;
+  evt.p = (cs_float *) pfields;
   INSTANCEREF *ref = (INSTANCEREF *) p->args[0];
   int32_t i;
   if(ref->instance != NULL) {
@@ -517,7 +517,7 @@ int32_t perf_instance_opcode(CSOUND *csound, PERF_INSTR *p) {
         }
       // Ensure the instance is initialised; if not, try to initialise now using the same args
       if (!ip->init_done) {
-        EVTBLK evt; char pfields[PMAX+1] = {0}; evt.p = (MYFLT*) pfields;
+        EVTBLK evt; char pfields[PMAX+1] = {0}; evt.p = (cs_float*) pfields;
         evt.p[1] = FL(ip->insno); evt.p[2] = FL(0.0); evt.p[3] = -1;
         evt.strarg = NULL; evt.scnt = 0; evt.opcod = 'i';
         evt.pcnt = p->INOCOUNT + 2;
@@ -671,7 +671,7 @@ int32_t xtratim(CSOUND *csound, XTRADUR *p)
 */
 int32_t splice_instance(CSOUND *csound, SPLICE_INSTR *p) {
   if(p->in->instance && p->nxt->instance)
-    *p->out = (MYFLT) ((int32_t) *p->mode == 0 ?
+    *p->out = (cs_float) ((int32_t) *p->mode == 0 ?
       splice_before_instance(csound, p->in->instance,
                              p->nxt->instance) :
       splice_after_instance(csound, p->in->instance,
@@ -682,7 +682,7 @@ int32_t splice_instance(CSOUND *csound, SPLICE_INSTR *p) {
 
 
 
-MYFLT initialise_io(CSOUND *csound);
+cs_float initialise_io(CSOUND *csound);
 /** experimental perf loop opcode to run on instr 0
     -- not for production --
     OENTRY entry =
@@ -697,9 +697,9 @@ int32_t perf_loop_opcode(CSOUND *csound, PERF_INSTR *p) {
     if(csound->spoutran == NULL)
       initialise_io(csound);
     while(ip != NULL && --count && !err) {
-      memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
+      memset(csound->spout, 0, csound->nspout*sizeof(cs_float));
       memset(csound->spout_tmp,0,
-             sizeof(MYFLT)*csound->nspout*csound->oparms->numThreads);
+             sizeof(cs_float)*csound->nspout*csound->oparms->numThreads);
       err = perf_instance(csound, ip);
       csound->spoutran(csound); /* send to audio_out */
     }

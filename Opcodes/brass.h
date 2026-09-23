@@ -61,19 +61,19 @@
 
 typedef struct DLineA {
     AUXCH       inputs;
-    MYFLT       lastOutput;
+    cs_float       lastOutput;
     int32        inPoint;
     int32        outPoint;
     int32        length;
-    MYFLT       alpha;
-    MYFLT       coeff;
-    MYFLT       lastIn;
+    cs_float       alpha;
+    cs_float       coeff;
+    cs_float       lastIn;
 } DLineA;
 
 void make_DLineA(CSOUND *,DLineA *, int32 max_length);
 /* void DLineA_clear(DLineA *); */
-int32_t DLineA_setDelay(CSOUND *,DLineA *, MYFLT length);
-MYFLT DLineA_tick(DLineA *, MYFLT sample);
+int32_t DLineA_setDelay(CSOUND *,DLineA *, cs_float length);
+cs_float DLineA_tick(DLineA *, cs_float sample);
 
 /***********************************************/
 /*  Lip Filter Object by Perry R. Cook, 1995-96*/
@@ -90,35 +90,35 @@ typedef BiQuad LipFilt;
 
 void make_LipFilt(LipFilt*);
 void LipFilt_clear(LipFilt*);
-//void LipFilt_setFreq(CSOUND*,LipFilt*, MYFLT frequency);
-MYFLT LipFilt_tick(LipFilt*, MYFLT mouthSample,MYFLT boreSample);
-MYFLT LipFilt_lastOut(LipFilt*);
+//void LipFilt_setFreq(CSOUND*,LipFilt*, cs_float frequency);
+cs_float LipFilt_tick(LipFilt*, cs_float mouthSample,cs_float boreSample);
+cs_float LipFilt_lastOut(LipFilt*);
 
 /* ---------------------------------------------------------------------- */
 typedef struct BRASS {
     OPDS        h;
-    MYFLT       *ar;                  /* Output */
-    MYFLT       *amp, *frequency;
-    MYFLT       *liptension, *dettack;
-    MYFLT       *vibFreq, *vibAmt, *ifn, *lowestFreq;
+    cs_float       *ar;                  /* Output */
+    cs_float       *amp, *frequency;
+    cs_float       *liptension, *dettack;
+    cs_float       *vibFreq, *vibAmt, *ifn, *lowestFreq;
 
     FUNC        *vibr;          /* Table for vibrato */
-    MYFLT       v_rate;         /* Parameters for vibrato */
-    MYFLT       v_time;
-/*     MYFLT    v_phaseOffset; */
+    cs_float       v_rate;         /* Parameters for vibrato */
+    cs_float       v_time;
+/*     cs_float    v_phaseOffset; */
     DLineA      delayLine;
     LipFilt     lipFilter;
     DCBlock     dcBlock;
     ADSR        adsr;
     int32       length;
-    MYFLT       slideTarget;
-    MYFLT       maxPressure;
-    MYFLT       lastamp;
-    MYFLT       lipTarget;
-    MYFLT       frq;            /* Remember previous value */
-    MYFLT       lipT;           /* and lip tension */
-    MYFLT       limit;
-    double      kloop;
+    cs_float       slideTarget;
+    cs_float       maxPressure;
+    cs_float       lastamp;
+    cs_float       lipTarget;
+    cs_float       frq;            /* Remember previous value */
+    cs_float       lipT;           /* and lip tension */
+    cs_float       limit;
+    cs_double      kloop;
 } BRASS;
 
 #endif

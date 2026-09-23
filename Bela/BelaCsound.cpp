@@ -78,7 +78,7 @@ struct DigiIn : csnd::Plugin<1, 1> {
             pinMode(context, 0, pin, 0);
             init_done = 1;
         }
-        outargs[0] = (MYFLT)digitalRead(context, fcount, pin);
+        outargs[0] = (cs_float)digitalRead(context, fcount, pin);
         fcount += nsmps;
         fcount %= frms;
         return OK;
@@ -92,7 +92,7 @@ struct DigiIn : csnd::Plugin<1, 1> {
             init_done = 1;
         }
         for (auto& s : out) {
-            s = (MYFLT)digitalRead(context, cnt, pin);
+            s = (cs_float)digitalRead(context, cnt, pin);
             if (cnt == frms - 1)
                 cnt = 0;
             else
@@ -186,7 +186,7 @@ struct DigiIO : csnd::InPlug<3> {
         if (mode)
             digitalWrite(context, fcount, pin, (args[0] > 0.0 ? 1 : 0));
         else
-            args[0] = (MYFLT)digitalRead(context, fcount, pin);
+            args[0] = (cs_float)digitalRead(context, fcount, pin);
         fcount += nsmps;
         fcount %= frms;
         return OK;
@@ -209,7 +209,7 @@ struct DigiIO : csnd::InPlug<3> {
             if (mode)
                 digitalWriteOnce(context, cnt, pin, (s > 0.0 ? 1 : 0));
             else
-                s = (MYFLT)digitalRead(context, cnt, pin);
+                s = (cs_float)digitalRead(context, cnt, pin);
             if (cnt == frms - 1)
                 cnt = 0;
             else
@@ -264,7 +264,7 @@ struct TrillIn : csnd::Plugin<4, 2> {
             activeTouches = (t.getNumTouches() || t.getNumHorizontalTouches());
         else // we are in raw/diff/baseline mode: the number of "touches" is actually the number of pads
             activeTouches = std::min(numTouches, t.rawData.size());
-        outargs[0] = MYFLT(activeTouches);
+        outargs[0] = cs_float(activeTouches);
         // Read locations from Trill sensor
         for (unsigned int i = 0; i < activeTouches; i++) {
             if (t.is1D()) {
@@ -287,9 +287,9 @@ struct TrillIn : csnd::Plugin<4, 2> {
             touchHoriLocation[i] = 0.0;
         }
 
-        csnd::Vector<MYFLT>& out_size = outargs.vector_data<MYFLT>(1);
-        csnd::Vector<MYFLT>& out_v_location = outargs.vector_data<MYFLT>(2);
-        csnd::Vector<MYFLT>& out_h_location = outargs.vector_data<MYFLT>(3);
+        csnd::Vector<cs_float>& out_size = outargs.vector_data<cs_float>(1);
+        csnd::Vector<cs_float>& out_v_location = outargs.vector_data<cs_float>(2);
+        csnd::Vector<cs_float>& out_h_location = outargs.vector_data<cs_float>(3);
 
         std::copy(touchSize, touchSize + numTouches, out_size.begin());
         std::copy(touchVertLocation, touchVertLocation + numTouches, out_v_location.begin());
@@ -309,7 +309,7 @@ void trillReadLoop(void*) {
 }
 
 struct CsChan {
-    std::vector<MYFLT> samples;
+    std::vector<cs_float> samples;
     std::stringstream name;
 };
 
@@ -430,9 +430,9 @@ void csound_render(BelaContext* context, void* p) {
         int res = csData->res;
         unsigned int n;
         Csound* csound = csData->csound;
-        MYFLT scal = csound->Get0dBFS();
-        MYFLT* audioIn = csound->GetSpin();
-        const MYFLT* audioOut = csound->GetSpout();
+        cs_float scal = csound->Get0dBFS();
+        cs_float* audioIn = csound->GetSpin();
+        const cs_float* audioOut = csound->GetSpout();
         int nchnls = csound->GetChannels(0);
         int nchnls_i = csound->GetChannels(1);
         unsigned int chns = (unsigned int)nchnls < context->audioOutChannels ? nchnls : context->audioOutChannels;

@@ -53,15 +53,15 @@ protected:
         const size_t samples = sliding ? 16 : 1;
         const size_t values = samples * (size + 2);
         ASSERT_GE(frame->frame.size,
-                  values * (sliding ? sizeof(MYFLT) : sizeof(float)));
+                  values * (sliding ? sizeof(cs_float) : sizeof(float)));
         for (size_t sample = 0; sample < samples; ++sample) {
             for (int bin = 0; bin <= size / 2; ++bin) {
                 const size_t index = sample * (size + 2) + 2 * bin;
-                const double amplitude = sliding
-                    ? static_cast<MYFLT *>(frame->frame.auxp)[index]
+                const cs_double amplitude = sliding
+                    ? static_cast<cs_float *>(frame->frame.auxp)[index]
                     : static_cast<float *>(frame->frame.auxp)[index];
-                const double second = sliding
-                    ? static_cast<MYFLT *>(frame->frame.auxp)[index + 1]
+                const cs_double second = sliding
+                    ? static_cast<cs_float *>(frame->frame.auxp)[index + 1]
                     : static_cast<float *>(frame->frame.auxp)[index + 1];
                 EXPECT_EQ(amplitude, 0.0) << sample << ":" << bin;
                 EXPECT_EQ(second, format == PVS_AMP_FREQ ? bin * 8192.0 / size : 0.0)
@@ -77,7 +77,7 @@ protected:
         ASSERT_NE(frame->frame.auxp, nullptr);
         // Model a producer leaving nonzero data before the next initialization.
         if (frame->sliding) {
-            auto *data = static_cast<MYFLT *>(frame->frame.auxp);
+            auto *data = static_cast<cs_float *>(frame->frame.auxp);
             std::fill(data, data + 16 * (frame->N + 2), FL(0.5));
         }
         else {
@@ -125,8 +125,8 @@ TEST_F(PvsinitTests, SlidingSampleOffset)
     auto *frame = signal();
     ASSERT_NE(frame, nullptr);
     ASSERT_TRUE(frame->sliding);
-    ASSERT_GE(frame->frame.size, 16 * 66 * sizeof(MYFLT));
-    auto *data = static_cast<MYFLT *>(frame->frame.auxp);
+    ASSERT_GE(frame->frame.size, 16 * 66 * sizeof(cs_float));
+    auto *data = static_cast<cs_float *>(frame->frame.auxp);
     for (int sample = 0; sample < 16; ++sample)
         for (int bin = 0; bin < 33; ++bin) {
             const int index = sample * 66 + 2 * bin;

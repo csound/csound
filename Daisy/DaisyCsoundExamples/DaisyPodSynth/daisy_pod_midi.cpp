@@ -38,11 +38,11 @@ static CSOUND *csound;
 void AudioCallback(AudioHandle::InterleavingInputBuffer in,
 		   AudioHandle::InterleavingOutputBuffer out,
                    size_t size) {
-  const MYFLT *spout = csoundGetSpout(csound);
+  const cs_float *spout = csoundGetSpout(csound);
   int32_t res;  
   res = csoundPerformKsmps(csound);
-  if(res == 0) memcpy(out, spout, sizeof(MYFLT)*size);
-  else memset(out, 0, sizeof(MYFLT)*size);
+  if(res == 0) memcpy(out, spout, sizeof(cs_float)*size);
+  else memset(out, 0, sizeof(cs_float)*size);
 }
 
 int main() {
@@ -113,7 +113,7 @@ int main() {
 				  hw.button2.Pressed() ? 1.f : 0.f);
 	  csoundSetControlChannel(csound, "epressed",
 				  hw.encoder.Pressed() ? 1.f : 0.f);
-	  csoundSetControlChannel(csound, "encoder", (MYFLT)
+	  csoundSetControlChannel(csound, "encoder", (cs_float)
 				  DSY_CLAMP(encoder_value, 0, max_encoder)
 				  /max_encoder);
 	  csoundSetControlChannel(csound, "pot1", hw.knob1.GetRawFloat());

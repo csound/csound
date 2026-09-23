@@ -16,8 +16,8 @@ protected:
 };
 
 TEST_F(LPCCepstrumTests, TwoRealPolesHaveCepstralTermsBeyondTheirOrder) {
-    MYFLT coefficients[] = {2, -.75, .125};
-    MYFLT cepstrum[8] = {}, restored[3] = {};
+    cs_float coefficients[] = {2, -.75, .125};
+    cs_float cepstrum[8] = {}, restored[3] = {};
     csound->LPCeps(csound, cepstrum, coefficients, 8, 2);
     EXPECT_NEAR(cepstrum[0], std::log(2.), 1e-6);
     // A(z) = (1 - .5 z^-1)(1 - .25 z^-1).
@@ -30,13 +30,13 @@ TEST_F(LPCCepstrumTests, TwoRealPolesHaveCepstralTermsBeyondTheirOrder) {
 }
 
 TEST_F(LPCCepstrumTests, ConjugatePolesRoundTripWithPredictionError) {
-    MYFLT coefficients[] = {.25, -1, .5};
-    MYFLT cepstrum[8] = {}, restored[3] = {};
+    cs_float coefficients[] = {.25, -1, .5};
+    cs_float cepstrum[8] = {}, restored[3] = {};
     csound->LPCeps(csound, cepstrum, coefficients, 8, 2);
     EXPECT_NEAR(cepstrum[0], std::log(.25), 1e-6);
     // Poles have radius sqrt(.5) and angles +/- pi/4.
     for (int n = 1; n < 8; ++n) {
-        double expected = 2 * std::pow(std::sqrt(.5), n) *
+        cs_double expected = 2 * std::pow(std::sqrt(.5), n) *
                           std::cos(n * std::acos(-1.) / 4) / n;
         EXPECT_NEAR(cepstrum[n], expected, 1e-6) << n;
     }
@@ -46,10 +46,10 @@ TEST_F(LPCCepstrumTests, ConjugatePolesRoundTripWithPredictionError) {
 }
 
 TEST_F(LPCCepstrumTests, RejectsOrdersBelowTwoWithoutWritingOutput) {
-    MYFLT coefficients[] = {2, -.5};
-    MYFLT cepstrum[] = {0, .5};
+    cs_float coefficients[] = {2, -.5};
+    cs_float cepstrum[] = {0, .5};
     for (int order : {-1, 0, 1}) {
-        MYFLT output[] = {17, 23};
+        cs_float output[] = {17, 23};
         EXPECT_EQ(csound->LPCeps(csound, output, coefficients, 2, order), nullptr);
         EXPECT_EQ(output[0], 17);
         EXPECT_EQ(output[1], 23);
@@ -60,8 +60,8 @@ TEST_F(LPCCepstrumTests, RejectsOrdersBelowTwoWithoutWritingOutput) {
 }
 
 TEST_F(LPCCepstrumTests, RejectsCepstrumShorterThanOrderPlusOne) {
-    MYFLT cepstrum[] = {0, .5, .125};
-    MYFLT output[] = {17, 23, 29};
+    cs_float cepstrum[] = {0, .5, .125};
+    cs_float output[] = {17, 23, 29};
     EXPECT_EQ(csound->CepsLP(csound, output, cepstrum, 2, 2), nullptr);
     EXPECT_EQ(output[0], 17);
     EXPECT_EQ(output[1], 23);

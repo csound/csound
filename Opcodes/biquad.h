@@ -31,24 +31,24 @@
                                 /* Structure for biquadratic filter */
 typedef struct {
     OPDS    h;
-    MYFLT   *out, *in, *b0, *b1, *b2, *a0, *a1, *a2, *reinit;
-    double  xnm1, xnm2, ynm1, ynm2;
+    cs_float   *out, *in, *b0, *b1, *b2, *a0, *a1, *a2, *reinit;
+    cs_double  xnm1, xnm2, ynm1, ynm2;
 } BIQUAD;
 
                                 /* Structure for moogvcf filter */
 typedef struct {
     OPDS    h;
-    MYFLT   *out, *in, *fco, *res, *max, *iskip;
-    double  xnm1, y1nm1, y2nm1, y3nm1, y1n, y2n, y3n, y4n;
-    MYFLT   maxint, fullscale;
+    cs_float   *out, *in, *fco, *res, *max, *iskip;
+    cs_double  xnm1, y1nm1, y2nm1, y3nm1, y1n, y2n, y3n, y4n;
+    cs_float   maxint, fullscale;
     int16   fcocod, rezcod;
 } MOOGVCF;
 
                                 /* Structure for rezzy filter */
 typedef struct {
     OPDS    h;
-    MYFLT   *out, *in, *fco, *rez, *mode, *iskip;
-    double  xnm1, xnm2, ynm1, ynm2;
+    cs_float   *out, *in, *fco, *rez, *mode, *iskip;
+    cs_double  xnm1, xnm2, ynm1, ynm2;
     int16   fcocod, rezcod;
     int16   warn;
 } REZZY;
@@ -56,15 +56,15 @@ typedef struct {
                                 /* Structure for distortion */
 typedef struct {
     OPDS    h;
-    MYFLT   *out, *in, *pregain, *postgain, *shape1, *shape2, *imode;
+    cs_float   *out, *in, *pregain, *postgain, *shape1, *shape2, *imode;
 } DISTORT;
 
                                 /* Structure for vco, analog modeling opcode */
 typedef struct {
     OPDS    h;
-    MYFLT   *ar,
+    cs_float   *ar,
             *xamp, *xcps, *wave, *pw, *sine, *maxd, *leak, *inyq, *iphs, *iskip;
-   MYFLT   ynm1, ynm2, leaky, nyq, fphs;
+   cs_float   ynm1, ynm2, leaky, nyq, fphs;
     int16   ampcod, cpscod;
   int32   lphs,  floatph;
     FUNC    *ftp;
@@ -77,37 +77,37 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *outx, *outy, *outz, *mass1, *mass2, *sep, *xval, *yval, *zval;
-    MYFLT   *vxval, *vyval, *vzval, *delta, *fric, *iskip;
-    MYFLT   s1z, s2z, friction;
-    MYFLT   x, y, z, vx, vy, vz, ax, ay, az, hstep;
+    cs_float   *outx, *outy, *outz, *mass1, *mass2, *sep, *xval, *yval, *zval;
+    cs_float   *vxval, *vyval, *vzval, *delta, *fric, *iskip;
+    cs_float   s1z, s2z, friction;
+    cs_float   x, y, z, vx, vy, vz, ax, ay, az, hstep;
 } PLANET;
 
 typedef struct {
     OPDS   h;
-    MYFLT  *out, *in, *fc, *v, *q, *mode, *iskip;
-    double xnm1, xnm2, ynm1, ynm2;
-    MYFLT  prv_fc, prv_v, prv_q;
-    double b0, b1, b2, a1, a2;
+    cs_float  *out, *in, *fc, *v, *q, *mode, *iskip;
+    cs_double xnm1, xnm2, ynm1, ynm2;
+    cs_float  prv_fc, prv_v, prv_q;
+    cs_double b0, b1, b2, a1, a2;
     int32_t imode, initialized;
 } PAREQ;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *out, *in, *mode, *maxdel, *del1, *gain1, *del2, *gain2;
-    MYFLT   *del3, *gain3, *istor;
-    MYFLT   *curp, out1, out2, out3;
-    MYFLT   *beg1p, *beg2p, *beg3p, *end1p, *end2p, *end3p;
-    MYFLT   *del1p, *del2p, *del3p;
+    cs_float   *out, *in, *mode, *maxdel, *del1, *gain1, *del2, *gain2;
+    cs_float   *del3, *gain3, *istor;
+    cs_float   *curp, out1, out2, out3;
+    cs_float   *beg1p, *beg2p, *beg3p, *end1p, *end2p, *end3p;
+    cs_float   *del1p, *del2p, *del3p;
     int32   npts, imode;
     AUXCH   auxch;
 } NESTEDAP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *outx, *outy, *outz,
+    cs_float   *outx, *outy, *outz,
             *s, *r, *b, *hstep, *inx, *iny, *inz, *skip, *iskip;
-    MYFLT   valx, valy, valz;
+    cs_float   valx, valy, valz;
 } LORENZ;
 
 /* And also opcodes of  Jens Groh, Munich, Germany.   mail: groh@irt.de */
@@ -115,23 +115,23 @@ typedef struct {
 /* Structure for tbvcf filter */
 typedef struct {
     OPDS    h;
-    MYFLT   *out, *in, *fco, *res, *dist, *asym, *iskip;
-    double  y, y1, y2;
+    cs_float   *out, *in, *fco, *res, *dist, *asym, *iskip;
+    cs_double  y, y1, y2;
     int16   fcocod, rezcod;
 } TBVCF;
 
 /* Structure for mode opcode */
 typedef struct {
     OPDS    h;
-    MYFLT   *aout, *ain, *kfreq, *kq, *reinit;
-    double  xnm1, ynm1, ynm2, a0, a1, a2, d;
-    MYFLT   lfq,lq;
-    MYFLT   limit;
+    cs_float   *aout, *ain, *kfreq, *kq, *reinit;
+    cs_double  xnm1, ynm1, ynm2, a0, a1, a2, d;
+    cs_float   lfq,lq;
+    cs_float   limit;
 } MODE;
 
 typedef struct {
   OPDS h;
-  MYFLT *out;
-  MYFLT *in, *f0, *tau, *reinit;
-  MYFLT x, y;
+  cs_float *out;
+  cs_float *in, *f0, *tau, *reinit;
+  cs_float x, y;
 } MVMFILT;

@@ -47,11 +47,11 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
     }
 
     if (p->auxch.auxp == NULL ||
-        p->auxch.size<sizeof(MYFLT)*(CS_KSMPS * 4)) {
-      MYFLT *fltp;
+        p->auxch.size<sizeof(cs_float)*(CS_KSMPS * 4)) {
+      cs_float *fltp;
       csound->AuxAlloc(csound, (size_t) (CS_KSMPS * 4)
-                               * sizeof(MYFLT), &p->auxch);
-      fltp = (MYFLT *) p->auxch.auxp;
+                               * sizeof(cs_float), &p->auxch);
+      fltp = (cs_float *) p->auxch.auxp;
       p->rrev1 = fltp;   fltp += CS_KSMPS;
       p->rrev2 = fltp;   fltp += CS_KSMPS;
       p->rrev3 = fltp;   fltp += CS_KSMPS;
@@ -65,22 +65,22 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
 
 static int32_t space(CSOUND *csound, SPACE *p)
 {
-    MYFLT   *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
-    MYFLT   distance=FL(1.0), distr, distrsq, direct;
-    MYFLT   *rrev1, *rrev2, *rrev3, *rrev4;
-    MYFLT   torev, localrev, globalrev;
-    MYFLT   xndx, yndx;
-    //MYFLT   half_pi = FL(0.5)*PI_F;
-    MYFLT   sqrt2 = SQRT(FL(2.0));
-    MYFLT   fabxndx, fabyndx;
+    cs_float   *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
+    cs_float   distance=FL(1.0), distr, distrsq, direct;
+    cs_float   *rrev1, *rrev2, *rrev3, *rrev4;
+    cs_float   torev, localrev, globalrev;
+    cs_float   xndx, yndx;
+    //cs_float   half_pi = FL(0.5)*PI_F;
+    cs_float   sqrt2 = SQRT(FL(2.0));
+    cs_float   fabxndx, fabyndx;
     FUNC    *ftp;
     uint32_t indx, halflen;
-    MYFLT   fract;
-    double  ndx;
+    cs_float   fract;
+    cs_double  ndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT revb = *p->reverbamount;
+    cs_float revb = *p->reverbamount;
 
     if (*p->ifn > 0) { /* get xy vals from function table */
       if (UNLIKELY((ftp = p->ftp) == NULL)) goto err1;
@@ -88,7 +88,7 @@ static int32_t space(CSOUND *csound, SPACE *p)
       if (UNLIKELY(!isfinite(*p->time)))
         return csound->PerfError(csound, &(p->h), "%s",
                                 Str("trajectory time must be finite"));
-      ndx = (double)*p->time * RESOLUTION;
+      ndx = (cs_double)*p->time * RESOLUTION;
       halflen = ftp->flen / 2;
 
       /* Clamp before converting to an integer or reading the next xy pair. */
@@ -102,7 +102,7 @@ static int32_t space(CSOUND *csound, SPACE *p)
       }
       else {
         indx = (uint32_t)ndx;
-        fract = (MYFLT)(ndx - indx);
+        fract = (cs_float)(ndx - indx);
       }
 
       xndx = ftp->ftable[indx*2];
@@ -155,17 +155,17 @@ static int32_t space(CSOUND *csound, SPACE *p)
     rrev4 = p->rrev4;
     sigp = p->asig;
     if (UNLIKELY(offset)) {
-      memset(r1, '\0', offset*sizeof(MYFLT));
-      memset(r2, '\0', offset*sizeof(MYFLT));
-      memset(r3, '\0', offset*sizeof(MYFLT));
-      memset(r4, '\0', offset*sizeof(MYFLT));
+      memset(r1, '\0', offset*sizeof(cs_float));
+      memset(r2, '\0', offset*sizeof(cs_float));
+      memset(r3, '\0', offset*sizeof(cs_float));
+      memset(r4, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&r2[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&r3[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&r4[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&r2[nsmps], '\0', early*sizeof(cs_float));
+      memset(&r3[nsmps], '\0', early*sizeof(cs_float));
+      memset(&r4[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
       direct = sigp[n] * distr;
@@ -200,7 +200,7 @@ static int32_t spsend(CSOUND *csound, SPSEND *p)
 {
     IGN(csound);
     SPACE *q = p->space;
-    int32_t nbytes = CS_KSMPS*sizeof(MYFLT);
+    int32_t nbytes = CS_KSMPS*sizeof(cs_float);
 
     memmove(p->r1, q->rrev1, nbytes);
     memmove(p->r2, q->rrev2, nbytes);
@@ -226,12 +226,12 @@ static int32_t spdistset(CSOUND *csound, SPDIST *p)
 
 static int32_t spdist(CSOUND *csound, SPDIST *p)
 {
-    MYFLT      *r;
-    MYFLT       distance, xndx, yndx;
+    cs_float      *r;
+    cs_float       distance, xndx, yndx;
     FUNC       *ftp;
     uint32_t    indx, halflen;
-    MYFLT       fract;
-    double      ndx;
+    cs_float       fract;
+    cs_double      ndx;
 
     r = p->r;
 
@@ -241,7 +241,7 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
       if (UNLIKELY(!isfinite(*p->time)))
         return csound->PerfError(csound, &(p->h), "%s",
                                 Str("trajectory time must be finite"));
-      ndx = (double)*p->time * RESOLUTION;
+      ndx = (cs_double)*p->time * RESOLUTION;
       halflen = ftp->flen / 2;
 
       /* Clamp before converting to an integer or reading the next xy pair. */
@@ -255,7 +255,7 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
       }
       else {
         indx = (uint32_t)ndx;
-        fract = (MYFLT)(ndx - indx);
+        fract = (cs_float)(ndx - indx);
       }
 
       xndx = ftp->ftable[indx*2];

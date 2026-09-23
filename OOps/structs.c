@@ -31,13 +31,13 @@
 #include "csound_orc_structs.h"
 #include "struct_ops.h"
 
-static int32_t nonnegative_index_from_myflt(MYFLT value, int32_t *result)
+static int32_t nonnegative_index_from_myflt(cs_float value, int32_t *result)
 {
-  double widened = (double)value;
+  cs_double widened = (cs_double)value;
 
-  /* Widen before comparing so a float MYFLT cannot round INT32_MAX upward. */
+  /* Widen before comparing so a float cs_float cannot round INT32_MAX upward. */
   if (UNLIKELY(result == NULL || isnan(widened) || widened < 0.0 ||
-               widened > (double)INT32_MAX)) {
+               widened > (INT32_MAX + 0.0))) {
     return NOTOK;
   }
   /* Fractional indexes retain the established truncation behavior. */
@@ -80,7 +80,7 @@ static int32_t struct_value_matches_type(const CS_TYPE *type,
 static int32_t struct_array_flat_index(CSOUND *csound, OPDS *opds,
                                        const char *opcodeName,
                                        const ARRAYDAT *array,
-                                       MYFLT *const *indexes,
+                                       cs_float *const *indexes,
                                        int32_t indexCount,
                                        int32_t initializing,
                                        size_t *result)
@@ -100,7 +100,7 @@ static int32_t struct_array_flat_index(CSOUND *csound, OPDS *opds,
   for (int32_t i = 0; i < indexCount; i++) {
     int32_t coordinate;
     size_t dimension;
-    MYFLT rawIndex;
+    cs_float rawIndex;
 
     if (UNLIKELY(indexes[i] == NULL || array->sizes[i] <= 0)) {
       return initializing
@@ -671,7 +671,7 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
             csound, &dat->h,
             "Could not initialize struct array output");
     }
-    helper->initializeVariableMemory(csound, helper, (MYFLT *)destination);
+    helper->initializeVariableMemory(csound, helper, (cs_float *)destination);
     csound->Free(csound, helper);
   }
   if (UNLIKELY(!struct_value_matches_type(arrayDat->arrayType,

@@ -16,21 +16,21 @@ static int32_t open_input(CSOUND *csound,
   fcntl(0, F_SETFL, mode | O_NDELAY);
 }
 
-static void audio_out(CSOUND *csound, const MYFLT *s, int32_t nbytes) {
+static void audio_out(CSOUND *csound, const cs_float *s, int32_t nbytes) {
   int32_t n, nsmps;
   // number of interleaved samples in buffer
-  nsmps = nbytes / sizeof(MYFLT);
+  nsmps = nbytes / sizeof(cs_float);
   // send each sample to stdout
   for(n = 0; n < nsmps; n++)
     fprintf(stdout, "%f\n", s[n]);
 }
 
-static int32_t audio_in(CSOUND *csound, MYFLT *s, int32_t nbytes) {
+static int32_t audio_in(CSOUND *csound, cs_float *s, int32_t nbytes) {
   struct pollfd fd = {0, POLLIN, 0};
   int32_t cnt = 0, nsmps;
-  MYFLT data;
+  cs_float data;
   // buffer size in samples
-  nsmps = nbytes / sizeof(MYFLT);
+  nsmps = nbytes / sizeof(cs_float);
   // poll for input data on stdin
   if(poll(&fd, 1, 0)) {
     // read each sample from input
@@ -38,7 +38,7 @@ static int32_t audio_in(CSOUND *csound, MYFLT *s, int32_t nbytes) {
       s[cnt++] = data;
   }
   // return the number of samples read
-  return cnt/sizeof(MYFLT);
+  return cnt/sizeof(cs_float);
 }
 
 static void close_device(CSOUND *csound) {
@@ -77,5 +77,5 @@ int32_t csoundModuleInfo(void)
 {
   return ((CS_VERSION << 16) +
           (CS_SUBVER << 8) +
-          (int32_t) sizeof(MYFLT));
+          (int32_t) sizeof(cs_float));
 }

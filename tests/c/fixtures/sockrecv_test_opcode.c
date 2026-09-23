@@ -15,7 +15,7 @@ static ssize_t receive_packet(int, void *, size_t, int, struct sockaddr *, sockl
 #undef recvfrom
 
 static SOCKRECV *receiver;
-static const MYFLT *packet;
+static const cs_float *packet;
 static size_t packet_size;
 
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -32,7 +32,7 @@ static ssize_t receive_packet(int socket, void *out, size_t size, int flags,
 }
 
 void *csound_test_sockrecv_create(CSOUND *cs, INSDS *instance,
-                                 MYFLT *left, MYFLT *right, int32_t samples)
+                                 cs_float *left, cs_float *right, int32_t samples)
 {
     SOCKRECV *p = calloc(1, sizeof(SOCKRECV));
     p->cs = cs;
@@ -40,19 +40,19 @@ void *csound_test_sockrecv_create(CSOUND *cs, INSDS *instance,
     p->ptr1 = left;
     p->ptr2 = right;
     p->channels = right == NULL ? 1 : 2;
-    p->buffsize = MTU / sizeof(MYFLT);
+    p->buffsize = MTU / sizeof(cs_float);
     p->buf = calloc(1, MTU);
     p->tmp.auxp = calloc(1, MTU);
     p->cb = cs->CreateCircularBuffer(cs, samples / p->channels,
-                                    p->channels * sizeof(MYFLT));
+                                    p->channels * sizeof(cs_float));
     return p;
 }
 
-void csound_test_sockrecv_packet(void *state, const MYFLT *data, int32_t samples)
+void csound_test_sockrecv_packet(void *state, const cs_float *data, int32_t samples)
 {
     receiver = state;
     packet = data;
-    packet_size = samples * sizeof(MYFLT);
+    packet_size = samples * sizeof(cs_float);
     receiver->threadon = 1;
     udpRecv(receiver);
 }

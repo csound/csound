@@ -230,9 +230,9 @@ void *csoundCallocAligned(CSOUND *, size_t, size_t);
 }
 
 TEST_F (CircularBufferTests, testAlignedMemory) {
-  MYFLT *p = (MYFLT *) csoundCallocAligned(csound,sizeof(MYFLT)*10, 32);
+  cs_float *p = (cs_float *) csoundCallocAligned(csound,sizeof(cs_float)*10, 32);
   for(int32_t i = 0; i < 10; i++) {
-    p[i] = (MYFLT) i;
+    p[i] = (cs_float) i;
   }
 
   for(int32_t i = 0; i < 10; i++) {

@@ -47,19 +47,19 @@
 
 typedef struct {
   OPDS h;
-  MYFLT *ar, *amp, *kfund, *kform, *kdamp, *knofpulse, *kpulsemul,
+  cs_float *ar, *amp, *kfund, *kform, *kdamp, *knofpulse, *kpulsemul,
     *iftab, *iskip, *icorrect;
   FUNC *ftable;
   int32 timrem;    /* samples left of event */
   int32 pulstogo;  /* count of pulses to produce in burst */
   int32 pulsephs;  /* index into table of this pulse (= MAXLEN / kform) */
   int32 pulseinc;  /* increment in table of pulse */
-  MYFLT pulseamp;  /* amp of current pulse */
-  MYFLT ampdecay;  /* subtract from amp on new pulse */
-  MYFLT lenfact;   /* increase length of next pulse */
+  cs_float pulseamp;  /* amp of current pulse */
+  cs_float ampdecay;  /* subtract from amp on new pulse */
+  cs_float lenfact;   /* increase length of next pulse */
   int32 floatph;
-  double pulsephsf;  /* float index */
-  MYFLT  pulseincf;  /*  float incr */
+  cs_double pulsephsf;  /* float index */
+  cs_float  pulseincf;  /*  float incr */
 } VOSIM;
 
 
@@ -90,7 +90,7 @@ int32_t vosimset(CSOUND* csound, VOSIM *p)
  */
 void vosim_event(CSOUND* csound, VOSIM *p)
 {
-  MYFLT fundabs = FABS(*p->kfund);
+  cs_float fundabs = FABS(*p->kfund);
   /* count of pulses, (+1 since decr at start of pulse) */
   p->pulstogo = 1+(int32)*p->knofpulse;
   if (UNLIKELY(fundabs == FL(0.0))) {                /* infinitely long event */
@@ -174,11 +174,11 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT *ar = p->ar;
-  MYFLT *ftdata;
+  cs_float *ar = p->ar;
+  cs_float *ftdata;
   int32  lobits, floatph = p->floatph, flen;
   /* Legacy power-of-two output holds this amplitude for the whole block. */
-  MYFLT pulseamp = p->pulseamp;
+  cs_float pulseamp = p->pulseamp;
 
   FUNC *ftp = p->ftable;
   if (UNLIKELY(ftp == NULL)) goto err1;
@@ -186,10 +186,10 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
   lobits = ftp->lobits;
   flen = ftp->flen;
 
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset; n<nsmps; n++) {
     /* new event? */

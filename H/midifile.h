@@ -43,27 +43,27 @@ int32_t csoundMIDIFileClose(CSOUND *csound);
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kResult;
-    MYFLT   *num;
+    cs_float   *kResult;
+    cs_float   *num;
 } MIDITEMPO;
 
 typedef struct {
     OPDS    h;
-    MYFLT *res;
+    cs_float *res;
     STRINGDAT *mfile;
-    MYFLT *port;
+    cs_float *port;
 } MFILE;
 
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kstat;
-    MYFLT   *kchn;
-    MYFLT   *kdat1;
-    MYFLT   *kdat2;
-    MYFLT   *ktime;
-    MYFLT   *kevt;
-    MYFLT   *num;
+    cs_float   *kstat;
+    cs_float   *kchn;
+    cs_float   *kdat1;
+    cs_float   *kdat2;
+    cs_float   *ktime;
+    cs_float   *kevt;
+    cs_float   *num;
 } MIDIFEVT;  
   
 /* miditempo opcode: returns the current tempo of MIDI file */

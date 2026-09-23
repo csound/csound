@@ -36,13 +36,13 @@
 static int32_t krsnsetx(CSOUND *csound, KRESONX *p)
 /* Gabriel Maldonado, modified for arb order  */
 {
-  double order = (double)*p->ord;
-  double scale_value = (double)*p->iscl;
+  cs_double order = (cs_double)*p->ord;
+  cs_double scale_value = (cs_double)*p->iscl;
   size_t state_size;
   int32_t clear_state = !*p->istor;
   int32_t new_loop, scale;
-  if (UNLIKELY(!isfinite(scale_value) || scale_value < (double)INT32_MIN ||
-               scale_value > (double)INT32_MAX)) {
+  if (UNLIKELY(!isfinite(scale_value) || scale_value < (cs_double)INT32_MIN ||
+               scale_value > (INT32_MAX + 0.0))) {
     return csound->InitError(csound, Str("illegal reson iscl value, %f"),
                              *p->iscl);
   }
@@ -51,20 +51,20 @@ static int32_t krsnsetx(CSOUND *csound, KRESONX *p)
     return csound->InitError(csound,Str("illegal reson iscl value, %f"),
                              *p->iscl);
   }
-  if (UNLIKELY(!isfinite(order) || order > (double)INT32_MAX - 0.5))
+  if (UNLIKELY(!isfinite(order) || order > (INT32_MAX + 0.0) - 0.5))
     return csound->InitError(csound, Str("resonxk: invalid order %f"),
                              *p->ord);
   new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
-  if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(MYFLT))))
+  if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(cs_float))))
     return csound->InitError(csound, Str("resonxk: order is too large"));
   clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
   p->loop = new_loop;
-  state_size = (size_t)p->loop * 2 * sizeof(MYFLT);
+  state_size = (size_t)p->loop * 2 * sizeof(cs_float);
   if (p->aux.auxp == NULL || state_size > p->aux.size) {
     csound->AuxAlloc(csound, state_size, &p->aux);
     clear_state = 1;
   }
-  p->yt1 = (MYFLT*)p->aux.auxp;
+  p->yt1 = (cs_float*)p->aux.auxp;
   p->yt2 = p->yt1 + p->loop;
   if (clear_state)
     memset(p->yt1, 0, state_size);
@@ -75,9 +75,9 @@ static int32_t krsnsetx(CSOUND *csound, KRESONX *p)
 static int32_t kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified */
 {
   int32_t flag = 0, j;
-  MYFLT       *ar, *asig;
-  MYFLT       c3p1, c3t4, omc3, c2sqr;
-  MYFLT *yt1, *yt2, c1,c2,c3;
+  cs_float       *ar, *asig;
+  cs_float       c3p1, c3t4, omc3, c2sqr;
+  cs_float *yt1, *yt2, c1,c2,c3;
 
   if (*p->kcf != p->prvcf) {
     p->prvcf = *p->kcf;
@@ -129,7 +129,7 @@ static int32_t fastab_set(CSOUND *csound, FASTAB *p)
   p->tablen = ftp->flen;
   p->xmode = (int32_t) *p->ixmode;
   if (p->xmode)
-    p->xbmul = (MYFLT) p->tablen /*- FL(0.001)*/;
+    p->xbmul = (cs_float) p->tablen /*- FL(0.001)*/;
   else
     p->xbmul = FL(1.0);
   return OK;
@@ -142,16 +142,16 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
   uint32_t n, nsmps = CS_KSMPS;
   FUNC *ftp = csound->FTFind(csound, p->xfn);
   p->table = ftp->ftable;
-  MYFLT *tab = p->table;
-  MYFLT *rslt = p->rslt, *ndx = p->xndx;
+  cs_float *tab = p->table;
+  cs_float *rslt = p->rslt, *ndx = p->xndx;
 
 
   if (UNLIKELY(early)) nsmps -= early;
   if (p->xmode) {
-    MYFLT xbmul = p->xbmul;   /* load once */
+    cs_float xbmul = p->xbmul;   /* load once */
     int32_t len = p->tablen;
     for (n=offset; n<nsmps; n++)  { /* for loops compile better */
-      int32_t i = (int32_t)MYFLT2LRND(ndx[n]*xbmul);
+      int32_t i = (int32_t)CS_FLOAT2LRND(ndx[n]*xbmul);
       if (UNLIKELY(i > len || i<0)) {
         csound->Message(csound, "ndx: %f\n", ndx[n]);
         return csound->PerfError(csound, &(p->h), "%s", Str("tabw off end"));
@@ -162,7 +162,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
   else {
     int32_t len = p->tablen;
     for (n=offset; n<nsmps; n++) {
-      int32_t i = MYFLT2LRND(ndx[n]);
+      int32_t i = CS_FLOAT2LRND(ndx[n]);
       if (UNLIKELY(i > len || i<0)) {
         return csound->PerfError(csound, &(p->h), "%s", Str("tabw off end"));
       }
@@ -176,9 +176,9 @@ static int32_t fastabk(CSOUND *csound, FASTAB *p)
 {
   int32_t i;
   if (p->xmode)
-    i = (int32_t) MYFLT2LRND(*p->xndx * p->xbmul);
+    i = (int32_t) CS_FLOAT2LRND(*p->xndx * p->xbmul);
   else
-    i = (int32_t) MYFLT2LRND(*p->xndx);
+    i = (int32_t) CS_FLOAT2LRND(*p->xndx);
   if (UNLIKELY(i > p->tablen || i<0)) {
     return csound->PerfError(csound, &(p->h), Str("tab off end %i"), i);
   }
@@ -190,9 +190,9 @@ static int32_t fastabkw(CSOUND *csound, FASTAB *p)
 {
   int32_t i;
   if (p->xmode)
-    i = (int32_t) MYFLT2LRND(*p->xndx * p->xbmul);
+    i = (int32_t) CS_FLOAT2LRND(*p->xndx * p->xbmul);
   else
-    i = (int32_t) MYFLT2LRND(*p->xndx);
+    i = (int32_t) CS_FLOAT2LRND(*p->xndx);
   if (UNLIKELY(i > p->tablen || i<0)) {
     return csound->PerfError(csound, &(p->h), "%s", Str("tabw off end"));
   }
@@ -209,9 +209,9 @@ static int32_t fastabi(CSOUND *csound, FASTAB *p)
     return csound->InitError(csound, "%s", Str("tab_i: incorrect table number"));
   }
   if (*p->ixmode)
-    i = (int32) MYFLT2LRND(*p->xndx * ftp->flen);
+    i = (int32) CS_FLOAT2LRND(*p->xndx * ftp->flen);
   else
-    i = (int32) MYFLT2LRND(*p->xndx);
+    i = (int32) CS_FLOAT2LRND(*p->xndx);
   if (UNLIKELY(i >= (int32)ftp->flen || i<0)) {
     return csound->InitError(csound, Str("tab_i off end: table number: %d\n"),
                              (int32_t) *p->xfn);
@@ -229,9 +229,9 @@ static int32_t fastabiw(CSOUND *csound, FASTAB *p)
     return csound->InitError(csound, "%s", Str("tabw_i: incorrect table number"));
   }
   if (*p->ixmode)
-    i = (int32) MYFLT2LRND(*p->xndx * ftp->flen);
+    i = (int32) CS_FLOAT2LRND(*p->xndx * ftp->flen);
   else
-    i = (int32) MYFLT2LRND(*p->xndx);
+    i = (int32) CS_FLOAT2LRND(*p->xndx);
   if (UNLIKELY(i >= (int32)ftp->flen || i<0)) {
     return csound->PerfError(csound, &(p->h), "%s", Str("tabw_i off end"));
   }
@@ -246,18 +246,18 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
   uint32_t i, nsmps = CS_KSMPS;
   FUNC *ftp = csound->FTFind(csound, p->xfn);
   p->table = ftp->ftable;
-  MYFLT *tab = p->table;
-  MYFLT *rslt = p->rslt, *ndx = p->xndx;
-  if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
+  cs_float *tab = p->table;
+  cs_float *rslt = p->rslt, *ndx = p->xndx;
+  if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rslt[nsmps], '\0', early*sizeof(cs_float));
   }
   if (p->xmode) {
-    MYFLT xbmul = p->xbmul;
+    cs_float xbmul = p->xbmul;
     int32_t len = p->tablen;
     for (i=offset; i<nsmps; i++) {
-      int32_t n = (int32_t) MYFLT2LRND(ndx[i] * xbmul);
+      int32_t n = (int32_t) CS_FLOAT2LRND(ndx[i] * xbmul);
       if (UNLIKELY(n > len || n<0)) {
         return csound->PerfError(csound, &(p->h), Str("tab off end %d"),n);
       }
@@ -267,7 +267,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
   else {
     int32_t len = p->tablen;
     for (i=offset; i<nsmps; i++) {
-      int32_t n = (int32_t) MYFLT2LRND(ndx[i]);
+      int32_t n = (int32_t) CS_FLOAT2LRND(ndx[i]);
       if (UNLIKELY(n > len || n<0)) {
         return csound->PerfError(csound, &(p->h), Str("tab off end %d"),n);
       }
@@ -292,7 +292,7 @@ static CS_NOINLINE int32_t tab_init(CSOUND *csound, TB_INIT *p, int32_t ndx)
 static CS_NOINLINE int32_t tab_perf(CSOUND *csound, FASTB *p)
 {
   IGN(csound);
-  *p->r = (*p->tb_ptr)[(int32_t) MYFLT2LRND(*p->ndx)];
+  *p->r = (*p->tb_ptr)[(int32_t) CS_FLOAT2LRND(*p->ndx)];
   return OK;
 }
 
@@ -363,42 +363,42 @@ static int32_t nlalp(CSOUND *csound, NLALP *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT *rp;
-  MYFLT *ip;
-  double m0;
-  double m1;
-  double tm0;
-  double tm1;
-  double klfact;
-  double knfact;
+  cs_float *rp;
+  cs_float *ip;
+  cs_double m0;
+  cs_double m1;
+  cs_double tm0;
+  cs_double tm1;
+  cs_double klfact;
+  cs_double knfact;
 
   rp = p->aresult;
   ip = p->ainsig;
-  klfact = (double)*p->klfact;
-  knfact = (double)*p->knfact;
+  klfact = (cs_double)*p->klfact;
+  knfact = (cs_double)*p->knfact;
   tm0 = p->m0;
   tm1 = p->m1;
-  if (UNLIKELY(offset)) memset(rp, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(rp, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rp[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rp[nsmps], '\0', early*sizeof(cs_float));
   }
   if (knfact == 0.0) { /* linear case */
     if (UNLIKELY(klfact == 0.0)) { /* degenerated linear case */
-      m0 = (double)ip[0] - tm1;
-      rp[offset] = (MYFLT)(tm0);
+      m0 = (cs_double)ip[0] - tm1;
+      rp[offset] = (cs_float)(tm0);
       for (n=offset+1; n<nsmps; n++) {
-        rp[n] = (MYFLT)(m0);
-        m0 = (double)ip[n];
+        rp[n] = (cs_float)(m0);
+        m0 = (cs_double)ip[n];
       }
       tm1 = 0.0;
       tm0 = m0;
     }
     else { /* normal linear case */
       for (n=offset; n<nsmps; n++) {
-        m0 = (double)ip[n] - tm1;
+        m0 = (cs_double)ip[n] - tm1;
         m1 = m0 * klfact;
-        rp[n] = (MYFLT)(tm0 + m1);
+        rp[n] = (cs_float)(tm0 + m1);
         tm1 = m1;
         tm0 = m0;
       }
@@ -406,17 +406,17 @@ static int32_t nlalp(CSOUND *csound, NLALP *p)
   } else { /* non-linear case */
     if (UNLIKELY(klfact == 0.0)) { /* simplified non-linear case */
       for (n=offset; n<nsmps; n++) {
-        m0 = (double)ip[n] - tm1;
+        m0 = (cs_double)ip[n] - tm1;
         m1 = fabs(m0) * knfact;
-        rp[n] = (MYFLT)(tm0 + m1);
+        rp[n] = (cs_float)(tm0 + m1);
         tm1 = m1;
         tm0 = m0;
       }
     } else { /* normal non-linear case */
       for (n=offset; n<nsmps; n++) {
-        m0 = (double)ip[n] - tm1;
+        m0 = (cs_double)ip[n] - tm1;
         m1 = m0 * klfact + fabs(m0) * knfact;
-        rp[n] = (MYFLT)(tm0 + m1);
+        rp[n] = (cs_float)(tm0 + m1);
         tm1 = m1;
         tm0 = m0;
       }
@@ -434,7 +434,7 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     FUNC    *ftp;
     uint32_t count;
     int32   *lphs;
-    double *fphs;
+    cs_double *fphs;
     p->inerr = 0;
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
@@ -476,16 +476,16 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
                                        "than amptable size!"));
   }
     if (p->lphs.auxp==NULL ||
-        p->lphs.size < sizeof(double)*count)
-      csound->AuxAlloc(csound, sizeof(double)*count, &p->lphs);
+        p->lphs.size < sizeof(cs_double)*count)
+      csound->AuxAlloc(csound, sizeof(cs_double)*count, &p->lphs);
     lphs = (int32*)p->lphs.auxp;
-    fphs = (double*)p->lphs.auxp;
+    fphs = (cs_double*)p->lphs.auxp;
     if (*p->iphs > 1) {
       do {
         if(p->floatph)
           *fphs++ = PHMOD1((csound->Rand31(csound->RandSeed31(csound)) - 1)/ 2147483645.0);
         else
-         *lphs++ = ((int32) ((MYFLT) ((double)(csound->Rand31(csound->RandSeed31(csound)) - 1) / 2147483645.0)* FMAXLEN)) & PHMASK;
+         *lphs++ = ((int32) ((cs_float) ((cs_double)(csound->Rand31(csound->RandSeed31(csound)) - 1) / 2147483645.0)* FMAXLEN)) & PHMASK;
       } while (--count);
     }
     else if (*p->iphs >= 0) {
@@ -497,14 +497,14 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
       } while (--count);
     }
   if (p->pamp.auxp==NULL ||
-      p->pamp.size < (uint32_t)(sizeof(MYFLT)*p->count))
-    csound->AuxAlloc(csound, sizeof(MYFLT)*p->count, &p->pamp);
+      p->pamp.size < (uint32_t)(sizeof(cs_float)*p->count))
+    csound->AuxAlloc(csound, sizeof(cs_float)*p->count, &p->pamp);
 
   if(*p->iphs >= 0) {
   // linear
-  if(!*p->interp) memset(p->pamp.auxp, 0, sizeof(MYFLT)*p->count);
+  if(!*p->interp) memset(p->pamp.auxp, 0, sizeof(cs_float)*p->count);
   else { // expon
-    MYFLT *pamp = (MYFLT *) p->pamp.auxp;
+    cs_float *pamp = (cs_float *) p->pamp.auxp;
     for(count = 0;count<p->count;count++) {
       pamp[count] = 0.0001*csound->Get0dBFS(csound);
     }
@@ -516,16 +516,16 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
 static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
 {
     FUNC    *ftp, *freqtp, *amptp;
-    MYFLT   *ar, *ftbl, *freqtbl, *amptbl, *prevAmp;
-    MYFLT   amp0, amp, cps0, cps, ampIncr, amp2, incf, onedsamps;
+    cs_float   *ar, *ftbl, *freqtbl, *amptbl, *prevAmp;
+    cs_float   amp0, amp, cps0, cps, ampIncr, amp2, incf, onedsamps;
     int32   phs, inc, lobits;
-    double  *fphs, phsf;
+    cs_double  *fphs, phsf;
     int32   *lphs;
     int32_t     c, count, flen = p->ftp->flen, floatph = p->floatph;;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT odbfs = csound->Get0dBFS(csound);
+    cs_float odbfs = csound->Get0dBFS(csound);
     int32_t interp = (int32_t) *p->interp;
 
   /* I believe this can never happen as InitError will remove instance */
@@ -541,15 +541,15 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
     amptp = p->amptp;
     amptbl = amptp->ftable;
     lphs = (int32*)p->lphs.auxp;
-        fphs = (double*)p->lphs.auxp;
-    prevAmp = (MYFLT*)p->pamp.auxp;
+        fphs = (cs_double*)p->lphs.auxp;
+    prevAmp = (cs_float*)p->pamp.auxp;
 
     cps0 = *p->kcps;
     amp0 = *p->kamp;
     count = p->count;
 
     ar = p->sr;
-    memset(ar, 0, nsmps*sizeof(MYFLT));
+    memset(ar, 0, nsmps*sizeof(cs_float));
     nsmps -= early;
     if (UNLIKELY(offset >= nsmps)) return OK;
     /* Reach the next amplitude target over this block's active samples. */
@@ -601,7 +601,7 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
 static int32_t exitnow(CSOUND *csound, EXITNOW *p)
 {
   (void) p;
-  csound->LongJmp(csound, MYFLT2LRND(*p->retval));
+  csound->LongJmp(csound, CS_FLOAT2LRND(*p->retval));
   return OK;  /* compiler only */
 }
 
@@ -715,7 +715,7 @@ static int32_t isChanged_set(CSOUND *csound,ISCHANGED *p)
 {
   IGN(csound);
   p->numargs = p->INOCOUNT;
-  memset(p->old_inargs, 0, sizeof(MYFLT)*p->numargs); /* Initialise */
+  memset(p->old_inargs, 0, sizeof(cs_float)*p->numargs); /* Initialise */
   p->cnt = 1;
   return OK;
 }
@@ -723,8 +723,8 @@ static int32_t isChanged_set(CSOUND *csound,ISCHANGED *p)
 static int32_t isChanged(CSOUND *csound,ISCHANGED *p)
 {
   IGN(csound);
-  MYFLT **inargs = p->inargs;
-  MYFLT *old_inargs = p->old_inargs;
+  cs_float **inargs = p->inargs;
+  cs_float *old_inargs = p->old_inargs;
   int32_t numargs = p->numargs, ktrig = 0, j;
 
   if (LIKELY(p->cnt))
@@ -740,7 +740,7 @@ static int32_t isChanged(CSOUND *csound,ISCHANGED *p)
       old_inargs[j] = *inargs[j];
     }
   }
-  *p->ktrig = (MYFLT) ktrig;
+  *p->ktrig = (cs_float) ktrig;
   p->cnt = 1;
   return OK;
 }
@@ -814,8 +814,8 @@ static int32_t partial_maximum(CSOUND *csound,P_MAXIMUM *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   int32_t flag = (int32_t) *p->imaxflag;
-  MYFLT *a = p->asig;
-  MYFLT max = p->max;
+  cs_float *a = p->asig;
+  cs_float max = p->max;
   if (UNLIKELY(early)) nsmps -= early;
   if (UNLIKELY(offset >= nsmps)) return OK;
   /* Seed extrema from the signal instead of imposing a fixed value limit. */
@@ -825,7 +825,7 @@ static int32_t partial_maximum(CSOUND *csound,P_MAXIMUM *p)
   switch(flag) {
   case 1: /* absolute maximum */
     for (n=offset; n<nsmps; n++) {
-      MYFLT temp;
+      cs_float temp;
       if ((temp = FABS(a[n])) > max) max = temp;
     }
     p->max = max;
@@ -843,7 +843,7 @@ static int32_t partial_maximum(CSOUND *csound,P_MAXIMUM *p)
     p->max = max;
     break;
   case 4: { /* average */
-    MYFLT temp = FL(0.0);
+    cs_float temp = FL(0.0);
     for (n=offset; n<nsmps; n++) {
       temp += a[n];
     }
@@ -855,7 +855,7 @@ static int32_t partial_maximum(CSOUND *csound,P_MAXIMUM *p)
                              "%s", Str("max_k: invalid imaxflag value"));
   }
   if (*p->ktrig) {
-    *p->kout = flag == 4 ? p->max / (MYFLT)p->counter : p->max;
+    *p->kout = flag == 4 ? p->max / (cs_float)p->counter : p->max;
     p->counter = 0;
     p->max = FL(0.0);
   }
@@ -874,15 +874,15 @@ static int32_t mandel_set(CSOUND *csound,MANDEL *p)
 
 static int32_t mandel(CSOUND *csound,MANDEL *p)
 {
-  MYFLT px=*p->kx, py=*p->ky;
-  MYFLT limit = *p->kmaxIter;
+  cs_float px=*p->kx, py=*p->ky;
+  cs_float limit = *p->kmaxIter;
   if (*p->ktrig && (p->oldCount < 0 || px != p->oldx || py != p->oldy ||
                    limit != p->oldMaxIter)) {
-    if (UNLIKELY(!((double)limit >= 0.0 && (double)limit <= INT32_MAX)))
+    if (UNLIKELY(!((cs_double)limit >= 0.0 && (cs_double)limit <= (INT32_MAX + 0.0))))
       return csound->PerfError(csound, &(p->h), "%s",
                                Str("mandel: iteration limit out of range"));
     int32_t maxIter = (int32_t) limit, j;
-    MYFLT x=FL(0.0), y=FL(0.0), newx, newy;
+    cs_float x=FL(0.0), y=FL(0.0), newx, newy;
     /* Preserve the historical zero-based escape count. */
     for (j=0; j<maxIter; j++) {
       newx = x*x - y*y + px;
@@ -896,10 +896,10 @@ static int32_t mandel(CSOUND *csound,MANDEL *p)
     p->oldMaxIter = limit;
     if (p->oldCount != j) *p->koutrig = FL(1.0);
     else *p->koutrig = FL(0.0);
-    *p->kr = (MYFLT) (p->oldCount = j);
+    *p->kr = (cs_float) (p->oldCount = j);
   }
   else {
-    *p->kr = (MYFLT) p->oldCount;
+    *p->kr = (cs_float) p->oldCount;
     *p->koutrig = FL(0.0);
   }
   return OK;

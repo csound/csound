@@ -33,6 +33,6 @@
 
 typedef struct {
         uint32_t headersize, lpmagic, npoles, nvals;
-        MYFLT   framrate, srate, duration;
+        cs_float   framrate, srate, duration;
         char    text[4];
 } LPHEADER;

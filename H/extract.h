@@ -29,8 +29,8 @@ typedef struct extractStatics__ {
     char    inslst[INSMAX];         /*   values set by readxfil         */
     int32_t     sectno, a0done;
     int32_t     onsect, offsect;        /*      "       "       "           */
-    MYFLT   onbeat, offbeat;        /*      "       "       "           */
-    MYFLT   ontime, offtime;        /* set by readxfil, mod by w-stmnt  */
+    cs_float   onbeat, offbeat;        /*      "       "       "           */
+    cs_float   ontime, offtime;        /* set by readxfil, mod by w-stmnt  */
     SRTBLK  *frstout, *prvout;      /* links for building new outlist   */
     SRTBLK  a0;
     SRTBLK  f0;

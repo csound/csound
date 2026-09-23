@@ -29,10 +29,10 @@
 
 typedef struct {
   OPDS    h;
-  MYFLT    *xfn, *outargs[VARGMAX];
+  cs_float    *xfn, *outargs[VARGMAX];
   int32_t nargs;
-  MYFLT    pfn;
-  MYFLT   *ftable;
+  cs_float    pfn;
+  cs_float   *ftable;
 } MTABLE1;
 
 
@@ -54,8 +54,8 @@ static int32_t  mtable1_set(CSOUND *csound, MTABLE1 *p) /* mtab by G.Maldonado *
 static int32_t  mtable1_k(CSOUND *csound, MTABLE1 *p)
 {
   int32_t j, nargs = p->nargs;
-  MYFLT **out = p->outargs;
-  MYFLT *table;
+  cs_float **out = p->outargs;
+  cs_float *table;
   if (p->pfn != *p->xfn) {
     FUNC *ftp;
     if (UNLIKELY( (ftp = csound->FTFind(csound, p->xfn) ) == NULL))
@@ -82,17 +82,17 @@ static int32_t  mtable1_k(CSOUND *csound, MTABLE1 *p)
 
 typedef struct  {
   OPDS    h;
-  MYFLT   *out1, *out2, *amp, *freq, *kloop, *kend, *ift, *iphs;
+  cs_float   *out1, *out2, *amp, *freq, *kloop, *kend, *ift, *iphs;
   int64_t    tablen;
-  MYFLT *ft; /*table */
-  double  phs, fsrUPsr /* , looplength */;
+  cs_float *ft; /*table */
+  cs_double  phs, fsrUPsr /* , looplength */;
   int64_t    phs_int;
 } LPOSC_ST;
 
 static int32_t lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
 {
   FUNC *ftp;
-  double  loop, end, looplength, fsr;
+  cs_double  loop, end, looplength, fsr;
   if (UNLIKELY((ftp = csound->FTFind(csound, p->ift)) == NULL))
     return csound->InitError(csound, "%s", Str("invalid function"));
   if (UNLIKELY(!(fsr = ftp->gen01args.sample_rate))) {
@@ -123,9 +123,9 @@ static int32_t lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
 static int32_t lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
 {
   IGN(csound);
-  double  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
-  MYFLT   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
-  MYFLT   *ft =  p->ft;
+  cs_double  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
+  cs_float   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
+  cs_float   *ft =  p->ft;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -137,22 +137,22 @@ static int32_t lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
   if (end < loop+2) end = loop + 2;
   looplength = end - loop;
   if (UNLIKELY(offset)) {
-    memset(out1, '\0', offset*sizeof(MYFLT));
-    memset(out2, '\0', offset*sizeof(MYFLT));
+    memset(out1, '\0', offset*sizeof(cs_float));
+    memset(out2, '\0', offset*sizeof(cs_float));
   }
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-    memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+    memset(&out2[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset; n<nsmps; n++) {
-    double fract;
-    MYFLT amplitude = amp[n];
-    MYFLT *curr_samp1 = ft + (int64_t) *phs * 2;
-    MYFLT *curr_samp2 = curr_samp1 +1;
+    cs_double fract;
+    cs_float amplitude = amp[n];
+    cs_float *curr_samp1 = ft + (int64_t) *phs * 2;
+    cs_float *curr_samp2 = curr_samp1 +1;
     fract= *phs - (int64_t) *phs;
-    out1[n] = amplitude * (MYFLT)(*curr_samp1 +(*(curr_samp1+2)-*curr_samp1)*fract);
-    out2[n] = amplitude * (MYFLT)(*curr_samp2 +(*(curr_samp2+2)-*curr_samp2)*fract);
+    out1[n] = amplitude * (cs_float)(*curr_samp1 +(*(curr_samp1+2)-*curr_samp1)*fract);
+    out2[n] = amplitude * (cs_float)(*curr_samp2 +(*(curr_samp2+2)-*curr_samp2)*fract);
     *phs += si;
     while (*phs  >= end) *phs -= looplength;
     while (*phs  < loop) *phs += looplength;
@@ -165,8 +165,8 @@ static int32_t lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
      /*in integer values (twice, three times etc.) so it is faster */
   IGN(csound);
   int64_t    *phs = &p->phs_int, si = (int64_t) *p->freq;
-  MYFLT   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
-  MYFLT   *ft =  p->ft;
+  cs_float   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
+  cs_float   *ft =  p->ft;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -179,19 +179,19 @@ static int32_t lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
   looplength = end - loop;
 
   if (UNLIKELY(offset)) {
-    memset(out1, '\0', offset*sizeof(MYFLT));
-    memset(out2, '\0', offset*sizeof(MYFLT));
+    memset(out1, '\0', offset*sizeof(cs_float));
+    memset(out2, '\0', offset*sizeof(cs_float));
   }
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-    memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+    memset(&out2[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset; n<nsmps; n++) {
-    MYFLT amplitude = amp[n];
-    MYFLT *curr_samp1 = ft + *phs * 2;
-    out1[n] = amplitude * (MYFLT) *curr_samp1 ;
-    out2[n] = amplitude * (MYFLT) *(curr_samp1+1) ;
+    cs_float amplitude = amp[n];
+    cs_float *curr_samp1 = ft + *phs * 2;
+    out1[n] = amplitude * (cs_float) *curr_samp1 ;
+    out2[n] = amplitude * (cs_float) *(curr_samp1+1) ;
     *phs += si;
     while (*phs  >= end) *phs -= looplength;
     while (*phs  < loop) *phs += looplength;
@@ -205,8 +205,8 @@ static int32_t lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
 #include "vectorial.h"
 typedef struct  {       /* gab d5*/
   OPDS    h;
-  MYFLT   *out, *ktrig, *min, *max;
-  MYFLT   lastvalue;
+  cs_float   *out, *ktrig, *min, *max;
+  cs_float   lastvalue;
 } TRANGERAND;
 
 static int32_t trRangeRand_set(CSOUND *csound, TRANGERAND *p)
@@ -233,15 +233,15 @@ static int32_t trRangeRand(CSOUND *csound, TRANGERAND *p)
 typedef struct
 {
   OPDS    h;
-  MYFLT   *rcar, *rmod;
-  MYFLT   *kfreq_max, *kfreq_min, *kband_max, *kband_min;
+  cs_float   *rcar, *rmod;
+  cs_float   *kfreq_max, *kfreq_min, *kband_max, *kband_min;
 } DSH;
 
 
 
 static int32_t dashow(CSOUND *csound, DSH *p)
 {
-  MYFLT range = *p->kband_max - *p->kband_min;
+  cs_float range = *p->kband_max - *p->kband_min;
   if (range != FL(0.0))
     *p->rmod = (*p->kfreq_max - *p->kfreq_min) / range;
   else
@@ -308,7 +308,7 @@ PUBLIC  int32_t     csoundModuleInit(CSOUND *csound)
 
 PUBLIC int32_t csoundModuleInfo(void)
 {
-  return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+  return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(cs_float));
 }
 
 PUBLIC  int32_t     csoundModuleDestroy(CSOUND *csound)

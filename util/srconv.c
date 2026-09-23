@@ -65,7 +65,7 @@
 #if 0
 static  void    usage(CSOUND *);
 
-static int32_t writebuffer(CSOUND *csound, MYFLT *out_buf, int32_t *block,
+static int32_t writebuffer(CSOUND *csound, cs_float *out_buf, int32_t *block,
                        SNDFILE *outfd, int32_t length,const OPARMS **oparms)
 {
     csound->SndfileWriteSamples(csound, outfd, out_buf, length);
@@ -144,7 +144,7 @@ static void dieu(CSOUND *csound, char *s)
 
 static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
 {
-    MYFLT
+    cs_float
       *input,     /* pointer to start of input buffer */
       *output,    /* pointer to start of output buffer */
       *nextIn,    /* pointer to next empty word in input */
@@ -175,14 +175,14 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
       n,                        /* current input sample */
       nMax = 2000000000;        /* last input sample (unless EOF) */
 
-    MYFLT
+    cs_float
       beta = FL(6.8),           /* parameter for Kaiser window */
       sum,                      /* scale factor for renormalizing windows */
       fdel,                     /* float del */
       idel,                     /* float del */
       fo,                       /* float o */
       of,                       /* fractional o */
-      fL = (MYFLT) L,           /* float L */
+      fL = (cs_float) L,           /* float L */
       iw,                       /* interpolated window */
       tvx0 = 0,                 /* current x value of time-var function */
       tvx1 = 0,                 /* next x value of time-var function */
@@ -210,7 +210,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
     FILE        *tvfp = NULL;   /* time-vary function file */
     SOUNDIN     *p;
     int32_t         channel = ALLCHNLS;
-    MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
+    cs_float       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
     char        *infile = NULL, *bfile = NULL;
     SNDFILE     *inf = NULL;
     char        c, *s;
@@ -308,7 +308,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
           case 'P':
             FIND(Str("No P argument"))
 #if defined(USE_DOUBLE)
-            csound->Sscanf(s,"%lf", &P);
+            csound->Sscanf(s,"%" CS_DOUBLE_SCAN, &P);
 #else
             csound->Sscanf(s,"%f", &P);
 #endif
@@ -317,7 +317,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
           case 'r':
             FIND(Str("No r argument"))
 #if defined(USE_DOUBLE)
-            csound->Sscanf(s,"%lf", &Rout);
+            csound->Sscanf(s,"%" CS_DOUBLE_SCAN, &Rout);
 #else
             csound->Sscanf(s,"%f", &Rout);
 #endif
@@ -357,7 +357,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
       return -1;
     }
     if (Rin == FL(0.0))
-      Rin = (MYFLT)p->sr;
+      Rin = (cs_float)p->sr;
     if (Chans == 0)
       Chans = (int) p->nchanls;
     if (Chans == 0)
@@ -387,13 +387,13 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
             strNcpy(err_msg, Str("srconv: tvlen <= 0 "), 256);
             goto err_rtn_msg;
        }
-      fxval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
-      fyval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
+      fxval = (cs_float*) csound->Malloc(csound, tvlen * sizeof(cs_float));
+      fyval = (cs_float*) csound->Malloc(csound, tvlen * sizeof(cs_float));
       i0 = fxval;
       i1 = fyval;
       for (i = 0; i < tvlen; i++, i0++, i1++) {
 #ifdef USE_DOUBLE
-        if ((fscanf(tvfp, "%lf %lf", i0, i1)) != 2)
+        if ((fscanf(tvfp, "%" CS_DOUBLE_SCAN " %" CS_DOUBLE_SCAN, i0, i1)) != 2)
 #else
         if ((fscanf(tvfp, "%f %f", i0, i1)) != 2)
 #endif
@@ -467,7 +467,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
       SFLIB_INFO sfinfo;
       char    *name;
       memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-      sfinfo.samplerate = (int) ((double) Rout + 0.5);
+      sfinfo.samplerate = (int) ((cs_double) Rout + 0.5);
       sfinfo.channels = (int) p->nchanls;
       //printf("filetyp=%x outformat=%x\n", O->filetyp, O->outformat);
       sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
@@ -500,7 +500,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
                                       O->outfilename);
       csound->SndfileCommand(csound,outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
     }
-    (csound->GetUtility(csound))->SetUtilSr(csound, (MYFLT)p->sr);
+    (csound->GetUtility(csound))->SetUtilSr(csound, (cs_float)p->sr);
     (csound->GetUtility(csound))->SetUtilNchnls(csound, Chans = p->nchanls);
 
     outbufsiz = OBUF * O->sndfileSampleSize;                   /* calc outbuf size */
@@ -524,9 +524,9 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
     then window is ipulse response of lowpass filter with cutoff frequency
     at half of Rin. */
 
-    fdel = ((MYFLT) (L * Rin) / Rout);
-    del = (int) ((double) fdel + 0.5);
-    idel = (MYFLT) del;
+    fdel = ((cs_float) (L * Rin) / Rout);
+    del = (int) ((cs_double) fdel + 0.5);
+    idel = (cs_float) del;
     if (del > L)
       N = del;
     if ((Q >= 1) && (Q <= 8))
@@ -542,30 +542,30 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
     window += WinLen;
     wLen = (M/2 - L) / L;
 
-    kaiser(M, window, WinLen, 1, (double) beta);
+    kaiser(M, window, WinLen, 1, (cs_double) beta);
 
     for (i = 1; i <= WinLen; i++) {
-      double  tmp = (double) N;
-      tmp = tmp * sin(PI * (double) i / tmp) / (PI * (double) i);
-      window[i] = (float) ((double) window[i] * tmp);
+      cs_double  tmp = (cs_double) N;
+      tmp = tmp * sin(PI * (cs_double) i / tmp) / (PI * (cs_double) i);
+      window[i] = (float) ((cs_double) window[i] * tmp);
     }
 
     if (Rout < Rin) {
 #if 0
-      sum = (MYFLT) window[0];
+      sum = (cs_float) window[0];
       for (i = L-1; i <= WinLen; i += L)
-        sum += (MYFLT) window[i];
+        sum += (cs_float) window[i];
       sum = FL(2.0) / sum;
 #else
-      sum = Rout / (Rin * (MYFLT) window[0]);
+      sum = Rout / (Rin * (cs_float) window[0]);
 #endif
     }
     else
-      sum = FL(1.0) / (MYFLT) window[0];
+      sum = FL(1.0) / (cs_float) window[0];
 
-    window[0] = (float) ((double) window[0] * (double) sum);
+    window[0] = (float) ((cs_double) window[0] * (cs_double) sum);
     for (i = 1; i <= WinLen; i++) {
-      window[i] = (float) ((double) window[i] * (double) sum);
+      window[i] = (float) ((cs_double) window[i] * (cs_double) sum);
       *(window - i) = window[i];
     }
 
@@ -576,13 +576,13 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
     nextIn jumps back to the beginning, and the old values
     are written over. */
 
-    input = (MYFLT*) csound->Calloc(csound, (size_t) IBUF * sizeof(MYFLT));
+    input = (cs_float*) csound->Calloc(csound, (size_t) IBUF * sizeof(cs_float));
 
  /* set up output buffer:  nextOut always points to the next empty
     word in the output buffer.  If the buffer is full, then
     it is flushed, and nextOut jumps back to the beginning. */
 
-    output = (MYFLT*) csound->Calloc(csound, (size_t) OBUF * sizeof(MYFLT));
+    output = (cs_float*) csound->Calloc(csound, (size_t) OBUF * sizeof(cs_float));
     nextOut = output;
 
  /* initialization: */
@@ -622,7 +622,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
             k += Chans;
             if (k >= IBUF)
               k -= IBUF;
-            *nextOut += (MYFLT) *wj * *(input + k);
+            *nextOut += (cs_float) *wj * *(input + k);
           }
           nextOut++;
           if (nextOut >= (output + OBUF)) {
@@ -679,7 +679,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
             k += Chans;
             if (k >= IBUF)
               k -= IBUF;
-            iw = (MYFLT) *wj + of * ((MYFLT) *wj1 - (MYFLT) *wj);
+            iw = (cs_float) *wj + of * ((cs_float) *wj1 - (cs_float) *wj);
             *nextOut += iw * *(input + k);
           }
           nextOut++;
@@ -735,7 +735,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
             }
           }
           P = tvy0 + tvslope * (time - tvx0);
-          fdel = (MYFLT) L * P;
+          fdel = (cs_float) L * P;
         }
       }
 
@@ -807,9 +807,9 @@ static void usage(CSOUND *csound)
       csound->Message(csound, "%s\n", Str(usage_txt[i]));
 }
 
-static double ino(double x)
+static cs_double ino(cs_double x)
 {
-    double  y, t, e, de, sde, xi;
+    cs_double  y, t, e, de, sde, xi;
     int32_t     i;
 
     y = x * 0.5;
@@ -817,7 +817,7 @@ static double ino(double x)
     e = 1.0;
     de = 1.0;
     for (i = 1; i <= 25; i++) {
-      xi = (double) i;
+      xi = (cs_double) i;
       de = de * y / xi;
       sde = de * de;
       e += sde;
@@ -827,7 +827,7 @@ static double ino(double x)
     return e;
 }
 
-static void kaiser(int32_t nf, float *w, int32_t n, int32_t ieo, double beta)
+static void kaiser(int32_t nf, float *w, int32_t n, int32_t ieo, cs_double beta)
 {
 
 /*
@@ -838,18 +838,18 @@ static void kaiser(int32_t nf, float *w, int32_t n, int32_t ieo, double beta)
  beta = parameter of kaiser window
 */
 
-    double  bes, xind, xi;
+    cs_double  bes, xind, xi;
     int32_t     i;
 
     bes = ino(beta);
-    xind = (double) ((nf - 1) * (nf - 1));
+    xind = (cs_double) ((nf - 1) * (nf - 1));
 
     for (i = 0; i < n; i++) {
-      xi = (double) i;
+      xi = (cs_double) i;
       if (ieo == 0)
         xi += 0.5;
       xi = 4.0 * xi * xi;
-      xi = sqrt(1.0 - (double) (xi / xind));
+      xi = sqrt(1.0 - (cs_double) (xi / xind));
       w[i] = (float) (ino(beta * xi) / bes);
     }
 }

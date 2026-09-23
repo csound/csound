@@ -105,15 +105,15 @@ typedef struct devparams_ {
     void            *buf;           /* sample conversion buffer         */
     char            *device;        /* device name                      */
     int32_t             format;         /* sample format                    */
-    int32_t             sampleSize;     /* MYFLT sample frame size in bytes */
+    int32_t             sampleSize;     /* cs_float sample frame size in bytes */
     uint32_t        srate;          /* sample rate in Hz                */
     int32_t             nchns;          /* number of channels               */
     int32_t             buffer_smps;    /* buffer length in samples         */
     int32_t             period_smps;    /* period time in samples           */
     /* playback sample conversion function */
-    void            (*playconv)(int32_t, MYFLT *, void *, int32_t *);
+    void            (*playconv)(int32_t, cs_float *, void *, int32_t *);
     /* record sample conversion function */
-    void            (*rec_conv)(int32_t, void *, MYFLT *);
+    void            (*rec_conv)(int32_t, void *, cs_float *);
     int32_t             seed;           /* random seed for dithering        */
 } DEVPARAMS;
 
@@ -190,17 +190,17 @@ int32_t set_scheduler_priority(CSOUND *csound, int32_t priority)
 
 /* sample conversion routines for playback */
 
-static void MYFLT_to_short(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_short(int32_t nSmps, cs_float *inBuf, int16_t *outBuf, int32_t *seed)
 {
-    MYFLT tmp_f;
+    cs_float tmp_f;
     int32_t   tmp_i;
     int32_t n;
     for (n=0; n<nSmps; n++) {
       int32_t rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = (((rnd) * 15625) + 1) & 0xFFFF;
       rnd += *seed;           /* triangular distribution */
-      tmp_f = (MYFLT) ((rnd>>1) - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
-      tmp_f += inBuf[n] * (MYFLT) 0x8000;
+      tmp_f = (cs_float) ((rnd>>1) - 0x8000) * (FL(1.0) / (cs_float) 0x10000);
+      tmp_f += inBuf[n] * (cs_float) 0x8000;
 #ifndef USE_DOUBLE
       tmp_i = (int32_t) lrintf(tmp_f);
 #else
@@ -212,16 +212,16 @@ static void MYFLT_to_short(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32_t
     }
 }
 
-static void MYFLT_to_short_u(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_short_u(int32_t nSmps, cs_float *inBuf, int16_t *outBuf, int32_t *seed)
 {
-    MYFLT tmp_f;
+    cs_float tmp_f;
     int32_t   tmp_i;
     int32_t n;
     for (n=0; n<nSmps; n++) {
       int32_t rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = rnd;
-      tmp_f = (MYFLT) (rnd - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
-      tmp_f += inBuf[n] * (MYFLT) 0x8000;
+      tmp_f = (cs_float) (rnd - 0x8000) * (FL(1.0) / (cs_float) 0x10000);
+      tmp_f += inBuf[n] * (cs_float) 0x8000;
 #ifndef USE_DOUBLE
       tmp_i = (int32_t) lrintf(tmp_f);
 #else
@@ -233,15 +233,15 @@ static void MYFLT_to_short_u(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32
     }
 }
 
-static void MYFLT_to_short_no_dither(int32_t nSmps, MYFLT *inBuf,
+static void CS_FLOAT_to_short_no_dither(int32_t nSmps, cs_float *inBuf,
                                      int16_t *outBuf, int32_t *seed)
 {
   IGN(seed);
-    MYFLT tmp_f;
+    cs_float tmp_f;
     int32_t   tmp_i;
     int32_t n;
     for (n=0; n<nSmps; n++) {
-      tmp_f = inBuf[n] * (MYFLT) 0x8000;
+      tmp_f = inBuf[n] * (cs_float) 0x8000;
 #ifndef USE_DOUBLE
       tmp_i = (int32_t) lrintf(tmp_f);
 #else
@@ -253,14 +253,14 @@ static void MYFLT_to_short_no_dither(int32_t nSmps, MYFLT *inBuf,
     }
 }
 
-static void MYFLT_to_long(int32_t nSmps, MYFLT *inBuf, int32_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_long(int32_t nSmps, cs_float *inBuf, int32_t *outBuf, int32_t *seed)
 {
-    MYFLT   tmp_f;
+    cs_float   tmp_f;
     int64_t tmp_i;
     (void) seed;
     int32_t n;
     for (n=0; n<nSmps; n++) {
-      tmp_f = inBuf[n] * (MYFLT) 0x80000000UL;
+      tmp_f = inBuf[n] * (cs_float) 0x80000000UL;
 #ifndef USE_DOUBLE
       tmp_i = (int64_t) llrintf(tmp_f);
 #else
@@ -273,7 +273,7 @@ static void MYFLT_to_long(int32_t nSmps, MYFLT *inBuf, int32_t *outBuf, int32_t 
     }
 }
 
-static void MYFLT_to_float(int32_t nSmps, MYFLT *inBuf, float *outBuf, int32_t *seed)
+static void CS_FLOAT_to_float(int32_t nSmps, cs_float *inBuf, float *outBuf, int32_t *seed)
 {
     (void) seed;
     int32_t n;
@@ -283,27 +283,27 @@ static void MYFLT_to_float(int32_t nSmps, MYFLT *inBuf, float *outBuf, int32_t *
 
 /* sample conversion routines for recording */
 
-static void short_to_MYFLT(int32_t nSmps, int16_t *inBuf, MYFLT *outBuf)
+static void short_to_CS_FLOAT(int32_t nSmps, int16_t *inBuf, cs_float *outBuf)
 {
     int32_t n;
-    MYFLT adjust = FL(1.0) / (MYFLT) 0x8000;
+    cs_float adjust = FL(1.0) / (cs_float) 0x8000;
     for (n=0; n<nSmps; n++)
-      outBuf[n] = (MYFLT) inBuf[n] * adjust;
+      outBuf[n] = (cs_float) inBuf[n] * adjust;
 }
 
-static void long_to_MYFLT(int32_t nSmps, int32_t *inBuf, MYFLT *outBuf)
+static void long_to_CS_FLOAT(int32_t nSmps, int32_t *inBuf, cs_float *outBuf)
 {
     int32_t n;
-    MYFLT adjust = FL(1.0) / (MYFLT) 0x80000000UL;
+    cs_float adjust = FL(1.0) / (cs_float) 0x80000000UL;
     for (n=0; n<nSmps; n++)
-      outBuf[n] = (MYFLT) inBuf[n] * adjust;
+      outBuf[n] = (cs_float) inBuf[n] * adjust;
 }
 
-static void float_to_MYFLT(int32_t nSmps, float *inBuf, MYFLT *outBuf)
+static void float_to_CS_FLOAT(int32_t nSmps, float *inBuf, cs_float *outBuf)
 {
     int32_t n;
     for (n=0; n<nSmps; n++)
-      outBuf[n] = (MYFLT) inBuf[n];
+      outBuf[n] = (cs_float) inBuf[n];
 }
 
 /* select sample format */
@@ -319,26 +319,26 @@ static snd_pcm_format_t set_format(void (**convFunc)(void), int32_t csound_forma
     case AE_SHORT:
       if (play) {
         if (csound_dither==1)
-          *convFunc = (void (*)(void)) MYFLT_to_short;
+          *convFunc = (void (*)(void)) CS_FLOAT_to_short;
         else if (csound_dither==2)
-          *convFunc = (void (*)(void)) MYFLT_to_short_u;
+          *convFunc = (void (*)(void)) CS_FLOAT_to_short_u;
         else
-          *convFunc = (void (*)(void)) MYFLT_to_short_no_dither;
+          *convFunc = (void (*)(void)) CS_FLOAT_to_short_no_dither;
       }
       else
-        *convFunc = (void (*)(void)) short_to_MYFLT;
+        *convFunc = (void (*)(void)) short_to_CS_FLOAT;
       break;
     case AE_LONG:
       if (play)
-        *convFunc = (void (*)(void)) MYFLT_to_long;
+        *convFunc = (void (*)(void)) CS_FLOAT_to_long;
       else
-        *convFunc = (void (*)(void)) long_to_MYFLT;
+        *convFunc = (void (*)(void)) long_to_CS_FLOAT;
       break;
     case AE_FLOAT:
       if (play)
-        *convFunc = (void (*)(void)) MYFLT_to_float;
+        *convFunc = (void (*)(void)) CS_FLOAT_to_float;
       else
-        *convFunc = (void (*)(void)) float_to_MYFLT;
+        *convFunc = (void (*)(void)) float_to_CS_FLOAT;
       break;
     }
     if (*((unsigned char*) (&endian_test)) == (unsigned char) 0x34) {
@@ -440,12 +440,12 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
     /* sample format, */
     alsaFmt = SND_PCM_FORMAT_UNKNOWN;
     if(dev->srate  == 0) dev->format = AE_FLOAT;
-    dev->sampleSize = (int32_t) sizeof(MYFLT) * dev->nchns;
+    dev->sampleSize = (int32_t) sizeof(cs_float) * dev->nchns;
     {
       void  (*fp)(void) = NULL;
       alsaFmt = set_format(&fp, dev->format, play, csound->GetDitherMode(csound));
-      if (play) dev->playconv = (void (*)(int32_t, MYFLT*, void*, int*)) fp;
-      else      dev->rec_conv = (void (*)(int32_t, void*, MYFLT*)) fp;
+      if (play) dev->playconv = (void (*)(int32_t, cs_float*, void*, int*)) fp;
+      else      dev->rec_conv = (void (*)(int32_t, void*, cs_float*)) fp;
     }
 
     if (UNLIKELY(alsaFmt == SND_PCM_FORMAT_UNKNOWN)) {
@@ -713,8 +713,8 @@ static int32_t open_device(CSOUND *csound, const csRtAudioParams *parm, int32_t 
     dev->nchns = parm->nChannels;
 
     dev->period_smps = parm->bufSamp_SW;
-    dev->playconv = (void (*)(int32_t, MYFLT*, void*, int*)) NULL;
-    dev->rec_conv = (void (*)(int32_t, void*, MYFLT*)) NULL;
+    dev->playconv = (void (*)(int32_t, cs_float*, void*, int*)) NULL;
+    dev->rec_conv = (void (*)(int32_t, void*, cs_float*)) NULL;
     dev->seed = 1;
     /* open device */
     retval = set_device_params(csound, dev, play);
@@ -749,7 +749,7 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
         csound->Warning(csound, Str(x));                  \
   }
 
-static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf, int32_t nbytes)
+static int32_t rtrecord_(CSOUND *csound, cs_float *inbuf, int32_t nbytes)
 {
     DEVPARAMS *dev;
     int32_t       n, m, err;
@@ -788,14 +788,14 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf, int32_t nbytes)
       dev->handle = NULL;
       break;
     }
-    /* convert samples to MYFLT */
+    /* convert samples to cs_float */
     dev->rec_conv(m * dev->nchns, dev->buf, inbuf);
     return (m * dev->sampleSize);
 }
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
+static void rtplay_(CSOUND *csound, const cs_float *outbuf, int32_t nbytes)
 {
     DEVPARAMS *dev;
     int32_t     n, err;
@@ -806,8 +806,8 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
     /* calculate the number of samples to play */
     n = nbytes / dev->sampleSize;
 
-    /* convert samples from MYFLT */
-    dev->playconv(n * dev->nchns, (MYFLT*) outbuf, dev->buf, &(dev->seed));
+    /* convert samples from cs_float */
+    dev->playconv(n * dev->nchns, (cs_float*) outbuf, dev->buf, &(dev->seed));
 
     while (n) {
       err = (int32_t) snd_pcm_writei(dev->handle, dev->buf, (snd_pcm_uframes_t) n);
@@ -1988,5 +1988,5 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutpu
 
  int32_t csoundModuleInfo(void)
 {
-    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(cs_float));
 }

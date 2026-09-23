@@ -50,10 +50,10 @@ extern  int32_t     inet_aton(const char *cp, struct in_addr *inp);
 
 typedef struct {
   OPDS    h;
-  MYFLT   *asig;
+  cs_float   *asig;
   STRINGDAT *ipaddress;
-  MYFLT *port, *buffersize;
-  MYFLT   *format;
+  cs_float *port, *buffersize;
+  cs_float   *format;
   AUXCH   aux;
   int32_t     sock, init_done;
   int32_t     bsize, wp;
@@ -65,8 +65,8 @@ typedef struct {
   OPDS    h;
   STRINGDAT *str;
   STRINGDAT *ipaddress;
-  MYFLT *port, *buffersize;
-  MYFLT   *format;
+  cs_float *port, *buffersize;
+  cs_float   *format;
   AUXCH   aux;
   int32_t     sock, init_done;
   int32_t     bsize, wp;
@@ -76,10 +76,10 @@ typedef struct {
 
 typedef struct {
   OPDS    h;
-  MYFLT   *asigl, *asigr;
+  cs_float   *asigl, *asigr;
   STRINGDAT *ipaddress;
-  MYFLT *port, *buffersize;
-  MYFLT   *format;
+  cs_float *port, *buffersize;
+  cs_float   *format;
   AUXCH   aux;
   int32_t     sock, init_done;
   int32_t     bsize, wp;
@@ -91,7 +91,7 @@ typedef struct {
 
 /* Store signed PCM16 in little-endian order without per-sample calls. */
 #define SOCKSEND_PCM16(DEST, SAMPLE, SCALE) do {                         \
-    double pcm_value = (SAMPLE) * (SCALE);                              \
+    cs_double pcm_value = (SAMPLE) * (SCALE);                              \
     int32_t pcm_int = pcm_value >= 32767.0 ? 32767 :                    \
                       pcm_value <= -32768.0 ? -32768 : (int32_t)pcm_value; \
     unsigned char *pcm_dest = (unsigned char *)(DEST);                  \
@@ -129,7 +129,7 @@ static int32_t init_send_common(CSOUND *csound, SOCKSEND *p, int32_t isString)
 {
     int32_t bwidth, bsize;
     p->ff = (int32_t)*p->format;
-    bwidth = isString ? 1 : (p->ff ? sizeof(int16) : sizeof(MYFLT));
+    bwidth = isString ? 1 : (p->ff ? sizeof(int16) : sizeof(cs_float));
     if (!(*p->buffersize >= FL(1.0) &&
           *p->buffersize <= UDP_MAX_PAYLOAD / bwidth))
       return csound->InitError(csound, "%s", Str("socksend: invalid buffer length"));
@@ -193,12 +193,12 @@ static int32_t send_send(CSOUND *csound, SOCKSEND *p)
     uint32_t i, nsmps = CS_KSMPS;
     int32_t     wp;
     int32_t     buffersize = p->bsize;
-    MYFLT   *asig = p->asig;
-    MYFLT   *out = (MYFLT *) p->aux.auxp;
+    cs_float   *asig = p->asig;
+    cs_float   *out = (cs_float *) p->aux.auxp;
     int16   *outs = (int16 *) p->aux.auxp;
     int32_t     ff = p->ff;
 
-    double scale = ff ? 32768.0 / csound->Get0dBFS(csound) : 0;
+    cs_double scale = ff ? 32768.0 / csound->Get0dBFS(csound) : 0;
     if (UNLIKELY(early)) nsmps -= early;
     for (i = offset, wp = p->wp; i < nsmps; i++) {
       if (ff)
@@ -222,14 +222,14 @@ static int32_t send_send_k(CSOUND *csound, SOCKSEND *p)
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
     int32_t     buffersize = p->bsize;
-    MYFLT   *ksig = p->asig;
-    MYFLT   *out = (MYFLT *) p->aux.auxp;
+    cs_float   *ksig = p->asig;
+    cs_float   *out = (cs_float *) p->aux.auxp;
     int16   *outs = (int16 *) p->aux.auxp;
     int32_t     ff = p->ff;
 
 
     if (ff) {
-      double scale = 32768.0 / csound->Get0dBFS(csound);
+      cs_double scale = 32768.0 / csound->Get0dBFS(csound);
       SOCKSEND_PCM16(&outs[p->wp], *ksig, scale);
     }
     else
@@ -274,7 +274,7 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
 {
     int32_t bwidth, bsize;
     p->ff = (int32_t)*p->format;
-    bwidth = p->ff ? sizeof(int16) : sizeof(MYFLT);
+    bwidth = p->ff ? sizeof(int16) : sizeof(cs_float);
     if (!(*p->buffersize >= FL(1.0) &&
           *p->buffersize <= UDP_MAX_PAYLOAD / bwidth))
       return csound->InitError(csound, "%s", Str("socksend: invalid buffer length"));
@@ -326,9 +326,9 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
 static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
 {
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-    MYFLT   *asigl = p->asigl;
-    MYFLT   *asigr = p->asigr;
-    MYFLT   *out = (MYFLT *) p->aux.auxp;
+    cs_float   *asigl = p->asigl;
+    cs_float   *asigr = p->asigr;
+    cs_float   *out = (cs_float *) p->aux.auxp;
     int16   *outs = (int16 *) p->aux.auxp;
     int32_t     wp;
     int32_t     buffersize = p->bsize;
@@ -337,7 +337,7 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
     uint32_t i, nsmps = CS_KSMPS;
     int32_t     ff = p->ff;
 
-    double scale = ff ? 32768.0 / csound->Get0dBFS(csound) : 0;
+    cs_double scale = ff ? 32768.0 / csound->Get0dBFS(csound) : 0;
     if (UNLIKELY(early)) nsmps -= early;
     for (i = offset, wp = p->wp; i < nsmps; i++) {
       if (ff) {
@@ -365,9 +365,9 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
 
 typedef struct {
   OPDS h;
-  MYFLT *asig;
+  cs_float *asig;
   STRINGDAT *ipaddress;
-  MYFLT *port;
+  cs_float *port;
 #if defined(WIN32) && !defined(__CYGWIN__)
   SOCKET sock;
 #else
@@ -452,7 +452,7 @@ static int32_t send_ssend(CSOUND *csound, STSEND *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int32_t remaining = sizeof(MYFLT) * (CS_KSMPS-offset-early);
+    int32_t remaining = sizeof(cs_float) * (CS_KSMPS-offset-early);
     const char *data = (const char *) &p->asig[offset];
     int flags = 0;
 #ifdef MSG_NOSIGNAL
@@ -481,12 +481,12 @@ static int32_t send_ssend(CSOUND *csound, STSEND *p)
 
 typedef struct {
   OPDS h;
-  MYFLT *kwhen;
+  cs_float *kwhen;
   STRINGDAT *ipaddress;
-  MYFLT *port;        /* UDP port */
+  cs_float *port;        /* UDP port */
   STRINGDAT *dest;
   STRINGDAT *type;
-  MYFLT *arg[32];     /* only 26 can be used, but add a few more for safety */
+  cs_float *arg[32];     /* only 26 can be used, but add a few more for safety */
   AUXCH   aux;
   AUXCH   types;
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -495,7 +495,7 @@ typedef struct {
   int32_t sock;
 #endif
   int32_t ntypes;
-  MYFLT   last;
+  cs_float   last;
   struct sockaddr_in server_addr;
   int32_t err_state;
   int32_t init_done;
@@ -515,11 +515,11 @@ static int32_t osc_array_blob_sizes(const ARRAYDAT *array, int32_t shaped,
     *blobBytes = 0;
     if (array == NULL || array->dimensions <= 0 ||
         csound_array_member_count(array, &elements) != OK ||
-        elements > SIZE_MAX / sizeof(MYFLT) ||
+        elements > SIZE_MAX / sizeof(cs_float) ||
         (elements != 0 && array->data == NULL)) {
       return NOTOK;
     }
-    *valueBytes = elements * sizeof(MYFLT);
+    *valueBytes = elements * sizeof(cs_float);
     if (shaped) {
       if ((size_t)array->dimensions >
           (SIZE_MAX - sizeof(int32_t)) / sizeof(int32_t)) {
@@ -621,7 +621,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         iarg++;
         break;
       case 'a':
-        bsize += (sizeof(MYFLT)*CS_KSMPS);
+        bsize += (sizeof(cs_float)*CS_KSMPS);
         iarg++;
         break;
       case 'G':
@@ -629,7 +629,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         if (UNLIKELY(ft == NULL))
           return csound->InitError(csound, "%s",
                                    Str("ftable not found for OSC message\n"));
-        bsize += (sizeof(MYFLT)*ft->flen);
+        bsize += (sizeof(cs_float)*ft->flen);
         iarg++;
         break;
       case 'A':
@@ -765,8 +765,8 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
       buffersize += size;
       /* add data to message */
       float fdata;
-      double ddata;
-      MYFLT mdata;
+      double ddata; /* OSC type d is always 64 bits. */
+      cs_float mdata;
       int32_t data;
       int64_t ldata;
       uint64_t udata;
@@ -807,10 +807,10 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
             bsize = p->aux.size;
           }
           /* Each half is unsigned 32-bit, so round through a wider integer. */
-          udata = (uint64_t)(uint32_t)llrint((double)*p->arg[iarg]);
+          udata = (uint64_t)(uint32_t)llrint((cs_double)*p->arg[iarg]);
           iarg++;
           udata <<= 32;
-          udata |= (uint32_t)llrint((double)*p->arg[iarg]);
+          udata |= (uint32_t)llrint((cs_double)*p->arg[iarg]);
           byteswap((char *) &udata, 8);
           memcpy(out+buffersize,&udata, 8);
           buffersize += 8;
@@ -824,7 +824,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
           }
-          data = MYFLT2LRND(*p->arg[iarg]);
+          data = CS_FLOAT2LRND(*p->arg[iarg]);
           byteswap((char *) &data, 4);
           memcpy(out+buffersize,&data, 4);
           buffersize += 4;
@@ -836,7 +836,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
           }
-          ldata = (int64_t)llrint((double)*p->arg[iarg]);
+          ldata = (int64_t)llrint((cs_double)*p->arg[iarg]);
           byteswap((char *) &ldata, 8);
           memcpy(out+buffersize,&ldata, 8);
           buffersize += 8;
@@ -859,7 +859,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           if (UNLIKELY(ft == NULL))
             return csound->PerfError(csound, &(p->h), "%s",
                                      Str("ftable not found for OSC message\n"));
-          size = (int32_t)(sizeof(MYFLT)*ft->flen);
+          size = (int32_t)(sizeof(cs_float)*ft->flen);
           if((size_t) buffersize + size + 4 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
             out = (char *) p->aux.auxp;
@@ -950,7 +950,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           break;
         }
         case 'a':
-          size = (int32_t) (CS_KSMPS+1)*sizeof(MYFLT);
+          size = (int32_t) (CS_KSMPS+1)*sizeof(cs_float);
           if((size_t) buffersize + size + 4 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
             out = (char *) p->aux.auxp;
@@ -961,8 +961,8 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           memcpy(out+buffersize,&data,4);
           buffersize += 4;
           mdata = CS_KSMPS;
-          memcpy(out+buffersize,&mdata,sizeof(MYFLT));
-          memcpy(out+buffersize+sizeof(MYFLT),p->arg[iarg],CS_KSMPS*sizeof(MYFLT));
+          memcpy(out+buffersize,&mdata,sizeof(cs_float));
+          memcpy(out+buffersize+sizeof(cs_float),p->arg[iarg],CS_KSMPS*sizeof(cs_float));
           buffersize += size;
           break;
         case 'T':
@@ -999,17 +999,17 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
 
 typedef struct {
   OPDS h;
-  MYFLT *kwhen;
+  cs_float *kwhen;
   STRINGDAT *ipaddress;
-  MYFLT *port;        /* UDP port */
+  cs_float *port;        /* UDP port */
   ARRAYDAT *dest;
   ARRAYDAT *type;
   ARRAYDAT *arg;
-  MYFLT *imtu;
+  cs_float *imtu;
   int32_t mtu;
   AUXCH   aux;    /* MTU bytes */
   int32_t sock, init_done;
-  MYFLT   last;
+  cs_float   last;
   struct sockaddr_in server_addr;
   int32_t first;
 } OSCBUNDLE;
@@ -1105,7 +1105,7 @@ static int32_t oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
         memcpy(buffer + used + 1, types, nargs);
         used += typesize;
         for (size_t n = 0; n < nargs; ++n) {
-          MYFLT value = n < (size_t)cols ? p->arg->data[(size_t)i * cols + n] : 0;
+          cs_float value = n < (size_t)cols ? p->arg->data[(size_t)i * cols + n] : 0;
           if (types[n] == 'f') {
             float fdata = (float)value;
             memcpy(&encoded, &fdata, 4);

@@ -3137,7 +3137,7 @@ int32_t initStructVar(CSOUND* csound, void* p) {
   return CSOUND_SUCCESS;
 }
 
-void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
+void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, cs_float* mem) {
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
   const CS_TYPE* type = var->varType;
   CONS_CELL* members = type->members;
@@ -3185,7 +3185,7 @@ CS_VARIABLE* createStructVar(void* cs, const CS_TYPE* type,
   }
 
   CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-  /* Array storage advances in MYFLT units. On wasm32 CS_STRUCT_VAR is 12
+  /* Array storage advances in cs_float units. On wasm32 CS_STRUCT_VAR is 12
      bytes, so leaving this unaligned would truncate the element stride. */
   var->memBlockSize = CS_FLOAT_ALIGN(sizeof(CS_STRUCT_VAR));
   var->initializeVariableMemory = initializeStructVar;
@@ -3967,12 +3967,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
            current->left->type == NUMBER_TOKEN) &&
           (current->right->type == INTEGER_TOKEN ||
            current->right->type == NUMBER_TOKEN)) {
-        MYFLT lval, rval;
+        cs_float lval, rval;
         lval = (current->left->type == INTEGER_TOKEN ?
-                (double)current->left->value->value :
+                (cs_double)current->left->value->value :
                 current->left->value->fvalue);
         rval = (current->right->type == INTEGER_TOKEN ?
-                (double)current->right->value->value :
+                (cs_double)current->right->value->value :
                 current->right->value->fvalue);
         switch (current->type) {
         case '+':

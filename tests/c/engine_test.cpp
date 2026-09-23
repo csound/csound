@@ -23,40 +23,40 @@ int32_t is_inf(CSOUND *, void *);
 
 namespace {
 
-MYFLT myfltFromBits(uint64_t doubleBits, uint32_t floatBits)
+cs_float myfltFromBits(uint64_t doubleBits, uint32_t floatBits)
 {
-    MYFLT value;
-    if constexpr (sizeof(MYFLT) == sizeof(doubleBits))
+    cs_float value;
+    if constexpr (sizeof(cs_float) == sizeof(doubleBits))
         std::memcpy(&value, &doubleBits, sizeof(value));
     else
         std::memcpy(&value, &floatBits, sizeof(value));
     return value;
 }
 
-std::vector<MYFLT> directComplexDft(const std::vector<MYFLT>& input,
+std::vector<cs_float> directComplexDft(const std::vector<cs_float>& input,
                                     bool inverse)
 {
     const int32_t size = static_cast<int32_t>(input.size() / 2);
-    const double direction = inverse ? 1.0 : -1.0;
-    const double scale = inverse ? 1.0 / size : 1.0;
-    const double twoPi = 2.0 * std::acos(-1.0);
-    std::vector<MYFLT> output(input.size(), FL(0.0));
+    const cs_double direction = inverse ? 1.0 : -1.0;
+    const cs_double scale = inverse ? 1.0 / size : 1.0;
+    const cs_double twoPi = 2.0 * std::acos(-1.0);
+    std::vector<cs_float> output(input.size(), FL(0.0));
 
     for (int32_t bin = 0; bin < size; ++bin) {
-        double real = 0.0;
-        double imag = 0.0;
+        cs_double real = 0.0;
+        cs_double imag = 0.0;
         for (int32_t sample = 0; sample < size; ++sample) {
-            const double angle = direction * twoPi *
-              static_cast<double>(bin) * sample / size;
-            const double cosine = std::cos(angle);
-            const double sine = std::sin(angle);
-            const double inputReal = input[sample * 2];
-            const double inputImag = input[sample * 2 + 1];
+            const cs_double angle = direction * twoPi *
+              static_cast<cs_double>(bin) * sample / size;
+            const cs_double cosine = std::cos(angle);
+            const cs_double sine = std::sin(angle);
+            const cs_double inputReal = input[sample * 2];
+            const cs_double inputImag = input[sample * 2 + 1];
             real += inputReal * cosine - inputImag * sine;
             imag += inputReal * sine + inputImag * cosine;
         }
-        output[bin * 2] = static_cast<MYFLT>(real * scale);
-        output[bin * 2 + 1] = static_cast<MYFLT>(imag * scale);
+        output[bin * 2] = static_cast<cs_float>(real * scale);
+        output[bin * 2 + 1] = static_cast<cs_float>(imag * scale);
     }
     return output;
 }
@@ -138,15 +138,15 @@ public:
 
 TEST_F (EngineTests, testComplexFftMatchesDirectDft)
 {
-    const std::vector<std::vector<MYFLT>> inputs = {
+    const std::vector<std::vector<cs_float>> inputs = {
       {FL(1.0), FL(0.5), FL(-2.0), FL(1.25), FL(0.75), FL(-0.5),
        FL(3.0), FL(-1.5), FL(-0.25), FL(2.0), FL(1.5), FL(-0.75)},
       {FL(1.0), FL(0.5), FL(-2.0), FL(1.25), FL(0.75), FL(-0.5),
        FL(3.0), FL(-1.5), FL(-0.25), FL(2.0), FL(1.5), FL(-0.75),
        FL(0.5), FL(1.75), FL(-1.0), FL(-0.25)}
     };
-    const double tolerance =
-      sizeof(MYFLT) == sizeof(float) ? 0.0001 : 1.0e-10;
+    const cs_double tolerance =
+      sizeof(cs_float) == sizeof(float) ? 0.0001 : 1.0e-10;
 
     for (const auto& input : inputs) {
         const int32_t size = static_cast<int32_t>(input.size() / 2);
@@ -191,10 +191,10 @@ TEST_F (EngineTests, testComplexFftMatchesDirectDft)
 // expressions such as division by zero.
 TEST_F (EngineTests, testQinfClassifiesPositiveScalarInfinity)
 {
-    const MYFLT positiveInfinity =
+    const cs_float positiveInfinity =
       myfltFromBits(0x7FF0000000000000ULL, 0x7F800000U);
-    MYFLT input = positiveInfinity;
-    MYFLT result = FL(0.0);
+    cs_float input = positiveInfinity;
+    cs_float result = FL(0.0);
     ASSIGN scalar {};
     scalar.r = &result;
     scalar.a = &input;
@@ -209,9 +209,9 @@ TEST_F (EngineTests, testQinfClassifiesPositiveScalarInfinity)
 
 TEST_F (EngineTests, testQnanClassifiesScalarNan)
 {
-    const MYFLT nan = myfltFromBits(0x7FF8000000000000ULL, 0x7FC00000U);
-    MYFLT input = nan;
-    MYFLT result = FL(0.0);
+    const cs_float nan = myfltFromBits(0x7FF8000000000000ULL, 0x7FC00000U);
+    cs_float input = nan;
+    cs_float result = FL(0.0);
     ASSIGN scalar {};
     scalar.r = &result;
     scalar.a = &input;
@@ -231,15 +231,15 @@ TEST_F (EngineTests, testSscanfUsesCLocale)
         GTEST_SKIP() << "No comma-decimal locale is installed";
 
     char input[] = "3.5";
-    double value = 0.0;
+    cs_double value = 0.0;
 
-    EXPECT_EQ(csound->Sscanf(input, "%lf", &value), 1);
+    EXPECT_EQ(csound->Sscanf(input, "%" CS_DOUBLE_SCAN, &value), 1);
     EXPECT_DOUBLE_EQ(value, 3.5);
 }
 
 TEST_F (EngineTests, testComplexFftReportsUnsupportedSizes)
 {
-    MYFLT buffer[] = {
+    cs_float buffer[] = {
       FL(1.0), FL(1.0), FL(2.0), FL(-1.0), FL(0.5), FL(2.0)
     };
     drainMessageBuffer(csound);
@@ -425,42 +425,42 @@ TEST_F (EngineTests, testRealComplexSubtraction)
     struct SubtractionCase {
         COMPLEXDAT input;
         bool scalarFirst;
-        MYFLT expectedReal;
-        MYFLT expectedImag;
+        cs_float expectedReal;
+        cs_float expectedImag;
     };
 
-    const MYFLT scalar = FL(10.0);
-    const MYFLT angle = std::atan2(FL(4.0), FL(3.0));
+    const cs_float scalar = FL(10.0);
+    const cs_float angle = std::atan2(FL(4.0), FL(3.0));
     const SubtractionCase cases[] = {
         {{FL(3.0), FL(4.0), 0}, true,  FL(7.0),  FL(-4.0)},
         {{FL(3.0), FL(4.0), 0}, false, FL(-7.0), FL(4.0)},
         {{FL(5.0), angle, 1},    true,  FL(7.0),  FL(-4.0)},
         {{FL(5.0), angle, 1},    false, FL(-7.0), FL(4.0)},
     };
-    const MYFLT tolerance = std::numeric_limits<MYFLT>::epsilon() * FL(256.0);
+    const cs_float tolerance = std::numeric_limits<cs_float>::epsilon() * FL(256.0);
 
     for (const auto& testCase : cases) {
         COMPLEXDAT input = testCase.input;
         COMPLEXDAT result = {};
-        MYFLT scalarArg = scalar;
+        cs_float scalarArg = scalar;
         AOP opcode = {};
-        opcode.r = reinterpret_cast<MYFLT *>(&result);
+        opcode.r = reinterpret_cast<cs_float *>(&result);
 
         if (testCase.scalarFirst) {
             opcode.a = &scalarArg;
-            opcode.b = reinterpret_cast<MYFLT *>(&input);
+            opcode.b = reinterpret_cast<cs_float *>(&input);
             ASSERT_EQ(real_sub_complex(csound, &opcode), OK);
         }
         else {
-            opcode.a = reinterpret_cast<MYFLT *>(&input);
+            opcode.a = reinterpret_cast<cs_float *>(&input);
             opcode.b = &scalarArg;
             ASSERT_EQ(complex_sub_real(csound, &opcode), OK);
         }
 
         EXPECT_EQ(result.isPolar, input.isPolar);
-        const MYFLT resultReal = result.isPolar
+        const cs_float resultReal = result.isPolar
           ? result.real * std::cos(result.imag) : result.real;
-        const MYFLT resultImag = result.isPolar
+        const cs_float resultImag = result.isPolar
           ? result.real * std::sin(result.imag) : result.imag;
         EXPECT_NEAR(resultReal, testCase.expectedReal, tolerance);
         EXPECT_NEAR(resultImag, testCase.expectedImag, tolerance);
@@ -765,7 +765,7 @@ TEST_F (EngineTests, testEmptyCommandLineArgumentSeparator)
 TEST_F (EngineTests, testNegativeFunctionTableEventReleasesTemporaryPfields)
 {
     ASSERT_EQ(csoundSetOption(csound, "--nodisplays"), CSOUND_SUCCESS);
-    MYFLT createPfields[] = {
+    cs_float createPfields[] = {
       FL(0.0), FL(1.0), FL(0.0), FL(8.0), FL(-2.0), FL(0.0)
     };
     EVTBLK createEvent = { 0 };
@@ -784,7 +784,7 @@ TEST_F (EngineTests, testNegativeFunctionTableEventReleasesTemporaryPfields)
               CSOUND_SUCCESS);
     ASSERT_NE(table, nullptr);
 
-    MYFLT deletePfields[] = {
+    cs_float deletePfields[] = {
       FL(0.0), FL(-1.0), FL(0.0), FL(0.0)
     };
     EVTBLK deleteEvent = { 0 };
@@ -881,7 +881,7 @@ TEST_F (EngineTests, testRealtimeInsertEventCopiesQueuedEvtblk)
     ASSERT_EQ(alloc_queue_lock_init(csound), CSOUND_SUCCESS);
 
     int32_t realtime = csound->oparms->realtime;
-    MYFLT pfields[] = { FL(0.0), FL(1.0), FL(0.0), FL(0.25) };
+    cs_float pfields[] = { FL(0.0), FL(1.0), FL(0.0), FL(0.25) };
     char strarg[] = "First\0Second";
     EVTBLK event = { 0 };
     event.opcod = 'i';

@@ -107,7 +107,7 @@
 
 static  void    midNotesOff(CSOUND *);
 
-static const MYFLT dsctl_map[12] = {
+static const cs_float dsctl_map[12] = {
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0),
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0)
 };
@@ -208,7 +208,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
 {
     MCHNBLK *chn = csound->m_chnbp[mep->chan];
     int16   n;
-    MYFLT   *fp;
+    cs_float   *fp;
 
     switch (mep->type) {
     case PROGRAM_TYPE:                  /* PROGRAM CHANGE */
@@ -230,7 +230,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
     case CONTROL_TYPE:                  /* CONTROL CHANGE MESSAGES: */
       n = mep->dat1;
       if (MGLOB(rawControllerMode)) {           /* "raw" mode:        */
-        chn->ctl_val[n] = (MYFLT) mep->dat2;    /*   only store value */
+        chn->ctl_val[n] = (cs_float) mep->dat2;    /*   only store value */
         break;
       }
       if (n >= 111)                             /* if special, redirect */
@@ -248,9 +248,9 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       else if (n == DATENTRY && chn->datenabl) {
         int32_t   msb = chn->dpmsb;
         int32_t   lsb = chn->dplsb;
-        MYFLT fval;
+        cs_float fval;
         if (msb == 0 && lsb == 0) {
-          chn->pbensens = (MYFLT) mep->dat2;
+          chn->pbensens = (cs_float) mep->dat2;
         }
         else if (msb == 1) {            /* GS system PART PARAMS */
           int32_t ctl;
@@ -266,7 +266,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
           default: csound->Message(csound, Str("unknown NPRN lsb %d\n"), lsb);
             goto err;
           }
-          fval = (MYFLT) (mep->dat2 - 64);
+          fval = (cs_float) (mep->dat2 - 64);
           chn->ctl_val[ctl] = fval;             /* then store     */
         }
         else {
@@ -279,13 +279,13 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
             static const int32_t drtab[8] = {0,0,1,1,2,3,4,5};
             int32_t parnum = drtab[msb - 24];
             if (parnum == 0)
-              fval = (MYFLT) (mep->dat2 - 64);
+              fval = (cs_float) (mep->dat2 - 64);
             else fval = mep->dat2;
             //            if (dsctl_map != NULL) { always true
-            fp = (MYFLT*) &(dsctl_map[parnum*2]);
+            fp = (cs_float*) &(dsctl_map[parnum*2]);
             //**** FIXME This if statement does nothing as val is not used ****
             if (*fp != FL(0.0)) {
-              MYFLT xx = (fval * *fp++);
+              cs_float xx = (fval * *fp++);
               fval = xx + *fp;                /* optionally map */
               chn->ctl_val[parnum] = fval;        /* VL: 07.09.20 store it? */
             }
@@ -296,7 +296,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
         }
       }
       else
-        chn->ctl_val[n] = (MYFLT) mep->dat2;    /* record data as MYFLT */
+        chn->ctl_val[n] = (cs_float) mep->dat2;    /* record data as cs_float */
     err:
       if (n == SUSTAIN_SW) {                    /* if sustainP changed  */
         if (mep->dat2 > 0)
@@ -347,7 +347,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       chn->aftouch = mep->dat1;                 /* chanl (all-key) Press */
       break;
     case PCHBEND_TYPE:
-      chn->pchbend = (MYFLT)((mep->dat2 - 64) * 128 + mep->dat1)/FL(8192.0);
+      chn->pchbend = (cs_float)((mep->dat2 - 64) * 128 + mep->dat1)/FL(8192.0);
       break;
     case SYSTEM_TYPE:           /* sys_common 1-3 only:  chan contains which */
       switch(mep->chan) {

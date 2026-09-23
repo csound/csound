@@ -651,6 +651,9 @@ declare interface LibCsoundObj {
   csoundGet0dBFS: (csound: number) => number;
   csoundGetA4: (csound: number) => number;
   csoundGetCurrentTimeSamples: (csound: number) => number;
+  csoundGetSizeOfCsFloat: () => number;
+  csoundGetSizeOfCsDouble: () => number;
+  /** @deprecated Use csoundGetSizeOfCsFloat. */
   csoundGetSizeOfMYFLT: () => number;
   csoundSetOption: (csound: number, option: string) => number;
   csoundGetDebug: (csound: number) => number;

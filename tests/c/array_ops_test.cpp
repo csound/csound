@@ -11,29 +11,29 @@ TEST(ArrayOpsTests, SumAudioArrayStaysWithinOutputBlock)
 {
   constexpr int32_t ksmps = 8;
   constexpr int32_t guardSize = 8;
-  constexpr MYFLT guardValue = FL(1234.0);
+  constexpr cs_float guardValue = FL(1234.0);
   const std::array<std::array<int32_t, 2>, 7> bounds{{
     {0, 0}, {3, 0}, {0, 2}, {3, 2}, {3, 4}, {7, 0}, {3, 5}
   }};
 
-  std::array<MYFLT, 5 * ksmps> input{};
+  std::array<cs_float, 5 * ksmps> input{};
   for (int32_t channel = 0; channel < 5; ++channel) {
     for (int32_t i = 0; i < ksmps; ++i)
-      input[channel * ksmps + i] = (MYFLT)(10 * channel + i);
+      input[channel * ksmps + i] = (cs_float)(10 * channel + i);
   }
 
   for (int32_t channels : {1, 2, 4, 5}) {
     for (auto [offset, early] : bounds) {
       SCOPED_TRACE(::testing::Message() << "channels=" << channels
                    << " offset=" << offset << " early=" << early);
-      std::array<MYFLT, ksmps + 2 * guardSize> output;
+      std::array<cs_float, ksmps + 2 * guardSize> output;
       output.fill(guardValue);
 
       int32_t sizes[] = {channels};
       ARRAYDAT array{};
       array.dimensions = 1;
       array.sizes = sizes;
-      array.arrayMemberSize = ksmps * sizeof(MYFLT);
+      array.arrayMemberSize = ksmps * sizeof(cs_float);
       array.data = input.data();
 
       INSDS instance{};
@@ -53,9 +53,9 @@ TEST(ArrayOpsTests, SumAudioArrayStaysWithinOutputBlock)
         EXPECT_EQ(output[guardSize + ksmps + i], guardValue);
       }
       for (int32_t i = 0; i < ksmps; ++i) {
-        MYFLT expected = FL(0.0);
+        cs_float expected = FL(0.0);
         if (i >= offset && i < ksmps - early)
-          expected = (MYFLT)(5 * channels * (channels - 1) + channels * i);
+          expected = (cs_float)(5 * channels * (channels - 1) + channels * i);
         EXPECT_EQ(opcode.ans[i], expected) << "sample=" << i;
       }
     }

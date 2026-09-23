@@ -28,8 +28,8 @@
 
 typedef struct  {
         OPDS            h;
-        MYFLT           *out, *in, *len;
-        MYFLT           max, wgh;
+        cs_float           *out, *in, *len;
+        cs_float           max, wgh;
         int32           length;
         int32           count;
 } FOL;
@@ -37,6 +37,6 @@ typedef struct  {
 /* For implementation of Jot envelope follower -- JPff Feb 2000 */
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *in, *attack, *release;
-        MYFLT   lastatt, lastrel, envelope, ga, gr;
+        cs_float   *out, *in, *attack, *release;
+        cs_float   lastatt, lastrel, envelope, ga, gr;
 } ENV;

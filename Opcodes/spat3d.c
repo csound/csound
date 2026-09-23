@@ -39,15 +39,15 @@
 static int32_t    spat3d_init_window(CSOUND *csound, SPAT3D *p)
 {
     int32_t i, j, o;
-    double  d, w;
+    cs_double  d, w;
 
     o = p->oversamp << 5;           /* window size = 32 * oversample */
 
-    i = ((o + 1) * (sizeof(int32_t) + sizeof(MYFLT)));      /* allocate */
+    i = ((o + 1) * (sizeof(int32_t) + sizeof(cs_float)));      /* allocate */
     if ((p->fltr.auxp == NULL) || (p->fltr.size < (uint32_t)i)) /* space */
       csound->AuxAlloc(csound, i, &(p->fltr));
-    /* Put MYFLT data first so both arrays keep their required alignment. */
-    p->window = (MYFLT *) p->fltr.auxp;
+    /* Put cs_float data first so both arrays keep their required alignment. */
+    p->window = (cs_float *) p->fltr.auxp;
     p->sample = (int32_t *) (p->window + o + 1);
 
     for (i = -(o >> 1), j = 0; i < (o >> 1); i++) {
@@ -55,12 +55,12 @@ static int32_t    spat3d_init_window(CSOUND *csound, SPAT3D *p)
         d = 1.0;
       }
       else {
-        w = cos(PI * (d = (double) i) / (double) o);
-        d *= PI / (double) (p->oversamp);
+        w = cos(PI * (d = (cs_double) i) / (cs_double) o);
+        d *= PI / (cs_double) (p->oversamp);
         d = w * w * sin(d) / d;
       }
       if (fabs(d) > 0.00000001) {       /* skip zero samples */
-        p->window[j] = (MYFLT) d;       /* window value  */
+        p->window[j] = (cs_float) d;       /* window value  */
         p->sample[j++] = i;             /* sample number */
       }
     }
@@ -70,20 +70,20 @@ static int32_t    spat3d_init_window(CSOUND *csound, SPAT3D *p)
 
 /* initialise parameric equalizer (code taken from pareq opcode) */
 
-static int32_t spat3d_init_eq(SPAT3D *p, SPAT3D_WALL *wstruct, MYFLT *ftable)
+static int32_t spat3d_init_eq(SPAT3D *p, SPAT3D_WALL *wstruct, cs_float *ftable)
 {
     int32_t eqmode;
-    double  omega, k, kk, vk, vkk, vkdq, sq, a0, a1, a2, b0, b1, b2;
+    cs_double  omega, k, kk, vk, vkk, vkdq, sq, a0, a1, a2, b0, b1, b2;
 
     /* EQ code taken from biquad.c */
 
-    eqmode = (int32_t) ((double) ftable[3] + 0.5);              /* mode      */
-    omega = (double) ftable[0] * (double) CS_TPIDSR;       /* frequency */
-    sq = sqrt(2.0 * (double) ftable[1]);                        /* level     */
+    eqmode = (int32_t) ((cs_double) ftable[3] + 0.5);              /* mode      */
+    omega = (cs_double) ftable[0] * (cs_double) CS_TPIDSR;       /* frequency */
+    sq = sqrt(2.0 * (cs_double) ftable[1]);                        /* level     */
 
     k = tan((eqmode > 1 ? (PI - omega) : omega) * 0.5); kk = k * k;
-    vk = (double) ftable[1] * k; vkk = (double) ftable[1] * kk;
-    vkdq = vk / (double) ftable[2];                             /* Q         */
+    vk = (cs_double) ftable[1] * k; vkk = (cs_double) ftable[1] * kk;
+    vkdq = vk / (cs_double) ftable[2];                             /* Q         */
 
     if (eqmode >= 1) {
       b0 = 1.0 + sq * k + vkk;
@@ -95,17 +95,17 @@ static int32_t spat3d_init_eq(SPAT3D *p, SPAT3D_WALL *wstruct, MYFLT *ftable)
       b1 = 2.0 * (kk - 1.0);
       b2 = 1.0 - vkdq + kk;
     }
-    a0 = 1.0 + (k / (double) ftable[2]) + kk;
+    a0 = 1.0 + (k / (cs_double) ftable[2]) + kk;
     a1 = 2.0 * (kk - 1.0);
-    a2 = 1.0 - (k / (double) ftable[2]) + kk;
+    a2 = 1.0 - (k / (cs_double) ftable[2]) + kk;
     if (eqmode > 1) {
       a1 = -a1;
       b1 = -b1;
     }
     a0 = 1.0 / a0;
-    wstruct->a1 = (MYFLT) (a0 * a1); wstruct->a2 = (MYFLT) (a0 * a2);
-    wstruct->b0 = (MYFLT) (a0 * b0);
-    wstruct->b1 = (MYFLT) (a0 * b1); wstruct->b2 = (MYFLT) (a0 * b2);
+    wstruct->a1 = (cs_float) (a0 * a1); wstruct->a2 = (cs_float) (a0 * a2);
+    wstruct->b0 = (cs_float) (a0 * b0);
+    wstruct->b1 = (cs_float) (a0 * b1); wstruct->b2 = (cs_float) (a0 * b2);
     return OK;
 }
 
@@ -116,12 +116,12 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
                  int32_t    wallno,     /* wall number                      */
                  int32_t    dep,        /* recursion depth                  */
                  int32_t   *wmax,       /* wall structure number            */
-                 MYFLT  X, MYFLT Y, MYFLT Z) /* coordinates (spat3di/spat3dt) */
+                 cs_float  X, cs_float Y, cs_float Z) /* coordinates (spat3di/spat3dt) */
 {
     int32_t             i;
     SPAT3D_WALL     *ws;
-    MYFLT           *ft, a, d, w, x, y, z;
-    double          d0, d1;
+    cs_float           *ft, a, d, w, x, y, z;
+    cs_double          d0, d1;
 
     /* update random seed */
 
@@ -130,7 +130,7 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
     /* select wall structure and output buffer */
 
     ws = (SPAT3D_WALL *) p->ws.auxp + (*wmax)++;
-    ws->yn = (MYFLT *) p->y.auxp + (p->bs * dep++);
+    ws->yn = (cs_float *) p->y.auxp + (p->bs * dep++);
 
     /* ftable */
 
@@ -160,7 +160,7 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
       ws->cnum = (6 - wallno) >> 1;           /* select wall       */
       w = ft[1];                              /* wall distance     */
       x = ft[2];                              /* randomize         */
-      x *= ((MYFLT) p->rseed - FL(32767.5)) / FL(32767.5);
+      x *= ((cs_float) p->rseed - FL(32767.5)) / FL(32767.5);
       w *= (x + FL(1.0)) * (wallno & 1 ? FL(2.0) : FL(-2.0));
       ws->Xc = w;                             /* coord. offset     */
     }
@@ -175,7 +175,7 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
       }
       if (p->zout < 4) {                      /* convert coord.    */
         d = SPAT3D_XYZ2DIST(X, Y, Z);         /* distance  */
-        d0 = d1 = (double) SPAT3D_DIST2DEL(d);  /* delay     */
+        d0 = d1 = (cs_double) SPAT3D_DIST2DEL(d);  /* delay     */
         a = SPAT3D_DIST2AMP(d);                /* amp.      */
         d = FL(1.0) / (d > p->mdist ? d : p->mdist);
         w = x = y = z = FL(0.0);
@@ -191,25 +191,25 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
       else {
         x = X - p->mdist * FL(0.5);             /* right channel */
         d = SPAT3D_XYZ2DIST(x, Y, Z);           /* distance  */
-        d1 = (double) SPAT3D_DIST2DEL(d);       /* delay     */
+        d1 = (cs_double) SPAT3D_DIST2DEL(d);       /* delay     */
         a = SPAT3D_DIST2AMP(d);                 /* amp.      */
-        z = (MYFLT) sqrt(1.0 + (double) (x / (d + FL(0.0001))));
+        z = (cs_float) sqrt(1.0 + (cs_double) (x / (d + FL(0.0001))));
         z *= a; y = a - z;                      /* Rh, Rl    */
         x += p->mdist;                          /* left channel */
         d = SPAT3D_XYZ2DIST(x, Y, Z);           /* distance  */
-        d0 = (double) SPAT3D_DIST2DEL(d);       /* delay     */
+        d0 = (cs_double) SPAT3D_DIST2DEL(d);       /* delay     */
         a = SPAT3D_DIST2AMP(d);                 /* amp.      */
-        x = (MYFLT) sqrt(1.0 - (double) (x / (d + FL(0.0001))));
+        x = (cs_float) sqrt(1.0 - (cs_double) (x / (d + FL(0.0001))));
         x *= a; w = a - x;                      /* Lh, Ll    */
       }
       if (dep <= p->mindep) {
         w = x = y = z = FL(0.0); d0 = d1 = 0.0;
       }
       /* extend delay buffer */
-      if ((MYFLT) d0 > p->mdel) p->mdel = (MYFLT) d0;
-      if ((MYFLT) d1 > p->mdel) p->mdel = (MYFLT) d1;
-      ws->D0 = d0 * (double) CS_ESR + 0.5;
-      ws->D1 = d1 * (double) CS_ESR + 0.5;
+      if ((cs_float) d0 > p->mdel) p->mdel = (cs_float) d0;
+      if ((cs_float) d1 > p->mdel) p->mdel = (cs_float) d1;
+      ws->D0 = d0 * (cs_double) CS_ESR + 0.5;
+      ws->D1 = d1 * (cs_double) CS_ESR + 0.5;
       ws->W0 = w; ws->X0 = x; ws->Y0 = y; ws->Z0 = z;
     }
 
@@ -237,10 +237,10 @@ static int32_t spat3d_init_delay(CSOUND *csound, SPAT3D *p)
         * (int32_t) p->oversamp;
     p->mdel_s = i;
     if (p->o_num == 1) i += 4;      /* extra samples for spat3d */
-    j = i * (int32_t) sizeof(MYFLT) * (int32_t) (p->zout > 3 ? 4 : p->zout + 1);
+    j = i * (int32_t) sizeof(cs_float) * (int32_t) (p->zout > 3 ? 4 : p->zout + 1);
     if ((p->del.auxp == NULL) || (p->del.size < (uint32_t)j)) /* allocate */
       csound->AuxAlloc(csound, j, &(p->del));               /* space    */
-    p->Wb = (MYFLT *) p->del.auxp;                  /* W */
+    p->Wb = (cs_float *) p->del.auxp;                  /* W */
     if (p->zout > 0) p->Yb = p->Wb + i;             /* Y */
     if (p->zout > 1) p->Xb = p->Yb + i;             /* X */
     if (p->zout > 2) p->Zb = p->Xb + i;             /* Z */
@@ -314,7 +314,7 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     /* read opcode args */
 
     if (ximode >= 0)                                /* output mode */
-      p->zout = (int32_t) MYFLT2LRND(*(p->args[ximode]));
+      p->zout = (int32_t) CS_FLOAT2LRND(*(p->args[ximode]));
     if (xidist >= 0)                                /* unit circle dist. */
       p->mdist = *(p->args[xidist]);
     if (xift >= 0 && *(p->args[xift]) > FL(0.0)) {   /* room table */
@@ -328,9 +328,9 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     if (ximdel >= 0)                                /* max. delay */
       p->mdel = *(p->args[ximdel]);
     if (xiovr >= 0)                                 /* oversample */
-      p->oversamp = (int32_t) MYFLT2LRND(*(p->args[xiovr]));
+      p->oversamp = (int32_t) CS_FLOAT2LRND(*(p->args[xiovr]));
     if (xirlen >= 0)                                /* IR length */
-      p->irlen = (int32_t) MYFLT2LRND(*(p->args[xirlen]) * CS_ESR);
+      p->irlen = (int32_t) CS_FLOAT2LRND(*(p->args[xirlen]) * CS_ESR);
     if (xioutft >= 0) {                             /* output table */
       FUNC *ftp = csound->FTFind(csound, p->args[xioutft]);
       if (UNLIKELY(ftp == NULL)) return NOTOK;
@@ -345,20 +345,20 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
 
     if (p->ftable != NULL) {
       if (p->o_num == 2) {                    /* min, max depth    */
-        p->mindep = (int32_t) MYFLT2LRND(p->ftable[0]) + 1;
-        p->maxdep = (int32_t) MYFLT2LRND(p->ftable[1]);
+        p->mindep = (int32_t) CS_FLOAT2LRND(p->ftable[0]) + 1;
+        p->maxdep = (int32_t) CS_FLOAT2LRND(p->ftable[1]);
       }
       else {
         p->mindep = 0;
-        p->maxdep = (int32_t) MYFLT2LRND(p->ftable[0]);
+        p->maxdep = (int32_t) CS_FLOAT2LRND(p->ftable[0]);
       }
       if (p->ftable[2] >= FL(0.0))            /* max. delay        */
         p->mdel = p->ftable[2];
       if (p->ftable[3] >= FL(0.0))            /* IR length         */
-        p->irlen = (int32_t) MYFLT2LRND(p->ftable[3] * CS_ESR);
+        p->irlen = (int32_t) CS_FLOAT2LRND(p->ftable[3] * CS_ESR);
       if (p->ftable[4] >= FL(0.0))            /* unit circle dist. */
         p->mdist = p->ftable[4];
-      p->rseed = (int32_t) MYFLT2LRND(p->ftable[5]);     /* seed      */
+      p->rseed = (int32_t) CS_FLOAT2LRND(p->ftable[5]);     /* seed      */
       if (p->rseed < 0L)
         p->rseed = (int32_t) csound->GetRandomSeedFromTime() & 0xFFFFL;
       for (i = 6; i; i--) {                   /* wall mask         */
@@ -387,7 +387,7 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
       if ((p->ws.auxp == NULL) || (p->ws.size < (uint32_t)i))
         csound->AuxAlloc(csound, i, &(p->ws));
       i = (int32_t) p->bs * (int32_t) d;
-      i *= (int32_t) sizeof(MYFLT);
+      i *= (int32_t) sizeof(cs_float);
       if ((p->y.auxp == NULL) || (p->y.size < (uint32_t)i))
         csound->AuxAlloc(csound, i, &(p->y));
     }
@@ -438,16 +438,16 @@ static int32_t    spat3diset(CSOUND *csound, SPAT3D *p)
 
 static void spat3d_wall_perf(CSOUND     *csound, /* General environment       */
                              SPAT3D     *p,      /* opcode struct             */
-                             MYFLT      *xn,     /* input signal              */
+                             cs_float      *xn,     /* input signal              */
                              SPAT3D_WALL *ws,    /* wall parameters structure */
-                             MYFLT      X,       /* sound source X coordinate */
-                             MYFLT      Y,       /* sound source Y coordinate */
-                             MYFLT      Z,       /* sound source Z coordinate */
+                             cs_float      X,       /* sound source X coordinate */
+                             cs_float      Y,       /* sound source Y coordinate */
+                             cs_float      Z,       /* sound source Z coordinate */
                              int32_t offset, int32_t nsmps)
 {
-    MYFLT       *yn, W0, X0, Y0, Z0, *Wb, *Xb, *Yb, *Zb;
-    MYFLT       a, d, w, x, y, z, wd, xd, yd, zd, x1;
-    double      d0, d1, d0d, d1d, D0, D1;
+    cs_float       *yn, W0, X0, Y0, Z0, *Wb, *Xb, *Yb, *Zb;
+    cs_float       a, d, w, x, y, z, wd, xd, yd, zd, x1;
+    cs_double      d0, d1, d0d, d1d, D0, D1;
     int32_t        xpos, nn, pos;
 
     yn = ws->yn + offset; xn += offset;
@@ -467,7 +467,7 @@ static void spat3d_wall_perf(CSOUND     *csound, /* General environment       */
 
     if (p->zout < 4) {
       d = SPAT3D_XYZ2DIST(X, Y, Z);             /* distance  */
-      d0 = d1 = (double) SPAT3D_DIST2DEL(d);    /* delay     */
+      d0 = d1 = (cs_double) SPAT3D_DIST2DEL(d);    /* delay     */
       a = SPAT3D_DIST2AMP(d);                   /* amp.      */
       d = FL(1.0) / (d > p->mdist ? d : p->mdist);
       w = x = y = z = FL(0.0);
@@ -481,37 +481,37 @@ static void spat3d_wall_perf(CSOUND     *csound, /* General environment       */
     else {
       x = X - p->mdist * FL(0.5);               /* right channel */
       d = SPAT3D_XYZ2DIST(x, Y, Z);             /* distance  */
-      d1 = (double) SPAT3D_DIST2DEL(d);         /* delay     */
+      d1 = (cs_double) SPAT3D_DIST2DEL(d);         /* delay     */
       a = SPAT3D_DIST2AMP(d);                   /* amp.      */
       z = SQRT(FL(1.0) + (x / (d + FL(0.0001))));
       z *= a; y = a - z;                        /* Rh, Rl    */
       x += p->mdist;                            /* left channel */
       d = SPAT3D_XYZ2DIST(x, Y, Z);             /* distance  */
-      d0 = (double) SPAT3D_DIST2DEL(d);         /* delay     */
+      d0 = (cs_double) SPAT3D_DIST2DEL(d);         /* delay     */
       a = SPAT3D_DIST2AMP(d);                   /* amp.      */
       x = SQRT(FL(1.0) - (x / (d + FL(0.0001))));
       x *= a; w = a - x;                                /* Lh, Ll   */
-      d1 *= (double) p->oversamp * (double) CS_ESR;/* convert  */
+      d1 *= (cs_double) p->oversamp * (cs_double) CS_ESR;/* convert  */
     }                                                   /* delay to */
-    d0 *= (double) p->oversamp * (double) CS_ESR;  /* samples  */
+    d0 *= (cs_double) p->oversamp * (cs_double) CS_ESR;  /* samples  */
 
     /* interpolate W, X, Y, Z, and delay */
 
     if (ws->init) {             /* first k-cycle */
       D0 = d0; D1 = d1; W0 = w; X0 = x; Y0 = y; Z0 = z; ws->init = 0;
     }
-    d0d = d1d = 1.0 / (double) (nsmps - offset);
-    wd = xd = yd = zd = (MYFLT) d0d;
-    a = (MYFLT) p->oversamp;
+    d0d = d1d = 1.0 / (cs_double) (nsmps - offset);
+    wd = xd = yd = zd = (cs_float) d0d;
+    a = (cs_float) p->oversamp;
     switch (p->zout) {
     /* FALLTHRU */ case 4:     d1d *= (d1 - D1); D1 -= d1d * 0.5;
-      d = (a + (MYFLT) d1d) / a;        /* correct amplitude */
+      d = (a + (cs_float) d1d) / a;        /* correct amplitude */
     /* FALLTHRU */ case 3:     zd *= (z - Z0);
     /* FALLTHRU */ case 2:     xd *= (x - X0);
     /* FALLTHRU */ case 1:     yd *= (y - Y0);
     /* FALLTHRU */ case 0:     wd *= (w - W0);
       d0d *= (d0 - D0); D0 -= d0d * 0.5;
-      a = (a + (MYFLT) d0d) / a;
+      a = (a + (cs_float) d0d) / a;
     }
 
     nn = nsmps - offset; while (nn--) {  /* EQ */
@@ -524,7 +524,7 @@ static void spat3d_wall_perf(CSOUND     *csound, /* General environment       */
       /* write to delay buffer with cubic interpolation */
 
       xpos = (int32_t) (D0 += d0d);
-      x1 = (MYFLT) (D0 - (double) (xpos--));
+      x1 = (cs_float) (D0 - (cs_double) (xpos--));
       z = x1 * x1; z--; z *= FL(0.1666666667);
       y = x1; y++; w = (y *= FL(0.5)); w--;
       x = FL(3.0) * z; y -= x; w -= z; x -= x1;
@@ -552,7 +552,7 @@ static void spat3d_wall_perf(CSOUND     *csound, /* General environment       */
         *(Xb++) += w * X0; *(Xb++) += x * X0;
         *(Xb++) += y * X0; *Xb += z * X0;
         xpos = (int32_t) (D1 += d1d);
-        x1 = (MYFLT) (D1 - (double) (xpos--));
+        x1 = (cs_float) (D1 - (cs_double) (xpos--));
         z = x1 * x1; z--; z *= FL(0.1666666667);
         y = x1; y++; w = (y *= FL(0.5)); w--;
         x = FL(3.0) * z; y -= x; w -= z; x -= x1;
@@ -599,7 +599,7 @@ static int32_t    spat3d(CSOUND *csound, SPAT3D *p)
     int32_t        nn, i, j;
     int32_t offset = p->h.insdshead->ksmps_offset;
     int32_t nsmps = p->bs - p->h.insdshead->ksmps_no_end;
-    MYFLT       *aoutW, *aoutX, *aoutY, *aoutZ, w;
+    cs_float       *aoutW, *aoutX, *aoutY, *aoutZ, w;
 
     /* assign object data to local variables */
 
@@ -691,11 +691,11 @@ static int32_t    spat3d(CSOUND *csound, SPAT3D *p)
 /* spat3di wall perf */
 
 static void spat3di_wall_perf(SPAT3D        *p,     /* opcode struct    */
-                              MYFLT         *xn,    /* input signal     */
+                              cs_float         *xn,    /* input signal     */
                               SPAT3D_WALL   *ws,    /* wall params      */
                               int32_t offset, int32_t nsmps)
 {
-    MYFLT       *yn, *Wb, *Xb, *Yb, *Zb, w, x, y, z;
+    cs_float       *yn, *Wb, *Xb, *Yb, *Zb, w, x, y, z;
     int32_t     xpos0, xpos1, nn, bs;
 
     yn = ws->yn + offset; xn += offset;
@@ -765,7 +765,7 @@ static int32_t    spat3di(CSOUND *csound, SPAT3D *p)
     int32_t     nn;
     int32_t offset = p->h.insdshead->ksmps_offset;
     int32_t nsmps = p->bs - p->h.insdshead->ksmps_no_end;
-    MYFLT       *a_outW, *a_outX, *a_outY, *a_outZ;
+    cs_float       *a_outW, *a_outX, *a_outY, *a_outZ;
 
     /* assign object data to local variables */
 
@@ -817,10 +817,10 @@ static int32_t    spat3di(CSOUND *csound, SPAT3D *p)
 /* spat3dt wall perf */
 
 static void spat3dt_wall_perf(SPAT3D        *p,     /* opcode struct    */
-                              MYFLT         *xn,    /* input signal     */
+                              cs_float         *xn,    /* input signal     */
                               SPAT3D_WALL   *ws)    /* wall params      */
 {
-    MYFLT       *yn, *Wb, *Yb, *endp, w, x, y, z, a, d, ad, yw;
+    cs_float       *yn, *Wb, *Yb, *endp, w, x, y, z, a, d, ad, yw;
     int32_t     nn;
     yn = ws->yn;
     endp = p->outft;            /* write to ftable      */
@@ -829,7 +829,7 @@ static void spat3dt_wall_perf(SPAT3D        *p,     /* opcode struct    */
     endp += p->outftlnth;       /* end of table         */
 
     w = ws->W0; x = ws->X0; y = ws->Y0; z = ws->Z0;
-    a = FL(1.0) / (MYFLT) p->bs; ad = FL(2.0) * (a *= -a); d = FL(1.0);
+    a = FL(1.0) / (cs_float) p->bs; ad = FL(2.0) * (a *= -a); d = FL(1.0);
 
     nn = p->bs; while (nn--) {  /* EQ */
 
@@ -869,7 +869,7 @@ static void spat3dt_wall_perf(SPAT3D        *p,     /* opcode struct    */
 static int32_t    spat3dt(CSOUND *csound, SPAT3D *p)
 {
     int32_t wmax;
-    MYFLT   *ir;
+    cs_float   *ir;
 
     p->o_num = 2;                           /* opcode number         */
     if (UNLIKELY(spat3d_set_opcode_params(csound, p) != OK)) return NOTOK;
@@ -883,10 +883,10 @@ static int32_t    spat3dt(CSOUND *csound, SPAT3D *p)
 
     /* initialise IR */
 
-    ir = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT) * (int32_t) p->bs);
+    ir = (cs_float *) csound->Malloc(csound, sizeof(cs_float) * (int32_t) p->bs);
     ir[0] = FL(1.0);
     wmax = 0; while (++wmax <  p->bs)
-      ir[wmax] = (sizeof(MYFLT) < 8 ? FL(1.0e-24) : FL(1.0e-48));
+      ir[wmax] = (sizeof(cs_float) < 8 ? FL(1.0e-24) : FL(1.0e-48));
 
     if (*(p->args[8]) == FL(0.0)) {          /* clear ftable (if enabled) */
       wmax = -1; while (++wmax < p->outftlnth)

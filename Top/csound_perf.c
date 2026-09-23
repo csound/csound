@@ -32,7 +32,7 @@ void message_dequeue(CSOUND *csound);
 int32_t sense_events(CSOUND *);
 
 
-inline static void mix_out(MYFLT *out, MYFLT *in, uint32_t smps) {
+inline static void mix_out(cs_float *out, cs_float *in, uint32_t smps) {
   uint32_t i;
   for (i = 0; i < smps; i++)
     out[i] += in[i];
@@ -80,7 +80,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
   int32_t errorcnt = 0;
   int32_t which_task;
   INSDS **task_map = (INSDS **)csound->dag_task_map;
-  double time_end;
+  cs_double time_end;
   int32_t next_task = INVALID;
 
   while (1) {
@@ -262,9 +262,9 @@ int32_t kperf(CSOUND *csound) {
   if (csound->oparms_.sfread) /*   if audio_infile open  */
     csound->spinrecv(csound); /*      fill the spin buf  */
   /* clear spout */
-  memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
+  memset(csound->spout, 0, csound->nspout * sizeof(cs_float));
   memset(csound->spout_tmp, 0,
-         sizeof(MYFLT) * csound->nspout * csound->oparms->numThreads);
+         sizeof(cs_float) * csound->nspout * csound->oparms->numThreads);
   ip = csound->actanchor.nxtact;
 
   if (ip != NULL) {
@@ -314,7 +314,7 @@ int32_t kperf(CSOUND *csound) {
     // single-thread performance
     else {
       int32_t done;
-      double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
+      cs_double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
 
       while (ip != NULL) { /* for each instr active:  */
         INSDS *nxt = ip->nxtact;

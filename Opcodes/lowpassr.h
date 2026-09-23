@@ -24,23 +24,23 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *asig, *kfco, *kres, *istor;
-        double  ynm1, ynm2;
-        double  coef1, coef2, okf, okr, k;
+        cs_float   *ar, *asig, *kfco, *kres, *istor;
+        cs_double  ynm1, ynm2;
+        cs_double  coef1, coef2, okf, okr, k;
 } LOWPR;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *asig, *kfco, *kres, *ord, *istor;
-        MYFLT   ynm1[10], ynm2[10] ;
+        cs_float   *ar, *asig, *kfco, *kres, *ord, *istor;
+        cs_float   ynm1[10], ynm2[10] ;
         int32_t     loop;
-        MYFLT   coef1, coef2, okf, okr, k;
+        cs_float   coef1, coef2, okf, okr, k;
 } LOWPRX;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *asig, *kfco, *kres, *ord, *sep;
-        MYFLT   ynm1[10], ynm2[10], cut[10];
+        cs_float   *ar, *asig, *kfco, *kres, *ord, *sep;
+        cs_float   ynm1[10], ynm2[10], cut[10];
         int32_t
         loop;
 } LOWPR_SEP;

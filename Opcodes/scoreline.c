@@ -31,13 +31,13 @@
 typedef struct _inmess {
   OPDS h;
   STRINGDAT *SMess;
-  MYFLT *ktrig;
+  cs_float *ktrig;
 } INMESS;
 
 
 typedef struct _scorepos {
   OPDS h;
-  MYFLT *spos;
+  cs_float *spos;
 } SCOREPOS;
 
 int32_t messi(CSOUND *csound, INMESS *p)

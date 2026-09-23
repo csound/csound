@@ -24,6 +24,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "beats.tab.h"
+#include "csound_types.h"
 
 #if defined(_WIN32) || defined(WIN32) 
 #include <io.h>
@@ -35,9 +36,9 @@ void comment1(void);
 int yyline = 0;
  extern int last_note;
  extern int last_integer;
- extern double last_float;
- extern double last_duration;
- extern double bpm;
+ extern cs_double last_float;
+ extern cs_double last_duration;
+ extern cs_double bpm;
  int next_instr=0;
  extern int instrument;
  extern int pnum;
