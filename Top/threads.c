@@ -184,14 +184,26 @@ typedef struct barrier {
                                  void *userdata)
 {
     pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setstacksize(&attr, stack);
-    pthread_t *pthread = (pthread_t *) malloc(sizeof(pthread_t));
-    if (!pthread_create(pthread, (pthread_attr_t*) NULL,
-                        (void *(*)(void *))(void*)threadRoutine, userdata)) {
-      return (void*) pthread;
+    pthread_t *thread;
+    int status;
+
+    if (pthread_attr_init(&attr) != 0)
+      return NULL;
+    if (stack != 0 && pthread_attr_setstacksize(&attr, stack) != 0) {
+      pthread_attr_destroy(&attr);
+      return NULL;
     }
-    free(pthread);
+    thread = (pthread_t *)malloc(sizeof(pthread_t));
+    if (thread == NULL) {
+      pthread_attr_destroy(&attr);
+      return NULL;
+    }
+    status = pthread_create(thread, &attr,
+                            (void *(*)(void *))(void*)threadRoutine, userdata);
+    pthread_attr_destroy(&attr);
+    if (status == 0)
+      return thread;
+    free(thread);
     return NULL;
 
 }
@@ -201,6 +213,8 @@ typedef struct barrier {
                                 void *userdata)
 {
     pthread_t *pthread = (pthread_t *) malloc(sizeof(pthread_t));
+    if (pthread == NULL)
+      return NULL;
     if (!pthread_create(pthread, (pthread_attr_t*) NULL,
                         (void *(*)(void *))(void*)threadRoutine, userdata)) {
       return (void*) pthread;
@@ -227,10 +241,10 @@ typedef struct barrier {
     if(thread == NULL) return 0;
     pthreadReturnValue = pthread_join(*pthread,
                                       &threadRoutineReturnValue);
-    free(pthread);
     if (pthreadReturnValue) {
         return (uintptr_t) ((intptr_t) pthreadReturnValue);
     } else {
+        free(pthread);
         return (uintptr_t) threadRoutineReturnValue;
     }
 }
@@ -528,59 +542,40 @@ typedef struct CsoundThreadLock_s {
 /* #undef NO_WIN9X_COMPATIBILITY */
 
 typedef struct {
+  HANDLE      handle; /* Keep first: the engine reads the native thread handle. */
   uintptr_t   (*func)(void *);
   void        *userdata;
-  HANDLE      threadLock;
+  uintptr_t   result;
 } threadParams;
 
-static uint32_t __stdcall threadRoutineWrapper(void *p)
+static uint32_t __stdcall threadRoutineWrapper(void *arg)
 {
-  uintptr_t (*threadRoutine)(void *);
-  void      *userData;
-
-  threadRoutine = ((threadParams*) p)->func;
-  userData = ((threadParams*) p)->userdata;
-  SetEvent(((threadParams*) p)->threadLock);
-  return (uint32_t) threadRoutine(userData);
+  threadParams *p = (threadParams *)arg;
+  p->result = p->func(p->userdata);
+  return 0;
 }
 
- void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack, void *userdata) {
-  threadParams  p;
-  void          *h;
-  uint32_t  threadID;
-
-  p.func = threadRoutine;
-  p.userdata = userdata;
-  p.threadLock = CreateEvent(0, 0, 0, 0);
-  if (p.threadLock == (HANDLE) 0)
+ void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack,
+                          void *userdata)
+{
+  threadParams *p = (threadParams *)malloc(sizeof(threadParams));
+  uint32_t threadID;
+  if (p == NULL)
     return NULL;
-  h = (void*) _beginthreadex(NULL, stack, threadRoutineWrapper,
-      (void*) &p, (unsigned) 0, &threadID);
-  if (h != NULL)
-    WaitForSingleObject(p.threadLock, INFINITE);
-  CloseHandle(p.threadLock);
-  return h;
-
+  p->func = threadRoutine;
+  p->userdata = userdata;
+  p->result = 0;
+  p->handle = (HANDLE)_beginthreadex(NULL, stack, threadRoutineWrapper,
+                                    p, 0, &threadID);
+  if (p->handle != NULL)
+    return p;
+  free(p);
+  return NULL;
 }
 
- void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
-    void *userdata)
+ void *csoundCreateThread(uintptr_t (*threadRoutine)(void *), void *userdata)
 {
-  threadParams  p;
-  void          *h;
-  uint32_t  threadID;
-
-  p.func = threadRoutine;
-  p.userdata = userdata;
-  p.threadLock = CreateEvent(0, 0, 0, 0);
-  if (p.threadLock == (HANDLE) 0)
-    return NULL;
-  h = (void*) _beginthreadex(NULL, (unsigned) 0, threadRoutineWrapper,
-      (void*) &p, (unsigned) 0, &threadID);
-  if (h != NULL)
-    WaitForSingleObject(p.threadLock, INFINITE);
-  CloseHandle(p.threadLock);
-  return h;
+  return csoundCreateThread2(threadRoutine, 0, userdata);
 }
 
  void *csoundGetCurrentThreadId(void)
@@ -594,11 +589,16 @@ static uint32_t __stdcall threadRoutineWrapper(void *p)
 
  uintptr_t csoundJoinThread(void *thread)
 {
-  DWORD   retval = (DWORD) 0;
-  WaitForSingleObject((HANDLE) thread, INFINITE);
-  GetExitCodeThread((HANDLE) thread, &retval);
-  CloseHandle((HANDLE) thread);
-  return (uintptr_t) retval;
+  threadParams *p = (threadParams *)thread;
+  uintptr_t result;
+  if (p == NULL)
+    return 0;
+  if (WaitForSingleObject(p->handle, INFINITE) != WAIT_OBJECT_0)
+    return (uintptr_t)GetLastError();
+  result = p->result;
+  CloseHandle(p->handle);
+  free(p);
+  return result;
 }
 
  void *csoundCreateThreadLock(void)
@@ -971,27 +971,39 @@ typedef struct barrier {
 #else // C THREADS
 #include <threads.h>
 
- void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack,
-                                void *userdata)
+typedef struct {
+  thrd_t thread; /* Keep the native thread ID first, as in the pthread backend. */
+  uintptr_t (*func)(void *);
+  void *userdata;
+  uintptr_t result;
+} threadParams;
+
+static int threadRoutineWrapper(void *arg)
 {
-  thrd_t *thread = (thrd_t *) malloc(sizeof(thrd_t));
-  if(thrd_create(thread, (thrd_start_t) threadRoutine, userdata) == thrd_success){
-    return thread;
-  }
-  free(thread);
+  threadParams *p = (threadParams *)arg;
+  p->result = p->func(p->userdata);
+  return 0;
+}
+
+ void *csoundCreateThread(uintptr_t (*threadRoutine)(void *), void *userdata)
+{
+  threadParams *p = (threadParams *)malloc(sizeof(threadParams));
+  if (p == NULL)
+    return NULL;
+  p->func = threadRoutine;
+  p->userdata = userdata;
+  p->result = 0;
+  if (thrd_create(&p->thread, threadRoutineWrapper, p) == thrd_success)
+    return p;
+  free(p);
   return NULL;
 }
 
-
- void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
-                                void *userdata)
+ void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack,
+                          void *userdata)
 {
-  thrd_t *thread = (thrd_t *) malloc(sizeof(thrd_t));
-  if(thrd_create(thread, (thrd_start_t) threadRoutine, userdata) == thrd_success){
-    return thread;
-  }
-  free(thread);
-  return NULL;
+  IGN(stack); /* C11 threads have no stack-size attribute. */
+  return csoundCreateThread(threadRoutine, userdata);
 }
 
  void *csoundGetCurrentThreadId(void)
@@ -1005,18 +1017,17 @@ typedef struct barrier {
 
  uintptr_t csoundJoinThread(void *thread)
 {
-    int threadRoutineReturnValue;
-    int32_t threadReturnValue;
-    thrd_t *thred = (thrd_t *)thread;
-    if(thred == NULL) return 0;
-    threadReturnValue = thrd_join(*thred,
-                                   &threadRoutineReturnValue);
-    free(thred);
-    if (threadReturnValue) {
-        return (uintptr_t) ((intptr_t) threadReturnValue);
-    } else {
-        return (uintptr_t) threadRoutineReturnValue;
-    }
+  threadParams *p = (threadParams *)thread;
+  uintptr_t result;
+  int status;
+  if (p == NULL)
+    return 0;
+  status = thrd_join(p->thread, NULL);
+  if (status != thrd_success)
+    return (uintptr_t)(intptr_t)status;
+  result = p->result;
+  free(p);
+  return result;
 }
 
 typedef struct {
