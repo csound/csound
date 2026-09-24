@@ -60,6 +60,7 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
 
     pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     pp->spaceaddr = (void*) p;
+    pp->space_instance = p->h.insdshead;
     return OK;
 }
 
@@ -192,6 +193,11 @@ static int32_t spsendset(CSOUND *csound, SPSEND *p)
     STDOPCOD_GLOBALS  *pp;
 
     pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
+    if (UNLIKELY(pp->spaceaddr == NULL ||
+                 pp->space_instance != p->h.insdshead))
+      return csound->InitError(csound, "%s",
+                               Str("spsend: no previous space in this "
+                                   "instrument instance"));
     p->space = (SPACE*) pp->spaceaddr;
     return OK;
 }
