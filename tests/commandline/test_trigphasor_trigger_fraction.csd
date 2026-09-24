@@ -1,5 +1,5 @@
 <CsTest>
-description = "trigphasor audio reset uses the elapsed fraction since the zero crossing"
+description = "trigphasor resets at the interpolated crossing using the previous rate"
 
 [expect]
 exit = 0
@@ -16,22 +16,32 @@ nchnls = 1
 gkChecks init 0
 gkFailures init 0
 
-instr 1
+instr CheckReset
+  iTriggerBefore = p4
+  iTriggerAfter = p5
+  iRateBefore = p6
+  iRateAfter = p7
+  iTriggerSample = p8
+  iExpectedPhase = p9
+
   kSample init 0
-  aTrigger = kSample < p8 ? p4 : p5
-  kRate = kSample < p8 ? p6 : p7
+  aTrigger = kSample < iTriggerSample ? iTriggerBefore : iTriggerAfter
+  kRate = kSample < iTriggerSample ? iRateBefore : iRateAfter
   aRate = kRate
-  aAK trigphasor aTrigger, kRate, 0, 16, 4
-  aAA trigphasor aTrigger, aRate, 0, 16, 4
-  kAK downsamp aAK
-  kAA downsamp aAA
-  if kSample == p8 then
-    ; Linear interpolation places the crossing within the previous interval.
-    ; Only the part after that crossing contributes to the reset phase.
-    kElapsed = p5/(p5-p4)
-    kExpected = p8 == 0 ? 4 : 4 + p6*kElapsed
-    printks "trigphasor trigger %g -> %g: expected=%.9f actual=%.9f/%.9f\n", 0, p4, p5, kExpected, kAK, kAA
-    if abs(kAK-kExpected) + abs(kAA-kExpected) > .000001 then
+
+  ; Both calls have an audio trigger. Only the rate argument differs.
+  aControlRatePhase trigphasor aTrigger, kRate, 0, 16, 4
+  aAudioRatePhase trigphasor aTrigger, aRate, 0, 16, 4
+  kControlRatePhase downsamp aControlRatePhase
+  kAudioRatePhase downsamp aAudioRatePhase
+
+  if kSample == iTriggerSample then
+    if abs(kControlRatePhase-iExpectedPhase) + \
+       abs(kAudioRatePhase-iExpectedPhase) > .000001 then
+      printks "trigphasor: trigger=%g->%g rate=%g->%g sample=%g expected=%g control-rate result=%g audio-rate result=%g\n", \
+        0, iTriggerBefore, iTriggerAfter, \
+        iRateBefore, iRateAfter, iTriggerSample, \
+        iExpectedPhase, kControlRatePhase, kAudioRatePhase
       gkFailures += 1
     endif
     gkChecks += 1
@@ -39,24 +49,36 @@ instr 1
   kSample += 1
 endin
 
-instr 99
+instr CheckCoverage
   if i(gkChecks) != 8 || i(gkFailures) != 0 then
-    prints "trigphasor fractional reset failures=%g checks=%g\n", i(gkFailures), i(gkChecks)
+    prints "trigphasor reset failures=%g completed=%g (expected 8)\n", i(gkFailures), i(gkChecks)
     exitnow(-1)
   endif
 endin
 </CsInstruments>
 <CsScore>
-; previous trigger, current trigger, previous rate, current rate, trigger sample
-i 1 0 .001 -1 1 .25 .25 2
-i 1 .002 .001 -3 1 .25 .25 2
-i 1 .004 .001 0 1 .25 .25 2
-i 1 .006 .001 -1 1 .25 .75 2
-i 1 .008 .001 -1 1 -.25 .75 2
-i 1 .010 .001 -1 1 0 .75 2
-i 1 .012 .001 -1 1 .25 .25 0
-i 1 .014 .001 -1 1 -.25 -.25 0
-i 99 .016 .001
+; Each note lasts eight samples. Every reset starts from phase 4.
+;                                    trigger    rate       trigger expected
+;                                    from/to    old/new    sample  phase
+
+; Symmetric crossing: half of the previous .25 step has elapsed: 4 + .125.
+i "CheckReset" 0 [8/8192]              -1  1     .25  .25     2     4.125
+; One quarter of the .25 step follows the crossing: 4 + .0625.
+i "CheckReset" 0 [8/8192]              -3  1     .25  .25     2     4.0625
+; The previous trigger was exactly zero: one full step has elapsed.
+i "CheckReset" 0 [8/8192]               0  1     .25  .25     2     4.25
+
+; A rate change at the trigger must not change the previous interval.
+i "CheckReset" 0 [8/8192]              -1  1     .25  .75     2     4.125
+; This also holds when the old rate was negative or zero.
+i "CheckReset" 0 [8/8192]              -1  1    -.25  .75     2     3.875
+i "CheckReset" 0 [8/8192]              -1  1      0   .75     2     4
+
+; At note start there is no previous interval: reset exactly to phase 4.
+i "CheckReset" 0 [8/8192]              -1  1     .25  .25     0     4
+i "CheckReset" 0 [8/8192]              -1  1    -.25 -.25     0     4
+
+i "CheckCoverage" [16/8192] [1/8192]
 e
 </CsScore>
 </CsoundSynthesizer>
