@@ -61,14 +61,33 @@ static int32_t partials_init(CSOUND * csound, _PARTS * p)
     int32_t     numbins = N / 2 + 1, i;
     int32_t    *trkid;
     int32_t    *trndx;
+    float      *fout;
+
+    if (UNLIKELY(p->fin1->format != PVS_AMP_FREQ)) {
+      return
+        csound->InitError(csound,
+                          "%s", Str("partials: first input not in AMP_FREQ format\n"));
+    }
+
+    if (UNLIKELY(p->fin2->format != PVS_AMP_PHASE)) {
+      csound->Warning(csound,
+                      "%s", Str("partials: no phase input, tracks will contain "
+                          "amp & freq only\n"));
+      p->nophase = 1;
+    }
+    else
+      p->nophase = 0;
+
+    if (UNLIKELY(!(*p->mtrks >= FL(1.0))))
+      return csound->InitError(csound, "%s",
+                               Str("partials: imaxtracks must be at least 1"));
 
     p->tracks = 0;
-    p->mtracks = *p->mtrks;
     p->timecount = 0;
     p->accum = 0;
     p->numbins = numbins;
 
-    maxtracks = (p->mtracks < numbins ? p->mtracks : numbins);
+    maxtracks = (*p->mtrks < numbins ? (int32_t) *p->mtrks : numbins);
 
     p->prev = 0;
     p->cur = maxtracks;
@@ -157,6 +176,10 @@ static int32_t partials_init(CSOUND * csound, _PARTS * p)
      else
        memset(p->fout->frame.auxp, 0,sizeof(float) * numbins * 4);
 
+    fout = (float *) p->fout->frame.auxp;
+    for (i = 3; i < numbins * 4; i += 4)
+      fout[i] = -1.0f;
+
     p->fout->N = N;
     p->fout->overlap = p->fin1->overlap;
     p->fout->winsize = p->fin1->winsize;
@@ -170,21 +193,6 @@ static int32_t partials_init(CSOUND * csound, _PARTS * p)
       trkid[p->cur + i] = trkid[p->prev + i] = trndx[i] = -1;
 
     p->mtracks = maxtracks;
-
-    if (UNLIKELY(p->fin1->format != PVS_AMP_FREQ)) {
-      return
-        csound->InitError(csound,
-                          "%s", Str("partials: first input not in AMP_FREQ format\n"));
-    }
-
-    if (UNLIKELY(p->fin2->format != PVS_AMP_PHASE)) {
-      csound->Warning(csound,
-                      "%s", Str("partials: no phase input, tracks will contain "
-                          "amp & freq only\n"));
-      p->nophase = 1;
-    }
-    else
-      p->nophase = 0;
 
     p->lastframe = 0;
 
@@ -501,6 +509,10 @@ typedef struct  _partxt{
 
 int32_t part2txt_init(CSOUND *csound, PARTXT *p){
 
+    if (UNLIKELY(p->tracks->format != PVS_TRACKS))
+      return csound->InitError(csound, "%s",
+                               Str("part2txt: input must be in TRACKS format"));
+
     if (p->fdch.fd != NULL)
       csound->FDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, p->fname->data,
@@ -515,10 +527,14 @@ int32_t part2txt_init(CSOUND *csound, PARTXT *p){
 int32_t part2txt_perf(CSOUND *csound, PARTXT *p){
      IGN(csound);
     float *tracks = (float *) p->tracks->frame.auxp;
-    int32_t i = 0;
+    size_t i, end = p->tracks->frame.size / sizeof(float);
+    size_t logical_end = (size_t) (p->tracks->N / 2 + 1) * 4;
+
+    if (end > logical_end)
+      end = logical_end;
 
     if (p->tracks->framecount > p->lastframe){
-      for (i=0; tracks[i+3] > 0; i+=4){
+      for (i = 0; i + 3 < end && tracks[i + 3] >= 0.0f; i += 4) {
         fprintf(p->f, "%f %f %f %d\n", tracks[i],tracks[i+1],
                 tracks[i+2], (int32_t) tracks[i+3]);
       }
@@ -532,7 +548,7 @@ static OENTRY localops[] =
   {
     { "partials", sizeof(_PARTS), 0,  "f", "ffkkki",
                             (SUBR) partials_init, (SUBR) partials_process },
-    { "part2txt", sizeof(_PARTS), 0,  "", "Sf",
+    { "part2txt", sizeof(PARTXT), 0,  "", "Sf",
                             (SUBR) part2txt_init, (SUBR) part2txt_perf }
   };
 
