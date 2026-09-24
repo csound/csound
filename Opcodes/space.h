@@ -27,6 +27,7 @@
 /******************************************/
 
 #include "stdopcod.h"
+#include "spatial_send.h"
 
 typedef struct {
     OPDS    h;
@@ -35,6 +36,7 @@ typedef struct {
     FUNC    *ftp;
     AUXCH   auxch;
     MYFLT   *rrev1, *rrev2, *rrev3, *rrev4;
+    SPATIAL_SOURCE source;
 } SPACE;
 
 typedef struct {

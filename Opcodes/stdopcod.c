@@ -21,6 +21,14 @@
 */
 
 #include "stdopcod.h"
+#include "spatial_send.h"
+
+static int32_t spatial_sources_reset(CSOUND *csound, void *data)
+{
+    SPATIAL_SOURCES *sources = (SPATIAL_SOURCES *)data;
+    csound->DestroyMutex(sources->mutex);
+    return OK;
+}
 
 /*  int32_t csoundModuleCreate(CSOUND *csound)
 {
@@ -49,6 +57,23 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     } else return CSOUND_SUCCESS;  // already initialised
 
     p->csound = csound;
+    if (csound->CreateGlobalVariable(csound, SPATIAL_SOURCES_GLOBAL,
+                                     sizeof(SPATIAL_SOURCES)) != OK)
+      return CSOUND_ERROR;
+    SPATIAL_SOURCES *sources = (SPATIAL_SOURCES *)
+        csound->QueryGlobalVariable(csound, SPATIAL_SOURCES_GLOBAL);
+    sources->mutex = csound->Create_Mutex(0);
+#if defined(HAVE_PTHREAD) || defined(WIN32) || \
+    !(defined(__STDC_NO_THREADS__) || defined(BARE_METAL) || defined(__wasi__))
+    /* Threadless builds use a NULL handle and no-op mutex functions. */
+    if (sources->mutex == NULL)
+      return CSOUND_ERROR;
+#endif
+    if (csound->RegisterResetCallback(csound, sources,
+                                     spatial_sources_reset) != OK) {
+      csound->DestroyMutex(sources->mutex);
+      return CSOUND_ERROR;
+    }
     /* fout.c */
     p->file_opened = (struct fileinTag*) NULL;
     p->file_num = -1;

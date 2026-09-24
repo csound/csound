@@ -19,6 +19,7 @@
 
 #define __BUILDING_LIBCSOUND
 #include "ugen_internal.h"
+#include "spatial_send.h"
 #include "csound.h"
 #include "pstream.h"
 #include <cstring>
@@ -1051,11 +1052,18 @@ TEST_F(UGenTests, SpatialSendsKeepSourcesWithinTheirContext) {
         EXPECT_EQ(FL(.25), out[0]);
     }
 
-    // Moving a source must not leave it available to new sends in its old context.
+    // Reassigning the same context keeps the registration.
+    csoundUgenSetContext(source, first);
+    EXPECT_EQ(source->opcodeMem,
+              spatial_source_find(csound, first->insds, SPATIAL_SPACE));
+    // Moving away and back requires init before another send can use the source.
     csoundUgenSetContext(source, second);
-    EXPECT_EQ(nullptr, first->insds->spaceaddr);
+    EXPECT_EQ(nullptr, spatial_source_find(csound, first->insds, SPATIAL_SPACE));
+    csoundUgenSetContext(source, first);
+    EXPECT_EQ(nullptr, spatial_source_find(csound, first->insds, SPATIAL_SPACE));
+    csoundUgenSetContext(source, second);
     ASSERT_EQ(0, csoundUgenInit(source));
-    EXPECT_EQ(nullptr, first->insds->spaceaddr);
+    EXPECT_EQ(nullptr, spatial_source_find(csound, first->insds, SPATIAL_SPACE));
     csoundUgenSetContext(send, second);
     csoundUgenContextDelete(first);
     ASSERT_EQ(0, csoundUgenInit(send));
@@ -1063,7 +1071,7 @@ TEST_F(UGenTests, SpatialSendsKeepSourcesWithinTheirContext) {
     csoundUgenDelete(other);
     EXPECT_EQ(0, csoundUgenInit(send));
     csoundUgenDelete(source);
-    EXPECT_EQ(nullptr, second->insds->spaceaddr);
+    EXPECT_EQ(nullptr, spatial_source_find(csound, second->insds, SPATIAL_SPACE));
     csoundUgenDelete(send);
     csoundUgenContextDelete(second);
     csoundUgenFactoryDelete(factory);
