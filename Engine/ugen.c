@@ -267,6 +267,13 @@ bool csoundUgenContextDelete(UGEN_CONTEXT* context) {
 bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context) {
     if (ugen == NULL || context == NULL) return false;
     OPDS* opds = (OPDS*)ugen->opcodeMem;
+    if (opds->insdshead != context->insds) {
+        /* A moved source needs init in its new context before a send can use it. */
+        if (opds->insdshead->locsigaddr == opds)
+            opds->insdshead->locsigaddr = NULL;
+        if (opds->insdshead->spaceaddr == opds)
+            opds->insdshead->spaceaddr = NULL;
+    }
     ugen->insds = context->insds;
     opds->insdshead = context->insds;
     return true;

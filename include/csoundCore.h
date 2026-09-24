@@ -538,6 +538,8 @@ typedef struct {
        reuse and free path must reject a nonzero count, and a borrower must not
        access the INSDS after its final decrement. */
     volatile int32_t async_ref_count;
+    /* Last initialized spatial sources in this instance; cleared at deinit. */
+    void *locsigaddr, *spaceaddr;
     /* Copy of required p-field values for quick access */
     CS_VAR_MEM  p0;
     CS_VAR_MEM  p1;

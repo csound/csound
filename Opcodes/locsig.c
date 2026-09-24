@@ -32,9 +32,18 @@
 #include "locsig.h"
 #include <math.h>
 
+static int32_t locsig_deinit(CSOUND *csound, LOCSIG *p)
+{
+    IGN(csound);
+    /* Leave a later source intact when an older one is destroyed. */
+    if (p->h.insdshead->locsigaddr == p)
+      p->h.insdshead->locsigaddr = NULL;
+    return OK;
+}
+
 static int32_t locsigset(CSOUND *csound, LOCSIG *p)
 {
-    STDOPCOD_GLOBALS  *pp;
+    locsig_deinit(csound, p);
     int32_t     outcount = p->OUTOCOUNT;
 
     if (UNLIKELY(outcount != 2 && outcount != 4))
@@ -56,9 +65,7 @@ static int32_t locsigset(CSOUND *csound, LOCSIG *p)
     p->prev_degree = -FL(918273645.192837465);
     p->prev_distance = -FL(918273645.192837465);
 
-    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-    pp->locsigaddr = (void*) p;
-    pp->locsig_instance = p->h.insdshead;
+    p->h.insdshead->locsigaddr = p;
 
     return OK;
 }
@@ -154,16 +161,12 @@ static int32_t locsig(CSOUND *csound, LOCSIG *p)
 
 static int32_t locsendset(CSOUND *csound, LOCSEND *p)
 {
-    STDOPCOD_GLOBALS  *pp;
-    LOCSIG  *q;
+    LOCSIG *q = (LOCSIG *)p->h.insdshead->locsigaddr;
 
-    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-    if (UNLIKELY(pp->locsigaddr == NULL ||
-                 pp->locsig_instance != p->h.insdshead))
+    if (UNLIKELY(q == NULL))
       return csound->InitError(csound, "%s",
                                Str("locsend: no previous locsig in this "
                                    "instrument instance"));
-    q = (LOCSIG*) pp->locsigaddr;
     p->locsig = q;
 
     if (UNLIKELY(p->OUTOCOUNT != q->OUTOCOUNT)) {
@@ -237,7 +240,7 @@ static int32_t locsend(CSOUND *csound, LOCSEND *p)
 static OENTRY localops[] =
   {
    { "locsig", S(LOCSIG),  0,  "mmmm", "akkk",
-     (SUBR)locsigset, (SUBR)locsig    },
+     (SUBR)locsigset, (SUBR)locsig, (SUBR)locsig_deinit },
    { "locsend", S(LOCSEND),0,  "mmmm", "",(SUBR)locsendset, (SUBR)locsend }
   };
 
