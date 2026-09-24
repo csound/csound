@@ -29,54 +29,100 @@
 #include "stdopcod.h"
 #include "uggab.h"
 #include <math.h>
+#include <float.h>
+
+/* Bounds, width, and lower_remainder are fixed for the current block.
+   Arguments must be local values without side effects. */
+#define WRAP_VALUE(output, input, lower, upper, width, lower_remainder) do { \
+    double value = (input);                                               \
+    if (value >= (lower) && value < (upper)) {                             \
+      (output) = (MYFLT)value;                                            \
+      break;                                                             \
+    }                                                                    \
+    if (UNLIKELY((width) > DBL_MAX)) {                                    \
+      /* A finite interval this wide needs at most one wrap. */           \
+      if (!(value >= -DBL_MAX && value <= DBL_MAX &&                       \
+            (lower) >= -DBL_MAX && (upper) <= DBL_MAX))                    \
+        value = NAN;                                                     \
+      else {                                                             \
+        /* Keep fast-math from rewriting this as value +/- width. */      \
+        int above = value >= (upper);                                    \
+        volatile double distance = above ? value - (upper)               \
+                                         : (lower) - value;              \
+        value = above ? (lower) + distance : (upper) - distance;          \
+      }                                                                  \
+    } else {                                                             \
+      /* Reduce separately so input - lower cannot lose the offset or    \
+         overflow. Each remainder is at most half the width. */          \
+      value = remainder(value, (width)) - (lower_remainder);              \
+      if (value < 0.0)                                                    \
+        value += (width);                                                \
+      value += (lower);                                                  \
+    }                                                                    \
+    (output) = (MYFLT)value;                                              \
+    /* Rounding can reach the excluded upper endpoint. */                \
+    if ((output) >= (upper))                                              \
+      (output) = (MYFLT)(lower);                                         \
+} while (0)
 
 static int32_t wrap(CSOUND *csound, WRAP *p)
 {
     IGN(csound);
-    MYFLT       *adest= p->xdest;
-    MYFLT       *asig = p->xsig;
-    MYFLT       xlow, xhigh, xsig;
-    uint32_t    offset = p->h.insdshead->ksmps_offset;
-    uint32_t    early  = p->h.insdshead->ksmps_no_end;
-    uint32_t    n, nsmps = CS_KSMPS;
+    MYFLT *adest = p->xdest;
+    MYFLT *asig = p->xsig;
+    double low = *p->xlow, high = *p->xhigh;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(offset)) memset(adest, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&adest[nsmps], '\0', early*sizeof(MYFLT));
     }
-    if ((xlow=*p->xlow) >= (xhigh=*p->xhigh)) {
-      MYFLT     xaverage;
-      xaverage = (xlow + xhigh) * FL(0.5);
-      for (n=offset; n<nsmps; n++) {
-        adest[n] = xaverage;
+    if (low >= high) {
+      double sum = low + high;
+      MYFLT average;
+      if (fabs(sum) <= DBL_MAX)
+        average = (MYFLT)(sum * 0.5);
+      else {
+        /* Prevent fast-math from adding the bounds before halving. */
+        volatile double half_low = low * 0.5;
+        average = (MYFLT)(half_low + high * 0.5);
       }
+      for (n=offset; n<nsmps; n++)
+        adest[n] = average;
+    } else {
+      double width = high - low;
+      double lower_remainder = remainder(low, width);
+      for (n=offset; n<nsmps; n++)
+        WRAP_VALUE(adest[n], asig[n], low, high, width, lower_remainder);
     }
-    else
-      for (n=offset; n<nsmps; n++) {
-        if ((xsig=asig[n]) >= xlow )
-          adest[n] = xlow + FMOD(xsig - xlow, FABS(xlow-xhigh));
-        else
-          adest[n] = xhigh- FMOD(xhigh- xsig, FABS(xlow-xhigh));
-      }
     return OK;
 }
 
 static int32_t kwrap(CSOUND *csound, WRAP *p)
 {
     IGN(csound);
-    MYFLT xsig, xlow, xhigh;
+    double low = *p->xlow, high = *p->xhigh;
 
-    if ((xlow=*p->xlow) >= (xhigh=*p->xhigh))
-      *p->xdest = (xlow + xhigh)*FL(0.5);
-    else {
-      if ((xsig=*p->xsig) >= xlow )
-        *p->xdest = xlow + FMOD(xsig - xlow, FABS(xlow-xhigh));
-      else
-        *p->xdest = xhigh- FMOD(xhigh- xsig, FABS(xlow-xhigh));
+    if (low >= high) {
+      double sum = low + high;
+      if (fabs(sum) <= DBL_MAX)
+        *p->xdest = (MYFLT)(sum * 0.5);
+      else {
+        volatile double half_low = low * 0.5;
+        *p->xdest = (MYFLT)(half_low + high * 0.5);
+      }
+    } else {
+      double width = high - low;
+      double lower_remainder = remainder(low, width);
+      WRAP_VALUE(*p->xdest, *p->xsig, low, high, width, lower_remainder);
     }
     return OK;
 }
+
+#undef WRAP_VALUE
 
 /*---------------------------------------------------------------------*/
 
