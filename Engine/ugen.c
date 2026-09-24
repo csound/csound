@@ -43,6 +43,7 @@
  * */
 
 #include "ugen_internal.h"
+#include "spatial_send.h"
 #include "csound_standard_types.h"
 #include "csound_orc.h"
 #include "csound_orc_semantics.h"
@@ -269,10 +270,7 @@ bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context) {
     OPDS* opds = (OPDS*)ugen->opcodeMem;
     if (opds->insdshead != context->insds) {
         /* A moved source needs init in its new context before a send can use it. */
-        if (opds->insdshead->locsigaddr == opds)
-            opds->insdshead->locsigaddr = NULL;
-        if (opds->insdshead->spaceaddr == opds)
-            opds->insdshead->spaceaddr = NULL;
+        spatial_source_remove(ugen->csound, opds);
     }
     ugen->insds = context->insds;
     opds->insdshead = context->insds;

@@ -34,10 +34,7 @@
 
 static int32_t locsig_deinit(CSOUND *csound, LOCSIG *p)
 {
-    IGN(csound);
-    /* Leave a later source intact when an older one is destroyed. */
-    if (p->h.insdshead->locsigaddr == p)
-      p->h.insdshead->locsigaddr = NULL;
+    spatial_source_remove(csound, &p->h);
     return OK;
 }
 
@@ -65,7 +62,7 @@ static int32_t locsigset(CSOUND *csound, LOCSIG *p)
     p->prev_degree = -FL(918273645.192837465);
     p->prev_distance = -FL(918273645.192837465);
 
-    p->h.insdshead->locsigaddr = p;
+    spatial_source_register(csound, &p->source, &p->h, SPATIAL_LOCSIG);
 
     return OK;
 }
@@ -161,7 +158,8 @@ static int32_t locsig(CSOUND *csound, LOCSIG *p)
 
 static int32_t locsendset(CSOUND *csound, LOCSEND *p)
 {
-    LOCSIG *q = (LOCSIG *)p->h.insdshead->locsigaddr;
+    LOCSIG *q = (LOCSIG *)spatial_source_find(csound, p->h.insdshead,
+                                            SPATIAL_LOCSIG);
 
     if (UNLIKELY(q == NULL))
       return csound->InitError(csound, "%s",

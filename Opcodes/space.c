@@ -34,10 +34,7 @@
 
 static int32_t space_deinit(CSOUND *csound, SPACE *p)
 {
-    IGN(csound);
-    /* Leave a later source intact when an older one is destroyed. */
-    if (p->h.insdshead->spaceaddr == p)
-      p->h.insdshead->spaceaddr = NULL;
+    spatial_source_remove(csound, &p->h);
     return OK;
 }
 
@@ -67,7 +64,7 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
       p->rrev4 = fltp;   //fltp += CS_KSMPS;
     }
 
-    p->h.insdshead->spaceaddr = p;
+    spatial_source_register(csound, &p->source, &p->h, SPATIAL_SPACE);
     return OK;
 }
 
@@ -197,7 +194,8 @@ static int32_t space(CSOUND *csound, SPACE *p)
 
 static int32_t spsendset(CSOUND *csound, SPSEND *p)
 {
-    SPACE *source = (SPACE *)p->h.insdshead->spaceaddr;
+    SPACE *source = (SPACE *)spatial_source_find(csound, p->h.insdshead,
+                                              SPATIAL_SPACE);
 
     if (UNLIKELY(source == NULL))
       return csound->InitError(csound, "%s",
