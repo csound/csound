@@ -1008,45 +1008,50 @@ typedef struct {
   MYFLT *imtu;
   int32_t mtu;
   AUXCH   aux;    /* MTU bytes */
-  int32_t sock, iargs;
+  int32_t sock, init_done;
   MYFLT   last;
   struct sockaddr_in server_addr;
-  int32_t no_msgs;
+  int32_t first;
 } OSCBUNDLE;
 
 
-static int32_t oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
-  /* check array sizes:
-     type and dest should match
-     arg should have the same number of rows as
-     type and dest
-  */
-    if(p->arg->dimensions != 2)
-      return csound->InitError(csound, "%s",
-                               Str("arg array needs to be two dimensional\n"));
-    if(p->type->dimensions > 1 ||
-       p->dest->dimensions > 1)
-      return csound->InitError(csound, "%s",
-                               Str("type and dest arrays need to be unidimensional\n"));
-    if((p->type->sizes[0] !=
-        p->dest->sizes[0]))
-      return csound->InitError(csound, "%s",
-                               Str("type and dest arrays need to have the same size\n"));
-    p->no_msgs =  p->type->sizes[0];
-    if(p->no_msgs < p->arg->sizes[0])
-      return csound->InitError(csound, "%s", Str("arg array not big enough\n"));
+static int32_t oscbundle_arrays_valid(OSCBUNDLE *p)
+{
+    if (p->type->dimensions != 1 || p->dest->dimensions != 1 ||
+        p->arg->dimensions != 2 || p->type->sizes == NULL ||
+        p->dest->sizes == NULL || p->arg->sizes == NULL)
+      return 0;
+    int32_t rows = p->type->sizes[0], cols = p->arg->sizes[1];
+    return rows >= 0 && cols >= 0 && p->dest->sizes[0] == rows &&
+      p->arg->sizes[0] == rows &&
+      (rows == 0 || (p->type->data != NULL && p->dest->data != NULL &&
+                    (cols == 0 || p->arg->data != NULL)));
+}
 
-    if(*p->imtu) p->mtu = (int32_t) *p->imtu;
-    else p->mtu = MAX_PACKET_SIZE;
+static int32_t oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
+    if (!oscbundle_arrays_valid(p))
+      return csound->InitError(csound, "%s",
+        Str("oscbundle: expected matching destination, type and argument rows"));
+    if (*p->imtu != FL(0.0) &&
+        !(*p->imtu >= FL(16.0) && *p->imtu <= MAX_PACKET_SIZE))
+      return csound->InitError(csound, "%s",
+        Str("oscbundle: packet size must be between 16 and 65536 bytes"));
+    p->mtu = *p->imtu == FL(0.0) ? MAX_PACKET_SIZE : (int32_t)*p->imtu;
+    if (!p->init_done) {
 #if defined(WIN32) && !defined(__CYGWIN__)
-    WSADATA wsaData = {0};
-    int32_t err;
-    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      WSADATA wsaData = {0};
+      int32_t err;
+      if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
+        return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
-    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, "%s", Str("creating socket"));
+      p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+      if (UNLIKELY(p->sock == SOCKET_ERROR)) {
+#if defined(WIN32) && !defined(__CYGWIN__)
+        WSACleanup();
+#endif
+        return csound->InitError(csound, "%s", Str("creating socket"));
+      }
+      p->init_done = 1;
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -1060,105 +1065,79 @@ static int32_t oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
 #endif
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
-    if (p->aux.auxp == NULL)
-      /* allocate space for the buffer, MTU bytes */
+    if (p->aux.auxp == NULL || p->aux.size < (size_t)p->mtu)
       csound->AuxAlloc(csound, p->mtu, &p->aux);
-    else {
-      memset(p->aux.auxp, 0, p->mtu);
-    }
+    p->first = 1;
     p->last = FL(0.0);
     return OK;
 }
 
-#define INCR_AND_CHECK(S)  buffsize += S;  \
-        if(buffsize >= p->mtu) { \
-          csound->Warning(csound, "%s", \
-                          Str("Bundle msg exceeded max packet size, not sent\n")); \
-          return OK; }
-
-#define MAX_TYPEY_PER_BUNDLED_MESSAGE 1024
-
 static int32_t oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
-    if(*p->kwhen != p->last) {
-      int32_t i, n, size = 0, tstrs,
-        dstrs, msize, buffsize = 0, tmp;
-      float fdata;
-      int32_t idata, cols;
-      char tstr[MAX_TYPEY_PER_BUNDLED_MESSAGE], *dstr;
-      char *buff = (char *) p->aux.auxp;
-      const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-      memset(buff, 0, p->mtu);
-      strcpy(buff, "#bundle");
-      buff += 8;
-      buffsize += 8;
-      memset(buff, 0, 8);
-      buff += 8;
-      buffsize += 8;
-      cols = p->arg->sizes[1];
-      for(i = 0; i < p->no_msgs; i++, size = 0) {
-        int32_t siz;
+    if (p->first || *p->kwhen != p->last) {
+      if (!oscbundle_arrays_valid(p))
+        return csound->PerfError(csound, &p->h, "%s",
+          Str("oscbundle: expected matching destination, type and argument rows"));
+      char *buffer = (char *)p->aux.auxp;
+      size_t used = 16;
+      int32_t rows = p->type->sizes[0], cols = p->arg->sizes[1];
+      memset(buffer, 0, p->mtu);
+      memcpy(buffer, "#bundle", 7);
+      buffer[15] = 1;  /* OSC's immediate timetag. */
+      for (int32_t i = 0; i < rows; ++i) {
         const char *types = csound_string_array_element(p->type, i)->data;
-        dstr = csound_string_array_element(p->dest, i)->data;
-        dstrs = (int32_t) strlen(dstr)+1;
-        size += ceil((dstrs)/4.)*4;
-        tstr[0] = ',';
-        strncpy(tstr+1, types, MAX_TYPEY_PER_BUNDLED_MESSAGE-2);
-        tstr[MAX_TYPEY_PER_BUNDLED_MESSAGE-1]='\0';
-        tstrs = (int32_t) strlen(tstr)+1;
-        size += ceil((tstrs)/4.)*4;
-        msize = tstrs - 2; /* tstrs-2 is the number of ints or floats in msg */
-        size += msize*4;
-        siz = size;
-        byteswap((char *) &siz, 4);
-        INCR_AND_CHECK(4)
-        memcpy(buff, &siz, 4);
-        buff += 4;
-        tmp = ceil((dstrs)/4.)*4;
-        INCR_AND_CHECK(tmp)
-        strcpy(buff,dstr);
-        buff += tmp;
-        tmp = ceil((tstrs)/4.)*4;
-        INCR_AND_CHECK(tmp)
-        strcpy(buff,tstr);
-        buff += tmp;
-        for(n = 0; n < msize; n++) {
-          switch(types[n]) {
-          case 'f':
-          if(n < cols)
-              fdata = (float) p->arg->data[cols*i+n];
-          else fdata = 0.f;
-          byteswap((char *) &fdata, 4);
-          INCR_AND_CHECK(4)
-          memcpy(buff, &fdata, 4);
-          buff += 4;
-          break;
-          case 'i':
-          if(n < cols)
-              idata = (int32_t) p->arg->data[cols*i+n];
-          else idata = 0;
-          byteswap((char *) &idata, 4);
-          INCR_AND_CHECK(4)
-          memcpy(buff, &idata, 4);
-          buff += 4;
-          break;
-          default:
-            csound->Message(csound,
-                            "%s", Str("only bundles with i and f types are supported \n"));
+        const char *dest = csound_string_array_element(p->dest, i)->data;
+        if (types == NULL) types = "";
+        if (dest == NULL) dest = "";
+        size_t nargs = strlen(types), length = strlen(dest);
+        if (length > (size_t)p->mtu || nargs > (size_t)p->mtu / 4)
+          goto too_large;
+        size_t destsize = (length + 4) & ~(size_t)3;
+        size_t typesize = (nargs + 5) & ~(size_t)3;
+        size_t size = destsize + typesize + nargs * 4;
+        if (size + 4 > (size_t)p->mtu - used)
+          goto too_large;
+        uint32_t encoded = htonl((uint32_t)size);
+        memcpy(buffer + used, &encoded, 4);
+        used += 4;
+        memcpy(buffer + used, dest, length);
+        used += destsize;
+        buffer[used] = ',';
+        memcpy(buffer + used + 1, types, nargs);
+        used += typesize;
+        for (size_t n = 0; n < nargs; ++n) {
+          MYFLT value = n < (size_t)cols ? p->arg->data[(size_t)i * cols + n] : 0;
+          if (types[n] == 'f') {
+            float fdata = (float)value;
+            memcpy(&encoded, &fdata, 4);
           }
+          else if (types[n] == 'i')
+            encoded = (uint32_t)(int32_t)value;
+          else
+            return csound->PerfError(csound, &p->h, "%s",
+              Str("oscbundle: only i and f types are supported"));
+          encoded = htonl(encoded);
+          memcpy(buffer + used, &encoded, 4);
+          used += 4;
         }
       }
-
-      if (UNLIKELY(sendto(p->sock, (void*) p->aux.auxp, buffsize, 0, to,
-                          sizeof(p->server_addr)) < 0))
-        return csound->PerfError(csound, &(p->h), "%s", Str("OSCbundle failed"));
+      if (UNLIKELY(sendto(p->sock, buffer, (int32_t)used, 0,
+                         (const struct sockaddr *)&p->server_addr,
+                         sizeof(p->server_addr)) < 0))
+        return csound->PerfError(csound, &p->h, "%s", Str("OSCbundle failed"));
+      p->first = 0;
       p->last = *p->kwhen;
     }
+    return OK;
+ too_large:
+    csound->Warning(csound, "%s",
+                   Str("Bundle msg exceeded max packet size, not sent\n"));
     return OK;
 }
 
 static int32_t oscbundle_deinit(CSOUND *csound, OSCBUNDLE *p)
 {
-
+    if (!p->init_done) return OK;
+    p->init_done = 0;
 #if defined(WIN32)
     closesocket((SOCKET)p->sock);
     WSACleanup();

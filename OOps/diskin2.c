@@ -282,16 +282,22 @@ static const int32_t diskin2_format_table[11] = {
    asynchronous paths. */
 static void diskin2_xf_setup(CSOUND *csound, DISKIN2_XF *xf,
                              int32_t wrapMode, MYFLT iWrapMode, int32_t loopLength,
-                             int32_t nChannels)
+                             int32_t nChannels, MYFLT transpose)
 {
     xf->len = 0;
     xf->ready = 0;
     xf->count = 0;
     xf->dir = 0;
     xf->changing = 0;
-    xf->resets = 0;
-    xf->resetsSeen = 0;
-    xf->perfTranspose = FL(0.0);
+    for (int32_t i = 0; i < 3; i++) {
+      xf->control[i].transpose = transpose;
+      xf->control[i].steps = 0;
+    }
+    xf->writeControl = 0;
+    xf->readControl = 1;
+    xf->sharedControl = 2;
+    xf->perfTranspose = transpose;
+    xf->steps = xf->stepsSeen = 0;
     xf->headEnd = (int64_t)0;
     xf->buf = NULL;
     if (wrapMode && iWrapMode > FL(1.0)) {
@@ -426,6 +432,7 @@ static uintptr_t diskin2_io_loop(CSOUND *csound, int32_t array);
 
 typedef struct diskin2_async_entry {
   void *instance;
+  void **entrySlot;
   INSDS *owner;
   volatile int32_t *stopRequested;
   volatile int32_t *instanceReaders;
@@ -467,10 +474,10 @@ typedef struct {
   volatile int32_t shuttingDown;
 } DISKIN2_ASYNC_STATE;
 
-/* Lock order is registry, then entry, or owner-reference, then entry. Entry
-   activity prevents new borrows; the owner-reference lock serializes a new
-   borrow with INSDS reclamation. Disk reads and file closes run without any
-   of these locks held. */
+/* Registry and entry locks belong to init, cleanup, and disk workers. The
+   audio thread only posts stop flags. Registration holds an owner reference
+   until cleanup finishes, including gaps between worker polls. This keeps
+   turnoff from freeing a reader before the event thread removes it. */
 
 enum {
   DISKIN2_ASYNC_IDLE = 0,
@@ -585,6 +592,7 @@ static void diskin2_deactivate_entry_locked(DISKIN2_ASYNC_STATE *state,
 static void diskin2_detach_entry_locked(DISKIN2_ASYNC_ENTRY *entry)
 {
   entry->instance = NULL;
+  entry->entrySlot = NULL;
   entry->owner = NULL;
   entry->stopRequested = NULL;
   entry->instanceReaders = NULL;
@@ -686,34 +694,62 @@ static void diskin2_recycle_entry(CSOUND *csound,
   diskin2_registry_unlock(csound);
 }
 
-static void diskin2_defer_close(CSOUND *csound,
-                                DISKIN2_ASYNC_STATE *state,
-                                DISKIN2_ASYNC_ENTRY *entry)
+/* Called with the registry lock. Retirement keeps its registration reference
+   until the event thread observes the final borrow has ended. */
+static void diskin2_retire_entry_locked(DISKIN2_ASYNC_STATE *state,
+                                        DISKIN2_ASYNC_ENTRY *entry,
+                                        int32_t closeFiles)
 {
-  diskin2_registry_lock(csound);
+  diskin2_entry_lock(entry);
+  entry->active = 0;
+  diskin2_deactivate_entry_locked(state, entry, entry->array);
+  if (entry->entrySlot != NULL)
+    *entry->entrySlot = NULL;
+  entry->closeOnRelease = closeFiles;
   entry->closeNext = state->deferredCloses;
   state->deferredCloses = entry;
-  diskin2_registry_unlock(csound);
+  diskin2_entry_unlock(entry);
 }
 
 static void diskin2_drain_deferred_closes(CSOUND *csound,
-                                          DISKIN2_ASYNC_STATE *state)
+                                          DISKIN2_ASYNC_STATE *state,
+                                          int32_t shutdown)
 {
-  DISKIN2_ASYNC_ENTRY *entry;
+  DISKIN2_ASYNC_ENTRY *ready = NULL, **pending;
 
   diskin2_registry_lock(csound);
-  entry = state->deferredCloses;
-  state->deferredCloses = NULL;
+  for (int32_t array = 0; array < 2; array++) {
+    DISKIN2_ASYNC_ENTRY *entry = array ? state->activeArrayEntries :
+                                        state->activeEntries;
+    while (entry != NULL) {
+      DISKIN2_ASYNC_ENTRY *next = entry->activeNext;
+      if (ATOMIC_GET(*entry->stopRequested) || shutdown)
+        diskin2_retire_entry_locked(state, entry, 1);
+      entry = next;
+    }
+  }
+  pending = &state->deferredCloses;
+  while (*pending != NULL) {
+    DISKIN2_ASYNC_ENTRY *entry = *pending;
+    diskin2_entry_lock(entry);
+    if (!entry->borrowed) {
+      *pending = entry->closeNext;
+      entry->closeNext = ready;
+      ready = entry;
+    }
+    else
+      pending = &entry->closeNext;
+    diskin2_entry_unlock(entry);
+  }
   diskin2_registry_unlock(csound);
 
-  while (entry != NULL) {
-    DISKIN2_ASYNC_ENTRY *next = entry->closeNext;
+  while (ready != NULL) {
+    DISKIN2_ASYNC_ENTRY *entry = ready;
     INSDS *owner = entry->owner;
     volatile int32_t *instanceReaders = entry->instanceReaders;
     int32_t array = entry->array;
-
-    if (owner != NULL && owner->fdchp != NULL)
-      fdchclose(csound, owner);
+    int32_t closeFiles = entry->closeOnRelease;
+    ready = entry->closeNext;
 
     diskin2_entry_lock(entry);
     entry->closeNext = NULL;
@@ -721,90 +757,48 @@ static void diskin2_drain_deferred_closes(CSOUND *csound,
     diskin2_entry_unlock(entry);
     diskin2_recycle_entry(csound, state, entry, array);
 
-    /* The owner reference is released last. A waiter may reclaim the INSDS as
-       soon as this count reaches zero, so nothing below may dereference it. */
+    /* Match the engine's turnoff decision. If another reader still owns a
+       reference, its cleanup will close the files. If turnoff has not yet
+       marked the owner inactive, the engine will see the final decrement.
+       Retain the last reference across the close so the owner cannot be reused. */
     async_instance_lock(csound);
-    if (instanceReaders != NULL)
+    closeFiles = closeFiles && ATOMIC_GET(owner->async_ref_count) == 1 &&
+                 ATOMIC_GET8(owner->actflg) == 0 && owner->fdchp != NULL;
+    if (!closeFiles) {
       ATOMIC_DECR(*instanceReaders);
-    if (owner != NULL)
       ATOMIC_DECR(owner->async_ref_count);
-    async_instance_unlock(csound);
-    entry = next;
+      async_instance_unlock(csound);
+    }
+    else {
+      async_instance_unlock(csound);
+      fdchclose(csound, owner);
+      async_instance_lock(csound);
+      ATOMIC_DECR(*instanceReaders);
+      ATOMIC_DECR(owner->async_ref_count);
+      async_instance_unlock(csound);
+    }
   }
 }
 
-static void *diskin2_acquire_async_instance(CSOUND *csound,
-                                             DISKIN2_ASYNC_ENTRY *entry,
-                                             INSDS **owner)
+static void *diskin2_acquire_async_instance(DISKIN2_ASYNC_ENTRY *entry)
 {
   void *instance = NULL;
 
-  *owner = NULL;
-  /* Reclamation tests async_ref_count under this lock. Take it before the
-     entry lock so a zero-to-one transition cannot race with freeing owner. */
-  async_instance_lock(csound);
   diskin2_entry_lock(entry);
   if (entry->active && entry->instance != NULL &&
       !ATOMIC_GET(*entry->stopRequested)) {
     instance = entry->instance;
-    *owner = entry->owner;
     entry->borrowed = 1;
-    ATOMIC_INCR(*entry->instanceReaders);
-    ATOMIC_INCR((*owner)->async_ref_count);
   }
   diskin2_entry_unlock(entry);
-  async_instance_unlock(csound);
   return instance;
 }
 
-static void diskin2_release_async_instance(
-  CSOUND *csound, DISKIN2_ASYNC_STATE *state,
-  DISKIN2_ASYNC_ENTRY *entry, INSDS *owner,
-  volatile int32_t *instanceReaders, int32_t array)
+static void diskin2_release_async_instance(DISKIN2_ASYNC_ENTRY *entry)
 {
-  int32_t inactive;
-  int32_t closeOnRelease;
-  int32_t deferClose = 0;
-
   diskin2_entry_lock(entry);
   entry->borrowed = 0;
-  inactive = !entry->active;
-  closeOnRelease = entry->closeOnRelease;
   diskin2_entry_unlock(entry);
-
-  /* Deactivation and both diskin2 workers use this short owner lock. This
-     makes the final decrement and close handoff one transition without tying
-     either operation to the long-held allocation lock. */
-  async_instance_lock(csound);
-  if (!inactive) {
-    ATOMIC_DECR(*instanceReaders);
-    ATOMIC_DECR(owner->async_ref_count);
-  }
-  else {
-    /* Retain the last borrow until the event thread closes the owner's files.
-       With two workers, the first release decrements two to one and the second
-       performs this handoff, so neither can miss the final close. */
-    deferClose = closeOnRelease &&
-                 ATOMIC_GET(owner->async_ref_count) == 1 &&
-                 ATOMIC_GET8(owner->actflg) == 0 && owner->fdchp != NULL;
-    if (!deferClose) {
-      ATOMIC_DECR(*instanceReaders);
-      ATOMIC_DECR(owner->async_ref_count);
-    }
-  }
-  async_instance_unlock(csound);
-
-  if (!inactive)
-    return;
-
-  if (deferClose)
-    diskin2_defer_close(csound, state, entry);
-  else {
-    diskin2_entry_lock(entry);
-    diskin2_detach_entry_locked(entry);
-    diskin2_entry_unlock(entry);
-    diskin2_recycle_entry(csound, state, entry, array);
-  }
 }
 
 static int32_t diskin2_remove_async_instance(
@@ -846,7 +840,13 @@ static int32_t diskin2_add_async_instance(
   if (!ATOMIC_GET(state->shuttingDown) &&
       ATOMIC_GET(*asyncState) != DISKIN2_ASYNC_STOPPED &&
       !ATOMIC_GET(*stopRequested)) {
+    /* Init owns the instance here. Retain it before publishing to a worker. */
+    async_instance_lock(csound);
+    ATOMIC_INCR(owner->async_ref_count);
+    ATOMIC_SET(*instanceReaders, 1);
+    async_instance_unlock(csound);
     diskin2_entry_lock(entry);
+    entry->entrySlot = entrySlot;
     entry->active = 1;
     diskin2_entry_unlock(entry);
     diskin2_activate_entry_locked(state, entry, array);
@@ -889,41 +889,33 @@ static int32_t diskin2_remove_async_instance(
   volatile int32_t *asyncState, int32_t *async, int32_t array,
   int32_t terminalStop)
 {
-  DISKIN2_ASYNC_STATE *state = diskin2_async_state(csound);
+  DISKIN2_ASYNC_STATE *state;
   DISKIN2_ASYNC_ENTRY *entry;
-  int32_t releaseEntry = 0;
+  IGN(array);
 
-  if (state != NULL)
-    diskin2_registry_lock(csound);
   *async = 0;
-  ATOMIC_SET(*stopRequested, 1);
-  if (terminalStop)
+  if (terminalStop) {
     ATOMIC_SET(*asyncState, DISKIN2_ASYNC_STOPPED);
-  entry = (DISKIN2_ASYNC_ENTRY *) *entrySlot;
-  *entrySlot = NULL;
-  if (entry == NULL || state == NULL) {
-    if (state != NULL)
-      diskin2_registry_unlock(csound);
+    /* Last access to the instance: cleanup may release its reference as soon
+       as it observes this flag. No registry access on the audio thread. */
+    ATOMIC_SET(*stopRequested, 1);
     return OK;
   }
 
-  /* Stop new borrows without waiting for an in-flight disk read. The owning
-     INSDS remains unavailable for reuse until that borrow is released. */
-  diskin2_entry_lock(entry);
-  if (entry->active) {
-    entry->active = 0;
-    diskin2_deactivate_entry_locked(state, entry, array);
-    entry->closeOnRelease = terminalStop;
-    if (!entry->borrowed) {
-      diskin2_detach_entry_locked(entry);
-      releaseEntry = 1;
-    }
+  /* Reinit runs on the init thread and waits for the old registration. */
+  state = diskin2_async_state(csound);
+  if (state == NULL) {
+    ATOMIC_SET(*stopRequested, 1);
+    return OK;
   }
-  diskin2_entry_unlock(entry);
+  diskin2_registry_lock(csound);
+  /* Publish the stop and its reinit close policy together. Cleanup must not
+     mistake this for a terminal stop while reinit has made the owner inactive. */
+  ATOMIC_SET(*stopRequested, 1);
+  entry = (DISKIN2_ASYNC_ENTRY *) *entrySlot;
+  if (entry != NULL && entry->active)
+    diskin2_retire_entry_locked(state, entry, 0);
   diskin2_registry_unlock(csound);
-
-  if (releaseEntry)
-    diskin2_recycle_entry(csound, state, entry, array);
   return OK;
 }
 
@@ -1002,7 +994,7 @@ void diskin2_async_drain_deferred(CSOUND *csound)
   DISKIN2_ASYNC_STATE *state = diskin2_async_state(csound);
 
   if (state != NULL)
-    diskin2_drain_deferred_closes(csound, state);
+    diskin2_drain_deferred_closes(csound, state, 0);
 #else
   IGN(csound);
 #endif
@@ -1035,7 +1027,7 @@ void diskin2_async_shutdown(CSOUND *csound)
     csound->JoinThread(thread);
   if (arrayThread != NULL)
     csound->JoinThread(arrayThread);
-  diskin2_drain_deferred_closes(csound, state);
+  diskin2_drain_deferred_closes(csound, state, 1);
   diskin2_free_entries(csound, state->entries);
   diskin2_free_entries(csound, state->arrayEntries);
   csound->diskin2_async_state = NULL;
@@ -1060,6 +1052,15 @@ void diskin2_async_prepare_shutdown(CSOUND *csound)
 
 static inline int32_t diskin2_async_available(CSOUND *csound, int32_t array)
 {
+  /* Never substitute a library lock for the audio thread's slot exchange. */
+#if defined(MSVC)
+  /* InterlockedExchange operates on an aligned 32-bit value. */
+#elif defined(HAVE_ATOMIC_BUILTIN)
+  if (!__atomic_always_lock_free(sizeof(int32_t), 0))
+    return 0;
+#else
+  return 0;
+#endif
 #if defined(__EMSCRIPTEN__)
   /* The browser host owns the worker and publishes its list and run flag as
      Csound globals. Fall back to synchronous reads if that host contract is
@@ -1124,8 +1125,6 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname, int
   /* The engine owns cached samples; reinit only resets this reader. */
   if (memory && p->memfile != NULL && p->initDone && p->SkipInit != FL(0.0))
     return OK;
-  p->memfile = NULL;
-  if (memory) p->initDone = 0;
   /* if already open, close old file first */
   if (p->fdch.fd != NULL) {
     /* skip initialisation if requested */
@@ -1144,6 +1143,8 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname, int
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &p->fdch);
   }
+  p->memfile = NULL;
+  p->initDone = 0;
   p->async = 0;
   if (!memory && diskin2_begin_async_init(csound, p->h.insdshead->reinitflag,
                               p->h.insdshead, &p->asyncState,
@@ -1275,14 +1276,13 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname, int
   }
   p->pos_frac_inc = (int64_t)0;
   p->prv_kTranspose = FL(0.0);
-  p->transpose = FL(1.0);
   /* Set up the crossfade state before anything can read it: the synchronous
      perf path uses it directly, and the asynchronous reader must not observe a
      half-initialised xf after the instance is published. */
   asyncMode = (!memory && csound->oparms->realtime == 1 && p->fforceSync == 0 &&
                diskin2_async_available(csound, 0));
   diskin2_xf_setup(csound, &p->xf, p->wrapMode, *(p->iWrapMode),
-                   p->loopLength, p->nChannels);
+                   p->loopLength, p->nChannels, *p->kTranspose);
   /* allocate and initialise buffers */
   p->bufSize = diskin2_calc_buffer_size(p, MYFLT2LONG(p->BufSize));
   n = 2 * p->bufSize * p->nChannels * (int32_t)sizeof(MYFLT);
@@ -1333,6 +1333,8 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname, int
     if (n != (int32_t)p->audioData.size)
        csound->AuxAlloc(csound, (int32_t) n, &(p->audioData));
 
+    /* Complete all reader state before publishing it to the worker. */
+    p->initDone = 1;
 #ifdef __EMSCRIPTEN__
     top = (DISKIN2 **)csound->QueryGlobalVariable(csound, "DISKIN_INST");
     p->nxt = NULL;
@@ -1348,11 +1350,13 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname, int
 #else
     n = diskin2_add_instance(csound, p);
     if (UNLIKELY(n == NOTOK)) {
+      p->initDone = 0;
       csoundFDClose(csound, &p->fdch);
       return csound->InitError(csound, "%s",
                                Str("diskin2: could not start async worker"));
     }
     if (n == DISKIN2_ASYNC_CANCELLED) {
+      p->initDone = 0;
       /* Terminal deinit is deferred while this init pass is registered, so
          this path has sole ownership of the newly recorded descriptor. */
       csoundFDClose(csound, &p->fdch);
@@ -1402,7 +1406,8 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname, int
   }
 
   /* done initialisation */
-  p->initDone = 1;
+  if (!asyncMode)
+    p->initDone = 1;
   return OK;
 }
 
@@ -1460,7 +1465,7 @@ static inline void diskin2_xf_reset(DISKIN2_XF *x)
    itself. The asynchronous readers cannot use it directly, because the worker
    thread may poll them several times within one period (including when no
    frames need reading) and would mistake each extra poll for a period of
-   constant speed; they use diskin2_xf_speed_period() instead. */
+   constant speed; they use diskin2_publish_control() instead. */
 static inline void diskin2_xf_speed_change(DISKIN2_XF *x)
 {
     if (!x->changing)
@@ -1468,30 +1473,56 @@ static inline void diskin2_xf_speed_change(DISKIN2_XF *x)
     x->changing = 1;
 }
 
-/* Async: classify one control period of kTranspose, called once per period by
-   the perf thread. `changing` is the ramp state carried across periods; a
-   change that follows a period of constant speed is a genuine step, latched in
-   `resets` for the reader to consume at its own pace. An extra worker poll
-   cannot disturb this, since the perf thread only runs once per period. */
-static inline void diskin2_xf_speed_period(DISKIN2_XF *x, MYFLT transpose)
+/* SPSC triple buffer: perf and worker each own a slot, with the third in the
+   exchange. Acquire/release transfers ownership before either side can reuse
+   a slot. Neither side waits for the other or reads a slot the other owns.
+   Only the 32-bit index is atomic; pitch and the 64-bit step count travel in
+   the same owned slot, including on targets without lock-free 64-bit atomics. */
+#define DISKIN2_CONTROL_NEW 4
+#define DISKIN2_CONTROL_INDEX 3
+
+static inline int32_t diskin2_exchange_control(DISKIN2_XF *x, int32_t value)
+{
+#if defined(MSVC)
+    return InterlockedExchange((volatile LONG *)&x->sharedControl, value);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+    return __atomic_exchange_n(&x->sharedControl, value, __ATOMIC_ACQ_REL);
+#else
+    /* Async playback is disabled by diskin2_async_available on this target. */
+    int32_t previous = x->sharedControl;
+    x->sharedControl = value;
+    return previous;
+#endif
+}
+
+/* Classify steps once per perf period. Keep their cumulative count so a step
+   survives even when the worker skips intermediate pitch updates. */
+static inline void diskin2_publish_control(DISKIN2_XF *x, MYFLT transpose)
 {
     if (transpose != x->perfTranspose) {
       if (!x->changing)
-        x->resets++;
+        x->steps++;
       x->changing = 1;
     }
     else
       x->changing = 0;
     x->perfTranspose = transpose;
+    x->control[x->writeControl].transpose = transpose;
+    x->control[x->writeControl].steps = x->steps;
+    x->writeControl = diskin2_exchange_control(
+      x, x->writeControl | DISKIN2_CONTROL_NEW) & DISKIN2_CONTROL_INDEX;
 }
 
-/* Async: apply a step latched by diskin2_xf_speed_period(), if any. */
-static inline void diskin2_xf_consume_step(DISKIN2_XF *x)
+static inline MYFLT diskin2_read_control(DISKIN2_XF *x, int32_t *reset)
 {
-    if (x->resets != x->resetsSeen) {
-      x->resetsSeen = x->resets;
-      diskin2_xf_reset(x);
-    }
+    DISKIN2_CONTROL control;
+    if (ATOMIC_GET(x->sharedControl) & DISKIN2_CONTROL_NEW)
+      x->readControl = diskin2_exchange_control(x, x->readControl) &
+                       DISKIN2_CONTROL_INDEX;
+    control = x->control[x->readControl];
+    *reset = control.steps != x->stepsSeen;
+    x->stepsSeen = control.steps;
+    return control.transpose;
 }
 
 /* Loop crossfade (async, enabled by iwrap > 1).
@@ -1869,7 +1900,8 @@ diskin_file_read_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
     int32_t ndx;
     int32_t wsized2, warp;
     MYFLT   *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
-    MYFLT transpose = p->transpose;
+    int32_t reset;
+    MYFLT transpose = diskin2_read_control(&p->xf, &reset);
 
     if (UNLIKELY(p->fdch.fd == NULL) ) return;
     if (!p->initDone && !p->SkipInit) {
@@ -1886,11 +1918,8 @@ diskin_file_read_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
     }
-    /* a step latched by the perf thread invalidates the captured head; a ramp
-       keeps it. Consumed here, outside the change test, so that no poll can be
-       missed even if the perf thread updates p->transpose right after we read
-       it. */
-    diskin2_xf_consume_step(&p->xf);
+    if (reset)
+      diskin2_xf_reset(&p->xf);
     /* clear outputs to zero first */
     memset(aOut, 0, p->auxData2.size);
 
@@ -2100,8 +2129,7 @@ int32_t diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
     void *cb = p->cb;
 
     int32_t chans = p->nChannels, ochans = p->oChannels;
-    p->transpose =  *p->kTranspose;
-    diskin2_xf_speed_period(&p->xf, p->transpose);
+    diskin2_publish_control(&p->xf, *p->kTranspose);
 
     if (offset || early) {
       for (chn = 0; chn < chans; chn++)
@@ -2372,15 +2400,17 @@ diskin_file_read_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t xf)
     int32_t   ndx;
     int32_t     wsized2, warp;
     MYFLT  *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
+    int32_t reset;
+    MYFLT transpose = diskin2_read_control(&p->xf, &reset);
 
     if (UNLIKELY(p->fdch.fd == NULL) ) return;
     if (!p->initDone && !p->SkipInit) {
       csound->ErrorMsg(csound, Str("diskin2: not initialised"));
       return;
     }
-    if (*(p->kTranspose) != p->prv_kTranspose) {
+    if (transpose != p->prv_kTranspose) {
       double  f;
-      p->prv_kTranspose = *(p->kTranspose);
+      p->prv_kTranspose = transpose;
       f = (double)p->prv_kTranspose * p->warpScale * (double)POS_FRAC_SCALE;
 #ifdef HAVE_C99
       p->pos_frac_inc = (int64_t)llrint(f);
@@ -2388,11 +2418,8 @@ diskin_file_read_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t xf)
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
     }
-    /* a step latched by the perf thread invalidates the captured head; a ramp
-       keeps it. Consumed here, outside the change test, so that no poll can be
-       missed even if the perf thread updates kTranspose right after we read
-       it. */
-    diskin2_xf_consume_step(&p->xf);
+    if (reset)
+      diskin2_xf_reset(&p->xf);
     /* clear outputs to zero first */
     memset(aOut, 0, p->auxData2.size);
     /* file read position */
@@ -2611,30 +2638,24 @@ static uintptr_t diskin2_io_loop(CSOUND *csound, int32_t array)
     diskin2_registry_unlock(csound);
     while (entry != NULL) {
       DISKIN2_ASYNC_ENTRY *next;
-      INSDS *owner;
       void *current;
 
       diskin2_registry_lock(csound);
       next = entry->activeNext;
       diskin2_registry_unlock(csound);
-      current = diskin2_acquire_async_instance(csound, entry, &owner);
+      current = diskin2_acquire_async_instance(entry);
       if (current != NULL) {
-        volatile int32_t *readers;
-
         if (array) {
           DISKIN2_ARRAY *item = (DISKIN2_ARRAY *) current;
           if (item->xf.len) diskin_file_read_array_xfade(csound, item);
           else diskin_file_read_array(csound, item);
-          readers = &item->asyncReaders;
         }
         else {
           DISKIN2 *item = (DISKIN2 *) current;
           if (item->xf.len) diskin_file_read_xfade(csound, item);
           else diskin_file_read(csound, item);
-          readers = &item->asyncReaders;
         }
-        diskin2_release_async_instance(csound, state, entry, owner,
-                                       readers, array);
+        diskin2_release_async_instance(entry);
       }
       entry = next;
     }
@@ -2682,8 +2703,6 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     /* The engine owns cached samples; reinit only resets this reader. */
     if (memory && p->memfile != NULL && p->initDone && p->SkipInit != FL(0.0))
       return OK;
-    p->memfile = NULL;
-    if (memory) p->initDone = 0;
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
       /* skip initialisation if requested */
@@ -2702,6 +2721,8 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       if (p->fdch.fd != NULL)
         csoundFDClose(csound, &p->fdch);
     }
+    p->memfile = NULL;
+    p->initDone = 0;
     p->async = 0;
     if (!memory && diskin2_begin_async_init(csound, p->h.insdshead->reinitflag,
                                 p->h.insdshead, &p->asyncState,
@@ -2858,7 +2879,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     asyncMode = (!memory && csound->oparms->realtime == 1 && p->fforceSync == 0 &&
                  diskin2_async_available(csound, 1));
     diskin2_xf_setup(csound, &p->xf, p->wrapMode, *(p->iWrapMode),
-                     p->loopLength, p->nChannels);
+                     p->loopLength, p->nChannels, *p->kTranspose);
     /* allocate and initialise buffers */
     p->bufSize = diskin2_calc_buffer_size_array(p, MYFLT2LONG(p->BufSize));
     n = 2 * p->bufSize * p->nChannels * (int32_t)sizeof(MYFLT);
@@ -2906,6 +2927,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       n = CS_KSMPS*p->nChannels*sizeof(MYFLT);
       if (n != (int32_t)p->audioData.size)
         csound->AuxAlloc(csound, (int32_t) n, &(p->audioData));
+      p->initDone = 1;
 #ifdef __EMSCRIPTEN__
       top = (DISKIN2_ARRAY **) csound->QueryGlobalVariable(
         csound, "DISKIN_INST_ARRAY");
@@ -2922,11 +2944,13 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
 #else
       n = diskin2_add_array_instance(csound, p);
       if (UNLIKELY(n == NOTOK)) {
+        p->initDone = 0;
         csoundFDClose(csound, &p->fdch);
         return csound->InitError(csound, "%s",
                                  Str("diskin2: could not start async worker"));
       }
       if (n == DISKIN2_ASYNC_CANCELLED) {
+        p->initDone = 0;
         /* See the scalar path above: deinit cannot close this descriptor
            concurrently while the owning init pass is still running. */
         csoundFDClose(csound, &p->fdch);
@@ -2968,7 +2992,8 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     }
 
     /* done initialisation */
-    p->initDone = 1;
+    if (!asyncMode)
+      p->initDone = 1;
     return OK;
 }
 
@@ -3208,7 +3233,7 @@ int32_t diskin2_perf_asynchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
     void *cb = p->cb;
     int32_t chans = p->nChannels;
     MYFLT *aOut = (MYFLT *) p->aOut->data;
-    diskin2_xf_speed_period(&p->xf, *p->kTranspose);
+    diskin2_publish_control(&p->xf, *p->kTranspose);
 
     if (offset || early) {
       for (chn = 0; chn < chans; chn++)
