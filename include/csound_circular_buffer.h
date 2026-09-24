@@ -32,8 +32,11 @@ extern "C" {
    *
    *  @{ */
    /**
-   * Create circular buffer with numelem number of elements. The
-   * element's size is set from elemsize. It should be used like:
+   * Create circular buffer with numelem number of elements.
+   * The buffer supports one writer and one reader at a time. Reading, peeking,
+   * and flushing share the reader role and must not run concurrently.
+   * Cursor updates use atomic operations on targets with atomic support.
+   * The element's size is set from elemsize. It should be used like:
    *@code
    * void *rb = csoundCreateCircularBuffer(csound, 1024, sizeof(MYFLT));
    *@endcode

@@ -30,8 +30,14 @@
 #define POS_FRAC_SCALE  0x10000000
 #define POS_FRAC_MASK   0x0FFFFFFF
 
+/* Each slot belongs to either the perf thread, the worker, or the exchange. */
+typedef struct {
+    MYFLT transpose;
+    uint64_t steps;             /* cumulative steps, including skipped updates */
+} DISKIN2_CONTROL;
+
 /* Loop crossfade state (enabled by iwrap > 1), shared by the scalar and array
- * versions if diskin2 */
+ * versions of diskin2 */
 typedef struct {
     int32_t len;                /* crossfade length in frames, 0 = disabled */
     int32_t ready;              /* loop head captured */
@@ -39,9 +45,13 @@ typedef struct {
     int32_t dir;                /* playback direction the head was captured in */
     int32_t changing;           /* kTranspose changed in the previous period
                                    (a continuous ramp, as opposed to a step) */
-    volatile int32_t resets;    /* async: steps latched by the perf thread */
-    int32_t resetsSeen;         /* async: steps consumed by the reader */
-    MYFLT   perfTranspose;      /* async: previous perf period's kTranspose */
+    DISKIN2_CONTROL control[3];
+    int32_t sharedControl;     /* atomic slot index plus the new-data bit */
+    int32_t writeControl;      /* perf thread's slot */
+    int32_t readControl;       /* worker's slot */
+    MYFLT perfTranspose;       /* perf thread only */
+    uint64_t steps;            /* perf thread only */
+    uint64_t stepsSeen;        /* worker only */
     int64_t headEnd;            /* position to resume from after loop wrap */
     MYFLT   *buf;               /* captured loop head (len * channels) */
     AUXCH   aux;                /* storage for buf */
@@ -102,10 +112,9 @@ typedef struct diskin2 {
     void    *cb;
     int32_t     async;
     volatile int32_t asyncStopRequested;
-    volatile int32_t asyncReaders;
+    volatile int32_t asyncReaders; /* registration held through final cleanup */
     volatile int32_t asyncState;
     void        *asyncEntry;
-    MYFLT     transpose;
     CSOUND *csound;
     struct diskin2  *nxt;
 } DISKIN2;
@@ -163,7 +172,7 @@ typedef struct diskin2_array {
   void *cb;
   int32_t  async;
   volatile int32_t asyncStopRequested;
-  volatile int32_t asyncReaders;
+  volatile int32_t asyncReaders; /* registration held through final cleanup */
   volatile int32_t asyncState;
   void *asyncEntry;
   CSOUND *csound;
