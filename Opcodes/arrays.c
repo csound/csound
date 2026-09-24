@@ -812,22 +812,43 @@ static int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p) {
 }
 
 
+static int32_t validate_cepstrum_size(CSOUND *csound, const char *opcode,
+                                      int32_t size) {
+  if (UNLIKELY(size < 64 || (size & (size - 1))))
+    return csound->InitError(csound, "%s: %s", opcode,
+                             Str("FFT size must be a power of two and at least 64"));
+  return OK;
+}
+
+#define PREPARE_CEPSTRUM_OUTPUT(NAME)                                   \
+  do {                                                                  \
+    if (UNLIKELY(p->in->sizes[0] != p->n + 1))                         \
+      return csound->PerfError(csound, &p->h, "%s",                    \
+                               Str(NAME ": input size changed; "        \
+                                   "reinitialise the opcode"));         \
+    if (UNLIKELY(tabcheck(csound, p->out, p->n + 1, &p->h) != OK))     \
+      return NOTOK;                                                      \
+  } while (0)
+
 static int32_t init_ceps(CSOUND *csound, FFT *p) {
-  if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
-  int32_t N = p->in->sizes[0]-1;
-  if (UNLIKELY(N < 64))
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->out->dimensions > 1))
     return csound->InitError(csound, "%s",
-                             Str("FFT size too small (min 64 samples)\n"));
+                             Str("ceps: expected one-dimensional arrays"));
+  int32_t N = p->in->sizes[0]-1;
+  if (UNLIKELY(validate_cepstrum_size(csound, "ceps", N) != OK))
+    return NOTOK;
   p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
   if (UNLIKELY(tabinit(csound, p->out, N+1, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
+  p->n = N;
   return OK;
 }
 
 
 static int32_t perf_ceps(CSOUND *csound, FFT *p) {
-  int32_t siz = p->out->sizes[0]-1, i;
+  PREPARE_CEPSTRUM_OUTPUT("ceps");
+  int32_t siz = p->n, i;
   MYFLT *ceps = p->out->data;
   MYFLT coefs = *((MYFLT *)p->in2);
   MYFLT *mags = (MYFLT *) p->in->data;
@@ -849,20 +870,25 @@ static int32_t perf_ceps(CSOUND *csound, FFT *p) {
 }
 
 static int32_t init_iceps(CSOUND *csound, FFT *p) {
-  if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+  if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
+               p->out->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                             Str("cepsinv: expected one-dimensional arrays"));
   int32_t N = p->in->sizes[0]-1;
+  if (UNLIKELY(validate_cepstrum_size(csound, "cepsinv", N) != OK))
+    return NOTOK;
   p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
   if (UNLIKELY(tabinit(csound, p->out, N+1, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
-  N++;
-  if (p->mem.auxp == NULL || p->mem.size < N*sizeof(MYFLT))
-    csound->AuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
+  p->n = N;
+  if (p->mem.auxp == NULL || p->mem.size < (N+1)*sizeof(MYFLT))
+    csound->AuxAlloc(csound, (N+1)*sizeof(MYFLT), &p->mem);
   return OK;
 }
 
 static int32_t perf_iceps(CSOUND *csound, FFT *p) {
-  int32_t siz = p->in->sizes[0]-1, i;
+  PREPARE_CEPSTRUM_OUTPUT("cepsinv");
+  int32_t siz = p->n, i;
   MYFLT *spec = (MYFLT *)p->mem.auxp;
   MYFLT *out = p->out->data;
   memcpy(spec, p->in->data, siz*sizeof(MYFLT));
@@ -874,6 +900,8 @@ static int32_t perf_iceps(CSOUND *csound, FFT *p) {
   out[siz] = p->in->data[siz];
   return OK;
 }
+
+#undef PREPARE_CEPSTRUM_OUTPUT
 
 static int32_t rows_init(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
