@@ -101,12 +101,12 @@ instr 3
   kDefault downsamp aDefault
   kExpected = -2 + .25 * (kCycle - 1)
   if kCycle >= 3 then
-    ; Preserve the existing audio-trigger interpolation, then wrap the result.
-    kExpected = -2 + .375 + .25 * (kCycle - 3)
+    ; The crossing is halfway through the previous sample interval.
+    kExpected = -2 + .125 + .25 * (kCycle - 3)
   endif
   kError = abs(kAK - kExpected) + abs(kAA - kExpected) + abs(kDefault - kExpected)
   if !(kError <= .00001) then
-    printks "trigphasor audio reset escaped the range or changed interpolation\n", 0
+    printks "trigphasor audio reset escaped the range or used the wrong crossing time\n", 0
     exitnowk(-1)
   endif
   if kCycle == 1 then
