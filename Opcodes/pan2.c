@@ -127,10 +127,11 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
     case 3:
       {
         MYFLT kangl, l, r;
+        /* This formula takes +0.5 for hard left and -0.5 for hard right. */
         if (asgp) {
           for (n=offset; n<nsmps; n++) {
             MYFLT sample = ain[n];
-            kangl = pan[n];
+            kangl = FL(0.5) - pan[n];
             c = COS(HALFPI*kangl);
             s = SIN(HALFPI*kangl);
             l = ROOT2*(c+s)*0.5;
@@ -140,7 +141,7 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
           }
         }
         else {
-          kangl = *pan;
+          kangl = FL(0.5) - *pan;
           MYFLT cc = COS(HALFPI*kangl);
           MYFLT ss = SIN(HALFPI*kangl);
           s = ROOT2*(cc+ss)*0.5;
