@@ -384,20 +384,26 @@ lagud_a(CSOUND *csound, LagUD *p) {
 
 /* ------------------ Trig -------------------------
 
-   Returns 1 for a given duration whenever signal crosses from
-     non-positive to positive
-
-   kout    trig kin, kduration
-   aout    trig ain, kduration
+   Hold the triggering input level for the requested duration.
+   Further triggers are ignored until the current hold has expired.
 
 */
 
 typedef struct {
     OPDS h;
     MYFLT *out, *in, *dur;
-    MYFLT  level, prevtrig;
-    long counter;
+    MYFLT level, prevtrig;
+    uint64_t counter;
 } Trig;
+
+/* Called only when accepting a trigger, never for every held sample.
+   The strict upper bound is 2^64, outside the uint64_t conversion range. */
+#define TRIGHOLD_DURATION(count_, duration_, rate_) do {                   \
+    double ticks_ = (double)(duration_) * (double)(rate_);                 \
+    if (UNLIKELY(!(ticks_ >= 0.0 && ticks_ < 18446744073709551616.0)))     \
+        return PERFERR("trighold: duration is out of range");             \
+    (count_) = ticks_ < 1.0 ? UINT64_C(1) : (uint64_t)(ticks_ + 0.5);      \
+} while (0)
 
 static int
 trig_a(CSOUND *csound, Trig *p) {
@@ -406,61 +412,48 @@ trig_a(CSOUND *csound, Trig *p) {
 
     MYFLT* restrict in = p->in;
     MYFLT dur = *p->dur;
-    MYFLT sr = CS_ESR;
     MYFLT prevtrig = p->prevtrig;
     MYFLT level = p->level;
-    unsigned long counter = p->counter;
+    uint64_t counter = p->counter;
 
     for(n=offset; n<nsmps; n++) {
         MYFLT curtrig = in[n];
-        MYFLT zout;
-        if (counter > 0) {
-            zout = --counter ? level : FL(0.0);
-        } else {
-            if (curtrig > FL(0.0) && prevtrig <= FL(0.0)) {
-                counter = (long)(dur * sr + FL(0.5));
-                if (counter < 1) counter = 1;
-                level = curtrig;
-                zout  = level;
-            } else {
-                zout = FL(0.0);
-            }
+        /* Expiry makes this sample available for a fresh trigger. */
+        if (counter > 0)
+            --counter;
+        if (counter == 0 && curtrig > FL(0.0) && prevtrig <= FL(0.0)) {
+            TRIGHOLD_DURATION(counter, dur, CS_ESR);
+            level = curtrig;
         }
+        out[n] = counter > 0 ? level : FL(0.0);
         prevtrig = curtrig;
-        out[n]   = zout;
     }
     p->prevtrig = prevtrig;
-    p->counter  = counter;
-    p->level    = level;
+    p->counter = counter;
+    p->level = level;
     return OK;
 }
 
 static int
 trig_k(CSOUND *csound, Trig *p) {
     MYFLT curtrig = *p->in;
-    MYFLT dur = *p->dur;
-    MYFLT kr = CS_EKR;
     MYFLT prevtrig = p->prevtrig;
     MYFLT level = p->level;
     uint64_t counter = p->counter;
-    if (counter > 0) {
-        *p->out = --counter ? level : FL(0.0);
-    } else {
-        if (curtrig > FL(0.0) && prevtrig <= FL(0.0)) {
-            counter = (int64_t)(dur * kr + FL(0.5));
-            if (counter < 1)
-                counter = 1;
-            level   = curtrig;
-            *p->out = level;
-        } else {
-            *p->out = FL(0.0);
-        }
+    if (counter > 0)
+        --counter;
+    if (counter == 0 && curtrig > FL(0.0) && prevtrig <= FL(0.0)) {
+        TRIGHOLD_DURATION(counter, *p->dur, CS_EKR);
+        level = curtrig;
     }
+    *p->out = counter > 0 ? level : FL(0.0);
     p->prevtrig = curtrig;
     p->counter = counter;
     p->level = level;
     return OK;
 }
+
+#undef TRIGHOLD_DURATION
 
 static int32_t trig_init(CSOUND *csound, Trig *p) {
     IGN(csound);
