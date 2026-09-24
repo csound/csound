@@ -25,6 +25,7 @@
 #else
 #include "csoundCore.h"
 #endif
+#include <float.h>
 #include <math.h>
 
 /* %% bar sound synthesis translated from Mathlab and much changed */
@@ -53,13 +54,34 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
       double  T30 = *p->iT30;   /* ~=5.0; 30 db decay time (s) */
       double  b = *p->ib;       /* ~=0.001 high-frequency loss parameter
                                    (keep small) */
+      double  dt, sig, dxmin, points, dx;
+      size_t  gridSize;
+      int32_t N;
+
+      if (UNLIKELY(!(T30 > 0.0)))
+        return csound->InitError(csound, "%s",
+                                 Str("barmodel: decay time must be positive"));
+      if (UNLIKELY(!(b >= 0.0)))
+        return csound->InitError(csound, "%s",
+                                 Str("barmodel: loss must be non-negative"));
 
       /* %%%%%%%%%%%%%%%%%% derived parameters */
-      double  dt = (double)CS_ONEDSR;
-      double  sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
-      double  dxmin = sqrt(dt*(b+hypot(b, K+K)));
-      int32_t N = (int32_t) (1.0/dxmin);
-      double  dx = 1.0/N;
+      dt = (double)CS_ONEDSR;
+      sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
+      dxmin = sqrt(dt*(b+hypot(b, K+K)));
+      if (UNLIKELY(!(sig >= 0.0 && sig <= DBL_MAX)))
+        return csound->InitError(csound, "%s",
+                                 Str("barmodel: decay time is too short"));
+      points = 1.0 / dxmin;
+      if (UNLIKELY(!(points >= 1.0 &&
+                     points <= (double)(INT32_MAX - 5) &&
+                     points <= (double)(SIZE_MAX /
+                                        (3 * sizeof(double)) - 5))))
+        return csound->InitError(csound, "%s",
+                                 Str("barmodel: stiffness and loss produce "
+                                     "an invalid grid size"));
+      N = (int32_t) points;
+      dx = 1.0/N;
 
       /* %%%%%%%%%%%%%%%%%%% scheme coefficients */
       p->s0 = (2.0-6.0*K*K*dt*dt/(dx*dx*dx*dx)-2.0*b*dt/(dx*dx))/(1.0+sig*dt*0.5);
@@ -73,7 +95,8 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
 
       /* %%%%%%%%%%%%%%%%%%%%% create grid functions */
 
-      csound->AuxAlloc(csound, (size_t)3*((N+5)*sizeof(double)), &(p->w_aux));
+      gridSize = (size_t)N + 5;
+      csound->AuxAlloc(csound, 3 * gridSize * sizeof(double), &(p->w_aux));
       p->w = (double *) p->w_aux.auxp;
       p->w1 = &(p->w[N + 5]);
       p->w2 = &(p->w1[N + 5]);
