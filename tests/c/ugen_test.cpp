@@ -1023,6 +1023,8 @@ TEST_F(UGenTests, ConvenienceSetGetString) {
 }
 
 TEST_F(UGenTests, SpatialSendsKeepSourcesWithinTheirContext) {
+    INSDS *engineContext = csound->curip;
+    AUXCH *engineBuffers = engineContext->auxchp;
     UGEN_FACTORY *factory = csoundUgenFactoryNew(csound);
     UGEN_CONTEXT *first = csoundUgenContextNew(factory);
     UGEN_CONTEXT *second = csoundUgenContextNew(factory);
@@ -1045,6 +1047,15 @@ TEST_F(UGenTests, SpatialSendsKeepSourcesWithinTheirContext) {
     ASSERT_EQ(0, csoundUgenInit(source));
     ASSERT_EQ(0, csoundUgenInit(other));
     ASSERT_EQ(0, csoundUgenInit(send));
+    // Each source owns its buffers, rather than adding them to either context.
+    ASSERT_NE(nullptr, source->auxchp);
+    ASSERT_NE(nullptr, other->auxchp);
+    EXPECT_NE(source->auxchp, other->auxchp);
+    EXPECT_EQ(nullptr, first->insds->auxchp);
+    EXPECT_EQ(nullptr, second->insds->auxchp);
+    EXPECT_EQ(engineContext, csound->curip);
+    EXPECT_EQ(engineBuffers, engineContext->auxchp);
+    AUXCH *sourceBuffers = source->auxchp;
     ASSERT_EQ(0, csoundUgenPerform(source));
     ASSERT_EQ(0, csoundUgenPerform(send));
     for (int ch = 0; ch < 4; ++ch) {
@@ -1067,12 +1078,21 @@ TEST_F(UGenTests, SpatialSendsKeepSourcesWithinTheirContext) {
     csoundUgenSetContext(send, second);
     csoundUgenContextDelete(first);
     ASSERT_EQ(0, csoundUgenInit(send));
-    // Deleting the older source must leave the new registration intact.
+    EXPECT_EQ(sourceBuffers, source->auxchp);
+    // Deleting the older source must leave the new source and its buffers intact.
     csoundUgenDelete(other);
     EXPECT_EQ(0, csoundUgenInit(send));
+    ASSERT_EQ(0, csoundUgenPerform(source));
+    ASSERT_EQ(0, csoundUgenPerform(send));
+    for (int ch = 0; ch < 4; ++ch) {
+        MYFLT *out = (MYFLT *)csoundUgenVarGetData(csoundUgenGetOutVar(send, ch));
+        EXPECT_EQ(FL(.25), out[0]);
+    }
     csoundUgenDelete(source);
     EXPECT_EQ(nullptr, spatial_source_find(csound, second->insds, SPATIAL_SPACE));
     csoundUgenDelete(send);
     csoundUgenContextDelete(second);
     csoundUgenFactoryDelete(factory);
+    EXPECT_EQ(engineContext, csound->curip);
+    EXPECT_EQ(engineBuffers, engineContext->auxchp);
 }

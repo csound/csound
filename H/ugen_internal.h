@@ -41,6 +41,7 @@ struct UGEN {
   INSDS* insds;
   OENTRY* oentry;
   void* opcodeMem;
+  AUXCH* auxchp;            /**< Auxiliary buffers owned by this UGen */
   MYFLT* data;
   CS_VAR_POOL* inPool;
   CS_VAR_POOL* outPool;
