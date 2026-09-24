@@ -32,10 +32,19 @@
 
 #define RESOLUTION 100
 
+static int32_t space_deinit(CSOUND *csound, SPACE *p)
+{
+    IGN(csound);
+    /* Leave a later source intact when an older one is destroyed. */
+    if (p->h.insdshead->spaceaddr == p)
+      p->h.insdshead->spaceaddr = NULL;
+    return OK;
+}
+
 static int32_t spaceset(CSOUND *csound, SPACE *p)
 {
-    STDOPCOD_GLOBALS  *pp;
-    FUNC              *ftp = NULL;
+    space_deinit(csound, p);
+    FUNC *ftp = NULL;
 
     if (*p->ifn > 0) {
       if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
@@ -58,9 +67,7 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
       p->rrev4 = fltp;   //fltp += CS_KSMPS;
     }
 
-    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-    pp->spaceaddr = (void*) p;
-    pp->space_instance = p->h.insdshead;
+    p->h.insdshead->spaceaddr = p;
     return OK;
 }
 
@@ -190,15 +197,13 @@ static int32_t space(CSOUND *csound, SPACE *p)
 
 static int32_t spsendset(CSOUND *csound, SPSEND *p)
 {
-    STDOPCOD_GLOBALS  *pp;
+    SPACE *source = (SPACE *)p->h.insdshead->spaceaddr;
 
-    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-    if (UNLIKELY(pp->spaceaddr == NULL ||
-                 pp->space_instance != p->h.insdshead))
+    if (UNLIKELY(source == NULL))
       return csound->InitError(csound, "%s",
                                Str("spsend: no previous space in this "
                                    "instrument instance"));
-    p->space = (SPACE*) pp->spaceaddr;
+    p->space = source;
     return OK;
 }
 
@@ -289,7 +294,8 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
 
 static OENTRY localops[] =
   {
-   { "space",  S(SPACE), TR, "aaaa", "aikkkk",(SUBR)spaceset, (SUBR)space },
+   { "space", S(SPACE), TR, "aaaa", "aikkkk",
+     (SUBR)spaceset, (SUBR)space, (SUBR)space_deinit },
    { "spsend", S(SPSEND), 0, "aaaa", "",     (SUBR)spsendset, (SUBR)spsend },
    { "spdist", S(SPDIST), 0,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist }
 };

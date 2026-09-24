@@ -548,6 +548,8 @@ typedef struct {
     volatile int32_t async_ref_count;
     /* Private named storage. Use Create/QueryInstanceVariable to access it. */
     void *instance_variables;
+    /* Last initialized spatial sources in this instance; cleared at deinit. */
+    void *locsigaddr, *spaceaddr;
     /* Copy of required p-field values for quick access */
     CS_VAR_MEM  p0;
     CS_VAR_MEM  p1;

@@ -1020,3 +1020,51 @@ TEST_F(UGenTests, ConvenienceSetGetString) {
     csoundUgenDelete(ugen);
     csoundUgenFactoryDelete(factory);
 }
+
+TEST_F(UGenTests, SpatialSendsKeepSourcesWithinTheirContext) {
+    UGEN_FACTORY *factory = csoundUgenFactoryNew(csound);
+    UGEN_CONTEXT *first = csoundUgenContextNew(factory);
+    UGEN_CONTEXT *second = csoundUgenContextNew(factory);
+    UGEN *source = csoundUgenNew(factory, (char *)"space",
+                               (char *)"aaaa", (char *)"aikkkk");
+    UGEN *other = csoundUgenNew(factory, (char *)"space",
+                              (char *)"aaaa", (char *)"aikkkk");
+    UGEN *send = csoundUgenNew(factory, (char *)"spsend",
+                             (char *)"aaaa", (char *)"");
+    ASSERT_NE(source, nullptr);
+    ASSERT_NE(other, nullptr);
+    ASSERT_NE(send, nullptr);
+    csoundUgenSetContext(source, first);
+    csoundUgenSetContext(other, second);
+    csoundUgenSetContext(send, first);
+    csoundUgenSetValue(source, 3, 1); // reverb amount; distance is clamped to 1
+    csoundUgenSetValue(other, 3, 1);
+    MYFLT *input = (MYFLT *)csoundUgenVarGetData(csoundUgenGetInVar(source, 0));
+    for (uint32_t n = 0; n < csoundGetKsmps(csound); ++n) input[n] = FL(.25);
+    ASSERT_EQ(0, csoundUgenInit(source));
+    ASSERT_EQ(0, csoundUgenInit(other));
+    ASSERT_EQ(0, csoundUgenInit(send));
+    ASSERT_EQ(0, csoundUgenPerform(source));
+    ASSERT_EQ(0, csoundUgenPerform(send));
+    for (int ch = 0; ch < 4; ++ch) {
+        MYFLT *out = (MYFLT *)csoundUgenVarGetData(csoundUgenGetOutVar(send, ch));
+        EXPECT_EQ(FL(.25), out[0]);
+    }
+
+    // Moving a source must not leave it available to new sends in its old context.
+    csoundUgenSetContext(source, second);
+    EXPECT_EQ(nullptr, first->insds->spaceaddr);
+    ASSERT_EQ(0, csoundUgenInit(source));
+    EXPECT_EQ(nullptr, first->insds->spaceaddr);
+    csoundUgenSetContext(send, second);
+    csoundUgenContextDelete(first);
+    ASSERT_EQ(0, csoundUgenInit(send));
+    // Deleting the older source must leave the new registration intact.
+    csoundUgenDelete(other);
+    EXPECT_EQ(0, csoundUgenInit(send));
+    csoundUgenDelete(source);
+    EXPECT_EQ(nullptr, second->insds->spaceaddr);
+    csoundUgenDelete(send);
+    csoundUgenContextDelete(second);
+    csoundUgenFactoryDelete(factory);
+}

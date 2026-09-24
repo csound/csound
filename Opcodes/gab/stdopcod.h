@@ -60,12 +60,6 @@ typedef struct STDOPCOD_GLOBALS_ {
     /* ugnorman.c */
     ATSBUFREAD  *atsbufreadaddr;
     int32_t     swapped_warning;
-    /* locsig.c */
-    void        *locsigaddr;
-    INSDS       *locsig_instance;
-    /* space.c */
-    void        *spaceaddr;
-    INSDS       *space_instance;
     /* gab/gab.c */
     MYFLT       *tb_ptrs[16];       /* Left here while the rest is implemented */
     MYFLT       *tb[16];       /* gab: updated */
