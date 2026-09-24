@@ -58,6 +58,7 @@ static int32_t locsigset(CSOUND *csound, LOCSIG *p)
 
     pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     pp->locsigaddr = (void*) p;
+    pp->locsig_instance = p->h.insdshead;
 
     return OK;
 }
@@ -157,6 +158,11 @@ static int32_t locsendset(CSOUND *csound, LOCSEND *p)
     LOCSIG  *q;
 
     pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
+    if (UNLIKELY(pp->locsigaddr == NULL ||
+                 pp->locsig_instance != p->h.insdshead))
+      return csound->InitError(csound, "%s",
+                               Str("locsend: no previous locsig in this "
+                                   "instrument instance"));
     q = (LOCSIG*) pp->locsigaddr;
     p->locsig = q;
 
