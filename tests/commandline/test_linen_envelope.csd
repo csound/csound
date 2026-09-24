@@ -1,5 +1,5 @@
 <CsTest>
-description = "linen stage timing, zero decay, and partial audio blocks"
+description = "linen preserves legacy stage timing, zero decay, and partial audio blocks"
 
 [expect]
 exit = 0
@@ -15,7 +15,7 @@ nchnls = 1
 0dbfs = 1
 gkChecks init 0
 
-; Reference uses elapsed samples/cycles and the requested stage lengths.
+; Compatibility reference includes the historical unrounded decay divisor.
 ; A decay longer than idur starts at unity and is truncated by the note.
 opcode EnvelopeAt, k, kiii
   kElapsed, iRise, iDuration, iDecay xin
@@ -23,22 +23,29 @@ opcode EnvelopeAt, k, kiii
   if iRise > 0 && kElapsed < iRise then
     kRise = kElapsed/iRise
   endif
-  kDecay = 1
-  if iDecay > 0 then
-    kDecay = 1 - max(0, kElapsed - max(0, iDuration-iDecay))/iDecay
+  ; Keep fractional times until the stage count is cast.
+  iStart = int(iDuration-iDecay)
+  iSlope = 1/(iDecay+.5)
+  if int(iDecay+.5) <= 0 then
+    ; Zero decay still falls by one per tick after the duration.
+    iStart = int(iDuration+.5)
+    iSlope = 1
   endif
+  kDecay = 1 - max(0, kElapsed-max(0, iStart))*iSlope
   xout kRise*kDecay
 endop
 
 instr 1
+  ; Repeated legacy decay steps accumulate rounding error with float samples.
+  iTolerance = (floatsize() == 4 ? .00002 : .000001)
   iRise = max(0, round(p4))
-  iDuration = round(p5)
-  iDecay = max(0, round(p6))
+  iDuration = p5
+  iDecay = p6
   kElapsed init 0
   kAmp = .5 + kElapsed*.01
   kOut linen kAmp, p4/kr, p5/kr, p6/kr
   kExpected EnvelopeAt kElapsed, iRise, iDuration, iDecay
-  if abs(kOut - kAmp*kExpected) > .000001 then
+  if abs(kOut - kAmp*kExpected) > iTolerance then
     printks "linen control mismatch: rise=%g duration=%g decay=%g elapsed=%g expected=%g actual=%g\n", 0, p4, p5, p6, kElapsed, kAmp*kExpected, kOut
     exitnowk(-1)
   endif
@@ -49,9 +56,10 @@ instr 1
 endin
 
 instr 2
+  iTolerance = (floatsize() == 4 ? .00002 : .000001)
   iRise = max(0, round(p4))
-  iDuration = round(p5)
-  iDecay = max(0, round(p6))
+  iDuration = p5
+  iDecay = p6
   aAmp line .5, p3, 1
   aOut linen aAmp, p4/sr, p5/sr, p6/sr
   aConst linen .5, p4/sr, p5/sr, p6/sr
@@ -68,7 +76,7 @@ instr 2
       kExpected EnvelopeAt kElapsed, iRise, iDuration, iDecay
       kElapsed += 1
     endif
-    if abs(kOut-kAmp*kExpected) + abs(kConst-.5*kExpected) > .000001 then
+    if abs(kOut-kAmp*kExpected) + abs(kConst-.5*kExpected) > iTolerance then
       printks "linen audio mismatch: rise=%g duration=%g decay=%g elapsed=%g expected=%g actual=%g\n", 0, p4, p5, p6, kElapsed-1, kAmp*kExpected, kOut
       exitnowk(-1)
     endif

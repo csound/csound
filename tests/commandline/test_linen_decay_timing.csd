@@ -1,5 +1,5 @@
 <CsTest>
-description = "linen decay reaches zero at idur at both signal rates"
+description = "linen preserves its historical nonzero endpoint at both signal rates"
 
 [expect]
 exit = 0
@@ -20,9 +20,10 @@ instr 1
   ; Exact cycle counts avoid any ambiguity about rounding the duration.
   kEnvelope linen 1, 0, p4/kr, p4/kr
   kCycle init 0
+  iResidual = .5/(p4 + .5)
   if kCycle == p4 then
-    printks "linen control endpoint: length=%g expected=0 actual=%.9f\n", 0, p4, kEnvelope
-    if abs(kEnvelope) > .000001 then
+    printks "linen control endpoint: length=%g expected=%.9f actual=%.9f\n", 0, p4, iResidual, kEnvelope
+    if abs(kEnvelope-iResidual) > .000001 then
       gkFailures += 1
     endif
     gkChecks += 1
@@ -32,11 +33,12 @@ endin
 
 instr 2
   aEnvelope linen 1, 0, p4/sr, p4/sr
+  iResidual = .5/(p4 + .5)
   kFirst init 1
   if kFirst == 1 then
     kEndpoint vaget p4, aEnvelope
-    printks "linen audio endpoint: length=%g expected=0 actual=%.9f\n", 0, p4, kEndpoint
-    if abs(kEndpoint) > .000001 then
+    printks "linen audio endpoint: length=%g expected=%.9f actual=%.9f\n", 0, p4, iResidual, kEndpoint
+    if abs(kEndpoint-iResidual) > .000001 then
       gkFailures += 1
     endif
     gkChecks += 1

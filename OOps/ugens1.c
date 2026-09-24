@@ -1050,10 +1050,13 @@ int32_t expsegr(CSOUND *csound, EXPSEG *p)
   return OK;
 }
 
+/* Compatibility: the unrounded +0.5 in linen's decay divisor can leave
+ * a positive value at idur. Fractional times can also shift the decay start.
+ * Preserve this historical arithmetic in lnnset and alnnset for existing
+ * scores. Use linseg when the envelope must reach and hold zero. See #3247. */
 int32_t lnnset(CSOUND *csound, LINEN *p)
 {
-  MYFLT dur;
-  int64_t a, b;
+  MYFLT a,b,dur;
   MYFLT len = csound->curip->p3.value;
 
   if ((dur = *p->idur) > FL(0.0)) {
@@ -1061,22 +1064,21 @@ int32_t lnnset(CSOUND *csound, LINEN *p)
     if (len<(iris<idec?idec:iris))
       csound->Warning(csound, Str("p3 too short in linen"));
 
-    p->cnt1 = (int64_t)(iris * CS_EKR + FL(0.5));
-    if (p->cnt1 > 0) {
+    p->cnt1 = (int32_t)(iris * CS_EKR + FL(0.5));
+    if (p->cnt1 > (int32_t)0) {
       p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
     }
     else p->inc1 = FL(1.0);
-    /* Use rounded counts for both the stage boundary and its slope. */
-    a = (int64_t)(dur * CS_EKR + FL(0.5));
-    b = (int64_t)(idec * CS_EKR + FL(0.5));
-    if (b > 0) {
-      p->cnt2 = a - b;
-      p->inc2 = 1.0 / (double)b;
+    a = dur * CS_EKR + FL(0.5);
+    b = idec * CS_EKR + FL(0.5);
+    if ((int32_t) b > 0) {
+      p->cnt2 = (int32_t) (a - b);
+      p->inc2 = FL(1.0) /  b;
     }
     else {
-      /* No decay, including times shorter than half a sample/cycle. */
-      p->inc2 = FL(0.0);
-      p->cnt2 = a;
+      /* Compatibility: zero decay still falls by one per tick after idur. */
+      p->inc2 = FL(1.0);
+      p->cnt2 = (int32_t) a;
     }
     p->lin1 = FL(0.0);
     p->lin2 = FL(1.0);
@@ -1086,8 +1088,7 @@ int32_t lnnset(CSOUND *csound, LINEN *p)
 
 int32_t alnnset(CSOUND *csound, LINEN *p)
 {
-  MYFLT dur;
-  int64_t a, b;
+  MYFLT a,b,dur;
   MYFLT len = csound->curip->p3.value;
 
   if ((dur = *p->idur) > FL(0.0)) {
@@ -1099,17 +1100,17 @@ int32_t alnnset(CSOUND *csound, LINEN *p)
       p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
     }
     else p->inc1 = FL(1.0);
-    /* Use rounded counts for both the stage boundary and its slope. */
-    a = (int64_t)(dur * CS_ESR + FL(0.5));
-    b = (int64_t)(*p->idec * CS_ESR + FL(0.5));
-    if (b > 0) {
-      p->cnt2 = a - b;
-      p->inc2 = 1.0 / (double)b;
+    /* Keep the same unrounded divisor as lnnset for compatibility. */
+    a = dur * CS_ESR + FL(0.5);
+    b = *p->idec * CS_ESR + FL(0.5);
+    if ((int64_t) b > 0) {
+      p->cnt2 = (int64_t) (a - b);
+      p->inc2 = FL(1.0) /  b;
     }
     else {
-      /* No decay, including times shorter than half a sample/cycle. */
-      p->inc2 = FL(0.0);
-      p->cnt2 = a;
+      /* Compatibility: zero decay still falls by one per tick after idur. */
+      p->inc2 = FL(1.0);
+      p->cnt2 = (int64_t) a;
     }
     p->lin1 = FL(0.0);
     p->lin2 = FL(1.0);
