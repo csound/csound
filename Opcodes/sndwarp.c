@@ -33,6 +33,26 @@
 
 #define unirand(x) ((MYFLT) (x->Rand31((x->RandSeed31(x))) - 1) / FL(2147483645.0))
 
+/* Check before converting counts or allocating sections. Both endpoints of
+   the random window range must fit the counter and allow a nonzero divisor. */
+static int32_t sndwarpcheck(CSOUND *csound, MYFLT overlap,
+                            MYFLT wsize, MYFLT randw)
+{
+    if (UNLIKELY(!(overlap >= FL(1.0) &&
+                   (double)overlap <= INT32_MAX) ||
+                 overlap != (MYFLT)(int32_t)overlap))
+      return csound->InitError(csound, "%s", Str("sndwarp: ioverlap must be a "
+                                               "positive integer"));
+    if (UNLIKELY((size_t)(int32_t)overlap > SIZE_MAX / sizeof(WARPSECTION)))
+      return csound->InitError(csound, "%s", Str("sndwarp: too many overlaps"));
+    if (UNLIKELY(!(wsize >= FL(2.0) && randw >= FL(0.0) &&
+                   wsize + randw < FL(2147483648.0))))
+      return csound->InitError(csound, "%s", Str("sndwarp: window size must be "
+                        "at least 2 and iwsize + irandw must be below 2^31; "
+                        "irandw must be nonnegative"));
+    return OK;
+}
+
 static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
 {
     int32_t         i;
@@ -42,10 +62,11 @@ static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
     char        *auxp;
     MYFLT       iwsize;
 
+    if (UNLIKELY(sndwarpcheck(csound, *p->ioverlap, *p->iwsize,
+                              *p->irandw) != OK))
+      return NOTOK;
     nsections = (int32_t)*p->ioverlap;
     if ((auxp = p->auxch.auxp) == NULL || nsections != p->nsections) {
-      if (nsections != p->nsections)
-        auxp = p->auxch.auxp=NULL;
       csound->AuxAlloc(csound, (size_t)nsections*sizeof(WARPSECTION), &p->auxch);
       auxp = p->auxch.auxp;
       p->nsections = nsections;
@@ -68,7 +89,7 @@ static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
 
     exp        = p->exp;
     iwsize = *p->iwsize;
-    for (i=0; i< *p->ioverlap; i++) {
+    for (i=0; i< nsections; i++) {
       if (i==0) {
         exp[i].wsize = (int32_t)iwsize;
         exp[i].cnt = 0;
@@ -76,8 +97,8 @@ static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
       }
       else {
         exp[i].wsize = (int32_t) (iwsize + (unirand(csound) * (*p->irandw)));
-        exp[i].cnt=(int32_t)(exp[i].wsize*((MYFLT)i/(*p->ioverlap)));
-        exp[i].ampphs = p->flen*((MYFLT)i/(*p->ioverlap));
+        exp[i].cnt=(int32_t)(exp[i].wsize*((MYFLT)i/nsections));
+        exp[i].ampphs = p->flen*((MYFLT)i/nsections);
       }
       exp[i].offset = (MYFLT)p->begin;
       exp[i].ampincr = (MYFLT)p->flen/(exp[i].wsize-1);
@@ -105,39 +126,24 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
     MYFLT       v1, v2, windowamp, fract;
     MYFLT       flen = (MYFLT)p->flen;
     MYFLT       iwsize = *p->iwsize;
-    int32_t         overlap = *p->ioverlap;
+    int32_t         overlap = p->nsections;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     r1 = p->r1;
     r2 = p->r2;
     memset(r1, 0, nsmps*sizeof(MYFLT));
     if (p->OUTOCOUNT >1) memset(r2, 0, nsmps*sizeof(MYFLT));
-/*     for (i=0; i<nsmps; i++) { */
-/*       *r1++ = FL(0.0); */
-/*       if (p->OUTOCOUNT >1) *r2++ = FL(0.0); */
-/*     } */
     exp = p->exp;
     ftpWind = p->ftpWind;
     ftpSamp = p->ftpSamp;
 
+    if (UNLIKELY(early)) nsmps -= early;
     for (i=0; i<overlap; i++) {
-/*       nsmps = CS_KSMPS; */
-/*       r1 = p->r1; */
-/*       if (p->OUTOCOUNT >1)  r2 = p->r2; */
-      resample = p->xresample;
-      timewarpby = p->xtimewarp;
-      amp = p->xamp;
+      resample = p->xresample + (p->resamplecode ? offset : 0);
+      timewarpby = p->xtimewarp + (p->timewarpcode ? offset : 0);
+      amp = p->xamp + (p->ampcode ? offset : 0);
 
-      if (UNLIKELY(offset)) {
-        memset(r1, '\0', offset*sizeof(MYFLT));
-        if (p->OUTOCOUNT >1) memset(r2, '\0', offset*sizeof(MYFLT));
-      }
-     if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&r1[nsmps], '\0', early*sizeof(MYFLT));
-      if (p->OUTOCOUNT >1) memset(&r2[nsmps], '\0', early*sizeof(MYFLT));
-     }
-     for (n=offset; n<nsmps;n++) {
+      for (n=offset; n<nsmps;n++) {
         if (exp[i].cnt < exp[i].wsize) goto skipover;
 
         if (*p->itimemode!=0)
@@ -212,14 +218,15 @@ static int32_t sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
     char        *auxp;
     MYFLT       iwsize;
 
-    if (UNLIKELY(p->OUTOCOUNT > 2 && p->OUTOCOUNT < 4)) {
+    if (UNLIKELY(p->OUTOCOUNT != 2 && p->OUTOCOUNT != 4)) {
       return csound->InitError(csound, "%s", Str("Wrong number of outputs "
                                            "in sndwarpst; must be 2 or 4"));
     }
+    if (UNLIKELY(sndwarpcheck(csound, *p->ioverlap, *p->iwsize,
+                              *p->irandw) != OK))
+      return NOTOK;
     nsections = (int32_t)*p->ioverlap;
     if ((auxp = p->auxch.auxp) == NULL || nsections != p->nsections) {
-      if (nsections != p->nsections)
-        auxp=p->auxch.auxp=NULL;
       csound->AuxAlloc(csound, (size_t)nsections*sizeof(WARPSECTION), &p->auxch);
       auxp = p->auxch.auxp;
       p->nsections = nsections;
@@ -249,8 +256,8 @@ static int32_t sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
       }
       else {
         exp[i].wsize = (int32_t) (iwsize + (unirand(csound) * (*p->irandw)));
-        exp[i].cnt=(int32_t)(exp[i].wsize*((MYFLT)i/(*p->ioverlap)));
-        exp[i].ampphs = p->flen*(i/(*p->ioverlap));
+        exp[i].cnt=(int32_t)(exp[i].wsize*((MYFLT)i/nsections));
+        exp[i].ampphs = p->flen*((MYFLT)i/nsections);
       }
       exp[i].offset = (MYFLT)p->begin;
       exp[i].ampincr = (MYFLT)p->flen/(exp[i].wsize-1);
@@ -299,10 +306,10 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
     ftpWind = p->ftpWind;
     ftpSamp = p->ftpSamp;
     if (UNLIKELY(early)) nsmps -= early;
-    for (i=0; i<*p->ioverlap; i++) {
-      resample = p->xresample;
-      timewarpby = p->xtimewarp;
-      amp = p->xamp;
+    for (i=0; i<p->nsections; i++) {
+      resample = p->xresample + (p->resamplecode ? offset : 0);
+      timewarpby = p->xtimewarp + (p->timewarpcode ? offset : 0);
+      amp = p->xamp + (p->ampcode ? offset : 0);
 
       for (n=offset; n<nsmps;n++) {
         if (exp[i].cnt < exp[i].wsize) goto skipover;
