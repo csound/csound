@@ -24,14 +24,28 @@
 
 #pragma once
 
+#include "convolution.h"
+
 typedef struct {
-  OPDS                  h;
-  MYFLT                 *ar, *ain, *isize, *ifn;
+  CONV_OUTPUT           out;
   MYFLT                 *curp;
   FUNC                  *ftp;
   AUXCH                 sigbuf;
   uint32_t          len;
+} DCONV_STATE;
+
+typedef struct {
+  OPDS                  h;
+  MYFLT                 *ar[CONV_MAX_OUTPUTS], *ain, *isize, *ifn;
+  DCONV_STATE            state;
 } DCONV;
+
+typedef struct {
+  OPDS                  h;
+  ARRAYDAT              *ar;
+  MYFLT                 *ain, *isize, *ifn, *ichannels;
+  DCONV_STATE            state;
+} DCONV_ARRAY;
 
 typedef struct {
   OPDS                  h;

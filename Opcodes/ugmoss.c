@@ -34,23 +34,30 @@
 
 /* rewritten code for dconv, includes speedup tip from
    Moore: Elements of Computer Music */
-static int32_t dconvset(CSOUND *csound, DCONV *p)
+static int32_t dconvset_common(CSOUND *csound, OPDS *h, DCONV_STATE *p,
+                                MYFLT isize, MYFLT *ifn)
 {
     FUNC *ftp;
-    double len = *p->isize;
+    double len = (double)isize;
     size_t nbytes;
+    int32_t channels = p->out.channels;
 
+    if (UNLIKELY(channels < 1))
+      return csound->InitError(csound, "%s", Str("dconv: invalid number of channels"));
     if (UNLIKELY(!(len >= 1.0)))
       return csound->InitError(csound, "%s", Str("dconv: isize must be at least 1"));
-    if (LIKELY((ftp = csound->FTFind(csound,
-                                        p->ifn)) != NULL)) {   /* find table */
-      p->ftp = ftp;
-      /* Limit to the table before converting a possibly large request. */
-      p->len = len >= ftp->flen ? ftp->flen : (uint32_t)len;
-    }
-    else {
+    if ((ftp = csound->FTFind(csound, ifn)) == NULL)
       return csound->InitError(csound, "%s", Str("No table for dconv"));
-    }
+    uint32_t frames = ftp->flen / channels;
+    if (UNLIKELY(frames < 1))
+      return csound->InitError(csound, "%s", Str("dconv: insufficient IR data for convolution"));
+    p->ftp = ftp;
+    /* isize counts frames, each containing one tap per output channel. */
+    p->len = len >= frames ? frames : (uint32_t)len;
+    if (UNLIKELY((uint64_t)p->len * sizeof(MYFLT) > SIZE_MAX))
+      return csound->InitError(csound, "%s", Str("dconv: impulse response too large"));
+    if (conv_output_init(csound, h, &p->out) != OK)
+      return NOTOK;
     nbytes = (size_t)p->len * sizeof(MYFLT);
     if (p->sigbuf.auxp == NULL || p->sigbuf.size < nbytes)
       csound->AuxAlloc(csound, nbytes, &p->sigbuf);
@@ -60,45 +67,67 @@ static int32_t dconvset(CSOUND *csound, DCONV *p)
     return OK;
 }
 
+static int32_t dconv_common(CSOUND *csound, OPDS *h, DCONV_STATE *p, MYFLT *ain)
+{
+    uint32_t offset = h->insdshead->ksmps_offset;
+    uint32_t early = h->insdshead->ksmps_no_end;
+    uint32_t n, nsmps = h->insdshead->ksmps;
+    uint32_t len = p->len;
+    int32_t channels = p->out.channels;
+    MYFLT *startp = (MYFLT *)p->sigbuf.auxp;
+    MYFLT *endp = startp + len;
+    MYFLT *curp = p->curp;
+
+    if (conv_output_ready(csound, h, &p->out) != OK)
+      return NOTOK;
+    nsmps -= early;
+    for (int32_t ch = 0; ch < channels; ch++) {
+      MYFLT *ar = conv_output_channel(&p->out, ch);
+      if (UNLIKELY(offset)) memset(ar, 0, offset * sizeof(MYFLT));
+      if (UNLIKELY(early)) memset(ar + nsmps, 0, early * sizeof(MYFLT));
+    }
+    for (n = offset; n < nsmps; n++) {
+      /* Save input before writing any output, including an in-place output. */
+      *curp = ain[n];
+      for (int32_t ch = 0; ch < channels; ch++) {
+        const MYFLT *tap = p->ftp->ftable + ch;
+        MYFLT *sample = curp;
+        uint32_t i = 1;
+        MYFLT sum = *sample++ * tap[0];
+        while (sample < endp)
+          sum += *sample++ * tap[(size_t)i++ * channels];
+        sample = startp;
+        while (i < len)
+          sum += *sample++ * tap[(size_t)i++ * channels];
+        conv_output_channel(&p->out, ch)[n] = sum;
+      }
+      if (curp == startp) curp = endp;
+      --curp;
+    }
+    p->curp = curp;
+    return OK;
+}
+
+static int32_t dconvset(CSOUND *csound, DCONV *p)
+{
+    p->state.out = (CONV_OUTPUT){p->ar, NULL, (int32_t)p->OUTOCOUNT};
+    return dconvset_common(csound, &p->h, &p->state, *p->isize, p->ifn);
+}
+
+static int32_t dconv_array_set(CSOUND *csound, DCONV_ARRAY *p)
+{
+    p->state.out = (CONV_OUTPUT){NULL, p->ar, conv_array_channels(*p->ichannels)};
+    return dconvset_common(csound, &p->h, &p->state, *p->isize, p->ifn);
+}
+
 static int32_t dconv(CSOUND *csound, DCONV *p)
 {
-    IGN(csound);
-    uint32_t i;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    uint32_t len = p->len;
-    MYFLT *ar, *ain, *ftp, *startp, *endp, *curp;
-    MYFLT sum;
+    return dconv_common(csound, &p->h, &p->state, p->ain);
+}
 
-    ain = p->ain;                               /* read saved values */
-    ar = p->ar;
-    ftp = p->ftp->ftable;
-    startp = (MYFLT *) p->sigbuf.auxp;
-    endp = startp + len;
-    curp = p->curp;
-
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      *curp = ain[n];                           /* get next input sample */
-      i = 1, sum = *curp++ * ftp[0];
-      while (curp<endp)
-        sum += (*curp++ * ftp[i++]);            /* start the convolution */
-      curp = startp;                            /* correct the ptr */
-      while (i<len)
-        sum += (*curp++ * ftp[i++]);            /* finish the convolution */
-      if (curp == startp)
-        curp = endp;
-      --curp;                                  /* stay within the buffer */
-      ar[n] = sum;
-    }
-
-    p->curp = curp;                             /* save state */
-    return OK;
+static int32_t dconv_array(CSOUND *csound, DCONV_ARRAY *p)
+{
+    return dconv_common(csound, &p->h, &p->state, p->ain);
 }
 
 static int32_t and_kk(CSOUND *csound, AOP *p)
@@ -929,7 +958,10 @@ static int32_t ftmorf(CSOUND *csound, FTMORF *p)
 
 static OENTRY localops[] =
   {
-   { "dconv",  S(DCONV), TR, "a", "aii",   (SUBR)dconvset, (SUBR)dconv },
+   { "dconv", S(DCONV), TR, CONV_OUTPUT_TYPES, "aii",
+     (SUBR)dconvset, (SUBR)dconv },
+   { "dconv", S(DCONV_ARRAY), TR, "a[]", "aiii",
+     (SUBR)dconv_array_set, (SUBR)dconv_array },
    { "vcomb", S(VCOMB),  0, "a", "akxioo", (SUBR)vcombset, (SUBR)vcomb   },
    { "valpass", S(VCOMB),0, "a", "akxioo", (SUBR)vcombset, (SUBR)valpass },
    { "ftmorf", S(FTMORF),TR, "",  "kii",  (SUBR)ftmorfset,  (SUBR)ftmorf,    },
