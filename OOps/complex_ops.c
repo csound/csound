@@ -96,6 +96,8 @@ int32_t complex_init(CSOUND *csound, CXOP *p){
 // complex arithmetic
 // supporting polar representation
 // returns a polar number only if both operands are polar
+// Read both components before writing a result that may share an operand.
+// Polar sums and differences need a rectangular intermediate for conversion.
 static inline int32_t complex_add_rr(CSOUND *csound, CXOP *p) {
   p->ans->real =  p->a->real + p->b->real;
   p->ans->imag =  p->a->imag + p->b->imag;
@@ -104,23 +106,32 @@ static inline int32_t complex_add_rr(CSOUND *csound, CXOP *p) {
 }
 
 static inline  int32_t complex_add_rp(CSOUND *csound, CXOP *p) {
-  p->ans->real =  p->a->real + polar_to_real(p->b);
-  p->ans->imag =  p->a->imag + polar_to_imag(p->b);
-  p->ans->isPolar = 0;
+  COMPLEXDAT ans = {
+    p->a->real + polar_to_real(p->b),
+    p->a->imag + polar_to_imag(p->b),
+    0
+  };
+  *p->ans = ans;
   return OK;
 }
 
 static inline  int32_t complex_add_pr(CSOUND *csound, CXOP *p) {
-  p->ans->real =  p->b->real + polar_to_real(p->a);
-  p->ans->imag =  p->b->imag + polar_to_imag(p->a);
-  p->ans->isPolar = 0;
+  COMPLEXDAT ans = {
+    p->b->real + polar_to_real(p->a),
+    p->b->imag + polar_to_imag(p->a),
+    0
+  };
+  *p->ans = ans;
   return OK;
 }
 
 static inline  int32_t complex_add_pp(CSOUND *csound, CXOP *p) {
-  p->ans->real =  polar_to_real(p->a) + polar_to_real(p->b);
-  p->ans->imag =  polar_to_imag(p->a) + polar_to_imag(p->b);
-  *p->ans = polar(p->ans);
+  COMPLEXDAT ans = {
+    polar_to_real(p->a) + polar_to_real(p->b),
+    polar_to_imag(p->a) + polar_to_imag(p->b),
+    0
+  };
+  *p->ans = polar(&ans);
   return OK;
 }
 
@@ -146,16 +157,22 @@ static inline  int32_t complex_addin_rp(CSOUND *csound, CXOP *p) {
 }
 
 static inline  int32_t complex_addin_pr(CSOUND *csound, CXOP *p) {
-  p->ans->real =  p->a->real + polar_to_real(p->ans);
-  p->ans->imag =  p->a->imag + polar_to_imag(p->ans);
-  p->ans->isPolar = 0;
+  COMPLEXDAT ans = {
+    p->a->real + polar_to_real(p->ans),
+    p->a->imag + polar_to_imag(p->ans),
+    0
+  };
+  *p->ans = ans;
   return OK;
 }
 
 static inline  int32_t complex_addin_pp(CSOUND *csound, CXOP *p) {
-  p->ans->real =  polar_to_real(p->ans) + polar_to_real(p->a);
-  p->ans->imag =  polar_to_imag(p->ans) + polar_to_imag(p->a);
-  *p->ans = polar(p->ans);
+  COMPLEXDAT ans = {
+    polar_to_real(p->ans) + polar_to_real(p->a),
+    polar_to_imag(p->ans) + polar_to_imag(p->a),
+    0
+  };
+  *p->ans = polar(&ans);
   return OK;
 }
 
@@ -174,23 +191,32 @@ static int32_t complex_sub_rr(CSOUND *csound, CXOP *p) {
 }
 
 static inline  int32_t complex_sub_rp(CSOUND *csound, CXOP *p) {
-  p->ans->real =  p->a->real - polar_to_real(p->b);
-  p->ans->imag =  p->a->imag - polar_to_imag(p->b);
-  p->ans->isPolar = 0;
+  COMPLEXDAT ans = {
+    p->a->real - polar_to_real(p->b),
+    p->a->imag - polar_to_imag(p->b),
+    0
+  };
+  *p->ans = ans;
   return OK;
 }
 
 static inline  int32_t complex_sub_pr(CSOUND *csound, CXOP *p) {
-  p->ans->real =  polar_to_real(p->a) - p->b->real;
-  p->ans->imag =  polar_to_imag(p->a) - p->b->imag;
-  p->ans->isPolar = 0;
+  COMPLEXDAT ans = {
+    polar_to_real(p->a) - p->b->real,
+    polar_to_imag(p->a) - p->b->imag,
+    0
+  };
+  *p->ans = ans;
   return OK;
 }
 
 static inline  int32_t complex_sub_pp(CSOUND *csound, CXOP *p) {
-  p->ans->real =  polar_to_real(p->a) - polar_to_real(p->b);
-  p->ans->imag =  polar_to_imag(p->a) - polar_to_imag(p->b);
-  *p->ans = polar(p->ans);
+  COMPLEXDAT ans = {
+    polar_to_real(p->a) - polar_to_real(p->b),
+    polar_to_imag(p->a) - polar_to_imag(p->b),
+    0
+  };
+  *p->ans = polar(&ans);
   return OK;
 }
 
@@ -216,16 +242,22 @@ static inline  int32_t complex_subin_rp(CSOUND *csound, CXOP *p) {
 }
 
 static inline  int32_t complex_subin_pr(CSOUND *csound, CXOP *p) {
-  p->ans->real =  polar_to_real(p->ans) - p->a->real;
-  p->ans->imag =  polar_to_imag(p->ans) - p->a->imag;
-  p->ans->isPolar = 0;
+  COMPLEXDAT ans = {
+    polar_to_real(p->ans) - p->a->real,
+    polar_to_imag(p->ans) - p->a->imag,
+    0
+  };
+  *p->ans = ans;
   return OK;
 }
 
 static inline  int32_t complex_subin_pp(CSOUND *csound, CXOP *p) {
-  p->ans->real =  polar_to_real(p->ans) - polar_to_real(p->a);
-  p->ans->imag =  polar_to_imag(p->ans) - polar_to_imag(p->a);
-  *p->ans = polar(p->ans);
+  COMPLEXDAT ans = {
+    polar_to_real(p->ans) - polar_to_real(p->a),
+    polar_to_imag(p->ans) - polar_to_imag(p->a),
+    0
+  };
+  *p->ans = polar(&ans);
   return OK;
 }
 
@@ -606,15 +638,16 @@ int32_t complex_exp_real(CSOUND *csond, CXOP *p) {
 
 int32_t complex_exp(CSOUND *csond, CXOP *p) {
  COMPLEXDAT *ans = p->ans;
- COMPLEXDAT *cmpx =  p->a;
- if(!cmpx->isPolar) {
-   ans->real = EXP(cmpx->real)*COS(cmpx->imag);
-   ans->imag = EXP(cmpx->real)*SIN(cmpx->imag);
+ /* The output may reuse the input. */
+ const COMPLEXDAT cmpx = *p->a;
+ if(!cmpx.isPolar) {
+   ans->real = EXP(cmpx.real)*COS(cmpx.imag);
+   ans->imag = EXP(cmpx.real)*SIN(cmpx.imag);
    ans->isPolar = 0;
  } else {
    // exp(Rexp(jw)) = exp(Rcos(w) + Rjsin(w)) = exp(Rcos(w))exp(jRsin(w))
-   ans->real = EXP(cmpx->real*COS(cmpx->imag));
-   ans->imag = cmpx->real*SIN(cmpx->imag);
+   ans->real = EXP(cmpx.real*COS(cmpx.imag));
+   ans->imag = cmpx.real*SIN(cmpx.imag);
    ans->isPolar = 1;
  }
  return OK;
@@ -622,16 +655,17 @@ int32_t complex_exp(CSOUND *csond, CXOP *p) {
 
 int32_t complex_log(CSOUND *csond, CXOP *p) {
  COMPLEXDAT *ans =  p->ans;
- COMPLEXDAT *cmpx =  p->a;
- if(!cmpx->isPolar) {
-   ans->real = LOG(HYPOT(cmpx->real,cmpx->imag));
-   ans->imag = ATAN2(cmpx->imag,cmpx->real);
+ /* The output may reuse the input. */
+ const COMPLEXDAT cmpx = *p->a;
+ if(!cmpx.isPolar) {
+   ans->real = LOG(HYPOT(cmpx.real,cmpx.imag));
+   ans->imag = ATAN2(cmpx.imag,cmpx.real);
    ans->isPolar = 0;
  } else {
    //log(Rexp(jw)) = log(R) + jw = HYPOT(log(R), w)*atan2(w, log(R))
-   MYFLT logr = LOG(cmpx->real);
-   ans->real = HYPOT(logr, cmpx->imag);
-   ans->imag = ATAN2(cmpx->imag, logr);
+   MYFLT logr = LOG(cmpx.real);
+   ans->real = HYPOT(logr, cmpx.imag);
+   ans->imag = ATAN2(cmpx.imag, logr);
    ans->isPolar = 1;
  }
  return OK;
@@ -1598,14 +1632,15 @@ int32_t complex_array_exp(CSOUND *csond, COPS1 *p) {
   COMPLEXDAT *cmpx = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
-    if(!cmpx[i].isPolar) {
-      ans[i].real = EXP(cmpx[i].real)*COS(cmpx[i].imag);
-      ans[i].imag = EXP(cmpx[i].real)*SIN(cmpx[i].imag);
+    const COMPLEXDAT value = cmpx[i];
+    if(!value.isPolar) {
+      ans[i].real = EXP(value.real)*COS(value.imag);
+      ans[i].imag = EXP(value.real)*SIN(value.imag);
       ans[i].isPolar = 0;
     } else {
       // exp(Rexp(jw)) = exp(Rcos(w) + Rjsin(w)) = exp(Rcos(w))exp(jRsin(w))
-      ans[i].real = EXP(cmpx[i].real*COS(cmpx[i].imag));
-      ans[i].imag = cmpx[i].real*SIN(cmpx[i].imag);
+      ans[i].real = EXP(value.real*COS(value.imag));
+      ans[i].imag = value.real*SIN(value.imag);
       ans[i].isPolar = 1;
     }
   }
@@ -1617,16 +1652,17 @@ int32_t complex_array_log(CSOUND *csond, COPS1 *p) {
   COMPLEXDAT *cmpx = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
-    if(!cmpx[i].isPolar) {
-      ans[i].real = LOG(HYPOT(cmpx[i].real,cmpx[i].imag));
-      ans[i].imag = ATAN2(cmpx[i].imag,cmpx[i].real);
+    const COMPLEXDAT value = cmpx[i];
+    if(!value.isPolar) {
+      ans[i].real = LOG(HYPOT(value.real,value.imag));
+      ans[i].imag = ATAN2(value.imag,value.real);
       ans[i].isPolar = 0;
     } else {
       //log(Rexp(jw)) = log(R) + jw = HYPOT(log(R), w)*atan2(w, log(R))
       MYFLT logr;
-      logr = LOG(cmpx[i].real);
-      ans[i].real = HYPOT(logr, cmpx[i].imag);
-      ans[i].imag = ATAN2(cmpx[i].imag, logr);
+      logr = LOG(value.real);
+      ans[i].real = HYPOT(logr, value.imag);
+      ans[i].imag = ATAN2(value.imag, logr);
       ans[i].isPolar = 1;
     }
   }
