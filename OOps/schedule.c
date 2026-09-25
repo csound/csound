@@ -491,85 +491,83 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
     else return OK;
 }
 
-/* tables are 4096 entries always */
+/* The sine table has 4096 entries plus its guard point. Phase is in cycles. */
 
-#define MAXPHASE 0x1000000
-#define MAXMASK  0x0ffffff
+/* The increment is reduced to (-1, 1) once per control period. */
+#define LFO_ADVANCE_PHASE(phase, increment) do {                       \
+    (phase) += (increment);                                           \
+    if ((phase) >= 1.0)                                               \
+      (phase) -= 1.0;                                                 \
+    else if ((phase) < 0.0)                                           \
+      (phase) += 1.0;                                                 \
+    /* A tiny negative phase can round up to one when wrapped. */      \
+    if (UNLIKELY((phase) >= 1.0)) (phase) = 0.0;                       \
+} while (0)
+
 int32_t lfoset(CSOUND *csound, LFO *p)
 {
-  /* Types: 0:  sine
-            1:  triangles
-            2:  square (biplar)
-            3:  square (unipolar)
-            4:  saw-tooth
-            5:  saw-tooth(down)
-            */
-    int32_t type = (int32_t)*p->type;
-    if (type == 0) {            /* Sine wave so need to create */
+    double type_value = (double)*p->type;
+    /* Preserve truncation for valid types, checking before the conversion. */
+    if (UNLIKELY(!(type_value > -1.0 && type_value < 6.0)))
+      return csound->InitError(csound, Str("LFO: unknown oscillator type %g"),
+                               *p->type);
+    int32_t type = (int32_t)type_value;
+    if (type == 0) {
       int32_t i;
-      if (p->auxd.auxp==NULL) {
+      if (p->auxd.auxp == NULL)
         csound->AuxAlloc(csound, sizeof(MYFLT)*4097L, &p->auxd);
-        p->sine = (MYFLT*)p->auxd.auxp;
-      }
+      p->sine = (MYFLT*)p->auxd.auxp;
       for (i=0; i<4096; i++)
         p->sine[i] = SIN(TWOPI_F*(MYFLT)i/FL(4096.0));
-/*        csound->Message(csound,"Table set up (max is %d)\n", MAXPHASE>>10); */
-    }
-    else if (UNLIKELY(type>5 || type<0)) {
-      return csound->InitError(csound, Str("LFO: unknown oscilator type %d"),
-                                       type);
+      p->sine[4096] = p->sine[0];
     }
     p->lasttype = type;
-    p->phs = 0;
+    p->phs = 0.0;
     return OK;
 }
 
 int32_t lfok(CSOUND *csound, LFO *p)
 {
-    int32_t     phs;
-    MYFLT       fract;
-    MYFLT       res;
-    int32_t     iphs;
+    double phs = p->phs;
+    double inc = (double)*p->xcps / (double)CS_EKR;
+    MYFLT res;
+    if (UNLIKELY(!isfinite(inc)))
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("LFO: frequency must be finite"));
+    if (UNLIKELY(inc >= 1.0 || inc <= -1.0))
+      inc = fmod(inc, 1.0);
 
-    phs = p->phs;
     switch (p->lasttype) {
     default:
-      return csound->PerfError(csound, &(p->h),
-                               Str("LFO: unknown oscilator type %d"),
+      return csound->PerfError(csound, &p->h,
+                               Str("LFO: unknown oscillator type %d"),
                                p->lasttype);
-    case 0:
-      iphs = phs >> 12;
-      fract = (MYFLT)(phs & 0xfff)/FL(4096.0);
-      res = p->sine[iphs];
-      res = res + (p->sine[iphs+1]-res)*fract;
-      break;
-    case 1:                     /* Trangular */
-      res = (MYFLT)((phs<<2)&MAXMASK)/(MYFLT)MAXPHASE;
-      if (phs < MAXPHASE/4) {}
-      else if (phs < MAXPHASE/2)
-        res = FL(1.0) - res;
-      else if (phs < 3*MAXPHASE/4)
-        res = - res;
-      else
-        res = res - FL(1.0);
-      break;
-    case 2:                     /* Bipole square wave */
-      if (phs<MAXPHASE/2) res = FL(1.0);
-      else res = -FL(1.0);
-      break;
-    case 3:                     /* Unipolar square wave */
-      if (phs<MAXPHASE/2) res = FL(1.0);
-      else res = FL(0.0);
-      break;
-    case 4:                     /* Saw Tooth */
-      res = (MYFLT)phs/(MYFLT)MAXPHASE;
-      break;
-    case 5:                     /* Reverse Saw Tooth */
-      res = FL(1.0) - (MYFLT)phs/(MYFLT)MAXPHASE;
+    case 0: {                   /* Sine, with linear interpolation */
+      double position = phs * 4096.0;
+      int32_t index = (int32_t)position;
+      double fraction = position - index;
+      res = (MYFLT)(p->sine[index] +
+                    (p->sine[index+1] - p->sine[index]) * fraction);
       break;
     }
-    phs += (int32_t)(*p->xcps * MAXPHASE * CS_ONEDKR);
-    phs &= MAXMASK;
+    case 1:                     /* Triangle */
+      res = (MYFLT)(phs < 0.25 ? 4.0 * phs :
+                    phs < 0.75 ? 2.0 - 4.0 * phs : 4.0 * phs - 4.0);
+      break;
+    case 2:                     /* Bipolar square */
+      res = phs < 0.5 ? FL(1.0) : -FL(1.0);
+      break;
+    case 3:                     /* Unipolar square */
+      res = phs < 0.5 ? FL(1.0) : FL(0.0);
+      break;
+    case 4:                     /* Sawtooth */
+      res = (MYFLT)phs;
+      break;
+    case 5:                     /* Descending sawtooth */
+      res = (MYFLT)(1.0 - phs);
+      break;
+    }
+    LFO_ADVANCE_PHASE(phs, inc);
     p->phs = phs;
     *p->res = *p->kamp * res;
     return OK;
@@ -578,67 +576,63 @@ int32_t lfok(CSOUND *csound, LFO *p)
 int32_t lfoa(CSOUND *csound, LFO *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t     phs;
-    MYFLT       fract;
-    MYFLT       res;
-    int32_t     iphs, inc;
-    MYFLT       *ar, amp;
+    double phs = p->phs;
+    double inc = (double)*p->xcps / (double)CS_ESR;
+    MYFLT *ar = p->res, amp = *p->kamp, res;
 
-    phs = p->phs;
-    inc = (int32_t)((*p->xcps * (MYFLT)MAXPHASE) * CS_ONEDSR);
-    amp = *p->kamp;
-    ar = p->res;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
+    if (UNLIKELY(offset >= nsmps)) return OK;
+    if (UNLIKELY(!isfinite(inc)))
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("LFO: frequency must be finite"));
+    if (UNLIKELY(inc >= 1.0 || inc <= -1.0))
+      inc = fmod(inc, 1.0);
+
     for (n=offset; n<nsmps; n++) {
       switch (p->lasttype) {
       default:
-        return csound->PerfError(csound, &(p->h),
-                                 Str("LFO: unknown oscilator type %d"),
+        return csound->PerfError(csound, &p->h,
+                                 Str("LFO: unknown oscillator type %d"),
                                  p->lasttype);
-      case 0:
-        iphs = phs >> 12;
-        fract = (MYFLT)(phs & 0xfff)/FL(4096.0);
-        res = p->sine[iphs];
-        res = res + (p->sine[iphs+1]-res)*fract;
-        break;
-      case 1:                   /* Triangular */
-        res = (MYFLT)((phs<<2)&MAXMASK)/(MYFLT)MAXPHASE;
-        if (phs < MAXPHASE/4) {}
-        else if (phs < MAXPHASE/2)
-          res = FL(1.0) - res;
-        else if (phs < 3*MAXPHASE/4)
-          res = - res;
-        else
-          res = res - FL(1.0);
-        break;
-      case 2:                   /* Bipole square wave */
-        if (phs<MAXPHASE/2) res = FL(1.0);
-        else res = -FL(1.0);
-        break;
-      case 3:                   /* Unipolar square wave */
-        if (phs<MAXPHASE/2) res = FL(1.0);
-        else res = FL(0.0);
-        break;
-      case 4:                   /* Saw Tooth */
-        res = (MYFLT)phs/(MYFLT)MAXPHASE;
-        break;
-      case 5:                   /* Reverse Saw Tooth */
-        res = FL(1.0) - (MYFLT)phs/(MYFLT)MAXPHASE;
+      case 0: {                 /* Sine, with linear interpolation */
+        double position = phs * 4096.0;
+        int32_t index = (int32_t)position;
+        double fraction = position - index;
+        res = (MYFLT)(p->sine[index] +
+                      (p->sine[index+1] - p->sine[index]) * fraction);
         break;
       }
-      phs += inc;
-      phs &= MAXMASK;
+      case 1:                   /* Triangle */
+        res = (MYFLT)(phs < 0.25 ? 4.0 * phs :
+                      phs < 0.75 ? 2.0 - 4.0 * phs : 4.0 * phs - 4.0);
+        break;
+      case 2:                   /* Bipolar square */
+        res = phs < 0.5 ? FL(1.0) : -FL(1.0);
+        break;
+      case 3:                   /* Unipolar square */
+        res = phs < 0.5 ? FL(1.0) : FL(0.0);
+        break;
+      case 4:                   /* Sawtooth */
+        res = (MYFLT)phs;
+        break;
+      case 5:                   /* Descending sawtooth */
+        res = (MYFLT)(1.0 - phs);
+        break;
+      }
       ar[n] = res * amp;
+      LFO_ADVANCE_PHASE(phs, inc);
     }
     p->phs = phs;
     return OK;
 }
+
+#undef LFO_ADVANCE_PHASE
 
 /******************************************************************************/
 /* triginstr - Ignite instrument events at k-rate from orchestra.             */
