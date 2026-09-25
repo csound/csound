@@ -233,6 +233,15 @@ class PUBLIC CsoundPerformanceThread {
     void EvalCode(const char *code, void (*returncb)(MYFLT));
 
 
+     /**
+     * Evaluates the given code, calls the `returncb` callback with the
+     * value passed to the `return` opcode in global space, and the
+     * `userdata` pointer.
+     */
+    void EvalCode(const char *code, void (*returncb)(MYFLT, void *userdata),
+                  void *userdata);
+
+
     /**
      * Calls the given callback within the context of the performance thread
      */

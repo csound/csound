@@ -590,6 +590,44 @@ public:
 };
 
 
+class CsPerfThreadMsg_EvalCodeWithData
+      : public CsoundPerformanceThreadMessage {
+private:
+    int32_t len;
+    char    *sp;
+    char    s[_PERFTHREAD_COMPILE_BUFSIZE];
+    void (*returncb)(MYFLT out, void *userdata);
+    void *userdata;
+
+public:
+    CsPerfThreadMsg_EvalCodeWithData(CsoundPerformanceThread *pt, const char *code,
+                                     void (*returncb)(MYFLT, void *userdata),
+                                     void *userdata)
+    : CsoundPerformanceThreadMessage(pt)
+    {
+      this->returncb = returncb;
+      this->userdata = userdata;
+      len = (int32_t)strlen(code);
+      if(len < _PERFTHREAD_COMPILE_BUFSIZE)
+        this->sp = &(this->s[0]);
+      else
+        this->sp = new char[(unsigned int)(len + 1)];
+      strcpy(this->sp, code);
+    }
+    int run()
+    {
+      MYFLT out = csoundEvalCode(pt_->GetCsound(), sp);
+      this->returncb(out, userdata);
+      return 0;
+    }
+
+    ~CsPerfThreadMsg_EvalCodeWithData() {
+      if(len >= _PERFTHREAD_COMPILE_BUFSIZE)
+        delete[] sp;
+    }
+};
+
+
 class CsPerfThreadMsg_RequestCallback
       : public CsoundPerformanceThreadMessage {
 private:
@@ -918,6 +956,13 @@ void CsoundPerformanceThread::EvalCode(const char *code, void (*returncb)(MYFLT)
     QueueMessage(new CsPerfThreadMsg_EvalCode(this, code, returncb));
 }
 
+void CsoundPerformanceThread::EvalCode(const char *code,
+                                       void (*returncb)(MYFLT, void *userdata),
+                                       void *userdata)
+{
+    QueueMessage(new CsPerfThreadMsg_EvalCodeWithData(this, code, returncb, userdata));
+}
+
 void CsoundPerformanceThread::RequestCallback(void (*func)(CsoundPerformanceThread *pt))
 {
     QueueMessage(new CsPerfThreadMsg_RequestCallback(this, func));
@@ -1111,6 +1156,14 @@ PUBLIC void csoundPerformanceThreadEvalCode(Cpt pt, const char *code, void (*ret
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->EvalCode(code, returncb);
+}
+
+PUBLIC void csoundPerformanceThreadEvalCodeWithData(Cpt pt, const char *code,
+                                                    void (*returncb)(MYFLT, void *userdata),
+                                                    void *userdata)
+{
+  CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  cpt->EvalCode(code, returncb, userdata);
 }
 
 PUBLIC void csoundPerformanceThreadRequestCallback(Cpt pt, void (*func)(void *pt))
