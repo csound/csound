@@ -551,6 +551,17 @@ static int16 rand15(CSOUND *csound)
 #define RIM 0x7FFFFFFFL         /* 2**31 - 1 */
 
 #define dv2_31          (FL(4.656612873077392578125e-10))
+/* The same bipolar conversion is required at startup and at later knots. */
+#define RAND31_VALUE(r) ((MYFLT)((int64_t)(r) * 2 - BIPOLAR) * dv2_31)
+
+/* Park-Miller states zero and 2^31-1 do not advance. Use the default seed
+   when a fractional seed maps outside the usable integer range. */
+static int32_t rand31_seed(MYFLT seed)
+{
+    double scaled = (double)seed * 2147483648.0;
+    return scaled >= 1.0 && scaled < (double)BIPOLAR
+      ? (int32_t)scaled : 1073741824;
+}
 
 int32 randint31(int32 seed31)
 {
@@ -589,14 +600,12 @@ int32_t rndset(CSOUND *csound, RAND *p)
       }
       else {
         if (p->new) {
-          MYFLT seed = *p->iseed;
-          if (seed==FL(0.0)) seed = FL(0.5);
-          p->rand = (int32_t) (seed * FL(2147483648.0));
+          p->rand = rand31_seed(*p->iseed);
           p->rand = randint31(p->rand);
           p->rand = randint31(p->rand);
         }
         else
-          p->rand = ((int16)(*p->iseed * FL(32768.0)))&0xffff;
+          p->rand = ((int16)(int32_t)(*p->iseed * FL(32768.0)))&0xffff;
       }
     }
     p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krand) */
@@ -611,7 +620,7 @@ int32_t krand(CSOUND *csound, RAND *p)
       int32_t r = randint31(p->rand);      /* result is a 31-bit value */
       p->rand = r;
       *p->ar = *p->base +
-        dv2_31 * (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * *p->xamp;
+        RAND31_VALUE(r) * *p->xamp;
     }
     else {
       int16 rand = (int16)p->rand;
@@ -668,7 +677,7 @@ int32_t arand(CSOUND *csound, RAND *p)
         ampscl = *p->xamp * dv2_31;
         for (n=offset;n<nsmps;n++) {
           rand = randint31(rand);
-          ar[n] = base + (MYFLT)((int32_t)((uint32_t)rand<<1)-BIPOLAR) * ampscl;
+          ar[n] = base + (MYFLT)((int64_t)rand * 2 - BIPOLAR) * ampscl;
         }
       }
       else {
@@ -676,7 +685,7 @@ int32_t arand(CSOUND *csound, RAND *p)
         for (n=offset;n<nsmps;n++) {
           rand = randint31(rand);
           ar[n] = base +
-            dv2_31 * (MYFLT)((int32_t)((uint32_t)rand<<1)-BIPOLAR) * xamp[n];
+            RAND31_VALUE(rand) * xamp[n];
         }
       }
       p->rand = rand;   /* save current rand */
@@ -700,20 +709,18 @@ int32_t rhset(CSOUND *csound, RANDH *p)
         }
         else {
           p->rand = (int32_t) (seed % 0x7FFFFFFEUL) + 1L;
-          p->num1 = (MYFLT) ((int32_t) ((uint32_t)p->rand<<1) - BIPOLAR) * dv2_31;
+          p->num1 = RAND31_VALUE(p->rand);
         }
       }
       else if (!p->new) {
-        p->rand = 0xffff&(int16)(*p->iseed * 32768L);   /* init rand integ    */
+        p->rand = 0xffff&(int16)(int32_t)(*p->iseed * 32768L);   /* init rand integ    */
         p->num1 = *p->iseed;                            /*    store fnum      */
       }
       else {
-        MYFLT ss = *p->iseed;
-        if (ss>FL(1.0)) p->rand = (int32_t) ss;
-        else p->rand = (int32_t) (*p->iseed * FL(2147483648.0));
+        p->rand = rand31_seed(*p->iseed);
         p->rand = randint31(p->rand);
         p->rand = randint31(p->rand);
-        p->num1 = (MYFLT) ((int32_t) ((uint32_t)p->rand<<1) - BIPOLAR) * dv2_31;
+        p->num1 = RAND31_VALUE(p->rand);
       }
       p->phs = 0;                               /*      & phs           */
     }
@@ -740,7 +747,7 @@ int32_t krandh(CSOUND *csound, RANDH *p)
       else {
         int32_t r = randint31(p->rand);            /*      & recalc number */
         p->rand = r;
-        p->num1 = (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
+        p->num1 = RAND31_VALUE(r);
       }
     }
     return OK;
@@ -763,15 +770,12 @@ int32_t randh(CSOUND *csound, RANDH *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    inc = (int64_t)(*cpsp++ * CS_SICVT);
+    inc = p->cpscod ? 0 : (int64_t)(*cpsp * CS_SICVT);
     for (n=offset;n<nsmps;n++) {
+      if (p->cpscod) inc = (int64_t)(cpsp[n] * CS_SICVT);
       /* IV - Jul 11 2002 */
-      ar[n] = base + p->num1 * *ampp;   /* rslt = num * amp */
-      if (p->ampcod)
-        ampp++;
+      ar[n] = base + p->num1 * ampp[p->ampcod ? n : 0];   /* rslt = num * amp */
       phs += inc;                               /* phs += inc       */
-      if (p->cpscod)
-        inc = (int64_t)(*cpsp++ * CS_SICVT);
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         if (!p->new) {
@@ -784,7 +788,7 @@ int32_t randh(CSOUND *csound, RANDH *p)
         else {
           int32_t r = randint31(p->rand);       /*   calc new number */
           p->rand = r;
-          p->num1 = (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
+          p->num1 = RAND31_VALUE(r);
         }
       }
     }
@@ -816,13 +820,13 @@ int32_t riset(CSOUND *csound, RANDI *p)
         else {
           p->rand = randint31((int32_t) (seed % 0x7FFFFFFEUL) + 1L);
           p->rand = randint31(p->rand);
-          p->num1 = (MYFLT)(p->rand<<1) * dv2_31; /* store num1,2 */
+          p->num1 = RAND31_VALUE(p->rand); /* store num1,2 */
           p->rand = randint31(p->rand);
-          p->num2 = (MYFLT)(p->rand<<1) * dv2_31;
+          p->num2 = RAND31_VALUE(p->rand);
         }
       }
       else if (!p->new) {
-        int16 rand = (int16)(*p->iseed * FL(32768.0)); /* init rand integ */
+        int16 rand = (int16)(int32_t)(*p->iseed * FL(32768.0)); /* init rand integ */
         rand *= RNDMUL;                 /*      to 2nd value    */
         rand += 1;
         p->num1 = *p->iseed;                    /*      store num1,2    */
@@ -830,15 +834,12 @@ int32_t riset(CSOUND *csound, RANDI *p)
         p->rand = rand;
       }
       else {
-        MYFLT ss = *p->iseed;
-        if (ss>FL(1.0)) p->rand = (int32_t) ss;
-        else if (ss==FL(0.0)) p->rand = (int32_t) (FL(0.5) * FL(2147483648.0));
-        else p->rand = (int32_t) (ss * FL(2147483648.0));
+        p->rand = rand31_seed(*p->iseed);
         p->rand = randint31(p->rand);
         p->rand = randint31(p->rand);
-        p->num1 = (MYFLT)(p->rand<1) * dv2_31; /* store num1,2 */
+        p->num1 = RAND31_VALUE(p->rand); /* store num1,2 */
         p->rand = randint31(p->rand);
-        p->num2 = (MYFLT)(p->rand<<1) * dv2_31;
+        p->num2 = RAND31_VALUE(p->rand);
       }
       p->phs = 0;                               /*      & clear phs     */
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;  /* & diff     */
@@ -867,7 +868,7 @@ int32_t krandi(CSOUND *csound, RANDI *p)
         int32_t r = randint31(p->rand);    /*      recalc random   */
         p->rand = r;
         p->num1 = p->num2;              /*      & new num vals  */
-        p->num2 = (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
+        p->num2 = RAND31_VALUE(r);
       }
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
@@ -891,15 +892,12 @@ int32_t randi(CSOUND *csound, RANDI *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    inc = (int64_t)(*cpsp++ * CS_SICVT);
+    inc = p->cpscod ? 0 : (int64_t)(*cpsp * CS_SICVT);
     for (n=offset;n<nsmps;n++) {
+      if (p->cpscod) inc = (int64_t)(cpsp[n] * CS_SICVT);
       /* IV - Jul 11 2002 */
-      ar[n] = base + (p->num1 + (MYFLT)phs * p->dfdmax) * *ampp;
-      if (p->ampcod)
-        ampp++;
+      ar[n] = base + (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[p->ampcod ? n : 0];
       phs += inc;                               /* phs += inc       */
-      if (p->cpscod)
-        inc = (int64_t)(*cpsp++ * CS_SICVT);  /*   (nxt inc)      */
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         if (!p->new) {
@@ -915,7 +913,7 @@ int32_t randi(CSOUND *csound, RANDI *p)
           //printf("r = %x\n", r);
           p->rand = r;
           p->num1 = p->num2;
-          p->num2 = (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
+          p->num2 = RAND31_VALUE(r);
         }
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
       }
@@ -953,17 +951,17 @@ int32_t rcset(CSOUND *csound, RANDC *p)
         else {
           p->rand = randint31((int32_t) (seed % 0x7FFFFFFEUL) + 1L);
           p->rand = randint31(p->rand);
-          p->num1 = (MYFLT)(p->rand<<1) * dv2_31; /* store num1,2 */
+          p->num1 = RAND31_VALUE(p->rand); /* store num1,2 */
           p->rand = randint31(p->rand);
-          p->num2 = (MYFLT)(p->rand<<1) * dv2_31;
+          p->num2 = RAND31_VALUE(p->rand);
           p->rand = randint31(p->rand);
-          p->num3 = (MYFLT)(p->rand<<1) * dv2_31;
+          p->num3 = RAND31_VALUE(p->rand);
           p->rand = randint31(p->rand);
-          p->num4 = (MYFLT)(p->rand<<1) * dv2_31;
+          p->num4 = RAND31_VALUE(p->rand);
         }
       }
       else if (!p->new) {
-        int16 rand = (int16)(*p->iseed * FL(32768.0)); /* init rand integ */
+        int16 rand = (int16)(int32_t)(*p->iseed * FL(32768.0)); /* init rand integ */
         rand *= RNDMUL;                 /*      to 2nd value    */
         rand += 1;
         p->num1 = *p->iseed;                    /*      store num1,2    */
@@ -977,23 +975,21 @@ int32_t rcset(CSOUND *csound, RANDC *p)
         p->rand = rand;
       }
       else {
-        MYFLT ss = *p->iseed;
-        if (ss>FL(1.0)) p->rand = (int32_t) ss;
-        else p->rand = (int32_t) (*p->iseed * FL(2147483648.0));
+        p->rand = rand31_seed(*p->iseed);
         p->rand = randint31(p->rand);
         p->rand = randint31(p->rand);
-        p->num1 = (MYFLT)(p->rand<1) * dv2_31; /* store num1,2 */
+        p->num1 = RAND31_VALUE(p->rand); /* store num1,2 */
         p->rand = randint31(p->rand);
-        p->num2 = (MYFLT)(p->rand<<1) * dv2_31;
+        p->num2 = RAND31_VALUE(p->rand);
         p->rand = randint31(p->rand);
-        p->num3 = (MYFLT)(p->rand<<1) * dv2_31;
+        p->num3 = RAND31_VALUE(p->rand);
         p->rand = randint31(p->rand);
-        p->num4 = (MYFLT)(p->rand<<1) * dv2_31;
+        p->num4 = RAND31_VALUE(p->rand);
       }
+      p->phs = 0;
     }
-    p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krandi) */
+    p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krandc) */
     p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
-    p->phs = 0;
     return OK;
 }
 
@@ -1026,7 +1022,7 @@ int32_t krandc(CSOUND *csound, RANDC *p)
         p->num1 = p->num2;              /*      & new num vals  */
         p->num2 = p->num3;
         p->num3 = p->num4;
-        p->num4 = (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
+        p->num4 = RAND31_VALUE(r);
       }
     }
     return OK;
@@ -1047,7 +1043,7 @@ int32_t randc(CSOUND *csound, RANDC *p)
     MYFLT a3         =   p->num2;
     cpsp = p->xcps;
     ampp = p->xamp;
-    inc = (int64_t)(*cpsp++ * CS_SICVT);
+    inc = p->cpscod ? 0 : (int64_t)(*cpsp * CS_SICVT);
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1056,17 +1052,13 @@ int32_t randc(CSOUND *csound, RANDC *p)
     }
 
     for (n=offset;n<nsmps;n++) {
+      if (p->cpscod) inc = (int64_t)(cpsp[n] * CS_SICVT);
 
       mu         =   (MYFLT)phs/(MYFLT)MAXLEN;
 
-      ar[n]  =   base + (((a0 * mu +a1) * mu+a2) * mu + a3) * *ampp;
+      ar[n]  =   base + (((a0 * mu +a1) * mu+a2) * mu + a3) * ampp[p->ampcod ? n : 0];
 
-      if (p->ampcod)
-        ampp++;
       phs += inc;
-      //printf("mu = %g  phs, inc, MAXLEN = %ld, %ld, %d\n", mu, phs, inc, MAXLEN);
-      if (p->cpscod)
-        inc = (int64_t)(*cpsp++ * CS_SICVT);  /*   (nxt inc)      */
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         if (!p->new) {
@@ -1085,7 +1077,7 @@ int32_t randc(CSOUND *csound, RANDC *p)
           p->num1 = p->num2;
           p->num2 = p->num3;
           p->num3 = p->num4;
-          p->num4 = (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
+          p->num4 = RAND31_VALUE(r);
         }
         a0         =   p->num4 - p->num3 - p->num1 + p->num2;
         a1         =   p->num1 - p->num2 - a0;
