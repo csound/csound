@@ -2241,105 +2241,61 @@ int32_t divinak(CSOUND *csound, ASSIGN *p)
 
 
 
-/**
- * Identifies both signaling NaN (sNaN) and quiet NaN (qNaN).
- *
- * According to the IEEE 754 standard, all NaN have the sign bit set to 0 and
- * all exponent bits set to 1. qNaN has the most significant bit of the
- * fractional set to 1, while sNaN has most the significant bit of the
- * fraction set to 0 -- but the NEXT most significant bit of the fraction must
- * be set to 1! This is necessary in order to distinguish sNaN from positive
- * infinity. Hence, there are 2 bit masks to test. Doubles have the most
- * significant bit of the fraction in (0-based) bit 52, floats have the most
- * significant bit of the fraction in bit 22.
- * double qNaN:
- * 0111111111110000000000000000000000000000000000000000000000000000
- * 0x7FF0000000000000ULL
- * double sNaN:
- * 0111111111101000000000000000000000000000000000000000000000000000
- * 0x7FE8000000000000ULL
- * float qNaN:
- * 01111111110000000000000000000000
- * 0x7FC00000
- * float sNaN:
- * 01111111101000000000000000000000
- * 0x7FA00000
- * NOTE: Not all compilers permit type casting a type-punned pointer. So, we
- * must explicitly copy rather than assign the data to test.
- */
-#ifndef __MINGW32__
-static inline int32_t _isnan(MYFLT x) {
-#ifdef USE_DOUBLE
-  uint64_t bits;
-  memcpy(&bits, &x, sizeof(MYFLT));
-  if ((bits & 0x7FF0000000000000ULL) == 0x7FF0000000000000ULL) {
-    return 1;
-  }
-  if ((bits & 0x7FE8000000000000ULL) == 0x7FE8000000000000ULL) {
-    return 1;
-  }
-  return 0;
-#else
-  uint32_t bits;
-  memcpy(&bits, &x, sizeof(MYFLT));
-  if ((bits & 0x7FC00000) == 0x7FC00000) {
-    return 1;
-  }
-  if ((bits & 0x7FA00000) == 0x7FA00000) {
-    return 1;
-  }
-  return 0;
-#endif
-}
-#endif
-
-
 int32_t is_NaN(CSOUND *csound, ASSIGN *p)
 {
   IGN(csound);
-  // *p->r = isnan(*p->a);
-  *p->r = _isnan(*p->a);
+  *p->r = isnan(*p->a) ? FL(1.0) : FL(0.0);
   return OK;
 }
 
-
-/* ********COULD BE IMPROVED******** */
 int32_t is_NaNa(CSOUND *csound, ASSIGN *p)
 {
   IGN(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t k, nsmps = CS_KSMPS;
-  uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
-  MYFLT *a = p->a;
-  *p->r = FL(0.0);
+  uint32_t early = nsmps - p->h.insdshead->ksmps_no_end;
+  MYFLT *a = p->a, *r = p->r, count = FL(0.0);
+
+  /* Count before writing: the input and output may share a buffer. */
   for (k=offset; k<early; k++)
-    *p->r += _isnan(a[k]);
+    if (isnan(a[k])) count += FL(1.0);
+
+  /* These audio overloads return the block count at every active sample. */
+  if (UNLIKELY(offset)) memset(r, 0, offset * sizeof(MYFLT));
+  if (UNLIKELY(early < nsmps))
+    memset(r + early, 0, (nsmps - early) * sizeof(MYFLT));
+  for (k=offset; k<early; k++) r[k] = count;
   return OK;
 }
 
 int32_t is_inf(CSOUND *csound, ASSIGN *p)
 {
   IGN(csound);
-  *p->r = isinf(*p->a);
+  MYFLT value = *p->a;
+  /* C only guarantees that isinf returns nonzero, not the infinity's sign. */
+  *p->r = isinf(value) ? (value < FL(0.0) ? -FL(1.0) : FL(1.0)) : FL(0.0);
   return OK;
 }
 
-/* ********COULD BE IMPROVED******** */
 int32_t is_infa(CSOUND *csound, ASSIGN *p)
 {
   IGN(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t k, nsmps = CS_KSMPS;
-  uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
-  MYFLT *a = p->a;
-  MYFLT ans = FL(0.0);
-  int32_t sign = 1;
+  uint32_t early = nsmps - p->h.insdshead->ksmps_no_end;
+  MYFLT *a = p->a, *r = p->r, count = FL(0.0), sign = FL(1.0);
+
   for (k=offset; k<early; k++) {
-    if (isinf(a[k]))
-      if (ans==FL(0.0)) sign = (int32_t)isinf(a[k]);
-    ans++;
+    if (isinf(a[k])) {
+      if (count == FL(0.0) && a[k] < FL(0.0)) sign = -FL(1.0);
+      count += FL(1.0);
+    }
   }
-  *p->r = ans*sign;
+  count *= sign;
+  if (UNLIKELY(offset)) memset(r, 0, offset * sizeof(MYFLT));
+  if (UNLIKELY(early < nsmps))
+    memset(r + early, 0, (nsmps - early) * sizeof(MYFLT));
+  for (k=offset; k<early; k++) r[k] = count;
   return OK;
 }
 
