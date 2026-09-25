@@ -317,6 +317,7 @@ int32_t csoundUgenContextGetReleaseTime(UGEN_CONTEXT *context) {
     if (context == NULL) return -1;
     return context->insds->xtratim;
 }
+
 /* ============================================================
  *  UGEN Creation / Destruction
  * ============================================================ */
@@ -727,6 +728,13 @@ bool csoundUgenSetString(UGEN* ugen, int32_t index, const char* str) {
     UGEN_VAR* var = csoundUgenGetInVar(ugen, index);
     if (var != NULL) return csoundUgenVarSetString(var, str);
     return false;
+}
+
+bool csoundUgenSetInArgCount(UGEN* ugen, int32_t inArgCount) {
+    if (ugen == NULL || ugen->initialized) return false;
+    if (inArgCount < 0 || inArgCount > ugen->inCount) return false;
+    ((OPDS*)ugen->opcodeMem)->optext->t.inArgCount = inArgCount;
+    return true;
 }
 
 const char* csoundUgenGetString(UGEN* ugen, int32_t index) {
