@@ -510,13 +510,15 @@ static int32_t trig_init(CSOUND *csound, Trig *p) {
 typedef struct {
     OPDS h;
     MYFLT *out, *trig, *rate, *start, *end, *resetPos;
-    MYFLT level, previn;
+    MYFLT level, previn, prevrate;
     int32_t started;
 } Phasor;
 
 static int32_t phasor_init(CSOUND *csound, Phasor *p) {
     IGN(csound);
     p->previn = 0;
+    /* No sample interval precedes the first active sample. */
+    p->prevrate = 0;
     p->level = 0;
     p->started = 0;
     if (p->INOCOUNT < 5)
@@ -539,6 +541,7 @@ phasor_a_aa(CSOUND *csound, Phasor *p) {
     const MYFLT end = *p->end;
     const MYFLT resetPos = *p->resetPos;
     MYFLT previn = p->previn;
+    MYFLT prevrate = p->prevrate;
     MYFLT level = p->started ? p->level : start;
     p->started = 1;
     const MYFLT range = end - start;
@@ -548,16 +551,19 @@ phasor_a_aa(CSOUND *csound, Phasor *p) {
         MYFLT curin = in[n];
         MYFLT zrate = rate[n];
         if (previn <= FL(0.0) && curin > FL(0.0)) {
-            MYFLT frac = FL(1) - previn/(curin-previn);
-            level = resetPos + frac * zrate;
+            /* Fraction of the previous interval after the zero crossing. */
+            MYFLT frac = curin/(curin-previn);
+            level = resetPos + frac * prevrate;
             SC_WRAP_FAST(level, start, end, range);
         }
         out[n] = level;
         level += zrate;
         SC_WRAP_FAST(level, start, end, range);
         previn = curin;
+        prevrate = zrate;
     }
     p->previn = previn;
+    p->prevrate = prevrate;
     p->level  = level;
     return OK;
 }
@@ -577,6 +583,7 @@ phasor_a_ak(CSOUND *csound, Phasor *p) {
     MYFLT end = *p->end;
     MYFLT resetPos = *p->resetPos;
     MYFLT previn = p->previn;
+    MYFLT prevrate = p->prevrate;
     MYFLT level = p->started ? p->level : start;
     p->started = 1;
     const MYFLT range = end - start;
@@ -585,16 +592,19 @@ phasor_a_ak(CSOUND *csound, Phasor *p) {
     for(n=offset; n<nsmps; n++) {
         MYFLT curin = in[n];
         if (previn <= FL(0.0) && curin > FL(0.0)) {
-            MYFLT frac = FL(1.0) - previn/(curin-previn);
-            level = resetPos + frac * rate;
+            /* Fraction of the previous interval after the zero crossing. */
+            MYFLT frac = curin/(curin-previn);
+            level = resetPos + frac * prevrate;
             SC_WRAP_FAST(level, start, end, range);
         }
         out[n] = level;
         level += rate;
         SC_WRAP_FAST(level, start, end, range);
         previn = curin;
+        prevrate = rate;
     }
     p->previn = previn;
+    p->prevrate = prevrate;
     p->level = level;
     return OK;
 }
