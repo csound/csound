@@ -45,19 +45,26 @@ int32_t downsamp(CSOUND *csound, DOWNSAMP *p)
     MYFLT       *asig, sum;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t end = CS_KSMPS - early;
     uint32_t len, n;
 
+    if (UNLIKELY(offset >= end)) {
+      *p->kr = FL(0.0);
+      return OK;
+    }
     if (p->len <= 1)
       *p->kr = p->asig[offset];
     else {
       asig = p->asig;
       sum = FL(0.0);
       len = p->len;
-      if (len > CS_KSMPS - early) len = CS_KSMPS - early;
-      for (n=offset; n<len; n++) {
+      /* Start the window at the first active sample and average only
+         the samples available in this block. */
+      if (len > end - offset) len = end - offset;
+      for (n=offset; n<offset+len; n++) {
         sum += asig[n];
       }
-      *p->kr = sum / p->len;
+      *p->kr = sum / len;
     }
     return OK;
 }

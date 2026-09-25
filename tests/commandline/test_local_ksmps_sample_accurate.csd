@@ -64,14 +64,33 @@ instr 10
   aInLeft = 1
   aInRight = 2
   aLeft, aRight LocalUdo aInLeft, aInRight
-  gkUdoLeft downsamp aLeft, 16
-  gkUdoRight downsamp aRight, 16
+  ; Read the whole returned block, including its inactive samples.
+  ; downsamp now averages only the active part of this short note.
+  gkUdoLeft = 0
+  gkUdoRight = 0
+  kSample = 0
+  while kSample < ksmps do
+    kLeft vaget kSample, aLeft
+    kRight vaget kSample, aRight
+    gkUdoLeft += kLeft / ksmps
+    gkUdoRight += kRight / ksmps
+    kSample += 1
+  od
 endin
 
 instr 20
   aLeft, aRight subinstr 2
-  gkSubLeft downsamp aLeft, 16
-  gkSubRight downsamp aRight, 16
+  ; Check the whole subinstr buffer in the same way as the UDO buffer.
+  gkSubLeft = 0
+  gkSubRight = 0
+  kSample = 0
+  while kSample < ksmps do
+    kLeft vaget kSample, aLeft
+    kRight vaget kSample, aRight
+    gkSubLeft += kLeft / ksmps
+    gkSubRight += kRight / ksmps
+    kSample += 1
+  od
 endin
 
 instr 30
