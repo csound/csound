@@ -57,7 +57,7 @@ typedef struct {
         AUXCH   auxd;
         MYFLT   *sine;
         int32_t lasttype;
-        int32    phs;
+        double  phs;
 } LFO;
 
 
