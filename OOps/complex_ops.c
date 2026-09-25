@@ -1714,7 +1714,26 @@ int32_t complex_exp_array(CSOUND *csond, COPS1 *p) {
 }
 
 
-#define WRAPPI(x) while(x >= PI) x -= PI; while(x < -PI) x += PI;
+/* Ordinary increments need at most one wrap. Reduce larger ones in one step. */
+#define QUADOSC_WRAP_PHASE(phase) do {                                    \
+  if ((phase) >= PI) (phase) -= TWOPI;                                     \
+  else if ((phase) < -PI) (phase) += TWOPI;                                \
+  if (UNLIKELY((phase) >= PI || (phase) < -PI)) {                           \
+    (phase) = fmod((phase), TWOPI);                                       \
+    if ((phase) >= PI) (phase) -= TWOPI;                                   \
+    else if ((phase) < -PI) (phase) += TWOPI;                              \
+  }                                                                      \
+} while (0)
+
+/* Bound the table phase before converting it to an integer. */
+#define QUADOSC_TABLE_PHASE(phase, frequency) do {                         \
+  double scaled = (double)(frequency) * (double)CS_SICVT;                  \
+  if (UNLIKELY(!(scaled > -FMAXLEN && scaled < FMAXLEN))) {                 \
+    scaled = fmod(scaled, FMAXLEN);                                       \
+    if (!(scaled > -FMAXLEN && scaled < FMAXLEN)) scaled = 0.0;             \
+  }                                                                      \
+  (phase) = (int32_t)scaled & PHMASK;                                      \
+} while (0)
 
 int32_t quadosc_init(CSOUND *csound, QUADOSC *p) {
   MYFLT ifn = -1;
@@ -1743,7 +1762,7 @@ int32_t quadosc_init(CSOUND *csound, QUADOSC *p) {
 static
 inline MYFLT sintab(FUNC *ftp, int32_t phs) {
   MYFLT *tab = ftp->ftable;
-  MYFLT *samp = tab + ((phs>>ftp->lobits) & PHMASK);
+  MYFLT *samp = tab + ((phs & PHMASK) >> ftp->lobits);
   MYFLT frac = PFRAC(phs);
   return *samp + frac*(*(samp+1) - *samp);
 }
@@ -1752,6 +1771,13 @@ inline MYFLT sintab(FUNC *ftp, int32_t phs) {
 int32_t quadosc(CSOUND *csound, QUADOSC *p) {
   int32_t n = p->out->sizes[0];
   COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
+  int32_t offset = p->h.insdshead->ksmps_offset;
+  int32_t end = CS_KSMPS - p->h.insdshead->ksmps_no_end;
+  if (offset > n) offset = n;
+  if (end > n) end = n;
+  if (UNLIKELY(offset)) memset(ans, 0, offset*sizeof(COMPLEXDAT));
+  if (UNLIKELY(end < n))
+    memset(&ans[end], 0, (n-end)*sizeof(COMPLEXDAT));
   MYFLT rphs = p->rphs, iphs = p->iphs;
   MYFLT rinc = p->rinc, iinc = p->iinc;
   int32_t isPolar = (int32_t) *p->isPolar;
@@ -1761,17 +1787,19 @@ int32_t quadosc(CSOUND *csound, QUADOSC *p) {
   if(p->freq != *p->cps) {
     MYFLT freq = *p->cps;
     if(!isPolar) {
-      int32_t ang = CS_SICVT*freq;
+      int32_t ang;
+      QUADOSC_TABLE_PHASE(ang, freq);
       rinc = p->rinc = sintab(tab, ang + offs);
       iinc = p->iinc = sintab(tab, ang);
     } else {
-      MYFLT ang = CS_TPIDSR*p->freq;
+      MYFLT ang = CS_TPIDSR*freq;
       iinc = p->iinc = ang;
     }
     p->freq = freq;
   }
   
-  for(int i = 0; i < n; i++) {
+  for(int i = offset; i < end; i++) {
+    ans[i].isPolar = isPolar;
     if(!isPolar) {
     ans[i].real = rphs*rinc - iphs*iinc;
     ans[i].imag = rphs*iinc + iphs*rinc;
@@ -1779,7 +1807,7 @@ int32_t quadosc(CSOUND *csound, QUADOSC *p) {
     } else {
       ans[i].real = 1.;
       ans[i].imag = iphs + iinc;
-      WRAPPI(ans[i].imag);
+      QUADOSC_WRAP_PHASE(ans[i].imag);
       iphs = ans[i].imag;
     }
   }
@@ -1792,6 +1820,13 @@ int32_t quadosc(CSOUND *csound, QUADOSC *p) {
 int32_t quadosc_audio(CSOUND *csound, QUADOSC *p) {
   int32_t n = p->out->sizes[0];
   COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
+  int32_t offset = p->h.insdshead->ksmps_offset;
+  int32_t end = CS_KSMPS - p->h.insdshead->ksmps_no_end;
+  if (offset > n) offset = n;
+  if (end > n) end = n;
+  if (UNLIKELY(offset)) memset(ans, 0, offset*sizeof(COMPLEXDAT));
+  if (UNLIKELY(end < n))
+    memset(&ans[end], 0, (n-end)*sizeof(COMPLEXDAT));
   MYFLT rphs = p->rphs, iphs = p->iphs;
   MYFLT rinc, iinc;
   int32_t isPolar = (int32_t) *p->isPolar;
@@ -1799,9 +1834,11 @@ int32_t quadosc_audio(CSOUND *csound, QUADOSC *p) {
   FUNC *tab = p->tab;
   MYFLT *freq = p->cps;
 
-  for(int i = 0; i < n; i++) {
+  for(int i = offset; i < end; i++) {
+    ans[i].isPolar = isPolar;
     if(!isPolar) {
-    int32_t ang = CS_SICVT*freq[i];
+    int32_t ang;
+    QUADOSC_TABLE_PHASE(ang, freq[i]);
     rinc = sintab(tab, ang + offs);
     iinc = sintab(tab, ang);  
     ans[i].real = rphs*rinc - iphs*iinc;
@@ -1812,7 +1849,7 @@ int32_t quadosc_audio(CSOUND *csound, QUADOSC *p) {
       iinc = ang;
       ans[i].real = 1.;
       ans[i].imag = iphs + iinc;
-      WRAPPI(ans[i].imag);
+      QUADOSC_WRAP_PHASE(ans[i].imag);
       iphs = ans[i].imag;
     }
   }
@@ -1820,3 +1857,6 @@ int32_t quadosc_audio(CSOUND *csound, QUADOSC *p) {
   p->iphs = iphs;  
   return OK;
 }
+
+#undef QUADOSC_WRAP_PHASE
+#undef QUADOSC_TABLE_PHASE
