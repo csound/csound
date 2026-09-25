@@ -663,38 +663,51 @@ int32_t CsoundPerformanceThread::Perform()
 {
     int retval = 0;
     do {
-      while (firstMessage) {
+      // Drain the message queue. The queue lock is only held while
+      // detaching the current batch of messages. The messages are run
+      // with the lock released; callbacks may call queueing
+      // methods like Play, EvalCode, etc., without blocking on queueLock.
+      for (;;) {
+        CsoundPerformanceThreadMessage *batch;
         csoundLockMutex(queueLock);
-        do {
-          CsoundPerformanceThreadMessage *msg;
-          // get oldest message
-          msg = (CsoundPerformanceThreadMessage*) firstMessage;
-          if (!msg)
-            break;
-          // unlink from FIFO
-          firstMessage = msg->nxt;
-          if (!msg->nxt)
-            lastMessage = (CsoundPerformanceThreadMessage*) 0;
-          // process and destroy message
-          retval = msg->run();
-          // TODO: This should be moved out of the Perform function
-          delete msg;
-        } while (!retval);
-        if (paused)
-          csoundWaitThreadLock(pauseLock, (size_t) 0);
-        // mark queue as empty
-        csoundNotifyThreadLock(flushLock);
-        csoundUnlockMutex(queueLock);
-        // if error or end of score, return now
-        if (retval)
-          goto endOfPerf;
-        // fprintf(stderr, "Error or end of score, returning now.");
-        // if paused, wait until a new message is received, then loop back
-        if (!paused)
+        batch = (CsoundPerformanceThreadMessage*) firstMessage;
+        if (batch) {
+          // detach the batch; newly queued messages go to a fresh queue
+          firstMessage = (CsoundPerformanceThreadMessage*) 0;
+          lastMessage = (CsoundPerformanceThreadMessage*) 0;
+          csoundUnlockMutex(queueLock);
+        }
+        else {
+          // empty queue and no message is in flight
+          if (paused)
+            csoundWaitThreadLock(pauseLock, (size_t) 0);
+          // mark queue as empty
+          csoundNotifyThreadLock(flushLock);
+          csoundUnlockMutex(queueLock);
+          // if paused, wait until a new message is received, then loop back
+          if (paused) {
+            csoundWaitThreadLockNoTimeout(pauseLock);
+            csoundNotifyThreadLock(pauseLock);
+            continue;
+          }
           break;
-        // VL: if this is paused, then it will double lock.
-        csoundWaitThreadLockNoTimeout(pauseLock);
-        csoundNotifyThreadLock(pauseLock);
+        }
+        // process and destroy the detached batch, in FIFO order
+        while (batch) {
+          CsoundPerformanceThreadMessage *msg = batch;
+          batch = msg->nxt;
+          retval = msg->run();
+          delete msg;
+          if (retval) {
+            // discard the rest of the batch
+            while (batch) {
+              CsoundPerformanceThreadMessage *nxt = batch->nxt;
+              delete batch;
+              batch = nxt;
+            }
+            goto endOfPerf;
+          }
+        }
       }
       if(processcallback != NULL)
            processcallback(cdata);
@@ -1020,10 +1033,12 @@ int32_t CsoundPerformanceThread::Join()
 
 void CsoundPerformanceThread::FlushMessageQueue()
 {
-    if (firstMessage) {
-      csoundWaitThreadLockNoTimeout(flushLock);
-      csoundNotifyThreadLock(flushLock);
-    }
+    // flushLock is cleared when a message is queued and set once the queue
+    // has been drained and no message is in flight, so wait for it
+    // unconditionally: firstMessage may be NULL while a detached batch of
+    // messages is still being processed.
+    csoundWaitThreadLockNoTimeout(flushLock);
+    csoundNotifyThreadLock(flushLock);
 }
 
 

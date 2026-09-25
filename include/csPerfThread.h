@@ -171,9 +171,10 @@ extern "C" {
   PUBLIC int32_t csoundPerformanceThreadJoin(CS_PERF_THREAD* pt);
 
   /**
-     Waits until all pending messages are actually received.
-     (pause, send score event, etc.)
-  */
+      Waits until all pending messages (pause, send score event, etc.)
+      and their callbacks have been processed by the performance thread.
+      Must not be called from a message callback.
+   */
   PUBLIC void csoundPerformanceThreadFlushMessageQueue(CS_PERF_THREAD* pt);
 
 #ifdef __cplusplus
