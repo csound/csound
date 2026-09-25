@@ -624,9 +624,6 @@ TEST_F(ServerTests, OscAudioBlobRoundTripsPreserveCompleteBlock)
 
 TEST_F(ServerTests, OscListenerContinuesAfterPortDeinit)
 {
-    const int32_t listenerPort = findFreeUdpPort();
-    ASSERT_GT(listenerPort, 0);
-
     const std::string orchestra =
       "sr = 48000\n"
       "ksmps = 32\n"
@@ -636,8 +633,10 @@ TEST_F(ServerTests, OscListenerContinuesAfterPortDeinit)
       "chn_k \"queued_cycles\", 3\n"
       "chn_k \"queued_pending\", 3\n"
       "chn_k \"queued_status\", 3\n"
+      "chn_k \"listener_ready\", 3\n"
       "instr 1\n"
-      "  ihandle oscinit " + std::to_string(listenerPort) + "\n"
+      "  ihandle oscinit p4\n"
+      "  chnset 1, \"listener_ready\"\n"
       "endin\n"
       "instr 2\n"
       "  kvalue init 0\n"
@@ -660,8 +659,24 @@ TEST_F(ServerTests, OscListenerContinuesAfterPortDeinit)
     ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
     ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
 
-    csoundEventString(csound, "i 1 0 0.02", 0);
-    ASSERT_TRUE(performBlocks(csound, 2));
+    int32_t listenerPort = 0;
+    std::string startMessages;
+    // A free-port probe cannot reserve the port until oscinit binds it.
+    // Retry only listener setup if another process claims it in that gap.
+    for (int32_t attempt = 0; attempt < 10; ++attempt) {
+      listenerPort = findFreeUdpPort();
+      ASSERT_GT(listenerPort, 0);
+      const std::string event = "i 1 0 0.02 " + std::to_string(listenerPort);
+      csoundEventString(csound, event.c_str(), 0);
+      ASSERT_TRUE(performBlocks(csound, 2));
+      if (csoundGetControlChannel(csound, "listener_ready", NULL) == 1)
+        break;
+      startMessages = readMessages(csound);
+      ASSERT_NE(startMessages.find("cannot start OSC listener on port"),
+                std::string::npos) << startMessages;
+    }
+    ASSERT_EQ(csoundGetControlChannel(csound, "listener_ready", NULL), 1)
+      << startMessages;
     csoundEventString(csound, "i 2 0 0.1", 0);
     ASSERT_TRUE(performBlocks(csound, 2));
 
