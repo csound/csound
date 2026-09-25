@@ -379,6 +379,7 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
     }
 
     /* Set TEXT metadata */
+    optxt->t.opcod = oentry->opname;
     optxt->t.outArgCount = outCount;
     optxt->t.inArgCount = inCount;
     optxt->t.oentry = oentry;
@@ -779,26 +780,35 @@ UGEN_ARG_TYPE csoundUgenGetOutType(UGEN* ugen, int32_t index) {
 int32_t csoundUgenInit(UGEN* ugen) {
     if (ugen == NULL) return CSOUND_ERROR;
     OENTRY* oentry = ugen->oentry;
+    OPDS *ids_prev = ugen->csound->ids;
+    ugen->csound->ids = (OPDS *)ugen->opcodeMem;
+    ugen->csound->mode = 1;
     INSDS *curip_prev = ugen->csound->curip;
     ugen->csound->curip = ugen->insds;
+    ugen->csound->op = ugen->csound->ids->optext->t.oentry->opname;
+
     int32_t res = (oentry->init != NULL)
         ? (*oentry->init)(ugen->csound, ugen->opcodeMem)
         : CSOUND_SUCCESS;
     ugen->csound->curip = curip_prev;
+    ugen->csound->mode = 0;
+    ugen->csound->ids = ids_prev;
     if (res == CSOUND_SUCCESS) {
         ugen->initialized = true;
     }
-    return res;
+    return res == OK ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int32_t csoundUgenPerform(UGEN* ugen) {
     if (ugen == NULL) return CSOUND_ERROR;
     if (!ugen -> initialized) return CSOUND_ERROR;
     OENTRY* oentry = ugen->oentry;
-    if (oentry->perf != NULL) {
-        return (*oentry->perf)(ugen->csound, ugen->opcodeMem);
-    }
-    return CSOUND_SUCCESS;
+    ugen->csound->mode = 2;
+    int32_t res = (oentry->perf != NULL)
+        ? (*oentry->perf)(ugen->csound, ugen->opcodeMem)
+        : CSOUND_SUCCESS;
+    ugen->csound->mode = 0;
+    return res;
 }
 
 /* ============================================================
