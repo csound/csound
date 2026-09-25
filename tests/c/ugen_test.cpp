@@ -408,6 +408,14 @@ TEST_F(UGenTests, SetContext) {
     csoundUgenFactoryDelete(factory);
 }
 
+TEST_F(UGenTests, ContextProperties) {
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
+                           (char*)"a", (char*)"iiio");
+    ASSERT_NE(ugen, nullptr);
+}
+
 /* ------------------------------------------------------------------
  *  Graph API
  * ------------------------------------------------------------------ */

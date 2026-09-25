@@ -87,6 +87,14 @@ PUBLIC bool csoundUgenContextDelete(UGEN_CONTEXT* context);
  * instrument-like state. */
 PUBLIC bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context);
 
+
+PUBLIC bool csoundUgenContextSetDuration(UGEN_CONTEXT *context, MYFLT p3);
+PUBLIC bool csoundUgenContextSetNoteReleases(UGEN_CONTEXT *context);
+PUBLIC bool csoundUgenContextSetStartOffset(UGEN_CONTEXT *context, uint32_t start);
+PUBLIC bool csoundUgenContextSetEndOffset(UGEN_CONTEXT *context, uint32_t end);
+PUBLIC int32_t csoundUgenContextGetReleaseTime(UGEN_CONTEXT *context);
+PUBLIC bool csoundUgenContextSetKCounter(UGEN_CONTEXT *context, uint32_t k);
+
 /* ==== UGEN Creation/Destruction ==== */
 
 /** Create a new UGEN, using the given UGEN_FACTORY and opcode name/types.

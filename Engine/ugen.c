@@ -126,6 +126,7 @@ static void insds_init_from_csound(INSDS* insds, CSOUND* csound) {
     insds->onedksmps = csound->onedksmps;
     insds->onedkr = csound->onedkr;
     insds->kicvt = csound->kicvt;
+    insds->csound = csound;
 }
 
 /**
@@ -143,6 +144,7 @@ static void insds_init_from_insds(INSDS* dest, const INSDS* src) {
     dest->onedksmps = src->onedksmps;
     dest->onedkr = src->onedkr;
     dest->kicvt = src->kicvt;
+    dest->csound = src->csound;
 }
 
 /**
@@ -276,6 +278,44 @@ bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context) {
     return true;
 }
 
+bool csoundUgenContextSetDuration(UGEN_CONTEXT *context, MYFLT p3) {
+    if (context == NULL) return false;
+    context->insds->p3.value = p3;
+    return true;
+}
+
+bool csoundUgenContextSetKCounter(UGEN_CONTEXT *context, uint32_t k) {
+    if (context == NULL) return false;
+    context->insds->kcounter = k;
+    return true;
+}
+
+bool csoundUgenContextSetStartOffset(UGEN_CONTEXT *context, uint32_t start) {
+    if (context == NULL) return false;
+    uint32_t ksmps = context->insds->ksmps;
+    if (start >= ksmps - context->insds->ksmps_no_end) return false;
+    context->insds->ksmps_offset = start;
+    return true;
+}
+
+bool csoundUgenContextSetEndOffset(UGEN_CONTEXT *context, uint32_t end) {
+    if (context == NULL) return false;
+    uint32_t ksmps = context->insds->ksmps;
+    if (end >= ksmps - context->insds->ksmps_offset) return false;
+    context->insds->ksmps_no_end = end;
+    return true;
+}
+
+bool csoundUgenContextSetNoteReleases(UGEN_CONTEXT *context) {
+    if (context == NULL) return false;
+    context->insds->relesing = 1;
+    return true;
+}
+
+int32_t csoundUgenContextGetReleaseTime(UGEN_CONTEXT *context) {
+    if (context == NULL) return NULL;
+    return context->insds->xtratim;
+}
 /* ============================================================
  *  UGEN Creation / Destruction
  * ============================================================ */
@@ -489,6 +529,17 @@ bool csoundUgenDelete(UGEN* ugen) {
     if (opds != NULL && opds->optext != NULL) {
         csound->Free(csound, opds->optext);
     }
+
+    /* Free auxilary chain */
+    char *lo = ugen->opcodeMem, *hi = lo + ugen->oentry->dsblksiz;
+    for (AUXCH **pp = &ugen->insds->auxchp; *pp != NULL; ) {
+        AUXCH *a = *pp;
+        if ((char*)a >= lo && (char*)a < hi) {
+            *pp = a->nxtchp;
+            csound->Free(csound, a->auxp);
+        } else pp = &a->nxtchp;
+    }
+
 
     csound->Free(csound, ugen->opcodeMem);
 
@@ -718,6 +769,7 @@ int32_t csoundUgenInit(UGEN* ugen) {
     if (oentry->init != NULL) {
         return (*oentry->init)(ugen->csound, ugen->opcodeMem);
     }
+    ugen->csound->curip = ugen->insds;
     return CSOUND_SUCCESS;
 }
 
