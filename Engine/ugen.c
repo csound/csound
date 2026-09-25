@@ -252,8 +252,8 @@ UGEN_CONTEXT* csoundUgenContextNew(UGEN_FACTORY* factory) {
     UGEN_CONTEXT* ctx = csound->Calloc(csound, sizeof(UGEN_CONTEXT));
     ctx->csound = csound;
 
-    /* Create a dedicated INSDS for this context so that UGENs
-       using it have their own hold/release state */
+    // Create a dedicated INSDS for this context so that UGENs
+    // using it have their own hold/release state
     INSDS* insds = csound->Calloc(csound, sizeof(INSDS));
     insds_init_from_insds(insds, factory->insds);
     ctx->insds = insds;
@@ -272,6 +272,7 @@ bool csoundUgenContextDelete(UGEN_CONTEXT* context) {
 
 bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context) {
     if (ugen == NULL || context == NULL) return false;
+    if (ugen->initialized) return false;
     OPDS* opds = (OPDS*)ugen->opcodeMem;
     ugen->insds = context->insds;
     opds->insdshead = context->insds;
@@ -530,7 +531,7 @@ bool csoundUgenDelete(UGEN* ugen) {
         csound->Free(csound, opds->optext);
     }
 
-    /* Free auxilary chain */
+    /* Free auxiliary chain */
     char *lo = ugen->opcodeMem, *hi = lo + ugen->oentry->dsblksiz;
     for (AUXCH **pp = &ugen->insds->auxchp; *pp != NULL; ) {
         AUXCH *a = *pp;
@@ -539,7 +540,6 @@ bool csoundUgenDelete(UGEN* ugen) {
             csound->Free(csound, a->auxp);
         } else pp = &a->nxtchp;
     }
-
 
     csound->Free(csound, ugen->opcodeMem);
 
@@ -763,14 +763,24 @@ UGEN_ARG_TYPE csoundUgenGetOutType(UGEN* ugen, int32_t index) {
  *  Init / Perform
  * ============================================================ */
 
+/**
+ * Intialize Ugen
+ *
+ * Ugen context can't be set after initialisation
+ */
 int32_t csoundUgenInit(UGEN* ugen) {
     if (ugen == NULL) return CSOUND_ERROR;
     OENTRY* oentry = ugen->oentry;
-    if (oentry->init != NULL) {
-        return (*oentry->init)(ugen->csound, ugen->opcodeMem);
-    }
+    INSDS *curip_prev = ugen->csound->curip;
     ugen->csound->curip = ugen->insds;
-    return CSOUND_SUCCESS;
+    int32_t res = (oentry->init != NULL)
+        ? (*oentry->init)(ugen->csound, ugen->opcodeMem)
+        : CSOUND_SUCCESS;
+    ugen->csound->curip = curip_prev;
+    if (res == CSOUND_SUCCESS) {
+        ugen->initialized = true;
+    }
+    return res;
 }
 
 int32_t csoundUgenPerform(UGEN* ugen) {

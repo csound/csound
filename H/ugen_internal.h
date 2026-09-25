@@ -51,6 +51,7 @@ struct UGEN {
   int32_t outDataOffset;    /**< Offset in data block where input args begin (in cs_float values) */
   UGEN_VAR* outVars;        /**< Array of UGEN_VAR for output args (owned by UGEN) */
   UGEN_VAR* inVars;         /**< Array of UGEN_VAR for input args (owned by UGEN) */
+  bool initialized;
 };
 
 /**
