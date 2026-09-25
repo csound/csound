@@ -285,7 +285,7 @@ bool csoundUgenContextSetDuration(UGEN_CONTEXT *context, MYFLT p3) {
     return true;
 }
 
-bool csoundUgenContextSetKCounter(UGEN_CONTEXT *context, uint32_t k) {
+bool csoundUgenContextSetKCounter(UGEN_CONTEXT *context, uint64_t k) {
     if (context == NULL) return false;
     context->insds->kcounter = k;
     return true;
@@ -314,7 +314,7 @@ bool csoundUgenContextSetNoteReleases(UGEN_CONTEXT *context) {
 }
 
 int32_t csoundUgenContextGetReleaseTime(UGEN_CONTEXT *context) {
-    if (context == NULL) return NULL;
+    if (context == NULL) return -1;
     return context->insds->xtratim;
 }
 /* ============================================================
@@ -785,6 +785,7 @@ int32_t csoundUgenInit(UGEN* ugen) {
 
 int32_t csoundUgenPerform(UGEN* ugen) {
     if (ugen == NULL) return CSOUND_ERROR;
+    if (!ugen -> initialized) return CSOUND_ERROR;
     OENTRY* oentry = ugen->oentry;
     if (oentry->perf != NULL) {
         return (*oentry->perf)(ugen->csound, ugen->opcodeMem);
