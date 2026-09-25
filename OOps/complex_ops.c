@@ -33,14 +33,34 @@ static inline int32_t smallest2(int32_t a, int32_t b) {
   return a < b ? a : b;
 }
 
+/* A signed radius changes the angle by half a cycle. Match atan2's
+   principal argument without trigonometric calls in polar array loops.
+   Arguments must have no side effects. */
+#define POLAR_ARGUMENT(result, magnitude, angle) do {                      \
+  double polar_phase = (double)(angle);                                  \
+  if ((magnitude) < FL(0.0))                                             \
+    polar_phase += signbit(polar_phase) ? PI : -PI;                       \
+  if (polar_phase > PI) polar_phase -= TWOPI;                            \
+  else if (polar_phase < -PI) polar_phase += TWOPI;                       \
+  if (UNLIKELY(polar_phase > PI || polar_phase < -PI)) {                  \
+    polar_phase = fmod(polar_phase, TWOPI);                              \
+    if (polar_phase > PI) polar_phase -= TWOPI;                          \
+    else if (polar_phase < -PI) polar_phase += TWOPI;                     \
+  }                                                                     \
+  (result) = (MYFLT)polar_phase;                                         \
+} while (0)
+
 /* magnitude from complex number */
 static inline MYFLT complex_to_mag(COMPLEXDAT *p) {
-  return !p->isPolar ? SQRT(p->real * p->real + p->imag * p->imag) : p->real;
+  return !p->isPolar ? SQRT(p->real * p->real + p->imag * p->imag) : FABS(p->real);
 }
 
 /* argument from complex number */
 static inline MYFLT complex_to_arg(COMPLEXDAT *p) {
-  return !p->isPolar ? ATAN2(p->imag, p->real) : p->imag;
+  MYFLT angle;
+  if (!p->isPolar) return ATAN2(p->imag, p->real);
+  POLAR_ARGUMENT(angle, p->real, p->imag);
+  return angle;
 }
 
 /* real part of a polar complex number */
@@ -515,12 +535,12 @@ int32_t complex_conj(CSOUND *csound, CXOP *p) {
 }
 
 int32_t complex_abs(CSOUND *csound, CXOP2R *p) {
-  *p->ans =  !p->a->isPolar ? complex_to_mag(p->a) : p->a->real;
+  *p->ans = complex_to_mag(p->a);
   return OK;
 }
 
 int32_t complex_arg(CSOUND *csound, CXOP2R *p) {
-  *p->ans =  !p->a->isPolar ?  complex_to_arg(p->a) : p->a->imag;
+  *p->ans = complex_to_arg(p->a);
   return OK;
 }
 
@@ -662,10 +682,11 @@ int32_t complex_log(CSOUND *csond, CXOP *p) {
    ans->imag = ATAN2(cmpx.imag,cmpx.real);
    ans->isPolar = 0;
  } else {
-   //log(Rexp(jw)) = log(R) + jw = HYPOT(log(R), w)*atan2(w, log(R))
-   MYFLT logr = LOG(cmpx.real);
-   ans->real = HYPOT(logr, cmpx.imag);
-   ans->imag = ATAN2(cmpx.imag, logr);
+   // log(z) = log(abs(z)) + j*arg(z), returned in polar form.
+   MYFLT logr = LOG(FABS(cmpx.real)), angle;
+   POLAR_ARGUMENT(angle, cmpx.real, cmpx.imag);
+   ans->real = HYPOT(logr, angle);
+   ans->imag = ATAN2(angle, logr);
    ans->isPolar = 1;
  }
  return OK;
@@ -827,7 +848,7 @@ int32_t scalar_minus_complex(CSOUND *csound, COPS1 *p) {
     } else {
       MYFLT re, im;
       re = COS(in[i].imag)*in[i].real;
-      im = SIN(in[i].imag)*in[i].real;
+      im = -SIN(in[i].imag)*in[i].real;
       re = num - re;
       out[i].real = HYPOT(re,im);
       out[i].imag = ATAN2(im,re);
@@ -1363,7 +1384,7 @@ int32_t reala_plus_complexa(CSOUND *csound, COPS1 *p) {
 int32_t complexa_addrealin(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
     smallest2(p->out->sizes[0], array1->sizes[0]);
   MYFLT *in1 = (MYFLT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -1503,7 +1524,7 @@ int32_t complex_array_abs(CSOUND *csound, COPS1 *p) {
   }
   for(int i = 0; i < n; i++) {
     out[i] = in[i].isPolar == 0 ?
-      HYPOT(in[i].real, in[i].imag) : in[i].real;
+      HYPOT(in[i].real, in[i].imag) : FABS(in[i].real);
   }
   return OK;
 }
@@ -1517,8 +1538,10 @@ int32_t complex_array_arg(CSOUND *csound, COPS1 *p) {
     n = p->out->sizes[0];
   }
   for(int i = 0; i < n; i++) {
-    out[i] = in[i].isPolar == 0 ?
-      ATAN2(in[i].imag, in[i].real) : in[i].imag;
+    if (!in[i].isPolar)
+      out[i] = ATAN2(in[i].imag, in[i].real);
+    else
+      POLAR_ARGUMENT(out[i], in[i].real, in[i].imag);
   }
   return OK;
 }
@@ -1542,8 +1565,13 @@ int32_t complex_array_polar(CSOUND *csound, COPS1 *p) {
   COMPLEXDAT *in = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
-    if(in[i].isPolar) out[i] = in[i];
-    else {
+    if(in[i].isPolar) {
+      MYFLT angle;
+      POLAR_ARGUMENT(angle, in[i].real, in[i].imag);
+      out[i].real = FABS(in[i].real);
+      out[i].imag = angle;
+      out[i].isPolar = 1;
+    } else {
       MYFLT real = in[i].real;
       MYFLT imag = in[i].imag;
       out[i].real = HYPOT(real, imag);
@@ -1658,11 +1686,11 @@ int32_t complex_array_log(CSOUND *csond, COPS1 *p) {
       ans[i].imag = ATAN2(value.imag,value.real);
       ans[i].isPolar = 0;
     } else {
-      //log(Rexp(jw)) = log(R) + jw = HYPOT(log(R), w)*atan2(w, log(R))
-      MYFLT logr;
-      logr = LOG(value.real);
-      ans[i].real = HYPOT(logr, value.imag);
-      ans[i].imag = ATAN2(value.imag, logr);
+      // log(z) = log(abs(z)) + j*arg(z), returned in polar form.
+      MYFLT logr = LOG(FABS(value.real)), angle;
+      POLAR_ARGUMENT(angle, value.real, value.imag);
+      ans[i].real = HYPOT(logr, angle);
+      ans[i].imag = ATAN2(angle, logr);
       ans[i].isPolar = 1;
     }
   }
