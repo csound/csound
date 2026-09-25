@@ -37,10 +37,6 @@ inline MYFLT lim1(MYFLT f) {
   return f > FL(0.0) ? (f < FL(1.0) ? f : FL(1.0)) : FL(0.0);
 }
 
-inline MYFLT limx(MYFLT f, MYFLT v1, MYFLT v2) {
-  return f > v1 ? (f < v2 ? f : v2) : v1;
-}
-
 /* Keep output length current without allocating during performance. */
 template <std::size_t Inputs>
 struct ArrayOutput : csnd::Plugin<1, Inputs> {
@@ -135,15 +131,17 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : ArrayOutput<2> {
   }
 };
 
-/** k-rate binary operator with array and two scalar
-    kout[] op kin1[], kin2, kin3
- */
-template <MYFLT (*trop)(MYFLT, MYFLT, MYFLT)>
-struct ArrayOp4 : ArrayOutput<3> {
+/** Limit each array element using two scalar bounds. */
+struct ArrayLimit : ArrayOutput<3> {
 
-  int32_t process(csnd::myfltvec &out, csnd::myfltvec &in, MYFLT v1, MYFLT v2) {
-    for (MYFLT *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
-      *o = trop(*s, v1, v2);
+  int32_t process(csnd::myfltvec &out, csnd::myfltvec &in, MYFLT low, MYFLT high) {
+    /* Like scalar limit, reversed bounds give their average. The bounds
+       are shared by all elements, so choose this path once per array. */
+    if (UNLIKELY(low > high))
+      std::fill(out.begin(), out.end(), FL(0.5) * (low + high));
+    else
+      for (MYFLT *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
+        *o = *s > low ? (*s < high ? *s : high) : low;
     return OK;
   }
 
@@ -360,9 +358,9 @@ static void onload(csnd::Csound *csound) {
                                                  csnd::thread::i);
   csnd::plugin<Accum<std::plus<MYFLT>, 0>>(csound, "sum", "i", "i[]",
                                            csnd::thread::i);
-  csnd::plugin<ArrayOp4<limx>>(csound, "limit", "i[]", "i[]ii",
+  csnd::plugin<ArrayLimit>(csound, "limit", "i[]", "i[]ii",
                                csnd::thread::i);
-  csnd::plugin<ArrayOp4<limx>>(csound, "limit", "k[]", "k[]kk",
+  csnd::plugin<ArrayLimit>(csound, "limit", "k[]", "k[]kk",
                                csnd::thread::ik);
   csnd::plugin<ArrayOp3<std::pow>>(csound, "pow", "i[]", "i[]i",
                                    csnd::thread::i);
