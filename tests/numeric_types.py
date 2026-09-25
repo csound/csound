@@ -19,9 +19,10 @@ def main():
         (root / "float-version.h").write_text("")
         (root / "version.h").write_bytes(
             (Path(args.generated_include_dir) / "version.h").read_bytes())
+        # GNU C++11 exposes picolibc's C math names, as in the opcode build.
         for compiler, suffix, standard, assertion in (
             (args.cc, "c", "c11", "_Static_assert"),
-            (args.cxx, "cpp", "c++17", "static_assert"),
+            (args.cxx, "cpp", "gnu++11", "static_assert"),
         ):
             for definitions, float_size, double_size in (
                 (["-DUSE_DOUBLE"], 8, 8),
@@ -29,9 +30,15 @@ def main():
                 (["-DUSE_FLOAT"], 4, 4),
             ):
                 source = root / ("consumer." + suffix)
+                # Match C++ opcodes that include cmath before Csound headers.
+                math_include = "#include <cmath>" if suffix == "cpp" else ""
+                math_scope = "using namespace std;" if suffix == "cpp" else ""
                 modern = f'''
+{math_include}
 #include "csound.h"
 #include "csdl.h"
+{math_scope}
+#include "arrays.h"
 {assertion}(sizeof(cs_float) == {float_size}, "cs_float size");
 {assertion}(sizeof(cs_double) == {double_size}, "cs_double size");
 {assertion}(CS_VAR_TYPE_OFFSET == offsetof(CS_VAR_MEM, value), "value offset");

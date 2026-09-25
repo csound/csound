@@ -193,7 +193,7 @@ typedef uint_least16_t uint16;
 #include <unistd.h>
 #endif
 
-/* Aligning to cs_double boundaries, should work with cs_float as float or cs_double */
+/* Aligning to double boundaries, should work with cs_float as float or double */
 #define CS_FLOAT_ALIGN(x) ((int32_t)(x + sizeof(cs_float)-1) & (~(sizeof(cs_float)-1)))
 
 #if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
@@ -653,11 +653,11 @@ typedef int32_t spin_lock_t;
 #endif
 
 /* CS7 source compatibility: use the CS_FLOAT names in new code. */
-#define CS_FLOAT2LONG CS_FLOAT2LONG
-#define CS_FLOAT2LRND CS_FLOAT2LRND
-#define CS_FLOAT2LONG64 CS_FLOAT2LONG64
-#define CS_FLOAT2LRND64 CS_FLOAT2LRND64
-#define CS_FLOAT2UINT64 CS_FLOAT2UINT64
+#define MYFLT2LONG CS_FLOAT2LONG
+#define MYFLT2LRND CS_FLOAT2LRND
+#define MYFLT2LONG64 CS_FLOAT2LONG64
+#define MYFLT2LRND64 CS_FLOAT2LRND64
+#define MYFLT2UINT64 CS_FLOAT2UINT64
 #define MYFLT_INT_TYPE CS_FLOAT_INT_TYPE
 #define csoundUndenormalizeMYFLT csoundUndenormalizeCsFloat
 
