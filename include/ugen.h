@@ -94,6 +94,7 @@ PUBLIC bool csoundUgenContextSetStartOffset(UGEN_CONTEXT *context, uint32_t star
 PUBLIC bool csoundUgenContextSetEndOffset(UGEN_CONTEXT *context, uint32_t end);
 PUBLIC int32_t csoundUgenContextGetReleaseTime(UGEN_CONTEXT *context);
 PUBLIC bool csoundUgenContextSetKCounter(UGEN_CONTEXT *context, uint64_t k);
+PUBLIC bool csoundUgenSetInArgCount(UGEN* ugen, int32_t inArgCount);
 
 /* ==== UGEN Creation/Destruction ==== */
 
