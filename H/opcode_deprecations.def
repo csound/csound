@@ -66,6 +66,7 @@ CSOUND_OPCODE_DEPRECATION("loop_lt", "looplt", ALIAS, "Renamed alias; maintain t
 CSOUND_OPCODE_DEPRECATION("maparray_i", "maparrayi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
 CSOUND_OPCODE_DEPRECATION("max_k", "maxk", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
 CSOUND_OPCODE_DEPRECATION("maxtab", "maxarray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
+CSOUND_OPCODE_DEPRECATION("metro", "metro2", FROZEN, "Preserve historical trigger timing, including extra triggers after high frequencies drop. Use metro2 with icorrect=1 for new scores; it is not a drop-in replacement.")
 CSOUND_OPCODE_DEPRECATION("mintab", "minarray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
 CSOUND_OPCODE_DEPRECATION("mp3in", "diskin2", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
 CSOUND_OPCODE_DEPRECATION("mp3len", "filelen", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")

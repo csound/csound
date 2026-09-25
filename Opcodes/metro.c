@@ -59,6 +59,10 @@ typedef struct  {
 
 } TIMEDSEQ;
 
+/* Preserve metro's initial-phase and first-trigger timing for old scores.
+   This initializer also serves metrobpm; do not change metro's startup
+   behavior through this shared function. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("metro")
 static int32_t metro_set(CSOUND *csound, METRO *p)
 {
     double phs = *p->iphs;
@@ -74,6 +78,14 @@ static int32_t metro_set(CSOUND *csound, METRO *p)
     return OK;
 }
 
+/* FROZEN for backward compatibility: subtract only one cycle per trigger.
+   Frequencies above kr can leave whole cycles in curphs, so triggers can
+   continue after the frequency drops, even to zero. At kr=100, three calls
+   at 250 Hz from phase zero leave three more triggers after stopping.
+   Do not normalize this phase or otherwise change the historical timing.
+   New scores should use metro2 with icorrect=1; its default is legacy too.
+   A timing change here requires an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("metro")
 static int32_t metro(CSOUND *csound, METRO *p)
 {
     double      phs= p->curphs;
@@ -442,7 +454,8 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "metro",  S(METRO),  0,        "k", "ko",  (SUBR)metro_set, (SUBR)metro    },
+  CSOUND_DEPRECATED_OPCODE("metro", "metro2", FROZEN, "Preserve historical trigger timing, including extra triggers after high frequencies drop. Use metro2 with icorrect=1 for new scores; it is not a drop-in replacement.")
+  { "metro",  S(METRO),  _QQ,      "k", "ko",  (SUBR)metro_set, (SUBR)metro    },
   { "metro2", S(METRO2), 0,        "k", "kkpoo", (SUBR)metro2_set, (SUBR)metro2  },
   { "metrobpm",S(METRO), 0,        "k", "koO",  (SUBR)metro_set, (SUBR)metrobpm },
   { "splitrig", S(SPLIT_TRIG), 0,  "",  "kkiiz",
