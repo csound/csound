@@ -41,7 +41,7 @@ protected:
     ARRAYDAT dest = {}, types = {}, args = {};
     STRINGDAT addresses[2] = {}, tags[2] = {}, host = {};
     int32_t destRows = 2, typeRows = 2, shape[2] = {2, 1};
-    MYFLT values[2] = {42, 17}, trigger = 0, port = 9000, mtu = 48;
+    cs_float values[2] = {42, 17}, trigger = 0, port = 9000, mtu = 48;
     void SetUp() override {
       cs = csoundCreate(nullptr, nullptr);
       cs->InitError = bundleInitError;
@@ -59,8 +59,8 @@ protected:
       dest.dimensions = types.dimensions = 1;
       dest.sizes = &destRows;
       types.sizes = &typeRows;
-      dest.data = reinterpret_cast<MYFLT *>(addresses);
-      types.data = reinterpret_cast<MYFLT *>(tags);
+      dest.data = reinterpret_cast<cs_float *>(addresses);
+      types.data = reinterpret_cast<cs_float *>(tags);
       dest.arrayMemberSize = types.arrayMemberSize = sizeof(STRINGDAT);
       args.dimensions = 2;
       args.sizes = shape;
@@ -87,7 +87,7 @@ TEST_F(OscBundleTests, RejectsInvalidShapesAndPacketLimits)
     types.dimensions = 0;
     EXPECT_EQ(oscbundle_init(cs, &p), NOTOK);
     types.dimensions = 1;
-    for (MYFLT size : {FL(-1.0), FL(8.0), FL(65537.0)}) {
+    for (cs_float size : {FL(-1.0), FL(8.0), FL(65537.0)}) {
       mtu = size;
       EXPECT_EQ(oscbundle_init(cs, &p), NOTOK);
     }

@@ -57,7 +57,7 @@ typedef struct {
         AUXCH   auxd;
         cs_float   *sine;
         int32_t lasttype;
-        double  phs;
+        cs_double  phs;
 } LFO;
 
 

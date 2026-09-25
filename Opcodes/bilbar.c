@@ -74,7 +74,7 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
                                  Str("barmodel: decay time is too short"));
       points = 1.0 / dxmin;
       if (UNLIKELY(!(points >= 1.0 &&
-                     points <= (cs_double)(INT32_MAX - 5) &&
+                     points <= (INT32_MAX + 0.0) - 5 &&
                      points <= (cs_double)(SIZE_MAX /
                                         (3 * sizeof(cs_double)) - 5))))
         return csound->InitError(csound, "%s",

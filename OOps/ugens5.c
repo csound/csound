@@ -216,17 +216,17 @@ int32_t katone(CSOUND *csound, TONE *p)
 {
     IGN(csound);
     cs_double     sig, x;
-    cs_double      c2 = p->c2, yt1 = p->yt1;
+    cs_double      c1 = p->c1, yt1 = p->yt1;
 
     if (*p->khp != p->prvhp) {
       p->prvhp = *p->khp;
       TONE_COEFFICIENTS(p->prvhp * CS_ONEDKR * TWOPI, p->c1, p->c2);
-      c2 = p->c2;
+      c1 = p->c1;
     }
       sig = *p->asig;
-      x = yt1 = c2 * (yt1 + sig);
+      yt1 -= c1 * (yt1 + sig);
+      x = yt1 + sig;
       *p->ar = (cs_float)x;
-      yt1 -= sig;               /* yt1 contains yt1-xt1 */
 
     p->yt1 = yt1;
     return OK;
@@ -239,12 +239,12 @@ int32_t atone(CSOUND *csound, TONE *p)
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
-    cs_double      c2 = p->c2, yt1 = p->yt1;
+    cs_double      c1 = p->c1, yt1 = p->yt1;
 
     if (*p->khp != p->prvhp) {
       p->prvhp = *p->khp;
       TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
-      c2 = p->c2;
+      c1 = p->c1;
     }
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
@@ -255,9 +255,10 @@ int32_t atone(CSOUND *csound, TONE *p)
     asig = p->asig;
     for (n=offset; n<nsmps; n++) {
       cs_double sig = (cs_double)asig[n];
-      cs_double x = yt1 = c2 * (yt1 + sig);
+      /* Keep the small state update instead of subtracting x and sig. */
+      yt1 -= c1 * (yt1 + sig);
+      cs_double x = yt1 + sig;
       ar[n] = (cs_float)x;
-      yt1 -= sig;               /* yt1 contains yt1-xt1 */
     }
     p->yt1 = yt1;
     return OK;
@@ -266,7 +267,7 @@ int32_t atone(CSOUND *csound, TONE *p)
 int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
 {
     cs_float       *ar = p->ar;
-    cs_double      c2 = p->c2, *yt1 = p->yt1;
+    cs_double      c1 = p->c1, *yt1 = p->yt1;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
@@ -275,7 +276,7 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
     if (*p->khp != p->prvhp) {
       p->prvhp = *p->khp;
       TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
-      c2 = p->c2;
+      c1 = p->c1;
     }
 
     memmove(ar,p->asig,sizeof(cs_float)*nsmps);
@@ -287,8 +288,8 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
     for (j=0; j<lp; j++) {
       for (n=offset; n<nsmps; n++) {
         cs_double sig = (cs_double)ar[n];
-        cs_double x = c2 * (yt1[j] + sig);
-        yt1[j] = x - sig;            /* yt1 contains yt1-xt1 */
+        yt1[j] -= c1 * (yt1[j] + sig);
+        cs_double x = yt1[j] + sig;
         ar[n] = (cs_float)x;
       }
     }
