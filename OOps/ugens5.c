@@ -93,12 +93,9 @@ int32_t kport(CSOUND *csound, PORT *p)
 
 int32_t tonset(CSOUND *csound, TONE *p)
 {
-    double b;
     double omega = IS_ASIG_ARG(p->ar) ? CS_TPIDSR : CS_ONEDKR * TWOPI;
     p->prvhp = (double)*p->khp;
-    b = 2.0 - cos(p->prvhp * omega);
-    p->c2 = b - sqrt(b * b - 1.0);
-    p->c1 = 1.0 - p->c2;
+    TONE_COEFFICIENTS(p->prvhp * omega, p->c1, p->c2);
 
     if (LIKELY(!(*p->istor)))
       p->yt1 = 0.0;
@@ -112,11 +109,10 @@ int32_t ktone(CSOUND *csound, TONE *p)
     double      yt1 = p->yt1;
 
     if (*p->khp != (MYFLT)p->prvhp) {
-      double b;
       p->prvhp = (double)*p->khp;
-      b = 2.0 - cos((double)(p->prvhp * CS_ONEDKR *TWOPI));
-      p->c2 = c2 = b - sqrt(b * b - 1.0);
-      p->c1 = c1 = 1.0 - c2;
+      TONE_COEFFICIENTS(p->prvhp * CS_ONEDKR * TWOPI, p->c1, p->c2);
+      c1 = p->c1;
+      c2 = p->c2;
     }
     yt1 = c1 * (double)(*p->asig) + c2 * yt1;
     *p->ar = (MYFLT)yt1;
@@ -135,11 +131,10 @@ int32_t tone(CSOUND *csound, TONE *p)
     double      yt1 = p->yt1;
 
     if (*p->khp != (MYFLT)p->prvhp) {
-      double b;
       p->prvhp = (double)*p->khp;
-      b = 2.0 - cos((double)(p->prvhp * CS_TPIDSR));
-      p->c2 = c2 = b - sqrt(b * b - 1.0);
-      p->c1 = c1 = 1.0 - c2;
+      TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
+      c1 = p->c1;
+      c2 = p->c2;
     }
     ar = p->ar;
     asig = p->asig;
@@ -163,13 +158,8 @@ int32_t tonsetx(CSOUND *csound, TONEX *p)
     int32_t clear_state = !*p->istor;
     int32_t new_loop;
 
-    {
-      double b;
-      p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * CS_TPIDSR));
-      p->c2 = b - sqrt(b * b - 1.0);
-      p->c1 = 1.0 - p->c2;
-    }
+    p->prvhp = *p->khp;
+    TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
     if (UNLIKELY(!isfinite(order) || order > (double)INT32_MAX - 0.5))
       return csound->InitError(csound, Str("tonex: invalid order %f"),
                                *p->ord);
@@ -199,11 +189,10 @@ int32_t tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified
     int32_t     j, lp = p->loop;
 
     if (*p->khp != p->prvhp) {
-      double b;
       p->prvhp = (double)*p->khp;
-      b = 2.0 - cos(p->prvhp * (double)CS_TPIDSR);
-      p->c2 = c2 = b - sqrt(b * b - 1.0);
-      p->c1 = c1 = 1.0 - c2;
+      TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
+      c1 = p->c1;
+      c2 = p->c2;
     }
 
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
@@ -230,11 +219,9 @@ int32_t katone(CSOUND *csound, TONE *p)
     double      c2 = p->c2, yt1 = p->yt1;
 
     if (*p->khp != p->prvhp) {
-      double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * CS_ONEDKR *TWOPI));
-      p->c2 = c2 = b - sqrt(b * b - 1.0);
-/*      p->c1 = c1 = 1.0 - c2; */
+      TONE_COEFFICIENTS(p->prvhp * CS_ONEDKR * TWOPI, p->c1, p->c2);
+      c2 = p->c2;
     }
       sig = *p->asig;
       x = yt1 = c2 * (yt1 + sig);
@@ -255,11 +242,9 @@ int32_t atone(CSOUND *csound, TONE *p)
     double      c2 = p->c2, yt1 = p->yt1;
 
     if (*p->khp != p->prvhp) {
-      double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * CS_TPIDSR));
-      p->c2 = c2 = b - sqrt(b * b - 1.0);
-/*      p->c1 = c1 = 1.0 - c2; */
+      TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
+      c2 = p->c2;
     }
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -288,11 +273,9 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
     int32_t     j, lp = p->loop;
 
     if (*p->khp != p->prvhp) {
-      double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * CS_TPIDSR));
-      p->c2 = c2 = b - sqrt(b * b - 1.0);
-      /*p->c1 = 1. - p->c2;*/
+      TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
+      c2 = p->c2;
     }
 
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
@@ -1286,11 +1269,7 @@ int32_t lpfreson(CSOUND *csound, LPFRESON *p)
 
 int32_t rmsset(CSOUND *csound, RMS *p)
 {
-    double   b;
-
-    b = 2.0 - cos((double)(*p->ihp * CS_TPIDSR));
-    p->c2 = b - sqrt(b*b - 1.0);
-    p->c1 = 1.0 - p->c2;
+    TONE_COEFFICIENTS((double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
     if (!*p->istor)
       p->prvq = 0.0;
     return OK;
@@ -1298,11 +1277,7 @@ int32_t rmsset(CSOUND *csound, RMS *p)
 
 int32_t gainset(CSOUND *csound, GAIN *p)
 {
-    double   b;
-
-    b = 2.0 - cos((double)(*p->ihp * CS_TPIDSR));
-    p->c2 = b - sqrt(b*b - 1.0);
-    p->c1 = 1.0 - p->c2;
+    TONE_COEFFICIENTS((double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
     if (!*p->istor)
       p->prvq = p->prva = 0.0;
     return OK;
@@ -1310,11 +1285,7 @@ int32_t gainset(CSOUND *csound, GAIN *p)
 
 int32_t balnset(CSOUND *csound, BALANCE *p)
 {
-    double   b;
-
-    b = 2.0 - cos((double)(*p->ihp * CS_TPIDSR));
-    p->c2 = b - sqrt(b*b - 1.0);
-    p->c1 = 1.0 - p->c2;
+    TONE_COEFFICIENTS((double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
     if (!*p->istor)
       p->prvq = p->prvr = p->prva = 0.0;
     return OK;
