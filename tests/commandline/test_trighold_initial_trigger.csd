@@ -66,8 +66,29 @@ instr 2
   endif
 endin
 
+instr 3
+  ; A rising edge arriving exactly when the previous hold expires must
+  ; start a new hold. With edges every two samples and a two sample hold,
+  ; the output stays high on every sample.
+  setksmps 1
+  kCycle init 0
+  kInput = 1 - (kCycle % 2)
+  aInput upsamp kInput
+  kHold trighold kInput, 2 / sr
+  aHold trighold aInput, 2 / sr
+  kAudio downsamp aHold
+  if kHold != 1 || kAudio != 1 then
+    printks "trighold missed a rising edge on expiry sample %d\n", 0, kCycle
+    exitnowk(-1)
+  endif
+  kCycle += 1
+  if kCycle == 8 then
+    gkChecks += 1
+  endif
+endin
+
 instr 99
-  if i(gkChecks) != 5 then
+  if i(gkChecks) != 6 then
     prints "trighold checks did not complete\n"
     exitnow(-1)
   endif
@@ -79,6 +100,7 @@ i 1 0 .01 1 1
 i 1 0 .01 .4 .5
 i 1 0 .01 0 .75
 i 2 .02 .001
+i 3 .02 .001
 i 99 .03 .001
 </CsScore>
 </CsoundSynthesizer>

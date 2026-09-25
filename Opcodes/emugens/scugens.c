@@ -414,14 +414,16 @@ trig_a(CSOUND *csound, Trig *p) {
     for(n=offset; n<nsmps; n++) {
         MYFLT curtrig = in[n];
         MYFLT zout;
-        if (counter > 0) {
-            zout = --counter ? level : FL(0.0);
+        if (counter > 0 && --counter > 0) {
+            zout = level;
         } else {
+            // hold is inactive or expires on this sample: a rising
+            // edge starts a new hold
             if (curtrig > FL(0.0) && prevtrig <= FL(0.0)) {
                 counter = (long)(dur * sr + FL(0.5));
                 if (counter < 1) counter = 1;
                 level = curtrig;
-                zout  = level;
+                zout = level;
             } else {
                 zout = FL(0.0);
             }
@@ -443,14 +445,16 @@ trig_k(CSOUND *csound, Trig *p) {
     MYFLT prevtrig = p->prevtrig;
     MYFLT level = p->level;
     uint64_t counter = p->counter;
-    if (counter > 0) {
-        *p->out = --counter ? level : FL(0.0);
+    if (counter > 0 && --counter > 0) {
+        *p->out = level;
     } else {
+        // same as in the audio variant, hold is either inactive or 
+        // expires now, so start new hold
         if (curtrig > FL(0.0) && prevtrig <= FL(0.0)) {
             counter = (int64_t)(dur * kr + FL(0.5));
             if (counter < 1)
                 counter = 1;
-            level   = curtrig;
+            level = curtrig;
             *p->out = level;
         } else {
             *p->out = FL(0.0);
