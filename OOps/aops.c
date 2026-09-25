@@ -2418,31 +2418,19 @@ int32_t outRange_i(CSOUND *csound, OUTRANGE *p)
 
 int32_t outRange(CSOUND *csound, OUTRANGE *p)
 {
-  int32_t j;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
-  //int32_t nchnls = csound->GetNchnls(csound);
-  MYFLT *ara[VARGMAX];
-  int32_t startChan = (int32_t) *p->kstartChan -1;
-  MYFLT *sp = csound->spout_tmp + startChan*nsmps;
-  int32_t narg = p->narg,i;
+  double start = (double)*p->kstartChan;
+  uint32_t narg = p->narg, nchnls = csound->nchnls, first;
 
-  if (UNLIKELY(startChan < 0))
-    return csound->PerfError(csound, &(p->h),
-                             Str("outrg: channel number cannot be < 1 "
-                                 "(1 is the first channel)"));
-  for (j = 0; j < narg; j++)
-    ara[j] = p->argums[j];
-
-  for (i=0; i < narg; i++) {
-    for (n=offset; n<nsmps-early; n++) {
-      sp[n] += ara[i][n];
-    }
-    sp += nsmps;
-  }
-
-  return OK;
+  /* Validate before converting; fractional channel numbers still truncate. */
+  if (UNLIKELY(narg == 0 || narg > nchnls ||
+               !(start >= 1.0 && start < (double)(nchnls - narg) + 2.0)))
+    return csound->PerfError(csound, &p->h, "%s",
+                             Str("outrg: channel range is outside output channels"));
+  first = (uint32_t)start - 1;
+  /* Use the instrument's output buffer and the global channel stride,
+     just like out and outch, including local ksmps and subinstruments. */
+  return outn(csound, first, first + narg, p->argums,
+              p->h.insdshead, NULL);
 }
 /* -------------------------------------------------------------------- */
 
