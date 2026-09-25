@@ -4062,54 +4062,78 @@ int32_t arrayass(CSOUND *csound, TABCOPY *p)
   return OK;
 }
 
+/* Shapes may change after init. Check once per block, before traversing
+   the flattened arrays; each element then needs only atan2. */
+static inline const char *taninv2_array_size(TABARITH *p, size_t *size)
+{
+  ARRAYDAT *ans = p->ans, *aa = p->left, *bb = p->right;
+  if (UNLIKELY(aa->dimensions < 1 || aa->sizes == NULL ||
+               bb->sizes == NULL || ans->sizes == NULL ||
+               aa->dimensions != bb->dimensions ||
+               aa->dimensions != ans->dimensions))
+    return Str("taninv2: array shapes do not match; reinitialise the opcode");
+  for (int32_t i = 0; i < aa->dimensions; i++) {
+    if (UNLIKELY(aa->sizes[i] != bb->sizes[i] ||
+                 aa->sizes[i] != ans->sizes[i]))
+      return Str("taninv2: array shapes do not match; reinitialise the opcode");
+  }
+  if (UNLIKELY(csound_array_member_count(aa, size) != OK))
+    return Str("taninv2: invalid array size");
+  if (UNLIKELY(*size != 0 &&
+               (aa->data == NULL || bb->data == NULL || ans->data == NULL)))
+    return Str("array-variable not initialised");
+  return NULL;
+}
+
 int32_t taninv2_Ai(CSOUND* csound, TABARITH* p)
 {
-  ARRAYDAT* ans = p->ans;
-  ARRAYDAT* aa = p->left;
-  ARRAYDAT* bb = p->right;
-  int32_t i, j, k;
-  if (tabarithset(csound, p)!=OK)
+  size_t size;
+  const char *error;
+  if (tabarithset(csound, p) != OK)
     return NOTOK;
-  k = 0;
-  for (i=0; i<ans->dimensions; i++) {
-    for (j=0; j<aa->sizes[i]; j++) {
-      ans->data[k] = ATAN2(aa->data[k], bb->data[k]);
-      k++;
-    }
-  }
+  error = taninv2_array_size(p, &size);
+  if (UNLIKELY(error != NULL))
+    return csound->InitError(csound, "%s", error);
+  for (size_t i = 0; i < size; i++)
+    p->ans->data[i] = ATAN2(p->left->data[i], p->right->data[i]);
   return OK;
 }
 
 int32_t taninv2_A(CSOUND* csound, TABARITH* p)
 {
-  ARRAYDAT* ans = p->ans;
-  ARRAYDAT* aa = p->left;
-  ARRAYDAT* bb = p->right;
-  int32_t i, j, k;
-  k = 0;
-  for (i=0; i<ans->dimensions; i++) {
-    for (j=0; j<aa->sizes[i]; j++) {
-      ans->data[k] = ATAN2(aa->data[k], bb->data[k]);
-      k++;
-    }
-  }
+  size_t size;
+  const char *error = taninv2_array_size(p, &size);
+  if (UNLIKELY(error != NULL))
+    return csound->PerfError(csound, &p->h, "%s", error);
+  for (size_t i = 0; i < size; i++)
+    p->ans->data[i] = ATAN2(p->left->data[i], p->right->data[i]);
   return OK;
 }
 
 int32_t taninv2_Aa(CSOUND* csound, TABARITH* p)
 {
-  ARRAYDAT* ans = p->ans;
-  ARRAYDAT* aa = p->left;
-  ARRAYDAT* bb = p->right;
-  int32_t i, j, k;
-  uint32_t m;
-  k = 0;
-  for (i=0; i<ans->dimensions; i++) {
-    for (j=0; j<aa->sizes[i]; j++)
-      for (m=0; m<CS_KSMPS; m++) {
-        ans->data[k] = ATAN2(aa->data[k], bb->data[k]);
-        k++;
-      }
+  ARRAYDAT *ans = p->ans, *aa = p->left, *bb = p->right;
+  size_t size;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early = p->h.insdshead->ksmps_no_end;
+  uint32_t nsmps = CS_KSMPS - early;
+  const char *error = taninv2_array_size(p, &size);
+  if (UNLIKELY(error != NULL))
+    return csound->PerfError(csound, &p->h, "%s", error);
+  size_t outspan = ans->arrayMemberSize / sizeof(MYFLT);
+  size_t aspan = aa->arrayMemberSize / sizeof(MYFLT);
+  size_t bspan = bb->arrayMemberSize / sizeof(MYFLT);
+  if (UNLIKELY(outspan < CS_KSMPS || aspan < CS_KSMPS || bspan < CS_KSMPS))
+    return csound->PerfError(csound, &p->h, "%s",
+                             Str("taninv2: audio array element is too short"));
+  for (size_t i = 0; i < size; i++) {
+    MYFLT *out = ans->data + i*outspan;
+    MYFLT *a = aa->data + i*aspan;
+    MYFLT *b = bb->data + i*bspan;
+    if (UNLIKELY(offset)) memset(out, 0, offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) memset(out+nsmps, 0, early*sizeof(MYFLT));
+    for (uint32_t n = offset; n < nsmps; n++)
+      out[n] = ATAN2(a[n], b[n]);
   }
   return OK;
 }
