@@ -1050,11 +1050,14 @@ int32_t expsegr(CSOUND *csound, EXPSEG *p)
   return OK;
 }
 
+/* Compatibility: the unrounded +0.5 in linen's decay divisor can leave
+ * a positive value at idur. Fractional times can also shift the decay start.
+ * Preserve this historical arithmetic in lnnset and alnnset for existing
+ * scores. Use linseg when the envelope must reach and hold zero. See #3247. */
 int32_t lnnset(CSOUND *csound, LINEN *p)
 {
   MYFLT a,b,dur;
   MYFLT len = csound->curip->p3.value;
-  
 
   if ((dur = *p->idur) > FL(0.0)) {
     MYFLT iris = *p->iris, idec = *p->idec;
@@ -1073,6 +1076,7 @@ int32_t lnnset(CSOUND *csound, LINEN *p)
       p->inc2 = FL(1.0) /  b;
     }
     else {
+      /* Compatibility: zero decay still falls by one per tick after idur. */
       p->inc2 = FL(1.0);
       p->cnt2 = (int32_t) a;
     }
@@ -1096,6 +1100,7 @@ int32_t alnnset(CSOUND *csound, LINEN *p)
       p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
     }
     else p->inc1 = FL(1.0);
+    /* Keep the same unrounded divisor as lnnset for compatibility. */
     a = dur * CS_ESR + FL(0.5);
     b = *p->idec * CS_ESR + FL(0.5);
     if ((int64_t) b > 0) {
@@ -1103,6 +1108,7 @@ int32_t alnnset(CSOUND *csound, LINEN *p)
       p->inc2 = FL(1.0) /  b;
     }
     else {
+      /* Compatibility: zero decay still falls by one per tick after idur. */
       p->inc2 = FL(1.0);
       p->cnt2 = (int64_t) a;
     }
