@@ -139,11 +139,13 @@ extern "C" {
     const char* code);
     
   /**
-     Evaluates the given code, calls the `returncb` callback with the 
-     value passed to the `return` opcode in global space. 
-  */
-  PUBLIC void csoundPerformanceThreadEvalCode(CS_PERF_THREAD* pt, 
-    const char *code, void (*returncb)(MYFLT));
+      Evaluates the given code, calls the `returncb` callback with the
+      value passed to the `return` opcode in global space, and the
+      `userdata` pointer.
+   */
+   PUBLIC void csoundPerformanceThreadEvalCode(CS_PERF_THREAD* pt,
+    const char *code, void (*returncb)(MYFLT, void *userdata),
+    void *userdata);
     
   /**
      Calls the given callback within the context of the callback thread

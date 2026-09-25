@@ -226,11 +226,13 @@ class PUBLIC CsoundPerformanceThread {
     void CompileOrc(const char *code);
 
 
-     /**
-     * Evaluates the given code, calls the `returncb` callback with the 
-     * value passed to the `return` opcode in global space. 
-     */
-    void EvalCode(const char *code, void (*returncb)(MYFLT));
+      /**
+      * Evaluates the given code, calls the `returncb` callback with the
+      * value passed to the `return` opcode in global space, and the
+      * `userdata` pointer.
+      */
+     void EvalCode(const char *code, void (*returncb)(MYFLT, void *userdata),
+                   void *userdata);
 
 
     /**
