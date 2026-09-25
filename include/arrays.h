@@ -433,8 +433,9 @@ static inline int32_t csound_array_size_to_int32(cs_float requestedSize,
 {
     cs_double value = (cs_double)requestedSize;
 
-    if (size == NULL || isnan(value) || value < 0.0 ||
-        value >= (INT32_MAX + 0.0) + 1.0) {
+    /* Ordered comparisons also reject NaN, without C/C++ math-name lookup. */
+    if (size == NULL || !(value >= 0.0 &&
+                         value < (INT32_MAX + 0.0) + 1.0)) {
         return NOTOK;
     }
     *size = (int32_t)value;
