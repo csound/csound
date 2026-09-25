@@ -47,6 +47,7 @@
 		244DC5231EDF746100216C1B /* LevelMeterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 244DC5221EDF746100216C1B /* LevelMeterView.swift */; };
 		2499964D20A60800002B6ED8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2499964C20A607FC002B6ED8 /* Accelerate.framework */; };
 		24BF2D561EDD13870091F04E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BF2D551EDD13870091F04E /* AppDelegate.swift */; };
+		B6200222C8D24849BF3382CA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E810CAD0C04A97BBCB4AFB /* SceneDelegate.swift */; };
 		24BF2D581EDD13870091F04E /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BF2D571EDD13870091F04E /* MasterViewController.swift */; };
 		24BF2D5D1EDD13870091F04E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D5B1EDD13870091F04E /* Main.storyboard */; };
 		24BF2D5F1EDD13870091F04E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D5E1EDD13870091F04E /* Assets.xcassets */; };
@@ -147,6 +148,7 @@
 		2499964C20A607FC002B6ED8 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		24BF2D521EDD13870091F04E /* Csound iOS SwiftExamples.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Csound iOS SwiftExamples.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24BF2D551EDD13870091F04E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		B9E810CAD0C04A97BBCB4AFB /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		24BF2D571EDD13870091F04E /* MasterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasterViewController.swift; sourceTree = "<group>"; };
 		24BF2D5C1EDD13870091F04E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		24BF2D5E1EDD13870091F04E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -254,6 +256,7 @@
 				576FFAF42D7D9F7200190F26 /* CsoundObj */,
 				24BF2DE41EDD15360091F04E /* Csound-iOS-SwiftExamples-Bridging-Header.h */,
 				24BF2D551EDD13870091F04E /* AppDelegate.swift */,
+				B9E810CAD0C04A97BBCB4AFB /* SceneDelegate.swift */,
 				24BF2D571EDD13870091F04E /* MasterViewController.swift */,
 				24BF2D8E1EDD150D0091F04E /* BaseCsoundViewController.swift */,
 				24BF2D5B1EDD13870091F04E /* Main.storyboard */,
@@ -671,6 +674,7 @@
 				24BF2D581EDD13870091F04E /* MasterViewController.swift in Sources */,
 				243E99451EDF1A4200EBD4EB /* TrappedGeneratorViewController.swift in Sources */,
 				24BF2D561EDD13870091F04E /* AppDelegate.swift in Sources */,
+				B6200222C8D24849BF3382CA /* SceneDelegate.swift in Sources */,
 				24BF2D8F1EDD150D0091F04E /* BaseCsoundViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -736,7 +740,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -788,7 +792,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -806,7 +810,7 @@
 				DEVELOPMENT_TEAM = AH2WVU4222;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Csound iOS SwiftExamples/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -831,7 +835,7 @@
 				DEVELOPMENT_TEAM = AH2WVU4222;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Csound iOS SwiftExamples/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
