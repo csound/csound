@@ -18,6 +18,10 @@ gkUdoFirst init 0
 gkUdoSecond init 0
 gkSubFirst init 0
 gkSubSecond init 0
+; Keep separate records for the first note and the reused note.
+gkUdoInitStarted[] init 2
+gkUdoInitFinished[] init 2
+gkUdoPerfCycles[] init 2
 
 instr 1
   a1 diskin2 "fox.wav"
@@ -120,7 +124,11 @@ opcode NestedDiskin():a
 endop
 
 instr 11
+  iNote = p4 - 1
+  gkUdoInitStarted[iNote] init 1
   audio:a = NestedDiskin()
+  gkUdoInitFinished[iNote] init 1
+  gkUdoPerfCycles[iNote] += 1
   level:k rms audio
   if (p4 == 1) then
     gkUdoFirst = max(gkUdoFirst, level)
@@ -150,6 +158,12 @@ instr 10
     ; Async readers can start on different control blocks, so require output
     ; from both instances without comparing their peak levels.
     if (gkUdoFirst <= 0 || gkUdoSecond <= 0) then
+      ; A zero level alone cannot tell a silent reader from a note that never
+      ; ran. Report both notes before exiting so CI preserves that distinction.
+      printks "UDO first note: init entered=%d completed=%d perf cycles=%d\n", \
+        0, gkUdoInitStarted[0], gkUdoInitFinished[0], gkUdoPerfCycles[0]
+      printks "UDO second note: init entered=%d completed=%d perf cycles=%d\n", \
+        0, gkUdoInitStarted[1], gkUdoInitFinished[1], gkUdoPerfCycles[1]
       printks "Realtime UDO diskin2 reuse failed: first=%f second=%f\n", \
         0, gkUdoFirst, gkUdoSecond
       exitnowk(1)
