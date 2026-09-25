@@ -583,234 +583,102 @@ int32_t linsegr(CSOUND *csound, LINSEG *p)
   return OK;
 }
 
+/* Shared initialization for duration and absolute-time exponential segments.
+   rate is the rate used by cnt/mlt; acnt/amlt always use the sample rate. */
+static int32_t expseg_init(CSOUND *csound, MYFLT **args, int32_t nargs,
+                           AUXCH *aux, XSEG **current, MYFLT rate,
+                           MYFLT sample_rate, int32_t absolute)
+{
+  int32_t n, nsegs;
+  XSEG *segments, *segp = NULL;
+  MYFLT val, next, previous_time = FL(0.0);
+
+  if (UNLIKELY(nargs < 3 || !(nargs & 1)))
+    return csound->InitError(csound,
+                             Str("incomplete number of input arguments"));
+  /* A skipped reinit must leave the current segment and its state intact. */
+  if (*args[1] <= FL(0.0)) return OK;
+
+  next = *args[0];
+  nsegs = (nargs - 1) / 2;
+  if (aux->auxp == NULL || (size_t)nsegs * sizeof(XSEG) > aux->size)
+    csound->AuxAlloc(csound, (size_t)nsegs * sizeof(XSEG), aux);
+  segments = (XSEG *)aux->auxp;
+
+  for (n=0; n<nsegs; n++) {
+    MYFLT time = *args[2*n + 1];
+    MYFLT dur = time;
+    double count, audio_count;
+    if (absolute) {
+      if (UNLIKELY(time < previous_time))
+        return csound->InitError(csound,
+                                 Str("Breakpoint time %f not valid"), time);
+      dur = time - previous_time;
+      previous_time = time;
+    }
+    else if (dur <= FL(0.0)) {
+      /* Ignore this endpoint and everything after the terminating duration. */
+      break;
+    }
+    val = next;
+    next = *args[2*n + 2];
+    if (UNLIKELY(val == FL(0.0)))
+      return csound->InitError(csound, Str("ival%lld is zero"), (int64_t)n+1);
+    if (UNLIKELY(next == FL(0.0)))
+      return csound->InitError(csound, Str("ival%lld is zero"), (int64_t)n+2);
+    if (UNLIKELY(!((val > FL(0.0) && next > FL(0.0)) ||
+                   (val < FL(0.0) && next < FL(0.0)))))
+      return csound->InitError(csound,
+                               Str("ival%lld sign conflict"), (int64_t)n+2);
+
+    count = (double)dur * rate;
+    audio_count = (double)dur * sample_rate;
+    /* Reserve MAXPOS for continuation and check before converting to int. */
+    if (UNLIKELY(!(count >= 0.0 && count < (double)MAXPOS - 0.5 &&
+                   audio_count >= 0.0 && audio_count < (double)MAXPOS - 0.5)))
+      return csound->InitError(csound, "%s",
+                               Str("exponential segment duration out of range"));
+    segp = &segments[n];
+    segp->cnt = (int32_t)(count + 0.5);
+    segp->acnt = (int32_t)(audio_count + 0.5);
+    if (dur == FL(0.0)) {
+      /* Repeated absolute times jump immediately, even at the final point. */
+      segp->val = next;
+      segp->mlt = segp->amlt = FL(1.0);
+    }
+    else {
+      segp->val = val;
+      segp->mlt = (MYFLT)pow((double)next / val, 1.0 / count);
+      segp->amlt = (MYFLT)pow((double)next / val, 1.0 / audio_count);
+    }
+  }
+  segp->cnt = segp->acnt = MAXPOS;
+  *current = segments;
+  return OK;
+}
+
 int32_t xsgset(CSOUND *csound, EXXPSEG *p)
 {
-  XSEG        *segp;
-  int32_t         nsegs;
-  MYFLT       d, **argp, val, dur, nxtval;
-  int64_t         n=0;
-
-  if (!(p->INOCOUNT & 1)) {
-    return csound->InitError(csound, Str("incomplete number of input arguments"));
-  }
-
-  /* count segs & alloc if nec */
-  nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
-  if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
-      nsegs*sizeof(XSEG) < (uint32_t)p->auxch.size) {
-    csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
-    p->cursegp = segp = (XSEG *) p->auxch.auxp;
-    (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
-  }
-  argp = p->argums;
-  nxtval = **argp++;
-  if (**argp <= FL(0.0))  return OK;          /* if idur1 <= 0, skip init  */
-  p->cursegp = segp;                          /* else proceed from 1st seg */
-  segp--;
-  p->segsrem = nsegs;
-  do {
-    segp++;           /* init each seg ..  */
-    val = nxtval;
-    dur = **argp++;
-    nxtval = **argp++;
-    if (UNLIKELY(val * nxtval <= FL(0.0)))
-      goto experr;
-    d = dur * CS_EKR;
-    segp->val = val;
-    segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
-    segp->cnt = (int32_t) (d + FL(0.5));
-    d = dur * CS_ESR;
-    segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
-    segp->acnt = (int32_t) (d + FL(0.5));
-  } while (--nsegs);
-  segp->cnt = MAXPOS;         /* set last cntr to infin */
-  segp->acnt = MAXPOS;         /* set last cntr to infin */
-  return OK;
-
- experr:
-  n = segp - p->cursegp + 1;
-  if (val == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n);
-  else if (nxtval == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
-  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
+  return expseg_init(csound, p->argums, p->INOCOUNT, &p->auxch,
+                     &p->cursegp, CS_EKR, CS_ESR, 0);
 }
 
 int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
 {
-  XSEG        *segp;
-  int32_t         nsegs;
-  MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
-  int64_t         n=0;
-
-
-  if (!(p->INOCOUNT & 1)){
-    return csound->InitError(csound, Str("incomplete number of input arguments"));
-  }
-
-  /* count segs & alloc if nec */
-  nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
-  if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
-      nsegs*sizeof(XSEG) < (uint32_t)p->auxch.size) {
-    csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
-    p->cursegp = segp = (XSEG *) p->auxch.auxp;
-    (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
-  }
-  argp = p->argums;
-  nxtval = **argp++;
-  if (**argp <= FL(0.0))  return OK;          /* if idur1 <= 0, skip init  */
-  p->cursegp = segp;                          /* else proceed from 1st seg */
-  segp--;
-  p->segsrem = nsegs;
-  do {
-    segp++;           /* init each seg ..  */
-    val = nxtval;
-    bkpt = **argp++;
-    if (UNLIKELY(bkpt < dursum))
-      return csound->InitError(csound,
-                               Str("Breakpoint time %f not valid"), bkpt);
-    dur = bkpt - dursum;
-    dursum += dur;
-    nxtval = **argp++;
-    if (UNLIKELY(val * nxtval <= FL(0.0)))
-      goto experr;
-    d = dur * CS_EKR;
-    segp->val = val;
-    segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
-    segp->cnt = (int32_t) (d + FL(0.5));
-    d = dur * CS_ESR;
-    segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
-    segp->acnt = (int32_t) (d + FL(0.5));
-  } while (--nsegs);
-  segp->cnt = MAXPOS;         /* set last cntr to infin */
-  segp->acnt = MAXPOS;
-  return OK;
-
- experr:
-  n = segp - p->cursegp + 1;
-  if (val == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n);
-  else if (nxtval == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
-  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
+  return expseg_init(csound, p->argums, p->INOCOUNT, &p->auxch,
+                     &p->cursegp, CS_EKR, CS_ESR, 1);
 }
-
 
 int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
 {
-  XSEG        *segp;
-  int32_t         nsegs;
-  MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
-  int64_t         n=0;
-
-
-  if (!(p->INOCOUNT & 1)){
-    return csound->InitError(csound, Str("incomplete number of input arguments"));
-  }
-
-  /* count segs & alloc if nec */
-  nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
-  if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
-      (uint32_t)nsegs*sizeof(XSEG) > (uint32_t)p->auxch.size) {
-    csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
-    p->cursegp = segp = (XSEG *) p->auxch.auxp;
-    (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
-  }
-  argp = p->argums;
-  nxtval = **argp++;
-  if (**argp <= FL(0.0))  return OK;        /* if idur1 <= 0, skip init  */
-  p->cursegp = segp;                      /* else proceed from 1st seg */
-  segp--;
-  do {
-    segp++;           /* init each seg ..  */
-    val = nxtval;
-    bkpt = **argp++;
-    if (UNLIKELY(bkpt < dursum))
-      return csound->InitError(csound,
-                               Str("Breakpoint time %f not valid"), bkpt);
-    dur = bkpt - dursum;
-    dursum += dur;
-    nxtval = **argp++;
-    /*       if (dur > FL(0.0)) { */
-    if (UNLIKELY(val * nxtval <= FL(0.0)))
-      goto experr;
-    d = dur * CS_ESR;
-    segp->val = val;
-    segp->mlt = POWER((nxtval / val), FL(1.0)/d);
-    segp->cnt = (int32_t) (d + FL(0.5));
-    d = dur * CS_ESR;
-    segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
-    segp->acnt = (int32_t) (d + FL(0.5));
-    /*       } */
-    /*       else break;               /\*  .. til 0 dur or done *\/ */
-  } while (--nsegs);
-  segp->cnt = MAXPOS;         /* set last cntr to infin */
-  segp->acnt = MAXPOS;
-  return OK;
-
- experr:
-  n = segp - p->cursegp + 1;
-  if (val == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n);
-  else if (nxtval == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
-  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
+  return expseg_init(csound, p->argums, p->INOCOUNT, &p->auxch,
+                     &p->cursegp, CS_ESR, CS_ESR, 1);
 }
 
-int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
+int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)
 {
-  XSEG        *segp;
-  int32_t         nsegs;
-  MYFLT       d, **argp, val, dur, nxtval;
-  int64_t         n=0;
-
-
-  if (!(p->INOCOUNT & 1)){
-    return csound->InitError(csound, Str("incomplete number of input arguments"));
-  }
-
-  /* count segs & alloc if nec */
-  nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
-  if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
-      (uint32_t)nsegs*sizeof(XSEG) > (uint32_t)p->auxch.size) {
-    csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
-    p->cursegp = segp = (XSEG *) p->auxch.auxp;
-    (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
-  }
-  argp = p->argums;
-  nxtval = **argp++;
-  if (**argp <= FL(0.0))  return OK;        /* if idur1 <= 0, skip init  */
-  p->cursegp = segp;                      /* else proceed from 1st seg */
-  segp--;
-  do {
-    segp++;           /* init each seg ..  */
-    val = nxtval;
-    dur = **argp++;
-    nxtval = **argp++;
-    /*       if (dur > FL(0.0)) { */
-    if (UNLIKELY(val * nxtval <= FL(0.0)))
-      goto experr;
-    d = dur * CS_ESR;
-    segp->val = val;
-    segp->mlt = POWER((nxtval / val), FL(1.0)/d);
-    segp->cnt = (int32_t) (d + FL(0.5));
-    d = dur * CS_ESR;
-    segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
-    segp->acnt = (int32_t) (d + FL(0.5));
-    /*       } */
-    /*       else break;               /\*  .. til 0 dur or done *\/ */
-  } while (--nsegs);
-  segp->cnt = MAXPOS;         /* set last cntr to infin */
-  segp->acnt = MAXPOS;
-  return OK;
-
- experr:
-  n = segp - p->cursegp + 1;
-  if (val == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n);
-  else if (nxtval == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
-  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
+  return expseg_init(csound, p->argums, p->INOCOUNT, &p->auxch,
+                     &p->cursegp, CS_ESR, CS_ESR, 0);
 }
 
 /***************************************/
@@ -824,6 +692,9 @@ int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) 
   uint32_t n, nsmps = CS_KSMPS;
   MYFLT       val, *rs;
   segp = p->cursegp;
+  if (UNLIKELY(segp == NULL))
+    return csound->PerfError(csound, &p->h,
+                             Str("expsega: not initialised"));
   val  = segp->val;
   rs   = p->rslt;
   if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
@@ -832,7 +703,7 @@ int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) 
     memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n=offset; n<nsmps; n++) {
-    while (--segp->cnt < 0)   {
+    while (segp->cnt != MAXPOS && --segp->cnt < 0)   {
       p->cursegp = ++segp;
       val = segp->val;
     }
@@ -851,8 +722,8 @@ int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
 
 
   segp = p->cursegp;
-  if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
-  while (--segp->cnt < 0)
+  if (UNLIKELY(segp == NULL)) goto err1;
+  while (segp->cnt != MAXPOS && --segp->cnt < 0)
     p->cursegp = ++segp;
   *p->rslt = segp->val;
   segp->val *= segp->mlt;
@@ -880,8 +751,8 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
   }
   for (n=offset; n<nsmps; n++) {
     segp = p->cursegp;
-    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
-    while (--segp->acnt < 0) {
+    if (UNLIKELY(segp == NULL)) goto err1;
+    while (segp->acnt != MAXPOS && --segp->acnt < 0) {
       //printf("seg: val=%f amlt=%f\n", segp->val,segp->amlt );
       p->cursegp = ++segp;
       //printf("nxtseg: val=%f amlt=%f acnt=%d\n",
