@@ -39,7 +39,7 @@ static int32_t sndwarpcheck(CSOUND *csound, cs_float overlap,
                             cs_float wsize, cs_float randw)
 {
     if (UNLIKELY(!(overlap >= FL(1.0) &&
-                   (cs_double)overlap <= INT32_MAX) ||
+                   (cs_double)overlap < (INT32_MAX + 0.0) + 1.0) ||
                  overlap != (cs_float)(int32_t)overlap))
       return csound->InitError(csound, "%s", Str("sndwarp: ioverlap must be a "
                                                "positive integer"));

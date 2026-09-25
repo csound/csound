@@ -348,7 +348,7 @@ static int32_t atonea(CSOUND *csound, TONE *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  cs_double      c2 = p->c2, yt1 = p->yt1;
+  cs_double      c1 = p->c1, yt1 = p->yt1;
 
   ar = p->ar;
   if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
@@ -363,11 +363,11 @@ static int32_t atonea(CSOUND *csound, TONE *p)
     if (p->khp[n] != p->prvhp) {
       p->prvhp = p->khp[n];
       TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
-      c2 = p->c2;
+      c1 = p->c1;
     }
-    x = yt1 = c2 * (yt1 + sig);
+    yt1 -= c1 * (yt1 + sig);
+    x = yt1 + sig;
     ar[n] = (cs_float)x;
-    yt1 -= sig;               /* yt1 contains yt1-xt1 */
   }
   p->yt1 = yt1;
   return OK;
@@ -443,7 +443,7 @@ static int32_t tonexa(CSOUND *csound, TONEX *p)
 static int32_t atonexa(CSOUND *csound, TONEX *p)
 {
   cs_float *ar = p->ar, *asig = p->asig;
-  cs_double c2 = p->c2, prvhp = p->prvhp;
+  cs_double c1 = p->c1, prvhp = p->prvhp;
   cs_double *yt1 = p->yt1;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early = p->h.insdshead->ksmps_no_end;
@@ -459,16 +459,16 @@ static int32_t atonexa(CSOUND *csound, TONEX *p)
     cs_float sample = asig[n];
     if (p->khp[n] != prvhp) {
       prvhp = p->khp[n];
-      TONE_COEFFICIENTS(prvhp * CS_TPIDSR, p->c1, c2);
+      TONE_COEFFICIENTS(prvhp * CS_TPIDSR, c1, p->c2);
     }
     for (j=0; j<lp; j++) {
-      cs_double x = c2 * (yt1[j] + sample);
-      yt1[j] = x - sample;
+      yt1[j] -= c1 * (yt1[j] + sample);
+      cs_double x = yt1[j] + sample;
       sample = (cs_float)x;
     }
     ar[n] = sample;
   }
-  p->c2 = c2;
+  p->c1 = c1;
   p->prvhp = prvhp;
   return OK;
 }

@@ -45,9 +45,9 @@ static int32_t modmatrix_init(CSOUND *csound, MODMATRIX *m)
     if (UNLIKELY(!m->mattab))
         return INITERROR("unable to load routing matrix table");
 
-    if (UNLIKELY(!(nummod >= 1.0 && nummod < (cs_double)INT32_MAX + 1.0)))
+    if (UNLIKELY(!(nummod >= 1.0 && nummod < (INT32_MAX + 0.0) + 1.0)))
         return INITERROR("number of modulators must be a positive integer");
-    if (UNLIKELY(!(numparm >= 1.0 && numparm < (cs_double)INT32_MAX + 1.0)))
+    if (UNLIKELY(!(numparm >= 1.0 && numparm < (INT32_MAX + 0.0) + 1.0)))
         return INITERROR("number of parameters must be a positive integer");
     m->nummod = (int32_t)nummod;
     m->numparm = (int32_t)numparm;
