@@ -31,11 +31,8 @@
 
 static int32_t atonset(CSOUND *csound, TONE *p)
 {
-  double b;
   p->prvhp = (double)*p->khp;
-  b = 2.0 - cos((double)(p->prvhp * CS_TPIDSR));
-  p->c2 = b - sqrt(b * b - 1.0);
-  p->c1 = 1.0 - p->c2;
+  TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
 
   if (LIKELY(!(*p->istor)))
     p->yt1 = 0.0;
@@ -50,13 +47,8 @@ static int32_t atonsetx(CSOUND *csound, TONEX *p)
     int32_t clear_state = !*p->istor;
     int32_t new_loop;
 
-    {
-      double b;
-      p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * CS_TPIDSR));
-      p->c2 = b - sqrt(b * b - 1.0);
-      p->c1 = 1.0 - p->c2;
-    }
+    p->prvhp = *p->khp;
+    TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
     if (UNLIKELY(!isfinite(order) || order > (double)INT32_MAX - 0.5))
       return csound->InitError(csound, Str("tonex: invalid order %f"),
                                *p->ord);
@@ -369,11 +361,9 @@ static int32_t atonea(CSOUND *csound, TONE *p)
     double sig = (double)asig[n];
     double x;
     if (p->khp[n] != p->prvhp) {
-      double b;
       p->prvhp = p->khp[n];
-      b = 2.0 - cos((double)(p->khp[n] * CS_TPIDSR));
-      p->c2 = c2 = b - sqrt(b * b - 1.0);
-      /*      p->c1 = c1 = 1.0 - c2; */
+      TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
+      c2 = p->c2;
     }
     x = yt1 = c2 * (yt1 + sig);
     ar[n] = (MYFLT)x;
@@ -402,11 +392,8 @@ static int32_t tonea(CSOUND *csound, TONE *p)
   }
   for (n=offset; n<nsmps; n++) {
     if (p->khp[n] != prvhp) {
-      double b;
       prvhp = (double)p->khp[n];
-      b = 2.0 - cos((double)(prvhp * CS_TPIDSR));
-      c2 = b - sqrt(b * b - 1.0);
-      c1 = 1.0 - c2;
+      TONE_COEFFICIENTS(prvhp * CS_TPIDSR, c1, c2);
     }
     yt1 = c1 * (double)(asig[n]) + c2 * yt1;
     ar[n] = (MYFLT)yt1;
@@ -436,11 +423,8 @@ static int32_t tonexa(CSOUND *csound, TONEX *p)
   for (n=offset; n<nsmps; n++) {
     MYFLT sample = asig[n];
     if (p->khp[n] != prvhp) {
-      double b;
       prvhp = p->khp[n];
-      b = 2.0 - cos(prvhp * (double)CS_TPIDSR);
-      c2 = b - sqrt(b * b - 1.0);
-      c1 = 1.0 - c2;
+      TONE_COEFFICIENTS(prvhp * CS_TPIDSR, c1, c2);
     }
     /* All stages use this sample's cutoff, including when it aliases ar. */
     for (j=0; j<lp; j++) {
@@ -474,10 +458,8 @@ static int32_t atonexa(CSOUND *csound, TONEX *p)
   for (n=offset; n<nsmps; n++) {
     MYFLT sample = asig[n];
     if (p->khp[n] != prvhp) {
-      double b;
       prvhp = p->khp[n];
-      b = 2.0 - cos(prvhp * (double)CS_TPIDSR);
-      c2 = b - sqrt(b * b - 1.0);
+      TONE_COEFFICIENTS(prvhp * CS_TPIDSR, p->c1, c2);
     }
     for (j=0; j<lp; j++) {
       double x = c2 * (yt1[j] + sample);

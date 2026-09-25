@@ -24,6 +24,16 @@
 
 #include "lpc.h"        /*                               UGENS5.H        */
 
+/* The tone pole is b-sqrt(b*b-1), where b=2-cos(omega).
+   With s=abs(sin(omega/2)), compute its complement without cancellation.
+   A macro keeps audio-rate cutoff changes free of extra function calls. */
+#define TONE_COEFFICIENTS(omega, c1, c2) do {                           \
+    double tone_s = fabs(sin(0.5 * (omega)));                          \
+    double tone_c1 = 2.0 * tone_s / (sqrt(1.0 + tone_s*tone_s) + tone_s); \
+    (c1) = tone_c1;                                                   \
+    (c2) = 1.0 - tone_c1;                                             \
+} while (0)
+
 typedef struct {
         OPDS    h;
         MYFLT   *kr, *ksig, *ihtim, *isig;
