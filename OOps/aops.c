@@ -2472,7 +2472,7 @@ int32_t inRange_i(CSOUND *csound, INRANGE *p)
   p->narg = p->INOCOUNT-1;
   if (UNLIKELY(!csound->GetOParms(csound)->sfread))
     return csound->InitError(csound, "%s", Str("inrg: audio input is not enabled"));
-  p->numChans = csound->GetNchnls(csound);
+  p->numChans = csound->inchnls;
   return OK;
 }
 
@@ -2483,14 +2483,18 @@ int32_t inRange(CSOUND *csound, INRANGE *p)
   uint32_t j, nsmps = CS_KSMPS;
   int32_t i;
   MYFLT *ara[VARGMAX];
-  int32_t startChan = (int32_t) *p->kstartChan -1;
-  MYFLT *sp = csound->spin + startChan;
+  double start = (double)*p->kstartChan;
   int32_t narg = p->narg, numchans = p->numChans;
+  int32_t startChan;
+  MYFLT *sp;
 
-  if (UNLIKELY(startChan < 0))
-    return csound->PerfError(csound, &(p->h),
-                             "%s", Str("inrg: channel number cannot be < 1 "
-                                       "(1 is the first channel)"));
+  /* Check the whole range before converting or forming an input pointer.
+     Fractional channel numbers still truncate, as in the original opcode. */
+  if (UNLIKELY(narg < 1 || narg > numchans ||
+               !(start >= 1.0 && start < (double)(numchans - narg) + 2.0)))
+    return csound->PerfError(csound, &(p->h), "%s",
+                             Str("inrg: channel range is outside input channels"));
+  startChan = (int32_t)start - 1;
 
   if (UNLIKELY(early)) nsmps -= early;
   for (i = 0; i < narg; i++) {
@@ -2499,6 +2503,9 @@ int32_t inRange(CSOUND *csound, INRANGE *p)
     if (UNLIKELY(early)) memset(&ara[i][nsmps], '\0', early*sizeof(MYFLT));
     ara[i] += offset;
   }
+  if (UNLIKELY(offset >= nsmps)) return OK;
+  /* CS_SPIN includes the local-ksmps block offset. */
+  sp = CS_SPIN + (size_t)offset*numchans + startChan;
   for (j=offset; j<nsmps; j++)  {
     for (i=0; i<narg; i++) {
       *ara[i]++ = sp[i];
