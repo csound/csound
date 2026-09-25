@@ -1740,9 +1740,13 @@ int32_t quadosc_init(CSOUND *csound, QUADOSC *p) {
 }
 
 
+/* Rectangular mode uses this lookup for k-rate frequency changes and for
+   audio-rate frequency input. A constant k-rate frequency keeps the sine
+   and cosine calculated by quadosc_init instead. */
 static
 inline MYFLT sintab(FUNC *ftp, int32_t phs) {
   MYFLT *tab = ftp->ftable;
+  /* PHMASK wraps phase units. Apply it before converting to a table index. */
   MYFLT *samp = tab + ((phs & PHMASK) >> ftp->lobits);
   MYFLT frac = PFRAC(phs);
   return *samp + frac*(*(samp+1) - *samp);
