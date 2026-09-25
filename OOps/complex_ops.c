@@ -1714,7 +1714,7 @@ int32_t complex_exp_array(CSOUND *csond, COPS1 *p) {
 }
 
 
-#define WRAPPI(x) while(x >= PI) x -= PI; while(x < -PI) x += PI;
+#define WRAPPI(x) while(x >= PI) x -= TWOPI; while(x < -PI) x += TWOPI;
 
 int32_t quadosc_init(CSOUND *csound, QUADOSC *p) {
   MYFLT ifn = -1;
@@ -1740,10 +1740,14 @@ int32_t quadosc_init(CSOUND *csound, QUADOSC *p) {
 }
 
 
+/* Rectangular mode uses this lookup for k-rate frequency changes and for
+   audio-rate frequency input. A constant k-rate frequency keeps the sine
+   and cosine calculated by quadosc_init instead. */
 static
 inline MYFLT sintab(FUNC *ftp, int32_t phs) {
   MYFLT *tab = ftp->ftable;
-  MYFLT *samp = tab + ((phs>>ftp->lobits) & PHMASK);
+  /* PHMASK wraps phase units. Apply it before converting to a table index. */
+  MYFLT *samp = tab + ((phs & PHMASK) >> ftp->lobits);
   MYFLT frac = PFRAC(phs);
   return *samp + frac*(*(samp+1) - *samp);
 }
@@ -1752,6 +1756,13 @@ inline MYFLT sintab(FUNC *ftp, int32_t phs) {
 int32_t quadosc(CSOUND *csound, QUADOSC *p) {
   int32_t n = p->out->sizes[0];
   COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
+  int32_t offset = p->h.insdshead->ksmps_offset;
+  int32_t end = CS_KSMPS - p->h.insdshead->ksmps_no_end;
+  if (offset > n) offset = n;
+  if (end > n) end = n;
+  if (UNLIKELY(offset)) memset(ans, 0, offset*sizeof(COMPLEXDAT));
+  if (UNLIKELY(end < n))
+    memset(&ans[end], 0, (n-end)*sizeof(COMPLEXDAT));
   MYFLT rphs = p->rphs, iphs = p->iphs;
   MYFLT rinc = p->rinc, iinc = p->iinc;
   int32_t isPolar = (int32_t) *p->isPolar;
@@ -1765,13 +1776,14 @@ int32_t quadosc(CSOUND *csound, QUADOSC *p) {
       rinc = p->rinc = sintab(tab, ang + offs);
       iinc = p->iinc = sintab(tab, ang);
     } else {
-      MYFLT ang = CS_TPIDSR*p->freq;
+      MYFLT ang = CS_TPIDSR*freq;
       iinc = p->iinc = ang;
     }
     p->freq = freq;
   }
   
-  for(int i = 0; i < n; i++) {
+  for(int i = offset; i < end; i++) {
+    ans[i].isPolar = isPolar;
     if(!isPolar) {
     ans[i].real = rphs*rinc - iphs*iinc;
     ans[i].imag = rphs*iinc + iphs*rinc;
@@ -1792,6 +1804,13 @@ int32_t quadosc(CSOUND *csound, QUADOSC *p) {
 int32_t quadosc_audio(CSOUND *csound, QUADOSC *p) {
   int32_t n = p->out->sizes[0];
   COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
+  int32_t offset = p->h.insdshead->ksmps_offset;
+  int32_t end = CS_KSMPS - p->h.insdshead->ksmps_no_end;
+  if (offset > n) offset = n;
+  if (end > n) end = n;
+  if (UNLIKELY(offset)) memset(ans, 0, offset*sizeof(COMPLEXDAT));
+  if (UNLIKELY(end < n))
+    memset(&ans[end], 0, (n-end)*sizeof(COMPLEXDAT));
   MYFLT rphs = p->rphs, iphs = p->iphs;
   MYFLT rinc, iinc;
   int32_t isPolar = (int32_t) *p->isPolar;
@@ -1799,7 +1818,8 @@ int32_t quadosc_audio(CSOUND *csound, QUADOSC *p) {
   FUNC *tab = p->tab;
   MYFLT *freq = p->cps;
 
-  for(int i = 0; i < n; i++) {
+  for(int i = offset; i < end; i++) {
+    ans[i].isPolar = isPolar;
     if(!isPolar) {
     int32_t ang = CS_SICVT*freq[i];
     rinc = sintab(tab, ang + offs);
