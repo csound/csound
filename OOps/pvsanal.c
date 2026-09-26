@@ -905,19 +905,23 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
 
 int32_t pvssynth(CSOUND *csound, PVSYNTH *p)
 {
-  int32_t i, k;
-  int32_t ksmps = CS_KSMPS;
+  int32_t k;
+  uint32_t i, offset = p->h.insdshead->ksmps_offset;
+  uint32_t nsmps = CS_KSMPS - p->h.insdshead->ksmps_no_end;
   int32_t N = p->fsig->N;
   int32_t NB = p->fsig->NB;
+  /* At the window centre, bin k contributes cos(pi*k). This includes
+     Nyquist (k=N/2), whose sign is positive when N/2 is even. */
+  const double nyquist_sign = ((N/2) & 1) ? -1.0 : 1.0;
   MYFLT *aout = p->aout;
   CMPLX *ff;
   double *h = (double*)p->oldOutPhase.auxp;
   double *output = (double*)p->output.auxp;
 
   /* Get real part from AMP/FREQ */
-  for (i=0; i<ksmps; i++) {
+  for (i=offset; i<nsmps; i++) {
     MYFLT a;
-    ff = (CMPLX*)(p->fsig->frame.auxp) + i*NB;
+    ff = (CMPLX*)(p->fsig->frame.auxp) + (size_t)i*NB;
     for (k=0; k<NB; k++) {
       double tmp, phase;
 
@@ -936,7 +940,7 @@ int32_t pvssynth(CSOUND *csound, PVSYNTH *p)
       a -= output[k];
       if (k+1<NB-1) a+=output[++k];
     }
-    aout[i] = (a+a+output[0]-output[NB-1])/N;
+    aout[i] = (a+a+output[0]+nyquist_sign*output[NB-1])/N;
   }
   return OK;
 }
@@ -953,12 +957,12 @@ int32_t pvsynth(CSOUND *csound, PVSYNTH *p)
     return csound->PerfError(csound,&(p->h),
                              Str("pvsynth: Not Initialised.\n"));
   }
-  if (p->fsig->sliding) return pvssynth(csound, p);
   if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
   }
+  if (p->fsig->sliding) return pvssynth(csound, p);
   for (i=offset; i<nsmps; i++) {
    if (p->outptr== p->fsig->overlap) {
     process_frame(csound, p);
