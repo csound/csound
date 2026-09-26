@@ -75,7 +75,7 @@ TEST_F(UGenTests, FactoryDeleteNull) {
 TEST_F(UGenTests, CreateOscils) {
     UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
     UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
-                           (char*)"a", (char*)"iiio");
+                           (char*)"a", (char*)"iiii");
     ASSERT_NE(ugen, nullptr);
     EXPECT_NE(ugen->oentry, nullptr);
     EXPECT_NE(ugen->opcodeMem, nullptr);

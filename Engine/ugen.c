@@ -48,6 +48,7 @@
 #include "csound_orc_semantics.h"
 #include "pstream.h"
 #include <string.h>
+#include "csound_orc_compile.h"
 
 /* ============================================================
  *  Internal helpers
@@ -65,6 +66,85 @@ static const CS_TYPE* ugen_char_to_cs_type(char c) {
         case 'f': return &CS_VAR_TYPE_F;
         default:  return &CS_VAR_TYPE_K;
     }
+}
+
+// see csound_orc_semantics handle_optional_args
+/**
+ * Get default values for optional types
+ */
+static bool ugen_optional_default(char typeLetter, MYFLT *out) {
+    switch (typeLetter) {
+        case 'o': case 'O': *out = FL(0.0); return true;
+        case 'p': case 'P': *out = FL(1.0); return true;
+        case 'v': case 'V': *out = FL(0.5); return true;
+        case 'j': case 'J': *out = FL(-1.0); return true;
+        case 'q': *out = FL(10.0); return true;
+        case 'h': *out = FL(127.0); return true;
+        default: return false;
+    }
+
+}
+
+// see csound_orc_semantics.c - handle_optional_args
+/**
+ * Some of the variadic variables allow for caller to supply noting
+ * if we encounter them at the end of the arg types, size of required
+ * concrete types is reduced by one for each such encounter
+ */
+static int32_t ugen_optional_in_varargs_num(CSOUND *csound, char* tps) {
+    char **tokens = split_args(csound, tps);
+    int32_t len = args_required(tps);
+    int32_t res = 0;
+    for (int32_t i = len - 1; i >= 0; i--) {
+        if (tokens[i][1] != '\0') break;
+        if (!strchr("MNmW", tokens[i][0])) break;
+        res += 1;
+    }
+    for (int32_t i = 0; tokens[i] != NULL; i++) {
+        csound->Free(csound, tokens[i]);
+    }
+    csound->Free(csound, tokens);
+    return res;
+}
+static int32_t ugen_optional_out_varargs_num(CSOUND *csound, char* tps) {
+    char **tokens = split_args(csound, tps);
+    int32_t len = args_required(tps);
+    int32_t res = 0;
+    for (int32_t i = len - 1; i >= 0; i--) {
+        if (tokens[i][1] != '\0') break;
+        if (!strchr("mzIXNvVF*", tokens[i][0])) break;
+        res += 1;
+    }
+    for (int32_t i = 0; tokens[i] != NULL; i++) {
+        csound->Free(csound, tokens[i]);
+    }
+    csound->Free(csound, tokens);
+    return res;
+}
+
+/**
+ * Set defaults for ugen optional variables
+ */
+static void ugen_set_default_in_values(
+    UGEN *ugen,
+    char *inargTypes
+) {
+    char **tokens = split_args(ugen->csound, inargTypes);
+    for (int32_t i = 0; tokens[i] != NULL && i < ugen->inCount; i++) {
+        MYFLT d;
+        // if variable doesn't have default it doesn't mean it's not optional
+        if (tokens[i][1] == '\0') {
+            bool has_default = ugen_optional_default(tokens[i][0], &d);
+            if (has_default) {
+                UGEN_VAR *v = csoundUgenGetInVar(ugen, i);
+                csoundUgenVarSetValue(v, d);
+            }
+        }
+    }
+    for (int32_t i = 0; tokens[i] != NULL; i++) {
+        ugen->csound->Free(ugen->csound, tokens[i]);
+    }
+    ugen->csound->Free(ugen->csound, tokens);
 }
 
 /**
@@ -321,7 +401,6 @@ int32_t csoundUgenContextGetReleaseTime(UGEN_CONTEXT *context) {
 /* ============================================================
  *  UGEN Creation / Destruction
  * ============================================================ */
-
 UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
                char* outargTypes, char* inargTypes) {
     UGEN* ugen;
@@ -331,13 +410,49 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
     INSDS* insds = factory->insds;
     int32_t ksmps = insds->ksmps;
     int32_t i;
-    int32_t maxArgs = 64; /* max total arg slots */
 
-    /* Reuse the existing exact-match opcode resolver from
-     * csound_orc_semantics.c (find_opcode2 + resolve_opcode_exact) */
-    OENTRY* oentry = find_opcode_exact(csound, opName,
-                                       outargTypes, inargTypes);
+    // empty type strings are part of API
+    if (outargTypes == NULL) outargTypes = (char*)"";
+    if (inargTypes  == NULL) inargTypes  = (char*)"";
+
+    int32_t inArgsRequired = args_required(inargTypes);
+    int32_t outArgsRequired = args_required(outargTypes);
+
+    // catch malformed types
+    if (inArgsRequired < 0 || outArgsRequired < 0) {
+        return NULL;
+    }
+
+    int32_t maxInArgs = inArgsRequired + UGEN_MAX_VAR_ARGS; /* max total arg slots */
+    int32_t maxOutArgs = outArgsRequired + UGEN_MAX_VAR_ARGS; /* max total arg slots */
+
+    /**
+     *
+     * calls resolving search api. Host may provide both concrete or polymorphic types both for
+     * inputs and outputs.
+     *
+     * Example: using required outargs for `loscilx` mmmmmmmmmmmm (16 ms)
+     * would resolve to 16 scalars which is likely not host's intension for an oscilator,
+     * while host may want something like four audio channels. so loscilx may be requested with aaaa.
+     *
+     */
+    OENTRY* oentry = find_opcode_new(csound, opName, outargTypes, inargTypes);
     if (oentry == NULL) {
+        return NULL;
+    }
+
+    /* In case we have optional arguments we must either leave them as is in
+     * inargTypes and outargTypes or concretize them otherwise memory won't get
+     * allocated */
+    int32_t requiredIn = args_required(oentry->intypes)
+        - ugen_optional_in_varargs_num(csound, oentry->intypes);
+    if (requiredIn > inArgsRequired) {
+        return NULL;
+    }
+
+    int32_t requiredOut = args_required(oentry->outypes)
+        - ugen_optional_out_varargs_num(csound, oentry->outypes);
+    if (requiredOut > outArgsRequired) {
         return NULL;
     }
 
@@ -359,11 +474,14 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
     opds->optext = optxt;
 
     /* Parse output and input type strings */
-    const CS_TYPE** parsedOutTypes = csound->Calloc(csound, maxArgs * sizeof(CS_TYPE*));
-    const CS_TYPE** parsedInTypes = csound->Calloc(csound, maxArgs * sizeof(CS_TYPE*));
+    const CS_TYPE** parsedOutTypes = csound->Calloc(csound,
+            maxOutArgs * sizeof(CS_TYPE*));
+    const CS_TYPE** parsedInTypes = csound->Calloc(csound,
+            maxInArgs * sizeof(CS_TYPE*));
 
-    int32_t outCount = parse_out_types(oentry->outypes, parsedOutTypes, maxArgs);
-    int32_t inCount = parse_in_types(oentry->intypes, parsedInTypes, maxArgs);
+
+    int32_t outCount = parse_out_types(outargTypes, parsedOutTypes, maxOutArgs);
+    int32_t inCount = parse_in_types(inargTypes, parsedInTypes, maxInArgs);
 
     ugen->outCount = outCount;
     ugen->inCount = inCount;
@@ -486,6 +604,9 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
         ugen->inVars[i].ksmps = ksmps;
         ugen->inVars[i].owned = false;
     }
+
+    /* set defaults for optional variables */
+    ugen_set_default_in_values(ugen, inargTypes);
 
     /* Clean up temporary arrays */
     csound->Free(csound, parsedOutTypes);
@@ -729,13 +850,6 @@ bool csoundUgenSetString(UGEN* ugen, int32_t index, const char* str) {
     UGEN_VAR* var = csoundUgenGetInVar(ugen, index);
     if (var != NULL) return csoundUgenVarSetString(var, str);
     return false;
-}
-
-bool csoundUgenSetInArgCount(UGEN* ugen, int32_t inArgCount) {
-    if (ugen == NULL || ugen->initialized) return false;
-    if (inArgCount < 0 || inArgCount > ugen->inCount) return false;
-    ((OPDS*)ugen->opcodeMem)->optext->t.inArgCount = inArgCount;
-    return true;
 }
 
 const char* csoundUgenGetString(UGEN* ugen, int32_t index) {
