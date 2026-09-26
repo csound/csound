@@ -17,137 +17,122 @@
 
 #ifndef DSSI4CS_H
 #define DSSI4CS_H
-
 #include "csdl.h"
-#include "dssi.h"
+#include <alsa/asoundlib.h>
+#include <dssi.h>
 
-/* When changing these remember to change dssiaudio function */
-#define DSSI4CS_MAX_IN_CHANNELS 9
-#define DSSI4CS_MAX_OUT_CHANNELS 9
+#define DSSI4CS_CHANNELS 9
+#define DSSI4CS_EVENTS 1024
+#define DSSI4CS_INSTANCES 256
 
-enum PluginType {LADSPA, DSSI};
+typedef struct {
+    int64_t time;
+    snd_seq_event_t event;
+} DSSI_EVENT;
 
-typedef struct DSSI4CS_PLUGIN_ {
-    const LADSPA_Descriptor * Descriptor;
-    const DSSI_Descriptor * DSSIDescriptor;
-    /* For Type 1=LADSPA 2=DSSI */
-    enum PluginType Type;
-    LADSPA_Handle Handle;
-    int32_t Active;
-    LADSPA_Data ** control;
-    LADSPA_Data ** audio;
-    snd_seq_event_t *Events;
-    uint64_t EventCount;
-    int32_t PluginNumber;
-    int32_t * PluginCount;
-    void * NextPlugin;
-    int32_t ksmps;
-    /* float * kinputs_[]; */
-    /* float * koutputs_[]; */
-} DSSI4CS_PLUGIN;
+typedef struct DSSI_PLUGIN_ {
+    const LADSPA_Descriptor *ladspa;
+    const DSSI_Descriptor *dssi;
+    void *library;
+    LADSPA_Handle handle;
+    LADSPA_Data *control;
+    LADSPA_Data **audio;
+    int *mapping;
+    unsigned long *inputs, *outputs;
+    unsigned long input_count, output_count;
+    uint32_t capacity, render_ksmps;
+    MYFLT sample_rate;
+    int active;
+    OPDS *owner;
+    int64_t last_block, rendered_until;
+    DSSI_EVENT queue[DSSI4CS_EVENTS];
+    unsigned int queued;
+    snd_seq_event_t events[DSSI4CS_EVENTS + 16 * (128 + 3)];
+    unsigned char notes[16][128];
+    int panic;
+    unsigned long event_count;
+    unsigned int bank[16];
+} DSSI_PLUGIN;
 
-typedef struct DSSIINIT_ {
+typedef struct {
+    unsigned int count;
+    DSSI_PLUGIN *plugins[DSSI4CS_INSTANCES];
+} DSSI_HOST;
+
+typedef struct {
     OPDS h;
-    /* Inputs. */
-    MYFLT *iDSSIHandle;
-    MYFLT *iplugin;
-    MYFLT *iindex;
-    MYFLT *iverbose;
-} DSSIINIT ;
+    MYFLT *result, *filename, *index, *verbose;
+} DSSIINIT;
 
-typedef struct DSSIACTIVATE_ {
+typedef struct {
     OPDS h;
-    MYFLT *iDSSIhandle;
-    MYFLT *ktrigger;
-    int32_t printflag;
-    DSSI4CS_PLUGIN * DSSIPlugin_;
-} DSSIACTIVATE ;
+    MYFLT *id, *trigger;
+    DSSI_PLUGIN *plugin;
+} DSSIACTIVATE;
 
-typedef struct DSSIAUDIO_ {
+typedef struct {
     OPDS h;
-    /* Outputs. */
-    MYFLT *aout[DSSI4CS_MAX_OUT_CHANNELS];
-    /* Inputs. */
-    MYFLT *iDSSIhandle;
-    MYFLT *ain[DSSI4CS_MAX_IN_CHANNELS];
-/*  MYFLT *ain1; */
-/*  MYFLT *ain2; */
-/*  MYFLT *ain3; */
-/*  MYFLT *ain4; */
-    int32_t NumInputPorts;
-    int32_t NumOutputPorts;
-    uint64_t * InputPorts;
-    uint64_t * OutputPorts;
-    DSSI4CS_PLUGIN * DSSIPlugin_;
-    /* State. */
-    /* size_t framesPerBlock; */
-    /* size_t channels; */
-} DSSIAUDIO ;
+    MYFLT *out[DSSI4CS_CHANNELS];
+    MYFLT *id, *in[DSSI4CS_CHANNELS];
+    DSSI_PLUGIN *plugin;
+} DSSIAUDIO;
 
-typedef struct DSSICTLS_ {
+typedef struct {
     OPDS h;
-    MYFLT *iDSSIhandle;
-    MYFLT *iport;
-    MYFLT *val;
-    MYFLT *ktrig;
-    /* float *Data; */
-    uint64_t PortNumber;
-    int32_t HintSampleRate;
-    DSSI4CS_PLUGIN * DSSIPlugin_;
+    MYFLT *id, *port, *value, *trigger;
+    DSSI_PLUGIN *plugin;
+    unsigned long index;
 } DSSICTLS;
 
-typedef struct DSSISYNTH_ {
+typedef struct {
     OPDS h;
-    MYFLT *aout[DSSI4CS_MAX_OUT_CHANNELS];
-    /* Inputs. */
-    MYFLT *iDSSIhandle;
-    int32_t NumInputPorts;
-    int32_t NumOutputPorts;
-    uint64_t * InputPorts;
-    uint64_t * OutputPorts;
-    DSSI4CS_PLUGIN * DSSIPlugin_;
-} DSSISYNTH;
+    MYFLT *value, *id, *port;
+    DSSI_PLUGIN *plugin;
+    unsigned long index;
+} DSSIGET;
 
-typedef struct DSSINOTE_ {
+typedef struct {
     OPDS h;
-    /* Inputs. */
-    MYFLT *ktrigger;
-    MYFLT *iDSSIhandle;
-    MYFLT *knote;
-    MYFLT *kveloc;
-    MYFLT *kdur;
+    MYFLT *trigger, *id, *note, *velocity, *duration, *channel;
+    DSSI_PLUGIN *plugin;
 } DSSINOTE;
 
-typedef struct DSSINOTEON_ {
+typedef struct {
     OPDS h;
-    /* Inputs. */
-    MYFLT *ktrigger;
-    MYFLT *iDSSIhandle;
-    MYFLT *knote;
-    MYFLT *kveloc;
+    MYFLT *trigger, *id, *status, *channel, *data1, *data2, *offset;
+    DSSI_PLUGIN *plugin;
+} DSSIEVENT;
+
+typedef struct {
+    OPDS h;
+    MYFLT *trigger, *id, *channel, *parameter, *value, *offset;
+    DSSI_PLUGIN *plugin;
+} DSSINRPN;
+
+typedef struct {
+    OPDS h;
+    MYFLT *trigger, *id, *note, *velocity;
+    DSSI_PLUGIN *plugin;
 } DSSINOTEON;
 
-typedef struct DSSINOTEOFF_ {
+typedef struct {
     OPDS h;
-    /* Inputs. */
-    MYFLT *ktrigger;
-    MYFLT *iDSSIhandle;
-    MYFLT *knote;
-    MYFLT *kveloc;
-} DSSINOTEOFF;
+    MYFLT *id, *bank, *program, *trigger;
+    DSSI_PLUGIN *plugin;
+} DSSIPROGRAM;
 
-typedef struct DSSIPGMCH_ {
+typedef struct {
     OPDS h;
-    /* Inputs. */
-    MYFLT *ktrigger;
-    MYFLT *iDSSIhandle;
-    MYFLT *kprogram;
-    MYFLT *kbank;
-} DSSIPGMCH;
+    MYFLT *id;
+    STRINGDAT *key, *value;
+} DSSICONFIGURE;
 
-typedef struct DSSILIST_ {
+typedef struct {
     OPDS h;
-} DSSILIST ;
+    STRINGDAT *name;
+    MYFLT *bank, *program, *id, *index;
+} DSSIPROGRAMINFO;
 
+typedef struct { OPDS h; MYFLT *id; } DSSIINFO;
+typedef struct { OPDS h; } DSSILIST;
 #endif
-
