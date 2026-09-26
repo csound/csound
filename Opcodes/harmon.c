@@ -206,6 +206,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     //print_data(p, 2);
     if (koct >= p->minoct) {                    /* PERIODIC: find the pulse */
       MYFLT     val0, *buf0, *p0, *plim, *x;
+      /* hm234set limits the whole history buffer to INT32_MAX samples. */
       int32_t   period, triprd, xdist;
 
       period = p->period;                       /* set srch range of 2 periods */
@@ -234,7 +235,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
         for (x = posp;
              x > buf0 && *x > FL(0.0); x--);   /* & its preceding z-crossing */
         if (*x > FL(0.0)) goto nonprd;
-        xdist = posp - x;
+        xdist = (int32_t)(posp - x);
       } else if (p->polarity < 0) {
         MYFLT negpk = FL(0.0);                  /* NEGATIVE polarity:   */
         MYFLT *negp = NULL;
@@ -247,7 +248,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
         for (x = negp;
              x > buf0 && *x < FL(0.0); x--); /* & its preceding z-crossing */
         if (*x < FL(0.0)) goto nonprd;
-        xdist = negp - x;
+        xdist = (int32_t)(negp - x);
       }
       else {
         MYFLT pospk, negpk, *posp, *negp;               /* NOT SURE:    */
@@ -267,11 +268,11 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
         for (x = posp; x > buf0 &&
                *x > FL(0.0); x--); /* & their preceding z-crossings */
         if (*x > FL(0.0)) goto nonprd;
-        posdist = posp - x;
+        posdist = (int32_t)(posp - x);
         poscross = x;
         for (x = negp; x > buf0 && *x < FL(0.0); x--);
         if (*x < FL(0.0)) goto nonprd;
-        negdist = negp - x;
+        negdist = (int32_t)(negp - x);
         negcross = x;
 
         if (pospk / posdist > -negpk / negdist) {
@@ -308,7 +309,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
 
         z = x + period;                         /*  and from estimated end      */
         if ((zval = *z) != FL(0.0)) {
-          int32_t n, nlim = inp2 - z, nback = z - buf0;
+          int32_t n, nlim = (int32_t)(inp2 - z), nback = (int32_t)(z - buf0);
           for (n = 1; n < nlim; n++) {
             if (zval * *(z+n) <= FL(0.0)) {     /*       find nearest zcrossing */
               z += n;
@@ -322,7 +323,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
         /* Extend both ends without forming pointers outside the history. */
         x = x - buf0 < xdist ? buf0 : x - xdist;
         z = inp2 - z < xdist ? inp2 : z + xdist;
-        pulslen = z - x;
+        pulslen = (int32_t)(z - x);
         if (pulslen > p->maxprd)
           pulslen = p->maxprd;                  /*      & storage limits        */
         if (xdist > pulslen / 4) goto nostor;

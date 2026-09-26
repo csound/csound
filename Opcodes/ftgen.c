@@ -264,7 +264,7 @@ static int32_t ftload_text_end(const char *text)
   return *text == '\0';
 }
 
-static char *ftload_text_field(FILE *file, char *line, size_t size,
+static char *ftload_text_field(FILE *file, char *line, int size,
                                const char *name)
 {
   size_t length = strlen(name);
@@ -353,7 +353,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       /* IMPORTANT!! If FUNC structure and/or GEN01ARGS structure
          will be modified, the following code has to be modified too */
       if (UNLIKELY(NULL == fgets(s, sizeof(s), file))) goto err4;
-#define FTLOAD_READ_INT(NAME, FIELD, MINIMUM, MAXIMUM) do {           \
+#define FTLOAD_READ_INT(NAME, FIELD, TYPE, MINIMUM, MAXIMUM) do {     \
         long long value;                                             \
         s1 = ftload_text_field(file, s, sizeof(s), NAME);              \
         if (UNLIKELY(s1 == NULL)) goto err4;                           \
@@ -363,7 +363,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
                      !ftload_text_end(endptr) ||                      \
                      value < (MINIMUM) || value > (MAXIMUM)))         \
           goto err4;                                                 \
-        header.FIELD = value;                                        \
+        header.FIELD = (TYPE)value;                                  \
       } while (0)
 #define FTLOAD_READ_FLOAT(FIELD) do {                                 \
         s1 = ftload_text_field(file, s, sizeof(s), #FIELD);            \
@@ -373,23 +373,23 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
           goto err4;                                                 \
       } while (0)
 
-      FTLOAD_READ_INT("flen", flen, 1, MAXLEN);
-      FTLOAD_READ_INT("lenmask", lenmask, INT32_MIN, INT32_MAX);
-      FTLOAD_READ_INT("lobits", lobits, 0, 31);
-      FTLOAD_READ_INT("lomask", lomask, INT32_MIN, INT32_MAX);
+      FTLOAD_READ_INT("flen", flen, uint32_t, 1, MAXLEN);
+      FTLOAD_READ_INT("lenmask", lenmask, int32_t, INT32_MIN, INT32_MAX);
+      FTLOAD_READ_INT("lobits", lobits, int32_t, 0, 31);
+      FTLOAD_READ_INT("lomask", lomask, int32_t, INT32_MIN, INT32_MAX);
       FTLOAD_READ_FLOAT(lodiv);
       FTLOAD_READ_FLOAT(cvtbas);
       FTLOAD_READ_FLOAT(cpscvt);
-      FTLOAD_READ_INT("loopmode1", loopmode1, INT16_MIN, INT16_MAX);
-      FTLOAD_READ_INT("loopmode2", loopmode2, INT16_MIN, INT16_MAX);
-      FTLOAD_READ_INT("begin1", begin1, INT32_MIN, INT32_MAX);
-      FTLOAD_READ_INT("end1", end1, INT32_MIN, INT32_MAX);
-      FTLOAD_READ_INT("begin2", begin2, INT32_MIN, INT32_MAX);
-      FTLOAD_READ_INT("end2", end2, INT32_MIN, INT32_MAX);
-      FTLOAD_READ_INT("soundend", soundend, INT32_MIN, INT32_MAX);
-      FTLOAD_READ_INT("flenfrms", flenfrms, INT32_MIN, INT32_MAX);
-      FTLOAD_READ_INT("nchnls", nchanls, INT32_MIN, INT32_MAX);
-      FTLOAD_READ_INT("fno", fno, INT32_MIN, INT32_MAX);
+      FTLOAD_READ_INT("loopmode1", loopmode1, int16_t, INT16_MIN, INT16_MAX);
+      FTLOAD_READ_INT("loopmode2", loopmode2, int16_t, INT16_MIN, INT16_MAX);
+      FTLOAD_READ_INT("begin1", begin1, int32_t, INT32_MIN, INT32_MAX);
+      FTLOAD_READ_INT("end1", end1, int32_t, INT32_MIN, INT32_MAX);
+      FTLOAD_READ_INT("begin2", begin2, int32_t, INT32_MIN, INT32_MAX);
+      FTLOAD_READ_INT("end2", end2, int32_t, INT32_MIN, INT32_MAX);
+      FTLOAD_READ_INT("soundend", soundend, int32_t, INT32_MIN, INT32_MAX);
+      FTLOAD_READ_INT("flenfrms", flenfrms, int32_t, INT32_MIN, INT32_MAX);
+      FTLOAD_READ_INT("nchnls", nchanls, int32_t, INT32_MIN, INT32_MAX);
+      FTLOAD_READ_INT("fno", fno, int32_t, INT32_MIN, INT32_MAX);
       FTLOAD_READ_FLOAT(gen01args.gen01);
       FTLOAD_READ_FLOAT(gen01args.ifilno);
       FTLOAD_READ_FLOAT(gen01args.iskptim);

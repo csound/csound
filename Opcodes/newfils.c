@@ -27,15 +27,6 @@
 #include <math.h>
 
 #define TABSIZE 20000
-static inline MYFLT nlf(MYFLT *t, double x, MYFLT mx, size_t siz){
-  double p =  (x*mx + 0.5)*siz;
-  size_t n = (size_t) p;
-  return n > 0 ? (n < siz ? t[n] + (p - n)*(t[n+1] - t[n]) : t[siz-1]) : t[0];
-}
-
-
-
-
 static inline
 double fast_tanh(double x)
 {
@@ -1275,7 +1266,7 @@ int32_t mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, res, *freq = p->freq ;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-    c4 = p->c4, c5 = p->c5, w, x, t;
+    c4 = p->c4, c5 = p->c5, w, x;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -1366,7 +1357,7 @@ int32_t mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
   MYFLT *out = p->out;
   MYFLT *in = p->in, *res = p->res, *freq = p->freq ;
   double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
-    c4 = p->c4, c5 = p->c5, w, x, t;
+    c4 = p->c4, c5 = p->c5, w, x;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;

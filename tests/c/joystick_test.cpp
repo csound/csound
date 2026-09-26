@@ -221,7 +221,7 @@ TEST_F(JoystickTests, RetryFailuresWithoutStaleMasksOrSharedReadState) {
 }
 
 TEST_F(JoystickTests, EngineClosesDeviceAtNoteEnd) {
-    const auto &entry = localops[0];
+    const auto &entry = *csound_test_joystick_opcode();
     ASSERT_EQ(csoundAppendOpcode(csound, "test_joystick", entry.dsblksiz,
         entry.flags, entry.outypes, entry.intypes,
         entry.init, entry.perf, entry.deinit), OK);

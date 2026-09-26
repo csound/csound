@@ -3468,24 +3468,6 @@ int32_t tabscale1(CSOUND *csound, TABSCALE *p)
   else return NOTOK;
 }
 
-
-
-static int32_t get_array_total_size(ARRAYDAT* dat)
-{
-  int32_t i;
-  int32_t size;
-
-  if (UNLIKELY(dat->sizes == NULL)) {
-    return -1;
-  }
-
-  size = dat->sizes[0];
-  for (i = 1; i < dat->dimensions; i++) {
-    size *= dat->sizes[i];
-  }
-  return size;
-}
-
 int32_t tabcopy(CSOUND *csound, TABCPY *p)
 {
   if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )

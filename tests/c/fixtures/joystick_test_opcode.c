@@ -30,4 +30,9 @@ int32_t csound_test_linuxjoystick(CSOUND *csound, LINUXJOYSTICK *p)
 {
     return linuxjoystick(csound, p);
 }
+
+OENTRY *csound_test_joystick_opcode(void)
+{
+    return &localops[0];
+}
 #endif

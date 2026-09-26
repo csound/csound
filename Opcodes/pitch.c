@@ -1217,7 +1217,8 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
     *p->krms = rms;
     p->index = index;
     p->peri = peri;
-    p->readp = readp;
+    /* The remainder is smaller than the int32_t downsampling factor. */
+    p->readp = (int32_t)readp;
     return OK;
 }
 

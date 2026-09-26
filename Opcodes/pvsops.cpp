@@ -57,7 +57,7 @@ struct PVTrace : csnd::FPlugin<1, 2> {
       std::nth_element(amps.begin(), amps.begin() + n, amps.end());
       thrsh = amps[n];
       // Only keep enough threshold ties to reach the requested count.
-      int32_t ties = std::count(amps.begin() + n, amps.end(), thrsh);
+      auto ties = std::count(amps.begin() + n, amps.end(), thrsh);
       std::transform(fin.begin(), fin.end(), fout.begin(),
                      [thrsh, &ties](csnd::pv_bin f) {
                        if (f.amp() > thrsh || (f.amp() == thrsh && ties > 0)) {
@@ -140,7 +140,7 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
                      [](csnd::pv_bin f) { return f.amp(); });
       std::nth_element(amps.begin(), amps.begin() + n, amps.begin() + available);
       thrsh = amps[n];
-      int32_t ties = std::count(amps.begin() + n, amps.begin() + available, thrsh);
+      auto ties = std::count(amps.begin() + n, amps.begin() + available, thrsh);
       std::fill(fout.begin(), fout.begin() + start, csnd::pv_bin());
       std::fill(fout.begin() + end, fout.end(), csnd::pv_bin());
       std::transform(fin.begin() + start, fin.begin() + end, fout.begin() + start,

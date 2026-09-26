@@ -7,6 +7,7 @@ extern "C" {
 int32_t csound_test_linuxjoystick_init(CSOUND *, LINUXJOYSTICK *);
 int32_t csound_test_linuxjoystick_deinit(CSOUND *, LINUXJOYSTICK *);
 int32_t csound_test_linuxjoystick(CSOUND *, LINUXJOYSTICK *);
+OENTRY *csound_test_joystick_opcode(void);
 #ifdef __cplusplus
 }
 #endif
