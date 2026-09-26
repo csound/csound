@@ -210,6 +210,7 @@ typedef struct _pvsmorph {
   MYFLT   *kdepth;
   MYFLT   *gain;
   uint32   lastframe;
+  size_t   framebytes;
 } pvsmorph;
 
 static int32_t sndloop_init(CSOUND *csound, sndloop *p)
@@ -1319,13 +1320,46 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
                              "%s", Str("pvsvoc: not initialised\n"));
 }
 
+/* Frame counters need not match: each source can start at a different time. */
+#define PVSMORPH_MATCH(a, b)                                               \
+    ((a)->N == (b)->N && (a)->overlap == (b)->overlap &&                    \
+     (a)->winsize == (b)->winsize && (a)->wintype == (b)->wintype &&        \
+     (a)->format == (b)->format && (a)->sliding == (b)->sliding &&          \
+     (!(a)->sliding || (a)->NB == (b)->NB))
+
 static int32_t pvsmorph_init(CSOUND *csound, pvsmorph *p)
 {
     int32 N = p->fin->N;
+    size_t samples = p->fin->sliding ? CS_KSMPS : 1;
+    size_t itemsize = p->fin->sliding ? sizeof(MYFLT) : sizeof(float);
 
-    if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
-      csound->AuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
+    if (UNLIKELY(p->fout == p->fin || p->fout == p->ffr))
+      return csound->InitError(csound, "%s",
+                               Str("pvsmorph: output must differ from inputs"));
+    if (UNLIKELY(p->fin->format != PVS_AMP_FREQ &&
+                 p->fin->format != PVS_AMP_PHASE))
+      return csound->InitError(csound, "%s",
+                               Str("pvsmorph: input format must be amp-freq or amp-phase"));
+    if (UNLIKELY(!PVSMORPH_MATCH(p->fin, p->ffr)))
+      return csound->InitError(csound, "%s",
+                               Str("pvsmorph: inputs must have matching analysis settings"));
+    if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) ||
+                 (p->fin->sliding && p->fin->NB != N / 2 + 1) ||
+                 (size_t)N + 2 > SIZE_MAX / itemsize / samples))
+      return csound->InitError(csound, "%s",
+                               Str("pvsmorph: invalid frame size"));
+    p->framebytes = ((size_t)N + 2) * itemsize * samples;
+    if (UNLIKELY(p->fin->frame.auxp == NULL || p->ffr->frame.auxp == NULL ||
+                 p->fin->frame.size < p->framebytes ||
+                 p->ffr->frame.size < p->framebytes))
+      return csound->InitError(csound, "%s",
+                               Str("pvsmorph: input frame is not initialised"));
+
+    /* AuxAlloc also clears reused output when reinitialising. */
+    csound->AuxAlloc(csound, p->framebytes, &p->fout->frame);
     p->fout->N =  N;
+    p->fout->NB = N / 2 + 1;
+    p->fout->sliding = p->fin->sliding;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
     p->fout->wintype = p->fin->wintype;
@@ -1333,31 +1367,55 @@ static int32_t pvsmorph_init(CSOUND *csound, pvsmorph *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
 
-    if (UNLIKELY(!((p->fout->format==PVS_AMP_FREQ) ||
-                   (p->fout->format==PVS_AMP_PHASE)))) {
-      return csound->InitError(csound,
-                               "%s", Str("signal format must be amp-phase "
-                                   "or amp-freq.\n"));
-    }
-
     return OK;
 }
 
 static int32_t pvsmorph_process(CSOUND *csound, pvsmorph *p)
 {
     int32 i,N = p->fout->N;
-    float frint = (float) *p->gain;
-    float amint = (float) *(p->kdepth);
+    MYFLT frint = *p->gain;
+    MYFLT amint = *p->kdepth;
     float *fi1 = (float *) p->fin->frame.auxp;
     float *fi2 = (float *) p->ffr->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;
 
-    if (UNLIKELY(fout==NULL)) goto err1;
+    if (UNLIKELY(!PVSMORPH_MATCH(p->fout, p->fin) ||
+                 !PVSMORPH_MATCH(p->fout, p->ffr)))
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("pvsmorph: analysis settings changed; reinitialise"));
+    if (UNLIKELY(fout == NULL || fi1 == NULL || fi2 == NULL ||
+                 p->fout->frame.size < p->framebytes ||
+                 p->fin->frame.size < p->framebytes ||
+                 p->ffr->frame.size < p->framebytes)) goto err1;
 
-    if (p->lastframe < p->fin->framecount) {
+    amint = amint > 0 ? (amint <= 1 ? amint : FL(1.0)): FL(0.0);
+    frint = frint > 0 ? (frint <= 1 ? frint : FL(1.0)): FL(0.0);
+    if (p->fout->sliding) {
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early = p->h.insdshead->ksmps_no_end;
+      uint32_t n, nsmps = CS_KSMPS - early;
+      size_t bins = p->fout->NB;
+      CMPLX *out = (CMPLX *)p->fout->frame.auxp;
+      const CMPLX *in1 = (CMPLX *)p->fin->frame.auxp;
+      const CMPLX *in2 = (CMPLX *)p->ffr->frame.auxp;
 
-      amint = amint > 0 ? (amint <= 1 ? amint : FL(1.0)): FL(0.0);
-      frint = frint > 0 ? (frint <= 1 ? frint : FL(1.0)): FL(0.0);
+      if (UNLIKELY(offset))
+        memset(out, 0, (size_t)offset * bins * sizeof(CMPLX));
+      if (UNLIKELY(early))
+        memset(out + (size_t)nsmps * bins, 0,
+               (size_t)early * bins * sizeof(CMPLX));
+      for (n=offset; n<nsmps; n++) {
+        size_t start = (size_t)n * bins, end = start + bins;
+        for (size_t bin=start; bin<end; bin++) {
+          out[bin].re = in1[bin].re*(FL(1.0)-amint) + in2[bin].re*amint;
+          out[bin].im = in1[bin].im*(FL(1.0)-frint) + in2[bin].im*frint;
+        }
+      }
+      p->fout->framecount = p->fin->framecount;
+      return OK;
+    }
+
+    if (p->lastframe != p->fin->framecount) {
       for(i=0;i < N+2;i+=2) {
         fout[i] = fi1[i]*(1.0-amint) + fi2[i]*(amint);
         fout[i+1] = fi1[i+1]*(1.0-frint) + fi2[i+1]*(frint);
@@ -1370,6 +1428,8 @@ static int32_t pvsmorph_process(CSOUND *csound, pvsmorph *p)
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("pvsmorph: not initialised\n"));
 }
+
+#undef PVSMORPH_MATCH
 
 static OENTRY localops[] =
   {
@@ -1385,7 +1445,7 @@ static OENTRY localops[] =
     "mm", "kkkkkiooooO", (SUBR)flooper2_init, (SUBR)flooper2_process},
   /* {"flooper3", sizeof(flooper3), TR,
      "a", "kkkkkioooo", (SUBR)flooper3_init, (SUBR)flooper3_process},*/
-   {"pvsmorph", sizeof(pvsvoc), 0,
+   {"pvsmorph", sizeof(pvsmorph), 0,
     "f", "ffkk", (SUBR)pvsmorph_init, (SUBR)pvsmorph_process}
 };
 
