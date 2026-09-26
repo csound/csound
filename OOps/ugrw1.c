@@ -782,73 +782,55 @@ static int64_t GetZaBounds(CSOUND *csound, MYFLT **zastart){
     return zz->zalast;
 }
 
-/* inz writes to za space at a rate as many channels as can. */
+/* inz writes all input channels to consecutive ZAK audio locations. */
 int32_t inz(CSOUND *csound, IOZ *p)
 {
-    int32_t    indx, i;
-    int32_t     nchns = csound->GetNchnls(csound);
+    uint32_t i, n, nchns = csound->inchnls;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    /* Check to see this index is within the limits of za space.     */
-    MYFLT* zastart;
+    uint32_t nsmps = CS_KSMPS;
+    uint32_t end = nsmps - p->h.insdshead->ksmps_no_end;
+    MYFLT *zastart, *writeloc, *spin = CS_SPIN;
     int64_t zalast = GetZaBounds(csound, &zastart);
-    indx = (int32_t) *p->ndx;
-    if (UNLIKELY(indx + nchns >= zalast)) goto err1;
-    else if (UNLIKELY(indx < 0)) goto err2;
-    else {
-      MYFLT *writeloc;
-      /* Now write to the array in za space pointed to by indx.    */
-      writeloc = zastart + (indx * nsmps);
-      early = nsmps - early;
-      for (i = 0; i < nchns; i++)
-        for (n = 0; n < nsmps; n++)
-          *writeloc++ = ((n>=offset && n<early) ?
-                         CS_SPIN[i * nsmps+n] : FL(0.0));
+    double index = (double)*p->ndx;
+
+    /* zalast is inclusive; preserve truncation of fractional indices. */
+    if (UNLIKELY(zastart == NULL || nchns > zalast + 1 ||
+                 !(index > -1.0 && index < (double)(zalast + 2 - nchns))))
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("inz: channel range is outside ZAK audio space"));
+    writeloc = zastart + (size_t)(int32_t)index * nsmps;
+    for (i = 0; i < nchns; i++) {
+      if (UNLIKELY(offset)) memset(writeloc, 0, offset * sizeof(MYFLT));
+      for (n = offset; n < end; n++)
+        writeloc[n] = spin[(size_t)n * nchns + i];
+      if (UNLIKELY(end < nsmps))
+        memset(writeloc + end, 0, (nsmps - end) * sizeof(MYFLT));
+      writeloc += nsmps;
     }
     return OK;
- err1:
-    return csound->PerfError(csound, &(p->h),
-                             Str("inz index > isizea. Not writing."));
- err2:
-    return csound->PerfError(csound, &(p->h),
-                             Str("inz index < 0. Not writing."));
 }
 
-/* outz reads from za space at a rate to output. */
+/* outz reads consecutive ZAK audio locations into the instrument's output. */
 int32_t outz(CSOUND *csound, IOZ *p)
 {
-    int32_t    indx;
-    int32_t     i;
+    uint32_t i, n, nchns = csound->nchnls;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32_t     nchns = csound->GetNchnls(csound);
-    MYFLT *spout = csound->spout_tmp;
-
-    /* Check to see this index is within the limits of za space.    */
-    MYFLT* zastart;
+    uint32_t nsmps = CS_KSMPS;
+    uint32_t end = nsmps - p->h.insdshead->ksmps_no_end;
+    MYFLT *zastart, *readloc, *spout = CS_SPOUT;
     int64_t zalast = GetZaBounds(csound, &zastart);
-    indx = (int32) *p->ndx;
-    if (UNLIKELY((indx + nchns) >= zalast)) goto err1;
-    else if (UNLIKELY(indx < 0)) goto err2;
-    else {
-      MYFLT *readloc;
-      /* Now read from the array in za space and write to the output. */
-      readloc = zastart + (indx * nsmps);
-      early = nsmps-early;
-      for (i = 0; i < nchns; i++) {
-          for (n = offset; n < nsmps-early; n++) {
-            spout[n + i*nsmps] += readloc[n];
-          }
-          readloc += nsmps;
-        }
+    double index = (double)*p->ndx;
+
+    if (UNLIKELY(zastart == NULL || nchns > zalast + 1 ||
+                 !(index > -1.0 && index < (double)(zalast + 2 - nchns))))
+      return csound->PerfError(csound, &p->h, "%s",
+                               Str("outz: channel range is outside ZAK audio space"));
+    readloc = zastart + (size_t)(int32_t)index * nsmps;
+    for (i = 0; i < nchns; i++) {
+      for (n = offset; n < end; n++)
+        spout[(size_t)i * csound->ksmps + n] += readloc[n];
+      /* ZAK uses local blocks; output channels use the global block stride. */
+      readloc += nsmps;
     }
     return OK;
- err1:
-    return csound->PerfError(csound, &(p->h),
-                             Str("outz index > isizea. No output"));
- err2:
-    return csound->PerfError(csound, &(p->h),
-                             Str("outz index < 0. No output."));
 }
