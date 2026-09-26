@@ -34,9 +34,9 @@ typedef struct {
 // METRO2 ADDED BY GLEB ROGOZINSKY Oct 2019
 typedef struct {
         OPDS    h;
-        MYFLT   *sr, *xcps, *kswng, *iamp, *iphs, *icorrect;
+        MYFLT   *sr, *xcps, *kswng, *iamp, *iphs;
         double  amp2, curphs, curphs2, swng_init;
-        int32_t flag, flag2;
+        int32_t flag;
 } METRO2;
 //
 
@@ -59,6 +59,10 @@ typedef struct  {
 
 } TIMEDSEQ;
 
+/* Preserve metro's initial-phase and first-trigger timing for old scores.
+   This initializer also serves metrobpm; do not change metro's startup
+   behavior through this shared function. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("metro")
 static int32_t metro_set(CSOUND *csound, METRO *p)
 {
     double phs = *p->iphs;
@@ -74,6 +78,15 @@ static int32_t metro_set(CSOUND *csound, METRO *p)
     return OK;
 }
 
+/* FROZEN for backward compatibility: subtract only one cycle per trigger.
+   Frequencies above kr can leave whole cycles in curphs, so triggers can
+   continue after the frequency drops, even to zero. At kr=100, three calls
+   at 250 Hz from phase zero leave three more triggers after stopping.
+   Do not normalize this phase or otherwise change the historical timing.
+   metro remains supported. Use metro2 for bounded phase at high frequencies;
+   do not copy its phase wrapping or startup logic into metro as a bug fix.
+   A timing change here requires an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("metro")
 static int32_t metro(CSOUND *csound, METRO *p)
 {
     double      phs= p->curphs;
@@ -115,68 +128,10 @@ static int32_t metrobpm(CSOUND *csound, METRO *p)
     return OK;
 }
 
-/* GLEB ROGOZINSKY Oct 2019
-   Opcode metro2 in addition to 'classic' metro opcode,
-   allows swinging with possibiliy of setting its own amplitude value
-*/
-static int32_t metro2_legacy_set(CSOUND *csound, METRO2 *p)
-{
-    double phs = *p->iphs;
-    double swng = *p->kswng;
-    int32  longphs;
-    p->amp2 = *p->iamp;
-
-    if (phs >= 0.0) {
-      if (UNLIKELY((longphs = (int32)phs)))
-        csound->Warning(csound, "%s", Str("metro2:init phase truncation"));
-      p->curphs = (MYFLT)phs - (MYFLT)longphs;
-      p->curphs2 = (MYFLT)phs - (MYFLT)longphs + 1.0 - (MYFLT)swng;
-    }
-    p->flag = 1;
-    p->flag2 = 1;
-    p->swng_init = (MYFLT)swng;
-    return OK;
-}
-
-static int32_t metro2_legacy(CSOUND *csound, METRO2 *p)
-{
-    double      phs= p->curphs;
-    double      phs2= p->curphs2;
-    double      phs2_init = p->swng_init;
-    double      amp2= p->amp2;
-    double      swng= *p->kswng;
-    IGN(csound);
-// MAIN TICK
-    if (phs == 0.0 && p->flag) {
-      *p->sr = FL(1.0);
-      p->flag = 0;
-    }
-    else if ((phs += *p->xcps * CS_ONEDKR * 0.5) >= 1.0 ) {
-      *p->sr = FL(1.0);
-      phs -= 1.0;
-      p->flag = 0;
-    }
-    else
-      *p->sr = FL(0.0);
-    p->curphs = phs;
-
-// SWINGING TICK
-    if (phs2 == 0.0 && p->flag2) {
-      *p->sr = FL(amp2);
-      p->flag2 = 0;
-    }
-    else if ((phs2 += *p->xcps * CS_ONEDKR * 0.5) >= (1.0 + swng - phs2_init) ) {
-      *p->sr = FL(amp2);
-      phs2 -= 1.0;
-      p->flag2 = 0;
-    }
-    p->curphs2 = phs2;
-
-    return OK;
-}
-//
-
-static int32_t metro2_correct_set(CSOUND *csound, METRO2 *p)
+/* metro2 keeps its main and swing clocks in step and discards completed
+   phase cycles. This is its only timing mode; metro's historical timing
+   above is intentionally separate for compatibility with existing scores. */
+static int32_t metro2_set(CSOUND *csound, METRO2 *p)
 {
     double phs = *p->iphs;
 
@@ -194,7 +149,7 @@ static int32_t metro2_correct_set(CSOUND *csound, METRO2 *p)
     return OK;
 }
 
-static int32_t metro2_correct(CSOUND *csound, METRO2 *p)
+static int32_t metro2(CSOUND *csound, METRO2 *p)
 {
     double phs = p->curphs, phs2 = p->curphs2;
     double swng = *p->kswng;
@@ -244,19 +199,6 @@ static int32_t metro2_correct(CSOUND *csound, METRO2 *p)
     p->curphs = phs;
     p->curphs2 = phs2;
     return OK;
-}
-
-/* Preserve existing scores unless corrected timing is requested. */
-static int32_t metro2_set(CSOUND *csound, METRO2 *p)
-{
-    return *p->icorrect == FL(0.0) ? metro2_legacy_set(csound, p)
-                                 : metro2_correct_set(csound, p);
-}
-
-static int32_t metro2(CSOUND *csound, METRO2 *p)
-{
-    return *p->icorrect == FL(0.0) ? metro2_legacy(csound, p)
-                                 : metro2_correct(csound, p);
 }
 
 static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
@@ -443,7 +385,7 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 
 static OENTRY localops[] = {
   { "metro",  S(METRO),  0,        "k", "ko",  (SUBR)metro_set, (SUBR)metro    },
-  { "metro2", S(METRO2), 0,        "k", "kkpoo", (SUBR)metro2_set, (SUBR)metro2  },
+  { "metro2", S(METRO2), 0,        "k", "kkpo", (SUBR)metro2_set, (SUBR)metro2  },
   { "metrobpm",S(METRO), 0,        "k", "koO",  (SUBR)metro_set, (SUBR)metrobpm },
   { "splitrig", S(SPLIT_TRIG), 0,  "",  "kkiiz",
                                         (SUBR)split_trig_set, (SUBR)split_trig },
