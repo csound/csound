@@ -22,6 +22,11 @@
 #include <algorithm>
 #include <plugin.h>
 
+// Bound the count before converting it, retaining the existing minimum of one.
+#define PVSTRACE_COUNT(value, available)                                  \
+  (!((value) >= FL(1.0)) ? 1 :                                           \
+   (double(value) >= double(available) ? (available) : int32_t(value)))
+
 struct PVTrace : csnd::FPlugin<1, 2> {
   csnd::AuxMem<float> amps;
   static constexpr char const *otypes = "f";
@@ -45,15 +50,21 @@ struct PVTrace : csnd::FPlugin<1, 2> {
     csnd::pv_frame &fin = inargs.fsig_data(0);
     csnd::pv_frame &fout = outargs.fsig_data(0);
     if (framecount < fin.count()) {
-      int32_t n = fin.len() - (int) (inargs[1] >= 1 ? inargs[1] : 1.);
+      int32_t n = fin.len() - PVSTRACE_COUNT(inargs[1], fin.len());
       float thrsh;
       std::transform(fin.begin(), fin.end(), amps.begin(),
                      [](csnd::pv_bin f) { return f.amp(); });
       std::nth_element(amps.begin(), amps.begin() + n, amps.end());
       thrsh = amps[n];
+      // Only keep enough threshold ties to reach the requested count.
+      int32_t ties = std::count(amps.begin() + n, amps.end(), thrsh);
       std::transform(fin.begin(), fin.end(), fout.begin(),
-                     [thrsh](csnd::pv_bin f) {
-                       return f.amp() >= thrsh ? f : csnd::pv_bin();
+                     [thrsh, &ties](csnd::pv_bin f) {
+                       if (f.amp() > thrsh || (f.amp() == thrsh && ties > 0)) {
+                         if (f.amp() == thrsh) --ties;
+                         return f;
+                       }
+                       return csnd::pv_bin();
                      });
       framecount = fout.count(fin.count());
     }
@@ -69,6 +80,7 @@ struct binamp {
 struct PVTrace2 : csnd::FPlugin<2, 5> {
   csnd::AuxMem<float> amps;
   csnd::AuxMem<binamp> binlist;
+  int32_t start, end;
   static constexpr char const *otypes = "fk[]";
   static constexpr char const *itypes = "fkooo";
 
@@ -81,12 +93,22 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
       return csound->init_error("fsig format not supported");
 
-    amps.allocate(csound, inargs.fsig_data(0).nbins());
-    binlist.allocate(csound, inargs.fsig_data(0).nbins());
+    if (!(inargs[3] >= 0 && inargs[4] >= 0))
+      return csound->init_error("pvstrace: bin limits must be nonnegative");
+    int32_t nbins = inargs.fsig_data(0).nbins();
+    start = double(inargs[3]) >= nbins ? nbins : int32_t(inargs[3]);
+    // Zero means no upper limit; keep the existing exclusive upper bound.
+    end = inargs[4] < 1 || double(inargs[4]) >= nbins ?
+      nbins : int32_t(inargs[4]);
+    if (end < start) end = start;
+
+    amps.allocate(csound, nbins);
+    binlist.allocate(csound, nbins);
     csnd::Fsig &fout = outargs.fsig_data(0);
     fout.init(csound, inargs.fsig_data(0));
 
-    bins.init(csound, inargs.fsig_data(0).nbins(), this->insdshead);
+    if (bins.init(csound, nbins, this->insdshead) != OK)
+      return csound_array_init_resize_error(reinterpret_cast<CSOUND *>(csound));
 
     framecount = 0;
     return OK;
@@ -99,35 +121,44 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
     csnd::AuxMem<binamp> &mbins = binlist;
 
     if (framecount < fin.count()) {
-      int32_t n = fin.len() - (int) (inargs[1] >= 1 ? inargs[1] : 1.);
+      if (tabcheck(reinterpret_cast<CSOUND *>(csound),
+                   reinterpret_cast<ARRAYDAT *>(outargs(1)),
+                   fin.len(), this) != OK)
+        return NOTOK;
+      int32_t available = end - start;
+      if (available == 0) {
+        std::fill(fout.begin(), fout.end(), csnd::pv_bin());
+        std::fill(bins.begin(), bins.end(), FL(0.0));
+        framecount = fout.count(fin.count());
+        return OK;
+      }
+      int32_t n = available - PVSTRACE_COUNT(inargs[1], available);
       float thrsh;
       int32_t cnt = 0;
-      int32_t bin = 0;
-      int32_t start = (int) inargs[3];
-      int32_t end = (int) inargs[4];
-      std::transform(fin.begin() + start,
-                     end ? fin.begin() +
-                     ((unsigned int)end <= fin.len() ? end : fin.len()) :
-                     fin.end(), amps.begin(),
+      int32_t bin = start;
+      std::transform(fin.begin() + start, fin.begin() + end, amps.begin(),
                      [](csnd::pv_bin f) { return f.amp(); });
-      std::nth_element(amps.begin(), amps.begin() + n, amps.end());
+      std::nth_element(amps.begin(), amps.begin() + n, amps.begin() + available);
       thrsh = amps[n];
-      std::transform(fin.begin(), fin.end(), fout.begin(),
-                     [thrsh, &mbins, &cnt, &bin](csnd::pv_bin f) {
-                       if(f.amp() >= thrsh) {
-                       mbins[cnt].bin = bin++;
-                       mbins[cnt++].amp = f.amp();
-                       return f;
+      int32_t ties = std::count(amps.begin() + n, amps.begin() + available, thrsh);
+      std::fill(fout.begin(), fout.begin() + start, csnd::pv_bin());
+      std::fill(fout.begin() + end, fout.end(), csnd::pv_bin());
+      std::transform(fin.begin() + start, fin.begin() + end, fout.begin() + start,
+                     [thrsh, &ties, &mbins, &cnt, &bin](csnd::pv_bin f) {
+                       int32_t current = bin++;
+                       if (f.amp() > thrsh || (f.amp() == thrsh && ties > 0)) {
+                         if (f.amp() == thrsh) --ties;
+                         mbins[cnt].bin = current;
+                         mbins[cnt++].amp = f.amp();
+                         return f;
                        }
-                       else {
-                        bin++;
-                        return csnd::pv_bin();
-                       }
+                       return csnd::pv_bin();
                      });
 
-      if(inargs[2] > 0)
-      std::sort(binlist.begin(), binlist.begin()+cnt, [](binamp a, binamp b){
-          return (a.amp > b.amp);});
+      if (inargs[2] != 0)
+        std::sort(binlist.begin(), binlist.begin()+cnt, [](binamp a, binamp b) {
+          return a.amp > b.amp || (a.amp == b.amp && a.bin < b.bin);
+        });
 
       std::transform(binlist.begin(), binlist.begin()+cnt, bins.begin(),
                      [](binamp a) { return (MYFLT) a.bin;});
@@ -140,6 +171,7 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
   }
 };
 
+#undef PVSTRACE_COUNT
 
 
 struct TVConv : csnd::Plugin<1, 6> {
