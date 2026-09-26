@@ -47,67 +47,71 @@ int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 
 }
 
-/* Pandora's box opcode, but we can make it at least plausible,
-   by forbidding copy to different format. */
+/* Assignment owns its copy, including track and sliding frames. */
+#define FASSIGN_FRAME_BYTES(p) \
+    ((p)->fsrc->format == PVS_TRACKS || (p)->fsrc->format < 0 ? \
+     (p)->fsrc->frame.size : \
+     ((size_t)(p)->fsrc->N + 2) * \
+     ((p)->fsrc->sliding ? sizeof(MYFLT) * CS_KSMPS : sizeof(float)))
 
 int32_t fassign_set(CSOUND *csound, FASSIGN *p)
 {
-    int32_t N = p->fsrc->N;
+    size_t framesize;
+    if (p->fout == p->fsrc)
+      return OK;
+    framesize = FASSIGN_FRAME_BYTES(p);
+    if (UNLIKELY(p->fsrc->frame.auxp == NULL || framesize == 0 ||
+                 p->fsrc->frame.size < framesize))
+      return csound->InitError(csound, "%s",
+                               Str("fsig = : source is not initialised"));
 
-    p->fout->N =  N;
+    p->fout->N = p->fsrc->N;
+    p->fout->NB = p->fsrc->NB;
     p->fout->overlap = p->fsrc->overlap;
     p->fout->winsize = p->fsrc->winsize;
     p->fout->wintype = p->fsrc->wintype;
     p->fout->format = p->fsrc->format;
     p->fout->sliding = p->fsrc->sliding;
-    /* sliding needs to be checked */
-    if (p->fsrc->sliding) {
-      p->fout->NB = p->fsrc->NB;
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
-                       &p->fout->frame);
-      return OK;
-    }
-    if (p->fsrc->format < 0){
-      p->fout->frame.auxp = p->fsrc->frame.auxp;
-      p->fout->frame.size = p->fsrc->frame.size;
-      //csound->Message(csound, Str("fsig = : init\n"));
-    }
-    else
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-    p->fout->framecount = 1;
-    //csound->Message(csound, Str("fsig = : init\n"));
+    csound->AuxAlloc(csound, framesize, &p->fout->frame);
+    memcpy(p->fout->frame.auxp, p->fsrc->frame.auxp, framesize);
+    p->fout->framecount++;
+    /* Force a copy on the first performance pass, even for a late start. */
+    p->lastframe = p->fsrc->framecount - 1;
+    p->lastout = p->fout->framecount;
     return OK;
 }
 
 
 int32_t fassign(CSOUND *csound, FASSIGN *p)
 {
-    int32_t framesize;
-    float *fout,*fsrc;
-    fout = (float *) p->fout->frame.auxp;
-    fsrc = (float *) p->fsrc->frame.auxp;
-    if (fout == fsrc) {
-      //csound->Message(csound, Str("fsig = : no cpy\n"));
+    size_t framesize;
+    if (p->fout == p->fsrc)
       return OK;
-    }
-    // if (UNLIKELY(!fsigs_equal(p->fout,p->fsrc)))
-    //return csound->PerfError(csound,&(p->h),
-    //                         Str("fsig = : formats are different.\n"));
-    if (p->fsrc->sliding) {
-      memcpy(p->fout->frame.auxp, p->fsrc->frame.auxp,
-             sizeof(MYFLT)*(p->fsrc->N+2)*CS_KSMPS);
-      return OK;
-    }
+    framesize = FASSIGN_FRAME_BYTES(p);
+    if (UNLIKELY(!fsigs_equal(p->fout, p->fsrc) ||
+                 (p->fsrc->sliding && p->fout->NB != p->fsrc->NB) ||
+                 p->fsrc->frame.auxp == NULL ||
+                 p->fout->frame.auxp == NULL ||
+                 p->fsrc->frame.size < framesize ||
+                 p->fout->frame.size < framesize))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("fsig = : incompatible frames"));
 
-    framesize = p->fsrc->N + 2;
-
-    if (p->fout->framecount == p->fsrc->framecount) {/* avoid duplicate copying*/
-      memcpy(fout, fsrc, framesize*sizeof(float));
-      p->fout->framecount++;
+    /* A second assignment may have changed the destination while this
+       source stayed on the same frame. Sliding frames change every block. */
+    if (p->fsrc->sliding || p->lastframe != p->fsrc->framecount ||
+        p->lastout != p->fout->framecount) {
+      memcpy(p->fout->frame.auxp, p->fsrc->frame.auxp, framesize);
+      p->lastframe = p->fsrc->framecount;
+      /* Keep output updates increasing when switching sources or restarting
+         a producer whose frame counter has gone back to the beginning. */
+      p->lastout = ++p->fout->framecount;
     }
 
     return OK;
 }
+
+#undef FASSIGN_FRAME_BYTES
 
 /************* OSCBANK SYNTH ***********/
 
