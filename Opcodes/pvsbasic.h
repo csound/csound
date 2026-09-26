@@ -171,7 +171,7 @@ typedef struct _pvsmix {
     PVSDAT  *fout;
     PVSDAT  *fa;
     PVSDAT  *fb;
-    uint32  lastframe;
+    uint32  lastframe_a, lastframe_b;
 } PVSMIX;
 
 static int32_t pvsmixset(CSOUND *, PVSMIX *p);

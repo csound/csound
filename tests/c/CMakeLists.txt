@@ -81,6 +81,7 @@ if(BUILD_TESTS)
         internal_osc_decode_test.cpp
         pvsinit_test.cpp
         pvsgendy_test.cpp
+        pvsmix_test.cpp
         fsig_assignment_test.cpp
         pvsfromarray_test.cpp
         pvsblur_test.cpp
