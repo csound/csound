@@ -1488,26 +1488,59 @@ typedef struct hilb {
   int32_t N, hop;
 } HILB;
 
+/* Shared initialization checks for both output forms. Keep all frame indices
+   representable as int32_t and all allocation sizes representable as size_t. */
+static int32_t hilbert_sizes(CSOUND *csound, double fftsize, double hopsize,
+                             int32_t *N, int32_t *h)
+{
+    int32_t requested, decim;
+    if (UNLIKELY(!(fftsize >= 2.0 && fftsize <= INT32_MAX &&
+                   hopsize >= 1.0 && hopsize <= INT32_MAX)))
+      return csound->InitError(csound, "%s",
+                               Str("hilbert2: invalid FFT or hop size"));
+
+    /* Retain the existing rounding down to powers of two and hop clamp. */
+    requested = (int32_t)fftsize;
+    *N = 1;
+    while (requested > 1) {
+      requested >>= 1;
+      *N <<= 1;
+    }
+    requested = (int32_t)hopsize;
+    *h = 1;
+    while (requested > 1) {
+      requested >>= 1;
+      *h <<= 1;
+    }
+    if (*h > *N) *h = *N;
+    decim = *N / *h;
+    if (UNLIKELY(*N > INT32_MAX / 2 / decim ||
+                 (size_t)*N > SIZE_MAX / (2 * sizeof(MYFLT)) / decim))
+      return csound->InitError(csound, "%s",
+                               Str("hilbert2: frame buffers too large"));
+    return OK;
+}
+
+/* The output scale doubles the positive-frequency bins. DC and Nyquist
+   have no negative-frequency partner, so halve them before that scaling. */
+#define HILBERT_ANALYTIC(frame, N) do {                                  \
+    (frame)[0] *= FL(0.5);                                               \
+    (frame)[1] *= FL(0.5);                                               \
+    (frame)[N] *= FL(0.5);                                               \
+    (frame)[(N)+1] *= FL(0.5);                                           \
+    memset((frame)+(N)+2, 0, ((N)-2)*sizeof(MYFLT));                      \
+  } while (0)
+
 static int32_t hilbert_init(CSOUND *csound, HILB *p) {
-    int32_t N = (int32_t) *p->ifftsize;
-    int32_t h = (int32_t) *p->ihopsize;
-    uint32_t size;
+    int32_t N, h;
+    size_t size;
     int32_t *p1, *p2, i, decim;
 
-    if (h > N) h = N;
-
-    for (i=0; N; i++) {
-      N >>= 1;
-    }
-    N = (int32_t)intpow1(2, i-1);
-
-    for (i=0; h; i++) {
-      h >>= 1;
-    }
-    h = (int32_t)intpow1(2, i-1);
+    if (hilbert_sizes(csound, *p->ifftsize, *p->ihopsize, &N, &h) != OK)
+      return NOTOK;
     decim = N/h;
 
-    size = (N*decim)*sizeof(MYFLT);
+    size = (size_t)N*decim*sizeof(MYFLT);
     if (p->inframe.auxp == NULL || p->inframe.size < size)
       csound->AuxAlloc(csound, size, &p->inframe);
     memset(p->inframe.auxp, 0, size);
@@ -1531,13 +1564,21 @@ static int32_t hilbert_init(CSOUND *csound, HILB *p) {
       p2[i] = 2*(decim - 1 - i)*h;
     }
 
-    size = N*sizeof(MYFLT);
+    size = (size_t)2*N*sizeof(MYFLT);
     if (p->win.auxp == NULL || p->win.size < size)
       csound->AuxAlloc(csound, size, &p->win);
     {
+      MYFLT *win = (MYFLT *)p->win.auxp;
       MYFLT x = FL(2.0)*PI_F/N;
-      for (i=0; i < N; i++)
-        ((MYFLT *)p->win.auxp)[i] = FL(0.5) - FL(0.5)*COS((MYFLT)i*x);
+      MYFLT scale = decim < 4 ? FL(2.0) : FL(16.0)/(3*decim);
+      /* Hann analysis needs at least two overlapping frames. With two,
+         use a rectangular synthesis window so their weights sum to one.
+         With no overlap, both windows must be rectangular. */
+      for (i=0; i < N; i++) {
+        win[i] = decim == 1 ? FL(1.0) :
+          FL(0.5) - FL(0.5)*COS((MYFLT)i*x);
+        win[N+i] = decim < 4 ? scale : win[i]*scale;
+      }
     }
 
     p->cnt = 0;
@@ -1560,9 +1601,9 @@ static int32_t hilbert_proc(CSOUND *csound, HILB *p) {
     MYFLT *inframe = (MYFLT *) p->inframe.auxp;
     MYFLT *outframe = (MYFLT *) p->outframe.auxp;
     MYFLT *win = (MYFLT *) p->win.auxp;
+    MYFLT *swin = win + fftsize;
     MYFLT **out = p->out;
     MYFLT *in = p->in;
-    MYFLT scal = decim < 4 ? 1 : 16./(3*decim);
 
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -1584,13 +1625,11 @@ static int32_t hilbert_proc(CSOUND *csound, HILB *p) {
           fftdata[j+1] = FL(0.0);
         }
         csound->ComplexFFT(csound, fftdata, fftsize);
-        fftdata[0] *= 0.5;
-        fftdata[1] *= 0.5;
-        memset(fftdata+fftsize, 0, fftsize*sizeof(MYFLT));
+        HILBERT_ANALYTIC(fftdata, fftsize);
         csound->InverseComplexFFT(csound, fftdata, fftsize);
         for(i = j = 0; i < fftsize; i++, j+=2) {
-          outframe[j+2*off] = fftdata[j]*win[i]*scal;
-          outframe[j+1+2*off] = fftdata[j+1]*win[i]*scal;
+          outframe[j+2*off] = fftdata[j]*swin[i];
+          outframe[j+1+2*off] = fftdata[j+1]*swin[i];
         }
         off += fftsize;
         p->off = off = off%(fftsize*decim);
@@ -1622,25 +1661,15 @@ typedef struct hilba {
 } HILBA;
 
 static int32_t hilbert_array_init(CSOUND *csound, HILBA *p) {
-    int32_t N = (int32_t) *p->ifftsize;
-    int32_t h = (int32_t) *p->ihopsize;
-    uint32_t size;
+    int32_t N, h;
+    size_t size;
     int32_t *p1, *p2, i, decim;
 
-    if (h > N) h = N;
-
-    for (i=0; N; i++) {
-      N >>= 1;
-    }
-    N = (int32_t)intpow1(2, i-1);
-
-    for (i=0; h; i++) {
-      h >>= 1;
-    }
-    h = (int32_t)intpow1(2, i-1);
+    if (hilbert_sizes(csound, *p->ifftsize, *p->ihopsize, &N, &h) != OK)
+      return NOTOK;
     decim = N/h;
 
-    size = (N*decim)*sizeof(MYFLT);
+    size = (size_t)N*decim*sizeof(MYFLT);
     if (p->inframe.auxp == NULL || p->inframe.size < size)
       csound->AuxAlloc(csound, size, &p->inframe);
     memset(p->inframe.auxp, 0, size);
@@ -1664,13 +1693,19 @@ static int32_t hilbert_array_init(CSOUND *csound, HILBA *p) {
       p2[i] = 2*(decim - 1 - i)*h;
     }
 
-    size = N*sizeof(MYFLT);
+    size = (size_t)2*N*sizeof(MYFLT);
     if (p->win.auxp == NULL || p->win.size < size)
       csound->AuxAlloc(csound, size, &p->win);
     {
+      MYFLT *win = (MYFLT *)p->win.auxp;
       MYFLT x = FL(2.0)*PI_F/N;
-      for (i=0; i < N; i++)
-        ((MYFLT *)p->win.auxp)[i] = FL(0.5) - FL(0.5)*COS((MYFLT)i*x);
+      MYFLT scale = decim < 4 ? FL(2.0) : FL(16.0)/(3*decim);
+      /* Match the analysis and synthesis windows in the audio-output form. */
+      for (i=0; i < N; i++) {
+        win[i] = decim == 1 ? FL(1.0) :
+          FL(0.5) - FL(0.5)*COS((MYFLT)i*x);
+        win[N+i] = decim < 4 ? scale : win[i]*scale;
+      }
     }
 
     p->cnt = 0;
@@ -1698,9 +1733,9 @@ static int32_t hilbert_array_proc(CSOUND *csound, HILBA *p) {
     MYFLT *inframe = (MYFLT *) p->inframe.auxp;
     MYFLT *outframe = (MYFLT *) p->outframe.auxp;
     MYFLT *win = (MYFLT *) p->win.auxp;
+    MYFLT *swin = win + fftsize;
     COMPLEXDAT *out;
     MYFLT *in = p->in;
-    MYFLT scal = decim < 4 ? 1 : 16./(3*decim);
 
     if (UNLIKELY(tabcheck(csound, p->out, CS_KSMPS, &p->h) != OK))
       return NOTOK;
@@ -1722,13 +1757,11 @@ static int32_t hilbert_array_proc(CSOUND *csound, HILBA *p) {
           fftdata[j+1] = FL(0.0);
         }
         csound->ComplexFFT(csound, fftdata, fftsize);
-        fftdata[0] *= 0.5;
-        fftdata[1] *= 0.5;
-        memset(fftdata+fftsize, 0, fftsize*sizeof(MYFLT));
+        HILBERT_ANALYTIC(fftdata, fftsize);
         csound->InverseComplexFFT(csound, fftdata, fftsize);
         for(i = j = 0; i < fftsize; i++, j+=2) {
-          outframe[j+2*off] = fftdata[j]*win[i]*scal;
-          outframe[j+1+2*off] = fftdata[j+1]*win[i]*scal;
+          outframe[j+2*off] = fftdata[j]*swin[i];
+          outframe[j+1+2*off] = fftdata[j+1]*swin[i];
         }
         off += fftsize;
         p->off = off = off%(fftsize*decim);
@@ -1749,6 +1782,8 @@ static int32_t hilbert_array_proc(CSOUND *csound, HILBA *p) {
 }
 
 
+
+#undef HILBERT_ANALYTIC
 
 typedef struct amfm {
   OPDS h;
