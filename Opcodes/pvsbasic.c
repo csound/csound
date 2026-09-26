@@ -2093,6 +2093,16 @@ static int32_t pvswarpset(CSOUND *csound, PVSWARP *p)
 {
   int32    N = p->fin->N;
 
+  if (UNLIKELY(p->fin->sliding))
+    return csound->InitError(csound, "%s",
+                             Str("pvswarp: sliding analysis is not supported"));
+  if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) ||
+               (size_t)(N + 2) > SIZE_MAX / sizeof(MYFLT)))
+    return csound->InitError(csound, "%s", Str("pvswarp: invalid frame size"));
+  if (UNLIKELY(p->fin->format != PVS_AMP_FREQ &&
+               p->fin->format != PVS_AMP_PHASE))
+    return csound->InitError(csound, "%s",
+                             Str("pvswarp: format must be amp-freq or amp-phase"));
   if (UNLIKELY(p->fin == p->fout))
     csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
   {
@@ -2105,6 +2115,8 @@ static int32_t pvswarpset(CSOUND *csound, PVSWARP *p)
   p->fout->winsize = p->fin->winsize;
   p->fout->wintype = p->fin->wintype;
   p->fout->format = p->fin->format;
+  p->fout->sliding = 0;
+  p->fout->NB = N/2 + 1;
   p->fout->framecount = 1;
   p->lastframe = 0;
 
@@ -2128,34 +2140,35 @@ static int32_t pvswarpset(CSOUND *csound, PVSWARP *p)
 static int32_t pvswarp(CSOUND *csound, PVSWARP *p)
 {
   int32_t     i,j, chan, N = p->fout->N;
-  float   max = 0.0f;
   MYFLT   pscal = FABS(*p->kscal);
-  MYFLT   pshift = (*p->kshift);
-  int32_t     cshift = (int32_t) (pshift * N * CS_ONEDSR);
   int32_t     keepform = (int32_t) *p->keepform;
   float   g = (float) *p->gain;
-  float   *fin = (float *) p->fin->frame.auxp;
+  const float *fin = (const float *) p->fin->frame.auxp;
   float   *fout = (float *) p->fout->frame.auxp;
   MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
   MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
-  float sr = CS_ESR, binf;
-  int32_t lowest =  abs((int32_t) (*p->klowest * N * CS_ONEDSR));;
-  int32_t coefs = (int32_t) *p->coefs;
-
-  lowest = lowest ? (lowest > N / 2 ? N / 2 : lowest << 1) : 2;
 
   if (UNLIKELY(fout == NULL)) goto err1;
 
   if (p->lastframe < p->fin->framecount) {
-    int32_t n;
+    MYFLT lowestbin = FABS(*p->klowest) * N * CS_ONEDSR;
+    MYFLT requested = *p->coefs >= 1 ? *p->coefs : FL(80.0);
+    int32_t lowest = N/2;
+    int32_t coefs = requested < N/2 ? (int32_t) requested : N/2;
+    /* Retain integer-bin shifts without converting an unbounded value to int. */
+    double cshift = trunc((double)*p->kshift * N * CS_ONEDSR);
+    if (lowestbin < 1)
+      lowest = 1;
+    else if (lowestbin < N/2)
+      lowest = (int32_t) lowestbin;
+
+    /* Warping changes amplitudes only; keep every input frequency or phase. */
+    for (i = 0; i <= N; i += 2) {
+      fout[i] = 0.0f;
+      fout[i + 1] = fin[i + 1];
+    }
     fout[0] = fin[0];
     fout[N] = fin[N];
-
-    for (i = 2, n=1; i < N; i += 2, n++) {
-      fout[i] = 0.0f;
-      fout[i + 1] = -1.0f;
-      fenv[n] = 0.f;
-    }
 
     {
       int32_t cond = 1;
@@ -2164,7 +2177,8 @@ static int32_t pvswarp(CSOUND *csound, PVSWARP *p)
       }
       if (keepform > 2) { /* experimental mode 3 */
         int32_t w = 5;
-        for (i=0; i < w; i++) ceps[i] = fenv[i];
+        /* Keep both edges unchanged where the averaging window cannot fit. */
+        for (i=0; i < N/2; i++) ceps[i] = fenv[i];
         for (i=w; i < N/2-w; i++) {
           ceps[i] = 0.0;
           for (j=-w; j < w; j++)
@@ -2173,20 +2187,9 @@ static int32_t pvswarp(CSOUND *csound, PVSWARP *p)
         }
         for (i=0; i<N/2; i++) {
           fenv[i] = EXP(ceps[i]);
-          max = max < fenv[i] ? fenv[i] : max;
         }
-        if (max)
-          for (j=i=lowest; i<N; i+=2, j++) {
-            fenv[j]/=max;
-            binf = (j)*sr/N;
-            if (fenv[j] && binf < pscal*sr/2+pshift )
-              fin[i] /= fenv[j];
-          }
       }
       else {  /* new modes 1 & 2 */
-        int32_t tmp = N/2;
-        tmp = tmp + tmp%2;
-        if (coefs < 1) coefs = 80;
         while(cond) {
           cond = 0;
           for (j=i=0; i < N; i+=2, j++) {
@@ -2205,40 +2208,30 @@ static int32_t pvswarp(CSOUND *csound, PVSWARP *p)
             else
               {
                 fenv[j] = EXP(ceps[i]);
-                max = max < fenv[j] ? fenv[j] : max;
               }
           }
         }
         if (keepform > 1)
           for (j=i=0; i<N; i+=2, j++) {
             fenv[j] = EXP(ceps[i]);
-            max = max < fenv[j] ? fenv[j] : max;
-          }
-        if (max)
-          for (j=i=lowest; i<N; i+=2, j++) {
-            fenv[j]/=max;
-            binf = (i/2)*sr/N;
-            if (fenv[j] && binf < pscal*sr/2+pshift )
-              fin[i] /= fenv[j];
           }
       }
     }
-    for (i = j = 2, chan = 1; i < N; chan++, i += 2, j++) {
-      int32_t newchan;
-      newchan  = (int32_t) ((chan * pscal + cshift)+0.5) << 1;
-      if (i >= lowest) {
-        if (newchan < N && newchan > 0)
-          fout[newchan] = fin[newchan]*fenv[j];
-      } else fout[i] = fin[i];
-      fout[i + 1] = fin[i + 1];
+    for (chan = 1; chan < N/2; chan++) {
+      /* The cutoff applies to shifting, not to envelope scaling. */
+      double bin = chan * pscal + (chan >= lowest ? cshift : 0.0) + 0.5;
+      if (bin >= 1 && bin < N/2) {
+        int32_t dest = (int32_t) bin;
+        /* Whiten the destination and apply the source envelope without
+           changing the shared input. Envelope normalization cancels here. */
+        if (fenv[dest] > 0)
+          fout[2*dest] = (fin[2*dest] / fenv[dest]) * fenv[chan];
+      }
     }
 
-    for (i = j= lowest; i < N; i += 2, j++) {
+    for (i = 0; i <= N; i += 2) {
       if (isnan(fout[i])) fout[i] = 0.0f;
       else fout[i] *= g;
-      binf = (j)*sr/N;
-      if (fenv[j] && binf < pscal*sr/2+pshift )
-        fin[i] *= fenv[i/2];
     }
 
     p->fout->framecount = p->lastframe = p->fin->framecount;
