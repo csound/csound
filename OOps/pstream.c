@@ -537,17 +537,17 @@ int32_t pvsmaskaset(CSOUND *csound, PVSMASKA *p)
     p->fout->wintype = p->wintype;
     p->fout->format  = p->format;
     p->fout->sliding = p->fsrc->sliding;
+    p->fout->NB = p->fsrc->NB;
+    p->fout->framecount = 1;
+    p->lastframe = 0;
     if (p->fsrc->sliding) {
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
+      csound->AuxAlloc(csound, ((size_t)N + 2) * sizeof(MYFLT) * CS_KSMPS,
                        &p->fout->frame);
-      p->fout->NB = p->fsrc->NB;
     }
     else
       {
         /* RWD MUST be 32bit */
         csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-        p->fout->framecount = 1;
-        p->lastframe = 0;
       }
     p->maskfunc = csound->FTFind(csound, p->ifn);
     if (UNLIKELY(p->maskfunc==NULL))
@@ -579,9 +579,14 @@ int32_t pvsmaska(CSOUND *csound, PVSMASKA *p)
     fout = (float *) p->fout->frame.auxp;   /* RWD both MUST be 32bit */
     fsrc = (float *) p->fsrc->frame.auxp;
 
-    if (UNLIKELY(fout==NULL))
+    if (UNLIKELY(fout==NULL || fsrc==NULL))
       return csound->PerfError(csound,&(p->h),
                                Str("pvsmaska: not initialised\n"));
+    if (UNLIKELY(p->fsrc->N != p->fftsize ||
+                 !fsigs_equal(p->fout, p->fsrc)))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("pvsmaska: input format changed; "
+                                   "reinitialise pvsmaska"));
 
     if (depth < FL(0.0)) {
       /* need the warning: but krate linseg can give below-zeroes incorrectly */
@@ -615,9 +620,15 @@ int32_t pvsmaska(CSOUND *csound, PVSMASKA *p)
       uint32_t n, nsmps = CS_KSMPS;
       MYFLT amp = FL(1.0);
       nsmps -= early;
+      fout = (CMPLX *) p->fout->frame.auxp;
+      if (UNLIKELY(offset))
+        memset(fout, 0, (size_t)offset * NB * sizeof(CMPLX));
+      if (UNLIKELY(early))
+        memset(fout + (size_t)nsmps * NB, 0,
+               (size_t)early * NB * sizeof(CMPLX));
       for (n=offset; n<nsmps; n++) {
-        fout = (CMPLX *) p->fout->frame.auxp +n*NB;
-        fsrc = (CMPLX *) p->fsrc->frame.auxp +n*NB;
+        fout = (CMPLX *) p->fout->frame.auxp + (size_t)n * NB;
+        fsrc = (CMPLX *) p->fsrc->frame.auxp + (size_t)n * NB;
         for (i=0; i<NB; i++) {
           amp = depth + margin * ftable[i];
           fout[i].re = fsrc[i].re * amp;
