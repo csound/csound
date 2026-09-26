@@ -1921,9 +1921,9 @@ static int32_t pvsshift(CSOUND *csound, PVSSHIFT *p)
 {
   int32_t    i, chan, newchan, N = p->fout->N;
   MYFLT   pshift = (MYFLT) *p->kshift;
-  int32_t     lowest = abs((int32_t) (*p->lowest * N * CS_ONEDSR));
+  MYFLT   lowestbin = FABS(*p->lowest) * N * CS_ONEDSR;
+  int32_t lowest = N/2 + 1;
   float   max = 0.0f;
-  int32_t     cshift = (int32_t) (pshift * N * CS_ONEDSR);
   int32_t     keepform = (int32_t) *p->keepform;
   float   g = (float) *p->gain;
   float   *fin = (float *) p->fin->frame.auxp;
@@ -1931,20 +1931,29 @@ static int32_t pvsshift(CSOUND *csound, PVSSHIFT *p)
   float  *ftmp = (float *) p->ftmp.auxp;
   MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
   MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
-  float sr = CS_ESR, binf;
-  int32_t coefs = (int32_t) *p->coefs;
 
   if (UNLIKELY(fout == NULL)) goto err1;
+  /* Clamp in bins before converting to an interleaved frame offset. */
+  if (lowestbin < 1)
+    lowest = 1;
+  else if (lowestbin < N/2 + 1)
+    lowest = (int32_t) lowestbin;
+
   if (p->fin->sliding) {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t NB  = p->fout->NB;
     MYFLT g = *p->gain;
-    lowest = lowest ? (lowest > NB ? NB : lowest) : 1;
 
     for (n=0; n<offset; n++) {
       CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
       for (i = 0; i < NB; i++) fout[i].re = fout[i].im = FL(0.0);
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset((CMPLX *) p->fout->frame.auxp + nsmps*NB, 0,
+             early*NB*sizeof(CMPLX));
     }
     for (n=offset; n<nsmps; n++) {  MYFLT max = FL(0.0);
       CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
@@ -1972,22 +1981,30 @@ static int32_t pvsshift(CSOUND *csound, PVSSHIFT *p)
           fout[i].re = 0.0;
       }
       if (g!=1.0f)
-        for (i = lowest; i < NB; i++) {
+        for (i = 0; i < NB; i++) {
           fout[i].re *= g;
         }
     }
     return OK;
   }
   if (p->lastframe < p->fin->framecount) {
-    int32_t j;
-    lowest = lowest ? (lowest > N / 2 ? N / 2 : lowest << 1) : 2;
+    int32_t j, cshift = N/2;
+    MYFLT shiftbins = pshift * N * CS_ONEDSR;
+    /* A shift of half the FFT size already moves every eligible bin out.
+       Bound the conversion and use multiplication for negative offsets. */
+    if (shiftbins <= -N/2)
+      cshift = -N/2;
+    else if (shiftbins < N/2)
+      cshift = (int32_t) shiftbins;
+    lowest = lowest > N/2 ? N : 2*lowest;
 
     fout[0] = fin[0];
+    fout[1] = fin[1];
     fout[N] = fin[N];
+    fout[N + 1] = fin[N + 1];
     memcpy(ftmp, fin, sizeof(float)*(N+2));
 
-    for (j = i = 2; i < N; i += 2, j++) {
-      fenv[j] = 0.0;
+    for (i = 2; i < N; i += 2) {
       if (i < lowest) {
         fout[i] = fin[i];
         fout[i + 1] = fin[i + 1];
@@ -1999,11 +2016,10 @@ static int32_t pvsshift(CSOUND *csound, PVSSHIFT *p)
     }
     if (keepform) { /* new modes 1 & 2 */
       int32_t cond = 1;
-      int32_t tmp = N/2;
-      tmp = tmp + tmp%2;
+      MYFLT requested = *p->coefs >= 1 ? *p->coefs : FL(80.0);
+      int32_t coefs = requested < N/2 ? (int32_t) requested : N/2;
       for (i=j=0; i < N; i+=2, j++)
         fenv[j] = LOG(fin[i] > FL(0.0) ? fin[i] : FL(1e-20));
-      if (coefs < 1) coefs = 80;
       while(cond) {
         cond = 0;
         for (j=i=0; i < N; i+=2, j++) {
@@ -2032,26 +2048,25 @@ static int32_t pvsshift(CSOUND *csound, PVSSHIFT *p)
           max = max < fenv[i] ? fenv[i] : max;
         }
       if (max)
-        for (j=i=lowest; i<N; i+=2, j++) {
+        for (i=lowest, j=lowest/2; i<N; i+=2, j++) {
           fenv[j]/=max;
-          binf = (j)*sr/N;
-          if (fenv[j] && binf < sr/2+pshift )
+          if (fenv[j])
             ftmp[i] /= fenv[j];
         }
     }
 
     if(keepform) {
       for (i = lowest, chan = lowest >> 1; i < N; chan++, i += 2) {
-        newchan = (chan + cshift) << 1;
-        if (newchan < N && newchan > lowest) {
+        newchan = 2*(chan + cshift);
+        if (newchan < N && newchan >= lowest) {
           fout[newchan] = ftmp[i] * fenv[newchan>>1];
           fout[newchan + 1] = (float) (ftmp[i + 1] + pshift);
         }
       }
     } else {
       for (i = lowest, chan = lowest >> 1; i < N; chan++, i += 2) {
-        newchan = (chan + cshift) << 1;
-        if (newchan < N && newchan > lowest) {
+        newchan = 2*(chan + cshift);
+        if (newchan < N && newchan >= lowest) {
           fout[newchan] = ftmp[i];
           fout[newchan + 1] = (float) (ftmp[i + 1] + pshift);
         }
@@ -2059,12 +2074,8 @@ static int32_t pvsshift(CSOUND *csound, PVSSHIFT *p)
 
     }
 
-    for (i = lowest; i < N; i += 2) {
-      if (fout[i + 1] == -1.0f)
-        fout[i] = 0.0f;
-      else
-        fout[i] *= g;
-    }
+    for (i = 0; i <= N; i += 2)
+      fout[i] *= g;
 
     p->fout->framecount = p->lastframe = p->fin->framecount;
   }
