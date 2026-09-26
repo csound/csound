@@ -1699,19 +1699,23 @@ static int32_t pvsscale(CSOUND *csound, PVSSCALE *p)
   MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
   float   *ftmp = (float *) p->ftmp.auxp;
   MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
-  float sr = CS_ESR, binf;
-  int32_t coefs = (int32_t) *p->coefs;
 
   if (UNLIKELY(fout == NULL)) goto err1;
 
   if (p->fout->sliding) {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t NB    = p->fout->NB;
     MYFLT   g = *p->gain;
     for (n=0; n<offset; n++) {
       CMPLX   *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
       for (i = 0; i < NB; i++) fout[i].re = fout[i].im = FL(0.0);
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset((CMPLX *) p->fout->frame.auxp + nsmps*NB, 0,
+             early*NB*sizeof(CMPLX));
     }
     for (n=offset; n<nsmps; n++) {
       MYFLT    max = FL(0.0);
@@ -1740,22 +1744,22 @@ static int32_t pvsscale(CSOUND *csound, PVSSCALE *p)
           fout[i].re=0.0;
       }
 
-      for (i = 1; i < NB; i++) {
+      for (i = 0; i < NB; i++) {
         fout[i].re *= g;
       }
     }
     return OK;
   }
   if (p->lastframe < p->fin->framecount) {
-    int32_t n;
-    fout[0] = fin[0];
-    fout[N] = fin[N];
+    fout[0] = fin[0]*g;
+    fout[1] = fin[1];
+    fout[N] = fin[N]*g;
+    fout[N + 1] = fin[N + 1];
     memcpy(ftmp,fin,sizeof(float)*(N+2));
 
-    for (i = 2, n=1; i < N; i += 2, n++) {
+    for (i = 2; i < N; i += 2) {
       fout[i] = 0.0f;
       fout[i + 1] = -1.0f;
-      fenv[n] = 0.f;
     }
 
     if (keepform) {
@@ -1767,7 +1771,8 @@ static int32_t pvsscale(CSOUND *csound, PVSSCALE *p)
 
       if (keepform > 2) { /* experimental mode 3 */
         int32_t w = 5, w2  = w*2;
-        for (i=0; i < w; i++) ceps[i] = fenv[i];
+        /* Keep both edges unchanged where the averaging window cannot fit. */
+        for (i=0; i < N/2; i++) ceps[i] = fenv[i];
         for (i=w; i < N/2-w; i++) {
           ceps[i] = 0.0;
           for (j=-w; j < w; j++)
@@ -1778,18 +1783,10 @@ static int32_t pvsscale(CSOUND *csound, PVSSCALE *p)
           fenv[i] = EXP(ceps[i]);
           max = max < fenv[i] ? fenv[i] : max;
         }
-        if (max)
-          for (j=i=0; i<N; i+=2, j++) {
-            fenv[j]/=max;
-            binf = (j)*sr/N;
-            if (fenv[j] && binf < pscal*sr/2 )
-              ftmp[i] /= fenv[j];
-          }
       }
       else {  /* new modes 1 & 2 */
-        int32_t tmp = N/2,j;
-        tmp = tmp + tmp%2;
-        if (coefs < 1) coefs = 80;
+        MYFLT requested = *p->coefs >= 1 ? *p->coefs : FL(80.0);
+        int32_t coefs = requested < N/2 ? (int32_t) requested : N/2;
         while(cond) {
           cond = 0;
           for (i=0; i < N/2; i++) {
@@ -1816,30 +1813,30 @@ static int32_t pvsscale(CSOUND *csound, PVSSCALE *p)
             fenv[i] = EXP(ceps[i]);
             max = max < fenv[i] ? fenv[i] : max;
           }
-
-        if (max)
-          for (i=j=2; i<N/2; i++, j+=2) {
-            fenv[i]/=max;
-            binf = (i)*sr/N;
-            if (fenv[i] && binf < pscal*sr/2 )
-              ftmp[j] /= fenv[i];
-          }
       }
+      /* Normalize and whiten matching bins, including high source bins
+         that can move below Nyquist when the pitch ratio is less than one. */
+      if (max)
+        for (i=1, j=2; i<N/2; i++, j+=2) {
+          fenv[i]/=max;
+          if (fenv[i])
+            ftmp[j] /= fenv[i];
+        }
     }
     if(keepform) {
       for (i = 2, chan = 1; i < N; chan++, i += 2) {
-        int32_t newchan;
-        newchan  = (int32_t) ((chan * pscal)+0.5) << 1;
-        if (newchan < N && newchan > 0) {
+        double bin = (chan * pscal) + 0.5;
+        if (bin >= 1 && bin < N/2) {
+          int32_t newchan = 2*(int32_t) bin;
           fout[newchan] = ftmp[i]*fenv[newchan>>1];
           fout[newchan + 1] = (float) (ftmp[i + 1] * pscal);
         }
       }
     } else {
       for (i = 2, chan = 1; i < N; chan++, i += 2) {
-        int32_t newchan;
-        newchan  = (int32_t) ((chan * pscal)+0.5) << 1;
-        if (newchan < N && newchan > 0) {
+        double bin = (chan * pscal) + 0.5;
+        if (bin >= 1 && bin < N/2) {
+          int32_t newchan = 2*(int32_t) bin;
           fout[newchan] = ftmp[i];
           fout[newchan + 1] = (float) (ftmp[i + 1] * pscal);
         }
