@@ -1191,7 +1191,7 @@ static int32_t fini_read_text(CSOUND *csound, FILE *fp, MYFLT *value)
     len = 0;
     do {
       if (len == sizeof(token) - 1)
-        return csound->InitError(csound, Str("fini: numeric token too long"));
+        return csound->InitError(csound, "%s", Str("fini: numeric token too long"));
       token[len++] = (char)c;
       c = getc(fp);
     } while (c != EOF && !isspace(c));
@@ -1203,7 +1203,7 @@ static int32_t fini_read_text(CSOUND *csound, FILE *fp, MYFLT *value)
     start++;
   number = csound->Strtod(start, &end);
   if (end == start || *end != '\0')
-    return csound->InitError(csound, Str("fini: invalid numeric data"));
+    return csound->InitError(csound, "%s", Str("fini: invalid numeric data"));
   *value = (MYFLT)number;
   return 1;
 }
@@ -1218,9 +1218,9 @@ static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
 
   if (*p->iflag != FL(0.0) && *p->iflag != FL(1.0) &&
       *p->iflag != FL(2.0))
-    return csound->InitError(csound, Str("fini: format must be 0, 1 or 2"));
+    return csound->InitError(csound, "%s", Str("fini: format must be 0, 1 or 2"));
   if (!(skip >= 0.0 && skip <= INT32_MAX))
-    return csound->InitError(csound, Str("fini: invalid skip frame count"));
+    return csound->InitError(csound, "%s", Str("fini: invalid skip frame count"));
   format = (int32_t)*p->iflag;
   /* The stream is shared across init calls; it has no per-note borrower. */
   fout_open_file(csound, NULL, &fp, CSFILE_STD, p->fname, istring,
@@ -1237,13 +1237,13 @@ static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
     if (format == 2) {
       uint64_t bytes = (uint64_t)skip * (uint64_t)nargs * sizeof(float);
       if (bytes > LONG_MAX || fseek(fp, (long)bytes, SEEK_SET) != 0)
-        return csound->InitError(csound, Str("fini: cannot seek to frame"));
+        return csound->InitError(csound, "%s", Str("fini: cannot seek to frame"));
     }
     else {
       int64_t count = (int64_t)skip * nargs;
       MYFLT ignored;
       if (fseek(fp, 0, SEEK_SET) != 0)
-        return csound->InitError(csound, Str("fini: cannot seek to frame"));
+        return csound->InitError(csound, "%s", Str("fini: cannot seek to frame"));
       while (count-- > 0) {
         int32_t status = fini_read_text(csound, fp, &ignored);
         if (status < 0)
@@ -1265,7 +1265,7 @@ static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
       int32_t status = fini_read_text(csound, fp, args[j]);
       if (status == 0 && format == 0 && !ferror(fp)) {
         if (fseek(fp, 0, SEEK_SET) != 0)
-          return csound->InitError(csound, Str("fini: cannot rewind file"));
+          return csound->InitError(csound, "%s", Str("fini: cannot rewind file"));
         /* Retry once: empty input must not loop forever. */
         status = fini_read_text(csound, fp, args[j]);
       }
@@ -1276,7 +1276,7 @@ static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
     }
   }
   if (ferror(fp))
-    return csound->InitError(csound, Str("fini: file read failed"));
+    return csound->InitError(csound, "%s", Str("fini: file read failed"));
   return OK;
 }
 
@@ -1340,7 +1340,7 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
                      (temp == '%' && tempn == '%')) ? 2 : 1;
     if ((size_t)(sdest - p->txtstring) + needed >= sizeof(p->txtstring))
       return csound->InitError(csound,
-                              Str("expanded format exceeds 8192 characters"));
+                              "%s", Str("expanded format exceeds 8192 characters"));
     /* Look for a single caret and insert an escape char.  */
     if ((temp  == '^') && (tempn != '^')) {
       *sdest++ = 0x1B; /* ESC */

@@ -470,7 +470,7 @@ static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
   int32_t N = ff->flen;
   if (N < 2) return csound->FtError(ff, Str("Illegal table size %d"), N);
   if (ff->e.pcnt < 11)
-    return csound->FtError(ff, Str("insufficient arguments"));
+    return csound->FtError(ff, "%s", Str("insufficient arguments"));
 
   MYFLT p5_fundamental_frequency = ff->e.p[5];
   MYFLT p6_partial_bandwidth = ff->e.p[6];

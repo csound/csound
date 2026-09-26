@@ -56,7 +56,7 @@ static int32_t krsnsetx(CSOUND *csound, KRESONX *p)
                              *p->ord);
   new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
   if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(MYFLT))))
-    return csound->InitError(csound, Str("resonxk: order is too large"));
+    return csound->InitError(csound, "%s", Str("resonxk: order is too large"));
   clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
   p->loop = new_loop;
   state_size = (size_t)p->loop * 2 * sizeof(MYFLT);

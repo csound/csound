@@ -2225,7 +2225,7 @@ static int32_t bob_init(CSOUND *csound,BOB *p)
   if (*p->osamp <= FL(0.0)) p->ostimes = 2;
   else if (*p->osamp < FL(1.0)) p->ostimes = 1;
   else if (UNLIKELY(!(*p->osamp < 2147483648.0)))
-    return csound->InitError(csound, Str("bob: oversampling count is too large"));
+    return csound->InitError(csound, "%s", Str("bob: oversampling count is too large"));
   else p->ostimes = (int32_t) *p->osamp;
 
   return OK;
@@ -3239,7 +3239,7 @@ int32_t svn_init(CSOUND *csound, SVN *p) {
   if (UNLIKELY((*p->ifn != FL(0.0) || *p->inm != FL(0.0)) &&
                (!(*p->mx > FL(0.0)) || !isfinite(*p->mx))))
     return csound->InitError(csound,
-                            Str("svn: table domain must be positive and finite"));
+                            "%s", Str("svn: table domain must be positive and finite"));
   p->norm = NULL;
   if (*p->inm != FL(0.0)) {
     p->norm = csound->FTFind(csound, p->inm);

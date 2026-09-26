@@ -99,13 +99,13 @@ static int32_t linuxjoystick(CSOUND *csound, LINUXJOYSTICK *stick)
       }
       if (stick->devFD < 0) {
         stick->timeout = 10000;
-        csound->Warning(csound, Str("joystick: could not open device %d: %s"),
+        csound->Warning(csound, "%s", Str("joystick: could not open device %d: %s"),
                         dev, strerror(errno));
         return OK;
       }
       if (ioctl(stick->devFD, JSIOCGAXES, &stick->numk) < 0 ||
           ioctl(stick->devFD, JSIOCGBUTTONS, &stick->numb) < 0) {
-        csound->Warning(csound, Str("joystick: could not query device %d: %s"),
+        csound->Warning(csound, "%s", Str("joystick: could not query device %d: %s"),
                         dev, strerror(errno));
         linuxjoystick_deinit(csound, stick);
         stick->timeout = 10000;
@@ -134,7 +134,7 @@ static int32_t linuxjoystick(CSOUND *csound, LINUXJOYSTICK *stick)
       if (read_size < 0 && errno == EINTR) continue;
       if (read_size < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) break;
       if (UNLIKELY(read_size != (ssize_t)sizeof(js))) {
-        csound->Warning(csound, Str("joystick: read failed, closing device %d"),
+        csound->Warning(csound, "%s", Str("joystick: read failed, closing device %d"),
                         dev);
         linuxjoystick_deinit(csound, stick);
         stick->timeout = 10000;

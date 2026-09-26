@@ -514,11 +514,11 @@ int32_t fareylen (CSOUND *csound, FAREYLEN *p)
     int32_t length;
     if (UNLIKELY(!(*p->kn >= FL(1.0) && (double)*p->kn <= INT32_MAX)))
       return csound->PerfError(csound, &(p->h),
-                               Str("fareylen: invalid sequence order"));
+                               "%s", Str("fareylen: invalid sequence order"));
     length = FareyLength((int32_t)*p->kn);
     if (UNLIKELY(length == 0))
       return csound->PerfError(csound, &(p->h),
-                               Str("fareylen: sequence length exceeds int32 range"));
+                               "%s", Str("fareylen: sequence length exceeds int32 range"));
     *p->kr = (MYFLT)length;
     return OK;
 }
@@ -527,11 +527,11 @@ int32_t fareyleni (CSOUND *csound, FAREYLEN *p)
 {
     int32_t length;
     if (UNLIKELY(!(*p->kn >= FL(1.0) && (double)*p->kn <= INT32_MAX)))
-      return csound->InitError(csound, Str("fareylen: invalid sequence order"));
+      return csound->InitError(csound, "%s", Str("fareylen: invalid sequence order"));
     length = FareyLength((int32_t)*p->kn);
     if (UNLIKELY(length == 0))
       return csound->InitError(csound,
-                               Str("fareylen: sequence length exceeds int32 range"));
+                               "%s", Str("fareylen: sequence length exceeds int32 range"));
     *p->kr = (MYFLT)length;
     return OK;
 }

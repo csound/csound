@@ -324,7 +324,7 @@ static int32_t ChebyshevPolynomial2Array(CSOUND* csound, CHEBPOLY2ARRAY* p)
     if (UNLIKELY(coefficients->data == NULL || coefficients->sizes == NULL ||
                  coefficients->dimensions != 1 || coefficients->sizes[0] < 1))
       return csound->PerfError(csound, &p->h,
-                               Str("chebyshevpoly2: coefficients must be "
+                               "%s", Str("chebyshevpoly2: coefficients must be "
                                    "a non-empty one-dimensional array"));
     count = coefficients->sizes[0];
     coeff = (MYFLT*)coefficients->data;
@@ -636,7 +636,7 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("syncphasor: invalid frequency"));
+                             "%s", Str("syncphasor: invalid frequency"));
 }
 
 

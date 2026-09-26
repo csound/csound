@@ -272,7 +272,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
     PluginIndex = (uint64_t) *p->iindex;
     PluginLibrary = dlopenLADSPA(csound, dssiFilename, RTLD_NOW);
     if (UNLIKELY(!PluginLibrary))
-      return csound->InitError(csound, Str("DSSI4CS: Failed to load %s."),
+      return csound->InitError(csound, "%s", Str("DSSI4CS: Failed to load %s."),
                                        dssiFilename);
     if (!DSSIPlugin) {
       if (UNLIKELY(csound->CreateGlobalVariable(csound, "$DSSI4CS",
@@ -352,7 +352,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
       /* TODO: cleanup if error */
       /* csound->Free(csound, DSSIPlugin_->Descriptor); */
       if (pcError)
-        csound->InitError(csound, Str("DSSI4CS: Unable to find "
+        csound->InitError(csound, "%s", Str("DSSI4CS: Unable to find "
                                       "ladspa_descriptor(%lu) function or\n"
                                       "dssi_descriptor(%lu) function in plugin "
                                       "file \"%s\": %s.\n"
@@ -361,7 +361,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
                           (unsigned long)PluginIndex, (unsigned long)PluginIndex,
                           dssiFilename, pcError);
       else
-        csound->InitError(csound, Str("DSSI4CS: Unable to find "
+        csound->InitError(csound, "%s", Str("DSSI4CS: Unable to find "
                                       "ladspa_descriptor(%lu) function or\n"
                                       "dssi_descriptor(%lu) function in plugin "
                                       "file \"%s\".\n"
@@ -373,7 +373,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
       return NOTOK;
     }
     if (UNLIKELY(!LDescriptor)) {
-      csound->InitError(csound, Str("DSSI4CS: No plugin index %lu in %s"),
+      csound->InitError(csound, "%s", Str("DSSI4CS: No plugin index %lu in %s"),
                               (unsigned long) PluginIndex, dssiFilename);
       dlclose(PluginLibrary);
       return NOTOK;
@@ -389,14 +389,14 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
                                                                 Descriptor,
                                                                 SampleRate)))){
         csound->InitError(csound,
-                          Str("DSSI4CS: Could not instantiate plugin: %s"),
+                          "%s", Str("DSSI4CS: Could not instantiate plugin: %s"),
                           dssiFilename);
         dlclose(PluginLibrary);
         return NOTOK;
 
       }
       if (UNLIKELY(!DSSIPlugin_->Descriptor->run)) {
-        return csound->InitError(csound, Str("DSSI4CS: No run() function in: %s"),
+        return csound->InitError(csound, "%s", Str("DSSI4CS: No run() function in: %s"),
                                  LDescriptor->Name);
       }
       PortCount = DSSIPlugin_->Descriptor->PortCount;
@@ -410,12 +410,12 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
            instantiate(DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin, SampleRate)))) {
         unloadLADSPAPluginLibrary(csound, PluginLibrary);
         return csound->InitError(csound,
-                                 Str("DSSI4CS: Could not instantiate plugin: %s"),
+                                 "%s", Str("DSSI4CS: Could not instantiate plugin: %s"),
                                  dssiFilename);
       }
       if (UNLIKELY(!DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->run)) {
         unloadLADSPAPluginLibrary(csound, PluginLibrary);
-        return csound->InitError(csound, Str("DSSI4CS: No run() function in: %s"),
+        return csound->InitError(csound, "%s", Str("DSSI4CS: No run() function in: %s"),
                                          LDescriptor->Name);
       }
       PortCount = DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->PortCount;
@@ -597,7 +597,7 @@ int32_t dssiactivate_init(CSOUND * csound, DSSIACTIVATE * p)
     if (UNLIKELY((!p->DSSIPlugin_) || (Number > *p->DSSIPlugin_->PluginCount) ||
                  (!p->DSSIPlugin_->Handle)))
       return csound->InitError(csound,
-                               Str("DSSI4CS: Invalid plugin: %i (MAX= %i)."),
+                               "%s", Str("DSSI4CS: Invalid plugin: %i (MAX= %i)."),
                                Number, *p->DSSIPlugin_->PluginCount);
 #ifdef DEBUG
     csound->Message(csound, "DSSI4CS: activate-Finished locating plugin %i\n",
@@ -687,13 +687,13 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 
     if (UNLIKELY(icnt > DSSI4CS_MAX_IN_CHANNELS))
       csound->Die(csound,
-                  Str("DSSI4CS: number of audio input channels "
+                  "%s", Str("DSSI4CS: number of audio input channels "
                       "is greater than %d"),
                   DSSI4CS_MAX_IN_CHANNELS);
 
     if (UNLIKELY(ocnt > DSSI4CS_MAX_OUT_CHANNELS))
       csound->Die(csound,
-                  Str("DSSI4CS: number of audio output channels "
+                  "%s", Str("DSSI4CS: number of audio output channels "
                       "is greater than %d"),
                   DSSI4CS_MAX_OUT_CHANNELS);
 
@@ -782,16 +782,16 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
     p->NumOutputPorts = ConnectedOutputPorts;
     if ((p->NumInputPorts) < icnt) {
       if (p->NumInputPorts == 0)
-        csound->Message(csound, Str("DSSI4CS: Plugin '%s' has %i audio input ports "
+        csound->Message(csound, "%s", Str("DSSI4CS: Plugin '%s' has %i audio input ports "
                                     "audio input discarded.\n"),
                                 Descriptor->Name, p->NumInputPorts);
       else
-        return csound->InitError(csound, Str("DSSI4CS: Plugin '%s' "
+        return csound->InitError(csound, "%s", Str("DSSI4CS: Plugin '%s' "
                                              "has %i audio input ports."),
                                          Descriptor->Name, p->NumOutputPorts);
     }
     if (p->NumOutputPorts < ocnt)
-      return csound->InitError(csound, Str("DSSI4CS: Plugin '%s' "
+      return csound->InitError(csound, "%s", Str("DSSI4CS: Plugin '%s' "
                                            "has %i audio output ports."),
                                        Descriptor->Name, p->NumOutputPorts);
     return OK;
@@ -888,7 +888,7 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
     if (PortIndex >= Descriptor->PortCount) {
       return
         csound->InitError(csound,
-                          Str("DSSI4CS: Port %lu from '%s' does not exist."),
+                          "%s", Str("DSSI4CS: Port %lu from '%s' does not exist."),
                           (unsigned long)PortIndex, Descriptor->Name);
     }
     p->HintSampleRate =
@@ -903,7 +903,7 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
         Descriptor->PortDescriptors[PortIndex];
     if (LADSPA_IS_PORT_OUTPUT(PortDescriptor))
       return csound->InitError(csound,
-                               Str("DSSI4CS: Port %lu from '%s' is an "
+                               "%s", Str("DSSI4CS: Port %lu from '%s' is an "
                                    "output port."),
                                (unsigned long)PortIndex, Descriptor->Name);
     for (i = 0; i < PortIndex; i++) {

@@ -140,7 +140,7 @@ void   *loadLADSPAPluginLibrary(CSOUND *csound, const char *pcPluginFilename)
     /* pvPluginHandle = dlopenLADSPA(csound, pcPluginFilename, RTLD_LAZY); */
     pvPluginHandle = dlopenLADSPA(csound, pcPluginFilename, RTLD_NOW);
     if (!pvPluginHandle) {
-      csound->Die(csound, Str("Failed to load plugin \"%s\": %s"),
+      csound->Die(csound, "%s", Str("Failed to load plugin \"%s\": %s"),
                           pcPluginFilename, dlerror());
     }
 
@@ -176,13 +176,13 @@ const LADSPA_Descriptor *
       const char *pcError = dlerror();
 
       if (pcError) {
-        csound->Die(csound, Str("Unable to find ladspa_descriptor() function "
+        csound->Die(csound, "%s", Str("Unable to find ladspa_descriptor() function "
                                 "in plugin library file \"%s\": %s.\n"
                                 "Are you sure this is a LADSPA plugin file ?"),
                             pcPluginLibraryFilename, pcError);
       }
       else {
-        csound->Die(csound, Str("Unable to find ladspa_descriptor() function "
+        csound->Die(csound, "%s", Str("Unable to find ladspa_descriptor() function "
                                 "in plugin library file \"%s\".\n"
                                 "Are you sure this is a LADSPA plugin file ?"),
                             pcPluginLibraryFilename);
@@ -197,7 +197,7 @@ const LADSPA_Descriptor *
         return psDescriptor;
     }
 
-    csound->Die(csound, Str("Unable to find label \"%s\" "
+    csound->Die(csound, "%s", Str("Unable to find label \"%s\" "
                             "in plugin library file \"%s\"."),
                         pcPluginLabel, pcPluginLibraryFilename);
     return NULL;    /* compiler only; not reached */

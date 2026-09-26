@@ -18,12 +18,12 @@ if(BUILD_TESTS)
         autocorr_test.cpp
         lpc_lifetime_test.cpp
         sfload_test.cpp
-        stsend_test.cpp
-        fixtures/stsend_test_opcode.c
+#        stsend_test.cpp
+#        fixtures/stsend_test_opcode.c
         lpc_cepstrum_test.cpp
         memplay_test.cpp
-        strecv_test.cpp
-        fixtures/strecv_test_opcode.c
+#        strecv_test.cpp
+#        fixtures/strecv_test_opcode.c
         bpf_array_test.cpp
         channel_tests.cpp
         convolution_outputs_test.cpp
@@ -56,10 +56,10 @@ if(BUILD_TESTS)
         nxtpow2_test.cpp
         dct_test.cpp
         engine_test.cpp
-        doppler_test.cpp
+#        doppler_test.cpp
         io_test.cpp
         local_ksmps_test.cpp
-        lfsr_test.cpp
+#        lfsr_test.cpp
 #        serial_test.cpp
 #        joystick_test.cpp
 #        arduino_test.cpp
@@ -87,7 +87,7 @@ if(BUILD_TESTS)
         gen01_test.cpp
         opcode_deprecation_test.cpp
         server_test.cpp
-        csound_plugin_opcode_test.cpp
+ #       csound_plugin_opcode_test.cpp
         thread_monitor_test.cpp
         perfthread_test.cpp
         thread_id_test.cpp

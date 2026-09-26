@@ -350,7 +350,7 @@ static int32_t sum_(CSOUND *csound, SUM *p)
 static int32_t product_init(CSOUND *csound, SUM *p)
 {
     if (UNLIKELY(p->INOCOUNT == 0))
-      return csound->InitError(csound, Str("product requires an input"));
+      return csound->InitError(csound, "%s", Str("product requires an input"));
     /* Keep existing scratch space sized on reinit. */
     if (p->aux.auxp != NULL)
       return sum_init(csound, p);
@@ -418,7 +418,7 @@ static int32_t rsnsety(CSOUND *csound, RESONY *p)
                                *p->ord);
     new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
     if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(MYFLT))))
-      return csound->InitError(csound, Str("resony: order is too large"));
+      return csound->InitError(csound, "%s", Str("resony: order is too large"));
     clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
     p->loop = new_loop;
     state_size = (size_t)p->loop * 2 * sizeof(MYFLT);

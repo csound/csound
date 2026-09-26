@@ -466,7 +466,7 @@ static inline int32_t tabcheck(CSOUND *csound, ARRAYDAT *p, int32_t size, OPDS *
     }
     if (bytes > p->allocated) { /* was arr->allocate */
       return csound->PerfError(csound, q,
-        Str("Array too small (allocated %zu < needed %zu), but cannot "
+        "%s", Str("Array too small (allocated %zu < needed %zu), but cannot "
             "allocate during performance pass. Allocate a bigger array at init time"),
         p->allocated, bytes);
     }

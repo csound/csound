@@ -114,7 +114,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int nbytes)
         if (gen->mBufSize*(sizeof(MYFLT)/sizeof(float)) < (size_t)nbytes) {
           // we assume MYFLT === double for now...
           csound->ErrorMsg(csound,
-                           Str("buffer mismatch! source %d <>  dest %ld\n"),
+                           "%s", Str("buffer mismatch! source %d <>  dest %ld\n"),
                            nbytes, gen->mBufSize);
                 return;
         }
@@ -240,7 +240,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 //      printf("haiku module entered -- msg level = %x\n", oparms.msglevel);
         /* report success */
         if (oparms.msglevel & 0x400)
-          csound->Message(csound, Str("Haiku real-time audio and MIDI module "
+          csound->Message(csound, "%s", Str("Haiku real-time audio and MIDI module "
                                       "for Csound by Pete Goodeve\n"));
         return 0;
 }
@@ -262,7 +262,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
         }
         buf[i] = (char) 0;
         if (strcmp(&(buf[0]), "haiku") == 0) {
-          csound->Message(csound, Str("rtaudio: Haiku module enabled\n"));
+          csound->Message(csound, "%s", Str("rtaudio: Haiku module enabled\n"));
           csound->SetPlayopenCallback(csound, playopen_);
           csound->SetRecopenCallback(csound, recopen_);
           csound->SetRtplayCallback(csound, rtplay_);
@@ -277,7 +277,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
         }
         buf[i] = (char) 0;
         if (strcmp(&(buf[0]), "haiku") == 0) {
-          csound->Message(csound, Str("rtmidi: Haiku module enabled\n"));
+          csound->Message(csound, "%s", Str("rtmidi: Haiku module enabled\n"));
           csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
           csound->SetExternalMidiReadCallback(csound, midi_in_read);
           csound->SetExternalMidiInCloseCallback(csound, midi_in_close);

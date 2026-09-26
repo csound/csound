@@ -270,11 +270,11 @@ static int32_t open_device(CSOUND *csound,
     if (is_playback) {
       WAVEOUTCAPSA  caps;
       ndev = (int32_t) waveOutGetNumDevs();
-      csound->Message(csound, Str("The available output devices are:\n"));
+      csound->Message(csound, "%s", Str("The available output devices are:\n"));
       for (i = 0; i < ndev; i++) {
         waveOutGetDevCapsA((uint32_t) i, (LPWAVEOUTCAPSA) &caps,
                            sizeof(WAVEOUTCAPSA));
-        csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
+        csound->Message(csound, "%s", Str("%3d: %s\n"), i, (char*) caps.szPname);
       }
       if (UNLIKELY(ndev < 1))
         return err_msg(csound, Str("No output device is available"));
@@ -283,17 +283,17 @@ static int32_t open_device(CSOUND *csound,
       }
       waveOutGetDevCapsA((uint32_t) devNum, (LPWAVEOUTCAPSA) &caps,
                          sizeof(WAVEOUTCAPSA));
-      csound->Message(csound, Str("winmm: opening output device %d (%s)\n"),
+      csound->Message(csound, "%s", Str("winmm: opening output device %d (%s)\n"),
                               devNum, (char*) caps.szPname);
     }
     else {
       WAVEINCAPSA  caps;
       ndev = (int32_t) waveInGetNumDevs();
-      csound->Message(csound, Str("The available input devices are:\n"));
+      csound->Message(csound, "%s", Str("The available input devices are:\n"));
       for (i = 0; i < ndev; i++) {
         waveInGetDevCapsA((uint32_t) i, (LPWAVEINCAPSA) &caps,
                           sizeof(WAVEINCAPSA));
-        csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
+        csound->Message(csound, "%s", Str("%3d: %s\n"), i, (char*) caps.szPname);
       }
       if (UNLIKELY(ndev < 1))
         return err_msg(csound, Str("no input device is available"));
@@ -302,7 +302,7 @@ static int32_t open_device(CSOUND *csound,
       }
       waveInGetDevCapsA((uint32_t) devNum, (LPWAVEINCAPSA) &caps,
                         sizeof(WAVEINCAPSA));
-      csound->Message(csound, Str("winmm: opening input device %d (%s)\n"),
+      csound->Message(csound, "%s", Str("winmm: opening input device %d (%s)\n"),
                       devNum, (char*) caps.szPname);
     }
     p = (rtWinMMGlobals*)
@@ -545,44 +545,44 @@ static int32_t midi_in_open(CSOUND *csound, void **userData, const char *devName
     *userData = NULL;
     ndev = (int32_t) midiInGetNumDevs();
     if (UNLIKELY(ndev < 1)) {
-      csound->ErrorMsg(csound, Str("rtmidi: no input devices are available"));
+      csound->ErrorMsg(csound, "%s", Str("rtmidi: no input devices are available"));
       return -1;
     }
     if (devName != NULL && devName[0] != '\0' &&
         strcmp(devName, "default") != 0) {
       if (UNLIKELY(devName[0] < '0' || devName[0] > '9')) {
-        csound->ErrorMsg(csound, Str("rtmidi: must specify a device number, "
+        csound->ErrorMsg(csound, "%s", Str("rtmidi: must specify a device number, "
                                      "not a name"));
         return -1;
       }
       devnum = (int32_t) atoi(devName);
     }
-    csound->Message(csound, Str("The available MIDI input devices are:\n"));
+    csound->Message(csound, "%s", Str("The available MIDI input devices are:\n"));
     for (i = 0; i < ndev; i++) {
       midiInGetDevCaps((uint32_t) i, &caps, sizeof(MIDIINCAPS));
       csound->Message(csound, "%3d: %s\n", i, &(caps.szPname[0]));
     }
     if (UNLIKELY(devnum < 0 || devnum >= ndev)) {
       csound->ErrorMsg(csound,
-                       Str("rtmidi: input device number is out of range"));
+                       "%s", Str("rtmidi: input device number is out of range"));
       return -1;
     }
     p = (RTMIDI_MME_GLOBALS*) csound->Calloc(csound,
                                              (size_t) sizeof(RTMIDI_MME_GLOBALS));
     if (UNLIKELY(p == NULL)) {
-      csound->ErrorMsg(csound, Str("rtmidi: memory allocation failure"));
+      csound->ErrorMsg(csound, "%s", Str("rtmidi: memory allocation failure"));
       return -1;
     }
     InitializeCriticalSection(&(p->threadLock));
     *userData = (void*) p;
     midiInGetDevCaps((uint32_t) devnum, &caps, sizeof(MIDIINCAPS));
-    csound->Message(csound, Str("Opening MIDI input device %d (%s)\n"),
+    csound->Message(csound, "%s", Str("Opening MIDI input device %d (%s)\n"),
                             devnum, &(caps.szPname[0]));
     if (midiInOpen(&(p->inDev), (uint32_t) devnum,
                    (DWORD_PTR) midi_in_handler, (DWORD_PTR) p, CALLBACK_FUNCTION)
         != MMSYSERR_NOERROR) {
       p->inDev = (HMIDIIN) 0;
-      csound->ErrorMsg(csound, Str("rtmidi: could not open input device"));
+      csound->ErrorMsg(csound, "%s", Str("rtmidi: could not open input device"));
       return -1;
     }
     midiInStart(p->inDev);
@@ -650,35 +650,35 @@ static int32_t midi_out_open(CSOUND *csound, void **userData, const char *devNam
     *userData = NULL;
     ndev = (int32_t) midiOutGetNumDevs();
     if (UNLIKELY(ndev < 1)) {
-      csound->ErrorMsg(csound, Str("rtmidi: no output devices are available"));
+      csound->ErrorMsg(csound, "%s", Str("rtmidi: no output devices are available"));
       return -1;
     }
     if (devName != NULL && devName[0] != '\0' &&
         strcmp(devName, "default") != 0) {
       if (UNLIKELY(devName[0] < '0' || devName[0] > '9')) {
-        csound->ErrorMsg(csound, Str("rtmidi: must specify a device number, "
+        csound->ErrorMsg(csound, "%s", Str("rtmidi: must specify a device number, "
                                      "not a name"));
         return -1;
       }
       devnum = (int32_t) atoi(devName);
     }
-    csound->Message(csound, Str("The available MIDI output devices are:\n"));
+    csound->Message(csound, "%s", Str("The available MIDI output devices are:\n"));
     for (i = 0; i < ndev; i++) {
       midiOutGetDevCaps((uint32_t) i, &caps, sizeof(MIDIOUTCAPS));
       csound->Message(csound, "%3d: %s\n", i, &(caps.szPname[0]));
     }
     if (UNLIKELY(devnum < 0 || devnum >= ndev)) {
       csound->ErrorMsg(csound,
-                       Str("rtmidi: output device number is out of range"));
+                       "%s", Str("rtmidi: output device number is out of range"));
       return -1;
     }
     midiOutGetDevCaps((uint32_t) devnum, &caps, sizeof(MIDIOUTCAPS));
-    csound->Message(csound, Str("Opening MIDI output device %d (%s)\n"),
+    csound->Message(csound, "%s", Str("Opening MIDI output device %d (%s)\n"),
                             devnum, &(caps.szPname[0]));
     if (UNLIKELY(midiOutOpen(&outDev, (uint32_t) devnum,
                              (DWORD) 0, (DWORD) 0,
                              CALLBACK_NULL) != MMSYSERR_NOERROR)) {
-      csound->ErrorMsg(csound, Str("rtmidi: could not open output device"));
+      csound->ErrorMsg(csound, "%s", Str("rtmidi: could not open output device"));
       return -1;
     }
     *userData = (void*) outDev;
@@ -738,7 +738,7 @@ static int32_t midi_out_close(CSOUND *csound, void *userData)
      O = csound->GetOParms(csound) ;
 
     if (UNLIKELY(O->msglevel & 0x400))
-      csound->Message(csound, Str("Windows MME real time audio and MIDI module "
+      csound->Message(csound, "%s", Str("Windows MME real time audio and MIDI module "
                                   "for Csound by Istvan Varga\n"));
 
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_rtwinmm_globals",
@@ -775,7 +775,7 @@ static CS_NOINLINE int32_t check_name(const char *s)
  int32_t csoundModuleInit(CSOUND *csound)
 {
     if (check_name((char*) csound->QueryGlobalVariable(csound, "_RTAUDIO"))) {
-      csound->DebugMsg(csound, Str("rtaudio: WinMM module enabled\n"));
+      csound->DebugMsg(csound, "%s", Str("rtaudio: WinMM module enabled\n"));
       csound->SetPlayopenCallback(csound, playopen_);
       csound->SetRecopenCallback(csound, recopen_);
       csound->SetRtplayCallback(csound, rtplay_);
@@ -783,7 +783,7 @@ static CS_NOINLINE int32_t check_name(const char *s)
       csound->SetRtcloseCallback(csound, rtclose_);
     }
     if (check_name((char*) csound->QueryGlobalVariable(csound, "_RTMIDI"))) {
-      csound->DebugMsg(csound, Str("rtmidi: WinMM module enabled\n"));
+      csound->DebugMsg(csound, "%s", Str("rtmidi: WinMM module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);
       csound->SetExternalMidiInCloseCallback(csound, midi_in_close);

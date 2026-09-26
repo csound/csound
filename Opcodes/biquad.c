@@ -1071,23 +1071,23 @@ static int32_t vco(CSOUND *csound, VCO *p)
         return OK;
       if (UNLIKELY(*p->mode != FL(1.0) && *p->mode != FL(2.0) &&
                    *p->mode != FL(3.0)))
-        return csound->InitError(csound, Str("nestedap: mode must be 1, 2 or 3"));
+        return csound->InitError(csound, "%s", Str("nestedap: mode must be 1, 2 or 3"));
       mode = (int32_t)*p->mode;
       samples = *p->del1 * CS_ESR;
       if (UNLIKELY(!(samples >= 1.0 && samples <= INT32_MAX &&
                      samples <= SIZE_MAX / sizeof(MYFLT))))
-        return csound->InitError(csound, Str("nestedap: invalid outer delay"));
+        return csound->InitError(csound, "%s", Str("nestedap: invalid outer delay"));
       npts = (int32_t)samples;
       if (mode >= 2) {
         samples = *p->del2 * CS_ESR;
         if (UNLIKELY(!(samples >= 1.0 && samples < npts)))
-          return csound->InitError(csound, Str("nestedap: invalid second delay"));
+          return csound->InitError(csound, "%s", Str("nestedap: invalid second delay"));
         npts2 = (int32_t)samples;
       }
       if (mode == 3) {
         samples = *p->del3 * CS_ESR;
         if (UNLIKELY(!(samples >= 1.0 && samples < npts - npts2)))
-          return csound->InitError(csound, Str("nestedap: invalid third delay"));
+          return csound->InitError(csound, "%s", Str("nestedap: invalid third delay"));
         npts3 = (int32_t)samples;
       }
       npts1 = npts - npts2 - npts3;

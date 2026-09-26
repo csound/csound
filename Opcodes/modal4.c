@@ -338,7 +338,7 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
     double relestim = trunc(CS_EKR * *p->dettack);
     if (relestim < 0.0) relestim = 0.0;
     if (UNLIKELY(!(relestim <= INT32_MAX)))
-      return csound->InitError(csound, Str("invalid modal release time"));
+      return csound->InitError(csound, "%s", Str("invalid modal release time"));
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int32_t)relestim;
     /* -1 waits for note-off; zero means damping has already started. */
@@ -447,7 +447,7 @@ int32_t vibraphnset(CSOUND *csound, VIBRAPHN *p)
     double relestim = trunc(CS_EKR * *p->dettack);
     if (relestim < 0.0) relestim = 0.0;
     if (UNLIKELY(!(relestim <= INT32_MAX)))
-      return csound->InitError(csound, Str("invalid modal release time"));
+      return csound->InitError(csound, "%s", Str("invalid modal release time"));
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int32_t)relestim;
     /* -1 waits for note-off; zero means damping has already started. */

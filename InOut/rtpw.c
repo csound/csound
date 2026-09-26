@@ -631,7 +631,7 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
       strcmp(&(buf[0]), "pw") == 0 ||
       strcmp(&(buf[0]), "pipewire") == 0){
 
-    csound->DebugMsg(csound, Str("rtaudio: pipewire module enabled\n"));
+    csound->DebugMsg(csound, "%s", Str("rtaudio: pipewire module enabled\n"));
     csound->SetPlayopenCallback(csound, rtpw_open_out);
     csound->SetRecopenCallback(csound, rtpw_open_in);
     csound->SetRtplayCallback(csound, rtpw_play);

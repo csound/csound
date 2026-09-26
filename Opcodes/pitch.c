@@ -888,7 +888,7 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     downs = *p->idowns;
     if (UNLIKELY(!(downs >= -(double)INT32_MAX + 1 &&
                    downs <= (double)INT32_MAX - 1)))
-      return csound->InitError(csound, Str("pitchamdf: invalid resampling factor"));
+      return csound->InitError(csound, "%s", Str("pitchamdf: invalid resampling factor"));
     if (downs < (-FL(1.9))) {
       upsamp = (int32_t)MYFLT2LONG((-downs));
       downsamp = 0;
@@ -903,11 +903,11 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     }
 
     if (UNLIKELY(!(*p->imincps > 0 && *p->imaxcps > *p->imincps)))
-      return csound->InitError(csound, Str("pitchamdf: invalid frequency range"));
+      return csound->InitError(csound, "%s", Str("pitchamdf: invalid frequency range"));
     minperiod = (double)srate / *p->imaxcps;
     maxperiod = 0.5 + (double)srate / *p->imincps;
     if (UNLIKELY(!(minperiod >= 1 && maxperiod < INT32_MAX)))
-      return csound->InitError(csound, Str("pitchamdf: frequency range is too wide"));
+      return csound->InitError(csound, "%s", Str("pitchamdf: frequency range is too wide"));
     minperi = (int32_t)minperiod;
     maxperi = (int32_t)maxperiod;
     if (UNLIKELY(maxperi <= minperi)) {
@@ -920,19 +920,19 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     else
         requested = (double)srate / *p->iexcps;
     if (UNLIKELY(!(requested >= 0 && requested < INT32_MAX)))
-      return csound->InitError(csound, Str("pitchamdf: invalid analysis interval"));
+      return csound->InitError(csound, "%s", Str("pitchamdf: invalid analysis interval"));
     /* At least one control block, measured at the resampled rate. */
     blocksize = downsamp ? ceil((double)nsmps / downsamp) :
       (double)nsmps * upsamp;
     if (requested < blocksize)
       requested = blocksize;
     if (UNLIKELY(requested > INT32_MAX - maxperi))
-      return csound->InitError(csound, Str("pitchamdf: analysis window is too large"));
+      return csound->InitError(csound, "%s", Str("pitchamdf: analysis window is too large"));
     interval = (uint32_t)requested;
 
     size = maxperi + interval;
     if (UNLIKELY((size_t)size > SIZE_MAX / sizeof(MYFLT)))
-      return csound->InitError(csound, Str("pitchamdf: analysis window is too large"));
+      return csound->InitError(csound, "%s", Str("pitchamdf: analysis window is too large"));
     bufsize = sizeof(MYFLT) * (size_t)size;
 
     p->srate = srate;
@@ -949,7 +949,7 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     else {
       period = (double)srate / *p->icps;
       if (UNLIKELY(!(period >= minperi && period < (double)maxperi + 1)))
-        return csound->InitError(csound, Str("pitchamdf: initial pitch is outside the range"));
+        return csound->InitError(csound, "%s", Str("pitchamdf: initial pitch is outside the range"));
       p->peri = (int32_t)period;
     }
 
@@ -958,7 +958,7 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     if (maxmedian > (INT32_MAX - 3) / 6)
       maxmedian = (INT32_MAX - 3) / 6;
     if (UNLIKELY(!(*p->irmsmedi < maxmedian && *p->imedi < maxmedian)))
-      return csound->InitError(csound, Str("pitchamdf: median window is too large"));
+      return csound->InitError(csound, "%s", Str("pitchamdf: median window is too large"));
 
     if (*p->irmsmedi < 1)
         p->rmsmedisize = 0;
@@ -2333,7 +2333,7 @@ int32_t wavesetset(CSOUND *csound, BARRI *p)
       length = floor(length) + 1.0;
     if (UNLIKELY(!(length >= 2.0 && length <= INT32_MAX &&
                    length <= SIZE_MAX / sizeof(MYFLT))))
-      return csound->InitError(csound, Str("waveset: invalid buffer length"));
+      return csound->InitError(csound, "%s", Str("waveset: invalid buffer length"));
     p->length = (int32_t)length;
     csound->AuxAlloc(csound, (size_t)p->length * sizeof(MYFLT), &p->auxch);
     p->cnt = 1;
@@ -2425,7 +2425,7 @@ int32_t medfiltset(CSOUND *csound, MEDFILT *p)
                    (double)*p->imaxsize <= INT32_MAX &&
                    (double)*p->imaxsize <= SIZE_MAX / (2 * sizeof(MYFLT)))))
       return csound->InitError(csound,
-                               Str("median: invalid maximum window size"));
+                               "%s", Str("median: invalid maximum window size"));
     maxwind = MYFLT2LONG(*p->imaxsize);
     auxsize = 2 * sizeof(MYFLT) * (size_t)maxwind;
     p->ind = 0;
@@ -2458,7 +2458,7 @@ int32_t medfilt(CSOUND *csound, MEDFILT *p)
     }
     if (UNLIKELY(!(*p->kwind >= FL(1.0))))
       return csound->PerfError(csound, &(p->h),
-                               Str("median: window size must be at least 1"));
+                               "%s", Str("median: window size must be at least 1"));
     if (UNLIKELY((double)*p->kwind > maxwind)) {
       csound->Warning(csound,
                       Str("median: window (%g) larger than maximum (%d); truncated"),
@@ -2516,7 +2516,7 @@ int32_t kmedfilt(CSOUND *csound, MEDFILT *p)
     }
     if (UNLIKELY(!(*p->kwind >= FL(1.0))))
       return csound->PerfError(csound, &(p->h),
-                               Str("median: window size must be at least 1"));
+                               "%s", Str("median: window size must be at least 1"));
     if (UNLIKELY((double)*p->kwind > maxwind)) {
       csound->Warning(csound,
                       Str("median: window (%g) larger than maximum (%d); truncated"),

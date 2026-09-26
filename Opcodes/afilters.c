@@ -54,7 +54,7 @@ static int32_t atonsetx(CSOUND *csound, TONEX *p)
                                *p->ord);
     new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
     if (UNLIKELY((size_t)new_loop > SIZE_MAX / sizeof(double)))
-      return csound->InitError(csound, Str("tonex: order is too large"));
+      return csound->InitError(csound, "%s", Str("tonex: order is too large"));
     clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
     p->loop = new_loop;
     state_size = (size_t)p->loop * sizeof(double);

@@ -157,12 +157,12 @@ int32_t set_scheduler_priority(CSOUND *csound, int32_t priority)
     memset(&p, 0, sizeof(struct sched_param));
     if (UNLIKELY(priority < -20 || priority > sched_get_priority_max(SCHED_RR))) {
       csound->Message(csound,
-                      Str("--scheduler: invalid priority value; "
+                      "%s", Str("--scheduler: invalid priority value; "
                           "the allowed range is:"));
-      csound->Message(csound,Str("  -20 to -1: set nice level"));
-      csound->Message(csound,Str("          0: normal scheduling, "
+      csound->Message(csound,"%s", Str("  -20 to -1: set nice level"));
+      csound->Message(csound,"%s", Str("          0: normal scheduling, "
                                  "but lock memory"));
-      csound->Message(csound,Str("    1 to %d: SCHED_RR with the specified "
+      csound->Message(csound,"%s", Str("    1 to %d: SCHED_RR with the specified "
                                  "priority (DANGEROUS)"),
                       sched_get_priority_max(SCHED_RR));
       return -1;
@@ -172,15 +172,15 @@ int32_t set_scheduler_priority(CSOUND *csound, int32_t priority)
       p.sched_priority = priority;
       if (UNLIKELY(sched_setscheduler(0, SCHED_RR, &p) != 0)) {
         csound->Message(csound,
-                        Str("csound: cannot set scheduling policy to SCHED_RR"));
+                        "%s", Str("csound: cannot set scheduling policy to SCHED_RR"));
       }
       else   csound->Message(csound,
-                        Str("csound: setting scheduling policy to SCHED_RR\n"));
+                        "%s", Str("csound: setting scheduling policy to SCHED_RR\n"));
     }
     else {
       /* nice requested */
       if (UNLIKELY(setpriority(PRIO_PROCESS, 0, priority) != 0)) {
-        csound->Message(csound, Str("csound: cannot set nice level to %d"),
+        csound->Message(csound, "%s", Str("csound: cannot set nice level to %d"),
                         priority);
       }
     }
@@ -406,10 +406,10 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
                         : SND_PCM_STREAM_CAPTURE), 0);
     if (UNLIKELY(err < 0)) {
       if (play)
-        p->ErrorMsg(p, Str(" *** Cannot open device '%s' for audio output: %s"),
+        p->ErrorMsg(p, "%s", Str(" *** Cannot open device '%s' for audio output: %s"),
                     devName, snd_strerror(err));
       else
-        p->ErrorMsg(p, Str(" *** Cannot open device '%s' for audio input: %s"),
+        p->ErrorMsg(p, "%s", Str(" *** Cannot open device '%s' for audio input: %s"),
                     devName, snd_strerror(err));
       return -1;
     }
@@ -490,7 +490,7 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
         goto err_return_msg;
       }
       if (dev->srate!=target)
-        p->MessageS(p, CSOUNDMSG_WARNING, Str(" *** rate set to %d\n"), dev->srate);
+        p->MessageS(p, CSOUNDMSG_WARNING, "%s", Str(" *** rate set to %d\n"), dev->srate);
       csound->GetSystemSr(csound, dev->srate);
     }
 
@@ -504,7 +504,7 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
       err = snd_pcm_hw_params_set_buffer_size_near(dev->handle, hw_params, &nn);
       if (err < 0 || (int32_t) nn != dev->buffer_smps) {
         if (UNLIKELY(err >= 0))  {
-          p->Message(p, Str("ALSA: -B %d not allowed on this device; "
+          p->Message(p, "%s", Str("ALSA: -B %d not allowed on this device; "
                             "using %d instead\n"), dev->buffer_smps, (int32_t) nn);
           dev->buffer_smps=nn;
         }
@@ -527,7 +527,7 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
                                                    &dir);
       if (err < 0 || (int32_t) nn != dev->period_smps) {
         if (UNLIKELY(err >= 0)) {
-          p->Message(p, Str("ALSA: -b %d not allowed on this device; "
+          p->Message(p, "%s", Str("ALSA: -b %d not allowed on this device; "
                             "using %d instead\n"), dev->period_smps, (int32_t) nn);
           dev->period_smps=nn;
         }
@@ -543,7 +543,7 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
     /* print settings */
 
     if (p->GetMessageLevel(p) != 0)
-      p->Message(p, Str("ALSA %s: total buffer size: %d, period size: %d\n"),
+      p->Message(p, "%s", Str("ALSA %s: total buffer size: %d, period size: %d\n"),
                  (play ? "output" : "input"),
                  dev->buffer_smps, dev->period_smps /*, dev->srate*/);
     /* now set software parameters */
@@ -689,7 +689,7 @@ static int32_t open_device(CSOUND *csound, const csRtAudioParams *parm, int32_t 
     if (*userDataPtr != NULL)
       return 0;
     if (UNLIKELY(parm->devNum != 1024)) {
-      csound->ErrorMsg(csound, Str(" *** ALSA: must specify a device name, "
+      csound->ErrorMsg(csound, "%s", Str(" *** ALSA: must specify a device name, "
                                    "not a number (e.g. -odac:hw:0,0)"));
       list_devices(csound);
       return -1;
@@ -697,7 +697,7 @@ static int32_t open_device(CSOUND *csound, const csRtAudioParams *parm, int32_t 
     /* allocate structure */
     dev = (DEVPARAMS*) csound->Malloc(csound, sizeof(DEVPARAMS));
     if (UNLIKELY(dev == NULL)) {
-      csound->ErrorMsg(csound, Str(" *** ALSA: %s: memory allocation failure"),
+      csound->ErrorMsg(csound, "%s", Str(" *** ALSA: %s: memory allocation failure"),
                        (play ? "playopen" : "recopen"));
       return -1;
     }
@@ -744,9 +744,9 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
 #ifdef warning
 #undef warning
 #endif
-#define warning(x) {                                      \
-      if (UNLIKELY(csound->GetMessageLevel(csound) & 4))  \
-        csound->Warning(csound, Str(x));                  \
+#define warning(x) {                                             \
+      if (UNLIKELY(csound->GetMessageLevel(csound) & 4))          \
+        csound->Warning(csound, "%s", Str(x));                    \
   }
 
 static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf, int32_t nbytes)
@@ -783,7 +783,7 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf, int32_t nbytes)
       }
       /* could not recover from error */
       csound->ErrorMsg(csound,
-                       Str("Error reading data from audio input device"));
+                       "%s", Str("Error reading data from audio input device"));
       snd_pcm_close(dev->handle);
       dev->handle = NULL;
       break;
@@ -828,7 +828,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
       }
       /* could not recover from error */
       csound->ErrorMsg(csound,
-                       Str("Error writing data to audio output device"));
+                       "%s", Str("Error writing data to audio output device"));
       snd_pcm_close(dev->handle);
       dev->handle = NULL;
       break;
@@ -873,18 +873,18 @@ static alsaMidiInputDevice* open_midi_device(CSOUND *csound, const char  *s)
     dev = (alsaMidiInputDevice*) csound->Malloc(csound,
                                                 sizeof(alsaMidiInputDevice));
     if (UNLIKELY(dev == NULL)) {
-      csound->ErrorMsg(csound, Str("ALSA MIDI: memory allocation failure"));
+      csound->ErrorMsg(csound, "%s", Str("ALSA MIDI: memory allocation failure"));
       return dev;
     }
     memset(dev, 0, sizeof(alsaMidiInputDevice));
     err = snd_rawmidi_open(&(dev->dev), NULL, s, SND_RAWMIDI_NONBLOCK);
     if (UNLIKELY(err != 0)) {
       csound->ErrorMsg(csound,
-                       Str("ALSA: error opening MIDI input device: '%s'"), s);
+                       "%s", Str("ALSA: error opening MIDI input device: '%s'"), s);
       csound->Free(csound,dev);
       return NULL;
     }
-    MSG(csound, Str("ALSA: opened MIDI input device '%s'\n"), s);
+    MSG(csound, "%s", Str("ALSA: opened MIDI input device '%s'\n"), s);
     return dev;
 }
 
@@ -903,12 +903,12 @@ static int32_t midi_in_open(CSOUND *csound, void **userData, const char *devName
     (*userData) = NULL;
     olddev = NULL;
     if (UNLIKELY(devName==NULL)) {
-      csound->Message(csound, Str("ALSA midi: no string\n"));
+      csound->Message(csound, "%s", Str("ALSA midi: no string\n"));
       exit(1);                  /* what should happen here???????? */
     }
     else if (devName[0] == 'a') {
       if(csound->GetMessageLevel(csound) || csound->GetDebug(csound))
-        csound->Message(csound, Str("ALSA midi: Using all devices.\n"));
+        csound->Message(csound, "%s", Str("ALSA midi: Using all devices.\n"));
       card = -1;
       if (snd_card_next(&card) >= 0 && card >= 0) {
         do {
@@ -937,7 +937,7 @@ static int32_t midi_in_open(CSOUND *csound, void **userData, const char *devName
               }
               else { /* Device couldn't be opened */
                 csound->Message(csound,
-                                Str("ALSA midi: Error opening device: %s\n"),
+                                "%s", Str("ALSA midi: Error opening device: %s\n"),
                                 name);
               }
             }
@@ -959,7 +959,7 @@ static int32_t midi_in_open(CSOUND *csound, void **userData, const char *devName
     }
     csound->Free(csound, name);
     if (UNLIKELY(numdevs == 0)) {
-      csound->ErrorMsg(csound, Str("ALSA midi: No devices found.\n"));
+      csound->ErrorMsg(csound, "%s", Str("ALSA midi: No devices found.\n"));
       *userData = NULL;
     }
     else {
@@ -1060,10 +1060,10 @@ static int32_t midi_out_open(CSOUND *csound, void **userData, const char *devNam
     err = snd_rawmidi_open(NULL, &dev, s, SND_RAWMIDI_NONBLOCK);
     if (err != 0) {
       csound->ErrorMsg(csound,
-                       Str("ALSA: error opening MIDI output device '%s'"),s);
+                       "%s", Str("ALSA: error opening MIDI output device '%s'"),s);
       return 0;
     }
-    MSG(csound, Str("ALSA: opened MIDI output device '%s'\n"), s);
+    MSG(csound, "%s", Str("ALSA: opened MIDI output device '%s'\n"), s);
     (*userData) = (void*) dev;
     return 0;
 }
@@ -1103,7 +1103,7 @@ static int32_t midi_in_open_file(CSOUND *csound, void **userData,
       s = devName;
     if (strcmp(s, "stdin") == 0) {
       if (fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) | O_NDELAY) < 0) {
-        csound->ErrorMsg(csound, Str("-M stdin fcntl failed"));
+        csound->ErrorMsg(csound, "%s", Str("-M stdin fcntl failed"));
         return -1;
       }
       dev->fd = 0;
@@ -1111,7 +1111,7 @@ static int32_t midi_in_open_file(CSOUND *csound, void **userData,
     else {
       /* open MIDI device, & set nodelay on reads */
       if ((dev->fd = open(s, O_RDONLY | O_NDELAY, 0)) < 0) {
-        csound->ErrorMsg(csound, Str("cannot open %s"), s);
+        csound->ErrorMsg(csound, "%s", Str("cannot open %s"), s);
         return -1;
       }
     }
@@ -1122,7 +1122,7 @@ static int32_t midi_in_open_file(CSOUND *csound, void **userData,
         if (dev->fd > 2)
           close(dev->fd);
         csound->ErrorMsg(csound,
-                         Str("MIDI receive: cannot get termios info."));
+                         "%s", Str("MIDI receive: cannot get termios info."));
         return -1;
       }
       cfmakeraw(&tty);
@@ -1130,17 +1130,17 @@ static int32_t midi_in_open_file(CSOUND *csound, void **userData,
         if (dev->fd > 2)
           close(dev->fd);
         csound->ErrorMsg(csound,
-                         Str("MIDI receive: cannot set input baud rate."));
+                         "%s", Str("MIDI receive: cannot set input baud rate."));
         return -1;
       }
       if (tcsetattr(dev->fd, TCSANOW, &tty) < 0) {
         if (dev->fd > 2)
           close(dev->fd);
-        csound->ErrorMsg(csound, Str("MIDI receive: cannot set termios."));
+        csound->ErrorMsg(csound, "%s", Str("MIDI receive: cannot set termios."));
         return -1;
       }
     }
-    MSG(csound, Str("Opened MIDI input device file '%s'\n"), s);
+    MSG(csound, "%s", Str("Opened MIDI input device file '%s'\n"), s);
     (*userData) = (void*) dev;
 
     return 0;
@@ -1180,7 +1180,7 @@ static int32_t midi_in_read_file(CSOUND *csound, void *userData,
 
         if (n) {
           if (n < 0)
-            csound->ErrorMsg(csound, Str("sensMIDI: retval errno %d"), errno);
+            csound->ErrorMsg(csound, "%s", Str("sensMIDI: retval errno %d"), errno);
           else
             n = read(dev->fd, &(dev->buf[0]), BUF_SIZE);
         }
@@ -1247,11 +1247,11 @@ static int32_t midi_out_open_file(CSOUND *csound, void **userData,
       fd = open(devName, O_WRONLY);
       if (fd < 0) {
         csound->ErrorMsg(csound,
-                         Str("Error opening MIDI output device file '%s'"),
+                         "%s", Str("Error opening MIDI output device file '%s'"),
                          devName);
         return -1;
       }
-      MSG(csound, Str("Opened MIDI output device file '%s'\n"), devName);
+      MSG(csound, "%s", Str("Opened MIDI output device file '%s'\n"), devName);
     }
     (*userData) = (void*) ((uintptr_t) fd);
 
@@ -1412,11 +1412,11 @@ static int32_t alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
         if (err >= 0) {
           err = amidi_connect(amidi->seq, 0, addr.client, addr.port);
           if (err < 0) {
-            csound->ErrorMsg(csound, Str("ALSASEQ: connection failed %s %s (%s)"),
+            csound->ErrorMsg(csound, "%s", Str("ALSASEQ: connection failed %s %s (%s)"),
                              direction_str, client_spec, snd_strerror(err));
           }
           else {
-            csound->Message(csound, Str("ALSASEQ: connected %s %d:%d\n"),
+            csound->Message(csound, "%s", Str("ALSASEQ: connected %s %d:%d\n"),
                             direction_str, addr.client, addr.port);
           }
         }
@@ -1429,17 +1429,17 @@ static int32_t alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
           err = amidi_connect(amidi->seq, 0, client, port);
           if (err < 0) {
             csound->ErrorMsg(csound,
-                             Str("ALSASEQ: connection failed %s %s, port %d (%s)"),
+                             "%s", Str("ALSASEQ: connection failed %s %s, port %d (%s)"),
                              direction_str, client_spec, port, snd_strerror(err));
           }
           else {
-            csound->Message(csound, Str("ALSASEQ: connected %s %d:%d\n"),
+            csound->Message(csound, "%s", Str("ALSASEQ: connected %s %d:%d\n"),
                             direction_str, client, port);
           }
         }
         else {
           csound->ErrorMsg(csound,
-                           Str("ALSASEQ: connection failed %s %s, port %d (%s)"),
+                           "%s", Str("ALSASEQ: connection failed %s %s, port %d (%s)"),
                            direction_str, client_spec, port, snd_strerror(client));
         }
       }
@@ -1459,24 +1459,24 @@ static int32_t alsaseq_in_open(CSOUND *csound, void **userData, const char *devN
     *userData = NULL;
     amidi = (alsaseqMidi*) csound->Malloc(csound, sizeof(alsaseqMidi));
     if (UNLIKELY(amidi == NULL)) {
-      csound->ErrorMsg(csound, Str("ALSASEQ input: memory allocation failure"));
+      csound->ErrorMsg(csound, "%s", Str("ALSASEQ input: memory allocation failure"));
       return -1;
     }
     memset(amidi, 0, sizeof(alsaseqMidi));
     err = snd_seq_open(&(amidi->seq), "default",
                        SND_SEQ_OPEN_DUPLEX, SND_SEQ_NONBLOCK);
     if (UNLIKELY(err < 0)) {
-      csound->ErrorMsg(csound, Str("ALSASEQ: error opening sequencer (%s)"),
+      csound->ErrorMsg(csound, "%s", Str("ALSASEQ: error opening sequencer (%s)"),
                        snd_strerror(err));
       csound->Free(csound,amidi);
       return -1;
     }
-    csound->Message(csound, Str("ALSASEQ: opened MIDI input sequencer\n"));
+    csound->Message(csound, "%s", Str("ALSASEQ: opened MIDI input sequencer\n"));
     cfg = csound->QueryConfigurationVariable(csound, "alsaseq_client");
     client_name = cfg->s.p;
     err = snd_seq_set_client_name(amidi->seq, client_name);
     if (UNLIKELY(err < 0)) {
-      csound->ErrorMsg(csound, Str("ALSASEQ: cannot set client name '%s' (%s)"),
+      csound->ErrorMsg(csound, "%s", Str("ALSASEQ: cannot set client name '%s' (%s)"),
                        client_name, snd_strerror(err));
       snd_seq_close(amidi->seq);
       csound->Free(csound,amidi);
@@ -1488,7 +1488,7 @@ static int32_t alsaseq_in_open(CSOUND *csound, void **userData, const char *devN
                                      SND_SEQ_PORT_TYPE_MIDI_GENERIC |
                                      SND_SEQ_PORT_TYPE_APPLICATION);
     if (UNLIKELY(err < 0)) {
-      csound->ErrorMsg(csound, Str("ALSASEQ: cannot create input port (%s)"),
+      csound->ErrorMsg(csound, "%s", Str("ALSASEQ: cannot create input port (%s)"),
                        snd_strerror(err));
       snd_seq_close(amidi->seq);
       csound->Free(csound,amidi);
@@ -1496,11 +1496,11 @@ static int32_t alsaseq_in_open(CSOUND *csound, void **userData, const char *devN
     }
     client_id = snd_seq_client_id(amidi->seq);
     port_id = err;
-    csound->Message(csound, Str("ALSASEQ: created input port '%s' %d:%d\n"),
+    csound->Message(csound, "%s", Str("ALSASEQ: created input port '%s' %d:%d\n"),
                     client_name, client_id, port_id);
     err = snd_midi_event_new(ALSASEQ_SYSEX_BUFFER_SIZE, &amidi->mev);
     if (UNLIKELY(err < 0)) {
-      csound->ErrorMsg(csound, Str("ALSASEQ: cannot create midi event (%s)"),
+      csound->ErrorMsg(csound, "%s", Str("ALSASEQ: cannot create midi event (%s)"),
                        snd_strerror(err));
       snd_seq_close(amidi->seq);
       csound->Free(csound,amidi);
@@ -1551,24 +1551,24 @@ static int32_t alsaseq_out_open(CSOUND *csound, void **userData, const char *dev
     *userData = NULL;
     amidi = (alsaseqMidi*) csound->Malloc(csound, sizeof(alsaseqMidi));
     if (UNLIKELY(amidi == NULL)) {
-      csound->ErrorMsg(csound, Str("ALSASEQ output: memory allocation failure"));
+      csound->ErrorMsg(csound, "%s", Str("ALSASEQ output: memory allocation failure"));
       return -1;
     }
     memset(amidi, 0, sizeof(alsaseqMidi));
     err = snd_seq_open(&(amidi->seq), "default",
                        SND_SEQ_OPEN_DUPLEX, SND_SEQ_NONBLOCK);
     if (UNLIKELY(err < 0)) {
-      csound->ErrorMsg(csound, Str("ALSASEQ: error opening sequencer (%s)"),
+      csound->ErrorMsg(csound, "%s", Str("ALSASEQ: error opening sequencer (%s)"),
                        snd_strerror(err));
       csound->Free(csound, amidi);
       return -1;
     }
-    csound->Message(csound, Str("ALSASEQ: opened MIDI output sequencer\n"));
+    csound->Message(csound, "%s", Str("ALSASEQ: opened MIDI output sequencer\n"));
     cfg = csound->QueryConfigurationVariable(csound, "alsaseq_client");
     client_name = cfg->s.p;
     err = snd_seq_set_client_name(amidi->seq, client_name);
     if (UNLIKELY(err < 0)) {
-      csound->ErrorMsg(csound, Str("ALSASEQ: cannot set client name '%s' (%s)"),
+      csound->ErrorMsg(csound, "%s", Str("ALSASEQ: cannot set client name '%s' (%s)"),
                        client_name, snd_strerror(err));
       snd_seq_close(amidi->seq);
       csound->Free(csound, amidi);
@@ -1580,7 +1580,7 @@ static int32_t alsaseq_out_open(CSOUND *csound, void **userData, const char *dev
                                      SND_SEQ_PORT_TYPE_MIDI_GENERIC |
                                      SND_SEQ_PORT_TYPE_APPLICATION);
     if (UNLIKELY(err < 0)) {
-      csound->ErrorMsg(csound, Str("ALSASEQ: cannot create output port (%s)"),
+      csound->ErrorMsg(csound, "%s", Str("ALSASEQ: cannot create output port (%s)"),
                        snd_strerror(err));
       snd_seq_close(amidi->seq);
       csound->Free(csound,amidi);
@@ -1588,11 +1588,11 @@ static int32_t alsaseq_out_open(CSOUND *csound, void **userData, const char *dev
     }
     client_id = snd_seq_client_id(amidi->seq);
     port_id = err;
-    csound->Message(csound, Str("ALSASEQ: created output port '%s' %d:%d\n"),
+    csound->Message(csound, "%s", Str("ALSASEQ: created output port '%s' %d:%d\n"),
                     client_name, client_id, port_id);
     err = snd_midi_event_new(ALSASEQ_SYSEX_BUFFER_SIZE, &amidi->mev);
     if (UNLIKELY(err < 0)) {
-      csound->ErrorMsg(csound, Str("ALSASEQ: cannot create midi event (%s)"),
+      csound->ErrorMsg(csound, "%s", Str("ALSASEQ: cannot create midi event (%s)"),
                        snd_strerror(err));
       snd_seq_close(amidi->seq);
       csound->Free(csound,amidi);
@@ -1646,7 +1646,7 @@ static int32_t alsaseq_out_close(CSOUND *csound, void *userData)
     csound->CreateGlobalVariable(csound, "::priority", sizeof(int32_t));
     priority = (int32_t *) (csound->QueryGlobalVariable(csound, "::priority"));
     if (priority == NULL)
-      csound->Message(csound, Str("warning... could not create global var\n"));
+      csound->Message(csound, "%s", Str("warning... could not create global var\n"));
     minsched = -20;
     maxsched = (int32_t) sched_get_priority_max(SCHED_RR);
     csound->CreateConfigurationVariable(csound, "rtscheduler", priority,
@@ -1666,7 +1666,7 @@ static int32_t alsaseq_out_close(CSOUND *csound, void *userData)
      const OPARMS *O;
       O = csound->GetOParms(csound) ;
       if (O->msglevel & 0x400)
-        csound->Message(csound, Str("ALSA real-time audio and MIDI module "
+        csound->Message(csound, "%s", Str("ALSA real-time audio and MIDI module "
                                     "for Csound by Istvan Varga\n"));
     }
     return 0;
@@ -1679,11 +1679,11 @@ int32_t listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
     card = -1;
     if ((err = snd_card_next(&card)) < 0) {
       csound->ErrorMsg(csound,
-                       Str("cannot determine card number: %s"), snd_strerror(err));
+                       "%s", Str("cannot determine card number: %s"), snd_strerror(err));
       return 0;
     }
     if (card < 0) {
-      csound->ErrorMsg(csound,Str("no sound card found"));
+      csound->ErrorMsg(csound,"%s", Str("no sound card found"));
       return 0;
     }
     do {
@@ -1694,14 +1694,14 @@ int32_t listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
 
       snprintf(name, 32, "hw:%d", card);
       if ((err = snd_ctl_open(&ctl, name, 0)) < 0) {
-        csound->ErrorMsg(csound, Str("cannot open control for card %d: %s"),
+        csound->ErrorMsg(csound, "%s", Str("cannot open control for card %d: %s"),
                          card, snd_strerror(err));
         return 0;
       }
       device = -1;
       for (;;) {
         if ((err = snd_ctl_rawmidi_next_device(ctl, &device)) < 0) {
-          csound->ErrorMsg(csound, Str("cannot determine device number: %s"),
+          csound->ErrorMsg(csound, "%s", Str("cannot determine device number: %s"),
                            snd_strerror(err));
           break;
         }
@@ -1743,7 +1743,7 @@ int32_t listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
           err = snd_ctl_rawmidi_info(ctl, info);
           if (err < 0) {
             csound->Warning(csound,
-                            Str("cannot get rawmidi information %d:%d:%d: %s\n"),
+                            "%s", Str("cannot get rawmidi information %d:%d:%d: %s\n"),
                             card, device, sub, snd_strerror(err));
             return 0;
           }
@@ -1805,7 +1805,7 @@ int32_t listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
       snd_ctl_close(ctl);
       if ((err = snd_card_next(&card)) < 0) {
         csound->Warning(csound,
-                        Str("cannot determine card number: %s"), snd_strerror(err));
+                        "%s", Str("cannot determine card number: %s"), snd_strerror(err));
         break;
       }
     } while (card >= 0);
@@ -1847,7 +1847,7 @@ int32_t listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
     IGN(csound);
 
     if (snd_seq_open(&seq, "default", SND_SEQ_OPEN_DUPLEX, 0) < 0) {
-      fprintf(stderr, Str("cannot open sequencer\n"));
+      fprintf(stderr, "%s", Str("cannot open sequencer\n"));
       return 1;
     }
 
@@ -1891,7 +1891,7 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutpu
     } else if (strncmp(s, "devfile", 8) == 0) {
 
     } else {
-      csound->ErrorMsg(csound, Str("rtalsa: Wrong callback."));
+      csound->ErrorMsg(csound, "%s", Str("rtalsa: Wrong callback."));
     }
     return count;
 }
@@ -1925,7 +1925,7 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutpu
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "alsa") == 0) {
-      csound->DebugMsg(csound, Str("rtaudio: ALSA module enabled\n"));
+      csound->DebugMsg(csound, "%s", Str("rtaudio: ALSA module enabled\n"));
       csound->SetPlayopenCallback(csound, playopen_);
       csound->SetRecopenCallback(csound, recopen_);
       csound->SetRtplayCallback(csound, rtplay_);
@@ -1942,7 +1942,7 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutpu
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "alsaraw") == 0 || strcmp(&(buf[0]), "alsa") == 0) {
-      csound->DebugMsg(csound, Str("rtmidi: ALSA Raw MIDI module enabled\n"));
+      csound->DebugMsg(csound, "%s", Str("rtmidi: ALSA Raw MIDI module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);
       csound->SetExternalMidiInCloseCallback(csound, midi_in_close);
@@ -1953,7 +1953,7 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutpu
 
     }
     else if (strcmp(&(buf[0]), "alsaseq") == 0) {
-      csound->DebugMsg(csound, Str("rtmidi: ALSASEQ module enabled\n"));
+      csound->DebugMsg(csound, "%s", Str("rtmidi: ALSASEQ module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, alsaseq_in_open);
       csound->SetExternalMidiReadCallback(csound, alsaseq_in_read);
       csound->SetExternalMidiInCloseCallback(csound, alsaseq_in_close);
@@ -1963,7 +1963,7 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutpu
       csound->SetMIDIDeviceListCallback(csound,listDevicesM);
     }
     else if (strcmp(&(buf[0]), "devfile") == 0) {
-      csound->DebugMsg(csound, Str("rtmidi: devfile module enabled\n"));
+      csound->DebugMsg(csound, "%s", Str("rtmidi: devfile module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open_file);
       csound->SetExternalMidiReadCallback(csound, midi_in_read_file);
       csound->SetExternalMidiInCloseCallback(csound, midi_in_close_file);
