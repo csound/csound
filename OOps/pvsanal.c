@@ -96,42 +96,56 @@ static CS_NOINLINE int32_t PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
 int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
 {
   /* opcode params */
-  int32_t N = MYFLT2LRND(*p->winsize);
+  int32_t N;
   int32_t NB;
   int32_t i;
   int32_t wintype = MYFLT2LRND(*p->wintype);
 
-  if (N<=0) return csound->InitError(csound, Str("Invalid window size"));
+  if (UNLIKELY(!(*p->winsize >= FL(1.0) &&
+                 (double)*p->winsize <= INT32_MAX-3)))
+    return csound->InitError(csound, Str("Invalid window size"));
+  N = MYFLT2LRND(*p->winsize);
   /* deal with iinit and iformat later on! */
 
   N = N + N%2;               /* Make N even */
   NB = N/2+1;                 /* Number of bins */
+  if (UNLIKELY((size_t)(N+2) > SIZE_MAX / CS_KSMPS / sizeof(MYFLT) ||
+               (size_t)(NB+4) > SIZE_MAX / sizeof(CMPLX) ||
+               (size_t)(2*NB) > SIZE_MAX / sizeof(double)))
+    return csound->InitError(csound, Str("pvsanal: window size too large"));
 
   /* Need space for NB complex numbers for each of ksmps */
   if (p->fsig->frame.auxp==NULL ||
-      CS_KSMPS*(N+2)*sizeof(MYFLT) > (uint32_t)p->fsig->frame.size)
-    csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fsig->frame);
-  else memset(p->fsig->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
+      (size_t)CS_KSMPS*(N+2)*sizeof(MYFLT) > p->fsig->frame.size)
+    csound->AuxAlloc(csound, (size_t)CS_KSMPS*(N+2)*sizeof(MYFLT),
+                    &p->fsig->frame);
+  else memset(p->fsig->frame.auxp, 0,
+              (size_t)CS_KSMPS*(N+2)*sizeof(MYFLT));
   /* Space for remembering samples */
   if (p->input.auxp==NULL ||
-      N*sizeof(MYFLT) > (uint32_t)p->input.size)
+      (size_t)N*sizeof(MYFLT) > p->input.size)
     csound->AuxAlloc(csound, N*sizeof(MYFLT),&p->input);
   else memset(p->input.auxp, 0, N*sizeof(MYFLT));
   csound->AuxAlloc(csound, NB * sizeof(double), &p->oldInPhase);
+  /* Two mirrored bins at each end let every three-term window use the
+     same formula, including at DC, Nyquist, and their neighbouring bins. */
   if (p->analwinbuf.auxp==NULL ||
-      NB*sizeof(CMPLX) > (uint32_t)p->analwinbuf.size)
-    csound->AuxAlloc(csound, NB*sizeof(CMPLX),&p->analwinbuf);
-  else memset(p->analwinbuf.auxp, 0, NB*sizeof(CMPLX));
+      (size_t)(NB+4)*sizeof(CMPLX) > p->analwinbuf.size)
+    csound->AuxAlloc(csound, (size_t)(NB+4)*sizeof(CMPLX), &p->analwinbuf);
+  else memset(p->analwinbuf.auxp, 0, (size_t)(NB+4)*sizeof(CMPLX));
   p->inptr = 0;                 /* Pointer in circular buffer */
   p->fsig->NB = p->Ii = NB;
   p->fsig->wintype = wintype;
   p->fsig->format = PVS_AMP_FREQ;      /* only this, for now */
   p->fsig->N = p->nI  = N;
+  p->fsig->winsize = N;
+  p->fsig->overlap = 1;
+  p->fsig->framecount = 1;
   p->fsig->sliding = 1;
   /* Need space for NB sines, cosines and a scatch phase area */
   if (p->trig.auxp==NULL ||
-      (2*NB)*sizeof(double) > (uint32_t)p->trig.size)
-    csound->AuxAlloc(csound,(2*NB)*sizeof(double),&p->trig);
+      (size_t)(2*NB)*sizeof(double) > p->trig.size)
+    csound->AuxAlloc(csound, (size_t)(2*NB)*sizeof(double), &p->trig);
   {
     double dc = cos(TWOPI/(double)N);
     double ds = sin(TWOPI/(double)N);
@@ -152,6 +166,9 @@ int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
       c[i] = dc*c[i-1] - ds*s[i-1];
       s[i] = ds*c[i-1] + dc*s[i-1];
     }
+    /* The endpoint coefficients of a real signal stay real. */
+    c[NB-1] = -1.0;
+    s[NB-1] = 0.0;
     /*       for (i=0; i<NB; i++)  */
     /*         printf("c[%d] = %f   \ts[%d] = %f\n", i, c[i], i, s[i]); */
   }
@@ -166,14 +183,14 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
   int32_t i,nBins,Mf/*,Lf*/;
 
   /* opcode params */
-  uint32_t N =(int32_t) *(p->fftsize);
   uint32_t overlap = (uint32_t) *(p->overlap);
-  uint32_t M = (uint32_t) *(p->winsize);
-  int32_t wintype = (int32_t) *p->wintype;
   /* deal with iinit and iformat later on! */
 
   if (overlap<CS_KSMPS || overlap<=10) /* 10 is a guess.... */
     return pvssanalset(csound, p);
+  uint32_t N =(int32_t) *(p->fftsize);
+  uint32_t M = (uint32_t) *(p->winsize);
+  int32_t wintype = (int32_t) *p->wintype;
   if (UNLIKELY(N <= 32))
     return csound->InitError(csound,
                              Str("pvsanal: fftsize of 32 is too small!\n"));
@@ -388,13 +405,32 @@ static inline double mod2Pi(double x)
     return x;
 }
 
+/* w[n] = a0 - a1*cos(2*pi*n/N) + a2*cos(4*pi*n/N).
+   Extend the real signal's spectrum by conjugate symmetry. For N=2 the
+   second neighbours wrap back to the same bin. Keep this in the sample
+   loop as a macro so the window coefficients remain compile-time constants. */
+#define SDFT_THREE_TERM_WINDOW(a0, a1, a2) do {                         \
+  const MYFLT w0 = FL(a0), w1 = FL(a1)*FL(0.5), w2 = FL(a2)*FL(0.5);   \
+  int32_t low = NB > 2 ? 2 : 0, high = NB > 2 ? NB-3 : 1;            \
+  fw[-1].re = fw[1].re;       fw[-1].im = -fw[1].im;                 \
+  fw[-2].re = fw[low].re;     fw[-2].im = -fw[low].im;               \
+  fw[NB].re = fw[NB-2].re;    fw[NB].im = -fw[NB-2].im;              \
+  fw[NB+1].re = fw[high].re;  fw[NB+1].im = -fw[high].im;            \
+  for (j = 0; j < NB; j++) {                                         \
+    ff[j].re = w0*fw[j].re - w1*(fw[j-1].re + fw[j+1].re)            \
+                          + w2*(fw[j-2].re + fw[j+2].re);           \
+    ff[j].im = w0*fw[j].im - w1*(fw[j-1].im + fw[j+1].im)            \
+                          + w2*(fw[j-2].im + fw[j+2].im);           \
+  }                                                                 \
+} while (0)
+
 int32_t pvssanal(CSOUND *csound, PVSANAL *p)
 {
   MYFLT *ain;
   int32_t NB = p->Ii, loc;
   int32_t N = p->fsig->N;
   MYFLT *data = (MYFLT*)(p->input.auxp);
-  CMPLX *fw = (CMPLX*)(p->analwinbuf.auxp);
+  CMPLX *fw = (CMPLX*)(p->analwinbuf.auxp) + 2;
   double *c = p->cosine;
   double *s = p->sine;
   double *h = (double*)p->oldInPhase.auxp;
@@ -418,7 +454,7 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
     dx = *ain - data[loc];    /* Change in sample */
     data[loc] = *ain++;       /* Remember input sample */
     /* get the frame for this sample */
-    ff = (CMPLX*)(p->fsig->frame.auxp) + i*NB;
+    ff = (CMPLX*)(p->fsig->frame.auxp) + (size_t)i*NB;
     /* fw is the current frame at this sample */
     for (j = 0; j < NB; j++) {
       double ci = c[j], si = s[j];
@@ -479,104 +515,21 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
       /* } */
       break;
     case PVS_WIN_BLACKMAN:
-      for (j=0; j<NB; j++) {
-        ff[j].re = FL(0.42)*fw[j].re;
-        ff[j].im = FL(0.42)*fw[j].im;
-      }
-      for (j=1; j<NB-1; j++) {
-        ff[j].re -= FL(0.25)*(fw[j+1].re + fw[j-1].re);
-        ff[j].im -= FL(0.25)*(fw[j+1].im + fw[j-1].im);
-      }
-      for (j=2; j<NB-2; j++) {
-        ff[j].re += FL(0.04)*(fw[j+2].re + fw[j-2].re);
-        ff[j].im += FL(0.04)*(fw[j+2].im + fw[j-2].im);
-      }
-      ff[0].re    += -FL(0.5)*fw[1].re + FL(0.08)*fw[2].re;
-      ff[NB-1].re += -FL(0.5)*fw[NB-2].re + FL(0.08)*fw[NB-3].re;
-      ff[1].re    += -FL(0.5)*fw[2].re + FL(0.08)*fw[3].re;
-      ff[NB-2].re += -FL(0.5)*fw[NB-3].re + FL(0.08)*fw[NB-4].re;
+      SDFT_THREE_TERM_WINDOW(0.42, 0.5, 0.08);
       break;
     case PVS_WIN_BLACKMAN_EXACT:
-      for (j=0; j<NB; j++) {
-        ff[j].re = FL(0.42659071367153912296)*fw[j].re;
-        ff[j].im = FL(0.42659071367153912296)*fw[j].im;
-      }
-      for (j=1; j<NB-1; j++) {
-        ff[j].re -= FL(0.49656061908856405847)*FL(0.5)*(fw[j+1].re + fw[j-1].re);
-        ff[j].im -= FL(0.49656061908856405847)*FL(0.5)*(fw[j+1].im + fw[j-1].im);
-      }
-      for (j=2; j<NB-2; j++) {
-        ff[j].re += FL(0.076848667239896818573)*FL(0.5)*(fw[j+2].re + fw[j-2].re);
-        ff[j].im += FL(0.076848667239896818573)*FL(0.5)*(fw[j+2].im + fw[j-2].im);
-      }
-      ff[0].re    += -FL(0.49656061908856405847) * fw[1].re
-        + FL(0.076848667239896818573) * fw[2].re;
-      ff[NB-1].re += -FL(0.49656061908856405847) * fw[NB-2].re
-        + FL(0.076848667239896818573) * fw[NB-3].re;
-      ff[1].re    += -FL(0.49656061908856405847) * fw[2].re
-        + FL(0.076848667239896818573) * fw[3].re;
-      ff[NB-2].re += -FL(0.49656061908856405847) * fw[NB-3].re
-        + FL(0.076848667239896818573) * fw[NB-4].re;
+      SDFT_THREE_TERM_WINDOW(0.42659071367153912296,
+                             0.49656061908856405847,
+                             0.076848667239896818573);
       break;
     case PVS_WIN_NUTTALLC3:
-      for (j=0; j<NB; j++) {
-        ff[j].re = FL(0.375)*fw[j].re;
-        ff[j].im = FL(0.375)*fw[j].im;
-      }
-      for (j=1; j<NB-1; j++) {
-        ff[j].re -= FL(0.5)*FL(0.5)*(fw[j+1].re + fw[j-1].re);
-        ff[j].im -= FL(0.5)*FL(0.5)*(fw[j+1].im + fw[j-1].im);
-      }
-      for (j=2; j<NB-2; j++) {
-        ff[j].re += FL(0.125)*FL(0.5)*(fw[j+2].re + fw[j-2].re);
-        ff[j].im += FL(0.125)*FL(0.5)*(fw[j+2].im + fw[j-2].im);
-      }
-      ff[0].re    += -FL(0.5) * fw[1].re    + FL(0.125) * fw[2].re;
-      ff[NB-1].re += -FL(0.5) * fw[NB-2].re + FL(0.125) * fw[NB-3].re;
-      ff[1].re    += -FL(0.5) * fw[2].re    + FL(0.125) * fw[3].re;
-      ff[NB-2].re += -FL(0.5) * fw[NB-3].re + FL(0.125) * fw[NB-4].re;
-      ff[1].re = 0.5 * (fw[2].re + fw[0].re); /* HACK???? */
-      ff[1].im = 0.5 * (fw[2].im + fw[0].im);
+      SDFT_THREE_TERM_WINDOW(0.375, 0.5, 0.125);
       break;
     case PVS_WIN_BHARRIS_3:
-      for (j=0; j<NB; j++) {
-        ff[j].re = FL(0.44959)*fw[j].re;
-        ff[j].im = FL(0.44959)*fw[j].im;
-      }
-      for (j=1; j<NB-1; j++) {
-        ff[j].re -= FL(0.49364)*FL(0.5)*(fw[j+1].re + fw[j-1].re);
-        ff[j].im -= FL(0.49364)*FL(0.5)*(fw[j+1].im + fw[j-1].im);
-      }
-      for (j=2; j<NB-2; j++) {
-        ff[j].re += FL(0.05677)*FL(0.5)*(fw[j+2].re + fw[j-2].re);
-        ff[j].im += FL(0.05677)*FL(0.5)*(fw[j+2].im + fw[j-2].im);
-      }
-      ff[0].re    += -FL(0.49364) * fw[1].re    + FL(0.05677) * fw[2].re;
-      ff[NB-1].re += -FL(0.49364) * fw[NB-2].re + FL(0.05677) * fw[NB-3].re;
-      ff[1].re    += -FL(0.49364) * fw[2].re    + FL(0.05677) * fw[3].re;
-      ff[NB-2].re += -FL(0.49364) * fw[NB-3].re + FL(0.05677) * fw[NB-4].re;
-      ff[1].re = 0.5 * (fw[2].re + fw[0].re); /* HACK???? */
-      ff[1].im = 0.5 * (fw[2].im + fw[0].im);
+      SDFT_THREE_TERM_WINDOW(0.44959, 0.49364, 0.05677);
       break;
     case PVS_WIN_BHARRIS_MIN:
-      for (j=0; j<NB; j++) {
-        ff[j].re = FL(0.42323)*fw[j].re;
-        ff[j].im = FL(0.42323)*fw[j].im;
-      }
-      for (j=1; j<NB-1; j++) {
-        ff[j].re -= FL(0.4973406)*FL(0.5)*(fw[j+1].re + fw[j-1].re);
-        ff[j].im -= FL(0.4973406)*FL(0.5)*(fw[j+1].im + fw[j-1].im);
-      }
-      for (j=2; j<NB-2; j++) {
-        ff[j].re += FL(0.0782793)*FL(0.5)*(fw[j+2].re + fw[j-2].re);
-        ff[j].im += FL(0.0782793)*FL(0.5)*(fw[j+2].im + fw[j-2].im);
-      }
-      ff[0].re    += -FL(0.4973406) * fw[1].re    + FL(0.0782793) * fw[2].re;
-      ff[NB-1].re += -FL(0.4973406) * fw[NB-2].re + FL(0.0782793) * fw[NB-3].re;
-      ff[1].re    += -FL(0.4973406) * fw[2].re    + FL(0.0782793) * fw[3].re;
-      ff[NB-2].re += -FL(0.4973406) * fw[NB-3].re + FL(0.0782793) * fw[NB-4].re;
-      ff[1].re = 0.5 * (fw[2].re + fw[0].re); /* HACK???? */
-      ff[1].im = 0.5 * (fw[2].im + fw[0].im);
+      SDFT_THREE_TERM_WINDOW(0.42323, 0.4973406, 0.0782793);
       break;
     }
     /*       if (i==9) { */
@@ -607,6 +560,8 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
   return OK;
 }
 
+#undef SDFT_THREE_TERM_WINDOW
+
 int32_t pvsanal(CSOUND *csound, PVSANAL *p)
 {
   MYFLT *ain;
@@ -620,11 +575,7 @@ int32_t pvsanal(CSOUND *csound, PVSANAL *p)
     return csound->PerfError(csound,&(p->h),
                              Str("pvsanal: not Initialised.\n"));
   }
-  {
-    int32_t overlap = (int32_t)*p->overlap;
-    if (overlap<(int32_t)nsmps || overlap<10) /* 10 is a guess.... */
-      return pvssanal(csound, p);
-  }
+  if (p->fsig->sliding) return pvssanal(csound, p);
   nsmps -= early;
   for (i=offset; i < nsmps; i++) {
     if (p->inptr == p->fsig->overlap) {
