@@ -255,7 +255,8 @@ static int32_t trig(CSOUND *csound, TRIG *p)
 
 static int32_t interpol(CSOUND *csound, INTERPOL *p)
 {
-    IGN(csound);
+    if (UNLIKELY(*p->imax == *p->imin))
+      return csound->InitError(csound, "%s", Str("Min and max the same"));
     MYFLT point_value = (*p->point - *p->imin) / (*p->imax - *p->imin);
     *p->r = point_value * (*p->val2 - *p->val1) + *p->val1;
     return OK;
