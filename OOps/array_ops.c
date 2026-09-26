@@ -3992,24 +3992,60 @@ int32_t tablength(CSOUND *csound, TABQUERY1 *p)
 
 int32_t asig2array_init(CSOUND *csound, A2ARR *p) {
   int32_t nsmps = CS_KSMPS;
+  if (UNLIKELY(p->res->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                             Str("Audio-to-array conversion requires a "
+                                 "one-dimensional output"));
   if (UNLIKELY(tabinit(csound, p->res, nsmps, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
 
 int32_t asig2array_perf(CSOUND *csound, A2ARR *p) {
-  size_t bytes = CS_KSMPS*sizeof(MYFLT);
-  memcpy(p->res->data, p->asig, bytes);
+  uint32_t nsmps = CS_KSMPS;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t end = nsmps - p->h.insdshead->ksmps_no_end;
+  if (UNLIKELY(p->res->dimensions != 1))
+    return csound->PerfError(csound, &p->h, "%s",
+                             Str("Audio-to-array conversion requires a "
+                                 "one-dimensional output"));
+  /* Another opcode may have changed the output's size or storage. */
+  if (UNLIKELY(tabcheck(csound, p->res, nsmps, &p->h) != OK))
+    return NOTOK;
+  if (UNLIKELY(offset))
+    memset(p->res->data, 0, offset*sizeof(MYFLT));
+  if (offset < end)
+    memcpy(p->res->data + offset, p->asig + offset,
+           (end-offset)*sizeof(MYFLT));
+  if (UNLIKELY(end < nsmps))
+    memset(p->res->data + end, 0, (nsmps-end)*sizeof(MYFLT));
   return OK;
 }
 
 
 
 int32_t array2asig_perf(CSOUND *csound, ARR2A *p) {
-  size_t bytes = CS_KSMPS*sizeof(MYFLT);
-  size_t arrs = p->karr->sizes[0]*sizeof(MYFLT);
-  if(bytes > arrs) memset(p->asig, 0, bytes);
-  memcpy(p->asig, p->karr->data, bytes < arrs ? bytes : arrs);
+  uint32_t nsmps = CS_KSMPS;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t end = nsmps - p->h.insdshead->ksmps_no_end;
+  ARRAYDAT *array = p->karr;
+  if (UNLIKELY(array->dimensions != 1 || array->sizes == NULL ||
+               array->data == NULL || array->sizes[0] < 0))
+    return csound->PerfError(csound, &p->h, "%s",
+                             Str("a(k[]): expected an initialized "
+                                 "one-dimensional array"));
+  if ((uint32_t)array->sizes[0] < end)
+    end = (uint32_t)array->sizes[0];
+  if (UNLIKELY(offset))
+    memset(p->asig, 0, offset*sizeof(MYFLT));
+  /* Array indices keep their positions within the audio block. */
+  if (offset < end)
+    memcpy(p->asig + offset, array->data + offset,
+           (end-offset)*sizeof(MYFLT));
+  else
+    end = offset;
+  if (UNLIKELY(end < nsmps))
+    memset(p->asig + end, 0, (nsmps-end)*sizeof(MYFLT));
   return OK;
 }
 
