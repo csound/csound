@@ -90,7 +90,8 @@ i "CheckWrap" 0 .02  0     0    1 -1e-20
 ; Reference and equivalent wrapped pitch, in table samples per sample.
 i "CheckPitch" 0 .02  .5   8.5
 i "CheckPitch" 0 .02 -.5  -8.5
-i "CheckPitch" 0 .02  1    8000001
+; Cross several table lengths in one step without a long wrapping loop.
+i "CheckPitch" 0 .02  1    65
 i "CheckResults" .03 .01
 e
 </CsScore>

@@ -271,10 +271,11 @@ static int32_t tifd_process(CSOUND * csound, IFD * p)
   uint32_t nsmps = CS_KSMPS;
 
   if(p->cnt >= hopsize){
+    MYFLT  pos = *p->in*CS_ESR;
     MYFLT  *sigframe = (MYFLT *) p->sigframe.auxp;
+    MYFLT  pit = *p->p3;
     int32_t     fftsize = p->fftsize;
     uint32_t post;
-    double pos, pit;
     MYFLT frac;
     FUNC *ft = csound->FTFind(csound,p->p7);
     if (UNLIKELY(ft == NULL)) {
@@ -282,34 +283,22 @@ static int32_t tifd_process(CSOUND * csound, IFD * p)
                                "could not find table number %d\n", (int32_t) *p->p7);
     }
     MYFLT *tab = ft->ftable;
-    int32_t i;
-    uint32_t size = ft->flen;
-    if (UNLIKELY(size == 0))
-      return csound->PerfError(csound, &(p->h), "%s",
-                               Str("tabifd: empty source table"));
-    /* Wrap before integer conversion, including negative fractional positions.
-       Reducing time first also avoids overflow in time * sample rate. */
-    pos = fmod((double)*p->in, size / (double)CS_ESR) * CS_ESR;
-    pit = fmod((double)*p->p3, (double)size);
-    if (pos < 0) pos += size;
-    if (pos >= size) pos = 0;
-    if (UNLIKELY(!(pos >= 0 && pos < size && pit > -(double)size && pit < size)))
-      return csound->PerfError(csound, &(p->h), "%s",
-                               Str("tabifd: invalid time or pitch"));
+    int32_t i,size = ft->flen;
     for(i=0; i < fftsize; i++){
       MYFLT in;
-      post = (uint32_t)pos;
-      frac = (MYFLT)(pos - post);
+      /* Wrap before splitting the index and fraction. Wrap negatives first
+         because adding size to a tiny negative can round up to size. */
+      while (pos < 0) pos += size;
+      while (pos >= size) pos -= size;
+      post = (uint32_t) pos;
+      frac = pos - post;
       in = tab[post] + frac*(tab[post+1] - tab[post]);
       sigframe[i] = in;
       pos += pit;
-      if (pos < 0) pos += size;
-      /* Adding size to a tiny negative position may round up to size. */
-      if (pos >= size) pos -= size;
     }
     p->g = *p->p2;
     IFAnalysis(csound, p, sigframe);
-    p->cnt %= hopsize;
+    p->cnt -= hopsize;
   }
   p->cnt += nsmps;
   return OK;
