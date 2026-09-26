@@ -38,10 +38,12 @@ protected:
         return result;
     }
 
-    void prepare(const std::string &producer = "gfSignal pvsinit 64, 16, 64, 1\n")
+    void prepare(const std::string &producer = "gfSignal pvsinit 64, 16, 64, 1\n",
+                 int blockSize = 16)
     {
         const auto orchestra =
-            "sr = 8192\nksmps = 16\nnchnls = 1\n0dbfs = 1\n"
+            "sr = 8192\nksmps = " + std::to_string(blockSize) +
+            "\nnchnls = 1\n0dbfs = 1\n"
             "giAmps ftgen 1, 0, -33, -2, 0\n"
             "giFreqs ftgen 2, 0, -33, -2, 0\n" + producer +
             "instr 1\npvsftr gfSignal, p4, p5\nendin\n";
@@ -132,12 +134,18 @@ TEST_F(PvsftrTests, ZeroFrequencyTablePreservesTheSignalsFrequencies)
     checkFrame(.5f, false);
 }
 
-TEST_F(PvsftrTests, SmallOverlapDoesNotMakeAnOrdinaryFrameSliding)
+TEST_F(PvsftrTests, AcceptsOrdinaryFramesProducedWithSmallerLocalKsmps)
 {
     ASSERT_NO_FATAL_FAILURE(prepare(
-        "gkFrame[] init 66\ngfSignal tab2pvs gkFrame, 8, 64, 1\n"));
+        "opcode MakeFrame, f, 0\n"
+        "setksmps 8\n"
+        "aIn init 0\n"
+        "fOut pvsanal aIn, 64, 16, 64, 1\n"
+        "xout fOut\n"
+        "endop\n"
+        "gfSignal MakeFrame\n", 32));
     ASSERT_FALSE(signal->sliding);
-    ASSERT_EQ(signal->overlap, 8);
+    ASSERT_EQ(signal->overlap, 16);
     ASSERT_NO_FATAL_FAILURE(start());
     checkFrame(.5f);
 }
