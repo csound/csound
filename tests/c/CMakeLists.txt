@@ -74,6 +74,7 @@ if(BUILD_TESTS)
         oscbundle_test.cpp
         internal_osc_decode_test.cpp
         pvsinit_test.cpp
+        pvsgendy_test.cpp
         paulstretch_test.cpp
         mixer_test.cpp
         multitap_test.cpp
