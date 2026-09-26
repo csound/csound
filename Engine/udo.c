@@ -1607,8 +1607,8 @@ MYFLT *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
 
   Similarly, a local SR is now implemented. This is set by
   the oversample/undersample opcode. It is not allowed with
-  local ksmps setting (setksmps) or with audio/k-rate array
-  arguments. It uses useropcd2().
+  local ksmps setting (setksmps). Audio/k-rate array arguments
+  are supported. It uses useropcd2().
 
 */
 
@@ -2074,7 +2074,9 @@ int32_t set_inbufs(CSOUND *csound,
     // set up src units one per input arg - non k/a sigs/arrays are bypassed
     if(esr != parent_sr) {
         if((udo->cvt_in[i] = src_init(csound, h->insdshead->in_cvt,
-                                        ratio, current, h->insdshead)) == NULL)
+                                        ratio, current, h->insdshead,
+                                        buf->parent_ip->ksmps,
+                                        h->insdshead->ksmps)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
       }
@@ -2135,7 +2137,8 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
         // set up src units one per input arg - non k/a sigs/arrays are bypassed
         if((udo->cvt_out[i] = src_init(csound, p->h.insdshead->out_cvt,
                                          parent_sr/CS_ESR, current,
-                                         p->h.insdshead)) == 0)
+                                         p->h.insdshead, CS_KSMPS,
+                                         buf->parent_ip->ksmps)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
       }
@@ -2458,14 +2461,17 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
   return OK;
 }
 
-// global ksmps and global or local sr, pass-by-copy
+// Pass-by-copy, with sample rate conversion when the local sr differs.
 int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
 {
   MYFLT   **tmp;
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int32_t i, done;
-  int32_t os = (int) (p->ip->esr/p->parent_ip->esr);
+  int32_t resample = p->ip->esr != p->parent_ip->esr;
+  int32_t undersample = p->ip->esr < p->parent_ip->esr;
+  /* undersample reduces sr and ksmps together: one local block per call. */
+  int32_t os = undersample ? 1 : (int32_t) (p->ip->esr/p->parent_ip->esr);
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
   done = ATOMIC_GET(p->ip->init_done);
 
@@ -2475,6 +2481,16 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
   /* VL 18.12.24: ksmps_no_end is copied here as it
      applies only to last kcycle */
   p->ip->ksmps_no_end = p->h.insdshead->ksmps_no_end;
+  if (undersample) {
+    uint32_t parent_size = CS_KSMPS, local_size = p->ip->ksmps;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t end = parent_size - p->h.insdshead->ksmps_no_end;
+    /* Round boundaries up to the next local sample. */
+    p->ip->ksmps_offset =
+      ((uint64_t) offset * local_size + parent_size - 1) / parent_size;
+    p->ip->ksmps_no_end = local_size -
+      ((uint64_t) end * local_size + parent_size - 1) / parent_size;
+  }
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
 
@@ -2502,7 +2518,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
       if (current->varType != &CS_VAR_TYPE_I &&
           current->varType != &CS_VAR_TYPE_b &&
           current->subType != &CS_VAR_TYPE_I) {
-        if(os == 1) {
+        if(!resample) {
           if (current->varType == &CS_VAR_TYPE_A && CS_KSMPS == 1) {
             *internal_ptrs[i + inm->outchns] = *external_ptrs[i + inm->outchns];
           } else {
@@ -2518,7 +2534,9 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
         } else { // under/oversampling
           void* in = (void*) external_ptrs[i + inm->outchns];
           void* out = (void*) internal_ptrs[i + inm->outchns];
-          src_convert(csound, p->cvt_in[cvt], in, out);
+          if (UNLIKELY(src_convert(csound, p->cvt_in[cvt], in, out) != OK))
+            return csound->PerfError(csound, &p->h,
+                                     "could not convert UDO input sample rate");
         }
       }
       current = current->next;
@@ -2543,7 +2561,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
       if (current->varType != &CS_VAR_TYPE_I &&
           current->varType != &CS_VAR_TYPE_b &&
           current->subType != &CS_VAR_TYPE_I) {
-        if(os == 1) {
+        if(!resample) {
           if (current->varType == &CS_VAR_TYPE_A && CS_KSMPS == 1) {
             *external_ptrs[i] = *internal_ptrs[i];
           } else {
@@ -2560,7 +2578,30 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
         else { // under/oversampling
           void* in = (void*)internal_ptrs[i];
           void* out = (void*)external_ptrs[i];
-          src_convert(csound, p->cvt_out[cvt], in, out);
+          if (UNLIKELY(src_convert(csound, p->cvt_out[cvt], in, out) != OK))
+            return csound->PerfError(csound, &p->h,
+                                     "could not convert UDO output sample rate");
+          /* Conversion may retain filter history outside this note. Clear
+             inactive samples in the caller's units after converting. */
+          if (undersample &&
+              (p->h.insdshead->ksmps_offset || p->h.insdshead->ksmps_no_end)) {
+            MYFLT *audio = out;
+            int32_t count = current->varType == &CS_VAR_TYPE_A ? 1 : 0;
+            int32_t stride = CS_KSMPS;
+            uint32_t offset = p->h.insdshead->ksmps_offset;
+            uint32_t early = p->h.insdshead->ksmps_no_end;
+            if (current->varType == &CS_VAR_TYPE_ARRAY &&
+                current->subType == &CS_VAR_TYPE_A) {
+              ARRAYDAT *array = out;
+              audio = array->data;
+              stride = array->arrayMemberSize / sizeof(MYFLT);
+              count = p->cvt_out[cvt]->ncvt;
+            }
+            for (int32_t n = 0; n < count; n++, audio += stride) {
+              memset(audio, 0, offset * sizeof(MYFLT));
+              memset(audio + CS_KSMPS - early, 0, early * sizeof(MYFLT));
+            }
+          }
         }
       }
       current = current->next;
@@ -2714,8 +2755,8 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
 
    if oversampling is used, xin/xout need
    to initialise the converters.
-   oversampling is not allowed with local ksmps or
-   with audio/control array arguments.
+   oversampling is not allowed with local ksmps.
+   Audio/control array arguments are supported.
 */
 int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   if(p->h.insdshead->instr->glbvarcnt > 0 &&
@@ -2723,7 +2764,7 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
     return csoundInitError(csound, "local sr not permitted with global audio vars\n");
 
   int32_t os;
-  MYFLT l_sr, onedos;
+  MYFLT l_sr;
   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
   MYFLT parent_sr, parent_ksmps;
 
@@ -2741,8 +2782,6 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   if(os < 1)
     return csound->InitError(csound, "illegal oversampling ratio: %d\n", os);
   if(os == 1 || CS_ESR != parent_sr) return OK; /* no op if changed already */
-  onedos = FL(1.0)/os;
-
   l_sr = CS_ESR*os;
   CS_ESR = l_sr;
   CS_PIDSR = PI/l_sr;
@@ -2751,16 +2790,16 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   CS_EKR = CS_ESR/CS_KSMPS;
   CS_ONEDKR = 1./CS_EKR;
   CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
-  /* ksmsp does not change,
+  /* ksmps does not change,
      however, because we are oversampling, we will need
      to run the code os times in a loop to consume
      os*ksmps input samples and produce os*ksmps output
-     samples. This means that the kcounter will run fast by a
-     factor of 1/os, and xtratim also needs to be scaled by
-     that factor
+     samples. This means that the kcounter will run faster by a
+     factor of os, and xtratim also needs to be scaled by
+     that factor.
   */
   p->h.insdshead->xtratim *= os;
-  CS_KCNT *= onedos;
+  CS_KCNT *= os;
   /* oversampling mode (s) */
   p->h.insdshead->in_cvt = *p->in_cvt >= 0 ? MYFLT2LRND(*p->in_cvt) : 0;
   if(*p->out_cvt >= 0)
@@ -2785,10 +2824,9 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
    undersample ifactor
    ifactor - undersampling factor (positive integer)
 
-   if ubdersampling is used, xin/xout need
+   if undersampling is used, xin/xout need
    to initialise the converters.
-   undersampling is not allowed with
-   with audio/control array arguments.
+   Audio/control array arguments are supported.
    It modifies ksmps according to the resampling factor.
 */
 int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
@@ -2802,7 +2840,7 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   MYFLT parent_sr, parent_ksmps;
 
   if(udo == NULL)
-    return csound->InitError(csound, "oversampling only allowed in UDOs\n");
+    return csound->InitError(csound, "undersampling only allowed in UDOs\n");
 
   parent_sr = udo->parent_ip->esr;
   parent_ksmps = udo->parent_ip->ksmps;
@@ -2824,7 +2862,7 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   /* and check */
   if(lksmps < 1)
     return csound->InitError(csound,
-                             "illegal oversampling ratio: %d\n", os);
+                             "illegal undersampling ratio: %d\n", os);
 
   /* set corrected ratio  */
   onedos = (MYFLT) lksmps/CS_KSMPS;
@@ -2841,8 +2879,8 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   CS_ONEDKR = 1./CS_EKR;
   CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
 
-  p->h.insdshead->xtratim *= onedos;
-  CS_KCNT *= FL(1.0)/onedos;
+  /* sr and ksmps change by the same ratio, so control-cycle counts and
+     release time already use the right units. */
   /* undersampling mode (s) */
   p->h.insdshead->in_cvt = *p->in_cvt >= 0 ? MYFLT2LRND(*p->in_cvt) : 0;
   if(*p->out_cvt >= 0)
