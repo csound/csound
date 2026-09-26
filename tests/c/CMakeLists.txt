@@ -26,6 +26,7 @@ if(BUILD_TESTS)
         fixtures/strecv_test_opcode.c
         bpf_array_test.cpp
         channel_tests.cpp
+        clip_test.cpp
         convolution_outputs_test.cpp
         controller_print_test.cpp
         printsk_test.cpp
