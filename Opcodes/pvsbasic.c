@@ -2710,46 +2710,80 @@ int32_t  pvs2tabsplit(CSOUND *csound, PVS2TABSPLIT_T *p){
   return OK;
 }
 
+/* Both array forms produce ordinary amp/freq frames, never sliding frames. */
+#define TAB2PVS_ARRAY(a) \
+  ((a)->data != NULL && (a)->sizes != NULL && (a)->dimensions == 1)
+
+static int32_t tab2pvs_setframe(CSOUND *csound, PVSDAT *out, int32_t N,
+                              double overlap, double winsize, double wintype,
+                              uint32_t ksmps)
+{
+  size_t bytes;
+  if (overlap == 0.0)
+    overlap = N / 4;
+  if (winsize == 0.0)
+    winsize = N;
+  if (UNLIKELY(!(overlap >= ksmps && overlap <= INT32_MAX)))
+    return csound->InitError(csound, "%s",
+                             Str("tab2pvs: hop size must be at least ksmps "
+                                 "and fit in a 32-bit integer"));
+  if (UNLIKELY(!(winsize >= 1.0 && winsize <= INT32_MAX &&
+                 wintype >= INT32_MIN && wintype <= INT32_MAX)))
+    return csound->InitError(csound, "%s",
+                             Str("tab2pvs: invalid window size or type"));
+  if (UNLIKELY((size_t)N + 2 > SIZE_MAX / sizeof(float)))
+    return csound->InitError(csound, "%s", Str("tab2pvs: frame size is too large"));
+
+  out->N = N;
+  out->NB = N / 2 + 1;
+  out->overlap = (int32_t)overlap;
+  out->winsize = (int32_t)winsize;
+  out->wintype = (int32_t)wintype;
+  out->format = PVS_AMP_FREQ;
+  out->sliding = 0;
+  out->framecount = 1;
+  bytes = ((size_t)N + 2) * sizeof(float);
+  if (out->frame.auxp == NULL || out->frame.size < bytes)
+    csound->AuxAlloc(csound, bytes, &out->frame);
+  else
+    memset(out->frame.auxp, 0, bytes);
+  return OK;
+}
+
 typedef struct tab2pvs_t {
   OPDS h;
   PVSDAT *fout;
   ARRAYDAT *in;
   MYFLT  *olap, *winsize, *wintype, *format;
+  int32_t size;
   uint32 ktime;
   uint32  lastframe;
 } TAB2PVS_T;
 
 int32_t tab2pvs_init(CSOUND *csound, TAB2PVS_T *p)
 {
-  if (LIKELY(p->in->data)){
-    int32_t N;
-    p->fout->N = N = p->in->sizes[0] - 2;
-    p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
-    p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
-    p->fout->wintype = (int32) *p->wintype;
-    p->fout->format = 0;
-    p->fout->framecount = 1;
-    p->lastframe = 0;
-    p->ktime = 0;
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(float) * (N + 2)) {
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-    }
-    else
-      memset(p->fout->frame.auxp, 0, sizeof(float)*(N+2));
-    return OK;
-  }
-  else return csound->InitError(csound, "%s", Str("array-variable not initialised"));
+  if (UNLIKELY(!TAB2PVS_ARRAY(p->in) || p->in->sizes[0] < 4 ||
+               (p->in->sizes[0] & 1)))
+    return csound->InitError(csound, "%s",
+                             Str("tab2pvs: expected a one-dimensional array "
+                                 "of at least two amplitude/frequency pairs"));
+  p->size = p->in->sizes[0];
+  p->lastframe = 0;
+  p->ktime = 0;
+  return tab2pvs_setframe(csound, p->fout, p->size - 2,
+                         *p->olap, *p->winsize, *p->wintype, CS_KSMPS);
 }
 
 int32_t  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
 {
-   IGN(csound);
-  int32_t size = p->in->sizes[0], i;
+  int32_t size = p->size, i;
   float *fout = (float *) p->fout->frame.auxp;
 
-  p->ktime += CS_KSMPS;
-  if (p->ktime > (uint32) p->fout->overlap) {
+  if (UNLIKELY(!TAB2PVS_ARRAY(p->in) || p->in->sizes[0] != size))
+    return csound->PerfError(csound, &(p->h), "%s",
+                             Str("tab2pvs: array shape changed; reinitialise"));
+  /* Count elapsed samples before this block, not through its end. */
+  if (p->ktime >= (uint32) p->fout->overlap) {
     p->fout->framecount++;
     p->ktime -= p->fout->overlap;
   }
@@ -2760,7 +2794,7 @@ int32_t  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
     }
     p->lastframe = p->fout->framecount;
   }
-
+  p->ktime += CS_KSMPS;
   return OK;
 }
 
@@ -2770,44 +2804,36 @@ typedef struct tab2pvssplit_t {
   ARRAYDAT *mags;
   ARRAYDAT *freqs;
   MYFLT  *olap, *winsize, *wintype, *format;
+  int32_t size;
   uint32 ktime;
   uint32  lastframe;
 } TAB2PVSSPLIT_T;
 
 int32_t tab2pvssplit_init(CSOUND *csound, TAB2PVSSPLIT_T *p)
 {
-  if (LIKELY(p->mags->data) && LIKELY(p->freqs->data) &&
-      (p->mags->sizes[0] == p->freqs->sizes[0])) {
-    int32_t N;
-    p->fout->N = N = (p->mags->sizes[0] * 2) - 2;
-    p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
-    p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
-    p->fout->wintype = (int32) *p->wintype;
-    p->fout->format = 0;
-    p->fout->framecount = 1;
-    p->lastframe = 0;
-    p->ktime = 0;
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(float) * (N + 2)) {
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-    }
-    else
-      memset(p->fout->frame.auxp, 0, sizeof(float)*(N+2));
-    return OK;
-  }
-  else return csound->InitError(csound,
-                                "%s", Str("magnitude and frequency arrays not "
-                                    "initialised, or are not the same size"));
+  if (UNLIKELY(!TAB2PVS_ARRAY(p->mags) || !TAB2PVS_ARRAY(p->freqs) ||
+               p->mags->sizes[0] < 2 || p->mags->sizes[0] > INT32_MAX / 2 ||
+               p->mags->sizes[0] != p->freqs->sizes[0]))
+    return csound->InitError(csound, "%s",
+                             Str("tab2pvs: expected matching one-dimensional "
+                                 "magnitude and frequency arrays of at least two bins"));
+  p->size = p->mags->sizes[0];
+  p->lastframe = 0;
+  p->ktime = 0;
+  return tab2pvs_setframe(csound, p->fout, p->size * 2 - 2,
+                         *p->olap, *p->winsize, *p->wintype, CS_KSMPS);
 }
 
 int32_t  tab2pvssplit(CSOUND *csound, TAB2PVSSPLIT_T *p)
 {
-   IGN(csound);
-  int32_t size = p->mags->sizes[0], i;
+  int32_t size = p->size, i;
   float *fout = (float *) p->fout->frame.auxp;
 
-  p->ktime += CS_KSMPS;
-  if (p->ktime > (uint32) p->fout->overlap) {
+  if (UNLIKELY(!TAB2PVS_ARRAY(p->mags) || !TAB2PVS_ARRAY(p->freqs) ||
+               p->mags->sizes[0] != size || p->freqs->sizes[0] != size))
+    return csound->PerfError(csound, &(p->h), "%s",
+                             Str("tab2pvs: array shape changed; reinitialise"));
+  if (p->ktime >= (uint32) p->fout->overlap) {
     p->fout->framecount++;
     p->ktime -= p->fout->overlap;
   }
@@ -2819,10 +2845,11 @@ int32_t  tab2pvssplit(CSOUND *csound, TAB2PVSSPLIT_T *p)
     }
     p->lastframe = p->fout->framecount;
   }
-
+  p->ktime += CS_KSMPS;
   return OK;
 }
 
+#undef TAB2PVS_ARRAY
 
 static OENTRY localops[] = {
   {"pvsfwrite", sizeof(PVSFWRITE),0, "", "fS", (SUBR) pvsfwriteset_S,

@@ -3,7 +3,7 @@ description = "reject invalid pvsblur parameters"
 
 [expect]
 exit = "nonzero"
-stderr = ["pvsblur: invalid maximum delay", "pvsblur does not work sliding yet", "pvsblur: invalid frame size", "pvsblur: format must be amp-freq or amp-phase"]
+stderr = ["pvsblur: invalid maximum delay", "pvsblur does not work sliding yet", "pvsblur: format must be amp-freq or amp-phase"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -24,22 +24,17 @@ instr 2
   fOutput pvsblur fInput, .01, .1
 endin
 instr 3
-  kInput[] init 65
-  fInput tab2pvs kInput, 32
-  fOutput pvsblur fInput, .01, .1
-endin
-instr 4
   fInput pvsinit 128, 32, 128, 1, 2
   fOutput pvsblur fInput, .01, .1
 endin
 </CsInstruments>
 <CsScore>
-; Five init errors: negative/oversized delay, sliding, odd size, bad format.
+; Four init errors: negative/oversized delay, sliding, and bad format.
+; The C++ test supplies an odd frame directly, without another producer.
 i 1 0 .01 -1
 i 1 0 .01 1e30
 i 2 0 .01
 i 3 0 .01
-i 4 0 .01
 e
 </CsScore>
 </CsoundSynthesizer>
