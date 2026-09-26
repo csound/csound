@@ -139,17 +139,19 @@ int32_t lsgset(CSOUND *csound, LINSEG *p)
   MYFLT       **argp;
   double val;
 
-  if (UNLIKELY(!(p->INOCOUNT & 1))) {
+  if (UNLIKELY(p->INOCOUNT < 3 || !(p->INOCOUNT & 1))) {
     return csound->InitError(csound, Str("incomplete number of input arguments"));
   }
+  /* A skipped reinit must preserve the cursor and the segment durations. */
+  if (p->auxch.auxp != NULL && *p->argums[1] <= FL(0.0)) return OK;
 
   /* count segs & alloc if nec */
-  nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
+  nsegs = (p->INOCOUNT - 1) / 2;
   /* VL: 29.05.17 allocating one extra empty segment
      so that the breakpoint version of this opcode
      can work properly without a fencepost bug */
   if (UNLIKELY((p->cursegp = (SEG *) p->auxch.auxp) == NULL ||
-               (nsegs+1)*sizeof(SEG) < (uint32_t)p->auxch.size)) {
+               (nsegs+1)*sizeof(SEG) > p->auxch.size)) {
     csound->AuxAlloc(csound, (int32_t)(nsegs+1)*sizeof(SEG), &p->auxch);
     p->cursegp = (SEG *) p->auxch.auxp;
     segp = p->cursegp + 1; /* point to first seg */
@@ -188,6 +190,7 @@ int32_t lsgset_bkpt(CSOUND *csound, LINSEG *p)
   SEG *segp;
   n = lsgset(csound, p);
   if (UNLIKELY(n!=0)) return n;
+  if (*p->argums[1] <= FL(0.0)) return OK;
   nsegs = p->segsrem;
   segp = p->cursegp;
   do {
@@ -207,31 +210,30 @@ int32_t lsgset_bkpt(CSOUND *csound, LINSEG *p)
 int32_t klnseg(CSOUND *csound, LINSEG *p)
 {
   IGN(csound);
-  *p->rslt = p->curval;               /* put the cur value    */
   if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;          /* RWD fix */
   if (UNLIKELY(p->segsrem)) {                   /* done if no more segs */
     if (--p->curcnt <= 0) {           /* if done cur segment  */
       SEG *segp = p->cursegp;
+    chk1:
       if (UNLIKELY(!(--p->segsrem)))  {
         p->curval = segp->nxtpt;      /* advance the cur val  */
-        return OK;
+        goto putk;
       }
       p->cursegp = ++segp;            /*   find the next      */
       if (UNLIKELY(!(p->curcnt = segp->cnt))) { /*   nonlen = discontin */
         p->curval = segp->nxtpt;      /*   poslen = new slope */
-        /*          p->curval += p->curinc;  ??????? */
-        return OK;
+        goto chk1;
       }
-      else {
-        p->curinc = (segp->nxtpt - p->curval) / segp->cnt;
-        p->curval += p->curinc;
-        return OK;
-      }
+      p->curinc = (segp->nxtpt - p->curval) / segp->cnt;
     }
-    if (p->curcnt<10)         /* This is a fiddle to get rounding right!  */
+    else if (p->curcnt<10)    /* This is a fiddle to get rounding right!  */
       p->curinc = (p->cursegp->nxtpt - p->curval) / p->curcnt; /* recalc */
+    *p->rslt = p->curval;
     p->curval += p->curinc;           /* advance the cur val  */
+    return OK;
   }
+ putk:
+  *p->rslt = p->curval;
   return OK;
  err1:
   return csound->InitError(csound, Str("linseg not initialised (krate)\n"));
@@ -478,6 +480,7 @@ int32_t lsgrset(CSOUND *csound, LINSEG *p)
 {
   int32_t relestim;
   if (lsgset(csound,p) == OK){
+    if (*p->argums[1] <= FL(0.0)) return OK;
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
     /* VL 4-1-2011 was -1, making all linsegr
        releases in an instr => xtratim
@@ -495,7 +498,6 @@ int32_t lsgrset(CSOUND *csound, LINSEG *p)
 int32_t klnsegr(CSOUND *csound, LINSEG *p)
 {
   IGN(csound);
-  *p->rslt = p->curval;                   /* put the cur value    */
   if (p->segsrem) {                       /* done if no more segs */
     SEG *segp;
     if (p->h.insdshead->relesing && p->segsrem > 1) {
@@ -508,10 +510,10 @@ int32_t klnsegr(CSOUND *csound, LINSEG *p)
     }
     if (--p->curcnt <= 0) {              /* if done cur seg      */
     chk2:
-      if (p->segsrem == 2) return OK;    /*   seg Y rpts lastval */
+      if (p->segsrem == 2) goto putk;    /*   seg Y rpts lastval */
       if (!(--p->segsrem)) {
-        *p->rslt = p->cursegp->nxtpt;  /* VL: 12.12.22 set out to target */
-        return OK;    /*   seg Z now done all */
+        p->curval = p->cursegp->nxtpt;   /* hold the final value */
+        goto putk;                      /* seg Z now done all */
       }
       segp = ++p->cursegp;               /*   else find nextseg  */
     newi:
@@ -521,8 +523,12 @@ int32_t klnsegr(CSOUND *csound, LINSEG *p)
       }                                  /*   else get new slope */
       p->curinc = (segp->nxtpt - p->curval) / segp->cnt;
     }
+    *p->rslt = p->curval;
     p->curval += p->curinc;              /* advance the cur val  */
+    return OK;
   }
+ putk:
+  *p->rslt = p->curval;
   return OK;
 }
 
