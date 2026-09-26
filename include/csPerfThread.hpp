@@ -248,10 +248,11 @@ class PUBLIC CsoundPerformanceThread {
     void RequestCallback(void (*func)(CsoundPerformanceThread *));
 
 
-     /**
-     * Waits until all pending messages (pause, send score event, etc.)
-     * are actually received by the performance thread.
-     */
+      /**
+      * Waits until all pending messages (pause, send score event, etc.)
+      * and their callbacks have been processed by the performance thread.
+      * Must not be called from a message callback.
+      */
     void FlushMessageQueue();
 
      /**
