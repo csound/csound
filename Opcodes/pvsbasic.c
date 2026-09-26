@@ -2521,6 +2521,16 @@ static int32_t pvsenvwset(CSOUND *csound, PVSENVW *p)
 {
   int32    N = p->fin->N;
 
+  if (UNLIKELY(p->fin->sliding))
+    return csound->InitError(csound, "%s",
+                             Str("pvsenvftw: cannot use sliding PVS"));
+  if (UNLIKELY(p->fin->format != PVS_AMP_FREQ &&
+               p->fin->format != PVS_AMP_PHASE))
+    return csound->InitError(csound, "%s",
+                             Str("pvsenvftw: format must be amp-freq or amp-phase"));
+  if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) ||
+               (size_t)(N + 2) > SIZE_MAX / sizeof(MYFLT)))
+    return csound->InitError(csound, "%s", Str("pvsenvftw: invalid frame size"));
 
   p->lastframe = 0;
 
@@ -2540,37 +2550,42 @@ static int32_t pvsenvwset(CSOUND *csound, PVSENVW *p)
 
 static int32_t pvsenvw(CSOUND *csound, PVSENVW *p)
 {
-  int32_t     i,j, N = p->fin->N;
-  float   max = 0.0f;
-  int32_t     keepform = (int32_t) *p->keepform;
-  float   g = (float) *p->gain;
-  float   *fin = (float *) p->fin->frame.auxp;
+  int32_t i, j, N = p->fin->N;
+  MYFLT g = *p->gain;
+  const float *fin = (const float *) p->fin->frame.auxp;
   MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
   MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
-  int32_t coefs = (int32_t) *p->coefs;
   FUNC  *ft = csound->FTFind(csound, p->ftab);
-  int32_t size;
   MYFLT *ftab;
 
+  *p->kflag = FL(0.0);
   if (ft == NULL) {
     csound->PerfError(csound, &(p->h),
                      Str("could not find table number %d\n"), (int32_t) *p->ftab);
     return NOTOK;
   }
-  size = ft->flen;
+  /* The envelope contains N/2 bins, without Nyquist or a guard point.
+     ktable can change, so validate each selected table before writing. */
+  if (UNLIKELY(ft->flen != (uint32_t)(N / 2)))
+    return csound->PerfError(csound, &(p->h), "%s",
+                             Str("pvsenvftw: table length must equal N/2"));
   ftab = ft->ftable;
 
-  *p->kflag = 0.0;
   if (p->lastframe < p->fin->framecount) {
+    int32_t keepform = *p->keepform >= FL(3.0) ? 3 :
+      (*p->keepform >= FL(2.0) ? 2 : 1);
+    MYFLT requested = *p->coefs >= FL(1.0) ? *p->coefs : FL(80.0);
+    int32_t coefs = requested < N/2 ? (int32_t) requested : N/2;
     {
       int32_t cond = 1;
       for (i=j=0; i < N; i+=2, j++) {
         fenv[j] = LOG(fin[i] > 0.0 ? fin[i] : 1e-20);
       }
       if (keepform > 2) { /* experimental mode 3 */
-        int32_t j;
         int32_t w = 5;
-        for (i=0; i < w; i++) ceps[i] = fenv[i];
+        /* Preserve both edges where the averaging window cannot fit.
+           Copy all bins so small frames and method changes work too. */
+        for (i=0; i < N/2; i++) ceps[i] = fenv[i];
         for (i=w; i < N/2-w; i++) {
           ceps[i] = 0.0;
           for (j=-w; j < w; j++)
@@ -2579,17 +2594,9 @@ static int32_t pvsenvw(CSOUND *csound, PVSENVW *p)
         }
         for (i=0; i<N/2; i++) {
           fenv[i] = EXP(ceps[i]);
-          max = max < fenv[i] ? fenv[i] : max;
         }
-        /* if (max)
-           for (i=0; i<N; i+=2) {
-           fenv[i/2]/=max;
-           }*/
       }
       else {  /* new modes 1 & 2 */
-        int32_t tmp = N/2;
-        tmp = tmp + tmp%2;
-        if (coefs < 1) coefs = 80;
         while(cond) {
           cond = 0;
           for (j=i=0; i < N; i+=2, j++) {
@@ -2608,20 +2615,16 @@ static int32_t pvsenvw(CSOUND *csound, PVSENVW *p)
             else
               {
                 fenv[j] = EXP(ceps[i]);
-                max = max < fenv[j] ? fenv[j] : max;
               }
           }
         }
         if (keepform > 1)
           for (j=i=0; i<N; i+=2, j++) {
             fenv[j] = EXP(ceps[i]);
-            max = max < fenv[j] ? fenv[j] : max;
           }
-        /* if (max)
-           for (i=0; i<N/2; i++) fenv[i]/=max; */
       }
     }
-    for (i = 0; i < N/2 || i < size; i++) ftab[i] = fenv[i]*g;
+    for (i = 0; i < N/2; i++) ftab[i] = fenv[i]*g;
     p->lastframe = p->fin->framecount;
     *p->kflag = FL(1.0);
   }
