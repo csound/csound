@@ -523,6 +523,26 @@ read_error:
                           Str("pvsdiskin: could not read analysis frame"));
 }
 
+/* Called only at initialization. */
+static int32_t pvstanal_sizes(CSOUND *csound, double fftsize, double hop,
+                             uint32_t ksmps, int32_t *N, int32_t *hsize)
+{
+  if (fftsize <= 0.0) fftsize = 2048;
+  if (hop <= 0.0) hop = 512;
+  if (UNLIKELY(!(fftsize >= 2.0 && fftsize <= INT32_MAX - 2)))
+    return csound->InitError(csound, "%s", Str("pvstanal: invalid FFT size"));
+  *N = (int32_t) fftsize;
+  if (UNLIKELY(*N != fftsize || (*N & (*N - 1)) != 0 ||
+               (size_t)(*N + 2) > SIZE_MAX/sizeof(MYFLT)))
+    return csound->InitError(csound, "%s",
+                            Str("pvstanal: FFT size must be a power of two"));
+  if (UNLIKELY(!(hop >= ksmps && hop <= INT32_MAX)))
+    return csound->InitError(csound, "%s",
+                            Str("pvstanal: hop size must be at least ksmps"));
+  *hsize = (int32_t) hop;
+  return OK;
+}
+
 typedef struct _pvst {
   OPDS h;
   PVSDAT *fout[MAXOUTS];
@@ -550,8 +570,9 @@ int32_t pvstanalset(CSOUND *csound, PVST *p)
 {
 
   int32_t i, N, hsize, nChannels;
-  N = (*p->fftsize > 0 ? *p->fftsize : 2048);
-  hsize = (*p->hsize > 0 ? *p->hsize : 512);
+  if (pvstanal_sizes(csound, *p->fftsize, *p->hsize, CS_KSMPS,
+                    &N, &hsize) != OK)
+    return NOTOK;
   p->init = 0;
   nChannels = GetOutputArgCnt((OPDS *)p);
   if (UNLIKELY(nChannels < 1 || nChannels > MAXOUTS))
@@ -633,8 +654,9 @@ int32_t pvstanalset1(CSOUND *csound, PVST1 *p)
 {
 
   int32_t i, N, hsize, nChannels;
-  N = (*p->fftsize > 0 ? *p->fftsize : 2048);
-  hsize = (*p->hsize > 0 ? *p->hsize : 512);
+  if (pvstanal_sizes(csound, *p->fftsize, *p->hsize, CS_KSMPS,
+                    &N, &hsize) != OK)
+    return NOTOK;
   p->init = 0;
   nChannels = GetOutputArgCnt((OPDS *)p);
   if (UNLIKELY(nChannels < 1 || nChannels > 1))
@@ -789,9 +811,7 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
         /* increment read pos according to pitch transposition */
         pos += pitch;
       }
-      /* take the FFT of both frames
-         re-order Nyquist bin from pos 1 to N
-      */
+      /* take the FFT of both frames */
       csound->RealFFT(csound, p->fwdsetup, bwin);
       csound->RealFFT(csound, p->fwdsetup, fwin);
       if (*p->konset){
@@ -805,7 +825,11 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
         if (powrat > dbtresh) p->tscale=0;
       } else p->tscale=1;
 
-      fwin[N+1] = fwin[1] = 0.0;
+      /* RealFFT packs DC at 0 and Nyquist at 1, both purely real. */
+      fout[0] = (float) FABS(fwin[0]);
+      fout[1] = 0.0f;
+      fout[N] = (float) FABS(fwin[1]);
+      fout[N+1] = (float) (CS_ESR*0.5);
 
       for (i=2,k=1; i < N; i+=2, k++) {
         double bph, fph, dph;
@@ -944,9 +968,7 @@ int32_t pvstanal1(CSOUND *csound, PVST1 *p)
         /* increment read pos according to pitch transposition */
         pos += pitch;
       }
-      /* take the FFT of both frames
-         re-order Nyquist bin from pos 1 to N
-      */
+      /* take the FFT of both frames */
       csound->RealFFT(csound, p->fwdsetup, bwin);
       csound->RealFFT(csound, p->fwdsetup, fwin);
       if (*p->konset){
@@ -960,7 +982,11 @@ int32_t pvstanal1(CSOUND *csound, PVST1 *p)
         if (powrat > dbtresh) p->tscale=0;
       } else p->tscale=1;
 
-      fwin[N+1] = fwin[1] = 0.0;
+      /* RealFFT packs DC at 0 and Nyquist at 1, both purely real. */
+      fout[0] = (float) FABS(fwin[0]);
+      fout[1] = 0.0f;
+      fout[N] = (float) FABS(fwin[1]);
+      fout[N+1] = (float) (CS_ESR*0.5);
 
       for (i=2,k=1; i < N; i+=2, k++) {
         double bph, fph, dph;
