@@ -27,13 +27,13 @@
    ffrs, fphs pvsifd ain, ifftsize, ihopsize, iwintype[,iscal]
 
    ffrs - AMP_FREQ signal
-   fphs - AMP_PHASE signal (unwrapped phase)
+   fphs - AMP_PHASE signal (phase in radians, wrapped to -pi through pi)
 
    ain - input
    ifftsize - fftsize (must be integer multiple of hopsize)
    ihopsize - hopsize
    iwintype - O:hamming; 1: hanning,
-   iscal - magnitude scaling (defaults to 0)
+   iscal - magnitude scaling (defaults to 1)
 
 */
 
@@ -49,106 +49,99 @@ typedef struct _ifd {
   /* data */
   AUXCH   sigframe, diffsig, win, diffwin;
   AUXCH   counter;
-  int32_t     fftsize, hopsize, wintype, frames, cnt;
+  int32_t     fftsize, hopsize, wintype, frames;
+  uint64_t cnt;
   double  fund, factor;
   MYFLT   norm, g;
   void  *setup;
 } IFD;
 
-static int32_t ifd_init(CSOUND * csound, IFD * p)
+/* Both opcodes use the same windows, output layout, and FFT plan. */
+static int32_t ifd_setup(CSOUND *csound, IFD *p, double requested_fft,
+                        double requested_hop, MYFLT window, int32_t streaming)
 {
-  int32_t     fftsize, hopsize, frames;
-  int32_t    *counter, wintype, i;
-  MYFLT  *winf, *dwinf;
-  double  alpha = 0.0, fac;
+  int32_t fftsize, hopsize, frames, i;
+  size_t samples, bytes;
+  MYFLT *winf, *dwinf;
+  double alpha, fac;
+  PVSDAT *outputs[2] = {p->fout1, p->fout2};
 
-  //p->cnt = 0;
-  fftsize = p->fftsize = (int32_t) *p->p2;
-  hopsize = p->hopsize = (int32_t) *p->p3;
-  p->g = *p->p5;
-  wintype = p->wintype = (int32_t) *p->p4;
-  frames = fftsize / hopsize;
+  if (UNLIKELY(!(requested_fft >= 2 && requested_fft <= INT32_MAX-2 &&
+                 requested_hop >= 1 && requested_hop <= requested_fft)))
+    return csound->InitError(csound, "%s", Str("IFD: invalid FFT or hop size"));
+  fftsize = (int32_t) requested_fft;
+  hopsize = (int32_t) requested_hop;
+  if (UNLIKELY(fftsize != requested_fft || hopsize != requested_hop ||
+               (fftsize & (fftsize-1)) || fftsize % hopsize))
+    return csound->InitError(csound, "%s",
+                            Str("IFD: FFT size must be a power of two and "
+                                "an integer multiple of the hop size"));
+  if (UNLIKELY(window != PVS_WIN_HAMMING && window != PVS_WIN_HANN))
+    return csound->InitError(csound, "%s", Str("IFD: unsupported window type"));
+  if (UNLIKELY(window == PVS_WIN_HANN && fftsize < 4))
+    return csound->InitError(csound, "%s",
+                            Str("IFD: Hann window needs at least 4 samples"));
 
-  if (UNLIKELY((frames - (float) fftsize / hopsize) != 0.0f))
-    return csound->InitError(csound, "%s", Str("pvsifd: fftsize should "
-                                         "be an integral multiple of hopsize"));
-
-  if (UNLIKELY((fftsize & (fftsize - 1))))
-    return csound->InitError(csound,
-                             "%s", Str("pvsifd: fftsize should be power-of-two"));
-
+  frames = streaming ? fftsize / hopsize : 1;
+  if (UNLIKELY(frames > INT32_MAX / fftsize ||
+               (size_t)fftsize > SIZE_MAX / sizeof(MYFLT) / frames ||
+               (size_t)fftsize+2 > SIZE_MAX / sizeof(float)))
+    return csound->InitError(csound, "%s", Str("IFD: frame buffers too large"));
+  p->fftsize = fftsize;
+  p->hopsize = hopsize;
+  p->wintype = (int32_t)window;
   p->frames = frames;
+  p->cnt = hopsize;
 
-  if (p->sigframe.auxp == NULL ||
-      frames * fftsize * sizeof(MYFLT) > (uint32_t) p->sigframe.size)
-    csound->AuxAlloc(csound, frames * fftsize * sizeof(MYFLT), &p->sigframe);
-  else
-    memset(p->sigframe.auxp, 0, sizeof(MYFLT) * fftsize * frames);
-  if (p->diffsig.auxp == NULL ||
-      fftsize * sizeof(MYFLT) > (uint32_t) p->diffsig.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffsig);
-  else
-    memset(p->diffsig.auxp, 0, sizeof(MYFLT) * fftsize);
-  if (p->diffwin.auxp == NULL ||
-      fftsize * sizeof(MYFLT) > (uint32_t) p->diffwin.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffwin);
-  if (p->win.auxp == NULL ||
-      fftsize * sizeof(MYFLT) > (uint32_t) p->win.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->win);
-  if (p->counter.auxp == NULL ||
-      frames * sizeof(int32_t) > (uint32_t) p->counter.size)
-    csound->AuxAlloc(csound, frames * sizeof(int32_t), &p->counter);
-  if (p->fout1->frame.auxp == NULL ||
-      (fftsize + 2) * sizeof(MYFLT) > (uint32_t) p->fout1->frame.size)
-    csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout1->frame);
-  else
-    memset(p->fout1->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
-  if (p->fout2->frame.auxp == NULL ||
-      (fftsize + 2) * sizeof(MYFLT) > (uint32_t) p->fout2->frame.size)
-    csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout2->frame);
-  else
-    memset(p->fout2->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
-  p->fout1->N = fftsize;
-  p->fout1->overlap = hopsize;
-  p->fout1->winsize = fftsize;
-  p->fout1->wintype = wintype;
-  p->fout1->framecount = 1;
-  p->fout1->format = PVS_AMP_FREQ;
+  samples = (size_t)frames * fftsize;
+  bytes = samples * sizeof(MYFLT);
+  if (p->sigframe.auxp == NULL || p->sigframe.size < bytes)
+    csound->AuxAlloc(csound, bytes, &p->sigframe);
+  memset(p->sigframe.auxp, 0, bytes);
 
-  p->fout2->N = fftsize;
-  p->fout2->overlap = hopsize;
-  p->fout2->winsize = fftsize;
-  p->fout2->wintype = wintype;
-  p->fout2->framecount = 1;
-  p->fout2->format = PVS_AMP_PHASE;
+  bytes = (size_t)fftsize * sizeof(MYFLT);
+  if (p->diffsig.auxp == NULL || p->diffsig.size < bytes)
+    csound->AuxAlloc(csound, bytes, &p->diffsig);
+  memset(p->diffsig.auxp, 0, bytes);
+  if (p->diffwin.auxp == NULL || p->diffwin.size < bytes)
+    csound->AuxAlloc(csound, bytes, &p->diffwin);
+  if (p->win.auxp == NULL || p->win.size < bytes)
+    csound->AuxAlloc(csound, bytes, &p->win);
 
-  counter = (int32_t *) p->counter.auxp;
-  for (i = 0; i < frames; i++)
-    counter[i] = i * hopsize;
-
-  winf = (MYFLT *) p->win.auxp;
-  dwinf = (MYFLT *) p->diffwin.auxp;
-
-  switch (wintype) {
-  case PVS_WIN_HAMMING:
-    alpha = 0.54;
-    break;
-  case PVS_WIN_HANN:
-    alpha = 0.5;
-    break;
-  default:
-    return csound->InitError(csound,
-                             "%s", Str("pvsifd: unsupported value for iwintype\n"));
-    break;
+  bytes = ((size_t)fftsize+2) * sizeof(float);
+  for (i = 0; i < 2; i++) {
+    PVSDAT *out = outputs[i];
+    if (out->frame.auxp == NULL || out->frame.size < bytes)
+      csound->AuxAlloc(csound, bytes, &out->frame);
+    memset(out->frame.auxp, 0, bytes);
+    out->N = fftsize;
+    out->NB = fftsize/2+1;
+    out->sliding = 0;
+    out->overlap = hopsize;
+    out->winsize = fftsize;
+    out->wintype = p->wintype;
+    out->framecount = 1;
+    out->format = i == 0 ? PVS_AMP_FREQ : PVS_AMP_PHASE;
   }
-  fac = TWOPI / (fftsize - 1.0);
 
+  if (streaming) {
+    int32_t *counter;
+    bytes = (size_t)frames * sizeof(int32_t);
+    if (p->counter.auxp == NULL || p->counter.size < bytes)
+      csound->AuxAlloc(csound, bytes, &p->counter);
+    counter = (int32_t *)p->counter.auxp;
+    for (i = 0; i < frames; i++) counter[i] = i * hopsize;
+  }
+
+  winf = (MYFLT *)p->win.auxp;
+  dwinf = (MYFLT *)p->diffwin.auxp;
+  alpha = window == PVS_WIN_HAMMING ? 0.54 : 0.5;
+  fac = TWOPI / (fftsize-1.0);
   for (i = 0; i < fftsize; i++)
-    winf[i] = (MYFLT) (alpha - (1.0 - alpha) * cos(fac * i));
-
+    winf[i] = (MYFLT)(alpha - (1.0-alpha) * cos(fac*i));
   p->norm = 0;
   for (i = 0; i < fftsize; i++) {
-    dwinf[i] = winf[i] - (i + 1 < fftsize ? winf[i + 1] : FL(0.0));
+    dwinf[i] = winf[i] - (i+1 < fftsize ? winf[i+1] : FL(0.0));
     p->norm += winf[i];
   }
 
@@ -156,6 +149,12 @@ static int32_t ifd_init(CSOUND * csound, IFD * p)
   p->fund = CS_ESR / fftsize;
   p->setup = csound->RealFFTSetup(csound, fftsize, FFT_FWD);
   return OK;
+}
+
+static int32_t ifd_init(CSOUND *csound, IFD *p)
+{
+  p->g = *p->p5;
+  return ifd_setup(csound, p, *p->p2, *p->p3, *p->p4, 1);
 }
 
 static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
@@ -215,9 +214,14 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
       outphases[i + 1] = 0.0f;
     }
   }
-  output[0] = outphases[0] = signal[0] * scl;
-  output[1] = outphases[1] = outphases[fftsize + 1] = 0.0f;
-  output[fftsize] = outphases[fftsize] = signal[1] * scl;
+  /* DC and Nyquist are real coefficients: their sign belongs in the phase. */
+  tmp1 = signal[0] * scl;
+  tmp2 = signal[1] * scl;
+  output[0] = outphases[0] = (float)FABS(tmp1);
+  output[fftsize] = outphases[fftsize] = (float)FABS(tmp2);
+  outphases[1] = tmp1 < FL(0.0) ? (float)PI : 0.0f;
+  outphases[fftsize + 1] = tmp2 < FL(0.0) ? (float)PI : 0.0f;
+  output[1] = 0.0f;
   output[fftsize + 1] = CS_ESR * FL(0.5);
   p->fout1->framecount++;
   p->fout2->framecount++;
@@ -255,97 +259,9 @@ static int32_t ifd_process(CSOUND * csound, IFD * p)
   return OK;
 }
 
-static int32_t tifd_init(CSOUND * csound, IFD * p)
+static int32_t tifd_init(CSOUND *csound, IFD *p)
 {
-  int32_t     fftsize, hopsize;
-  int32_t     wintype, i;
-  MYFLT  *winf, *dwinf;
-  double  alpha = 0.0, fac;
-
-
-  fftsize = p->fftsize = (int32_t) *p->p4;
-  hopsize = p->hopsize = (int32_t) *p->p5;
-  wintype = p->wintype = (int32_t) *p->p6;
-
-  if (UNLIKELY((fftsize & (fftsize - 1))))
-    return csound->InitError(csound,
-                             "%s", Str("pvsifd: fftsize should be power-of-two"));
-
-  if (p->sigframe.auxp == NULL ||
-      fftsize * sizeof(MYFLT) > (uint32_t) p->sigframe.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->sigframe);
-  else
-    memset(p->sigframe.auxp, 0, sizeof(MYFLT) * fftsize);
-
-  if (p->diffsig.auxp == NULL ||
-      fftsize * sizeof(MYFLT) > (uint32_t) p->diffsig.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffsig);
-  else
-    memset(p->diffsig.auxp, 0, sizeof(MYFLT) * fftsize);
-
-  if (p->diffwin.auxp == NULL ||
-      fftsize * sizeof(MYFLT) > (uint32_t) p->diffwin.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffwin);
-
-  if (p->win.auxp == NULL ||
-      fftsize * sizeof(MYFLT) > (uint32_t) p->win.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->win);
-
-  if (p->fout1->frame.auxp == NULL ||
-      (fftsize + 2) * sizeof(MYFLT) > (uint32_t) p->fout1->frame.size)
-    csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout1->frame);
-  else
-    memset(p->fout1->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
-  if (p->fout2->frame.auxp == NULL ||
-      (fftsize + 2) * sizeof(MYFLT) > (uint32_t) p->fout2->frame.size)
-    csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout2->frame);
-  else
-    memset(p->fout2->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
-
-  p->fout1->N = fftsize;
-  p->fout1->overlap = hopsize;
-  p->fout1->winsize = fftsize;
-  p->fout1->wintype = wintype;
-  p->fout1->framecount = 1;
-  p->fout1->format = PVS_AMP_FREQ;
-
-  p->fout2->N = fftsize;
-  p->fout2->overlap = hopsize;
-  p->fout2->winsize = fftsize;
-  p->fout2->wintype = wintype;
-  p->fout2->framecount = 1;
-  p->fout2->format = PVS_AMP_PHASE;
-
-  winf = (MYFLT *) p->win.auxp;
-  dwinf = (MYFLT *) p->diffwin.auxp;
-
-  switch (wintype) {
-  case PVS_WIN_HAMMING:
-    alpha = 0.54;
-    break;
-  case PVS_WIN_HANN:
-    alpha = 0.5;
-    break;
-  default:
-    return csound->InitError(csound,
-                             "%s", Str("pvsifd: unsupported value for iwintype\n"));
-    break;
-  }
-  fac = TWOPI / (fftsize - 1.0);
-
-  for (i = 0; i < fftsize; i++)
-    winf[i] = (MYFLT) (alpha - (1.0 - alpha) * cos(fac * i));
-
-  p->norm = 0;
-  for (i = 0; i < fftsize; i++) {
-    dwinf[i] = winf[i] - (i + 1 < fftsize ? winf[i + 1] : FL(0.0));
-    p->norm += winf[i];
-  }
-
-  p->factor = CS_ESR / TWOPI_F;
-  p->fund = CS_ESR / fftsize;
-  p->cnt = hopsize;
-  return OK;
+  return ifd_setup(csound, p, *p->p4, *p->p5, *p->p6, 0);
 }
 
 
@@ -359,7 +275,7 @@ static int32_t tifd_process(CSOUND * csound, IFD * p)
     MYFLT  *sigframe = (MYFLT *) p->sigframe.auxp;
     MYFLT  pit = *p->p3;
     int32_t     fftsize = p->fftsize;
-    int32_t post;
+    uint32_t post;
     MYFLT frac;
     FUNC *ft = csound->FTFind(csound,p->p7);
     if (UNLIKELY(ft == NULL)) {
@@ -370,10 +286,12 @@ static int32_t tifd_process(CSOUND * csound, IFD * p)
     int32_t i,size = ft->flen;
     for(i=0; i < fftsize; i++){
       MYFLT in;
-      post = (int32_t) pos;
-      frac = pos  - post;
-      while (post >= size) post -= size;
-      while (post < 0) post += size;
+      /* Wrap before splitting the index and fraction. Wrap negatives first
+         because adding size to a tiny negative can round up to size. */
+      while (pos < 0) pos += size;
+      while (pos >= size) pos -= size;
+      post = (uint32_t) pos;
+      frac = pos - post;
       in = tab[post] + frac*(tab[post+1] - tab[post]);
       sigframe[i] = in;
       pos += pit;
