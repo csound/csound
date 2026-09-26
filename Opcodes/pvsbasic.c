@@ -1529,10 +1529,18 @@ static int32_t pvsmix(CSOUND *csound, PVSMIX *p)
 
 /* pvsfilter  */
 
+#define PVSFILTER_SAME_FORMAT(a, b) \
+  ((a)->N == (b)->N && (a)->overlap == (b)->overlap && \
+   (a)->winsize == (b)->winsize && (a)->wintype == (b)->wintype && \
+   (a)->format == (b)->format && (a)->sliding == (b)->sliding && \
+   (!(a)->sliding || (a)->NB == (b)->NB))
+
 static int32_t pvsfilterset(CSOUND *csound, PVSFILTER *p)
 {
   int32    N = p->fin->N;
-  size_t bytes = ((size_t)N + 2) * sizeof(float);
+  size_t samples = p->fin->sliding ? CS_KSMPS : 1;
+  size_t sample_size = p->fin->sliding ? sizeof(MYFLT) : sizeof(float);
+  size_t bytes;
 
   if (UNLIKELY(p->fin == p->fout || p->fil == p->fout))
     csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
@@ -1540,23 +1548,30 @@ static int32_t pvsfilterset(CSOUND *csound, PVSFILTER *p)
                  (p->fin->format == PVS_AMP_PHASE))))
     return csound->InitError(csound, "%s", Str("pvsfilter: signal format "
                                          "must be amp-phase or amp-freq."));
-  p->fout->sliding = 0;
-  if (p->fin->sliding) {
-    bytes = sizeof(MYFLT) * CS_KSMPS * ((size_t)N + 2);
-    p->fout->NB = p->fin->NB;
-    p->fout->sliding = 1;
-  }
+  if (UNLIKELY(!PVSFILTER_SAME_FORMAT(p->fin, p->fil)))
+    return csound->InitError(csound, "%s", Str("pvsfilter: formats are different."));
+  if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) ||
+               (size_t)(N + 2) > SIZE_MAX / sample_size / samples ||
+               (p->fin->sliding && p->fin->NB != N / 2 + 1)))
+    return csound->InitError(csound, "%s", Str("pvsfilter: invalid frame size"));
+  bytes = (size_t)(N + 2) * sample_size * samples;
+  if (UNLIKELY(p->fin->frame.auxp == NULL || p->fil->frame.auxp == NULL ||
+               p->fin->frame.size < bytes || p->fil->frame.size < bytes))
+    return csound->InitError(csound, "%s", Str("pvsfilter: source is not initialised"));
   if (p->fout->frame.auxp == NULL || p->fout->frame.size < bytes)
     csound->AuxAlloc(csound, bytes, &p->fout->frame);
-  else
-    memset(p->fout->frame.auxp, 0, bytes);
+  memset(p->fout->frame.auxp, 0, bytes);
   p->fout->N = N;
+  p->fout->NB = N / 2 + 1;
+  p->fout->sliding = p->fin->sliding;
   p->fout->overlap = p->fin->overlap;
   p->fout->winsize = p->fin->winsize;
   p->fout->wintype = p->fin->wintype;
   p->fout->format = p->fin->format;
-  p->fout->framecount = 1;
-  p->lastframe = 0;
+  /* Publish initialization and process both current inputs on the next pass. */
+  p->fout->framecount++;
+  p->lastframe_in = p->fin->framecount - 1;
+  p->lastframe_fil = p->fil->framecount - 1;
 
   return OK;
 }
@@ -1571,7 +1586,10 @@ static int32_t pvsfilter(CSOUND *csound, PVSFILTER *p)
   float   *fil = (float *) p->fil->frame.auxp;
 
   if (UNLIKELY(fout == NULL)) goto err1;
-  if (UNLIKELY(!fsigs_equal(p->fin, p->fil))) goto err2;
+  if (UNLIKELY(!PVSFILTER_SAME_FORMAT(p->fin, p->fil))) goto err2;
+  if (UNLIKELY(!PVSFILTER_SAME_FORMAT(p->fin, p->fout)))
+    return csound->PerfError(csound, &p->h, "%s",
+                             Str("pvsfilter: source format changed; reinitialise"));
 
   if (p->fin->sliding) {
     int32_t NB = p->fout->NB;
@@ -1607,7 +1625,8 @@ static int32_t pvsfilter(CSOUND *csound, PVSFILTER *p)
     }
     return OK;
   }
-  if (p->lastframe < p->fin->framecount) {
+  if (p->lastframe_in != p->fin->framecount ||
+      p->lastframe_fil != p->fil->framecount) {
     kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : 1) : FL(0.0);
     dirgain = (1 - kdepth);
     for (i = 0; i < N + 2; i += 2) {
@@ -1615,7 +1634,10 @@ static int32_t pvsfilter(CSOUND *csound, PVSFILTER *p)
       fout[i + 1] = fin[i + 1];
     }
 
-    p->fout->framecount = p->lastframe = p->fin->framecount;
+    p->lastframe_in = p->fin->framecount;
+    p->lastframe_fil = p->fil->framecount;
+    /* Either source can change or restart while downstream opcodes run. */
+    p->fout->framecount++;
   }
   return OK;
  err1:
@@ -1625,6 +1647,8 @@ static int32_t pvsfilter(CSOUND *csound, PVSFILTER *p)
   return csound->PerfError(csound, &(p->h),
                            "%s", Str("pvsfilter: formats are different."));
 }
+
+#undef PVSFILTER_SAME_FORMAT
 
 /* pvscale  */
 typedef struct _pvscale {
