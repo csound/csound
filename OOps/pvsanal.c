@@ -183,14 +183,28 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
   int32_t i,nBins,Mf/*,Lf*/;
 
   /* opcode params */
-  uint32_t overlap = (uint32_t) *(p->overlap);
+  uint32_t overlap, N, M;
+  int32_t wintype;
   /* deal with iinit and iformat later on! */
 
+  if (UNLIKELY(!(*p->overlap >= FL(0.0) &&
+                 (double)*p->overlap <= INT32_MAX)))
+    return csound->InitError(csound, Str("pvsanal: invalid hop size"));
+  if (UNLIKELY(!((double)*p->wintype >= INT32_MIN+1 &&
+                 (double)*p->wintype <= INT32_MAX-1)))
+    return csound->InitError(csound, Str("pvsanal: invalid window type"));
+  overlap = (uint32_t)*p->overlap;
   if (overlap<CS_KSMPS || overlap<=10) /* 10 is a guess.... */
     return pvssanalset(csound, p);
-  uint32_t N =(int32_t) *(p->fftsize);
-  uint32_t M = (uint32_t) *(p->winsize);
-  int32_t wintype = (int32_t) *p->wintype;
+  if (UNLIKELY(!(*p->fftsize >= FL(0.0) &&
+                 (double)*p->fftsize <= INT32_MAX-2)))
+    return csound->InitError(csound, Str("pvsanal: invalid FFT size"));
+  if (UNLIKELY(!(*p->winsize >= FL(0.0) &&
+                 (double)*p->winsize <= INT32_MAX-2)))
+    return csound->InitError(csound, Str("pvsanal: invalid window size"));
+  N = (uint32_t)*p->fftsize;
+  M = (uint32_t)*p->winsize;
+  wintype = (int32_t)*p->wintype;
   if (UNLIKELY(N <= 32))
     return csound->InitError(csound,
                              Str("pvsanal: fftsize of 32 is too small!\n"));
@@ -204,6 +218,11 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
   if (UNLIKELY(overlap > N / 2))
     return csound->InitError(csound,
                              Str("pvsanal: overlap too big for fft size\n"));
+  /* The circular input buffer has four windows, with signed indices.
+     Its size also bounds the smaller analysis and phase buffers. */
+  if (UNLIKELY(M > INT32_MAX / 4 ||
+               (size_t)M > SIZE_MAX / 4 / sizeof(MYFLT)))
+    return csound->InitError(csound, Str("pvsanal: window size too large"));
 #ifdef OLPC
   if (UNLIKELY(overlap < CS_KSMPS))
     return csound->InitError(csound,
@@ -430,6 +449,7 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
   int32_t NB = p->Ii, loc;
   int32_t N = p->fsig->N;
   MYFLT *data = (MYFLT*)(p->input.auxp);
+  CMPLX *output = (CMPLX*)p->fsig->frame.auxp;
   CMPLX *fw = (CMPLX*)(p->analwinbuf.auxp) + 2;
   double *c = p->cosine;
   double *s = p->sine;
@@ -445,6 +465,12 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
   ain = p->ain + offset;      /* The active input samples */
   loc = p->inptr;             /* Circular buffer */
   nsmps -= early;
+  /* Each inactive audio sample contains NB amplitude-frequency pairs. */
+  if (offset)
+    memset(output, 0, (size_t)offset * NB * sizeof(CMPLX));
+  if (early)
+    memset(output + (size_t)nsmps * NB, 0,
+           (size_t)early * NB * sizeof(CMPLX));
   for (i=offset; i < nsmps; i++) {
     MYFLT re, im, dx;
     CMPLX* ff;
@@ -454,7 +480,7 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
     dx = *ain - data[loc];    /* Change in sample */
     data[loc] = *ain++;       /* Remember input sample */
     /* get the frame for this sample */
-    ff = (CMPLX*)(p->fsig->frame.auxp) + (size_t)i*NB;
+    ff = output + (size_t)i*NB;
     /* fw is the current frame at this sample */
     for (j = 0; j < NB; j++) {
       double ci = c[j], si = s[j];
