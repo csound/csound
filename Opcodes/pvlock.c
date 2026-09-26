@@ -1521,8 +1521,8 @@ static int32_t hilbert_sizes(CSOUND *csound, double fftsize, double hopsize,
     return OK;
 }
 
-/* The output scale doubles the positive-frequency bins. DC and Nyquist
-   have no negative-frequency partner, so halve them before that scaling. */
+/* Positive-frequency bins have conjugate partners in a real input. DC and
+   Nyquist have no partner, so halve them when discarding the negative bins. */
 #define HILBERT_ANALYTIC(frame, N) do {                                  \
     (frame)[0] *= FL(0.5);                                               \
     (frame)[1] *= FL(0.5);                                               \
@@ -1570,14 +1570,12 @@ static int32_t hilbert_init(CSOUND *csound, HILB *p) {
     {
       MYFLT *win = (MYFLT *)p->win.auxp;
       MYFLT x = FL(2.0)*PI_F/N;
-      MYFLT scale = decim < 4 ? FL(2.0) : FL(16.0)/(3*decim);
-      /* Hann analysis needs at least two overlapping frames. With two,
-         use a rectangular synthesis window so their weights sum to one.
-         With no overlap, both windows must be rectangular. */
+      MYFLT scale = decim < 4 ? FL(1.0) : FL(16.0)/(3*decim);
+      /* Keep Hann windows and the original scale, including at large hops.
+         Apply the scale here so synthesis needs only one multiplication. */
       for (i=0; i < N; i++) {
-        win[i] = decim == 1 ? FL(1.0) :
-          FL(0.5) - FL(0.5)*COS((MYFLT)i*x);
-        win[N+i] = decim < 4 ? scale : win[i]*scale;
+        win[i] = FL(0.5) - FL(0.5)*COS((MYFLT)i*x);
+        win[N+i] = win[i]*scale;
       }
     }
 
@@ -1699,12 +1697,11 @@ static int32_t hilbert_array_init(CSOUND *csound, HILBA *p) {
     {
       MYFLT *win = (MYFLT *)p->win.auxp;
       MYFLT x = FL(2.0)*PI_F/N;
-      MYFLT scale = decim < 4 ? FL(2.0) : FL(16.0)/(3*decim);
+      MYFLT scale = decim < 4 ? FL(1.0) : FL(16.0)/(3*decim);
       /* Match the analysis and synthesis windows in the audio-output form. */
       for (i=0; i < N; i++) {
-        win[i] = decim == 1 ? FL(1.0) :
-          FL(0.5) - FL(0.5)*COS((MYFLT)i*x);
-        win[N+i] = decim < 4 ? scale : win[i]*scale;
+        win[i] = FL(0.5) - FL(0.5)*COS((MYFLT)i*x);
+        win[N+i] = win[i]*scale;
       }
     }
 
