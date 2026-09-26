@@ -206,6 +206,16 @@ if(BUILD_TESTS)
         target_compile_features(diskin2_concurrency_tests PRIVATE cxx_std_17)
         gtest_discover_tests(diskin2_concurrency_tests)
     endif()
+
+    add_executable(json_udt_tests json_udt_test.cpp)
+    target_compile_options(json_udt_tests PRIVATE ${unittests_CFLAGS})
+    target_compile_features(json_udt_tests PRIVATE cxx_std_17)
+    target_link_libraries(json_udt_tests PRIVATE
+        GTest::gtest_main ${CSOUNDLIB_STATIC})
+    add_dependencies(unittests json_udt_tests)
+    gtest_discover_tests(json_udt_tests
+        PROPERTIES LABELS "json-udt")
+
     set_property(DIRECTORY APPEND PROPERTY TEST_INCLUDE_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/server_test_locks.cmake")
     message(STATUS "Building unit tests")

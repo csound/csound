@@ -925,6 +925,8 @@ endif()
 
 # The csound library
 set(libcsound_SRCS
+    OOps/json_ops.c
+    third_party/yyjson/yyjson.c
     Top/csound.c
     Top/csound_perf.c
     Top/csound_events.c
@@ -1039,6 +1041,19 @@ set(vbap_ops
 )
 
 set(libcsound_static_SRCS  ${libcsound_SRCS})
+
+# Keep JSON numbers precise even when DSP code uses fast-math. The parser is
+# private to Csound, not a new exported library interface.
+set_source_files_properties(OOps/json_ops.c third_party/yyjson/yyjson.c
+    PROPERTIES COMPILE_DEFINITIONS
+    "yyjson_api=;YYJSON_DISABLE_UTILS=1;YYJSON_DISABLE_INCR_READER=1")
+if(MSVC)
+    set_source_files_properties(OOps/json_ops.c third_party/yyjson/yyjson.c
+        PROPERTIES COMPILE_OPTIONS "/fp:precise")
+elseif(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    set_source_files_properties(OOps/json_ops.c third_party/yyjson/yyjson.c
+        PROPERTIES COMPILE_OPTIONS "-fno-fast-math")
+endif()
 
 if(WIN32 AND NOT MSVC)
     set_source_files_properties(Opcodes/sfont.c PROPERTIES

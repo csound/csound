@@ -22,6 +22,7 @@
 
 #include "entry.h"
 #include "interlocks.h"
+#include "json_ops.h"
 
 /* inarg types include the following:
    i       irate scalar
@@ -2473,6 +2474,9 @@ const OENTRY opcodlst_1[] = {
   { "eventtype", S(MIDIKMB), 0, "i", "", event_type},
   { "typeof", S(ASSIGN), 0, "S", ".", type_of },
   { "typecheck", S(RELAT), 0, "b", "..", check_type },
+  { "jsonunmarshal", S(JSON_UNMARSHAL), 0, ".", "Soo", (SUBR)json_unmarshal },
+  { "jsonunmarshalfile", S(JSON_UNMARSHAL), 0, ".", "Soo", (SUBR)json_unmarshal_file },
+  { "jsonmarshal", S(JSON_MARSHAL), 0, "S", ".oo", (SUBR)json_marshal },
   { "exp", S(CXOP), 0, ":Complex;", "i", (SUBR) complex_exp_real,  (SUBR) complex_exp_real },
   { "exp", S(CXOP), 0, ":Complex;", "k", NULL,  (SUBR) complex_exp_real },
   /* terminate list */
