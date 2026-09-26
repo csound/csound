@@ -47,6 +47,12 @@ use linear interpolation for sample rate conversion. Default is ON.
 - `BUILD_PLUGINS=`: build all external opcodes as plugin libraries.
 This option is disabled by default.
 
+- `USE_WASMTIME=`: allow CMake to build native WebAssembly opcode support when
+it finds the Wasmtime C API. This option is enabled by default. Set it to
+`OFF` to disable the feature even when Wasmtime is installed. Set
+`Wasmtime_ROOT` if the Wasmtime package is outside CMake's normal search paths.
+See [Native Csound WebAssembly plugins](wasm/NATIVE_OPCODE_PLUGINS.md).
+
 -`DCUSTOM_CMAKE=`: with this option you can specify a custom.cmake
 file containing build options and CMake variables to control the build.
 
@@ -240,7 +246,6 @@ iscc /o. installer\windows\csound7_x64_github.iss
 ```
 
 If you wish to customize the build in any way, you can modify the `Custom-vs.cmake` file in the `platform\windows` directory. For common options, refer to "Useful CMake Options" above.
-
 
 
 
