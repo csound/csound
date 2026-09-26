@@ -302,6 +302,10 @@ int32_t pvscrosset(CSOUND *csound, PVSCROSS *p)
     p->fftsize = N;
     p->format  = fsrc->format;
 
+    if (UNLIKELY(p->format != PVS_AMP_FREQ && p->format != PVS_AMP_PHASE))
+      return csound->InitError(csound, "%s",
+                               Str("pvscross: signal format must be "
+                                   "amp-phase or amp-freq"));
     /* make sure fdest is same format */
     if (UNLIKELY(!fsigs_equal(fsrc,p->fdest)))
       return csound->InitError(csound, Str("pvscross: source and dest signals "
@@ -311,18 +315,18 @@ int32_t pvscrosset(CSOUND *csound, PVSCROSS *p)
     fout->winsize = p->winsize;
     fout->wintype = p->wintype;
     fout->format = p->format;
-    //   fout->format = p->fsrc->sliding;
+    fout->sliding = fsrc->sliding;
+    fout->NB = fsrc->NB;
+    fout->framecount = 1;
+    p->lastframe = 0;
     if (fsrc->sliding) {
-      fout->NB = fsrc->NB;
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
+      csound->AuxAlloc(csound, ((size_t)N + 2) * sizeof(MYFLT) * CS_KSMPS,
                        &fout->frame);
       return OK;
     }
     /* setup output signal */
     /* RWD MUST be 32bit */
     csound->AuxAlloc(csound, (N + 2) * sizeof(float), &fout->frame);
-    fout->framecount = 1;
-    p->lastframe = 0;
     return OK;
 }
 
@@ -353,10 +357,16 @@ int32_t pvscross(CSOUND *csound, PVSCROSS *p)
       uint32_t n, nsmps = CS_KSMPS;
       int32_t NB = p->fsrc->NB;
       nsmps -= early;
+      fout = (CMPLX *) p->fout->frame.auxp;
+      if (UNLIKELY(offset))
+        memset(fout, 0, (size_t)offset * NB * sizeof(CMPLX));
+      if (UNLIKELY(early))
+        memset(fout + (size_t)nsmps * NB, 0,
+               (size_t)early * NB * sizeof(CMPLX));
       for (n=offset; n<nsmps; n++) {
-        fsrc = (CMPLX *) p->fsrc->frame.auxp +n*NB;    /* RWD all must be 32bit */
-        fdest = (CMPLX *) p->fdest->frame.auxp +n*NB;
-        fout = (CMPLX *) p->fout->frame.auxp +n*NB;
+        fsrc = (CMPLX *) p->fsrc->frame.auxp + (size_t)n * NB;
+        fdest = (CMPLX *) p->fdest->frame.auxp + (size_t)n * NB;
+        fout = (CMPLX *) p->fout->frame.auxp + (size_t)n * NB;
         for (i=0; i<NB;i++) {
           fout[i].re = (fsrc[i].re * amp1) + (fdest[i].re * amp2);
         /* copy src freqs to output, unmodified */
@@ -367,9 +377,7 @@ int32_t pvscross(CSOUND *csound, PVSCROSS *p)
    }
     /* only process when a new frame is ready */
     if (p->lastframe < p->fsrc->framecount) {
-#ifdef _DEBUG
-      assert(p->fsrc->framecount==p->fdest->framecount);
-#endif
+      /* Matching analysis properties do not require matching frame counters. */
       for (i=0;i < N+2;i+=2) {
         fout[i] = (float) ((fsrc[i] * amp1) + (fdest[i] * amp2));
         /* copy src freqs to output, unmodified */
