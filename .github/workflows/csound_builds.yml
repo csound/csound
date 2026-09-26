@@ -133,7 +133,11 @@ jobs:
           fi
 
   linux64_float_ubsan:
-    name: 64-bit Linux / 32-bit float type-system tests (UBSan)
+    name: 64-bit Linux / USE_FLOAT=${{ matrix.use_float }} (UBSan)
+    strategy:
+      fail-fast: false
+      matrix:
+        use_float: ["OFF", "ON"]
     runs-on: ubuntu-latest
     env:
       UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
@@ -160,6 +164,7 @@ jobs:
           cmake -S . -B build-linux64-float -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
             -DUSE_DOUBLE=OFF \
+            -DUSE_FLOAT=${{ matrix.use_float }} \
             -DUSE_ASA=OFF \
             -DBUILD_TESTS=ON \
             -DBUILD_STATIC_LIBRARY=ON \
@@ -174,7 +179,7 @@ jobs:
       - name: Run type-system tests
         run: >
           ctest --test-dir build-linux64-float
-          --tests-regex '^TypeSystemTests\.'
+          --tests-regex '^(TypeSystemTests\.|numeric_type_compatibility$|LfsrTests\.|OscBlobTest\.|InternalOscDecodeTests\.|Inputs/NextPowerTests\.)'
           --parallel "$(nproc)"
           --output-on-failure
           --no-tests=error

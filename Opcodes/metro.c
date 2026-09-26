@@ -25,35 +25,35 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *sr, *xcps, *iphs, *kgate;
-        double  curphs;
-        double  gate;
+        cs_float   *sr, *xcps, *iphs, *kgate;
+        cs_double  curphs;
+        cs_double  gate;
         int32_t flag;
 } METRO;
 
 // METRO2 ADDED BY GLEB ROGOZINSKY Oct 2019
 typedef struct {
         OPDS    h;
-        MYFLT   *sr, *xcps, *kswng, *iamp, *iphs, *icorrect;
-        double  amp2, curphs, curphs2, swng_init;
+        cs_float   *sr, *xcps, *kswng, *iamp, *iphs, *icorrect;
+        cs_double  amp2, curphs, curphs2, swng_init;
         int32_t flag, flag2;
 } METRO2;
 //
 
 typedef struct  {
         OPDS    h;
-        MYFLT   *trig, *ndx, *maxtics, *ifn, *outargs[VARGMAX];
+        cs_float   *trig, *ndx, *maxtics, *ifn, *outargs[VARGMAX];
         int32_t             numouts, currtic, old_ndx;
         int32_t max_tics;
         uint32_t flen, numseq;
         uint64_t stride;
-        MYFLT *table;
+        cs_float *table;
 } SPLIT_TRIG;
 
 typedef struct  {
         OPDS    h;
-        MYFLT   *ktrig, *kphs, *ifn, *args[VARGMAX];
-        MYFLT endSeq, *table, oldPhs;
+        cs_float   *ktrig, *kphs, *ifn, *args[VARGMAX];
+        cs_float endSeq, *table, oldPhs;
         int32_t numParm, endIndex;
         int32_t initFlag;
 
@@ -61,13 +61,13 @@ typedef struct  {
 
 static int32_t metro_set(CSOUND *csound, METRO *p)
 {
-    double phs = *p->iphs;
+    cs_double phs = *p->iphs;
     int32  longphs;
 
     if (phs >= 0.0) {
       if (UNLIKELY((longphs = (int32)phs)))
         csound->Warning(csound, "%s", Str("metro:init phase truncation"));
-      p->curphs = (MYFLT)phs - (MYFLT)longphs;
+      p->curphs = (cs_float)phs - (cs_float)longphs;
     }
     p->flag=1;
     p->gate=0.0;
@@ -76,7 +76,7 @@ static int32_t metro_set(CSOUND *csound, METRO *p)
 
 static int32_t metro(CSOUND *csound, METRO *p)
 {
-    double      phs= p->curphs;
+    cs_double      phs= p->curphs;
     IGN(csound);
     if (phs == 0.0 && p->flag) {
       *p->sr = FL(1.0);
@@ -96,7 +96,7 @@ static int32_t metro(CSOUND *csound, METRO *p)
 /* John ffitch Oct 2021; for beginers */
 static int32_t metrobpm(CSOUND *csound, METRO *p)
 {
-    double      phs= p->curphs;
+    cs_double      phs= p->curphs;
     IGN(csound);
     /* Keep the held gate in opcode state, not in the output variable. */
     if (phs == 0.0 && p->flag) {
@@ -110,7 +110,7 @@ static int32_t metrobpm(CSOUND *csound, METRO *p)
     }
     else if (phs>= *p->kgate)
       p->gate = 0.0;
-    *p->sr = (MYFLT)p->gate;
+    *p->sr = (cs_float)p->gate;
     p->curphs = phs;
     return OK;
 }
@@ -121,30 +121,30 @@ static int32_t metrobpm(CSOUND *csound, METRO *p)
 */
 static int32_t metro2_legacy_set(CSOUND *csound, METRO2 *p)
 {
-    double phs = *p->iphs;
-    double swng = *p->kswng;
+    cs_double phs = *p->iphs;
+    cs_double swng = *p->kswng;
     int32  longphs;
     p->amp2 = *p->iamp;
 
     if (phs >= 0.0) {
       if (UNLIKELY((longphs = (int32)phs)))
         csound->Warning(csound, "%s", Str("metro2:init phase truncation"));
-      p->curphs = (MYFLT)phs - (MYFLT)longphs;
-      p->curphs2 = (MYFLT)phs - (MYFLT)longphs + 1.0 - (MYFLT)swng;
+      p->curphs = (cs_float)phs - (cs_float)longphs;
+      p->curphs2 = (cs_float)phs - (cs_float)longphs + 1.0 - (cs_float)swng;
     }
     p->flag = 1;
     p->flag2 = 1;
-    p->swng_init = (MYFLT)swng;
+    p->swng_init = (cs_float)swng;
     return OK;
 }
 
 static int32_t metro2_legacy(CSOUND *csound, METRO2 *p)
 {
-    double      phs= p->curphs;
-    double      phs2= p->curphs2;
-    double      phs2_init = p->swng_init;
-    double      amp2= p->amp2;
-    double      swng= *p->kswng;
+    cs_double      phs= p->curphs;
+    cs_double      phs2= p->curphs2;
+    cs_double      phs2_init = p->swng_init;
+    cs_double      amp2= p->amp2;
+    cs_double      swng= *p->kswng;
     IGN(csound);
 // MAIN TICK
     if (phs == 0.0 && p->flag) {
@@ -178,7 +178,7 @@ static int32_t metro2_legacy(CSOUND *csound, METRO2 *p)
 
 static int32_t metro2_correct_set(CSOUND *csound, METRO2 *p)
 {
-    double phs = *p->iphs;
+    cs_double phs = *p->iphs;
 
     if (UNLIKELY(!isfinite(phs) || phs < 0.0))
       return csound->InitError(csound, "%s", Str("metro2: invalid initial phase"));
@@ -196,9 +196,9 @@ static int32_t metro2_correct_set(CSOUND *csound, METRO2 *p)
 
 static int32_t metro2_correct(CSOUND *csound, METRO2 *p)
 {
-    double phs = p->curphs, phs2 = p->curphs2;
-    double swng = *p->kswng;
-    double frequency = *p->xcps, increment, threshold;
+    cs_double phs = p->curphs, phs2 = p->curphs2;
+    cs_double swng = *p->kswng;
+    cs_double frequency = *p->xcps, increment, threshold;
 
     if (UNLIKELY(!(swng >= 0.0 && swng <= 1.0)))
       return csound->PerfError(csound, &(p->h), "%s",
@@ -217,7 +217,7 @@ static int32_t metro2_correct(CSOUND *csound, METRO2 *p)
       p->curphs2 = phs2;
       p->flag = 0;
       if (phs == 0.0 || phs2 == 0.0) {
-        *p->sr = phs == 0.0 ? FL(1.0) : (MYFLT)p->amp2;
+        *p->sr = phs == 0.0 ? FL(1.0) : (cs_float)p->amp2;
         return OK;
       }
     }
@@ -238,7 +238,7 @@ static int32_t metro2_correct(CSOUND *csound, METRO2 *p)
 
     threshold = 1.0 + swng - p->swng_init;
     if (phs2 >= threshold) {
-      *p->sr = (MYFLT)p->amp2;
+      *p->sr = (cs_float)p->amp2;
       phs2 -= floor(phs2 - threshold) + 1.0;
     }
     p->curphs = phs;
@@ -280,7 +280,7 @@ static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
     */
 
     FUNC *ftp;
-    double maxtics = (double)*p->maxtics;
+    cs_double maxtics = (cs_double)*p->maxtics;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
       return csound->InitError(csound, "%s", Str("splitrig: incorrect table number"));
     }
@@ -289,7 +289,7 @@ static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
     if (UNLIKELY(p->numouts < 1 || ftp->flen < (uint32_t)p->numouts))
       return csound->InitError(csound, "%s",
                                Str("splitrig: table cannot hold one tick"));
-    if (UNLIKELY(!(maxtics >= 1.0 && maxtics < (double)INT32_MAX + 1.0)))
+    if (UNLIKELY(!(maxtics >= 1.0 && maxtics < (INT32_MAX + 0.0) + 1.0)))
       return csound->InitError(csound, "%s",
                                Str("splitrig: invalid maximum tick count"));
     p->max_tics = (int32_t)maxtics;
@@ -306,26 +306,26 @@ static int32_t split_trig(CSOUND *csound, SPLIT_TRIG *p)
 {
     int32_t j;
     int32_t numouts =  p->numouts;
-    MYFLT **outargs = p->outargs;
+    cs_float **outargs = p->outargs;
 
     if (*p->trig) {
-      double index = (double)*p->ndx;
-      double ticks;
+      cs_double index = (cs_double)*p->ndx;
+      cs_double ticks;
       uint32_t ndx, available;
       int32_t kndx, numtics, currtic;
-      MYFLT *table;
+      cs_float *table;
 
       /* Preserve truncation toward zero, but check before converting. */
-      if (UNLIKELY(!(index > -1.0 && index < (double)p->numseq)))
+      if (UNLIKELY(!(index > -1.0 && index < (cs_double)p->numseq)))
         return csound->PerfError(csound, &(p->h), "%s",
                                  Str("splitrig: sequence index out of range"));
       kndx = (int32_t)index;
       ndx = (uint32_t)(kndx * p->stride);
-      ticks = (double)p->table[ndx];
+      ticks = (cs_double)p->table[ndx];
       available = (p->flen - ndx) / numouts;
       if (UNLIKELY(!(ticks >= 1.0 &&
-                     ticks < (double)p->max_tics + 1.0 &&
-                     ticks < (double)available + 1.0)))
+                     ticks < (cs_double)p->max_tics + 1.0 &&
+                     ticks < (cs_double)available + 1.0)))
         return csound->PerfError(csound, &(p->h), "%s",
                                  Str("splitrig: invalid sequence tick count"));
       numtics = (int32_t)ticks;
@@ -357,7 +357,7 @@ static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
 {
     FUNC *ftp = csound->FTFind(csound, p->ifn);
     uint32_t row, rows;
-    MYFLT previous = FL(0.0);
+    cs_float previous = FL(0.0);
     if (UNLIKELY(ftp == NULL)) return NOTOK;
     p->numParm = p->INOCOUNT - 2;
     if (UNLIKELY(p->numParm < 2))
@@ -366,7 +366,7 @@ static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
     p->table = ftp->ftable;
     rows = ftp->flen / p->numParm;
     for (row = 0; row < rows; row++) {
-      MYFLT *event = p->table + (size_t)row * p->numParm;
+      cs_float *event = p->table + (size_t)row * p->numParm;
       if (event[0] < 0) {
         if (UNLIKELY(row == 0 || !(event[1] > 0) ||
                      !isfinite(event[1]) || event[1] < previous))
@@ -389,8 +389,8 @@ static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
 
 static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 {
-    MYFLT phs = *p->kphs, delta, distance;
-    MYFLT endseq = p->endSeq;
+    cs_float phs = *p->kphs, delta, distance;
+    cs_float endseq = p->endSeq;
     int32_t lo = 0, hi = p->endIndex, index, j;
     int32_t reverse;
 
@@ -415,7 +415,7 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
        is never an event. Only one row can be returned per control cycle. */
     while (lo < hi) {
       int32_t mid = lo + (hi - lo) / 2;
-      MYFLT time = p->table[(size_t)mid * p->numParm + 1];
+      cs_float time = p->table[(size_t)mid * p->numParm + 1];
       if (time < phs || (!reverse && time == phs)) lo = mid + 1;
       else hi = mid;
     }
@@ -431,7 +431,7 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
     }
     if ((p->initFlag && distance == 0) ||
         (!p->initFlag && distance < (reverse ? -delta : delta))) {
-      MYFLT *event = p->table + (size_t)index * p->numParm;
+      cs_float *event = p->table + (size_t)index * p->numParm;
       for (j = 0; j < p->numParm; j++) *p->args[j] = event[j];
       *p->ktrig = FL(1.0);
     }

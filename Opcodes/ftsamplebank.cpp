@@ -39,7 +39,7 @@ using namespace csound;
    tables number 'index' and upwards.
    It return the number of samples loaded */
 int32_t loadSamplesToTables(CSOUND *csound, int32_t index, char *directory,
-                        MYFLT skiptime, int32_t format, int32_t channel);
+                        cs_float skiptime, int32_t format, int32_t channel);
 
 //-----------------------------------------------------------------
 //      i-rate class
@@ -47,14 +47,14 @@ int32_t loadSamplesToTables(CSOUND *csound, int32_t index, char *directory,
 class iftsamplebank : public OpcodeBase<iftsamplebank> {
 public:
   // Outputs.
-  MYFLT *numberOfFiles;
+  cs_float *numberOfFiles;
   // Inputs.
   STRINGDAT *sDirectory;
-  MYFLT *index;
-  //    MYFLT* trigger;
-  MYFLT *skiptime;
-  MYFLT *format;
-  MYFLT *channel;
+  cs_float *index;
+  //    cs_float* trigger;
+  cs_float *skiptime;
+  cs_float *format;
+  cs_float *channel;
 
   iftsamplebank() {
     channel = 0;
@@ -83,14 +83,14 @@ public:
 class kftsamplebank : public OpcodeBase<kftsamplebank> {
 public:
   // Outputs.
-  MYFLT *numberOfFiles;
+  cs_float *numberOfFiles;
   // Inputs.
   STRINGDAT *sDirectory;
-  MYFLT *index;
-  MYFLT *trigger;
-  MYFLT *skiptime;
-  MYFLT *format;
-  MYFLT *channel;
+  cs_float *index;
+  cs_float *trigger;
+  cs_float *skiptime;
+  cs_float *format;
+  cs_float *channel;
   int32_t internalCounter;
   kftsamplebank() : internalCounter(0) {
     channel = 0;
@@ -127,7 +127,7 @@ public:
 //      load samples into function tables
 //-----------------------------------------------------------------
 int32_t loadSamplesToTables(CSOUND *csound, int32_t index, char *directory,
-                        MYFLT skiptime, int32_t format, int32_t channel) {
+                        cs_float skiptime, int32_t format, int32_t channel) {
 
   if (directory) {
     DIR *dir = opendir(directory);
@@ -178,7 +178,7 @@ int32_t loadSamplesToTables(CSOUND *csound, int32_t index, char *directory,
       for (int32_t y = 0; (size_t)y < fileNames.size(); y++) {
         std::ostringstream statement;
         statement.imbue(std::locale::classic());
-        statement.precision(std::numeric_limits<MYFLT>::max_digits10);
+        statement.precision(std::numeric_limits<cs_float>::max_digits10);
         statement << "f" << index + y << " 0 0 1 \"" << fileNames[y] << "\" "
                   << skiptime << " " << format << " " << channel << "\n";
         // csound->MessageS(csound, CSOUNDMSG_ORCH, statement.str().c_str());
@@ -202,7 +202,7 @@ typedef struct {
   OPDS h;
   ARRAYDAT *outArr;
   STRINGDAT *directoryName;
-  MYFLT *extension;
+  cs_float *extension;
 } DIR_STRUCT;
 
 /* Collect matching directory entries in name order. */
@@ -326,6 +326,10 @@ PUBLIC int32_t csoundModuleInit_ftsamplebank(CSOUND *csound) {
 }
 
 #ifdef BUILD_PLUGINS
+PUBLIC int32_t csoundModuleInfo(void) {
+  return CSOUND_MODULE_INFO;
+}
+
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   IGN(csound);
   return 0;

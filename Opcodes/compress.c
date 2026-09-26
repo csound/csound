@@ -29,24 +29,24 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *aasig, *acsig, *kthresh, *kloknee, *khiknee;
-        MYFLT   *kratio, *katt, *krls, *ilook;
+        cs_float   *ar, *aasig, *acsig, *kthresh, *kloknee, *khiknee;
+        cs_float   *kratio, *katt, *krls, *ilook;
 
-        MYFLT   thresh, loknee, hiknee, ratio, curatt, currls;
-        MYFLT   envthrsh, envlo, kneespan, kneemul, kneecoef, ratcoef;
-        double  cenv, c1, c2, d1, d2, ampmul;
-        MYFLT   *abuf, *cbuf, *aptr, *cptr, *clim, lmax, *lmaxp;
+        cs_float   thresh, loknee, hiknee, ratio, curatt, currls;
+        cs_float   envthrsh, envlo, kneespan, kneemul, kneecoef, ratcoef;
+        cs_double  cenv, c1, c2, d1, d2, ampmul;
+        cs_float   *abuf, *cbuf, *aptr, *cptr, *clim, lmax, *lmaxp;
         int32   newenv;
         AUXCH   auxch;
-        MYFLT   bias;
+        cs_float   bias;
 } CMPRS;
 
 typedef struct {        /* this now added from 07/01 */
     OPDS    h;
-    MYFLT   *ar, *asig, *kdist, *ifn, *ihp, *istor;
-    double  c1, c2;
-    MYFLT   prvq, prvd, min_rms;
-    MYFLT   midphs, maxphs, begval, endval;
+    cs_float   *ar, *asig, *kdist, *ifn, *ihp, *istor;
+    cs_double  c1, c2;
+    cs_float   prvq, prvd, min_rms;
+    cs_float   midphs, maxphs, begval, endval;
     FUNC    *ftp;
     int32_t initialized;
 } DIST;
@@ -55,17 +55,17 @@ static int32_t compset(CSOUND *csound, CMPRS *p)
 {
     int32    delsmps;
 
-    p->thresh = (MYFLT) MAXPOS;
-    p->loknee = (MYFLT) MAXPOS;                 /* force reinits        */
-    p->hiknee = (MYFLT) MAXPOS;
-    p->ratio  = (MYFLT) MAXPOS;
-    p->curatt = (MYFLT) MAXPOS;
-    p->currls = (MYFLT) MAXPOS;
+    p->thresh = (cs_float) MAXPOS;
+    p->loknee = (cs_float) MAXPOS;                 /* force reinits        */
+    p->hiknee = (cs_float) MAXPOS;
+    p->ratio  = (cs_float) MAXPOS;
+    p->curatt = (cs_float) MAXPOS;
+    p->currls = (cs_float) MAXPOS;
     /* round to nearest integer */
-    if (UNLIKELY((delsmps = MYFLT2LONG(*p->ilook * CS_ESR)) <= 0L))
+    if (UNLIKELY((delsmps = CS_FLOAT2LONG(*p->ilook * CS_ESR)) <= 0L))
       delsmps = 1L;                             /* alloc 2 delay bufs   */
-    csound->AuxAlloc(csound, delsmps * 2 * sizeof(MYFLT), &p->auxch);
-    p->abuf = (MYFLT *)p->auxch.auxp;
+    csound->AuxAlloc(csound, delsmps * 2 * sizeof(cs_float), &p->auxch);
+    p->abuf = (cs_float *)p->auxch.auxp;
     p->cbuf = p->abuf + delsmps;                /*   for asig & csig    */
     p->clim = p->cbuf + delsmps;
     p->aptr = p->abuf;
@@ -89,35 +89,35 @@ static int32_t comp2set(CSOUND *csound, CMPRS *p)
 
 static int32_t compress(CSOUND *csound, CMPRS *p)
 {
-    MYFLT       *ar, *ainp, *cinp;
+    cs_float       *ar, *ainp, *cinp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     /* VL: scale by 0dbfs, code is tuned to work in 16bit range */
-    MYFLT scal = FL(32768.0)/csound->Get0dBFS(csound);
+    cs_float scal = FL(32768.0)/csound->Get0dBFS(csound);
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
       p->thresh = *p->kthresh;
-      p->envthrsh = (MYFLT) exp((p->thresh+p->bias) * LOG10D20);
+      p->envthrsh = (cs_float) exp((p->thresh+p->bias) * LOG10D20);
     }
     if (*p->kloknee != p->loknee ||
         *p->khiknee != p->hiknee ||
         *p->kratio != p->ratio) {
-      MYFLT ratio, K;
+      cs_float ratio, K;
       p->loknee = *p->kloknee;
       p->hiknee = *p->khiknee;
       p->ratio = *p->kratio;
-      p->envlo = (MYFLT) exp((p->loknee+p->bias) * LOG10D20);
+      p->envlo = (cs_float) exp((p->loknee+p->bias) * LOG10D20);
       if ((p->kneespan = p->hiknee - p->loknee) < FL(0.0))
         p->kneespan = FL(0.0);
       if ((ratio = p->ratio) < FL(0.01))         /* expand max is 100 */
         ratio = FL(0.01);
-      K = (MYFLT) LOG10D20 * (FL(1.0) - ratio) / ratio;
+      K = (cs_float) LOG10D20 * (FL(1.0) - ratio) / ratio;
       p->ratcoef = K;                            /* rat down per db */
       if (p->kneespan > FL(0.0)) {
         p->kneecoef = K*FL(0.5) / p->kneespan; /* y = x - (K/2span)x*x */
-        p->kneemul = (MYFLT)exp(p->kneecoef * p->kneespan * p->kneespan);
+        p->kneemul = (cs_float)exp(p->kneecoef * p->kneespan * p->kneespan);
       }
       else
         p->kneemul = FL(1.0);
@@ -140,14 +140,14 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
     ar = p->ar;
     ainp = p->aasig;
     cinp = p->acsig;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {   /* now for each sample of both inputs:  */
-      MYFLT asig, lsig;
-      double csig;
+      cs_float asig, lsig;
+      cs_double csig;
       asig = *p->aptr;                  /* get signals from delay line  */
       csig = *p->cptr;
       *p->aptr = ainp[n]*scal;               /*   & replace with incoming    */
@@ -155,7 +155,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
       //lsig = -lsig;                   /*   made abs for control       */
       *p->cptr = lsig;
       if (p->cptr == p->lmaxp) {        /* if prev ctrl was old lamax   */
-        MYFLT *lap, newmax = FL(0.0);
+        cs_float *lap, newmax = FL(0.0);
         for (lap = p->cptr + 1; lap < p->clim; lap++)
           if (*lap >= newmax) {
             newmax = *lap;              /*   find next highest abs      */
@@ -182,7 +182,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
     lvlchk:
       if (p->cenv > p->envlo) {         /* if env exceeds loknee amp    */
         if (p->newenv) {                /*   calc dbenv & ampmul        */
-          double dbenv, excess;
+          cs_double dbenv, excess;
           p->newenv = 0;
           dbenv = log(p->cenv + 0.001) / LOG10D20;      /* for softknee */
           if ((excess = dbenv - (p->loknee+p->bias)) < p->kneespan)
@@ -192,7 +192,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
             p->ampmul = p->kneemul * exp(p->ratcoef * excess);
           }
         }
-        asig *= (MYFLT)p->ampmul;       /* and compress the asig */
+        asig *= (cs_float)p->ampmul;       /* and compress the asig */
       }
       else if (p->cenv < p->envthrsh)
         asig = FL(0.0);                 /* else maybe noise gate */
@@ -208,7 +208,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
 
 static int32_t distset(CSOUND *csound, DIST *p)
 {
-    double  b;
+    cs_double  b;
     FUNC    *ftp;
 
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) return NOTOK;
@@ -216,11 +216,11 @@ static int32_t distset(CSOUND *csound, DIST *p)
       return csound->InitError(csound, "%s",
                                Str("distort: half-power frequency must be finite"));
     p->ftp = ftp;
-    p->maxphs = (MYFLT)ftp->flen;       /* set ftable params    */
+    p->maxphs = (cs_float)ftp->flen;       /* set ftable params    */
     p->midphs = p->maxphs * FL(0.5);
     p->begval = ftp->ftable[0];
     p->endval = ftp->ftable[ftp->flen];
-    b = 2.0 - cos((double) (*p->ihp * CS_TPIDSR)); /*  and rms coefs */
+    b = 2.0 - cos((cs_double) (*p->ihp * CS_TPIDSR)); /*  and rms coefs */
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
     p->min_rms = csound->Get0dBFS(csound) * DV32768;
@@ -236,8 +236,8 @@ static int32_t distset(CSOUND *csound, DIST *p)
 
 static int32_t distort(CSOUND *csound, DIST *p)
 {
-    MYFLT   *ar, *asig;
-    MYFLT   q, rms, dist, dnew, dcur, dinc;
+    cs_float   *ar, *asig;
+    cs_float   q, rms, dist, dnew, dcur, dinc;
     FUNC    *ftp = p->ftp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -245,10 +245,10 @@ static int32_t distort(CSOUND *csound, DIST *p)
 
     asig = p->asig;
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     if (UNLIKELY(offset >= nsmps))
       return OK;
@@ -276,13 +276,13 @@ static int32_t distort(CSOUND *csound, DIST *p)
     dcur = p->prvd;
     dinc = (dnew - dcur) / (nsmps - offset);
     for (n=offset; n<nsmps; n++) {
-      MYFLT sig, phs, val;
+      cs_float sig, phs, val;
       sig = asig[n] / dcur;             /* compress the sample  */
       phs = p->midphs * (FL(1.0) + sig); /* as index into table  */
       if (LIKELY(phs > FL(0.0) && phs < p->maxphs)) {
         int32  iphs = (int32)phs;
-        MYFLT frac = phs - (MYFLT)iphs; /* waveshape the samp   */
-        MYFLT *fp = ftp->ftable + iphs;
+        cs_float frac = phs - (cs_float)iphs; /* waveshape the samp   */
+        cs_float *fp = ftp->ftable + iphs;
         val = *fp++;
         val += (*fp - val) * frac;
       }

@@ -32,41 +32,41 @@
 
 typedef struct {
     OPDS h;
-    MYFLT *aleft;                /* Left output  */
-    MYFLT *aright;               /* Right output   */
-    MYFLT *asig;
-    MYFLT *pan;                  /* pan position */
-    MYFLT *itype;                /* type of panning */
+    cs_float *aleft;                /* Left output  */
+    cs_float *aright;               /* Right output   */
+    cs_float *asig;
+    cs_float *pan;                  /* pan position */
+    cs_float *itype;                /* type of panning */
     int32_t   type;
-    MYFLT lastpan, s, c;         /* Cached values */
+    cs_float lastpan, s, c;         /* Cached values */
 } PAN2;
 //#define SQRT2 FL(1.41421356237309504880)
 
 static int32_t pan2set(CSOUND *csound, PAN2 *p)
 {
-    int32_t type = p->type = MYFLT2LRND(*p->itype);
+    int32_t type = p->type = CS_FLOAT2LRND(*p->itype);
     if (UNLIKELY(type <0 || type > 3))
       return csound->InitError(csound, "%s", Str("Unknown panning type"));
     p->lastpan = -FL(1.0);
     return OK;
 }
 
-static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t type, MYFLT *ain, MYFLT *al, MYFLT *ar) {
+static int32_t pan2run_common(CSOUND *csound, OPDS *opds, cs_float *pan, int32_t type, cs_float *ain, cs_float *al, cs_float *ar) {
     IGN(csound);
 
     uint32_t offset = opds->insdshead->ksmps_offset;
     uint32_t early  = opds->insdshead->ksmps_no_end;
     uint32_t n, nsmps = opds->insdshead->ksmps;
     int32_t asgp = IS_ASIG_ARG(pan);
-    MYFLT s, c;
+    cs_float s, c;
     if (UNLIKELY(offset)) {
-      memset(ar, '\0', offset*sizeof(MYFLT));
-      memset(al, '\0', offset*sizeof(MYFLT));
+      memset(ar, '\0', offset*sizeof(cs_float));
+      memset(al, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&al[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
+      memset(&al[nsmps], '\0', early*sizeof(cs_float));
     }
     /* Either output may share the input buffer. Read each sample first. */
     switch (type) {
@@ -74,17 +74,17 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
       {
         if (asgp) {
           for (n=offset; n<nsmps; n++) {
-            MYFLT sample = ain[n];
-            MYFLT kangl = HALFPI_F * pan[n];
+            cs_float sample = ain[n];
+            cs_float kangl = HALFPI_F * pan[n];
             ar[n] = sample * SIN(kangl);
             al[n] = sample * COS(kangl);
           }
         }
         else {
-          MYFLT kangl = HALFPI_F * *pan;
+          cs_float kangl = HALFPI_F * *pan;
           s = SIN(kangl); c = COS(kangl);
           for (n=offset; n<nsmps; n++) {
-            MYFLT sample = ain[n];
+            cs_float sample = ain[n];
             ar[n] = sample * s;
             al[n] = sample * c;
           }
@@ -95,18 +95,18 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
       {
         if (asgp) {
           for (n=offset; n<nsmps; n++) {
-            MYFLT sample = ain[n];
-            MYFLT kangl = pan[n];
+            cs_float sample = ain[n];
+            cs_float kangl = pan[n];
             ar[n] = sample * SQRT(kangl);
             al[n] = sample * SQRT(FL(1.0)-kangl);
           }
         }
         else {
-          MYFLT kangl = *pan;
+          cs_float kangl = *pan;
           s = SQRT(kangl);
           c = SQRT(FL(1.0)-kangl);
           for (n=offset; n<nsmps; n++) {
-            MYFLT sample = ain[n];
+            cs_float sample = ain[n];
             ar[n] = sample * s;
             al[n] = sample * c;
           }
@@ -115,9 +115,9 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
       }
     case 2:
       {
-        MYFLT kangl = *pan;
+        cs_float kangl = *pan;
         for (n=offset; n<nsmps; n++) {
-          MYFLT sample = ain[n];
+          cs_float sample = ain[n];
           if (asgp) kangl = pan[n];
           ar[n] = sample * kangl;
           al[n] = sample * (FL(1.0)-kangl);
@@ -126,11 +126,11 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
       }
     case 3:
       {
-        MYFLT kangl, l, r;
+        cs_float kangl, l, r;
         /* This formula takes +0.5 for hard left and -0.5 for hard right. */
         if (asgp) {
           for (n=offset; n<nsmps; n++) {
-            MYFLT sample = ain[n];
+            cs_float sample = ain[n];
             kangl = FL(0.5) - pan[n];
             c = COS(HALFPI*kangl);
             s = SIN(HALFPI*kangl);
@@ -142,12 +142,12 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
         }
         else {
           kangl = FL(0.5) - *pan;
-          MYFLT cc = COS(HALFPI*kangl);
-          MYFLT ss = SIN(HALFPI*kangl);
+          cs_float cc = COS(HALFPI*kangl);
+          cs_float ss = SIN(HALFPI*kangl);
           s = ROOT2*(cc+ss)*0.5;
           c = ROOT2*(cc-ss)*0.5;
           for (n=offset; n<nsmps; n++) {
-            MYFLT sample = ain[n];
+            cs_float sample = ain[n];
             al[n] = sample * s;
             ar[n] = sample * c;
           }
@@ -166,14 +166,14 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
 typedef struct {
     OPDS h;
     ARRAYDAT *out;
-    MYFLT *asig;
-    MYFLT *pan;
-    MYFLT *itype;
+    cs_float *asig;
+    cs_float *pan;
+    cs_float *itype;
     int32_t type;
 } PAN2ARR;
 
 static int32_t pan2arr_set(CSOUND *csound, PAN2ARR *p) {
-    int32_t type = p->type = MYFLT2LRND(*p->itype);
+    int32_t type = p->type = CS_FLOAT2LRND(*p->itype);
     if (UNLIKELY(type <0 || type > 3))
       return csound->InitError(csound, "%s", Str("Unknown panning type"));
     // p->lastpan = -FL(1.0);
@@ -183,8 +183,8 @@ static int32_t pan2arr_set(CSOUND *csound, PAN2ARR *p) {
 }
 
 static int32_t pan2arr_run(CSOUND *csound, PAN2ARR *p) {
-    MYFLT *al = p->out->data;
-    MYFLT *ar = p->out->data + CS_KSMPS;
+    cs_float *al = p->out->data;
+    cs_float *ar = p->out->data + CS_KSMPS;
     return pan2run_common(csound, &(p->h), p->pan, p->type, p->asig, al, ar);
 }
 

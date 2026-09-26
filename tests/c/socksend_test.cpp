@@ -41,11 +41,11 @@ protected:
     SOCKSENDT text = {};
     INSDS instance = {};
     STRINGDAT host = {};
-    MYFLT port = 9000, length = 4, format = 1;
+    cs_float port = 9000, length = 4, format = 1;
     void SetUp() override {
       cs = csoundCreate(nullptr, nullptr);
       cs->InitError = sendInitError;
-      cs->Get0dBFS = [](CSOUND *) -> MYFLT { return FL(1.0); };
+      cs->Get0dBFS = [](CSOUND *) -> cs_float { return FL(1.0); };
       cs->AuxAlloc = [](CSOUND *, size_t size, AUXCH *aux) {
         free(aux->auxp);
         aux->auxp = calloc(1, size);
@@ -75,7 +75,7 @@ protected:
 
 TEST_F(SocksendTests, PcmPacketsPreserveChannelsAndAdvance)
 {
-    MYFLT left[] = {99, FL(0.25), 1}, right[] = {99, FL(-0.5), -1};
+    cs_float left[] = {99, FL(0.25), 1}, right[] = {99, FL(-0.5), -1};
     instance.ksmps = 3;
     instance.ksmps_offset = 1;
     stereo.asigl = left;
@@ -87,7 +87,7 @@ TEST_F(SocksendTests, PcmPacketsPreserveChannelsAndAdvance)
     EXPECT_EQ(sends, 1);
 
     length = 2;
-    MYFLT value = FL(0.25);
+    cs_float value = FL(0.25);
     mono.asig = &value;
     ASSERT_EQ(init_send(cs, &mono), OK);
     EXPECT_EQ(send_send_k(cs, &mono), OK);
@@ -98,7 +98,7 @@ TEST_F(SocksendTests, PcmPacketsPreserveChannelsAndAdvance)
     EXPECT_EQ(mono.wp, 0);
     EXPECT_EQ(sends, 2);
 
-    MYFLT audio[] = {99, 2, -2, 99};
+    cs_float audio[] = {99, 2, -2, 99};
     mono.asig = audio;
     instance.ksmps = 4;
     instance.ksmps_no_end = 1;
@@ -112,14 +112,14 @@ TEST_F(SocksendTests, PcmPacketsPreserveChannelsAndAdvance)
     instance.ksmps_no_end = 0;
     ASSERT_EQ(init_sendS(cs, &stereo), OK);
     EXPECT_EQ(send_sendS(cs, &stereo), OK);
-    const MYFLT expected[] = {FL(0.25), FL(-0.5), 1, -1};
+    const cs_float expected[] = {FL(0.25), FL(-0.5), 1, -1};
     ASSERT_EQ(packet.size(), sizeof(expected));
     EXPECT_EQ(memcmp(packet.data(), expected, sizeof(expected)), 0);
 }
 
 TEST_F(SocksendTests, ValidatesBuffersAndReusesAndClosesSockets)
 {
-    for (MYFLT size : {FL(0.0), FL(-1.0), FL(65508.0)}) {
+    for (cs_float size : {FL(0.0), FL(-1.0), FL(65508.0)}) {
       length = size;
       EXPECT_EQ(init_send(cs, &mono), NOTOK);
       EXPECT_EQ(init_sendS(cs, &stereo), NOTOK);

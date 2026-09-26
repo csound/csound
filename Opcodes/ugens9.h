@@ -26,26 +26,26 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar1,*ar2,*ar3,*ar4,*ain,*ifilno,*channel;
+    cs_float   *ar1,*ar2,*ar3,*ar4,*ain,*ifilno,*channel;
     MEMFIL  *mfp;
     int32    Hlen, Hlenpadded,incount,outcnt,obufsiz;
     int32_t     nchanls; /* number of channels we are actually processing */
-    MYFLT   *H,*cvlut,*outhead,*outail,*obufend;
+    cs_float   *H,*cvlut,*outhead,*outail,*obufend;
     AUXCH   auxch;    /* use AUXDS to manage the following buffer spaces */
-    MYFLT   *input;   /* [ksmps] saved when output shares the input buffer */
-    MYFLT   *fftbuf;  /* [Hlenpadded + 2] (general FFT working buffer) */
-    MYFLT   *olap;    /* [(Hlen - 1) * nchnls] (samples to overlap on next run) */
-    MYFLT   *outbuf;  /* (to store output audio if
+    cs_float   *input;   /* [ksmps] saved when output shares the input buffer */
+    cs_float   *fftbuf;  /* [Hlenpadded + 2] (general FFT working buffer) */
+    cs_float   *olap;    /* [(Hlen - 1) * nchnls] (samples to overlap on next run) */
+    cs_float   *outbuf;  /* (to store output audio if
                         ((Hlen > ksmps) && !(multiple of ksmps)), or
                         ((Hlen < ksmps) && !(submultiple of ksmps)) */
-    MYFLT   *X;       /* [Hlenpadded + 2] (holds transform of input audio -
+    cs_float   *X;       /* [Hlenpadded + 2] (holds transform of input audio -
                          only required for multi-channel output)   */
     void    *fwdsetup, *invsetup;   /* setup for FFT */
 } CONVOLVE;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar1, *ar2, *ar3, *ar4, *ain,*ifilno,*partitionSize,*channel;
+    cs_float   *ar1, *ar2, *ar3, *ar4, *ain,*ifilno,*partitionSize,*channel;
     int32    numPartitions;
     int32    Hlen, Hlenpadded;
     int32_t     nchanls;    /* number of channels we are actually processing */
@@ -56,14 +56,14 @@ typedef struct {
     int32   inCount;    /* index to write to savedInput */
 
     AUXCH   workBuf;    /* work buf for current partion convolution */
-    MYFLT   *workWrite; /* current index for writing input samps */
+    cs_float   *workWrite; /* current index for writing input samps */
 
     AUXCH   convBuf;    /* circular buf accumulating partitioned convolutions */
     int32   curPart;    /* "current" segment in convBuf */
 
     AUXCH   output;             /* circular buf accumulating output samples */
     size_t  outBufSiz;  /* hlenpadded or 2*ksmps, whichever is greater */
-    MYFLT   *outWrite, *outRead; /* i/o pointers to the output buf */
+    cs_float   *outWrite, *outRead; /* i/o pointers to the output buf */
     int32   outCount;   /* number of valid samples in the outbuf */
     void    *fwdsetup, *invsetup;   /* setup for FFT */
 } PCONVOLVE;

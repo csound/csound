@@ -30,13 +30,13 @@
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
-    MYFLT* restrict out = p->out;                                    \
+    cs_float* restrict out = p->out;                                    \
     uint32_t offset = p->h.insdshead->ksmps_offset;                  \
     uint32_t early = p->h.insdshead->ksmps_no_end;                   \
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));   \
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));   \
     if (UNLIKELY(early)) {                                           \
         nsmps -= early;                                              \
-        memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
+        memset(&out[nsmps], '\0', early*sizeof(cs_float));              \
     }                                                                \
 
 /* #define ZXP(z) (*(z)++) */
@@ -44,19 +44,19 @@
 #define register_deinit(csound, p, func) \
     csound->RegisterDeinitCallback(csound, p, (int32_t(*)(CSOUND*, void*))(func))
 
-static inline MYFLT
-zapgremlins(MYFLT x) {
-    MYFLT absx = fabs(x);
+static inline cs_float
+zapgremlins(cs_float x) {
+    cs_float absx = fabs(x);
     // very small numbers fail the first test, eliminating denormalized numbers
     //    (zero also fails the first test, but that is OK since it returns
     // zero.)
     // very large numbers fail the second test, eliminating infinities
     // Not-a-Numbers fail both tests and are eliminated.
-    return (absx > (MYFLT)1e-15 && absx < (MYFLT)1e15) ? x : (MYFLT)0.0;
+    return (absx > (cs_float)1e-15 && absx < (cs_float)1e15) ? x : (cs_float)0.0;
 }
 
-static inline MYFLT sc_wrap(MYFLT in, MYFLT lo, MYFLT hi) {
-    MYFLT range;
+static inline cs_float sc_wrap(cs_float in, cs_float lo, cs_float hi) {
+    cs_float range;
     // avoid the divide if possible
     if(in >= hi) {
         range = hi - lo;
@@ -106,10 +106,10 @@ static inline MYFLT sc_wrap(MYFLT in, MYFLT lo, MYFLT hi) {
 
 typedef struct {
     OPDS  h;
-    MYFLT *out, *in, *lagtime, *initial_value;
+    cs_float *out, *in, *lagtime, *initial_value;
     int32_t started;
-    MYFLT lag, b1, y1;
-    MYFLT sr;
+    cs_float lag, b1, y1;
+    cs_float sr;
 } LAG0;
 
 static int32_t lag0_init_no_initial_value(CSOUND *csound, LAG0 *p) {
@@ -135,14 +135,14 @@ static int32_t lag0_init_initial_value(CSOUND *csound, LAG0 *p) {
 
 static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
     IGN(csound);
-    MYFLT y1, b1;
-    MYFLT y0 = *p->in;
+    cs_float y1, b1;
+    cs_float y0 = *p->in;
 
     if(UNLIKELY(em_isinfornan(y0))) {
         return PERFERRF("Non-finite or nan value detected: %f", y0);
     }
 
-    MYFLT lag = *p->lagtime;
+    cs_float lag = *p->lagtime;
 
     if(LIKELY(p->started))
         y1 = p->y1;
@@ -163,7 +163,7 @@ static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
         p->y1 = y1;
         p->b1 = b1;
     }
-    MYFLT out = *(p->out);
+    cs_float out = *(p->out);
     if (UNLIKELY(em_isnan(out))) {
         return PERFERR("Output should not be nan!");
     }
@@ -198,10 +198,10 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
     if (UNLIKELY(offset >= nsmps))
         return OK;
 
-    const MYFLT* restrict in = p->in;
-    MYFLT lag = *p->lagtime;
-    MYFLT y0, y1;
-    MYFLT b1 = p->b1;
+    const cs_float* restrict in = p->in;
+    cs_float lag = *p->lagtime;
+    cs_float y0, y1;
+    cs_float b1 = p->b1;
 
     if(LIKELY(p->started))
         y1 = p->y1;
@@ -211,7 +211,7 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
     }
 
     if (lag == p->lag) {
-        MYFLT c = FL(1.0) - b1;
+        cs_float c = FL(1.0) - b1;
         for (n=offset; n<nsmps; n++) {
             y1 = b1 * y1 + c * in[n];
             out[n] = y1;
@@ -219,7 +219,7 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
     } else {
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
-        MYFLT b1_slope = CALCSLOPE(p->b1, b1, nsmps - offset);
+        cs_float b1_slope = CALCSLOPE(p->b1, b1, nsmps - offset);
         p->lag = lag;
         for (n=offset; n<nsmps; n++) {
             b1 += b1_slope;
@@ -247,9 +247,9 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *out, *in, *lagtimeU, *lagtimeD, *first;
-    MYFLT  lagu, lagd, b1u, b1d, y1;
-    MYFLT sr;
+    cs_float *out, *in, *lagtimeU, *lagtimeD, *first;
+    cs_float  lagu, lagd, b1u, b1d, y1;
+    cs_float sr;
     int32_t started;
 } LagUD;
 
@@ -279,10 +279,10 @@ static int32_t lagud_init_no_initial_value(CSOUND *csound, LagUD *p) {
 
 static int
 lagud_k(CSOUND *csound, LagUD *p) {
-    MYFLT y0  = *p->in;
-    MYFLT lagu = *p->lagtimeU;
-    MYFLT lagd = *p->lagtimeD;
-    MYFLT y1;
+    cs_float y0  = *p->in;
+    cs_float lagu = *p->lagtimeU;
+    cs_float lagd = *p->lagtimeD;
+    cs_float y1;
 
     if(UNLIKELY(em_isinfornan(y0))) {
         return PERFERRF("Non-finite value detected: %f", y0);
@@ -302,7 +302,7 @@ lagud_k(CSOUND *csound, LagUD *p) {
             p->y1 = y1 = y0 + p->b1d * (y1 - y0);
         *(p->out) = y1;
     } else {
-        MYFLT sr = p->sr;
+        cs_float sr = p->sr;
         // faust uses tau2pole = exp(-1 / (lag*sr)), sc uses log(0.01)
         p->b1u  = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
         p->lagu = lagu;
@@ -328,13 +328,13 @@ lagud_a(CSOUND *csound, LagUD *p) {
     if (UNLIKELY(offset >= nsmps))
         return OK;
 
-    const MYFLT* restrict in = p->in;
-    MYFLT lagu = *p->lagtimeU;
-    MYFLT lagd = *p->lagtimeD;
-    // MYFLT y1   = p->y1;
-    MYFLT y1;
-    MYFLT b1u  = p->b1u;
-    MYFLT b1d  = p->b1d;
+    const cs_float* restrict in = p->in;
+    cs_float lagu = *p->lagtimeU;
+    cs_float lagd = *p->lagtimeD;
+    // cs_float y1   = p->y1;
+    cs_float y1;
+    cs_float b1u  = p->b1u;
+    cs_float b1d  = p->b1d;
 
     if(LIKELY(p->started))
         y1 = p->y1;
@@ -344,10 +344,10 @@ lagud_a(CSOUND *csound, LagUD *p) {
     }
 
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
-        MYFLT cu = 1 - b1u;
-        MYFLT cd = 1 - b1d;
+        cs_float cu = 1 - b1u;
+        cs_float cd = 1 - b1d;
         for (n=offset; n<nsmps; n++) {
-            MYFLT y0 = in[n];
+            cs_float y0 = in[n];
             if (y0 > y1)
                 y1 = b1u * y1 + cu * in[n];
                 // y1 = y0 + b1u * (y1 - y0);
@@ -357,16 +357,16 @@ lagud_a(CSOUND *csound, LagUD *p) {
             out[n] = y1;
         }
     } else {
-        MYFLT sr = CS_ESR;
+        cs_float sr = CS_ESR;
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1u = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
-        MYFLT b1u_slope = CALCSLOPE(p->b1u, b1u, nsmps - offset);
+        cs_float b1u_slope = CALCSLOPE(p->b1u, b1u, nsmps - offset);
         p->lagu = lagu;
         p->b1d  = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
-        MYFLT b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps - offset);
+        cs_float b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps - offset);
         p->lagd = lagd;
         for (n=offset; n<nsmps; n++) {
-            MYFLT y0 = in[n];
+            cs_float y0 = in[n];
             b1u += b1u_slope;
             b1d += b1d_slope;
             if (y0 > y1)
@@ -394,8 +394,8 @@ lagud_a(CSOUND *csound, LagUD *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *out, *in, *dur;
-    MYFLT  level, prevtrig;
+    cs_float *out, *in, *dur;
+    cs_float  level, prevtrig;
     long counter;
 } Trig;
 
@@ -404,16 +404,16 @@ trig_a(CSOUND *csound, Trig *p) {
 
     SAMPLE_ACCURATE
 
-    MYFLT* restrict in = p->in;
-    MYFLT dur = *p->dur;
-    MYFLT sr = CS_ESR;
-    MYFLT prevtrig = p->prevtrig;
-    MYFLT level = p->level;
+    cs_float* restrict in = p->in;
+    cs_float dur = *p->dur;
+    cs_float sr = CS_ESR;
+    cs_float prevtrig = p->prevtrig;
+    cs_float level = p->level;
     unsigned long counter = p->counter;
 
     for(n=offset; n<nsmps; n++) {
-        MYFLT curtrig = in[n];
-        MYFLT zout;
+        cs_float curtrig = in[n];
+        cs_float zout;
         if (counter > 0 && --counter > 0) {
             zout = level;
         } else {
@@ -439,11 +439,11 @@ trig_a(CSOUND *csound, Trig *p) {
 
 static int
 trig_k(CSOUND *csound, Trig *p) {
-    MYFLT curtrig = *p->in;
-    MYFLT dur = *p->dur;
-    MYFLT kr = CS_EKR;
-    MYFLT prevtrig = p->prevtrig;
-    MYFLT level = p->level;
+    cs_float curtrig = *p->in;
+    cs_float dur = *p->dur;
+    cs_float kr = CS_EKR;
+    cs_float prevtrig = p->prevtrig;
+    cs_float level = p->level;
     uint64_t counter = p->counter;
     if (counter > 0 && --counter > 0) {
         *p->out = level;
@@ -513,8 +513,8 @@ static int32_t trig_init(CSOUND *csound, Trig *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *out, *trig, *rate, *start, *end, *resetPos;
-    MYFLT level, previn, prevrate;
+    cs_float *out, *trig, *rate, *start, *end, *resetPos;
+    cs_float level, previn, prevrate;
     int32_t started;
 } Phasor;
 
@@ -539,24 +539,24 @@ phasor_a_aa(CSOUND *csound, Phasor *p) {
     if (UNLIKELY(offset >= nsmps))
         return OK;
 
-    MYFLT* restrict in = p->trig;
-    const MYFLT *rate = p->rate;
-    const MYFLT start = *p->start;
-    const MYFLT end = *p->end;
-    const MYFLT resetPos = *p->resetPos;
-    MYFLT previn = p->previn;
-    MYFLT prevrate = p->prevrate;
-    MYFLT level = p->started ? p->level : start;
+    cs_float* restrict in = p->trig;
+    const cs_float *rate = p->rate;
+    const cs_float start = *p->start;
+    const cs_float end = *p->end;
+    const cs_float resetPos = *p->resetPos;
+    cs_float previn = p->previn;
+    cs_float prevrate = p->prevrate;
+    cs_float level = p->started ? p->level : start;
     p->started = 1;
-    const MYFLT range = end - start;
+    const cs_float range = end - start;
 
     SC_WRAP_FAST(level, start, end, range);
     for(n=offset; n<nsmps; n++) {
-        MYFLT curin = in[n];
-        MYFLT zrate = rate[n];
+        cs_float curin = in[n];
+        cs_float zrate = rate[n];
         if (previn <= FL(0.0) && curin > FL(0.0)) {
             /* Fraction of the previous interval after the zero crossing. */
-            MYFLT frac = curin/(curin-previn);
+            cs_float frac = curin/(curin-previn);
             level = resetPos + frac * prevrate;
             SC_WRAP_FAST(level, start, end, range);
         }
@@ -581,23 +581,23 @@ phasor_a_ak(CSOUND *csound, Phasor *p) {
     if (UNLIKELY(offset >= nsmps))
         return OK;
 
-    MYFLT* restrict in = p->trig;
-    MYFLT rate = *p->rate;
-    MYFLT start = *p->start;
-    MYFLT end = *p->end;
-    MYFLT resetPos = *p->resetPos;
-    MYFLT previn = p->previn;
-    MYFLT prevrate = p->prevrate;
-    MYFLT level = p->started ? p->level : start;
+    cs_float* restrict in = p->trig;
+    cs_float rate = *p->rate;
+    cs_float start = *p->start;
+    cs_float end = *p->end;
+    cs_float resetPos = *p->resetPos;
+    cs_float previn = p->previn;
+    cs_float prevrate = p->prevrate;
+    cs_float level = p->started ? p->level : start;
     p->started = 1;
-    const MYFLT range = end - start;
+    const cs_float range = end - start;
 
     SC_WRAP_FAST(level, start, end, range);
     for(n=offset; n<nsmps; n++) {
-        MYFLT curin = in[n];
+        cs_float curin = in[n];
         if (previn <= FL(0.0) && curin > FL(0.0)) {
             /* Fraction of the previous interval after the zero crossing. */
-            MYFLT frac = curin/(curin-previn);
+            cs_float frac = curin/(curin-previn);
             level = resetPos + frac * prevrate;
             SC_WRAP_FAST(level, start, end, range);
         }
@@ -622,19 +622,19 @@ phasor_a_kk(CSOUND *csound, Phasor *p) {
     if (UNLIKELY(offset >= nsmps))
         return OK;
 
-    MYFLT curin    = *p->trig;
-    MYFLT rate     = *p->rate;
-    MYFLT start    = *p->start;
-    MYFLT end      = *p->end;
-    MYFLT resetPos = *p->resetPos;
-    MYFLT previn   = p->previn;
-    MYFLT level    = p->started ? p->level : start;
+    cs_float curin    = *p->trig;
+    cs_float rate     = *p->rate;
+    cs_float start    = *p->start;
+    cs_float end      = *p->end;
+    cs_float resetPos = *p->resetPos;
+    cs_float previn   = p->previn;
+    cs_float level    = p->started ? p->level : start;
     p->started = 1;
     int32_t trig = (previn <= FL(0.0)) && (curin > FL(0.0));
     if (trig)
         level = resetPos;
 
-    const MYFLT range = end - start;
+    const cs_float range = end - start;
 
     SC_WRAP_FAST(level, start, end, range);
     for(n=offset; n<nsmps; n++) {
@@ -650,13 +650,13 @@ phasor_a_kk(CSOUND *csound, Phasor *p) {
 static int
 phasor_k_kk(CSOUND *csound, Phasor *p) {
     IGN(csound);
-    MYFLT curin    = *p->trig;
-    MYFLT rate     = *p->rate;
-    MYFLT start    = *p->start;
-    MYFLT end      = *p->end;
-    MYFLT resetPos = *p->resetPos;
-    MYFLT previn   = p->previn;
-    MYFLT level    = p->started ? p->level : start;
+    cs_float curin    = *p->trig;
+    cs_float rate     = *p->rate;
+    cs_float start    = *p->start;
+    cs_float end      = *p->end;
+    cs_float resetPos = *p->resetPos;
+    cs_float previn   = p->previn;
+    cs_float level    = p->started ? p->level : start;
     p->started = 1;
 
     if (UNLIKELY(previn <= FL(0.0) && curin > FL(0.0))) {

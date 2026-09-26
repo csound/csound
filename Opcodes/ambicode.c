@@ -30,19 +30,19 @@
 
 typedef struct {
     OPDS    h;                                      /* required header */
-    MYFLT   *mw, *mx, *my, *mz, *mr, *ms, *mt, *mu, *mv, *mk,
+    cs_float   *mw, *mx, *my, *mz, *mr, *ms, *mt, *mu, *mv, *mk,
             *ml, *mm, *mn, *mo, *mp, *mq;           /* addr outarg */
-    MYFLT   *asig, *kalpha, *kbeta, *kin[4];          /* addr inargs */
+    cs_float   *asig, *kalpha, *kbeta, *kin[4];          /* addr inargs */
     /* private dataspace */
-    double  w, x, y, z, r, s, t, u, v, k, l, m, n, o, p, q;
+    cs_double  w, x, y, z, r, s, t, u, v, k, l, m, n, o, p, q;
 } AMBIC;
 
 typedef struct {
     OPDS    h;                                      /* required header */
-    MYFLT   *m0, *m1, *m2, *m3, *m4, *m5, *m6, *m7; /* addr outarg */
-    MYFLT   *isetup, *aw, *ax, *ay, *a[VARGMAX];    /* addr inargs */
+    cs_float   *m0, *m1, *m2, *m3, *m4, *m5, *m6, *m7; /* addr outarg */
+    cs_float   *isetup, *aw, *ax, *ay, *a[VARGMAX];    /* addr inargs */
     /* private dataspace */
-    double  w[8], x[8], y[8], z[8], r[8], s[8], t[8], u[8],
+    cs_double  w[8], x[8], y[8], z[8], r[8], s[8], t[8], u[8],
             v[8], k[8], l[8], m[8], n[8], o[8], p[8], q[8];
 } AMBID;
 
@@ -101,8 +101,8 @@ static void ambicode_set_coefficients(AMBIC *p)
 {
     /* convert degrees to radian */
     /* 0.017 = pi/180 */
-    double kalpha_rad = (double)(*p->kalpha)*0.0174532925199432957692369076848861;
-    double kbeta_rad = (double)(*p->kbeta)*0.0174532925199432957692369076848861;
+    cs_double kalpha_rad = (cs_double)(*p->kalpha)*0.0174532925199432957692369076848861;
+    cs_double kbeta_rad = (cs_double)(*p->kbeta)*0.0174532925199432957692369076848861;
 
     /* calculate ambisonic coefficients (Furse-Malham-set) */
 
@@ -111,7 +111,7 @@ static void ambicode_set_coefficients(AMBIC *p)
 
     /* 1st order */
     {
-      double ck = cos(kbeta_rad);
+      cs_double ck = cos(kbeta_rad);
       p->x = cos(kalpha_rad) * ck;
       p->y = sin(kalpha_rad) * ck;
       p->z = sin(kbeta_rad);
@@ -144,47 +144,47 @@ static int32_t aambicode(CSOUND *csound, AMBIC *p)
     uint32_t n, nsmps = CS_KSMPS; /* array size from orchestra */
 
     /* init input array pointer */
-    MYFLT *inptp = p->asig;
+    cs_float *inptp = p->asig;
 
     /* init output array pointer 0th order */
-    MYFLT *rsltp_w = p->mw;
+    cs_float *rsltp_w = p->mw;
 
     /* init output array pointers 1th order */
-    MYFLT *rsltp_x = p->mx;
-    MYFLT *rsltp_y = p->my;
-    MYFLT *rsltp_z = p->mz;
+    cs_float *rsltp_x = p->mx;
+    cs_float *rsltp_y = p->my;
+    cs_float *rsltp_z = p->mz;
 
     /* init output array pointers 2nd order */
-    MYFLT *rsltp_r = p->mr;
-    MYFLT *rsltp_s = p->ms;
-    MYFLT *rsltp_t = p->mt;
-    MYFLT *rsltp_u = p->mu;
-    MYFLT *rsltp_v = p->mv;
+    cs_float *rsltp_r = p->mr;
+    cs_float *rsltp_s = p->ms;
+    cs_float *rsltp_t = p->mt;
+    cs_float *rsltp_u = p->mu;
+    cs_float *rsltp_v = p->mv;
 
     /* init output array pointers 3rd order */
-    MYFLT *rsltp_k = p->mk;
-    MYFLT *rsltp_l = p->ml;
-    MYFLT *rsltp_m = p->mm;
-    MYFLT *rsltp_n = p->mn;
-    MYFLT *rsltp_o = p->mo;
-    MYFLT *rsltp_p = p->mp;
-    MYFLT *rsltp_q = p->mq;
+    cs_float *rsltp_k = p->mk;
+    cs_float *rsltp_l = p->ml;
+    cs_float *rsltp_m = p->mm;
+    cs_float *rsltp_n = p->mn;
+    cs_float *rsltp_o = p->mo;
+    cs_float *rsltp_p = p->mp;
+    cs_float *rsltp_q = p->mq;
 
     /* update coefficients */
     ambicode_set_coefficients(p);
 
     if (UNLIKELY(offset)) {
-      memset(rsltp_w, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_x, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_y, '\0', offset*sizeof(MYFLT));
-      memset(rsltp_z, '\0', offset*sizeof(MYFLT));
+      memset(rsltp_w, '\0', offset*sizeof(cs_float));
+      memset(rsltp_x, '\0', offset*sizeof(cs_float));
+      memset(rsltp_y, '\0', offset*sizeof(cs_float));
+      memset(rsltp_z, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&rsltp_w[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&rsltp_x[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&rsltp_y[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&rsltp_z[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&rsltp_w[nsmps], '\0', early*sizeof(cs_float));
+      memset(&rsltp_x[nsmps], '\0', early*sizeof(cs_float));
+      memset(&rsltp_y[nsmps], '\0', early*sizeof(cs_float));
+      memset(&rsltp_z[nsmps], '\0', early*sizeof(cs_float));
     }
     if (p->OUTOCOUNT == 4 && p->INOCOUNT >= 5) {
       /* 1st order */
@@ -202,18 +202,18 @@ static int32_t aambicode(CSOUND *csound, AMBIC *p)
       /* 2nd order */
 
       if (UNLIKELY(offset)) {
-        memset(rsltp_r, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_s, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_t, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_u, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_v, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_r, '\0', offset*sizeof(cs_float));
+        memset(rsltp_s, '\0', offset*sizeof(cs_float));
+        memset(rsltp_t, '\0', offset*sizeof(cs_float));
+        memset(rsltp_u, '\0', offset*sizeof(cs_float));
+        memset(rsltp_v, '\0', offset*sizeof(cs_float));
       }
       if (UNLIKELY(early)) {
-        memset(&rsltp_r[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_s[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_t[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_u[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_v[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_r[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_s[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_t[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_u[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_v[nsmps], '\0', early*sizeof(cs_float));
       }
       for (n=offset; n<nsmps; n++) {
         /* 0th order */
@@ -237,32 +237,32 @@ static int32_t aambicode(CSOUND *csound, AMBIC *p)
       /* 3rd order */
 
       if (UNLIKELY(offset)) {
-        memset(rsltp_r, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_s, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_t, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_u, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_v, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_k, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_l, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_m, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_n, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_o, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_p, '\0', offset*sizeof(MYFLT));
-        memset(rsltp_q, '\0', offset*sizeof(MYFLT));
+        memset(rsltp_r, '\0', offset*sizeof(cs_float));
+        memset(rsltp_s, '\0', offset*sizeof(cs_float));
+        memset(rsltp_t, '\0', offset*sizeof(cs_float));
+        memset(rsltp_u, '\0', offset*sizeof(cs_float));
+        memset(rsltp_v, '\0', offset*sizeof(cs_float));
+        memset(rsltp_k, '\0', offset*sizeof(cs_float));
+        memset(rsltp_l, '\0', offset*sizeof(cs_float));
+        memset(rsltp_m, '\0', offset*sizeof(cs_float));
+        memset(rsltp_n, '\0', offset*sizeof(cs_float));
+        memset(rsltp_o, '\0', offset*sizeof(cs_float));
+        memset(rsltp_p, '\0', offset*sizeof(cs_float));
+        memset(rsltp_q, '\0', offset*sizeof(cs_float));
       }
       if (UNLIKELY(early)) {
-        memset(&rsltp_r[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_s[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_t[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_u[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_v[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_k[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_l[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_m[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_n[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_o[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_p[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&rsltp_q[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp_r[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_s[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_t[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_u[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_v[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_k[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_l[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_m[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_n[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_o[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_p[nsmps], '\0', early*sizeof(cs_float));
+        memset(&rsltp_q[nsmps], '\0', early*sizeof(cs_float));
       }
       for (n=offset; n<nsmps; n++) {
         /* 0th order */
@@ -293,13 +293,13 @@ static int32_t aambicode(CSOUND *csound, AMBIC *p)
     return OK;
 }
 
-static void ambideco_set_coefficients(AMBID *p, double alpha, double beta,
+static void ambideco_set_coefficients(AMBID *p, cs_double alpha, cs_double beta,
                                       int32_t index)
 {
     /* convert degrees to radian */
     /* 0.017... = pi/180 */
-    double alpha_rad = alpha * 0.0174532925199432957692369076848861;
-    double beta_rad = beta * 0.0174532925199432957692369076848861;
+    cs_double alpha_rad = alpha * 0.0174532925199432957692369076848861;
+    cs_double beta_rad = beta * 0.0174532925199432957692369076848861;
 
     /* calculate ambisonic coefficients (Furse-Malham-set) */
 
@@ -308,7 +308,7 @@ static void ambideco_set_coefficients(AMBID *p, double alpha, double beta,
 
     /* 1st order */
     {
-      double cbeta = cos(beta_rad);
+      cs_double cbeta = cos(beta_rad);
       p->x[index] = cos(alpha_rad) * cbeta;
       p->y[index] = sin(alpha_rad) * cbeta;
       p->z[index] = sin(beta_rad);
@@ -363,10 +363,10 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
           }
           else {
             int32_t i;
-            static double w[] = {0.707106781186547524400844362104849,
+            static cs_double w[] = {0.707106781186547524400844362104849,
                                  0.707106781186547524400844362104849};
 /*             static double x[] = {0.0, 0.0}; */
-            static double y[] = {0.5000,-0.5000};
+            static cs_double y[] = {0.5000,-0.5000};
 /*             static double z[] = {0.0, 0.0}; */
 /*             static double r[] = {0.0, 0.0}; */
 /*             static double s[] = {0.0, 0.0}; */
@@ -410,15 +410,15 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
           }
           else {
             int32_t i;
-            static double w[] = {0.3536, 0.3536, 0.3536, 0.3536};
-            static double x[] = {0.2434,  0.2434, -0.2434, -0.2434};
-            static double y[] = {0.2434,  -0.2434, -0.2434, 0.2434};
+            static cs_double w[] = {0.3536, 0.3536, 0.3536, 0.3536};
+            static cs_double x[] = {0.2434,  0.2434, -0.2434, -0.2434};
+            static cs_double y[] = {0.2434,  -0.2434, -0.2434, 0.2434};
 /*             static double z[] = {0.0, 0.0, 0.0, 0.0}; */
 /*             static double r[] = {0.0, 0.0, 0.0, 0.0}; */
 /*             static double s[] = {0.0, 0.0, 0.0, 0.0}; */
 /*             static double t[] = {0.0, 0.0, 0.0, 0.0}; */
 /*             static double u[] = {0.0, 0.0, 0.0, 0.0}; */
-            static double v[] = {0.0964, -0.0964, 0.0964, -0.0964};
+            static cs_double v[] = {0.0964, -0.0964, 0.0964, -0.0964};
             for (i=0; i<4; i++) {
               p->w[i] = w[i];
               p->x[i] = x[i];
@@ -457,15 +457,15 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
         else {
           int32_t i;
           /* Furze controlled opposites */
-          static double w[] = {0.2828, 0.2828, 0.2828, 0.2828, 0.2828};
-          static double x[] = {0.2227, -0.0851, -0.2753, -0.0851, 0.2227};
-          static double y[] = {0.1618, 0.2619, 0.0000, -0.2619, -0.1618};
+          static cs_double w[] = {0.2828, 0.2828, 0.2828, 0.2828, 0.2828};
+          static cs_double x[] = {0.2227, -0.0851, -0.2753, -0.0851, 0.2227};
+          static cs_double y[] = {0.1618, 0.2619, 0.0000, -0.2619, -0.1618};
 /*           static double z[] = {0.0, 0.0, 0.0, 0.0}; */
 /*           static double r[] = {0.0, 0.0, 0.0, 0.0}; */
 /*           static double s[] = {0.0, 0.0, 0.0, 0.0}; */
 /*           static double t[] = {0.0, 0.0, 0.0, 0.0}; */
-          static double u[] = {0.0238, -0.0624, 0.0771, -0.0624, 0.0238};
-          static double v[] = {0.0733, -0.0453, 0.0000, 0.0453, -0.0733};
+          static cs_double u[] = {0.0238, -0.0624, 0.0771, -0.0624, 0.0238};
+          static cs_double v[] = {0.0733, -0.0453, 0.0000, 0.0453, -0.0733};
 
           for (i=0; i<5; i++) {
             p->w[i] = w[i];
@@ -508,19 +508,19 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
           }
           else {
             int32_t i;
-            static double w[] = {0.1768, 0.1768, 0.1768, 0.1768,
+            static cs_double w[] = {0.1768, 0.1768, 0.1768, 0.1768,
                                  0.1768, 0.1768, 0.1768, 0.1768};
-            static double x[] = {0.1591, 0.0659, -0.0659,-0.1591,
+            static cs_double x[] = {0.1591, 0.0659, -0.0659,-0.1591,
                                  -0.1591,-0.0659, 0.0659, 0.1591};
-            static double y[] = {0.0659,  0.1591, 0.1591, 0.0659,
+            static cs_double y[] = {0.0659,  0.1591, 0.1591, 0.0659,
                                  -0.0659,-0.1591,-0.1591,-0.0659};
 /*             static double z[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
 /*             static double r[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
 /*             static double s[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
 /*             static double t[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
-            static double u[] = {0.0342,-0.0342,-0.0342, 0.0342,
+            static cs_double u[] = {0.0342,-0.0342,-0.0342, 0.0342,
                                  0.0342,-0.0342,-0.0342, 0.0342};
-            static double v[] = {0.0342, 0.0342,-0.0342,-0.0342,
+            static cs_double v[] = {0.0342, 0.0342,-0.0342,-0.0342,
                                  0.0342, 0.0342,-0.0342,-0.0342};
             for (i=0; i<8; i++) {
               p->w[i] = w[i];
@@ -563,21 +563,21 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
           }
           else {
             int32_t i;
-            static double w[] = {0.1768,0.1768,0.1768,0.1768,
+            static cs_double w[] = {0.1768,0.1768,0.1768,0.1768,
                                  0.1768,0.1768,0.1768,0.1768};
-            static double x[] = {0.1140, 0.1140,-0.1140,-0.1140,
+            static cs_double x[] = {0.1140, 0.1140,-0.1140,-0.1140,
                                  0.1140, 0.1140,-0.1140,-0.1140};
-            static double y[] = {0.1140,-0.1140,-0.1140, 0.1140,
+            static cs_double y[] = {0.1140,-0.1140,-0.1140, 0.1140,
                                  0.1140,-0.1140,-0.1140, 0.1140};
-            static double z[] = {-0.1140,-0.1140,-0.1140,-0.1140,
+            static cs_double z[] = {-0.1140,-0.1140,-0.1140,-0.1140,
                                  0.1140, 0.1140, 0.1140, 0.1140};
 /*             static double r[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
-            static double s[] = {-0.0369,-0.0369, 0.0369, 0.0369,
+            static cs_double s[] = {-0.0369,-0.0369, 0.0369, 0.0369,
                                  0.0369, 0.0369,-0.0369,-0.0369};
-            static double t[] = {-0.0369, 0.0369, 0.0369,-0.0369,
+            static cs_double t[] = {-0.0369, 0.0369, 0.0369,-0.0369,
                                  0.0369,-0.0369,-0.0369, 0.0369};
 /*             static double u[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; */
-            static double v[] = { 0.0369,-0.0369, 0.0369,-0.0369,
+            static cs_double v[] = { 0.0369,-0.0369, 0.0369,-0.0369,
                                   0.0369,-0.0369, 0.0369,-0.0369};
             for (i=0; i<8; i++) {
               p->w[i] = w[i];
@@ -614,11 +614,11 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
    RS   -110°   {0.9101, -0.7834, -0.9562, -0.0806,  0.0000}  */
         {
           int32_t i;
-          static double w[] = {0.4724, 0.4724, 0.3226, 0.9101, 0.9101};
-          static double x[] = {0.7143, 0.7143, 0.7719,-0.7834,-0.7834};
-          static double y[] = {0.7258,-0.7258, 0.0000, 0.9562,-0.9562};
-          static double u[] = {0.0000,0.0000,0.0000,-0.0806,-0.0806};
-          static double v[] = {0.3456,-0.3456,0.4724,0.0000,0.0000};
+          static cs_double w[] = {0.4724, 0.4724, 0.3226, 0.9101, 0.9101};
+          static cs_double x[] = {0.7143, 0.7143, 0.7719,-0.7834,-0.7834};
+          static cs_double y[] = {0.7258,-0.7258, 0.0000, 0.9562,-0.9562};
+          static cs_double u[] = {0.0000,0.0000,0.0000,-0.0806,-0.0806};
+          static cs_double v[] = {0.3456,-0.3456,0.4724,0.0000,0.0000};
           for (i=0; i<5; i++) {
             p->w[i] = w[i];
             p->x[i] = x[i];
@@ -657,31 +657,31 @@ static int32_t aambideco(CSOUND *csound, AMBID *p)
     uint32_t i=0, n, nsmps = CS_KSMPS;
 
     /* init input array pointer 0th order */
-    MYFLT *inptp_w = p->aw;
+    cs_float *inptp_w = p->aw;
 
     /* init input array pointer 1st order */
-    MYFLT *inptp_x = p->ax;
-    MYFLT *inptp_y = p->ay;
-    MYFLT *inptp_z = p->a[0];
+    cs_float *inptp_x = p->ax;
+    cs_float *inptp_y = p->ay;
+    cs_float *inptp_z = p->a[0];
 
     /* init input array pointer 2nd order */
-    MYFLT *inptp_r = p->a[1];
-    MYFLT *inptp_s = p->a[2];
-    MYFLT *inptp_t = p->a[3];
-    MYFLT *inptp_u = p->a[4];
-    MYFLT *inptp_v = p->a[5];
+    cs_float *inptp_r = p->a[1];
+    cs_float *inptp_s = p->a[2];
+    cs_float *inptp_t = p->a[3];
+    cs_float *inptp_u = p->a[4];
+    cs_float *inptp_v = p->a[5];
 
     /* init input array pointer 3rd order */
-    MYFLT *inptp_k = p->a[6];
-    MYFLT *inptp_l = p->a[7];
-    MYFLT *inptp_m = p->a[8];
-    MYFLT *inptp_n = p->a[9];
-    MYFLT *inptp_o = p->a[10];
-    MYFLT *inptp_p = p->a[11];
-    MYFLT *inptp_q = p->a[12];
+    cs_float *inptp_k = p->a[6];
+    cs_float *inptp_l = p->a[7];
+    cs_float *inptp_m = p->a[8];
+    cs_float *inptp_n = p->a[9];
+    cs_float *inptp_o = p->a[10];
+    cs_float *inptp_p = p->a[11];
+    cs_float *inptp_q = p->a[12];
 
     /* init output array pointer */
-    MYFLT *rsltp[8];
+    cs_float *rsltp[8];
 
     rsltp[0] = p->m0;
     rsltp[1] = p->m1;
@@ -692,11 +692,11 @@ static int32_t aambideco(CSOUND *csound, AMBID *p)
     rsltp[6] = p->m6;
     rsltp[7] = p->m7;
     if (UNLIKELY(offset)) for (i = 0; i < p->OUTOCOUNT; i++)
-                  memset(rsltp[i], '\0', offset*sizeof(MYFLT));
+                  memset(rsltp[i], '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
       for (i = 0; i < p->OUTOCOUNT; i++)
-        memset(&rsltp[i][nsmps], '\0', early*sizeof(MYFLT));
+        memset(&rsltp[i][nsmps], '\0', early*sizeof(cs_float));
     }
     /* L = 0.5 * (0.9397*W + 0.1856*X - j*0.342*W + j*0.5099*X + 0.655*Y)
 

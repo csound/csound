@@ -35,16 +35,16 @@
 
 typedef struct Vibraphn {
     OPDS        h;
-    MYFLT       *ar;                  /* Output */
-    MYFLT       *amplitude, *frequency;
-    MYFLT       *hardness, *spos, *ifn;
-    MYFLT       *vibFreq, *vibAmt, *ivfn, *dettack;
+    cs_float       *ar;                  /* Output */
+    cs_float       *amplitude, *frequency;
+    cs_float       *hardness, *spos, *ifn;
+    cs_float       *vibFreq, *vibAmt, *ivfn, *dettack;
 
     Modal4      m4;
-    MYFLT       strikePosition;
-    MYFLT       stickHardness;
+    cs_float       strikePosition;
+    cs_float       stickHardness;
     int32_t         first;
-    double      kloop;
+    cs_double      kloop;
 } VIBRAPHN;
 
 #endif

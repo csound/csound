@@ -57,7 +57,7 @@ protected:
         return globals ? globals->tbladr : nullptr;
     }
 
-    void expectTable(double base)
+    void expectTable(cs_double base)
     {
         TABLESEG *p = envelope();
         ASSERT_NE(p, nullptr);
@@ -76,10 +76,10 @@ TEST_P(TablesegTests, RoundedDurationsReachEachBreakpoint)
     ASSERT_NO_FATAL_FAILURE(compile("1,.00927734375,2,.00634765625,3"));
     for (int cycle = 0; cycle < 12; ++cycle) {
         ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS) << messages();
-        double fraction = cycle < 5 ? cycle / 5.0 : (cycle - 5) / 3.0;
-        fraction = (std::min)(fraction, 1.0);
+        cs_double fraction = cycle < 5 ? cycle / 5.0 : (cycle - 5) / 3.0;
+        fraction = (std::min)(fraction, cs_double(1.0));
         if (quadratic()) fraction *= fraction;
-        const double base = cycle < 5 ? 10 * fraction : 10 + 10 * fraction;
+        const cs_double base = cycle < 5 ? 10 * fraction : 10 + 10 * fraction;
         ASSERT_NO_FATAL_FAILURE(expectTable(base));
     }
 }
@@ -89,7 +89,7 @@ TEST_P(TablesegTests, ZeroAndSubcycleStagesAdvanceImmediately)
     ASSERT_NO_FATAL_FAILURE(compile("1,0,2,.000244140625,3,.0078125,1"));
     for (int cycle = 0; cycle < 8; ++cycle) {
         ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS) << messages();
-        double fraction = (std::min)(cycle / 4.0, 1.0);
+        cs_double fraction = (std::min)(cycle / 4.0, 1.0);
         if (quadratic()) fraction *= fraction;
         ASSERT_NO_FATAL_FAILURE(expectTable(20 * (1 - fraction)));
     }
@@ -111,7 +111,7 @@ TEST_P(TablesegTests, ReinitRestartsAndReusesOutputStorage)
         "if kCycle == 7 then\nreinit Envelope\nendif\n", "Envelope:\n",
         "i 1 0 .25\ni 1 .5 .25"));
     // Reused note instances must start at the first table as well.
-    MYFLT *storage = nullptr;
+    cs_float *storage = nullptr;
     for (int cycle = 0; cycle <= 256; ++cycle) {
         ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS) << messages();
         if (cycle == 0) {

@@ -138,8 +138,8 @@ TEST_F(MP3StateTests, ReinitClosesOldDecoderAndSkipInitKeepsIt)
 TEST_F(MP3StateTests, ReusedNotesMatchFreshNotesAfterChangingFFTSize)
 {
     for (const char* previousSkip : {"0", "1000"}) {
-        std::vector<MYFLT> reused;
-        std::vector<MYFLT> reference;
+        std::vector<cs_float> reused;
+        std::vector<cs_float> reference;
         for (bool fresh : {false, true}) {
             std::string body = "aL,aR,kTime mp3scal \"" + path +
               "\",1,1,1,p5,p4\nout aL,aR";
@@ -153,7 +153,7 @@ TEST_F(MP3StateTests, ReusedNotesMatchFreshNotesAfterChangingFFTSize)
             for (int block = 0; block < (fresh ? 128 : 384); ++block) {
                 ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound)) << messages();
                 if (fresh || block >= 256) {
-                    const MYFLT* samples = csoundGetSpout(csound);
+                    const cs_float* samples = csoundGetSpout(csound);
                     output.insert(output.end(), samples, samples + 64);
                 }
             }
@@ -161,7 +161,7 @@ TEST_F(MP3StateTests, ReusedNotesMatchFreshNotesAfterChangingFFTSize)
         }
         ASSERT_EQ(reference.size(), reused.size());
         EXPECT_TRUE(std::any_of(reference.begin(), reference.end(),
-                               [](MYFLT value) { return value != FL(0.0); }));
+                               [](cs_float value) { return value != FL(0.0); }));
         for (size_t i = 0; i < reference.size(); ++i)
             ASSERT_EQ(reference[i], reused[i]) << "sample " << i;
     }

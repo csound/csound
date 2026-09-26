@@ -844,8 +844,11 @@ static void *csoundFileOpenInternal(
             /* the integer file descriptor is no longer needed */
             close(tmp_fd);
             p->fd = tmp_fd = -1;
-            csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
-                       &csound->oparms->quality, sizeof(double));
+            {
+              double quality = csound->oparms->quality; /* libsndfile requires double. */
+              csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
+                                    &quality, sizeof(quality));
+            }
             goto doneSFOpen;
           }
         }
@@ -885,8 +888,11 @@ static void *csoundFileOpenInternal(
         }
       }
       csound->SndfileCommand(csound,p->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
-      csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
-                 &csound->oparms->quality, sizeof(double));
+      {
+        double quality = csound->oparms->quality; /* libsndfile requires double. */
+        csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
+                              &quality, sizeof(quality));
+      }
       *((SNDFILE**) fd) = p->sf;
       break;
     default:                                  /* low level I/O */
@@ -1338,11 +1344,11 @@ void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
     }
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
 
-    p->cb = csound->CreateCircularBuffer(csound, buffsize*4, sizeof(MYFLT));
+    p->cb = csound->CreateCircularBuffer(csound, buffsize*4, sizeof(cs_float));
     p->items = 0;
     p->pos = 0;
     p->bufsize = buffsize;
-    p->buf = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*buffsize);
+    p->buf = (cs_float *) csound->Calloc(csound, sizeof(cs_float)*buffsize);
     csoundSpinLock(&csound->open_files_lock);
     cancelled = p->retired || p->cb == NULL || p->buf == NULL;
     if (!cancelled)
@@ -1367,7 +1373,7 @@ void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
 }
 
 uint32_t csoundReadAsync(CSOUND *csound, void *handle,
-                             MYFLT *buf, int32_t items)
+                             cs_float *buf, int32_t items)
 {
     CSFILE *p = handle;
     if (p != NULL &&  p->cb != NULL)
@@ -1376,7 +1382,7 @@ uint32_t csoundReadAsync(CSOUND *csound, void *handle,
 }
 
 uint32_t csoundWriteAsync(CSOUND *csound, void *handle,
-                              MYFLT *buf, int32_t items)
+                              cs_float *buf, int32_t items)
 {
     CSFILE *p = handle;
     if (p != NULL &&  p->cb != NULL)
@@ -1435,7 +1441,7 @@ static int32_t read_files(CSOUND *csound){
       {
         int32_t m = current->pos, l, n = current->items;
         int32_t items = current->bufsize;
-        MYFLT *buf = current->buf;
+        cs_float *buf = current->buf;
         switch (current->type) {
         case CSFILE_FD_R:
           break;

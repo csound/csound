@@ -48,11 +48,11 @@ int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
 
   if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
     /* Assumes PVDATASIZE, PVFFTSIZE, PVWINLEN constant */
-    MYFLT *fltp;
+    cs_float *fltp;
     csound->AuxAlloc(csound,
-                     (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN) * sizeof(MYFLT),
+                     (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN) * sizeof(cs_float),
                      &p->auxch);
-    fltp = (MYFLT *) p->auxch.auxp;
+    fltp = (cs_float *) p->auxch.auxp;
     p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */
     p->fftBuf = fltp;   /* fltp += PVFFTSIZE; */  /* Not needed */
   }
@@ -92,13 +92,13 @@ int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
   }
   p->frPtr = (float*) pp.data;
   p->maxFr = pp.nframes - 1;
-  p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
-  p->frPrtim = (*p->ifiletime != FL(0.0) ? p->asr : CS_ESR) / (MYFLT) frInc;
+  p->frPktim = (cs_float) CS_KSMPS / (cs_float) frInc;
+  p->frPrtim = (*p->ifiletime != FL(0.0) ? p->asr : CS_ESR) / (cs_float) frInc;
   p->prFlg = 1;       /* true */
   /* amplitude scale for PVOC */
-  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
+  /* p->scale = (cs_float) pp.fftsize * ((cs_float) pp.fftsize / (cs_float) pp.winsize);
    */
-  p->scale = (MYFLT) pp.fftsize * FL(0.5);
+  p->scale = (cs_float) pp.fftsize * FL(0.5);
   p->scale *= csound->GetInverseRealFFTScale(csound, pp.fftsize);
 
   if (UNLIKELY((OPWLEN / 2 + 1) > PVWINLEN )) {
@@ -121,14 +121,14 @@ int32_t pvbufreadset_S(CSOUND *csound, PVBUFREAD *p){
 
 int32_t pvbufread(CSOUND *csound, PVBUFREAD *p)
 {
-  MYFLT  frIndx;
-  MYFLT  *buf = p->fftBuf;
+  cs_float  frIndx;
+  cs_float  *buf = p->fftBuf;
   int32_t    size = pvfrsiz(p);
 
   if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;        /* RWD fix */
   if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err2;
-  if (frIndx > (MYFLT) p->maxFr) {    /* not past last one */
-    frIndx = (MYFLT) p->maxFr;
+  if (frIndx > (cs_float) p->maxFr) {    /* not past last one */
+    frIndx = (cs_float) p->maxFr;
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;   /* false */
       csound->Warning(csound, "%s", Str("PVOC ktimpnt truncated to last frame"));
@@ -162,11 +162,11 @@ int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
                              "%s", Str("pvinterp: associated pvbufread not found"));
 
   if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
-    MYFLT *fltp;
+    cs_float *fltp;
     csound->AuxAlloc(csound,
-                     (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN) * sizeof(MYFLT),
+                     (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN) * sizeof(cs_float),
                      &p->auxch);
-    fltp = (MYFLT *) p->auxch.auxp;
+    fltp = (cs_float *) p->auxch.auxp;
     p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */
     p->fftBuf = fltp;      fltp += PVFFTSIZE;
     p->dsBuf = fltp;       fltp += PVFFTSIZE;
@@ -207,14 +207,14 @@ int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
   p->baseFr = 0;  /* point to first data frame */
   p->maxFr = pp.nframes - 1;
   /* highest possible frame index */
-  p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
+  p->frPktim = (cs_float) CS_KSMPS / (cs_float) frInc;
   /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-  p->frPrtim = (*p->ifiletime != FL(0.0) ? p->asr : CS_ESR) / (MYFLT) frInc;
+  p->frPrtim = (*p->ifiletime != FL(0.0) ? p->asr : CS_ESR) / (cs_float) frInc;
   /* factor by which to mulitply 'real' time index to get frame index */
   /* amplitude scale for PVOC */
-  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
+  /* p->scale = (cs_float) pp.fftsize * ((cs_float) pp.fftsize / (cs_float) pp.winsize);
    */
-  p->scale = (MYFLT) pp.fftsize * FL(0.5);
+  p->scale = (cs_float) pp.fftsize * FL(0.5);
   p->scale *= csound->GetInverseRealFFTScale(csound, pp.fftsize);
   /* 2*incr/OPWLEN scales down for win ovlp, windo'd 1ce (but 2ce?) */
   /* 1/frSiz is the required scale down before (i)FFT */
@@ -222,7 +222,7 @@ int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
   p->opBpos = 0;
   p->lastPex = FL(1.0);    /* needs to know last pitchexp to update phase */
   /* Set up time window */
-  memset(p->lastPhase,'\0', pvdasiz(p)*sizeof(MYFLT));
+  memset(p->lastPhase,'\0', pvdasiz(p)*sizeof(cs_float));
   /* for (i = 0; i < pvdasiz(p); ++i) {      /\* or maybe pvdasiz(p) *\/ */
   /*   p->lastPhase[i] = FL(0.0); */
   /* } */
@@ -233,9 +233,9 @@ int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
                              PVWINLEN, pvfilnam);
   }
   for (i = 0; i < OPWLEN / 2 + 1; ++i)    /* time window is OPWLEN long */
-    p->window[i] = (MYFLT) (0.5 - 0.5 * cos(TWOPI*(double)i/(double)OPWLEN));
+    p->window[i] = (cs_float) (0.5 - 0.5 * cos(TWOPI*(cs_double)i/(cs_double)OPWLEN));
   /* NB: HANNING */
-  memset(p->outBuf, 0, pvfrsiz(p)*sizeof(MYFLT));
+  memset(p->outBuf, 0, pvfrsiz(p)*sizeof(cs_float));
   /* for (i = 0; i< pvfrsiz(p); ++i) */
   /*   p->outBuf[i] = FL(0.0); */
   MakeSinc(p->pp);                    /* sinctab is same for all instances */
@@ -255,21 +255,21 @@ int32_t pvinterpset_S(CSOUND *csound, PVINTERP *p){
 
 int32_t pvinterp(CSOUND *csound, PVINTERP *p)
 {
-  MYFLT   *ar = p->rslt;
-  MYFLT   frIndx;
-  MYFLT   *buf = p->fftBuf;
-  MYFLT   *buf2 = p->dsBuf;
+  cs_float   *ar = p->rslt;
+  cs_float   frIndx;
+  cs_float   *buf = p->fftBuf;
+  cs_float   *buf2 = p->dsBuf;
   int32_t     asize = pvdasiz(p); /* fix */
   int32_t     size = pvfrsiz(p);
   int32_t     buf2Size, outlen;
   int32_t     circBufSize = PVFFTSIZE;
-  MYFLT   pex, scaleFac = p->scale;
+  cs_float   pex, scaleFac = p->scale;
   PVBUFREAD *q = p->pvbufread;
   int32    i, j;
 
   if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;    /* RWD Fix */
   pex = *p->kfmod;
-  outlen = (int32_t) (((MYFLT) size) / pex);
+  outlen = (int32_t) (((cs_float) size) / pex);
   /* use outlen to check window/krate/transpose combinations */
   if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
     /* ..so we won't run into buf2Size problems */
@@ -278,8 +278,8 @@ int32_t pvinterp(CSOUND *csound, PVINTERP *p)
     goto err3;   /* minimum post-squeeze windowlength */
   buf2Size = OPWLEN;     /* always window to same length after DS */
   if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
-  if (frIndx > (MYFLT)p->maxFr) { /* not past last one */
-    frIndx = (MYFLT)p->maxFr;
+  if (frIndx > (cs_float)p->maxFr) { /* not past last one */
+    frIndx = (cs_float)p->maxFr;
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;   /* false */
       csound->Warning(csound, "%s", Str("PVOC ktimpnt truncated to last frame"));
@@ -299,8 +299,8 @@ int32_t pvinterp(CSOUND *csound, PVINTERP *p)
     buf[j] = (buf[j] + ((q->buf[j] - buf[j]) * *p->kfreqinterp));
   }
   /*******************************************************************/
-  FrqToPhase(buf, asize, pex * (MYFLT) CS_KSMPS, p->asr,
-             (MYFLT) (0.5 * ((pex / p->lastPex) - 1)));
+  FrqToPhase(buf, asize, pex * (cs_float) CS_KSMPS, p->asr,
+             (cs_float) (0.5 * ((pex / p->lastPex) - 1)));
   /* accumulate phase and wrap to range -PI to PI */
   RewrapPhase(buf, asize, p->lastPhase);
 
@@ -308,11 +308,11 @@ int32_t pvinterp(CSOUND *csound, PVINTERP *p)
 
   if (pex != FL(1.0))
     UDSample(p->pp, buf,
-             (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)), buf2,
+             (FL(0.5) * ((cs_float) size - pex * (cs_float) buf2Size)), buf2,
              size, buf2Size, pex);
   else
     memcpy(buf2, buf + (int32_t) ((size - buf2Size) >> 1),
-           sizeof(MYFLT) * buf2Size);
+           sizeof(cs_float) * buf2Size);
   ApplyHalfWin(buf2, p->window, buf2Size);
 
   addToCircBuf(buf2, p->outBuf, p->opBpos, CS_KSMPS, circBufSize);
@@ -355,11 +355,11 @@ int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
                              "%s", Str("pvcross: associated pvbufread not found"));
 
   if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
-    MYFLT *fltp;
+    cs_float *fltp;
     csound->AuxAlloc(csound,
-                     (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN) * sizeof(MYFLT),
+                     (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN) * sizeof(cs_float),
                      &p->auxch);
-    fltp = (MYFLT *) p->auxch.auxp;
+    fltp = (cs_float *) p->auxch.auxp;
     p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */
     p->fftBuf = fltp;      fltp += PVFFTSIZE;
     p->dsBuf = fltp;       fltp += PVFFTSIZE;
@@ -399,20 +399,20 @@ int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
   p->baseFr = 0;  /* point to first data frame */
   p->maxFr = pp.nframes - 1;
   /* highest possible frame index */
-  p->frPktim = (MYFLT) CS_KSMPS / (MYFLT) frInc;
+  p->frPktim = (cs_float) CS_KSMPS / (cs_float) frInc;
   /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-  p->frPrtim = (*p->ifiletime != FL(0.0) ? p->asr : CS_ESR) / (MYFLT) frInc;
+  p->frPrtim = (*p->ifiletime != FL(0.0) ? p->asr : CS_ESR) / (cs_float) frInc;
   /* factor by which to mulitply 'real' time index to get frame index */
   /* amplitude scale for PVOC */
-  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
+  /* p->scale = (cs_float) pp.fftsize * ((cs_float) pp.fftsize / (cs_float) pp.winsize);
    */
-  p->scale = (MYFLT) pp.fftsize * FL(0.5);
+  p->scale = (cs_float) pp.fftsize * FL(0.5);
   p->scale *= csound->GetInverseRealFFTScale(csound, pp.fftsize);
   p->prFlg = 1;    /* true */
   p->opBpos = 0;
   p->lastPex = FL(1.0);   /* needs to know last pitchexp to update phase */
   /* Set up time window */
-  memset(p->lastPhase, '\0', pvdasiz(p)*sizeof(MYFLT));
+  memset(p->lastPhase, '\0', pvdasiz(p)*sizeof(cs_float));
   /* for (i = 0; i < pvdasiz(p); ++i) {      /\* or maybe pvdasiz(p) *\/ */
   /*     p->lastPhase[i] = FL(0.0); */
   /* } */
@@ -423,14 +423,14 @@ int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
                              PVWINLEN, pvfilnam);
   }
   for (i = 0; i < OPWLEN / 2 + 1; ++i)    /* time window is OPWLEN long */
-    p->window[i] = (MYFLT) (0.5 - 0.5 * cos(TWOPI*(double)i/(double)OPWLEN));
+    p->window[i] = (cs_float) (0.5 - 0.5 * cos(TWOPI*(cs_double)i/(cs_double)OPWLEN));
   /* NB: HANNING */
-  memset(p->outBuf, 0, pvfrsiz(p)*sizeof(MYFLT));
+  memset(p->outBuf, 0, pvfrsiz(p)*sizeof(cs_float));
   /* for (i = 0; i < pvfrsiz(p); ++i) */
   /*   p->outBuf[i] = FL(0.0); */
   MakeSinc(p->pp);                    /* sinctab is same for all instances */
-  if (p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
-    csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
+  if (p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(cs_float))
+    csound->AuxAlloc(csound, pvdasiz(p) * sizeof(cs_float), &p->memenv);
 
   p->setup = csound->RealFFTSetup(csound, pvfrsiz(p), FFT_INV);
   return OK;
@@ -446,24 +446,24 @@ int32_t pvcrossset_S(CSOUND *csound, PVCROSS *p) {
 
 int32_t pvcross(CSOUND *csound, PVCROSS *p)
 {
-  MYFLT   *ar = p->rslt;
-  MYFLT   frIndx;
-  MYFLT   *buf = p->fftBuf;
-  MYFLT   *buf2 = p->dsBuf;
+  cs_float   *ar = p->rslt;
+  cs_float   frIndx;
+  cs_float   *buf = p->fftBuf;
+  cs_float   *buf2 = p->dsBuf;
   int32_t     asize = pvdasiz(p);         /* fix */
   int32_t     size = pvfrsiz(p);
   int32_t     buf2Size, outlen;
   int32_t     circBufSize = PVFFTSIZE;
   int32_t     specwp = (int32_t) *p->ispecwp; /* spectral warping flag */
-  MYFLT   pex, scaleFac = p->scale;
+  cs_float   pex, scaleFac = p->scale;
   PVBUFREAD *q = p->pvbufread;
   int32   i, j;
-  MYFLT   ampscale1 = *p->kampscale1;
-  MYFLT   ampscale2 = *p->kampscale2;
+  cs_float   ampscale1 = *p->kampscale1;
+  cs_float   ampscale2 = *p->kampscale2;
 
   if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;        /* RWD Fix */
   pex = *p->kfmod;
-  outlen = (int32_t) (((MYFLT) size) / pex);
+  outlen = (int32_t) (((cs_float) size) / pex);
   /* use outlen to check window/krate/transpose combinations */
   if (UNLIKELY(outlen>PVFFTSIZE)) /* Maximum transposition down is one octave */
     /* ..so we won't run into buf2Size problems */
@@ -472,8 +472,8 @@ int32_t pvcross(CSOUND *csound, PVCROSS *p)
     goto err3;               /* minimum post-squeeze windowlength */
   buf2Size = OPWLEN;     /* always window to same length after DS */
   if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
-  if (frIndx > (MYFLT) p->maxFr) {    /* not past last one */
-    frIndx = (MYFLT) p->maxFr;
+  if (frIndx > (cs_float) p->maxFr) {    /* not past last one */
+    frIndx = (cs_float) p->maxFr;
     if (p->prFlg) {
       p->prFlg = 0;   /* false */
       csound->Warning(csound, "%s", Str("PVOC ktimpnt truncated to last frame"));
@@ -489,8 +489,8 @@ int32_t pvcross(CSOUND *csound, PVCROSS *p)
     buf[i] = ((buf[i] * ampscale2) + (q->buf[i] * ampscale1)) * scaleFac;
   /***************************************************/
 
-  FrqToPhase(buf, asize, pex * (MYFLT) CS_KSMPS, p->asr,
-             (MYFLT) (0.5 * ((pex / p->lastPex) - 1)));
+  FrqToPhase(buf, asize, pex * (cs_float) CS_KSMPS, p->asr,
+             (cs_float) (0.5 * ((pex / p->lastPex) - 1)));
   /* accumulate phase and wrap to range -PI to PI */
   RewrapPhase(buf, asize, p->lastPhase);
 
@@ -510,22 +510,22 @@ int32_t pvcross(CSOUND *csound, PVCROSS *p)
   */
   if(specwp == 0 || ((p->prFlg)++ != 0 && (int32_t) specwp)) {
     if (specwp > 0)
-      PreWarpSpec(buf, asize, pex, (MYFLT *)p->memenv.auxp);
+      PreWarpSpec(buf, asize, pex, (cs_float *)p->memenv.auxp);
 
     Polar2Real_PVOC(csound, buf, p->setup);
 
     if (pex != FL(1.0))
       UDSample(p->pp, buf,
-               (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)), buf2,
+               (FL(0.5) * ((cs_float) size - pex * (cs_float) buf2Size)), buf2,
                size, buf2Size, pex);
     else
       memcpy(buf2, buf + (int32_t) ((size - buf2Size) >> 1),
-             sizeof(MYFLT) * buf2Size);
+             sizeof(cs_float) * buf2Size);
     if (specwp >= 0)
       ApplyHalfWin(buf2, p->window, buf2Size);
   }
   else {
-    memset(buf2, 0, buf2Size*sizeof(MYFLT));
+    memset(buf2, 0, buf2Size*sizeof(cs_float));
   }
 
   addToCircBuf(buf2, p->outBuf, p->opBpos, CS_KSMPS, circBufSize);

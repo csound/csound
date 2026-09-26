@@ -35,14 +35,14 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar;                /* Output */
+    cs_float   *ar;                /* Output */
 
-    MYFLT   *kbcL, *kbcR, *iK, *ib, *kscan, *iT30;
-    MYFLT   *ipos, *ivel, *iwid;
+    cs_float   *kbcL, *kbcR, *iK, *ib, *kscan, *iT30;
+    cs_float   *ipos, *ivel, *iwid;
 
-    double  *w, *w1, *w2;
+    cs_double  *w, *w1, *w2;
     int32_t     step, first;
-    double  s0, s1, s2, t0, t1;
+    cs_double  s0, s1, s2, t0, t1;
     int32_t     bcL, bcR, N;
     AUXCH   w_aux;
 } BAR;
@@ -50,11 +50,11 @@ typedef struct {
 static int32_t bar_init(CSOUND *csound, BAR *p)
 {
     if (*p->iK >= FL(0.0) || p->w_aux.auxp == NULL) {
-      double  K = FABS(*p->iK); /* ~=3.0  stiffness parameter, dimensionless */
-      double  T30 = *p->iT30;   /* ~=5.0; 30 db decay time (s) */
-      double  b = *p->ib;       /* ~=0.001 high-frequency loss parameter
+      cs_double  K = FABS(*p->iK); /* ~=3.0  stiffness parameter, dimensionless */
+      cs_double  T30 = *p->iT30;   /* ~=5.0; 30 db decay time (s) */
+      cs_double  b = *p->ib;       /* ~=0.001 high-frequency loss parameter
                                    (keep small) */
-      double  dt, sig, dxmin, points, dx;
+      cs_double  dt, sig, dxmin, points, dx;
       size_t  gridSize;
       int32_t N;
 
@@ -66,17 +66,17 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
                                  Str("barmodel: loss must be non-negative"));
 
       /* %%%%%%%%%%%%%%%%%% derived parameters */
-      dt = (double)CS_ONEDSR;
-      sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
+      dt = (cs_double)CS_ONEDSR;
+      sig = (2.0*(cs_double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
       dxmin = sqrt(dt*(b+hypot(b, K+K)));
       if (UNLIKELY(!(sig >= 0.0 && sig <= DBL_MAX)))
         return csound->InitError(csound, "%s",
                                  Str("barmodel: decay time is too short"));
       points = 1.0 / dxmin;
       if (UNLIKELY(!(points >= 1.0 &&
-                     points <= (double)(INT32_MAX - 5) &&
-                     points <= (double)(SIZE_MAX /
-                                        (3 * sizeof(double)) - 5))))
+                     points <= (INT32_MAX + 0.0) - 5 &&
+                     points <= (cs_double)(SIZE_MAX /
+                                        (3 * sizeof(cs_double)) - 5))))
         return csound->InitError(csound, "%s",
                                  Str("barmodel: stiffness and loss produce "
                                      "an invalid grid size"));
@@ -96,8 +96,8 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
       /* %%%%%%%%%%%%%%%%%%%%% create grid functions */
 
       gridSize = (size_t)N + 5;
-      csound->AuxAlloc(csound, 3 * gridSize * sizeof(double), &(p->w_aux));
-      p->w = (double *) p->w_aux.auxp;
+      csound->AuxAlloc(csound, 3 * gridSize * sizeof(cs_double), &(p->w_aux));
+      p->w = (cs_double *) p->w_aux.auxp;
       p->w1 = &(p->w[N + 5]);
       p->w2 = &(p->w1[N + 5]);
       p->step = p->first = 0;
@@ -116,8 +116,8 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
 
 static int32_t bar_run(CSOUND *csound, BAR *p)
 {
-    double xofreq = TWOPI* (*p->kscan)/CS_ESR; /* kspan ~=0.23; */
-    double xo, xofrac;
+    cs_double xofreq = TWOPI* (*p->kscan)/CS_ESR; /* kspan ~=0.23; */
+    cs_double xo, xofrac;
     int32_t xoint;
     int32_t step = p->step;
     int32_t first = p->first;
@@ -125,25 +125,25 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    double *w = p->w, *w1 = p->w1, *w2 = p->w2;
-    double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
+    cs_double *w = p->w, *w1 = p->w1, *w2 = p->w2;
+    cs_double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
     /*  boundary condition pair  1: clamped, 2: pivoting, 3: free */
-    int32_t bcL = (int32_t)MYFLT2LONG(*p->kbcL);
-    int32_t bcR = (int32_t)MYFLT2LONG(*p->kbcR);
-    double SINNW = sin(xofreq*step); /* these are to calculate sin/cos by */
-    double COSNW = cos(xofreq*step); /* formula rather than many calls    */
-    double SIN1W = sin(xofreq);      /* Wins in ksmps>4 */
-    double COS1W = cos(xofreq);
-    MYFLT *ar = p->ar;
+    int32_t bcL = (int32_t)CS_FLOAT2LONG(*p->kbcL);
+    int32_t bcR = (int32_t)CS_FLOAT2LONG(*p->kbcR);
+    cs_double SINNW = sin(xofreq*step); /* these are to calculate sin/cos by */
+    cs_double COSNW = cos(xofreq*step); /* formula rather than many calls    */
+    cs_double SIN1W = sin(xofreq);      /* Wins in ksmps>4 */
+    cs_double COS1W = cos(xofreq);
+    cs_float *ar = p->ar;
 
     if (UNLIKELY((bcL|bcR)&(~3) && (bcL|bcR)!=0))
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
       /* Fix ends */
@@ -183,9 +183,9 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
       if (first == 0) {
         p->first = first = 1;
         for (rr = 0; rr < N; rr++) {
-          if (fabs(rr/(double)N - *p->ipos) <= *p->iwid) {
+          if (fabs(rr/(cs_double)N - *p->ipos) <= *p->iwid) {
             w[rr+2] += (1.0/CS_ESR)*(*p->ivel)*0.5*
-                (1.0+cos(PI*fabs(rr/(double)N-(*p->ipos))/(*p->iwid)));
+                (1.0+cos(PI*fabs(rr/(cs_double)N-(*p->ipos))/(*p->iwid)));
           }
         }
       }
@@ -199,8 +199,8 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
       /* But is xofreq were to change could be difficult! */
       /*      xo = 0.5 + 0.5*sin(TWOPI*xofreq*(step+1)/CS_ESR); */
       {
-        double  xx = SINNW*COS1W + COSNW*SIN1W;
-        double  yy = COSNW*COS1W - SINNW*SIN1W;
+        cs_double  xx = SINNW*COS1W + COSNW*SIN1W;
+        cs_double  yy = COSNW*COS1W - SINNW*SIN1W;
 
         SINNW = xx;
         COSNW = yy;
@@ -214,7 +214,7 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
       ar[n] = (csound->Get0dBFS(csound))*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
       step++;
       {
-        double *ww = w2;
+        cs_double *ww = w2;
 
         w2 = w1;
         w1 = w;
@@ -233,48 +233,48 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
 
 /* Preparation records use the sample type of their function tables. */
 typedef struct {
-  MYFLT pos;                    /* position along string of rattle */
-  MYFLT massden;                /* mass density ratio (rattle/string) */
-  MYFLT freq;                   /* fundamental freq. of rattle */
-  MYFLT length;                 /* vertical length of rattle */
+  cs_float pos;                    /* position along string of rattle */
+  cs_float massden;                /* mass density ratio (rattle/string) */
+  cs_float freq;                   /* fundamental freq. of rattle */
+  cs_float length;                 /* vertical length of rattle */
 } RATTLE;
 
 typedef struct {
-  MYFLT pos;                    /* position along string of rubber */
-  MYFLT massden;                /* mass density ratio (rubber/string) */
-  MYFLT freq;                   /* fundamental freq. of rubber */
-  MYFLT loss;                   /* loss parameter of rubber */
+  cs_float pos;                    /* position along string of rubber */
+  cs_float massden;                /* mass density ratio (rubber/string) */
+  cs_float freq;                   /* fundamental freq. of rubber */
+  cs_float loss;                   /* loss parameter of rubber */
 } RUBBER;
 
 typedef struct {
     OPDS   h;
-    MYFLT *ar;
-    MYFLT *ar1;
-    MYFLT *ifreq;
-    MYFLT *iNS;     /* number of strings */
-    MYFLT *iD;      /* detune parameter (multiple strings) in cents!!! */
-    MYFLT *K;       /* stiffness parameter, dimensionless...set around 1
+    cs_float *ar;
+    cs_float *ar1;
+    cs_float *ifreq;
+    cs_float *iNS;     /* number of strings */
+    cs_float *iD;      /* detune parameter (multiple strings) in cents!!! */
+    cs_float *K;       /* stiffness parameter, dimensionless...set around 1
                        for low notes, set closer to 100 in high register */
-    MYFLT *iT30;    /* 30 db decay time (s) */
-    MYFLT *ib;      /* high-frequency loss parameter (keep this small) */
-    MYFLT *kbcl,*kbcr; /* Boundary conditions */
-    MYFLT *ham_massden, *ham_freq, *ham_initial;
-    MYFLT *ipos;
-    MYFLT *vel;
-    MYFLT *scanfreq, *scanspread;
-    MYFLT *rattle_tab, *rubber_tab;
+    cs_float *iT30;    /* 30 db decay time (s) */
+    cs_float *ib;      /* high-frequency loss parameter (keep this small) */
+    cs_float *kbcl,*kbcr; /* Boundary conditions */
+    cs_float *ham_massden, *ham_freq, *ham_initial;
+    cs_float *ipos;
+    cs_float *vel;
+    cs_float *scanfreq, *scanspread;
+    cs_float *rattle_tab, *rubber_tab;
 
-    MYFLT *w, *w1, *w2;
-    MYFLT *rat, *rat1, *rat2;
-    MYFLT *rub, *rub1, *rub2;
-    MYFLT *s0, *s1, s2, t0, t1;
-    MYFLT *hammer_force;
+    cs_float *w, *w1, *w2;
+    cs_float *rat, *rat1, *rat2;
+    cs_float *rub, *rub1, *rub2;
+    cs_float *s0, *s1, s2, t0, t1;
+    cs_float *hammer_force;
     int32_t    stereo;
     uint32_t    NS;
     int32_t    N, init, step;
     uint32_t    rattle_num, rubber_num;
     int32_t    hammer_index, hammer_on, hammer_contact;
-    MYFLT  ham, ham1, ham2;
+    cs_float  ham, ham1, ham2;
     AUXCH  auxchc;
     AUXCH  auxch;
     RATTLE *rattle;
@@ -284,58 +284,58 @@ typedef struct {
 int32_t init_pp(CSOUND *csound, CSPP *p)
 {
     if (*p->K >= FL(0.0)) {
-      double K = *p->K; /* stiffness parameter, dimensionless */
-      double f0 = *p->ifreq;      /* fundamental freq. (Hz) */
-      double T30 = *p->iT30;      /* 30 db decay time (s) */
-      double b = *p->ib;          /* high-frequency loss parameter (keep small) */
+      cs_double K = *p->K; /* stiffness parameter, dimensionless */
+      cs_double f0 = *p->ifreq;      /* fundamental freq. (Hz) */
+      cs_double T30 = *p->iT30;      /* 30 db decay time (s) */
+      cs_double b = *p->ib;          /* high-frequency loss parameter (keep small) */
       uint32_t NS = p->NS = (int32_t)*p->iNS;       /* number of strings */
-      double D = *p->iD;  /* detune parameter (multiple strings) in cents */
+      cs_double D = *p->iD;  /* detune parameter (multiple strings) in cents */
                           /* I.e., a total of D cents diff between highest */
                           /* and lowest string in set */
                           /* initialize prepared objects and hammer */
                           /* derived parameters */
-      double dt = (double)CS_ONEDSR;
-      double sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
+      cs_double dt = (cs_double)CS_ONEDSR;
+      cs_double sig = (2.0*(cs_double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
 
       uint32_t N, n;
-      double *c, /*dx,*/ dxmin = 0.0; /* for stability */
+      cs_double *c, /*dx,*/ dxmin = 0.0; /* for stability */
       FUNC  *ftp;
 
-      csound->AuxAlloc(csound, NS*sizeof(double), &p->auxchc);
-      c = (double *)p->auxchc.auxp;
+      csound->AuxAlloc(csound, NS*sizeof(cs_double), &p->auxchc);
+      c = (cs_double *)p->auxchc.auxp;
 
       if (*p->rattle_tab==FL(0.0) ||
           (ftp=csound->FTFind(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
       else {
         p->rattle_num = (uint32_t)(*ftp->ftable);
-        p->rattle = (RATTLE*)(&((MYFLT*)ftp->ftable)[1]);
+        p->rattle = (RATTLE*)(&((cs_float*)ftp->ftable)[1]);
       }
       if (*p->rubber_tab==FL(0.0) ||
           (ftp=csound->FTFind(csound, p->rubber_tab)) == NULL) p->rubber_num = 0;
       else {
         p->rubber_num = (uint32_t)(*ftp->ftable);
-        p->rubber = (RUBBER*)(&((MYFLT*)ftp->ftable)[1]);
+        p->rubber = (RUBBER*)(&((cs_float*)ftp->ftable)[1]);
       }
 
       for (n=0; n<NS; n++) {
-        double detune_spread = NS == 1 ? 0.0 :
+        cs_double detune_spread = NS == 1 ? 0.0 :
           (D*n/(NS-1.0) - D*0.5)/1200.0;
         c[n] = 2.0*f0*pow(2.0, detune_spread);
       }
 
       for (n=0; n<NS; n++) {
-        double y = c[n]*c[n]*dt*dt+2.0*b*dt;
-        double x = sqrt(y+hypot(y,4.0*K*dt))/ROOT2;
+        cs_double y = c[n]*c[n]*dt*dt+2.0*b*dt;
+        cs_double x = sqrt(y+hypot(y,4.0*K*dt))/ROOT2;
         if (x>dxmin) dxmin = x;
       }
       N = p->N = (uint32_t)(1.0/dxmin);
       //dx = 1.0/(double)N;
 
       csound->AuxAlloc(csound,
-                       3*((1+(N+5))*NS+p->rattle_num+p->rubber_num)*sizeof(MYFLT),
+                       3*((1+(N+5))*NS+p->rattle_num+p->rubber_num)*sizeof(cs_float),
                        &p->auxch);
       //c = (double *)p->auxch.auxp;
-      p->s0 = (MYFLT*)p->auxch.auxp;
+      p->s0 = (cs_float*)p->auxch.auxp;
       p->s1 = &p->s0[NS];
       p->hammer_force = &p->s1[NS];
 
@@ -379,32 +379,32 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
 
 int32_t play_pp(CSOUND *csound, CSPP *p)
 {
-    MYFLT *ar = p->ar;
-    MYFLT *ar1 = p->ar1;
+    cs_float *ar = p->ar;
+    cs_float *ar1 = p->ar1;
     uint32_t NS = p->NS;
     uint32_t N = p->N;
     int32_t step = p->step;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t t, n, nsmps = CS_KSMPS;
-    double dt = CS_ONEDSR;
-    MYFLT *w = p->w, *w1 = p->w1, *w2 = p->w2,
+    cs_double dt = CS_ONEDSR;
+    cs_float *w = p->w, *w1 = p->w1, *w2 = p->w2,
           *rub = p->rub, *rub1 = p->rub1, *rub2 = p->rub2,
           *rat = p->rat, *rat1 = p->rat1, *rat2 = p->rat2;
-    MYFLT *s0 = p->s0, *s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
-    double SINNW = 0;              /* these are to calculate sin/cos by */
-    double COSNW = 0;              /* formula rather than many calls    */
-    double SIN1W = 0;              /* Wins in ksmps>4 */
-    double COS1W = 0;
-    double SINNW2 = 0;
-    double COSNW2 = 0;
-    double SIN1W2 = 0;
-    double COS1W2 = 0;
-    MYFLT e0dbfs = csound->Get0dBFS(csound);
+    cs_float *s0 = p->s0, *s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
+    cs_double SINNW = 0;              /* these are to calculate sin/cos by */
+    cs_double COSNW = 0;              /* formula rather than many calls    */
+    cs_double SIN1W = 0;              /* Wins in ksmps>4 */
+    cs_double COS1W = 0;
+    cs_double SINNW2 = 0;
+    cs_double COSNW2 = 0;
+    cs_double SIN1W2 = 0;
+    cs_double COS1W2 = 0;
+    cs_float e0dbfs = csound->Get0dBFS(csound);
 
     if (p->stereo) {
-      double f1 = (*p->scanfreq - FL(0.5)* *p->scanspread)/CS_ESR;
-      double f2 = (*p->scanfreq + FL(0.5)* *p->scanspread)/CS_ESR;
+      cs_double f1 = (*p->scanfreq - FL(0.5)* *p->scanspread)/CS_ESR;
+      cs_double f2 = (*p->scanfreq + FL(0.5)* *p->scanspread)/CS_ESR;
       SINNW = sin(f1*TWOPI*step); /* these are to calculate sin/cos by */
       COSNW = cos(f1*TWOPI*step); /* formula rather than many calls    */
       SIN1W = sin(f1*TWOPI);      /* Wins in ksmps>4 */
@@ -415,7 +415,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
       COS1W2 = cos(f2*TWOPI);
     }
     else {
-      double f1 = *p->scanfreq/CS_ESR;
+      cs_double f1 = *p->scanfreq/CS_ESR;
       SINNW = sin(f1*TWOPI*step); /* these are to calculate sin/cos by */
       COSNW = cos(f1*TWOPI*step); /* formula rather than many calls    */
       SIN1W = sin(f1*TWOPI);      /* Wins in ksmps>4 */
@@ -432,13 +432,13 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
     }
 
     if (UNLIKELY(offset)) {
-      memset(ar, '\0', offset*sizeof(MYFLT));
-      if (p->stereo) memset(ar1, '\0', offset*sizeof(MYFLT));
+      memset(ar, '\0', offset*sizeof(cs_float));
+      if (p->stereo) memset(ar1, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-      if (p->stereo) memset(&ar1[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
+      if (p->stereo) memset(&ar1[nsmps], '\0', early*sizeof(cs_float));
     }
     for (t=offset; t<nsmps; t++) {
       uint32_t qq;
@@ -478,9 +478,9 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
         /* do this only if at least one rattle is specified */
         for (qq=0; qq<p->rattle_num; qq++) {
           int32_t rattle_index = (int32_t)(2+p->rattle[qq].pos*N);
-          MYFLT force_sum = 0.0;
+          cs_float force_sum = 0.0;
           for (n=0; n<NS; n++) {
-            MYFLT pos, force, temp;
+            cs_float pos, force, temp;
             /* calc. pos. diff between center of rattle and string */
             pos = w1[rattle_index*NS+n]-rat1[qq];
             temp = fabs(pos)-p->rattle[qq].length*0.5;
@@ -502,9 +502,9 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
         /* do this only if at least one rubber is specified */
         for (qq=0; qq<p->rubber_num; qq++) {
           int32_t rubber_index = (int32_t)(2+p->rubber[qq].pos*N);
-          MYFLT force_sum = 0.0;
+          cs_float force_sum = 0.0;
           for (n=0; n<NS; n++) {
-            MYFLT pos, force;
+            cs_float pos, force;
             /* calc. pos. diff between rubber and string */
             pos = w1[rubber_index*NS+n]-rub1[qq];
             /* Each string receives only its own contact force. */
@@ -522,12 +522,12 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
         }
       }
       if (p->hammer_on) {
-        MYFLT min_pos = 100;
-        MYFLT hammer_force_sum = 0.0;
+        cs_float min_pos = 100;
+        cs_float hammer_force_sum = 0.0;
 
         /* do this while a strike is occurring */
         for (qq=0; qq<NS; qq++) { /* Over each string */
-          MYFLT pos = w1[p->hammer_index*NS+qq]-p->ham1;
+          cs_float pos = w1[p->hammer_index*NS+qq]-p->ham1;
           if (pos>0.0) pos = 0.0;
           if (pos<min_pos) min_pos = pos;
           if (min_pos<0.0) p->hammer_contact = 1;
@@ -552,15 +552,15 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
 #define       xoamp  FL(0.3333)
 #define       xoctr  FL(0.3333)
         int32_t xoint;
-        MYFLT xofrac, xo;
-        MYFLT out = 0.0;
-        double  xx = SINNW*COS1W + COSNW*SIN1W;
-        double  yy = COSNW*COS1W - SINNW*SIN1W;
+        cs_float xofrac, xo;
+        cs_float out = 0.0;
+        cs_double  xx = SINNW*COS1W + COSNW*SIN1W;
+        cs_double  yy = COSNW*COS1W - SINNW*SIN1W;
 
         SINNW = xx;
         COSNW = yy;
         xo = xoctr + xoamp*SINNW;
-        /*        xo = xoctr+xoamp*(MYFLT)sin(TWOPI*(*p->scanfreq)*n*dt); */
+        /*        xo = xoctr+xoamp*(cs_float)sin(TWOPI*(*p->scanfreq)*n*dt); */
         xoint = (int32_t)(xo*N)+2;
         xofrac = xo*N - xoint + FL(2.0);
         for (qq=0; qq<NS; qq++) {
@@ -573,7 +573,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
           SINNW2 = xx;
           COSNW2 = yy;
           xo = xoctr + xoamp*SINNW2;
-          /*        xo = xoctr+xoamp*(MYFLT)sin(TWOPI*(*p->scanfreq)*n*dt); */
+          /*        xo = xoctr+xoamp*(cs_float)sin(TWOPI*(*p->scanfreq)*n*dt); */
           xoint = (int32_t)(xo*N)+2;
           xofrac = xo*N - xoint + FL(2.0);
           out = FL(0.0);

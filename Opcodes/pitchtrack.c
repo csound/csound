@@ -57,7 +57,7 @@
 #define THRSH FL(10.)
 
 
-static const MYFLT partialonset[] =
+static const cs_float partialonset[] =
 {
     FL(0.0),
     FL(48.0),
@@ -77,30 +77,30 @@ static const MYFLT partialonset[] =
     FL(192.0),
 };
 
-#define NPARTIALONSET ((int32_t)(sizeof(partialonset)/sizeof(MYFLT)))
+#define NPARTIALONSET ((int32_t)(sizeof(partialonset)/sizeof(cs_float)))
 
 
-#define COEF1 ((MYFLT)(.5 * 1.227054))
-#define COEF2 ((MYFLT)(.5 * -0.302385))
-#define COEF3 ((MYFLT)(.5 * 0.095326))
-#define COEF4 ((MYFLT)(.5 * -0.022748))
-#define COEF5 ((MYFLT)(.5 * 0.002533))
+#define COEF1 ((cs_float)(.5 * 1.227054))
+#define COEF2 ((cs_float)(.5 * -0.302385))
+#define COEF3 ((cs_float)(.5 * 0.095326))
+#define COEF4 ((cs_float)(.5 * -0.022748))
+#define COEF5 ((cs_float)(.5 * 0.002533))
 #define FLTLEN 5
 
 
 typedef struct peak
 {
-  MYFLT pfreq;
-  MYFLT pwidth;
-  MYFLT ppow;
-  MYFLT ploudness;
+  cs_float pfreq;
+  cs_float pwidth;
+  cs_float ppow;
+  cs_float ploudness;
 } PEAK;
 
 typedef struct histopeak
 {
-  MYFLT hpitch;
-  MYFLT hvalue;
-  MYFLT hloud;
+  cs_float hpitch;
+  cs_float hvalue;
+  cs_float hloud;
   int32_t hindex;
   int32_t hused;
 } HISTOPEAK;
@@ -109,42 +109,42 @@ typedef struct histopeak
 typedef struct pitchtrack
 {
   OPDS  h;
-  MYFLT *freq, *amp;
-  MYFLT *asig,*size,*peak;
+  cs_float *freq, *amp;
+  cs_float *asig,*size,*peak;
   AUXCH signal, prev, sin, spec1, spec2, peakarray;
   int32_t numpks;
   int32_t cnt;
   int32_t histcnt;
   int32_t hopsize;
-  MYFLT sr;
-  MYFLT cps;
-  MYFLT dbs[NPREV];
-  MYFLT amplo;
-  MYFLT amphi;
-  MYFLT npartial;
-  MYFLT dbfs;
-  MYFLT prevf;
+  cs_float sr;
+  cs_float cps;
+  cs_float dbs[NPREV];
+  cs_float amplo;
+  cs_float amphi;
+  cs_float npartial;
+  cs_float dbfs;
+  cs_float prevf;
 } PITCHTRACK;
 
 void ptrack(CSOUND *csound,PITCHTRACK *p)
 {
-    MYFLT *spec = (MYFLT *)p->spec1.auxp;
-    MYFLT *spectmp = (MYFLT *)p->spec2.auxp;
-    MYFLT *sig = (MYFLT *)p->signal.auxp;
-    MYFLT *sinus  = (MYFLT *)p->sin.auxp;
-    MYFLT *prev  = (MYFLT *)p->prev.auxp;
+    cs_float *spec = (cs_float *)p->spec1.auxp;
+    cs_float *spectmp = (cs_float *)p->spec2.auxp;
+    cs_float *sig = (cs_float *)p->signal.auxp;
+    cs_float *sinus  = (cs_float *)p->sin.auxp;
+    cs_float *prev  = (cs_float *)p->prev.auxp;
     PEAK  *peaklist = (PEAK *)p->peakarray.auxp;
     HISTOPEAK histpeak;
     int32_t i, j, k, hop = p->hopsize, n = 2*hop, npeak, logn = -1, count, tmp;
-    MYFLT totalpower, totalloudness, totaldb;
-    MYFLT maxbin,  *histogram = spectmp + BINGUARD;
-    MYFLT hzperbin = p->sr / (n + n);
+    cs_float totalpower, totalloudness, totaldb;
+    cs_float maxbin,  *histogram = spectmp + BINGUARD;
+    cs_float hzperbin = p->sr / (n + n);
     int32_t numpks = p->numpks;
     int32_t indx, halfhop = hop>>1;
-    MYFLT best;
-    MYFLT cumpow = 0, cumstrength = 0, freqnum = 0, freqden = 0;
+    cs_float best;
+    cs_float cumpow = 0, cumstrength = 0, freqnum = 0, freqden = 0;
     int32_t npartials = 0,  nbelow8 = 0;
-    MYFLT putfreq;
+    cs_float putfreq;
 
     count = p->histcnt + 1;
     if (count == NPREV) count = 0;
@@ -182,7 +182,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
     }
 
     for (i = j = 0, k = 2*FLTLEN; i < halfhop; i++, j+=8, k+=2) {
-      MYFLT re,  im;
+      cs_float re,  im;
 
       re= COEF1 * ( prev[k-2] - prev[k+1]  + spectmp[k-2] - prev[k+1]) +
         COEF2 * ( prev[k-3] - prev[k+2]  + spectmp[k-3]  - spectmp[ 2]) +
@@ -228,8 +228,8 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
     for (i = 0; i < MINBIN; i++) spec[4*i + 2] = spec[4*i + 3] = FL(0.0);
 
     for (i = 4*MINBIN, totalpower = 0; i < (n-2)*4; i += 4) {
-      MYFLT re = spec[i] - FL(0.5) * (spec[i-8] + spec[i+8]);
-      MYFLT im = spec[i+1] - FL(0.5) * (spec[i-7] + spec[i+9]);
+      cs_float re = spec[i] - FL(0.5) * (spec[i-8] + spec[i+8]);
+      cs_float im = spec[i+1] - FL(0.5) * (spec[i-7] + spec[i+9]);
       spec[i+3] = (totalpower += (spec[i+2] = re * re + im * im));
     }
 
@@ -247,8 +247,8 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
       npeak = 0;
 
       for (i = 4*MINBIN;i < (4*(n-2)) && npeak < numpks; i+=4) {
-        MYFLT height = spec[i+2], h1 = spec[i-2], h2 = spec[i+6];
-        MYFLT totalfreq, peakfr, tmpfr1, tmpfr2, m, var, stdev;
+        cs_float height = spec[i+2], h1 = spec[i-2], h2 = spec[i+6];
+        cs_float totalfreq, peakfr, tmpfr1, tmpfr2, m, var, stdev;
 
         if (height < h1 || height < h2 ||
             h1 < FL(0.00001)*totalpower ||
@@ -279,7 +279,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
         if (var * totalpower > THRSH * height
             || var < FL(1.0e-30)) continue;
 
-        stdev = (MYFLT)sqrt((double)var);
+        stdev = (cs_float)sqrt((cs_double)var);
         if (totalfreq < 4) totalfreq = 4;
 
 
@@ -293,17 +293,17 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
 
       if (npeak > numpks) npeak = numpks;
       for (i = 0; i < maxbin; i++) histogram[i] = 0;
-      //or memset(histogram, '\0', maxbin*sizeof(MYFLT));
+      //or memset(histogram, '\0', maxbin*sizeof(cs_float));
       for (i = 0; i < npeak; i++) {
-        MYFLT pit = (MYFLT)(BPEROOVERLOG2 * LOG(peaklist[i].pfreq) - 96.0);
-        MYFLT binbandwidth = FACTORTOBINS * peaklist[i].pwidth/peaklist[i].pfreq;
-        MYFLT putbandwidth = (binbandwidth < FL(2.0) ? FL(2.0) : binbandwidth);
-        MYFLT weightbandwidth = (binbandwidth < FL(1.0) ? FL(1.0) : binbandwidth);
-        MYFLT weightamp = FL(4.0) * peaklist[i].ploudness / totalloudness;
+        cs_float pit = (cs_float)(BPEROOVERLOG2 * LOG(peaklist[i].pfreq) - 96.0);
+        cs_float binbandwidth = FACTORTOBINS * peaklist[i].pwidth/peaklist[i].pfreq;
+        cs_float putbandwidth = (binbandwidth < FL(2.0) ? FL(2.0) : binbandwidth);
+        cs_float weightbandwidth = (binbandwidth < FL(1.0) ? FL(1.0) : binbandwidth);
+        cs_float weightamp = FL(4.0) * peaklist[i].ploudness / totalloudness;
         for (j = 0; j < NPARTIALONSET; j++) {
-          MYFLT bin = pit - partialonset[j];
+          cs_float bin = pit - partialonset[j];
           if (bin < maxbin) {
-            MYFLT para, pphase, score = FL(30.0) * weightamp /
+            cs_float para, pphase, score = FL(30.0) * weightamp /
               ((j+p->npartial) * weightbandwidth);
             int32_t firstbin = bin + FL(0.5) - FL(0.5) * putbandwidth;
             int32_t lastbin = bin + FL(0.5) + FL(0.5) * putbandwidth;
@@ -329,14 +329,14 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
       putfreq = EXP((FL(1.0) / BPEROOVERLOG2) *
                     (histpeak.hindex + FL(96.0)));
       for (j = 0; j < npeak; j++) {
-        MYFLT fpnum = peaklist[j].pfreq/putfreq;
+        cs_float fpnum = peaklist[j].pfreq/putfreq;
         int32_t pnum = (int32_t)(fpnum + FL(0.5));
-        MYFLT fipnum = pnum;
-        MYFLT deviation;
+        cs_float fipnum = pnum;
+        cs_float deviation;
         if (pnum > 16 || pnum < 1) continue;
         deviation = FL(1.0) - fpnum/fipnum;
         if (deviation > -PARTIALDEVIANCE && deviation < PARTIALDEVIANCE) {
-          MYFLT stdev, weight;
+          cs_float stdev, weight;
           npartials++;
           if (pnum < 8) nbelow8++;
           cumpow += peaklist[j].ppow;
@@ -351,8 +351,8 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
       if ((nbelow8 < 4 || npartials < 7) && cumpow < FL(0.01) * totalpower)
         histpeak.hvalue = 0;
       else {
-        double pitchpow = (cumstrength * cumstrength);
-        MYFLT freqinbins = freqnum/freqden;
+        cs_double pitchpow = (cumstrength * cumstrength);
+        cs_float freqinbins = freqnum/freqden;
         pitchpow = pitchpow * pitchpow;
         if (freqinbins < MINFREQINBINS)
           histpeak.hvalue = 0;
@@ -369,8 +369,8 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
 {
 
     int32_t i, winsize, powtwo, tmp;
-    MYFLT requested = *p->size * FL(2.0);
-    MYFLT *tmpb;
+    cs_float requested = *p->size * FL(2.0);
+    cs_float *tmpb;
 
     if (UNLIKELY(!(requested >= MINWINSIZ && requested <= MAXWINSIZ))) {
       csound->Warning(csound, Str("ptrack: FFT size out of range; using %d\n"),
@@ -392,31 +392,31 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     }
     /* Use the corrected size for both allocation and analysis. */
     p->hopsize = winsize / 2;
-    if (!p->signal.auxp || p->signal.size < p->hopsize*sizeof(MYFLT)) {
-      csound->AuxAlloc(csound, p->hopsize*sizeof(MYFLT), &p->signal);
+    if (!p->signal.auxp || p->signal.size < p->hopsize*sizeof(cs_float)) {
+      csound->AuxAlloc(csound, p->hopsize*sizeof(cs_float), &p->signal);
     }
-    if (!p->prev.auxp || p->prev.size < (p->hopsize*2 + 4*FLTLEN)*sizeof(MYFLT)) {
-      csound->AuxAlloc(csound, (p->hopsize*2 + 4*FLTLEN)*sizeof(MYFLT), &p->prev);
+    if (!p->prev.auxp || p->prev.size < (p->hopsize*2 + 4*FLTLEN)*sizeof(cs_float)) {
+      csound->AuxAlloc(csound, (p->hopsize*2 + 4*FLTLEN)*sizeof(cs_float), &p->prev);
     }
-    if (!p->sin.auxp || p->sin.size < (p->hopsize*2)*sizeof(MYFLT)) {
-      csound->AuxAlloc(csound, (p->hopsize*2)*sizeof(MYFLT), &p->sin);
-    }
-
-    if (!p->spec2.auxp || p->spec2.size < (winsize*4 + 4*FLTLEN)*sizeof(MYFLT)) {
-      csound->AuxAlloc(csound, (winsize*4 + 4*FLTLEN)*sizeof(MYFLT), &p->spec2);
+    if (!p->sin.auxp || p->sin.size < (p->hopsize*2)*sizeof(cs_float)) {
+      csound->AuxAlloc(csound, (p->hopsize*2)*sizeof(cs_float), &p->sin);
     }
 
-    if (!p->spec1.auxp || p->spec1.size < (winsize*4)*sizeof(MYFLT)) {
-      csound->AuxAlloc(csound, (winsize*4)*sizeof(MYFLT), &p->spec1);
+    if (!p->spec2.auxp || p->spec2.size < (winsize*4 + 4*FLTLEN)*sizeof(cs_float)) {
+      csound->AuxAlloc(csound, (winsize*4 + 4*FLTLEN)*sizeof(cs_float), &p->spec2);
     }
 
-    for (i = 0, tmpb = (MYFLT *)p->signal.auxp; i < p->hopsize; i++)
+    if (!p->spec1.auxp || p->spec1.size < (winsize*4)*sizeof(cs_float)) {
+      csound->AuxAlloc(csound, (winsize*4)*sizeof(cs_float), &p->spec1);
+    }
+
+    for (i = 0, tmpb = (cs_float *)p->signal.auxp; i < p->hopsize; i++)
       tmpb[i] = FL(0.0);
-    for (i = 0, tmpb = (MYFLT *)p->prev.auxp; i < winsize + 4 * FLTLEN; i++)
+    for (i = 0, tmpb = (cs_float *)p->prev.auxp; i < winsize + 4 * FLTLEN; i++)
       tmpb[i] = FL(0.0);
-    for (i = 0, tmpb = (MYFLT *)p->sin.auxp; i < p->hopsize; i++)
-      tmpb[2*i] =   (MYFLT) cos((PI*i)/(winsize)),
-        tmpb[2*i+1] = -(MYFLT)sin((PI*i)/(winsize));
+    for (i = 0, tmpb = (cs_float *)p->sin.auxp; i < p->hopsize; i++)
+      tmpb[2*i] =   (cs_float) cos((PI*i)/(winsize)),
+        tmpb[2*i+1] = -(cs_float)sin((PI*i)/(winsize));
 
     p->cnt = 0;
     if (!(*p->peak >= FL(1.0) && *p->peak <= MAXPEAKNOS))
@@ -442,10 +442,10 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
 
 int32_t pitchtrackprocess(CSOUND *csound, PITCHTRACK *p)
 {
-    MYFLT *sig = p->asig; int32_t i;
-    MYFLT *buf = (MYFLT *)p->signal.auxp;
+    cs_float *sig = p->asig; int32_t i;
+    cs_float *buf = (cs_float *)p->signal.auxp;
     int32_t pos = p->cnt, h = p->hopsize;
-    MYFLT scale = p->dbfs;
+    cs_float scale = p->dbfs;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     int32_t ksmps = CS_KSMPS - p->h.insdshead->ksmps_no_end;
 
@@ -468,30 +468,30 @@ int32_t pitchtrackprocess(CSOUND *csound, PITCHTRACK *p)
 
 typedef struct _pitchaf{
   OPDS h;
-  MYFLT *kpitch;
-  MYFLT *asig, *kfmin, *kfmax, *iflow;
+  cs_float *kpitch;
+  cs_float *asig, *kfmin, *kfmax, *iflow;
   AUXCH buff1, buff2, cor;
   int32_t lag;
-  MYFLT pitch;
+  cs_float pitch;
   int32_t len,size;
 } PITCHAF;
 
 int32_t pitchafset(CSOUND *csound, PITCHAF *p){
-    double samples = CS_ESR / (double)*p->iflow;
-    if (UNLIKELY(!(samples >= 1.0 && samples <= INT32_MAX &&
-                   samples <= SIZE_MAX / sizeof(MYFLT))))
+    cs_double samples = CS_ESR / (cs_double)*p->iflow;
+    if (UNLIKELY(!(samples >= 1.0 && samples <= (INT32_MAX + 0.0) &&
+                   samples <= SIZE_MAX / sizeof(cs_float))))
       return csound->InitError(csound, "%s", Str("pitchac: invalid lowest frequency"));
     int32_t siz = (int32_t)samples;
-    if (p->buff1.auxp == NULL || p->buff1.size < siz*sizeof(MYFLT))
-      csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->buff1);
+    if (p->buff1.auxp == NULL || p->buff1.size < siz*sizeof(cs_float))
+      csound->AuxAlloc(csound, siz*sizeof(cs_float), &p->buff1);
     else
       memset(p->buff1.auxp, 0, p->buff1.size);
-    if (p->buff2.auxp == NULL ||p-> buff2.size < siz*sizeof(MYFLT))
-      csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->buff2);
+    if (p->buff2.auxp == NULL ||p-> buff2.size < siz*sizeof(cs_float))
+      csound->AuxAlloc(csound, siz*sizeof(cs_float), &p->buff2);
     else
       memset(p->buff2.auxp, 0, p->buff2.size);
-    if (p->cor.auxp == NULL || p->cor.size < siz*sizeof(MYFLT))
-      csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->cor);
+    if (p->cor.auxp == NULL || p->cor.size < siz*sizeof(cs_float))
+      csound->AuxAlloc(csound, siz*sizeof(cs_float), &p->cor);
     else
       memset(p->cor.auxp, 0, p->cor.size);
     p->lag = 0;
@@ -507,20 +507,20 @@ int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
     int32_t lag = p->lag,n, i, j, len = p->len;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     int32_t ksmps = CS_KSMPS - p->h.insdshead->ksmps_no_end;
-    double samples;
+    cs_double samples;
     int32_t nextlen;
     if (UNLIKELY(!(*p->kfmin > FL(0.0))))
       return csound->PerfError(csound, &p->h, "%s",
                                Str("pitchac: minimum frequency must be positive"));
-    samples = CS_ESR / (double)*p->kfmin;
+    samples = CS_ESR / (cs_double)*p->kfmin;
     if (UNLIKELY(!(samples >= 1.0)))
       return csound->PerfError(csound, &p->h, "%s",
                                Str("pitchac: minimum frequency exceeds sample rate"));
     nextlen = samples >= p->size ? p->size : (int32_t)samples;
-    MYFLT *buff1 = (MYFLT *)p->buff1.auxp;
-    MYFLT *buff2 = (MYFLT *)p->buff2.auxp;
-    MYFLT *cor = (MYFLT *)p->cor.auxp;
-    MYFLT *s = p->asig, pitch;
+    cs_float *buff1 = (cs_float *)p->buff1.auxp;
+    cs_float *buff2 = (cs_float *)p->buff2.auxp;
+    cs_float *cor = (cs_float *)p->cor.auxp;
+    cs_float *s = p->asig, pitch;
 
     for (n=offset; n < ksmps; n++) {
       for (i=0,j=lag; i < len; i++) {
@@ -530,7 +530,7 @@ int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
       buff2[lag++] = s[n];
 
       if (lag == len) {
-        MYFLT max = FL(0.0);
+        cs_float max = FL(0.0);
         int32_t imax = 0;
         for (i=0; i < len; i++) {
           if (cor[i] > max) {
@@ -563,25 +563,25 @@ int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
 enum {LP1=0, LP2, HP};
 
 typedef struct biquad_ {
-  double a0, a1, a2, b1, b2;
-  double del1, del2;
+  cs_double a0, a1, a2, b1, b2;
+  cs_double del1, del2;
 } BIQUAD;
 
 typedef struct plltrack_
 {
   OPDS  h;
-  MYFLT *freq, *lock;
-  MYFLT *asig,*kd,*klpf,*klpfQ,*klf,*khf,*kthresh;
+  cs_float *freq, *lock;
+  cs_float *asig,*kd,*klpf,*klpfQ,*klf,*khf,*kthresh;
   BIQUAD   fils[6];
-  double  ace, xce;
-  double cos_x, sin_x, x1, x2;
-  MYFLT klpf_o, klpfQ_o, klf_o,khf_o;
+  cs_double  ace, xce;
+  cs_double cos_x, sin_x, x1, x2;
+  cs_float klpf_o, klpfQ_o, klf_o,khf_o;
 
 } PLLTRACK;
 
-void update_coefs(PLLTRACK *p, double fr, double Q, BIQUAD *biquad, int32_t TYPE)
+void update_coefs(PLLTRACK *p, cs_double fr, cs_double Q, BIQUAD *biquad, int32_t TYPE)
 {
-    double k, ksq, div, ksqQ;
+    cs_double k, ksq, div, ksqQ;
 
     switch(TYPE){
     case LP2:
@@ -639,15 +639,15 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
     int32_t ksmps, i, k;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
-    MYFLT _0dbfs;
-    double a0[6], a1[6], a2[6], b1[6], b2[6];
-    double *mem1[6], *mem2[6];
-    double *ace, *xce;
-    double *cos_x, *sin_x, *x1, *x2;
-    double scal,esr;
+    cs_float _0dbfs;
+    cs_double a0[6], a1[6], a2[6], b1[6], b2[6];
+    cs_double *mem1[6], *mem2[6];
+    cs_double *ace, *xce;
+    cs_double *cos_x, *sin_x, *x1, *x2;
+    cs_double scal,esr;
     BIQUAD *biquad = p->fils;
-    MYFLT *asig=p->asig,kd=*p->kd,klpf,klpfQ,klf,khf,kthresh;
-    MYFLT *freq=p->freq, *lock =p->lock;
+    cs_float *asig=p->asig,kd=*p->kd,klpf,klpfQ,klf,khf,kthresh;
+    cs_float *freq=p->freq, *lock =p->lock;
 
     _0dbfs = csound->Get0dBFS(csound);
     ksmps = CS_KSMPS;
@@ -655,13 +655,13 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
     scal = 2.0*CS_PIDSR;
 
     if (UNLIKELY(offset)) {
-      memset(freq, 0, offset * sizeof(MYFLT));
-      memset(lock, 0, offset * sizeof(MYFLT));
+      memset(freq, 0, offset * sizeof(cs_float));
+      memset(lock, 0, offset * sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       ksmps -= early;
-      memset(&freq[ksmps], 0, early * sizeof(MYFLT));
-      memset(&lock[ksmps], 0, early * sizeof(MYFLT));
+      memset(&freq[ksmps], 0, early * sizeof(cs_float));
+      memset(&lock[ksmps], 0, early * sizeof(cs_float));
     }
 
     if (*p->klpf == 0) klpf = 20.0;
@@ -717,8 +717,8 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
 
     /* Process constant input and let filter state decay during silence. */
     for (i=offset; i < ksmps; i++){
-      double input = (double) (asig[i]/_0dbfs), env;
-      double w, y, icef = 0.99, fosc, xd, c, s, oc;
+      cs_double input = (cs_double) (asig[i]/_0dbfs), env;
+      cs_double w, y, icef = 0.99, fosc, xd, c, s, oc;
 
       /* input stage filters */
       for (k=0; k < 4 ; k++){

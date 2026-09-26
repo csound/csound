@@ -35,11 +35,11 @@ protected:
 
 TEST_P(TableCopyTests, CopiesWholeTableWithDocumentedGuardPointBounds)
 {
-    MYFLT *table = nullptr;
+    cs_float *table = nullptr;
     ASSERT_EQ(csoundGetTable(csound, &table, 1), length());
-    std::vector<MYFLT> data(static_cast<size_t>(length()) + 2, -123);
+    std::vector<cs_float> data(static_cast<size_t>(length()) + 2, -123);
     for (int i = 0; i < length(); ++i)
-        table[i] = static_cast<MYFLT>(i % 1024) / 1024;
+        table[i] = static_cast<cs_float>(i % 1024) / 1024;
     table[length()] = .75;
 
     csoundTableCopyOut(csound, 1, data.data() + 1, async());
@@ -59,7 +59,7 @@ TEST_P(TableCopyTests, CopiesWholeTableWithDocumentedGuardPointBounds)
 
 TEST_P(TableCopyTests, MissingTableLeavesDestinationUnchanged)
 {
-    MYFLT data[] = { .25, .5 };
+    cs_float data[] = { .25, .5 };
     csoundTableCopyOut(csound, 2, data, async());
     performCopy();
     EXPECT_EQ(data[0], .25);

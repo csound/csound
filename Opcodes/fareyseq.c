@@ -170,12 +170,12 @@ const int32_t primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
 /* opcodes striuctures */
 typedef struct {
     OPDS h;
-    MYFLT *result;          /* returns the number of elements of the source
+    cs_float *result;          /* returns the number of elements of the source
                                table that have passed the filter operation*/
-    MYFLT   *dft;           /* Destination function table number. */
-    MYFLT   *sft;           /* Source function table number */
-    MYFLT *ftype;           /* user selection of the filter type */
-    MYFLT *threshold;       /* user variable to set filter */
+    cs_float   *dft;           /* Destination function table number. */
+    cs_float   *sft;           /* Source function table number */
+    cs_float *ftype;           /* user selection of the filter type */
+    cs_float *threshold;       /* user variable to set filter */
     /* Storage to remember what the table numbers were from a previous k
        cycle, and to store pointers to their FUNC data structures. */
     int32_t     pdft;           /* Previous destination */
@@ -185,7 +185,7 @@ typedef struct {
 
 typedef struct {
     OPDS h;
-    MYFLT   *sft;           /* Source function table number */
+    cs_float   *sft;           /* Source function table number */
     /* Storage to remember what the table numbers were from a previous k
        cycle, and to store pointers to their FUNC data structures. */
     int32_t     psft;           /* source function table numbers. */
@@ -194,7 +194,7 @@ typedef struct {
 
 typedef struct {
     OPDS h;
-    MYFLT *kr, *kn;
+    cs_float *kr, *kn;
 } FAREYLEN;
 
 int32_t tablefilter (CSOUND*,TABFILT *p);
@@ -209,8 +209,8 @@ int32_t tableishuffle (CSOUND *, TABSHUFFLE *p);
 /* utility functions */
 int32_t EulerPhi (int32_t n);
 int32_t FareyLength (int32_t n);
-MYFLT Digest (int32_t n);
-void float2frac (CSOUND *csound, MYFLT in, int32_t *p, int32_t *q);
+cs_float Digest (int32_t n);
+void float2frac (CSOUND *csound, cs_float in, int32_t *p, int32_t *q);
 
 /* a filter and table copy opcode for filtering tables containing
    Farey Sequences generated with fateytable GEN */
@@ -344,12 +344,12 @@ static int32_t dotablefilter (CSOUND *csound, TABFILT *p)
     int32 loopcount;     /* Loop counter. Set by the length of the dest table.*/
     int32 indx = 0;              /* Index to be added to offsets */
     int32 indx2 = 0; /*index into source table*/
-    MYFLT *based, *bases;       /* Base addresses of the two tables.*/
+    cs_float *based, *bases;       /* Base addresses of the two tables.*/
     int32 sourcelength;
-    MYFLT *pdest, *ps;
-    MYFLT threshold;
+    cs_float *pdest, *ps;
+    cs_float threshold;
     int32 ftype;
-    MYFLT previous = FL(0.0);
+    cs_float previous = FL(0.0);
 
     ftype = (int32) *p->ftype;
     threshold = Digest (*p->threshold);
@@ -480,8 +480,8 @@ static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
     time_t now;
     uint32_t seed = (uint32_t) time (&now);
 
-    MYFLT *bases;       /* Base address of the source table.*/
-    MYFLT *temp;
+    cs_float *bases;       /* Base address of the source table.*/
+    cs_float *temp;
     int32 sourcelength;
     int32 i = 0;
 
@@ -491,8 +491,8 @@ static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
     /* Now get the base address of the table. */
     bases = p->funcs->ftable;
 
-    temp = (MYFLT*) csound->Calloc (csound, sourcelength* sizeof(MYFLT));
-    memset (temp, 0, sizeof(MYFLT) * sourcelength);
+    temp = (cs_float*) csound->Calloc (csound, sourcelength* sizeof(cs_float));
+    memset (temp, 0, sizeof(cs_float) * sourcelength);
 
     for (i = 0; i < sourcelength; i++) {
       int32 pos = rand() % sourcelength;
@@ -504,7 +504,7 @@ static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
       temp[pos] = bases[i];
     }
 
-    memcpy (bases, temp, sizeof(MYFLT) * sourcelength);
+    memcpy (bases, temp, sizeof(cs_float) * sourcelength);
     csound->Free (csound, temp);
     return OK;
 }
@@ -512,27 +512,27 @@ static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
 int32_t fareylen (CSOUND *csound, FAREYLEN *p)
 {
     int32_t length;
-    if (UNLIKELY(!(*p->kn >= FL(1.0) && (double)*p->kn <= INT32_MAX)))
+    if (UNLIKELY(!(*p->kn >= FL(1.0) && (cs_double)*p->kn <= (INT32_MAX + 0.0))))
       return csound->PerfError(csound, &(p->h),
                                Str("fareylen: invalid sequence order"));
     length = FareyLength((int32_t)*p->kn);
     if (UNLIKELY(length == 0))
       return csound->PerfError(csound, &(p->h),
                                Str("fareylen: sequence length exceeds int32 range"));
-    *p->kr = (MYFLT)length;
+    *p->kr = (cs_float)length;
     return OK;
 }
 
 int32_t fareyleni (CSOUND *csound, FAREYLEN *p)
 {
     int32_t length;
-    if (UNLIKELY(!(*p->kn >= FL(1.0) && (double)*p->kn <= INT32_MAX)))
+    if (UNLIKELY(!(*p->kn >= FL(1.0) && (cs_double)*p->kn <= (INT32_MAX + 0.0))))
       return csound->InitError(csound, Str("fareylen: invalid sequence order"));
     length = FareyLength((int32_t)*p->kn);
     if (UNLIKELY(length == 0))
       return csound->InitError(csound,
                                Str("fareylen: sequence length exceeds int32 range"));
-    *p->kr = (MYFLT)length;
+    *p->kr = (cs_float)length;
     return OK;
 }
 
@@ -579,13 +579,13 @@ int32_t FareyLength (int32_t n)
  * The order of the first 16 integers according to Digest is:
  * 1, 2, 4, 3, 8, 6, 16, 12, 9, 5, 10, 15, 7, 14
  * ----------------------------------------------- */
-MYFLT Digest (int32_t n)
+cs_float Digest (int32_t n)
 {
     if (!n)
       return FL(0.0);
 
     {
-      MYFLT result = FL(0.0);
+      cs_float result = FL(0.0);
       int32_t i = 0;
       int32_t exponent = 0;
       while( i < MAX_PRIMES )
@@ -593,7 +593,7 @@ MYFLT Digest (int32_t n)
           int32_t prime = primes[i];
           if (n == prime)
             {
-              result += (((prime - 1)*(prime - 1)) / (MYFLT) prime);
+              result += (((prime - 1)*(prime - 1)) / (cs_float) prime);
               return (result + result);
             }
           while (!(n % prime))
@@ -603,7 +603,7 @@ MYFLT Digest (int32_t n)
             }
           if (exponent)
             {
-              result += (exponent * (((prime - 1)*(prime - 1)) / (MYFLT) prime));
+              result += (exponent * (((prime - 1)*(prime - 1)) / (cs_float) prime));
             }
           i++;
           exponent = 0;
@@ -614,33 +614,33 @@ MYFLT Digest (int32_t n)
 
 /* Return the first continued-fraction approximation within 10^-5.
    Stop before an exact remainder is inverted or a convergent exceeds int32. */
-void float2frac (CSOUND *csound, MYFLT in, int32_t *num, int32_t *denom)
+void float2frac (CSOUND *csound, cs_float in, int32_t *num, int32_t *denom)
 {
     IGN(csound);
-    double value = fabs((double)in), x = value;
+    cs_double value = fabs((cs_double)in), x = value;
     int64_t prevnum = 1, prevden = 0, oldnum = 0, oldden = 1;
     int32_t i;
 
     *num = *denom = 0;
     for (i = 0; i <= 10; i++) {
       int64_t a, nextnum, nextden;
-      if (!(x <= INT32_MAX))
+      if (!(x <= (INT32_MAX + 0.0)))
         break;
       a = (int64_t)x;
       nextnum = a * prevnum + oldnum;
       nextden = a * prevden + oldden;
       if (nextnum > INT32_MAX || nextden > INT32_MAX)
         break;
-      if (fabs(value - (double)nextnum / nextden) < 0.00001) {
+      if (fabs(value - (cs_double)nextnum / nextden) < 0.00001) {
         *num = in < FL(0.0) ? -(int32_t)nextnum : (int32_t)nextnum;
         *denom = (int32_t)nextden;
         return;
       }
-      if (x == (double)a)
+      if (x == (cs_double)a)
         break;
       oldnum = prevnum; oldden = prevden;
       prevnum = nextnum; prevden = nextden;
-      x = 1.0 / (x - (double)a);
+      x = 1.0 / (x - (cs_double)a);
     }
 }
 

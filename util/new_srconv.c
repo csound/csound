@@ -44,6 +44,7 @@
  *                    Q = quality factor (1 to 5: default = 3)
  */
 
+#include "csound_types.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -85,8 +86,8 @@ static int32_t block = 0;
 
 typedef struct {
   sf_count_t    frame;
-  double        time;
-  double        ratio;
+  cs_double        time;
+  cs_double        ratio;
 } WARP;
 
 static void usage(void);
@@ -166,7 +167,7 @@ int32_t main(int32_t argc, char **argv)
 {
     SF_INFO sfinfo;
 
-    double
+    cs_double
       P = 0.0,                  /* Rin / Rout */
       Rin = 0.0,                /* input sampling rate */
       Rout = 0.0;               /* output sample rate */
@@ -272,12 +273,12 @@ int32_t main(int32_t argc, char **argv)
             break;
           case 'P':
             FIND(Str("No P argument"))
-            sscanf(s,"%lf", &P);
+            sscanf(s,"%" CS_DOUBLE_SCAN, &P);
             while (*++s);
             break;
           case 'r':
             FIND(Str("No r argument"))
-            sscanf(s,"%lf", &Rout);
+            sscanf(s,"%" CS_DOUBLE_SCAN, &Rout);
             while (*++s);
             break;
           case 'i':
@@ -365,7 +366,7 @@ int32_t main(int32_t argc, char **argv)
       }
       warp = (WARP*) calloc((tvlen+2), sizeof(WARP));
       for (i = 0; i < tvlen; i++) {
-        if (UNLIKELY(fscanf(tvfp, "%lf %lf", &warp[i].time, &warp[i].ratio) != 2)) {
+        if (UNLIKELY(fscanf(tvfp, "%" CS_DOUBLE_SCAN " %" CS_DOUBLE_SCAN, &warp[i].time, &warp[i].ratio) != 2)) {
           strncpy(err_msg, Str("srconv: too few x-y pairs "
                                 "in time-vary function file"), 299);
           fclose(tvfp);
@@ -404,7 +405,7 @@ int32_t main(int32_t argc, char **argv)
       else
         outfilename = "test";
     }
-    sfinfo.samplerate = (int) ((double) Rout + 0.5);
+    sfinfo.samplerate = (int) ((cs_double) Rout + 0.5);
     //printf("filetyp=%x outformat=%x\n", filetyp, outformat);
     sfinfo.format = filetyp | outformat;
     outf = sf_open(outfilename, SFM_WRITE, &sfinfo);
@@ -424,8 +425,8 @@ int32_t main(int32_t argc, char **argv)
       float* input  = (float*)calloc(C*Chans, sizeof(float));
       float* output = (float*)calloc(C*Chans, sizeof(float));
       int32_t count     = 0, countin = 0;
-      double P0     = warp[0].ratio; /* Last ratio */
-      double P1     = warp[1].ratio; /* next ratio (at end of segment) */
+      cs_double P0     = warp[0].ratio; /* Last ratio */
+      cs_double P1     = warp[1].ratio; /* next ratio (at end of segment) */
       sf_count_t CC = 0;             /* index through segment */
       sf_count_t N  = warp[1].frame; /* Length of segment */
       sf_count_t target = warp[1].frame; /* Count when at end */
@@ -460,7 +461,7 @@ int32_t main(int32_t argc, char **argv)
           /*        tvnxt, countin, P0, P1, N, target); */
         }
         if (target==0) break;
-        data.src_ratio = P0+(P1-P0)*(double)CC/N;
+        data.src_ratio = P0+(P1-P0)*(cs_double)CC/N;
         /* printf("CC=%d, C=%d, ratio=%f P1=%f x/N=%f\n", */
         /*        CC, C, data.src_ratio, P1, (double)CC/N); */
         if (data.input_frames==0) {

@@ -47,8 +47,8 @@
 /**********************************************/
 
 typedef struct ReedTabl {
-    MYFLT       offSet;
-    MYFLT       slope;
+    cs_float       offSet;
+    cs_float       slope;
 } ReedTabl;
 
 /*******************************************/
@@ -67,38 +67,38 @@ typedef struct ReedTabl {
 /*******************************************/
 
 typedef struct OneZero {
-    MYFLT gain;                 /* Filter subclass */
-    MYFLT inputs;
-    MYFLT zeroCoeff;
-    MYFLT sgain;
+    cs_float gain;                 /* Filter subclass */
+    cs_float inputs;
+    cs_float zeroCoeff;
+    cs_float sgain;
 } OneZero;
 
 void make_OneZero(OneZero*);
-MYFLT OneZero_tick(OneZero*, MYFLT);
-void OneZero_setGain(OneZero*, MYFLT);
-void OneZero_setCoeff(OneZero*, MYFLT);
+cs_float OneZero_tick(OneZero*, cs_float);
+void OneZero_setGain(OneZero*, cs_float);
+void OneZero_setCoeff(OneZero*, cs_float);
 void OneZero_print(CSOUND*, OneZero*);
 
 /* ********************************************************************** */
 typedef struct CLARIN {
     OPDS    h;
-    MYFLT       *ar;                  /* Output */
-    MYFLT       *amp, *frequency;
-    MYFLT       *reedStffns, *attack, *dettack, *noiseGain, *vibFreq;
-    MYFLT       *vibAmt, *ifn, *lowestFreq;
+    cs_float       *ar;                  /* Output */
+    cs_float       *amp, *frequency;
+    cs_float       *reedStffns, *attack, *dettack, *noiseGain, *vibFreq;
+    cs_float       *vibAmt, *ifn, *lowestFreq;
 
     FUNC        *vibr;          /* Table for vibrato */
-    MYFLT       v_rate;         /* Parameters for vibrato */
-    MYFLT       v_time;
-/*     MYFLT    v_phaseOffset; */
+    cs_float       v_rate;         /* Parameters for vibrato */
+    cs_float       v_time;
+/*     cs_float    v_phaseOffset; */
     DLineL      delayLine;
     ReedTabl    reedTable;
     OneZero     filter;
     Envelope    envelope;
     Noise       noise;
     int32       length;
-    MYFLT       outputGain;
-    double      kloop;
+    cs_float       outputGain;
+    cs_double      kloop;
     int32_t     attackPending;
 } CLARIN;
 

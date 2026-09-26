@@ -61,9 +61,9 @@ int32_t ignoreInitError(CSOUND *, const char *, ...) { return NOTOK; }
 // The opcode's public arguments; storage for its private state comes from OENTRY.
 struct ReceiverArgs {
     OPDS h;
-    MYFLT *asig, *res;
+    cs_float *asig, *res;
     STRINGDAT *ipaddress;
-    MYFLT *port;
+    cs_float *port;
 };
 class StrecvTests : public ::testing::Test {
 protected:
@@ -72,8 +72,8 @@ protected:
     ReceiverArgs *receiver;
     INSDS instance = {};
     STRINGDAT address = {};
-    MYFLT port = 0, state = 0;
-    MYFLT output[8];
+    cs_float port = 0, state = 0;
+    cs_float output[8];
     void SetUp() override {
       cs = csoundCreate(nullptr, nullptr);
       csoundCreateMessageBuffer(cs, 0);
@@ -105,7 +105,7 @@ protected:
 
 TEST_F(StrecvTests, ReassemblesByteFragmentsWithinActiveSamples)
 {
-    const MYFLT samples[] = {1, 2, 3, 4, 5, 6};
+    const cs_float samples[] = {1, 2, 3, 4, 5, 6};
     const auto *bytes = reinterpret_cast<const unsigned char *>(samples);
     incoming.assign(bytes, bytes + sizeof(samples));
     instance.ksmps_offset = instance.ksmps_no_end = 1;
@@ -124,9 +124,9 @@ TEST_F(StrecvTests, ReassemblesByteFragmentsWithinActiveSamples)
 
 TEST_F(StrecvTests, ClearsOutputAfterEofAndClosesOnInitFailure)
 {
-    const MYFLT samples[] = {1, 2};
+    const cs_float samples[] = {1, 2};
     const auto *bytes = reinterpret_cast<const unsigned char *>(samples);
-    incoming.assign(bytes, bytes + sizeof(MYFLT) + 3);
+    incoming.assign(bytes, bytes + sizeof(cs_float) + 3);
     ASSERT_EQ(opcode->init(cs, receiver), OK);
     EXPECT_EQ(opcode->perf(cs, receiver), OK);
     EXPECT_EQ(state, -1);
@@ -135,7 +135,7 @@ TEST_F(StrecvTests, ClearsOutputAfterEofAndClosesOnInitFailure)
     EXPECT_TRUE(isClosed(listener));
     EXPECT_TRUE(isClosed(connection));
     EXPECT_EQ(opcode->perf(cs, receiver), OK);
-    for (MYFLT sample : output) EXPECT_EQ(sample, 0);
+    for (cs_float sample : output) EXPECT_EQ(sample, 0);
     EXPECT_EQ(state, -1);
     failAccept = true;
     EXPECT_EQ(opcode->init(cs, receiver), NOTOK);

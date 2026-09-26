@@ -53,8 +53,8 @@ int32_t init_autocorr(CSOUND *csound, AUTOCORR *p) {
     return csound->InitError(csound, "%s",
                             Str("autocorr: input array too large"));
   for (fn = 2; fn < N * 2 - 1; fn *= 2);
-  if (p->mem.auxp == NULL || p->mem.size < (size_t)fn * sizeof(MYFLT))
-    csound->AuxAlloc(csound, (size_t)fn * sizeof(MYFLT), &p->mem);
+  if (p->mem.auxp == NULL || p->mem.size < (size_t)fn * sizeof(cs_float))
+    csound->AuxAlloc(csound, (size_t)fn * sizeof(cs_float), &p->mem);
   p->FN = fn;
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
@@ -75,7 +75,7 @@ int32_t perf_autocorr(CSOUND *csound, AUTOCORR *p) {
     return NOTOK;
   if (N != 0)
     csound->AutoCorrelation(csound, p->out->data, p->in->data, N,
-                            (MYFLT *)p->mem.auxp, p->FN);
+                            (cs_float *)p->mem.auxp, p->FN);
   return OK;
 }
 
@@ -83,8 +83,8 @@ typedef struct _fft {
   OPDS h;
   ARRAYDAT *out;
   ARRAYDAT *in, *in2;
-  MYFLT *f;
-  MYFLT b;
+  cs_float *f;
+  cs_float b;
   int32_t n;
   void *setup;
   AUXCH mem;
@@ -101,11 +101,11 @@ typedef struct _fft {
   } while (0)
 
 
-static inline MYFLT complex_rect_real(const COMPLEXDAT *value) {
+static inline cs_float complex_rect_real(const COMPLEXDAT *value) {
   return value->isPolar ? value->real * COS(value->imag) : value->real;
 }
 
-static inline MYFLT complex_rect_imag(const COMPLEXDAT *value) {
+static inline cs_float complex_rect_imag(const COMPLEXDAT *value) {
   return value->isPolar ? value->real * SIN(value->imag) : value->imag;
 }
 
@@ -152,7 +152,7 @@ static int32_t init_fft_complex_common(CSOUND *csound, FFT *p,
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N;
-  size_t bytes = (size_t)N * 2u * sizeof(MYFLT);
+  size_t bytes = (size_t)N * 2u * sizeof(cs_float);
   csound->AuxAlloc(csound, bytes, &p->mem);
   return OK;
 }
@@ -163,7 +163,7 @@ static int32_t init_fft_complex(CSOUND *csound, FFT *p) {
     return result;
   if(p->out->arrayType == csound->GetType(csound, "Complex")
      && p->in->arrayType == csound->GetType(csound, "Complex"))
-    p->b = *((MYFLT *)p->in2);
+    p->b = *((cs_float *)p->in2);
   else if(p->out->arrayType == csound->GetType(csound, "Complex"))
     p->b = 0;
   else p->b = 1;
@@ -181,7 +181,7 @@ static int32_t init_ifft_complex(CSOUND *csound, FFT *p) {
 static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
   PREPARE_FFT_OUTPUT("fft/fftinv", p->n);
   int32_t N = p->n;
-  MYFLT *tmp = (MYFLT *)p->mem.auxp;
+  cs_float *tmp = (cs_float *)p->mem.auxp;
   COMPLEXDAT *c = (COMPLEXDAT *) p->in->data;
   if(p->in->arrayType == csound->GetType(csound, "Complex")) {
     for(int32_t i = 0, j = 0; j < N; i+=2, j++) {
@@ -189,7 +189,7 @@ static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
       tmp[i+1] = complex_rect_imag(&c[j]);
     }
   } else {
-    MYFLT *re = p->in->data;
+    cs_float *re = p->in->data;
     for(int32_t i = 0, j = 0; j < N; i+=2, j++) {
       tmp[i] = re[j];
       tmp[i+1] = 0;
@@ -206,7 +206,7 @@ static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
       c[j].isPolar = 0;
     }
   } else {
-    MYFLT *re = p->out->data;
+    cs_float *re = p->out->data;
     for(int32_t i = 0, j = 0; j < N; i+=2, j++) {
       re[j] = tmp[i];
     }
@@ -235,16 +235,16 @@ static int32_t init_rfft_r2c(CSOUND *csound, FFT *p) {
     return csound_array_init_resize_error(csound);
   p->n = N;
   p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
-  csound->AuxAlloc(csound, sizeof(MYFLT)*N, &p->mem);
+  csound->AuxAlloc(csound, sizeof(cs_float)*N, &p->mem);
   return OK;
 }
 // Typed output has N / 2 + 1 unpacked complex bins.
 static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
   PREPARE_FFT_OUTPUT("rfft", p->n/2+1);
   int32_t N = p->n;
-  MYFLT *tmp = (MYFLT *)p->mem.auxp;
+  cs_float *tmp = (cs_float *)p->mem.auxp;
   COMPLEXDAT *c = (COMPLEXDAT *) p->out->data;
-  memcpy(tmp,p->in->data,N*sizeof(MYFLT));
+  memcpy(tmp,p->in->data,N*sizeof(cs_float));
   csound->RealFFT(csound,p->setup,tmp);
   for(int32_t i = 0, j = 0; i < N; i+=2, j++) {
     c[j].real = tmp[i];
@@ -275,7 +275,7 @@ static int32_t init_rfft_c2r(CSOUND *csound, FFT *p) {
     return csound_array_init_resize_error(csound);
   p->n = M;
   p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
-  csound->AuxAlloc(csound, sizeof(MYFLT)*N, &p->mem);
+  csound->AuxAlloc(csound, sizeof(cs_float)*N, &p->mem);
   return OK;
 }
 
@@ -283,7 +283,7 @@ static int32_t init_rfft_c2r(CSOUND *csound, FFT *p) {
 static int32_t perf_rfft_c2r(CSOUND *csound, FFT *p) {
   int32_t N = 2*(p->n - 1);
   PREPARE_FFT_OUTPUT("rifft", N);
-  MYFLT *tmp = (MYFLT *)p->mem.auxp;
+  cs_float *tmp = (cs_float *)p->mem.auxp;
   COMPLEXDAT *c = (COMPLEXDAT *) p->in->data;
   int32_t halfN = N >> 1;
   tmp[0] = complex_rect_real(&c[0]);
@@ -293,7 +293,7 @@ static int32_t perf_rfft_c2r(CSOUND *csound, FFT *p) {
   }
   tmp[1] = complex_rect_real(&c[halfN]);
   csound->RealFFT(csound,p->setup,tmp);
-  memcpy(p->out->data,tmp,N*sizeof(MYFLT));
+  memcpy(p->out->data,tmp,N*sizeof(cs_float));
   return OK;
 }
 
@@ -316,7 +316,7 @@ static int32_t init_rfft(CSOUND *csound, FFT *p) {
 static  int32_t perf_rfft(CSOUND *csound, FFT *p) {
   PREPARE_FFT_OUTPUT("rfft", p->n);
   int32_t N = p->n;
-  memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
+  memcpy(p->out->data,p->in->data,N*sizeof(cs_float));
   csound->RealFFT(csound,p->setup,p->out->data);
   return OK;
 }
@@ -346,7 +346,7 @@ static int32_t init_rifft(CSOUND *csound, FFT *p) {
 static int32_t perf_rifft(CSOUND *csound, FFT *p) {
   PREPARE_FFT_OUTPUT("rifft", p->n);
   int32_t N = p->n;
-  memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
+  memcpy(p->out->data,p->in->data,N*sizeof(cs_float));
   csound->RealFFT(csound,p->setup,p->out->data);
   return OK;
 }
@@ -414,7 +414,7 @@ static int32_t initialise_fft(CSOUND *csound, FFT *p) {
 static int32_t perf_fft(CSOUND *csound, FFT *p) {
   PREPARE_FFT_OUTPUT("fft", p->n);
   int32_t N2 = p->n;
-  memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
+  memcpy(p->out->data,p->in->data,N2*sizeof(cs_float));
   csound->ComplexFFT(csound,p->out->data,N2/2);
   return OK;
 }
@@ -444,7 +444,7 @@ static int32_t init_ifft(CSOUND *csound, FFT *p) {
 static int32_t perf_ifft(CSOUND *csound, FFT *p) {
   PREPARE_FFT_OUTPUT("fftinv", p->n);
   int32_t N2 = p->n;
-  memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
+  memcpy(p->out->data,p->in->data,N2*sizeof(cs_float));
   csound->InverseComplexFFT(csound,p->out->data,N2/2);
   return OK;
 }
@@ -483,7 +483,7 @@ static int32_t perf_recttopol(CSOUND *csound, FFT *p) {
   if (UNLIKELY(prepare_packed_conversion(csound, p) != OK))
     return NOTOK;
   int32_t i, end = p->out->sizes[0];
-  MYFLT *in, *out, mag, ph;
+  cs_float *in, *out, mag, ph;
   in = p->in->data;
   out = p->out->data;
   /* DC and Nyquist remain real values in the packed spectrum. */
@@ -501,7 +501,7 @@ static int32_t perf_poltorect(CSOUND *csound, FFT *p) {
   if (UNLIKELY(prepare_packed_conversion(csound, p) != OK))
     return NOTOK;
   int32_t i, end = p->out->sizes[0];
-  MYFLT *in, *out, re, im;
+  cs_float *in, *out, re, im;
   in = p->in->data;
   out = p->out->data;
   out[0] = in[0];
@@ -540,12 +540,12 @@ static int32_t perf_poltorect2(CSOUND *csound, FFT *p) {
   int32_t j, end = p->in->sizes[0]-1;
   if (UNLIKELY(tabcheck(csound, p->out, end*2, &p->h) != OK))
     return NOTOK;
-  MYFLT *mags = p->in->data, *phs = p->in2->data, *out = p->out->data;
-  MYFLT dc = mags[0]*COS(phs[0]), nyquist = mags[end]*COS(phs[end]);
+  cs_float *mags = p->in->data, *phs = p->in2->data, *out = p->out->data;
+  cs_float dc = mags[0]*COS(phs[0]), nyquist = mags[end]*COS(phs[end]);
   /* Expand backwards so either input can supply the output storage. */
   for (j=end-1;j>0;j--) {
-    MYFLT re = mags[j]*COS(phs[j]);
-    MYFLT im = mags[j]*SIN(phs[j]);
+    cs_float re = mags[j]*COS(phs[j]);
+    cs_float im = mags[j]*SIN(phs[j]);
     out[2*j] = re; out[2*j+1] = im;
   }
   out[0] = dc;
@@ -579,9 +579,9 @@ static int32_t perf_mags(CSOUND *csound, FFT *p) {
   if (UNLIKELY(prepare_spectrum_output(csound, p) != OK))
     return NOTOK;
   int32_t i,j, end = p->out->sizes[0];
-  MYFLT *in = p->in->data, *out = p->out->data;
+  cs_float *in = p->in->data, *out = p->out->data;
   /* Preserve Nyquist before an in-place write to out[1]. */
-  MYFLT nyquist = in[1];
+  cs_float nyquist = in[1];
   for (i=2,j=1;j<end-1;i+=2,j++)
     out[j] = HYPOT(in[i],in[i+1]);
   out[0] = fabs(in[0]);
@@ -593,8 +593,8 @@ static int32_t perf_phs(CSOUND *csound, FFT *p) {
   if (UNLIKELY(prepare_spectrum_output(csound, p) != OK))
     return NOTOK;
   int32_t i,j, end = p->out->sizes[0];
-  MYFLT *in = p->in->data, *out = p->out->data;
-  MYFLT dc = in[0], nyquist = in[1];
+  cs_float *in = p->in->data, *out = p->out->data;
+  cs_float dc = in[0], nyquist = in[1];
   for (i=2,j=1;j<end-1;i+=2,j++)
     out[j] = ATAN2(in[i+1],in[i]);
   /* The two real-only bins have phase zero or pi according to their sign. */
@@ -609,8 +609,8 @@ static int32_t init_logarray(CSOUND *csound, FFT *p) {
   if (UNLIKELY(tabinit(csound, p->out, p->in->sizes[0],
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
-  if (LIKELY(*((MYFLT *)p->in2)))
-    p->b = 1/log(*((MYFLT *)p->in2));
+  if (LIKELY(*((cs_float *)p->in2)))
+    p->b = 1/log(*((cs_float *)p->in2));
   else
     p->b = FL(1.0);
   return OK;
@@ -620,8 +620,8 @@ static int32_t perf_logarray(CSOUND *csound, FFT *p) {
   if (UNLIKELY(tabcheck(csound, p->out, p->in->sizes[0], &p->h) != OK))
     return NOTOK;
   int32_t i, end = p->out->sizes[0];
-  MYFLT bas = p->b;
-  MYFLT *in, *out;
+  cs_float bas = p->b;
+  cs_float *in, *out;
   in = p->in->data;
   out = p->out->data;
   if (LIKELY(bas))
@@ -648,7 +648,7 @@ static int32_t init_rtoc(CSOUND *csound, FFT *p) {
 
 static int32_t rtoc_copy(FFT *p) {
   int32_t j = p->out->sizes[0]/2;
-  MYFLT *in = p->in->data, *out = p->out->data;
+  cs_float *in = p->in->data, *out = p->out->data;
   /* Expand backwards so writes do not destroy a reused input. */
   while (j-- > 0) {
     out[2*j] = in[j];
@@ -687,7 +687,7 @@ static int32_t init_ctor(CSOUND *csound, FFT *p) {
 
 static int32_t ctor_copy(FFT *p) {
   int32_t j, end = p->out->sizes[0];
-  MYFLT *in = p->in->data, *out = p->out->data;
+  cs_float *in = p->in->data, *out = p->out->data;
   for (j=0;j<end;j++)
     out[j] = in[2*j];
   return OK;
@@ -720,13 +720,13 @@ static int32_t init_window(CSOUND *csound, FFT *p) {
     return csound->InitError(csound, "%s", Str("window: type must be 0 or 1"));
   int32_t   N = p->in->sizes[0];
   int32_t   i;
-  MYFLT *w;
+  cs_float *w;
   if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N;
-  if (N > 0 && (p->mem.auxp == 0 || p->mem.size < (size_t) N*sizeof(MYFLT)))
-    csound->AuxAlloc(csound, (size_t) N*sizeof(MYFLT), &p->mem);
-  w = (MYFLT *) p->mem.auxp;
+  if (N > 0 && (p->mem.auxp == 0 || p->mem.size < (size_t) N*sizeof(cs_float)))
+    csound->AuxAlloc(csound, (size_t) N*sizeof(cs_float), &p->mem);
+  w = (cs_float *) p->mem.auxp;
   if (*p->f == FL(0)) {
     for (i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*TWOPI/N);
   } else {
@@ -738,7 +738,7 @@ static int32_t init_window(CSOUND *csound, FFT *p) {
 
 static int32_t perf_window(CSOUND *csound, FFT *p) {
   int32_t i, end = p->n, off;
-  double offset = *((MYFLT *)p->in2);
+  cs_double offset = *((cs_float *)p->in2);
   if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
                p->in->sizes[0] != end || p->out->dimensions != 1))
     return csound->PerfError(csound, &p->h, "%s",
@@ -753,10 +753,10 @@ static int32_t perf_window(CSOUND *csound, FFT *p) {
   if (offset >= end) offset = fmod(offset, end);
   off = (int32_t) offset;
   if (off) off = end - off;
-  MYFLT *in, *out, *w;
+  cs_float *in, *out, *w;
   in = p->in->data;
   out = p->out->data;
-  w = (MYFLT *) p->mem.auxp;
+  w = (cs_float *) p->mem.auxp;
   for(i=0;i<end;i++) {
     out[i] = in[i]*w[off];
     if (++off == end) off = 0;
@@ -771,7 +771,7 @@ typedef struct _pvsceps {
   OPDS    h;
   ARRAYDAT  *out;
   PVSDAT  *fin;
-  MYFLT   *coefs;
+  cs_float   *coefs;
   void *setup;
   uint32_t  lastframe;
 } PVSCEPS;
@@ -789,8 +789,8 @@ static int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p) {
   if (p->lastframe < p->fin->framecount) {
     int32_t N = p->fin->N;
     int32_t i, j;
-    MYFLT *ceps = p->out->data;
-    MYFLT coefs = *p->coefs;
+    cs_float *ceps = p->out->data;
+    cs_float coefs = *p->coefs;
     float *fin = (float *) p->fin->frame.auxp;
     if (UNLIKELY(!(coefs >= FL(0.0))))
       return csound->PerfError(csound, &p->h, "%s",
@@ -849,9 +849,9 @@ static int32_t init_ceps(CSOUND *csound, FFT *p) {
 static int32_t perf_ceps(CSOUND *csound, FFT *p) {
   PREPARE_CEPSTRUM_OUTPUT("ceps");
   int32_t siz = p->n, i;
-  MYFLT *ceps = p->out->data;
-  MYFLT coefs = *((MYFLT *)p->in2);
-  MYFLT *mags = (MYFLT *) p->in->data;
+  cs_float *ceps = p->out->data;
+  cs_float coefs = *((cs_float *)p->in2);
+  cs_float *mags = (cs_float *) p->in->data;
   if (UNLIKELY(!(coefs >= FL(0.0))))
     return csound->PerfError(csound, &p->h, "%s",
                             Str("cepstrum coefficient count must be nonnegative"));
@@ -881,17 +881,17 @@ static int32_t init_iceps(CSOUND *csound, FFT *p) {
   if (UNLIKELY(tabinit(csound, p->out, N+1, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N;
-  if (p->mem.auxp == NULL || p->mem.size < (N+1)*sizeof(MYFLT))
-    csound->AuxAlloc(csound, (N+1)*sizeof(MYFLT), &p->mem);
+  if (p->mem.auxp == NULL || p->mem.size < (N+1)*sizeof(cs_float))
+    csound->AuxAlloc(csound, (N+1)*sizeof(cs_float), &p->mem);
   return OK;
 }
 
 static int32_t perf_iceps(CSOUND *csound, FFT *p) {
   PREPARE_CEPSTRUM_OUTPUT("cepsinv");
   int32_t siz = p->n, i;
-  MYFLT *spec = (MYFLT *)p->mem.auxp;
-  MYFLT *out = p->out->data;
-  memcpy(spec, p->in->data, siz*sizeof(MYFLT));
+  cs_float *spec = (cs_float *)p->mem.auxp;
+  cs_float *out = p->out->data;
+  memcpy(spec, p->in->data, siz*sizeof(cs_float));
   csound->RealFFT(csound,p->setup,spec);
   for (i=0; i < siz; i++) {
     out[i] = exp(spec[i]);
@@ -918,9 +918,9 @@ static int32_t rows_init(CSOUND *csound, FFT *p) {
 }
 
 static int32_t rows_perf(CSOUND *csound, FFT *p) {
-  int32_t start = *((MYFLT *)p->in2);
+  int32_t start = *((cs_float *)p->in2);
   if (LIKELY(start >= 0 && start < p->in->sizes[0])) {
-    int32_t bytes =  p->in->sizes[1]*sizeof(MYFLT);
+    int32_t bytes =  p->in->sizes[1]*sizeof(cs_float);
     start *= p->in->sizes[1];
     memcpy(p->out->data,p->in->data+start,bytes);
     return OK;
@@ -934,7 +934,7 @@ static int32_t rows_perf_S(CSOUND *csound, FFT *p)
 {
   ARRAYDAT* dat = p->in;      /* The data in e 2_D array */
   int32_t i;
-  int32_t index = (int32_t)(*((MYFLT *)p->in2));
+  int32_t index = (int32_t)(*((cs_float *)p->in2));
   if (LIKELY(index >= 0 && index < p->in->sizes[0])) {
     index = (index * dat->sizes[1]);
     for (i = 0; i < p->in->sizes[1]; i++) {
@@ -951,9 +951,9 @@ static int32_t rows_perf_S(CSOUND *csound, FFT *p)
 
 static int32_t rows_i(CSOUND *csound, FFT *p) {
   if (rows_init(csound,p) == OK) {
-    int32_t start = *((MYFLT *)p->in2);
+    int32_t start = *((cs_float *)p->in2);
     if (LIKELY(start >= 0 && start < p->in->sizes[0])) {
-      int32_t bytes =  p->in->sizes[1]*sizeof(MYFLT);
+      int32_t bytes =  p->in->sizes[1]*sizeof(cs_float);
       start *= p->in->sizes[1];
       memcpy(p->out->data,p->in->data+start,bytes);
       return OK;
@@ -1021,12 +1021,12 @@ static int32_t tabensure2D(CSOUND *csound, ARRAYDAT *out,
 
 static int32_t set_matrix_init(CSOUND *csound, FFT *p, int32_t column) {
   int32_t length = set_vector_length(p->in);
-  double index = *((MYFLT *)p->in2);
+  cs_double index = *((cs_float *)p->in2);
   if (UNLIKELY(length < 0 ||
                (p->out->data != NULL && p->out->dimensions != 2)))
     return csound->InitError(csound, "%s",
                             Str("setrow/setcol: invalid array dimensions"));
-  if (UNLIKELY(!(index >= 0 && index < INT32_MAX)))
+  if (UNLIKELY(!(index >= 0 && index < (INT32_MAX + 0.0))))
     return csound->InitError(csound, "%s",
                             Str("setrow/setcol: index out of range"));
   int32_t extent = (int32_t)index + 1;
@@ -1039,7 +1039,7 @@ static int32_t set_matrix_init(CSOUND *csound, FFT *p, int32_t column) {
 static int32_t set_matrix_write(CSOUND *csound, FFT *p, int32_t column,
                                  int32_t init) {
   int32_t length = set_vector_length(p->in);
-  double index = *((MYFLT *)p->in2);
+  cs_double index = *((cs_float *)p->in2);
   if (UNLIKELY(length < 0 || p->out->dimensions != 2 ||
                p->out->sizes == NULL))
     return set_matrix_error(csound, p, init,
@@ -1061,7 +1061,7 @@ static int32_t set_matrix_write(CSOUND *csound, FFT *p, int32_t column,
   int32_t count = column ? rows : length;
   if (p->out->arrayType->freeVariableMemory == NULL) {
     if (!column)
-      memmove(p->out->data + start, p->in->data, (size_t)count * sizeof(MYFLT));
+      memmove(p->out->data + start, p->in->data, (size_t)count * sizeof(cs_float));
     else
       for (int32_t j = count; j-- > 0;)
         p->out->data[start + (size_t)j * stride] = p->in->data[j];
@@ -1124,7 +1124,7 @@ static int32_t cols_init(CSOUND *csound, FFT *p) {
 }
 
 static int32_t cols_perf(CSOUND *csound, FFT *p) {
-  int32_t start = *((MYFLT *)p->in2);
+  int32_t start = *((cs_float *)p->in2);
 
   if (LIKELY(start >= 0 && start < p->in->sizes[1])) {
     int32_t j,i,collen =  p->in->sizes[1], len = p->in->sizes[0];
@@ -1139,7 +1139,7 @@ static int32_t cols_perf(CSOUND *csound, FFT *p) {
 
 static int32_t cols_i(CSOUND *csound, FFT *p) {
   if (cols_init(csound, p) == OK) {
-    int32_t start = *((MYFLT *)p->in2);
+    int32_t start = *((cs_float *)p->in2);
     if (LIKELY(start >= 0 && start < p->in->sizes[1])) {
       int32_t j,i,collen =  p->in->sizes[1], len = p->in->sizes[0];
       for (j=0,i=start; j < len; i+=collen, j++) {
@@ -1156,7 +1156,7 @@ static int32_t cols_i(CSOUND *csound, FFT *p) {
 static int32_t cols_perf_S(CSOUND *csound, FFT *p) {
   ARRAYDAT* dat = p->in;      /* The data in e 2_D array */
   int32_t i;
-  int32_t index = (int32_t)(*((MYFLT *)p->in2));
+  int32_t index = (int32_t)(*((cs_float *)p->in2));
   if (LIKELY(index >= 0 && index < p->in->sizes[1])) {
     for (i = 0; i < p->in->sizes[0]; i++) {
       dat->arrayType->copyValue(csound, dat->arrayType,
@@ -1179,15 +1179,15 @@ static int32_t cols_init_S(CSOUND *csound, FFT *p) {
 typedef struct {
   OPDS h;
   ARRAYDAT *out;
-  MYFLT *in;
+  cs_float *in;
   uint32_t size, n;
 } SHIFTIN;
 
 typedef struct {
   OPDS h;
-  MYFLT *out;
+  cs_float *out;
   ARRAYDAT *in;
-  MYFLT *offset;
+  cs_float *offset;
   uint32_t size, n;
 } SHIFTOUT;
 
@@ -1215,16 +1215,16 @@ static int32_t shiftin_perf(CSOUND *csound, SHIFTIN *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t count = CS_KSMPS - p->h.insdshead->ksmps_no_end - offset;
   uint32_t n = p->n, remaining = p->size - n;
-  MYFLT *in = p->in + offset;
+  cs_float *in = p->in + offset;
   if (count == 0) return OK;
   if (count < remaining) {
-    memcpy(p->out->data+n, in, count*sizeof(MYFLT));
+    memcpy(p->out->data+n, in, count*sizeof(cs_float));
     n += count;
   }
   else {
-    memcpy(p->out->data+n, in, remaining*sizeof(MYFLT));
+    memcpy(p->out->data+n, in, remaining*sizeof(cs_float));
     if (count > remaining)
-      memcpy(p->out->data, in+remaining, (count-remaining)*sizeof(MYFLT));
+      memcpy(p->out->data, in+remaining, (count-remaining)*sizeof(cs_float));
     n = count - remaining;
   }
   p->n = n;
@@ -1241,7 +1241,7 @@ static int32_t shiftout_init(CSOUND *csound, SHIFTOUT *p) {
   int32_t siz = p->in->sizes[0];
   if (UNLIKELY(siz < (int32_t) CS_KSMPS))
     return csound->InitError(csound, "%s", Str("input array too small\n"));
-  double offset = *p->offset;
+  cs_double offset = *p->offset;
   if (UNLIKELY(!isfinite(offset)))
     return csound->InitError(csound, "%s",
                             Str("shiftout: offset must be finite"));
@@ -1261,18 +1261,18 @@ static int32_t shiftout_perf(CSOUND *csound, SHIFTOUT *p) {
   uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t end = CS_KSMPS - early, count = end - offset;
   uint32_t n = p->n, remaining = p->size - n;
-  if (offset) memset(p->out, 0, offset*sizeof(MYFLT));
-  if (early) memset(p->out+end, 0, early*sizeof(MYFLT));
+  if (offset) memset(p->out, 0, offset*sizeof(cs_float));
+  if (early) memset(p->out+end, 0, early*sizeof(cs_float));
   if (count == 0) return OK;
-  MYFLT *out = p->out + offset;
+  cs_float *out = p->out + offset;
   if (count < remaining) {
-    memcpy(out, p->in->data+n, count*sizeof(MYFLT));
+    memcpy(out, p->in->data+n, count*sizeof(cs_float));
     n += count;
   }
   else {
-    memcpy(out, p->in->data+n, remaining*sizeof(MYFLT));
+    memcpy(out, p->in->data+n, remaining*sizeof(cs_float));
     if (count > remaining)
-      memcpy(out+remaining, p->in->data, (count-remaining)*sizeof(MYFLT));
+      memcpy(out+remaining, p->in->data, (count-remaining)*sizeof(cs_float));
     n = count - remaining;
   }
   p->n = n;
@@ -1283,7 +1283,7 @@ static int32_t shiftout_perf(CSOUND *csound, SHIFTOUT *p) {
 typedef struct {
   OPDS h;
   ARRAYDAT *out, *in;
-  MYFLT *mode;
+  cs_float *mode;
   AUXCH mem;
   int32_t size, unwrap;
 } UNWRAP;
@@ -1302,7 +1302,7 @@ static int32_t unwrap_set(CSOUND *csound, UNWRAP *p) {
   p->size = N;
   p->unwrap = *p->mode == FL(1);
   if (p->unwrap && N > 0) {
-    csound->AuxAlloc(csound, (size_t) N*sizeof(MYFLT), &p->mem);
+    csound->AuxAlloc(csound, (size_t) N*sizeof(cs_float), &p->mem);
   }
   return OK;
 }
@@ -1315,8 +1315,8 @@ static int32_t unwrap(CSOUND *csound, UNWRAP *p) {
   if (UNLIKELY(tabcheck(csound, p->out, p->size, &p->h) != OK))
     return NOTOK;
   int32_t i;
-  MYFLT *in = p->in->data;
-  MYFLT *phs = p->out->data;
+  cs_float *in = p->in->data;
+  cs_float *phs = p->out->data;
   if (!p->unwrap) {
     for (i=0; i < p->size; i++) {
       phs[i] = in[i];
@@ -1324,12 +1324,12 @@ static int32_t unwrap(CSOUND *csound, UNWRAP *p) {
       while (phs[i] < -PI) phs[i] += TWOPI;
     }
   } else {
-    MYFLT *ophs = (MYFLT *) p->mem.auxp;
+    cs_float *ophs = (cs_float *) p->mem.auxp;
     for (i=0; i < p->size; i++) {
-      double phase = (double) in[i] - ophs[i];
+      cs_double phase = (cs_double) in[i] - ophs[i];
       while (phase >= PI) phase -= TWOPI;
       while (phase < -PI) phase += TWOPI;
-      phs[i] = (MYFLT) (ophs[i] + phase);
+      phs[i] = (cs_float) (ophs[i] + phase);
       ophs[i] = phs[i];
     }
   }
@@ -1374,7 +1374,7 @@ static int32_t kdct(CSOUND *csound, FFT *p) {
                                 "reinitialise the opcode"));
   if (UNLIKELY(tabcheck(csound, p->out, p->n, &p->h) != OK))
     return NOTOK;
-  memmove(p->out->data, p->in->data, (size_t)p->n * sizeof(MYFLT));
+  memmove(p->out->data, p->in->data, (size_t)p->n * sizeof(cs_float));
   csound->DCT(csound, p->setup, p->out->data);
   return OK;
 }
@@ -1393,8 +1393,8 @@ static int32_t perf_pows(CSOUND *csound, FFT *p) {
   if (UNLIKELY(prepare_spectrum_output(csound, p) != OK))
     return NOTOK;
   int32_t i,j, end = p->out->sizes[0];
-  MYFLT *in = p->in->data, *out = p->out->data;
-  MYFLT nyquist = in[1];
+  cs_float *in = p->in->data, *out = p->out->data;
+  cs_float nyquist = in[1];
   for (i=2,j=1;j<end-1;i+=2,j++)
     out[j] = in[i]*in[i]+in[i+1]*in[i+1];
   out[0] = in[0]*in[0];
@@ -1406,20 +1406,20 @@ typedef struct _MFB {
   OPDS h;
   ARRAYDAT *out;
   ARRAYDAT *in;
-  MYFLT *low;
-  MYFLT *up;
-  MYFLT *len;
+  cs_float *low;
+  cs_float *up;
+  cs_float *len;
   AUXCH  bins;
   int32_t bands;
 } MFB;
 
-static inline MYFLT f2mel(MYFLT f) {
+static inline cs_float f2mel(cs_float f) {
   return 1125.*log(1.+f/700.);
 }
 
-static inline int32_t mel2bin(MYFLT m, int32_t N, MYFLT sr) {
-  MYFLT f = 700.*(exp(m/1125.) - 1.);
-  MYFLT bin = f/(sr/(FL(2.0)*N));
+static inline int32_t mel2bin(cs_float m, int32_t N, cs_float sr) {
+  cs_float f = 700.*(exp(m/1125.) - 1.);
+  cs_float bin = f/(sr/(FL(2.0)*N));
   /* Clip before the integer conversion, including frequencies above Nyquist. */
   if (bin >= N + 1) return N + 1;
   return (int32_t)bin;
@@ -1453,19 +1453,19 @@ static int32_t mfb(CSOUND *csound, MFB *p) {
                             Str("mfb: invalid array shape"));
   if (UNLIKELY(tabcheck(csound, p->out, L, &p->h) != OK))
     return NOTOK;
-  MYFLT low = *p->low, high = *p->up;
+  cs_float low = *p->low, high = *p->up;
   if (UNLIKELY(!(low >= FL(0.0) && high >= low) || !isfinite(high)))
     return csound->PerfError(csound, &p->h, "%s",
                             Str("mfb: frequencies must be finite, non-negative and ordered"));
   int32_t i,j;
   int32_t *bin = (int32_t *) p->bins.auxp;
-  MYFLT start,max,end;
-  MYFLT g = FL(0.0), incr, decr;
+  cs_float start,max,end;
+  cs_float g = FL(0.0), incr, decr;
   int32_t N = p->in->sizes[0];
-  MYFLT sum = FL(0.0);
-  MYFLT *out = p->out->data;
-  MYFLT *in = p->in->data;
-  MYFLT sr = CS_ESR;
+  cs_float sum = FL(0.0);
+  cs_float *out = p->out->data;
+  cs_float *in = p->in->data;
+  cs_float sr = CS_ESR;
 
   start = f2mel(low);
   end = f2mel(high);
@@ -1511,16 +1511,16 @@ static int32_t mfbi(CSOUND *csound, MFB *p) {
 
 typedef struct _centr{
   OPDS h;
-  MYFLT *out;
+  cs_float *out;
   ARRAYDAT *in;
 } CENTR;
 
 static int32_t array_centroid(CSOUND *csound, CENTR *p) {
   if(p->in->sizes == NULL || p->in->dimensions != 1 || p->in->sizes[0] < 2)
     return NOTOK;
-  MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
+  cs_float *in = p->in->data,a=FL(0.0),b=FL(0.0);
   int32_t NP1 = p->in->sizes[0];
-  MYFLT f = CS_ESR/(FL(2.0)*(NP1 - 1)),cf;
+  cs_float f = CS_ESR/(FL(2.0)*(NP1 - 1)),cf;
   int32_t i;
   cf = FL(0.0);
   for (i=0; i < NP1; i++, cf+=f) {
@@ -1547,13 +1547,13 @@ static int32_t array_centroid_k(CSOUND *csound, CENTR *p) {
 
 typedef struct _inout {
   OPDS H;
-  MYFLT *out, *in;
+  cs_float *out, *in;
 } INOUT;
 
 static int32_t nxtpow2(CSOUND *csound, INOUT *p) {
-  double input = (double)*p->in;
-  if (UNLIKELY(!(input >= (double)INT32_MIN &&
-                 input < (double)INT32_MAX + 1.0)))
+  cs_double input = (cs_double)*p->in;
+  if (UNLIKELY(!(input >= (cs_double)INT32_MIN &&
+                 input < (INT32_MAX + 0.0) + 1.0)))
     return csound->InitError(csound, "%s",
                             Str("nxtpow2: input outside 32-bit integer range"));
   int32_t inval = (int32_t)input;
@@ -1589,7 +1589,7 @@ static int32_t interleave_i (CSOUND *csound, INTERL *p) {
       return csound_array_init_resize_error(csound);
     /* Work backwards and read each pair before writing to allow input reuse. */
     for (i = len; i-- > 0;) {
-      MYFLT left = p->b->data[i], right = p->c->data[i];
+      cs_float left = p->b->data[i], right = p->c->data[i];
       p->a->data[2*i] = left;
       p->a->data[2*i+1] = right;
     }
@@ -1610,7 +1610,7 @@ static int32_t interleave_perf (CSOUND *csound, INTERL *p) {
   if (UNLIKELY(tabcheck(csound, p->a, len*2, &p->h) != OK))
     return NOTOK;
   for (i = len; i-- > 0;) {
-    MYFLT left = p->b->data[i], right = p->c->data[i];
+    cs_float left = p->b->data[i], right = p->c->data[i];
     p->a->data[2*i] = left;
     p->a->data[2*i+1] = right;
   }

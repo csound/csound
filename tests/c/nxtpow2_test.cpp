@@ -7,8 +7,8 @@
 
 namespace {
 struct NextPowerCase {
-  MYFLT input;
-  MYFLT expected;
+  cs_float input;
+  cs_float expected;
   bool error = false;
 };
 
@@ -76,8 +76,8 @@ INSTANTIATE_TEST_SUITE_P(Inputs, NextPowerTests, ::testing::Values(
   NextPowerCase{std::nextafter(FL(2147483648.0), FL(0.0)), FL(2147483648.0)},
   NextPowerCase{FL(2147483648.0), 0, true},
   NextPowerCase{FL(-4294967296.0), 0, true},
-  NextPowerCase{std::numeric_limits<MYFLT>::infinity(), 0, true},
-  NextPowerCase{-std::numeric_limits<MYFLT>::infinity(), 0, true},
-  NextPowerCase{std::numeric_limits<MYFLT>::quiet_NaN(), 0, true}
+  NextPowerCase{std::numeric_limits<cs_float>::infinity(), 0, true},
+  NextPowerCase{-std::numeric_limits<cs_float>::infinity(), 0, true},
+  NextPowerCase{std::numeric_limits<cs_float>::quiet_NaN(), 0, true}
 ));
 }

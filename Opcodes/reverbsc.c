@@ -49,7 +49,7 @@
 /* reverbParams[n][2] = random variation frequency (in 1/sec)       */
 /* reverbParams[n][3] = random seed (0 - 32767)                     */
 
-static const double reverbParams[8][4] = {
+static const cs_double reverbParams[8][4] = {
     { (2473.0 / DEFAULT_SRATE), 0.0010, 3.100,  1966.0 },
     { (2767.0 / DEFAULT_SRATE), 0.0011, 3.500, 29491.0 },
     { (3217.0 / DEFAULT_SRATE), 0.0017, 1.110, 22937.0 },
@@ -60,8 +60,8 @@ static const double reverbParams[8][4] = {
     { (1933.0 / DEFAULT_SRATE), 0.0006, 3.221, 14417.0 }
 };
 
-static const double outputGain  = 0.35;
-static const double jpScale     = 0.25;
+static const cs_double outputGain  = 0.35;
+static const cs_double jpScale     = 0.25;
 
 typedef struct {
     int32_t         writePos;
@@ -72,17 +72,17 @@ typedef struct {
     int32_t         dummy;
     int32_t         seedVal;
     int32_t         randLine_cnt;
-    double      filterState;
-    MYFLT       buf[1];
+    cs_double      filterState;
+    cs_float       buf[1];
 } delayLine;
 
 typedef struct {
     OPDS        h;
-    MYFLT       *aoutL, *aoutR, *ainL, *ainR, *kFeedBack, *kLPFreq;
-    MYFLT       *iSampleRate, *iPitchMod, *iSkipInit;
-    double      sampleRate;
-    double      dampFact;
-    MYFLT       prv_LPFreq;
+    cs_float       *aoutL, *aoutR, *ainL, *ainR, *kFeedBack, *kLPFreq;
+    cs_float       *iSampleRate, *iPitchMod, *iSkipInit;
+    cs_double      sampleRate;
+    cs_double      dampFact;
+    cs_float       prv_LPFreq;
     int32_t         initDone;
     delayLine   *delayLines[8];
     AUXCH       auxData;
@@ -90,10 +90,10 @@ typedef struct {
 
 static int32_t delay_line_max_samples(SC_REVERB *p, int32_t n)
 {
-    double  maxDel;
+    cs_double  maxDel;
 
     maxDel = reverbParams[n][0];
-    maxDel += (reverbParams[n][1] * (double) *(p->iPitchMod) * 1.125);
+    maxDel += (reverbParams[n][1] * (cs_double) *(p->iPitchMod) * 1.125);
     return (int32_t) (maxDel * p->sampleRate + 16.5);
 }
 
@@ -101,15 +101,15 @@ static int32_t delay_line_bytes_alloc(SC_REVERB *p, int32_t n)
 {
     int32_t nBytes;
 
-    nBytes = (int32_t) sizeof(delayLine) - (int32_t) sizeof(MYFLT);
-    nBytes += (delay_line_max_samples(p, n) * (int32_t) sizeof(MYFLT));
+    nBytes = (int32_t) sizeof(delayLine) - (int32_t) sizeof(cs_float);
+    nBytes += (delay_line_max_samples(p, n) * (int32_t) sizeof(cs_float));
     nBytes = (nBytes + 15) & (~15);
     return nBytes;
 }
 
 static inline void next_random_lineseg(SC_REVERB *p, delayLine *lp, int32_t n)
 {
-    double  prvDel, nxtDel, phs_incVal;
+    cs_double  prvDel, nxtDel, phs_incVal;
 
     /* update random seed */
     if (lp->seedVal < 0)
@@ -119,24 +119,24 @@ static inline void next_random_lineseg(SC_REVERB *p, delayLine *lp, int32_t n)
       lp->seedVal -= 0x10000;
     /* length of next segment in samples */
     lp->randLine_cnt = (int32_t) ((p->sampleRate / reverbParams[n][2]) + 0.5);
-    prvDel = (double) lp->writePos;
-    prvDel -= ((double) lp->readPos
-               + ((double) lp->readPosFrac / (double) DELAYPOS_SCALE));
+    prvDel = (cs_double) lp->writePos;
+    prvDel -= ((cs_double) lp->readPos
+               + ((cs_double) lp->readPosFrac / (cs_double) DELAYPOS_SCALE));
     while (prvDel < 0.0)
-      prvDel += (double) lp->bufferSize;
+      prvDel += (cs_double) lp->bufferSize;
     prvDel = prvDel / p->sampleRate;    /* previous delay time in seconds */
-    nxtDel = (double) lp->seedVal * reverbParams[n][1] / 32768.0;
+    nxtDel = (cs_double) lp->seedVal * reverbParams[n][1] / 32768.0;
     /* next delay time in seconds */
-    nxtDel = reverbParams[n][0] + (nxtDel * (double) *(p->iPitchMod));
+    nxtDel = reverbParams[n][0] + (nxtDel * (cs_double) *(p->iPitchMod));
     /* calculate phase increment per sample */
-    phs_incVal = (prvDel - nxtDel) / (double) lp->randLine_cnt;
+    phs_incVal = (prvDel - nxtDel) / (cs_double) lp->randLine_cnt;
     phs_incVal = phs_incVal * p->sampleRate + 1.0;
     lp->readPosFrac_inc = (int32_t) (phs_incVal * DELAYPOS_SCALE + 0.5);
 }
 
 static void init_delay_line(SC_REVERB *p, delayLine *lp, int32_t n)
 {
-    double  readPos;
+    cs_double  readPos;
     /* int32_t     i; */
 
     /* calculate length of delay line */
@@ -146,17 +146,17 @@ static void init_delay_line(SC_REVERB *p, delayLine *lp, int32_t n)
     /* set random seed */
     lp->seedVal = (int32_t) (reverbParams[n][3] + 0.5);
     /* set initial delay time */
-    readPos = (double) lp->seedVal * reverbParams[n][1] / 32768;
-    readPos = reverbParams[n][0] + (readPos * (double) *(p->iPitchMod));
-    readPos = (double) lp->bufferSize - (readPos * p->sampleRate);
+    readPos = (cs_double) lp->seedVal * reverbParams[n][1] / 32768;
+    readPos = reverbParams[n][0] + (readPos * (cs_double) *(p->iPitchMod));
+    readPos = (cs_double) lp->bufferSize - (readPos * p->sampleRate);
     lp->readPos = (int32_t) readPos;
-    readPos = (readPos - (double) lp->readPos) * (double) DELAYPOS_SCALE;
+    readPos = (readPos - (cs_double) lp->readPos) * (cs_double) DELAYPOS_SCALE;
     lp->readPosFrac = (int32_t) (readPos + 0.5);
     /* initialise first random line segment */
     next_random_lineseg(p, lp, n);
     /* clear delay line to zero */
     lp->filterState = 0.0;
-    memset(lp->buf, 0, sizeof(MYFLT)*lp->bufferSize);
+    memset(lp->buf, 0, sizeof(cs_float)*lp->bufferSize);
     /* for (i = 0; i < lp->bufferSize; i++) */
     /*   lp->buf[i] = FL(0.0); */
 }
@@ -168,15 +168,15 @@ static int32_t sc_reverb_init(CSOUND *csound, SC_REVERB *p)
 
     /* check for valid parameters */
     if (UNLIKELY(*(p->iSampleRate) <= FL(0.0)))
-      p->sampleRate = (double) CS_ESR;
+      p->sampleRate = (cs_double) CS_ESR;
     else
-      p->sampleRate = (double) *(p->iSampleRate);
+      p->sampleRate = (cs_double) *(p->iSampleRate);
     if (UNLIKELY(p->sampleRate < MIN_SRATE || p->sampleRate > MAX_SRATE)) {
       return csound->InitError(csound,
                                "%s", Str("reverbsc: sample rate is out of range"));
     }
     if (UNLIKELY(*(p->iPitchMod) < FL(0.0) ||
-                 *(p->iPitchMod) > (MYFLT) MAX_PITCHMOD)) {
+                 *(p->iPitchMod) > (cs_float) MAX_PITCHMOD)) {
       return csound->InitError(csound,
                                "%s", Str("reverbsc: invalid pitch modulation factor"));
     }
@@ -205,15 +205,15 @@ static int32_t sc_reverb_init(CSOUND *csound, SC_REVERB *p)
 
 static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
 {
-    double    ainL, ainR, aoutL, aoutR;
-    double    vm1, v0, v1, v2, am1, a0, a1, a2, frac;
+    cs_double    ainL, ainR, aoutL, aoutR;
+    cs_double    vm1, v0, v1, v2, am1, a0, a1, a2, frac;
     delayLine *lp;
     int32_t       readPos;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, n, nsmps = CS_KSMPS;
     int32_t       bufferSize; /* Local copy */
-    double    dampFact = p->dampFact;
+    cs_double    dampFact = p->dampFact;
 
     if (UNLIKELY(p->initDone <= 0)) goto err1;
     /* calculate tone filter coefficient if frequency changed */
@@ -223,13 +223,13 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
       dampFact = p->dampFact = dampFact - sqrt(dampFact * dampFact - 1.0);
     }
     if (UNLIKELY(offset)) {
-      memset(p->aoutL, '\0', offset*sizeof(MYFLT));
-      memset(p->aoutR, '\0', offset*sizeof(MYFLT));
+      memset(p->aoutL, '\0', offset*sizeof(cs_float));
+      memset(p->aoutR, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&p->aoutL[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&p->aoutR[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->aoutL[nsmps], '\0', early*sizeof(cs_float));
+      memset(&p->aoutR[nsmps], '\0', early*sizeof(cs_float));
     }
     /* update delay lines */
     for (i = offset; i < nsmps; i++) {
@@ -238,14 +238,14 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
       for (n = 0; n < 8; n++)
         ainL += p->delayLines[n]->filterState;
       ainL *= jpScale;
-      ainR = ainL + (double) p->ainR[i];
-      ainL = ainL + (double) p->ainL[i];
+      ainR = ainL + (cs_double) p->ainR[i];
+      ainL = ainL + (cs_double) p->ainL[i];
       /* loop through all delay lines */
       for (n = 0; n < 8; n++) {
         lp = p->delayLines[n];
         bufferSize = lp->bufferSize;
         /* send input signal and feedback to delay line */
-        lp->buf[lp->writePos] = (MYFLT) ((n & 1 ? ainR : ainL)
+        lp->buf[lp->writePos] = (cs_float) ((n & 1 ? ainR : ainL)
                                          - lp->filterState);
         if (UNLIKELY(++lp->writePos >= bufferSize))
           lp->writePos -= bufferSize;
@@ -257,34 +257,34 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
         if (UNLIKELY(lp->readPos >= bufferSize))
           lp->readPos -= bufferSize;
         readPos = lp->readPos;
-        frac = (double) lp->readPosFrac * (1.0 / (double) DELAYPOS_SCALE);
+        frac = (cs_double) lp->readPosFrac * (1.0 / (cs_double) DELAYPOS_SCALE);
         /* calculate interpolation coefficients */
         a2 = frac * frac; a2 -= 1.0; a2 *= (1.0 / 6.0);
         a1 = frac; a1 += 1.0; a1 *= 0.5; am1 = a1 - 1.0;
         a0 = 3.0 * a2; a1 -= a0; am1 -= a2; a0 -= frac;
         /* read four samples for interpolation */
         if (LIKELY(readPos > 0 && readPos < (bufferSize - 2))) {
-          vm1 = (double) (lp->buf[readPos - 1]);
-          v0  = (double) (lp->buf[readPos]);
-          v1  = (double) (lp->buf[readPos + 1]);
-          v2  = (double) (lp->buf[readPos + 2]);
+          vm1 = (cs_double) (lp->buf[readPos - 1]);
+          v0  = (cs_double) (lp->buf[readPos]);
+          v1  = (cs_double) (lp->buf[readPos + 1]);
+          v2  = (cs_double) (lp->buf[readPos + 2]);
         }
         else {
           /* at buffer wrap-around, need to check index */
           if (--readPos < 0) readPos += bufferSize;
-          vm1 = (double) lp->buf[readPos];
+          vm1 = (cs_double) lp->buf[readPos];
           if (++readPos >= bufferSize) readPos -= bufferSize;
-          v0 = (double) lp->buf[readPos];
+          v0 = (cs_double) lp->buf[readPos];
           if (++readPos >= bufferSize) readPos -= bufferSize;
-          v1 = (double) lp->buf[readPos];
+          v1 = (cs_double) lp->buf[readPos];
           if (++readPos >= bufferSize) readPos -= bufferSize;
-          v2 = (double) lp->buf[readPos];
+          v2 = (cs_double) lp->buf[readPos];
         }
         v0 = (am1 * vm1 + a0 * v0 + a1 * v1 + a2 * v2) * frac + v0;
         /* update buffer read position */
         lp->readPosFrac += lp->readPosFrac_inc;
         /* apply feedback gain and lowpass filter */
-        v0 *= (double) *(p->kFeedBack);
+        v0 *= (cs_double) *(p->kFeedBack);
         v0 = (lp->filterState - v0) * dampFact + v0;
         lp->filterState = v0;
         /* mix to output */
@@ -296,8 +296,8 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
         if (--(lp->randLine_cnt) <= 0)
           next_random_lineseg(p, lp, n);
       }
-      p->aoutL[i] = (MYFLT) (aoutL * outputGain);
-      p->aoutR[i] = (MYFLT) (aoutR * outputGain);
+      p->aoutL[i] = (cs_float) (aoutL * outputGain);
+      p->aoutR[i] = (cs_float) (aoutR * outputGain);
     }
 
     return OK;
@@ -310,17 +310,17 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
 
 static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
 {
-    MYFLT    ainL, ainR, aoutL, aoutR;
-    MYFLT    v0, v1, frac;
+    cs_float    ainL, ainR, aoutL, aoutR;
+    cs_float    v0, v1, frac;
     delayLine  **lp = p->delayLines;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, n, nsmps = CS_KSMPS;
     int32_t   bufferSize; /* Local copy */
-    double    dampFact = p->dampFact;
-    MYFLT  *inR = p->ainR, *inL = p->ainL;
-    MYFLT   *outR = p->aoutR, *outL = p->aoutL;
-    MYFLT kFeedBack = *p->kFeedBack;
+    cs_double    dampFact = p->dampFact;
+    cs_float  *inR = p->ainR, *inL = p->ainL;
+    cs_float   *outR = p->aoutR, *outL = p->aoutL;
+    cs_float kFeedBack = *p->kFeedBack;
     delayLine *lpn;
     int32_t linear = *p->iPitchMod == 0 ? 0 : 1;
 
@@ -332,13 +332,13 @@ static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
       dampFact = p->dampFact = dampFact - sqrt(dampFact * dampFact - 1.0);
     }
     if (UNLIKELY(offset)) {
-      memset(p->aoutL, '\0', offset*sizeof(MYFLT));
-      memset(p->aoutR, '\0', offset*sizeof(MYFLT));
+      memset(p->aoutL, '\0', offset*sizeof(cs_float));
+      memset(p->aoutR, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&p->aoutL[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&p->aoutR[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->aoutL[nsmps], '\0', early*sizeof(cs_float));
+      memset(&p->aoutR[nsmps], '\0', early*sizeof(cs_float));
     }
     /* update delay lines */
     for (i = offset; i < nsmps; i++) {
@@ -355,7 +355,7 @@ static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
         lpn = lp[n];
         bufferSize = lpn->bufferSize;
         /* send input signal and feedback to delay line */
-        lpn->buf[lpn->writePos] = (MYFLT) ((n & 1 ? ainR : ainL)
+        lpn->buf[lpn->writePos] = (cs_float) ((n & 1 ? ainR : ainL)
                                          - lpn->filterState);
         if (UNLIKELY(++lpn->writePos >= bufferSize))
             lpn->writePos -= bufferSize;
@@ -367,7 +367,7 @@ static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
         if (UNLIKELY(lpn->readPos >= bufferSize))
           lpn->readPos -= bufferSize;
         if(linear) {
-        frac = (double) lpn->readPosFrac * (1.0 / (double) DELAYPOS_SCALE);
+        frac = (cs_double) lpn->readPosFrac * (1.0 / (cs_double) DELAYPOS_SCALE);
         v0 = lpn->buf[lpn->readPos];
         v1 = lpn->readPos != bufferSize - 1 ? lpn->buf[lpn->readPos + 1] : lpn->buf[0];
         v0 = (v1 - v0) * frac + v0;
@@ -387,8 +387,8 @@ static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
         if (--(lpn->randLine_cnt) <= 0)
           next_random_lineseg(p, lpn, n);
       }
-      outL[i] = (MYFLT) (aoutL * outputGain);
-      outR[i] = (MYFLT) (aoutR * outputGain);
+      outL[i] = (cs_float) (aoutL * outputGain);
+      outR[i] = (cs_float) (aoutR * outputGain);
     }
 
     return OK;

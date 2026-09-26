@@ -91,6 +91,8 @@
   "csoundGetRtRecordUserData",
   "csoundGetScoreOffsetSeconds",
   "csoundGetScoreTime",
+  "csoundGetSizeOfCsFloat",
+  "csoundGetSizeOfCsDouble",
   "csoundGetSizeOfMYFLT",
   "csoundGetSpin",
   "csoundGetSpout",

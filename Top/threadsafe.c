@@ -25,28 +25,28 @@
 #include <stdlib.h>
 
 #ifdef USE_DOUBLE
-#  define MYFLT_INT_TYPE int64_t
+#  define CS_FLOAT_INT_TYPE int64_t
 #else
-#  define MYFLT_INT_TYPE int32_t
+#  define CS_FLOAT_INT_TYPE int32_t
 #endif
 
 int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async);
 int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async);
 void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
                  TYPE_TABLE* typetable, OPDS *ids);
-void xturnoff_instance(CSOUND *csound, MYFLT instr, int32_t insno, INSDS *ip,
+void xturnoff_instance(CSOUND *csound, cs_float instr, int32_t insno, INSDS *ip,
                   int32_t mode, int32_t allow_release);
 void csoundInputMessage(CSOUND *csound, const char *message);
 int32_t csoundReadScore(CSOUND *csound, const char *message);
 int32_t csound_score_event(CSOUND *csound, char type,
-                             const MYFLT *pfields, long numFields);
+                             const cs_float *pfields, long numFields);
 int32_t csound_score_event_absolute(CSOUND *csound, char type,
-                                     const MYFLT *pfields, long numFields,
-                                     double time_ofs);
+                                     const cs_float *pfields, long numFields,
+                                     cs_double time_ofs);
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
-static void csound_table_copy_out(CSOUND *csound, int32_t table, MYFLT *ptable);
-static void csound_table_copy_in(CSOUND *csound, int32_t table, const MYFLT *ptable);
-static void csound_table_set(CSOUND *csound, int32_t table, int32_t index, MYFLT value);
+static void csound_table_copy_out(CSOUND *csound, int32_t table, cs_float *ptable);
+static void csound_table_copy_in(CSOUND *csound, int32_t table, const cs_float *ptable);
+static void csound_table_set(CSOUND *csound, int32_t table, int32_t index, cs_float value);
 
 enum {INPUT_MESSAGE=1, READ_SCORE, SCORE_EVENT, SCORE_EVENT_ABS,
       TABLE_COPY_OUT, TABLE_COPY_IN, TABLE_SET, MERGE_STATE, KILL_INSTANCE};
@@ -151,7 +151,7 @@ void message_dequeue(CSOUND *csound) {
       case SCORE_EVENT:
         {
           char type;
-          MYFLT *fargs = (MYFLT *) msg->args;
+          cs_float *fargs = (cs_float *) msg->args;
           type = (char) fargs[0];
           csound_score_event(csound, type, &fargs[2], (int32_t)
                                    (int32_t) fargs[1]);
@@ -160,16 +160,16 @@ void message_dequeue(CSOUND *csound) {
       case SCORE_EVENT_ABS:
         {
           char type;
-          const MYFLT *pfields;
+          const cs_float *pfields;
           long numFields;
-          double ofs;
+          cs_double ofs;
           type = msg->args[0];
           memcpy(&pfields, msg->args + ARG_ALIGN,
-                 sizeof(MYFLT *));
+                 sizeof(cs_float *));
           memcpy(&numFields, msg->args + ARG_ALIGN*2,
                  sizeof(long));
           memcpy(&ofs, msg->args + ARG_ALIGN*3,
-                 sizeof(double));
+                 sizeof(cs_double));
 
           csound_score_event_absolute(csound, type, pfields, numFields,
                                              ofs);
@@ -178,32 +178,32 @@ void message_dequeue(CSOUND *csound) {
       case TABLE_COPY_OUT:
         {
           int32_t table;
-          MYFLT *ptable;
+          cs_float *ptable;
           memcpy(&table, msg->args, sizeof(int32_t));
           memcpy(&ptable, msg->args + ARG_ALIGN,
-                 sizeof(MYFLT *));
+                 sizeof(cs_float *));
           csound_table_copy_out(csound, table, ptable);
         }
         break;
       case TABLE_COPY_IN:
         {
           int32_t table;
-          MYFLT *ptable;
+          cs_float *ptable;
           memcpy(&table, msg->args, sizeof(int32_t));
           memcpy(&ptable, msg->args + ARG_ALIGN,
-                 sizeof(MYFLT *));
+                 sizeof(cs_float *));
           csound_table_copy_in(csound, table, ptable);
         }
         break;
       case TABLE_SET:
         {
           int32_t table, index;
-          MYFLT value;
+          cs_float value;
           memcpy(&table, msg->args, sizeof(int32_t));
           memcpy(&index, msg->args + ARG_ALIGN,
                  sizeof(int32_t));
           memcpy(&value, msg->args + 2*ARG_ALIGN,
-                 sizeof(MYFLT));
+                 sizeof(cs_float));
           csound_table_set(csound, table, index, value);
         }
         break;
@@ -223,10 +223,10 @@ void message_dequeue(CSOUND *csound) {
         break;
       case KILL_INSTANCE:
         {
-          MYFLT instr;
+          cs_float instr;
           int32_t mode, insno, rls;
           INSDS *ip;
-          memcpy(&instr, msg->args, sizeof(MYFLT));
+          memcpy(&instr, msg->args, sizeof(cs_float));
           memcpy(&insno, msg->args + ARG_ALIGN,
                  sizeof(int32_t));
           memcpy(&ip, msg->args + ARG_ALIGN*2,
@@ -258,31 +258,31 @@ static inline int64_t *read_score_enqueue(CSOUND *csound, const char *str){
 }
 
 static inline void table_copy_out_enqueue(CSOUND *csound, int32_t table,
-                                              MYFLT *ptable){
+                                              cs_float *ptable){
   const int32_t argsize = ARG_ALIGN*2;
   char args[ARG_ALIGN*2];
   memcpy(args, &table, sizeof(int32_t));
-  memcpy(args+ARG_ALIGN, &ptable, sizeof(MYFLT *));
+  memcpy(args+ARG_ALIGN, &ptable, sizeof(cs_float *));
   message_enqueue(csound,TABLE_COPY_OUT, args, argsize);
 }
 
 static inline void table_copy_in_enqueue(CSOUND *csound, int32_t table,
-                                             const MYFLT *ptable){
+                                             const cs_float *ptable){
   const int32_t argsize = ARG_ALIGN*2;
   char args[ARG_ALIGN*2];
   memcpy(args, &table, sizeof(int32_t));
-  memcpy(args+ARG_ALIGN, &ptable, sizeof(MYFLT *));
+  memcpy(args+ARG_ALIGN, &ptable, sizeof(cs_float *));
   message_enqueue(csound,TABLE_COPY_IN, args, argsize);
 }
 
 static inline int64_t *score_event_enqueue(CSOUND *csound, char type,
-                                                const MYFLT *pfields,
+                                                const cs_float *pfields,
                                                 long numFields)
 {
-  const int32_t argsize = (int32_t) (sizeof(MYFLT)*(numFields+2));
-  MYFLT *args = csoundCalloc(csound, argsize);
-  memcpy(&args[2], pfields, argsize - sizeof(MYFLT)*2);
-  args[0] = (MYFLT) type;
+  const int32_t argsize = (int32_t) (sizeof(cs_float)*(numFields+2));
+  cs_float *args = csoundCalloc(csound, argsize);
+  memcpy(&args[2], pfields, argsize - sizeof(cs_float)*2);
+  args[0] = (cs_float) type;
   args[1] = numFields;
   return message_enqueue(csound, SCORE_EVENT, (char *) args,
                          argsize);
@@ -290,7 +290,7 @@ static inline int64_t *score_event_enqueue(CSOUND *csound, char type,
 
 
 
-void kill_instance_enqueue(CSOUND *csound, MYFLT instr, int32_t insno,
+void kill_instance_enqueue(CSOUND *csound, cs_float instr, int32_t insno,
                           INSDS *ip, int32_t mode,
                           int32_t allow_release) {
   const int32_t argsize = ARG_ALIGN*5;
@@ -339,11 +339,11 @@ void read_score_async(CSOUND *csound, const char *message){
 }
 
 void score_event_async(CSOUND *csound, char type,
-                           const MYFLT *pfields, long numFields){
+                           const cs_float *pfields, long numFields){
   score_event_enqueue(csound, type, pfields, numFields);
 }
 
-void csoundTableCopyOut(CSOUND *csound, int32_t table, MYFLT *ptable, int32_t async){
+void csoundTableCopyOut(CSOUND *csound, int32_t table, cs_float *ptable, int32_t async){
   if(async) {
     table_copy_out_enqueue(csound, table, ptable);
     return;
@@ -354,7 +354,7 @@ void csoundTableCopyOut(CSOUND *csound, int32_t table, MYFLT *ptable, int32_t as
 }
 
 void csoundTableCopyIn(CSOUND *csound, int32_t table, const
-		       MYFLT *ptable, int32_t async){
+		       cs_float *ptable, int32_t async){
   if(async) {
     table_copy_in_enqueue(csound, table, ptable);
     return;
@@ -364,7 +364,7 @@ void csoundTableCopyIn(CSOUND *csound, int32_t table, const
   csoundUnlockMutex(csound->API_lock);
 }
 
-int32_t csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
+int32_t csoundKillInstance(CSOUND *csound, cs_float instr, char *instrName,
                        int32_t mode, int32_t allow_release, int32_t async)
 {
   INSDS *ip;
@@ -402,7 +402,7 @@ int32_t csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
 }
 
 void csound_table_set(CSOUND *csound, int32_t table, int32_t index,
-                            MYFLT value) {
+                            cs_float value) {
   if (csound->oparms->realtime)
     csoundLockMutex(csound->init_pass_threadlock);
   csound->flist[table]->ftable[index] = value;
@@ -410,30 +410,30 @@ void csound_table_set(CSOUND *csound, int32_t table, int32_t index,
     csoundUnlockMutex(csound->init_pass_threadlock);
 }
 
-void csound_table_copy_out(CSOUND *csound, int32_t table, MYFLT *ptable) {
+void csound_table_copy_out(CSOUND *csound, int32_t table, cs_float *ptable) {
   int32_t len;
-  MYFLT *ftab;
+  cs_float *ftab;
   /* in realtime mode init pass is executed in a separate thread, so
      we need to protect it */
   if (csound->oparms->realtime)
     csoundLockMutex(csound->init_pass_threadlock);
   len = csoundGetTable(csound, &ftab, table);
   if (LIKELY(len > 0))
-    memcpy(ptable, ftab, (size_t)len * sizeof(MYFLT));
+    memcpy(ptable, ftab, (size_t)len * sizeof(cs_float));
   if (csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
 }
 
-void csound_table_copy_in(CSOUND *csound, int32_t table, const MYFLT *ptable) {
+void csound_table_copy_in(CSOUND *csound, int32_t table, const cs_float *ptable) {
   int32_t len;
-  MYFLT *ftab;
+  cs_float *ftab;
   /* in realtime mode init pass is executed in a separate thread, so
      we need to protect it */
   if (csound->oparms->realtime)
     csoundLockMutex(csound->init_pass_threadlock);
   len = csoundGetTable(csound, &ftab, table);
   if (LIKELY(len > 0))
-    memcpy(ftab, ptable, ((size_t)len + 1) * sizeof(MYFLT)); // + guard point
+    memcpy(ftab, ptable, ((size_t)len + 1) * sizeof(cs_float)); // + guard point
   if (csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
 }

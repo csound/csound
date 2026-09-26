@@ -29,50 +29,50 @@
 #include <math.h>
 
 typedef struct filter_ {
-        MYFLT x1, x2;
-        MYFLT a1, a2;
-        MYFLT b0, b1, b2;
+        cs_float x1, x2;
+        cs_float a1, a2;
+        cs_float b0, b1, b2;
 } filter;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *kmom,*kint,*kst;
-        MYFLT   *rst,*in;
+        cs_float   *kmom,*kint,*kst;
+        cs_float   *rst,*in;
 
-        double a1,a2, b0,b1,b2;
+        cs_double a1,a2, b0,b1,b2;
         filter filter1; // first stage
         filter filter2; // second stage
         int32_t m, kcount, jcount;
-        MYFLT   mP, mPk;
-        MYFLT   numsmps,numsmpsST;
-        MYFLT   q;
-        MYFLT   pwr_[4];
-        MYFLT   pwr_ST[30];
-        MYFLT   pwro,pwroST;
+        cs_float   mP, mPk;
+        cs_float   numsmps,numsmpsST;
+        cs_float   q;
+        cs_float   pwr_[4];
+        cs_float   pwr_ST[30];
+        cs_float   pwro,pwroST;
 } LUFS;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *kmom,*kint,*kst;
-        MYFLT   *rst,*in1,*in2;
+        cs_float   *kmom,*kint,*kst;
+        cs_float   *rst,*in1,*in2;
 
-        double a1,a2, b0,b1,b2;
+        cs_double a1,a2, b0,b1,b2;
         filter filter1; // first stage
         filter filter2; // second stage
         filter filter3; // first stage
         filter filter4; // second stage
         int32_t m, kcount, jcount;
-        MYFLT   mP, mPk;
-        MYFLT   numsmps,numsmpsST;
-        MYFLT   q;
-        MYFLT   pwr_1[4],pwr_2[4];
-        MYFLT   pwr_ST1[30],pwr_ST2[30];
-        MYFLT   pwro1,pwro2,pwroST1,pwroST2;
+        cs_float   mP, mPk;
+        cs_float   numsmps,numsmpsST;
+        cs_float   q;
+        cs_float   pwr_1[4],pwr_2[4];
+        cs_float   pwr_ST1[30],pwr_ST2[30];
+        cs_float   pwro1,pwro2,pwroST1,pwroST2;
 } LUFS2;
 
 #define LUFS_FILTER(fil, sample, result)                                     \
     do {                                                                    \
-        MYFLT w = (sample) - (fil).x1 * (fil).a1 - (fil).x2 * (fil).a2;        \
+        cs_float w = (sample) - (fil).x1 * (fil).a1 - (fil).x2 * (fil).a2;        \
         (result) = w * (fil).b0 + (fil).x1 * (fil).b1 + (fil).x2 * (fil).b2;   \
         (fil).x2 = (fil).x1;                                                 \
         (fil).x1 = w;                                                       \
@@ -110,15 +110,15 @@ static int32_t lufs_init(CSOUND *csound, LUFS *p)
         else {
         // ported from https://github.com/BrechtDeMan/loudness.py/blob/master/loudness.py
         // pre-filter 1
-            MYFLT f0 = 1681.9744509555319;
-            MYFLT G  = 3.99984385397;
-            MYFLT Q  = 0.7071752369554193;
-            MYFLT fs = CS_ESR;
+            cs_float f0 = 1681.9744509555319;
+            cs_float G  = 3.99984385397;
+            cs_float Q  = 0.7071752369554193;
+            cs_float fs = CS_ESR;
 
-            MYFLT K  = TAN(PI * f0 / fs);
-            MYFLT Vh = POWER(10.0, G / 20.0);
-            MYFLT Vb = POWER(Vh, 0.499666774155);
-            MYFLT a0_ = 1.0 + K / Q + K * K;
+            cs_float K  = TAN(PI * f0 / fs);
+            cs_float Vh = POWER(10.0, G / 20.0);
+            cs_float Vb = POWER(Vh, 0.499666774155);
+            cs_float a0_ = 1.0 + K / Q + K * K;
             p->filter1.b0 = (Vh + Vb * K / Q + K * K) / a0_;
             p->filter1.b1 = 2.0 * (K * K -  Vh) / a0_;
             p->filter1.b2 = (Vh - Vb * K / Q + K * K) / a0_;
@@ -126,9 +126,9 @@ static int32_t lufs_init(CSOUND *csound, LUFS *p)
             p->filter1.a2 = (1.0 - K / Q + K * K) / a0_;
 
             // pre-filter 2
-            MYFLT f02 = 38.13547087613982;
-            MYFLT Q2  = 0.5003270373253953;
-            MYFLT K2  = TAN(PI * f02 / fs);
+            cs_float f02 = 38.13547087613982;
+            cs_float Q2  = 0.5003270373253953;
+            cs_float K2  = TAN(PI * f02 / fs);
             p->filter2.a1 = 2.0 * (K2 * K2 - 1.0) / (1.0 + K2 / Q2 + K2 * K2);
             p->filter2.a2 = (1.0 - K2 / Q2 + K2 * K2) / (1.0 + K2 / Q2 + K2 * K2);
         }
@@ -143,21 +143,21 @@ static int32_t lufs_init(CSOUND *csound, LUFS *p)
                 *p->kmom = -200;
         *p->kst = -200;
         *p->kint = -200;
-        memset(p->pwr_, '\0', 4*sizeof(MYFLT));
-        memset(p->pwr_ST, '\0', 30*sizeof(MYFLT));
+        memset(p->pwr_, '\0', 4*sizeof(cs_float));
+        memset(p->pwr_ST, '\0', 30*sizeof(cs_float));
 
     return OK;
 }
 
 static int32_t lufs_perf(CSOUND *csound, LUFS *p)
 {
-    MYFLT tempval, mloudness, mmpower, Gamma, ampower;
+    cs_float tempval, mloudness, mmpower, Gamma, ampower;
     int32_t nsmps = CS_KSMPS, i,z;
     int32_t numsmps = 4 * p->q; //  400ms block length;
     int32_t numsmpsST = 30 * p->q; // 3s block length;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    MYFLT fullscale = csound->Get0dBFS(csound);
-    MYFLT powerScale = FL(1.0) / (fullscale * fullscale);
+    cs_float fullscale = csound->Get0dBFS(csound);
+    cs_float powerScale = FL(1.0) / (fullscale * fullscale);
 
     nsmps -= p->h.insdshead->ksmps_no_end;
 
@@ -257,15 +257,15 @@ static int32_t lufs_init2(CSOUND *csound, LUFS2 *p)
         else {
         // ported from https://github.com/BrechtDeMan/loudness.py/blob/master/loudness.py
         // pre-filter 1
-            MYFLT f0 = 1681.9744509555319;
-            MYFLT G  = 3.99984385397;
-            MYFLT Q  = 0.7071752369554193;
-            MYFLT fs = CS_ESR;
+            cs_float f0 = 1681.9744509555319;
+            cs_float G  = 3.99984385397;
+            cs_float Q  = 0.7071752369554193;
+            cs_float fs = CS_ESR;
 
-            MYFLT K  = TAN(PI * f0 / fs);
-            MYFLT Vh = POWER(10.0, G / 20.0);
-            MYFLT Vb = POWER(Vh, 0.499666774155);
-            MYFLT a0_ = 1.0 + K / Q + K * K;
+            cs_float K  = TAN(PI * f0 / fs);
+            cs_float Vh = POWER(10.0, G / 20.0);
+            cs_float Vb = POWER(Vh, 0.499666774155);
+            cs_float a0_ = 1.0 + K / Q + K * K;
             p->filter1.b0 = (Vh + Vb * K / Q + K * K) / a0_;
             p->filter1.b1 = 2.0 * (K * K -  Vh) / a0_;
             p->filter1.b2 = (Vh - Vb * K / Q + K * K) / a0_;
@@ -273,9 +273,9 @@ static int32_t lufs_init2(CSOUND *csound, LUFS2 *p)
             p->filter1.a2 = (1.0 - K / Q + K * K) / a0_;
 
             // pre-filter 2
-            MYFLT f02 = 38.13547087613982;
-            MYFLT Q2  = 0.5003270373253953;
-            MYFLT K2  = TAN(PI * f02 / fs);
+            cs_float f02 = 38.13547087613982;
+            cs_float Q2  = 0.5003270373253953;
+            cs_float K2  = TAN(PI * f02 / fs);
             p->filter2.a1 = 2.0 * (K2 * K2 - 1.0) / (1.0 + K2 / Q2 + K2 * K2);
             p->filter2.a2 = (1.0 - K2 / Q2 + K2 * K2) / (1.0 + K2 / Q2 + K2 * K2);
         }
@@ -292,23 +292,23 @@ static int32_t lufs_init2(CSOUND *csound, LUFS2 *p)
                         *p->kst = -200;
                         *p->kint = -200;
 
-                memset(p->pwr_1, '\0', 4*sizeof(MYFLT));
-                memset(p->pwr_2, '\0', 4*sizeof(MYFLT));
-                memset(p->pwr_ST1, '\0', 30*sizeof(MYFLT));
-                memset(p->pwr_ST2, '\0', 30*sizeof(MYFLT));
+                memset(p->pwr_1, '\0', 4*sizeof(cs_float));
+                memset(p->pwr_2, '\0', 4*sizeof(cs_float));
+                memset(p->pwr_ST1, '\0', 30*sizeof(cs_float));
+                memset(p->pwr_ST2, '\0', 30*sizeof(cs_float));
 
     return OK;
 }
 
 static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
 {
-        MYFLT tempval1,tempval2, mloudness, mmpower, Gamma, ampower;
+        cs_float tempval1,tempval2, mloudness, mmpower, Gamma, ampower;
     int32_t nsmps = CS_KSMPS, i,z;
     int32_t numsmps = 4 * p->q; //  400ms block length;
     int32_t numsmpsST = 30 * p->q; // 3s block length;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    MYFLT fullscale = csound->Get0dBFS(csound);
-    MYFLT powerScale = FL(1.0) / (fullscale * fullscale);
+    cs_float fullscale = csound->Get0dBFS(csound);
+    cs_float powerScale = FL(1.0) / (fullscale * fullscale);
 
     nsmps -= p->h.insdshead->ksmps_no_end;
 

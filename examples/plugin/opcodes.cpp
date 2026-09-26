@@ -66,8 +66,8 @@ struct Simplea : csnd::Plugin<1, 1> {
  */
 struct SimpleArray : csnd::Plugin<1, 1> {
   int init() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    csnd::Vector<cs_float> &out = outargs.vector_data<cs_float>(0);
+    csnd::Vector<cs_float> &in = inargs.vector_data<cs_float>(0);
     out.init(csound, in.len());
     csound->plugin_deinit(this);
     return OK;
@@ -80,8 +80,8 @@ struct SimpleArray : csnd::Plugin<1, 1> {
   }
 
   int kperf() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    csnd::Vector<cs_float> &out = outargs.vector_data<cs_float>(0);
+    csnd::Vector<cs_float> &in = inargs.vector_data<cs_float>(0);
     std::copy(in.begin(), in.end(), out.begin());
     return OK;
   }
@@ -94,15 +94,15 @@ struct SimpleArray : csnd::Plugin<1, 1> {
  */
 struct SimpleArrayA : csnd::Plugin<1, 1> {
   int init() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    csnd::Vector<cs_float> &out = outargs.vector_data<cs_float>(0);
+    csnd::Vector<cs_float> &in = inargs.vector_data<cs_float>(0);
     out.init(csound, in.len());
     return OK;
   }
 
   int aperf() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    csnd::Vector<cs_float> &out = outargs.vector_data<cs_float>(0);
+    csnd::Vector<cs_float> &in = inargs.vector_data<cs_float>(0);
     // copy each a-var ksmps vector in turn
     // NB: copying the whole memory block
     // from in.begin() to in.end() also works
@@ -130,8 +130,8 @@ struct Tprint : csnd::Plugin<0, 1> {
     asig delayline ain,idel
  */
 struct DelayLine : csnd::Plugin<1, 2> {
-  csnd::AuxMem<MYFLT> delay;
-  csnd::AuxMem<MYFLT>::iterator iter;
+  csnd::AuxMem<cs_float> delay;
+  csnd::AuxMem<cs_float>::iterator iter;
 
   int init() {
     delay.allocate(csound, csound->sr() * inargs[1]);
@@ -142,8 +142,8 @@ struct DelayLine : csnd::Plugin<1, 2> {
   int aperf() {
     csnd::AudioSig in(this, inargs(0));
     csnd::AudioSig out(this, outargs(0));
-    std::transform(in.begin(), in.end(), out.begin(), [this](MYFLT s) {
-      MYFLT o = *iter;
+    std::transform(in.begin(), in.end(), out.begin(), [this](cs_float s) {
+      cs_float o = *iter;
       *iter = s;
       if (++iter == delay.end())
         iter = delay.begin();
@@ -159,8 +159,8 @@ struct DelayLine : csnd::Plugin<1, 2> {
  */
 struct Oscillator : csnd::Plugin<1, 3> {
   csnd::Table tab;
-  double scl;
-  double x;
+  cs_double scl;
+  cs_double x;
 
   int init() {
     tab.init(csound, inargs(2));
@@ -171,8 +171,8 @@ struct Oscillator : csnd::Plugin<1, 3> {
 
   int aperf() {
     csnd::AudioSig out(this, outargs(0));
-    MYFLT amp = inargs[0];
-    MYFLT si = inargs[1] * scl;
+    cs_float amp = inargs[0];
+    cs_float si = inargs[1] * scl;
     for (auto &s : out) {
       s = amp * tab[(uint32_t)x];
       x += si;
@@ -212,7 +212,7 @@ struct PVGain : csnd::FPlugin<1, 2> {
     csnd::pv_frame &fout = outargs.fsig_data(0);
 
     if (framecount < fin.count()) {
-      MYFLT g = inargs[1];
+      cs_float g = inargs[1];
       std::transform(fin.begin(), fin.end(), fout.begin(),
                      [g](csnd::pv_bin f) { return f *= g; });
       framecount = fout.count(fin.count());
@@ -289,13 +289,13 @@ struct AsyncPrint : csnd::Plugin<0, 1> {
 /** Thread to compute Gaussian distr.
  */
 class MyThread : public csnd::Thread {
-  MYFLT *res;
+  cs_float *res;
   std::atomic_bool on;
-  std::normal_distribution<MYFLT> norm;
+  std::normal_distribution<cs_float> norm;
   std::mt19937 gen;
 
 public:
-  MyThread(csnd::Csound *csound, MYFLT mean, MYFLT std, MYFLT *r)
+  MyThread(csnd::Csound *csound, cs_float mean, cs_float std, cs_float *r)
       : Thread(csound), res(r), on(true), norm(mean, std), gen(){};
   uintptr_t run() {
     while (on)
@@ -310,7 +310,7 @@ public:
  */
 struct AsyncGauss : csnd::Plugin<1, 2> {
   MyThread t;
-  MYFLT res;
+  cs_float res;
 
   int init() {
     csound->plugin_deinit(this);
@@ -332,7 +332,7 @@ struct AsyncGauss : csnd::Plugin<1, 2> {
 };
 
 struct Gaussian : csnd::Plugin<1, 3> {
-  std::normal_distribution<MYFLT> norm;
+  std::normal_distribution<cs_float> norm;
   std::mt19937 gen;
 
   int init() {
@@ -346,7 +346,7 @@ struct Gaussian : csnd::Plugin<1, 3> {
 };
 
 struct GaussianP : csnd::Plugin<1, 3> {
-  std::normal_distribution<MYFLT> norm;
+  std::normal_distribution<cs_float> norm;
   std::mt19937 gen;
 
   int init() {

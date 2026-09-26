@@ -88,15 +88,15 @@ export const CSOUND_PARAMS = [
   /* use sample-level score event accuracy */
   ["sample_accurate", "int"],
   /* overriding sample rate */
-  ["sample_rate_override", "MYFLT"],
+  ["sample_rate_override", "cs_float"],
   /* overriding control rate */
-  ["control_rate_override", "MYFLT"],
+  ["control_rate_override", "cs_float"],
   /* overriding number of out channels */
   ["nchnls_override", "int"],
   /* overriding number of in channels */
   ["nchnls_i_override", "int"],
   /* overriding 0dbfs */
-  ["e0dbfs_override", "MYFLT"],
+  ["e0dbfs_override", "cs_float"],
   /* daemon mode */
   ["daemon", "int"],
   /* ksmps override */

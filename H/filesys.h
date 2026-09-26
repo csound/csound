@@ -208,10 +208,10 @@ extern "C" {
                                      int32_t isTemporary);
 
   uint32_t csoundReadAsync(CSOUND *csound, void *handle,
-                               MYFLT *buf, int32_t items);
+                               cs_float *buf, int32_t items);
 
   uint32_t csoundWriteAsync(CSOUND *csound, void *handle,
-                                MYFLT *buf, int32_t items);
+                                cs_float *buf, int32_t items);
 
   int32_t csoundFSeekAsync(CSOUND *csound, void *handle, int32_t pos, int32_t whence);
 

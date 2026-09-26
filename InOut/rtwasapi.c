@@ -71,8 +71,8 @@ typedef struct csdata_ {
   HANDLE hOutThread;
   WAVEFORMATEX *pwfxIn;
   WAVEFORMATEX *pwfxOut;
-  MYFLT       *inputBuffer;
-  MYFLT       *outputBuffer;
+  cs_float       *inputBuffer;
+  cs_float       *outputBuffer;
   csRtAudioParams *inParm;
   csRtAudioParams *outParm;
   int32_t onchnls, inchnls;
@@ -80,7 +80,7 @@ typedef struct csdata_ {
   int32_t disp;
   void *incb;
   void *outcb;
-  MYFLT sr;
+  cs_float sr;
   volatile int32_t inRunning;
   volatile int32_t outRunning;
   volatile int32_t outDraining;
@@ -122,7 +122,7 @@ static DWORD WINAPI InputThread(LPVOID lpParam)
     DWORD flags;
     HRESULT hr;
     int32_t i, j;
-    MYFLT *inputBuffer = cdata->inputBuffer;
+    cs_float *inputBuffer = cdata->inputBuffer;
     int32_t inchnls = cdata->inchnls;
 
     while (cdata->inRunning) {
@@ -140,12 +140,12 @@ static DWORD WINAPI InputThread(LPVOID lpParam)
             }
 
             if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
-                memset(inputBuffer, 0, numFramesAvailable * inchnls * sizeof(MYFLT));
+                memset(inputBuffer, 0, numFramesAvailable * inchnls * sizeof(cs_float));
             } else {
                 float *pFloatData = (float *)pData;
                 for (i = 0; i < (int32_t)numFramesAvailable; i++) {
                     for (j = 0; j < inchnls; j++) {
-                        inputBuffer[i * inchnls + j] = (MYFLT)pFloatData[i * inchnls + j];
+                        inputBuffer[i * inchnls + j] = (cs_float)pFloatData[i * inchnls + j];
                     }
                 }
             }
@@ -181,7 +181,7 @@ static DWORD WINAPI OutputThread(LPVOID lpParam)
     UINT32 numFramesPadding;
     HRESULT hr;
     int32_t i, j;
-    MYFLT *outputBuffer = cdata->outputBuffer;
+    cs_float *outputBuffer = cdata->outputBuffer;
     int32_t onchnls = cdata->onchnls;
     int32_t n;
 
@@ -206,7 +206,7 @@ static DWORD WINAPI OutputThread(LPVOID lpParam)
         if (n < (int32_t)(numFramesAvailable * onchnls)) {
             /* Not enough data in buffer, fill remainder with silence */
             memset(&outputBuffer[n], 0,
-                   ((numFramesAvailable * onchnls) - n) * sizeof(MYFLT));
+                   ((numFramesAvailable * onchnls) - n) * sizeof(cs_float));
         }
 
         float *pFloatData = (float *)pData;
@@ -247,7 +247,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
     /* WASAPI duration is in 100-nanosecond units (REFERENCE_TIME) */
     /* Duration = (bufSamp_HW / sampleRate) * 10,000,000 */
     if (parm->bufSamp_HW > 0 && parm->sampleRate > 0) {
-        hnsRequestedDuration = (REFERENCE_TIME)((double)parm->bufSamp_HW / 
+        hnsRequestedDuration = (REFERENCE_TIME)((cs_double)parm->bufSamp_HW /
                                                  parm->sampleRate * REFTIMES_PER_SEC);
     } else {
         /* Default to 100ms if not specified */
@@ -813,13 +813,13 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams *parm)
     cdata->inParm = (csRtAudioParams *)parm;
     cdata->csound = csound;
     cdata->incb = csound->CreateCircularBuffer(csound,
-                                               parm->bufSamp_HW * parm->nChannels, sizeof(MYFLT));
+                                               parm->bufSamp_HW * parm->nChannels, sizeof(cs_float));
 
     int32_t ret = WASAPI_open(csound, parm, cdata, 1);
     if (ret == 0) {
         /* Allocate inputBuffer based on the actual buffer size from WASAPI */
-        cdata->inputBuffer = (MYFLT *)csound->Calloc(csound,
-                                                      cdata->inBufferFrames * cdata->inchnls * sizeof(MYFLT));
+        cdata->inputBuffer = (cs_float *)csound->Calloc(csound,
+                                                      cdata->inBufferFrames * cdata->inchnls * sizeof(cs_float));
         if (cdata->inputBuffer == NULL) {
             csound->ErrorMsg(csound, Str("WASAPI: Failed to allocate input buffer"));
             return -1;
@@ -855,13 +855,13 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
     cdata->outParm = (csRtAudioParams *)parm;
     cdata->csound = csound;
     cdata->outcb = csound->CreateCircularBuffer(csound,
-                                                parm->bufSamp_HW * parm->nChannels, sizeof(MYFLT));
+                                                parm->bufSamp_HW * parm->nChannels, sizeof(cs_float));
 
     int32_t ret = WASAPI_open(csound, parm, cdata, 0);
     if (ret == 0) {
         /* Allocate outputBuffer based on the actual buffer size from WASAPI */
-        cdata->outputBuffer = (MYFLT *)csound->Calloc(csound,
-                                                       cdata->outBufferFrames * cdata->onchnls * sizeof(MYFLT));
+        cdata->outputBuffer = (cs_float *)csound->Calloc(csound,
+                                                       cdata->outBufferFrames * cdata->onchnls * sizeof(cs_float));
         if (cdata->outputBuffer == NULL) {
             csound->ErrorMsg(csound, Str("WASAPI: Failed to allocate output buffer"));
             return -1;
@@ -881,10 +881,10 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
     return ret;
 }
 
-static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
+static int32_t rtrecord_(CSOUND *csound, cs_float *inbuff_, int32_t nbytes)
 {
     csdata *cdata;
-    int32_t n = nbytes / sizeof(MYFLT);
+    int32_t n = nbytes / sizeof(cs_float);
     int32_t m = 0, l;
 
     cdata = (csdata *)*(csound->GetRtRecordUserData(csound));
@@ -898,10 +898,10 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
     return nbytes;
 }
 
-static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int32_t nbytes)
+static void rtplay_(CSOUND *csound, const cs_float *outbuff_, int32_t nbytes)
 {
     csdata *cdata;
-    int32_t n = nbytes / sizeof(MYFLT);
+    int32_t n = nbytes / sizeof(cs_float);
     int32_t m = 0, l;
 
     cdata = (csdata *)*(csound->GetRtPlayUserData(csound));
@@ -1022,6 +1022,11 @@ int32_t csoundModuleInit(CSOUND *csound)
     csound->SetRtcloseCallback(csound, rtclose_);
     csound->SetAudioDeviceListCallback(csound, listDevices);
     return 0;
+}
+
+PUBLIC int32_t csoundModuleInfo(void)
+{
+  return CSOUND_MODULE_INFO;
 }
 
 int32_t csoundModuleCreate(CSOUND *csound)

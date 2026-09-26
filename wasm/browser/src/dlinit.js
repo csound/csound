@@ -41,6 +41,20 @@ export const dlinit = (
   hostMemory = undefined,
 ) => {
   const hostExports = hostInstance && hostInstance.exports ? hostInstance.exports : {};
+  const info = typeof pluginInstance.exports["csoundModuleInfo"] === "function"
+    ? pluginInstance.exports["csoundModuleInfo"]() : 0;
+  // Match the native loader: missing metadata denotes the legacy cs_double ABI.
+  const getSampleSize = hostExports["csoundGetSizeOfCsFloat"] ||
+    hostExports["csoundGetSizeOfMYFLT"];
+  const sampleSize = info & 0x7f;
+  const doubleSize = typeof hostExports["csoundGetSizeOfCsDouble"] === "function"
+    ? hostExports["csoundGetSizeOfCsDouble"]() : 8;
+  if (Boolean(info & 0x80) !== (doubleSize === 4)) {
+    throw new Error("Incompatible plugin cs_double precision; rebuild with matching USE_FLOAT");
+  }
+  if (sampleSize && typeof getSampleSize === "function" && sampleSize !== getSampleSize()) {
+    throw new Error("Incompatible plugin cs_float precision; rebuild with matching USE_DOUBLE");
+  }
 
   if (pluginInstance.exports["csoundModuleInit"]) {
     if (typeof hostExports["csoundWasiLoadPlugin"] !== "function") {

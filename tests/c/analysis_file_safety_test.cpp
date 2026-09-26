@@ -73,7 +73,7 @@ class AnalysisFileSafetyTests : public ::testing::Test {
     ASSERT_TRUE(stream.good()) << "could not write " << path;
   }
 
-  int32_t runFileOpcode(const std::string &statement, MYFLT *firstSample = nullptr)
+  int32_t runFileOpcode(const std::string &statement, cs_float *firstSample = nullptr)
   {
     std::string csd =
       "<CsoundSynthesizer>\n"
@@ -169,7 +169,7 @@ TEST_F(AnalysisFileSafetyTests, ConvolveRejectsIncompleteFiles)
   CVSTRUCT header = {};
   header.magic = CVMAGIC;
   header.headBsize = sizeof(header);
-  header.dataBsize = 18 * sizeof(MYFLT);
+  header.dataBsize = 18 * sizeof(cs_float);
   header.dataFormat = CVMYFLT;
   header.samplingRate = 44100;
   header.src_chnls = header.channel = 1;
@@ -182,7 +182,7 @@ TEST_F(AnalysisFileSafetyTests, ConvolveRejectsIncompleteFiles)
   ASSERT_NO_FATAL_FAILURE(writeFile(path, data));
   EXPECT_EQ(CSOUND_SUCCESS, runFileOpcode(
     "aInput init 0\naOut convolve aInput, \"" + path.generic_string() + "\""));
-  for (size_t length : {sizeof(header) - 1, data.size() - sizeof(MYFLT)}) {
+  for (size_t length : {sizeof(header) - 1, data.size() - sizeof(cs_float)}) {
     auto shortPath = directory / ("short-" + std::to_string(length) + ".cv");
     ASSERT_NO_FATAL_FAILURE(writeFile(
       shortPath, std::vector<uint8_t>(data.begin(), data.begin() + length)));
@@ -194,7 +194,7 @@ TEST_F(AnalysisFileSafetyTests, ConvolveRejectsIncompleteFiles)
 TEST_F(AnalysisFileSafetyTests, ConvolveTextKeepsFinalValueWithoutNewline)
 {
   /* The text format stores the writer's byte counts, but the loader uses
-     the current MYFLT size. Keep that cross-build use working. */
+     the current cs_float size. Keep that cross-build use working. */
   std::string text = "CVANAL\n44 72 36 44100 1 1 8 1\n";
   for (int i = 0; i < 17; ++i)
     text += "0\n";
@@ -207,10 +207,10 @@ TEST_F(AnalysisFileSafetyTests, ConvolveTextKeepsFinalValueWithoutNewline)
     csound, path.generic_string().c_str(), CSFTYPE_CVANAL, nullptr);
   EXPECT_NE(nullptr, file);
   if (file != nullptr) {
-    EXPECT_EQ(sizeof(CVSTRUCT) + 18 * sizeof(MYFLT), size_t(file->length));
-    MYFLT last = 0;
-    std::memcpy(&last, file->endp - sizeof(MYFLT), sizeof(MYFLT));
-    EXPECT_EQ(MYFLT(1.25), last);
+    EXPECT_EQ(sizeof(CVSTRUCT) + 18 * sizeof(cs_float), size_t(file->length));
+    cs_float last = 0;
+    std::memcpy(&last, file->endp - sizeof(cs_float), sizeof(cs_float));
+    EXPECT_EQ(cs_float(1.25), last);
   }
   csoundDestroy(csound);
   EXPECT_EQ(CSOUND_SUCCESS, runFileOpcode(
@@ -252,13 +252,13 @@ TEST_F(AnalysisFileSafetyTests, SinnoiPartialSelectionAndNoiseBounds)
       ASSERT_NO_FATAL_FAILURE(writeFile(path, makeSinnoiFile(type, swapped)));
       /* Zero frequency scaling keeps every cosine at one. */
       const std::string file = ", 1, 0, 0, \"" + path.generic_string() + "\", ";
-      MYFLT sample = 0;
+      cs_float sample = 0;
       ASSERT_EQ(CSOUND_SUCCESS, runFileOpcode(
         "aOut ATSsinnoi 1" + file + "42\nout aOut", &sample));
-      EXPECT_EQ(MYFLT(1806), sample); // all 42 partials in the last frame
+      EXPECT_EQ(cs_float(1806), sample); // all 42 partials in the last frame
       ASSERT_EQ(CSOUND_SUCCESS, runFileOpcode(
         "aOut ATSsinnoi 0.25" + file + "3, 37, 2\nout aOut", &sample));
-      EXPECT_EQ(MYFLT(180), sample); // partials 38, 40, 42 halfway between frames
+      EXPECT_EQ(cs_float(180), sample); // partials 38, 40, 42 halfway between frames
     }
   }
 }
@@ -283,13 +283,13 @@ std::vector<uint8_t> makeLpcFile(int frames)
   header.nvals = 6;
   header.framrate = 100;
   header.srate = 44100;
-  header.duration = MYFLT(frames) / 100;
+  header.duration = cs_float(frames) / 100;
   std::vector<uint8_t> data;
   appendNative(data, header);
   data.resize(header.headersize, 0);
   for (int frame = 0; frame < frames; ++frame)
-    for (MYFLT value : {MYFLT(frame + 1), MYFLT(1), MYFLT(0),
-                        MYFLT(100), MYFLT(0), MYFLT(0)})
+    for (cs_float value : {cs_float(frame + 1), cs_float(1), cs_float(0),
+                        cs_float(100), cs_float(0), cs_float(0)})
       appendNative(data, value);
   return data;
 }
@@ -300,11 +300,11 @@ TEST_F(AnalysisFileSafetyTests, LpreadSingleAndLongAnalysisFrames)
     auto path = directory / ("frames-" + std::to_string(frames) + ".lpc");
     ASSERT_NO_FATAL_FAILURE(writeFile(path, makeLpcFile(frames)));
     for (const char *time : {"0", "0.005", "350.005", "10000000000"}) {
-      MYFLT sample = 0;
+      cs_float sample = 0;
       ASSERT_EQ(CSOUND_SUCCESS, runFileOpcode(
         "kRms, kOriginal, kError, kPitch lpread " + std::string(time) +
         ", \"" + path.generic_string() + "\"\naOut = kRms\nout aOut", &sample));
-      double expected = (std::min)(double(frames), std::stod(time) * 100 + 1);
+      cs_double expected = (std::min<cs_double>)(frames, std::stod(time) * 100 + 1);
       EXPECT_NEAR(expected, sample, 0.01) << frames << " frames at " << time;
     }
   }
@@ -330,8 +330,8 @@ TEST_F(AnalysisFileSafetyTests, LpreadSingleAndLongAnalysisFrames)
   header.nvals = 8;
   std::memcpy(poles.data(), &header, sizeof(header));
   poles.resize(header.headersize);
-  for (MYFLT value : {MYFLT(1), MYFLT(1), MYFLT(0), MYFLT(100),
-                      MYFLT(.5), MYFLT(-.5), MYFLT(.5), MYFLT(.5)})
+  for (cs_float value : {cs_float(1), cs_float(1), cs_float(0), cs_float(100),
+                      cs_float(.5), cs_float(-.5), cs_float(.5), cs_float(.5)})
     appendNative(poles, value);
   auto polePath = directory / "poles.lpc";
   ASSERT_NO_FATAL_FAILURE(writeFile(polePath, poles));
@@ -344,7 +344,7 @@ TEST_F(AnalysisFileSafetyTests, LpreadSingleAndLongAnalysisFrames)
 TEST_F(AnalysisFileSafetyTests, LpreadRejectsIncompleteDataAndEmptySlots)
 {
   auto data = makeLpcFile(1);
-  for (size_t length : {size_t(4), data.size() - sizeof(MYFLT)}) {
+  for (size_t length : {size_t(4), data.size() - sizeof(cs_float)}) {
     auto path = directory / ("short-" + std::to_string(length) + ".lpc");
     ASSERT_NO_FATAL_FAILURE(writeFile(
       path, std::vector<uint8_t>(data.begin(), data.begin() + length)));

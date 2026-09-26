@@ -30,13 +30,13 @@
 #include "aops.h"
 #include "arrays.h"
 
-/* Data sizes already align MYFLT. Pad pool slots for pointer-bearing type
+/* Data sizes already align cs_float. Pad pool slots for pointer-bearing type
    headers and for the opcode state that follows the pool as well. */
 #define VAR_POOL_ALIGN(size) \
     (((size) + sizeof(void *) - 1) & ~(sizeof(void *) - 1))
 
 /* Forward declaration for p-field string extraction */
-extern char* csoundGetArgString(CSOUND *csound, MYFLT p);
+extern char* csoundGetArgString(CSOUND *csound, cs_float p);
 
 static int32_t type_exists_with_same_name(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;
@@ -313,8 +313,8 @@ int32_t csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
       pool->tail = var;
     }
     cs_hash_table_put(csound, pool->table, var->varName, var);
-    var->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) +
-      ((pool->varCount + 1) * (CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(MYFLT)));
+    var->memBlockIndex = (pool->poolSize / sizeof(cs_float)) +
+      ((pool->varCount + 1) * (CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(cs_float)));
     pool->poolSize += VAR_POOL_ALIGN(var->memBlockSize);
     pool->varCount += 1;
     return 0;
@@ -345,8 +345,8 @@ void csoundRecalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool)
         current->updateMemBlockSize(csound, current);
       }
 
-      current->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) +
-        (varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(MYFLT));
+      current->memBlockIndex = (pool->poolSize / sizeof(cs_float)) +
+        (varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(cs_float));
       pool->poolSize += VAR_POOL_ALIGN(current->memBlockSize);
 
       current = current->next;
@@ -404,7 +404,7 @@ void csoundDeleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
 
 
 
-void csoundInitializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
+void csoundInitializeVarPool(CSOUND* csound, cs_float* memBlock, CS_VAR_POOL* pool) {
     if (pool == NULL) {
         csound->ErrorMsg(csound, "Warning: csoundInitializeVarPool called with NULL pool\n");
         return;
@@ -497,7 +497,7 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
 
     if(types_different) {
       /* Allow numeric constant 'c' and p-field 'p' to be assigned to numeric variables (i/k).
-         Underlying storage is MYFLT-compatible, so a direct copy is valid. */
+         Underlying storage is cs_float-compatible, so a direct copy is valid. */
       int allow_num_to_num = ((typeR == &CS_VAR_TYPE_I || typeR == &CS_VAR_TYPE_K) && (typeA == &CS_VAR_TYPE_C || typeA == &CS_VAR_TYPE_P));
       /* Allow scalar-to-audio by broadcasting the scalar across the audio block. */
       int allow_scalar_to_audio = (typeR == &CS_VAR_TYPE_A && (typeA == &CS_VAR_TYPE_C || typeA == &CS_VAR_TYPE_I || typeA == &CS_VAR_TYPE_K));
@@ -519,7 +519,7 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
       if (allow_pfield_to_string) {
         /* P-field to string assignment - perform the actual conversion */
         /* This is called at runtime when the instrument is executing */
-        MYFLT pval = *assign->a;
+        cs_float pval = *assign->a;
         STRINGDAT *strOut = (STRINGDAT *)assign->r;
 
         if (IsStringCode(pval)) {
@@ -554,14 +554,14 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
       }
       if (allow_scalar_to_audio) {
         /* Broadcast scalar 'a' to audio 'r' (equivalent to ainit/upsamp behavior). */
-        MYFLT val = *assign->a;
+        cs_float val = *assign->a;
         uint32_t nsmps = assign->h.insdshead->ksmps;
         uint32_t offset = assign->h.insdshead->ksmps_offset;
         uint32_t early  = assign->h.insdshead->ksmps_no_end;
-        if (UNLIKELY(offset)) memset(assign->r, '\0', offset*sizeof(MYFLT));
+        if (UNLIKELY(offset)) memset(assign->r, '\0', offset*sizeof(cs_float));
         if (UNLIKELY(early)) {
           nsmps -= early;
-          memset(&assign->r[nsmps], '\0', early*sizeof(MYFLT));
+          memset(&assign->r[nsmps], '\0', early*sizeof(cs_float));
         }
         for (uint32_t n = offset; n < nsmps; n++) assign->r[n] = val;
         return OK;

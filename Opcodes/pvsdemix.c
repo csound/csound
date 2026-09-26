@@ -101,9 +101,9 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
     float *maxr = (float *) p->maxr.auxp;
     float *minr = (float *) p->minr.auxp;
     float *maxl = (float *) p->maxl.auxp;
-    MYFLT azimuth = *p->pos;
-    MYFLT width = *p->width;
-    MYFLT range;
+    cs_float azimuth = *p->pos;
+    cs_float width = *p->width;
+    cs_float range;
 
     if (UNLIKELY(!fsigs_equal(p->finleft,p->finright))) goto err1;
 
@@ -111,7 +111,7 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
 
     if (p->lastframe < p->finleft->framecount) {
 
-      if (width > beta) width = (MYFLT) beta;
+      if (width > beta) width = (cs_float) beta;
       else if (width < 1) width = FL(1.0);
 
       if (azimuth < -1) azimuth = -FL(1.0);

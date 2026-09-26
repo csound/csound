@@ -51,9 +51,9 @@ static int32_t daminit(CSOUND *csound, DAM *p)
    /* for later use in the main processing                          */
 
     p->rspeed = *p->rtime > FL(0.0) ? CS_ONEDSR / *p->rtime
-                                  : (MYFLT)INFINITY;
+                                  : (cs_float)INFINITY;
     p->fspeed = *p->ftime > FL(0.0) ? CS_ONEDSR / *p->ftime
-                                  : (MYFLT)INFINITY;
+                                  : (cs_float)INFINITY;
     p->kthr = -FL(1.0);
     return OK;
 }
@@ -65,15 +65,15 @@ static int32_t daminit(CSOUND *csound, DAM *p)
 static int32_t dam(CSOUND *csound, DAM *p)
 {
      IGN(csound);
-    MYFLT *ain,*aout;
-    MYFLT threshold;
-    MYFLT gain;
-    MYFLT comp1,comp2;
-    MYFLT exponent;
-    MYFLT *powerPos;
-    MYFLT *powerBuffer;
-    double power;
-    MYFLT tg;
+    cs_float *ain,*aout;
+    cs_float threshold;
+    cs_float gain;
+    cs_float comp1,comp2;
+    cs_float exponent;
+    cs_float *powerPos;
+    cs_float *powerBuffer;
+    cs_double power;
+    cs_float tg;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -82,8 +82,8 @@ static int32_t dam(CSOUND *csound, DAM *p)
      * it depends on kthreshold
      */
     if (p->kthr < FL(0.0)) {
-      MYFLT x = (p->kthr = *(p->kthreshold))/(MYFLT)POWER_BUFSIZE;
-      p->power = (double)x * POWER_BUFSIZE;
+      cs_float x = (p->kthr = *(p->kthreshold))/(cs_float)POWER_BUFSIZE;
+      p->power = (cs_double)x * POWER_BUFSIZE;
       /* Initialise table as threshhold changed */
       for (i=0;i<POWER_BUFSIZE;i++) {
         p->powerBuffer[i] = x;
@@ -98,23 +98,23 @@ static int32_t dam(CSOUND *csound, DAM *p)
     comp1       = *(p->icomp1);
     comp2       = *(p->icomp2);
     exponent    = comp2 != FL(0.0) ? FL(1.0)/comp2 - FL(1.0)
-                                  : (MYFLT)INFINITY;
+                                  : (cs_float)INFINITY;
     powerPos    = p->powerPos;
     powerBuffer = p->powerBuffer;
     power       = p->power;
 
  /* Process ksmps samples */
-    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(cs_float));
      if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&aout[nsmps], '\0', early*sizeof(cs_float));
     }
    for (i=offset;i<nsmps;i++) {
 
         /* Estimates the current power level */
 
       power -= *powerPos;
-      *powerPos = FABS(ain[i])/(MYFLT)(POWER_BUFSIZE*ROOT2);
+      *powerPos = FABS(ain[i])/(cs_float)(POWER_BUFSIZE*ROOT2);
       power    += (*powerPos++);
       if ((powerPos-powerBuffer)==POWER_BUFSIZE) {
         powerPos = p->powerBuffer;

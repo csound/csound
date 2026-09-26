@@ -23,7 +23,7 @@
 #include "csoundCore.h"
 #include "arrays.h"
 
-MYFLT MOD(MYFLT a, MYFLT bb);
+cs_float MOD(cs_float a, cs_float bb);
 
 typedef struct {
   OPDS    h;
@@ -33,13 +33,13 @@ typedef struct {
 typedef struct {
   OPDS    h;
   ARRAYDAT* arrayDat;
-  MYFLT   *isizes[VARGMAX];
+  cs_float   *isizes[VARGMAX];
 } ARRAYINIT;
 
 typedef struct {
   OPDS    h;
   ARRAYDAT* ans;
-  MYFLT   *iargs[VARGMAX];
+  cs_float   *iargs[VARGMAX];
 } TABFILL;
 
 typedef struct {
@@ -52,14 +52,14 @@ typedef struct {
   OPDS    h;
   ARRAYDAT* arrayDat;
   void    *value;
-  MYFLT   *indexes[VARGMAX];
+  cs_float   *indexes[VARGMAX];
 } ARRAY_SET;
 
 typedef struct {
   OPDS    h;
-  MYFLT*   out;
+  cs_float*   out;
   ARRAYDAT* arrayDat;
-  MYFLT   *indexes[VARGMAX];
+  cs_float   *indexes[VARGMAX];
 } ARRAY_GET;
 
 typedef struct {
@@ -70,13 +70,13 @@ typedef struct {
 typedef struct {
   OPDS h;
   ARRAYDAT *ans, *left;
-  MYFLT *right;
+  cs_float *right;
 } TABARITH1;
 
 typedef struct {
   OPDS h;
   ARRAYDAT *ans;
-  MYFLT *left;
+  cs_float *left;
   ARRAYDAT *right;
 } TABARITH2;
 
@@ -89,41 +89,41 @@ typedef struct {
 typedef struct {
   OPDS h;
   ARRAYDAT *ans;
-  MYFLT *right;
+  cs_float *right;
 } TABARITHIN1;
 
 typedef struct {
   OPDS h;
-  MYFLT  *ans, *pos;
+  cs_float  *ans, *pos;
   ARRAYDAT *tab;
 } TABQUERY;
 
 typedef struct {
   OPDS h;
-  MYFLT  *ans;
+  cs_float  *ans;
   ARRAYDAT *tab;
-  MYFLT  *opt;
+  cs_float  *opt;
 } TABQUERY1;
 
 typedef struct {
   OPDS h;
   ARRAYDAT *tab;
-  MYFLT  *kfn;
+  cs_float  *kfn;
 } TABCOPY;
 
 typedef struct {
   OPDS h;
   ARRAYDAT *tab;
-  MYFLT  *kfn;
-  MYFLT  *offset;
+  cs_float  *kfn;
+  cs_float  *offset;
 } TABCOPY2;
 
 
 typedef struct {
   OPDS h;
   ARRAYDAT *tab;
-  MYFLT  *kmin, *kmax;
-  MYFLT  *kstart, *kend;
+  cs_float  *kmin, *kmax;
+  cs_float  *kstart, *kend;
 } TABSCALE;
 
 typedef struct {
@@ -141,20 +141,20 @@ typedef struct {
 typedef struct {
   OPDS h;
   ARRAYDAT *tab;
-  MYFLT *start, *end, *incr;
+  cs_float *start, *end, *incr;
   int32_t    len;
 } TABGEN;
 
 typedef struct {
   OPDS h;
   ARRAYDAT  *tab;
-  MYFLT     *size;
+  cs_float     *size;
 } TRIM;
 
 typedef struct {
   OPDS h;
   ARRAYDAT *tab, *tabin;
-  MYFLT    *start, *end, *inc;
+  cs_float    *start, *end, *inc;
   int32_t   len;
 } TABSLICE;
 
@@ -169,12 +169,12 @@ typedef struct {
 typedef struct {
   OPDS h;
   ARRAYDAT *res;
-  MYFLT *asig;
+  cs_float *asig;
 } A2ARR;
 
 typedef struct {
   OPDS h;
-  MYFLT *asig;
+  cs_float *asig;
   ARRAYDAT *karr;
 } ARR2A;
 

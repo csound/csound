@@ -187,7 +187,7 @@ unsigned long djb2_hash(unsigned char *str) {
  */
 struct EventBlock {
   EVTBLK evtblk;
-  std::vector<MYFLT> pfields;
+  std::vector<cs_float> pfields;
   unsigned long strarg_djb2_hash;
 
   explicit EventBlock(size_t pfieldCount)
@@ -241,7 +241,7 @@ bool operator<(const EventBlock &a, const EventBlock &b) {
 
 struct Connection {
   std::string sourceOutletId;
-  MYFLT gain; // i-rate linear amplitude; default 1
+  cs_float gain; // i-rate linear amplitude; default 1
 };
 
 struct FsigSourceFrameState {
@@ -276,11 +276,11 @@ struct SignalFlowGraphState {
   std::vector<std::vector<std::vector<Outletkid *> *> *> kidoutletVectors;
   // Gain vectors are heap-pooled like sourceOutlets: opcode structs are
   // zeroed raw memory and must not own std::vector by value.
-  std::vector<std::vector<MYFLT> *> againVectors;
-  std::vector<std::vector<MYFLT> *> kgainVectors;
-  std::vector<std::vector<MYFLT> *> fgainVectors;
-  std::vector<std::vector<MYFLT> *> vgainVectors;
-  std::vector<std::vector<MYFLT> *> kidgainVectors;
+  std::vector<std::vector<cs_float> *> againVectors;
+  std::vector<std::vector<cs_float> *> kgainVectors;
+  std::vector<std::vector<cs_float> *> fgainVectors;
+  std::vector<std::vector<cs_float> *> vgainVectors;
+  std::vector<std::vector<cs_float> *> kidgainVectors;
   SignalFlowGraphState(CSOUND *csound_) {
     csound = csound_;
     nextFoutletGeneration = 0;
@@ -301,15 +301,15 @@ struct SignalFlowGraphState {
       delete *it;
     for (std::vector<std::vector<std::vector<Outletkid *> *> *>::iterator it = kidoutletVectors.begin(), end = kidoutletVectors.end(); it != end; it++)
       delete *it;
-    for (std::vector<std::vector<MYFLT> *>::iterator it = againVectors.begin(), end = againVectors.end(); it != end; it++)
+    for (std::vector<std::vector<cs_float> *>::iterator it = againVectors.begin(), end = againVectors.end(); it != end; it++)
       delete *it;
-    for (std::vector<std::vector<MYFLT> *>::iterator it = kgainVectors.begin(), end = kgainVectors.end(); it != end; it++)
+    for (std::vector<std::vector<cs_float> *>::iterator it = kgainVectors.begin(), end = kgainVectors.end(); it != end; it++)
       delete *it;
-    for (std::vector<std::vector<MYFLT> *>::iterator it = fgainVectors.begin(), end = fgainVectors.end(); it != end; it++)
+    for (std::vector<std::vector<cs_float> *>::iterator it = fgainVectors.begin(), end = fgainVectors.end(); it != end; it++)
       delete *it;
-    for (std::vector<std::vector<MYFLT> *>::iterator it = vgainVectors.begin(), end = vgainVectors.end(); it != end; it++)
+    for (std::vector<std::vector<cs_float> *>::iterator it = vgainVectors.begin(), end = vgainVectors.end(); it != end; it++)
       delete *it;
-    for (std::vector<std::vector<MYFLT> *>::iterator it = kidgainVectors.begin(), end = kidgainVectors.end(); it != end; it++)
+    for (std::vector<std::vector<cs_float> *>::iterator it = kidgainVectors.begin(), end = kidgainVectors.end(); it != end; it++)
       delete *it;
 
     aoutletsForSourceOutletIds.clear();
@@ -346,7 +346,7 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
    * Inputs.
    */
   STRINGDAT *Sname;
-  MYFLT *asignal;
+  cs_float *asignal;
   /**
    * State.
    */
@@ -394,7 +394,7 @@ struct Inleta : public OpcodeBase<Inleta> {
   /**
    * Output.
    */
-  MYFLT *asignal;
+  cs_float *asignal;
   /**
    * Inputs.
    */
@@ -404,7 +404,7 @@ struct Inleta : public OpcodeBase<Inleta> {
    */
   char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outleta *> *> *sourceOutlets;
-  std::vector<MYFLT> *sourceGains;
+  std::vector<cs_float> *sourceGains;
   int32_t sampleN;
   SignalFlowGraphState *sfg_globals;
   int32_t init(CSOUND *csound) {
@@ -419,7 +419,7 @@ struct Inleta : public OpcodeBase<Inleta> {
                   sfg_globals->aoutletVectors.end(),
                   sourceOutlets) == sfg_globals->aoutletVectors.end()) {
       sourceOutlets = new std::vector<std::vector<Outleta *> *>;
-      sourceGains = new std::vector<MYFLT>;
+      sourceGains = new std::vector<cs_float>;
       sfg_globals->aoutletVectors.push_back(sourceOutlets);
       sfg_globals->againVectors.push_back(sourceGains);
     } else {
@@ -481,7 +481,7 @@ struct Inleta : public OpcodeBase<Inleta> {
          sourceI++) {
       // Loop over the source connection instances...
       std::vector<Outleta *> *instances = sourceOutlets->at(sourceI);
-      MYFLT gain = sourceGains->at(sourceI);
+      cs_float gain = sourceGains->at(sourceI);
       for (size_t instanceI = 0, instanceN = instances->size();
            instanceI < instanceN; instanceI++) {
         Outleta *sourceOutlet = instances->at(instanceI);
@@ -504,7 +504,7 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
    * Inputs.
    */
   STRINGDAT *Sname;
-  MYFLT *ksignal;
+  cs_float *ksignal;
   /**
    * State.
    */
@@ -549,7 +549,7 @@ struct Inletk : public OpcodeBase<Inletk> {
   /**
    * Output.
    */
-  MYFLT *ksignal;
+  cs_float *ksignal;
   /**
    * Inputs.
    */
@@ -559,7 +559,7 @@ struct Inletk : public OpcodeBase<Inletk> {
    */
   char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outletk *> *> *sourceOutlets;
-  std::vector<MYFLT> *sourceGains;
+  std::vector<cs_float> *sourceGains;
   int32_t ksmps;
   SignalFlowGraphState *sfg_globals;
   int32_t init(CSOUND *csound) {
@@ -570,7 +570,7 @@ struct Inletk : public OpcodeBase<Inletk> {
                   sfg_globals->koutletVectors.end(),
                   sourceOutlets) == sfg_globals->koutletVectors.end()) {
       sourceOutlets = new std::vector<std::vector<Outletk *> *>;
-      sourceGains = new std::vector<MYFLT>;
+      sourceGains = new std::vector<cs_float>;
       sfg_globals->koutletVectors.push_back(sourceOutlets);
       sfg_globals->kgainVectors.push_back(sourceGains);
     } else {
@@ -627,7 +627,7 @@ struct Inletk : public OpcodeBase<Inletk> {
          sourceI++) {
       // Loop over the source connection instances...
       const std::vector<Outletk *> *instances = sourceOutlets->at(sourceI);
-      MYFLT gain = sourceGains->at(sourceI);
+      cs_float gain = sourceGains->at(sourceI);
       for (size_t instanceI = 0, instanceN = instances->size();
            instanceI < instanceN; instanceI++) {
         const Outletk *sourceOutlet = instances->at(instanceI);
@@ -703,7 +703,7 @@ struct Inletf : public OpcodeBase<Inletf> {
    */
   char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outletf *> *> *sourceOutlets;
-  std::vector<MYFLT> *sourceGains;
+  std::vector<cs_float> *sourceGains;
   int32_t ksmps;
   uint32_t lastframe;
   bool fsignalInitialized;
@@ -719,7 +719,7 @@ struct Inletf : public OpcodeBase<Inletf> {
                   sfg_globals->foutletVectors.end(),
                   sourceOutlets) == sfg_globals->foutletVectors.end()) {
       sourceOutlets = new std::vector<std::vector<Outletf *> *>;
-      sourceGains = new std::vector<MYFLT>;
+      sourceGains = new std::vector<cs_float>;
       sfg_globals->foutletVectors.push_back(sourceOutlets);
       sfg_globals->fgainVectors.push_back(sourceGains);
     } else {
@@ -836,9 +836,9 @@ struct Inletf : public OpcodeBase<Inletf> {
           if (sourceOutlet->fsignal->sliding) {
             if (fsignal->frame.auxp == 0 ||
                 fsignal->frame.size <
-                    sizeof(MYFLT) * opds.insdshead->ksmps * (N + 2))
+                    sizeof(cs_float) * opds.insdshead->ksmps * (N + 2))
               csound->AuxAlloc(
-                  csound, (N + 2) * sizeof(MYFLT) * opds.insdshead->ksmps,
+                  csound, (N + 2) * sizeof(cs_float) * opds.insdshead->ksmps,
                   &fsignal->frame);
             fsignal->NB = sourceOutlet->fsignal->NB;
             fsignal->sliding = 1;
@@ -968,7 +968,7 @@ struct Inletv : public OpcodeBase<Inletv> {
    */
   char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outletv *> *> *sourceOutlets;
-  std::vector<MYFLT> *sourceGains;
+  std::vector<cs_float> *sourceGains;
   size_t arraySize;
   size_t myFltsPerArrayElement;
   int32_t sampleN;
@@ -978,8 +978,8 @@ struct Inletv : public OpcodeBase<Inletv> {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     sampleN = opds.insdshead->ksmps;
-    // The array elements may be krate (1 MYFLT) or arate (ksmps MYFLT).
-    myFltsPerArrayElement = vsignal->arrayMemberSize / sizeof(MYFLT);
+    // The array elements may be krate (1 cs_float) or arate (ksmps cs_float).
+    myFltsPerArrayElement = vsignal->arrayMemberSize / sizeof(cs_float);
     warn(csound, "myFltsPerArrayElement: %d\n", myFltsPerArrayElement);
     arraySize = myFltsPerArrayElement;
     for (size_t dimension = 0; dimension < (size_t)vsignal->dimensions;
@@ -992,7 +992,7 @@ struct Inletv : public OpcodeBase<Inletv> {
                   sfg_globals->voutletVectors.end(),
                   sourceOutlets) == sfg_globals->voutletVectors.end()) {
       sourceOutlets = new std::vector<std::vector<Outletv *> *>;
-      sourceGains = new std::vector<MYFLT>;
+      sourceGains = new std::vector<cs_float>;
       sfg_globals->voutletVectors.push_back(sourceOutlets);
       sfg_globals->vgainVectors.push_back(sourceGains);
     } else {
@@ -1055,7 +1055,7 @@ struct Inletv : public OpcodeBase<Inletv> {
          sourceI++) {
       // Loop over the source connection instances...
       std::vector<Outletv *> *instances = sourceOutlets->at(sourceI);
-      MYFLT gain = sourceGains->at(sourceI);
+      cs_float gain = sourceGains->at(sourceI);
       for (size_t instanceI = 0, instanceN = instances->size();
            instanceI < instanceN; instanceI++) {
         Outletv *sourceOutlet = instances->at(instanceI);
@@ -1063,7 +1063,7 @@ struct Inletv : public OpcodeBase<Inletv> {
         if (sourceOutlet->opds.insdshead->actflg) {
           for (uint32_t signalI = 0; signalI < arraySize; ++signalI) {
             ARRAYDAT *insignal = sourceOutlet->vsignal;
-            MYFLT *indata = insignal->data;
+            cs_float *indata = insignal->data;
             // warn(csound, "Inletv::audio: sourceOutlet: 0%x in arraydat: 0x%x
             // data: 0x%x (0x%x)\n", sourceOutlet, insignal, indata,
             // &insignal->data);
@@ -1083,7 +1083,7 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
    */
   STRINGDAT *Sname;
   STRINGDAT *SinstanceId;
-  MYFLT *ksignal;
+  cs_float *ksignal;
   /**
    * State.
    */
@@ -1137,7 +1137,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
   /**
    * Output.
    */
-  MYFLT *ksignal;
+  cs_float *ksignal;
   /**
    * Inputs.
    */
@@ -1149,7 +1149,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
   char sinkInletId[MAX_STRING];
   char *instanceId;
   std::vector<std::vector<Outletkid *> *> *sourceOutlets;
-  std::vector<MYFLT> *sourceGains;
+  std::vector<cs_float> *sourceGains;
   int32_t ksmps;
   SignalFlowGraphState *sfg_globals;
   int32_t init(CSOUND *csound) {
@@ -1160,7 +1160,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
                   sfg_globals->kidoutletVectors.end(),
                   sourceOutlets) == sfg_globals->kidoutletVectors.end()) {
       sourceOutlets = new std::vector<std::vector<Outletkid *> *>;
-      sourceGains = new std::vector<MYFLT>;
+      sourceGains = new std::vector<cs_float>;
       sfg_globals->kidoutletVectors.push_back(sourceOutlets);
       sfg_globals->kidgainVectors.push_back(sourceGains);
     } else {
@@ -1219,7 +1219,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
          sourceI++) {
       // Loop over the source connection instances...
       const std::vector<Outletkid *> *instances = sourceOutlets->at(sourceI);
-      MYFLT gain = sourceGains->at(sourceI);
+      cs_float gain = sourceGains->at(sourceI);
       for (size_t instanceI = 0, instanceN = instances->size();
            instanceI < instanceN; instanceI++) {
         const Outletkid *sourceOutlet = instances->at(instanceI);
@@ -1239,11 +1239,11 @@ struct Connect : public OpcodeBase<Connect> {
   /**
    * Inputs.
    */
-  MYFLT *Source;
+  cs_float *Source;
   STRINGDAT *Soutlet;
-  MYFLT *Sink;
+  cs_float *Sink;
   STRINGDAT *Sinlet;
-  MYFLT *gain;
+  cs_float *gain;
   SignalFlowGraphState *sfg_globals;
   int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
@@ -1278,11 +1278,11 @@ struct Connecti : public OpcodeBase<Connecti> {
   /**
    * Inputs.
    */
-  MYFLT *Source;
+  cs_float *Source;
   STRINGDAT *Soutlet;
   STRINGDAT *Sink;
   STRINGDAT *Sinlet;
-  MYFLT *gain;
+  cs_float *gain;
   SignalFlowGraphState *sfg_globals;
   int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
@@ -1316,9 +1316,9 @@ struct Connectii : public OpcodeBase<Connectii> {
    */
   STRINGDAT *Source;
   STRINGDAT *Soutlet;
-  MYFLT *Sink;
+  cs_float *Sink;
   STRINGDAT *Sinlet;
-  MYFLT *gain;
+  cs_float *gain;
   SignalFlowGraphState *sfg_globals;
   int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
@@ -1354,7 +1354,7 @@ struct ConnectS : public OpcodeBase<ConnectS> {
   STRINGDAT *Soutlet;
   STRINGDAT *Sink;
   STRINGDAT *Sinlet;
-  MYFLT *gain;
+  cs_float *gain;
   SignalFlowGraphState *sfg_globals;
   int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
@@ -1384,13 +1384,13 @@ struct AlwaysOnS : public OpcodeBase<AlwaysOnS> {
    * Inputs.
    */
   STRINGDAT *Sinstrument;
-  MYFLT *argums[VARGMAX];
+  cs_float *argums[VARGMAX];
   /**
    * State.
    */
   int32_t init(CSOUND *csound) {
-    MYFLT offset = csound->GetScoreOffsetSeconds(csound);
-    MYFLT p[VARGMAX] = {0};
+    cs_float offset = csound->GetScoreOffsetSeconds(csound);
+    cs_float p[VARGMAX] = {0};
     p[0] = csound->StringArg2Insno(csound, Sinstrument->data, 1);
     p[1] = offset;
     p[2] = FL(-1.0);
@@ -1411,16 +1411,16 @@ struct AlwaysOn : public OpcodeBase<AlwaysOn> {
   /**
    * Inputs.
    */
-  MYFLT *Sinstrument;
-  MYFLT *argums[VARGMAX];
+  cs_float *Sinstrument;
+  cs_float *argums[VARGMAX];
   /**
    * State.
    */
   int32_t init(CSOUND *csound) {
     std::string source =
         csound->StringArg2Name(csound, (char *)0, Sinstrument, (char *)"", (int)0);
-    MYFLT offset = csound->GetScoreOffsetSeconds(csound);
-    MYFLT p[VARGMAX] = {0};
+    cs_float offset = csound->GetScoreOffsetSeconds(csound);
+    cs_float p[VARGMAX] = {0};
     p[0] = *Sinstrument;
     p[1] = offset;
     p[2] = FL(-1.0);
@@ -1441,7 +1441,7 @@ struct AlwaysOn : public OpcodeBase<AlwaysOn> {
 
 typedef struct {
   OPDS h;
-  MYFLT *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX];
+  cs_float *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX];
 } FTGEN;
 
 typedef struct namedgen {
@@ -1518,7 +1518,7 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
   // ifno ftgenonce ipfno, ip2dummy, ip4size, ip5gen, ip6arga, ip7argb,...
   ftevt->opcod = 'f';
   ftevt->strarg = 0;
-  MYFLT *fp = &ftevt->p[0];
+  cs_float *fp = &ftevt->p[0];
   ftevt->p[0] = FL(0.0);
   ftevt->p[1] = *p->p1;
   ftevt->p[2] = ftevt->p2orig = FL(0.0);
@@ -1564,8 +1564,8 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
   ftevt->pcnt = inputArgCount;
   int32_t n = ftevt->pcnt - 5;
   if (n > 0) {
-    MYFLT **argp = p->argums;
-    MYFLT *fp = &ftevt->p[0] + 6;
+    cs_float **argp = p->argums;
+    cs_float *fp = &ftevt->p[0] + 6;
     do {
       if (UNLIKELY(*argp == nullptr)) {
         return csound->InitError(csound, "%s",
@@ -1595,7 +1595,7 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       }
       if (func) {
         sfg_globals->functionTablesForEvtblks[eventBlock] = func->fno;
-        *p->ifno = (MYFLT)func->fno;
+        *p->ifno = (cs_float)func->fno;
         warn(csound, Str("ftgenonce: created new func: %d\n"), func->fno);
         if (sfg_globals->functionTablesForEvtblks.find(eventBlock) ==
             sfg_globals->functionTablesForEvtblks.end()) {
@@ -1740,6 +1740,10 @@ PUBLIC int32_t csoundModuleInit_signalflowgraph(CSOUND *csound) {
   return err;
 }
 #ifdef BUILD_PLUGINS
+PUBLIC int32_t csoundModuleInfo(void) {
+  return CSOUND_MODULE_INFO;
+}
+
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   return csoundModuleCreate_signalflowgraph(csound);
 }

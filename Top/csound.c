@@ -84,9 +84,9 @@ void csoundSendMidiMsg(CSOUND *csound, int32_t status,
 
 void allocate_message_queue(CSOUND *csound);
 int32_t playopen_dummy(CSOUND *, const csRtAudioParams *parm);
-void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int32_t nbytes);
+void rtplay_dummy(CSOUND *, const cs_float *outBuf, int32_t nbytes);
 int32_t recopen_dummy(CSOUND *, const csRtAudioParams *parm);
-int32_t rtrecord_dummy(CSOUND *, MYFLT *inBuf, int32_t nbytes);
+int32_t rtrecord_dummy(CSOUND *, cs_float *inBuf, int32_t nbytes);
 void rtclose_dummy(CSOUND *);
 int32_t audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int32_t);
 int32_t midi_dev_list_dummy(CSOUND *, CS_MIDIDEVICE *, int32_t);
@@ -100,22 +100,22 @@ int32_t DummyMidiWrite(CSOUND *csound, void *userData, const unsigned char *buf,
                        int32_t nbytes);
 void csound_init_rand(CSOUND *);
 
-static void set_util_sr(CSOUND *csound, MYFLT sr);
+static void set_util_sr(CSOUND *csound, cs_float sr);
 static void set_util_nchnls(CSOUND *csound, int32_t nchnls);
 static int32_t csoundDeprecate(CSOUND *csound, char *name,
                                char *o, char *i, int32_t deprec);
 void memreset(CSOUND *);
-MYFLT csoundPow2(CSOUND *csound, MYFLT a);
+cs_float csoundPow2(CSOUND *csound, cs_float a);
 int32_t csoundInitStaticModules(CSOUND *);
 void close_all_files(CSOUND *);
 void csoundInputMessage(CSOUND *csound, const char *message);
-int32_t isstrcod(MYFLT);
+int32_t isstrcod(cs_float);
 int32_t csoundFtError(const FGDATA *ff, const char *s, ...);
 void csound_aops_init_tables(CSOUND *cs);
 void csoundDeleteAllGlobalVariables(CSOUND *csound);
 void (*msgcallback_)(CSOUND *, int32_t, const char *, va_list) = NULL;
 void *csoundDCTSetup(CSOUND *csound, int32_t FFTsize, int32_t d);
-void csoundDCT(CSOUND *csound, void *p, MYFLT *sig);
+void csoundDCT(CSOUND *csound, void *p, cs_float *sig);
 void message_dequeue(CSOUND *csound);
 int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async);
 int32_t csound_compile_orc(CSOUND *csound, const char *str,
@@ -157,7 +157,7 @@ static uint32_t csoundGetNchnlsInput(CSOUND *csound) {
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound) {
   return csound->engineState.instrtxtp;
 }
-static void set_util_sr(CSOUND *csound, MYFLT sr) {
+static void set_util_sr(CSOUND *csound, cs_float sr) {
   csound->esr = sr;
 }
 static void set_util_nchnls(CSOUND *csound, int32_t nchnls) {
@@ -269,7 +269,7 @@ static void free_opcode_table(CSOUND *csound) {
     as in csound->ReadScore() and csound->InputMessage()
  */
 static void csoundEvent_(CSOUND *csound, int32_t type,
-                         const MYFLT *pfields, int32_t pnum) {
+                         const cs_float *pfields, int32_t pnum) {
   csoundEvent(csound, type, pfields, pnum, 0);
 }
 
@@ -331,7 +331,7 @@ static int32_t csoundGetTieFlag(CSOUND *csound) {
   return csound->tieflag;
 }
 
-MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
+cs_float csoundSystemSr(CSOUND *csound, cs_float val) {
   if (val > 0)
     csound->_system_sr = val;
   return csound->_system_sr;
@@ -379,7 +379,7 @@ static const CSOUND cenviron_ = {
     csoundGetInputBufferSize,
     csoundGetOutputBufferSize,
     csoundGetDebug,
-    csoundGetSizeOfMYFLT,
+    { csoundGetSizeOfCsFloat },
     csoundGetParams,
     csoundGetEnv,
     csoundSystemSr,
@@ -641,8 +641,8 @@ static const CSOUND cenviron_ = {
   (void (*)(CSOUND *csound, int32_t attr, const char *str)) NULL,/* message string callback */
   (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
   (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
-  (int32_t (*)(CSOUND *, MYFLT *, int32_t)) NULL,         /*  audrecv     */
-  (void (*)(CSOUND *, const MYFLT *, int32_t)) NULL,  /*  audtran     */
+  (int32_t (*)(CSOUND *, cs_float *, int32_t)) NULL,         /*  audrecv     */
+  (void (*)(CSOUND *, const cs_float *, int32_t)) NULL,  /*  audtran     */
   NULL,           /*  hostdata            */
   NULL, NULL,     /*  orchname, scorename */
   0, NULL,        /*  command line args   */
@@ -858,7 +858,7 @@ static const CSOUND cenviron_ = {
   NULL,           /*  FFT_table_1         */
   NULL,           /*  FFT_table_2         */
   NULL, NULL, NULL, /* tseg, tpsave, unused */
-  (MYFLT*) NULL,  /*  gbloffbas           */
+  (cs_float*) NULL,  /*  gbloffbas           */
   NULL,           /* file_io_thread    */
   0,              /* file_io_start   */
   NULL,           /* file_io_threadlock */
@@ -990,7 +990,7 @@ static const CSOUND cenviron_ = {
   1000,           /*  ugens4_rand_16      */
   1000,           /*  ugens4_rand_15      */
   NULL,           /*  schedule_kicked     */
-  (MYFLT*) NULL,  /*  disprep_fftcoefs    */
+  (cs_float*) NULL,  /*  disprep_fftcoefs    */
   NULL,           /*  winEPS_globals      */
   {               /*  oparms_             */
     0,            /*    odebug            */
@@ -1576,7 +1576,7 @@ int32_t csoundCompileTree(CSOUND *csound, TREE *root, int32_t async) {
   return csound_compile_orc(csound, str, async);
 }
 
-MYFLT csoundEvalCode(CSOUND *csound, const char *str)
+cs_float csoundEvalCode(CSOUND *csound, const char *str)
 {
   int32_t async = 0;
   if (str && csound_compile_orc(csound,str,async)
@@ -1602,11 +1602,11 @@ MYFLT csoundEvalCode(CSOUND *csound, const char *str)
   return csound->icurTimeSamples;
 }
 
- MYFLT csoundGetSr(CSOUND *csound) {
+ cs_float csoundGetSr(CSOUND *csound) {
   return csound->esr;
 }
 
- MYFLT csoundGetKr(CSOUND *csound) {
+ cs_float csoundGetKr(CSOUND *csound) {
   return csound->ekr;
 }
 
@@ -1614,7 +1614,7 @@ MYFLT csoundEvalCode(CSOUND *csound, const char *str)
   return csound->ksmps;
 }
 
- MYFLT csoundGet0dBFS(CSOUND *csound) {
+ cs_float csoundGet0dBFS(CSOUND *csound) {
   return csound->e0dbfs;
 }
 
@@ -1622,19 +1622,19 @@ uint64_t csoundGetKcounter(CSOUND *csound) {
   return csound->kcounter;
 }
 
- MYFLT csoundGetA4(CSOUND *csound) {
-  return (MYFLT)csound->A4;
+ cs_float csoundGetA4(CSOUND *csound) {
+  return (cs_float)csound->A4;
 }
 
  int32_t csoundErrCnt(CSOUND *csound) {
   return csound->perferrcnt;
 }
 
- MYFLT *csoundGetSpin(CSOUND *csound) {
+ cs_float *csoundGetSpin(CSOUND *csound) {
   return csound->spin;
 }
 
- const MYFLT *csoundGetSpout(CSOUND *csound) {
+ const cs_float *csoundGetSpout(CSOUND *csound) {
   return csound->spout;
 }
 
@@ -2191,7 +2191,7 @@ static void reset(CSOUND *csound) {
                                         "(no spaces)"),
                                     NULL);
   {
-    MYFLT minValF = FL(0.0);
+    cs_float minValF = FL(0.0);
 
     csoundCreateConfigurationVariable(csound, "msg_color",
                                       &(csound->enableMsgAttr),
@@ -2357,10 +2357,18 @@ void csoundNotifyFileOpened(CSOUND *csound, const char *pathname,
 }
 
 /**
- * Return the size of MYFLT in bytes.
+ * Return the size of cs_float in bytes.
  */
+int32_t csoundGetSizeOfCsFloat(void) {
+  return (int32_t)sizeof(cs_float);
+}
+
+int32_t csoundGetSizeOfCsDouble(void) {
+  return (int32_t)sizeof(cs_double);
+}
+
 int32_t csoundGetSizeOfMYFLT(void) {
-  return (int32_t)sizeof(MYFLT);
+  return csoundGetSizeOfCsFloat();
 }
 
 /**
@@ -2429,10 +2437,10 @@ int32_t csoundSetReleaseLength(void *p, int32_t n) {
  * it is not changed.
  * Returns the new release time in seconds.
  */
-MYFLT csoundSetReleaseLengthSeconds(void *p, MYFLT n) {
+cs_float csoundSetReleaseLengthSeconds(void *p, cs_float n) {
   int32_t kcnt = (int32_t)(n * ((OPDS *)p)->insdshead->csound->ekr + FL(0.5));
   if (kcnt > (int32_t)((OPDS *)p)->insdshead->xtratim)
     ((OPDS *)p)->insdshead->xtratim = kcnt;
-  return ((MYFLT)((OPDS *)p)->insdshead->xtratim *
+  return ((cs_float)((OPDS *)p)->insdshead->xtratim *
           ((OPDS *)p)->insdshead->csound->onedkr);
 }

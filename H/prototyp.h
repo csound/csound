@@ -128,18 +128,18 @@ extern "C" {
   int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
   int32_t insert_event(CSOUND *, int32_t,  EVTBLK*);
   void free_inactive_instances(CSOUND*);
-  void beat_expire(CSOUND *, double);
-  void time_expire(CSOUND *, double);
-  int32_t insert_event_at_sample(CSOUND *, const EVTBLK *, const MYFLT *, int64_t);
+  void beat_expire(CSOUND *, cs_double);
+  void time_expire(CSOUND *, cs_double);
+  int32_t insert_event_at_sample(CSOUND *, const EVTBLK *, const cs_float *, int64_t);
   MEMFIL *csoundLoadMemoryfile(CSOUND *csound, const char *filnam, int32_t csFileType,
                                int32_t (*callback)(CSOUND*, MEMFIL*));
   void    free_memfiles(CSOUND *);
   int32_t  delete_memfile(CSOUND *, const char *);
   char    *csoundTmpFileName(CSOUND *, const char *);
-  void    *SAsndgetset(CSOUND *, char *, void *, MYFLT *, MYFLT *, MYFLT *, int32_t);
-  int32_t getsndin(CSOUND *, void *, MYFLT *, int32_t, void *);
+  void    *SAsndgetset(CSOUND *, char *, void *, cs_float *, cs_float *, cs_float *, int32_t);
+  int32_t getsndin(CSOUND *, void *, cs_float *, int32_t, void *);
   void    *sndgetset(CSOUND *, void *);
-  void    dbfs_init(CSOUND *, MYFLT dbfs);
+  void    dbfs_init(CSOUND *, cs_float dbfs);
   int32_t csoundLoadExternals(CSOUND *);
   SNDMEMFILE *csoundLoadSoundFile(CSOUND *, const char *name, void *sfinfo);
   int32_t csoundPVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
@@ -150,7 +150,7 @@ extern "C" {
   int32_t csoundCheckOpcodePluginFile(CSOUND *, const char *);
   int32_t csoundLoadAndInitModule(CSOUND *, const char *);
   void    csoundNotifyFileOpened(CSOUND *, const char *, int32_t, int32_t, int32_t);
-  char *csoundGetArgString(CSOUND *, MYFLT);
+  char *csoundGetArgString(CSOUND *, cs_float);
   void    linevent_open(CSOUND *);
   void    linevent_close(CSOUND *);
   void    sf_open_in(CSOUND *);
@@ -165,7 +165,7 @@ extern "C" {
   void    m_chn_init_all(CSOUND *);
   void    print_csound_version(CSOUND*);
   int32_t realtset(CSOUND *, SRTBLK *);
-  MYFLT   realt(CSOUND *, MYFLT);
+  cs_float   realt(CSOUND *, cs_float);
   uintptr_t event_insert_thread(void *);
   int32_t sens_midi(CSOUND *);
   void sort(CSOUND*);
@@ -244,7 +244,7 @@ int32_t csoundSetReleaseLength(void *p, int32_t n);
  * it is not changed.
  * Returns the new release time in seconds.
  */
-MYFLT csoundSetReleaseLengthSeconds(void *p, MYFLT n);
+cs_float csoundSetReleaseLengthSeconds(void *p, cs_float n);
 
 
 
@@ -299,11 +299,11 @@ int32_t csoundDeleteAllConfigurationVariables(CSOUND *);
 #ifdef __cplusplus
 extern "C" {
 #endif
-int64_t csoundSndfileWrite(CSOUND *csound, void *h, MYFLT *p, int64_t frames);
-int64_t csoundSndfileRead(CSOUND *csound, void *h, MYFLT *p, int64_t frames);
-int64_t csoundSndfileWriteSamples(CSOUND *csound, void *h, MYFLT *p,
+int64_t csoundSndfileWrite(CSOUND *csound, void *h, cs_float *p, int64_t frames);
+int64_t csoundSndfileRead(CSOUND *csound, void *h, cs_float *p, int64_t frames);
+int64_t csoundSndfileWriteSamples(CSOUND *csound, void *h, cs_float *p,
                                   int64_t samples);
-int64_t csoundSndfileReadSamples(CSOUND *csound, void *h, MYFLT *p,
+int64_t csoundSndfileReadSamples(CSOUND *csound, void *h, cs_float *p,
                                  int64_t samples);
 int64_t csoundSndfileSeek(CSOUND *csound, void *h, int64_t frames,
                           int32_t whence);

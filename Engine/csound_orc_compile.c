@@ -53,7 +53,7 @@ static void debug_print(CSOUND *csound);
 static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
                                  ENGINE_STATE *engineState, int32_t merge);
 
-MYFLT initialise_io(CSOUND *csound);
+cs_float initialise_io(CSOUND *csound);
 int32_t merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
                             OPDS *ids);
 OENTRY* find_opcode(CSOUND*, char*);
@@ -274,9 +274,9 @@ static void verify_array_read_phases(CSOUND *csound,
 #undef FLOAT_COMPARE
 #endif
 #ifdef USE_DOUBLE
-#define FLOAT_COMPARE(x, y) (fabs((double)(x) / (double)(y)-1.0) > 1.0e-12)
+#define FLOAT_COMPARE(x, y) (fabs((cs_double)(x) / (cs_double)(y)-1.0) > 1.0e-12)
 #else
-#define FLOAT_COMPARE(x, y) (fabs((double)(x) / (double)(y)-1.0) > 5.0e-7)
+#define FLOAT_COMPARE(x, y) (fabs((cs_double)(x) / (cs_double)(y)-1.0) > 5.0e-7)
 #endif
 
 static char *strsav_string(CSOUND *csound, ENGINE_STATE *engineState,
@@ -781,7 +781,7 @@ CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
 }
 
 void *find_or_add_constant(CSOUND *csound, CS_HASH_TABLE *constantsPool,
-                           const char *name, MYFLT value) {
+                           const char *name, cs_float value) {
   void *retVal = cs_hash_table_get(csound, constantsPool, (char *)name);
   if (retVal == NULL) {
     CS_VAR_MEM *memValue = csound->Calloc(csound, sizeof(CS_VAR_MEM));
@@ -804,10 +804,10 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   INSTRTXT *ip;
   OPTXT *op;
   TREE *current;
-  MYFLT sr = FL(-1.0), kr = FL(-1.0), ksmps = FL(-1.0), nchnls = DFLT_NCHNLS,
+  cs_float sr = FL(-1.0), kr = FL(-1.0), ksmps = FL(-1.0), nchnls = DFLT_NCHNLS,
     inchnls = -FL(1.0), _0dbfs = FL(-1.0);
   int32_t krdef = 0; //, ksmpsdef = 0, srdef = 0;
-  double A4 = 0.0;
+  cs_double A4 = 0.0;
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
   OPARMS *O = csound->oparms;
 
@@ -885,7 +885,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
              strcmp(lhs, "A4") == 0)) {
           /* Validate rhs is numeric */
           char* endptr = NULL;
-          MYFLT val = (MYFLT) csoundStrtod((char *) rhs, &endptr);
+          cs_float val = (cs_float) csoundStrtod((char *) rhs, &endptr);
           if (endptr == rhs || *endptr != '\0') {
             csoundDie(csound, Str("System constant %s must be assigned a numeric value, got: %s"), lhs, rhs);
           }
@@ -938,7 +938,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       sr = csound->oparms->sr_default;//   DFLT_SR;
     if (kr == FL(-1.0))
       kr = csound->oparms->kr_default;//  DFLT_KR;
-    ksmps = (MYFLT)((int)(sr / kr + FL(0.5)));
+    ksmps = (cs_float)((int)(sr / kr + FL(0.5)));
     kr = sr / ksmps; /* VL - avoid inconsistency */
   } else if (kr == FL(-1.0)) {
     if (sr == FL(-1.0))
@@ -960,7 +960,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     if (UNLIKELY(ksmps <= FL(0.0)))
       synterr(p, Str("%s invalid number of samples"), err_msg);
     else if (UNLIKELY(ksmps < FL(0.75) ||
-                      FLOAT_COMPARE(ksmps, MYFLT2LRND(ksmps)))) {
+                      FLOAT_COMPARE(ksmps, CS_FLOAT2LRND(ksmps)))) {
       /* VL 14/11/18: won't fail but correct values to make ksmps integral */
       csound->Warning(p, Str("%s invalid ksmps value, needs to be integral."),
                       err_msg);
@@ -970,7 +970,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                       "sr = %.7g, kr = %.7g, ksmps = %.7g", sr, kr,
                       ksmps);
     }
-    else if (UNLIKELY(FLOAT_COMPARE(sr, (double)kr * ksmps)
+    else if (UNLIKELY(FLOAT_COMPARE(sr, (cs_double)kr * ksmps)
                       && !(O->ksmps_override || O->sr_override ||
                            O->kr_override)))
       synterr(p, Str("%s inconsistent sr, kr, ksmps\n"), err_msg);
@@ -1014,7 +1014,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 				(O->infilename &&
 				 !strncmp(O->infilename, "adc",3)))
      ) {
-    MYFLT tmp_sr = csound->esr;
+    cs_float tmp_sr = csound->esr;
     if(O->outformat == 0){
       O->outformat = AE_SHORT;
     }
@@ -1063,14 +1063,14 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
   if (O->sr_override || O->kr_override ||
       O->ksmps_override) { /* if command-line overrides, apply now */
-    MYFLT ensmps;
+    cs_float ensmps;
 
     if (!O->ksmps_override) {
-      csound->esr = (MYFLT)(O->sr_override ? O->sr_override : csound->esr);
+      csound->esr = (cs_float)(O->sr_override ? O->sr_override : csound->esr);
       if (krdef) {
-        csound->ekr = (MYFLT)(O->kr_override ? O->kr_override : csound->ekr);
+        csound->ekr = (cs_float)(O->kr_override ? O->kr_override : csound->ekr);
         csound->ksmps =
-          (int)((ensmps = ((MYFLT)csound->esr / (MYFLT)csound->ekr)) +
+          (int)((ensmps = ((cs_float)csound->esr / (cs_float)csound->ekr)) +
                 FL(0.5));
       } else {
         csound->ekr = csound->esr / csound->ksmps;
@@ -1108,7 +1108,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         csoundDie(csound, Str("%s invalid sample rate"), s);
       if (UNLIKELY(csound->ekr <= FL(0.0)))
         csoundDie(csound, Str("%s invalid control rate"), s);
-      if (UNLIKELY(FLOAT_COMPARE(csound->esr, (double)csound->ekr * ensmps)))
+      if (UNLIKELY(FLOAT_COMPARE(csound->esr, (cs_double)csound->ekr * ensmps)))
         csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
     }
     if(csoundGetDebug(csound) & DEBUG_COMPILER)
@@ -1121,7 +1121,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   csound->mtpdsr = -(csound->tpidsr);     /*    consts         */
   csound->pidsr = PI_F / csound->esr;
   csound->mpidsr = -(csound->pidsr);
-  csound->onedksmps = FL(1.0) / (MYFLT)csound->ksmps;
+  csound->onedksmps = FL(1.0) / (cs_float)csound->ksmps;
   csound->sicvt = FMAXLEN / csound->esr;
   csound->kicvt = FMAXLEN / csound->ekr;
   csound->onedsr = FL(1.0) / csound->esr;
@@ -1342,7 +1342,7 @@ void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT *ip) {
   }
 
   current->nxtop = bp;
-  ip->pextrab = ((n = ip->pmax - 3L) > 0 ? (int)n * sizeof(MYFLT) : 0);
+  ip->pextrab = ((n = ip->pmax - 3L) > 0 ? (int)n * sizeof(cs_float) : 0);
   ip->pextrab = ((int)ip->pextrab + 7) & (~7);
   ip->muted = 1;
 }
@@ -2747,7 +2747,7 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       }
 
       if (ttp->oentry == pset) {
-        MYFLT *fp1;
+        cs_float *fp1;
         int32_t n;
         ARG *inArgs = ttp->inArgs;
         if (tp->insname) {
@@ -2763,7 +2763,7 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
           if (n < tp->pmax)
             n = tp->pmax; /* cf pset, pmax    */
         }
-        tp->psetdata = (MYFLT *)csound->Calloc(csound, n * sizeof(MYFLT));
+        tp->psetdata = (cs_float *)csound->Calloc(csound, n * sizeof(cs_float));
 
         for (n = 0, fp1 = tp->psetdata; n < (int)ttp->inArgCount;
              n++, inArgs = inArgs->next) {

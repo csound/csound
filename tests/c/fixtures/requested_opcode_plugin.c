@@ -2,8 +2,8 @@
 
 typedef struct {
   OPDS h;
-  MYFLT *output;
-  MYFLT *input;
+  cs_float *output;
+  cs_float *input;
 } REQUESTED_OPCODE;
 
 static int32_t requested_opcode_init(CSOUND *csound, REQUESTED_OPCODE *opcode)

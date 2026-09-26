@@ -31,12 +31,12 @@
 #include <math.h>
 
 typedef struct {
-        MYFLT   *srcp;
+        cs_float   *srcp;
         int32    cntr;
 } PULDAT;
 
 typedef struct {
-        MYFLT   *kfrq;
+        cs_float   *kfrq;
         uint32_t phase, phsinc;
 } VOCDAT;
 
@@ -45,17 +45,17 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *asig, *koct, *kfrq1, *kfrq2;
-        MYFLT   *kfrq3, *kfrq4, *icpsmode, *ilowest, *ipolarity;  //4
-  // or MYFLT   *kfrq3, *icpsmode, *ilowest, *ipolarity, *dummy;  //3
-  // or MYFLT   *icpsmode, *ilowest, *ipolarity, *dummy, *dummy1; //2
+        cs_float   *ar, *asig, *koct, *kfrq1, *kfrq2;
+        cs_float   *kfrq3, *kfrq4, *icpsmode, *ilowest, *ipolarity;  //4
+  // or cs_float   *kfrq3, *icpsmode, *ilowest, *ipolarity, *dummy;  //3
+  // or cs_float   *icpsmode, *ilowest, *ipolarity, *dummy, *dummy1; //2
   //Local
         int32_t nbufsmps, n2bufsmps, period;
         int16   cpsmode, polarity, poslead;
-        MYFLT   prvoct, minoct, sicvt;
-        MYFLT   *bufp, *midp, *inp1, *inp2;
-        MYFLT   *pulsbuf[4], *sigmoid, *curpuls;
-        MYFLT   vocamp, vocinc, ampinc;
+        cs_float   prvoct, minoct, sicvt;
+        cs_float   *bufp, *midp, *inp1, *inp2;
+        cs_float   *pulsbuf[4], *sigmoid, *curpuls;
+        cs_float   vocamp, vocinc, ampinc;
         PULDAT  puldat[PULMAX], *endp, *limp;
         VOCDAT  vocdat[VOCMAX], *vlim;
         int32_t maxprd, pulslen;
@@ -73,8 +73,8 @@ typedef struct {
 /*            p->poslead); */
 /*     printf("prvoct, minoct, sicvt = %f, %f, %f\n", */
 /*             p->prvoct, p->minoct, p->sicvt); */
-/*     //MYFLT   *bufp, *midp, *inp1, *inp2; */
-/*     //MYFLT   *pulsbuf[4], *sigmoid, *curpuls; */
+/*     //cs_float   *bufp, *midp, *inp1, *inp2; */
+/*     //cs_float   *pulsbuf[4], *sigmoid, *curpuls; */
 /*     printf("vocamp, vocinc, ampinc = %f, %f, %f\n", */
 /*            p->vocamp, p->vocinc, p->ampinc); */
 /*     //PULDAT  puldat[PULMAX], *endp, *limp; */
@@ -103,24 +103,24 @@ typedef struct {
 
 static int32_t hm234set(CSOUND *csound, HARM234 *p)
 {
-    MYFLT minoct = p->minoct;
+    cs_float minoct = p->minoct;
     p->hmrngflg = 0;
     /*if (p->auxch.auxp == NULL || minoct < p->minoct ) */ {
-      MYFLT minfrq = POWER(FL(2.0), minoct) * ONEPT;
-      double nsamples = (floor(CS_EKR * 3 / minfrq) + 1.0) * CS_KSMPS;
-      double prdsamples = floor(CS_ESR * 2 / minfrq); /* incl sigmoid ends */
-      double total = nsamples * 2.0 + prdsamples * 4.0 + (SLEN+1);
+      cs_float minfrq = POWER(FL(2.0), minoct) * ONEPT;
+      cs_double nsamples = (floor(CS_EKR * 3 / minfrq) + 1.0) * CS_KSMPS;
+      cs_double prdsamples = floor(CS_ESR * 2 / minfrq); /* incl sigmoid ends */
+      cs_double total = nsamples * 2.0 + prdsamples * 4.0 + (SLEN+1);
       if (UNLIKELY(!(nsamples >= CS_KSMPS && prdsamples >= 2.0 &&
-                     total <= INT32_MAX && total <= SIZE_MAX / sizeof(MYFLT))))
+                     total <= (INT32_MAX + 0.0) && total <= SIZE_MAX / sizeof(cs_float))))
         return csound->InitError(csound, "%s",
                                  Str("harmon234: lowest pitch is out of range"));
       int32_t nbufsmps = (int32_t)nsamples, maxprd = (int32_t)prdsamples;
       int32_t cnt;
       size_t totalsiz = (size_t)total;
-      MYFLT *pulsbuf, *sigp;                            /*  & realloc buffers */
+      cs_float *pulsbuf, *sigp;                            /*  & realloc buffers */
 
-      csound->AuxAlloc(csound, totalsiz * sizeof(MYFLT), &p->auxch);
-      p->bufp = (MYFLT *) p->auxch.auxp;
+      csound->AuxAlloc(csound, totalsiz * sizeof(cs_float), &p->auxch);
+      p->bufp = (cs_float *) p->auxch.auxp;
       p->midp = p->bufp + nbufsmps;                     /* each >= maxprd * 3 */
       pulsbuf = p->midp + nbufsmps;
       p->pulsbuf[0] = pulsbuf;  pulsbuf += maxprd;
@@ -156,9 +156,9 @@ static int32_t hm234set(CSOUND *csound, HARM234 *p)
 
 static int32_t harmon234(CSOUND *csound, HARM234 *p)
 {
-    MYFLT       *outp, *dirp;
-    MYFLT       *inp1, *inp2;
-    MYFLT       koct, vocamp, diramp;
+    cs_float       *outp, *dirp;
+    cs_float       *inp1, *inp2;
+    cs_float       koct, vocamp, diramp;
     PULDAT      *endp;
     VOCDAT      *vdp;
     uint32_t    nsmps = CS_KSMPS;
@@ -170,8 +170,8 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     /* A zero octave is also a valid first pitch estimate. */
     if ((koct = *p->koct) != p->prvoct || p->period == 0) {
       if (koct >= p->minoct) {                          /*   above requested low */
-        MYFLT cps = POWER(FL(2.0), koct) * ONEPT;     /*   recalc pulse period */
-        double period = CS_ESR / cps;
+        cs_float cps = POWER(FL(2.0), koct) * ONEPT;     /*   recalc pulse period */
+        cs_double period = CS_ESR / cps;
         if (UNLIKELY(!(period >= 1.0 && period <= p->maxprd)))
           return csound->PerfError(csound, &p->h, "%s",
                                    Str("harmon234: pitch estimate is out of range"));
@@ -184,19 +184,19 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     inp1 = p->inp1;
     inp2 = p->inp2;
     if (UNLIKELY(offset)) {
-      memset(inp1, '\0', offset*sizeof(MYFLT));
-      memset(inp2, '\0', offset*sizeof(MYFLT));
-      memset(p->ar, '\0', offset*sizeof(MYFLT));
+      memset(inp1, '\0', offset*sizeof(cs_float));
+      memset(inp2, '\0', offset*sizeof(cs_float));
+      memset(p->ar, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&inp1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&inp2[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&p->ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&inp1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&inp2[nsmps], '\0', early*sizeof(cs_float));
+      memset(&p->ar[nsmps], '\0', early*sizeof(cs_float));
     }
     if (UNLIKELY(nsmps <= offset)) return OK;
-    memcpy(&inp1[offset], &p->asig[offset], sizeof(MYFLT)*(nsmps-offset));
-    memcpy(&inp2[offset], &p->asig[offset], sizeof(MYFLT)*(nsmps-offset));
+    memcpy(&inp1[offset], &p->asig[offset], sizeof(cs_float)*(nsmps-offset));
+    memcpy(&inp2[offset], &p->asig[offset], sizeof(cs_float)*(nsmps-offset));
     /* Keep history writes aligned to whole blocks, with silence outside the note. */
     inp1 += CS_KSMPS; inp2 += CS_KSMPS;
     nsmps -= offset;
@@ -205,7 +205,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
 
     //print_data(p, 2);
     if (koct >= p->minoct) {                    /* PERIODIC: find the pulse */
-      MYFLT     val0, *buf0, *p0, *plim, *x;
+      cs_float     val0, *buf0, *p0, *plim, *x;
       int32_t   period, triprd, xdist;
 
       period = p->period;                       /* set srch range of 2 periods */
@@ -223,10 +223,10 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
       if (x >= plim) goto nonprd;               /*      then non-periodic       */
 
       if (p->polarity > 0) {
-        MYFLT pospk = FL(0.0);                  /* POSITIVE polarity:   */
-        MYFLT *posp = NULL;
+        cs_float pospk = FL(0.0);                  /* POSITIVE polarity:   */
+        cs_float *posp = NULL;
         for ( ; x < plim; x++) {                /*      find ensuing max val */
-          MYFLT val = *x;
+          cs_float val = *x;
           if (val > pospk) { pospk = val; posp = x; }
         }
         if (posp == NULL)
@@ -236,10 +236,10 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
         if (*x > FL(0.0)) goto nonprd;
         xdist = posp - x;
       } else if (p->polarity < 0) {
-        MYFLT negpk = FL(0.0);                  /* NEGATIVE polarity:   */
-        MYFLT *negp = NULL;
+        cs_float negpk = FL(0.0);                  /* NEGATIVE polarity:   */
+        cs_float *negp = NULL;
         for ( ; x < plim; x++) {                /* find ensuing min val */
-          MYFLT val = *x;
+          cs_float val = *x;
           if (val < negpk) { negpk = val; negp = x; }
         }
         if (negp == NULL)
@@ -250,13 +250,13 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
         xdist = negp - x;
       }
       else {
-        MYFLT pospk, negpk, *posp, *negp;               /* NOT SURE:    */
-        MYFLT *poscross, *negcross;
+        cs_float pospk, negpk, *posp, *negp;               /* NOT SURE:    */
+        cs_float *poscross, *negcross;
         int32_t posdist, negdist;
         pospk = negpk = FL(0.0);
         posp = negp = NULL;
         for ( ; x < plim; x++) {                /* find ensuing max & min vals */
-          MYFLT val = *x;
+          cs_float val = *x;
           if (val > FL(0.0)) {
             if (val > pospk) { pospk = val; posp = x; }
           } else
@@ -301,10 +301,10 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
 
       if (x != p->curpuls) {                    /* if pulse positn is new       */
         int32_t nn, pulslen, sigdist, ndirect;
-        MYFLT *bufp;
+        cs_float *bufp;
         /* Avoid float index drift when the sigmoid spans a long pulse. */
-        double signdx, siginc;
-        MYFLT *z, zval, *newpuls = x;
+        cs_double signdx, siginc;
+        cs_float *z, zval, *newpuls = x;
 
         z = x + period;                         /*  and from estimated end      */
         if ((zval = *z) != FL(0.0)) {
@@ -333,17 +333,17 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
         p->pbufcnt &= PBMSK;
         bufp = p->pulsbuf[p->pbufcnt];
         signdx = FL(0.0);                       /*      & store extended pulse  */
-        siginc = (double)SLEN / sigdist;
+        siginc = (cs_double)SLEN / sigdist;
         for (nn = sigdist; nn--; signdx += siginc) {
-          MYFLT *sigp = p->sigmoid + (int32_t)signdx;
+          cs_float *sigp = p->sigmoid + (int32_t)signdx;
           *bufp++ = *x++ * *sigp;               /*      w. sigmoid-envlpd ends  */
         }
-        //memcpy(bufp, x, sizeof(MYFLT)*ndirect);
+        //memcpy(bufp, x, sizeof(cs_float)*ndirect);
         while (ndirect--)
           *bufp++ = *x++;
-        signdx = (double)SLEN - siginc;
+        signdx = (cs_double)SLEN - siginc;
         for (nn = sigdist; nn--; signdx -= siginc) {
-          MYFLT *sigp = p->sigmoid + (int32_t)signdx;
+          cs_float *sigp = p->sigmoid + (int32_t)signdx;
           *bufp++ = *x++ * *sigp;
         }
         p->pulslen = pulslen;
@@ -366,8 +366,8 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     //print_data(p, 3);
     /* HARMONIZER */
     for (vdp=p->vocdat; vdp<p->vlim; vdp++) {   /* get new frequencies  */
-      double inc = *vdp->kfrq * p->sicvt;
-      if (UNLIKELY(!(inc >= INT32_MIN && inc <= INT32_MAX)))
+      cs_double inc = *vdp->kfrq * p->sicvt;
+      if (UNLIKELY(!(inc >= INT32_MIN && inc <= (INT32_MAX + 0.0))))
         return csound->PerfError(csound, &p->h, "%s",
                                  Str("harmon234: voice frequency is out of range"));
       vdp->phsinc = (uint32_t)(int32_t)inc;
@@ -378,7 +378,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     dirp = p->asig + offset;
     endp = p->endp;
     do {                                        /* insert pulses into output: */
-      MYFLT sum = FL(0.0);
+      cs_float sum = FL(0.0);
       PULDAT *pdp = p->puldat;
       while (pdp < endp) {
       addin:

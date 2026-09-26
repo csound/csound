@@ -100,7 +100,7 @@ typedef struct memAllocBlock_s {
     struct memAllocBlock_s  *nxt;       /* next structure in chain      */
 } memAllocBlock_t;
 #ifdef ALIGN_MEMORY
- #define MALIGN (sizeof(MYFLT)-1)
+ #define MALIGN (sizeof(cs_float)-1)
 #else 
  #define MALIGN 0
 #endif

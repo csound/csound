@@ -28,8 +28,8 @@ typedef struct {
     OPDS h;
     PVSDAT *fout;
     PVSDAT *fin;
-    MYFLT  *kmrate;
-    MYFLT  *kfrate;
+    cs_float  *kmrate;
+    cs_float  *kfrate;
     uint32_t lastframe;
 } PVSGENDY;
 
@@ -43,9 +43,9 @@ static int32_t pvsgendyinit(CSOUND *csound, PVSGENDY *p)
 
     if (UNLIKELY(p->fin->sliding)) {
       if (p->fout->frame.auxp==NULL ||
-          CS_KSMPS*(N+2)*sizeof(MYFLT) > (uint32_t)p->fout->frame.size)
-        csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fout->frame);
-      else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
+          CS_KSMPS*(N+2)*sizeof(cs_float) > (uint32_t)p->fout->frame.size)
+        csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(cs_float),&p->fout->frame);
+      else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(cs_float));
     }
     else
       {
@@ -69,8 +69,8 @@ static int32_t pvsgendyinit(CSOUND *csound, PVSGENDY *p)
 static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
 {
     int32_t     i, N = p->fin->N;
-    MYFLT   mrate = *p->kmrate;
-    MYFLT   frate = *p->kfrate;
+    cs_float   mrate = *p->kmrate;
+    cs_float   frate = *p->kfrate;
     float   *finf = (float *) p->fin->frame.auxp;
     float   *foutf = (float *) p->fout->frame.auxp;
 
@@ -89,20 +89,20 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         for (i = 0; i < NB-1; i++) {
-          MYFLT x = (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX;
+          cs_float x = (cs_float)(rand()-RAND_MAX/2)/(cs_float)RAND_MAX;
           //          printf("%f\n", x);
           fout[i].re = fin[i].re + mrate * x;
           fout[i].im = fin[i].im +
-            frate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX/(MYFLT)(i+1);
+            frate * (cs_float)(rand()-RAND_MAX/2)/(cs_float)RAND_MAX/(cs_float)(i+1);
         }
       }
       return OK;
     }
     if (p->lastframe < p->fin->framecount) {
       for (i = 0; i < N; i += 2) {
-        MYFLT x = frate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX/(MYFLT)(i+1);
+        cs_float x = frate * (cs_float)(rand()-RAND_MAX/2)/(cs_float)RAND_MAX/(cs_float)(i+1);
         foutf[i+1] = finf[i+1] + x;
-        foutf[i] = finf[i] ;//+ mrate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX;
+        foutf[i] = finf[i] ;//+ mrate * (cs_float)(rand()-RAND_MAX/2)/(cs_float)RAND_MAX;
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }

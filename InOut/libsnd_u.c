@@ -35,7 +35,7 @@ void csoundRewriteHeader(CSOUND *csound, void *ofd)
 /* Returns NULL on failure */
 
 void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
-                  MYFLT *abeg_time, MYFLT *ainput_dur, MYFLT *asr,
+                  cs_float *abeg_time, cs_float *ainput_dur, cs_float *asr,
                   int32_t channel)
 {
     SOUNDIN **ap = (SOUNDIN**) ap_;
@@ -64,11 +64,11 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
     else {
       if (*ainput_dur <= FL(0.0)) {         /* 0 durtim, use to EOF */
         p->getframes = p->framesrem;
-        *ainput_dur = (MYFLT) ((double) p->getframes / (double) p->sr);
+        *ainput_dur = (cs_float) ((cs_double) p->getframes / (cs_double) p->sr);
       }
       /* else chk that input dur is within filetime rem */
       else {
-        p->getframes = (int64_t) ((double) p->sr * (double) *ainput_dur + 0.5);
+        p->getframes = (int64_t) ((cs_double) p->sr * (cs_double) *ainput_dur + 0.5);
         if (UNLIKELY(p->getframes > p->framesrem)) {
           p->getframes = p->framesrem;
           csound->Warning(csound, Str("full requested duration not available"));
@@ -89,7 +89,7 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
  *
  * extra arg passed for filetyp testing on POST-HEADER reads of audio samples
  */
-static int32_t sreadin(CSOUND *csound, SNDFILE *infd, MYFLT *inbuf,
+static int32_t sreadin(CSOUND *csound, SNDFILE *infd, cs_float *inbuf,
                    int32_t nsamples, SOUNDIN *p)
 {
     /* return the number of samples read */
@@ -128,9 +128,9 @@ void *sndgetset(CSOUND *csound, void *p_)
     if (p->analonly)                    /* and sample rate */
       sfinfo.samplerate = (int32_t) p->sr;
     else
-      sfinfo.samplerate = (int32_t) ((double) csound->esr + 0.5);
+      sfinfo.samplerate = (int32_t) ((cs_double) csound->esr + 0.5);
     if (sfinfo.samplerate < 1)
-      sfinfo.samplerate = (int32_t) ((double) DFLT_SR + 0.5);
+      sfinfo.samplerate = (int32_t) ((cs_double) DFLT_SR + 0.5);
     /* open with full dir paths */
     p->fd = csound->FileOpen(csound, &(p->sinfd), CSFILE_SND_R,
                                      sfname, &sfinfo, "SFDIR;SSDIR",
@@ -158,7 +158,7 @@ void *sndgetset(CSOUND *csound, void *p_)
         sfinfo.samplerate = p->sr;
       }
     }
-    else if (UNLIKELY(sfinfo.samplerate != (int32_t) ((double) csound->esr + 0.5))) {
+    else if (UNLIKELY(sfinfo.samplerate != (int32_t) ((cs_double) csound->esr + 0.5))) {
       csound->Warning(csound,                       /* non-anal:  cmp w. esr */
                       "%s sr = %d, orch sr = %7.1f",
                       sfname, (int32_t) sfinfo.samplerate, csound->esr);
@@ -192,7 +192,7 @@ void *sndgetset(CSOUND *csound, void *p_)
     }
     p->audrem = (int64_t) sfinfo.frames * (int64_t) sfinfo.channels;
     p->framesrem = (int64_t) sfinfo.frames;         /*   find frames rem */
-    skipframes = (int32_t) ((double) p->skiptime * (double) p->sr
+    skipframes = (int32_t) ((cs_double) p->skiptime * (cs_double) p->sr
                         + (p->skiptime >= FL(0.0) ? 0.5 : -0.5));
     if (skipframes < 0) {
       n = -skipframes;
@@ -254,12 +254,12 @@ void *sndgetset(CSOUND *csound, void *p_)
 
 /* a simplified soundin */
 
-int32_t getsndin(CSOUND *csound, void *fd_, MYFLT *fp, int32_t nlocs, void *p_)
+int32_t getsndin(CSOUND *csound, void *fd_, cs_float *fp, int32_t nlocs, void *p_)
 {
     SNDFILE *fd = (SNDFILE*) fd_;
     SOUNDIN *p = (SOUNDIN*) p_;
     int32_t     i = 0, n;
-    MYFLT   scalefac;
+    cs_float   scalefac;
 
     if (p->format == AE_FLOAT || p->format == AE_DOUBLE) {
       if (p->filetyp == TYP_WAV || p->filetyp == TYP_AIFF ||
@@ -303,13 +303,13 @@ int32_t getsndin(CSOUND *csound, void *fd_, MYFLT *fp, int32_t nlocs, void *p_)
     }
 
     n = i;
-    memset(&(fp[i]), 0, (nlocs-i)*sizeof(MYFLT)); /* if incomplete PAD */
+    memset(&(fp[i]), 0, (nlocs-i)*sizeof(cs_float)); /* if incomplete PAD */
     /* for ( ; i < nlocs; i++)     /\* if incomplete *\/ */
     /*   fp[i] = FL(0.0);          /\*  pad with 0's *\/ */
     return n;
 }
 
-void dbfs_init(CSOUND *csound, MYFLT dbfs)
+void dbfs_init(CSOUND *csound, cs_float dbfs)
 {
     csound->dbfs_to_float = FL(1.0) / dbfs;
     csound->e0dbfs = dbfs;

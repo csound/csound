@@ -27,47 +27,47 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *kr, *asig, *ilen;
+        cs_float   *kr, *asig, *ilen;
         uint32_t     len;
 } DOWNSAMP;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *ksig;
+        cs_float   *ar, *ksig;
 } UPSAMP;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *rslt, *xsig, *istor;
-        MYFLT   prev;
+        cs_float   *rslt, *xsig, *istor;
+        cs_float   prev;
 } INDIFF;
 
 typedef struct {
   OPDS    h;                                             /* JPff Nov 2015 */
-  MYFLT   *rslt, *xsig, *istor, *imode, *istart;   /* IV - Sep 5 2002 */
+  cs_float   *rslt, *xsig, *istor, *imode, *istart;   /* IV - Sep 5 2002 */
         int32_t     init_k;
-        MYFLT   prev;
+        cs_float   prev;
 } INTERP;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *xr, *xsig, *xgate, *ival, *istor;
-        MYFLT   state;
+        cs_float   *xr, *xsig, *xgate, *ival, *istor;
+        cs_float   state;
         int32_t     audiogate;
 } SAMPHOLD;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *asig, *idlt, *istor;
-        MYFLT   *curp;
+        cs_float   *ar, *asig, *idlt, *istor;
+        cs_float   *curp;
         int32    npts;
         AUXCH   auxch;
 } DELAY;
 
 typedef struct DELAYR {
         OPDS    h;
-        MYFLT   *ar, *indx, *idlt, *istor;
-        MYFLT   *curp;
+        cs_float   *ar, *indx, *idlt, *istor;
+        cs_float   *curp;
         uint32_t npts;
         AUXCH   auxch;
         struct DELAYR  *next_delayr; /* fifo for delayr pointers by Jens Groh */
@@ -75,43 +75,43 @@ typedef struct DELAYR {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *xdlt, *indx;
+        cs_float   *ar, *xdlt, *indx;
         DELAYR  *delayr;
 } DELTAP;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *adlt, *iwsize, *indx;
+        cs_float   *ar, *adlt, *iwsize, *indx;
         int32_t     wsize;
-        double  d2x;
+        cs_double  d2x;
         DELAYR  *delayr;
 } DELTAPX;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *asig;
+        cs_float   *asig;
         DELAYR  *delayr;
 } DELAYW;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *asig, *istor;
-        MYFLT   sav1;
+        cs_float   *ar, *asig, *istor;
+        cs_float   sav1;
 } DELAY1;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *asig, *krvt, *ilpt, *istor, *insmps;
-        MYFLT   coef, prvt, *pntr;
+        cs_float   *ar, *asig, *krvt, *ilpt, *istor, *insmps;
+        cs_float   coef, prvt, *pntr;
         AUXCH   auxch;
 } COMB;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *asig, *krvt, *istor;
-        MYFLT   c1, c2, c3, c4, c5, c6, prvt;
-        MYFLT   *p1, *p2, *p3, *p4, *p5, *p6;
-        MYFLT   *adr1, *adr2, *adr3, *adr4, *adr5, *adr6;
+        cs_float   *ar, *asig, *krvt, *istor;
+        cs_float   c1, c2, c3, c4, c5, c6, prvt;
+        cs_float   *p1, *p2, *p3, *p4, *p5, *p6;
+        cs_float   *adr1, *adr2, *adr3, *adr4, *adr5, *adr6;
         AUXCH   auxch;
         int32   revlpsum;
         int32   revlpsiza[6];
@@ -120,8 +120,8 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *r1, *r2, *r3, *r4, *asig, *kx, *ky, *ifn, *imode, *ioffset;
-        MYFLT   xmul, xoff;
+        cs_float   *r1, *r2, *r3, *r4, *asig, *kx, *ky, *ifn, *imode, *ioffset;
+        cs_float   xmul, xoff;
         FUNC    *ftp;
 } PAN;
 

@@ -40,23 +40,23 @@ static int32_t wgpset(CSOUND *csound, WGPLUCK2 *p)
 
 static int32_t wgpsetin(CSOUND *csound, WGPLUCK2 *p)
 {
-    double      periodSamples;
+    cs_double      periodSamples;
     size_t      railBytes;
     int32_t     period;
     int32_t     npts;
     int32_t     pickpt;
     int32_t     rail_len;
-    MYFLT   upslope;
-    MYFLT   downslope;
+    cs_float   upslope;
+    cs_float   downslope;
     int32_t     i;
     int32_t     scale;
     DelayLine   *upper_rail;
     DelayLine   *lower_rail;
-    MYFLT   plk = *p->plk;
+    cs_float   plk = *p->plk;
                                 /* Initialize variables....*/
-    periodSamples = CS_ESR / (double)*p->icps;
+    periodSamples = CS_ESR / (cs_double)*p->icps;
     if (UNLIKELY(!(periodSamples >= 1.0 &&
-                   periodSamples <= (double)INT32_MAX)))
+                   periodSamples <= (INT32_MAX + 0.0))))
       return csound->InitError(csound, "%s",
                                Str("repluck/wgpluck2: invalid frequency"));
     period = (int32_t)periodSamples;
@@ -69,10 +69,10 @@ static int32_t wgpsetin(CSOUND *csound, WGPLUCK2 *p)
       plk = (p->ain ? FL(0.0) : FL(0.5));
     }
     pickpt = (int32_t)(rail_len * plk);
-    if (UNLIKELY((size_t)rail_len > SIZE_MAX / sizeof(MYFLT)))
+    if (UNLIKELY((size_t)rail_len > SIZE_MAX / sizeof(cs_float)))
       return csound->InitError(csound, "%s",
                                Str("repluck: delay line too large"));
-    railBytes = (size_t)rail_len * sizeof(MYFLT);
+    railBytes = (size_t)rail_len * sizeof(cs_float);
 
                                 /* Create upper rail */
     if (p->upper.auxp == NULL) {/* get newspace    */
@@ -81,7 +81,7 @@ static int32_t wgpsetin(CSOUND *csound, WGPLUCK2 *p)
     upper_rail = (DelayLine*)p->upper.auxp;
     upper_rail->length = rail_len;
     csound->AuxAlloc(csound, railBytes, &p->up_data);
-    upper_rail->data = (MYFLT*)p->up_data.auxp;
+    upper_rail->data = (cs_float*)p->up_data.auxp;
     upper_rail->pointer = upper_rail->data;
     upper_rail->end = upper_rail->data + rail_len - 1;
 
@@ -92,7 +92,7 @@ static int32_t wgpsetin(CSOUND *csound, WGPLUCK2 *p)
     lower_rail = (DelayLine*)p->lower.auxp;
     lower_rail->length = rail_len;
     csound->AuxAlloc(csound, railBytes, &p->down_data);
-    lower_rail->data = (MYFLT*)p->down_data.auxp;
+    lower_rail->data = (cs_float*)p->down_data.auxp;
     lower_rail->pointer = lower_rail->data;
     lower_rail->end = lower_rail->data + rail_len - 1;
 
@@ -101,15 +101,15 @@ static int32_t wgpsetin(CSOUND *csound, WGPLUCK2 *p)
       /* Keep the peak between the two fixed ends of the string. */
       if (UNLIKELY(pickpt < 1)) pickpt = 1;
       if (UNLIKELY(pickpt > rail_len - 2)) pickpt = rail_len - 2;
-      upslope = FL(1.0)/(MYFLT)pickpt;
-      downslope = FL(1.0)/(MYFLT)(rail_len - pickpt - 1);
+      upslope = FL(1.0)/(cs_float)pickpt;
+      downslope = FL(1.0)/(cs_float)(rail_len - pickpt - 1);
       for (i = 0; i < pickpt; i++) {
-        MYFLT value = FL(0.5) * upslope * i;
+        cs_float value = FL(0.5) * upslope * i;
         upper_rail->data[i] = value;
         lower_rail->data[i] = value;
       }
       for (i = pickpt; i < rail_len; i++) {
-        MYFLT value = FL(0.5) * downslope * (rail_len - 1 - i);
+        cs_float value = FL(0.5) * downslope * (rail_len - 1 - i);
         upper_rail->data[i] = value;
         lower_rail->data[i] = value;
       }
@@ -135,23 +135,23 @@ static int32_t wgpsetin(CSOUND *csound, WGPLUCK2 *p)
 
 static int32_t wgpluck(CSOUND *csound, WGPLUCK2 *p)
 {
-    MYFLT   *ar, *ain;
+    cs_float   *ar, *ain;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   yp0,ym0,ypM,ymM;
+    cs_float   yp0,ym0,ypM,ymM;
     DelayLine   *upper_rail;
     DelayLine   *lower_rail;
     int32_t     pickup, pickfrac;
     int32_t     i;
     int32_t     scale;
     uint32_t    upperIndex, lowerIndex;
-    MYFLT   state = p->state;
-    MYFLT   reflect = *p->reflect;
-    MYFLT   amplitude = *p->xamp;
-    MYFLT   excitationScale = amplitude != FL(0.0) ?
+    cs_float   state = p->state;
+    cs_float   reflect = *p->reflect;
+    cs_float   amplitude = *p->xamp;
+    cs_float   excitationScale = amplitude != FL(0.0) ?
       FL(0.5) / amplitude : FL(0.0);
-    MYFLT   pickupPosition = *p->pickup;
+    cs_float   pickupPosition = *p->pickup;
 
     if (UNLIKELY(!(reflect > FL(0.0) && reflect < FL(1.0)))) {
       csound->Warning(csound, Str("Reflection invalid (%f)\n"), reflect);
@@ -160,7 +160,7 @@ static int32_t wgpluck(CSOUND *csound, WGPLUCK2 *p)
     ar         = p->ar;
     ain        = p->ain;
     scale      = p->scale;
-    reflect    = FL(1.0) - (FL(1.0) - reflect)/(MYFLT)scale;
+    reflect    = FL(1.0) - (FL(1.0) - reflect)/(cs_float)scale;
     upper_rail = (DelayLine*)p->upper.auxp;
     lower_rail = (DelayLine*)p->lower.auxp;
     /* fractional delays */
@@ -171,18 +171,18 @@ static int32_t wgpluck(CSOUND *csound, WGPLUCK2 *p)
       pickupPosition = FL(0.5);
     }
     {
-      double scaledPickup = (double)pickupPosition * p->rail_len;
+      cs_double scaledPickup = (cs_double)pickupPosition * p->rail_len;
       pickup = (int32_t)scaledPickup;
       pickfrac = (int32_t)((scaledPickup - pickup) * OVERCNT);
     }
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset;n<nsmps;n++) {
-      MYFLT s, s1;
+      cs_float s, s1;
       WG_DELAY_INDEX(upperIndex, upper_rail, pickup);
       WG_DELAY_INDEX(lowerIndex, lower_rail, pickup);
       s = upper_rail->data[upperIndex] + lower_rail->data[lowerIndex];
@@ -191,9 +191,9 @@ static int32_t wgpluck(CSOUND *csound, WGPLUCK2 *p)
       if (UNLIKELY(++lowerIndex == (uint32_t)lower_rail->length))
         lowerIndex = 0;
       s1 = upper_rail->data[upperIndex] + lower_rail->data[lowerIndex];
-      ar[n] = s + (s1 - s)*(MYFLT)pickfrac/(MYFLT)OVERCNT; /* Fractional delay */
+      ar[n] = s + (s1 - s)*(cs_float)pickfrac/(cs_float)OVERCNT; /* Fractional delay */
       if (ain != NULL && amplitude != FL(0.0)) {
-        MYFLT excitation = ain[n] * excitationScale;
+        cs_float excitation = ain[n] * excitationScale;
         WG_DELAY_INDEX(lowerIndex, lower_rail, 1);
         lower_rail->data[lowerIndex] += excitation;
         WG_DELAY_INDEX(upperIndex, upper_rail, 1);
@@ -213,7 +213,7 @@ static int32_t wgpluck(CSOUND *csound, WGPLUCK2 *p)
         yp0 = - state;          /* String state update */
                                 /* Decrement pointer and then update */
         {
-          MYFLT *ptr = upper_rail->pointer;
+          cs_float *ptr = upper_rail->pointer;
           if (UNLIKELY(ptr == upper_rail->data))
             ptr = upper_rail->end;
           else
@@ -223,7 +223,7 @@ static int32_t wgpluck(CSOUND *csound, WGPLUCK2 *p)
         }
                                 /* Update and then increment pointer */
         {
-          MYFLT *ptr = lower_rail->pointer;
+          cs_float *ptr = lower_rail->pointer;
           *ptr = ymM;
           if (UNLIKELY(ptr == lower_rail->end))
             ptr = lower_rail->data;
@@ -249,29 +249,29 @@ static int32_t wgpluck(CSOUND *csound, WGPLUCK2 *p)
 static int32_t stresonset(CSOUND *csound, STRES *p)
 {
     p->size = (int32_t) (CS_ESR/20);   /* size of delay line */
-    csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->aux);
-    p->Cdelay = (MYFLT*) p->aux.auxp; /* delay line */
+    csound->AuxAlloc(csound, p->size*sizeof(cs_float), &p->aux);
+    p->Cdelay = (cs_float*) p->aux.auxp; /* delay line */
     p->LPdelay = p->APdelay = FL(0.0); /* reset the All-pass and Low-pass delays */
     p->wpointer = p->rpointer = 0; /* reset the read/write pointers */
-    memset(p->Cdelay, '\0', p->size*sizeof(MYFLT));
+    memset(p->Cdelay, '\0', p->size*sizeof(cs_float));
     return OK;
 }
 
 static int32_t streson(CSOUND *csound, STRES *p)
 {
-    MYFLT *out = p->result;
-    MYFLT *in = p->ainput;
-    MYFLT g = *p->ifdbgain;
-    MYFLT freq;
-    double a, s, w, sample, tdelay, fracdelay;
+    cs_float *out = p->result;
+    cs_float *in = p->ainput;
+    cs_float g = *p->ifdbgain;
+    cs_float freq;
+    cs_double a, s, w, sample, tdelay, fracdelay;
     int32_t delay;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t rp = p->rpointer, wp = p->wpointer;
     int32_t size = p->size;
-    MYFLT       APdelay = p->APdelay;
-    MYFLT       LPdelay = p->LPdelay;
+    cs_float       APdelay = p->APdelay;
+    cs_float       LPdelay = p->LPdelay;
     int32_t         vdt;
 
     freq = *p->afr;
@@ -282,14 +282,14 @@ static int32_t streson(CSOUND *csound, STRES *p)
     fracdelay = tdelay - (delay + 0.5); /* fractional delay */
     vdt = size - delay;       /* set the var delay */
     a = (1.0-fracdelay)/(1.0+fracdelay);   /* set the all-pass gain */
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset;n<nsmps;n++) {
       /* GetSample(p); */
-      MYFLT tmpo;
+      cs_float tmpo;
       rp = (vdt + wp);
       if (UNLIKELY(rp >= size)) rp -= size;
       tmpo = p->Cdelay[rp];

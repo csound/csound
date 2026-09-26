@@ -324,7 +324,7 @@ Return the current performance time in samples
 <a name="CsoundObj.getSizeOfMYFLT"></a>
 
 ### CsoundObj.getSizeOfMYFLT() ⇒ <code>Promise.&lt;number&gt;</code>
-Return the size of MYFLT in number of bytes
+Return the size of cs_float in number of bytes
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.setOption"></a>
@@ -377,7 +377,7 @@ Anything different to 0 means true.
 <a name="CsoundObj.setDebug"></a>
 
 ### CsoundObj.setDebug(debug) ⇒ <code>Promise.&lt;undefined&gt;</code>
-Return the size of MYFLT in number of bytes
+Return the size of cs_float in number of bytes
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 

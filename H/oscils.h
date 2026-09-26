@@ -29,22 +29,22 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar, *iamp, *icps, *iphs, *iflg;                /* opcode args  */
+    cs_float   *ar, *iamp, *icps, *iphs, *iflg;                /* opcode args  */
     /* internal variables */
     int32_t     use_double;
-    double  xd, cd, vd;
-    MYFLT   x, c, v;
+    cs_double  xd, cd, vd;
+    cs_float   x, c, v;
 } OSCILS;
 
 /* lphasor opcode struct */
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar, *xtrns, *ilps, *ilpe;                      /* opcode       */
-    MYFLT   *imode, *istrt, *istor;                         /* args         */
+    cs_float   *ar, *xtrns, *ilps, *ilpe;                      /* opcode       */
+    cs_float   *imode, *istrt, *istor;                         /* args         */
     /* internal variables */
     int32_t     loop_mode;
-    double  phs, lps, lpe;
+    cs_double  phs, lps, lpe;
     int32_t     dir;            /* playback direction (0: backward, 1: forward) */
 } LPHASOR;
 
@@ -52,11 +52,11 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar, *xndx, *kfn, *kwarp, *iwsize;              /* opcode       */
-    MYFLT   *ixmode, *ixoff, *iwrap;                        /* args         */
+    cs_float   *ar, *xndx, *kfn, *kwarp, *iwsize;              /* opcode       */
+    cs_float   *ixmode, *ixoff, *iwrap;                        /* args         */
     /* internal variables */
     int32_t     raw_ndx, ndx_scl, wrap_ndx, wsize;
-    MYFLT   win_fact;
+    cs_float   win_fact;
 /*  double  wsized2_d, pidwsize_d; */           /* for oscils_hann.c */
 } TABLEXKT;
 

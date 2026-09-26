@@ -29,7 +29,7 @@
 
 int32_t linset(CSOUND *csound, LINE *p)
 {
-  double       dur;
+  cs_double       dur;
   if (LIKELY((dur = *p->idur) > FL(0.0))) {
     p->incr = (*p->ib - *p->ia) / dur * CS_ONEDSR;
     p->kincr = p->incr*CS_KSMPS;
@@ -49,8 +49,8 @@ int32_t kline(CSOUND *csound, LINE *p)
 int32_t aline(CSOUND *csound, LINE *p)
 {
   IGN(csound);
-  double val, inc;
-  MYFLT *ar;
+  cs_double val, inc;
+  cs_float *ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -58,16 +58,16 @@ int32_t aline(CSOUND *csound, LINE *p)
   val = p->val;
   inc = p->incr;
 
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
 
   //p->val += inc;/* nxtval = val + inc */
   //inc /= (nsmps - offset);
   for (n=offset; n<nsmps; n++) {
-    ar[n] = (MYFLT)val;
+    ar[n] = (cs_float)val;
     val += inc;       /* interp val for ksmps */
   }
   p->val = val;
@@ -76,7 +76,7 @@ int32_t aline(CSOUND *csound, LINE *p)
 
 int32_t expset(CSOUND *csound, EXPON *p)
 {
-  double       dur, a, b;
+  cs_double       dur, a, b;
   //printf("kr = %f , 1/kr = %f \n",CS_EKR, CS_ONEDKR);
   if (LIKELY((dur = *p->idur) > FL(0.0) )) {
     a = *p->ia;
@@ -106,8 +106,8 @@ int32_t kexpon(CSOUND *csound, EXPON *p)
 int32_t expon(CSOUND *csound, EXPON *p)
 {
   IGN(csound);
-  double val, mlt;//, inc;//, nxtval;
-  MYFLT *ar;
+  cs_double val, mlt;//, inc;//, nxtval;
+  cs_float *ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -116,15 +116,15 @@ int32_t expon(CSOUND *csound, EXPON *p)
   mlt = p->mlt;
   // nxtval = val * mlt;
   ar = p->xr;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   //inc = nxtval - val;
   //inc /= (nsmps - offset);   /* increment per sample */
   for (n=offset; n<nsmps; n++) {
-    ar[n] = (MYFLT)val;
+    ar[n] = (cs_float)val;
     val *= mlt;               /* interp val for ksmps */
   }
   // p->val = nxtval;            /* store next value */
@@ -136,8 +136,8 @@ int32_t lsgset(CSOUND *csound, LINSEG *p)
 {
   SEG *segp;
   int32_t nsegs;
-  MYFLT       **argp;
-  double val;
+  cs_float       **argp;
+  cs_double val;
 
   if (UNLIKELY(!(p->INOCOUNT & 1))) {
     return csound->InitError(csound, Str("incomplete number of input arguments"));
@@ -157,7 +157,7 @@ int32_t lsgset(CSOUND *csound, LINSEG *p)
     segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
   } else segp = p->cursegp + 1; /* point to first seg */
   argp = p->argums;
-  val = (double)**argp++;
+  val = (cs_double)**argp++;
   if (UNLIKELY(**argp <= FL(0.0)))  return OK;    /* if idur1 <= 0, skip init  */
   p->curval = val;
   p->curcnt = 0;
@@ -166,8 +166,8 @@ int32_t lsgset(CSOUND *csound, LINSEG *p)
   //p->cursegp = segp - 1;          /* else setup null seg0 */
   p->segsrem = nsegs + 1;
   do {                                /* init each seg ..  */
-    double dur = (double)**argp++;
-    segp->nxtpt = (double)**argp++;
+    cs_double dur = (cs_double)**argp++;
+    segp->nxtpt = (cs_double)**argp++;
     if (UNLIKELY((segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5))) < 0))
       segp->cnt = 0;
     if (UNLIKELY((segp->acnt = (int32_t)(dur * CS_ESR + FL(0.5))) < 0))
@@ -239,8 +239,8 @@ int32_t klnseg(CSOUND *csound, LINSEG *p)
 
 int32_t linseg(CSOUND *csound, LINSEG *p)
 {
-  double val, ainc;
-  MYFLT *rs = p->rslt;
+  cs_double val, ainc;
+  cs_float *rs = p->rslt;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -248,10 +248,10 @@ int32_t linseg(CSOUND *csound, LINSEG *p)
   if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;  /* RWD fix */
 
   val = p->curval;                      /* sav the cur value    */
-  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rs[nsmps], '\0', early*sizeof(cs_float));
   }
 
   for (n=offset; n<nsmps; n++) {
@@ -275,12 +275,12 @@ int32_t linseg(CSOUND *csound, LINSEG *p)
       // p->curval = val + p->curinc;        /* advance the cur val  */
       if (UNLIKELY((ainc = p->curainc) == FL(0.0)))
         goto putk;
-      rs[n] = (MYFLT)val;
+      rs[n] = (cs_float)val;
       val += ainc;
     }
     else {                      /* no more segments */
     putk:
-      rs[n] = (MYFLT)val;
+      rs[n] = (cs_float)val;
     }
   }
   p->curval = val;
@@ -296,10 +296,10 @@ int32_t linseg(CSOUND *csound, LINSEG *p)
 enum { ADSR_DELAY, ADSR_ATTACK, ADSR_DECAY, ADSR_SUSTAIN, ADSR_RELEASE,
        ADSR_DONE };
 
-static int32_t adsr_count(CSOUND *csound, double duration, double rate,
+static int32_t adsr_count(CSOUND *csound, cs_double duration, cs_double rate,
                           int32_t *count)
 {
-  double n = floor(duration * rate + 0.5);
+  cs_double n = floor(duration * rate + 0.5);
   if (UNLIKELY(!isfinite(duration) || duration < 0.0 ||
                !isfinite(n) || n > INT_MAX))
     return csound->InitError(csound,
@@ -311,9 +311,9 @@ static int32_t adsr_count(CSOUND *csound, double duration, double rate,
 static int32_t adsr_init(CSOUND *csound, ADSR *p, int32_t midi,
                          int32_t exponential)
 {
-  MYFLT **args = p->argums;
-  double rate = IS_ASIG_ARG(p->rslt) ? CS_ESR : CS_EKR;
-  double length = p->h.insdshead->p3.value;
+  cs_float **args = p->argums;
+  cs_double rate = IS_ASIG_ARG(p->rslt) ? CS_ESR : CS_EKR;
+  cs_double length = p->h.insdshead->p3.value;
   int32_t counts[5], release, override = -1, length_count, i;
   const int32_t inputs[4] = {4, 0, 1, 3};
   const int32_t stages[4] = {ADSR_DELAY, ADSR_ATTACK, ADSR_DECAY, ADSR_RELEASE};
@@ -381,7 +381,7 @@ static void adsr_stage(ADSR *p, int32_t stage, int64_t count)
     return;
   }
   if (p->exponential && stage != ADSR_DELAY && stage != ADSR_SUSTAIN) {
-    double logtarget;
+    cs_double logtarget;
     /* Retain the exponential attack's positive starting floor. */
     if (stage == ADSR_ATTACK)
       p->value = 0.001;
@@ -393,15 +393,15 @@ static void adsr_stage(ADSR *p, int32_t stage, int64_t count)
     }
     else
       logtarget = log(p->target);
-    p->multiplier = exp((logtarget - log(p->value)) / (double)count);
+    p->multiplier = exp((logtarget - log(p->value)) / (cs_double)count);
   }
   else
-    p->increment = (p->target - p->value) / (double)count;
+    p->increment = (p->target - p->value) / (cs_double)count;
 }
 
-static double adsr_next(ADSR *p)
+static cs_double adsr_next(ADSR *p)
 {
-  double value;
+  cs_double value;
   if (!p->initialized)
     return 0.0;
   if (p->midi && p->h.insdshead->relesing && p->stage < ADSR_RELEASE) {
@@ -450,7 +450,7 @@ int32_t mxdsrset(CSOUND *csound, ADSR *p)
 int32_t kadsr(CSOUND *csound, ADSR *p)
 {
   IGN(csound);
-  *p->rslt = (MYFLT)adsr_next(p);
+  *p->rslt = (cs_float)adsr_next(p);
   return OK;
 }
 
@@ -461,13 +461,13 @@ int32_t aadsr(CSOUND *csound, ADSR *p)
   uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   if (UNLIKELY(offset))
-    memset(p->rslt, 0, offset * sizeof(MYFLT));
+    memset(p->rslt, 0, offset * sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(p->rslt + nsmps, 0, early * sizeof(MYFLT));
+    memset(p->rslt + nsmps, 0, early * sizeof(cs_float));
   }
   for (n = offset; n < nsmps; n++)
-    p->rslt[n] = (MYFLT)adsr_next(p);
+    p->rslt[n] = (cs_float)adsr_next(p);
   return OK;
 }
 
@@ -529,15 +529,15 @@ int32_t klnsegr(CSOUND *csound, LINSEG *p)
 int32_t linsegr(CSOUND *csound, LINSEG *p)
 {
   IGN(csound);
-  MYFLT  val, ainc, *rs = p->rslt;
+  cs_float  val, ainc, *rs = p->rslt;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
 
-  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rs[nsmps], '\0', early*sizeof(cs_float));
   }
   val = p->curval;                          /* sav the cur value    */
   for (n=offset; n<nsmps; n++) {
@@ -585,13 +585,13 @@ int32_t linsegr(CSOUND *csound, LINSEG *p)
 
 /* Shared initialization for duration and absolute-time exponential segments.
    rate is the rate used by cnt/mlt; acnt/amlt always use the sample rate. */
-static int32_t expseg_init(CSOUND *csound, MYFLT **args, int32_t nargs,
-                           AUXCH *aux, XSEG **current, MYFLT rate,
-                           MYFLT sample_rate, int32_t absolute)
+static int32_t expseg_init(CSOUND *csound, cs_float **args, int32_t nargs,
+                           AUXCH *aux, XSEG **current, cs_float rate,
+                           cs_float sample_rate, int32_t absolute)
 {
   int32_t n, nsegs;
   XSEG *segments, *segp = NULL;
-  MYFLT val, next, previous_time = FL(0.0);
+  cs_float val, next, previous_time = FL(0.0);
 
   if (UNLIKELY(nargs < 3 || !(nargs & 1)))
     return csound->InitError(csound,
@@ -606,9 +606,9 @@ static int32_t expseg_init(CSOUND *csound, MYFLT **args, int32_t nargs,
   segments = (XSEG *)aux->auxp;
 
   for (n=0; n<nsegs; n++) {
-    MYFLT time = *args[2*n + 1];
-    MYFLT dur = time;
-    double count, audio_count;
+    cs_float time = *args[2*n + 1];
+    cs_float dur = time;
+    cs_double count, audio_count;
     if (absolute) {
       if (UNLIKELY(time < previous_time))
         return csound->InitError(csound,
@@ -631,11 +631,11 @@ static int32_t expseg_init(CSOUND *csound, MYFLT **args, int32_t nargs,
       return csound->InitError(csound,
                                Str("ival%lld sign conflict"), (int64_t)n+2);
 
-    count = (double)dur * rate;
-    audio_count = (double)dur * sample_rate;
+    count = (cs_double)dur * rate;
+    audio_count = (cs_double)dur * sample_rate;
     /* Reserve MAXPOS for continuation and check before converting to int. */
-    if (UNLIKELY(!(count >= 0.0 && count < (double)MAXPOS - 0.5 &&
-                   audio_count >= 0.0 && audio_count < (double)MAXPOS - 0.5)))
+    if (UNLIKELY(!(count >= 0.0 && count < (cs_double)MAXPOS - 0.5 &&
+                   audio_count >= 0.0 && audio_count < (cs_double)MAXPOS - 0.5)))
       return csound->InitError(csound, "%s",
                                Str("exponential segment duration out of range"));
     segp = &segments[n];
@@ -648,8 +648,8 @@ static int32_t expseg_init(CSOUND *csound, MYFLT **args, int32_t nargs,
     }
     else {
       segp->val = val;
-      segp->mlt = (MYFLT)pow((double)next / val, 1.0 / count);
-      segp->amlt = (MYFLT)pow((double)next / val, 1.0 / audio_count);
+      segp->mlt = (cs_float)pow((cs_double)next / val, 1.0 / count);
+      segp->amlt = (cs_float)pow((cs_double)next / val, 1.0 / audio_count);
     }
   }
   segp->cnt = segp->acnt = MAXPOS;
@@ -690,17 +690,17 @@ int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) 
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT       val, *rs;
+  cs_float       val, *rs;
   segp = p->cursegp;
   if (UNLIKELY(segp == NULL))
     return csound->PerfError(csound, &p->h,
                              Str("expsega: not initialised"));
   val  = segp->val;
   rs   = p->rslt;
-  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rs[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset; n<nsmps; n++) {
     while (segp->cnt != MAXPOS && --segp->cnt < 0)   {
@@ -740,14 +740,14 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT       *rs = p->rslt;
+  cs_float       *rs = p->rslt;
 
 
 
-  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rs[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset; n<nsmps; n++) {
     segp = p->cursegp;
@@ -773,7 +773,7 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
   SEG     *segp;
   int32_t     nsegs;
   int64_t         n=0;n = 0;
-  MYFLT   **argp, prvpt;
+  cs_float   **argp, prvpt;
 
 
   if (!(p->INOCOUNT & 1)){
@@ -796,7 +796,7 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
   p->cursegp = segp - 1;
   p->segsrem = nsegs + 1;
   do {                              /* init & chk each real seg ..  */
-    MYFLT dur = **argp++;
+    cs_float dur = **argp++;
     segp->nxtpt = **argp++;
     if ((segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5))) <= 0)
       segp->cnt = 0;
@@ -850,7 +850,7 @@ int32_t kxpsegr(CSOUND *csound, EXPSEG *p)
       }
       if (segp->nxtpt == p->curval)   /*   else get new mlt   */
         p->curmlt = FL(1.0);
-      else p->curmlt = (MYFLT) pow(segp->nxtpt/p->curval, 1.0/segp->cnt);
+      else p->curmlt = (cs_float) pow(segp->nxtpt/p->curval, 1.0/segp->cnt);
     }
     p->curval *= p->curmlt;           /* advance the cur val  */
   }
@@ -860,16 +860,16 @@ int32_t kxpsegr(CSOUND *csound, EXPSEG *p)
 int32_t expsegr(CSOUND *csound, EXPSEG *p)
 {
   IGN(csound);
-  MYFLT  val, amlt, *rs = p->rslt;
+  cs_float  val, amlt, *rs = p->rslt;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
 
 
-  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rs[nsmps], '\0', early*sizeof(cs_float));
   }
   /* sav the cur value    */
   val = p->curval;
@@ -903,7 +903,7 @@ int32_t expsegr(CSOUND *csound, EXPSEG *p)
         else {
           p->curmlt = POWER((segp->nxtpt/val), FL(1.0)/segp->cnt);
           // VL: this line introduces a bug
-          //p->curamlt = POWER(p->curmlt, FL(1.0)/(MYFLT)(nsmps-offset));
+          //p->curamlt = POWER(p->curmlt, FL(1.0)/(cs_float)(nsmps-offset));
           // VL: this line fixes it but does not take account of offset
           p->curamlt = POWER((segp->nxtpt/val), FL(1.0)/segp->acnt);
         }
@@ -927,17 +927,17 @@ int32_t expsegr(CSOUND *csound, EXPSEG *p)
  * scores. Use linseg when the envelope must reach and hold zero. See #3247. */
 int32_t lnnset(CSOUND *csound, LINEN *p)
 {
-  MYFLT a,b,dur;
-  MYFLT len = csound->curip->p3.value;
+  cs_float a,b,dur;
+  cs_float len = csound->curip->p3.value;
 
   if ((dur = *p->idur) > FL(0.0)) {
-    MYFLT iris = *p->iris, idec = *p->idec;
+    cs_float iris = *p->iris, idec = *p->idec;
     if (len<(iris<idec?idec:iris))
       csound->Warning(csound, Str("p3 too short in linen"));
 
     p->cnt1 = (int32_t)(iris * CS_EKR + FL(0.5));
     if (p->cnt1 > (int32_t)0) {
-      p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
+      p->inc1 = FL(1.0) / (cs_float) p->cnt1;
     }
     else p->inc1 = FL(1.0);
     a = dur * CS_EKR + FL(0.5);
@@ -959,16 +959,16 @@ int32_t lnnset(CSOUND *csound, LINEN *p)
 
 int32_t alnnset(CSOUND *csound, LINEN *p)
 {
-  MYFLT a,b,dur;
-  MYFLT len = csound->curip->p3.value;
+  cs_float a,b,dur;
+  cs_float len = csound->curip->p3.value;
 
   if ((dur = *p->idur) > FL(0.0)) {
-    MYFLT iris = *p->iris, idec = *p->idec;
+    cs_float iris = *p->iris, idec = *p->idec;
     if (len<(iris<idec?idec:iris))
       csound->Warning(csound, Str("p3 too short in linen"));
     p->cnt1 = (int64_t)(*p->iris * CS_ESR + FL(0.5));
     if (p->cnt1 > 0) {
-      p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
+      p->inc1 = FL(1.0) / (cs_float) p->cnt1;
     }
     else p->inc1 = FL(1.0);
     /* Keep the same unrounded divisor as lnnset for compatibility. */
@@ -992,7 +992,7 @@ int32_t alnnset(CSOUND *csound, LINEN *p)
 int32_t klinen(CSOUND *csound, LINEN *p)
 {
   IGN(csound);
-  MYFLT fact = FL(1.0);
+  cs_float fact = FL(1.0);
 
   if (p->cnt1 > 0) {
     fact = p->lin1;
@@ -1015,20 +1015,20 @@ int32_t linen(CSOUND *csound, LINEN *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t flag=0, n, nsmps = CS_KSMPS;
-  MYFLT *rs,*sg,val;
+  cs_float *rs,*sg,val;
   int32_t    asgsg = IS_ASIG_ARG(p->sig);
   int64_t cnt2 = p->cnt2;
   int64_t cnt1 = p->cnt1;
-  MYFLT lin1 = p->lin1;
-  MYFLT lin2 = p->lin2;
+  cs_float lin1 = p->lin1;
+  cs_float lin2 = p->lin2;
 
   rs = p->rslt;
   sg = p->sig;
 
-  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rs[nsmps], '\0', early*sizeof(cs_float));
   }
 
   for (n=offset; n<nsmps; n++) {
@@ -1075,7 +1075,7 @@ int32_t lnrset(CSOUND *csound, LINENR *p)
 {
   p->cnt1 = (int32_t)(*p->iris * CS_EKR + FL(0.5));
   if (p->cnt1 > 0L) {
-    p->inc1 = FL(1.0) / (MYFLT)p->cnt1;
+    p->inc1 = FL(1.0) / (cs_float)p->cnt1;
     p->val = FL(0.0);
   }
   else p->inc1 = p->val = FL(1.0);
@@ -1099,7 +1099,7 @@ int32_t alnrset(CSOUND *csound, LINENR *p)
 {
   p->cnt1 = (int32_t)(*p->iris * CS_ESR);
   if (p->cnt1 > 0L) {
-    p->inc1 = FL(1.0) / (MYFLT)p->cnt1;
+    p->inc1 = FL(1.0) / (cs_float)p->cnt1;
     p->val = FL(0.0);
   }
   else p->inc1 = p->val = FL(1.0);
@@ -1122,7 +1122,7 @@ int32_t alnrset(CSOUND *csound, LINENR *p)
 int32_t klinenr(CSOUND *csound, LINENR *p)
 {
   IGN(csound);
-  MYFLT fact = FL(1.0);
+  cs_float fact = FL(1.0);
 
   if (p->cnt1 > 0L) {
     fact = p->lin1;
@@ -1143,15 +1143,15 @@ int32_t linenr(CSOUND *csound, LINENR *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t flag=0, n, nsmps = CS_KSMPS;
-  MYFLT *rs,*sg,val,val2 = p->val2;
+  cs_float *rs,*sg,val,val2 = p->val2;
   int32_t    asgsg = IS_ASIG_ARG(p->sig);
   val = p->val;
   rs = p->rslt;
   sg = p->sig;
-  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rs[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset; n<nsmps; n++) {
     flag = 0;
@@ -1186,9 +1186,9 @@ int32_t linenr(CSOUND *csound, LINENR *p)
 int32_t evxset(CSOUND *csound, ENVLPX *p)
 {
   FUNC        *ftp;
-  MYFLT       ixmod, iatss, idur, prod, diff, asym, nk, denom, irise;
+  cs_float       ixmod, iatss, idur, prod, diff, asym, nk, denom, irise;
   int32_t       cnt1;
-  MYFLT       len = csound->curip->p3.value;
+  cs_float       len = csound->curip->p3.value;
 
   if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
     return NOTOK;
@@ -1244,7 +1244,7 @@ int32_t evxset(CSOUND *csound, ENVLPX *p)
     else {
       if (*p->iatss < FL(0.0) || cnt1 <= 4L)
         nk = CS_EKR;
-      else nk = (MYFLT) cnt1;
+      else nk = (cs_float) cnt1;
     }
     p->mlt1 = POWER(iatss, (FL(1.0)/nk));
     if (*p->idec > FL(0.0)) {
@@ -1269,8 +1269,8 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
 {
   FUNC        *ftp;
   int32_t       phs, check;
-  MYFLT       fact, v1, fract, *ftab;
-  double phsf;
+  cs_float       fact, v1, fract, *ftab;
+  cs_double phsf;
 
   ftp = p->ftp;
   if (UNLIKELY(ftp==NULL)) goto err1;        /* RWD fix */
@@ -1278,7 +1278,7 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
   else check = ((phs = p->phs) >= 0);
   if (check) {
     if(!p->floatph) {
-      fract = (MYFLT) PFRAC(phs);
+      fract = (cs_float) PFRAC(phs);
       ftab = ftp->ftable + (phs >> ftp->lobits);
       v1 = *ftab++;
       fact = (v1 + (*ftab - v1) * fract);
@@ -1294,7 +1294,7 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
       }
       p->phs = phs;
     } else {
-      double pos = phsf * ftp->flen;
+      cs_double pos = phsf * ftp->flen;
       fract = pos - (int32_t) pos;
       ftab = ftp->ftable + (int32_t) pos;
       v1 = *ftab++;
@@ -1333,9 +1333,9 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
 int32_t aevxset(CSOUND *csound, ENVLPX *p)
 {
   FUNC        *ftp;
-  MYFLT       ixmod, iatss, idur, prod, diff, asym, nk, denom, irise;
+  cs_float       ixmod, iatss, idur, prod, diff, asym, nk, denom, irise;
   int32_t       cnt1;
-  MYFLT       len = csound->curip->p3.value;
+  cs_float       len = csound->curip->p3.value;
 
   if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
     return NOTOK;
@@ -1391,7 +1391,7 @@ int32_t aevxset(CSOUND *csound, ENVLPX *p)
     else {
       if (*p->iatss < FL(0.0) || cnt1 <= 4L)
         nk = CS_ESR;
-      else nk = (MYFLT) cnt1;
+      else nk = (cs_float) cnt1;
     }
     p->mlt1 = POWER(iatss, (FL(1.0)/nk));
     if (*p->idec > FL(0.0)) {
@@ -1420,10 +1420,10 @@ int32_t envlpx(CSOUND *csound, ENVLPX *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   int64_t pos, lobits, lomask;
-  MYFLT      fact, *xamp, *rslt, val, asym, mlt, mlt2, v1, fract, *ftab, lodiv;
+  cs_float      fact, *xamp, *rslt, val, asym, mlt, mlt2, v1, fract, *ftab, lodiv;
   int32_t    asgsg = IS_ASIG_ARG(p->xamp), floatph = p->floatph, check,
     flen;
-  double phsf;
+  cs_double phsf;
   xamp = p->xamp;
   rslt = p->rslt;
   val  = p->val;
@@ -1443,10 +1443,10 @@ int32_t envlpx(CSOUND *csound, ENVLPX *p)
     return csound->PerfError(csound, &(p->h),
                              Str("envlpx rise func ends with zero"));
 
-  if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rslt[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset; n<nsmps;n++) {
     if(floatph) check = ((phsf = p->phsf) >= FL(0.0));
@@ -1465,7 +1465,7 @@ int32_t envlpx(CSOUND *csound, ENVLPX *p)
         }
         p->phs = phs;
       } else {
-        double posf = phsf * flen;
+        cs_double posf = phsf * flen;
         fract = posf - (int32_t) posf;
         v1 = ftab[(int32_t) posf];
         fact = (v1 + (ftab[(int32_t)posf+1] - v1) * fract);
@@ -1500,7 +1500,7 @@ int32_t envlpx(CSOUND *csound, ENVLPX *p)
 int32_t evrset(CSOUND *csound, ENVLPR *p)
 {
   FUNC        *ftp;
-  MYFLT       ixmod, iatss, prod, diff, asym, denom, irise;
+  cs_float       ixmod, iatss, prod, diff, asym, denom, irise;
 
   if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
     return NOTOK;
@@ -1564,7 +1564,7 @@ int32_t evrset(CSOUND *csound, ENVLPR *p)
 int32_t aevrset(CSOUND *csound, ENVLPR *p)
 {
   FUNC        *ftp;
-  MYFLT       ixmod, iatss, prod, diff, asym, denom, irise;
+  cs_float       ixmod, iatss, prod, diff, asym, denom, irise;
 
   if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
     return NOTOK;
@@ -1629,9 +1629,9 @@ int32_t aevrset(CSOUND *csound, ENVLPR *p)
 int32_t knvlpxr(CSOUND *csound, ENVLPR *p)
 {
   IGN(csound);
-  MYFLT  fact;
+  cs_float  fact;
   int32_t  rlscnt, check, phs;
-  double phsf;
+  cs_double phsf;
 
   if(p->floatph) check = ((phsf = p->phsf) >= FL(0.0));
   else check = ((phs = p->phs) >= 0);
@@ -1647,9 +1647,9 @@ int32_t knvlpxr(CSOUND *csound, ENVLPR *p)
     if (check) {                /* do fn rise for seg 1 */
       FUNC *ftp = p->ftp;
       if(!p->floatph) {
-        MYFLT fract = PFRAC(phs);
-        MYFLT *ftab = ftp->ftable + (phs >> ftp->lobits);
-        MYFLT v1 = *ftab++;
+        cs_float fract = PFRAC(phs);
+        cs_float *ftab = ftp->ftable + (phs >> ftp->lobits);
+        cs_float v1 = *ftab++;
         fact = (v1 + (*ftab - v1) * fract);
         phs += p->ki;
         if (phs < MAXLEN || p->rlsing)  /* if more fn or beg rls */
@@ -1660,10 +1660,10 @@ int32_t knvlpxr(CSOUND *csound, ENVLPR *p)
         }
         p->phs = phs;
       } else {
-        double pos = phsf * ftp->flen;
-        MYFLT fract = pos - (int32_t) pos;
-        MYFLT *ftab = ftp->ftable + (int32_t) pos;
-        MYFLT v1 = *ftab++;
+        cs_double pos = phsf * ftp->flen;
+        cs_float fract = pos - (int32_t) pos;
+        cs_float *ftab = ftp->ftable + (int32_t) pos;
+        cs_float v1 = *ftab++;
         fact = (v1 + (*ftab - v1) * fract);
         phsf += p->kif;
         if (phsf < FL(1.0) || p->rlsing)
@@ -1693,13 +1693,13 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  double rlscnt;
+  cs_double rlscnt;
   int64_t lobits, lomask, pos;
   int32_t phs = p->phs;
-  MYFLT fact, *xamp, *rslt, val, asym, mlt, v1, fract, *ftab, lodiv;
+  cs_float fact, *xamp, *rslt, val, asym, mlt, v1, fract, *ftab, lodiv;
   int32_t    asgsg = IS_ASIG_ARG(p->xamp), check, floatph = p->floatph,
     flen;
-  double phsf;
+  cs_double phsf;
 
   xamp = p->xamp;
   rslt = p->rslt;
@@ -1720,10 +1720,10 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
     return csound->PerfError(csound, &(p->h),
                              Str("envlpx rise func ends with zero"));
 
-  if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rslt[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rslt[nsmps], '\0', early*sizeof(cs_float));
   }
 
   for (n=offset; n<nsmps; n++) {
@@ -1755,7 +1755,7 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
           }
           p->phs = phs;
         } else {
-          double fpos = phsf * flen;
+          cs_double fpos = phsf * flen;
           fract = fpos - (int32_t) fpos;
           v1 = ftab[(int32_t) fpos];
           fact = (v1 + (ftab[(int32_t) fpos+1] - v1) * fract);
@@ -1793,8 +1793,8 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
 {
   SEG *segp, *sp;
   int32_t nsegs;
-  MYFLT       **argp;
-  double val, y1, y2;
+  cs_float       **argp;
+  cs_double val, y1, y2;
 
 
   if (p->INOCOUNT < 3 || !(p->INOCOUNT & 1)) {
@@ -1813,15 +1813,15 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
   }
   sp = segp;
   argp = p->argums;
-  y1 = val = (double)**argp++;
+  y1 = val = (cs_double)**argp++;
   if (UNLIKELY(**argp <= FL(0.0)))  return OK;    /* if idur1 <= 0, skip init  */
   p->curcnt = 0;
   p->cursegp = segp+1;          /* else setup first seg */
   p->segsrem = nsegs;
   //printf("****current seg = %p segp = %p\n", p->cursegp, segp);
   do {                                /* init each seg ..  */
-    double dur = (double)**argp++;
-    segp->nxtpt = (double)**argp++;
+    cs_double dur = (cs_double)**argp++;
+    segp->nxtpt = (cs_double)**argp++;
     if (UNLIKELY((segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5))) < 0))
       segp->cnt = 0;
     if (UNLIKELY((segp->acnt = (int32_t)(dur * CS_ESR)) < 0))
@@ -1896,8 +1896,8 @@ int32_t csgrset(CSOUND *csound, COSSEG *p)
 
 int32_t kosseg(CSOUND *csound, COSSEG *p)
 {
-  double val1 = p->y1, val2 = p->y2, x = p->x;
-  double inc = p->inc;
+  cs_double val1 = p->y1, val2 = p->y2, x = p->x;
+  cs_double inc = p->inc;
 
   if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;          /* RWD fix */
 
@@ -1921,15 +1921,15 @@ int32_t kosseg(CSOUND *csound, COSSEG *p)
       }                                 /*   poslen = new slope */
     }
     {
-      double mu2 = (1.0-cos(x*PI))*0.5;
-      *p->rslt = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
+      cs_double mu2 = (1.0-cos(x*PI))*0.5;
+      *p->rslt = (cs_float)(val1*(1.0-mu2)+val2*mu2);
       x += inc;
       --p->curcnt;
     }
   }
   else {
   putk:
-    *p->rslt = (MYFLT)val1;
+    *p->rslt = (cs_float)val1;
   }
   p->x = x;
   return OK;
@@ -1939,23 +1939,23 @@ int32_t kosseg(CSOUND *csound, COSSEG *p)
 
 int32_t cosseg(CSOUND *csound, COSSEG *p)
 {
-  double val1 = p->y1, val2 = p->y2, x = p->x;
-  MYFLT *rs = p->rslt;
+  cs_double val1 = p->y1, val2 = p->y2, x = p->x;
+  cs_float *rs = p->rslt;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  double inc = p->inc;///(nsmps-offset);
+  cs_double inc = p->inc;///(nsmps-offset);
 
   if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
 
-  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&rs[nsmps], '\0', early*sizeof(cs_float));
   }
 
   for (n=offset; n<nsmps; n++) {
-    double mu2;
+    cs_double mu2;
     if (LIKELY(p->segsrem)) {             /* if no more segs putk */
       if (p->curcnt <= 0) {             /*  if done cur segment */
         SEG *segp = p->cursegp;
@@ -1978,13 +1978,13 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
       }
       mu2 = (1.0-cos(x*PI))*0.5;
       //printf("****x=%f inc=%f mu2=%f\n", x, inc, mu2);
-      rs[n] = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
+      rs[n] = (cs_float)(val1*(1.0-mu2)+val2*mu2);
       x += inc;
       --p->curcnt;
     }
     else {
     putk:
-      rs[n] = (MYFLT)val1;
+      rs[n] = (cs_float)val1;
 
     }
   }
@@ -1998,13 +1998,13 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
 
 int32_t cossegr(CSOUND *csound, COSSEG *p)
 {
-  double val1 = p->y1, val2 = p->y2, x = p->x, val = p->val;
-  MYFLT *rs = p->rslt;
+  cs_double val1 = p->y1, val2 = p->y2, x = p->x, val = p->val;
+  cs_float *rs = p->rslt;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t n, nsmps = CS_KSMPS;
-  double inc = p->inc;
+  cs_double inc = p->inc;
 
-  memset(rs, '\0', offset*sizeof(MYFLT));
+  memset(rs, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
 
   for (n=offset; n<nsmps; n++) {
@@ -2050,8 +2050,8 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
         //printf("New segment incx, y1,y2 = %g, %f, %f\n", inc, val1, val2);
       }
       {
-        double mu2 = (1.0-cos(x*PI))*0.5;
-        val = rs[n] = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
+        cs_double mu2 = (1.0-cos(x*PI))*0.5;
+        val = rs[n] = (cs_float)(val1*(1.0-mu2)+val2*mu2);
         x += inc;
         --p->curcnt;
         //if (x>1 || x<0) printf("x=%f out of range\n", x);
@@ -2059,7 +2059,7 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
     }
     else {
     putk:
-      val = rs[n] = (MYFLT)val1;
+      val = rs[n] = (cs_float)val1;
     }
   }
   p->inc = inc;
@@ -2075,13 +2075,13 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
 #if 0
 int32_t cossegr(CSOUND *csound, COSSEG *p)
 {
-  double val1 = p->y1, val2 = p->y2, x = p->x;
-  MYFLT *rs = p->rslt;
+  cs_double val1 = p->y1, val2 = p->y2, x = p->x;
+  cs_float *rs = p->rslt;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t n, nsmps = CS_KSMPS;
-  double inc = p->inc/(nsmps-offset);
+  cs_double inc = p->inc/(nsmps-offset);
 
-  memset(rs, '\0', offset*sizeof(MYFLT));
+  memset(rs, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
 
   if (LIKELY(p->segsrem)) {             /* if no more segs putk */
@@ -2118,8 +2118,8 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
       //printf("New segment incx, y1,y2 = %g, %f, %f\n", inc, val1, val2);
     }
     for (n=offset; n<nsmps; n++) {
-      double mu2 = (1.0-cos(x*PI))*0.5;
-      rs[n] = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
+      cs_double mu2 = (1.0-cos(x*PI))*0.5;
+      rs[n] = (cs_float)(val1*(1.0-mu2)+val2*mu2);
       x += inc;
       //if (x>1 || x<0) printf("x=%f out of range\n", x);
     }
@@ -2128,7 +2128,7 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
   putk:
     //printf("ending at %f\n", val1);
     for (n=offset; n<nsmps; n++) {
-      rs[n] = (MYFLT)val1;
+      rs[n] = (cs_float)val1;
     }
   }
   p->x = x;
@@ -2141,8 +2141,8 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
 
 int32_t kcssegr(CSOUND *csound, COSSEG *p)
 {
-  double val1 = p->y1, val2 = p->y2, x = p->x, val = p->val;
-  double inc = p->inc;
+  cs_double val1 = p->y1, val2 = p->y2, x = p->x, val = p->val;
+  cs_double inc = p->inc;
 
   if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;          /* RWD fix */
 
@@ -2183,15 +2183,15 @@ int32_t kcssegr(CSOUND *csound, COSSEG *p)
       }                                 /*   poslen = new slope */
     }
     {
-      double mu2 = (1.0-cos(x*PI))*0.5;
-      val = *p->rslt = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
+      cs_double mu2 = (1.0-cos(x*PI))*0.5;
+      val = *p->rslt = (cs_float)(val1*(1.0-mu2)+val2*mu2);
       x += inc;
       --p->curcnt;
     }
   }
   else {
   putk:
-    val = *p->rslt = (MYFLT)val1;
+    val = *p->rslt = (cs_float)val1;
   }
   p->x = x;
   p->val = val;

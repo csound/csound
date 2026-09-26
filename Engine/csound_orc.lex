@@ -714,7 +714,7 @@ ORCTOKEN *make_int(CSOUND *csound, char *s, void *yyscanner)
 
 ORCTOKEN *make_num(CSOUND *csound, char *s, void *yyscanner)
 {
-    double n = atof(s);
+    cs_double n = atof(s);
     ORCTOKEN *ans = new_token(csound, NUMBER_TOKEN, yyscanner);
     int32_t len = (int32_t) strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);

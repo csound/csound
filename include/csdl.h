@@ -46,8 +46,8 @@
 
 typedef struct {
    OPDS h;
-   MYFLT *out;
-   MYFLT *in1, *in2;
+   cs_float *out;
+   cs_float *in1, *in2;
 } OPCODE;
 
 static int32_t op_init(CSOUND *csound, OPCODE *p)
@@ -77,6 +77,11 @@ static OENTRY localops[] =
 
 // These are generic functions to use for any type of csound plugin module
 // (opcodes, ftables, IO backends etc)
+PUBLIC int32_t csoundModuleInfo(void)
+{
+    return CSOUND_MODULE_INFO;
+}
+
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
     return 0;
@@ -144,13 +149,20 @@ PUBLIC  const char  *csoundModuleErrorCodeToString(int32_t);
 
 PUBLIC  int32_t     csoundModuleInfo(void);
 
+/** Return this value from hand-written csoundModuleInfo functions too.
+ * An unset precision flag retains the legacy ABI with 64-bit cs_double.
+ */
+#define CSOUND_MODULE_INFO \
+  ((CS_VERSION << 16) | (CS_SUBVER << 8) | (int32_t) sizeof(cs_float) | \
+   (sizeof(cs_double) == sizeof(float) ? CSOUND_MODULE_USE_FLOAT : 0))
+
 /** The LINKAGE macro sets up linking of opcode list*/
 
 #define LINKAGE                                                         \
 PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
 { (void) csound; *ep = localops; return (int64_t) sizeof(localops);  } \
 PUBLIC  int32_t csoundModuleInfo(void)                                       \
-{ return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT)); }
+{ return CSOUND_MODULE_INFO; }
 
 /** The LINKAGE_BUILTIN macro sets up linking of opcode list for builtin opcodes
  * which must have unique function names */
@@ -160,7 +172,7 @@ PUBLIC  int32_t csoundModuleInfo(void)                                       \
 PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
 {   (void) csound; *ep = name; return (int64_t) (sizeof(name));  }         \
 PUBLIC int32_t csoundModuleInfo(void)                                       \
-{ return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT)); } \
+{ return CSOUND_MODULE_INFO; } \
 const OENTRY *name##_p = name; \
 const int32_t name##_len = (int32_t) (sizeof(name)/sizeof(OENTRY)); \
 
@@ -170,14 +182,14 @@ const int32_t name##_len = (int32_t) (sizeof(name)/sizeof(OENTRY)); \
 PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 {   (void) csound; return localfgens;                               }   \
 PUBLIC int32_t csoundModuleInfo(void)                                       \
-{ return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT)); }
+{ return CSOUND_MODULE_INFO; }
 
 #undef FLINKAGE_BUILTIN
 #define FLINKAGE_BUILTIN(name)                                          \
 PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 {   (void) csound; return name;                                     }   \
 PUBLIC int32_t csoundModuleInfo(void)                                       \
-{ return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT)); }
+{ return CSOUND_MODULE_INFO; }
 
 #ifdef __cplusplus
 }

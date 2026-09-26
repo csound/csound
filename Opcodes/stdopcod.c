@@ -52,7 +52,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     /* fout.c */
     p->file_opened = (struct fileinTag*) NULL;
     p->file_num = -1;
-    /*p->buf = (MYFLT*) NULL;*/
+    /*p->buf = (cs_float*) NULL;*/
     /* ugnorman.c */
     p->atsbufreadaddr = NULL;
     err |= ambicode_init_(csound);
@@ -117,7 +117,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
 
  int32_t csoundModuleInfo(void)
 {
-    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+  return CSOUND_MODULE_INFO;
 }
 
   int32_t csoundModuleDestroy(CSOUND *csound)

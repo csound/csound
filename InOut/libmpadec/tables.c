@@ -57,14 +57,14 @@ const uint16_t crc_table[256] = {
   0x8213, 0x0216, 0x021C, 0x8219, 0x0208, 0x820D, 0x8207, 0x0202
 };
 
-const MYFLT newcos[8] = {
+const cs_float newcos[8] = {
   0.93969262078590838405410927732473, -0.17364817766693034885171662676931,
  -0.76604444311897803520239265055542,  0.98480775301220805936674302458952,
  -0.34202014332566873304409961468226, -0.64278760968653932632264340990726,
   0.86602540378443864676372317075294,  0.5
 };
 
-const MYFLT tfcos36[9] = {
+const cs_float tfcos36[9] = {
   0.50190991877167369479228784572231, 0.51763809020504152469779767524810,
   0.55168895948124587824344735167135, 0.61038729438072803416729403213053,
   0.70710678118654752440084436210485, 0.87172339781054900991884170836219,
@@ -72,19 +72,19 @@ const MYFLT tfcos36[9] = {
   5.73685662283492756457461251791420
 };
 
-const MYFLT tfcos12[3] = {
+const cs_float tfcos12[3] = {
   0.5176380902050415246977976752481, 0.70710678118654752440084436210485,
   1.9318516525781365734994863994578
 };
 
-const MYFLT cs[8] = {
+const cs_float cs[8] = {
   0.85749292571254418689325777610964, 0.88174199731770518177557399759066,
   0.94962864910273289204833276115398, 0.98331459249179014599030200066392,
   0.99551781606758576429088040422867, 0.99916055817814750452934664352117,
   0.99989919524444704626703489425565, 0.99999315507028023572010150517204
 };
 
-const MYFLT ca[8] = {
+const cs_float ca[8] = {
  -0.5144957554275265121359546656657900, -0.4717319685649722722499320887110000,
  -0.3133774542039018543759498111808100, -0.1819131996109811770082058701228300,
  -0.0945741925264206476076336384017240, -0.0409655828853040476857032123843680,
@@ -794,7 +794,7 @@ static int32_t intwinbase[] = {
   73415, 73908, 74313, 74630, 74856, 74992, 75038
 };
 
-static void make_synth_window(mpadec_t mpadec, MYFLT scale)
+static void make_synth_window(mpadec_t mpadec, cs_float scale)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     register int32_t i, j, k;
@@ -803,14 +803,14 @@ static void make_synth_window(mpadec_t mpadec, MYFLT scale)
     for (i = 0, j = 0, k = 0; i < 256; i++, j++, k += 32) {
       if (k < (512 + 16))
         mpa->tables.decwin[k] =
-          mpa->tables.decwin[k + 16] = ((MYFLT)intwinbase[j]/65536.0)*scale;
+          mpa->tables.decwin[k + 16] = ((cs_float)intwinbase[j]/65536.0)*scale;
       if ((i & 31) == 31) k -= 1023;
       if ((i & 63) == 63) scale = -scale;
     }
     for (; i < 512; i++, j--, k += 32) {
       if (k < (512 + 16))
         mpa->tables.decwin[k] =
-          mpa->tables.decwin[k + 16] = ((MYFLT)intwinbase[j]/65536.0)*scale;
+          mpa->tables.decwin[k + 16] = ((cs_float)intwinbase[j]/65536.0)*scale;
       if ((i & 31) == 31) k -= 1023;
       if ((i & 63) == 63) scale = -scale;
     }
@@ -840,7 +840,7 @@ static void init_layer2(mpadec_t mpadec)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     int32_t i, j, k; uint8_t *tab;
-    static MYFLT mulmul[27] = { 0.0, -2.0/3.0, 2.0/3.0, 2.0/7.0, 2.0/15.0,
+    static cs_float mulmul[27] = { 0.0, -2.0/3.0, 2.0/3.0, 2.0/7.0, 2.0/15.0,
                                 2.0/31.0, 2.0/63.0, 2.0/127.0, 2.0/255.0,
                                 2.0/511.0, 2.0/1023.0, 2.0/2047.0, 2.0/4095.0,
                                 2.0/8191.0, 2.0/16383.0, 2.0/32767.0, 2.0/65535.0,
@@ -883,7 +883,7 @@ static void init_layer2(mpadec_t mpadec)
     mpa->tables.mp2tables[9] = mpa->tables.grp9tab;
     for (i = 0; i < 27; i++) {
       for (j = 0, k = 3; j < 63; j++, k--)
-        mpa->tables.muls[i][j] = mulmul[i]*pow(2.0, (MYFLT)k/3.0);
+        mpa->tables.muls[i][j] = mulmul[i]*pow(2.0, (cs_float)k/3.0);
       mpa->tables.muls[i][63] = 0.0;
     }
 }
@@ -925,14 +925,14 @@ static void init_layer3(mpadec_t mpadec)
       }
     }
     for (i = 0; i < 16; i++) {
-      MYFLT tmp = tan(i*M_PI/12.0);
+      cs_float tmp = tan(i*M_PI/12.0);
       mpa->tables.tan1_1[i] = tmp/(1.0 + tmp);
       mpa->tables.tan2_1[i] = 1.0/(1.0 + tmp);
       mpa->tables.tan1_2[i] = M_SQRT2*tmp/(1.0 + tmp);
       mpa->tables.tan2_2[i] = M_SQRT2/(1.0 + tmp);
       for (j = 0; j < 2; j++) {
-        MYFLT base = pow(2.0, -0.25*(j + 1));
-        MYFLT p1 = 1.0, p2 = 1.0;
+        cs_float base = pow(2.0, -0.25*(j + 1));
+        cs_float p1 = 1.0, p2 = 1.0;
         if (i > 0) {
           if (i & 1) p1 = pow(base, 0.5*(i + 1));
           else p2 = pow(base, 0.5*i);
@@ -1042,7 +1042,7 @@ static void init_layer3(mpadec_t mpadec)
     }
 }
 
-void init_tables(mpadec_t mpadec, MYFLT scale, int32_t sblimit)
+void init_tables(mpadec_t mpadec, cs_float scale, int32_t sblimit)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
 

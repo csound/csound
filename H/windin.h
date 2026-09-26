@@ -27,8 +27,8 @@
 typedef struct
     {
     OPDS h;
-    MYFLT   *kxrslt, *kyrslt;
-    MYFLT   *iprd, *ixmin, *ixmax, *iymin, *iymax, *ixinit, *iyinit;
+    cs_float   *kxrslt, *kyrslt;
+    cs_float   *iprd, *ixmin, *ixmax, *iymin, *iymax, *ixinit, *iyinit;
     int32_t     countdown, timcount;
     struct xyindat_ w;          /* window specific data structure */
     } XYIN;

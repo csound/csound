@@ -119,7 +119,7 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
       return csound->InitError(csound, "%s", Str("hrtfer: cannot load HRTFcompact"));
     p->fpbegin = (int16 *)mfp->beginp;
     if (p->aIn == p->aLeft || p->aIn == p->aRight)
-      csound->AuxAlloc(csound, CS_KSMPS * sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, CS_KSMPS * sizeof(cs_float), &p->auxch);
         /* initialize counters and indices */
     p->outcount = 0;
     p->incount = 0;
@@ -138,11 +138,11 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
     /*   p->outl[i]               = FL(0.0); */
     /*   p->outr[i]               = FL(0.0); */
     /* } */
-    memset(p->x, 0, BUF_LEN*sizeof(MYFLT));
-    memset(p->yl, 0, BUF_LEN*sizeof(MYFLT));
-    memset(p->yr, 0, BUF_LEN*sizeof(MYFLT));
-    memset(p->outl, 0, BUF_LEN*sizeof(MYFLT));
-    memset(p->outr, 0, BUF_LEN*sizeof(MYFLT));
+    memset(p->x, 0, BUF_LEN*sizeof(cs_float));
+    memset(p->yl, 0, BUF_LEN*sizeof(cs_float));
+    memset(p->yr, 0, BUF_LEN*sizeof(cs_float));
+    memset(p->outl, 0, BUF_LEN*sizeof(cs_float));
+    memset(p->outr, 0, BUF_LEN*sizeof(cs_float));
 
         /* initialize left overlap buffer */
         /* initialize right overlap buffer */
@@ -150,8 +150,8 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
     /*   p->bl[i] = FL(0.0); */
     /*   p->br[i] = FL(0.0); */
     /* } */
-    memset(p->bl, 0, FILT_LENm1*sizeof(MYFLT));
-    memset(p->br, 0, FILT_LENm1*sizeof(MYFLT));
+    memset(p->bl, 0, FILT_LENm1*sizeof(cs_float));
+    memset(p->br, 0, FILT_LENm1*sizeof(cs_float));
     p->setup = csound->RealFFTSetup(csound, BUF_LEN, FFT_FWD);
     p->isetup = csound->RealFFTSetup(csound, BUF_LEN, FFT_INV);
     return OK;
@@ -163,16 +163,16 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
 CSOUND_PRESERVE_LEGACY_BEHAVIOR("hrtfer")
 static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 {
-    MYFLT      *aLeft, *aRight; /* audio output streams */
-    MYFLT      *aIn, *kAz, *kElev; /* audio and control input streams */
+    cs_float      *aLeft, *aRight; /* audio output streams */
+    cs_float      *aIn, *kAz, *kElev; /* audio and control input streams */
     int32_t        azim, elev, el_index, az_index;
     int32_t        nsmpsi, nsmpso; /* number of samples in/out */
     /*         input,      out-left,    out-right */
-    MYFLT      *x, *yl, *yr;    /* Local copies of address */
+    cs_float      *x, *yl, *yr;    /* Local copies of address */
     /*         overlap left,   overlap right */
-    MYFLT      *bl, *br;
+    cs_float      *bl, *br;
                         /* copy of current input convolved with old HRTFs */
-    MYFLT      *outl, *outr; /* output left/right */
+    cs_float      *outl, *outr; /* output left/right */
     int32_t        outfront, outend; /* circular output indices */
     int32_t        incount, outcount; /* number of samples in/out */
     uint32_t   toread; /* number of samples to read */
@@ -184,7 +184,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
                         /* short arrays into which HRTFs are stored locally */
     int16      sl[FILT_LEN], sr[FILT_LEN];
                         /* float versions of above to be sent to FFT routines */
-    MYFLT      xl[BUF_LEN], xr[BUF_LEN];
+    cs_float      xl[BUF_LEN], xr[BUF_LEN];
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t ii;
@@ -200,14 +200,14 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
     flip = 0;
 
         /* Convert elevation in degrees to elevation array index. */
-    el_index = ROUND((double)(elev - MIN_ELEV) / ELEV_INC);
+    el_index = ROUND((cs_double)(elev - MIN_ELEV) / ELEV_INC);
     if (el_index < 0)
       el_index = 0;
     else if (el_index >= N_ELEV)
       el_index = N_ELEV-1;
 
         /* Convert azimuth in degrees to azimuth array index. */
-    azim = (int32_t)fmod((double)azim, 360.0);
+    azim = (int32_t)fmod((cs_double)azim, 360.0);
     if (azim < 0)
       azim += 360;
     if (azim > 180) {
@@ -220,7 +220,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
         /* azim should be 0<=azim<=180 so calculate az_index and clip
            to legal range
            note - accesses global array elevation_data */
-    az_index = ROUND((double)azim / (360.0 / elevation_data[el_index]));
+    az_index = ROUND((cs_double)azim / (360.0 / elevation_data[el_index]));
     if (az_index < 0)
       az_index = 0;
     else if (az_index >= GET_NFAZ(el_index))
@@ -240,14 +240,14 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
       sr[i] = *fpindex++;
     }
     {
-      MYFLT scaleFac;
+      cs_float scaleFac;
       /* Preserve the legacy gain; the manual calls for output compensation. */
       scaleFac = csound->GetInverseRealFFTScale(csound, BUF_LEN) / FL(256.0);
       scaleFac /= FL(32768.0);
       /* copy int16 buffers into float buffers */
       for (i=0; i<FILT_LEN; i++) {
-        xl[i] = (MYFLT) sl[i] * scaleFac;
-        xr[i] = (MYFLT) sr[i] * scaleFac;
+        xl[i] = (cs_float) sl[i] * scaleFac;
+        xr[i] = (cs_float) sr[i] * scaleFac;
       }
     }
     for (i=FILT_LEN; i<BUF_LEN; i++) {
@@ -297,18 +297,18 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
     aIn = p->aIn + offset;
     if (p->aIn == p->aLeft || p->aIn == p->aRight) {
       /* Draining queued output can otherwise overwrite unread input. */
-      memcpy(p->auxch.auxp, aIn, nsmpsi * sizeof(MYFLT));
-      aIn = (MYFLT *)p->auxch.auxp;
+      memcpy(p->auxch.auxp, aIn, nsmpsi * sizeof(cs_float));
+      aIn = (cs_float *)p->auxch.auxp;
     }
     aLeft = p->aLeft + offset;
     aRight = p->aRight + offset;
     if (UNLIKELY(offset)) {
-      memset(p->aLeft, 0, offset * sizeof(MYFLT));
-      memset(p->aRight, 0, offset * sizeof(MYFLT));
+      memset(p->aLeft, 0, offset * sizeof(cs_float));
+      memset(p->aRight, 0, offset * sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
-      memset(p->aLeft + CS_KSMPS - early, 0, early * sizeof(MYFLT));
-      memset(p->aRight + CS_KSMPS - early, 0, early * sizeof(MYFLT));
+      memset(p->aLeft + CS_KSMPS - early, 0, early * sizeof(cs_float));
+      memset(p->aRight + CS_KSMPS - early, 0, early * sizeof(cs_float));
     }
 
         /* main loop for a-rate code.  Audio read in, processed,
@@ -382,8 +382,8 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 
     /* Clear output for which no complete input frame is available. */
     if (nsmpso > 0) {
-      memset(aLeft, 0, nsmpso * sizeof(MYFLT));
-      memset(aRight, 0, nsmpso * sizeof(MYFLT));
+      memset(aLeft, 0, nsmpso * sizeof(cs_float));
+      memset(aRight, 0, nsmpso * sizeof(cs_float));
     }
 
         /* update state in p */

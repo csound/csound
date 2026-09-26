@@ -104,7 +104,7 @@ public
 %{@JavascriptInterface 
 public 
 %}  
-%javamethodmodifiers CsoundOboe::getAudioChannel(const char *name, MYFLT *samples)
+%javamethodmodifiers CsoundOboe::getAudioChannel(const char *name, cs_float *samples)
 %{@JavascriptInterface 
 public 
 %}  
@@ -200,7 +200,7 @@ public
 %{@JavascriptInterface 
 public 
 %}  
-%javamethodmodifiers CsoundOboe::setControlChannel(const char *name, double value)
+%javamethodmodifiers CsoundOboe::setControlChannel(const char *name, cs_double value)
 %{@JavascriptInterface 
 public 
 %}  
@@ -220,7 +220,7 @@ public
 %{@JavascriptInterface 
 public 
 %}  
-%javamethodmodifiers CsoundOboe::setScoreOffsetSeconds(double time)
+%javamethodmodifiers CsoundOboe::setScoreOffsetSeconds(cs_double time)
 %{@JavascriptInterface 
 public 
 %}  
@@ -248,7 +248,7 @@ public
 %{@JavascriptInterface 
 public 
 %}
-%javamethodmodifiers CsoundOboe::tableSet(int table, int index, double value)
+%javamethodmodifiers CsoundOboe::tableSet(int table, int index, cs_double value)
 %{@JavascriptInterface 
 public 
 %}
@@ -374,7 +374,7 @@ public:
             if (input_channel_count > 0) {
                 spin = GetSpin();
                 input_channel_count = GetNchnlsInput();
-                spin_size = sizeof(MYFLT) * frames_per_kperiod * input_channel_count;
+                spin_size = sizeof(cs_float) * frames_per_kperiod * input_channel_count;
                 audio_stream_builder.setChannelCount(input_channel_count);
                 audio_stream_builder.setDirection(oboe::Direction::Input);
                 result = audio_stream_builder.openStream(&audio_stream_in);
@@ -393,7 +393,7 @@ public:
             }
             spout = GetSpout();
             output_channel_count = GetNchnls();
-            spout_size = sizeof(MYFLT) * frames_per_kperiod * output_channel_count;
+            spout_size = sizeof(cs_float) * frames_per_kperiod * output_channel_count;
             audio_stream_builder.setChannelCount(output_channel_count);
             audio_stream_builder.setDirection(oboe::Direction::Output);
             result = audio_stream_builder.openStream(&audio_stream_out);
@@ -458,22 +458,22 @@ public:
     virtual int compileOrc(const char *str){
         return CompileOrc(str);
     }
-    virtual MYFLT evalCode(const char *str){
+    virtual cs_float evalCode(const char *str){
         return EvalCode(str);
     }
-    virtual MYFLT get0dBFS(){
+    virtual cs_float get0dBFS(){
         return Get0dBFS();
     }
     virtual int getAPIVersion(){
         return GetAPIVersion();
     }
-    virtual void getAudioChannel(const char *name, MYFLT *samples){
+    virtual void getAudioChannel(const char *name, cs_float *samples){
         GetAudioChannel(name,samples);
     }
-    virtual MYFLT getChannel(const char *name){
+    virtual cs_float getChannel(const char *name){
         return GetControlChannel(name, 0);
     }
-    virtual MYFLT getControlChannel(const char *name){
+    virtual cs_float getControlChannel(const char *name){
         return GetControlChannel(name, 0);
     }
     virtual long getCurrentTimeSamples(){
@@ -482,7 +482,7 @@ public:
     virtual const char *getEnv(const char *name){
         return GetEnv(name);
     }
-    virtual MYFLT getKr(){
+    virtual cs_float getKr(){
         return GetKr();
     }
     virtual int getKsmps(){
@@ -500,13 +500,13 @@ public:
     virtual const char *getOutputName(){
         return GetOutputName();
     }
-    virtual MYFLT getScoreOffsetSeconds(){
+    virtual cs_float getScoreOffsetSeconds(){
         return GetScoreOffsetSeconds();
     }
-    virtual double getScoreTime(){
+    virtual cs_double getScoreTime(){
         return GetScoreTime();
     }
-     virtual MYFLT getSr(){
+     virtual cs_float getSr(){
         return GetSr();
     }
     virtual void getStringChannel(const char *name, char *string){
@@ -572,8 +572,8 @@ public:
     virtual void setOutput(const char *name,const char *type,const char *format){
         SetOutput(name, type, format);
     }
-    virtual void setScoreOffsetSeconds(double time){
-        SetScoreOffsetSeconds((MYFLT) time);
+    virtual void setScoreOffsetSeconds(cs_double time){
+        SetScoreOffsetSeconds((cs_float) time);
     }
     virtual void setScorePending(int pending){
         SetScorePending(pending);
@@ -584,20 +584,20 @@ public:
     virtual void stop(){
         Stop();
     }
-    virtual int scoreEvent(char type, const MYFLT *pFields, long numFields){
+    virtual int scoreEvent(char type, const cs_float *pFields, long numFields){
         return ScoreEvent(type, pFields, numFields);
     }
     virtual int runUtility(const char *name, int argc, char **argv)
     {
         return RunUtility(name, argc, argv);
     }
-    virtual void setAudioChannel(const char *name, MYFLT *samples){
+    virtual void setAudioChannel(const char *name, cs_float *samples){
         SetChannel(name, samples);
     }
-    virtual void setChannel(const char *name, double value){
+    virtual void setChannel(const char *name, cs_double value){
         SetControlChannel(name, value);
     }
-    virtual void setControlChannel(const char *name, double value){
+    virtual void setControlChannel(const char *name, cs_double value){
         SetControlChannel(name, value);
     }
     virtual void setChannel(const char *name, char *string){
@@ -609,27 +609,27 @@ public:
     virtual int tableLength(int table){
         return TableLength(table);
     }
-    virtual MYFLT tableGet(int table, int index){
+    virtual cs_float tableGet(int table, int index){
         return TableGet(table, index);
     }
-    virtual void tableSet(int table, int index, double value){
-        TableSet(table, index, (MYFLT) value);
+    virtual void tableSet(int table, int index, cs_double value){
+        TableSet(table, index, (cs_float) value);
     }
 protected:
     int timeout_nanoseconds;
     uint32_t frames_per_kperiod;
     std::atomic<bool> is_playing;
     oboe::AudioStream *audio_stream_in;
-    MYFLT *spin;
+    cs_float *spin;
     uint32_t input_channel_count;
     size_t spin_size;
-    MYFLT *spout;
+    cs_float *spout;
     uint32_t output_channel_count;
     size_t spout_size;
     oboe::AudioStream *audio_stream_out;
     int16_t *short_buffer;
     float *float_buffer;
-    MYFLT zerodBFS;
+    cs_float zerodBFS;
     oboe::AudioFormat oboe_audio_format;
     oboe::AudioStreamBuilder audio_stream_builder;
 };

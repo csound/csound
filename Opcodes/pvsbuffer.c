@@ -31,11 +31,11 @@ typedef struct {
 
 typedef struct {
   OPDS h;
-  MYFLT  *hptr;
-  MYFLT  *ktime;
+  cs_float  *hptr;
+  cs_float  *ktime;
   PVSDAT *fin;
-  MYFLT  *len;
-  MYFLT  pos;
+  cs_float  *len;
+  cs_float  pos;
   uint32 nframes;
   uint32 cframes;
   AUXCH handmem;
@@ -89,7 +89,7 @@ static int32_t pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     else
       *phandle = p->handle;
      }
-    *p->hptr = (MYFLT) i;
+    *p->hptr = (cs_float) i;
 
     p->lastframe = 0;
     p->cframes = 0;
@@ -123,12 +123,12 @@ static int32_t pvsbufferproc(CSOUND *csound, PVSBUFFER *p)
 typedef struct {
   OPDS h;
   PVSDAT *fout;
-  MYFLT  *ktime;
-  MYFLT *hptr;
-  MYFLT *strt;
-  MYFLT *end;
-  MYFLT *clear;
-  MYFLT iclear, optr;
+  cs_float  *ktime;
+  cs_float *hptr;
+  cs_float *strt;
+  cs_float *end;
+  cs_float *clear;
+  cs_float iclear, optr;
   FSIG_HANDLE *handle;
   uint32_t scnt;
 } PVSBUFFERREAD;
@@ -180,7 +180,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
  static int32_t pvsbufreadproc(CSOUND *csound, PVSBUFFERREAD *p){
 
     uint32_t posi, frames;
-    MYFLT pos, sr = CS_ESR, frac;
+    cs_float pos, sr = CS_ESR, frac;
     FSIG_HANDLE *handle =  p->handle, **phandle;
     float *fout, *buffer;
     int32_t strt = *p->strt, end = *p->end, i, N;
@@ -250,9 +250,9 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 {
     uint32_t posi, frames;
-    MYFLT pos, sr = CS_ESR;
+    cs_float pos, sr = CS_ESR;
     FSIG_HANDLE *handle =  p->handle, **phandle;
-    MYFLT    frac, *tab1, *tab2, *tab;
+    cs_float    frac, *tab1, *tab2, *tab;
     FUNC     *ftab;
     float    *fout, *buffer;
     uint32_t overlap, i;

@@ -110,7 +110,7 @@ extern "C" {
   /** 
       Sends an event.
       The event has type opcod (e.g. 'i' for a note event).
-      pFields is tuple, a list, or an ndarray of MYFLTs with all the pfields
+      pFields is tuple, a list, or an ndarray of cs_float values with all the pfields
       for this event, starting with the p1 value specified in pFields[0].
       If absp2mode is non-zero, the start time of the event is measured
       from the beginning of performance, instead of the default of relative
@@ -118,7 +118,7 @@ extern "C" {
   */
   PUBLIC void csoundPerformanceThreadScoreEvent(CS_PERF_THREAD* pt,
     int32_t absp2mode, char opcod,
-    int32_t pcnt, MYFLT *p);
+    int32_t pcnt, cs_float *p);
 
   /**
      Sends an event as a string
@@ -130,7 +130,7 @@ extern "C" {
      Sets the playback time pointer to the specified value (in seconds)
   */
   PUBLIC void csoundPerformanceThreadSetScoreOffsetSeconds(CS_PERF_THREAD* pt,
-    double timeVal);
+    cs_double timeVal);
   
   /**
      Compiles the given orchestra code
@@ -143,7 +143,7 @@ extern "C" {
      value passed to the `return` opcode in global space. 
   */
   PUBLIC void csoundPerformanceThreadEvalCode(CS_PERF_THREAD* pt, 
-    const char *code, void (*returncb)(MYFLT));
+    const char *code, void (*returncb)(cs_float));
     
   /**
      Evaluates the given code, calls the `returncb` callback with the
@@ -151,7 +151,7 @@ extern "C" {
      `userdata` pointer.
   */
   PUBLIC void csoundPerformanceThreadEvalCodeWithData(CS_PERF_THREAD* pt,
-    const char *code, void (*returncb)(MYFLT, void *userdata),
+    const char *code, void (*returncb)(cs_float, void *userdata),
     void *userdata);
     
   /**

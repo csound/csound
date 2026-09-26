@@ -77,7 +77,7 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     */
 
     int32_t j, fareyseq, nvals, nargs, farey_length, mode;
-    MYFLT   *fp = ftp->ftable, *pp, *pp2;
+    cs_float   *fp = ftp->ftable, *pp, *pp2;
     CSOUND  *csound = ff->csound;
     RATIO *flist;
 
@@ -88,7 +88,7 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     }
     ff->e.p[4] *= -1;
     pp = &(ff->e.p[5]);
-    if (UNLIKELY(!(*pp >= FL(1.0) && (double)*pp <= INT32_MAX)))
+    if (UNLIKELY(!(*pp >= FL(1.0) && (cs_double)*pp <= (INT32_MAX + 0.0))))
       return csound->FtError(ff, Str("farey: invalid sequence order"));
     fareyseq = (int32_t)*pp;
     pp2 = &(ff->e.p[6]);
@@ -109,16 +109,16 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     case 0: /* output float elements of F_n */
       for (j = 0;  j < nvals; j++) {
         if (j < farey_length)
-          fp[j] = (MYFLT) flist[j].p / (MYFLT) flist[j].q;
+          fp[j] = (cs_float) flist[j].p / (cs_float) flist[j].q;
       }
       break;
     case 1: /* output delta values of successive elements of F_n */
       {
-        MYFLT last = FL(0.0);
+        cs_float last = FL(0.0);
         int32_t i = 1;
         for (j = 0; j < nvals; j++, i++) {
           if (i < farey_length) {
-            MYFLT current = (MYFLT) flist[i].p / (MYFLT) flist[i].q;
+            cs_float current = (cs_float) flist[i].p / (cs_float) flist[i].q;
             fp[j] = current - last;
             last = current;
           }
@@ -128,22 +128,22 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     case 2: /* output only the denominators of the integer ratios */
       for (j = 0; j < nvals; j++) {
         if (j < farey_length)
-          fp[j] = (MYFLT) flist[j].q;
+          fp[j] = (cs_float) flist[j].q;
       }
       break;
     case 3: /* output the normalised denominators of the integer ratios */
       {
-        MYFLT farey_scale = (MYFLT) 1 / (MYFLT) fareyseq;
+        cs_float farey_scale = (cs_float) 1 / (cs_float) fareyseq;
         for (j = 0; j < nvals; j++) {
           if (j < farey_length)
-            fp[j] = (MYFLT) flist[j].q * farey_scale;
+            fp[j] = (cs_float) flist[j].q * farey_scale;
         }
         break;
       }
     case 4: /* output float elements of F_n + 1 for tuning tables*/
       for (j = 0; j < nvals; j++) {
         if (j < farey_length)
-          fp[j] = FL(1.0) + (MYFLT) flist[j].p / (MYFLT) flist[j].q;
+          fp[j] = FL(1.0) + (cs_float) flist[j].p / (cs_float) flist[j].q;
       }
       break;
     }

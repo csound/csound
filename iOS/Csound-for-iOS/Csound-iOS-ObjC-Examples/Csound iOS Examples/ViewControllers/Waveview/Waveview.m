@@ -30,9 +30,9 @@
     BOOL tableLoaded;
     CGFloat lastY;
     CsoundObj *csObj;
-    MYFLT *table;
+    cs_float *table;
     int tableLength;
-    MYFLT *displayData;
+    cs_float *displayData;
     int fTableNumber;
 }
 
@@ -84,7 +84,7 @@
     int height = self.frame.size.height;
     int middle = (height / 2);
     
-    displayData = malloc(sizeof(MYFLT) * width);
+    displayData = malloc(sizeof(cs_float) * width);
     
     for(int i = 0; i < width; i++) {
         float percent = i / (float)(width);
@@ -103,7 +103,7 @@
         CSOUND *cs = [csObj getCsound];
 
         if ((tableLength = csoundTableLength(cs, fTableNumber)) > 0) {
-            table = malloc(tableLength * sizeof(MYFLT));
+            table = malloc(tableLength * sizeof(cs_float));
             csoundGetTable(cs, &table, fTableNumber);
             tableLoaded = YES;
             [self performSelectorInBackground:@selector(updataDisplayData) withObject:nil];

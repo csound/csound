@@ -122,7 +122,7 @@ void linevent_open(CSOUND *csound)
         // allocate pfield memory
     if(STA(pfields) == NULL) {
      STA(msize) = PMAX;
-     STA(pfields) = csound->Calloc(csound, sizeof(MYFLT)*(STA(msize)+1));
+     STA(pfields) = csound->Calloc(csound, sizeof(cs_float)*(STA(msize)+1));
     }
 
 
@@ -209,7 +209,7 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
     // allocate pfield memory
     if(STA(pfields) == NULL) {
      STA(msize) = PMAX;
-     STA(pfields) = csound->Calloc(csound, sizeof(MYFLT)*(STA(msize)+1));
+     STA(pfields) = csound->Calloc(csound, sizeof(cs_float)*(STA(msize)+1));
     }
 
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
@@ -281,13 +281,13 @@ void sense_line(CSOUND *csound, void *userData)
 
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
-        MYFLT *pfields = STA(pfields);
+        cs_float *pfields = STA(pfields);
         char    *sstrp = NULL;
         int32_t     scnt = 0;
         int32_t     strsiz = 0;
         memset(&e, 0, sizeof(EVTBLK));
-        memset(pfields, 0, STA(msize)*sizeof(MYFLT));
-        e.p = (MYFLT *) pfields;
+        memset(pfields, 0, STA(msize)*sizeof(cs_float));
+        e.p = (cs_float *) pfields;
         e.strarg = NULL; e.scnt = 0;
         c = *cp;
         while (isblank(c))              /* skip initial white space */
@@ -392,7 +392,7 @@ void sense_line(CSOUND *csound, void *userData)
 #ifdef USE_DOUBLE
               int32_t sel = (byte_order()+1)&1;
               union {
-                MYFLT d;
+                cs_float d;
                 int32 i[2];
               } ch;
               ch.d = SSTRCOD; ch.i[sel] += scnt++;
@@ -400,12 +400,12 @@ void sense_line(CSOUND *csound, void *userData)
               if (pcnt >= STA(msize)) {
                 STA(msize) += PMAX;
                 STA(pfields) = e.p = csound->ReAlloc(csound, e.p,
-                                  sizeof(MYFLT) * (STA(msize) + 1));
+                                  sizeof(cs_float) * (STA(msize) + 1));
               }
               e.p[pcnt] = ch.d;           /* set as string with count */
 #else
               union {
-                MYFLT d;
+                cs_float d;
                 int32 i;
               } ch;
               ch.d = SSTRCOD; ch.i += scnt++;
@@ -413,7 +413,7 @@ void sense_line(CSOUND *csound, void *userData)
               if (pcnt >= STA(msize)) {
                 STA(msize) += PMAX;
                 STA(pfields) = e.p = csound->ReAlloc(csound, e.p,
-                                  sizeof(MYFLT) * (STA(msize) + 1));
+                                  sizeof(cs_float) * (STA(msize) + 1));
               }
               e.p[pcnt] = ch.d;           /* set as string with count */
 #endif
@@ -440,13 +440,13 @@ void sense_line(CSOUND *csound, void *userData)
             continue;
           }
           {
-            MYFLT tmpv = (MYFLT) csoundStrtod(cp, &newcp);
+            cs_float tmpv = (cs_float) csoundStrtod(cp, &newcp);
             cp = newcp - 1;
             /* ensure capacity before writing */
             if (pcnt >= STA(msize)) {
               STA(msize) += PMAX;
               STA(pfields) = e.p = csound->ReAlloc(csound, e.p,
-                                sizeof(MYFLT) * (STA(msize) + 1));
+                                sizeof(cs_float) * (STA(msize) + 1));
             }
             e.p[pcnt] = tmpv;
           }
@@ -468,10 +468,10 @@ void sense_line(CSOUND *csound, void *userData)
           // free carry p-fields
           if(STA(prve).p != NULL) csound->Free(csound, STA(prve).p);
           // copy evtblk (except p-field pointer at the end)
-          memcpy((void*) &STA(prve), (void*) &e, sizeof(EVTBLK) - sizeof(MYFLT*));
+          memcpy((void*) &STA(prve), (void*) &e, sizeof(EVTBLK) - sizeof(cs_float*));
           // allocate and copy new carry p-fields
-          STA(prve).p = csound->Calloc(csound, sizeof(MYFLT)*(e.pcnt+1));
-          memcpy(STA(prve).p, e.p, sizeof(MYFLT)*(e.pcnt+1));
+          STA(prve).p = csound->Calloc(csound, sizeof(cs_float)*(e.pcnt+1));
+          memcpy(STA(prve).p, e.p, sizeof(cs_float)*(e.pcnt+1));
 
           /* FIXME: how to carry string args ? */
           STA(prve).strarg = NULL;

@@ -37,7 +37,7 @@
 #define POW2(m) ((uint32) (1 << (m)))       /* integer power of 2 for m<32 */
 
 /* fft's with M bigger than this bust primary cache */
-#define MCACHE  (11 - (sizeof(MYFLT) / 8))
+#define MCACHE  (11 - (sizeof(cs_float) / 8))
 
 /* some math constants to 40 decimal places */
 //#define MYPI      3.141592653589793238462643383279502884197   /* pi         */
@@ -50,7 +50,7 @@
  * routines to initialize tables used by fft routines *
  *****************************************************/
 
-static void fftCosInit(int32_t M, MYFLT *Utbl)
+static void fftCosInit(int32_t M, cs_float *Utbl)
 {
   /* Compute Utbl, the cosine table for ffts  */
   /* of size (pow(2,M)/4 +1)                  */
@@ -63,7 +63,7 @@ static void fftCosInit(int32_t M, MYFLT *Utbl)
 
   Utbl[0] = FL(1.0);
   for (i1 = 1; i1 < fftN/4; i1++)
-    Utbl[i1] = COS((FL(2.0) * PI_F * (MYFLT)i1) / (MYFLT)fftN);
+    Utbl[i1] = COS((FL(2.0) * PI_F * (cs_float)i1) / (cs_float)fftN);
   Utbl[fftN/4] = FL(0.0);
 }
 
@@ -96,33 +96,33 @@ static void fftBRInit(int32_t M, int16 *BRLow)
  * parts of ffts1 *
  *****************/
 
-static void bitrevR2(MYFLT *ioptr, int32_t M, int16 *BRLow)
+static void bitrevR2(cs_float *ioptr, int32_t M, int16 *BRLow)
 {
   /*** bit reverse and first radix 2 stage of forward or inverse fft ***/
-  MYFLT f0r;
-  MYFLT f0i;
-  MYFLT f1r;
-  MYFLT f1i;
-  MYFLT f2r;
-  MYFLT f2i;
-  MYFLT f3r;
-  MYFLT f3i;
-  MYFLT f4r;
-  MYFLT f4i;
-  MYFLT f5r;
-  MYFLT f5i;
-  MYFLT f6r;
-  MYFLT f6i;
-  MYFLT f7r;
-  MYFLT f7i;
-  MYFLT t0r;
-  MYFLT t0i;
-  MYFLT t1r;
-  MYFLT t1i;
-  MYFLT *p0r;
-  MYFLT *p1r;
-  MYFLT *IOP;
-  MYFLT *iolimit;
+  cs_float f0r;
+  cs_float f0i;
+  cs_float f1r;
+  cs_float f1i;
+  cs_float f2r;
+  cs_float f2i;
+  cs_float f3r;
+  cs_float f3i;
+  cs_float f4r;
+  cs_float f4i;
+  cs_float f5r;
+  cs_float f5i;
+  cs_float f6r;
+  cs_float f6i;
+  cs_float f7r;
+  cs_float f7i;
+  cs_float t0r;
+  cs_float t0i;
+  cs_float t1r;
+  cs_float t1i;
+  cs_float *p0r;
+  cs_float *p1r;
+  cs_float *IOP;
+  cs_float *iolimit;
   int32_t Colstart;
   int32_t iCol;
   uint32_t posA;
@@ -233,11 +233,11 @@ static void bitrevR2(MYFLT *ioptr, int32_t M, int16 *BRLow)
   }
 }
 
-static void fft2pt(MYFLT *ioptr)
+static void fft2pt(cs_float *ioptr)
 {
   /***   RADIX 2 fft      ***/
-  MYFLT f0r, f0i, f1r, f1i;
-  MYFLT t0r, t0i;
+  cs_float f0r, f0i, f1r, f1i;
+  cs_float t0r, t0i;
 
   /* bit reversed load */
   f0r = ioptr[0];
@@ -263,11 +263,11 @@ static void fft2pt(MYFLT *ioptr)
   ioptr[3] = f1i;
 }
 
-static void fft4pt(MYFLT *ioptr)
+static void fft4pt(cs_float *ioptr)
 {
   /***   RADIX 4 fft      ***/
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT t0r, t0i, t1r, t1i;
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float t0r, t0i, t1r, t1i;
 
   /* bit reversed load */
   f0r = ioptr[0];
@@ -318,14 +318,14 @@ static void fft4pt(MYFLT *ioptr)
   ioptr[7] = f3i;
 }
 
-static void fft8pt(MYFLT *ioptr)
+static void fft8pt(cs_float *ioptr)
 {
   /***   RADIX 8 fft      ***/
-  MYFLT w0r = (MYFLT)(1.0 / ROOT2);    /* cos(pi/4)   */
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
-  MYFLT t0r, t0i, t1r, t1i;
-  const MYFLT Two = FL(2.0);
+  cs_float w0r = (cs_float)(1.0 / ROOT2);    /* cos(pi/4)   */
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
+  cs_float t0r, t0i, t1r, t1i;
+  const cs_float Two = FL(2.0);
 
   /* bit reversed load */
   f0r = ioptr[0];
@@ -435,7 +435,7 @@ static void fft8pt(MYFLT *ioptr)
   ioptr[15] = f6i;
 }
 
-static void bfR2(MYFLT *ioptr, int32_t M, int32_t NDiffU)
+static void bfR2(cs_float *ioptr, int32_t M, int32_t NDiffU)
 {
   /*** 2nd radix 2 stage ***/
   uint32_t pos;
@@ -445,11 +445,11 @@ static void bfR2(MYFLT *ioptr, int32_t M, int32_t NDiffU)
   uint32_t NSameU;
   uint32_t SameUCnt;
 
-  MYFLT *pstrt;
-  MYFLT *p0r, *p1r, *p2r, *p3r;
+  cs_float *pstrt;
+  cs_float *p0r, *p1r, *p2r, *p3r;
 
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
 
   pinc = NDiffU * 2;            /* 2 floats per complex */
   pnext = pinc * 4;
@@ -542,7 +542,7 @@ static void bfR2(MYFLT *ioptr, int32_t M, int32_t NDiffU)
   }
 }
 
-static void bfR4(MYFLT *ioptr, int32_t M, int32_t NDiffU)
+static void bfR4(cs_float *ioptr, int32_t M, int32_t NDiffU)
 {
   /*** 1 radix 4 stage ***/
   uint32_t pos;
@@ -553,14 +553,14 @@ static void bfR4(MYFLT *ioptr, int32_t M, int32_t NDiffU)
   uint32_t NSameU;
   uint32_t SameUCnt;
 
-  MYFLT *pstrt;
-  MYFLT *p0r, *p1r, *p2r, *p3r;
+  cs_float *pstrt;
+  cs_float *p0r, *p1r, *p2r, *p3r;
 
-  MYFLT w1r = FL(1.0) / FL(ROOT2);    /* cos(pi/4)   */
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
-  MYFLT t1r, t1i;
-  const MYFLT Two = FL(2.0);
+  cs_float w1r = FL(1.0) / FL(ROOT2);    /* cos(pi/4)   */
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
+  cs_float t1r, t1i;
+  const cs_float Two = FL(2.0);
 
   pinc = NDiffU * 2;            /* 2 floats per complex */
   pnext = pinc * 4;
@@ -749,7 +749,7 @@ static void bfR4(MYFLT *ioptr, int32_t M, int32_t NDiffU)
   *(p0r + posi) = f4i;
 }
 
-static void bfstages(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
+static void bfstages(cs_float *ioptr, int32_t M, cs_float *Utbl, int32_t Ustride,
                      int32_t NDiffU, int32_t StageCnt)
 {
   /***   RADIX 8 Stages   ***/
@@ -765,15 +765,15 @@ static void bfstages(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
   uint32_t SameUCnt;
   uint32_t U2toU3;
 
-  MYFLT *pstrt;
-  MYFLT *p0r, *p1r, *p2r, *p3r;
-  MYFLT *u0r, *u0i, *u1r, *u1i, *u2r, *u2i;
+  cs_float *pstrt;
+  cs_float *p0r, *p1r, *p2r, *p3r;
+  cs_float *u0r, *u0i, *u1r, *u1i, *u2r, *u2i;
 
-  MYFLT w0r, w0i, w1r, w1i, w2r, w2i, w3r, w3i;
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
-  MYFLT t0r, t0i, t1r, t1i;
-  const MYFLT Two = FL(2.0);
+  cs_float w0r, w0i, w1r, w1i, w2r, w2i, w3r, w3i;
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
+  cs_float t0r, t0i, t1r, t1i;
+  const cs_float Two = FL(2.0);
 
   pinc = NDiffU * 2;            /* 2 floats per complex */
   pnext = pinc * 8;
@@ -1069,7 +1069,7 @@ static void bfstages(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
   }
 }
 
-static void fftrecurs(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
+static void fftrecurs(cs_float *ioptr, int32_t M, cs_float *Utbl, int32_t Ustride,
                       int32_t NDiffU, int32_t StageCnt)
 {
   /* recursive bfstages calls to maximize on chip cache efficiency */
@@ -1086,7 +1086,7 @@ static void fftrecurs(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
   }
 }
 
-static void ffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
+static void ffts1(cs_float *ioptr, int32_t M, cs_float *Utbl, int16 *BRLow)
 {
   /* Compute in-place complex fft on the rows of the input array  */
   /* INPUTS                                                       */
@@ -1135,33 +1135,33 @@ static void ffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
  * parts of iffts1 *
  ******************/
 
-static void scbitrevR2(MYFLT *ioptr, int32_t M, int16 *BRLow, MYFLT scale)
+static void scbitrevR2(cs_float *ioptr, int32_t M, int16 *BRLow, cs_float scale)
 {
   /*** scaled bit reverse and first radix 2 stage forward or inverse fft ***/
-  MYFLT f0r;
-  MYFLT f0i;
-  MYFLT f1r;
-  MYFLT f1i;
-  MYFLT f2r;
-  MYFLT f2i;
-  MYFLT f3r;
-  MYFLT f3i;
-  MYFLT f4r;
-  MYFLT f4i;
-  MYFLT f5r;
-  MYFLT f5i;
-  MYFLT f6r;
-  MYFLT f6i;
-  MYFLT f7r;
-  MYFLT f7i;
-  MYFLT t0r;
-  MYFLT t0i;
-  MYFLT t1r;
-  MYFLT t1i;
-  MYFLT *p0r;
-  MYFLT *p1r;
-  MYFLT *IOP;
-  MYFLT *iolimit;
+  cs_float f0r;
+  cs_float f0i;
+  cs_float f1r;
+  cs_float f1i;
+  cs_float f2r;
+  cs_float f2i;
+  cs_float f3r;
+  cs_float f3i;
+  cs_float f4r;
+  cs_float f4i;
+  cs_float f5r;
+  cs_float f5i;
+  cs_float f6r;
+  cs_float f6i;
+  cs_float f7r;
+  cs_float f7i;
+  cs_float t0r;
+  cs_float t0i;
+  cs_float t1r;
+  cs_float t1i;
+  cs_float *p0r;
+  cs_float *p1r;
+  cs_float *IOP;
+  cs_float *iolimit;
   int32_t Colstart;
   int32_t iCol;
   uint32_t posA;
@@ -1272,11 +1272,11 @@ static void scbitrevR2(MYFLT *ioptr, int32_t M, int16 *BRLow, MYFLT scale)
   }
 }
 
-static void ifft2pt(MYFLT *ioptr, MYFLT scale)
+static void ifft2pt(cs_float *ioptr, cs_float scale)
 {
   /***   RADIX 2 ifft     ***/
-  MYFLT f0r, f0i, f1r, f1i;
-  MYFLT t0r, t0i;
+  cs_float f0r, f0i, f1r, f1i;
+  cs_float t0r, t0i;
 
   /* bit reversed load */
   f0r = ioptr[0];
@@ -1302,11 +1302,11 @@ static void ifft2pt(MYFLT *ioptr, MYFLT scale)
   ioptr[3] = scale * f1i;
 }
 
-static void ifft4pt(MYFLT *ioptr, MYFLT scale)
+static void ifft4pt(cs_float *ioptr, cs_float scale)
 {
   /***   RADIX 4 ifft     ***/
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT t0r, t0i, t1r, t1i;
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float t0r, t0i, t1r, t1i;
 
   /* bit reversed load */
   f0r = ioptr[0];
@@ -1357,14 +1357,14 @@ static void ifft4pt(MYFLT *ioptr, MYFLT scale)
   ioptr[7] = scale * f3i;
 }
 
-static void ifft8pt(MYFLT *ioptr, MYFLT scale)
+static void ifft8pt(cs_float *ioptr, cs_float scale)
 {
   /***   RADIX 8 ifft     ***/
-  MYFLT w0r = FL(1.0) / FL(ROOT2);    /* cos(pi/4)   */
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
-  MYFLT t0r, t0i, t1r, t1i;
-  const MYFLT Two = FL(2.0);
+  cs_float w0r = FL(1.0) / FL(ROOT2);    /* cos(pi/4)   */
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
+  cs_float t0r, t0i, t1r, t1i;
+  const cs_float Two = FL(2.0);
 
   /* bit reversed load */
   f0r = ioptr[0];
@@ -1475,7 +1475,7 @@ static void ifft8pt(MYFLT *ioptr, MYFLT scale)
   ioptr[15] = scale * f6i;
 }
 
-static void ibfR2(MYFLT *ioptr, int32_t M, int32_t NDiffU)
+static void ibfR2(cs_float *ioptr, int32_t M, int32_t NDiffU)
 {
   /*** 2nd radix 2 stage ***/
   uint32_t pos;
@@ -1485,11 +1485,11 @@ static void ibfR2(MYFLT *ioptr, int32_t M, int32_t NDiffU)
   uint32_t NSameU;
   uint32_t SameUCnt;
 
-  MYFLT *pstrt;
-  MYFLT *p0r, *p1r, *p2r, *p3r;
+  cs_float *pstrt;
+  cs_float *p0r, *p1r, *p2r, *p3r;
 
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
 
   pinc = NDiffU * 2;            /* 2 floats per complex */
   pnext = pinc * 4;
@@ -1582,7 +1582,7 @@ static void ibfR2(MYFLT *ioptr, int32_t M, int32_t NDiffU)
   }
 }
 
-static void ibfR4(MYFLT *ioptr, int32_t M, int32_t NDiffU)
+static void ibfR4(cs_float *ioptr, int32_t M, int32_t NDiffU)
 {
   /*** 1 radix 4 stage ***/
   uint32_t pos;
@@ -1593,14 +1593,14 @@ static void ibfR4(MYFLT *ioptr, int32_t M, int32_t NDiffU)
   uint32_t NSameU;
   uint32_t SameUCnt;
 
-  MYFLT *pstrt;
-  MYFLT *p0r, *p1r, *p2r, *p3r;
+  cs_float *pstrt;
+  cs_float *p0r, *p1r, *p2r, *p3r;
 
-  MYFLT w1r = FL(1.0) / FL(ROOT2);    /* cos(pi/4)   */
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
-  MYFLT t1r, t1i;
-  const MYFLT Two = FL(2.0);
+  cs_float w1r = FL(1.0) / FL(ROOT2);    /* cos(pi/4)   */
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
+  cs_float t1r, t1i;
+  const cs_float Two = FL(2.0);
 
   pinc = NDiffU * 2;            /* 2 floats per complex */
   pnext = pinc * 4;
@@ -1789,7 +1789,7 @@ static void ibfR4(MYFLT *ioptr, int32_t M, int32_t NDiffU)
   *(p0r + posi) = f4i;
 }
 
-static void ibfstages(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
+static void ibfstages(cs_float *ioptr, int32_t M, cs_float *Utbl, int32_t Ustride,
                       int32_t NDiffU, int32_t StageCnt)
 {
   /***   RADIX 8 Stages   ***/
@@ -1805,15 +1805,15 @@ static void ibfstages(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
   uint32_t SameUCnt;
   uint32_t U2toU3;
 
-  MYFLT *pstrt;
-  MYFLT *p0r, *p1r, *p2r, *p3r;
-  MYFLT *u0r, *u0i, *u1r, *u1i, *u2r, *u2i;
+  cs_float *pstrt;
+  cs_float *p0r, *p1r, *p2r, *p3r;
+  cs_float *u0r, *u0i, *u1r, *u1i, *u2r, *u2i;
 
-  MYFLT w0r, w0i, w1r, w1i, w2r, w2i, w3r, w3i;
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
-  MYFLT t0r, t0i, t1r, t1i;
-  const MYFLT Two = FL(2.0);
+  cs_float w0r, w0i, w1r, w1i, w2r, w2i, w3r, w3i;
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
+  cs_float t0r, t0i, t1r, t1i;
+  const cs_float Two = FL(2.0);
 
   pinc = NDiffU * 2;            /* 2 floats per complex */
   pnext = pinc * 8;
@@ -2112,7 +2112,7 @@ static void ibfstages(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
   }
 }
 
-static void ifftrecurs(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
+static void ifftrecurs(cs_float *ioptr, int32_t M, cs_float *Utbl, int32_t Ustride,
                        int32_t NDiffU, int32_t StageCnt)
 {
   /* recursive bfstages calls to maximize on chip cache efficiency */
@@ -2129,7 +2129,7 @@ static void ifftrecurs(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
   }
 }
 
-static void iffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
+static void iffts1(cs_float *ioptr, int32_t M, cs_float *Utbl, int16 *BRLow)
 {
   /* Compute in-place inverse complex fft on the rows of the input array  */
   /* INPUTS                                                               */
@@ -2142,7 +2142,7 @@ static void iffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
 
   int32_t StageCnt;
   int32_t NDiffU;
-  const MYFLT scale = FL(1.0) / POW2(M);
+  const cs_float scale = FL(1.0) / POW2(M);
 
   switch (M) {
   case 0:
@@ -2180,11 +2180,11 @@ static void iffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
  * parts of rffts1 *
  ******************/
 
-static void rfft1pt(MYFLT *ioptr)
+static void rfft1pt(cs_float *ioptr)
 {
   /***   RADIX 2 rfft     ***/
-  MYFLT f0r, f0i;
-  MYFLT t0r, t0i;
+  cs_float f0r, f0i;
+  cs_float t0r, t0i;
 
   /* bit reversed load */
   f0r = ioptr[0];
@@ -2199,11 +2199,11 @@ static void rfft1pt(MYFLT *ioptr)
   ioptr[1] = t0i;
 }
 
-static void rfft2pt(MYFLT *ioptr)
+static void rfft2pt(cs_float *ioptr)
 {
   /***   RADIX 4 rfft     ***/
-  MYFLT f0r, f0i, f1r, f1i;
-  MYFLT t0r, t0i;
+  cs_float f0r, f0i, f1r, f1i;
+  cs_float t0r, t0i;
 
   /* bit reversed load */
   f0r = ioptr[0];
@@ -2232,14 +2232,14 @@ static void rfft2pt(MYFLT *ioptr)
   ioptr[3] = f1i;
 }
 
-static void rfft4pt(MYFLT *ioptr)
+static void rfft4pt(cs_float *ioptr)
 {
   /***   RADIX 8 rfft     ***/
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT t0r, t0i, t1r, t1i;
-  MYFLT w0r = 1.0 / ROOT2;    /* cos(pi/4)   */
-  const MYFLT Two = FL(2.0);
-  const MYFLT scale = FL(0.5);
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float t0r, t0i, t1r, t1i;
+  cs_float w0r = 1.0 / ROOT2;    /* cos(pi/4)   */
+  const cs_float Two = FL(2.0);
+  const cs_float scale = FL(0.5);
 
   /* bit reversed load */
   f0r = ioptr[0];
@@ -2305,17 +2305,17 @@ static void rfft4pt(MYFLT *ioptr)
   ioptr[7] = scale * f3i;
 }
 
-static void rfft8pt(MYFLT *ioptr)
+static void rfft8pt(cs_float *ioptr)
 {
   /***   RADIX 16 rfft    ***/
-  MYFLT w0r = 1.0 / ROOT2;    /* cos(pi/4)   */
-  MYFLT w1r = MYCOSPID8;        /* cos(pi/8)     */
-  MYFLT w1i = MYSINPID8;        /* sin(pi/8)     */
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
-  MYFLT t0r, t0i, t1r, t1i;
-  const MYFLT Two = FL(2.0);
-  const MYFLT scale = FL(0.5);
+  cs_float w0r = 1.0 / ROOT2;    /* cos(pi/4)   */
+  cs_float w1r = MYCOSPID8;        /* cos(pi/8)     */
+  cs_float w1i = MYSINPID8;        /* sin(pi/8)     */
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
+  cs_float t0r, t0i, t1r, t1i;
+  const cs_float Two = FL(2.0);
+  const cs_float scale = FL(0.5);
 
   /* bit reversed load */
   f0r = ioptr[0];
@@ -2461,7 +2461,7 @@ static void rfft8pt(MYFLT *ioptr)
   ioptr[15] = scale * f6i;
 }
 
-static void frstage(MYFLT *ioptr, int32_t M, MYFLT *Utbl)
+static void frstage(cs_float *ioptr, int32_t M, cs_float *Utbl)
 {
   /*      Finish RFFT             */
 
@@ -2469,13 +2469,13 @@ static void frstage(MYFLT *ioptr, int32_t M, MYFLT *Utbl)
   uint32_t posi;
   uint32_t diffUcnt;
 
-  MYFLT *p0r, *p1r;
-  MYFLT *u0r, *u0i;
+  cs_float *p0r, *p1r;
+  cs_float *u0r, *u0i;
 
-  MYFLT w0r, w0i;
-  MYFLT f0r, f0i, f1r, f1i, f4r, f4i, f5r, f5i;
-  MYFLT t0r, t0i, t1r, t1i;
-  const MYFLT Two = FL(2.0);
+  cs_float w0r, w0i;
+  cs_float f0r, f0i, f1r, f1i, f4r, f4i, f5r, f5i;
+  cs_float t0r, t0i, t1r, t1i;
+  const cs_float Two = FL(2.0);
 
   pos = POW2(M - 1);
   posi = pos + 1;
@@ -2584,7 +2584,7 @@ static void frstage(MYFLT *ioptr, int32_t M, MYFLT *Utbl)
   }
 }
 
-static void rffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
+static void rffts1(cs_float *ioptr, int32_t M, cs_float *Utbl, int16 *BRLow)
 {
   /* Compute in-place real fft on the rows of the input array           */
   /* The result is the complex spectra of the positive frequencies      */
@@ -2600,7 +2600,7 @@ static void rffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
   /*     Re(x[0]), Re(x[N/2]), Re(x[1]), Im(x[1]), Re(x[2]), Im(x[2]),  */
   /*     ... Re(x[N/2-1]), Im(x[N/2-1]).                                */
 
-  MYFLT scale;
+  cs_float scale;
   int32_t StageCnt;
   int32_t NDiffU;
 
@@ -2646,11 +2646,11 @@ static void rffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
  * parts of riffts1 *
  *******************/
 
-static void rifft1pt(MYFLT *ioptr, MYFLT scale)
+static void rifft1pt(cs_float *ioptr, cs_float scale)
 {
   /***   RADIX 2 rifft    ***/
-  MYFLT f0r, f0i;
-  MYFLT t0r, t0i;
+  cs_float f0r, f0i;
+  cs_float t0r, t0i;
 
   /* bit reversed load */
   f0r = ioptr[0];
@@ -2665,12 +2665,12 @@ static void rifft1pt(MYFLT *ioptr, MYFLT scale)
   ioptr[1] = scale * t0i;
 }
 
-static void rifft2pt(MYFLT *ioptr, MYFLT scale)
+static void rifft2pt(cs_float *ioptr, cs_float scale)
 {
   /***   RADIX 4 rifft    ***/
-  MYFLT f0r, f0i, f1r, f1i;
-  MYFLT t0r, t0i;
-  const MYFLT Two = FL(2.0);
+  cs_float f0r, f0i, f1r, f1i;
+  cs_float t0r, t0i;
+  const cs_float Two = FL(2.0);
 
   /* bit reversed load */
   t0r = ioptr[0];
@@ -2699,13 +2699,13 @@ static void rifft2pt(MYFLT *ioptr, MYFLT scale)
   ioptr[3] = scale * f1i;
 }
 
-static void rifft4pt(MYFLT *ioptr, MYFLT scale)
+static void rifft4pt(cs_float *ioptr, cs_float scale)
 {
   /***   RADIX 8 rifft    ***/
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT t0r, t0i, t1r, t1i;
-  MYFLT w0r = 1.0 / ROOT2;    /* cos(pi/4)   */
-  const MYFLT Two = FL(2.0);
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float t0r, t0i, t1r, t1i;
+  cs_float w0r = 1.0 / ROOT2;    /* cos(pi/4)   */
+  const cs_float Two = FL(2.0);
 
   /* bit reversed load */
   t0r = ioptr[0];
@@ -2770,16 +2770,16 @@ static void rifft4pt(MYFLT *ioptr, MYFLT scale)
   ioptr[7] = scale * f3i;
 }
 
-static void rifft8pt(MYFLT *ioptr, MYFLT scale)
+static void rifft8pt(cs_float *ioptr, cs_float scale)
 {
   /***   RADIX 16 rifft   ***/
-  MYFLT w0r = (MYFLT) (1.0 / ROOT2);    /* cos(pi/4)    */
-  MYFLT w1r = MYCOSPID8;                  /* cos(pi/8)    */
-  MYFLT w1i = MYSINPID8;                  /* sin(pi/8)    */
-  MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
-  MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
-  MYFLT t0r, t0i, t1r, t1i;
-  const MYFLT Two = FL(2.0);
+  cs_float w0r = (cs_float) (1.0 / ROOT2);    /* cos(pi/4)    */
+  cs_float w1r = MYCOSPID8;                  /* cos(pi/8)    */
+  cs_float w1i = MYSINPID8;                  /* sin(pi/8)    */
+  cs_float f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
+  cs_float f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
+  cs_float t0r, t0i, t1r, t1i;
+  const cs_float Two = FL(2.0);
 
   /* bit reversed load */
   t0r = ioptr[0];
@@ -2924,7 +2924,7 @@ static void rifft8pt(MYFLT *ioptr, MYFLT scale)
   ioptr[15] = scale * f6i;
 }
 
-static void ifrstage(MYFLT *ioptr, int32_t M, MYFLT *Utbl)
+static void ifrstage(cs_float *ioptr, int32_t M, cs_float *Utbl)
 {
   /*      Start RIFFT             */
 
@@ -2932,13 +2932,13 @@ static void ifrstage(MYFLT *ioptr, int32_t M, MYFLT *Utbl)
   uint32_t posi;
   uint32_t diffUcnt;
 
-  MYFLT *p0r, *p1r;
-  MYFLT *u0r, *u0i;
+  cs_float *p0r, *p1r;
+  cs_float *u0r, *u0i;
 
-  MYFLT w0r, w0i;
-  MYFLT f0r, f0i, f1r, f1i, f4r, f4i, f5r, f5i;
-  MYFLT t0r, t0i, t1r, t1i;
-  const MYFLT Two = FL(2.0);
+  cs_float w0r, w0i;
+  cs_float f0r, f0i, f1r, f1i, f4r, f4i, f5r, f5i;
+  cs_float t0r, t0i, t1r, t1i;
+  const cs_float Two = FL(2.0);
 
   pos = POW2(M - 1);
   posi = pos + 1;
@@ -3047,7 +3047,7 @@ static void ifrstage(MYFLT *ioptr, int32_t M, MYFLT *Utbl)
   }
 }
 
-static void riffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
+static void riffts1(cs_float *ioptr, int32_t M, cs_float *Utbl, int16 *BRLow)
 {
   /* Compute in-place real ifft on the rows of the input array    */
   /* data order as from rffts1                                    */
@@ -3061,11 +3061,11 @@ static void riffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
   /* OUTPUTS                                                      */
   /*   *ioptr = real output data array                            */
 
-  MYFLT scale;
+  cs_float scale;
   int32_t StageCnt;
   int32_t NDiffU;
 
-  scale = (MYFLT)(1.0 / (double)((int32_t)POW2(M)));
+  scale = (cs_float)(1.0 / (cs_double)((int32_t)POW2(M)));
   M = M - 1;
   switch (M) {
   case -1:
@@ -3113,27 +3113,27 @@ static void fftInit(CSOUND *csound, int32_t M)
   /* OUTPUTS                                                          */
   /*   private cosine and bit reversed tables                         */
 
-  MYFLT **UtblArray;
+  cs_float **UtblArray;
   int16 **BRLowArray;
   int32_t   i;
 
   if (!csound->FFT_max_size) {
     if (csound->FFT_table_1 == NULL)
-      csound->FFT_table_1 = csound->Malloc(csound, sizeof(MYFLT*) * 32);
+      csound->FFT_table_1 = csound->Malloc(csound, sizeof(cs_float*) * 32);
     if (csound->FFT_table_2 == NULL)
       csound->FFT_table_2 = csound->Malloc(csound, sizeof(int16*) * 32);
     for (i = 0; i < 32; i++) {
-      ((MYFLT**) csound->FFT_table_1)[i] = (MYFLT*) NULL;
+      ((cs_float**) csound->FFT_table_1)[i] = (cs_float*) NULL;
       ((int16**) csound->FFT_table_2)[i] = (int16*) NULL;
     }
   }
-  UtblArray = (MYFLT**) csound->FFT_table_1;
+  UtblArray = (cs_float**) csound->FFT_table_1;
   BRLowArray = (int16**) csound->FFT_table_2;
 
   /*** I did NOT test cases with M>27 ***/
   /* init cos table */
-  UtblArray[M] = (MYFLT*) csound->Malloc(csound,
-                                         (POW2(M) / 4 + 1) * sizeof(MYFLT));
+  UtblArray[M] = (cs_float*) csound->Malloc(csound,
+                                         (POW2(M) / 4 + 1) * sizeof(cs_float));
   fftCosInit(M, UtblArray[M]);
   if (M > 1) {
     /* init bit reversed table for cmplx FFT */
@@ -3197,12 +3197,12 @@ static inline int32_t ConvertFFTSize(CSOUND *csound, int32_t N)
   return 0;
 }
 
-static inline void getTablePointers(CSOUND *p, MYFLT **ct, int16 **bt,
+static inline void getTablePointers(CSOUND *p, cs_float **ct, int16 **bt,
                                     int32_t cn, int32_t bn)
 {
   if (!(p->FFT_max_size & (1 << cn)))
     fftInit(p, cn);
-  *ct = ((MYFLT**) p->FFT_table_1)[cn];
+  *ct = ((cs_float**) p->FFT_table_1)[cn];
   *bt = ((int16**) p->FFT_table_2)[bn];
 }
 
@@ -3214,7 +3214,7 @@ static inline void getTablePointers(CSOUND *p, MYFLT **ct, int16 **bt,
  * Returns the amplitude scale that should be applied to the result of
  * an inverse complex FFT with a length of 'FFTsize' samples.
  */
-MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int32_t FFTsize)
+cs_float csoundGetInverseComplexFFTScale(CSOUND *csound, int32_t FFTsize)
 {
   IGN(FFTsize);
   IGN(csound);
@@ -3225,7 +3225,7 @@ MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int32_t FFTsize)
  * Returns the amplitude scale that should be applied to the result of
  * an inverse real FFT with a length of 'FFTsize' samples.
  */
-MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int32_t FFTsize)
+cs_float csoundGetInverseRealFFTScale(CSOUND *csound, int32_t FFTsize)
 {
   IGN(FFTsize);
   IGN(csound);
@@ -3235,13 +3235,13 @@ MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int32_t FFTsize)
 /**
  * Compute in-place complex FFT
  * FFTsize: FFT length in samples
- * buf:     array of FFTsize*2 MYFLT values,
+ * buf:     array of FFTsize*2 cs_float values,
  *          in interleaved real/imaginary format
  */
-void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
+void csoundComplexFFT(CSOUND *csound, cs_float *buf, int32_t FFTsize)
 {
   if(IS_POW_TWO(FFTsize)) {
-  MYFLT *Utbl;
+  cs_float *Utbl;
   int16 *BRLow;
   int32_t   M;
   M = ConvertFFTSize(csound, FFTsize);
@@ -3253,16 +3253,16 @@ void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 /**
  * Compute in-place inverse complex FFT
  * FFTsize: FFT length in samples
- * buf:     array of FFTsize*2 MYFLT values,
+ * buf:     array of FFTsize*2 cs_float values,
  *          in interleaved real/imaginary format
  * Output should be scaled by the return value of
  * csoundGetInverseComplexFFTScale(csound, FFTsize).
  */
 
-void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
+void csoundInverseComplexFFT(CSOUND *csound, cs_float *buf, int32_t FFTsize)
 {
  if(IS_POW_TWO(FFTsize)) {
-  MYFLT *Utbl;
+  cs_float *Utbl;
   int16 *BRLow;
   int32_t   M;
 
@@ -3275,15 +3275,15 @@ void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 /**
  * Compute in-place real FFT
  * FFTsize: FFT length in samples
- * buf:     array of FFTsize MYFLT values; output is in interleaved
+ * buf:     array of FFTsize cs_float values; output is in interleaved
  *          real/imaginary format, except for buf[1] which is the real
  *          part for the Nyquist frequency
  */
 
-void csoundRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
+void csoundRealFFT(CSOUND *csound, cs_float *buf, int32_t FFTsize)
 {
 
-    MYFLT *Utbl;
+    cs_float *Utbl;
     int16 *BRLow;
     int32_t   M;
     M = ConvertFFTSize(csound, FFTsize);
@@ -3294,16 +3294,16 @@ void csoundRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 /**
  * Compute in-place inverse real FFT
  * FFTsize: FFT length in samples
- * buf:     array of FFTsize MYFLT values; input is expected to be in
+ * buf:     array of FFTsize cs_float values; input is expected to be in
  *          interleaved real/imaginary format, except for buf[1] which
  *          is the real part for the Nyquist frequency
  * Output should be scaled by the return value of
  * csoundGetInverseRealFFTScale(csound, FFTsize).
  */
 
-void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
+void csoundInverseRealFFT(CSOUND *csound, cs_float *buf, int32_t FFTsize)
 {
-    MYFLT *Utbl;
+    cs_float *Utbl;
     int16 *BRLow;
     int32_t   M;
     M = ConvertFFTSize(csound, FFTsize);
@@ -3316,13 +3316,13 @@ void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
  * returned by csoundRealFFT(), and leave the result in outbuf, which
  * may be the same as either buf1 or buf2.
  * An amplitude scale of 'scaleFac' is also applied.
- * The arrays should contain 'FFTsize' MYFLT values.
+ * The arrays should contain 'FFTsize' cs_float values.
  */
 
-void csoundRealFFTMult(CSOUND *csound, MYFLT *outbuf,
-                       MYFLT *buf1, MYFLT *buf2, int32_t FFTsize, MYFLT scaleFac)
+void csoundRealFFTMult(CSOUND *csound, cs_float *outbuf,
+                       cs_float *buf1, cs_float *buf2, int32_t FFTsize, cs_float scaleFac)
 {
-  MYFLT re, im;
+  cs_float re, im;
   int32_t   i;
   IGN(csound);
 
@@ -3360,7 +3360,7 @@ void csoundRealFFTMult(CSOUND *csound, MYFLT *outbuf,
 */
 static
 void pffft_execute(CSOUND_FFT_SETUP *setup,
-                   MYFLT *sig) {
+                   cs_float *sig) {
   int32_t i, N = setup->N;
   float s, *buf;
 #ifdef USE_DOUBLE
@@ -3374,7 +3374,7 @@ void pffft_execute(CSOUND_FFT_SETUP *setup,
                           setup->setup,
                           buf,buf,NULL,setup->d);
   s = (setup->d == PFFFT_BACKWARD ?
-       (MYFLT) (1./setup->N) : FL(1.0));
+       (cs_float) (1./setup->N) : FL(1.0));
   for(i=0;i<N;i++)
     sig[i] = buf[i]*s;
 }
@@ -3384,14 +3384,14 @@ void pffft_execute(CSOUND_FFT_SETUP *setup,
 #include <Accelerate/Accelerate.h>
 static
 void vDSP_execute(CSOUND_FFT_SETUP *setup,
-                   MYFLT *sig){
+                   cs_float *sig){
 #ifdef USE_DOUBLE
   DSPDoubleSplitComplex tmp;
 #else
   DSPSplitComplex tmp;
 #endif
   int32_t i,j;
-  MYFLT s;
+  cs_float s;
   int32_t N = setup->N;
   tmp.realp = &setup->buffer[0];
   tmp.imagp = &setup->buffer[N>>1];
@@ -3408,7 +3408,7 @@ void vDSP_execute(CSOUND_FFT_SETUP *setup,
                  &tmp, 1,
                  setup->M,setup->d);
 #endif
- s = (setup->d == -1 ? (MYFLT)(N) : FL(2.0));
+ s = (setup->d == -1 ? (cs_float)(N) : FL(2.0));
  for(i=j=0;i<N;i+=2,j++){
     sig[i] = tmp.realp[j]/s;
     sig[i+1] = tmp.imagp[j]/s;
@@ -3493,14 +3493,14 @@ void *csoundRealFFT2Setup(CSOUND *csound,
     break;
   default:
     if(!setup->p2)
-      setup->buffer = (MYFLT *)
-        csound->Calloc(csound, sizeof(MYFLT)*(FFTsize+2));
+      setup->buffer = (cs_float *)
+        csound->Calloc(csound, sizeof(cs_float)*(FFTsize+2));
     setup->lib = 0;
     setup->d = d;
     return setup;
   }
   
-  setup->buffer = (MYFLT *) align_alloc(csound, sizeof(MYFLT)*(FFTsize+2));
+  setup->buffer = (cs_float *) align_alloc(csound, sizeof(cs_float)*(FFTsize+2));
   csound->RegisterResetCallback(csound, (void*) setup,
                                 (int32_t (*)(CSOUND *, void *))
                                 setupDispose);
@@ -3509,11 +3509,11 @@ void *csoundRealFFT2Setup(CSOUND *csound,
 
  
 void csoundRealFFT2(CSOUND *csound,
-                     void *p, MYFLT *sig){
+                     void *p, cs_float *sig){
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
   int32_t N = setup->N;
-  int32_t siz = (int32_t) (sizeof(MYFLT)*N);
+  int32_t siz = (int32_t) (sizeof(cs_float)*N);
   if(!setup->p2) {
      memcpy(setup->buffer, sig, siz);
      if(setup->d == FFT_FWD) {
@@ -3560,15 +3560,15 @@ void *csoundDCTSetup(CSOUND *csound,
    csoundRealFFT2Setup(csound,
                        FFTsize*4,d);
  if(setup->lib == 0){
-  setup->buffer = (MYFLT *)
-    csound->Calloc(csound, sizeof(MYFLT)*setup->N);
+  setup->buffer = (cs_float *)
+    csound->Calloc(csound, sizeof(cs_float)*setup->N);
  }
  return setup;
 }
 
 
 void pffft_DCT_execute(CSOUND *csound,
-                     void *p, MYFLT *sig){
+                     void *p, cs_float *sig){
   IGN(csound);
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
@@ -3614,7 +3614,7 @@ void pffft_DCT_execute(CSOUND *csound,
 
 #if defined(__MACH__)
 void vDSP_DCT_execute(CSOUND *csound,
-                     void *p, MYFLT *sig){
+                     void *p, cs_float *sig){
   IGN(csound);
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
@@ -3673,11 +3673,11 @@ void vDSP_DCT_execute(CSOUND *csound,
 #endif
 
 void DCT_execute(CSOUND *csound,
-                     void *p, MYFLT *sig){
+                     void *p, cs_float *sig){
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
   int32_t i,j, N= setup->N;
-  MYFLT *buffer = setup->buffer;
+  cs_float *buffer = setup->buffer;
   if(setup->d == FFT_FWD){
   for(i=j = 0; i < N/2; i+=2, j++){
     buffer[i] = FL(0.0);
@@ -3711,7 +3711,7 @@ void DCT_execute(CSOUND *csound,
 }
 
 void csoundDCT(CSOUND *csound,
-               void *p, MYFLT *sig){
+               void *p, cs_float *sig){
 CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
   switch(setup->lib) {
@@ -3782,7 +3782,7 @@ void vDSP_setup(CSOUND *csound, int32_t FFTsize){
     if(csound->vdsp_buffer != NULL)
       vDSP_free(csound, csound->vdsp_buffer);
     csound->vdsp_buffer = vDSP_alloc(csound,
-                                     FFTsize*(sizeof(MYFLT)));
+                                     FFTsize*(sizeof(cs_float)));
     if(csound->FFT_max_size == 0)
       csound->RegisterResetCallback(csound, (void*) NULL,
                                     (int32_t (*)(CSOUND *, void *))
@@ -3792,14 +3792,14 @@ void vDSP_setup(CSOUND *csound, int32_t FFTsize){
 }
 
 static
-void vDSP_RealFFT(CSOUND *csound,int32_t FFTsize,MYFLT *sig,FFTDirection d){
+void vDSP_RealFFT(CSOUND *csound,int32_t FFTsize,cs_float *sig,FFTDirection d){
 #ifdef USE_DOUBLE
   DSPDoubleSplitComplex tmp;
 #else
   DSPSplitComplex tmp;
 #endif
   int32_t i,j;
-  MYFLT s;
+  cs_float s;
   vDSP_setup(csound, FFTsize);
   tmp.realp = &csound->vdsp_buffer[0];
   tmp.imagp = &csound->vdsp_buffer[FFTsize>>1];
@@ -3816,7 +3816,7 @@ void vDSP_RealFFT(CSOUND *csound,int32_t FFTsize,MYFLT *sig,FFTDirection d){
                 ConvertFFTSize(csound, FFTsize),
                 d);
 #endif
- s = (d == -1 ? (MYFLT)(FFTsize) : FL(2.0));
+ s = (d == -1 ? (cs_float)(FFTsize) : FL(2.0));
  for(i=j=0;i<FFTsize;i+=2,j++){
     sig[i] = tmp.realp[j]/s;
     sig[i+1] = tmp.imagp[j]/s;
@@ -3871,7 +3871,7 @@ vDSP_setup_New(CSOUND *csound, int32_t FFTsize, int32_t d){
   if(csound->FFT_max_size < FFTsize) {
     vDSP_free(csound, csound->vdsp_buffer);
     csound->vdsp_buffer = vDSP_alloc(csound,
-                                     FFTsize*(sizeof(MYFLT)));
+                                     FFTsize*(sizeof(cs_float)));
   }
 
   if(csound->FFT_max_size == 0)
@@ -3883,18 +3883,18 @@ vDSP_setup_New(CSOUND *csound, int32_t FFTsize, int32_t d){
     csound->vdsp_setup_inv;
 }
 
-void vDSP_RealFFT_New(CSOUND *csound,int32_t FFTsize,MYFLT *sig,
+void vDSP_RealFFT_New(CSOUND *csound,int32_t FFTsize,cs_float *sig,
                   FFTDirection d){
   int32_t i,j;
-  MYFLT s;
+  cs_float s;
 #ifdef USE_DOUBLE
   vDSP_DFT_SetupD setup;
 #else
   vDSP_DFT_Setup setup;
 #endif
   setup = vDSP_setup_New(csound, FFTsize, d);
-  MYFLT *inr = &csound->vdsp_buffer[0];
-  MYFLT *ini = &csound->vdsp_buffer[FFTsize>>1];
+  cs_float *inr = &csound->vdsp_buffer[0];
+  cs_float *ini = &csound->vdsp_buffer[FFTsize>>1];
 
   for(i=j=0;i<FFTsize;i+=2,j++){
     inr[j] = sig[i];
@@ -3905,7 +3905,7 @@ void vDSP_RealFFT_New(CSOUND *csound,int32_t FFTsize,MYFLT *sig,
 #else
   vDSP_DFT_Execute(setup,inr,ini,inr,ini);
 #endif
-    s = (d == -1 ? (MYFLT)(FFTsize) : FL(2.0));
+    s = (d == -1 ? (cs_float)(FFTsize) : FL(2.0));
   for(i=j=0;i<FFTsize;i+=2,j++){
     sig[i] = inr[j]/s;
     sig[i+1] = ini[j]/s;
@@ -3933,7 +3933,7 @@ void pffft_setup(CSOUND *csound, int32_t FFTsize, int32_t M){
        csound->setup[M] = pffft_new_setup(FFTsize,PFFFT_REAL);
     if(csound->FFT_max_size < FFTsize) {
       pffft_aligned_free(csound->vdsp_buffer);
-      csound->vdsp_buffer = (MYFLT *) pffft_aligned_malloc(FFTsize*(sizeof(float)));
+      csound->vdsp_buffer = (cs_float *) pffft_aligned_malloc(FFTsize*(sizeof(float)));
       memset(csound->vdsp_buffer,0, FFTsize*(sizeof(float)));
       csound->FFT_max_size = FFTsize;
     }
@@ -3942,7 +3942,7 @@ void pffft_setup(CSOUND *csound, int32_t FFTsize, int32_t M){
 
 static
 void pffft_RealFFT(CSOUND *csound,
-                   int32_t FFTsize,MYFLT *sig,
+                   int32_t FFTsize,cs_float *sig,
                    int32_t d){
   int32_t i;
   float s, *buf;
@@ -3957,7 +3957,7 @@ void pffft_RealFFT(CSOUND *csound,
 #endif
   pffft_transform_ordered(csound->setup[M],
                           buf,buf,NULL,d);
-  s = (d == PFFFT_BACKWARD ? (MYFLT)(1./FFTsize) : FL(1.0));
+  s = (d == PFFFT_BACKWARD ? (cs_float)(1./FFTsize) : FL(1.0));
   for(i=0;i<FFTsize;i++)
     sig[i] = buf[i]*s;
 }

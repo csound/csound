@@ -885,7 +885,7 @@ static CS_NOINLINE void rtJack_Restart(RtJackGlobals *p)
 
 /* get samples from ADC */
 
-static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf_, int32_t bytes_)
+static int32_t rtrecord_(CSOUND *csound, cs_float *inbuf_, int32_t bytes_)
 {
     RtJackGlobals *p;
     int32_t           i, j, k, nframes, bufpos, bufcnt;
@@ -900,7 +900,7 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf_, int32_t bytes_)
       else
         rtJack_Abort(csound, p->jackState);
     }
-    nframes = bytes_ / (p->nChannels_i * (int32_t) sizeof(MYFLT));
+    nframes = bytes_ / (p->nChannels_i * (int32_t) sizeof(cs_float));
     bufpos = p->csndBufPos;
     bufcnt = p->csndBufCnt;
     for (i = j = 0; i < nframes; i++) {
@@ -921,7 +921,7 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf_, int32_t bytes_)
       }
       /* copy audio data */
       for (k = 0; k < p->nChannels_i; k++)
-        inbuf_[j++] = (MYFLT) p->bufs[bufcnt]->inBufs[k][i];
+        inbuf_[j++] = (cs_float) p->bufs[bufcnt]->inBufs[k][i];
       if (++bufpos >= p->bufSize) {
         bufpos = 0;
         /* notify JACK callback that this buffer has been consumed */
@@ -949,7 +949,7 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf_, int32_t bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int32_t bytes_)
+static void rtplay_(CSOUND *csound, const cs_float *outbuf_, int32_t bytes_)
 {
     RtJackGlobals *p;
     int32_t           i, j, k, nframes;
@@ -964,7 +964,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int32_t bytes_)
         rtJack_Abort(csound, p->jackState);
       return;
     }
-    nframes = bytes_ / (p->nChannels * (int32_t) sizeof(MYFLT));
+    nframes = bytes_ / (p->nChannels * (int32_t) sizeof(cs_float));
     for (i = j = 0; i < nframes; i++) {
       if (p->csndBufPos == 0) {
         /* wait until there is enough free space in ring buffer */
@@ -1623,5 +1623,5 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
 
  int32_t csoundModuleInfo(void)
 {
-    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+  return CSOUND_MODULE_INFO;
 }

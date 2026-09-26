@@ -29,7 +29,7 @@
 
 /* FOG generator */
 
-static int32_t newpulse(CSOUND *, FOGS *, OVERLAP *, MYFLT *, MYFLT *, MYFLT *);
+static int32_t newpulse(CSOUND *, FOGS *, OVERLAP *, cs_float *, cs_float *, cs_float *);
 
 static int32_t fogset(CSOUND *csound, FOGS *p)
 {
@@ -99,13 +99,13 @@ static int32_t fog(CSOUND *csound, FOGS *p)
 {
   OVERLAP *ovp;
   FUNC        *ftp1,  *ftp2;
-  MYFLT       *ar, *amp, *fund, *ptch, *speed;
-  MYFLT  v1, fract ,*ftab, fogcvt = p->fogcvt; /*JMC added for FOG*/
+  cs_float       *ar, *amp, *fund, *ptch, *speed;
+  cs_float  v1, fract ,*ftab, fogcvt = p->fogcvt; /*JMC added for FOG*/
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   int32   fund_inc, form_inc, floatph = p->floatph;
-  MYFLT   fund_incf, form_incf;
+  cs_float   fund_incf, form_incf;
   /* int64_t speed_inc; */ /*JMC added last--out for phs version*/
 
   ar = p->ar;
@@ -116,10 +116,10 @@ static int32_t fog(CSOUND *csound, FOGS *p)
   ftp1 = p->ftp1;
   ftp2 = p->ftp2;
   /*      speed_inc = *speed * fogcvt; */   /*JMC for FOG--out for phs version*/
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   if (offset >= nsmps) return OK;
   if(!floatph) {
@@ -131,7 +131,7 @@ static int32_t fog(CSOUND *csound, FOGS *p)
   }
   for (n=offset;n<nsmps;n++) {
     /* The position input may share the output buffer. */
-    MYFLT position = speed[n];
+    cs_float position = speed[n];
     if (p->fundphs & MAXLEN ||
         p->fundphsf >= 1.) {                       /* if phs has wrapped */
       if (floatph) 
@@ -148,14 +148,14 @@ static int32_t fog(CSOUND *csound, FOGS *p)
     ar[n] = FL(0.0);
     ovp = &p->basovrlap;
     while (ovp->nxtact != NULL) {         /* perform cur actlist:  */
-      MYFLT result;
+      cs_float result;
       OVERLAP *prvact = ovp;
       ovp = ovp->nxtact;                     /*  formant waveform  */
       if(floatph) {
-        double formphsf = ovp->formphsf;
-        double position = formphsf * ftp1->flen;
+        cs_double formphsf = ovp->formphsf;
+        cs_double position = formphsf * ftp1->flen;
         size_t index = (size_t)position;
-        double frac = position - index;
+        cs_double frac = position - index;
         ftab = ftp1->ftable + index;
         v1 = *ftab++;  
         result = v1 + (*ftab - v1) * frac;
@@ -232,11 +232,11 @@ static int32_t fog(CSOUND *csound, FOGS *p)
                              "%s", Str("FOF needs more overlaps"));
 }
 
-static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
-                        MYFLT *fund, MYFLT *ptch)
+static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, cs_float   *amp,
+                        cs_float *fund, cs_float *ptch)
 {
-  MYFLT       octamp = *amp, oct;
-  MYFLT       form = *ptch / CS_SICVT, fogcvt = p->fogcvt;
+  cs_float       octamp = *amp, oct;
+  cs_float       form = *ptch / CS_SICVT, fogcvt = p->fogcvt;
   int32   rismps, newexp = 0;
   if (p->floatph) form = *ptch * fogcvt * CS_ESR;
   if ((ovp->timrem = (int32)(*p->kdur * CS_ESR)) > p->durtogo &&

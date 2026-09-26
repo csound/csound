@@ -28,12 +28,12 @@ typedef struct {
     OPDS h;
     PVSDAT *fout;
     PVSDAT *fin;
-    MYFLT  *klowcut;
-    MYFLT  *klowbnd;
-    MYFLT  *khigbnd;
-    MYFLT  *khigcut;
-    MYFLT  *fade;
-    MYFLT  lastframe;
+    cs_float  *klowcut;
+    cs_float  *klowbnd;
+    cs_float  *khigbnd;
+    cs_float  *khigcut;
+    cs_float  *fade;
+    cs_float  lastframe;
 } PVSBAND;
 
 
@@ -46,9 +46,9 @@ static int32_t pvsbandinit(CSOUND *csound, PVSBAND *p)
 
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
-          CS_KSMPS*(N+2)*sizeof(MYFLT) > (uint32_t)p->fout->frame.size)
-        csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fout->frame);
-      else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
+          CS_KSMPS*(N+2)*sizeof(cs_float) > (uint32_t)p->fout->frame.size)
+        csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(cs_float),&p->fout->frame);
+      else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(cs_float));
     }
     else
       {
@@ -72,14 +72,14 @@ static int32_t pvsbandinit(CSOUND *csound, PVSBAND *p)
 static int32_t pvsband(CSOUND *csound, PVSBAND *p)
 {
     int32_t     i, N = p->fin->N;
-    MYFLT   lowcut = *p->klowcut;
-    MYFLT   lowbnd = *p->klowbnd;
-    MYFLT   higbnd = *p->khigbnd;
-    MYFLT   higcut = *p->khigcut;
+    cs_float   lowcut = *p->klowcut;
+    cs_float   lowbnd = *p->klowbnd;
+    cs_float   higbnd = *p->khigbnd;
+    cs_float   higcut = *p->khigcut;
     float   *fin = (float *) p->fin->frame.auxp;
     float   *fout = (float *) p->fout->frame.auxp;
-    MYFLT   fade = *p->fade;
-    MYFLT   opef = FL(1.0) - EXP(fade);
+    cs_float   fade = *p->fade;
+    cs_float   opef = FL(1.0) - EXP(fade);
 
     if (UNLIKELY(fout == NULL)) goto err1;
 
@@ -109,8 +109,8 @@ static int32_t pvsband(CSOUND *csound, PVSBAND *p)
           if (higcut<higbnd) higcut = higbnd;
         }
         for (i = 0; i < NB-1; i++) {
-          MYFLT frq = fin[i].im;
-          MYFLT afrq = (frq<FL(0.0)? -frq : frq);
+          cs_float frq = fin[i].im;
+          cs_float afrq = (frq<FL(0.0)? -frq : frq);
           if (afrq < lowcut || afrq>higcut) { /* outside band */
             fout[i].re = FL(0.0);
             fout[i].im = -FL(1.0);
@@ -142,8 +142,8 @@ static int32_t pvsband(CSOUND *csound, PVSBAND *p)
     }
     if (p->lastframe < p->fin->framecount) {
       for (i = 0; i < N; i += 2) {
-        MYFLT frq = fin[i+1];
-        MYFLT afrq = (frq<FL(0.0)? -frq : frq);
+        cs_float frq = fin[i+1];
+        cs_float afrq = (frq<FL(0.0)? -frq : frq);
         if (afrq < lowcut || afrq>higcut) {
             fout[i] = FL(0.0);
             fout[i+1] = -FL(1.0);
@@ -181,14 +181,14 @@ static int32_t pvsband(CSOUND *csound, PVSBAND *p)
 static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
 {
     int32_t     i, N = p->fin->N;
-    MYFLT   lowcut = *p->klowcut;
-    MYFLT   lowbnd = *p->klowbnd;
-    MYFLT   higbnd = *p->khigbnd;
-    MYFLT   higcut = *p->khigcut;
+    cs_float   lowcut = *p->klowcut;
+    cs_float   lowbnd = *p->klowbnd;
+    cs_float   higbnd = *p->khigbnd;
+    cs_float   higcut = *p->khigcut;
     float   *fin = (float *) p->fin->frame.auxp;
     float   *fout = (float *) p->fout->frame.auxp;
-    MYFLT   fade = *p->fade;
-    MYFLT   opef = FL(1.0) - EXP(fade);
+    cs_float   fade = *p->fade;
+    cs_float   opef = FL(1.0) - EXP(fade);
 
     if (UNLIKELY(fout == NULL)) goto err1;
 
@@ -218,8 +218,8 @@ static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
           if (higcut<higbnd) higcut = higbnd;
         }
         for (i = 0; i < NB-1; i++) {
-          MYFLT frq = fin[i].im;
-          MYFLT afrq = (frq<FL(0.0)? -frq : frq);
+          cs_float frq = fin[i].im;
+          cs_float afrq = (frq<FL(0.0)? -frq : frq);
           if (afrq < lowcut || afrq>higcut) {
             fout[i] = fin[i];
           }
@@ -249,8 +249,8 @@ static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
     }
     if (p->lastframe < p->fin->framecount) {
       for (i = 0; i < N; i += 2) {
-        MYFLT frq = fin[i+1];
-        MYFLT afrq = (frq<FL(0.0)? -frq : frq);
+        cs_float frq = fin[i+1];
+        cs_float afrq = (frq<FL(0.0)? -frq : frq);
         if (afrq < lowcut || afrq>higcut) {
             fout[i] = fin[i];
             fout[i+1] = fin[i+1];

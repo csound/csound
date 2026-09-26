@@ -25,26 +25,26 @@
 
 #pragma once
 
-#define PFRAC1(x)   ((MYFLT)((x) & ftp1->lomask) * ftp1->lodiv)
+#define PFRAC1(x)   ((cs_float)((x) & ftp1->lomask) * ftp1->lodiv)
 
 typedef struct ovrlap {
         struct ovrlap  *nxtact, *nxtfree;
         int32    timrem, dectim, formphs, forminc, risphs, risinc, decphs, decinc;
-        double  formphsf, formincf, risphsf, risincf, decphsf, decincf;
-        MYFLT   curamp, expamp;
-        MYFLT   glissbas;/* Gliss factor to add to forminc (ifna index incr) */
+        cs_double  formphsf, formincf, risphsf, risincf, decphsf, decincf;
+        cs_float   curamp, expamp;
+        cs_float   glissbas;/* Gliss factor to add to forminc (ifna index incr) */
        int32    sampct;         /* Sample count since grain started */
 } OVRLAP;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *xamp, *xfund, *xform, *koct, *kband, *kris, *kdur, *kdec;
-        MYFLT   *iolaps, *ifna, *ifnb, *itotdur, *iphs, *ifmode, *iskip;
+        cs_float   *ar, *xamp, *xfund, *xform, *koct, *kband, *kris, *kdur, *kdec;
+        cs_float   *iolaps, *ifna, *ifnb, *itotdur, *iphs, *ifmode, *iskip;
   /* kgliss and ifmode are same field */
         OVRLAP  basovrlap;
         int32    durtogo, fundphs, fofcount, prvsmps;
-        MYFLT   fundphsf;
-        MYFLT   prvband, expamp, preamp;
+        cs_float   fundphsf;
+        cs_float   prvband, expamp, preamp;
         int16   foftype;        /* Distinguish fof and fof2 */
         int16   xincod, ampcod, fundcod, formcod, fmtmod;
         AUXCH   auxch;
@@ -54,15 +54,15 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *asig, *kest, *kvar, *kfrq1, *kfrq2;
-        MYFLT   *icpsmode, *ilowest, *iptrkprd;
+        cs_float   *ar, *asig, *kest, *kvar, *kfrq1, *kfrq2;
+        cs_float   *icpsmode, *ilowest, *iptrkprd;
         int32   nbufsmps, n2bufsmps, phase1, phase2, period, autoktim, autokcnt;
         int32   mindist, maxdist, max2dist, lomaxdist, cpsmode;
-        MYFLT   c1, c2, prvq, prvest, prvar, minfrq, estprd, lsicvt;
-        MYFLT   *bufp, *midp, *inp1, *inp2;
-        MYFLT   *bufq, *midq, *inq1, *inq2, *autobuf;
-        MYFLT   *puls1, *puls2, *puls3, lin1, lin2, lin3;
-        MYFLT   inc1, inc2, inc11, inc12, inc21, inc22, inc31, inc32;
+        cs_float   c1, c2, prvq, prvest, prvar, minfrq, estprd, lsicvt;
+        cs_float   *bufp, *midp, *inp1, *inp2;
+        cs_float   *bufq, *midq, *inq1, *inq2, *autobuf;
+        cs_float   *puls1, *puls2, *puls3, lin1, lin2, lin3;
+        cs_float   inc1, inc2, inc11, inc12, inc21, inc22, inc31, inc32;
         int32   cnt1, cnt2, cnt3, pnt1, pnt2, pnt3;
         int32   pnt11, pnt12, pnt13, pnt21, pnt22, pnt23, pnt31, pnt32, pnt33;
         AUXCH   auxch;

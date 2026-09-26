@@ -58,7 +58,7 @@ static int32_t (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
 #define mtw (-FL(1.0) / 12)
 #define etw (FL(11.0) / 12)
 
-static const MYFLT matrix6[36] =
+static const cs_float matrix6[36] =
   {tthird,mthird,mthird,mthird,mthird,mthird,
    mthird,tthird,mthird,mthird,mthird,mthird,
    mthird,mthird,tthird,mthird,mthird,mthird,
@@ -66,7 +66,7 @@ static const MYFLT matrix6[36] =
    mthird,mthird,mthird,mthird,tthird,mthird,
    mthird,mthird,mthird,mthird,mthird,tthird};
 
-static const MYFLT matrix12[144] =
+static const cs_float matrix12[144] =
   {fsix,msix,msix,msix,msix,msix,msix,msix,msix,msix,msix,msix,
    msix,fsix,msix,msix,msix,msix,msix,msix,msix,msix,msix,msix,
    msix,msix,fsix,msix,msix,msix,msix,msix,msix,msix,msix,msix,
@@ -80,7 +80,7 @@ static const MYFLT matrix12[144] =
    msix,msix,msix,msix,msix,msix,msix,msix,msix,msix,fsix,msix,
    msix,msix,msix,msix,msix,msix,msix,msix,msix,msix,msix,fsix};
 
-static const MYFLT matrix24[576] =
+static const cs_float matrix24[576] =
   {etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
    mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
    mtw,etw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,
@@ -163,16 +163,16 @@ typedef struct
   OPDS h;
   /* in / out */
   /* outputs l/r and delay required for late del...*/
-  MYFLT *outsigl, *outsigr, *idel;
+  cs_float *outsigl, *outsigr, *idel;
   /* mean free path and order are optional, meanfp defaults to medium
      room, opcode can be used as stand alone binaural reverb, or
      spatially accurate taking meanfp and order from earlies opcode */
-  MYFLT *insig, *ilowrt60, *ihighrt60;
+  cs_float *insig, *ilowrt60, *ihighrt60;
   STRINGDAT *ifilel, *ifiler;
-  MYFLT *osr, *omeanfp, *porder;
+  cs_float *osr, *omeanfp, *porder;
 
   /* internal data / class variables */
-  MYFLT delaytime;
+  cs_float delaytime;
   int32_t delaytimeint, basedelay;
 
   /* number of delay lines */
@@ -214,16 +214,16 @@ typedef struct
   AUXCH hrtfl, hrtfr;
   AUXCH olhrtfl, olhrtfr;
   /* filter coeff */
-  MYFLT b;
+  cs_float b;
   /* 1st order FIR mem */
-  MYFLT inoldl, inoldr;
+  cs_float inoldl, inoldr;
   /* for storing hrtf data used to create filters */
   AUXCH buffl, buffr;
 
   /* counter */
   int32_t counter;
   void *setup, *setup_pad, *isetup, *isetup_pad;
-  MYFLT sr;
+  cs_float sr;
 
 }hrtfreverb;
 
@@ -240,10 +240,10 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
   /* pointers used to fill buffers in data structure */
   int32_t *delaysp;
-  MYFLT *gip, *aip;
-  MYFLT *powerp, *HRTFavep, *nump, *denomp, *cohermagsp, *coherup, *cohervp;
-  MYFLT *filtoutp, *filtuoutp, *filtvoutp, *filtpadp, *filtupadp, *filtvpadp;
-  MYFLT *bufflp, *buffrp;
+  cs_float *gip, *aip;
+  cs_float *powerp, *HRTFavep, *nump, *denomp, *cohermagsp, *coherup, *cohervp;
+  cs_float *filtoutp, *filtuoutp, *filtvoutp, *filtpadp, *filtupadp, *filtvpadp;
+  cs_float *bufflp, *buffrp;
 
   /* iterators, file skip */
   int32_t i, j;
@@ -254,25 +254,25 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
   int32_t basedelay=0;
 
   /* local filter variables for spectral manipulations */
-  MYFLT rel, rer, retemp, iml, imr, imtemp;
+  cs_float rel, rer, retemp, iml, imr, imtemp;
 
   /* setup filters */
-  MYFLT T, alpha, aconst, exp;
+  cs_float T, alpha, aconst, exp;
   int32_t clipcheck = 0;
 
-  MYFLT sr = (MYFLT)*p->osr;
-  MYFLT meanfp = (MYFLT)*p->omeanfp;
+  cs_float sr = (cs_float)*p->osr;
+  cs_float meanfp = (cs_float)*p->omeanfp;
   int32_t order = (int32_t)*p->porder;
 
   /* delay line variables */
-  MYFLT delaytime, meanfporder;
+  cs_float delaytime, meanfporder;
   int32_t delaytimeint;
   int32_t Msix, Mtwelve, Mtwentyfour;
   int32_t meanfpsamps, meanfpordersamps;
   int32_t test;
 
-  MYFLT rt60low = (MYFLT)*p->ilowrt60;
-  MYFLT rt60high = (MYFLT)*p->ihighrt60;
+  cs_float rt60low = (cs_float)*p->ilowrt60;
+  cs_float rt60high = (cs_float)*p->ihighrt60;
 
   int32_t M;
 
@@ -344,76 +344,76 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
   p->overlapsize = overlapsize;
 
   /* allocate memory */
-  if (!p->power.auxp || p->power.size < irlength * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->power);
-  if (!p->HRTFave.auxp || p->HRTFave.size < irlength * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->HRTFave);
-  if (!p->num.auxp || p->num.size < irlength * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->num);
-  if (!p->denom.auxp || p->denom.size < irlength * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->denom);
-  if (!p->cohermags.auxp || p->cohermags.size < irlength * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->cohermags);
-  if (!p->coheru.auxp || p->coheru.size < irlength * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->coheru);
-  if (!p->coherv.auxp || p->coherv.size < irlength * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->coherv);
+  if (!p->power.auxp || p->power.size < irlength * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->power);
+  if (!p->HRTFave.auxp || p->HRTFave.size < irlength * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->HRTFave);
+  if (!p->num.auxp || p->num.size < irlength * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->num);
+  if (!p->denom.auxp || p->denom.size < irlength * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->denom);
+  if (!p->cohermags.auxp || p->cohermags.size < irlength * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->cohermags);
+  if (!p->coheru.auxp || p->coheru.size < irlength * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->coheru);
+  if (!p->coherv.auxp || p->coherv.size < irlength * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->coherv);
 
-  if (!p->filtout.auxp || p->filtout.size < irlength * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->filtout);
-  if (!p->filtuout.auxp || p->filtuout.size < irlength * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->filtuout);
-  if (!p->filtvout.auxp || p->filtvout.size < irlength * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->filtvout);
-  if (!p->filtpad.auxp || p->filtpad.size < irlengthpad * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlengthpad * sizeof(MYFLT), &p->filtpad);
-  if (!p->filtupad.auxp || p->filtupad.size < irlengthpad * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlengthpad * sizeof(MYFLT), &p->filtupad);
-  if (!p->filtvpad.auxp || p->filtvpad.size < irlengthpad * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlengthpad * sizeof(MYFLT), &p->filtvpad);
+  if (!p->filtout.auxp || p->filtout.size < irlength * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->filtout);
+  if (!p->filtuout.auxp || p->filtuout.size < irlength * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->filtuout);
+  if (!p->filtvout.auxp || p->filtvout.size < irlength * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->filtvout);
+  if (!p->filtpad.auxp || p->filtpad.size < irlengthpad * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlengthpad * sizeof(cs_float), &p->filtpad);
+  if (!p->filtupad.auxp || p->filtupad.size < irlengthpad * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlengthpad * sizeof(cs_float), &p->filtupad);
+  if (!p->filtvpad.auxp || p->filtvpad.size < irlengthpad * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlengthpad * sizeof(cs_float), &p->filtvpad);
 
   /* zero numerator and power buffer, as they accumulate */
-  memset(p->power.auxp, 0, irlength * sizeof(MYFLT));
-  memset(p->num.auxp, 0, irlength * sizeof(MYFLT));
+  memset(p->power.auxp, 0, irlength * sizeof(cs_float));
+  memset(p->num.auxp, 0, irlength * sizeof(cs_float));
   /* no need to zero other above mem, as it will be filled in init */
 
-  if (!p->matrixlu.auxp || p->matrixlu.size < irlengthpad * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlengthpad * sizeof(MYFLT), &p->matrixlu);
-  if (!p->matrixrv.auxp || p->matrixrv.size < irlengthpad * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlengthpad * sizeof(MYFLT), &p->matrixrv);
-  if (!p->olmatrixlu.auxp || p->olmatrixlu.size < overlapsize * sizeof(MYFLT))
-    csound->AuxAlloc(csound, overlapsize * sizeof(MYFLT), &p->olmatrixlu);
-  if (!p->olmatrixrv.auxp || p->olmatrixrv.size < overlapsize * sizeof(MYFLT))
-    csound->AuxAlloc(csound, overlapsize * sizeof(MYFLT), &p->olmatrixrv);
-  if (!p->hrtfl.auxp || p->hrtfl.size < irlengthpad * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlengthpad * sizeof(MYFLT), &p->hrtfl);
-  if (!p->hrtfr.auxp || p->hrtfr.size < irlengthpad * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlengthpad * sizeof(MYFLT), &p->hrtfr);
-  if (!p->olhrtfl.auxp || p->olhrtfl.size < overlapsize * sizeof(MYFLT))
-    csound->AuxAlloc(csound, overlapsize * sizeof(MYFLT), &p->olhrtfl);
-  if (!p->olhrtfr.auxp || p->olhrtfr.size < overlapsize * sizeof(MYFLT))
-    csound->AuxAlloc(csound, overlapsize * sizeof(MYFLT), &p->olhrtfr);
+  if (!p->matrixlu.auxp || p->matrixlu.size < irlengthpad * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlengthpad * sizeof(cs_float), &p->matrixlu);
+  if (!p->matrixrv.auxp || p->matrixrv.size < irlengthpad * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlengthpad * sizeof(cs_float), &p->matrixrv);
+  if (!p->olmatrixlu.auxp || p->olmatrixlu.size < overlapsize * sizeof(cs_float))
+    csound->AuxAlloc(csound, overlapsize * sizeof(cs_float), &p->olmatrixlu);
+  if (!p->olmatrixrv.auxp || p->olmatrixrv.size < overlapsize * sizeof(cs_float))
+    csound->AuxAlloc(csound, overlapsize * sizeof(cs_float), &p->olmatrixrv);
+  if (!p->hrtfl.auxp || p->hrtfl.size < irlengthpad * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlengthpad * sizeof(cs_float), &p->hrtfl);
+  if (!p->hrtfr.auxp || p->hrtfr.size < irlengthpad * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlengthpad * sizeof(cs_float), &p->hrtfr);
+  if (!p->olhrtfl.auxp || p->olhrtfl.size < overlapsize * sizeof(cs_float))
+    csound->AuxAlloc(csound, overlapsize * sizeof(cs_float), &p->olhrtfl);
+  if (!p->olhrtfr.auxp || p->olhrtfr.size < overlapsize * sizeof(cs_float))
+    csound->AuxAlloc(csound, overlapsize * sizeof(cs_float), &p->olhrtfr);
 
-  memset(p->matrixlu.auxp, 0, irlengthpad * sizeof(MYFLT));
-  memset(p->matrixrv.auxp, 0, irlengthpad * sizeof(MYFLT));
-  memset(p->olmatrixlu.auxp, 0, overlapsize * sizeof(MYFLT));
-  memset(p->olmatrixrv.auxp, 0, overlapsize * sizeof(MYFLT));
-  memset(p->hrtfl.auxp, 0, irlengthpad * sizeof(MYFLT));
-  memset(p->hrtfr.auxp, 0, irlengthpad * sizeof(MYFLT));
-  memset(p->olhrtfl.auxp, 0, overlapsize * sizeof(MYFLT));
-  memset(p->olhrtfr.auxp, 0, overlapsize * sizeof(MYFLT));
+  memset(p->matrixlu.auxp, 0, irlengthpad * sizeof(cs_float));
+  memset(p->matrixrv.auxp, 0, irlengthpad * sizeof(cs_float));
+  memset(p->olmatrixlu.auxp, 0, overlapsize * sizeof(cs_float));
+  memset(p->olmatrixrv.auxp, 0, overlapsize * sizeof(cs_float));
+  memset(p->hrtfl.auxp, 0, irlengthpad * sizeof(cs_float));
+  memset(p->hrtfr.auxp, 0, irlengthpad * sizeof(cs_float));
+  memset(p->olhrtfl.auxp, 0, overlapsize * sizeof(cs_float));
+  memset(p->olhrtfr.auxp, 0, overlapsize * sizeof(cs_float));
 
-  if (!p->buffl.auxp || p->buffl.size < irlength * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->buffl);
-  if (!p->buffr.auxp || p->buffr.size < irlength * sizeof(MYFLT))
-    csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->buffr);
+  if (!p->buffl.auxp || p->buffl.size < irlength * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->buffl);
+  if (!p->buffr.auxp || p->buffr.size < irlength * sizeof(cs_float))
+    csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->buffr);
 
-  memset(p->buffl.auxp, 0, irlength * sizeof(MYFLT));
-  memset(p->buffr.auxp, 0, irlength * sizeof(MYFLT));
+  memset(p->buffl.auxp, 0, irlength * sizeof(cs_float));
+  memset(p->buffr.auxp, 0, irlength * sizeof(cs_float));
 
   /* buffers to store hrtf data */
-  bufflp = (MYFLT *)p->buffl.auxp;
-  buffrp = (MYFLT *)p->buffr.auxp;
+  bufflp = (cs_float *)p->buffl.auxp;
+  buffrp = (cs_float *)p->buffr.auxp;
 
   /* 0 delay iterators */
   p->u = p->v = p->w = p->x = p->y = p->z = 0;
@@ -475,26 +475,26 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
   /* allocate memory based on M: number of delays */
   if (!p->delays.auxp || p->delays.size < M * sizeof(int32_t))
     csound->AuxAlloc(csound, M * sizeof(int32_t), &p->delays);
-  if (!p->gi.auxp || p->gi.size < M * sizeof(MYFLT))
-    csound->AuxAlloc(csound, M * sizeof(MYFLT), &p->gi);
-  if (!p->ai.auxp || p->ai.size < M * sizeof(MYFLT))
-    csound->AuxAlloc(csound, M * sizeof(MYFLT), &p->ai);
-  if (!p->inmat.auxp || p->inmat.size < M * sizeof(MYFLT))
-    csound->AuxAlloc(csound, M * sizeof(MYFLT), &p->inmat);
-  if (!p->inmatlp.auxp || p->inmatlp.size < M * sizeof(MYFLT))
-    csound->AuxAlloc(csound, M * sizeof(MYFLT), &p->inmatlp);
-  if (!p->dellp.auxp || p->dellp.size < M * sizeof(MYFLT))
-    csound->AuxAlloc(csound, M * sizeof(MYFLT), &p->dellp);
-  if (!p->outmat.auxp || p->outmat.size < M * sizeof(MYFLT))
-    csound->AuxAlloc(csound, M * sizeof(MYFLT), &p->outmat);
+  if (!p->gi.auxp || p->gi.size < M * sizeof(cs_float))
+    csound->AuxAlloc(csound, M * sizeof(cs_float), &p->gi);
+  if (!p->ai.auxp || p->ai.size < M * sizeof(cs_float))
+    csound->AuxAlloc(csound, M * sizeof(cs_float), &p->ai);
+  if (!p->inmat.auxp || p->inmat.size < M * sizeof(cs_float))
+    csound->AuxAlloc(csound, M * sizeof(cs_float), &p->inmat);
+  if (!p->inmatlp.auxp || p->inmatlp.size < M * sizeof(cs_float))
+    csound->AuxAlloc(csound, M * sizeof(cs_float), &p->inmatlp);
+  if (!p->dellp.auxp || p->dellp.size < M * sizeof(cs_float))
+    csound->AuxAlloc(csound, M * sizeof(cs_float), &p->dellp);
+  if (!p->outmat.auxp || p->outmat.size < M * sizeof(cs_float))
+    csound->AuxAlloc(csound, M * sizeof(cs_float), &p->outmat);
 
   memset(p->delays.auxp, 0, M * sizeof(int32_t));
-  memset(p->gi.auxp, 0, M * sizeof(MYFLT));
-  memset(p->ai.auxp, 0, M * sizeof(MYFLT));
-  memset(p->inmat.auxp, 0, M * sizeof(MYFLT));
-  memset(p->inmatlp.auxp, 0, M * sizeof(MYFLT));
-  memset(p->dellp.auxp, 0, M * sizeof(MYFLT));
-  memset(p->outmat.auxp, 0, M * sizeof(MYFLT));
+  memset(p->gi.auxp, 0, M * sizeof(cs_float));
+  memset(p->ai.auxp, 0, M * sizeof(cs_float));
+  memset(p->inmat.auxp, 0, M * sizeof(cs_float));
+  memset(p->inmatlp.auxp, 0, M * sizeof(cs_float));
+  memset(p->dellp.auxp, 0, M * sizeof(cs_float));
+  memset(p->outmat.auxp, 0, M * sizeof(cs_float));
 
   /* choose appropriate base delay times */
   for(i = 0; i < 212; i++)
@@ -552,97 +552,97 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     }
 
   /* setup and zero delay lines */
-  if (!p->del1.auxp || p->del1.size < delaysp[0] * sizeof(MYFLT))
-    csound->AuxAlloc(csound, delaysp[0] * sizeof(MYFLT), &p->del1);
-  if (!p->del2.auxp || p->del2.size < delaysp[1] * sizeof(MYFLT))
-    csound->AuxAlloc(csound, delaysp[1] * sizeof(MYFLT), &p->del2);
-  if (!p->del3.auxp || p->del3.size < delaysp[2] * sizeof(MYFLT))
-    csound->AuxAlloc(csound, delaysp[2] * sizeof(MYFLT), &p->del3);
-  if (!p->del4.auxp || p->del4.size < delaysp[3] * sizeof(MYFLT))
-    csound->AuxAlloc(csound, delaysp[3] * sizeof(MYFLT), &p->del4);
-  if (!p->del5.auxp || p->del5.size < delaysp[4] * sizeof(MYFLT))
-    csound->AuxAlloc(csound, delaysp[4] * sizeof(MYFLT), &p->del5);
-  if (!p->del6.auxp || p->del6.size < delaysp[5] * sizeof(MYFLT))
-    csound->AuxAlloc(csound, delaysp[5] * sizeof(MYFLT), &p->del6);
+  if (!p->del1.auxp || p->del1.size < delaysp[0] * sizeof(cs_float))
+    csound->AuxAlloc(csound, delaysp[0] * sizeof(cs_float), &p->del1);
+  if (!p->del2.auxp || p->del2.size < delaysp[1] * sizeof(cs_float))
+    csound->AuxAlloc(csound, delaysp[1] * sizeof(cs_float), &p->del2);
+  if (!p->del3.auxp || p->del3.size < delaysp[2] * sizeof(cs_float))
+    csound->AuxAlloc(csound, delaysp[2] * sizeof(cs_float), &p->del3);
+  if (!p->del4.auxp || p->del4.size < delaysp[3] * sizeof(cs_float))
+    csound->AuxAlloc(csound, delaysp[3] * sizeof(cs_float), &p->del4);
+  if (!p->del5.auxp || p->del5.size < delaysp[4] * sizeof(cs_float))
+    csound->AuxAlloc(csound, delaysp[4] * sizeof(cs_float), &p->del5);
+  if (!p->del6.auxp || p->del6.size < delaysp[5] * sizeof(cs_float))
+    csound->AuxAlloc(csound, delaysp[5] * sizeof(cs_float), &p->del6);
 
-  memset(p->del1.auxp, 0, delaysp[0] * sizeof(MYFLT));
-  memset(p->del2.auxp, 0, delaysp[1] * sizeof(MYFLT));
-  memset(p->del3.auxp, 0, delaysp[2] * sizeof(MYFLT));
-  memset(p->del4.auxp, 0, delaysp[3] * sizeof(MYFLT));
-  memset(p->del5.auxp, 0, delaysp[4] * sizeof(MYFLT));
-  memset(p->del6.auxp, 0, delaysp[5] * sizeof(MYFLT));
+  memset(p->del1.auxp, 0, delaysp[0] * sizeof(cs_float));
+  memset(p->del2.auxp, 0, delaysp[1] * sizeof(cs_float));
+  memset(p->del3.auxp, 0, delaysp[2] * sizeof(cs_float));
+  memset(p->del4.auxp, 0, delaysp[3] * sizeof(cs_float));
+  memset(p->del5.auxp, 0, delaysp[4] * sizeof(cs_float));
+  memset(p->del6.auxp, 0, delaysp[5] * sizeof(cs_float));
 
   /* if 12 delay lines required */
   if(M == 12 || M==24)
     {
-      if (!p->del1t.auxp || p->del1t.size < delaysp[6] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[6] * sizeof(MYFLT), &p->del1t);
-      if (!p->del2t.auxp || p->del2t.size < delaysp[7] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[7] * sizeof(MYFLT), &p->del2t);
-      if (!p->del3t.auxp || p->del3t.size < delaysp[8] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[8] * sizeof(MYFLT), &p->del3t);
-      if (!p->del4t.auxp || p->del4t.size < delaysp[9] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[9] * sizeof(MYFLT), &p->del4t);
-      if (!p->del5t.auxp || p->del5t.size < delaysp[10] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[10] * sizeof(MYFLT), &p->del5t);
-      if (!p->del6t.auxp || p->del6t.size < delaysp[11] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[11] * sizeof(MYFLT), &p->del6t);
+      if (!p->del1t.auxp || p->del1t.size < delaysp[6] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[6] * sizeof(cs_float), &p->del1t);
+      if (!p->del2t.auxp || p->del2t.size < delaysp[7] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[7] * sizeof(cs_float), &p->del2t);
+      if (!p->del3t.auxp || p->del3t.size < delaysp[8] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[8] * sizeof(cs_float), &p->del3t);
+      if (!p->del4t.auxp || p->del4t.size < delaysp[9] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[9] * sizeof(cs_float), &p->del4t);
+      if (!p->del5t.auxp || p->del5t.size < delaysp[10] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[10] * sizeof(cs_float), &p->del5t);
+      if (!p->del6t.auxp || p->del6t.size < delaysp[11] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[11] * sizeof(cs_float), &p->del6t);
 
-      memset(p->del1t.auxp, 0, delaysp[6] * sizeof(MYFLT));
-      memset(p->del2t.auxp, 0, delaysp[7] * sizeof(MYFLT));
-      memset(p->del3t.auxp, 0, delaysp[8] * sizeof(MYFLT));
-      memset(p->del4t.auxp, 0, delaysp[9] * sizeof(MYFLT));
-      memset(p->del5t.auxp, 0, delaysp[10] * sizeof(MYFLT));
-      memset(p->del6t.auxp, 0, delaysp[11] * sizeof(MYFLT));
+      memset(p->del1t.auxp, 0, delaysp[6] * sizeof(cs_float));
+      memset(p->del2t.auxp, 0, delaysp[7] * sizeof(cs_float));
+      memset(p->del3t.auxp, 0, delaysp[8] * sizeof(cs_float));
+      memset(p->del4t.auxp, 0, delaysp[9] * sizeof(cs_float));
+      memset(p->del5t.auxp, 0, delaysp[10] * sizeof(cs_float));
+      memset(p->del6t.auxp, 0, delaysp[11] * sizeof(cs_float));
     }
   if(M==24)
     {
-      if (!p->del1tf.auxp || p->del1tf.size < delaysp[12] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[12] * sizeof(MYFLT), &p->del1tf);
-      if (!p->del2tf.auxp || p->del2tf.size < delaysp[13] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[13] * sizeof(MYFLT), &p->del2tf);
-      if (!p->del3tf.auxp || p->del3tf.size < delaysp[14] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[14] * sizeof(MYFLT), &p->del3tf);
-      if (!p->del4tf.auxp || p->del4tf.size < delaysp[15] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[15] * sizeof(MYFLT), &p->del4tf);
-      if (!p->del5tf.auxp || p->del5tf.size < delaysp[16] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[16] * sizeof(MYFLT), &p->del5tf);
-      if (!p->del6tf.auxp || p->del6tf.size < delaysp[17] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[17] * sizeof(MYFLT), &p->del6tf);
-      if (!p->del7tf.auxp || p->del7tf.size < delaysp[18] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[18] * sizeof(MYFLT), &p->del7tf);
-      if (!p->del8tf.auxp || p->del8tf.size < delaysp[19] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[19] * sizeof(MYFLT), &p->del8tf);
-      if (!p->del9tf.auxp || p->del9tf.size < delaysp[20] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[20] * sizeof(MYFLT), &p->del9tf);
-      if (!p->del10tf.auxp || p->del10tf.size < delaysp[21] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[21] * sizeof(MYFLT), &p->del10tf);
-      if (!p->del11tf.auxp || p->del11tf.size < delaysp[22] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[22] * sizeof(MYFLT), &p->del11tf);
-      if (!p->del12tf.auxp || p->del12tf.size < delaysp[23] * sizeof(MYFLT))
-        csound->AuxAlloc(csound, delaysp[23] * sizeof(MYFLT), &p->del12tf);
+      if (!p->del1tf.auxp || p->del1tf.size < delaysp[12] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[12] * sizeof(cs_float), &p->del1tf);
+      if (!p->del2tf.auxp || p->del2tf.size < delaysp[13] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[13] * sizeof(cs_float), &p->del2tf);
+      if (!p->del3tf.auxp || p->del3tf.size < delaysp[14] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[14] * sizeof(cs_float), &p->del3tf);
+      if (!p->del4tf.auxp || p->del4tf.size < delaysp[15] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[15] * sizeof(cs_float), &p->del4tf);
+      if (!p->del5tf.auxp || p->del5tf.size < delaysp[16] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[16] * sizeof(cs_float), &p->del5tf);
+      if (!p->del6tf.auxp || p->del6tf.size < delaysp[17] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[17] * sizeof(cs_float), &p->del6tf);
+      if (!p->del7tf.auxp || p->del7tf.size < delaysp[18] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[18] * sizeof(cs_float), &p->del7tf);
+      if (!p->del8tf.auxp || p->del8tf.size < delaysp[19] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[19] * sizeof(cs_float), &p->del8tf);
+      if (!p->del9tf.auxp || p->del9tf.size < delaysp[20] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[20] * sizeof(cs_float), &p->del9tf);
+      if (!p->del10tf.auxp || p->del10tf.size < delaysp[21] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[21] * sizeof(cs_float), &p->del10tf);
+      if (!p->del11tf.auxp || p->del11tf.size < delaysp[22] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[22] * sizeof(cs_float), &p->del11tf);
+      if (!p->del12tf.auxp || p->del12tf.size < delaysp[23] * sizeof(cs_float))
+        csound->AuxAlloc(csound, delaysp[23] * sizeof(cs_float), &p->del12tf);
 
-      memset(p->del1tf.auxp, 0, delaysp[12] * sizeof(MYFLT));
-      memset(p->del2tf.auxp, 0, delaysp[13] * sizeof(MYFLT));
-      memset(p->del3tf.auxp, 0, delaysp[14] * sizeof(MYFLT));
-      memset(p->del4tf.auxp, 0, delaysp[15] * sizeof(MYFLT));
-      memset(p->del5tf.auxp, 0, delaysp[16] * sizeof(MYFLT));
-      memset(p->del6tf.auxp, 0, delaysp[17] * sizeof(MYFLT));
-      memset(p->del7tf.auxp, 0, delaysp[18] * sizeof(MYFLT));
-      memset(p->del8tf.auxp, 0, delaysp[19] * sizeof(MYFLT));
-      memset(p->del9tf.auxp, 0, delaysp[20] * sizeof(MYFLT));
-      memset(p->del10tf.auxp, 0, delaysp[21] * sizeof(MYFLT));
-      memset(p->del11tf.auxp, 0, delaysp[22] * sizeof(MYFLT));
-      memset(p->del12tf.auxp, 0, delaysp[23] * sizeof(MYFLT));
+      memset(p->del1tf.auxp, 0, delaysp[12] * sizeof(cs_float));
+      memset(p->del2tf.auxp, 0, delaysp[13] * sizeof(cs_float));
+      memset(p->del3tf.auxp, 0, delaysp[14] * sizeof(cs_float));
+      memset(p->del4tf.auxp, 0, delaysp[15] * sizeof(cs_float));
+      memset(p->del5tf.auxp, 0, delaysp[16] * sizeof(cs_float));
+      memset(p->del6tf.auxp, 0, delaysp[17] * sizeof(cs_float));
+      memset(p->del7tf.auxp, 0, delaysp[18] * sizeof(cs_float));
+      memset(p->del8tf.auxp, 0, delaysp[19] * sizeof(cs_float));
+      memset(p->del9tf.auxp, 0, delaysp[20] * sizeof(cs_float));
+      memset(p->del10tf.auxp, 0, delaysp[21] * sizeof(cs_float));
+      memset(p->del11tf.auxp, 0, delaysp[22] * sizeof(cs_float));
+      memset(p->del12tf.auxp, 0, delaysp[23] * sizeof(cs_float));
     }
 
-  powerp = (MYFLT *)p->power.auxp;
-  HRTFavep = (MYFLT *)p->HRTFave.auxp;
-  nump = (MYFLT *)p->num.auxp;
-  denomp = (MYFLT *)p->denom.auxp;
-  cohermagsp = (MYFLT *)p->cohermags.auxp;
-  coherup = (MYFLT *)p->coheru.auxp;
-  cohervp = (MYFLT *)p->coherv.auxp;
+  powerp = (cs_float *)p->power.auxp;
+  HRTFavep = (cs_float *)p->HRTFave.auxp;
+  nump = (cs_float *)p->num.auxp;
+  denomp = (cs_float *)p->denom.auxp;
+  cohermagsp = (cs_float *)p->cohermags.auxp;
+  coherup = (cs_float *)p->coheru.auxp;
+  cohervp = (cs_float *)p->coherv.auxp;
 
   /* usually, just go through all files; in this case, just doubled due
      to symmetry (with exceptions, as below) */
@@ -682,10 +682,10 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
       for(j = 2; j < irlength; j += 2)
         {
           if(skipdouble)
-            powerp[j] = powerp[j] + (MYFLT)SQUARE(bufflp[j]);
+            powerp[j] = powerp[j] + (cs_float)SQUARE(bufflp[j]);
           else
-            powerp[j] = powerp[j] + (MYFLT)SQUARE(bufflp[j]) +
-              (MYFLT)SQUARE(buffrp[j]);
+            powerp[j] = powerp[j] + (cs_float)SQUARE(bufflp[j]) +
+              (cs_float)SQUARE(buffrp[j]);
           powerp[j + 1] = FL(0.0);
         }
       skip += irlength;
@@ -805,12 +805,12 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
   csound->RealFFT(csound, p->isetup, coherup);
   csound->RealFFT(csound, p->isetup, cohervp);
 
-  filtoutp = (MYFLT *)p->filtout.auxp;
-  filtuoutp = (MYFLT *)p->filtuout.auxp;
-  filtvoutp = (MYFLT *)p->filtvout.auxp;
-  filtpadp = (MYFLT *)p->filtpad.auxp;
-  filtupadp = (MYFLT *)p->filtupad.auxp;
-  filtvpadp = (MYFLT *)p->filtvpad.auxp;
+  filtoutp = (cs_float *)p->filtout.auxp;
+  filtuoutp = (cs_float *)p->filtuout.auxp;
+  filtvoutp = (cs_float *)p->filtvout.auxp;
+  filtpadp = (cs_float *)p->filtpad.auxp;
+  filtupadp = (cs_float *)p->filtupad.auxp;
+  filtvpadp = (cs_float *)p->filtvpad.auxp;
 
   /* shift */
   for(i = 0; i < irlength; i++)
@@ -839,12 +839,12 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
   T = FL(1.0) / sr;
 
-  gip = (MYFLT *)p->gi.auxp;
-  aip = (MYFLT *)p->ai.auxp;
+  gip = (cs_float *)p->gi.auxp;
+  aip = (cs_float *)p->ai.auxp;
 
   do
     {
-      double alphsq;
+      cs_double alphsq;
       alpha = rt60high / rt60low;
       clipcheck = 0;
       alphsq = SQUARE(alpha);
@@ -893,21 +893,21 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
   int32_t j, k;
 
   /* signals in, out */
-  MYFLT *in = p->insig, sigin;
-  MYFLT *outl = p->outsigl;
-  MYFLT *outr = p->outsigr;
+  cs_float *in = p->insig, sigin;
+  cs_float *outl = p->outsigl;
+  cs_float *outr = p->outsigr;
 
   /* pointers to delay data */
-  MYFLT *del1p, *del2p, *del3p, *del4p, *del5p, *del6p;
-  MYFLT *del1tp=NULL, *del2tp=NULL, *del3tp=NULL,
+  cs_float *del1p, *del2p, *del3p, *del4p, *del5p, *del6p;
+  cs_float *del1tp=NULL, *del2tp=NULL, *del3tp=NULL,
     *del4tp=NULL, *del5tp=NULL, *del6tp=NULL;
-  MYFLT *del1tfp=NULL, *del2tfp=NULL, *del3tfp=NULL, *del4tfp=NULL,
+  cs_float *del1tfp=NULL, *del2tfp=NULL, *del3tfp=NULL, *del4tfp=NULL,
     *del5tfp=NULL, *del6tfp=NULL, *del7tfp=NULL, *del8tfp=NULL,
     *del9tfp=NULL, *del10tfp=NULL, *del11tfp=NULL, *del12tfp=NULL;
   int32_t *delaysp;
 
   /* matrix manipulation */
-  MYFLT *inmatp, *inmatlpp, *dellpp, *outmatp;
+  cs_float *inmatp, *inmatlpp, *dellpp, *outmatp;
 
   /* delay line iterators */
   int32_t u, v, w, x, y, z;
@@ -919,24 +919,24 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
   int32_t M = p->M;
 
   /* FIR temp variables */
-  MYFLT tonall, tonalr;
-  MYFLT b = p->b;
+  cs_float tonall, tonalr;
+  cs_float b = p->b;
 
   /* IIR variables */
-  MYFLT *gip, *aip;
+  cs_float *gip, *aip;
 
   /* counter */
   int32_t counter = p->counter;
 
   /* matrix/coher and hrtf filter buffers, with overlap add buffers */
-  MYFLT *matrixlup = (MYFLT *)p->matrixlu.auxp;
-  MYFLT *matrixrvp = (MYFLT *)p->matrixrv.auxp;
-  MYFLT *olmatrixlup = (MYFLT *)p->olmatrixlu.auxp;
-  MYFLT *olmatrixrvp = (MYFLT *)p->olmatrixrv.auxp;
-  MYFLT *hrtflp = (MYFLT *)p->hrtfl.auxp;
-  MYFLT *hrtfrp = (MYFLT *)p->hrtfr.auxp;
-  MYFLT *olhrtflp = (MYFLT *)p->olhrtfl.auxp;
-  MYFLT *olhrtfrp = (MYFLT *)p->olhrtfr.auxp;
+  cs_float *matrixlup = (cs_float *)p->matrixlu.auxp;
+  cs_float *matrixrvp = (cs_float *)p->matrixrv.auxp;
+  cs_float *olmatrixlup = (cs_float *)p->olmatrixlu.auxp;
+  cs_float *olmatrixrvp = (cs_float *)p->olmatrixrv.auxp;
+  cs_float *hrtflp = (cs_float *)p->hrtfl.auxp;
+  cs_float *hrtfrp = (cs_float *)p->hrtfr.auxp;
+  cs_float *olhrtflp = (cs_float *)p->olhrtfl.auxp;
+  cs_float *olhrtfrp = (cs_float *)p->olhrtfr.auxp;
 
   /* processing lengths */
   int32_t irlength = p->irlength;
@@ -944,57 +944,57 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
   int32_t overlapsize = p->overlapsize;
 
   /* 1st order FIR mem */
-  MYFLT inoldl = p->inoldl;
-  MYFLT inoldr = p->inoldr;
+  cs_float inoldl = p->inoldl;
+  cs_float inoldr = p->inoldr;
 
   /* filters, created in INIT */
-  MYFLT *filtpadp = (MYFLT *)p->filtpad.auxp;
-  MYFLT *filtupadp = (MYFLT *)p->filtupad.auxp;
-  MYFLT *filtvpadp = (MYFLT *)p->filtvpad.auxp;
+  cs_float *filtpadp = (cs_float *)p->filtpad.auxp;
+  cs_float *filtupadp = (cs_float *)p->filtupad.auxp;
+  cs_float *filtvpadp = (cs_float *)p->filtvpad.auxp;
 
-  MYFLT sr = p->sr;
+  cs_float sr = p->sr;
 
-  del1p = (MYFLT *)p->del1.auxp;
-  del2p = (MYFLT *)p->del2.auxp;
-  del3p = (MYFLT *)p->del3.auxp;
-  del4p = (MYFLT *)p->del4.auxp;
-  del5p = (MYFLT *)p->del5.auxp;
-  del6p = (MYFLT *)p->del6.auxp;
+  del1p = (cs_float *)p->del1.auxp;
+  del2p = (cs_float *)p->del2.auxp;
+  del3p = (cs_float *)p->del3.auxp;
+  del4p = (cs_float *)p->del4.auxp;
+  del5p = (cs_float *)p->del5.auxp;
+  del6p = (cs_float *)p->del6.auxp;
 
   if(M==12 || M==24)
     {
-      del1tp = (MYFLT *)p->del1t.auxp;
-      del2tp = (MYFLT *)p->del2t.auxp;
-      del3tp = (MYFLT *)p->del3t.auxp;
-      del4tp = (MYFLT *)p->del4t.auxp;
-      del5tp = (MYFLT *)p->del5t.auxp;
-      del6tp = (MYFLT *)p->del6t.auxp;
+      del1tp = (cs_float *)p->del1t.auxp;
+      del2tp = (cs_float *)p->del2t.auxp;
+      del3tp = (cs_float *)p->del3t.auxp;
+      del4tp = (cs_float *)p->del4t.auxp;
+      del5tp = (cs_float *)p->del5t.auxp;
+      del6tp = (cs_float *)p->del6t.auxp;
     }
   if(M==24)
     {
-      del1tfp = (MYFLT *)p->del1tf.auxp;
-      del2tfp = (MYFLT *)p->del2tf.auxp;
-      del3tfp = (MYFLT *)p->del3tf.auxp;
-      del4tfp = (MYFLT *)p->del4tf.auxp;
-      del5tfp = (MYFLT *)p->del5tf.auxp;
-      del6tfp = (MYFLT *)p->del6tf.auxp;
-      del7tfp = (MYFLT *)p->del7tf.auxp;
-      del8tfp = (MYFLT *)p->del8tf.auxp;
-      del9tfp = (MYFLT *)p->del9tf.auxp;
-      del10tfp = (MYFLT *)p->del10tf.auxp;
-      del11tfp = (MYFLT *)p->del11tf.auxp;
-      del12tfp = (MYFLT *)p->del12tf.auxp;
+      del1tfp = (cs_float *)p->del1tf.auxp;
+      del2tfp = (cs_float *)p->del2tf.auxp;
+      del3tfp = (cs_float *)p->del3tf.auxp;
+      del4tfp = (cs_float *)p->del4tf.auxp;
+      del5tfp = (cs_float *)p->del5tf.auxp;
+      del6tfp = (cs_float *)p->del6tf.auxp;
+      del7tfp = (cs_float *)p->del7tf.auxp;
+      del8tfp = (cs_float *)p->del8tf.auxp;
+      del9tfp = (cs_float *)p->del9tf.auxp;
+      del10tfp = (cs_float *)p->del10tf.auxp;
+      del11tfp = (cs_float *)p->del11tf.auxp;
+      del12tfp = (cs_float *)p->del12tf.auxp;
     }
 
   delaysp = (int32_t *)p->delays.auxp;
 
-  inmatp = (MYFLT *)p->inmat.auxp;
-  inmatlpp = (MYFLT *)p->inmatlp.auxp;
-  dellpp = (MYFLT *)p->dellp.auxp;
-  outmatp = (MYFLT *)p->outmat.auxp;
+  inmatp = (cs_float *)p->inmat.auxp;
+  inmatlpp = (cs_float *)p->inmatlp.auxp;
+  dellpp = (cs_float *)p->dellp.auxp;
+  outmatp = (cs_float *)p->outmat.auxp;
 
-  gip = (MYFLT *)p->gi.auxp;
-  aip = (MYFLT *)p->ai.auxp;
+  gip = (cs_float *)p->gi.auxp;
+  aip = (cs_float *)p->ai.auxp;
 
   /* point to structure */
   u = p->u;
@@ -1033,13 +1033,13 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
     }
 
   if (UNLIKELY(offset)) {
-    memset(outl, '\0', offset*sizeof(MYFLT));
-    memset(outr, '\0', offset*sizeof(MYFLT));
+    memset(outl, '\0', offset*sizeof(cs_float));
+    memset(outr, '\0', offset*sizeof(cs_float));
   }
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&outl[nsmps], '\0', early*sizeof(MYFLT));
-    memset(&outr[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&outl[nsmps], '\0', early*sizeof(cs_float));
+    memset(&outr[nsmps], '\0', early*sizeof(cs_float));
   }
   /* processing loop */
   for(i=offset; i < nsmps; i++)

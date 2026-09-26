@@ -112,7 +112,7 @@ typedef struct SERIAL_GLOBALS_ {
     HANDLE  handles[10];
 } SERIAL_GLOBALS;
 
-static HANDLE get_port(CSOUND *csound, MYFLT port)
+static HANDLE get_port(CSOUND *csound, cs_float port)
 {
     HANDLE hport;
     SERIAL_GLOBALS *q;
@@ -135,39 +135,39 @@ static HANDLE get_port(CSOUND *csound, MYFLT port)
 
 typedef struct {
     OPDS  h;
-    MYFLT *returnedPort;
+    cs_float *returnedPort;
     STRINGDAT *portName;
-    MYFLT *baudRate;
+    cs_float *baudRate;
 } SERIALBEGIN;
 int32_t serialBegin(CSOUND *csound, SERIALBEGIN *p);
 
 typedef struct {
     OPDS  h;
-    MYFLT *port;
+    cs_float *port;
 } SERIALEND;
 int32_t serialEnd(CSOUND *csound, SERIALEND *p);
 
 typedef struct {
     OPDS  h;
-    MYFLT *port, *toWrite;
+    cs_float *port, *toWrite;
 } SERIALWRITE;
 int32_t serialWrite(CSOUND *csound, SERIALWRITE *p);
 
 typedef struct {
     OPDS  h;
-    MYFLT *rChar, *port;
+    cs_float *rChar, *port;
 } SERIALREAD;
 int32_t serialRead(CSOUND *csound, SERIALREAD *p);
 
 typedef struct {
     OPDS  h;
-    MYFLT *port;
+    cs_float *port;
 } SERIALPRINT;
 int32_t serialPrint(CSOUND *csound, SERIALPRINT *p);
 
 typedef struct {
     OPDS  h;
-    MYFLT *port;
+    cs_float *port;
 } SERIALFLUSH;
 int32_t serialFlush(CSOUND *csound, SERIALFLUSH *p);
 
@@ -175,13 +175,13 @@ int32_t serialFlush(CSOUND *csound, SERIALFLUSH *p);
 ///-----------TODO
 typedef struct {
     OPDS  h;
-    MYFLT *retVal, *port;
+    cs_float *retVal, *port;
 } SERIALAVAIL;
 int32_t serialAvailable(CSOUND *csound, SERIALAVAIL *p);
 
 typedef struct {
     OPDS  h;
-    MYFLT *retChar, *port;
+    cs_float *retChar, *port;
 } SERIALPEEK;
 int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p);
 //------------------
@@ -372,8 +372,8 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
 
 int32_t serialBegin(CSOUND *csound, SERIALBEGIN *p)
 {
-    MYFLT xx =
-      (MYFLT)serialport_init(csound, (char *)p->portName->data, *p->baudRate);
+    cs_float xx =
+      (cs_float)serialport_init(csound, (char *)p->portName->data, *p->baudRate);
     *p->returnedPort =xx;
     return(xx<0?NOTOK:OK);
 }
@@ -541,31 +541,31 @@ typedef struct {
 
 typedef struct {
     OPDS  h;
-    MYFLT *returnedPort;
+    cs_float *returnedPort;
     STRINGDAT *portName;
-    MYFLT *baudRate;
+    cs_float *baudRate;
     ARDUINO_GLOBALS *q;
     uint64_t generation;
 } ARD_START;
 
 typedef struct {
     OPDS  h;
-    MYFLT *val;
-    MYFLT *port;
-    MYFLT *index;
-    MYFLT *ihtim;
+    cs_float *val;
+    cs_float *port;
+    cs_float *index;
+    cs_float *ihtim;
     ARDUINO_GLOBALS *q;
-    MYFLT c1, c2, yt1;
+    cs_float c1, c2, yt1;
     uint64_t generation;
 } ARD_READ;
 
 typedef struct {
     OPDS  h;
-    MYFLT *val;
-    MYFLT *port;
-    MYFLT *index1;
-    MYFLT *index2;
-    MYFLT *index3;
+    cs_float *val;
+    cs_float *port;
+    cs_float *index1;
+    cs_float *index2;
+    cs_float *index3;
     ARDUINO_GLOBALS *q;
     uint64_t generation;
 } ARD_READF;
@@ -719,7 +719,7 @@ int32_t arduinoReadSetup(CSOUND* csound, ARD_READ* p)
     p->yt1 = FL(0.0);
     /* Initialise port filter */
     if (*p->ihtim != FL(0.0)) {
-      p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
+      p->c2 = pow(0.5, (cs_double)CS_ONEDKR / *p->ihtim);
       p->c1 = 1.0 - p->c2;
     } else {
       p->c2 = FL(0.0); p->c1 = FL(1.0);
@@ -730,7 +730,7 @@ int32_t arduinoReadSetup(CSOUND* csound, ARD_READ* p)
 int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
 {
     ARDUINO_GLOBALS *q = p->q;
-    MYFLT val;
+    cs_float val;
     if (!(*p->index >= 0 && *p->index < MAXSENSORS))
       return csound->PerfError(csound, &p->h,
                                "%s", Str("out of range\n"));
@@ -740,7 +740,7 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
       csound->UnlockMutex(q->lock);
       return csound->PerfError(csound, &p->h, "%s", Str("arduinoStart not running\n"));
     }
-    val = (MYFLT)q->values[ind];
+    val = (cs_float)q->values[ind];
     csound->UnlockMutex(q->lock);
     p->yt1 = p->c1 * val + p->c2 * p->yt1;
     *p->val = p->yt1;
@@ -781,7 +781,7 @@ int32_t arduinoReadF(CSOUND* csound, ARD_READF* p)
     //printf("ind %d val %d\n", ind, q->values[ind]);
     uint32_t bits = (c3<<22)|(c2<<12)|(c1<<2);
     memcpy(&val, &bits, sizeof(val));
-    *p->val = (MYFLT)val;
+    *p->val = (cs_float)val;
     return OK;
 }
 

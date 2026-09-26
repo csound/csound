@@ -72,7 +72,7 @@ endin
 
     // Cover whole skipped sub-blocks, nonzero remainders, one-sample
     // notes, aligned boundaries, and notes spanning several global blocks.
-    std::vector<double> expected;
+    std::vector<cs_double> expected;
     std::string score;
     for (int instrument : {1, 2, 3, 4, 5}) {
         for (int block : {1, 4, 8, 16}) {
@@ -101,7 +101,7 @@ endin
 
     for (size_t base = 0; base < expected.size(); base += 32) {
         ASSERT_EQ(csoundPerformKsmps(csound), 0) << "block " << base / 32;
-        const MYFLT *output = csoundGetSpout(csound);
+        const cs_float *output = csoundGetSpout(csound);
         for (size_t i = 0; i < 32; ++i) {
             ASSERT_NEAR(output[2 * i], expected[base + i], 1e-6)
                 << "sample " << base + i;
@@ -162,16 +162,16 @@ endin
     if (GetParam() == 2)
         ASSERT_EQ(csoundDebuggerInit(csound), 0);
     for (size_t base = 0; base < active.size(); base += 32) {
-        MYFLT *input = csoundGetSpin(csound);
+        cs_float *input = csoundGetSpin(csound);
         ASSERT_NE(input, nullptr);
         for (size_t i = 0; i < 32; ++i) {
             input[2*i] = (base % 128 + i + 1) / 256.0;
             input[2*i+1] = -input[2*i];
         }
         ASSERT_EQ(csoundPerformKsmps(csound), 0);
-        const MYFLT *output = csoundGetSpout(csound);
+        const cs_float *output = csoundGetSpout(csound);
         for (size_t i = 0; i < 32; ++i) {
-            const double expected = active[base+i] ?
+            const cs_double expected = active[base+i] ?
                 (base % 128 + i + 1) / 256.0 : 0.0;
             ASSERT_NEAR(output[2*i], expected, 1e-6) << "sample " << base+i;
             ASSERT_NEAR(output[2*i+1], -expected, 1e-6) << "sample " << base+i;
@@ -215,7 +215,7 @@ e
     const int childBlocks[] = {4, 8, 32};
     for (int block = 0; block < 12; ++block) {
         ASSERT_EQ(csoundPerformKsmps(csound), 0);
-        const MYFLT *output = csoundGetSpout(csound);
+        const cs_float *output = csoundGetSpout(csound);
         for (int i = 0; i < 32; ++i) {
             const int cycle = ((block % 4)*32+i)/childBlocks[block/4]+1;
             ASSERT_EQ(output[2*i], cycle) << "block " << block;
@@ -255,7 +255,7 @@ endin
         ASSERT_EQ(csoundDebuggerInit(csound), 0);
     for (int block = 0; block < 12; ++block) {
         ASSERT_EQ(csoundPerformKsmps(csound), 0);
-        const MYFLT *output = csoundGetSpout(csound);
+        const cs_float *output = csoundGetSpout(csound);
         for (int i = 0; i < 32; ++i) {
             ASSERT_NEAR(output[2*i], .25, 1e-6) << "block " << block;
             ASSERT_NEAR(output[2*i+1], .5, 1e-6) << "block " << block;

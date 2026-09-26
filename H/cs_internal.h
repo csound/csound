@@ -42,7 +42,7 @@ extern "C" {
     int32_t async_flag;
     int32_t items;
     int32_t pos;
-    MYFLT *buf;
+    cs_float *buf;
     int32_t bufsize;
     char fullName[1];
   } CSFILE;
@@ -147,8 +147,8 @@ extern "C" {
 
   typedef struct {
     OPDS    h;
-    MYFLT   *ktempo, *istartempo;
-    MYFLT   prvtempo;
+    cs_float   *ktempo, *istartempo;
+    cs_float   prvtempo;
   } TEMPO;
 
   typedef struct names {
@@ -273,9 +273,9 @@ extern "C" {
       int32_t  warpin;                 /* input format sensor                  */
       int32_t  linpos;                 /* line position sensor                 */
       int32_t  lincnt;                 /* count of lines/section in scorefile  */
-      MYFLT   prvp2 /* = -FL(1.0) */;     /* Last event time                  */
-      MYFLT   clock_base /* = FL(0.0) */;
-      MYFLT   warp_factor /* = FL(1.0) */;
+      cs_float   prvp2 /* = -FL(1.0) */;     /* Last event time                  */
+      cs_float   clock_base /* = FL(0.0) */;
+      cs_float   warp_factor /* = FL(1.0) */;
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
       MACRO   *unused_ptr2;
@@ -318,7 +318,7 @@ extern "C" {
       int32_t   linebufsiz;
       char      *orchestra, *orchestrab;
       int32_t   oflag;
-      MYFLT     *pfields;
+      cs_float     *pfields;
      int32_t   msize;
    };
 
@@ -334,9 +334,9 @@ extern "C" {
       void       *outfile;
       void       *infile;
       char       *sfoutname;           /* soundout filename            */
-      MYFLT      *inbuf;
-      MYFLT      *outbuf;              /* contin sndio buffers         */
-      MYFLT      *outbufp;             /* MYFLT pntr                   */
+      cs_float      *inbuf;
+      cs_float      *outbuf;              /* contin sndio buffers         */
+      cs_float      *outbufp;             /* cs_float pntr                   */
       uint32     inbufrem;
       uint32     outbufrem;            /* in monosamps                 */
                                           /* (see openin, iotranset)      */

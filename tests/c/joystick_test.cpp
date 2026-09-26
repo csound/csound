@@ -23,7 +23,7 @@ int nextFd, openCalls, readCalls;
 bool failOpen, failQuery;
 uint8_t axes, buttons;
 FUNC tables[3];
-std::vector<MYFLT> data[3];
+std::vector<cs_float> data[3];
 
 int mockOpen(const char *, int flags, ...) {
     ++openCalls;
@@ -74,7 +74,7 @@ ssize_t mockRead(int fd, void *buffer, size_t size) {
 #undef open
 
 int32_t ignorePerfError(CSOUND *, OPDS *, const char *, ...) { return NOTOK; }
-FUNC *findTable(CSOUND *, MYFLT *number) {
+FUNC *findTable(CSOUND *, cs_float *number) {
     if (*number < 1 || *number > 3) return nullptr;
     return &tables[(int)*number - 1];
 }
@@ -89,7 +89,7 @@ void event(int fd, uint8_t type, uint8_t number, int16_t value) {
 
 struct Instance {
     LINUXJOYSTICK opcode = {};
-    MYFLT result = -1, device = 0, table = 1;
+    cs_float result = -1, device = 0, table = 1;
     CSOUND *csound;
     explicit Instance(CSOUND *engine) : csound(engine) {
         opcode.kresult = &result;
@@ -165,7 +165,7 @@ TEST_F(JoystickTests, ValidateEventsAndBoundMaskShifts) {
     EXPECT_EQ(data[0][68], 1);
     EXPECT_EQ(data[0][37], -99);
     EXPECT_EQ(data[0][2], -99);
-    EXPECT_EQ(instance.result, (MYFLT)(UINT64_C(3) | (UINT64_C(1) << 32)));
+    EXPECT_EQ(instance.result, (cs_float)(UINT64_C(3) | (UINT64_C(1) << 32)));
     EXPECT_EQ(instance.run(), OK);
     EXPECT_EQ(instance.result, 0);
 }
@@ -187,9 +187,9 @@ TEST_F(JoystickTests, CloseDeviceZeroOnSwitchReinitAndDeinit) {
 
 TEST_F(JoystickTests, ValidateDeviceNumberBeforeRounding) {
     Instance instance(csound);
-    for (MYFLT value : {MYFLT(-1), MYFLT(2147483648.0),
-                       std::numeric_limits<MYFLT>::infinity(),
-                       std::numeric_limits<MYFLT>::quiet_NaN()}) {
+    for (cs_float value : {cs_float(-1), cs_float(2147483648.0),
+                       std::numeric_limits<cs_float>::infinity(),
+                       std::numeric_limits<cs_float>::quiet_NaN()}) {
         instance.device = value;
         EXPECT_EQ(instance.run(), NOTOK);
         EXPECT_EQ(instance.result, 0);

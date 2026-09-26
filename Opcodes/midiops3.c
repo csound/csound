@@ -28,11 +28,11 @@
 #include <math.h>
 
 #define f7bit           (FL(127.0))
-#define oneTOf7bit      (MYFLT)(1.0/127.0)
+#define oneTOf7bit      (cs_float)(1.0/127.0)
 #define f14bit          (FL(16383.0))
-#define oneTOf14bit     (MYFLT)(1.0/16383.0)
+#define oneTOf14bit     (cs_float)(1.0/16383.0)
 #define f21bit          (FL(2097151.0))
-#define oneTOf21bit     (MYFLT)(1.0/2097151.0)
+#define oneTOf21bit     (cs_float)(1.0/2097151.0)
 
 /* This set of macros is rather a cop-out! */
 #define SLIDERI_INIT(p, n)                                        \
@@ -43,13 +43,13 @@
       return csound->InitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
-      MYFLT value;                                                \
+      cs_float value;                                                \
       int32_t j = 0;                                                  \
       SLD *sld = p->s;                                            \
       unsigned char *slnum = p->slnum;                            \
-      MYFLT *min = p->min, *max= p->max;                          \
+      cs_float *min = p->min, *max= p->max;                          \
       FUNC **ftp = p->ftp;                                        \
-      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;\
+      cs_float *chanblock = (cs_float *) csound->m_chnbp[chan]->ctl_val;\
       while (j++ < n) {                                           \
       *slnum = (unsigned char) *sld->ictlno;                      \
       if (UNLIKELY(*slnum > 127)) {                               \
@@ -68,7 +68,7 @@
         else                 *ftp++ = NULL;                       \
         value =  (*(sld++)->initvalue - *min) / (*max++ - *min);  \
         min++;                                                    \
-        chanblock[*slnum++] =  (MYFLT)((int32_t)(value * f7bit + FL(0.5))); \
+        chanblock[*slnum++] =  (cs_float)((int32_t)(value * f7bit + FL(0.5))); \
       }                                                           \
     }                                                             \
     return OK;                                                    \
@@ -76,15 +76,15 @@
 
 #define SLIDER_INIT(p, n)                                         \
 {                                                                 \
-    MYFLT value;                                                  \
+    cs_float value;                                                  \
     int32_t j = 0;                                                    \
     FUNC **ftp = p->ftp-1;                                        \
-    MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val; \
+    cs_float *chanblock = (cs_float *) csound->m_chnbp[p->slchan]->ctl_val; \
     unsigned char  *slnum = p->slnum;                             \
-    MYFLT *min = p->min, *max = p->max;                           \
-    MYFLT **result = p->r;                                        \
+    cs_float *min = p->min, *max = p->max;                           \
+    cs_float **result = p->r;                                        \
     while (j++ < n) {                                             \
-      value = (MYFLT) (chanblock[*slnum++] * oneTOf7bit);         \
+      value = (cs_float) (chanblock[*slnum++] * oneTOf7bit);         \
       if (*(++ftp))   /* if valid ftable,use value as index   */  \
         value = *((*ftp)->ftable + (int32)(value * (*ftp)->flen)); \
                                 /* no interpolation */            \
@@ -145,15 +145,15 @@ static int32_t slider64(CSOUND *csound, SLIDER64 *p)
       return csound->InitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
-      MYFLT value = FL(0.0);                                      \
+      cs_float value = FL(0.0);                                      \
       int32_t j = 0;                                                  \
       SLDf *sld = p->s;                                           \
       unsigned char *slnum = p->slnum;                            \
-      MYFLT *min = p->min, *max= p->max;                          \
+      cs_float *min = p->min, *max= p->max;                          \
       FUNC **ftp = p->ftp;                                        \
-      MYFLT     b;                                                \
-      MYFLT *yt1 = p->yt1, *c1=p->c1, *c2=p->c2;                  \
-      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;\
+      cs_float     b;                                                \
+      cs_float *yt1 = p->yt1, *c1=p->c1, *c2=p->c2;                  \
+      cs_float *chanblock = (cs_float *) csound->m_chnbp[chan]->ctl_val;\
       while (j++ < 8) {                                           \
       *slnum = (unsigned char) *sld->ictlno;                      \
       if (UNLIKELY(*slnum > 127)) {                               \
@@ -171,14 +171,14 @@ static int32_t slider64(CSOUND *csound, SLIDER64 *p)
         else                 *ftp++ = NULL;                       \
         value =  (*sld->initvalue - *min) / (*max++ - *min);      \
         min++;;                                                   \
-        chanblock[*slnum++] =  (MYFLT)(int32_t)(value * f7bit + FL(0.5));\
+        chanblock[*slnum++] =  (cs_float)(int32_t)(value * f7bit + FL(0.5));\
                                                                   \
                 /*----- init filtering coeffs*/                   \
         *yt1++ = FL(0.0);                                         \
-        b = (MYFLT)(2.0 - cos((double)(*(sld++)->ihp              \
+        b = (cs_float)(2.0 - cos((cs_double)(*(sld++)->ihp              \
                                        * CS_TPIDSR           \
                                        * CS_KSMPS)));        \
-        *c2 = (MYFLT)(b - sqrt((double)(b * b - FL(1.0))));       \
+        *c2 = (cs_float)(b - sqrt((cs_double)(b * b - FL(1.0))));       \
         *c1++ = FL(1.0) - *c2++;                                  \
       }                                                           \
     }                                                             \
@@ -187,14 +187,14 @@ static int32_t slider64(CSOUND *csound, SLIDER64 *p)
 
 #define SLIDERF(p, n)                                             \
 {                                                                 \
-    MYFLT value;                                                  \
+    cs_float value;                                                  \
     int32_t j = 0;                                                    \
     FUNC **ftp = p->ftp-1;                                        \
-    MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val; \
+    cs_float *chanblock = (cs_float *) csound->m_chnbp[p->slchan]->ctl_val; \
     unsigned char  *slnum = p->slnum;                             \
-    MYFLT *min = p->min, *max = p->max;                           \
-    MYFLT **result = p->r;                                        \
-    MYFLT *yt1 = p->yt1, *c1=p->c1, *c2=p->c2;                    \
+    cs_float *min = p->min, *max = p->max;                           \
+    cs_float **result = p->r;                                        \
+    cs_float *yt1 = p->yt1, *c1=p->c1, *c2=p->c2;                    \
     while (j++ < n) {                                             \
       value = chanblock[*slnum++] * oneTOf7bit;                   \
       if (*(++ftp))    /* if valid ftable,use value as index   */ \
@@ -258,13 +258,13 @@ if (UNLIKELY(chan  > 15))  {                                      \
       return csound->InitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
-      MYFLT value;                                                \
+      cs_float value;                                                \
       int32_t j = 0;                                                  \
       ISLD *sld = p->s;                                           \
       unsigned char slnum;                                        \
-      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;\
+      cs_float *chanblock = (cs_float *) csound->m_chnbp[chan]->ctl_val;\
       FUNC *ftp;                                                  \
-      MYFLT **result = p->r;                                      \
+      cs_float **result = p->r;                                      \
                                                                   \
       while (j++ < n) {                                           \
         slnum=(unsigned char) *sld->ictlno;                       \
@@ -316,14 +316,14 @@ if (UNLIKELY(chan  > 15))  {                                           \
       return csound->InitError(csound, Str("illegal channel"));        \
     }                                                                  \
     {                                                                  \
-      MYFLT value;                                                     \
+      cs_float value;                                                     \
       int32_t intvalue, j = 0;                                             \
       SLD14 *sld = p->s;                                               \
       unsigned char *slnum_msb = p->slnum_msb;                         \
       unsigned char *slnum_lsb = p->slnum_lsb;                         \
-      MYFLT *min = p->min, *max= p->max;                               \
+      cs_float *min = p->min, *max= p->max;                               \
       FUNC **ftp = p->ftp;                                             \
-      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;     \
+      cs_float *chanblock = (cs_float *) csound->m_chnbp[chan]->ctl_val;     \
                                                                        \
       while (j++ < n) {                                                \
         *slnum_msb = (unsigned char)*sld->ictlno_msb;                  \
@@ -351,8 +351,8 @@ if (UNLIKELY(chan  > 15))  {                                           \
         intvalue = (int32_t) (((*(sld++)->initvalue - *min) / (*max++ - *min)) \
                           * f14bit+FL(0.5));                           \
         min++;                                                         \
-        chanblock[*slnum_msb++] =  (MYFLT) (intvalue >> 7);            \
-        chanblock[*slnum_lsb++] =  (MYFLT) (intvalue & 0x7f);          \
+        chanblock[*slnum_msb++] =  (cs_float) (intvalue >> 7);            \
+        chanblock[*slnum_lsb++] =  (cs_float) (intvalue & 0x7f);          \
       }                                                                \
     }                                                                  \
     return OK;                                                         \
@@ -360,21 +360,21 @@ if (UNLIKELY(chan  > 15))  {                                           \
 
 #define SLIDER14(p, n)                                                 \
 {                                                                      \
-    MYFLT value = FL(0.0);                                             \
+    cs_float value = FL(0.0);                                             \
     int32_t j = 0;                                                         \
     FUNC **ftp = p->ftp-1;                                             \
-    MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val;  \
+    cs_float *chanblock = (cs_float *) csound->m_chnbp[p->slchan]->ctl_val;  \
     unsigned char  *slnum_msb = p->slnum_msb;                          \
     unsigned char  *slnum_lsb = p->slnum_lsb;                          \
-    MYFLT *min = p->min, *max = p->max;                                \
-    MYFLT **result = p->r;                                             \
+    cs_float *min = p->min, *max = p->max;                                \
+    cs_float **result = p->r;                                             \
                                                                        \
     while (j++ < n) {                                                  \
-      value = (MYFLT)((chanblock[*slnum_msb++]  * 128                  \
+      value = (cs_float)((chanblock[*slnum_msb++]  * 128                  \
                        + chanblock[*slnum_lsb++]) * oneTOf14bit);      \
       if (*(++ftp)) {      /* if valid ftable,use value as index   */  \
-        MYFLT phase = value * (*ftp)->flen;                            \
-        MYFLT *base = (*ftp)->ftable + (int32)(phase);                 \
+        cs_float phase = value * (*ftp)->flen;                            \
+        cs_float *base = (*ftp)->ftable + (int32)(phase);                 \
         value = *base + (*(base+1) - *base) * (phase - (int32) phase); \
       }                                                                \
       **result++ = value * (*max++ - *min) + *min; /* scales the output */ \
@@ -412,13 +412,13 @@ if (UNLIKELY(chan  > 15))  {                                           \
       return csound->InitError(csound, Str("illegal channel"));        \
     }                                                                  \
     {                                                                  \
-      MYFLT value;                                                     \
+      cs_float value;                                                     \
       int32_t j = 0;                                                       \
       ISLD14 *sld = p->s;                                              \
       unsigned char slnum_msb;                                         \
       unsigned char slnum_lsb;                                         \
-      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;     \
-      MYFLT **result = p->r;                                           \
+      cs_float *chanblock = (cs_float *) csound->m_chnbp[chan]->ctl_val;     \
+      cs_float **result = p->r;                                           \
                                                                        \
       while (j++ < n) {                                                \
         slnum_msb=(unsigned char)*sld->ictlno_msb;                     \
@@ -436,12 +436,12 @@ if (UNLIKELY(chan  > 15))  {                                           \
           return csound->InitError(csound, "%s", sbuf);                \
         }                                                              \
                                                                        \
-        value = (MYFLT)((chanblock[slnum_msb]  * 128                   \
+        value = (cs_float)((chanblock[slnum_msb]  * 128                   \
                          + chanblock[slnum_lsb]) * oneTOf14bit);       \
         if (*sld->ifn > 0) {    /* linear interpolation routine */     \
           FUNC *ftp= csound->FTFind(csound, sld->ifn);              \
-          MYFLT phase = value * ftp->flen;                             \
-          MYFLT *base = ftp->ftable + (int32)(phase);                  \
+          cs_float phase = value * ftp->flen;                             \
+          cs_float *base = ftp->ftable + (int32)(phase);                  \
           value = *base + (*(base + 1) - *base) * (phase - (int32) phase); \
         }                                                              \
                                 /* scales the output */                \

@@ -32,7 +32,7 @@ extern "C" {
     int32_t              type;
     char             *lexeme;
     int32_t              value;
-    double           fvalue;
+    cs_double           fvalue;
     char             *optype;
     uint32_t        first_column;
     uint32_t        last_column;    

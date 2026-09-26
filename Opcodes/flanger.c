@@ -27,24 +27,24 @@
 
 static int32_t flanger_set (CSOUND *csound, FLANGER *p)
 {
-    MYFLT maxDelaySeconds = FABS(*p->maxd);
-    double maxDelaySamples = (double)maxDelaySeconds * CS_ESR;
+    cs_float maxDelaySeconds = FABS(*p->maxd);
+    cs_double maxDelaySamples = (cs_double)maxDelaySeconds * CS_ESR;
     uint32 maxDelay, bufferSize;
 
     if (UNLIKELY(!(maxDelaySamples >= 0.0) ||
-                 maxDelaySamples > (double)(UINT32_MAX - 2U)))
+                 maxDelaySamples > (cs_double)(UINT32_MAX - 2U)))
       return csound->InitError(csound, "%s",
                                Str("flanger: invalid maximum delay"));
     maxDelay = (uint32)maxDelaySamples;
-    if ((double)maxDelay < maxDelaySamples)
+    if ((cs_double)maxDelay < maxDelaySamples)
       maxDelay++;
     bufferSize = maxDelay + 1U;
-    if (UNLIKELY((size_t)bufferSize > SIZE_MAX / sizeof(MYFLT)))
+    if (UNLIKELY((size_t)bufferSize > SIZE_MAX / sizeof(cs_float)))
       return csound->InitError(csound, "%s",
                                Str("flanger: delay buffer too large"));
     if (*p->iskip == 0 || p->aux.auxp == NULL ||
         p->maxdelay != bufferSize) {
-      csound->AuxAlloc(csound, (size_t)bufferSize * sizeof(MYFLT), &p->aux);
+      csound->AuxAlloc(csound, (size_t)bufferSize * sizeof(cs_float), &p->aux);
       p->left = 0;
       p->yt1 = FL(0.0);
     }
@@ -57,47 +57,47 @@ static int32_t flanger(CSOUND *csound, FLANGER *p)
 {
         /*---------------- delay -----------------------*/
     uint32 indx = p->left;
-    MYFLT *out = p->ar;  /* assign object data to local variables   */
-    MYFLT *in = p->asig;
+    cs_float *out = p->ar;  /* assign object data to local variables   */
+    cs_float *in = p->asig;
     uint32 maxdelay = p->maxdelay;
-    MYFLT maxDelaySeconds = p->maxDelaySeconds;
-    MYFLT *buf = (MYFLT *)p->aux.auxp;
-    MYFLT *freq_del = p->xdel;
-    MYFLT feedback =  *p->kfeedback;
-    double fv1;
+    cs_float maxDelaySeconds = p->maxDelaySeconds;
+    cs_float *buf = (cs_float *)p->aux.auxp;
+    cs_float *freq_del = p->xdel;
+    cs_float feedback =  *p->kfeedback;
+    cs_double fv1;
     uint32 v2;
     uint32 v1;
-    MYFLT yt1= p->yt1;
+    cs_float yt1= p->yt1;
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     freq_del += offset;
     for (n=offset; n<nsmps; n++) {
-      MYFLT delay = *freq_del++;
+      cs_float delay = *freq_del++;
 
                 /*---------------- delay -----------------------*/
       if (UNLIKELY(!(delay >= FL(0.0) && delay <= maxDelaySeconds)))
         return csound->PerfError(csound, &(p->h), "%s",
                                  Str("flanger: delay is outside imaxd"));
       buf[indx] = in[n] + (yt1 * feedback);
-      fv1 = (double)indx - (double)delay * CS_ESR;
+      fv1 = (cs_double)indx - (cs_double)delay * CS_ESR;
       if (fv1 < 0.0)
-        fv1 += (double)maxdelay;
-      if (fv1 >= (double)maxdelay)
-        fv1 -= (double)maxdelay;
+        fv1 += (cs_double)maxdelay;
+      if (fv1 >= (cs_double)maxdelay)
+        fv1 -= (cs_double)maxdelay;
       v1 = (uint32)fv1;
       v2 = v1 + 1U;
       if (v2 == maxdelay)
         v2 = 0;
       out[n] = yt1 =
-        buf[v1] + (MYFLT)(fv1 - v1) * (buf[v2] - buf[v1]);
+        buf[v1] + (cs_float)(fv1 - v1) * (buf[v2] - buf[v1]);
       if (UNLIKELY(++indx == maxdelay))
         indx = 0;                      /* Advance current pointer */
     }
@@ -112,7 +112,7 @@ static int32_t wguide1set (CSOUND *csound, WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
     p->maxd = (uint32) (MAXDELAY * CS_ESR);
-    csound->AuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux);
+    csound->AuxAlloc(csound, p->maxd * sizeof(cs_float), &p->aux);
     p->left = 0;
         /*---------------- filter -----------------------*/
     p->c1 = p->prvhp = FL(0.0);
@@ -126,16 +126,16 @@ static int32_t wguide1(CSOUND *csound, WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
     uint32  indx;
-    MYFLT *out      = p->ar;  /* assign object data to local variables   */
-    MYFLT *in       = p->asig;
-    MYFLT *buf      = (MYFLT *)p->aux.auxp;
-    MYFLT *freq_del = p->xdel; /*(1 / *p->xdel)  * CS_ESR; */
-    MYFLT feedback  = *p->kfeedback;
-    MYFLT  fv1, fv2, out_delay,bufv1 ;
+    cs_float *out      = p->ar;  /* assign object data to local variables   */
+    cs_float *in       = p->asig;
+    cs_float *buf      = (cs_float *)p->aux.auxp;
+    cs_float *freq_del = p->xdel; /*(1 / *p->xdel)  * CS_ESR; */
+    cs_float feedback  = *p->kfeedback;
+    cs_float  fv1, fv2, out_delay,bufv1 ;
     uint32_t maxdM1 = p->maxd-1;
     int32   v1;
     /*---------------- filter -----------------------*/
-    MYFLT c1, c2, yt1        = p->yt1;
+    cs_float c1, c2, yt1        = p->yt1;
     uint32_t offset          = p->h.insdshead->ksmps_offset;
     uint32_t early           = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps        = CS_KSMPS;
@@ -144,30 +144,30 @@ static int32_t wguide1(CSOUND *csound, WGUIDE1 *p)
     indx                     = p->left;
     /*---------------- filter -----------------------*/
     if (*p->filt_khp != p->prvhp) {
-      double b;
+      cs_double b;
       p->prvhp               = *p->filt_khp;
-      b                      = 2.0 - cos((double)(p->prvhp * CS_TPIDSR));
-      p->c2                  = (MYFLT)(b - sqrt(b * b - 1.0));
+      b                      = 2.0 - cos((cs_double)(p->prvhp * CS_TPIDSR));
+      p->c2                  = (cs_float)(b - sqrt(b * b - 1.0));
       p->c1                  = FL(1.0) - p->c2;
     }
     c1                       = p->c1;
     c2                       = p->c2;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps                 -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     if (p->xdelcod) { /* delay changes at audio-rate */
       freq_del += offset;
       for (n                 = offset; n<nsmps; n++) {
         /*---------------- delay -----------------------*/
-        MYFLT fd             = *freq_del++;
+        cs_float fd             = *freq_del++;
         buf[indx]            = in[n] + (yt1 * feedback);
         if (UNLIKELY(fd<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd                 = FL(1.0)/MAXDELAY;
         fv1                  = indx - (CS_ESR/fd); /* Make sure inside the buffer */
         while (fv1 < 0) {
-          fv1                = fv1 + (MYFLT)p->maxd;
+          fv1                = fv1 + (cs_float)p->maxd;
         }
         fv2                  = (fv1 < maxdM1) ?
                   fv1 + 1 : 0;  /* Find next smpl for interpolation */
@@ -181,13 +181,13 @@ static int32_t wguide1(CSOUND *csound, WGUIDE1 *p)
     else {
       for (n                 = offset; n<nsmps; n++) {
         /*---------------- delay -----------------------*/
-        MYFLT fd             = *freq_del;
+        cs_float fd             = *freq_del;
         buf[indx]            = in[n] + (yt1 * feedback);
         if (UNLIKELY(fd<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd                 = FL(1.0)/MAXDELAY;
         fv1                  = indx - (CS_ESR/fd); /* Make sure inside the buffer */
         while (fv1 < 0) {
-          fv1                = fv1 + (MYFLT)p->maxd;
+          fv1                = fv1 + (cs_float)p->maxd;
         }
         fv2                  = (fv1 < maxdM1) ?
               fv1 + 1 : 0;  /* Find next smpl for interpolation */
@@ -207,10 +207,10 @@ static int32_t wguide2set (CSOUND *csound, WGUIDE2 *p)
 {
         /*---------------- delay1 -----------------------*/
     p->maxd                  = (uint32) (MAXDELAY * CS_ESR);
-    csound->AuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux1);
+    csound->AuxAlloc(csound, p->maxd * sizeof(cs_float), &p->aux1);
     p->left1                 = 0;
         /*---------------- delay2 -----------------------*/
-    csound->AuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux2);
+    csound->AuxAlloc(csound, p->maxd * sizeof(cs_float), &p->aux2);
     p->left2                 = 0;
         /*---------------- filter1 -----------------------*/
     p->c1_1                  = p->prvhp1 = FL(0.0);
@@ -234,48 +234,48 @@ static int32_t wguide2set (CSOUND *csound, WGUIDE2 *p)
 
 static int32_t wguide2(CSOUND *csound, WGUIDE2 *p)
 {
-    MYFLT *out               = p->ar;
-    MYFLT *in                = p->asig;
+    cs_float *out               = p->ar;
+    cs_float *in                = p->asig;
     uint32_t offset          = p->h.insdshead->ksmps_offset;
     uint32_t early           = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps        = CS_KSMPS;
-    MYFLT out1,out2, old_out = p->old_out;
+    cs_float out1,out2, old_out = p->old_out;
     uint32_t maxdM1          = p->maxd-1;
 
     /*---------------- delay1 -----------------------*/
     uint32 indx1;
-    MYFLT  *buf1 = (MYFLT *)p->aux1.auxp;
-    MYFLT  *freq_del1 = p->xdel1; /*(1 / *p->xdel1)  * CS_ESR; */
-    MYFLT  feedback1 =  *p->kfeedback1;
-    MYFLT  fv1_1, fv2_1, out_delay1 ;
+    cs_float  *buf1 = (cs_float *)p->aux1.auxp;
+    cs_float  *freq_del1 = p->xdel1; /*(1 / *p->xdel1)  * CS_ESR; */
+    cs_float  feedback1 =  *p->kfeedback1;
+    cs_float  fv1_1, fv2_1, out_delay1 ;
     int32  v1_1;
         /*---------------- filter1 -----------------------*/
-    MYFLT c1_1, c2_1, yt1_1;
+    cs_float c1_1, c2_1, yt1_1;
         /*---------------- delay2 -----------------------*/
     uint32 indx2;
-    MYFLT  *buf2 = (MYFLT *)p->aux2.auxp;
-    MYFLT  *freq_del2 = p->xdel2; /*(1 / *p->xdel2)  * CS_ESR;*/
-    MYFLT  feedback2 =  *p->kfeedback2;
-    MYFLT  fv1_2, fv2_2, out_delay2 ;
+    cs_float  *buf2 = (cs_float *)p->aux2.auxp;
+    cs_float  *freq_del2 = p->xdel2; /*(1 / *p->xdel2)  * CS_ESR;*/
+    cs_float  feedback2 =  *p->kfeedback2;
+    cs_float  fv1_2, fv2_2, out_delay2 ;
     int32  v1_2;
         /*---------------- filter2 -----------------------*/
-    MYFLT c1_2, c2_2, yt1_2;
+    cs_float c1_2, c2_2, yt1_2;
         /*-----------------------------------------------*/
 
     indx1 = p->left1;
     indx2 = p->left2;
     if (*p->filt_khp1 != p->prvhp1) {
-      double b;
+      cs_double b;
       p->prvhp1 = *p->filt_khp1;
-      b = 2.0 - cos((double)(p->prvhp1 * CS_TPIDSR));
-      p->c2_1 = (MYFLT)(b - sqrt((b * b) - 1.0));
+      b = 2.0 - cos((cs_double)(p->prvhp1 * CS_TPIDSR));
+      p->c2_1 = (cs_float)(b - sqrt((b * b) - 1.0));
       p->c1_1 = FL(1.0) - p->c2_1;
     }
     if (*p->filt_khp2 != p->prvhp2) {
-      double b;
+      cs_double b;
       p->prvhp2 = *p->filt_khp2;
-      b = 2.0 - cos((double)(p->prvhp2 * CS_TPIDSR));
-      p->c2_2 = (MYFLT)(b - sqrt((double)(b * b) - 1.0));
+      b = 2.0 - cos((cs_double)(p->prvhp2 * CS_TPIDSR));
+      p->c2_2 = (cs_float)(b - sqrt((cs_double)(b * b) - 1.0));
       p->c1_2 = FL(1.0) - p->c2_2;
     }
     c1_1= p->c1_1;
@@ -285,17 +285,17 @@ static int32_t wguide2(CSOUND *csound, WGUIDE2 *p)
     yt1_1= p->yt1_1;
     yt1_2= p->yt1_2;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     if (p->xdel1cod) { /* delays change at audio-rate */
       freq_del1 += offset;
       freq_del2 += offset;
       for (n=offset;n<nsmps;n++) {
-        MYFLT fd1 = *freq_del1++;
-        MYFLT fd2 = *freq_del2++;
+        cs_float fd1 = *freq_del1++;
+        cs_float fd2 = *freq_del2++;
         buf1[indx1] = buf2[indx2] =
           in[n] + old_out * (feedback1 + feedback2);
         if (UNLIKELY(fd1<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
@@ -323,8 +323,8 @@ static int32_t wguide2(CSOUND *csound, WGUIDE2 *p)
     }
     else {
       for (n=offset; n<nsmps;n++) {
-        MYFLT fd1 = *freq_del1;
-        MYFLT fd2 = *freq_del2;
+        cs_float fd1 = *freq_del1;
+        cs_float fd2 = *freq_del2;
         buf1[indx1] = buf2[indx2] =
           in[n] + old_out * (feedback1 + feedback2);
         if (UNLIKELY(fd1<FL(1.0)/MAXDELAY))/* Avoid silly values jpff */

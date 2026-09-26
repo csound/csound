@@ -102,11 +102,11 @@ int32_t ctrlinit(CSOUND *csound, CTLINIT *p)
     }
     else {
       MCHNBLK *chn;
-      MYFLT **argp = p->ctrls;
+      cs_float **argp = p->ctrls;
       int16 ctlno, nctls = nargs >> 1;
       chn = csound->m_chnbp[chnl];
       do {
-        MYFLT val;
+        cs_float val;
         ctlno = (int16)**argp++;
         if (UNLIKELY(ctlno < 0 || ctlno > 127)) {
           return csound->InitError(csound, Str("illegal ctrl no"));
@@ -129,11 +129,11 @@ int32_t ctrlnameinit(CSOUND *csound, CTLINITS *p)
     }
     {
       MCHNBLK *chn;
-      MYFLT **argp = p->ctrls;
+      cs_float **argp = p->ctrls;
       int16 ctlno, nctls = nargs >> 1;
       chn = csound->m_chnbp[chnl];
       do {
-        MYFLT val;
+        cs_float val;
         ctlno = (int16)**argp++;
         if (UNLIKELY(ctlno < 0 || ctlno > 127)) {
           return csound->InitError(csound, Str("illegal ctrl no"));
@@ -189,7 +189,7 @@ int32_t midi_continue(CSOUND *csound, void *pp) {
 int32_t midi_clock_freq(CSOUND *csound, void *pp) {
    MIDIKMB * p = ((MIDIKMB *)pp);
    if(csound->midi_clock_pulse) {
-     MYFLT per;
+     cs_float per;
      // cur time
      p->scale = CS_KCNT*CS_ONEDKR;
      // interclock period
@@ -207,12 +207,12 @@ int32_t midi_clock_freq(CSOUND *csound, void *pp) {
 int32_t cpstmid(CSOUND *csound, CPSTABLE *p)
 {
     FUNC  *ftp;
-    MYFLT *func;
+    cs_float *func;
     int32_t notenum = csound->curip->m_pitch;
     int32_t grade;
     int32_t numgrades;
     int32_t basekeymidi;
-    MYFLT basefreq, factor, interval;
+    cs_float basefreq, factor, interval;
 
     if (UNLIKELY((ftp = csound->FTFind(csound, p->tablenum)) == NULL)) {
       return csound->InitError(csound, Str("cpstabm: invalid modulator table"));
@@ -226,12 +226,12 @@ int32_t cpstmid(CSOUND *csound, CPSTABLE *p)
     if (notenum < basekeymidi) {
       notenum = basekeymidi - notenum;
       grade  = (numgrades-(notenum % numgrades)) % numgrades;
-      factor = - (MYFLT)(int32_t)((notenum+numgrades-1) / numgrades) ;
+      factor = - (cs_float)(int32_t)((notenum+numgrades-1) / numgrades) ;
     }
     else {
       notenum = notenum - basekeymidi;
       grade  = notenum % numgrades;
-      factor = (MYFLT)(int32_t)(notenum / numgrades);
+      factor = (cs_float)(int32_t)(notenum / numgrades);
     }
     factor = POWER(interval, factor);
     *p->r = func[grade] * factor * basefreq;
@@ -248,24 +248,24 @@ int32_t pchmidi(CSOUND *csound, MIDIKMB *p)
 {
     IGN(csound);
     INSDS *lcurip = p->h.insdshead;
-    double fract, oct, ioct;
+    cs_double fract, oct, ioct;
     oct = lcurip->m_pitch / 12.0 + 3.0;
-    fract = modf(oct, &ioct);
+    fract = cs_modf(oct, &ioct);
     fract *= 0.12;
-    *p->r = (MYFLT)(ioct + fract);
+    *p->r = (cs_float)(ioct + fract);
     return OK;
 }
 
 int32_t pchmidib(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
-    double fract, oct, ioct;
+    cs_double fract, oct, ioct;
     MCHNBLK *xxx = csound->curip->m_chnbp;
-    MYFLT bend = pitchbend_value(xxx);
+    cs_float bend = pitchbend_value(xxx);
     oct = (lcurip->m_pitch + (bend * p->scale)) / FL(12.0) + FL(3.0);
-    fract = modf(oct, &ioct);
+    fract = cs_modf(oct, &ioct);
     fract *= 0.12;
-    *p->r = (MYFLT)(ioct + fract);
+    *p->r = (cs_float)(ioct + fract);
     return OK;
 }
 
@@ -316,7 +316,7 @@ int32_t icpsmidib(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
     int32_t  loct;
-    MYFLT bend = pitchbend_value(lcurip->m_chnbp);
+    cs_float bend = pitchbend_value(lcurip->m_chnbp);
     p->prvbend = bend;
     loct = (int32_t)(((lcurip->m_pitch +
                      bend * p->scale) / FL(12.0) + FL(3.0)) * OCTRES);
@@ -334,7 +334,7 @@ int32_t icpsmidib_i(CSOUND *csound, MIDIKMB *p)
 int32_t kcpsmidib(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
-    MYFLT bend = pitchbend_value(lcurip->m_chnbp);
+    cs_float bend = pitchbend_value(lcurip->m_chnbp);
 
     if (bend == p->prvbend || lcurip->relesing)
       *p->r = p->prvout;
@@ -350,7 +350,7 @@ int32_t kcpsmidib(CSOUND *csound, MIDIKMB *p)
 
 int32_t ampmidi(CSOUND *csound, MIDIAMP *p)   /* convert midi veloc to amplitude */
 {                                         /*   valid only at I-time          */
-    MYFLT amp;
+    cs_float amp;
     int32_t  fno;
     FUNC *ftp;
 
@@ -468,7 +468,7 @@ int32_t midiaft(CSOUND *csound, MIDICTL *p)
 
 int32_t midichn(CSOUND *csound, MIDICHN *p)
 {
-    *(p->ichn) = (MYFLT) (GetMidiChannelNumber((OPDS *)p) + 1);
+    *(p->ichn) = (cs_float) (GetMidiChannelNumber((OPDS *)p) + 1);
     return OK;
 }
 
@@ -483,7 +483,7 @@ int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
       return csound->InitError(csound, Str("illegal channel number"));
     /* IV - Oct 31 2002: allow named instruments */
     if (instname || IsStringCode(*p->inst)) {
-      MYFLT buf[128];
+      cs_float buf[128];
       csound->StringArg2Name(csound, (char*) buf, p->inst, "", 1);
       ins = (int32_t)csoundStringArg2Insno(csound, buf, 1);
     }
@@ -604,10 +604,10 @@ int32_t midiin(CSOUND *csound, MIDIIN *p)
     if (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
       temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
       p->local_buf_index &= MIDIINBUFMSK;
-      *p->status = (MYFLT) *temp; //(*temp & (unsigned char) 0xf0);
-      *p->chan   = (MYFLT) *++temp; //((*temp & 0x0f) + 1);
-      *p->data1  = (MYFLT) *++temp;
-      *p->data2  = (MYFLT) *++temp;
+      *p->status = (cs_float) *temp; //(*temp & (unsigned char) 0xf0);
+      *p->chan   = (cs_float) *++temp; //((*temp & 0x0f) + 1);
+      *p->data1  = (cs_float) *++temp;
+      *p->data2  = (cs_float) *++temp;
     }
     else *p->status = FL(0.0);
     return OK;
@@ -631,8 +631,8 @@ int32_t pgmin(CSOUND *csound, PGMIN *p)
       ch = temp[1];
       d1 = temp[2];
       if (st == 0xC0 && (p->watch==0 || p->watch==ch)) {
-        *p->pgm = (MYFLT)1+d1;
-        *p->chn = (MYFLT)ch;
+        *p->pgm = (cs_float)1+d1;
+        *p->chn = (cs_float)ch;
       }
       else {
         *p->pgm = FL(-1.0);
@@ -668,9 +668,9 @@ int32_t ctlin(CSOUND *csound, CTLIN *p)
       if (st == 0xB0 &&
           (p->watch1==0 || p->watch1==ch) &&
           (p->watch2==0 || p->watch2==d1)) {
-        *p->data = (MYFLT)d2;
-        *p->numb = (MYFLT)d1;
-        *p->chn = (MYFLT)ch;
+        *p->data = (cs_float)d2;
+        *p->numb = (cs_float)d1;
+        *p->chn = (cs_float)ch;
       }
       else {
         *p->data = FL(-1.0);
@@ -707,7 +707,7 @@ int32_t midiarp_set(CSOUND *csound, MIDIARP *p)
 int32_t midiarp(CSOUND *csound, MIDIARP *p)
 {
     int32_t mode;
-    double increment;
+    cs_double increment;
 
     *p->counter = FL(0.0);
     if (UNLIKELY(!(*p->arpMode >= 0 && *p->arpMode < 4)))
@@ -809,7 +809,7 @@ int32_t savectrl_init(CSOUND *csound, SAVECTRL *p)
 {
     int16 chnl;
     int16 i, j, nargs = p->INOCOUNT-1;
-    MYFLT **argp = p->ctrls;
+    cs_float **argp = p->ctrls;
     if (UNLIKELY(!(*p->chnl >= 1 &&
                    *p->chnl < MIDIMAXPORTS * MAXCHAN + 1)))
       return csound->InitError(csound, "%s",
@@ -839,12 +839,12 @@ int32_t savectrl_init(CSOUND *csound, SAVECTRL *p)
 int32_t savectrl_perf(CSOUND *csound, SAVECTRL *p)
 {
     int16 nargs = p->nargs, i, j;
-    MYFLT **argp = p->ctrls;
-    MYFLT *ctlval = p->ivals;
+    cs_float **argp = p->ctrls;
+    cs_float *ctlval = p->ivals;
     if (UNLIKELY(tabcheck(csound, p->arr, 2+2*nargs, &p->h) != OK))
       return NOTOK;
     for (i=0, j=3; i<nargs; i++, j+=2) {
-      MYFLT val = ctlval[(int16)*argp[i]];
+      cs_float val = ctlval[(int16)*argp[i]];
       p->arr->data[j] = val;
     }
     return OK;
@@ -872,14 +872,14 @@ int32_t printctrl_init1(CSOUND *csound, PRINTCTRL *p)
 
 int32_t printctrl(CSOUND *csound, PRINTCTRL *p)
 {
-    MYFLT *d = p->arr->data;
+    cs_float *d = p->arr->data;
     int32_t n, i;
     if (UNLIKELY(p->arr->dimensions != 1 || p->arr->sizes == NULL ||
                  d == NULL || p->arr->sizes[0] < 2))
       return csound->PerfError(csound, &p->h, "%s",
                               Str("ctrlprint: expected a controller array"));
     if (UNLIKELY(!(d[0] >= 0 &&
-                   (double)d[0] <= (p->arr->sizes[0]-2)/2)))
+                   (cs_double)d[0] <= (p->arr->sizes[0]-2)/2)))
       return csound->PerfError(csound, &p->h, "%s",
                               Str("ctrlprint: controller count exceeds array bounds"));
     n = (int32_t)d[0];
@@ -918,11 +918,11 @@ int32_t presetctrl_init(CSOUND *csound, PRESETCTRL *p)
 
 /* Return a slot only after its tag and allocation size are known to fit. */
 static int32_t presetctrl_slot(CSOUND *csound, OPDS *h, PRESET_GLOB *q,
-                              MYFLT number, int32_t count)
+                              cs_float number, int32_t count)
 {
     int32_t tag, i, new_count;
     int32_t **presets, *slot;
-    if (UNLIKELY(!(number >= 0 && (double)number < INT32_MAX))) {
+    if (UNLIKELY(!(number >= 0 && (cs_double)number < (INT32_MAX + 0.0)))) {
       csound->PerfError(csound, h, Str("ctrlpreset: invalid preset tag"));
       return -1;
     }
@@ -985,7 +985,7 @@ int32_t presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
     slot = p->q->presets[tag];
     slot[1] = (int32_t)*p->chnl;
     for (i = 0; i < count - 2; i++) slot[i + 2] = (int32_t)*p->ctrls[i];
-    *p->inum = (MYFLT)tag + 1;
+    *p->inum = (cs_float)tag + 1;
     return OK;
 }
 
@@ -1027,7 +1027,7 @@ int32_t presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
     if (UNLIKELY(tag < 0)) return NOTOK;
     slot = p->q->presets[tag];
     for (i = 1; i < count; i++) slot[i] = (int32_t)p->arr->data[i];
-    *p->inum = (MYFLT)tag + 1;
+    *p->inum = (cs_float)tag + 1;
     return OK;
 }
 
@@ -1049,7 +1049,7 @@ int32_t selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
     int32_t i;
     int32_t* slot;
     if (UNLIKELY(!(*p->inum >= 1 &&
-                   (double)*p->inum < (double)q->max_num + 1)))
+                   (cs_double)*p->inum < (cs_double)q->max_num + 1)))
       return csound->PerfError(csound, &p->h,
                               Str("No such preset %g\n"), *p->inum);
     tag = (int32_t)*p->inum - 1;
@@ -1059,7 +1059,7 @@ int32_t selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
     {
       int32_t nargs = slot[0];
       int16 chnl = (int16)(slot[1]-1); /* Count from zero */
-      MYFLT *ctlval = (csound->m_chnbp[chnl])->ctl_val;
+      cs_float *ctlval = (csound->m_chnbp[chnl])->ctl_val;
       for (i=2; i<nargs; i+=2) {
         int32_t val = slot[i+1];
         ctlval[slot[i]] = val;

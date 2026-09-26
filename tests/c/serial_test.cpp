@@ -104,7 +104,7 @@ protected:
 #ifdef WIN32
 TEST_F(SerialTests, CloseReuseAndFailedSetup) {
     SERIALEND end = {};
-    MYFLT port = 0;
+    cs_float port = 0;
     end.port = &port;
     EXPECT_EQ(serialEnd(csound, &end), NOTOK);
     for (int i = 0; i < 10; ++i)
@@ -133,7 +133,7 @@ TEST_F(SerialTests, CloseReuseAndFailedSetup) {
 }
 
 TEST_F(SerialTests, ReadPrintFlushAndWriteErrors) {
-    MYFLT port = serialport_init(csound, "COM1", 9600), value = 42;
+    cs_float port = serialport_init(csound, "COM1", 9600), value = 42;
     ASSERT_EQ(port, 0);
     SERIALREAD reader = {};
     reader.port = &port;
@@ -198,7 +198,7 @@ TEST_F(SerialTests, RawInputPreservesBytes) {
     ASSERT_EQ(write(master, bytes, sizeof(bytes)), sizeof(bytes));
     struct pollfd ready = {fd, POLLIN, 0};
     ASSERT_EQ(poll(&ready, 1, 1000), 1);
-    MYFLT port = fd, value;
+    cs_float port = fd, value;
     SERIALREAD reader = {};
     reader.port = &port;
     reader.rChar = &value;
@@ -223,14 +223,14 @@ TEST_F(SerialTests, StringWritesUseContentLength) {
     str.size = sizeof(storage);
     SERIALWRITE writer = {};
 #ifdef WIN32
-    MYFLT port = serialport_init(csound, "COM1", 9600);
+    cs_float port = serialport_init(csound, "COM1", 9600);
 #else
     int descriptors[2];
     ASSERT_EQ(pipe(descriptors), 0);
-    MYFLT port = descriptors[1];
+    cs_float port = descriptors[1];
 #endif
     writer.port = &port;
-    writer.toWrite = reinterpret_cast<MYFLT *>(&str);
+    writer.toWrite = reinterpret_cast<cs_float *>(&str);
     EXPECT_EQ(serialWrite_S(csound, &writer), OK);
 #ifdef WIN32
     EXPECT_EQ(sent, "abc");

@@ -157,26 +157,26 @@ class hrtf {
   hrtf() {}
   virtual ~hrtf() {}
   virtual void init(void) = 0;
-  virtual int32_t hrtfstat_init(CSOUND *csound, MYFLT elev, MYFLT angle, MYFLT radius, STRINGDAT *filel, STRINGDAT *filer, MYFLT srxl) = 0;
-  virtual int32_t hrtfstat_process(CSOUND *csound, MYFLT *in, MYFLT *outsigl, MYFLT *outsigr, uint32_t offset, uint32_t early, uint32_t nsmps) = 0;
+  virtual int32_t hrtfstat_init(CSOUND *csound, cs_float elev, cs_float angle, cs_float radius, STRINGDAT *filel, STRINGDAT *filer, cs_float srxl) = 0;
+  virtual int32_t hrtfstat_process(CSOUND *csound, cs_float *in, cs_float *outsigl, cs_float *outsigr, uint32_t offset, uint32_t early, uint32_t nsmps) = 0;
 };
 
 class hrtf_c : public hrtf {
 private:
-  /*    MYFLT *outsigl, *outsigr;
-  //MYFLT *in, *iangle, *ielev;
-  MYFLT *iangle, *ielev;
+  /*    cs_float *outsigl, *outsigr;
+  //cs_float *in, *iangle, *ielev;
+  cs_float *iangle, *ielev;
   STRINGDAT *ifilel, *ifiler;
-  MYFLT *oradius, *osr;*/
+  cs_float *oradius, *osr;*/
 
   //STRINGDAT *ifilel_p, *ifiler_p;
 
   /*see definitions in INIT*/
   int32_t irlength_p, irlengthpad_p, overlapsize_p;
-  MYFLT sroverN_p;
+  cs_float sroverN_p;
 
   int32_t counter_p;
-  MYFLT sr_p;
+  cs_float sr_p;
 
   /* hrtf data padded */
   AUXCH hrtflpad_p,hrtfrpad_p;
@@ -210,33 +210,33 @@ public:
 
   /* HRTF functions (adapted from csound/Opcodes/hrtfopcodes.c) */
   virtual int32_t hrtfstat_init(CSOUND *csound,
-                                MYFLT elev, MYFLT angle, MYFLT r, STRINGDAT *ifilel, STRINGDAT *ifiler,
-                                MYFLT sr)
+                                cs_float elev, cs_float angle, cs_float r, STRINGDAT *ifilel, STRINGDAT *ifiler,
+                                cs_float sr)
   {
       /* left and right data files: spectral mag, phase format. */
 
       MEMFIL *fpl = NULL, *fpr = NULL;
 
       /* interpolation values */
-      MYFLT *lowl1;
-      MYFLT *lowr1;
-      MYFLT *lowl2;
-      MYFLT *lowr2;
-      MYFLT *highl1;
-      MYFLT *highr1;
-      MYFLT *highl2;
-      MYFLT *highr2;
+      cs_float *lowl1;
+      cs_float *lowr1;
+      cs_float *lowl2;
+      cs_float *lowr2;
+      cs_float *highl1;
+      cs_float *highr1;
+      cs_float *highl2;
+      cs_float *highr2;
 
-      MYFLT *hrtflfloat;
-      MYFLT *hrtfrfloat;
+      cs_float *hrtflfloat;
+      cs_float *hrtfrfloat;
 
-      MYFLT *hrtflpad;
-      MYFLT *hrtfrpad;
+      cs_float *hrtflpad;
+      cs_float *hrtfrpad;
 
-      /*  MYFLT elev = *p->ielev;
-          MYFLT angle = *p->iangle;
-          MYFLT r = *p->oradius;
-          MYFLT sr = *p->osr;*/
+      /*  cs_float elev = *p->ielev;
+          cs_float angle = *p->iangle;
+          cs_float r = *p->oradius;
+          cs_float sr = *p->osr;*/
 
       /* pointers into HRTF files */
       float *fpindexl=NULL;
@@ -248,23 +248,23 @@ public:
       int32_t i, skip = 0;
 
       /* local interpolation values */
-      MYFLT elevindexhighper, angleindex2per, angleindex4per;
+      cs_float elevindexhighper, angleindex2per, angleindex4per;
       int32_t elevindexlow, elevindexhigh, angleindex1, angleindex2,
         angleindex3, angleindex4;
-      MYFLT magl, magr, phasel, phaser, magllow, magrlow, maglhigh, magrhigh;
+      cs_float magl, magr, phasel, phaser, magllow, magrlow, maglhigh, magrhigh;
 
       /* local variables, mainly used for simplification */
-      MYFLT elevindexstore;
-      MYFLT angleindexlowstore;
-      MYFLT angleindexhighstore;
+      cs_float elevindexstore;
+      cs_float angleindexlowstore;
+      cs_float angleindexhighstore;
 
       /* woodworth values */
-      MYFLT radianangle, radianelev, itd=0, itdww, freq;
+      cs_float radianangle, radianelev, itd=0, itdww, freq;
 
       /* shift */
       int32_t shift;
-      MYFLT *leftshiftbuffer;
-      MYFLT *rightshiftbuffer;
+      cs_float *leftshiftbuffer;
+      cs_float *rightshiftbuffer;
 
       /* sr */
 
@@ -340,100 +340,100 @@ public:
       fpindexr = (float *) fpr->beginp;
       ////
       //    /* buffers */
-      if (!insig_p.auxp || insig_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &insig_p);
-      if (!outl_p.auxp || outl_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &outl_p);
-      if (!outr_p.auxp || outr_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &outr_p);
-      if (!hrtflpad_p.auxp || hrtflpad_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &hrtflpad_p);
-      if (!hrtfrpad_p.auxp || hrtfrpad_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &hrtfrpad_p);
-      if (!complexinsig_p.auxp || complexinsig_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), & complexinsig_p);
-      if (!hrtflfloat_p.auxp || hrtflfloat_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &hrtflfloat_p);
-      if (!hrtfrfloat_p.auxp || hrtfrfloat_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &hrtfrfloat_p);
-      if (!outspecl_p.auxp || outspecl_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &outspecl_p);
-      if (!outspecr_p.auxp || outspecr_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &outspecr_p);
-      if (!overlapl_p.auxp || overlapl_p.size < overlapsize * sizeof(MYFLT))
-        csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &overlapl_p);
-      if (!overlapr_p.auxp || overlapr_p.size < overlapsize * sizeof(MYFLT))
-        csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &overlapr_p);
+      if (!insig_p.auxp || insig_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength*sizeof(cs_float), &insig_p);
+      if (!outl_p.auxp || outl_p.size < irlengthpad * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &outl_p);
+      if (!outr_p.auxp || outr_p.size < irlengthpad * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &outr_p);
+      if (!hrtflpad_p.auxp || hrtflpad_p.size < irlengthpad * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &hrtflpad_p);
+      if (!hrtfrpad_p.auxp || hrtfrpad_p.size < irlengthpad * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &hrtfrpad_p);
+      if (!complexinsig_p.auxp || complexinsig_p.size < irlengthpad * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), & complexinsig_p);
+      if (!hrtflfloat_p.auxp || hrtflfloat_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength*sizeof(cs_float), &hrtflfloat_p);
+      if (!hrtfrfloat_p.auxp || hrtfrfloat_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength*sizeof(cs_float), &hrtfrfloat_p);
+      if (!outspecl_p.auxp || outspecl_p.size < irlengthpad * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &outspecl_p);
+      if (!outspecr_p.auxp || outspecr_p.size < irlengthpad * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &outspecr_p);
+      if (!overlapl_p.auxp || overlapl_p.size < overlapsize * sizeof(cs_float))
+        csound->AuxAlloc(csound, overlapsize*sizeof(cs_float), &overlapl_p);
+      if (!overlapr_p.auxp || overlapr_p.size < overlapsize * sizeof(cs_float))
+        csound->AuxAlloc(csound, overlapsize*sizeof(cs_float), &overlapr_p);
 
-      memset(insig_p.auxp, 0, irlength * sizeof(MYFLT));
-      memset(outl_p.auxp, 0, irlengthpad * sizeof(MYFLT));
-      memset(outr_p.auxp, 0, irlengthpad * sizeof(MYFLT));
-      memset(hrtflpad_p.auxp, 0, irlengthpad * sizeof(MYFLT));
-      memset(hrtfrpad_p.auxp, 0, irlengthpad * sizeof(MYFLT));
-      memset(complexinsig_p.auxp, 0, irlengthpad * sizeof(MYFLT));
-      memset(hrtflfloat_p.auxp, 0, irlength * sizeof(MYFLT));
-      memset(hrtfrfloat_p.auxp, 0, irlength * sizeof(MYFLT));
-      memset(outspecl_p.auxp, 0, irlengthpad * sizeof(MYFLT));
-      memset(outspecr_p.auxp, 0, irlengthpad * sizeof(MYFLT));
-      memset(overlapl_p.auxp, 0, overlapsize * sizeof(MYFLT));
-      memset(overlapr_p.auxp, 0, overlapsize * sizeof(MYFLT));
+      memset(insig_p.auxp, 0, irlength * sizeof(cs_float));
+      memset(outl_p.auxp, 0, irlengthpad * sizeof(cs_float));
+      memset(outr_p.auxp, 0, irlengthpad * sizeof(cs_float));
+      memset(hrtflpad_p.auxp, 0, irlengthpad * sizeof(cs_float));
+      memset(hrtfrpad_p.auxp, 0, irlengthpad * sizeof(cs_float));
+      memset(complexinsig_p.auxp, 0, irlengthpad * sizeof(cs_float));
+      memset(hrtflfloat_p.auxp, 0, irlength * sizeof(cs_float));
+      memset(hrtfrfloat_p.auxp, 0, irlength * sizeof(cs_float));
+      memset(outspecl_p.auxp, 0, irlengthpad * sizeof(cs_float));
+      memset(outspecr_p.auxp, 0, irlengthpad * sizeof(cs_float));
+      memset(overlapl_p.auxp, 0, overlapsize * sizeof(cs_float));
+      memset(overlapr_p.auxp, 0, overlapsize * sizeof(cs_float));
 
       /* interpolation values */
-      if (!lowl1_p.auxp || lowl1_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &lowl1_p);
-      if (!lowr1_p.auxp || lowr1_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &lowr1_p);
-      if (!lowl2_p.auxp || lowl2_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &lowl2_p);
-      if (!lowr2_p.auxp || lowr2_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &lowr2_p);
-      if (!highl1_p.auxp || highl1_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &highl1_p);
-      if (!highr1_p.auxp || highr1_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &highr1_p);
-      if (!highl2_p.auxp || highl2_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &highl2_p);
-      if (!highr2_p.auxp || highr2_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &highr2_p);
+      if (!lowl1_p.auxp || lowl1_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength * sizeof(cs_float), &lowl1_p);
+      if (!lowr1_p.auxp || lowr1_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength * sizeof(cs_float), &lowr1_p);
+      if (!lowl2_p.auxp || lowl2_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength * sizeof(cs_float), &lowl2_p);
+      if (!lowr2_p.auxp || lowr2_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength * sizeof(cs_float), &lowr2_p);
+      if (!highl1_p.auxp || highl1_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength * sizeof(cs_float), &highl1_p);
+      if (!highr1_p.auxp || highr1_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength * sizeof(cs_float), &highr1_p);
+      if (!highl2_p.auxp || highl2_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength * sizeof(cs_float), &highl2_p);
+      if (!highr2_p.auxp || highr2_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength * sizeof(cs_float), &highr2_p);
 
       /* best to zero, for future changes (filled in init) */
-      memset(lowl1_p.auxp, 0, irlength * sizeof(MYFLT));
-      memset(lowr1_p.auxp, 0, irlength * sizeof(MYFLT));
-      memset(lowl2_p.auxp, 0, irlength * sizeof(MYFLT));
-      memset(lowr2_p.auxp, 0, irlength * sizeof(MYFLT));
-      memset(highl1_p.auxp, 0, irlength * sizeof(MYFLT));
-      memset(highl2_p.auxp, 0, irlength * sizeof(MYFLT));
-      memset(highr1_p.auxp, 0, irlength * sizeof(MYFLT));
-      memset(highr2_p.auxp, 0, irlength * sizeof(MYFLT));
+      memset(lowl1_p.auxp, 0, irlength * sizeof(cs_float));
+      memset(lowr1_p.auxp, 0, irlength * sizeof(cs_float));
+      memset(lowl2_p.auxp, 0, irlength * sizeof(cs_float));
+      memset(lowr2_p.auxp, 0, irlength * sizeof(cs_float));
+      memset(highl1_p.auxp, 0, irlength * sizeof(cs_float));
+      memset(highl2_p.auxp, 0, irlength * sizeof(cs_float));
+      memset(highr1_p.auxp, 0, irlength * sizeof(cs_float));
+      memset(highr2_p.auxp, 0, irlength * sizeof(cs_float));
 
       /* shift buffers */
       if (!leftshiftbuffer_p.auxp ||
-          leftshiftbuffer_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &leftshiftbuffer_p);
+          leftshiftbuffer_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength*sizeof(cs_float), &leftshiftbuffer_p);
       if (!rightshiftbuffer_p.auxp ||
-          rightshiftbuffer_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &rightshiftbuffer_p);
+          rightshiftbuffer_p.size < irlength * sizeof(cs_float))
+        csound->AuxAlloc(csound, irlength*sizeof(cs_float), &rightshiftbuffer_p);
 
-      memset(leftshiftbuffer_p.auxp, 0, irlength * sizeof(MYFLT));
-      memset(rightshiftbuffer_p.auxp, 0, irlength * sizeof(MYFLT));
+      memset(leftshiftbuffer_p.auxp, 0, irlength * sizeof(cs_float));
+      memset(rightshiftbuffer_p.auxp, 0, irlength * sizeof(cs_float));
 
-      lowl1 = (MYFLT *)lowl1_p.auxp;
-      lowr1 = (MYFLT *)lowr1_p.auxp;
-      lowl2 = (MYFLT *)lowl2_p.auxp;
-      lowr2 = (MYFLT *)lowr2_p.auxp;
-      highl1 = (MYFLT *)highl1_p.auxp;
-      highr1 = (MYFLT *)highr1_p.auxp;
-      highl2 = (MYFLT *)highl2_p.auxp;
-      highr2 = (MYFLT *)highr2_p.auxp;
+      lowl1 = (cs_float *)lowl1_p.auxp;
+      lowr1 = (cs_float *)lowr1_p.auxp;
+      lowl2 = (cs_float *)lowl2_p.auxp;
+      lowr2 = (cs_float *)lowr2_p.auxp;
+      highl1 = (cs_float *)highl1_p.auxp;
+      highr1 = (cs_float *)highr1_p.auxp;
+      highl2 = (cs_float *)highl2_p.auxp;
+      highr2 = (cs_float *)highr2_p.auxp;
 
-      leftshiftbuffer = (MYFLT *)leftshiftbuffer_p.auxp;
-      rightshiftbuffer = (MYFLT *)rightshiftbuffer_p.auxp;
+      leftshiftbuffer = (cs_float *)leftshiftbuffer_p.auxp;
+      rightshiftbuffer = (cs_float *)rightshiftbuffer_p.auxp;
 
-      hrtflfloat = (MYFLT *)hrtflfloat_p.auxp;
-      hrtfrfloat = (MYFLT *)hrtfrfloat_p.auxp;
+      hrtflfloat = (cs_float *)hrtflfloat_p.auxp;
+      hrtfrfloat = (cs_float *)hrtfrfloat_p.auxp;
 
-      hrtflpad = (MYFLT *)hrtflpad_p.auxp;
-      hrtfrpad = (MYFLT *)hrtfrpad_p.auxp;
+      hrtflpad = (cs_float *)hrtflpad_p.auxp;
+      hrtfrpad = (cs_float *)hrtfrpad_p.auxp;
 
       if (r <= 0 || r > 15)
         r = FL(8.8);
@@ -728,27 +728,27 @@ public:
   }
 
 
-  virtual int32_t hrtfstat_process(CSOUND *csound, MYFLT *in, MYFLT *outsigl, MYFLT *outsigr, uint32_t offset, uint32_t early, uint32_t nsmps)
+  virtual int32_t hrtfstat_process(CSOUND *csound, cs_float *in, cs_float *outsigl, cs_float *outsigr, uint32_t offset, uint32_t early, uint32_t nsmps)
   {
       /* local pointers to p */
-      /*MYFLT *in = p->in->data;
-        MYFLT *outsigl  = p->outsigl;
-        MYFLT *outsigr = p->outsigr;*/
+      /*cs_float *in = p->in->data;
+        cs_float *outsigl  = p->outsigl;
+        cs_float *outsigr = p->outsigr;*/
 
       /* common buffers and variables */
-      MYFLT *insig = (MYFLT *)insig_p.auxp;
-      MYFLT *outl = (MYFLT *)outl_p.auxp;
-      MYFLT *outr = (MYFLT *)outr_p.auxp;
+      cs_float *insig = (cs_float *)insig_p.auxp;
+      cs_float *outl = (cs_float *)outl_p.auxp;
+      cs_float *outr = (cs_float *)outr_p.auxp;
 
-      MYFLT *hrtflpad = (MYFLT *)hrtflpad_p.auxp;
-      MYFLT *hrtfrpad = (MYFLT *)hrtfrpad_p.auxp;
+      cs_float *hrtflpad = (cs_float *)hrtflpad_p.auxp;
+      cs_float *hrtfrpad = (cs_float *)hrtfrpad_p.auxp;
 
-      MYFLT *complexinsig = (MYFLT *)complexinsig_p.auxp;
-      MYFLT *outspecl = (MYFLT *)outspecl_p.auxp;
-      MYFLT *outspecr = (MYFLT *)outspecr_p.auxp;
+      cs_float *complexinsig = (cs_float *)complexinsig_p.auxp;
+      cs_float *outspecl = (cs_float *)outspecl_p.auxp;
+      cs_float *outspecr = (cs_float *)outspecr_p.auxp;
 
-      MYFLT *overlapl = (MYFLT *)overlapl_p.auxp;
-      MYFLT *overlapr = (MYFLT *)overlapr_p.auxp;
+      cs_float *overlapl = (cs_float *)overlapl_p.auxp;
+      cs_float *overlapr = (cs_float *)overlapr_p.auxp;
 
       int32_t counter = counter_p;
       int32_t i;
@@ -760,16 +760,16 @@ public:
       int32_t irlengthpad = irlengthpad_p;
       int32_t overlapsize = overlapsize_p;
 
-      MYFLT sr = sr_p;
+      cs_float sr = sr_p;
 
       /* if (UNLIKELY(offset)) {
-         memset(outsigl, '\0', offset*sizeof(MYFLT));
-         memset(outsigr, '\0', offset*sizeof(MYFLT));
+         memset(outsigl, '\0', offset*sizeof(cs_float));
+         memset(outsigr, '\0', offset*sizeof(cs_float));
          }
          if (UNLIKELY(early)) {
          nsmps -= early;
-         memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
-         memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));
+         memset(&outsigl[nsmps], '\0', early*sizeof(cs_float));
+         memset(&outsigr[nsmps], '\0', early*sizeof(cs_float));
          }*/
       for (j = offset; j < nsmps; j++)
         {
@@ -844,12 +844,12 @@ typedef struct {
   OPDS h;
 
   ARRAYDAT*    out;        /* output buffers   */
-  MYFLT*    setup;         /* configuration         */
+  cs_float*    setup;         /* configuration         */
   ARRAYDAT*    in;         /* input buffers    */
-  MYFLT*    band;     // 0 for mix decoder, 1 for LF decoder, 2 for HF decoder
-  MYFLT*    r;        // Distance for NFC. If r=-1 NFC off.
-  MYFLT*    freq_cut; // frequency of band-splitting
-  MYFLT*    type_mix; // 0 for energy, 1 for rms, 2 for amplitude
+  cs_float*    band;     // 0 for mix decoder, 1 for LF decoder, 2 for HF decoder
+  cs_float*    r;        // Distance for NFC. If r=-1 NFC off.
+  cs_float*    freq_cut; // frequency of band-splitting
+  cs_float*    type_mix; // 0 for energy, 1 for rms, 2 for amplitude
   STRINGDAT* ifilel;
   STRINGDAT* ifiler;
 
@@ -857,16 +857,16 @@ typedef struct {
   int32_t numb;
 
   /* band splitting coefficients */
-  double a[MAXPOLES];
-  double b_lf[MAXZEROS+1];
-  double b_hf[MAXZEROS+1];
+  cs_double a[MAXPOLES];
+  cs_double b_lf[MAXZEROS+1];
+  cs_double b_hf[MAXZEROS+1];
 
   /* matrices for LF and HF decoders */
-  double     M_lf[MAX_OUTPUTS][MAX_INPUTS];
-  double     M_hf[MAX_OUTPUTS][MAX_INPUTS];
+  cs_double     M_lf[MAX_OUTPUTS][MAX_INPUTS];
+  cs_double     M_hf[MAX_OUTPUTS][MAX_INPUTS];
 
   AUXCH delay[MAX_INPUTS];     /* delay-line state memory base pointer */
-  double *currPos[MAX_INPUTS];  /* delay-line current position pointer */ /* >>Was float<< */
+  cs_double *currPos[MAX_INPUTS];  /* delay-line current position pointer */ /* >>Was float<< */
   int32_t   ndelay;    /* length of delay line (i.e. filter order) */
 
   // NFC temp variables
@@ -892,11 +892,11 @@ typedef struct {
 
 } HOAMBDEC;
 
-typedef struct FCOMPLEX {double r,i;} fcomplex;
+typedef struct FCOMPLEX {cs_double r,i;} fcomplex;
 
-static inline double readFilter(HOAMBDEC*, int32_t, int32_t);
-static inline void insertFilter(HOAMBDEC*,double, int32_t);
-static inline void process_nfc(HOAMBDEC*, int32_t, int32_t, MYFLT*, int32_t);
+static inline cs_double readFilter(HOAMBDEC*, int32_t, int32_t);
+static inline void insertFilter(HOAMBDEC*,cs_double, int32_t);
+static inline void process_nfc(HOAMBDEC*, int32_t, int32_t, cs_float*, int32_t);
 
 #ifndef MAX
 #define MAX(a,b) ((a>b)?(a):(b))
@@ -905,7 +905,7 @@ static inline void process_nfc(HOAMBDEC*, int32_t, int32_t, MYFLT*, int32_t);
 
 /*#define POLEISH (1) */     /* 1=poleish pole roots after Laguer root finding */
 
-typedef struct FPOLAR {double mag,ph;} fpolar;
+typedef struct FPOLAR {cs_double mag,ph;} fpolar;
 
 /* hoambdec initialization routine */
 static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
@@ -996,37 +996,37 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
 
     for (int32_t j = 0; j < n_ins; j++) {
-      csound->AuxAlloc(csound, p->ndelay * sizeof(double), &p->delay[j]);
+      csound->AuxAlloc(csound, p->ndelay * sizeof(cs_double), &p->delay[j]);
     }
 
     /* Set current position pointer to beginning of delay */
 
     for (int32_t j = 0; j < n_ins; j++) {
-      p->currPos[j] = (double*)p->delay[j].auxp;
+      p->currPos[j] = (cs_double*)p->delay[j].auxp;
     }
 
     // Band-splitting filters coefficients
-    double freq;
+    cs_double freq;
     if ((int)*(p->freq_cut) == 0) {
       freq = 400;
     } else {
-      freq = (double)*(p->freq_cut);
+      freq = (cs_double)*(p->freq_cut);
     }
 
 
-    double k = tan(freq * PI / CS_ESR);
-    double k2 = (k*k + 2*k + 1);
+    cs_double k = tan(freq * PI / CS_ESR);
+    cs_double k2 = (k*k + 2*k + 1);
 
-    double b0_lf = k*k/k2; //b0
-    double b1_lf = 2*b0_lf; //b1
-    double b2_lf = b0_lf; //b2
+    cs_double b0_lf = k*k/k2; //b0
+    cs_double b1_lf = 2*b0_lf; //b1
+    cs_double b2_lf = b0_lf; //b2
 
-    double b0_hf = 1/k2; //b0
-    double b1_hf = -2*b0_hf; //b1
-    double b2_hf = b0_hf; //b2
+    cs_double b0_hf = 1/k2; //b0
+    cs_double b1_hf = -2*b0_hf; //b1
+    cs_double b2_hf = b0_hf; //b2
 
-    double a1 = 2*(k*k - 1)/k2; //a1
-    double a2 = (k*k - 2*k + 1)/k2; //a2
+    cs_double a1 = 2*(k*k - 1)/k2; //a1
+    cs_double a2 = (k*k - 2*k + 1)/k2; //a2
 
     p->b_lf[0] = b0_lf; //b0
     p->b_lf[1] = b1_lf; //b1
@@ -1039,13 +1039,13 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
     p->a[0] = a1; //a1
     p->a[1] = a2; //a2
 
-    double const1,const2,const3,const4,const5,const6,const7,const8,const9;
+    cs_double const1,const2,const3,const4,const5,const6,const7,const8,const9;
 
     if (isetup == 2) { // Quad order 1
 
       const1 = 0.3535533906;
 
-      double M_lf[4][4] = { { const1, const1, const1, 0.0 },
+      cs_double M_lf[4][4] = { { const1, const1, const1, 0.0 },
                             { const1, -const1, const1, 0.0 },
                             { const1, -const1, -const1, 0.0 },
                             { const1, const1, -const1, 0.0 } };
@@ -1057,7 +1057,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       }
 
 
-      double gW, gXYZ;
+      cs_double gW, gXYZ;
 
       switch (type_mix) {
       case 0: // "energy"
@@ -1102,7 +1102,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         const7 = 0.396616403;
         const8 = 0.414684109;
 
-        double M_lf[5][4] = { { const1, const2, const3, 0.0 },
+        cs_double M_lf[5][4] = { { const1, const2, const3, 0.0 },
                               { const1, const2, -const3, 0.0 },
                               { const4, const5, 0.0, 0.0 },
                               { const6, -const7, const8, 0.0 },
@@ -1114,7 +1114,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
           }
         }
 
-        double gW, gXYZ;
+        cs_double gW, gXYZ;
 
         switch (type_mix) {
         case 0: // "energy"
@@ -1156,12 +1156,12 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         const7 = 2.914433535;
         const8 = 2.780920112;
         const9 = 0.5958012839;
-        double const10 = 0.5754998474;
-        double const11 = 0.3814446348;
-        double const12 = 0.1542047194;
-        double const13 = 0.2202271626;
+        cs_double const10 = 0.5754998474;
+        cs_double const11 = 0.3814446348;
+        cs_double const12 = 0.1542047194;
+        cs_double const13 = 0.2202271626;
 
-        double M_lf[5][5] = { { -const1, const2, const3, -const4, const5 },
+        cs_double M_lf[5][5] = { { -const1, const2, const3, -const4, const5 },
                               { -const1, const2, -const3, -const4, -const5 },
                               { const6, -const7, 0.0, const8 ,0.0 },
                               { const9, -const10, const11, const12, -const13 },
@@ -1173,7 +1173,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
           }
         }
 
-        double g0, g1, g2;
+        cs_double g0, g1, g2;
 
         switch (type_mix) {
         case 0: // "energy"
@@ -1220,7 +1220,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       const2 = 0.2309698831;
       const3 = 0.0956708581;
 
-      double M_lf[8][7] = { { const1, const2, const3, const1, const1, const3, const2 },
+      cs_double M_lf[8][7] = { { const1, const2, const3, const1, const1, const3, const2 },
                             { const1, const3, const2, -const1, const1, -const2, -const3 },
                             { const1, -const3, const2, -const1, -const1, const2, -const3 },
                             { const1, -const2, const3, const1, -const1, -const3, const2 },
@@ -1236,7 +1236,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       }
 
 
-      double g0, g1, g2, g3;
+      cs_double g0, g1, g2, g3;
 
       if (p->order == 1) { //order 1
 
@@ -1348,7 +1348,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       // (  0.1767766953,  0.2165063509, -0.2165063509)
       //(  0.1767766953,  0.2165063509, -0.2165063509)
 
-      double M_lf[8][4] = { { const1, const2, const2, -const2 },
+      cs_double M_lf[8][4] = { { const1, const2, const2, -const2 },
                             { const1, const2, const2, const2 },
                             { const1, -const2, const2, -const2 },
                             { const1, -const2, const2, const2 },
@@ -1363,7 +1363,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         }
       }
 
-      double gW, gXYZ;
+      cs_double gW, gXYZ;
 
       switch (type_mix) {
       case 0: // "energy"
@@ -1405,7 +1405,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       const3 = 0.1666666667;
       const4 = 0.3333333333;
 
-      double M_lf[6][5] = { { const1, const2, const3, const3, const2},
+      cs_double M_lf[6][5] = { { const1, const2, const3, const3, const2},
                             { const1, 0.0, const4, -const4, 0.0 },
                             { const1, -const2, const3, const3, -const2 },
                             { const1, -const2, -const3, const3, const2 },
@@ -1419,7 +1419,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       }
 
 
-      double g0, g1, g2;
+      cs_double g0, g1, g2;
 
       if (p->order == 1) { //order 1
 
@@ -1493,25 +1493,25 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       const8 = 0.2125578696;
       const9 = 0.0310117752;
 
-      double const10 = 0.1401258538;
-      double const11 = 0.0535233135;
-      double const12 = 0.0658359214;
-      double const13 = 0.3341640786;
-      double const14 = 0.1623797632;
+      cs_double const10 = 0.1401258538;
+      cs_double const11 = 0.0535233135;
+      cs_double const12 = 0.0658359214;
+      cs_double const13 = 0.3341640786;
+      cs_double const14 = 0.1623797632;
 
-      double const15 = 0.0772542486;
-      double const16 = 0.1636271243;
-      double const17 = 0.0802849702;
-      double const18 = 0.151246118;
-      double const19 = 0.3272542486;
-      double const20 = 0.1003562127;
+      cs_double const15 = 0.0772542486;
+      cs_double const16 = 0.1636271243;
+      cs_double const17 = 0.0802849702;
+      cs_double const18 = 0.151246118;
+      cs_double const19 = 0.3272542486;
+      cs_double const20 = 0.1003562127;
 
-      double const21 = 0.2022542486;
-      double const22 = 0.0238728757;
-      double const23 = 0.2101887808;
-      double const24 = 0.251246118;
-      double const25 = 0.0477457514;
-      double const26 = 0.262735976;
+      cs_double const21 = 0.2022542486;
+      cs_double const22 = 0.0238728757;
+      cs_double const23 = 0.2101887808;
+      cs_double const24 = 0.251246118;
+      cs_double const25 = 0.0477457514;
+      cs_double const26 = 0.262735976;
       //0.0707106781,  0.0866025404,  0.0866025404, 0.0866025404,  -0, 0.125, 0.125,-0, 0.125, -0.1948557159,  -0.024376941,  0.225623059,  0.1397542486,0.125, -0.2125578696,  0.0310117752);
       // 0.0707106781,  0.0866025404, -0.0866025404,  0.0866025404,  0, 0.125,  -0.125, 0,-0.125, -0.1948557159,  -0.024376941,  -0.225623059,  0.1397542486, -0.125, -0.2125578696, -0.0310117752);
       // 0.0707106781, -0.0866025404, -0.0866025404,  0.0866025404, -0,-0.125, -0.125,-0, 0.125, -0.1948557159,   0.024376941,-0.225623059,  0.1397542486,0.125,  0.2125578696, -0.0310117752
@@ -1533,7 +1533,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       //0.0707106781, -0.0535233135,  0, -0.1401258538,  0.2022542486,  0.125,  0,  0.0238728757, -0, -0.2101887808,  -0.251246118, 0,  0.0477457514,  0,  -0.262735976, 0
       // 0.0707106781, -0.0535233135, 0,  0.1401258538,  0.2022542486,  -0.125, -0,  0.0238728757,  -0,  0.2101887808,  -0.251246118, 0, -0.0477457514,  -0,  -0.262735976,0
 
-      double M_lf[20][16] = { { const1, const2, const2, const2, 0.0, const3, const3, 0.0, const3, -const4, -const5, const6, const7, const3, -const8, const9 },
+      cs_double M_lf[20][16] = { { const1, const2, const2, const2, 0.0, const3, const3, 0.0, const3, -const4, -const5, const6, const7, const3, -const8, const9 },
                               { const1, const2, -const2, const2, 0.0, const3, -const3, 0.0, -const3, -const4, -const5, -const6, const7, -const3, -const8, -const9 },
                               { const1, -const2, -const2, const2, 0.0, -const3, -const3, 0.0, const3, -const4, const5, -const6, const7, const3, const8, -const9 },
                               { const1, -const2, const2, const2, 0.0, -const3, const3, 0.0, -const3, -const4, const5, const6, const7, -const3, const8, const9 },
@@ -1560,7 +1560,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         }
       }
 
-      double g0, g1, g2, g3;
+      cs_double g0, g1, g2, g3;
       if (p->order == 1) { //order 1
 
         switch (type_mix) {
@@ -1716,9 +1716,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       }
     }
     uint32_t nsmps = CS_KSMPS;
-    csound->AuxAlloc(csound, sizeof(MYFLT)*20*nsmps, &p->out_A);
-    csound->AuxAlloc(csound, sizeof(MYFLT)*nsmps, &p->out_binaural0);
-    csound->AuxAlloc(csound, sizeof(MYFLT)*nsmps, &p->out_binaural1);
+    csound->AuxAlloc(csound, sizeof(cs_float)*20*nsmps, &p->out_A);
+    csound->AuxAlloc(csound, sizeof(cs_float)*nsmps, &p->out_binaural0);
+    csound->AuxAlloc(csound, sizeof(cs_float)*nsmps, &p->out_binaural1);
     return OK;
 }
 
@@ -1741,29 +1741,29 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
     //int n_ins = p->in->sizes[0];
     int32_t isetup = (int)*(p->setup);
 
-    MYFLT *in = p->in->data, *out = p->out->data;
+    cs_float *in = p->in->data, *out = p->out->data;
 
     /* Outer loop */
     if (UNLIKELY(offset)) {
       for (j = 0; j < n_outs; j++) {
-        memset(&out[j*ksmps], '\0', offset*sizeof(MYFLT));
+        memset(&out[j*ksmps], '\0', offset*sizeof(cs_float));
       }}
     if (UNLIKELY(early)) {
       nsmps -= early;
       for (j = 0; j < n_outs; j++) {
-        memset(&out[j*ksmps+nsmps], '\0', early*sizeof(MYFLT));
+        memset(&out[j*ksmps+nsmps], '\0', early*sizeof(cs_float));
       }
     }
 
     // ***** FIX MEMORY ALOCATION *****
     //double poleSamp[p->n_signals],inSamp[p->n_signals];
     //double zeroSamp_lf[p->n_signals],zeroSamp_hf[p->n_signals];
-    double poleSamp[36];
-    MYFLT inSamp[36];
-    double zeroSamp_lf[36],zeroSamp_hf[36];
+    cs_double poleSamp[36];
+    cs_float inSamp[36];
+    cs_double zeroSamp_lf[36],zeroSamp_hf[36];
     //double poleSamp_nfc[p->n_signals],inSamp_nfc[p->n_signals],zeroSamp_nfc[p->n_signals];
 
-    double y_lf,y_hf;
+    cs_double y_lf,y_hf;
 
     //dict to convert 3d ambisonic signals in 2d. MAX for order 5
     int32_t dict_3dto2d[11] = { 0, 1, 2, 7, 8, 14, 15, 23, 24, 34, 35};
@@ -1781,20 +1781,20 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
     }
 
     // ***** FIX MEMORY ALOCATION *****
-    //MYFLT out_A[20/*n_outs_A*/][nsmps-offset];
-    //MYFLT out_binaural0[nsmps-offset],out_binaural1[nsmps-offset];
-    MYFLT *out_A, *out_binaural0, *out_binaural1;
-    out_A = (MYFLT*)p->out_A.auxp;
-    out_binaural0 = (MYFLT*)p->out_binaural0.auxp;
-    out_binaural1 = (MYFLT*)p->out_binaural1.auxp;
+    //cs_float out_A[20/*n_outs_A*/][nsmps-offset];
+    //cs_float out_binaural0[nsmps-offset],out_binaural1[nsmps-offset];
+    cs_float *out_A, *out_binaural0, *out_binaural1;
+    out_A = (cs_float*)p->out_A.auxp;
+    out_binaural0 = (cs_float*)p->out_binaural0.auxp;
+    out_binaural1 = (cs_float*)p->out_binaural1.auxp;
     int32_t decoder = (int32_t)*p->band;
-    double (*matrix)[MAX_INPUTS] = decoder == 1 ? p->M_lf : p->M_hf;
-    MYFLT *decoded = (isetup == 21 || isetup == 31) ? out_A : out;
+    cs_double (*matrix)[MAX_INPUTS] = decoder == 1 ? p->M_lf : p->M_hf;
+    cs_float *decoded = (isetup == 21 || isetup == 31) ? out_A : out;
 
     for (n=offset; n<nsmps; n++) {
 
       if (isetup == 1) { // Stereo configuration. Nor band splitting nor near field compensation.
-        MYFLT w = in[n], y = in[2*ksmps+n];
+        cs_float w = in[n], y = in[2*ksmps+n];
         /* Left: */
         out[n] = w*SQRT(FL(0.5)) + y*FL(0.5);
         /* Right: */
@@ -1841,7 +1841,7 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
         if (decoder == 1 || decoder == 2) {
           /* A single decoder uses its full-band matrix, without a crossover. */
           for (int32_t o = 0; o < n_outs_A; o++)
-            decoded[o*ksmps+n] += (MYFLT)(matrix[o][in_ix] * inSamp[j]);
+            decoded[o*ksmps+n] += (cs_float)(matrix[o][in_ix] * inSamp[j]);
           continue;
         }
 
@@ -1870,7 +1870,7 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
 
         if (decoder == 0)
           for (int32_t o = 0; o < n_outs_A; o++)
-            decoded[o*ksmps+n] += (MYFLT)(p->M_lf[o][in_ix]*y_lf - p->M_hf[o][in_ix]*y_hf);
+            decoded[o*ksmps+n] += (cs_float)(p->M_lf[o][in_ix]*y_lf - p->M_hf[o][in_ix]*y_hf);
       }
     }
 
@@ -1879,8 +1879,8 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
         p->binaural[j]->hrtfstat_process(csound, &out_A[j*ksmps], out_binaural0, out_binaural1, offset, early, nsmps);
 
         for (n=offset; n<nsmps; n++) {
-          out[n] += (MYFLT) out_binaural0[n];
-          out[ksmps+n] += (MYFLT) out_binaural1[n];
+          out[n] += (cs_float) out_binaural0[n];
+          out[ksmps+n] += (cs_float) out_binaural1[n];
         }
       }
     }
@@ -1899,9 +1899,9 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
  * (adapted from  csound/Opcodes/hrtfopcodes.c)
  *
  */
-static inline double readFilter(HOAMBDEC* p, int32_t i, int32_t j)
+static inline cs_double readFilter(HOAMBDEC* p, int32_t i, int32_t j)
 {
-    double *base = (double*)p->delay[j].auxp;
+    cs_double *base = (cs_double*)p->delay[j].auxp;
     int32_t index = (int32_t)(p->currPos[j] - base) - i;
     /* Wrap the index before forming a pointer outside the delay array. */
     if (index < 0) index += p->ndelay;
@@ -1917,7 +1917,7 @@ static inline double readFilter(HOAMBDEC* p, int32_t i, int32_t j)
  * (adapted from  csound/Opcodes/hrtfopcodes.c)
  *
  */
-static inline void insertFilter(HOAMBDEC* p, double val, int32_t j)
+static inline void insertFilter(HOAMBDEC* p, cs_double val, int32_t j)
 {
 
     int32_t delay;
@@ -1926,7 +1926,7 @@ static inline void insertFilter(HOAMBDEC* p, double val, int32_t j)
     *p->currPos[j] = val;
 
     /* Update the currPos pointer and wrap modulo the delay length */
-    if (((double*) (++p->currPos[j])) > ((double*)p->delay[j].auxp + (delay-1)) )
+    if (((cs_double*) (++p->currPos[j])) > ((cs_double*)p->delay[j].auxp + (delay-1)) )
       p->currPos[j] -= delay;
 
 }
@@ -1938,61 +1938,61 @@ static inline void insertFilter(HOAMBDEC* p, double val, int32_t j)
  *
  */
 static inline void process_nfc(HOAMBDEC* p, int32_t signal_order, int32_t j,
-                               MYFLT *sample, int32_t sr)
+                               cs_float *sample, int32_t sr)
 {
     //char buffer[50];
 
-    double d; // meters
+    cs_double d; // meters
     if (*p->r == FL(0.0)) {
       d = 1.0;
     } else {
-      d = (double)*(p->r);
+      d = (cs_double)*(p->r);
     }
 
-    double c = 343.2; // m/s
-    double omega = c/(d*sr);
-    double gain = 1.0;
-    //MYFLT *out = p->out->data;
+    cs_double c = 343.2; // m/s
+    cs_double omega = c/(d*sr);
+    cs_double gain = 1.0;
+    //cs_float *out = p->out->data;
     //  1  1
 
     if (signal_order == 1) {
-      double b1 = omega/2.0;
-      double g1 = 1.0 + b1;
-      double d1 = 0.0 - (2.0 * b1) / g1;
-      double g = gain/g1;
+      cs_double b1 = omega/2.0;
+      cs_double g1 = 1.0 + b1;
+      cs_double d1 = 0.0 - (2.0 * b1) / g1;
+      cs_double g = gain/g1;
 
-      double fTemp0 = (g * *sample);
-      double fTemp1 = (d1 * p->fRec0[j][1]);
+      cs_double fTemp0 = (g * *sample);
+      cs_double fTemp1 = (d1 * p->fRec0[j][1]);
       p->fRec2[j][0] = (fTemp0 + p->fRec2[j][1] + fTemp1);
       p->fRec0[j][0] = p->fRec2[j][0];
-      double fRec1 = (fTemp1 + fTemp0);
-      *sample = (MYFLT) fRec1;
+      cs_double fRec1 = (fTemp1 + fTemp0);
+      *sample = (cs_float) fRec1;
       p->fRec2[j][1] = p->fRec2[j][0];
       p->fRec0[j][1] = p->fRec0[j][0];
     }
     if (signal_order == 2) {
-      double r1 = omega/2.0;
-      double r2 = r1 * r1;
+      cs_double r1 = omega/2.0;
+      cs_double r2 = r1 * r1;
 
       // 1.000000000000000   3.00000000000000   3.00000000000000
-      double b1 = 3.0 * r1;
-      double b2 = 3.0 * r2;
-      double g2 = 1.0 + b1 + b2;
+      cs_double b1 = 3.0 * r1;
+      cs_double b2 = 3.0 * r2;
+      cs_double g2 = 1.0 + b1 + b2;
 
-      double d1 = 0.0 - (2.0 * b1 + 4.0 * b2) / g2;  // fixed
-      double d2 = 0.0 - (4.0 * b2) / g2;
-      double g = gain/g2;
+      cs_double d1 = 0.0 - (2.0 * b1 + 4.0 * b2) / g2;  // fixed
+      cs_double d2 = 0.0 - (4.0 * b2) / g2;
+      cs_double g = gain/g2;
 
-      double fTemp0 = (g * *sample);
-      double fTemp1 = (d2 * p->fRec0[j][1]);
-      double fTemp2 = (d1 * p->fRec3[j][1]);
+      cs_double fTemp0 = (g * *sample);
+      cs_double fTemp1 = (d2 * p->fRec0[j][1]);
+      cs_double fTemp2 = (d1 * p->fRec3[j][1]);
       p->fRec5[j][0] = (fTemp0 + (fTemp1 + (p->fRec5[j][1] + fTemp2)));
       p->fRec3[j][0] = p->fRec5[j][0];
       float fRec4 = ((fTemp2 + fTemp1) + fTemp0);
       p->fRec2[j][0] = (p->fRec3[j][0] + p->fRec2[j][1]);
       p->fRec0[j][0] =  p->fRec2[j][0];
       float fRec1 = fRec4;
-      *sample = (MYFLT) fRec1;
+      *sample = (cs_float) fRec1;
       p->fRec5[j][1] = p->fRec5[j][0];
       p->fRec3[j][1] = p->fRec3[j][0];
       p->fRec2[j][1] = p->fRec2[j][0];
@@ -2000,26 +2000,26 @@ static inline void process_nfc(HOAMBDEC* p, int32_t signal_order, int32_t j,
     }
 
     if (signal_order == 3) {
-      double r1 = omega/2.0;
-      double r2 = r1 * r1;
+      cs_double r1 = omega/2.0;
+      cs_double r2 = r1 * r1;
 
       // 1.000000000000000   3.677814645373914   6.459432693483369
-      double b1 = 3.677814645373914 * r1;
-      double b2 = 6.459432693483369 * r2;
-      double g2 = 1.0 + b1 + b2;
-      double d1 = 0.0 - (2.0 * b1 + 4.0 * b2) / g2;  // fixed
-      double d2 = 0.0 - (4.0 * b2) / g2;
+      cs_double b1 = 3.677814645373914 * r1;
+      cs_double b2 = 6.459432693483369 * r2;
+      cs_double g2 = 1.0 + b1 + b2;
+      cs_double d1 = 0.0 - (2.0 * b1 + 4.0 * b2) / g2;  // fixed
+      cs_double d2 = 0.0 - (4.0 * b2) / g2;
 
       // 1.000000000000000   2.322185354626086
-      double b3 = 2.322185354626086 * r1;
-      double g3 = 1.0 + b3;
-      double d3 = 0.0 - (2.0 * b3) / g3;
+      cs_double b3 = 2.322185354626086 * r1;
+      cs_double g3 = 1.0 + b3;
+      cs_double d3 = 0.0 - (2.0 * b3) / g3;
 
-      double g = gain/(g3*g2);
-      double fTemp0 = (d3 * p->fRec0[j][1]);
-      double fTemp1 = (g * *sample);
-      double fTemp2 = (d2 * p->fRec3[j][1]);
-      double fTemp3 = (d1 * p->fRec6[j][1]);
+      cs_double g = gain/(g3*g2);
+      cs_double fTemp0 = (d3 * p->fRec0[j][1]);
+      cs_double fTemp1 = (g * *sample);
+      cs_double fTemp2 = (d2 * p->fRec3[j][1]);
+      cs_double fTemp3 = (d1 * p->fRec6[j][1]);
       p->fRec8[j][0] = (fTemp1 + (fTemp2 + (p->fRec8[j][1] + fTemp3)));
       p->fRec6[j][0] = p->fRec8[j][0];
       float fRec7 = ((fTemp3 + fTemp2) + fTemp1);
@@ -2029,7 +2029,7 @@ static inline void process_nfc(HOAMBDEC* p, int32_t signal_order, int32_t j,
       p->fRec2[j][0] = (fTemp0 + (fRec4 + p->fRec2[j][1]));
       p->fRec0[j][0] = p->fRec2[j][0];
       float fRec1 = (fRec4 + fTemp0);
-      *sample = (MYFLT) fRec1;
+      *sample = (cs_float) fRec1;
       p->fRec8[j][1] = p->fRec8[j][0];
       p->fRec6[j][1] = p->fRec6[j][0];
       p->fRec5[j][1] = p->fRec5[j][0];
@@ -2040,43 +2040,43 @@ static inline void process_nfc(HOAMBDEC* p, int32_t signal_order, int32_t j,
 
     if (signal_order == 4) {
 
-      double r1 = omega/2.0;
-      double r2 = r1 * r1;
+      cs_double r1 = omega/2.0;
+      cs_double r2 = r1 * r1;
 
       // 1.000000000000000   4.207578794359250  11.487800476871168
-      double b1 =  4.207578794359250 * r1;
-      double b2 = 11.487800476871168 * r2;
-      double g2 = 1.0 + b1 + b2;
-      double d1 = 0.0 - (2.0 * b1 + 4.0 * b2) / g2;  // fixed
-      double d2 = 0.0 - (4.0 * b2) / g2;
+      cs_double b1 =  4.207578794359250 * r1;
+      cs_double b2 = 11.487800476871168 * r2;
+      cs_double g2 = 1.0 + b1 + b2;
+      cs_double d1 = 0.0 - (2.0 * b1 + 4.0 * b2) / g2;  // fixed
+      cs_double d2 = 0.0 - (4.0 * b2) / g2;
 
       // 1.000000000000000   5.792421205640748   9.140130890277934
-      double b3 = 5.792421205640748 * r1;
-      double b4 = 9.140130890277934 * r2;
-      double g3 = 1.0 + b3 + b4;
-      double d3 = 0.0 - (2.0 * b3 + 4.0 * b4) / g3;  // fixed
-      double d4 = 0.0 - (4.0 * b4) / g3;
+      cs_double b3 = 5.792421205640748 * r1;
+      cs_double b4 = 9.140130890277934 * r2;
+      cs_double g3 = 1.0 + b3 + b4;
+      cs_double d3 = 0.0 - (2.0 * b3 + 4.0 * b4) / g3;  // fixed
+      cs_double d4 = 0.0 - (4.0 * b4) / g3;
 
-      double g = gain/(g3*g2);
+      cs_double g = gain/(g3*g2);
 
-      double fTemp0 = (d4 * p->fRec0[j][1]);
-      double fTemp1 = (d3 * p->fRec3[j][1]);
-      double fTemp2 = (d2 * p->fRec6[j][1]);
-      double fTemp3 = (d1 * p->fRec9[j][1]);
-      double fTemp4 = (g * *sample);
+      cs_double fTemp0 = (d4 * p->fRec0[j][1]);
+      cs_double fTemp1 = (d3 * p->fRec3[j][1]);
+      cs_double fTemp2 = (d2 * p->fRec6[j][1]);
+      cs_double fTemp3 = (d1 * p->fRec9[j][1]);
+      cs_double fTemp4 = (g * *sample);
       p->fRec11[j][0] = ((fTemp2 + (p->fRec11[j][1] + fTemp3)) + fTemp4);
       p->fRec9[j][0] = p->fRec11[j][0];
-      double fRec10 = ((fTemp3 + fTemp2) + fTemp4);
+      cs_double fRec10 = ((fTemp3 + fTemp2) + fTemp4);
       p->fRec8[j][0] = (p->fRec9[j][0] + p->fRec8[j][1]);
       p->fRec6[j][0] = p->fRec8[j][0];
-      double fRec7 = fRec10;
+      cs_double fRec7 = fRec10;
       p->fRec5[j][0] = (fTemp0 + (fTemp1 + (fRec7 + p->fRec5[j][1])));
       p->fRec3[j][0] = p->fRec5[j][0];
-      double fRec4 = (fTemp0 + (fRec7 + fTemp1));
+      cs_double fRec4 = (fTemp0 + (fRec7 + fTemp1));
       p->fRec2[j][0] = (p->fRec3[j][0] + p->fRec2[j][1]);
       p->fRec0[j][0] = p->fRec2[j][0];
-      double fRec1 = fRec4;
-      *sample = (MYFLT) fRec1;
+      cs_double fRec1 = fRec4;
+      *sample = (cs_float) fRec1;
       p->fRec11[j][1] = p->fRec11[j][0];
       p->fRec9[j][1] = p->fRec9[j][0];
       p->fRec8[j][1] = p->fRec8[j][0];
@@ -2090,52 +2090,52 @@ static inline void process_nfc(HOAMBDEC* p, int32_t signal_order, int32_t j,
 
     if (signal_order == 5) {
 
-      double r1 = omega/2.0;
-      double r2 = r1 * r1;
+      cs_double r1 = omega/2.0;
+      cs_double r2 = r1 * r1;
 
       // 1.000000000000000   4.649348606363304  18.156315313452325
-      double b1 =  4.649348606363304 * r1;
-      double b2 = 18.156315313452325 * r2;
-      double g2 = 1.0 + b1 + b2;
-      double d1 = 0.0 - (2.0 * b1 + 4.0 * b2) / g2;  // fixed
-      double d2 = 0.0 - (4.0 * b2) / g2;
+      cs_double b1 =  4.649348606363304 * r1;
+      cs_double b2 = 18.156315313452325 * r2;
+      cs_double g2 = 1.0 + b1 + b2;
+      cs_double d1 = 0.0 - (2.0 * b1 + 4.0 * b2) / g2;  // fixed
+      cs_double d2 = 0.0 - (4.0 * b2) / g2;
 
       // 1.000000000000000   6.703912798306966  14.272480513279568
-      double b3 =  6.703912798306966 * r1;
-      double b4 = 14.272480513279568 * r2;
-      double g3 = 1.0 + b3 + b4;
-      double d3 = 0.0 - (2.0 * b3 + 4 * b4) / g3;  // fixed
-      double d4 = 0.0 - (4.0 * b4) / g3;
+      cs_double b3 =  6.703912798306966 * r1;
+      cs_double b4 = 14.272480513279568 * r2;
+      cs_double g3 = 1.0 + b3 + b4;
+      cs_double d3 = 0.0 - (2.0 * b3 + 4 * b4) / g3;  // fixed
+      cs_double d4 = 0.0 - (4.0 * b4) / g3;
 
       // 1.000000000000000   3.646738595329718
-      double b5 = 3.646738595329718 * r1;
-      double g4 = 1.0 + b5;
-      double d5 = 0.0 - (2.0 * b5) / g4;
+      cs_double b5 = 3.646738595329718 * r1;
+      cs_double g4 = 1.0 + b5;
+      cs_double d5 = 0.0 - (2.0 * b5) / g4;
 
-      double g = gain/(g4*g3*g2);
+      cs_double g = gain/(g4*g3*g2);
 
-      double fTemp0 = (d5 * p->fRec0[j][1]);
-      double fTemp1 = (d4 * p->fRec3[j][1]);
-      double fTemp2 = (d3 * p->fRec6[j][1]);
-      double fTemp3 = (d2 * p->fRec9[j][1]);
-      double fTemp4 = (d1 * p->fRec12[j][1]);
-      double fTemp5 = (g * *sample);
+      cs_double fTemp0 = (d5 * p->fRec0[j][1]);
+      cs_double fTemp1 = (d4 * p->fRec3[j][1]);
+      cs_double fTemp2 = (d3 * p->fRec6[j][1]);
+      cs_double fTemp3 = (d2 * p->fRec9[j][1]);
+      cs_double fTemp4 = (d1 * p->fRec12[j][1]);
+      cs_double fTemp5 = (g * *sample);
       p->fRec14[j][0] = ((fTemp3 + (p->fRec14[j][1] + fTemp4)) + fTemp5);
       p->fRec12[j][0] = p->fRec14[j][0];
-      double fRec13 = ((fTemp4 + fTemp3) + fTemp5);
+      cs_double fRec13 = ((fTemp4 + fTemp3) + fTemp5);
       p->fRec11[j][0] = (p->fRec12[j][0] + p->fRec11[j][1]);
       p->fRec9[j][0] = p->fRec11[j][0];
-      double fRec10 = fRec13;
+      cs_double fRec10 = fRec13;
       p->fRec8[j][0] = (fTemp1 + (fTemp2 + (fRec10 + p->fRec8[j][1])));
       p->fRec6[j][0] = p->fRec8[j][0];
-      double fRec7 = (fTemp1 + (fRec10 + fTemp2));
+      cs_double fRec7 = (fTemp1 + (fRec10 + fTemp2));
       p->fRec5[j][0] = (p->fRec6[j][0] + p->fRec5[j][1]);
       p->fRec3[j][0] = p->fRec5[j][0];
-      double fRec4 = fRec7;
+      cs_double fRec4 = fRec7;
       p->fRec2[j][0] = (fTemp0 + (fRec4 + p->fRec2[j][1]));
       p->fRec0[j][0] = p->fRec2[j][0];
-      double fRec1 = (fRec4 + fTemp0);
-      *sample = (MYFLT) fRec1;
+      cs_double fRec1 = (fRec4 + fTemp0);
+      *sample = (cs_float) fRec1;
       p->fRec14[j][1] = p->fRec14[j][0];
       p->fRec12[j][1] = p->fRec12[j][0];
       p->fRec11[j][1] = p->fRec11[j][0];

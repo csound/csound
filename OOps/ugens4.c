@@ -34,7 +34,7 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->floatph = !IS_POW_TWO(p->ftp->flen);
-      double phase = *p->iphs;
+      cs_double phase = *p->iphs;
       if (UNLIKELY(!isfinite(phase)))
         return csound->InitError(csound, "%s", Str("buzz: invalid initial phase"));
       if (phase >= 0.0) {
@@ -66,17 +66,17 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
 int32_t buzz(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
-    MYFLT       *ar, *ampp, *cpsp, *ftbl, amp;
+    cs_float       *ar, *ampp, *cpsp, *ftbl, amp;
     int32_t       phs, inc, lobits, dwnphs, lenmask,
       floatph = p->floatph, flen;
     uint32_t tnp1;
-    MYFLT       sicvt2, over2n, scal, num, denom, harmonics;
-    double incf;
+    cs_float       sicvt2, over2n, scal, num, denom, harmonics;
+    cs_double incf;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
     int32_t       nn;
-    double   phsf = p->fphs;
+    cs_double   phsf = p->fphs;
     
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
@@ -99,7 +99,7 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
       nn = 1;
     }
     tnp1 = 2U * (uint32_t)nn + 1U;          /* calc 2n + 1 */
-    over2n = FL(0.5) / (MYFLT)nn;
+    over2n = FL(0.5) / (cs_float)nn;
     amp = *ampp;
     scal = amp * over2n;
     if(floatph) {
@@ -109,11 +109,11 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     else inc = (int32_t)(*cpsp * sicvt2);
     ar = p->ar;
     phs = p->lphs;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       //printf("early=%d\n", early);
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
       if (p->ampcod) {
@@ -139,7 +139,7 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
       }
       denom = ftbl[(int32_t) (phsf*flen)];
       if (denom > FL(0.0002) || denom < -FL(0.0002)) {
-        double numerator_phase = phsf * tnp1;
+        cs_double numerator_phase = phsf * tnp1;
         BUZZ_WRAP(numerator_phase);
         num = ftbl[(int32_t)(numerator_phase*flen)];
         ar[n] = (num / denom - FL(1.0)) * scal;
@@ -166,7 +166,7 @@ int32_t gbzset(CSOUND *csound, GBUZZ *p)
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->floatph = !IS_POW_TWO(p->ftp->flen);
-      double phase = *p->iphs;
+      cs_double phase = *p->iphs;
       if (UNLIKELY(!isfinite(phase)))
         return csound->InitError(csound, "%s", Str("gbuzz: invalid initial phase"));
       if (phase >= 0.0) {
@@ -198,18 +198,18 @@ int32_t gbzset(CSOUND *csound, GBUZZ *p)
 int32_t gbuzz(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
-    MYFLT       *ar, *ampp, *cpsp, *ftbl;
-    double incf;
+    cs_float       *ar, *ampp, *cpsp, *ftbl;
+    cs_double incf;
     int32_t       phs, inc, lobits, lenmask,
       floatph = p->floatph, flen;
     int64_t k, km1, kpn, kpnm1;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       r, absr, num, denom, scal, last = p->last;
+    cs_float       r, absr, num, denom, scal, last = p->last;
     int32_t       nn;
     uint32_t lphs = (uint32_t)p->lphs;
-    double fphs = p->fphs;
+    cs_double fphs = p->fphs;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -219,8 +219,8 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
     lenmask = ftp->lenmask;
     ampp = p->xamp;
     cpsp = p->xcps;
-    double harmonics = fabs((double)*p->kn);
-    double lowest = (double)*p->kk;
+    cs_double harmonics = fabs((cs_double)*p->kn);
+    cs_double lowest = (cs_double)*p->kk;
     if (UNLIKELY(!(harmonics < 2147483648.0) ||
                  !(lowest >= INT32_MIN && lowest < 2147483648.0)))
       return csound->PerfError(csound, &(p->h),
@@ -247,16 +247,16 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
     scal =  *ampp * p->rsumr;
 
     if(floatph) {
-      incf = (double)*cpsp * CS_ONEDSR;
+      incf = (cs_double)*cpsp * CS_ONEDSR;
       GBUZZ_INCREMENT(incf);
     }
     else inc = (int32_t)(*cpsp * CS_SICVT);
 
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
       if (p->ampcod)
@@ -287,7 +287,7 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
       lphs &= PHMASK;
       } else {
       if (p->cpscod) {
-        incf = (double)cpsp[n] * CS_ONEDSR;
+        incf = (cs_double)cpsp[n] * CS_ONEDSR;
         GBUZZ_INCREMENT(incf);
       }
       denom = p->rsqp1 - p->twor * ftbl[(int32_t)(fphs*flen)];
@@ -331,8 +331,8 @@ int32_t plukset(CSOUND *csound, PLUCK *p)
     int32_t       npts, iphs;
     char        *auxp;
     FUNC        *ftp;
-    MYFLT       *ap, *fp;
-    MYFLT       phs, phsinc;
+    cs_float       *ap, *fp;
+    cs_float       phs, phsinc;
 
     if (UNLIKELY((npts = (int32_t)(CS_ESR / *p->icps)) < PLUKMIN)) {
                                         /* npts is wavelen in sampls */
@@ -340,24 +340,24 @@ int32_t plukset(CSOUND *csound, PLUCK *p)
     }
     if ((auxp = p->auxch.auxp) == NULL ||
         npts > p->maxpts) {     /* get newspace    */
-      csound->AuxAlloc(csound, (npts+1)*sizeof(MYFLT),&p->auxch);
+      csound->AuxAlloc(csound, (npts+1)*sizeof(cs_float),&p->auxch);
       auxp = p->auxch.auxp;
       p->maxpts = npts;                         /*      if reqd    */
     }
-    ap = (MYFLT *)auxp;                         /* as MYFLT array   */
+    ap = (cs_float *)auxp;                         /* as cs_float array   */
     if (*p->ifn == 0.0)
       for (n=npts; n--; )                       /* f0: fill w. rands */
-        *ap++ = (MYFLT) rand16(csound) * DV32768;
+        *ap++ = (cs_float) rand16(csound) * DV32768;
     else if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       fp = ftp->ftable;                         /* else from ftable  */
       phs = FL(0.0);
-      phsinc = (MYFLT)(ftp->flen/npts);
+      phsinc = (cs_float)(ftp->flen/npts);
       for (n=npts; n--; phs += phsinc) {
         iphs = (int32_t)phs;
         *ap++ = fp[iphs];
       }
     }
-    *ap = *(MYFLT *)auxp;                       /* last = copy of 1st */
+    *ap = *(cs_float *)auxp;                       /* last = copy of 1st */
     p->npts = npts;
     /* tuned pitch convt */
     p->sicps = (npts * FL(256.0) + FL(128.0)) * CS_ONEDSR;
@@ -407,12 +407,12 @@ int32_t plukset(CSOUND *csound, PLUCK *p)
 
 int32_t pluck(CSOUND *csound, PLUCK *p)
 {
-    MYFLT       *ar, *fp;
+    cs_float       *ar, *fp;
     int32_t       phs256, phsinc, ltwopi, offset;
     uint32_t koffset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       frac, diff;
+    cs_float       frac, diff;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD FIX */
     ar = p->ar;
@@ -420,22 +420,22 @@ int32_t pluck(CSOUND *csound, PLUCK *p)
     phs256 = p->phs256;
     ltwopi = p->npts << 8;
     if (UNLIKELY(phsinc > ltwopi)) goto err2;
-    if (UNLIKELY(koffset)) memset(ar, '\0', koffset*sizeof(MYFLT));
+    if (UNLIKELY(koffset)) memset(ar, '\0', koffset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=koffset; n<nsmps; n++) {
       offset = phs256 >> 8;
-      fp = (MYFLT *)p->auxch.auxp + offset;     /* lookup position   */
+      fp = (cs_float *)p->auxch.auxp + offset;     /* lookup position   */
       diff = fp[1] - fp[0];
-      frac = (MYFLT)(phs256 & 255) / FL(256.0); /*  w. interpolation */
+      frac = (cs_float)(phs256 & 255) / FL(256.0); /*  w. interpolation */
       ar[n] =   (fp[0] + diff*frac) * *p->kamp; /*  gives output val */
       if ((phs256 += phsinc) >= ltwopi) {
         int32_t nn;
-        MYFLT   newval, preval;
+        cs_float   newval, preval;
         phs256 -= ltwopi;               /* at phase wrap,    */
-        fp=(MYFLT *)p->auxch.auxp;
+        fp=(cs_float *)p->auxch.auxp;
         preval = fp[0];                 /*   copy last pnt   */
         fp[0] = fp[p->npts];            /*     to first,     */
         fp++;                           /*   apply smoothing */
@@ -552,14 +552,14 @@ static int16 rand15(CSOUND *csound)
 
 #define dv2_31          (FL(4.656612873077392578125e-10))
 /* The same bipolar conversion is required at startup and at later knots. */
-#define RAND31_VALUE(r) ((MYFLT)((int64_t)(r) * 2 - BIPOLAR) * dv2_31)
+#define RAND31_VALUE(r) ((cs_float)((int64_t)(r) * 2 - BIPOLAR) * dv2_31)
 
 /* Park-Miller states zero and 2^31-1 do not advance. Use the default seed
    when a fractional seed maps outside the usable integer range. */
-static int32_t rand31_seed(MYFLT seed)
+static int32_t rand31_seed(cs_float seed)
 {
-    double scaled = (double)seed * 2147483648.0;
-    return scaled >= 1.0 && scaled < (double)BIPOLAR
+    cs_double scaled = (cs_double)seed * 2147483648.0;
+    return scaled >= 1.0 && scaled < (cs_double)BIPOLAR
       ? (int32_t)scaled : 1073741824;
 }
 
@@ -627,7 +627,7 @@ int32_t krand(CSOUND *csound, RAND *p)
       rand *= RNDMUL;
       rand += 1;
       /* IV - Jul 11 2002 */
-      *p->ar = *p->base + (MYFLT)rand * *p->xamp * DV32768;
+      *p->ar = *p->base + (cs_float)rand * *p->xamp * DV32768;
       p->rand = rand;
     }
     return OK;
@@ -636,19 +636,19 @@ int32_t krand(CSOUND *csound, RAND *p)
 int32_t arand(CSOUND *csound, RAND *p)
 {
     IGN(csound);
-    MYFLT       *ar;
+    cs_float       *ar;
     int16       rndmul = RNDMUL;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       ampscl;
-    MYFLT       base = *p->base;
+    cs_float       ampscl;
+    cs_float       base = *p->base;
 
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     if (!p->new) {
       int16     rand = p->rand;
@@ -657,16 +657,16 @@ int32_t arand(CSOUND *csound, RAND *p)
         for (n=offset;n<nsmps;n++) {
           rand *= rndmul;
           rand += 1;
-          ar[n] = base + (MYFLT)rand * ampscl;          /* IV - Jul 11 2002 */
+          ar[n] = base + (cs_float)rand * ampscl;          /* IV - Jul 11 2002 */
         }
       }
       else {
-        MYFLT *xamp = p->xamp;
+        cs_float *xamp = p->xamp;
         for (n=offset;n<nsmps;n++) {
           rand *= rndmul;
           rand += 1;
           /* IV - Jul 11 2002 */
-          ar[n] = base + (MYFLT)rand * xamp[n] * DV32768;
+          ar[n] = base + (cs_float)rand * xamp[n] * DV32768;
         }
       }
       p->rand = rand;   /* save current rand */
@@ -677,11 +677,11 @@ int32_t arand(CSOUND *csound, RAND *p)
         ampscl = *p->xamp * dv2_31;
         for (n=offset;n<nsmps;n++) {
           rand = randint31(rand);
-          ar[n] = base + (MYFLT)((int64_t)rand * 2 - BIPOLAR) * ampscl;
+          ar[n] = base + (cs_float)((int64_t)rand * 2 - BIPOLAR) * ampscl;
         }
       }
       else {
-        MYFLT *xamp = p->xamp;
+        cs_float *xamp = p->xamp;
         for (n=offset;n<nsmps;n++) {
           rand = randint31(rand);
           ar[n] = base +
@@ -705,7 +705,7 @@ int32_t rhset(CSOUND *csound, RANDH *p)
          csound->Message(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           p->rand = (int32_t) (seed & 0xFFFFUL);
-          p->num1 = (MYFLT) ((int16) p->rand) * DV32768;
+          p->num1 = (cs_float) ((int16) p->rand) * DV32768;
         }
         else {
           p->rand = (int32_t) (seed % 0x7FFFFFFEUL) + 1L;
@@ -741,7 +741,7 @@ int32_t krandh(CSOUND *csound, RANDH *p)
         int16 rand = (int16)p->rand;
         rand *= RNDMUL;                         /*      & recalc number */
         rand += 1;
-        p->num1 = (MYFLT)rand * DV32768;        /* IV - Jul 11 2002 */
+        p->num1 = (cs_float)rand * DV32768;        /* IV - Jul 11 2002 */
         p->rand = rand;
       }
       else {
@@ -759,16 +759,16 @@ int32_t randh(CSOUND *csound, RANDH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       *ar, *ampp, *cpsp;
-    MYFLT       base = *p->base;
+    cs_float       *ar, *ampp, *cpsp;
+    cs_float       base = *p->base;
 
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     inc = p->cpscod ? 0 : (int64_t)(*cpsp * CS_SICVT);
     for (n=offset;n<nsmps;n++) {
@@ -782,7 +782,7 @@ int32_t randh(CSOUND *csound, RANDH *p)
           int16 rand = p->rand;
           rand *= RNDMUL;                       /*   calc new number */
           rand += 1;
-          p->num1 = (MYFLT)rand * DV32768;      /* IV - Jul 11 2002 */
+          p->num1 = (cs_float)rand * DV32768;      /* IV - Jul 11 2002 */
           p->rand = rand;
         }
         else {
@@ -809,11 +809,11 @@ int32_t riset(CSOUND *csound, RANDI *p)
           int16 rand = (int16)seed;
 /*           int16 ss = rand; */
           /* IV - Jul 11 2002 */
-          p->num1 = (MYFLT)(rand) * DV32768; /* store num1,2 */
+          p->num1 = (cs_float)(rand) * DV32768; /* store num1,2 */
           rand *= RNDMUL;         /*      recalc random   */
           rand += 1;
           /* IV - Jul 11 2002 */
-          p->num2 = (MYFLT)(p->rand=rand) * DV32768;
+          p->num2 = (cs_float)(p->rand=rand) * DV32768;
 /*           printf("seed, rand, num1, num2 = %d(%x), %d*%x), %f, %f\n", */
 /*                  ss,ss,p->rand, p->rand, p->num1, p->num2); */
         }
@@ -830,7 +830,7 @@ int32_t riset(CSOUND *csound, RANDI *p)
         rand *= RNDMUL;                 /*      to 2nd value    */
         rand += 1;
         p->num1 = *p->iseed;                    /*      store num1,2    */
-        p->num2 = (MYFLT)rand * DV32768;        /* IV - Jul 11 2002 */
+        p->num2 = (cs_float)rand * DV32768;        /* IV - Jul 11 2002 */
         p->rand = rand;
       }
       else {
@@ -852,7 +852,7 @@ int32_t riset(CSOUND *csound, RANDI *p)
 int32_t krandi(CSOUND *csound, RANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
    IGN(csound);
-    *p->ar = *p->base + (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
+    *p->ar = *p->base + (p->num1 + (cs_float)p->phs * p->dfdmax) * *p->xamp;
     p->phs += (int64_t)(*p->xcps * CS_KICVT); /* phs += inc           */
     if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
@@ -861,7 +861,7 @@ int32_t krandi(CSOUND *csound, RANDI *p)
         rand *= RNDMUL;                         /*      recalc random   */
         rand += 1;
         p->num1 = p->num2;                      /*      & new num vals  */
-        p->num2 = (MYFLT)rand * DV32768;        /* IV - Jul 11 2002 */
+        p->num2 = (cs_float)rand * DV32768;        /* IV - Jul 11 2002 */
         p->rand = rand;
       }
       else {
@@ -881,22 +881,22 @@ int32_t randi(CSOUND *csound, RANDI *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       *ar, *ampp, *cpsp;
-    MYFLT       base = *p->base;
+    cs_float       *ar, *ampp, *cpsp;
+    cs_float       base = *p->base;
 
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     inc = p->cpscod ? 0 : (int64_t)(*cpsp * CS_SICVT);
     for (n=offset;n<nsmps;n++) {
       if (p->cpscod) inc = (int64_t)(cpsp[n] * CS_SICVT);
       /* IV - Jul 11 2002 */
-      ar[n] = base + (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[p->ampcod ? n : 0];
+      ar[n] = base + (p->num1 + (cs_float)phs * p->dfdmax) * ampp[p->ampcod ? n : 0];
       phs += inc;                               /* phs += inc       */
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
@@ -905,7 +905,7 @@ int32_t randi(CSOUND *csound, RANDI *p)
           rand *= RNDMUL;                       /*   calc new numbers*/
           rand += 1;
           p->num1 = p->num2;
-          p->num2 = (MYFLT)rand * DV32768;      /* IV - Jul 11 2002 */
+          p->num2 = (cs_float)rand * DV32768;      /* IV - Jul 11 2002 */
           p->rand = rand;
         }
         else {
@@ -937,16 +937,16 @@ int32_t rcset(CSOUND *csound, RANDC *p)
           int16 rand = (int16)seed;
 /*           int16 ss = rand; */
           /* IV - Jul 11 2002 */
-          p->num1 = (MYFLT)(rand) * DV32768; /* store num1,2 */
+          p->num1 = (cs_float)(rand) * DV32768; /* store num1,2 */
           rand *= RNDMUL;         /*      recalc random   */
           rand += 1;
-          p->num2 = (MYFLT)(rand) * DV32768;
+          p->num2 = (cs_float)(rand) * DV32768;
           rand *= RNDMUL;         /*      recalc random   */
           rand += 1;
-          p->num3 = (MYFLT)(rand) * DV32768;
+          p->num3 = (cs_float)(rand) * DV32768;
           rand *= RNDMUL;         /*      recalc random   */
           rand += 1;
-          p->num4 = (MYFLT)(p->rand=rand) * DV32768;
+          p->num4 = (cs_float)(p->rand=rand) * DV32768;
         }
         else {
           p->rand = randint31((int32_t) (seed % 0x7FFFFFFEUL) + 1L);
@@ -965,13 +965,13 @@ int32_t rcset(CSOUND *csound, RANDC *p)
         rand *= RNDMUL;                 /*      to 2nd value    */
         rand += 1;
         p->num1 = *p->iseed;                    /*      store num1,2    */
-        p->num2 = (MYFLT)rand * DV32768;        /* IV - Jul 11 2002 */
+        p->num2 = (cs_float)rand * DV32768;        /* IV - Jul 11 2002 */
         rand *= RNDMUL;                 /*      to 2nd value    */
         rand += 1;
-        p->num3 = (MYFLT)rand * DV32768;
+        p->num3 = (cs_float)rand * DV32768;
         rand *= RNDMUL;                 /*      to 2nd value    */
         rand += 1;
-        p->num4 = (MYFLT)rand * DV32768;
+        p->num4 = (cs_float)rand * DV32768;
         p->rand = rand;
       }
       else {
@@ -997,11 +997,11 @@ int32_t rcset(CSOUND *csound, RANDC *p)
 int32_t krandc(CSOUND *csound, RANDC *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     IGN(csound);
-    MYFLT a0         =   p->num4 - p->num3 - p->num1 + p->num2;
-    MYFLT a1         =   p->num1 - p->num2 - a0;
-    MYFLT a2         =   p->num3 - p->num1;
-    MYFLT a3         =   p->num2;
-    MYFLT mu         =   (MYFLT)p->phs / (MYFLT)MAXLEN;
+    cs_float a0         =   p->num4 - p->num3 - p->num1 + p->num2;
+    cs_float a1         =   p->num1 - p->num2 - a0;
+    cs_float a2         =   p->num3 - p->num1;
+    cs_float a3         =   p->num2;
+    cs_float mu         =   (cs_float)p->phs / (cs_float)MAXLEN;
     *p->ar = *p->base + (((a0 * mu +a1) * mu+a2) * mu + a3) * *p->xamp;
     p->phs += (int64_t)(*p->xcps * CS_KICVT); /* phs += inc           */
     if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
@@ -1013,7 +1013,7 @@ int32_t krandc(CSOUND *csound, RANDC *p)
         p->num1 = p->num2;                      /*      & new num vals  */
         p->num2 = p->num3;
         p->num3 = p->num4;
-        p->num4 = (MYFLT)rand * DV32768;
+        p->num4 = (cs_float)rand * DV32768;
         p->rand = rand;
       }
       else {
@@ -1034,27 +1034,27 @@ int32_t randc(CSOUND *csound, RANDC *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       *ar, *ampp, *cpsp;
-    MYFLT       mu;
-    MYFLT       base = *p->base;
-    MYFLT a0         =   p->num4 - p->num3 - p->num1 + p->num2;
-    MYFLT a1         =   p->num1 - p->num2 - a0;
-    MYFLT a2         =   p->num3 - p->num1;
-    MYFLT a3         =   p->num2;
+    cs_float       *ar, *ampp, *cpsp;
+    cs_float       mu;
+    cs_float       base = *p->base;
+    cs_float a0         =   p->num4 - p->num3 - p->num1 + p->num2;
+    cs_float a1         =   p->num1 - p->num2 - a0;
+    cs_float a2         =   p->num3 - p->num1;
+    cs_float a3         =   p->num2;
     cpsp = p->xcps;
     ampp = p->xamp;
     inc = p->cpscod ? 0 : (int64_t)(*cpsp * CS_SICVT);
     ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
 
     for (n=offset;n<nsmps;n++) {
       if (p->cpscod) inc = (int64_t)(cpsp[n] * CS_SICVT);
 
-      mu         =   (MYFLT)phs/(MYFLT)MAXLEN;
+      mu         =   (cs_float)phs/(cs_float)MAXLEN;
 
       ar[n]  =   base + (((a0 * mu +a1) * mu+a2) * mu + a3) * ampp[p->ampcod ? n : 0];
 
@@ -1068,7 +1068,7 @@ int32_t randc(CSOUND *csound, RANDC *p)
           p->num1 = p->num2;                      /*      & new num vals  */
           p->num2 = p->num3;
           p->num3 = p->num4;
-          p->num4 = (MYFLT)rand * DV32768;
+          p->num4 = (cs_float)rand * DV32768;
           p->rand = rand;
         }
         else {

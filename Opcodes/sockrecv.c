@@ -58,10 +58,10 @@ static  int32_t     deinit_udpRecv(CSOUND *csound, void *pdata);
 
 typedef struct {
   OPDS    h;
-  MYFLT   *asig;
-  MYFLT   *res;
+  cs_float   *asig;
+  cs_float   *res;
   STRINGDAT *ipaddress;
-  MYFLT *port;
+  cs_float *port;
   AUXCH   aux, tmp;
 #if defined(WIN32) && !defined(__CYGWIN__)
   SOCKET sock, conn;
@@ -76,7 +76,7 @@ typedef struct {
   OPDS    h;
   STRINGDAT *kstr;
   STRINGDAT *ipaddress;
-  MYFLT *port;
+  cs_float *port;
   AUXCH   aux, tmp;
   int32_t     sock, conn;
   struct sockaddr_in server_addr;
@@ -86,9 +86,9 @@ typedef struct {
   OPDS    h;
   /* 1 channel: ptr1=asig, ptr2=port, ptr3=buffnos */
   /* 2 channel: ptr1=asigl, ptr2=asigr, ptr3=port, ptr4=buffnos */
-  MYFLT   *ptr1, *ptr2, *ptr3, *ptr4;
+  cs_float   *ptr1, *ptr2, *ptr3, *ptr4;
   AUXCH   buffer, tmp;
-  MYFLT   *buf;
+  cs_float   *buf;
   int32_t     sock;
   int32_t wsa_started;
   volatile int32_t threadon;
@@ -106,7 +106,7 @@ typedef struct {
   /* 1 channel: ptr1=asig, ptr2=port, ptr3=buffnos */
   /* 2 channel: ptr1=asigl, ptr2=asigr, ptr3=port, ptr4=buffnos */
   STRINGDAT *ptr1;
-  MYFLT   *ptr2, *ptr3, *ptr4;
+  cs_float   *ptr2, *ptr3, *ptr4;
   AUXCH   buffer, tmp;
   char    *buf;
   int32_t     sock;
@@ -162,7 +162,7 @@ static uintptr_t udpRecv(void *pdata)
     struct sockaddr from;
     socklen_t clilen = sizeof(from);
     SOCKRECV *p = (SOCKRECV *) pdata;
-    MYFLT   *tmp = (MYFLT *) p->tmp.auxp;
+    cs_float   *tmp = (cs_float *) p->tmp.auxp;
     int32_t     bytes;
     CSOUND *csound = p->cs;
 
@@ -170,7 +170,7 @@ static uintptr_t udpRecv(void *pdata)
       /* get the data from the socket and store it in a tmp buffer */
       if ((bytes = (int32_t) recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen)) > 0) {
         csound->WriteCircularBuffer(csound, p->cb, tmp,
-                                    bytes/(sizeof(MYFLT)*p->channels));
+                                    bytes/(sizeof(cs_float)*p->channels));
       }
     }
     return (uintptr_t) 0;
@@ -209,7 +209,7 @@ static uintptr_t udpRecv_S(void *pdata)
 /* UDP version one channel */
 static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
 {
-    MYFLT   *buf;
+    cs_float   *buf;
     p->sock = SOCKET_ERROR;
     p->wsa_started = 0;
     p->thrid = NULL;
@@ -251,7 +251,7 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->buffer);
     else {
-      buf = (MYFLT *) p->buffer.auxp;   /* make sure buffer is empty */
+      buf = (cs_float *) p->buffer.auxp;   /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
     /* create a buffer to store the received interleaved audio data */
@@ -259,12 +259,12 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->tmp);
     else {
-      buf = (MYFLT *) p->tmp.auxp;      /* make sure buffer is empty */
+      buf = (cs_float *) p->tmp.auxp;      /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
-    p->buffsize = (int32_t)(p->buffer.size/sizeof(MYFLT));
+    p->buffsize = (int32_t)(p->buffer.size/sizeof(cs_float));
     p->channels = 1;
-    p->cb = csound->CreateCircularBuffer(csound,  *p->ptr3, sizeof(MYFLT));
+    p->cb = csound->CreateCircularBuffer(csound,  *p->ptr3, sizeof(cs_float));
     /* create thread */
     p->threadon = 1;
     p->thrid = csound->CreateThread(udpRecv, (void *) p);
@@ -334,14 +334,14 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
       memset(buf, 0, STRING_RECV_BUFFER_SIZE);
     }
     p->buffsize = (int32_t) p->buffer.size;
-    /* validate before casting: an out-of-range or NaN MYFLT to int64
+    /* validate before casting: an out-of-range or NaN cs_float to int64
        conversion is undefined behaviour */
     if (UNLIKELY(!(*p->ptr3 >= FL(1.0)) ||
-                 (double) *p->ptr3 >
-                 (double) (INT32_MAX / (int32_t) sizeof(MYFLT))))
+                 (cs_double) *p->ptr3 >
+                 (cs_double) (INT32_MAX / (int32_t) sizeof(cs_float))))
       return csound->InitError(csound, "%s",
                                Str("invalid sockrecv buffer length"));
-    circular_buffer_size = (int64_t) *p->ptr3 * (int64_t) sizeof(MYFLT);
+    circular_buffer_size = (int64_t) *p->ptr3 * (int64_t) sizeof(cs_float);
     p->cb = csound->CreateCircularBuffer(csound,
                                          (int32_t) circular_buffer_size,
                                          sizeof(char));
@@ -355,7 +355,7 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
 
 static int32_t send_recv_k(CSOUND *csound, SOCKRECV *p)
 {
-    MYFLT   *ksig = p->ptr1;
+    cs_float   *ksig = p->ptr1;
     *ksig = FL(0.0);
     if (p->outsamps >= p->rcvsamps){
       p->outsamps =  0;
@@ -400,13 +400,13 @@ static int32_t send_recv_S(CSOUND *csound, SOCKRECVSTR *p)
 
 static int32_t send_recv(CSOUND *csound, SOCKRECV *p)
 {
-    MYFLT   *asig = p->ptr1;
-    MYFLT   *buf = p->buf;
+    cs_float   *asig = p->ptr1;
+    cs_float   *buf = p->buf;
     int32_t     i, nsmps = CS_KSMPS;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t outsamps = p->outsamps, rcvsamps = p->rcvsamps;
-    memset(asig, 0, sizeof(MYFLT)*nsmps);
+    memset(asig, 0, sizeof(cs_float)*nsmps);
     if (UNLIKELY(early)) nsmps -= early;
 
     for(i=offset; i < nsmps ; i++){
@@ -427,7 +427,7 @@ static int32_t send_recv(CSOUND *csound, SOCKRECV *p)
 /* UDP version two channel */
 static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
 {
-    MYFLT   *buf;
+    cs_float   *buf;
     p->sock = SOCKET_ERROR;
     p->wsa_started = 0;
     p->thrid = NULL;
@@ -463,7 +463,7 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->buffer);
     else {
-      buf = (MYFLT *) p->buffer.auxp;   /* make sure buffer is empty */
+      buf = (cs_float *) p->buffer.auxp;   /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
     /* create a buffer to store the received interleaved audio data */
@@ -471,13 +471,13 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->tmp);
     else {
-      buf = (MYFLT *) p->tmp.auxp;      /* make sure buffer is empty */
+      buf = (cs_float *) p->tmp.auxp;      /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
     /* Queue whole stereo frames so a full queue cannot split a pair. */
     p->channels = 2;
     p->cb = csound->CreateCircularBuffer(csound, (int32_t)*p->ptr4 / 2,
-                                        2 * sizeof(MYFLT));
+                                        2 * sizeof(cs_float));
     if (UNLIKELY(p->cb == NULL))
       return csound->InitError(csound, "%s", Str("sockrecvs: invalid buffer size"));
     /* create thread */
@@ -485,22 +485,22 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     p->thrid = csound->CreateThread(udpRecv, (void *) p);
     p->buf = p->buffer.auxp;
     p->outsamps = p->rcvsamps = 0;
-    p->buffsize = (int32_t)(p->buffer.size/sizeof(MYFLT));
+    p->buffsize = (int32_t)(p->buffer.size/sizeof(cs_float));
     return OK;
 }
 
 static int32_t send_recvS(CSOUND *csound, SOCKRECV *p)
 {
-    MYFLT   *asigl = p->ptr1;
-    MYFLT   *asigr = p->ptr2;
-    MYFLT   *buf = p->buf;
+    cs_float   *asigl = p->ptr1;
+    cs_float   *asigr = p->ptr2;
+    cs_float   *buf = p->buf;
     int32_t     i, nsmps = CS_KSMPS;
     int32_t outsamps = p->outsamps, rcvsamps = p->rcvsamps;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 
-    memset(asigl, 0, sizeof(MYFLT)*nsmps);
-    memset(asigr, 0, sizeof(MYFLT)*nsmps);
+    memset(asigl, 0, sizeof(cs_float)*nsmps);
+    memset(asigr, 0, sizeof(cs_float)*nsmps);
 
     if (UNLIKELY(early)) nsmps -= early;
     for(i=offset; i < nsmps ; i++){
@@ -599,11 +599,11 @@ static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
-    int32_t remaining = sizeof(MYFLT) * (CS_KSMPS - offset - early);
+    int32_t remaining = sizeof(cs_float) * (CS_KSMPS - offset - early);
     int32_t received = 0;
     char *q = (char *) &p->asig[offset];
 
-    memset(p->asig, 0, sizeof(MYFLT) * CS_KSMPS);
+    memset(p->asig, 0, sizeof(cs_float) * CS_KSMPS);
     if (!p->init_done) {
       if (p->res) *p->res = -1;
       return OK;
@@ -612,8 +612,8 @@ static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
       int32_t n = (int32_t) recv(p->conn, q, remaining, 0);
       if (n == 0) {
         /* Discard an incomplete sample at end of stream. */
-        memset(q - received % sizeof(MYFLT), 0,
-               received % sizeof(MYFLT));
+        memset(q - received % sizeof(cs_float), 0,
+               received % sizeof(cs_float));
         deinit_srecv(csound, p);
         if (p->res) *p->res = -1;
         return OK;
@@ -640,8 +640,8 @@ static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
 typedef struct _rawosc {
   OPDS h;
   ARRAYDAT *sout;
-  MYFLT *kflag;
-  MYFLT  *port;
+  cs_float *kflag;
+  cs_float  *port;
   AUXCH   buffer;
 #if defined(WIN32) && !defined(__CYGWIN__)
   SOCKET sock;
@@ -686,7 +686,7 @@ static int32_t destroy_raw_osc(CSOUND *csound, void *pp) {
 
 static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
 {
-    MYFLT   *buf;
+    cs_float   *buf;
     const char *message;
     destroy_raw_osc(csound, p);
     p->sock = SOCKET_ERROR;
@@ -734,7 +734,7 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->buffer);
     else {
-      buf = (MYFLT *) p->buffer.auxp;   /* make sure buffer is empty */
+      buf = (cs_float *) p->buffer.auxp;   /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
     if(p->sout->data == NULL)
@@ -829,9 +829,9 @@ static int32_t oscraw_store_array(CSOUND *csound, STRINGDAT *str,
         return NOTOK;
       count *= (size_t) size;
     }
-    if (count > SIZE_MAX / sizeof(MYFLT))
+    if (count > SIZE_MAX / sizeof(cs_float))
       return NOTOK;
-    valueBytes = count * sizeof(MYFLT);
+    valueBytes = count * sizeof(cs_float);
     if (sizeof(dimensions) + shapeBytes > len ||
         valueBytes > len - sizeof(dimensions) - shapeBytes)
       return NOTOK;
@@ -858,9 +858,9 @@ static int32_t oscraw_store_array(CSOUND *csound, STRINGDAT *str,
     OSCRAW_APPEND("]:[");
     values = data + sizeof(dimensions) + shapeBytes;
     for (size_t j = 0; j < count; j++) {
-      MYFLT value;
+      cs_float value;
       memcpy(&value, values + j * sizeof(value), sizeof(value));
-      OSCRAW_APPEND(j == 0 ? "%.9g" : ",%.9g", (double) value);
+      OSCRAW_APPEND(j == 0 ? "%.9g" : ",%.9g", (cs_double) value);
     }
     OSCRAW_APPEND("]");
 #undef OSCRAW_APPEND
@@ -873,20 +873,20 @@ static int32_t oscraw_store_values(CSOUND *csound, STRINGDAT *str,
 {
     size_t count, capacity, used = 0;
     char *output;
-    if (len % sizeof(MYFLT) != 0)
+    if (len % sizeof(cs_float) != 0)
       return NOTOK;
-    count = len / sizeof(MYFLT);
+    count = len / sizeof(cs_float);
     if (hasCount) {
-      MYFLT declared;
+      cs_float declared;
       if (count == 0)
         return NOTOK;
       memcpy(&declared, data, sizeof(declared));
-      if (!(declared >= FL(0.0) && declared <= (MYFLT) (count - 1)))
+      if (!(declared >= FL(0.0) && declared <= (cs_float) (count - 1)))
         return NOTOK;
       count = (size_t) declared;
-      if (declared != (MYFLT) count)
+      if (declared != (cs_float) count)
         return NOTOK;
-      data += sizeof(MYFLT);
+      data += sizeof(cs_float);
     }
     capacity = 4 + count * 32;
     if (oscraw_reserve(csound, str, capacity - 1) != OK)
@@ -894,11 +894,11 @@ static int32_t oscraw_store_values(CSOUND *csound, STRINGDAT *str,
     output = str->data;
     output[used++] = '[';
     for (size_t i = 0; i < count; i++) {
-      MYFLT value;
+      cs_float value;
       int32_t written;
       memcpy(&value, data + i * sizeof(value), sizeof(value));
       written = snprintf(output + used, capacity - used,
-                         i == 0 ? "%.9g" : ",%.9g", (double) value);
+                         i == 0 ? "%.9g" : ",%.9g", (cs_double) value);
       if (written < 0 || (size_t) written >= capacity - used)
         return NOTOK;
       used += (size_t) written;
@@ -940,7 +940,7 @@ static int32_t oscraw_parse_message(CSOUND *csound, RAWOSC *p,
         memcpy(&value, &raw, sizeof(value));
         if (oscraw_reserve(csound, str, 31) != OK)
           return NOTOK;
-        snprintf(str->data, str->size, "%g", (double) value);
+        snprintf(str->data, str->size, "%g", (cs_double) value);
         break;
       }
       case 'i': {

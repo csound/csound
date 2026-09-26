@@ -39,8 +39,8 @@ template <typename T> struct Meter {
     T opcode = {};
     INSDS instrument = {};
     OPTXT text = {};
-    MYFLT interval = FL(0.015625);
-    std::array<MYFLT, 3> cells[32];
+    cs_float interval = FL(0.015625);
+    std::array<cs_float, 3> cells[32];
     explicit Meter(int outputs) {
         instrument.esr = 1024;
         instrument.ksmps = 8;
@@ -165,8 +165,8 @@ TEST_F(CpuMeterTests, LinuxMissingCoresAndCounterDecreases) {
 
 TEST_F(CpuMeterTests, LinuxFailuresReleaseFilesAndValidateInterval) {
     Meter<CPUMETER> meter(1);
-    for (MYFLT interval : {MYFLT(-1), std::numeric_limits<MYFLT>::infinity(),
-                          std::numeric_limits<MYFLT>::quiet_NaN()}) {
+    for (cs_float interval : {cs_float(-1), std::numeric_limits<cs_float>::infinity(),
+                          std::numeric_limits<cs_float>::quiet_NaN()}) {
         meter.interval = interval;
         EXPECT_EQ(cpupercent_init(csound, &meter.opcode), NOTOK);
         EXPECT_TRUE(files.empty());

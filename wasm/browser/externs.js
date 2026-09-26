@@ -119,6 +119,8 @@ var WasiFS;
  * csoundGet0dBFS: function(CsoundInst): number,
  * csoundGetA4: function(CsoundInst): number,
  * csoundGetCurrentTimeSamples: function(CsoundInst): number,
+ * csoundGetSizeOfCsFloat: function(CsoundInst): number,
+ * csoundGetSizeOfCsDouble: function(CsoundInst): number,
  * csoundGetSizeOfMYFLT: function(CsoundInst): number,
  * csoundSetOption: function(CsoundInst, string): number,
  * csoundSetParams: function(CsoundInst, Object): number,

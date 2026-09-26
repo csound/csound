@@ -30,32 +30,32 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *kout, *kindx, *avar;
+        cs_float   *kout, *kindx, *avar;
 } VA_GET;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *kval, *kindx, *avar;
+        cs_float   *kval, *kindx, *avar;
 } VA_SET;
 
 
 typedef struct {
         OPDS    h;
-        MYFLT   *kout, *avar, *kindx;
+        cs_float   *kout, *avar, *kindx;
 } VASIG_GET;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *avar, *kval, *kindx;
+        cs_float   *avar, *kval, *kindx;
 } VASIG_SET;
 
 static int32_t vaget(CSOUND *csound, VA_GET *p)
 {
-    double index = *p->kindx;
+    cs_double index = *p->kindx;
     uint32_t ndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    if (UNLIKELY(!(index >= 0.0 && index < (double)CS_KSMPS)))
+    if (UNLIKELY(!(index >= 0.0 && index < (cs_double)CS_KSMPS)))
       return csound->PerfError(csound, &(p->h),
                               Str("Out of range in vaget.k (%g)"), index);
     /* A checked nonnegative index truncates to the same sample as floor. */
@@ -69,11 +69,11 @@ static int32_t vaget(CSOUND *csound, VA_GET *p)
 
 static int32_t vaset(CSOUND *csound, VA_SET *p)
 {
-    double index = *p->kindx;
+    cs_double index = *p->kindx;
     uint32_t ndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    if (UNLIKELY(!(index >= 0.0 && index < (double)CS_KSMPS)))
+    if (UNLIKELY(!(index >= 0.0 && index < (cs_double)CS_KSMPS)))
       return csound->PerfError(csound, &(p->h),
                               Str("Out of range in vaset.k (%g)"), index);
     ndx = (uint32_t)index;
@@ -87,12 +87,12 @@ static int32_t vaset(CSOUND *csound, VA_SET *p)
 
 static int32_t vasigget(CSOUND *csound, VASIG_GET *p)
 {
-    double index = *p->kindx;
+    cs_double index = *p->kindx;
     uint32_t ndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 
-    if (UNLIKELY(!(index >= 0.0 && index < (double)CS_KSMPS)))
+    if (UNLIKELY(!(index >= 0.0 && index < (cs_double)CS_KSMPS)))
       return csound->PerfError(csound, &(p->h),
                               Str("Out of range in vasigget.k (%g)"), index);
     ndx = (uint32_t)index;
@@ -105,12 +105,12 @@ static int32_t vasigget(CSOUND *csound, VASIG_GET *p)
 
 static int32_t vasigset(CSOUND *csound, VASIG_SET *p)
 {
-    double index = *p->kindx;
+    cs_double index = *p->kindx;
     uint32_t ndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 
-    if (UNLIKELY(!(index >= 0.0 && index < (double)CS_KSMPS)))
+    if (UNLIKELY(!(index >= 0.0 && index < (cs_double)CS_KSMPS)))
       return csound->PerfError(csound, &(p->h),
                               Str("Out of range in vasigset.k (%g)"), index);
     ndx = (uint32_t)index;

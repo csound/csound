@@ -51,9 +51,9 @@ typedef struct _pvsdemix {
         PVSDAT  *fout;
         PVSDAT  *finleft;
         PVSDAT  *finright;
-        MYFLT   *pos;
-        MYFLT   *width;
-        MYFLT   *slices;
+        cs_float   *pos;
+        cs_float   *width;
+        cs_float   *slices;
         AUXCH   left;
         AUXCH   right;
         AUXCH   maxl;

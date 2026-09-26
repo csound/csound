@@ -13,7 +13,7 @@ struct FFTProbe {
     int inverses = 0;
 };
 
-void probeFFT(CSOUND *csound, void *setup, MYFLT *buffer)
+void probeFFT(CSOUND *csound, void *setup, cs_float *buffer)
 {
     auto *probe = static_cast<FFTProbe *>(csoundGetHostData(csound));
     auto *fft = static_cast<CSOUND_FFT_SETUP *>(setup);
@@ -29,7 +29,7 @@ void probeFFT(CSOUND *csound, void *setup, MYFLT *buffer)
         EXPECT_EQ(buffer[0], FL(0.0));
         EXPECT_GT(std::abs(buffer[1]), FL(0.0));
         EXPECT_LE(std::abs(buffer[1]), FL(8.0));
-        const double tolerance = sizeof(MYFLT) == sizeof(float) ? 1e-5 : 1e-12;
+        const cs_double tolerance = sizeof(cs_float) == sizeof(float) ? 1e-5 : 1e-12;
         EXPECT_NEAR(std::hypot(buffer[2], buffer[3]), 5.0, tolerance);
         std::fill(buffer, buffer + fft->N, FL(0.0));
     }
@@ -96,7 +96,7 @@ TEST_F(PaulstretchTests, TinyStretchReachesEndAndStaysSilent)
     bool heardSource = false;
     for (int i = 0; i < 5; ++i) {
         ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS) << messages();
-        const MYFLT *output = csoundGetSpout(csound);
+        const cs_float *output = csoundGetSpout(csound);
         for (uint32_t j = 0; j < csoundGetKsmps(csound); ++j) {
             if (i < 2) {
                 EXPECT_TRUE(std::isfinite(output[j]));

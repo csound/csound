@@ -55,7 +55,8 @@ if(BUILD_CSBEATS)
     endif()
     make_executable(csbeats "${csbeats_SRCS}" "${MATH_LIBRARY}")
 
-    target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+    target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+        ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
     target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/beats)
 endif()
 

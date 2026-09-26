@@ -7,7 +7,7 @@
 namespace {
 class MatrixSettersTests : public ::testing::Test {
 protected:
-  void run(const std::string &body, const std::vector<MYFLT> &expected = {},
+  void run(const std::string &body, const std::vector<cs_float> &expected = {},
            const char *error = nullptr, int cycles = 2)
   {
     CSOUND *csound = csoundCreate(nullptr, nullptr);

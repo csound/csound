@@ -9,20 +9,20 @@
 #include <cmath>
 
 struct Hello440 : csnd::Plugin<1, 0> {
-  double phase = 0.0;
-  double phase_inc = 0.0;
+  cs_double phase = 0.0;
+  cs_double phase_inc = 0.0;
 
   int init() {
-    const double two_pi = 6.283185307179586;
+    const cs_double two_pi = 6.283185307179586;
     phase_inc = (two_pi * 440.0) / sr();
     return OK;
   }
 
   int aperf() {
-    const double two_pi = 6.283185307179586;
+    const cs_double two_pi = 6.283185307179586;
     csnd::AudioSig out(this, outargs(0));
     for (auto &sample : out) {
-      sample = static_cast<MYFLT>(0.2 * std::sin(phase));
+      sample = static_cast<cs_float>(0.2 * std::sin(phase));
       phase += phase_inc;
       if (phase >= two_pi) {
         phase -= two_pi;

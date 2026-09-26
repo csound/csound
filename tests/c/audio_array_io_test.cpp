@@ -50,7 +50,7 @@ TEST_P(AudioArrayIOTests, OutputUsesArrayStrideAndKeepsMixerChannelsSeparate) {
 endin
 )";
   }
-  std::vector<double> left, right;
+  std::vector<cs_double> left, right;
   std::string score;
   for (int instrument : {1, 2}) {
     for (int block : {1, 4, 8, 16, 32}) {
@@ -77,7 +77,7 @@ endin
   ASSERT_NO_FATAL_FAILURE(start(orchestra, score));
   for (size_t base = 0; base < left.size(); base += 32) {
     ASSERT_EQ(0, csoundPerformKsmps(csound));
-    const MYFLT *output = csoundGetSpout(csound);
+    const cs_float *output = csoundGetSpout(csound);
     for (size_t i = 0; i < 32; ++i) {
       ASSERT_NEAR(output[2*i], left[base+i], 1e-6) << "sample " << base+i;
       ASSERT_NEAR(output[2*i+1], right[base+i], 1e-6) << "sample " << base+i;
@@ -110,16 +110,16 @@ TEST_P(AudioArrayIOTests, InputUsesStoredArrayStride) {
   score += "f 0 " + std::to_string(active.size()/1024.0);
   ASSERT_NO_FATAL_FAILURE(start(orchestra, score));
   for (size_t base = 0; base < active.size(); base += 32) {
-    MYFLT *input = csoundGetSpin(csound);
+    cs_float *input = csoundGetSpin(csound);
     ASSERT_NE(input, nullptr);
     for (size_t i = 0; i < 32; ++i) {
       input[2*i] = (base%128+i+1)/256.0;
       input[2*i+1] = -input[2*i];
     }
     ASSERT_EQ(0, csoundPerformKsmps(csound));
-    const MYFLT *output = csoundGetSpout(csound);
+    const cs_float *output = csoundGetSpout(csound);
     for (size_t i = 0; i < 32; ++i) {
-      double expected = active[base+i] ? (base%128+i+1)/256.0 : 0.0;
+      cs_double expected = active[base+i] ? (base%128+i+1)/256.0 : 0.0;
       ASSERT_NEAR(output[2*i], expected, 1e-6) << "sample " << base+i;
       ASSERT_NEAR(output[2*i+1], -expected, 1e-6) << "sample " << base+i;
     }
@@ -139,7 +139,7 @@ endin
   ASSERT_NO_FATAL_FAILURE(start(orchestra, "i 1 0 .25\nf 0 .5"));
   for (int block = 0; block < 8; ++block) {
     ASSERT_EQ(0, csoundPerformKsmps(csound));
-    const MYFLT *output = csoundGetSpout(csound);
+    const cs_float *output = csoundGetSpout(csound);
     for (int i = 0; i < 32; ++i) {
       ASSERT_NEAR(output[2*i], .25, 1e-6);
       ASSERT_NEAR(output[2*i+1], -.25, 1e-6);

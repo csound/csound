@@ -8,8 +8,8 @@
 extern "C" int64_t csound_test_diskin_pitch_step(int32_t use_array);
 extern "C" void *csound_test_diskin_control_create(void);
 extern "C" void csound_test_diskin_control_destroy(void *context);
-extern "C" void csound_test_diskin_control_publish(void *context, double pitch);
-extern "C" double csound_test_diskin_control_read(void *context, int32_t *reset);
+extern "C" void csound_test_diskin_control_publish(void *context, cs_double pitch);
+extern "C" cs_double csound_test_diskin_control_read(void *context, int32_t *reset);
 extern "C" void csound_test_diskin_pause_control_read(void *context);
 
 TEST(Diskin2ConcurrencyTests, ScalarStepDuringPitchReadInvalidatesOldHead)
@@ -33,12 +33,12 @@ protected:
         if (control != nullptr)
             csound_test_diskin_control_destroy(control);
     }
-    void expectControl(double pitch, int32_t expectedReset) {
+    void expectControl(cs_double pitch, int32_t expectedReset) {
         int32_t reset = -1;
         EXPECT_EQ(csound_test_diskin_control_read(control, &reset), pitch);
         EXPECT_EQ(reset, expectedReset);
     }
-    void publish(double pitch) {
+    void publish(cs_double pitch) {
         csound_test_diskin_control_publish(control, pitch);
     }
 };
@@ -101,11 +101,11 @@ TEST_F(Diskin2ControlTests, ConcurrentStepsKeepPitchAndResetTogether)
         }
         done.store(true);
     });
-    double previous = 1;
+    cs_double previous = 1;
     start.store(true);
     do {
         int32_t reset;
-        double pitch = csound_test_diskin_control_read(control, &reset);
+        cs_double pitch = csound_test_diskin_control_read(control, &reset);
         EXPECT_GE(pitch, previous);
         if (pitch != previous)
             EXPECT_EQ(reset, 1);
@@ -113,7 +113,7 @@ TEST_F(Diskin2ControlTests, ConcurrentStepsKeepPitchAndResetTogether)
     } while (!done.load());
     perf.join();
     int32_t reset;
-    double pitch = csound_test_diskin_control_read(control, &reset);
+    cs_double pitch = csound_test_diskin_control_read(control, &reset);
     EXPECT_EQ(pitch, lastPitch);
     if (pitch != previous)
         EXPECT_EQ(reset, 1);

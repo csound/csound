@@ -118,9 +118,7 @@ typedef uint_least16_t uint16;
 #include <AvailabilityMacros.h>
 #endif
 
-#if !defined(USE_DOUBLE)
-#include "float-version.h"
-#endif
+#include "csound_types.h"
 
 #ifdef USE_DOUBLE
 /* Defined here as Android does not have log2 functions */
@@ -195,23 +193,12 @@ typedef uint_least16_t uint16;
 #include <unistd.h>
 #endif
 
-/* Experiment with doubles or floats */
-
-#ifndef __MYFLT_DEF
-#  define __MYFLT_DEF
-#  ifndef USE_DOUBLE
-#    define MYFLT float
-#  else
-#    define MYFLT double
-#  endif
-#endif
-
-/* Aligning to double boundaries, should work with MYFLT as float or double */
-#define CS_FLOAT_ALIGN(x) ((int32_t)(x + sizeof(MYFLT)-1) & (~(sizeof(MYFLT)-1)))
+/* Aligning to double boundaries, should work with cs_float as float or double */
+#define CS_FLOAT_ALIGN(x) ((int32_t)(x + sizeof(cs_float)-1) & (~(sizeof(cs_float)-1)))
 
 #if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
 
-#define FL(x) ((MYFLT) (x))
+#define FL(x) ((cs_float) (x))
 
 /* find out operating system if not specified on the command line */
 
@@ -356,69 +343,69 @@ typedef unsigned long       uintptr_t;
 #if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
 
 /* macros for converting floats to integers */
-/* MYFLT2LONG: converts with unspecified rounding */
-/* MYFLT2LRND: rounds to nearest integer */
+/* CS_FLOAT2LONG: converts with unspecified rounding */
+/* CS_FLOAT2LRND: rounds to nearest integer */
 
 #ifdef USE_LRINT
 #  ifndef USE_DOUBLE
-#    define MYFLT2LONG(x) (x > LONG_MIN && x < (double)LONG_MAX ? \
+#    define CS_FLOAT2LONG(x) (x > LONG_MIN && x < (cs_double)LONG_MAX ? \
                            (int32) lrintf((float) (x)) : 0)
-#    define MYFLT2LRND(x) (x > LONG_MIN && x < (double)LONG_MAX ? \
+#    define CS_FLOAT2LRND(x) (x > LONG_MIN && x < (cs_double)LONG_MAX ? \
                            (int32) lrintf((float) (x)) : 0)
 #  else
-#    define MYFLT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? \
-                           (int32) lrint((double) (x)) : 0)
-#    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? \
-                           (int32) lrint((double) (x)) : 0)
-#    define MYFLT2LONG64(x) (x > LONG_MIN && x < LONG_MAX ? \
-                           (int64_t) lrintl((double) (x)) : 0)
-#    define MYFLT2LRND64(x) (x > LONG_MIN && x < LONG_MAX ? \
-                           (int64_t) lrintl((double) (x)) : 0)
+#    define CS_FLOAT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int32) lrint((cs_double) (x)) : 0)
+#    define CS_FLOAT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int32) lrint((cs_double) (x)) : 0)
+#    define CS_FLOAT2LONG64(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int64_t) lrintl((cs_double) (x)) : 0)
+#    define CS_FLOAT2LRND64(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int64_t) lrintl((cs_double) (x)) : 0)
 #  endif
 #elif defined(MSVC)
 #include <emmintrin.h>
 #  ifndef USE_DOUBLE
 // From Agner Fog optimisation manuals p.144
-static inline int32_t MYFLT2LONG (float const x) {
+static inline int32_t CS_FLOAT2LONG (float const x) {
     return _mm_cvtss_si32 (_mm_load_ss (&x));
 }
 
-static inline int32_t MYFLT2LRND (float const x) {
+static inline int32_t CS_FLOAT2LRND (float const x) {
     return _mm_cvtss_si32 (_mm_load_ss (&x));
 }
 
 #  else
-static inline int32_t MYFLT2LONG (double const x) {
+static inline int32_t CS_FLOAT2LONG (cs_double const x) {
     return _mm_cvtsd_si32 (_mm_load_sd (&x));
 }
 
-static inline int32_t MYFLT2LRND (double const x) {
+static inline int32_t CS_FLOAT2LRND (cs_double const x) {
     return _mm_cvtsd_si32 (_mm_load_sd (&x));
 }
 #  endif
 #else
 #  ifndef USE_DOUBLE
-#    define MYFLT2LONG(x) ((int32) (x))
+#    define CS_FLOAT2LONG(x) ((int32) (x))
 #    if defined(HAVE_GCC3) && defined(__i386__) && !defined(__ICC)
-#      define MYFLT2LRND(x) ((int32) lrintf((float) (x)))
+#      define CS_FLOAT2LRND(x) ((int32) lrintf((float) (x)))
 #    else
-static inline int32 MYFLT2LRND(float fval)
+static inline int32 CS_FLOAT2LRND(float fval)
 {
     return ((int32) (fval + (fval < 0.0f ? -0.5f : 0.5f)));
 }
 #    endif
 #  else
-#    define MYFLT2LONG(x) ((int32) (x))
+#    define CS_FLOAT2LONG(x) ((int32) (x))
 #    if defined(HAVE_GCC3) && defined(__i386__) && !defined(__ICC)
-#      define MYFLT2LRND(x) ((int32) lrint((double) (x)))
+#      define CS_FLOAT2LRND(x) ((int32) lrint((cs_double) (x)))
 #    else
 
-static inline int32 MYFLT2LRND(double fval)
+static inline int32 CS_FLOAT2LRND(cs_double fval)
 {
     return ((int32) (fval + (fval < 0.0 ? -0.5 : 0.5)));
 }
 
-static inline int64 MYFLT2LRND64(double fval)
+static inline int64 CS_FLOAT2LRND64(cs_double fval)
 {
     return ((int64) (fval + (fval < 0.0 ? -0.5 : 0.5)));
 }
@@ -428,9 +415,9 @@ static inline int64 MYFLT2LRND64(double fval)
 #endif
 
 #ifdef HAVE_C99
-#define MYFLT2UINT64(x) ((uint64_t) llrint(x))
+#define CS_FLOAT2UINT64(x) ((uint64_t) llrint(x))
 #else
-#define MYFLT2UINT64(x) ((uint64_t) ((x) + 0.5))
+#define CS_FLOAT2UINT64(x) ((uint64_t) ((x) + 0.5))
 #endif
 
 /* inline functions and macros for clamping denormals to zero */
@@ -442,10 +429,14 @@ static inline float csoundUndenormalizeFloat(float x)
     return ((x + 1.0e-30f) - tmp);
 }
 
-static inline double csoundUndenormalizeDouble(double x)
+static inline cs_double csoundUndenormalizeDouble(cs_double x)
 {
-    volatile double tmp = 1.0e-200;
+#ifdef USE_FLOAT
+    return csoundUndenormalizeFloat(x);
+#else
+    volatile cs_double tmp = 1.0e-200;
     return ((x + 1.0e-200) - tmp);
+#endif
 }
 #else
 #  define csoundUndenormalizeFloat(x)   x
@@ -453,9 +444,9 @@ static inline double csoundUndenormalizeDouble(double x)
 #endif
 
 #ifndef USE_DOUBLE
-#  define csoundUndenormalizeMYFLT      csoundUndenormalizeFloat
+#  define csoundUndenormalizeCsFloat      csoundUndenormalizeFloat
 #else
-#  define csoundUndenormalizeMYFLT      csoundUndenormalizeDouble
+#  define csoundUndenormalizeCsFloat      csoundUndenormalizeDouble
 #endif
 
 #endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
@@ -650,9 +641,18 @@ typedef int32_t spin_lock_t;
 #endif
 
 #ifdef USE_DOUBLE
-#  define MYFLT_INT_TYPE int64_t
+#  define CS_FLOAT_INT_TYPE int64_t
 #else
-#  define MYFLT_INT_TYPE int32_t
+#  define CS_FLOAT_INT_TYPE int32_t
 #endif
+
+/* CS7 source compatibility: use the CS_FLOAT names in new code. */
+#define MYFLT2LONG CS_FLOAT2LONG
+#define MYFLT2LRND CS_FLOAT2LRND
+#define MYFLT2LONG64 CS_FLOAT2LONG64
+#define MYFLT2LRND64 CS_FLOAT2LRND64
+#define MYFLT2UINT64 CS_FLOAT2UINT64
+#define MYFLT_INT_TYPE CS_FLOAT_INT_TYPE
+#define csoundUndenormalizeMYFLT csoundUndenormalizeCsFloat
 
 #endif  /* CSOUND_SYSDEP_H */

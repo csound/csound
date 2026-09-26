@@ -44,15 +44,15 @@
 #define RADIANS_KIND 2
 
 typedef struct {
-    MYFLT x;
-    MYFLT y;
-    MYFLT z;
+    cs_float x;
+    cs_float y;
+    cs_float z;
 } CARTESIAN_COORD;
 
 typedef struct {
-    MYFLT rho;
-    MYFLT phi;
-    MYFLT theta;
+    cs_float rho;
+    cs_float phi;
+    cs_float theta;
 } POLAR_COORD;
 
 typedef struct {
@@ -67,9 +67,9 @@ typedef struct {
     AUXCH internal_out_frame;
 
     CARTESIAN_COORD center;
-    MYFLT spatial_blur;
-    MYFLT eta;
-    MYFLT a;
+    cs_float spatial_blur;
+    cs_float eta;
+    cs_float a;
     int32_t nchnls;
     int32_t ncoords;
     int32_t coord_kind;
@@ -82,12 +82,12 @@ typedef struct  {
     ARRAYDAT *out;
 
     // inputs
-    MYFLT *input_frame;
-    MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar degree, 2 -> polar radians
+    cs_float *input_frame;
+    cs_float *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar degree, 2 -> polar radians
     ARRAYDAT *source;
     ARRAYDAT *loudspeakers_pos;
-    MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
-    MYFLT *rolloff_value;
+    cs_float *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
+    cs_float *rolloff_value;
     ARRAYDAT *loudspeakers_weights; // optional in init with NULL weights
 
     // internal
@@ -101,13 +101,13 @@ typedef struct  {
     ARRAYDAT *out;
 
     // inputs
-    MYFLT *input_frame;
-    MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar degree, 2 -> polar radians
+    cs_float *input_frame;
+    cs_float *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar degree, 2 -> polar radians
     ARRAYDAT *source;
     ARRAYDAT *loudspeakers_pos;
-    MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
-    MYFLT *rolloff_value;
-    MYFLT *loudspeakers_weights; // optional in init with NULL weights (func)
+    cs_float *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
+    cs_float *rolloff_value;
+    cs_float *loudspeakers_weights; // optional in init with NULL weights (func)
 
     // internal
     DBAP_STATE dbap_state;
@@ -120,13 +120,13 @@ typedef struct  {
     ARRAYDAT *out;
 
     // inputs
-    MYFLT *input_frame;
-    MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar, 2 -> polar radians
+    cs_float *input_frame;
+    cs_float *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar, 2 -> polar radians
     ARRAYDAT *source;
-    MYFLT *loudspeakers_pos;
-    MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
-    MYFLT *rolloff_value;
-    MYFLT *loudspeakers_dimension; // 2 = 2D, 3 = 3D
+    cs_float *loudspeakers_pos;
+    cs_float *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
+    cs_float *rolloff_value;
+    cs_float *loudspeakers_dimension; // 2 = 2D, 3 = 3D
     ARRAYDAT *loudspeakers_weights; // optional in init with NULL weights
 
     // internal
@@ -140,14 +140,14 @@ typedef struct  {
     ARRAYDAT *out;
 
     // inputs
-    MYFLT *input_frame;
-    MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar, 2 -> polar radians
+    cs_float *input_frame;
+    cs_float *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar, 2 -> polar radians
     ARRAYDAT *source;
-    MYFLT *loudspeakers_pos;
-    MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
-    MYFLT *rolloff_value;
-    MYFLT *loudspeakers_dimension; // 2 = 2D, 3 = 3D
-    MYFLT *loudspeakers_weights; // optional in init with NULL weights
+    cs_float *loudspeakers_pos;
+    cs_float *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
+    cs_float *rolloff_value;
+    cs_float *loudspeakers_dimension; // 2 = 2D, 3 = 3D
+    cs_float *loudspeakers_weights; // optional in init with NULL weights
 
     // internal
     DBAP_STATE dbap_state;
@@ -160,11 +160,11 @@ typedef struct  {
     ARRAYDAT *out;
 
     // inputs
-    MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar degree, 2 -> polar radians
+    cs_float *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar degree, 2 -> polar radians
     ARRAYDAT *source;
     ARRAYDAT *loudspeakers_pos;
-    MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
-    MYFLT *rolloff_value;
+    cs_float *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
+    cs_float *rolloff_value;
     ARRAYDAT *loudspeakers_weights; // optional in init with NULL weights
 
     // internal
@@ -178,12 +178,12 @@ typedef struct  {
     ARRAYDAT *out;
 
     // inputs
-    MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar degree, 2 -> polar radians
+    cs_float *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar degree, 2 -> polar radians
     ARRAYDAT *source;
     ARRAYDAT *loudspeakers_pos;
-    MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
-    MYFLT *rolloff_value;
-    MYFLT *loudspeakers_weights; // optional in init with NULL weights
+    cs_float *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
+    cs_float *rolloff_value;
+    cs_float *loudspeakers_weights; // optional in init with NULL weights
 
     // internal
     DBAP_STATE dbap_state;
@@ -196,12 +196,12 @@ typedef struct  {
     ARRAYDAT *out;
 
     // inputs
-    MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar, 2 -> polar radians
+    cs_float *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar, 2 -> polar radians
     ARRAYDAT *source;
-    MYFLT *loudspeakers_pos;
-    MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
-    MYFLT *rolloff_value;
-    MYFLT *loudspeakers_dimension; // 2 = 2D, 3 = 3D
+    cs_float *loudspeakers_pos;
+    cs_float *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
+    cs_float *rolloff_value;
+    cs_float *loudspeakers_dimension; // 2 = 2D, 3 = 3D
     ARRAYDAT *loudspeakers_weights;
 
     // internal
@@ -215,13 +215,13 @@ typedef struct  {
     ARRAYDAT *out;
 
     // inputs
-    MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar, 2 -> polar radians
+    cs_float *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar, 2 -> polar radians
     ARRAYDAT *source;
-    MYFLT *loudspeakers_pos;
-    MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
-    MYFLT *rolloff_value;
-    MYFLT *loudspeakers_dimension; // 2 = 2D, 3 = 3D
-    MYFLT *loudspeakers_weights;
+    cs_float *loudspeakers_pos;
+    cs_float *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
+    cs_float *rolloff_value;
+    cs_float *loudspeakers_dimension; // 2 = 2D, 3 = 3D
+    cs_float *loudspeakers_weights;
 
     // internal
     DBAP_STATE dbap_state;
@@ -230,36 +230,36 @@ typedef struct  {
 int32_t prepare_dbap_helper(
     CSOUND *csound,
     DBAP_STATE *dbap_state,
-    MYFLT *input_coords,
-    MYFLT *weights,
+    cs_float *input_coords,
+    cs_float *weights,
     uint32_t nsamples,
     int32_t nchnls,
     int32_t npos,
     int32_t ncoords,
     int32_t coord_kind,
-    MYFLT rolloff_value
+    cs_float rolloff_value
 );
 
 int32_t dbap_helper(
     CSOUND *csound,
     OPDS *h,
     DBAP_STATE *dbap,
-    MYFLT spread,
+    cs_float spread,
     int32_t coord_mode,
     int32_t source_size,
-    MYFLT *source_array,
-    MYFLT *input_frame,
-    MYFLT *out
+    cs_float *source_array,
+    cs_float *input_frame,
+    cs_float *out
 );
 
 int32_t initialize_dbap(
     CSOUND *csound,
     DBAP_STATE *dbap,
-    MYFLT *input_coords,
+    cs_float *input_coords,
     int32_t nchnls,
     int32_t ncoords,
-    MYFLT rolloff,
-    MYFLT *weights,
+    cs_float rolloff,
+    cs_float *weights,
     int32_t nsamples,
     int32_t coord_kind
 );

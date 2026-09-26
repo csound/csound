@@ -26,64 +26,64 @@
 
 typedef struct {
   OPDS    h;
-  MYFLT   *xr, *ia, *idur, *ib;
-  double   val, incr, kincr;
+  cs_float   *xr, *ia, *idur, *ib;
+  cs_double   val, incr, kincr;
 } LINE;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *xr, *ia, *idur, *ib;
-  double   val, mlt, kmlt;
+  cs_float   *xr, *ia, *idur, *ib;
+  cs_double   val, mlt, kmlt;
 } EXPON;
 
 typedef struct {
   int32  cnt, acnt;
-  MYFLT  val, mlt, amlt;
+  cs_float  val, mlt, amlt;
 } XSEG;
 
 typedef struct {
   int32   cnt, acnt;
-  double  nxtpt;
+  cs_double  nxtpt;
 } SEG;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *rslt, *argums[VARGMAX];
+  cs_float   *rslt, *argums[VARGMAX];
   SEG     *cursegp;
   int32   nsegs;
   int32   segsrem, curcnt;
-  double  curval, curinc, curainc;
+  cs_double  curval, curinc, curainc;
   AUXCH   auxch;
   int32   xtra;
 } LINSEG;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *rslt, *argums[6];
+  cs_float   *rslt, *argums[6];
   int32_t counts[5], stage, xtra;
   int32_t midi, exponential, hold, initialized;
   uint32_t scale;
   int64_t remaining;
-  double sustain, value, target, increment, multiplier;
+  cs_double sustain, value, target, increment, multiplier;
 } ADSR;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *rslt, *argums[VARGMAX];
+  cs_float   *rslt, *argums[VARGMAX];
   SEG     *cursegp;
   int32   nsegs;
   int32   segsrem, curcnt;
-  double  y1, y2, x, inc, val;
+  cs_double  y1, y2, x, inc, val;
   AUXCH   auxch;
   int32   xtra;
 } COSSEG;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *rslt, *argums[VARGMAX];
+  cs_float   *rslt, *argums[VARGMAX];
   SEG     *cursegp;
   int32   segsrem, curcnt;
-  double  curval, curmlt, curamlt;
+  cs_double  curval, curmlt, curamlt;
   int32   nsegs;
   AUXCH   auxch;
   int32   xtra;
@@ -91,51 +91,51 @@ typedef struct {
 
 typedef struct {
   OPDS    h;
-  MYFLT   *rslt, *argums[VARGMAX];
+  cs_float   *rslt, *argums[VARGMAX];
   XSEG    *cursegp;
   int32   segsrem, curcnt;
-  double  curval, curmlt, curamlt;
+  cs_double  curval, curmlt, curamlt;
   int32   nsegs;
   AUXCH   auxch;
 } EXXPSEG;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *rslt, *sig, *iris, *idur, *idec;
-  double  lin1, inc1, lin2, inc2;
+  cs_float   *rslt, *sig, *iris, *idur, *idec;
+  cs_double  lin1, inc1, lin2, inc2;
   int64_t  cnt1, cnt2;
 } LINEN;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *rslt, *sig, *iris, *idec, *iatdec;
-  double  lin1, inc1, val, val2, mlt2;
+  cs_float   *rslt, *sig, *iris, *idec, *iatdec;
+  cs_double  lin1, inc1, val, val2, mlt2;
   int64_t  cnt1;
 } LINENR;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *rslt, *xamp, *irise, *idur, *idec, *ifn, *iatss;
-  MYFLT   *iatdec, *ixmod;
+  cs_float   *rslt, *xamp, *irise, *idur, *idec, *ifn, *iatss;
+  cs_float   *iatdec, *ixmod;
   int32   phs, ki, cnt1;
-  double  val, mlt1, mlt2, asym, phsf, kif;
+  cs_double  val, mlt1, mlt2, asym, phsf, kif;
   FUNC    *ftp;
   int32  floatph;
 } ENVLPX;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *rslt, *xamp, *irise, *idec, *ifn, *iatss, *iatdec;
-  MYFLT   *ixmod, *irind;
+  cs_float   *rslt, *xamp, *irise, *idec, *ifn, *iatss, *iatdec;
+  cs_float   *ixmod, *irind;
   int32   phs, ki, rlsing, rlscnt, rindep;
-  double  val, mlt1, mlt2, asym, atdec, kif, phsf;
+  cs_double  val, mlt1, mlt2, asym, atdec, kif, phsf;
   FUNC    *ftp;
   int32  floatph;
 } ENVLPR;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *rslt, *argums[VARGMAX];
+  cs_float   *rslt, *argums[VARGMAX];
   XSEG    *cursegp;
   int32   nsegs;
   AUXCH   auxch;

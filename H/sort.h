@@ -23,9 +23,7 @@
 #pragma once
 
 #include <stdio.h>                                 /*      SORT.H */
-#ifndef MYFLT
 #include "sysdep.h"
-#endif
 #define SP ' '
 #define LF '\n'
 
@@ -34,11 +32,11 @@ typedef struct srtblk {
         struct srtblk *prvblk;
         int16   insno;
         int16   pcnt;
-        MYFLT   p1val;
-        MYFLT   p2val;
-        MYFLT   p3val;
-        MYFLT   newp2;
-        MYFLT   newp3;
+        cs_float   p1val;
+        cs_float   p2val;
+        cs_float   p3val;
+        cs_float   newp2;
+        cs_float   newp3;
         int16   lineno;
         char    preced;
         char    text[9];

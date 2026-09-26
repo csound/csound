@@ -2,6 +2,26 @@
 find_package(Python3 COMPONENTS Interpreter)
 
 if(Python3_FOUND)
+    if(BUILD_TESTS AND CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND
+       CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        add_test(NAME numeric_type_compatibility
+            COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/numeric_types.py
+                --cc ${CMAKE_C_COMPILER} --cxx ${CMAKE_CXX_COMPILER}
+                --include-dir ${CMAKE_SOURCE_DIR}/include
+                --generated-include-dir ${CMAKE_BINARY_DIR}/include)
+        if(UNIX AND NOT CMAKE_CROSSCOMPILING)
+            # Link the host normally so sanitizer runtimes start before Csound.
+            add_executable(plugin_precision_host ../c/plugin_precision_host.c)
+            target_link_libraries(plugin_precision_host PRIVATE
+                ${CSOUNDLIB} ${CMAKE_DL_LIBS})
+            add_test(NAME plugin_precision_compatibility
+                COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/plugin_precision.py
+                    --cc ${CMAKE_C_COMPILER} --cxx ${CMAKE_CXX_COMPILER}
+                    --include-dir ${CMAKE_SOURCE_DIR}/include
+                    --generated-include-dir ${CMAKE_BINARY_DIR}/include
+                    --host $<TARGET_FILE:plugin_precision_host>)
+        endif()
+    endif()
     if(BUILD_TESTS)
         add_test(NAME opcode_deprecation_catalog
             COMMAND ${Python3_EXECUTABLE}

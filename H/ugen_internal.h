@@ -26,7 +26,7 @@ extern "C" {
  */
 struct UGEN_VAR {
   CSOUND* csound;
-  MYFLT* data;              /**< Points past CS_VAR_MEM header to value slot */
+  cs_float* data;              /**< Points past CS_VAR_MEM header to value slot */
   UGEN_ARG_TYPE type;       /**< Cached type enum */
   int32_t ksmps;            /**< Needed for audio size calculations */
   bool owned;               /**< true if standalone (caller must free) */
@@ -41,14 +41,14 @@ struct UGEN {
   INSDS* insds;
   OENTRY* oentry;
   void* opcodeMem;
-  MYFLT* data;
+  cs_float* data;
   CS_VAR_POOL* inPool;
   CS_VAR_POOL* outPool;
   int32_t inCount;          /**< Number of input arguments */
   int32_t outCount;         /**< Number of output arguments */
   UGEN_ARG_TYPE* inTypes;   /**< Array of UGEN_ARG_TYPE for each input arg */
   UGEN_ARG_TYPE* outTypes;  /**< Array of UGEN_ARG_TYPE for each output arg */
-  int32_t outDataOffset;    /**< Offset in data block where input args begin (in MYFLTs) */
+  int32_t outDataOffset;    /**< Offset in data block where input args begin (in cs_float values) */
   UGEN_VAR* outVars;        /**< Array of UGEN_VAR for output args (owned by UGEN) */
   UGEN_VAR* inVars;         /**< Array of UGEN_VAR for input args (owned by UGEN) */
 };

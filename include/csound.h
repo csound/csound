@@ -48,15 +48,7 @@
 #ifdef SWIG
 #define CS_PRINTF2
 #define CS_PRINTF3
-#include "float-version.h"
-#ifndef __MYFLT_DEF
-#define __MYFLT_DEF
-#ifndef USE_DOUBLE
-#define MYFLT float
-#else
-#define MYFLT double
-#endif
-#endif
+#include "csound_types.h"
 #else
 #  include <stdint.h>
 #  include "sysdep.h"
@@ -195,11 +187,11 @@ extern "C" {
     /* GEN01 defer allocation flag */
     int32_t     gen01defer;
     /* tempo value (-t)  */
-    double      cmdTempo;
+    cs_double      cmdTempo;
     /* sampling rate override (-r) */
-    MYFLT       sr_override;
+    cs_float       sr_override;
     /* control rate override (-k) */
-    MYFLT       kr_override;
+    cs_float       kr_override;
     /* nchnls override */
     int32_t     nchnls_override;
     /* nchnls_i override */
@@ -245,11 +237,11 @@ extern "C" {
     /* realtime priority flag */
     int32_t     realtime;
     /* 0dbfs override */
-    MYFLT       e0dbfs_override;
+    cs_float       e0dbfs_override;
     /* daemon mode flag */
     int32_t     daemon;
     /* OGG encoding quality */
-    double      quality;
+    cs_double      quality;
     /* ksmps override */
     int32_t     ksmps_override;
     /* FFT library option */
@@ -257,11 +249,11 @@ extern "C" {
     /* UDP echo commands flag */
     int32_t     echo;
     /* audio output limiter option */
-    MYFLT       limiter;
+    cs_float       limiter;
     /* default sampling rate */
-    MYFLT       sr_default;
+    cs_float       sr_default;
     /* default control rate */
-    MYFLT       kr_default;
+    cs_float       kr_default;
     /* MP3 encoding mode  */
     int32_t     mp3_mode;
     /* instr redefinition flag */
@@ -346,9 +338,9 @@ extern "C" {
    */
   typedef struct controlChannelHints_s {
     controlChannelBehavior    behav;
-    MYFLT   dflt;
-    MYFLT   min;
-    MYFLT   max;
+    cs_float   dflt;
+    cs_float   min;
+    cs_float   max;
     int32_t x;
     int32_t y;
     int32_t width;
@@ -426,12 +418,12 @@ extern "C" {
   /**
    * Returns the number of audio sample frames per second.
    */
-  PUBLIC MYFLT csoundGetSr(CSOUND *) ;
+  PUBLIC cs_float csoundGetSr(CSOUND *) ;
 
   /**
    * Returns the number of control samples per second.
    */
-  PUBLIC MYFLT csoundGetKr(CSOUND *);
+  PUBLIC cs_float csoundGetKr(CSOUND *);
 
   /**
    * Returns the audio vector size in frames (= sr/kr)
@@ -454,12 +446,12 @@ extern "C" {
   /**
    * Returns the 0dBFS level of the spin/spout buffers.
    */
-  PUBLIC MYFLT csoundGet0dBFS(CSOUND *);
+  PUBLIC cs_float csoundGet0dBFS(CSOUND *);
 
   /**
    * Returns the A4 frequency reference
    */
-  PUBLIC MYFLT csoundGetA4(CSOUND *);
+  PUBLIC cs_float csoundGetA4(CSOUND *);
 
   /**
    * Return the current performance time in sample frames
@@ -467,8 +459,14 @@ extern "C" {
   PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound);
 
   /**
-   * Return the size of MYFLT in bytes.
+   * Return the size of cs_float in bytes.
    */
+  PUBLIC int32_t csoundGetSizeOfCsFloat(void);
+
+  /** Return the size of cs_double in bytes. */
+  PUBLIC int32_t csoundGetSizeOfCsDouble(void);
+
+  /** CS7 compatibility name; use csoundGetSizeOfCsFloat in new code. */
   PUBLIC int32_t csoundGetSizeOfMYFLT(void);
 
   /**
@@ -534,7 +532,7 @@ extern "C" {
    * If val > 0, sets the internal variable holding the system HW sr.
    * Returns the stored value containing the system HW sr.
    */
-  PUBLIC MYFLT csoundSystemSr(CSOUND *csound, MYFLT val);
+  PUBLIC cs_float csoundSystemSr(CSOUND *csound, cs_float val);
 
 
   /**
@@ -664,12 +662,12 @@ extern "C" {
    *       char *code =
    *           "i1 = 2 + 2 \n"
    *           "return i1 \n";
-   *       MYFLT retval = csoundEvalCode(csound, code);
+   *       cs_float retval = csoundEvalCode(csound, code);
    * /endcode
    *   If the code fails to evaluate, the return value is always 0.
    *
    */
-  PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str);
+  PUBLIC cs_float csoundEvalCode(CSOUND *csound, const char *str);
 
   /**
    * Compiles a Csound input file (CSD, .csd file) or a tx string
@@ -768,14 +766,14 @@ extern "C" {
    * Enables external software to write audio into Csound before calling
    * csoundPerformKsmps.
    */
-  PUBLIC MYFLT *csoundGetSpin(CSOUND *);
+  PUBLIC cs_float *csoundGetSpin(CSOUND *);
 
   /**
    * Returns the address of the Csound audio output working buffer (spout).
    * Enables external software to read audio from Csound after calling
    * csoundPerformKsmps.
    */
-  PUBLIC const MYFLT *csoundGetSpout(CSOUND *csound);
+  PUBLIC const cs_float *csoundGetSpout(CSOUND *csound);
 
   /** @}*/
 
@@ -873,9 +871,9 @@ extern "C" {
    * creating the channel first if it does not exist yet.
    * 'type' must be the bitwise OR of exactly one of the following values,
    *   CSOUND_CONTROL_CHANNEL
-   *     control data (one MYFLT value) - (MYFLYT **) pp
+   *     control data (one cs_float value) - (MYFLYT **) pp
    *   CSOUND_AUDIO_CHANNEL
-   *     audio data (csoundGetKsmps(csound) MYFLT values) -(MYFLYT **) pp
+   *     audio data (csoundGetKsmps(csound) cs_float values) -(MYFLYT **) pp
    *   CSOUND_STRING_CHANNEL
    *     string data as a STRINGDAT structure - (STRINGDAT **) pp
    *    (see csoundGetStringData() and csoundSetStringData())
@@ -1045,28 +1043,28 @@ extern "C" {
    * If the err argument is not NULL, the error (or success) code
    * finding or accessing the channel is stored in it.
    */
-  PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, const char *name,
+  PUBLIC cs_float csoundGetControlChannel(CSOUND *csound, const char *name,
                                        int32_t *err);
 
   /**
    * sets the value of control channel identified by *name
    */
   PUBLIC void csoundSetControlChannel(CSOUND *csound,
-                                      const char *name, MYFLT val);
+                                      const char *name, cs_float val);
 
   /**
    * copies the audio channel identified by *name into array
-   * *samples which should contain enough memory for ksmps MYFLTs
+   * *samples which should contain enough memory for ksmps cs_float values
    */
   PUBLIC void csoundGetAudioChannel(CSOUND *csound,
-                                    const char *name, MYFLT *samples);
+                                    const char *name, cs_float *samples);
 
   /**
    * sets the audio channel identified by *name with data from array
-   * *samples which should contain at least ksmps MYFLTs
+   * *samples which should contain at least ksmps cs_float values
    */
   PUBLIC void csoundSetAudioChannel(CSOUND *csound, const char *name,
-                                    const MYFLT *samples);
+                                    const cs_float *samples);
 
   /**
    * copies the string channel identified by *name into *string
@@ -1084,11 +1082,11 @@ extern "C" {
 
   /**
    * Create and initialise an array channel with a given array type
-   * - "a" (audio sigs): each item is a ksmps-size MYFLT array
-   * - "i" (init vars): each item is a MYFLT
+   * - "a" (audio sigs): each item is a ksmps-size cs_float array
+   * - "i" (init vars): each item is a cs_float
    * - "S" (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
-   * - "k" (control sigs): each item is a MYFLT
+   * - "k" (control sigs): each item is a cs_float
    * - all other standard types are supported
    *  dimensions - number of array dimensions
    *  sizes - sizes for each dimension
@@ -1103,11 +1101,11 @@ extern "C" {
 
   /**
    * Get the type of data the ARRAYDAT adat, returning
-   * - "a" (audio sigs): each item is a ksmps-size MYFLT array
-   * - "i" (init vars): each item is a MYFLT
+   * - "a" (audio sigs): each item is a ksmps-size cs_float array
+   * - "i" (init vars): each item is a cs_float
    * - "S" (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
-   * - "k" (control sigs): each item is a MYFLT
+   * - "k" (control sigs): each item is a cs_float
    * - other standard type names
    */
   PUBLIC const char *csoundArrayDataType(const ARRAYDAT *adat);
@@ -1242,11 +1240,11 @@ extern "C" {
    * type 0 - instrument instance     CS_INSTR_EVENT
    * type 1 - function table instance CS_TABLE_EVENT
    * type 2 - end event               CS_END_EVENT
-   * event parameters is nparams MYFLT array with the event parameters (p-fields)
+   * event parameters is nparams cs_float array with the event parameters (p-fields)
    * optionally run asynchronously (async = 1)
    * NB: This is non-op before csoundStart() is called.
    */
-  PUBLIC void  csoundEvent(CSOUND *, int32_t type, const MYFLT *params,
+  PUBLIC void  csoundEvent(CSOUND *, int32_t type, const cs_float *params,
                            int32_t nparams, int32_t async);
 
   /**
@@ -1357,7 +1355,7 @@ extern "C" {
    * -1 is returned.
    * NB: this function and the tablePtr returned are not threadsafe 
    */
-  PUBLIC int32_t csoundGetTable(CSOUND *, MYFLT **tablePtr, int32_t tableNum);
+  PUBLIC int32_t csoundGetTable(CSOUND *, cs_float **tablePtr, int32_t tableNum);
 
   /**
    * Stores pointer to the arguments used to generate
@@ -1369,7 +1367,7 @@ extern "C" {
    * its parameters. eg. f 1 0 1024 10 1 0.5  yields the list {10.0,1.0,0.5}
    * This function and the argsPtr returned are not threadsafe
    */
-  PUBLIC int32_t csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr,
+  PUBLIC int32_t csoundGetTableArgs(CSOUND *csound, cs_float **argsPtr,
 				    int32_t tableNum);
 
   /** 
@@ -1381,7 +1379,7 @@ extern "C" {
    * This function is threadsafe and can also be run asynchronously
    */
   PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
-				 const MYFLT *ptable, int32_t async);
+				 const cs_float *ptable, int32_t async);
 
 
    /** 
@@ -1392,7 +1390,7 @@ extern "C" {
    * This function is threadsafe and can also be run asynchronously
    */
   PUBLIC void csoundTableCopyOut(CSOUND *csound, int32_t table,
-				MYFLT *ptable, int32_t async);
+				cs_float *ptable, int32_t async);
   
 
   /** @}*/
@@ -1404,7 +1402,7 @@ extern "C" {
    * Returns the current score time in seconds
    * since the beginning of performance.
    */
-  PUBLIC double csoundGetScoreTime(CSOUND *);
+  PUBLIC cs_double csoundGetScoreTime(CSOUND *);
 
   /**
    * Sets whether Csound score events are performed or not, independently
@@ -1426,7 +1424,7 @@ extern "C" {
    * Returns the score time beginning at which score events will
    * actually immediately be performed (see csoundSetScoreOffsetSeconds()).
    */
-  PUBLIC MYFLT csoundGetScoreOffsetSeconds(CSOUND *);
+  PUBLIC cs_float csoundGetScoreOffsetSeconds(CSOUND *);
 
   /**
    * Csound score events prior to the specified time are not performed, and
@@ -1437,7 +1435,7 @@ extern "C" {
    * for example to repeat a loop in a sequencer, or to synchronize
    * other events with the Csound score.
    */
-  PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *, MYFLT time);
+  PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *, cs_float time);
 
   /**
    * Rewinds a compiled Csound score to the time specified with

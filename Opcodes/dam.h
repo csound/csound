@@ -27,22 +27,22 @@
 typedef struct {
    OPDS h ;
 
-   MYFLT *aout ;      /* Declare output array first  */
-   MYFLT *ain ;       /* Input array   */
-   MYFLT *kthreshold ;/* sound level threshold */
-   MYFLT *icomp1 ;    /* Compression factors */
-   MYFLT *icomp2 ;
-   MYFLT *rtime ;         /* Raise/Fall times */
-   MYFLT *ftime ;
+   cs_float *aout ;      /* Declare output array first  */
+   cs_float *ain ;       /* Input array   */
+   cs_float *kthreshold ;/* sound level threshold */
+   cs_float *icomp1 ;    /* Compression factors */
+   cs_float *icomp2 ;
+   cs_float *rtime ;         /* Raise/Fall times */
+   cs_float *ftime ;
 
-   MYFLT rspeed ;
-   MYFLT fspeed ;
+   cs_float rspeed ;
+   cs_float fspeed ;
 
-   MYFLT gain ;
-   double power ;    /* Limit cancellation drift in the running sum. */
-   MYFLT powerBuffer[POWER_BUFSIZE] ;
-   MYFLT *powerPos ;
-   MYFLT kthr;
+   cs_float gain ;
+   cs_double power ;    /* Limit cancellation drift in the running sum. */
+   cs_float powerBuffer[POWER_BUFSIZE] ;
+   cs_float *powerPos ;
+   cs_float kthr;
 
 } DAM ;
 

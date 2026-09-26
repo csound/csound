@@ -153,7 +153,7 @@ static const int32_t sound_speed = 330;
 static BaboMemory *
 BaboMemory_create(CSOUND *csound, BaboMemory *this, size_t size_in_floats)
 {
-    size_t size_in_bytes = size_in_floats * sizeof(MYFLT);
+    size_t size_in_bytes = size_in_floats * sizeof(cs_float);
 
     csound->AuxAlloc(csound, size_in_bytes, &this->memptr);
 
@@ -170,22 +170,22 @@ BaboMemory_samples(const BaboMemory *this)
     return this->samples;
 }
 
-static inline MYFLT *
+static inline cs_float *
 BaboMemory_start(const BaboMemory *this)
 {
-    return (MYFLT *) this->memptr.auxp;
+    return (cs_float *) this->memptr.auxp;
 }
 
-static inline MYFLT *
+static inline cs_float *
 BaboMemory_end(const BaboMemory *this)
 {
-    return (MYFLT *) this->memptr.endp;
+    return (cs_float *) this->memptr.endp;
 }
 
-/* static inline MYFLT * */
+/* static inline cs_float * */
 /* BaboMemory_size(const BaboMemory *this) */
 /* { */
-/*     return (MYFLT *) this->memptr.size; */
+/*     return (cs_float *) this->memptr.size; */
 /* } */
 
 /*
@@ -193,12 +193,12 @@ BaboMemory_end(const BaboMemory *this)
  */
 
 static int32_t
-_Babo_common_delay_create(CSOUND *csound, BaboDelay *this, MYFLT max_time)
+_Babo_common_delay_create(CSOUND *csound, BaboDelay *this, cs_float max_time)
 {
-    double samples = ceil((double)(max_time * this->sr));
+    cs_double samples = ceil((cs_double)(max_time * this->sr));
 
-    if (UNLIKELY(!(samples >= 1.0 && samples <= INT32_MAX &&
-                   samples <= SIZE_MAX / sizeof(MYFLT))))
+    if (UNLIKELY(!(samples >= 1.0 && samples <= (INT32_MAX + 0.0) &&
+                   samples <= SIZE_MAX / sizeof(cs_float))))
         return csound->InitError(csound, "%s", Str("Babo: delay size out of range"));
     BaboMemory_create(csound, &this->core, (size_t)samples);
     return OK;
@@ -209,7 +209,7 @@ _Babo_common_delay_create(CSOUND *csound, BaboDelay *this, MYFLT max_time)
  */
 
 static BaboDelay *
-BaboDelay_create(CSOUND *csound, BaboDelay *this, MYFLT max_time)
+BaboDelay_create(CSOUND *csound, BaboDelay *this, cs_float max_time)
 {
     if (_Babo_common_delay_create(csound, this, max_time) != OK)
         return NULL;
@@ -219,8 +219,8 @@ BaboDelay_create(CSOUND *csound, BaboDelay *this, MYFLT max_time)
     return this;
 }
 
-static MYFLT
-BaboDelay_input(BaboDelay *this, MYFLT input)
+static cs_float
+BaboDelay_input(BaboDelay *this, cs_float input)
 {
      *this->input++ = input;
 
@@ -230,11 +230,11 @@ BaboDelay_input(BaboDelay *this, MYFLT input)
     return input;
 }
 
-static inline MYFLT
+static inline cs_float
 BaboDelay_output(const BaboDelay *this)
 {
     /* Reading one slot ahead preserves the existing N - 1 sample delay. */
-    MYFLT *output_ptr = this->input + 1;
+    cs_float *output_ptr = this->input + 1;
 
     if (output_ptr == BaboMemory_end(&this->core))
         output_ptr = BaboMemory_start(&this->core);
@@ -252,9 +252,9 @@ BaboDelay_output(const BaboDelay *this)
  */
 
 static BaboTapline *
-BaboTapline_create(CSOUND *csound, BaboTapline *this, MYFLT x, MYFLT y, MYFLT z)
+BaboTapline_create(CSOUND *csound, BaboTapline *this, cs_float x, cs_float y, cs_float z)
 {
-    MYFLT max_time = (FL(2.0) * SQRT((x*x) + (y*y) + (z*z))) / sound_speed;
+    cs_float max_time = (FL(2.0) * SQRT((x*x) + (y*y) + (z*z))) / sound_speed;
 
     if (_Babo_common_delay_create(csound, (BaboDelay *) this, max_time) != OK)
         return NULL;
@@ -264,23 +264,23 @@ BaboTapline_create(CSOUND *csound, BaboTapline *this, MYFLT x, MYFLT y, MYFLT z)
     return this;
 }
 
-static inline MYFLT
+static inline cs_float
 BaboTapline_maxtime(CSOUND *csound, BaboDelay *this)
 {
-  return (((MYFLT) BaboMemory_samples(&this->core)) * (1./this->sr));
+  return (((cs_float) BaboMemory_samples(&this->core)) * (1./this->sr));
 }
 
-static inline MYFLT
-BaboTapline_input(BaboTapline *this, MYFLT input)
+static inline cs_float
+BaboTapline_input(BaboTapline *this, cs_float input)
 {
     return BaboDelay_input((BaboDelay *) this, input);
 }
 
 typedef struct
 {
-    MYFLT   attenuation;
-    MYFLT   delay_size;
-    MYFLT   sr;
+    cs_float   attenuation;
+    cs_float   delay_size;
+    cs_float   sr;
 } BaboTapParameter;
 
 typedef struct
@@ -297,7 +297,7 @@ typedef struct
  * in the first place.
  */
 /* a-rate function */
-static MYFLT BaboTapline_single_output(const BaboTapline *this,
+static cs_float BaboTapline_single_output(const BaboTapline *this,
                                        const BaboTapParameter *pp)
 {
         /*
@@ -310,10 +310,10 @@ static MYFLT BaboTapline_single_output(const BaboTapline *this,
          */
     size_t delay_floor  = (size_t) pp->delay_size;
     size_t delay_ceil   = delay_floor + 1;
-    MYFLT fractional    = pp->delay_size - (MYFLT) delay_floor;
-    MYFLT *output_floor = this->input - delay_floor;
-    MYFLT *output_ceil  = this->input - delay_ceil;
-    MYFLT output        = FL(0.0);
+    cs_float fractional    = pp->delay_size - (cs_float) delay_floor;
+    cs_float *output_floor = this->input - delay_floor;
+    cs_float *output_ceil  = this->input - delay_ceil;
+    cs_float output        = FL(0.0);
 
     if (output_floor <  BaboMemory_start(&this->core))
         output_floor += BaboMemory_samples(&this->core);
@@ -329,7 +329,7 @@ static MYFLT BaboTapline_single_output(const BaboTapline *this,
 /* k-rate function */
 static inline void BaboTapline_preload_parameter(CSOUND *csound,
                                                  BaboTapParameter *this,
-                                                 MYFLT distance)
+                                                 cs_float distance)
 {
     /*
      * Direct sound parameters at the input of delay tap_lines.
@@ -345,11 +345,11 @@ static inline void BaboTapline_preload_parameter(CSOUND *csound,
 static BaboTaplineParameters *
 BaboTapline_precalculate_parameters(
     CSOUND *csound, BaboTaplineParameters    *results,
-    MYFLT r_x, MYFLT r_y, MYFLT r_z,    /* receiver position (i-rate) */
-    MYFLT s_x, MYFLT s_y, MYFLT s_z,    /* source   position (k-rate) */
-    MYFLT l_x, MYFLT l_y, MYFLT l_z)    /* room     coords   (i-rate) */
+    cs_float r_x, cs_float r_y, cs_float r_z,    /* receiver position (i-rate) */
+    cs_float s_x, cs_float s_y, cs_float s_z,    /* source   position (k-rate) */
+    cs_float l_x, cs_float l_y, cs_float l_z)    /* room     coords   (i-rate) */
 {
-    MYFLT   sqr_xy, sqr_yz, sqr_xz, /* x^2+y^2  y^2+z^2 .......         */
+    cs_float   sqr_xy, sqr_yz, sqr_xz, /* x^2+y^2  y^2+z^2 .......         */
             sqr_diff_x, sqr_diff_y, sqr_diff_z; /* optimization temps   */
 
     /* image method distance calculation */
@@ -385,13 +385,13 @@ BaboTapline_precalculate_parameters(
 }
 
 /* a-rate function */
-static MYFLT
+static cs_float
 BaboTapline_output(CSOUND *csound, const BaboTapline *this,
                    const BaboTaplineParameters *pars)
 {
     IGN(csound);
     int32_t     i;
-    MYFLT   output = BaboTapline_single_output(this, &pars->direct);
+    cs_float   output = BaboTapline_single_output(this, &pars->direct);
 
     for (i = 0; i < BABO_TAPS; ++i)
       output  += BaboTapline_single_output(this, &pars->tap[i]);
@@ -399,13 +399,13 @@ BaboTapline_output(CSOUND *csound, const BaboTapline *this,
     return output;
 }
 
-static MYFLT
+static cs_float
 BaboTapline_output2(CSOUND *csound, const BaboTapline *this,
-                    const BaboTaplineParameters *pars, MYFLT dir)
+                    const BaboTaplineParameters *pars, cs_float dir)
 {
     IGN(csound);
     int32_t     i;
-    MYFLT   output = BaboTapline_single_output(this, &pars->direct)*dir;
+    cs_float   output = BaboTapline_single_output(this, &pars->direct)*dir;
 
     for (i = 0; i < BABO_TAPS; ++i)
       output  += BaboTapline_single_output(this, &pars->tap[i]);
@@ -418,10 +418,10 @@ BaboTapline_output2(CSOUND *csound, const BaboTapline *this,
  */
 
 static BaboLowPass *
-BaboLowPass_create(BaboLowPass *this, MYFLT decay, MYFLT hidecay, MYFLT norm)
+BaboLowPass_create(BaboLowPass *this, cs_float decay, cs_float hidecay, cs_float norm)
 {
-    MYFLT real_decay    = EXP(norm * LOG(decay));
-    MYFLT real_hidecay  = EXP(norm * LOG(hidecay));
+    cs_float real_decay    = EXP(norm * LOG(decay));
+    cs_float real_hidecay  = EXP(norm * LOG(hidecay));
 
     this->a0 = (real_decay + real_hidecay) * FL(0.25);
     this->a1 = (real_decay - real_hidecay) * FL(0.5);
@@ -430,15 +430,15 @@ BaboLowPass_create(BaboLowPass *this, MYFLT decay, MYFLT hidecay, MYFLT norm)
     return this;
 }
 
-static inline MYFLT
-BaboLowPass_input(BaboLowPass *this, MYFLT input)
+static inline cs_float
+BaboLowPass_input(BaboLowPass *this, cs_float input)
 {
     this->z2 = this->z1;
     this->z1 = this->input;
     this->input = input;
     return input;
 }
-static inline MYFLT
+static inline cs_float
 BaboLowPass_output(const BaboLowPass *this)
 {
     return  (this->a0 * this->input)    +
@@ -450,9 +450,9 @@ BaboLowPass_output(const BaboLowPass *this)
  */
 
 static BaboNode *
-BaboNode_create(CSOUND *csound, BaboNode *this, MYFLT time,
-                MYFLT min_time, MYFLT decay,
-    MYFLT hidecay)
+BaboNode_create(CSOUND *csound, BaboNode *this, cs_float time,
+                cs_float min_time, cs_float decay,
+    cs_float hidecay)
 {
     if (BaboDelay_create(csound, &this->delay, time) == NULL)
         return NULL;
@@ -461,8 +461,8 @@ BaboNode_create(CSOUND *csound, BaboNode *this, MYFLT time,
     return this;
 }
 
-static inline MYFLT
-BaboNode_input(BaboNode *this, MYFLT input)
+static inline cs_float
+BaboNode_input(BaboNode *this, cs_float input)
 {
     return BaboDelay_input(&this->delay, input);
 }
@@ -473,7 +473,7 @@ BaboNode_feed_filter(BaboNode *this)
     BaboLowPass_input(&this->filter, BaboDelay_output(&this->delay));
 }
 
-static inline MYFLT
+static inline cs_float
 BaboNode_output(const BaboNode *this)
 {
     return BaboLowPass_output(&this->filter);
@@ -484,10 +484,10 @@ BaboNode_output(const BaboNode *this)
  */
 
 static void
-BaboMatrix_create_FDN(BaboMatrix *this, MYFLT diffusion)
+BaboMatrix_create_FDN(BaboMatrix *this, cs_float diffusion)
 {
     int32_t  i,j;
-    MYFLT _2PI_NODES = TWOPI_F / BABO_NODES;
+    cs_float _2PI_NODES = TWOPI_F / BABO_NODES;
     /*
      * The following sequence of eigenvalues provides, by IDFT,
      * the maximally diffusive sequence, i.e. a row of the circulant
@@ -496,7 +496,7 @@ BaboMatrix_create_FDN(BaboMatrix *this, MYFLT diffusion)
      * is expressed, since the magnitude is one
      */
 
-    const MYFLT  max_diffusion_eigenvalues[BABO_NODES]=
+    const cs_float  max_diffusion_eigenvalues[BABO_NODES]=
     {
         FL(3.142592),
        -FL(1.7370),
@@ -522,7 +522,7 @@ BaboMatrix_create_FDN(BaboMatrix *this, MYFLT diffusion)
      *                       1 = maximum diffusion
      */
 
-    MYFLT  real_X[BABO_NODES]       = { FL(0.0) },
+    cs_float  real_X[BABO_NODES]       = { FL(0.0) },
            imaginary_X[BABO_NODES]  = { FL(0.0) },
            arg_X[BABO_NODES]        = { FL(0.0) },
            real_x[BABO_NODES]       = { FL(0.0) };
@@ -550,11 +550,11 @@ BaboMatrix_create_FDN(BaboMatrix *this, MYFLT diffusion)
             this->fdn[i][j] = real_x[(j-i+15) % BABO_NODES];
 }
 
-static MYFLT
-BaboMatrix_calculate_delays(MYFLT delay_time[], MYFLT x, MYFLT y, MYFLT z)
+static cs_float
+BaboMatrix_calculate_delays(cs_float delay_time[], cs_float x, cs_float y, cs_float z)
 {
     int32_t i = 0;
-    MYFLT min = FL(0.0);
+    cs_float min = FL(0.0);
 
     static const struct babo_diffusion_constants
     {
@@ -598,7 +598,7 @@ BaboMatrix_calculate_delays(MYFLT delay_time[], MYFLT x, MYFLT y, MYFLT z)
      * needed later on to do the rescaling of the decay and hidecay
      * parameters.
      */
-    min = (MYFLT)FLT_MAX; /* let's initialize this with something really big */
+    min = (cs_float)FLT_MAX; /* let's initialize this with something really big */
 
     for (i = 0; i < BABO_NODES; ++i)
     {
@@ -615,12 +615,12 @@ BaboMatrix_calculate_delays(MYFLT delay_time[], MYFLT x, MYFLT y, MYFLT z)
 
 static BaboMatrix *
 BaboMatrix_create(CSOUND *csound,
-                  BaboMatrix *this, MYFLT diffusion, MYFLT x, MYFLT y,
-                  MYFLT z, MYFLT decay, MYFLT hidecay, MYFLT early_diffusion)
+                  BaboMatrix *this, cs_float diffusion, cs_float x, cs_float y,
+                  cs_float z, cs_float decay, cs_float hidecay, cs_float early_diffusion)
 {
     int32_t i = 0;
-    MYFLT delays[BABO_NODES];
-    MYFLT min_delay = BaboMatrix_calculate_delays(delays, x, y, z);
+    cs_float delays[BABO_NODES];
+    cs_float min_delay = BaboMatrix_calculate_delays(delays, x, y, z);
 
     this->complementary_early_diffusion = FL(1.0) - early_diffusion;
 
@@ -634,7 +634,7 @@ BaboMatrix_create(CSOUND *csound,
     return this;
 }
 
-static inline MYFLT
+static inline cs_float
 BaboMatrix_coefficient(const BaboMatrix *this, int32_t x, int32_t y)
 {
     return this->fdn[x][y];
@@ -642,10 +642,10 @@ BaboMatrix_coefficient(const BaboMatrix *this, int32_t x, int32_t y)
 
 /* a-rate function */
 static void
-BaboMatrix_output(BaboMatrix *this, MYFLT outputs[], MYFLT input,
-    MYFLT diffusion_coeff)
+BaboMatrix_output(BaboMatrix *this, cs_float outputs[], cs_float input,
+    cs_float diffusion_coeff)
 {
-    MYFLT            filter_tmpout[BABO_NODES]  = { FL(0.0) },
+    cs_float            filter_tmpout[BABO_NODES]  = { FL(0.0) },
                      tmp2[BABO_NODES]           = { FL(0.0) };
     register int32_t     i = 0, j = 0;
 
@@ -730,10 +730,10 @@ resolve_defaults(BABO *p)
     p->diffusion_coeff  = *(p->odiffusion_coeff);
 }
 
-static inline MYFLT
-load_value_or_default(const FUNC *table, int32_t idx, MYFLT dEfault)
+static inline cs_float
+load_value_or_default(const FUNC *table, int32_t idx, cs_float dEfault)
 {
-    MYFLT result = (table != (FUNC *) NULL && idx < (int32)table->flen) ?
+    cs_float result = (table != (FUNC *) NULL && idx < (int32)table->flen) ?
                    table->ftable[idx] : dEfault;
 
     return result;
@@ -800,7 +800,7 @@ babo(CSOUND *csound, void *entry)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   *outleft    = p->outleft,
+    cs_float   *outleft    = p->outleft,
             *outright   = p->outright,
             *input      = p->input;
 
@@ -821,18 +821,18 @@ babo(CSOUND *csound, void *entry)
         *(p->lx), *(p->ly), *(p->lz));
 
     if (UNLIKELY(offset)) {
-      memset(outleft,  '\0', offset*sizeof(MYFLT));
-      memset(outright, '\0', offset*sizeof(MYFLT));
+      memset(outleft,  '\0', offset*sizeof(cs_float));
+      memset(outright, '\0', offset*sizeof(cs_float));
     } if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&outleft[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&outright[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&outleft[nsmps], '\0', early*sizeof(cs_float));
+      memset(&outright[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {         /* k-time cycle                */
-      MYFLT  left_tapline_out        = FL(0.0),
+      cs_float  left_tapline_out        = FL(0.0),
              right_tapline_out       = FL(0.0),
              delayed_matrix_input    = FL(0.0);
-      MYFLT  matrix_outputs[2]       = { FL(0.0) };
+      cs_float  matrix_outputs[2]       = { FL(0.0) };
 
       BaboTapline_input(&p->tapline, input[n]);
       BaboDelay_input(&p->matrix_delay, input[n]);
@@ -869,7 +869,7 @@ babo2(CSOUND *csound, void *entry)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   *outleft    = p->outleft,
+    cs_float   *outleft    = p->outleft,
             *outright   = p->outright,
             *input      = p->input;
     int32_t i;
@@ -895,18 +895,18 @@ babo2(CSOUND *csound, void *entry)
         *(p->lx), *(p->ly), *(p->lz));
 
     if (UNLIKELY(offset)) {
-      memset(outleft,  '\0', offset*sizeof(MYFLT));
-      memset(outright, '\0', offset*sizeof(MYFLT));
+      memset(outleft,  '\0', offset*sizeof(cs_float));
+      memset(outright, '\0', offset*sizeof(cs_float));
     } if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&outleft[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&outright[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&outleft[nsmps], '\0', early*sizeof(cs_float));
+      memset(&outright[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {         /* k-time cycle                */
-      MYFLT  left_tapline_out        = FL(0.0),
+      cs_float  left_tapline_out        = FL(0.0),
              right_tapline_out       = FL(0.0),
              delayed_matrix_input    = FL(0.0);
-      MYFLT  matrix_outputs[2]       = { FL(0.0) };
+      cs_float  matrix_outputs[2]       = { FL(0.0) };
 
       BaboTapline_input(&p->tapline, input[n]);
       BaboDelay_input(&p->matrix_delay, input[n]);

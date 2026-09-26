@@ -46,8 +46,8 @@
 
 typedef struct {
   int32_t poleCount, WINDIN, debug, verbose, doPitch;
-  double  *x;
-  double  (*a)[MAXPOLES];
+  cs_double  *x;
+  cs_double  (*a)[MAXPOLES];
   WINDAT   pwindow;
   // for new lpred method
   int32_t newmethod;
@@ -64,30 +64,30 @@ static  FILE *trace;
 #define HWIN   50 /* MAXWINDIN/20, Max Hwind */
 
 typedef struct {
-  MYFLT   *tphi[FREQS],*tpsi[FREQS]; /* prv tphi[50][5][25],tpsi[50][6][25] */
-  MYFLT   *tgamph[FREQS], *tgamps[FREQS], freq[FREQS];
+  cs_float   *tphi[FREQS],*tpsi[FREQS]; /* prv tphi[50][5][25],tpsi[50][6][25] */
+  cs_float   *tgamph[FREQS], *tgamps[FREQS], freq[FREQS];
           /* prv tgamph[50][5],  tgamps[50][6] */
-  MYFLT    NYQ10;
+  cs_float    NYQ10;
   int32_t  Windsiz, Windsiz2;         /* settable windowsize, halfthat */
   int32_t  Dwind, Hwind;              /* settable downsamp10, halfthat */
-  MYFLT    w11, w12;                  /* Initialised to zero by calloc */
-  MYFLT    w21, w22;                  /* Initialised to zero by calloc */
-  MYFLT    w31, w32;                  /* Initialised to zero by calloc */
-  MYFLT    w41/*, w42*/;              /* Initialised to zero by calloc */
+  cs_float    w11, w12;                  /* Initialised to zero by calloc */
+  cs_float    w21, w22;                  /* Initialised to zero by calloc */
+  cs_float    w31, w32;                  /* Initialised to zero by calloc */
+  cs_float    w41/*, w42*/;              /* Initialised to zero by calloc */
   int32_t  firstcall, tencount;       /* Initialised to zero by calloc */
-  MYFLT   *Dwind_dbuf, *Dwind_end1;   /* double buffer for downsamps   */
-  MYFLT   *dbp1, *dbp2;
+  cs_float   *Dwind_dbuf, *Dwind_end1;   /* double buffer for downsamps   */
+  cs_float   *dbp1, *dbp2;
 } LPANAL_GLOBALS;
 
 /* Forward declaration */
 
-static  void    alpol(CSOUND *, LPC *, MYFLT *,
-                      double *, double *, double *, double *);
-static  void    gauss(LPC *, double (*)[MAXPOLES], double*, double*);
+static  void    alpol(CSOUND *, LPC *, cs_float *,
+                      cs_double *, cs_double *, cs_double *, cs_double *);
+static  void    gauss(LPC *, cs_double (*)[MAXPOLES], cs_double*, cs_double*);
 static  void    quit(CSOUND *, char *), lpdieu(CSOUND *, char *);
 static  void    usage(CSOUND *);
-static  void    ptable(CSOUND *, MYFLT, MYFLT, MYFLT, int32_t, LPANAL_GLOBALS*);
-static  MYFLT   getpch(CSOUND *, MYFLT *, LPANAL_GLOBALS*);
+static  void    ptable(CSOUND *, cs_float, cs_float, cs_float, int32_t, LPANAL_GLOBALS*);
+static  cs_float   getpch(CSOUND *, cs_float *, LPANAL_GLOBALS*);
 
 /* Search for an argument and report of not found */
 #define FIND(MSG)   if (*s == '\0')  \
@@ -112,14 +112,14 @@ static  MYFLT   getpch(CSOUND *, MYFLT *, LPANAL_GLOBALS*);
  *
  */
 
-static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
-                     int32_t *pt, int32_t itmax, int32_t *indic, double *work)
+static void polyzero(int32_t n, cs_double *a, cs_double *zerore, cs_double *zeroim,
+                     int32_t *pt, int32_t itmax, int32_t *indic, cs_double *work)
 {
-    double        u, v, w, k, m, f, fm, fc, xm, ym, xr, yr, xc, yc;
-    double        dx, dy, term, factor;
+    cs_double        u, v, w, k, m, f, fm, fc, xm, ym, xr, yr, xc, yc;
+    cs_double        dx, dy, term, factor;
     int32_t       n1, i, j, p, iter;
     unsigned char conv;
-    double        tmp;
+    cs_double        tmp;
 
     factor = 1.0;
 
@@ -131,7 +131,7 @@ static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
 
     /* for (i=0; i<=n; i++) */
     /*   work[i+1] = a[i]; */
-    memcpy(&work[1], a, (n+1)*sizeof(double));
+    memcpy(&work[1], a, (n+1)*sizeof(cs_double));
     *indic = 0;
     *pt = 0;
     n1 = n;
@@ -151,7 +151,7 @@ static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
         fm = fc;
         xm = 0.0;
         ym = 0.0;
-        dx = pow(fabs(a[n]/a[0]),(1.0/((double)n1)));
+        dx = pow(fabs(a[n]/a[0]),(1.0/((cs_double)n1)));
         dy = 0.0;
         iter = 0;
         conv = FALSE;
@@ -264,13 +264,13 @@ static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
  */
 
 static void synthetize(int32_t poleCount,
-                       double *poleReal,
-                       double *poleImag,
-                       double *polyReal,
-                       double *polyImag)
+                       cs_double *poleReal,
+                       cs_double *poleImag,
+                       cs_double *polyReal,
+                       cs_double *polyImag)
 {
     int32_t  j, k;
-    double   pr, pi, cr, ci;
+    cs_double   pr, pi, cr, ci;
 
     polyReal[0] = 1;
     polyImag[0] = 0;
@@ -305,10 +305,10 @@ static void synthetize(int32_t poleCount,
 
 #endif
 
-static void InvertPoles(int32_t count, double *real, double *imag)
+static void InvertPoles(int32_t count, cs_double *real, cs_double *imag)
 {
     int32_t    i;
-    double pr,pi,mag;
+    cs_double pr,pi,mag;
 
     for (i=0; i<count; i++) {
       pr = real[i];
@@ -322,7 +322,7 @@ static void InvertPoles(int32_t count, double *real, double *imag)
 #ifdef TRACE_POLES
 
 static void DumpPoles(CSOUND *csound,
-                      int32_t poleCount, double *part1, double *part2,
+                      int32_t poleCount, cs_double *part1, cs_double *part2,
                       int32_t isMagn, char *where)
 {
     int32_t i;
@@ -349,17 +349,17 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 {
     SNDFILE *infd;
     int32_t     slice, analframes, counter, channel;
-    MYFLT   *coef, beg_time, input_dur, sr = FL(0.0);
+    cs_float   *coef, beg_time, input_dur, sr = FL(0.0);
     char    *infilnam, *outfilnam;
     int32_t     ofd;
-    double  errn, rms1, rms2, filterCoef[MAXPOLES+1];
-    MYFLT   *sigbuf, *sigbuf2;      /* changed from short */
+    cs_double  errn, rms1, rms2, filterCoef[MAXPOLES+1];
+    cs_float   *sigbuf, *sigbuf2;      /* changed from short */
     int64_t    n;
     uint32_t     osiz, nb;
     int32_t     hsize;
     LPHEADER    *lph;
     char    *lpbuf, *tp;
-    MYFLT   pchlow, pchhigh;
+    cs_float   pchlow, pchhigh;
     SOUNDIN *p;             /* struct allocated by SAsndgetset */
     LPC     lpc;
 
@@ -367,11 +367,11 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     int32_t     i, j, indic, storePoles;
     int32_t     poleFound;
-    double  pr, pi, pm, pp, dPI;
-    double  polePart1[MAXPOLES], polePart2[MAXPOLES];
-    double  z1, workArray1[MAXPOLES];
+    cs_double  pr, pi, pm, pp, dPI;
+    cs_double  polePart1[MAXPOLES], polePart2[MAXPOLES];
+    cs_double  z1, workArray1[MAXPOLES];
 #ifdef _DEBUG
-    double  polyReal[MAXPOLES], polyImag[MAXPOLES];
+    cs_double  polyReal[MAXPOLES], polyImag[MAXPOLES];
 #endif
     LPANAL_GLOBALS *lpg;
     int32_t new_format=0;
@@ -415,7 +415,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
         switch (*s++) {
         case 's':       FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
-                        csound->Sscanf(s,"%lf",&sr); break;
+                        csound->Sscanf(s,"%" CS_DOUBLE_SCAN,&sr); break;
 #else
                         csound->Sscanf(s,"%f",&sr); break;
 #endif
@@ -423,13 +423,13 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         csound->Sscanf(s,"%d",&channel); break;
         case 'b':       FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
-                        csound->Sscanf(s,"%lf",&beg_time); break;
+                        csound->Sscanf(s,"%" CS_DOUBLE_SCAN,&beg_time); break;
 #else
                         csound->Sscanf(s,"%f",&beg_time); break;
 #endif
         case 'd':       FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
-                        csound->Sscanf(s,"%lf",&input_dur); break;
+                        csound->Sscanf(s,"%" CS_DOUBLE_SCAN,&input_dur); break;
 #else
                         csound->Sscanf(s,"%f",&input_dur); break;
 #endif
@@ -454,7 +454,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         break;
         case 'P':       FIND(Str("no low frequency"))
 #if defined(USE_DOUBLE)
-                        csound->Sscanf(s,"%lf",&pchlow);
+                        csound->Sscanf(s,"%" CS_DOUBLE_SCAN,&pchlow);
 #else
                         csound->Sscanf(s,"%f",&pchlow);
 #endif
@@ -463,7 +463,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         break;
         case 'Q':       FIND(Str("no high frequency"))
 #if defined(USE_DOUBLE)
-                        csound->Sscanf(s,"%lf",&pchhigh); break;
+                        csound->Sscanf(s,"%" CS_DOUBLE_SCAN,&pchhigh); break;
 #else
                         csound->Sscanf(s,"%f",&pchhigh); break;
 #endif
@@ -505,7 +505,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(lpc.poleCount > MAXPOLES))
       quit(csound,Str("poles exceeds maximum allowed"));
     /* Allocate space now */
-    coef = (MYFLT*) csound->Malloc(csound, (NDATA+lpc.poleCount*2)*sizeof(MYFLT));
+    coef = (cs_float*) csound->Malloc(csound, (NDATA+lpc.poleCount*2)*sizeof(cs_float));
     /* Space allocated */
     if (UNLIKELY(slice < lpc.poleCount * 5))
       csound->Warning(csound,"%s", Str("hopsize may be too small, "
@@ -570,8 +570,8 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     lph->npoles = lpc.poleCount;
     lph->nvals = lpc.poleCount*(storePoles?2:1) + NDATA;
-    lph->srate = (MYFLT)p->sr;
-    lph->framrate = (MYFLT) p->sr / slice;
+    lph->srate = (cs_float)p->sr;
+    lph->framrate = (cs_float) p->sr / slice;
     lph->duration = input_dur;
     hsize = (int32_t)(tp - (char *) lph);              /* header size including text */
     lph->headersize = (hsize + 3) & -4;     /* rounded up to 4 byte bndry */
@@ -582,7 +582,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     if (new_format) {           /* ****This is not accurate wrt doubles**** */
       fprintf(oFd, "LPANAL\n%d %d %d %d\n%a %a %a\n",
               lph->headersize, lph->lpmagic, lph->npoles, lph->nvals,
-              (double)lph->framrate, (double)lph->srate, (double)lph->duration);
+              (cs_double)lph->framrate, (cs_double)lph->srate, (cs_double)lph->duration);
     }
     else if ((nb = (int32_t) write(ofd,(char *)lph,(int32_t)lph->headersize)) <
         lph->headersize)
@@ -590,10 +590,10 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     /* get buffer size for one analysis frame:
        filtercoef or poles + freq/rms/... */
-    osiz = (lpc.poleCount*(storePoles?2:1) + NDATA) * sizeof(MYFLT);
+    osiz = (lpc.poleCount*(storePoles?2:1) + NDATA) * sizeof(cs_float);
 
     /* Allocate signal buffer for sound frame */
-    sigbuf = (MYFLT *) csound->Malloc(csound, (int64_t)lpc.WINDIN * sizeof(MYFLT));
+    sigbuf = (cs_float *) csound->Malloc(csound, (int64_t)lpc.WINDIN * sizeof(cs_float));
     sigbuf2 = sigbuf + slice;
 
     /* Try to read first frame in buffer */
@@ -603,7 +603,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     /* initialize frame pitch table ? */
     if (lpc.doPitch)
-      ptable(csound, pchlow, pchhigh, (MYFLT) p->sr, lpc.WINDIN, lpg);
+      ptable(csound, pchlow, pchhigh, (cs_float) p->sr, lpc.WINDIN, lpg);
 
     /* Initialise for analysis */
     counter = 0;
@@ -616,10 +616,10 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                     "pitch: 0000.00   ", 0, "LPC/POLES");
 #endif
     /* Space for a array */
-    lpc.a = (double (*)[MAXPOLES])
-      csound->Malloc(csound, MAXPOLES * MAXPOLES * sizeof(double));
-    lpc.x = (double *) csound->Malloc(csound,   /* alloc a double array */
-                                      lpc.WINDIN * sizeof(double));
+    lpc.a = (cs_double (*)[MAXPOLES])
+      csound->Malloc(csound, MAXPOLES * MAXPOLES * sizeof(cs_double));
+    lpc.x = (cs_double *) csound->Malloc(csound,   /* alloc a double array */
+                                      lpc.WINDIN * sizeof(cs_double));
 #ifdef TRACE
     csound->FileOpen(csound, &trace, CSFILE_STD, "lpanal.trace", "w", NULL,
                       CSFTYPE_OTHER_TEXT, 0);
@@ -633,8 +633,8 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     /* Do the analysis */
     do {
-      MYFLT *fp1;
-      double *dfp;
+      cs_float *fp1;
+      cs_double *dfp;
 
       /* Analyze current frame */
 #ifdef TRACE_POLES
@@ -644,9 +644,9 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
       counter++;
       alpol(csound, &lpc, sigbuf, &errn, &rms1, &rms2, filterCoef);
       /* Transfer results */
-      coef[0] = (MYFLT)rms2;
-      coef[1] = (MYFLT)rms1;
-      coef[2] = (MYFLT)errn;
+      coef[0] = (cs_float)rms2;
+      coef[1] = (cs_float)rms1;
+      coef[2] = (cs_float)errn;
       if (lpc.doPitch)
         coef[3] = getpch(csound, sigbuf, lpg);
       else coef[3] = FL(0.0);
@@ -657,7 +657,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                          counter, coef[0], coef[1], coef[2], coef[3]);
 #endif
   /*  for (fp1=coef+NDATA, dfp=cc+poleCount, n=poleCount; n--; ) */
-  /*    *fp1++ = - (MYFLT) *--dfp; */  /* rev coefs & chng sgn */
+  /*    *fp1++ = - (cs_float) *--dfp; */  /* rev coefs & chng sgn */
 #if 0
       CS_SPRINTF(lpc.pwindow.caption, "pitch: %8.2f", coef[3]);
       csoundDisplay(csound, &lpc.pwindow);
@@ -734,8 +734,8 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
         /* Store in output buffer */
         fp1 = coef+NDATA;
         for (i=0; i<lpc.poleCount;i++) {
-          *fp1++ = (MYFLT)polePart1[i];
-          *fp1++ = (MYFLT)polePart2[i];
+          *fp1++ = (cs_float)polePart1[i];
+          *fp1++ = (cs_float)polePart2[i];
         }
       }
       else {
@@ -743,22 +743,22 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
         dfp = filterCoef+lpc.poleCount;
         fp1 = coef+NDATA;
         for (n=0;n<lpc.poleCount; n++)
-          *fp1++ = - (MYFLT) *--dfp;
+          *fp1++ = - (cs_float) *--dfp;
       }
 
       /* Write frame to disk */
       if (new_format) {
         uint32_t i, j;
-        for (i=0, j=0; i<osiz; i+=sizeof(MYFLT), j++)
-          fprintf(oFd, "%a\n", (double)coef[j]);
+        for (i=0, j=0; i<osiz; i+=sizeof(cs_float), j++)
+          fprintf(oFd, "%a\n", (cs_double)coef[j]);
       }
       else
         if (UNLIKELY((nb = (int32_t) write(ofd, (char *)coef, osiz)) != osiz))
           quit(csound, Str("write error"));
-      memcpy(sigbuf, sigbuf2, sizeof(MYFLT)*slice);
+      memcpy(sigbuf, sigbuf2, sizeof(cs_float)*slice);
 
       /* Some unused stuff. I think from when all snd was in mem */
-      /*  ( MYFLT *fp2; for (fp1=sigbuf, fp2=sigbuf2, n=slice; n--; ) */
+      /*  ( cs_float *fp2; for (fp1=sigbuf, fp2=sigbuf2, n=slice; n--; ) */
       /* move slice forward */
       /*              *fp1++ = *fp2++;} */
 
@@ -799,8 +799,8 @@ static void lpdieu(CSOUND *csound, char *msg)
 }
 
 
-static MYFLT noise(MYFLT a) {
-  return a*((MYFLT) rand()/RAND_MAX - 0.5);
+static cs_float noise(cs_float a) {
+  return a*((cs_float) rand()/RAND_MAX - 0.5);
 }
 
 /*
@@ -809,27 +809,27 @@ static MYFLT noise(MYFLT a) {
  *
  */
 
-static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
-                  double *rms1, double *rms2, double *b)
-                                        /* sig now MYFLT */
+static void alpol(CSOUND *csound, LPC *thislp, cs_float *sig, cs_double *errn,
+                  cs_double *rms1, cs_double *rms2, cs_double *b)
+                                        /* sig now cs_float */
                                         /* b filled here */
 {
   if(!thislp->newmethod) {
-    double v[MAXPOLES];
-    double *xp;
-    double sum, sumx, sumy;
+    cs_double v[MAXPOLES];
+    cs_double *xp;
+    cs_double sum, sumx, sumy;
     int32_t i, j, k, limit;
 
    /* Transfer signal in x array */
     for (xp=thislp->x; xp-thislp->x < thislp->WINDIN;++xp,++sig) {
       /* VL 24.06.21 - adding a little noise to allow pole analysis
          to be carried out with silences */
-      *xp = (double) *sig + (thislp->storePoles ? noise(0.0001) : 0.);
+      *xp = (cs_double) *sig + (thislp->storePoles ? noise(0.0001) : 0.);
     }
 
    /* Build system to be solved */
     for (i=0; i < thislp->poleCount;++i) {
-      sum = (double) 0.0;
+      sum = (cs_double) 0.0;
       for (k=thislp->poleCount; k < thislp->WINDIN;++k)
         sum += thislp->x[k-(i+1)] * thislp->x[k];
       v[i] = -sum;
@@ -873,7 +873,7 @@ static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
     *errn = sumy/sumx;
   } else {
     /* VL 29/05/2020 -- Durbin autoregression method */
-    MYFLT *c;
+    cs_float *c;
     int32_t i;
     c = csound->LPred(csound, thislp->setup, sig);
     for (i=1; i <  thislp->poleCount+1;i++) b[i-1] = c[i];
@@ -889,10 +889,10 @@ static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
  *
  */
 static void gauss(LPC* thislp,
-                  double (*a/*old*/)[MAXPOLES], double *bold, double b[])
+                  cs_double (*a/*old*/)[MAXPOLES], cs_double *bold, cs_double b[])
 {
-    double amax, dum, pivot;
-    double c[MAXPOLES];
+    cs_double amax, dum, pivot;
+    cs_double c[MAXPOLES];
     int32_t i, j, k, l, istar=-1, ii, lp;
 
     /* bold untouched by this subroutine */
@@ -906,7 +906,7 @@ static void gauss(LPC* thislp,
     for (i=0; i < thislp->poleCount - 1;++i)  {        /* find largest pivot */
       amax = 0.0;
       for (ii=i; ii < thislp->poleCount;++ii)  {
-        double npq = fabs(a[ii][i]);
+        cs_double npq = fabs(a[ii][i]);
         if (npq >= amax)  {
           istar = ii;
           amax = npq;
@@ -1008,25 +1008,25 @@ static void usage(CSOUND *csound)
 }
 
 
-typedef MYFLT (*phi_typ)[HWIN];
-typedef MYFLT (*psi_typ)[HWIN];
-static  void   trigpo(MYFLT, phi_typ, psi_typ, MYFLT *, MYFLT *,
+typedef cs_float (*phi_typ)[HWIN];
+typedef cs_float (*psi_typ)[HWIN];
+static  void   trigpo(cs_float, phi_typ, psi_typ, cs_float *, cs_float *,
                       int32_t, LPANAL_GLOBALS*);
-static  MYFLT  lowpass(MYFLT, LPANAL_GLOBALS*);
-static  MYFLT  search(MYFLT *fm, MYFLT qsum, MYFLT g[], MYFLT h[], LPANAL_GLOBALS*);
+static  cs_float  lowpass(cs_float, LPANAL_GLOBALS*);
+static  cs_float  search(cs_float *fm, cs_float qsum, cs_float g[], cs_float h[], LPANAL_GLOBALS*);
 
-static void trigpo(MYFLT omega,
-                   phi_typ phi, psi_typ psi, MYFLT *gamphi, MYFLT *gampsi,
+static void trigpo(cs_float omega,
+                   phi_typ phi, psi_typ psi, cs_float *gamphi, cs_float *gampsi,
                    int32_t n, LPANAL_GLOBALS *lpg)
 /* dimensions:   phi[NN][HWIN], psi[NP][HWIN], gamphi[NN], gampsi[NP]  */
 {
     int32_t    j=0, k, np;
-    double alpha, beta, gamma, wcos[HWIN], wsin[HWIN];
-    double p, z, a, b, yy;
+    cs_double alpha, beta, gamma, wcos[HWIN], wsin[HWIN];
+    cs_double p, z, a, b, yy;
 
     np = n+1;
     for (k=0;  k<lpg->Hwind;  ++k) {
-      yy = omega * (MYFLT)k;
+      yy = omega * (cs_float)k;
       wcos[k] = cos(yy);
       wsin[k] = sin(yy);
     }
@@ -1036,9 +1036,9 @@ static void trigpo(MYFLT omega,
       z = p * p;
       beta += z * wcos[k];
       gamma += z;
-      phi[0][k] = (MYFLT)p;
+      phi[0][k] = (cs_float)p;
     }
-    gamphi[0] = (MYFLT)gamma;
+    gamphi[0] = (cs_float)gamma;
     a = 2.0 * beta/gamma;
     alpha = beta = gamma = 0.0;
     for (k=0;  k<lpg->Hwind;  ++k) {
@@ -1046,9 +1046,9 @@ static void trigpo(MYFLT omega,
       alpha += wcos[k] * p * phi[0][k];
       beta += wcos[k] * ( p * p );
       gamma +=  p * p;
-      phi[1][k] = (MYFLT)p;
+      phi[1][k] = (cs_float)p;
     }
-    gamphi[1] = (MYFLT)gamma;
+    gamphi[1] = (cs_float)gamma;
     a = 2.0 * beta/gamma;
     b = 2.0 *alpha/gamphi[0];
     for (j=2;  j<n;  ++j) {
@@ -1058,19 +1058,19 @@ static void trigpo(MYFLT omega,
         alpha += wcos[k] * p * phi[j-1][k];
         beta += wcos[k] * (p * p);
         gamma += (p * p);
-        phi[j][k] = (MYFLT)p;
+        phi[j][k] = (cs_float)p;
       }
-      gamphi[j] = (MYFLT)gamma;
+      gamphi[j] = (cs_float)gamma;
       a = 2.0 * beta/gamma;
       b = 2.0 *alpha/gamphi[j-1];
     }
     beta = 0.0;
-    gamma = (double) lpg->Hwind;
+    gamma = (cs_double) lpg->Hwind;
     for ( k=0; k < lpg->Hwind;  ++k) {
       beta += wcos[k];
       psi[0][k] = FL(1.0);
     }
-    gampsi[0] = (MYFLT)gamma;
+    gampsi[0] = (cs_float)gamma;
     a = beta/gamma;
     alpha = beta = gamma = 0.0;
     for ( k=0;  k < lpg->Hwind;  ++k) {
@@ -1078,9 +1078,9 @@ static void trigpo(MYFLT omega,
       alpha += wcos[k] * p*psi[0][k];
       beta += wcos[k] * ( p * p );
       gamma += (p * p);
-      psi[1][k] = (MYFLT)p;
+      psi[1][k] = (cs_float)p;
     }
-    gampsi[1] = (MYFLT)gamma;
+    gampsi[1] = (cs_float)gamma;
     a = 2.0 * beta / gamma;
     b = 2.0 * alpha / gampsi[0];
     for (j=2;  j<np; ++j) {
@@ -1090,26 +1090,26 @@ static void trigpo(MYFLT omega,
         alpha += wcos[k]*p*psi[j-1][k];
         beta += wcos[k]* (p*p);
         gamma += (p*p);
-        psi[j][k] = (MYFLT)p;
+        psi[j][k] = (cs_float)p;
       }
-      gampsi[j] = (MYFLT)gamma;
+      gampsi[j] = (cs_float)gamma;
       a = 2.0 * beta/gamma;
       b = 2.0 * alpha/gampsi[j-1];
     }
 }
 
-static MYFLT search(MYFLT *fm, MYFLT qsum, MYFLT g[], MYFLT h[],
+static cs_float search(cs_float *fm, cs_float qsum, cs_float g[], cs_float h[],
                     LPANAL_GLOBALS  *lpg)
 {
-    MYFLT fun[FREQS], funmin = FL(1.e10);
-    MYFLT sum, f1, f2, f3, x0, x1, x2, x3, a, b, c, ftemp;
+    cs_float fun[FREQS], funmin = FL(1.e10);
+    cs_float sum, f1, f2, f3, x0, x1, x2, x3, a, b, c, ftemp;
     int32_t   i, istar = 0, n, np, j, k;
 
     for (i=0;  i < FREQS;  ++i) {
-      MYFLT (*tphii)[HWIN], (*tpsii)[HWIN];
-      MYFLT  *tgamphi, *tgampsi;
-      tphii = (MYFLT (*)[HWIN]) lpg->tphi[i];    /* dim [][NN][HWIN] */
-      tpsii = (MYFLT (*)[HWIN]) lpg->tpsi[i];    /* dim [][NP][HWIN] */
+      cs_float (*tphii)[HWIN], (*tpsii)[HWIN];
+      cs_float  *tgamphi, *tgampsi;
+      tphii = (cs_float (*)[HWIN]) lpg->tphi[i];    /* dim [][NN][HWIN] */
+      tpsii = (cs_float (*)[HWIN]) lpg->tpsi[i];    /* dim [][NP][HWIN] */
       tgamphi = lpg->tgamph[i];                  /* dim [][NN]       */
       tgampsi = lpg->tgamps[i];                  /* dim [][NP]       */
       n = (int32_t)(lpg->NYQ10 / lpg->freq[i]);
@@ -1152,7 +1152,7 @@ static MYFLT search(MYFLT *fm, MYFLT qsum, MYFLT g[], MYFLT h[],
     return (x0);
 }
 
-static MYFLT lowpass(MYFLT x, LPANAL_GLOBALS* lpg) /* x now MYFLT */
+static cs_float lowpass(cs_float x, LPANAL_GLOBALS* lpg) /* x now cs_float */
 {
 #define c FL(0.00048175311)
 
@@ -1170,8 +1170,8 @@ static MYFLT lowpass(MYFLT x, LPANAL_GLOBALS* lpg) /* x now MYFLT */
 
 #define c4 -FL(0.930449120)
 
-    MYFLT w1, w2, w3, w4;
-    MYFLT temp,y;
+    cs_float w1, w2, w3, w4;
+    cs_float temp,y;
 
     w1 = c*x - c1*lpg->w11 - d1*lpg->w12;
     temp = w1 + a1*lpg->w11 + lpg->w12;
@@ -1192,14 +1192,14 @@ static MYFLT lowpass(MYFLT x, LPANAL_GLOBALS* lpg) /* x now MYFLT */
     return(y);
 }
 
-static MYFLT getpch(CSOUND *csound, MYFLT *sigbuf, LPANAL_GLOBALS* lpg)
+static cs_float getpch(CSOUND *csound, cs_float *sigbuf, LPANAL_GLOBALS* lpg)
 {
-    MYFLT g[HWIN], h[HWIN], fm, qsum, y, *inp;
+    cs_float g[HWIN], h[HWIN], fm, qsum, y, *inp;
     int32_t   n;
 
     if (lpg->firstcall) {            /* on first call, alloc dbl dbuf  */
       lpg->Dwind_dbuf =
-        (MYFLT *) csound->Calloc(csound, (int64_t)lpg->Dwind * 2 * sizeof(MYFLT));
+        (cs_float *) csound->Calloc(csound, (int64_t)lpg->Dwind * 2 * sizeof(cs_float));
       lpg->Dwind_end1 = lpg->Dwind_dbuf + lpg->Dwind;
       lpg->dbp1 = lpg->Dwind_dbuf;   /*   init the local Dsamp pntrs */
       lpg->dbp2 = lpg->Dwind_end1;   /*   & process the whole inbuf  */
@@ -1232,7 +1232,7 @@ static MYFLT getpch(CSOUND *csound, MYFLT *sigbuf, LPANAL_GLOBALS* lpg)
       }
     }
     {
-      MYFLT *gp, *hp, *sp1, *sp2;
+      cs_float *gp, *hp, *sp1, *sp2;
       qsum = FL(0.0);
       gp = g; hp = h;
       sp1 = sp2 = lpg->dbp1 + lpg->Hwind - 1;
@@ -1246,11 +1246,11 @@ static MYFLT getpch(CSOUND *csound, MYFLT *sigbuf, LPANAL_GLOBALS* lpg)
 }
 
 static void ptable(CSOUND *csound,
-                   MYFLT fmin, MYFLT fmax, MYFLT sr, int32_t windsiz,
+                   cs_float fmin, cs_float fmax, cs_float sr, int32_t windsiz,
                    LPANAL_GLOBALS *lpg)
 {
     int32_t   i, n;
-    MYFLT omega, fstep, tpidsrd10;
+    cs_float omega, fstep, tpidsrd10;
 
     /* if ((n = HWIN * 20) != MAXWINDIN) */
     /*   csound->Die(csound, Str("LPTRKFNS: inconsistent MAXWindow defines")); */
@@ -1262,16 +1262,16 @@ static void ptable(CSOUND *csound,
     if (lpg->Hwind > HWIN)
       csound->Die(csound, "%s", Str("LPTRKFNS: called with excessive Windsiz"));
     tpidsrd10 = TWOPI_F / (sr/FL(10.0));
-    fstep = (fmax - fmin) / FREQS;    /* alloc & init each MYFLT array  */
+    fstep = (fmax - fmin) / FREQS;    /* alloc & init each cs_float array  */
     for (i=0;  i<FREQS; ++i) {        /*   as if MAX dimension of Hwind */
       lpg->tphi[i] =
-        (MYFLT *) csound->Calloc(csound, (int64_t)NN * HWIN * sizeof(MYFLT));
+        (cs_float *) csound->Calloc(csound, (int64_t)NN * HWIN * sizeof(cs_float));
       lpg->tpsi[i] =
-        (MYFLT *) csound->Calloc(csound, (int64_t)NP * HWIN * sizeof(MYFLT));
+        (cs_float *) csound->Calloc(csound, (int64_t)NP * HWIN * sizeof(cs_float));
       lpg->tgamph[i] =
-         (MYFLT *) csound->Calloc(csound, (int64_t)NN * sizeof(MYFLT));
-      lpg->tgamps[i] = (MYFLT *) csound->Calloc(csound, (int64_t)NP * sizeof(MYFLT));
-      lpg->freq[i] = fmin + (MYFLT)i * fstep;
+         (cs_float *) csound->Calloc(csound, (int64_t)NN * sizeof(cs_float));
+      lpg->tgamps[i] = (cs_float *) csound->Calloc(csound, (int64_t)NP * sizeof(cs_float));
+      lpg->freq[i] = fmin + (cs_float)i * fstep;
       n = (int32_t)(lpg->NYQ10 / lpg->freq[i]);
       if (n > NN)  n = NN;
       omega = lpg->freq[i] * tpidsrd10;

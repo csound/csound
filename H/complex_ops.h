@@ -28,7 +28,7 @@ typedef struct {
 
 typedef struct {
   OPDS    h;
-  MYFLT *ans;
+  cs_float *ans;
   COMPLEXDAT *a;
 } CXOP2R;
 
@@ -36,24 +36,24 @@ typedef struct {
 typedef struct {
   OPDS    h;
   COMPLEXDAT *ans;
-  MYFLT *a, *b;
-  MYFLT *isPolar;
+  cs_float *a, *b;
+  cs_float *isPolar;
 } R2CXOP;
 
 typedef struct COPS1 {
   OPDS h;
   ARRAYDAT *out;
-  MYFLT *a, *b;
+  cs_float *a, *b;
 } COPS1;
 
 typedef struct QUADOSC {
   OPDS h;
   ARRAYDAT *out;
-  MYFLT *cps;
-  MYFLT *isPolar;
-  MYFLT *skip;
-  MYFLT iinc, rinc, iphs, rphs;
-  MYFLT freq;
+  cs_float *cps;
+  cs_float *isPolar;
+  cs_float *skip;
+  cs_float iinc, rinc, iphs, rphs;
+  cs_float freq;
   int32_t offs;
   FUNC *tab;
 } QUADOSC;

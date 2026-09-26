@@ -26,5 +26,5 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *gvar_ix;
+    cs_float   *gvar_ix;
 } GLOBAL_LOCK_UNLOCK;
