@@ -264,6 +264,7 @@ typedef struct {
         OPDS    h;
         PVSDAT  *fout;
         PVSDAT  *fsrc;
+        uint32  lastframe, lastout;
 } FASSIGN;
 
 #endif
