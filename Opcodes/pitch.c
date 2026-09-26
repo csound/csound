@@ -1640,32 +1640,28 @@ int32_t GardnerPink_perf(CSOUND *csound, PINKISH *p)
 /*           f(x) = limit * sign(x)                             */
 /* ************************************************************ */
 
-/* Methods 0 and 2 OK, method1 broken */
-
-double tanh(double);
 int32_t clip_set(CSOUND *csound, CLIP *p)
 {
-    IGN(csound);
-    int32_t meth = (int32_t)MYFLT2LONG(*p->imethod);
-    p->meth = meth;
+    /* Select the fallback before calculating its coefficients. Check the
+       range before converting so every unsupported value can use method 0. */
+    int32_t meth = (*p->imethod >= FL(0.0) && *p->imethod < FL(3.0))
+      ? (int32_t)MYFLT2LONG(*p->imethod) : 0;
+    p->meth = meth > 2 ? 0 : meth;
     p->arg = FABS(*p->iarg);
     p->lim = *p->limit;
-    switch (meth) {
+    if (UNLIKELY(p->lim < FL(0.0) || !isfinite(p->lim)))
+      return csound->InitError(csound, "%s",
+                              Str("clip: limit must be finite and non-negative"));
+    switch (p->meth) {
     case 0:                     /* Bram de Jong method */
-      if (p->arg > FL(1.0) || p->arg < FL(0.0)) p->arg = FL(0.999);
+      if (!(p->arg <= FL(1.0))) p->arg = FL(0.999);
       p->arg = p->lim * p->arg;
-      p->k1 = FL(1.0)/(p->lim - p->arg);
-      p->k1 = p->k1 * p->k1;
-      p->k2 = (p->lim + p->arg)*FL(0.5);
-      break;
-    case 1:
-      p->k1 = PI_F/(FL(2.0) * p->lim);
+      p->k1 = p->lim - p->arg;
+      p->k2 = p->arg + p->k1*FL(0.5);
       break;
     case 2:
       p->k1 = FL(1.0)/TANH(FL(1.0));
       break;
-    default:
-      p->meth = 0;
     }
     return OK;
 }
@@ -1679,7 +1675,6 @@ int32_t clip(CSOUND *csound, CLIP *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT a = p->arg, k1 = p->k1, k2 = p->k2;
     MYFLT limit = p->lim;
-    MYFLT rlim = FL(1.0)/limit;
 
     if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1692,14 +1687,20 @@ int32_t clip(CSOUND *csound, CLIP *p)
         MYFLT x = ain[n];
         if (x>=FL(0.0)) {
           if (UNLIKELY(x>limit)) x = k2;
-          else if (x>a)
-            x = a + (x-a)/(FL(1.0)+(x-a)*(x-a)*k1);
+          else if (x>a) {
+            /* The ratio is at most one. Squaring the unscaled distance
+               or its reciprocal can overflow at finite limits. */
+            MYFLT distance = x-a, ratio = distance/k1;
+            x = a + distance/(FL(1.0)+ratio*ratio);
+          }
         }
         else {
           if (UNLIKELY(x<-limit))
             x = -k2;
-          else if (-x>a)
-            x = -a + (x+a)/(FL(1.0)+(x+a)*(x+a)*k1);
+          else if (-x>a) {
+            MYFLT distance = x+a, ratio = distance/k1;
+            x = -a + distance/(FL(1.0)+ratio*ratio);
+          }
         }
         aout[n] = x;
       }
@@ -1712,7 +1713,7 @@ int32_t clip(CSOUND *csound, CLIP *p)
         else if (UNLIKELY(x<= -limit))
           x = -limit;
         else
-            x = limit*SIN(k1*x);
+            x = limit*SIN((PI_F*FL(0.5))*(x/limit));
         aout[n] = x;
       }
       return OK;
@@ -1723,9 +1724,11 @@ int32_t clip(CSOUND *csound, CLIP *p)
           x = limit;
         else if (UNLIKELY(x<= -limit))
           x = -limit;
-        else
-          x = limit*k1*TANH(x*rlim);
-        //printf("*** %g -> %g\n", ain[n], x);
+        else {
+          /* Keep fast-math from forming limit*k1, which can overflow. */
+          volatile MYFLT normalized = k1*TANH(x/limit);
+          x = limit*normalized;
+        }
         aout[n] = x;
       }
       return OK;
