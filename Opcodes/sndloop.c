@@ -1223,8 +1223,20 @@ static int32_t pvsvoc_init(CSOUND *csound, pvsvoc *p)
 {
     int32 N = p->fin->N;
 
+    if (UNLIKELY(p->fin->sliding || p->ffr->sliding))
+      return csound->InitError(csound, "%s",
+                               Str("pvsvoc: sliding analysis is not supported"));
+    if (UNLIKELY(p->fin->N != p->ffr->N ||
+                 p->fin->overlap != p->ffr->overlap ||
+                 p->fin->winsize != p->ffr->winsize ||
+                 p->fin->wintype != p->ffr->wintype ||
+                 p->fin->format != p->ffr->format))
+      return csound->InitError(csound, "%s",
+                               Str("pvsvoc: input spectra must have matching formats"));
+
     if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
       csound->AuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
+    p->fout->sliding = 0;
     p->fout->N =  N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -1263,7 +1275,7 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
     float *ffr = (float *) p->ffr->frame.auxp;
     float *fexc = (float *) p->fexc.auxp;
     float *fout = (float *) p->fout->frame.auxp;
-    int32_t coefs = (int32_t) *(p->kcoefs), j;
+    int32_t coefs, j;
     MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
     MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
     float maxe=0.f, maxa=0.f;
@@ -1271,8 +1283,10 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
     if (UNLIKELY(fout==NULL)) goto err1;
 
     if (p->lastframe < p->fin->framecount) {
-      int32_t tmp = N/2;
-      tmp = tmp + tmp%2;
+      MYFLT requested_coefs = *p->kcoefs;
+      if (!(requested_coefs >= FL(1.0))) requested_coefs = FL(80.0);
+      /* At N/2 or above, no coefficients are removed. Clamp before casting. */
+      coefs = requested_coefs < N/2 ? (int32_t)requested_coefs : N/2;
       for (j=0; j < 2; j++) {
         MYFLT a;
         maxe = 0.f;
@@ -1283,7 +1297,6 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
           if (a <= 0) a = 1e-20;
           fenv[i/2] = log(a);
         }
-        if (coefs < 1) coefs = 80;
         for (i=0; i < N; i+=2) {
           ceps[i] = fenv[i/2];
           ceps[i+1] = 0.0;
@@ -1295,8 +1308,14 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
           fenv[i/2] = exp(ceps[i]);
           maxe = maxe < fenv[i/2] ? fenv[i/2] : maxe;
         }
+        /* The N/2-point transform excludes Nyquist. Use its magnitude as
+           the endpoint envelope, and include it in the normalization. */
+        a = j ? fin[N] : (fexc[N] = ffr[N]);
+        fenv[N/2] = a;
+        maxa = maxa < a ? a : maxa;
+        maxe = maxe < a ? a : maxe;
         if (maxe)
-          for (i=0; i<N; i+=2) {
+          for (i=0; i<N+2; i+=2) {
             if (j) fenv[i/2] *= maxa/maxe;
             if (fenv[i/2] && !j) {
               fenv[i/2] /= maxe;
@@ -1307,7 +1326,7 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
 
       kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : FL(1.0)): FL(0.0);
       for (i=0;i < N+2;i+=2) {
-        fout[i] = fenv[i/2]*(fexc[i]*kdepth + fin[i]*(FL(1.0)-kdepth))*gain;
+        fout[i] = (fenv[i/2]*fexc[i]*kdepth + fin[i]*(FL(1.0)-kdepth))*gain;
         fout[i+1] = ffr[i+1]*(kdepth) + fin[i+1]*(FL(1.0)-kdepth);
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
