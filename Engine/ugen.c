@@ -43,7 +43,6 @@
  * */
 
 #include "ugen_internal.h"
-#include "spatial_send.h"
 #include "csound_standard_types.h"
 #include "csound_orc.h"
 #include "csound_orc_semantics.h"
@@ -214,27 +213,6 @@ static MYFLT** get_arg_pointers(void* opcodeMem) {
     return (MYFLT**)((char*)opcodeMem + sizeof(OPDS));
 }
 
-/* AuxAlloc uses curip, while opcode callbacks use insdshead. Keep both
- * on this UGen's context, with an allocation list that survives context moves. */
-static int32_t ugen_call(UGEN* ugen, SUBR callback) {
-    CSOUND* csound = ugen->csound;
-    INSDS* context = ugen->insds;
-    INSDS* saved_curip = csound->curip;
-    AUXCH* saved_auxchp = context->auxchp;
-    context->auxchp = ugen->auxchp;
-    csound->curip = context;
-    int32_t result = callback(csound, ugen->opcodeMem);
-    ugen->auxchp = context->auxchp;
-    context->auxchp = saved_auxchp;
-    csound->curip = saved_curip;
-    return result;
-}
-
-static int32_t ugen_free_aux(CSOUND* csound, void* opcodeMem) {
-    auxchfree(csound, ((OPDS*)opcodeMem)->insdshead);
-    return OK;
-}
-
 /* ============================================================
  *  Factory API
  * ============================================================ */
@@ -289,10 +267,6 @@ bool csoundUgenContextDelete(UGEN_CONTEXT* context) {
 bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context) {
     if (ugen == NULL || context == NULL) return false;
     OPDS* opds = (OPDS*)ugen->opcodeMem;
-    if (opds->insdshead != context->insds) {
-        /* A moved source needs init in its new context before a send can use it. */
-        spatial_source_remove(ugen->csound, opds);
-    }
     ugen->insds = context->insds;
     opds->insdshead = context->insds;
     return true;
@@ -480,7 +454,7 @@ bool csoundUgenDelete(UGEN* ugen) {
 
     /* Call deinit if available */
     if (opds != NULL && ugen->oentry != NULL && ugen->oentry->deinit != NULL) {
-        ugen_call(ugen, ugen->oentry->deinit);
+        (*ugen->oentry->deinit)(csound, ugen->opcodeMem);
     }
 
     /* Free variable memory (e.g. STRINGDAT.data buffers) before
@@ -506,9 +480,6 @@ bool csoundUgenDelete(UGEN* ugen) {
             var = var->next;
         }
     }
-
-    /* Auxiliary list nodes can live inside opcodeMem. Release them first. */
-    ugen_call(ugen, ugen_free_aux);
 
     /* Free OPTXT */
     if (opds != NULL && opds->optext != NULL) {
@@ -741,7 +712,7 @@ int32_t csoundUgenInit(UGEN* ugen) {
     if (ugen == NULL) return CSOUND_ERROR;
     OENTRY* oentry = ugen->oentry;
     if (oentry->init != NULL) {
-        return ugen_call(ugen, oentry->init);
+        return (*oentry->init)(ugen->csound, ugen->opcodeMem);
     }
     return CSOUND_SUCCESS;
 }
@@ -750,7 +721,7 @@ int32_t csoundUgenPerform(UGEN* ugen) {
     if (ugen == NULL) return CSOUND_ERROR;
     OENTRY* oentry = ugen->oentry;
     if (oentry->perf != NULL) {
-        return ugen_call(ugen, oentry->perf);
+        return (*oentry->perf)(ugen->csound, ugen->opcodeMem);
     }
     return CSOUND_SUCCESS;
 }
