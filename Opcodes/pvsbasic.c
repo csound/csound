@@ -2798,12 +2798,12 @@ static int32_t tab2pvs_setframe(CSOUND *csound, PVSDAT *out, int32_t N,
     overlap = N / 4;
   if (winsize == 0.0)
     winsize = N;
-  if (UNLIKELY(!(overlap >= ksmps && overlap <= INT32_MAX)))
+  if (UNLIKELY(!(overlap >= ksmps && overlap <= (INT32_MAX + 0.0))))
     return csound->InitError(csound, "%s",
                              Str("tab2pvs: hop size must be at least ksmps "
                                  "and fit in a 32-bit integer"));
-  if (UNLIKELY(!(winsize >= 1.0 && winsize <= INT32_MAX &&
-                 wintype >= INT32_MIN && wintype <= INT32_MAX)))
+  if (UNLIKELY(!(winsize >= 1.0 && winsize <= (INT32_MAX + 0.0) &&
+                 wintype >= INT32_MIN && wintype <= (INT32_MAX + 0.0))))
     return csound->InitError(csound, "%s",
                              Str("tab2pvs: invalid window size or type"));
   if (UNLIKELY((size_t)N + 2 > SIZE_MAX / sizeof(float)))

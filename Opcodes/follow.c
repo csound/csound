@@ -88,8 +88,8 @@ static int32_t follow(CSOUND *csound, FOL *p)
    Bram.DeJong@rug.ac.be and James Maccartney posted on music-dsp;
    Transferred to csound by JPff, 2000 feb 12
 */
-/* Use cs_double coefficients even with float samples. Nonpositive times
-   retain the existing 0.1-second fallback. */
+/* Keep coefficients and state in 64-bit cs_double even with USE_FLOAT, to retain
+   small envelope updates. Nonpositive times keep the 0.1-second fallback. */
 #define FOLLOW2_COEFFICIENT(time) \
     exp(-6.90775527898 / ((cs_double)CS_ESR * \
                          ((time) <= FL(0.0) ? 0.1 : (cs_double)(time))))
@@ -157,4 +157,3 @@ int32_t follow_init_(CSOUND *csound)
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }
-
