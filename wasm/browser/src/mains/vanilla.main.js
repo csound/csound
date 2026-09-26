@@ -120,6 +120,13 @@ class VanillaWorkerMainThread {
       // prevent error after termination
       return;
     }
+    // Natural completion and stop() can both report the same end of performance.
+    if (
+      newPlayState === "realtimePerformanceEnded" &&
+      this.currentPlayState === "realtimePerformanceEnded"
+    ) {
+      return;
+    }
     this.currentPlayState = newPlayState;
 
     switch (newPlayState) {
@@ -134,8 +141,6 @@ class VanillaWorkerMainThread {
         // a noop if the stop promise already exists
         this.eventPromises.createStopPromise();
         this.midiPortStarted = false;
-        this.publicEvents.triggerRealtimePerformanceEnded();
-        await this.eventPromises.releaseStopPromise();
         break;
       }
 
@@ -161,6 +166,13 @@ class VanillaWorkerMainThread {
       this.audioWorker.ipcMessagePorts = this.ipcMessagePorts;
     }
     await this.audioWorker.onPlayStateChange(newPlayState);
+
+    if (newPlayState === "realtimePerformanceEnded") {
+      // Finish closing the old worklet before stop() returns or the end event
+      // lets a caller reset and start a new performance.
+      this.publicEvents.triggerRealtimePerformanceEnded();
+      await this.eventPromises.releaseStopPromise();
+    }
   }
 
   async csoundPause() {
@@ -295,6 +307,10 @@ class VanillaWorkerMainThread {
 
         case "csoundStop": {
           const csoundStop = async function () {
+            if (this.currentPlayState === "realtimePerformanceEnded") {
+              await this.eventPromises.waitForStop();
+              return 0;
+            }
             if (this.eventPromises.isWaiting("stop")) {
               return -1;
             } else {
@@ -321,6 +337,8 @@ class VanillaWorkerMainThread {
             if (!this.currentPlayState) {
               return;
             }
+            // Natural completion may still be closing the worklet.
+            await this.eventPromises.waitForStop();
             if (this.eventPromises.isWaiting("reset")) {
               return -1;
             } else {
