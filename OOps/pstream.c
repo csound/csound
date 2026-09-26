@@ -669,27 +669,29 @@ int32_t pvsftwset(CSOUND *csound, PVSFTW *p)
     if (UNLIKELY(!((p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE))))
       return csound->InitError(csound, Str("pvsftw: signal format must be "
                                            "amp-phase or amp-freq.\n"));
-    if (UNLIKELY(*p->ifna < 1.0f))
+    if (UNLIKELY(*p->ifna != FL(0.0) && *p->ifna < FL(1.0)))
       return csound->InitError(csound, Str("pvsftw: bad value for ifna.\n"));
     if (UNLIKELY(*p->ifnf < 0.0f))                /* 0 = notused */
       return csound->InitError(csound, Str("pvsftw: bad value for ifnf.\n"));
-    p->outfna = csound->FTFind(csound, p->ifna);
-    if (UNLIKELY(p->outfna==NULL))
-      return NOTOK;
     if (UNLIKELY(p->fsrc->sliding))
       return csound->InitError(csound, Str("Sliding version not yet available"));
     fsrc = (float *) p->fsrc->frame.auxp;               /* RWD MUST be 32bit */
+    if (UNLIKELY(fsrc==NULL))
+      return csound->InitError(csound, Str("pvsftw: not initialised\n"));
     /* init table, one presumes with zero amps */
     nbins = p->fftsize/2 + 1;
-    flena = p->outfna->flen + 1;
-
-    if (UNLIKELY(flena < nbins))
-      return csound->InitError(csound, Str("pvsftw: amps ftable too small.\n"));
-
-    /* init tables */
-    ftablea = p->outfna->ftable;
-    for (i=0;i < nbins;i++)
-      ftablea[i] = fsrc[i*2];
+    /* A zero table number disables amplitude export. */
+    if (*p->ifna != FL(0.0)) {
+      p->outfna = csound->FTFind(csound, p->ifna);
+      if (UNLIKELY(p->outfna==NULL))
+        return NOTOK;
+      flena = p->outfna->flen + 1;
+      if (UNLIKELY(flena < nbins))
+        return csound->InitError(csound, Str("pvsftw: amps ftable too small.\n"));
+      ftablea = p->outfna->ftable;
+      for (i=0;i < nbins;i++)
+        ftablea[i] = fsrc[i*2];
+    }
 
     /* freq table? */
     if ((int32_t) *p->ifnf >= 1) {
@@ -714,18 +716,24 @@ int32_t pvsftw(CSOUND *csound, PVSFTW *p)
 {
     int32_t i;
     int32_t nbins;
-    MYFLT *ftablea, *ftablef = NULL;
+    MYFLT *ftablea = NULL, *ftablef = NULL;
     float *fsrc;                /* RWD MUST be 32bit */
 
-    ftablea = p->outfna->ftable;
     fsrc = (float *) p->fsrc->frame.auxp;
 
     if (UNLIKELY(fsrc==NULL))
       return csound->PerfError(csound,&(p->h),
                                Str("pvsftw: not initialised\n"));
-    if (UNLIKELY(ftablea==NULL))
-      return csound->PerfError(csound,&(p->h),
-                               Str("pvsftw: no amps ftable!\n"));
+    if (UNLIKELY(p->fsrc->sliding || p->fsrc->N != p->fftsize ||
+                 p->fsrc->format != p->format))
+      return csound->PerfError(csound, &(p->h),
+                               Str("pvsftw: source format changed; reinitialise\n"));
+    if (p->outfna) {
+      ftablea = p->outfna->ftable;
+      if (UNLIKELY(ftablea==NULL))
+        return csound->PerfError(csound,&(p->h),
+                                 Str("pvsftw: no amps ftable!\n"));
+    }
     if (p->outfnf) {
       ftablef = p->outfnf->ftable;
       if (UNLIKELY(ftablef==NULL))
@@ -734,11 +742,12 @@ int32_t pvsftw(CSOUND *csound, PVSFTW *p)
     }
     nbins = p->fftsize/2 + 1;
 
-    /* only write when a new frame is ready */
-    if (p->lastframe < p->fsrc->framecount) {
+    /* Reinitializing the source can restart its frame counter. */
+    if (p->lastframe != p->fsrc->framecount) {
       /* write amps */
-      for (i=0;i < nbins;i++)
-        ftablea[i] = fsrc[i*2];
+      if (ftablea)
+        for (i=0;i < nbins;i++)
+          ftablea[i] = fsrc[i*2];
       /* freqs */
       if (ftablef)
         for (i=0;i < nbins;i++)
