@@ -1513,8 +1513,8 @@ MYFLT *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
 
   Similarly, a local SR is now implemented. This is set by
   the oversample/undersample opcode. It is not allowed with
-  local ksmps setting (setksmps) or with audio/k-rate array
-  arguments. It uses useropcd2().
+  local ksmps setting (setksmps). Audio/k-rate array arguments
+  are supported. It uses useropcd2().
 
 */
 
@@ -2668,8 +2668,8 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
 
    if oversampling is used, xin/xout need
    to initialise the converters.
-   oversampling is not allowed with local ksmps or
-   with audio/control array arguments.
+   oversampling is not allowed with local ksmps.
+   Audio/control array arguments are supported.
 */
 int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   if(p->h.insdshead->instr->glbvarcnt > 0 &&
@@ -2703,8 +2703,14 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   CS_EKR = CS_ESR/CS_KSMPS;
   CS_ONEDKR = 1./CS_EKR;
   CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
-  /* ksmps stays unchanged, so the control rate and inherited cycle counts
-     both increase by os. Each caller cycle runs os local blocks. */
+  /* ksmps does not change,
+     however, because we are oversampling, we will need
+     to run the code os times in a loop to consume
+     os*ksmps input samples and produce os*ksmps output
+     samples. This means that the kcounter will run faster by a
+     factor of os, and xtratim also needs to be scaled by
+     that factor.
+  */
   p->h.insdshead->xtratim *= os;
   CS_KCNT *= os;
   /* oversampling mode (s) */
@@ -2733,8 +2739,7 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
 
    if undersampling is used, xin/xout need
    to initialise the converters.
-   undersampling is not allowed with
-   with audio/control array arguments.
+   Audio/control array arguments are supported.
    It modifies ksmps according to the resampling factor.
 */
 int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
