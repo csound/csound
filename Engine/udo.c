@@ -1454,7 +1454,7 @@ static int32_t udo_prepare_rate(CSOUND *csound, UOPCODE *p, OPDS **rate_op) {
     const char *name = op->optext->t.oentry->opname;
     if (udo_is_rate_setting(name)) {
       csound->ids = op;
-      csound->op = name;
+      csound->op = (char *) name;
       if (*rate_op != NULL)
         return csound->InitError(csound,
                                   "UDO %s may have only one rate setting",

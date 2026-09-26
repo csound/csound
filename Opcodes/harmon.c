@@ -32,7 +32,7 @@
 
 typedef struct {
         MYFLT   *srcp;
-        int32    cntr;
+        int64_t    cntr;
 } PULDAT;
 
 typedef struct {
@@ -58,7 +58,8 @@ typedef struct {
         MYFLT   vocamp, vocinc, ampinc;
         PULDAT  puldat[PULMAX], *endp, *limp;
         VOCDAT  vocdat[VOCMAX], *vlim;
-        int32_t maxprd, pulslen;
+        int32_t maxprd;
+        int64_t pulslen;
         int16   pbufcnt, switching;
         AUXCH   auxch;
         int32_t     hmrngflg;
@@ -206,7 +207,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     //print_data(p, 2);
     if (koct >= p->minoct) {                    /* PERIODIC: find the pulse */
       MYFLT     val0, *buf0, *p0, *plim, *x;
-      int32_t   period, triprd, xdist;
+      int64_t   period, triprd, xdist;
 
       period = p->period;                       /* set srch range of 2 periods */
       triprd = period * 3;
@@ -252,7 +253,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
       else {
         MYFLT pospk, negpk, *posp, *negp;               /* NOT SURE:    */
         MYFLT *poscross, *negcross;
-        int32_t posdist, negdist;
+        int64_t posdist, negdist;
         pospk = negpk = FL(0.0);
         posp = negp = NULL;
         for ( ; x < plim; x++) {                /* find ensuing max & min vals */
@@ -300,7 +301,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
       }
 
       if (x != p->curpuls) {                    /* if pulse positn is new       */
-        int32_t nn, pulslen, sigdist, ndirect;
+        int64_t nn, pulslen, sigdist, ndirect;
         MYFLT *bufp;
         /* Avoid float index drift when the sigmoid spans a long pulse. */
         double signdx, siginc;
@@ -308,7 +309,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
 
         z = x + period;                         /*  and from estimated end      */
         if ((zval = *z) != FL(0.0)) {
-          int32_t n, nlim = inp2 - z, nback = z - buf0;
+          int64_t n, nlim = inp2 - z, nback = z - buf0;
           for (n = 1; n < nlim; n++) {
             if (zval * *(z+n) <= FL(0.0)) {     /*       find nearest zcrossing */
               z += n;

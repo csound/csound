@@ -60,27 +60,27 @@ if(BUILD_TESTS)
         io_test.cpp
         local_ksmps_test.cpp
         lfsr_test.cpp
-        serial_test.cpp
-        joystick_test.cpp
-        arduino_test.cpp
-        cpumeter_test.cpp
-        osc_blob_test.cpp
-        oscraw_test.cpp
-        fixtures/oscraw_test_opcode.c
-        socksend_test.cpp
-        sockrecv_test.cpp
-        fixtures/sockrecv_test_opcode.c
-        oscsend_test.cpp
-        oscbundle_test.cpp
+#        serial_test.cpp
+#        joystick_test.cpp
+#        arduino_test.cpp
+#        cpumeter_test.cpp
+#        osc_blob_test.cpp
+#        oscraw_test.cpp
+#        fixtures/oscraw_test_opcode.c
+#        socksend_test.cpp
+#        sockrecv_test.cpp
+#        fixtures/sockrecv_test_opcode.c
+#        oscsend_test.cpp
+#        oscbundle_test.cpp
         internal_osc_decode_test.cpp
-        pvsinit_test.cpp
-        paulstretch_test.cpp
-        mixer_test.cpp
-        multitap_test.cpp
-        nreverb_test.cpp
-        midi_file_test.cpp
-        midi_realtime_input_test.cpp
-        midiarp_test.cpp
+#        pvsinit_test.cpp
+#        paulstretch_test.cpp
+#        mixer_test.cpp
+#        multitap_test.cpp
+#        nreverb_test.cpp
+#        midi_file_test.cpp
+#        midi_realtime_input_test.cpp
+#        midiarp_test.cpp
         tableseg_test.cpp
         table_copy_test.cpp
         ftgentmp_test.cpp

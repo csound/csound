@@ -129,7 +129,7 @@ TEST_F(TrigseqTests, TableChangeUsesTheLookupRoundingRule)
     ASSERT_NO_FATAL_FAILURE(start(
         "kTable init 1.25\nif timeinstk() == 2 then\nkTable = 1.75\nendif\n"
         "trigseq 1,0,3,0,kTable,kA,kB"));
-    const bool roundedUp = MYFLT2LONG(FL(1.75)) == 2;
+    const bool roundedUp = round(FL(1.75)) == 2;
     expect({10, roundedUp ? 200 : 20, roundedUp ? 300 : 30});
 }
 

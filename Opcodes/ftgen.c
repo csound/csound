@@ -268,7 +268,7 @@ static char *ftload_text_field(FILE *file, char *line, size_t size,
                                const char *name)
 {
   size_t length = strlen(name);
-  if (fgets(line, size, file) == NULL ||
+  if (fgets(line, (int) size, file) == NULL ||
       strncmp(line, name, length) != 0 || line[length] != ':' ||
       (strchr(line, '\n') == NULL && !feof(file)))
     return NULL;
@@ -363,7 +363,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
                      !ftload_text_end(endptr) ||                      \
                      value < (MINIMUM) || value > (MAXIMUM)))         \
           goto err4;                                                 \
-        header.FIELD = value;                                        \
+        header.FIELD = (uint32_t) value;                              \
       } while (0)
 #define FTLOAD_READ_FLOAT(FIELD) do {                                 \
         s1 = ftload_text_field(file, s, sizeof(s), #FIELD);            \
