@@ -297,8 +297,12 @@ void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
       return NULL;
     }
     pp = HDR_PTR(oldp);
+    /* Keep the live list locked while realloc can move its block header.
+       Other threads must not follow the old links before we repair them. */
+    CSOUND_MEM_SPINLOCK
 #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != oldp)) {
+      CSOUND_MEM_SPINUNLOCK
       csound->DebugMsg(csound, " *** internal error: csoundRealloc() called with invalid "
                       "pointer (%p)\n", oldp);
       /* exit() is ugly, but this is a fatal error that can only occur */
@@ -311,20 +315,17 @@ void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
 #endif
     /* allocate memory */
     p = CS_REALLOC((void*) pp, ALLOC_BYTES(size));
-    pp = p;
     if (UNLIKELY(p == NULL)) {
 #ifdef MEMDEBUG
-      CSOUND_MEM_SPINLOCK
       /* alloc failed, restore original header */
       pp->magic = MEMALLOC_MAGIC;
       pp->ptr = oldp;
-      CSOUND_MEM_SPINUNLOCK
 #endif
+      CSOUND_MEM_SPINUNLOCK
       csound->ErrorMsg(csound, "Realloc failed: ");
       memdie(csound, size);
       return NULL;
     }
-    CSOUND_MEM_SPINLOCK
     /* create new header and update chain pointers */
     pp = (memAllocBlock_t*) p;
 #ifdef MEMDEBUG
