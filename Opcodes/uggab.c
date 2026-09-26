@@ -851,7 +851,7 @@ static int32_t lineto(CSOUND *csound, LINETO *p)
       else
         p->val_incremented = p->current_val;
     }
-    *p->kr = p->val_incremented;
+    *p->kr = (MYFLT)p->val_incremented;
     return OK;
 }
 
@@ -885,7 +885,7 @@ static int32_t tlineto(CSOUND *csound, LINETO2 *p)
       if (--p->remaining == 0.0)
         p->val_incremented = p->current_val;
     }
-    *p->kr = p->val_incremented;
+    *p->kr = (MYFLT)p->val_incremented;
     return OK;
 }
 
