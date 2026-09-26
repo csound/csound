@@ -1425,16 +1425,26 @@ static int32_t handle_pass_by_ref(CSOUND* csound, UOPCODE* p,
   return pbr_seed_pass_through_outputs(csound, p, lcurip, 1);
 }
 
-/* True when this invocation was set up with pass-by-ref, i.e. its internal
-   opcodes were rewired onto caller storage.  Shared with useropcdset() so
-   the debugger cannot drift from the engine.  Recomputed per call rather
-   than read from OPCODINFO.passByRef, which only records the most recent
-   init. */
+/* Share the call-mode rule with the debugger. A UDO with local-rate setup
+   uses copies, including no-op settings, so its arguments and expressions
+   can initialize in source order before its final rates are known. */
 static int32_t udo_call_is_pass_by_ref(const UOPCODE *p,
                                        const OPCODINFO *udoinfo) {
-  return udoinfo != NULL && udoinfo->newStyle && p->ip != NULL &&
-    p->parent_ip != NULL && p->parent_ip->ksmps == p->ip->ksmps &&
-    p->parent_ip->esr == p->ip->esr;
+  OPDS *op;
+
+  if (udoinfo == NULL || !udoinfo->newStyle || p->ip == NULL ||
+      p->parent_ip == NULL || p->parent_ip->ksmps != p->ip->ksmps ||
+      p->parent_ip->esr != p->ip->esr)
+    return 0;
+
+  for (op = (OPDS *)p->ip->nxti; op != NULL; op = op->nxti) {
+    const char *name = op->optext->t.oentry->opname;
+    if (strcmp(name, "setksmps") == 0 ||
+        strcmp(name, "oversample") == 0 ||
+        strcmp(name, "undersample") == 0)
+      return 0;
+  }
+  return 1;
 }
 
 MYFLT *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
@@ -1694,7 +1704,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(CS_VAR_MEM));
   }
 
-  // check for setksmps or over/undersample
+  /* Choose the call mode without running init opcodes out of order.
+     The normal chain supplies xin values and evaluates rate arguments. */
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
   if (UNLIKELY(instance_init_begin(csound, lcurip) != CSOUND_SUCCESS)) {
@@ -1709,18 +1720,6 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   csound->mode = 1;
   buf->iflag = 0;
   int err = 0;
-  while (csound->ids != NULL && err == 0) {
-    csound->op = csound->ids->optext->t.oentry->opname;
-    if(strcmp("setksmps", csound->op) == 0  ||
-       strcmp("oversample", csound->op) == 0 ||
-       strcmp("undersample", csound->op) == 0)
-       err = (*csound->ids->init)
-               (csound, csound->ids);
-    csound->ids = csound->ids->nxti;
-  }
-
-  if (UNLIKELY(err != OK))
-    goto finish_init;
 
   /* Per-definition flag for perf-routine selection.  The debugger must not
      read this back: the next init of the same UDO overwrites it. */
@@ -1743,11 +1742,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   err = 0;
   while (csound->ids != NULL && err == 0) {
     csound->op = csound->ids->optext->t.oentry->opname;
-    // don't run setksmps etc
-    if(strcmp("setksmps", csound->op) != 0 &&
-       strcmp("oversample", csound->op) != 0 &&
-       strcmp("undersample", csound->op) != 0)
-      err = (*csound->ids->init)(csound, csound->ids);
+    err = (*csound->ids->init)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
  finish_init:
