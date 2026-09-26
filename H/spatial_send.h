@@ -26,8 +26,6 @@ static inline void spatial_source_remove(CSOUND *csound, OPDS *opcode)
 {
     SPATIAL_SOURCES *sources = (SPATIAL_SOURCES *)
         csound->QueryGlobalVariable(csound, SPATIAL_SOURCES_GLOBAL);
-    /* UGen contexts can be assigned before standard opcodes are loaded. */
-    if (sources == NULL) return;
     csound->LockMutex(sources->mutex);
     for (int32_t type = 0; type < SPATIAL_SOURCE_TYPES; ++type) {
       SPATIAL_SOURCE **link = &sources->head[type];

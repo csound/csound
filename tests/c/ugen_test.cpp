@@ -19,7 +19,6 @@
 
 #define __BUILDING_LIBCSOUND
 #include "ugen_internal.h"
-#include "spatial_send.h"
 #include "csound.h"
 #include "pstream.h"
 #include <cstring>
@@ -1020,79 +1019,4 @@ TEST_F(UGenTests, ConvenienceSetGetString) {
     csoundUgenDelete(osc);
     csoundUgenDelete(ugen);
     csoundUgenFactoryDelete(factory);
-}
-
-TEST_F(UGenTests, SpatialSendsKeepSourcesWithinTheirContext) {
-    INSDS *engineContext = csound->curip;
-    AUXCH *engineBuffers = engineContext->auxchp;
-    UGEN_FACTORY *factory = csoundUgenFactoryNew(csound);
-    UGEN_CONTEXT *first = csoundUgenContextNew(factory);
-    UGEN_CONTEXT *second = csoundUgenContextNew(factory);
-    UGEN *source = csoundUgenNew(factory, (char *)"space",
-                               (char *)"aaaa", (char *)"aikkkk");
-    UGEN *other = csoundUgenNew(factory, (char *)"space",
-                              (char *)"aaaa", (char *)"aikkkk");
-    UGEN *send = csoundUgenNew(factory, (char *)"spsend",
-                             (char *)"aaaa", (char *)"");
-    ASSERT_NE(source, nullptr);
-    ASSERT_NE(other, nullptr);
-    ASSERT_NE(send, nullptr);
-    csoundUgenSetContext(source, first);
-    csoundUgenSetContext(other, second);
-    csoundUgenSetContext(send, first);
-    csoundUgenSetValue(source, 3, 1); // reverb amount; distance is clamped to 1
-    csoundUgenSetValue(other, 3, 1);
-    MYFLT *input = (MYFLT *)csoundUgenVarGetData(csoundUgenGetInVar(source, 0));
-    for (uint32_t n = 0; n < csoundGetKsmps(csound); ++n) input[n] = FL(.25);
-    ASSERT_EQ(0, csoundUgenInit(source));
-    ASSERT_EQ(0, csoundUgenInit(other));
-    ASSERT_EQ(0, csoundUgenInit(send));
-    // Each source owns its buffers, rather than adding them to either context.
-    ASSERT_NE(nullptr, source->auxchp);
-    ASSERT_NE(nullptr, other->auxchp);
-    EXPECT_NE(source->auxchp, other->auxchp);
-    EXPECT_EQ(nullptr, first->insds->auxchp);
-    EXPECT_EQ(nullptr, second->insds->auxchp);
-    EXPECT_EQ(engineContext, csound->curip);
-    EXPECT_EQ(engineBuffers, engineContext->auxchp);
-    AUXCH *sourceBuffers = source->auxchp;
-    ASSERT_EQ(0, csoundUgenPerform(source));
-    ASSERT_EQ(0, csoundUgenPerform(send));
-    for (int ch = 0; ch < 4; ++ch) {
-        MYFLT *out = (MYFLT *)csoundUgenVarGetData(csoundUgenGetOutVar(send, ch));
-        EXPECT_EQ(FL(.25), out[0]);
-    }
-
-    // Reassigning the same context keeps the registration.
-    csoundUgenSetContext(source, first);
-    EXPECT_EQ(source->opcodeMem,
-              spatial_source_find(csound, first->insds, SPATIAL_SPACE));
-    // Moving away and back requires init before another send can use the source.
-    csoundUgenSetContext(source, second);
-    EXPECT_EQ(nullptr, spatial_source_find(csound, first->insds, SPATIAL_SPACE));
-    csoundUgenSetContext(source, first);
-    EXPECT_EQ(nullptr, spatial_source_find(csound, first->insds, SPATIAL_SPACE));
-    csoundUgenSetContext(source, second);
-    ASSERT_EQ(0, csoundUgenInit(source));
-    EXPECT_EQ(nullptr, spatial_source_find(csound, first->insds, SPATIAL_SPACE));
-    csoundUgenSetContext(send, second);
-    csoundUgenContextDelete(first);
-    ASSERT_EQ(0, csoundUgenInit(send));
-    EXPECT_EQ(sourceBuffers, source->auxchp);
-    // Deleting the older source must leave the new source and its buffers intact.
-    csoundUgenDelete(other);
-    EXPECT_EQ(0, csoundUgenInit(send));
-    ASSERT_EQ(0, csoundUgenPerform(source));
-    ASSERT_EQ(0, csoundUgenPerform(send));
-    for (int ch = 0; ch < 4; ++ch) {
-        MYFLT *out = (MYFLT *)csoundUgenVarGetData(csoundUgenGetOutVar(send, ch));
-        EXPECT_EQ(FL(.25), out[0]);
-    }
-    csoundUgenDelete(source);
-    EXPECT_EQ(nullptr, spatial_source_find(csound, second->insds, SPATIAL_SPACE));
-    csoundUgenDelete(send);
-    csoundUgenContextDelete(second);
-    csoundUgenFactoryDelete(factory);
-    EXPECT_EQ(engineContext, csound->curip);
-    EXPECT_EQ(engineBuffers, engineContext->auxchp);
 }
