@@ -301,9 +301,10 @@ static int32_t adsr_count(CSOUND *csound, double duration, double rate,
 {
   double n = floor(duration * rate + 0.5);
   if (UNLIKELY(!isfinite(duration) || duration < 0.0 ||
-               !isfinite(n) || n > INT_MAX))
-    return csound->InitError(csound,
-                            Str("ADSR: duration is negative or out of range"));
+               !isfinite(n) || n > INT_MAX)) {
+    csound->InitError(csound, Str("ADSR: duration is negative or out of range"));
+    return NOTOK;
+  }
   *count = (int32_t)n;
   return OK;
 }
@@ -623,13 +624,13 @@ static int32_t expseg_init(CSOUND *csound, MYFLT **args, int32_t nargs,
     val = next;
     next = *args[2*n + 2];
     if (UNLIKELY(val == FL(0.0)))
-      return csound->InitError(csound, Str("ival%lld is zero"), (int64_t)n+1);
+      return csound->InitError(csound, Str("ival%lld is zero"), (long long)n+1);
     if (UNLIKELY(next == FL(0.0)))
-      return csound->InitError(csound, Str("ival%lld is zero"), (int64_t)n+2);
+      return csound->InitError(csound, Str("ival%lld is zero"), (long long)n+2);
     if (UNLIKELY(!((val > FL(0.0) && next > FL(0.0)) ||
                    (val < FL(0.0) && next < FL(0.0)))))
       return csound->InitError(csound,
-                               Str("ival%lld sign conflict"), (int64_t)n+2);
+                               Str("ival%lld sign conflict"), (long long)n+2);
 
     count = (double)dur * rate;
     audio_count = (double)dur * sample_rate;
@@ -816,10 +817,10 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
  experr:
   n = segp - p->cursegp;// + 2;
   if (prvpt == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n));
   else if (segp->nxtpt == FL(0.0))
-    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
-  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
+    return csound->InitError(csound, Str("ival%lld is zero"), (long long) (n+1));
+  return csound->InitError(csound, Str("ival%lld sign conflict"), (long long) (n+1));
 }
 
 
@@ -1630,8 +1631,8 @@ int32_t knvlpxr(CSOUND *csound, ENVLPR *p)
 {
   IGN(csound);
   MYFLT  fact;
-  int32_t  rlscnt, check, phs;
-  double phsf;
+  int32_t  rlscnt, check, phs = p->phs;
+  double phsf = p->phsf;
 
   if(p->floatph) check = ((phsf = p->phsf) >= FL(0.0));
   else check = ((phs = p->phs) >= 0);
@@ -1699,7 +1700,7 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
   MYFLT fact, *xamp, *rslt, val, asym, mlt, v1, fract, *ftab, lodiv;
   int32_t    asgsg = IS_ASIG_ARG(p->xamp), check, floatph = p->floatph,
     flen;
-  double phsf;
+  double phsf = p->phsf;
 
   xamp = p->xamp;
   rslt = p->rslt;

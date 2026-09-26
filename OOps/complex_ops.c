@@ -1477,7 +1477,7 @@ int32_t cops_init_r(CSOUND *csound, COPS1 *p) {
         return csound_array_init_resize_error(csound);
     } else {
       int32_t inSize = ((ARRAYDAT *)p->a)->sizes ? ((ARRAYDAT *)p->a)->sizes[0] : 0;
-      if(inSize < CS_KSMPS)
+      if(inSize < 0 || (uint32_t) inSize < CS_KSMPS)
         return csound->InitError(csound, "array length < ksmps\n");
     }
     return OK;
@@ -1714,7 +1714,9 @@ int32_t complex_exp_array(CSOUND *csond, COPS1 *p) {
 }
 
 
-#define WRAPPI(x) while(x >= PI) x -= TWOPI; while(x < -PI) x += TWOPI;
+/* Keep double arithmetic, rounding back to MYFLT after each wrap. */
+#define WRAPPI(x) while ((x) >= PI) (x) = (MYFLT)((x) - TWOPI); \
+                  while ((x) < -PI) (x) = (MYFLT)((x) + TWOPI);
 
 int32_t quadosc_init(CSOUND *csound, QUADOSC *p) {
   MYFLT ifn = -1;

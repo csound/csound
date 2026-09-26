@@ -1819,6 +1819,8 @@ if(BUILD_STATIC_LIBRARY AND NOT BARE_METAL)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
+csound_suppress_opcode_initializer_warnings(${libcsound_SRCS} ${libcsound_static_SRCS})
+
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
 add_subdirectory(Frontends)

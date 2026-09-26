@@ -84,40 +84,40 @@ static int32_t lufs_init(CSOUND *csound, LUFS *p)
                 p->filter1.x2 = 0;
                 p->filter2.x1 = 0;
                 p->filter2.x2 = 0;
-                p->filter2.b0 = 1.0;
-                p->filter2.b1 = -2.0;
-                p->filter2.b2 = 1.0;
+                p->filter2.b0 = FL(1.0);
+                p->filter2.b1 = FL(-2.0);
+                p->filter2.b2 = FL(1.0);
 
         if (CS_ESR == 48000) {
-                p->filter1.a1 = -1.69065929318241;
-                p->filter1.a2 =  0.73248077421585;
-                p->filter1.b0 = 1.53512485958697;
-                p->filter1.b1 = -2.69169618940638;
-                p->filter1.b2 = 1.19839281085285;
-                p->filter2.a1 = -1.99004745483398;
-                p->filter2.a2 = 0.99007225036621;
+                p->filter1.a1 = FL(-1.69065929318241);
+                p->filter1.a2 =  FL(0.73248077421585);
+                p->filter1.b0 = FL(1.53512485958697);
+                p->filter1.b1 = FL(-2.69169618940638);
+                p->filter1.b2 = FL(1.19839281085285);
+                p->filter2.a1 = FL(-1.99004745483398);
+                p->filter2.a2 = FL(0.99007225036621);
         }
 
         else if (CS_ESR == 44100) {
-                p->filter1.a1 = -1.663655113256020;
-                p->filter1.a2 = 0.712595428073225;
-                p->filter1.b0 = 1.530841230049836;
-                p->filter1.b1 = -2.650979995153699;
-                p->filter1.b2 = 1.169079079921068;
-                p->filter2.a1 = -1.989169673629796;
-                p->filter2.a2 = 0.989199035787039;
+                p->filter1.a1 = FL(-1.663655113256020);
+                p->filter1.a2 = FL(0.712595428073225);
+                p->filter1.b0 = FL(1.530841230049836);
+                p->filter1.b1 = FL(-2.650979995153699);
+                p->filter1.b2 = FL(1.169079079921068);
+                p->filter2.a1 = FL(-1.989169673629796);
+                p->filter2.a2 = FL(0.989199035787039);
         }
         else {
         // ported from https://github.com/BrechtDeMan/loudness.py/blob/master/loudness.py
         // pre-filter 1
-            MYFLT f0 = 1681.9744509555319;
-            MYFLT G  = 3.99984385397;
-            MYFLT Q  = 0.7071752369554193;
+            MYFLT f0 = FL(1681.9744509555319);
+            MYFLT G  = FL(3.99984385397);
+            MYFLT Q  = FL(0.7071752369554193);
             MYFLT fs = CS_ESR;
 
             MYFLT K  = TAN(PI * f0 / fs);
             MYFLT Vh = POWER(10.0, G / 20.0);
-            MYFLT Vb = POWER(Vh, 0.499666774155);
+            MYFLT Vb = POWER(Vh, FL(0.499666774155));
             MYFLT a0_ = 1.0 + K / Q + K * K;
             p->filter1.b0 = (Vh + Vb * K / Q + K * K) / a0_;
             p->filter1.b1 = 2.0 * (K * K -  Vh) / a0_;
@@ -126,8 +126,8 @@ static int32_t lufs_init(CSOUND *csound, LUFS *p)
             p->filter1.a2 = (1.0 - K / Q + K * K) / a0_;
 
             // pre-filter 2
-            MYFLT f02 = 38.13547087613982;
-            MYFLT Q2  = 0.5003270373253953;
+            MYFLT f02 = FL(38.13547087613982);
+            MYFLT Q2  = FL(0.5003270373253953);
             MYFLT K2  = TAN(PI * f02 / fs);
             p->filter2.a1 = 2.0 * (K2 * K2 - 1.0) / (1.0 + K2 / Q2 + K2 * K2);
             p->filter2.a2 = (1.0 - K2 / Q2 + K2 * K2) / (1.0 + K2 / Q2 + K2 * K2);
@@ -231,40 +231,40 @@ static int32_t lufs_init2(CSOUND *csound, LUFS2 *p)
                 p->filter1.x2 = 0;
                 p->filter2.x1 = 0;
                 p->filter2.x2 = 0;
-                p->filter2.b0 = 1.0;
-                p->filter2.b1 = -2.0;
-                p->filter2.b2 = 1.0;
+                p->filter2.b0 = FL(1.0);
+                p->filter2.b1 = FL(-2.0);
+                p->filter2.b2 = FL(1.0);
 
         if (CS_ESR == 48000) {
-                p->filter1.a1 = -1.69065929318241;
-                p->filter1.a2 =  0.73248077421585;
-                p->filter1.b0 = 1.53512485958697;
-                p->filter1.b1 = -2.69169618940638;
-                p->filter1.b2 = 1.19839281085285;
-                p->filter2.a1 = -1.99004745483398;
-                p->filter2.a2 = 0.99007225036621;
+                p->filter1.a1 = FL(-1.69065929318241);
+                p->filter1.a2 =  FL(0.73248077421585);
+                p->filter1.b0 = FL(1.53512485958697);
+                p->filter1.b1 = FL(-2.69169618940638);
+                p->filter1.b2 = FL(1.19839281085285);
+                p->filter2.a1 = FL(-1.99004745483398);
+                p->filter2.a2 = FL(0.99007225036621);
         }
 
         else if (CS_ESR == 44100) {
-                p->filter1.a1 = -1.663655113256020;
-                p->filter1.a2 = 0.712595428073225;
-                p->filter1.b0 = 1.530841230049836;
-                p->filter1.b1 = -2.650979995153699;
-                p->filter1.b2 = 1.169079079921068;
-                p->filter2.a1 = -1.989169673629796;
-                p->filter2.a2 = 0.989199035787039;
+                p->filter1.a1 = FL(-1.663655113256020);
+                p->filter1.a2 = FL(0.712595428073225);
+                p->filter1.b0 = FL(1.530841230049836);
+                p->filter1.b1 = FL(-2.650979995153699);
+                p->filter1.b2 = FL(1.169079079921068);
+                p->filter2.a1 = FL(-1.989169673629796);
+                p->filter2.a2 = FL(0.989199035787039);
         }
         else {
         // ported from https://github.com/BrechtDeMan/loudness.py/blob/master/loudness.py
         // pre-filter 1
-            MYFLT f0 = 1681.9744509555319;
-            MYFLT G  = 3.99984385397;
-            MYFLT Q  = 0.7071752369554193;
+            MYFLT f0 = FL(1681.9744509555319);
+            MYFLT G  = FL(3.99984385397);
+            MYFLT Q  = FL(0.7071752369554193);
             MYFLT fs = CS_ESR;
 
             MYFLT K  = TAN(PI * f0 / fs);
             MYFLT Vh = POWER(10.0, G / 20.0);
-            MYFLT Vb = POWER(Vh, 0.499666774155);
+            MYFLT Vb = POWER(Vh, FL(0.499666774155));
             MYFLT a0_ = 1.0 + K / Q + K * K;
             p->filter1.b0 = (Vh + Vb * K / Q + K * K) / a0_;
             p->filter1.b1 = 2.0 * (K * K -  Vh) / a0_;
@@ -273,8 +273,8 @@ static int32_t lufs_init2(CSOUND *csound, LUFS2 *p)
             p->filter1.a2 = (1.0 - K / Q + K * K) / a0_;
 
             // pre-filter 2
-            MYFLT f02 = 38.13547087613982;
-            MYFLT Q2  = 0.5003270373253953;
+            MYFLT f02 = FL(38.13547087613982);
+            MYFLT Q2  = FL(0.5003270373253953);
             MYFLT K2  = TAN(PI * f02 / fs);
             p->filter2.a1 = 2.0 * (K2 * K2 - 1.0) / (1.0 + K2 / Q2 + K2 * K2);
             p->filter2.a2 = (1.0 - K2 / Q2 + K2 * K2) / (1.0 + K2 / Q2 + K2 * K2);

@@ -615,6 +615,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     onchnls = p->nchnls;
     nchnls = p->sfunc->nchanls;
     for (i=offset; i < nsmps; i++) {
+      out[0] = out[1] = FL(0.0);
       if (mode == 1) { /* backwards */
         tndx0 = (int32_t) ndx[0];
         frac0 = ndx[0] - tndx0;
@@ -1294,7 +1295,7 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
         for (i=0; i < N; i+=2) {
           a  = (j ? fin[i] : (fexc[i] = ffr[i]));
           maxa = maxa < a ? a : maxa;
-          if (a <= 0) a = 1e-20;
+          if (a <= 0) a = FL(1e-20);
           fenv[i/2] = log(a);
         }
         for (i=0; i < N; i+=2) {
