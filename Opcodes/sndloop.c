@@ -1166,8 +1166,13 @@ static int32_t pvsarp_init(CSOUND *csound, pvsarp *p)
 {
     int32 N = p->fin->N;
 
+    if (UNLIKELY(p->fin->sliding))
+      return csound->InitError(csound, "%s",
+                               Str("pvsarp: sliding analysis is not supported"));
+
     if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
       csound->AuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
+    p->fout->sliding = 0;
     p->fout->N =  N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -1197,10 +1202,11 @@ static int32_t pvsarp_process(CSOUND *csound, pvsarp *p)
     if (UNLIKELY(fout==NULL)) goto err1;
 
     if (p->lastframe < p->fin->framecount) {
-      cf = cf >= 0 ? (cf < bins ? cf*bins : bins-1) : 0;
+      /* The target is normalized; 1 selects the Nyquist bin. */
+      int32_t target = cf >= 0 ? (cf < 1 ? (int32_t)(cf*bins) : bins-1) : 0;
       kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : FL(1.0)): FL(0.0);
       for (i=j=0;i < N+2;i+=2, j++) {
-        if (j == (int32_t) cf) fout[i] = fin[i]*g;
+        if (j == target) fout[i] = fin[i]*g;
         else fout[i] = (float)(fin[i]*(1-kdepth));
         fout[i+1] = fin[i+1];
       }
