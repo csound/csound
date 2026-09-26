@@ -1,5 +1,5 @@
 <CsTest>
-description = "audio-array UDO copy keeps the caller stride across setksmps"
+description = "audio-array UDO copy preserves values across different block sizes"
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
