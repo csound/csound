@@ -90,6 +90,7 @@ if(BUILD_TESTS)
         pvsblur_test.cpp
         pvstanal_test.cpp
         pvscross_test.cpp
+        pvsmaska_test.cpp
         paulstretch_test.cpp
         mixer_test.cpp
         multitap_test.cpp
