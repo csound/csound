@@ -33,13 +33,17 @@ typedef struct {
     MYFLT  *khigbnd;
     MYFLT  *khigcut;
     MYFLT  *fade;
-    MYFLT  lastframe;
+    uint32 lastframe;
 } PVSBAND;
 
 
 static int32_t pvsbandinit(CSOUND *csound, PVSBAND *p)
 {
     int32_t     N = p->fin->N;
+
+    if (UNLIKELY(p->fin->format != PVS_AMP_FREQ))
+      return csound->InitError(csound, "%s",
+                               Str("pvsband: input must be amp-freq"));
 
     if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
@@ -69,212 +73,163 @@ static int32_t pvsbandinit(CSOUND *csound, PVSBAND *p)
     return OK;
 }
 
+/* Use the same boundaries and curves for FFT and sliding spectra.
+   Inner band boundaries take precedence over cutoffs when a ramp has no width. */
+#define PVSBAND_LIMITS() do {                                            \
+    if (lowcut < FL(0.0)) lowcut = FL(0.0);                               \
+    if (lowbnd < lowcut) lowbnd = lowcut;                                 \
+    if (higbnd < lowbnd) higbnd = lowbnd;                                 \
+    if (higcut < higbnd) higcut = higbnd;                                 \
+  } while (0)
+
+/* These macros use the current cutoffs and the block's curve constants.
+   Keep exponents nonpositive for large positive curves; expm1 avoids
+   cancellation for curves near zero. Only ramps need a transcendental call. */
+#define PVSBAND_GAIN(freq, reject, gain) do {                            \
+    MYFLT afrq = FABS(freq), position;                                   \
+    if (afrq < lowcut || afrq > higcut)                                  \
+      position = (reject) ? FL(1.0) : FL(0.0);                           \
+    else if (afrq >= lowbnd && afrq <= higbnd)                            \
+      position = (reject) ? FL(0.0) : FL(1.0);                           \
+    else if (afrq < lowbnd)                                              \
+      position = ((reject) ? lowbnd-afrq : afrq-lowcut) / (lowbnd-lowcut); \
+    else                                                                \
+      position = ((reject) ? afrq-higbnd : higcut-afrq) / (higcut-higbnd); \
+    if (position <= FL(0.0))                                             \
+      (gain) = FL(0.0);                                                  \
+    else if (position >= FL(1.0))                                        \
+      (gain) = FL(1.0);                                                  \
+    else if (fade == 0.0)                                                \
+      (gain) = position;                                                 \
+    else if (fade > 1.0)                                                 \
+      (gain) = (exp(fade*((double)position-1.0))-curvebase) / curveden;    \
+    else                                                                \
+      (gain) = expm1(fade*position) / curveden;                           \
+  } while (0)
+
 static int32_t pvsband(CSOUND *csound, PVSBAND *p)
 {
-    int32_t     i, N = p->fin->N;
-    MYFLT   lowcut = *p->klowcut;
-    MYFLT   lowbnd = *p->klowbnd;
-    MYFLT   higbnd = *p->khigbnd;
-    MYFLT   higcut = *p->khigcut;
-    float   *fin = (float *) p->fin->frame.auxp;
-    float   *fout = (float *) p->fout->frame.auxp;
-    MYFLT   fade = *p->fade;
-    MYFLT   opef = FL(1.0) - EXP(fade);
+    int32_t i, N = p->fin->N;
+    MYFLT lowcut = *p->klowcut, lowbnd = *p->klowbnd;
+    MYFLT higbnd = *p->khigbnd, higcut = *p->khigcut;
+    float *fin = (float *) p->fin->frame.auxp;
+    float *fout = (float *) p->fout->frame.auxp;
+    double fade = *p->fade;
+    double curvebase = fade > 1.0 ? exp(-fade) : 0.0;
+    double curveden = fade > 1.0 ? 1.0-curvebase :
+      (fade != 0.0 ? expm1(fade) : 1.0);
 
     if (UNLIKELY(fout == NULL)) goto err1;
 
-    if (lowcut<FL(0.0)) lowcut = FL(0.0);
-    if (lowbnd<lowcut) lowbnd = lowcut;
-    if (higbnd<lowbnd) higbnd = lowbnd;
-    if (higcut<higbnd) higcut = higbnd;
+    PVSBAND_LIMITS();
     if (p->fin->sliding) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
-      uint32_t early  = p->h.insdshead->ksmps_no_end;
+      uint32_t early = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
-      int32_t NB  = p->fout->NB;
+      int32_t NB = p->fout->NB;
+      uint32_t lowcutstep = IS_ASIG_ARG(p->klowcut) ? 1 : 0;
+      uint32_t lowbndstep = IS_ASIG_ARG(p->klowbnd) ? 1 : 0;
+      uint32_t higbndstep = IS_ASIG_ARG(p->khigbnd) ? 1 : 0;
+      uint32_t higcutstep = IS_ASIG_ARG(p->khigcut) ? 1 : 0;
 
-      if (UNLIKELY(early)) nsmps -= early;
+      if (UNLIKELY(offset))
+        memset(p->fout->frame.auxp, 0, (size_t)offset*NB*sizeof(CMPLX));
+      if (UNLIKELY(early)) {
+        nsmps -= early;
+        memset((CMPLX *) p->fout->frame.auxp + (size_t)nsmps*NB, 0,
+               (size_t)early*NB*sizeof(CMPLX));
+      }
       for (n=offset; n<nsmps; n++) {
-        int32_t change = 0;
-        CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
-        CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
-        if (IS_ASIG_ARG(p->klowcut)) lowcut = p->klowcut[n], change = 1;
-        if (IS_ASIG_ARG(p->klowbnd)) lowbnd = p->klowbnd[n], change = 1;
-        if (IS_ASIG_ARG(p->khigbnd)) higbnd = p->khigbnd[n], change = 1;
-        if (IS_ASIG_ARG(p->khigcut)) higcut = p->khigcut[n], change = 1;
-        if (change) {
-          if (lowcut<FL(0.0)) lowcut = FL(0.0);
-          if (lowbnd<lowcut) lowbnd = lowcut;
-          if (higbnd<lowbnd) higbnd = lowbnd;
-          if (higcut<higbnd) higcut = higbnd;
-        }
-        for (i = 0; i < NB-1; i++) {
-          MYFLT frq = fin[i].im;
-          MYFLT afrq = (frq<FL(0.0)? -frq : frq);
-          if (afrq < lowcut || afrq>higcut) { /* outside band */
-            fout[i].re = FL(0.0);
-            fout[i].im = -FL(1.0);
-          }
-          else if (afrq > lowbnd && afrq<higbnd) { /* inside nand */
-            fout[i] = fin[i];
-          }
-          else if (afrq > lowcut && afrq < lowbnd) { /* ramp up */
-            if (fade != FL(0.0)) {
-              fout[i].re = fin[i].re *
-                (FL(1.0) - EXP(fade*(afrq-lowcut)/(lowbnd-lowcut)))/opef;
-            }
-            else
-              fout[i].re = fin[i].re * (afrq - lowcut)/(lowbnd - lowcut);
-            fout[i].im = frq;
-          }
-          else {                /* ramp down */
-            if (fade != FL(0.0)) {
-              fout[i].re = fin[i].re *
-                (FL(1.0) - EXP(fade*(higcut-afrq)/(higcut-higbnd)))/opef;
-            }
-            else
-              fout[i].re = fin[i].re * (higcut - afrq)/(higcut - higbnd);
-            fout[i].im = frq;
-          }
+        CMPLX *fin = (CMPLX *) p->fin->frame.auxp + (size_t)n*NB;
+        CMPLX *fout = (CMPLX *) p->fout->frame.auxp + (size_t)n*NB;
+        /* Reload k-rate limits too: clamping one sample must not change
+           a later sample's limits when an a-rate control crosses them. */
+        lowcut = p->klowcut[n*lowcutstep];
+        lowbnd = p->klowbnd[n*lowbndstep];
+        higbnd = p->khigbnd[n*higbndstep];
+        higcut = p->khigcut[n*higcutstep];
+        PVSBAND_LIMITS();
+        for (i = 0; i < NB; i++) {
+          MYFLT gain;
+          PVSBAND_GAIN(fin[i].im, 0, gain);
+          fout[i].re = fin[i].re * gain;
+          fout[i].im = gain == FL(0.0) ? -FL(1.0) : fin[i].im;
         }
       }
       return OK;
     }
     if (p->lastframe < p->fin->framecount) {
-      for (i = 0; i < N; i += 2) {
-        MYFLT frq = fin[i+1];
-        MYFLT afrq = (frq<FL(0.0)? -frq : frq);
-        if (afrq < lowcut || afrq>higcut) {
-            fout[i] = FL(0.0);
-            fout[i+1] = -FL(1.0);
-          }
-          else if (afrq > lowbnd && afrq<higbnd) {
-            fout[i] = fin[i];
-            fout[i+1] = fin[i+1];
-          }
-          else if (afrq > lowcut && afrq < lowbnd) {
-            if (fade != FL(0.0))
-              fout[i] = fin[i] *
-                (1.0f - expf(fade*(afrq-lowcut)/(lowbnd-lowcut)))/opef;
-            else
-              fout[i] = fin[i] * (frq - lowcut)/(lowbnd - lowcut);
-            fout[i+1] = frq;
-          }
-          else {
-            if (fade != FL(0.0))
-              fout[i] = fin[i] *
-                (1.0f - expf(fade*(higcut-afrq)/(higcut-higbnd)))/opef;
-            else
-              fout[i] = fin[i] * (higcut - frq)/(higcut - higbnd);
-            fout[i+1] = frq;
-          }
+      for (i = 0; i <= N; i += 2) {
+        MYFLT gain;
+        PVSBAND_GAIN(fin[i+1], 0, gain);
+        fout[i] = fin[i] * gain;
+        fout[i+1] = gain == FL(0.0) ? -FL(1.0) : fin[i+1];
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
     return OK;
  err1:
-
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("pvsband: not initialised"));
 }
 
 static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
 {
-    int32_t     i, N = p->fin->N;
-    MYFLT   lowcut = *p->klowcut;
-    MYFLT   lowbnd = *p->klowbnd;
-    MYFLT   higbnd = *p->khigbnd;
-    MYFLT   higcut = *p->khigcut;
-    float   *fin = (float *) p->fin->frame.auxp;
-    float   *fout = (float *) p->fout->frame.auxp;
-    MYFLT   fade = *p->fade;
-    MYFLT   opef = FL(1.0) - EXP(fade);
+    int32_t i, N = p->fin->N;
+    MYFLT lowcut = *p->klowcut, lowbnd = *p->klowbnd;
+    MYFLT higbnd = *p->khigbnd, higcut = *p->khigcut;
+    float *fin = (float *) p->fin->frame.auxp;
+    float *fout = (float *) p->fout->frame.auxp;
+    double fade = *p->fade;
+    double curvebase = fade > 1.0 ? exp(-fade) : 0.0;
+    double curveden = fade > 1.0 ? 1.0-curvebase :
+      (fade != 0.0 ? expm1(fade) : 1.0);
 
     if (UNLIKELY(fout == NULL)) goto err1;
 
-    if (lowcut<FL(0.0)) lowcut = FL(0.0);
-    if (lowbnd<lowcut) lowbnd = lowcut;
-    if (higbnd<lowbnd) higbnd = lowbnd;
-    if (higcut<higbnd) higcut = higbnd;
+    PVSBAND_LIMITS();
     if (p->fin->sliding) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
-      uint32_t early  = p->h.insdshead->ksmps_no_end;
+      uint32_t early = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
-      int32_t NB  = p->fout->NB;
+      int32_t NB = p->fout->NB;
+      uint32_t lowcutstep = IS_ASIG_ARG(p->klowcut) ? 1 : 0;
+      uint32_t lowbndstep = IS_ASIG_ARG(p->klowbnd) ? 1 : 0;
+      uint32_t higbndstep = IS_ASIG_ARG(p->khigbnd) ? 1 : 0;
+      uint32_t higcutstep = IS_ASIG_ARG(p->khigcut) ? 1 : 0;
 
-      if (UNLIKELY(early)) nsmps -= early;
+      if (UNLIKELY(offset))
+        memset(p->fout->frame.auxp, 0, (size_t)offset*NB*sizeof(CMPLX));
+      if (UNLIKELY(early)) {
+        nsmps -= early;
+        memset((CMPLX *) p->fout->frame.auxp + (size_t)nsmps*NB, 0,
+               (size_t)early*NB*sizeof(CMPLX));
+      }
       for (n=offset; n<nsmps; n++) {
-        int32_t change = 0;
-        CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
-        CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
-        if (IS_ASIG_ARG(p->klowcut)) lowcut = p->klowcut[n], change = 1;
-        if (IS_ASIG_ARG(p->klowbnd)) lowbnd = p->klowbnd[n], change = 1;
-        if (IS_ASIG_ARG(p->khigbnd)) higbnd = p->khigbnd[n], change = 1;
-        if (IS_ASIG_ARG(p->khigcut)) higcut = p->khigcut[n], change = 1;
-        if (change) {
-          if (lowcut<FL(0.0)) lowcut = FL(0.0);
-          if (lowbnd<lowcut) lowbnd = lowcut;
-          if (higbnd<lowbnd) higbnd = lowbnd;
-          if (higcut<higbnd) higcut = higbnd;
-        }
-        for (i = 0; i < NB-1; i++) {
-          MYFLT frq = fin[i].im;
-          MYFLT afrq = (frq<FL(0.0)? -frq : frq);
-          if (afrq < lowcut || afrq>higcut) {
-            fout[i] = fin[i];
-          }
-          else if (afrq > lowbnd && afrq<higbnd) {
-            fout[i].re = FL(0.0);
-            fout[i].im = -FL(1.0);
-          }
-          else if (afrq > lowcut && afrq < lowbnd) {
-            if (fade)
-              fout[i].re = fin[i].re *
-                (FL(1.0) - EXP(fade*(afrq-lowcut)/(lowbnd-lowcut)))/opef;
-            else
-              fout[i].re = fin[i].re * (lowbnd - afrq)/(lowbnd - lowcut);
-            fout[i].im = frq;
-          }
-          else {
-            if (fade)
-              fout[i].re = fin[i].re *
-                (FL(1.0) - EXP(fade*(afrq-higbnd)/(higcut-higbnd)))/opef;
-            else
-              fout[i].re = fin[i].re * (afrq - higbnd)/(higcut - higbnd);
-            fout[i].im = frq;
-          }
+        CMPLX *fin = (CMPLX *) p->fin->frame.auxp + (size_t)n*NB;
+        CMPLX *fout = (CMPLX *) p->fout->frame.auxp + (size_t)n*NB;
+        /* Reload k-rate limits too: clamping one sample must not change
+           a later sample's limits when an a-rate control crosses them. */
+        lowcut = p->klowcut[n*lowcutstep];
+        lowbnd = p->klowbnd[n*lowbndstep];
+        higbnd = p->khigbnd[n*higbndstep];
+        higcut = p->khigcut[n*higcutstep];
+        PVSBAND_LIMITS();
+        for (i = 0; i < NB; i++) {
+          MYFLT gain;
+          PVSBAND_GAIN(fin[i].im, 1, gain);
+          fout[i].re = fin[i].re * gain;
+          fout[i].im = gain == FL(0.0) ? -FL(1.0) : fin[i].im;
         }
       }
       return OK;
     }
     if (p->lastframe < p->fin->framecount) {
-      for (i = 0; i < N; i += 2) {
-        MYFLT frq = fin[i+1];
-        MYFLT afrq = (frq<FL(0.0)? -frq : frq);
-        if (afrq < lowcut || afrq>higcut) {
-            fout[i] = fin[i];
-            fout[i+1] = fin[i+1];
-          }
-          else if (afrq > lowbnd && afrq<higbnd) {
-            fout[i] = FL(0.0);
-            fout[i+1] = -FL(1.0);
-          }
-          else if (afrq > lowcut && afrq < lowbnd) {
-            if (fade != FL(0.0))
-              fout[i] = fin[i] *
-                (1.0f - expf(fade*(lowbnd - afrq)/(lowbnd - lowcut)))/opef;
-            else
-              fout[i] = fin[i] * (lowbnd - afrq)/(lowbnd - lowcut);
-            fout[i+1] = frq;
-          }
-          else {
-            if (fade != FL(0.0))
-              fout[i] = fin[i] *
-                (1.0f - expf(fade*(afrq - higbnd)/(higcut - higbnd)))/opef;
-            else
-              fout[i] = fin[i] * (afrq - higbnd)/(higcut - higbnd);
-            fout[i+1] = frq;
-          }
+      for (i = 0; i <= N; i += 2) {
+        MYFLT gain;
+        PVSBAND_GAIN(fin[i+1], 1, gain);
+        fout[i] = fin[i] * gain;
+        fout[i+1] = gain == FL(0.0) ? -FL(1.0) : fin[i+1];
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
@@ -283,6 +238,9 @@ static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("pvsband: not initialised"));
 }
+
+#undef PVSBAND_GAIN
+#undef PVSBAND_LIMITS
 
 static OENTRY localops[] = {
   {"pvsbandp", sizeof(PVSBAND), 0,  "f", "fxxxxO",
