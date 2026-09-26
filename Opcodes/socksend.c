@@ -46,46 +46,10 @@
 #include <string.h>
 #include <errno.h>
 
+#include "socksend.h"
+
 extern  int32_t     inet_aton(const char *cp, struct in_addr *inp);
 
-typedef struct {
-  OPDS    h;
-  MYFLT   *asig;
-  STRINGDAT *ipaddress;
-  MYFLT *port, *buffersize;
-  MYFLT   *format;
-  AUXCH   aux;
-  int32_t     sock, init_done;
-  int32_t     bsize, wp;
-  int32_t     ff, bwidth;
-  struct sockaddr_in server_addr;
-} SOCKSEND;
-
-typedef struct {
-  OPDS    h;
-  STRINGDAT *str;
-  STRINGDAT *ipaddress;
-  MYFLT *port, *buffersize;
-  MYFLT   *format;
-  AUXCH   aux;
-  int32_t     sock, init_done;
-  int32_t     bsize, wp;
-  int32_t     ff, bwidth;
-  struct sockaddr_in server_addr;
-} SOCKSENDT;
-
-typedef struct {
-  OPDS    h;
-  MYFLT   *asigl, *asigr;
-  STRINGDAT *ipaddress;
-  MYFLT *port, *buffersize;
-  MYFLT   *format;
-  AUXCH   aux;
-  int32_t     sock, init_done;
-  int32_t     bsize, wp;
-  int32_t     ff, bwidth;
-  struct sockaddr_in server_addr;
-} SOCKSENDS;
 
 #define UDP_MAX_PAYLOAD 65507
 
@@ -477,30 +441,6 @@ static int32_t send_ssend(CSOUND *csound, STSEND *p)
     }
     return OK;
 }
-
-
-typedef struct {
-  OPDS h;
-  MYFLT *kwhen;
-  STRINGDAT *ipaddress;
-  MYFLT *port;        /* UDP port */
-  STRINGDAT *dest;
-  STRINGDAT *type;
-  MYFLT *arg[32];     /* only 26 can be used, but add a few more for safety */
-  AUXCH   aux;
-  AUXCH   types;
-#if defined(WIN32) && !defined(__CYGWIN__)
-  SOCKET sock;
-#else
-  int32_t sock;
-#endif
-  int32_t ntypes;
-  MYFLT   last;
-  struct sockaddr_in server_addr;
-  int32_t err_state;
-  int32_t init_done;
-  int32_t fstime;
-} OSCSEND2;
 
 static int32_t osc_array_blob_sizes(const ARRAYDAT *array, int32_t shaped,
                                     size_t *valueBytes, size_t *blobBytes)
@@ -997,22 +937,6 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
 
 #define MAX_PACKET_SIZE 65536
 
-typedef struct {
-  OPDS h;
-  MYFLT *kwhen;
-  STRINGDAT *ipaddress;
-  MYFLT *port;        /* UDP port */
-  ARRAYDAT *dest;
-  ARRAYDAT *type;
-  ARRAYDAT *arg;
-  MYFLT *imtu;
-  int32_t mtu;
-  AUXCH   aux;    /* MTU bytes */
-  int32_t sock, init_done;
-  MYFLT   last;
-  struct sockaddr_in server_addr;
-  int32_t first;
-} OSCBUNDLE;
 
 
 static int32_t oscbundle_arrays_valid(OSCBUNDLE *p)

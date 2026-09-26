@@ -14,22 +14,16 @@
 #include <unistd.h>
 #endif
 
+#include "fixtures/socksend_test_opcode.h"
+
 static std::vector<unsigned char> bundle;
 static int sends;
-template <typename Socket, typename Length, typename AddressSize>
-static int capture_bundle(Socket, const void *data, Length size, int,
-                          const struct sockaddr *, AddressSize)
+static void capture_bundle(const void *data, size_t size)
 {
     const auto *bytes = static_cast<const unsigned char *>(data);
     bundle.assign(bytes, bytes + size);
     ++sends;
-    return (int)size;
 }
-#undef LINKAGE_BUILTIN
-#define LINKAGE_BUILTIN(x)
-#define sendto capture_bundle
-#include "../../Opcodes/socksend.c"
-#undef sendto
 
 static int32_t bundleInitError(CSOUND *, const char *, ...) { return NOTOK; }
 static int32_t bundlePerfError(CSOUND *, OPDS *, const char *, ...) { return NOTOK; }
@@ -43,6 +37,7 @@ protected:
     int32_t destRows = 2, typeRows = 2, shape[2] = {2, 1};
     MYFLT values[2] = {42, 17}, trigger = 0, port = 9000, mtu = 48;
     void SetUp() override {
+      csound_test_udp_capture = capture_bundle;
       cs = csoundCreate(nullptr, nullptr);
       cs->InitError = bundleInitError;
       cs->PerfError = bundlePerfError;
@@ -71,7 +66,7 @@ protected:
       bundle.clear();
     }
     void TearDown() override {
-      oscbundle_deinit(cs, &p);
+      csound_test_oscbundle_deinit(cs, &p);
       free(p.aux.auxp);
       csoundDestroy(cs);
     }
@@ -80,25 +75,25 @@ protected:
 TEST_F(OscBundleTests, RejectsInvalidShapesAndPacketLimits)
 {
     shape[0] = 1;
-    EXPECT_EQ(oscbundle_init(cs, &p), NOTOK);
+    EXPECT_EQ(csound_test_oscbundle_init(cs, &p), NOTOK);
     shape[0] = 3;
-    EXPECT_EQ(oscbundle_init(cs, &p), NOTOK);
+    EXPECT_EQ(csound_test_oscbundle_init(cs, &p), NOTOK);
     shape[0] = 2;
     types.dimensions = 0;
-    EXPECT_EQ(oscbundle_init(cs, &p), NOTOK);
+    EXPECT_EQ(csound_test_oscbundle_init(cs, &p), NOTOK);
     types.dimensions = 1;
     for (MYFLT size : {FL(-1.0), FL(8.0), FL(65537.0)}) {
       mtu = size;
-      EXPECT_EQ(oscbundle_init(cs, &p), NOTOK);
+      EXPECT_EQ(csound_test_oscbundle_init(cs, &p), NOTOK);
     }
     mtu = 48;
-    ASSERT_EQ(oscbundle_init(cs, &p), OK);
+    ASSERT_EQ(csound_test_oscbundle_init(cs, &p), OK);
     shape[0] = 1;
-    EXPECT_EQ(oscbundle_perf(cs, &p), NOTOK);
+    EXPECT_EQ(csound_test_oscbundle_perf(cs, &p), NOTOK);
     EXPECT_EQ(sends, 0);
     shape[0] = 2;
     tags[1].data = (char *)"s";
-    EXPECT_EQ(oscbundle_perf(cs, &p), NOTOK);
+    EXPECT_EQ(csound_test_oscbundle_perf(cs, &p), NOTOK);
     EXPECT_EQ(sends, 0);
 }
 
@@ -109,23 +104,23 @@ TEST_F(OscBundleTests, SendsExactFitOnFirstCallAndGrowsOnReinit)
       0,0,0,12, '/','a',0,0, ',','i',0,0, 0,0,0,42,
       0,0,0,12, '/','b',0,0, ',','f',0,0, 0x41,0x88,0,0
     };
-    ASSERT_EQ(oscbundle_init(cs, &p), OK);
-    ASSERT_EQ(oscbundle_perf(cs, &p), OK);
+    ASSERT_EQ(csound_test_oscbundle_init(cs, &p), OK);
+    ASSERT_EQ(csound_test_oscbundle_perf(cs, &p), OK);
     EXPECT_EQ(bundle, expected);
     EXPECT_EQ(sends, 1);
-    EXPECT_EQ(oscbundle_perf(cs, &p), OK);
+    EXPECT_EQ(csound_test_oscbundle_perf(cs, &p), OK);
     EXPECT_EQ(sends, 1);
     int socket = p.sock;
     mtu = 256;
-    ASSERT_EQ(oscbundle_init(cs, &p), OK);
+    ASSERT_EQ(csound_test_oscbundle_init(cs, &p), OK);
     EXPECT_EQ(p.sock, socket);
     EXPECT_GE(p.aux.size, 256u);
-    EXPECT_EQ(oscbundle_perf(cs, &p), OK);
+    EXPECT_EQ(csound_test_oscbundle_perf(cs, &p), OK);
     EXPECT_EQ(bundle, expected);
     EXPECT_EQ(sends, 2);
     mtu = 47;
-    ASSERT_EQ(oscbundle_init(cs, &p), OK);
-    EXPECT_EQ(oscbundle_perf(cs, &p), OK);
+    ASSERT_EQ(csound_test_oscbundle_init(cs, &p), OK);
+    EXPECT_EQ(csound_test_oscbundle_perf(cs, &p), OK);
     EXPECT_EQ(sends, 2);
 }
 #endif

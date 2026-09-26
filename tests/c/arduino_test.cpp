@@ -9,11 +9,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-namespace {
-#undef LINKAGE_BUILTIN
-#define LINKAGE_BUILTIN(x)
-#include "../../Opcodes/serial.c"
+#include "fixtures/serial_test_opcode.h"
 
+namespace {
 int32_t ignoreInitError(CSOUND *, const char *, ...) { return NOTOK; }
 int32_t ignorePerfError(CSOUND *, OPDS *, const char *, ...) { return NOTOK; }
 void *failThread(uintptr_t (*)(void *), void *) { return nullptr; }

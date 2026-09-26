@@ -198,7 +198,7 @@ _Babo_common_delay_create(CSOUND *csound, BaboDelay *this, MYFLT max_time)
     double samples = ceil((double)(max_time * this->sr));
 
     if (UNLIKELY(!(samples >= 1.0 && samples <= INT32_MAX &&
-                   samples <= SIZE_MAX / sizeof(MYFLT))))
+                   samples <= (double)(SIZE_MAX / sizeof(MYFLT)))))
         return csound->InitError(csound, "%s", Str("Babo: delay size out of range"));
     BaboMemory_create(csound, &this->core, (size_t)samples);
     return OK;

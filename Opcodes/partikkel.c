@@ -618,7 +618,9 @@ static int32_t schedule_grains(CSOUND *csound, PARTIKKEL *p)
             if (*p->distribution >= FL(0.0)) {
                 /* positive distrib, choose random point in table */
                 uint32_t rnd = csound->RandMT(&p->randstate);
-                if(floatph) offset = p->disttab->ftable[(int32_t)((float)flen*rnd/0xffffffff)]; 
+                if (floatph)
+                  offset = p->disttab->ftable[
+                    (int32_t)((float)flen * rnd / (float)UINT32_MAX)];
                 else offset = p->disttab->ftable[rnd >> p->disttabshift];
                 offset *= *p->distribution;
             } else {

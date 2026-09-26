@@ -2623,7 +2623,7 @@ ftexists_init(CSOUND *csound, FTEXISTS *p) {
         }
         /* Query metadata without reporting errors or loading deferred GEN01 data.
            A table can exist with an empty argument list, for example after ftload. */
-        *p->iout = csoundGetTableArgs(csound, &args, ifn) >= 0;
+        *p->iout = csound->GetTableArgs(csound, &args, ifn) >= 0;
     }
     return OK;
 }

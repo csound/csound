@@ -62,13 +62,18 @@ if(BUILD_TESTS)
         local_ksmps_test.cpp
         lfsr_test.cpp
         serial_test.cpp
+        fixtures/serial_test_opcode.c
         joystick_test.cpp
+        fixtures/joystick_test_opcode.c
         arduino_test.cpp
         cpumeter_test.cpp
+        fixtures/cpumeter_linux_test_opcode.c
+        fixtures/cpumeter_mach_test_opcode.c
         osc_blob_test.cpp
         oscraw_test.cpp
         fixtures/oscraw_test_opcode.c
         socksend_test.cpp
+        fixtures/socksend_test_opcode.c
         sockrecv_test.cpp
         fixtures/sockrecv_test_opcode.c
         oscsend_test.cpp
@@ -103,9 +108,7 @@ if(BUILD_TESTS)
         ../../Opcodes/osc_blob.c
     )
 
-    if(NOT BUILD_PLUGINS)
-        target_sources(unittests PRIVATE mp3_state_test.cpp)
-    endif()
+    target_sources(unittests PRIVATE mp3_state_test.cpp)
 
     if(UNIX AND NOT IOS AND NOT EMSCRIPTEN AND NOT BARE_METAL AND
        NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")

@@ -1298,16 +1298,15 @@ if(NOT BUILD_PLUGINS)
  ${pitch_ops_SRCS} ${vbap_ops} ${stdopcod_SRCS}
 )
  list(APPEND libcsound_CFLAGS -DCS_INTERNAL)
+endif()
 
- list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${physmod_SRCS}
+# The static library includes builtin opcodes even when the shared library
+# loads them as plugins. Do not pass BUILD_PLUGINS to its sources or tests.
+list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${physmod_SRCS}
 ${pitch_ops_SRCS}  ${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS}
 ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS} ${gens_SRCS} ${pitch_ops_SRCS}
 ${newgabops_SRCS}  ${oldpvoc_SRCS} ${vbap_ops}
 )
-else()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_PLUGINS")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBUILD_PLUGINS")
-endif()
 
 
 

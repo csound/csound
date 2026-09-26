@@ -715,7 +715,7 @@ static int32_t vcombset(CSOUND *csound, VCOMB *p)
     MYFLT samples = *p->insmps != FL(0) ? *p->imaxlpt : *p->imaxlpt * CS_ESR;
     if (UNLIKELY(!((double) samples >= 1.0 &&
                    (double) samples <= INT32_MAX &&
-                   (double) samples <= SIZE_MAX / sizeof(MYFLT)))) {
+                   (double) samples <= (double)(SIZE_MAX / sizeof(MYFLT))))) {
       return csound->InitError(csound, "%s", Str("illegal loop time"));
     }
     uint32_t lpsiz = (uint32_t) samples;

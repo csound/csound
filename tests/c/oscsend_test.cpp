@@ -13,25 +13,19 @@
 #include <unistd.h>
 #endif
 
+#include "fixtures/socksend_test_opcode.h"
+
 static std::vector<std::vector<unsigned char>> messages;
-template <typename Socket, typename Length, typename AddressSize>
-static int capture_message(Socket, const void *data, Length size, int,
-                           const struct sockaddr *, AddressSize)
+static void capture_message(const void *data, size_t size)
 {
     const auto *bytes = static_cast<const unsigned char *>(data);
     messages.emplace_back(bytes, bytes + size);
-    return (int)size;
 }
-#undef LINKAGE_BUILTIN
-#define LINKAGE_BUILTIN(x)
-#define sendto capture_message
-#include "../../Opcodes/socksend.c"
-#undef sendto
 
 static int32_t initResult;
 static int32_t observeInit(CSOUND *csound, void *opcode)
 {
-    initResult = osc_send2_init(csound, (OSCSEND2 *)opcode);
+    initResult = csound_test_osc_send2_init(csound, (OSCSEND2 *)opcode);
     return initResult;
 }
 
@@ -39,6 +33,7 @@ class OscsendTests : public ::testing::Test {
 protected:
     CSOUND *csound;
     void SetUp() override {
+      csound_test_udp_capture = capture_message;
       messages.clear();
       initResult = 999;
       csound = csoundCreate(nullptr, nullptr);
@@ -46,8 +41,8 @@ protected:
       csoundSetOption(csound, "-n");
       csoundSetOption(csound, "-m0");
       ASSERT_EQ(csoundAppendOpcode(csound, "test_oscsend", sizeof(OSCSEND2),
-          0, "", "kSkSN", observeInit, (SUBR)osc_send2,
-          (SUBR)oscsend_deinit), OK);
+          0, "", "kSkSN", observeInit, (SUBR)csound_test_osc_send2,
+          (SUBR)csound_test_oscsend_deinit), OK);
     }
     void TearDown() override { csoundDestroy(csound); }
     void run(const char *body) {
