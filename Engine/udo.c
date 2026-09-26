@@ -66,6 +66,51 @@ static int32_t useropcd_init_only(CSOUND *csound, UOPCODE *p)
   return OK;  // no-op
 }
 
+/* A copied audio array belongs to its receiving instrument. Keep its shape,
+   but allocate each element for that instrument's ksmps. */
+static int32_t udo_init_audio_array(CSOUND *csound, ARRAYDAT *destination,
+                                    const ARRAYDAT *source, INSDS *ctx)
+{
+  ARRAYDAT prepared = {0};
+  ARRAYDAT *target = destination;
+  size_t count, sourceStride, targetStride, copySize;
+
+  if (destination == source)
+    return OK;
+  if (UNLIKELY(ctx == NULL ||
+               csound_array_member_count(source, &count) != OK ||
+               (count > 0 && (source->data == NULL ||
+                              source->arrayMemberSize <= 0))))
+    return NOTOK;
+
+  /* Reinitialization may change local ksmps. Build the new layout before
+     replacing the old allocation. */
+  if (destination->data != NULL &&
+      (size_t)destination->arrayMemberSize != ctx->ksmps * sizeof(MYFLT)) {
+    prepared.arrayType = &CS_VAR_TYPE_A;
+    target = &prepared;
+  }
+  if (UNLIKELY(tabinit_like_context(csound, target, source, ctx) != OK)) {
+    csound_free_array_storage(csound, &prepared);
+    return NOTOK;
+  }
+
+  sourceStride = source->arrayMemberSize;
+  targetStride = target->arrayMemberSize;
+  copySize = sourceStride < targetStride ? sourceStride : targetStride;
+  for (size_t i = 0; i < count; i++) {
+    char *out = (char *)target->data + i * targetStride;
+    const char *in = (const char *)source->data + i * sourceStride;
+    memmove(out, in, copySize);
+    memset(out + copySize, 0, targetStride - copySize);
+  }
+  if (target == &prepared) {
+    csound_free_array_storage(csound, destination);
+    *destination = prepared;
+  }
+  return OK;
+}
+
 static int32_t udo_copy_value(CSOUND *csound, const CS_VARIABLE *variable,
                               void *destination, const void *source,
                               INSDS *ctx, int32_t independent,
@@ -74,6 +119,10 @@ static int32_t udo_copy_value(CSOUND *csound, const CS_VARIABLE *variable,
   if (variable == NULL || variable->varType == NULL ||
       destination == NULL || source == NULL) {
     return NOTOK;
+  }
+  if (allowAllocation && variable->varType == &CS_VAR_TYPE_ARRAY &&
+      variable->subType == &CS_VAR_TYPE_A) {
+    return udo_init_audio_array(csound, destination, source, ctx);
   }
   if (independent && variable->varType == &CS_VAR_TYPE_ARRAY) {
     const ARRAYDAT *sourceArray = (const ARRAYDAT *)source;
@@ -1934,7 +1983,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
           if (((cur->varType != &CS_VAR_TYPE_A &&
                 cur->varType != &CS_VAR_TYPE_K) ||
                inm_local->outtypes[i] == 'K') &&
-              UNLIKELY(udo_copy_value(csound, cur, dst, src, lcurip,
+              UNLIKELY(udo_copy_value(csound, cur, dst, src,
+                                      cur->subType == &CS_VAR_TYPE_A
+                                        ? parent_ip : lcurip,
                                       lcurip->nxtp != NULL, 1) != OK)) {
             err = csound->InitError(
               csound, "could not prepare structured UDO output");
@@ -2127,7 +2178,8 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
     tmp[i] = in;
     if (outType != &CS_VAR_TYPE_K && outType != &CS_VAR_TYPE_A) {
       if (UNLIKELY(udo_copy_value(csound, current, out, in,
-                                  p->h.insdshead,
+                                  current->subType == &CS_VAR_TYPE_A
+                                    ? buf->parent_ip : p->h.insdshead,
                                   p->h.insdshead->nxtp != NULL, 1) != OK)) {
         return csound->InitError(
           csound, "could not prepare structured UDO output");
@@ -2225,10 +2277,10 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
           }
 
           for (j = 0; j < count; j++) {
-            size_t memberOffset =
+            MYFLT* in = src->data +
               j * ((size_t)src->arrayMemberSize / sizeof(MYFLT));
-            MYFLT* in = src->data + memberOffset;
-            MYFLT* out = target->data + memberOffset;
+            MYFLT* out = target->data +
+              j * ((size_t)target->arrayMemberSize / sizeof(MYFLT));
             *out = *(in + ofs);
           }
         }
@@ -2264,10 +2316,10 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
           }
 
           for (j = 0; j < count; j++) {
-            size_t memberOffset =
+            MYFLT* in = src->data +
               j * ((size_t)src->arrayMemberSize / sizeof(MYFLT));
-            MYFLT* in = src->data + memberOffset;
-            MYFLT* out = target->data + memberOffset;
+            MYFLT* out = target->data +
+              j * ((size_t)target->arrayMemberSize / sizeof(MYFLT));
             *(out + ofs) = *in;
           }
         }
@@ -2333,10 +2385,10 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
           }
 
           for (j = 0; j < count; j++) {
-            size_t memberOffset =
+            MYFLT* in = src->data +
               j * ((size_t)src->arrayMemberSize / sizeof(MYFLT));
-            MYFLT* in = src->data + memberOffset;
-            MYFLT* out = target->data + memberOffset;
+            MYFLT* out = target->data +
+              j * ((size_t)target->arrayMemberSize / sizeof(MYFLT));
             memcpy(out, in + ofs, asigSize);
           }
         }
@@ -2375,10 +2427,10 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
               csound, &p->h, "%s", Str("invalid audio array size in UDO output"));
           }
           for (j = 0; j < count; j++) {
-            size_t memberOffset =
+            MYFLT* in = src->data +
               j * ((size_t)src->arrayMemberSize / sizeof(MYFLT));
-            MYFLT* in = src->data + memberOffset;
-            MYFLT* out = target->data + memberOffset;
+            MYFLT* out = target->data +
+              j * ((size_t)target->arrayMemberSize / sizeof(MYFLT));
             memcpy(out + ofs, in, asigSize);
           }
 

@@ -676,7 +676,7 @@ const OENTRY opcodlst_1[] = {
   { "=.S", sizeof(TABCPY), 0, "S[]", "S[]", (SUBR)tabcopy, (SUBR)tabcopyk },
   { "=.K", sizeof(TABCPY), 0, "k[]", "k[]", (SUBR)tabcopyk_init, (SUBR)tabcopyk },
   { "=._", sizeof(TABCPY), 0, ".[]", ".[]", (SUBR)tabcopyk_init, (SUBR)tabcopy },
-  { "=.L", sizeof(TABCPY), 0, ".[]", ".[]", (SUBR)tabcopy2, (SUBR)tabcopy2 },
+  { "=.L", sizeof(TABCPY), 0, ".[]", ".[]", (SUBR)tabcopy2_init, (SUBR)tabcopy2 },
   CSOUND_DEPRECATED_OPCODE("tabgen", "genarray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "tabgen", sizeof(TABGEN), _QQ, "k[]", "iip", (SUBR) tabgen, NULL    },
   CSOUND_DEPRECATED_OPCODE("tabmap_i", "maparrayi", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")

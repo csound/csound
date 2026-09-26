@@ -342,10 +342,10 @@ static inline int32_t tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size,
     return OK;
 }
 
-/* Match another array's layout. Return NOTOK without publishing partial size
-   metadata when validation, detachment, or allocation fails. */
-static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
-                                   const ARRAYDAT *tp)
+/* Match another array's shape, allocating elements for the receiving context.
+   Return NOTOK without publishing partial size metadata on failure. */
+static inline int32_t tabinit_like_context(CSOUND *csound, ARRAYDAT *p,
+                                           const ARRAYDAT *tp, INSDS *ctx)
 {
     int32_t *newSizes = NULL;
     const CS_TYPE *originalArrayType;
@@ -379,7 +379,7 @@ static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
         memcpy(newSizes, tp->sizes,
                sizeof(int32_t) * (size_t)tp->dimensions);
     }
-    if (UNLIKELY(csound_array_prepare_write(csound, p, NULL) != OK)) {
+    if (UNLIKELY(csound_array_prepare_write(csound, p, ctx) != OK)) {
         p->arrayType = originalArrayType;
         csound->Free(csound, newSizes);
         return NOTOK;
@@ -392,7 +392,7 @@ static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
 
     capacity = elementCount > 0 ? elementCount : 1;
     p->arrayType = targetArrayType;
-    if (UNLIKELY(csound_array_ensure_capacity(csound, p, capacity, NULL)
+    if (UNLIKELY(csound_array_ensure_capacity(csound, p, capacity, ctx)
                  != OK)) {
         p->arrayType = originalArrayType;
         csound->Free(csound, newSizes);
@@ -414,6 +414,12 @@ static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
                sizeof(int32_t) * (size_t)tp->dimensions);
     }
     return OK;
+}
+
+static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
+                                   const ARRAYDAT *tp)
+{
+    return tabinit_like_context(csound, p, tp, NULL);
 }
 
 static inline int32_t csound_array_init_resize_error(CSOUND *csound)

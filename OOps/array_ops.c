@@ -714,6 +714,19 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
   }
   return OK;
 }
+
+static int32_t tabinit_local(CSOUND *csound, ARRAYDAT *result,
+                              const ARRAYDAT *source, INSDS *ctx)
+{
+  /* A reinitialized UDO may now use a different block size. Its result
+     arrays must follow that size just like arrays declared with init. */
+  if (result->arrayType == &CS_VAR_TYPE_A &&
+      result->data != source->data &&
+      (size_t)result->arrayMemberSize != ctx->ksmps * sizeof(MYFLT))
+    csound_free_array_storage(csound, result);
+  return tabinit_like_context(csound, result, source, ctx);
+}
+
 int32_t tabarithset(CSOUND *csound, TABARITH *p)
 {
 
@@ -734,7 +747,8 @@ int32_t tabarithset(CSOUND *csound, TABARITH *p)
     if (p->ans->arrayType != source->arrayType &&
         p->ans->arrayType == p->right->arrayType)
       source = p->right;
-    if (UNLIKELY(tabinit_like(csound, p->ans, source) != OK))
+    if (UNLIKELY(tabinit_local(csound, p->ans, source,
+                               p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     return OK;
   }
@@ -757,7 +771,8 @@ int32_t tabarithset1(CSOUND *csound, TABARITH1 *p)
   }
 
 
-  if (UNLIKELY(tabinit_like(csound, p->ans, left) != OK))
+  if (UNLIKELY(tabinit_local(csound, p->ans, left,
+                             p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   /* When the right operand is i-rate (##add.[i, ##sub.[i, etc.),
      it is safe and correct to compute the result at init-time as well.
@@ -784,7 +799,8 @@ int32_t tabarithset2(CSOUND *csound, TABARITH2 *p)
     return OK;
   }
 
-  if (UNLIKELY(tabinit_like(csound, p->ans, right) != OK))
+  if (UNLIKELY(tabinit_local(csound, p->ans, right,
+                             p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
 
 
@@ -3597,77 +3613,58 @@ int32_t tabcopy1(CSOUND *csound, TABCPY *p)
   return OK;
 }
 
-int32_t tabcopy2(CSOUND *csound, TABCPY *p)
-{                               /* Like tabcopy but sample-accurate */
-  int32_t i, j;
-  int32_t layoutDiff;
-  size_t elementCount, capacity, bytes;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  int32_t nsmps = CS_KSMPS;
-  MYFLT * dest, *src;
-  uint32_t k;
+static int32_t tabcopy_audio(CSOUND *csound, TABCPY *p, int32_t initializing)
+{
+  size_t count, sourceStride, targetStride;
+  uint32_t nsmps = CS_KSMPS;
+  /* At init, note boundaries still belong to the caller's block size.
+     Apply them only at performance time, after the UDO maps local blocks. */
+  uint32_t offset = initializing ? 0 : p->h.insdshead->ksmps_offset;
+  uint32_t early = initializing ? 0 : p->h.insdshead->ksmps_no_end;
 
-  if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
+  if (UNLIKELY(p->src->data == NULL || p->src->dimensions <= 0))
     return csound->InitError(csound, "%s", Str("array-variable not initialised"));
   if (UNLIKELY(p->dst->dimensions > 0 &&
                p->src->dimensions != p->dst->dimensions))
     return csound->InitError(csound, "%s",
                              Str("array-variable dimensions do not match"));
-  if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
+  if (UNLIKELY(p->src->arrayType != &CS_VAR_TYPE_A ||
+               p->dst->arrayType != &CS_VAR_TYPE_A))
     return csound->InitError(csound, "%s",
-                             Str("array-variable types do not match"));
-  if (UNLIKELY(p->src->arrayType != NULL &&
-               p->src->arrayType->userDefinedType))
-    return csound->InitError(
-      csound, "%s",
-      Str("sample-accurate array copy does not support struct arrays"));
-  /* Managed storage belongs only to struct arrays, which are rejected above. */
-
+                             Str("sample-accurate array copy requires audio arrays"));
   if (p->src == p->dst) return OK;
-
-  if (UNLIKELY(csound_array_member_count(p->src, &elementCount) != OK))
+  if (UNLIKELY(csound_array_member_count(p->src, &count) != OK))
     return csound->InitError(csound, "%s",
                              Str("array-variable dimensions overflow"));
-  p->dst->arrayMemberSize = p->src->arrayMemberSize;
-  capacity = elementCount > 0 ? elementCount : 1;
-  if (UNLIKELY(csound_array_allocation_size(
-                 p->src->arrayMemberSize, capacity, &bytes) != OK))
-    return csound->InitError(csound, "%s",
-                             Str("array-variable allocation size overflow"));
+  if (UNLIKELY(tabinit_local(csound, p->dst, p->src,
+                             p->h.insdshead) != OK))
+    return csound_array_init_resize_error(csound);
 
-  layoutDiff = p->dst->dimensions != p->src->dimensions ||
-               p->dst->sizes == NULL ||
-               memcmp(p->dst->sizes, p->src->sizes,
-                      sizeof(int32_t) * (size_t)p->src->dimensions) != 0;
-  if (layoutDiff || p->dst->allocated != bytes) {
-    p->dst->dimensions = p->src->dimensions;
-
-    p->dst->sizes = csound->ReAlloc(
-      csound, p->dst->sizes, sizeof(int32_t) * p->src->dimensions);
-    memcpy(p->dst->sizes, p->src->sizes, sizeof(int32_t) * p->src->dimensions);
-
-    if (p->dst->data == NULL) {
-      p->dst->data = csound->Calloc(csound, bytes);
-    } else {
-      p->dst->data = csound->ReAlloc(csound, p->dst->data, bytes);
-      memset(p->dst->data, 0, bytes);
-    }
-    p->dst->allocated = bytes;
-  }
-  dest = (MYFLT*)p->dst->data;
-  src = (MYFLT*)p->src->data;
-  for (i=0;i<p->dst->dimensions; i++) {
-    for (j=0; j<p->src->sizes[i]; j++) {
-      if (offset)
-        memset(dest, '\0', offset*sizeof(MYFLT));
-      if (early) memset(&dest[nsmps-early], '\0', early*sizeof(MYFLT));
-      for (k=offset;k<nsmps-early;k++)
-        dest[k] = src[k];
-      dest +=nsmps; src += nsmps;
-    }
+  sourceStride = p->src->arrayMemberSize / sizeof(MYFLT);
+  targetStride = p->dst->arrayMemberSize / sizeof(MYFLT);
+  if (UNLIKELY(sourceStride < nsmps || targetStride < nsmps ||
+               offset > nsmps || early > nsmps - offset))
+    return csound->PerfError(csound, &p->h, "%s",
+                             Str("invalid audio array block size"));
+  for (size_t i = 0; i < count; i++) {
+    MYFLT *dest = p->dst->data + i * targetStride;
+    const MYFLT *src = p->src->data + i * sourceStride;
+    memset(dest, 0, offset * sizeof(MYFLT));
+    memmove(dest + offset, src + offset,
+            (nsmps - offset - early) * sizeof(MYFLT));
+    memset(dest + nsmps - early, 0, early * sizeof(MYFLT));
   }
   return OK;
+}
+
+int32_t tabcopy2_init(CSOUND *csound, TABCPY *p)
+{
+  return tabcopy_audio(csound, p, 1);
+}
+
+int32_t tabcopy2(CSOUND *csound, TABCPY *p)
+{
+  return tabcopy_audio(csound, p, 0);
 }
 
 /* copya2ftab accepts a vector, not a multidimensional array. */
