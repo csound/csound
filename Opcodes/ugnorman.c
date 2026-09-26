@@ -1994,7 +1994,7 @@ static int32_t atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
   return atsbufreadset_common(csound, p, 1);
 }
 
-static int32_t mycomp(const void *p1, const void *p2)
+static int mycomp(const void *p1, const void *p2)
 {
   const ATS_DATA_LOC *a1 = p1;
   const ATS_DATA_LOC *a2 = p2;

@@ -26,6 +26,9 @@ cmake -S . -B build -G Ninja -DUSE_DOUBLE=OFF -DUSE_FLOAT=ON
 ninja -C build
 ```
 
+For ESP32-P4 and ESP32-S3, `CSOUND_ESP32_TARGET` selects the chip's toolchain
+and single-precision defaults. See the [ESP32 build guide](../platform/esp32/README.md).
+
 The installed `float-version.h` records the build options. Hosts and plugins
 must use the headers from the library they load. Changing precision changes
 the ABI; rebuild hosts and plugins when changing it. `USE_FLOAT` also reduces

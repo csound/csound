@@ -1075,7 +1075,7 @@ int32_t midi_set_tempo(CSOUND *csound, void *pp)
 int32_t midi_set_pos(CSOUND *csound, void *p) {
   MIDITEMPO *pp = (MIDITEMPO *) p;
   if(GetEventType(&(pp->h)) == 0) {
-    int i;
+    int32_t i;
     midifile_t *mf = find_midifile(csound, (int32_t) *pp->num);
     if(mf) {
       cs_double posk;

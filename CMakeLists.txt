@@ -10,6 +10,31 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0075 NEW)
 cmake_policy(SET CMP0091 NEW)
 
+set(CSOUND_ESP32_TARGET "" CACHE STRING "ESP32 target chip (esp32p4 or esp32s3)")
+set_property(CACHE CSOUND_ESP32_TARGET PROPERTY STRINGS "" esp32p4 esp32s3)
+if(CSOUND_ESP32_TARGET)
+    if(NOT CSOUND_ESP32_TARGET MATCHES "^(esp32p4|esp32s3)$")
+        message(FATAL_ERROR "CSOUND_ESP32_TARGET must be esp32p4 or esp32s3")
+    endif()
+    if(EXISTS "${CMAKE_BINARY_DIR}/CMakeCache.txt" AND
+       NOT DEFINED CSOUND_CONFIGURED_ESP32_TARGET)
+        message(FATAL_ERROR "Use a fresh build directory for an ESP32 target")
+    endif()
+    if(DEFINED CSOUND_CONFIGURED_ESP32_TARGET AND
+       NOT CSOUND_CONFIGURED_ESP32_TARGET STREQUAL CSOUND_ESP32_TARGET)
+        message(FATAL_ERROR "Use a fresh build directory when changing the ESP32 target")
+    endif()
+    if(USE_VCPKG)
+        message(FATAL_ERROR "The ESP32 build does not use Vcpkg")
+    endif()
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/platform/esp32/toolchain.cmake"
+        CACHE FILEPATH "CMake toolchain file")
+    include(platform/esp32/defaults.cmake)
+    set(CSOUND_CONFIGURED_ESP32_TARGET "${CSOUND_ESP32_TARGET}" CACHE INTERNAL "Configured ESP32 chip")
+elseif(CSOUND_CONFIGURED_ESP32_TARGET)
+    message(FATAL_ERROR "Use a fresh build directory when leaving the ESP32 target")
+endif()
+
 include(cmake/cmake-utilities.cmake)
 
 # silence RPATH cmake warning
