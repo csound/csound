@@ -1492,8 +1492,8 @@ struct CSOUND_ {
   const CSOUND_UTIL *(*GetUtility)(CSOUND *csound);
   /* Fast power of two function from a precomputed table */
   MYFLT (*Pow2)(CSOUND *, MYFLT a);
-  /* String localisation */
-#if defined(__CUDACC__) || defined(__MACH__)
+  /* String localisation; preserve printf format checking through Str(). */
+#if defined(__CUDACC__)
   char *(*LocalizeString)(const char *);
 #else
   char *(*LocalizeString)(const char *)__attribute__((format_arg(1)));
