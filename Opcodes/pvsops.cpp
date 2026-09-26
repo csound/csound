@@ -177,13 +177,21 @@ struct TVConv : csnd::Plugin<1, 6> {
   }
 
   int32_t init() {
+    if (!(double(inargs[4]) >= 0 && double(inargs[4]) <= INT32_MAX &&
+          double(inargs[5]) >= 1 && double(inargs[5]) <= INT32_MAX))
+      return csound->init_error("tvconv: invalid partition or filter size");
     pars = inargs[4];
     fils = inargs[5];
     if (pars > fils)
       std::swap(pars, fils);
     if (pars > 1) {
       pars = rpow2(pars);
-      fils = rpow2(fils) * 2;
+      fils = rpow2(fils);
+      // AuxMem and the FFT API use signed element counts.
+      if (fils > INT32_MAX / 2 ||
+          size_t(fils) > SIZE_MAX / (2 * sizeof(MYFLT)))
+        return csound->init_error("tvconv: filter size too large");
+      fils *= 2;
       ffts = pars * 2;
       fwd = csound->fft_setup(ffts, FFT_FWD);
       inv = csound->fft_setup(ffts, FFT_INV);
@@ -193,13 +201,22 @@ struct TVConv : csnd::Plugin<1, 6> {
       saved.allocate(csound, pars);
       ir.allocate(csound, fils);
       in.allocate(csound, fils);
+      std::fill(out.begin(), out.end(), 0.);
+      std::fill(insp.begin(), insp.end(), 0.);
+      std::fill(irsp.begin(), irsp.end(), 0.);
+      std::fill(saved.begin(), saved.end(), 0.);
       itnsp = insp.begin();
       itrsp = irsp.begin();
       n = 0;
     } else {
+      if (size_t(fils) > SIZE_MAX / sizeof(MYFLT))
+        return csound->init_error("tvconv: filter size too large");
       ir.allocate(csound, fils);
       in.allocate(csound, fils);
     }
+    // AuxMem retains samples when an instrument reuses an allocation.
+    std::fill(ir.begin(), ir.end(), 0.);
+    std::fill(in.begin(), in.end(), 0.);
     itn = in.begin();
     itr = ir.begin();
     return OK;
@@ -215,6 +232,8 @@ struct TVConv : csnd::Plugin<1, 6> {
     auto *frz2 = inargs(3);
     auto inc1 = csound->is_asig(frz1);
     auto inc2 = csound->is_asig(frz2);
+    frz1 += offset * inc1;
+    frz2 += offset * inc2;
     MYFLT _0dbfs = csound->_0dbfs();
 
     for (auto &s : outsig) {
@@ -243,8 +262,9 @@ struct TVConv : csnd::Plugin<1, 6> {
           itr = ir.begin();
         }
         // spectral delay line
-        for (csnd::AuxMem<MYFLT>::iterator it1 = itnsp, it2 = irsp.end() - ffts;
-             it2 >= irsp.begin(); it1 += ffts, it2 -= ffts) {
+        for (csnd::AuxMem<MYFLT>::iterator it1 = itnsp, it2 = irsp.end();
+             it2 != irsp.begin(); it1 += ffts) {
+          it2 -= ffts;
           if (it1 == insp.end())
             it1 = insp.begin();
           ins = to_cmplx(it1);
@@ -274,20 +294,25 @@ struct TVConv : csnd::Plugin<1, 6> {
     auto frz2 = inargs(3);
     auto inc1 = csound->is_asig(frz1);
     auto inc2 = csound->is_asig(frz2);
+    frz1 += offset * inc1;
+    frz2 += offset * inc2;
+    // Normalize the coefficients so the output uses the same units as pconv.
+    const MYFLT scale = FL(1.0) / csound->_0dbfs();
 
     for (auto &s : outsig) {
       if (*frz1 > 0)
         *itn = *inp;
       if (*frz2 > 0)
-        *itr = *irp;
+        *itr = *irp * scale;
       itn++, itr++;
       if (itn == in.end()) {
         itn = in.begin();
         itr = ir.begin();
       }
       s = 0.;
-      for (csnd::AuxMem<MYFLT>::iterator it1 = itn, it2 = ir.end() - 1;
-           it2 >= ir.begin(); it1++, it2--) {
+      for (csnd::AuxMem<MYFLT>::iterator it1 = itn, it2 = ir.end();
+           it2 != ir.begin(); it1++) {
+        --it2;
         if (it1 == in.end())
           it1 = in.begin();
         s += *it1 * *it2;
