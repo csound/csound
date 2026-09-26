@@ -1,5 +1,5 @@
 <CsTest>
-description = "UDO rate setup follows branches, evaluates expressions once, and uses copies for local-rate calls"
+description = "UDO rate setup precedes body initialization and uses copies for local-rate calls"
 
 [expect]
 exit = 0
@@ -12,20 +12,10 @@ exit = 0
 sr = 32
 ksmps = 8
 nchnls = 1
-giEvaluations init 0
 
-opcode CountEvaluation, i, i
-  iValue xin
-  giEvaluations += 1
-  xout iValue
-endop
-
-opcode ChooseBlock(iSmall:i):i
-  if iSmall == 1 then
-    setksmps CountEvaluation(2)
-  else
-    setksmps CountEvaluation(4)
-  endif
+opcode ExpressionBlock():i
+  ; Evaluate this once at the caller's block size of 8.
+  setksmps ksmps/2
   xout ksmps
 endop
 
@@ -41,11 +31,9 @@ opcode PlainReference(iValue:i):i
 endop
 
 instr CheckInitialization
-  iSmall ChooseBlock 1
-  iLarge ChooseBlock 0
-  if iSmall != 2 || iLarge != 4 || giEvaluations != 2 then
-    prints "Expected blocks 2 and 4 and two evaluations, got %g, %g and %g\n", \
-      iSmall, iLarge, giEvaluations
+  iBlock ExpressionBlock
+  if iBlock != 4 then
+    prints "Expected block size 4, got %g\n", iBlock
     exitnow -1
   endif
 

@@ -1,5 +1,5 @@
 <CsTest>
-description = "UDO resampling setup reads xin arguments and expressions in source order"
+description = "UDO resampling reads scalar arguments before initializing the body"
 
 [expect]
 exit = 0

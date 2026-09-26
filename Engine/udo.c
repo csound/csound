@@ -1425,9 +1425,95 @@ static int32_t handle_pass_by_ref(CSOUND* csound, UOPCODE* p,
   return pbr_seed_pass_through_outputs(csound, p, lcurip, 1);
 }
 
-/* Share the call-mode rule with the debugger. A UDO with local-rate setup
-   uses copies, including no-op settings, so its arguments and expressions
-   can initialize in source order before its final rates are known. */
+static int32_t udo_is_rate_setting(const char *name) {
+  return strcmp(name, "setksmps") == 0 ||
+    strcmp(name, "oversample") == 0 || strcmp(name, "undersample") == 0;
+}
+
+/* Only compiler-generated scalar arithmetic may run while computing the
+   rate. An ordinary opcode can cache sr/kr or allocate rate-sized storage. */
+static int32_t udo_is_rate_arithmetic(const char *name) {
+  return strcmp(name, "##add.ii") == 0 || strcmp(name, "##sub.ii") == 0 ||
+    strcmp(name, "##mul.ii") == 0 || strcmp(name, "##div.ii") == 0 ||
+    strcmp(name, "##mod.ii") == 0 || strcmp(name, "##pow.i") == 0;
+}
+
+/* Validate rate placement before running the init chain. xin only supplies
+   scalar i-rate values here. Its normal init, including converter setup and
+   structured copies, waits until the final rate and call mode are known. */
+static int32_t udo_prepare_rate(CSOUND *csound, UOPCODE *p, OPDS **rate_op) {
+  OPDS *op;
+  OPTXT *text;
+  XIN *xin;
+  OPCODINFO *info = p->buf->opcode_info;
+  CS_VARIABLE *input;
+  int32_t i;
+
+  *rate_op = NULL;
+  for (op = p->ip->nxti; op != NULL; op = op->nxti) {
+    const char *name = op->optext->t.oentry->opname;
+    if (udo_is_rate_setting(name)) {
+      csound->ids = op;
+      csound->op = name;
+      if (*rate_op != NULL)
+        return csound->InitError(csound,
+                                  "UDO %s may have only one rate setting",
+                                  info->name);
+      *rate_op = op;
+    }
+  }
+  if (*rate_op == NULL)
+    return OK;
+
+  /* Check source order, including k-rate branches and labels, which do not
+     appear in the init chain. A label could re-enter setup from the body. */
+  text = (OPTXT *)p->ip->instr;
+  while ((text = text->nxtop) != (*rate_op)->optext) {
+    const char *name = text->t.oentry->opname;
+    if (strcmp(name, "xin") != 0 && !udo_is_rate_arithmetic(name))
+      return csound->InitError(
+        csound, "%s must precede opcode initialization in UDO %s "
+        "(found after %s)", (*rate_op)->optext->t.oentry->opname,
+        info->name, name);
+  }
+
+  xin = pbr_find_xin(p->ip);
+  if (xin != NULL) {
+    input = info->in_arg_pool->head;
+    for (i = 0; i < info->inchns; i++, input = input->next) {
+      if (input->varType == &CS_VAR_TYPE_I)
+        *xin->args[i] = *p->ar[info->outchns + i];
+    }
+  }
+
+  for (op = p->ip->nxti; op != (*rate_op)->nxti; op = op->nxti) {
+    int32_t err;
+    csound->ids = op;
+    csound->op = op->optext->t.oentry->opname;
+    if (strcmp(csound->op, "xin") == 0)
+      continue;
+    err = op->init(csound, op);
+    if (err != OK)
+      return err;
+  }
+
+  /* Reinitialization may change the ratio or converter mode. Do not retain
+     converters prepared for an earlier invocation of this instance. */
+  for (i = 0; i < OPCODENUMOUTS_MAX; i++) {
+    if (p->cvt_in[i] != NULL) {
+      src_deinit(csound, p->cvt_in[i]);
+      p->cvt_in[i] = NULL;
+    }
+    if (p->cvt_out[i] != NULL) {
+      src_deinit(csound, p->cvt_out[i]);
+      p->cvt_out[i] = NULL;
+    }
+  }
+  return OK;
+}
+
+/* Share the call-mode rule with the debugger. Rate-setting UDOs use copies
+   even for no-op settings, keeping argument storage stable across reinit. */
 static int32_t udo_call_is_pass_by_ref(const UOPCODE *p,
                                        const OPCODINFO *udoinfo) {
   OPDS *op;
@@ -1439,9 +1525,7 @@ static int32_t udo_call_is_pass_by_ref(const UOPCODE *p,
 
   for (op = (OPDS *)p->ip->nxti; op != NULL; op = op->nxti) {
     const char *name = op->optext->t.oentry->opname;
-    if (strcmp(name, "setksmps") == 0 ||
-        strcmp(name, "oversample") == 0 ||
-        strcmp(name, "undersample") == 0)
+    if (udo_is_rate_setting(name))
       return 0;
   }
   return 1;
@@ -1546,6 +1630,7 @@ static OPCODINFO *find_latest_useropinfo(CSOUND *csound, const char *name,
 int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 {
   OPDS         *saved_ids = csound->ids;
+  OPDS         *rate_op = NULL;
   INSDS        *parent_ip = csound->curip, *lcurip;
   INSDS        *saved_curip = csound->curip;
   INSTRTXT     *tp;
@@ -1704,8 +1789,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(CS_VAR_MEM));
   }
 
-  /* Choose the call mode without running init opcodes out of order.
-     The normal chain supplies xin values and evaluates rate arguments. */
+  /* Set the local rate before choosing argument storage or initializing
+     converters and body opcodes. */
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
   if (UNLIKELY(instance_init_begin(csound, lcurip) != CSOUND_SUCCESS)) {
@@ -1719,7 +1804,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   ATOMIC_SET(p->ip->init_done, 0);
   csound->mode = 1;
   buf->iflag = 0;
-  int err = 0;
+  int err = udo_prepare_rate(csound, p, &rate_op);
+  if (UNLIKELY(err != OK))
+    goto finish_init;
 
   /* Per-definition flag for perf-routine selection.  The debugger must not
      read this back: the next init of the same UDO overwrites it. */
@@ -1733,16 +1820,21 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     }
   }
 
-  /* Initialize the UDO */
+  /* Initialize xin at the final rate, then the body. The rate expression
+     has already run once and must not be evaluated again at the new rate. */
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
   ATOMIC_SET(p->ip->init_done, 0);
   csound->mode = 1;
   buf->iflag = 0;
   err = 0;
+  int32_t rate_prepared = rate_op != NULL;
   while (csound->ids != NULL && err == 0) {
     csound->op = csound->ids->optext->t.oentry->opname;
-    err = (*csound->ids->init)(csound, csound->ids);
+    if (!rate_prepared || strcmp(csound->op, "xin") == 0)
+      err = (*csound->ids->init)(csound, csound->ids);
+    if (csound->ids == rate_op)
+      rate_prepared = 0;
     csound->ids = csound->ids->nxti;
   }
  finish_init:
