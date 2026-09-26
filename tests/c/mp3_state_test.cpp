@@ -13,6 +13,8 @@ protected:
     void SetUp() override
     {
         csound = csoundCreate(this, nullptr);
+        // Keep decoder tests independent of user and directory options files.
+        csound->options_checked = 1;
         csoundCreateMessageBuffer(csound, 0);
         csoundSetOption(csound, "-n -d -m0");
         openFile = csound->FileOpen;
@@ -61,6 +63,8 @@ protected:
     {
         csoundReset(csound);
         EXPECT_TRUE(files.empty());
+        // Keep decoder tests independent of user and directory options files.
+        csound->options_checked = 1;
         csoundCreateMessageBuffer(csound, 0);
         csoundSetOption(csound, "-n -d -m0");
     }
