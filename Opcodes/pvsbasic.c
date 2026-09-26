@@ -40,44 +40,57 @@ typedef struct _pvsgain {
   uint32  lastframe;
 } PVSGAIN;
 
-static int32_t pvsgainset(CSOUND *csound, PVSGAIN *p){
+static int32_t pvsgainset(CSOUND *csound, PVSGAIN *p)
+{
+  int32_t N = p->fa->N;
+  size_t samples = p->fa->sliding ? CS_KSMPS : 1;
+  size_t sample_size = p->fa->sliding ? sizeof(MYFLT) : sizeof(float);
+  size_t frame_bytes;
 
-   IGN(csound);
-  int32    N = p->fa->N;
-  p->fout->sliding = 0;
-  if (p->fa->sliding) {
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(MYFLT) * CS_KSMPS * (N + 2))
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
-                       &p->fout->frame);
-    p->fout->NB = p->fa->NB;
-    p->fout->sliding = 1;
-  }
-  else
-    if (p->fout->frame.auxp == NULL ||
-        p->fout->frame.size < sizeof(float) * (N + 2))
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+  if (UNLIKELY(p->fa->format != PVS_AMP_FREQ &&
+               p->fa->format != PVS_AMP_PHASE))
+    return csound->InitError(csound, "%s", Str("pvsgain: signal format "
+                                         "must be amp-phase or amp-freq."));
+  if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) ||
+               (size_t)(N + 2) > SIZE_MAX / sample_size / samples ||
+               (p->fa->sliding && p->fa->NB != N / 2 + 1)))
+    return csound->InitError(csound, "%s", Str("pvsgain: invalid frame size"));
+  frame_bytes = (size_t)(N + 2) * sample_size * samples;
+  if (UNLIKELY(p->fa->frame.auxp == NULL || p->fa->frame.size < frame_bytes))
+    return csound->InitError(csound, "%s", Str("pvsgain: source is not initialised"));
+  if (p->fout->frame.auxp == NULL || p->fout->frame.size < frame_bytes)
+    csound->AuxAlloc(csound, frame_bytes, &p->fout->frame);
+  memset(p->fout->frame.auxp, 0, frame_bytes);
   p->fout->N = N;
+  p->fout->NB = N / 2 + 1;
+  p->fout->sliding = p->fa->sliding;
   p->fout->overlap = p->fa->overlap;
   p->fout->winsize = p->fa->winsize;
   p->fout->wintype = p->fa->wintype;
   p->fout->format = p->fa->format;
-  p->fout->framecount = 1;
-  p->lastframe = 0;
-  if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
-                 (p->fout->format == PVS_AMP_PHASE))))
-    return csound->InitError(csound, "%s", Str("pvsgain: signal format "
-                                         "must be amp-phase or amp-freq."));
+  /* Reinitialization publishes a cleared frame, then processes the current
+     source on the first performance pass, even if its counter is unchanged. */
+  p->fout->framecount++;
+  p->lastframe = p->fa->framecount - 1;
   return OK;
 }
 
 static int32_t pvsgain(CSOUND *csound, PVSGAIN *p)
 {
-   IGN(csound);
   int32_t     i;
   int32    framesize;
   float   *fout, *fa;
   MYFLT gain = *p->kgain;
+
+  if (UNLIKELY(p->fa->N != p->fout->N ||
+               p->fa->sliding != p->fout->sliding ||
+               p->fa->format != p->fout->format ||
+               p->fa->overlap != p->fout->overlap ||
+               p->fa->winsize != p->fout->winsize ||
+               p->fa->wintype != p->fout->wintype ||
+               (p->fa->sliding && p->fa->NB != p->fout->NB)))
+    return csound->PerfError(csound, &p->h, "%s",
+                             Str("pvsgain: source format changed; reinitialise"));
 
   if (p->fa->sliding) {
     CMPLX * fout, *fa;
@@ -111,13 +124,14 @@ static int32_t pvsgain(CSOUND *csound, PVSGAIN *p)
 
   framesize = p->fa->N + 2;
 
-  if (p->lastframe < p->fa->framecount) {
+  if (p->lastframe != p->fa->framecount) {
     for (i = 0; i < framesize; i += 2){
       fout[i] = fa[i]*gain;
       fout[i+1] = fa[i+1];
     }
-    p->fout->framecount = p->fa->framecount;
-    p->lastframe = p->fout->framecount;
+    p->lastframe = p->fa->framecount;
+    /* Keep downstream opcodes updating when the source counter restarts. */
+    p->fout->framecount++;
   }
   return OK;
 }
