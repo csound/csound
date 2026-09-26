@@ -1478,11 +1478,17 @@ static int32_t pvsmix(CSOUND *csound, PVSMIX *p)
   if (p->fa->sliding) {
     CMPLX * fout, *fa, *fb;
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t NB = p->fa->NB;
     for (n=0; n<offset; n++) {
       fout = (CMPLX*) p->fout->frame.auxp +NB*n;
       for (i = 0; i < NB; i++) fout[i].re = fout[i].im = FL(0.0);
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset((CMPLX *) p->fout->frame.auxp + (size_t)nsmps*NB, 0,
+             (size_t)early*NB*sizeof(CMPLX));
     }
     for (n=offset; n<nsmps; n++) {
       fout = (CMPLX*) p->fout->frame.auxp +NB*n;
