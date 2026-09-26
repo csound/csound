@@ -35,7 +35,7 @@ typedef struct {
   
 typedef struct _SR_CONVERTER {
   float   ratio;  // src ratio
-  int32_t size;   // vector size
+  int32_t insize, outsize; // input and output block sizes
   int32_t mode;   // conversion mode
   CVTDAT *dat; // converter data
   int32_t ncvt;   // no of converters
@@ -49,12 +49,13 @@ typedef struct _SR_CONVERTER {
     one per argument
     mode - conversion mode (0 - 4)
     ratio - conversion ratio (oversampling or 1/oversampling factor)
+    in_ksmps, out_ksmps - audio block sizes on each side of the conversion
     var - actual variable given to conversion
     ip - calling insds (context)
 */
 SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
                        float ratio, CS_VARIABLE *var,
-                       INSDS *ip);
+                       INSDS *ip, int32_t in_ksmps, int32_t out_ksmps);
 
 /** conversion de-initialisation
  */  
