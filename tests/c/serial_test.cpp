@@ -7,15 +7,20 @@
 
 #if defined(_WIN32) || defined(CSOUND_SERIAL_WINDOWS_TEST)
 #include <winsock2.h>
+#ifndef WIN32
+#define WIN32
+#endif
 #else
 #include <unistd.h>
 #include <fcntl.h>
 #ifndef __wasm__
 #include <poll.h>
+#include <termios.h>
 #endif
 #endif
 
 #ifndef NO_SERIAL_OPCODES
+#include "fixtures/serial_test_opcode.h"
 namespace {
 #if defined(_WIN32) || defined(CSOUND_SERIAL_WINDOWS_TEST)
 // Exercise the Windows backend without requiring a physical serial device.
@@ -24,24 +29,24 @@ bool setupFails, readFails, writeFails, shortWrite;
 std::string received, sent;
 COMMTIMEOUTS configuredTimeouts;
 
-HANDLE WINAPI testCreateFileA(LPCSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES,
+extern "C" HANDLE WINAPI testCreateFileA(LPCSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES,
                              DWORD, DWORD, HANDLE) {
     return reinterpret_cast<HANDLE>(static_cast<uintptr_t>(++opened));
 }
-BOOL WINAPI testCloseHandle(HANDLE) { ++closed; return TRUE; }
-BOOL WINAPI testGetCommState(HANDLE, LPDCB state) {
+extern "C" BOOL WINAPI testCloseHandle(HANDLE) { ++closed; return TRUE; }
+extern "C" BOOL WINAPI testGetCommState(HANDLE, LPDCB state) {
     state->XonChar = 17;
     state->XoffChar = 19;
     return TRUE;
 }
-BOOL WINAPI testSetCommState(HANDLE, LPDCB state) {
+extern "C" BOOL WINAPI testSetCommState(HANDLE, LPDCB state) {
     return !setupFails && state->fBinary && state->XonChar != state->XoffChar;
 }
-BOOL WINAPI testSetCommTimeouts(HANDLE, LPCOMMTIMEOUTS value) {
+extern "C" BOOL WINAPI testSetCommTimeouts(HANDLE, LPCOMMTIMEOUTS value) {
     configuredTimeouts = *value;
     return TRUE;
 }
-BOOL WINAPI testReadFile(HANDLE, LPVOID output, DWORD length, LPDWORD count,
+extern "C" BOOL WINAPI testReadFile(HANDLE, LPVOID output, DWORD length, LPDWORD count,
                          LPOVERLAPPED) {
     if (readFails) return FALSE;
     *count = static_cast<DWORD>(std::min<size_t>(length, received.size()));
@@ -49,36 +54,20 @@ BOOL WINAPI testReadFile(HANDLE, LPVOID output, DWORD length, LPDWORD count,
     received.erase(0, *count);
     return TRUE;
 }
-BOOL WINAPI testWriteFile(HANDLE, LPCVOID input, DWORD length, LPDWORD count,
+extern "C" BOOL WINAPI testWriteFile(HANDLE, LPCVOID input, DWORD length, LPDWORD count,
                           LPOVERLAPPED) {
     if (writeFails) return FALSE;
     *count = length - (shortWrite && length > 0 ? 1 : 0);
     sent.append(static_cast<const char *>(input), *count);
     return TRUE;
 }
-BOOL WINAPI testPurgeComm(HANDLE, DWORD flags) {
+extern "C" BOOL WINAPI testPurgeComm(HANDLE, DWORD flags) {
     if (flags != PURGE_RXCLEAR) return FALSE;
     received.clear();
     return TRUE;
 }
 
-#ifndef WIN32
-#define WIN32
 #endif
-#define CreateFileA testCreateFileA
-#define CloseHandle testCloseHandle
-#define GetCommState testGetCommState
-#define SetCommState testSetCommState
-#define SetCommTimeouts testSetCommTimeouts
-#define ReadFile testReadFile
-#define WriteFile testWriteFile
-#define PurgeComm testPurgeComm
-#endif
-
-// Keep this copy private; the library supplies the registered opcodes.
-#undef LINKAGE_BUILTIN
-#define LINKAGE_BUILTIN(x)
-#include "../../Opcodes/serial.c"
 
 int32_t ignoreInitError(CSOUND *, const char *, ...) { return NOTOK; }
 int32_t ignorePerfError(CSOUND *, OPDS *, const char *, ...) { return NOTOK; }

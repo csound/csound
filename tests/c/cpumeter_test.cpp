@@ -28,31 +28,37 @@
 #include <mach/mach_host.h>
 #endif
 
-#undef LINKAGE_BUILTIN
-#define LINKAGE_BUILTIN(name)
+#include "fixtures/cpumeter_test_opcode.h"
 
 namespace {
 int32_t initError(CSOUND *, const char *, ...) { return NOTOK; }
 int32_t perfError(CSOUND *, OPDS *, const char *, ...) { return NOTOK; }
 
-template <typename T> struct Meter {
-    T opcode = {};
+struct Meter {
+    void *opcode;
+    OENTRY *entry;
     INSDS instrument = {};
     OPTXT text = {};
     MYFLT interval = FL(0.015625);
     std::array<MYFLT, 3> cells[32];
-    explicit Meter(int outputs) {
+    Meter(int outputs, OENTRY *entry,
+          void (*bind)(void *, INSDS *, OPTXT *, MYFLT *, MYFLT **))
+        : entry(entry) {
+        opcode = calloc(1, entry->dsblksiz);
+        MYFLT *values[32];
         instrument.esr = 1024;
         instrument.ksmps = 8;
         text.t.outArgCount = outputs;
-        opcode.h.insdshead = &instrument;
-        opcode.h.optext = &text;
-        opcode.itrig = &interval;
         for (int i = 0; i < 32; ++i) {
             cells[i] = {123, -1, 456};
-            opcode.kk[i] = i < outputs ? &cells[i][1] : nullptr;
+            values[i] = i < outputs ? &cells[i][1] : nullptr;
         }
+        bind(opcode, &instrument, &text, &interval, values);
     }
+    ~Meter() { free(opcode); }
+    int32_t init(CSOUND *csound) { return entry->init(csound, opcode); }
+    int32_t perform(CSOUND *csound) { return entry->perf(csound, opcode); }
+    int32_t deinit(CSOUND *csound) { return entry->deinit(csound, opcode); }
     void checkGuards() {
         for (int i = 0; i < 32; ++i) {
             EXPECT_EQ(cells[i][0], 123);
@@ -87,30 +93,17 @@ void replace(FILE *file, const std::string &text) {
     fflush(file);
     rewind(file);
 }
-FILE *openProc(const char *path, const char *) {
+extern "C" FILE *csound_test_open_proc(const char *path, const char *) {
     EXPECT_STREQ(path, "/proc/stat");
     if (failOpen) { errno = ENOENT; return nullptr; }
     FILE *file = tmpfile();
     if (file) { files.insert(file); replace(file, contents); }
     return file;
 }
-int closeProc(FILE *file) {
+extern "C" int csound_test_close_proc(FILE *file) {
     EXPECT_EQ(files.erase(file), 1u);
     return fclose(file);
 }
-#ifndef LINUX
-#define LINUX
-#define UNDEFINE_LINUX
-#endif
-#define fopen openProc
-#define fclose closeProc
-#include "../../Opcodes/cpumeter.c"
-#undef fclose
-#undef fopen
-#ifdef UNDEFINE_LINUX
-#undef LINUX
-#undef UNDEFINE_LINUX
-#endif
 
 const char *baseline =
     "cpu 100 0 100 800 0 0 0 0\n"
@@ -123,73 +116,76 @@ const char *updated =
 
 TEST_F(CpuMeterTests, LinuxParsesCoreLabelsAndMeasuresInterval) {
     contents = baseline;
-    Meter<CPUMETER> meter(4);
-    ASSERT_EQ(cpupercent_init(csound, &meter.opcode), OK);
+    Meter meter(4, csound_test_linux_cpumeter_opcode(),
+                csound_test_linux_cpumeter_bind);
+    ASSERT_EQ(meter.init(csound), OK);
     EXPECT_EQ(meter.cells[0][1], 0);
-    replace(meter.opcode.fp, updated);
-    ASSERT_EQ(cpupercent(csound, &meter.opcode), OK);
+    replace(csound_test_linux_cpumeter_file(meter.opcode), updated);
+    ASSERT_EQ(meter.perform(csound), OK);
     EXPECT_EQ(meter.cells[0][1], 0); // The refresh interval is two blocks.
-    ASSERT_EQ(cpupercent(csound, &meter.opcode), OK);
+    ASSERT_EQ(meter.perform(csound), OK);
     EXPECT_EQ(meter.cells[0][1], 40);
     EXPECT_EQ(meter.cells[1][1], 25);
     EXPECT_EQ(meter.cells[2][1], 50);
     EXPECT_EQ(meter.cells[3][1], 0);
-    ASSERT_EQ(cpupercent_renew(csound, &meter.opcode), OK);
+    ASSERT_EQ(csound_test_linux_cpumeter_renew(csound, meter.opcode), OK);
     EXPECT_EQ(meter.cells[0][1], 0); // No elapsed ticks.
     meter.checkGuards();
     contents = updated;
-    ASSERT_EQ(cpupercent_init(csound, &meter.opcode), OK);
+    ASSERT_EQ(meter.init(csound), OK);
     EXPECT_EQ(files.size(), 1u);
     EXPECT_EQ(meter.cells[0][1], 0);
-    EXPECT_EQ(deinit_cpupercent(csound, &meter.opcode), OK);
-    EXPECT_EQ(deinit_cpupercent(csound, &meter.opcode), OK);
+    EXPECT_EQ(meter.deinit(csound), OK);
+    EXPECT_EQ(meter.deinit(csound), OK);
     EXPECT_TRUE(files.empty());
 }
 
 TEST_F(CpuMeterTests, LinuxMissingCoresAndCounterDecreases) {
     contents = baseline;
-    Meter<CPUMETER> meter(4);
-    ASSERT_EQ(cpupercent_init(csound, &meter.opcode), OK);
-    replace(meter.opcode.fp,
+    Meter meter(4, csound_test_linux_cpumeter_opcode(),
+                csound_test_linux_cpumeter_bind);
+    ASSERT_EQ(meter.init(csound), OK);
+    replace(csound_test_linux_cpumeter_file(meter.opcode),
         "cpu 120 0 100 780 0 0 0 0\n"
         "cpu0 60 0 50 390 0 0 0 0\n"
         "cpu2 900 0 0 100 0 0 0 0\nintr 0\n");
-    ASSERT_EQ(cpupercent_renew(csound, &meter.opcode), OK);
+    ASSERT_EQ(csound_test_linux_cpumeter_renew(csound, meter.opcode), OK);
     EXPECT_EQ(meter.cells[0][1], 100);
     EXPECT_EQ(meter.cells[1][1], 100);
     EXPECT_EQ(meter.cells[2][1], 0);
     EXPECT_EQ(meter.cells[3][1], 0);
     meter.checkGuards();
-    EXPECT_EQ(deinit_cpupercent(csound, &meter.opcode), OK);
+    EXPECT_EQ(meter.deinit(csound), OK);
 }
 
 TEST_F(CpuMeterTests, LinuxFailuresReleaseFilesAndValidateInterval) {
-    Meter<CPUMETER> meter(1);
+    Meter meter(1, csound_test_linux_cpumeter_opcode(),
+                csound_test_linux_cpumeter_bind);
     for (MYFLT interval : {MYFLT(-1), std::numeric_limits<MYFLT>::infinity(),
                           std::numeric_limits<MYFLT>::quiet_NaN()}) {
         meter.interval = interval;
-        EXPECT_EQ(cpupercent_init(csound, &meter.opcode), NOTOK);
+        EXPECT_EQ(meter.init(csound), NOTOK);
         EXPECT_TRUE(files.empty());
     }
     meter.interval = 0;
     failOpen = true;
-    EXPECT_EQ(cpupercent_init(csound, &meter.opcode), NOTOK);
+    EXPECT_EQ(meter.init(csound), NOTOK);
     failOpen = false;
     contents = "cpu broken\n";
-    EXPECT_EQ(cpupercent_init(csound, &meter.opcode), NOTOK);
+    EXPECT_EQ(meter.init(csound), NOTOK);
     EXPECT_TRUE(files.empty());
     contents = baseline;
-    ASSERT_EQ(cpupercent_init(csound, &meter.opcode), OK);
-    replace(meter.opcode.fp, "intr 0\n");
-    EXPECT_EQ(cpupercent(csound, &meter.opcode), NOTOK);
-    EXPECT_EQ(deinit_cpupercent(csound, &meter.opcode), OK);
+    ASSERT_EQ(meter.init(csound), OK);
+    replace(csound_test_linux_cpumeter_file(meter.opcode), "intr 0\n");
+    EXPECT_EQ(meter.perform(csound), NOTOK);
+    EXPECT_EQ(meter.deinit(csound), OK);
     EXPECT_TRUE(files.empty());
     meter.checkGuards();
 }
 
 TEST_F(CpuMeterTests, EngineClosesProcFileAtNoteEnd) {
     contents = baseline;
-    const auto &entry = cpumeter_localops[0];
+    const auto &entry = *csound_test_linux_cpumeter_opcode();
     ASSERT_EQ(csoundAppendOpcode(csound, "test_cpumeter", entry.dsblksiz,
         entry.flags, entry.outypes, entry.intypes,
         entry.init, entry.perf, entry.deinit), OK);
@@ -213,7 +209,7 @@ namespace mach_meter {
 std::vector<integer_t> ticks;
 std::map<vm_address_t, vm_size_t> allocations;
 bool failQuery;
-kern_return_t getInfo(host_t, processor_flavor_t, natural_t *cpus,
+extern "C" kern_return_t csound_test_processor_info(host_t, processor_flavor_t, natural_t *cpus,
                       processor_info_array_t *info, mach_msg_type_number_t *count) {
     if (failQuery) return KERN_FAILURE;
     *cpus = (natural_t)ticks.size() / CPU_STATE_MAX;
@@ -223,66 +219,62 @@ kern_return_t getInfo(host_t, processor_flavor_t, natural_t *cpus,
     allocations[(vm_address_t)*info] = ticks.size() * sizeof(integer_t);
     return KERN_SUCCESS;
 }
-kern_return_t releaseInfo(vm_map_t, vm_address_t address, vm_size_t size) {
+extern "C" kern_return_t csound_test_release_info(vm_map_t, vm_address_t address, vm_size_t size) {
     EXPECT_EQ(allocations.at(address), size);
     allocations.erase(address);
     free((void *)address);
     return KERN_SUCCESS;
 }
-#define host_processor_info getInfo
-#define vm_deallocate releaseInfo
-#include "../../Opcodes/cpumeter.c"
-#undef vm_deallocate
-#undef host_processor_info
-
 TEST_F(CpuMeterTests, MachWritesOnlyRequestedOutputsAndIncludesAllCores) {
     for (int outputs : {1, 3, 32}) {
-        Meter<CPUMETER> meter(outputs);
+        Meter meter(outputs, csound_test_mach_cpumeter_opcode(),
+                csound_test_mach_cpumeter_bind);
         ticks.assign(64 * CPU_STATE_MAX, 0);
-        ASSERT_EQ(cpupercent_init(csound, &meter.opcode), OK);
+        ASSERT_EQ(meter.init(csound), OK);
         for (int cpu = 0; cpu < 64; ++cpu)
             ticks[cpu * CPU_STATE_MAX + (cpu < 32 ? CPU_STATE_USER : CPU_STATE_IDLE)] = 40;
-        ASSERT_EQ(cpupercent(csound, &meter.opcode), OK);
+        ASSERT_EQ(meter.perform(csound), OK);
         EXPECT_EQ(meter.cells[0][1], 0);
-        ASSERT_EQ(cpupercent(csound, &meter.opcode), OK);
+        ASSERT_EQ(meter.perform(csound), OK);
         EXPECT_EQ(meter.cells[0][1], 50);
         for (int output = 1; output < outputs; ++output)
             EXPECT_EQ(meter.cells[output][1], 100);
         EXPECT_EQ(allocations.size(), 1u);
         meter.checkGuards();
-        EXPECT_EQ(deinit_cpupercent(csound, &meter.opcode), OK);
+        EXPECT_EQ(meter.deinit(csound), OK);
         EXPECT_TRUE(allocations.empty());
     }
 }
 
 TEST_F(CpuMeterTests, MachWrapsCountersAndResetsBaselineOnReinit) {
-    Meter<CPUMETER> meter(4);
+    Meter meter(4, csound_test_mach_cpumeter_opcode(),
+                csound_test_mach_cpumeter_bind);
     ticks.assign(CPU_STATE_MAX, 0);
     ticks[CPU_STATE_USER] = -6; // Unsigned counter near wraparound.
     ticks[CPU_STATE_IDLE] = 100;
-    ASSERT_EQ(cpupercent_init(csound, &meter.opcode), OK);
+    ASSERT_EQ(meter.init(csound), OK);
     ticks[CPU_STATE_USER] = 4;
     ticks[CPU_STATE_IDLE] = 130;
-    ASSERT_EQ(cpupercent_renew(csound, &meter.opcode), OK);
+    ASSERT_EQ(csound_test_mach_cpumeter_renew(csound, meter.opcode), OK);
     EXPECT_EQ(meter.cells[0][1], 25);
     EXPECT_EQ(meter.cells[1][1], 25);
     EXPECT_EQ(meter.cells[2][1], 0);
     EXPECT_EQ(meter.cells[3][1], 0);
-    ASSERT_EQ(cpupercent_renew(csound, &meter.opcode), OK);
+    ASSERT_EQ(csound_test_mach_cpumeter_renew(csound, meter.opcode), OK);
     EXPECT_EQ(meter.cells[0][1], 0);
-    ASSERT_EQ(cpupercent_init(csound, &meter.opcode), OK);
+    ASSERT_EQ(meter.init(csound), OK);
     EXPECT_EQ(allocations.size(), 1u);
     EXPECT_EQ(meter.cells[0][1], 0);
     ticks.resize(2 * CPU_STATE_MAX, 200);
-    ASSERT_EQ(cpupercent_renew(csound, &meter.opcode), OK);
+    ASSERT_EQ(csound_test_mach_cpumeter_renew(csound, meter.opcode), OK);
     EXPECT_EQ(meter.cells[0][1], 0);
     failQuery = true;
-    EXPECT_EQ(cpupercent_renew(csound, &meter.opcode), NOTOK);
+    EXPECT_EQ(csound_test_mach_cpumeter_renew(csound, meter.opcode), NOTOK);
     EXPECT_EQ(allocations.size(), 1u);
-    EXPECT_EQ(cpupercent_init(csound, &meter.opcode), NOTOK);
+    EXPECT_EQ(meter.init(csound), NOTOK);
     EXPECT_TRUE(allocations.empty());
     failQuery = false;
-    EXPECT_EQ(deinit_cpupercent(csound, &meter.opcode), OK);
+    EXPECT_EQ(meter.deinit(csound), OK);
     meter.checkGuards();
 }
 } // namespace mach_meter

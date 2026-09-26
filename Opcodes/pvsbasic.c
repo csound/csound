@@ -387,10 +387,10 @@ static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
   pvsdiskin_destroy(csound, p);
   if (stringname==0){
     if (IsStringCode(*p->file))
-      strNcpy(fname,csound->GetArgString(csound, *p->file), MAXNAME);
+      snprintf(fname, sizeof(fname), "%s", csound->GetArgString(csound, *p->file));
     else csound->StringArg2Name(csound, fname, p->file, "pvoc.",0);
   }
-  else strNcpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME);
+  else snprintf(fname, sizeof(fname), "%s", ((STRINGDAT *)p->file)->data);
 
   if (UNLIKELY(p->fout->sliding))
     return csound->InitError(csound,

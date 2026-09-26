@@ -216,7 +216,7 @@ static int32_t sndloop_init(CSOUND *csound, sndloop *p)
 {
     double durs = *(p->dur)*CS_ESR, cfds = *(p->cfd)*CS_ESR;
     if (UNLIKELY(!(durs >= 1.0 && durs <= INT32_MAX &&
-                   durs <= SIZE_MAX / sizeof(MYFLT) &&
+                   durs <= (double)(SIZE_MAX / sizeof(MYFLT)) &&
                    cfds >= 0.0 && cfds <= INT32_MAX)))
       return csound->InitError(csound, "%s",
                                Str("sndloop: invalid loop or crossfade duration"));

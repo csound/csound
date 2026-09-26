@@ -577,12 +577,9 @@ static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
 
 extern "C" {
   
-static NGFENS padsynth_gens[] = {{(char *)"padsynth", padsynth_gen},
-                                 {NULL, NULL}};
+static NGFENS padsyn_fgen[] = {{(char *)"padsynth", padsynth_gen},
+                              {NULL, NULL}};
 
-PUBLIC NGFENS *padsyn_fgen_init(CSOUND *csound) {
-  IGN(csound);
-  return padsynth_gens;
-}
+FLINKAGE_BUILTIN(padsyn_fgen)
 };
 }

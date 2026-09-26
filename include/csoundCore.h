@@ -1492,8 +1492,8 @@ struct CSOUND_ {
   const CSOUND_UTIL *(*GetUtility)(CSOUND *csound);
   /* Fast power of two function from a precomputed table */
   MYFLT (*Pow2)(CSOUND *, MYFLT a);
-  /* String localisation */
-#if defined(__CUDACC__) || defined(__MACH__)
+  /* String localisation; preserve printf format checking through Str(). */
+#if defined(__CUDACC__)
   char *(*LocalizeString)(const char *);
 #else
   char *(*LocalizeString)(const char *)__attribute__((format_arg(1)));
@@ -1512,10 +1512,11 @@ struct CSOUND_ {
       To allow the API to grow while maintining backward binary compatibility.
    */
   /**@{ */
-  /* This consumes one former placeholder; the 50-pointer reserve keeps the
+  /* These consume former placeholders; the 50-pointer reserve keeps the
      offsets of private CSOUND fields unchanged. */
   int32_t (*ArrayPrepareWrite)(CSOUND *, ARRAYDAT *, INSDS *, int32_t);
-  SUBR dummyfn_2[49];
+  int32_t (*GetTableArgs)(CSOUND *, MYFLT **, int32_t);
+  SUBR dummyfn_2[48];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */

@@ -479,7 +479,7 @@ typedef struct _pitchaf{
 int32_t pitchafset(CSOUND *csound, PITCHAF *p){
     double samples = CS_ESR / (double)*p->iflow;
     if (UNLIKELY(!(samples >= 1.0 && samples <= INT32_MAX &&
-                   samples <= SIZE_MAX / sizeof(MYFLT))))
+                   samples <= (double)(SIZE_MAX / sizeof(MYFLT)))))
       return csound->InitError(csound, "%s", Str("pitchac: invalid lowest frequency"));
     int32_t siz = (int32_t)samples;
     if (p->buff1.auxp == NULL || p->buff1.size < siz*sizeof(MYFLT))

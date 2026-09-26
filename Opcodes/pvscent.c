@@ -202,7 +202,7 @@ static int32_t cent_i(CSOUND *csound, CENT *p)
       csound->Warning(csound,
                       Str("centroid requested fftsize = %.0f, actual = %d\n"),
                       requested, p->fsize);
-    if (UNLIKELY(p->fsize > SIZE_MAX / sizeof(MYFLT)))
+    if (UNLIKELY((size_t)p->fsize > SIZE_MAX / sizeof(MYFLT)))
       return csound->InitError(csound, "%s", Str("centroid: FFT size out of range"));
     if (p->frame.auxp == NULL || p->frame.size < p->fsize*sizeof(MYFLT))
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->frame);

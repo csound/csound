@@ -57,7 +57,10 @@ YYLTYPE *yylloc_param;
 #define YY_EXTRA_TYPE  PARSE_PARM *
 #define PARM    yyget_extra(yyscanner)
 
-#define YY_USER_ACTION PARM->first_column = yycolumn; PARM->last_column = yycolumn + yyleng - 1; yycolumn += yyleng;
+#define YY_USER_ACTION \
+  PARM->first_column = yycolumn; \
+  PARM->last_column = (uint32_t)(yycolumn + yyleng - 1); \
+  yycolumn += yyleng;
 #define YY_USER_INIT
 
 struct yyguts_t;

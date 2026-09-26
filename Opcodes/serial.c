@@ -133,58 +133,7 @@ static HANDLE get_port(CSOUND *csound, MYFLT port)
 }
 #endif
 
-typedef struct {
-    OPDS  h;
-    MYFLT *returnedPort;
-    STRINGDAT *portName;
-    MYFLT *baudRate;
-} SERIALBEGIN;
-int32_t serialBegin(CSOUND *csound, SERIALBEGIN *p);
-
-typedef struct {
-    OPDS  h;
-    MYFLT *port;
-} SERIALEND;
-int32_t serialEnd(CSOUND *csound, SERIALEND *p);
-
-typedef struct {
-    OPDS  h;
-    MYFLT *port, *toWrite;
-} SERIALWRITE;
-int32_t serialWrite(CSOUND *csound, SERIALWRITE *p);
-
-typedef struct {
-    OPDS  h;
-    MYFLT *rChar, *port;
-} SERIALREAD;
-int32_t serialRead(CSOUND *csound, SERIALREAD *p);
-
-typedef struct {
-    OPDS  h;
-    MYFLT *port;
-} SERIALPRINT;
-int32_t serialPrint(CSOUND *csound, SERIALPRINT *p);
-
-typedef struct {
-    OPDS  h;
-    MYFLT *port;
-} SERIALFLUSH;
-int32_t serialFlush(CSOUND *csound, SERIALFLUSH *p);
-
-
-///-----------TODO
-typedef struct {
-    OPDS  h;
-    MYFLT *retVal, *port;
-} SERIALAVAIL;
-int32_t serialAvailable(CSOUND *csound, SERIALAVAIL *p);
-
-typedef struct {
-    OPDS  h;
-    MYFLT *retChar, *port;
-} SERIALPEEK;
-int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p);
-//------------------
+#include "serial.h"
 
 #ifndef WIN32
 // takes the string name of the serial port (e.g. "/dev/tty.usbserial","COM1")
@@ -520,55 +469,6 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
    Issue: it assumes that the arduino is already running the correct sketch type.
    Issue:  Can we load the sketch from csound?
 */
-
-#define MAXSENSORS (30)
-
-typedef struct {
-    CSOUND  *csound;
-    void *thread;
-#ifdef WIN32
-    HANDLE port;
-#else
-    int32_t port;
-#endif
-    void *lock;
-    /* Windows Interlocked operations require a long, including in C++. */
-    long stop;
-    int32_t portIndex;
-    uint64_t generation;
-    int32_t values[MAXSENSORS];
-} ARDUINO_GLOBALS;
-
-typedef struct {
-    OPDS  h;
-    MYFLT *returnedPort;
-    STRINGDAT *portName;
-    MYFLT *baudRate;
-    ARDUINO_GLOBALS *q;
-    uint64_t generation;
-} ARD_START;
-
-typedef struct {
-    OPDS  h;
-    MYFLT *val;
-    MYFLT *port;
-    MYFLT *index;
-    MYFLT *ihtim;
-    ARDUINO_GLOBALS *q;
-    MYFLT c1, c2, yt1;
-    uint64_t generation;
-} ARD_READ;
-
-typedef struct {
-    OPDS  h;
-    MYFLT *val;
-    MYFLT *port;
-    MYFLT *index1;
-    MYFLT *index2;
-    MYFLT *index3;
-    ARDUINO_GLOBALS *q;
-    uint64_t generation;
-} ARD_READF;
 
 /* The port is nonblocking. Check cancellation even while waiting for sync
    or the second byte of a value, and avoid spinning on an idle device. */

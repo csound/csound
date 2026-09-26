@@ -495,8 +495,8 @@ NM              [nm][ \t]+
              char *tmp = strdup(yytext);
              // Previous r opcode not terminated so fake an s and redo
              //printf("unterminated r loop\n");
-             for (i = yyleng-1; i >= 0; --i)
-               unput(tmp[i]);
+             for (size_t remaining = yyleng; remaining > 0; )
+               unput(tmp[--remaining]);
              unput('\n'); unput('s'); unput('\n');
              free(tmp);
            }

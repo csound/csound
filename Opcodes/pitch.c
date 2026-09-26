@@ -1217,7 +1217,8 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
     *p->krms = rms;
     p->index = index;
     p->peri = peri;
-    p->readp = readp;
+    /* The remainder is smaller than the int32_t downsampling factor. */
+    p->readp = (int32_t)readp;
     return OK;
 }
 
@@ -2335,7 +2336,7 @@ int32_t wavesetset(CSOUND *csound, BARRI *p)
     else
       length = floor(length) + 1.0;
     if (UNLIKELY(!(length >= 2.0 && length <= INT32_MAX &&
-                   length <= SIZE_MAX / sizeof(MYFLT))))
+                   length <= (double)(SIZE_MAX / sizeof(MYFLT)))))
       return csound->InitError(csound, Str("waveset: invalid buffer length"));
     p->length = (int32_t)length;
     csound->AuxAlloc(csound, (size_t)p->length * sizeof(MYFLT), &p->auxch);
@@ -2426,7 +2427,7 @@ int32_t medfiltset(CSOUND *csound, MEDFILT *p)
       return OK;
     if (UNLIKELY(!(*p->imaxsize >= FL(1.0) &&
                    (double)*p->imaxsize <= INT32_MAX &&
-                   (double)*p->imaxsize <= SIZE_MAX / (2 * sizeof(MYFLT)))))
+                   (double)*p->imaxsize <= (double)(SIZE_MAX / (2 * sizeof(MYFLT))))))
       return csound->InitError(csound,
                                Str("median: invalid maximum window size"));
     maxwind = MYFLT2LONG(*p->imaxsize);
