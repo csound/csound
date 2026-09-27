@@ -35,10 +35,10 @@ typedef struct {
    MYFLT *rtime ;         /* Raise/Fall times */
    MYFLT *ftime ;
 
-   MYFLT rspeed ;
-   MYFLT fspeed ;
+   double rspeed ;
+   double fspeed ;
 
-   MYFLT gain ;
+   double gain ;     /* Preserve per-sample steps during slow gain changes. */
    double power ;    /* Limit cancellation drift in the running sum. */
    MYFLT powerBuffer[POWER_BUFSIZE] ;
    MYFLT *powerPos ;
