@@ -80,6 +80,7 @@ if(BUILD_TESTS)
         oscbundle_test.cpp
         internal_osc_decode_test.cpp
         pvsinit_test.cpp
+        pvsftr_test.cpp
         pvsftw_test.cpp
         pvsgendy_test.cpp
         pvsgain_test.cpp
