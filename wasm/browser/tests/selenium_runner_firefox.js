@@ -20,6 +20,10 @@ const webDriverCapabilities = {
   browserName: "firefox",
   "moz:firefoxOptions": {
     args: ["--no-sandbox", "--headless"],
+    prefs: {
+      "media.navigator.streams.fake": true,
+      "media.navigator.permission.disabled": true,
+    },
   },
 };
 

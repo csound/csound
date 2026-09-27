@@ -27,6 +27,9 @@ const webDriverCapabilities = {
       "--auto-select-desktop-capture-source",
       "--disable-gesture-requirement-for-media-playback",
       "--autoplay-policy=no-user-gesture-required",
+      // Use a synthetic microphone without a permission prompt or real hardware.
+      "--use-fake-device-for-media-stream",
+      "--use-fake-ui-for-media-stream",
       "--disable-cache",
     ],
   },
