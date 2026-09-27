@@ -1678,7 +1678,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
     int32_t mvmfilter(CSOUND *csound, MVMFILT *p) {
       uint32_t      offset   = p->h.insdshead->ksmps_offset;
       uint32_t      early    = p->h.insdshead->ksmps_no_end;
-      MYFLT fs       = CS_ESR;
+      double fs      = CS_ESR;
       uint32_t      n, nsmps = CS_KSMPS;
       int32_t       asigtau, asigf0;
       asigtau = IS_ASIG_ARG(p->tau);
@@ -1690,7 +1690,9 @@ static int32_t vco(CSOUND *csound, VCO *p)
       f0  = p->f0;
       tau = p->tau;
 
-      MYFLT theta,r1,x1,y1,x,y,limit;
+      /* Long decays and repeated rotations need double coefficients and state. */
+      double theta,r1,x1,y1,x,y;
+      MYFLT limit;
       x  = p->x;
       y  = p->y;
       limit = CS_ESR / FL(2.0);
@@ -1734,10 +1736,10 @@ static int32_t vco(CSOUND *csound, VCO *p)
           y1     = sin(theta) * r1;
         }
 
-        MYFLT x_  = x;
+        double x_ = x;
         x      = (x1 * x)  - (y1 * y) + in[n];
         y      = (y1 * x_) + (x1 * y);
-        out[n] = x;
+        out[n] = (MYFLT)x;
       }
 
       p->x = x;
