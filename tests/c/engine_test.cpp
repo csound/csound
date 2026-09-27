@@ -936,7 +936,7 @@ TEST_F (EngineTests, testRealtimeAllocQueueMultipleProducers)
     ASSERT_EQ(alloc_queue_lock_init(csound), CSOUND_SUCCESS);
 
     for (int32_t producer = 0; producer < producerCount; ++producer) {
-      producers.emplace_back([this, producer, itemsPerProducer, &failures, &ready, &start]() {
+      producers.emplace_back([this, producer, &failures, &ready, &start]() {
         ready++;
         while (!start.load())
           std::this_thread::yield();

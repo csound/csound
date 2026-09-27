@@ -2540,9 +2540,9 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
     uint32_t end = parent_size - p->h.insdshead->ksmps_no_end;
     /* Round boundaries up to the next local sample. */
     p->ip->ksmps_offset =
-      ((uint64_t) offset * local_size + parent_size - 1) / parent_size;
+      (uint32_t) (((uint64_t) offset * local_size + parent_size - 1) / parent_size);
     p->ip->ksmps_no_end = local_size -
-      ((uint64_t) end * local_size + parent_size - 1) / parent_size;
+      (uint32_t) (((uint64_t) end * local_size + parent_size - 1) / parent_size);
   }
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
