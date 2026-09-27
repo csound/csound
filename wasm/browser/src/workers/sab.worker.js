@@ -146,10 +146,7 @@ const sabCreateRealtimeAudioThread =
       );
     }
 
-    workerMessagePort.broadcastPlayState(
-      "realtimePerformanceStarted",
-      performanceGeneration,
-    );
+    workerMessagePort.broadcastPlayState("realtimePerformanceStarted", performanceGeneration);
     // Let's notify the audio-worker that performance has started
     Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 1);
 
@@ -176,10 +173,7 @@ const sabCreateRealtimeAudioThread =
           libraryCsound.csoundPerformKsmps(csound);
         }
         log(`triggering realtimePerformanceEnded event`)();
-        workerMessagePort.broadcastPlayState(
-          "realtimePerformanceEnded",
-          performanceGeneration,
-        );
+        workerMessagePort.broadcastPlayState("realtimePerformanceEnded", performanceGeneration);
         log(`End of realtimePerformance loop!`)();
         releaseStop(performanceGeneration);
         return true;
@@ -360,16 +354,12 @@ const initCallbackReplyPort = (response) => {
         const id = callerPayload["id"];
         const argumentz = callerPayload["argumentz"];
         const apiKey = callerPayload["apiKey"];
-        try {
-          const caller = combined.get(apiKey);
-          const answer = caller && caller.apply({}, argumentz || []);
-          const answerPayload = {};
-          answerPayload["id"] = id;
-          answerPayload["answer"] = answer;
-          accumulator.push(answerPayload);
-        } catch (error) {
-          throw new Error(error);
-        }
+        const caller = combined.get(apiKey);
+        const answer = caller && caller.apply({}, argumentz || []);
+        const answerPayload = {};
+        answerPayload["id"] = id;
+        answerPayload["answer"] = answer;
+        accumulator.push(answerPayload);
         return accumulator;
       }, []);
       port.postMessage(answers);

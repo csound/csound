@@ -86,9 +86,13 @@ npm link            # registers this directory as the local @csound/wasm-bin
 
 Then wire the browser wrapper to pick up the local binary:
 
+The browser package requires Node.js 22.13 or later. Its npm settings enforce
+the Node version and peer dependencies. Use `npm ci` for a clean install from
+the lockfile; do not use `--legacy-peer-deps` or `--force`.
+
 ```bash
 cd browser
-npm install         # install browser-wrapper dependencies
+npm ci              # install browser-wrapper dependencies
 npm link @csound/wasm-bin   # replace the npm version with your local build
 ```
 

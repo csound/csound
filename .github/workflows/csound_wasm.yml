@@ -108,8 +108,10 @@ jobs:
         run: |
           nix-env -f '<nixpkgs>' -iA unzip
           unzip ./lib.zip -d $wasm_bin_dir
-          cd $wasm_bin_dir
-          yarn link
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
       - name: Build the production js module bundle
         run: |
           nix-env -f '<nixpkgs>' -iA openjdk
@@ -117,25 +119,21 @@ jobs:
           export PATH="$JAVA_HOME/bin:$PATH"
           echo "JAVA_HOME=$JAVA_HOME"
           cd $wasm_browser_dir
-          yarn
-          yarn link @csound/wasm-bin
-          yarn build:prod
+          npm ci
+          npm link --no-save --package-lock=false --ignore-scripts ..
+          npm run build:prod
       - name: Install test dependencies
         run: |
           cd $wasm_browser_dir
           nix-shell --run 'exit 0'
       - name: Check eslint
-        continue-on-error: true # allow the reporter to report the failures
         run: |
           cd $wasm_browser_dir
-          nix-shell --pure
-          yarn lint:ci
+          nix-shell --pure --run 'npm run lint:ci'
       - name: Run the unit-tests with google-chrome
-        continue-on-error: true # allow the reporter to report the failures
         run: |
           cd $wasm_browser_dir
-          nix-shell --pure
-          yarn test:ci
+          nix-shell --pure --run 'npm run test:ci'
       - name: Publish Test Report
         if: always()
         uses: mikepenz/action-junit-report@v6.5.0

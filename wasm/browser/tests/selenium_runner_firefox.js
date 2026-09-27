@@ -13,17 +13,8 @@
  * limitations under the License.
  */
 
-import fs from "fs";
-import { spawn } from "child_process";
-import MochaWebdriverRunner from "mocha-webdriver-runner";
-const { runMochaWebDriverTest } = MochaWebdriverRunner;
-
-const httpServerPs = spawn(process.execPath, ["tests/server.cjs"], {
-  env: { ...process.env, PORT: "8082" },
-});
-
-httpServerPs.stdout.on("data", (d) => console.log(d.toString()));
-httpServerPs.stderr.on("data", (d) => console.log(d.toString()));
+import fs from "node:fs";
+import { runBrowserTests } from "./webdriver-runner.js";
 
 const webDriverCapabilities = {
   browserName: "firefox",
@@ -37,29 +28,14 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
   webDriverCapabilities["moz:firefoxOptions"]["binary"] = CI_BIN;
 }
 
-(async function () {
-  let result;
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  try {
-    result = await runMochaWebDriverTest(
-      webDriverCapabilities,
-      "http://localhost:8082/index.html?ci=true",
-      {
-        reporter: "xunit",
-        reporterOptions: {
-          output: "tests/FIREFOX.junit.xml",
-          suiteName: "Firefox",
-        },
-      },
-    );
-    if (!result || !result.success) {
-      console.error(JSON.stringify(result || {}, null, 2));
-      process.exitCode = 1;
-    }
-  } catch (error) {
-    console.error(error);
-    process.exitCode = 1;
-  } finally {
-    httpServerPs.kill();
-  }
-})();
+try {
+  const success = await runBrowserTests({
+    capabilities: webDriverCapabilities,
+    port: 8082,
+    output: "tests/FIREFOX.junit.xml",
+  });
+  process.exitCode = success ? 0 : 1;
+} catch (error) {
+  console.error(error);
+  process.exitCode = 1;
+}

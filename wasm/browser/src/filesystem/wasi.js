@@ -628,13 +628,9 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
           let found = false;
           let leadup = 0;
 
-          let currentBufferChunkLength = buffers[currentChunkIndex]
-            ? buffers[currentChunkIndex].byteLength
-            : 0;
-
           if (currentRead === 0) {
             while (!found) {
-              currentBufferChunkLength = buffers[currentChunkIndex]
+              const currentBufferChunkLength = buffers[currentChunkIndex]
                 ? buffers[currentChunkIndex].byteLength
                 : 0;
               if (leadup <= read && currentBufferChunkLength + leadup > read) {

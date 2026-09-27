@@ -14,6 +14,7 @@
  */
 
 import { assert } from "./chai/index.js";
+import { runWithXmlReport } from "./browser-test-report.js";
 
 (async () => {
   const isCI = ["8081", "8082"].includes(location.port) && location.search.includes("ci=true");
@@ -315,10 +316,6 @@ e
     });
 
   mocha.setup({ ui: "bdd", timeout: 10000 }).fullTrace();
-
-  if (isCI) {
-    MochaWebdriverClient.install(mocha);
-  }
 
   const csoundVariations = [
     { useWorker: false, name: "SINGLE THREAD, AW" },
@@ -2130,6 +2127,10 @@ schedule(1, 0, 1)`,
   });
   if (isCI) {
     mocha.cleanReferencesAfterRun(true);
-    mocha.run();
+    globalThis.__csoundTestResult = await runWithXmlReport(
+      mocha,
+      Mocha.reporters.XUnit,
+      location.port === "8082" ? "Firefox" : "Google Chrome",
+    );
   }
 })();
