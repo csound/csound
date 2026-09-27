@@ -656,10 +656,16 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       csound->Free(csound, opentries);
       if (UNLIKELY(out == NULL)) {
+        char *displayCondition = csoundFormatTypeName(csound, ans, 0);
+        char *displayTrue = csoundFormatTypeName(csound, arg1, 0);
+        char *displayFalse = csoundFormatTypeName(csound, arg2, 0);
         synterr(csound,
                 Str("unable to find ternary operator for "
                     "types '%s ? %s : %s' line %d\n"),
-                ans, arg1, arg2, tree->line);
+                displayCondition, displayTrue, displayFalse, tree->line);
+        csound->Free(csound, displayCondition);
+        csound->Free(csound, displayTrue);
+        csound->Free(csound, displayFalse);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
@@ -700,9 +706,11 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
 
       if (UNLIKELY(out == 0)) {
+        char *displayTypes = csoundFormatTypeList(csound, argTypeRight);
         synterr(csound, Str("opcode '%s' for expression with arg "
                             "types %s not found, line %d\n"),
-                opname, argTypeRight, tree->line);
+                opname, displayTypes, tree->line);
+        csound->Free(csound, displayTypes);
         do_baktrace(csound, tree->locn);
         csound->Free(csound, argTypeRight);
         csound->Free(csound, entries);
@@ -717,9 +725,11 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return ret;
       }
 
+      char *displayTypes = csoundFormatTypeList(csound, argTypeRight);
       synterr(csound, Str("opcode '%s' for expression with arg "
                           "types %s returns out-args != 1, line %d\n"),
-              opname, argTypeRight, tree->line);
+              opname, displayTypes, tree->line);
+      csound->Free(csound, displayTypes);
       do_baktrace(csound, tree->locn);
 
       csound->Free(csound, argTypeRight);
@@ -768,10 +778,11 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       csound->Free(csound, entries);
 
       if (UNLIKELY(out == NULL)) {
-
+        char *displayTypes = csoundFormatTypeList(csound, inArgTypes);
         synterr(csound, Str("opcode '%s' for expression with arg "
                             "types %s not found, line %d\n"),
-                opname, inArgTypes, tree->line);
+                opname, displayTypes, tree->line);
+        csound->Free(csound, displayTypes);
         do_baktrace(csound, tree->locn);
         csound->Free(csound, inArgTypes);
         return NULL;
@@ -826,9 +837,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       csound->Free(csound, entries);
 
       if (UNLIKELY(out == NULL)) {
+        char *displayLeft = csoundFormatTypeName(csound, argTypeLeft, 0);
+        char *displayRight = csoundFormatTypeName(csound, argTypeRight, 0);
         synterr(csound, Str("error: boolean expression '%s' with arg "
-                            "types %s not found, line %d\n"),
-                opname, inArgTypes, tree->line);
+                            "types %s, %s not found, line %d\n"),
+                opname, displayLeft, displayRight, tree->line);
+        csound->Free(csound, displayLeft);
+        csound->Free(csound, displayRight);
         do_baktrace(csound, tree->locn);
         csound->Free(csound, inArgTypes);
         return NULL;
@@ -2291,20 +2306,26 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
         return;
       }
       if(type && type != var->varType){
+	char *previousType = csoundFormatTypeName(csound,
+          var->subType ? var->subType->varTypeName : var->varType->varTypeName,
+          var->dimensions);
+	char *newType = csoundFormatTypeName(csound, type->varTypeName, 0);
 	 // remove variable if it belongs to the same pool (local/global)
 	if(pool == var_pool ||
 	   (var_pool == csound->engineState.varPool
 	    && pool == typeTable->globalPool)) {
 	  if(tree)
 	   csound->Warning(csound, "Replacing previous definition %s:%s by %s:%s, line %d",
-                              var->varName, var->varType->varTypeName,
-			  lvarName, type->varTypeName, tree->line);
+                              var->varName, previousType,
+			  lvarName, newType, tree->line);
 	  cs_hash_table_remove(csound, var_pool->table, var->varName);
 	}
 	else if(pool == typeTable->globalPool)
 	  if(tree) // synterr should not happen tree is NULL, as arg is synthetic
 	  synterr(csound, "global variable %s:%s cannot shadow local variable %s:%s, line %d",
-		  lvarName, type->varTypeName, var->varName, var->varType->varTypeName, tree->line);
+		  lvarName, newType, var->varName, previousType, tree->line);
+	csound->Free(csound, previousType);
+	csound->Free(csound, newType);
       } else {
 	// do nothing if it's the same type & pool
 	if(pool == var_pool) goto end;
@@ -2423,13 +2444,17 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
        // check if a variable is declared with same name
        // and different type array subtype
        varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
-       if(varType != var->subType)
-         synterr(csound, "%s:%s[] -- type mismatch for existing "
-                          "array variable %s:%s%s",
-                 varName, varType->varTypeName, varName,
-                 var->subType ? var->subType->varTypeName :
-                 var->varType->varTypeName,
-                 var->subType ? "[]" : "");
+       if(varType != var->subType) {
+         char *newType = csoundFormatTypeName(csound, annotation, dimensions);
+         char *previousType = csoundFormatTypeName(csound,
+           var->subType ? var->subType->varTypeName : var->varType->varTypeName,
+           var->dimensions);
+         synterr(csound, "%s:%s -- type mismatch for existing "
+                          "array variable %s:%s",
+                 varName, newType, varName, previousType);
+         csound->Free(csound, newType);
+         csound->Free(csound, previousType);
+       }
     }
   }
   csound->Free(csound, lvarName);
@@ -2880,11 +2905,15 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                                root->value->optype, rightArgString);
     else if(leftArgString &&
        strcmp(leftArgString, root->value->optype)){
+      char *displayLeft = csoundFormatTypeList(csound, leftArgString);
+      char *displayAnnotation = csoundFormatTypeName(csound, root->value->optype, 0);
       csound->Warning(csound, " output type(s) %s\n"
                       "\t not matching annotation %s\n"
                       "\t ignoring annotation for opcode %s, line %d",
-                      leftArgString, root->value->optype,
+                      displayLeft, displayAnnotation,
 		      opcodeName, root->line);
+      csound->Free(csound, displayLeft);
+      csound->Free(csound, displayAnnotation);
         oentry = resolve_opcode(csound, entries,
                             leftArgString, rightArgString);
       } else
@@ -2919,17 +2948,24 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                          root->value->last_column);
     csound->Free(csound, name);
     name = strip_extension(csound, root->value->lexeme);
+    char *displayLeft = csoundFormatTypeList(csound, leftArgString);
+    char *displayRight = csoundFormatTypeList(csound, rightArgString);
     csoundMessageS(csound, CSOUNDMSG_ERROR, Str("Found:\n  %s %s %s\n"),
-                   leftArgString ? leftArgString : "", name,
-                   rightArgString ? rightArgString : "");
+                   displayLeft, name, displayRight);
+    csound->Free(csound, displayLeft);
+    csound->Free(csound, displayRight);
     csound->Free(csound, name);
     csoundMessageS(csound, CSOUNDMSG_ERROR, Str("\nCandidates:\n"));
 
     for (i = 0; i < entries->count; i++) {
       OENTRY *entry = entries->entries[i];
       name = strip_extension(csound, entry->opname);
+      displayLeft = csoundFormatTypeList(csound, entry->outypes);
+      displayRight = csoundFormatTypeList(csound, entry->intypes);
       csoundMessageS(csound, CSOUNDMSG_ERROR, "  %s %s %s\n",
-                     entry->outypes, name, entry->intypes);
+                     displayLeft, name, displayRight);
+      csound->Free(csound, displayLeft);
+      csound->Free(csound, displayRight);
       csound->Free(csound, name);
     }
 
