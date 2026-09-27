@@ -234,9 +234,10 @@ static int32_t lowpr_setx(CSOUND *csound, LOWPRX *p)
 static int32_t lowprx(CSOUND *csound, LOWPRX *p)
 {
     IGN(csound);
-    MYFLT    b, k = p->k;
-    MYFLT   *ar, *asig, yn,*ynm1, *ynm2 ;
-    MYFLT    coef1 = p->coef1, coef2 = p->coef2;
+    double   b, k = p->k;
+    MYFLT   *ar, *asig, yn;
+    double  *ynm1, *ynm2;
+    double   coef1 = p->coef1, coef2 = p->coef2;
     MYFLT    *kfco = p->kfco, *kres = p->kres;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -259,17 +260,19 @@ static int32_t lowprx(CSOUND *csound, LOWPRX *p)
       MYFLT res = (asgr ? kres[n] : *kres);
       if (p->okf != fco || p->okr != res) { /* Only if changed */
         LOWRES_CHECK_PARAMS(fco, res);
-        b = FL(10.0) / (res * SQRT(fco)) - FL(1.0);
-        k = FL(1000.0) / fco;
-        coef1 = (b+FL(2.0) * k);
-        coef2 = FL(1.0)/(FL(1.0) + b + k);
+        b = 10.0 / (res * sqrt((double)fco)) - 1.0;
+        k = 1000.0 / (double)fco;
+        coef1 = b + 2.0 * k;
+        coef2 = 1.0 / (1.0 + b + k);
         p->okf = fco; p->okr = res; /* remember to save recalculation */
       }
       yn = asig[n];
       for (j=0; j< p->loop; j++) {
-        yn = (coef1 * ynm1[j] - k * ynm2[j] + yn) * coef2;
+        double yt0 = (coef1 * ynm1[j] - k * ynm2[j] + (double)yn) * coef2;
         ynm2[j] = ynm1[j];
-        ynm1[j] = yn;
+        ynm1[j] = yt0;
+        /* Keep double history, but pass MYFLT between layers like lowres. */
+        yn = (MYFLT)yt0;
       }
       ar[n] = yn;
     }
@@ -294,9 +297,10 @@ static int32_t lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
 static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 {
      IGN(csound);
-    MYFLT    b, k;
-    MYFLT   *ar, *asig, yn,*ynm1, *ynm2 ;
-    MYFLT    coef1, coef2;
+    double   b, k;
+    MYFLT   *ar, *asig;
+    double   yn, *ynm1, *ynm2;
+    double   coef1, coef2;
     MYFLT    kfcobase = *p->kfco;
     MYFLT    sep = (*p->sep / p->loop);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -317,8 +321,8 @@ static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
     }
     ar = p->ar;
     for (j=0; j< p->loop; j++) {
-      MYFLT lynm1 = ynm1[j];
-      MYFLT lynm2 = ynm2[j];
+      double lynm1 = ynm1[j];
+      double lynm2 = ynm2[j];
                 /*
                 linfco=log((double) kfco)*ONEtoLOG2     ;
                 linfco = linfco + (sep / p->loop)*j;
@@ -327,14 +331,15 @@ static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
       kfco = kfcobase * (FL(1.0) + (sep * j));
 
       LOWRES_CHECK_PARAMS(kfco, kres);
-      b = FL(10.0) / ( kres * (MYFLT)sqrt((double)kfco)) - FL(1.0);
-      k = FL(1000.0) / kfco;
-      coef1 = (b+FL(2.0) *k);
-      coef2 = FL(1.0)/(FL(1.0) + b + k);
+      b = 10.0 / (kres * sqrt((double)kfco)) - 1.0;
+      k = 1000.0 / (double)kfco;
+      coef1 = b + 2.0 * k;
+      coef2 = 1.0 / (1.0 + b + k);
 
       for (n=offset;n<nsmps; n++) {
         /* This can be speeded up avoiding indirection */
-        ar[n] = yn = (coef1 * lynm1 - k * lynm2 + asig[n]) * coef2;
+        yn = (coef1 * lynm1 - k * lynm2 + (double)asig[n]) * coef2;
+        ar[n] = (MYFLT)yn;
         lynm2 = lynm1;
         lynm1 =  yn;
       }

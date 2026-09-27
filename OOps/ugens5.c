@@ -472,45 +472,46 @@ int32_t resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     c3   = p->c3;
     yt1  = p->yt1;
     yt2  = p->yt2;
-    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    for (j=0; j< p->loop; j++) {
-      for (n=offset; n<nsmps; n++) {
-        double x;
-        MYFLT cf = asgf ? p->kcf[n] : *p->kcf;
-        MYFLT bw = asgw ? p->kbw[n] : *p->kbw;
-        if (cf != (MYFLT)p->prvcf) {
-          p->prvcf = (double)cf;
-          p->cosf = cos(cf * (double)(CS_TPIDSR));
-          flag = 1;
-        }
-        if (bw != (MYFLT)p->prvbw) {
-          p->prvbw = (double)bw;
-          c3 = exp(bw * (double)(CS_MTPIDSR));
-          flag = 1;
-        }
-        if (flag) {
-          c3p1 = c3 + 1.0;
-          c3t4 = c3 * 4.0;
-          omc3 = 1.0 - c3;
-          c2 = c3t4 * p->cosf / c3p1;            /* -B, so + below */
-          c2sqr = c2 * c2;
-          if (p->scale == 1)
-            c1 = omc3 * sqrt(1.0 - (c2sqr / c3t4));
-          else if (p->scale == 2)
-            c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
-          else c1 = 1.0;
-          flag =0;
-        }
-        x = c1 * ((double)ar[n]) + c2 * yt1[j] - c3 * yt2[j];
-        yt2[j] = yt1[j];
-        ar[n] = (MYFLT)x;
-        yt1[j] = x;
+    for (n=offset; n<nsmps; n++) {
+      /* Read all inputs before writing an output that may reuse a control. */
+      MYFLT sig = p->asig[n];
+      MYFLT cf = asgf ? p->kcf[n] : *p->kcf;
+      MYFLT bw = asgw ? p->kbw[n] : *p->kbw;
+      if (cf != (MYFLT)p->prvcf) {
+        p->prvcf = (double)cf;
+        p->cosf = cos(cf * (double)(CS_TPIDSR));
+        flag = 1;
       }
+      if (bw != (MYFLT)p->prvbw) {
+        p->prvbw = (double)bw;
+        c3 = exp(bw * (double)(CS_MTPIDSR));
+        flag = 1;
+      }
+      if (flag) {
+        c3p1 = c3 + 1.0;
+        c3t4 = c3 * 4.0;
+        omc3 = 1.0 - c3;
+        c2 = c3t4 * p->cosf / c3p1;            /* -B, so + below */
+        c2sqr = c2 * c2;
+        if (p->scale == 1)
+          c1 = omc3 * sqrt(1.0 - (c2sqr / c3t4));
+        else if (p->scale == 2)
+          c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
+        else c1 = 1.0;
+        flag =0;
+      }
+      for (j=0; j< p->loop; j++) {
+        double x = c1 * (double)sig + c2 * yt1[j] - c3 * yt2[j];
+        yt2[j] = yt1[j];
+        yt1[j] = x;
+        sig = (MYFLT)x;
+      }
+      ar[n] = sig;
     }
     p->c1 = c1; p->c2 = c2; p->c3 = c3;
     return OK;

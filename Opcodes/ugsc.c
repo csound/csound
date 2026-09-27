@@ -447,28 +447,29 @@ static int32_t phaser2set(CSOUND *csound, PHASER2 *p)
     loop = p->loop = (int32_t) MYFLT2LONG(*p->order);
 
     if (*p->iskip==0 || p->aux1.auxp==NULL || p->aux2.auxp==NULL) {
-      csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux1);
-      csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux2);
-      p->feedback = FL(0.0);
+      csound->AuxAlloc(csound, (size_t)loop*sizeof(double), &p->aux1);
+      csound->AuxAlloc(csound, (size_t)loop*sizeof(double), &p->aux2);
+      p->feedback = 0.0;
     }
     else {
-      phaser_grow_state(csound, &p->aux1, (size_t)loop*sizeof(MYFLT));
-      phaser_grow_state(csound, &p->aux2, (size_t)loop*sizeof(MYFLT));
+      phaser_grow_state(csound, &p->aux1, (size_t)loop*sizeof(double));
+      phaser_grow_state(csound, &p->aux2, (size_t)loop*sizeof(double));
     }
-    p->nm1 = (MYFLT *) p->aux1.auxp;
-    p->nm2 = (MYFLT *) p->aux2.auxp;
+    p->nm1 = (double *) p->aux1.auxp;
+    p->nm2 = (double *) p->aux2.auxp;
     return OK;
 }
 
 static int32_t phaser2(CSOUND *csound, PHASER2 *p)
 {
-    MYFLT xn = FL(0.0), yn = FL(0.0);
+    /* Low-frequency allpass sections need double coefficients and state. */
+    double xn = 0.0, yn = 0.0;
     MYFLT *out, *in;
-    MYFLT kbf = *p->kbf, kq = *p->kbw;
-    MYFLT ksep = *p->ksep, fbgain = *p->fbgain;
-    MYFLT b, a, r, freq;
-    MYFLT temp;
-    MYFLT *nm1, *nm2, feedback;
+    double kbf = *p->kbf, kq = *p->kbw;
+    double ksep = *p->ksep, fbgain = *p->fbgain;
+    double b, a, r, freq;
+    double temp;
+    double *nm1, *nm2, feedback;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -496,7 +497,7 @@ static int32_t phaser2(CSOUND *csound, PHASER2 *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT kk = FL(1.0);
+      double kk = 1.0;
       xn = in[n] + feedback * fbgain;
       /* The following code is used to determine
        * how the frequencies of the notches are calculated.
@@ -519,8 +520,8 @@ static int32_t phaser2(CSOUND *csound, PHASER2 *p)
          * notch, while the pole radius determines the q of
          * the notch.
          */
-        r = EXP(-(freq * CS_PIDSR / kq));
-        b = -FL(2.0) * r * COS(freq * CS_TPIDSR);
+        r = exp(-(freq * CS_PIDSR / kq));
+        b = -2.0 * r * cos(freq * CS_TPIDSR);
         a = r * r;
 
         /* Difference equations for implementing canonical
@@ -532,7 +533,7 @@ static int32_t phaser2(CSOUND *csound, PHASER2 *p)
         nm1[j] = temp;
         xn = yn;
       }
-      out[n] = yn;
+      out[n] = (MYFLT)yn;
       feedback = yn;
     }
     p->feedback = feedback;
