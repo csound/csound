@@ -226,6 +226,10 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
   [listeners addObject:listener];
 }
 
+- (void)removeListener:(id<CsoundObjListener>)listener {
+    [listeners removeObject:listener];
+}
+
 - (void)notifyListenersOfStartup
 {
   for (id<CsoundObjListener> listener in listeners) {

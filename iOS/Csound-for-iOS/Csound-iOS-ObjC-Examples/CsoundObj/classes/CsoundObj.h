@@ -112,6 +112,7 @@ typedef struct {
 
 @property (assign) SEL messageCallbackSelector;
 - (void)addListener:(id<CsoundObjListener>)listener;
+- (void)removeListener:(id<CsoundObjListener>)listener;
 - (void)setMessageCallback:(SEL)method withListener:(id)listener;
 - (void)performMessageCallback:(NSValue *)infoObj;
 

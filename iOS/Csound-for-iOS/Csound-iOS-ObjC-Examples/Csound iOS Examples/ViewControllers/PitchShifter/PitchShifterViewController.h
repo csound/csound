@@ -26,7 +26,7 @@
 #import "BaseCsoundViewController.h"
 #import "ControlXYGrid.h"
 
-@interface PitchShifterViewController : BaseCsoundViewController
+@interface PitchShifterViewController : BaseCsoundViewController<CsoundObjListener>
 {
 	IBOutlet UISwitch *mSwitch;
 	IBOutlet ControlXYGrid *mXYControl;

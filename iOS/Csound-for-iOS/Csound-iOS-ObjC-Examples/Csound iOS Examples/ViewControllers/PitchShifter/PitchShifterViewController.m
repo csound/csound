@@ -36,6 +36,7 @@
 		self.csound = [[CsoundObj alloc] init];
         self.csound.useAudioInput = YES;
 		
+        [self.csound addListener:self];
 		[self.csound addBinding:mXYControl];
 		
 		[self.csound play:tempFile];
@@ -69,7 +70,10 @@
 }
 
 - (void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[mSwitch setOn:NO animated:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Call UIKit from main thread.
+        [self->mSwitch setOn:NO animated:YES];
+    });
 }
 
 #pragma mark - Lifecycle
@@ -83,5 +87,12 @@
 	[mXYControl setYValue:0.5f];
 }
 
+-(void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    if (self.isMovingFromParentViewController || self.isBeingDismissed) {
+        [self.csound removeListener:self];
+    }
+}
 
 @end

@@ -79,22 +79,22 @@
 
 - (void)updataDisplayData
 {
-    float scalingFactor = 0.9;
-    int width = self.frame.size.width;
-    int height = self.frame.size.height;
-    int middle = (height / 2);
-    
-    displayData = malloc(sizeof(MYFLT) * width);
-    
-    for(int i = 0; i < width; i++) {
-        float percent = i / (float)(width);
-        int index = (int)(percent * tableLength);
-        displayData[i] = (-(table[index] * middle * scalingFactor) + middle);
-    }
-    
-    [self performSelectorOnMainThread:@selector(setNeedsDisplay)
-                           withObject:nil
-                        waitUntilDone:NO];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        float scalingFactor = 0.9;
+        int width = self.frame.size.width;
+        int height = self.frame.size.height;
+        int middle = (height / 2);
+        
+        self->displayData = malloc(sizeof(MYFLT) * width);
+        
+        for(int i = 0; i < width; i++) {
+            float percent = i / (float)(width);
+            int index = (int)(percent * self->tableLength);
+            self->displayData[i] = (-(self->table[index] * middle * scalingFactor) + middle);
+        }
+        
+        [self setNeedsDisplay];
+    });
 }
 
 - (void)updateValuesFromCsound

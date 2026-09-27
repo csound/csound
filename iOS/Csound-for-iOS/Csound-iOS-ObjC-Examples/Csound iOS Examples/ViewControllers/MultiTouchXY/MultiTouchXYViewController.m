@@ -82,6 +82,12 @@
 	[self.csound play:tempFile];
 }
 
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    [self.csound removeBinding:self];
+}
+
 
 #pragma mark Csound Binding
 

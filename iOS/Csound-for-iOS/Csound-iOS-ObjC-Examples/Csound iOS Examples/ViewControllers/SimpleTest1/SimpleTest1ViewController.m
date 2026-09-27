@@ -40,6 +40,14 @@
     [super viewDidLoad];
 }
 
+-(void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    if (self.isMovingFromParentViewController || self.isBeingDismissed) {
+        [self.csound removeListener:self];
+    }
+}
+
 -(IBAction) toggleOnOff:(id)sender {
 	NSLog(@"Status: %d", [uiSwitch isOn]);
     
@@ -94,9 +102,11 @@
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[uiSwitch setOn:NO animated:YES];
-    [uiLabel performSelectorOnMainThread:@selector(setText:) withObject:@"" waitUntilDone:NO];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Call UIKit from main thread.
+        [self->uiSwitch setOn:NO animated:YES];
+        [self->uiLabel performSelectorOnMainThread:@selector(setText:) withObject:@"" waitUntilDone:NO];
+    });
 }
-
 
 @end

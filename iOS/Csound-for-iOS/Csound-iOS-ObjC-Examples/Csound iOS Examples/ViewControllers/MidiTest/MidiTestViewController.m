@@ -49,6 +49,10 @@
     [widgetsManager closeMidiIn];
     
     [super viewWillDisappear:animated];
+    
+    if (self.isMovingFromParentViewController || self.isBeingDismissed) {
+        [self.csound removeListener:self];
+    }
 }
 
 -(IBAction) toggleOnOff:(id)component {
@@ -117,7 +121,10 @@
 
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[mSwitch setOn:NO animated:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Call UIKit from main thread.
+        [self->mSwitch setOn:NO animated:YES];
+    });
 }
 
 #pragma mark CsoundVirtualKeyboardDelegate

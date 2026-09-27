@@ -49,12 +49,14 @@
 
 -(void)setup:(CsoundObj *)csoundObj
 {
-    channelValue = self.switcher.on ? 1 : 0;
-    channelPtr = [csoundObj getInputChannelPtr:self.channelName
-                                   channelType:CSOUND_CONTROL_CHANNEL];
-    [self.switcher addTarget:self
-                      action:@selector(updateChannelValue:)
-            forControlEvents:UIControlEventValueChanged];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self->channelValue = self.switcher.on ? 1 : 0;
+        self->channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                       channelType:CSOUND_CONTROL_CHANNEL];
+        [self.switcher addTarget:self
+                          action:@selector(updateChannelValue:)
+                forControlEvents:UIControlEventValueChanged];
+    });
 }
 
 

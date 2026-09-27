@@ -55,18 +55,20 @@
 
 -(void)setup:(CsoundObj *)csoundObj
 {
-    channelValue = self.button.selected ? 1 : 0;
-    channelPtr = [csoundObj getInputChannelPtr:self.channelName
-                                   channelType:CSOUND_CONTROL_CHANNEL];
-    [self.button addTarget:self
-                    action:@selector(updateChannelValueButtonIsDown:)
-          forControlEvents:UIControlEventTouchDown];
-    [self.button addTarget:self
-                    action:@selector(updateChannelValueButtonIsUp:)
-          forControlEvents:UIControlEventTouchUpInside];
-    [self.button addTarget:self
-                    action:@selector(updateChannelValueButtonIsUp:)
-          forControlEvents:UIControlEventTouchUpOutside];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self->channelValue = self.button.selected ? 1 : 0;
+        self->channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                       channelType:CSOUND_CONTROL_CHANNEL];
+        [self.button addTarget:self
+                        action:@selector(updateChannelValueButtonIsDown:)
+              forControlEvents:UIControlEventTouchDown];
+        [self.button addTarget:self
+                        action:@selector(updateChannelValueButtonIsUp:)
+              forControlEvents:UIControlEventTouchUpInside];
+        [self.button addTarget:self
+                        action:@selector(updateChannelValueButtonIsUp:)
+              forControlEvents:UIControlEventTouchUpOutside];
+    });
 }
 
 
@@ -77,15 +79,17 @@
 
 -(void)cleanup
 {
-    [self.button removeTarget:self
-                       action:@selector(updateChannelValueButtonIsDown:)
-             forControlEvents:UIControlEventTouchDown];
-    [self.button removeTarget:self
-                       action:@selector(updateChannelValueButtonIsUp:)
-             forControlEvents:UIControlEventTouchUpInside];
-    [self.button removeTarget:self
-                       action:@selector(updateChannelValueButtonIsUp:)
-             forControlEvents:UIControlEventTouchUpOutside];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.button removeTarget:self
+                           action:@selector(updateChannelValueButtonIsDown:)
+                 forControlEvents:UIControlEventTouchDown];
+        [self.button removeTarget:self
+                           action:@selector(updateChannelValueButtonIsUp:)
+                 forControlEvents:UIControlEventTouchUpInside];
+        [self.button removeTarget:self
+                           action:@selector(updateChannelValueButtonIsUp:)
+                 forControlEvents:UIControlEventTouchUpOutside];
+    });
 }
 
 

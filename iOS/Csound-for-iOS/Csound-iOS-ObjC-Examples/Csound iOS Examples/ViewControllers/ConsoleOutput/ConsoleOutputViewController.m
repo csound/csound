@@ -48,6 +48,14 @@
     NSLog(@"%@", csdArray);
 }
 
+-(void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    if (self.isMovingFromParentViewController || self.isBeingDismissed) {
+        [self.csound removeListener:self];
+    }
+}
+
 #pragma mark UITableView Methods
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
