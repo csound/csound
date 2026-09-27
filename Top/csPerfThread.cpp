@@ -708,6 +708,12 @@ int32_t CsoundPerformanceThread::Perform()
             goto endOfPerf;
           }
         }
+        // Only process the batch detached above before running an audio
+        // block, so a new messages will be picked up in the next cycle and
+        // cannot block performance. While paused there is no audio block, it 
+        // should be ok to keep processing events
+        if (!paused)
+          break;
       }
       if(processcallback != NULL)
            processcallback(cdata);
@@ -1033,6 +1039,10 @@ int32_t CsoundPerformanceThread::Join()
 
 void CsoundPerformanceThread::FlushMessageQueue()
 {
+    // Join() destroys the lock and sets it to NULL; there is nothing left
+    // to flush then.
+    if (!flushLock)
+      return;
     // flushLock is cleared when a message is queued and set once the queue
     // has been drained and no message is in flight, so wait for it
     // unconditionally: firstMessage may be NULL while a detached batch of
