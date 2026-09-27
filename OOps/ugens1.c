@@ -31,9 +31,18 @@ int32_t linset(CSOUND *csound, LINE *p)
 {
   double       dur;
   if (LIKELY((dur = *p->idur) > FL(0.0))) {
-    p->incr = (*p->ib - *p->ia) / dur * CS_ONEDSR;
+    double a = *p->ia, b = *p->ib;
+    double difference = b - a;
+    p->incr = difference / dur * CS_ONEDSR;
+    if (UNLIKELY(isinf(p->incr))) {
+      double scale = CS_ONEDSR / dur;
+      /* Apply the time scale before the overflowing operation.  fma keeps
+         the compiler from factoring the endpoint difference back out. */
+      p->incr = isinf(difference) ? fma(b, scale, -a * scale)
+                                  : difference * scale;
+    }
     p->kincr = p->incr*CS_KSMPS;
-    p->val = *p->ia;
+    p->val = a;
   }
   return OK;
 }
