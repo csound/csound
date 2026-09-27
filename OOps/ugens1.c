@@ -782,7 +782,7 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
   MYFLT   **argp, prvpt;
 
 
-  if (!(p->INOCOUNT & 1)){
+  if (p->INOCOUNT < 3 || !(p->INOCOUNT & 1)){
     return csound->InitError(csound, Str("incomplete number of input arguments"));
   }
 
@@ -814,9 +814,12 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
     segp++;
   } while (--nsegs);
   relestim = (int32_t)(p->cursegp + p->segsrem - 1)->cnt;
+  if (UNLIKELY(relestim == MAXPOS))
+    return csound->InitError(csound, Str("expsegr: release duration is too long"));
   p->xtra = relestim;
-  if (relestim > p->h.insdshead->xtratim)
-    p->h.insdshead->xtratim = relestim;
+  /* Include the control period that emits the release endpoint. */
+  if (relestim >= p->h.insdshead->xtratim)
+    p->h.insdshead->xtratim = relestim + 1;
   return OK;
 
  experr:
@@ -833,7 +836,6 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
 int32_t kxpsegr(CSOUND *csound, EXPSEG *p)
 {
   IGN(csound);
-  *p->rslt = p->curval;               /* put the cur value    */
   if (p->segsrem) {                   /* done if no more segs */
     SEG *segp;
     if (p->h.insdshead->relesing && p->segsrem > 1) {
@@ -846,8 +848,11 @@ int32_t kxpsegr(CSOUND *csound, EXPSEG *p)
     }
     if (--p->curcnt <= 0) {           /* if done cur seg      */
     chk2:
-      if (p->segsrem == 2) return OK; /*   seg Y rpts lastval */
-      if (!(--p->segsrem)) return OK; /*   seg Z now done all */
+      if (p->segsrem == 2) goto putk; /*   seg Y rpts lastval */
+      if (!(--p->segsrem)) {         /*   seg Z now done all */
+        p->curval = p->cursegp->nxtpt;
+        goto putk;
+      }
       segp = ++p->cursegp;            /*   else find nextseg  */
     newm:
       if (!(p->curcnt = segp->cnt)) { /*   nonlen = discontin */
@@ -856,17 +861,22 @@ int32_t kxpsegr(CSOUND *csound, EXPSEG *p)
       }
       if (segp->nxtpt == p->curval)   /*   else get new mlt   */
         p->curmlt = FL(1.0);
-      else p->curmlt = (MYFLT) pow(segp->nxtpt/p->curval, 1.0/segp->cnt);
+      else p->curmlt = pow(segp->nxtpt/p->curval, 1.0/segp->cnt);
     }
+    *p->rslt = p->curval;
     p->curval *= p->curmlt;           /* advance the cur val  */
+    return OK;
   }
+ putk:
+  *p->rslt = p->curval;
   return OK;
 }
 
 int32_t expsegr(CSOUND *csound, EXPSEG *p)
 {
   IGN(csound);
-  MYFLT  val, amlt, *rs = p->rslt;
+  double val, amlt;
+  MYFLT *rs = p->rslt;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -894,7 +904,10 @@ int32_t expsegr(CSOUND *csound, EXPSEG *p)
       if (--p->curcnt <= 0) {           /* if done cur seg      */
       chk2:
         if (p->segsrem == 2) goto putk; /*   seg Y rpts lastval */
-        if (!(--p->segsrem)) goto putk; /*   seg Z now done all */
+        if (!(--p->segsrem)) {         /*   seg Z now done all */
+          val = p->cursegp->nxtpt;
+          goto putk;
+        }
         segp = ++p->cursegp;            /*   else find nextseg  */
       newm:
         if (!(p->curcnt = segp->acnt)) { /*   nonlen = discontin */
@@ -902,16 +915,11 @@ int32_t expsegr(CSOUND *csound, EXPSEG *p)
           goto chk2;
         }                               /*   else get new mlts  */
         if (segp->nxtpt == val) {
-          p->curmlt = p->curamlt = FL(1.0);
-          p->curval = val;
+          p->curamlt = 1.0;
           goto putk;
         }
         else {
-          p->curmlt = POWER((segp->nxtpt/val), FL(1.0)/segp->cnt);
-          // VL: this line introduces a bug
-          //p->curamlt = POWER(p->curmlt, FL(1.0)/(MYFLT)(nsmps-offset));
-          // VL: this line fixes it but does not take account of offset
-          p->curamlt = POWER((segp->nxtpt/val), FL(1.0)/segp->acnt);
+          p->curamlt = pow(segp->nxtpt/val, 1.0/segp->acnt);
         }
       }
       if ((amlt = p->curamlt) == FL(1.0)) goto putk;
