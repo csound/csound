@@ -23,6 +23,7 @@
 #include "csoundCore.h"         /*                      UGENS1.C        */
 #include "ugens1.h"
 #include <math.h>
+#include <float.h>
 
 #define FHUND (FL(100.0))
 
@@ -81,9 +82,18 @@ int32_t expset(CSOUND *csound, EXPON *p)
   if (LIKELY((dur = *p->idur) > FL(0.0) )) {
     a = *p->ia;
     b = *p->ib;
-    if (LIKELY((a * b) > FL(0.0))) {
-      p->mlt = POWER(b/a, CS_ONEDSR/dur);
-      p->kmlt = POWER(b/a, CS_ONEDKR/dur);
+    if (LIKELY((a > 0.0 && b > 0.0) || (a < 0.0 && b < 0.0))) {
+      double ratio = b/a;
+      if (LIKELY(ratio >= DBL_MIN && ratio <= DBL_MAX)) {
+        p->mlt = pow(ratio, CS_ONEDSR/dur);
+        p->kmlt = pow(ratio, CS_ONEDKR/dur);
+      }
+      else {
+        /* Avoid overflow and underflow in the endpoint ratio. */
+        double logratio = log(fabs(b)) - log(fabs(a));
+        p->mlt = exp(logratio * CS_ONEDSR/dur);
+        p->kmlt = exp(logratio * CS_ONEDKR/dur);
+      }
       p->val = a;
     }
     else if (a == FL(0.0))
