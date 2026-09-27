@@ -1,0 +1,9 @@
+{
+  "version": "1.1.1",
+  "url": "https://downloads.sourceforge.net/project/dssi/dssi/1.1.1/dssi-1.1.1.tar.gz",
+  "sha256": "f2c82b073a947c8255284249097667f9b14e660bf86186f3fcd3b3b3e087814e",
+  "files": {
+    "dssi.h": "dssi-1.1.1/dssi/dssi.h",
+    "LICENSE": "dssi-1.1.1/COPYING"
+  }
+}
