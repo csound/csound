@@ -30,8 +30,6 @@
 #include <math.h>
 #define MAXOUTS 16
 
-static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
-
 typedef struct _pvsgain {
   OPDS    h;
   PVSDAT  *fout;
@@ -2588,21 +2586,6 @@ static int32_t pvstencil(CSOUND *csound, PVSTENCIL *p)
   return csound->PerfError(csound, &(p->h),
                            "%s", Str("pvstencil: not initialised"));
 }
-
-static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
-{
-  if (
-      (f1->sliding == f2->sliding) &&
-      (f1->overlap == f2->overlap) &&
-      (f1->winsize == f2->winsize) &&
-      (f1->wintype == f2->wintype) &&     /* harsh, maybe... */
-      (f1->N == f2->N) &&
-      (f1->format == f2->format))
-
-    return 1;
-  return 0;
-}
-
 
 typedef struct _pvsenvw {
   OPDS    h;

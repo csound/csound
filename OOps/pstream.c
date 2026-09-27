@@ -33,20 +33,6 @@
 #include <assert.h>
 #endif
 
-int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
-{
-    if ((f1->overlap    == f2->overlap)
-        && (f1->winsize == f2->winsize)
-        && (f1->wintype == f2->wintype) /* harsh, maybe... */
-        && (f1->N       == f2->N)
-        && (f1->format  == f2->format)
-        && (f1->sliding == f2->sliding)
-        )
-      return 1;
-    return 0;
-
-}
-
 /* Assignment owns its copy, including track and sliding frames. */
 #define FASSIGN_FRAME_BYTES(p) \
     ((p)->fsrc->format == PVS_TRACKS || (p)->fsrc->format < 0 ? \
