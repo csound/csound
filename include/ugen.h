@@ -100,17 +100,17 @@ PUBLIC bool csoundUgenContextSetDuration(UGEN_CONTEXT *context, MYFLT p3);
 PUBLIC bool csoundUgenContextReleaseNote(UGEN_CONTEXT *context);
 
 /**
- * Offet the samples within audio buffer from the start
+ * Offset the samples within audio buffer from the start
  */
 PUBLIC bool csoundUgenContextSetStartOffset(UGEN_CONTEXT *context, uint32_t start);
 
 /**
  * Offet the samples within audio buffer from the end
  */
-PUBLIC bool csoundUgenContextSetEndOffset(UGEN_CONTEXT *context, uint32_t start);
+PUBLIC bool csoundUgenContextSetEndOffset(UGEN_CONTEXT *context, uint32_t end);
 
 /**
- * Sets star and end offets to zero
+ * Sets start and end offsets to zero
  */
 PUBLIC bool csoundUgenContextResetOffsets(UGEN_CONTEXT *context);
 
