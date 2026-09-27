@@ -33,7 +33,7 @@ typedef struct {
 typedef struct {
   OPDS    h;
   cs_float   *xr, *ia, *idur, *ib;
-  cs_double   val, mlt, kmlt;
+  double   val, mlt, kmlt;
 } EXPON;
 
 typedef struct {

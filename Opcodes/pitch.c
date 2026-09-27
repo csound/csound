@@ -1809,8 +1809,8 @@ int32_t impulse(CSOUND *csound, IMPULSE *p)
 /* ********************************************************************** */
 /* Positive curves run backward from the endpoint so all exponents stay
    nonpositive. expm1 preserves small curves without subtracting near equals. */
-static void trnseg_coefficients(NSEG *segp, cs_double start, cs_double end,
-                               cs_double curve, cs_double samples)
+static void trnseg_coefficients(NSEG *segp, double start, double end,
+                               double curve, double samples)
 {
     segp->x = curve > 0.0 ? -curve : 0.0;
     segp->val = curve > 0.0 ? end : start;

@@ -86,7 +86,7 @@ int32_t aline(CSOUND *csound, LINE *p)
 
 int32_t expset(CSOUND *csound, EXPON *p)
 {
-  cs_double       dur, a, b;
+  double       dur, a, b;
   //printf("kr = %f , 1/kr = %f \n",CS_EKR, CS_ONEDKR);
   if (LIKELY((dur = *p->idur) > FL(0.0) )) {
     a = *p->ia;
@@ -125,7 +125,7 @@ int32_t kexpon(CSOUND *csound, EXPON *p)
 int32_t expon(CSOUND *csound, EXPON *p)
 {
   IGN(csound);
-  cs_double val, mlt;//, inc;//, nxtval;
+  double val, mlt;//, inc;//, nxtval;
   cs_float *ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
