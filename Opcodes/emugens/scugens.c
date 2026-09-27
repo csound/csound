@@ -44,9 +44,9 @@
 #define register_deinit(csound, p, func) \
     csound->RegisterDeinitCallback(csound, p, (int32_t(*)(CSOUND*, void*))(func))
 
-static inline cs_double
-zapgremlins(cs_double x) {
-    cs_double absx = fabs(x);
+static inline double
+zapgremlins(double x) {
+    double absx = fabs(x);
     // very small numbers fail the first test, eliminating denormalized numbers
     //    (zero also fails the first test, but that is OK since it returns
     // zero.)
@@ -110,7 +110,7 @@ typedef struct {
     int32_t started;
     cs_float lag;
     /* Keep slow updates in the state even when output samples are floats. */
-    cs_double b1, y1, sr;
+    double b1, y1, sr;
 } LAG0;
 
 static int32_t lag0_init_no_initial_value(CSOUND *csound, LAG0 *p) {
@@ -136,7 +136,7 @@ static int32_t lag0_init_initial_value(CSOUND *csound, LAG0 *p) {
 
 static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
     IGN(csound);
-    cs_double y1, b1;
+    double y1, b1;
     cs_float y0 = *p->in;
 
     if(UNLIKELY(em_isinfornan(y0))) {
@@ -202,8 +202,8 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
 
     const cs_float* restrict in = p->in;
     cs_float lag = *p->lagtime;
-    cs_double y0, y1;
-    cs_double b1 = p->b1;
+    double y0, y1;
+    double b1 = p->b1;
 
     if(LIKELY(p->started))
         y1 = p->y1;
@@ -213,7 +213,7 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
     }
 
     if (lag == p->lag) {
-        cs_double c = 1.0 - b1;
+        double c = 1.0 - b1;
         for (n=offset; n<nsmps; n++) {
             y1 = b1 * y1 + c * in[n];
             out[n] = (cs_float)y1;
@@ -221,7 +221,7 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
     } else {
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
-        cs_double b1_slope = CALCSLOPE(p->b1, b1, nsmps - offset);
+        double b1_slope = CALCSLOPE(p->b1, b1, nsmps - offset);
         p->lag = lag;
         for (n=offset; n<nsmps; n++) {
             b1 += b1_slope;
@@ -251,7 +251,7 @@ typedef struct {
     OPDS h;
     cs_float *out, *in, *lagtimeU, *lagtimeD, *first;
     cs_float lagu, lagd;
-    cs_double b1u, b1d, y1, sr;
+    double b1u, b1d, y1, sr;
     int32_t started;
 } LagUD;
 
@@ -284,7 +284,7 @@ lagud_k(CSOUND *csound, LagUD *p) {
     cs_float y0  = *p->in;
     cs_float lagu = *p->lagtimeU;
     cs_float lagd = *p->lagtimeD;
-    cs_double y1;
+    double y1;
 
     if(UNLIKELY(em_isinfornan(y0))) {
         return PERFERRF("Non-finite value detected: %f", y0);
@@ -304,7 +304,7 @@ lagud_k(CSOUND *csound, LagUD *p) {
             p->y1 = y1 = y0 + p->b1d * (y1 - y0);
         *(p->out) = (cs_float)y1;
     } else {
-        cs_double sr = p->sr;
+        double sr = p->sr;
         // faust uses tau2pole = exp(-1 / (lag*sr)), sc uses log(0.01)
         p->b1u  = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
         p->lagu = lagu;
@@ -333,9 +333,9 @@ lagud_a(CSOUND *csound, LagUD *p) {
     const cs_float* restrict in = p->in;
     cs_float lagu = *p->lagtimeU;
     cs_float lagd = *p->lagtimeD;
-    cs_double y1;
-    cs_double b1u = p->b1u;
-    cs_double b1d = p->b1d;
+    double y1;
+    double b1u = p->b1u;
+    double b1d = p->b1d;
 
     if(LIKELY(p->started))
         y1 = p->y1;
@@ -345,8 +345,8 @@ lagud_a(CSOUND *csound, LagUD *p) {
     }
 
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
-        cs_double cu = 1.0 - b1u;
-        cs_double cd = 1.0 - b1d;
+        double cu = 1.0 - b1u;
+        double cd = 1.0 - b1d;
         for (n=offset; n<nsmps; n++) {
             cs_float y0 = in[n];
             if (y0 > y1)
@@ -358,13 +358,13 @@ lagud_a(CSOUND *csound, LagUD *p) {
             out[n] = (cs_float)y1;
         }
     } else {
-        cs_double sr = CS_ESR;
+        double sr = CS_ESR;
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1u = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
-        cs_double b1u_slope = CALCSLOPE(p->b1u, b1u, nsmps - offset);
+        double b1u_slope = CALCSLOPE(p->b1u, b1u, nsmps - offset);
         p->lagu = lagu;
         p->b1d  = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
-        cs_double b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps - offset);
+        double b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps - offset);
         p->lagd = lagd;
         for (n=offset; n<nsmps; n++) {
             cs_float y0 = in[n];

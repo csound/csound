@@ -920,7 +920,7 @@ int32_t kxpsegr(CSOUND *csound, EXPSEG *p)
 int32_t expsegr(CSOUND *csound, EXPSEG *p)
 {
   IGN(csound);
-  cs_double val, amlt;
+  double val, amlt;
   cs_float *rs = p->rslt;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;

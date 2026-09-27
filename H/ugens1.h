@@ -83,7 +83,8 @@ typedef struct {
   cs_float   *rslt, *argums[VARGMAX];
   SEG     *cursegp;
   int32   segsrem, curcnt;
-  cs_double  curval, curmlt, curamlt;
+  /* Keep slow exponential updates even in a full-float build. */
+  double  curval, curmlt, curamlt;
   int32   nsegs;
   AUXCH   auxch;
   int32   xtra;

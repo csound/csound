@@ -88,11 +88,11 @@ static int32_t follow(CSOUND *csound, FOL *p)
    Bram.DeJong@rug.ac.be and James Maccartney posted on music-dsp;
    Transferred to csound by JPff, 2000 feb 12
 */
-/* Keep coefficients and state in 64-bit cs_double even with USE_FLOAT, to retain
+/* Keep coefficients and state in 64-bit double even with USE_FLOAT, to retain
    small envelope updates. Nonpositive times keep the 0.1-second fallback. */
 #define FOLLOW2_COEFFICIENT(time) \
-    exp(-6.90775527898 / ((cs_double)CS_ESR * \
-                         ((time) <= FL(0.0) ? 0.1 : (cs_double)(time))))
+    exp(-6.90775527898 / ((double)CS_ESR * \
+                         ((time) <= FL(0.0) ? 0.1 : (double)(time))))
 
 static int32_t envset(CSOUND *csound, ENV *p)
 {
@@ -110,8 +110,8 @@ static int32_t envext(CSOUND *csound, ENV *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     /* Keep small updates in the state; only round the output sample. */
-    cs_double      envelope = p->envelope;
-    cs_double      ga, gr;
+    double      envelope = p->envelope;
+    double      ga, gr;
     cs_float       *in = p->in, *out = p->out;
     if (p->lastatt!=*p->attack) {
       p->lastatt = *p->attack;
@@ -129,7 +129,7 @@ static int32_t envext(CSOUND *csound, ENV *p)
       memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset;n<nsmps;n++) {
-      cs_double inp = (cs_double)FABS(in[n]);  /* Absolute value */
+      double inp = (double)FABS(in[n]);  /* Absolute value */
       if (envelope < inp) {
         envelope = inp + ga*(envelope-inp);
       }

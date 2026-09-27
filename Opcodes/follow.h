@@ -39,5 +39,5 @@ typedef struct {
         OPDS    h;
         cs_float   *out, *in, *attack, *release;
         cs_float   lastatt, lastrel;
-        cs_double  envelope, ga, gr;
+        double  envelope, ga, gr;
 } ENV;

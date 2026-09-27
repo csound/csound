@@ -120,7 +120,7 @@ typedef struct {
         float   fund,arate;
         float   RoverTwoPi,TwoPioverR,Fexact;
         cs_float   *nextIn;
-        int32    nI,Ii,IOi;              /* need all these ?; cs_double as N and NB */
+        int32    nI,Ii,IOi;              /* need all these ?; double as N and NB */
         int32    inptr;
 
         AUXCH   input;

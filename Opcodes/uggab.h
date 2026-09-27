@@ -100,7 +100,7 @@ typedef struct {  /* gab f1 */
         cs_float   *kr, *ksig, *ktime;
         cs_float   current_val;
         /* Preserve increments smaller than one output sample step. */
-        cs_double  incr, val_incremented, remaining;
+        double  incr, val_incremented, remaining;
         int32_t flag;
 } LINETO;
 
@@ -108,7 +108,7 @@ typedef struct {  /* gab f1 */
         OPDS    h;
         cs_float   *kr, *ksig, *ktime, *ktrig;
         cs_float   current_val;
-        cs_double  incr, val_incremented, remaining;
+        double  incr, val_incremented, remaining;
         int32_t flag;
 } LINETO2;
 
