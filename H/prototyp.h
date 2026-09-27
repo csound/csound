@@ -199,6 +199,15 @@ int32_t csoundGetInputArgCnt(void *p);
 
 CS_TYPE* csoundGetTypeForArg(void* argPtr);
 
+/* Display text only; never use these strings for type matching or OENTRYs.
+   Each result belongs to the caller and must be freed with csound->Free().
+   A single name may use compiler array syntax; dimensions adds array suffixes
+   when the caller has separate runtime or variable metadata. */
+char *csoundFormatTypeName(CSOUND *csound, const char *name, int32_t dimensions);
+char *csoundFormatArgumentType(CSOUND *csound, void *arg);
+/* Takes an OENTRY-style signature, e.g. ":Point;[]k", and adds separators. */
+char *csoundFormatTypeList(CSOUND *csound, const char *signature);
+
 /**
  * Returns a binary value of which bit 0 is set if the first input
  * argument is a string, bit 1 is set if the second input argument is

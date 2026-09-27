@@ -439,6 +439,93 @@ static int32_t copy_var_no_op(CSOUND *csound, void *p) {
   return OK;
 }
 
+/* Accept a single type token from a variable or the compiler. */
+static char *write_type_name(char *out, const char *name, size_t length,
+                             int32_t dimensions)
+{
+  if (length > 1 && name[0] == '[' && name[length - 1] == ']') {
+    --length; /* Internal arrays have one closing bracket, e.g. [[:Point;]. */
+    while (length > 0 && *name == '[') {
+      ++dimensions;
+      ++name;
+      --length;
+    }
+  }
+  else {
+    while (length >= 2 && name[length - 2] == '[' && name[length - 1] == ']') {
+      ++dimensions;
+      length -= 2;
+    }
+  }
+  if (length >= 2 && name[0] == ':' && name[length - 1] == ';') {
+    ++name;
+    length -= 2;
+  }
+  memcpy(out, name, length);
+  out += length;
+  for (int32_t i = 0; i < dimensions; ++i) {
+    *out++ = '[';
+    *out++ = ']';
+  }
+  *out = '\0';
+  return out;
+}
+
+char *csoundFormatTypeName(CSOUND *csound, const char *name, int32_t dimensions)
+{
+  if (name == NULL) name = "?";
+  if (dimensions < 0) dimensions = 0;
+  size_t length = strlen(name);
+  /* Internal array dimensions need two display characters per '['. */
+  char *result = csound->Malloc(csound, 2 * length + 2 * (size_t)dimensions + 1);
+  write_type_name(result, name, length, dimensions);
+  return result;
+}
+
+char *csoundFormatArgumentType(CSOUND *csound, void *arg)
+{
+  const CS_TYPE *type = csoundGetTypeForArg(arg);
+  int32_t dimensions = 0;
+  if (type == &CS_VAR_TYPE_ARRAY) {
+    const ARRAYDAT *array = (const ARRAYDAT *)arg;
+    type = array->arrayType;
+    dimensions = array->dimensions;
+  }
+  return csoundFormatTypeName(csound, type ? type->varTypeName : NULL,
+                               dimensions);
+}
+
+char *csoundFormatTypeList(CSOUND *csound, const char *signature)
+{
+  if (signature == NULL) signature = "";
+  /* At most two separator characters per input character. Quoting can only
+     shorten the names; array suffixes keep their original length. */
+  char *result = csound->Malloc(csound, 3 * strlen(signature) + 1);
+  char *out = result;
+  const char *next = signature;
+  *out = '\0';
+  while (*next != '\0') {
+    const char *name = next;
+    int32_t dimensions = 0;
+    if (*next == ':') {
+      while (*next != '\0' && *next != ';') ++next;
+      if (*next == ';') ++next;
+    }
+    else ++next;
+    size_t length = (size_t)(next - name);
+    while (next[0] == '[' && next[1] == ']') {
+      ++dimensions;
+      next += 2;
+    }
+    if (out != result) {
+      *out++ = ',';
+      *out++ = ' ';
+    }
+    out = write_type_name(out, name, length, dimensions);
+  }
+  return result;
+}
+
 /**
  * Helper function to normalize type names for comparison.
  * Converts both ":TypeName;" and "TypeName" to the same format for comparison.
@@ -505,16 +592,22 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
       int allow_pfield_to_string = (typeR == &CS_VAR_TYPE_S && typeA == &CS_VAR_TYPE_P);
 
       if (!allow_num_to_num && !allow_scalar_to_audio && !allow_pfield_to_string) {
+        char *resultType = csoundFormatArgumentType(csound, assign->r);
+        char *argumentType = csoundFormatArgumentType(csound, assign->a);
+        int32_t error;
         if(assign->h.perf != copy_var_no_op)
-          return csound->PerfError(csound,&(assign->h),
+          error = csound->PerfError(csound,&(assign->h),
             Str("Opcode given variables "
                 "with two different types: %s : %s"),
-            typeR->varTypeName, typeA->varTypeName);
+            resultType, argumentType);
         else
-          return csound->InitError(csound,
+          error = csound->InitError(csound,
             Str("Opcode given variables "
                 "with two different types: %s : %s"),
-            typeR->varTypeName, typeA->varTypeName);
+            resultType, argumentType);
+        csound->Free(csound, resultType);
+        csound->Free(csound, argumentType);
+        return error;
       }
       if (allow_pfield_to_string) {
         /* P-field to string assignment - perform the actual conversion */
@@ -665,9 +758,13 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
 
 
 int32_t type_of(CSOUND *csound, ASSIGN *p) {
-  CS_TYPE *type = GetTypeForArg(p->a);
   STRINGDAT *types = (STRINGDAT *) p->r;
-  strncpy(types->data, type->varTypeName, types->size);
+  char *name = csoundFormatArgumentType(csound, p->a);
+  if (types->data != NULL && types->refcount != -1)
+    csound->Free(csound, types->data);
+  types->data = name;
+  types->size = strlen(name) + 1;
+  types->refcount = 0;
   return OK;
 }
 
