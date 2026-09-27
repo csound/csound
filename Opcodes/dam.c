@@ -44,16 +44,16 @@ static int32_t daminit(CSOUND *csound, DAM *p)
 {
    /* Initialise gain value */
 
-    p->gain = FL(1.0);
+    p->gain = 1.0;
 
    /* Compute the gain speed changes from parameter given by Csound */
    /* the computed values are stored in the opcode data structure p */
    /* for later use in the main processing                          */
 
-    p->rspeed = *p->rtime > FL(0.0) ? CS_ONEDSR / *p->rtime
-                                  : (MYFLT)INFINITY;
-    p->fspeed = *p->ftime > FL(0.0) ? CS_ONEDSR / *p->ftime
-                                  : (MYFLT)INFINITY;
+    p->rspeed = *p->rtime > FL(0.0) ? 1.0 / ((double)CS_ESR * *p->rtime)
+                                  : INFINITY;
+    p->fspeed = *p->ftime > FL(0.0) ? 1.0 / ((double)CS_ESR * *p->ftime)
+                                  : INFINITY;
     p->kthr = -FL(1.0);
     return OK;
 }
@@ -66,14 +66,11 @@ static int32_t dam(CSOUND *csound, DAM *p)
 {
      IGN(csound);
     MYFLT *ain,*aout;
-    MYFLT threshold;
-    MYFLT gain;
-    MYFLT comp1,comp2;
-    MYFLT exponent;
+    double threshold, gain, comp1, comp2, exponent;
     MYFLT *powerPos;
     MYFLT *powerBuffer;
     double power;
-    MYFLT tg;
+    double tg;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -97,8 +94,7 @@ static int32_t dam(CSOUND *csound, DAM *p)
     gain        = p->gain;
     comp1       = *(p->icomp1);
     comp2       = *(p->icomp2);
-    exponent    = comp2 != FL(0.0) ? FL(1.0)/comp2 - FL(1.0)
-                                  : (MYFLT)INFINITY;
+    exponent    = comp2 != 0.0 ? 1.0/comp2 - 1.0 : INFINITY;
     powerPos    = p->powerPos;
     powerBuffer = p->powerBuffer;
     power       = p->power;
@@ -125,10 +121,10 @@ static int32_t dam(CSOUND *csound, DAM *p)
          and compute target gain */
 
       if (power>threshold) {
-        tg = comp1 + (FL(1.0)-comp1)*(threshold/power);
+        tg = comp1 + (1.0-comp1)*(threshold/power);
       }
       else if (power > FL(0.0)) {
-        tg = POWER(power/threshold, exponent);
+        tg = pow(power/threshold, exponent);
       }
       else {
         /* Compression tends to zero gain at silence; unity stays unity.
@@ -150,7 +146,7 @@ static int32_t dam(CSOUND *csound, DAM *p)
 
       /* compute output */
 
-      aout[i] = ain[i]*gain;
+      aout[i] = (MYFLT)(ain[i]*gain);
     }
 
     /* Store the last gain value for next call */

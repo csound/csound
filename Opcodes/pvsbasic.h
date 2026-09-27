@@ -171,7 +171,7 @@ typedef struct _pvsmix {
     PVSDAT  *fout;
     PVSDAT  *fa;
     PVSDAT  *fb;
-    uint32  lastframe;
+    uint32  lastframe_a, lastframe_b;
 } PVSMIX;
 
 static int32_t pvsmixset(CSOUND *, PVSMIX *p);
@@ -184,7 +184,7 @@ typedef struct _pvsfilter {
     PVSDAT  *fil;
     MYFLT   *kdepth;
     MYFLT   *gain;
-    uint32  lastframe;
+    uint32  lastframe_in, lastframe_fil;
 } PVSFILTER;
 
 static int32_t pvsfilterset(CSOUND *, PVSFILTER *p);

@@ -88,18 +88,18 @@ export const dlinit = (
   ) {
     if (typeof hostExports["csoundWasiLoadOpcodeLibrary"] !== "function") {
       const appendOpcodes = hostExports["csoundAppendOpcodes"];
-      const allocStringMem = hostExports["allocStringMem"];
-      const freeStringMem = hostExports["freeStringMem"];
+      const allocByteMem = hostExports["allocByteMem"];
+      const freeByteMem = hostExports["freeByteMem"];
       const memory = hostMemory || hostExports["memory"];
       const missing = [];
       if (typeof appendOpcodes !== "function") {
         missing.push("csoundAppendOpcodes");
       }
-      if (typeof allocStringMem !== "function") {
-        missing.push("allocStringMem");
+      if (typeof allocByteMem !== "function") {
+        missing.push("allocByteMem");
       }
-      if (typeof freeStringMem !== "function") {
-        missing.push("freeStringMem");
+      if (typeof freeByteMem !== "function") {
+        missing.push("freeByteMem");
       }
       if (!memory) {
         missing.push("memory");
@@ -109,14 +109,24 @@ export const dlinit = (
       const wasm32OentrySize = 40;
 
       if (typeof pluginInstance.exports["csound_opcode_init"] === "function" && missing.length === 0) {
-        const epPointerPtr = allocStringMem(4);
+        const epPointerPtr = allocByteMem(4);
+        if (epPointerPtr === 0) {
+          throw new Error("Could not allocate the opcode list pointer");
+        }
         try {
           const bytesRaw = pluginInstance.exports["csound_opcode_init"](csoundInstance, epPointerPtr);
           const bytes = Number(bytesRaw);
           const opcodeListPtr = new DataView(memory.buffer).getUint32(epPointerPtr, true);
           const entryCount = Math.floor(bytes / wasm32OentrySize);
           if (entryCount > 0 && opcodeListPtr !== 0) {
-            const patchedOpcodeListPtr = allocStringMem(entryCount * wasm32OentrySize);
+            const allocationSize = entryCount * wasm32OentrySize;
+            if (!Number.isSafeInteger(allocationSize) || allocationSize > 0x7fffffff) {
+              throw new RangeError("The opcode list is too large");
+            }
+            const patchedOpcodeListPtr = allocByteMem(allocationSize);
+            if (patchedOpcodeListPtr === 0) {
+              throw new Error("Could not allocate the opcode list");
+            }
             const dv = new DataView(memory.buffer);
             const remapToHostTable = (funcIndex) => {
               if (!funcIndex) {
@@ -161,13 +171,13 @@ export const dlinit = (
 
               appendOpcodes(csoundInstance, patchedOpcodeListPtr, entryCount);
             } finally {
-              freeStringMem(patchedOpcodeListPtr);
+              freeByteMem(patchedOpcodeListPtr);
             }
           } else {
             console.error("Invalid opcode table returned by csound_opcode_init");
           }
         } finally {
-          freeStringMem(epPointerPtr);
+          freeByteMem(epPointerPtr);
         }
       } else if (typeof pluginInstance.exports["csound_opcode_init"] === "function") {
         console.error(`Missing required host exports for opcode plugin loading: ${missing.join(", ")}`);

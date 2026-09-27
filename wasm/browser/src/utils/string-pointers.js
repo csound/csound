@@ -42,7 +42,13 @@ export const string2ptr = (wasm, string) => {
   }
 
   const stringBuf = encoder.encode(string);
+  if (stringBuf.length >= 0x7fffffff) {
+    throw new RangeError("The string is too large for WebAssembly memory");
+  }
   const offset = wasm["exports"]["allocStringMem"](stringBuf.length);
+  if (offset === 0) {
+    throw new Error("Could not allocate WebAssembly string memory");
+  }
   const { buffer } = wasm.wasi.memory;
   const outBuf = new Uint8Array(buffer, offset, stringBuf.length + 1);
   outBuf.set(stringBuf);

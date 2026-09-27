@@ -397,12 +397,14 @@ static int32_t dotablefilter (CSOUND *csound, TABFILT *p)
         }
       case 3:
         { /* generate IOIs from source and write into destination */
-          if (*ps == FL(0.0)) { /* skip zeros in source table */
+          MYFLT onset = *ps;
+          if (onset == FL(0.0)) { /* skip zeros in source table */
             indx2++;
             break;
           }
-          *pdest = *ps - previous;
-          previous = *ps;
+          /* Source and destination may be the same table. */
+          *pdest = onset - previous;
+          previous = onset;
           indx++; indx2++;
           break;
         }
@@ -581,35 +583,33 @@ int32_t FareyLength (int32_t n)
  * ----------------------------------------------- */
 MYFLT Digest (int32_t n)
 {
-    if (!n)
-      return FL(0.0);
+    MYFLT result = FL(0.0);
+    uint32_t remaining = n < 0 ? (uint32_t)(-(int64_t)n) : (uint32_t)n;
+    uint32_t prime = 2;
+    int32_t i = 0;
 
-    {
-      MYFLT result = FL(0.0);
-      int32_t i = 0;
+    while (prime <= remaining / prime) {
       int32_t exponent = 0;
-      while( i < MAX_PRIMES )
-        {
-          int32_t prime = primes[i];
-          if (n == prime)
-            {
-              result += (((prime - 1)*(prime - 1)) / (MYFLT) prime);
-              return (result + result);
-            }
-          while (!(n % prime))
-            {
-              exponent++;
-              n /= prime;
-            }
-          if (exponent)
-            {
-              result += (exponent * (((prime - 1)*(prime - 1)) / (MYFLT) prime));
-            }
-          i++;
-          exponent = 0;
-        }
-      return (result + result);
+      while (remaining % prime == 0) {
+        exponent++;
+        remaining /= prime;
+      }
+      if (exponent) {
+        MYFLT pm1 = (MYFLT)(prime - 1);
+        result += exponent * (pm1 * pm1 / (MYFLT)prime);
+      }
+      if (++i < MAX_PRIMES)
+        prime = primes[i];
+      else
+        prime += 2;
     }
+    /* After trial division, any remaining factor is prime. Use floating-point
+       multiplication because its square may exceed the integer range. */
+    if (remaining > 1) {
+      MYFLT pm1 = (MYFLT)(remaining - 1);
+      result += pm1 * pm1 / (MYFLT)remaining;
+    }
+    return result + result;
 }
 
 /* Return the first continued-fraction approximation within 10^-5.

@@ -26,6 +26,7 @@
 #include "csoundCore.h"
 #endif
 #include "interlocks.h"
+#include "ugens5.h"
 
 typedef struct {
         OPDS    h;
@@ -44,8 +45,7 @@ typedef struct {
 typedef struct {        /* this now added from 07/01 */
     OPDS    h;
     MYFLT   *ar, *asig, *kdist, *ifn, *ihp, *istor;
-    double  c1, c2;
-    MYFLT   prvq, prvd, min_rms;
+    double  c1, c2, prvq, prvd, min_rms;
     MYFLT   midphs, maxphs, begval, endval;
     FUNC    *ftp;
     int32_t initialized;
@@ -208,7 +208,6 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
 
 static int32_t distset(CSOUND *csound, DIST *p)
 {
-    double  b;
     FUNC    *ftp;
 
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) return NOTOK;
@@ -220,9 +219,7 @@ static int32_t distset(CSOUND *csound, DIST *p)
     p->midphs = p->maxphs * FL(0.5);
     p->begval = ftp->ftable[0];
     p->endval = ftp->ftable[ftp->flen];
-    b = 2.0 - cos((double) (*p->ihp * CS_TPIDSR)); /*  and rms coefs */
-    p->c2 = b - sqrt(b * b - 1.0);
-    p->c1 = 1.0 - p->c2;
+    TONE_COEFFICIENTS((double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
     p->min_rms = csound->Get0dBFS(csound) * DV32768;
     if (!*p->istor || !p->initialized || !isfinite(p->prvq) ||
         p->prvq < FL(0.0) || !isfinite(p->prvd) || p->prvd <= FL(0.0)) {
@@ -237,7 +234,7 @@ static int32_t distset(CSOUND *csound, DIST *p)
 static int32_t distort(CSOUND *csound, DIST *p)
 {
     MYFLT   *ar, *asig;
-    MYFLT   q, rms, dist, dnew, dcur, dinc;
+    double  q, rms, dist, dnew, dcur, dinc;
     FUNC    *ftp = p->ftp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -259,7 +256,7 @@ static int32_t distort(CSOUND *csound, DIST *p)
     if (UNLIKELY(!isfinite(q)))
       return csound->PerfError(csound, &(p->h), "%s",
                                Str("distort: input level is out of range"));
-    rms = SQRT(q);    /* get running rms      */
+    rms = sqrt(q);    /* get running rms      */
     if (rms < p->min_rms)
       rms = p->min_rms;
     dist = *p->kdist;
@@ -276,12 +273,12 @@ static int32_t distort(CSOUND *csound, DIST *p)
     dcur = p->prvd;
     dinc = (dnew - dcur) / (nsmps - offset);
     for (n=offset; n<nsmps; n++) {
-      MYFLT sig, phs, val;
+      double sig, phs, val;
       sig = asig[n] / dcur;             /* compress the sample  */
-      phs = p->midphs * (FL(1.0) + sig); /* as index into table  */
+      phs = p->midphs * (1.0 + sig);     /* as index into table  */
       if (LIKELY(phs > FL(0.0) && phs < p->maxphs)) {
         int32  iphs = (int32)phs;
-        MYFLT frac = phs - (MYFLT)iphs; /* waveshape the samp   */
+        double frac = phs - iphs;       /* waveshape the samp   */
         MYFLT *fp = ftp->ftable + iphs;
         val = *fp++;
         val += (*fp - val) * frac;
@@ -293,10 +290,10 @@ static int32_t distort(CSOUND *csound, DIST *p)
       else                                    /* unordered index: NaN */
         return csound->PerfError(csound, &(p->h), "%s",
                                  Str("distort: signal produced a non-finite index"));
-      ar[n] = val * dcur;               /* and restor the amp   */
+      ar[n] = (MYFLT)(val * dcur);       /* restore amplitude    */
       dcur += dinc;
     }
-    p->prvd = (isfinite(dcur) && dcur > FL(0.0) ? dcur : dnew);
+    p->prvd = dnew;                    /* exact target for the next block */
 
     return OK;
 }

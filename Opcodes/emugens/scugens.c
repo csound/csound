@@ -25,7 +25,7 @@
 #include "emugens_common.h"
 #include "interlocks.h"
 
-#define LOG001 FL(-6.907755278982137)
+#define LOG001 (-6.907755278982137)
 #define CALCSLOPE(next,prev,nsmps) (((next) - (prev))/(nsmps))
 
 #define SAMPLE_ACCURATE \
@@ -44,15 +44,15 @@
 #define register_deinit(csound, p, func) \
     csound->RegisterDeinitCallback(csound, p, (int32_t(*)(CSOUND*, void*))(func))
 
-static inline MYFLT
-zapgremlins(MYFLT x) {
-    MYFLT absx = fabs(x);
+static inline double
+zapgremlins(double x) {
+    double absx = fabs(x);
     // very small numbers fail the first test, eliminating denormalized numbers
     //    (zero also fails the first test, but that is OK since it returns
     // zero.)
     // very large numbers fail the second test, eliminating infinities
     // Not-a-Numbers fail both tests and are eliminated.
-    return (absx > (MYFLT)1e-15 && absx < (MYFLT)1e15) ? x : (MYFLT)0.0;
+    return (absx > (MYFLT)1e-15 && absx < (MYFLT)1e15) ? x : 0.0;
 }
 
 static inline MYFLT sc_wrap(MYFLT in, MYFLT lo, MYFLT hi) {
@@ -93,7 +93,7 @@ static inline MYFLT sc_wrap(MYFLT in, MYFLT lo, MYFLT hi) {
 
   This is essentially the same as OnePole except that instead of
   supplying the coefficient directly, it is calculated from a 60 dB lag time.
-  This is the time required for the filter to converge to within 0.01%
+  This is the time required for the filter to converge to within 0.1%
   of a value. This is useful for smoothing out control signals.
 
   ksmooth = lag(kx, klagtime, [initialvalue])
@@ -108,8 +108,9 @@ typedef struct {
     OPDS  h;
     MYFLT *out, *in, *lagtime, *initial_value;
     int32_t started;
-    MYFLT lag, b1, y1;
-    MYFLT sr;
+    MYFLT lag;
+    /* Keep slow updates in the state even when output samples are floats. */
+    double b1, y1, sr;
 } LAG0;
 
 static int32_t lag0_init_no_initial_value(CSOUND *csound, LAG0 *p) {
@@ -135,7 +136,7 @@ static int32_t lag0_init_initial_value(CSOUND *csound, LAG0 *p) {
 
 static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
     IGN(csound);
-    MYFLT y1, b1;
+    double y1, b1;
     MYFLT y0 = *p->in;
 
     if(UNLIKELY(em_isinfornan(y0))) {
@@ -154,11 +155,12 @@ static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
     if (lag == p->lag) {
         b1 = p->b1;
         p->y1   = y1 = y0 + b1 * (y1 - y0);
-        *p->out = y1;
+        *p->out = (MYFLT)y1;
     } else {
         // faust uses tau2pole = exp(-1 / (lag*sr))
         b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
-        *p->out = y1 = y0 + b1 * (y1 - y0);
+        y1 = y0 + b1 * (y1 - y0);
+        *p->out = (MYFLT)y1;
         p->lag = lag;
         p->y1 = y1;
         p->b1 = b1;
@@ -200,8 +202,8 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
 
     const MYFLT* restrict in = p->in;
     MYFLT lag = *p->lagtime;
-    MYFLT y0, y1;
-    MYFLT b1 = p->b1;
+    double y0, y1;
+    double b1 = p->b1;
 
     if(LIKELY(p->started))
         y1 = p->y1;
@@ -211,21 +213,21 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
     }
 
     if (lag == p->lag) {
-        MYFLT c = FL(1.0) - b1;
+        double c = 1.0 - b1;
         for (n=offset; n<nsmps; n++) {
             y1 = b1 * y1 + c * in[n];
-            out[n] = y1;
+            out[n] = (MYFLT)y1;
         }
     } else {
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
-        MYFLT b1_slope = CALCSLOPE(p->b1, b1, nsmps - offset);
+        double b1_slope = CALCSLOPE(p->b1, b1, nsmps - offset);
         p->lag = lag;
         for (n=offset; n<nsmps; n++) {
             b1 += b1_slope;
             y0  = in[n];
             y1  = y0 + b1 * (y1 - y0);
-            out[n] = y1;
+            out[n] = (MYFLT)y1;
         }
     }
     p->y1 = y1;
@@ -248,8 +250,8 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
 typedef struct {
     OPDS h;
     MYFLT *out, *in, *lagtimeU, *lagtimeD, *first;
-    MYFLT  lagu, lagd, b1u, b1d, y1;
-    MYFLT sr;
+    MYFLT lagu, lagd;
+    double b1u, b1d, y1, sr;
     int32_t started;
 } LagUD;
 
@@ -282,7 +284,7 @@ lagud_k(CSOUND *csound, LagUD *p) {
     MYFLT y0  = *p->in;
     MYFLT lagu = *p->lagtimeU;
     MYFLT lagd = *p->lagtimeD;
-    MYFLT y1;
+    double y1;
 
     if(UNLIKELY(em_isinfornan(y0))) {
         return PERFERRF("Non-finite value detected: %f", y0);
@@ -300,9 +302,9 @@ lagud_k(CSOUND *csound, LagUD *p) {
             p->y1 = y1 = y0 + p->b1u * (y1 - y0);
         else
             p->y1 = y1 = y0 + p->b1d * (y1 - y0);
-        *(p->out) = y1;
+        *(p->out) = (MYFLT)y1;
     } else {
-        MYFLT sr = p->sr;
+        double sr = p->sr;
         // faust uses tau2pole = exp(-1 / (lag*sr)), sc uses log(0.01)
         p->b1u  = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
         p->lagu = lagu;
@@ -312,7 +314,7 @@ lagud_k(CSOUND *csound, LagUD *p) {
             y1 = y0 + p->b1u * (y1 - y0);
         else
             y1 = y0 + p->b1d * (y1 - y0);
-        *(p->out) = y1;
+        *(p->out) = (MYFLT)y1;
     }
     p->y1 = y1;
     return OK;
@@ -331,10 +333,9 @@ lagud_a(CSOUND *csound, LagUD *p) {
     const MYFLT* restrict in = p->in;
     MYFLT lagu = *p->lagtimeU;
     MYFLT lagd = *p->lagtimeD;
-    // MYFLT y1   = p->y1;
-    MYFLT y1;
-    MYFLT b1u  = p->b1u;
-    MYFLT b1d  = p->b1d;
+    double y1;
+    double b1u = p->b1u;
+    double b1d = p->b1d;
 
     if(LIKELY(p->started))
         y1 = p->y1;
@@ -344,8 +345,8 @@ lagud_a(CSOUND *csound, LagUD *p) {
     }
 
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
-        MYFLT cu = 1 - b1u;
-        MYFLT cd = 1 - b1d;
+        double cu = 1.0 - b1u;
+        double cd = 1.0 - b1d;
         for (n=offset; n<nsmps; n++) {
             MYFLT y0 = in[n];
             if (y0 > y1)
@@ -354,16 +355,16 @@ lagud_a(CSOUND *csound, LagUD *p) {
             else
                 y1 = b1d * y1 + cd * in[n];
                 // y1 = y0 + b1d * (y1 - y0);
-            out[n] = y1;
+            out[n] = (MYFLT)y1;
         }
     } else {
-        MYFLT sr = CS_ESR;
+        double sr = CS_ESR;
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1u = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
-        MYFLT b1u_slope = CALCSLOPE(p->b1u, b1u, nsmps - offset);
+        double b1u_slope = CALCSLOPE(p->b1u, b1u, nsmps - offset);
         p->lagu = lagu;
         p->b1d  = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
-        MYFLT b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps - offset);
+        double b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps - offset);
         p->lagd = lagd;
         for (n=offset; n<nsmps; n++) {
             MYFLT y0 = in[n];
@@ -373,7 +374,7 @@ lagud_a(CSOUND *csound, LagUD *p) {
                 y1 = y0 + b1u * (y1-y0);
             else
                 y1 = y0 + b1d * (y1-y0);
-            out[n] = y1;
+            out[n] = (MYFLT)y1;
         }
     }
     p->y1 = zapgremlins(y1);

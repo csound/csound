@@ -18,47 +18,43 @@
 // Forward declaration for printDebug function
 void printDebug(const char *log);
 
-// returns the address of a string
-// pointer which is writable from js
+/* Keep allocation sizes within the signed wasm32 interface, checking before
+   adding a terminator or multiplying an element count. */
+static void *allocWasmArray(int count, size_t elementSize) {
+  if (count <= 0 || (size_t) count > INT_MAX / elementSize)
+    return NULL;
+  return malloc((size_t) count * elementSize);
+}
+
+/* Binary data needs no extra byte. Zero-length requests return NULL. */
 __attribute__((used))
-char* allocStringMem (int length) {
-  char *ptr = NULL;
-  ptr = malloc(((length + 1) * sizeof(char)));
-  // NULL Terminate
-  ptr[length] = 0;
+void *allocByteMem(int length) {
+  return allocWasmArray(length, 1);
+}
+void freeByteMem(void *ptr) { free(ptr); }
+
+/* Allocate a writable string, including its terminating zero. */
+__attribute__((used))
+char *allocStringMem(int length) {
+  if (length < 0 || length >= INT_MAX)
+    return NULL;
+  char *ptr = allocByteMem(length + 1);
+  if (ptr != NULL)
+    ptr[length] = 0;
   return ptr;
 }
-
-// free the allocated String Memory
-// (this could be unneccecary, dont know)
-void freeStringMem (char* ptr) {
-  free(ptr);
-}
-
+void freeStringMem(char *ptr) { free(ptr); }
 
 __attribute__((used))
-double* allocFloatArray(int length) {
-  double *ptr = NULL;
-  ptr = malloc(length * sizeof(double));
-  return ptr;
+double *allocFloatArray(int length) {
+  return allocWasmArray(length, sizeof(double));
 }
+void freeFloatArrayMem(double *ptr) { free(ptr); }
 
-void freeFloatArrayMem(double* ptr) {
-  free(ptr);
+int sizeOfMidiStruct() { return sizeof(CS_MIDIDEVICE); }
+CS_MIDIDEVICE *allocCsMidiDeviceStruct(int num) {
+  return allocWasmArray(num, sizeof(CS_MIDIDEVICE));
 }
-
-// START CS_MIDIDEVICE
-int sizeOfMidiStruct() {
-  // TODO: write comparison test of js/c sizeof
-  return sizeof(CS_MIDIDEVICE);
-}
-
-CS_MIDIDEVICE* allocCsMidiDeviceStruct(int num) {
-  CS_MIDIDEVICE* ptr = NULL;
-  ptr = malloc(sizeof(CS_MIDIDEVICE) * num);
-  return ptr;
-}
-
 void freeCsMidiDeviceStruct(CS_MIDIDEVICE* ptr) {
   free(ptr);
 }
