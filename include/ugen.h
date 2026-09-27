@@ -88,13 +88,36 @@ PUBLIC bool csoundUgenContextDelete(UGEN_CONTEXT* context);
 PUBLIC bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context);
 
 
+/**
+ * Let ugen know how long the note would play.
+ * Call before init.
+ */
 PUBLIC bool csoundUgenContextSetDuration(UGEN_CONTEXT *context, MYFLT p3);
-PUBLIC bool csoundUgenContextSetNoteReleases(UGEN_CONTEXT *context);
+
+/**
+ * Makes ugen know that the note has been released
+ */
+PUBLIC bool csoundUgenContextReleaseNote(UGEN_CONTEXT *context);
+
+/**
+ * Offet the samples within audio buffer from the start
+ */
 PUBLIC bool csoundUgenContextSetStartOffset(UGEN_CONTEXT *context, uint32_t start);
-PUBLIC bool csoundUgenContextSetEndOffset(UGEN_CONTEXT *context, uint32_t end);
-PUBLIC int32_t csoundUgenContextGetReleaseTime(UGEN_CONTEXT *context);
-PUBLIC bool csoundUgenContextSetKCounter(UGEN_CONTEXT *context, uint64_t k);
-PUBLIC bool csoundUgenSetInArgCount(UGEN* ugen, int32_t inArgCount);
+
+/**
+ * Offet the samples within audio buffer from the end
+ */
+PUBLIC bool csoundUgenContextSetEndOffset(UGEN_CONTEXT *context, uint32_t start);
+
+/**
+ * Sets star and end offets to zero
+ */
+PUBLIC bool csoundUgenContextResetOffsets(UGEN_CONTEXT *context);
+
+/**
+ * Returns extra type the ugen will output non-zero values after note release
+ */
+PUBLIC int32_t csoundUgenContextGetExtraTime(UGEN_CONTEXT *context);
 
 /* ==== UGEN Creation/Destruction ==== */
 
