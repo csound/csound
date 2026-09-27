@@ -442,13 +442,13 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
       return { allocation: 0, memoryBaseValue: 0 };
     }
 
-    const allocate = instance_["exports"]["allocStringMem"];
-    const free = instance_["exports"]["freeStringMem"];
+    const allocate = instance_["exports"]["allocByteMem"];
+    const free = instance_["exports"]["freeByteMem"];
     if (typeof allocate !== "function") {
-      throw new TypeError("The WebAssembly host does not export allocStringMem");
+      throw new TypeError("The WebAssembly host does not export allocByteMem");
     }
     if (typeof free !== "function") {
-      throw new TypeError("The WebAssembly host does not export freeStringMem");
+      throw new TypeError("The WebAssembly host does not export freeByteMem");
     }
 
     const alignment = alignmentFromExponent(alignmentExponent);
@@ -611,7 +611,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
         }
       }
       if (pluginMemoryAllocation !== 0) {
-        instance_["exports"]["freeStringMem"](pluginMemoryAllocation);
+        instance_["exports"]["freeByteMem"](pluginMemoryAllocation);
       }
     }
   };
