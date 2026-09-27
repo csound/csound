@@ -413,6 +413,9 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
     int32_t ksmps = insds->ksmps;
     int32_t i;
 
+    if (factory == NULL || opName == NULL) {
+        return NULL;
+    }
     // empty type strings are part of API
     if (outargTypes == NULL) outargTypes = (char*)"";
     if (inargTypes  == NULL) inargTypes  = (char*)"";
