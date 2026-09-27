@@ -82,6 +82,7 @@ if(BUILD_TESTS)
         pvsinit_test.cpp
         pvsftw_test.cpp
         pvsgendy_test.cpp
+        pvsgain_test.cpp
         pvsmix_test.cpp
         fsig_assignment_test.cpp
         pvsfromarray_test.cpp
