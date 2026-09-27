@@ -18,8 +18,7 @@ import { spawn } from "child_process";
 import MochaWebdriverRunner from "mocha-webdriver-runner";
 const { runMochaWebDriverTest } = MochaWebdriverRunner;
 
-const httpServerPs = spawn(`node tests/server.cjs`, {
-  shell: true,
+const httpServerPs = spawn(process.execPath, ["tests/server.cjs"], {
   env: { ...process.env, PORT: "8081" },
 });
 
@@ -52,26 +51,22 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
       webDriverCapabilities,
       "http://localhost:8081/index.html?ci=true",
       {
-        reporter: "mocha-junit-reporter",
+        reporter: "xunit",
         reporterOptions: {
-          mochaFile: "tests/results.junit.xml",
-          useFullSuiteTitle: true,
-          rootSuiteTitle: undefined,
-          outputs: true,
+          output: "tests/GOOGLE_CHROME.junit.xml",
+          suiteName: "Google Chrome",
         },
         captureConsoleLog: true,
       },
     );
+    if (!result || !result.success) {
+      console.error(JSON.stringify(result || {}, null, 2));
+      process.exitCode = 1;
+    }
   } catch (error) {
     console.error(error);
-    process.exit(-1);
-  }
-
-  httpServerPs.kill();
-  if (result && result.success) {
-    process.exit(0);
-  } else {
-    console.error(JSON.stringify(result || {}, null, 2));
-    process.exit(0);
+    process.exitCode = 1;
+  } finally {
+    httpServerPs.kill();
   }
 })();

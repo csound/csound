@@ -136,15 +136,6 @@ jobs:
           cd $wasm_browser_dir
           nix-shell --pure
           yarn test:ci
-      - name: Fix the test report
-        if: always()
-        run: |
-          cd $wasm_browser_dir
-          nix-shell --pure
-          mv tests/results.junit.xml tests/_results.junit.xml
-          ex -s +'%s/<testsuite name=""[^>].\{-}>\n.*<\/testsuite>//ge' +%p +q! \
-            tests/_results.junit.xml > tests/GOOGLE_CHROME.junit.xml
-          rm tests/_results.junit.xml
       - name: Publish Test Report
         if: always()
         uses: mikepenz/action-junit-report@v6.5.0
@@ -152,6 +143,7 @@ jobs:
           report_paths: "**/tests/*.junit.xml"
           annotate_only: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
           fail_on_failure: true
+          require_tests: true
           include_passed: false
           detailed_summary: true
           token: ${{ github.token }}
