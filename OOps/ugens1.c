@@ -23,6 +23,7 @@
 #include "csoundCore.h"         /*                      UGENS1.C        */
 #include "ugens1.h"
 #include <math.h>
+#include <float.h>
 
 #define FHUND (FL(100.0))
 
@@ -592,6 +593,7 @@ static int32_t expseg_init(CSOUND *csound, MYFLT **args, int32_t nargs,
   int32_t n, nsegs;
   XSEG *segments, *segp = NULL;
   MYFLT val, next, previous_time = FL(0.0);
+  double previous_count = 0.0, previous_audio_count = 0.0;
 
   if (UNLIKELY(nargs < 3 || !(nargs & 1)))
     return csound->InitError(csound,
@@ -608,7 +610,7 @@ static int32_t expseg_init(CSOUND *csound, MYFLT **args, int32_t nargs,
   for (n=0; n<nsegs; n++) {
     MYFLT time = *args[2*n + 1];
     MYFLT dur = time;
-    double count, audio_count;
+    double count, audio_count, steps, audio_steps;
     if (absolute) {
       if (UNLIKELY(time < previous_time))
         return csound->InitError(csound,
@@ -633,23 +635,45 @@ static int32_t expseg_init(CSOUND *csound, MYFLT **args, int32_t nargs,
 
     count = (double)dur * rate;
     audio_count = (double)dur * sample_rate;
+    if (absolute) {
+      double end = floor((double)time * rate + 0.5);
+      double audio_end = floor((double)time * sample_rate + 0.5);
+      /* Round absolute positions so interval rounding cannot shift later points. */
+      count = steps = end - previous_count;
+      audio_count = audio_steps = audio_end - previous_audio_count;
+      previous_count = end;
+      previous_audio_count = audio_end;
+    }
+    else {
+      steps = floor(count + 0.5);
+      audio_steps = floor(audio_count + 0.5);
+    }
     /* Reserve MAXPOS for continuation and check before converting to int. */
-    if (UNLIKELY(!(count >= 0.0 && count < (double)MAXPOS - 0.5 &&
-                   audio_count >= 0.0 && audio_count < (double)MAXPOS - 0.5)))
+    if (UNLIKELY(!(steps >= 0.0 && steps < (double)MAXPOS &&
+                   audio_steps >= 0.0 && audio_steps < (double)MAXPOS)))
       return csound->InitError(csound, "%s",
                                Str("exponential segment duration out of range"));
     segp = &segments[n];
-    segp->cnt = (int32_t)(count + 0.5);
-    segp->acnt = (int32_t)(audio_count + 0.5);
-    if (dur == FL(0.0)) {
-      /* Repeated absolute times jump immediately, even at the final point. */
+    segp->cnt = (int32_t)steps;
+    segp->acnt = (int32_t)audio_steps;
+    if (absolute && count == 0.0) {
+      /* Points at the same update jump immediately, including the final point. */
       segp->val = next;
       segp->mlt = segp->amlt = FL(1.0);
     }
     else {
+      double ratio = (double)next / val;
       segp->val = val;
-      segp->mlt = (MYFLT)pow((double)next / val, 1.0 / count);
-      segp->amlt = (MYFLT)pow((double)next / val, 1.0 / audio_count);
+      if (LIKELY(ratio >= DBL_MIN && ratio <= DBL_MAX)) {
+        segp->mlt = pow(ratio, 1.0 / count);
+        segp->amlt = pow(ratio, 1.0 / audio_count);
+      }
+      else {
+        /* Avoid overflow and underflow in the endpoint ratio. */
+        double logratio = log(fabs((double)next)) - log(fabs((double)val));
+        segp->mlt = exp(logratio / count);
+        segp->amlt = exp(logratio / audio_count);
+      }
     }
   }
   segp->cnt = segp->acnt = MAXPOS;
@@ -666,7 +690,8 @@ int32_t xsgset(CSOUND *csound, EXXPSEG *p)
 int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
 {
   return expseg_init(csound, p->argums, p->INOCOUNT, &p->auxch,
-                     &p->cursegp, CS_EKR, CS_ESR, 1);
+                     &p->cursegp, IS_ASIG_ARG(p->rslt) ? CS_ESR : CS_EKR,
+                     CS_ESR, 1);
 }
 
 int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
@@ -690,7 +715,8 @@ int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) 
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT       val, *rs;
+  MYFLT       *rs;
+  double      val;
   segp = p->cursegp;
   if (UNLIKELY(segp == NULL))
     return csound->PerfError(csound, &p->h,
@@ -707,7 +733,7 @@ int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) 
       p->cursegp = ++segp;
       val = segp->val;
     }
-    rs[n] = val;
+    rs[n] = (MYFLT)val;
     val *=  segp->mlt;
   }
   segp->val = val;
@@ -725,7 +751,7 @@ int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
   if (UNLIKELY(segp == NULL)) goto err1;
   while (segp->cnt != MAXPOS && --segp->cnt < 0)
     p->cursegp = ++segp;
-  *p->rslt = segp->val;
+  *p->rslt = (MYFLT)segp->val;
   segp->val *= segp->mlt;
   return OK;
  err1:
@@ -758,7 +784,7 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
       //printf("nxtseg: val=%f amlt=%f acnt=%d\n",
       //       segp->val,segp->amlt,segp->acnt);
     }
-    rs[n] = segp->val;
+    rs[n] = (MYFLT)segp->val;
     segp->val *= segp->amlt;
   }
   return OK;
