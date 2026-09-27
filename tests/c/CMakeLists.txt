@@ -92,6 +92,7 @@ if(BUILD_TESTS)
         pvsanal_test.cpp
         pvstanal_test.cpp
         pvscross_test.cpp
+        pvsmorph_test.cpp
         pvsmaska_test.cpp
         paulstretch_test.cpp
         mixer_test.cpp
