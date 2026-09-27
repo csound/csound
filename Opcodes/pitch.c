@@ -1276,6 +1276,7 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
 {
     double  phs;
     double  *curphs = (double*)p->curphs.auxp;
+    MYFLT   cps;
     int32_t     index;
 
     if (UNLIKELY(curphs == NULL)) {
@@ -1289,8 +1290,10 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
     }
     index = (int32_t)*p->kindx;
 
+    /* Read the frequency before the output can overwrite it. */
+    cps = *p->xcps;
     *p->sr = (MYFLT)(phs = curphs[index]);
-    if (UNLIKELY((phs += *p->xcps * CS_ONEDKR) >= 1.0))
+    if (UNLIKELY((phs += cps * CS_ONEDKR) >= 1.0))
       phs -= 1.0;
     else if (UNLIKELY(phs < 0.0)) /* patch from Matthew Scala */
       phs += 1.0;

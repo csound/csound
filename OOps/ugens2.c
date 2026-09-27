@@ -157,9 +157,11 @@ int32_t kphsor(CSOUND *csound, PHSOR *p)
 {
   IGN(csound);
   double      phs;
+  /* The output may reuse the frequency variable. */
+  MYFLT       cps = *p->xcps;
   phs = p->curphs;
   *p->sr = PHASOR_OUTPUT(phs);
-  if (UNLIKELY((phs += (double)*p->xcps * CS_ONEDKR) >= 1.0))
+  if (UNLIKELY((phs += (double)cps * CS_ONEDKR) >= 1.0))
     phs -= 1.0;
   else if (UNLIKELY(phs < 0.0))
     phs += 1.0;
