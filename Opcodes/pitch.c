@@ -1952,7 +1952,8 @@ int32_t ktrnseg(CSOUND *csound, TRANSEG *p)
 
 int32_t trnseg(CSOUND *csound, TRANSEG *p)
 {
-    MYFLT  val, *rs = p->rslt;
+    double val;
+    MYFLT *rs = p->rslt;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -2008,178 +2009,153 @@ int32_t trnseg(CSOUND *csound, TRANSEG *p)
 /* MIDI aware version of transeg */
 int32_t trnsetr(CSOUND *csound, TRANSEG *p)
 {
-    int32_t         relestim;
-    NSEG        *segp;
-    int32_t         nsegs;
-    MYFLT       **argp;
-    double      val;
+    NSEG *segp;
+    int32_t nsegs, release_periods;
+    MYFLT **argp = p->argums;
+    int32_t audio = IS_ASIG_ARG(p->rslt);
+    double val;
 
     if (UNLIKELY(p->INOCOUNT%3!=1))
       return csound->InitError(csound, "%s", Str("Incorrect argument count in transegr"));
-    nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
+    /* Skipping init must also preserve the release counts. */
+    if (UNLIKELY(*argp[1] <= FL(0.0))) return OK;
+    nsegs = p->INOCOUNT / 3;
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
         (uint32_t)p->auxch.size < nsegs*sizeof(NSEG)) {
       csound->AuxAlloc(csound, (int32)nsegs*sizeof(NSEG), &p->auxch);
-      p->cursegp = segp = (NSEG *) p->auxch.auxp;
+      segp = (NSEG *) p->auxch.auxp;
     }
-    segp[nsegs-1].cnt = MAXPOS;       /* set endcount for safety */
-    segp[nsegs-1].acnt = MAXPOS;       /* set endcount for safety */
-    argp = p->argums;
-    val = (double)**argp++;
-    if (UNLIKELY(**argp <= FL(0.0))) return OK; /* if idur1 <= 0, skip init  */
+    val = **argp++;
     p->curval = val;
     p->curcnt = 0;
-    p->cursegp = segp - 1;            /* else setup null seg0 */
+    p->cursegp = segp - 1;
     p->segsrem = nsegs + 1;
-    p->curx = FL(0.0);
-    do {                              /* init each seg ..  */
-      double dur = (double)**argp++;
-      MYFLT alpha = **argp++;
-      MYFLT nxtval = **argp++;
-      MYFLT d = dur * CS_ESR;
-      if ((segp->acnt = segp->cnt = (int32)(d + FL(0.5))) < 0)
-        segp->acnt = segp->cnt = 0;
-      else
-        segp->cnt = (int32)(dur * CS_EKR);
-      segp->nxtpt = nxtval;
-      segp->val = val;
-      p->lastalpha = alpha;
-      trnseg_coefficients(segp, val, nxtval, alpha, d);
-      val = nxtval;
+    p->curx = 0.0;
+    do {
+      double dur = **argp++;
+      double curve = **argp++;
+      MYFLT next = **argp++;
+      double samples = dur * CS_ESR;
+      if (UNLIKELY(!(samples <= (double)MAXPOS - 1.0)))
+        return csound->InitError(csound, "%s",
+                                Str("transegr: invalid segment duration"));
+      /* Preserve sample rounding and control-period truncation. */
+      segp->acnt = samples > 0.0 ? (int32_t)(samples + 0.5) : 0;
+      segp->cnt = dur > 0.0 ? (int32_t)(dur * CS_EKR) : 0;
+      segp->nxtpt = next;
+      trnseg_coefficients(segp, val, next, curve,
+                          audio ? segp->acnt : (double)segp->cnt * CS_KSMPS);
+      val = next;
+      p->lastalpha = curve;
+      p->finalval = next;
       segp++;
-      p->finalval = nxtval;
     } while (--nsegs);
-    //p->xtra = -1;
-    p->alpha = ((NSEG*)p->auxch.auxp)[0].alpha;
-    p->curinc = ((NSEG*)p->auxch.auxp)[0].c1;
-    relestim = (int32_t)(p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = relestim;
-    if (relestim > p->h.insdshead->xtratim)
-      p->h.insdshead->xtratim = (int32_t)relestim;
-    /* {  */
-    /*   int32_t i; */
-    /*   int32_t nseg = p->INOCOUNT / 3; */
-    /*   NSEG *segp = p->cursegp; */
-    /*   for (i=0; i<nseg; i++) */
-    /*     printf("cnt=%d alpha=%f val=%f nxtpt=%f c1=%f\n", */
-    /*      segp[i].cnt, segp[i].alpha, segp[i].val, segp[i].nxtpt, segp[i].c1); */
-    /* } */
+    segp--;
+    p->xtra = segp->cnt;
+    /* The endpoint needs an output period after the last release step. */
+    release_periods = (audio ? segp->acnt / CS_KSMPS : segp->cnt) + 1;
+    if (release_periods > p->h.insdshead->xtratim)
+      p->h.insdshead->xtratim = release_periods;
     return OK;
 }
 
 int32_t ktrnsegr(CSOUND *csound, TRANSEG *p)
 {
-    *p->rslt = p->curval;               /* put the cur value    */
-    if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
-      return csound->PerfError(csound,&(p->h),
-                        "%s", Str("Error: transeg not initialised (krate)\n"));
-    }
-    if (p->segsrem) {                   /* done if no more segs */
-      NSEG        *segp;
+    if (UNLIKELY(p->auxch.auxp==NULL))
+      return csound->PerfError(csound, &p->h, "%s",
+                              Str("transegr: not initialised (krate)\n"));
+    if (p->segsrem) {
+      NSEG *segp;
       if (p->h.insdshead->relesing && p->segsrem > 1) {
-        //printf("releasing\n");
-        while (p->segsrem > 1) {        /* reles flag new:      */
-          segp = ++p->cursegp;          /*   go to last segment */
-          p->segsrem--;
-        }                               /*   get univ relestim  */
-        segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
+        p->cursegp += p->segsrem - 1;
+        p->segsrem = 1;
+        segp = p->cursegp;
         trnseg_coefficients(segp, p->curval, p->finalval, p->lastalpha,
                             (double)segp->cnt * CS_KSMPS);
-        goto newm;                      /*   and set new curmlt */
+        goto newseg;
       }
-      if (--p->curcnt <= 0) {           /* if done cur segment  */
-      chk1:
-          if (p->segsrem == 2) return OK;    /*   seg Y rpts lastval */
-          if (!(--p->segsrem)) return OK;    /*   seg Z now done all */
-        segp = ++p->cursegp;            /*   find the next      */
-      newm:
-        //printf("curcnt = %d seg/cnt = %d\n", p->curcnt, segp->cnt);
-        if (!(p->curcnt = segp->cnt)) { /*   nonlen = discontin */
-          p->curval = segp->nxtpt;      /*   poslen = new slope */
-          //printf("curval = %f\n", p->curval);
-          goto chk1;
+      if (p->curcnt == 0) {
+      nextseg:
+        if (p->segsrem == 2) goto output; /* Hold until note-off. */
+        if (--p->segsrem == 0) goto output;
+        segp = ++p->cursegp;
+      newseg:
+        if ((p->curcnt = segp->cnt) == 0) {
+          p->curval = segp->nxtpt;
+          goto nextseg;
         }
         p->curinc = segp->c1;
         p->alpha = segp->alpha;
         p->curx = segp->x;
       }
-      p->curx += (double)CS_KSMPS * p->alpha;
-      if (p->alpha == FL(0.0)) {
-        p->curval += p->curinc *CS_KSMPS;   /* advance the cur val  */
-        //printf("curval = %f\n", p->curval);
-      }
-      else
+      *p->rslt = (MYFLT)p->curval;
+      if (--p->curcnt == 0)
+        p->curval = p->cursegp->nxtpt;
+      else if (p->alpha == 0.0)
+        p->curval += p->curinc * CS_KSMPS;
+      else {
+        p->curx += (double)CS_KSMPS * p->alpha;
         p->curval = TRNSEG_VALUE(p, p->cursegp);
+      }
+      return OK;
     }
+output:
+    *p->rslt = (MYFLT)p->curval;
     return OK;
 }
 
 int32_t trnsegr(CSOUND *csound, TRANSEG *p)
 {
-    MYFLT  val, *rs = p->rslt;
+    double val;
+    MYFLT *rs = p->rslt;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    if (UNLIKELY(p->auxch.auxp==NULL)) {
-      return csound->PerfError(csound, &(p->h),
-                               "%s", Str("transeg: not initialised (arate)\n"));
-    }
-    if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    val = p->curval;                      /* sav the cur value    */
-   for (n=offset; n<nsmps; n++) {
-    if (LIKELY(p->segsrem)) {             /* if no more segs putk */
-      NSEG  *segp;
-      if (p->h.insdshead->relesing && p->segsrem > 1) {
-        while (p->segsrem > 1) {          /* if release flag new  */
-          segp = ++p->cursegp;            /*   go to last segment */
-          p->segsrem--;
-        }                                 /*   get univ relestim  */
-        segp->cnt = p->xtra>=0 ? p->xtra : p->h.insdshead->xtratim;
-        trnseg_coefficients(segp, val, p->finalval, p->lastalpha,
-                            segp->acnt);
-        goto newm;                        /*   and set new curmlt */
-      }
-      if (--p->curcnt <= 0) {             /*  if done cur segment */
-        //segp = p->cursegp;              /* overwritten later -- coverity */
-      chk1:
-        if (p->segsrem == 2) goto putk;     /*   seg Y rpts lastval */
-        if (UNLIKELY(!--p->segsrem)) {    /*   if none left       */
-          //val = p->curval = segp->nxtpt;
-          goto putk;                      /*      put endval      */
+    uint32_t early = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS - early;
+    if (UNLIKELY(p->auxch.auxp==NULL))
+      return csound->PerfError(csound, &p->h, "%s",
+                              Str("transegr: not initialised (arate)\n"));
+    if (UNLIKELY(offset)) memset(rs, 0, offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) memset(&rs[nsmps], 0, early*sizeof(MYFLT));
+    val = p->curval;
+    for (n=offset; n<nsmps; n++) {
+      if (p->segsrem) {
+        NSEG *segp;
+        if (p->h.insdshead->relesing && p->segsrem > 1) {
+          p->cursegp += p->segsrem - 1;
+          p->segsrem = 1;
+          segp = p->cursegp;
+          trnseg_coefficients(segp, val, p->finalval, p->lastalpha, segp->acnt);
+          goto newseg;
         }
-        segp = ++p->cursegp;              /*   else find the next */
-      newm:
-       if (!(p->curcnt = segp->acnt)) {
-          val = p->curval = segp->nxtpt;  /*   nonlen = discontin */
-          goto chk1;
-        }                                 /*   poslen = new slope */
-        p->curinc = segp->c1;
-        p->alpha = segp->alpha;
-        p->curx = segp->x;
-        p->curval = val;
-      }
-      if (p->alpha == FL(0.0)) {
-          rs[n] = val;
+        if (p->curcnt == 0) {
+        nextseg:
+          if (p->segsrem == 2) goto output; /* Hold until note-off. */
+          if (--p->segsrem == 0) goto output;
+          segp = ++p->cursegp;
+        newseg:
+          if ((p->curcnt = segp->acnt) == 0) {
+            val = segp->nxtpt;
+            goto nextseg;
+          }
+          p->curinc = segp->c1;
+          p->alpha = segp->alpha;
+          p->curx = segp->x;
+        }
+        rs[n] = (MYFLT)val;
+        if (--p->curcnt == 0)
+          val = p->cursegp->nxtpt;
+        else if (p->alpha == 0.0)
           val += p->curinc;
-      }
-      else {
-        segp = p->cursegp;
-          rs[n] = val;
+        else {
           p->curx += p->alpha;
-          val = TRNSEG_VALUE(p, segp);
+          val = TRNSEG_VALUE(p, p->cursegp);
+        }
+        continue;
       }
+    output:
+      rs[n] = (MYFLT)val;
     }
-    else {
-    putk:
-        rs[n] = val;
-    }
-   }
-   p->curval = val;
-
+    p->curval = val;
     return OK;
 }
 
