@@ -775,15 +775,11 @@ if (NOT MATH_LIBRARY)
     set(MATH_LIBRARY "")
 endif()
 
-if(APPLE)
 include(CheckSymbolExists)
-check_symbol_exists(lrint math.h FOUND_LRINT)
-else()
 cmake_push_check_state()
 list(APPEND CMAKE_REQUIRED_LIBRARIES ${MATH_LIBRARY})
-check_function_exists(lrint FOUND_LRINT)
+check_symbol_exists(lrint math.h FOUND_LRINT)
 cmake_pop_check_state()
-endif()
 
 # MSVC / VCPKG won't find dirent.h by default. Need to add the path explicitly
 find_file(DIRENT_H "dirent.h")
