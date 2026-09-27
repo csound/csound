@@ -280,7 +280,7 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     overlap = p->fout->overlap;
     if (p->scnt >= overlap) {
       float *frame1, *frame2;
-      frames = handle->frames-1;
+      frames = handle->frames;
       ftab = csound->FTFind(csound, p->strt);
       if (UNLIKELY(ftab==NULL))
         return csound->PerfError(csound, &(p->h),Str("amp function table not found\n"));
