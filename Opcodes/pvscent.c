@@ -64,7 +64,8 @@ static int32_t pvscent(CSOUND *csound, PVSCENT *p)
     }
     else {
       float *fin = (float *) p->fin->frame.auxp;
-      if (p->lastframe < p->fin->framecount) {
+      /* Reinitializing a producer can restart its frame counter. */
+      if (p->lastframe != p->fin->framecount) {
         for (i=0,j=FL(0.0); i<N+2; i+=2, j += binsize) {
           c += fin[i]*j;         /* This ignores phase */
           d += fin[i];
@@ -120,7 +121,7 @@ static int32_t pvsscent(CSOUND *csound, PVSCENT *p)
         nsmps -= early;
         memset(&a[nsmps], '\0', early*sizeof(MYFLT));
       }
-      if (p->lastframe < p->fin->framecount) {
+      if (p->lastframe != p->fin->framecount) {
         for (i=0,j=FL(0.0); i<N+2; i+=2, j += binsize) {
           c += fin[i]*j;         /* This ignores phase */
           d += fin[i];
@@ -158,7 +159,7 @@ static int32_t pvsbandw(CSOUND *csound, PVSCENT *p)
     }
     else {
       float *fin = (float *) p->fin->frame.auxp;
-      if (p->lastframe < p->fin->framecount) {
+      if (p->lastframe != p->fin->framecount) {
         // compute centroid
         MYFLT cd;
         for (i=0,j=FL(0.0); i<N+2; i+=2, j += binsize) {
