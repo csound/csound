@@ -1210,11 +1210,9 @@ strNcpy(char *dst, const char *src, size_t siz)
 
 /* Debugging opcode for testing runtime type identification */
 int32_t print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
-  char* ptr = (char*)p->inVar;
-
-  CS_TYPE* varType = *(CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
-  csound->Message(csound, "Variable Type: %s\n", varType->varTypeName);
-
+  char *name = csoundFormatArgumentType(csound, p->inVar);
+  csound->Message(csound, "Variable Type: %s\n", name);
+  csound->Free(csound, name);
   return OK;
 }
 

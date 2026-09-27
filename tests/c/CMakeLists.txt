@@ -40,6 +40,7 @@ if(BUILD_TESTS)
         csound_orc_compile_test.cpp
         csound_orc_semantics_test.cpp
         csound_type_system_test.cpp
+        type_display_test.cpp
         csound_circular_buffer_test.cpp
         thread_result_test.cpp
         vibrato_test.cpp
@@ -88,9 +89,11 @@ if(BUILD_TESTS)
         fsig_assignment_test.cpp
         pvsfromarray_test.cpp
         pvsblur_test.cpp
+        pvsanal_test.cpp
         pvstanal_test.cpp
         pvscross_test.cpp
         pvsmorph_test.cpp
+        pvsmaska_test.cpp
         paulstretch_test.cpp
         mixer_test.cpp
         multitap_test.cpp
@@ -202,6 +205,28 @@ if(BUILD_TESTS)
             CSOUND_TEST_OSC_PLUGIN="${TEST_OSC_PLUGIN}"
             CSOUND_TEST_OSC_PLUGIN_ENV="${TEST_OSC_PLUGIN_ENV}"
         )
+    endif()
+
+    if(TARGET dssi4cs)
+        add_library(dssi_test_plugin MODULE fixtures/dssi_test_plugin.c)
+        add_library(ladspa_test_plugin MODULE fixtures/dssi_test_plugin.c)
+        target_compile_definitions(ladspa_test_plugin PRIVATE DSSI_TEST_LADSPA)
+        include(CheckIncludeFiles)
+        check_include_files("alsa/asoundlib.h;dssi.h" DSSI_TEST_SYSTEM_HEADER)
+        if(NOT DSSI_TEST_SYSTEM_HEADER)
+            target_link_libraries(dssi_test_plugin PRIVATE dssi_headers)
+            target_link_libraries(ladspa_test_plugin PRIVATE dssi_headers)
+        endif()
+        add_executable(dssi_tests dssi_test.cpp)
+        target_link_libraries(dssi_tests PRIVATE GTest::gtest_main ${CSOUNDLIB})
+        target_compile_definitions(dssi_tests PRIVATE
+            CSOUND_TEST_DSSI_HOST="$<TARGET_FILE:dssi4cs>"
+            CSOUND_TEST_DSSI_PLUGIN="$<TARGET_FILE:dssi_test_plugin>"
+            CSOUND_TEST_LADSPA_PLUGIN="$<TARGET_FILE:ladspa_test_plugin>")
+        target_link_libraries(dssi_tests PRIVATE ${CMAKE_DL_LIBS})
+        add_dependencies(dssi_tests dssi4cs dssi_test_plugin ladspa_test_plugin)
+        include(GoogleTest)
+        gtest_discover_tests(dssi_tests)
     endif()
 
     include(GoogleTest)

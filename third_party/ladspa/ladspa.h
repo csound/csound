@@ -3,20 +3,21 @@
    Linux Audio Developer's Simple Plugin API Version 1.1[LGPL].
    Copyright (C) 2000-2002 Richard W.E. Furse, Paul Barton-Davis,
    Stefan Westerfeld.
-
+   
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
    the License, or (at your option) any later version.
-
+   
    This library is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
    Lesser General Public License for more details.
-
+   
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA. */
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+   USA. */
 
 #ifndef LADSPA_INCLUDED
 #define LADSPA_INCLUDED
@@ -31,7 +32,7 @@ extern "C" {
 
 /*****************************************************************************/
 
-/* Overview:
+/* Overview: 
 
    There is a large number of synthesis packages in use or development
    on the Linux platform at this time. This API (`The Linux Audio
@@ -75,7 +76,7 @@ extern "C" {
 /* Fundamental data type passed in and out of plugin. This data type
    is used to communicate audio samples and control values. It is
    assumed that the plugin will work sensibly given any numeric input
-   value although it may have a preferred range (see hints below).
+   value although it may have a preferred range (see hints below). 
 
    For audio it is generally assumed that 1.0f is the `0dB' reference
    amplitude and is a `normal' signal level. */
@@ -84,13 +85,13 @@ typedef float LADSPA_Data;
 
 /*****************************************************************************/
 
-/* Special Plugin Properties:
-
+/* Special Plugin Properties: 
+ 
    Optional features of the plugin type are encapsulated in the
    LADSPA_Properties type. This is assembled by ORing individual
    properties together. */
 
-typedef int32_t LADSPA_Properties;
+typedef int LADSPA_Properties;
 
 /* Property LADSPA_PROPERTY_REALTIME indicates that the plugin has a
    real-time dependency (e.g. listens to a MIDI device) and so its
@@ -121,7 +122,7 @@ typedef int32_t LADSPA_Properties;
    (3) The plugin will not access files, devices, pipes, sockets, IPC
    or any other mechanism that might result in process or thread
    blocking.
-
+      
    (4) The plugin will take an amount of time to execute a run() or
    run_adding() call approximately of form (A+B*SampleCount) where A
    and B depend on the machine and host in use. This amount of time
@@ -136,7 +137,7 @@ typedef int32_t LADSPA_Properties;
 
 /*****************************************************************************/
 
-/* Plugin Ports:
+/* Plugin Ports: 
 
    Plugins have `ports' that are inputs or outputs for audio or
    data. Ports can communicate arrays of LADSPA_Data (for audio
@@ -148,7 +149,7 @@ typedef int32_t LADSPA_Properties;
    Note that a port must be an input or an output port but not both
    and that a port must be a control or audio port but not both. */
 
-typedef int32_t LADSPA_PortDescriptor;
+typedef int LADSPA_PortDescriptor;
 
 /* Property LADSPA_PORT_INPUT indicates that the port is an input. */
 #define LADSPA_PORT_INPUT   0x1
@@ -171,23 +172,23 @@ typedef int32_t LADSPA_PortDescriptor;
 
 /*****************************************************************************/
 
-/* Plugin Port Range Hints:
+/* Plugin Port Range Hints: 
 
    The host may wish to provide a representation of data entering or
    leaving a plugin (e.g. to generate a GUI automatically). To make
    this more meaningful, the plugin should provide `hints' to the host
    describing the usual values taken by the data.
-
+   
    Note that these are only hints. The host may ignore them and the
    plugin must not assume that data supplied to it is meaningful. If
    the plugin receives invalid input data it is expected to continue
    to run without failure and, where possible, produce a sensible
    output (e.g. a high-pass filter given a negative cutoff frequency
    might switch to an all-pass mode).
-
+    
    Hints are meaningful for all input and output ports but hints for
    input control ports are expected to be particularly useful.
-
+   
    More hint information is encapsulated in the
    LADSPA_PortRangeHintDescriptor type which is assembled by ORing
    individual hint types together. Hints may require further
@@ -196,7 +197,7 @@ typedef int32_t LADSPA_PortDescriptor;
    All the hint information for a particular port is aggregated in the
    LADSPA_PortRangeHint structure. */
 
-typedef int32_t LADSPA_PortRangeHintDescriptor;
+typedef int LADSPA_PortRangeHintDescriptor;
 
 /* Hint LADSPA_HINT_BOUNDED_BELOW indicates that the LowerBound field
    of the LADSPA_PortRangeHint should be considered meaningful. The
@@ -352,7 +353,7 @@ typedef struct _LADSPA_PortRangeHint {
 
 /*****************************************************************************/
 
-/* Plugin Handles:
+/* Plugin Handles: 
 
    This plugin handle indicates a particular instance of the plugin
    concerned. It is valid to compare this to NULL (0 for C++) but
@@ -363,19 +364,19 @@ typedef void * LADSPA_Handle;
 
 /*****************************************************************************/
 
-/* Descriptor for a Type of Plugin:
+/* Descriptor for a Type of Plugin: 
 
    This structure is used to describe a plugin type. It provides a
    number of functions to examine the type, instantiate it, link it to
    buffers and workspaces and to run it. */
 
-typedef struct _LADSPA_Descriptor {
+typedef struct _LADSPA_Descriptor { 
 
   /* This numeric identifier indicates the plugin type
      uniquely. Plugin programmers may reserve ranges of IDs from a
      central body to avoid clashes. Hosts may assume that IDs are
      below 0x1000000. */
-  uint64_t UniqueID;
+  unsigned long UniqueID;
 
   /* This identifier can be used as a unique, case-sensitive
      identifier for the plugin type within the plugin file. Plugin
@@ -402,7 +403,7 @@ typedef struct _LADSPA_Descriptor {
 
   /* This indicates the number of ports (input AND output) present on
      the plugin. */
-  uint64_t PortCount;
+  unsigned long PortCount;
 
   /* This member indicates an array of port descriptors. Valid indices
      vary from 0 to PortCount-1. */
@@ -429,12 +430,12 @@ typedef struct _LADSPA_Descriptor {
      instantiation function accepts a sample rate as a parameter. The
      plugin descriptor from which this instantiate function was found
      must also be passed. This function must return NULL if
-     instantiation fails.
+     instantiation fails. 
 
      Note that instance initialisation should generally occur in
      activate() rather than here. */
   LADSPA_Handle (*instantiate)(const struct _LADSPA_Descriptor * Descriptor,
-                               uint64_t                     SampleRate);
+                               unsigned long                     SampleRate);
 
   /* This member is a function pointer that connects a port on an
      instantiated plugin to a memory location at which a block of data
@@ -463,7 +464,7 @@ typedef struct _LADSPA_Descriptor {
      However, overlapped buffers or use of a single buffer for both
      audio and control data may result in unexpected behaviour. */
    void (*connect_port)(LADSPA_Handle Instance,
-                        uint64_t Port,
+                        unsigned long Port,
                         LADSPA_Data * DataLocation);
 
   /* This member is a function pointer that initialises a plugin
@@ -502,7 +503,7 @@ typedef struct _LADSPA_Descriptor {
      then there are various things that the plugin should not do
      within the run() or run_adding() functions (see above). */
   void (*run)(LADSPA_Handle Instance,
-              uint64_t SampleCount);
+              unsigned long SampleCount);
 
   /* This method is a function pointer that runs an instance of a
      plugin for a block. This has identical behaviour to run() except
@@ -518,7 +519,7 @@ typedef struct _LADSPA_Descriptor {
      this function pointer must be set to NULL. When it is provided,
      the function set_run_adding_gain() must be provided also. */
   void (*run_adding)(LADSPA_Handle Instance,
-                     uint64_t SampleCount);
+                     unsigned long SampleCount);
 
   /* This method is a function pointer that sets the output gain for
      use when run_adding() is called (see above). If this function is
@@ -550,7 +551,7 @@ typedef struct _LADSPA_Descriptor {
   /* Once an instance of a plugin has been finished with it can be
      deleted using the following function. The instance handle passed
      ceases to be valid after this call.
-
+  
      If activate() was called for a plugin instance then a
      corresponding call to deactivate() must be made before cleanup()
      is called. */
@@ -585,11 +586,11 @@ typedef struct _LADSPA_Descriptor {
    returning NULL, so the plugin count can be determined by checking
    for the least index that results in NULL being returned. */
 
-const LADSPA_Descriptor * ladspa_descriptor(uint64_t Index);
+const LADSPA_Descriptor * ladspa_descriptor(unsigned long Index);
 
 /* Datatype corresponding to the ladspa_descriptor() function. */
-typedef const LADSPA_Descriptor *
-(*LADSPA_Descriptor_Function)(uint64_t Index);
+typedef const LADSPA_Descriptor * 
+(*LADSPA_Descriptor_Function)(unsigned long Index);
 
 /**********************************************************************/
 

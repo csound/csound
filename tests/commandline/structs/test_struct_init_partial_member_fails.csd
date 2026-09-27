@@ -3,7 +3,7 @@ description = "fail when struct init provides only some members"
 
 [expect]
 exit = "nonzero"
-stderr = [":Point; init c"]
+stderr = ["Point init c"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

@@ -2,39 +2,40 @@
 
 /* dssi.h
 
-   DSSI version 0.9
-   Copyright (c) 2004 Chris Cannam, Steve Harris and Sean Bolton
-
+   DSSI version 1.0
+   Copyright (c) 2004, 2009 Chris Cannam, Steve Harris and Sean Bolton
+   
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
    the License, or (at your option) any later version.
-
+   
    This library is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
    Lesser General Public License for more details.
-
+   
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA.
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA  02110-1301  USA
 */
 
 #ifndef DSSI_INCLUDED
 #define DSSI_INCLUDED
 
-#include "ladspa.h"
+#include <ladspa.h>
 #include <alsa/seq_event.h>
 
-#define DSSI_VERSION "0.9"
-#define DSSI_VERSION_MAJOR 0
-#define DSSI_VERSION_MINOR 9
+#define DSSI_VERSION "1.0"
+#define DSSI_VERSION_MAJOR 1
+#define DSSI_VERSION_MINOR 0
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/*
+/* 
    There is a need for an API that supports hosted MIDI soft synths
    with GUIs in Linux audio applications.  In time the GMPI initiative
    should comprehensively address this need, but the requirement for
@@ -59,18 +60,19 @@ typedef struct _DSSI_Program_Descriptor {
         MIDI-style separation of bank LSB and MSB values.  There is no
         restriction on the set of available banks: the numbers do not
         need to be contiguous, there does not need to be a bank 0, etc. */
-    uint64_t Bank;
+    unsigned long Bank;
 
     /** Program number (unique within its bank) for this program.
-        There is no restriction on the set of available programs: the
-        numbers do not need to be contiguous, there does not need to
-        be a program 0, etc. */
-    uint64_t Program;
+	There is no restriction on the set of available programs: the
+	numbers do not need to be contiguous, there does not need to
+	be a program 0, etc. */
+    unsigned long Program;
 
     /** Name of the program. */
     const char * Name;
 
 } DSSI_Program_Descriptor;
+
 
 typedef struct _DSSI_Descriptor {
 
@@ -161,13 +163,13 @@ typedef struct _DSSI_Descriptor {
      * See also the configure OSC call documentation in RFC.txt.
      */
     char *(*configure)(LADSPA_Handle Instance,
-                       const char *Key,
-                       const char *Value);
+		       const char *Key,
+		       const char *Value);
 
     #define DSSI_RESERVED_CONFIGURE_PREFIX "DSSI:"
     #define DSSI_GLOBAL_CONFIGURE_PREFIX "GLOBAL:"
     #define DSSI_PROJECT_DIRECTORY_KEY \
-        DSSI_RESERVED_CONFIGURE_PREFIX "PROJECT_DIRECTORY"
+	DSSI_RESERVED_CONFIGURE_PREFIX "PROJECT_DIRECTORY"
 
     /**
      * get_program()
@@ -191,8 +193,8 @@ typedef struct _DSSI_Descriptor {
      * programs as well as their properties.
      */
     const DSSI_Program_Descriptor *(*get_program)(LADSPA_Handle Instance,
-                                                  uint64_t Index);
-
+						  unsigned long Index);
+    
     /**
      * select_program()
      *
@@ -204,7 +206,7 @@ typedef struct _DSSI_Descriptor {
      * to place the program change at the right place.  A host that
      * wanted to avoid this would probably just instantiate a plugin
      * for each program.)
-     *
+     * 
      * A plugin that does not support programs at all should set this
      * member NULL.  Plugins should ignore a select_program() call
      * with an invalid bank or program.
@@ -213,10 +215,16 @@ typedef struct _DSSI_Descriptor {
      * program on activate(): it's the host's duty to set a program
      * explicitly.  The current program is invalidated by any call to
      * configure().
+     *
+     * A plugin is permitted to re-write the values of its input
+     * control ports when select_program is called.  The host should
+     * re-read the input control port values and update its own
+     * records appropriately.  (This is the only circumstance in
+     * which a DSSI plugin is allowed to modify its own input ports.)
      */
     void (*select_program)(LADSPA_Handle Instance,
-                           uint64_t Bank,
-                           uint64_t Program);
+			   unsigned long Bank,
+			   unsigned long Program);
 
     /**
      * get_midi_controller_for_port()
@@ -245,7 +253,7 @@ typedef struct _DSSI_Descriptor {
      * controllers 0 or 32 (MIDI Bank Select MSB and LSB).
      */
     int (*get_midi_controller_for_port)(LADSPA_Handle Instance,
-                                        uint64_t Port);
+					unsigned long Port);
 
     /**
      * run_synth()
@@ -274,12 +282,12 @@ typedef struct _DSSI_Descriptor {
      * ~~~~~~~~~~~
      * There are two minor requirements aimed at making the plugin
      * writer's life as simple as possible:
-     *
+     * 
      * 1. A host must never send events of type SND_SEQ_EVENT_NOTE.
      * Notes should always be sent as separate SND_SEQ_EVENT_NOTE_ON
      * and NOTE_OFF events.  A plugin should discard any one-point
      * NOTE events it sees.
-     *
+     * 
      * 2. A host must not attempt to switch notes off by sending
      * zero-velocity NOTE_ON events.  It should always send true
      * NOTE_OFFs.  It is the host's responsibility to remap events in
@@ -295,9 +303,9 @@ typedef struct _DSSI_Descriptor {
      * select controller to a plugin via run_synth.
      */
     void (*run_synth)(LADSPA_Handle    Instance,
-                      uint64_t    SampleCount,
-                      snd_seq_event_t *Events,
-                      uint64_t    EventCount);
+		      unsigned long    SampleCount,
+		      snd_seq_event_t *Events,
+		      unsigned long    EventCount);
 
     /**
      * run_synth_adding()
@@ -309,9 +317,9 @@ typedef struct _DSSI_Descriptor {
      * that does not provide it must set this member to NULL.
      */
     void (*run_synth_adding)(LADSPA_Handle    Instance,
-                             uint64_t    SampleCount,
-                             snd_seq_event_t *Events,
-                             uint64_t    EventCount);
+			     unsigned long    SampleCount,
+			     snd_seq_event_t *Events,
+			     unsigned long    EventCount);
 
     /**
      * run_multiple_synths()
@@ -345,11 +353,11 @@ typedef struct _DSSI_Descriptor {
      * to aid simplistic hosts, even where it would be less efficient
      * to use it.
      */
-    void (*run_multiple_synths)(uint64_t     InstanceCount,
+    void (*run_multiple_synths)(unsigned long     InstanceCount,
                                 LADSPA_Handle    *Instances,
-                                uint64_t     SampleCount,
+                                unsigned long     SampleCount,
                                 snd_seq_event_t **Events,
-                                uint64_t    *EventCounts);
+                                unsigned long    *EventCounts);
 
     /**
      * run_multiple_synths_adding()
@@ -361,11 +369,11 @@ typedef struct _DSSI_Descriptor {
      * run_adding() functions, and is equally optional.  A plugin
      * that does not provide it must set this member to NULL.
      */
-    void (*run_multiple_synths_adding)(uint64_t     InstanceCount,
+    void (*run_multiple_synths_adding)(unsigned long     InstanceCount,
                                        LADSPA_Handle    *Instances,
-                                       uint64_t     SampleCount,
+                                       unsigned long     SampleCount,
                                        snd_seq_event_t **Events,
-                                       uint64_t    *EventCounts);
+                                       unsigned long    *EventCounts);
 } DSSI_Descriptor;
 
 /**
@@ -388,28 +396,28 @@ typedef struct _DSSI_Descriptor {
  *   of a distinct plugin type.
  */
 
-const DSSI_Descriptor *dssi_descriptor(uint64_t Index);
-
-typedef const DSSI_Descriptor *(*DSSI_Descriptor_Function)(uint64_t Index);
+const DSSI_Descriptor *dssi_descriptor(unsigned long Index);
+  
+typedef const DSSI_Descriptor *(*DSSI_Descriptor_Function)(unsigned long Index);
 
 /*
  * Macros to specify particular MIDI controllers in return values from
  * get_midi_controller_for_port()
  */
 
-#define DSSI_CC_BITS                    0x20000000
-#define DSSI_NRPN_BITS                  0x40000000
+#define DSSI_CC_BITS			0x20000000
+#define DSSI_NRPN_BITS			0x40000000
 
-#define DSSI_NONE                       -1
-#define DSSI_CONTROLLER_IS_SET(n)       (DSSI_NONE != (n))
+#define DSSI_NONE			-1
+#define DSSI_CONTROLLER_IS_SET(n)	(DSSI_NONE != (n))
 
-#define DSSI_CC(n)                      (DSSI_CC_BITS | (n))
-#define DSSI_IS_CC(n)                   (DSSI_CC_BITS & (n))
-#define DSSI_CC_NUMBER(n)               ((n) & 0x7f)
+#define DSSI_CC(n)			(DSSI_CC_BITS | (n))
+#define DSSI_IS_CC(n)			(DSSI_CC_BITS & (n))
+#define DSSI_CC_NUMBER(n)		((n) & 0x7f)
 
-#define DSSI_NRPN(n)                    (DSSI_NRPN_BITS | ((n) << 7))
-#define DSSI_IS_NRPN(n)                 (DSSI_NRPN_BITS & (n))
-#define DSSI_NRPN_NUMBER(n)             (((n) >> 7) & 0x3fff)
+#define DSSI_NRPN(n)			(DSSI_NRPN_BITS | ((n) << 7))
+#define DSSI_IS_NRPN(n)			(DSSI_NRPN_BITS & (n))
+#define DSSI_NRPN_NUMBER(n)		(((n) >> 7) & 0x3fff)
 
 #ifdef __cplusplus
 }
