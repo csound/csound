@@ -365,12 +365,6 @@ bool csoundUgenContextSetDuration(UGEN_CONTEXT *context, MYFLT p3) {
     return true;
 }
 
-bool csoundUgenContextSetKCounter(UGEN_CONTEXT *context, uint64_t k) {
-    if (context == NULL) return false;
-    context->insds->kcounter = k;
-    return true;
-}
-
 bool csoundUgenContextSetStartOffset(UGEN_CONTEXT *context, uint32_t start) {
     if (context == NULL) return false;
     uint32_t ksmps = context->insds->ksmps;
@@ -387,13 +381,21 @@ bool csoundUgenContextSetEndOffset(UGEN_CONTEXT *context, uint32_t end) {
     return true;
 }
 
-bool csoundUgenContextSetNoteReleases(UGEN_CONTEXT *context) {
+bool csoundUgenContextResetOffsets(UGEN_CONTEXT *context) {
+    if (context == NULL) return false;
+    context->insds->ksmps_offset = 0;
+    context->insds->ksmps_no_end = 0;
+    return true;
+}
+
+
+bool csoundUgenContextReleaseNote(UGEN_CONTEXT *context) {
     if (context == NULL) return false;
     context->insds->relesing = 1;
     return true;
 }
 
-int32_t csoundUgenContextGetReleaseTime(UGEN_CONTEXT *context) {
+int32_t csoundUgenContextGetExtraTime(UGEN_CONTEXT *context) {
     if (context == NULL) return -1;
     return context->insds->xtratim;
 }
