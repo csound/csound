@@ -1226,6 +1226,10 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
 /* phasorbnk                                                        */
 /*==================================================================*/
 
+/* Wrap output that rounds to one, keeping the double phase for the next call. */
+#define PHASORBNK_OUTPUT(phase)                                    \
+    ((MYFLT)(phase) == FL(1.0) ? FL(0.0) : (MYFLT)(phase))
+
 int32_t phsbnkset(CSOUND *csound, PHSORBNK *p)
 {
     double  phs;
@@ -1292,7 +1296,8 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
 
     /* Read the frequency before the output can overwrite it. */
     cps = *p->xcps;
-    *p->sr = (MYFLT)(phs = curphs[index]);
+    phs = curphs[index];
+    *p->sr = PHASORBNK_OUTPUT(phs);
     if (UNLIKELY((phs += cps * CS_ONEDKR) >= 1.0))
       phs -= 1.0;
     else if (UNLIKELY(phs < 0.0)) /* patch from Matthew Scala */
@@ -1333,7 +1338,7 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
       MYFLT *cps = p->xcps;
       for (n=offset; n<nsmps; n++) {
         incr = (double)(cps[n] * CS_ONEDSR);
-        rs[n] = (MYFLT)phase;
+        rs[n] = PHASORBNK_OUTPUT(phase);
         phase += incr;
         if (UNLIKELY(phase >= 1.0))
           phase -= 1.0;
@@ -1344,7 +1349,7 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     else {
       incr = (double)(*p->xcps * CS_ONEDSR);
       for (n=offset; n<nsmps; n++) {
-        rs[n] = (MYFLT)phase;
+        rs[n] = PHASORBNK_OUTPUT(phase);
         phase += incr;
         if (UNLIKELY(phase >= 1.0))
           phase -= 1.0;
