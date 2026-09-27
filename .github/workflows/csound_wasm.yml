@@ -111,7 +111,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version-file: wasm/browser/.nvmrc
       - name: Build the production js module bundle
         run: |
           nix-env -f '<nixpkgs>' -iA openjdk

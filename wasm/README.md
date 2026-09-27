@@ -90,6 +90,11 @@ The browser package requires Node.js 22.13 or later. Its npm settings enforce
 the Node version and peer dependencies. Use `npm ci` for a clean install from
 the lockfile; do not use `--legacy-peer-deps` or `--force`.
 
+For nvm users, `wasm/browser/.nvmrc` selects Node 22. Run `nvm install` and
+`nvm use` from that directory before installing dependencies. CI reads the
+same file. The file does not change your shell or PATH on its own; Nix users
+can keep using `nix-shell`, which supplies Node 22 without nvm.
+
 ```bash
 cd browser
 npm ci              # install browser-wrapper dependencies
