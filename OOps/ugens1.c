@@ -1915,8 +1915,8 @@ int32_t kosseg(CSOUND *csound, COSSEG *p)
       x = 0.0;
       p->cursegp = segp+1;              /*   else find the next */
       if (UNLIKELY(!(p->curcnt = segp->cnt))) {
-        val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
-        /* inc = */ p->inc = (segp->cnt ? 1.0/(segp->cnt) : 0.0);
+        /* A zero-step segment jumps to its endpoint, then advances. */
+        segp = p->cursegp;
         goto chk1;
       }                                 /*   poslen = new slope */
     }
@@ -1970,9 +1970,8 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
         //printf("****new seg val1.val2=%f,%f inc=%f\n", val1,val2, inc);
         p->cursegp = segp+1;              /*   else find the next */
         if (UNLIKELY(!(p->curcnt = segp->acnt))) {
-          val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
-          inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
-          //printf("****val1,val2=%f,%f inc=%f\n", val1, val2, inc);
+          /* Advance past this jump before selecting the next segment. */
+          segp = p->cursegp;
           goto chk1;
         }                                 /*   poslen = new slope */
       }
@@ -2043,8 +2042,7 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
         if (p->segsrem == 1 && !p->h.insdshead->relesing)
           goto putk;
         if (UNLIKELY(!p->curcnt)) {
-          val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
-          inc = p->inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
+          segp = p->cursegp;
           goto chk1;
         }                                 /*   poslen = new slope */
         //printf("New segment incx, y1,y2 = %g, %f, %f\n", inc, val1, val2);
@@ -2177,8 +2175,7 @@ int32_t kcssegr(CSOUND *csound, COSSEG *p)
       if (p->segsrem == 1 && !p->h.insdshead->relesing)
         goto putk;
       if (UNLIKELY(!p->curcnt)) {
-        val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
-        /* inc = */ p->inc = (segp->cnt ? 1.0/(segp->cnt) : 0.0);
+        segp = p->cursegp;
         goto chk1;
       }                                 /*   poslen = new slope */
     }
