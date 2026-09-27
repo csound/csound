@@ -76,7 +76,7 @@ MYFLT filter(MYFLT* sig, MYFLT highcoeff, MYFLT lowcoeff,
     MYFLT scale, nyqresponse, irttwo, highresponse, lowresponse, cosw,
       a, b, c, x, y;
 
-    irttwo = FL(1.0) / ROOT2;
+    irttwo = FL(FL(1.0) / ROOT2);
 
     /* simple filter deals with difference in low and high */
     highresponse = FL(1.0) - highcoeff;

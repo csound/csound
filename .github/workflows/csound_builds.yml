@@ -47,6 +47,11 @@ jobs:
   linux_build:
     name: Linux/Ubuntu build (apt-get)
     runs-on: ubuntu-latest
+    env:
+      CC: clang
+      CXX: clang++
+      CFLAGS: -Wshorten-64-to-32 -Wpointer-sign -Wformat-security -Wimplicit-const-int-float-conversion
+      CXXFLAGS: -Wshorten-64-to-32 -Wformat-security -Wimplicit-const-int-float-conversion -Wwritable-strings
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v7.0.1
@@ -56,13 +61,14 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk liblo-dev ladspa-sdk dssi-dev  bison flex gettext libsamplerate0-dev libpipewire-0.3-dev
+          sudo apt-get install clang cmake libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk liblo-dev ladspa-sdk dssi-dev  bison flex gettext libsamplerate0-dev libpipewire-0.3-dev
 
       - name: Configure build
         run: |
           mkdir build
           cd build
-          cmake .. -DUSE_MP3=0 -DBUILD_TESTS=1 -DBUILD_STATIC_LIBRARY=1
+          cmake .. -DUSE_MP3=0 -DBUILD_TESTS=1 -DBUILD_STATIC_LIBRARY=1 \
+            -DCMAKE_BUILD_TYPE=Debug -DDEBUG_ERROR_ON_WARNING=ON
 
       - name: Build Csound
         run: |
@@ -83,6 +89,8 @@ jobs:
     name: Linux/Ubuntu full tests (ASan + UBSan)
     runs-on: ubuntu-latest
     env:
+      CC: clang
+      CXX: clang++
       ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
       UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
     steps:
@@ -95,20 +103,23 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential cmake ninja-build python3 libgtest-dev \
+            build-essential clang cmake ninja-build python3 libgtest-dev \
             libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev \
             libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk \
             liblo-dev ladspa-sdk dssi-dev libsamplerate0-dev \
             libpipewire-0.3-dev bison flex gettext
 
       - name: Configure sanitizer build
+        # Match GCC's UBSan checks; opcode dispatch uses generic function pointers.
         env:
-          CFLAGS: -fsanitize=address,undefined -fno-omit-frame-pointer
-          CXXFLAGS: -fsanitize=address,undefined -fno-omit-frame-pointer
-          LDFLAGS: -fsanitize=address,undefined
+          CFLAGS: -Wshorten-64-to-32 -Wpointer-sign -Wformat-security -Wimplicit-const-int-float-conversion -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize=function
+          CXXFLAGS: -Wshorten-64-to-32 -Wformat-security -Wimplicit-const-int-float-conversion -Wwritable-strings -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize=function
+          # C frontends also need the C++ sanitizer runtime used by libcsound.
+          LDFLAGS: -fsanitize=address,undefined -fsanitize-link-c++-runtime -lstdc++
         run: >
           cmake -S . -B build-sanitize -G Ninja
           -DCMAKE_BUILD_TYPE=Debug
+          -DDEBUG_ERROR_ON_WARNING=ON
           -DBUILD_TESTS=1
           -DBUILD_STATIC_LIBRARY=1
           -DUSE_MP3=1
@@ -136,6 +147,8 @@ jobs:
     name: 64-bit Linux / 32-bit float type-system tests (UBSan)
     runs-on: ubuntu-latest
     env:
+      CC: clang
+      CXX: clang++
       UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
     steps:
       - name: Checkout source code
@@ -147,18 +160,20 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential cmake ninja-build python3 libgtest-dev \
+            build-essential clang cmake ninja-build python3 libgtest-dev \
             libsndfile1-dev libasound2-dev bison flex gettext
 
       - name: Configure 32-bit floats on 64-bit Linux
+        # Match GCC's UBSan checks; opcode dispatch uses generic function pointers.
         env:
-          CFLAGS: -fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer
-          CXXFLAGS: -fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer
-          LDFLAGS: -fsanitize=undefined
+          CFLAGS: -Wshorten-64-to-32 -Wpointer-sign -Wformat-security -Wimplicit-const-int-float-conversion -fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer -fno-sanitize=function
+          CXXFLAGS: -Wshorten-64-to-32 -Wformat-security -Wimplicit-const-int-float-conversion -Wwritable-strings -fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer -fno-sanitize=function
+          LDFLAGS: -fsanitize=undefined -fsanitize-link-c++-runtime -lstdc++
         run: |
           test "$(getconf LONG_BIT)" = 64
           cmake -S . -B build-linux64-float -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
+            -DDEBUG_ERROR_ON_WARNING=ON \
             -DUSE_DOUBLE=OFF \
             -DUSE_ASA=OFF \
             -DBUILD_TESTS=ON \

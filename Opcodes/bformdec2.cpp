@@ -933,7 +933,11 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(p->numb-1,p->numa);
 
-    int32_t type_mix = (int)*(p->type_mix);
+    if (!isfinite(*p->type_mix) || *p->type_mix < 0 || *p->type_mix >= 3 ||
+        *p->type_mix != floor(*p->type_mix))
+      return csound->InitError(csound, "%s",
+                               Str("bformdec2: mix type must be 0, 1 or 2"));
+    int32_t type_mix = (int)*p->type_mix;
 
     int32_t n_outs = p->out->sizes[0];
     int32_t n_ins = p->in->sizes[0];
@@ -1060,6 +1064,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       double gW, gXYZ;
 
       switch (type_mix) {
+      default:
+        return csound->InitError(csound, "%s",
+                                 Str("bformdec2: mix type must be 0, 1 or 2"));
       case 0: // "energy"
         gW = sqrt(2.0);
         gXYZ = 1.0;
@@ -1117,6 +1124,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         double gW, gXYZ;
 
         switch (type_mix) {
+        default:
+          return csound->InitError(csound, "%s",
+                                   Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           gW = 1.58113883;
           gXYZ = 1.118033989;
@@ -1176,6 +1186,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         double g0, g1, g2;
 
         switch (type_mix) {
+        default:
+          return csound->InitError(csound, "%s",
+                                   Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 1.2909944487;
           g1 = 1.1180339888;
@@ -1241,6 +1254,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       if (p->order == 1) { //order 1
 
         switch (type_mix) {
+        default:
+          return csound->InitError(csound, "%s",
+                                   Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 2.0;
           g1 = sqrt(2);
@@ -1268,6 +1284,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       if (p->order == 2) { //order 2
 
         switch (type_mix) {
+        default:
+          return csound->InitError(csound, "%s",
+                                   Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 1.632993162;
           g1 = 1.414213562;
@@ -1300,6 +1319,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
 
         switch (type_mix) {
+        default:
+          return csound->InitError(csound, "%s",
+                                   Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = sqrt(2.0);
           g1 = 1.306562965;
@@ -1366,6 +1388,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       double gW, gXYZ;
 
       switch (type_mix) {
+      default:
+        return csound->InitError(csound, "%s",
+                                 Str("bformdec2: mix type must be 0, 1 or 2"));
       case 0: // "energy"
         gW = 2.0;
         gXYZ = sqrt(2.0);
@@ -1424,6 +1449,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       if (p->order == 1) { //order 1
 
         switch (type_mix) {
+        default:
+          return csound->InitError(csound, "%s",
+                                   Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 =  1.732050808;
           g1 = 1.2247448714;
@@ -1451,6 +1479,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       if (p->order == 2) { //order 2
 
         switch (type_mix) {
+        default:
+          return csound->InitError(csound, "%s",
+                                   Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 1.414213562;
           g1 = 1.224744871;
@@ -1564,6 +1595,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       if (p->order == 1) { //order 1
 
         switch (type_mix) {
+        default:
+          return csound->InitError(csound, "%s",
+                                   Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 3.16227766;
           g1 = 1.825741858;
@@ -1591,6 +1625,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       if (p->order == 2) { //order 2
 
         switch (type_mix) {
+        default:
+          return csound->InitError(csound, "%s",
+                                   Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 2.357022604;
           g1 = 1.825741858;
@@ -1626,6 +1663,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       if (p->order == 3) { //order 3
 
         switch (type_mix) {
+        default:
+          return csound->InitError(csound, "%s",
+                                   Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 1.865086714;
           g1 = 1.606093894;
@@ -2155,7 +2195,7 @@ static inline void process_nfc(HOAMBDEC* p, int32_t signal_order, int32_t j,
 extern "C" {
 static OENTRY bformdec2_localops[] = {
   { (char*) "bformdec2.A", S(HOAMBDEC), 0, (char*) "a[]", (char*) "ia[]ooooNN",
-    (SUBR)ihoambdec, (SUBR)ahoambdec },
+    (SUBR)ihoambdec, (SUBR)ahoambdec, NULL, NULL, 0},
 };
 
 LINKAGE_BUILTIN(bformdec2_localops)

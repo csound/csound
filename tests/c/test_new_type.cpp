@@ -84,7 +84,7 @@ struct TUPINIT {
 };
 
 int32_t tuple_init(CSOUND *csound, TUPINIT *p) {
-  int32_t n = p->INOCOUNT;
+  size_t n = p->INOCOUNT;
   if(p->r->data == NULL)  
     p->r->data = (MYFLT *)
       csound->Calloc(csound, sizeof(MYFLT)*n);
@@ -106,7 +106,7 @@ struct TUPGET {
 
 int32_t tuple_get(CSOUND *csound, TUPGET *p) {
   int32_t ndx = (int32_t) *p->ndx;
-  if(ndx >= 0 && ndx < p->tuple->size) {
+  if(ndx >= 0 && (size_t) ndx < p->tuple->size) {
     *p->r = p->tuple->data[ndx];
     return OK;
   }

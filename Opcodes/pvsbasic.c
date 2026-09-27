@@ -30,8 +30,6 @@
 #include <math.h>
 #define MAXOUTS 16
 
-static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
-
 typedef struct _pvsgain {
   OPDS    h;
   PVSDAT  *fout;
@@ -246,16 +244,20 @@ static int32_t pvsfwrite_destroy(CSOUND *csound, void *pp)
 static int32_t pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int32_t stringname)
 {
   int32_t N;
-  char fname[MAXNAME];
+  char generated_name[MAXNAME];
+  const char *fname;
          const OPARMS *parm = csound->GetOParms(csound);
        
 
   if (stringname==0) {
     if (IsStringCode(*p->file))
-      strncpy(fname,csound->GetArgString(csound, *p->file), MAXNAME);
-    else csound->StringArg2Name(csound, fname, p->file, "pvoc.",0);
+      fname = csound->GetArgString(csound, *p->file);
+    else {
+      csound->StringArg2Name(csound, generated_name, p->file, "pvoc.", 0);
+      fname = generated_name;
+    }
   }
-  else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME);
+  else fname = ((STRINGDAT *)p->file)->data;
 
 
 
@@ -396,15 +398,19 @@ static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
   size_t framebytes;
   WAVEFORMATEX fmt;
   PVOCDATA   pvdata;
-  char fname[MAXNAME];
+  char generated_name[MAXNAME];
+  const char *fname;
 
   pvsdiskin_destroy(csound, p);
   if (stringname==0){
     if (IsStringCode(*p->file))
-      snprintf(fname, sizeof(fname), "%s", csound->GetArgString(csound, *p->file));
-    else csound->StringArg2Name(csound, fname, p->file, "pvoc.",0);
+      fname = csound->GetArgString(csound, *p->file);
+    else {
+      csound->StringArg2Name(csound, generated_name, p->file, "pvoc.", 0);
+      fname = generated_name;
+    }
   }
-  else snprintf(fname, sizeof(fname), "%s", ((STRINGDAT *)p->file)->data);
+  else fname = ((STRINGDAT *)p->file)->data;
 
   if (UNLIKELY(p->fout->sliding))
     return csound->InitError(csound,
@@ -1395,7 +1401,7 @@ static int32_t pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
 
   if (p->fin->sliding) {
     CMPLX *fout, *fin, *del;
-    double  costh1, costh2, coef1, coef2;
+    double  costh1, costh2, coef1 = 0.0, coef2 = 0.0;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -2580,21 +2586,6 @@ static int32_t pvstencil(CSOUND *csound, PVSTENCIL *p)
   return csound->PerfError(csound, &(p->h),
                            "%s", Str("pvstencil: not initialised"));
 }
-
-static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
-{
-  if (
-      (f1->sliding == f2->sliding) &&
-      (f1->overlap == f2->overlap) &&
-      (f1->winsize == f2->winsize) &&
-      (f1->wintype == f2->wintype) &&     /* harsh, maybe... */
-      (f1->N == f2->N) &&
-      (f1->format == f2->format))
-
-    return 1;
-  return 0;
-}
-
 
 typedef struct _pvsenvw {
   OPDS    h;

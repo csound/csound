@@ -27,7 +27,9 @@ protected:
     int async() const { return std::get<1>(GetParam()); }
     void performCopy()
     {
-        if (async()) EXPECT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+        if (async()) {
+          EXPECT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+        }
     }
 
     CSOUND *csound = nullptr;

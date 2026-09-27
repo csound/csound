@@ -621,7 +621,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
 {
   FUNC  *ftp;
   MYFLT *ar, *ampp, *cpsp, *ftbl;
-  int32  phs, inc, lobits, dwnphs, tnp1, lenmask, maxd, indx;
+  int32  phs, inc = 0, lobits, dwnphs, tnp1, lenmask, maxd, indx;
   MYFLT leaky, /*rtfqc,*/ amp, fqc;
   MYFLT sicvt2, over2n, scal, num, denom, pulse = FL(0.0), saw = FL(0.0);
   MYFLT sqr = FL(0.0), tri = FL(0.0);
@@ -629,7 +629,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   int32_t   knh;
-  MYFLT  fphs = p->fphs, finc;
+  MYFLT  fphs = p->fphs, finc = FL(0.0);
 
   /* VDelay Inserted here */
   MYFLT *buf = (MYFLT *)p->aux.auxp;

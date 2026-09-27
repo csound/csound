@@ -1309,7 +1309,7 @@ mton_common(CSOUND *csound, MTON *p, int32_t init) {
     }
 
     /* Enough for any int32 note's signed octave, accidental and cents. */
-    const int32_t maxsize = 24;
+    const uint32_t maxsize = 24;
     if (p->Sdst->data == NULL || p->Sdst->size < maxsize) {
         char *data = csound->ReAlloc(csound, p->Sdst->data, maxsize);
         if (UNLIKELY(data == NULL)) {

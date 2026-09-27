@@ -444,7 +444,7 @@ int32_t pitch(CSOUND *csound, PITCH *p)
         absdiff = FABS(kval - p->kvalsav);// < FL(0.0)) absdiff = -absdiff;
         MYFLT count = absdiff * p->confact;
         confirms = !(count > FL(0.0)) ? 0 :
-          (count < INT32_MAX ? (int32_t)count : INT32_MAX); /* get interval dependency  */
+          ((double)count < INT32_MAX ? (int32_t)count : INT32_MAX); /* get interval dependency  */
         if (UNLIKELY(p->jmpcount < confirms)) {
           p->jmpcount += 1;               /* if not enough confirms,  */
           goto output;                    /*    must wait some more   */
@@ -458,7 +458,7 @@ int32_t pitch(CSOUND *csound, PITCH *p)
         absdiff = FABS(kval - p->kval);
         MYFLT count = absdiff * p->confact;
         confirms = !(count > FL(0.0)) ? 0 :
-          (count < INT32_MAX ? (int32_t)count : INT32_MAX); /* get interval dependency  */
+          ((double)count < INT32_MAX ? (int32_t)count : INT32_MAX); /* get interval dependency  */
         if (p->jmpcount < confirms) {
           p->jmpcount += 1;               /* if not enough confirms,  */
           p->kinc = FL(0.0);              /*    must wait some more   */

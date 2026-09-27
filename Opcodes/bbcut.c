@@ -227,7 +227,7 @@ static int32_t BBCutMono(CSOUND *csound, BBCUTMONO *p)
         /* envelope out if necessary */
         if (p->repeatsampdone>=(p->repeatlengthsamp-p->envsize)) {
           MYFLT xx = p->envsize; /* JPff patch 2019 Apr 28 */
-          if (xx==0.0) xx = 00.1;
+          if (xx==0.0) xx = FL(00.1);
           /* envmult = sin(PI*0.5*
              (((MYFLT)(p->repeatlengthsamp-p->repeatsampdone))/
              (MYFLT)p->envsize)); */
@@ -473,7 +473,7 @@ static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
    /* envmult = sin(PI*0.5*(((MYFLT)(p->repeatlengthsamp-p->repeatsampdone))/
       (MYFLT)p->envsize)); */
           MYFLT xx = p->envsize;
-          if (xx==FL(0.0)) xx = 0.001; /* JPff patch 2019 Apr 28 */
+          if (xx==FL(0.0)) xx = FL(0.001); /* JPff patch 2019 Apr 28 */
           envmult = (EXP(((p->repeatlengthsamp-
                                           p->repeatsampdone))/
                                 (xx))-FL(1.0))/

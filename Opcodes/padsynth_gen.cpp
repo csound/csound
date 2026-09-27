@@ -163,9 +163,9 @@ static MYFLT profile(int32_t shape, MYFLT fi, MYFLT bwi, MYFLT a) {
     // to 1 if above a.
     y = std::exp(-(x * x * a));
     if (a < 0.00001) {
-      a = 0.00001;
+      a = FL(0.00001);
     } else if (a > 0.99999) {
-      a = 0.99999;
+      a = FL(0.99999);
     }
     if (y < a) {
       y = 0;

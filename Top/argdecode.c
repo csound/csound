@@ -1707,11 +1707,13 @@ char *unquote_arg(CSOUND *csound, char *arg) {
       csound->options_checked = 1;
     }
 
-    /* remove whitespace at start */
-    while (*opt == ' ')
-      opt++;
+    const char *cursor = opt;
 
-    sp = options = csoundStrdup(csound, opt);
+    /* remove whitespace at start */
+    while (*cursor == ' ')
+      cursor++;
+
+    sp = options = csoundStrdup(csound, cursor);
 
     /* remove whitespace at end */
     char *end = sp + strlen(sp) - 1;
@@ -1749,11 +1751,11 @@ char *unquote_arg(CSOUND *csound, char *arg) {
     flag = 1;
     quote  = 0;
     /* split into separate args */
-    while (*opt && cnt < argn + 2) {
-      if(*opt == '"') quote = quote ? 0 : 1;
+    while (*cursor && cnt < argn + 2) {
+      if(*cursor == '"') quote = quote ? 0 : 1;
       if(!quote) {
-        while (*opt == ' ') {
-          opt++;
+        while (*cursor == ' ') {
+          cursor++;
           sp++;
           flag = 1;
         }
@@ -1764,7 +1766,7 @@ char *unquote_arg(CSOUND *csound, char *arg) {
         flag = 0;
       }
       sp++;
-      opt++;
+      cursor++;
     }
 
     ret = argdecode(csound, argn + 1, (const char **)args);

@@ -1943,14 +1943,15 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       }
     }
 
-    for (i = 0; i < inm_local->outchns && cur; i++) {
+    for (int32_t output_index = 0;
+         output_index < inm_local->outchns && cur; output_index++) {
       void* src = NULL;
-      void* dst = (void*)external_ptrs[i];
-      src = (void*)internal_ptrs[i];
+      void* dst = (void*)external_ptrs[output_index];
+      src = (void*)internal_ptrs[output_index];
       if (src == NULL && xout_node)
-        src = (void*)xout_node->args[i]; // prefer xout arg (local var)
+        src = (void*)xout_node->args[output_index]; // prefer xout arg (local var)
       if (src == NULL && udo_out_ptrs)
-        src = (void*)udo_out_ptrs[i]; // fallback: UDO's declared OUT var memory
+        src = (void*)udo_out_ptrs[output_index]; // fallback: UDO's declared OUT var memory
 
       // If array out still unresolved or aliased to dst, try to locate
       // a concrete local array to copy from
@@ -1982,7 +1983,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
           // no copying of a & k types at i-time !!!
           if (((cur->varType != &CS_VAR_TYPE_A &&
                 cur->varType != &CS_VAR_TYPE_K) ||
-               inm_local->outtypes[i] == 'K') &&
+               inm_local->outtypes[output_index] == 'K') &&
               UNLIKELY(udo_copy_value(csound, cur, dst, src,
                                       cur->subType == &CS_VAR_TYPE_A
                                         ? parent_ip : lcurip,
@@ -2539,9 +2540,9 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
     uint32_t end = parent_size - p->h.insdshead->ksmps_no_end;
     /* Round boundaries up to the next local sample. */
     p->ip->ksmps_offset =
-      ((uint64_t) offset * local_size + parent_size - 1) / parent_size;
+      (uint32_t) (((uint64_t) offset * local_size + parent_size - 1) / parent_size);
     p->ip->ksmps_no_end = local_size -
-      ((uint64_t) end * local_size + parent_size - 1) / parent_size;
+      (uint32_t) (((uint64_t) end * local_size + parent_size - 1) / parent_size);
   }
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;

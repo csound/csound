@@ -96,8 +96,9 @@ endin
         "e\n</CsScore>\n</CsoundSynthesizer>\n";
     ASSERT_EQ(csoundCompileCSD(csound, csd.c_str(), 1, 0), 0);
     ASSERT_EQ(csoundStart(csound), 0);
-    if (GetParam() == 2)
+    if (GetParam() == 2) {
         ASSERT_EQ(csoundDebuggerInit(csound), 0);
+    }
 
     for (size_t base = 0; base < expected.size(); base += 32) {
         ASSERT_EQ(csoundPerformKsmps(csound), 0) << "block " << base / 32;
@@ -159,8 +160,9 @@ endin
         "\ne\n</CsScore>\n</CsoundSynthesizer>\n";
     ASSERT_EQ(csoundCompileCSD(csound, csd.c_str(), 1, 0), 0);
     ASSERT_EQ(csoundStart(csound), 0);
-    if (GetParam() == 2)
+    if (GetParam() == 2) {
         ASSERT_EQ(csoundDebuggerInit(csound), 0);
+    }
     for (size_t base = 0; base < active.size(); base += 32) {
         MYFLT *input = csoundGetSpin(csound);
         ASSERT_NE(input, nullptr);
@@ -210,8 +212,9 @@ e
 )";
     ASSERT_EQ(csoundCompileCSD(csound, csd.c_str(), 1, 0), 0);
     ASSERT_EQ(csoundStart(csound), 0);
-    if (GetParam() == 2)
+    if (GetParam() == 2) {
         ASSERT_EQ(csoundDebuggerInit(csound), 0);
+    }
     const int childBlocks[] = {4, 8, 32};
     for (int block = 0; block < 12; ++block) {
         ASSERT_EQ(csoundPerformKsmps(csound), 0);
@@ -251,8 +254,9 @@ endin
         "</CsScore>\n</CsoundSynthesizer>\n";
     ASSERT_EQ(csoundCompileCSD(csound, csd.c_str(), 1, 0), 0);
     ASSERT_EQ(csoundStart(csound), 0);
-    if (GetParam() == 2)
+    if (GetParam() == 2) {
         ASSERT_EQ(csoundDebuggerInit(csound), 0);
+    }
     for (int block = 0; block < 12; ++block) {
         ASSERT_EQ(csoundPerformKsmps(csound), 0);
         const MYFLT *output = csoundGetSpout(csound);

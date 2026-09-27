@@ -322,7 +322,7 @@ static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
 
   if(ftp) {
    fp = ftp->ftable;
-   if(len != ftp->flen/chns) {
+   if(sweep->flen != ftp->flen/chns) {
      csound->Message(csound, "destination table size not matching"
                      " sweep, size %d frames, need %d\n", ftp->flen/chns, len);
     return NOTOK;
@@ -347,7 +347,7 @@ static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
     
     // input length cannot be smaller than sweep length
     if(len) {
-      int32_t ilen =  inp->flen > len ? inp->flen : len;
+      int32_t ilen =  inp->flen > sweep->flen ? inp->flen : sweep->flen;
       inpd = (MYFLT *) csound->Calloc(csound, ilen*sizeof(MYFLT));  
       memcpy(inpd, inp->ftable, sizeof(MYFLT)*inp->flen);
       deconvolve(csound, sweep->ftable, inpd, len, ilen);

@@ -122,8 +122,9 @@ TEST_P(TablesegTests, ReinitRestartsAndReusesOutputStorage)
             ASSERT_NO_FATAL_FAILURE(expectTable(0));
             EXPECT_EQ(envelope()->outfunc->ftable, storage);
         }
-        if (cycle == 8)
+        if (cycle == 8) {
             ASSERT_NO_FATAL_FAILURE(expectTable(quadratic() ? .625 : 2.5));
+        }
     }
 }
 

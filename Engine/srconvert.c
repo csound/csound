@@ -125,7 +125,7 @@ static void src_linear_block(SR_CONVERTER *pp, MYFLT *in, MYFLT *out,
   int64_t position = 0;
   MYFLT scale = FL(1.0) / outsize;
   for (int32_t n = 0; n < outsize; n++, position += insize) {
-    int32_t index = position / outsize;
+    int32_t index = (int32_t) (position / outsize);
     MYFLT fraction = (position % outsize) * scale;
     MYFLT start = index ? in[index - 1] : *previous;
     out[n] = start + fraction * (in[index] - start);
@@ -199,7 +199,7 @@ void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
 typedef struct {
   SRC_STATE* stat;
   SRC_DATA cvt;
-  int32_t pending; // input samples retained between whole-block conversions
+  long pending; // input samples retained between whole-block conversions
 } SRC;
 
 /*  SRC modes
@@ -325,7 +325,7 @@ int32_t src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *argin, MYFLT *argou
                   pp->dat[n].bufferin + p->cvt.input_frames_used,
                   p->pending * sizeof(float));
           /* Put startup silence before the first filtered samples. */
-          int32_t silence = pp->outsize - p->cvt.output_frames_gen;
+          long silence = pp->outsize - p->cvt.output_frames_gen;
           for (i = 0; i < silence; i++)
             out[i] = FL(0.0);
           for (; i < pp->outsize; i++)

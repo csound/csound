@@ -2441,7 +2441,6 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
     p = &tmpspace;
     memset(p, 0, sizeof(SOUNDIN));
     {
-      int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
       int32_t   fmt = (int32_t) MYFLT2LRND(ff->e.p[7]);
       if (isstrcod(ff->e.p[5])) {
         if (ff->e.strarg[0] == '"') {
@@ -2454,12 +2453,15 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
           strNcpy(p->sfname, ff->e.strarg, 512);
         }
       }
-      else if (filno >= 0 && filno <= csound->strsmax &&
-               csound->strsets && csound->strsets[filno]) {
-        strNcpy(p->sfname, csound->strsets[filno], 512);
-      }
       else {
-        snprintf(p->sfname, 512, "soundin.%d", filno);   /* soundin.filno */
+        int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
+        if (filno >= 0 && filno <= csound->strsmax &&
+            csound->strsets && csound->strsets[filno]) {
+          strNcpy(p->sfname, csound->strsets[filno], 512);
+        }
+        else {
+          snprintf(p->sfname, 512, "soundin.%d", filno);   /* soundin.filno */
+        }
       }
       if (UNLIKELY(fmt < -9 || fmt > 9))
         return csoundFtError(ff, Str("invalid sample format: %d"), fmt);

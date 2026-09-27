@@ -91,6 +91,17 @@ struct pvsdat {
                                         /* But not in sliding case when MYFLT */
 };
 
+/* Compare frame layouts, independent of frame counters and buffer contents. */
+static inline int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
+{
+    return f1->overlap == f2->overlap &&
+           f1->winsize == f2->winsize &&
+           f1->wintype == f2->wintype &&
+           f1->N == f2->N &&
+           f1->format == f2->format &&
+           f1->sliding == f2->sliding;
+}
+
 /* may be no point supporting Kaiser in an opcode unless we can support
    the param too but we can have kaiser in a PVOCEX file. */
 

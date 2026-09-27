@@ -30,6 +30,7 @@
 
 #include "std_util.h"
 #include <stdio.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include "pvfileio.h"
@@ -67,10 +68,11 @@ static int32_t pv_export(CSOUND *csound, int32_t argc, char **argv)
 
     fprintf(outf, "FormatTag,Channels,SamplesPerSec,AvgBytesPerSec,"
             "BlockAlign,BitsPerSample,cbSize\n");
-    fprintf(outf, "%d,%d,%d,%d,%u,%u,%d\n",
-            fmt.wFormatTag, fmt.nChannels, fmt.nSamplesPerSec,
-            fmt.nAvgBytesPerSec, fmt.nBlockAlign, fmt.wBitsPerSample,
-            fmt.cbSize);
+    fprintf(outf, "%u,%u,%" PRIu32 ",%" PRIu32 ",%u,%u,%u\n",
+            (unsigned int)fmt.wFormatTag, (unsigned int)fmt.nChannels,
+            (uint32_t)fmt.nSamplesPerSec, (uint32_t)fmt.nAvgBytesPerSec,
+            (unsigned int)fmt.nBlockAlign, (unsigned int)fmt.wBitsPerSample,
+            (unsigned int)fmt.cbSize);
     fprintf(outf, "WordFormat,AnalFormat,SourceFormat,WindowType,"
             "AnalysisBins,Winlen,Overlap,FrameAlign,"
             "AnalysisRate,WindowParam\n");

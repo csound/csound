@@ -502,32 +502,45 @@ if (PRESERVE_NAN)
     check_c_compiler_flag(-fno-finite-math-only HAS_NO_FINITE_MATH_ONLY)
     check_cxx_compiler_flag(-fno-finite-math-only HAS_CXX_NO_FINITE_MATH_ONLY)
     if (HAS_NO_FINITE_MATH_ONLY)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-finite-math-only")
+        add_compile_options("$<$<COMPILE_LANGUAGE:C>:-fno-finite-math-only>")
     endif()
     if (HAS_CXX_NO_FINITE_MATH_ONLY)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-finite-math-only")
+        add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-fno-finite-math-only>")
     endif()
 endif()
 
-check_c_source_compiles("
+# Probe the same flags used to compile sources, without passing compile-only
+# flags to the linker. Function scope keeps these probe settings local.
+function(csound_check_nonfinite_math)
+    set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+    if(PRESERVE_NAN AND HAS_NO_FINITE_MATH_ONLY)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-finite-math-only")
+    endif()
+    if(PRESERVE_NAN AND HAS_CXX_NO_FINITE_MATH_ONLY)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-finite-math-only")
+    endif()
+
+    check_c_source_compiles("
 #if defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__
 #error __FINITE_MATH_ONLY__ is enabled
 #endif
 int main(void) { return 0; }
 " CSOUND_C_PRESERVES_NONFINITE)
-if (NOT CSOUND_C_PRESERVES_NONFINITE)
-    message(FATAL_ERROR "C compiler has finite-math-only enabled; Csound requires NaN and Inf checks")
-endif()
+    if (NOT CSOUND_C_PRESERVES_NONFINITE)
+        message(FATAL_ERROR "C compiler has finite-math-only enabled; Csound requires NaN and Inf checks")
+    endif()
 
-check_cxx_source_compiles("
+    check_cxx_source_compiles("
 #if defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__
 #error __FINITE_MATH_ONLY__ is enabled
 #endif
 int main() { return 0; }
 " CSOUND_CXX_PRESERVES_NONFINITE)
-if (NOT CSOUND_CXX_PRESERVES_NONFINITE)
-    message(FATAL_ERROR "C++ compiler has finite-math-only enabled; Csound requires NaN and Inf checks")
-endif()
+    if (NOT CSOUND_CXX_PRESERVES_NONFINITE)
+        message(FATAL_ERROR "C++ compiler has finite-math-only enabled; Csound requires NaN and Inf checks")
+    endif()
+endfunction()
+csound_check_nonfinite_math()
 
 # C language standard.
 # MSVC only gained /std:c11 in 19.27 and CMake only maps CMAKE_C_STANDARD to it
@@ -762,15 +775,11 @@ if (NOT MATH_LIBRARY)
     set(MATH_LIBRARY "")
 endif()
 
-if(APPLE)
 include(CheckSymbolExists)
-check_symbol_exists(lrint math.h FOUND_LRINT)
-else()
 cmake_push_check_state()
 list(APPEND CMAKE_REQUIRED_LIBRARIES ${MATH_LIBRARY})
-check_function_exists(lrint FOUND_LRINT)
+check_symbol_exists(lrint math.h FOUND_LRINT)
 cmake_pop_check_state()
-endif()
 
 # MSVC / VCPKG won't find dirent.h by default. Need to add the path explicitly
 find_file(DIRENT_H "dirent.h")
@@ -1817,6 +1826,8 @@ if(BUILD_STATIC_LIBRARY AND NOT BARE_METAL)
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
+
+csound_suppress_opcode_initializer_warnings(${libcsound_SRCS} ${libcsound_static_SRCS})
 
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)

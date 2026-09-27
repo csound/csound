@@ -56,10 +56,11 @@ extern "C" {
   #endif
 
 static INIT_ONCE g_InitOnce = INIT_ONCE_STATIC_INIT;
-static CRITICAL_SECTION* csound_global_lock;
 
 static BOOL CALLBACK InitHandleFunction ( PINIT_ONCE InitOnce, PVOID Parameter,
     PVOID *lpContext) {
+    (void) InitOnce;
+    (void) Parameter;
 
     CRITICAL_SECTION* cs = (CRITICAL_SECTION*) malloc(sizeof(CRITICAL_SECTION));
     InitializeCriticalSection(cs);
@@ -71,22 +72,22 @@ static BOOL CALLBACK InitHandleFunction ( PINIT_ONCE InitOnce, PVOID Parameter,
 
 void csoundLock() {
     BOOL status;
-    CRITICAL_SECTION* cs;
+    PVOID context;
 
-    status = InitOnceExecuteOnce(&g_InitOnce, InitHandleFunction, NULL, (void **) &cs);
+    status = InitOnceExecuteOnce(&g_InitOnce, InitHandleFunction, NULL, &context);
     if (status) {
-      EnterCriticalSection(cs);
+      EnterCriticalSection((CRITICAL_SECTION *) context);
     }
 }
 
 void csoundUnLock() {
 
     BOOL status;
-    CRITICAL_SECTION* cs;
+    PVOID context;
 
-    status = InitOnceExecuteOnce(&g_InitOnce, InitHandleFunction, NULL, &cs);
+    status = InitOnceExecuteOnce(&g_InitOnce, InitHandleFunction, NULL, &context);
     if (status) {
-      LeaveCriticalSection(cs);
+      LeaveCriticalSection((CRITICAL_SECTION *) context);
     }
 }
 
