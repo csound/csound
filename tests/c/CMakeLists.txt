@@ -88,6 +88,7 @@ if(BUILD_TESTS)
         fsig_assignment_test.cpp
         pvsfromarray_test.cpp
         pvsblur_test.cpp
+        pvsanal_test.cpp
         pvstanal_test.cpp
         pvscross_test.cpp
         paulstretch_test.cpp
