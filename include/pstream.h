@@ -211,7 +211,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *kflag;
         PVSDAT  *fsrc;
-        MYFLT   *ifna;   /* amp, required */
+        MYFLT   *ifna;   /* amp, may be 0 */
         MYFLT   *ifnf;   /* freq: optional*/
         /* internal */
         int32    overlap,winsize,fftsize,wintype,format;
