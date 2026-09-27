@@ -37,3 +37,35 @@ describe("WASM plugin registration", () => {
     assert.equal(table.length, tableLength);
   });
 });
+
+// Exercise the fallback for hosts without csoundWasiLoadOpcodeLibrary.
+describe("WASM opcode list allocation failure", () => {
+  for (const failAt of [1, 2]) {
+    it(`stops when allocation ${failAt} fails and frees earlier allocations`, () => {
+      const memory = new WebAssembly.Memory({ initial: 1 });
+      const freed = [];
+      let allocations = 0;
+      let initCalls = 0;
+      const host = {
+        exports: {
+          memory,
+          allocByteMem: () => (++allocations === failAt ? 0 : 64),
+          freeByteMem: (pointer) => freed.push(pointer),
+          csoundAppendOpcodes: () => assert.fail("Must not register an unallocated list"),
+        },
+      };
+      const plugin = {
+        exports: {
+          csound_opcode_init: (_csound, pointer) => {
+            initCalls++;
+            new DataView(memory.buffer).setUint32(pointer, 128, true);
+            return 40; // One wasm32 OENTRY.
+          },
+        },
+      };
+      assert.throws(() => dlinit(host, plugin, {}, 1), /Could not allocate/);
+      assert.equal(initCalls, failAt - 1);
+      assert.deepEqual(freed, failAt === 1 ? [] : [64]);
+    });
+  }
+});

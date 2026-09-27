@@ -1852,7 +1852,8 @@ static int on_EOF(CSOUND* csound, void* yyscanner)
     }
     PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
     csound->DebugMsg(csound,"csound-prs(%d): loc=%llu ; lastloc=%llu\n",
-                     __LINE__, PARM->llocn, PARM->locn);
+                     __LINE__, (unsigned long long) PARM->llocn,
+                     (unsigned long long) PARM->locn);
     if ( !YY_CURRENT_BUFFER ) return 0;
     csound->DebugMsg(csound,"End of input; popping to %p\n",
                      YY_CURRENT_BUFFER);

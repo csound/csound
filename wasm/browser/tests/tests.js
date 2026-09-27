@@ -1369,6 +1369,41 @@ e
       assert.property(cs, "getMemory");
     });
 
+    it("rejects invalid WASM allocation sizes", function () {
+      const wasm = cs.wasm.exports;
+      // These sizes must fail before malloc, without exhausting browser memory.
+      assert.equal(wasm.allocStringMem(-1), 0);
+      assert.equal(wasm.allocStringMem(0x7fffffff), 0);
+      assert.equal(wasm.allocByteMem(-1), 0);
+      assert.equal(wasm.allocByteMem(0), 0);
+      assert.equal(wasm.allocFloatArray(-1), 0);
+      assert.equal(wasm.allocFloatArray(0x7fffffff), 0);
+      assert.equal(wasm.allocCsMidiDeviceStruct(-1), 0);
+      assert.equal(wasm.allocCsMidiDeviceStruct(0x7fffffff), 0);
+    });
+
+    it("allocates terminated strings and writable binary data", function () {
+      const wasm = cs.wasm.exports;
+      const empty = wasm.allocStringMem(0);
+      const string = wasm.allocStringMem(3);
+      const bytes = wasm.allocByteMem(4);
+      try {
+        assert.notEqual(empty, 0);
+        assert.notEqual(string, 0);
+        assert.notEqual(bytes, 0);
+        const memory = new Uint8Array(cs.getMemory().buffer);
+        assert.equal(memory[empty], 0);
+        memory.set([97, 98, 99], string);
+        assert.deepEqual(Array.from(memory.slice(string, string + 4)), [97, 98, 99, 0]);
+        memory.set([1, 2, 3, 4], bytes);
+        assert.deepEqual(Array.from(memory.slice(bytes, bytes + 4)), [1, 2, 3, 4]);
+      } finally {
+        wasm.freeByteMem(bytes);
+        wasm.freeStringMem(string);
+        wasm.freeStringMem(empty);
+      }
+    });
+
     it("bounds formatted WASM messages to the message buffer", function () {
       const csound = cs.csoundCreate();
       const wasm = cs.wasm.exports;

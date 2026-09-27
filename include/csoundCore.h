@@ -120,10 +120,18 @@ extern "C" {
   /**
    *   holds OENTRYs for opcode overloads
    **/
+#ifdef _MSC_VER
+#  pragma warning(push)
+/* This trailing array is extended by the allocation without changing the ABI. */
+#  pragma warning(disable: 4200)
+#endif
    typedef struct oentries {
-      int32_t count;                /* Number of etries in table */
-      OENTRY* entries[0];       /* Entended by count entries */
+      int32_t count;            /* Number of entries in table */
+      OENTRY* entries[0];       /* Extended by count entries */
     } OENTRIES;
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 
   /**

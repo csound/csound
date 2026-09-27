@@ -758,7 +758,7 @@ static const CSOUND cenviron_ = {
   NULL,           /*  rtPlay_userdata     */
 #if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX)
   {0},
-#elif defined(LINUX)
+#elif defined(LINUX) && !defined(__ANDROID__)
   {{{0}}},        /*  exitjmp of type jmp_buf */
 #else
   {0},

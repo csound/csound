@@ -55,16 +55,16 @@ static int32_t krsnsetx(CSOUND *csound, KRESONX *p)
     return csound->InitError(csound, Str("resonxk: invalid order %f"),
                              *p->ord);
   new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
-  if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(MYFLT))))
+  if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(double))))
     return csound->InitError(csound, Str("resonxk: order is too large"));
   clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
   p->loop = new_loop;
-  state_size = (size_t)p->loop * 2 * sizeof(MYFLT);
+  state_size = (size_t)p->loop * 2 * sizeof(double);
   if (p->aux.auxp == NULL || state_size > p->aux.size) {
     csound->AuxAlloc(csound, state_size, &p->aux);
     clear_state = 1;
   }
-  p->yt1 = (MYFLT*)p->aux.auxp;
+  p->yt1 = (double*)p->aux.auxp;
   p->yt2 = p->yt1 + p->loop;
   if (clear_state)
     memset(p->yt1, 0, state_size);
@@ -76,30 +76,30 @@ static int32_t kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modifie
 {
   int32_t flag = 0, j;
   MYFLT       *ar, *asig;
-  MYFLT       c3p1, c3t4, omc3, c2sqr;
-  MYFLT *yt1, *yt2, c1,c2,c3;
+  double      c3p1, c3t4, omc3, c2sqr;
+  double *yt1, *yt2, c1,c2,c3;
 
   if (*p->kcf != p->prvcf) {
     p->prvcf = *p->kcf;
-    p->cosf = COS(*p->kcf * CS_TPIDSR * CS_KSMPS);
+    p->cosf = cos((double)*p->kcf * (double)(CS_ONEDKR * TWOPI));
     flag = 1;
   }
   if (*p->kbw != p->prvbw) {
     p->prvbw = *p->kbw;
-    p->c3 = EXP(*p->kbw * CS_MTPIDSR * CS_KSMPS);
+    p->c3 = exp((double)*p->kbw * (double)(-CS_ONEDKR * TWOPI));
     flag = 1;
   }
   if (flag) {
-    c3p1 = p->c3 + FL(1.0);
-    c3t4 = p->c3 * FL(4.0);
-    omc3 = FL(1.0)- p->c3;
+    c3p1 = p->c3 + 1.0;
+    c3t4 = p->c3 * 4.0;
+    omc3 = 1.0 - p->c3;
     p->c2 = c3t4 * p->cosf / c3p1;            /* -B, so + below */
     c2sqr = p->c2 * p->c2;
     if (p->scale == 1)
-      p->c1 = omc3 * SQRT(FL(1.0) - (c2sqr / c3t4));
+      p->c1 = omc3 * sqrt(1.0 - (c2sqr / c3t4));
     else if (p->scale == 2)
-      p->c1 = SQRT((c3p1*c3p1-c2sqr) * omc3/c3p1);
-    else p->c1 = FL(1.0);
+      p->c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
+    else p->c1 = 1.0;
   }
   c1   = p->c1;
   c2   = p->c2;
@@ -109,9 +109,11 @@ static int32_t kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modifie
   asig = p->asig;
   ar   = p->ar;
   for (j=0; j< p->loop; j++) {
-    *ar = c1 * *asig + c2 * yt1[j] - c3 * yt2[j];
+    double yt0 = c1 * (double)*asig + c2 * yt1[j] - c3 * yt2[j];
     yt2[j] = yt1[j];
-    yt1[j] = *ar;
+    yt1[j] = yt0;
+    /* Keep double history, but pass MYFLT between layers like serial resonk. */
+    *ar = (MYFLT)yt0;
     asig= p->ar;
   }
   return OK;
@@ -505,8 +507,8 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
   if(!*p->interp) memset(p->pamp.auxp, 0, sizeof(MYFLT)*p->count);
   else { // expon
     MYFLT *pamp = (MYFLT *) p->pamp.auxp;
-    for(count = 0;count<p->count;count++) {
-      pamp[count] = 0.0001*csound->Get0dBFS(csound);
+    for(int32_t i = 0; i < p->count; i++) {
+      pamp[i] = 0.0001*csound->Get0dBFS(csound);
     }
   }
   }

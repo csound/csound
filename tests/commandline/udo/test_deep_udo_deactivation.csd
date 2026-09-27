@@ -2,7 +2,7 @@
 description = "deep UDO chains deactivate without exhausting the C stack"
 args = ["-nd"]
 application_args = []
-stack_limit_kb = 256
+stack_limit_kb = 512
 
 [expect]
 exit = 0
@@ -29,9 +29,10 @@ opcode RetainedBranch(depth:i):k
 endop
 
 instr 1
-  ; This retains 2047 performance-rate UDO frames while initialization
-  ; itself is only 10 calls deep. Teardown must not use the C call stack.
-  result:k = RetainedBranch(10)
+  ; Leave room for Clang's sanitizer frames during compilation. Retain
+  ; 4095 UDO frames with only 11 init calls so recursive teardown still
+  ; exceeds the C stack limit.
+  result:k = RetainedBranch(11)
 endin
 </CsInstruments>
 <CsScore>

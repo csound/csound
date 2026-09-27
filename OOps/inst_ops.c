@@ -424,12 +424,12 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
               csound->ErrorMsg(csound,
                                Str("instance %llu (instr %s): "
                                    "linked and active\n"),
-                               ip->instance_id, name);
+                               (unsigned long long) ip->instance_id, name);
             else
               csound->ErrorMsg(csound,
                                Str("instance %llu (instr %d): "
                                    "linked and active\n"),
-                               ip->instance_id, ip->insno);
+                               (unsigned long long) ip->instance_id, ip->insno);
           }
         }
         return OK;

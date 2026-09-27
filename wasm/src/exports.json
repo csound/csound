@@ -21,6 +21,8 @@
   "freeStringMem",
   "freeCsMidiDeviceStruct",
   "allocStringMem",
+  "allocByteMem",
+  "freeByteMem",
   "allocFloatArray",
   "freeFloatArrayMem",
   "csoundAppendOpcode",

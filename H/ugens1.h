@@ -38,7 +38,7 @@ typedef struct {
 
 typedef struct {
   int32  cnt, acnt;
-  MYFLT  val, mlt, amlt;
+  double val, mlt, amlt;
 } XSEG;
 
 typedef struct {

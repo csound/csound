@@ -502,11 +502,15 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
     {
       snd_pcm_uframes_t nn = (snd_pcm_uframes_t) dev->buffer_smps;
       err = snd_pcm_hw_params_set_buffer_size_near(dev->handle, hw_params, &nn);
+      if (UNLIKELY(err >= 0 && nn > INT32_MAX)) {
+        strNcpy(msg, Str("ALSA buffer size exceeds the supported range"), MSGLEN);
+        goto err_return_msg;
+      }
       if (err < 0 || (int32_t) nn != dev->buffer_smps) {
         if (UNLIKELY(err >= 0))  {
           p->Message(p, Str("ALSA: -B %d not allowed on this device; "
                             "using %d instead\n"), dev->buffer_smps, (int32_t) nn);
-          dev->buffer_smps=nn;
+          dev->buffer_smps = (int32_t) nn;
         }
       }
     }
@@ -525,11 +529,15 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
       int32_t               dir = 0;
       err = snd_pcm_hw_params_set_period_size_near(dev->handle, hw_params, &nn,
                                                    &dir);
+      if (UNLIKELY(err >= 0 && nn > INT32_MAX)) {
+        strNcpy(msg, Str("ALSA period size exceeds the supported range"), MSGLEN);
+        goto err_return_msg;
+      }
       if (err < 0 || (int32_t) nn != dev->period_smps) {
         if (UNLIKELY(err >= 0)) {
           p->Message(p, Str("ALSA: -b %d not allowed on this device; "
                             "using %d instead\n"), dev->period_smps, (int32_t) nn);
-          dev->period_smps=nn;
+          dev->period_smps = (int32_t) nn;
         }
       }
     }
@@ -1182,7 +1190,8 @@ static int32_t midi_in_read_file(CSOUND *csound, void *userData,
           if (n < 0)
             csound->ErrorMsg(csound, Str("sensMIDI: retval errno %d"), errno);
           else
-            n = read(dev->fd, &(dev->buf[0]), BUF_SIZE);
+            /* read() returns at most BUF_SIZE bytes, or -1. */
+            n = (int32_t) read(dev->fd, &(dev->buf[0]), BUF_SIZE);
         }
         if (n > 0)
           dev->nbytes = n;
@@ -1364,7 +1373,7 @@ static char *my_strchr(const char *s, int32_t c, int32_t escape_all)
 static int32_t get_port_from_string(CSOUND *csound, char *str)
 {
   IGN(csound);
-  int32_t port = 0;
+  long port = 0;
     char *end, *tmp, *c = str;
 
     while (1) {
@@ -1372,9 +1381,12 @@ static int32_t get_port_from_string(CSOUND *csound, char *str)
       if (c == NULL)
         break;
       tmp = c+1;
+      errno = 0;
       port = strtol(tmp, &end, 10);
       if (*end == '\0') {
         *c = '\0';
+        if (errno == ERANGE || port < 0 || port > INT32_MAX)
+          return -1;
         break;
       }
       else { /* Not found, continue the search */
@@ -1382,7 +1394,7 @@ static int32_t get_port_from_string(CSOUND *csound, char *str)
         c = tmp;
       }
     }
-    return port;
+    return (int32_t) port;
 }
 
 static int32_t alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
@@ -1426,7 +1438,7 @@ static int32_t alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
         port = get_port_from_string(csound, client_spec);
         client = alsaseq_get_client_id(csound, amidi, capability, client_spec);
         if (client >= 0) {
-          err = amidi_connect(amidi->seq, 0, client, port);
+          err = port < 0 ? -EINVAL : amidi_connect(amidi->seq, 0, client, port);
           if (err < 0) {
             csound->ErrorMsg(csound,
                              Str("ALSASEQ: connection failed %s %s, port %d (%s)"),
@@ -1524,7 +1536,8 @@ static int32_t alsaseq_in_read(CSOUND *csound,
     if (err <= 0)
       return 0;
     else
-      err = snd_midi_event_decode(amidi->mev, buf, nbytes, ev);
+      /* The decoded byte count is bounded by the int32_t buffer size. */
+      err = (int32_t) snd_midi_event_decode(amidi->mev, buf, nbytes, ev);
     return (err==-ENOENT) ? 0 : err;
 }
 
@@ -1617,7 +1630,8 @@ static int32_t alsaseq_out_write(CSOUND *csound,
     if (nbytes == 0)
       return 0;
     snd_midi_event_reset_encode(amidi->mev);
-    nbytes = snd_midi_event_encode(amidi->mev, buf, nbytes, &amidi->sev);
+    /* The consumed byte count cannot exceed the int32_t input size. */
+    nbytes = (int32_t) snd_midi_event_encode(amidi->mev, buf, nbytes, &amidi->sev);
     snd_seq_event_output(amidi->seq, &amidi->sev);
     snd_seq_drain_output(amidi->seq);
     return nbytes;
@@ -1841,7 +1855,7 @@ static int32_t check_permission(snd_seq_port_info_t *pinfo, int32_t perm)
 int32_t listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
     snd_seq_client_info_t *cinfo;
     snd_seq_port_info_t *pinfo;
-    int32_t numdevs = 0, count = 0;
+    int32_t numdevs = 0;
     snd_seq_t *seq;
 
     IGN(csound);
@@ -1858,7 +1872,6 @@ int32_t listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
       /* reset query info */
       snd_seq_port_info_set_client(pinfo, snd_seq_client_info_get_client(cinfo));
       snd_seq_port_info_set_port(pinfo, -1);
-      count = 0;
       while (snd_seq_query_next_port(seq, pinfo) >= 0) {
         if (check_permission(pinfo, isOutput? LIST_OUTPUT : LIST_INPUT)) {
           if (list) {
@@ -1872,7 +1885,6 @@ int32_t listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
                     snd_seq_port_info_get_port(pinfo));
           }
           numdevs++;
-          count++;
         }
       }
     }

@@ -94,7 +94,6 @@ static int32_t OpenMidiInDevice_(CSOUND *csound, void **userData, const char *de
 
     if ( status < 0 ) {
 #ifdef WIN32
-        char *buff = strerror(errno);
         csound->ErrorMsg(csound, "WSAGetLastError() = %d\n", WSAGetLastError());
         return -1;
 #else
@@ -132,7 +131,7 @@ static int32_t ReadMidiData_(CSOUND *csound, void *userData,
     rc = select(sock + 1, &rset, NULL, NULL, &timeout);
     if (rc > 0) {
 #ifdef WIN32
-      n = recv(sock, mbuf, nbytes, 0);
+      n = recv(sock, (char *)mbuf, nbytes, 0);
 #else
       n = (int32_t) read(sock, mbuf, nbytes);
 #endif

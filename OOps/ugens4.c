@@ -67,11 +67,11 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
     MYFLT       *ar, *ampp, *cpsp, *ftbl, amp;
-    int32_t       phs, inc, lobits, dwnphs, lenmask,
+    int32_t       phs, inc = 0, lobits, dwnphs, lenmask,
       floatph = p->floatph, flen;
     uint32_t tnp1;
     MYFLT       sicvt2, over2n, scal, num, denom, harmonics;
-    double incf;
+    double incf = 0.0;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
@@ -199,8 +199,8 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
-    double incf;
-    int32_t       phs, inc, lobits, lenmask,
+    double incf = 0.0;
+    int32_t       phs, inc = 0, lobits, lenmask,
       floatph = p->floatph, flen;
     int64_t k, km1, kpn, kpnm1;
     uint32_t offset = p->h.insdshead->ksmps_offset;

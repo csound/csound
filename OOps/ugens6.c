@@ -145,14 +145,16 @@ int32_t indfset(CSOUND *csound, INDIFF *p)
 int32_t kntegrate(CSOUND *csound, INDIFF *p)
 {
     IGN(csound);
-    *p->rslt = p->prev += *p->xsig;
+    p->prev += *p->xsig;
+    *p->rslt = (MYFLT)p->prev;
     return OK;
 }
 
 int32_t integrate(CSOUND *csound, INDIFF *p)
 {
     IGN(csound);
-    MYFLT       *rslt, *asig, sum;
+    MYFLT       *rslt, *asig;
+    double      sum;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -166,7 +168,8 @@ int32_t integrate(CSOUND *csound, INDIFF *p)
     asig = p->xsig;
     sum = p->prev;
     for (n=offset; n<nsmps; n++) {
-      rslt[n] = sum += asig[n];
+      sum += asig[n];
+      rslt[n] = (MYFLT)sum;
     }
     p->prev = sum;
     return OK;

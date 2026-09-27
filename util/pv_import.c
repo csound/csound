@@ -30,6 +30,7 @@
 
 #include "std_util.h"
 #include <stdio.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include "pvfileio.h"
@@ -73,13 +74,16 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
       exit(1);
     }
     {
-      int32_t fmt1, fmt2, fmt3, fmt4, fmt5;
-      if (UNLIKELY(7!=fscanf(inf, "%d,%d,%d,%d,%u,%u,%d\n",
-             &fmt1, &fmt2, &fmt.nSamplesPerSec,
-                             &fmt.nAvgBytesPerSec, &fmt3, &fmt4, &fmt5))) {
+      uint32_t fmt1, fmt2, fmt3, fmt4, fmt5, sampleRate, byteRate;
+      if (UNLIKELY(7!=fscanf(inf,
+             "%" SCNu32 ",%" SCNu32 ",%" SCNu32 ",%" SCNu32
+             ",%" SCNu32 ",%" SCNu32 ",%" SCNu32 "\n",
+             &fmt1, &fmt2, &sampleRate, &byteRate, &fmt3, &fmt4, &fmt5))) {
         printf("ill formed inout\n");
         exit(1);
       }
+      fmt.nSamplesPerSec = sampleRate;
+      fmt.nAvgBytesPerSec = byteRate;
       fmt.wFormatTag = fmt1;
       fmt.nChannels = fmt2;
       fmt.nBlockAlign = fmt3;

@@ -176,7 +176,6 @@ static int32_t start_portmidi(CSOUND *csound)
 static int32_t listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput){
   int32_t i, cnt;
   PmDeviceInfo  *info;
-  char tmp[64];
   char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
 
   if (UNLIKELY(start_portmidi(csound) != 0))
@@ -186,15 +185,15 @@ static int32_t listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput
   if (list == NULL) return cnt;
   for (i = 0; i < cnt; i++) {
     info = portMidi_getDeviceInfo(i, isOutput);
-    if (info->name != NULL)
-      strncpy(list[i].device_name, info->name, 63);
-    snprintf(tmp, 64, "%d", i);
-    strncpy(list[i].device_id, tmp, 63);
+    snprintf(list[i].device_name, sizeof(list[i].device_name), "%s",
+             info->name != NULL ? info->name : "");
+    snprintf(list[i].device_id, sizeof(list[i].device_id), "%d", i);
     list[i].isOutput = isOutput;
     if (info->interf != NULL)
-      strncpy(list[i].interface_name, info->interf, 63);
+      snprintf(list[i].interface_name, sizeof(list[i].interface_name), "%s",
+               info->interf);
     else strcpy(list[i].interface_name, "");
-    strncpy(list[i].midi_module, drv, 63);
+    snprintf(list[i].midi_module, sizeof(list[i].midi_module), "%s", drv);
   }
   return cnt;
 }
@@ -337,7 +336,7 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
   if (dev == NULL || dev[0] == '\0')
     devnum =
       portMidi_getPackedDeviceID((int32_t)Pm_GetDefaultOutputDeviceID(), 1);
-  else if (UNLIKELY(dev[0] < '0' || dev[0] > '9' && dev[0] != 'a' && dev[0] != 'm')) {
+  else if (UNLIKELY(dev[0] < '0' || (dev[0] > '9' && dev[0] != 'a' && dev[0] != 'm'))) {
     portMidiErrMsg(csound, Str("error: must specify a device number (>=0), "
                                "not a name"));
     return -1;

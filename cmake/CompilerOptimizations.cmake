@@ -37,13 +37,17 @@ endif()
 endif()
 
 
-check_c_compiler_flag(-msse2 HAS_SSE2)
-check_cxx_compiler_flag(-msse2 HAS_CXX_SSE2)
-if (HAS_SSE2 AND NOT IOS AND NOT WASM AND NOT APPLE)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
-endif()
-if (HAS_CXX_SSE2 AND NOT IOS AND NOT WASM AND NOT APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+# Clang can accept -msse2 on non-x86 targets and merely warn that it is
+# unused, so a flag-acceptance check alone does not establish support.
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|amd64|i[3-6]86|x86)$")
+    check_c_compiler_flag(-msse2 HAS_SSE2)
+    check_cxx_compiler_flag(-msse2 HAS_CXX_SSE2)
+    if (HAS_SSE2 AND NOT IOS AND NOT WASM AND NOT APPLE)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
+    endif()
+    if (HAS_CXX_SSE2 AND NOT IOS AND NOT WASM AND NOT APPLE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+    endif()
 endif()
 
 

@@ -621,7 +621,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
 {
   FUNC  *ftp;
   MYFLT *ar, *ampp, *cpsp, *ftbl;
-  int32  phs, inc, lobits, dwnphs, tnp1, lenmask, maxd, indx;
+  int32  phs, inc = 0, lobits, dwnphs, tnp1, lenmask, maxd, indx;
   MYFLT leaky, /*rtfqc,*/ amp, fqc;
   MYFLT sicvt2, over2n, scal, num, denom, pulse = FL(0.0), saw = FL(0.0);
   MYFLT sqr = FL(0.0), tri = FL(0.0);
@@ -629,7 +629,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   int32_t   knh;
-  MYFLT  fphs = p->fphs, finc;
+  MYFLT  fphs = p->fphs, finc = FL(0.0);
 
   /* VDelay Inserted here */
   MYFLT *buf = (MYFLT *)p->aux.auxp;
@@ -978,7 +978,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
     static int32_t pareq(CSOUND *csound, PAREQ *p)
     {
       IGN(csound);
-      MYFLT xn, yn;
+      /* Do not round the new sample before saving it in the filter history. */
+      double xn, yn;
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
@@ -1677,7 +1678,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
     int32_t mvmfilter(CSOUND *csound, MVMFILT *p) {
       uint32_t      offset   = p->h.insdshead->ksmps_offset;
       uint32_t      early    = p->h.insdshead->ksmps_no_end;
-      MYFLT fs       = CS_ESR;
+      double fs      = CS_ESR;
       uint32_t      n, nsmps = CS_KSMPS;
       int32_t       asigtau, asigf0;
       asigtau = IS_ASIG_ARG(p->tau);
@@ -1689,7 +1690,9 @@ static int32_t vco(CSOUND *csound, VCO *p)
       f0  = p->f0;
       tau = p->tau;
 
-      MYFLT theta,r1,x1,y1,x,y,limit;
+      /* Long decays and repeated rotations need double coefficients and state. */
+      double theta,r1,x1,y1,x,y;
+      MYFLT limit;
       x  = p->x;
       y  = p->y;
       limit = CS_ESR / FL(2.0);
@@ -1733,10 +1736,10 @@ static int32_t vco(CSOUND *csound, VCO *p)
           y1     = sin(theta) * r1;
         }
 
-        MYFLT x_  = x;
+        double x_ = x;
         x      = (x1 * x)  - (y1 * y) + in[n];
         y      = (y1 * x_) + (x1 * y);
-        out[n] = x;
+        out[n] = (MYFLT)x;
       }
 
       p->x = x;

@@ -26,7 +26,9 @@ protected:
       "\ne\n</CsScore>\n</CsoundSynthesizer>";
     ASSERT_EQ(0, csoundCompileCSD(csound, csd.c_str(), 1, 0));
     ASSERT_EQ(0, csoundStart(csound));
-    if (GetParam() == 2) ASSERT_EQ(0, csoundDebuggerInit(csound));
+    if (GetParam() == 2) {
+      ASSERT_EQ(0, csoundDebuggerInit(csound));
+    }
   }
 };
 

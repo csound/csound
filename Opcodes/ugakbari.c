@@ -45,7 +45,7 @@ typedef struct _scale2 {
   OPDS  h;
   MYFLT *koutval;
   MYFLT *kinval, *kmin, *kmax, *imin, *imax, *ihtim;
-  MYFLT c1, c2, yt1;
+  double c1, c2, yt1;
 } SCALE2;
 
 typedef struct _expcurve {
@@ -98,23 +98,23 @@ static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
     if (*p->ihtim < FL(0.0))
       return csound->InitError(csound, "%s",
                                Str("scale2: smoothing time must be nonnegative"));
-    p->yt1 = FL(0.0);
+    p->yt1 = 0.0;
     if (*p->ihtim != FL(0.0)) {
-      p->c2 = POWER(FL(0.5), CS_ONEDKR / *p->ihtim);
-      p->c1 = FL(1.0) - p->c2;
+      p->c2 = pow(0.5, CS_ONEDKR / (double)*p->ihtim);
+      p->c1 = 1.0 - p->c2;
     } else {
-      p->c2 = FL(0.0); p->c1 = FL(1.0);
+      p->c2 = 0.0; p->c1 = 1.0;
     }
     return OK;
 }
 
 static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
 {
-    MYFLT max = *p->imax;
-    MYFLT min = *p->imin;
-    MYFLT kmax = *p->kmax;
-    MYFLT kmin = *p->kmin;
-    MYFLT val = *p->kinval;
+    double max = *p->imax;
+    double min = *p->imin;
+    double kmax = *p->kmax;
+    double kmin = *p->kmin;
+    double val = *p->kinval;
     if (UNLIKELY(!(max > min)))
       return csound->PerfError(csound, &p->h, "%s",
                                Str("scale2: input maximum must exceed minimum"));
@@ -122,11 +122,11 @@ static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
     else if (val < min) val = min;
 
     val = ((val - min)/(max-min))* (kmax - kmin) + kmin;
-    if (p->c2 == FL(0.0))
+    if (p->c2 == 0.0)
       p->yt1 = val;
     else
       p->yt1 = p->c1 * val + p->c2 * p->yt1;
-    *p->koutval = p->yt1;
+    *p->koutval = (MYFLT)p->yt1;
     return OK;
 }
 

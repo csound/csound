@@ -33,20 +33,6 @@
 #include <assert.h>
 #endif
 
-int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
-{
-    if ((f1->overlap    == f2->overlap)
-        && (f1->winsize == f2->winsize)
-        && (f1->wintype == f2->wintype) /* harsh, maybe... */
-        && (f1->N       == f2->N)
-        && (f1->format  == f2->format)
-        && (f1->sliding == f2->sliding)
-        )
-      return 1;
-    return 0;
-
-}
-
 /* Assignment owns its copy, including track and sliding frames. */
 #define FASSIGN_FRAME_BYTES(p) \
     ((p)->fsrc->format == PVS_TRACKS || (p)->fsrc->format < 0 ? \
@@ -796,10 +782,13 @@ int32_t pvsftrset(CSOUND *csound, PVSFTR *p)
       return csound->InitError(csound, Str("pvsftr: bad value for ifna.\n"));
     if (UNLIKELY(*p->ifnf < FL(0.0)))
       return csound->InitError(csound, Str("pvsftr: bad value for ifnf.\n"));
+    if (UNLIKELY(p->fdest->sliding))
+      return csound->InitError(csound, Str("Sliding version not yet available"));
+    fdest = (float *) p->fdest->frame.auxp;             /* RWD MUST be 32bit */
+    if (UNLIKELY(fdest==NULL))
+      return csound->InitError(csound, Str("pvsftr: not initialised\n"));
 
-    /* if ifna=0; no amps to read; one assumes the user ias changing freqs only,
-       otherwise, there is no change!
-    */
+    /* Validate both tables before modifying the shared spectral frame. */
     if ((int32_t) *p->ifna != 0) {
       p->infna = csound->FTFind(csound, p->ifna);
       if (UNLIKELY(p->infna==NULL))
@@ -809,15 +798,6 @@ int32_t pvsftrset(CSOUND *csound, PVSFTR *p)
       if (UNLIKELY(flena < nbins))
         return csound->InitError(csound, Str("pvsftr: amps ftable too small.\n"));
     }
-    if (UNLIKELY(p->overlap < (int32_t)CS_KSMPS || p->overlap < 10))
-      return csound->InitError(csound, Str("Sliding version not yet available"));
-    fdest = (float *) p->fdest->frame.auxp;             /* RWD MUST be 32bit */
-
-    /*** setup first frame ?? */
-    if (p->ftablea)
-      for (i=0;i < nbins;i++)
-        fdest[i*2] = (float) p->ftablea[i];
-
     /* freq table? */
     if ((int32_t) *p->ifnf >= 1) {
       p->infnf = csound->FTFind(csound, p->ifnf);
@@ -827,10 +807,14 @@ int32_t pvsftrset(CSOUND *csound, PVSFTR *p)
       flenf = p->infnf->flen+1;
       if (UNLIKELY(flenf < nbins))
         return csound->InitError(csound, Str("pvsftr: freqs ftable too small.\n"));
-      for (i=0;i < nbins;i++)
-        fdest[(i*2) + 1] = (float) p->ftablef[i];
-
     }
+
+    if (p->ftablea)
+      for (i=0;i < nbins;i++)
+        fdest[i*2] = (float) p->ftablea[i];
+    if (p->ftablef)
+      for (i=0;i < nbins;i++)
+        fdest[i*2 + 1] = (float) p->ftablef[i];
 
     return OK;
 }
@@ -845,10 +829,14 @@ int32_t pvsftr(CSOUND *csound, PVSFTR *p)
     if (UNLIKELY(fdest==NULL))
       return csound->PerfError(csound,&(p->h),
                                Str("pvsftr: not initialised\n"));
+    if (UNLIKELY(p->fdest->sliding || p->fdest->N != p->fftsize ||
+                 p->fdest->format != p->format))
+      return csound->PerfError(csound, &(p->h),
+                               Str("pvsftr: signal format changed; reinitialise\n"));
     nbins = p->fftsize/2 + 1;
 
-    /* only write when a new frame is ready */
-    if (p->lastframe < p->fdest->framecount) {
+    /* Reinitializing the producer can restart its frame counter. */
+    if (p->lastframe != p->fdest->framecount) {
       if (p->ftablea) {
         for (i=0;i < nbins;i++)
           fdest[i*2] = (float) p->ftablea[i];

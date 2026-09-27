@@ -184,7 +184,7 @@ typedef struct _pvsfilter {
     PVSDAT  *fil;
     MYFLT   *kdepth;
     MYFLT   *gain;
-    uint32  lastframe;
+    uint32  lastframe_in, lastframe_fil;
 } PVSFILTER;
 
 static int32_t pvsfilterset(CSOUND *, PVSFILTER *p);

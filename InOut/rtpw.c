@@ -617,7 +617,6 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
 }
 
  int32_t csoundModuleInit(CSOUND *csound) {
-  const OPARMS *O = csound->GetOParms(csound);
   csound->ModuleListAdd(csound, "rtpw", "audio");
   char buf[32];
   char *s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");

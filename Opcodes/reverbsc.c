@@ -350,7 +350,9 @@ static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
       ainR = ainL + inR[i];
       ainL += inL[i];
       /* loop through all delay lines */
-#pragma unroll      
+#if defined(__clang__)
+#pragma unroll
+#endif
       for (n = 0; n < 8; n++) {
         lpn = lp[n];
         bufferSize = lpn->bufferSize;

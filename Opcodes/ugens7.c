@@ -107,8 +107,8 @@ static int32_t fof(CSOUND *csound, FOFS *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  int32   fund_inc, form_inc, floatph = p->floatph;
-  double  form_incf, fund_incf;
+  int32   fund_inc = 0, form_inc = 0, floatph = p->floatph;
+  double  form_incf = 0.0, fund_incf = 0.0;
   MYFLT   v1, fract ,*ftab;
 
   if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */

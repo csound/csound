@@ -57,8 +57,8 @@ TEST_F (DebuggerTests, testAddBreakpoint)
     csoundDebuggerInit(csound);
     csoundSetBreakpoint(csound, 3, 0, 0);
     csoundSetBreakpoint(csound, 5, 1, 0);
-    csoundSetInstrumentBreakpoint(csound, 3.4, 0);
-    csoundSetInstrumentBreakpoint(csound, 1.1, 0);
+    csoundSetInstrumentBreakpoint(csound, FL(3.4), 0);
+    csoundSetInstrumentBreakpoint(csound, FL(1.1), 0);
     csoundClearBreakpoints(csound);
     csoundDebuggerClean(csound);
 }
@@ -86,7 +86,7 @@ TEST_F (DebuggerTests, testBreakpointOnce)
    csoundEventString(csound, "i 1.1 0   1 440", 0);
     csoundDebuggerInit(csound);
     csoundSetBreakpointCallback(csound, brkpt_cb, (void *) &break_count);
-    csoundSetInstrumentBreakpoint(csound, 1.1, 0);
+    csoundSetInstrumentBreakpoint(csound, FL(1.1), 0);
 
     for (i = 0; i < 1000; i++) {
         csoundPerformKsmps(csound);
@@ -117,14 +117,14 @@ TEST_F (DebuggerTests, testBreakpointRemove)
    csoundEventString(csound, "i 1.1 0.1 1 440", 0);
     csoundDebuggerInit(csound);
     csoundSetBreakpointCallback(csound, brkpt_cb2, (void *) &break_count);
-    csoundSetInstrumentBreakpoint(csound, 1.1, 0);
+    csoundSetInstrumentBreakpoint(csound, FL(1.1), 0);
 
     for (i = 0; i < 10; i++) {
         csoundPerformKsmps(csound);
         csoundDebugContinue(csound);
     }
 
-    csoundRemoveInstrumentBreakpoint(csound, 1.1);
+    csoundRemoveInstrumentBreakpoint(csound, FL(1.1));
     for (i = 0; i < 10; i++) {
         csoundPerformKsmps(csound);
         csoundDebugContinue(csound);
@@ -431,7 +431,7 @@ TEST_F (DebuggerTests, testNext)
     csoundEventString(csound, "i 1.3 0  0.1", 0);
     csoundDebuggerInit(csound);
     csoundSetBreakpointCallback(csound, brkpt_cb8, NULL);
-    csoundSetInstrumentBreakpoint(csound, 1.2, 0);
+    csoundSetInstrumentBreakpoint(csound, FL(1.2), 0);
     csoundPerformKsmps(csound);
     csoundPerformKsmps(csound);
     // Only the first call should have effect as we have already stopped
@@ -448,7 +448,7 @@ TEST_F (DebuggerTests, testNext)
     csoundDebugNext(csound);
     csoundPerformKsmps(csound);
     csoundPerformKsmps(csound); // Ignored
-    csoundRemoveInstrumentBreakpoint(csound, 1.2);
+    csoundRemoveInstrumentBreakpoint(csound, FL(1.2));
     csoundDebugContinue(csound); 
     
     int32_t i;
@@ -458,7 +458,7 @@ TEST_F (DebuggerTests, testNext)
     }
     
     csoundSetBreakpointCallback(csound, brkpt_cb9, NULL);
-    csoundSetInstrumentBreakpoint(csound, 30.1, 0);
+    csoundSetInstrumentBreakpoint(csound, FL(30.1), 0);
     for (i = 0; i < 1000; i++) {
         csoundPerformKsmps(csound);
     }

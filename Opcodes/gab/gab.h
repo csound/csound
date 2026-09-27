@@ -26,7 +26,8 @@ typedef struct {
     OPDS    h;
     MYFLT   *ar, *asig, *kcf, *kbw, *ord, *iscl, *istor;
     int32_t scale, loop;
-    MYFLT   c1, c2, c3, *yt1, *yt2, cosf, prvcf, prvbw;
+    MYFLT   prvcf, prvbw;
+    double  c1, c2, c3, *yt1, *yt2, cosf;
     AUXCH   aux;
 } KRESONX;
 
