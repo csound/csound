@@ -978,7 +978,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
     static int32_t pareq(CSOUND *csound, PAREQ *p)
     {
       IGN(csound);
-      MYFLT xn, yn;
+      /* Do not round the new sample before saving it in the filter history. */
+      double xn, yn;
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
