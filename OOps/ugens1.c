@@ -1885,12 +1885,25 @@ int32_t csgset_bkpt(CSOUND *csound, COSSEG *p)
 
 int32_t csgrset(CSOUND *csound, COSSEG *p)
 {
+  SEG *release;
   int32_t relestim;
   if (csgset(csound,p) != 0) return NOTOK;
-  relestim = (p->cursegp + p->segsrem-2)->cnt;
+  if (*p->argums[1] <= FL(0.0)) return OK;
+  release = p->cursegp + p->segsrem-2;
+  relestim = release->cnt;
+  if (UNLIKELY(relestim == MAXPOS ||
+               (int64_t)relestim * CS_KSMPS > MAXPOS))
+    return csound->InitError(csound, Str("cossegr: release duration is too long"));
+  /* Use the same duration after sustain as when note-off interrupts a segment. */
+  release->acnt = relestim * CS_KSMPS;
+  if (p->segsrem == 1 && IS_ASIG_ARG(p->rslt)) {
+    p->curcnt = release->acnt;
+    p->inc = p->curcnt ? 1.0 / p->curcnt : 0.0;
+  }
   p->xtra = relestim;
-  if (relestim > p->h.insdshead->xtratim)
-    p->h.insdshead->xtratim = (int32_t)relestim;
+  /* Include the control period that emits the release endpoint. */
+  if (relestim >= p->h.insdshead->xtratim)
+    p->h.insdshead->xtratim = relestim + 1;
   return OK;
 }
 
