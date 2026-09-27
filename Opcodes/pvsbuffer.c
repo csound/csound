@@ -210,9 +210,12 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      float *frame1, *frame2;
      strt /= (sr/N);
      end /= (sr/N);
-     strt = (int32_t)(strt < 0 ? 0 : strt > N/2 ? N/2 : strt);
-     end = (int32_t)(end <= strt ? N/2 + 2 : end > N/2 + 2 ? N/2 + 2 : end);
-     frames = handle->frames-1;
+     // the ranges are originally being used at 1/2 target freqs
+     // we will keep it that way for backward compat and
+     // note it in the documentation - expand checks however to allow full range
+     strt = (int32_t)(strt < 0 ? 0 : strt > N ? N : strt);
+     end = (int32_t)(end <= strt ? N + 1 : end > N + 1 ? N + 1 : end);
+     frames = handle->frames;
      pos = *p->ktime*(sr/overlap);
 
      if (p->iclear) memset(fout, 0, sizeof(float)*(N+2));
@@ -279,15 +282,19 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
       float *frame1, *frame2;
       frames = handle->frames-1;
       ftab = csound->FTFind(csound, p->strt);
+      if (UNLIKELY(ftab==NULL))
+        return csound->PerfError(csound, &(p->h),Str("amp function table not found\n"));
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
-        csound->PerfError(csound, &(p->h),
+        return csound->PerfError(csound, &(p->h),
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab = tab1 = ftab->ftable;
       ftab = csound->FTFind(csound, p->end);
+      if (UNLIKELY(ftab==NULL))
+        return csound->PerfError(csound, &(p->h),Str("freq function table not found\n"));
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
-        csound->PerfError(csound, &(p->h),
-                          Str("table length too small: needed %d, got %d\n"),
+        return csound->PerfError(csound, &(p->h),
+                          Str("freq table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab2 = ftab->ftable;
       for (i=0; i < (uint32_t)N+2; i++){
