@@ -26,10 +26,7 @@ function removeLeadingSlash(path) {
 }
 
 function splitPathSegments(path) {
-  if (!path) {
-    return [];
-  }
-  return path.split("/").filter((segment) => segment.length > 0 && segment !== ".");
+  return path ? path.split("/").filter((segment) => segment.length > 0 && segment !== ".") : [];
 }
 
 function normalizeAbsolutePath(path) {

@@ -405,7 +405,6 @@ const renderFunction =
     ) {
       if (Atomics.load(audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) {
         releasePause();
-        // eslint-disable-next-line no-unused-expressions
         Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
         releaseResumed();
       }

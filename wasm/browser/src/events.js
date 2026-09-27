@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import EE3 from "eventemitter3/umd/eventemitter3.min.js";
+import EE3 from "eventemitter3";
 
 /**
  * @template PublicEvents
@@ -39,7 +39,7 @@ import EE3 from "eventemitter3/umd/eventemitter3.min.js";
 export class PublicEventAPI {
   constructor(parent) {
     this.parent = parent;
-    this.eventEmitter = new EE3();
+    this.eventEmitter = /** @type {!CsoundEventEmitter} */ (new EE3());
     this.currentDerivedPlayState = undefined;
     this.decorateAPI = this.decorateAPI.bind(this);
     this.triggerRealtimePerformanceStarted = this.triggerRealtimePerformanceStarted.bind(this);
@@ -53,20 +53,7 @@ export class PublicEventAPI {
   }
 
   terminateInstance() {
-    this.eventEmitter.removeAllListeners([
-      "play",
-      "pause",
-      "stop",
-      "realtimePerformanceStarted",
-      "realtimePerformancePaused",
-      "realtimePerformanceResumed",
-      "realtimePerformanceEnded",
-      "renderStarted",
-      "renderEnded",
-      "onAudioNodeCreated",
-      "message",
-      "debugCallback",
-    ]);
+    this.eventEmitter.removeAllListeners();
   }
 
   triggerRealtimePerformanceStarted() {
@@ -132,11 +119,11 @@ export class PublicEventAPI {
   decorateAPI(exportApi) {
     /**
      * Returns an array listing the events for which the emitter has registered listeners.
-     * The values in the array are strings.
+     * The values in the array are strings or symbols.
      * @function
      * @name eventNames
      * @memberof CsoundObj
-     * @return {Array<string>}
+     * @return {!Array<(string|symbol)>}
      */
     exportApi.eventNames = this.eventEmitter.eventNames.bind(this.eventEmitter);
     /**
@@ -144,6 +131,7 @@ export class PublicEventAPI {
      * @function
      * @name listenerCount
      * @memberof CsoundObj
+     * @param {(string|symbol)} eventName
      * @return {number}
      */
     exportApi.listenerCount = this.eventEmitter.listenerCount.bind(this.eventEmitter);
@@ -152,8 +140,8 @@ export class PublicEventAPI {
      * @function
      * @name listeners
      * @memberof CsoundObj
-     * @param {PublicEvents} eventName
-     * @return {Array.<function()>}
+     * @param {(string|symbol)} eventName
+     * @return {!Array<function(...*): *>}
      */
     exportApi.listeners = this.eventEmitter.listeners.bind(this.eventEmitter);
     /**
@@ -161,9 +149,11 @@ export class PublicEventAPI {
      * @function
      * @name off
      * @memberof CsoundObj
-     * @param {PublicEvents} eventName
-     * @param {function()} listener
-     * @return {EventTarget}
+     * @param {(string|symbol)} eventName
+     * @param {function(...*): *=} listener
+     * @param {*=} context
+     * @param {boolean=} once
+     * @return {!CsoundEventEmitter}
      */
     exportApi.off = this.eventEmitter.off.bind(this.eventEmitter);
     /**
@@ -174,9 +164,10 @@ export class PublicEventAPI {
      * @function
      * @name on
      * @memberof CsoundObj
-     * @param {PublicEvents} eventName
-     * @param {function()} listener
-     * @return {EventTarget}
+     * @param {(string|symbol)} eventName
+     * @param {function(...*): *} listener
+     * @param {*=} context
+     * @return {!CsoundEventEmitter}
      */
     exportApi.on = this.eventEmitter.on.bind(this.eventEmitter);
     /**
@@ -184,9 +175,10 @@ export class PublicEventAPI {
      * @function
      * @name addListener
      * @memberof CsoundObj
-     * @param {PublicEvents} eventName
-     * @param {function()} listener
-     * @return {EventTarget}
+     * @param {(string|symbol)} eventName
+     * @param {function(...*): *} listener
+     * @param {*=} context
+     * @return {!CsoundEventEmitter}
      */
     exportApi.addListener = this.eventEmitter.on.bind(this.eventEmitter);
     /**
@@ -195,9 +187,10 @@ export class PublicEventAPI {
      * @function
      * @name once
      * @memberof CsoundObj
-     * @param {PublicEvents} eventName
-     * @param {function()} listener
-     * @return {EventTarget}
+     * @param {(string|symbol)} eventName
+     * @param {function(...*): *} listener
+     * @param {*=} context
+     * @return {!CsoundEventEmitter}
      */
     exportApi.once = this.eventEmitter.once.bind(this.eventEmitter);
     /**
@@ -209,22 +202,21 @@ export class PublicEventAPI {
      * @function
      * @name removeAllListeners
      * @memberof CsoundObj
-     * @param {PublicEvents} eventName
-     * @return {EventTarget}
+     * @param {(string|symbol)=} eventName
+     * @return {!CsoundEventEmitter}
      */
     exportApi.removeAllListeners = this.eventEmitter.removeAllListeners.bind(this.eventEmitter);
     /**
      * Removes the specified listener from the listener array for the event named eventName.
-     * removeListener() will remove, at most, one instance of a listener from the listener array.
-     * If any single listener has been added multiple times to the listener array for the specified eventName,
-     * then removeListener() must be called multiple times to remove each instance.
-     * Removes the specified listener from the listener array for the event named eventName.
+     * Removes all matching registrations. Without a listener, removes all listeners for the event.
      * @function
      * @name removeListener
      * @memberof CsoundObj
-     * @param {PublicEvents} eventName
-     * @param {function()} listener
-     * @return {EventTarget}
+     * @param {(string|symbol)} eventName
+     * @param {function(...*): *=} listener
+     * @param {*=} context
+     * @param {boolean=} once
+     * @return {!CsoundEventEmitter}
      */
     exportApi.removeListener = this.eventEmitter.removeListener.bind(this.eventEmitter);
     return exportApi;

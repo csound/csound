@@ -1,5 +1,4 @@
 /** @license zlib.js 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */
-/* eslint-disable unicorn/numeric-separators-style,camelcase,no-unused-expressions */
 
 /**
  * build huffman table from length list.

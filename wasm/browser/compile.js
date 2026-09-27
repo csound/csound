@@ -18,7 +18,7 @@ import JarPath from "google-closure-compiler-java";
 import prettier from "prettier";
 import { Readable } from "stream";
 import { fileURLToPath } from "url";
-import rimraf from "rimraf";
+import { rimrafSync } from "rimraf";
 import fs from "fs";
 import path from "path";
 import * as R from "ramda";
@@ -84,7 +84,7 @@ const makeModuleExportsHack = () => {
 };
 
 if (fs.existsSync(distDir)) {
-  rimraf.sync(distDir);
+  rimrafSync(distDir);
 }
 fs.mkdirSync(distDir);
 
@@ -190,12 +190,13 @@ const compile = async (config) => {
       "./node_modules/lines-logger/lib/index.js",
       "./node_modules/unmute-ios-audio/package.json",
       "./node_modules/unmute-ios-audio/index.js",
-      "./node_modules/eventemitter3/umd/eventemitter3.min.js",
+      "./node_modules/eventemitter3/package.json",
+      "./node_modules/eventemitter3/index.js",
       "./node_modules/google-closure-library/package.json",
       "./node_modules/google-closure-library/**/*.js",
     ],
     hide_warnings_for: [
-      "./node_modules/eventemitter3/umd/eventemitter3.min.js",
+      "./node_modules/eventemitter3/index.js",
       "./node_modules/lines-logger/lib/index.js",
       "./node_modules/google-closure-library/closure/goog/base.js",
       "./node_modules/google-closure-library/closure/goog/dom/tagname.js",

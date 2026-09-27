@@ -33,7 +33,8 @@ fs.writeFileSync(testFile, fs.readFileSync(fixtureSourceFile, "utf8"));
 
 const result = spawnSync(
   tscPath,
-  ["--noEmit", "--module", "esnext", "--moduleResolution", "node", "--skipLibCheck", testFile],
+  // Check browser consumers with modern bundler resolution, including package exports.
+  ["--noEmit", "--module", "preserve", "--moduleResolution", "bundler", "--skipLibCheck", testFile],
   {
     cwd: tempRoot,
     stdio: "inherit",

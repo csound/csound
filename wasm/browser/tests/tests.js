@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import { assert } from "./chai/index.js";
+
 (async () => {
   const isCI = ["8081", "8082"].includes(location.port) && location.search.includes("ci=true");
   const url = "/dist/csound.js"; // isCI ? "/csound.esm.js" : "/csound.dev.esm.js";
@@ -889,6 +891,48 @@ e
         await csoundObj.start();
         await csoundObj.stop();
         await csoundObj.terminateInstance();
+      });
+
+      it("renders audio samples to an offline WAV file", async function () {
+        const csoundObj = await Csound(test);
+        try {
+          assert.equal(
+            await csoundObj.compileCSD(`
+<CsoundSynthesizer>
+<CsOptions>
+-ooffline.wav -W -s
+</CsOptions>
+<CsInstruments>
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+instr 1
+  aSignal init 0.25
+  out aSignal
+endin
+</CsInstruments>
+<CsScore>
+i 1 0 0.05
+e
+</CsScore>
+</CsoundSynthesizer>
+`),
+            0,
+          );
+          const ended = waitForPerformanceEnd(csoundObj);
+          assert.equal(await csoundObj.start(), 0);
+          assert.equal(await ended, "renderEnded");
+
+          const wav = await csoundObj.fs.readFile("offline.wav");
+          assert.isAbove(wav.length, 44, "rendered WAV contains sample data");
+          const context = new OfflineAudioContext(1, 1, 48000);
+          const audio = await context.decodeAudioData(wav.slice().buffer);
+          assert.closeTo(audio.duration, 0.05, 0.005);
+          const samples = audio.getChannelData(0);
+          assert.closeTo(samples[Math.floor(samples.length / 2)], 0.25, 0.001);
+        } finally {
+          await csoundObj.terminateInstance();
+        }
       });
 
       it("can play a sample, write a sample and read the output file", async function () {

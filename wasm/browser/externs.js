@@ -19,6 +19,24 @@
  */
 
 /**
+ * EventEmitter3's runtime API. Its upstream JSDoc uses boxed primitives and
+ * omits the variadic emit arguments, so Closure needs these declarations.
+ * @typedef {{
+ * eventNames: function(): !Array<(string|symbol)>,
+ * listenerCount: function((string|symbol)): number,
+ * listeners: function((string|symbol)): !Array<function(...*): *>,
+ * emit: function((string|symbol), ...*): boolean,
+ * on: function((string|symbol), function(...*): *, *=): !CsoundEventEmitter,
+ * addListener: function((string|symbol), function(...*): *, *=): !CsoundEventEmitter,
+ * once: function((string|symbol), function(...*): *, *=): !CsoundEventEmitter,
+ * off: function((string|symbol), function(...*): *=, *=, boolean=): !CsoundEventEmitter,
+ * removeListener: function((string|symbol), function(...*): *=, *=, boolean=): !CsoundEventEmitter,
+ * removeAllListeners: function((string|symbol)=): !CsoundEventEmitter,
+ * }}
+ */
+var CsoundEventEmitter;
+
+/**
  * @param {number} index
  * @return {number}
  * @nosideeffects

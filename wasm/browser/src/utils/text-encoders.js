@@ -41,10 +41,7 @@ function TextDecoderPoly() {
 
   this.trimNull = (a) => {
     const c = a.indexOf("\0");
-    if (c !== -1) {
-      return a.slice(0, Math.max(0, c));
-    }
-    return a;
+    return c === -1 ? a : a.slice(0, Math.max(0, c));
   };
 
   this.decode = function (view, options) {
@@ -52,7 +49,7 @@ function TextDecoderPoly() {
       return "";
     }
 
-    const stream = options !== undefined && "stream" in options ? options.stream : false;
+    const stream = options !== undefined && "stream" in options && options.stream;
     if (typeof stream !== "boolean") {
       throw new TypeError("stream option must be boolean");
     }
@@ -70,7 +67,7 @@ function TextDecoderPoly() {
   };
 }
 
-export const decoder = WITH_TEXT_ENCODER_POLYFILL ? new TextDecoderPoly() : new TextDecoder("utf8");
+export const decoder = WITH_TEXT_ENCODER_POLYFILL ? new TextDecoderPoly() : new TextDecoder("utf-8");
 
 export const encoder = WITH_TEXT_ENCODER_POLYFILL ? new TextEncoderPoly() : new TextEncoder("utf8");
 
