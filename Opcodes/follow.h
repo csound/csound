@@ -38,5 +38,6 @@ typedef struct  {
 typedef struct {
         OPDS    h;
         MYFLT   *out, *in, *attack, *release;
-        MYFLT   lastatt, lastrel, envelope, ga, gr;
+        MYFLT   lastatt, lastrel;
+        double  envelope, ga, gr;
 } ENV;

@@ -88,20 +88,19 @@ static int32_t follow(CSOUND *csound, FOL *p)
    Bram.DeJong@rug.ac.be and James Maccartney posted on music-dsp;
    Transferred to csound by JPff, 2000 feb 12
 */
+/* Use double coefficients even with float samples. Nonpositive times
+   retain the existing 0.1-second fallback. */
+#define FOLLOW2_COEFFICIENT(time) \
+    exp(-6.90775527898 / ((double)CS_ESR * \
+                         ((time) <= FL(0.0) ? 0.1 : (double)(time))))
+
 static int32_t envset(CSOUND *csound, ENV *p)
 {
-                                /* Note - 6.90775527898 -- log(0.001) */
     p->lastatt = *p->attack;
-    if (p->lastatt<=FL(0.0))
-      p->ga = EXP(- FL(69.0775527898)*CS_ONEDSR);
-    else
-      p->ga = EXP(- FL(6.90775527898)/(CS_ESR* p->lastatt));
+    p->ga = FOLLOW2_COEFFICIENT(p->lastatt);
     p->lastrel = *p->release;
-    if (p->lastrel<=FL(0.0))
-      p->gr = EXP(- FL(69.0775527898)*CS_ONEDSR);
-    else
-      p->gr = EXP(- FL(6.90775527898)/(CS_ESR* p->lastrel));
-    p->envelope = FL(0.0);
+    p->gr = FOLLOW2_COEFFICIENT(p->lastrel);
+    p->envelope = 0.0;
     return OK;
 }
 
@@ -110,27 +109,18 @@ static int32_t envext(CSOUND *csound, ENV *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       envelope = p->envelope;
-    MYFLT       ga, gr;
+    /* Keep small updates in the state; only round the output sample. */
+    double      envelope = p->envelope;
+    double      ga, gr;
     MYFLT       *in = p->in, *out = p->out;
     if (p->lastatt!=*p->attack) {
       p->lastatt = *p->attack;
-      if (p->lastatt<=FL(0.0))
-        ga = p->ga = EXP(- FL(69.0775527898)*CS_ONEDSR);
-      // EXP(-FL(10000.0)*CS_ONEDSR);
-      else
-        ga = p->ga = EXP(- FL(6.90775527898)/(CS_ESR* p->lastatt));
-      //EXP(-FL(1.0)/(CS_ESR* p->lastatt));
+      ga = p->ga = FOLLOW2_COEFFICIENT(p->lastatt);
     }
     else ga = p->ga;
     if (p->lastrel!=*p->release) {
       p->lastrel = *p->release;
-      if (p->lastrel<=FL(0.0))
-        gr = p->gr = EXP(- FL(69.0775527898)*CS_ONEDSR);
-      //EXP(-FL(100.0)*CS_ONEDSR);
-      else
-        gr = p->gr = EXP(- FL(6.90775527898)/(CS_ESR* p->lastrel));
-      //EXP(-FL(1.0)/(CS_ESR* p->lastrel));
+      gr = p->gr = FOLLOW2_COEFFICIENT(p->lastrel);
     }
     else gr = p->gr;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -139,18 +129,20 @@ static int32_t envext(CSOUND *csound, ENV *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset;n<nsmps;n++) {
-      MYFLT inp = FABS(in[n]);  /* Absolute value */
+      double inp = (double)FABS(in[n]);  /* Absolute value */
       if (envelope < inp) {
         envelope = inp + ga*(envelope-inp);
       }
       else {
         envelope = inp + gr*(envelope-inp);
       }
-      out[n] = envelope;
+      out[n] = (MYFLT)envelope;
     }
     p->envelope = envelope;
     return OK;
 }
+
+#undef FOLLOW2_COEFFICIENT
 
 #define S(x)    sizeof(x)
 
