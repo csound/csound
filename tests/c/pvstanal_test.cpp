@@ -12,6 +12,11 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#if defined(_WIN32)
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 
 namespace {
 
@@ -30,9 +35,16 @@ protected:
     void SetUp() override
     {
         const auto id = std::chrono::steady_clock::now().time_since_epoch().count();
-        directory = std::filesystem::temp_directory_path() /
-                    ("csound-pvstanal-" + std::to_string(id));
-        ASSERT_TRUE(std::filesystem::create_directory(directory));
+#if defined(_WIN32)
+        const auto pid = _getpid();
+#else
+        const auto pid = getpid();
+#endif
+        const auto candidate = std::filesystem::temp_directory_path() /
+                    ("csound-pvstanal-" + std::to_string(pid) + "-" +
+                     std::to_string(id));
+        ASSERT_TRUE(std::filesystem::create_directory(candidate));
+        directory = candidate;
         csound = csoundCreate(nullptr, nullptr);
         ASSERT_NE(csound, nullptr);
         csoundCreateMessageBuffer(csound, 0);
@@ -43,7 +55,7 @@ protected:
     {
         if (csound) csoundDestroy(csound);
         std::error_code error;
-        std::filesystem::remove_all(directory, error);
+        if (!directory.empty()) std::filesystem::remove_all(directory, error);
     }
 
     std::string messages()
