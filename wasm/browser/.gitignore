@@ -20,7 +20,6 @@ deps.js
 tmp
 dev.html
 tests/debug.html
-tests/results.junit.xml
-tests/eslint.junit.xml
+tests/*.junit.xml
 *.manifest.txt
 !./tests/dist

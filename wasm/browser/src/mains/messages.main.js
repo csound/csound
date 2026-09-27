@@ -88,13 +88,18 @@ export class IPCMessagePorts {
 
   restartAudioWorkerPorts() {
     safelyClosePorts([this.csoundWorkerAudioInputPort, this.audioWorkerAudioInputPort]);
-    [this.csoundWorkerAudioInputPort, this.audioWorkerAudioInputPort] = iterableMessageChannel();
+    const [csoundWorkerAudioInputPort, audioWorkerAudioInputPort] = iterableMessageChannel();
+    this.csoundWorkerAudioInputPort = csoundWorkerAudioInputPort;
+    this.audioWorkerAudioInputPort = audioWorkerAudioInputPort;
 
     safelyClosePorts([this.mainMessagePortAudio, this.workerMessagePortAudio]);
-    [this.mainMessagePortAudio, this.workerMessagePortAudio] = iterableMessageChannel();
+    const [mainMessagePortAudio, workerMessagePortAudio] = iterableMessageChannel();
+    this.mainMessagePortAudio = mainMessagePortAudio;
+    this.workerMessagePortAudio = workerMessagePortAudio;
 
     safelyClosePorts([this.csoundWorkerFrameRequestPort, this.audioWorkerFrameRequestPort]);
-    [this.csoundWorkerFrameRequestPort, this.audioWorkerFrameRequestPort] =
-      iterableMessageChannel();
+    const [csoundWorkerFrameRequestPort, audioWorkerFrameRequestPort] = iterableMessageChannel();
+    this.csoundWorkerFrameRequestPort = csoundWorkerFrameRequestPort;
+    this.audioWorkerFrameRequestPort = audioWorkerFrameRequestPort;
   }
 }

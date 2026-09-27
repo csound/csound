@@ -10,10 +10,9 @@ in
       chromedriver
       geckodriver
       google_chrome_ci
-      nodejs
+      nodejs_22
       selenium-server-standalone
       vim
-      yarn
       openjdk
     ];
   }

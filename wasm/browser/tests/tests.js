@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+import { assert } from "./chai/index.js";
+import { runWithXmlReport } from "./browser-test-report.js";
+
 (async () => {
   const isCI = ["8081", "8082"].includes(location.port) && location.search.includes("ci=true");
   const url = "/dist/csound.js"; // isCI ? "/csound.esm.js" : "/csound.dev.esm.js";
@@ -315,7 +318,18 @@ e
   mocha.setup({ ui: "bdd", timeout: 10000 }).fullTrace();
 
   if (isCI) {
-    MochaWebdriverClient.install(mocha);
+    describe("browser test audio device", () => {
+      it("provides a live microphone track", async function () {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        try {
+          const tracks = stream.getAudioTracks();
+          assert.isNotEmpty(tracks);
+          assert.equal(tracks[0].readyState, "live");
+        } finally {
+          stream.getTracks().forEach((track) => track.stop());
+        }
+      });
+    });
   }
 
   const csoundVariations = [
@@ -572,7 +586,10 @@ e
 
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
-          assert.equal(0, await cs.compileCSD(filesystemPluginTest("--opcode-lib=./plugin_example_cpp.wasm")));
+          assert.equal(
+            0,
+            await cs.compileCSD(filesystemPluginTest("--opcode-lib=./plugin_example_cpp.wasm")),
+          );
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
         } finally {
@@ -889,6 +906,48 @@ e
         await csoundObj.start();
         await csoundObj.stop();
         await csoundObj.terminateInstance();
+      });
+
+      it("renders audio samples to an offline WAV file", async function () {
+        const csoundObj = await Csound(test);
+        try {
+          assert.equal(
+            await csoundObj.compileCSD(`
+<CsoundSynthesizer>
+<CsOptions>
+-ooffline.wav -W -s
+</CsOptions>
+<CsInstruments>
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+instr 1
+  aSignal init 0.25
+  out aSignal
+endin
+</CsInstruments>
+<CsScore>
+i 1 0 0.05
+e
+</CsScore>
+</CsoundSynthesizer>
+`),
+            0,
+          );
+          const ended = waitForPerformanceEnd(csoundObj);
+          assert.equal(await csoundObj.start(), 0);
+          assert.equal(await ended, "renderEnded");
+
+          const wav = await csoundObj.fs.readFile("offline.wav");
+          assert.isAbove(wav.length, 44, "rendered WAV contains sample data");
+          const context = new OfflineAudioContext(1, 1, 48000);
+          const audio = await context.decodeAudioData(wav.slice().buffer);
+          assert.closeTo(audio.duration, 0.05, 0.005);
+          const samples = audio.getChannelData(0);
+          assert.closeTo(samples[Math.floor(samples.length / 2)], 0.25, 0.001);
+        } finally {
+          await csoundObj.terminateInstance();
+        }
       });
 
       it("can play a sample, write a sample and read the output file", async function () {
@@ -1466,22 +1525,33 @@ e
         ),
         (char) => char.charCodeAt(0),
       );
-      const oneFailure = await libcsound({ withPlugins: [badPlugin] });
-      const repeatedFailures = await libcsound({ withPlugins: Array(8).fill(badPlugin) });
-      const oneExports = oneFailure.wasm.exports;
-      const repeatedExports = repeatedFailures.wasm.exports;
-      const oneTable = oneExports.__indirect_function_table;
-      const repeatedTable = repeatedExports.__indirect_function_table;
-      const oneAllocation = oneExports.allocStringMem(64);
-      const repeatedAllocation = repeatedExports.allocStringMem(64);
-
+      const errors = sinon.stub(console, "error");
       try {
-        assert.equal(oneTable.length, repeatedTable.length);
-        assert.equal(oneAllocation, repeatedAllocation);
-        assert.isNull(repeatedTable.get(repeatedTable.length - 1));
+        const oneFailure = await libcsound({ withPlugins: [badPlugin] });
+        const repeatedFailures = await libcsound({ withPlugins: Array(8).fill(badPlugin) });
+        const oneExports = oneFailure.wasm.exports;
+        const repeatedExports = repeatedFailures.wasm.exports;
+        const oneTable = oneExports.__indirect_function_table;
+        const repeatedTable = repeatedExports.__indirect_function_table;
+        const oneAllocation = oneExports.allocStringMem(64);
+        const repeatedAllocation = repeatedExports.allocStringMem(64);
+
+        try {
+          assert.equal(oneTable.length, repeatedTable.length);
+          assert.equal(oneAllocation, repeatedAllocation);
+          assert.isNull(repeatedTable.get(repeatedTable.length - 1));
+        } finally {
+          oneExports.freeStringMem(oneAllocation);
+          repeatedExports.freeStringMem(repeatedAllocation);
+        }
+        assert.equal(errors.callCount, 9);
+        for (const [message, error] of errors.args) {
+          assert.equal(message, "Error while instantiating csound-plugin");
+          assert.instanceOf(error, WebAssembly.RuntimeError);
+          assert.include(error.message, "unreachable");
+        }
       } finally {
-        oneExports.freeStringMem(oneAllocation);
-        repeatedExports.freeStringMem(repeatedAllocation);
+        errors.restore();
       }
     });
 
@@ -1491,9 +1561,7 @@ e
         // The dylink headers ask for 1,000,001 entries and 2^30 alignment.
         "AGFzbQEAAAAADgZkeWxpbmtAAMGEPQAAAQQBYAAAAjcCA2VudhlfX2luZGlyZWN0X2Z1bmN0aW9uX3RhYmxlAXAAAANlbnYMX190YWJsZV9iYXNlA38AAwMCAAAHKgIRX193YXNtX2NhbGxfY3RvcnMAABJjc291bmRNb2R1bGVDcmVhdGUAAQkHAQAjAAsBAQoIAgMAAAsCAAs=",
         "AGFzbQEAAAAADAZkeWxpbmtAAAEeAAEEAWAAAAI3AgNlbnYZX19pbmRpcmVjdF9mdW5jdGlvbl90YWJsZQFwAAADZW52DF9fdGFibGVfYmFzZQN/AAMDAgAAByoCEV9fd2FzbV9jYWxsX2N0b3JzAAASY3NvdW5kTW9kdWxlQ3JlYXRlAAEJBwEAIwALAQEKCAIDAAALAgAL",
-      ].map((encodedPlugin) =>
-        Uint8Array.from(atob(encodedPlugin), (char) => char.charCodeAt(0)),
-      );
+      ].map((encodedPlugin) => Uint8Array.from(atob(encodedPlugin), (char) => char.charCodeAt(0)));
       assert.isTrue(unsafePlugins.every((plugin) => WebAssembly.validate(plugin)));
       const tableGrow = WebAssembly.Table.prototype.grow;
       let growCalled = false;
@@ -1501,13 +1569,31 @@ e
         growCalled = true;
         throw new Error("Unexpected shared table growth");
       };
+      const errors = sinon.stub(console, "error");
 
       try {
         for (const unsafePlugin of unsafePlugins) {
           await libcsound({ withPlugins: [unsafePlugin] });
         }
         assert.isFalse(growCalled);
+        assert.equal(errors.callCount, unsafePlugins.length);
+        assert.deepEqual(
+          errors.args.map(([message, error]) => [message, error.name, error.message]),
+          [
+            [
+              "Error while instantiating csound-plugin",
+              "TypeError",
+              "Invalid WebAssembly plugin table size",
+            ],
+            [
+              "Error while instantiating csound-plugin",
+              "TypeError",
+              "The WebAssembly plugin table request is too large",
+            ],
+          ],
+        );
       } finally {
+        errors.restore();
         WebAssembly.Table.prototype.grow = tableGrow;
       }
     });
@@ -1571,10 +1657,7 @@ schedule(1, 0, 1)`,
         }
 
         assert.equal(1, status, "readline reports a completed line");
-        assert.equal(
-          "from wasi",
-          cs.csoundGetStringChannel(csound, "readline_line"),
-        );
+        assert.equal("from wasi", cs.csoundGetStringChannel(csound, "readline_line"));
       } finally {
         cs.csoundStop(csound);
         cs.csoundDestroy(csound);
@@ -2086,6 +2169,10 @@ schedule(1, 0, 1)`,
   });
   if (isCI) {
     mocha.cleanReferencesAfterRun(true);
-    mocha.run();
+    globalThis.__csoundTestResult = await runWithXmlReport(
+      mocha,
+      Mocha.reporters.XUnit,
+      location.port === "8082" ? "Firefox" : "Google Chrome",
+    );
   }
 })();

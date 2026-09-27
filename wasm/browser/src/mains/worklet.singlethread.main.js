@@ -108,10 +108,7 @@ class SingleThreadAudioWorkletMainThread {
   }
 
   async beginFadeOut() {
-    if (!this.workletProxy) {
-      return 0;
-    }
-    return (await this.workletProxy["beginFadeOut"]()) || 0;
+    return this.workletProxy ? (await this.workletProxy["beginFadeOut"]()) || 0 : 0;
   }
 
   async waitForFadeOut(frameCount) {

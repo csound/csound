@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/require-post-message-target-origin */
 /*
     worklet.singlethread.worker.js
 
@@ -32,8 +31,7 @@ import { logSinglethreadWorkletWorker as log } from "../logger";
 
 const singlethreadWorkerRender =
   ({ libraryCsound, workerMessagePort, setRenderSleep }) =>
-  async (payload) => {
-    const csound = payload["csound"];
+  async (csound) => {
     const kr = libraryCsound.csoundGetKr(csound);
     let lastResult = 0;
     let cnt = 0;
@@ -386,8 +384,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
       // handle 1->1, 1->2, 2->1, 2->2 output channel count mixing and nchnls
       if (this.nchnls === output.length) {
-        for (const [channel, outputChannel] of output.entries()) {
-          /** @suppress {checkTypes} */
+        for (let channel = 0; channel < nchnls; channel++) {
+          const outputChannel = output[channel];
           outputChannel[index] =
             result === 0
               ? csOut[cnt * nchnls + channel] / zerodBFS
@@ -506,7 +504,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           setRenderSleep: (resolve) => {
             this.renderSleep = resolve;
           },
-        })({ csound: cs })
+        })(cs)
           .then(() => {
             this.workerMessagePort.broadcastPlayState("renderEnded");
             this.isRendering = false;
