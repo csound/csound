@@ -924,7 +924,7 @@ TEST_F (EngineTests, testRealtimeInsertEventCopiesQueuedEvtblk)
 TEST_F (EngineTests, testRealtimeAllocQueueMultipleProducers)
 {
     constexpr int32_t producerCount = 4;
-    constexpr int32_t itemsPerProducer = MAX_ALLOC_QUEUE / producerCount;
+    static constexpr int32_t itemsPerProducer = MAX_ALLOC_QUEUE / producerCount;
     std::atomic<int32_t> failures {0};
     std::atomic<int32_t> ready {0};
     std::atomic<bool> start {false};
