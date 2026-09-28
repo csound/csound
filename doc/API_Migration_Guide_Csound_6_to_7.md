@@ -27,6 +27,14 @@ class was incorporated into the main Csound library.
 A C-languageinterface for this class is provided as part of the
 public headers.
 
+## Numeric types
+
+Use `cs_float` in place of `MYFLT`. Csound 7 keeps `MYFLT` as a deprecated
+alias, so old host and opcode code remains valid. `cs_double` names values
+that normally use double precision. The new `USE_FLOAT` build option makes
+both types single precision. See [Numeric types](numeric-types.md) for the
+build options, helper aliases, and binding changes.
+
 ## Main Changes in `csound.h`
 
 The following is an outline of the changes in the main
@@ -228,20 +236,20 @@ This function has been placed in the `csound_files.h` header.
 ```
 PUBLIC long csoundGetInputBufferSize(CSOUND *);
 PUBLIC long csoundGetOutputBufferSize(CSOUND *);
-PUBLIC MYFLT *csoundGetInputBuffer(CSOUND *);
-PUBLIC MYFLT *csoundGetOutputBuffer(CSOUND *);
+PUBLIC cs_float *csoundGetInputBuffer(CSOUND *);
+PUBLIC cs_float *csoundGetOutputBuffer(CSOUND *);
 ```
 
 The function
 
 ```
-PUBLIC MYFLT *csoundGetSpout(CSOUND *csound)
+PUBLIC cs_float *csoundGetSpout(CSOUND *csound)
 ```
 
 has changed signature to
 
 ```
-PUBLIC const MYFLT *csoundGetSpout(CSOUND *csound)
+PUBLIC const cs_float *csoundGetSpout(CSOUND *csound)
 ```
 
 These functions have been removed as there is no buffer-level
@@ -250,9 +258,9 @@ and spout buffers.
 
 ```
 PUBLIC void csoundAddSpinSample(CSOUND *csound,
-                                  int frame, int channel, MYFLT sample);
+                                  int frame, int channel, cs_float sample);
 PUBLIC void csoundSetSpinSample(CSOUND *csound,
-                                  int frame, int channel, MYFLT sample);
+                                  int frame, int channel, cs_float sample);
 ```
 These functions duplicate functionality and have been removed.
 Access to spin/spout data is done by acquiring the pointers
@@ -287,14 +295,14 @@ PUBLIC void
                                               const csRtAudioParams *parm));
 PUBLIC void csoundSetRtplayCallback(CSOUND *,
                                       void (*rtplay__)(CSOUND *,
-                                                       const MYFLT *outBuf,
+                                                       const cs_float *outBuf,
                                                        int nbytes));
 PUBLIC void csoundSetRecopenCallback(CSOUND *,
                                      int (*recopen_)(CSOUND *,
                                                      const csRtAudioParams *parm));
 PUBLIC void csoundSetRtrecordCallback(CSOUND *,
                                         int (*rtrecord__)(CSOUND *,
-                                                          MYFLT *inBuf,
+                                                          cs_float *inBuf,
                                                           int nbytes));
 PUBLIC void csoundSetRtcloseCallback(CSOUND *, void (*rtclose__)(CSOUND *));
 PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
@@ -334,19 +342,19 @@ These functions:
 
 ```
 PUBLIC int csoundScoreEvent(CSOUND *,
-                              char type, const MYFLT *pFields, long numFields);
+                              char type, const cs_float *pFields, long numFields);
 PUBLIC void csoundScoreEventAsync(CSOUND *,
-                              char type, const MYFLT *pFields, long numFields);
+                              char type, const cs_float *pFields, long numFields);
 PUBLIC int csoundScoreEventAbsolute(CSOUND *,
-                 char type, const MYFLT *pfields, long numFields, double time_ofs);
+                 char type, const cs_float *pfields, long numFields, double time_ofs);
 PUBLIC void csoundScoreEventAbsoluteAsync(CSOUND *,
-                 char type, const MYFLT *pfields, long numFields, double time_ofs);
+                 char type, const cs_float *pfields, long numFields, double time_ofs);
 ```
 
 have been replaced by
 
 ```
-PUBLIC int csoundEvent(CSOUND *csound, int type, const MYFLT *pfields,
+PUBLIC int csoundEvent(CSOUND *csound, int type, const cs_float *pfields,
 long numFields, int async);
 ```
 
@@ -364,7 +372,7 @@ The function
 
 ```
 PUBLIC int csoundGetChannelPtr(CSOUND *,
-                                 MYFLT **p, const char *name, int type);
+                                 cs_float **p, const char *name, int type);
 ```
 
 has changed signature to
@@ -390,7 +398,7 @@ PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
 The function
 
 ```
-PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr,
+PUBLIC int csoundKillInstance(CSOUND *csound, cs_float instr,
                                 char *instrName, int mode, int allow_release);
 ```
 
@@ -407,12 +415,12 @@ has lost its purpose.
 
 
 ```
-PUBLIC MYFLT csoundTableGet(CSOUND *, int table, int index);
-PUBLIC void csoundTableSet(CSOUND *, int table, int index, MYFLT value);
-PUBLIC void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *dest);
-PUBLIC void csoundTableCopyOutAsync(CSOUND *csound, int table, MYFLT *dest);
-PUBLIC void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *src);
-PUBLIC void csoundTableCopyInAsync(CSOUND *csound, int table, MYFLT *src);
+PUBLIC cs_float csoundTableGet(CSOUND *, int table, int index);
+PUBLIC void csoundTableSet(CSOUND *, int table, int index, cs_float value);
+PUBLIC void csoundTableCopyOut(CSOUND *csound, int table, cs_float *dest);
+PUBLIC void csoundTableCopyOutAsync(CSOUND *csound, int table, cs_float *dest);
+PUBLIC void csoundTableCopyIn(CSOUND *csound, int table, cs_float *src);
+PUBLIC void csoundTableCopyInAsync(CSOUND *csound, int table, cs_float *src);
 PUBLIC void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len);
 PUBLIC int csoundIsNamedGEN(CSOUND *csound, int num);
 ```

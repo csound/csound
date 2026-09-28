@@ -85,7 +85,7 @@ static int32_t scsnux_initw(CSOUND *csound, PSCSNUX *p)
       memcpy is 20 times faster that loop!!
     */
     p->fi = fi;
-    len *= sizeof(MYFLT);
+    len *= sizeof(cs_float);
     memcpy(p->x0, fi->ftable, len);
     memcpy(p->x1, fi->ftable, len);
     memcpy(p->x2, fi->ftable, len);
@@ -95,12 +95,12 @@ static int32_t scsnux_initw(CSOUND *csound, PSCSNUX *p)
 /*
  *      Hammer hit
  */
-static int32_t scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
+static int32_t scsnux_hammer(CSOUND *csound, PSCSNUX *p, cs_float pos, cs_float sgn)
 {
     int32_t i, i1, i2;
     FUNC *fi;
-    MYFLT *f;
-    MYFLT tab = FABS(*p->i_init);
+    cs_float *f;
+    cs_float tab = FABS(*p->i_init);
     int32 len  = p->len;
 
     if (pos<FL(0.0)) pos = FL(0.0);
@@ -360,11 +360,11 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
 
 /* Make buffers to hold data */
 #if PHASE_INTERP == 3
-    csound->AuxAlloc(csound, 6*len*sizeof(MYFLT), &p->aux_x);
+    csound->AuxAlloc(csound, 6*len*sizeof(cs_float), &p->aux_x);
 #else
-    csound->AuxAlloc(csound, 5*len*sizeof(MYFLT), &p->aux_x);
+    csound->AuxAlloc(csound, 5*len*sizeof(cs_float), &p->aux_x);
 #endif
-    p->x0  = (MYFLT*)p->aux_x.auxp;
+    p->x0  = (cs_float*)p->aux_x.auxp;
     p->x1  = p->x0 + len;
     p->x2  = p->x1 + len;
     p->ext = p->x2 + len;
@@ -381,9 +381,9 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
 /* #endif */
 /*     } */
 /* #if PHASE_INTERP == 3 */
-/*     memset(p->x0, 0, 6*len*sizeof(MYFLT)); */
+/*     memset(p->x0, 0, 6*len*sizeof(cs_float)); */
 /* #else */
-/*     memset(p->x0, 0, 5*len*sizeof(MYFLT)); */
+/*     memset(p->x0, 0, 5*len*sizeof(cs_float)); */
 /* #endif */
 
     /* ... according to scheme */
@@ -437,8 +437,8 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
 
     /* Make external force window if we haven't so far */
     if (pp->ewinx == NULL) {
-      MYFLT arg =  PI_F/(MYFLT)(len-1);
-      pp->ewinx = (MYFLT*) csound->Malloc(csound, len * sizeof(MYFLT));
+      cs_float arg =  PI_F/(cs_float)(len-1);
+      pp->ewinx = (cs_float*) csound->Malloc(csound, len * sizeof(cs_float));
       for (i = 0 ; i != len-1 ; i++)
         pp->ewinx[i] = SQRT(SIN(arg*i));
       pp->ewinx[i] = FL(0.0); /* You get NaN otherwise */
@@ -484,21 +484,21 @@ static int32_t scsnux(CSOUND *csound, PSCSNUX *p)
     int32    exti = p->exti;
     int32    idx = p->idx;
     int32_t  rate = p->rate;
-    MYFLT   *out = p->out;
-    MYFLT   *x0 = p->x0;
-    MYFLT   *x1 = p->x1;
-    MYFLT   *x2 = p->x2;
+    cs_float   *out = p->out;
+    cs_float   *x0 = p->x0;
+    cs_float   *x1 = p->x1;
+    cs_float   *x2 = p->x2;
 #if PHASE_INTERP == 3
-    MYFLT   *x3 = p->x3;
+    cs_float   *x3 = p->x3;
 #endif
-    MYFLT    *v = p->v;
+    cs_float    *v = p->v;
     pp = p->pp;
     if (UNLIKELY(pp == NULL)) goto err1;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset ; n < nsmps ; n++) {
 
@@ -511,7 +511,7 @@ static int32_t scsnux(CSOUND *csound, PSCSNUX *p)
       if (idx >= rate) {
         int32_t i, j, cnt = 0;      /* cnt is i*len+j */
         for (i = 0 ; i != len ; i++) {
-          MYFLT a = FL(0.0);
+          cs_float a = FL(0.0);
                                 /* Throw in audio drive */
           v[i] += p->ext[exti++] * pp->ewinx[i];
           if (UNLIKELY(exti >= len)) exti = 0L;
@@ -553,7 +553,7 @@ static int32_t scsnux(CSOUND *csound, PSCSNUX *p)
       }
       if (p->id<0) { /* Write to ftable */
         uint32_t i;
-        MYFLT t  = (MYFLT)idx / rate;
+        cs_float t  = (cs_float)idx / rate;
         for (i = 0 ; i != p->len ; i++) {
 #if PHASE_INTERP == 3
           out[i] = x1[i] +
@@ -634,7 +634,7 @@ static int32_t scsnsx_init(CSOUND *csound, PSCSNSX *p)
     /* Reset oscillator phase */
     p->phs = FL(0.0);
     /* Oscillator ratio */
-    p->fix = (MYFLT)p->tlen*(1.0/CS_ESR);
+    p->fix = (cs_float)p->tlen*(1.0/CS_ESR);
     return OK;
 }
 
@@ -644,26 +644,26 @@ static int32_t scsnsx_init(CSOUND *csound, PSCSNSX *p)
 static int32_t scsnsx(CSOUND *csound, PSCSNSX *p)
 {
     IGN(csound);
-    MYFLT   *out = p->a_out;
+    cs_float   *out = p->a_out;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int32 tlen   = p->tlen;
-    MYFLT phs   = p->phs, inc = *p->k_freq * p->fix;
-    MYFLT t = (MYFLT)p->p->idx/p->p->rate;
-    MYFLT amp = *p->k_amp;
+    cs_float phs   = p->phs, inc = *p->k_freq * p->fix;
+    cs_float t = (cs_float)p->p->idx/p->p->rate;
+    cs_float amp = *p->k_amp;
     PSCSNUX *pp = p->p;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     switch (p->oscil_interp) {
     case 1:
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
-/*      MYFLT x     = phs - (int32_t)phs; */
+/*      cs_float x     = phs - (int32_t)phs; */
         int32_t ph = (int32_t)phs;
         out[i] = amp * (PINTERP(ph, t));
                 /* Update oscillator phase and wrap around if needed */
@@ -676,9 +676,9 @@ static int32_t scsnsx(CSOUND *csound, PSCSNSX *p)
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
         int32_t  ph = (int32_t)phs;
-        MYFLT x     = phs - ph;
-        MYFLT y1    = PINTERP(ph  , t);
-        MYFLT y2    = PINTERP(ph+1, t);
+        cs_float x     = phs - ph;
+        cs_float y1    = PINTERP(ph  , t);
+        cs_float y2    = PINTERP(ph+1, t);
         out[i] = amp * (y1 + x*(y2 - y1));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
@@ -690,10 +690,10 @@ static int32_t scsnsx(CSOUND *csound, PSCSNSX *p)
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
         int32_t  ph = (int32_t)phs;
-        MYFLT x     = phs - ph;
-        MYFLT y1    = PINTERP(ph-1, t);
-        MYFLT y2    = PINTERP(ph  , t);
-        MYFLT y3    = PINTERP(ph+1, t);
+        cs_float x     = phs - ph;
+        cs_float y1    = PINTERP(ph-1, t);
+        cs_float y2    = PINTERP(ph  , t);
+        cs_float y3    = PINTERP(ph+1, t);
         out[i] = amp *
           (y2 + x*(-y1*FL(0.5) + x*(y1*FL(0.5) - y2 + y3*FL(0.5)) + y3*FL(0.5)));
                 /* Update oscillator phase and wrap around if needed */
@@ -706,11 +706,11 @@ static int32_t scsnsx(CSOUND *csound, PSCSNSX *p)
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
         int32_t  ph = (int32_t)phs;
-        MYFLT x     = phs - ph;
-        MYFLT y1    = PINTERP(ph-1, t);
-        MYFLT y2    = PINTERP(ph  , t);
-        MYFLT y3    = PINTERP(ph+1, t);
-        MYFLT y4    = PINTERP(ph+2, t);
+        cs_float x     = phs - ph;
+        cs_float y1    = PINTERP(ph-1, t);
+        cs_float y2    = PINTERP(ph  , t);
+        cs_float y3    = PINTERP(ph+1, t);
+        cs_float y4    = PINTERP(ph+2, t);
         out[i] = amp *
           (y2 + x*(-y1/FL(3.0) - y2*FL(0.5) + y3 +
                    x*(y1*FL(0.5) - y2 + y3*FL(0.5) +

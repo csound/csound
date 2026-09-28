@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/numeric-separators-style,camelcase,no-unused-expressions */
 import { Util } from "./util";
 /**
  * @fileoverview Adler32 checksum 実装.

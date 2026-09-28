@@ -13,15 +13,8 @@
  * limitations under the License.
  */
 
-import fs from "fs";
-import { spawn } from "child_process";
-import MochaWebdriverRunner from "mocha-webdriver-runner";
-const { runMochaWebDriverTest } = MochaWebdriverRunner;
-
-const httpServerPs = spawn(`node tests/server.cjs`, {
-  shell: true,
-  env: { ...process.env, PORT: "8081" },
-});
+import fs from "node:fs";
+import { runBrowserTests } from "./webdriver-runner.js";
 
 const webDriverCapabilities = {
   browserName: "chrome",
@@ -34,6 +27,9 @@ const webDriverCapabilities = {
       "--auto-select-desktop-capture-source",
       "--disable-gesture-requirement-for-media-playback",
       "--autoplay-policy=no-user-gesture-required",
+      // Use a synthetic microphone without a permission prompt or real hardware.
+      "--use-fake-device-for-media-stream",
+      "--use-fake-ui-for-media-stream",
       "--disable-cache",
     ],
   },
@@ -44,34 +40,14 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
   webDriverCapabilities["goog:chromeOptions"]["binary"] = CI_BIN;
 }
 
-(async function () {
-  let result;
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  try {
-    result = await runMochaWebDriverTest(
-      webDriverCapabilities,
-      "http://localhost:8081/index.html?ci=true",
-      {
-        reporter: "mocha-junit-reporter",
-        reporterOptions: {
-          mochaFile: "tests/results.junit.xml",
-          useFullSuiteTitle: true,
-          rootSuiteTitle: undefined,
-          outputs: true,
-        },
-        captureConsoleLog: true,
-      },
-    );
-  } catch (error) {
-    console.error(error);
-    process.exit(-1);
-  }
-
-  httpServerPs.kill();
-  if (result && result.success) {
-    process.exit(0);
-  } else {
-    console.error(JSON.stringify(result || {}, null, 2));
-    process.exit(0);
-  }
-})();
+try {
+  const success = await runBrowserTests({
+    capabilities: webDriverCapabilities,
+    port: 8081,
+    output: "tests/GOOGLE_CHROME.junit.xml",
+  });
+  process.exitCode = success ? 0 : 1;
+} catch (error) {
+  console.error(error);
+  process.exitCode = 1;
+}

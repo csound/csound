@@ -51,14 +51,14 @@
 typedef struct {
   OPDS h;                                     /* common to all opcodes */
 
-  MYFLT *aout1, *aout2;                       /* output args */
-  MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;       /* input args  */
-  MYFLT *kcps, *ifn1, *ifn2;                  /* input args  */
-  MYFLT *iphs1, *iphs2;                       /* input args  */
+  cs_float *aout1, *aout2;                       /* output args */
+  cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;       /* input args  */
+  cs_float *kcps, *ifn1, *ifn2;                  /* input args  */
+  cs_float *iphs1, *iphs2;                       /* input args  */
 
-  MYFLT phase1, phase2;                       /* phase of oscillators       */
-  MYFLT sig1, sig2;                           /* a-rate oscillators outputs */
-  MYFLT siz1, siz2;                           /* size of function tables    */
+  cs_float phase1, phase2;                       /* phase of oscillators       */
+  cs_float sig1, sig2;                           /* a-rate oscillators outputs */
+  cs_float siz1, siz2;                           /* size of function tables    */
   FUNC  *ftp1, *ftp2;                         /* function table pointers    */
   short frq1adv, frq2adv, ndx1adv, ndx2adv;   /* increment values for xargs */
                                               /* pointers (0 for i-rate and */

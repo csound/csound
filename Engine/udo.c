@@ -86,7 +86,7 @@ static int32_t udo_init_audio_array(CSOUND *csound, ARRAYDAT *destination,
   /* Reinitialization may change local ksmps. Build the new layout before
      replacing the old allocation. */
   if (destination->data != NULL &&
-      (size_t)destination->arrayMemberSize != ctx->ksmps * sizeof(MYFLT)) {
+      (size_t)destination->arrayMemberSize != ctx->ksmps * sizeof(cs_float)) {
     prepared.arrayType = &CS_VAR_TYPE_A;
     target = &prepared;
   }
@@ -127,8 +127,12 @@ static int32_t udo_copy_value(CSOUND *csound, const CS_VARIABLE *variable,
   if (independent && variable->varType == &CS_VAR_TYPE_ARRAY) {
     const ARRAYDAT *sourceArray = (const ARRAYDAT *)source;
 
+    /* Structured values reserve storage at init. Audio arrays also need the
+       checked path because the copy context determines their sample span.
+       Other built-in arrays keep their existing resizable copy semantics. */
     if (sourceArray->arrayType != NULL &&
-        sourceArray->arrayType->userDefinedType) {
+        (sourceArray->arrayType->userDefinedType ||
+         sourceArray->arrayType == &CS_VAR_TYPE_A)) {
       return csound_array_copy_independent(
         csound, (ARRAYDAT *)destination, sourceArray, ctx,
         allowAllocation ? CSOUND_ARRAY_COPY_ALLOW_ALLOCATION
@@ -147,6 +151,60 @@ static int32_t udo_copy_value(CSOUND *csound, const CS_VARIABLE *variable,
   variable->varType->copyValue(csound, variable->varType,
                                destination, source, ctx);
   return OK;
+}
+
+static int32_t udo_audio_array_layout(CSOUND *csound,
+                                      const ARRAYDAT *array,
+                                      size_t *memberCount,
+                                      size_t *strideSamples)
+{
+  size_t allocated;
+  size_t requiredBytes;
+
+  if (array == NULL || memberCount == NULL || strideSamples == NULL ||
+      array->arrayType != &CS_VAR_TYPE_A || array->arrayMemberSize <= 0 ||
+      (size_t)array->arrayMemberSize % sizeof(cs_float) != 0 ||
+      csound_array_member_count(array, memberCount) != OK ||
+      csound_array_allocation_size(array->arrayMemberSize, *memberCount,
+                                   &requiredBytes) != OK ||
+      (*memberCount > 0 && array->data == NULL)) {
+    return NOTOK;
+  }
+  allocated = csound_array_allocated_bytes(csound, array);
+  if (allocated > 0 &&
+      (allocated % (size_t)array->arrayMemberSize != 0 ||
+       allocated < requiredBytes)) {
+    return NOTOK;
+  }
+  *strideSamples = (size_t)array->arrayMemberSize / sizeof(cs_float);
+  return OK;
+}
+
+static int32_t udo_audio_array_pair_layout(CSOUND *csound,
+                                           const ARRAYDAT *source,
+                                           const ARRAYDAT *destination,
+                                           size_t *memberCount,
+                                           size_t *sourceStride,
+                                           size_t *destinationStride)
+{
+  size_t destinationCount;
+
+  if (udo_audio_array_layout(csound, source, memberCount,
+                             sourceStride) != OK ||
+      udo_audio_array_layout(csound, destination, &destinationCount,
+                             destinationStride) != OK ||
+      *memberCount != destinationCount) {
+    return NOTOK;
+  }
+  return OK;
+}
+
+static int32_t udo_audio_array_range_valid(size_t strideSamples,
+                                           int32_t offset,
+                                           size_t sampleCount)
+{
+  return offset >= 0 && (size_t)offset <= strideSamples &&
+    sampleCount <= strideSamples - (size_t)offset;
 }
 
 static int32_t udo_has_rate_converter(const UOPCODE *opcode)
@@ -233,8 +291,8 @@ void recycle_init_only_udo_instances(CSOUND *csound, INSDS *parent)
 }
 
 static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
-                                MYFLT *argPtr, const char *structPath);
-static MYFLT *pbr_resolve_struct_target(CSOUND *csound, MYFLT *argPtr,
+                                cs_float *argPtr, const char *structPath);
+static cs_float *pbr_resolve_struct_target(CSOUND *csound, cs_float *argPtr,
                                         const char *structPath);
 
 typedef struct pbr_plan_builder {
@@ -957,7 +1015,7 @@ static void pbr_apply_entries(CSOUND *csound,
 
   for (i = 0; i < entry_count; i++) {
     const PBR_REWIRE_ENTRY *entry = &entries[i];
-    MYFLT *target;
+    cs_float *target;
 
     if (entry->ar_index < 0 || entry->ar_index >= max_ar_index) {
       continue;
@@ -987,7 +1045,7 @@ static void pbr_apply_entries(CSOUND *csound,
   }
 }
 
-static int32_t pbr_copy_value(CSOUND *csound, MYFLT *dst, MYFLT *src,
+static int32_t pbr_copy_value(CSOUND *csound, cs_float *dst, cs_float *src,
                               INSDS *ctx, int32_t allowAllocation) {
   CS_TYPE *dst_type;
   CS_TYPE *src_type;
@@ -1066,7 +1124,7 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
   xin = NULL;
 
   for (i = 0; i < udoinfo->inchns; i++) {
-    MYFLT *input = p->ar[udoinfo->outchns + i];
+    cs_float *input = p->ar[udoinfo->outchns + i];
     int32_t j;
 
     for (j = 0; j < udoinfo->outchns; j++) {
@@ -1092,7 +1150,7 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
   return xin;
 }
 
-static int32_t pbr_is_readonly_source(MYFLT *src) {
+static int32_t pbr_is_readonly_source(cs_float *src) {
   CS_TYPE *src_type = src != NULL ? csoundGetTypeForArg(src) : NULL;
   return src_type == &CS_VAR_TYPE_C || src_type == &CS_VAR_TYPE_P;
 }
@@ -1119,8 +1177,8 @@ static int32_t pbr_seed_pass_through_outputs(CSOUND *csound,
   max_ar_index = udoinfo->outchns + udoinfo->inchns;
   for (i = 0; i < plan->seed_count; i++) {
     const PBR_SEED_ENTRY *entry = &plan->seed_entries[i];
-    MYFLT *dst;
-    MYFLT *src;
+    cs_float *dst;
+    cs_float *src;
 
     if (entry->output_ar_index < 0 || entry->output_ar_index >= max_ar_index ||
         entry->input_ar_index < 0 || entry->input_ar_index >= max_ar_index) {
@@ -1160,8 +1218,8 @@ static int32_t pbr_sync_pass_through_outputs(CSOUND *csound,
   max_ar_index = udoinfo->outchns + udoinfo->inchns;
   for (i = 0; i < plan->seed_count; i++) {
     const PBR_SEED_ENTRY *entry = &plan->seed_entries[i];
-    MYFLT *dst;
-    MYFLT *src;
+    cs_float *dst;
+    cs_float *src;
 
     /* Fan the final work value out to duplicate xout positions. */
     if (entry->output_ar_index < 0 || entry->output_ar_index >= max_ar_index ||
@@ -1202,9 +1260,9 @@ static int32_t pbr_writeback_pass_through_inputs(CSOUND *csound,
   max_ar_index = udoinfo->outchns + udoinfo->inchns;
   for (i = 0; i < plan->seed_count; i++) {
     const PBR_SEED_ENTRY *entry = &plan->seed_entries[i];
-    MYFLT *dst;
-    MYFLT *src;
-    MYFLT *input_base;
+    cs_float *dst;
+    cs_float *src;
+    cs_float *input_base;
 
     if (entry->output_ar_index < 0 || entry->output_ar_index >= max_ar_index ||
         entry->input_ar_index < 0 || entry->input_ar_index >= max_ar_index ||
@@ -1338,9 +1396,9 @@ void free_opcode_info_chain(CSOUND *csound) {
 
 /* Helper to rewire an opcode argument pointer to pass-by-ref location */
 static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
-                                MYFLT *argPtr, const char *structPath) {
+                                cs_float *argPtr, const char *structPath) {
   OENTRY *ep = chain->optext->t.oentry;
-  MYFLT *target_ptr = pbr_resolve_struct_target(csound, argPtr, structPath);
+  cs_float *target_ptr = pbr_resolve_struct_target(csound, argPtr, structPath);
 
   // The opcode structure consists of OPDS header followed by argument pointer fields.
   // We need to update the structure field at the given index.
@@ -1371,9 +1429,9 @@ static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
   }
 }
 
-static MYFLT *pbr_resolve_struct_target(CSOUND *csound, MYFLT *argPtr,
+static cs_float *pbr_resolve_struct_target(CSOUND *csound, cs_float *argPtr,
                                         const char *structPath) {
-  MYFLT *target_ptr = argPtr;
+  cs_float *target_ptr = argPtr;
 
   IGN(csound);
 
@@ -1580,10 +1638,10 @@ static int32_t udo_call_is_pass_by_ref(const UOPCODE *p,
   return 1;
 }
 
-MYFLT *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
+cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
   OPCODINFO *udoinfo;
   PBR_REWIRE_PLAN *plan;
-  MYFLT *target;
+  cs_float *target;
   int32_t ar_index;
   int32_t outchns;
   int32_t i;
@@ -1792,15 +1850,15 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   if (lcurip->lclbas != NULL) {
     CS_VARIABLE *var =
       csoundFindVariableWithName(csound, lcurip->instr->varPool, "ksmps");
-    *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ksmps;
+    *((cs_float *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ksmps;
     /* same for kr */
     var =
       csoundFindVariableWithName(csound, lcurip->instr->varPool, "kr");
-    *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ekr;
+    *((cs_float *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ekr;
     /* VL 15-08-24 same for sr */
     var =
       csoundFindVariableWithName(csound, lcurip->instr->varPool, "sr");
-    *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->esr;
+    *((cs_float *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->esr;
   }
 
   lcurip->m_chnbp = parent_ip->m_chnbp;       /* MIDI parameters */
@@ -1929,10 +1987,10 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     OPCOD_IOBUFS *buf_local = p->buf;
     OPCODINFO *inm_local = buf_local->opcode_info;
     CS_VARIABLE* cur = inm_local->out_arg_pool ? inm_local->out_arg_pool->head : NULL;
-    MYFLT** internal_ptrs = buf_local->iobufp_ptrs;  // recorded by xoutset (pass-by-copy)
-    MYFLT** external_ptrs = p->ar;                   // caller-side pointers
+    cs_float** internal_ptrs = buf_local->iobufp_ptrs;  // recorded by xoutset (pass-by-copy)
+    cs_float** external_ptrs = p->ar;                   // caller-side pointers
     UOPCODE *udo_local = (UOPCODE*) buf_local->uopcode_struct;
-    MYFLT** udo_out_ptrs = udo_local ? udo_local->ar : NULL; // UDO's own outputs
+    cs_float** udo_out_ptrs = udo_local ? udo_local->ar : NULL; // UDO's own outputs
 
     // Locate xout opcode instance in sub-instrument (to access its args reliably)
     XOUT* xout_node = NULL;
@@ -1985,11 +2043,10 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
                 cur->varType != &CS_VAR_TYPE_K) ||
                inm_local->outtypes[output_index] == 'K') &&
               UNLIKELY(udo_copy_value(csound, cur, dst, src,
-                                      cur->subType == &CS_VAR_TYPE_A
-                                        ? parent_ip : lcurip,
+                                      buf_local->parent_ip,
                                       lcurip->nxtp != NULL, 1) != OK)) {
             err = csound->InitError(
-              csound, "could not prepare structured UDO output");
+              csound, "could not prepare UDO output");
             break;
           }
          }
@@ -2043,7 +2100,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     p->h.perf = (SUBR) useropcd_pass_by_ref;
   } else if (lcurip->ksmps != parent_ip->ksmps &&
 	     lcurip->esr == parent_ip->esr) {
-    MYFLT ksmps_scale = (MYFLT) lcurip->ksmps / parent_ip->ksmps;
+    cs_float ksmps_scale = (cs_float) lcurip->ksmps / parent_ip->ksmps;
     parent_ip->xtratim = lcurip->xtratim * ksmps_scale;
     // (1) local sr == parent sr
     p->h.perf = (SUBR) useropcd_local_ksmps;
@@ -2055,7 +2112,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       p->h.perf = (SUBR) useropcd_pass_by_copy;
   } else {
     // (3) local sr >= parent sr
-    MYFLT scal = (MYFLT) parent_ip->esr / lcurip->esr;
+    cs_float scal = (cs_float) parent_ip->esr / lcurip->esr;
     int32_t xtratim = lcurip->xtratim*scal;
     if(parent_ip->xtratim < xtratim)
 	parent_ip->xtratim = xtratim;
@@ -2088,14 +2145,14 @@ int32_t set_inbufs(CSOUND *csound,
                    OPDS *h,
                    OPCOD_IOBUFS *buf) {
   OPCODINFO   *inm;
-  MYFLT **bufs, **tmp;
+  cs_float **bufs, **tmp;
   int32_t i;
   CS_VARIABLE* current;
   UOPCODE  *udo;
-  MYFLT parent_sr = buf->parent_ip->esr;
-  MYFLT esr = h->insdshead->esr;
-  MYFLT ratio = esr/parent_sr;
-  MYFLT **args = buf->inargs;
+  cs_float parent_sr = buf->parent_ip->esr;
+  cs_float esr = h->insdshead->esr;
+  cs_float ratio = esr/parent_sr;
+  cs_float **args = buf->inargs;
 
   buf->iflag = 1;
   inm = buf->opcode_info;
@@ -2120,7 +2177,7 @@ int32_t set_inbufs(CSOUND *csound,
                                   h->insdshead,
                                   h->insdshead->nxtp != NULL, 1) != OK)) {
         return csound->InitError(
-          csound, "could not prepare structured UDO input");
+          csound, "could not prepare UDO input");
       }
     }
     // set up src units one per input arg - non k/a sigs/arrays are bypassed
@@ -2152,11 +2209,11 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
 {
   OPCOD_IOBUFS  *buf;
   OPCODINFO   *inm;
-  MYFLT       **bufs, **tmp;
+  cs_float       **bufs, **tmp;
   CS_VARIABLE* current;
   UOPCODE  *udo;
   int32_t i;
-  MYFLT parent_sr;
+  cs_float parent_sr;
 
   (void) csound;
 
@@ -2179,11 +2236,10 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
     tmp[i] = in;
     if (outType != &CS_VAR_TYPE_K && outType != &CS_VAR_TYPE_A) {
       if (UNLIKELY(udo_copy_value(csound, current, out, in,
-                                  current->subType == &CS_VAR_TYPE_A
-                                    ? buf->parent_ip : p->h.insdshead,
+                                  buf->parent_ip,
                                   p->h.insdshead->nxtp != NULL, 1) != OK)) {
         return csound->InitError(
-          csound, "could not prepare structured UDO output");
+          csound, "could not prepare UDO output");
       }
     }
     if(CS_ESR != parent_sr) {
@@ -2209,8 +2265,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   INSDS    *this_instr = p->ip;
-  MYFLT** internal_ptrs = p->buf->iobufp_ptrs;
-  MYFLT** external_ptrs = p->ar;
+  cs_float** internal_ptrs = p->buf->iobufp_ptrs;
+  cs_float** external_ptrs = p->ar;
   int32_t done;
   int32_t inchnls = csound->inchnls;
   int32_t insmps = csound->inchnls * this_instr->ksmps;
@@ -2261,27 +2317,35 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                                       p->h.insdshead, 1, 0) != OK)) {
             return csound->PerfError(
               csound, &p->h,
-              "structured UDO input changed capacity during performance");
+              "UDO input changed capacity during performance");
           }
         } else if (current->varType == &CS_VAR_TYPE_A) {
-          MYFLT* in = (void*)external_ptrs[i + inm->outchns];
-          MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
+          cs_float* in = (void*)external_ptrs[i + inm->outchns];
+          cs_float* out = (void*)internal_ptrs[i + inm->outchns];
           *out = *(in + ofs);
         } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
           ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
-          size_t count, j;
-          if (UNLIKELY(csound_array_member_count(src, &count) != OK)) {
+          size_t count;
+          size_t sourceStride, targetStride;
+          if (UNLIKELY(udo_audio_array_pair_layout(
+                         csound, src, target, &count, &sourceStride,
+                         &targetStride) != OK ||
+                       !udo_audio_array_range_valid(
+                         sourceStride, ofs, 1) ||
+                       !udo_audio_array_range_valid(
+                         targetStride, 0, 1))) {
             return csound->PerfError(
-              csound, &p->h, "%s", Str("invalid audio array size in UDO input"));
+              csound, &p->h, "%s",
+              Str("UDO audio-array input layout changed during performance"));
           }
 
-          for (j = 0; j < count; j++) {
-            MYFLT* in = src->data +
-              j * ((size_t)src->arrayMemberSize / sizeof(MYFLT));
-            MYFLT* out = target->data +
-              j * ((size_t)target->arrayMemberSize / sizeof(MYFLT));
+          for (size_t j = 0; j < count; j++) {
+            cs_float* in = src->data +
+              j * sourceStride;
+            cs_float* out = target->data +
+              j * targetStride;
             *out = *(in + ofs);
           }
         }
@@ -2303,24 +2367,32 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
       current = inm->out_arg_pool->head;
       for (i = 0; i < inm->outchns; i++) {
         if (current->varType == &CS_VAR_TYPE_A) {
-          MYFLT* in = (void*)internal_ptrs[i];
-          MYFLT* out = (void*)external_ptrs[i];
+          cs_float* in = (void*)internal_ptrs[i];
+          cs_float* out = (void*)external_ptrs[i];
           *(out + ofs) = *in;
         } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
           ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
-          size_t count, j;
-          if (UNLIKELY(csound_array_member_count(src, &count) != OK)) {
+          size_t count;
+          size_t sourceStride, targetStride;
+          if (UNLIKELY(udo_audio_array_pair_layout(
+                         csound, src, target, &count, &sourceStride,
+                         &targetStride) != OK ||
+                       !udo_audio_array_range_valid(
+                         sourceStride, 0, 1) ||
+                       !udo_audio_array_range_valid(
+                         targetStride, ofs, 1))) {
             return csound->PerfError(
-              csound, &p->h, "%s", Str("invalid audio array size in UDO output"));
+              csound, &p->h, "%s",
+              Str("UDO audio-array output layout changed during performance"));
           }
 
-          for (j = 0; j < count; j++) {
-            MYFLT* in = src->data +
-              j * ((size_t)src->arrayMemberSize / sizeof(MYFLT));
-            MYFLT* out = target->data +
-              j * ((size_t)target->arrayMemberSize / sizeof(MYFLT));
+          for (size_t j = 0; j < count; j++) {
+            cs_float* in = src->data +
+              j * sourceStride;
+            cs_float* out = target->data +
+              j * targetStride;
             *(out + ofs) = *in;
           }
         }
@@ -2351,7 +2423,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
     do {
       this_instr->kcounter++;
       /* copy a-sig inputs, accounting for offset */
-      size_t asigSize = (this_instr->ksmps * sizeof(MYFLT));
+      size_t asigSize = (this_instr->ksmps * sizeof(cs_float));
       current = inm->in_arg_pool->head;
       for (i = 0; i < inm->inchns; i++) {
         // this hardcoded type check for non-perf time vars needs to change
@@ -2369,27 +2441,36 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                                       p->h.insdshead, 1, 0) != OK)) {
             return csound->PerfError(
               csound, &p->h,
-              "structured UDO input changed capacity during performance");
+              "UDO input changed capacity during performance");
           }
         } else if (current->varType == &CS_VAR_TYPE_A) {
-          MYFLT* in = (void*)external_ptrs[i + inm->outchns];
-          MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
+          cs_float* in = (void*)external_ptrs[i + inm->outchns];
+          cs_float* out = (void*)internal_ptrs[i + inm->outchns];
           memcpy(out, in + ofs, asigSize);
         } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
           ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
-          size_t count, j;
-          if (UNLIKELY(csound_array_member_count(src, &count) != OK)) {
+          size_t count;
+          size_t sourceStride, targetStride;
+          size_t localSamples = asigSize / sizeof(cs_float);
+          if (UNLIKELY(udo_audio_array_pair_layout(
+                         csound, src, target, &count, &sourceStride,
+                         &targetStride) != OK ||
+                       !udo_audio_array_range_valid(
+                         sourceStride, ofs, localSamples) ||
+                       !udo_audio_array_range_valid(
+                         targetStride, 0, localSamples))) {
             return csound->PerfError(
-              csound, &p->h, "%s", Str("invalid audio array size in UDO input"));
+              csound, &p->h, "%s",
+              Str("UDO audio-array input layout changed during performance"));
           }
 
-          for (j = 0; j < count; j++) {
-            MYFLT* in = src->data +
-              j * ((size_t)src->arrayMemberSize / sizeof(MYFLT));
-            MYFLT* out = target->data +
-              j * ((size_t)target->arrayMemberSize / sizeof(MYFLT));
+          for (size_t j = 0; j < count; j++) {
+            cs_float* in = src->data +
+              j * sourceStride;
+            cs_float* out = target->data +
+              j * targetStride;
             memcpy(out, in + ofs, asigSize);
           }
         }
@@ -2415,23 +2496,32 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
       current = inm->out_arg_pool->head;
       for (i = 0; i < inm->outchns; i++) {
         if (current->varType == &CS_VAR_TYPE_A) {
-          MYFLT* in = (void*)internal_ptrs[i];
-          MYFLT* out = (void*)external_ptrs[i];
+          cs_float* in = (void*)internal_ptrs[i];
+          cs_float* out = (void*)external_ptrs[i];
           memcpy(out + ofs, in, asigSize);
         } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
           ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
-          size_t count, j;
-          if (UNLIKELY(csound_array_member_count(src, &count) != OK)) {
+          size_t count;
+          size_t sourceStride, targetStride;
+          size_t localSamples = asigSize / sizeof(cs_float);
+          if (UNLIKELY(udo_audio_array_pair_layout(
+                         csound, src, target, &count, &sourceStride,
+                         &targetStride) != OK ||
+                       !udo_audio_array_range_valid(
+                         sourceStride, 0, localSamples) ||
+                       !udo_audio_array_range_valid(
+                         targetStride, ofs, localSamples))) {
             return csound->PerfError(
-              csound, &p->h, "%s", Str("invalid audio array size in UDO output"));
+              csound, &p->h, "%s",
+              Str("UDO audio-array output layout changed during performance"));
           }
-          for (j = 0; j < count; j++) {
-            MYFLT* in = src->data +
-              j * ((size_t)src->arrayMemberSize / sizeof(MYFLT));
-            MYFLT* out = target->data +
-              j * ((size_t)target->arrayMemberSize / sizeof(MYFLT));
+          for (size_t j = 0; j < count; j++) {
+            cs_float* in = src->data +
+              j * sourceStride;
+            cs_float* out = target->data +
+              j * targetStride;
             memcpy(out + ofs, in, asigSize);
           }
 
@@ -2460,38 +2550,43 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
       if (current->varType == &CS_VAR_TYPE_A) {
         /* clear the beginning portion of outputs for sample accurate end */
         if (offset) {
-          memset(out, '\0', sizeof(MYFLT) * offset);
+          memset(out, '\0', sizeof(cs_float) * offset);
         }
 
         /* clear the end portion of outputs for sample accurate end */
         if (early) {
-          memset((MYFLT*)out + g_ksmps, '\0', sizeof(MYFLT) * early);
+          memset((cs_float*)out + g_ksmps, '\0', sizeof(cs_float) * early);
         }
       } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
                  current->subType == &CS_VAR_TYPE_A) {
         if (offset || early) {
           ARRAYDAT* outDat = (ARRAYDAT*)out;
-          size_t count, j;
-          if (UNLIKELY(csound_array_member_count(outDat, &count) != OK)) {
+          size_t count;
+          size_t strideSamples;
+          if (UNLIKELY(udo_audio_array_layout(
+                         csound, outDat, &count, &strideSamples) != OK ||
+                       g_ksmps < 0 || early < 0 || offset < 0 ||
+                       !udo_audio_array_range_valid(
+                         strideSamples, 0, (size_t)g_ksmps +
+                                           (size_t)early))) {
             return csound->PerfError(
-              csound, &p->h, "%s", Str("invalid audio array size in UDO output"));
+              csound, &p->h, "%s",
+              Str("UDO audio-array output layout changed during performance"));
           }
 
           if (offset) {
-            for (j = 0; j < count; j++) {
-              size_t memberOffset =
-                j * ((size_t)outDat->arrayMemberSize / sizeof(MYFLT));
-              MYFLT* outMem = outDat->data + memberOffset;
-              memset(outMem, '\0', sizeof(MYFLT) * offset);
+            for (size_t j = 0; j < count; j++) {
+              size_t memberOffset = j * strideSamples;
+              cs_float* outMem = outDat->data + memberOffset;
+              memset(outMem, '\0', sizeof(cs_float) * offset);
             }
           }
 
           if (early) {
-            for (j = 0; j < count; j++) {
-              size_t memberOffset =
-                j * ((size_t)outDat->arrayMemberSize / sizeof(MYFLT));
-              MYFLT* outMem = outDat->data + memberOffset;
-              memset(outMem + g_ksmps, '\0', sizeof(MYFLT) * early);
+            for (size_t j = 0; j < count; j++) {
+              size_t memberOffset = j * strideSamples;
+              cs_float* outMem = outDat->data + memberOffset;
+              memset(outMem + g_ksmps, '\0', sizeof(cs_float) * early);
             }
           }
         }
@@ -2500,7 +2595,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                                     p->h.insdshead, 1, 0) != OK)) {
           return csound->PerfError(
             csound, &p->h,
-            "structured UDO output changed capacity during performance");
+            "UDO output changed capacity during performance");
         }
       }
     }
@@ -2517,7 +2612,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
 // Pass-by-copy, with sample rate conversion when the local sr differs.
 int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
 {
-  MYFLT   **tmp;
+  cs_float   **tmp;
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int32_t i, done;
@@ -2554,8 +2649,8 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
   tmp = p->buf->iobufp_ptrs;
   inm = p->buf->opcode_info;
 
-  MYFLT** internal_ptrs = tmp;
-  MYFLT** external_ptrs = p->ar;
+  cs_float** internal_ptrs = tmp;
+  cs_float** external_ptrs = p->ar;
   int32_t ocnt = 0;
 
   /*  run each opcode, oversampling if necessary  */
@@ -2581,7 +2676,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
                                         p->h.insdshead, 1, 0) != OK)) {
               return csound->PerfError(
                 csound, &p->h,
-                "structured UDO input changed capacity during performance");
+                "UDO input changed capacity during performance");
             }
           }
         } else { // under/oversampling
@@ -2624,7 +2719,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
                                         p->h.insdshead, 1, 0) != OK)) {
               return csound->PerfError(
                 csound, &p->h,
-                "structured UDO output changed capacity during performance");
+                "UDO output changed capacity during performance");
             }
           }
         }
@@ -2638,7 +2733,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
              inactive samples in the caller's units after converting. */
           if (undersample &&
               (p->h.insdshead->ksmps_offset || p->h.insdshead->ksmps_no_end)) {
-            MYFLT *audio = out;
+            cs_float *audio = out;
             int32_t count = current->varType == &CS_VAR_TYPE_A ? 1 : 0;
             int32_t stride = CS_KSMPS;
             uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -2647,12 +2742,12 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
                 current->subType == &CS_VAR_TYPE_A) {
               ARRAYDAT *array = out;
               audio = array->data;
-              stride = array->arrayMemberSize / sizeof(MYFLT);
+              stride = array->arrayMemberSize / sizeof(cs_float);
               count = p->cvt_out[cvt]->ncvt;
             }
             for (int32_t n = 0; n < count; n++, audio += stride) {
-              memset(audio, 0, offset * sizeof(MYFLT));
-              memset(audio + CS_KSMPS - early, 0, early * sizeof(MYFLT));
+              memset(audio, 0, offset * sizeof(cs_float));
+              memset(audio + CS_KSMPS - early, 0, early * sizeof(cs_float));
             }
           }
         }
@@ -2758,8 +2853,8 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
 
   uint32_t  l_ksmps, n;
   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
-  MYFLT parent_sr = udo ? udo->parent_ip->esr : csound->esr;
-  MYFLT parent_ksmps = udo ? udo->parent_ip->ksmps : csound->ksmps;
+  cs_float parent_sr = udo ? udo->parent_ip->esr : csound->esr;
+  cs_float parent_ksmps = udo ? udo->parent_ip->ksmps : csound->ksmps;
 
   if(CS_ESR != parent_sr)
     return csoundInitError(csound,
@@ -2778,10 +2873,10 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
   n = CS_KSMPS / l_ksmps;
   p->h.insdshead->xtratim *= n;
   CS_KSMPS = l_ksmps;
-  CS_ONEDKSMPS = FL(1.0) / (MYFLT) CS_KSMPS;
-  CS_EKR = CS_ESR / (MYFLT) CS_KSMPS;
+  CS_ONEDKSMPS = FL(1.0) / (cs_float) CS_KSMPS;
+  CS_EKR = CS_ESR / (cs_float) CS_KSMPS;
   CS_ONEDKR = FL(1.0) / CS_EKR;
-  CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
+  CS_KICVT = (cs_float) FMAXLEN / CS_EKR;
   CS_KCNT *= n;
 
   /* VL 13-12-13 */
@@ -2790,7 +2885,7 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
   INSTRTXT *ip = p->h.insdshead->instr;
   CS_VARIABLE *var =
     csoundFindVariableWithName(csound, ip->varPool, "ksmps");
-  MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+  cs_float *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
   *varmem = CS_KSMPS;
 
   /* same for kr */
@@ -2817,9 +2912,9 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
     return csoundInitError(csound, "local sr not permitted with global audio vars\n");
 
   int32_t os;
-  MYFLT l_sr;
+  cs_float l_sr;
   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
-  MYFLT parent_sr, parent_ksmps;
+  cs_float parent_sr, parent_ksmps;
 
   if(udo == NULL)
     return csound->InitError(csound, "oversampling only allowed in UDOs\n");
@@ -2831,7 +2926,7 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
     return csoundInitError(csound,
                            "can't oversample if local ksmps != parent ksmps\n");
 
-  os = MYFLT2LRND(*p->os);
+  os = CS_FLOAT2LRND(*p->os);
   if(os < 1)
     return csound->InitError(csound, "illegal oversampling ratio: %d\n", os);
   if(os == 1 || CS_ESR != parent_sr) return OK; /* no op if changed already */
@@ -2839,10 +2934,10 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   CS_ESR = l_sr;
   CS_PIDSR = PI/l_sr;
   CS_ONEDSR = 1./l_sr;
-  CS_SICVT = (MYFLT) FMAXLEN / CS_ESR;
+  CS_SICVT = (cs_float) FMAXLEN / CS_ESR;
   CS_EKR = CS_ESR/CS_KSMPS;
   CS_ONEDKR = 1./CS_EKR;
-  CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
+  CS_KICVT = (cs_float) FMAXLEN / CS_EKR;
   /* ksmps does not change,
      however, because we are oversampling, we will need
      to run the code os times in a loop to consume
@@ -2854,15 +2949,15 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   p->h.insdshead->xtratim *= os;
   CS_KCNT *= os;
   /* oversampling mode (s) */
-  p->h.insdshead->in_cvt = *p->in_cvt >= 0 ? MYFLT2LRND(*p->in_cvt) : 0;
+  p->h.insdshead->in_cvt = *p->in_cvt >= 0 ? CS_FLOAT2LRND(*p->in_cvt) : 0;
   if(*p->out_cvt >= 0)
-    p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
+    p->h.insdshead->out_cvt = CS_FLOAT2LRND(*p->out_cvt);
   else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt;
   /* set local sr variable */
   INSTRTXT *ip = p->h.insdshead->instr;
   CS_VARIABLE *var =
     csoundFindVariableWithName(csound, ip->varPool, "sr");
-  MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+  cs_float *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
   *varmem = CS_ESR;
   var = csoundFindVariableWithName(csound, ip->varPool, "kr");
   varmem = p->h.insdshead->lclbas + var->memBlockIndex;
@@ -2888,9 +2983,9 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
     return csoundInitError(csound, "local sr not permitted with global audio vars\n");
 
   int32_t os, lksmps;
-  MYFLT l_sr, onedos;
+  cs_float l_sr, onedos;
   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
-  MYFLT parent_sr, parent_ksmps;
+  cs_float parent_sr, parent_ksmps;
 
   if(udo == NULL)
     return csound->InitError(csound, "undersampling only allowed in UDOs\n");
@@ -2902,7 +2997,7 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
     return csoundInitError(csound,
                            "can't undersample if local ksmps != parent ksmps\n");
 
-  os = MYFLT2LRND(*p->os);
+  os = CS_FLOAT2LRND(*p->os);
   if(os < 1)
     return csound->InitError(csound,
                              "illegal undersampling ratio: %d\n", os);
@@ -2911,14 +3006,14 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   if(os == 1 || CS_ESR != parent_sr) return OK; /* no op if already changed */
 
   /* round to an integer number of ksmps */
-  lksmps = MYFLT2LRND(CS_KSMPS*onedos);
+  lksmps = CS_FLOAT2LRND(CS_KSMPS*onedos);
   /* and check */
   if(lksmps < 1)
     return csound->InitError(csound,
                              "illegal undersampling ratio: %d\n", os);
 
   /* set corrected ratio  */
-  onedos = (MYFLT) lksmps/CS_KSMPS;
+  onedos = (cs_float) lksmps/CS_KSMPS;
 
   /* and now local ksmps */
   CS_KSMPS = lksmps;
@@ -2927,23 +3022,23 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   CS_ESR = l_sr;
   CS_PIDSR = PI/l_sr;
   CS_ONEDSR = 1./l_sr;
-  CS_SICVT = (MYFLT) FMAXLEN / CS_ESR;
+  CS_SICVT = (cs_float) FMAXLEN / CS_ESR;
   CS_EKR = CS_ESR/CS_KSMPS;
   CS_ONEDKR = 1./CS_EKR;
-  CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
+  CS_KICVT = (cs_float) FMAXLEN / CS_EKR;
 
   /* sr and ksmps change by the same ratio, so control-cycle counts and
      release time already use the right units. */
   /* undersampling mode (s) */
-  p->h.insdshead->in_cvt = *p->in_cvt >= 0 ? MYFLT2LRND(*p->in_cvt) : 0;
+  p->h.insdshead->in_cvt = *p->in_cvt >= 0 ? CS_FLOAT2LRND(*p->in_cvt) : 0;
   if(*p->out_cvt >= 0)
-    p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
+    p->h.insdshead->out_cvt = CS_FLOAT2LRND(*p->out_cvt);
   else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt;
   /* set local sr variable */
   INSTRTXT *ip = p->h.insdshead->instr;
   CS_VARIABLE *var =
     csoundFindVariableWithName(csound, ip->varPool, "sr");
-  MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+  cs_float *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
   *varmem = CS_ESR;
   var = csoundFindVariableWithName(csound, ip->varPool, "kr");
   varmem = p->h.insdshead->lclbas + var->memBlockIndex;
@@ -2991,7 +3086,7 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
     p->ip->actflg++;                  /*    and mark the instr active */
     csound->engineState.instrtxtp[instno]->active++;
     csound->engineState.instrtxtp[instno]->instcnt++;
-    p->ip->p1.value = (MYFLT) instno;
+    p->ip->p1.value = (cs_float) instno;
     /* VL 21-10-16: iobufs are not used here and
        are causing trouble elsewhere. Commenting
        it out */
@@ -3051,7 +3146,7 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
     return csoundInitError(csound, "%s", Str("subinstr: too many p-fields"));
 #ifdef USE_DOUBLE
   union {
-    MYFLT d;
+    cs_float d;
     int32 i[2];
   } ch;
   int32_t sel = byte_order()==0? 1 :0;
@@ -3077,7 +3172,7 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   }
 #else
   union {
-    MYFLT d;
+    cs_float d;
     int32 j;
   } ch;
   int32_t str_cnt = 0, len = 0;
@@ -3103,7 +3198,7 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
 
   // allocate memory for a temporary store of spout buffers
   if (!init_op && !(pip->reinitflag | pip->tieflag))
-    csound->AuxAlloc(csound, (int32) csound->nspout * sizeof(MYFLT), &p->saved_spout);
+    csound->AuxAlloc(csound, (int32) csound->nspout * sizeof(cs_float), &p->saved_spout);
 
   /* do init pass for this instr */
   csound->curip = p->ip;        /* **** NEW *** */
@@ -3165,7 +3260,7 @@ int32_t subinstrset(CSOUND *csound, SUBINST *p){
 int32_t subinstr(CSOUND *csound, SUBINST *p)
 {
   OPDS    *saved_pds = CS_PDS;
-  MYFLT   *pbuf;
+  cs_float   *pbuf;
   uint32_t frame, chan;
   uint32_t nsmps = CS_KSMPS;
   INSDS *ip = p->ip;
@@ -3179,8 +3274,8 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
 
   /* Output channels retain the global stride used by out(). */
   ip->spin = p->parent_ip->spin;
-  ip->spout = (MYFLT*) p->saved_spout.auxp;
-  memset(ip->spout, 0, csound->nspout*sizeof(MYFLT));
+  ip->spout = (cs_float*) p->saved_spout.auxp;
+  memset(ip->spout, 0, csound->nspout*sizeof(cs_float));
 
   ip->ksmps_offset = p->h.insdshead->ksmps_offset;
   ip->ksmps_no_end = p->h.insdshead->ksmps_no_end;
@@ -3247,7 +3342,7 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
   }
   if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(ip->actflg)))
     goto clear_outputs;
-  ip->spout = (MYFLT*) p->saved_spout.auxp;
+  ip->spout = (cs_float*) p->saved_spout.auxp;
   /* copy outputs */
   for (chan = 0; chan < p->OUTOCOUNT; chan++) {
     for (pbuf = ip->spout + chan*csound->ksmps, frame = 0;
@@ -3258,9 +3353,9 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
   goto endin;
  clear_outputs:
   for (chan = 0; chan < p->OUTOCOUNT; chan++)
-    memset(p->ar[chan], 0, nsmps * sizeof(MYFLT));
+    memset(p->ar[chan], 0, nsmps * sizeof(cs_float));
  endin:
-  ip->spout = (MYFLT*) p->saved_spout.auxp;
+  ip->spout = (cs_float*) p->saved_spout.auxp;
   CS_PDS = saved_pds;
   /* check if instrument was deactivated (e.g. by perferror) */
   if (!p->ip) {                                  /* loop to last opds */

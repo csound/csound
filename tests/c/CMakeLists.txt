@@ -14,6 +14,7 @@ if(BUILD_TESTS)
   add_executable(unittests
         array_matrix_setters_test.cpp
         array_ops_test.cpp
+        array_size_conversion_test.cpp
         audio_array_io_test.cpp
         autocorr_test.cpp
         lpc_lifetime_test.cpp
@@ -58,6 +59,7 @@ if(BUILD_TESTS)
         nxtpow2_test.cpp
         dct_test.cpp
         engine_test.cpp
+        instance_variable_test.cpp
         doppler_test.cpp
         io_test.cpp
         local_ksmps_test.cpp
@@ -244,6 +246,16 @@ if(BUILD_TESTS)
         target_compile_features(diskin2_concurrency_tests PRIVATE cxx_std_17)
         gtest_discover_tests(diskin2_concurrency_tests)
     endif()
+
+    add_executable(json_udt_tests json_udt_test.cpp)
+    target_compile_options(json_udt_tests PRIVATE ${unittests_CFLAGS})
+    target_compile_features(json_udt_tests PRIVATE cxx_std_17)
+    target_link_libraries(json_udt_tests PRIVATE
+        GTest::gtest_main ${CSOUNDLIB_STATIC})
+    add_dependencies(unittests json_udt_tests)
+    gtest_discover_tests(json_udt_tests
+        PROPERTIES LABELS "json-udt")
+
     set_property(DIRECTORY APPEND PROPERTY TEST_INCLUDE_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/server_test_locks.cmake")
     message(STATUS "Building unit tests")

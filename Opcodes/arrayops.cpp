@@ -25,15 +25,15 @@
 #include <plugin.h>
 
 
-inline MYFLT logb(MYFLT a, MYFLT b) {
+inline cs_float logb(cs_float a, cs_float b) {
   return log(a)/log(b);
 }  
 
 // extern
-inline MYFLT frac(MYFLT f) { return std::modf(f, &f); }
+inline cs_float frac(cs_float f) { return std::modf(f, &f); }
 
 // extern
-inline MYFLT lim1(MYFLT f) {
+inline cs_float lim1(cs_float f) {
   return f > FL(0.0) ? (f < FL(1.0) ? f : FL(1.0)) : FL(0.0);
 }
 
@@ -51,10 +51,10 @@ struct ArrayOutput : csnd::Plugin<1, Inputs> {
 /** k-rate operator
     kout[] op kin[]
  */
-template <MYFLT (*op)(MYFLT)> struct ArrayOp : ArrayOutput<1> {
+template <cs_float (*op)(cs_float)> struct ArrayOp : ArrayOutput<1> {
   int32_t process(csnd::myfltvec &out, csnd::myfltvec &in) {
     std::transform(in.begin(), in.end(), out.begin(),
-                   [](MYFLT f) { return op(f); });
+                   [](cs_float f) { return op(f); });
     return OK;
   }
 
@@ -76,11 +76,11 @@ template <MYFLT (*op)(MYFLT)> struct ArrayOp : ArrayOutput<1> {
 /** k-rate binary operator
     kout[] op kin1[], kin2[]
  */
-template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : ArrayOutput<2> {
+template <cs_float (*bop)(cs_float, cs_float)> struct ArrayOp2 : ArrayOutput<2> {
 
   int32_t process(csnd::myfltvec &out, csnd::myfltvec &in1, csnd::myfltvec &in2) {
     std::transform(in1.begin(), in1.end(), in2.begin(), out.begin(),
-                   [](MYFLT f1, MYFLT f2) { return bop(f1, f2); });
+                   [](cs_float f1, cs_float f2) { return bop(f1, f2); });
     return OK;
   }
 
@@ -107,10 +107,10 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : ArrayOutput<2> {
 /** k-rate binary operator with array and scalar
     kout[] op kin1[], kin2
  */
-template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : ArrayOutput<2> {
+template <cs_float (*bop)(cs_float, cs_float)> struct ArrayOp3 : ArrayOutput<2> {
 
-  int32_t process(csnd::myfltvec &out, csnd::myfltvec &in, MYFLT v) {
-    for (MYFLT *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
+  int32_t process(csnd::myfltvec &out, csnd::myfltvec &in, cs_float v) {
+    for (cs_float *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
       *o = bop(*s, v);
     return OK;
   }
@@ -134,13 +134,13 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : ArrayOutput<2> {
 /** Limit each array element using two scalar bounds. */
 struct ArrayLimit : ArrayOutput<3> {
 
-  int32_t process(csnd::myfltvec &out, csnd::myfltvec &in, MYFLT low, MYFLT high) {
+  int32_t process(csnd::myfltvec &out, csnd::myfltvec &in, cs_float low, cs_float high) {
     /* Like scalar limit, reversed bounds give their average. The bounds
        are shared by all elements, so choose this path once per array. */
     if (UNLIKELY(low > high))
       std::fill(out.begin(), out.end(), FL(0.5) * (low + high));
     else
-      for (MYFLT *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
+      for (cs_float *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
         *o = *s > low ? (*s < high ? *s : high) : low;
     return OK;
   }
@@ -191,7 +191,7 @@ template <typename T> struct ArraySort : ArrayOutput<1> {
  */
 struct Dot : csnd::Plugin<1, 2> {
 
-  MYFLT process(csnd::myfltvec &in1, csnd::myfltvec &in2) {
+  cs_float process(csnd::myfltvec &in1, csnd::myfltvec &in2) {
     return std::inner_product(in1.begin(), in1.end(), in2.begin(), 0.0);
   }
 
@@ -214,7 +214,7 @@ struct Dot : csnd::Plugin<1, 2> {
 
 template <typename T, int32_t I> struct Accum : csnd::Plugin<1, 1> {
 
-  MYFLT process(csnd::myfltvec &in1) {
+  cs_float process(csnd::myfltvec &in1) {
     return std::accumulate(in1.begin(), in1.end(), FL(I), T());
   }
 
@@ -340,23 +340,23 @@ static void onload(csnd::Csound *csound) {
                                     csnd::thread::i);
   csnd::plugin<ArrayOp2<std::fmin>>(csound, "fmin", "k[]", "k[]k[]",
                                     csnd::thread::ik);
-  csnd::plugin<ArraySort<std::less<MYFLT>>>(csound, "sorta", "i[]", "i[]",
+  csnd::plugin<ArraySort<std::less<cs_float>>>(csound, "sorta", "i[]", "i[]",
                                             csnd::thread::i);
-  csnd::plugin<ArraySort<std::greater<MYFLT>>>(csound, "sortd", "i[]", "i[]",
+  csnd::plugin<ArraySort<std::greater<cs_float>>>(csound, "sortd", "i[]", "i[]",
                                                csnd::thread::i);
-  csnd::plugin<ArraySort<std::less<MYFLT>>>(csound, "sorta", "k[]", "k[]",
+  csnd::plugin<ArraySort<std::less<cs_float>>>(csound, "sorta", "k[]", "k[]",
                                             csnd::thread::ik);
-  csnd::plugin<ArraySort<std::greater<MYFLT>>>(csound, "sortd", "k[]", "k[]",
+  csnd::plugin<ArraySort<std::greater<cs_float>>>(csound, "sortd", "k[]", "k[]",
                                                csnd::thread::ik);
   csnd::plugin<Dot>(csound, "dot", "i", "i[]i[]", csnd::thread::i);
   csnd::plugin<Dot>(csound, "dot", "k", "k[]k[]", csnd::thread::k);
-  csnd::plugin<Accum<std::multiplies<MYFLT>, 1>>(csound, "product", "k", "k[]",
+  csnd::plugin<Accum<std::multiplies<cs_float>, 1>>(csound, "product", "k", "k[]",
                                                  csnd::thread::k);
-  csnd::plugin<Accum<std::plus<MYFLT>, 0>>(csound, "sum", "k", "k[]",
+  csnd::plugin<Accum<std::plus<cs_float>, 0>>(csound, "sum", "k", "k[]",
                                            csnd::thread::k);
-  csnd::plugin<Accum<std::multiplies<MYFLT>, 1>>(csound, "product", "i", "i[]",
+  csnd::plugin<Accum<std::multiplies<cs_float>, 1>>(csound, "product", "i", "i[]",
                                                  csnd::thread::i);
-  csnd::plugin<Accum<std::plus<MYFLT>, 0>>(csound, "sum", "i", "i[]",
+  csnd::plugin<Accum<std::plus<cs_float>, 0>>(csound, "sum", "i", "i[]",
                                            csnd::thread::i);
   csnd::plugin<ArrayLimit>(csound, "limit", "i[]", "i[]ii",
                                csnd::thread::i);

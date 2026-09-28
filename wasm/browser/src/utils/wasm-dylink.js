@@ -33,7 +33,7 @@ const isWasmBinary = (wasmBytes) =>
 
 export const getBinaryHeaderData = (
   input,
-  nameDecoder = new TextDecoder("utf8"),
+  nameDecoder = new TextDecoder("utf-8"),
 ) => {
   const wasmBytes = input instanceof Uint8Array ? input : new Uint8Array(input);
   if (!isWasmBinary(wasmBytes)) {

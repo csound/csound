@@ -39,8 +39,8 @@ int32_t check_instr_name(char *);
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
-MYFLT named_instr_find(CSOUND *, char *);
-MYFLT named_instr_find_in_engine(CSOUND *csound, char *s,
+cs_float named_instr_find(CSOUND *, char *);
+cs_float named_instr_find_in_engine(CSOUND *csound, char *s,
                                  ENGINE_STATE *engineState);
 
 /* convert opcode string argument to instrument number */
@@ -63,17 +63,17 @@ int32 csoundStringArg2Insno_p(CSOUND *, char *);
 
 int32 string_arg_to_opcno(CSOUND *, void *, int32_t, int32_t);
 
-/* create file name from opcode argument (string or MYFLT)      */
+/* create file name from opcode argument (string or cs_float)      */
 /*   CSOUND *csound:                                            */
 /*      pointer to Csound instance                              */
 /*   char *s:                                                   */
 /*      output buffer, should have enough space; if NULL, the   */
 /*      required amount of memory is allocated and returned     */
 /*   void *p:                                                   */
-/*      opcode argument, is interpreted as char* or MYFLT*,     */
+/*      opcode argument, is interpreted as char* or cs_float*,     */
 /*      depending on the 'is_string' parameter                  */
 /*   const char *baseName:                                      */
-/*      name prefix to be used if the 'p' argument is MYFLT,    */
+/*      name prefix to be used if the 'p' argument is cs_float,    */
 /*      and it is neither SSTRCOD, nor a valid index to strset  */
 /*      space.                                                  */
 /*      For example, if "soundin." is passed as baseName, file  */
@@ -82,7 +82,7 @@ int32 string_arg_to_opcno(CSOUND *, void *, int32_t, int32_t);
 /*   int32_t is_string:                                             */
 /*      if non-zero, 'p' is interpreted as a char* pointer and  */
 /*      is used as the file name. Otherwise, it is expected to  */
-/*      point to a MYFLT value, and the following are tried:    */
+/*      point to a cs_float value, and the following are tried:    */
 /*        1. if the value is SSTRCOD, the string argument of    */
 /*           the current score event is used (string p-field)   */
 /*        2. if the value, rounded to the nearest integer, is a */

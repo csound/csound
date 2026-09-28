@@ -49,19 +49,19 @@ typedef struct CONTROL_GLOBALS_ {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kdest, *kcntl;
+    cs_float   *kdest, *kcntl;
     CONTROL_GLOBALS *p;
 } CNTRL;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kcntl, *val, *which;
+    cs_float   *kcntl, *val, *which;
     CONTROL_GLOBALS *p;
 } SCNTRL;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kcntl, *val;
+    cs_float   *kcntl, *val;
     CONTROL_GLOBALS *p;
 } TXTWIN;
 

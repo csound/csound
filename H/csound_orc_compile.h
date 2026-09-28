@@ -33,7 +33,7 @@ CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
                                  CS_TYPE *type, char *name,
                                  const void *typeArg);
 void *find_or_add_constant(CSOUND *csound, CS_HASH_TABLE *constantsPool,
-                           const char *name, MYFLT value);
+                           const char *name, cs_float value);
 void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt);
 int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async);
 int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async);

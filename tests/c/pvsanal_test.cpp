@@ -147,16 +147,20 @@ TEST_P(PvsanalSetupTests, RejectsInvalidSettingsBeforeConvertingOrAllocating)
 INSTANTIATE_TEST_SUITE_P(InvalidSettings, PvsanalSetupTests, ::testing::Values(
     InvalidAnalysis{"64, -1, 64, 1", "pvsanal: invalid hop size"},
     InvalidAnalysis{"64, 1e30, 64, 1", "pvsanal: invalid hop size"},
+    InvalidAnalysis{"64, 2147483648, 64, 1", "pvsanal: invalid hop size"},
     InvalidAnalysis{"64, sqrt(-1), 64, 1", "pvsanal: invalid hop size"},
     InvalidAnalysis{"-1, 16, 64, 1", "pvsanal: invalid FFT size"},
     InvalidAnalysis{"1e30, 16, 64, 1", "pvsanal: invalid FFT size"},
+    InvalidAnalysis{"2147483648, 16, 64, 1", "pvsanal: invalid FFT size"},
     InvalidAnalysis{"sqrt(-1), 16, 64, 1", "pvsanal: invalid FFT size"},
     InvalidAnalysis{"64, 16, -1, 1", "pvsanal: invalid window size"},
+    InvalidAnalysis{"64, 16, 2147483648, 1", "pvsanal: invalid window size"},
     InvalidAnalysis{"64, 16, exp(1000), 1", "pvsanal: invalid window size"},
     InvalidAnalysis{"64, 16, 1000000000, 1", "pvsanal: window size too large"},
     // An FFT larger than the requested window also expands the input buffer.
     InvalidAnalysis{"1000000000, 16, 64, 1", "pvsanal: window size too large"},
     InvalidAnalysis{"64, 16, 64, -2147483648", "pvsanal: invalid window type"},
+    InvalidAnalysis{"64, 16, 64, 2147483648", "pvsanal: invalid window type"},
     InvalidAnalysis{"64, 1, 64, 1e30", "pvsanal: invalid window type"},
     InvalidAnalysis{"64, 1, 64, sqrt(-1)", "pvsanal: invalid window type"}));
 

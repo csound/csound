@@ -24,23 +24,23 @@
 
 typedef struct {
     OPDS   h;
-    MYFLT  *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;
+    cs_float  *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;
     int32  ndx;
     int32_t    done, first_flag;
-    double start, newtime;
+    cs_double start, newtime;
     int32  pfn;
-    MYFLT  *table, curr_unit_time;
+    cs_float  *table, curr_unit_time;
 } SEQTIM;
 
 typedef struct {
     OPDS   h;
-    MYFLT  *ktrig, *ktrigin, *unit_time, *kstart, *kloop, *kinitndx, *kfn;
+    cs_float  *ktrig, *ktrigin, *unit_time, *kstart, *kloop, *kinitndx, *kfn;
     int32  ndx;
     int32_t    done;
-    double start, newtime;
+    cs_double start, newtime;
     int32  pfn;
     uint32_t flen;
-    MYFLT  *table, curr_unit_time;
+    cs_float  *table, curr_unit_time;
 } SEQTIM2;
 
 
@@ -63,7 +63,7 @@ static int32_t seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
       p->newtime = p->table[p->ndx-1];
     else
       p->newtime = 0;
-    p->start = (double)CS_KCNT * CS_ONEDKR;
+    p->start = (cs_double)CS_KCNT * CS_ONEDKR;
     start = (int32) *p->kstart;
     loop = (int32) *p->kloop;
     if (loop > 0) {
@@ -98,18 +98,18 @@ static int32_t seqtim(CSOUND *csound, SEQTIM *p)
       }
 
       if (p->curr_unit_time != *p->unit_time) {
-        double constant = p->start - (double)CS_KCNT * CS_ONEDKR;
-        double difference_new = p->newtime * p->curr_unit_time + constant;
-        double difference_old = p->newtime * *p->unit_time     + constant;
-        double difference = difference_new - difference_old;
+        cs_double constant = p->start - (cs_double)CS_KCNT * CS_ONEDKR;
+        cs_double difference_new = p->newtime * p->curr_unit_time + constant;
+        cs_double difference_old = p->newtime * *p->unit_time     + constant;
+        cs_double difference = difference_new - difference_old;
         p->start = p->start + difference;
         p->curr_unit_time = *p->unit_time;
       }
       if (CS_KCNT * CS_ONEDKR
           > p->newtime * *p->unit_time + p->start) {
-        MYFLT curr_val = p->table[p->ndx];
+        cs_float curr_val = p->table[p->ndx];
         p->first_flag = 0;
-        p->newtime += (double)curr_val;
+        p->newtime += (cs_double)curr_val;
         if (loop > 0) {
           (*ndx)++;
           *ndx %= loop;
@@ -156,9 +156,9 @@ static int32_t seqtim(CSOUND *csound, SEQTIM *p)
    over [start, -loop). */
 static int32_t seqtim2_range(SEQTIM2 *p, int32_t *start, int32_t *loop)
 {
-    double first = *p->kstart, last = *p->kloop;
+    cs_double first = *p->kstart, last = *p->kloop;
     if (UNLIKELY(!(first >= 0.0 && first < p->flen &&
-                   last >= -(double)p->flen && last <= p->flen)))
+                   last >= -(cs_double)p->flen && last <= p->flen)))
       return NOTOK;
     *start = (int32_t)first;
     *loop = (int32_t)last;
@@ -193,8 +193,8 @@ static int32_t seqtim2_set(CSOUND *csound, SEQTIM2 *p)
 {
     FUNC *ftp;
     int32_t start, loop;
-    double number = *p->kfn, index = *p->kinitndx;
-    if (UNLIKELY(!(number >= INT32_MIN && number <= INT32_MAX) ||
+    cs_double number = *p->kfn, index = *p->kinitndx;
+    if (UNLIKELY(!(number >= INT32_MIN && number <= (INT32_MAX + 0.0)) ||
                  (ftp = csound->FTFind(csound, p->kfn)) == NULL ||
                  ftp->flen > INT32_MAX))
       return csound->InitError(csound, "%s",
@@ -210,7 +210,7 @@ static int32_t seqtim2_set(CSOUND *csound, SEQTIM2 *p)
     p->done = 0;
     /* The initial element sets the delay before the first event. */
     p->newtime = p->table[p->ndx];
-    p->start = (double)CS_KCNT * CS_ONEDKR;
+    p->start = (cs_double)CS_KCNT * CS_ONEDKR;
     p->curr_unit_time = *p->unit_time;
     seqtim2_advance(p, start, loop);
     return OK;
@@ -219,13 +219,13 @@ static int32_t seqtim2_set(CSOUND *csound, SEQTIM2 *p)
 static int32_t seqtim2(CSOUND *csound, SEQTIM2 *p)
 {
     int32_t start, loop;
-    double number = *p->kfn;
-    double now = (double)CS_KCNT * CS_ONEDKR;
+    cs_double number = *p->kfn;
+    cs_double now = (cs_double)CS_KCNT * CS_ONEDKR;
     if (p->done && *p->ktrigin == FL(0.0)) {
       *p->ktrig = FL(0.0);
       return OK;
     }
-    if (UNLIKELY(!(number >= INT32_MIN && number <= INT32_MAX)))
+    if (UNLIKELY(!(number >= INT32_MIN && number <= (INT32_MAX + 0.0))))
       goto table_error;
     if (p->pfn != (int32_t)number) {
       FUNC *ftp;
@@ -239,7 +239,7 @@ static int32_t seqtim2(CSOUND *csound, SEQTIM2 *p)
     if (UNLIKELY(seqtim2_range(p, &start, &loop) != OK))
       goto range_error;
     if (*p->ktrigin != FL(0.0)) {
-      double index = *p->kinitndx;
+      cs_double index = *p->kinitndx;
       if (UNLIKELY(!(index >= 0.0 && index < p->flen)))
         goto range_error;
       p->ndx = (int32_t)index;
@@ -254,12 +254,12 @@ static int32_t seqtim2(CSOUND *csound, SEQTIM2 *p)
       goto range_error;
     if (p->curr_unit_time != *p->unit_time) {
       /* Keep the pending deadline; rescale subsequent intervals. */
-      p->start += p->newtime * ((double)p->curr_unit_time - *p->unit_time);
+      p->start += p->newtime * ((cs_double)p->curr_unit_time - *p->unit_time);
       p->curr_unit_time = *p->unit_time;
     }
     if (now > p->newtime * p->curr_unit_time + p->start) {
-      MYFLT curr_val = p->table[p->ndx];
-      p->newtime += (double)curr_val;
+      cs_float curr_val = p->table[p->ndx];
+      p->newtime += (cs_double)curr_val;
       seqtim2_advance(p, start, loop);
       *p->ktrig = curr_val * p->curr_unit_time;
     }

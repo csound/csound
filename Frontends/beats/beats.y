@@ -27,28 +27,28 @@
 
     int last_note;
     int last_integer;
-    double last_float;
-    double last_duration;
+    cs_double last_float;
+    cs_double last_duration;
     int ampl = 1;
     int last_ampl = -1;
-    double length = 0;
-    double onset0 = -1;
-    double onset1 = -1;
-    double last_length = -1;
-    double last_onset0 = -1;
-    double last_onset1 = -1;
-    double base_time = 0;
-    double last_base_time = 0;
-    double bpm;
+    cs_double length = 0;
+    cs_double onset0 = -1;
+    cs_double onset1 = -1;
+    cs_double last_length = -1;
+    cs_double last_onset0 = -1;
+    cs_double last_onset1 = -1;
+    cs_double base_time = 0;
+    cs_double last_base_time = 0;
+    cs_double bpm;
     int pnum;
 
     int permeasure;
     int instrument;
-    double pitch = -1.0;
-    double last_pitch = -1.0;
+    cs_double pitch = -1.0;
+    cs_double last_pitch = -1.0;
 #define YYDEBUG 1
-    extern double pt[12];
-    double int2pow(int);
+    extern cs_double pt[12];
+    cs_double int2pow(int);
     extern int yyline;
     extern FILE* myout;
     extern int debug;
@@ -82,7 +82,7 @@ goal	: goal statement {}
 
 statement : S_NL                                { }
         | T_QUIT                                { return 0; }
-        | T_BEATS S_EQ T_INTEGER S_NL		{ base_time = last_base_time; bpm = (double)last_integer; 
+        | T_BEATS S_EQ T_INTEGER S_NL		{ base_time = last_base_time; bpm = (cs_double)last_integer;
                                                   fprintf(myout, ";;;setting bpm=%f\n", bpm);}
         | T_PERMEASURE S_EQ T_INTEGER S_NL 	{ permeasure = last_integer; fprintf(myout,";;;setting permeasure=%d\n", permeasure);}
         | T_BAR S_NL                            { onset0 += permeasure; }
@@ -164,7 +164,7 @@ attribute: T_NOTE T_INTEGER { if (last_note>=-2) {
               if (pnum>pp->largest) {
                 int i;
                 pp->p =
-                  (double*)realloc(pp->p, sizeof(double)*(pnum+1));
+                  (cs_double*)realloc(pp->p, sizeof(cs_double)*(pnum+1));
                 for (i=pp->largest+1; i<=pnum; i++)
                   pp->p[i]=0.0;
                 pp->largest = pnum;
@@ -181,12 +181,12 @@ attribute: T_NOTE T_INTEGER { if (last_note>=-2) {
             else {
               if (pnum>pp->largest) {
                 int i;
-                pp->p = (double*)realloc(pp->p, sizeof(double)*(pnum+1));
+                pp->p = (cs_double*)realloc(pp->p, sizeof(cs_double)*(pnum+1));
                 for (i=pp->largest+1; i<=pnum; i++)
                   pp->p[i]=0.0;
                 pp->largest = pnum;
               }
-              pp->p[pnum] = (double)last_integer;
+              pp->p[pnum] = (cs_double)last_integer;
             }
             //print_instr_structure();
           }
@@ -195,7 +195,7 @@ attribute: T_NOTE T_INTEGER { if (last_note>=-2) {
 %%
 
           /* Faster than calling pow; positive n only*/
-double int2pow(int n)
+cs_double int2pow(int n)
 {
     int ans = 1;
     int xx = 2;
@@ -204,7 +204,7 @@ double int2pow(int n)
       n >>= 1;
       xx = xx*xx;
     }
-    return (double)ans;
+    return (cs_double)ans;
 }
 
 

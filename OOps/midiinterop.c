@@ -27,7 +27,7 @@
 #define dv127   (FL(1.0)/FL(127.0))
 
 /* aops.c, table for CPSOCTL */
-/* extern  MYFLT   cpsocfrc[]; */
+/* extern  cs_float   cpsocfrc[]; */
 
 int32_t midinoteoff(CSOUND *csound, MIDINOTEON *p)
 {
@@ -53,26 +53,26 @@ int32_t midinoteonkey(CSOUND *csound, MIDINOTEON *p)
 
 int32_t midinoteoncps(CSOUND *csound, MIDINOTEON *p)
 {
-    MYFLT octave;
+    cs_float octave;
     int32_t longOctave;
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
-    octave = (MYFLT)(p->h.insdshead->m_pitch / FL(12.0) + FL(3.0));
+    octave = (cs_float)(p->h.insdshead->m_pitch / FL(12.0) + FL(3.0));
     longOctave = (int32_t)(octave * OCTRES);
-    *p->xkey = (MYFLT)CPSOCTL(longOctave);
+    *p->xkey = (cs_float)CPSOCTL(longOctave);
     *p->xvelocity = p->h.insdshead->m_veloc;
     return OK;
 }
 
 int32_t midinoteonoct(CSOUND *csound, MIDINOTEON *p)
 {
-    MYFLT octave;
+    cs_float octave;
     IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
-    octave = (MYFLT)(p->h.insdshead->m_pitch / FL(12.0) + FL(3.0));
+    octave = (cs_float)(p->h.insdshead->m_pitch / FL(12.0) + FL(3.0));
     *p->xkey = octave;
     *p->xvelocity = p->h.insdshead->m_veloc;
     return OK;
@@ -80,26 +80,26 @@ int32_t midinoteonoct(CSOUND *csound, MIDINOTEON *p)
 
 int32_t midinoteonpch(CSOUND *csound, MIDINOTEON *p)
 {
-    double pitch;
-    double octave;
-    double integer;
-    double fraction;
+    cs_double pitch;
+    cs_double octave;
+    cs_double integer;
+    cs_double fraction;
     IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
-    pitch = (double)p->h.insdshead->m_pitch;
+    pitch = (cs_double)p->h.insdshead->m_pitch;
     octave = pitch / 12.0 + 3.0;
-    fraction = modf(octave, &integer);
+    fraction = cs_modf(octave, &integer);
     fraction *= 0.12;
-    *p->xkey = (MYFLT)(integer + fraction);
+    *p->xkey = (cs_float)(integer + fraction);
     *p->xvelocity = p->h.insdshead->m_veloc;
     return OK;
 }
 
 int32_t midipolyaftertouch(CSOUND *csound, MIDIPOLYAFTERTOUCH *p)
 {
-    MYFLT scale;
+    cs_float scale;
     IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
@@ -112,7 +112,7 @@ int32_t midipolyaftertouch(CSOUND *csound, MIDIPOLYAFTERTOUCH *p)
 
 int32_t midicontrolchange(CSOUND *csound, MIDICONTROLCHANGE *p)
 {
-    MYFLT scale;
+    cs_float scale;
     IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
@@ -135,7 +135,7 @@ int32_t midiprogramchange(CSOUND *csound, MIDIPROGRAMCHANGE *p)
 
 int32_t midichannelaftertouch(CSOUND *csound, MIDICHANNELAFTERTOUCH *p)
 {
-    MYFLT scale;
+    cs_float scale;
     IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
@@ -147,7 +147,7 @@ int32_t midichannelaftertouch(CSOUND *csound, MIDICHANNELAFTERTOUCH *p)
 
 int32_t midipitchbend(CSOUND *csound, MIDIPITCHBEND *p)
 {
-    MYFLT scale;
+    cs_float scale;
     IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;

@@ -105,31 +105,31 @@ typedef struct {
 
 typedef struct {                        /* structs for INSTR 0 opcodes */
     OPDS    h;
-    MYFLT   *port;
+    cs_float   *port;
 } REMOTEPORT;
 
 typedef struct {                        /* structs for INSTR 0 opcodes */
     OPDS    h;
    STRINGDAT  *str1, *str2;
-   MYFLT *insno[64];
+   cs_float *insno[64];
 } INSREMOT;
 
 typedef struct {                                /* structs for INSTR 0 opcodes */
     OPDS    h;
     STRINGDAT *str1;
-    MYFLT  *insno[64];
+    cs_float  *insno[64];
 } INSGLOBAL;
 
 typedef struct {
     OPDS    h;
   STRINGDAT   *str1, *str2;
-  MYFLT  *chnum[16];
+  cs_float  *chnum[16];
 } MIDREMOT;
 
 typedef struct {                                /* structs for INSTR 0 opcodes */
     OPDS    h;
   STRINGDAT   *str1;
-  MYFLT  *chnum[16];
+  cs_float  *chnum[16];
 } MIDGLOBAL;
 
 int32_t CLsend(CSOUND *csound, int32_t conn, void *data, int32_t length);

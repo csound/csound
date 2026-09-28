@@ -55,10 +55,10 @@ protected:
         return result;
     }
 
-    static double Value(PVSDAT *signal, size_t index)
+    static cs_double Value(PVSDAT *signal, size_t index)
     {
         return signal->sliding
-            ? static_cast<MYFLT *>(signal->frame.auxp)[index]
+            ? static_cast<cs_float *>(signal->frame.auxp)[index]
             : static_cast<float *>(signal->frame.auxp)[index];
     }
 
@@ -78,13 +78,13 @@ protected:
                 for (int bin = 0; bin <= size / 2; ++bin) {
                     const int index = sample * (size + 2) + 2 * bin;
                     // Distinct bins and samples expose incomplete frame processing.
-                    const MYFLT amplitude = (first ? .25 : .5) +
+                    const cs_float amplitude = (first ? .25 : .5) +
                         bin / 256.0 + sample / 64.0;
-                    const MYFLT second = format == PVS_AMP_PHASE
+                    const cs_float second = format == PVS_AMP_PHASE
                         ? (first ? -.5 : .75) + bin / 256.0 + sample / 128.0
                         : (first ? 100 : 500) + bin + sample / 4.0;
                     if (signal->sliding) {
-                        auto *frame = static_cast<MYFLT *>(signal->frame.auxp);
+                        auto *frame = static_cast<cs_float *>(signal->frame.auxp);
                         frame[index] = amplitude;
                         frame[index + 1] = second;
                     }
@@ -98,13 +98,13 @@ protected:
         }
     }
 
-    void SetBlend(MYFLT amplitude, MYFLT frequency)
+    void SetBlend(cs_float amplitude, cs_float frequency)
     {
         csoundSetControlChannel(csound, "amplitudeBlend", amplitude);
         csoundSetControlChannel(csound, "frequencyBlend", frequency);
     }
 
-    void CheckResult(double amplitude, double frequency,
+    void CheckResult(cs_double amplitude, cs_double frequency,
                      int activeStart = 0, int activeEnd = 16)
     {
         auto *first = Signal("gfFirst");
@@ -120,12 +120,12 @@ protected:
         ASSERT_EQ(result->wintype, first->wintype);
         const int samples = first->sliding ? 16 : 1;
         ASSERT_GE(result->frame.size, samples * (first->N + 2) *
-                  (first->sliding ? sizeof(MYFLT) : sizeof(float)));
+                  (first->sliding ? sizeof(cs_float) : sizeof(float)));
         for (int sample = 0; sample < samples; ++sample) {
             for (int slot = 0; slot < first->N + 2; ++slot) {
                 const size_t index = sample * (first->N + 2) + slot;
-                const double blend = slot % 2 ? frequency : amplitude;
-                const double expected = sample < activeStart || sample >= activeEnd
+                const cs_double blend = slot % 2 ? frequency : amplitude;
+                const cs_double expected = sample < activeStart || sample >= activeEnd
                     ? 0 : (1-blend) * Value(first, index) + blend * Value(second, index);
                 ASSERT_DOUBLE_EQ(Value(result, index), expected)
                     << "sample " << sample << ", bin " << slot / 2
@@ -153,7 +153,7 @@ TEST_P(PvsmorphFormats, InterpolatesEveryBinWithIndependentControls)
     const auto [hop, format] = GetParam();
     ASSERT_NO_FATAL_FAILURE(PrepareInputs(64, hop, format));
     csoundEventString(csound, "i1 0 1", 0);
-    for (const auto &blend : {std::pair<double, double>{0, 0}, {1, 1},
+    for (const auto &blend : {std::pair<cs_double, cs_double>{0, 0}, {1, 1},
                              {0, 1}, {1, 0}, {.25, .75}}) {
         SCOPED_TRACE(::testing::Message() << blend.first << ", " << blend.second);
         SetBlend(blend.first, blend.second);

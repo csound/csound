@@ -26,10 +26,10 @@
 
 typedef struct {
   OPDS    h;
-  MYFLT   *asig;
+  cs_float   *asig;
   STRINGDAT *ipaddress;
-  MYFLT *port, *buffersize;
-  MYFLT   *format;
+  cs_float *port, *buffersize;
+  cs_float   *format;
   AUXCH   aux;
   int32_t     sock, init_done;
   int32_t     bsize, wp;
@@ -41,8 +41,8 @@ typedef struct {
   OPDS    h;
   STRINGDAT *str;
   STRINGDAT *ipaddress;
-  MYFLT *port, *buffersize;
-  MYFLT   *format;
+  cs_float *port, *buffersize;
+  cs_float   *format;
   AUXCH   aux;
   int32_t     sock, init_done;
   int32_t     bsize, wp;
@@ -52,10 +52,10 @@ typedef struct {
 
 typedef struct {
   OPDS    h;
-  MYFLT   *asigl, *asigr;
+  cs_float   *asigl, *asigr;
   STRINGDAT *ipaddress;
-  MYFLT *port, *buffersize;
-  MYFLT   *format;
+  cs_float *port, *buffersize;
+  cs_float   *format;
   AUXCH   aux;
   int32_t     sock, init_done;
   int32_t     bsize, wp;
@@ -65,12 +65,12 @@ typedef struct {
 
 typedef struct {
   OPDS h;
-  MYFLT *kwhen;
+  cs_float *kwhen;
   STRINGDAT *ipaddress;
-  MYFLT *port;        /* UDP port */
+  cs_float *port;        /* UDP port */
   STRINGDAT *dest;
   STRINGDAT *type;
-  MYFLT *arg[32];     /* only 26 can be used, but add a few more for safety */
+  cs_float *arg[32];     /* only 26 can be used, but add a few more for safety */
   AUXCH   aux;
   AUXCH   types;
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -79,7 +79,7 @@ typedef struct {
   int32_t sock;
 #endif
   int32_t ntypes;
-  MYFLT   last;
+  cs_float   last;
   struct sockaddr_in server_addr;
   int32_t err_state;
   int32_t init_done;
@@ -88,17 +88,17 @@ typedef struct {
 
 typedef struct {
   OPDS h;
-  MYFLT *kwhen;
+  cs_float *kwhen;
   STRINGDAT *ipaddress;
-  MYFLT *port;        /* UDP port */
+  cs_float *port;        /* UDP port */
   ARRAYDAT *dest;
   ARRAYDAT *type;
   ARRAYDAT *arg;
-  MYFLT *imtu;
+  cs_float *imtu;
   int32_t mtu;
   AUXCH   aux;    /* MTU bytes */
   int32_t sock, init_done;
-  MYFLT   last;
+  cs_float   last;
   struct sockaddr_in server_addr;
   int32_t first;
 } OSCBUNDLE;

@@ -31,7 +31,7 @@
 
 static int32_t atonset(CSOUND *csound, TONE *p)
 {
-  p->prvhp = (double)*p->khp;
+  p->prvhp = (cs_double)*p->khp;
   TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
 
   if (LIKELY(!(*p->istor)))
@@ -42,27 +42,27 @@ static int32_t atonset(CSOUND *csound, TONE *p)
 
 static int32_t atonsetx(CSOUND *csound, TONEX *p)
 {                   /* From Gabriel Maldonado, modified for arbitrary order */
-    double order = (double)*p->ord;
+    cs_double order = (cs_double)*p->ord;
     size_t state_size;
     int32_t clear_state = !*p->istor;
     int32_t new_loop;
 
     p->prvhp = *p->khp;
     TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
-    if (UNLIKELY(!isfinite(order) || order > (double)INT32_MAX - 0.5))
+    if (UNLIKELY(!isfinite(order) || order > (INT32_MAX + 0.0) - 0.5))
       return csound->InitError(csound, Str("tonex: invalid order %f"),
                                *p->ord);
     new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
-    if (UNLIKELY((size_t)new_loop > SIZE_MAX / sizeof(double)))
+    if (UNLIKELY((size_t)new_loop > SIZE_MAX / sizeof(cs_double)))
       return csound->InitError(csound, Str("tonex: order is too large"));
     clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
     p->loop = new_loop;
-    state_size = (size_t)p->loop * sizeof(double);
+    state_size = (size_t)p->loop * sizeof(cs_double);
     if (p->aux.auxp == NULL || state_size > p->aux.size) {
       csound->AuxAlloc(csound, state_size, &p->aux);
       clear_state = 1;
     }
-    p->yt1 = (double*)p->aux.auxp;
+    p->yt1 = (cs_double*)p->aux.auxp;
     if (clear_state)
       memset(p->yt1, 0, state_size); /* Punning zero and 0.0 */
     return OK;
@@ -90,31 +90,31 @@ static int32_t aresonaa(CSOUND *csound, RESON *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t flag = 0, n, nsmps = CS_KSMPS;
-  MYFLT       *ar, *asig;
-  double      c3p1, c3t4, omc3, c2sqr; /* 1/RMS = root2 (rand) */
+  cs_float       *ar, *asig;
+  cs_double      c3p1, c3t4, omc3, c2sqr; /* 1/RMS = root2 (rand) */
   /*      or 1/.5  (sine) */
-  double      yt1, yt2, c1, c2, c3;
+  cs_double      yt1, yt2, c1, c2, c3;
 
   asig = p->asig;
   ar = p->ar;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   c1 = p->c1; c2 = p->c2; c3 = p->c3; yt1 = p->yt1; yt2 = p->yt2;
   if (p->scale == 1 || p->scale == 0) {
     for (n=offset; n<nsmps; n++) {
-      double sig = (double)asig[n];
-      double ans;
-      if (p->kcf[n] != (MYFLT)p->prvcf) {
-        p->prvcf = (double)p->kcf[n];
-        p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
+      cs_double sig = (cs_double)asig[n];
+      cs_double ans;
+      if (p->kcf[n] != (cs_float)p->prvcf) {
+        p->prvcf = (cs_double)p->kcf[n];
+        p->cosf = cos(p->prvcf * (cs_double)(CS_TPIDSR));
         flag = 1;
       }
-      if (p->kbw[n] != (MYFLT)p->prvbw) {
-        p->prvbw = (double)p->kbw[n];
-        p->c3 = c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
+      if (p->kbw[n] != (cs_float)p->prvbw) {
+        p->prvbw = (cs_double)p->kbw[n];
+        p->c3 = c3 = exp(p->prvbw * (cs_double)(CS_MTPIDSR));
         flag = 1;
       }
       if (flag) {
@@ -133,21 +133,21 @@ static int32_t aresonaa(CSOUND *csound, RESON *p)
       ans = c1 * sig + c2 * yt1 - c3 * yt2;
       yt2 = yt1;
       yt1 = ans - sig;  /* yt1 contains yt1-xt1 */
-      ar[n] = (MYFLT)ans;
+      ar[n] = (cs_float)ans;
     }
   }
   else if (p->scale == 2) {
     for (n=offset; n<nsmps; n++) {
-      double sig = (double)asig[n];
-      double ans;
-      if (p->kcf[n] != (MYFLT)p->prvcf) {
-        p->prvcf = (double)p->kcf[n];
-        p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
+      cs_double sig = (cs_double)asig[n];
+      cs_double ans;
+      if (p->kcf[n] != (cs_float)p->prvcf) {
+        p->prvcf = (cs_double)p->kcf[n];
+        p->cosf = cos(p->prvcf * (cs_double)(CS_TPIDSR));
         flag = 1;
       }
-      if (p->kbw[n] != (MYFLT)p->prvbw) {
-        p->prvbw = (double)p->kbw[n];
-        p->c3 = c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
+      if (p->kbw[n] != (cs_float)p->prvbw) {
+        p->prvbw = (cs_double)p->kbw[n];
+        p->c3 = c3 = exp(p->prvbw * (cs_double)(CS_MTPIDSR));
         flag = 1;
       }
       if (flag) {
@@ -166,7 +166,7 @@ static int32_t aresonaa(CSOUND *csound, RESON *p)
       ans = c1 * sig + c2 * yt1 - c3 * yt2;
       yt2 = yt1;
       yt1 = ans - 2.0 * sig;      /* yt1 contains yt1-D*xt1 */
-      ar[n] = (MYFLT)ans;
+      ar[n] = (cs_float)ans;
     }
   }
   p->yt1 = yt1; p->yt2 = yt2;
@@ -178,31 +178,31 @@ static int32_t aresonak(CSOUND *csound, RESON *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t flag = 0, n, nsmps = CS_KSMPS;
-  MYFLT       *ar, *asig;
-  double      c3p1, c3t4, omc3, c2sqr; /* 1/RMS = root2 (rand) */
+  cs_float       *ar, *asig;
+  cs_double      c3p1, c3t4, omc3, c2sqr; /* 1/RMS = root2 (rand) */
   /*      or 1/.5  (sine) */
-  double      yt1, yt2, c1, c2, c3;
+  cs_double      yt1, yt2, c1, c2, c3;
 
-  if (*p->kbw != (MYFLT)p->prvbw) {
-    p->prvbw = (double)*p->kbw;
-    p->c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
+  if (*p->kbw != (cs_float)p->prvbw) {
+    p->prvbw = (cs_double)*p->kbw;
+    p->c3 = exp(p->prvbw * (cs_double)(CS_MTPIDSR));
     flag = 1;
   }
   asig = p->asig;
   ar = p->ar;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   c1 = p->c1; c2 = p->c2; c3 = p->c3; yt1 = p->yt1; yt2 = p->yt2;
   if (p->scale == 1 || p->scale == 0) {
     for (n=offset; n<nsmps; n++) {
-      double sig = (double)asig[n];
-      double ans;
-      if (p->kcf[n] != (MYFLT)p->prvcf) {
-        p->prvcf = (double)p->kcf[n];
-        p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
+      cs_double sig = (cs_double)asig[n];
+      cs_double ans;
+      if (p->kcf[n] != (cs_float)p->prvcf) {
+        p->prvcf = (cs_double)p->kcf[n];
+        p->cosf = cos(p->prvcf * (cs_double)(CS_TPIDSR));
         flag = 1;
       }
       if (flag) {
@@ -221,16 +221,16 @@ static int32_t aresonak(CSOUND *csound, RESON *p)
       ans = c1 * sig + c2 * yt1 - c3 * yt2;
       yt2 = yt1;
       yt1 = ans - sig;  /* yt1 contains yt1-xt1 */
-      ar[n] = (MYFLT)ans;
+      ar[n] = (cs_float)ans;
     }
   }
   else if (p->scale == 2) {
     for (n=offset; n<nsmps; n++) {
-      double sig = (double)asig[n];
-      double ans;
-      if (p->kcf[n] != (MYFLT)p->prvcf) {
-        p->prvcf = (double)p->kcf[n];
-        p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
+      cs_double sig = (cs_double)asig[n];
+      cs_double ans;
+      if (p->kcf[n] != (cs_float)p->prvcf) {
+        p->prvcf = (cs_double)p->kcf[n];
+        p->cosf = cos(p->prvcf * (cs_double)(CS_TPIDSR));
         flag = 1;
       }
       if (flag) {
@@ -249,7 +249,7 @@ static int32_t aresonak(CSOUND *csound, RESON *p)
       ans = c1 * sig + c2 * yt1 - c3 * yt2;
       yt2 = yt1;
       yt1 = ans - 2.0 * sig;      /* yt1 contains yt1-D*xt1 */
-      ar[n] = (MYFLT)ans;
+      ar[n] = (cs_float)ans;
     }
   }
   p->yt1 = yt1; p->yt2 = yt2;
@@ -261,31 +261,31 @@ static int32_t aresonka(CSOUND *csound, RESON *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t flag = 0, n, nsmps = CS_KSMPS;
-  MYFLT       *ar, *asig;
-  double      c3p1, c3t4, omc3, c2sqr; /* 1/RMS = root2 (rand) */
+  cs_float       *ar, *asig;
+  cs_double      c3p1, c3t4, omc3, c2sqr; /* 1/RMS = root2 (rand) */
   /*      or 1/.5  (sine) */
-  double      yt1, yt2, c1, c2, c3;
+  cs_double      yt1, yt2, c1, c2, c3;
 
-  if (*p->kcf != (MYFLT)p->prvcf) {
-    p->prvcf = (double)*p->kcf;
-    p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
+  if (*p->kcf != (cs_float)p->prvcf) {
+    p->prvcf = (cs_double)*p->kcf;
+    p->cosf = cos(p->prvcf * (cs_double)(CS_TPIDSR));
     flag = 1;
   }
   asig = p->asig;
   ar = p->ar;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   c1 = p->c1; c2 = p->c2; c3 = p->c3; yt1 = p->yt1; yt2 = p->yt2;
   if (p->scale == 1 || p->scale == 0) {
     for (n=offset; n<nsmps; n++) {
-      double sig = (double)asig[n];
-      double ans;
-      if (p->kbw[n] != (MYFLT)p->prvbw) {
-        p->prvbw = (double)p->kbw[n];
-        p->c3 = c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
+      cs_double sig = (cs_double)asig[n];
+      cs_double ans;
+      if (p->kbw[n] != (cs_float)p->prvbw) {
+        p->prvbw = (cs_double)p->kbw[n];
+        p->c3 = c3 = exp(p->prvbw * (cs_double)(CS_MTPIDSR));
         flag = 1;
       }
       if (flag) {
@@ -304,16 +304,16 @@ static int32_t aresonka(CSOUND *csound, RESON *p)
       ans = c1 * sig + c2 * yt1 - c3 * yt2;
       yt2 = yt1;
       yt1 = ans - sig;  /* yt1 contains yt1-xt1 */
-      ar[n] = (MYFLT)ans;
+      ar[n] = (cs_float)ans;
     }
   }
   else if (p->scale == 2) {
     for (n=offset; n<nsmps; n++) {
-      double sig = (double)asig[n];
-      double ans;
-      if (p->kbw[n] != (MYFLT)p->prvbw) {
-        p->prvbw = (double)p->kbw[n];
-        p->c3 = c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
+      cs_double sig = (cs_double)asig[n];
+      cs_double ans;
+      if (p->kbw[n] != (cs_float)p->prvbw) {
+        p->prvbw = (cs_double)p->kbw[n];
+        p->c3 = c3 = exp(p->prvbw * (cs_double)(CS_MTPIDSR));
         flag = 1;
       }
       if (flag) {
@@ -332,7 +332,7 @@ static int32_t aresonka(CSOUND *csound, RESON *p)
       ans = c1 * sig + c2 * yt1 - c3 * yt2;
       yt2 = yt1;
       yt1 = ans - 2.0 * sig;      /* yt1 contains yt1-D*xt1 */
-      ar[n] = (MYFLT)ans;
+      ar[n] = (cs_float)ans;
     }
   }
   p->yt1 = yt1; p->yt2 = yt2;
@@ -344,30 +344,30 @@ extern int32_t tonsetx(CSOUND *csound, TONEX *p);
 
 static int32_t atonea(CSOUND *csound, TONE *p)
 {
-  MYFLT       *ar, *asig;
+  cs_float       *ar, *asig;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  double      c2 = p->c2, yt1 = p->yt1;
+  cs_double      c1 = p->c1, yt1 = p->yt1;
 
   ar = p->ar;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   asig = p->asig;
   for (n=offset; n<nsmps; n++) {
-    double sig = (double)asig[n];
-    double x;
+    cs_double sig = (cs_double)asig[n];
+    cs_double x;
     if (p->khp[n] != p->prvhp) {
       p->prvhp = p->khp[n];
       TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
-      c2 = p->c2;
+      c1 = p->c1;
     }
-    x = yt1 = c2 * (yt1 + sig);
-    ar[n] = (MYFLT)x;
-    yt1 -= sig;               /* yt1 contains yt1-xt1 */
+    yt1 -= c1 * (yt1 + sig);
+    x = yt1 + sig;
+    ar[n] = (cs_float)x;
   }
   p->yt1 = yt1;
   return OK;
@@ -375,28 +375,28 @@ static int32_t atonea(CSOUND *csound, TONE *p)
 
 static int32_t tonea(CSOUND *csound, TONE *p)
 {
-  MYFLT       *ar, *asig;
+  cs_float       *ar, *asig;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  double      c1 = p->c1, c2 = p->c2;
-  double      yt1 = p->yt1;
-  double      prvhp = p->prvhp;
+  cs_double      c1 = p->c1, c2 = p->c2;
+  cs_double      yt1 = p->yt1;
+  cs_double      prvhp = p->prvhp;
 
   ar = p->ar;
   asig = p->asig;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset; n<nsmps; n++) {
     if (p->khp[n] != prvhp) {
-      prvhp = (double)p->khp[n];
+      prvhp = (cs_double)p->khp[n];
       TONE_COEFFICIENTS(prvhp * CS_TPIDSR, c1, c2);
     }
-    yt1 = c1 * (double)(asig[n]) + c2 * yt1;
-    ar[n] = (MYFLT)yt1;
+    yt1 = c1 * (cs_double)(asig[n]) + c2 * yt1;
+    ar[n] = (cs_float)yt1;
   }
   p->yt1 = yt1;
   p->prvhp = prvhp;
@@ -407,30 +407,30 @@ static int32_t tonea(CSOUND *csound, TONE *p)
 
 static int32_t tonexa(CSOUND *csound, TONEX *p)
 {
-  MYFLT *ar = p->ar, *asig = p->asig;
-  double c1 = p->c1, c2 = p->c2, prvhp = p->prvhp;
-  double *yt1 = p->yt1;
+  cs_float *ar = p->ar, *asig = p->asig;
+  cs_double c1 = p->c1, c2 = p->c2, prvhp = p->prvhp;
+  cs_double *yt1 = p->yt1;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   int32_t j, lp = p->loop;
 
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset; n<nsmps; n++) {
-    MYFLT sample = asig[n];
+    cs_float sample = asig[n];
     if (p->khp[n] != prvhp) {
       prvhp = p->khp[n];
       TONE_COEFFICIENTS(prvhp * CS_TPIDSR, c1, c2);
     }
     /* All stages use this sample's cutoff, including when it aliases ar. */
     for (j=0; j<lp; j++) {
-      double x = c1 * sample + c2 * yt1[j];
+      cs_double x = c1 * sample + c2 * yt1[j];
       yt1[j] = x;
-      sample = (MYFLT)x;
+      sample = (cs_float)x;
     }
     ar[n] = sample;
   }
@@ -442,33 +442,33 @@ static int32_t tonexa(CSOUND *csound, TONEX *p)
 
 static int32_t atonexa(CSOUND *csound, TONEX *p)
 {
-  MYFLT *ar = p->ar, *asig = p->asig;
-  double c2 = p->c2, prvhp = p->prvhp;
-  double *yt1 = p->yt1;
+  cs_float *ar = p->ar, *asig = p->asig;
+  cs_double c1 = p->c1, prvhp = p->prvhp;
+  cs_double *yt1 = p->yt1;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   int32_t j, lp = p->loop;
 
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset; n<nsmps; n++) {
-    MYFLT sample = asig[n];
+    cs_float sample = asig[n];
     if (p->khp[n] != prvhp) {
       prvhp = p->khp[n];
-      TONE_COEFFICIENTS(prvhp * CS_TPIDSR, p->c1, c2);
+      TONE_COEFFICIENTS(prvhp * CS_TPIDSR, c1, p->c2);
     }
     for (j=0; j<lp; j++) {
-      double x = c2 * (yt1[j] + sample);
-      yt1[j] = x - sample;
-      sample = (MYFLT)x;
+      yt1[j] -= c1 * (yt1[j] + sample);
+      cs_double x = yt1[j] + sample;
+      sample = (cs_float)x;
     }
     ar[n] = sample;
   }
-  p->c2 = c2;
+  p->c1 = c1;
   p->prvhp = prvhp;
   return OK;
 }
@@ -476,16 +476,16 @@ static int32_t atonexa(CSOUND *csound, TONEX *p)
 
 typedef struct  {
   OPDS    h;
-  MYFLT   *sr, *ain, *afc, *istor;
-  MYFLT   lkf;
-  double  a[8];
+  cs_float   *sr, *ain, *afc, *istor;
+  cs_float   lkf;
+  cs_double  a[8];
 } BFIL;
 
 typedef struct  {
   OPDS    h;
-  MYFLT   *sr, *ain, *kfo, *kbw, *istor;
-  MYFLT   lkf, lkb;
-  double  a[8];
+  cs_float   *sr, *ain, *kfo, *kbw, *istor;
+  cs_float   lkf, lkb;
+  cs_double  a[8];
 } BBFIL;
 
 //#define ROOT2 (1.4142135623730950488)
@@ -514,21 +514,21 @@ static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         
 
 static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
 {
-  MYFLT    *out, *in;
+  cs_float    *out, *in;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t nsmps = CS_KSMPS;
-  double   *a;
-  double   t, y;
+  cs_double   *a;
+  cs_double   t, y;
   uint32_t nn;
   a = p->a;
 
   in = p->ain;
   out = p->sr;
-  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&out[nsmps], '\0', early*sizeof(cs_float));
   }
 
   for (nn=offset; nn<nsmps; nn++) {
@@ -537,9 +537,9 @@ static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
       continue;
     }
     if (p->afc[nn] != p->lkf)      {
-      double c;
+      cs_double c;
       p->lkf = p->afc[nn];
-      c = tan((double)(CS_PIDSR * p->lkf));
+      c = tan((cs_double)(CS_PIDSR * p->lkf));
 
       a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
       a[2] = -(a[1] + a[1]);
@@ -547,33 +547,33 @@ static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
       a[4] = 2.0 * ( c*c - 1.0) * a[1];
       a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
     }
-    t = (double)in[nn] - a[4] * a[6] - a[5] * a[7];
+    t = (cs_double)in[nn] - a[4] * a[6] - a[5] * a[7];
     t = csoundUndenormalizeDouble(t); /* Not needed on AMD */
     y = t * a[1] + a[2] * a[6] + a[3] * a[7];
     a[7] = a[6];
     a[6] = t;
-    out[nn] = (MYFLT)y;
+    out[nn] = (cs_float)y;
   }
   return OK;
 }
 
 static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 {
-  MYFLT    *out, *in;
+  cs_float    *out, *in;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t nsmps = CS_KSMPS;
-  double   *a = p->a;
-  double   t, y;
+  cs_double   *a = p->a;
+  cs_double   t, y;
   uint32_t nn;
 
   in = p->ain;
   out = p->sr;
 
-  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&out[nsmps], '\0', early*sizeof(cs_float));
   }
 
   for (nn=offset; nn<nsmps; nn++) {
@@ -582,21 +582,21 @@ static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter      
       continue;
     }
     if (p->afc[nn] != p->lkf) {
-      double c;
+      cs_double c;
       p->lkf = p->afc[nn];
-      c = 1.0 / tan((double)(CS_PIDSR * p->lkf));
+      c = 1.0 / tan((cs_double)(CS_PIDSR * p->lkf));
       a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
       a[2] = a[1] + a[1];
       a[3] = a[1];
       a[4] = 2.0 * ( 1.0 - c*c) * a[1];
       a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1];
     }
-    t = (double)in[nn] - a[4] * a[6] - a[5] * a[7];
+    t = (cs_double)in[nn] - a[4] * a[6] - a[5] * a[7];
     t = csoundUndenormalizeDouble(t); /* Not needed on AMD */
     y = t * a[1] + a[2] * a[6] + a[3] * a[7];
     a[7] = a[6];
     a[6] = t;
-    out[nn] = (MYFLT)y;
+    out[nn] = (cs_float)y;
   }
   return OK;
 }
@@ -606,26 +606,26 @@ static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter   
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t nsmps = CS_KSMPS;
-  MYFLT       *out, *in;
-  double *a = p->a;
-  double t, y;
+  cs_float       *out, *in;
+  cs_double *a = p->a;
+  cs_double t, y;
   uint32_t nn;
   int32_t asgbw = IS_ASIG_ARG(p->kbw), asgfr = IS_ASIG_ARG(p->kfo);
 
   in = p->ain;
   out = p->sr;
   if (!asgbw && UNLIKELY(*p->kbw <= FL(0.0))) {
-    memset(out, 0, CS_KSMPS*sizeof(MYFLT));
+    memset(out, 0, CS_KSMPS*sizeof(cs_float));
     return OK;
   }
-  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&out[nsmps], '\0', early*sizeof(cs_float));
   }
 
   for (nn=offset; nn<nsmps; nn++) {
-    MYFLT bw, fr;
+    cs_float bw, fr;
     bw = (asgbw ? p->kbw[nn] : *p->kbw);
     if (asgbw && UNLIKELY(bw <= FL(0.0))) {
       out[nn] = FL(0.0);
@@ -633,23 +633,23 @@ static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter   
     }
     fr = (asgfr ? p->kfo[nn] : *p->kfo);
     if (bw != p->lkb || fr != p->lkf) {
-      double c, d;
+      cs_double c, d;
       p->lkf = fr;
       p->lkb = bw;
-      c = 1.0 / tan((double)(CS_PIDSR * bw));
-      d = 2.0 * cos((double)(CS_TPIDSR * fr));
+      c = 1.0 / tan((cs_double)(CS_PIDSR * bw));
+      d = 2.0 * cos((cs_double)(CS_TPIDSR * fr));
       a[1] = 1.0 / (1.0 + c);
       a[2] = 0.0;
       a[3] = -a[1];
       a[4] = - c * d * a[1];
       a[5] = (c - 1.0) * a[1];
     }
-    t = (double)in[nn] - a[4] * a[6] - a[5] * a[7];
+    t = (cs_double)in[nn] - a[4] * a[6] - a[5] * a[7];
     t = csoundUndenormalizeDouble(t); /* Not needed on AMD */
     y = t * a[1] + a[2] * a[6] + a[3] * a[7];
     a[7] = a[6];
     a[6] = t;
-    out[nn] = (MYFLT)y;
+    out[nn] = (cs_float)y;
   }
   return OK;
 }
@@ -659,9 +659,9 @@ static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t nsmps = CS_KSMPS;
-  MYFLT       *out, *in;
-  double *a = p->a;
-  double t, y;
+  cs_float       *out, *in;
+  cs_double *a = p->a;
+  cs_double t, y;
   uint32_t nn;
   int32_t
     asgbw = IS_ASIG_ARG(p->kbw), asgfr = IS_ASIG_ARG(p->kfo);
@@ -669,19 +669,19 @@ static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter
   in = p->ain;
   out = p->sr;
 
-  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&out[nsmps], '\0', early*sizeof(cs_float));
   }
   if (!asgbw && UNLIKELY(*p->kbw <= FL(0.0))) {
     if (out != in)
-      memcpy(&out[offset], &in[offset], (nsmps-offset)*sizeof(MYFLT));
+      memcpy(&out[offset], &in[offset], (nsmps-offset)*sizeof(cs_float));
     return OK;
   }
 
   for (nn=offset; nn<nsmps; nn++) {
-    MYFLT bw, fr;
+    cs_float bw, fr;
     bw = (asgbw ? p->kbw[nn] : *p->kbw);
     if (asgbw && UNLIKELY(bw <= FL(0.0))) {
       out[nn] = in[nn];
@@ -689,23 +689,23 @@ static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter
     }
     fr = (asgfr ? p->kfo[nn] : *p->kfo);
     if (bw != p->lkb || fr != p->lkf) {
-      double c, d;
+      cs_double c, d;
       p->lkf = fr;
       p->lkb = bw;
-      c = tan((double)(CS_PIDSR * bw));
-      d = 2.0 * cos((double)(CS_TPIDSR * fr));
+      c = tan((cs_double)(CS_PIDSR * bw));
+      d = 2.0 * cos((cs_double)(CS_TPIDSR * fr));
       a[1] = 1.0 / (1.0 + c);
       a[2] = - d * a[1];
       a[3] = a[1];
       a[4] = a[2];
       a[5] = (1.0 - c) * a[1];
     }
-    t = (double)in[nn] - a[4] * a[6] - a[5] * a[7];
+    t = (cs_double)in[nn] - a[4] * a[6] - a[5] * a[7];
     t = csoundUndenormalizeDouble(t); /* Not needed on AMD */
     y = t * a[1] + a[2] * a[6] + a[3] * a[7];
     a[7] = a[6];
     a[6] = t;
-    out[nn] = (MYFLT)y;
+    out[nn] = (cs_float)y;
   }
   return OK;
 }

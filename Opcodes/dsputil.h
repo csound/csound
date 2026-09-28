@@ -35,14 +35,14 @@
 
 /* Predeclare static supporting functions */
 
-void    Polar2Real_PVOC(CSOUND *, MYFLT *, CSOUND_FFT_SETUP *);
-void    RewrapPhase(MYFLT *, int32, MYFLT *);
-void    FrqToPhase(MYFLT *, int32, MYFLT, MYFLT, MYFLT);
-void    FetchIn(float *, MYFLT *, int32, MYFLT);
-void    ApplyHalfWin(MYFLT *, MYFLT *, int32);
-void    addToCircBuf(MYFLT *, MYFLT *, int32, int32, int32);
-void    writeClrFromCircBuf(MYFLT *, MYFLT *, int32, int32, int32);
-void    UDSample(PVOC_GLOBALS *, MYFLT *, MYFLT, MYFLT *, int32, int32, MYFLT);
+void    Polar2Real_PVOC(CSOUND *, cs_float *, CSOUND_FFT_SETUP *);
+void    RewrapPhase(cs_float *, int32, cs_float *);
+void    FrqToPhase(cs_float *, int32, cs_float, cs_float, cs_float);
+void    FetchIn(float *, cs_float *, int32, cs_float);
+void    ApplyHalfWin(cs_float *, cs_float *, int32);
+void    addToCircBuf(cs_float *, cs_float *, int32, int32, int32);
+void    writeClrFromCircBuf(cs_float *, cs_float *, int32, int32, int32);
+void    UDSample(PVOC_GLOBALS *, cs_float *, cs_float, cs_float *, int32, int32, cs_float);
 void    MakeSinc(PVOC_GLOBALS *);
-void    PreWarpSpec(MYFLT *, int32, MYFLT, MYFLT *);
+void    PreWarpSpec(cs_float *, int32, cs_float, cs_float *);
 

@@ -24,7 +24,7 @@
 
 typedef struct {
   OPDS h;
-  MYFLT *out, *in1, *in2;
+  cs_float *out, *in1, *in2;
 } MULT;
 
 int mult_scalar(CSOUND *csound, MULT *p) {
@@ -33,18 +33,18 @@ int mult_scalar(CSOUND *csound, MULT *p) {
 }
 
 int mult_vector(CSOUND *csound, MULT *p) {
-  MYFLT *out = p->out;
-  MYFLT *in1 = p->in1;
-  MYFLT *in2 = p->in2;
+  cs_float *out = p->out;
+  cs_float *in1 = p->in1;
+  cs_float *in2 = p->in2;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
 
   if (UNLIKELY(offset))
-    memset(out, '\0', offset * sizeof(MYFLT));
+    memset(out, '\0', offset * sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&out[nsmps], '\0', early * sizeof(MYFLT));
+    memset(&out[nsmps], '\0', early * sizeof(cs_float));
   }
 
   for (n = offset; n < nsmps; n++)

@@ -10,6 +10,31 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0075 NEW)
 cmake_policy(SET CMP0091 NEW)
 
+set(CSOUND_ESP32_TARGET "" CACHE STRING "ESP32 target chip (esp32p4 or esp32s3)")
+set_property(CACHE CSOUND_ESP32_TARGET PROPERTY STRINGS "" esp32p4 esp32s3)
+if(CSOUND_ESP32_TARGET)
+    if(NOT CSOUND_ESP32_TARGET MATCHES "^(esp32p4|esp32s3)$")
+        message(FATAL_ERROR "CSOUND_ESP32_TARGET must be esp32p4 or esp32s3")
+    endif()
+    if(EXISTS "${CMAKE_BINARY_DIR}/CMakeCache.txt" AND
+       NOT DEFINED CSOUND_CONFIGURED_ESP32_TARGET)
+        message(FATAL_ERROR "Use a fresh build directory for an ESP32 target")
+    endif()
+    if(DEFINED CSOUND_CONFIGURED_ESP32_TARGET AND
+       NOT CSOUND_CONFIGURED_ESP32_TARGET STREQUAL CSOUND_ESP32_TARGET)
+        message(FATAL_ERROR "Use a fresh build directory when changing the ESP32 target")
+    endif()
+    if(USE_VCPKG)
+        message(FATAL_ERROR "The ESP32 build does not use Vcpkg")
+    endif()
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/platform/esp32/toolchain.cmake"
+        CACHE FILEPATH "CMake toolchain file")
+    include(platform/esp32/defaults.cmake)
+    set(CSOUND_CONFIGURED_ESP32_TARGET "${CSOUND_ESP32_TARGET}" CACHE INTERNAL "Configured ESP32 chip")
+elseif(CSOUND_CONFIGURED_ESP32_TARGET)
+    message(FATAL_ERROR "Use a fresh build directory when leaving the ESP32 target")
+endif()
+
 include(cmake/cmake-utilities.cmake)
 
 # silence RPATH cmake warning
@@ -209,6 +234,10 @@ option(USE_APPLE_M1_BASELINE "On macOS arm64, tune for Apple M1 as the baseline 
 ## USER OPTIONS ##
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
+option(USE_FLOAT "Use single precision for cs_float and cs_double." OFF)
+if(USE_DOUBLE AND USE_FLOAT)
+    message(FATAL_ERROR "USE_FLOAT requires -DUSE_DOUBLE=OFF")
+endif()
 option(USE_LIBSNDFILE "Use libsndfile for sndfile IO, if available" ON)
 option(BUILD_PERFTHREAD_CLASS "Include the Csound performance thread support (C++) " ON)
 option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
@@ -247,7 +276,7 @@ option(USE_ASA  "Use address sanitizer in Debug build" ON)
 option(USE_STATIC_DEPS "Use static dependencies for libsndfile" OFF)
 option(USE_LIBSAMPLERATE "Use libsamplerate for sample rate conversion" ON)
 option(USE_LOCK_BARRIER "Use lock-based barrier in PARCS " OFF)
-option(ALIGN_MEMORY "Align memory allocation to MYFLT size" OFF)
+option(ALIGN_MEMORY "Align memory allocation to cs_float size" OFF)
 option(PRESERVE_NAN "Force preserving NaNs against optimisation removal" ON)
 # Build metadata overrides for reproducible/sandboxed builds (e.g. Nix).
 set(CSOUND_GIT_HASH "" CACHE STRING "Override git commit shown in version output")
@@ -278,7 +307,7 @@ endif()
 
 if(ALIGN_MEMORY)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DALIGN_MEMORY")
-    message(STATUS "Aligning memory to MYFLT size")
+    message(STATUS "Aligning memory to cs_float size")
 else()
     message(STATUS "No memory alignment")
 endif()
@@ -934,6 +963,8 @@ endif()
 
 # The csound library
 set(libcsound_SRCS
+    OOps/json_ops.c
+    third_party/yyjson/yyjson.c
     Top/csound.c
     Top/csound_perf.c
     Top/csound_events.c
@@ -1048,6 +1079,19 @@ set(vbap_ops
 )
 
 set(libcsound_static_SRCS  ${libcsound_SRCS})
+
+# Keep JSON numbers precise even when DSP code uses fast-math. The parser is
+# private to Csound, not a new exported library interface.
+set_source_files_properties(OOps/json_ops.c third_party/yyjson/yyjson.c
+    PROPERTIES COMPILE_DEFINITIONS
+    "yyjson_api=;YYJSON_DISABLE_UTILS=1;YYJSON_DISABLE_INCR_READER=1")
+if(MSVC)
+    set_source_files_properties(OOps/json_ops.c third_party/yyjson/yyjson.c
+        PROPERTIES COMPILE_OPTIONS "/fp:precise")
+elseif(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    set_source_files_properties(OOps/json_ops.c third_party/yyjson/yyjson.c
+        PROPERTIES COMPILE_OPTIONS "-fno-fast-math")
+endif()
 
 if(WIN32 AND NOT MSVC)
     set_source_files_properties(Opcodes/sfont.c PROPERTIES

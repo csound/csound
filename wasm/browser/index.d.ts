@@ -113,43 +113,31 @@ declare interface CsoundObj {
   /**
    * Returns the number of listeners listening to the event named eventName.
    */
-  listenerCount: () => number;
+  listenerCount: (eventName: PublicEvents) => number;
   /**
    * Returns a copy of the array of listeners for the event named eventName.
    */
-  listeners: (eventName: PublicEvents) => Array<EventEmitter.EventListener<PublicEvents, any>>;
+  listeners: EventEmitter<PublicEvents>["listeners"];
   /**
    * Alias for removeListener()
    */
-  off: (
-    eventName: PublicEvents,
-    listener: EventEmitter.EventListener<PublicEvents, any>,
-  ) => EventEmitter;
+  off: EventEmitter<PublicEvents>["off"];
   /**
    * Adds the listener to the end of the listeners array for the event named eventName.
    * No checks are made to see if the listener has already been added.
    * Multiple calls passing the same combination of eventName and listener
    * will result in the listener being added, and called, multiple times.
    */
-  on: (
-    eventName: PublicEvents,
-    listener: EventEmitter.EventListener<PublicEvents, any>,
-  ) => EventEmitter;
+  on: EventEmitter<PublicEvents>["on"];
   /**
    * Alias for "on"
    */
-  addListener: (
-    eventName: PublicEvents,
-    listener: EventEmitter.EventListener<PublicEvents, any>,
-  ) => EventEmitter;
+  addListener: EventEmitter<PublicEvents>["addListener"];
   /**
    * Adds a one-time listener for the event named eventName.
    * The next time eventName is triggered, this listener is removed and then invoked.
    */
-  once: (
-    eventName: PublicEvents,
-    listener: EventEmitter.EventListener<PublicEvents, any>,
-  ) => EventEmitter;
+  once: EventEmitter<PublicEvents>["once"];
   /**
    * Removes all listeners, or those of the specified eventName.
    * It is bad practice to remove listeners added elsewhere in the code,
@@ -157,14 +145,11 @@ declare interface CsoundObj {
    * component or module.
    * Returns a reference to the EventEmitter, so that calls can be chained.
    */
-  removeAllListeners: (eventName: PublicEvents) => EventEmitter;
+  removeAllListeners: (eventName?: PublicEvents) => EventEmitter;
   /**
    * Removes the specified listener from the listener array for the event named eventName.
    */
-  removeListener: (
-    eventName: PublicEvents,
-    listener: EventEmitter.EventListener<PublicEvents, any>,
-  ) => EventEmitter;
+  removeListener: EventEmitter<PublicEvents>["removeListener"];
   /**
    * Enables the per-k-cycle debug callback.
    * Initializes the Csound debugger (if not already initialized) and registers
@@ -651,6 +636,9 @@ declare interface LibCsoundObj {
   csoundGet0dBFS: (csound: number) => number;
   csoundGetA4: (csound: number) => number;
   csoundGetCurrentTimeSamples: (csound: number) => number;
+  csoundGetSizeOfCsFloat: () => number;
+  csoundGetSizeOfCsDouble: () => number;
+  /** @deprecated Use csoundGetSizeOfCsFloat. */
   csoundGetSizeOfMYFLT: () => number;
   csoundSetOption: (csound: number, option: string) => number;
   csoundGetDebug: (csound: number) => number;

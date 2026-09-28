@@ -32,9 +32,15 @@
 #include "locsig.h"
 #include <math.h>
 
+static int32_t locsig_deinit(CSOUND *csound, LOCSIG *p)
+{
+    spatial_source_remove(csound, &p->h);
+    return OK;
+}
+
 static int32_t locsigset(CSOUND *csound, LOCSIG *p)
 {
-    STDOPCOD_GLOBALS  *pp;
+    locsig_deinit(csound, p);
     int32_t     outcount = p->OUTOCOUNT;
 
     if (UNLIKELY(outcount != 2 && outcount != 4))
@@ -42,11 +48,11 @@ static int32_t locsigset(CSOUND *csound, LOCSIG *p)
                                            "must be 2 or 4"));
 
     if (p->auxch.auxp == NULL ||
-        p->auxch.size<sizeof(MYFLT)*(CS_KSMPS * 4)) {
-      MYFLT *fltp;
+        p->auxch.size<sizeof(cs_float)*(CS_KSMPS * 4)) {
+      cs_float *fltp;
       csound->AuxAlloc(csound, (size_t) (CS_KSMPS * 4)
-                               * sizeof(MYFLT), &p->auxch);
-      fltp = (MYFLT *) p->auxch.auxp;
+                               * sizeof(cs_float), &p->auxch);
+      fltp = (cs_float *) p->auxch.auxp;
       p->rrev1 = fltp;   fltp += CS_KSMPS;
       p->rrev2 = fltp;   fltp += CS_KSMPS;
       p->rrev3 = fltp;   fltp += CS_KSMPS;
@@ -56,18 +62,15 @@ static int32_t locsigset(CSOUND *csound, LOCSIG *p)
     p->prev_degree = -FL(918273645.192837465);
     p->prev_distance = -FL(918273645.192837465);
 
-    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-    pp->locsigaddr = (void*) p;
-
-    return OK;
+    return spatial_source_register(csound, &p->h, SPATIAL_LOCSIG);
 }
 
 static int32_t locsig(CSOUND *csound, LOCSIG *p)
 {
     IGN(csound);
-    MYFLT *r1, *r2, *r3=NULL, *r4=NULL, degree, *asig;
-    MYFLT direct, *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL;
-    MYFLT torev, localrev, globalrev;
+    cs_float *r1, *r2, *r3=NULL, *r4=NULL, degree, *asig;
+    cs_float direct, *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL;
+    cs_float torev, localrev, globalrev;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -114,20 +117,20 @@ static int32_t locsig(CSOUND *csound, LOCSIG *p)
     }
 
     if (UNLIKELY(offset)) {
-      memset(r1, '\0', offset*sizeof(MYFLT));
-      memset(r2, '\0', offset*sizeof(MYFLT));
+      memset(r1, '\0', offset*sizeof(cs_float));
+      memset(r2, '\0', offset*sizeof(cs_float));
       if (p->OUTOCOUNT == 4) {
-        memset(r3, '\0', offset*sizeof(MYFLT));
-        memset(r4, '\0', offset*sizeof(MYFLT));
+        memset(r3, '\0', offset*sizeof(cs_float));
+        memset(r4, '\0', offset*sizeof(cs_float));
       }
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&r2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&r2[nsmps], '\0', early*sizeof(cs_float));
       if (p->OUTOCOUNT == 4) {
-        memset(&r3[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&r4[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&r3[nsmps], '\0', early*sizeof(cs_float));
+        memset(&r4[nsmps], '\0', early*sizeof(cs_float));
       }
     }
     for (n=offset; n<nsmps; n++) {
@@ -153,11 +156,13 @@ static int32_t locsig(CSOUND *csound, LOCSIG *p)
 
 static int32_t locsendset(CSOUND *csound, LOCSEND *p)
 {
-    STDOPCOD_GLOBALS  *pp;
-    LOCSIG  *q;
+    LOCSIG *q = (LOCSIG *)spatial_source_find(csound, p->h.insdshead,
+                                            SPATIAL_LOCSIG);
 
-    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-    q = (LOCSIG*) pp->locsigaddr;
+    if (UNLIKELY(q == NULL))
+      return csound->InitError(csound, "%s",
+                               Str("locsend: no previous locsig in this "
+                                   "instrument instance"));
     p->locsig = q;
 
     if (UNLIKELY(p->OUTOCOUNT != q->OUTOCOUNT)) {
@@ -169,8 +174,8 @@ static int32_t locsendset(CSOUND *csound, LOCSEND *p)
 
 static int32_t locsend(CSOUND *csound, LOCSEND *p)
 {
-/*     MYFLT       *r1, *r2, *r3=NULL, *r4=NULL; */
-/*     MYFLT       *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL; */
+/*     cs_float       *r1, *r2, *r3=NULL, *r4=NULL; */
+/*     cs_float       *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL; */
      IGN(csound);
     LOCSIG *q = p->locsig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -200,23 +205,23 @@ static int32_t locsend(CSOUND *csound, LOCSEND *p)
     /*
       Quicker form is: */
     if (UNLIKELY(offset)) {
-      memset(p->r1, '\0', offset*sizeof(MYFLT));
-      memset(p->r2, '\0', offset*sizeof(MYFLT));
+      memset(p->r1, '\0', offset*sizeof(cs_float));
+      memset(p->r2, '\0', offset*sizeof(cs_float));
       if (p->OUTOCOUNT == 4) {
-        memset(p->r3, '\0', offset*sizeof(MYFLT));
-        memset(p->r4, '\0', offset*sizeof(MYFLT));
+        memset(p->r3, '\0', offset*sizeof(cs_float));
+        memset(p->r4, '\0', offset*sizeof(cs_float));
       }
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&p->r1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&p->r2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->r1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&p->r2[nsmps], '\0', early*sizeof(cs_float));
       if (p->OUTOCOUNT == 4) {
-        memset(&p->r3[nsmps], '\0', early*sizeof(MYFLT));
-        memset(&p->r4[nsmps], '\0', early*sizeof(MYFLT));
+        memset(&p->r3[nsmps], '\0', early*sizeof(cs_float));
+        memset(&p->r4[nsmps], '\0', early*sizeof(cs_float));
       }
     }
-    n = (nsmps-offset)*sizeof(MYFLT);
+    n = (nsmps-offset)*sizeof(cs_float);
     memcpy(p->r1+offset, q->rrev1+offset, n);
     memcpy(p->r2+offset, q->rrev2+offset, n);
     if (p->OUTOCOUNT == 4) {
@@ -231,7 +236,7 @@ static int32_t locsend(CSOUND *csound, LOCSEND *p)
 static OENTRY localops[] =
   {
    { "locsig", S(LOCSIG),  0,  "mmmm", "akkk",
-     (SUBR)locsigset, (SUBR)locsig    },
+     (SUBR)locsigset, (SUBR)locsig, (SUBR)locsig_deinit },
    { "locsend", S(LOCSEND),0,  "mmmm", "",(SUBR)locsendset, (SUBR)locsend }
   };
 

@@ -59,12 +59,11 @@
  * int32_t csoundModuleInfo(void)                   (optional)                *
  * --------------------------                                                 *
  *                                                                            *
- * Returns information that can be used to determine if the plugin was built  *
- * for a compatible version of libcsound. The return value may be the sum of  *
- * any of the following two values:                                           *
- *                                                                            *
- *   ((CS_VERSION << 16) + (CS_SUBVER << 8))      API version                 *
- *   (int32_t) sizeof(MYFLT)                                MYFLT type        *
+ * Return CSOUND_MODULE_INFO (from csdl.h) to identify the plugin ABI.         *
+ * Bits 16 and up hold CS_VERSION; bits 8-15 hold CS_SUBVER.                   *
+ * Bits 0-6 hold sizeof(cs_float); bit 7 marks USE_FLOAT (32-bit cs_double).    *
+ * A missing function or unset bit 7 denotes the legacy 64-bit cs_double ABI. *
+ * USE_FLOAT engines reject plugins without that flag before calling them.   *
  *                                                                            *
  ******************************************************************************/
 
@@ -211,10 +210,17 @@ static CS_NOINLINE void print_module_error(CSOUND *csound,
 
 static int32_t check_plugin_compatibility(CSOUND *csound, const char *fname, int32_t n)
 {
-  int32_t     myfltSize, minorVersion, majorVersion;
+  int32_t     sampleSize, minorVersion, majorVersion;
+  int32_t floatABI = sizeof(cs_double) == sizeof(float) ? CSOUND_MODULE_USE_FLOAT : 0;
 
-  myfltSize = n & 0xFF;
-  if (UNLIKELY(myfltSize != 0 && myfltSize != (int32_t) sizeof(MYFLT))) {
+  /* No metadata (n == 0) denotes the legacy ABI, never USE_FLOAT. */
+  if (UNLIKELY((n & CSOUND_MODULE_USE_FLOAT) != floatABI)) {
+    csoundWarning(csound, Str("not loading '%s' (incompatible cs_double precision; "
+                              "rebuild the plugin with matching USE_FLOAT)"), fname);
+    return -1;
+  }
+  sampleSize = n & (0xFF ^ CSOUND_MODULE_USE_FLOAT);
+  if (UNLIKELY(sampleSize != 0 && sampleSize != (int32_t) sizeof(cs_float))) {
     csoundWarning(csound, Str("not loading '%s' (uses incompatible "
                               "floating point type)"), fname);
     return -1;
@@ -492,11 +498,10 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
   }
   /* check if the library is compatible with this version of Csound */
   infoFunc = (int32_t (*)(void)) get_library_symbol(h, InfoFunc_Name);
-  if (infoFunc != NULL) {
-    if (UNLIKELY(check_plugin_compatibility(csound, fname, infoFunc()) != 0)) {
-      close_library(h);
-      return CSOUND_ERROR;
-    }
+  if (UNLIKELY(check_plugin_compatibility(csound, fname,
+                                          infoFunc != NULL ? infoFunc() : 0) != 0)) {
+    close_library(h);
+    return CSOUND_ERROR;
   }
   /* was this plugin already loaded ? */
   for (mp = (csoundModule_t*) csound->csmodule_db; mp != NULL; mp = mp->nxt) {
@@ -641,7 +646,7 @@ int32_t csoundLoadModules(CSOUND *csound)
     return CSOUND_ERROR;
 
   /* open plugin directory */
-  dname = csoundGetEnv(csound, (sizeof(MYFLT) == sizeof(float) ?
+  dname = csoundGetEnv(csound, (sizeof(cs_float) == sizeof(float) ?
                                 plugindir_envvar : plugindir64_envvar));
   if (dname == NULL) {
 #if ENABLE_OPCODEDIR_WARNINGS
@@ -915,7 +920,7 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
   /* open plugin directory */
   // EM'2021: This seems to be dead code since opdir will never be NULL and
   // the value of dname will be discarded, see "dname = opdir" later
-  dname = csoundGetEnv(csound, (sizeof(MYFLT) == sizeof(float) ?
+  dname = csoundGetEnv(csound, (sizeof(cs_float) == sizeof(float) ?
                                 plugindir_envvar : plugindir64_envvar));
   if (dname == NULL) {
 #if ENABLE_OPCODEDIR_WARNINGS

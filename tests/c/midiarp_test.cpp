@@ -14,7 +14,7 @@ class MidiarpTests : public ::testing::Test {
   CSOUND *csound = nullptr;
   INSDS instrument{};
   MIDIARP arp{};
-  MYFLT note = 0, trigger = 0, rate = 1000, mode = 1;
+  cs_float note = 0, trigger = 0, rate = 1000, mode = 1;
 
   void SetUp() override
   {

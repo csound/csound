@@ -84,28 +84,31 @@ typedef struct csCfgVariableFloat_s {
 typedef struct csCfgVariableDouble_s {
     union csCfgVariable_u *nxt;       /* pointer to next structure in chain */
     unsigned char   *name;            /* name of the variable               */
-    double          *p;               /* pointer to value                   */
+    cs_double          *p;               /* pointer to value                   */
     int32_t             type;             /* type (CSOUNDCFG_DOUBLE)            */
     int32_t             flags;            /* bitwise OR of flags                */
     unsigned char   *shortDesc;       /* short description (NULL if none)   */
     unsigned char   *longDesc;        /* long description (NULL if none)    */
-    double          min;              /* minimum allowed value              */
-    double          max;              /* maximum allowed value              */
+    cs_double          min;              /* minimum allowed value              */
+    cs_double          max;              /* maximum allowed value              */
 } csCfgVariableDouble_t;
 
-/* MYFLT (float or double) type */
+/* cs_float (float or double) type */
 
 typedef struct csCfgVariableMYFLT_s {
     union csCfgVariable_u *nxt;       /* pointer to next structure in chain */
     unsigned char   *name;            /* name of the variable               */
-    MYFLT           *p;               /* pointer to value                   */
+    cs_float           *p;               /* pointer to value                   */
     int32_t             type;             /* type (CSOUNDCFG_MYFLT)             */
     int32_t             flags;            /* bitwise OR of flags                */
     unsigned char   *shortDesc;       /* short description (NULL if none)   */
     unsigned char   *longDesc;        /* long description (NULL if none)    */
-    MYFLT           min;              /* minimum allowed value              */
-    MYFLT           max;              /* maximum allowed value              */
-} csCfgVariableMYFLT_t;
+    cs_float           min;              /* minimum allowed value              */
+    cs_float           max;              /* maximum allowed value              */
+} csCfgVariableCsFloat_t;
+
+/* CS7 compatibility name. */
+typedef csCfgVariableCsFloat_t csCfgVariableMYFLT_t;
 
 /* string type */
 
@@ -128,7 +131,7 @@ typedef union csCfgVariable_u {
   csCfgVariableBoolean_t    b;
   csCfgVariableFloat_t      f;
   csCfgVariableDouble_t     d;
-  csCfgVariableMYFLT_t      m;
+  csCfgVariableCsFloat_t      m;
   csCfgVariableString_t     s;
 } csCfgVariable_t;
 
@@ -138,7 +141,8 @@ typedef union csCfgVariable_u {
 #define CSOUNDCFG_BOOLEAN   2
 #define CSOUNDCFG_FLOAT     3
 #define CSOUNDCFG_DOUBLE    4
-#define CSOUNDCFG_MYFLT     5
+#define CSOUNDCFG_CS_FLOAT  5
+#define CSOUNDCFG_MYFLT CSOUNDCFG_CS_FLOAT
 #define CSOUNDCFG_STRING    6
 
 /* flags */

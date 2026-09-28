@@ -26,10 +26,7 @@ function removeLeadingSlash(path) {
 }
 
 function splitPathSegments(path) {
-  if (!path) {
-    return [];
-  }
-  return path.split("/").filter((segment) => segment.length > 0 && segment !== ".");
+  return path ? path.split("/").filter((segment) => segment.length > 0 && segment !== ".") : [];
 }
 
 function normalizeAbsolutePath(path) {
@@ -631,13 +628,9 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
           let found = false;
           let leadup = 0;
 
-          let currentBufferChunkLength = buffers[currentChunkIndex]
-            ? buffers[currentChunkIndex].byteLength
-            : 0;
-
           if (currentRead === 0) {
             while (!found) {
-              currentBufferChunkLength = buffers[currentChunkIndex]
+              const currentBufferChunkLength = buffers[currentChunkIndex]
                 ? buffers[currentChunkIndex].byteLength
                 : 0;
               if (leadup <= read && currentBufferChunkLength + leadup > read) {

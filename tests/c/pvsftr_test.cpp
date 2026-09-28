@@ -14,7 +14,7 @@ class PvsftrTests : public ::testing::Test {
 protected:
     CSOUND *csound = nullptr;
     PVSDAT *signal = nullptr;
-    MYFLT *amplitudes = nullptr, *frequencies = nullptr;
+    cs_float *amplitudes = nullptr, *frequencies = nullptr;
     static constexpr int bins = 33;
 
     void SetUp() override

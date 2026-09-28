@@ -209,7 +209,7 @@ extern "C" {
     CSOUND *csound = recordData->csound;
     int retval = 0;
     const int bufsize = 4096;
-    MYFLT buf[bufsize];
+    cs_float buf[bufsize];
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     csoundLockMutex(recordData->mutex);
     while (ATOMIC_GET_BOOL(recordData->running)) {
@@ -272,7 +272,7 @@ public:
                                      * csoundGetChannels(csound,0) * numbufs);
         recordData->cbuf = csoundCreateCircularBuffer(csound,
                                                  bufsize,
-                                                 sizeof(MYFLT));
+                                                 sizeof(cs_float));
 
         if (!recordData->cbuf) {
           csoundMessage(csound, "Could create recording buffer.");
@@ -405,12 +405,12 @@ class CsPerfThreadMsg_ScoreEvent : public CsoundPerformanceThreadMessage {
     char    opcod;
     int32_t    absp2mode;
     int32_t     pcnt;
-    MYFLT   *pp;
-    MYFLT   p[10];
+    cs_float   *pp;
+    cs_float   p[10];
  public:
     CsPerfThreadMsg_ScoreEvent(CsoundPerformanceThread *pt,
                                int absp2mode, char opcod,
-                               int pcnt, const MYFLT *p)
+                               int pcnt, const cs_float *p)
     : CsoundPerformanceThreadMessage(pt)
     {
       this->opcod = opcod;
@@ -419,24 +419,24 @@ class CsPerfThreadMsg_ScoreEvent : public CsoundPerformanceThreadMessage {
       if (pcnt <= 10)
         this->pp = &(this->p[0]);
       else
-        this->pp = new MYFLT[(unsigned int) pcnt];
+        this->pp = new cs_float[(unsigned int) pcnt];
       for (int i = 0; i < pcnt; i++)
         this->pp[i] = p[i];
     }
     int32_t run() {
       CSOUND  *csound = pt_->GetCsound();
       if (absp2mode && pcnt > 1) {
-        double  p2 = (double) pp[1] - csoundGetScoreTime(csound);
+        cs_double  p2 = (cs_double) pp[1] - csoundGetScoreTime(csound);
         if (p2 < 0.0) {
-          if (pcnt > 2 && pp[2] >= (MYFLT) 0 &&
+          if (pcnt > 2 && pp[2] >= (cs_float) 0 &&
               (opcod == 'a' || opcod == 'i')) {
-            pp[2] = (MYFLT) ((double) pp[2] + p2);
-            if (pp[2] <= (MYFLT) 0)
+            pp[2] = (cs_float) ((cs_double) pp[2] + p2);
+            if (pp[2] <= (cs_float) 0)
               return 0;
           }
           p2 = 0.0;
         }
-        pp[1] = (MYFLT) p2;
+        pp[1] = (cs_float) p2;
       }
       int32_t type;
       switch(opcod) {
@@ -504,17 +504,17 @@ class CsPerfThreadMsg_InputMessage : public CsoundPerformanceThreadMessage {
 class CsPerfThreadMsg_SetScoreOffsetSeconds
       : public CsoundPerformanceThreadMessage {
 private:
-    double  timeVal;
+    cs_double  timeVal;
 public:
     CsPerfThreadMsg_SetScoreOffsetSeconds(CsoundPerformanceThread *pt,
-                                          double timeVal)
+                                          cs_double timeVal)
     : CsoundPerformanceThreadMessage(pt)
     {
       this->timeVal = timeVal;
     }
     int run()
     {
-      csoundSetScoreOffsetSeconds(pt_->GetCsound(), (MYFLT) timeVal);
+      csoundSetScoreOffsetSeconds(pt_->GetCsound(), (cs_float) timeVal);
       return 0;
     }
     ~CsPerfThreadMsg_SetScoreOffsetSeconds() {}
@@ -562,10 +562,10 @@ private:
     int32_t len;
     char    *sp;
     char    s[_PERFTHREAD_COMPILE_BUFSIZE];
-    void (*returncb)(MYFLT out);
+    void (*returncb)(cs_float out);
 
 public:
-    CsPerfThreadMsg_EvalCode(CsoundPerformanceThread *pt, const char *code, void (*returncb)(MYFLT))
+    CsPerfThreadMsg_EvalCode(CsoundPerformanceThread *pt, const char *code, void (*returncb)(cs_float))
     : CsoundPerformanceThreadMessage(pt)
     {
       this->returncb = returncb;
@@ -578,7 +578,7 @@ public:
     }
     int run()
     {
-      MYFLT out = csoundEvalCode(pt_->GetCsound(), sp);
+      cs_float out = csoundEvalCode(pt_->GetCsound(), sp);
       this->returncb(out);
       return 0;
     }
@@ -596,12 +596,12 @@ private:
     int32_t len;
     char    *sp;
     char    s[_PERFTHREAD_COMPILE_BUFSIZE];
-    void (*returncb)(MYFLT out, void *userdata);
+    void (*returncb)(cs_float out, void *userdata);
     void *userdata;
 
 public:
     CsPerfThreadMsg_EvalCodeWithData(CsoundPerformanceThread *pt, const char *code,
-                                     void (*returncb)(MYFLT, void *userdata),
+                                     void (*returncb)(cs_float, void *userdata),
                                      void *userdata)
     : CsoundPerformanceThreadMessage(pt)
     {
@@ -616,7 +616,7 @@ public:
     }
     int run()
     {
-      MYFLT out = csoundEvalCode(pt_->GetCsound(), sp);
+      cs_float out = csoundEvalCode(pt_->GetCsound(), sp);
       this->returncb(out, userdata);
       return 0;
     }
@@ -700,7 +700,7 @@ int32_t CsoundPerformanceThread::Perform()
            processcallback(cdata);
       retval = csoundPerformKsmps(csound);
       if (ATOMIC_GET_BOOL(recordData.running)) {
-          const MYFLT *spout = csoundGetSpout(csound);
+          const cs_float *spout = csoundGetSpout(csound);
           int len = csoundGetKsmps(csound) * csoundGetChannels(csound,0);
           int written = csoundWriteCircularBuffer(NULL, recordData.cbuf,
                                                   spout, len);
@@ -930,7 +930,7 @@ void CsoundPerformanceThread::StopRecord()
 }
 
 void CsoundPerformanceThread::ScoreEvent(int absp2mode, char opcod,
-                                         int pcnt, const MYFLT *p)
+                                         int pcnt, const cs_float *p)
 {
     QueueMessage(new CsPerfThreadMsg_ScoreEvent(this,
                                                 absp2mode, opcod, pcnt, p));
@@ -941,7 +941,7 @@ void CsoundPerformanceThread::InputMessage(const char *s)
     QueueMessage(new CsPerfThreadMsg_InputMessage(this, s));
 }
 
-void CsoundPerformanceThread::SetScoreOffsetSeconds(double timeVal)
+void CsoundPerformanceThread::SetScoreOffsetSeconds(cs_double timeVal)
 {
     QueueMessage(new CsPerfThreadMsg_SetScoreOffsetSeconds(this, timeVal));
 }
@@ -951,13 +951,13 @@ void CsoundPerformanceThread::CompileOrc(const char *code)
     QueueMessage(new CsPerfThreadMsg_CompileOrc(this, code));
 }
 
-void CsoundPerformanceThread::EvalCode(const char *code, void (*returncb)(MYFLT))
+void CsoundPerformanceThread::EvalCode(const char *code, void (*returncb)(cs_float))
 {
     QueueMessage(new CsPerfThreadMsg_EvalCode(this, code, returncb));
 }
 
 void CsoundPerformanceThread::EvalCode(const char *code,
-                                       void (*returncb)(MYFLT, void *userdata),
+                                       void (*returncb)(cs_float, void *userdata),
                                        void *userdata)
 {
     QueueMessage(new CsPerfThreadMsg_EvalCodeWithData(this, code, returncb, userdata));
@@ -1115,7 +1115,7 @@ PUBLIC void csoundPerformanceThreadStopRecord(Cpt pt)
   cpt->StopRecord();
 }
 
-PUBLIC void csoundPerformanceThreadScoreEvent(Cpt pt, int32_t absp2mode, char opcod, int32_t pcnt, MYFLT *p)
+PUBLIC void csoundPerformanceThreadScoreEvent(Cpt pt, int32_t absp2mode, char opcod, int32_t pcnt, cs_float *p)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->ScoreEvent(absp2mode, opcod, pcnt, p);
@@ -1128,7 +1128,7 @@ PUBLIC void csoundPerformanceThreadInputMessage(Cpt pt, const char *s)
 }
 
 PUBLIC void csoundPerformanceThreadSetScoreOffsetSeconds(Cpt pt,
-                                                         double timeVal)
+                                                         cs_double timeVal)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->SetScoreOffsetSeconds(timeVal);
@@ -1152,14 +1152,14 @@ PUBLIC void csoundPerformanceThreadCompileOrc(Cpt pt, const char *code)
   cpt->CompileOrc(code);
 }
 
-PUBLIC void csoundPerformanceThreadEvalCode(Cpt pt, const char *code, void (*returncb)(MYFLT))
+PUBLIC void csoundPerformanceThreadEvalCode(Cpt pt, const char *code, void (*returncb)(cs_float))
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->EvalCode(code, returncb);
 }
 
 PUBLIC void csoundPerformanceThreadEvalCodeWithData(Cpt pt, const char *code,
-                                                    void (*returncb)(MYFLT, void *userdata),
+                                                    void (*returncb)(cs_float, void *userdata),
                                                     void *userdata)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;

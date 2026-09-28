@@ -55,16 +55,16 @@
  * DerivedClass : public OpcodeBase<DerivedClass>
  * {
  * public:
- *     // All output fields must be declared first as MYFLT *:
- *     MYFLT *aret1;
- *     // All input fields must be declared next as MYFLT *:
- *     MYFLT *iarg1;
- *     MYFLT *karg2;
- *     MYFLT *aarg3;
+ *     // All output fields must be declared first as cs_float *:
+ *     cs_float *aret1;
+ *     // All input fields must be declared next as cs_float *:
+ *     cs_float *iarg1;
+ *     cs_float *karg2;
+ *     cs_float *aarg3;
  *     // All internal state variables must be declared after that:
  *     size_t state1;
  *     double state2;
- *     MYFLT state3;
+ *     cs_float state3;
  *     // If the opcode shares data protect it by creating one or more void
  *     // *mutex member pointers:
  *     void *mutex1;
@@ -172,14 +172,14 @@ namespace csound {
        uint32_t offset = p->h.insdshead->ksmps_offset;
        uint32_t early  = p->h.insdshead->ksmps_no_end;
        uint32_t n, nsmps = CS_KSMPS;
-       if (UNLIKELY(offset)) memset(p->r, '\0', offset*sizeof(MYFLT));
+       if (UNLIKELY(offset)) memset(p->r, '\0', offset*sizeof(cs_float));
        if (UNLIKELY(early)) {
        nsmps -= early;
-       memset(&p->r[nsmps], '\0', early*sizeof(MYFLT));
+       memset(&p->r[nsmps], '\0', early*sizeof(cs_float));
        }
        for (n = offset; n < nsmps; n++) {
-       input1 = MYFLT2LRND(p->a[n]);
-       p->r[n] = (MYFLT) (input1 >> input2);
+       input1 = CS_FLOAT2LRND(p->a[n]);
+       p->r[n] = (cs_float) (input1 >> input2);
        }
        So in C++ it should look like this (which is much easier to understand):
        int32_t frameIndex = 0;
@@ -298,14 +298,14 @@ namespace csound {
        uint32_t offset = p->h.insdshead->ksmps_offset;
        uint32_t early  = p->h.insdshead->ksmps_no_end;
        uint32_t n, nsmps = CS_KSMPS;
-       if (UNLIKELY(offset)) memset(p->r, '\0', offset*sizeof(MYFLT));
+       if (UNLIKELY(offset)) memset(p->r, '\0', offset*sizeof(cs_float));
        if (UNLIKELY(early)) {
        nsmps -= early;
-       memset(&p->r[nsmps], '\0', early*sizeof(MYFLT));
+       memset(&p->r[nsmps], '\0', early*sizeof(cs_float));
        }
        for (n = offset; n < nsmps; n++) {
-       input1 = MYFLT2LRND(p->a[n]);
-       p->r[n] = (MYFLT) (input1 >> input2);
+       input1 = CS_FLOAT2LRND(p->a[n]);
+       p->r[n] = (cs_float) (input1 >> input2);
        }
        So in C++ it should look like this (which is much easier to understand):
        int32_t frameIndex = 0;

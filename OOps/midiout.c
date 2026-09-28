@@ -36,7 +36,7 @@
 
 
 extern void openMIDIout(CSOUND *);
-/* static MYFLT   invkr; */
+/* static cs_float   invkr; */
 void note_on(CSOUND *, int32_t chan, int32_t num, int32_t vel,
              int32_t port);
 void note_off(CSOUND *, int32_t chan, int32_t num, int32_t vel,
@@ -71,7 +71,7 @@ int32_t mclock(CSOUND *csound, MCLOCK *p)
     p->beginning_flag=FALSE;
     return OK;
   }
-  else if ((MYFLT) CS_KCNT > p->clock_tics) {
+  else if ((cs_float) CS_KCNT > p->clock_tics) {
     csoundSendMidiMsg(csound, 0xF8, 0, 0, (int32_t)*p->port);    /* clock message */
     p->clock_tics += p->period;
   }
@@ -129,7 +129,7 @@ int32_t iout_on_dur_set(CSOUND *csound, OUT_ON_DUR *p)
 
   note_on(csound, p->chn,p->num, p->vel,
           (int32_t)*p->port);
-  p->istart_time = (MYFLT)CS_KCNT * CS_ONEDKR;
+  p->istart_time = (cs_float)CS_KCNT * CS_ONEDKR;
   p->fl_expired = FALSE;
   p->fl_extra_dur = FALSE;
   return OK;
@@ -138,9 +138,9 @@ int32_t iout_on_dur_set(CSOUND *csound, OUT_ON_DUR *p)
 int32_t iout_on_dur(CSOUND *csound, OUT_ON_DUR *p)
 {
   if (!(p->fl_expired)) {
-    MYFLT actual_dur = (MYFLT) CS_KCNT * CS_ONEDKR
+    cs_float actual_dur = (cs_float) CS_KCNT * CS_ONEDKR
       - p->istart_time;
-    MYFLT dur = *p->idur;
+    cs_float dur = *p->idur;
     if (dur < actual_dur) {
       p->fl_expired = TRUE;
       note_off(csound, p->chn, p->num, p->vel,
@@ -158,9 +158,9 @@ int32_t iout_on_dur(CSOUND *csound, OUT_ON_DUR *p)
 int32_t iout_on_dur2(CSOUND *csound, OUT_ON_DUR *p)
 {
   if (!(p->fl_expired)) {
-    MYFLT actual_dur = (MYFLT)CS_KCNT * CS_ONEDKR
+    cs_float actual_dur = (cs_float)CS_KCNT * CS_ONEDKR
       - p->istart_time;
-    MYFLT dur = *p->idur;
+    cs_float dur = *p->idur;
     if (dur < actual_dur) {
       p->fl_expired = TRUE;
       note_off(csound, p->chn, p->num, p->vel,
@@ -189,7 +189,7 @@ int32_t moscil_set(CSOUND *csound, MOSCIL *p)
   if (p->h.insdshead->xtratim < EXTRA_TIME)
     /* if not initialised by another opcode */
     p->h.insdshead->xtratim = EXTRA_TIME;
-  p->istart_time = (MYFLT)CS_KCNT * CS_ONEDKR;
+  p->istart_time = (cs_float)CS_KCNT * CS_ONEDKR;
   p->fl_first_note   = TRUE;
   p->fl_note_expired = TRUE;
   p->fl_end_note     = FALSE;
@@ -209,7 +209,7 @@ int32_t moscil(CSOUND *csound, MOSCIL *p)
       note_off(csound, p->last_chn, p->last_num, p->last_vel,
                (int32_t)*p->port);
     }
-    else if (p->last_dur < (MYFLT)CS_KCNT * CS_ONEDKR
+    else if (p->last_dur < (cs_float)CS_KCNT * CS_ONEDKR
              - p->istart_time) {
       p->fl_note_expired = TRUE;
       note_off(csound, p->last_chn, p->last_num, p->last_vel,
@@ -219,9 +219,9 @@ int32_t moscil(CSOUND *csound, MOSCIL *p)
   else {
     if (!p->fl_end_note
         && p->last_pause + p->last_dur <
-        (MYFLT)CS_KCNT * CS_ONEDKR - p->istart_time
+        (cs_float)CS_KCNT * CS_ONEDKR - p->istart_time
         && !(p->h.insdshead->relesing)) {
-      MYFLT ftemp;
+      cs_float ftemp;
       p->istart_time = p->istart_time + p->last_pause + p->last_dur;
       p->last_dur   =         /* dur must be at least 1/kr */
         (ftemp = *p->kdur) > 0 ? ftemp : CS_ONEDKR;
@@ -303,7 +303,7 @@ int32_t out_controller (CSOUND *csound, OUT_CONTR *p)
   /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {
     /* if prev instance already allocated in the same MIDI chan */
     int32_t value;
-    MYFLT min = *p->min;
+    cs_float min = *p->min;
     value =  (int32_t)((*p->value - min) * FL(127.0) / (*p->max - min));
     value = (value < 128) ?  value : 127;
     value = (value > -1) ?  value : 0;
@@ -326,7 +326,7 @@ int32_t out_aftertouch (CSOUND *csound, OUT_ATOUCH *p)
   /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {
     /* if prev instance already allocated in the same MIDI chan */
     int32_t value;
-    MYFLT min = *p->min;
+    cs_float min = *p->min;
     value =  (int32_t)((*p->value - min) * FL(127.0) / (*p->max - min));
     value = value < 128 ?  value : 127;
     value = value > -1  ?  value : 0;
@@ -343,7 +343,7 @@ int32_t out_aftertouch (CSOUND *csound, OUT_ATOUCH *p)
 int32_t out_poly_aftertouch (CSOUND *csound, OUT_POLYATOUCH *p)
 {
   int32_t value;
-  MYFLT min = *p->min;
+  cs_float min = *p->min;
   value =  (int32_t)((*p->value - min) * FL(127.0) / (*p->max - min));
   value = value < 128 ?  value : 127;
   value = value > -1  ?  value : 0;
@@ -365,7 +365,7 @@ int32_t out_progchange (CSOUND *csound, OUT_PCHG *p)
   /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {
     /* if prev instance already allocated in the same MIDI chan */
     int32_t prog_num;
-    MYFLT min = *p->min;
+    cs_float min = *p->min;
     prog_num =  (int32_t)((*p->prog_num - min) * FL(127.0) / (*p->max - min));
     prog_num = prog_num < 128 ?  prog_num : 127;
     prog_num = prog_num > -1  ?  prog_num : 0;
@@ -384,7 +384,7 @@ int32_t out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
   /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {
     /* if prev instance already allocated in the same MIDI chan */
     int32_t value;
-    MYFLT min = *p->min;
+    cs_float min = *p->min;
 
     value =  (int32_t)((*p->value - min) * FL(16383.0) / (*p->max - min));
     value = (value < 16384) ?  value : 16383;
@@ -416,7 +416,7 @@ int32_t out_pitch_bend(CSOUND *csound, OUT_PB *p)
   /* } */
   /* JPff/VL else */ {
     int32_t   value;
-    MYFLT min = *p->min;
+    cs_float min = *p->min;
 
     value = (int32_t)((*p->value - min) * FL(16383.0) / (*p->max - min));
     value = (value < 16384  ?  value : 16383);
@@ -551,7 +551,7 @@ int32_t mdelay(CSOUND *csound, MDELAY *p)                   /*gab-A6 fixed*/
 {
   int32_t read_index = p->read_index % DELTAB_LENGTH;
   int32_t write_index = p->write_index % DELTAB_LENGTH;
-  MYFLT present_time =  CS_KCNT * CS_ONEDKR;
+  cs_float present_time =  CS_KCNT * CS_ONEDKR;
 
   if (((int32_t)*p->in_status == 0x90 || (int32_t)*p->in_status == 0x80)) {
     p->status[write_index] = (int32_t)*p->in_status;

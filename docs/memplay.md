@@ -45,7 +45,7 @@ reader-thread work. Initializing an uncached file can still block while loading 
 
 The engine retains cached files until reset. Changing the file on disk does not
 reload an existing cache entry. Decoded storage takes approximately
-`frames * channels * sizeof(MYFLT)` bytes, plus each reader's small working buffers.
+`frames * channels * sizeof(cs_float)` bytes, plus each reader's small working buffers.
 There is no automatic fallback to streaming; use `diskin2` for files that should
 not stay in memory. The reader supports at most `INT32_MAX` frames.
 

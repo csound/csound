@@ -51,10 +51,10 @@ struct _splitType {
         SHORT scaleTuning;
         SHORT initialAttenuation;
         SHORT pan;
-        MYFLT attack;
-        MYFLT decay;
-        MYFLT sustain;
-        MYFLT release;
+        cs_float attack;
+        cs_float decay;
+        cs_float sustain;
+        cs_float release;
 } PACKED;
 typedef struct _splitType splitType;
 

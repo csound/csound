@@ -1,4 +1,4 @@
-/* eslint-disable unicorn/numeric-separators-style,camelcase,no-unused-expressions */
+/* eslint-disable camelcase,no-unused-expressions */
 
 import { CompressionMethod } from "./zlib";
 import { RawInflate } from "./rawinflate";

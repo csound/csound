@@ -26,8 +26,8 @@ protected:
     return text;
   }
   bool fft() const { return std::string(GetParam()) == "ftconv"; }
-  static double input(int sample) { return (sample % 11 - 5) / 8.0; }
-  static double tap(int frame, int ch) {
+  static cs_double input(int sample) { return (sample % 11 - 5) / 8.0; }
+  static cs_double tap(int frame, int ch) {
     return (ch + 1) * (frame % 5 - 2) / 4096.0;
   }
   std::string args(const std::string &channels, int skip = 0, int length = 13) {
@@ -72,15 +72,15 @@ protected:
       " " + std::to_string(duration / 1024.0) + "\nf 0 .5"));
     ASSERT_EQ(0, csoundStart(csound));
     for (int base = 0; base < 256; base += 32) {
-      MYFLT *spin = csoundGetSpin(csound);
+      cs_float *spin = csoundGetSpin(csound);
       ASSERT_NE(nullptr, spin);
       for (int n = 0; n < 32; ++n) spin[n] = input(base + n);
       ASSERT_EQ(0, csoundPerformKsmps(csound));
-      const MYFLT *out = csoundGetSpout(csound);
+      const cs_float *out = csoundGetSpout(csound);
       for (int n = 0; n < 32; ++n) {
         int time = base + n;
         for (int ch = 0; ch < channels; ++ch) {
-          double expected = 0;
+          cs_double expected = 0;
           if (time >= offset && time < offset + duration) {
             int age = time - offset - (fft() ? 8 : 0);
             int frames = std::min(length, 19 - skip);
@@ -152,10 +152,10 @@ TEST_P(ConvolutionOutputsTests, ReinitCanGrowAndShrinkTheChannelCount) {
   for (int block = 0; block < 6; ++block) {
     ASSERT_EQ(0, csoundPerformKsmps(csound));
     int channels = block < 2 ? 2 : block < 4 ? 65 : 1;
-    const MYFLT *out = csoundGetSpout(csound);
+    const cs_float *out = csoundGetSpout(csound);
     for (int n = 0; n < 32; ++n) {
       int age = (block % 2) * 32 + n - (fft() ? 8 : 0);
-      double expected = .125 * std::max(0, std::min(3, age + 1));
+      cs_double expected = .125 * std::max(0, std::min(3, age + 1));
       for (int ch = 0; ch < 65; ++ch)
         ASSERT_NEAR(ch < channels ? expected : 0, out[n * 65 + ch], 1e-6)
           << "block " << block << ", sample " << n << ", channel " << ch;

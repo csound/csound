@@ -45,11 +45,11 @@ protected:
         auto &p = owner(cs); ++p.ioCalls;
         return p.closeFile(cs, handle, flags);
     }
-    static int64_t trackedRead(CSOUND *cs, void *handle, MYFLT *out, int64_t n) {
+    static int64_t trackedRead(CSOUND *cs, void *handle, cs_float *out, int64_t n) {
         auto &p = owner(cs); ++p.ioCalls;
         return p.readFrames(cs, handle, out, n);
     }
-    static int64_t trackedSamples(CSOUND *cs, void *handle, MYFLT *out, int64_t n) {
+    static int64_t trackedSamples(CSOUND *cs, void *handle, cs_float *out, int64_t n) {
         auto &p = owner(cs); ++p.ioCalls;
         return p.readSamples(cs, handle, out, n);
     }
@@ -154,15 +154,15 @@ TEST_P(MemplayPlaybackTests, MatchesDiskin2) {
     // Sample-accurate starts and ends also exercise partially active blocks.
     csoundSetOption(csound, "--sample-accurate");
     start(orc, "i1 .000625 .22925");
-    double peak = 0;
+    cs_double peak = 0;
     int blocks = 0;
     while (csoundPerformKsmps(csound) == 0 && blocks++ < 100) {
-        const MYFLT *out = csoundGetSpout(csound);
+        const cs_float *out = csoundGetSpout(csound);
         for (int n = 0; n < 32; ++n)
             for (int c = 0; c < channels; ++c) {
                 ASSERT_NEAR(out[n * 8 + c], out[n * 8 + c + 4], 1e-6)
                     << "block " << blocks << " sample " << n << " channel " << c;
-                peak = (std::max)(peak, std::abs(double(out[n * 8 + c + 4])));
+                peak = (std::max)(peak, std::abs(cs_double(out[n * 8 + c + 4])));
             }
     }
     EXPECT_LT(blocks, 100);
@@ -206,10 +206,10 @@ TEST_F(MemplayTests, RealtimePlaybackAndReinitUseOnlyCachedMemory) {
           "i1 0 .1\ni1 .12 .1");
     const int before = ioCalls;
     const int threadsBefore = threadCalls;
-    double peak = 0;
+    cs_double peak = 0;
     for (int n = 0; n < 1000 && csoundPerformKsmps(csound) == 0; ++n) {
-        const MYFLT *out = csoundGetSpout(csound);
-        for (int i = 0; i < 32 * 8; ++i) peak = (std::max)(peak, std::abs(double(out[i])));
+        const cs_float *out = csoundGetSpout(csound);
+        for (int i = 0; i < 32 * 8; ++i) peak = (std::max)(peak, std::abs(cs_double(out[i])));
         csoundSleep(1); // Allow the realtime event thread to finish initialization.
     }
     EXPECT_GT(peak, .1);
@@ -227,13 +227,13 @@ TEST_F(MemplayTests, ReinitCanPreserveTheReadPositionAndNumericNamesWork) {
           "aD diskin2 17, 1, 0, 1, 0, 4, 128, 1, 1\n"
           "aA[] memplay 17, 1, 0, 1, 0, 4, 128, 1\n"
           "outch 1, aM, 2, aD, 3, aA[0]\n rireturn\n endin");
-    double peak = 0;
+    cs_double peak = 0;
     for (int n = 0; n < 100 && csoundPerformKsmps(csound) == 0; ++n) {
-        const MYFLT *out = csoundGetSpout(csound);
+        const cs_float *out = csoundGetSpout(csound);
         for (int i = 0; i < 32; ++i) {
             EXPECT_NEAR(out[i * 8], out[i * 8 + 1], 1e-6);
             EXPECT_NEAR(out[i * 8], out[i * 8 + 2], 1e-6);
-            peak = (std::max)(peak, std::abs(double(out[i * 8])));
+            peak = (std::max)(peak, std::abs(cs_double(out[i * 8])));
         }
     }
     EXPECT_GT(peak, .1);
@@ -245,12 +245,12 @@ TEST_F(MemplayTests, ExtraScalarOutputsAreSilent) {
     writeFile(1);
     start("instr 1\n aL, aR memplay \"" + file.generic_string() +
           "\", 1, 0, 1\n outch 1, aL, 2, aR\n endin");
-    double peak = 0;
+    cs_double peak = 0;
     for (int n = 0; n < 100 && csoundPerformKsmps(csound) == 0; ++n) {
-        const MYFLT *out = csoundGetSpout(csound);
+        const cs_float *out = csoundGetSpout(csound);
         for (int i = 0; i < 32; ++i) {
             EXPECT_EQ(out[i * 8 + 1], 0);
-            peak = (std::max)(peak, std::abs(double(out[i * 8])));
+            peak = (std::max)(peak, std::abs(cs_double(out[i * 8])));
         }
     }
     EXPECT_GT(peak, .1);

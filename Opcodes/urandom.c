@@ -37,13 +37,13 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar;                /* Output */
-    MYFLT   *imin;
-    MYFLT   *imax;
+    cs_float   *ar;                /* Output */
+    cs_float   *imin;
+    cs_float   *imax;
     int32_t     ur;
     int32_t     opened;
-    MYFLT   mul;
-    MYFLT   add;
+    cs_float   mul;
+    cs_float   add;
 } URANDOM;
 
 static int32_t urand_deinit(CSOUND *csound, URANDOM *p)
@@ -82,7 +82,7 @@ static int32_t urand_run(CSOUND *csound, URANDOM *p)
 /* x.ieee.exponent = x.ieee.exponent& 0x377; */
 /* printf("Debug: %s(%d): %g %d %03x %05x %08x\n", __FILE__, __LINE__, x.d, */
 /*        x.ieee.negative, x.ieee.exponent, x.ieee.mantissa0, x.ieee.mantissa1); */
-    *p->ar = p->mul *((MYFLT)x/(MYFLT)INT64_MAX) + p->add;
+    *p->ar = p->mul *((cs_float)x/(cs_float)INT64_MAX) + p->add;
     return OK;
 }
 
@@ -104,19 +104,19 @@ static int32_t urand_arun(CSOUND *csound, URANDOM *p)
     int32_t ur = p->ur;
     /* union ieee754_double x; */
     int64_t x;
-    MYFLT *ar = p->ar;
+    cs_float *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
       if (UNLIKELY(read(ur, &x, sizeof(int64_t))!= sizeof(int64_t))) return NOTOK;
-      ar[n] = p->mul *((MYFLT)x/(MYFLT)INT64_MAX) + p->add;
+      ar[n] = p->mul *((cs_float)x/(cs_float)INT64_MAX) + p->add;
     }
     return OK;
 }

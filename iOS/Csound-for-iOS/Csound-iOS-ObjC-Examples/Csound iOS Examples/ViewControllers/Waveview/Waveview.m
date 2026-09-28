@@ -30,7 +30,7 @@
     BOOL tableLoaded;
     CGFloat lastY;
     CsoundObj *csObj;
-    MYFLT *displayData;
+    cs_float *displayData;
     int displayWidth;
     int fTableNumber;
 }
@@ -86,7 +86,7 @@
 - (void)updataDisplayData:(NSData *)tableData
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-        const MYFLT *tableBytes = tableData.bytes;
+        const cs_float *tableBytes = tableData.bytes;
         int length = (int)(tableData.length / sizeof(MYFLT));
         if (length <= 0) return;
         float scalingFactor = 0.9;
@@ -95,7 +95,7 @@
         int height = self.frame.size.height;
         int middle = (height / 2);
 
-        MYFLT *newDisplayData = malloc(sizeof(MYFLT) * width);
+        cs_float *newDisplayData = malloc(sizeof(MYFLT) * width);
 
         for(int i = 0; i < width; i++) {
             float percent = i / (float)(width);

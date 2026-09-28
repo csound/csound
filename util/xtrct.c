@@ -46,9 +46,9 @@ typedef struct {
   long        sample;         /* Time file starts in samples */
   long        stop;           /* Time file ends in samples */
   long        numsamps;       /* Length in samples */
-  MYFLT       stime;          /* Time file starts in secs */
-  MYFLT       endtime;        /* Time file ends in secs */
-  MYFLT       dur;            /* Length in secs */
+  cs_float       stime;          /* Time file starts in secs */
+  cs_float       endtime;        /* Time file ends in secs */
+  cs_float       dur;            /* Length in secs */
   int32_t         outputs;        /* Number of out chanels */
   SOUNDIN *   p;              /* Csound structure */
 } XTRC;
@@ -137,7 +137,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             break;
           case 'T':
             FIND(Str("no start time"));
-            xtrc.stime = (MYFLT) atof(s);
+            xtrc.stime = (cs_float) atof(s);
             while (*++s);
             if (xtrc.sample >= 0) {
               if (UNLIKELY(Omsg & CS_WARNMSG))
@@ -167,7 +167,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             break;
           case 'E':     /* Last time */
             FIND(Str("no end time"));
-            xtrc.endtime = (MYFLT) atof(s);
+            xtrc.endtime = (cs_float) atof(s);
             while (*++s);
             if (xtrc.dur >= 0.0) {
               if (UNLIKELY(Omsg & CS_WARNMSG))
@@ -187,7 +187,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             break;
           case 'D':
             FIND(Str("no duration"));
-            xtrc.dur = (MYFLT) atof(s);
+            xtrc.dur = (cs_float) atof(s);
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
               if (UNLIKELY(Omsg & CS_WARNMSG))
@@ -269,7 +269,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     if (xtrc.sample<0) xtrc.sample = 0;
     csound->Message(csound,
                     Str("Extracting from sample %ld for %ld samples (%.5f secs)\n"),
-                    xtrc.sample, xtrc.numsamps, (MYFLT)xtrc.numsamps/xtrc.p->sr);
+                    xtrc.sample, xtrc.numsamps, (cs_float)xtrc.numsamps/xtrc.p->sr);
 
     xtrc.outputs = xtrc.p->nchanls;
 
@@ -280,11 +280,11 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     if (O->outfilename == NULL)
       O->outfilename = "test";
 
-    (csound->GetUtility(csound))->SetUtilSr(csound, (MYFLT)xtrc.p->sr);
+    (csound->GetUtility(csound))->SetUtilSr(csound, (cs_float)xtrc.p->sr);
     (csound->GetUtility(csound))->SetUtilNchnls(csound, xtrc.outputs);
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     //sfinfo.frames = 0/*was -1*/;
-    sfinfo.samplerate = (int32_t) ((MYFLT)xtrc.p->sr + FL(0.5));
+    sfinfo.samplerate = (int32_t) ((cs_float)xtrc.p->sr + FL(0.5));
     sfinfo.channels = xtrc.outputs;
     sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
     /* open file for write */
@@ -318,7 +318,7 @@ static SNDFILE*
 EXsndgetset(CSOUND *csound, XTRC *x, char *name)
 {
     SNDFILE*    infd;
-    MYFLT       dur;
+    cs_float       dur;
 
     (csound->GetUtility(csound))->SetUtilSr(csound,FL(0.0));      /* set esr 0. with no orchestra   */
     x->p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
@@ -328,7 +328,7 @@ EXsndgetset(CSOUND *csound, XTRC *x, char *name)
     if ((infd = (csound->GetUtility(csound))->SndinGetSet(csound, x->p)) == 0) /*open sndfil, do skiptime*/
         return(0);
     x->p->getframes = x->p->framesrem;
-    dur = (MYFLT) x->p->getframes / x->p->sr;
+    dur = (cs_float) x->p->getframes / x->p->sr;
     csound->Message(csound,Str("extracting from %ld sample frames (%3.1f secs)\n"),
            (long) x->p->getframes, dur);
     return(infd);
@@ -337,7 +337,7 @@ EXsndgetset(CSOUND *csound, XTRC *x, char *name)
 static void
 ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *oparms)
 {
-    MYFLT buffer[NUMBER_OF_SAMPLES];
+    cs_float buffer[NUMBER_OF_SAMPLES];
     long  read_in;
     //    long  frames = 0;
     int32_t   block = 0;

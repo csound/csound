@@ -7,7 +7,7 @@
 namespace {
 class AutocorrTests : public ::testing::Test {
 protected:
-  void run(const std::string &input, const std::vector<MYFLT> &expected,
+  void run(const std::string &input, const std::vector<cs_float> &expected,
            const std::string &after = "", bool alias = false,
            const char *error = nullptr, int cycles = 1)
   {

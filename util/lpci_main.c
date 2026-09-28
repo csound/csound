@@ -31,9 +31,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#ifndef MYFLT
 #include "sysdep.h"
-#endif
 #include "lpc.h"
 
 #define Str(x) x
@@ -50,7 +48,7 @@ int32_t main(int32_t argc, char **argv)
     LPHEADER hdr;
     uint32_t i, j;
     char *str;
-    MYFLT *coef;
+    cs_float *coef;
 
     if (argc != 3) {
       lpc_import_usage();
@@ -93,13 +91,13 @@ int32_t main(int32_t argc, char **argv)
     for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);
     putc('\n', outf);
-    coef = (MYFLT *)malloc(hdr.npoles*sizeof(MYFLT));
+    coef = (cs_float *)malloc(hdr.npoles*sizeof(cs_float));
     if (coef==NULL) {
       printf("memory allocation failure\n");
       exit(1);
     }
     for (i = 0; i<hdr.nvals; i++) {
-      if (hdr.npoles != fread(coef, sizeof(MYFLT), hdr.npoles, inf)) {
+      if (hdr.npoles != fread(coef, sizeof(cs_float), hdr.npoles, inf)) {
         printf("Ill formed data\n");
         exit(1);
       }

@@ -25,11 +25,11 @@
 extern const uint32_t bitmask[17];
 extern bandinfo_t band_info[];
 extern newhuff_t hufft[], hufftc[];
-extern const MYFLT newcos[8];
-extern const MYFLT tfcos36[9];
-extern const MYFLT tfcos12[3];
-extern const MYFLT cs[8];
-extern const MYFLT ca[8];
+extern const cs_float newcos[8];
+extern const cs_float tfcos36[9];
+extern const cs_float tfcos12[3];
+extern const cs_float cs[8];
+extern const cs_float ca[8];
 
 extern uint32_t mpa_getbits(mpadec_t mpadec, unsigned n);
 extern uint16_t update_crc(uint16_t init, uint8_t *buf, int32_t length);
@@ -194,14 +194,14 @@ static int32_t III_get_scale_factors(mpadec_t mpadec, grinfo_t *gr_info, int32_t
 }
 
 static int32_t III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
-                              MYFLT xr[SBLIMIT][SSLIMIT], int32_t *scf,
+                              cs_float xr[SBLIMIT][SSLIMIT], int32_t *scf,
                               int32_t part2bits)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     register grinfo_t *grinfo = gr_info;
     int32_t shift = 1 + grinfo->scalefac_scale, l[3], l3;
     int32_t part2remain = grinfo->part2_3_length - part2bits;
-    MYFLT *xrptr = (MYFLT *)xr; int32_t *me;
+    cs_float *xrptr = (cs_float *)xr; int32_t *me;
     static uint8_t pretab1[22] =
       { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 3, 3, 3, 2, 0 };
     static uint8_t pretab2[22] =
@@ -222,7 +222,7 @@ static int32_t III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
     }
     if (grinfo->block_type == 2) {
       int32_t i, max[4], step = 0, lwin = 0, cb = 0;
-      register MYFLT v = 0.0;
+      register cs_float v = 0.0;
       register int32_t *m, mc;
 
       if (grinfo->mixed_block_flag) {
@@ -243,7 +243,7 @@ static int32_t III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
           register int32_t x, y;
           if (!mc) {
             mc = *m++;
-            xrptr = ((MYFLT *)xr) + (*m++);
+            xrptr = ((cs_float *)xr) + (*m++);
             lwin = *m++;
             cb = *m++;
             if (lwin == 3) {
@@ -307,7 +307,7 @@ static int32_t III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
           if (!(i & 1)) {
             if (!mc) {
               mc = *m++;
-              xrptr = ((MYFLT *)xr) + (*m++);
+              xrptr = ((cs_float *)xr) + (*m++);
               lwin = *m++;
               cb = *m++;
               if (lwin == 3) {
@@ -341,7 +341,7 @@ static int32_t III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
           }
           if (m >= me) break;
           mc = *m++;
-          xrptr = ((MYFLT *)xr) + (*m++);
+          xrptr = ((cs_float *)xr) + (*m++);
           if ((*m++) == 0) break;
           m++;
         }
@@ -361,7 +361,7 @@ static int32_t III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
       uint8_t *pretab = grinfo->preflag ? pretab1 : pretab2;
       int32_t i, max = -1, cb = 0, mc = 0;
       int32_t *m = mpa->tables.map[mpa->frame.frequency_index][2];
-      register MYFLT v = 0.0;
+      register cs_float v = 0.0;
 
       for (i = 0; i < 3; i++) {
         int32_t lp = l[i];
@@ -457,16 +457,16 @@ static int32_t III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
 }
 
 static void III_i_stereo(mpadec_t mpadec, grinfo_t *gr_info,
-                         MYFLT xrbuf[2][SBLIMIT][SSLIMIT], int32_t *scalefac)
+                         cs_float xrbuf[2][SBLIMIT][SSLIMIT], int32_t *scalefac)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     register grinfo_t *grinfo = gr_info;
-    MYFLT (*xr)[SBLIMIT*SSLIMIT] = (MYFLT (*)[SBLIMIT*SSLIMIT])xrbuf;
+    cs_float (*xr)[SBLIMIT*SSLIMIT] = (cs_float (*)[SBLIMIT*SSLIMIT])xrbuf;
     bandinfo_t *bi = &band_info[mpa->frame.frequency_index];
     int32_t tab = mpa->frame.LSF + (grinfo->scalefac_compress & mpa->frame.LSF);
     int32_t ms_stereo = ((mpa->frame.mode == MPG_MD_JOINT_STEREO) &&
                      (mpa->frame.mode_ext & 2)) ? TRUE : FALSE;
-    const MYFLT *tab1, *tab2;
+    const cs_float *tab1, *tab2;
 
     tab1 = mpa->tables.istabs[tab][ms_stereo][0];
     tab2 = mpa->tables.istabs[tab][ms_stereo][1];
@@ -478,11 +478,11 @@ static void III_i_stereo(mpadec_t mpadec, grinfo_t *gr_info,
         for (; sfb < 12; sfb++) {
           is_p = scalefac[3*sfb + lwin - grinfo->mixed_block_flag];
           if (is_p != 7) {
-            MYFLT t1 = tab1[is_p], t2 = tab2[is_p];
+            cs_float t1 = tab1[is_p], t2 = tab2[is_p];
             sb = bi->short_diff[sfb];
             idx = bi->short_idx[sfb] + lwin;
             for (; sb; sb--, idx += 3) {
-              register MYFLT v = xr[0][idx];
+              register cs_float v = xr[0][idx];
               xr[0][idx] = v*t1;
               xr[1][idx] = v*t2;
             }
@@ -492,9 +492,9 @@ static void III_i_stereo(mpadec_t mpadec, grinfo_t *gr_info,
         sb = bi->short_diff[12];
         idx = bi->short_idx[12] + lwin;
         if (is_p != 7) {
-          MYFLT t1 = tab1[is_p], t2 = tab2[is_p];
+          cs_float t1 = tab1[is_p], t2 = tab2[is_p];
           for (; sb; sb--, idx += 3) {
-            register MYFLT v = xr[0][idx];
+            register cs_float v = xr[0][idx];
             xr[0][idx] = v*t1;
             xr[1][idx] = v*t2;
           }
@@ -507,9 +507,9 @@ static void III_i_stereo(mpadec_t mpadec, grinfo_t *gr_info,
           int32_t sb = bi->long_diff[sfb];
           int32_t is_p = scalefac[sfb];
           if (is_p != 7) {
-            MYFLT t1 = tab1[is_p], t2 = tab2[is_p];
+            cs_float t1 = tab1[is_p], t2 = tab2[is_p];
             for (; sb; sb--, idx++) {
-              register MYFLT v = xr[0][idx];
+              register cs_float v = xr[0][idx];
               xr[0][idx] = v*t1;
               xr[1][idx] = v*t2;
             }
@@ -523,9 +523,9 @@ static void III_i_stereo(mpadec_t mpadec, grinfo_t *gr_info,
         int32_t sb = bi->long_diff[sfb];
         is_p = scalefac[sfb];
         if (is_p != 7) {
-          MYFLT t1 = tab1[is_p], t2 = tab2[is_p];
+          cs_float t1 = tab1[is_p], t2 = tab2[is_p];
           for (; sb; sb--, idx++) {
-            register MYFLT v = xr[0][idx];
+            register cs_float v = xr[0][idx];
             xr[0][idx] = v*t1;
             xr[1][idx] = v*t2;
           }
@@ -534,9 +534,9 @@ static void III_i_stereo(mpadec_t mpadec, grinfo_t *gr_info,
       is_p = scalefac[20];
       if (is_p != 7) {
         int32_t sb = bi->long_diff[21];
-        MYFLT t1 = tab1[is_p], t2 = tab2[is_p];
+        cs_float t1 = tab1[is_p], t2 = tab2[is_p];
         for (; sb; sb--, idx++) {
-          register MYFLT v = xr[0][idx];
+          register cs_float v = xr[0][idx];
           xr[0][idx] = v*t1;
           xr[1][idx] = v*t2;
         }
@@ -544,7 +544,7 @@ static void III_i_stereo(mpadec_t mpadec, grinfo_t *gr_info,
     }
 }
 
-static void III_antialias(grinfo_t *gr_info, MYFLT xr[SBLIMIT][SSLIMIT])
+static void III_antialias(grinfo_t *gr_info, cs_float xr[SBLIMIT][SSLIMIT])
 {
     register grinfo_t *grinfo = gr_info;
     int32_t sblim;
@@ -555,12 +555,12 @@ static void III_antialias(grinfo_t *gr_info, MYFLT xr[SBLIMIT][SSLIMIT])
     } else sblim = grinfo->maxb - 1;
     {
       int32_t sb;
-      MYFLT *xr1 = (MYFLT *)xr[1];
+      cs_float *xr1 = (cs_float *)xr[1];
       for (sb = sblim; sb; sb--, xr1 += 10) {
         int32_t ss;
-        MYFLT *xr2 = xr1;
+        cs_float *xr2 = xr1;
         for (ss = 0; ss < 8; ss++) {
-          register MYFLT bu = *--xr2, bd = *xr1;
+          register cs_float bu = *--xr2, bd = *xr1;
           *xr2 = bu*cs[ss] - bd*ca[ss];
           *xr1++ = bd*cs[ss] + bu*ca[ss];
         }
@@ -568,10 +568,10 @@ static void III_antialias(grinfo_t *gr_info, MYFLT xr[SBLIMIT][SSLIMIT])
     }
 }
 
-static void dct36(register MYFLT *in, register MYFLT *out1,
-                  register MYFLT *out2, register MYFLT *w, register MYFLT *ts)
+static void dct36(register cs_float *in, register cs_float *out1,
+                  register cs_float *out2, register cs_float *w, register cs_float *ts)
 {
-    MYFLT tmp[18];
+    cs_float tmp[18];
 
     {
       in[17] += in[16]; in[16] += in[15]; in[15] += in[14];
@@ -585,9 +585,9 @@ static void dct36(register MYFLT *in, register MYFLT *out1,
       in[9]  += in[7];  in[7]  += in[5];  in[5]  += in[3];  in[3]  += in[1];
 
       {
-        MYFLT t3;
+        cs_float t3;
         {
-          MYFLT t0, t1, t2;
+          cs_float t0, t1, t2;
 
           t0 = newcos[7]*(in[8] + in[16] - in[4]);
           t1 = newcos[7]*in[12];
@@ -601,7 +601,7 @@ static void dct36(register MYFLT *in, register MYFLT *out1,
           tmp[7] += t2;
         }
         {
-          MYFLT t0, t1, t2;
+          cs_float t0, t1, t2;
 
           t0 = newcos[0]*(in[4] + in[8]);
           t1 = newcos[1]*(in[8] - in[16]);
@@ -612,13 +612,13 @@ static void dct36(register MYFLT *in, register MYFLT *out1,
         }
       }
       {
-        MYFLT t1, t2, t3;
+        cs_float t1, t2, t3;
 
         t1 = newcos[3]*(in[2] + in[10]);
         t2 = newcos[4]*(in[10] - in[14]);
         t3 = newcos[6]*in[6];
         {
-          MYFLT t0 = t1 + t2 + t3;
+          cs_float t0 = t1 + t2 + t3;
           tmp[0] += t0;
           tmp[8] -= t0;
         }
@@ -633,7 +633,7 @@ static void dct36(register MYFLT *in, register MYFLT *out1,
         tmp[6] -= t2;
       }
       {
-        MYFLT t0, t1, t2, t3, t4, t5, t6, t7;
+        cs_float t0, t1, t2, t3, t4, t5, t6, t7;
 
         t1 = newcos[7]*in[13];
         t2 = newcos[7]*(in[9] + in[17] - in[5]);
@@ -666,7 +666,7 @@ static void dct36(register MYFLT *in, register MYFLT *out1,
       }
     }
 #define DCT36_MACRO(v) {                                                \
-      register MYFLT tmpval = tmp[(v)] + tmp[17 - (v)];                 \
+      register cs_float tmpval = tmp[(v)] + tmp[17 - (v)];                 \
       out2[9 + (v)] = tmpval*w[27 + (v)];                               \
       out2[8 - (v)] = tmpval*w[26 - (v)];                               \
       tmpval = tmp[(v)] - tmp[17 - (v)];                                \
@@ -688,8 +688,8 @@ static void dct36(register MYFLT *in, register MYFLT *out1,
 }
 
 
-static void dct12(register MYFLT *in, register MYFLT *out1,
-                  register MYFLT *out2, register MYFLT *w, register MYFLT *ts)
+static void dct12(register cs_float *in, register cs_float *out1,
+                  register cs_float *out2, register cs_float *w, register cs_float *ts)
 {
 #define DCT12_PART1 in5 = in[5*3];              \
     in5 += (in4 = in[4*3]);                     \
@@ -713,7 +713,7 @@ static void dct12(register MYFLT *in, register MYFLT *out1,
     in0 -= in1;
 
     {
-      MYFLT in0, in1, in2, in3, in4, in5;
+      cs_float in0, in1, in2, in3, in4, in5;
 
       ts[0*SBLIMIT] = out1[0]; ts[1*SBLIMIT] = out1[1]; ts[2*SBLIMIT] = out1[2];
       ts[3*SBLIMIT] = out1[3]; ts[4*SBLIMIT] = out1[4]; ts[5*SBLIMIT] = out1[5];
@@ -721,9 +721,9 @@ static void dct12(register MYFLT *in, register MYFLT *out1,
       DCT12_PART1
 
         {
-          register MYFLT tmp0, tmp1 = in0 - in4;
+          register cs_float tmp0, tmp1 = in0 - in4;
           {
-            register MYFLT tmp2 = (in1 - in5)*tfcos12[1];
+            register cs_float tmp2 = (in1 - in5)*tfcos12[1];
             tmp0 = tmp1 + tmp2;
             tmp1 -= tmp2;
           }
@@ -746,14 +746,14 @@ static void dct12(register MYFLT *in, register MYFLT *out1,
     }
     in++;
     {
-      MYFLT in0, in1, in2, in3, in4, in5;
+      cs_float in0, in1, in2, in3, in4, in5;
 
       DCT12_PART1
 
         {
-          register MYFLT tmp0, tmp1 = in0 - in4;
+          register cs_float tmp0, tmp1 = in0 - in4;
           {
-            register MYFLT tmp2 = (in1 - in5)*tfcos12[1];
+            register cs_float tmp2 = (in1 - in5)*tfcos12[1];
             tmp0 = tmp1 + tmp2;
             tmp1 -= tmp2;
           }
@@ -776,16 +776,16 @@ static void dct12(register MYFLT *in, register MYFLT *out1,
     }
     in++;
     {
-      MYFLT in0, in1, in2, in3, in4, in5;
+      cs_float in0, in1, in2, in3, in4, in5;
 
       out2[12] = out2[13] = out2[14] = out2[15] = out2[16] = out2[17] = 0.0;
 
       DCT12_PART1
 
         {
-          register MYFLT tmp0, tmp1 = in0 - in4;
+          register cs_float tmp0, tmp1 = in0 - in4;
           {
-            register MYFLT tmp2 = (in1 - in5)*tfcos12[1];
+            register cs_float tmp2 = (in1 - in5)*tfcos12[1];
             tmp0 = tmp1 + tmp2;
             tmp1 -= tmp2;
           }
@@ -811,13 +811,13 @@ static void dct12(register MYFLT *in, register MYFLT *out1,
 }
 
 static void III_hybrid(mpadec_t mpadec, grinfo_t *gr_info,
-                       MYFLT fs_in[SBLIMIT][SSLIMIT],
-                       MYFLT ts_out[SSLIMIT][SBLIMIT], int32_t channel)
+                       cs_float fs_in[SBLIMIT][SSLIMIT],
+                       cs_float ts_out[SSLIMIT][SBLIMIT], int32_t channel)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     register grinfo_t *grinfo = gr_info;
-    MYFLT *tsptr = (MYFLT *)ts_out;
-    MYFLT *out1, *out2;
+    cs_float *tsptr = (cs_float *)ts_out;
+    cs_float *out1, *out2;
     unsigned bt = grinfo->block_type, sb = 0;
 
     {
@@ -943,14 +943,14 @@ void decode_layer3(mpadec_t mpadec, uint8_t *buffer)
           goto done;
         }
         if (ms_stereo) {
-          MYFLT *in0 = (MYFLT *)(mpa->hybrid_in[0]),
-                *in1 = (MYFLT *)(mpa->hybrid_in[1]);
+          cs_float *in0 = (cs_float *)(mpa->hybrid_in[0]),
+                *in1 = (cs_float *)(mpa->hybrid_in[1]);
           unsigned i, maxb = mpa->sideinfo.ch[0].gr[gr].maxb;
           if (mpa->sideinfo.ch[1].gr[gr].maxb > maxb)
             maxb = mpa->sideinfo.ch[1].gr[gr].maxb;
           for (i = 0; i < SSLIMIT*maxb; i++) {
-            register MYFLT tmp0 = in0[i];
-            register MYFLT tmp1 = in1[i];
+            register cs_float tmp0 = in0[i];
+            register cs_float tmp1 = in1[i];
             in0[i] = tmp0 + tmp1;
             in1[i] = tmp0 - tmp1;
           }
@@ -963,14 +963,14 @@ void decode_layer3(mpadec_t mpadec, uint8_t *buffer)
         }
         if (!single) {
           register unsigned i;
-          MYFLT *in0 = (MYFLT *)(mpa->hybrid_in[0]),
-                *in1 = (MYFLT *)(mpa->hybrid_in[1]);
+          cs_float *in0 = (cs_float *)(mpa->hybrid_in[0]),
+                *in1 = (cs_float *)(mpa->hybrid_in[1]);
           for (i = 0; i < SSLIMIT*grinfo->maxb; i++, in0++)
             *in0 = (*in0 + *in1++);
         } else if (single == 2) {
           register unsigned i;
-          MYFLT *in0 = (MYFLT *)(mpa->hybrid_in[0]),
-                *in1 = (MYFLT *)(mpa->hybrid_in[1]);
+          cs_float *in0 = (cs_float *)(mpa->hybrid_in[0]),
+                *in1 = (cs_float *)(mpa->hybrid_in[1]);
           for (i = 0; i < SSLIMIT*grinfo->maxb; i++, in0++) *in0 = *in1++;
         }
       }

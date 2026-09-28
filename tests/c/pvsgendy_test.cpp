@@ -61,7 +61,7 @@ protected:
     static double Value(PVSDAT *signal, size_t index)
     {
         return signal->sliding
-            ? static_cast<MYFLT *>(signal->frame.auxp)[index]
+            ? static_cast<cs_float *>(signal->frame.auxp)[index]
             : static_cast<float *>(signal->frame.auxp)[index];
     }
 
@@ -78,10 +78,10 @@ protected:
             for (int bin = 0; bin <= size / 2; ++bin) {
                 const int index = sample * (size + 2) + 2 * bin;
                 // Nonzero, distinct values expose omitted bins and stale samples.
-                const MYFLT amplitude = .5 + bin / 256.0 + sample / 64.0;
-                const MYFLT frequency = 100 + bin + sample / 4.0;
+                const cs_float amplitude = .5 + bin / 256.0 + sample / 64.0;
+                const cs_float frequency = 100 + bin + sample / 4.0;
                 if (input->sliding) {
-                    auto *frame = static_cast<MYFLT *>(input->frame.auxp);
+                    auto *frame = static_cast<cs_float *>(input->frame.auxp);
                     frame[index] = amplitude;
                     frame[index + 1] = frequency;
                 }
@@ -108,7 +108,7 @@ protected:
         ASSERT_EQ(result->wintype, input->wintype);
         const int samples = input->sliding ? 16 : 1;
         ASSERT_GE(result->frame.size, samples * (input->N + 2) *
-                  (input->sliding ? sizeof(MYFLT) : sizeof(float)));
+                  (input->sliding ? sizeof(cs_float) : sizeof(float)));
         for (int sample = 0; sample < samples; ++sample) {
             for (int slot = 0; slot < input->N + 2; ++slot) {
                 const size_t index = sample * (input->N + 2) + slot;

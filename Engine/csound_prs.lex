@@ -1731,7 +1731,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           type = 1;
           {
             //int i;
-            //MYFLT x;
+            //cs_float x;
             //for (i=0;i<=pv-vv;i++) printf(" %d ", vv[i]);
             //printf("| %ld\n", pv-vv);
             *++pv = bodmas(csound, yyscanner, term);

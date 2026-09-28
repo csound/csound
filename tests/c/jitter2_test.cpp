@@ -48,9 +48,9 @@ protected:
         ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS) << messages();
     }
 
-    std::vector<MYFLT> trace(int count)
+    std::vector<cs_float> trace(int count)
     {
-        std::vector<MYFLT> result;
+        std::vector<cs_float> result;
         for (int i = 0; i < count; ++i) {
             EXPECT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS) << messages();
             int error = 0;
@@ -74,7 +74,7 @@ TEST_P(Jitter2Tests, ReusedNotesMatchTheSameSeed)
     trace(8);
     EXPECT_EQ(trace(32), first);
     EXPECT_TRUE(std::any_of(first.begin(), first.end(),
-                           [](MYFLT value) { return value != 0; }));
+                           [](cs_float value) { return value != 0; }));
 }
 
 TEST_P(Jitter2Tests, ReinitMatchesTheSameSeed)
@@ -89,7 +89,7 @@ TEST_P(Jitter2Tests, ReinitMatchesTheSameSeed)
 TEST_P(Jitter2Tests, ThirdRateDoesNotSelectDefaultAmplitudes)
 {
     ASSERT_NO_FATAL_FAILURE(start("seed 12345\n" + jitter("1,0,0,0,0,0,10")));
-    for (MYFLT value : trace(32)) EXPECT_EQ(value, 0);
+    for (cs_float value : trace(32)) EXPECT_EQ(value, 0);
 }
 
 TEST_P(Jitter2Tests, DefaultSelectionFollowsControlChanges)
@@ -110,7 +110,7 @@ TEST_P(Jitter2Tests, LargeAndNegativeRatesKeepOutputBounded)
 {
     ASSERT_NO_FATAL_FAILURE(start("seed 12345\n" +
         jitter("1,.5,1e30,.3,2500,.2,-10")));
-    for (MYFLT value : trace(128)) {
+    for (cs_float value : trace(128)) {
         EXPECT_TRUE(std::isfinite(value));
         EXPECT_LE(std::abs(value), FL(1.0));
     }
@@ -127,7 +127,7 @@ TEST_P(Jitter2Tests, HistoricalDefaultsMatchExplicitControls)
     const auto defaults = trace(128);
     const auto explicitControls = trace(128);
     // Constant and variable controls can round differently under fast-math.
-    const MYFLT tolerance = 4 * std::numeric_limits<MYFLT>::epsilon();
+    const cs_float tolerance = 4 * std::numeric_limits<cs_float>::epsilon();
     for (size_t i = 0; i < defaults.size(); ++i) {
         SCOPED_TRACE(i);
         EXPECT_NEAR(explicitControls[i], defaults[i], tolerance);

@@ -29,10 +29,10 @@
 #include "stdopcod.h"
 #include "grain.h"
 
-static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
+static inline cs_float Unirand(CSOUND *csound, cs_float a)
 {
-    MYFLT x;
-    x = (MYFLT) (csound->Rand31(csound->RandSeed31(csound)) - 1) / FL(2147483645.0);
+    cs_float x;
+    x = (cs_float) (csound->Rand31(csound->RandSeed31(csound)) - 1) / FL(2147483645.0);
     return (x * a);
 }
 
@@ -40,7 +40,7 @@ static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    
 {
     FUNC        *gftp, *eftp;
     size_t        bufsize;
-    MYFLT       *d;
+    cs_float       *d;
 
     if (LIKELY((gftp = csound->FTFind(csound, p->igfn)) != NULL))
       p->gftp = gftp;
@@ -53,17 +53,17 @@ static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    
     p->gcount = FL(1.0);
 
     if (*p->opt == 0)
-      p->pr = (MYFLT)(gftp->flen << gftp->lobits);
+      p->pr = (cs_float)(gftp->flen << gftp->lobits);
     else
       p->pr = FL(0.0);
 
-    bufsize = sizeof(MYFLT) * (2L * (size_t) (CS_ESR * *p->imkglen)
+    bufsize = sizeof(cs_float) * (2L * (size_t) (CS_ESR * *p->imkglen)
                                + (3L * CS_KSMPS));
 
     if (p->aux.auxp == NULL || (uint32_t)bufsize > p->aux.size)
       csound->AuxAlloc(csound, bufsize, &p->aux);
     else memset(p->aux.auxp, '\0', bufsize); /* Clear any old data */
-    d  = p->x = (MYFLT *)p->aux.auxp;
+    d  = p->x = (cs_float *)p->aux.auxp;
     d +=  (int32_t)(CS_ESR * *p->imkglen) + CS_KSMPS;
     p->y = d;
 
@@ -80,18 +80,18 @@ static inline uint32_t ISPOW2(uint32_t x) {
 static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
 {
     FUNC        *gtp, *etp;
-    MYFLT       *buf, *out, *rem, *gtbl, *etbl;
-    MYFLT       *xdns, *xamp, *xlfr, *temp, amp;
+    cs_float       *buf, *out, *rem, *gtbl, *etbl;
+    cs_float       *xdns, *xamp, *xlfr, *temp, amp;
     int32       isc, isc2, inc, inc2, lb, lb2;
     int32       n, bufsize;
     int32       ekglen;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    i, nsmps = CS_KSMPS;
-    MYFLT       kglen = *p->kglen;
-    MYFLT       gcount = p->gcount;
+    cs_float       kglen = *p->kglen;
+    cs_float       gcount = p->gcount;
     uint32_t elen, glen;
-    MYFLT gcvt, ecvt, einc;
+    cs_float gcvt, ecvt, einc;
     int32_t pow2tab;
                                 /* Pick up common values to locals for speed */
     if (UNLIKELY(p->aux.auxp==NULL)) goto err1;
@@ -128,11 +128,11 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     xamp    = p->xamp;
     xlfr    = p->xlfr;
 
-    memset(buf, '\0', bufsize*sizeof(MYFLT));
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    memset(buf, '\0', bufsize*sizeof(cs_float));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i = offset ; i < nsmps ; i++) {
       if (gcount >= FL(1.0)) { /* I wonder..... */
@@ -155,9 +155,9 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
         }
         else {
           /* VL 21/11/18 new code, floating-point indexing */
-          MYFLT gph = (MYFLT) isc;
-          MYFLT eph = FL(0.0);
-          MYFLT ginc = (*xlfr + Unirand(csound, *p->kbnd)) * gcvt;
+          cs_float gph = (cs_float) isc;
+          cs_float eph = FL(0.0);
+          cs_float ginc = (*xlfr + Unirand(csound, *p->kbnd)) * gcvt;
         do {
           *temp++ += amp * gtbl[(int)gph] * etbl[(int)eph];
           gph += ginc;
@@ -183,7 +183,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
       temp++;
     } while (--n);
 
-    memcpy(&out[offset], rem, (nsmps-offset)*sizeof(MYFLT));
+    memcpy(&out[offset], rem, (nsmps-offset)*sizeof(cs_float));
     p->gcount = gcount;
     return OK;
  err1:

@@ -155,12 +155,12 @@ void corfile_ungetc(CORFIL *f)
     --f->p;
 }
 
-MYFLT corfile_get_flt(CORFIL *f)
+cs_float corfile_get_flt(CORFIL *f)
 {
     int32_t n = f->p;
-    MYFLT ans;
+    cs_float ans;
     while (!isspace(f->body[(int)(++f->p)]));
-    ans = (MYFLT) atof(&f->body[n]);
+    ans = (cs_float) atof(&f->body[n]);
     return ans;
 }
 

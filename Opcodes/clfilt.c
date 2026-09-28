@@ -38,12 +38,12 @@
 
 static int32_t clfiltset(CSOUND *csound, CLFILT *p)
 {
-    MYFLT tanfpi, tanfpi2, cotfpi, cotfpi2;
-    double eps, bethe, aleph, zee;
+    cs_float tanfpi, tanfpi2, cotfpi, cotfpi2;
+    cs_double eps, bethe, aleph, zee;
     int32_t m, nsec;
-    MYFLT pbr = *p->pbr, sbr = *p->sbr;        /* As cannot change */
+    cs_float pbr = *p->pbr, sbr = *p->sbr;        /* As cannot change */
     p->prvfreq = *p->freq;
-    tanfpi = (MYFLT)tan(-CS_MPIDSR*(*p->freq));
+    tanfpi = (cs_float)tan(-CS_MPIDSR*(*p->freq));
     tanfpi2 = tanfpi*tanfpi;
     cotfpi = FL(1.0)/tanfpi;
     cotfpi2 = cotfpi*cotfpi;
@@ -64,7 +64,7 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
                                            "in clfilt"), *p->npol);
 /*       p->nsec = nsec = 1; */
     }
-    else if (UNLIKELY(fmod((double)*p->npol,2.0) != 0.0)) {
+    else if (UNLIKELY(fmod((cs_double)*p->npol,2.0) != 0.0)) {
       p->nsec = nsec = (int32_t)((*p->npol+FL(1.0))*FL(0.5));
       csound->Warning(csound, Str("odd number of poles chosen in clfilt,"
                                   " rounded to %d"), 2*nsec);
@@ -75,8 +75,8 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
       switch (p->ikind) {
       case 0: /* Lowpass Butterworth */
         for (m=0;m<=nsec-1;m++) {
-          p->alpha[m] = (MYFLT)cos(PI*((m + 0.5)/(2.0*nsec) + 0.5));
-          p->beta[m]  = (MYFLT)sin(PI*((m + 0.5)/(2.0*nsec) + 0.5));
+          p->alpha[m] = (cs_float)cos(PI*((m + 0.5)/(2.0*nsec) + 0.5));
+          p->beta[m]  = (cs_float)sin(PI*((m + 0.5)/(2.0*nsec) + 0.5));
           p->a0[m] = (p->alpha[m])*(p->alpha[m]) +
             (p->beta[m])*(p->beta[m]) + cotfpi*(cotfpi-FL(2.0)*(p->alpha[m]));
           p->a1[m] = FL(2.0)*((p->alpha[m])*(p->alpha[m]) +
@@ -99,12 +99,12 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
           csound->Warning(csound, Str("passband ripple must be non-zero in "
                                       "clfilt. Set to %f"), pbr);
         }
-        eps = sqrt(expm1((double)pbr * (log(10.0) / 10.0)));
+        eps = sqrt(expm1((cs_double)pbr * (log(10.0) / 10.0)));
         aleph = 0.5/nsec * asinh(1.0/eps);
         for (m=0;m<=nsec-1;m++) {
           bethe = PI*((m + 0.5)/(2.0*nsec) + 0.5);
-          p->alpha[m] = (MYFLT)(sinh(aleph)*cos(bethe));
-          p->beta[m] = (MYFLT)(cosh(aleph)*sin(bethe));
+          p->alpha[m] = (cs_float)(sinh(aleph)*cos(bethe));
+          p->beta[m] = (cs_float)(cosh(aleph)*sin(bethe));
           p->a0[m] = (p->alpha[m])*(p->alpha[m]) + (p->beta[m])*(p->beta[m])
             + cotfpi*(cotfpi-2*(p->alpha[m]));
           p->a1[m] = FL(2.0)*((p->alpha[m])*(p->alpha[m]) +
@@ -114,13 +114,13 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
           if (m==0) { /* H0 and pole magnitudes */
             p->b0[m] = ((p->alpha[m])*(p->alpha[m]) +
                         (p->beta[m])*(p->beta[m]))*FL(1.0)
-              /(MYFLT)sqrt(1.0+eps*eps);
+              /(cs_float)sqrt(1.0+eps*eps);
             p->b1[m] = ((p->alpha[m])*(p->alpha[m]) +
                         (p->beta[m])*(p->beta[m]))*FL(2.0)
-              /(MYFLT)sqrt(1.0+eps*eps);
+              /(cs_float)sqrt(1.0+eps*eps);
             p->b2[m] = ((p->alpha[m])*(p->alpha[m]) +
                         (p->beta[m])*(p->beta[m]))*FL(1.0)
-              /(MYFLT)sqrt(1.0+eps*eps);
+              /(cs_float)sqrt(1.0+eps*eps);
           }
           else { /* pole magnitudes */
             p->b0[m] = ((p->alpha[m])*(p->alpha[m]) +
@@ -148,13 +148,13 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
         }
         /* Work with inverse epsilon directly for the Type II poles. */
         aleph = 0.5/nsec *
-          asinh(sqrt(expm1(-(double)sbr * (log(10.0) / 10.0))));
+          asinh(sqrt(expm1(-(cs_double)sbr * (log(10.0) / 10.0))));
         for (m=0;m<=nsec-1;m++) {
           zee = PI*(m + 0.5)/(2.0*nsec);
           bethe = PI*((m + 0.5)/(2.0*nsec) + 0.5);
-          p->alpha[m] = (MYFLT)(sinh(aleph)*cos(bethe));
-          p->beta[m] = (MYFLT)(cosh(aleph)*sin(bethe));
-          p->odelta2[m] = (MYFLT)(cos(zee)*cos(zee));
+          p->alpha[m] = (cs_float)(sinh(aleph)*cos(bethe));
+          p->beta[m] = (cs_float)(cosh(aleph)*sin(bethe));
+          p->odelta2[m] = (cs_float)(cos(zee)*cos(zee));
           p->a0[m] = (p->alpha[m])*(p->alpha[m]) + (p->beta[m])*(p->beta[m]) +
             tanfpi*(tanfpi - FL(2.0)*(p->alpha[m]));
           p->a1[m] = FL(2.0)*(tanfpi2 - ((p->alpha[m])*(p->alpha[m]) +
@@ -179,8 +179,8 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
       switch (p->ikind) {
       case 0: /* Highpass Butterworth */
         for (m=0;m<=nsec-1;m++) {
-          p->alpha[m] = (MYFLT)cos(PI*((m + 0.5)/(2.0*nsec) + 0.5));
-          p->beta[m]  = (MYFLT)sin(PI*((m + 0.5)/(2.0*nsec) + 0.5));
+          p->alpha[m] = (cs_float)cos(PI*((m + 0.5)/(2.0*nsec) + 0.5));
+          p->beta[m]  = (cs_float)sin(PI*((m + 0.5)/(2.0*nsec) + 0.5));
           p->a0[m] = (p->alpha[m])*(p->alpha[m]) + (p->beta[m])*(p->beta[m])
             + tanfpi*(tanfpi - FL(2.0)*(p->alpha[m]));
           p->a1[m] = FL(2.0)*(tanfpi2-((p->alpha[m])*(p->alpha[m]) +
@@ -204,12 +204,12 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
           csound->Warning(csound, Str("passband ripple must be non-zero "
                                       "in clfilt. Set to %f"), pbr);
         }
-        eps = sqrt(expm1((double)pbr * (log(10.0) / 10.0)));
+        eps = sqrt(expm1((cs_double)pbr * (log(10.0) / 10.0)));
         aleph = 0.5/nsec * asinh(1.0/eps);
         for (m=0;m<=nsec-1;m++) {
           bethe = PI*((m + 0.5)/(2.0*nsec) + 0.5);
-          p->alpha[m] = (MYFLT)(sinh(aleph)*cos(bethe));
-          p->beta[m] = (MYFLT)(cosh(aleph)*sin(bethe));
+          p->alpha[m] = (cs_float)(sinh(aleph)*cos(bethe));
+          p->beta[m] = (cs_float)(cosh(aleph)*sin(bethe));
           p->a0[m] = (p->alpha[m])*(p->alpha[m]) + (p->beta[m])*(p->beta[m])
             + tanfpi*(tanfpi - FL(2.0)*(p->alpha[m]));
           p->a1[m] = FL(2.0)*(tanfpi2-((p->alpha[m])*(p->alpha[m]) +
@@ -219,13 +219,13 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
           if (m==0) { /* H0 and pole magnitudes */
             p->b0[m] = ((p->alpha[m])*(p->alpha[m]) +
                         (p->beta[m])*(p->beta[m]))*FL(1.0)
-              /(MYFLT)sqrt(1.0+eps*eps);
+              /(cs_float)sqrt(1.0+eps*eps);
             p->b1[m] = -((p->alpha[m])*(p->alpha[m]) +
                          (p->beta[m])*(p->beta[m]))*FL(2.0)
-              /(MYFLT)sqrt(1.0+eps*eps);
+              /(cs_float)sqrt(1.0+eps*eps);
             p->b2[m] = ((p->alpha[m])*(p->alpha[m]) +
                         (p->beta[m])*(p->beta[m]))*FL(1.0)
-              /(MYFLT)sqrt(1.0+eps*eps);
+              /(cs_float)sqrt(1.0+eps*eps);
           }
           else { /* pole magnitudes */
             p->b0[m] = ((p->alpha[m])*(p->alpha[m]) +
@@ -253,13 +253,13 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
         }
         /* Work with inverse epsilon directly for the Type II poles. */
         aleph = 0.5/nsec *
-          asinh(sqrt(expm1(-(double)sbr * (log(10.0) / 10.0))));
+          asinh(sqrt(expm1(-(cs_double)sbr * (log(10.0) / 10.0))));
         for (m=0;m<=nsec-1;m++) {
           zee = PI*(m + 0.5)/(2.0*nsec);
           bethe = PI*((m + 0.5)/(2.0*nsec) + 0.5);
-          p->alpha[m] = (MYFLT)(sinh(aleph)*cos(bethe));
-          p->beta[m] = (MYFLT)(cosh(aleph)*sin(bethe));
-          p->odelta2[m] = (MYFLT)(cos(zee)*cos(zee));
+          p->alpha[m] = (cs_float)(sinh(aleph)*cos(bethe));
+          p->beta[m] = (cs_float)(cosh(aleph)*sin(bethe));
+          p->odelta2[m] = (cs_float)(cos(zee)*cos(zee));
           p->a0[m] = (p->alpha[m])*(p->alpha[m]) + (p->beta[m])*(p->beta[m]) +
             cotfpi*(cotfpi - FL(2.0)*(p->alpha[m]));
           p->a1[m] = FL(2.0)*(-cotfpi2 + ((p->alpha[m])*(p->alpha[m]) +
@@ -296,12 +296,12 @@ static int32_t clfilt(CSOUND *csound, CLFILT *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t m, nsec;
-    MYFLT *out, *in;
-    MYFLT xn[CL_LIM+1], yn[CL_LIM];
-    MYFLT a0[CL_LIM], a1[CL_LIM], a2[CL_LIM];
-    MYFLT b0[CL_LIM], b1[CL_LIM], b2[CL_LIM];
-    MYFLT xnm1[CL_LIM], xnm2[CL_LIM], ynm1[CL_LIM], ynm2[CL_LIM];
-    MYFLT tanfpi, tanfpi2, cotfpi, cotfpi2;
+    cs_float *out, *in;
+    cs_float xn[CL_LIM+1], yn[CL_LIM];
+    cs_float a0[CL_LIM], a1[CL_LIM], a2[CL_LIM];
+    cs_float b0[CL_LIM], b1[CL_LIM], b2[CL_LIM];
+    cs_float xnm1[CL_LIM], xnm2[CL_LIM], ynm1[CL_LIM], ynm2[CL_LIM];
+    cs_float tanfpi, tanfpi2, cotfpi, cotfpi2;
     nsec = p->nsec;
     for (m=0;m<=nsec-1;m++) {
       a0[m] = p->a0[m]; a1[m] = p->a1[m]; a2[m] = p->a2[m];
@@ -311,7 +311,7 @@ static int32_t clfilt(CSOUND *csound, CLFILT *p)
     }
     if (*p->freq != p->prvfreq) {      /* Only reset if freq changes */
       p->prvfreq = *p->freq;
-      tanfpi = (MYFLT)tan(-CS_MPIDSR*(*p->freq));
+      tanfpi = (cs_float)tan(-CS_MPIDSR*(*p->freq));
       tanfpi2 = tanfpi*tanfpi;
       cotfpi = FL(1.0)/tanfpi;
       cotfpi2 = cotfpi*cotfpi;
@@ -397,10 +397,10 @@ static int32_t clfilt(CSOUND *csound, CLFILT *p)
     }
     in   = p->in;
     out  = p->out;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
       xn[0] = in[n];

@@ -203,8 +203,7 @@ export const csoundUgenVarSetString = (wasm) => (var_, str) => {
  */
 export const csoundUgenVarGetString = (wasm) => (var_) => {
   const ptr = wasm.exports["csoundUgenVarGetString"](var_);
-  if (ptr === 0) return null;
-  return ptr2string(wasm, ptr);
+  return ptr === 0 ? null : ptr2string(wasm, ptr);
 };
 
 /* ==== UGEN convenience: scalar access by index ==== */
@@ -242,8 +241,7 @@ export const csoundUgenSetString = (wasm) => (ugen, index, str) => {
  */
 export const csoundUgenGetString = (wasm) => (ugen, index) => {
   const ptr = wasm.exports["csoundUgenGetString"](ugen, index);
-  if (ptr === 0) return null;
-  return ptr2string(wasm, ptr);
+  return ptr === 0 ? null : ptr2string(wasm, ptr);
 };
 
 /* ==== Argument Query ==== */

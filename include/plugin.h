@@ -41,7 +41,7 @@
 namespace csnd {
 
 /* constants */
-const double twopi = TWOPI;
+const cs_double twopi = TWOPI;
 
 /** opcode threads: i-time, k-perf and/or a-perf
 */
@@ -96,11 +96,11 @@ public:
 
   /** system max amp reference
    */
-  MYFLT _0dbfs() { return Get0dBFS(this); }
+  cs_float _0dbfs() { return Get0dBFS(this); }
 
   /** system A4 reference
    */
-  MYFLT _A4() { return GetA4(this); }
+  cs_float _A4() { return GetA4(this); }
 
   /** number of audio channels (out)
    */
@@ -135,24 +135,24 @@ public:
 
   /** midi aftertouch for this channel
    */
-  MYFLT midi_chn_aftertouch(OPDS *p) {
+  cs_float midi_chn_aftertouch(OPDS *p) {
     return GetMidiChannel(p)->aftouch; }
 
   /** midi poly aftertouch for this channel
    */
-  MYFLT midi_chn_polytouch(OPDS *p, uint32_t note) {
+  cs_float midi_chn_polytouch(OPDS *p, uint32_t note) {
     return GetMidiChannel(p)->polyaft[note];
   }
 
   /** midi ctl change for this channel
    */
-  MYFLT midi_chn_ctl(OPDS *p, uint32_t ctl) {
+  cs_float midi_chn_ctl(OPDS *p, uint32_t ctl) {
     return GetMidiChannel(p)->ctl_val[ctl];
   }
 
   /** midi pitchbend for this channel
    */
-  MYFLT midi_chn_pitchbend(OPDS *p) {
+  cs_float midi_chn_pitchbend(OPDS *p) {
     return GetMidiChannel(p)->pchbend;
   }
 
@@ -193,25 +193,25 @@ public:
   }
 
   /** FFT operation, in-place, but also
-      returning a pointer to std::complex<MYFLT>
+      returning a pointer to std::complex<cs_float>
       to the transformed data memory.
   */
-  std::complex<MYFLT> *rfft(fftp setup, MYFLT *data) {
+  std::complex<cs_float> *rfft(fftp setup, cs_float *data) {
     RealFFT(this, setup, data);
-    return reinterpret_cast<std::complex<MYFLT> *>(data);
+    return reinterpret_cast<std::complex<cs_float> *>(data);
   }
 
   /** FFT operation for complex data, in-place, but also
-      returning a pointer to std::complex<MYFLT>
+      returning a pointer to std::complex<cs_float>
       to the transformed data memory.
   */
-  std::complex<MYFLT> *fft(fftp setup, std::complex<MYFLT> *data) {
-    MYFLT *fdata = reinterpret_cast<MYFLT *>(data);
+  std::complex<cs_float> *fft(fftp setup, std::complex<cs_float> *data) {
+    cs_float *fdata = reinterpret_cast<cs_float *>(data);
     if (setup->d == FFT_FWD)
       ComplexFFT(this, fdata, setup->N);
     else
       ComplexFFT(this, fdata, setup->N);
-    return reinterpret_cast<std::complex<MYFLT> *>(fdata);
+    return reinterpret_cast<std::complex<cs_float> *>(fdata);
   }
 
   /** Creates a global variable in the current Csound object
@@ -273,14 +273,14 @@ class AudioSig {
   uint32_t early;
   uint32_t offset;
   uint32_t nsmps;
-  MYFLT *sig;
+  cs_float *sig;
 
 public:
   /** Constructor takes the plugin object and the
       audio argument pointer, and a reset flag if
       we need to clear an output buffer
    */
-  AudioSig(OPDS *p, MYFLT *s, bool res = false)
+  AudioSig(OPDS *p, cs_float *s, bool res = false)
       : early(p->insdshead->ksmps_no_end), offset(p->insdshead->ksmps_offset),
         nsmps(p->insdshead->ksmps - p->insdshead->ksmps_no_end), sig(s) {
     if (res) {
@@ -290,11 +290,11 @@ public:
 
   /** iterator type
   */
-  typedef MYFLT *iterator;
+  typedef cs_float *iterator;
 
   /** const_iterator type
   */
-  typedef const MYFLT *const_iterator;
+  typedef const cs_float *const_iterator;
 
   /** vector beginning
    */
@@ -322,11 +322,11 @@ public:
 
   /** array subscript access (write)
    */
-  MYFLT &operator[](int32_t n) { return sig[n]; }
+  cs_float &operator[](int32_t n) { return sig[n]; }
 
   /** array subscript access (read)
    */
-  const MYFLT &operator[](int32_t n) const { return sig[n]; }
+  const cs_float &operator[](int32_t n) const { return sig[n]; }
 
   /** get early exit sample position
    */
@@ -436,9 +436,9 @@ public:
   T *data_array() { return (T *)data; }
 };
 
-typedef Vector<MYFLT> myfltvec;
+typedef Vector<cs_float> myfltvec;
 typedef std::complex<float> pvscmplx;
-typedef std::complex<MYFLT> sldcmplx;
+typedef std::complex<cs_float> sldcmplx;
 
 /** Pvbin holds one Phase Vocoder bin
  */
@@ -482,16 +482,16 @@ public:
     return (res *= a);
   }
 
-  /** multiplication by MYFLT (unary)
+  /** multiplication by cs_float (unary)
    */
-  const Pvbin &operator*=(MYFLT f) {
+  const Pvbin &operator*=(cs_float f) {
     am *= f;
     return *this;
   }
 
-  /** multiplication by MYFLT (binary)
+  /** multiplication by cs_float (binary)
    */
-  Pvbin operator*(MYFLT f) {
+  Pvbin operator*(cs_float f) {
     Pvbin res = *this;
     return (res *= f);
   }
@@ -509,7 +509,7 @@ public:
 typedef Pvbin<float> pv_bin;
 
 /** Sliding Phase Vocoder bin */
-typedef Pvbin<MYFLT> spv_bin;
+typedef Pvbin<cs_float> spv_bin;
 
 template <typename T> class Pvframe;
 
@@ -542,7 +542,7 @@ public:
         std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0.f);
       }
     } else {
-      size_t bytes = (n + 2) * sizeof(MYFLT) * nsmps;
+      size_t bytes = (n + 2) * sizeof(cs_float) * nsmps;
       if (frame.auxp == NULL || frame.size < bytes)
         csound->AuxAlloc(csound, bytes, &frame);
     }
@@ -673,7 +673,7 @@ class Table : FUNC {
 public:
   /** Initialise this object from an opcode
       argument arg */
-  int32_t init(Csound *csound, MYFLT *arg) {
+  int32_t init(Csound *csound, cs_float *arg) {
     Table *f = (Table *)csound->FTFind(csound, arg);
     if (f != nullptr) {
       std::copy(f, f + 1, this);
@@ -684,11 +684,11 @@ public:
 
   /** iterator type
   */
-  typedef MYFLT *iterator;
+  typedef cs_float *iterator;
 
   /** const_iterator type
   */
-  typedef const MYFLT *const_iterator;
+  typedef const cs_float *const_iterator;
 
   /** returns an iterator to the
       beginning of the table
@@ -722,15 +722,15 @@ public:
 
   /** array subscript access operator (write)
    */
-  MYFLT &operator[](int32_t n) { return ftable[n]; }
+  cs_float &operator[](int32_t n) { return ftable[n]; }
 
   /** array subscript access operator (read)
    */
-  const MYFLT &operator[](int32_t n) const { return ftable[n]; }
+  const cs_float &operator[](int32_t n) const { return ftable[n]; }
 
   /** function table data pointer
    */
-  MYFLT *data() const { return ftable; }
+  cs_float *data() const { return ftable; }
 
   /** function table length
    */
@@ -807,24 +807,24 @@ public:
 /** Parameters template class
  */
  template <std::size_t N> class Param {
-  std::array<MYFLT *, N> ptrs;
+  std::array<cs_float *, N> ptrs;
 
 public:
   /** parameter access via array subscript (write)
    */
-  MYFLT &operator[](int32_t n) { return *ptrs[n]; }
+  cs_float &operator[](int32_t n) { return *ptrs[n]; }
 
   /** parameter access via array subscript (read)
    */
-  const MYFLT &operator[](int32_t n) const { return *ptrs[n]; }
+  const cs_float &operator[](int32_t n) const { return *ptrs[n]; }
 
   /** iterator type
   */
-  typedef MYFLT **iterator;
+  typedef cs_float **iterator;
 
   /** const_iterator type
   */
-  typedef const MYFLT **const_iterator;
+  typedef const cs_float **const_iterator;
 
   /** vector beginning
    */
@@ -836,28 +836,28 @@ public:
 
   /** vector beginning
    */
-  const_iterator begin() const { return (const MYFLT **)ptrs.data(); }
+  const_iterator begin() const { return (const cs_float **)ptrs.data(); }
 
   /** vector end
    */
-  const_iterator end() const { return (const MYFLT **)(ptrs.data() + N); }
+  const_iterator end() const { return (const cs_float **)(ptrs.data() + N); }
 
   /** vector beginning
    */
-  const_iterator cbegin() const { return (const MYFLT **)ptrs.data(); }
+  const_iterator cbegin() const { return (const cs_float **)ptrs.data(); }
 
   /** vector end
    */
-  const_iterator cend() const { return (const MYFLT **)(ptrs.data() + N); }
+  const_iterator cend() const { return (const cs_float **)(ptrs.data() + N); }
 
-  /** parameter data (MYFLT pointer) at index n
+  /** parameter data (cs_float pointer) at index n
    */
-  MYFLT *operator()(int32_t n) { return ptrs[n]; }
+  cs_float *operator()(int32_t n) { return ptrs[n]; }
 
   /** @private:
        same as operator()
    */
-  MYFLT *data(int32_t n) { return ptrs[n]; }
+  cs_float *data(int32_t n) { return ptrs[n]; }
 
   /** parameter string data (STRINGDAT ref) at index n
    */
@@ -942,15 +942,15 @@ template <std::size_t N> struct InPlug : OPDS {
 
   /** local control rate
    */
-  MYFLT kr() { return insdshead->ekr; }
+  cs_float kr() { return insdshead->ekr; }
 
   /** local ksmps
    */
-  MYFLT ksmps() { return insdshead->ksmps; }
+  cs_float ksmps() { return insdshead->ksmps; }
 
    /** sampling rate
    */
-  MYFLT sr() { return insdshead->esr; }
+  cs_float sr() { return insdshead->esr; }
 
   /** midi channel number for this instrument
    */
@@ -966,24 +966,24 @@ template <std::size_t N> struct InPlug : OPDS {
 
   /** midi aftertouch for this channel
    */
-  MYFLT midi_chn_aftertouch() {
+  cs_float midi_chn_aftertouch() {
     return GetMidiChannel(this)->aftouch; }
 
   /** midi poly aftertouch for this channel
    */
-  MYFLT midi_chn_polytouch(uint32_t note) {
+  cs_float midi_chn_polytouch(uint32_t note) {
     return GetMidiChannel(this)->polyaft[note];
   }
 
   /** midi ctl change for this channel
    */
-  MYFLT midi_chn_ctl(uint32_t ctl) {
+  cs_float midi_chn_ctl(uint32_t ctl) {
     return GetMidiChannel(this)->ctl_val[ctl];
   }
 
   /** midi pitchbend for this channel
    */
-  MYFLT midi_chn_pitchbend() {
+  cs_float midi_chn_pitchbend() {
     return GetMidiChannel(this)->pchbend; }
 
   /** list of active instrument instances for this channel \n
@@ -1078,15 +1078,15 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
 
   /** local control rate
    */
-  MYFLT kr() { return insdshead->ekr; }
+  cs_float kr() { return insdshead->ekr; }
 
  /** local ksmps
    */
-  MYFLT ksmps() { return insdshead->ksmps; }
+  cs_float ksmps() { return insdshead->ksmps; }
 
    /** sampling rate
    */
-  MYFLT sr() { return insdshead->esr; }
+  cs_float sr() { return insdshead->esr; }
 
   /** midi channel number for this instrument
    */
@@ -1102,24 +1102,24 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
 
   /** midi aftertouch for this channel
    */
-  MYFLT midi_chn_aftertouch() {
+  cs_float midi_chn_aftertouch() {
     return GetMidiChannel(this)->aftouch; }
 
   /** midi poly aftertouch for this channel
    */
-  MYFLT midi_chn_polytouch(uint32_t note) {
+  cs_float midi_chn_polytouch(uint32_t note) {
     return GetMidiChannel(this)->polyaft[note];
   }
 
   /** midi ctl change for this channel
    */
-  MYFLT midi_chn_ctl(uint32_t ctl) {
+  cs_float midi_chn_ctl(uint32_t ctl) {
     return GetMidiChannel(this)->ctl_val[ctl];
   }
 
   /** midi pitchbend for this channel
    */
-  MYFLT midi_chn_pitchbend() {
+  cs_float midi_chn_pitchbend() {
     return  GetMidiChannel(this)->pchbend; }
 
   /** list of active instrument instances for this channel \n

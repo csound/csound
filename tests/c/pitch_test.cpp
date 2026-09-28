@@ -9,7 +9,7 @@ namespace {
 class PitchTests : public ::testing::Test {
 protected:
     CSOUND *csound;
-    struct Frame { MYFLT pitch, amplitude; };
+    struct Frame { cs_float pitch, amplitude; };
     void SetUp() override {
         csound = csoundCreate(nullptr, nullptr);
         csoundCreateMessageBuffer(csound, 0);

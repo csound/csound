@@ -44,39 +44,39 @@
 /***********************************************/
 
 typedef struct BowTabl {
-    MYFLT       offSet;
-    MYFLT       slope;
-    MYFLT       lastOutput;
+    cs_float       offSet;
+    cs_float       slope;
+    cs_float       lastOutput;
 } BowTabl;
 
-MYFLT BowTabl_lookup(CSOUND *,BowTabl*, MYFLT sample);
+cs_float BowTabl_lookup(CSOUND *,BowTabl*, cs_float sample);
 
 typedef struct BOWED {
     OPDS        h;
-    MYFLT       *ar;                  /* Output */
-    MYFLT       *amp, *frequency;
-    MYFLT       *bowPress, *betaRatio, *vibFreq;
-    MYFLT       *vibAmt, *ifn, *lowestFreq;
+    cs_float       *ar;                  /* Output */
+    cs_float       *amp, *frequency;
+    cs_float       *bowPress, *betaRatio, *vibFreq;
+    cs_float       *vibAmt, *ifn, *lowestFreq;
 
     FUNC        *vibr;
-    MYFLT       v_rate;         /* Parameters for vibrato */
-    MYFLT       v_time;
-    MYFLT       v_phaseOffset;
-    MYFLT       v_lastOutput;
+    cs_float       v_rate;         /* Parameters for vibrato */
+    cs_float       v_time;
+    cs_float       v_phaseOffset;
+    cs_float       v_lastOutput;
     DLineL      neckDelay;
     DLineL      bridgeDelay;
     BowTabl     bowTabl;
     OnePole     reflFilt;
     BiQuad      bodyFilt;
     ADSR        adsr;
-    MYFLT       maxVelocity;
-    MYFLT       baseDelay;
-    MYFLT       vibrGain;
-    MYFLT       lastpress;
-    MYFLT       lastfreq;
-    MYFLT       lastbeta;
-    MYFLT       lastamp;
-    MYFLT       limit;
+    cs_float       maxVelocity;
+    cs_float       baseDelay;
+    cs_float       vibrGain;
+    cs_float       lastpress;
+    cs_float       lastfreq;
+    cs_float       lastbeta;
+    cs_float       lastamp;
+    cs_float       limit;
 } BOWED;
 
 #endif

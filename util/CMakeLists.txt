@@ -47,6 +47,8 @@ if(BUILD_UTILITIES)
     check_deps(BUILD_SRC_CONV USE_LIBSNDFILE SampleRate_FOUND)
     if (BUILD_SRC_CONV)
         make_executable(src_conv new_srconv.c "SndFile::sndfile;SampleRate::samplerate")
+        target_include_directories(src_conv PRIVATE
+            ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
     endif()
 
 endif()

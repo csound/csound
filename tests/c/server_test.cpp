@@ -128,7 +128,7 @@ bool performBlocks(CSOUND *csound, int32_t count)
     return true;
 }
 
-bool waitForChannel(CSOUND *csound, const char *name, MYFLT expected)
+bool waitForChannel(CSOUND *csound, const char *name, cs_float expected)
 {
     for (int32_t i = 0; i < 1000; ++i) {
       if (csoundGetControlChannel(csound, name, NULL) == expected)
@@ -386,7 +386,7 @@ TEST_F(ServerTests, OscListenersKeepStablePortAddresses)
     ASSERT_TRUE(performBlocks(csound, 4));
 
     csoundEventString(csound, "i 3 0 0.01 1", 0);
-    ASSERT_TRUE(waitForChannel(csound, "received", static_cast<MYFLT>(1.0)));
+    ASSERT_TRUE(waitForChannel(csound, "received", static_cast<cs_float>(1.0)));
 
     for (int32_t i = 0; i < 8; ++i) {
       csoundEventString(csound, "i 2 0 0.002", 0);
@@ -394,7 +394,7 @@ TEST_F(ServerTests, OscListenersKeepStablePortAddresses)
     }
 
     csoundEventString(csound, "i 3 0 0.01 2", 0);
-    EXPECT_TRUE(waitForChannel(csound, "received", static_cast<MYFLT>(2.0)));
+    EXPECT_TRUE(waitForChannel(csound, "received", static_cast<cs_float>(2.0)));
 
     EXPECT_EQ(readMessages(csound).find("deinit error"), std::string::npos);
 }
@@ -457,7 +457,7 @@ TEST_F(ServerTests, OscListenerTeardownWhilePacketsArrive)
       ASSERT_TRUE(performBlocks(csound, 8));
     }
     EXPECT_GT(csoundGetControlChannel(csound, "race_received", NULL),
-              static_cast<MYFLT>(0.0));
+              static_cast<cs_float>(0.0));
 
     for (int32_t i = 0; i < 4; ++i) {
       csoundEventString(csound, "i 3 0 0.003", 0);
@@ -465,7 +465,7 @@ TEST_F(ServerTests, OscListenerTeardownWhilePacketsArrive)
     }
 
     EXPECT_GT(csoundGetControlChannel(csound, "teardown_received", NULL),
-              static_cast<MYFLT>(0.0));
+              static_cast<cs_float>(0.0));
     EXPECT_EQ(readMessages(csound).find("deinit error"), std::string::npos);
 }
 
@@ -512,9 +512,9 @@ TEST_F(ServerTests, OscArrayListenerKeepsStablePortAddress)
 
     csoundEventString(csound, "i 3 0 0.01 1.25", 0);
     ASSERT_TRUE(waitForChannel(csound, "array_float",
-                               static_cast<MYFLT>(1.25)));
+                               static_cast<cs_float>(1.25)));
     EXPECT_EQ(csoundGetControlChannel(csound, "array_int", NULL),
-              static_cast<MYFLT>(7.0));
+              static_cast<cs_float>(7.0));
 
     for (int32_t i = 0; i < 8; ++i) {
       csoundEventString(csound, "i 2 0 0.002", 0);
@@ -523,9 +523,9 @@ TEST_F(ServerTests, OscArrayListenerKeepsStablePortAddress)
 
     csoundEventString(csound, "i 3 0 0.01 2.5", 0);
     EXPECT_TRUE(waitForChannel(csound, "array_float",
-                               static_cast<MYFLT>(2.5)));
+                               static_cast<cs_float>(2.5)));
     EXPECT_EQ(csoundGetControlChannel(csound, "array_int", NULL),
-              static_cast<MYFLT>(7.0));
+              static_cast<cs_float>(7.0));
     EXPECT_EQ(readMessages(csound).find("deinit error"), std::string::npos);
 }
 
@@ -608,16 +608,16 @@ TEST_F(ServerTests, OscAudioBlobRoundTripsPreserveCompleteBlock)
 
     csoundEventString(csound, "i 2 0 0.01", 0);
     ASSERT_TRUE(waitForChannel(csound, "audio_lo_sum",
-                               static_cast<MYFLT>(528.0)));
+                               static_cast<cs_float>(528.0)));
     EXPECT_EQ(csoundGetControlChannel(csound, "audio_lo_weighted_sum", NULL),
-              static_cast<MYFLT>(11440.0));
+              static_cast<cs_float>(11440.0));
 
     csoundEventString(csound, "i 3 0 0.01", 0);
     ASSERT_TRUE(waitForChannel(csound, "audio_socket_sum",
-                               static_cast<MYFLT>(3728.0)));
+                               static_cast<cs_float>(3728.0)));
     EXPECT_EQ(csoundGetControlChannel(csound,
                                       "audio_socket_weighted_sum", NULL),
-              static_cast<MYFLT>(64240.0));
+              static_cast<cs_float>(64240.0));
 
     EXPECT_EQ(readMessages(csound).find("malformed"), std::string::npos);
 }
@@ -686,17 +686,17 @@ TEST_F(ServerTests, OscListenerContinuesAfterPortDeinit)
     csoundSleep(50);
     ASSERT_TRUE(performBlocks(csound, 1));
     ASSERT_GT(csoundGetControlChannel(csound, "queued_pending", NULL),
-              static_cast<MYFLT>(32.0));
+              static_cast<cs_float>(32.0));
     ASSERT_GT(csoundGetControlChannel(csound, "queued_received", NULL),
-              static_cast<MYFLT>(0.0));
+              static_cast<cs_float>(0.0));
 
     ASSERT_TRUE(performBlocks(csound, 40));
     EXPECT_GT(csoundGetControlChannel(csound, "queued_cycles", NULL),
-              static_cast<MYFLT>(40.0));
+              static_cast<cs_float>(40.0));
     EXPECT_GT(csoundGetControlChannel(csound, "queued_pending", NULL),
-              static_cast<MYFLT>(0.0));
+              static_cast<cs_float>(0.0));
     EXPECT_EQ(csoundGetControlChannel(csound, "queued_status", NULL),
-              static_cast<MYFLT>(0.0));
+              static_cast<cs_float>(0.0));
 
     const std::string messages = readMessages(csound);
     EXPECT_EQ(messages.find("deinit error"), std::string::npos);

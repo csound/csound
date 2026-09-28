@@ -54,8 +54,8 @@ OSStatus audio_callback(void *inRefCon,
   int32_t ksmps = csoundGetKsmps(csound)*nchnls;
   int32_t nsmps = engine->nsmps;
   int32_t insmps = engine->insmps;
-  const MYFLT *spout = csoundGetSpout(csound);
-  MYFLT *spin = csoundGetSpin(csound);
+  const cs_float *spout = csoundGetSpout(csound);
+  cs_float *spin = csoundGetSpin(csound);
   SInt32 *buffer;
 
   if(ATOMIC_GET(engine->closing)) {
@@ -68,7 +68,7 @@ OSStatus audio_callback(void *inRefCon,
     }
     rt_audio_fade_begin(&fade, (int32_t) inNumberFrames*nchnls, nchnls);
     for(frame = 0; frame < (int32_t) inNumberFrames; frame++) {
-      MYFLT gain = rt_audio_fade_next_gain(&fade);
+      cs_float gain = rt_audio_fade_next_gain(&fade);
       if(nsmps >= ksmps)
         nsmps = 0;
       for(k = 0; k < nchnls; k++) {
@@ -267,11 +267,11 @@ static void close_io(CSOUND *csound) {
   if(cdata) csound->Free(csound, cdata);
 }
 
-static void  audio_output(CSOUND *csound, const MYFLT *outbuff, int32_t nbytes) {
+static void  audio_output(CSOUND *csound, const cs_float *outbuff, int32_t nbytes) {
   // nothing to do
 }
 
-static int audio_input(CSOUND *csound, MYFLT *inbuff, int32_t nbytes) {
+static int audio_input(CSOUND *csound, cs_float *inbuff, int32_t nbytes) {
   // nothing to do but signal the caller not to fill spin
   return -1;
 }

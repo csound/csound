@@ -28,39 +28,39 @@
 #define MAXPTL 10
 typedef struct {
         OPDS    h;
-        MYFLT   *ans;
-        MYFLT   *pnum;
+        cs_float   *ans;
+        cs_float   *pnum;
 } PFUN;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ans;
-        MYFLT   *pnum;
+        cs_float   *ans;
+        cs_float   *pnum;
         AUXCH   pfield;
 } PFUNK;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ins;
-        MYFLT   *onoff;
+        cs_float   *ins;
+        cs_float   *onoff;
 } MUTE;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *cnt;
-        MYFLT   *ins;
-        MYFLT   *opt;
-        MYFLT   *norel;
+        cs_float   *cnt;
+        cs_float   *ins;
+        cs_float   *opt;
+        cs_float   *norel;
 } INSTCNT;
 
 typedef struct {
     OPDS        h;
-    MYFLT       *instrnum, *ipercent, *iopc;    /* IV - Oct 31 2002 */
+    cs_float       *instrnum, *ipercent, *iopc;    /* IV - Oct 31 2002 */
 } CPU_PERC;
 
 typedef struct {
     OPDS        h;
-    MYFLT       *instrnum, *icount, *iturnoff_mode;
+    cs_float       *instrnum, *icount, *iturnoff_mode;
 } CPU_MAXALLOC;
 
 /*
