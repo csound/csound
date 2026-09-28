@@ -343,13 +343,28 @@ LOCAL_LDLIBS += -llog -lOpenSLES -laaudio -lamidi -ldl -lm -lc
 # For building without plugins, but with support for plugins that may depend on GNU STL, use:
 
 LOCAL_SHARED_LIBRARIES += c++_shared sndfile
+LOCAL_STATIC_LIBRARIES += csound_json
 #LOCAL_STATIC_LIBRARIES += sndfile
 
 # Prevents stripping needed exports from the shared library.
 
 cmd-strip :=
 
+CSOUND_ANDROID_C_INCLUDES := $(LOCAL_C_INCLUDES)
+CSOUND_ANDROID_CFLAGS := $(LOCAL_CFLAGS)
 include $(BUILD_SHARED_LIBRARY)
+
+# Keep JSON number conversion out of the DSP code's fast-math settings.
+include $(CLEAR_VARS)
+LOCAL_MODULE := csound_json
+LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/OOps/json_ops.c \
+                   $(CSOUND_SRC_ROOT)/third_party/yyjson/yyjson.c
+LOCAL_C_INCLUDES := $(CSOUND_ANDROID_C_INCLUDES)
+LOCAL_CFLAGS := $(CSOUND_ANDROID_CFLAGS) -fno-fast-math -fvisibility=hidden \
+                -Dyyjson_api= -DYYJSON_DISABLE_UTILS=1 \
+                -DYYJSON_DISABLE_INCR_READER=1
+include $(BUILD_STATIC_LIBRARY)
+
 $(call import-module,libsndfile-android/jni)
 #$(call import-module,libstdutil/jni)
 #$(call import-module,libfluidsynth/jni)
