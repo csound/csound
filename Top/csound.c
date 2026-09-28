@@ -426,6 +426,9 @@ static const CSOUND cenviron_ = {
     csoundFTFree,
     csoundFTFind,
     csoundGetNamedGens,
+    /* instance variables */
+    csoundCreateInstanceVariable,
+    csoundQueryInstanceVariable,
     /* global and config variable manipulation */
     csoundCreateGlobalVariable,
     csoundQueryGlobalVariable,
@@ -826,6 +829,7 @@ static const CSOUND cenviron_ = {
     0,  /* link flag */
     0,  /* instance id */
     0,  /* async references */
+    NULL, /* instance variables */
     {NULL, FL(0.0)},
     {NULL, FL(0.0)},
     {NULL, FL(0.0)},

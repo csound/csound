@@ -546,6 +546,8 @@ typedef struct {
        reuse and free path must reject a nonzero count, and a borrower must not
        access the INSDS after its final decrement. */
     volatile int32_t async_ref_count;
+    /* Private named storage. Use Create/QueryInstanceVariable to access it. */
+    void *instance_variables;
     /* Copy of required p-field values for quick access */
     CS_VAR_MEM  p0;
     CS_VAR_MEM  p1;
@@ -1214,6 +1216,15 @@ struct CSOUND_ {
   int32_t (*FTDelete)(CSOUND *, int32_t tableNum);
   FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
   void *(*GetNamedGens)(CSOUND *);
+  /**@}*/
+
+  /** @name Instance variables */
+  /**@{ */
+  /** Create zero-filled named storage local to an instrument instance. */
+  int32_t (*CreateInstanceVariable)(CSOUND *, INSDS *owner,
+                                     const char *name, size_t nbytes);
+  /** Return instance storage, or NULL for a missing name or invalid owner. */
+  void *(*QueryInstanceVariable)(CSOUND *, const INSDS *owner, const char *name);
   /**@}*/
 
   /** @name Global and config variable manipulation */
