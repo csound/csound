@@ -49,7 +49,10 @@ Older native loaders also reject plugins that carry the new `USE_FLOAT` flag.
 The aliases control Csound storage and interfaces. They do not change C's
 promotion rules, floating-point literals, or external library interfaces.
 Fixed-width formats such as ATS, SDIF, and OSC still use 64-bit `double`
-where their formats require it. Bundled third-party code keeps its own types.
+where their formats require it. External libraries such as yyjson also keep
+their required types. A few envelopes and accumulators keep `double` where
+single precision loses small updates. Bundled third-party code keeps its own
+types.
 
 ## Helper names and bindings
 

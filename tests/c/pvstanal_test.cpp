@@ -104,7 +104,8 @@ protected:
         return result;
     }
 
-    // Independent reference: apply Hann to the source, then use a DFT.
+    // Keep the reference DFT in double precision in every build mode.
+    // Apply Hann to the source, then compare the opcode with this reference.
     std::complex<double> referenceBin(int bin, int channel, int firstSample)
     {
         std::complex<double> result = 0;
@@ -185,6 +186,6 @@ TEST_P(PvsTanalInvalidTests, RejectsInvalidFrameSizesAtInitialization)
 
 INSTANTIATE_TEST_SUITE_P(FrameSizes, PvsTanalInvalidTests,
     ::testing::Values("1, 16", "63, 16", "64.5, 16", "1e30, 16", "64, 8",
-                      "64, 1e30"));
+                      "64, 1e30", "2147483648, 16", "64, 2147483648"));
 
 } // namespace

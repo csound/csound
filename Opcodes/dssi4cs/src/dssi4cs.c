@@ -32,10 +32,11 @@ static DSSI_HOST *host(CSOUND *csound)
     return csound->QueryGlobalVariable(csound, "$DSSI4CS");
 }
 
-static int integer(cs_float value, cs_double maximum)
+static int integer(cs_float value, int64_t maximum)
 {
-    return isfinite(value) && value >= 0 && value <= maximum &&
-           floor(value) == value;
+    /* Compare as integers so float builds do not round UINT32_MAX up. */
+    return value >= 0 && value < 0x1p63 && floor(value) == value &&
+           (int64_t)value <= maximum;
 }
 
 static DSSI_PLUGIN *lookup(CSOUND *csound, cs_float id)
@@ -367,7 +368,7 @@ static int32_t dssievent(CSOUND *csound, DSSIEVENT *p)
     if (*p->trigger == 0) return OK;
     if (!integer(*p->channel, 15) || !integer(*p->status, 0xe0) ||
         !integer(*p->data1, 127) || !integer(*p->data2, 127) ||
-        !integer(*p->offset, (cs_double)GetLocalKsmps(&p->h) - GetKsmpsOffset(&p->h) -
+        !integer(*p->offset, (int64_t)GetLocalKsmps(&p->h) - GetKsmpsOffset(&p->h) -
                                     GetEarlySmps(&p->h) - 1))
         return csound->PerfError(csound, &p->h, "DSSI4CS: invalid MIDI event or sample offset");
     snd_seq_event_t event = {0};
@@ -407,7 +408,7 @@ static int32_t dssinrpn(CSOUND *csound, DSSINRPN *p)
     if (*p->trigger == 0) return OK;
     if (!integer(*p->channel, 15) || !integer(*p->parameter, 16383) ||
         !integer(*p->value, 16383) ||
-        !integer(*p->offset, (cs_double)GetLocalKsmps(&p->h) - GetKsmpsOffset(&p->h) -
+        !integer(*p->offset, (int64_t)GetLocalKsmps(&p->h) - GetKsmpsOffset(&p->h) -
                             GetEarlySmps(&p->h) - 1))
         return csound->PerfError(csound, &p->h, "DSSI4CS: invalid NRPN event");
     int64_t time = event_time(&p->h) + (int64_t)*p->offset;
@@ -640,7 +641,8 @@ static int32_t dssiaudio(CSOUND *csound, DSSIAUDIO *p)
 
 static int control_port(DSSI_PLUGIN *p, cs_float port, int input)
 {
-    if (!p || !integer(port, p->ladspa->PortCount ? p->ladspa->PortCount - 1 : -1.)) return 0;
+    if (!p || !p->ladspa->PortCount ||
+        !integer(port, (int64_t)(p->ladspa->PortCount - 1))) return 0;
     LADSPA_PortDescriptor flags = p->ladspa->PortDescriptors[(unsigned long)port];
     return LADSPA_IS_PORT_CONTROL(flags) && (!input || LADSPA_IS_PORT_INPUT(flags));
 }

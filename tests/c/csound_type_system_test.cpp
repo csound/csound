@@ -42,7 +42,7 @@ int32_t countPerfError(CSOUND *, OPDS *, const char *, ...)
     return NOTOK;
 }
 
-void initializeRangeProbe(CSOUND *, CS_VARIABLE *, MYFLT *memory)
+void initializeRangeProbe(CSOUND *, CS_VARIABLE *, cs_float *memory)
 {
     rangeInitializerCalls++;
     *memory = FL(0.0);
@@ -55,7 +55,7 @@ CS_VARIABLE *createRangeProbe(void *cs, const CS_TYPE *, const void *,
     rangeConstructorCalls++;
     CS_VARIABLE *var = static_cast<CS_VARIABLE *>(
       csound->Calloc(csound, sizeof(CS_VARIABLE)));
-    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(MYFLT));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(cs_float));
     var->initializeVariableMemory = initializeRangeProbe;
     var->ctx = ctx;
     return var;
@@ -602,10 +602,10 @@ TEST_F (TypeSystemTests, testArrayGetErrorsUseExplicitPhase)
 
 TEST_F (TypeSystemTests, testArraySetValidationErrorsUseExplicitPhase)
 {
-    MYFLT data[2]{};
-    MYFLT value = FL(1.0);
-    MYFLT index = FL(-1.0);
-    MYFLT secondIndex = FL(0.0);
+    cs_float data[2]{};
+    cs_float value = FL(1.0);
+    cs_float index = FL(-1.0);
+    cs_float secondIndex = FL(0.0);
     int32_t sizes[] = {1, 1};
     ARRAYDAT array{};
     ARRAY_SET set{};
@@ -614,7 +614,7 @@ TEST_F (TypeSystemTests, testArraySetValidationErrorsUseExplicitPhase)
     array.data = data;
     array.sizes = sizes;
     array.arrayType = &CS_VAR_TYPE_I;
-    array.arrayMemberSize = sizeof(MYFLT);
+    array.arrayMemberSize = sizeof(cs_float);
     array.allocated = sizeof(data);
     set.h.optext = &optext;
     set.h.insdshead = &context;
@@ -800,9 +800,9 @@ TEST_F (TypeSystemTests, testAudioArrayStrideChecksLocalKsmpsDirection)
     ASSERT_EQ(OK, csound_array_ensure_capacity(
                     csound, &wideSource, 2, &narrowContext));
     EXPECT_EQ(FL(0.25), wideSource.data[0]);
-    ASSERT_EQ(0u, (size_t)wideSource.arrayMemberSize % sizeof(MYFLT));
+    ASSERT_EQ(0u, (size_t)wideSource.arrayMemberSize % sizeof(cs_float));
     const size_t samplesPerElement =
-      (size_t)wideSource.arrayMemberSize / sizeof(MYFLT);
+      (size_t)wideSource.arrayMemberSize / sizeof(cs_float);
     for (size_t sample = 0; sample < samplesPerElement; sample++) {
         EXPECT_EQ(FL(0.0), wideSource.data[samplesPerElement + sample]);
     }
@@ -815,7 +815,7 @@ TEST_F (TypeSystemTests, testAudioArrayStrideChecksLocalKsmpsDirection)
     ASSERT_EQ(OK, csound_array_ensure_capacity(
                     csound, &narrowSource, 1, &narrowContext));
     narrowSource.data[0] = FL(0.5);
-    MYFLT *const originalData = narrowSource.data;
+    cs_float *const originalData = narrowSource.data;
     const size_t originalAllocated = narrowSource.allocated;
 
     EXPECT_EQ(NOTOK, csound_array_ensure_capacity(
@@ -839,7 +839,7 @@ TEST_F (TypeSystemTests, testAudioArrayStrideChecksLocalKsmpsDirection)
     ASSERT_EQ(OK, csound_array_ensure_capacity(
                     csound, &existingDestination, 1, &narrowContext));
     existingDestination.data[0] = FL(0.75);
-    MYFLT *const existingData = existingDestination.data;
+    cs_float *const existingData = existingDestination.data;
     const size_t existingAllocated = existingDestination.allocated;
 
     EXPECT_EQ(NOTOK, csound_array_copy_independent(

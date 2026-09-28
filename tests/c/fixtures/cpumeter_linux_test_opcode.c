@@ -20,7 +20,7 @@ OENTRY *csound_test_linux_cpumeter_opcode(void)
 }
 
 void csound_test_linux_cpumeter_bind(void *data, INSDS *instrument, OPTXT *text,
-                   MYFLT *interval, MYFLT **outputs)
+                   cs_float *interval, cs_float **outputs)
 {
     CPUMETER *p = (CPUMETER *)data;
     p->h.insdshead = instrument;

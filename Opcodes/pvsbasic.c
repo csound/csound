@@ -549,14 +549,14 @@ static int32_t pvstanal_sizes(CSOUND *csound, cs_double fftsize, cs_double hop,
 {
   if (fftsize <= 0.0) fftsize = 2048;
   if (hop <= 0.0) hop = 512;
-  if (UNLIKELY(!(fftsize >= 2.0 && fftsize <= INT32_MAX - 2)))
+  if (UNLIKELY(!(fftsize >= 2.0 && fftsize <= (INT32_MAX + 0.0) - 2)))
     return csound->InitError(csound, "%s", Str("pvstanal: invalid FFT size"));
   *N = (int32_t) fftsize;
   if (UNLIKELY(*N != fftsize || (*N & (*N - 1)) != 0 ||
                (size_t)(*N + 2) > SIZE_MAX/sizeof(cs_float)))
     return csound->InitError(csound, "%s",
                             Str("pvstanal: FFT size must be a power of two"));
-  if (UNLIKELY(!(hop >= ksmps && hop <= INT32_MAX)))
+  if (UNLIKELY(!(hop >= ksmps && hop <= (INT32_MAX + 0.0))))
     return csound->InitError(csound, "%s",
                             Str("pvstanal: hop size must be at least ksmps"));
   *hsize = (int32_t) hop;

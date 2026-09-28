@@ -102,7 +102,7 @@ int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
   int32_t wintype = CS_FLOAT2LRND(*p->wintype);
 
   if (UNLIKELY(!(*p->winsize >= FL(1.0) &&
-                 (cs_double)*p->winsize <= INT32_MAX-3)))
+                 *p->winsize <= (INT32_MAX + 0.0) - 3)))
     return csound->InitError(csound, Str("Invalid window size"));
   N = CS_FLOAT2LRND(*p->winsize);
   /* deal with iinit and iformat later on! */
@@ -187,20 +187,21 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
   int32_t wintype;
   /* deal with iinit and iformat later on! */
 
+  /* Keep integer bounds exact even when cs_double is float. */
   if (UNLIKELY(!(*p->overlap >= FL(0.0) &&
-                 (cs_double)*p->overlap <= INT32_MAX)))
+                 *p->overlap <= (INT32_MAX + 0.0))))
     return csound->InitError(csound, Str("pvsanal: invalid hop size"));
-  if (UNLIKELY(!((cs_double)*p->wintype >= INT32_MIN+1 &&
-                 (cs_double)*p->wintype <= INT32_MAX-1)))
+  if (UNLIKELY(!(*p->wintype >= (INT32_MIN + 0.0) + 1 &&
+                 *p->wintype <= (INT32_MAX + 0.0) - 1)))
     return csound->InitError(csound, Str("pvsanal: invalid window type"));
   overlap = (uint32_t)*p->overlap;
   if (overlap<CS_KSMPS || overlap<=10) /* 10 is a guess.... */
     return pvssanalset(csound, p);
   if (UNLIKELY(!(*p->fftsize >= FL(0.0) &&
-                 (cs_double)*p->fftsize <= INT32_MAX-2)))
+                 *p->fftsize <= (INT32_MAX + 0.0) - 2)))
     return csound->InitError(csound, Str("pvsanal: invalid FFT size"));
   if (UNLIKELY(!(*p->winsize >= FL(0.0) &&
-                 (cs_double)*p->winsize <= INT32_MAX-2)))
+                 *p->winsize <= (INT32_MAX + 0.0) - 2)))
     return csound->InitError(csound, Str("pvsanal: invalid window size"));
   N = (uint32_t)*p->fftsize;
   M = (uint32_t)*p->winsize;

@@ -2075,7 +2075,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     for(int i=0; i < numdims; i++) {
         cs_double dim = (cs_double)*(p->dims[i]);
         if (UNLIKELY(!isfinite(dim) || dim < 1.0 ||
-                     dim > (cs_double)INT32_MAX || floor(dim) != dim)) {
+                     dim > (INT32_MAX + 0.0) || floor(dim) != dim)) {
             return INITERRF(
               Str("reshapearray: dimension %d must be a positive integer, "
                   "got %g"), i, dim);

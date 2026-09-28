@@ -1714,9 +1714,9 @@ int32_t complex_exp_array(CSOUND *csond, COPS1 *p) {
 }
 
 
-/* Keep double arithmetic, rounding back to MYFLT after each wrap. */
-#define WRAPPI(x) while ((x) >= PI) (x) = (MYFLT)((x) - TWOPI); \
-                  while ((x) < -PI) (x) = (MYFLT)((x) + TWOPI);
+/* Keep double arithmetic, rounding back to cs_float after each wrap. */
+#define WRAPPI(x) while ((x) >= PI) (x) = (cs_float)((x) - TWOPI); \
+                  while ((x) < -PI) (x) = (cs_float)((x) + TWOPI);
 
 int32_t quadosc_init(CSOUND *csound, QUADOSC *p) {
   cs_float ifn = -1;

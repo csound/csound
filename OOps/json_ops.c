@@ -40,7 +40,7 @@ typedef struct {
   char path[8192];
 } JSON_CONTEXT;
 
-static JSON_CONTEXT *new_context(CSOUND *csound, INSDS *instance, MYFLT depth)
+static JSON_CONTEXT *new_context(CSOUND *csound, INSDS *instance, cs_float depth)
 {
   JSON_CONTEXT *ctx = csound->Calloc(csound, sizeof(*ctx));
   ctx->csound = csound;
@@ -156,10 +156,10 @@ static int check_type(JSON_CONTEXT *ctx, const CS_TYPE *type,
   return NOTOK;
 }
 
-static int integer_option(MYFLT value, unsigned maximum)
+static int integer_option(cs_float value, unsigned maximum)
 {
   return isfinite(value) && value >= 0 && value <= maximum &&
-         floor((double)value) == (double)value;
+         FLOOR(value) == value;
 }
 
 /* Inspect the complete input before mapping fields. This also bounds data in
@@ -303,13 +303,14 @@ static int decode_value(JSON_CONTEXT *ctx, const CS_TYPE *type, void *value,
     return OK;
   }
   if (type == &CS_VAR_TYPE_I || type == &CS_VAR_TYPE_K) {
+    /* yyjson uses double regardless of the Csound precision mode. */
     double number = yyjson_get_num(json);
     if (!yyjson_is_num(json) || !isfinite(number) ||
-        !isfinite((MYFLT)number)) {
-      ctx->error = "expected a finite number in MYFLT range";
+        !isfinite((cs_float)number)) {
+      ctx->error = "expected a finite number in cs_float range";
       return NOTOK;
     }
-    *(MYFLT *)value = (MYFLT)number;
+    *(cs_float *)value = (cs_float)number;
     return OK;
   }
   if (type == &CS_VAR_TYPE_b || type == &CS_VAR_TYPE_B) {
@@ -377,11 +378,11 @@ static yyjson_mut_val *encode_value(JSON_CONTEXT *ctx, yyjson_mut_doc *doc,
     return yyjson_mut_strcpy(doc, text->data != NULL ? text->data : "");
   }
   if (type == &CS_VAR_TYPE_I || type == &CS_VAR_TYPE_K) {
-    if (!isfinite(*(const MYFLT *)value)) {
+    if (!isfinite(*(const cs_float *)value)) {
       ctx->error = "expected a finite number";
       return NULL;
     }
-    return yyjson_mut_real(doc, (double)*(const MYFLT *)value);
+    return yyjson_mut_real(doc, (double)*(const cs_float *)value);
   }
   if (type == &CS_VAR_TYPE_b || type == &CS_VAR_TYPE_B)
     return yyjson_mut_bool(doc, *(const int32_t *)value != 0);
@@ -474,7 +475,7 @@ static int32_t unmarshal(CSOUND *csound, JSON_UNMARSHAL *p, int from_file)
     goto done;
   }
   value = csound->Calloc(csound, variable->memBlockSize);
-  variable->initializeVariableMemory(csound, variable, (MYFLT *)value);
+  variable->initializeVariableMemory(csound, variable, (cs_float *)value);
   if (decode_value(context, type, value, object, 1) != OK) {
     error = context->error;
     goto done;

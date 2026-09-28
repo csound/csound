@@ -42,7 +42,7 @@ class ClipTests : public ::testing::Test {
 
   void TearDown() override { csoundDestroy(csound); }
 
-  void StartClip(MYFLT method, MYFLT limit, MYFLT shape = .5)
+  void StartClip(cs_float method, cs_float limit, cs_float shape = .5)
   {
     csoundSetControlChannel(csound, "method", method);
     csoundSetControlChannel(csound, "limit", limit);
@@ -77,14 +77,14 @@ class ClipTests : public ::testing::Test {
     return std::copysign(output, input);
   }
 
-  void ExpectCurve(int method, MYFLT limit, MYFLT shape = .5)
+  void ExpectCurve(int method, cs_float limit, cs_float shape = .5)
   {
     // Cover the straight segment, both knees, the curved segment, and clipping.
     for (double input : {-1.125, -1.0, -.75, -.5, 0.0, .5, .75, 1.0, 1.125}) {
       SCOPED_TRACE(input);
       csoundSetControlChannel(csound, "input", (limit == 0 ? 1 : limit) * input);
       ASSERT_EQ(csoundPerformKsmps(csound), 0);
-      const MYFLT *out = csoundGetSpout(csound);
+      const cs_float *out = csoundGetSpout(csound);
       const double expected = limit * UnitCurve(input, method, shape);
       for (int n = 0; n < 16; ++n) {
         for (int channel = 0; channel < 2; ++channel) {
@@ -100,8 +100,8 @@ class ClipTests : public ::testing::Test {
 
 struct ClipCase {
   int method;
-  MYFLT limit;
-  MYFLT shape;
+  cs_float limit;
+  cs_float shape;
 };
 
 class ClippingCurves : public ClipTests,
@@ -118,13 +118,13 @@ TEST_P(ClippingCurves, MatchesTheCurveWithSeparateAndInPlaceOutput)
 
 static std::vector<ClipCase> CurveCases()
 {
-  const MYFLT small = sizeof(MYFLT) == sizeof(float) ? 1e-20 : 1e-200;
-  const MYFLT large = sizeof(MYFLT) == sizeof(float) ? 1e20 : 1e200;
-  const MYFLT nearMaximum = std::numeric_limits<MYFLT>::max() * .875;
+  const cs_float small = sizeof(cs_float) == sizeof(float) ? 1e-20 : 1e-200;
+  const cs_float large = sizeof(cs_float) == sizeof(float) ? 1e20 : 1e200;
+  const cs_float nearMaximum = std::numeric_limits<cs_float>::max() * .875;
   std::vector<ClipCase> cases;
   for (int method : {0, 1, 2})
-    for (MYFLT limit : {MYFLT(0), MYFLT(1), small, large, nearMaximum})
-      for (MYFLT shape : {MYFLT(0), MYFLT(.5), MYFLT(1)})
+    for (cs_float limit : {cs_float(0), cs_float(1), small, large, nearMaximum})
+      for (cs_float shape : {cs_float(0), cs_float(.5), cs_float(1)})
         cases.push_back({method, limit, shape});
   return cases;
 }
@@ -148,7 +148,7 @@ TEST_F(ClipTests, ReinitializingWithUnsupportedMethodReplacesOldCoefficients)
 }
 
 class ClipMethodFallback : public ClipTests,
-                           public ::testing::WithParamInterface<MYFLT> {};
+                           public ::testing::WithParamInterface<cs_float> {};
 
 TEST_P(ClipMethodFallback, UnsupportedValueUsesBramCurve)
 {
@@ -157,12 +157,12 @@ TEST_P(ClipMethodFallback, UnsupportedValueUsesBramCurve)
 }
 
 INSTANTIATE_TEST_SUITE_P(Clip, ClipMethodFallback, ::testing::Values(
-    MYFLT(-1), std::numeric_limits<MYFLT>::max(),
-    std::numeric_limits<MYFLT>::infinity(),
-    std::numeric_limits<MYFLT>::quiet_NaN()));
+    cs_float(-1), std::numeric_limits<cs_float>::max(),
+    std::numeric_limits<cs_float>::infinity(),
+    std::numeric_limits<cs_float>::quiet_NaN()));
 
 class ClipInvalidLimit : public ClipTests,
-                         public ::testing::WithParamInterface<MYFLT> {};
+                         public ::testing::WithParamInterface<cs_float> {};
 
 TEST_P(ClipInvalidLimit, ReportsAnInitializationError)
 {
@@ -178,5 +178,5 @@ TEST_P(ClipInvalidLimit, ReportsAnInitializationError)
 }
 
 INSTANTIATE_TEST_SUITE_P(Clip, ClipInvalidLimit, ::testing::Values(
-    MYFLT(-1), std::numeric_limits<MYFLT>::infinity(),
-    std::numeric_limits<MYFLT>::quiet_NaN()));
+    cs_float(-1), std::numeric_limits<cs_float>::infinity(),
+    std::numeric_limits<cs_float>::quiet_NaN()));

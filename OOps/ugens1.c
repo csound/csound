@@ -674,8 +674,8 @@ static int32_t expseg_init(CSOUND *csound, cs_float **args, int32_t nargs,
       audio_steps = floor(audio_count + 0.5);
     }
     /* Reserve MAXPOS for continuation and check before converting to int. */
-    if (UNLIKELY(!(steps >= 0.0 && steps < (cs_double)MAXPOS &&
-                   audio_steps >= 0.0 && audio_steps < (cs_double)MAXPOS)))
+    if (UNLIKELY(!(steps >= 0.0 && steps < (MAXPOS + 0.0) &&
+                   audio_steps >= 0.0 && audio_steps < (MAXPOS + 0.0))))
       return csound->InitError(csound, "%s",
                                Str("exponential segment duration out of range"));
     segp = &segments[n];

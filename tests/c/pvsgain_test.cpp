@@ -56,10 +56,10 @@ protected:
             for (int bin = 0; bin < 33; ++bin) {
                 const int index = sample * 66 + 2 * bin;
                 // Binary fractions make every expected product exact.
-                const MYFLT magnitude = .5 + bin / 64.0 + sample / 32.0;
-                const MYFLT second = bin / 16.0 + sample / 64.0;
+                const cs_float magnitude = .5 + bin / 64.0 + sample / 32.0;
+                const cs_float second = bin / 16.0 + sample / 64.0;
                 if (input->sliding) {
-                    auto *frame = static_cast<MYFLT *>(input->frame.auxp);
+                    auto *frame = static_cast<cs_float *>(input->frame.auxp);
                     frame[index] = magnitude;
                     frame[index + 1] = second;
                 }
@@ -72,13 +72,13 @@ protected:
         }
     }
 
-    static double value(PVSDAT *frame, int index)
+    static cs_double value(PVSDAT *frame, int index)
     {
-        return frame->sliding ? static_cast<MYFLT *>(frame->frame.auxp)[index]
+        return frame->sliding ? static_cast<cs_float *>(frame->frame.auxp)[index]
                               : static_cast<float *>(frame->frame.auxp)[index];
     }
 
-    void checkGain(double gain, int activeStart = 0, int activeEnd = 16)
+    void checkGain(cs_double gain, int activeStart = 0, int activeEnd = 16)
     {
         auto *input = signal("gfSource");
         auto *output = signal("gfScaled");

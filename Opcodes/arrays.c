@@ -1320,8 +1320,8 @@ static int32_t unwrap(CSOUND *csound, UNWRAP *p) {
   if (!p->unwrap) {
     for (i=0; i < p->size; i++) {
       phs[i] = in[i];
-      while (phs[i] >= PI) phs[i] = (MYFLT)(phs[i] - TWOPI);
-      while (phs[i] < -PI) phs[i] = (MYFLT)(phs[i] + TWOPI);
+      while (phs[i] >= PI) phs[i] = (cs_float)(phs[i] - TWOPI);
+      while (phs[i] < -PI) phs[i] = (cs_float)(phs[i] + TWOPI);
     }
   } else {
     cs_float *ophs = (cs_float *) p->mem.auxp;

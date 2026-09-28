@@ -54,10 +54,10 @@ protected:
         return text;
     }
 
-    void expectChannel(const char *name, MYFLT expected)
+    void expectChannel(const char *name, cs_float expected)
     {
         int32_t error = 0;
-        MYFLT actual = csoundGetControlChannel(csound, name, &error);
+        cs_float actual = csoundGetControlChannel(csound, name, &error);
         ASSERT_EQ(error, 0) << name;
         EXPECT_EQ(actual, expected) << name;
     }
@@ -73,7 +73,7 @@ protected:
 
     void run(const std::string &declarations, const std::string &body,
              const char *source = nullptr,
-             const std::vector<std::pair<std::string, MYFLT>> &controls = {})
+             const std::vector<std::pair<std::string, cs_float>> &controls = {})
     {
         const std::string orchestra =
             "sr=44100\nksmps=32\nnchnls=1\n" + declarations +
@@ -592,21 +592,21 @@ endin
 
 TEST_F(JsonUdtTests, PreservesEveryBitOfFiniteMyfltValues)
 {
-    const MYFLT values[] = {
-        MYFLT(0), -MYFLT(0), MYFLT(1) / MYFLT(3),
-        std::nextafter(MYFLT(1), MYFLT(2)),
-        std::nextafter(MYFLT(1), MYFLT(0)),
-        std::numeric_limits<MYFLT>::epsilon(),
-        std::numeric_limits<MYFLT>::min(),
-        std::numeric_limits<MYFLT>::max(),
-        std::numeric_limits<MYFLT>::lowest(),
-        std::numeric_limits<MYFLT>::denorm_min(),
+    const cs_float values[] = {
+        cs_float(0), -cs_float(0), cs_float(1) / cs_float(3),
+        std::nextafter(cs_float(1), cs_float(2)),
+        std::nextafter(cs_float(1), cs_float(0)),
+        std::numeric_limits<cs_float>::epsilon(),
+        std::numeric_limits<cs_float>::min(),
+        std::numeric_limits<cs_float>::max(),
+        std::numeric_limits<cs_float>::lowest(),
+        std::numeric_limits<cs_float>::denorm_min(),
     };
-    for (MYFLT expected : values) {
+    for (cs_float expected : values) {
         std::ostringstream json;
         json.imbue(std::locale::classic());
         json << "{\"value\":" << std::scientific
-             << std::setprecision(std::numeric_limits<MYFLT>::max_digits10)
+             << std::setprecision(std::numeric_limits<cs_float>::max_digits10)
              << expected << "}";
         const std::string source = json.str();
         SCOPED_TRACE(source);
@@ -622,9 +622,9 @@ chnset restored.value, "restored-value"
         ASSERT_EQ(csoundErrCnt(csound), 0) << messages();
         for (const char *name : {"value", "restored-value"}) {
             int32_t error = 0;
-            const MYFLT actual = csoundGetControlChannel(csound, name, &error);
+            const cs_float actual = csoundGetControlChannel(csound, name, &error);
             ASSERT_EQ(error, 0) << name;
-            EXPECT_EQ(std::memcmp(&actual, &expected, sizeof(MYFLT)), 0)
+            EXPECT_EQ(std::memcmp(&actual, &expected, sizeof(cs_float)), 0)
                 << name << ": expected " << expected << ", got " << actual;
         }
     }
@@ -827,12 +827,12 @@ TEST_F(JsonUdtTests, RejectsScalarRootsAndMultidimensionalOrRaggedArrays)
 
 TEST_F(JsonUdtTests, RejectsNonfiniteValuesDuringMarshal)
 {
-    const MYFLT values[] = {
-        std::numeric_limits<MYFLT>::quiet_NaN(),
-        std::numeric_limits<MYFLT>::infinity(),
-        -std::numeric_limits<MYFLT>::infinity(),
+    const cs_float values[] = {
+        std::numeric_limits<cs_float>::quiet_NaN(),
+        std::numeric_limits<cs_float>::infinity(),
+        -std::numeric_limits<cs_float>::infinity(),
     };
-    for (MYFLT value : values) {
+    for (cs_float value : values) {
         ASSERT_NO_FATAL_FAILURE(restart());
         ASSERT_NO_FATAL_FAILURE(run("struct Number value:i", R"orc(
 input:i chnget "input"

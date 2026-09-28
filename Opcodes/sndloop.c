@@ -1351,7 +1351,7 @@ static int32_t pvsmorph_init(CSOUND *csound, pvsmorph *p)
 {
     int32 N = p->fin->N;
     size_t samples = p->fin->sliding ? CS_KSMPS : 1;
-    size_t itemsize = p->fin->sliding ? sizeof(MYFLT) : sizeof(float);
+    size_t itemsize = p->fin->sliding ? sizeof(cs_float) : sizeof(float);
 
     if (UNLIKELY(p->fout == p->fin || p->fout == p->ffr))
       return csound->InitError(csound, "%s",
@@ -1393,8 +1393,8 @@ static int32_t pvsmorph_init(CSOUND *csound, pvsmorph *p)
 static int32_t pvsmorph_process(CSOUND *csound, pvsmorph *p)
 {
     int32 i,N = p->fout->N;
-    MYFLT frint = *p->gain;
-    MYFLT amint = *p->kdepth;
+    cs_float frint = *p->gain;
+    cs_float amint = *p->kdepth;
     float *fi1 = (float *) p->fin->frame.auxp;
     float *fi2 = (float *) p->ffr->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;

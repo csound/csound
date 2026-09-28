@@ -4,12 +4,12 @@
 extern "C" {
 #endif
 OENTRY *csound_test_linux_cpumeter_opcode(void);
-void csound_test_linux_cpumeter_bind(void *, INSDS *, OPTXT *, MYFLT *, MYFLT **);
+void csound_test_linux_cpumeter_bind(void *, INSDS *, OPTXT *, cs_float *, cs_float **);
 int32_t csound_test_linux_cpumeter_renew(CSOUND *, void *);
 FILE *csound_test_linux_cpumeter_file(void *);
 #if defined(__MACH__) && !defined(LINUX)
 OENTRY *csound_test_mach_cpumeter_opcode(void);
-void csound_test_mach_cpumeter_bind(void *, INSDS *, OPTXT *, MYFLT *, MYFLT **);
+void csound_test_mach_cpumeter_bind(void *, INSDS *, OPTXT *, cs_float *, cs_float **);
 int32_t csound_test_mach_cpumeter_renew(CSOUND *, void *);
 #endif
 #ifdef __cplusplus

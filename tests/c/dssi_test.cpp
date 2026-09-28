@@ -14,7 +14,7 @@ protected:
     CSOUND *csound = nullptr;
     void *fixture = nullptr;
     int (*stat)(int) = nullptr;
-    std::vector<MYFLT> audio;
+    std::vector<cs_float> audio;
     std::string messages() {
         std::string result;
         while (csoundGetMessageCnt(csound)) {
@@ -37,14 +37,14 @@ protected:
         if (result) return result;
         for (int blocks = 0; blocks < 1000; ++blocks) {
             int done = csoundPerformKsmps(csound);
-            const MYFLT *out = csoundGetSpout(csound);
+            const cs_float *out = csoundGetSpout(csound);
             audio.insert(audio.end(), out, out + ksmps * 2);
             if (done) return csound->inerrcnt + csound->perferrcnt;
         }
         ADD_FAILURE() << "Performance did not terminate";
         return -1;
     }
-    void samples(int begin, int end, double expected) {
+    void samples(int begin, int end, cs_double expected) {
         ASSERT_GE(audio.size(), size_t(end * 2));
         for (int i = begin; i < end; ++i) {
             EXPECT_NEAR(audio[2*i], expected, 1e-6) << "sample " << i;
@@ -226,6 +226,25 @@ endin
 TEST_F(DssiTests, RejectsBadDescriptorWithoutPublishingAnInstance) {
     EXPECT_NE(run(load(99)),0);
     EXPECT_EQ(stat(0),0);
+}
+
+TEST_F(DssiTests, RejectsBankBeyondUnsigned32BitRange) {
+    // 2^32 is exact in float, but UINT32_MAX is not.
+    EXPECT_NE(run(load() + R"(
+instr 1
+ dssiprogram 1,gih,4294967296,0
+endin
+)"), 0);
+    EXPECT_NE(messages().find("invalid bank or program"), std::string::npos);
+}
+
+TEST_F(DssiTests, RejectsProgramBeyondUnsigned32BitRange) {
+    EXPECT_NE(run(load() + R"(
+instr 1
+ dssiprogram 1,gih,0,4294967296
+endin
+)"), 0);
+    EXPECT_NE(messages().find("invalid bank or program"), std::string::npos);
 }
 
 TEST_F(DssiTests, RejectsMalformedDescriptor) {
