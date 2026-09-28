@@ -9,7 +9,7 @@ namespace {
 
 struct FillBlock {
     OPDS h;
-    MYFLT *output, *value;
+    cs_float *output, *value;
 };
 
 int32_t fillBlock(CSOUND *, void *data)
@@ -22,14 +22,14 @@ int32_t fillBlock(CSOUND *, void *data)
 
 struct CheckBlock {
     OPDS h;
-    MYFLT *input, *value, *start, *end;
+    cs_float *input, *value, *start, *end;
 };
 
 int32_t checkBlock(CSOUND *csound, void *data)
 {
     auto *p = static_cast<CheckBlock *>(data);
     for (uint32_t i = 0; i < p->h.insdshead->ksmps; ++i) {
-        MYFLT expected = i >= *p->start && i < *p->end ? *p->value : FL(0.0);
+        cs_float expected = i >= *p->start && i < *p->end ? *p->value : FL(0.0);
         EXPECT_EQ(p->input[i], expected) << "sample " << i;
     }
     ++*static_cast<int *>(csoundGetHostData(csound));

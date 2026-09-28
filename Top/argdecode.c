@@ -1483,8 +1483,8 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
         case 't':
           FIND(Str("no tempo value"));
           {
-            double val;
-            sscanf(s, "%lg%n", &val, &n); /* use this tempo .. */
+            cs_double val;
+            sscanf(s, "%" CS_DOUBLE_SCAN "%n", &val, &n); /* use this tempo .. */
             s += n;
             if (UNLIKELY(val < 0.0))
               dieu(csound, Str("illegal tempo"));

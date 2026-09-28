@@ -70,7 +70,7 @@ int32_t timek(CSOUND *csound, RDTIME *p)
 {
     IGN(csound);
     /* Read the global variable kcounter and turn it into a float.   */
-    *p->rslt = (MYFLT) CS_KCNT;
+    *p->rslt = (cs_float) CS_KCNT;
     return OK;
 }
 
@@ -79,7 +79,7 @@ int32_t timesr(CSOUND *csound, RDTIME *p)
 {
     /* Read the global variable kcounter divide it by the k rate.    */
     IGN(csound);
-    *p->rslt = (MYFLT) CS_KCNT * CS_ONEDKR;
+    *p->rslt = (cs_float) CS_KCNT * CS_ONEDKR;
     return OK;
 }
 
@@ -87,7 +87,7 @@ int32_t elapsedcycles(CSOUND *csound, RDTIME *p)
 {
     IGN(csound);
     /* Read the global variable kcounter and turn it into a float.   */
-    *p->rslt = (MYFLT) CS_KCNT - 1;
+    *p->rslt = (cs_float) CS_KCNT - 1;
     return OK;
 }
 
@@ -96,7 +96,7 @@ int32_t elapsedtime(CSOUND *csound, RDTIME *p)
 {
     /* Read the global variable kcounter divide it by the k rate.    */
     IGN(csound);
-    *p->rslt = (MYFLT) (CS_KCNT - 1) * CS_ONEDKR;
+    *p->rslt = (cs_float) (CS_KCNT - 1) * CS_ONEDKR;
     return OK;
 }
 
@@ -125,7 +125,7 @@ int32_t instimset(CSOUND *csound, RDTIME *p)
 int32_t instimek(CSOUND *csound, RDTIME *p)
 {
     IGN(csound);
-    *p->rslt = (MYFLT) (CS_KCNT - p->instartk);
+    *p->rslt = (cs_float) (CS_KCNT - p->instartk);
     return OK;
 }
 
@@ -138,7 +138,7 @@ int32_t instimek(CSOUND *csound, RDTIME *p)
 int32_t eventcycles(CSOUND *csound, RDTIME *p)
 {
     IGN(csound);
-    *p->rslt = (MYFLT) (CS_KCNT - p->instartk - 1);
+    *p->rslt = (cs_float) (CS_KCNT - p->instartk - 1);
     return OK;
 }
 
@@ -150,7 +150,7 @@ int32_t eventcycles(CSOUND *csound, RDTIME *p)
 int32_t instimes(CSOUND *csound, RDTIME *p)
 {
     IGN(csound);
-    *p->rslt = (MYFLT) (CS_KCNT - p->instartk) * CS_ONEDKR;
+    *p->rslt = (cs_float) (CS_KCNT - p->instartk) * CS_ONEDKR;
     return OK;
 }
 
@@ -162,7 +162,7 @@ int32_t instimes(CSOUND *csound, RDTIME *p)
 int32_t eventtime(CSOUND *csound, RDTIME *p)
 {
     IGN(csound);
-    *p->rslt = (MYFLT) (CS_KCNT - p->instartk - 1) * CS_ONEDKR;
+    *p->rslt = (cs_float) (CS_KCNT - p->instartk - 1) * CS_ONEDKR;
     return OK;
 }
 
@@ -281,7 +281,7 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       if ((temp  == '^') && (tempn != '^')) {
         *sdest++ = ESC;
       }
-/* Look for a double caret and insert a single caret - stepping forward  one */
+/* Look for a cs_double caret and insert a single caret - stepping forward  one */
       else if ((temp  == '^') && (tempn == '^')) {
         *sdest++ = '^';
         sarg++;
@@ -292,7 +292,7 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
         *sdest++ = ESC;
         *sdest++ = '[';
       }
-/* Look for a double tilde and insert a tilde caret - stepping forward one.  */
+/* Look for a cs_double tilde and insert a tilde caret - stepping forward one.  */
       else if ((temp  == '~') && (tempn == '~')) {
         *sdest++ = '~';
         sarg++;
@@ -394,7 +394,7 @@ int32_t printksset(CSOUND *csound, PRINTKS *p){
 
 
 //perform a sprintf-style format  -- matt ingalls
-/* void sprints_local(char *outstring, char *fmt, MYFLT **kvals, int32_t numVals) */
+/* void sprints_local(char *outstring, char *fmt, cs_float **kvals, int32_t numVals) */
 /* { */
 /*     char strseg[8192]; */
 /*     int32_t i = 0, j = 0; */
@@ -404,9 +404,9 @@ int32_t printksset(CSOUND *csound, PRINTKS *p){
 /*       if (*fmt == '%') { */
 /*         /\* if already a segment waiting, then lets print it *\/ */
 /*         if (segwaiting) { */
-/*           MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]); */
+/*           cs_float xx = (j>=numVals? FL(0.0) : *kvals[j]); */
 /*           /\* printf("***xx = %f (int32_t)(xx+.5)=%d round=%d mode=%d\n", *\/ */
-/*           /\*        xx, (int32_t)(xx+.5), MYFLT2LRND(xx), fegetround()); *\/ */
+/*           /\*        xx, (int32_t)(xx+.5), CS_FLOAT2LRND(xx), fegetround()); *\/ */
 /*           strseg[i] = '\0'; */
 
 /*           switch (*segwaiting) { */
@@ -417,13 +417,13 @@ int32_t printksset(CSOUND *csound, PRINTKS *p){
 /*           case 'X': */
 /*           case 'u': */
 /*           case 'c': */
-/*             snprintf(outstring, 8196, strseg, (int32_t)MYFLT2LRND(xx)); */
+/*             snprintf(outstring, 8196, strseg, (int32_t)CS_FLOAT2LRND(xx)); */
 /*             break; */
 /*           case 'h': */
-/*             snprintf(outstring, 8196, strseg, (int32_t16)MYFLT2LRND(xx)); */
+/*             snprintf(outstring, 8196, strseg, (int32_t16)CS_FLOAT2LRND(xx)); */
 /*             break; */
 /*           case 'l': */
-/*             snprintf(outstring, 8196, strseg, (int32_t32)MYFLT2LRND(xx)); */
+/*             snprintf(outstring, 8196, strseg, (int32_t32)CS_FLOAT2LRND(xx)); */
 /*             break; */
 
 /*           default: */
@@ -456,9 +456,9 @@ int32_t printksset(CSOUND *csound, PRINTKS *p){
 /*     if (i) { */
 /*       strseg[i] = '\0'; */
 /*       if (segwaiting) { */
-/*         MYFLT xx = (j>=numVals? FL(0.0) : *kvals[j]); */
+/*         cs_float xx = (j>=numVals? FL(0.0) : *kvals[j]); */
 /*            /\* printf("***xx = %f (int32_t)(xx+.5)=%d round=%d mode=%d\n", *\/ */
-/*            /\*       xx, (int32_t)(xx+.5), MYFLT2LRND(xx), fegetround()); *\/ */
+/*            /\*       xx, (int32_t)(xx+.5), CS_FLOAT2LRND(xx), fegetround()); *\/ */
 /*        switch (*segwaiting) { */
 /*         case 'd': */
 /*         case 'i': */
@@ -467,13 +467,13 @@ int32_t printksset(CSOUND *csound, PRINTKS *p){
 /*         case 'X': */
 /*         case 'u': */
 /*         case 'c': */
-/*           snprintf(outstring, 8196, strseg, (int32_t)MYFLT2LRND(xx)); */
+/*           snprintf(outstring, 8196, strseg, (int32_t)CS_FLOAT2LRND(xx)); */
 /*           break; */
 /*         case 'h': */
-/*           snprintf(outstring, 8196, strseg, (int16)MYFLT2LRND(xx)); */
+/*           snprintf(outstring, 8196, strseg, (int16)CS_FLOAT2LRND(xx)); */
 /*           break; */
 /*         case 'l': */
-/*           snprintf(outstring, 8196, strseg, (int32_t)MYFLT2LRND(xx)); */
+/*           snprintf(outstring, 8196, strseg, (int32_t)CS_FLOAT2LRND(xx)); */
 /*           break; */
 
 /*         default: */
@@ -488,7 +488,7 @@ int32_t printksset(CSOUND *csound, PRINTKS *p){
 /* VL - rewritten 1/16
    escaping %% correctly now.
  */
-static int32_t sprints(char *outstring,  char *fmt, MYFLT **kvals, int32_t numVals)
+static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t numVals)
 {
     char tmp[8],cc;
     int32_t j = 0;
@@ -527,10 +527,10 @@ static int32_t sprints(char *outstring,  char *fmt, MYFLT **kvals, int32_t numVa
           case 'x':
           case 'X':
           case 'u':
-            snprintf(outstring, len, tmp, MYFLT2LRND(*kvals[j]));
+            snprintf(outstring, len, tmp, CS_FLOAT2LRND(*kvals[j]));
             break;
           case 'c':
-            cc  = (char) MYFLT2LRND(*kvals[j]);
+            cc  = (char) CS_FLOAT2LRND(*kvals[j]);
             if (cc == '%') {
               *outstring++ = '%';
             }
@@ -608,7 +608,7 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
   if(p->INOCOUNT > 1) {
     PRINTKS pk;
     char    string[8192];
-    MYFLT ptime = 1;
+    cs_float ptime = 1;
     string[0] = '\0';    /* necessary as sprints is not nice */
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
@@ -633,7 +633,7 @@ int32_t printsset_S(CSOUND *csound, PRINTS *p)
   if(p->INOCOUNT > 1) {
     PRINTKS pk;
     char   string[8192];
-    MYFLT ptime = 1;
+    cs_float ptime = 1;
     string[0] = '\0';    /* necessary as sprints is not nice */
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
@@ -680,15 +680,15 @@ int32_t peaka(CSOUND *csound, PEAK *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   *peak, pp;
-    MYFLT   *asigin;
+    cs_float   *peak, pp;
+    cs_float   *asigin;
 
     asigin = p->xsigin;
     peak = p->kpeakout;
     pp = *peak;
     if (UNLIKELY(early)) nsmps -= early;
     for (n=offset;n<nsmps;n++) {
-      MYFLT x = FABS(asigin[n]);
+      cs_float x = FABS(asigin[n]);
       if (pp < x) pp = x;
     }
     *peak = pp;
@@ -717,7 +717,7 @@ int32_t printk2set(CSOUND *csound, PRINTK2 *p)
 
 int32_t printk2(CSOUND *csound, PRINTK2 *p)
 {
-    MYFLT   value = *p->val;
+    cs_float   value = *p->val;
 
     if (p->oldvalue != value) {
      if(p->h.insdshead->instr->opcode_info == NULL)      
@@ -752,11 +752,11 @@ int32_t printk3set(CSOUND *csound, PRINTK3 *p)
 
 int32_t printk3(CSOUND *csound, PRINTK3 *p)
 {
-    MYFLT   value = *p->val;
+    cs_float   value = *p->val;
 
     if (p->oldvalue != value) {
       char buff[8196];
-      MYFLT *vv[1];
+      cs_float *vv[1];
       vv[0] = &value;
       buff[0] = '\0';
       if (sprints(buff, p->sarg, vv, 1)!=OK)
@@ -771,7 +771,7 @@ int32_t printk3(CSOUND *csound, PRINTK3 *p)
 }
 
 #include "../Opcodes/zak.h"
-static int64_t GetZaBounds(CSOUND *csound, MYFLT **zastart){
+static int64_t GetZaBounds(CSOUND *csound, cs_float **zastart){
     ZAK_GLOBALS *zz;
     zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
     if (zz==NULL) {
@@ -789,22 +789,22 @@ int32_t inz(CSOUND *csound, IOZ *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps = CS_KSMPS;
     uint32_t end = nsmps - p->h.insdshead->ksmps_no_end;
-    MYFLT *zastart, *writeloc, *spin = CS_SPIN;
+    cs_float *zastart, *writeloc, *spin = CS_SPIN;
     int64_t zalast = GetZaBounds(csound, &zastart);
-    double index = (double)*p->ndx;
+    cs_double index = (cs_double)*p->ndx;
 
     /* zalast is inclusive; preserve truncation of fractional indices. */
     if (UNLIKELY(zastart == NULL || nchns > zalast + 1 ||
-                 !(index > -1.0 && index < (double)(zalast + 2 - nchns))))
+                 !(index > -1.0 && index < (cs_double)(zalast + 2 - nchns))))
       return csound->PerfError(csound, &p->h, "%s",
                                Str("inz: channel range is outside ZAK audio space"));
     writeloc = zastart + (size_t)(int32_t)index * nsmps;
     for (i = 0; i < nchns; i++) {
-      if (UNLIKELY(offset)) memset(writeloc, 0, offset * sizeof(MYFLT));
+      if (UNLIKELY(offset)) memset(writeloc, 0, offset * sizeof(cs_float));
       for (n = offset; n < end; n++)
         writeloc[n] = spin[(size_t)n * nchns + i];
       if (UNLIKELY(end < nsmps))
-        memset(writeloc + end, 0, (nsmps - end) * sizeof(MYFLT));
+        memset(writeloc + end, 0, (nsmps - end) * sizeof(cs_float));
       writeloc += nsmps;
     }
     return OK;
@@ -817,12 +817,12 @@ int32_t outz(CSOUND *csound, IOZ *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps = CS_KSMPS;
     uint32_t end = nsmps - p->h.insdshead->ksmps_no_end;
-    MYFLT *zastart, *readloc, *spout = CS_SPOUT;
+    cs_float *zastart, *readloc, *spout = CS_SPOUT;
     int64_t zalast = GetZaBounds(csound, &zastart);
-    double index = (double)*p->ndx;
+    cs_double index = (cs_double)*p->ndx;
 
     if (UNLIKELY(zastart == NULL || nchns > zalast + 1 ||
-                 !(index > -1.0 && index < (double)(zalast + 2 - nchns))))
+                 !(index > -1.0 && index < (cs_double)(zalast + 2 - nchns))))
       return csound->PerfError(csound, &p->h, "%s",
                                Str("outz: channel range is outside ZAK audio space"));
     readloc = zastart + (size_t)(int32_t)index * nsmps;

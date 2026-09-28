@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <string.h>
 
-/* String elements can include padding to MYFLT alignment. Use the array's
+/* String elements can include padding to cs_float alignment. Use the array's
    byte stride rather than sizeof(STRINGDAT); callers validate the index. */
 static inline STRINGDAT *csound_string_array_element(const ARRAYDAT *array,
                                                      size_t index)
@@ -85,7 +85,7 @@ static inline int32_t csound_array_has_managed_elements(
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *a;
+    cs_float   *r, *a;
 } AEVAL;
 
 
@@ -135,7 +135,7 @@ static inline int32_t csound_array_element_types_compatible(
         return 0;
     }
     /* Array channels have historically allowed i[] and k[] to connect; both
-       store MYFLT elements, while the receiving variable retains its rate. */
+       store cs_float elements, while the receiving variable retains its rate. */
     return (destinationName[0] == 'i' && sourceName[0] == 'k') ||
            (destinationName[0] == 'k' && sourceName[0] == 'i');
 }
@@ -331,13 +331,14 @@ static inline int32_t csound_array_perf_resize_error(CSOUND *csound,
                              Str("Could not resize array"));
 }
 
-static inline int32_t csound_array_size_to_int32(MYFLT requestedSize,
+static inline int32_t csound_array_size_to_int32(cs_float requestedSize,
                                                  int32_t *size)
 {
-    double value = (double)requestedSize;
+    cs_double value = (cs_double)requestedSize;
 
-    if (size == NULL || isnan(value) || value < 0.0 ||
-        value >= (double)INT32_MAX + 1.0) {
+    /* Ordered comparisons also reject NaN, without C/C++ math-name lookup. */
+    if (size == NULL || !(value >= 0.0 &&
+                         value < (INT32_MAX + 0.0) + 1.0)) {
         return NOTOK;
     }
     *size = (int32_t)value;

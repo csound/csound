@@ -14,8 +14,8 @@ class PvsftwTests : public ::testing::Test {
 protected:
     CSOUND *csound = nullptr;
     PVSDAT *source = nullptr;
-    MYFLT *amplitudes = nullptr;
-    MYFLT *frequencies = nullptr;
+    cs_float *amplitudes = nullptr;
+    cs_float *frequencies = nullptr;
     static constexpr int bins = 33;
 
     void SetUp() override
@@ -81,7 +81,7 @@ protected:
         ASSERT_NO_FATAL_FAILURE(step());
     }
 
-    MYFLT channel(const char *name)
+    cs_float channel(const char *name)
     {
         return csoundGetControlChannel(csound, name, nullptr);
     }

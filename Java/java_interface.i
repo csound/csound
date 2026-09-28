@@ -62,11 +62,12 @@ typedef unsigned int uint32_t;
 
 %include "exclusions.i"
 
+%include "csound_types.h"
 %include "csound.h"
 %include "cfgvar.h"
 
-%apply MYFLT *OUTPUT { MYFLT *dest };
-%apply MYFLT *INPUT { MYFLT *src };
+%apply cs_float *OUTPUT { cs_float *dest };
+%apply cs_float *INPUT { cs_float *src };
 %include "csound.hpp"
 
 

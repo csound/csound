@@ -52,7 +52,7 @@ protected:
 
     bool exists(int number)
     {
-        MYFLT *data = nullptr;
+        cs_float *data = nullptr;
         return csoundGetTable(csound, &data, number) > 0;
     }
 

@@ -10,26 +10,26 @@ constexpr const char *stateName = "test.instance.value";
 
 struct Creation {
     INSDS *owner;
-    MYFLT *storage;
-    MYFLT previousValue;
+    cs_float *storage;
+    cs_float previousValue;
 };
 
 struct Observations {
     std::vector<Creation> creations;
-    std::vector<MYFLT> reads;
-    std::vector<MYFLT> deinits;
+    std::vector<cs_float> reads;
+    std::vector<cs_float> deinits;
 };
 
 struct StoreOpcode {
     OPDS h;
-    MYFLT *value;
-    MYFLT *fail;
+    cs_float *value;
+    cs_float *fail;
 };
 
 struct ReadOpcode {
     OPDS h;
-    MYFLT *out;
-    MYFLT *cached;
+    cs_float *out;
+    cs_float *cached;
 };
 
 // These test opcodes use the same function pointers as an external plugin.
@@ -37,13 +37,13 @@ int32_t storeInit(CSOUND *csound, void *data)
 {
     auto *p = static_cast<StoreOpcode *>(data);
     INSDS *owner = p->h.insdshead;
-    auto *state = static_cast<MYFLT *>(
+    auto *state = static_cast<cs_float *>(
         csound->QueryInstanceVariable(csound, owner, stateName));
     if (state == nullptr) {
         int32_t result = csound->CreateInstanceVariable(
-            csound, owner, stateName, sizeof(MYFLT));
+            csound, owner, stateName, sizeof(cs_float));
         if (result != CSOUND_SUCCESS) return result;
-        state = static_cast<MYFLT *>(
+        state = static_cast<cs_float *>(
             csound->QueryInstanceVariable(csound, owner, stateName));
     }
     auto *observed = static_cast<Observations *>(csoundGetHostData(csound));
@@ -57,7 +57,7 @@ int32_t storeInit(CSOUND *csound, void *data)
 int32_t storeDeinit(CSOUND *csound, void *data)
 {
     auto *p = static_cast<StoreOpcode *>(data);
-    auto *state = static_cast<MYFLT *>(csound->QueryInstanceVariable(
+    auto *state = static_cast<cs_float *>(csound->QueryInstanceVariable(
         csound, p->h.insdshead, stateName));
     if (state == nullptr) return CSOUND_ERROR;
     auto *observed = static_cast<Observations *>(csoundGetHostData(csound));
@@ -68,7 +68,7 @@ int32_t storeDeinit(CSOUND *csound, void *data)
 int32_t readInit(CSOUND *csound, void *data)
 {
     auto *p = static_cast<ReadOpcode *>(data);
-    p->cached = static_cast<MYFLT *>(csound->QueryInstanceVariable(
+    p->cached = static_cast<cs_float *>(csound->QueryInstanceVariable(
         csound, p->h.insdshead, stateName));
     if (p->cached == nullptr)
         return csound->InitError(csound, "test state is missing");
@@ -149,8 +149,8 @@ TEST_F(InstanceVariableTests, NamesAndOwnersAreIndependent)
     INSDS *second = context->insds;
     char name[] = "family.first";
     ASSERT_EQ(csound->CreateInstanceVariable(
-        csound, first, name, sizeof(double)), CSOUND_SUCCESS);
-    auto *value = static_cast<double *>(
+        csound, first, name, sizeof(cs_double)), CSOUND_SUCCESS);
+    auto *value = static_cast<cs_double *>(
         csound->QueryInstanceVariable(csound, first, name));
     ASSERT_NE(value, nullptr);
     EXPECT_EQ(*value, 0);
@@ -163,8 +163,8 @@ TEST_F(InstanceVariableTests, NamesAndOwnersAreIndependent)
     EXPECT_EQ(*value, 7);
     EXPECT_EQ(csound->QueryInstanceVariable(csound, second, "family.first"), nullptr);
     ASSERT_EQ(csound->CreateInstanceVariable(
-        csound, second, "family.first", sizeof(double)), CSOUND_SUCCESS);
-    auto *other = static_cast<double *>(
+        csound, second, "family.first", sizeof(cs_double)), CSOUND_SUCCESS);
+    auto *other = static_cast<cs_double *>(
         csound->QueryInstanceVariable(csound, second, "family.first"));
     ASSERT_NE(other, nullptr);
     EXPECT_NE(other, value);
@@ -219,7 +219,7 @@ endin
     ASSERT_NO_FATAL_FAILURE(performBlocks(4));
     EXPECT_EQ(csoundGetControlChannel(csound, "second", nullptr), 22);
     ASSERT_NO_FATAL_FAILURE(performBlocks(2));
-    EXPECT_EQ(observed.deinits, (std::vector<MYFLT>{11, 22}));
+    EXPECT_EQ(observed.deinits, (std::vector<cs_float>{11, 22}));
 }
 
 TEST_F(InstanceVariableTests, NoteReuseStartsEmptyButReusesStorage)
@@ -240,7 +240,7 @@ endin
     EXPECT_EQ(observed.creations[1].storage, observed.creations[0].storage);
     EXPECT_EQ(observed.creations[0].previousValue, 0);
     EXPECT_EQ(observed.creations[1].previousValue, 0);
-    EXPECT_EQ(observed.deinits, (std::vector<MYFLT>{11, 22}));
+    EXPECT_EQ(observed.deinits, (std::vector<cs_float>{11, 22}));
 }
 
 TEST_F(InstanceVariableTests, ReaderOnlyReinitKeepsTheSource)
@@ -260,9 +260,9 @@ endin
 )", "i 1 0 .05\nf 0 .1"));
     ASSERT_NO_FATAL_FAILURE(performBlocks(6));
     ASSERT_EQ(observed.creations.size(), 1u);
-    EXPECT_EQ(observed.reads, (std::vector<MYFLT>{17, 17}));
+    EXPECT_EQ(observed.reads, (std::vector<cs_float>{17, 17}));
     EXPECT_EQ(csoundGetControlChannel(csound, "value", nullptr), 17);
-    EXPECT_EQ(observed.deinits, (std::vector<MYFLT>{17}));
+    EXPECT_EQ(observed.deinits, (std::vector<cs_float>{17}));
 }
 
 TEST_F(InstanceVariableTests, TiedNotesKeepTheEntry)
@@ -278,7 +278,7 @@ endin
     EXPECT_EQ(observed.creations[0].previousValue, 0);
     EXPECT_EQ(observed.creations[1].previousValue, 11);
     EXPECT_EQ(observed.creations[0].storage, observed.creations[1].storage);
-    EXPECT_EQ(observed.deinits, (std::vector<MYFLT>{22}));
+    EXPECT_EQ(observed.deinits, (std::vector<cs_float>{22}));
 }
 
 TEST_F(InstanceVariableTests, UgensShareOnlyTheirChosenContext)
@@ -302,7 +302,7 @@ TEST_F(InstanceVariableTests, UgensShareOnlyTheirChosenContext)
     // The context must outlive the UGENs so their deinit can still query it.
     EXPECT_TRUE(csoundUgenDelete(reader));
     EXPECT_TRUE(csoundUgenDelete(source));
-    EXPECT_EQ(observed.deinits, (std::vector<MYFLT>{23}));
+    EXPECT_EQ(observed.deinits, (std::vector<cs_float>{23}));
     EXPECT_NE(csound->QueryInstanceVariable(csound, context->insds, stateName), nullptr);
 }
 
@@ -354,7 +354,7 @@ endin
     csoundPerformKsmps(csound);
     ASSERT_EQ(observed.creations.size(), 1u);
     EXPECT_NE(messages().find("test requested an init error"), std::string::npos);
-    EXPECT_EQ(observed.deinits, (std::vector<MYFLT>{99}));
+    EXPECT_EQ(observed.deinits, (std::vector<cs_float>{99}));
     EXPECT_EQ(csound->QueryInstanceVariable(csound, observed.creations[0].owner,
                                           stateName), nullptr);
 }

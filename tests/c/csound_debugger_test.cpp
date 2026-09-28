@@ -137,11 +137,11 @@ static void brkpt_cb3(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
 {
     debug_variable_t *vars = bkpt_info->instrVarList;
 
-    MYFLT data = *((MYFLT *)vars->data);
+    cs_float data = *((cs_float *)vars->data);
     ASSERT_EQ (data, 2.5);
-    data = *((MYFLT *)vars->next->data);
+    data = *((cs_float *)vars->next->data);
     ASSERT_EQ (data, 3.5);
-    data = *((MYFLT *)vars->next->next->data);
+    data = *((cs_float *)vars->next->next->data);
     ASSERT_EQ (data, 0.5);
     char *str = (char *) vars->next->next->next->data;
     ASSERT_STREQ (str, "hello");
@@ -165,7 +165,7 @@ static void brkpt_cb4(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
     debug_instr_t *debug_instr = bkpt_info->breakpointInstr;
     ASSERT_EQ (debug_instr->p1, 1);
     ASSERT_EQ (debug_instr->p2, 0);
-    ASSERT_EQ (debug_instr->p3, (MYFLT) 1.1);
+    ASSERT_EQ (debug_instr->p3, (cs_float) 1.1);
 
     ASSERT_EQ (debug_instr->kcounter, 0);
 }
@@ -371,22 +371,22 @@ void brkpt_cb8(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 {
     switch (count) {
     case 0:
-        ASSERT_EQ (bkpt_info->breakpointInstr->p1, (MYFLT) 1.2);
+        ASSERT_EQ (bkpt_info->breakpointInstr->p1, (cs_float) 1.2);
         break;
     case 1:
-        ASSERT_EQ (bkpt_info->breakpointInstr->p1, (MYFLT) 1.3);
+        ASSERT_EQ (bkpt_info->breakpointInstr->p1, (cs_float) 1.3);
         break;
     case 2:
-        ASSERT_EQ (bkpt_info->breakpointInstr->p1, (MYFLT) 30);
+        ASSERT_EQ (bkpt_info->breakpointInstr->p1, (cs_float) 30);
         break;
     case 3:
-         ASSERT_EQ (bkpt_info->breakpointInstr->p1, (MYFLT) 30.1);
+         ASSERT_EQ (bkpt_info->breakpointInstr->p1, (cs_float) 30.1);
         break;
     case 4:
-         ASSERT_EQ (bkpt_info->breakpointInstr->p1, (MYFLT) 1);
+         ASSERT_EQ (bkpt_info->breakpointInstr->p1, (cs_float) 1);
         break;
     case 5:
-         ASSERT_EQ (bkpt_info->breakpointInstr->p1, (MYFLT)1.2);
+         ASSERT_EQ (bkpt_info->breakpointInstr->p1, (cs_float)1.2);
         break;
     }
     count++;
@@ -395,10 +395,10 @@ void brkpt_cb8(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 void brkpt_cb9(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 {
     debug_variable_t *vars = bkpt_info->instrVarList;
-    MYFLT val = -1;
+    cs_float val = -1;
     while (vars) {
         if (strcmp(vars->name, "kvar") == 0) {
-            val = *((MYFLT *) vars->data);
+            val = *((cs_float *) vars->data);
             break;
         }
         vars = vars->next;
@@ -525,9 +525,9 @@ static debug_variable_t *findDebugVar(debug_variable_t *vars, const char *name)
     return NULL;
 }
 
-static MYFLT readDebugScalar(debug_variable_t *var)
+static cs_float readDebugScalar(debug_variable_t *var)
 {
-    return var && var->data ? *((MYFLT *)var->data) : 0;
+    return var && var->data ? *((cs_float *)var->data) : 0;
 }
 
 TEST_F (DebuggerTests, testUdoFramesExposeInternalLocals)
@@ -610,7 +610,7 @@ TEST_F (DebuggerTests, testUdoFramesDualCallSites)
         }
         debug_variable_t *kScaled = findDebugVar(f->varList, "kScaled");
         ASSERT_NE(kScaled, nullptr);
-        MYFLT val = readDebugScalar(kScaled);
+        cs_float val = readDebugScalar(kScaled);
         if (fabs(val - 0.15) < 1e-6) {
             sawL = 1;
         }
@@ -715,7 +715,7 @@ TEST_F (DebuggerTests, testUdoFramesSiblingAfterNestedCall)
         if (strcmp(f->udoName, "gainOp") == 0) {
             debug_variable_t *kGain = findDebugVar(f->varList, "kGain");
             ASSERT_NE(kGain, nullptr);
-            MYFLT val = readDebugScalar(kGain);
+            cs_float val = readDebugScalar(kGain);
             if (fabs(val - 0.2) < 1e-6) {
                 sawGainL = 1;
             }
@@ -841,16 +841,16 @@ TEST_F (DebuggerTests, testUdoFramesRecursiveSelfCall)
     csoundDebugFreeInstrInstances(csound, instrs);
 }
 
-static MYFLT readDebugAudioPeak(debug_variable_t *var, uint32_t ksmps)
+static cs_float readDebugAudioPeak(debug_variable_t *var, uint32_t ksmps)
 {
-    MYFLT peak = 0;
+    cs_float peak = 0;
     uint32_t n;
 
     if (var == NULL || var->data == NULL) {
         return 0;
     }
     for (n = 0; n < ksmps; n++) {
-        MYFLT sample = std::fabs(((MYFLT *)var->data)[n]);
+        cs_float sample = std::fabs(((cs_float *)var->data)[n]);
         if (sample > peak) {
             peak = sample;
         }
@@ -956,7 +956,7 @@ TEST_F (DebuggerTests, testUdoFramesTypedRecursiveArgsPerFrame)
         ASSERT_DOUBLE_EQ(readDebugScalar(freqVar), 400);
         ASSERT_DOUBLE_EQ(readDebugScalar(partsVar), 3);
         ASSERT_GT(readDebugAudioPeak(aOut, ksmps), 0.001);
-        MYFLT part = readDebugScalar(partVar);
+        cs_float part = readDebugScalar(partVar);
         ASSERT_GE(part, 1);
         ASSERT_LE(part, 3);
         if (part == 1) {
@@ -1023,8 +1023,8 @@ TEST_F (DebuggerTests, testUdoFramesTypedInPlaceArgUsesSnapshot)
 
     /* ain must still be the pre-scale input, not the output written over it. */
     for (uint32_t n = 0; n < ksmps; n++) {
-        ASSERT_NEAR(((MYFLT *)aOut->data)[n],
-                    ((MYFLT *)ain->data)[n] * 0.5, 1e-12);
+        ASSERT_NEAR(((cs_float *)aOut->data)[n],
+                    ((cs_float *)ain->data)[n] * 0.5, 1e-12);
     }
 
     csoundDebugFreeUdoFrames(csound, frames);
@@ -1076,8 +1076,8 @@ TEST_F (DebuggerTests, testUdoFramesTypedPassThroughArgFollowsOutput)
     ASSERT_GT(readDebugAudioPeak(aSig, ksmps), 0.001);
 
     for (uint32_t n = 0; n < ksmps; n++) {
-        ASSERT_NEAR(((MYFLT *)ain->data)[n],
-                    ((MYFLT *)aSig->data)[n], 1e-12);
+        ASSERT_NEAR(((cs_float *)ain->data)[n],
+                    ((cs_float *)aSig->data)[n], 1e-12);
     }
 
     csoundDebugFreeUdoFrames(csound, frames);

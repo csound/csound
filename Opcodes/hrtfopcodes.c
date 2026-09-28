@@ -155,20 +155,20 @@ typedef struct
 {
         OPDS  h;
         /* outputs and inputs */
-        MYFLT *outsigl, *outsigr;
-        MYFLT *in, *kangle, *kelev;
+        cs_float *outsigl, *outsigr;
+        cs_float *in, *kangle, *kelev;
           STRINGDAT *ifilel, *ifiler;
-        MYFLT *omode, *ofade, *osr;
+        cs_float *omode, *ofade, *osr;
 
         /* check if relative source has changed! */
-        MYFLT anglev, elevv;
+        cs_float anglev, elevv;
 
         float *fpbeginl,*fpbeginr;
 
         /* see definitions in INIT */
         int32_t irlength, irlengthpad, overlapsize;
 
-        MYFLT sr;
+        cs_float sr;
 
         /* old indices for checking if changes occur in trajectory. */
         int32_t oldelevindex, oldangleindex;
@@ -214,7 +214,7 @@ typedef struct
         AUXCH logmagl,logmagr,xhatwinl,xhatwinr,expxhatwinl,expxhatwinr;
         /* min phase window: a static buffer */
         AUXCH win;
-        MYFLT delayfloat;
+        cs_float delayfloat;
 
         /* delay */
         AUXCH delmeml, delmemr;
@@ -233,9 +233,9 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
 
     int32_t mode = (int32_t)*p->omode;
     int32_t fade = (int32_t)*p->ofade;
-    MYFLT sr = *p->osr;
+    cs_float sr = *p->osr;
 
-    MYFLT *win;
+    cs_float *win;
 
     /* time domain impulse length, padded, overlap add */
     int32_t irlength=0, irlengthpad=0, overlapsize=0;
@@ -314,103 +314,103 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
     p->fpbeginr = (float *) fpr->beginp;
 
     /* common buffers (used by both min phase and phasetrunc) */
-    if (!p->insig.auxp || p->insig.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->insig);
-    if (!p->outl.auxp || p->outl.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outl);
-    if (!p->outr.auxp || p->outr.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outr);
-    if (!p->hrtflpad.auxp || p->hrtflpad.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtflpad);
-    if (!p->hrtfrpad.auxp || p->hrtfrpad.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtfrpad);
-    if (!p->complexinsig.auxp || p->complexinsig.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->complexinsig);
-    if (!p->hrtflfloat.auxp || p->hrtflfloat.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtflfloat);
-    if (!p->hrtfrfloat.auxp || p->hrtfrfloat.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtfrfloat);
-    if (!p->outspecl.auxp || p->outspecl.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecl);
-    if (!p->outspecr.auxp || p->outspecr.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecr);
-    if (!p->overlapl.auxp || p->overlapl.size < overlapsize * sizeof(MYFLT))
-      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapl);
-    if (!p->overlapr.auxp || p->overlapr.size < overlapsize * sizeof(MYFLT))
-      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapr);
+    if (!p->insig.auxp || p->insig.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->insig);
+    if (!p->outl.auxp || p->outl.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->outl);
+    if (!p->outr.auxp || p->outr.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->outr);
+    if (!p->hrtflpad.auxp || p->hrtflpad.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->hrtflpad);
+    if (!p->hrtfrpad.auxp || p->hrtfrpad.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->hrtfrpad);
+    if (!p->complexinsig.auxp || p->complexinsig.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->complexinsig);
+    if (!p->hrtflfloat.auxp || p->hrtflfloat.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->hrtflfloat);
+    if (!p->hrtfrfloat.auxp || p->hrtfrfloat.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->hrtfrfloat);
+    if (!p->outspecl.auxp || p->outspecl.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->outspecl);
+    if (!p->outspecr.auxp || p->outspecr.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->outspecr);
+    if (!p->overlapl.auxp || p->overlapl.size < overlapsize * sizeof(cs_float))
+      csound->AuxAlloc(csound, overlapsize*sizeof(cs_float), &p->overlapl);
+    if (!p->overlapr.auxp || p->overlapr.size < overlapsize * sizeof(cs_float))
+      csound->AuxAlloc(csound, overlapsize*sizeof(cs_float), &p->overlapr);
 
-    memset(p->insig.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->outl.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->outr.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->hrtflpad.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->hrtfrpad.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->complexinsig.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->hrtflfloat.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->hrtfrfloat.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->outspecl.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->outspecr.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->overlapl.auxp, 0, overlapsize * sizeof(MYFLT));
-    memset(p->overlapr.auxp, 0, overlapsize * sizeof(MYFLT));
+    memset(p->insig.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->outl.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->outr.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->hrtflpad.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->hrtfrpad.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->complexinsig.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->hrtflfloat.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->hrtfrfloat.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->outspecl.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->outspecr.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->overlapl.auxp, 0, overlapsize * sizeof(cs_float));
+    memset(p->overlapr.auxp, 0, overlapsize * sizeof(cs_float));
 
     /* interpolation values */
-    if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
-    if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
-    if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
-    if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
-    if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
-    if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
-    if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
-    if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
-    if (!p->currentphasel.auxp || p->currentphasel.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->currentphasel);
-    if (!p->currentphaser.auxp || p->currentphaser.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->currentphaser);
+    if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->lowl1);
+    if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->lowr1);
+    if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->lowl2);
+    if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->lowr2);
+    if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->highl1);
+    if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->highr1);
+    if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->highl2);
+    if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->highr2);
+    if (!p->currentphasel.auxp || p->currentphasel.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->currentphasel);
+    if (!p->currentphaser.auxp || p->currentphaser.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->currentphaser);
 
-    memset(p->lowl1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->lowr1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->lowl2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->lowr2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highl1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highl2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highr1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highr2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->currentphasel.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->currentphaser.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->lowl1.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->lowr1.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->lowl2.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->lowr2.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->highl1.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->highl2.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->highr1.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->highr2.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->currentphasel.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->currentphaser.auxp, 0, irlength * sizeof(cs_float));
 
     /* phase truncation buffers and variables */
-    if (!p->oldhrtflpad.auxp || p->oldhrtflpad.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->oldhrtflpad);
-    if (!p->oldhrtfrpad.auxp || p->oldhrtfrpad.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->oldhrtfrpad);
-    if (!p->outlold.auxp || p->outlold.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outlold);
-    if (!p->outrold.auxp || p->outrold.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outrold);
-    if (!p->outspecoldl.auxp || p->outspecoldl.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecoldl);
-    if (!p->outspecoldr.auxp || p->outspecoldr.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecoldr);
-    if (!p->overlapoldl.auxp || p->overlapoldl.size < overlapsize * sizeof(MYFLT))
-      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapoldl);
-    if (!p->overlapoldr.auxp || p->overlapoldr.size < overlapsize * sizeof(MYFLT))
-      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapoldr);
+    if (!p->oldhrtflpad.auxp || p->oldhrtflpad.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->oldhrtflpad);
+    if (!p->oldhrtfrpad.auxp || p->oldhrtfrpad.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->oldhrtfrpad);
+    if (!p->outlold.auxp || p->outlold.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->outlold);
+    if (!p->outrold.auxp || p->outrold.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->outrold);
+    if (!p->outspecoldl.auxp || p->outspecoldl.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->outspecoldl);
+    if (!p->outspecoldr.auxp || p->outspecoldr.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->outspecoldr);
+    if (!p->overlapoldl.auxp || p->overlapoldl.size < overlapsize * sizeof(cs_float))
+      csound->AuxAlloc(csound, overlapsize*sizeof(cs_float), &p->overlapoldl);
+    if (!p->overlapoldr.auxp || p->overlapoldr.size < overlapsize * sizeof(cs_float))
+      csound->AuxAlloc(csound, overlapsize*sizeof(cs_float), &p->overlapoldr);
 
-    memset(p->oldhrtflpad.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->oldhrtfrpad.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->outlold.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->outrold.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->outspecoldl.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->outspecoldr.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->overlapoldl.auxp, 0, overlapsize * sizeof(MYFLT));
-    memset(p->overlapoldr.auxp, 0, overlapsize * sizeof(MYFLT));
+    memset(p->oldhrtflpad.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->oldhrtfrpad.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->outlold.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->outrold.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->outspecoldl.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->outspecoldr.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->overlapoldl.auxp, 0, overlapsize * sizeof(cs_float));
+    memset(p->overlapoldr.auxp, 0, overlapsize * sizeof(cs_float));
 
     /* initialize counters and indices */
     p->counter = 0;
@@ -424,43 +424,43 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
     p->oldangleindex = -1;
 
     /* buffer declaration for min phase calculations */
-    if (!p->logmagl.auxp || p->logmagl.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->logmagl);
-    if (!p->logmagr.auxp || p->logmagr.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->logmagr);
-    if (!p->xhatwinl.auxp || p->xhatwinl.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->xhatwinl);
-    if (!p->xhatwinr.auxp || p->xhatwinr.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->xhatwinr);
-    if (!p->expxhatwinl.auxp || p->expxhatwinl.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->expxhatwinl);
-    if (!p->expxhatwinr.auxp || p->expxhatwinr.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->expxhatwinr);
+    if (!p->logmagl.auxp || p->logmagl.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->logmagl);
+    if (!p->logmagr.auxp || p->logmagr.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->logmagr);
+    if (!p->xhatwinl.auxp || p->xhatwinl.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->xhatwinl);
+    if (!p->xhatwinr.auxp || p->xhatwinr.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->xhatwinr);
+    if (!p->expxhatwinl.auxp || p->expxhatwinl.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->expxhatwinl);
+    if (!p->expxhatwinr.auxp || p->expxhatwinr.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->expxhatwinr);
 
-    memset(p->logmagl.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->logmagr.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->xhatwinl.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->xhatwinr.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->expxhatwinl.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->expxhatwinr.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->logmagl.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->logmagr.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->xhatwinl.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->xhatwinr.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->expxhatwinl.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->expxhatwinr.auxp, 0, irlength * sizeof(cs_float));
 
     /* delay buffers */
     if (!p->delmeml.auxp ||
-        p->delmeml.size < (int32_t)(sr * maxdeltime) * sizeof(MYFLT))
+        p->delmeml.size < (int32_t)(sr * maxdeltime) * sizeof(cs_float))
       csound->AuxAlloc(csound,
-                       (int32_t)(sr * maxdeltime) * sizeof(MYFLT), &p->delmeml);
+                       (int32_t)(sr * maxdeltime) * sizeof(cs_float), &p->delmeml);
     if (!p->delmemr.auxp ||
-        p->delmemr.size < (int32_t)(sr * maxdeltime) * sizeof(MYFLT))
+        p->delmemr.size < (int32_t)(sr * maxdeltime) * sizeof(cs_float))
       csound->AuxAlloc(csound,
-                       (int32_t)(sr * maxdeltime) * sizeof(MYFLT), &p->delmemr);
+                       (int32_t)(sr * maxdeltime) * sizeof(cs_float), &p->delmemr);
 
-    memset(p->delmeml.auxp, 0, (int32_t)(sr * maxdeltime) * sizeof(MYFLT));
-    memset(p->delmemr.auxp, 0, (int32_t)(sr * maxdeltime) * sizeof(MYFLT));
+    memset(p->delmeml.auxp, 0, (int32_t)(sr * maxdeltime) * sizeof(cs_float));
+    memset(p->delmemr.auxp, 0, (int32_t)(sr * maxdeltime) * sizeof(cs_float));
 
-    if (!p->win.auxp || p->win.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->win);
+    if (!p->win.auxp || p->win.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->win);
 
-    win = (MYFLT *)p->win.auxp;
+    win = (cs_float *)p->win.auxp;
 
     /* min phase win defined for irlength point impulse! */
     win[0] = FL(1.0);
@@ -492,29 +492,29 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
 static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
 {
     /* local pointers to p */
-    MYFLT *in = p->in;
-    MYFLT *outsigl  = p->outsigl;
-    MYFLT *outsigr = p->outsigr;
+    cs_float *in = p->in;
+    cs_float *outsigl  = p->outsigl;
+    cs_float *outsigr = p->outsigr;
 
     /* common buffers and variables */
-    MYFLT *insig = (MYFLT *)p->insig.auxp;
-    MYFLT *outl = (MYFLT *)p->outl.auxp;
-    MYFLT *outr = (MYFLT *)p->outr.auxp;
+    cs_float *insig = (cs_float *)p->insig.auxp;
+    cs_float *outl = (cs_float *)p->outl.auxp;
+    cs_float *outr = (cs_float *)p->outr.auxp;
 
-    MYFLT *hrtflpad = (MYFLT *)p->hrtflpad.auxp;
-    MYFLT *hrtfrpad = (MYFLT *)p->hrtfrpad.auxp;
+    cs_float *hrtflpad = (cs_float *)p->hrtflpad.auxp;
+    cs_float *hrtfrpad = (cs_float *)p->hrtfrpad.auxp;
 
-    MYFLT *complexinsig = (MYFLT *)p->complexinsig.auxp;
-    MYFLT *hrtflfloat = (MYFLT *)p->hrtflfloat.auxp;
-    MYFLT *hrtfrfloat = (MYFLT *)p->hrtfrfloat.auxp;
-    MYFLT *outspecl = (MYFLT *)p->outspecl.auxp;
-    MYFLT *outspecr = (MYFLT *)p->outspecr.auxp;
+    cs_float *complexinsig = (cs_float *)p->complexinsig.auxp;
+    cs_float *hrtflfloat = (cs_float *)p->hrtflfloat.auxp;
+    cs_float *hrtfrfloat = (cs_float *)p->hrtfrfloat.auxp;
+    cs_float *outspecl = (cs_float *)p->outspecl.auxp;
+    cs_float *outspecr = (cs_float *)p->outspecr.auxp;
 
-    MYFLT *overlapl = (MYFLT *)p->overlapl.auxp;
-    MYFLT *overlapr = (MYFLT *)p->overlapr.auxp;
+    cs_float *overlapl = (cs_float *)p->overlapl.auxp;
+    cs_float *overlapr = (cs_float *)p->overlapr.auxp;
 
-    MYFLT elev = *p->kelev;
-    MYFLT angle = *p->kangle;
+    cs_float elev = *p->kelev;
+    cs_float angle = *p->kangle;
 
     int32_t counter = p->counter;
 
@@ -527,44 +527,44 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
     int32_t minphase = p->minphase;
     int32_t phasetrunc = p->phasetrunc;
 
-    MYFLT sr = p->sr;
+    cs_float sr = p->sr;
 
     int32_t irlength = p->irlength;
     int32_t irlengthpad = p->irlengthpad;
     int32_t overlapsize = p->overlapsize;
 
     /* local variables, mainly used for simplification */
-    MYFLT elevindexstore;
-    MYFLT angleindexlowstore;
-    MYFLT angleindexhighstore;
+    cs_float elevindexstore;
+    cs_float angleindexlowstore;
+    cs_float angleindexhighstore;
 
     /* interpolation values */
-    MYFLT *lowl1 = (MYFLT *)p->lowl1.auxp;
-    MYFLT *lowr1 = (MYFLT *)p->lowr1.auxp;
-    MYFLT *lowl2 = (MYFLT *)p->lowl2.auxp;
-    MYFLT *lowr2 = (MYFLT *)p->lowr2.auxp;
-    MYFLT *highl1 = (MYFLT *)p->highl1.auxp;
-    MYFLT *highr1 = (MYFLT *)p->highr1.auxp;
-    MYFLT *highl2 = (MYFLT *)p->highl2.auxp;
-    MYFLT *highr2 = (MYFLT *)p->highr2.auxp;
-    MYFLT *currentphasel = (MYFLT *)p->currentphasel.auxp;
-    MYFLT *currentphaser = (MYFLT *)p->currentphaser.auxp;
+    cs_float *lowl1 = (cs_float *)p->lowl1.auxp;
+    cs_float *lowr1 = (cs_float *)p->lowr1.auxp;
+    cs_float *lowl2 = (cs_float *)p->lowl2.auxp;
+    cs_float *lowr2 = (cs_float *)p->lowr2.auxp;
+    cs_float *highl1 = (cs_float *)p->highl1.auxp;
+    cs_float *highr1 = (cs_float *)p->highr1.auxp;
+    cs_float *highl2 = (cs_float *)p->highl2.auxp;
+    cs_float *highr2 = (cs_float *)p->highr2.auxp;
+    cs_float *currentphasel = (cs_float *)p->currentphasel.auxp;
+    cs_float *currentphaser = (cs_float *)p->currentphaser.auxp;
 
     /* local interpolation values */
-    MYFLT elevindexhighper, angleindex2per, angleindex4per;
+    cs_float elevindexhighper, angleindex2per, angleindex4per;
     int32_t elevindexlow, elevindexhigh, angleindex1, angleindex2,
       angleindex3, angleindex4;
-    MYFLT magl,magr,phasel,phaser, magllow, magrlow, maglhigh, magrhigh;
+    cs_float magl,magr,phasel,phaser, magllow, magrlow, maglhigh, magrhigh;
 
     /* phase truncation buffers and variables */
-    MYFLT *oldhrtflpad = (MYFLT *)p->oldhrtflpad.auxp;
-    MYFLT *oldhrtfrpad = (MYFLT *)p->oldhrtfrpad.auxp;
-    MYFLT *outlold = (MYFLT *)p->outlold.auxp;
-    MYFLT *outrold = (MYFLT *)p->outrold.auxp;
-    MYFLT *outspecoldl = (MYFLT *)p->outspecoldl.auxp;
-    MYFLT *outspecoldr = (MYFLT *)p->outspecoldr.auxp;
-    MYFLT *overlapoldl = (MYFLT *)p->overlapoldl.auxp;
-    MYFLT *overlapoldr = (MYFLT *)p->overlapoldr.auxp;
+    cs_float *oldhrtflpad = (cs_float *)p->oldhrtflpad.auxp;
+    cs_float *oldhrtfrpad = (cs_float *)p->oldhrtfrpad.auxp;
+    cs_float *outlold = (cs_float *)p->outlold.auxp;
+    cs_float *outrold = (cs_float *)p->outrold.auxp;
+    cs_float *outspecoldl = (cs_float *)p->outspecoldl.auxp;
+    cs_float *outspecoldr = (cs_float *)p->outspecoldr.auxp;
+    cs_float *overlapoldl = (cs_float *)p->overlapoldl.auxp;
+    cs_float *overlapoldr = (cs_float *)p->overlapoldr.auxp;
 
     int32_t oldelevindex = p ->oldelevindex;
     int32_t oldangleindex = p ->oldangleindex;
@@ -580,21 +580,21 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
     int32_t fadebuffer = p->fadebuffer;
 
     /* minimum phase buffers */
-    MYFLT *logmagl = (MYFLT *)p->logmagl.auxp;
-    MYFLT *logmagr = (MYFLT *)p->logmagr.auxp;
-    MYFLT *xhatwinl = (MYFLT *)p->xhatwinl.auxp;
-    MYFLT *xhatwinr = (MYFLT *)p->xhatwinr.auxp;
-    MYFLT *expxhatwinl = (MYFLT *)p->expxhatwinl.auxp;
-    MYFLT *expxhatwinr = (MYFLT *)p->expxhatwinr.auxp;
+    cs_float *logmagl = (cs_float *)p->logmagl.auxp;
+    cs_float *logmagr = (cs_float *)p->logmagr.auxp;
+    cs_float *xhatwinl = (cs_float *)p->xhatwinl.auxp;
+    cs_float *xhatwinr = (cs_float *)p->xhatwinr.auxp;
+    cs_float *expxhatwinl = (cs_float *)p->expxhatwinl.auxp;
+    cs_float *expxhatwinr = (cs_float *)p->expxhatwinr.auxp;
 
     /* min phase window */
-    MYFLT *win = (MYFLT *)p->win.auxp;
+    cs_float *win = (cs_float *)p->win.auxp;
 
     /* min phase delay variables */
-    MYFLT *delmeml = (MYFLT *)p->delmeml.auxp;
-    MYFLT *delmemr = (MYFLT *)p->delmemr.auxp;
-    MYFLT delaylow1, delaylow2, delayhigh1, delayhigh2, delaylow, delayhigh;
-    MYFLT delayfloat = p->delayfloat;
+    cs_float *delmeml = (cs_float *)p->delmeml.auxp;
+    cs_float *delmemr = (cs_float *)p->delmemr.auxp;
+    cs_float delaylow1, delaylow2, delayhigh1, delayhigh2, delaylow, delayhigh;
+    cs_float delayfloat = p->delayfloat;
     int32_t ptl = p->ptl;
     int32_t ptr = p->ptr;
     int32_t mdtl = p->mdtl;
@@ -603,20 +603,20 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t j, nsmps = CS_KSMPS;
-    MYFLT outvdl, outvdr, vdtl, vdtr, fracl, fracr, rpl, rpr;
+    cs_float outvdl, outvdr, vdtl, vdtr, fracl, fracr, rpl, rpr;
 
     /* start indices at correct value (start of file)/ zero indices. */
     fpindexl = (float *) p->fpbeginl;
     fpindexr = (float *) p->fpbeginr;
 
     if (UNLIKELY(offset)) {
-      memset(outsigl, '\0', offset*sizeof(MYFLT));
-      memset(outsigr, '\0', offset*sizeof(MYFLT));
+      memset(outsigl, '\0', offset*sizeof(cs_float));
+      memset(outsigr, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&outsigl[nsmps], '\0', early*sizeof(cs_float));
+      memset(&outsigr[nsmps], '\0', early*sizeof(cs_float));
     }
     for(j = offset; j < nsmps; j++)
       {
@@ -1358,17 +1358,17 @@ typedef struct
 {
         OPDS  h;
         /* outputs and inputs */
-        MYFLT *outsigl, *outsigr;
-        MYFLT *in, *iangle, *ielev;
+        cs_float *outsigl, *outsigr;
+        cs_float *in, *iangle, *ielev;
         STRINGDAT *ifilel, *ifiler;
-        MYFLT *oradius, *osr;
+        cs_float *oradius, *osr;
 
         /*see definitions in INIT*/
         int32_t irlength, irlengthpad, overlapsize;
-        MYFLT sroverN;
+        cs_float sroverN;
 
         int32_t counter;
-        MYFLT sr;
+        cs_float sr;
 
         /* hrtf data padded */
         AUXCH hrtflpad,hrtfrpad;
@@ -1403,25 +1403,25 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
     char filel[MAXNAME], filer[MAXNAME];
 
     /* interpolation values */
-    MYFLT *lowl1;
-    MYFLT *lowr1;
-    MYFLT *lowl2;
-    MYFLT *lowr2;
-    MYFLT *highl1;
-    MYFLT *highr1;
-    MYFLT *highl2;
-    MYFLT *highr2;
+    cs_float *lowl1;
+    cs_float *lowr1;
+    cs_float *lowl2;
+    cs_float *lowr2;
+    cs_float *highl1;
+    cs_float *highr1;
+    cs_float *highl2;
+    cs_float *highr2;
 
-    MYFLT *hrtflfloat;
-    MYFLT *hrtfrfloat;
+    cs_float *hrtflfloat;
+    cs_float *hrtfrfloat;
 
-    MYFLT *hrtflpad;
-    MYFLT *hrtfrpad;
+    cs_float *hrtflpad;
+    cs_float *hrtfrpad;
 
-    MYFLT elev = *p->ielev;
-    MYFLT angle = *p->iangle;
-    MYFLT r = *p->oradius;
-    MYFLT sr = *p->osr;
+    cs_float elev = *p->ielev;
+    cs_float angle = *p->iangle;
+    cs_float r = *p->oradius;
+    cs_float sr = *p->osr;
 
         /* pointers into HRTF files */
     float *fpindexl=NULL;
@@ -1433,23 +1433,23 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
     int32_t i, skip = 0;
 
     /* local interpolation values */
-    MYFLT elevindexhighper, angleindex2per, angleindex4per;
+    cs_float elevindexhighper, angleindex2per, angleindex4per;
     int32_t elevindexlow, elevindexhigh, angleindex1, angleindex2,
       angleindex3, angleindex4;
-    MYFLT magl, magr, phasel, phaser, magllow, magrlow, maglhigh, magrhigh;
+    cs_float magl, magr, phasel, phaser, magllow, magrlow, maglhigh, magrhigh;
 
     /* local variables, mainly used for simplification */
-    MYFLT elevindexstore;
-    MYFLT angleindexlowstore;
-    MYFLT angleindexhighstore;
+    cs_float elevindexstore;
+    cs_float angleindexlowstore;
+    cs_float angleindexhighstore;
 
     /* woodworth values */
-    MYFLT radianangle, radianelev, itd=0, itdww, freq;
+    cs_float radianangle, radianelev, itd=0, itdww, freq;
 
     /* shift */
     int32_t shift;
-    MYFLT *leftshiftbuffer;
-    MYFLT *rightshiftbuffer;
+    cs_float *leftshiftbuffer;
+    cs_float *rightshiftbuffer;
 
     /* sr */
     if (sr == 0) sr = CS_ESR;
@@ -1507,100 +1507,100 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
     fpindexr = (float *) fpr->beginp;
 
     /* buffers */
-    if (!p->insig.auxp || p->insig.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->insig);
-    if (!p->outl.auxp || p->outl.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outl);
-    if (!p->outr.auxp || p->outr.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outr);
-    if (!p->hrtflpad.auxp || p->hrtflpad.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtflpad);
-    if (!p->hrtfrpad.auxp || p->hrtfrpad.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtfrpad);
-    if (!p->complexinsig.auxp || p->complexinsig.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p-> complexinsig);
-    if (!p->hrtflfloat.auxp || p->hrtflfloat.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtflfloat);
-    if (!p->hrtfrfloat.auxp || p->hrtfrfloat.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtfrfloat);
-    if (!p->outspecl.auxp || p->outspecl.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecl);
-    if (!p->outspecr.auxp || p->outspecr.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecr);
-    if (!p->overlapl.auxp || p->overlapl.size < overlapsize * sizeof(MYFLT))
-      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapl);
-    if (!p->overlapr.auxp || p->overlapr.size < overlapsize * sizeof(MYFLT))
-      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapr);
+    if (!p->insig.auxp || p->insig.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->insig);
+    if (!p->outl.auxp || p->outl.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->outl);
+    if (!p->outr.auxp || p->outr.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->outr);
+    if (!p->hrtflpad.auxp || p->hrtflpad.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->hrtflpad);
+    if (!p->hrtfrpad.auxp || p->hrtfrpad.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->hrtfrpad);
+    if (!p->complexinsig.auxp || p->complexinsig.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p-> complexinsig);
+    if (!p->hrtflfloat.auxp || p->hrtflfloat.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->hrtflfloat);
+    if (!p->hrtfrfloat.auxp || p->hrtfrfloat.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->hrtfrfloat);
+    if (!p->outspecl.auxp || p->outspecl.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->outspecl);
+    if (!p->outspecr.auxp || p->outspecr.size < irlengthpad * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlengthpad*sizeof(cs_float), &p->outspecr);
+    if (!p->overlapl.auxp || p->overlapl.size < overlapsize * sizeof(cs_float))
+      csound->AuxAlloc(csound, overlapsize*sizeof(cs_float), &p->overlapl);
+    if (!p->overlapr.auxp || p->overlapr.size < overlapsize * sizeof(cs_float))
+      csound->AuxAlloc(csound, overlapsize*sizeof(cs_float), &p->overlapr);
 
-    memset(p->insig.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->outl.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->outr.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->hrtflpad.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->hrtfrpad.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->complexinsig.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->hrtflfloat.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->hrtfrfloat.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->outspecl.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->outspecr.auxp, 0, irlengthpad * sizeof(MYFLT));
-    memset(p->overlapl.auxp, 0, overlapsize * sizeof(MYFLT));
-    memset(p->overlapr.auxp, 0, overlapsize * sizeof(MYFLT));
+    memset(p->insig.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->outl.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->outr.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->hrtflpad.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->hrtfrpad.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->complexinsig.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->hrtflfloat.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->hrtfrfloat.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->outspecl.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->outspecr.auxp, 0, irlengthpad * sizeof(cs_float));
+    memset(p->overlapl.auxp, 0, overlapsize * sizeof(cs_float));
+    memset(p->overlapr.auxp, 0, overlapsize * sizeof(cs_float));
 
     /* interpolation values */
-    if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
-    if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
-    if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
-    if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
-    if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
-    if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
-    if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
-    if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
+    if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->lowl1);
+    if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->lowr1);
+    if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->lowl2);
+    if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->lowr2);
+    if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->highl1);
+    if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->highr1);
+    if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->highl2);
+    if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->highr2);
 
     /* best to zero, for future changes (filled in init) */
-    memset(p->lowl1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->lowr1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->lowl2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->lowr2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highl1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highl2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highr1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highr2.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->lowl1.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->lowr1.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->lowl2.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->lowr2.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->highl1.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->highl2.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->highr1.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->highr2.auxp, 0, irlength * sizeof(cs_float));
 
     /* shift buffers */
     if (!p->leftshiftbuffer.auxp ||
-        p->leftshiftbuffer.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->leftshiftbuffer);
+        p->leftshiftbuffer.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->leftshiftbuffer);
     if (!p->rightshiftbuffer.auxp ||
-        p->rightshiftbuffer.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->rightshiftbuffer);
+        p->rightshiftbuffer.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength*sizeof(cs_float), &p->rightshiftbuffer);
 
-    memset(p->leftshiftbuffer.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->rightshiftbuffer.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->leftshiftbuffer.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->rightshiftbuffer.auxp, 0, irlength * sizeof(cs_float));
 
-    lowl1 = (MYFLT *)p->lowl1.auxp;
-    lowr1 = (MYFLT *)p->lowr1.auxp;
-    lowl2 = (MYFLT *)p->lowl2.auxp;
-    lowr2 = (MYFLT *)p->lowr2.auxp;
-    highl1 = (MYFLT *)p->highl1.auxp;
-    highr1 = (MYFLT *)p->highr1.auxp;
-    highl2 = (MYFLT *)p->highl2.auxp;
-    highr2 = (MYFLT *)p->highr2.auxp;
+    lowl1 = (cs_float *)p->lowl1.auxp;
+    lowr1 = (cs_float *)p->lowr1.auxp;
+    lowl2 = (cs_float *)p->lowl2.auxp;
+    lowr2 = (cs_float *)p->lowr2.auxp;
+    highl1 = (cs_float *)p->highl1.auxp;
+    highr1 = (cs_float *)p->highr1.auxp;
+    highl2 = (cs_float *)p->highl2.auxp;
+    highr2 = (cs_float *)p->highr2.auxp;
 
-    leftshiftbuffer = (MYFLT *)p->leftshiftbuffer.auxp;
-    rightshiftbuffer = (MYFLT *)p->rightshiftbuffer.auxp;
+    leftshiftbuffer = (cs_float *)p->leftshiftbuffer.auxp;
+    rightshiftbuffer = (cs_float *)p->rightshiftbuffer.auxp;
 
-    hrtflfloat = (MYFLT *)p->hrtflfloat.auxp;
-    hrtfrfloat = (MYFLT *)p->hrtfrfloat.auxp;
+    hrtflfloat = (cs_float *)p->hrtflfloat.auxp;
+    hrtfrfloat = (cs_float *)p->hrtfrfloat.auxp;
 
-    hrtflpad = (MYFLT *)p->hrtflpad.auxp;
-    hrtfrpad = (MYFLT *)p->hrtfrpad.auxp;
+    hrtflpad = (cs_float *)p->hrtflpad.auxp;
+    hrtfrpad = (cs_float *)p->hrtfrpad.auxp;
 
     if(r <= 0 || r > 15)
       r = FL(8.8);
@@ -1896,24 +1896,24 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
 static int32_t hrtfstat_process(CSOUND *csound, hrtfstat *p)
 {
         /* local pointers to p */
-    MYFLT *in = p->in;
-    MYFLT *outsigl  = p->outsigl;
-    MYFLT *outsigr = p->outsigr;
+    cs_float *in = p->in;
+    cs_float *outsigl  = p->outsigl;
+    cs_float *outsigr = p->outsigr;
 
     /* common buffers and variables */
-    MYFLT *insig = (MYFLT *)p->insig.auxp;
-    MYFLT *outl = (MYFLT *)p->outl.auxp;
-    MYFLT *outr = (MYFLT *)p->outr.auxp;
+    cs_float *insig = (cs_float *)p->insig.auxp;
+    cs_float *outl = (cs_float *)p->outl.auxp;
+    cs_float *outr = (cs_float *)p->outr.auxp;
 
-    MYFLT *hrtflpad = (MYFLT *)p->hrtflpad.auxp;
-    MYFLT *hrtfrpad = (MYFLT *)p->hrtfrpad.auxp;
+    cs_float *hrtflpad = (cs_float *)p->hrtflpad.auxp;
+    cs_float *hrtfrpad = (cs_float *)p->hrtfrpad.auxp;
 
-    MYFLT *complexinsig = (MYFLT *)p->complexinsig.auxp;
-    MYFLT *outspecl = (MYFLT *)p->outspecl.auxp;
-    MYFLT *outspecr = (MYFLT *)p->outspecr.auxp;
+    cs_float *complexinsig = (cs_float *)p->complexinsig.auxp;
+    cs_float *outspecl = (cs_float *)p->outspecl.auxp;
+    cs_float *outspecr = (cs_float *)p->outspecr.auxp;
 
-    MYFLT *overlapl = (MYFLT *)p->overlapl.auxp;
-    MYFLT *overlapr = (MYFLT *)p->overlapr.auxp;
+    cs_float *overlapl = (cs_float *)p->overlapl.auxp;
+    cs_float *overlapr = (cs_float *)p->overlapr.auxp;
 
     int32_t counter = p->counter;
     int32_t i;
@@ -1925,16 +1925,16 @@ static int32_t hrtfstat_process(CSOUND *csound, hrtfstat *p)
     int32_t irlengthpad = p->irlengthpad;
     int32_t overlapsize = p->overlapsize;
 
-    MYFLT sr = p->sr;
+    cs_float sr = p->sr;
 
     if (UNLIKELY(offset)) {
-      memset(outsigl, '\0', offset*sizeof(MYFLT));
-      memset(outsigr, '\0', offset*sizeof(MYFLT));
+      memset(outsigl, '\0', offset*sizeof(cs_float));
+      memset(outsigr, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&outsigl[nsmps], '\0', early*sizeof(cs_float));
+      memset(&outsigr[nsmps], '\0', early*sizeof(cs_float));
     }
     for(j = offset; j < nsmps; j++)
       {
@@ -2017,23 +2017,23 @@ typedef struct
 {
         OPDS  h;
         /* outputs and inputs */
-        MYFLT *outsigl, *outsigr;
-  MYFLT *in, *kangle, *kelev;
+        cs_float *outsigl, *outsigr;
+  cs_float *in, *kangle, *kelev;
   STRINGDAT *ifilel, *ifiler;
-MYFLT *ooverlap, *oradius, *osr;
+cs_float *ooverlap, *oradius, *osr;
 
         /* check if relative source has changed! */
-        MYFLT anglev, elevv;
+        cs_float anglev, elevv;
 
         /* see definitions in INIT */
         int32_t irlength;
-        MYFLT sroverN;
-        MYFLT sr;
+        cs_float sroverN;
+        cs_float sr;
 
         /* test inputs in init, get accepted value/default, and store in
            variables below. */
         int32_t overlap;
-        MYFLT radius;
+        cs_float radius;
 
         int32_t hopsize;
 
@@ -2077,15 +2077,15 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     int32_t irlength=0;
 
     /* stft window */
-    MYFLT *win;
+    cs_float *win;
     /* overlap skip buffers */
     int32_t *overlapskipin, *overlapskipout;
-    //MYFLT *inbuf;
-    //MYFLT *outbufl, *outbufr;
+    //cs_float *inbuf;
+    //cs_float *outbufl, *outbufr;
 
     int32_t overlap = (int32_t)*p->ooverlap;
-    MYFLT r = *p->oradius;
-    MYFLT sr = *p->osr;
+    cs_float r = *p->oradius;
+    cs_float sr = *p->osr;
 
     int32_t i = 0;
 
@@ -2142,79 +2142,79 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     p->hopsize = (int32_t)(irlength / overlap);
 
     /* buffers */
-    if (!p->inbuf.auxp || p->inbuf.size < (overlap * irlength) * sizeof(MYFLT))
-      csound->AuxAlloc(csound, (overlap * irlength) * sizeof(MYFLT), &p->inbuf);
+    if (!p->inbuf.auxp || p->inbuf.size < (overlap * irlength) * sizeof(cs_float))
+      csound->AuxAlloc(csound, (overlap * irlength) * sizeof(cs_float), &p->inbuf);
     /* 2d arrays in 1d! */
-    if (!p->outbufl.auxp || p->outbufl.size < (overlap * irlength) * sizeof(MYFLT))
-      csound->AuxAlloc(csound, (overlap * irlength) * sizeof(MYFLT), &p->outbufl);
-    if (!p->outbufr.auxp || p->outbufr.size < (overlap * irlength) * sizeof(MYFLT))
-      csound->AuxAlloc(csound, (overlap * irlength) * sizeof(MYFLT), &p->outbufr);
-    if (!p->complexinsig.auxp || p->complexinsig.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p-> complexinsig);
-    if (!p->hrtflfloat.auxp || p->hrtflfloat.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->hrtflfloat);
-    if (!p->hrtfrfloat.auxp || p->hrtfrfloat.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->hrtfrfloat);
-    if (!p->outspecl.auxp || p->outspecl.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->outspecl);
-    if (!p->outspecr.auxp || p->outspecr.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->outspecr);
+    if (!p->outbufl.auxp || p->outbufl.size < (overlap * irlength) * sizeof(cs_float))
+      csound->AuxAlloc(csound, (overlap * irlength) * sizeof(cs_float), &p->outbufl);
+    if (!p->outbufr.auxp || p->outbufr.size < (overlap * irlength) * sizeof(cs_float))
+      csound->AuxAlloc(csound, (overlap * irlength) * sizeof(cs_float), &p->outbufr);
+    if (!p->complexinsig.auxp || p->complexinsig.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p-> complexinsig);
+    if (!p->hrtflfloat.auxp || p->hrtflfloat.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->hrtflfloat);
+    if (!p->hrtfrfloat.auxp || p->hrtfrfloat.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->hrtfrfloat);
+    if (!p->outspecl.auxp || p->outspecl.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->outspecl);
+    if (!p->outspecr.auxp || p->outspecr.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->outspecr);
 
-    memset(p->inbuf.auxp, 0, (overlap*irlength) * sizeof(MYFLT));
-    memset(p->outbufl.auxp, 0, (overlap*irlength) * sizeof(MYFLT));
-    memset(p->outbufr.auxp, 0, (overlap*irlength) * sizeof(MYFLT));
-    memset(p->complexinsig.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->hrtflfloat.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->hrtfrfloat.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->outspecl.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->outspecr.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->inbuf.auxp, 0, (overlap*irlength) * sizeof(cs_float));
+    memset(p->outbufl.auxp, 0, (overlap*irlength) * sizeof(cs_float));
+    memset(p->outbufr.auxp, 0, (overlap*irlength) * sizeof(cs_float));
+    memset(p->complexinsig.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->hrtflfloat.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->hrtfrfloat.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->outspecl.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->outspecr.auxp, 0, irlength * sizeof(cs_float));
 
     /* interpolation values */
-    if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
-    if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
-    if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
-    if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
-    if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
-    if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
-    if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
-    if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
+    if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->lowl1);
+    if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->lowr1);
+    if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->lowl2);
+    if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->lowr2);
+    if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->highl1);
+    if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->highr1);
+    if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->highl2);
+    if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->highr2);
 
-    memset(p->lowl1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->lowr1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->lowl2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->lowr2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highl1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highl2.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highr1.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->highr2.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->lowl1.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->lowr1.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->lowl2.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->lowr2.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->highl1.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->highl2.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->highr1.auxp, 0, irlength * sizeof(cs_float));
+    memset(p->highr2.auxp, 0, irlength * sizeof(cs_float));
 
-    if (!p->win.auxp || p->win.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->win);
+    if (!p->win.auxp || p->win.size < irlength * sizeof(cs_float))
+      csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->win);
     if (!p->overlapskipin.auxp || p->overlapskipin.size < overlap * sizeof(int32_t))
       csound->AuxAlloc(csound, overlap * sizeof(int32_t), &p->overlapskipin);
     if (!p->overlapskipout.auxp ||
         p->overlapskipout.size < overlap * sizeof(int32_t))
       csound->AuxAlloc(csound, overlap * sizeof(int32_t), &p->overlapskipout);
 
-    memset(p->win.auxp, 0, irlength * sizeof(MYFLT));
+    memset(p->win.auxp, 0, irlength * sizeof(cs_float));
     memset(p->overlapskipin.auxp, 0, overlap * sizeof(int32_t));
     memset(p->overlapskipout.auxp, 0, overlap * sizeof(int32_t));
 
-    win = (MYFLT *)p->win.auxp;
+    win = (cs_float *)p->win.auxp;
     overlapskipin = (int32_t *)p->overlapskipin.auxp;
     overlapskipout = (int32_t *)p->overlapskipout.auxp;
 
     /* window is Hanning */
     for(i = 0; i < irlength; i++)
-      win[i] = FL(0.5) - (FL(0.5) * COS(i * TWOPI_F / (MYFLT)(irlength - 1)));
+      win[i] = FL(0.5) - (FL(0.5) * COS(i * TWOPI_F / (cs_float)(irlength - 1)));
 
     for(i = 0; i < overlap; i++)
       {
@@ -2242,35 +2242,35 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 static int32_t hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 {
     /* local pointers to p */
-    MYFLT *in = p->in;
-    MYFLT *outsigl  = p->outsigl;
-    MYFLT *outsigr = p->outsigr;
+    cs_float *in = p->in;
+    cs_float *outsigl  = p->outsigl;
+    cs_float *outsigr = p->outsigr;
 
     /* common buffers and variables */
-    MYFLT *inbuf = (MYFLT *)p->inbuf.auxp;
+    cs_float *inbuf = (cs_float *)p->inbuf.auxp;
 
-    MYFLT *outbufl = (MYFLT *)p->outbufl.auxp;
-    MYFLT *outbufr = (MYFLT *)p->outbufr.auxp;
+    cs_float *outbufl = (cs_float *)p->outbufl.auxp;
+    cs_float *outbufr = (cs_float *)p->outbufr.auxp;
 
-    MYFLT outsuml = FL(0.0), outsumr = FL(0.0);
+    cs_float outsuml = FL(0.0), outsumr = FL(0.0);
 
-    MYFLT *complexinsig = (MYFLT *)p->complexinsig.auxp;
-    MYFLT *hrtflfloat = (MYFLT *)p->hrtflfloat.auxp;
-    MYFLT *hrtfrfloat = (MYFLT *)p->hrtfrfloat.auxp;
-    MYFLT *outspecl = (MYFLT *)p->outspecl.auxp;
-    MYFLT *outspecr = (MYFLT *)p->outspecr.auxp;
+    cs_float *complexinsig = (cs_float *)p->complexinsig.auxp;
+    cs_float *hrtflfloat = (cs_float *)p->hrtflfloat.auxp;
+    cs_float *hrtfrfloat = (cs_float *)p->hrtfrfloat.auxp;
+    cs_float *outspecl = (cs_float *)p->outspecl.auxp;
+    cs_float *outspecr = (cs_float *)p->outspecr.auxp;
 
-    MYFLT elev = *p->kelev;
-    MYFLT angle = *p->kangle;
+    cs_float elev = *p->kelev;
+    cs_float angle = *p->kangle;
     int32_t overlap = p->overlap;
-    MYFLT r = p->radius;
+    cs_float r = p->radius;
 
-    MYFLT sr = p->sr;
-    MYFLT sroverN = p->sroverN;
+    cs_float sr = p->sr;
+    cs_float sroverN = p->sroverN;
 
     int32_t hopsize = p->hopsize;
 
-    MYFLT *win = (MYFLT *)p->win.auxp;
+    cs_float *win = (cs_float *)p->win.auxp;
     int32_t *overlapskipin = (int32_t *)p->overlapskipin.auxp;
     int32_t *overlapskipout = (int32_t *)p->overlapskipout.auxp;
 
@@ -2287,30 +2287,30 @@ static int32_t hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     uint32_t j, nsmps = CS_KSMPS;
 
     /* interpolation values */
-    MYFLT *lowl1 = (MYFLT *)p->lowl1.auxp;
-    MYFLT *lowr1 = (MYFLT *)p->lowr1.auxp;
-    MYFLT *lowl2 = (MYFLT *)p->lowl2.auxp;
-    MYFLT *lowr2 = (MYFLT *)p->lowr2.auxp;
-    MYFLT *highl1 = (MYFLT *)p->highl1.auxp;
-    MYFLT *highr1 = (MYFLT *)p->highr1.auxp;
-    MYFLT *highl2 = (MYFLT *)p->highl2.auxp;
-    MYFLT *highr2 = (MYFLT *)p->highr2.auxp;
+    cs_float *lowl1 = (cs_float *)p->lowl1.auxp;
+    cs_float *lowr1 = (cs_float *)p->lowr1.auxp;
+    cs_float *lowl2 = (cs_float *)p->lowl2.auxp;
+    cs_float *lowr2 = (cs_float *)p->lowr2.auxp;
+    cs_float *highl1 = (cs_float *)p->highl1.auxp;
+    cs_float *highr1 = (cs_float *)p->highr1.auxp;
+    cs_float *highl2 = (cs_float *)p->highl2.auxp;
+    cs_float *highr2 = (cs_float *)p->highr2.auxp;
 
     /* local interpolation values */
-    MYFLT elevindexhighper, angleindex2per, angleindex4per;
+    cs_float elevindexhighper, angleindex2per, angleindex4per;
     int32_t elevindexlow, elevindexhigh, angleindex1, angleindex2,
       angleindex3, angleindex4;
-    MYFLT magl, magr, phasel, phaser, magllow, magrlow, maglhigh, magrhigh;
+    cs_float magl, magr, phasel, phaser, magllow, magrlow, maglhigh, magrhigh;
 
     /* woodworth values */
-    MYFLT radianangle, radianelev, itd=0, itdww, freq;
+    cs_float radianangle, radianelev, itd=0, itdww, freq;
 
     int32_t irlength = p->irlength;
 
     /* local variables, mainly used for simplification */
-    MYFLT elevindexstore;
-    MYFLT angleindexlowstore;
-    MYFLT angleindexhighstore;
+    cs_float elevindexstore;
+    cs_float angleindexlowstore;
+    cs_float angleindexhighstore;
 
 
     /* start indices at correct value (start of file)/ zero indices. */
@@ -2318,13 +2318,13 @@ static int32_t hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     fpindexr = (float *) p->fpbeginr;
 
     if (UNLIKELY(offset)) {
-      memset(outsigl, '\0', offset*sizeof(MYFLT));
-      memset(outsigr, '\0', offset*sizeof(MYFLT));
+      memset(outsigl, '\0', offset*sizeof(cs_float));
+      memset(outsigr, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&outsigl[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&outsigr[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&outsigl[nsmps], '\0', early*sizeof(cs_float));
+      memset(&outsigr[nsmps], '\0', early*sizeof(cs_float));
     }
     /* ksmps loop */
     for(j = offset; j < nsmps; j++)

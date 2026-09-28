@@ -50,31 +50,31 @@
 
 typedef struct FLUTE {
     OPDS        h;
-    MYFLT       *ar;                  /* Output */
-    MYFLT       *amp, *frequency;
-    MYFLT       *jetRatio, *attack, *dettack, *noiseGain, *vibFreq;
-    MYFLT       *vibAmt, *ifn, *lowestFreq;
-    MYFLT       *jetRefl;       /* Optional 0.5 */
-    MYFLT       *endRefl;       /* Optional 0.5 */
+    cs_float       *ar;                  /* Output */
+    cs_float       *amp, *frequency;
+    cs_float       *jetRatio, *attack, *dettack, *noiseGain, *vibFreq;
+    cs_float       *vibAmt, *ifn, *lowestFreq;
+    cs_float       *jetRefl;       /* Optional 0.5 */
+    cs_float       *endRefl;       /* Optional 0.5 */
 
     FUNC        *vibr;
-    MYFLT       v_rate;         /* Parameters for vibrato */
-    MYFLT       v_time;
-/*     MYFLT    v_phaseOffset; */
+    cs_float       v_rate;         /* Parameters for vibrato */
+    cs_float       v_time;
+/*     cs_float    v_phaseOffset; */
     DLineL      jetDelay;
     DLineL      boreDelay;
     OnePole     filter;
     DCBlock     dcBlock;
     Noise       noise;
     ADSR        adsr;
-    MYFLT       lastFreq;
-    MYFLT       lastJet;
-    MYFLT       maxPress;
-    MYFLT       vibrGain;
-    MYFLT       outputGain;
-    double      kloop;
-    MYFLT       lastamp;
-    MYFLT       limit;
+    cs_float       lastFreq;
+    cs_float       lastJet;
+    cs_float       maxPress;
+    cs_float       vibrGain;
+    cs_float       outputGain;
+    cs_double      kloop;
+    cs_float       lastamp;
+    cs_float       limit;
 } FLUTE;
 
 #endif

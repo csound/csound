@@ -49,7 +49,11 @@ elif sys.platform.startswith('darwin'):
 else:
     sys.exit("Don't know your system! Exiting...")
 
-MYFLT = ct.c_double
+libcsound.csoundGetSizeOfCsFloat.restype = ct.c_int32
+libcsound.csoundGetSizeOfCsDouble.restype = ct.c_int32
+cs_float = ct.c_double if libcsound.csoundGetSizeOfCsFloat() == 8 else ct.c_float
+cs_double = ct.c_double if libcsound.csoundGetSizeOfCsDouble() == 8 else ct.c_float
+MYFLT = cs_float  # Deprecated in CS7; use cs_float.
 
 #
 # ERROR DEFINITIONS
@@ -132,9 +136,9 @@ class CsoundParams(ct.Structure):
         ("rewrite_header", ct.c_int32),     # rewrite header flag
         ("heartbeat", ct.c_int32),          # heartbeat flag
         ("gen01_defer", ct.c_int32),        # GEN01 defer allocation flag
-        ("cmd_tempo", ct.c_double),         # tempo value (-t)
-        ("sr_override", MYFLT),             # sampling rate override (-r)
-        ("kr_override", MYFLT),             # controle rate override (-k)
+        ("cmd_tempo", cs_double),         # tempo value (-t)
+        ("sr_override", cs_float),             # sampling rate override (-r)
+        ("kr_override", cs_float),             # controle rate override (-k)
         ("nchnls_override", ct.c_int32),    # nchnls override
         ("nchnls_i_override", ct.c_int32),  # nchnls_i override
         ("in_filename", ct.c_char_p),       # input file name (-i)
@@ -156,15 +160,15 @@ class CsoundParams(ct.Structure):
         ("use_csd_line_counts", ct.c_int32), # csd line nums option
         ("sample_accurate", ct.c_int32),    # sample accurate flag
         ("realtime", ct.c_int32),           # realtime priority flag
-        ("e0dbfs_override", MYFLT),         # 0dbfs override
+        ("e0dbfs_override", cs_float),         # 0dbfs override
         ("daemon", ct.c_int32),             # daemon mode flag
-        ("quality", ct.c_double),           # OGG encoding quality
+        ("quality", cs_double),           # OGG encoding quality
         ("ksmps_override", ct.c_int32),     # ksmps override
         ("fft_lib", ct.c_int32),            # FFT library option
         ("echo", ct.c_int32),               # UDP echo commands flag
-        ("limiter", MYFLT),                 # audio output limiter option
-        ("sr_default", MYFLT),              # default sampling rate
-        ("kr_default", MYFLT),              # default control rate
+        ("limiter", cs_float),                 # audio output limiter option
+        ("sr_default", cs_float),              # default sampling rate
+        ("kr_default", cs_float),              # default control rate
         ("mp3_mode", ct.c_int32),           # MP3 encoding mode
         ("redef", ct.c_int32)]              # instr redefinition flag
 
@@ -232,9 +236,9 @@ CSOUND_CONTROL_CHANNEL_EXP = 3
 #
 class ControlChannelHints(ct.Structure):
     _fields_ = [("behav", ct.c_int32),
-                ("dflt", MYFLT),
-                ("min", MYFLT),
-                ("max", MYFLT),
+                ("dflt", cs_float),
+                ("min", cs_float),
+                ("max", cs_float),
                 ("x", ct.c_int32),
                 ("y", ct.c_int32),
                 ("width", ct.c_int32),
@@ -264,17 +268,17 @@ libcsound.csoundDestroy.argtypes = [CSOUND_p]
 
 # Attributes
 libcsound.csoundGetVersion.restype = ct.c_int32
-libcsound.csoundGetSr.restype = MYFLT
+libcsound.csoundGetSr.restype = cs_float
 libcsound.csoundGetSr.argtypes = [CSOUND_p]
-libcsound.csoundGetKr.restype = MYFLT
+libcsound.csoundGetKr.restype = cs_float
 libcsound.csoundGetKr.argtypes = [CSOUND_p]
 libcsound.csoundGetKsmps.restype = ct.c_uint32
 libcsound.csoundGetKsmps.argtypes = [CSOUND_p]
 libcsound.csoundGetChannels.restype = ct.c_uint32
 libcsound.csoundGetChannels.argtypes = [CSOUND_p, ct.c_int32]
-libcsound.csoundGet0dBFS.restype = MYFLT
+libcsound.csoundGet0dBFS.restype = cs_float
 libcsound.csoundGet0dBFS.argtypes = [CSOUND_p]
-libcsound.csoundGetA4.restype = MYFLT
+libcsound.csoundGetA4.restype = cs_float
 libcsound.csoundGetA4.argtypes = [CSOUND_p]
 libcsound.csoundGetCurrentTimeSamples.restype = ct.c_int64
 libcsound.csoundGetCurrentTimeSamples.argtypes = [CSOUND_p]
@@ -292,8 +296,8 @@ libcsound.csoundGetParams.argtypes = [CSOUND_p, ct.POINTER(CsoundParams)]
 libcsound.csoundGetDebug.restype = ct.c_int32
 libcsound.csoundGetDebug.argtypes = [CSOUND_p]
 libcsound.csoundSetDebug.argtypes = [CSOUND_p, ct.c_int32]
-libcsound.csoundSystemSr.restype = MYFLT
-libcsound.csoundSystemSr.argtypes = [CSOUND_p, MYFLT]
+libcsound.csoundSystemSr.restype = cs_float
+libcsound.csoundSystemSr.argtypes = [CSOUND_p, cs_float]
 libcsound.csoundGetModule.restype = ct.c_int32
 libcsound.csoundGetModule.argtypes = [CSOUND_p, ct.c_int,
                                       ct.POINTER(ct.c_char_p), ct.POINTER(ct.c_char_p)]
@@ -309,7 +313,7 @@ libcsound.csoundCompile.restype = ct.c_int32
 libcsound.csoundCompile.argtypes = [CSOUND_p, ct.c_int32, ct.POINTER(ct.c_char_p)]
 libcsound.csoundCompileOrc.restype = ct.c_int32
 libcsound.csoundCompileOrc.argtypes = [CSOUND_p, ct.c_char_p, ct.c_int32]
-libcsound.csoundEvalCode.restype = MYFLT
+libcsound.csoundEvalCode.restype = cs_float
 libcsound.csoundEvalCode.argtypes = [CSOUND_p, ct.c_char_p]
 libcsound.csoundCompileCSD.restype = ct.c_int32
 libcsound.csoundCompileCSD.argtypes = [CSOUND_p, ct.c_char_p, ct.c_int32, ct.c_int32]
@@ -324,9 +328,9 @@ libcsound.csoundReset.argtypes = [CSOUND_p]
 # Realtime Audio I/O
 libcsound.csoundSetHostAudioIO.argtypes = [CSOUND_p]
 libcsound.csoundSetRTAudioModule.argtypes = [CSOUND_p, ct.c_char_p]
-libcsound.csoundGetSpin.restype = ct.POINTER(MYFLT)
+libcsound.csoundGetSpin.restype = ct.POINTER(cs_float)
 libcsound.csoundGetSpin.argtypes = [CSOUND_p]
-libcsound.csoundGetSpout.restype = ct.POINTER(MYFLT)
+libcsound.csoundGetSpout.restype = ct.POINTER(cs_float)
 libcsound.csoundGetSpout.argtypes = [CSOUND_p]
 
 # Realtime MIDI I/O
@@ -384,11 +388,11 @@ libcsound.csoundGetControlChannelHints.argtypes = [CSOUND_p, ct.c_char_p,
                                                    ct.POINTER(ControlChannelHints)]
 libcsound.csoundLockChannel.argtypes = [CSOUND_p, ct.c_char_p]
 libcsound.csoundUnlockChannel.argtypes = [CSOUND_p, ct.c_char_p]
-libcsound.csoundGetControlChannel.restype = MYFLT
+libcsound.csoundGetControlChannel.restype = cs_float
 libcsound.csoundGetControlChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.POINTER(ct.c_int32)]
-libcsound.csoundSetControlChannel.argtypes = [CSOUND_p, ct.c_char_p, MYFLT]
-libcsound.csoundGetAudioChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.POINTER(MYFLT)]
-libcsound.csoundSetAudioChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.POINTER(MYFLT)]
+libcsound.csoundSetControlChannel.argtypes = [CSOUND_p, ct.c_char_p, cs_float]
+libcsound.csoundGetAudioChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.POINTER(cs_float)]
+libcsound.csoundSetAudioChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.POINTER(cs_float)]
 libcsound.csoundGetStringChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.c_char_p]
 libcsound.csoundSetStringChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.c_char_p]
 
@@ -430,7 +434,7 @@ libcsound.csoundGetChannelDatasize.argtypes = [CSOUND_p, ct.c_char_p]
 CHANNELFUNC = ct.CFUNCTYPE(None, CSOUND_p, ct.c_char_p, ct.c_void_p, ct.c_void_p)
 libcsound.csoundSetInputChannelCallback.argtypes = [CSOUND_p, CHANNELFUNC]
 libcsound.csoundSetOutputChannelCallback.argtypes = [CSOUND_p, CHANNELFUNC]
-libcsound.csoundEvent.argtypes = [CSOUND_p, ct.c_int32, ct.POINTER(MYFLT),
+libcsound.csoundEvent.argtypes = [CSOUND_p, ct.c_int32, ct.POINTER(cs_float),
                                   ct.c_int32, ct.c_int32]
 libcsound.csoundEventString.argtypes = [CSOUND_p, ct.c_char_p, ct.c_int32]
 libcsound.csoundGetInstrNumber.argtypes = [CSOUND_p, ct.c_char_p]
@@ -445,19 +449,19 @@ libcsound.csoundRemoveKeyboardCallback.argtypes = [CSOUND_p, KEYBOARDFUNC]
 libcsound.csoundTableLength.restype = ct.c_int32
 libcsound.csoundTableLength.argtypes = [CSOUND_p, ct.c_int32]
 libcsound.csoundGetTable.restype = ct.c_int32
-libcsound.csoundGetTable.argtypes = [CSOUND_p, ct.POINTER(ct.POINTER(MYFLT)), ct.c_int32]
+libcsound.csoundGetTable.argtypes = [CSOUND_p, ct.POINTER(ct.POINTER(cs_float)), ct.c_int32]
 libcsound.csoundGetTableArgs.restype = ct.c_int32
-libcsound.csoundGetTableArgs.argtypes = [CSOUND_p, ct.POINTER(ct.POINTER(MYFLT)), ct.c_int32]
+libcsound.csoundGetTableArgs.argtypes = [CSOUND_p, ct.POINTER(ct.POINTER(cs_float)), ct.c_int32]
 
 # Score Handling
-libcsound.csoundGetScoreTime.restype = ct.c_double
+libcsound.csoundGetScoreTime.restype = cs_double
 libcsound.csoundGetScoreTime.argtypes = [CSOUND_p]
 libcsound.csoundIsScorePending.restype = ct.c_int32
 libcsound.csoundIsScorePending.argtypes = [CSOUND_p]
 libcsound.csoundSetScorePending.argtypes = [CSOUND_p, ct.c_int32]
-libcsound.csoundGetScoreOffsetSeconds.restype = MYFLT
+libcsound.csoundGetScoreOffsetSeconds.restype = cs_float
 libcsound.csoundGetScoreOffsetSeconds.argtypes = [CSOUND_p]
-libcsound.csoundSetScoreOffsetSeconds.argtypes = [CSOUND_p, MYFLT]
+libcsound.csoundSetScoreOffsetSeconds.argtypes = [CSOUND_p, cs_float]
 libcsound.csoundRewindScore.argtypes = [CSOUND_p]
 libcsound.csoundSleep.argtypes = [ct.c_size_t]
 
@@ -474,15 +478,15 @@ CAPSIZE  = 60
 
 class Windat(ct.Structure):
     _fields_ = [("windid", ct.POINTER(ct.c_uint)), # set by makeGraph()
-                ("fdata", ct.POINTER(MYFLT)),      # data passed to drawGraph()
+                ("fdata", ct.POINTER(cs_float)),      # data passed to drawGraph()
                 ("npts", ct.c_int32),              # size of above array
                 ("caption", ct.c_char * CAPSIZE),  # caption string for graph
                 ("waitflg", ct.c_int16 ),          # set =1 to wait for ms after Draw
                 ("polarity", ct.c_int16),          # controls positioning of X axis
-                ("max", MYFLT),                    # workspace .. extrema this frame
-                ("min", MYFLT),
-                ("absmax", MYFLT),                 # workspace .. largest of above
-                ("oabsmax", MYFLT),                # Y axis scaling factor
+                ("max", cs_float),                    # workspace .. extrema this frame
+                ("min", cs_float),
+                ("absmax", cs_float),                 # workspace .. largest of above
+                ("oabsmax", cs_float),                # Y axis scaling factor
                 ("danflag", ct.c_int32),           # set to 1 for extra Yaxis mid span
                 ("absflag", ct.c_int32)]           # set to 1 to skip abs check
 
@@ -583,8 +587,8 @@ libcsound.csoundUgenVarGetSize.restype = ct.c_size_t
 libcsound.csoundUgenVarGetSize.argtypes = [UGEN_VAR_p]
 
 # UGEN_VAR: scalar value access
-libcsound.csoundUgenVarSetValue.argtypes = [UGEN_VAR_p, MYFLT]
-libcsound.csoundUgenVarGetValue.restype = MYFLT
+libcsound.csoundUgenVarSetValue.argtypes = [UGEN_VAR_p, cs_float]
+libcsound.csoundUgenVarGetValue.restype = cs_float
 libcsound.csoundUgenVarGetValue.argtypes = [UGEN_VAR_p]
 
 # UGEN_VAR: raw data pointer access
@@ -598,8 +602,8 @@ libcsound.csoundUgenVarGetString.restype = ct.c_char_p
 libcsound.csoundUgenVarGetString.argtypes = [UGEN_VAR_p]
 
 # UGEN convenience: scalar/string access by index
-libcsound.csoundUgenSetValue.argtypes = [UGEN_p, ct.c_int32, MYFLT]
-libcsound.csoundUgenGetValue.restype = MYFLT
+libcsound.csoundUgenSetValue.argtypes = [UGEN_p, ct.c_int32, cs_float]
+libcsound.csoundUgenGetValue.restype = cs_float
 libcsound.csoundUgenGetValue.argtypes = [UGEN_p, ct.c_int32]
 libcsound.csoundUgenSetString.restype = ct.c_bool
 libcsound.csoundUgenSetString.argtypes = [UGEN_p, ct.c_int32, ct.c_char_p]
@@ -759,8 +763,16 @@ class Csound:
         """Returns the current performance time in sample frames."""
         return libcsound.csoundGetCurrentTimeSamples(self.cs)
 
+    def size_of_cs_float(self):
+        """Returns the size of cs_float in bytes."""
+        return libcsound.csoundGetSizeOfCsFloat()
+
+    def size_of_cs_double(self):
+        """Returns the size of cs_double in bytes."""
+        return libcsound.csoundGetSizeOfCsDouble()
+
     def size_of_MYFLT(self):
-        """Returns the size of MYFLT in bytes."""
+        """Returns the size of cs_float in bytes."""
         return libcsound.csoundGetSizeOfMYFLT()
 
     def host_data(self):
@@ -1048,7 +1060,7 @@ class Csound:
         """
         buf = libcsound.csoundGetSpin(self.cs)
         size = self.ksmps() * self.channels(is_input=True)
-        arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
+        arrayType = np.ctypeslib.ndpointer(cs_float, 1, (size,), 'C_CONTIGUOUS')
         p = ct.cast(buf, arrayType)
         return array_from_pointer(p)
 
@@ -1060,7 +1072,7 @@ class Csound:
         """
         buf = libcsound.csoundGetSpout(self.cs)
         size = self.ksmps() * self.channels()
-        arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
+        arrayType = np.ctypeslib.ndpointer(cs_float, 1, (size,), 'C_CONTIGUOUS')
         p = ct.cast(buf, arrayType)
         return array_from_pointer(p)
 
@@ -1157,9 +1169,9 @@ class Csound:
         type_ must be the bitwise OR of exactly one of the following values,
 
         CSOUND_CONTROL_CHANNEL
-            control data (one MYFLT value) - (MYFLT **) pp
+            control data (one cs_float value) - (cs_float **) pp
         CSOUND_AUDIO_CHANNEL
-            audio data (ksmps() MYFLT values) - (MYFLT **) pp
+            audio data (ksmps() cs_float values) - (cs_float **) pp
         CSOUND_STRING_CHANNEL
             string data as a STRINGDAT structure - (STRINGDAT **) pp
             (see string_data() and set_string_data())
@@ -1178,7 +1190,7 @@ class Csound:
         CSOUND_OUTPUT_CHANNEL
 
         If the channel is a control or an audio channel, the pointer is
-        translated to an ndarray of MYFLT. String, array, and PVS channels are
+        translated to an ndarray of cs_float. String, array, and PVS channels are
         returned using their corresponding opaque pointer types. Generic
         channel data is returned as an opaque c_void_p because its layout is
         type-specific. The error message is either an empty string or a string
@@ -1229,7 +1241,7 @@ class Csound:
                 return ptr, err
             elif chan_type == CSOUND_AUDIO_CHANNEL:
                 length = libcsound.csoundGetKsmps(self.cs)
-            array_type = np.ctypeslib.ndpointer(MYFLT, 1, (length,), 'C_CONTIGUOUS')
+            array_type = np.ctypeslib.ndpointer(cs_float, 1, (length,), 'C_CONTIGUOUS')
             p = ct.cast(ptr, array_type)
             return array_from_pointer(p), err
 
@@ -1379,22 +1391,22 @@ class Csound:
 
     def set_control_channel(self, name, val):
         """Sets the value of control channel identified by name."""
-        libcsound.csoundSetControlChannel(self.cs, cstring(name), MYFLT(val))
+        libcsound.csoundSetControlChannel(self.cs, cstring(name), cs_float(val))
 
     def audio_channel(self, name, samples):
         """Copies the audio channel identified by name into ndarray samples.
 
-        samples should contain enough memory for ksmps() MYFLTs.
+        samples should contain enough memory for ksmps() cs_float values.
         """
-        ptr = samples.ctypes.data_as(ct.POINTER(MYFLT))
+        ptr = samples.ctypes.data_as(ct.POINTER(cs_float))
         libcsound.csoundGetAudioChannel(self.cs, cstring(name), ptr)
 
     def set_audio_channel(self, name, samples):
         """Sets the audio channel name with data from the ndarray samples.
 
-        samples should contain at least ksmps() MYFLTs.
+        samples should contain at least ksmps() cs_float values.
         """
-        ptr = samples.ctypes.data_as(ct.POINTER(MYFLT))
+        ptr = samples.ctypes.data_as(ct.POINTER(cs_float))
         libcsound.csoundSetAudioChannel(self.cs, cstring(name), ptr)
 
     def string_channel(self, name):
@@ -1414,11 +1426,11 @@ class Csound:
     def init_array_channel(self, name, type_, sizes):
         """Create and initialise an array channel with a given array type.
 
-        - "a" (audio sigs): each item is a ksmps-size MYFLT array
-        - "i" (init vars): each item is a MYFLT
+        - "a" (audio sigs): each item is a ksmps-size cs_float array
+        - "i" (init vars): each item is a cs_float
         - "S" (strings): each item is a STRINGDAT_p (see string_data() and
           set_string_data())
-        - "k" (control sigs): each item is a MYFLT
+        - "k" (control sigs): each item is a cs_float
         sizes - sizes for each dimension
         returns the ARRAYDAT_p for the requested channel or None on error
         NB: if the channel exists and has already been initialised,
@@ -1433,11 +1445,11 @@ class Csound:
         """Get the type of data the ARRAYDAT adat.
 
         It returns
-        - "a" (audio sigs): each item is a ksmps-size MYFLT array
-        - "i" (init vars): each item is a MYFLT
+        - "a" (audio sigs): each item is a ksmps-size cs_float array
+        - "i" (init vars): each item is a cs_float
         - "S" (strings): each item is a STRINGDAT (see string_data() and
           set_string_data()
-        - "k" (control sigs): each item is a MYFLT
+        - "k" (control sigs): each item is a cs_float
         """
         return pstring(libcsound.csoundArrayDataType(adat))
 
@@ -1463,9 +1475,9 @@ class Csound:
         ndim = self.array_data_dimensions(adat)
         shape = self.array_data_sizes(adat)
         if type_s == "i" or type_s == "k":
-            array_type = np.ctypeslib.ndpointer(MYFLT, ndim, shape, 'C_CONTIGUOUS')
+            array_type = np.ctypeslib.ndpointer(cs_float, ndim, shape, 'C_CONTIGUOUS')
         elif type_s == "a":
-            array_type = np.ctypeslib.ndpointer(MYFLT*self.sr(), ndim, shape, 'C_CONTIGUOUS')
+            array_type = np.ctypeslib.ndpointer(cs_float*self.sr(), ndim, shape, 'C_CONTIGUOUS')
         elif type_s == "S":
             array_type = np.ctypeslib.ndpointer(ct.c_void_p, ndim, shape, 'C_CONTIGUOUS')
         else:
@@ -1549,12 +1561,12 @@ class Csound:
         type_ 0 - instrument instance     CS_INSTR_EVENT
         type_ 1 - function table instance CS_TABLE_EVENT
         type_ 2 - end event               CS_END_EVENT
-        event parameters is a tuple, a list, or an ndarray of MYFLTs with all
+        event parameters is a tuple, a list, or an ndarray of cs_float values with all
         the pfields for this event parameters (p-fields)
         optionally run asynchronously (async_ = True)
         """
-        p = np.asarray(params, dtype=MYFLT)
-        ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
+        p = np.asarray(params, dtype=cs_float)
+        ptr = p.ctypes.data_as(ct.POINTER(cs_float))
         n_fields = ct.c_int32(p.size)
         libcsound.csoundEvent(self.cs, ct.c_int32(type_), ptr, n_fields,
             ct.c_int32(async_))
@@ -1664,11 +1676,11 @@ class Csound:
         The ndarray does not include the guard point. If the table does not
         exist, None is returned.
         """
-        ptr = ct.POINTER(MYFLT)()
+        ptr = ct.POINTER(cs_float)()
         size = libcsound.csoundGetTable(self.cs, ct.byref(ptr), tableNum)
         if size < 0:
             return None
-        arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
+        arrayType = np.ctypeslib.ndpointer(cs_float, 1, (size,), 'C_CONTIGUOUS')
         p = ct.cast(ptr, arrayType)
         return array_from_pointer(p)
 
@@ -1682,11 +1694,11 @@ class Csound:
         its parameters. eg. f 1 0 1024 10 1 0.5  yields the list
         {10.0, 1.0, 0.5}
         """
-        ptr = ct.POINTER(MYFLT)()
+        ptr = ct.POINTER(cs_float)()
         size = libcsound.csoundGetTableArgs(self.cs, ct.byref(ptr), tableNum)
         if size < 0:
             return None
-        arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
+        arrayType = np.ctypeslib.ndpointer(cs_float, 1, (size,), 'C_CONTIGUOUS')
         p = ct.cast(ptr, arrayType)
         return array_from_pointer(p)
 
@@ -1736,7 +1748,7 @@ class Csound:
         midway through a Csound score, for example to repeat a loop in a
         sequencer, or to synchronize other events with the Csound score.
         """
-        libcsound.csoundSetScoreOffsetSeconds(self.cs, MYFLT(time_))
+        libcsound.csoundSetScoreOffsetSeconds(self.cs, cs_float(time_))
 
     def rewind_score(self):
         """Rewinds a compiled Csound score.
@@ -1898,7 +1910,7 @@ class Csound:
 
         The element's size is set from elemsize. It should be used like::
 
-            rb = cs.create_circular_buffer(1024, cs.size_of_MYFLT())
+            rb = cs.create_circular_buffer(1024, cs.size_of_cs_float())
         """
         return libcsound.csoundCreateCircularBuffer(self.cs, numelem, elemsize)
 
@@ -2030,9 +2042,9 @@ libcspt.csoundPerformanceThreadTogglePause.argtypes = [CSOUNDPERFTHREAD_p]
 libcspt.csoundPerformanceThreadStop.argtypes = [CSOUNDPERFTHREAD_p]
 libcspt.csoundPerformanceThreadRecord.argtypes = [CSOUNDPERFTHREAD_p, ct.c_char_p, ct.c_int32, ct.c_int32]
 libcspt.csoundPerformanceThreadStopRecord.argtypes = [CSOUNDPERFTHREAD_p]
-libcspt.csoundPerformanceThreadScoreEvent.argtypes = [CSOUNDPERFTHREAD_p, ct.c_int32, ct.c_char, ct.c_int32, ct.POINTER(MYFLT)]
+libcspt.csoundPerformanceThreadScoreEvent.argtypes = [CSOUNDPERFTHREAD_p, ct.c_int32, ct.c_char, ct.c_int32, ct.POINTER(cs_float)]
 libcspt.csoundPerformanceThreadInputMessage.argtypes = [CSOUNDPERFTHREAD_p, ct.c_char_p]
-libcspt.csoundPerformanceThreadSetScoreOffsetSeconds.argtypes = [CSOUNDPERFTHREAD_p, ct.c_double]
+libcspt.csoundPerformanceThreadSetScoreOffsetSeconds.argtypes = [CSOUNDPERFTHREAD_p, cs_double]
 libcspt.csoundPerformanceThreadJoin.restype = ct.c_int32
 libcspt.csoundPerformanceThreadJoin.argtypes = [CSOUNDPERFTHREAD_p]
 libcspt.csoundPerformanceThreadFlushMessageQueue.argtypes = [CSOUNDPERFTHREAD_p]
@@ -2174,14 +2186,14 @@ class CsoundPerformanceThread:
         """Sends a score event.
 
         The event has type opcod (e.g. 'i' for a note event).
-        pFields is tuple, a list, or an ndarray of MYFLTs with all the pfields
+        pFields is tuple, a list, or an ndarray of cs_float values with all the pfields
         for this event, starting with the p1 value specified in pFields[0].
         If absp2mode is non-zero, the start time of the event is measured
         from the beginning of performance, instead of the default of relative
         to the current time.
         """
-        p = np.array(pFields).astype(MYFLT)
-        ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
+        p = np.array(pFields).astype(cs_float)
+        ptr = p.ctypes.data_as(ct.POINTER(cs_float))
         numFields = p.size
         libcspt.csoundPerformanceThreadScoreEvent(self.cpt, ct.c_int32(absp2mode), cchar(opcod), numFields, ptr)
 
@@ -2191,7 +2203,7 @@ class CsoundPerformanceThread:
 
     def set_score_offset_seconds(self, timeVal):
         """Sets the playback time pointer to the specified value (in seconds)."""
-        libcspt.csoundPerformanceThreadSetScoreOffsetSeconds(self.cpt, ct.c_double(timeVal))
+        libcspt.csoundPerformanceThreadSetScoreOffsetSeconds(self.cpt, cs_double(timeVal))
 
     def join(self):
         """Waits until the performance is finished or fails.
@@ -2404,7 +2416,7 @@ class Ugen:
             for ...:                         # tight loop
                 freq_var.set_value(new_freq)
         """
-        libcsound.csoundUgenSetValue(self.ugen, index, MYFLT(value))
+        libcsound.csoundUgenSetValue(self.ugen, index, cs_float(value))
 
     def get_value(self, index):
         """Get a scalar value from output argument at index.
@@ -2579,8 +2591,8 @@ class UgenVar:
     Example – reading an audio output buffer::
 
         var = ugen.get_out_var(0)
-        ptr = var.data_ptr         # raw MYFLT* pointer
-        buf = (MYFLT * ksmps).from_address(ptr)
+        ptr = var.data_ptr         # raw cs_float* pointer
+        buf = (cs_float * ksmps).from_address(ptr)
         samples = list(buf)
 
     Example – wiring two UGENs::
@@ -2618,7 +2630,7 @@ class UgenVar:
 
     def set_value(self, value):
         """Set a scalar (i/k-rate) value."""
-        libcsound.csoundUgenVarSetValue(self.var, MYFLT(value))
+        libcsound.csoundUgenVarSetValue(self.var, cs_float(value))
 
     def get_value(self):
         """Get a scalar (i/k-rate) value."""
@@ -2628,8 +2640,8 @@ class UgenVar:
     def data_ptr(self):
         """Raw pointer to the variable's data buffer.
 
-        For audio-rate vars this points to ksmps MYFLTs.
-        For i/k-rate this points to a single MYFLT.
+        For audio-rate vars this points to ksmps cs_float values.
+        For i/k-rate this points to a single cs_float.
         For S-type this points to a STRINGDAT struct.
         """
         return libcsound.csoundUgenVarGetData(self.var)

@@ -144,7 +144,7 @@ class PUBLIC Csound
   virtual int32_t CompileOrc(const char *str, int32_t async = 0) {
     return csoundCompileOrc(csound, str, async);
   }
-  virtual MYFLT EvalCode(const char *str)
+  virtual cs_float EvalCode(const char *str)
   {
     return csoundEvalCode(csound, str);
   }
@@ -235,11 +235,11 @@ class PUBLIC Csound
   {
     csoundReset(csound);
   }
-  virtual MYFLT GetSr()
+  virtual cs_float GetSr()
   {
     return csoundGetSr(csound);
   }
-  virtual MYFLT GetKr()
+  virtual cs_float GetKr()
   {
     return csoundGetKr(csound);
   }
@@ -251,15 +251,15 @@ class PUBLIC Csound
   {
     return csoundGetChannels(csound,isInput);
   }
-  virtual MYFLT Get0dBFS()
+  virtual cs_float Get0dBFS()
   {
     return csoundGet0dBFS(csound);
   }
-  virtual MYFLT *GetSpin()
+  virtual cs_float *GetSpin()
   {
     return csoundGetSpin(csound);
   }
-  virtual const MYFLT *GetSpout()
+  virtual const cs_float *GetSpout()
   {
     return csoundGetSpout(csound);
   }
@@ -274,7 +274,7 @@ class PUBLIC Csound
   {
     csoundSetHostMIDIIO(csound);
   }
-  virtual double GetScoreTime()
+  virtual cs_double GetScoreTime()
   {
     return csoundGetScoreTime(csound);
   }
@@ -286,13 +286,13 @@ class PUBLIC Csound
   {
     csoundSetScorePending(csound, pending);
   }
-  virtual MYFLT GetScoreOffsetSeconds()
+  virtual cs_float GetScoreOffsetSeconds()
   {
     return csoundGetScoreOffsetSeconds(csound);
   }
-  virtual void SetScoreOffsetSeconds(double time)
+  virtual void SetScoreOffsetSeconds(cs_double time)
   {
-    csoundSetScoreOffsetSeconds(csound, (MYFLT) time);
+    csoundSetScoreOffsetSeconds(csound, (cs_float) time);
   }
   virtual void RewindScore()
   {
@@ -337,7 +337,7 @@ class PUBLIC Csound
   {
     return csoundReadlinePushText(csound, text);
   }
-  virtual void Event(int32_t type, MYFLT *pFields, int32_t numFields, int32_t async = 0)
+  virtual void Event(int32_t type, cs_float *pFields, int32_t numFields, int32_t async = 0)
   {
     csoundEvent(csound, type, pFields, numFields, async);
   }
@@ -411,27 +411,27 @@ class PUBLIC Csound
   {
     return csoundTableLength(csound, table);
   }
-  virtual int32_t GetTable(MYFLT **tablePtr, int32_t tableNum){
+  virtual int32_t GetTable(cs_float **tablePtr, int32_t tableNum){
     return csoundGetTable(csound, tablePtr, tableNum);
   }
 
-  virtual int32_t GetTableArgs(MYFLT **argsPtr, int32_t tableNum){
+  virtual int32_t GetTableArgs(cs_float **argsPtr, int32_t tableNum){
     return csoundGetTableArgs(csound, argsPtr, tableNum);
   }
 
   virtual void TableCopyIn(int32_t table,
-			   const MYFLT *ptable, int32_t async) {
+			   const cs_float *ptable, int32_t async) {
     csoundTableCopyIn(csound, table, ptable, async);
   }
 
   virtual void TableCopyOut(int32_t table,
-			   MYFLT *ptable, int32_t async) {
+			   cs_float *ptable, int32_t async) {
     csoundTableCopyOut(csound, table, ptable, async);
   }
 
   virtual int32_t GetChannelPtr(void* &p, const char *name, int32_t type)
   {
-    MYFLT *tmp;
+    cs_float *tmp;
     int32_t   retval;
     if(strlen(name) == 0) return CSOUND_ERROR;
     retval = csoundGetChannelPtr(csound, (void **) &tmp, name, type);
@@ -461,11 +461,11 @@ class PUBLIC Csound
   {
     return csoundGetControlChannelHints(csound, name, hints);
   }
-  virtual void SetChannel(const char *name, double value)
+  virtual void SetChannel(const char *name, cs_double value)
   {
     csoundSetControlChannel(csound,name,value);
   }
-  virtual void SetControlChannel(const char *name, double value)
+  virtual void SetControlChannel(const char *name, cs_double value)
   {
     csoundSetControlChannel(csound,name,value);
   }
@@ -477,15 +477,15 @@ class PUBLIC Csound
   {
     csoundSetStringChannel(csound,name,string);
   }
-  virtual void SetChannel(const char *name, const MYFLT *samples)
+  virtual void SetChannel(const char *name, const cs_float *samples)
   {
     csoundSetAudioChannel(csound,name,samples);
   }
-  virtual MYFLT GetChannel(const char *name, int32_t *err = NULL)
+  virtual cs_float GetChannel(const char *name, int32_t *err = NULL)
   {
     return csoundGetControlChannel(csound,name,err);
   }
-  virtual MYFLT GetControlChannel(const char *name, int32_t *err = NULL)
+  virtual cs_float GetControlChannel(const char *name, int32_t *err = NULL)
   {
     return csoundGetControlChannel(csound,name, err);
   }
@@ -493,7 +493,7 @@ class PUBLIC Csound
   {
     csoundGetStringChannel(csound,name,string);
   }
-  virtual void GetAudioChannel(const char *name, MYFLT *samples)
+  virtual void GetAudioChannel(const char *name, cs_float *samples)
   {
     csoundGetAudioChannel(csound,name,samples);
   }
@@ -554,10 +554,10 @@ class PUBLIC Csound
   {
     csoundDestroyMessageBuffer(csound);
   }
-  virtual void SetAudioChannel(const char *name, MYFLT *samples) {
+  virtual void SetAudioChannel(const char *name, cs_float *samples) {
     csoundSetAudioChannel(csound, name, samples);
   }
-  virtual MYFLT SystemSr(MYFLT value) {
+  virtual cs_float SystemSr(cs_float value) {
     return csoundSystemSr(csound, value);
   }
 };

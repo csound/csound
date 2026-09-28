@@ -46,10 +46,10 @@ char *allocStringMem(int length) {
 void freeStringMem(char *ptr) { free(ptr); }
 
 __attribute__((used))
-double *allocFloatArray(int length) {
-  return allocWasmArray(length, sizeof(double));
+cs_double *allocFloatArray(int length) {
+  return allocWasmArray(length, sizeof(cs_double));
 }
-void freeFloatArrayMem(double *ptr) { free(ptr); }
+void freeFloatArrayMem(cs_double *ptr) { free(ptr); }
 
 int sizeOfMidiStruct() { return sizeof(CS_MIDIDEVICE); }
 CS_MIDIDEVICE *allocCsMidiDeviceStruct(int num) {
@@ -331,9 +331,9 @@ char* getMidiOutFileName(CSOUND *csound) {
   }
 }
 
-double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
+cs_double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
   int *error = NULL;
-  double returnValue = csoundGetControlChannel(csound, channelName, error);
+  cs_double returnValue = csoundGetControlChannel(csound, channelName, error);
 
 //  printf("csoundGetControlChannel: Channel Name %s\n", channelName);
   if (error != NULL) {
@@ -440,7 +440,7 @@ void* csoundUgenVarGetDataAsFloat64Array(UGEN_VAR* var) {
 
 /**
  * Returns the ksmps value used by this UGEN_VAR.
- * For a-rate vars, the data buffer contains ksmps MYFLTs.
+ * For a-rate vars, the data buffer contains ksmps cs_float values.
  * For i/k vars this still returns the factory ksmps (useful for
  * knowing the audio block size).
  */
@@ -453,8 +453,8 @@ int32_t csoundUgenVarGetKsmps(UGEN_VAR* var) {
   UGEN_ARG_TYPE type = csoundUgenVarGetType(var);
   size_t size = csoundUgenVarGetSize(var);
   if (type == UGEN_ARG_TYPE_A) {
-    // a-rate: size = ksmps * sizeof(MYFLT)
-    return (int32_t)(size / sizeof(MYFLT));
+    // a-rate: size = ksmps * sizeof(cs_float)
+    return (int32_t)(size / sizeof(cs_float));
   }
   // For i/k/S/F types, return 1 (scalar)
   return 1;

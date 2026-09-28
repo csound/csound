@@ -25,8 +25,8 @@
 
 typedef struct {
         OPDS   h;
-        MYFLT  *which, *when, *dur;
-        MYFLT  *argums[VARGMAX-3];
+        cs_float  *which, *when, *dur;
+        cs_float  *argums[VARGMAX-3];
         int32_t midi;
         INSDS  *kicked;
 } SCHED;
@@ -34,44 +34,44 @@ typedef struct {
 
 typedef struct {
         OPDS   h;
-        MYFLT  *argums[VARGMAX];
+        cs_float  *argums[VARGMAX];
 } SCHEDO;
 
 
 
 typedef struct {
         OPDS   h;
-        MYFLT  *trigger;
-        MYFLT  *which, *when, *dur;
-        MYFLT  *argums[VARGMAX-3];
+        cs_float  *trigger;
+        cs_float  *which, *when, *dur;
+        cs_float  *argums[VARGMAX-3];
         int32_t    todo;
-        MYFLT  abs_when;
+        cs_float  abs_when;
         int32_t    midi;
         INSDS  *kicked;
 } WSCHED;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *res;
-        MYFLT   *kamp, *xcps, *type;
+        cs_float   *res;
+        cs_float   *kamp, *xcps, *type;
         AUXCH   auxd;
-        MYFLT   *sine;
+        cs_float   *sine;
         int32_t lasttype;
-        double  phs;
+        cs_double  phs;
 } LFO;
 
 
 typedef struct {
     OPDS   h;
     STRINGDAT *opcod;
-    MYFLT  *args[VARGMAX];
+    cs_float  *args[VARGMAX];
     int32_t argno;
 } LINEVENT;
 
 typedef struct {
     OPDS   h;
     INSTANCEREF *inst;
-    MYFLT  *args[VARGMAX];
+    cs_float  *args[VARGMAX];
     int32_t argno;
 } LINEVENT2;
 
@@ -82,9 +82,9 @@ typedef struct {
 
 typedef struct {
         OPDS   h;
-        MYFLT  *trigger, *mintime, *maxinst;
-        MYFLT  *args[PMAX+1];
-        MYFLT  prvmintim;
+        cs_float  *trigger, *mintime, *maxinst;
+        cs_float  *args[PMAX+1];
+        cs_float  prvmintim;
         int32   timrem, prvktim, kadjust;
 } TRIGINSTR;
 
@@ -95,34 +95,34 @@ typedef struct {
 
 typedef struct {
   OPDS  h;
-  MYFLT *ktrig, *kstart, *kloop, *initndx, *kfn, *outargs[VARGMAX];
+  cs_float *ktrig, *kstart, *kloop, *initndx, *kfn, *outargs[VARGMAX];
   int32  ndx;
   int32_t   nargs, done;
   uint32_t groups;
-  MYFLT pfn;
-  MYFLT *table;
+  cs_float pfn;
+  cs_float *table;
 } TRIGSEQ;
 
 typedef struct {
   OPDS  h;
-  MYFLT *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;
+  cs_float *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;
   int32 ndx;
   int32_t   done;
-  double start, newtime;
+  cs_double start, newtime;
   int32 pfn;
-  MYFLT *table;
+  cs_float *table;
 } SEQTIM;
 
 
 int32_t insert_score_args_at_sample(CSOUND *csound, const EVTBLK *ep,
-                                    MYFLT *pfields[VARGMAX],
+                                    cs_float *pfields[VARGMAX],
                                     int64_t time_ofs);
 int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t cnt, int32_t s, char p1);
 int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t cnt, int32_t s, char p1);
 
 typedef struct {
   OPDS h;
-  MYFLT *arg[PMAX];
+  cs_float *arg[PMAX];
 } RMEVT;
 
 

@@ -47,10 +47,10 @@ extern "C" {
                           int32_t fd, int32_t mode, SFLIB_INFO *sfinfo,
                           int32_t close_desc);
     int32_t (*SndfileClose)(CSOUND *csound, void *);
-    int64_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int64_t);
-    int64_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int64_t);
-    int64_t (*SndfileWriteSamples)(CSOUND *, void *, MYFLT *, int64_t);
-    int64_t (*SndfileReadSamples)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*SndfileWrite)(CSOUND *, void *, cs_float *, int64_t);
+    int64_t (*SndfileRead)(CSOUND *, void *, cs_float *, int64_t);
+    int64_t (*SndfileWriteSamples)(CSOUND *, void *, cs_float *, int64_t);
+    int64_t (*SndfileReadSamples)(CSOUND *, void *, cs_float *, int64_t);
     int64_t (*SndfileSeek)(CSOUND *, void *, int64_t, int32_t);
     int32_t (*SndfileSetString)(CSOUND *csound, void *sndfile, int32_t str_type, const char* str);
     const char *(*SndfileStrError)(CSOUND *csound, void *);

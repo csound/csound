@@ -207,19 +207,19 @@ int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
 /* turnoff2 opcode */
 int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
-  MYFLT p1;                     /* Shoud e a float */
+  cs_float p1;                     /* Shoud e a float */
   INSDS *ip, *ip2, *nip;
   int32_t   mode, insno, allow_release;
 
   if (isStringArg == 1) {
-    p1 = (MYFLT) csoundStringArg2Insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
+    p1 = (cs_float) csoundStringArg2Insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
   }
   else if (isStringArg == 2) {
     INSTREF *ref = (INSTREF *) p->kInsNo;
-    p1 = (MYFLT) instr_num(csound, ref->instr);
+    p1 = (cs_float) instr_num(csound, ref->instr);
   }
   else if (IsStringCode(*p->kInsNo)) {
-    p1 = (MYFLT) csoundStringArg2Insno(csound, csoundGetArgString(csound, *p->kInsNo), 1);
+    p1 = (cs_float) csoundStringArg2Insno(csound, csoundGetArgString(csound, *p->kInsNo), 1);
   }
   else p1 = *(p->kInsNo);
 
@@ -308,21 +308,21 @@ int32_t turnoff2k(CSOUND *csound, TURNOFF2 *p){
   return turnoff2(csound, p, 0);
 }
 
-extern void delete_selected_rt_events(CSOUND*, MYFLT);
+extern void delete_selected_rt_events(CSOUND*, cs_float);
 int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
-  MYFLT p1;
+  cs_float p1;
   int32_t   insno;
 
   if (isStringArg) {
-    p1 = (MYFLT) csoundStringArg2Insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
+    p1 = (cs_float) csoundStringArg2Insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
   }
   else if (isStringArg == 2) {
     INSTREF *ref = (INSTREF *) p->kInsNo;
-    p1 = (MYFLT) instr_num(csound, ref->instr);
+    p1 = (cs_float) instr_num(csound, ref->instr);
   }
   else if (IsStringCode(*p->kInsNo)) {
-    p1 = (MYFLT) csoundStringArg2Insno(csound, csoundGetArgString(csound, *p->kInsNo), 1);
+    p1 = (cs_float) csoundStringArg2Insno(csound, csoundGetArgString(csound, *p->kInsNo), 1);
   }
   else p1 = *(p->kInsNo);
 

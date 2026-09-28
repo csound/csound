@@ -53,8 +53,8 @@ namespace {
 struct OscrawArgs {
     OPDS h;
     ARRAYDAT *output;
-    MYFLT *count;
-    MYFLT *port;
+    cs_float *count;
+    cs_float *port;
     AUXCH buffer;
     TestSocket socket;
     int32_t wsaStarted;
@@ -69,7 +69,7 @@ protected:
     ARRAYDAT output = {};
     int32_t outputSize = 13;
     STRINGDAT strings[13] = {};
-    MYFLT count = 0, port = 0;
+    cs_float count = 0, port = 0;
 
     void SetUp() override {
       cs = csoundCreate(nullptr, nullptr);
@@ -83,7 +83,7 @@ protected:
       output.dimensions = 1;
       output.sizes = &outputSize;
       output.arrayMemberSize = sizeof(STRINGDAT);
-      output.data = (MYFLT *) strings;
+      output.data = (cs_float *) strings;
       packet.clear();
     }
 
@@ -117,7 +117,7 @@ TEST_F(OscrawTests, DecodesBoundedScalarsStringsAndBlobs)
     packet.insert(packet.end(), {0, 1, 255, 0});
     const int32_t dimensions = 2;
     const int32_t sizes[] = {2, 1};
-    const MYFLT values[] = {FL(2.25), FL(-3.5)};
+    const cs_float values[] = {FL(2.25), FL(-3.5)};
     appendU32(packet, sizeof(dimensions) + sizeof(sizes) + sizeof(values));
     const auto appendNative = [&](const void *data, size_t size) {
       const auto *bytes = static_cast<const unsigned char *>(data);
@@ -126,10 +126,10 @@ TEST_F(OscrawTests, DecodesBoundedScalarsStringsAndBlobs)
     appendNative(&dimensions, sizeof(dimensions));
     appendNative(sizes, sizeof(sizes));
     appendNative(values, sizeof(values));
-    const MYFLT audio[] = {2, FL(0.25), FL(-0.5)};
+    const cs_float audio[] = {2, FL(0.25), FL(-0.5)};
     appendU32(packet, sizeof(audio));
     appendNative(audio, sizeof(audio));
-    const MYFLT table[] = {FL(4.0), FL(5.0)};
+    const cs_float table[] = {FL(4.0), FL(5.0)};
     appendU32(packet, sizeof(table));
     appendNative(table, sizeof(table));
 

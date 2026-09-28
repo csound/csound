@@ -122,11 +122,11 @@ An invalid input reports an initialization error without replacing the
 destination with a partly decoded value. Syntax errors report a byte position;
 value errors identify the field or array element when available.
 
-Numbers use the build's `MYFLT` precision: 64-bit floating point in a double
+Numbers use the build's `cs_float` precision: 64-bit floating point in a double
 build or 32-bit in a single-precision build. Reading rounds to that precision;
 writing preserves the stored finite value without a user-selected rounding
 step. This does not preserve the original decimal spelling or integers beyond
-the precision of `MYFLT`.
+the precision of `cs_float`.
 
 ## Output format and nesting limit
 

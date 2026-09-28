@@ -24,10 +24,10 @@
 
 typedef struct DCBlocker {
     OPDS        h;
-    MYFLT       *ar, *in, *gg;
+    cs_float       *ar, *in, *gg;
 
-    double      outputs;
-    double      inputs;
-    double      gain;
+    cs_double      outputs;
+    cs_double      inputs;
+    cs_double      gain;
 } DCBlocker;
 

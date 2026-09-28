@@ -6,7 +6,7 @@
 #include "csoundCore.h"
 
 extern "C" {
-const char *OSC_message_get_number(const char *, char, MYFLT *);
+const char *OSC_message_get_number(const char *, char, cs_float *);
 const char *csoundOSCMessageGetString(const char *, STRINGDAT *);
 }
 
@@ -23,11 +23,11 @@ TEST(InternalOscDecodeTests, MixedNumbersPreserveInputAndAdvance)
     const char *data = reinterpret_cast<const char *>(bytes);
     const std::string original(data, sizeof(bytes));
     const char *types = "fdihc";
-    const std::array<MYFLT, 5> expected = {1.5, -2.25, -7, -9, 65};
+    const std::array<cs_float, 5> expected = {1.5, -2.25, -7, -9, 65};
     const std::array<size_t, 5> offsets = {4, 12, 16, 24, 28};
     const char *next = data;
     for (size_t i = 0; i < expected.size(); ++i) {
-        MYFLT value = 0;
+        cs_float value = 0;
         next = OSC_message_get_number(next, types[i], &value);
         ASSERT_EQ(next, data + offsets[i]);
         EXPECT_EQ(value, expected[i]);
@@ -55,7 +55,7 @@ TEST(InternalOscDecodeTests, StringsKeepCapacityAndAdvancePastFullInput)
         EXPECT_TRUE(std::all_of(output.begin() + capacity, output.end(),
                                 [](char c) { return c == 'z'; }));
         ASSERT_EQ(next, data + 8);
-        MYFLT number = 0;
+        cs_float number = 0;
         EXPECT_EQ(OSC_message_get_number(next, 'i', &number), data + 12);
         EXPECT_EQ(number, 42);
     }

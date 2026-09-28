@@ -50,7 +50,7 @@ typedef struct {
 } UDPCOM;
 
 const char *OSC_message_get_number(const char *buf,
-                                      char type, MYFLT *out);
+                                      char type, cs_float *out);
 #define MAXSTR 1048576 /* 1MB */
 
 /* Validate strings and their four-byte padding within the received packet. */
@@ -282,7 +282,7 @@ static uintptr_t udp_recv(void *pdata){
         else if(!strcmp(mess.address, "/csound/event/instr")){
             // numeric types
             int32_t n = (int32_t) strlen(mess.type), i;
-            MYFLT *arg = (MYFLT *) csoundCalloc(csound, sizeof(MYFLT)*n);
+            cs_float *arg = (cs_float *) csoundCalloc(csound, sizeof(cs_float)*n);
             for(i = 0; i < n; i++) {
               buf = OSC_message_get_number(buf,
                                               mess.type[i],
@@ -308,7 +308,7 @@ static uintptr_t udp_recv(void *pdata){
               buf += ((size_t) ceil((strlen(buf)+1)/4.)*4);
             }
             else  {
-              MYFLT f;
+              cs_float f;
               
               buf = OSC_message_get_number(buf, mess.type[i],
                                               &f);
@@ -339,7 +339,7 @@ static uintptr_t udp_recv(void *pdata){
       else if(*orchestra == '@') {
         char chn[128];
         const char *value = udp_read_token(orchestra+1, chn);
-        MYFLT val;
+        cs_float val;
         if (value == NULL) continue;
         val = atof(value);
         csoundSetControlChannel(csound, chn, val);
@@ -356,7 +356,7 @@ static uintptr_t udp_recv(void *pdata){
         char *end;
         long sport;
         int32_t err = 0;
-        MYFLT val;
+        cs_float val;
         if (orchestra[1] != '@' && orchestra[1] != '%') continue;
         next = udp_read_token(orchestra+2, chn);
         if (next == NULL) continue;

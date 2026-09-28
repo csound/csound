@@ -36,46 +36,46 @@
 
 typedef struct {
     OPDS  h;
-    MYFLT *returnedPort;
+    cs_float *returnedPort;
     STRINGDAT *portName;
-    MYFLT *baudRate;
+    cs_float *baudRate;
 } SERIALBEGIN;
 
 typedef struct {
     OPDS  h;
-    MYFLT *port;
+    cs_float *port;
 } SERIALEND;
 
 typedef struct {
     OPDS  h;
-    MYFLT *port, *toWrite;
+    cs_float *port, *toWrite;
 } SERIALWRITE;
 
 typedef struct {
     OPDS  h;
-    MYFLT *rChar, *port;
+    cs_float *rChar, *port;
 } SERIALREAD;
 
 typedef struct {
     OPDS  h;
-    MYFLT *port;
+    cs_float *port;
 } SERIALPRINT;
 
 typedef struct {
     OPDS  h;
-    MYFLT *port;
+    cs_float *port;
 } SERIALFLUSH;
 
 
 ///-----------TODO
 typedef struct {
     OPDS  h;
-    MYFLT *retVal, *port;
+    cs_float *retVal, *port;
 } SERIALAVAIL;
 
 typedef struct {
     OPDS  h;
-    MYFLT *retChar, *port;
+    cs_float *retChar, *port;
 } SERIALPEEK;
 //------------------
 
@@ -99,31 +99,31 @@ typedef struct {
 
 typedef struct {
     OPDS  h;
-    MYFLT *returnedPort;
+    cs_float *returnedPort;
     STRINGDAT *portName;
-    MYFLT *baudRate;
+    cs_float *baudRate;
     ARDUINO_GLOBALS *q;
     uint64_t generation;
 } ARD_START;
 
 typedef struct {
     OPDS  h;
-    MYFLT *val;
-    MYFLT *port;
-    MYFLT *index;
-    MYFLT *ihtim;
+    cs_float *val;
+    cs_float *port;
+    cs_float *index;
+    cs_float *ihtim;
     ARDUINO_GLOBALS *q;
-    MYFLT c1, c2, yt1;
+    cs_float c1, c2, yt1;
     uint64_t generation;
 } ARD_READ;
 
 typedef struct {
     OPDS  h;
-    MYFLT *val;
-    MYFLT *port;
-    MYFLT *index1;
-    MYFLT *index2;
-    MYFLT *index3;
+    cs_float *val;
+    cs_float *port;
+    cs_float *index1;
+    cs_float *index2;
+    cs_float *index3;
     ARDUINO_GLOBALS *q;
     uint64_t generation;
 } ARD_READF;

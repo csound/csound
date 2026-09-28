@@ -64,13 +64,13 @@ protected:
             for (int sample = 0; sample < samples; ++sample)
                 for (int bin = 0; bin <= size / 2; ++bin) {
                     const int index = sample * (size + 2) + 2 * bin;
-                    const MYFLT amplitude = (left ? FL(.25) : FL(.5)) +
+                    const cs_float amplitude = (left ? FL(.25) : FL(.5)) +
                         bin / FL(256.0) + sample / FL(64.0);
-                    const MYFLT second = format == PVS_AMP_PHASE
+                    const cs_float second = format == PVS_AMP_PHASE
                         ? (left ? FL(.125) : FL(.5)) + bin / FL(256.0) + sample / FL(128.0)
                         : (left ? FL(100.0) : FL(500.0)) + bin + sample / FL(4.0);
                     if (frame->sliding) {
-                        auto *data = static_cast<MYFLT *>(frame->frame.auxp);
+                        auto *data = static_cast<cs_float *>(frame->frame.auxp);
                         data[index] = amplitude;
                         data[index + 1] = second;
                     }
@@ -95,16 +95,16 @@ protected:
         ASSERT_EQ(mixed->format, left->format);
         const size_t values = (left->N + 2) * (left->sliding ? 16 : 1);
         ASSERT_GE(mixed->frame.size, values *
-                  (left->sliding ? sizeof(MYFLT) : sizeof(float)));
+                  (left->sliding ? sizeof(cs_float) : sizeof(float)));
         for (size_t index = 0; index < values; ++index) {
             const double a = left->sliding
-                ? static_cast<MYFLT *>(left->frame.auxp)[index]
+                ? static_cast<cs_float *>(left->frame.auxp)[index]
                 : static_cast<float *>(left->frame.auxp)[index];
             const double b = right->sliding
-                ? static_cast<MYFLT *>(right->frame.auxp)[index]
+                ? static_cast<cs_float *>(right->frame.auxp)[index]
                 : static_cast<float *>(right->frame.auxp)[index];
             const double actual = mixed->sliding
-                ? static_cast<MYFLT *>(mixed->frame.auxp)[index]
+                ? static_cast<cs_float *>(mixed->frame.auxp)[index]
                 : static_cast<float *>(mixed->frame.auxp)[index];
             // Even values are mixed amplitudes; odd values come from the left.
             EXPECT_DOUBLE_EQ(actual, index % 2 ? a : .5 * a + 2 * b) << index;

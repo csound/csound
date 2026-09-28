@@ -65,9 +65,9 @@ int32_t initError(CSOUND *, const char *, ...) { return NOTOK; }
 int32_t perfError(CSOUND *, OPDS *, const char *, ...) { return NOTOK; }
 struct SenderArgs {
     OPDS h;
-    MYFLT *input;
+    cs_float *input;
     STRINGDAT *host;
-    MYFLT *port;
+    cs_float *port;
 };
 class StsendTests : public ::testing::Test {
 protected:
@@ -76,7 +76,7 @@ protected:
     SenderArgs *sender;
     INSDS instance = {};
     STRINGDAT host = {};
-    MYFLT port = 9000;
+    cs_float port = 9000;
     void SetUp() override {
       cs = csoundCreate(nullptr, nullptr);
       csoundCreateMessageBuffer(cs, 0);
@@ -107,7 +107,7 @@ protected:
 
 TEST_F(StsendTests, SendsEveryByteOfActiveSamplesAfterShortAndInterruptedWrites)
 {
-    MYFLT input[] = {99, 1, 2, 3, 4, 99};
+    cs_float input[] = {99, 1, 2, 3, 4, 99};
     instance.ksmps = 6;
     instance.ksmps_offset = instance.ksmps_no_end = 1;
     sender->input = input;
@@ -115,7 +115,7 @@ TEST_F(StsendTests, SendsEveryByteOfActiveSamplesAfterShortAndInterruptedWrites)
     interruptSend = true;
     EXPECT_EQ(opcode->perf(cs, sender), OK);
     const auto *first = reinterpret_cast<const unsigned char *>(&input[1]);
-    EXPECT_EQ(sentBytes, (std::vector<unsigned char>(first, first + 4*sizeof(MYFLT))));
+    EXPECT_EQ(sentBytes, (std::vector<unsigned char>(first, first + 4*sizeof(cs_float))));
     EXPECT_GT(sends, 2);
     EXPECT_EQ(opcode->deinit(cs, sender), OK);
     EXPECT_TRUE(closed());
@@ -129,7 +129,7 @@ TEST_F(StsendTests, RefusedConnectionsAndZeroWritesStopAndCloseTheSocket)
     EXPECT_TRUE(closed());
     refuseConnection = false;
     ASSERT_EQ(opcode->init(cs, sender), OK);
-    MYFLT input = 1;
+    cs_float input = 1;
     instance.ksmps = 1;
     sender->input = &input;
     zeroSend = true;

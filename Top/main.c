@@ -102,12 +102,12 @@ void check_options(CSOUND *csound) {
 static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
   char *p = ss;
   int32_t num, cnt;
-  double p2o, p2, p3o, p3, inst;
+  cs_double p2o, p2, p3o, p3, inst;
   while (*p != '\0') {
     switch (*p) {
     case 'f':
       fputc(*p, ff);
-      sscanf(p + 1, "%d %la %la%n", &num, &p2o, &p2, &cnt);
+      sscanf(p + 1, "%d %" CS_DOUBLE_SCAN " %" CS_DOUBLE_SCAN "%n", &num, &p2o, &p2, &cnt);
       fprintf(ff, " %d %lg %lg ", num, p2o, p2);
       p += cnt + 1;
       break;
@@ -121,11 +121,11 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
         while (*p != '"') {
           fputc(*p++, ff);
         }
-        sscanf(p + 1, "%la %la %la %la%n", &p2o, &p2, &p3o, &p3, &cnt);
+        sscanf(p + 1, "%" CS_DOUBLE_SCAN " %" CS_DOUBLE_SCAN " %" CS_DOUBLE_SCAN " %" CS_DOUBLE_SCAN "%n", &p2o, &p2, &p3o, &p3, &cnt);
         fprintf(ff, "\" %lg %lg %lg %lg ", p2o, p2, p3o, p3);
         p += cnt + 1;
       } else {
-        sscanf(p + 1, "%la %la %la %la %la%n", &inst, &p2o, &p2, &p3o, &p3,
+        sscanf(p + 1, "%" CS_DOUBLE_SCAN " %" CS_DOUBLE_SCAN " %" CS_DOUBLE_SCAN " %" CS_DOUBLE_SCAN " %" CS_DOUBLE_SCAN "%n", &inst, &p2o, &p2, &p3o, &p3,
                &cnt);
         fprintf(ff, " %lg %lg %lg %lg %lg ", inst, p2o, p2, p3o, p3);
         p += cnt + 1;
@@ -142,7 +142,7 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
     while (1) {
       // printf("** p '%c'\n", *p);
       if (!strncmp(p, "0x", 2)) {
-        sscanf(p, "%la%n", &p3, &cnt);
+        sscanf(p, "%" CS_DOUBLE_SCAN "%n", &p3, &cnt);
         fprintf(ff, "%lg ", p3);
         p += cnt - 1;
       } else
@@ -549,9 +549,9 @@ int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t 
 }
 
 extern int32_t playopen_dummy(CSOUND *, const csRtAudioParams *parm);
-extern void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int32_t nbytes);
+extern void rtplay_dummy(CSOUND *, const cs_float *outBuf, int32_t nbytes);
 extern int32_t recopen_dummy(CSOUND *, const csRtAudioParams *parm);
-extern int32_t rtrecord_dummy(CSOUND *, MYFLT *inBuf, int32_t nbytes);
+extern int32_t rtrecord_dummy(CSOUND *, cs_float *inBuf, int32_t nbytes);
 extern void rtclose_dummy(CSOUND *);
 extern int32_t audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int32_t);
 extern int32_t midi_dev_list_dummy(CSOUND *csound, CS_MIDIDEVICE *list,

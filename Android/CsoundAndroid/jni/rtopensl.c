@@ -29,7 +29,7 @@
 #include <time.h>
 #include "../../../InOut/rt_audio_fade.h"
 
-MYFLT *get_output_buffer(CSOUND *csound);
+cs_float *get_output_buffer(CSOUND *csound);
 int perform_buffer(CSOUND *csound);
 
 typedef struct OPEN_SL_PARAMS_ {
@@ -55,8 +55,8 @@ typedef struct OPEN_SL_PARAMS_ {
   SLBufferQueueItf recorderBufferQueue;
 
   // buffers
-  MYFLT *outputBuffer;
-  MYFLT *inputBuffer;
+  cs_float *outputBuffer;
+  cs_float *inputBuffer;
   short *recBuffer;
   short *playBuffer;
   int outBufSamples;
@@ -103,7 +103,7 @@ void bqPlayerCallback(SLBufferQueueItf bq, void *context)
   if(p->async){
     int read=0, items = p->outBufSamples, i;
     int nchnls = csound->GetNchnls(csound);
-    MYFLT *outputBuffer = p->outputBuffer;
+    cs_float *outputBuffer = p->outputBuffer;
     short *playBuffer = p->playBuffer;
     memset(playBuffer, 0, items*sizeof(short));
     if(closing && p->closeFade.lengthFrames == 0) {
@@ -132,12 +132,12 @@ void bqPlayerCallback(SLBufferQueueItf bq, void *context)
     int nchnls = csound->GetNchnls(csound);
     short *playBuffer = p->playBuffer;
     memset(playBuffer, 0, items*sizeof(short));
-    MYFLT *outputBuffer = get_output_buffer(csound);
+    cs_float *outputBuffer = get_output_buffer(csound);
     if(outputBuffer != NULL) {
       if(closing) {
         rt_audio_fade_begin(&p->closeFade, items, nchnls);
         for(i=0; i < items; i += nchnls) {
-          MYFLT gain = rt_audio_fade_next_gain(&p->closeFade);
+          cs_float gain = rt_audio_fade_next_gain(&p->closeFade);
           for(int32_t channel=0; channel < nchnls; channel++)
             playBuffer[i+channel] =
               (short) (outputBuffer[i+channel]*gain*CONV16BIT);
@@ -168,14 +168,14 @@ void bqPlayerCallback(SLBufferQueueItf bq, void *context)
 }
 
 #define MICROS 1000000
-void androidrtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes)
+void androidrtplay_(CSOUND *csound, const cs_float *buffer, int nbytes)
 {
   open_sl_params *p =
     (open_sl_params *) *(csound->GetRtPlayUserData(csound));
   if(p->async){
-    int n = nbytes/sizeof(MYFLT);
+    int n = nbytes/sizeof(cs_float);
     int m = 0, l;
-    MYFLT sr = csoundGetSr(csound);
+    cs_float sr = csoundGetSr(csound);
     do{
       l = csound->WriteCircularBuffer(csound,p->outcb,&buffer[m],n);
       m += l;
@@ -344,7 +344,7 @@ int openSLInitOutParams(open_sl_params *params){
   CSOUND *csound = params->csound;
   params->outBufSamples  = params->outParm.bufSamp_SW*csound->GetNchnls(csound);
   if((params->outputBuffer =
-      (MYFLT *) csound->Calloc(csound, params->outBufSamples*sizeof(MYFLT)))
+      (cs_float *) csound->Calloc(csound, params->outBufSamples*sizeof(cs_float)))
      == NULL){
     csound->Message(csound, "Memory allocation failure in opensl module.\n");
     goto err_return;
@@ -352,10 +352,10 @@ int openSLInitOutParams(open_sl_params *params){
   if((params->outcb = csoundCreateCircularBuffer(csound,
                                                  params->outParm.bufSamp_HW*
                                                  csound->GetNchnls(csound),
-                                                 sizeof(MYFLT))) == NULL) {
+                                                 sizeof(cs_float))) == NULL) {
     return -1;
   }
-  memset(params->outputBuffer, 0, params->outBufSamples*sizeof(MYFLT));
+  memset(params->outputBuffer, 0, params->outBufSamples*sizeof(cs_float));
   csound->Message(csound, "HW buffersize = %d, SW = %d \n", params->outParm.bufSamp_HW,
                   params->outParm.bufSamp_SW);
 
@@ -416,7 +416,7 @@ void bqRecorderCallback(SLBufferQueueItf bq, void *context)
   CSOUND *csound = p->csound;
   int nchnls = csound->GetNchnls_i(csound);
   int items = p->inBufSamples/nchnls,i,k,n;
-  MYFLT *inputBuffer = p->inputBuffer;
+  cs_float *inputBuffer = p->inputBuffer;
   short *recBuffer = p->recBuffer;
   if(ATOMIC_GET(p->closing))
     return;
@@ -432,13 +432,13 @@ void bqRecorderCallback(SLBufferQueueItf bq, void *context)
 }
 
 /* get samples from ADC */
-int androidrtrecord_(CSOUND *csound, MYFLT *buffer, int nbytes)
+int androidrtrecord_(CSOUND *csound, cs_float *buffer, int nbytes)
 {
   open_sl_params *p;
-  int n = nbytes/sizeof(MYFLT);
+  int n = nbytes/sizeof(cs_float);
   int m = 0, l;
   p = (open_sl_params *) *(csound->GetRtRecordUserData(csound));
-  MYFLT sr = csoundGetSr(csound);
+  cs_float sr = csoundGetSr(csound);
   do{
     l = csound->ReadCircularBuffer(csound,p->incb,&buffer[m],n);
     m += l;
@@ -575,17 +575,17 @@ int openSLInitInParams(open_sl_params *params){
   CSOUND *csound = params->csound;
   params->inBufSamples  = params->inParm.bufSamp_SW*csound->GetNchnls_i(csound);
   if((params->inputBuffer =
-      (MYFLT *)csound->Calloc(csound, params->inBufSamples*sizeof(MYFLT)))
+      (cs_float *)csound->Calloc(csound, params->inBufSamples*sizeof(cs_float)))
      == NULL){
     csound->Message(params->csound,
                     "Memory allocation failure in opensl module.\n");
     return -1;
   }
-  memset(params->inputBuffer, 0, params->inBufSamples*sizeof(MYFLT));
+  memset(params->inputBuffer, 0, params->inBufSamples*sizeof(cs_float));
   if((params->incb = csoundCreateCircularBuffer(csound,
                                                 params->inParm.bufSamp_HW*
                                                 csound->GetNchnls_i(csound),
-                                                sizeof(MYFLT)))== NULL) {
+                                                sizeof(cs_float)))== NULL) {
     return -1;
   }
   return OK;

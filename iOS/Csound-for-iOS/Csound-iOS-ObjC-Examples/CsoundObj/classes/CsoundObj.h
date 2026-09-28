@@ -125,9 +125,9 @@ typedef struct {
 
 // get input or output that maps to a channel name and type, where type is
 // CSOUND_AUDIO_CHANNEL, CSOUND_CONTROL_CHANNEL, etc.
-- (MYFLT *)getInputChannelPtr:(NSString *)channelName
+- (cs_float *)getInputChannelPtr:(NSString *)channelName
                   channelType:(controlChannelType)channelType;
-- (MYFLT *)getOutputChannelPtr:(NSString *)channelName
+- (cs_float *)getOutputChannelPtr:(NSString *)channelName
                    channelType:(controlChannelType)channelType;
 
 - (NSData *)getOutSamples;

@@ -27,7 +27,7 @@
 #endif
 #include <math.h>
 
-static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t x);
+static cs_float FindTforX(cs_float x1, cs_float x2, cs_float x3, int32_t x);
 
 /*
    This Gen routine fills a table with the values produced by applying the
@@ -57,7 +57,7 @@ static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t x);
 static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
 {
     int32_t nvals, nargs, n, j = 0;
-    MYFLT   *fp = ftp->ftable;
+    cs_float   *fp = ftp->ftable;
     CSOUND *csound = ff->csound;
 
     nvals = ff->flen;
@@ -71,8 +71,8 @@ static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
 
     for (n = 4; n < nargs; n += 4)
     {
-      MYFLT x1 = (n < 8) ? FL(0.0) : ff->e.p[n];
-      MYFLT cx = ff->e.p[n+2], x2 = ff->e.p[n+4];
+      cs_float x1 = (n < 8) ? FL(0.0) : ff->e.p[n];
+      cs_float cx = ff->e.p[n+2], x2 = ff->e.p[n+4];
       if (UNLIKELY(!isfinite(x2) || !(x2 > x1)))
         return csound->FtError(ff, "%s",
                               Str("quadbezier endpoints must be finite and increasing"));
@@ -82,7 +82,7 @@ static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
 
       /* Keep the sample index separate from the curve's fractional coordinates. */
       while (j <= nvals && j <= x2) {
-        MYFLT t;
+        cs_float t;
         t = FindTforX(x1, cx, x2, j);
         fp[j++] = (FL(1.0) - t) * (FL(1.0) - t) * ff->e.p[n+1] +
           FL(2.0) * (FL(1.0) - t) * t * ff->e.p[n+3] + t * t * ff->e.p[n+5];
@@ -93,10 +93,10 @@ static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
 
 /* utility functions */
 
-static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t
+static cs_float FindTforX(cs_float x1, cs_float x2, cs_float x3, int32_t
                        x)
 {
-    MYFLT a =  (x1 - FL(2.0)*x2 + x3), b = FL(2.0)* (-x1 + x2), c = x1 - x;
+    cs_float a =  (x1 - FL(2.0)*x2 + x3), b = FL(2.0)* (-x1 + x2), c = x1 - x;
     if (x == x1)
       return FL(0.0);
     if (x == x3)

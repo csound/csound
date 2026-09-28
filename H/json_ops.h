@@ -9,16 +9,16 @@ typedef struct {
   OPDS h;
   void *out;
   STRINGDAT *source;
-  MYFLT *flags;
-  MYFLT *maxdepth;
+  cs_float *flags;
+  cs_float *maxdepth;
 } JSON_UNMARSHAL;
 
 typedef struct {
   OPDS h;
   STRINGDAT *out;
   void *value;
-  MYFLT *pretty;
-  MYFLT *maxdepth;
+  cs_float *pretty;
+  cs_float *maxdepth;
 } JSON_MARSHAL;
 
 int32_t json_unmarshal(CSOUND *csound, JSON_UNMARSHAL *p);

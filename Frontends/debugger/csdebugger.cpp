@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     cout << "Csound filename: " << argv[1] << '\n';
     cout << "Instr number:" << argv[2] << '\n';
 
-    double instr = atof(argv[2]);
+    cs_double instr = atof(argv[2]);
     if (instr >= 1.0) {
         csoundSetInstrumentBreakpoint(csound->GetCsound(), instr, ksmpsOffset);
     } else {
@@ -94,11 +94,11 @@ void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
             cout << "VarName:"<< vp->name << "\t";;
             if (strcmp(vp->typeName, "i") == 0
                     || strcmp(vp->typeName, "k") == 0) {
-                cout << "value = " << *((MYFLT *) vp->data) << "\t";;
+                cout << "value = " << *((cs_float *) vp->data) << "\t";;
             } else if(strcmp(vp->typeName, "S") == 0) {
                 cout << "value = " << (char *) vp->data << "\t\t";
             } else if (strcmp(vp->typeName, "a") == 0) {
-                MYFLT *data = (MYFLT *) vp->data;
+                cs_float *data = (cs_float *) vp->data;
                 cout << "value[0] = "<< data[0] << "\t";
             } else {
                 cout << "Unknown type\t";

@@ -16,7 +16,7 @@ protected:
       ", .25, " + skip + ", " + tables + "\n";
   }
 
-  std::vector<MYFLT> render(const std::string &body,
+  std::vector<cs_float> render(const std::string &body,
                            const std::string &comb = "-3, .8",
                            const std::string &allpass = "-5, .7",
                            int frames = 64, int block = 1,
@@ -40,11 +40,11 @@ protected:
     EXPECT_EQ(0, err);
     if (err == 0) err = csoundStart(csound);
     EXPECT_EQ(0, err);
-    std::vector<MYFLT> out;
+    std::vector<cs_float> out;
     if (err == 0) {
       for (int n = 0; n < frames; n += block) {
         csoundPerformKsmps(csound);
-        const MYFLT *samples = csoundGetSpout(csound);
+        const cs_float *samples = csoundGetSpout(csound);
         out.insert(out.end(), samples, samples + block);
       }
       if (errorExpected) EXPECT_GT(csound->inerrcnt, 0);
@@ -65,7 +65,7 @@ protected:
     return out;
   }
 
-  void same(const std::vector<MYFLT> &expected, const std::vector<MYFLT> &actual)
+  void same(const std::vector<cs_float> &expected, const std::vector<cs_float> &actual)
   {
     ASSERT_FALSE(expected.empty());
     ASSERT_EQ(expected.size(), actual.size());

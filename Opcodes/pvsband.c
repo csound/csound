@@ -28,11 +28,11 @@ typedef struct {
     OPDS h;
     PVSDAT *fout;
     PVSDAT *fin;
-    MYFLT  *klowcut;
-    MYFLT  *klowbnd;
-    MYFLT  *khigbnd;
-    MYFLT  *khigcut;
-    MYFLT  *fade;
+    cs_float  *klowcut;
+    cs_float  *klowbnd;
+    cs_float  *khigbnd;
+    cs_float  *khigcut;
+    cs_float  *fade;
     uint32 lastframe;
 } PVSBAND;
 
@@ -50,9 +50,9 @@ static int32_t pvsbandinit(CSOUND *csound, PVSBAND *p)
 
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
-          CS_KSMPS*(N+2)*sizeof(MYFLT) > (uint32_t)p->fout->frame.size)
-        csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fout->frame);
-      else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
+          CS_KSMPS*(N+2)*sizeof(cs_float) > (uint32_t)p->fout->frame.size)
+        csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(cs_float),&p->fout->frame);
+      else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(cs_float));
     }
     else
       {
@@ -86,7 +86,7 @@ static int32_t pvsbandinit(CSOUND *csound, PVSBAND *p)
    Keep exponents nonpositive for large positive curves; expm1 avoids
    cancellation for curves near zero. Only ramps need a transcendental call. */
 #define PVSBAND_GAIN(freq, reject, gain) do {                            \
-    MYFLT afrq = FABS(freq), position;                                   \
+    cs_float afrq = FABS(freq), position;                                   \
     if (afrq < lowcut || afrq > higcut)                                  \
       position = (reject) ? FL(1.0) : FL(0.0);                           \
     else if (afrq >= lowbnd && afrq <= higbnd)                            \
@@ -102,7 +102,7 @@ static int32_t pvsbandinit(CSOUND *csound, PVSBAND *p)
     else if (fade == 0.0)                                                \
       (gain) = position;                                                 \
     else if (fade > 1.0)                                                 \
-      (gain) = (exp(fade*((double)position-1.0))-curvebase) / curveden;    \
+      (gain) = (exp(fade*((cs_double)position-1.0))-curvebase) / curveden;    \
     else                                                                \
       (gain) = expm1(fade*position) / curveden;                           \
   } while (0)
@@ -110,13 +110,13 @@ static int32_t pvsbandinit(CSOUND *csound, PVSBAND *p)
 static int32_t pvsband(CSOUND *csound, PVSBAND *p)
 {
     int32_t i, N = p->fin->N;
-    MYFLT lowcut = *p->klowcut, lowbnd = *p->klowbnd;
-    MYFLT higbnd = *p->khigbnd, higcut = *p->khigcut;
+    cs_float lowcut = *p->klowcut, lowbnd = *p->klowbnd;
+    cs_float higbnd = *p->khigbnd, higcut = *p->khigcut;
     float *fin = (float *) p->fin->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;
-    double fade = *p->fade;
-    double curvebase = fade > 1.0 ? exp(-fade) : 0.0;
-    double curveden = fade > 1.0 ? 1.0-curvebase :
+    cs_double fade = *p->fade;
+    cs_double curvebase = fade > 1.0 ? exp(-fade) : 0.0;
+    cs_double curveden = fade > 1.0 ? 1.0-curvebase :
       (fade != 0.0 ? expm1(fade) : 1.0);
 
     if (UNLIKELY(fout == NULL)) goto err1;
@@ -150,7 +150,7 @@ static int32_t pvsband(CSOUND *csound, PVSBAND *p)
         higcut = p->khigcut[n*higcutstep];
         PVSBAND_LIMITS();
         for (i = 0; i < NB; i++) {
-          MYFLT gain;
+          cs_float gain;
           PVSBAND_GAIN(fin[i].im, 0, gain);
           fout[i].re = fin[i].re * gain;
           fout[i].im = gain == FL(0.0) ? -FL(1.0) : fin[i].im;
@@ -160,7 +160,7 @@ static int32_t pvsband(CSOUND *csound, PVSBAND *p)
     }
     if (p->lastframe < p->fin->framecount) {
       for (i = 0; i <= N; i += 2) {
-        MYFLT gain;
+        cs_float gain;
         PVSBAND_GAIN(fin[i+1], 0, gain);
         fout[i] = fin[i] * gain;
         fout[i+1] = gain == FL(0.0) ? -FL(1.0) : fin[i+1];
@@ -176,13 +176,13 @@ static int32_t pvsband(CSOUND *csound, PVSBAND *p)
 static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
 {
     int32_t i, N = p->fin->N;
-    MYFLT lowcut = *p->klowcut, lowbnd = *p->klowbnd;
-    MYFLT higbnd = *p->khigbnd, higcut = *p->khigcut;
+    cs_float lowcut = *p->klowcut, lowbnd = *p->klowbnd;
+    cs_float higbnd = *p->khigbnd, higcut = *p->khigcut;
     float *fin = (float *) p->fin->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;
-    double fade = *p->fade;
-    double curvebase = fade > 1.0 ? exp(-fade) : 0.0;
-    double curveden = fade > 1.0 ? 1.0-curvebase :
+    cs_double fade = *p->fade;
+    cs_double curvebase = fade > 1.0 ? exp(-fade) : 0.0;
+    cs_double curveden = fade > 1.0 ? 1.0-curvebase :
       (fade != 0.0 ? expm1(fade) : 1.0);
 
     if (UNLIKELY(fout == NULL)) goto err1;
@@ -216,7 +216,7 @@ static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
         higcut = p->khigcut[n*higcutstep];
         PVSBAND_LIMITS();
         for (i = 0; i < NB; i++) {
-          MYFLT gain;
+          cs_float gain;
           PVSBAND_GAIN(fin[i].im, 1, gain);
           fout[i].re = fin[i].re * gain;
           fout[i].im = gain == FL(0.0) ? -FL(1.0) : fin[i].im;
@@ -226,7 +226,7 @@ static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
     }
     if (p->lastframe < p->fin->framecount) {
       for (i = 0; i <= N; i += 2) {
-        MYFLT gain;
+        cs_float gain;
         PVSBAND_GAIN(fin[i+1], 1, gain);
         fout[i] = fin[i] * gain;
         fout[i+1] = gain == FL(0.0) ? -FL(1.0) : fin[i+1];

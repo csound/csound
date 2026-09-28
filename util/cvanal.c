@@ -36,7 +36,7 @@
 static int32_t takeFFT(CSOUND *csound, SOUNDIN *inputSound, CVSTRUCT *outputCVH,
                        int64_t Hlenpadded, SNDFILE *infd, FILE *ofd, int32_t nf);
 static int32_t quit(CSOUND*, char *msg);
-static int32_t CVAlloc(CSOUND*, CVSTRUCT**, int64_t, int32_t, MYFLT,
+static int32_t CVAlloc(CSOUND*, CVSTRUCT**, int64_t, int32_t, cs_float,
                        int32_t, int32_t, int64_t, int32_t, int32_t);
 
 #define SF_UNK_LEN      -1      /* code for sndfile len unkown  */
@@ -54,7 +54,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
     void    *ofd_handle;
     int32_t err, channel = ALLCHNLS;
     SOUNDIN *p;  /* space allocated by SAsndgetset() */
-    MYFLT   beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
+    cs_float   beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
     int64_t Estdatasiz, Hlen;
     int64_t Hlenpadded = 1;
     char    err_msg[512];
@@ -72,7 +72,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
         case 's':
           FIND(Str("no sampling rate"))
 #ifdef USE_DOUBLE
-          csound->Sscanf(s, "%lf", &sr);
+          csound->Sscanf(s, "%" CS_DOUBLE_SCAN, &sr);
 #else
           csound->Sscanf(s, "%f", &sr);
 #endif
@@ -86,7 +86,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
         case 'b':
           FIND(Str("no begin time"))
 #ifdef USE_DOUBLE
-          csound->Sscanf(s, "%lf", &beg_time);
+          csound->Sscanf(s, "%" CS_DOUBLE_SCAN, &beg_time);
 #else
           csound->Sscanf(s, "%f", &beg_time);
 #endif
@@ -94,7 +94,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
         case 'd':
           FIND(Str("no duration time"))
 #ifdef USE_DOUBLE
-          csound->Sscanf(s, "%lf", &input_dur);
+          csound->Sscanf(s, "%" CS_DOUBLE_SCAN, &input_dur);
 #else
           csound->Sscanf(s, "%f", &input_dur);
 #endif
@@ -117,13 +117,13 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
       snprintf(err_msg, 512, Str("error while opening %s"), infilnam);
       return quit(csound, err_msg);
     }
-    sr = (MYFLT) p->sr;
+    sr = (cs_float) p->sr;
 
     Hlen = p->getframes;
     while (Hlenpadded < 2*Hlen-1)
       Hlenpadded <<= 1;
 
-    Estdatasiz = (Hlenpadded + 2) * sizeof(MYFLT);
+    Estdatasiz = (Hlenpadded + 2) * sizeof(cs_float);
     if (channel == ALLCHNLS)
       Estdatasiz *= p->nchanls;
 
@@ -145,7 +145,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
               cvh->headBsize,              /* total number of bytes of data */
               cvh->dataBsize,              /* total number of bytes of data */
               cvh->dataFormat,             /* (int32_t) format specifier */
-              (double)cvh->samplingRate,   /* of original sample */
+              (cs_double)cvh->samplingRate,   /* of original sample */
               cvh->src_chnls,              /* no. of channels in source */
               cvh->channel,                /* requested channel(s) */
               cvh->Hlen,                   /* length of impulse reponse */
@@ -155,7 +155,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
               cvh->headBsize,              /* total number of bytes of data */
               cvh->dataBsize,              /* total number of bytes of data */
               cvh->dataFormat,             /* (int32_t) format specifier */
-              (double)cvh->samplingRate,   /* of original sample */
+              (cs_double)cvh->samplingRate,   /* of original sample */
               cvh->src_chnls,              /* no. of channels in source */
               cvh->channel,                /* requested channel(s) */
               cvh->Hlen,                   /* length of impulse reponse */
@@ -190,15 +190,15 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
                    int64_t Hlenpadded, SNDFILE *infd, FILE *ofd, int32_t nf)
 {
     int32_t i, j, read_in;
-    MYFLT   *inbuf, *outbuf;
-    MYFLT   *fp1, *fp2;
+    cs_float   *inbuf, *outbuf;
+    cs_float   *fp1, *fp2;
     int32_t Hlen = (int32_t) cvh->Hlen;
     int32_t nchanls;
     void *setup;
 
     nchanls = cvh->channel != ALLCHNLS ? 1 : cvh->src_chnls;
     j = (int32_t) (Hlen * nchanls);
-    inbuf = fp1 = (MYFLT *) csound->Malloc(csound, j * sizeof(MYFLT));
+    inbuf = fp1 = (cs_float *) csound->Malloc(csound, j * sizeof(cs_float));
     if (UNLIKELY((read_in = (csound->GetUtility(csound))->Sndin(csound, infd, inbuf, j, p)) < j)) {
       csound->Message(csound, "%s", Str("less sound than expected!\n"));
       return -1;
@@ -209,11 +209,11 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
     }
 
     fp1 = inbuf;
-    outbuf = fp2 = (MYFLT*) csound->Malloc(csound,
-                                           sizeof(MYFLT) * (Hlenpadded + 2));
+    outbuf = fp2 = (cs_float*) csound->Malloc(csound,
+                                           sizeof(cs_float) * (Hlenpadded + 2));
     /* for (i = 0; i < (Hlenpadded + 2); i++) */
     /*   outbuf[i] = FL(0.0); */
-    memset(outbuf, 0, sizeof(MYFLT)*(Hlenpadded + 2));
+    memset(outbuf, 0, sizeof(cs_float)*(Hlenpadded + 2));
     setup = csound->RealFFTSetup(csound, (int32_t)Hlenpadded, FFT_FWD);
 
     for (i = 0; i < nchanls; i++) {
@@ -228,9 +228,9 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
       /* write straight out, just the indep vals */
       if (nf) {
         int32 i, l;
-        l = (cvh->dataBsize/nchanls)/sizeof(MYFLT);
+        l = (cvh->dataBsize/nchanls)/sizeof(cs_float);
         for (i=0; i<l; i++) {
-            fprintf(ofd, "%a\n", (double)outbuf[i]);
+            fprintf(ofd, "%a\n", (cs_double)outbuf[i]);
         }
       }
       else
@@ -248,7 +248,7 @@ static int32_t CVAlloc(
     CVSTRUCT    **pphdr,        /* returns address of new block */
     int64_t     dataBsize,      /* desired bytesize of datablock */
     int32_t     dataFormat,     /* data format - PVMYFLT etc */
-    MYFLT       srate,          /* sampling rate of original in Hz */
+    cs_float       srate,          /* sampling rate of original in Hz */
     int32_t     src_chnls,      /* number of channels in source */
     int32_t     channel,        /* requested channel(s) */
     int64_t     Hlen,           /* impulse response length */

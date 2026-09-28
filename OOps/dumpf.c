@@ -250,7 +250,7 @@ int32_t kdmp4set_p(CSOUND *csound, KDUMP4 *p)
     return OK;
 }
 
-static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int32_t format,
+static void nkdump(CSOUND *csound, cs_float *kp, FILE *ofd, int32_t format,
                    int32_t nk, void *p)
 {
     char  buf1[256], outbuf[256];
@@ -316,7 +316,7 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int32_t format,
 
 int32_t kdump(CSOUND *csound, KDUMP *p)
 {
-    MYFLT kval[4];
+    cs_float kval[4];
 
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
@@ -328,7 +328,7 @@ int32_t kdump(CSOUND *csound, KDUMP *p)
 
 int32_t kdump2(CSOUND *csound, KDUMP2 *p)
 {
-    MYFLT kval[4];
+    cs_float kval[4];
 
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
@@ -341,7 +341,7 @@ int32_t kdump2(CSOUND *csound, KDUMP2 *p)
 
 int32_t kdump3(CSOUND *csound, KDUMP3 *p)
 {
-    MYFLT kval[4];
+    cs_float kval[4];
 
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
@@ -355,7 +355,7 @@ int32_t kdump3(CSOUND *csound, KDUMP3 *p)
 
 int32_t kdump4(CSOUND *csound, KDUMP4 *p)
 {
-    MYFLT kval[4];
+    cs_float kval[4];
 
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
@@ -589,9 +589,9 @@ int32_t krd4set_p(CSOUND *csound, KREAD4 *p)
 }
 
 
-static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t nk)
+static void nkread(CSOUND *csound, cs_float *kp, FILE *ifd, int32_t format, int32_t nk)
 {
-    MYFLT values[4];
+    cs_float values[4];
     int32_t i;
     /* Read a complete set before replacing the held output values. */
     switch (format) {
@@ -600,7 +600,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
       if (fread(inbuf, sizeof(inbuf[0]), nk, ifd) != (size_t)nk)
         return;
       for (i = 0; i < nk; i++)
-        values[i] = (MYFLT)inbuf[i];
+        values[i] = (cs_float)inbuf[i];
       break;
     }
     case 4: {
@@ -608,7 +608,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
       if (fread(inbuf, sizeof(inbuf[0]), nk, ifd) != (size_t)nk)
         return;
       for (i = 0; i < nk; i++)
-        values[i] = (MYFLT)inbuf[i];
+        values[i] = (cs_float)inbuf[i];
       break;
     }
     case 5: {
@@ -616,7 +616,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
       if (fread(inbuf, sizeof(inbuf[0]), nk, ifd) != (size_t)nk)
         return;
       for (i = 0; i < nk; i++)
-        values[i] = (MYFLT)inbuf[i];
+        values[i] = (cs_float)inbuf[i];
       break;
     }
     case 6: {
@@ -624,7 +624,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
       if (fread(inbuf, sizeof(inbuf[0]), nk, ifd) != (size_t)nk)
         return;
       for (i = 0; i < nk; i++)
-        values[i] = (MYFLT)inbuf[i];
+        values[i] = (cs_float)inbuf[i];
       break;
     }
     case 7:

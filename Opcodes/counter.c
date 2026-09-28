@@ -30,10 +30,10 @@
 
 /* Structure of a counter */
 typedef struct {
-  MYFLT val;
-  MYFLT max;
-  MYFLT min;
-  MYFLT inc;
+  cs_float val;
+  cs_float max;
+  cs_float min;
+  cs_float inc;
   uint64_t      cycles, generation;
   int32_t       active;
 } COUNT;
@@ -41,22 +41,22 @@ typedef struct {
 /* for create counter ocde */
 typedef struct {
   OPDS          h;
-  MYFLT         *res;
-  MYFLT         *max, *min, *inc;
+  cs_float         *res;
+  cs_float         *max, *min, *inc;
 } CNTSET;
 
 typedef struct {
   OPDS          h;
-  MYFLT         *res;
-  MYFLT         *icnt;
+  cs_float         *res;
+  cs_float         *icnt;
   COUNT         *cnt;
   uint64_t      generation;
 } COUNTER;
 
 typedef struct {
   OPDS          h;
-  MYFLT         *max, *min, *inc;
-  MYFLT         *icnt;
+  cs_float         *max, *min, *inc;
+  cs_float         *icnt;
   COUNT         *cnt;
   uint64_t      generation;
 } CNTSTATE;
@@ -92,8 +92,8 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
       while (q->cnts[m]->active) m++;
       q->free--;
     } else {
-      /* Counter handles must remain exact in either MYFLT format. */
-      const int32_t limit = sizeof(MYFLT) == sizeof(float) ? 16777216 : INT32_MAX;
+      /* Counter handles must remain exact in either cs_float format. */
+      const int32_t limit = sizeof(cs_float) == sizeof(float) ? 16777216 : INT32_MAX;
       if (q->used == limit)
         return csound->InitError(csound, "%s", Str("counter: too many counters"));
       if (q->used == q->max_num) {
@@ -119,7 +119,7 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
     y->min = *p->min;
     y->max = *p->max;
     y->inc = *p->inc;
-    *p->res = (MYFLT)m;
+    *p->res = (cs_float)m;
     return OK;
 }
 
@@ -128,9 +128,9 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
 #define COUNTER_VALID(p) ((p)->cnt->active && \
                           (p)->generation == (p)->cnt->generation)
 
-static COUNT* find_counter(CNT_GLOBALS *globals, MYFLT handle)
+static COUNT* find_counter(CNT_GLOBALS *globals, cs_float handle)
 {
-    double id = handle;
+    cs_double id = handle;
     if (UNLIKELY(globals == NULL || !(id >= 0.0 && id < globals->used)))
       return NULL;
     COUNT *cnt = globals->cnts[(int32_t)id];
@@ -248,7 +248,7 @@ static int32_t count_del(CSOUND *csound, COUNTER* p)
     int32_t n = (int32_t)*p->icnt;
     cnt->active = 0;
     q->free++;
-    *p->res = (MYFLT)n;
+    *p->res = (cs_float)n;
     return OK;
 }
 

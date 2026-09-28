@@ -41,7 +41,7 @@ typedef struct DSSI_PLUGIN_ {
     unsigned long *inputs, *outputs;
     unsigned long input_count, output_count;
     uint32_t capacity, render_ksmps;
-    MYFLT sample_rate;
+    cs_float sample_rate;
     int active;
     OPDS *owner;
     int64_t last_block, rendered_until;
@@ -61,78 +61,78 @@ typedef struct {
 
 typedef struct {
     OPDS h;
-    MYFLT *result, *filename, *index, *verbose;
+    cs_float *result, *filename, *index, *verbose;
 } DSSIINIT;
 
 typedef struct {
     OPDS h;
-    MYFLT *id, *trigger;
+    cs_float *id, *trigger;
     DSSI_PLUGIN *plugin;
 } DSSIACTIVATE;
 
 typedef struct {
     OPDS h;
-    MYFLT *out[DSSI4CS_CHANNELS];
-    MYFLT *id, *in[DSSI4CS_CHANNELS];
+    cs_float *out[DSSI4CS_CHANNELS];
+    cs_float *id, *in[DSSI4CS_CHANNELS];
     DSSI_PLUGIN *plugin;
 } DSSIAUDIO;
 
 typedef struct {
     OPDS h;
-    MYFLT *id, *port, *value, *trigger;
+    cs_float *id, *port, *value, *trigger;
     DSSI_PLUGIN *plugin;
     unsigned long index;
 } DSSICTLS;
 
 typedef struct {
     OPDS h;
-    MYFLT *value, *id, *port;
+    cs_float *value, *id, *port;
     DSSI_PLUGIN *plugin;
     unsigned long index;
 } DSSIGET;
 
 typedef struct {
     OPDS h;
-    MYFLT *trigger, *id, *note, *velocity, *duration, *channel;
+    cs_float *trigger, *id, *note, *velocity, *duration, *channel;
     DSSI_PLUGIN *plugin;
 } DSSINOTE;
 
 typedef struct {
     OPDS h;
-    MYFLT *trigger, *id, *status, *channel, *data1, *data2, *offset;
+    cs_float *trigger, *id, *status, *channel, *data1, *data2, *offset;
     DSSI_PLUGIN *plugin;
 } DSSIEVENT;
 
 typedef struct {
     OPDS h;
-    MYFLT *trigger, *id, *channel, *parameter, *value, *offset;
+    cs_float *trigger, *id, *channel, *parameter, *value, *offset;
     DSSI_PLUGIN *plugin;
 } DSSINRPN;
 
 typedef struct {
     OPDS h;
-    MYFLT *trigger, *id, *note, *velocity;
+    cs_float *trigger, *id, *note, *velocity;
     DSSI_PLUGIN *plugin;
 } DSSINOTEON;
 
 typedef struct {
     OPDS h;
-    MYFLT *id, *bank, *program, *trigger;
+    cs_float *id, *bank, *program, *trigger;
     DSSI_PLUGIN *plugin;
 } DSSIPROGRAM;
 
 typedef struct {
     OPDS h;
-    MYFLT *id;
+    cs_float *id;
     STRINGDAT *key, *value;
 } DSSICONFIGURE;
 
 typedef struct {
     OPDS h;
     STRINGDAT *name;
-    MYFLT *bank, *program, *id, *index;
+    cs_float *bank, *program, *id, *index;
 } DSSIPROGRAMINFO;
 
-typedef struct { OPDS h; MYFLT *id; } DSSIINFO;
+typedef struct { OPDS h; cs_float *id; } DSSIINFO;
 typedef struct { OPDS h; } DSSILIST;
 #endif

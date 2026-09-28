@@ -31,14 +31,14 @@
 static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
 {
   CSOUND *csound =ff->csound;
-  MYFLT   *fp   = ftp->ftable;
-  MYFLT   start = ff->e.p[5];
-  MYFLT   end   = ff->e.p[6];
-  MYFLT   resc  = ff->e.p[7];
+  cs_float   *fp   = ftp->ftable;
+  cs_float   start = ff->e.p[5];
+  cs_float   end   = ff->e.p[6];
+  cs_float   resc  = ff->e.p[7];
 
   if (ftp->flen <= 0) return csound->FtError(ff, "%s", Str("Illegal zero table size"));
-  MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
-  MYFLT   x;
+  cs_float   step  = (end - start) / (cs_float) ftp->flen;
+  cs_float   x;
   int32_t     i;
   for (i = 0, x = start; i <= (int32_t) ftp->flen; i++, x += step)
     fp[i] = TANH(x);
@@ -51,14 +51,14 @@ static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
 static int32_t exptable(FGDATA *ff, FUNC *ftp)
 {
   CSOUND  *csound = ff->csound;
-  MYFLT   *fp   = ftp->ftable;
-  MYFLT   start = ff->e.p[5];
-  MYFLT   end   = ff->e.p[6];
-  MYFLT   resc  = ff->e.p[7];
+  cs_float   *fp   = ftp->ftable;
+  cs_float   start = ff->e.p[5];
+  cs_float   end   = ff->e.p[6];
+  cs_float   resc  = ff->e.p[7];
 
   if (ftp->flen <= 0) return csound->FtError(ff, "%s", Str("Illegal zero table size"));
-  MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
-  MYFLT   x;
+  cs_float   step  = (end - start) / (cs_float) ftp->flen;
+  cs_float   x;
   int32_t     i;
 
   for (i = 0, x = start; i <= (int32_t) ftp->flen; i++, x += step)
@@ -73,15 +73,15 @@ static int32_t exptable(FGDATA *ff, FUNC *ftp)
 static int32_t sonetable(FGDATA *ff, FUNC *ftp)
 {
   CSOUND  *csound = ff->csound;
-  MYFLT   *fp   = ftp->ftable;
-  MYFLT   start = ff->e.p[5];
-  MYFLT   end   = ff->e.p[6];
-  MYFLT   eqlp  = ff->e.p[7];
-  MYFLT   resc  = ff->e.p[8];
+  cs_float   *fp   = ftp->ftable;
+  cs_float   start = ff->e.p[5];
+  cs_float   end   = ff->e.p[6];
+  cs_float   eqlp  = ff->e.p[7];
+  cs_float   resc  = ff->e.p[8];
 
   if (ftp->flen <= 0) return csound->FtError(ff, "%s", Str("Illegal zero table size"));
-  MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
-  MYFLT   x;
+  cs_float   step  = (end - start) / (cs_float) ftp->flen;
+  cs_float   x;
   int32_t     i;
 
   if (eqlp==FL(0.0)) eqlp = FL(0.001);
@@ -99,13 +99,13 @@ static int32_t sonetable(FGDATA *ff, FUNC *ftp)
 
 /* GENwave by Gleb Rogozinsky 2012 */
 typedef struct {
-  MYFLT        *pWF, *pSF;
-  MYFLT        *pFil[2];
+  cs_float        *pWF, *pSF;
+  cs_float        *pFil[2];
   uint32_t *size;
 } WAVELET;
 
-static int32_t deconvolve(MYFLT *pInp, WAVELET *pwaveS, uint32_t *pnewLen,
-                          MYFLT *pBuf, int32_t *pOrder)
+static int32_t deconvolve(cs_float *pInp, WAVELET *pwaveS, uint32_t *pnewLen,
+                          cs_float *pBuf, int32_t *pOrder)
 {
   uint32_t i, j;
   *pnewLen *= 2;
@@ -123,16 +123,16 @@ static int32_t deconvolve(MYFLT *pInp, WAVELET *pwaveS, uint32_t *pnewLen,
 static int32_t wavetable(FGDATA *ff, FUNC *ftp)
 {
   CSOUND  *csound = ff->csound;
-  MYFLT   *fp = ftp->ftable;
-  MYFLT   *fp_filter, *pInp, *pBuf;
-  MYFLT   order = ff->e.p[6];
-  MYFLT   resc = ff->e.p[7];
+  cs_float   *fp = ftp->ftable;
+  cs_float   *fp_filter, *pInp, *pBuf;
+  cs_float   order = ff->e.p[6];
+  cs_float   resc = ff->e.p[7];
   uint32_t     i;
   uint32_t     steps, newLen, *pnewLen;
   int32_t     nargs = ff->e.pcnt - 4;
   int32_t     *pOrder, *xfree;
   FUNC    *srcfil = csound->FTFind(csound, &(ff->e.p[5]));
-  MYFLT   *mirr;
+  cs_float   *mirr;
   WAVELET wave, *pwaveS;
     
 
@@ -148,7 +148,7 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
     csound->Warning(csound, "%s", Str("insufficient arguments"));
   fp_filter = srcfil->ftable;
   newLen  = srcfil->flen;
-  mirr = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*srcfil->flen);
+  mirr = (cs_float*) csound->Malloc(csound, sizeof(cs_float)*srcfil->flen);
   pnewLen = &newLen;
   pwaveS  = &wave;
   pwaveS->pSF  = fp_filter;
@@ -159,8 +159,8 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
     pwaveS->pWF[i] = POWER(FL(-1.0),i)*pwaveS->pSF[srcfil->flen-1-i];
   pwaveS->pFil[0] = pwaveS->pSF;
   pwaveS->pFil[1] = pwaveS->pWF;
-  pInp = (MYFLT*) csound->Calloc(csound, ftp->flen* sizeof(MYFLT));
-  pBuf = (MYFLT*) csound->Calloc(csound, ftp->flen* sizeof(MYFLT));
+  pInp = (cs_float*) csound->Calloc(csound, ftp->flen* sizeof(cs_float));
+  pBuf = (cs_float*) csound->Calloc(csound, ftp->flen* sizeof(cs_float));
   *pInp = FL(1.0);
   steps = (int32_t)LOG2(ftp->flen/srcfil->flen);
   xfree = pOrder = (int32_t*)csound->Malloc(csound, sizeof(int32_t)*steps);

@@ -36,96 +36,96 @@ typedef int32_t BOOL;
 
 typedef struct {
   OPDS        h;
-  MYFLT       *freq,*port;
-  MYFLT       period, clock_tics;
+  cs_float       *freq,*port;
+  cs_float       period, clock_tics;
   int32_t         beginning_flag;
 } MCLOCK;
 
 typedef struct {
   OPDS        h;
-  MYFLT       *message, *port;
+  cs_float       *message, *port;
 } MRT;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *ichn,*inum,*ivel, *port;
+  cs_float  *ichn,*inum,*ivel, *port;
 } OUT_ON;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *ichn,*inum,*ivel,*idur, *port;
-  MYFLT  istart_time;
+  cs_float  *ichn,*inum,*ivel,*idur, *port;
+  cs_float  istart_time;
   int32_t    chn, num, vel;
   BOOL   fl_expired, fl_extra_dur;
 } OUT_ON_DUR;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *kchn,*knum,*kvel,*kdur,*kpause, *port;
-  MYFLT  istart_time;
+  cs_float  *kchn,*knum,*kvel,*kdur,*kpause, *port;
+  cs_float  istart_time;
   int32_t    last_chn, last_num, last_vel;
-  MYFLT  last_dur, last_pause;
+  cs_float  last_dur, last_pause;
   BOOL   fl_note_expired, fl_first_note, fl_end_note;
 } MOSCIL;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *kchn,*knum,*kvel;
+  cs_float  *kchn,*knum,*kvel;
   int32_t    last_chn, last_num, last_vel, *port;
   BOOL   fl_note_expired, fl_first_note;
 } KOUT_ON;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *chn,*num, *value, *min, *max, *port;
+  cs_float  *chn,*num, *value, *min, *max, *port;
   int32_t    last_value, lastchn, lastctrl;
 } OUT_CONTR;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *chn, *msb_num, *lsb_num, *value, *min, *max, *port;
+  cs_float  *chn, *msb_num, *lsb_num, *value, *min, *max, *port;
   int32_t    last_value, lastchn, lastctrl;
 } OUT_CONTR14;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *chn, *value, *min, *max, *port;
+  cs_float  *chn, *value, *min, *max, *port;
   int32_t    last_value,  lastchn;
 } OUT_PB;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *chn, *value, *min, *max, *port;
+  cs_float  *chn, *value, *min, *max, *port;
   int32_t    last_value,  lastchn;
 } OUT_ATOUCH;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *chn, *prog_num, *min, *max, *port;
+  cs_float  *chn, *prog_num, *min, *max, *port;
   int32_t    last_prog_num,  lastchn;
 } OUT_PCHG;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *chn, *num, *value, *min, *max, *port;
+  cs_float  *chn, *num, *value, *min, *max, *port;
   int32_t    last_value, lastchn, lastctrl;
 } OUT_POLYATOUCH;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *kchn,*knum,*kvel,*ktrig, *port;
+  cs_float  *kchn,*knum,*kvel,*ktrig, *port;
   int32_t     last_chn, last_num, last_vel;
   BOOL fl_note_expired/*, fl_first_note*/;
 } KON2;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *in_type, *in_chan, *in_dat1, *in_dat2, *port;
+  cs_float  *in_type, *in_chan, *in_dat1, *in_dat2, *port;
 } MIDIOUT;
 
 typedef struct {
   OPDS   h;
-  MYFLT  *chan, *parm_num, *parm_value, *port;
+  cs_float  *chan, *parm_num, *parm_value, *port;
   int32_t old_chan, old_parm, old_value;
 } NRPN;
 
@@ -133,18 +133,18 @@ typedef struct {
   unsigned char status;
   unsigned char dat1;
   unsigned char dat2;
-  MYFLT   delay;
+  cs_float   delay;
 } DELTAB;
 
 #define DELTAB_LENGTH 1000
 
 typedef struct {
   OPDS   h;
-  MYFLT  *in_status, *in_chan, *in_dat1, *in_dat2, *kdelay, *port;
+  cs_float  *in_status, *in_chan, *in_dat1, *in_dat2, *kdelay, *port;
   unsigned char status[DELTAB_LENGTH];
   unsigned char chan[DELTAB_LENGTH];
   unsigned char dat1[DELTAB_LENGTH];
   unsigned char dat2[DELTAB_LENGTH];
-  MYFLT             time[DELTAB_LENGTH];
+  cs_float             time[DELTAB_LENGTH];
   uint32_t  write_index, read_index;
 } MDELAY;

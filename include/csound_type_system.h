@@ -30,6 +30,7 @@ extern "C" {
 #include "csound.h"
 #include "csound_data_structures.h"
 #include <stdint.h>
+#include <stddef.h>
 
 #define CS_ARG_TYPE_BOTH 0
 #define CS_ARG_TYPE_IN 1
@@ -65,20 +66,16 @@ extern "C" {
 
   typedef struct csvarmem {
     const CS_TYPE* varType;
-    MYFLT value;
+    cs_float value;
   } CS_VAR_MEM;
 
-#if defined(UINTPTR_MAX) && defined(UINT64_MAX) && (UINTPTR_MAX == UINT64_MAX)
-#define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(double))
-#else
-#define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(MYFLT))
-#endif
+#define CS_VAR_TYPE_OFFSET offsetof(CS_VAR_MEM, value)
 
   typedef struct csvariable {
     char* varName;
     const CS_TYPE* varType;
-    int32_t memBlockSize; /* Must be a multiple of sizeof(MYFLT), as
-                         Csound uses MYFLT* and pointer arithmetic
+    int32_t memBlockSize; /* Must be a multiple of sizeof(cs_float), as
+                         Csound uses cs_float* and pointer arithmetic
                          to assign var locations */
     int32_t memBlockIndex;
     int32_t dimensions;  // used by arrays
@@ -86,7 +83,7 @@ extern "C" {
     struct csvariable* next;
     const CS_TYPE* subType;
     void (*updateMemBlockSize)(CSOUND*, struct csvariable*);
-    void (*initializeVariableMemory)(CSOUND*, struct csvariable*, MYFLT*);
+    void (*initializeVariableMemory)(CSOUND*, struct csvariable*, cs_float*);
     struct insds *ctx;
     CS_VAR_MEM *memBlock;
   } CS_VARIABLE;
@@ -169,7 +166,7 @@ extern "C" {
                                CS_VARIABLE* var);
   PUBLIC void csoundRecalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
   PUBLIC void csoundReallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
-  PUBLIC void csoundInitializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool);
+  PUBLIC void csoundInitializeVarPool(CSOUND* csound, cs_float* memBlock, CS_VAR_POOL* pool);
   PUBLIC void csoundDeleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
 
 #ifdef  __cplusplus

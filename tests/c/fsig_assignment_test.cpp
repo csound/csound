@@ -117,7 +117,7 @@ TEST_F(FsigAssignmentTests, SlidingFrames)
     auto *copy = signal("gfCopy");
     EXPECT_EQ(copy->NB, source->NB);
     // Sliding producers need not advance a frame counter between blocks.
-    static_cast<MYFLT *>(source->frame.auxp)[32 * 66 - 1] = FL(42.0);
+    static_cast<cs_float *>(source->frame.auxp)[32 * 66 - 1] = FL(42.0);
     ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
     EXPECT_EQ(contents(copy), contents(source));
 }
@@ -156,7 +156,7 @@ TEST_F(FsigAssignmentTests, ReinitializationChangesFrameLayout)
         auto *source = signal("gfSource");
         auto *copy = signal("gfCopy");
         const size_t bytes = (source->N + 2) *
-            (source->sliding ? 32 * sizeof(MYFLT) : sizeof(float));
+            (source->sliding ? 32 * sizeof(cs_float) : sizeof(float));
         EXPECT_EQ(copy->frame.size, bytes);
         EXPECT_EQ(std::memcmp(copy->frame.auxp, source->frame.auxp, bytes), 0);
     }

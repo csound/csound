@@ -22,7 +22,7 @@
 
 #pragma once
 
-double besseli(double);
+cs_double besseli(cs_double);
 
 /* returns 0 on success, -1 if there are insufficient arguments, */
 /* and -2 in the case of an unknown distribution */
@@ -30,31 +30,31 @@ int32_t gen21_rand(FGDATA *ff, FUNC *ftp);
 
 typedef struct  {
         OPDS    h;
-        MYFLT   *sr, *in, *powerOf, *norm;
+        cs_float   *sr, *in, *powerOf, *norm;
  } POW;
 
 typedef struct  {
         OPDS    h;
-        MYFLT   *out, *arg1, *arg2, *arg3;
+        cs_float   *out, *arg1, *arg2, *arg3;
 } PRAND;
 
 typedef struct  {
         OPDS    h;
-        MYFLT   *ar, *arg1, *xamp, *xcps;
-        MYFLT   *iseed;
-        MYFLT   dfdmax, num1, num2;
+        cs_float   *ar, *arg1, *xamp, *xcps;
+        cs_float   *iseed;
+        cs_float   dfdmax, num1, num2;
         uint32_t  phs;
         int32_t     ampcod, cpscod;
 } PRANDI;
 
 typedef struct {
         OPDS   h;
-        MYFLT  *ans;
+        cs_float  *ans;
 } GETSEED;
 
 typedef struct gauss{
   OPDS h;
-  MYFLT *a, *mu, *sigma;
-  MYFLT z;
+  cs_float *a, *mu, *sigma;
+  cs_float z;
   int32_t flag;
 } GAUSS;

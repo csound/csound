@@ -35,9 +35,9 @@
     typedef struct OLABuffer {
 
         OPDS h;
-        MYFLT *outputArgument;
-        MYFLT *inputArgument;
-        MYFLT *overlapArgument;
+        cs_float *outputArgument;
+        cs_float *inputArgument;
+        cs_float *overlapArgument;
         ARRAYDAT *inputArray;
         AUXCH frameSamplesMemory;
         AUXCH framePointerMemory;
@@ -48,7 +48,7 @@
         int32_t frameSamplesCount;
         int32_t overlapSamplesCount;
         int32_t ksmps;
-        MYFLT **frames;
+        cs_float **frames;
     } OLABuffer;
 
     int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self);
@@ -72,12 +72,12 @@
     typedef struct Framebuffer {
 
         OPDS h;
-        MYFLT *outputArgument;
-        MYFLT *inputArgument;
-        MYFLT *sizeArgument;
+        cs_float *outputArgument;
+        cs_float *inputArgument;
+        cs_float *sizeArgument;
         ArgumentType inputType;
         ArgumentType outputType;
-        MYFLT *buffer;
+        cs_float *buffer;
         AUXCH bufferMemory;
         int32_t elementCount;
         int32_t writeIndex;
@@ -87,7 +87,7 @@
     int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self);
     int32_t Framebuffer_process(CSOUND *csound, Framebuffer *self);
 
-ArgumentType Framebuffer_getArgumentType(CSOUND *csound, MYFLT *argument);
+ArgumentType Framebuffer_getArgumentType(CSOUND *csound, cs_float *argument);
 int32_t Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self);
 
 int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self);
@@ -102,9 +102,9 @@ int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
     self->framesCount = *self->overlapArgument;
     self->overlapSamplesCount = self->frameSamplesCount / self->framesCount;
     csound->AuxAlloc(csound,
-                     self->frameSamplesCount * self->framesCount * sizeof(MYFLT),
+                     self->frameSamplesCount * self->framesCount * sizeof(cs_float),
                      &self->frameSamplesMemory);
-    csound->AuxAlloc(csound, self->framesCount * sizeof(MYFLT *),
+    csound->AuxAlloc(csound, self->framesCount * sizeof(cs_float *),
                      &self->framePointerMemory);
     self->frames = self->framePointerMemory.auxp;
     self->ksmps = self->h.insdshead->ksmps;
@@ -113,7 +113,7 @@ int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
     for (i = 0; i < self->framesCount; ++i) {
 
       self->frames[i] =
-        &((MYFLT *)self->frameSamplesMemory.auxp)[i * self->frameSamplesCount];
+        &((cs_float *)self->frameSamplesMemory.auxp)[i * self->frameSamplesCount];
     }
 
     self->overlapSampleIndex = self->overlapSamplesCount;
@@ -121,23 +121,23 @@ int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
     return OK;
 }
 
-void OLABuffer_writeFrame(OLABuffer *self, MYFLT *inputFrame, int32_t frameIndex)
+void OLABuffer_writeFrame(OLABuffer *self, cs_float *inputFrame, int32_t frameIndex)
 {
     int32_t firstHalfOffset = self->overlapSamplesCount * frameIndex;
     int32_t firstHalfCount = self->frameSamplesCount - firstHalfOffset;
     int32_t secondHalfCount = self->frameSamplesCount - firstHalfCount;
     memcpy(&self->frames[frameIndex][firstHalfOffset], inputFrame,
-           firstHalfCount * sizeof(MYFLT));
+           firstHalfCount * sizeof(cs_float));
     memcpy(self->frames[frameIndex], &inputFrame[firstHalfCount],
-           secondHalfCount * sizeof(MYFLT));
+           secondHalfCount * sizeof(cs_float));
 }
 
-void OLABuffer_readFrame(OLABuffer *self, MYFLT *outputFrame,
+void OLABuffer_readFrame(OLABuffer *self, cs_float *outputFrame,
                          int32_t outputFrameOffset,
                          int32_t olaBufferOffset, int32_t samplesCount)
 {
     memcpy(&outputFrame[outputFrameOffset],
-           &self->frames[0][olaBufferOffset], samplesCount * sizeof(MYFLT));
+           &self->frames[0][olaBufferOffset], samplesCount * sizeof(cs_float));
 
     int32_t i, j;
     for (i = 1; i < self->framesCount; ++i) {
@@ -202,7 +202,7 @@ int32_t OLABuffer_process(CSOUND *csound, OLABuffer *self)
 
 int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 {
-    MYFLT overlapCount = *self->overlapArgument;
+    cs_float overlapCount = *self->overlapArgument;
 
     if (UNLIKELY(overlapCount <= FL(0.0) || floor(overlapCount) != overlapCount)) {
 
@@ -221,7 +221,7 @@ int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
     int32_t frameSampleCount = array->sizes[0];
 
     /* Check the bound before converting the overlap factor to int32_t. */
-    if (UNLIKELY((double)frameSampleCount <= (double)overlapCount)) {
+    if (UNLIKELY((cs_double)frameSampleCount <= (cs_double)overlapCount)) {
 
       return csound->InitError(csound,
                   "%s", Str("olabuffer: Error, k-rate array size must be "
@@ -246,7 +246,7 @@ int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 
 int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
 {
-    double size;
+    cs_double size;
     if (UNLIKELY(self->INOCOUNT != 2 || self->OUTOCOUNT != 1))
       return csound->InitError(csound, "%s",
                               Str("framebuffer: expected two inputs and one output"));
@@ -256,17 +256,17 @@ int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
       return csound->InitError(csound, "%s", Str("framebuffer: size must be i-rate"));
     self->ksmps = self->h.insdshead->ksmps;
     size = *self->sizeArgument;
-    if (UNLIKELY(!(size >= self->ksmps && size < (double)INT32_MAX + 1.0)))
+    if (UNLIKELY(!(size >= self->ksmps && size < (INT32_MAX + 0.0) + 1.0)))
       return csound->InitError(csound, "%s",
                               Str("framebuffer: size must be at least ksmps and fit in int32"));
     self->elementCount = (int32_t)size;
-    if (UNLIKELY((size_t)self->elementCount > SIZE_MAX / sizeof(MYFLT)))
+    if (UNLIKELY((size_t)self->elementCount > SIZE_MAX / sizeof(cs_float)))
       return csound->InitError(csound, "%s", Str("framebuffer: size is too large"));
 
     if (UNLIKELY(Framebuffer_checkArgumentSanity(csound, self) != OK))
       return NOTOK;
 
-    csound->AuxAlloc(csound, self->elementCount * sizeof(MYFLT),
+    csound->AuxAlloc(csound, self->elementCount * sizeof(cs_float),
                      &self->bufferMemory);
     self->buffer = self->bufferMemory.auxp;
     self->writeIndex = 0;
@@ -281,14 +281,14 @@ int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
                             self->h.insdshead) != OK))
           return csound->InitError(csound, "%s",
                                   Str("framebuffer: cannot initialise output array"));
-        memset(array->data, 0, (size_t)self->elementCount * sizeof(MYFLT));
+        memset(array->data, 0, (size_t)self->elementCount * sizeof(cs_float));
     }
 
     return OK;
 }
 
 void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self,
-                             MYFLT *inputSamples, int32_t inputSamplesCount)
+                             cs_float *inputSamples, int32_t inputSamplesCount)
 {
      IGN(csound);
     if (inputSamplesCount == 0)
@@ -296,7 +296,7 @@ void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self,
     if (inputSamplesCount <= self->elementCount - self->writeIndex) {
 
         memcpy(&self->buffer[self->writeIndex], inputSamples,
-               sizeof(MYFLT) * inputSamplesCount);
+               sizeof(cs_float) * inputSamplesCount);
         self->writeIndex += inputSamplesCount;
         if (self->writeIndex == self->elementCount)
             self->writeIndex = 0;
@@ -305,31 +305,31 @@ void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self,
 
         int32_t firstHalf = self->elementCount - self->writeIndex;
         memcpy(&self->buffer[self->writeIndex], inputSamples,
-               sizeof(MYFLT) * firstHalf);
+               sizeof(cs_float) * firstHalf);
         int32_t secondHalf = inputSamplesCount - firstHalf;
         memcpy(self->buffer, &inputSamples[firstHalf],
-               sizeof(MYFLT) * secondHalf);
+               sizeof(cs_float) * secondHalf);
         self->writeIndex = secondHalf;
     }
 }
 
 void Framebuffer_readBuffer(CSOUND *csound, Framebuffer *self,
-                            MYFLT *outputSamples, int32_t outputSamplesCount)
+                            cs_float *outputSamples, int32_t outputSamplesCount)
 {
      IGN(csound);
     if (outputSamplesCount <= self->elementCount - self->writeIndex) {
 
         memcpy(outputSamples, &self->buffer[self->writeIndex],
-               sizeof(MYFLT) * outputSamplesCount);
+               sizeof(cs_float) * outputSamplesCount);
     }
     else {
 
         int32_t firstHalf = self->elementCount - self->writeIndex;
         memcpy(outputSamples, &self->buffer[self->writeIndex],
-               sizeof(MYFLT) * firstHalf);
+               sizeof(cs_float) * firstHalf);
         int32_t secondHalf = outputSamplesCount - firstHalf;
         memcpy(&outputSamples[firstHalf], self->buffer,
-               sizeof(MYFLT) * secondHalf);
+               sizeof(cs_float) * secondHalf);
     }
 }
 
@@ -360,9 +360,9 @@ static int32_t Framebuffer_processFrameInAudioOut(CSOUND *csound, Framebuffer *s
         return csound->PerfError(csound, &self->h, "%s",
                                 Str("framebuffer: invalid input array size"));
     if (UNLIKELY(offset))
-        memset(self->outputArgument, 0, offset * sizeof(MYFLT));
+        memset(self->outputArgument, 0, offset * sizeof(cs_float));
     if (UNLIKELY(early))
-        memset(self->outputArgument + end, 0, early * sizeof(MYFLT));
+        memset(self->outputArgument + end, 0, early * sizeof(cs_float));
     if (end == offset)
         return OK;
     Framebuffer_writeBuffer(csound, self, array->data, array->sizes[0]);
@@ -429,7 +429,7 @@ int32_t Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
     return OK;
 }
 
-ArgumentType Framebuffer_getArgumentType(CSOUND *csound, MYFLT *argument)
+ArgumentType Framebuffer_getArgumentType(CSOUND *csound, cs_float *argument)
 {
     const CS_TYPE *csoundType = GetTypeForArg((void *)argument);
     const char *type = csoundType->varTypeName;

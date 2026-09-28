@@ -297,20 +297,20 @@ static void messageCallback(CSOUND *cs, int attr, const char *format,
   return mCsData.aunit;
 }
 
-- (MYFLT *)getInputChannelPtr:(NSString *)channelName
+- (cs_float *)getInputChannelPtr:(NSString *)channelName
                   channelType:(controlChannelType)channelType
 {
-  MYFLT *value;
+  cs_float *value;
   csoundGetChannelPtr(mCsData.cs, (void **) &value,
                       [channelName cStringUsingEncoding:NSASCIIStringEncoding],
 		      channelType | CSOUND_INPUT_CHANNEL);
   return value;
 }
 
-- (MYFLT *)getOutputChannelPtr:(NSString *)channelName
+- (cs_float *)getOutputChannelPtr:(NSString *)channelName
                    channelType:(controlChannelType)channelType
 {
-  MYFLT *value;
+  cs_float *value;
   csoundGetChannelPtr(mCsData.cs, (void **) &value,
                       [channelName cStringUsingEncoding:NSASCIIStringEncoding],
 		      channelType | CSOUND_OUTPUT_CHANNEL);
@@ -327,7 +327,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format,
   int nchnls = csoundGetChannels(csound, 0);
   int ksmps = csoundGetKsmps(csound);
   NSData* data = [NSData dataWithBytes:spout
-                                length:(nchnls * ksmps * sizeof(MYFLT))];
+                                length:(nchnls * ksmps * sizeof(cs_float))];
   return data;
 }
 
@@ -366,8 +366,8 @@ OSStatus  Csound_Render(void *inRefCon,
   int nsmps = cdata->nsmps;
   int insmps = nsmps;
   int ksmps = csoundGetKsmps(cs);
-  MYFLT *spin = csoundGetSpin(cs);
-  const MYFLT *spout = csoundGetSpout(cs);
+  cs_float *spin = csoundGetSpin(cs);
+  const cs_float *spout = csoundGetSpout(cs);
   SInt32 *buffer;
     
   AudioUnitRender(*cdata->aunit, ioActionFlags, inTimeStamp, 1,

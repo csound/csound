@@ -104,24 +104,24 @@ int32_t sfile_close(CSOUND *csound, void *p) {
     return CSOUND_SUCCESS;
 }
 
-int64_t sfile_write(CSOUND *csound, void *p, MYFLT *data, int64_t frames) {
+int64_t sfile_write(CSOUND *csound, void *p, cs_float *data, int64_t frames) {
   sfile *file = (sfile *) p;
-  return fwrite(data, sizeof(MYFLT)*file->sfinfo->channels, frames, file->fp);
+  return fwrite(data, sizeof(cs_float)*file->sfinfo->channels, frames, file->fp);
 }
 
-int64_t sfile_read(CSOUND *csound, void *p, MYFLT *data, int64_t frames) {
+int64_t sfile_read(CSOUND *csound, void *p, cs_float *data, int64_t frames) {
   sfile *file = (sfile *) p;
-  return fread(data, sizeof(MYFLT)*file->sfinfo->channels, frames, file->fp);
+  return fread(data, sizeof(cs_float)*file->sfinfo->channels, frames, file->fp);
 }
 
-int64_t sfile_write_samples(CSOUND *csound, void *p, MYFLT *data, int64_t samples) {
+int64_t sfile_write_samples(CSOUND *csound, void *p, cs_float *data, int64_t samples) {
   sfile *file = (sfile *) p;
-  return fwrite(data, sizeof(MYFLT), samples, file->fp);
+  return fwrite(data, sizeof(cs_float), samples, file->fp);
 }
 
-int64_t sfile_read_samples(CSOUND *csound, void *p, MYFLT *data, int64_t samples) {
+int64_t sfile_read_samples(CSOUND *csound, void *p, cs_float *data, int64_t samples) {
   sfile *file = (sfile *) p;
-  return fread(data, sizeof(MYFLT), samples, file->fp);
+  return fread(data, sizeof(cs_float), samples, file->fp);
 }
 
 int64_t sfile_seek(CSOUND *csound, void *p, int64_t offs, int32_t whence) {
@@ -212,11 +212,11 @@ TEST_F (SndfileTests, testWriteSndfile)
 
 TEST_F (SndfileTests, testReadSndfile)
 {
-  const std::vector<MYFLT> samples(44100, MYFLT(0.25));
+  const std::vector<cs_float> samples(44100, cs_float(0.25));
   std::ofstream input(path, std::ios::binary);
   ASSERT_TRUE(input.is_open());
   input.write(reinterpret_cast<const char *>(samples.data()),
-              samples.size() * sizeof(MYFLT));
+              samples.size() * sizeof(cs_float));
   input.close();
   ASSERT_TRUE(input.good());
 
@@ -241,9 +241,9 @@ TEST_F (SndfileTests, testReadSndfile)
   bool heardInput = false;
   while(!result) {
     result = csoundPerformKsmps(csound);
-    const MYFLT *output = csoundGetSpout(csound);
+    const cs_float *output = csoundGetSpout(csound);
     for (uint32_t i = 0; i < csoundGetKsmps(csound); ++i)
-      heardInput |= output[i] == MYFLT(0.25);
+      heardInput |= output[i] == cs_float(0.25);
   }
   EXPECT_TRUE(heardInput);
 

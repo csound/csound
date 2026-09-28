@@ -51,7 +51,7 @@
 
 typedef struct DLineN {
   AUXCH inputs;
-  MYFLT lastOutput;
+  cs_float lastOutput;
   int32 inPoint;
   int32 outPoint;
   int32 length;
@@ -59,31 +59,31 @@ typedef struct DLineN {
 
 typedef struct BowedBar {
     OPDS        h;
-    MYFLT       *ar;                  /* Output */
-    MYFLT       *amp, *frequency, *position, *bowPress, *GAIN;
-    MYFLT       *integration_const, *trackVel, *bowposition, *lowestFreq;
+    cs_float       *ar;                  /* Output */
+    cs_float       *amp, *frequency, *position, *bowPress, *GAIN;
+    cs_float       *integration_const, *trackVel, *bowposition, *lowestFreq;
 
     BowTabl     bowTabl;
     ADSR        adsr;
     BiQuad      bandpass[NR_MODES];
 
-    MYFLT       maxVelocity;
-    MYFLT       modes[4];
+    cs_float       maxVelocity;
+    cs_float       modes[4];
     DLINEN      delay[4];
-/*      MYFLT   Zs[4][2]; */
-/*      MYFLT   coeffs[4][2]; */
-/*      MYFLT   filtOut[4]; */
-/*      MYFLT   filtIn[4]; */
-/*      MYFLT   filtGain[4]; */
-    MYFLT       freq;
+/*      cs_float   Zs[4][2]; */
+/*      cs_float   coeffs[4][2]; */
+/*      cs_float   filtOut[4]; */
+/*      cs_float   filtIn[4]; */
+/*      cs_float   filtGain[4]; */
+    cs_float       freq;
     int32_t         nr_modes;       /* Usually 4 */
     int32_t         length;
-    MYFLT       gains[4];
-    MYFLT       velinput;
-    MYFLT       bowvel, bowTarg, lastBowPos;
-    MYFLT       lastpos;
+    cs_float       gains[4];
+    cs_float       velinput;
+    cs_float       bowvel, bowTarg, lastBowPos;
+    cs_float       lastpos;
 /*      int32_t             pluck; */
-    MYFLT       lastpress;
+    cs_float       lastpress;
     int32_t         kloop;
 } BOWEDBAR;
 

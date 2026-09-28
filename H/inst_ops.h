@@ -30,23 +30,23 @@
 typedef struct {
     OPDS    h;
     INSTANCEREF *inst;
-    MYFLT  *ktrig;
+    cs_float  *ktrig;
 } KILLOP;
 
 typedef struct {                        /* IV - Oct 20 2002 */
     OPDS    h;
-    MYFLT   *i_insno, *iname;
+    cs_float   *i_insno, *iname;
 } NSTRNUM;
 
 typedef struct {                        /* JPff Feb 2019 */
     OPDS    h;
     STRINGDAT *ans;
-    MYFLT     *num;
+    cs_float     *num;
 } NSTRSTR;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *insno;
+    cs_float   *insno;
 } DELETEIN;
 
 typedef struct {
@@ -64,15 +64,15 @@ typedef struct {
 
 typedef struct {
   OPDS h;
-  MYFLT *err;
-  MYFLT *args[VARGMAX];
+  cs_float *err;
+  cs_float *args[VARGMAX];
 } INIT_INSTANCE;
 
 typedef struct {
   OPDS h;
-  MYFLT *out;
+  cs_float *out;
   INSTANCEREF *in;
-  MYFLT *args[VARGMAX];
+  cs_float *args[VARGMAX];
 } PERF_INSTR;
 
 typedef struct {
@@ -82,23 +82,23 @@ typedef struct {
 
 typedef struct {
   OPDS h;
-  MYFLT *out;
+  cs_float *out;
   INSTANCEREF *in;
   INSTANCEREF *nxt;
-  MYFLT *mode;
+  cs_float *mode;
 } SPLICE_INSTR;
 
 typedef struct {
   OPDS h;
   INSTANCEREF *in;
-  MYFLT *pause;
+  cs_float *pause;
 } PAUSE_INSTR;
 
 typedef struct {
   OPDS h;
   INSTANCEREF *in;
-  MYFLT *par;
-  MYFLT *val;
+  cs_float *par;
+  cs_float *val;
 } PARM_INSTR;
 
 typedef struct {
@@ -109,12 +109,12 @@ typedef struct {
 
 typedef struct {
     OPDS   h;
-    MYFLT  *r;
+    cs_float  *r;
 } REL;
 
 typedef struct {
     OPDS   h;
-    MYFLT  *extradur;
+    cs_float  *extradur;
 } XTRADUR;
 
 int32_t play_instr(CSOUND *csound, LINEVENT2 *p);

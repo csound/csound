@@ -112,9 +112,21 @@ export const csoundGetCurrentTimeSamples = (wasm) => (csound) =>
 csoundGetCurrentTimeSamples["toString"] = () => "getCurrentTimeSamples = async () => Number;";
 
 /**
- * Return the size of MYFLT in number of bytes
+ * Return the size of cs_float in number of bytes
  * @function
  */
+export const csoundGetSizeOfCsFloat = (wasm) => () =>
+  wasm.exports["csoundGetSizeOfCsFloat"]();
+
+csoundGetSizeOfCsFloat["toString"] = () => "getSizeOfCsFloat = async () => Number;";
+
+/** Return the size of cs_double in bytes. */
+export const csoundGetSizeOfCsDouble = (wasm) => () =>
+  wasm.exports["csoundGetSizeOfCsDouble"]();
+
+csoundGetSizeOfCsDouble["toString"] = () => "getSizeOfCsDouble = async () => Number;";
+
+/** @deprecated Use csoundGetSizeOfCsFloat. */
 export const csoundGetSizeOfMYFLT = (wasm) => (csound) =>
   wasm.exports["csoundGetSizeOfMYFLT"](csound);
 
@@ -185,7 +197,7 @@ export const csoundGetDebug = (wasm) => (csound) => wasm.exports["csoundGetDebug
 csoundGetDebug["toString"] = () => "getDebug = async () => Number;";
 
 /**
- * Return the size of MYFLT in number of bytes
+ * Return the size of cs_float in number of bytes
  * @function
  */
 export const csoundSetDebug = (wasm) => (csound, debug) => {

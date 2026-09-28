@@ -31,11 +31,11 @@
 
 typedef struct {
   OPDS  h;
-  MYFLT *res;
-  MYFLT *ktrig;
+  cs_float *res;
+  cs_float *ktrig;
   STRINGDAT *commandLine;
-  MYFLT *nowait;
-  MYFLT prv_ktrig;
+  cs_float *nowait;
+  cs_float prv_ktrig;
 } SYSTEM;
 
 #if defined(WIN32)
@@ -67,7 +67,7 @@ static int32_t call_system(CSOUND *csound, SYSTEM *p)
       *p->res = OK;
     }
     else {
-      *p->res = (MYFLT) system( (char *)p->commandLine->data );
+      *p->res = (cs_float) system( (char *)p->commandLine->data );
     }
     return OK;
 }
@@ -95,7 +95,7 @@ return OK;
       }
     }
     else {
-      *p->res = (MYFLT)system((char*)p->commandLine->data);
+      *p->res = (cs_float)system((char*)p->commandLine->data);
       return OK;
     }
 #endif
