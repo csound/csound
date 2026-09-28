@@ -35,16 +35,32 @@
 /*************PVBUFREAD**************************************/
 /************************************************************/
 
+#define PVBUFREAD_INSTANCE "csound.pvoc.source"
+
+/* The most recent reader belongs to this instrument or UDO instance.
+   Consumers resolve it at init and keep their pointer during performance. */
+static PVBUFREAD **pvbufread_source(CSOUND *csound, INSDS *owner)
+{
+  return (PVBUFREAD **)csound->QueryInstanceVariable(csound, owner,
+                                                   PVBUFREAD_INSTANCE);
+}
+
+int32_t pvbufread_deinit(CSOUND *csound, PVBUFREAD *p)
+{
+  PVBUFREAD **source = pvbufread_source(csound, p->h.insdshead);
+  if (source != NULL && *source == p)
+    *source = NULL;
+  return OK;
+}
+
 int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
 {
   char     pvfilnam[MAXNAME];
   PVOCEX_MEMFILE  pp;
   int32_t      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
-  {
-    PVOC_GLOBALS  *p_ = PVOC_GetGlobals(csound);
-    p_->pvbufreadaddr = p;
-  }
+  PVBUFREAD **source;
+  pvbufread_deinit(csound, p);
 
   if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
     /* Assumes PVDATASIZE, PVFFTSIZE, PVWINLEN constant */
@@ -108,6 +124,16 @@ int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
                              (int32_t) PVWINLEN, pvfilnam);
   }
 
+  /* Do not expose a reader until its file and buffers are ready. */
+  source = pvbufread_source(csound, p->h.insdshead);
+  if (source == NULL) {
+    if (csound->CreateInstanceVariable(csound, p->h.insdshead,
+          PVBUFREAD_INSTANCE, sizeof(PVBUFREAD *)) != OK)
+      return csound->InitError(csound, "%s",
+                              Str("pvbufread: could not allocate source state"));
+    source = pvbufread_source(csound, p->h.insdshead);
+  }
+  *source = p;
   return OK;
 }
 
@@ -156,7 +182,8 @@ int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
   int32_t      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
   p->pp = PVOC_GetGlobals(csound);
-  p->pvbufread = p->pp->pvbufreadaddr;
+  PVBUFREAD **source = pvbufread_source(csound, p->h.insdshead);
+  p->pvbufread = source != NULL ? *source : NULL;
   if (UNLIKELY(p->pvbufread == NULL))
     return csound->InitError(csound,
                              "%s", Str("pvinterp: associated pvbufread not found"));
@@ -349,7 +376,8 @@ int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
   int32_t      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
   p->pp = PVOC_GetGlobals(csound);
-  p->pvbufread = p->pp->pvbufreadaddr;
+  PVBUFREAD **source = pvbufread_source(csound, p->h.insdshead);
+  p->pvbufread = source != NULL ? *source : NULL;
   if (UNLIKELY(p->pvbufread == NULL))
     return csound->InitError(csound,
                              "%s", Str("pvcross: associated pvbufread not found"));
