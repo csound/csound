@@ -1746,9 +1746,6 @@ struct CSOUND_ {
   MYFLT csoundScoreOffsetSeconds_;
   int32_t inChar_;
   int32_t isGraphable_;
-  int32_t delayr_stack_depth; /* ugens6.c */
-  void *first_delayr;
-  void *last_delayr;
   int32 revlpsiz[6];
   int32 revlpsum;
   double rndfrac; /* aops.c */

@@ -294,29 +294,58 @@ int32_t delset(CSOUND *csound, DELAY *p)
     return OK;
 }
 
+/* FIFO reader pairing by Jens Groh, kept within each instance. */
+#define DELAY_PAIRING_INSTANCE "csound.delay.pairing"
+
+typedef struct {
+    DELAYR *first, *last;
+    int32_t depth;
+} DELAY_PAIRING;
+
+/* This queue contains readers still waiting for a delayw in this instance.
+   Taps and writers cache their resolved reader for performance. */
+static DELAY_PAIRING *delay_pairing(CSOUND *csound, INSDS *owner)
+{
+    return (DELAY_PAIRING *)csound->QueryInstanceVariable(
+        csound, owner, DELAY_PAIRING_INSTANCE);
+}
+
+int32_t delrdeinit(CSOUND *csound, DELAYR *p)
+{
+    DELAY_PAIRING *pairing = delay_pairing(csound, p->h.insdshead);
+    DELAYR *previous = NULL;
+    if (pairing == NULL)
+      return OK;
+    for (DELAYR *reader = pairing->first; reader != NULL;
+         reader = reader->next_delayr) {
+      if (reader == p) {
+        if (previous != NULL)
+          previous->next_delayr = p->next_delayr;
+        else
+          pairing->first = p->next_delayr;
+        if (pairing->last == p)
+          pairing->last = previous;
+        pairing->depth--;
+        p->next_delayr = NULL;
+        break;
+      }
+      previous = reader;
+    }
+    return OK;
+}
+
 int32_t delrset(CSOUND *csound, DELAYR *p)
 {
     uint32_t    npts;
     MYFLT       *auxp;
+    DELAY_PAIRING *pairing;
 
+    /* Reinit must not enqueue the same reader twice. */
+    delrdeinit(csound, p);
     if (UNLIKELY(!IS_ASIG_ARG(p->ar)))
       return csound->InitError(csound, Str("delayr: invalid outarg type"));
-    /* fifo for delayr pointers by Jens Groh: */
-    /* append structadr for delayw to fifo: */
-    if (csound->first_delayr != NULL)       /* fifo not empty */
-      ((DELAYR*) csound->last_delayr)->next_delayr = p;
-    else                                    /* fifo empty */
-      csound->first_delayr = (void*) p;
-    csound->last_delayr = (void*) p;
-    csound->delayr_stack_depth++;
-    p->next_delayr = NULL;
-    if (p->OUTOCOUNT > 1) {
-      /* set optional output arg if specified */
-      *(p->indx) = (MYFLT)-(csound->delayr_stack_depth);
-    }
-
     if (UNLIKELY(*p->istor != FL(0.0) && p->auxch.auxp != NULL))
-      return OK;
+      goto register_reader;
     /* ksmps is min dely */
     if (UNLIKELY((npts=(uint32_t)MYFLT2LRND(*p->idlt*CS_ESR)) < CS_KSMPS)) {
       return csound->InitError(csound, Str("illegal delay time"));
@@ -331,30 +360,49 @@ int32_t delrset(CSOUND *csound, DELAYR *p)
       memset(auxp, 0, npts*sizeof(MYFLT));
     }
     p->curp = auxp;
+
+ register_reader:
+    /* Publish only a reader whose buffer is ready. */
+    pairing = delay_pairing(csound, p->h.insdshead);
+    if (pairing == NULL) {
+      if (csound->CreateInstanceVariable(csound, p->h.insdshead,
+            DELAY_PAIRING_INSTANCE, sizeof(DELAY_PAIRING)) != OK)
+        return csound->InitError(csound, "%s",
+                                 Str("delayr: could not allocate pairing state"));
+      pairing = delay_pairing(csound, p->h.insdshead);
+    }
+    if (pairing->last != NULL)
+      pairing->last->next_delayr = p;
+    else
+      pairing->first = p;
+    pairing->last = p;
+    pairing->depth++;
+    p->next_delayr = NULL;
+    if (p->OUTOCOUNT > 1)
+      *(p->indx) = (MYFLT)-pairing->depth;
     return OK;
 }
 
 int32_t delwset(CSOUND *csound, DELAYW *p)
 {
-   /* fifo for delayr pointers by Jens Groh: */
-    if (UNLIKELY(csound->first_delayr == NULL)) {
+    DELAY_PAIRING *pairing = delay_pairing(csound, p->h.insdshead);
+    p->delayr = NULL;
+    if (UNLIKELY(pairing == NULL || pairing->first == NULL))
       return csound->InitError(csound,
                                Str("delayw: associated delayr not found"));
-    }
-    p->delayr = (DELAYR*) csound->first_delayr;         /* adr delayr struct */
-    /* remove structadr from fifo */
-    if (csound->last_delayr == csound->first_delayr) {  /* fifo will be empty */
-      csound->first_delayr = NULL;
-    }
-    else    /* fifo will not be empty */
-      csound->first_delayr = ((DELAYR*) csound->first_delayr)->next_delayr;
-    csound->delayr_stack_depth--;
+    p->delayr = pairing->first;
+    pairing->first = p->delayr->next_delayr;
+    if (pairing->first == NULL)
+      pairing->last = NULL;
+    p->delayr->next_delayr = NULL;
+    pairing->depth--;
     return OK;
 }
 
-static DELAYR *delayr_find(CSOUND *csound, MYFLT *ndx)
+static DELAYR *delayr_find(CSOUND *csound, INSDS *owner, MYFLT *ndx)
 {
-    DELAYR  *d = (DELAYR*) csound->first_delayr;
+    DELAY_PAIRING *pairing = delay_pairing(csound, owner);
+    DELAYR *d = pairing != NULL ? pairing->first : NULL;
     int32_t     n = (int32_t)MYFLT2LRND(*ndx);
 
     if (UNLIKELY(d == NULL)) {
@@ -362,12 +410,12 @@ static DELAYR *delayr_find(CSOUND *csound, MYFLT *ndx)
       return NULL;
     }
     if (!n)
-      return (DELAYR*) csound->last_delayr;     /* default: use last delayr */
+      return pairing->last;     /* default: use last delayr */
     else if (n > 0)
-      n = csound->delayr_stack_depth - n;       /* ndx > 0: LIFO index mode */
+      n = pairing->depth - n;       /* ndx > 0: LIFO index mode */
     else
       n = -n;                                   /* ndx < 0: FIFO index mode */
-    if (UNLIKELY(n < 1 || n > csound->delayr_stack_depth)) {
+    if (UNLIKELY(n < 1 || n > pairing->depth)) {
       csound->InitError(csound,
                         Str("deltap: delayr index %.0f is out of range"),
                         (double)*ndx);
@@ -381,7 +429,7 @@ static DELAYR *delayr_find(CSOUND *csound, MYFLT *ndx)
 
 int32_t tapset(CSOUND *csound, DELTAP *p)
 {
-    p->delayr = delayr_find(csound, p->indx);
+    p->delayr = delayr_find(csound, p->h.insdshead, p->indx);
     return (p->delayr != NULL ? OK : NOTOK);
 }
 
@@ -711,7 +759,7 @@ int32_t deltap3(CSOUND *csound, DELTAP *p)
 
 int32_t tapxset(CSOUND *csound, DELTAPX *p)
 {
-    p->delayr = delayr_find(csound, p->indx);
+    p->delayr = delayr_find(csound, p->h.insdshead, p->indx);
     if (UNLIKELY(p->delayr == NULL))
       return NOTOK;
     p->wsize = (int32_t)(*(p->iwsize) + FL(0.5));          /* window size */
