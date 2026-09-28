@@ -44,7 +44,6 @@ struct PVOC_GLOBALS_ {
     CSOUND    *csound;
     MYFLT     *dsputil_sncTab;
     PVBUFREAD *pvbufreadaddr;
-    TABLESEG  *tbladr;
 };
 
 extern PVOC_GLOBALS *PVOC_AllocGlobals(CSOUND *csound);

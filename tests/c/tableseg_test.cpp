@@ -52,9 +52,14 @@ protected:
 
     TABLESEG *envelope()
     {
-        auto *globals = static_cast<PVOC_GLOBALS *>(
-            csound->QueryGlobalVariable(csound, "pvocGlobals"));
-        return globals ? globals->tbladr : nullptr;
+        for (INSDS *owner = csound->actanchor.nxtact; owner;
+             owner = owner->nxtact) {
+            auto **source = static_cast<TABLESEG **>(
+                csound->QueryInstanceVariable(csound, owner,
+                                              "csound.tableseg.source"));
+            if (source && *source) return *source;
+        }
+        return nullptr;
     }
 
     void expectTable(double base)

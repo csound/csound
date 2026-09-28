@@ -28,14 +28,31 @@
 #include "pvoc.h"
 #include <math.h>
 
+#define TABLESEG_INSTANCE "csound.tableseg.source"
+
+static TABLESEG **tableseg_source(CSOUND *csound, INSDS *owner)
+{
+  return (TABLESEG **)csound->QueryInstanceVariable(csound, owner,
+                                                    TABLESEG_INSTANCE);
+}
+
+int32_t tableseg_deinit(CSOUND *csound, TABLESEG *p)
+{
+  TABLESEG **source = tableseg_source(csound, p->h.insdshead);
+  if (source != NULL && *source == p)
+    *source = NULL;
+  return OK;
+}
+
 int32_t tblesegset(CSOUND *csound, TABLESEG *p)
 {
   TSEG *segp;
   MYFLT **argp = p->argums;
   FUNC *first, *current, *next;
   int32_t i, nsegs = p->INOCOUNT >> 1;
-  PVOC_GLOBALS *globals;
+  TABLESEG **source;
 
+  tableseg_deinit(csound, p);
   p->cursegp = NULL;
   if (UNLIKELY(p->INOCOUNT < 3 || !(p->INOCOUNT & 1)))
     return csound->InitError(csound, "%s",
@@ -78,10 +95,15 @@ int32_t tblesegset(CSOUND *csound, TABLESEG *p)
          ((size_t)first->flen + 1) * sizeof(MYFLT));
   p->cursegp = segp;
   p->nsegs = nsegs;
-  globals = PVOC_GetGlobals(csound);
-  if (UNLIKELY(globals == NULL))
-    return NOTOK;
-  globals->tbladr = p;
+  source = tableseg_source(csound, p->h.insdshead);
+  if (source == NULL) {
+    if (csound->CreateInstanceVariable(csound, p->h.insdshead,
+                                       TABLESEG_INSTANCE, sizeof(*source)) != OK)
+      return csound->InitError(csound, "%s",
+                               Str("tableseg: could not allocate source state"));
+    source = tableseg_source(csound, p->h.insdshead);
+  }
+  *source = p;
   return OK;
 }
 
@@ -143,8 +165,11 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
 
   p->pp = PVOC_GetGlobals(csound);
   /* If optional table given, fake it up -- JPff  */
-  if (*p->isegtab == FL(0.0))
-    p->tableseg = p->pp->tbladr;
+  if (*p->isegtab == FL(0.0)) {
+    TABLESEG **source = tableseg_source(csound, p->h.insdshead);
+    /* Bind at init. Later envelopes must not redirect this vpvoc. */
+    p->tableseg = source != NULL ? *source : NULL;
+  }
   else {
     csound->AuxAlloc(csound, sizeof(TABLESEG), &p->auxtab);
     p->tableseg = (TABLESEG*) p->auxtab.auxp;
