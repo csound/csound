@@ -62,9 +62,7 @@ static int32_t locsigset(CSOUND *csound, LOCSIG *p)
     p->prev_degree = -FL(918273645.192837465);
     p->prev_distance = -FL(918273645.192837465);
 
-    spatial_source_register(csound, &p->source, &p->h, SPATIAL_LOCSIG);
-
-    return OK;
+    return spatial_source_register(csound, &p->h, SPATIAL_LOCSIG);
 }
 
 static int32_t locsig(CSOUND *csound, LOCSIG *p)

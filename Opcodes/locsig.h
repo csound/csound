@@ -38,7 +38,6 @@ typedef struct {
     MYFLT   ch1, ch2, ch3, ch4;
     AUXCH   auxch;
     MYFLT   *rrev1, *rrev2, *rrev3, *rrev4;
-    SPATIAL_SOURCE source;
 } LOCSIG;
 
 typedef struct {

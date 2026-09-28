@@ -64,8 +64,7 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
       p->rrev4 = fltp;   //fltp += CS_KSMPS;
     }
 
-    spatial_source_register(csound, &p->source, &p->h, SPATIAL_SPACE);
-    return OK;
+    return spatial_source_register(csound, &p->h, SPATIAL_SPACE);
 }
 
 static int32_t space(CSOUND *csound, SPACE *p)
