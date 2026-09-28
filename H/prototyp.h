@@ -101,6 +101,10 @@ extern "C" {
   void instance_process_pending_turnoffs(CSOUND *);
   INSDS *create_instance(CSOUND *csound, int32_t insno);
   void free_instance(CSOUND *csound, INSDS *ip);
+  int32_t csoundCreateInstanceVariable(CSOUND *, INSDS *, const char *, size_t);
+  void *csoundQueryInstanceVariable(CSOUND *, const INSDS *, const char *);
+  void reset_instance_variables(INSDS *);
+  void free_instance_variables(CSOUND *, INSDS *);
   int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
   void free_instr_var_memory(CSOUND* csound, INSDS* ip);
   void recycle_udo_instance(CSOUND* csound, INSDS* ip);

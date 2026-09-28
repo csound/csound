@@ -331,3 +331,100 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
     cs_hash_table_mfree_complete(csound, csound->namedGlobals);
     csound->namedGlobals = NULL;
 }
+
+/* An instrument normally needs only a few entries, one per opcode family.
+   Keep this list private so its representation can change without another
+   INSDS layout change. Payloads have the same alignment as csound->Calloc. */
+typedef struct instance_variable {
+    struct instance_variable *next;
+    void *data;
+    size_t capacity;
+    int32_t active;
+    char name[];
+} INSTANCE_VARIABLE;
+
+int32_t csoundCreateInstanceVariable(CSOUND *csound, INSDS *owner,
+                                     const char *name, size_t nbytes)
+{
+    INSTANCE_VARIABLE *entry;
+    size_t nameBytes;
+    void *data;
+
+    if (UNLIKELY(csound == NULL || owner == NULL || owner->csound != csound ||
+                 name == NULL || name[0] == '\0' || nbytes == 0 ||
+                 nbytes >= (size_t) 0x7F000000L))
+      return CSOUND_ERROR;
+
+    for (entry = owner->instance_variables; entry != NULL; entry = entry->next) {
+      if (strcmp(entry->name, name) != 0)
+        continue;
+      if (entry->active)
+        return CSOUND_ERROR;
+      /* A new note can reuse this allocation, but never the previous value. */
+      if (entry->capacity < nbytes) {
+        data = csound->Calloc(csound, nbytes);
+        if (UNLIKELY(data == NULL))
+          return CSOUND_MEMORY;
+        csound->Free(csound, entry->data);
+        entry->data = data;
+        entry->capacity = nbytes;
+      }
+      else
+        memset(entry->data, 0, nbytes);
+      entry->active = 1;
+      return CSOUND_SUCCESS;
+    }
+
+    nameBytes = strlen(name) + 1;
+    if (UNLIKELY(nameBytes > SIZE_MAX - sizeof(INSTANCE_VARIABLE)))
+      return CSOUND_ERROR;
+    entry = csound->Calloc(csound, sizeof(INSTANCE_VARIABLE) + nameBytes);
+    if (UNLIKELY(entry == NULL))
+      return CSOUND_MEMORY;
+    entry->data = csound->Calloc(csound, nbytes);
+    if (UNLIKELY(entry->data == NULL)) {
+      csound->Free(csound, entry);
+      return CSOUND_MEMORY;
+    }
+    memcpy(entry->name, name, nameBytes);
+    entry->capacity = nbytes;
+    entry->active = 1;
+    entry->next = owner->instance_variables;
+    owner->instance_variables = entry;
+    return CSOUND_SUCCESS;
+}
+
+void *csoundQueryInstanceVariable(CSOUND *csound, const INSDS *owner,
+                                  const char *name)
+{
+    INSTANCE_VARIABLE *entry;
+
+    if (UNLIKELY(csound == NULL || owner == NULL || owner->csound != csound ||
+                 name == NULL || name[0] == '\0'))
+      return NULL;
+    for (entry = owner->instance_variables; entry != NULL; entry = entry->next)
+      if (entry->active && strcmp(entry->name, name) == 0)
+        return entry->data;
+    return NULL;
+}
+
+/* Run after deinit and before publishing the INSDS for reuse. Do not call
+   during reinit, which can leave other opcodes using their existing entries. */
+void reset_instance_variables(INSDS *owner)
+{
+    INSTANCE_VARIABLE *entry;
+    for (entry = owner->instance_variables; entry != NULL; entry = entry->next)
+      entry->active = 0;
+}
+
+void free_instance_variables(CSOUND *csound, INSDS *owner)
+{
+    INSTANCE_VARIABLE *entry = owner->instance_variables;
+    owner->instance_variables = NULL;
+    while (entry != NULL) {
+      INSTANCE_VARIABLE *next = entry->next;
+      csound->Free(csound, entry->data);
+      csound->Free(csound, entry);
+      entry = next;
+    }
+}

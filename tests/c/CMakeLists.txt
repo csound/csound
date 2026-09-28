@@ -58,6 +58,7 @@ if(BUILD_TESTS)
         nxtpow2_test.cpp
         dct_test.cpp
         engine_test.cpp
+        instance_variable_test.cpp
         doppler_test.cpp
         io_test.cpp
         local_ksmps_test.cpp

@@ -1362,6 +1362,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt) {
     free_instr_var_memory(csound, active);
     if (active->opcod_iobufs != NULL)
       csound->Free(csound, active->opcod_iobufs);
+    free_instance_variables(csound, active);
     csound->Free(csound, active);
     active = nxt;
   }

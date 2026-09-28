@@ -610,12 +610,14 @@ static const CSOUND cenviron_ = {
     csoundGetTableArgs,
     csound_array_prepare_opcode_write_impl,
     csound_array_ensure_capacity_impl,
-    /* space for API expansion: 46 slots */
+    csoundCreateInstanceVariable,
+    csoundQueryInstanceVariable,
+    /* space for API expansion: 44 slots */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL, NULL, NULL},
+     NULL, NULL, NULL, NULL},
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
   (SUBR) NULL,    /*  first_callback_     */
@@ -826,6 +828,7 @@ static const CSOUND cenviron_ = {
     0,  /* link flag */
     0,  /* instance id */
     0,  /* async references */
+    NULL, /* instance variables */
     {NULL, FL(0.0)},
     {NULL, FL(0.0)},
     {NULL, FL(0.0)},

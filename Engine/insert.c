@@ -1831,6 +1831,8 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
       int32_t closeFiles = 0;
       INSDS *nxtp;
 
+      reset_instance_variables(current);
+
       if (current->subins_deact != NULL) {
         SUBINST *subinstr = (SUBINST *) current->subins_deact;
         subinstr->ip = NULL;
@@ -2131,6 +2133,7 @@ void free_inactive_instances(CSOUND *csound)
     if (ip->auxchp != NULL)
       auxchfree(csound, ip);
     free_instr_var_memory(csound, ip);
+    free_instance_variables(csound, ip);
     csound->Free(csound, (char *) ip);
   }
   /* check current items in deadpool to see if they need deleting */
@@ -2925,6 +2928,7 @@ static void free_unlinked_instance(CSOUND *csound, INSDS *ip)
       csound->ErrorMsg(csound, Str("instance %llu (instr %d) deleted\n"),
                        (unsigned long long) ip->instance_id, ip->insno);
   }
+  free_instance_variables(csound, ip);
   csound->Free(csound, ip);
 }
 

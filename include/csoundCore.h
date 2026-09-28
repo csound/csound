@@ -546,6 +546,8 @@ typedef struct {
        reuse and free path must reject a nonzero count, and a borrower must not
        access the INSDS after its final decrement. */
     volatile int32_t async_ref_count;
+    /* Private named storage. Use Create/QueryInstanceVariable to access it. */
+    void *instance_variables;
     /* Copy of required p-field values for quick access */
     CS_VAR_MEM  p0;
     CS_VAR_MEM  p1;
@@ -1527,7 +1529,34 @@ struct CSOUND_ {
   int32_t (*ArrayPrepareOpcodeWrite)(CSOUND *, ARRAYDAT *, OPDS *, int32_t,
                                      const char *);
   int32_t (*ArrayEnsureCapacity)(CSOUND *, ARRAYDAT *, size_t, INSDS *);
-  SUBR dummyfn_2[46];
+  /**
+   * Create zero-filled storage local to owner, normally h.insdshead at init.
+   * Names are copied and must be nonempty. Use a fixed, family-specific name.
+   * Returns CSOUND_SUCCESS, CSOUND_ERROR for an invalid owner/name/size or an
+   * existing name, or CSOUND_MEMORY if allocation fails. The owner must belong
+   * to this CSOUND. Size limits match CreateGlobalVariable.
+   *
+   * Entries survive ties and reinit and remain available through opcode deinit.
+   * The engine discards them after deactivation, before reusing the instance.
+   * It retains their allocations for reuse until it frees the INSDS. Nested
+   * UDOs and subinstruments have separate storage, with no parent lookup.
+   *
+   * Create may allocate. Query searches only this instance. Cache the result
+   * for performance. Neither call locks. Callers must serialize access to the
+   * same owner, including any access through cached pointers during reinit.
+   * Opcodes must release resources held inside an entry in their deinit code.
+   */
+  int32_t (*CreateInstanceVariable)(CSOUND *, INSDS *owner,
+                                     const char *name, size_t nbytes);
+  /**
+   * Return an instance variable, or NULL for a missing name or invalid owner.
+   * The pointer stays valid through the owner's deinit, including across
+   * reinit and creation of other entries. Do not free it or use it after the
+   * owner deactivates. UGEN storage lasts until its context or factory is
+   * deleted, after all its UGENs have been deleted.
+   */
+  void *(*QueryInstanceVariable)(CSOUND *, const INSDS *owner, const char *name);
+  SUBR dummyfn_2[44];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */

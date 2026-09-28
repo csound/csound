@@ -115,6 +115,7 @@ static size_t ugen_arg_type_size(UGEN_ARG_TYPE type, int32_t ksmps) {
  * Initialize an INSDS from a CSOUND instance's current settings.
  */
 static void insds_init_from_csound(INSDS* insds, CSOUND* csound) {
+    insds->csound = csound;
     insds->esr = csound->esr;
     insds->pidsr = csound->pidsr;
     insds->sicvt = csound->sicvt;
@@ -131,6 +132,7 @@ static void insds_init_from_csound(INSDS* insds, CSOUND* csound) {
  * Copy INSDS fields from a source INSDS.
  */
 static void insds_init_from_insds(INSDS* dest, const INSDS* src) {
+    dest->csound = src->csound;
     dest->esr = src->esr;
     dest->pidsr = src->pidsr;
     dest->sicvt = src->sicvt;
@@ -233,6 +235,7 @@ UGEN_FACTORY* csoundUgenFactoryNew(CSOUND* csound) {
 bool csoundUgenFactoryDelete(UGEN_FACTORY* factory) {
     if (factory == NULL) return false;
     CSOUND* csound = factory->csound;
+    free_instance_variables(csound, factory->insds);
     csound->Free(csound, factory->insds);
     csound->Free(csound, factory);
     return true;
@@ -259,6 +262,7 @@ UGEN_CONTEXT* csoundUgenContextNew(UGEN_FACTORY* factory) {
 bool csoundUgenContextDelete(UGEN_CONTEXT* context) {
     if (context == NULL) return false;
     CSOUND* csound = context->csound;
+    free_instance_variables(csound, context->insds);
     csound->Free(csound, context->insds);
     csound->Free(csound, context);
     return true;
