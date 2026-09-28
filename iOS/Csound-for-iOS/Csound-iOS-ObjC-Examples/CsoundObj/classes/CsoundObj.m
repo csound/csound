@@ -39,6 +39,8 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
 @interface CsoundObj() {
   NSMutableArray *listeners;
+  // Strong owner of the bindings snapshot that mCsData.valuesCache points to.
+  NSArray *renderBindings;
   csdata mCsData;
   id  mMessageListener;
 }
@@ -223,16 +225,24 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 // -----------------------------------------------------------------------------
 
 - (void)addListener:(id<CsoundObjListener>)listener {
-  [listeners addObject:listener];
+  @synchronized(self) {
+    [listeners addObject:listener];
+  }
 }
 
 - (void)removeListener:(id<CsoundObjListener>)listener {
+  @synchronized(self) {
     [listeners removeObject:listener];
+  }
 }
 
 - (void)notifyListenersOfStartup
 {
-  for (id<CsoundObjListener> listener in listeners) {
+  NSArray *listenersSnapshot;
+  @synchronized(self) {
+    listenersSnapshot = [listeners copy];
+  }
+  for (id<CsoundObjListener> listener in listenersSnapshot) {
     if ([listener respondsToSelector:@selector(csoundObjStarted:)]) {
       [listener csoundObjStarted:self];
     }
@@ -240,7 +250,11 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 }
 - (void)notifyListenersOfCompletion
 {
-  for (id<CsoundObjListener> listener in listeners) {
+  NSArray *listenersSnapshot;
+  @synchronized(self) {
+    listenersSnapshot = [listeners copy];
+  }
+  for (id<CsoundObjListener> listener in listenersSnapshot) {
     if ([listener respondsToSelector:@selector(csoundObjCompleted:)]) {
       [listener csoundObjCompleted:self];
     }
@@ -376,7 +390,7 @@ OSStatus  Csound_Render(void *inRefCon,
     
   AudioUnitRender(*cdata->aunit, ioActionFlags, inTimeStamp, 1,
                   inNumberFrames, ioData);
-  NSMutableArray* cache = cdata->valuesCache;
+  NSArray* cache = cdata->valuesCache;
 
   
   for(frame=0;frame < inNumberFrames;frame++){    
@@ -449,9 +463,10 @@ OSStatus  Csound_Render(void *inRefCon,
                                      cStringUsingEncoding:NSASCIIStringEncoding]
                            };
     int ret = csoundCompile(cs, 4, argv);
-      
-    
-        
+
+    // Bindings fetch their channel pointers through mCsData.cs.
+    mCsData.cs = cs;
+
     [self setupBindings];
     [self notifyListenersOfStartup];
         
@@ -461,6 +476,7 @@ OSStatus  Csound_Render(void *inRefCon,
     csoundStart(cs);
     if(!ret) {
       while(!ret) ret = csoundPerformKsmps(cs);
+      mCsData.cs = NULL;
       csoundDestroy(cs);
     }
         
@@ -508,7 +524,10 @@ static int csoundGetOutputBufferSize(CSOUND *csound){
         mCsData.nchnls = csoundGetChannels(cs, 0);
         mCsData.bufframes = (csoundGetOutputBufferSize(cs))/mCsData.nchnls;
         mCsData.running = true;
-        mCsData.valuesCache = _bindings;
+        // Snapshot so the render callback never enumerates an array that
+        // addBinding:/removeBinding: may be mutating on the main thread.
+        renderBindings = [_bindings copy];
+        mCsData.valuesCache = renderBindings;
         mCsData.useAudioInput = _useAudioInput;
         AudioStreamBasicDescription format;
         OSStatus err;
@@ -680,6 +699,10 @@ static int csoundGetOutputBufferSize(CSOUND *csound){
           }
         }
       }
+      mCsData.running = false;
+      mCsData.cs = NULL;
+      mCsData.valuesCache = nil;
+      renderBindings = nil;
       csoundDestroy(cs);
     }
 		

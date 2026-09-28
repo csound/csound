@@ -84,10 +84,12 @@
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
-    
-    [self.csound removeBinding:self];
-}
 
+    if (self.isMovingFromParentViewController || self.isBeingDismissed ||
+        self.navigationController.isMovingFromParentViewController) {
+        [self.csound removeBinding:self];
+    }
+}
 
 #pragma mark Csound Binding
 

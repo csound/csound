@@ -57,8 +57,9 @@
 
 -(void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
-    
-    if (self.isMovingFromParentViewController || self.isBeingDismissed) {
+
+    if (self.isMovingFromParentViewController || self.isBeingDismissed ||
+        self.navigationController.isMovingFromParentViewController) {
         [self.csound removeListener:self];
     }
 }

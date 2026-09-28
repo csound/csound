@@ -40,7 +40,7 @@ typedef struct csdata_ {
     bool useAudioInput;
 	ExtAudioFileRef file;
 	AudioUnit *aunit;
-    __unsafe_unretained NSMutableArray *valuesCache;
+    __unsafe_unretained NSArray *valuesCache;
 } csdata;
 
 typedef struct {

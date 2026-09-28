@@ -49,25 +49,35 @@
 
 -(void)setup:(CsoundObj *)csoundObj
 {
-    dispatch_async(dispatch_get_main_queue(), ^{
+    channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                   channelType:CSOUND_CONTROL_CHANNEL];
+
+    // Because `channelValue` must derive its initial value from
+    // a UIKit control, we may block the current, Csound-initializing, thread
+    // to ensure reading from the main thread in synchronous fashion.
+    void (^configure)(void) = ^{
         self->channelValue = self.switcher.on ? 1 : 0;
-        self->channelPtr = [csoundObj getInputChannelPtr:self.channelName
-                                       channelType:CSOUND_CONTROL_CHANNEL];
         [self.switcher addTarget:self
                           action:@selector(updateChannelValue:)
                 forControlEvents:UIControlEventValueChanged];
-    });
+    };
+    if ([NSThread isMainThread]) {
+        configure(); // avoid deadlock
+    } else {
+        dispatch_sync(dispatch_get_main_queue(), configure);
+    }
 }
-
 
 -(void)updateValuesToCsound {
     *channelPtr = channelValue;
 }
 
 -(void)cleanup {
-    [self.switcher removeTarget:self
-                         action:@selector(updateChannelValue:)
-               forControlEvents:UIControlEventValueChanged];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.switcher removeTarget:self
+                             action:@selector(updateChannelValue:)
+                   forControlEvents:UIControlEventValueChanged];
+    });
 }
 
 @end
