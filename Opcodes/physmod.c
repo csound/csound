@@ -149,7 +149,7 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
   if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
     cs_double release = ceil((cs_double)*p->dettack * CS_EKR);
     if (UNLIKELY(!(*p->attack >= FL(0.0) && release >= 0.0 &&
-                   release <= INT32_MAX)))
+                   release <= (INT32_MAX + 0.0))))
       return csound->InitError(csound, "%s",
                                Str("wgclar: invalid attack or release time"));
     if (*p->lowestFreq)
@@ -326,7 +326,7 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
   if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
     cs_double release = ceil((cs_double)*p->dettack * CS_EKR);
     if (UNLIKELY(!(*p->attack >= FL(0.0) && release >= 0.0 &&
-                   release <= INT32_MAX)))
+                   release <= (INT32_MAX + 0.0))))
       return csound->InitError(csound, "%s",
                                Str("wgflute: invalid attack or release time"));
     if (release > p->h.insdshead->xtratim)

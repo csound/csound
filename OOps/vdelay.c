@@ -45,7 +45,7 @@ int32_t vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
       return OK;
     }
     samples = (cs_double)*p->imaxd * ESR;
-    if (UNLIKELY(!isfinite(samples) || samples < 0.0 || samples >= INT_MAX))
+    if (UNLIKELY(!isfinite(samples) || samples < 0.0 || samples >= (INT32_MAX + 0.0)))
       return csound->InitError(csound, "%s", Str("vdelay: invalid maximum delay"));
     maxd = (int32_t)samples;
     if (maxd < 1) maxd = 1;

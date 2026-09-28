@@ -48,7 +48,7 @@ static int32_t cell_set(CSOUND *csound,CELL *p)
     int32_t elements;
     cs_float *currLine, *initVec = NULL;
 
-    if (UNLIKELY(!(count >= 1.0 && count <= INT32_MAX &&
+    if (UNLIKELY(!(count >= 1.0 && count <= (INT32_MAX + 0.0) &&
                    count <= (cs_double)(SIZE_MAX / (2 * sizeof(cs_float))))))
       return csound->InitError(csound, "%s", Str("cell: invalid num of elements"));
     elements = p->elements = (int32_t)count;

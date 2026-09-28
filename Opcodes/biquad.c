@@ -1075,7 +1075,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
         return csound->InitError(csound, Str("nestedap: mode must be 1, 2 or 3"));
       mode = (int32_t)*p->mode;
       samples = *p->del1 * CS_ESR;
-      if (UNLIKELY(!(samples >= 1.0 && samples <= INT32_MAX &&
+      if (UNLIKELY(!(samples >= 1.0 && samples <= (INT32_MAX + 0.0) &&
                      samples <= (cs_double)(SIZE_MAX / sizeof(cs_float)))))
         return csound->InitError(csound, Str("nestedap: invalid outer delay"));
       npts = (int32_t)samples;

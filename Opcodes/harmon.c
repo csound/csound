@@ -111,7 +111,7 @@ static int32_t hm234set(CSOUND *csound, HARM234 *p)
       cs_double prdsamples = floor(CS_ESR * 2 / minfrq); /* incl sigmoid ends */
       cs_double total = nsamples * 2.0 + prdsamples * 4.0 + (SLEN+1);
       if (UNLIKELY(!(nsamples >= CS_KSMPS && prdsamples >= 2.0 &&
-                     total <= INT32_MAX && total <= (cs_double)(SIZE_MAX / sizeof(cs_float)))))
+                     total <= (INT32_MAX + 0.0) && total <= (cs_double)(SIZE_MAX / sizeof(cs_float)))))
         return csound->InitError(csound, "%s",
                                  Str("harmon234: lowest pitch is out of range"));
       int32_t nbufsmps = (int32_t)nsamples, maxprd = (int32_t)prdsamples;

@@ -321,8 +321,9 @@ static int32_t adsr_count(CSOUND *csound, cs_double duration, cs_double rate,
                           int32_t *count)
 {
   cs_double n = floor(duration * rate + 0.5);
+  /* Keep the integer limit exact when cs_double is float. */
   if (UNLIKELY(!isfinite(duration) || duration < 0.0 ||
-               !isfinite(n) || n > INT_MAX)) {
+               !isfinite(n) || n > (INT32_MAX + 0.0))) {
     csound->InitError(csound, Str("ADSR: duration is negative or out of range"));
     return NOTOK;
   }

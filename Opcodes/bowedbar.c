@@ -103,7 +103,7 @@ int32_t bowedbarset(CSOUND *csound, BOWEDBAR *p)
       if (lowest > FL(1568.0)) lowest = FL(1568.0);
       length = (cs_double)CS_ESR / lowest + 1.0;
       /* Leave room for the extra sample in make_DLineN. */
-      if (UNLIKELY(!(length >= 1.0 && length < INT32_MAX &&
+      if (UNLIKELY(!(length >= 1.0 && length < (INT32_MAX + 0.0) &&
                      length < (cs_double)(SIZE_MAX / sizeof(cs_float)))))
         return csound->InitError(csound, "%s",
                                 Str("Bowedbar: invalid lowest frequency"));

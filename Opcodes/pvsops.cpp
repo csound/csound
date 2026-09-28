@@ -209,8 +209,8 @@ struct TVConv : csnd::Plugin<1, 6> {
   }
 
   int32_t init() {
-    if (!(cs_double(inargs[4]) >= 0 && cs_double(inargs[4]) <= INT32_MAX &&
-          cs_double(inargs[5]) >= 1 && cs_double(inargs[5]) <= INT32_MAX))
+    if (!(cs_double(inargs[4]) >= 0 && cs_double(inargs[4]) <= (INT32_MAX + 0.0) &&
+          cs_double(inargs[5]) >= 1 && cs_double(inargs[5]) <= (INT32_MAX + 0.0)))
       return csound->init_error("tvconv: invalid partition or filter size");
     pars = inargs[4];
     fils = inargs[5];

@@ -232,19 +232,21 @@ TEST_F(DssiTests, RejectsBankBeyondUnsigned32BitRange) {
     // 2^32 is exact in float, but UINT32_MAX is not.
     EXPECT_NE(run(load() + R"(
 instr 1
- dssiprogram 1,gih,4294967296,0
+ dssiprogram gih,4294967296,0,1
 endin
 )"), 0);
-    EXPECT_NE(messages().find("invalid bank or program"), std::string::npos);
+    const auto error = messages();
+    EXPECT_NE(error.find("invalid bank or program"), std::string::npos) << error;
 }
 
 TEST_F(DssiTests, RejectsProgramBeyondUnsigned32BitRange) {
     EXPECT_NE(run(load() + R"(
 instr 1
- dssiprogram 1,gih,0,4294967296
+ dssiprogram gih,0,4294967296,1
 endin
 )"), 0);
-    EXPECT_NE(messages().find("invalid bank or program"), std::string::npos);
+    const auto error = messages();
+    EXPECT_NE(error.find("invalid bank or program"), std::string::npos) << error;
 }
 
 TEST_F(DssiTests, RejectsMalformedDescriptor) {

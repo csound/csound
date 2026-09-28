@@ -71,7 +71,7 @@ static int32_t linuxjoystick(CSOUND *csound, LINUXJOYSTICK *stick)
 
     *stick->kresult = FL(0.0);
     if (UNLIKELY(!(*stick->kdev >= FL(0.0) &&
-                   (cs_double)*stick->kdev <= INT32_MAX)))
+                   *stick->kdev <= (INT32_MAX + 0.0))))
       return csound->PerfError(csound, &stick->h, "%s",
                               Str("joystick: invalid device number"));
     dev = (int32_t)CS_FLOAT2LRND(*stick->kdev);

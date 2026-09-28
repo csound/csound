@@ -2319,7 +2319,7 @@ int32_t wavesetset(CSOUND *csound, BARRI *p)
       length = CS_ESR;
     else
       length = floor(length) + 1.0;
-    if (UNLIKELY(!(length >= 2.0 && length <= INT32_MAX &&
+    if (UNLIKELY(!(length >= 2.0 && length <= (INT32_MAX + 0.0) &&
                    length <= (cs_double)(SIZE_MAX / sizeof(cs_float)))))
       return csound->InitError(csound, Str("waveset: invalid buffer length"));
     p->length = (int32_t)length;
@@ -2410,7 +2410,7 @@ int32_t medfiltset(CSOUND *csound, MEDFILT *p)
     if (*p->iskip != FL(0.0) && p->b.auxp != NULL)
       return OK;
     if (UNLIKELY(!(*p->imaxsize >= FL(1.0) &&
-                   (cs_double)*p->imaxsize <= INT32_MAX &&
+                   (cs_double)*p->imaxsize <= (INT32_MAX + 0.0) &&
                    (cs_double)*p->imaxsize <= (cs_double)(SIZE_MAX / (2 * sizeof(cs_float))))))
       return csound->InitError(csound,
                                Str("median: invalid maximum window size"));

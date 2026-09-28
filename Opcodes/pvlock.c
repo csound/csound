@@ -1494,8 +1494,8 @@ static int32_t hilbert_sizes(CSOUND *csound, cs_double fftsize, cs_double hopsiz
                              int32_t *N, int32_t *h)
 {
     int32_t requested, decim;
-    if (UNLIKELY(!(fftsize >= 2.0 && fftsize <= INT32_MAX &&
-                   hopsize >= 1.0 && hopsize <= INT32_MAX)))
+    if (UNLIKELY(!(fftsize >= 2.0 && fftsize <= (INT32_MAX + 0.0) &&
+                   hopsize >= 1.0 && hopsize <= (INT32_MAX + 0.0))))
       return csound->InitError(csound, "%s",
                                Str("hilbert2: invalid FFT or hop size"));
 

@@ -66,7 +66,7 @@ static int32_t ifd_setup(CSOUND *csound, IFD *p, cs_double requested_fft,
   cs_double alpha, fac;
   PVSDAT *outputs[2] = {p->fout1, p->fout2};
 
-  if (UNLIKELY(!(requested_fft >= 2 && requested_fft <= INT32_MAX-2 &&
+  if (UNLIKELY(!(requested_fft >= 2 && requested_fft <= (INT32_MAX + 0.0) - 2 &&
                  requested_hop >= 1 && requested_hop <= requested_fft)))
     return csound->InitError(csound, "%s", Str("IFD: invalid FFT or hop size"));
   fftsize = (int32_t) requested_fft;

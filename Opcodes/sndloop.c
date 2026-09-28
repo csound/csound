@@ -216,9 +216,9 @@ typedef struct _pvsmorph {
 static int32_t sndloop_init(CSOUND *csound, sndloop *p)
 {
     cs_double durs = *(p->dur)*CS_ESR, cfds = *(p->cfd)*CS_ESR;
-    if (UNLIKELY(!(durs >= 1.0 && durs <= INT32_MAX &&
+    if (UNLIKELY(!(durs >= 1.0 && durs <= (INT32_MAX + 0.0) &&
                    durs <= (cs_double)(SIZE_MAX / sizeof(cs_float)) &&
-                   cfds >= 0.0 && cfds <= INT32_MAX)))
+                   cfds >= 0.0 && cfds <= (INT32_MAX + 0.0))))
       return csound->InitError(csound, "%s",
                                Str("sndloop: invalid loop or crossfade duration"));
     p->durs = (int32)durs;
