@@ -229,6 +229,7 @@ int32_t resonx(CSOUND *, void *), aresonx(CSOUND *, void *);
 int32_t rsnsetx(CSOUND *, void *), tonex(CSOUND *, void *);
 int32_t atonex(CSOUND *, void *), tonsetx(CSOUND *, void *);
 int32_t lprdset(CSOUND *, void *), lpread(CSOUND *, void *);
+int32_t lprd_deinit(CSOUND *, void *), lpitp_deinit(CSOUND *, void *);
 int32_t lpformantset(CSOUND *, void *), lpformant(CSOUND *, void*);
 int32_t lprsnset(CSOUND *, void *), lpreson(CSOUND *, void *);
 int32_t lpfrsnset(CSOUND *, void *), lpfreson(CSOUND *, void *);

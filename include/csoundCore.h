@@ -1792,9 +1792,6 @@ struct CSOUND_ {
   char *SF_id_date;
   void *utility_db;
   int16 *isintab; /* ugens3.c */
-  void *lprdaddr; /* ugens5.c */
-  int32_t currentLPCSlot;
-  int32_t max_lpc_slot;
   CS_HASH_TABLE *chn_db;
   int32_t opcodedirWasOK;
   int32_t disable_csd_options;
