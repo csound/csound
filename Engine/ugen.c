@@ -351,8 +351,8 @@ bool csoundUgenContextDelete(UGEN_CONTEXT* context) {
 }
 
 bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context) {
-    if (ugen->initialized) return false;
     if (ugen == NULL || context == NULL) return false;
+    if (ugen->initialized) return false;
     OPDS* opds = (OPDS*)ugen->opcodeMem;
     ugen->insds = context->insds;
     opds->insdshead = context->insds;
