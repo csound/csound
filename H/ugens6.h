@@ -141,6 +141,7 @@ int32_t ksmphold(CSOUND *, SAMPHOLD *p);
 int32_t samphold(CSOUND *, SAMPHOLD *p);
 int32_t delset(CSOUND *, DELAY *p);
 int32_t delrset(CSOUND *, DELAYR *p);
+int32_t delrdeinit(CSOUND *, DELAYR *p);
 int32_t delwset(CSOUND *, DELAYW *p);
 int32_t tapset(CSOUND *, DELTAP *p);
 int32_t delay(CSOUND *, DELAY *p);

@@ -948,9 +948,6 @@ static const CSOUND cenviron_ = {
   FL(0.0),        /*  csoundScoreOffsetSeconds_   */
   -1,             /*  inChar_             */
   0,              /*  isGraphable_        */
-  0,              /*  delayr_stack_depth  */
-  NULL,           /*  first_delayr        */
-  NULL,           /*  last_delayr         */
   { 0L, 0L, 0L, 0L, 0L, 0L },     /*  revlpsiz    */
   0L,             /*  revlpsum            */
   0.5,            /*  rndfrac             */
