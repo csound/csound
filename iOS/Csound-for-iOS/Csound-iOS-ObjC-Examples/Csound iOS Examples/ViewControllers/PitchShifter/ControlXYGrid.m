@@ -242,9 +242,10 @@
 
 - (void)updateValuesToCsound
 {
-    *xChannelPtr = xChannelValue;
-    *yChannelPtr = yChannelValue;
-
+    if (xChannelPtr != NULL && yChannelPtr != NULL) {
+        *xChannelPtr = xChannelValue;
+        *yChannelPtr = yChannelValue;
+    }
 }
 
 - (void)cleanup

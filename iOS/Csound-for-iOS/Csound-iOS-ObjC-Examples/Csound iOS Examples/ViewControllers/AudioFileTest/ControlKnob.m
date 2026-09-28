@@ -166,7 +166,9 @@
 
 - (void)updateValuesToCsound
 {
-	*channelPtr = channelValue;
+	if (channelPtr != NULL) {
+		*channelPtr = channelValue;
+	}
 }
 
 - (void)cleanup

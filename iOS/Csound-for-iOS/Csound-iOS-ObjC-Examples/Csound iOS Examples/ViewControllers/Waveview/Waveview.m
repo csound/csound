@@ -87,7 +87,7 @@
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         const cs_float *tableBytes = tableData.bytes;
-        int length = (int)(tableData.length / sizeof(MYFLT));
+        int length = (int)(tableData.length / sizeof(cs_float));
         if (length <= 0) return;
         float scalingFactor = 0.9;
         int width = self.frame.size.width;
@@ -95,7 +95,7 @@
         int height = self.frame.size.height;
         int middle = (height / 2);
 
-        cs_float *newDisplayData = malloc(sizeof(MYFLT) * width);
+        cs_float *newDisplayData = malloc(sizeof(cs_float) * width);
 
         for(int i = 0; i < width; i++) {
             float percent = i / (float)(width);
@@ -119,13 +119,13 @@
         int length = csoundTableLength(cs, fTableNumber);
 
         if (length > 0) {
-            MYFLT *csoundTable = NULL;
+            cs_float *csoundTable = NULL;
             csoundGetTable(cs, &csoundTable, fTableNumber);
 
             // csoundGetTable points directly into Csound-owned memory, which can be
             // freed once Csound stops. Copy it out into our own NSData right here,
             // synchronously, before crossing to any other thread/queue.
-            NSData *tableData = [NSData dataWithBytes:csoundTable length:length * sizeof(MYFLT)];
+            NSData *tableData = [NSData dataWithBytes:csoundTable length:length * sizeof(cs_float)];
 
             tableLoaded = YES;
             [self performSelectorInBackground:@selector(updataDisplayData:) withObject:tableData];
