@@ -32,30 +32,111 @@
 
 #define MAX_LPC_SLOT 20
 
-/* Slots can be selected before a reader has been assigned to them. */
-static int32_t lpc_alloc_slot(CSOUND *csound, int32_t slot)
+#define LPC_INSTANCE "csound.lpc.sources"
+
+typedef struct {
+    int32_t current_slot, slot_limit;
+    LPC_SOURCE *sources;
+} LPC_STATE;
+
+static LPC_STATE *lpc_state(CSOUND *csound, INSDS *owner)
 {
-    if (UNLIKELY(slot < 0 || slot > INT32_MAX - MAX_LPC_SLOT))
-      return csound->InitError(csound, Str("LPC slot out of range"));
-    if (csound->lprdaddr == NULL || slot >= csound->max_lpc_slot) {
-      int32_t oldcount = csound->lprdaddr == NULL ? 0 : csound->max_lpc_slot;
-      size_t count = (size_t) slot + MAX_LPC_SLOT;
-      if (UNLIKELY(count > SIZE_MAX / sizeof(LPREAD *)))
-        return csound->InitError(csound, Str("LPC slot out of range"));
-      csound->lprdaddr = csound->ReAlloc(csound, csound->lprdaddr,
-                                        count * sizeof(LPREAD *));
-      memset((LPREAD **) csound->lprdaddr + oldcount, 0,
-             (count - oldcount) * sizeof(LPREAD *));
-      csound->max_lpc_slot = (int32_t) count;
+    return (LPC_STATE *)csound->QueryInstanceVariable(csound, owner,
+                                                    LPC_INSTANCE);
+}
+
+/* Slot selection may precede its reader. Keep the old slot range rules,
+   but store only sources that exist, rather than an array up to the limit. */
+static LPC_STATE *lpc_prepare_slot(CSOUND *csound, INSDS *owner, int32_t slot)
+{
+    LPC_STATE *state;
+    if (UNLIKELY(slot < 0 || slot > INT32_MAX - MAX_LPC_SLOT)) {
+      csound->InitError(csound, Str("LPC slot out of range"));
+      return NULL;
     }
+    state = lpc_state(csound, owner);
+    if (state == NULL) {
+      if (csound->CreateInstanceVariable(csound, owner, LPC_INSTANCE,
+                                        sizeof(LPC_STATE)) != OK) {
+        csound->InitError(csound, Str("could not allocate LPC instance state"));
+        return NULL;
+      }
+      state = lpc_state(csound, owner);
+    }
+    if (slot >= state->slot_limit)
+      state->slot_limit = slot + MAX_LPC_SLOT;
+    return state;
+}
+
+static LPREAD *lpc_get_slot(LPC_STATE *state, int32_t slot)
+{
+    if (state != NULL)
+      for (LPC_SOURCE *source = state->sources; source != NULL;
+           source = source->next)
+        if (source->slot == slot)
+          return source->analysis;
+    return NULL;
+}
+
+static LPREAD *lpc_current_analysis(CSOUND *csound, INSDS *owner)
+{
+    LPC_STATE *state = lpc_state(csound, owner);
+    return state != NULL ? lpc_get_slot(state, state->current_slot) : NULL;
+}
+
+/* Links live in the producing opcode. Remove only that producer, so ending
+   an older source cannot erase a newer source registered in the same slot. */
+static void lpc_remove_source(CSOUND *csound, INSDS *owner, LPC_SOURCE *source)
+{
+    LPC_STATE *state = lpc_state(csound, owner);
+    if (state != NULL) {
+      LPC_SOURCE **link = &state->sources;
+      while (*link != NULL) {
+        if (*link == source) {
+          *link = source->next;
+          source->next = NULL;
+          return;
+        }
+        link = &(*link)->next;
+      }
+    }
+}
+
+static int32_t lpc_publish_source(CSOUND *csound, INSDS *owner,
+                                 LPC_SOURCE *source, LPREAD *analysis)
+{
+    LPC_STATE *state = lpc_state(csound, owner);
+    if (state == NULL)
+      state = lpc_prepare_slot(csound, owner, 0);
+    if (state == NULL)
+      return NOTOK;
+    LPC_SOURCE **link = &state->sources;
+    while (*link != NULL) {
+      if ((*link)->slot == state->current_slot) {
+        LPC_SOURCE *previous = *link;
+        *link = previous->next;
+        previous->next = NULL;
+        break;
+      }
+      link = &(*link)->next;
+    }
+    source->slot = state->current_slot;
+    source->analysis = analysis;
+    source->next = state->sources;
+    state->sources = source;
     return OK;
 }
 
-static LPREAD *lpc_get_slot(CSOUND *csound, int32_t slot)
+int32_t lprd_deinit(CSOUND *csound, LPREAD *p)
 {
-    if (csound->lprdaddr == NULL || slot < 0 || slot >= csound->max_lpc_slot)
-      return NULL;
-    return ((LPREAD **) csound->lprdaddr)[slot];
+    lpc_remove_source(csound, p->h.insdshead, &p->source);
+    return OK;
+}
+
+int32_t lpitp_deinit(CSOUND *csound, LPINTERPOL *p)
+{
+    lpc_remove_source(csound, p->h.insdshead, &p->source);
+    return OK;
 }
 
 
@@ -647,6 +728,7 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
     int32_t unaligned;
     char lpfilname[MAXNAME];
 
+    lprd_deinit(csound, p);
     p->mfp = NULL;
     if (stringname)
       strNcpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME);
@@ -724,10 +806,7 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
     p->mfp = mfp;
     p->lastmsg = 0;
 
-    if (UNLIKELY(lpc_alloc_slot(csound, csound->currentLPCSlot) != OK))
-      return NOTOK;
-    ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = p;
-    return OK;
+    return lpc_publish_source(csound, p->h.insdshead, &p->source, p);
 
  invalid_file:
     return csound->InitError(csound, Str("LPREAD: invalid analysis data in %s"),
@@ -995,7 +1074,7 @@ int32_t lpformantset(CSOUND *csound, LPFORM *p)
 
    /* connect to previously loaded lpc analysis */
    /* get adr lpread struct */
-    p->lpread = q = lpc_get_slot(csound, csound->currentLPCSlot);
+    p->lpread = q = lpc_current_analysis(csound, p->h.insdshead);
     if (UNLIKELY(q == NULL))
       return csound->InitError(csound, Str("LPC slot has no analysis"));
     csound->AuxAlloc(csound, p->lpread->npoles*sizeof(MYFLT), &p->aux);
@@ -1055,7 +1134,7 @@ int32_t lprsnset(CSOUND *csound, LPRESON *p)
    /* connect to previously loaded lpc analysis */
    /* get adr lpread struct */
 
-    p->lpread = q = lpc_get_slot(csound, csound->currentLPCSlot);
+    p->lpread = q = lpc_current_analysis(csound, p->h.insdshead);
     if (UNLIKELY(q == NULL))
       return csound->InitError(csound, Str("LPC slot has no analysis"));
     if (UNLIKELY(q->npoles < 1 || (q->storePoles && q->npoles > MAXPOLES)))
@@ -1172,7 +1251,7 @@ int32_t lpfrsnset(CSOUND *csound, LPFRESON *p)
 
    /* Connect to previously loaded analysis file */
 
-    p->lpread = lpc_get_slot(csound, csound->currentLPCSlot);
+    p->lpread = lpc_current_analysis(csound, p->h.insdshead);
     if (UNLIKELY(p->lpread == NULL))
       return csound->InitError(csound, Str("LPC slot has no analysis"));
     if (p->lpread->storePoles) {
@@ -1459,23 +1538,25 @@ int32_t lpslotset(CSOUND *csound, LPSLOT *p)
                    (double) *p->islotnum <= INT32_MAX - MAX_LPC_SLOT)))
       return csound->InitError(csound, Str("LPC slot out of range"));
     n = (int32_t) *(p->islotnum);
-    if (UNLIKELY(lpc_alloc_slot(csound, n) != OK))
+    LPC_STATE *state = lpc_prepare_slot(csound, p->h.insdshead, n);
+    if (UNLIKELY(state == NULL))
       return NOTOK;
-    csound->currentLPCSlot = n;
+    state->current_slot = n;
     return OK;
 }
 
 int32_t lpitpset(CSOUND *csound, LPINTERPOL *p)
 {
-
-    if (UNLIKELY(!(*p->islot1 >= 0 &&
-                   (double) *p->islot1 < csound->max_lpc_slot) ||
+    LPC_STATE *state = lpc_state(csound, p->h.insdshead);
+    lpitp_deinit(csound, p);
+    if (UNLIKELY(state == NULL || !(*p->islot1 >= 0 &&
+                   (double) *p->islot1 < state->slot_limit) ||
                  !(*p->islot2 >= 0 &&
-                   (double) *p->islot2 < csound->max_lpc_slot)))
+                   (double) *p->islot2 < state->slot_limit)))
       return csound->InitError(csound, Str("LPC slot is not allocated"));
   /* Get lpread pointers */
-    p->lp1 = lpc_get_slot(csound, (int32_t) *p->islot1);
-    p->lp2 = lpc_get_slot(csound, (int32_t) *p->islot2);
+    p->lp1 = lpc_get_slot(state, (int32_t) *p->islot1);
+    p->lp2 = lpc_get_slot(state, (int32_t) *p->islot2);
     if (UNLIKELY(p->lp1 == NULL || p->lp2 == NULL))
       return csound->InitError(csound, Str("LPC slot has no analysis"));
 
@@ -1507,11 +1588,8 @@ int32_t lpitpset(CSOUND *csound, LPINTERPOL *p)
       q->npoles = p->npoles;
       q->kcoefs = p->kcoefs;
       q->storePoles = 1;
-      if (UNLIKELY(lpc_alloc_slot(csound, csound->currentLPCSlot) != OK))
-        return NOTOK;
-      ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = q;
+      return lpc_publish_source(csound, p->h.insdshead, &p->source, q);
     }
-    return OK;
 }
 
 int32_t lpinterpol(CSOUND *csound, LPINTERPOL *p)
