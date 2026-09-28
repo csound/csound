@@ -70,9 +70,10 @@ storage without keeping an ever-growing list of unused names.
 
 ## Compatibility and scope
 
-The two function pointers consume reserved `CSOUND` slots. Existing function
-pointer offsets stay the same. The opaque pointer in `INSDS` changes its size
-and p-field offsets, so plugins that use `INSDS` must be rebuilt.
+The two function pointers sit before the global-variable API in `CSOUND`,
+which shifts the later function-table offsets. The opaque pointer in `INSDS`
+changes its size and p-field offsets. Plugins must be rebuilt with the new
+headers.
 
 This interface supplies ownership and storage. Opcode families still decide
 their pairing order and when to remove their links. Explicit handles remain
