@@ -40,7 +40,6 @@ struct fileinTag {
 };
 
 typedef struct VCO2_TABLE_ARRAY_  VCO2_TABLE_ARRAY;
-typedef struct _atsbufread        ATSBUFREAD;
 
 typedef struct STDOPCOD_GLOBALS_ {
     CSOUND      *csound;
@@ -58,7 +57,6 @@ typedef struct STDOPCOD_GLOBALS_ {
     int32_t     vco2_nr_table_arrays;
     VCO2_TABLE_ARRAY  **vco2_tables;
     /* ugnorman.c */
-    ATSBUFREAD  *atsbufreadaddr;
     int32_t     swapped_warning;
     /* gab/gab.c */
     MYFLT       *tb_ptrs[16];       /* Left here while the rest is implemented */
