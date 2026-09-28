@@ -28,6 +28,7 @@ int32_t     pvaddset(CSOUND *, void *), pvadd(CSOUND *, void *);
 int32_t     pvaddset_S(CSOUND *, void *);
 int32_t     tblesegset(CSOUND *, void *), ktableseg(CSOUND *, void *);
 int32_t     ktablexseg(CSOUND *, void *);
+int32_t     tableseg_deinit(CSOUND *, void *);
 int32_t     vpvset(CSOUND *, void *), vpvset_S(CSOUND *, void *),
         vpvoc(CSOUND *, void *);
 int32_t     pvreadset(CSOUND *, void *), pvread(CSOUND *, void *);
@@ -47,10 +48,10 @@ static OENTRY pvoc_localops[] =
   {
    { "pvoc",      S(PVOC),      0, "a",  "kkSooooo", pvset_S, pvoc        },
    { "pvoc.i",      S(PVOC),      0, "a",  "kkiooooo", pvset, pvoc        },
-{ "tableseg",  S(TABLESEG),  TR, "",   "iim",     tblesegset, ktableseg, NULL  },
+{ "tableseg",  S(TABLESEG),  TR, "",   "iim",     tblesegset, ktableseg, tableseg_deinit  },
 CSOUND_DEPRECATED_OPCODE("ktableseg", "tableseg", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
-{ "ktableseg", S(TABLESEG),  _QQ|TR, "",   "iim",  tblesegset, ktableseg, NULL },
-{ "tablexseg", S(TABLESEG),  TW, "",   "iin",     tblesegset, ktablexseg, NULL },
+{ "ktableseg", S(TABLESEG),  _QQ|TR, "",   "iim",  tblesegset, ktableseg, tableseg_deinit },
+{ "tablexseg", S(TABLESEG),  TW, "",   "iin",     tblesegset, ktablexseg, tableseg_deinit },
    { "vpvoc",     S(VPVOC),     TR, "a",  "kkSoo",   vpvset_S, vpvoc        },
    { "vpvoc.i",     S(VPVOC),     TR, "a",  "kkioo",   vpvset, vpvoc        },
 { "pvread",    S(PVREAD),  0,  "kk", "kSio",     pvreadset_S, pvread, NULL      },
@@ -81,7 +82,6 @@ PVOC_GLOBALS *PVOC_AllocGlobals(CSOUND *csound)
     p = (PVOC_GLOBALS*) csound->QueryGlobalVariable(csound, "pvocGlobals");
     p->csound = csound;
     p->dsputil_sncTab = (MYFLT*) NULL;
-    p->tbladr = (TABLESEG*) NULL;
 
     return p;
 }

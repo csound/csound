@@ -29,6 +29,7 @@
 /******************************************/
 
 #include "stdopcod.h"
+#include "spatial_send.h"
 
 typedef struct {
     OPDS    h;

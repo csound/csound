@@ -71,7 +71,15 @@ typedef struct {
         AUXCH   aux;
 } RESONX;
 
-typedef struct {
+typedef struct lpread LPREAD;
+
+typedef struct lpc_source {
+        struct lpc_source *next;
+        LPREAD *analysis;
+        int32_t slot;
+} LPC_SOURCE;
+
+struct lpread {
         OPDS    h;
         MYFLT   *krmr, *krmo, *kerr, *kcps, *ktimpt, *ifilcod, *inpoles, *ifrmrate;
         int32   headlen, npoles, nvals, lastframe, lastmsg;
@@ -80,7 +88,8 @@ typedef struct {
         MEMFIL  *mfp;
         AUXCH   aux;
         MYFLT   *data;
-} LPREAD;
+        LPC_SOURCE source;
+};
 
 typedef struct {
         OPDS    h;
@@ -143,6 +152,7 @@ typedef struct {
         MYFLT   *kcoefs/*[MAXPOLES*2]*/, framrat16;
         int32_t             storePoles ;
         AUXCH    aux, slotaux;
+        LPC_SOURCE source;
 } LPINTERPOL ;
 
 typedef struct {

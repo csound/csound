@@ -74,11 +74,34 @@
     1270.0, 1480.0, 1720.0, 2000.0, 2320.0, 2700.0, 3150.0, 3700.0,     \
     4400.0, 5300.0, 6400.0, 7700.0, 9500.0, 12000.0, 15500.0, 20000.0 }
 
-/* static variables used for atsbufread and atsbufreadnz */
-static inline ATSBUFREAD **get_atsbufreadaddrp(CSOUND *csound)
+#define ATSBUFREAD_INSTANCE "csound.ats.source"
+
+static ATSBUFREAD **ats_source(CSOUND *csound, INSDS *owner)
 {
-  STDOPCOD_GLOBALS* pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-  return &(pp->atsbufreadaddr);
+  return (ATSBUFREAD **)csound->QueryInstanceVariable(csound, owner,
+                                                      ATSBUFREAD_INSTANCE);
+}
+
+static int32_t ats_source_init(CSOUND *csound, INSDS *owner,
+                               ATSBUFREAD ***source)
+{
+  *source = ats_source(csound, owner);
+  if (*source == NULL) {
+    if (csound->CreateInstanceVariable(csound, owner, ATSBUFREAD_INSTANCE,
+                                       sizeof(**source)) != OK)
+      return csound->InitError(csound, "%s",
+                               Str("ATS: could not allocate source state"));
+    *source = ats_source(csound, owner);
+  }
+  return OK;
+}
+
+static int32_t atsbufread_deinit(CSOUND *csound, ATSBUFREAD *p)
+{
+  ATSBUFREAD **source = ats_source(csound, p->h.insdshead);
+  if (source != NULL && *source == p)
+    *source = NULL;
+  return OK;
 }
 
 /* byte swaps a double */
@@ -1864,6 +1887,10 @@ static int32_t atsbufreadset_common(CSOUND *csound, ATSBUFREAD *p,
   int32_t  type, n_partials, count, first, step;
   int32_t  memsize;            /* the size of the memory to request for AUX */
 
+  atsbufread_deinit(csound, p);
+  p->source = NULL;
+  p->table = NULL;
+
   /* load memfile */
   p->swapped = load_atsfile(csound, p, &mfp, atsfilname, p->ifileno, istring);
   if (UNLIKELY(p->swapped < 0))
@@ -1950,7 +1977,9 @@ static int32_t atsbufreadset_common(CSOUND *csound, ATSBUFREAD *p,
   p->table[count + 1].amp =
     p->utable[count + 1].amp = 0;
 
-  *(get_atsbufreadaddrp(csound)) = p;
+  if (ats_source_init(csound, p->h.insdshead, &p->source) != OK)
+    return NOTOK;
+  *p->source = p;
 
   return OK;
 }
@@ -2051,9 +2080,10 @@ static int32_t atsbufread(CSOUND *csound, ATSBUFREAD *p)
   ATS_DATA_LOC  *buf;
   ATS_DATA_LOC  *buf2;
 
-  if (UNLIKELY(p->table == NULL)) goto err1;     /* RWD fix */
+  if (UNLIKELY(p->table == NULL || p->source == NULL)) goto err1;
 
-  *(get_atsbufreadaddrp(csound)) = p;
+  /* Consumers follow the last reader run in this instance, each k-cycle. */
+  *p->source = p;
 
   /* make sure time pointer is within range */
   if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
@@ -2096,7 +2126,8 @@ static int32_t atspartialtapset(CSOUND *csound, ATSPARTIALTAP *p)
 {
   ATSBUFREAD  *atsbufreadaddr;
 
-  atsbufreadaddr = *(get_atsbufreadaddrp(csound));
+  p->source = ats_source(csound, p->h.insdshead);
+  atsbufreadaddr = p->source != NULL ? *p->source : NULL;
   if (UNLIKELY(atsbufreadaddr == NULL)) {
     return csound->InitError(csound,
                              "%s", Str("ATSPARTIALTAP: you must have an "
@@ -2118,8 +2149,13 @@ static int32_t atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
 {
   ATSBUFREAD  *atsbufreadaddr;
 
-  atsbufreadaddr = *(get_atsbufreadaddrp(csound));
+  atsbufreadaddr = p->source != NULL ? *p->source : NULL;
   if (UNLIKELY(atsbufreadaddr == NULL)) goto err1;
+  /* A different reader may now supply fewer partials than at init. */
+  if (UNLIKELY((int32_t)*p->iparnum > (int32_t)*atsbufreadaddr->iptls))
+    return csound->PerfError(csound, &(p->h),
+                             Str("ATSPARTIALTAP: exceeded max partial %i"),
+                             (int32_t)*atsbufreadaddr->iptls);
   *p->kfreq = (MYFLT) ((atsbufreadaddr->utable)[(int32_t)(*p->iparnum)].freq);
   *p->kamp = (MYFLT) ((atsbufreadaddr->utable)[(int32_t)(*p->iparnum)].amp);
   return OK;
@@ -2133,7 +2169,8 @@ static int32_t atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
 
 static int32_t atsinterpreadset(CSOUND *csound, ATSINTERPREAD *p)
 {
-  if (UNLIKELY(*(get_atsbufreadaddrp(csound)) == NULL))
+  p->source = ats_source(csound, p->h.insdshead);
+  if (UNLIKELY(p->source == NULL || *p->source == NULL))
     return csound->InitError(csound,
                              "%s", Str("ATSINTERPREAD: you must have an "
                                  "atsbufread before an atsinterpread"));
@@ -2148,7 +2185,7 @@ static int32_t atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
   MYFLT       frac;
 
   /* make sure we have data to read from */
-  atsbufreadaddr = *(get_atsbufreadaddrp(csound));
+  atsbufreadaddr = p->source != NULL ? *p->source : NULL;
   if (UNLIKELY(atsbufreadaddr == NULL)) goto err1;
   /* make sure we are not asking for unreasonble frequencies */
   if (UNLIKELY(*p->kfreq <= FL(20.0) || *p->kfreq >= FL(20000.0))) {
@@ -2282,7 +2319,8 @@ static int32_t atscrossset(CSOUND *csound, ATSCROSS *p)
   /* for time pointer out of range */
   p->prFlg = 1;               /* true */
 
-  return OK;
+  /* atscross has always allowed its reader to appear later during init. */
+  return ats_source_init(csound, p->h.insdshead, &p->source);
 }
 
 static int32_t atscrossset_S(CSOUND *csound, ATSCROSS *p)
@@ -2378,7 +2416,8 @@ static int32_t atscrossset_S(CSOUND *csound, ATSCROSS *p)
   /* for time pointer out of range */
   p->prFlg = 1;               /* true */
 
-  return OK;
+  /* atscross has always allowed its reader to appear later during init. */
+  return ats_source_init(csound, p->h.insdshead, &p->source);
 }
 
 static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
@@ -2502,7 +2541,7 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
   int32_t     numpartials = (int32_t) *p->iptls, floatph = p->floatph;
   ATS_DATA_LOC *buf;
 
-  atsbufreadaddr = *(get_atsbufreadaddrp(csound));
+  atsbufreadaddr = p->source != NULL ? *p->source : NULL;
   if (UNLIKELY(atsbufreadaddr == NULL)) goto err1;
 
   buf = p->buf;
@@ -2586,7 +2625,7 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
  err1:
   return csound->PerfError(csound, &(p->h),
                            "%s", Str("ATSCROSS: you must have an "
-                               "atsbufread before an atsinterpread"));
+                               "atsbufread before an atscross"));
 }
 
 /* end of ugnorman.c */
@@ -2621,9 +2660,9 @@ static OENTRY localops[] = {
       (SUBR) atssinnoiset,            (SUBR) atssinnoi,     (SUBR) NULL, NULL, 2 },
     CSOUND_DEPRECATED_OPCODE("ATSbufread", "atsbufread", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "ATSbufread",     S(ATSBUFREAD),      TW,  "",     "kkSiop",
-        (SUBR) atsbufreadset_S,       (SUBR) atsbufread,      (SUBR) NULL, NULL, 2 },
+        (SUBR) atsbufreadset_S,       (SUBR) atsbufread,      (SUBR) atsbufread_deinit, NULL, 2 },
     { "ATSbufread.i",     S(ATSBUFREAD),    TW,  "",     "kkiiop",
-        (SUBR) atsbufreadset,       (SUBR) atsbufread,      (SUBR) NULL, NULL, 2 },
+        (SUBR) atsbufreadset,       (SUBR) atsbufread,      (SUBR) atsbufread_deinit, NULL, 2 },
     CSOUND_DEPRECATED_OPCODE("ATSpartialtap", "atspartialtap", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
     { "ATSpartialtap",  S(ATSPARTIALTAP),   0,  "kk",   "i",
         (SUBR) atspartialtapset,    (SUBR) atspartialtap,   (SUBR) NULL, NULL, 2 },
@@ -2662,9 +2701,9 @@ static OENTRY localops[] = {
     { "atssinnoi.i",      S(ATSSINNOI),       0,  "a",    "kkkkiiop",
         (SUBR) atssinnoiset,            (SUBR) atssinnoi },
     { "atsbufread",     S(ATSBUFREAD),      TW,  "",     "kkSiop",
-        (SUBR) atsbufreadset_S,       (SUBR) atsbufread,      (SUBR) NULL      },
+        (SUBR) atsbufreadset_S,       (SUBR) atsbufread,      (SUBR) atsbufread_deinit      },
     { "atsbufread.i",     S(ATSBUFREAD),    TW,  "",     "kkiiop",
-        (SUBR) atsbufreadset,       (SUBR) atsbufread,      (SUBR) NULL      },
+        (SUBR) atsbufreadset,       (SUBR) atsbufread,      (SUBR) atsbufread_deinit      },
     { "atspartialtap",  S(ATSPARTIALTAP),   0,  "kk",   "i",
         (SUBR) atspartialtapset,    (SUBR) atspartialtap,   (SUBR) NULL      },
     { "atsinterpread",  S(ATSINTERPREAD),   0,  "k",    "k",

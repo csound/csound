@@ -986,9 +986,6 @@ static const CSOUND cenviron_ = {
   (char*) NULL,   /*  SF_id_date          */
   NULL,           /*  utility_db          */
   (int16*) NULL,  /*  isintab             */
-  NULL,           /*  lprdaddr            */
-  0,              /*  currentLPCSlot      */
-  0,              /*  max_lpc_slot        */
   NULL,           /*  chn_db              */
   1,              /*  opcodedirWasOK      */
   0,              /*  disable_csd_options */

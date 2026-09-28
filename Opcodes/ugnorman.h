@@ -161,6 +161,8 @@ typedef struct _atsaddnz {
   ATSSTRUCT atshead;
 } ATSADDNZ;
 
+typedef struct _atsbufread ATSBUFREAD;
+
 struct _atsbufread {
   OPDS    h;
   MYFLT   *ktimpnt, *kfmod, *ifileno, *iptls;
@@ -178,6 +180,7 @@ struct _atsbufread {
   double  timefrmInc;
   MYFLT   MaxAmp;     /* maximum amplitude in anaylsis file */
   double  *datastart; /* pointer to the data (past the header) */
+  ATSBUFREAD **source;
   ATSSTRUCT atshead;
   int32_t     swapped;    /* indicates if the data file is byte swapped or not */
 };
@@ -208,6 +211,7 @@ typedef struct _atscross {
   int32_t     swapped;    /* indicates if the data file is byte swapped or not */
   MYFLT   *oldamps;
   int32_t floatph;
+  ATSBUFREAD **source;
 } ATSCROSS;             /* modified from atsadd */
 
 typedef struct _atssinnoi {
@@ -246,11 +250,13 @@ typedef struct _atssinnoi {
 typedef struct _atspartialtap {
   OPDS    h;
   MYFLT   *kfreq, *kamp, *iparnum;    /* out: freq, amp, in: partialnumber */
+  ATSBUFREAD **source;
 } ATSPARTIALTAP;
 
 typedef struct _atsinterpread {
   OPDS    h;
   MYFLT   *kamp, *kfreq;              /* output amp, input: frequency */
   int32_t     overflowflag;
+  ATSBUFREAD **source;
 } ATSINTERPREAD;
 
