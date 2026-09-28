@@ -58,11 +58,6 @@ typedef struct STDOPCOD_GLOBALS_ {
     VCO2_TABLE_ARRAY  **vco2_tables;
     /* ugnorman.c */
     int32_t     swapped_warning;
-    /* gab/gab.c */
-    MYFLT       *tb_ptrs[16];       /* Left here while the rest is implemented */
-    MYFLT       *tb[16];       /* gab: updated */
-    int32_t     tb_ixmode[16]; /* gab: added */
-    int32       tb_size[16];   /* gab: added */
 } STDOPCOD_GLOBALS;
 
 extern int32_t ambicode_init_(CSOUND *);

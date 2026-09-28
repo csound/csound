@@ -279,15 +279,26 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
   return OK;
 }
 
+/* Keep these deprecated slots global so setup in instr 0 or another note
+   still works. Allocate them only when a tbNinit opcode assigns a table. */
+#define TB_GLOBALS "csound.tb.slots"
+
 static CS_NOINLINE int32_t tab_init(CSOUND *csound, TB_INIT *p, int32_t ndx)
 {
-  STDOPCOD_GLOBALS  *pp;
-  FUNC  *ftp = csound->FTFind(csound,p->ifn);
+  MYFLT **slots;
+  FUNC *ftp = csound->FTFind(csound, p->ifn);
 
   if (UNLIKELY(ftp == NULL))
     return csound->InitError(csound, "%s", Str("tab_init: incorrect table number"));
-  pp =  (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-  pp->tb_ptrs[ndx] = ftp->ftable;
+  slots = (MYFLT **)csound->QueryGlobalVariable(csound, TB_GLOBALS);
+  if (slots == NULL) {
+    if (csound->CreateGlobalVariable(csound, TB_GLOBALS,
+                                     16 * sizeof(*slots)) != OK)
+      return csound->InitError(csound, "%s",
+                               Str("tab_init: could not allocate table slots"));
+    slots = (MYFLT **)csound->QueryGlobalVariable(csound, TB_GLOBALS);
+  }
+  slots[ndx] = ftp->ftable;
   return OK;
 }
 
@@ -300,20 +311,24 @@ static CS_NOINLINE int32_t tab_perf(CSOUND *csound, FASTB *p)
 
 static CS_NOINLINE int32_t tab_i_tmp(CSOUND *csound, FASTB *p, int32_t ndx)
 {
-    STDOPCOD_GLOBALS  *pp;
-    pp =  (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-    p->tb_ptr = &(pp->tb_ptrs[ndx]);
-    p->h.init = (SUBR) tab_perf;
-    return tab_perf(csound, p);
+  MYFLT **slots = (MYFLT **)csound->QueryGlobalVariable(csound, TB_GLOBALS);
+  if (UNLIKELY(slots == NULL || slots[ndx] == NULL))
+    return csound->InitError(csound, Str("tb%d: table slot is not initialized"), ndx);
+  /* Cache the slot itself so later assignments remain visible. */
+  p->tb_ptr = &slots[ndx];
+  p->h.init = (SUBR) tab_perf;
+  return tab_perf(csound, p);
 }
 
 static CS_NOINLINE int32_t tab_k_tmp(CSOUND *csound, FASTB *p, int32_t ndx)
 {
-    STDOPCOD_GLOBALS  *pp;
-    pp =  (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-    p->tb_ptr = &(pp->tb_ptrs[ndx]);
-    p->h.perf = (SUBR) tab_perf;
-    return tab_perf(csound, p);
+  MYFLT **slots = (MYFLT **)csound->QueryGlobalVariable(csound, TB_GLOBALS);
+  if (UNLIKELY(slots == NULL || slots[ndx] == NULL))
+    return csound->PerfError(csound, &(p->h),
+                             Str("tb%d: table slot is not initialized"), ndx);
+  p->tb_ptr = &slots[ndx];
+  p->h.perf = (SUBR) tab_perf;
+  return tab_perf(csound, p);
 }
 
 #ifdef TAB_MACRO
