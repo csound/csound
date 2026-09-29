@@ -92,7 +92,7 @@ PUBLIC bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context);
  * Let ugen know how long the note would play.
  * Call before init.
  */
-PUBLIC bool csoundUgenContextSetDuration(UGEN_CONTEXT *context, MYFLT p3);
+PUBLIC bool csoundUgenContextSetDuration(UGEN_CONTEXT *context, cs_float p3);
 
 /**
  * Makes ugen know that the note has been released
