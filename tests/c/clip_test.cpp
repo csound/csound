@@ -53,12 +53,9 @@ class ClipTests : public ::testing::Test {
 
   // Evaluate the documented curves at unit limit, then scale the answer.
   // This keeps the reference independent of the opcode's coefficients.
-  /* csound-numeric-ignore double: Keep the reference curve at fixed precision in every build. */
   static double UnitCurve(double input, int method, double shape)
   {
-    /* csound-numeric-ignore double: Keep the reference curve at fixed precision in every build. */
     double magnitude = std::fabs(input);
-    /* csound-numeric-ignore double: Keep the reference curve at fixed precision in every build. */
     double output;
     if (method == 0) {
       if (magnitude <= shape)
@@ -66,9 +63,7 @@ class ClipTests : public ::testing::Test {
       else if (magnitude >= 1)
         output = (1 + shape) / 2;
       else {
-        /* csound-numeric-ignore double: Keep the reference curve at fixed precision in every build. */
         double distance = magnitude - shape;
-        /* csound-numeric-ignore double: Keep the reference curve at fixed precision in every build. */
         double fraction = distance / (1 - shape);
         output = shape + distance / (1 + fraction * fraction);
       }
@@ -85,13 +80,11 @@ class ClipTests : public ::testing::Test {
   void ExpectCurve(int method, cs_float limit, cs_float shape = .5)
   {
     // Cover the straight segment, both knees, the curved segment, and clipping.
-    /* csound-numeric-ignore double: Keep the reference curve at fixed precision in every build. */
     for (double input : {-1.125, -1.0, -.75, -.5, 0.0, .5, .75, 1.0, 1.125}) {
       SCOPED_TRACE(input);
       csoundSetControlChannel(csound, "input", (limit == 0 ? 1 : limit) * input);
       ASSERT_EQ(csoundPerformKsmps(csound), 0);
       const cs_float *out = csoundGetSpout(csound);
-      /* csound-numeric-ignore double: Keep the reference curve at fixed precision in every build. */
       const double expected = limit * UnitCurve(input, method, shape);
       for (int n = 0; n < 16; ++n) {
         for (int channel = 0; channel < 2; ++channel) {

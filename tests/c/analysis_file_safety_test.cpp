@@ -155,12 +155,10 @@ void putU32(std::vector<uint8_t> &data, size_t offset, uint32_t value)
 std::vector<uint8_t> makeAtsFile()
 {
   std::vector<uint8_t> data;
-  /* csound-numeric-ignore double: ATS fixtures must use the 64-bit file format. */
   const std::array<double, 13> values = {
     123.0, 44100.0, 512.0, 1024.0, 1.0, 1.0, 1.0,
     1000.0, 0.1, 1.0, 0.0, 0.5, 440.0
   };
-  /* csound-numeric-ignore double: ATS fixtures must use the 64-bit file format. */
   for (double value : values)
     appendNative(data, value);
   return data;
@@ -224,15 +222,12 @@ TEST_F(AnalysisFileSafetyTests, ConvolveTextKeepsFinalValueWithoutNewline)
 std::vector<uint8_t> makeSinnoiFile(int type, bool swapped)
 {
   std::vector<uint8_t> data;
-  /* csound-numeric-ignore double: ATS fixtures must use the 64-bit file format. */
   for (double value : {123.0, 48000.0, 512.0, 1024.0, 42.0, 2.0,
-                       /* csound-numeric-ignore double: ATS fixtures must use the 64-bit file format. */
                        84.0, 21000.0, 1.0, static_cast<double>(type)})
     appendNative(data, value);
   for (int frame = 0; frame < 2; ++frame) {
     appendNative(data, frame * 0.5);
     for (int partial = 0; partial < 42; ++partial) {
-      /* csound-numeric-ignore double: ATS fixtures must use the 64-bit file format. */
       appendNative(data, double((frame + 1) * (partial + 1)));
       appendNative(data, 21000.0);
       if (type == 2 || type == 4)
@@ -243,9 +238,7 @@ std::vector<uint8_t> makeSinnoiFile(int type, bool swapped)
         appendNative(data, 1.0);
   }
   if (swapped)
-    /* csound-numeric-ignore double: ATS fixtures must use the 64-bit file format. */
     for (size_t offset = 0; offset < data.size(); offset += sizeof(double))
-      /* csound-numeric-ignore double: ATS fixtures must use the 64-bit file format. */
       std::reverse(data.begin() + offset, data.begin() + offset + sizeof(double));
   return data;
 }
@@ -433,9 +426,7 @@ TEST_F(AnalysisFileSafetyTests, AtsMutationsFailCleanly)
   }
 
   std::vector<uint8_t> corrupt = valid;
-  /* csound-numeric-ignore double: ATS fixtures must use the 64-bit file format. */
   double count = static_cast<double>(INT32_MAX);
-  /* csound-numeric-ignore double: ATS fixtures must use the 64-bit file format. */
   std::memcpy(corrupt.data() + 5 * sizeof(double), &count, sizeof(count));
   auto path = directory / "corrupt-count.ats";
   ASSERT_NO_FATAL_FAILURE(writeFile(path, corrupt));

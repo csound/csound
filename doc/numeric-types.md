@@ -64,7 +64,8 @@ python3 scripts/check_numeric_types.py
 ```
 
 The check covers tracked C and C++ files, headers, header templates, bindings,
-and parser and lexer inputs. It flags `MYFLT` and plain `double`, including
+and parser and lexer inputs. Test suites and build probes are excluded.
+It flags `MYFLT` and plain `double`, including
 casts, macros and code for other platforms. It ignores comments and string
 literals. Plain `float` remains valid for fixed 32-bit buffers and interfaces.
 The check does not decide whether a value belongs in `cs_float` or `cs_double`,

@@ -99,7 +99,6 @@ protected:
         info.format = SF_FORMAT_WAV | format;
         SNDFILE *sf = sf_open(file.string().c_str(), SFM_WRITE, &info);
         ASSERT_NE(sf, nullptr);
-        /* csound-numeric-ignore double: sf_writef_double requires a double buffer. */
         std::vector<double> samples(frames * channels);
         for (int n = 0; n < frames; ++n)
             for (int c = 0; c < channels; ++c)

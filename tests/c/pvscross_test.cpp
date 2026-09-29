@@ -97,15 +97,12 @@ protected:
         ASSERT_GE(mixed->frame.size, values *
                   (left->sliding ? sizeof(cs_float) : sizeof(float)));
         for (size_t index = 0; index < values; ++index) {
-            /* csound-numeric-ignore double: Keep comparison arithmetic at fixed precision in every build. */
             const double a = left->sliding
                 ? static_cast<cs_float *>(left->frame.auxp)[index]
                 : static_cast<float *>(left->frame.auxp)[index];
-            /* csound-numeric-ignore double: Keep comparison arithmetic at fixed precision in every build. */
             const double b = right->sliding
                 ? static_cast<cs_float *>(right->frame.auxp)[index]
                 : static_cast<float *>(right->frame.auxp)[index];
-            /* csound-numeric-ignore double: Keep comparison arithmetic at fixed precision in every build. */
             const double actual = mixed->sliding
                 ? static_cast<cs_float *>(mixed->frame.auxp)[index]
                 : static_cast<float *>(mixed->frame.auxp)[index];

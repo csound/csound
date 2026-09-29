@@ -58,7 +58,6 @@ protected:
         return result;
     }
 
-    /* csound-numeric-ignore double: Keep reference values and bounds at fixed precision in every build. */
     static double Value(PVSDAT *signal, size_t index)
     {
         return signal->sliding
@@ -113,7 +112,6 @@ protected:
         for (int sample = 0; sample < samples; ++sample) {
             for (int slot = 0; slot < input->N + 2; ++slot) {
                 const size_t index = sample * (input->N + 2) + slot;
-                /* csound-numeric-ignore double: Keep reference values and bounds at fixed precision in every build. */
                 const double expected = sample < activeStart || sample >= activeEnd
                     ? 0 : Value(input, index);
                 ASSERT_EQ(Value(result, index), expected)
@@ -123,11 +121,9 @@ protected:
         }
     }
 
-    /* csound-numeric-ignore double: Keep reference values and bounds at fixed precision in every build. */
     std::vector<double> Snapshot()
     {
         auto *result = Signal("gfResult");
-        /* csound-numeric-ignore double: Keep reference values and bounds at fixed precision in every build. */
         std::vector<double> values;
         const int slots = (result->sliding ? 16 : 1) * (result->N + 2);
         for (int index = 0; index < slots; ++index)
@@ -171,11 +167,8 @@ TEST_P(PvsgendyModes, RandomOffsetsRespectTheDocumentedRanges)
     for (int sample = 0; sample < samples; ++sample) {
         for (int bin = 0; bin <= input->N / 2; ++bin) {
             const int index = sample * (input->N + 2) + 2 * bin;
-            /* csound-numeric-ignore double: Keep reference values and bounds at fixed precision in every build. */
             const double amplitude = Value(result, index) - Value(input, index);
-            /* csound-numeric-ignore double: Keep reference values and bounds at fixed precision in every build. */
             const double frequency = Value(result, index + 1) - Value(input, index + 1);
-            /* csound-numeric-ignore double: Keep reference values and bounds at fixed precision in every build. */
             const double frequencyBound = 50.0 / (input->sliding ? bin + 1 : 2*bin + 1);
             EXPECT_LE(std::abs(amplitude), input->sliding ? .125 : 0);
             EXPECT_LE(std::abs(frequency), frequencyBound + 1e-5);
@@ -189,7 +182,6 @@ TEST_P(PvsgendyModes, RandomOffsetsRespectTheDocumentedRanges)
 
 TEST_P(PvsgendyModes, SeedRepeatsTheSequenceWithoutSharingPerformanceState)
 {
-    /* csound-numeric-ignore double: Keep reference values and bounds at fixed precision in every build. */
     std::vector<std::vector<double>> runs;
     for (int run = 0; run < 4; ++run) {
         ASSERT_NO_FATAL_FAILURE(Start(run == 3 ? 54321 : 12345));
@@ -197,7 +189,6 @@ TEST_P(PvsgendyModes, SeedRepeatsTheSequenceWithoutSharingPerformanceState)
         csoundSetControlChannel(csound, "amplitude", .25);
         csoundSetControlChannel(csound, "frequency", 100);
         csoundEventString(csound, "i1 0 1", 0);
-        /* csound-numeric-ignore double: Keep reference values and bounds at fixed precision in every build. */
         std::vector<double> sequence;
         for (int block = 0; block < 3; ++block) {
             // Other random opcodes may consume the engine's seed after init.
@@ -282,7 +273,6 @@ TEST_F(PvsgendyTests, ClearsReusedOutputUntilTheFirstOrdinaryFrame)
     Signal("gfInput")->framecount = 0;
     csoundSetControlChannel(csound, "reset", 1);
     ASSERT_EQ(csoundPerformKsmps(csound), 0);
-    /* csound-numeric-ignore double: Keep reference values and bounds at fixed precision in every build. */
     for (double value : Snapshot()) EXPECT_EQ(value, 0);
 }
 

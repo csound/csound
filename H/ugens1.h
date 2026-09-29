@@ -33,7 +33,7 @@ typedef struct {
 typedef struct {
   OPDS    h;
   cs_float   *xr, *ia, *idur, *ib;
-  /* csound-numeric-ignore double: Retain small exponential envelope steps with USE_FLOAT. */
+  /* csound-numeric-ignore double: Float multipliers can round to 1 and stop slow ramps. */
   double   val, mlt, kmlt;
 } EXPON;
 

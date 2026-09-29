@@ -1,4 +1,8 @@
 {
+  "tests/": "Tests may use native types for reference calculations, file fixtures and compatibility checks.",
+  "cmake/portaudio_test.c": "This build probe tests the external PortAudio interface.",
+  "iOS/Csound-for-iOS/Generator/GeneratorTests/": "Platform unit tests keep their own numeric types.",
+  "iOS/Csound-for-iOS/Generator/GeneratorUITests/": "Platform UI tests keep their own numeric types.",
   "third_party/": "Bundled upstream libraries keep their own numeric types.",
   "util/SDIF/sdif.h": "The upstream SDIF header defines fixed-width file types."
 }
