@@ -33,6 +33,7 @@ typedef struct {
 typedef struct {
   OPDS    h;
   cs_float   *xr, *ia, *idur, *ib;
+  /* csound-numeric-ignore double: Retain small exponential envelope steps with USE_FLOAT. */
   double   val, mlt, kmlt;
 } EXPON;
 
@@ -84,6 +85,7 @@ typedef struct {
   SEG     *cursegp;
   int32   segsrem, curcnt;
   /* Keep slow exponential updates even in a full-float build. */
+  /* csound-numeric-ignore double: Retain small exponential envelope steps with USE_FLOAT. */
   double  curval, curmlt, curamlt;
   int32   nsegs;
   AUXCH   auxch;

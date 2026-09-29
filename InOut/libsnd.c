@@ -820,6 +820,7 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
         csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
                   Str(csound->SndfileStrError(csound,NULL)));
       {
+        /* csound-numeric-ignore double: libsndfile requires a double argument. */
         double quality = O->quality; /* libsndfile requires double. */
         csound->SndfileCommand(csound,STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
                               &quality, sizeof(quality));
@@ -835,6 +836,7 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
         csoundDie(csound, Str("sfinit: cannot open %s\n%s"),
                   fullName, csoundSndfileStrError (csound, NULL));
       {
+        /* csound-numeric-ignore double: libsndfile requires a double argument. */
         double quality = O->quality; /* libsndfile requires double. */
         csound->SndfileCommand(csound,STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
                               &quality, sizeof(quality));

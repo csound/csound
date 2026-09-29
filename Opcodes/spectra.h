@@ -267,8 +267,10 @@ typedef struct {
 
 typedef struct {
         int32   cnt,acnt;
+        /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
         double  alpha, x;
         cs_float   nxtpt;
+        /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
         double  val, c1;
 } NSEG;
 
@@ -278,6 +280,7 @@ typedef struct {
         NSEG    *cursegp;
         int32   nsegs;
         int32   segsrem, curcnt;
+        /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
         double  curval, curinc, alpha, curx;
         AUXCH   auxch;
         int32   xtra;

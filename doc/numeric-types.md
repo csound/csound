@@ -54,6 +54,45 @@ their required types. A few envelopes and accumulators keep `double` where
 single precision loses small updates. Bundled third-party code keeps its own
 types.
 
+## Source check
+
+The `Numeric type policy` workflow checks every pull request. Run the same
+check locally with Python 3 and Git, without building Csound.
+
+```sh
+python3 scripts/check_numeric_types.py
+```
+
+The check covers tracked C and C++ files, headers, header templates, bindings,
+and parser and lexer inputs. It flags `MYFLT` and plain `double`, including
+casts, macros and code for other platforms. It ignores comments and string
+literals. Plain `float` remains valid for fixed 32-bit buffers and interfaces.
+The check does not decide whether a value belongs in `cs_float` or `cs_double`,
+or whether an external interface needs a fixed-width type. Those choices still
+need code review.
+
+When a line must keep one of the flagged types, put an ignore comment directly
+above it and explain why.
+
+```c
+/* csound-numeric-ignore double: libsndfile requires a double buffer. */
+double peak;
+```
+
+Both `/* */` and `//` comments work. An ignore covers only the named type on
+the next logical line. For a macro continued with backslashes, put the comment
+above the `#define`. The whole continued macro counts as one logical line.
+List both types as `double, MYFLT` only if the line needs both. Missing reasons,
+unknown type names and unused ignores fail the check. Remove an ignore when
+its code no longer needs it.
+
+Whole files or directories can be excluded in
+[`scripts/numeric_type_exclusions.json`](../scripts/numeric_type_exclusions.json).
+Each entry needs a reason. Directory paths end with `/`. Use these exclusions
+for sources such as bundled libraries that must keep their own types. Use
+comments for exceptions within Csound code so the rest of each file stays
+checked. Exclusions that no longer match a tracked source file also fail.
+
 ## Helper names and bindings
 
 Use `CS_FLOAT2LONG`, `CS_FLOAT2LRND`, `CS_FLOAT2LONG64`, `CS_FLOAT2LRND64`,

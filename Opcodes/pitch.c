@@ -1809,7 +1809,9 @@ int32_t impulse(CSOUND *csound, IMPULSE *p)
 /* ********************************************************************** */
 /* Positive curves run backward from the endpoint so all exponents stay
    nonpositive. expm1 preserves small curves without subtracting near equals. */
+/* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
 static void trnseg_coefficients(NSEG *segp, double start, double end,
+                               /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
                                double curve, double samples)
 {
     segp->x = curve > 0.0 ? -curve : 0.0;
@@ -1960,6 +1962,7 @@ int32_t ktrnseg(CSOUND *csound, TRANSEG *p)
 
 int32_t trnseg(CSOUND *csound, TRANSEG *p)
 {
+    /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
     double val;
     cs_float *rs = p->rslt;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -2021,6 +2024,7 @@ int32_t trnsetr(CSOUND *csound, TRANSEG *p)
     int32_t nsegs, release_periods;
     cs_float **argp = p->argums;
     int32_t audio = IS_ASIG_ARG(p->rslt);
+    /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
     double val;
 
     if (UNLIKELY(p->INOCOUNT%3!=1))
@@ -2040,10 +2044,14 @@ int32_t trnsetr(CSOUND *csound, TRANSEG *p)
     p->segsrem = nsegs + 1;
     p->curx = 0.0;
     do {
+      /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
       double dur = **argp++;
+      /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
       double curve = **argp++;
       cs_float next = **argp++;
+      /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
       double samples = dur * CS_ESR;
+      /* csound-numeric-ignore double: Keep the integer limit exact with USE_FLOAT. */
       if (UNLIKELY(!(samples <= (double)MAXPOS - 1.0)))
         return csound->InitError(csound, "%s",
                                 Str("transegr: invalid segment duration"));
@@ -2052,6 +2060,7 @@ int32_t trnsetr(CSOUND *csound, TRANSEG *p)
       segp->cnt = dur > 0.0 ? (int32_t)(dur * CS_EKR) : 0;
       segp->nxtpt = next;
       trnseg_coefficients(segp, val, next, curve,
+                          /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
                           audio ? segp->acnt : (double)segp->cnt * CS_KSMPS);
       val = next;
       p->lastalpha = curve;
@@ -2079,6 +2088,7 @@ int32_t ktrnsegr(CSOUND *csound, TRANSEG *p)
         p->segsrem = 1;
         segp = p->cursegp;
         trnseg_coefficients(segp, p->curval, p->finalval, p->lastalpha,
+                            /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
                             (double)segp->cnt * CS_KSMPS);
         goto newseg;
       }
@@ -2102,6 +2112,7 @@ int32_t ktrnsegr(CSOUND *csound, TRANSEG *p)
       else if (p->alpha == 0.0)
         p->curval += p->curinc * CS_KSMPS;
       else {
+        /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
         p->curx += (double)CS_KSMPS * p->alpha;
         p->curval = TRNSEG_VALUE(p, p->cursegp);
       }
@@ -2114,6 +2125,7 @@ output:
 
 int32_t trnsegr(CSOUND *csound, TRANSEG *p)
 {
+    /* csound-numeric-ignore double: Keep curved envelope steps and endpoints precise with USE_FLOAT. */
     double val;
     cs_float *rs = p->rslt;
     uint32_t offset = p->h.insdshead->ksmps_offset;

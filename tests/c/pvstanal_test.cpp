@@ -23,6 +23,7 @@ namespace {
 constexpr int fftSize = 64;
 constexpr int hop = 16;
 constexpr int sampleRate = 8192;
+/* csound-numeric-ignore double: Keep the reference DFT at fixed precision in every build. */
 constexpr double twoPi = 6.2831853071795864769;
 
 class PvsTanalTests : public ::testing::Test {
@@ -106,11 +107,15 @@ protected:
 
     // Keep the reference DFT in double precision in every build mode.
     // Apply Hann to the source, then compare the opcode with this reference.
+    /* csound-numeric-ignore double: Keep the reference DFT at fixed precision in every build. */
     std::complex<double> referenceBin(int bin, int channel, int firstSample)
     {
+        /* csound-numeric-ignore double: Keep the reference DFT at fixed precision in every build. */
         std::complex<double> result = 0;
         for (int n = 0; n < fftSize; ++n) {
+            /* csound-numeric-ignore double: Keep the reference DFT at fixed precision in every build. */
             const double value = samples[(firstSample + n) * channels + channel];
+            /* csound-numeric-ignore double: Keep the reference DFT at fixed precision in every build. */
             const double window = (1 - std::cos(twoPi * n / fftSize)) * 2 / fftSize;
             result += value * window * std::polar(1.0, -twoPi * bin * n / fftSize);
         }
@@ -132,9 +137,11 @@ protected:
                 EXPECT_EQ(data[2 * bin + 1], bin * sampleRate / fftSize);
             } else if (std::abs(front) > .001) {
                 const auto back = referenceBin(bin, channel, 1024 - hop);
+                /* csound-numeric-ignore double: Keep the reference DFT at fixed precision in every build. */
                 const double difference = std::remainder(
                     std::arg(front) - std::arg(back) - twoPi * hop * bin / fftSize,
                     twoPi);
+                /* csound-numeric-ignore double: Keep the reference DFT at fixed precision in every build. */
                 const double frequency = difference * sampleRate / (twoPi * hop) +
                                          bin * sampleRate / fftSize;
                 EXPECT_NEAR(data[2 * bin + 1], frequency, .01) << "bin " << bin;

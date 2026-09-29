@@ -54,15 +54,25 @@ typedef struct _atsnzaux {
 
 /* The mapped ATS header and datastart buffers always contain 64-bit doubles. */
 typedef struct atsstruct {
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  magic;      /* ats magic number */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  sampr;      /* sampling rate */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  frmsz;      /* frame size in samples */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  winsz;      /* window size in samples */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  npartials;  /* number of partials */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  nfrms;      /* number of frames */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  ampmax;     /* max amplitude */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  freqmax;    /* max frequency */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  dur;        /* duration seconds */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  type;       /* Ats Frame type 1-4 */
 } ATSSTRUCT;
 
@@ -84,6 +94,7 @@ typedef struct _atsread {
   /* of the data, so we do not print too many warnings */
   int32_t     prFlg;
   /* points to the start of the data */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *datastart;
   /* tells the location of the partal to output */
   /* and the number of doubles to increment to get to the next frame */
@@ -101,6 +112,7 @@ typedef struct _atsreadnz {
   /* a flag used to indicate if we've steped out of the time range */
   /* of the data, so we do not print too many warnings */
   int32_t     prFlg;
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *datastart; /* points to the start of the data */
   int32_t     nzbandloc, frmInc;
   MEMFIL  *atsmemfile;
@@ -126,6 +138,7 @@ typedef struct _atsadd {
   cs_double  timefrmInc;
   cs_double  MaxAmp;     /* maximum amplitude in anaylsis file */
   int32_t     firstpartial, partialinc, frmInc;
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *datastart;
   cs_double  *oscphase;  /* oscillator phase */
   ATS_DATA_LOC *buf;
@@ -149,6 +162,7 @@ typedef struct _atsaddnz {
   cs_double  timefrmInc;
   cs_double  winsize;    /* size of windows in analysis file, used to */
   /*   compute RMS amplitude from energy in noise band */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *datastart;
 
   cs_double  buf[25];      /* stores band information for passing data */
@@ -180,6 +194,7 @@ struct _atsbufread {
   /*   to get at the next partial in a frame */
   cs_double  timefrmInc;
   cs_float   MaxAmp;     /* maximum amplitude in anaylsis file */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *datastart; /* pointer to the data (past the header) */
   ATSBUFREAD **source;
   ATSSTRUCT atshead;
@@ -206,6 +221,7 @@ typedef struct _atscross {
   cs_double  timefrmInc;
   cs_double  MaxAmp;     /* maximum amplitude in anaylsis file */
   int32_t     firstpartial, partialinc, frmInc;
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *datastart;
   cs_double  *oscphase;  /* oscillator phase */
   ATS_DATA_LOC *buf;
@@ -228,6 +244,7 @@ typedef struct _atssinnoi {
   cs_double  maxFr;
   int32_t prFlg;
   cs_double  winsize; /* analysis window size for noise energy to amplitude */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *datastart;
 
   int32_t firstpartial;

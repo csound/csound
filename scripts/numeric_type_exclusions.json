@@ -1,0 +1,4 @@
+{
+  "third_party/": "Bundled upstream libraries keep their own numeric types.",
+  "util/SDIF/sdif.h": "The upstream SDIF header defines fixed-width file types."
+}

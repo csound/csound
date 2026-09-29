@@ -1,0 +1,26 @@
+name: Numeric type policy
+
+on:
+  pull_request:
+  push:
+    branches: [develop, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  numeric-types:
+    name: Check numeric types
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Check the linter
+        run: python3 -m unittest discover -s tests/python -p test_numeric_type_policy.py
+      - name: Check all tracked C and C++ sources
+        run: python3 scripts/check_numeric_types.py

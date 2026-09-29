@@ -304,6 +304,7 @@ static int decode_value(JSON_CONTEXT *ctx, const CS_TYPE *type, void *value,
   }
   if (type == &CS_VAR_TYPE_I || type == &CS_VAR_TYPE_K) {
     /* yyjson uses double regardless of the Csound precision mode. */
+    /* csound-numeric-ignore double: yyjson uses double in every Csound precision mode. */
     double number = yyjson_get_num(json);
     if (!yyjson_is_num(json) || !isfinite(number) ||
         !isfinite((cs_float)number)) {
@@ -382,6 +383,7 @@ static yyjson_mut_val *encode_value(JSON_CONTEXT *ctx, yyjson_mut_doc *doc,
       ctx->error = "expected a finite number";
       return NULL;
     }
+    /* csound-numeric-ignore double: yyjson uses double in every Csound precision mode. */
     return yyjson_mut_real(doc, (double)*(const cs_float *)value);
   }
   if (type == &CS_VAR_TYPE_b || type == &CS_VAR_TYPE_B)

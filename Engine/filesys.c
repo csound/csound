@@ -845,6 +845,7 @@ static void *csoundFileOpenInternal(
             close(tmp_fd);
             p->fd = tmp_fd = -1;
             {
+              /* csound-numeric-ignore double: libsndfile requires a double argument. */
               double quality = csound->oparms->quality; /* libsndfile requires double. */
               csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
                                     &quality, sizeof(quality));
@@ -889,6 +890,7 @@ static void *csoundFileOpenInternal(
       }
       csound->SndfileCommand(csound,p->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
       {
+        /* csound-numeric-ignore double: libsndfile requires a double argument. */
         double quality = csound->oparms->quality; /* libsndfile requires double. */
         csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
                               &quality, sizeof(quality));

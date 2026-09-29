@@ -12,6 +12,7 @@
 
 /* Audio samples and opcode arguments; USE_DOUBLE keeps the CS7 default. */
 #ifdef USE_DOUBLE
+/* csound-numeric-ignore double: Define the native type behind the configurable alias. */
 typedef double cs_float;
 #else
 typedef float cs_float;
@@ -23,6 +24,7 @@ typedef float cs_double;
 #define CS_DOUBLE_SCAN "f"
 #define cs_modf modff
 #else
+/* csound-numeric-ignore double: Define the native type behind the configurable alias. */
 typedef double cs_double;
 #define CS_DOUBLE_SCAN "lf"
 #define cs_modf modf
@@ -36,12 +38,16 @@ typedef double cs_double;
 #ifndef __MYFLT_DEF
 #define __MYFLT_DEF
 #if defined(SWIG)
+/* csound-numeric-ignore MYFLT: Keep the deprecated source alias for existing hosts and plugins. */
 typedef cs_float MYFLT;
 #elif defined(_MSC_VER)
+/* csound-numeric-ignore MYFLT: Keep the deprecated source alias for existing hosts and plugins. */
 typedef __declspec(deprecated("MYFLT is deprecated in CS7; use cs_float")) cs_float MYFLT;
 #elif defined(__GNUC__) || defined(__clang__)
+/* csound-numeric-ignore MYFLT: Keep the deprecated source alias for existing hosts and plugins. */
 typedef cs_float MYFLT __attribute__((deprecated("MYFLT is deprecated in CS7; use cs_float")));
 #else
+/* csound-numeric-ignore MYFLT: Keep the deprecated source alias for existing hosts and plugins. */
 typedef cs_float MYFLT;
 #endif
 #endif

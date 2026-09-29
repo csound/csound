@@ -106,8 +106,10 @@ static int32_t atsbufread_deinit(CSOUND *csound, ATSBUFREAD *p)
 
 /* byte swaps a cs_double */
 
+/* csound-numeric-ignore double: ATS files always store 64-bit values. */
 static CS_PURE double bswap(const double *swap_me)
 {
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double        d;
   const unsigned char *p1 = (const unsigned char *) swap_me;
   unsigned char *p2 = (unsigned char *) &d;
@@ -129,7 +131,9 @@ static int32_t validate_atsfile(CSOUND *csound, MEMFIL *mfp,
                                 int32_t swapped)
 {
   ATSSTRUCT *atsh;
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double npartials, nframes, duration, sample_rate;
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double frame_size, window_size, ats_type;
   uint64_t partial_count, frame_count, frame_values, available_values;
   int32_t type;
@@ -151,9 +155,11 @@ static int32_t validate_atsfile(CSOUND *csound, MEMFIL *mfp,
   ats_type = swapped ? bswap(&atsh->type) : atsh->type;
 
   if (UNLIKELY(!isfinite(npartials) || npartials < 0.0 ||
+               /* csound-numeric-ignore double: ATS files always store 64-bit values. */
                npartials > (double) INT32_MAX ||
                npartials != floor(npartials) ||
                !isfinite(nframes) || nframes < 1.0 ||
+               /* csound-numeric-ignore double: ATS files always store 64-bit values. */
                nframes > (double) INT32_MAX ||
                nframes != floor(nframes) ||
                !isfinite(ats_type) || ats_type < 1.0 || ats_type > 4.0 ||
@@ -173,6 +179,7 @@ static int32_t validate_atsfile(CSOUND *csound, MEMFIL *mfp,
   frame_values = 1U + partial_count * (type == 2 || type == 4 ? 3U : 2U)
                    + (type >= 3 ? 25U : 0U);
   available_values =
+    /* csound-numeric-ignore double: ATS files always store 64-bit values. */
     ((uint64_t) mfp->length - sizeof(ATSSTRUCT)) / sizeof(double);
   if (UNLIKELY(frame_values > available_values ||
                frame_count > available_values / frame_values)) {
@@ -257,6 +264,7 @@ static int32_t atsinfo_S(CSOUND *csound, ATSINFO *p)
   char      atsfilname[MAXNAME];
   ATSSTRUCT *atsh;
   MEMFIL    *memfile = NULL;
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double    *ret_data;    /* data to return */
   int32_t       swapped = 0;  /* flag to indicate if data needs to be swapped */
 
@@ -296,6 +304,7 @@ static int32_t atsinfo(CSOUND *csound, ATSINFO *p)
   char      atsfilname[MAXNAME];
   ATSSTRUCT *atsh;
   MEMFIL    *memfile = NULL;
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double    *ret_data;    /* data to return */
   int32_t       swapped = 0;  /* flag to indicate if data needs to be swapped */
 
@@ -338,6 +347,7 @@ static void FetchPartial(ATSREAD *p, cs_float *buf, cs_float position)
 {
   cs_float   frac;           /* the distance in time we are between frames */
   int32_t frame;          /* the number of the first frame */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *frm_1, *frm_2; /* a pointer to frame 1 and frame 2 */
   cs_double  frm1amp, frm1freq, frm2amp, frm2freq;
 
@@ -414,6 +424,7 @@ static int32_t atsreadset(CSOUND *csound, ATSREAD *p)
   }
 
   /* point the data pointer to the correct partial */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
   switch (type) {
@@ -481,6 +492,7 @@ static int32_t atsreadset_S(CSOUND *csound, ATSREAD *p)
   }
 
   /* point the data pointer to the correct partial */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
   switch (type) {
@@ -553,6 +565,7 @@ static cs_float FetchNzBand(ATSREADNZ *p, cs_float position)
 {
   cs_float   frac;               /* the distance in time we are between frames */
   int32_t frame;              /* the time of the first frame */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *frm_1, *frm_2;
   cs_double  frm1val, frm2val;
 
@@ -601,6 +614,7 @@ static int32_t atsreadnzset(CSOUND *csound, ATSREADNZ *p)
   }
 
   /* point the data pointer to the correct partial */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
   /* check to see if band is valid */
@@ -661,6 +675,7 @@ static int32_t atsreadnzset_S(CSOUND *csound, ATSREADNZ *p)
   }
 
   /* point the data pointer to the correct partial */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
   /* check to see if band is valid */
@@ -801,6 +816,7 @@ static int32_t atsaddset(CSOUND *csound, ATSADD *p)
                              n_partials);
   }
   /* get a pointer to the beginning of the data */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
   /* get increments for the partials */
@@ -912,6 +928,7 @@ static int32_t atsaddset_S(CSOUND *csound, ATSADD *p)
                              n_partials);
   }
   /* get a pointer to the beginning of the data */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
   /* get increments for the partials */
@@ -1046,6 +1063,7 @@ static int32_t atsadd(CSOUND *csound, ATSADD *p)
 static void FetchADDPartials(ATSADD *p, ATS_DATA_LOC *buf, cs_float position)
 {
   cs_float   frac;               /* the distance in time we are between frames */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *frm_0, *frm_1;
   cs_double  temp0amp, temp1amp;
   cs_double  temp0freq, temp1freq;
@@ -1153,11 +1171,13 @@ static cs_float randiats(CSOUND *csound, RANDIATS *radat)
 
 /* ------------------------------------------------------------------ */
 
+/* csound-numeric-ignore double: ATS files always store 64-bit values. */
 static void FetchADDNZbands(int32_t ptls, int32_t firstband, double *datastart,
                             int32_t frmInc, int32_t maxFr, int32_t swapped,
                             cs_double *buf, cs_float position)
 {
   cs_double  frac;               /* the distance in time we are between frames */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *frm_0, *frm_1;
   cs_double  frm0val, frm1val;
   int32_t frame;
@@ -1235,6 +1255,7 @@ static int32_t atsaddnzset(CSOUND *csound, ATSADDNZ *p)
                                    "implemented in this code yet."));
   }
 
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
   /* byte swap if necessary */
   if (p->swapped == 1) {
@@ -1405,6 +1426,7 @@ static int32_t atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
                                    "implemented in this code yet."));
   }
 
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
   /* byte swap if necessary */
   if (p->swapped == 1) {
@@ -1673,6 +1695,7 @@ static int32_t atssinnoiset_common(CSOUND *csound, ATSSINNOI *p,
   memset(p->oscphase, 0, slots * sizeof(cs_double));
   p->partials = count;
 
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
   width = (type == 2 || type == 4) ? 3 : 2;
   p->firstpartial = 1 + width * first;
@@ -1849,7 +1872,9 @@ static void fetchSINNOIpartials(ATSSINNOI *p, cs_float position)
 {
   int32_t frame = (int32_t) position;
   cs_double frac = (cs_double) position - frame;
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double *frm0 = p->datastart + (size_t) frame * p->frmInc;
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double *nextFrame = frame == p->maxFr ? frm0 : frm0 + p->frmInc;
   int32_t i;
 
@@ -1898,6 +1923,7 @@ static int32_t atsbufreadset_common(CSOUND *csound, ATSBUFREAD *p,
   atsh = (ATSSTRUCT*) mfp->beginp;
 
   /* get past the header to the data, point frptr at time 0 */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   p->datastart = (double *) atsh + 10;
   p->prFlg = 1;               /* true */
 
@@ -2013,6 +2039,7 @@ static void FetchBUFPartials(ATSBUFREAD *p,
                              cs_float position)
 {
   cs_float   frac;               /* the distance in time we are between frames */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *frm_0, *frm_1;
   cs_double  frm0amp, frm0freq, frm1amp, frm1freq;
   int32_t frame;
@@ -2283,6 +2310,7 @@ static int32_t atscrossset(CSOUND *csound, ATSCROSS *p)
                              n_partials);
   }
   /* get a pointer to the beginning of the data */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
   /* get increments for the partials */
@@ -2380,6 +2408,7 @@ static int32_t atscrossset_S(CSOUND *csound, ATSCROSS *p)
                              n_partials);
   }
   /* get a pointer to the beginning of the data */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
   /* get increments for the partials */
@@ -2423,6 +2452,7 @@ static int32_t atscrossset_S(CSOUND *csound, ATSCROSS *p)
 static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, cs_float position)
 {
   cs_float   frac;               /* the distance in time we are between frames */
+  /* csound-numeric-ignore double: ATS files always store 64-bit values. */
   double  *frm_0, *frm_1;
   cs_double  frm0amp, frm0freq, frm1amp, frm1freq;
   int32_t     frame;

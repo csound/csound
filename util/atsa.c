@@ -195,22 +195,31 @@ typedef struct {
  */
 typedef struct {
     /* Magic Number for ID of file, must be 123.00 */
+    /* csound-numeric-ignore double: ATS files always store 64-bit values. */
     double  mag;
     /* sampling rate */
+    /* csound-numeric-ignore double: ATS files always store 64-bit values. */
     double  sr;
     /* Frame size (samples) */
+    /* csound-numeric-ignore double: ATS files always store 64-bit values. */
     double  fs;
     /* Window size (samples) */
+    /* csound-numeric-ignore double: ATS files always store 64-bit values. */
     double  ws;
     /* number of partials per frame */
+    /* csound-numeric-ignore double: ATS files always store 64-bit values. */
     double  par;
     /* number of frames present */
+    /* csound-numeric-ignore double: ATS files always store 64-bit values. */
     double  fra;
     /* max. amplitude */
+    /* csound-numeric-ignore double: ATS files always store 64-bit values. */
     double  ma;
     /* max. frequency */
+    /* csound-numeric-ignore double: ATS files always store 64-bit values. */
     double  mf;
     /* duration (secs) */
+    /* csound-numeric-ignore double: ATS files always store 64-bit values. */
     double  dur;
     /* type (1,2 3 or 4)
      * 1 =only amp. and freq.
@@ -218,6 +227,7 @@ typedef struct {
      * 3 =amp., freq. and noise
      * 4 =amp., freq., phase, and noise
      */
+    /* csound-numeric-ignore double: ATS files always store 64-bit values. */
     double  typ;
 } ATS_HEADER;
 
@@ -1908,6 +1918,7 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
                      float SMR_thres, int32_t type)
 {
     int32_t     frm, i, par, dead = 0;
+    /* csound-numeric-ignore double: ATS files always store 64-bit values. */
     double  daux; /* ATS stores 64-bit values, even with USE_FLOAT. */
     ATS_HEADER header;
 
@@ -1944,6 +1955,7 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
     /* write frame data */
     for (frm = 0; frm < sound->frames; frm++) {
       daux = sound->time[0][frm];
+      /* csound-numeric-ignore double: ATS files always store 64-bit values. */
       if (UNLIKELY(1!=fwrite(&daux, sizeof(double), 1, outfile)))
         fprintf(stderr, "%s", Str("Write failure\n"));
       for (i = 0; i < sound->partials; i++) {
@@ -1955,13 +1967,16 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
           par = sound->av[i].track;
           /* output data to file */
           daux = sound->amp[par][frm];
+          /* csound-numeric-ignore double: ATS files always store 64-bit values. */
           if (UNLIKELY(1!=fwrite(&daux, sizeof(double), 1, outfile)))
             fprintf(stderr, "%s", Str("Write failure\n"));
           daux = sound->frq[par][frm];
+          /* csound-numeric-ignore double: ATS files always store 64-bit values. */
           if (UNLIKELY(1!=fwrite(&daux, sizeof(double), 1, outfile)))
             fprintf(stderr, "%s", Str("Write failure\n"));
           if (type == 2 || type == 4) {
             daux = sound->pha[par][frm];
+            /* csound-numeric-ignore double: ATS files always store 64-bit values. */
             if (UNLIKELY(1!=fwrite(&daux, sizeof(double), 1, outfile)))
               fprintf(stderr, "%s", Str("Write failure\n"));
           }
@@ -1971,6 +1986,7 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
       if (type == 3 || type == 4) {
         for (i = 0; i < ATSA_CRITICAL_BANDS; i++) {
           daux = sound->band_energy[i][frm];
+          /* csound-numeric-ignore double: ATS files always store 64-bit values. */
           if (UNLIKELY(1!=fwrite(&daux, sizeof(double), 1, outfile)))
             fprintf(stderr, "%s", Str("Write failure\n"));
         }

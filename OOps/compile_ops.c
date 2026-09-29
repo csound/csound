@@ -163,6 +163,7 @@ const char *csoundOSCMessageGetFloat(const char *buf, cs_float *mf) {
 }
 
 const char *csoundOSCMessageGetDouble(const char *buf, cs_float *mf) {
+  /* csound-numeric-ignore double: OSC type d always stores a 64-bit value. */
   double f; /* OSC type d is always 64 bits. */
   memcpy(&f, buf, sizeof(f));
   byteswap((char*)&f,8);

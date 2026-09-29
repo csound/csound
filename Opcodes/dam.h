@@ -35,10 +35,14 @@ typedef struct {
    cs_float *rtime ;         /* Raise/Fall times */
    cs_float *ftime ;
 
+   /* csound-numeric-ignore double: Retain slow gain steps and limit running-sum drift with USE_FLOAT. */
    double rspeed ;
+   /* csound-numeric-ignore double: Retain slow gain steps and limit running-sum drift with USE_FLOAT. */
    double fspeed ;
 
+   /* csound-numeric-ignore double: Retain slow gain steps and limit running-sum drift with USE_FLOAT. */
    double gain ;     /* Preserve per-sample steps during slow gain changes. */
+   /* csound-numeric-ignore double: Retain slow gain steps and limit running-sum drift with USE_FLOAT. */
    double power ;    /* Limit cancellation drift in the running sum. */
    cs_float powerBuffer[POWER_BUFSIZE] ;
    cs_float *powerPos ;

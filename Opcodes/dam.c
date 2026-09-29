@@ -50,8 +50,10 @@ static int32_t daminit(CSOUND *csound, DAM *p)
    /* the computed values are stored in the opcode data structure p */
    /* for later use in the main processing                          */
 
+    /* csound-numeric-ignore double: Retain slow gain steps and limit running-sum drift with USE_FLOAT. */
     p->rspeed = *p->rtime > FL(0.0) ? 1.0 / ((double)CS_ESR * *p->rtime)
                                   : INFINITY;
+    /* csound-numeric-ignore double: Retain slow gain steps and limit running-sum drift with USE_FLOAT. */
     p->fspeed = *p->ftime > FL(0.0) ? 1.0 / ((double)CS_ESR * *p->ftime)
                                   : INFINITY;
     p->kthr = -FL(1.0);
@@ -66,10 +68,13 @@ static int32_t dam(CSOUND *csound, DAM *p)
 {
      IGN(csound);
     cs_float *ain,*aout;
+    /* csound-numeric-ignore double: Retain slow gain steps and limit running-sum drift with USE_FLOAT. */
     double threshold, gain, comp1, comp2, exponent;
     cs_float *powerPos;
     cs_float *powerBuffer;
+    /* csound-numeric-ignore double: Retain slow gain steps and limit running-sum drift with USE_FLOAT. */
     double power;
+    /* csound-numeric-ignore double: Retain slow gain steps and limit running-sum drift with USE_FLOAT. */
     double tg;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

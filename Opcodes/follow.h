@@ -39,5 +39,6 @@ typedef struct {
         OPDS    h;
         cs_float   *out, *in, *attack, *release;
         cs_float   lastatt, lastrel;
+        /* csound-numeric-ignore double: Retain small envelope updates with USE_FLOAT. */
         double  envelope, ga, gr;
 } ENV;

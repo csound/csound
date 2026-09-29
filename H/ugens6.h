@@ -39,6 +39,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         cs_float   *rslt, *xsig, *istor;
+        /* csound-numeric-ignore double: Retain small additions to the running sum with USE_FLOAT. */
         double  prev;
 } INDIFF;
 

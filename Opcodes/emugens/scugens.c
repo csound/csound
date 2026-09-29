@@ -44,8 +44,11 @@
 #define register_deinit(csound, p, func) \
     csound->RegisterDeinitCallback(csound, p, (int32_t(*)(CSOUND*, void*))(func))
 
+/* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
 static inline double
+/* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
 zapgremlins(double x) {
+    /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
     double absx = fabs(x);
     // very small numbers fail the first test, eliminating denormalized numbers
     //    (zero also fails the first test, but that is OK since it returns
@@ -110,6 +113,7 @@ typedef struct {
     int32_t started;
     cs_float lag;
     /* Keep slow updates in the state even when output samples are floats. */
+    /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
     double b1, y1, sr;
 } LAG0;
 
@@ -136,6 +140,7 @@ static int32_t lag0_init_initial_value(CSOUND *csound, LAG0 *p) {
 
 static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
     IGN(csound);
+    /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
     double y1, b1;
     cs_float y0 = *p->in;
 
@@ -202,7 +207,9 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
 
     const cs_float* restrict in = p->in;
     cs_float lag = *p->lagtime;
+    /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
     double y0, y1;
+    /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
     double b1 = p->b1;
 
     if(LIKELY(p->started))
@@ -213,6 +220,7 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
     }
 
     if (lag == p->lag) {
+        /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
         double c = 1.0 - b1;
         for (n=offset; n<nsmps; n++) {
             y1 = b1 * y1 + c * in[n];
@@ -221,6 +229,7 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
     } else {
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
+        /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
         double b1_slope = CALCSLOPE(p->b1, b1, nsmps - offset);
         p->lag = lag;
         for (n=offset; n<nsmps; n++) {
@@ -251,6 +260,7 @@ typedef struct {
     OPDS h;
     cs_float *out, *in, *lagtimeU, *lagtimeD, *first;
     cs_float lagu, lagd;
+    /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
     double b1u, b1d, y1, sr;
     int32_t started;
 } LagUD;
@@ -284,6 +294,7 @@ lagud_k(CSOUND *csound, LagUD *p) {
     cs_float y0  = *p->in;
     cs_float lagu = *p->lagtimeU;
     cs_float lagd = *p->lagtimeD;
+    /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
     double y1;
 
     if(UNLIKELY(em_isinfornan(y0))) {
@@ -304,6 +315,7 @@ lagud_k(CSOUND *csound, LagUD *p) {
             p->y1 = y1 = y0 + p->b1d * (y1 - y0);
         *(p->out) = (cs_float)y1;
     } else {
+        /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
         double sr = p->sr;
         // faust uses tau2pole = exp(-1 / (lag*sr)), sc uses log(0.01)
         p->b1u  = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
@@ -333,8 +345,11 @@ lagud_a(CSOUND *csound, LagUD *p) {
     const cs_float* restrict in = p->in;
     cs_float lagu = *p->lagtimeU;
     cs_float lagd = *p->lagtimeD;
+    /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
     double y1;
+    /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
     double b1u = p->b1u;
+    /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
     double b1d = p->b1d;
 
     if(LIKELY(p->started))
@@ -345,7 +360,9 @@ lagud_a(CSOUND *csound, LagUD *p) {
     }
 
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
+        /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
         double cu = 1.0 - b1u;
+        /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
         double cd = 1.0 - b1d;
         for (n=offset; n<nsmps; n++) {
             cs_float y0 = in[n];
@@ -358,12 +375,15 @@ lagud_a(CSOUND *csound, LagUD *p) {
             out[n] = (cs_float)y1;
         }
     } else {
+        /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
         double sr = CS_ESR;
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1u = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
+        /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
         double b1u_slope = CALCSLOPE(p->b1u, b1u, nsmps - offset);
         p->lagu = lagu;
         p->b1d  = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
+        /* csound-numeric-ignore double: Retain small lag coefficient and state updates with USE_FLOAT. */
         double b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps - offset);
         p->lagd = lagd;
         for (n=offset; n<nsmps; n++) {

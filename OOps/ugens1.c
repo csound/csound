@@ -86,12 +86,14 @@ int32_t aline(CSOUND *csound, LINE *p)
 
 int32_t expset(CSOUND *csound, EXPON *p)
 {
+  /* csound-numeric-ignore double: Retain small exponential envelope steps with USE_FLOAT. */
   double       dur, a, b;
   //printf("kr = %f , 1/kr = %f \n",CS_EKR, CS_ONEDKR);
   if (LIKELY((dur = *p->idur) > FL(0.0) )) {
     a = *p->ia;
     b = *p->ib;
     if (LIKELY((a > 0.0 && b > 0.0) || (a < 0.0 && b < 0.0))) {
+      /* csound-numeric-ignore double: Retain small exponential envelope steps with USE_FLOAT. */
       double ratio = b/a;
       if (LIKELY(ratio >= DBL_MIN && ratio <= DBL_MAX)) {
         p->mlt = pow(ratio, CS_ONEDSR/dur);
@@ -99,6 +101,7 @@ int32_t expset(CSOUND *csound, EXPON *p)
       }
       else {
         /* Avoid overflow and underflow in the endpoint ratio. */
+        /* csound-numeric-ignore double: Retain small exponential envelope steps with USE_FLOAT. */
         double logratio = log(fabs(b)) - log(fabs(a));
         p->mlt = exp(logratio * CS_ONEDSR/dur);
         p->kmlt = exp(logratio * CS_ONEDKR/dur);
@@ -125,6 +128,7 @@ int32_t kexpon(CSOUND *csound, EXPON *p)
 int32_t expon(CSOUND *csound, EXPON *p)
 {
   IGN(csound);
+  /* csound-numeric-ignore double: Retain small exponential envelope steps with USE_FLOAT. */
   double val, mlt;//, inc;//, nxtval;
   cs_float *ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -921,6 +925,7 @@ int32_t kxpsegr(CSOUND *csound, EXPSEG *p)
 int32_t expsegr(CSOUND *csound, EXPSEG *p)
 {
   IGN(csound);
+  /* csound-numeric-ignore double: Retain small exponential envelope steps with USE_FLOAT. */
   double val, amlt;
   cs_float *rs = p->rslt;
   uint32_t offset = p->h.insdshead->ksmps_offset;

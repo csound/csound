@@ -154,6 +154,7 @@ int32_t integrate(CSOUND *csound, INDIFF *p)
 {
     IGN(csound);
     cs_float       *rslt, *asig;
+    /* csound-numeric-ignore double: Retain small additions to the running sum with USE_FLOAT. */
     double      sum;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

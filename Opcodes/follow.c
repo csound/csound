@@ -90,6 +90,7 @@ static int32_t follow(CSOUND *csound, FOL *p)
 */
 /* Keep coefficients and state in 64-bit double even with USE_FLOAT, to retain
    small envelope updates. Nonpositive times keep the 0.1-second fallback. */
+/* csound-numeric-ignore double: Retain small envelope updates with USE_FLOAT. */
 #define FOLLOW2_COEFFICIENT(time) \
     exp(-6.90775527898 / ((double)CS_ESR * \
                          ((time) <= FL(0.0) ? 0.1 : (double)(time))))
@@ -110,7 +111,9 @@ static int32_t envext(CSOUND *csound, ENV *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     /* Keep small updates in the state; only round the output sample. */
+    /* csound-numeric-ignore double: Retain small envelope updates with USE_FLOAT. */
     double      envelope = p->envelope;
+    /* csound-numeric-ignore double: Retain small envelope updates with USE_FLOAT. */
     double      ga, gr;
     cs_float       *in = p->in, *out = p->out;
     if (p->lastatt!=*p->attack) {
@@ -129,6 +132,7 @@ static int32_t envext(CSOUND *csound, ENV *p)
       memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset;n<nsmps;n++) {
+      /* csound-numeric-ignore double: Retain small envelope updates with USE_FLOAT. */
       double inp = (double)FABS(in[n]);  /* Absolute value */
       if (envelope < inp) {
         envelope = inp + ga*(envelope-inp);
