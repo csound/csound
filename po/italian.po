@@ -5431,17 +5431,17 @@ msgstr "PulseAudio server input %s\n"
 msgid "rtaudio: pulseaudio module enabled\n"
 msgstr "rtaudio: modulo pulseaudio abilitato\n"
 
-#: InOut/rtpw.c:82
+#: InOut/rtpw.c:83
 #, fuzzy, c-format
 msgid "%d dropped output frames"
 msgstr "%d ha lasciato cadere i frame di output"
 
-#: InOut/rtpw.c:148
+#: InOut/rtpw.c:149
 #, fuzzy, c-format
 msgid "hw frames: %d sw frames: %d\n"
 msgstr "hw frames: %d sw frames: %d\n"
 
-#: InOut/rtpw.c:297
+#: InOut/rtpw.c:298
 #, fuzzy, c-format
 msgid ""
 "rtpw: mismatched input sampling rate,\n"
@@ -5450,32 +5450,32 @@ msgstr ""
 "rtpw: frequenza di campionamento in ingresso non corrispondente,\n"
 "sistema-sr %.1f csound-sr %.1f"
 
-#: InOut/rtpw.c:306
+#: InOut/rtpw.c:307
 #, c-format
 msgid "pw - reallocated hw buffer: %d\n"
 msgstr "pw - buffer hardware riallocato: %d\n"
 
-#: InOut/rtpw.c:335
+#: InOut/rtpw.c:336
 #, fuzzy, c-format
 msgid "pwin - hw frames: %d sw frames: %d\n"
 msgstr "pwin - fotogrammi hw: %d fotogrammi sw: %d\n"
 
-#: InOut/rtpw.c:469
+#: InOut/rtpw.c:470
 #, fuzzy, c-format
 msgid "  sink node: %d\n"
 msgstr "  nodo del lavandino: %d\n"
 
-#: InOut/rtpw.c:471
+#: InOut/rtpw.c:472
 #, fuzzy, c-format
 msgid "  name: %s\n"
 msgstr "  name: %s\n"
 
-#: InOut/rtpw.c:473
+#: InOut/rtpw.c:474
 #, fuzzy, c-format
 msgid "  description: %s\n"
 msgstr "  description: %s\n"
 
-#: InOut/rtpw.c:476
+#: InOut/rtpw.c:477
 #, fuzzy, c-format
 msgid ""
 "  media class: %s\n"
@@ -5484,42 +5484,42 @@ msgstr ""
 "  classe media: %s\n"
 " ----\n"
 
-#: InOut/rtpw.c:509
+#: InOut/rtpw.c:511
 #, fuzzy, c-format
 msgid "Core error: %s\n"
 msgstr "Errore principale: %s\n"
 
-#: InOut/rtpw.c:533
+#: InOut/rtpw.c:535
 #, fuzzy
 msgid "Failed to create main loop\n"
 msgstr "Creazione del ciclo principale non riuscita\n"
 
-#: InOut/rtpw.c:540
+#: InOut/rtpw.c:542
 #, fuzzy
 msgid "Failed to create context\n"
 msgstr "Creazione del contesto non riuscita\n"
 
-#: InOut/rtpw.c:547
+#: InOut/rtpw.c:549
 #, fuzzy
 msgid "Failed to connect to PipeWire\n"
 msgstr "Connessione a PipeWire non riuscita\n"
 
-#: InOut/rtpw.c:557
+#: InOut/rtpw.c:559
 #, fuzzy
 msgid "Failed to get registry\n"
 msgstr "Recupero del registro non riuscito\n"
 
-#: InOut/rtpw.c:565
+#: InOut/rtpw.c:567
 #, fuzzy
 msgid "pipewire sinks:\n"
 msgstr "Lavelli pipewire:\n"
 
-#: InOut/rtpw.c:569
+#: InOut/rtpw.c:571
 #, fuzzy, c-format
 msgid "found %d sinks\n"
 msgstr "trovati %d lavelli\n"
 
-#: InOut/rtpw.c:633
+#: InOut/rtpw.c:635
 msgid "rtaudio: pipewire module enabled\n"
 msgstr "rtaudio: modulo pipewire abilitato\n"
 

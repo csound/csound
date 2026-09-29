@@ -5181,17 +5181,17 @@ msgstr "PulseAudio input server %s\n"
 msgid "rtaudio: pulseaudio module enabled\n"
 msgstr "rtaudio: pulseaudio module enabled\n"
 
-#: InOut/rtpw.c:82
+#: InOut/rtpw.c:83
 #, c-format
 msgid "%d dropped output frames"
 msgstr "%d dropped output frames"
 
-#: InOut/rtpw.c:148
+#: InOut/rtpw.c:149
 #, c-format
 msgid "hw frames: %d sw frames: %d\n"
 msgstr "hw frames: %d sw frames: %d\n"
 
-#: InOut/rtpw.c:297
+#: InOut/rtpw.c:298
 #, c-format
 msgid ""
 "rtpw: mismatched input sampling rate,\n"
@@ -5200,32 +5200,32 @@ msgstr ""
 "rtpw: mismatched input sampling rate,\n"
 "system-sr %.1f csound-sr %.1f"
 
-#: InOut/rtpw.c:306
+#: InOut/rtpw.c:307
 #, c-format
 msgid "pw - reallocated hw buffer: %d\n"
 msgstr "pw - reallocated hw buffer: %d\n"
 
-#: InOut/rtpw.c:335
+#: InOut/rtpw.c:336
 #, c-format
 msgid "pwin - hw frames: %d sw frames: %d\n"
 msgstr "pwin - hw frames: %d sw frames: %d\n"
 
-#: InOut/rtpw.c:469
+#: InOut/rtpw.c:470
 #, c-format
 msgid "  sink node: %d\n"
 msgstr "  sink node: %d\n"
 
-#: InOut/rtpw.c:471
+#: InOut/rtpw.c:472
 #, c-format
 msgid "  name: %s\n"
 msgstr "  name: %s\n"
 
-#: InOut/rtpw.c:473
+#: InOut/rtpw.c:474
 #, c-format
 msgid "  description: %s\n"
 msgstr "  description: %s\n"
 
-#: InOut/rtpw.c:476
+#: InOut/rtpw.c:477
 #, c-format
 msgid ""
 "  media class: %s\n"
@@ -5234,37 +5234,37 @@ msgstr ""
 "  media class: %s\n"
 " ----\n"
 
-#: InOut/rtpw.c:509
+#: InOut/rtpw.c:511
 #, c-format
 msgid "Core error: %s\n"
 msgstr "Core error: %s\n"
 
-#: InOut/rtpw.c:533
+#: InOut/rtpw.c:535
 msgid "Failed to create main loop\n"
 msgstr "Failed to create main loop\n"
 
-#: InOut/rtpw.c:540
+#: InOut/rtpw.c:542
 msgid "Failed to create context\n"
 msgstr "Failed to create context\n"
 
-#: InOut/rtpw.c:547
+#: InOut/rtpw.c:549
 msgid "Failed to connect to PipeWire\n"
 msgstr "Failed to connect to Pipewire\n"
 
-#: InOut/rtpw.c:557
+#: InOut/rtpw.c:559
 msgid "Failed to get registry\n"
 msgstr "Failed to get registry\n"
 
-#: InOut/rtpw.c:565
+#: InOut/rtpw.c:567
 msgid "pipewire sinks:\n"
 msgstr "pipewire sinks:\n"
 
-#: InOut/rtpw.c:569
+#: InOut/rtpw.c:571
 #, c-format
 msgid "found %d sinks\n"
 msgstr "found %d sinks\n"
 
-#: InOut/rtpw.c:633
+#: InOut/rtpw.c:635
 msgid "rtaudio: pipewire module enabled\n"
 msgstr "rtaudio: pipewire module enabled\n"
 

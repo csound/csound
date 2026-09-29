@@ -79,7 +79,8 @@ static void rtpw_out_callback(void *p) {
     spa_ringbuffer_read_update(&rtpw->ring, i + rem);
   }
   if(sil  > 0){
-    rtpw->csound->Warning(rtpw->csound, Str("%d dropped output frames"), sil);
+    CSOUND *csound = rtpw->csound;
+    csound->Warning(csound, Str("%d dropped output frames"), sil);
     memset(SPA_PTROFF(bufp, rem*fbytes, void), 0, sil*fbytes);
   }
   spabuf->datas[0].chunk->offset = 0;
@@ -506,7 +507,8 @@ static void core_event_done(void *data, uint32_t id, int seq)
 static void core_event_error(void *data, uint32_t id, int seq, int res, const char *message)
 {
   struct sink_data *sink_data = data;
-  sink_data->csound->Message(sink_data->csound, Str("Core error: %s\n"), message);
+  CSOUND *csound = sink_data->csound;
+  csound->Message(csound, Str("Core error: %s\n"), message);
   sink_data->done = 1;
   pw_thread_loop_stop(sink_data->tloop);
 }
