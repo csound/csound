@@ -263,6 +263,7 @@ platform/android/*.tgz
 platform/android/env_vars.sh
 platform/android/CsoundForAndroid/.idea
 dependencies
+!/attic/dependencies/
 *.dylib
 platform/ios/include
 tmp
