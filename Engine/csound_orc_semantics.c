@@ -235,21 +235,36 @@ CS_VARIABLE* find_var_from_pools(CSOUND* csound, const char* varName,
   return var;
 }
 
-/*
-  Check a symbol for pfield format (pN, PN)
-  and return the p-field num ( >= 0 )
-  else return -1
-*/
+/* Match the complete name, including indices too large to represent. */
+int32_t is_pfield_name(const char *name)
+{
+  if (name == NULL || (*name != 'p' && *name != 'P')) return 0;
+  const char *digit = name + 1;
+  if (*digit < '0' || *digit > '9') return 0;
+  do { ++digit; } while (*digit >= '0' && *digit <= '9');
+  return *digit == '\0';
+}
+
+/* Return -1 for other identifiers or an index outside int32_t range. */
+int32_t get_pfield_index(const char *name)
+{
+  if (!is_pfield_name(name)) return -1;
+  int32_t index = 0;
+  for (const char *digit = name + 1; *digit != '\0'; ++digit) {
+    int32_t value = *digit - '0';
+    if (index > (INT32_MAX - value) / 10) return -1;
+    index = index * 10 + value;
+  }
+  return index;
+}
+
 static int32_t is_pfield(CSOUND *csound, TYPE_TABLE* typeTable, char *s)
 {
   CS_VARIABLE *var = find_var_from_pools(csound, s, s, typeTable);
   // if symbol does not exist as a variable
   // or if it is a pfield type var
   if(var == NULL || var->varType == &CS_VAR_TYPE_P) {
-    int32_t n;
-    if (*s == 'p' || *s == 'P')
-      if (sscanf(++s, "%d", &n))
-        return (n);
+    return get_pfield_index(s);
   }
   return (-1);
 }
@@ -2213,6 +2228,14 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
   const void* typeArg = NULL;
   // remove any global annotation
   find_global_annotation(t, typeTable);
+  if (annotation != NULL && is_pfield_name(t)) {
+    synterr(csound, Str("Variable name '%s' is reserved for p-fields"), t);
+    if (tree != NULL) do_baktrace(csound, tree->locn);
+    csound->Free(csound, t);
+    csound->Free(csound, lvarName);
+    csound->LongJmp(csound, 1);
+    return;
+  }
   // search on  all pools
   var = find_var_from_pools(csound, t, t, typeTable);
   csound->Free(csound, t);
@@ -2388,6 +2411,13 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
   const CS_TYPE* varType;
   // remove any global annotation
   find_global_annotation(t, typeTable);
+  if (is_pfield_name(t)) {
+    synterr(csound, Str("Variable name '%s' is reserved for p-fields"), t);
+    csound->Free(csound, t);
+    csound->Free(csound, lvarName);
+    csound->LongJmp(csound, 1);
+    return;
+  }
   // search on  all pools
   var = find_var_from_pools(csound, t, t, typeTable);
   csound->Free(csound, t);

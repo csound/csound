@@ -311,11 +311,7 @@ int32_t get_pfield(CSOUND *csound, ENGINE_STATE *engineState,
   if((var1 == NULL || var1->varType == &CS_VAR_TYPE_P) &&
      (var2 == NULL || var2->varType == &CS_VAR_TYPE_P) &&
      (var3 == NULL || var3->varType == &CS_VAR_TYPE_P)) {
-    int32_t n;
-    if (*s == 'p' || *s == 'P')
-      if (sscanf(++s, "%d", &n)) {
-        return (n);
-      }
+    return get_pfield_index(s);
   }
   return (-1);
 }

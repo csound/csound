@@ -37,6 +37,8 @@
 char *strip_extension(CSOUND *csound, const char *s);
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar);
+int32_t is_pfield_name(const char *name);
+int32_t get_pfield_index(const char *name);
 
 void print_tree(CSOUND *, char *, TREE *);
 OENTRIES* find_opcode2(CSOUND*, char*);
