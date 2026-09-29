@@ -133,7 +133,7 @@ void *csoundMalloc(CSOUND *csound, size_t size)
 #endif
     /* allocate memory */
     if (UNLIKELY((p = CS_MALLOC(ALLOC_BYTES(size))) == NULL)) {
-        csound->ErrorMsg(csound, "Malloc failed: ");
+        csound->ErrorMsg(csound, Str("Malloc failed: "));
         memdie(csound, size);     /* does a long jump */
     }
     /* link into chain */
@@ -173,7 +173,7 @@ void *csoundCalloc(CSOUND *csound, size_t size)
 #endif
     /* allocate memory */
     if (UNLIKELY((p = CS_CALLOC(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
-      csound->ErrorMsg(csound, "Calloc failed: ");
+      csound->ErrorMsg(csound, Str("Calloc failed: "));
       memdie(csound, size);     /* does longjump */
     }
     /* link into chain */
@@ -211,7 +211,7 @@ void *csoundCallocAligned(CSOUND *csound, size_t size, size_t align) {
 #endif
     /* allocate memory */
     if (UNLIKELY((p = CS_ALIGNED_ALLOC(ALIGN_BYTES(size+HDR_SIZE,align), align)) == NULL)) {
-      csound->ErrorMsg(csound, "CallocAligned failed: ");
+      csound->ErrorMsg(csound, Str("CallocAligned failed: "));
       memdie(csound, size);     /* does longjump */
     }
     
@@ -253,7 +253,7 @@ void csoundFree(CSOUND *csound, void *p)
     CSOUND_MEM_SPINUNLOCK
     if (UNLIKELY(pp == NULL || pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
       if (pp != NULL && pp->magic != MEMALLOC_MAGIC) {
-        csound->Warning(csound, "csound->Free() called with corrupted pointer (%p)",
+        csound->Warning(csound, Str("csound->Free() called with corrupted pointer (%p)"),
                         p);
       }
       return;
@@ -322,7 +322,7 @@ void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
       pp->ptr = oldp;
 #endif
       CSOUND_MEM_SPINUNLOCK
-      csound->ErrorMsg(csound, "Realloc failed: ");
+      csound->ErrorMsg(csound, Str("Realloc failed: "));
       memdie(csound, size);
       return NULL;
     }

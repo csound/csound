@@ -54,7 +54,7 @@ static int32_t warn = 0;
 int32_t poly_LPG_init(CSOUND* csound, BUCHLA *p)
 {
     p->so = p->sx = p->sd = p->xo = 0.0;
-    if (warn==0) csound->Message(csound, "**** Experimental code ****\n");
+    if (warn==0) csound->Message(csound, Str("**** Experimental code ****\n"));
     warn++;
 #define C1 (1e-09)
 #define C2 (2.2e-10)

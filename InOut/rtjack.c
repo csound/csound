@@ -326,7 +326,7 @@ static void listPorts(CSOUND *csound, int32_t isOutput){
     CS_AUDIODEVICE *devs = csound->Malloc(csound, (size_t)n*sizeof(CS_AUDIODEVICE));
     listDevices(csound, devs, isOutput);
     if(csound->GetMessageLevel(csound) || csound->GetDebug(csound)) {
-      csound->Message(csound, "Jack %s ports:\n", isOutput ? "output" : "input");
+      csound->Message(csound, Str("Jack %s ports:\n"), isOutput ? Str("output") : Str("input"));
       for(i=0; i < n; i++)
         csound->Message(csound, " %d: %s (%s:%s)\n",
                         i, devs[i].device_id,
@@ -1200,7 +1200,7 @@ typedef struct RtJackMIDIGlobals_ {
     csound->CreateConfigurationVariable(csound, "jack_client",
                                         (void*) &(p->clientName[0]),
                                         CSOUNDCFG_STRING, 0, NULL, &i,
-                                        Str("JACK client name (default: csound7"),
+                                        Str("JACK client name (default: csound7)"),
                                         NULL);
     /*   input port name */
     i = jack_port_name_size() - 3;

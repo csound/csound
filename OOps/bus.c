@@ -444,7 +444,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
       varType == &CS_VAR_TYPE_ARRAY ? (const void *) &varInit : NULL,
       NULL);
     if (UNLIKELY(pp->var == NULL)) {
-      csound->Message(csound, "failed to create channel variable for type %s\n",
+      csound->Message(csound, Str("failed to create channel variable for type %s\n"),
                         varType->varTypeName);
       csoundFree(csound, pp);
       return NULL;
@@ -453,7 +453,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
         csound->Calloc(csound, CS_VAR_TYPE_OFFSET  +
                        pp->var->memBlockSize);
     if(pp->var->memBlock == NULL) {
-      csound->Message(csound, "failed to allocate memory for channel %s\n",
+      csound->Message(csound, Str("failed to allocate memory for channel %s\n"),
                         name);
       csoundFree(csound, pp->var);
       csoundFree(csound, pp);
@@ -484,8 +484,8 @@ static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
   CHNENTRY      *pp;
 
   if(strlen(name) > MAX_CHAN_NAME) {
-    csound->Message(csound, "channel name %s\n"
-                    " exceeds max channel name length %d.\n",
+    csound->Message(csound, Str("channel name %s\n"
+                    " exceeds max channel name length %d.\n"),
                     name, MAX_CHAN_NAME);
     return CSOUND_ERROR;
   }
@@ -764,7 +764,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
   if (UNLIKELY(argtype == NULL || argtype->createVariable == NULL ||
                argtype->copyValue == NULL)) {
     csound->InitError(csound,
-                      "channel argument has incomplete variable operations\n");
+                      Str("channel argument has incomplete variable operations\n"));
     return NULL;
   }
 
@@ -795,7 +795,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
       argtype == &CS_VAR_TYPE_ARRAY ? (const void *) &varInit : NULL,
       p->h.insdshead);
     if (UNLIKELY(pp->var == NULL)) {
-      csound->InitError(csound, "failed to create channel storage for type %s\n",
+      csound->InitError(csound, Str("failed to create channel storage for type %s\n"),
                         argtype->varTypeName);
       return NULL;
     }
@@ -805,7 +805,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
                                                     + CS_VAR_TYPE_OFFSET);
     if (UNLIKELY(pp->var->memBlock == NULL)) {
       pp->var->ctx = NULL;
-      csound->InitError(csound, "memory allocation failure");
+      csound->InitError(csound, Str("memory allocation failure"));
       return NULL;
     }
     pp->var->memBlock->varType = pp->var->varType;
@@ -821,7 +821,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
     pp->var->ctx = NULL;
   } else if(pp->var->varType != argtype) {
     csound->InitError(csound,
-                      "channel type did not match argument\n");
+                      Str("channel type did not match argument\n"));
     return NULL;
   }
 
@@ -880,14 +880,14 @@ int32_t chnset_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
   if(pp && pp->var) {
     if(pp->var->varType != GetTypeForArg(p->arg))
       return csound->PerfError(csound, &(p->h),
-                               "channel type did not match argument\n");
+                               Str("channel type did not match argument\n"));
     if(pp->var->memBlock == NULL)
       return csound->PerfError(csound, &(p->h),
-                               "channel %s not initialised\n",
+                               Str("channel %s not initialised\n"),
                                p->iname->data);
     if(pp->var->varType->copyValue == NULL)
       return csound->PerfError(csound, &(p->h),
-                               "channel %s has no value copy function\n",
+                               Str("channel %s has no value copy function\n"),
                                p->iname->data);
     // now lock and copy data
     p->lock = (spin_lock_t *)
@@ -905,14 +905,14 @@ int32_t chnget_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
   if(pp && pp->var) {
     if(pp->var->varType != GetTypeForArg(p->arg))
       return csound->PerfError(csound, &(p->h),
-                               "channel type did not match argument\n");
+                               Str("channel type did not match argument\n"));
     if(pp->var->memBlock == NULL)
       return csound->PerfError(csound, &(p->h),
-                               "channel %s not initialised\n",
+                               Str("channel %s not initialised\n"),
                                p->iname->data);
     if(pp->var->varType->copyValue == NULL)
       return csound->PerfError(csound, &(p->h),
-                               "channel %s has no value copy function\n",
+                               Str("channel %s has no value copy function\n"),
                                p->iname->data);
     // now lock and copy data
     p->lock = (spin_lock_t *)
@@ -972,7 +972,7 @@ static int32_t chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p);
 int32_t chnget_opcode_init_k(CSOUND *csound, CHNGET *p){
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
 
   int32_t   err;
   err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
@@ -993,7 +993,7 @@ int32_t chnget_opcode_init_a(CSOUND* csound, CHNGET* p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   int32_t err;
   p->pos = 0;
   err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
@@ -1213,7 +1213,7 @@ int32_t chnset_opcode_init_k(CSOUND* csound, CHNGET* p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
 
   int32_t err;
   err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
@@ -1231,7 +1231,7 @@ int32_t chnset_opcode_init_a(CSOUND* csound, CHNGET* p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   int32_t err;
   p->pos = 0;
   err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
@@ -1249,7 +1249,7 @@ int32_t chnmix_opcode_init(CSOUND *csound, CHNGET *p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   int32_t   err;
   err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                             CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
@@ -1266,7 +1266,7 @@ int32_t chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   int32_t   err;
   int32_t   i, n = (int32_t)p->INOCOUNT;
   for (i=0; i<n; i++) {
@@ -1574,12 +1574,12 @@ static int32_t chnexport_generic_initialise(CSOUND *csound, CHNENTRY *pp,
                                             const CS_TYPE *argtype) {
   if (UNLIKELY(argtype == NULL || argtype->createVariable == NULL)) {
     return csound->InitError(
-      csound, "channel argument has no variable constructor\n");
+      csound, Str("channel argument has no variable constructor\n"));
   }
   pp->var = csoundCreateVariableForType(csound, argtype, NULL, NULL);
   if (UNLIKELY(pp->var == NULL)) {
     return csound->InitError(csound,
-                             "failed to create channel storage for type %s\n",
+                             Str("failed to create channel storage for type %s\n"),
                              argtype->varTypeName);
   }
   return OK;
@@ -1606,7 +1606,7 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
                                    argName);
 
   if(var == NULL)
-    return csound->InitError(csound, "global variable not found for export\n");
+    return csound->InitError(csound, Str("global variable not found for export\n"));
 
   if(var->varType == &CS_VAR_TYPE_K ||
      var->varType == &CS_VAR_TYPE_I)
@@ -1784,7 +1784,7 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
       strcmp("a", p->arrayDat->arrayType->varTypeName) == 0)
      && CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
 
   ARRAYDAT* arr = (ARRAYDAT*) p->iname;
   int32_t index = 0;
@@ -2036,7 +2036,7 @@ int32_t chnset_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
       strcmp("a", p->arrayDat->arrayType->varTypeName) == 0)
      && CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
 
   int32_t err;
   int32_t index = 0;
@@ -2358,7 +2358,7 @@ int32_t invalset(CSOUND *csound, INVAL *p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   int32_t   err;
   int32_t type;
 
@@ -2488,7 +2488,7 @@ int32_t outvalset(CSOUND *csound, OUTVAL *p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
 
   int32_t type, err;
 
@@ -2596,7 +2596,7 @@ static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int32_t type) {
     p->lock =   (spin_lock_t *)
       get_channel_lock(csound, (char*) p->iname->data);
     strNcpy(p->chname, p->iname->data, MAX_CHAN_NAME);
-  } else return csound->InitError(csound, "could not find channel\n");
+  } else return csound->InitError(csound, Str("could not find channel\n"));
 
   chn = find_channel(csound, p->iname->data);
   if(chn->var->subType == NULL) {
@@ -2610,14 +2610,14 @@ static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int32_t type) {
 
   if(adat->data == NULL) {
     if(adat_chn->data == NULL)
-      return csound->InitError(csound, "array channel not allocated\n");
+      return csound->InitError(csound, Str("array channel not allocated\n"));
     else if (UNLIKELY(tabinit_like(csound, adat, adat_chn) != OK))
       return csound_array_init_resize_error(csound);
   }
 
   if(adat_chn->data == NULL) {
     if(adat->data == NULL)
-      return csound->InitError(csound, "array variable not allocated\n");
+      return csound->InitError(csound, Str("array variable not allocated\n"));
     else if (UNLIKELY(tabinit_like(csound, adat_chn, adat) != OK))
       return csound_array_init_resize_error(csound);
   }
@@ -2679,7 +2679,7 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
     } else {
       if(CS_ESR != csound->esr)
         return csound->InitError(csound,
-                                 "local sampling rate not supported\n");
+                                 Str("local sampling rate not supported\n"));
     }
     p->h.perf = (SUBR) chnget_opcode_perf_ARRAY;
     return OK;
@@ -2721,7 +2721,7 @@ int32_t chnset_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
     } else {
       if(CS_ESR != csound->esr)
         return csound->InitError(csound,
-                                 "local sampling rate not supported\n");
+                                 Str("local sampling rate not supported\n"));
     }
     p->h.perf = (SUBR) chnset_opcode_perf_ARRAY;
     return OK;
@@ -3235,20 +3235,20 @@ int32_t csoundSetChannel(CSOUND *csound, const char *name,
   const CS_TYPE *channelType;
 
   if(name == NULL || name[0] == '\0' || var == NULL || var->varType == NULL) {
-    csoundMessage(csound, "invalid channel name or input memBlock\n");
+    csoundMessage(csound, Str("invalid channel name or input memBlock\n"));
     return CSOUND_ERROR;
   }
 
   pp = find_channel(csound, name);
   if(pp == NULL || pp->var == NULL || pp->var->memBlock == NULL ||
      pp->var->varType == NULL || pp->var->memBlock->varType == NULL) {
-    csoundMessage(csound, "could not access channel %s\n", name);
+    csoundMessage(csound, Str("could not access channel %s\n"), name);
     return CSOUND_ERROR;
   }
 
   channelType = pp->var->memBlock->varType;
   if(pp->var->varType != channelType || channelType != var->varType) {
-    csoundMessage(csound, "could not copy data into channel %s\n", name);
+    csoundMessage(csound, Str("could not copy data into channel %s\n"), name);
     return CSOUND_ERROR;
   }
 
@@ -3281,7 +3281,7 @@ int32_t csoundSetChannel(CSOUND *csound, const char *name,
   }
   else {
     if(channelType->copyValue == NULL) {
-      csoundMessage(csound, "channel %s has no value copy function\n", name);
+      csoundMessage(csound, Str("channel %s has no value copy function\n"), name);
       return CSOUND_ERROR;
     }
     csoundLockChannel(csound, name);

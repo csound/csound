@@ -475,7 +475,7 @@ ERSTR           "}R"
                                    yyscanner);
              return NEWLINE; }
   {IDENT} {
-    csound->Message(csound, "unsupported UDO arg type: %s", yytext);
+    csound->Message(csound, Str("unsupported UDO arg type: %s"), yytext);
     return ERROR_TOKEN;
   }
 }

@@ -796,8 +796,8 @@ static void opcodedef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* de
    memcpy(dest, src, sizeof(OPCODEREF));
    p->readonly = 0; // clear readonly flag (which is not copied)
   }
-  else csound->Warning(csound, "%s (:OpcodeDef) is read-only: "
-                                "cannot be redefined, ignoring assignment",
+  else csound->Warning(csound, Str("%s (:OpcodeDef) is read-only: "
+                                "cannot be redefined, ignoring assignment"),
                        get_opcode_short_name(csound, p->entries->entries[0]->opname));
 }
 
@@ -809,15 +809,15 @@ static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
   OPCODEOBJ *p = (OPCODEOBJ *) dest;
   OPCODEOBJ *psrc = (OPCODEOBJ *) src;
   if(psrc->dataspace != NULL && context_check(csound, psrc, ctx) != 0) {
-    csound->Warning(csound, "mismatching context: copy value bypassed");
+    csound->Warning(csound, Str("mismatching context: copy value bypassed"));
     return;
   }
   if(!p->readonly) {
    memcpy(dest, src, sizeof(OPCODEOBJ));
    p->readonly = 0; // clear readonly flag (which is not copied)
   }
-  else csound->Warning(csound, "opcode instance var is read-only:"
-                       " copy value bypassed");
+  else csound->Warning(csound, Str("opcode instance var is read-only:"
+                       " copy value bypassed"));
 }
 
 
@@ -829,7 +829,7 @@ static void instrdef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* des
    memcpy(dest, src, sizeof(INSTREF));
    p->readonly = 0; // clear readonly flag (which is not copied)
   }
-  else csound->Warning(csound, "instr ref var %s is read-only: copy value bypassed",
+  else csound->Warning(csound, Str("instr ref var %s is read-only: copy value bypassed"),
                        p->instr ? p->instr->insname : "(uninitialized)");
 }
 
@@ -841,7 +841,7 @@ static void instr_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
    memcpy(dest, src, sizeof(INSTANCEREF));
    p->readonly = 0; // clear readonly flag (which is not copied)
   }
-  else csound->Warning(csound, "instance ref var is read-only: copy value bypassed");
+  else csound->Warning(csound, Str("instance ref var is read-only: copy value bypassed"));
 }
 
 

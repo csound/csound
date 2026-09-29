@@ -669,7 +669,7 @@ int32_t csoundLoadModules(CSOUND *csound)
   /* opcodedir GLOBAL override **experimental** */
   if (csound->opcodedir != NULL) {
     dname = csound->opcodedir;
-    csound->Message(csound, "OPCODEDIR overridden to %s \n", dname);
+    csound->Message(csound, Str("OPCODEDIR overridden to %s \n"), dname);
   }
   size_t pos = strlen(dname);
   char *userplugindir = getenv("CS_USER_PLUGINDIR");
@@ -747,7 +747,7 @@ int32_t csoundLoadModules(CSOUND *csound)
       continue;
     }
     if(UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "Opening plugin directory: %s\n", dname1);
+      csound->Message(csound, Str("Opening plugin directory: %s\n"), dname1);
     /* scan all files in directory */
     while ((f = readdir(dir)) != NULL) {
       fname = &(f->d_name[0]);
@@ -845,9 +845,9 @@ int32_t csoundLoadExternals(CSOUND *csound)
       if (UNLIKELY(err == CSOUND_INITIALIZATION || err == CSOUND_MEMORY))
         csoundDie(csound, Str(" *** error loading '%s'"), fname);
       else if (!err)
-        csoundMessage(csound, "loaded %s\n", fname);
+        csoundMessage(csound, Str("loaded %s\n"), fname);
       else
-        csoundMessage(csound, "failed to load %s\n", fname);
+        csoundMessage(csound, Str("failed to load %s\n"), fname);
     }
   } while (++i < cnt);
   /* file list is no longer needed */
@@ -979,7 +979,7 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
     }
 
     if(UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "Opening plugin directory: %s\n", dname1);
+      csound->Message(csound, Str("Opening plugin directory: %s\n"), dname1);
     /* scan all files in directory */
     while ((f = readdir(dir)) != NULL) {
       fname = &(f->d_name[0]);

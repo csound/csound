@@ -271,7 +271,7 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
     /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
     csound->orcname_mode = 0;
     if (!(O->msglevel == 16) && (O->msglevel || O->odebug))
-      csound->Message(csound, "Reading CSD file:  %s\n", csound->orchname);
+      csound->Message(csound, Str("Reading CSD file:  %s\n"), csound->orchname);
 
     /* Add directory of CSD file to search paths before orchname gets
      * replaced with temp orch name if default paths is enabled */
@@ -328,7 +328,7 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   if (csound->scorename == NULL && csound->scorestr == NULL) {
     /* No scorename yet */
     if(csound->playscore == NULL) // if score not given in --events=
-      csound->Message(csound, "scoreless operation\n");
+      csound->Message(csound, Str("scoreless operation\n"));
     csound->scorestr = corfile_create_r(csound, "\n\n\ne\n#exit\n");
     corfile_flush(csound, csound->scorestr);
     if (O->RTevents)
@@ -383,7 +383,7 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
     csound->LongJmp(csound, 1);
 
   if (!(O->msglevel == 16) && (O->msglevel || O->odebug))
-      csound->Message(csound, "Compiling Csound code...\n");
+      csound->Message(csound, Str("Compiling Csound code...\n"));
 
   if (UNLIKELY(csound_compile_orc(csound, NULL, 0) != 0)) {
     if (csound->oparms->daemon != 1 && csound->orchname != NULL)
@@ -405,7 +405,7 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
     csoundSetConfigurationVariable(csound, "rtmidi", "hostbased");
   }
   if (!(O->msglevel == 16) && (O->msglevel || O->odebug))
-   csound->Message(csound, "\t ...done\n");
+   csound->Message(csound, Str("\t ...done\n"));
   print_benchmark_info(csound, Str("end of code compilation"));
 
   if (csound->scorename != NULL &&
@@ -690,8 +690,8 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
   if (O->numThreads > 1) {
     int32_t i;
     THREADINFO *current = NULL;
-    csound->Message(csound, "multicore performance "
-                    "with %d threads\n", O->numThreads); 
+    csound->Message(csound, Str("multicore performance "
+                    "with %d threads\n"), O->numThreads);
 #ifdef PARCS_USE_LOCK_BARRIER
     csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
 #else

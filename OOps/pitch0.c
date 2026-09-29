@@ -212,7 +212,7 @@ int32_t pfun(CSOUND *csound, PFUN *p)
     *p->ans = ans;
     return OK;
   }
-  return csoundInitError(csound, "no pfields available\n");
+  return csoundInitError(csound, Str("no pfields available\n"));
 }
 
 int32_t pfunk_init(CSOUND *csound, PFUNK *p)
@@ -231,7 +231,7 @@ int32_t pfunk_init(CSOUND *csound, PFUNK *p)
     *p->ans = ans;
     return OK;
   }
-    return csoundInitError(csound, "no pfields available\n");
+    return csoundInitError(csound, Str("no pfields available\n"));
 }
 
 int32_t pfunk(CSOUND *csound, PFUNK *p)

@@ -371,7 +371,7 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
     return insert_score_args_at_sample(csound, &evt, p->argums,
                                       csound->icurTimeSamples);
 
-  else return csound->InitError(csound, "invalid instrument argument\n");
+  else return csound->InitError(csound, Str("invalid instrument argument\n"));
 }
 
 
@@ -445,7 +445,7 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
              type == &CS_VAR_TYPE_P || type == &CS_VAR_TYPE_K)
       insno = *p->which;
     else
-      return csound->InitError(csound, "instrument argument invalid\n");
+      return csound->InitError(csound, Str("instrument argument invalid\n"));
     return schedule_string_event(csound, p, insno);
 }
 
@@ -995,7 +995,7 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
     if(csound->oparms->msglevel > 0) {
       int i;
 
-      csound->Message(csound, "unscheduled event: %c", evtn->opcod);
+      csound->Message(csound, Str("unscheduled event: %c"), evtn->opcod);
       for(i = 1; i < evtn->pcnt+1; i++) {
         if(IsStringCode(evtn->p[i]))
           csound->Message(csound, "%s ",

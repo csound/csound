@@ -111,7 +111,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 
     if (arrayDat->arrayType == NULL) {
       csound_free_array_storage(csound, arrayDat);
-      return csound->InitError(csound, "array_init: arrayType is NULL - struct type information missing");
+      return csound->InitError(csound, Str("array_init: arrayType is NULL - struct type information missing"));
     }
   }
 
@@ -532,7 +532,7 @@ static int32_t array_get_common(CSOUND *csound, ARRAY_GET *p,
           } else {
             dat->sizes[0] = 1; // Conservative default
           }
-          csound->Warning(csound, "array_get: recovered from corrupted dimensions (was %d), set to %d with size %d\n",
+          csound->Warning(csound, Str("array_get: recovered from corrupted dimensions (was %d), set to %d with size %d\n"),
                           orig_dimensions, dat->dimensions, dat->sizes[0]);
         } else {
           return ARRAY_PHASE_ERROR(
@@ -3509,7 +3509,7 @@ int32_t tabcopy(CSOUND *csound, TABCPY *p)
 int32_t tabcopyk_init(CSOUND *csound, TABCPY *p) {
   // Ensure destination array metadata and storage match the source
   if (UNLIKELY(p->src == NULL || p->dst == NULL))
-    return csound->InitError(csound, "tabcopyk_init: null src/dst");
+    return csound->InitError(csound, Str("tabcopyk_init: null src/dst"));
 
   if (p->src->arrayType && p->src->arrayType->userDefinedType) {
     if (p->dst->arrayType == NULL)

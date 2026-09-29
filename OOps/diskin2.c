@@ -2908,7 +2908,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
 
         if (UNLIKELY(newCb == NULL))
           return csound->InitError(csound,
-                                   "could not allocate circular buffer\n");
+                                   Str("could not allocate circular buffer\n"));
         if (p->cb != NULL)
           csound->DestroyCircularBuffer(csound, p->cb);
         p->cb = newCb;
@@ -2965,7 +2965,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       /* print file information */
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
         csound->Message(csound, "%s '%s':\n"
-                                "         %d Hz, %d %schannel(s), %" PRId64 " %s",
+                                "         %d Hz, %d %s, %" PRId64 " %s",
                         Str("diskin2: opened (asynchronously)"),
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,

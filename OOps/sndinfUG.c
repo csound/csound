@@ -150,7 +150,7 @@ int32_t filelen(CSOUND *csound, SNDINFO *p)
       *(p->r1) = (cs_float)((int32_t)hdr.frames) / (cs_float)hdr.samplerate;
     else {
       *(p->r1) = FL(0.0);
-      return csound->InitError(csound, "error reading input file\n");
+      return csound->InitError(csound, Str("error reading input file\n"));
     }
 
     return OK;
@@ -165,7 +165,7 @@ int32_t filelen_S(CSOUND *csound, SNDINFO *p)
       *(p->r1) = (cs_float)((int32_t)hdr.frames) / (cs_float)hdr.samplerate;
     else {
       *(p->r1) = FL(0.0);
-      return csound->InitError(csound, "error reading input file\n");
+      return csound->InitError(csound, Str("error reading input file\n"));
     }
 
 
@@ -181,7 +181,7 @@ int32_t filenchnls_S(CSOUND *csound, SNDINFO *p)
     *(p->r1) = (cs_float)hdr.channels;
     else {
       *(p->r1) = FL(0.0);
-      return csound->InitError(csound, "error reading input file\n");
+      return csound->InitError(csound, Str("error reading input file\n"));
     }
     return OK;
 }
@@ -195,7 +195,7 @@ int32_t filesr_S(CSOUND *csound, SNDINFO *p)
     *(p->r1) = (cs_float)hdr.samplerate;
     else {
       *(p->r1) = FL(0.0);
-      return csound->InitError(csound, "error reading input file\n");
+      return csound->InitError(csound, Str("error reading input file\n"));
     }
     return OK;
 }
@@ -218,7 +218,7 @@ int32_t filebit_S(CSOUND *csound, SNDINFO *p)
     }
     else {
       *(p->r1) = FL(0.0);
-      return csound->InitError(csound, "error reading input file\n");
+      return csound->InitError(csound, Str("error reading input file\n"));
     }    
     return OK;
 }
@@ -233,7 +233,7 @@ int32_t filenchnls(CSOUND *csound, SNDINFO *p)
     *(p->r1) = (cs_float)hdr.channels;
     else {
       *(p->r1) = FL(0.0);
-      return csound->InitError(csound, "error reading input file\n");
+      return csound->InitError(csound, Str("error reading input file\n"));
     }
     return OK;
 }
@@ -246,7 +246,7 @@ int32_t filesr(CSOUND *csound, SNDINFO *p) {
     *(p->r1) = (cs_float)hdr.samplerate;
     else {
       *(p->r1) = FL(0.0);
-      return csound->InitError(csound, "error reading input file\n");
+      return csound->InitError(csound, Str("error reading input file\n"));
     }
     return OK;
 }
@@ -269,7 +269,7 @@ int32_t filebit(CSOUND *csound, SNDINFO *p)
     }
     else {
       *(p->r1) = FL(0.0);
-      return csound->InitError(csound, "error reading input file\n");
+      return csound->InitError(csound, Str("error reading input file\n"));
     }    
     return OK;
 }

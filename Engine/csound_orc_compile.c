@@ -966,8 +966,8 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                       err_msg);
       ksmps = floor(ksmps);
       kr = sr/ksmps;
-      csound->Warning(p, "resetting orc parameters to: "
-                      "sr = %.7g, kr = %.7g, ksmps = %.7g", sr, kr,
+      csound->Warning(p, Str("resetting orc parameters to: "
+                      "sr = %.7g, kr = %.7g, ksmps = %.7g"), sr, kr,
                       ksmps);
     }
     else if (UNLIKELY(FLOAT_COMPARE(sr, (cs_double)kr * ksmps)
@@ -1472,7 +1472,7 @@ static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
   if (inm != NULL) {
     int32_t i;
     if (!csound->oparms->redef && !merge) {
-      synterr(csound, "named instr %s redefined",
+      synterr(csound, Str("named instr %s redefined"),
               ip->insname);
       return CSOUND_ERROR;
     }
@@ -1715,7 +1715,7 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
 
   if (!csound->oparms->redef && !merge &&
       engineState->instrtxtp[instrNum] != NULL) {
-    synterr(csound, "instr %d redefinition not allowed.\n",
+    synterr(csound, Str("instr %d redefinition not allowed.\n"),
             instrNum);
     return;
   }
@@ -2508,25 +2508,25 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     if (var && var->memBlock) {
       var->memBlock->value = csound->esr;
     } else {
-      csound->Message(csound, "Warning: Could not find or access 'sr' variable\n");
+      csound->Message(csound, Str("Warning: Could not find or access 'sr' variable\n"));
     }
     var = csoundFindVariableWithName(csound, engineState->varPool, "kr");
     if (var && var->memBlock) {
       var->memBlock->value = csound->ekr;
     } else {
-      csound->Message(csound, "Warning: Could not find or access 'kr' variable\n");
+      csound->Message(csound, Str("Warning: Could not find or access 'kr' variable\n"));
     }
     var = csoundFindVariableWithName(csound, engineState->varPool, "ksmps");
     if (var && var->memBlock) {
       var->memBlock->value = csound->ksmps;
     } else {
-      csound->Message(csound, "Warning: Could not find or access 'ksmps' variable\n");
+      csound->Message(csound, Str("Warning: Could not find or access 'ksmps' variable\n"));
     }
     var = csoundFindVariableWithName(csound, engineState->varPool, "nchnls");
     if (var && var->memBlock) {
       var->memBlock->value = csound->nchnls;
     } else {
-      csound->Message(csound, "Warning: Could not find or access 'nchnls' variable\n");
+      csound->Message(csound, Str("Warning: Could not find or access 'nchnls' variable\n"));
     }
     if (csound->inchnls < 0)
       csound->inchnls = csound->nchnls;
@@ -2534,19 +2534,19 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     if (var && var->memBlock) {
       var->memBlock->value = csound->inchnls;
     } else {
-      csound->Message(csound, "Warning: Could not find or access 'nchnls_i' variable\n");
+      csound->Message(csound, Str("Warning: Could not find or access 'nchnls_i' variable\n"));
     }
     var = csoundFindVariableWithName(csound, engineState->varPool, "0dbfs");
     if (var && var->memBlock) {
       var->memBlock->value = csound->e0dbfs;
     } else {
-      csound->Message(csound, "Warning: Could not find or access '0dbfs' variable\n");
+      csound->Message(csound, Str("Warning: Could not find or access '0dbfs' variable\n"));
     }
     var = csoundFindVariableWithName(csound, engineState->varPool, "A4");
     if (var && var->memBlock) {
       var->memBlock->value = csound->A4;
     } else {
-      csound->Message(csound, "Warning: Could not find or access 'A4' variable\n");
+      csound->Message(csound, Str("Warning: Could not find or access 'A4' variable\n"));
     }
   }
   return CSOUND_SUCCESS;
@@ -2577,7 +2577,7 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
     // Parser already ran verify_tree; do not re-verify here to avoid pool/markup reentrancy hazards
     TYPE_TABLE* typeTable = (TYPE_TABLE*)root->markup;
     if (typeTable == NULL) {
-      csound->Message(csound, "Error: missing TYPE_TABLE on AST root (markup==NULL)\n");
+      csound->Message(csound, Str("Error: missing TYPE_TABLE on AST root (markup==NULL)\n"));
       csoundDeleteTree(csound, root);
       memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
       return CSOUND_ERROR;

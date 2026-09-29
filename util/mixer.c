@@ -488,13 +488,13 @@ InitScaleTable(MIXER_GLOBALS *pp, int32_t i)
     }
     if (pp->debug) {
       scalepoint *tt = mixin[i].table;
-      csound->Message(csound, "Scale table is\n");
+      csound->Message(csound, Str("Scale table is\n"));
       while (tt != NULL) {
         csound->Message(csound,  "(%d %f) -> %d %f [%f]\n",
                     tt->x0, tt->y0, tt->x1, tt->y1, tt->yr);
         tt = tt->next;
       }
-      csound->Message(csound,  "END of Table\n");
+      csound->Message(csound,  Str("END of Table\n"));
     }
     mixin[i].use_table = 1;
 }

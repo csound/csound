@@ -31,7 +31,7 @@ struct TrigSegments : csnd::Plugin<1, 64>
     {
         if (in_count() < 4 || in_count() % 2 != 0)
             return csound->init_error(
-                "expected a trigger and value/duration/value pairs");
+                Str_noop("expected a trigger and value/duration/value pairs"));
 
         values.clear();
         durations.clear();
@@ -42,12 +42,12 @@ struct TrigSegments : csnd::Plugin<1, 64>
             if (Exponential &&
                 (value == 0 || (value > 0) != (inargs[1] > 0)))
                 return csound->init_error(
-                    "exponential values must be nonzero and have the same sign");
+                    Str_noop("exponential values must be nonzero and have the same sign"));
             values.push_back(value);
             if (i + 1 < in_count())
             {
                 if (inargs[i + 1] < 0)
-                    return csound->init_error("segment duration must not be negative");
+                    return csound->init_error(Str_noop("segment duration must not be negative"));
                 durations.push_back(std::ceil(inargs[i + 1] * sr()));
             }
         }

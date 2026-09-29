@@ -435,7 +435,7 @@ int32_t main(int32_t argc, char **argv)
       state = src_new(Q, Chans, &err); /* initialise */
       if (UNLIKELY(state==NULL)) {
         fprintf(stderr,
-                "Error: failed to initialise SRC -- %s\n", src_strerror(err));
+                Str("Error: failed to initialise SRC -- %s\n"), src_strerror(err));
         sf_close(inf); sf_close(outf);
         usage();
         exit(1);
@@ -474,7 +474,7 @@ int32_t main(int32_t argc, char **argv)
         }
         err = src_process(state, &data);
         if (UNLIKELY(err)) {
-          fprintf(stderr, "srconv: error: %s\n", src_strerror(err));
+          fprintf(stderr, Str("srconv: error: %s\n"), src_strerror(err));
           sf_close(inf); sf_close(outf);
           exit(1);
         }
@@ -506,7 +506,7 @@ int32_t main(int32_t argc, char **argv)
       state = src_new(Q, Chans, &err);
       if (UNLIKELY(state==NULL)) {
         fprintf(stderr,
-                "Error: failed to initialise SRC -- %s\n", src_strerror(err));
+                Str("Error: failed to initialise SRC -- %s\n"), src_strerror(err));
         sf_close(inf); sf_close(outf);
         usage();
         exit(1);
@@ -525,7 +525,7 @@ int32_t main(int32_t argc, char **argv)
         }
         err = src_process(state, &data);
         if (UNLIKELY(err)) {
-          fprintf(stderr, "srconv: error: %s\n", src_strerror(err));
+          fprintf(stderr, Str("srconv: error: %s\n"), src_strerror(err));
           sf_close(inf); sf_close(outf); free(input); free(output);
           exit(1);
         }

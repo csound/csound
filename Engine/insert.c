@@ -1771,7 +1771,7 @@ void deinit_pass(CSOUND *csound, INSDS *ip) {
     error = (*dds->deinit)(csound, dds);
     if(error) {
       op = dds->optext->t.oentry->opname;
-      csound->ErrorMsg(csound, "%s deinit error\n", op);
+      csound->ErrorMsg(csound, Str("%s deinit error\n"), op);
     }
   }
 }
@@ -2754,8 +2754,8 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   } else {
     // Treat this as a fatal initialization error
     csound->InitError(csound,
-                      "Fatal initialization error in instantiate: tp->varPool is null or corrupted (tp=%p). "
-                      "This indicates a serious problem with instrument initialization.",
+                      Str("Fatal initialization error in instantiate: tp->varPool is null or corrupted (tp=%p). "
+                      "This indicates a serious problem with instrument initialization."),
                       (void*)tp);
     return NULL;  // Abort the instantiation path
   }
@@ -2811,7 +2811,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     /* Robustness: skip unresolved nodes (no opcode entry) */
     if (UNLIKELY(ep == NULL || ep->opname == NULL)) {
       if (UNLIKELY(odebug))
-        csound->Message(csound, "instantiate: skipping node with NULL oentry (line=%d)\n", ttp->linenum);
+        csound->Message(csound, Str("instantiate: skipping node with NULL oentry (line=%d)\n"), ttp->linenum);
       continue;
     }
     opds = (OPDS*) nxtopds;                   /*   take reqd opds */

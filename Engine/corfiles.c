@@ -195,7 +195,7 @@ void corfile_seek(CORFIL *f, int32_t n, int32_t dir)
     else if (dir == SEEK_CUR) f->p += n;
     else if (dir == SEEK_END) f->p = (int32_t)  strlen(f->body)-n;
     if (UNLIKELY(f->p > strlen(f->body))) {
-      printf("INTERNAL ERROR: Corfile seek out of range\n");
+      printf(Str("INTERNAL ERROR: Corfile seek out of range\n"));
       exit(1);
     }
 }

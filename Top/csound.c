@@ -222,9 +222,9 @@ void print_sndfile_version(CSOUND *csound) {
 #ifdef USE_LIBSNDFILE
   char buffer[128];
   csound->SndfileCommand(csound, NULL, SFC_GET_LIB_VERSION, buffer, 128);
-  csoundErrorMsg(csound, "using %s\n", buffer);
+  csoundErrorMsg(csound, Str("using %s\n"), buffer);
 #else
-  csoundErrorMsg(csound, "%s\n", "not using libsndfile");
+  csoundErrorMsg(csound, "%s\n", Str("not using libsndfile"));
 #endif
 }
 
@@ -1835,7 +1835,7 @@ static int32_t csoundDeprecate(CSOUND *csound, char *name,
 
  int32_t csoundLoadPlugins(CSOUND *csound, const char *dir) {
   if (dir != NULL) {
-    csound->Message(csound, "loading plugins from %s\n", dir);
+    csound->Message(csound, Str("loading plugins from %s\n"), dir);
     int32_t err = csoundLoadAndInitModules(csound, dir);
     if (!err) {
       return CSOUND_SUCCESS;
@@ -1982,7 +1982,7 @@ static void reset(CSOUND *csound) {
   if (csound->engineStatus & CS_STATE_COMP ||
       csound->engineStatus & CS_STATE_PRE) {
     /* and reset */
-    csound->Message(csound, "resetting Csound instance\n");
+    csound->Message(csound, Str("resetting Csound instance\n"));
     reset(csound);
     /* clear compiled flag */
     csound->engineStatus |= ~(CS_STATE_COMP);

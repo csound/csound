@@ -88,7 +88,7 @@ static int32_t SoundFontLoad(CSOUND *csound, char *fname)
                                fname);
     for (i = 0; i < globals->currSFndx; i++) {
       if (strcmp(csound->GetFileName(fd), globals->sfArray[i].name) == 0) {
-        csound->Warning(csound, "%s already loaded", fname);
+        csound->Warning(csound, Str("%s already loaded"), fname);
         csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
         return i;
       }
@@ -2438,13 +2438,13 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
         loop_start[k] = loop_start[k] < sstart ? sstart : loop_start[k];
         /* TODO : CHECKS */
         if(loop_start[k] > send) {
-          csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+          csound->Warning(csound, Str("loop start %f beyond sample end %f, clamping.\n"),
                           (loop_start[k] - sstart)/sr,
                           (send - sstart)/sr);
           loop_start[k] = send;
         }
         if(loop_end[k] > send) {
-          csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+          csound->Warning(csound, Str("loop end %f beyond sample end %f, clamping.\n"),
                           (loop_end[k] - sstart)/sr,
                           (send - sstart)/sr);
           loop_end[k] = send;
@@ -2500,13 +2500,13 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             loop_start[k] = loop_start[k] < sstart ? sstart: loop_start[k];
             /* CHECKS */
             if(loop_start[k] > send) {
-             csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+             csound->Warning(csound, Str("loop start %f beyond sample end %f, clamping.\n"),
                           (loop_start[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_start[k] = send;
             }
             if(loop_end[k] > send) {
-              csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+              csound->Warning(csound, Str("loop end %f beyond sample end %f, clamping.\n"),
                           (loop_end[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_end[k] = send;
@@ -2592,13 +2592,13 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
               loop_start[k] = loop_start[k] < sstart ? sstart: loop_start[k];
                           /* CHECKS */
               if(loop_start[k] > send) {
-               csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+               csound->Warning(csound, Str("loop start %f beyond sample end %f, clamping.\n"),
                           (loop_start[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_start[k] = send;
             }
             if(loop_end[k] > send) {
-              csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+              csound->Warning(csound, Str("loop end %f beyond sample end %f, clamping.\n"),
                           (loop_end[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_end[k] = send;
@@ -2644,13 +2644,13 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             loop_start[k] = loop_start[k] < sstart ? sstart: loop_start[k];
             /* TODO : CHECKS */
             if(loop_start[k] > send) {
-             csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+             csound->Warning(csound, Str("loop start %f beyond sample end %f, clamping.\n"),
                           (loop_start[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_start[k] = send;
             }
             if(loop_end[k] > send) {
-              csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+              csound->Warning(csound, Str("loop end %f beyond sample end %f, clamping.\n"),
                           (loop_end[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_end[k] = send;

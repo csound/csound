@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Csound 7\n"
 "Report-Msgid-Bugs-To: https://github.com/csound/csound/issues\n"
-"POT-Creation-Date: 2026-09-29 20:08+0300\n"
-"PO-Revision-Date: 2026-09-29 17:38+0000\n"
+"POT-Creation-Date: 2026-09-29 22:19+0300\n"
+"PO-Revision-Date: 2026-09-29 19:20+0000\n"
 "Last-Translator: Csound contributors (machine-assisted update)\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -17,6 +17,56 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: Android/CsoundAndroid/jni/AndroidCsound.cpp:84
+#, fuzzy
+msgid "pause control not set up\n"
+msgstr "Регулирование остановки не установлено\n"
+
+#: Android/CsoundAndroid/jni/rtaudio.c:163
+#, fuzzy
+msgid "AAUDIO output opened\n"
+msgstr "Выход AAUDIO открыт\n"
+
+#: Android/CsoundAndroid/jni/rtaudio.c:171
+#, fuzzy
+msgid "AAUDIO output open failed\n"
+msgstr "Ошибка открытия вывода AAUDIO\n"
+
+#: Android/CsoundAndroid/jni/rtaudio.c:210
+#, fuzzy
+msgid "AAUDIO input opened\n"
+msgstr "AAUDIO открыта\n"
+
+#: Android/CsoundAndroid/jni/rtaudio.c:218
+#, fuzzy
+msgid "AAUDIO input open failed\n"
+msgstr "Ошибка ввода AAUDIO\n"
+
+#: Android/CsoundAndroid/jni/rtaudio.c:243
+#, fuzzy
+msgid "requested AAudio output stop\n"
+msgstr "Запрошена остановка вывода AAudio\n"
+
+#: Android/CsoundAndroid/jni/rtaudio.c:249
+#, fuzzy
+msgid "closed AAudio output\n"
+msgstr "закрытый выпуск AAudio\n"
+
+#: Android/CsoundAndroid/jni/rtaudio.c:260
+#, fuzzy
+msgid "requested AAudio input stop\n"
+msgstr "Запрошена остановка ввода AAudio\n"
+
+#: Android/CsoundAndroid/jni/rtaudio.c:266
+#, fuzzy
+msgid "closed AAudio input\n"
+msgstr "закрытый вход AAudio\n"
+
+#: Android/CsoundAndroid/jni/rtopensl.c:150
+#, fuzzy
+msgid "paused \n"
+msgstr "Приостановился \n"
 
 #: Android/CsoundAndroid/jni/rtopensl.c:197
 msgid "engineObject... \n"
@@ -29,6 +79,17 @@ msgstr "объект инициализирован... \n"
 #: Android/CsoundAndroid/jni/rtopensl.c:210
 msgid "interface acquired... \n"
 msgstr "интерфейс получен... \n"
+
+#: Android/CsoundAndroid/jni/rtopensl.c:349
+#: Android/CsoundAndroid/jni/rtopensl.c:581
+#, fuzzy
+msgid "Memory allocation failure in opensl module.\n"
+msgstr "Неисправность распределения памяти в модулях открывания.\n"
+
+#: Android/CsoundAndroid/jni/rtopensl.c:359
+#, fuzzy, c-format
+msgid "HW buffersize = %d, SW = %d \n"
+msgstr "HW буферный размер = %d, SW = %d \n"
 
 #: Android/CsoundAndroid/jni/rtopensl.c:374
 msgid "androidplayopen... \n"
@@ -50,13 +111,58 @@ msgstr "OpenSL: создание движка\n"
 msgid "OpenSL: open for output.\n"
 msgstr "OpenSL: открыто для вывода.\n"
 
+#: Android/CsoundAndroid/jni/rtopensl.c:520
+#, fuzzy
+msgid "OpenSL: CreateAudioRecorder failed.\n"
+msgstr "OpenSL: CreateAudioRecorder не удалось.\n"
+
+#: Android/CsoundAndroid/jni/rtopensl.c:526
+#, fuzzy
+msgid "OpenSL: Realize failed.\n"
+msgstr "OpenSL: Realize не удалось.\n"
+
+#: Android/CsoundAndroid/jni/rtopensl.c:534
+#, fuzzy
+msgid "OpenSL: GetInterface SL_IID_RECORD failed.\n"
+msgstr "OpenSL: GetInterface SL_IID_RECORD не удалось.\n"
+
+#: Android/CsoundAndroid/jni/rtopensl.c:542
+#, fuzzy
+msgid "OpenSL: GetInterface SL_IID_BUFFERQUEUE failed.\n"
+msgstr "OpenSL: GetInterface SL_IID_BUFFERQUEUE не удалось.\n"
+
+#: Android/CsoundAndroid/jni/rtopensl.c:550
+#, fuzzy
+msgid "OpenSL: RegisterCallback failed.\n"
+msgstr "OpenSL: RegisterCallback не удалось.\n"
+
+#: Android/CsoundAndroid/jni/rtopensl.c:556
+#, fuzzy
+msgid "OpenSL: SetRecordState failed.\n"
+msgstr "OpenSL: SetRecordState не удалось.\n"
+
 #: Android/CsoundAndroid/jni/rtopensl.c:609
 msgid "OpenSL: engine create error.\n"
 msgstr "OpenSL: ошибка создания движка.\n"
 
+#: Android/CsoundAndroid/jni/rtopensl.c:617
+#, fuzzy, c-format
+msgid "OpenSL: openSLInitInParams error (%d).\n"
+msgstr "OpenSL: Ошибка openSLInitInParams (%d).\n"
+
+#: Android/CsoundAndroid/jni/rtopensl.c:622
+#, fuzzy, c-format
+msgid "OpenSL: openSLRecOpen error (%d).\n"
+msgstr "OpenSL: Ошибка openSLRecOpen (%d).\n"
+
 #: Android/CsoundAndroid/jni/rtopensl.c:626
 msgid "OpenSL: open for input.\n"
 msgstr "OpenSL: открыто для ввода.\n"
+
+#: Android/CsoundAndroid/jni/rtopensl.c:727
+#, fuzzy
+msgid "Closing Csound realtime audio.\n"
+msgstr "Закрываю Csound в реальном времени.\n"
 
 #: Engine/auxfd.c:172
 #, fuzzy, c-format
@@ -150,6 +256,11 @@ msgstr "(неизвестная ошибка)"
 msgid "Out of Memory\n"
 msgstr "Не помню\n"
 
+#: Engine/corfiles.c:198
+#, fuzzy
+msgid "INTERNAL ERROR: Corfile seek out of range\n"
+msgstr "INTERNAL ТЕРРОРИЗМ: Корфийный поиск вне зоны действия\n"
+
 #: Engine/corfiles.c:226
 #, fuzzy
 msgid "Null file name in copy_to_corefile"
@@ -194,17 +305,18 @@ msgstr "Не удалось установить барьер"
 msgid "Failed to allocate set"
 msgstr "Не удалось выделить набор"
 
-#: Engine/cs_par_base.c:125
+#: Engine/cs_par_base.c:125 Engine/cs_par_base.c:275 Engine/cs_par_base.c:304
+#: Engine/cs_par_base.c:355
 #, fuzzy
 msgid "Invalid NULL Parameter set"
 msgstr "Неверный набор параметров NULL"
 
-#: Engine/cs_par_base.c:127
+#: Engine/cs_par_base.c:127 Engine/cs_par_base.c:357
 #, fuzzy
 msgid "Invalid Parameter set not a set"
 msgstr "Неверный параметр, не набор"
 
-#: Engine/cs_par_base.c:149
+#: Engine/cs_par_base.c:149 Engine/cs_par_base.c:277 Engine/cs_par_base.c:306
 #, fuzzy
 msgid "Invalid NULL Parameter data"
 msgstr "Неверные данные NULL"
@@ -218,6 +330,36 @@ msgstr "Не удалось распределить установленный 
 #, fuzzy
 msgid "Invalid NULL Parameter set_element"
 msgstr "Неверный NULL Параметр set_element"
+
+#: Engine/cs_par_base.c:428 Engine/cs_par_base.c:473
+#, fuzzy
+msgid "Invalid NULL Parameter first"
+msgstr "Неверный NULL Параметр первый"
+
+#: Engine/cs_par_base.c:430 Engine/cs_par_base.c:475
+#, fuzzy
+msgid "Invalid Parameter set not a first"
+msgstr "Неверный параметр, не первый"
+
+#: Engine/cs_par_base.c:432 Engine/cs_par_base.c:477
+#, fuzzy
+msgid "Invalid NULL Parameter second"
+msgstr "Неверный NULL Параметр вторая"
+
+#: Engine/cs_par_base.c:434 Engine/cs_par_base.c:479
+#, fuzzy
+msgid "Invalid Parameter set not a second"
+msgstr "Неверный параметр"
+
+#: Engine/cs_par_base.c:436 Engine/cs_par_base.c:481
+#, fuzzy
+msgid "Invalid NULL Parameter result"
+msgstr "Неверный результат NULL"
+
+#: Engine/cs_par_base.c:439 Engine/cs_par_base.c:484
+#, fuzzy
+msgid "Invalid sets for comparison (different equality)"
+msgstr "Неверные наборы для сопоставления (различное равенство)"
 
 #: Engine/cs_par_orc_semantic_analysis.c:114
 #: Engine/cs_par_orc_semantic_analysis.c:133
@@ -241,7 +383,13 @@ msgstr ""
 #, fuzzy
 msgid "Invalid NULL parameter set to add to a global read_list\n"
 msgstr ""
-"Неверный параметр NULL, установленный для добавления в глобальный read_list\n"
+"Неверный параметр NULL, установленный для добавления в глобальный "
+"read_list\n"
+
+#: Engine/csound_orc.lex:478
+#, c-format
+msgid "unsupported UDO arg type: %s"
+msgstr "неподдерживаемый тип аргумента UDO: %s"
 
 #: Engine/csound_orc.lex:523 Engine/csound_sco.lex:139
 #, fuzzy, c-format
@@ -278,8 +426,8 @@ msgstr ""
 #, fuzzy
 msgid "ERROR: Malformed internal array type (missing base type)\n"
 msgstr ""
-"Террористические действия: неисправный тип внутреннего массива (отсутствующий"
-" базовый тип)\n"
+"Террористические действия: неисправный тип внутреннего массива "
+"(отсутствующий базовый тип)\n"
 
 #: Engine/csound_orc_compile.c:473
 #, fuzzy
@@ -319,7 +467,8 @@ msgstr "create_instrument0: обнаружено повреждение пула
 #, fuzzy, c-format
 msgid "System constant %s must be assigned a numeric value, got: %s"
 msgstr ""
-"Постоянной системе %s должно быть присвоено числовое значение, полученное: %s"
+"Постоянной системе %s должно быть присвоено числовое значение, полученное: "
+"%s"
 
 #: Engine/csound_orc_compile.c:957 Engine/csound_orc_compile.c:1108
 #, fuzzy, c-format
@@ -340,6 +489,11 @@ msgstr "%s недействительные пробы"
 #, fuzzy, c-format
 msgid "%s invalid ksmps value, needs to be integral."
 msgstr "%s неверное значение ksmps, должно быть интегральным."
+
+#: Engine/csound_orc_compile.c:969
+#, fuzzy, c-format
+msgid "resetting orc parameters to: sr = %.7g, kr = %.7g, ksmps = %.7g"
+msgstr ": sr = %.7g, kr = %.7g, ksmps = %.7g"
 
 #: Engine/csound_orc_compile.c:976 Engine/csound_orc_compile.c:978
 #, fuzzy, c-format
@@ -410,10 +564,16 @@ msgstr " - свободный instr def %p %p\n"
 msgid " -- added to deadpool slot %d\n"
 msgstr " -- добавлено в решетку %d\n"
 
+#: Engine/csound_orc_compile.c:1475
+#, fuzzy, c-format
+msgid "named instr %s redefined"
+msgstr "Переименовано в instr %s"
+
 #: Engine/csound_orc_compile.c:1491
 #, fuzzy, c-format
 msgid "named instr %<PRIi32> redefined, replacing previous definition"
-msgstr "Название instr %<PRIi32> было изменено, заменив предыдущее определение"
+msgstr ""
+"Название instr %<PRIi32> было изменено, заменив предыдущее определение"
 
 #: Engine/csound_orc_compile.c:1523
 #, fuzzy
@@ -424,6 +584,11 @@ msgstr "Отсутствие активных случаев\n"
 #, fuzzy, c-format
 msgid "instr %s uses instrument number %d\n"
 msgstr "instr %s использует прибор номер %d\n"
+
+#: Engine/csound_orc_compile.c:1718
+#, c-format
+msgid "instr %d redefinition not allowed.\n"
+msgstr "Переопределение instr %d не разрешено.\n"
 
 #: Engine/csound_orc_compile.c:1739
 #, fuzzy, c-format
@@ -519,6 +684,48 @@ msgstr ""
 msgid "%s: perf-time code in global space, ignored"
 msgstr "%s: perf-временный код в глобальном пространстве, проигнорирован"
 
+#: Engine/csound_orc_compile.c:2511
+#, fuzzy
+msgid "Warning: Could not find or access 'sr' variable\n"
+msgstr "Внимание: не удалось найти переменную sr или получить доступ к ней\n"
+
+#: Engine/csound_orc_compile.c:2517
+#, fuzzy
+msgid "Warning: Could not find or access 'kr' variable\n"
+msgstr "Внимание: не удалось найти переменную kr или получить доступ к ней\n"
+
+#: Engine/csound_orc_compile.c:2523
+#, fuzzy
+msgid "Warning: Could not find or access 'ksmps' variable\n"
+msgstr "Внимание: не удалось найти переменную ksmps или получить доступ к ней\n"
+
+#: Engine/csound_orc_compile.c:2529
+#, fuzzy
+msgid "Warning: Could not find or access 'nchnls' variable\n"
+msgstr ""
+"Внимание: не удалось найти переменную nchnls или получить доступ к ней\n"
+
+#: Engine/csound_orc_compile.c:2537
+#, fuzzy
+msgid "Warning: Could not find or access 'nchnls_i' variable\n"
+msgstr ""
+"Внимание: не удалось найти переменную nchnls_i или получить доступ к ней\n"
+
+#: Engine/csound_orc_compile.c:2543
+#, fuzzy
+msgid "Warning: Could not find or access '0dbfs' variable\n"
+msgstr "Внимание: не удалось найти переменную 0dbfs или получить доступ к ней\n"
+
+#: Engine/csound_orc_compile.c:2549
+#, fuzzy
+msgid "Warning: Could not find or access 'A4' variable\n"
+msgstr "Внимание: не удалось найти переменную A4 или получить доступ к ней\n"
+
+#: Engine/csound_orc_compile.c:2580
+#, fuzzy
+msgid "Error: missing TYPE_TABLE on AST root (markup==NULL)\n"
+msgstr "Ошибка: отсутствует TYPE_TABLE на корне AST (markup==NULL)\n"
+
 #: Engine/csound_orc_compile.c:2720
 #, fuzzy, c-format
 msgid "Malformed opcode type string for %s"
@@ -544,6 +751,18 @@ msgstr "Ошибка составления: отсутствует времен
 msgid "**unrecorded**"
 msgstr "** Записано**"
 
+#: Engine/csound_orc_expressions.c:221 Engine/csound_orc_semantics.c:4184
+#: Engine/csound_orc_semantics.c:4249 Engine/csound_orc_semantics.c:4272
+#, fuzzy
+msgid "Out of memory\n"
+msgstr "Забыли.\n"
+
+#: Engine/csound_orc_expressions.c:414
+#, fuzzy, c-format
+msgid "missing boolean expression in conditional expression, line %d\n"
+msgstr ""
+"недостающее выражение булевого выражения в условном выражении, линия %d\n"
+
 #: Engine/csound_orc_expressions.c:429
 #, fuzzy
 msgid "Unbanced rates in conditional expression"
@@ -552,11 +771,11 @@ msgstr "Неуклонные темпы в условном выражении"
 #: Engine/csound_orc_expressions.c:585 Engine/csound_orc_expressions.c:1648
 #, fuzzy, c-format
 msgid ""
-"struct array index must be i-rate during init; convert the index explicitly, "
-"line %d\n"
+"struct array index must be i-rate during init; convert the index explicitly,"
+" line %d\n"
 msgstr ""
-"индекс структа должен быть i-rate во время init; конвертировать индекс прямо,"
-" линия %d\n"
+"индекс структа должен быть i-rate во время init; конвертировать индекс "
+"прямо, линия %d\n"
 
 #: Engine/csound_orc_expressions.c:653
 #, fuzzy, c-format
@@ -571,7 +790,13 @@ msgstr "ошибка: opcode %s с выводным типом %s не найд�
 #: Engine/csound_orc_expressions.c:792
 #, fuzzy, c-format
 msgid "create_expression: unable to find array sub-type for var %s line %d\n"
-msgstr "create_expression: Невозможно найти подтип массива для линии %s var %d\n"
+msgstr ""
+"create_expression: Невозможно найти подтип массива для линии %s var %d\n"
+
+#: Engine/csound_orc_expressions.c:1790
+#, fuzzy
+msgid "error creating expression.\n"
+msgstr "ошибка создания выражения.\n"
 
 #: Engine/csound_orc_expressions.c:1859 Engine/csound_orc_expressions.c:1874
 #, fuzzy, c-format
@@ -582,6 +807,25 @@ msgstr "expand_statement: Невозможно найти подтип масс�
 #, fuzzy, c-format
 msgid "ERROR: Neither if-goto or if-then found on line %d!!!"
 msgstr "Ни if-goto, ни if-then не нашли на линии %d!!!!"
+
+#: Engine/csound_orc_expressions.c:2237
+#, fuzzy, c-format
+msgid "duplicate default case in switch, line %d"
+msgstr "дублирующий случай по умолчанию при переключателе, линия %d"
+
+#: Engine/csound_orc_expressions.c:2396
+#, fuzzy, c-format
+msgid "cannot run a perf-time loop with an i-time index, line %d"
+msgstr "не может пропустить петлю perf-время с индексом i-time, линия %d"
+
+#: Engine/csound_orc_expressions.c:2481 Engine/csound_orc_semantics.c:3915
+#, fuzzy, c-format
+msgid ""
+"redefining variable %s in loop (type: %s)\n"
+"\t - now using %s type, line %d"
+msgstr ""
+"Изменение переменной %s в цикле (тип: %s)\n"
+"\t - в настоящее время используется тип %s, линия %d"
 
 #: Engine/csound_orc_semantics.c:127
 #, fuzzy, c-format
@@ -633,8 +877,8 @@ msgstr "Ожидаемый тип массива, но получил \"%s\" н�
 #, fuzzy, c-format
 msgid "STRUCT_EXPR: Cannot find struct name for array access at line %d\n"
 msgstr ""
-"STRUCT_EXPR: Не удалось найти название структа для доступа к массиву в строке"
-" %d\n"
+"STRUCT_EXPR: Не удалось найти название структа для доступа к массиву в "
+"строке %d\n"
 
 #: Engine/csound_orc_semantics.c:416
 #, fuzzy, c-format
@@ -711,7 +955,8 @@ msgstr "opcode \"%s\" для выражения со спорными типам
 #: Engine/csound_orc_semantics.c:729
 #, fuzzy, c-format
 msgid ""
-"opcode '%s' for expression with arg types %s returns out-args != 1, line %d\n"
+"opcode '%s' for expression with arg types %s returns out-args != 1, line "
+"%d\n"
 msgstr ""
 "opcode \"%s\" для выражения с аргументными типами %s возвращает аргументы "
 "вывода != 1, линия %d\n"
@@ -732,10 +977,16 @@ msgstr ""
 
 #: Engine/csound_orc_semantics.c:842
 #, fuzzy, c-format
-msgid "error: boolean expression '%s' with arg types %s, %s not found, line %d\n"
+msgid ""
+"error: boolean expression '%s' with arg types %s, %s not found, line %d\n"
 msgstr ""
-"ошибка: булевое выражение \"%s\" со спорными типами %s, %s не найдено, линия "
-"%d\n"
+"ошибка: булевое выражение \"%s\" со спорными типами %s, %s не найдено, линия"
+" %d\n"
+
+#: Engine/csound_orc_semantics.c:861
+#, fuzzy
+msgid "NULL tree"
+msgstr "Дерево NULL"
 
 #: Engine/csound_orc_semantics.c:924
 #, fuzzy, c-format
@@ -764,6 +1015,11 @@ msgstr "Неизвестный тип arg: %d на линии %d\n"
 msgid "Found %d inputs for %s which is more than the %d allowed\n"
 msgstr "Найти %d для %s, что больше, чем разрешено %d\n"
 
+#: Engine/csound_orc_semantics.c:1767 Engine/csound_orc_semantics.c:1835
+#, fuzzy
+msgid "Could not parse type for argument"
+msgstr "Невозможно расшифровать для аргументации"
+
 #: Engine/csound_orc_semantics.c:2043
 #, fuzzy, c-format
 msgid "Variable type for %s could not be determined, line %d"
@@ -782,6 +1038,53 @@ msgstr ""
 #, fuzzy, c-format
 msgid "ArgCheck: variable '%s' used before defined at line %d\n"
 msgstr "ArgCheck: переменная \"%s\", использованная до определения линии %d\n"
+
+#: Engine/csound_orc_semantics.c:2167
+#, fuzzy, c-format
+msgid "Unknown type annotation: %s\n"
+msgstr "Аннотация неизвестного типа: %s\n"
+
+#: Engine/csound_orc_semantics.c:2187
+#, fuzzy, c-format
+msgid "Invalid array type annotation: %s\n"
+msgstr "Неверное обозначение типа массива: %s\n"
+
+#: Engine/csound_orc_semantics.c:2247
+#, fuzzy, c-format
+msgid "%s: @global annotation ignored"
+msgstr "%s: @глобальная аннотация проигнорирована"
+
+#: Engine/csound_orc_semantics.c:2318
+#, fuzzy, c-format
+msgid "Replacing previous definition %s:%s by %s:%s, line %d"
+msgstr "Замена предыдущего определения %s:%s на %s:%s, линия %d"
+
+#: Engine/csound_orc_semantics.c:2325
+#, fuzzy, c-format
+msgid "global variable %s:%s cannot shadow local variable %s:%s, line %d"
+msgstr ""
+"глобальная переменная %s:%s не может скрыть локальную переменную %s:%s, "
+"линия %d"
+
+#: Engine/csound_orc_semantics.c:2335
+#, fuzzy, c-format
+msgid "@global annotation ignored for variable %s, line %d"
+msgstr "@глобальная аннотация проигнорирована для переменной %s, линия %d"
+
+#: Engine/csound_orc_semantics.c:2452
+#, fuzzy, c-format
+msgid "%s:%s -- type mismatch for existing array variable %s:%s"
+msgstr "%s:%s - несоответствие типа для существующей переменной массива %s:%s"
+
+#: Engine/csound_orc_semantics.c:2516
+#, fuzzy, c-format
+msgid "cannot find array variable %s, line %d"
+msgstr "не может найти переменную массива %s, линия %d"
+
+#: Engine/csound_orc_semantics.c:2523
+#, fuzzy, c-format
+msgid "variable %s is not an array, line %d"
+msgstr "переменная %s не является массивом, линия %d"
 
 #: Engine/csound_orc_semantics.c:2701
 #, fuzzy
@@ -808,10 +1111,40 @@ msgstr ""
 msgid "unable to find opcode with name: %s, line %d, columns %d-%d"
 msgstr "Невозможно найти opcode с именем: %s, линия %d, колонки %d-%d"
 
+#: Engine/csound_orc_semantics.c:2890
+#, fuzzy, c-format
+msgid ""
+"ignoring annotation %s \n"
+"\t for opcode %s with no outputs, line %d"
+msgstr ""
+"игнорируя аннотацию %s \n"
+"\t для opcode %s без каких-либо мероприятий, статья %d"
+
+#: Engine/csound_orc_semantics.c:2910
+#, fuzzy, c-format
+msgid ""
+" output type(s) %s\n"
+"\t not matching annotation %s\n"
+"\t ignoring annotation for opcode %s, line %d"
+msgstr ""
+" тип(ы) вывода %s\n"
+"\t не соответствует аннотация %s\n"
+"\t - игнорирование аннотации для opcode %s, линия %d"
+
+#: Engine/csound_orc_semantics.c:2930
+#, fuzzy, c-format
+msgid "%s, line %d, columns %d-%d"
+msgstr "%s, линия %d, колонки %d-%d"
+
 #: Engine/csound_orc_semantics.c:2932
 #, c-format
 msgid " %s %s %s\n"
 msgstr " %s %s %s\n"
+
+#: Engine/csound_orc_semantics.c:2938
+#, fuzzy, c-format
+msgid "%s, line %d"
+msgstr "%s, линия %d"
 
 #: Engine/csound_orc_semantics.c:2944
 #, fuzzy, c-format
@@ -856,6 +1189,21 @@ msgstr ""
 "выражение до/в то время, когда заявление не является булевым выражением, "
 "линия %d\n"
 
+#: Engine/csound_orc_semantics.c:3219
+#, fuzzy
+msgid "ERROR: no type given for struct creation\n"
+msgstr "ТЕРРОРИЗМ: не указан тип создания struct\n"
+
+#: Engine/csound_orc_semantics.c:3300
+#, fuzzy
+msgid "struct not initialised - cannot copy\n"
+msgstr "struct не инициализирован - не может копировать\n"
+
+#: Engine/csound_orc_semantics.c:3552
+#, c-format
+msgid "[struct] Phase 2: ERROR processing struct '%s'\n"
+msgstr "[struct] Этап 2: ОШИБКА при обработке struct '%s'\n"
+
 #: Engine/csound_orc_semantics.c:3596
 #, fuzzy
 msgid "Multiple xin statements found. Only one is allowed."
@@ -876,10 +1224,25 @@ msgstr "Неверный отчёт xin для UDO: определен %s, на�
 msgid "invalid xout statement for UDO: defined '%s', found '%s'\n"
 msgstr "Неверный отчёт xout для UDO: определен %s, найден %s\n"
 
+#: Engine/csound_orc_semantics.c:3663
+#, fuzzy, c-format
+msgid "Error: Unable to define new struct type: %s\n"
+msgstr "Ошибка: не удалось определить новый тип struct: %s\n"
+
 #: Engine/csound_orc_semantics.c:3754
 #, c-format
 msgid "%s UDO"
 msgstr "%s UDO"
+
+#: Engine/csound_orc_semantics.c:3802
+#, fuzzy, c-format
+msgid "conditional expression not valid, line %d"
+msgstr "недействительное условное выражение, линия %d"
+
+#: Engine/csound_orc_semantics.c:3824
+#, fuzzy, c-format
+msgid "loop conditional expression not valid, line %d"
+msgstr "Неверное условное выражение, линия %d"
 
 #: Engine/csound_orc_semantics.c:3873
 #, fuzzy, c-format
@@ -920,10 +1283,20 @@ msgstr " линия %d, колонки %d, %d\n"
 msgid "from file %s (%d)\n"
 msgstr "из файла %s (%d)\n"
 
+#: Engine/csound_orc_semantics.c:4680
+#, fuzzy, c-format
+msgid "THIS SHOULD NOT HAPPEN -- ep NULL csound_orc-semantics(%d)\n"
+msgstr "THIS SHOULD NOT HAPPEN - ep NULL csound_orc-семантика (%d)\n"
+
 #: Engine/csound_orc_semantics.c:4746
 #, fuzzy, c-format
 msgid "insufficient required arguments for opcode %s on line %d:\n"
 msgstr "Недостаточные требуемые аргументы для opcode %s по линии %d:\n"
+
+#: Engine/csound_orc_semantics.c:4778
+#, fuzzy, c-format
+msgid "Could not add instrument ref %s"
+msgstr "Невозможно добавить прибор ref %s"
 
 #: Engine/csound_pre.lex:256 Engine/csound_pre.lex:303
 #: Engine/csound_prs.lex:187 Engine/csound_prs.lex:205
@@ -1180,25 +1553,123 @@ msgstr "неожиданный EOF!!\n"
 msgid "array copy failed"
 msgstr "Ошибка копирования массива"
 
+#: Engine/csound_standard_types.c:799
+#, fuzzy, c-format
+msgid "%s (:OpcodeDef) is read-only: cannot be redefined, ignoring assignment"
+msgstr ""
+"%s (:OpcodeDef) является только считываемым: не может быть пересмотрен, "
+"игнорируя назначение"
+
+#: Engine/csound_standard_types.c:812
+#, fuzzy
+msgid "mismatching context: copy value bypassed"
+msgstr "Несопоставимый контекст: значение копирования в обход"
+
+#: Engine/csound_standard_types.c:819
+#, fuzzy
+msgid "opcode instance var is read-only: copy value bypassed"
+msgstr ""
+"opcode случай var является только считываемым: значение копирования обойдено"
+
+#: Engine/csound_standard_types.c:832
+#, fuzzy, c-format
+msgid "instr ref var %s is read-only: copy value bypassed"
+msgstr ""
+"instr ref var %s является только считываемым: значение копирования в обход"
+
+#: Engine/csound_standard_types.c:844
+#, fuzzy
+msgid "instance ref var is read-only: copy value bypassed"
+msgstr ""
+"case ref var является только считываемым: значение копирования обойдено"
+
 #: Engine/csound_standard_types.c:1100
 #, fuzzy
 msgid "invalid shared array reference count"
 msgstr "Неверное общее число ссылок на массив"
 
+#: Engine/csound_type_system.c:150
+#, fuzzy, c-format
+msgid "ERROR: csoundCreateVarPool failed to allocate memory, got %p\n"
+msgstr "ТЕРРОРИЗМ: csoundCreateVarPool не смог передать память, получил %p\n"
+
+#: Engine/csound_type_system.c:155
+#, fuzzy
+msgid "ERROR: cs_hash_table_create failed in csoundCreateVarPool\n"
+msgstr "ТЕРРОРИЗМ: cs_hash_table_create провалился в csoundCreateVarPool\n"
+
 #: Engine/csound_type_system.c:244
 #, fuzzy, c-format
 msgid "cannot create variable %s: type '%s' createVariable returned NULL\n"
-msgstr "не может создать переменную %s: тип '%s' createVariable возвращен NULL\n"
+msgstr ""
+"не может создать переменную %s: тип '%s' createVariable возвращен NULL\n"
 
 #: Engine/csound_type_system.c:255
 #, fuzzy, c-format
 msgid "cannot create variable %s: NULL type\n"
 msgstr "не может создать переменный %s: NULL типа\n"
 
+#: Engine/csound_type_system.c:265
+#, fuzzy, c-format
+msgid ""
+"csoundFindVariableWithName: skipping due to null/corrupted pool (pool=%p, "
+"name=%s)\n"
+msgstr ""
+"csoundFindVariableWithName: :: пропуск из-за нулевого/скорлупного пула "
+"(pool=%p, name=%s)\n"
+
+#: Engine/csound_type_system.c:294
+#, fuzzy, c-format
+msgid "csoundAddVariable: skipping due to null/corrupted pool (pool=%p)\n"
+msgstr "csoundAddVariable: пропуск из-за нулевого/скорлупного пула (pool=%p)\n"
+
+#: Engine/csound_type_system.c:302
+#, fuzzy, c-format
+msgid ""
+"csoundAddVariable: invalid pool (table==NULL) at %p; refusing to add var "
+"'%s'\n"
+msgstr ""
+"csoundAddVariable: недействительный пул (таблица ==NULL) на %p; отказ от "
+"добавления var '%s'\n"
+
+#: Engine/csound_type_system.c:329
+#, fuzzy
+msgid "csoundRecalculateVarPoolMemory: pool is NULL, skipping\n"
+msgstr "csoundRecalculateVarPoolMemory: бассейн NULL, пропуск\n"
+
+#: Engine/csound_type_system.c:333
+#, fuzzy, c-format
+msgid "csoundRecalculateVarPoolMemory: pool address %p is corrupted, skipping\n"
+msgstr "csoundRecalculateVarPoolMemory: адрес пула %p поврежден, пропущен\n"
+
+#: Engine/csound_type_system.c:360
+#, fuzzy, c-format
+msgid ""
+"csoundReallocateVarPoolMemory: skipping due to null/corrupted pool "
+"(pool=%p)\n"
+msgstr ""
+"csoundReallocateVarPoolMemory: пропуск из-за нулевого/скорлупного пула "
+"(pool=%p)\n"
+
+#: Engine/csound_type_system.c:409
+#, fuzzy
+msgid "Warning: csoundInitializeVarPool called with NULL pool\n"
+msgstr "Внимание: csoundInitializeVarPool звонили с пулом NULL\n"
+
 #: Engine/csound_type_system.c:600 Engine/csound_type_system.c:605
 #, fuzzy, c-format
 msgid "Opcode given variables with two different types: %s : %s"
 msgstr "Opcode с указанием переменных двух различных типов: %s : %s"
+
+#: Engine/csound_type_system.c:672 Engine/csound_type_system.c:674
+#, fuzzy
+msgid "could not copy structured value"
+msgstr "не удалось скопировать структурированное значение"
+
+#: Engine/csound_type_system.c:714
+#, fuzzy
+msgid "could not copy structured array value"
+msgstr "не удалось скопировать значение структурированного массива"
 
 #: Engine/csound_type_system.c:723
 #, fuzzy
@@ -1605,6 +2076,29 @@ msgstr "Отсроченный размер, но файлирование не�
 msgid "  defer length %d\n"
 msgstr "  откладывать длину %d\n"
 
+#: Engine/fgens.c:2519
+#, fuzzy, c-format
+msgid ""
+"Base Note : %u\tDetune    : %u\n"
+"Low  Note : %u\tHigh Note : %u\n"
+"Low  Vel. : %u\tHigh Vel. : %u\n"
+"Gain      : %d\tCount     : %d\n"
+"mode      : %d\n"
+"start     : %d\tend       : %d\tcount  :%d\n"
+"mode      : %d\n"
+"start     : %d\tend       : %d\tcount  :%d\n"
+"\n"
+msgstr ""
+"Базовое примечание: %u Детуна: %u\n"
+"Низкое примечание: %u Высокое примечание: %u\n"
+"Низкий Вел: %u High Vel.: %u\n"
+"Прибыль: %d Количество: %d\n"
+"режим: %d\n"
+"Начало : %d конец : %d число : %d\n"
+"режим: %d\n"
+"Начало : %d конец : %d число : %d\n"
+"\n"
+
 #: Engine/fgens.c:2553
 #, fuzzy
 msgid "GEN1: input file truncated by ftable size"
@@ -1710,6 +2204,16 @@ msgstr "GEN51: Исходный ключ должен быть 32-bit целое
 msgid "number of channels inconsistent with number of args"
 msgstr "количество каналов, не совместимых с числом арг"
 
+#: Engine/fgens.c:2950
+#, fuzzy
+msgid "linear-phase output\n"
+msgstr "линейно-фазный выпуск\n"
+
+#: Engine/fgens.c:3013
+#, fuzzy
+msgid "minimum-phase output\n"
+msgstr "минимальная фаза выпуска\n"
+
 #: Engine/fgens.c:3030
 #, fuzzy
 msgid "GEN53: invalid number of gen arguments"
@@ -1754,6 +2258,11 @@ msgstr "GEN 53: входная амплитудная реакция, "
 msgid "GEN49 not defined"
 msgstr "GEN49 не определен"
 
+#: Engine/fgens.c:3190
+#, fuzzy
+msgid "WARNING: EXPERIMENTAL CODE\n"
+msgstr "ПРЕДУПРЕЖДЕНИЕ: EXPERIMENTAL CODE\n"
+
 #: Engine/fgens.c:3241
 #, fuzzy, c-format
 msgid "Deferred load of '%s' failed"
@@ -1763,6 +2272,15 @@ msgstr "Ошибка отсроченной нагрузки %s"
 #, fuzzy
 msgid "Current directory path name too long\n"
 msgstr "Текущее название каталога слишком долго\n"
+
+#: Engine/filesys.c:395
+#, fuzzy, c-format
+msgid ""
+"file %s exists...\n"
+"...will be overwritten"
+msgstr ""
+"Файл %s существует...\n"
+"...будут переписаны"
 
 #: Engine/filesys.c:603
 #, fuzzy
@@ -1907,6 +2425,11 @@ msgstr "новый MIDI аллок для instr %d:\n"
 msgid "MIDI note overlaps with key %d on same channel"
 msgstr "MIDI Примечание совпадает с ключом %d на том же канале"
 
+#: Engine/insert.c:1774
+#, fuzzy, c-format
+msgid "%s deinit error\n"
+msgstr "Ошибка отложения %s\n"
+
 #: Engine/insert.c:1839
 #, fuzzy
 msgid "deact: traversal depth overflow"
@@ -1987,7 +2510,8 @@ msgstr "...исключено\n"
 #, fuzzy, c-format
 msgid "setup_opcode_argpp: NULL local variable pointer for out-arg of %s"
 msgstr ""
-"setup_opcode_argpp: NULL Местная переменная указатель для вывода аргумента %s"
+"setup_opcode_argpp: NULL Местная переменная указатель для вывода аргумента "
+"%s"
 
 #: Engine/insert.c:2519
 #, fuzzy, c-format
@@ -2001,6 +2525,16 @@ msgid "setup_opcode_argpp: Unhandled argument type (%d) for out-arg of %s"
 msgstr ""
 "setup_opcode_argpp: Неиспользованный аргумент (%d) для аргумента вывода %s"
 
+#: Engine/insert.c:2757
+#, fuzzy, c-format
+msgid ""
+"Fatal initialization error in instantiate: tp->varPool is null or corrupted "
+"(tp=%p). This indicates a serious problem with instrument initialization."
+msgstr ""
+"Погрешность инициализации в мгновении: tp->varPool является ничтожной или "
+"коррумпированной (tp=%p). Это указывает на серьезную проблему с "
+"инициализацией прибора."
+
 #: Engine/insert.c:2795
 #, fuzzy, c-format
 msgid ""
@@ -2009,6 +2543,11 @@ msgid ""
 msgstr ""
 "instr %d, выделенные на %p\n"
 "\tlcbas %p, opds %p\n"
+
+#: Engine/insert.c:2814
+#, fuzzy, c-format
+msgid "instantiate: skipping node with NULL oentry (line=%d)\n"
+msgstr "instantiate: пропуск узла с входом NULL (line=%d)\n"
 
 #: Engine/insert.c:2829
 #, fuzzy, c-format
@@ -2071,6 +2610,16 @@ msgstr "Не удалось установить статус файла\n"
 msgid "LineBuffer Overflow - Input Data has been Lost"
 msgstr "LineBuffer Перерасход - Потеря данных"
 
+#: Engine/linevent.c:309
+#, fuzzy
+msgid "::compiling orchestra::\n"
+msgstr ":: Оркестр:\n"
+
+#: Engine/linevent.c:335
+#, fuzzy
+msgid "::reading orchestra, use '}' to terminate::\n"
+msgstr ":: Читать оркестр, использовать '}, чтобы прекратить:\n"
+
 #: Engine/linevent.c:350
 #, fuzzy, c-format
 msgid "unknown opcode %c"
@@ -2116,6 +2665,31 @@ msgstr ""
 #, fuzzy, c-format
 msgid "memory allocate failure for %zd \n"
 msgstr "Ошибка передачи памяти для %zd \n"
+
+#: Engine/memalloc.c:136
+#, fuzzy
+msgid "Malloc failed: "
+msgstr "Маллок не сработал: "
+
+#: Engine/memalloc.c:176
+#, fuzzy
+msgid "Calloc failed: "
+msgstr "Каллок провалился: "
+
+#: Engine/memalloc.c:214
+#, fuzzy
+msgid "CallocAligned failed: "
+msgstr "Ошибка CallocAligned: "
+
+#: Engine/memalloc.c:256
+#, fuzzy, c-format
+msgid "csound->Free() called with corrupted pointer (%p)"
+msgstr "csound->Free() вызывается с поврежденным указателем (%p)"
+
+#: Engine/memalloc.c:325
+#, fuzzy
+msgid "Realloc failed: "
+msgstr "Ошибка релокации: "
 
 #: Engine/memfiles.c:48
 #, c-format
@@ -2381,10 +2955,45 @@ msgstr ""
 "\n"
 "%d ошибки в работе\n"
 
+#: Engine/musmon.c:722
+#, fuzzy
+msgid "         UNIT TEST REPORT            \n"
+msgstr "         UNIT TEST REPORT            \n"
+
+#: Engine/musmon.c:724
+#, fuzzy, c-format
+msgid "  Total assertions: %d\n"
+msgstr "  Общая сумма претензий: %d\n"
+
+#: Engine/musmon.c:725
+#, fuzzy, c-format
+msgid "  Passed: %d\n"
+msgstr "  Passed: %d\n"
+
+#: Engine/musmon.c:726
+#, fuzzy, c-format
+msgid "  Failed: %d\n"
+msgstr "  Failed: %d\n"
+
+#: Engine/musmon.c:729
+#, fuzzy
+msgid "  Result: ✓ ALL TESTS PASSED\n"
+msgstr "  Result: ✓ ALL TESTS PASSED\n"
+
+#: Engine/musmon.c:731
+#, fuzzy
+msgid "  Result: ✗ TESTS FAILED\n"
+msgstr "  Result: ✗ TESTS FAILED\n"
+
 #: Engine/musmon.c:735
 #, fuzzy
 msgid "end of performance"
 msgstr "окончание работы"
+
+#: Engine/musmon.c:778 Engine/musmon.c:806
+#, fuzzy
+msgid "cannot turnon self with zero delay\n"
+msgstr "не может turnon с нулевой задержкой\n"
 
 #: Engine/musmon.c:837 Engine/musmon.c:892
 #, fuzzy
@@ -2648,6 +3257,26 @@ msgstr "Потерпел неудачу из-за истощения памят�
 msgid "Parsing failed due to %d syntax error%s\n"
 msgstr "Ошибка обработки из-за ошибки %d %s\n"
 
+#: Engine/new_orc_parser.c:228
+#, fuzzy
+msgid "Memory allocation failed for struct wrapper node\n"
+msgstr "Ошибка распределения памяти для узла struct\n"
+
+#: Engine/new_orc_parser.c:270
+#, fuzzy
+msgid "Error in early two-phase struct processing\n"
+msgstr "Ошибка в ранней двухфазной обработке struct\n"
+
+#: Engine/new_orc_parser.c:298
+#, fuzzy
+msgid "Failed to create globalPool in parser\n"
+msgstr "Не удалось создать globalPool в парзере\n"
+
+#: Engine/new_orc_parser.c:307
+#, fuzzy
+msgid "Failed to create instr0LocalPool in parser\n"
+msgstr "Не удалось создать instr0LocalPool в парзере\n"
+
 #: Engine/new_orc_parser.c:323
 #, fuzzy, c-format
 msgid "Parsing failed due to %d semantic error%s!, line %d\n"
@@ -2712,6 +3341,14 @@ msgstr ""
 #, fuzzy, c-format
 msgid "sort: illegal opcode %c(%.2x)\n"
 msgstr "sort: Незаконный opcode %c(%.2x)\n"
+
+#: Engine/srconvert.c:58 Engine/srconvert.c:235
+msgid ""
+"Support for local sampling rate and user-defined types not currently "
+"available\n"
+msgstr ""
+"Локальная частота дискретизации и пользовательские типы пока не "
+"поддерживаются\n"
 
 #: Engine/sread.c:60
 #, fuzzy
@@ -2808,8 +3445,8 @@ msgstr "игнорирование \"%s\" в случае \"%c\""
 msgid "! invalid in p1, p2, or p3"
 msgstr "Недействителен в p1, p2, или p3"
 
-#: Engine/sread.c:674 Engine/sread.c:680 Engine/sread.c:996 Engine/sread.c:1251
-#: Engine/sread.c:1266
+#: Engine/sread.c:674 Engine/sread.c:680 Engine/sread.c:996
+#: Engine/sread.c:1251 Engine/sread.c:1266
 #, fuzzy
 msgid "      remainder of line flushed\n"
 msgstr "      Остальная линия промыта\n"
@@ -2962,7 +3599,8 @@ msgstr ""
 #: Engine/swritestr.c:458 Engine/swritestr.c:522
 #, fuzzy, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal expramp symbol\n"
-msgstr "swrite: вывод, раздел %d линия %d p%d имеет незаконный экспрамп символ\n"
+msgstr ""
+"swrite: вывод, раздел %d линия %d p%d имеет незаконный экспрамп символ\n"
 
 #: Engine/swritestr.c:463 Engine/swritestr.c:527
 #, fuzzy, c-format
@@ -3002,7 +3640,8 @@ msgstr "Неверные типы входных аргументов, найд�
 #: Engine/symbtab.c:131
 #, fuzzy, c-format
 msgid "invalid output argument types found for opcode %s: %s\n"
-msgstr "недействительные типы аргументации вывода, найденные для opcode %s: %s\n"
+msgstr ""
+"недействительные типы аргументации вывода, найденные для opcode %s: %s\n"
 
 #: Engine/symbtab.c:156
 #, fuzzy, c-format
@@ -3063,10 +3702,33 @@ msgstr ""
 "Ошибка: индекс аргументации UDO %d вне границ (max: %d, отскоки: %d, дюймы: "
 "%d)\n"
 
+#: Engine/udo.c:1567
+#, c-format
+msgid "UDO %s may have only one rate setting"
+msgstr "UDO %s может иметь только одну настройку частоты"
+
+#: Engine/udo.c:1582
+#, fuzzy, c-format
+msgid "%s must precede opcode initialization in UDO %s (found after %s)"
+msgstr ""
+"%s должен предшествовать инициализации opcode в UDO %s (находится после %s)"
+
 #: Engine/udo.c:1763 Engine/udo.c:1792
 #, fuzzy, c-format
 msgid "Cannot find instr %d (UDO %s)\n"
 msgstr "Не удалось найти instr %d (UDO %s)\n"
+
+#: Engine/udo.c:1768 Engine/udo.c:3115
+msgid "inherited local ksmps not permitted with global audio vars\n"
+msgstr ""
+"наследуемое локальное значение ksmps не допускается с глобальными "
+"аудиопеременными\n"
+
+#: Engine/udo.c:1772 Engine/udo.c:3119
+msgid "inherited local sr not permitted with global audio vars\n"
+msgstr ""
+"наследуемое локальное значение sr не допускается с глобальными "
+"аудиопеременными\n"
 
 #: Engine/udo.c:1782
 #, fuzzy, c-format
@@ -3078,15 +3740,51 @@ msgstr "ошибка: UDO %s максимальная глубина рекур�
 msgid "Could not allocate UDO %s instance\n"
 msgstr "Невозможно выделить случай UDO %s\n"
 
+#: Engine/udo.c:1805
+#, fuzzy, c-format
+msgid "Broken redefinition of UDO %d (UDO %s)\n"
+msgstr "Сломанное переопределение UDO %d (UDO %s)\n"
+
 #: Engine/udo.c:1908
 #, fuzzy, c-format
 msgid "UDO %s instance is being turned off"
 msgstr "Дело UDO %s отключается"
 
+#: Engine/udo.c:1925
+msgid "could not prepare pass-by-reference UDO buffers"
+msgstr "не удалось подготовить буферы UDO для передачи по ссылке"
+
+#: Engine/udo.c:1970
+msgid "could not copy pass-by-reference UDO value"
+msgstr "не удалось скопировать значение UDO, переданное по ссылке"
+
+#: Engine/udo.c:1979
+msgid "could not prepare pass-by-reference UDO input"
+msgstr "не удалось подготовить вход UDO для передачи по ссылке"
+
+#: Engine/udo.c:2049 Engine/udo.c:2242
+#, fuzzy
+msgid "could not prepare UDO output"
+msgstr "не смогли подготовить вывод UDO"
+
 #: Engine/udo.c:2131 OOps/bus.c:724 Opcodes/deprecated.c:299
 #, c-format
 msgid "%s: not initialised"
 msgstr "%s: не выступлено с иничиативой"
+
+#: Engine/udo.c:2180
+#, fuzzy
+msgid "could not prepare UDO input"
+msgstr "не смогли подготовить вход UDO"
+
+#: Engine/udo.c:2189 Engine/udo.c:2251
+msgid "could not initialise sample rate converter"
+msgstr "не удалось инициализировать преобразователь частоты дискретизации"
+
+#: Engine/udo.c:2320 Engine/udo.c:2444 Engine/udo.c:2679
+#, fuzzy
+msgid "UDO input changed capacity during performance"
+msgstr "UDO Входная способность изменилась во время выполнения работы"
 
 #: Engine/udo.c:2341 Engine/udo.c:2466
 #, fuzzy
@@ -3098,10 +3796,74 @@ msgstr "UDO Схема ввода аудиоаппаратуры изменен�
 msgid "UDO audio-array output layout changed during performance"
 msgstr "UDO Аудиовизна выхода была изменена во время исполнения"
 
+#: Engine/udo.c:2598 Engine/udo.c:2722
+#, fuzzy
+msgid "UDO output changed capacity during performance"
+msgstr "UDO Пропускная способность изменилась во время выполнения работы"
+
+#: Engine/udo.c:2687
+msgid "could not convert UDO input sample rate"
+msgstr "не удалось преобразовать входную частоту дискретизации UDO"
+
+#: Engine/udo.c:2731
+msgid "could not convert UDO output sample rate"
+msgstr "не удалось преобразовать выходную частоту дискретизации UDO"
+
+#: Engine/udo.c:2790 Engine/udo.c:2825
+msgid "pass-by-reference UDO value changed capacity during performance"
+msgstr ""
+"ёмкость значения UDO, переданного по ссылке, изменилась во время исполнения"
+
+#: Engine/udo.c:2852
+#, fuzzy
+msgid "local ksmps not permitted with global audio vars\n"
+msgstr "Местный ksmps не допускается с помощью глобальных аудиоваров\n"
+
+#: Engine/udo.c:2861
+#, fuzzy
+msgid "can't set ksmps value if local sr != parent sr\n"
+msgstr ""
+"не может установить значение ksmps, если локальный sr != материнский sr\n"
+
 #: Engine/udo.c:2869
 #, fuzzy, c-format
 msgid "setksmps: invalid ksmps value: %d, original: %d"
 msgstr "setksmps: Неверное значение ksmps: %d, оригинал: %d"
+
+#: Engine/udo.c:2912 Engine/udo.c:2983
+#, fuzzy
+msgid "local sr not permitted with global audio vars\n"
+msgstr "Местный sr не допускается с помощью глобальных аудиоваров\n"
+
+#: Engine/udo.c:2920
+#, fuzzy
+msgid "oversampling only allowed in UDOs\n"
+msgstr "допускается только в UDOs\n"
+
+#: Engine/udo.c:2927
+#, fuzzy
+msgid "can't oversample if local ksmps != parent ksmps\n"
+msgstr "Невозможно oversample, если местный ksmps != родитель ksmps\n"
+
+#: Engine/udo.c:2931
+#, fuzzy, c-format
+msgid "illegal oversampling ratio: %d\n"
+msgstr "Незаконный коэффициент перебора: %d\n"
+
+#: Engine/udo.c:2991
+#, fuzzy
+msgid "undersampling only allowed in UDOs\n"
+msgstr "Допускается лишь в UDOs\n"
+
+#: Engine/udo.c:2998
+#, fuzzy
+msgid "can't undersample if local ksmps != parent ksmps\n"
+msgstr "Невозможно undersample, если местный ksmps != родитель ksmps\n"
+
+#: Engine/udo.c:3003 Engine/udo.c:3013
+#, fuzzy, c-format
+msgid "illegal undersampling ratio: %d\n"
+msgstr "Незаконный коэффициент неполного отбора: %d\n"
 
 #: Engine/udo.c:3073
 #, fuzzy
@@ -3126,6 +3888,16 @@ msgstr "%d выключается"
 #: Engine/udo.c:3269
 msgid "subinstr: not initialised"
 msgstr "subinstr: не инициализирован"
+
+#: Frontends/csound/csound_main.c:175
+#, fuzzy
+msgid "could not set the locale\n"
+msgstr "не удалось установить место\n"
+
+#: Frontends/csound/csound_main.c:201 Top/argdecode.c:88
+#, fuzzy, c-format
+msgid "Error opening log file '%s': %s\n"
+msgstr "Ошибка открытия файла журнала %s: %s\n"
 
 #: H/spatial_send.h:39
 #, fuzzy
@@ -3267,6 +4039,21 @@ msgid ""
 msgstr ""
 "sfinit: не удалось открыть %s\n"
 "%s"
+
+#: InOut/libsnd.c:850
+#, c-format
+msgid "Setting MP3 bitrate to %s\n"
+msgstr "Установка битрейта MP3: %s\n"
+
+#: InOut/libsnd.c:850
+#, fuzzy
+msgid "constant"
+msgstr "постоянная"
+
+#: InOut/libsnd.c:850
+#, fuzzy
+msgid "variable"
+msgstr "переменные"
 
 #: InOut/libsnd.c:927
 #, fuzzy, c-format
@@ -3838,8 +4625,8 @@ msgid ""
 "error: must specify a device number (>=0), 'a' for all (merged), or 'm' for "
 "port mapped, not a name"
 msgstr ""
-"погрешность: должен указать номер устройства (>=0), \"a\" для всех (сверху), "
-"или \"m\" для отображенного порта, а не имя"
+"погрешность: должен указать номер устройства (>=0), \"a\" для всех (сверху),"
+" или \"m\" для отображенного порта, а не имя"
 
 #: InOut/pmidi.c:244 InOut/pmidi.c:352
 #, fuzzy
@@ -4042,7 +4829,8 @@ msgstr "Размер буфера ALSA превышает поддерживае
 #, fuzzy, c-format
 msgid "ALSA: -B %d not allowed on this device; using %d instead\n"
 msgstr ""
-"ALSA: -B %d не допускается на этом устройстве; вместо этого используется %d\n"
+"ALSA: -B %d не допускается на этом устройстве; вместо этого используется "
+"%d\n"
 
 #: InOut/rtalsa.c:533
 #, fuzzy
@@ -4053,7 +4841,8 @@ msgstr "Размер периода ALSA превышает установлен
 #, fuzzy, c-format
 msgid "ALSA: -b %d not allowed on this device; using %d instead\n"
 msgstr ""
-"ALSA: -b %d не допускается на этом устройстве; вместо этого используется %d\n"
+"ALSA: -b %d не допускается на этом устройстве; вместо этого используется "
+"%d\n"
 
 #: InOut/rtalsa.c:547
 #, fuzzy
@@ -4081,7 +4870,8 @@ msgstr "ошибка выделения памяти"
 
 #: InOut/rtalsa.c:700
 #, fuzzy
-msgid " *** ALSA: must specify a device name, not a number (e.g. -odac:hw:0,0)"
+msgid ""
+" *** ALSA: must specify a device name, not a number (e.g. -odac:hw:0,0)"
 msgstr ""
 " *** ALSA: должно указываться название устройства, а не номер (например, "
 "-odac:hw:0, 0)"
@@ -4408,6 +5198,16 @@ msgstr "выбранное выходное устройство: %s\n"
 msgid "Attempted to set device SR, tried %.1f, got %.1f"
 msgstr "Попытался установить устройство SR, пробовал %.1f, получил %.1f"
 
+#: InOut/rtauhal.c:412
+#, c-format
+msgid "could not set sr to %.1f after %d attempts"
+msgstr "не удалось установить sr равным %.1f после %d попыток"
+
+#: InOut/rtauhal.c:417
+#, c-format
+msgid "auhal: device sampling rate set to %.1f\n"
+msgstr "auhal: частота дискретизации устройства установлена в %.1f\n"
+
 #: InOut/rtauhal.c:493
 #, fuzzy, c-format
 msgid "***** AuHAL module: output device open with %d buffer frames\n"
@@ -4453,12 +5253,27 @@ msgstr "Отключение --sched в режиме свободного кол
 
 #: InOut/rtjack.c:280 InOut/rtjack.c:293 InOut/rtjack.c:298 InOut/rtjack.c:699
 #: InOut/rtjack.c:751 InOut/rtjack.c:757 InOut/rtjack.c:778 InOut/rtjack.c:784
-#: InOut/rtwinmm.c:107 InOut/rtwinmm.c:312 OOps/str_ops.c:460
+#: InOut/rtwinmm.c:107 InOut/rtwinmm.c:312 OOps/bus.c:808 OOps/str_ops.c:460
 #: OOps/str_ops.c:529 OOps/str_ops.c:819 Opcodes/emugens/emugens.c:1316
 #: Opcodes/emugens/emugens.c:1317 Opcodes/emugens/emugens.c:2720
 #: Opcodes/emugens/emugens.c:2869 Opcodes/emugens/emugens.c:2942
 msgid "memory allocation failure"
 msgstr "ошибка выделения памяти"
+
+#: InOut/rtjack.c:329
+#, fuzzy, c-format
+msgid "Jack %s ports:\n"
+msgstr "Порты Jack %s:\n"
+
+#: InOut/rtjack.c:329 InOut/rtpa.c:222 InOut/rtpa.c:239
+#, fuzzy
+msgid "input"
+msgstr "Ввод"
+
+#: InOut/rtjack.c:329 InOut/rtpa.c:222 InOut/rtpa.c:239
+#, fuzzy
+msgid "output"
+msgstr "конечный результат"
 
 #: InOut/rtjack.c:359
 #, fuzzy
@@ -4584,10 +5399,11 @@ msgstr "Не удалось автоподключиться, порт не со
 
 #: InOut/rtjack.c:562 InOut/rtjack.c:646
 #, fuzzy, c-format
-msgid "Not enough ports to connect all out channels,only connected %d channels\n"
+msgid ""
+"Not enough ports to connect all out channels,only connected %d channels\n"
 msgstr ""
-"Недостаточно портов для подключения всех каналов, только подключенные каналы "
-"%d\n"
+"Недостаточно портов для подключения всех каналов, только подключенные каналы"
+" %d\n"
 
 #: InOut/rtjack.c:579
 #, fuzzy
@@ -4685,8 +5501,8 @@ msgstr " *** rackck: ошибка распределения глобальны�
 
 #: InOut/rtjack.c:1203
 #, fuzzy
-msgid "JACK client name (default: csound7"
-msgstr "JACK Имя клиента (по умолчанию: csound7)"
+msgid "JACK client name (default: csound7)"
+msgstr "Имя клиента JACK (по умолчанию: csound7)"
 
 #: InOut/rtjack.c:1212
 #, fuzzy
@@ -4801,16 +5617,6 @@ msgstr " *** PortAudio: ошибка: "
 msgid "%s device number %d is out of range"
 msgstr "номер устройства %s %d вне диапазона"
 
-#: InOut/rtpa.c:222 InOut/rtpa.c:239
-#, fuzzy
-msgid "input"
-msgstr "Ввод"
-
-#: InOut/rtpa.c:222 InOut/rtpa.c:239
-#, fuzzy
-msgid "output"
-msgstr "конечный результат"
-
 #: InOut/rtpa.c:238
 #, fuzzy, c-format
 msgid "PortAudio: selected %s device '%s'\n"
@@ -4847,8 +5653,8 @@ msgid ""
 "WARNING: buffer size should be an integer multiple of ksmps in full-duplex "
 "mode\n"
 msgstr ""
-"ПРЕДУПРЕЖДЕНИЕ: размер буфера должен быть целым числом ksmps в режиме полного"
-" дюплекса\n"
+"ПРЕДУПРЕЖДЕНИЕ: размер буфера должен быть целым числом ksmps в режиме "
+"полного дюплекса\n"
 
 #: InOut/rtpa.c:534 InOut/rtpa.c:840
 #, fuzzy
@@ -4892,13 +5698,29 @@ msgstr "PulseAudio клиент RT IO модуль для Csoftby Victor Lazzari
 msgid " *** rtpulse: error allocating globals"
 msgstr " *** tropulse: ошибка распределения глобальных значений"
 
+#: InOut/rtpulse.c:63
+#, fuzzy
+msgid "PulseAudio server name (default: default server)"
+msgstr "PulseAudio Имя сервера (по умолчанию: сервер по умолчанию)"
+
+#: InOut/rtpulse.c:72
+#, fuzzy
+msgid "PulseAudio output stream name (default: csound-out)"
+msgstr "Название выходного потока PulseAudio (по умолчанию: csound-out)"
+
+#: InOut/rtpulse.c:79
+#, fuzzy
+msgid "PulseAudio input stream name (default: csound-in)"
+msgstr "Название входного потока PulseAudio (по умолчанию: csound-in)"
+
 #: InOut/rtpulse.c:109
 #, fuzzy, c-format
 msgid ""
 "Pulse audio module error: invalid sample spec, check number of output "
 "channels (%d)\n"
 msgstr ""
-"Ошибка звукового модуля: неверная выборка, количество выходных каналов (%d)\n"
+"Ошибка звукового модуля: неверная выборка, количество выходных каналов "
+"(%d)\n"
 
 #: InOut/rtpulse.c:127
 #, fuzzy
@@ -4936,6 +5758,94 @@ msgstr "PulseAudio входной сервер %s\n"
 msgid "rtaudio: pulseaudio module enabled\n"
 msgstr "rtaudio: Модуль импульсаудио включен\n"
 
+#: InOut/rtpw.c:82
+#, fuzzy, c-format
+msgid "%d dropped output frames"
+msgstr "%d сбрасывает рамки вывода"
+
+#: InOut/rtpw.c:148
+#, fuzzy, c-format
+msgid "hw frames: %d sw frames: %d\n"
+msgstr "hw рам: %d рам: %d\n"
+
+#: InOut/rtpw.c:297
+#, c-format
+msgid ""
+"rtpw: mismatched input sampling rate,\n"
+"system-sr %.1f csound-sr %.1f"
+msgstr ""
+"rtpw: несовпадение входной частоты дискретизации,\n"
+"system-sr %.1f csound-sr %.1f"
+
+#: InOut/rtpw.c:306
+#, c-format
+msgid "pw - reallocated hw buffer: %d\n"
+msgstr "pw - аппаратный буфер перераспределён: %d\n"
+
+#: InOut/rtpw.c:335
+#, fuzzy, c-format
+msgid "pwin - hw frames: %d sw frames: %d\n"
+msgstr "plin - hw рамы: %d рам: %d\n"
+
+#: InOut/rtpw.c:469
+#, fuzzy, c-format
+msgid "  sink node: %d\n"
+msgstr "  поглотитель: %d\n"
+
+#: InOut/rtpw.c:471
+#, fuzzy, c-format
+msgid "  name: %s\n"
+msgstr "  name: %s\n"
+
+#: InOut/rtpw.c:473
+#, fuzzy, c-format
+msgid "  description: %s\n"
+msgstr "  description: %s\n"
+
+#: InOut/rtpw.c:476
+#, fuzzy, c-format
+msgid ""
+"  media class: %s\n"
+" ----\n"
+msgstr ""
+"  Класс СМИ: %s\n"
+" ----\n"
+
+#: InOut/rtpw.c:509
+#, fuzzy, c-format
+msgid "Core error: %s\n"
+msgstr "Основная ошибка: %s\n"
+
+#: InOut/rtpw.c:533
+#, fuzzy
+msgid "Failed to create main loop\n"
+msgstr "Не удалось создать основную петлю\n"
+
+#: InOut/rtpw.c:540
+#, fuzzy
+msgid "Failed to create context\n"
+msgstr "Не удалось создать контекст\n"
+
+#: InOut/rtpw.c:547
+#, fuzzy
+msgid "Failed to connect to PipeWire\n"
+msgstr "Ошибка подключения к PipeWire\n"
+
+#: InOut/rtpw.c:557
+#, fuzzy
+msgid "Failed to get registry\n"
+msgstr "Не удалось получить реестр\n"
+
+#: InOut/rtpw.c:565
+#, fuzzy
+msgid "pipewire sinks:\n"
+msgstr "pipewire поглотители:\n"
+
+#: InOut/rtpw.c:569
+#, fuzzy, c-format
+msgid "found %d sinks\n"
+msgstr "найденные поглотители %d\n"
+
 #: InOut/rtpw.c:633
 msgid "rtaudio: pipewire module enabled\n"
 msgstr "rtaudio: модуль pipewire включён\n"
@@ -4964,7 +5874,8 @@ msgstr "WASAPI: Не удалось перечислить устройства"
 #, fuzzy, c-format
 msgid "WASAPI: Requested device %d out of range, using default"
 msgstr ""
-"WASAPI: Запрошенное устройство %d вне диапазона с использованием по умолчанию"
+"WASAPI: Запрошенное устройство %d вне диапазона с использованием по "
+"умолчанию"
 
 #: InOut/rtwasapi.c:325
 #, fuzzy
@@ -5011,7 +5922,8 @@ msgstr ""
 
 #: InOut/rtwasapi.c:509
 #, fuzzy
-msgid "WASAPI: All exclusive mode attempts failed, falling back to shared mode\n"
+msgid ""
+"WASAPI: All exclusive mode attempts failed, falling back to shared mode\n"
 msgstr ""
 "WASAPI: Все попытки эксклюзивного режима не сработали, вернувшись к "
 "совместному режиму\n"
@@ -5059,7 +5971,8 @@ msgstr "WASAPI: Не удалось получить клиента"
 #: InOut/rtwasapi.c:677
 #, fuzzy, c-format
 msgid "***** WASAPI module: output device open with %d buffer frames\n"
-msgstr "***** Модуль WASAPI: выходное устройство открыто с буферными рамами %d\n"
+msgstr ""
+"***** Модуль WASAPI: выходное устройство открыто с буферными рамами %d\n"
 
 #: InOut/rtwasapi.c:824
 #, fuzzy
@@ -5315,6 +6228,21 @@ msgstr "Без корректировки таблицы %g"
 msgid "cpstun: invalid table"
 msgstr "cpstun: недопустимая таблица"
 
+#: OOps/aops.c:1571 OOps/aops.c:1593 OOps/aops.c:1826 OOps/aops.c:1872
+#: OOps/aops.c:2033 OOps/aops.c:2052 OOps/aops.c:2354 OOps/aops.c:2369
+#: OOps/aops.c:2415 OOps/aops.c:2683 OOps/bus.c:975 OOps/bus.c:996
+#: OOps/bus.c:1216 OOps/bus.c:1234 OOps/bus.c:1252 OOps/bus.c:1269
+#: OOps/bus.c:1787 OOps/bus.c:2039 OOps/bus.c:2361 OOps/bus.c:2491
+#: OOps/bus.c:2682 OOps/bus.c:2724
+msgid "local sampling rate not supported\n"
+msgstr "локальная частота дискретизации не поддерживается\n"
+
+#: OOps/aops.c:1579 OOps/aops.c:1640 OOps/aops.c:1672 OOps/aops.c:1707
+#: OOps/aops.c:1749 OOps/aops.c:1794
+#, fuzzy
+msgid "Wrong number of input channels\n"
+msgstr "Неверное число входных каналов\n"
+
 #: OOps/aops.c:1841
 #, fuzzy, c-format
 msgid "Input channel %d too large; ignored\n"
@@ -5414,6 +6342,11 @@ msgstr "Начальное значение вне диапазона"
 msgid "More arguments than p fields"
 msgstr "Больше аргументов, чем p полей"
 
+#: OOps/aops.c:2581 OOps/aops.c:2602 OOps/pitch0.c:215 OOps/pitch0.c:234
+#, fuzzy
+msgid "no pfields available\n"
+msgstr "pfields отсутствует\n"
+
 #: OOps/aops.c:2612
 msgid "init: instrument number out of range"
 msgstr "init: номер инструмента вне диапазона"
@@ -5422,6 +6355,11 @@ msgstr "init: номер инструмента вне диапазона"
 #, fuzzy
 msgid "init: instrument is not defined"
 msgstr "init: не определен"
+
+#: OOps/aops.c:2618
+#, fuzzy, c-format
+msgid "instr ref var %s is read-only: cannot copy"
+msgstr "instr ref var %s является только считываемым: не может копировать"
 
 #: OOps/aops.c:2635
 #, fuzzy
@@ -5457,12 +6395,18 @@ msgstr "Ошибка: размеры должны быть >= 0 для иниц�
 #, fuzzy
 msgid "Error: zero-size array initialization is only supported for 1-D arrays"
 msgstr ""
-"Ошибка: инициализация нулевого массива поддерживается только для 1-D массивов"
+"Ошибка: инициализация нулевого массива поддерживается только для 1-D "
+"массивов"
 
 #: OOps/array_ops.c:97
 #, fuzzy
 msgid "array_init: array dimensions overflow"
 msgstr "array_init: Площадь массива"
+
+#: OOps/array_ops.c:114
+msgid "array_init: arrayType is NULL - struct type information missing"
+msgstr ""
+"array_init: arrayType равен NULL - отсутствует информация о типе структуры"
 
 #: OOps/array_ops.c:123
 #, fuzzy
@@ -5522,6 +6466,15 @@ msgstr "array_get: массив данных NULL"
 #, fuzzy
 msgid "Error: no indexes set for array get"
 msgstr "Ошибка: нет указателей для массивного получения"
+
+#: OOps/array_ops.c:535
+#, fuzzy, c-format
+msgid ""
+"array_get: recovered from corrupted dimensions (was %d), set to %d with size"
+" %d\n"
+msgstr ""
+"array_get: Извлечены из поврежденных размеров (%d), установлены на %d с "
+"размером %d\n"
 
 #: OOps/array_ops.c:539 OOps/array_ops.c:544
 #, fuzzy, c-format
@@ -5646,7 +6599,13 @@ msgstr "не совпадают с типами"
 #: OOps/array_ops.c:3499 OOps/array_ops.c:3557
 #, fuzzy
 msgid "structured array assignment requires preallocated storage"
-msgstr "Установка структурированного массива требует предварительного хранения"
+msgstr ""
+"Установка структурированного массива требует предварительного хранения"
+
+#: OOps/array_ops.c:3512
+#, fuzzy
+msgid "tabcopyk_init: null src/dst"
+msgstr "tabcopyk_init: null sc/dst"
 
 #: OOps/array_ops.c:3525
 #, fuzzy
@@ -5812,6 +6771,49 @@ msgstr "pvsout: Неверная исходная основа"
 msgid "pvsout error %d:channel not found or not right type"
 msgstr "pvsout Ошибка %d: канал не найден или неправильный тип"
 
+#: OOps/bus.c:447
+#, fuzzy, c-format
+msgid "failed to create channel variable for type %s\n"
+msgstr "не удалось создать переменную канала для типа %s\n"
+
+#: OOps/bus.c:456
+#, fuzzy, c-format
+msgid "failed to allocate memory for channel %s\n"
+msgstr "не удалось выделить память для канала %s\n"
+
+#: OOps/bus.c:487
+#, fuzzy, c-format
+msgid ""
+"channel name %s\n"
+" exceeds max channel name length %d.\n"
+msgstr ""
+"Название канала %s\n"
+" превышает максимальную длину названия канала %d.\n"
+
+#: OOps/bus.c:767
+msgid "channel argument has incomplete variable operations\n"
+msgstr "аргумент канала поддерживает не все операции с переменной\n"
+
+#: OOps/bus.c:798 OOps/bus.c:1582
+#, fuzzy, c-format
+msgid "failed to create channel storage for type %s\n"
+msgstr "не удалось создать хранилище канала для типа %s\n"
+
+#: OOps/bus.c:824 OOps/bus.c:883 OOps/bus.c:908
+#, fuzzy
+msgid "channel type did not match argument\n"
+msgstr "Тип канала не соответствует аргументам\n"
+
+#: OOps/bus.c:886 OOps/bus.c:911
+#, fuzzy, c-format
+msgid "channel %s not initialised\n"
+msgstr "канал %s не инициализирован\n"
+
+#: OOps/bus.c:890 OOps/bus.c:915 OOps/bus.c:3284
+#, fuzzy, c-format
+msgid "channel %s has no value copy function\n"
+msgstr "Канал %s не имеет функции копирования\n"
+
 #: OOps/bus.c:1469 OOps/bus.c:1539 OOps/bus.c:1559 OOps/bus.c:1628
 #: OOps/bus.c:2744
 msgid "invalid mode parameter"
@@ -5827,10 +6829,19 @@ msgstr "Неверные параметры канала"
 msgid "invalid mode, should be r, w, rw"
 msgstr "Недействительный режим, должен быть r, w, rw"
 
+#: OOps/bus.c:1577
+msgid "channel argument has no variable constructor\n"
+msgstr "у аргумента канала нет конструктора переменной\n"
+
 #: OOps/bus.c:1601 OOps/bus.c:1604
 #, fuzzy
 msgid "invalid export variable"
 msgstr "Недействительная переменная экспорта"
+
+#: OOps/bus.c:1609
+#, fuzzy
+msgid "global variable not found for export\n"
+msgstr "глобальная переменная не найдена для экспорта\n"
 
 #: OOps/bus.c:1634
 #, fuzzy
@@ -5866,6 +6877,20 @@ msgstr "InputChannelCallback не установлен."
 msgid "OutputChannelCallback not set."
 msgstr "OutputChannelCallback не установлен."
 
+#: OOps/bus.c:2599
+#, fuzzy
+msgid "could not find channel\n"
+msgstr "не удалось найти канал\n"
+
+#: OOps/bus.c:2613
+msgid "array channel not allocated\n"
+msgstr "память для канала массива не выделена\n"
+
+#: OOps/bus.c:2620
+#, fuzzy
+msgid "array variable not allocated\n"
+msgstr "Нераспределенная переменная массива\n"
+
 #: OOps/bus.c:2658 OOps/bus.c:2677 OOps/bus.c:2700 OOps/bus.c:2719
 #, fuzzy
 msgid "array channel copy failed"
@@ -5896,6 +6921,21 @@ msgstr "Неисправность чтения в sensekey\n"
 msgid "sensekey error:"
 msgstr "Ошибка sensekey:"
 
+#: OOps/bus.c:3238
+#, fuzzy
+msgid "invalid channel name or input memBlock\n"
+msgstr "Неверное название канала или ввод memBlock\n"
+
+#: OOps/bus.c:3245
+#, fuzzy, c-format
+msgid "could not access channel %s\n"
+msgstr "не имели доступа к каналу %s\n"
+
+#: OOps/bus.c:3251
+#, fuzzy, c-format
+msgid "could not copy data into channel %s\n"
+msgstr "не удалось скопировать данные в канал %s\n"
+
 #: OOps/cmath.c:36 OOps/cmath.c:63
 #, fuzzy
 msgid "NaN in pow\n"
@@ -5921,6 +6961,45 @@ msgstr "compileorc: не удалось открыть %s\n"
 msgid "compileorc: could not read %s\n"
 msgstr "compileorc: невозможно прочитать %s\n"
 
+#: OOps/compile_ops.c:100
+#, fuzzy
+msgid "failed to compile instr\n"
+msgstr "не удалось собрать instr\n"
+
+#: OOps/compile_ops.c:249
+#, fuzzy
+msgid "OSCRead exceeded max output args (>32)\n"
+msgstr "OSCRead превысил максимальные выходные args (>32)\n"
+
+#: OOps/compile_ops.c:256
+#, fuzzy
+msgid "osclisten: output count does not match type string"
+msgstr "osclisten: Число выходных не соответствует строчке типа"
+
+#: OOps/compile_ops.c:270 OOps/compile_ops.c:312
+#, fuzzy, c-format
+msgid "unsupported OSC type %c"
+msgstr "OSC типа %c"
+
+#: OOps/compile_ops.c:273
+#, c-format
+msgid "wrong output argument for OSC type %c"
+msgstr "неверный выходной аргумент для типа OSC %c"
+
+#: OOps/compile_ops.c:302
+#, fuzzy
+msgid "osclisten: array size does not match type string"
+msgstr "osclisten: Размер массива не соответствует строчке типа"
+
+#: OOps/compile_ops.c:461 OOps/compile_ops.c:484
+#, fuzzy, c-format
+msgid ""
+"ksmps do not match:\n"
+"csound obj (%d), instr (%d)\n"
+msgstr ""
+"ksmps не соответствует:\n"
+"csound obj (%d), instr (%d)\n"
+
 #: OOps/compile_ops.c:504
 #, fuzzy
 msgid "Csound inch: channel out of range"
@@ -5930,6 +7009,45 @@ msgstr "Csound дюйм: канал вне зоны действия"
 #, fuzzy
 msgid "Csound outch: channel out of range"
 msgstr "Csound outch: канал вне диапазона"
+
+#: OOps/complex_ops.c:398 OOps/complex_ops.c:415 OOps/complex_ops.c:432
+#: OOps/complex_ops.c:469 OOps/complex_ops.c:486 OOps/complex_ops.c:503
+#, fuzzy
+msgid "complex div by zero\n"
+msgstr "Комплексный динав на ноль\n"
+
+#: OOps/complex_ops.c:444 OOps/complex_ops.c:515
+#, fuzzy
+msgid "complex polar div by zero\n"
+msgstr "Комплексный полярный динав на ноль\n"
+
+#: OOps/complex_ops.c:714 OOps/complex_ops.c:1609
+msgid "array1 uninitialised\n"
+msgstr "array1 не инициализирован\n"
+
+#: OOps/complex_ops.c:716 OOps/complex_ops.c:1611
+msgid "array2 uninitialised\n"
+msgstr "array2 не инициализирован\n"
+
+#: OOps/complex_ops.c:722 OOps/complex_ops.c:727 OOps/complex_ops.c:733
+#, fuzzy
+msgid "array uninitialised\n"
+msgstr "неинициализованный массив\n"
+
+#: OOps/complex_ops.c:1481
+msgid "array length < ksmps\n"
+msgstr "длина массива < ksmps\n"
+
+#: OOps/complex_ops.c:1484 Opcodes/arrays.c:115 Opcodes/arrays.c:227
+#: Opcodes/arrays.c:263 Opcodes/arrays.c:302 Opcodes/arrays.c:332
+#: Opcodes/arrays.c:370 Opcodes/arrays.c:372 Opcodes/arrays.c:431
+#: Opcodes/arrays.c:462 Opcodes/arrays.c:519 Opcodes/arrays.c:558
+#: Opcodes/arrays.c:608 Opcodes/arrays.c:638 Opcodes/arrays.c:678
+#: Opcodes/arrays.c:715 Opcodes/arrays.c:908 Opcodes/arrays.c:1114
+#: Opcodes/arrays.c:1237 Opcodes/arrays.c:1293 Opcodes/arrays.c:1430
+#: Opcodes/arrays.c:1578 Opcodes/arrays.c:1580 Opcodes/arrays.c:1622
+msgid "array not initialised\n"
+msgstr "массив не инициализирован\n"
 
 #: OOps/diskin2.c:1123
 msgid "diskin2: invalid number of channels"
@@ -6023,6 +7141,10 @@ msgstr "memplay: Неверная длина файла или число кан
 #, fuzzy, c-format
 msgid "diskin2: %s: failed to open file: %s"
 msgstr "diskin2: %s: не удалось открыть файл: %s"
+
+#: OOps/diskin2.c:2911
+msgid "could not allocate circular buffer\n"
+msgstr "не удалось выделить кольцевой буфер\n"
 
 #: OOps/diskin2.c:3337
 msgid "soundout: not initialised"
@@ -6218,6 +7340,17 @@ msgstr "Ошибка чтения в readks"
 msgid " *** fftlib.c: internal error: invalid FFT size: %d"
 msgstr " *** fftlib.c: внутренняя погрешность: неверный размер FFT: %d"
 
+#: OOps/fftlib.c:3458
+#, c-format
+msgid ""
+"FFTsize %d \n"
+"Cannot use PFFT with sizes <= 16\n"
+"--defaulting to FFTLIB"
+msgstr ""
+"FFTsize %d \n"
+"Нельзя использовать PFFT при размерах <= 16\n"
+"--используется FFTLIB"
+
 #: OOps/goto_ops.c:83
 #, fuzzy
 msgid "negative time period"
@@ -6261,6 +7394,15 @@ msgstr "Прибор %s все еще активирован"
 msgid "Instrument %d is still active"
 msgstr "Прибор %d все еще активирован"
 
+#: OOps/inst_ops.c:387 OOps/inst_ops.c:457
+#, fuzzy, c-format
+msgid ""
+"cannot write to instance ref for instr %d\n"
+"- read-only variable"
+msgstr ""
+"не может записать в пример для instr %d\n"
+"- переменная только для чтения"
+
 #: OOps/inst_ops.c:427
 #, fuzzy, c-format
 msgid "instance %llu (instr %s): linked and active\n"
@@ -6271,10 +7413,175 @@ msgstr "Case %llu (instr %s): соединенные и активные\n"
 msgid "instance %llu (instr %d): linked and active\n"
 msgstr "Case %llu (instr %d): соединенные и активные\n"
 
+#: OOps/inst_ops.c:440
+#, fuzzy, c-format
+msgid "could not initialise instr %d"
+msgstr "не удалось инициализировать instr %d"
+
+#: OOps/inst_ops.c:443 OOps/inst_ops.c:465
+#, fuzzy, c-format
+msgid "could not instantiate instr %d"
+msgstr "не смог замедлить instr %d"
+
+#: OOps/inst_ops.c:496 OOps/inst_ops.c:542
+#, fuzzy
+msgid "NULL instance\n"
+msgstr "Пример NULL\n"
+
+#: OOps/inst_ops.c:530
+#, fuzzy, c-format
+msgid "instr %d not initialised (init failed)\n"
+msgstr "instr %d не был инициализирован (init не сработал)\n"
+
+#: OOps/inst_ops.c:536
+#, fuzzy, c-format
+msgid "context mismatch, cannot perform instr %d instance"
+msgstr "Несоответствие контексту, не может выполнить случай instr %d"
+
+#: OOps/inst_ops.c:708
+#, fuzzy
+msgid "perfloop: only allowed in instr 0\n"
+msgstr "perfloop: только в instr 0\n"
+
+#: OOps/json_ops.c:48
+#, fuzzy
+msgid "could not allocate JSON value"
+msgstr "не удалось выделить значение JSON"
+
+#: OOps/json_ops.c:133
+msgid "unsupported array element type"
+msgstr "неподдерживаемый тип элемента массива"
+
+#: OOps/json_ops.c:140
+#, fuzzy
+msgid "maximum type nesting depth exceeded"
+msgstr "Максимальная глубина гнезда"
+
+#: OOps/json_ops.c:155 OOps/json_ops.c:324 OOps/json_ops.c:389
+#, fuzzy
+msgid "unsupported member type"
+msgstr "неподдерживаемый тип члена"
+
+#: OOps/json_ops.c:183 OOps/json_ops.c:217 OOps/json_ops.c:334
+#, fuzzy
+msgid "maximum nesting depth exceeded"
+msgstr "Максимальная превышение глубины гнезда"
+
+#: OOps/json_ops.c:223
+#, fuzzy
+msgid "expected an object"
+msgstr "ожидаемый объект"
+
+#: OOps/json_ops.c:239
+#, fuzzy
+msgid "NUL in object key"
+msgstr "NUL в ключе объекта"
+
+#: OOps/json_ops.c:245
+#, fuzzy
+msgid "unknown field"
+msgstr "неизвестное поле"
+
+#: OOps/json_ops.c:249
+#, fuzzy
+msgid "duplicate field"
+msgstr "дублирующее поле"
+
+#: OOps/json_ops.c:260
+#, fuzzy
+msgid "missing field"
+msgstr "недостающее поле"
+
+#: OOps/json_ops.c:274 OOps/json_ops.c:362
+msgid "expected a one-dimensional typed array"
+msgstr "ожидается одномерный типизированный массив"
+
+#: OOps/json_ops.c:279
+#, fuzzy
+msgid "could not allocate array"
+msgstr "не удалось распределить массив"
+
+#: OOps/json_ops.c:298
+#, fuzzy
+msgid "expected a string without NUL bytes"
+msgstr "Ожидал строки без NUL байтов"
+
+#: OOps/json_ops.c:310
+msgid "expected a finite number in cs_float range"
+msgstr "ожидается конечное число в диапазоне cs_float"
+
+#: OOps/json_ops.c:318
+#, fuzzy
+msgid "expected a Boolean"
+msgstr "ожидаемый Boolean"
+
+#: OOps/json_ops.c:382
+msgid "expected a finite number"
+msgstr "ожидается конечное число"
+
+#: OOps/json_ops.c:424
+#, c-format
+msgid "%s: invalid flags or maximum depth"
+msgstr "%s: недопустимые флаги или максимальная глубина"
+
+#: OOps/json_ops.c:426
+#, fuzzy, c-format
+msgid "%s: empty source"
+msgstr "%s: пустой источник"
+
+#: OOps/json_ops.c:435
+#, fuzzy, c-format
+msgid "%s: cannot open file '%s'"
+msgstr "%s: не может открыть файл %s"
+
+#: OOps/json_ops.c:444
+#, fuzzy, c-format
+msgid "%s: %s at byte %zu"
+msgstr "%s: %s в байте %zu"
+
+#: OOps/json_ops.c:449 OOps/json_ops.c:520
+msgid "expected a declared UDT or typed array"
+msgstr "ожидается объявленный UDT или типизированный массив"
+
+#: OOps/json_ops.c:474
+#, fuzzy
+msgid "could not create destination value"
+msgstr "не удалось создать значение места назначения"
+
+#: OOps/json_ops.c:493
+#, fuzzy, c-format
+msgid "%s: %s at %s"
+msgstr "%s: %s при %s"
+
+#: OOps/json_ops.c:515
+#, fuzzy
+msgid "jsonmarshal: invalid pretty or maximum depth option"
+msgstr ""
+"jsonmarshal: Недействительный вариант красоты или максимальной глубины"
+
+#: OOps/json_ops.c:539
+#, fuzzy
+msgid "could not encode JSON"
+msgstr "не смог кодировать JSON"
+
+#: OOps/json_ops.c:543
+#, fuzzy
+msgid "encoded JSON exceeds the Csound string size limit"
+msgstr "Зашифрованный JSON превышает предел размера строк Csound"
+
+#: OOps/json_ops.c:554
+#, fuzzy, c-format
+msgid "jsonmarshal: %s at %s"
+msgstr "jsonmarshal: %s при %s"
+
 #: OOps/lpred.c:630 OOps/lpred.c:812
 #, fuzzy, c-format
 msgid "function table %d not found\n"
 msgstr "Таблица функции %d не найдена\n"
+
+#: OOps/lpred.c:980
+msgid "input size not power of two\n"
+msgstr "размер входных данных не является степенью двойки\n"
 
 #: OOps/lpred.c:1082
 #, fuzzy
@@ -6425,7 +7732,8 @@ msgstr "ctrlpreset: Регулятор и значение должны быть
 #: OOps/midiops.c:1017
 #, fuzzy
 msgid "ctrlpreset: expected a controller preset array"
-msgstr "ctrlpreset: Предполагалось, что установочная система будет установлена"
+msgstr ""
+"ctrlpreset: Предполагалось, что установочная система будет установлена"
 
 #: OOps/midiops.c:1039 OOps/midiops.c:1078
 #, fuzzy
@@ -7233,6 +8541,11 @@ msgstr "Неизвестный тип окна; заменен прямоуго�
 msgid "pvsanal: not Initialised.\n"
 msgstr "pvsanal: Не инициализировано.\n"
 
+#: OOps/pvsanal.c:640
+#, fuzzy
+msgid "PVS format not supported\n"
+msgstr "Не поддерживается формат PVS\n"
+
 #: OOps/pvsanal.c:936
 #, fuzzy
 msgid "pvsynth: Not Initialised.\n"
@@ -7516,6 +8829,16 @@ msgstr "event_i: ошибка создания события %c"
 msgid "instance: error creating event\n"
 msgstr "instance: Ошибка создания события\n"
 
+#: OOps/schedule.c:374
+#, fuzzy
+msgid "invalid instrument argument\n"
+msgstr "Аргумент о недействительности документа\n"
+
+#: OOps/schedule.c:448
+#, fuzzy
+msgid "instrument argument invalid\n"
+msgstr "недействительный аргумент\n"
+
 #: OOps/schedule.c:512
 #, fuzzy, c-format
 msgid "LFO: unknown oscillator type %g"
@@ -7561,6 +8884,11 @@ msgstr "trigseq: первоначальная группа вне зоны де�
 msgid "trigseq: group or loop out of range"
 msgstr "trigseq: группа или петля вне диапазона"
 
+#: OOps/schedule.c:998
+#, fuzzy, c-format
+msgid "unscheduled event: %c"
+msgstr "Незапланированное событие: %c"
+
 #: OOps/schedule.c:1023
 #, fuzzy
 msgid "unschedule: invalid argument count"
@@ -7575,6 +8903,13 @@ msgstr "нет файла, указанного в командной строк
 #, fuzzy, c-format
 msgid "diskinfo cannot open %s"
 msgstr "Дискinfo не может открыть %s"
+
+#: OOps/sndinfUG.c:153 OOps/sndinfUG.c:168 OOps/sndinfUG.c:184
+#: OOps/sndinfUG.c:198 OOps/sndinfUG.c:221 OOps/sndinfUG.c:236
+#: OOps/sndinfUG.c:249 OOps/sndinfUG.c:272
+#, fuzzy
+msgid "error reading input file\n"
+msgstr "ошибка считывания входного файла\n"
 
 #: OOps/sndinfUG.c:305
 #, fuzzy, c-format
@@ -7617,6 +8952,11 @@ msgstr "Предыдущее значение: \"%s\", заменено на \"%
 msgid "--strset: invalid format"
 msgstr "--strset: неверный формат"
 
+#: OOps/str_ops.c:146
+#, fuzzy
+msgid "strget_init: allocation failure"
+msgstr "strget_init: Неисправность распределения"
+
 #: OOps/str_ops.c:226 OOps/str_ops.c:228 OOps/str_ops.c:411 OOps/str_ops.c:412
 #, fuzzy
 msgid "NULL string\n"
@@ -7626,6 +8966,41 @@ msgstr "Строка NULL\n"
 #, fuzzy
 msgid "strcpy_opcode_p: Memory allocation failed\n"
 msgstr "strcpy_opcode_p: Ошибка распределения памяти\n"
+
+#: OOps/str_ops.c:239
+#, fuzzy
+msgid "strcpy_opcode_p: allocation failure"
+msgstr "strcpy_opcode_p: Неисправность распределения"
+
+#: OOps/str_ops.c:287
+#, fuzzy, c-format
+msgid "strcatk: requested alloc size exceeds max (%u bytes)"
+msgstr "strcatk: Запрошенный размер аллока превышает максимум (байт %u)"
+
+#: OOps/str_ops.c:291
+#, fuzzy, c-format
+msgid "strcat: requested alloc size exceeds max (%u bytes)"
+msgstr "strcat: Запрошенный размер аллока превышает максимум (байт %u)"
+
+#: OOps/str_ops.c:301 OOps/str_ops.c:327 OOps/str_ops.c:354 OOps/str_ops.c:383
+#, fuzzy
+msgid "strcatk: allocation size overflow"
+msgstr "strcatk: Количество"
+
+#: OOps/str_ops.c:303 OOps/str_ops.c:329 OOps/str_ops.c:356 OOps/str_ops.c:385
+#, fuzzy
+msgid "strcat: allocation size overflow"
+msgstr "strcat: Количество"
+
+#: OOps/str_ops.c:310 OOps/str_ops.c:336 OOps/str_ops.c:363 OOps/str_ops.c:392
+#, fuzzy
+msgid "strcatk: allocation failure"
+msgstr "strcatk: Неисправность распределения"
+
+#: OOps/str_ops.c:312 OOps/str_ops.c:338 OOps/str_ops.c:365 OOps/str_ops.c:394
+#, fuzzy
+msgid "strcat: allocation failure"
+msgstr "strcat: Неисправность распределения"
 
 #: OOps/str_ops.c:440 Opcodes/emugens/emugens.c:2857 Top/argdecode.c:1670
 #: util/envext.c:95 util/scale.c:249
@@ -7711,9 +9086,246 @@ msgstr "getcfg: ошибка выделения памяти"
 msgid "invalid option code: %g"
 msgstr "недействительный код опции: %g"
 
+#: OOps/str_ops.c:1214
+#, fuzzy, c-format
+msgid "Variable Type: %s\n"
+msgstr "Изменяющийся тип: %s\n"
+
+#: OOps/structs.c:95 OOps/structs.c:98
+#, fuzzy, c-format
+msgid "%s: array dimensions do not match indexes"
+msgstr "%s: размер массива не соответствует индексам"
+
+#: OOps/structs.c:108 OOps/structs.c:111
+#, fuzzy, c-format
+msgid "%s: invalid index or dimension %d"
+msgstr "%s: недействительный индекс или размер %d"
+
+#: OOps/structs.c:118 OOps/structs.c:121
+#, fuzzy, c-format
+msgid "%s: invalid index for dimension %d"
+msgstr "%s: недействительный индекс для измерения %d"
+
+#: OOps/structs.c:128 OOps/structs.c:132
+#, fuzzy, c-format
+msgid "%s: index %d out of range for dimension %d"
+msgstr "%s: индекс %d вне диапазона для размера %d"
+
+#: OOps/structs.c:138 OOps/structs.c:139
+#, fuzzy, c-format
+msgid "%s: index overflow"
+msgstr "%s: переполнение индекса"
+
+#: OOps/structs.c:162 OOps/structs.c:163
+#, fuzzy, c-format
+msgid "%s: invalid array storage"
+msgstr "%s: неисправное хранилище массива"
+
+#: OOps/structs.c:169 OOps/structs.c:172
+#, fuzzy, c-format
+msgid "%s: inconsistent shared array storage"
+msgstr "%s: непоследовательное совместное хранилище массивов"
+
+#: OOps/structs.c:177 OOps/structs.c:178
+#, fuzzy, c-format
+msgid "%s: offset overflow"
+msgstr "%s: избыточная ось"
+
+#: OOps/structs.c:187 OOps/structs.c:190
+#, fuzzy, c-format
+msgid "%s: element exceeds allocated storage"
+msgstr "%s: элемент превышает выделенное хранение"
+
+#: OOps/structs.c:209 OOps/structs.c:211
+#, fuzzy
+msgid "array_set_struct: NULL array or value"
+msgstr "array_set_struct: NULL массив или значение"
+
+#: OOps/structs.c:218 OOps/structs.c:220
+#, fuzzy
+msgid "array_set_struct: invalid element type"
+msgstr "array_set_struct: недействительный тип элемента"
+
 #: OOps/structs.c:224 OOps/structs.c:305
 msgid "array_set_struct: could not prepare array for writing"
 msgstr "array_set_struct: не удалось подготовить массив к записи"
+
+#: OOps/structs.c:245 OOps/structs.c:248
+#, fuzzy
+msgid "array_set_struct: value does not match type"
+msgstr "array_set_struct: Значение не соответствует типу"
+
+#: OOps/structs.c:254
+#, fuzzy
+msgid "array_set_struct: destination was not prepared during init"
+msgstr "array_set_struct: пункт назначения не был подготовлен во время init"
+
+#: OOps/structs.c:262 OOps/structs.c:265
+#, fuzzy
+msgid "array_set_struct: cannot initialize element"
+msgstr "array_set_struct: не может инициализировать элемент"
+
+#: OOps/structs.c:271 OOps/structs.c:274
+#, fuzzy
+msgid "array_set_struct: destination does not match type"
+msgstr "array_set_struct: Пункт назначения не соответствует типу"
+
+#: OOps/structs.c:284 OOps/structs.c:286
+#, fuzzy
+msgid "array_set_struct: could not copy value"
+msgstr "array_set_struct: не удалось скопировать значение"
+
+#: OOps/structs.c:298
+#, fuzzy
+msgid "array_set_struct: invalid destination"
+msgstr "array_set_struct: недействительный пункт назначения"
+
+#: OOps/structs.c:346 OOps/structs.c:421 OOps/structs.c:488
+#, fuzzy
+msgid "Invalid member index pointer (NULL)"
+msgstr "Неверный указатель члена (NULL)"
+
+#: OOps/structs.c:350
+#, fuzzy
+msgid "Invalid struct member output (NULL)"
+msgstr "Неверный результат struct члена (NULL)"
+
+#: OOps/structs.c:354 OOps/structs.c:427 OOps/structs.c:494
+#, fuzzy
+msgid "Invalid struct pointer (NULL)"
+msgstr "Неверный указатель struct (NULL)"
+
+#: OOps/structs.c:360
+#, fuzzy
+msgid "Invalid struct for member_get"
+msgstr "Ошибка struct для member_get"
+
+#. TRANSLATORS: Keep array[index].member and array.member unchanged.
+#: OOps/structs.c:369
+msgid ""
+"Type confusion: trying to access array of structs as single struct. Use "
+"array[index].member syntax instead of array.member"
+msgstr ""
+"Несоответствие типов: попытка обратиться к массиву структур как к одной "
+"структуре. Используйте синтаксис array[index].member вместо array.member"
+
+#: OOps/structs.c:372 OOps/structs.c:452
+#, fuzzy, c-format
+msgid "Corrupted struct: invalid memberCount=%d"
+msgstr "Коррумпированный struct: недействителен memberCount=%d"
+
+#: OOps/structs.c:377 OOps/structs.c:457 OOps/structs.c:508
+#, fuzzy
+msgid "Invalid member index"
+msgstr "Недействительный индекс члена"
+
+#: OOps/structs.c:381 OOps/structs.c:461
+#, fuzzy, c-format
+msgid "Invalid member index %d (memberCount=%d)"
+msgstr "Недействительный индекс члена %d (memberCount=%d)"
+
+#: OOps/structs.c:387 OOps/structs.c:467
+#, fuzzy, c-format
+msgid "Struct member %d is not initialized"
+msgstr "Структурный член %d не инициализирован"
+
+#: OOps/structs.c:431
+#, fuzzy
+msgid "Invalid struct member input (NULL)"
+msgstr "Неверный вклад члена struct (NULL)"
+
+#. TRANSLATORS: Keep array[index].member and the code after "Use:" unchanged.
+#: OOps/structs.c:444
+msgid ""
+"Cannot directly access array[index].member for struct arrays. Use: temp = "
+"array[index]; temp.member = value; array[index] = temp"
+msgstr ""
+"Нельзя напрямую обращаться к array[index].member для массивов структур. "
+"Используйте: temp = array[index]; temp.member = value; array[index] = temp"
+
+#: OOps/structs.c:449
+#, fuzzy
+msgid "Invalid struct for member_set"
+msgstr "Ошибка struct для member_set"
+
+#: OOps/structs.c:498
+#, fuzzy
+msgid "Invalid array member input (NULL)"
+msgstr "Неверный вход в массив (NULL)"
+
+#: OOps/structs.c:505
+#, fuzzy
+msgid "Invalid struct for member_array_assign"
+msgstr "Ошибка struct для member_array_assign"
+
+#: OOps/structs.c:512
+#, fuzzy, c-format
+msgid "Member index %d out of bounds (memberCount=%d)"
+msgstr "Индекс члена %d вне границ (memberCount=%d)"
+
+#: OOps/structs.c:518
+#, fuzzy
+msgid "Selected member is not an array for member_array_assign"
+msgstr "Выбранный член не является массивом для member_array_assign"
+
+#: OOps/structs.c:535
+#, fuzzy
+msgid "Invalid struct for struct_alias"
+msgstr "Ошибка struct для struct_alias"
+
+#: OOps/structs.c:585 OOps/structs.c:587
+#, fuzzy
+msgid "struct_array_get: NULL array or output"
+msgstr "struct_array_get: NULL массив или выход"
+
+#: OOps/structs.c:594 OOps/structs.c:596
+#, fuzzy
+msgid "struct_array_get: invalid element type"
+msgstr "struct_array_get: недействительный тип элемента"
+
+#: OOps/structs.c:604
+msgid "struct_array_get: array is not initialized"
+msgstr "struct_array_get: массив не инициализирован"
+
+#: OOps/structs.c:609
+#, fuzzy
+msgid "Invalid struct array dimensions"
+msgstr "Неверные размеры массива struct"
+
+#: OOps/structs.c:632 OOps/structs.c:635
+#, fuzzy
+msgid "struct_array_get: element does not match type"
+msgstr "struct_array_get: Элемент не соответствует типу"
+
+#: OOps/structs.c:661 OOps/structs.c:664
+#, fuzzy
+msgid "Could not initialize struct array output"
+msgstr "Невозможно инициировать выход массива struct"
+
+#: OOps/structs.c:673 OOps/structs.c:676
+#, fuzzy
+msgid "struct_array_get: output does not match type"
+msgstr "struct_array_get: вывод не соответствует типу"
+
+#: OOps/structs.c:707
+#, fuzzy
+msgid "Invalid struct variable for initialization"
+msgstr "Неверная переменная struct для инициализации"
+
+#: OOps/structs.c:714
+#, fuzzy
+msgid "Struct has no members to initialize"
+msgstr "У Структа нет членов для инициализации"
+
+#: OOps/structs.c:725
+#, fuzzy, c-format
+msgid "Struct initialization: expected %d arguments, got %d"
+msgstr "Структурная инициализация: ожидаемые аргументы %d, %d"
+
+#: OOps/structs.c:733
+#, fuzzy, c-format
+msgid "Struct member %d is NULL"
+msgstr "Структурный член %d - NULL"
 
 #: OOps/ugens1.c:109
 #, fuzzy
@@ -7935,6 +9547,11 @@ msgstr "oscil: не инициализирован"
 #, fuzzy
 msgid "oscili(krate): not initialised"
 msgstr "oscili(krate): не инициализировано"
+
+#: OOps/ugens2.c:1371
+#, fuzzy
+msgid "output is not a-type\n"
+msgstr "вывод не является типом\n"
 
 #: OOps/ugens2.c:1396 OOps/ugens2.c:1437 OOps/ugens2.c:1474 OOps/ugens2.c:1513
 msgid "oscili: not initialised"
@@ -8572,6 +10189,11 @@ msgstr "Тип сообщения не указан как строка\n"
 msgid "Failed to set multicast"
 msgstr "Не удалось установить многокассетный"
 
+#: Opcodes/OSC.c:260
+#, fuzzy
+msgid "multicast not supported\n"
+msgstr "многокассетный не поддерживается\n"
+
 #: Opcodes/OSC.c:317
 #, fuzzy
 msgid "Time stamp is two values"
@@ -8586,6 +10208,11 @@ msgstr "таблицы функции %.2f не существует"
 #, fuzzy, c-format
 msgid "argument %d is not an array"
 msgstr "аргумент %d не является массивом"
+
+#: Opcodes/OSC.c:399
+#, fuzzy
+msgid "S unimplemented"
+msgstr "Невыполненные обязательства"
 
 #: Opcodes/OSC.c:402
 #, fuzzy, c-format
@@ -8610,6 +10237,14 @@ msgstr "OSC: не удалось зарегистрировать перезаг
 #, fuzzy
 msgid "OSC deinitialised\n"
 msgstr "OSC выведен из эксплуатации\n"
+
+#: Opcodes/OSC.c:659 Opcodes/OSC.c:686
+msgid "OSC: Failed to allocate memory for ports\n"
+msgstr "OSC: Не удалось выделить память для портов\n"
+
+#: Opcodes/OSC.c:668
+msgid "OSC: Failed to create listener mutex\n"
+msgstr "OSC: Не удалось создать мьютекс приёмника\n"
 
 #: Opcodes/OSC.c:678 Opcodes/OSC.c:711 Opcodes/OSC.c:735
 #, fuzzy, c-format
@@ -8685,6 +10320,10 @@ msgstr "OSC: Ошибка передачи памяти для таблицы ф
 #, fuzzy, c-format
 msgid "OSC: invalid blob type '%c'"
 msgstr "OSC: Недействительный тип \"%c\""
+
+#: Opcodes/OSC.c:1127
+msgid "OSC: Failed to allocate memory for string\n"
+msgstr "OSC: Не удалось выделить память для строки\n"
 
 #: Opcodes/OSC.c:1270
 #, fuzzy
@@ -8916,7 +10555,8 @@ msgstr "ожидая одномерного упакованного реаль�
 #, fuzzy
 msgid ""
 "pol2rect: expected equal-length one-dimensional magnitude and phase arrays"
-msgstr "pol2rect: ожидаемая равная длина одномерных массивов и фазных массивов"
+msgstr ""
+"pol2rect: ожидаемая равная длина одномерных массивов и фазных массивов"
 
 #: Opcodes/arrays.c:643 Opcodes/arrays.c:664
 #, fuzzy
@@ -9219,13 +10859,15 @@ msgstr "Конфигурация гексагона работает тольк�
 
 #: Opcodes/bformdec2.cpp:987
 #, fuzzy
-msgid "2D Binaural configuration only works with first, second and third order"
+msgid ""
+"2D Binaural configuration only works with first, second and third order"
 msgstr ""
 "2D Бинарная конфигурация работает только в первом, втором и третьем порядке"
 
 #: Opcodes/bformdec2.cpp:991
 #, fuzzy
-msgid "3D Binaural configuration only works with first, second and third order"
+msgid ""
+"3D Binaural configuration only works with first, second and third order"
 msgstr ""
 "3D Бинарная конфигурация работает только в первом, втором и третьем порядке"
 
@@ -9262,6 +10904,15 @@ msgstr "Концы должны быть зажаты (1) с поворотом 
 msgid "rezzy instability corrected"
 msgstr "Устранение нестабильности rezzy"
 
+#: Opcodes/biquad.c:663
+#, fuzzy, c-format
+msgid ""
+"knh=%x nyq=%f fqc=%f\n"
+"vco knh (%d) <= 0; taken as 1\n"
+msgstr ""
+"knh=%x nyq=%f fqc=%f\n"
+"vco knh (%d) <= 0; взят как 1\n"
+
 #: Opcodes/biquad.c:861
 msgid "vco: not initialised"
 msgstr "vco: не инициализирован"
@@ -9290,8 +10941,8 @@ msgstr "nestedap: недействительные третья задержка
 #, fuzzy, c-format
 msgid "DLineN: Delay length too big ... setting to maximum length of %d.\n"
 msgstr ""
-"DLineN: Длина задержки слишком большая... установленная на максимальную длину"
-" %d.\n"
+"DLineN: Длина задержки слишком большая... установленная на максимальную "
+"длину %d.\n"
 
 #: Opcodes/bowedbar.c:99
 #, fuzzy
@@ -9318,6 +10969,11 @@ msgstr "Bowedbar: частота должна быть позитивной"
 #, fuzzy
 msgid "Bowedbar: cannot have zero modes\n"
 msgstr "Bowedbar: не может иметь нулевых режимов\n"
+
+#: Opcodes/buchla.c:57
+#, fuzzy
+msgid "**** Experimental code ****\n"
+msgstr "**** Экспериментальный код ****\n"
 
 #: Opcodes/cellular.c:53 Opcodes/cellular.c:61 Opcodes/cellular.c:68
 msgid "cell: invalid num of elements"
@@ -9370,7 +11026,8 @@ msgstr "В clfilt должна быть положительная полоса 
 #: Opcodes/clfilt.c:99 Opcodes/clfilt.c:204
 #, fuzzy, c-format
 msgid "passband ripple must be non-zero in clfilt. Set to %f"
-msgstr "В clfilt решетка пасс-диапазона должна быть ненулевой. Установка на %f"
+msgstr ""
+"В clfilt решетка пасс-диапазона должна быть ненулевой. Установка на %f"
 
 #: Opcodes/clfilt.c:141 Opcodes/clfilt.c:246
 #, c-format
@@ -9550,6 +11207,86 @@ msgstr "readf: не удалось открыть файл"
 msgid "readf: read failure"
 msgstr "readf: Неисправность чтения"
 
+#: Opcodes/dbap.c:157
+msgid ""
+"\n"
+"[DBAP OPCODE ERROR] Need at least 2 loudspeakers\n"
+msgstr ""
+"\n"
+"[ОШИБКА ОПКОДА DBAP] Требуется не менее 2 громкоговорителей\n"
+
+#: Opcodes/dbap.c:294
+msgid ""
+"\n"
+"[DBAP OPCODE ERROR] DBAP init error\n"
+msgstr ""
+"\n"
+"[ОШИБКА ОПКОДА DBAP] Ошибка инициализации DBAP\n"
+
+#: Opcodes/dbap.c:439
+msgid ""
+"\n"
+"[DBAP OPCODE ERROR] Coordinates kind must be 0 (for cartesian), 1 (for polar degree) or 2 (for polar radians)\n"
+msgstr ""
+"\n"
+"[ОШИБКА ОПКОДА DBAP] Тип координат должен быть 0 (декартовы), 1 (полярные в градусах) или 2 (полярные в радианах)\n"
+
+#: Opcodes/dbap.c:443
+msgid ""
+"\n"
+"[DBAP OPCODE ERROR] Number of out channels must equal number of loudspeakers\n"
+msgstr ""
+"\n"
+"[ОШИБКА ОПКОДА DBAP] Число выходных каналов должно равняться числу громкоговорителей\n"
+
+#: Opcodes/dbap.c:447 Opcodes/dbap.c:537
+msgid ""
+"\n"
+"[DBAP OPCODE ERROR] Dimension must be exactly 2 (for 2D) or 3 (for 3D)\n"
+msgstr ""
+"\n"
+"[ОШИБКА ОПКОДА DBAP] Размерность должна быть ровно 2 (для 2D) или 3 (для 3D)\n"
+
+#: Opcodes/dbap.c:479
+msgid ""
+"\n"
+"[DBAP OPCODE ERROR] Source dimension must be 2D or 3D\n"
+msgstr ""
+"\n"
+"[ОШИБКА ОПКОДА DBAP] Размерность источника должна быть 2D или 3D\n"
+
+#: Opcodes/dbap.c:525
+msgid ""
+"\n"
+"[DBAP OPCODE ERROR] Loudspeaker positions must be a two-dimensional array\n"
+msgstr ""
+"\n"
+"[ОШИБКА ОПКОДА DBAP] Позиции громкоговорителей должны быть двумерным массивом\n"
+
+#: Opcodes/dbap.c:553
+msgid ""
+"\n"
+"[DBAP OPCODE ERROR] Loudspeaker weights must be a one-dimensional array\n"
+msgstr ""
+"\n"
+"[ОШИБКА ОПКОДА DBAP] Весовые коэффициенты громкоговорителей должны быть одномерным массивом\n"
+
+#: Opcodes/dbap.c:557 Opcodes/dbap.c:577
+msgid ""
+"\n"
+"[DBAP OPCODE ERROR] Need one weight per loudspeaker\n"
+msgstr ""
+"\n"
+"[ОШИБКА ОПКОДА DBAP] Требуется один весовой коэффициент на громкоговоритель\n"
+
+#: Opcodes/dbap.c:633 Opcodes/dbap.c:661 Opcodes/dbap.c:736 Opcodes/dbap.c:764
+msgid ""
+"\n"
+"[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n"
+msgstr ""
+"\n"
+"[ОШИБКА ОПКОДА DBAP] Недопустимая таблица GEN с позициями громкоговорителей\n"
+
 #: Opcodes/dcblockr.c:102
 #, c-format
 msgid "dcblock2: invalid order %f"
@@ -9573,6 +11310,199 @@ msgstr "Ошибка распределения стопки аргумента"
 #, fuzzy
 msgid "the stack is already allocated"
 msgstr "стопка уже выделена"
+
+#: Opcodes/deprecated.c:496
+#, fuzzy
+msgid "pop of strings broken"
+msgstr "струны сломаны"
+
+#: Opcodes/doppler.cpp:154
+#, fuzzy
+msgid "doppler: speed of sound must be positive"
+msgstr "doppler: скорость звука должна быть позитивной"
+
+#: Opcodes/doppler.cpp:156
+msgid "doppler: filter cutoff must be nonnegative"
+msgstr "doppler: частота среза фильтра не должна быть отрицательной"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:142
+#, fuzzy, c-format
+msgid "DSSI4CS: %s: %s (%s), %lu audio inputs, %lu outputs\n"
+msgstr "DSSI4CS: %s: %s (%s), %lu аудиовыпуски, %lu\n"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:151
+#, fuzzy, c-format
+msgid ", value %g, MIDI mapping %d"
+msgstr ", значение %g, MIDI по карте %d"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:161
+#, fuzzy
+msgid "DSSI4CS: invalid plugin index"
+msgstr "DSSI4CS: Неверный индекс подсказки"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:163
+#, fuzzy
+msgid "DSSI4CS: use one Csound performance thread"
+msgstr "DSSI4CS: использовать одну служебную нить Csound"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:167
+#, fuzzy
+msgid "DSSI4CS: cannot create host state"
+msgstr "DSSI4CS: не может создать принимающее государство"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:172
+#, fuzzy
+msgid "DSSI4CS: instance limit reached"
+msgstr "DSSI4CS: предел достигнутых результатов"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:188
+#, fuzzy
+msgid "cannot load library"
+msgstr "не может загружать библиотеку"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:192
+#, fuzzy
+msgid "missing descriptor or plugin index"
+msgstr "Недостающий индекс дескриптора или подсказки"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:196
+msgid "unsupported DSSI API version"
+msgstr "неподдерживаемая версия API DSSI"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:201
+#, fuzzy
+msgid "invalid LADSPA descriptor"
+msgstr "Неверный дескриптор LADSPA"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:206
+#, fuzzy
+msgid "plugin has no render callback"
+msgstr "bigin не имеет обратного вызова"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:208
+#, fuzzy
+msgid "invalid port descriptor"
+msgstr "недействительный дескриптор порта"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:216
+#, fuzzy
+msgid "cannot instantiate plugin"
+msgstr "не может мгновенно запустить"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:254 Opcodes/dssi4cs/src/dssi4cs.c:564
+#: Opcodes/dssi4cs/src/dssi4cs.c:748
+#, fuzzy
+msgid "DSSI4CS: invalid handle"
+msgstr "DSSI4CS: Недействительная ручка"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:262
+#, fuzzy
+msgid "DSSI4CS: activation must be 0 or 1"
+msgstr "DSSI4CS: активация должна быть 0 или 1"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:271 Opcodes/dssi4cs/src/dssi4cs.c:620
+msgid "DSSI4CS: activate all grouped instances before rendering their block"
+msgstr ""
+"DSSI4CS: активируйте все сгруппированные экземпляры перед обработкой их "
+"блока"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:285
+#, fuzzy
+msgid "DSSI4CS: handle is not a DSSI synth"
+msgstr "DSSI4CS: ручка не синт DSSI"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:304
+#, fuzzy
+msgid "DSSI4CS: activate the synth before sending events"
+msgstr "DSSI4CS: активировать синт перед отправкой событий"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:306
+msgid "DSSI4CS: send events before rendering their block"
+msgstr "DSSI4CS: отправляйте события до обработки их блока"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:308
+#, fuzzy
+msgid "DSSI4CS: event queue is full"
+msgstr "DSSI4CS: очередь события заполнена"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:325
+msgid "DSSI4CS: invalid note, velocity, channel or duration"
+msgstr "DSSI4CS: недопустимая нота, скорость нажатия, канал или длительность"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:350
+msgid "DSSI4CS: invalid note or velocity"
+msgstr "DSSI4CS: недопустимая нота или скорость нажатия"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:373
+#, fuzzy
+msgid "DSSI4CS: invalid MIDI event or sample offset"
+msgstr "DSSI4CS: Неверное событие MIDI или смещение выборки"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:392
+#, fuzzy
+msgid "DSSI4CS: unsupported MIDI status"
+msgstr "DSSI4CS: статус MIDI"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:413
+#, fuzzy
+msgid "DSSI4CS: invalid NRPN event"
+msgstr "DSSI4CS: Недействительное событие NRPN"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:566
+#, fuzzy
+msgid "DSSI4CS: each instance needs exactly one audio renderer"
+msgstr "DSSI4CS: Каждый случай нуждается в точно одном звукодиспетчере."
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:569
+#, fuzzy
+msgid "DSSI4CS: audio port count or ksmps mismatch"
+msgstr "DSSI4CS: Число порта звука или несоответствие ksmps"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:602
+msgid "DSSI4CS: these samples have already rendered"
+msgstr "DSSI4CS: эти отсчёты уже обработаны"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:630
+msgid ""
+"DSSI4CS: grouped synths need no audio inputs, matching ksmps and full blocks"
+msgstr ""
+"DSSI4CS: сгруппированные синтезаторы не должны иметь аудиовходов и требуют "
+"одинаковых значений ksmps и полных блоков"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:654
+#, fuzzy
+msgid "DSSI4CS: expected an input control port"
+msgstr "DSSI4CS: ожидаемый порт управления вводом"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:666
+#, fuzzy
+msgid "DSSI4CS: invalid control value"
+msgstr "DSSI4CS: недействительная контрольная величина"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:675
+#, fuzzy
+msgid "DSSI4CS: expected a control port"
+msgstr "DSSI4CS: Ожидалось создание контрольного порта"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:692
+#, fuzzy
+msgid "DSSI4CS: plugin does not support programs"
+msgstr "DSSI4CS: Не поддерживает программы"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:700
+#, fuzzy
+msgid "DSSI4CS: invalid bank or program"
+msgstr "DSSI4CS: недействительный банк или программа"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:710
+#, fuzzy
+msgid "DSSI4CS: plugin does not support configuration"
+msgstr "DSSI4CS: bigin не поддерживает конфигурацию"
+
+#: Opcodes/dssi4cs/src/dssi4cs.c:731
+#, fuzzy
+msgid "DSSI4CS: cannot enumerate programs"
+msgstr "DSSI4CS: не может перечислить программы"
 
 #: Opcodes/emugens/emugens.c:99
 #, fuzzy
@@ -9770,11 +11700,11 @@ msgstr "reshapearray: избыток продукта"
 #: Opcodes/emugens/emugens.c:2091
 #, fuzzy, c-format
 msgid ""
-"reshapearray: the number of items does not match. The array has %zu elements,"
-" but the new shape results in %zu total elements"
+"reshapearray: the number of items does not match. The array has %zu "
+"elements, but the new shape results in %zu total elements"
 msgstr ""
-"reshapearray: Количество единиц не совпадает. В массиве есть элементы %zu, но"
-" новая форма дает %zu общие элементы."
+"reshapearray: Количество единиц не совпадает. В массиве есть элементы %zu, "
+"но новая форма дает %zu общие элементы."
 
 #: Opcodes/emugens/emugens.c:2098
 msgid "reshapearray: could not prepare array for writing"
@@ -9962,7 +11892,8 @@ msgstr "flanger: Задержка находится вне imaxd"
 
 #: Opcodes/flanger.c:230
 #, fuzzy
-msgid "wguide2 xfreq1 and xfreq2 arguments must be both a-rate or k and i-rate"
+msgid ""
+"wguide2 xfreq1 and xfreq2 arguments must be both a-rate or k and i-rate"
 msgstr "wguide2 xfreq1 и xfreq2 должны быть как a-rate, так и k и i-rate"
 
 #: Opcodes/fm4op.c:171
@@ -10067,7 +11998,8 @@ msgstr "fouti: Неверный файл"
 msgid "invalid frame skip"
 msgstr "Неверный пропуск рамы"
 
-#: Opcodes/fout.c:865 Opcodes/fout.c:938 Opcodes/fout.c:951 Opcodes/fout.c:1112
+#: Opcodes/fout.c:865 Opcodes/fout.c:938 Opcodes/fout.c:951
+#: Opcodes/fout.c:1112
 #, fuzzy
 msgid "invalid file channel count"
 msgstr "Неверный список файлового канала"
@@ -10168,14 +12100,14 @@ msgstr "olabuffer: Ошибка, массив k-rate должен иметь о�
 #, fuzzy
 msgid "olabuffer: Error, k-rate array size must be larger than ovelap factor"
 msgstr ""
-"olabuffer: Ошибка, размер массива k-rate должен быть больше, чем коэффициент "
-"оверлапа"
+"olabuffer: Ошибка, размер массива k-rate должен быть больше, чем коэффициент"
+" оверлапа"
 
 #: Opcodes/framebuffer.c:233
 #, fuzzy
 msgid ""
-"olabuffer: Error, overlap factor must be an integer multiple of k-rate array "
-"size"
+"olabuffer: Error, overlap factor must be an integer multiple of k-rate array"
+" size"
 msgstr ""
 "olabuffer: Ошибка, коэффициент совпадения должен быть целым кратным размеру "
 "массива k-rate"
@@ -10183,8 +12115,8 @@ msgstr ""
 #: Opcodes/framebuffer.c:240
 #, fuzzy
 msgid ""
-"olabuffer: Error, k-rate array size divided by overlap factor must be larger "
-"than or equal to ksmps"
+"olabuffer: Error, k-rate array size divided by overlap factor must be larger"
+" than or equal to ksmps"
 msgstr ""
 "olabuffer: Ошибка, размер массива k-rate, разделенный на коэффициент "
 "совпадения, должен быть больше или равен ksmps"
@@ -10203,7 +12135,8 @@ msgstr "framebuffer: Размер должен быть i-rate"
 #, fuzzy
 msgid "framebuffer: size must be at least ksmps and fit in int32"
 msgstr ""
-"framebuffer: Размер должен быть не менее ksmps и должен соответствовать int32"
+"framebuffer: Размер должен быть не менее ksmps и должен соответствовать "
+"int32"
 
 #: Opcodes/framebuffer.c:264
 #, fuzzy
@@ -10361,7 +12294,8 @@ msgstr "ftload: неправильный файл"
 #, fuzzy
 msgid "ftsave: Bad table number. Saving is possible only for existing tables."
 msgstr ""
-"ftsave: Плохой номер таблицы. Сохранить можно только для существующих таблиц."
+"ftsave: Плохой номер таблицы. Сохранить можно только для существующих "
+"таблиц."
 
 #: Opcodes/ftgen.c:584
 #, fuzzy
@@ -10571,7 +12505,8 @@ msgstr "hvs3: Каждая ось должна иметь по крайней м
 #: Opcodes/gab/hvs.c:405
 #, fuzzy
 msgid "vphaseseg: expected table/distance pairs and a final table"
-msgstr "vphaseseg: :: ожидаемые пары таблиц/расстояний и окончательная таблица"
+msgstr ""
+"vphaseseg: :: ожидаемые пары таблиц/расстояний и окончательная таблица"
 
 #: Opcodes/gab/hvs.c:408
 msgid "vphaseseg: invalid output table"
@@ -11134,7 +13069,8 @@ msgstr "vport: недействительная таблица init"
 #, c-format
 msgid "vrandh: Seeding from current time %<PRIu32>\n"
 msgstr ""
-"vrandh: инициализация генератора случайных чисел текущим временем %<PRIu32>\n"
+"vrandh: инициализация генератора случайных чисел текущим временем "
+"%<PRIu32>\n"
 
 #: Opcodes/gab/vectorial.c:2057
 #, fuzzy
@@ -11155,7 +13091,8 @@ msgstr "randh: Протяженность таблицы превышена, п�
 #, c-format
 msgid "vrandi: Seeding from current time %<PRIu32>\n"
 msgstr ""
-"vrandi: инициализация генератора случайных чисел текущим временем %<PRIu32>\n"
+"vrandi: инициализация генератора случайных чисел текущим временем "
+"%<PRIu32>\n"
 
 #: Opcodes/gab/vectorial.c:2158
 #, fuzzy
@@ -11529,6 +13466,26 @@ msgstr "IFD: Окно Ханна нуждается по крайней мере
 msgid "IFD: frame buffers too large"
 msgstr "IFD: рамные буфера слишком большие"
 
+#: Opcodes/ifd.c:283 Opcodes/pvsbasic.c:756 Opcodes/pvsbasic.c:913
+#: Opcodes/pvsbasic.c:2646
+#, fuzzy, c-format
+msgid "could not find table number %d\n"
+msgstr "не удалось найти номер таблицы %d\n"
+
+#: Opcodes/lfsr.cpp:124
+#, fuzzy
+msgid "lfsr: register length must be 1 to 31"
+msgstr "lfsr: Длина регистра должна быть 1 - 31"
+
+#: Opcodes/lfsr.cpp:126
+#, fuzzy
+msgid "lfsr: probability must be 1 to 255"
+msgstr "lfsr: Вероятность должна быть 1-255"
+
+#: Opcodes/lfsr.cpp:129
+msgid "lfsr: seed must be finite"
+msgstr "lfsr: начальное значение должно быть конечным"
+
 #: Opcodes/linuxjoystick.c:76
 #, fuzzy
 msgid "joystick: invalid device number"
@@ -11587,7 +13544,8 @@ msgstr "locsend: locsig в данном случае"
 #: Opcodes/locsig.c:169
 #, fuzzy
 msgid "Number of outputs must be the same as the previous locsig"
-msgstr "Количество мероприятий должно быть таким же, как и в предыдущем locsig"
+msgstr ""
+"Количество мероприятий должно быть таким же, как и в предыдущем locsig"
 
 #: Opcodes/loscilx.c:89 Opcodes/loscilx.c:231 Opcodes/loscilx.c:383
 #, fuzzy, c-format
@@ -11743,6 +13701,22 @@ msgstr "timedseq: Отсутствие полной конечной строк�
 msgid "timedseq: invalid time pointer"
 msgstr "timedseq: недействительная временн*й указатель"
 
+#: Opcodes/mixer.cpp:76
+msgid "mixer: a bus cannot mix different ksmps values"
+msgstr "mixer: шина не может смешивать сигналы с разными значениями ksmps"
+
+#: Opcodes/mixer.cpp:105 Opcodes/mixer.cpp:149 Opcodes/mixer.cpp:193
+msgid "mixer: invalid send or bus index"
+msgstr "mixer: недопустимый индекс посыла или шины"
+
+#: Opcodes/mixer.cpp:195 Opcodes/mixer.cpp:253
+msgid "mixer: channel index out of range"
+msgstr "mixer: индекс канала вне допустимого диапазона"
+
+#: Opcodes/mixer.cpp:251
+msgid "mixer: invalid bus index"
+msgstr "mixer: недопустимый индекс шины"
+
 #: Opcodes/modal4.c:61
 #, fuzzy
 msgid "No table for Modal4 case"
@@ -11792,6 +13766,11 @@ msgstr "Недостаточно памяти\n"
 #, fuzzy, c-format
 msgid "mp3in: %s: failed to open file"
 msgstr "mp3in: %s: не удалось открыть файл"
+
+#: Opcodes/mp3in.c:146 Opcodes/mp3in.c:990
+#, fuzzy, c-format
+msgid "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n"
+msgstr "Input:  %s, %s, %d kbps, %d Гц (%d:%02d)\n"
 
 #: Opcodes/mp3in.c:162
 #, fuzzy, c-format
@@ -12441,8 +14420,8 @@ msgstr "platerev: Время распада должно быть положит
 #, fuzzy
 msgid "platerev: stiffness and loss must define a positive grid spacing"
 msgstr ""
-"platerev: - жесткость и потеря должны определять позитивное расстояние между "
-"сетками;"
+"platerev: - жесткость и потеря должны определять позитивное расстояние между"
+" сетками;"
 
 #: Opcodes/platerev.c:88
 #, fuzzy
@@ -12487,15 +14466,16 @@ msgstr "platerev: этап выпуска должен быть конечным
 #: Opcodes/platerev.c:203
 msgid "platerev: input frequency must be finite and radius must be in (-1, 1)"
 msgstr ""
-"platerev: входная частота должна быть конечной, а радиус должен находиться в "
-"интервале (-1, 1)"
+"platerev: входная частота должна быть конечной, а радиус должен находиться в"
+" интервале (-1, 1)"
 
 #: Opcodes/platerev.c:214
 #, fuzzy
-msgid "platerev: output frequency must be finite and radius must be in (-1, 1)"
+msgid ""
+"platerev: output frequency must be finite and radius must be in (-1, 1)"
 msgstr ""
-"platerev: выходная частота должна быть конечной, а радиус должен быть в (-1, "
-"1)"
+"platerev: выходная частота должна быть конечной, а радиус должен быть в (-1,"
+" 1)"
 
 #: Opcodes/pluck.c:171
 #, fuzzy
@@ -12668,7 +14648,8 @@ msgstr "PVCROSS не может загрузить %s"
 #: Opcodes/pvinterp.c:417
 #, fuzzy, c-format
 msgid "pvcross: %s: frame size %d does not match pvbufread frame size %d\n"
-msgstr "pvcross: %s: размер рамы %d не соответствует размеру рамы pvbufread %d\n"
+msgstr ""
+"pvcross: %s: размер рамы %d не соответствует размеру рамы pvbufread %d\n"
 
 #: Opcodes/pvinterp.c:571
 msgid "pvcross: not initialised"
@@ -12751,7 +14732,8 @@ msgstr "pvsgain: источник не инициализирован"
 
 #: Opcodes/pvsbasic.c:91
 msgid "pvsgain: source format changed; reinitialise"
-msgstr "pvsgain: формат источника изменился; выполните повторную инициализацию"
+msgstr ""
+"pvsgain: формат источника изменился; выполните повторную инициализацию"
 
 #: Opcodes/pvsbasic.c:148
 msgid "pvsinit: invalid frame size"
@@ -12828,11 +14810,6 @@ msgstr "pvstanal: размер FFT должен быть степенью дво
 #, fuzzy
 msgid "pvstanal: hop size must be at least ksmps"
 msgstr "pvstanal: Размер шипов должен быть по крайней мере ksmps"
-
-#: Opcodes/pvsbasic.c:756 Opcodes/pvsbasic.c:913 Opcodes/pvsbasic.c:2646
-#, fuzzy, c-format
-msgid "could not find table number %d\n"
-msgstr "не удалось найти номер таблицы %d\n"
 
 #: Opcodes/pvsbasic.c:1069
 msgid "pvsfreeze: signal format must be amp-phase or amp-freq."
@@ -13030,8 +15007,8 @@ msgstr "pvs2tab: не могут использовать скользящий P
 #, fuzzy
 msgid "tab2pvs: hop size must be at least ksmps and fit in a 32-bit integer"
 msgstr ""
-"tab2pvs: Размер хоп должен быть по крайней мере ksmps и должен вписываться в "
-"32-бит"
+"tab2pvs: Размер хоп должен быть по крайней мере ksmps и должен вписываться в"
+" 32-бит"
 
 #: Opcodes/pvsbasic.c:2808
 #, fuzzy
@@ -13046,11 +15023,11 @@ msgstr "tab2pvs: размер рамы слишком большой"
 #: Opcodes/pvsbasic.c:2843
 #, fuzzy
 msgid ""
-"tab2pvs: expected a one-dimensional array of at least two amplitude/frequency"
-" pairs"
+"tab2pvs: expected a one-dimensional array of at least two "
+"amplitude/frequency pairs"
 msgstr ""
-"tab2pvs: Предполагалось, что одномерный массив будет состоять по крайней мере"
-" из двух пар амплитуды/частоты"
+"tab2pvs: Предполагалось, что одномерный массив будет состоять по крайней "
+"мере из двух пар амплитуды/частоты"
 
 #: Opcodes/pvsbasic.c:2859 Opcodes/pvsbasic.c:2910
 #, fuzzy
@@ -13060,8 +15037,8 @@ msgstr "tab2pvs: Изменение формы массива; повторно�
 #: Opcodes/pvsbasic.c:2893
 #, fuzzy
 msgid ""
-"tab2pvs: expected matching one-dimensional magnitude and frequency arrays of "
-"at least two bins"
+"tab2pvs: expected matching one-dimensional magnitude and frequency arrays of"
+" at least two bins"
 msgstr ""
 "tab2pvs: ожидаемое совпадение одномерных диапазонов величин и частот по "
 "крайней мере в двух контейнерах"
@@ -13126,6 +15103,11 @@ msgstr "centroid запрошена и т.д. = %.0f, фактически = %d\
 msgid "PV Frames must be in AMP_FREQ format!\n"
 msgstr "Рамки PV должны быть в формате AMP_FREQ!\n"
 
+#: Opcodes/pvsdemix.c:72
+#, fuzzy
+msgid "pvsdemix: signal format must be amp-phase or amp-freq.\n"
+msgstr "pvsdemix: формат сигнала должен быть amp-phase или amp-freq.\n"
+
 #: Opcodes/pvsdemix.c:171
 #, fuzzy
 msgid "pvsdemix : formats are different.\n"
@@ -13169,6 +15151,34 @@ msgstr "pvsgendy: изменения в параметрах анализа;"
 #: Opcodes/pvsgendy.c:151
 msgid "pvsgendy: not initialised"
 msgstr "pvsgendy: не инициализирован"
+
+#: Opcodes/pvsops.cpp:37 Opcodes/pvsops.cpp:90
+msgid "sliding not supported"
+msgstr "режим sliding не поддерживается"
+
+#: Opcodes/pvsops.cpp:40 Opcodes/pvsops.cpp:94
+#, fuzzy
+msgid "fsig format not supported"
+msgstr "Формат fsig не поддерживается"
+
+#: Opcodes/pvsops.cpp:97
+msgid "pvstrace: bin limits must be nonnegative"
+msgstr "pvstrace: границы спектральных отсчётов не должны быть отрицательными"
+
+#: Opcodes/pvsops.cpp:214
+#, fuzzy
+msgid "tvconv: invalid partition or filter size"
+msgstr "tvconv: Недействительный размер перегородки или фильтра"
+
+#: Opcodes/pvsops.cpp:225 Opcodes/pvsops.cpp:245
+#, fuzzy
+msgid "tvconv: filter size too large"
+msgstr "tvconv: размер фильтра слишком большой"
+
+#: Opcodes/pvsops.cpp:403
+#, fuzzy
+msgid "gtadsr: attack and decay times out of range"
+msgstr "gtadsr: Время нападения и разрушения вне зоны действия"
 
 #: Opcodes/quadbezier.c:69
 #, fuzzy
@@ -13328,6 +15338,11 @@ msgstr ""
 #, fuzzy, c-format
 msgid "scan map %d out of range [0,%d]\n"
 msgstr "сканирование карты %d вне зоны действия [0, %d]\n"
+
+#: Opcodes/scansyn.h:148
+#, fuzzy
+msgid "scansyn: error allocating globals"
+msgstr "scansyn: Ошибка распределения глобальных значений"
 
 #: Opcodes/scansynx.c:79
 #, fuzzy
@@ -13592,6 +15607,11 @@ msgstr "Неверный порт Ардуино"
 msgid "sfload: cannot open SoundFont file \"%s\""
 msgstr "sfload: Невозможно открыть файл SoundFont \"%s\""
 
+#: Opcodes/sfont.c:91
+#, fuzzy, c-format
+msgid "%s already loaded"
+msgstr "%s уже загружен"
+
 #: Opcodes/sfont.c:112
 #, fuzzy, c-format
 msgid "sfload: invalid or incomplete SoundFont file \"%s\""
@@ -13670,8 +15690,8 @@ msgstr "sfpreset: дескриптор пресета слишком велик 
 #: Opcodes/sfont.c:324
 #, fuzzy, c-format
 msgid ""
-"sfpreset: cannot find any preset having prog number %d and bank number %d in "
-"SoundFont file \"%s\""
+"sfpreset: cannot find any preset having prog number %d and bank number %d in"
+" SoundFont file \"%s\""
 msgstr ""
 "sfpreset: не найти никакого предварительного ввода с прог-номером %d и "
 "банковским номером %d в файле SoundFont \"%s\""
@@ -13712,6 +15732,18 @@ msgstr ""
 #, fuzzy
 msgid "sflooper: preset number out of range"
 msgstr "sflooper: предварительно установленное число вне диапазона"
+
+#: Opcodes/sfont.c:2441 Opcodes/sfont.c:2503 Opcodes/sfont.c:2595
+#: Opcodes/sfont.c:2647
+#, c-format
+msgid "loop start %f beyond sample end %f, clamping.\n"
+msgstr "начало цикла %f выходит за конец сэмпла %f, значение ограничено.\n"
+
+#: Opcodes/sfont.c:2447 Opcodes/sfont.c:2509 Opcodes/sfont.c:2601
+#: Opcodes/sfont.c:2653
+#, c-format
+msgid "loop end %f beyond sample end %f, clamping.\n"
+msgstr "конец цикла %f выходит за конец сэмпла %f, значение ограничено.\n"
 
 #: Opcodes/sfont.c:2719
 #, fuzzy
@@ -13795,8 +15827,8 @@ msgstr "inletf: формат сигнала должен быть amp-phase ил
 #: Opcodes/signalflowgraph.cpp:933
 #, fuzzy, c-format
 msgid ""
-"Created instance 0x%x of %d instances of outlet %s (out arraydat: 0x%x dims: "
-"%2d size: %4d [%4d] data: 0x%x (0x%x))\n"
+"Created instance 0x%x of %d instances of outlet %s (out arraydat: 0x%x dims:"
+" %2d size: %4d [%4d] data: 0x%x (0x%x))\n"
 msgstr ""
 "Создание случая 0x%x из %d случая выхода %s (из массива: 0x%x dims: %2d "
 "размер: %4d [%4d] данные: 0x%x (0x%x))\n"
@@ -13923,7 +15955,8 @@ msgstr "Запуск петли должен быть конечным и нео
 #: Opcodes/sndloop.c:341
 #, fuzzy
 msgid "loop duration must be at least one sample\n"
-msgstr "Продолжительность цикла должна составлять по крайней мере один образец\n"
+msgstr ""
+"Продолжительность цикла должна составлять по крайней мере один образец\n"
 
 #: Opcodes/sndloop.c:344
 #, fuzzy
@@ -14142,6 +16175,11 @@ msgstr "опция установки розетки"
 #, fuzzy
 msgid "connect failed"
 msgstr "Ошибка подключения"
+
+#: Opcodes/socksend.c:497
+#, fuzzy
+msgid "already initialised"
+msgstr "уже инициализировано"
 
 #: Opcodes/socksend.c:515
 #, fuzzy
@@ -14451,7 +16489,8 @@ msgstr "diskgrain: не удалось открыть файл: %s\n"
 
 #: Opcodes/syncgrain.c:453
 #, fuzzy
-msgid "diskgrain: soundfile channel numbers do not match the number of outputs\n"
+msgid ""
+"diskgrain: soundfile channel numbers do not match the number of outputs\n"
 msgstr ""
 "diskgrain: Номера каналов звукового файла не соответствуют числу выходов\n"
 
@@ -14508,6 +16547,20 @@ msgstr "tabsum: не инициализирован"
 #, fuzzy
 msgid "tabsum: range is outside table bounds"
 msgstr "tabsum: дальность - вне таблиц"
+
+#: Opcodes/trigEnvSegs.cpp:34
+#, fuzzy
+msgid "expected a trigger and value/duration/value pairs"
+msgstr "ожидаемый пусковой момент и пары значений/продолжительность/стоимость"
+
+#: Opcodes/trigEnvSegs.cpp:45
+msgid "exponential values must be nonzero and have the same sign"
+msgstr "значения экспоненты должны быть ненулевыми и иметь одинаковый знак"
+
+#: Opcodes/trigEnvSegs.cpp:50
+#, fuzzy
+msgid "segment duration must not be negative"
+msgstr "Продолжительность сегмента не должна быть отрицательной"
 
 #: Opcodes/ugakbari.c:100
 #, fuzzy
@@ -14886,8 +16939,8 @@ msgstr "тип не реализован"
 #, fuzzy
 msgid "ATSREAD: only positive time pointer values allowed, setting to zero\n"
 msgstr ""
-"ATSREAD: только положительные значения времени, допускаемые для установки на "
-"ноль\n"
+"ATSREAD: только положительные значения времени, допускаемые для установки на"
+" ноль\n"
 
 #: Opcodes/ugnorman.c:532
 #, fuzzy
@@ -15007,7 +17060,8 @@ msgstr ""
 #: Opcodes/ugnorman.c:1765
 msgid "ATSSINNOI: time pointer out of range, truncating to last frame\n"
 msgstr ""
-"ATSSINNOI: временная позиция вне диапазона, ограничивается последним кадром\n"
+"ATSSINNOI: временная позиция вне диапазона, ограничивается последним "
+"кадром\n"
 
 #: Opcodes/ugnorman.c:1922
 #, fuzzy
@@ -15062,7 +17116,8 @@ msgstr "ATSINTERPREAD: вы должны иметь atsbufread перед atsint
 
 #: Opcodes/ugnorman.c:2193
 #, fuzzy
-msgid "ATSINTERPREAD: frequency must be greater than 20 and less than 20000 Hz"
+msgid ""
+"ATSINTERPREAD: frequency must be greater than 20 and less than 20000 Hz"
 msgstr "ATSINTERPREAD: частота должна быть больше 20 и меньше 20000 Гц"
 
 #: Opcodes/ugnorman.c:2239 Opcodes/ugnorman.c:2336
@@ -15119,6 +17174,12 @@ msgstr "urandom: невозможно читать/dev/urandom"
 #, fuzzy, c-format
 msgid "Out of range in vaget.k (%g)"
 msgstr "Из диапазона в vaget.k (%g)"
+
+#: Opcodes/vaops.c:64 Opcodes/vaops.c:81 Opcodes/vaops.c:100
+#: Opcodes/vaops.c:118
+#, c-format
+msgid "index %u outside sample-accurate bounds [%u, %u)"
+msgstr "индекс %u вне границ с точностью до отсчёта [%u, %u)"
 
 #: Opcodes/vaops.c:78
 #, fuzzy, c-format
@@ -15533,11 +17594,6 @@ msgstr "zacl первый или последний < 0. Не очистка."
 msgid "zacl first > last. Not clearing."
 msgstr "zacl первый > последний."
 
-#: Top/argdecode.c:88
-#, fuzzy, c-format
-msgid "Error opening log file '%s': %s\n"
-msgstr "Ошибка открытия файла журнала %s: %s\n"
-
 #: Top/argdecode.c:127
 #, fuzzy
 msgid "--help      print long usage options"
@@ -15732,10 +17788,11 @@ msgstr ""
 
 #: Top/argdecode.c:169
 #, fuzzy
-msgid "-L dnam     read Line-oriented realtime score events from device 'dnam'"
+msgid ""
+"-L dnam     read Line-oriented realtime score events from device 'dnam'"
 msgstr ""
-"-L dnam     Читать линейно ориентированные события в режиме реального времени"
-" с помощью устройства 'dnam'"
+"-L dnam     Читать линейно ориентированные события в режиме реального "
+"времени с помощью устройства 'dnam'"
 
 #: Top/argdecode.c:171
 #, fuzzy
@@ -15780,7 +17837,8 @@ msgstr "-T          прекратить работу, когда выполне
 #, fuzzy
 msgid "-D          defer GEN01 soundfile loads until performance time"
 msgstr ""
-"-D          Откладывать нагрузку на звуковой файл GEN01 до времени выполнения"
+"-D          Откладывать нагрузку на звуковой файл GEN01 до времени "
+"выполнения"
 
 #: Top/argdecode.c:182
 #, fuzzy
@@ -15897,8 +17955,8 @@ msgstr "--asciidisplay         Заглушить графики, использ
 #, fuzzy
 msgid "--postscriptdisplay    suppress graphics, use Postscript displays"
 msgstr ""
-"--postscriptdisplay    Заглушить графики, использовать постскриптографические"
-" дисплеи"
+"--postscriptdisplay    Заглушить графики, использовать "
+"постскриптографические дисплеи"
 
 #: Top/argdecode.c:217
 #, fuzzy
@@ -15981,8 +18039,8 @@ msgid ""
 "--rewrite               continually rewrite header while writing soundfile "
 "(WAV/AIFF)"
 msgstr ""
-"--rewrite               Постоянно переписывать заголовок при записи звукового"
-" файла (WAV/AIFF)"
+"--rewrite               Постоянно переписывать заголовок при записи "
+"звукового файла (WAV/AIFF)"
 
 #: Top/argdecode.c:238
 #, fuzzy
@@ -16113,11 +18171,11 @@ msgstr ""
 #: Top/argdecode.c:269
 #, fuzzy
 msgid ""
-"                          1=use CSD line #s (default), 0=use ORC/SCO-relative"
-" line #s"
+"                          1=use CSD line #s (default), 0=use ORC/SCO-"
+"relative line #s"
 msgstr ""
-"                          1 = использование CSD строки #s (по умолчанию), 0 ="
-" использование ORC/SCO-относительная линия #s"
+"                          1 = использование CSD строки #s (по умолчанию), 0 "
+"= использование ORC/SCO-относительная линия #s"
 
 #: Top/argdecode.c:272
 #, fuzzy
@@ -16302,7 +18360,8 @@ msgstr "--no-default-paths      отключить относительные п
 #, fuzzy
 msgid "--sample-accurate       use sample-accurate timing of score events"
 msgstr ""
-"--sample-accurate       использовать точную выборку времени проведения баллов"
+"--sample-accurate       использовать точную выборку времени проведения "
+"баллов"
 
 #: Top/argdecode.c:318
 #, fuzzy
@@ -16323,8 +18382,8 @@ msgstr "--nchnls_i=N            перезапустить число входн
 #, fuzzy
 msgid "--0dbfs=N               override 0dbfs (max positive signal amplitude)"
 msgstr ""
-"--0dbfs=N               отменяет 0dbfs (максимальная амплитуда положительного"
-" сигнала)"
+"--0dbfs=N               отменяет 0dbfs (максимальная амплитуда "
+"положительного сигнала)"
 
 #: Top/argdecode.c:323
 #, fuzzy
@@ -16393,8 +18452,8 @@ msgstr "--ksmps=N               отключить ksmps"
 msgid ""
 "--fftlib=N              actual FFT lib to use (FFTLIB=0, PFFFT = 1, vDSP =2)"
 msgstr ""
-"--fftlib=N              Фактический FFT литра для использования (FFTLIB = 0, "
-"PFFFT = 1, vDSP = 2)"
+"--fftlib=N              Фактический FFT литра для использования (FFTLIB = 0,"
+" PFFFT = 1, vDSP = 2)"
 
 #: Top/argdecode.c:343
 #, fuzzy
@@ -16440,7 +18499,8 @@ msgstr "                          (схемы игнорируются по ум
 
 #: Top/argdecode.c:352
 #, fuzzy
-msgid "--error-deprecated      trigger compilation error on deprecated opcodes"
+msgid ""
+"--error-deprecated      trigger compilation error on deprecated opcodes"
 msgstr ""
 "--error-deprecated      погрешность в компиляции на обезвоженном opcodes"
 
@@ -16674,6 +18734,11 @@ msgstr "--real-time проигнорирован в WASI; используетс
 msgid "realtime mode enabled\n"
 msgstr "Включен режим реального времени\n"
 
+#: Top/argdecode.c:1160 Top/argdecode.c:1170
+#, fuzzy
+msgid "UDP console: needs address and port\n"
+msgstr "UDP консоль: адрес потребности и порт\n"
+
 #: Top/argdecode.c:1256
 #, fuzzy
 msgid "Ignoring invalid limiter\n"
@@ -16723,6 +18788,15 @@ msgstr "Никакого отрицательного файла"
 msgid "Cannot open indirection file %s\n"
 msgstr "Невозможно открыть файл опосредования %s\n"
 
+#: Top/argdecode.c:1635
+#, fuzzy
+msgid ""
+"\n"
+"...failing to parse options\n"
+msgstr ""
+"\n"
+"...исключая опционы\n"
+
 #: Top/argdecode.c:1642
 #, fuzzy
 msgid "no number of threads"
@@ -16769,14 +18843,42 @@ msgstr "Выходные устройства %d MIDI\n"
 msgid "%d MIDI input devices\n"
 msgstr "%d Устройства ввода MIDI\n"
 
+#: Top/csPerfThread.cpp:226
+#, fuzzy, c-format
+msgid ""
+"Perf thread: stopped recording,\n"
+"closing file %s\n"
+msgstr ""
+"нить перфа: прекратила запись,\n"
+"Файл закрытия %s\n"
+
+#: Top/csPerfThread.cpp:278
+#, fuzzy
+msgid "Could not create recording buffer."
+msgstr "Невозможно создать звукозаписывающий буфер."
+
+#: Top/csPerfThread.cpp:305
+#, fuzzy
+msgid "Could not open file for recording."
+msgstr "Невозможно открыть файл для записи."
+
+#: Top/csPerfThread.cpp:320
+#, fuzzy
+msgid "Could not create recording thread."
+msgstr "Невозможно создать звукозаписывающая нить."
+
+#: Top/csPerfThread.cpp:709
+msgid "perfThread record buffer overrun.\n"
+msgstr "perfThread: переполнение буфера записи.\n"
+
 #: Top/csmodule.c:218
 #, fuzzy, c-format
 msgid ""
 "not loading '%s' (incompatible cs_double precision; rebuild the plugin with "
 "matching USE_FLOAT)"
 msgstr ""
-"не загружать \"%s\" (несовместимая точность cs_double; восстановить подсказку"
-" в соответствии с USE_FLOAT)"
+"не загружать \"%s\" (несовместимая точность cs_double; восстановить "
+"подсказку в соответствии с USE_FLOAT)"
 
 #: Top/csmodule.c:224
 #, fuzzy, c-format
@@ -16823,6 +18925,11 @@ msgstr "csoundLoadExternal(): ошибка выделения памяти"
 msgid "Error in pre-initialisation function of module '%s'"
 msgstr "Ошибка в предпусковой функции модуля \"%s\""
 
+#: Top/csmodule.c:672
+#, fuzzy, c-format
+msgid "OPCODEDIR overridden to %s \n"
+msgstr "OPCODEDIR отрегулирован на %s \n"
+
 #: Top/csmodule.c:698
 #, fuzzy
 msgid "Plugins search path too long\n"
@@ -16842,6 +18949,11 @@ msgstr "Путь поиска: %s\n"
 #, fuzzy, c-format
 msgid "Error opening plugin directory '%s': %s"
 msgstr "Ошибка открытия каталога \"%s\": %s"
+
+#: Top/csmodule.c:750 Top/csmodule.c:982
+#, fuzzy, c-format
+msgid "Opening plugin directory: %s\n"
+msgstr "Вводной каталог: %s\n"
 
 #: Top/csmodule.c:778 Top/csmodule.c:1010
 #, fuzzy, c-format
@@ -16867,6 +18979,16 @@ msgstr "Загрузка библиотек командной линии:\n"
 #, fuzzy, c-format
 msgid " *** error loading '%s'"
 msgstr " *** Ошибка загрузки \"%s\""
+
+#: Top/csmodule.c:848
+#, fuzzy, c-format
+msgid "loaded %s\n"
+msgstr "Загружено %s\n"
+
+#: Top/csmodule.c:850
+#, fuzzy, c-format
+msgid "failed to load %s\n"
+msgstr "не удалось загрузить %s\n"
 
 #: Top/csound.c:193
 #, fuzzy, c-format
@@ -16903,6 +19025,15 @@ msgid ""
 msgstr ""
 "--Csound версия %s (отбор проб) %s\n"
 "[Обязательство: %s]\n"
+
+#: Top/csound.c:225
+#, fuzzy, c-format
+msgid "using %s\n"
+msgstr "с использованием %s\n"
+
+#: Top/csound.c:227
+msgid "not using libsndfile"
+msgstr "libsndfile не используется"
 
 #: Top/csound.c:232
 #, c-format
@@ -16948,6 +19079,16 @@ msgstr "Не удалось выделить позицию opcode для %s."
 #, fuzzy, c-format
 msgid "Failed to prepend opcode entry for %s."
 msgstr "Не удалось предопределить запись opcode для %s."
+
+#: Top/csound.c:1838
+#, fuzzy, c-format
+msgid "loading plugins from %s\n"
+msgstr "погрузочно-разгрузочных устройств %s\n"
+
+#: Top/csound.c:1985
+#, fuzzy
+msgid "resetting Csound instance\n"
+msgstr "Перезапуск случая Csound\n"
 
 #: Top/csound.c:2012
 #, fuzzy
@@ -17042,6 +19183,11 @@ msgstr "Игнорировать <CsOptions> в файлах CSD (по умол�
 #, fuzzy
 msgid "Breakpoint callback not set. Breakpoint Reached."
 msgstr "Обратный звонок не установлен."
+
+#: Top/csound_debug.c:72
+#, fuzzy
+msgid "cannot initialise debugger for multicore\n"
+msgstr "не может инициировать отладчик для многокорного\n"
 
 #: Top/csound_debug.c:118
 #, fuzzy
@@ -17218,6 +19364,11 @@ msgstr ""
 msgid "no orchestra name"
 msgstr "Нет названия оркестра"
 
+#: Top/main.c:274
+#, fuzzy, c-format
+msgid "Reading CSD file:  %s\n"
+msgstr "Чтение файла CSD: %s\n"
+
 #: Top/main.c:292 Top/main.c:297
 #, fuzzy, c-format
 msgid "Reading CSD failed (%s)... stopping"
@@ -17232,6 +19383,11 @@ msgstr "ошибка: несколько видов использования s
 #, fuzzy
 msgid "error: multiple uses of stdout"
 msgstr "ошибка: несколько видов использования stdout"
+
+#: Top/main.c:331
+#, fuzzy
+msgid "scoreless operation\n"
+msgstr "бестактное функционирование\n"
 
 #: Top/main.c:335
 #, fuzzy
@@ -17250,6 +19406,11 @@ msgstr "orchname:  %s\n"
 msgid "main: failed to open input file - %s\n"
 msgstr "main: не удалось открыть файл ввода - %s\n"
 
+#: Top/main.c:386
+#, fuzzy
+msgid "Compiling Csound code...\n"
+msgstr "Компиляция кода Csound...\n"
+
 #: Top/main.c:390
 #, fuzzy
 msgid "\t ... failed to compile code."
@@ -17259,6 +19420,11 @@ msgstr "\t ...не скомпилировал код."
 #, fuzzy
 msgid "\t ... daemon mode, no instruments.\n"
 msgstr "\t ...демонический режим, никаких инструментов.\n"
+
+#: Top/main.c:408
+#, fuzzy
+msgid "\t ...done\n"
+msgstr "\t ...сделано\n"
 
 #: Top/main.c:409
 #, fuzzy
@@ -17314,6 +19480,11 @@ msgstr "События в режиме реального времени (engine
 #, fuzzy, c-format
 msgid "Compiled score (engineStatus: %d).\n"
 msgstr "Сводный балл (engineStatus: %d).\n"
+
+#: Top/main.c:693
+#, fuzzy, c-format
+msgid "multicore performance with %d threads\n"
+msgstr "Мультикорные показатели с нитками %d\n"
 
 #: Top/new_opts.c:57
 msgid "<integer>"
@@ -17436,6 +19607,11 @@ msgstr "CsScore: отсутствует \", чтобы прекратить ст
 #: Top/one_file.c:623 Top/one_file.c:649
 msgid "Missing end tag </CsScore>\n"
 msgstr "отсутствует закрывающий тег </CsScore>\n"
+
+#: Top/one_file.c:657
+#, fuzzy
+msgid "External scores not supported on iOS"
+msgstr "Внешние оценки не поддерживаются на iOS"
 
 #: Top/one_file.c:669 Top/one_file.c:674
 #, fuzzy
@@ -17635,6 +19811,286 @@ msgstr ""
 "%d opcodes\n"
 "\n"
 
+#: Top/opcode.c:318
+#, fuzzy, c-format
+msgid "could not create opcode ref for %s\n"
+msgstr "не удалось создать opcode ref для %s\n"
+
+#: Top/opcode.c:350
+#, fuzzy, c-format
+msgid "could not find opcode %s"
+msgstr "не удалось найти opcode %s"
+
+#: Top/opcode.c:362
+#, fuzzy, c-format
+msgid "%s: %d overloads\n"
+msgstr "%s: перегрузка %d\n"
+
+#: Top/opcode.c:367
+#, fuzzy, c-format
+msgid "(%d)\t%s\tout-types: %s\tin-types: %s\n"
+msgstr "(%d) %s внеклассные типы: %s по типу: %s\n"
+
+#: Top/opcode.c:442 Top/opcode.c:460 Top/opcode.c:538
+#, fuzzy, c-format
+msgid "%s outarg %d, expected type: %s, got: %s\n"
+msgstr "%s autarg %d, ожидаемый тип: %s, получен: %s\n"
+
+#: Top/opcode.c:478
+#, fuzzy, c-format
+msgid "%s outarg %d, expected type: %s or %s, got: %s\n"
+msgstr "%s autarg %d, ожидаемый тип: %s или %s, получен: %s\n"
+
+#: Top/opcode.c:498
+#, fuzzy, c-format
+msgid "%s outarg %d, expected types: %s, %s, or %s, got: %s\n"
+msgstr "%s autarg %d, ожидаемые типы: %s, %s, или %s, получены: %s\n"
+
+#: Top/opcode.c:518
+#, fuzzy, c-format
+msgid "%s outarg %d, expected types: %s, %s, %s, or %s, got: %s\n"
+msgstr "%s autarg %d, ожидаемые типы: %s, %s, %s, или %s, получены: %s\n"
+
+#: Top/opcode.c:558
+#, fuzzy, c-format
+msgid "%s outarg %d, expect type: %s, got %s\n"
+msgstr "%s autarg %d, ожидаемый тип: %s, получил %s\n"
+
+#: Top/opcode.c:565
+#, fuzzy, c-format
+msgid "%s outarg %d, expect array, got %s\n"
+msgstr "%s autarg %d, ожидаемый массив, %s\n"
+
+#: Top/opcode.c:573
+#, fuzzy, c-format
+msgid "%s outarg %d, mismatching array subtype expected %s, got %s\n"
+msgstr "%s autarg %d, несовпадающий подтип массива, ожидаемый %s, получил %s\n"
+
+#: Top/opcode.c:588
+#, fuzzy, c-format
+msgid "%s outarg %d, expect type: %c, got %s\n"
+msgstr "%s autarg %d, ожидаемый тип: %c, получил %s\n"
+
+#: Top/opcode.c:594
+#, fuzzy, c-format
+msgid "%s outarg %d, expect array, got %c\n"
+msgstr "%s autarg %d, ожидаемый массив, %c\n"
+
+#: Top/opcode.c:602
+#, fuzzy, c-format
+msgid "%s outarg %d, mismatching array subtype expected %c, got %s\n"
+msgstr "%s autarg %d, несовпадающий подтип массива, ожидаемый %c, получил %s\n"
+
+#: Top/opcode.c:618
+#, fuzzy, c-format
+msgid "%s outarg number mismatch, expected %d, got %d\n"
+msgstr "%s Несоответствие числа, ожидаемое %d, получил %d\n"
+
+#: Top/opcode.c:642 Top/opcode.c:654 Top/opcode.c:675 Top/opcode.c:698
+#: Top/opcode.c:715 Top/opcode.c:731 Top/opcode.c:748 Top/opcode.c:764
+#: Top/opcode.c:788 Top/opcode.c:807 Top/opcode.c:824 Top/opcode.c:860
+#: Top/opcode.c:883 Top/opcode.c:906 Top/opcode.c:927 Top/opcode.c:950
+#: Top/opcode.c:973 Top/opcode.c:993 Top/opcode.c:1008 Top/opcode.c:1030
+#: Top/opcode.c:1049 Top/opcode.c:1068 Top/opcode.c:1086
+#, fuzzy, c-format
+msgid "missing %s inarg %d"
+msgstr "Пропажа %s взлома %d"
+
+#: Top/opcode.c:660 Top/opcode.c:794 Top/opcode.c:830
+#, fuzzy, c-format
+msgid "%s inarg %d, expected types: %s, %s, or %s, got: %s\n"
+msgstr "%s inarg %d, ожидаемые типы: %s, %s, или %s, получены: %s\n"
+
+#: Top/opcode.c:682
+#, fuzzy, c-format
+msgid "%s inarg %d, expected types: %s, %s, %s, or %s, got: %s\n"
+msgstr "%s inarg %d, ожидаемые типы: %s, %s, %s, или %s, получены: %s\n"
+
+#: Top/opcode.c:703 Top/opcode.c:719 Top/opcode.c:736 Top/opcode.c:752
+#: Top/opcode.c:768 Top/opcode.c:776
+#, fuzzy, c-format
+msgid "%s inarg %d, expected type: %s, got: %s\n"
+msgstr "%s инарг %d, ожидаемый тип: %s, получен: %s\n"
+
+#: Top/opcode.c:812 Top/opcode.c:865 Top/opcode.c:888 Top/opcode.c:932
+#: Top/opcode.c:955
+#, fuzzy, c-format
+msgid "%s inarg %d, expected types: %s or %s, got: %s\n"
+msgstr "%s inarg %d, ожидаемые типы: %s или %s, получены: %s\n"
+
+#: Top/opcode.c:911
+#, fuzzy, c-format
+msgid "%s inarg %d, expected types: %s got: %s\n"
+msgstr "%s inarg %d, ожидаемые типы: %s получил: %s\n"
+
+#: Top/opcode.c:978
+#, c-format
+msgid "%s inarg %d, expected type: %s got: %s\n"
+msgstr "%s входной аргумент %d, ожидаемый тип: %s, получен: %s\n"
+
+#: Top/opcode.c:998
+#, fuzzy, c-format
+msgid "%s inarg %d, expected type: k got: %s\n"
+msgstr "%s инарг %d, ожидаемый тип: k получен: %s\n"
+
+#: Top/opcode.c:1013
+#, c-format
+msgid "%s inarg %d, expected type: i got: %s\n"
+msgstr "%s входной аргумент %d, ожидаемый тип: i, получен: %s\n"
+
+#: Top/opcode.c:1035
+#, fuzzy, c-format
+msgid "%s inarg %d, expect type: %s, got %s\n"
+msgstr "%s inarg %d, ожидаемый тип: %s, получил %s\n"
+
+#: Top/opcode.c:1042
+#, fuzzy, c-format
+msgid "%s inarg %d, expect array, got %s\n"
+msgstr "%s инарг %d, ожидаемый массив, %s\n"
+
+#: Top/opcode.c:1054
+#, fuzzy, c-format
+msgid "%s inarg %d, mismatching array subtype expected %s, got %s\n"
+msgstr "%s инарг %d, несовпадающий подтип массива, ожидаемый %s, получил %s\n"
+
+#: Top/opcode.c:1073
+#, fuzzy, c-format
+msgid "%s inarg %d, expect type: %c, got %s\n"
+msgstr "%s inarg %d, ожидаемый тип: %c, получил %s\n"
+
+#: Top/opcode.c:1079
+#, fuzzy, c-format
+msgid "%s inarg %d, expect array, got %c\n"
+msgstr "%s инарг %d, ожидаемый массив, %c\n"
+
+#: Top/opcode.c:1093
+#, fuzzy, c-format
+msgid "%s inarg %d, mismatching array subtype expected %c, got %s\n"
+msgstr "%s инарг %d, несовпадающий подтип массива, ожидаемый %c, получил %s\n"
+
+#: Top/opcode.c:1115
+#, fuzzy, c-format
+msgid "%s inarg number mismatch, expected %d, got %d\n"
+msgstr "%s Несоответствие числа, ожидаемое %d, получил %d\n"
+
+#: Top/opcode.c:1187
+#, fuzzy
+msgid "no valid context for opcode object\n"
+msgstr "нет действительного контекста для объекта opcode\n"
+
+#: Top/opcode.c:1247 Top/opcode.c:1276
+#, fuzzy
+msgid "could not allocate opcode object"
+msgstr "не удалось выделить объект opcode"
+
+#: Top/opcode.c:1253 Top/opcode.c:1283
+#, fuzzy
+msgid "invalid opcode reference"
+msgstr "Ошибка ссылки на opcode"
+
+#: Top/opcode.c:1315
+#, fuzzy, c-format
+msgid "%s %s\tout-types: %s\tin-types: %s \n"
+msgstr "Типы %s %s: %s по типу: %s \n"
+
+#: Top/opcode.c:1333 Top/opcode.c:1481
+#, fuzzy, c-format
+msgid "incompatible context, cannot initialise opcode obj for %s\n"
+msgstr "не может инициировать opcode obj для %s\n"
+
+#: Top/opcode.c:1345 Top/opcode.c:1371 Top/opcode.c:1559
+#, fuzzy, c-format
+msgid ""
+"mismatching arguments\n"
+"for opcode obj %s\toutypes: %s\tintypes: %s"
+msgstr ""
+"Несопоставимые аргументы\n"
+"opcode Obj %s batypes: %s intypes: %s"
+
+#: Top/opcode.c:1352 Top/opcode.c:1383
+#, fuzzy
+msgid "opcode object not initialised\n"
+msgstr "Объект opcode не инициализирован\n"
+
+#: Top/opcode.c:1364
+#, fuzzy, c-format
+msgid "incompatible context, cannot perform opcode obj for %s\n"
+msgstr "не может выполнить opcode obj для %s\n"
+
+#: Top/opcode.c:1471
+#, fuzzy
+msgid "only 1-dim arrays are allowed\n"
+msgstr "Разрешены только массивы 1-dim\n"
+
+#: Top/opcode.c:1496
+#, fuzzy
+msgid "Opcode[] run does not support managed array output elements"
+msgstr "Opcode[] не поддерживает управляемые выходные элементы массива"
+
+#: Top/opcode.c:1521
+#, fuzzy
+msgid "Opcode[] run does not support managed array input elements"
+msgstr "Opcode[] не поддерживает управляемые входные элементы массива"
+
+#: Top/opcode.c:1632
+#, fuzzy
+msgid "opcode object not initialised (setp)\n"
+msgstr "Объект opcode не инициализирован (setp)\n"
+
+#: Top/opcode.c:1635
+#, fuzzy, c-format
+msgid "incompatible context for opcode %s \n"
+msgstr "не совместимый контекст для opcode %s \n"
+
+#: Top/opcode.c:1638
+#, fuzzy, c-format
+msgid "could not set arg %u \n"
+msgstr "не удалось установить arg %u \n"
+
+#: Top/opcode.c:1653 Top/opcode.c:1654 Top/opcode.c:1667 Top/opcode.c:1669
+#, fuzzy
+msgid "object not initialised\n"
+msgstr "Объект не инициализирован\n"
+
+#: Top/opcode.c:1673 Top/opcode.c:1676
+#, fuzzy, c-format
+msgid "incompatible context for opcode %s\n"
+msgstr "не совместимый контекст для opcode %s\n"
+
+#: Top/opcode.c:1681 Top/opcode.c:1682
+#, fuzzy
+msgid "argument index out of range\n"
+msgstr "индекс аргументации вне диапазона\n"
+
+#: Top/opcode.c:1689 Top/opcode.c:1691
+#, fuzzy
+msgid "could not resolve getp argument types\n"
+msgstr "не смог решить спорные типы getp\n"
+
+#: Top/opcode.c:1695 Top/opcode.c:1699
+#, fuzzy, c-format
+msgid "mismatching argument types: need %s, got %s\n"
+msgstr "Несопоставимые типы аргументов: необходимость %s, получил %s\n"
+
+#: Top/opcode.c:1710 Top/opcode.c:1713
+#, fuzzy
+msgid "getp does not support managed array outputs"
+msgstr "getp не поддерживает результаты управляемых массивов"
+
+#: Top/opcode.c:1722
+#, fuzzy
+msgid "could not prepare getp array output"
+msgstr "не смогли подготовить вывод массива getp"
+
+#: Top/opcode.c:1725
+msgid "getp array output changed capacity during performance"
+msgstr "ёмкость выходного массива getp изменилась во время исполнения"
+
+#: Top/opcode.c:1734 Top/opcode.c:1736
+#, fuzzy
+msgid "getp does not support managed outputs"
+msgstr "getp не поддерживает регулируемые мероприятия"
+
 #: Top/server.c:150
 #, fuzzy, c-format
 msgid "UDP: Winsock2 failed to start: %d"
@@ -17695,6 +20151,11 @@ msgstr "UDP Сервер: не смог запустить"
 msgid "UDP Server: failed to allocate memory"
 msgstr "UDP Сервер: не удалось передать память"
 
+#: Top/server.c:594
+#, fuzzy
+msgid "Could not set UDP console\n"
+msgstr "Невозможно установить консоль UDP\n"
+
 #: Top/threads.c:42
 #, fuzzy, c-format
 msgid "%s() is not implemented on this platform.\n"
@@ -17742,7 +20203,8 @@ msgid ""
 "performance pass. Allocate a bigger array at init time"
 msgstr ""
 "Слишком маленькая система (встроенная %zu < нуждалась в %zu), но не может "
-"распределить во время пропусков. Распределить больше массива при init времени"
+"распределить во время пропусков. Распределить больше массива при init "
+"времени"
 
 #: po/sndfile_str.c:3
 #, fuzzy
@@ -17777,7 +20239,8 @@ msgstr "Ошибка: незначительный формат 0."
 #: po/sndfile_str.c:9
 #, fuzzy
 msgid "File does not exist or is not a regular file (possibly a pipe?)."
-msgstr "Файл не существует или не является обычным файлом (возможно, трубой?)."
+msgstr ""
+"Файл не существует или не является обычным файлом (возможно, трубой?)."
 
 #: po/sndfile_str.c:10
 #, fuzzy
@@ -17884,7 +20347,8 @@ msgstr "Ошибка: не поддерживается форматом фай�
 #: po/sndfile_str.c:30
 #, fuzzy
 msgid "Error : cannot open embedded file read/write."
-msgstr "Ошибка: не может открыть встроенный файл с чтением/письменной записью."
+msgstr ""
+"Ошибка: не может открыть встроенный файл с чтением/письменной записью."
 
 #: po/sndfile_str.c:31
 #, fuzzy
@@ -17929,7 +20393,8 @@ msgstr "Плохая карма в поисках во время операци
 #: po/sndfile_str.c:39
 #, fuzzy
 msgid "Bad karma in read during interleave read operation."
-msgstr "Плохая карма в чтении во время операции по считыванию между отпусками."
+msgstr ""
+"Плохая карма в чтении во время операции по считыванию между отпусками."
 
 #: po/sndfile_str.c:40
 #, fuzzy
@@ -18007,13 +20472,14 @@ msgstr "Ошибка в позиции RDWR (криптический)."
 msgid ""
 "Error : Cannot open file in read/write mode due to string data in header."
 msgstr ""
-"Ошибка: Невозможно открыть файл в режиме чтения/ записи из-за строки данных в"
-" заголовке."
+"Ошибка: Невозможно открыть файл в режиме чтения/ записи из-за строки данных "
+"в заголовке."
 
 #: po/sndfile_str.c:55
 #, fuzzy
 msgid "Error : Command fails because file already has audio data."
-msgstr "Ошибка: Команда не работает, потому что файл уже содержит аудиоданные."
+msgstr ""
+"Ошибка: Команда не работает, потому что файл уже содержит аудиоданные."
 
 #: po/sndfile_str.c:56
 #, fuzzy
@@ -18246,8 +20712,8 @@ msgstr "Ошибка. Файл RAW битвидт должен быть крат
 msgid ""
 "Error. Bad format field in SF_INFO struct when opening a RAW file for read."
 msgstr ""
-"Ошибка. Неправильный формат поля в SF_INFO struct при открытии файла RAW для "
-"чтения."
+"Ошибка. Неправильный формат поля в SF_INFO struct при открытии файла RAW для"
+" чтения."
 
 #: po/sndfile_str.c:101
 #, fuzzy
@@ -18582,8 +21048,8 @@ msgid ""
 "Error : Sample rate chosen is known to trigger a Vorbis encoder bug on this "
 "CPU."
 msgstr ""
-"Ошибка : Выбранная частота в выборке известна как вызывающая ошибку энкодера "
-"Vorbis на этом CPU."
+"Ошибка : Выбранная частота в выборке известна как вызывающая ошибку энкодера"
+" Vorbis на этом CPU."
 
 #: po/sndfile_str.c:167
 #, fuzzy
@@ -18852,7 +21318,8 @@ msgstr ""
 msgid ""
 "freq. dev. %f out of bounds, should be > 0.0 and <= 1.0, forced to default: "
 "%f"
-msgstr "freq. dev. %f вне границ, > 0.0 и <= 1.0, вынужденные по умолчанию: %f"
+msgstr ""
+"freq. dev. %f вне границ, > 0.0 и <= 1.0, вынужденные по умолчанию: %f"
 
 #: util/atsa.c:2085
 #, fuzzy, c-format
@@ -18860,8 +21327,8 @@ msgid ""
 "windows cycles %d out of bounds, should be between 1 and 8, forced to "
 "default: %d"
 msgstr ""
-"циклы %d вне пределов, должны быть между 1 и 8, принуждаемые к по умолчанию: "
-"%d"
+"циклы %d вне пределов, должны быть между 1 и 8, принуждаемые к по умолчанию:"
+" %d"
 
 #: util/atsa.c:2093
 #, fuzzy, c-format
@@ -18892,7 +21359,8 @@ msgstr ""
 #: util/atsa.c:2133
 #, fuzzy, c-format
 msgid "atsa: %d frames are not enough for analysis, need at least %d"
-msgstr "atsa: %d систем недостаточно для анализа, требуется по крайней мере %d"
+msgstr ""
+"atsa: %d систем недостаточно для анализа, требуется по крайней мере %d"
 
 #: util/atsa.c:2142
 #, fuzzy, c-format
@@ -18928,8 +21396,8 @@ msgstr "SMR %f вне границ, >= %f и < %f dB SPL, вынужденные
 #: util/atsa.c:2189
 #, fuzzy, c-format
 msgid ""
-"last peak contribution %f out of bounds, should be >= 0.0 and <= 1.0, forced "
-"to default: %f"
+"last peak contribution %f out of bounds, should be >= 0.0 and <= 1.0, forced"
+" to default: %f"
 msgstr ""
 "Последний пиковый вклад %f вне пределов, должен быть >= 0.0 и <= 1.0, "
 "вынужденный по умолчанию: %f"
@@ -19202,8 +21670,8 @@ msgstr "Коэффициенты несовместимости выборки\n
 #, c-format
 msgid "dnoise: warning - N not a valid power of two; revised N = %d\n"
 msgstr ""
-"dnoise: предупреждение – N не является допустимой степенью двойки; новое N = "
-"%d\n"
+"dnoise: предупреждение – N не является допустимой степенью двойки; новое N ="
+" %d\n"
 
 #: util/dnoise.c:520
 #, fuzzy
@@ -19290,7 +21758,8 @@ msgstr "N = число повязочных фильтров (1024)"
 #: util/dnoise.c:1135
 #, fuzzy
 msgid "w = filter overlap factor: {0,1,(2),3} DO NOT USE -w AND -M"
-msgstr "w = коэффициент наложения фильтра: (0, 1, (2), 3} DO NOT USE -w AND -M"
+msgstr ""
+"w = коэффициент наложения фильтра: (0, 1, (2), 3} DO NOT USE -w AND -M"
 
 #: util/dnoise.c:1136
 #, fuzzy
@@ -19821,6 +22290,11 @@ msgstr "Использование метода хранения коэффиц�
 msgid "soundfile read error, could not fill first frame"
 msgstr "Ошибка чтения звукового файла, не удалось заполнить первую рамку"
 
+#: util/lpanal.c:631
+#, fuzzy
+msgid "using Durbin method \n"
+msgstr "методом Durbin \n"
+
 #: util/lpanal.c:642
 #, fuzzy
 msgid "Starting new frame...\n"
@@ -19923,7 +22397,8 @@ msgstr "-Q<maxcps>\tверхний предел для поиска в поле 
 
 #: util/lpanal.c:993
 #, fuzzy
-msgid "-v<verblevel>\tprinting verbosity: 0=none, 1=verbose, 2=debug (default 0)"
+msgid ""
+"-v<verblevel>\tprinting verbosity: 0=none, 1=verbose, 2=debug (default 0)"
 msgstr "-v<verblevel>\tпечати: 0 = нет, 1 = verbose, 2 = debug (по умолчанию 0)"
 
 #: util/lpanal.c:995
@@ -20223,6 +22698,16 @@ msgstr "запись блоков по %d байт из %s в %s (%s)\n"
 msgid "Cannot open scale table file %s"
 msgstr "Не удалось открыть файл таблиц масштаба %s"
 
+#: util/mixer.c:491
+#, fuzzy
+msgid "Scale table is\n"
+msgstr "Шкала взносов\n"
+
+#: util/mixer.c:497
+#, fuzzy
+msgid "END of Table\n"
+msgstr "КОНЕЦ ТАБЛИЦА\n"
+
 #: util/mixer.c:540
 #, fuzzy
 msgid "mixing"
@@ -20252,6 +22737,11 @@ msgstr "Коэффициент максимальной шкалы = %.3f\n"
 #, fuzzy, c-format
 msgid "Mixes sound files (max. %d)"
 msgstr "Звуковые файлы (максимум %d)"
+
+#: util/mkir.c:61
+#, fuzzy, c-format
+msgid "deconv: div by zero detected, sweep bin %d"
+msgstr "deconv: div на нулевое обнаружение, очистить блок %d"
 
 #: util/mkir.c:90
 #, fuzzy
@@ -20346,15 +22836,72 @@ msgstr "стереть файл не монополный"
 msgid "could not open input file"
 msgstr "не удалось открыть файл ввода"
 
+#: util/mkir.c:198
+#, c-format
+msgid "\tmultichannel input: %d channels\n"
+msgstr "\tмногоканальный вход: %d каналов\n"
+
+#: util/mkir.c:202
+#, c-format
+msgid "\t\tprocessing channel %d\n"
+msgstr "\t\tобработка канала %d\n"
+
 #: util/mkir.c:216
 #, fuzzy
 msgid "could not open output file"
 msgstr "не удалось открыть файл вывода"
 
+#: util/mkir.c:223
+#, fuzzy, c-format
+msgid "\tcreated IR file %s\n"
+msgstr "\tСоздал файл IR %s\n"
+
+#: util/mkir.c:226
+#, fuzzy, c-format
+msgid "\tsr = %.1f, %.3f seconds, %d channels\n"
+msgstr "\tsr = %.1f, %.3f секунд, %d каналов\n"
+
 #: util/mkir.c:239
 #, fuzzy, c-format
 msgid "Failed to open file for generated sweep %s: %s"
 msgstr "Не удалось открыть файл для генерируемой сетки %s: %s"
+
+#: util/mkir.c:245
+#, fuzzy, c-format
+msgid "\tcreated sine sweep file %s\n"
+msgstr "\tСоздать синусоидальный файл %s\n"
+
+#: util/mkir.c:248
+#, fuzzy, c-format
+msgid "\tsr = %.1f, %.3f seconds\n"
+msgstr "\tsr = %.1f, %.3f секунды\n"
+
+#: util/mkir.c:313
+#, fuzzy, c-format
+msgid "sweep table num %d illegal"
+msgstr "nom %d незаконно"
+
+#: util/mkir.c:319
+#, fuzzy, c-format
+msgid "insufficient number of input channels: %d"
+msgstr "Недостаточное количество входных каналов: %d"
+
+#: util/mkir.c:326
+#, fuzzy, c-format
+msgid "destination table size not matching sweep, size %d frames, need %d\n"
+msgstr ""
+"Размер таблицы назначения, не подходящий для сортировки, размер %d рам, "
+"нужен %d\n"
+
+#: util/mkir.c:343
+#, fuzzy, c-format
+msgid "input table num %d illegal"
+msgstr "Вводная таблица num %d незаконно"
+
+#: util/mkir.c:358
+#, fuzzy, c-format
+msgid "illegal sweep source table length: %d\n"
+msgstr "Запрещенная длина таблицы источников: %d\n"
 
 #: util/mkir.c:371
 #, fuzzy
@@ -20436,6 +22983,16 @@ msgstr "srconv: значение первого фрейма в временно
 msgid "cannot open %s (%s)."
 msgstr "не может открыть %s (%s)."
 
+#: util/new_srconv.c:438 util/new_srconv.c:509
+#, fuzzy, c-format
+msgid "Error: failed to initialise SRC -- %s\n"
+msgstr "Ошибка: не удалось инициализировать SRC -- %s\n"
+
+#: util/new_srconv.c:477 util/new_srconv.c:528
+#, fuzzy, c-format
+msgid "srconv: error: %s\n"
+msgstr "srconv: ошибка: %s\n"
+
 #: util/new_srconv.c:556 util/srconv.c:775
 #, fuzzy
 msgid ""
@@ -20449,7 +23006,8 @@ msgstr ""
 
 #: util/new_srconv.c:557 util/srconv.c:776
 #, fuzzy
-msgid "-P num\tpitch transposition ratio (srate/r) [do not specify both P and r]"
+msgid ""
+"-P num\tpitch transposition ratio (srate/r) [do not specify both P and r]"
 msgstr ""
 "-P num\tкоэффициент транспонирования (srate/r) [не указывается как P, так и "
 "r]"
@@ -20693,8 +23251,8 @@ msgstr " -bb X  нумеровано от 1 [по умолчанию в 1]"
 #, fuzzy
 msgid " -eb X  end at analysis bin X [defaults to highest]"
 msgstr ""
-" -eb X  конец в графе &lt; &lt; анализ &gt; &gt; в графе &lt; &lt; корзина X "
-"&gt; &gt; [невыполнение наивысших требований]"
+" -eb X  конец в графе &lt; &lt; анализ &gt; &gt; в графе &lt; &lt; корзина X"
+" &gt; &gt; [невыполнение наивысших требований]"
 
 #: util/pvlook.c:84
 #, fuzzy
@@ -20706,7 +23264,8 @@ msgstr ""
 #, fuzzy
 msgid " -ef X  end at analysis frame X [defaults to last]"
 msgstr ""
-" -ef X  конец в рамке для анализа X [недостатки в течение последнего времени]"
+" -ef X  конец в рамке для анализа X [недостатки в течение последнего "
+"времени]"
 
 #: util/pvlook.c:86
 #, fuzzy

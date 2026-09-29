@@ -977,7 +977,7 @@ int32_t lpcpvs_init(CSOUND *csound, LPCPVS *p) {
   p->N = N;
 
   if((N & (N - 1)) != 0)
-    return csound->InitError(csound, "input size not power of two\n");
+    return csound->InitError(csound, Str("input size not power of two\n"));
 
   p->setup = csound->LPsetup(csound,N,p->M);
   if(p->buf.auxp == NULL || Nbytes > p->buf.size)

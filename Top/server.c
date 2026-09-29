@@ -591,7 +591,7 @@ int32_t csoundUDPConsole(CSOUND *csound, const char *addr, int32_t port, int
       csound->SetMessageCallback(csound, udp_msg_callback);
       csound->RegisterResetCallback(csound, p, udp_console_stop);
     } else {
-      csound->Warning(csound, "Could not set UDP console\n");
+      csound->Warning(csound, Str("Could not set UDP console\n"));
       return CSOUND_ERROR;
     }
     return CSOUND_SUCCESS;

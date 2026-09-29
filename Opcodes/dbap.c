@@ -154,7 +154,7 @@ int32_t init_dbap(
     int32_t coord_kind
 ) {
     if (n < 2) {
-        return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Need at least 2 loudspeakers\n");
+        return csound->InitError(csound, Str("\n[DBAP OPCODE ERROR] Need at least 2 loudspeakers\n"));
     }
 
     dbap->nchnls = n;
@@ -291,7 +291,7 @@ int32_t initialize_dbap(
 ) {
     int32_t err = init_dbap(csound, dbap, n, ncoords, rolloff, weights, nsamples, coord_kind);
     if (err != OK) {
-        return csound->InitError(csound, "\n[DBAP OPCODE ERROR] DBAP init error\n");
+        return csound->InitError(csound, Str("\n[DBAP OPCODE ERROR] DBAP init error\n"));
     }
 
     finalize_dbap(dbap, input_coords, ncoords);
@@ -436,15 +436,15 @@ int32_t prepare_dbap_helper(
     cs_float rolloff_value
 ) {
     if (coord_kind != 0 && coord_kind != 1 && coord_kind != 2) {
-        return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Coordinates kind must be 0 (for cartesian), 1 (for polar degree) or 2 (for polar randians)\n");
+        return csound->InitError(csound, Str("\n[DBAP OPCODE ERROR] Coordinates kind must be 0 (for cartesian), 1 (for polar degree) or 2 (for polar radians)\n"));
     }
 
     if (nchnls != npos) {
-        return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Number of out channels must be the equal to number of loudspeakers\n");
+        return csound->InitError(csound, Str("\n[DBAP OPCODE ERROR] Number of out channels must equal number of loudspeakers\n"));
     }
 
     if (ncoords != 2 && ncoords != 3) {
-        return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Dimension must be exactly 2 (for 2D) or 3 (for 3d)\n");
+        return csound->InitError(csound, Str("\n[DBAP OPCODE ERROR] Dimension must be exactly 2 (for 2D) or 3 (for 3D)\n"));
     }
 
     return initialize_dbap(
@@ -476,7 +476,7 @@ int32_t dbap_helper(
     int32_t nchnls = dbap_state->nchnls;
 
     if (source_size < 2 || source_size > 3) {
-        return csound->PerfError(csound, h, "\n[DBAP OPCODE ERROR] Source dimension must be 2D or 3D\n");
+        return csound->PerfError(csound, h, Str("\n[DBAP OPCODE ERROR] Source dimension must be 2D or 3D\n"));
     }
 
     CARTESIAN_COORD source;
@@ -522,7 +522,7 @@ static int32_t prepare_position_array(CSOUND *csound, ARRAYDAT *positions,
     if (UNLIKELY(positions->data == NULL || positions->sizes == NULL ||
                  positions->dimensions != 2)) {
         return csound->InitError(csound,
-                                 "\n[DBAP OPCODE ERROR] Loudspeaker positions must be a two-dimensional array\n");
+                                 Str("\n[DBAP OPCODE ERROR] Loudspeaker positions must be a two-dimensional array\n"));
     }
 
     *npos = positions->sizes[0];
@@ -534,7 +534,7 @@ static int32_t prepare_position_table(CSOUND *csound, FUNC *positions,
                                       cs_float dimension, int32_t *npos,
                                       int32_t *ncoords) {
     if (UNLIKELY(dimension != FL(2) && dimension != FL(3))) {
-        return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Dimension must be exactly 2 (for 2D) or 3 (for 3d)\n");
+        return csound->InitError(csound, Str("\n[DBAP OPCODE ERROR] Dimension must be exactly 2 (for 2D) or 3 (for 3D)\n"));
     }
     *ncoords = (int32_t)dimension;
     /* Ignore trailing table padding after the last complete position. */
@@ -550,11 +550,11 @@ static int32_t prepare_weight_array(CSOUND *csound, ARRAYDAT *weight_array,
     }
     if (UNLIKELY(weight_array->sizes == NULL || weight_array->dimensions != 1)) {
         return csound->InitError(csound,
-                                 "\n[DBAP OPCODE ERROR] Loudspeaker weights must be a one-dimensional array\n");
+                                 Str("\n[DBAP OPCODE ERROR] Loudspeaker weights must be a one-dimensional array\n"));
     }
     if (UNLIKELY(weight_array->sizes[0] < nchnls)) {
         return csound->InitError(csound,
-                                 "\n[DBAP OPCODE ERROR] Need one weight per loudspeaker\n");
+                                 Str("\n[DBAP OPCODE ERROR] Need one weight per loudspeaker\n"));
     }
 
     *weights = (cs_float *)weight_array->data;
@@ -574,7 +574,7 @@ static int32_t prepare_weight_table(CSOUND *csound, cs_float *table_number,
     }
     if (UNLIKELY(weight_table->flen < nchnls)) {
         return csound->InitError(csound,
-                                 "\n[DBAP OPCODE ERROR] Need one weight per loudspeaker\n");
+                                 Str("\n[DBAP OPCODE ERROR] Need one weight per loudspeaker\n"));
     }
     *weights = (cs_float *)weight_table->ftable;
     return OK;
@@ -630,7 +630,7 @@ int32_t prepare_dbap_with_arr_func(CSOUND *csound, DBAP_WITH_ARR_FUNC *dbap) {
 int32_t prepare_dbap_with_func_arr(CSOUND *csound, DBAP_WITH_FUNC_ARR *dbap) {
     FUNC *pos_table = csound->FTFind(csound, dbap->loudspeakers_pos);
     if (!pos_table) {
-        return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n");
+        return csound->InitError(csound, Str("\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n"));
     }
 
     int32_t npos, ncoords;
@@ -658,7 +658,7 @@ int32_t prepare_dbap_with_func_arr(CSOUND *csound, DBAP_WITH_FUNC_ARR *dbap) {
 int32_t prepare_dbap_with_func_func(CSOUND *csound, DBAP_WITH_FUNC_FUNC *dbap) {
     FUNC *pos_table = csound->FTFind(csound, dbap->loudspeakers_pos);
     if (!pos_table) {
-        return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n");
+        return csound->InitError(csound, Str("\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n"));
     }
 
     int32_t npos, ncoords;
@@ -733,7 +733,7 @@ int32_t prepare_dbap_gains_with_arr_func(CSOUND *csound, DBAP_GAINS_WITH_ARR_FUN
 int32_t prepare_dbap_gains_with_func_arr(CSOUND *csound, DBAP_GAINS_WITH_FUNC_ARR *dbap) {
     FUNC *pos_table = csound->FTFind(csound, dbap->loudspeakers_pos);
     if (!pos_table) {
-        return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n");
+        return csound->InitError(csound, Str("\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n"));
     }
 
     int32_t npos, ncoords;
@@ -761,7 +761,7 @@ int32_t prepare_dbap_gains_with_func_arr(CSOUND *csound, DBAP_GAINS_WITH_FUNC_AR
 int32_t prepare_dbap_gains_with_func_func(CSOUND *csound, DBAP_GAINS_WITH_FUNC_FUNC *dbap) {
     FUNC *pos_table = csound->FTFind(csound, dbap->loudspeakers_pos);
     if (!pos_table) {
-        return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n");
+        return csound->InitError(csound, Str("\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n"));
     }
 
     int32_t npos, ncoords;

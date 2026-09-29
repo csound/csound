@@ -494,7 +494,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     size_t     bsize;
 
     if (p->init_done) {
-      csound->Warning(csound, "already initialised");
+      csound->Warning(csound, Str("already initialised"));
       return OK;
     }
 

@@ -58,7 +58,7 @@ static void specdiv(CSOUND *csound, cs_float *inp, cs_float *swp, int32_t fftlen
      cs_float d = swp[n+1], b = inp[n+1];
      cs_float den = c*c + d*d;
      if(den == 0)
-       csound->Warning(csound, "deconv: div by zero detected, sweep bin %d", n/2);
+       csound->Warning(csound, Str("deconv: div by zero detected, sweep bin %d"), n/2);
      else {
       inp[n] = (a*c + b*d)/den;
       inp[n+1] = (b*c - a*d)/den;
@@ -195,11 +195,11 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
        cs_float *outp, *chn = (cs_float *)
          csound->Calloc(csound, len*sizeof(cs_float));
        csound->Message(csound,
-                     "\tmultichannel input: %d channels\n",
+                     Str("\tmultichannel input: %d channels\n"),
                      sfinfo.channels);       
        for(i = 0; i < sfinfo.channels; i++) {
          csound->Message(csound,
-                     "\t\tprocessing channel %d\n",
+                     Str("\t\tprocessing channel %d\n"),
                      i);    
          for(j = 0; j < iframes; j++)
              chn[j] = inp[j*m + i];
@@ -220,10 +220,10 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
      csound->Free(csound, swp);
      csound->Free(csound, inp);
      csound->Message(csound,
-                     "\tcreated IR file %s\n",
+                     Str("\tcreated IR file %s\n"),
                      outputfile);
      csound->Message(csound,
-                     "\tsr = %.1f, %.3f seconds, %d channels\n",
+                     Str("\tsr = %.1f, %.3f seconds, %d channels\n"),
                      sr, frames/sr, sfinfo.channels);
    }
   else {
@@ -242,10 +242,10 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
     csound->SndfileClose(csound,fd);
     csound->Free(csound, sweep);
     csound->Message(csound,
-                     "\tcreated sine sweep file %s\n",
+                     Str("\tcreated sine sweep file %s\n"),
                      sweepfile);
     csound->Message(csound,
-                     "\tsr = %.1f, %.3f seconds\n",
+                     Str("\tsr = %.1f, %.3f seconds\n"),
                      sr, len);
   }
   return CSOUND_SUCCESS;
@@ -310,21 +310,21 @@ static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
   int32_t chns = ff->e.pcnt - 5;
 
   if(ff->e.p[5] <= 0) {
-    csound->Message(csound, "sweep table num %d illegal", (int) ff->e.p[5]);
+    csound->Message(csound, Str("sweep table num %d illegal"), (int) ff->e.p[5]);
     return NOTOK;
   }
                         
   
   if(chns < 1) {
-    csound->Message(csound, "insufficient number of input channels: %d", chns);
+    csound->Message(csound, Str("insufficient number of input channels: %d"), chns);
     return NOTOK;
   }
 
   if(ftp) {
    fp = ftp->ftable;
    if(sweep->flen != ftp->flen/chns) {
-     csound->Message(csound, "destination table size not matching"
-                     " sweep, size %d frames, need %d\n", ftp->flen/chns, len);
+     csound->Message(csound, Str("destination table size not matching"
+                     " sweep, size %d frames, need %d\n"), ftp->flen/chns, len);
     return NOTOK;
    }
   }
@@ -340,7 +340,7 @@ static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
   sweep = csound->FTFind(csound, &(ff->e.p[5]));
   for(int n = 0; n < chns; n++) {
     if(ff->e.p[n+6] <= 0) {
-      csound->Message(csound, "input table num %d illegal", (int) ff->e.p[n+6]);
+      csound->Message(csound, Str("input table num %d illegal"), (int) ff->e.p[n+6]);
      return NOTOK;
     }
     inp = csound->FTFind(csound, &(ff->e.p[n+6]));
@@ -355,7 +355,7 @@ static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
         fp[i*chns + n] = inpd[i];  
       csound->Free(csound, inpd);
     } else {
-      csound->Message(csound, "illegal sweep source table length: %d\n", len);
+      csound->Message(csound, Str("illegal sweep source table length: %d\n"), len);
       return NOTOK;
     }
   }

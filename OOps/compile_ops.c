@@ -97,7 +97,7 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p) {
     return OK;
   }
   csound->Free(csound, code);
-  return csound->InitError(csound, "failed to compile instr\n");
+  return csound->InitError(csound, Str("failed to compile instr\n"));
 }
 
 
@@ -246,14 +246,14 @@ int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
   *p->kstatus = 0;
   if(cnt > 32)
     return csound->PerfError(csound, &(p->h),
-                             "OSCRead exceeded max output args (>32)\n");
+                             Str("OSCRead exceeded max output args (>32)\n"));
   OSC_MESS *mess = csoundReadOSCMessage(csound, p->address->data,
                                         p->type->data);
   if(mess != NULL) {
     if ((size_t)cnt != strlen(p->type->data)) {
       csoundClearOSCMessage(mess);
       return csound->PerfError(csound, &p->h,
-                               "osclisten: output count does not match type string");
+                               Str("osclisten: output count does not match type string"));
     }
     cs_float **out = p->out;
     const char *buf = mess->data;
@@ -267,11 +267,11 @@ int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
         buf = OSC_message_get_number(buf, type[i], out[i]);
         if(buf == NULL)
           return csound->PerfError(csound, &(p->h),  
-                                   "unsupported OSC type %c", type[i]);
+                                   Str("unsupported OSC type %c"), type[i]);
       }
       else
-        return csound->PerfError(csound, &(p->h), "wrong output argument" 
-                                 "for OSC type %c", type[i]);
+        return csound->PerfError(csound, &(p->h), Str("wrong output argument "
+                                 "for OSC type %c"), type[i]);
     }
     *p->kstatus = 1;
     csoundClearOSCMessage(mess);
@@ -299,7 +299,7 @@ int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p) {
         (size_t)p->out->sizes[0] != strlen(p->type->data)) {
       csoundClearOSCMessage(mess);
       return csound->PerfError(csound, &p->h,
-                               "osclisten: array size does not match type string");
+                               Str("osclisten: array size does not match type string"));
     }
     cnt = p->out->sizes[0];
     cs_float *out = p->out->data;
@@ -309,7 +309,7 @@ int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p) {
       buf = OSC_message_get_number(buf, type[i], &out[i]);
       if(buf == NULL)
         return csound->PerfError(csound, &(p->h),  
-                                 "unsupported OSC type %c",
+                                 Str("unsupported OSC type %c"),
                                  type[i]);
     }
     *p->kstatus = 1;
@@ -458,8 +458,8 @@ static int32_t chnset_vector_csobj(CSOUND *csound, AOP *p) {
     STRINGDAT *channel = (STRINGDAT *) p->b;
     if(engine->ksmps == CS_KSMPS)
      csoundSetAudioChannel(engine, channel->data, val);
-    else return csound->PerfError(csound,  &p->h,"ksmps do not match:\n"
-                                  "csound obj (%d), instr (%d)\n",
+    else return csound->PerfError(csound,  &p->h,Str("ksmps do not match:\n"
+                                  "csound obj (%d), instr (%d)\n"),
                                   engine->ksmps, CS_KSMPS);
     return OK;
 }
@@ -481,8 +481,8 @@ static int32_t chnget_vector_csobj(CSOUND *csound, AOP *p) {
     STRINGDAT *channel = (STRINGDAT *) p->b;
     if(engine->ksmps == CS_KSMPS)
      csoundGetAudioChannel(engine, channel->data, val);
-    else return csound->PerfError(csound,  &p->h, "ksmps do not match:\n"
-                                  "csound obj (%d), instr (%d)\n",
+    else return csound->PerfError(csound,  &p->h, Str("ksmps do not match:\n"
+                                  "csound obj (%d), instr (%d)\n"),
                                   engine->ksmps, CS_KSMPS);
     return OK;
 }
