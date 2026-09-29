@@ -67,7 +67,7 @@ You can override the precision defaults with CMake options. To keep internal
 double precision with float samples, add `-DUSE_FLOAT=OFF`. To use double
 precision for both types, add `-DUSE_DOUBLE=ON -DUSE_FLOAT=OFF`.
 `FORCE_SINGLE_PRECISION` does not select a Csound precision mode.
-See [numeric types](../../doc/numeric-types.md) for the precision and ABI rules.
+See [numeric types](../../docs/numeric-types.md) for the precision and ABI rules.
 
 ## Use the library
 

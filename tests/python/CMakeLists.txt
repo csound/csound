@@ -38,15 +38,15 @@ if(Python3_FOUND)
         if(APPLE)
             set(_pytest_env
                 "DYLD_FRAMEWORK_PATH=${CMAKE_BINARY_DIR}"
-                "PYTHONPATH=${CMAKE_SOURCE_DIR}/Python")
+                "PYTHONPATH=${CMAKE_SOURCE_DIR}/languages/python")
         elseif(WIN32)
             set(_pytest_env
                 "PATH=${CMAKE_BINARY_DIR};$ENV{PATH}"
-                "PYTHONPATH=${CMAKE_SOURCE_DIR}/Python")
+                "PYTHONPATH=${CMAKE_SOURCE_DIR}/languages/python")
         else()
             set(_pytest_env
                 "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}"
-                "PYTHONPATH=${CMAKE_SOURCE_DIR}/Python")
+                "PYTHONPATH=${CMAKE_SOURCE_DIR}/languages/python")
         endif()
 
         if(TARGET csound-bin)

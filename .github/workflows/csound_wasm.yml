@@ -17,7 +17,7 @@ concurrency:
 jobs:
   csound-wasm:
     env:
-      wasm_bin_dir: ./wasm
+      wasm_bin_dir: ./platform/wasm-wasi
     name: Compiling wasm bins
     runs-on: ubuntu-latest
     steps:
@@ -48,7 +48,7 @@ jobs:
         with:
           name: wasm-commandline-test-sources
           path: |
-            ./wasm/src/csound-tests.nix
+            ./platform/wasm-wasi/src/csound-tests.nix
             ./tests/commandline
 
   commandline-tests:
@@ -61,7 +61,7 @@ jobs:
         uses: actions/download-artifact@v8.0.1
         with:
           name: lib
-          path: ${{ runner.temp }}/wasm-commandline-source/wasm
+          path: ${{ runner.temp }}/wasm-commandline-source/platform/wasm-wasi
       - name: Download matching command-line test sources
         uses: actions/download-artifact@v8.0.1
         with:
@@ -73,19 +73,19 @@ jobs:
       - name: Uncompress Wasm artifact
         run: |
           unzip \
-            "$RUNNER_TEMP/wasm-commandline-source/wasm/lib.zip" \
-            -d "$RUNNER_TEMP/wasm-commandline-source/wasm"
+            "$RUNNER_TEMP/wasm-commandline-source/platform/wasm-wasi/lib.zip" \
+            -d "$RUNNER_TEMP/wasm-commandline-source/platform/wasm-wasi"
       - name: Run command-line CSD tests with Wasmtime
         working-directory: ${{ runner.temp }}/wasm-commandline-source
-        run: nix-build ./wasm/src/csound-tests.nix --no-out-link --show-trace --option log-lines 10000
+        run: nix-build ./platform/wasm-wasi/src/csound-tests.nix --no-out-link --show-trace --option log-lines 10000
 
   browser-test:
     permissions:
       contents: read
       checks: write
     env:
-      wasm_bin_dir: ./wasm
-      wasm_browser_dir: ./wasm/browser
+      wasm_bin_dir: ./platform/wasm-wasi
+      wasm_browser_dir: ./platform/wasm-wasi/browser
       NIXPKGS_ALLOW_UNFREE: 1
     name: Browser bundle build and test
     needs: csound-wasm
@@ -111,7 +111,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version-file: wasm/browser/.nvmrc
+          node-version-file: platform/wasm-wasi/browser/.nvmrc
       - name: Build the production js module bundle
         run: |
           nix-env -f '<nixpkgs>' -iA openjdk

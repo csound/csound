@@ -61,7 +61,7 @@ if (USE_VCPKG)
             set(CMAKE_ANDROID_ARCH_ABI x86_64)
         endif()
         set(CMAKE_SYSTEM_VERSION 21)
-        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/android/android.cmake)
+        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/androidcross/android.cmake)
     elseif (OSXCROSS_TARGET)
         if (IOS)
             if(CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
@@ -94,7 +94,7 @@ if (USE_VCPKG)
         set(VCPKG_CMAKE_SYSTEM_NAME MinGW)
     elseif (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
         set(VCPKG_TARGET_TRIPLET "wasm32-emscripten")
-        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm/wasm32.cmake)
+        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-emscripten/wasm32.cmake)
         set(VCPKG_CMAKE_SYSTEM_NAME Emscripten)
     elseif (WIN32)
         # Detect 32-bit vs 64-bit Windows build
@@ -115,6 +115,8 @@ if (USE_VCPKG)
         set(VCPKG_TARGET_TRIPLET "x64-linux")
     endif()
 
+    set(VCPKG_MANIFEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/platform/vcpkg"
+        CACHE PATH "Directory containing the Csound vcpkg manifest")
     set(VCPKG_FEATURE_FLAGS versions)
     set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
     set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_CURRENT_SOURCE_DIR}/platform/vcpkg/triplets)
@@ -1069,8 +1071,8 @@ set(libcsound_SRCS
 if(IOS AND NOT  OSXCROSS_TARGET)
 
 set(libcsound_SRCS ${libcsound_SRCS}
-  iOS/Csound-for-iOS/src/rtaunit.c
-  iOS/Csound-for-iOS/src/iOSCsound.cpp
+  platform/ios/Csound-for-iOS/src/rtaunit.c
+  platform/ios/Csound-for-iOS/src/iOSCsound.cpp
 )
 endif()
 
@@ -1179,8 +1181,8 @@ if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     if(BUILD_WASI_BROWSER)
         # Browser builds use JavaScript-hosted callbacks and imported memory.
         list(APPEND libcsound_CFLAGS -DCSOUND_WASI_BROWSER)
-        list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/src/csound_wasm.c)
-        list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/src/csound_wasm.c)
+        list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/csound_wasm.c)
+        list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/csound_wasm.c)
     else()
         # Standalone WASI has a conventional command entry point and no JS host.
         list(APPEND libcsound_CFLAGS -DCSOUND_WASI_CLI)
@@ -1876,8 +1878,8 @@ csound_suppress_opcode_initializer_warnings(${libcsound_SRCS} ${libcsound_static
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
 add_subdirectory(Frontends)
-add_subdirectory(Python)
-add_subdirectory(Bela)
+add_subdirectory(languages/python)
+add_subdirectory(platform/bela)
 add_subdirectory(util)
 add_subdirectory(util1)
 add_subdirectory(po)
@@ -1918,12 +1920,14 @@ if(BUILD_DOCS)
     find_package(Doxygen)
 
     if(DOXYGEN_FOUND)
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/config.doxygen
             ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY
         )
 
-        add_custom_target(doc ${DOXYGEN_EXECUTABLE}
-            ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        add_custom_target(doc
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+                ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen
+            COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         )
     else()
@@ -2028,6 +2032,6 @@ if(MINGW)
     endif()
 endif()
 
-add_custom_target(format sh format.sh  Top/*.c  Top/*.cpp  Engine/*.c
+add_custom_target(format sh scripts/format.sh  Top/*.c  Top/*.cpp  Engine/*.c
     OOps/*.c Opcodes/*.c  Opcodes/*.cpp Opcodes/*/*.c  Opcodes/*/*.cpp
     util/*.c WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})

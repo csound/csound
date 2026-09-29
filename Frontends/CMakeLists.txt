@@ -1,3 +1,6 @@
+# The Tcl slider opcode loads this script from the working directory.
+configure_file(tcltk/nsliders.tk ${CMAKE_BINARY_DIR}/nsliders.tk COPYONLY)
+
 option(BUILD_CSBEATS "Build the beats score frontend" ON)
 option(BUILD_CSOUND_COMMAND "Build the Csound command" ON)
 
@@ -6,7 +9,7 @@ string(TOUPPER "${CMAKE_SYSTEM_NAME}" CMAKE_SYSTEM_NAME_UPPER)
 ## Csound Commandline Executable ##
 if(BUILD_CSOUND_COMMAND)
   if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" AND BUILD_WASI_BROWSER)
-    set(CS_MAIN_SRCS ${CMAKE_SOURCE_DIR}/wasm/src/csound_wasm.c)
+    set(CS_MAIN_SRCS ${CMAKE_SOURCE_DIR}/platform/wasm-wasi/src/csound_wasm.c)
   else()
     set(CS_MAIN_SRCS csound/csound_main.c)
   endif()

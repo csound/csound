@@ -617,13 +617,13 @@ jobs:
           fetch-depth: 1
 
       - name: Build libsndfile xcframework
-        working-directory: iOs
+        working-directory: platform/ios
         run: |
           chmod +x build_libsndfile.sh
           ./build_libsndfile.sh
 
       - name: Build Csound iOS xcframework
-        working-directory: iOs
+        working-directory: platform/ios
         run: |
           ./build.sh
 
@@ -631,7 +631,7 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         with:
           name: Csound-For-iOS-${{env.CSOUND_VERSION}}
-          path: iOS/Csound-For-iOS
+          path: platform/ios/Csound-For-iOS
 
   ios_build_ioscross:
     name: iOS build (ioscross/vcpkg)
@@ -766,7 +766,7 @@ jobs:
           echo "$HOME/arm-toolchains/arm-gnu-toolchain-${TOOLCHAIN_VER}-darwin-arm64-arm-none-eabi/bin" >> "$GITHUB_PATH"
 
       - name: Configure build
-        run: cmake -B build -DCMAKE_INSTALL_PREFIX="$PWD/Daisy" -DCUSTOM_CMAKE="$PWD/Daisy/Custom.cmake" -DCMAKE_TOOLCHAIN_FILE="$PWD/Daisy/crosscompile.cmake"
+        run: cmake -B build -DCMAKE_INSTALL_PREFIX="$PWD/platform/daisy" -DCUSTOM_CMAKE="$PWD/platform/daisy/Custom.cmake" -DCMAKE_TOOLCHAIN_FILE="$PWD/platform/daisy/crosscompile.cmake"
       - name: Build Csound
         run: cmake --build build --config Release
 
@@ -774,9 +774,9 @@ jobs:
         run: |
           cmake --build build --target install
           mkdir arm-cortex-m7
-          cp -r Daisy/DaisyCsoundExamples arm-cortex-m7
-          cp -r Daisy/lib arm-cortex-m7
-          cp -r Daisy/include arm-cortex-m7
+          cp -r platform/daisy/DaisyCsoundExamples arm-cortex-m7
+          cp -r platform/daisy/lib arm-cortex-m7
+          cp -r platform/daisy/include arm-cortex-m7
 
       - name: Upload zip
         uses: actions/upload-artifact@v7.0.1
@@ -905,7 +905,7 @@ jobs:
           cmake --build build --target install
 
       - name: Adjust ctcsound library load path
-        run: sed -i -e 's$ctypes.util.find_library("CsoundLib64")$"/Applications/Csound/Csound64.framework/CsoundLib64"$g' Python/ctcsound.py
+        run: sed -i -e 's$ctypes.util.find_library("CsoundLib64")$"/Applications/Csound/Csound64.framework/CsoundLib64"$g' languages/python/ctcsound.py
 
       - name: Adjust link paths in libraries
         run: |
@@ -922,7 +922,7 @@ jobs:
       - name: Build installer
         run: |
           mkdir csound_install/CsoundLib64.framework/Versions/7.0/Resources/Python
-          cp Python/ctcsound.py csound_install/CsoundLib64.framework/Versions/7.0/Resources/Python
+          cp languages/python/ctcsound.py csound_install/CsoundLib64.framework/Versions/7.0/Resources/Python
           mkdir csound_install/CsoundLib64.framework/libs
           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
           cp portaudio_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
@@ -1327,7 +1327,7 @@ jobs:
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Use custom vcpkg manifest for 32-bit (without libsndfile)
-        run: cp vcpkg-x86.json vcpkg.json
+        run: cp platform/vcpkg/vcpkg-x86.json platform/vcpkg/vcpkg.json
 
       - name: Download libsndfile pre-built binaries for Win32
         run: |
@@ -1408,7 +1408,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/csound-android:${{ env.VERSION }} \
             /bin/sh -lc '
               for ARCH in arm arm64 x86 x64; do
-                  cmake -B build/$ARCH -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE=./platform/android/custom-android.cmake \
+                  cmake -B build/$ARCH -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE=./platform/androidcross/custom-android.cmake \
                       -DCMAKE_SYSTEM_NAME=Android \
                       -DANDROID=1 \
                       -DCMAKE_TARGET_ARCHITECTURE=${ARCH}
@@ -1464,7 +1464,7 @@ jobs:
 
       - name: Configure Build
         run: |
-          cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/wasm/Custom-wasm.cmake" -DCMAKE_SYSTEM_NAME=Emscripten -DEMSDK=$EMSDK -DEMSDK_NODE=$EMSDK_NODE
+          cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/wasm-emscripten/Custom-wasm.cmake" -DCMAKE_SYSTEM_NAME=Emscripten -DEMSDK=$EMSDK -DEMSDK_NODE=$EMSDK_NODE
 
       - name: Build Csound
         run: cmake --build build --config Release
@@ -1490,17 +1490,17 @@ jobs:
           fetch-depth: 1
 
       - name: Download NDK
-        working-directory: Android
+        working-directory: platform/android
         run: sh downloadNDK.sh
 
       - name: Download Dependencies
-        working-directory: Android
+        working-directory: platform/android
         run: |
           export NDK_MODULE_PATH=$PWD/modules
           sh downloadDependencies.sh
 
       - name: build CsoundAndroid
-        working-directory: Android
+        working-directory: platform/android
         run: |
           export PATH="/opt/homebrew/opt/bison/bin:$PATH"
           export NDK_MODULE_PATH=$PWD/modules
@@ -1509,12 +1509,12 @@ jobs:
           sh build.sh
 
       - name: Verify readline Android binding
-        working-directory: Android
+        working-directory: platform/android
         run: |
           grep -R -F 'ReadlinePushText' CsoundAndroid/src/csnd7 > /dev/null
 
       - name: create release package
-        working-directory: Android
+        working-directory: platform/android
         run: |
           sh update.sh
           sh release.sh
@@ -1523,7 +1523,7 @@ jobs:
         #if: github.ref == 'refs/heads/develop'
         with:
           name: CsoundForAndroid-${{env.CSOUND_VERSION}}
-          path: Android/csound-android-${{env.CSOUND_VERSION}}
+          path: platform/android/csound-android-${{env.CSOUND_VERSION}}
 
   publish_artifacts:
     #

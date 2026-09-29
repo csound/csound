@@ -1,0 +1,173 @@
+# @csound/wasm — Local Development Guide
+
+This guide explains how to build Csound WASM locally and link it into the
+[Csound Web IDE](https://github.com/csound/web-ide).
+
+---
+
+## Overview
+
+The WASM stack is split across two packages inside this directory:
+
+| Package                | Path            | npm name           |
+| ---------------------- | --------------- | ------------------ |
+| Binary (`.wasm` files) | `platform/wasm-wasi/`         | `@csound/wasm-bin` |
+| Browser wrapper        | `platform/wasm-wasi/browser/` | `@csound/browser`  |
+
+The Web IDE depends on `@csound/browser`, which in turn depends on
+`@csound/wasm-bin`. Linking works by replacing the installed npm packages with
+symlinks that point at your local builds.
+
+---
+
+## 1. Build the WASM binary
+
+The build uses [Nix](https://nixos.org/) to guarantee a reproducible
+Emscripten toolchain. Make sure you have Nix installed.
+
+```bash
+# From the repo root
+cd platform/wasm-wasi
+npm install           # install build-script dependencies
+npm run build         # runs scripts/compile.sh via nix-build
+```
+
+`scripts/compile.sh` produces the following artefacts in `platform/wasm-wasi/lib/`:
+
+- `csound.wasm` - browser-hosted WASI reactor (`_initialize`, no `_start`)
+- `csound.wasm.z` - compressed browser-hosted module
+- `csound-cli.wasm` - standalone WASI command for runtimes such as Wasmtime
+- `csound-plugin-sdk.tar.gz` — plugin SDK archive
+- `plugin_example.wasm` / `plugin_example_cpp.wasm` — example plugins
+
+Both Csound modules are published in `@csound/wasm-bin`. The package `main`
+entry remains the browser reactor, `csound.wasm`. Command-line runtimes should
+load `csound-cli.wasm` explicitly.
+
+The build defaults to the local Nix system. To use a configured remote builder,
+set `NIX_SYSTEM` to the system provided by that builder. For example, from
+Darwin, `NIX_SYSTEM=x86_64-linux yarn build` selects an available
+`x86_64-linux` builder.
+
+The standalone module currently targets Wasmtime's standardized WebAssembly
+exception handling. A direct invocation looks like:
+
+```bash
+wasmtime run -Wexceptions=y --dir=. ./lib/csound-cli.wasm -nd ./example.csd
+```
+
+To run the command-line CSD suite against an already-built
+`lib/csound-cli.wasm`:
+
+```bash
+source ./scripts/nixpkgs-pin.sh
+nix-build ./src/csound-tests.nix
+```
+
+The test derivation also defaults to the local Nix system. Pass
+`--argstr system x86_64-linux` to select a configured Linux builder explicitly.
+It uses Wasmtime from the pinned Nixpkgs, disables audio with `-nd`, and runs the
+CSD files discovered under `tests/commandline`. Each file declares its own
+expectations, including WebAssembly overrides. The OSC and asynchronous
+`ftaudio` cases check the diagnostics for unavailable sockets and threads.
+
+For releases, publish a new `@csound/wasm-bin` version before updating and
+publishing `@csound/browser`; older binary packages do not contain the new
+`csound-cli.wasm` command artifact.
+
+---
+
+## 2. Link `@csound/wasm-bin` locally
+
+```bash
+# Inside platform/wasm-wasi/
+npm link            # registers this directory as the local @csound/wasm-bin
+```
+
+Then wire the browser wrapper to pick up the local binary:
+
+The browser package requires Node.js 22.13 or later. Its npm settings enforce
+the Node version and peer dependencies. Use `npm ci` for a clean install from
+the lockfile; do not use `--legacy-peer-deps` or `--force`.
+
+For nvm users, `platform/wasm-wasi/browser/.nvmrc` pins Node 22.23.2. Run `nvm install` and
+`nvm use` from that directory before installing dependencies. CI reads the
+same file. The file does not change your shell or PATH on its own; Nix users
+can keep using `nix-shell`, which supplies Node 22 without nvm.
+
+```bash
+cd browser
+npm ci              # install browser-wrapper dependencies
+npm link @csound/wasm-bin   # replace the npm version with your local build
+```
+
+---
+
+## 3. Build `@csound/browser`
+
+```bash
+# Still inside platform/wasm-wasi/browser/
+npm run build       # development build
+# or
+npm run build:prod  # production build
+```
+
+The compiled output lands in `platform/wasm-wasi/browser/dist/`.
+
+---
+
+## 4. Link `@csound/browser` into the Web IDE
+
+```bash
+# Inside platform/wasm-wasi/browser/
+npm link            # registers this directory as the local @csound/browser
+```
+
+```bash
+# Inside web-ide/
+npm link @csound/browser    # replace the npm version with your local build
+```
+
+The Web IDE dev server will now import your locally built `@csound/browser`
+(and transitively your local `.wasm` binary) whenever you run:
+
+```bash
+# Inside web-ide/
+npm start
+```
+
+---
+
+## 5. Iterating after changes
+
+Once links are in place (steps 1–4 are **one-time setup**), the rebuild cycle
+is just:
+
+```bash
+# Inside platform/wasm-wasi/browser/
+npm run build
+```
+
+Vite will detect the updated files and reload automatically.
+There is no need to re-run `npm link` — the symlink persists.
+
+> You may see a Babel note in the Vite output:
+> `[BABEL] Note: The code generator has deoptimised the styling of .../csound.js as it exceeds the max of 500KB.`
+> This is **informational only** — Babel skips pretty-printing large files for
+> performance. It does not affect functionality.
+
+---
+
+## 6. Teardown — restore published versions
+
+When you are done testing locally, remove the symlinks:
+
+```bash
+# Inside web-ide/
+npm unlink @csound/browser
+npm install         # re-install the published version
+
+# Inside platform/wasm-wasi/browser/
+npm unlink @csound/wasm-bin
+npm install
+```

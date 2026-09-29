@@ -225,7 +225,7 @@ Source: frontends/CsoundAC/*.hpp; DestDir: "{#APP_INCLUDE}\csoundac"; Flags: ign
 
 Source: {#MyManualSourceDir}html\*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs;  Components: core
 
-Source: "doc\doxygen\csound\html\*.*"; DestDir: "{#APP_APIREF}/csound"; Flags: ignoreversion recursesubdirs;  Components: core
+Source: "build\docs\doxygen\html\*.*"; DestDir: "{#APP_APIREF}/csound"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "doc\doxygen\csoundac\html\*.*"; DestDir: "{#APP_APIREF}/csoundac"; Flags: ignoreversion recursesubdirs;  Components: core
 
 Source: "examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav *.html"; Flags: ignoreversion recursesubdirs;  Components: core
@@ -237,7 +237,7 @@ Source: {#MyCsoundTutorialSourceDir}tutorial.pdf; DestDir: "{#APP_TUTORIAL}"; Fl
 Source: {#MyCsoundAcTutorialSourceDir}Csound_Algorithmic_Composition_Tutorial.pdf; DestDir: "{#APP_TUTORIAL}"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: {#MyCsoundAcTutorialSourceDir}code\*.*; DestDir: "{#APP_TUTORIAL}code\"; Excludes: "*.wav"; Flags: ignoreversion recursesubdirs;  Components: core
 
-Source: "doc\csound_system_documentation\*.pdf"; DestDir:"{#APP_APIREF}"; Flags: ignoreversion; Components: core
+Source: "docs\csound_system_documentation\*.pdf"; DestDir:"{#APP_APIREF}"; Flags: ignoreversion; Components: core
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#MyAppURL}";  Components: core;

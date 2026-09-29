@@ -15,7 +15,7 @@ Steven Yi, Victor Lazzarini, Roger Dannenberg, John ffitch — ICMC/SMC 2014
 |---|---|
 | **Csound 7** | Built from the `feat/ugen-api` branch (or later, once merged) with the UGen API enabled. |
 | **Python ≥ 3.10** | |
-| **ctcsound.py** | Ships in the repo under `Python/ctcsound.py`. |
+| **ctcsound.py** | Ships in the repo under `languages/python/ctcsound.py`. |
 | **numpy** | Used by ctcsound for buffer access. |
 
 ## Quick start with `uv`
@@ -33,7 +33,7 @@ The `.env` file sets two variables relative to this directory:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `PYTHONPATH` | `../../Python` | Makes `ctcsound` importable. |
+| `PYTHONPATH` | `../../languages/python` | Makes `ctcsound` importable. |
 | `DYLD_FRAMEWORK_PATH` | `../../build` | Locates `CsoundLib64.framework` (macOS). |
 
 If your Csound build lives somewhere else, either edit `.env` or override
@@ -48,7 +48,7 @@ DYLD_FRAMEWORK_PATH=/path/to/build uv run --env-file .env python ugen_example.py
 ```bash
 cd examples/ugen
 pip install numpy                       # if not already installed
-PYTHONPATH=../../Python \
+PYTHONPATH=../../languages/python \
 DYLD_FRAMEWORK_PATH=../../build \
   python ugen_example.py
 ```
