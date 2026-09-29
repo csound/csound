@@ -142,3 +142,9 @@ For example, `{"notes":[{"pitch":60}]}` needs a limit of at least `3`:
 the outer object, its array, and the note object. The limit also applies to
 containers inside unknown fields. Inputs beyond the limit fail rather than
 truncating the data.
+
+## Plugin-defined structs
+
+Plugin authors can register global struct types and call the same JSON
+conversion code from their opcodes. See [Plugin structs and JSON](plugin-structs-json.md)
+for registration, document validation and editing, and a C plugin example.

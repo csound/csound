@@ -40,7 +40,7 @@ typedef struct {
   char path[8192];
 } JSON_CONTEXT;
 
-static JSON_CONTEXT *new_context(CSOUND *csound, INSDS *instance, cs_float depth)
+static JSON_CONTEXT *new_context(CSOUND *csound, INSDS *instance, uint32_t depth)
 {
   JSON_CONTEXT *ctx = csound->Calloc(csound, sizeof(*ctx));
   ctx->csound = csound;
@@ -412,9 +412,67 @@ static void move_value(CSOUND *csound, const CS_TYPE *type, void *destination,
   }
 }
 
+static int32_t decode_document(CSOUND *csound, INSDS *instance, void *output,
+                                yyjson_doc *doc, uint32_t maxdepth,
+                                const char *opcode)
+{
+  const CS_TYPE *type = output != NULL ? GetTypeForArg(output) : NULL;
+  if (type == NULL || maxdepth > JSON_MAX_DEPTH)
+    return csound->InitError(csound, "%s: invalid destination or maximum depth", opcode);
+  yyjson_val *object = yyjson_doc_get_root(doc);
+  CS_VARIABLE *variable = NULL;
+  void *value = NULL;
+  const char *error = "expected a declared UDT or typed array";
+  JSON_CONTEXT *context = new_context(csound, instance, maxdepth);
+  int32_t result = NOTOK;
+  if (!type->userDefinedType && type != &CS_VAR_TYPE_ARRAY)
+    goto done;
+  if (check_depth(context, object) != OK) {
+    error = context->error;
+    goto done;
+  }
+  const CS_TYPE *element_type = type == &CS_VAR_TYPE_ARRAY
+    ? ((ARRAYDAT *)output)->arrayType : NULL;
+  if (check_type(context, type, element_type, 1) != OK) {
+    error = context->error;
+    goto done;
+  }
+  ARRAY_VAR_INIT array_init;
+  if (type == &CS_VAR_TYPE_ARRAY) {
+    const ARRAYDAT *destination = output;
+    array_init.type = destination->arrayType;
+    array_init.dimensions = destination->dimensions;
+  }
+  variable = csoundCreateVariableForType(
+    csound, type, type == &CS_VAR_TYPE_ARRAY ? &array_init : NULL,
+    instance);
+  if (variable == NULL) {
+    error = "could not create destination value";
+    goto done;
+  }
+  value = csound->Calloc(csound, variable->memBlockSize);
+  variable->initializeVariableMemory(csound, variable, (cs_float *)value);
+  if (decode_value(context, type, value, object, 1) != OK) {
+    error = context->error;
+    goto done;
+  }
+  move_value(csound, type, output, value, variable->memBlockSize);
+  result = OK;
+done:
+  if (value != NULL) {
+    type->freeVariableMemory(csound, value);
+    csound->Free(csound, value);
+  }
+  csound->Free(csound, variable);
+  if (result != OK)
+    result = csound->InitError(csound, "%s: %s at %s", opcode, error,
+                               context->path);
+  free_context(context);
+  return result;
+}
+
 static int32_t unmarshal(CSOUND *csound, JSON_UNMARSHAL *p, int from_file)
 {
-  const CS_TYPE *type = GetTypeForArg(p->out);
   const char *opcode = from_file ? "jsonunmarshalfile" : "jsonunmarshal";
   yyjson_read_flag flags = 0;
   yyjson_read_err read_error;
@@ -443,56 +501,9 @@ static int32_t unmarshal(CSOUND *csound, JSON_UNMARSHAL *p, int from_file)
   if (doc == NULL)
     return csound->InitError(csound, "%s: %s at byte %zu", opcode,
                              read_error.msg, read_error.pos);
-  yyjson_val *object = yyjson_doc_get_root(doc);
-  CS_VARIABLE *variable = NULL;
-  void *value = NULL;
-  const char *error = "expected a declared UDT or typed array";
-  JSON_CONTEXT *context = new_context(csound, p->h.insdshead, *p->maxdepth);
-  int32_t result = NOTOK;
-  if (!type->userDefinedType && type != &CS_VAR_TYPE_ARRAY)
-    goto done;
-  if (check_depth(context, object) != OK) {
-    error = context->error;
-    goto done;
-  }
-  const CS_TYPE *element_type = type == &CS_VAR_TYPE_ARRAY
-    ? ((ARRAYDAT *)p->out)->arrayType : NULL;
-  if (check_type(context, type, element_type, 1) != OK) {
-    error = context->error;
-    goto done;
-  }
-  ARRAY_VAR_INIT array_init;
-  if (type == &CS_VAR_TYPE_ARRAY) {
-    const ARRAYDAT *destination = p->out;
-    array_init.type = destination->arrayType;
-    array_init.dimensions = destination->dimensions;
-  }
-  variable = csoundCreateVariableForType(
-    csound, type, type == &CS_VAR_TYPE_ARRAY ? &array_init : NULL,
-    p->h.insdshead);
-  if (variable == NULL) {
-    error = "could not create destination value";
-    goto done;
-  }
-  value = csound->Calloc(csound, variable->memBlockSize);
-  variable->initializeVariableMemory(csound, variable, (cs_float *)value);
-  if (decode_value(context, type, value, object, 1) != OK) {
-    error = context->error;
-    goto done;
-  }
-  move_value(csound, type, p->out, value, variable->memBlockSize);
-  result = OK;
-done:
-  if (value != NULL) {
-    type->freeVariableMemory(csound, value);
-    csound->Free(csound, value);
-  }
-  csound->Free(csound, variable);
+  int32_t result = decode_document(csound, p->h.insdshead, p->out, doc,
+                                    (uint32_t)*p->maxdepth, opcode);
   yyjson_doc_free(doc);
-  if (result != OK)
-    result = csound->InitError(csound, "%s: %s at %s", opcode, error,
-                               context->path);
-  free_context(context);
   return result;
 }
 
@@ -514,7 +525,7 @@ int32_t json_marshal(CSOUND *csound, JSON_MARSHAL *p)
     return csound->InitError(csound,
                             "jsonmarshal: invalid pretty or maximum depth option");
   yyjson_mut_doc *doc = yyjson_mut_doc_new(NULL);
-  JSON_CONTEXT *context = new_context(csound, p->h.insdshead, *p->maxdepth);
+  JSON_CONTEXT *context = new_context(csound, p->h.insdshead, (uint32_t)*p->maxdepth);
   yyjson_mut_val *object = NULL;
   char *encoded = NULL;
   const char *error = "expected a declared UDT or typed array";
@@ -555,4 +566,230 @@ done:
                                context->path);
   free_context(context);
   return result;
+}
+
+/* The plugin interface keeps yyjson's layout and allocator private. */
+static void json_error(CSOUND_JSON_ERROR *error, const char *message, size_t pos)
+{
+  if (error == NULL) return;
+  snprintf(error->message, sizeof(error->message), "%s", message);
+  error->position = pos;
+}
+
+static yyjson_read_flag json_read_flags(uint32_t flags)
+{
+  return ((flags & 1) ? YYJSON_READ_ALLOW_COMMENTS : 0) |
+         ((flags & 2) ? YYJSON_READ_ALLOW_TRAILING_COMMAS : 0);
+}
+
+static CSOUND_JSON_DOCUMENT *json_editable(CSOUND *csound, yyjson_doc *doc,
+                                          CSOUND_JSON_ERROR *error)
+{
+  JSON_CONTEXT *context = new_context(csound, NULL, 0);
+  int result = check_depth(context, yyjson_doc_get_root(doc));
+  if (result != OK) json_error(error, context->error, 0);
+  free_context(context);
+  if (result != OK) {
+    yyjson_doc_free(doc);
+    return NULL;
+  }
+  yyjson_mut_doc *mutable_doc = yyjson_doc_mut_copy(doc, NULL);
+  yyjson_doc_free(doc);
+  if (mutable_doc == NULL) json_error(error, "could not allocate JSON document", 0);
+  return (CSOUND_JSON_DOCUMENT *)mutable_doc;
+}
+
+static CSOUND_JSON_DOCUMENT *plugin_json_parse(CSOUND *csound, const char *source, size_t length,
+                                               uint32_t flags,
+                                               CSOUND_JSON_ERROR *error)
+{
+  if (error != NULL) memset(error, 0, sizeof(*error));
+  if (csound == NULL || source == NULL || flags > 3) {
+    json_error(error, "invalid JSON source or flags", 0);
+    return NULL;
+  }
+  yyjson_read_err read_error;
+  yyjson_doc *doc = yyjson_read_opts((char *)source, length,
+                                    json_read_flags(flags), NULL, &read_error);
+  if (doc == NULL) {
+    json_error(error, read_error.msg, read_error.pos);
+    return NULL;
+  }
+  return json_editable(csound, doc, error);
+}
+
+static CSOUND_JSON_DOCUMENT *plugin_json_parse_file(CSOUND *csound,
+                         const char *path, uint32_t flags, CSOUND_JSON_ERROR *error)
+{
+  if (error != NULL) memset(error, 0, sizeof(*error));
+  if (csound == NULL || path == NULL || flags > 3) {
+    json_error(error, "invalid JSON path or flags", 0);
+    return NULL;
+  }
+  FILE *file;
+  void *handle = csound->FileOpen(csound, &file, CSFILE_STD, path, "rb",
+                                  "INCDIR;SSDIR;SFDIR", CSFTYPE_OTHER_TEXT, 0);
+  if (handle == NULL) {
+    json_error(error, "cannot open JSON file", 0);
+    return NULL;
+  }
+  yyjson_read_err read_error;
+  yyjson_doc *doc = yyjson_read_fp(file, json_read_flags(flags), NULL, &read_error);
+  csound->FileClose(csound, handle, CSFILE_CLOSE_SYNC);
+  if (doc == NULL) {
+    json_error(error, read_error.msg, read_error.pos);
+    return NULL;
+  }
+  return json_editable(csound, doc, error);
+}
+
+static void plugin_json_free(CSOUND_JSON_DOCUMENT *doc)
+{ yyjson_mut_doc_free((yyjson_mut_doc *)doc); }
+
+static CSOUND_JSON_VALUE *plugin_json_root(CSOUND_JSON_DOCUMENT *doc)
+{ return (CSOUND_JSON_VALUE *)yyjson_mut_doc_get_root((yyjson_mut_doc *)doc); }
+
+static CSOUND_JSON_KIND plugin_json_kind(const CSOUND_JSON_VALUE *value)
+{
+  yyjson_mut_val *v = (yyjson_mut_val *)value;
+  if (yyjson_mut_is_null(v)) return CSOUND_JSON_NULL;
+  if (yyjson_mut_is_bool(v)) return CSOUND_JSON_BOOLEAN;
+  if (yyjson_mut_is_num(v)) return CSOUND_JSON_NUMBER;
+  if (yyjson_mut_is_str(v)) return CSOUND_JSON_STRING;
+  if (yyjson_mut_is_arr(v)) return CSOUND_JSON_ARRAY;
+  if (yyjson_mut_is_obj(v)) return CSOUND_JSON_OBJECT;
+  return CSOUND_JSON_INVALID;
+}
+
+static size_t plugin_json_size(const CSOUND_JSON_VALUE *value)
+{ return yyjson_mut_get_len((yyjson_mut_val *)value); }
+
+static CSOUND_JSON_VALUE *plugin_json_member(const CSOUND_JSON_VALUE *value,
+                                             const char *key)
+{ return (CSOUND_JSON_VALUE *)yyjson_mut_obj_get((yyjson_mut_val *)value, key); }
+
+static CSOUND_JSON_VALUE *plugin_json_element(const CSOUND_JSON_VALUE *value,
+                                              size_t index)
+{ return (CSOUND_JSON_VALUE *)yyjson_mut_arr_get((yyjson_mut_val *)value, index); }
+
+static double plugin_json_number(const CSOUND_JSON_VALUE *value)
+{ return yyjson_mut_get_num((yyjson_mut_val *)value); }
+
+static const char *plugin_json_string(const CSOUND_JSON_VALUE *value)
+{ return yyjson_mut_get_str((yyjson_mut_val *)value); }
+
+static int32_t plugin_json_boolean(const CSOUND_JSON_VALUE *value)
+{ return yyjson_mut_get_bool((yyjson_mut_val *)value); }
+
+static int32_t plugin_json_rename(CSOUND_JSON_DOCUMENT *doc,
+                    CSOUND_JSON_VALUE *object, const char *old, const char *name)
+{
+  yyjson_mut_val *value = (yyjson_mut_val *)object;
+  if (doc == NULL || old == NULL || name == NULL ||
+      yyjson_mut_obj_get(value, name) != NULL) return NOTOK;
+  return yyjson_mut_obj_rename_key((yyjson_mut_doc *)doc, value, old, name)
+    ? OK : NOTOK;
+}
+
+static int32_t plugin_json_set_number(CSOUND_JSON_VALUE *value, double number)
+{
+  if (!isfinite(number) || plugin_json_kind(value) != CSOUND_JSON_NUMBER)
+    return NOTOK;
+  return yyjson_mut_set_real((yyjson_mut_val *)value, number) ? OK : NOTOK;
+}
+
+static int32_t plugin_json_set_string(CSOUND_JSON_DOCUMENT *doc,
+                                      CSOUND_JSON_VALUE *value, const char *text)
+{
+  if (doc == NULL || text == NULL || plugin_json_kind(value) != CSOUND_JSON_STRING)
+    return NOTOK;
+  yyjson_mut_val *copy = yyjson_mut_strcpy((yyjson_mut_doc *)doc, text);
+  return copy != NULL && yyjson_mut_set_strn((yyjson_mut_val *)value,
+                yyjson_mut_get_str(copy), yyjson_mut_get_len(copy)) ? OK : NOTOK;
+}
+
+static int32_t plugin_json_remove(CSOUND_JSON_VALUE *value, const char *key)
+{ return yyjson_mut_obj_remove_key((yyjson_mut_val *)value, key) != NULL ? OK : NOTOK; }
+
+static int32_t plugin_json_write(CSOUND *csound, CSOUND_JSON_DOCUMENT *doc,
+                                  STRINGDAT *out, uint32_t pretty)
+{
+  if (doc == NULL || out == NULL || pretty > 1)
+    return csound->InitError(csound, "JSON: invalid document, output or pretty option");
+  size_t length;
+  char *text = yyjson_mut_write((yyjson_mut_doc *)doc,
+                                pretty ? YYJSON_WRITE_PRETTY : 0, &length);
+  if (text == NULL || length >= MAX_STRINGDAT_SIZE) {
+    free(text);
+    return csound->InitError(csound, "JSON: could not write document");
+  }
+  STRINGDAT source = {text, length + 1, 0};
+  CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, out, &source, NULL);
+  free(text);
+  return OK;
+}
+
+static int32_t plugin_json_decode(CSOUND *csound, INSDS *instance, void *out,
+                                   CSOUND_JSON_DOCUMENT *doc, uint32_t depth)
+{
+  yyjson_doc *input = yyjson_mut_doc_imut_copy((yyjson_mut_doc *)doc, NULL);
+  if (input == NULL)
+    return csound->InitError(csound, "JSON: invalid document or allocation failed");
+  int32_t result = decode_document(csound, instance, out, input, depth, "JSON");
+  yyjson_doc_free(input);
+  return result;
+}
+
+static int32_t plugin_json_unmarshal_common(CSOUND *csound, INSDS *instance,
+                 void *out, const char *source, uint32_t flags, uint32_t depth,
+                 int from_file)
+{
+  if (flags > 3 || depth > JSON_MAX_DEPTH)
+    return csound->InitError(csound, "JSON: invalid flags or maximum depth");
+  cs_float options = (cs_float)flags, maxdepth = (cs_float)depth;
+  STRINGDAT text = {(char *)source, 0, 0};
+  JSON_UNMARSHAL opcode = {0};
+  opcode.h.insdshead = instance;
+  opcode.out = out;
+  opcode.source = &text;
+  opcode.flags = &options;
+  opcode.maxdepth = &maxdepth;
+  return unmarshal(csound, &opcode, from_file);
+}
+
+static int32_t plugin_json_unmarshal(CSOUND *csound, INSDS *instance, void *out,
+                          const char *source, uint32_t flags, uint32_t depth)
+{ return plugin_json_unmarshal_common(csound, instance, out, source, flags, depth, 0); }
+
+static int32_t plugin_json_unmarshal_file(CSOUND *csound, INSDS *instance, void *out,
+                          const char *source, uint32_t flags, uint32_t depth)
+{ return plugin_json_unmarshal_common(csound, instance, out, source, flags, depth, 1); }
+
+static int32_t plugin_json_marshal(CSOUND *csound, INSDS *instance, STRINGDAT *out,
+                                   void *value, uint32_t pretty, uint32_t depth)
+{
+  if (out == NULL || value == NULL || pretty > 1 || depth > JSON_MAX_DEPTH)
+    return csound->InitError(csound, "JSON: invalid value, pretty or maximum depth");
+  cs_float options = (cs_float)pretty, maxdepth = (cs_float)depth;
+  JSON_MARSHAL opcode = {0};
+  opcode.h.insdshead = instance;
+  opcode.out = out;
+  opcode.value = value;
+  opcode.pretty = &options;
+  opcode.maxdepth = &maxdepth;
+  return json_marshal(csound, &opcode);
+}
+
+const CSOUND_JSON_API *csoundGetJsonAPI(uint32_t version)
+{
+  static const CSOUND_JSON_API api = {
+    CSOUND_JSON_API_VERSION, sizeof(CSOUND_JSON_API),
+    plugin_json_parse, plugin_json_parse_file, plugin_json_free, plugin_json_root,
+    plugin_json_kind, plugin_json_size, plugin_json_member, plugin_json_element,
+    plugin_json_number, plugin_json_string, plugin_json_boolean,
+    plugin_json_rename, plugin_json_set_number, plugin_json_set_string,
+    plugin_json_remove, plugin_json_write, plugin_json_decode,
+    plugin_json_unmarshal, plugin_json_unmarshal_file, plugin_json_marshal
+  };
+  return version == CSOUND_JSON_API_VERSION ? &api : NULL;
 }
