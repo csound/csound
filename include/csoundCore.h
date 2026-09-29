@@ -1115,7 +1115,6 @@ typedef struct _CSOUND_UTIL {
  * they are required by plugins.
  */
 #include "csound_structs.h"
-#include "csound_json.h"
 
 struct CSOUND_ {
 
@@ -1546,8 +1545,7 @@ struct CSOUND_ {
   int32_t (*ArrayEnsureCapacity)(CSOUND *, ARRAYDAT *, size_t, INSDS *);
   const CS_TYPE *(*RegisterStruct)(CSOUND *, const char *,
                                     const CSOUND_STRUCT_MEMBER *, size_t);
-  const CSOUND_JSON_API *(*GetJsonAPI)(uint32_t);
-  SUBR dummyfn_2[44];
+  SUBR dummyfn_2[45];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */

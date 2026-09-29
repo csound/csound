@@ -614,13 +614,12 @@ static const CSOUND cenviron_ = {
     csound_array_prepare_opcode_write_impl,
     csound_array_ensure_capacity_impl,
     csoundRegisterStruct,
-    csoundGetJsonAPI,
-    /* space for API expansion: 44 slots */
+    /* space for API expansion: 45 slots */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL},
+     NULL, NULL, NULL, NULL, NULL},
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
   (SUBR) NULL,    /*  first_callback_     */
