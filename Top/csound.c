@@ -426,6 +426,7 @@ static const CSOUND cenviron_ = {
     csoundFTFree,
     csoundFTFind,
     csoundGetNamedGens,
+    csoundGetTableArgs,
     /* instance variables */
     csoundCreateInstanceVariable,
     csoundQueryInstanceVariable,
@@ -609,8 +610,8 @@ static const CSOUND cenviron_ = {
     csoundSprintf, // csoundSprintf
     csoundSscanf,  // csoundSscanf
     csoundDeprecate,
+    /* arrays & structs */
     csound_array_prepare_write_impl,
-    csoundGetTableArgs,
     csound_array_prepare_opcode_write_impl,
     csound_array_ensure_capacity_impl,
     csoundRegisterStruct,
