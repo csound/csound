@@ -53,23 +53,34 @@
 {
     channelPtr = [csoundObj getInputChannelPtr:self.channelName
                                    channelType:CSOUND_CONTROL_CHANNEL];
-    channelValue = self.slider.value;
-    [self.slider addTarget:self
-                    action:@selector(updateChannelValue:)
-          forControlEvents:UIControlEventValueChanged];
-    
-}
 
+    // Because `channelValue` must derive its initial value from
+    // a UIKit control, we may block the current, Csound-initializing, thread
+    // to ensure reading from the main thread in synchronous fashion.
+    void (^configure)(void) = ^{
+        self->channelValue = self.slider.value;
+        [self.slider addTarget:self
+                        action:@selector(updateChannelValue:)
+              forControlEvents:UIControlEventValueChanged];
+    };
+    if ([NSThread isMainThread]) {
+        configure(); // avoid deadlock
+    } else {
+        dispatch_sync(dispatch_get_main_queue(), configure);
+    }
+}
 
 -(void)updateValuesToCsound {
     *channelPtr = channelValue;
 }
 
 -(void)cleanup {
-    [self.slider removeTarget:self
-                       action:@selector(updateChannelValue:)
-             forControlEvents:UIControlEventValueChanged];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Call UIKit from main thread.
+        [self.slider removeTarget:self
+                           action:@selector(updateChannelValue:)
+                 forControlEvents:UIControlEventValueChanged];
+    });
 }
-
 
 @end

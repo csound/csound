@@ -226,9 +226,12 @@
 	yChannelPtr = [csoundObj getInputChannelPtr:@"pitch" channelType:CSOUND_CONTROL_CHANNEL];
     xChannelValue = _xValue;
 	yChannelValue = _yValue;
-    [self addTarget:self
-             action:@selector(updateChannelValues:)
-   forControlEvents:UIControlEventValueChanged];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Call UIKit from main thread.
+        [self addTarget:self
+                 action:@selector(updateChannelValues:)
+       forControlEvents:UIControlEventValueChanged];
+    });
 }
 
 - (void)updateChannelValues:(id)sender
@@ -239,16 +242,20 @@
 
 - (void)updateValuesToCsound
 {
-    *xChannelPtr = xChannelValue;
-    *yChannelPtr = yChannelValue;
-
+    if (xChannelPtr != NULL && yChannelPtr != NULL) {
+        *xChannelPtr = xChannelValue;
+        *yChannelPtr = yChannelValue;
+    }
 }
 
 - (void)cleanup
 {
-	[self removeTarget:self
-                action:@selector(updateChannelValues:)
-      forControlEvents:UIControlEventValueChanged];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Call UIKit from main thread.
+        [self removeTarget:self
+                    action:@selector(updateChannelValues:)
+          forControlEvents:UIControlEventValueChanged];
+    });
 }
 
 @end

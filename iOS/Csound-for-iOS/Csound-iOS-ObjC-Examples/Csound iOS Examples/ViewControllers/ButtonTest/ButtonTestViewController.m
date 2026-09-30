@@ -32,6 +32,15 @@
     [super viewDidLoad];
 }
 
+-(void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+
+    if (self.isMovingFromParentViewController || self.isBeingDismissed ||
+        self.navigationController.isMovingFromParentViewController) {
+        [self.csound removeListener:self];
+    }
+}
+
 -(IBAction) eventButtonHit:(id)sender {
     NSString *score = [NSString stringWithFormat:@"i2 0 %f", [mDurationSlider value]];
 
@@ -98,7 +107,10 @@
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[mSwitch setOn:NO animated:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Call UIKit from main thread.
+        [self->mSwitch setOn:NO animated:YES];
+    });
 }
 
 @end

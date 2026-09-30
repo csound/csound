@@ -34,6 +34,15 @@
 	[self.mPlayer setDelegate:self];
 }
 
+-(void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+
+    if (self.isMovingFromParentViewController || self.isBeingDismissed ||
+        self.navigationController.isMovingFromParentViewController) {
+        [self.csound removeListener:self];
+    }
+}
+
 -(IBAction) toggleOnOff:(id)component {
 	UISwitch *uiswitch = (UISwitch *)component;
 	NSLog(@"Status: %d", [uiswitch isOn]);
@@ -131,10 +140,13 @@
 }
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[_mSwitch setOn:NO animated:YES];
-    _mPlayer = nil;
-	_mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];
-	[_mPlayer setDelegate:self];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Call UIKit from main thread.
+        [self->_mSwitch setOn:NO animated:YES];
+        self->_mPlayer = nil;
+        self->_mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];
+        [self->_mPlayer setDelegate:self];
+    });
 }
 
 @end

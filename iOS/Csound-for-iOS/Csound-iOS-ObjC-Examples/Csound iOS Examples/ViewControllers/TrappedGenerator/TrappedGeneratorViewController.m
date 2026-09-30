@@ -41,6 +41,15 @@
     hasRendered = NO;
 }
 
+-(void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+
+    if (self.isMovingFromParentViewController || self.isBeingDismissed ||
+        self.navigationController.isMovingFromParentViewController) {
+        [self.csound removeListener:self];
+    }
+}
+
 - (IBAction)generateTrappedToDocumentsFolder:(id)sender {
     NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"trapped" ofType:@"csd"];
     

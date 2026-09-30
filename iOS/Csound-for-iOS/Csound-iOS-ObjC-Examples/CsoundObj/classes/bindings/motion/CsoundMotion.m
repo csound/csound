@@ -28,7 +28,9 @@
 #import "CsoundGyroscopeBinding.h"
 
 @interface CsoundMotion () {
-    CsoundObj *csoundObj;
+    // A weak reference to csoundObj prevents an instant retain
+    // cycle in the initializer below.
+    __weak CsoundObj *csoundObj;
 }
 @end
 

@@ -40,7 +40,7 @@ typedef struct csdata_ {
     bool useAudioInput;
 	ExtAudioFileRef file;
 	AudioUnit *aunit;
-    __unsafe_unretained NSMutableArray *valuesCache;
+    __unsafe_unretained NSArray *valuesCache;
 } csdata;
 
 typedef struct {
@@ -112,6 +112,7 @@ typedef struct {
 
 @property (assign) SEL messageCallbackSelector;
 - (void)addListener:(id<CsoundObjListener>)listener;
+- (void)removeListener:(id<CsoundObjListener>)listener;
 - (void)setMessageCallback:(SEL)method withListener:(id)listener;
 - (void)performMessageCallback:(NSValue *)infoObj;
 

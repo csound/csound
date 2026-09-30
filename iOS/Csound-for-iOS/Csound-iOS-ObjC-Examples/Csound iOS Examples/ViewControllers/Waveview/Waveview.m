@@ -30,10 +30,14 @@
     BOOL tableLoaded;
     CGFloat lastY;
     CsoundObj *csObj;
-    cs_float *table;
-    int tableLength;
     cs_float *displayData;
+    int displayWidth;
     int fTableNumber;
+}
+
+- (void)dealloc
+{
+    free(displayData);
 }
 
 - (void)displayFTable:(int)fTableNum
@@ -49,8 +53,10 @@
     CGContextSetRGBFillColor(context, 0, 0, 0, 1);
     CGContextFillRect(context, rect);
     
-    if (tableLoaded) {
-        int width = self.frame.size.width;
+    // tableLoaded flips on the Csound thread before displayData is built on
+    // the main queue, so gate on the buffer itself.
+    if (displayData != NULL && displayWidth > 0) {
+        int width = MIN((int)self.frame.size.width, displayWidth);
         
         CGContextSetRGBStrokeColor(context, 255, 255, 255, 1);
         CGContextSetRGBFillColor(context, 255, 255, 255, 1);
@@ -77,36 +83,52 @@
     fTableNumber = 1;
 }
 
-- (void)updataDisplayData
+- (void)updataDisplayData:(NSData *)tableData
 {
-    float scalingFactor = 0.9;
-    int width = self.frame.size.width;
-    int height = self.frame.size.height;
-    int middle = (height / 2);
-    
-    displayData = malloc(sizeof(cs_float) * width);
-    
-    for(int i = 0; i < width; i++) {
-        float percent = i / (float)(width);
-        int index = (int)(percent * tableLength);
-        displayData[i] = (-(table[index] * middle * scalingFactor) + middle);
-    }
-    
-    [self performSelectorOnMainThread:@selector(setNeedsDisplay)
-                           withObject:nil
-                        waitUntilDone:NO];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        const cs_float *tableBytes = tableData.bytes;
+        int length = (int)(tableData.length / sizeof(cs_float));
+        if (length <= 0) return;
+        float scalingFactor = 0.9;
+        int width = self.frame.size.width;
+        if (width <= 0) return;
+        int height = self.frame.size.height;
+        int middle = (height / 2);
+
+        cs_float *newDisplayData = malloc(sizeof(cs_float) * width);
+
+        for(int i = 0; i < width; i++) {
+            float percent = i / (float)(width);
+            int index = (int)(percent * length);
+            newDisplayData[i] = (-(tableBytes[index] * middle * scalingFactor) + middle);
+        }
+
+        free(self->displayData);
+        self->displayData = newDisplayData;
+        self->displayWidth = width;
+
+        [self setNeedsDisplay];
+    });
 }
 
 - (void)updateValuesFromCsound
 {
     if (!tableLoaded) {
         CSOUND *cs = [csObj getCsound];
+        if (cs == NULL) return; // Csound stopped or not yet running
+        int length = csoundTableLength(cs, fTableNumber);
 
-        if ((tableLength = csoundTableLength(cs, fTableNumber)) > 0) {
-            table = malloc(tableLength * sizeof(cs_float));
-            csoundGetTable(cs, &table, fTableNumber);
+        if (length > 0) {
+            cs_float *csoundTable = NULL;
+            csoundGetTable(cs, &csoundTable, fTableNumber);
+
+            // csoundGetTable points directly into Csound-owned memory, which can be
+            // freed once Csound stops. Copy it out into our own NSData right here,
+            // synchronously, before crossing to any other thread/queue.
+            NSData *tableData = [NSData dataWithBytes:csoundTable length:length * sizeof(cs_float)];
+
             tableLoaded = YES;
-            [self performSelectorInBackground:@selector(updataDisplayData) withObject:nil];
+            [self performSelectorInBackground:@selector(updataDisplayData:) withObject:tableData];
         }
     }
 }

@@ -64,14 +64,16 @@
     [self.csound stop];
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    // Return YES for supported orientations
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
+        return UIInterfaceOrientationMaskAllButUpsideDown;
     } else {
-        return YES;
+        return UIInterfaceOrientationMaskAll;
     }
+}
+
+- (BOOL)shouldAutorotate {
+    return YES;
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -103,12 +105,6 @@
     self.navigationItem.leftBarButtonItem.title = @"Csound for iOS";
     self.masterPopoverController = svc;
     
-}
-
-- (void)splitViewController:(UISplitViewController *)splitController willShowViewController:(UIViewController *)viewController invalidatingBarButtonItem:(UIBarButtonItem *)barButtonItem
-{
-    [self.navigationItem setLeftBarButtonItem:nil animated:YES];
-    self.masterPopoverController = nil;
 }
 
 @end

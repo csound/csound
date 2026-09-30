@@ -82,6 +82,14 @@
 	[self.csound play:tempFile];
 }
 
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+
+    if (self.isMovingFromParentViewController || self.isBeingDismissed ||
+        self.navigationController.isMovingFromParentViewController) {
+        [self.csound removeBinding:self];
+    }
+}
 
 #pragma mark Csound Binding
 
@@ -142,8 +150,10 @@
 			touchX[touchId] = pt.x / self.view.frame.size.width;
 			touchY[touchId] = 1 - (pt.y / self.view.frame.size.height); // flip y value so zero is on 
 			
-			*touchXPtr[touchId] = touchX[touchId];
-			*touchYPtr[touchId] = touchY[touchId];
+			if (touchXPtr[touchId] != NULL && touchYPtr[touchId] != NULL) {
+				*touchXPtr[touchId] = touchX[touchId];
+				*touchYPtr[touchId] = touchY[touchId];
+			}
 			
 			[self.csound sendScore:[NSString stringWithFormat:@"i1.%d 0 -2 %d", touchId, touchId, nil]];
 		}

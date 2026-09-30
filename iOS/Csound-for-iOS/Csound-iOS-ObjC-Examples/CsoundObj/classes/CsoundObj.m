@@ -39,8 +39,13 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
 @interface CsoundObj() {
   NSMutableArray *listeners;
+  // Strong owner of the bindings snapshot that mCsData.valuesCache points to.
+  NSArray *renderBindings;
   csdata mCsData;
   id  mMessageListener;
+  // Serializes runCsound:/runCsoundToDisk: so a new run can never start
+  // mutating mCsData/renderBindings before a prior run's teardown has finished.
+  dispatch_queue_t csoundQueue;
 }
 
 - (void)runCsound:(NSString *)csdFilePath;
@@ -59,6 +64,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
     listeners = [[NSMutableArray alloc] init];
     _midiInEnabled = NO;
     _useAudioInput = NO;
+    csoundQueue = dispatch_queue_create("com.csounds.CsoundObj.runQueue", DISPATCH_QUEUE_SERIAL);
   }
     
   return self;
@@ -77,9 +83,10 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
 - (void)play:(NSString *)csdFilePath
 {
-  mCsData.shouldRecord = false;
-  [self performSelectorInBackground:@selector(runCsound:)
-                         withObject:csdFilePath];
+  dispatch_async(csoundQueue, ^{
+    self->mCsData.shouldRecord = false;
+    [self runCsound:csdFilePath];
+  });
 }
 
 - (void)updateOrchestra:(NSString *)orchestraString
@@ -111,18 +118,19 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
 - (void)record:(NSString *)csdFilePath toURL:(NSURL *)outputURL
 {
-  mCsData.shouldRecord = true;
-  self.outputURL = outputURL;
-  [self performSelectorInBackground:@selector(runCsound:) withObject:csdFilePath];
+  dispatch_async(csoundQueue, ^{
+    self->mCsData.shouldRecord = true;
+    self.outputURL = outputURL;
+    [self runCsound:csdFilePath];
+  });
 }
 
 - (void)record:(NSString *)csdFilePath toFile:(NSString *)outputFile
 {
-  mCsData.shouldRecord = false;
-    
-  [self performSelectorInBackground:@selector(runCsoundToDisk:)
-			 withObject:[NSMutableArray arrayWithObjects:csdFilePath,
-                                                    outputFile, nil]];
+  dispatch_async(csoundQueue, ^{
+    self->mCsData.shouldRecord = false;
+    [self runCsoundToDisk:@[csdFilePath, outputFile]];
+  });
 }
 
 - (void)recordToURL:(NSURL *)outputURL_
@@ -177,16 +185,52 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
 - (void)addBinding:(id<CsoundBinding>)binding
 {
-  if (binding != nil) {
-    if (mCsData.running) [binding setup:self];
+  if (binding == nil) return;
+  @synchronized(self) {
+    if (mCsData.cs != NULL) [binding setup:self];
     [_bindings addObject:binding];
+    [self updateRenderBindingsSnapshot];
   }
 }
 
 - (void)removeBinding:(id<CsoundBinding>)binding
 {
-  if (binding != nil && [_bindings containsObject:binding]) {
-    [_bindings removeObject:binding];
+  if (binding == nil) return;
+  @synchronized(self) {
+    if ([_bindings containsObject:binding]) {
+      [_bindings removeObject:binding];
+      [self updateRenderBindingsSnapshot];
+    }
+  }
+}
+
+/// Refreshes the immutable snapshot the render callback reads from, so
+/// bindings added/removed after playback starts take effect on the audio
+/// thread.
+- (void)updateRenderBindingsSnapshot
+{
+  @synchronized(self) {
+    /// Only needed once a render snapshot has been published.
+    /// The initial snapshot is taken in runCsound:
+    if (renderBindings == nil) return;
+      
+    /// `previousSnapshot` simply references whatever `renderBindings`
+    /// currently points at to keep ARC from freeing that memory; We
+    /// hold on to the snapshot for 250ms (see the call to `dispatch_after`
+    /// below), long enough for any sensible audio render loop to finish. This
+    /// protects the audio render loop from using a pointer we are about to invalidate.
+    NSArray *previousSnapshot = renderBindings;
+      
+    NSArray *newSnapshot = [_bindings copy];
+    mCsData.valuesCache = newSnapshot;
+    renderBindings = newSnapshot;
+    
+    if (previousSnapshot != nil) {
+      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
+                      dispatch_get_main_queue(), ^{
+        (void)previousSnapshot;
+      });
+    }
   }
 }
 
@@ -223,12 +267,24 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 // -----------------------------------------------------------------------------
 
 - (void)addListener:(id<CsoundObjListener>)listener {
-  [listeners addObject:listener];
+  @synchronized(self) {
+    [listeners addObject:listener];
+  }
+}
+
+- (void)removeListener:(id<CsoundObjListener>)listener {
+  @synchronized(self) {
+    [listeners removeObject:listener];
+  }
 }
 
 - (void)notifyListenersOfStartup
 {
-  for (id<CsoundObjListener> listener in listeners) {
+  NSArray *listenersSnapshot;
+  @synchronized(self) {
+    listenersSnapshot = [listeners copy];
+  }
+  for (id<CsoundObjListener> listener in listenersSnapshot) {
     if ([listener respondsToSelector:@selector(csoundObjStarted:)]) {
       [listener csoundObjStarted:self];
     }
@@ -236,7 +292,11 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 }
 - (void)notifyListenersOfCompletion
 {
-  for (id<CsoundObjListener> listener in listeners) {
+  NSArray *listenersSnapshot;
+  @synchronized(self) {
+    listenersSnapshot = [listeners copy];
+  }
+  for (id<CsoundObjListener> listener in listenersSnapshot) {
     if ([listener respondsToSelector:@selector(csoundObjCompleted:)]) {
       [listener csoundObjCompleted:self];
     }
@@ -372,7 +432,7 @@ OSStatus  Csound_Render(void *inRefCon,
     
   AudioUnitRender(*cdata->aunit, ioActionFlags, inTimeStamp, 1,
                   inNumberFrames, ioData);
-  NSMutableArray* cache = cdata->valuesCache;
+  NSArray* cache = cdata->valuesCache;
 
   
   for(frame=0;frame < inNumberFrames;frame++){    
@@ -445,9 +505,10 @@ OSStatus  Csound_Render(void *inRefCon,
                                      cStringUsingEncoding:NSASCIIStringEncoding]
                            };
     int ret = csoundCompile(cs, 4, argv);
-      
-    
-        
+
+    // Bindings fetch their channel pointers through mCsData.cs.
+    mCsData.cs = cs;
+
     [self setupBindings];
     [self notifyListenersOfStartup];
         
@@ -457,6 +518,7 @@ OSStatus  Csound_Render(void *inRefCon,
     csoundStart(cs);
     if(!ret) {
       while(!ret) ret = csoundPerformKsmps(cs);
+      mCsData.cs = NULL;
       csoundDestroy(cs);
     }
         
@@ -495,17 +557,22 @@ static int csoundGetOutputBufferSize(CSOUND *csound){
     if(!ret) {
       // explicitly start Csound
       ret = csoundStart(cs);
-      mCsData.running = true;
       mCsData.nsmps = 0;
-    
-      if(!ret) {    
-        mCsData.cs = cs;
-        mCsData.ret = ret;
-        mCsData.nchnls = csoundGetChannels(cs, 0);
-        mCsData.bufframes = (csoundGetOutputBufferSize(cs))/mCsData.nchnls;
-        mCsData.running = true;
-        mCsData.valuesCache = _bindings;
-        mCsData.useAudioInput = _useAudioInput;
+
+      if(!ret) {
+        // Publish cs/nchnls/bufframes/running and the initial bindings
+        // snapshot together -- a concurrent addBinding:/removeBinding: must
+        // never see `running == true` while `cs` is still NULL.
+        @synchronized(self) {
+          mCsData.cs = cs;
+          mCsData.ret = ret;
+          mCsData.nchnls = csoundGetChannels(cs, 0);
+          mCsData.bufframes = (csoundGetOutputBufferSize(cs))/mCsData.nchnls;
+          mCsData.running = true;
+          renderBindings = [_bindings copy];
+          mCsData.valuesCache = renderBindings;
+          mCsData.useAudioInput = _useAudioInput;
+        }
         AudioStreamBasicDescription format;
         OSStatus err;
             
@@ -674,6 +741,19 @@ static int csoundGetOutputBufferSize(CSOUND *csound){
             AudioUnitUninitialize(csAUHAL);
             AudioComponentInstanceDispose(csAUHAL);
           }
+        }
+      }
+      @synchronized(self) {
+        NSArray *previousSnapshot = renderBindings;
+        mCsData.running = false;
+        mCsData.cs = NULL;
+        mCsData.valuesCache = nil;
+        renderBindings = nil;
+        if (previousSnapshot != nil) {
+          dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)),
+                          dispatch_get_main_queue(), ^{
+            (void)previousSnapshot;
+          });
         }
       }
       csoundDestroy(cs);

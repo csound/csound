@@ -24,7 +24,7 @@
 
 #import "CsoundVirtualKeyboard.h"
 
-static const int kTotalNumKeys = 25;
+#define kTotalNumKeys 25
 
 @interface CsoundVirtualKeyboard()
 

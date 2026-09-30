@@ -40,6 +40,14 @@
     [self.csound play:csdPath];
 }
 
+//- (void)viewWillDisappear:(BOOL)animated {
+//    [super viewWillDisappear:animated];
+//    
+//    if (self.isMovingFromParentViewController || self.isBeingDismissed) {
+//        [self.csound removeListener:self];
+//    }
+//}
+
 - (IBAction)play:(UIButton *)sender
 {
 	NSString *audioFilePath = [[NSBundle mainBundle] pathForResource:@"testAudioFile"
@@ -80,12 +88,12 @@
     
     [self presentViewController:infoVC animated:YES completion:nil];
 }
-
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-    [self.csound stop];
-}
+//
+//- (void)viewDidUnload
+//{
+//    [super viewDidUnload];
+//    [self.csound stop];
+//}
 
 
 @end
