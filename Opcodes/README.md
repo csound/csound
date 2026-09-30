@@ -126,6 +126,7 @@ Opcodes: internal and plugin opcodes
 - squinewave.c: squinewave synthesis
 - stdopcod.c: opcode library entry point
 - sterrain.c: wave terrain synthesis
+- stm.c: building stateful computational graphs inspired by LangGraph
 - syncgrain.c: granular synthesis
 - system_call.c: system opcodes
 - tabaudio.c: audio tables
