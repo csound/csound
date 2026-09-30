@@ -1568,7 +1568,7 @@ int32_t in(CSOUND *csound, INM *p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
 
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1576,7 +1576,7 @@ int32_t in(CSOUND *csound, INM *p)
   if (csound->inchnls != 1)
     return csound->PerfError(csound,
                              &(p->h),
-                             "Wrong numnber of input channels\n");
+                             Str("Wrong number of input channels\n"));
   CSOUND_SPIN_SPINLOCK
     if (UNLIKELY(offset)) memset(p->ar, '\0', offset*sizeof(cs_float));
   memcpy(&p->ar[offset], &CS_SPIN[offset],
@@ -1590,7 +1590,7 @@ int32_t in(CSOUND *csound, INM *p)
 int32_t inarray_set(CSOUND *csound, INA *p){
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   /* Reused instances may now need more samples per array element. */
   if (p->tabout->data != NULL &&
       (size_t)p->tabout->arrayMemberSize < CS_KSMPS * sizeof(cs_float))
@@ -1637,7 +1637,7 @@ int32_t ins(CSOUND *csound, INS *p)
   uint32_t n, nsmps =CS_KSMPS, k;
   if (UNLIKELY(csound->inchnls != 2))
     return csound->PerfError(csound, &(p->h),
-                             "Wrong numnber of input channels\n");
+                             Str("Wrong number of input channels\n"));
   CSOUND_SPIN_SPINLOCK
     sp = CS_SPIN;
   ar1 = p->ar1;
@@ -1669,7 +1669,7 @@ int32_t inq(CSOUND *csound, INQ *p)
   if (UNLIKELY(csound->inchnls != 4))
     return csound->PerfError(csound,
                              &(p->h),
-                             "Wrong numnber of input channels\n");
+                             Str("Wrong number of input channels\n"));
   CSOUND_SPIN_SPINLOCK
     if (UNLIKELY(offset)) {
       memset(ar1, '\0', offset*sizeof(cs_float));
@@ -1704,7 +1704,7 @@ int32_t inh(CSOUND *csound, INH *p)
   if (UNLIKELY(csound->inchnls != 6))
     return csound->PerfError(csound,
                              &(p->h),
-                             "Wrong numnber of input channels\n");
+                             Str("Wrong number of input channels\n"));
   CSOUND_SPIN_SPINLOCK
     if (UNLIKELY(offset)) {
       memset(ar1, '\0', offset*sizeof(cs_float));
@@ -1746,7 +1746,7 @@ int32_t ino(CSOUND *csound, INO *p)
   if (UNLIKELY(csound->inchnls != 8))
     return csound->PerfError(csound,
                              &(p->h),
-                             "Wrong numnber of input channels\n");
+                             Str("Wrong number of input channels\n"));
   CSOUND_SPIN_SPINLOCK
     if (UNLIKELY(offset)) {
       memset(ar1, '\0', offset*sizeof(cs_float));
@@ -1791,7 +1791,7 @@ static int32_t in_fixed_channels(CSOUND *csound, INALL *p, uint32_t channels)
   cs_float *sp, **ara = p->ar;
   if (UNLIKELY(csound->inchnls != (int32_t)channels))
     return csound->PerfError(csound, &(p->h),
-                             "Wrong numnber of input channels\n");
+                             Str("Wrong number of input channels\n"));
   sp = &CS_SPIN[offset*channels];
   CSOUND_SPIN_SPINLOCK
   if (UNLIKELY(offset))
@@ -1823,7 +1823,7 @@ int32_t inch1_set(CSOUND *csound, INCH1 *p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   p->init = 1;
   return OK;
 }
@@ -1869,7 +1869,7 @@ int32_t inch_set(CSOUND *csound, INCH *p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   p->init = 1;
   return OK;
 }
@@ -2030,7 +2030,7 @@ int32_t ochn(CSOUND *csound, OUTX *p)
   uint32_t nch = p->INOCOUNT;
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   if (nch>csound->nchnls)
     csound->Warning(csound, Str("Excess channels ignored"));
   return OK;
@@ -2049,7 +2049,7 @@ int32_t outarr_init(CSOUND *csound, OUTARRAY *p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   p->nowarn = 0;
   return OK;
 }
@@ -2351,7 +2351,7 @@ int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   if (UNLIKELY(GetOutputArgCnt((OPDS *)p)
                != (int32_t)csound->GetNchnls(csound)))
     return csound->InitError(csound,
@@ -2366,7 +2366,7 @@ int32_t outRange_i(CSOUND *csound, OUTRANGE *p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   p->narg = p->INOCOUNT-1;
 
   return OK;
@@ -2412,7 +2412,7 @@ int32_t inRange_i(CSOUND *csound, INRANGE *p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   p->narg = p->INOCOUNT-1;
   if (UNLIKELY(!csound->GetOParms(csound)->sfread))
     return csound->InitError(csound, "%s", Str("inrg: audio input is not enabled"));
@@ -2578,7 +2578,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
         }
       }
     }
-  } else return csoundInitError(csound, "no pfields available\n");
+  } else return csoundInitError(csound, Str("no pfields available\n"));
   return OK;
 }
 
@@ -2599,7 +2599,7 @@ int32_t painit(CSOUND *csound, PAINIT *p)
   for (n=0; n<=pargs-start; n++) {
     ((cs_float*)p->inits->data)[n] = csound->init_event->p[n+start];
   }
-  } else return csoundInitError(csound, "no pfields available\n");
+  } else return csoundInitError(csound, Str("no pfields available\n"));
   return OK;
 }
 
@@ -2615,7 +2615,7 @@ int32_t init_instr_ref(CSOUND *csound, IREF_INIT *p) {
       return csound->InitError(csound, "%s",
                               Str("init: instrument is not defined"));
   }
-  else csound->Warning(csound, "instr ref var %s is read-only: cannot copy",
+  else csound->Warning(csound, Str("instr ref var %s is read-only: cannot copy"),
                               GetOutputArgName(&(p->h),0));
   return OK;
 }
@@ -2680,7 +2680,7 @@ int32_t monitora_init(CSOUND *csound, MONITOR_A *p)
 {
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
-                             "local sampling rate not supported\n");
+                             Str("local sampling rate not supported\n"));
   ARRAYDAT *aa = p->tabin;
   // should call ensure here but it is a-rate
   aa->dimensions = 1;

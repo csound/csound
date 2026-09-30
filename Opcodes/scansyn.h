@@ -145,7 +145,7 @@ static CS_NOINLINE SCANSYN_GLOBALS * scansyn_allocGlobals(CSOUND *csound)
 
     if (csound->CreateGlobalVariable(csound, "scansynGlobals",
                                              sizeof(SCANSYN_GLOBALS)) != 0)
-      csound->Die(csound, "scansyn: error allocating globals");
+      csound->Die(csound, Str("scansyn: error allocating globals"));
     p = (SCANSYN_GLOBALS *) csound->QueryGlobalVariable(csound,
                                                         "scansynGlobals");
     p->csound = csound;

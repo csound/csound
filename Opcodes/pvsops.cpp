@@ -34,10 +34,10 @@ struct PVTrace : csnd::FPlugin<1, 2> {
 
   int32_t init() {
     if (inargs.fsig_data(0).isSliding())
-      return csound->init_error("sliding not supported");
+      return csound->init_error(Str_noop("sliding not supported"));
     if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
-      return csound->init_error("fsig format not supported");
+      return csound->init_error(Str_noop("fsig format not supported"));
 
     amps.allocate(csound, inargs.fsig_data(0).nbins());
     csnd::Fsig &fout = outargs.fsig_data(0);
@@ -87,14 +87,14 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
   int32_t init() {
     csnd::Vector<cs_float> &bins = outargs.vector_data<cs_float>(1);
     if (inargs.fsig_data(0).isSliding())
-      return csound->init_error("sliding not supported");
+      return csound->init_error(Str_noop("sliding not supported"));
 
     if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
-      return csound->init_error("fsig format not supported");
+      return csound->init_error(Str_noop("fsig format not supported"));
 
     if (!(inargs[3] >= 0 && inargs[4] >= 0))
-      return csound->init_error("pvstrace: bin limits must be nonnegative");
+      return csound->init_error(Str_noop("pvstrace: bin limits must be nonnegative"));
     int32_t nbins = inargs.fsig_data(0).nbins();
     start = cs_double(inargs[3]) >= nbins ? nbins : int32_t(inargs[3]);
     // Zero means no upper limit; keep the existing exclusive upper bound.
@@ -211,7 +211,7 @@ struct TVConv : csnd::Plugin<1, 6> {
   int32_t init() {
     if (!(cs_double(inargs[4]) >= 0 && cs_double(inargs[4]) <= (INT32_MAX + 0.0) &&
           cs_double(inargs[5]) >= 1 && cs_double(inargs[5]) <= (INT32_MAX + 0.0)))
-      return csound->init_error("tvconv: invalid partition or filter size");
+      return csound->init_error(Str_noop("tvconv: invalid partition or filter size"));
     pars = inargs[4];
     fils = inargs[5];
     if (pars > fils)
@@ -222,7 +222,7 @@ struct TVConv : csnd::Plugin<1, 6> {
       // AuxMem and the FFT API use signed element counts.
       if (fils > INT32_MAX / 2 ||
           size_t(fils) > SIZE_MAX / (2 * sizeof(cs_float)))
-        return csound->init_error("tvconv: filter size too large");
+        return csound->init_error(Str_noop("tvconv: filter size too large"));
       fils *= 2;
       ffts = pars * 2;
       fwd = csound->fft_setup(ffts, FFT_FWD);
@@ -242,7 +242,7 @@ struct TVConv : csnd::Plugin<1, 6> {
       n = 0;
     } else {
       if (size_t(fils) > SIZE_MAX / sizeof(cs_float))
-        return csound->init_error("tvconv: filter size too large");
+        return csound->init_error(Str_noop("tvconv: filter size too large"));
       ir.allocate(csound, fils);
       in.allocate(csound, fils);
     }
@@ -400,7 +400,7 @@ struct Gtadsr : public csnd::Plugin<1,6> {
       // 2^64 is the first value outside the range of uint64_t.
       if (!(attack >= 0 && attack < 18446744073709551616.0 &&
             decay >= 0 && decay < 18446744073709551616.0))
-        return csound->perf_error("gtadsr: attack and decay times out of range", this);
+        return csound->perf_error(Str_noop("gtadsr: attack and decay times out of range"), this);
       // Preserve the one-step minimum for zero and sub-step stage times.
       a = attack < 1 ? 1 : static_cast<uint64_t>(attack);
       d = decay < 1 ? 1 : static_cast<uint64_t>(decay);

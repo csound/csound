@@ -280,7 +280,7 @@ static int32_t tifd_process(CSOUND * csound, IFD * p)
     FUNC *ft = csound->FTFind(csound,p->p7);
     if (UNLIKELY(ft == NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               "could not find table number %d\n", (int32_t) *p->p7);
+                               Str("could not find table number %d\n"), (int32_t) *p->p7);
     }
     cs_float *tab = ft->ftable;
     int32_t i,size = ft->flen;

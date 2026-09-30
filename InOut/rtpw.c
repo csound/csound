@@ -79,7 +79,8 @@ static void rtpw_out_callback(void *p) {
     spa_ringbuffer_read_update(&rtpw->ring, i + rem);
   }
   if(sil  > 0){
-    rtpw->csound->Warning(rtpw->csound, "%d dropped output frames", sil);
+    CSOUND *csound = rtpw->csound;
+    csound->Warning(csound, Str("%d dropped output frames"), sil);
     memset(SPA_PTROFF(bufp, rem*fbytes, void), 0, sil*fbytes);
   }
   spabuf->datas[0].chunk->offset = 0;
@@ -145,7 +146,7 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   rtpw->nchnls = parm->nChannels;
   rtpw->sr = parm->sampleRate;
   rtpw->buframes = parm->bufSamp_HW;
-  csound->Message(csound, "hw frames: %d sw frames: %d\n", rtpw->buframes,
+  csound->Message(csound, Str("hw frames: %d sw frames: %d\n"), rtpw->buframes,
 		  parm->bufSamp_SW);
 
   rtpw->loop = pw_thread_loop_new("csound-out", NULL);
@@ -294,8 +295,8 @@ parm_callback(void *p, uint32_t id, const struct spa_pod *param)
   rtpw->sysr = (cs_float) rtpw->format.info.raw.rate;
 
   if(rtpw->sysr != rtpw->sr && rtpw->sr != -1.0)
-    csound->Warning(csound, "rtpw: mismatched input sampling rate,\n"
-		    "system-sr %.1f csound-sr %.1f", rtpw->sysr,
+    csound->Warning(csound, Str("rtpw: mismatched input sampling rate,\n"
+		    "system-sr %.1f csound-sr %.1f"), rtpw->sysr,
 		    rtpw->sr);
 
   if(rtpw->nchnls != (int32_t) rtpw->format.info.raw.channels) {
@@ -303,7 +304,7 @@ parm_callback(void *p, uint32_t id, const struct spa_pod *param)
     rtpw->nchnls = rtpw->format.info.raw.channels;
     rtpw->cbuffer = csound->ReAlloc(csound,rtpw->cbuffer,sizeof(cs_float)*rtpw->buframes*
 				    rtpw->nchnls);
-    csound->Message(csound, "pw - reallocated hw buffer: %d\n", rtpw->buframes);
+    csound->Message(csound, Str("pw - reallocated hw buffer: %d\n"), rtpw->buframes);
   }
 
 }
@@ -332,7 +333,7 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   rtpw->sr = parm->sampleRate;
   rtpw->sysr = -1.0;
   rtpw->buframes = parm->bufSamp_HW;
-  csound->Message(csound, "pwin - hw frames: %d sw frames: %d\n", rtpw->buframes,
+  csound->Message(csound, Str("pwin - hw frames: %d sw frames: %d\n"), rtpw->buframes,
 		  parm->bufSamp_SW);
 
   rtpw->loop = pw_thread_loop_new("csound-in", NULL);
@@ -466,14 +467,14 @@ static void registry_event_global(void *data, uint32_t id, uint32_t permissions,
 	  node_description = spa_dict_lookup(props,
 					     PW_KEY_NODE_DESCRIPTION);
 	  if(display){
-	    csound->Message(csound, "  sink node: %d\n", n);
+	    csound->Message(csound, Str("  sink node: %d\n"), n);
 	    csound->Message(csound, "  ID: %u\n", id);
-	    csound->Message(csound,"  name: %s\n",
+	    csound->Message(csound,Str("  name: %s\n"),
 			    node_name ? node_name : "Unknown");
-	    csound->Message(csound,"  description: %s\n",
+	    csound->Message(csound,Str("  description: %s\n"),
 			    node_description ? node_description :
 			    "No description");
-	    csound->Message(csound,"  media class: %s\n ----\n",
+	    csound->Message(csound,Str("  media class: %s\n ----\n"),
 			    media_class);
 	  }
 	  sinks[n].n_channels = 2;
@@ -506,7 +507,8 @@ static void core_event_done(void *data, uint32_t id, int seq)
 static void core_event_error(void *data, uint32_t id, int seq, int res, const char *message)
 {
   struct sink_data *sink_data = data;
-  sink_data->csound->Message(sink_data->csound, "Core error: %s\n", message);
+  CSOUND *csound = sink_data->csound;
+  csound->Message(csound, Str("Core error: %s\n"), message);
   sink_data->done = 1;
   pw_thread_loop_stop(sink_data->tloop);
 }
@@ -530,21 +532,21 @@ int32_t query_pipewire_sinks(CSOUND *csound, CS_AUDIODEVICE *list, int32_t displ
 
   // Create main loop
   if (!data.loop) {
-    csound->Message(csound, "Failed to create main loop\n");
+    csound->Message(csound, Str("Failed to create main loop\n"));
     goto cleanup;
   }
 
   // Create context
   data.context = pw_context_new(pw_thread_loop_get_loop(data.tloop), NULL, 0);
   if (!data.context) {
-    csound->Message(csound, "Failed to create context\n");
+    csound->Message(csound, Str("Failed to create context\n"));
     goto cleanup;
   }
 
   // Connect to PipeWire daemon
   data.core = pw_context_connect(data.context, NULL, 0);
   if (!data.core) {
-    csound->Message(csound, "Failed to connect to PipeWire\n");
+    csound->Message(csound, Str("Failed to connect to PipeWire\n"));
     goto cleanup;
   }
 
@@ -554,7 +556,7 @@ int32_t query_pipewire_sinks(CSOUND *csound, CS_AUDIODEVICE *list, int32_t displ
   // Get registry
   data.registry = pw_core_get_registry(data.core, PW_VERSION_REGISTRY, 0);
   if (!data.registry) {
-    csound->Message(csound, "Failed to get registry\n");
+    csound->Message(csound, Str("Failed to get registry\n"));
     goto cleanup;
   }
 
@@ -562,11 +564,11 @@ int32_t query_pipewire_sinks(CSOUND *csound, CS_AUDIODEVICE *list, int32_t displ
   pw_registry_add_listener(data.registry, &data.registry_listener, &registry_events, &data);
 
   if(display)
-   csound->Message(csound, "pipewire sinks:\n");
+   csound->Message(csound, Str("pipewire sinks:\n"));
   pw_thread_loop_start(data.tloop);
   usleep(100000);
   if(display)
-    csound->Message(csound, "found %d sinks\n", data.no_devs);
+    csound->Message(csound, Str("found %d sinks\n"), data.no_devs);
 
  cleanup:
   pw_thread_loop_stop(data.tloop);

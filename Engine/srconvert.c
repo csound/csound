@@ -55,8 +55,8 @@ static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
 
   if(typ->userDefinedType) { // UDTs currently unsupported
     csound->Free(csound, pp);
-    csound->Message(csound, "Support for local sampling rate and "
-                    "user-defined types not currently available\n");
+    csound->Message(csound, Str("Support for local sampling rate and "
+                    "user-defined types not currently available\n"));
     return NULL;
   }
   
@@ -232,8 +232,8 @@ SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
 
     if(typ->userDefinedType) { // UDTs currently unsupported
       csound->Free(csound, pp);
-      csound->Message(csound, "Support for local sampling rate and "
-                               "user-defined types not currently available\n");
+      csound->Message(csound, Str("Support for local sampling rate and "
+                               "user-defined types not currently available\n"));
       return NULL;
     }
     

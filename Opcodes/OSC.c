@@ -257,7 +257,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
                      &ttl, sizeof(ttl));
 #endif
 #else
-          return csound->PerfError(csound, &(p->h), "multicast not supported\n");
+          return csound->PerfError(csound, &(p->h), Str("multicast not supported\n"));
 #endif
 
         }
@@ -396,7 +396,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
             lo_blob_free(myblob);
             break;
           }
-        case 'S': csound->Warning(csound, "S unimplemented"); break;
+        case 'S': csound->Warning(csound, Str("S unimplemented")); break;
           //#endif
         default:
           csound->Warning(csound, Str("Unknown OSC type %c\n"), type[1]);
@@ -656,7 +656,7 @@ static int32_t OSC_start_port(CSOUND *csound, OSC_GLOBALS *globals,
     if (UNLIKELY(port == NULL)) {
       lo_server_thread_free(thread);
       csound->ErrorMsg(csound, "%s",
-                       "OSC: Failed to allocate memory for ports\n");
+                       Str("OSC: Failed to allocate memory for ports\n"));
       return NOTOK;
     }
     port->csound = csound;
@@ -665,7 +665,7 @@ static int32_t OSC_start_port(CSOUND *csound, OSC_GLOBALS *globals,
       lo_server_thread_free(thread);
       csound->Free(csound, port);
       csound->ErrorMsg(csound, "%s",
-                       "OSC: Failed to create listener mutex\n");
+                       Str("OSC: Failed to create listener mutex\n"));
       return NOTOK;
     }
     port->thread = thread;
@@ -683,7 +683,7 @@ static int32_t OSC_start_port(CSOUND *csound, OSC_GLOBALS *globals,
       OSC_stop_port(csound, port);
       csound->Free(csound, port);
       csound->ErrorMsg(csound, "%s",
-                       "OSC: Failed to allocate memory for ports\n");
+                       Str("OSC: Failed to allocate memory for ports\n"));
       return NOTOK;
     }
     globals->ports = ports;
@@ -1124,7 +1124,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
               } else {
                 /* Allocation failed, preserve original dest->data/size */
                 csound->ErrorMsg(csound, "%s",
-                                 "OSC: Failed to allocate memory for string\n");
+                                 Str("OSC: Failed to allocate memory for string\n"));
                 continue; /* Skip this argument */
               }
             }

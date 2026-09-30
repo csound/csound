@@ -392,7 +392,7 @@ static void overwrite_warning(CSOUND *csound, const char *name) {
   int32_t fd;
   fd = open(name, WR_OPTS | O_EXCL);
   if(fd == -1)
-    csoundWarning(csound, "file %s exists...\n...will be overwritten", name);
+    csoundWarning(csound, Str("file %s exists...\n...will be overwritten"), name);
   else 
     close(fd);
 }

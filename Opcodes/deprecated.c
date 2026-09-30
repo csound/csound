@@ -493,7 +493,7 @@ static int32_t pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
               /* printf("***string: %p\nbp=%p Off = %x\n", ans, bp, curOffs); */
               /* printf("***string: %p->%s\n", str, dst->data); */
               if (str==NULL)
-                return csound->InitError(csound, "pop of strings broken");
+                return csound->InitError(csound, Str("pop of strings broken"));
               if (str->size>dst->size) {
                 csound->Free(csound,dst->data);
                 dst->data = csound->Strdup(csound, str->data);

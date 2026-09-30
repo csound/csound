@@ -3455,9 +3455,9 @@ void *csoundRealFFT2Setup(CSOUND *csound,
   int32_t lib = csound->oparms->fft_lib;
   if(lib == PFFT_LIB && FFTsize <= 16){
     csound->Warning(csound,
-      "FFTsize %d \n"
+      Str("FFTsize %d \n"
       "Cannot use PFFT with sizes <= 16\n"
-      "--defaulting to FFTLIB",
+      "--defaulting to FFTLIB"),
         FFTsize);
     lib = 0;
   }

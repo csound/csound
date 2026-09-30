@@ -60,7 +60,7 @@ typedef struct _pulse_globals {
     csound->CreateConfigurationVariable(
         csound,"server", (void*) &(p->server[0]),
         CSOUNDCFG_STRING, 0, NULL, &siz,
-        "PulseAudio server name (default: default server)", NULL);
+        Str("PulseAudio server name (default: default server)"), NULL);
 
     strcpy(&(p->oname[0]), "csound-out");
 
@@ -69,14 +69,14 @@ typedef struct _pulse_globals {
     csound->CreateConfigurationVariable(
         csound,"output_stream", (void*) &(p->oname[0]),
         CSOUNDCFG_STRING, 0, NULL, &siz,
-        "PulseAudio output stream name (default: csound-out)", NULL);
+        Str("PulseAudio output stream name (default: csound-out)"), NULL);
 
     strcpy(&(p->iname[0]), "csound-in");
 
     csound->CreateConfigurationVariable(
         csound,"input_stream", (void*) &(p->iname[0]),
         CSOUNDCFG_STRING, 0, NULL, &siz,
-        "PulseAudio input stream name (default: csound-in)", NULL);
+        Str("PulseAudio input stream name (default: csound-in)"), NULL);
 
 
     return 0;

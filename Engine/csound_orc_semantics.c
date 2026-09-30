@@ -858,7 +858,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
   }
 
   if(tree == NULL) {
-   synterr(csound, "NULL tree");
+   synterr(csound, Str("NULL tree"));
    longjmp(csound->exitjmp,0);
    return 0;
   }
@@ -1764,7 +1764,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     char* argType = get_arg_type2(csound, current, typeTable);
     if (argType == NULL) {
       // if we failed to find argType, exit from parser
-      csound->Die(csound, "Could not parse type for argument");
+      csound->Die(csound, Str("Could not parse type for argument"));
     } else {
       	// catch type[] in expressions to opcall - no conversion
       if(!is_external(argType)) {
@@ -1832,7 +1832,7 @@ char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) 
     // Use get_arg_type2 to extract the actual type from the tree node
     char* argType = get_arg_type2(csound, current, typeTable);
     if (argType == NULL) {
-      csound->Die(csound, "Could not parse type for argument");
+      csound->Die(csound, Str("Could not parse type for argument"));
     }
 
     int32_t argLen = (int32_t) strlen(argType);
@@ -2164,7 +2164,7 @@ static const CS_TYPE *resolve_type_annotation(CSOUND *csound,
   if (firstBracket == NULL) {
     type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
     if (type == NULL)
-      csound->ErrorMsg(csound, "Unknown type annotation: %s\n", annotation);
+      csound->ErrorMsg(csound, Str("Unknown type annotation: %s\n"), annotation);
     return type;
   }
 
@@ -2184,7 +2184,7 @@ static const CS_TYPE *resolve_type_annotation(CSOUND *csound,
     csoundGetTypeWithVarTypeName(csound->typePool, baseType);
   csound->Free(csound, baseType);
   if (elementType == NULL || dimensions == 0 || *p != '\0') {
-    csound->ErrorMsg(csound, "Invalid array type annotation: %s\n",
+    csound->ErrorMsg(csound, Str("Invalid array type annotation: %s\n"),
                      annotation);
     return NULL;
   }
@@ -2244,7 +2244,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       // check for @global in implicit-type rhs vars
       // and if found, strip it and print warning
       if(find_global_annotation(varName, typeTable) == typeTable->globalPool)
-        csound->Warning(csound, "%s: @global annotation ignored", varName);
+        csound->Warning(csound, Str("%s: @global annotation ignored"), varName);
 
       t = lvarName;
 
@@ -2315,14 +2315,14 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 	   (var_pool == csound->engineState.varPool
 	    && pool == typeTable->globalPool)) {
 	  if(tree)
-	   csound->Warning(csound, "Replacing previous definition %s:%s by %s:%s, line %d",
+	   csound->Warning(csound, Str("Replacing previous definition %s:%s by %s:%s, line %d"),
                               var->varName, previousType,
 			  lvarName, newType, tree->line);
 	  cs_hash_table_remove(csound, var_pool->table, var->varName);
 	}
 	else if(pool == typeTable->globalPool)
 	  if(tree) // synterr should not happen tree is NULL, as arg is synthetic
-	  synterr(csound, "global variable %s:%s cannot shadow local variable %s:%s, line %d",
+	  synterr(csound, Str("global variable %s:%s cannot shadow local variable %s:%s, line %d"),
 		  lvarName, newType, var->varName, previousType, tree->line);
 	csound->Free(csound, previousType);
 	csound->Free(csound, newType);
@@ -2332,7 +2332,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 	// if it's a global var was requested, print warning, do nothing
         if(pool == typeTable->globalPool) {
 	  if(tree)
-	    csound->Warning(csound, "@global annotation ignored for variable %s, line %d",
+	    csound->Warning(csound, Str("@global annotation ignored for variable %s, line %d"),
 			    lvarName, tree->line);
 	  goto end;
 	}
@@ -2449,8 +2449,8 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
          char *previousType = csoundFormatTypeName(csound,
            var->subType ? var->subType->varTypeName : var->varType->varTypeName,
            var->dimensions);
-         synterr(csound, "%s:%s -- type mismatch for existing "
-                          "array variable %s:%s",
+         synterr(csound, Str("%s:%s -- type mismatch for existing "
+                          "array variable %s:%s"),
                  varName, newType, varName, previousType);
          csound->Free(csound, newType);
          csound->Free(csound, previousType);
@@ -2513,14 +2513,14 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       // check if the array variable exists, it needs to be declared
       arrvar = find_var_from_pools(csound, varName, varName, typeTable);
       if(arrvar == NULL) {
-        synterr(csound,"cannot find array variable %s, line %d",
+        synterr(csound,Str("cannot find array variable %s, line %d"),
                 varName, current->line);
         csound->LongJmp(csound, 1);
       }
       // & needs to be an array or asigs
       if(arrvar->varType != &CS_VAR_TYPE_ARRAY &&
          arrvar->varType != &CS_VAR_TYPE_A) {
-        synterr(csound,"variable %s is not an array, line %d",
+        synterr(csound,Str("variable %s is not an array, line %d"),
                 varName, current->line);
         csound->LongJmp(csound, 1);
       }
@@ -2887,8 +2887,8 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       if(!strcmp(root->value->optype, "k"))
 	*rightArgString = 'k';
       else // otherwise ignore it
-	csound->Warning(csound, "ignoring annotation %s \n"
-			"\t for opcode %s with no outputs, line %d",
+	csound->Warning(csound, Str("ignoring annotation %s \n"
+			"\t for opcode %s with no outputs, line %d"),
 			root->value->optype, opcodeName,
 			root->line);
     }
@@ -2907,9 +2907,9 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
        strcmp(leftArgString, root->value->optype)){
       char *displayLeft = csoundFormatTypeList(csound, leftArgString);
       char *displayAnnotation = csoundFormatTypeName(csound, root->value->optype, 0);
-      csound->Warning(csound, " output type(s) %s\n"
+      csound->Warning(csound, Str(" output type(s) %s\n"
                       "\t not matching annotation %s\n"
-                      "\t ignoring annotation for opcode %s, line %d",
+                      "\t ignoring annotation for opcode %s, line %d"),
                       displayLeft, displayAnnotation,
 		      opcodeName, root->line);
       csound->Free(csound, displayLeft);
@@ -2927,7 +2927,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     csoundOpcodeDeprecationMessage(oentry->opname, oentry->deprecated == 2,
                                   message, sizeof(message));
     if (csound->oparms->error_deprecated) {
-      synterr(csound, "%s, line %d, columns %d-%d", message,
+      synterr(csound, Str("%s, line %d, columns %d-%d"), message,
               root->line, root->value->first_column, root->value->last_column);
       csoundMessage(csound, Str(" %s %s %s\n"),
                     leftArgString ? leftArgString : "",
@@ -2935,7 +2935,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       return 0;
     }
     if (!(csound->oparms->msglevel & CS_NOQQ))
-      csoundWarning(csound, "%s, line %d", message, root->line);
+      csoundWarning(csound, Str("%s, line %d"), message, root->line);
   }
 
   if (UNLIKELY(oentry == NULL)) {
@@ -3216,7 +3216,7 @@ CS_VARIABLE* createStructVar(void* cs, const CS_TYPE* type,
   IGN(typeArg);
 
   if (type == NULL) {
-    csound->Message(csound, "ERROR: no type given for struct creation\n");
+    csound->Message(csound, Str("ERROR: no type given for struct creation\n"));
     return NULL;
   }
 
@@ -3297,7 +3297,7 @@ void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest,
   if (UNLIKELY(csound_copy_struct_value(
                  csound, structType, dest, src, p,
                  CSOUND_STRUCT_COPY_SHARED_ARRAYS) != OK)) {
-    csound->Message(csound, "struct not initialised - cannot copy\n");
+    csound->Message(csound, Str("struct not initialised - cannot copy\n"));
   }
 }
 
@@ -3549,7 +3549,7 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
     if (current->type == STRUCT_TOKEN) {
       char* structName = current->left->value->lexeme;
       if (!add_struct_definition(csound, current)) {
-        csound->ErrorMsg(csound, "[struct] Phase 2: ERROR processing struct '%s'\n", structName ? structName : "(null)");
+        csound->ErrorMsg(csound, Str("[struct] Phase 2: ERROR processing struct '%s'\n"), structName ? structName : "(null)");
         return 0; // Error in Phase 2
       }
     }
@@ -3660,7 +3660,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 	csound->Message(csound, "Struct definition found\n");
       if(!add_struct_definition(csound, current)) {
         csound->ErrorMsg(csound,
-                         "Error: Unable to define new struct type: %s\n",
+                         Str("Error: Unable to define new struct type: %s\n"),
                          current->left->value->lexeme);
         return NULL;
       }
@@ -3799,7 +3799,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     case IF_TOKEN:
       if (!verify_if_statement(csound, current, typeTable)) {
-        synterr(csound, "conditional expression not valid, line %d",
+        synterr(csound, Str("conditional expression not valid, line %d"),
                 current->line - 2);
         return NULL;
       }
@@ -3821,7 +3821,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       LOOP_JUMP_TARGETS* targets = csound->Calloc(csound, sizeof(LOOP_JUMP_TARGETS));
 
       if (!verify_until_statement(csound, current, typeTable)) {
-        synterr(csound, "loop conditional expression not valid, line %d",
+        synterr(csound, Str("loop conditional expression not valid, line %d"),
                 current->line - 2);
         csound->Free(csound, targets);
         anchor = NULL;
@@ -3912,8 +3912,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 	    var = find_var_from_pools(csound, current->left->value->lexeme,
                                               current->left->value->lexeme,
                                               typeTable);
-            csound->Warning(csound, "redefining variable %s in loop (type: %s)\n"
-			    "\t - now using %s type, line %d",
+            csound->Warning(csound, Str("redefining variable %s in loop (type: %s)\n"
+			    "\t - now using %s type, line %d"),
 			    var->varName, otype,
 			    var->varType->varTypeName, current->line);
           }
@@ -4181,7 +4181,7 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
     ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
       if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
-       csoundMessage(csound, "Out of memory\n");
+       csoundMessage(csound, Str("Out of memory\n"));
       exit(1);
     }
     ans->type = tree->type;
@@ -4246,7 +4246,7 @@ TREE* make_node(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
   ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
    if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
-    csound->Message(csound, "Out of memory\n");
+    csound->Message(csound, Str("Out of memory\n"));
    exit(1);
   }
   ans->type = type;
@@ -4269,7 +4269,7 @@ TREE* make_leaf(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
   ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
    if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
-    csoundMessage(csound, "Out of memory\n");
+    csoundMessage(csound, Str("Out of memory\n"));
    exit(1);
   }
   ans->type = type;
@@ -4677,8 +4677,8 @@ void handle_optional_args(CSOUND *csound, TREE *l)
 
     if (UNLIKELY(ep==NULL)) { /* **** FIXME **** */
       csoundErrorMsg(csound,
-                     "THIS SHOULD NOT HAPPEN -- ep NULL"
-                     " csound_orc-semantics(%d)\n",
+                     Str("THIS SHOULD NOT HAPPEN -- ep NULL"
+                     " csound_orc-semantics(%d)\n"),
                      __LINE__);
     }
     if (ep->intypes != NULL) {
@@ -4775,6 +4775,6 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
                                          (CS_TYPE*)&CS_VAR_TYPE_INSTR, varname,
                                            NULL);
     if(var == NULL)
-      csound->Warning(csound, "Could not add instrument ref %s", varname);
+      csound->Warning(csound, Str("Could not add instrument ref %s"), varname);
   }
 }

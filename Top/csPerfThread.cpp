@@ -223,8 +223,8 @@ extern "C" {
         } while(sampsread != 0);
     }
     csoundUnlockMutex(recordData->mutex);
-    csound->Message(csound, "Perf thread: stopped recording,\n"
-                    "closing file %s\n", recordData->sfname);
+    csound->Message(csound, Str("Perf thread: stopped recording,\n"
+                    "closing file %s\n"), recordData->sfname);
     csound->SndfileClose(csound,(SNDFILE *) recordData->sfile);
     recordData->sfile = NULL;
     csound->Free(csound, recordData->sfname);
@@ -275,7 +275,7 @@ public:
                                                  sizeof(cs_float));
 
         if (!recordData->cbuf) {
-          csoundMessage(csound, "Could create recording buffer.");
+          csoundMessage(csound, Str("Could not create recording buffer."));
           CsoundPerformanceThreadMessage::unlockRecord();
           return;
         }
@@ -302,7 +302,7 @@ public:
                                                  SFM_WRITE,
                                                  &sflib_info);
         if (!recordData->sfile) {
-          csoundMessage(csound, "Could not open file for recording.");
+          csoundMessage(csound, Str("Could not open file for recording."));
           csoundDestroyCircularBuffer(csound, recordData->cbuf);
           recordData->cbuf = NULL;
           CsoundPerformanceThreadMessage::unlockRecord();
@@ -317,7 +317,7 @@ public:
           ATOMIC_SET_BOOL(recordData->running, true);
         }
         else {
-          csoundMessage(csound, "Could not create recording thread.");
+          csoundMessage(csound, Str("Could not create recording thread."));
           ATOMIC_SET_BOOL(recordData->running, false);
           csound->SndfileClose(csound, (SNDFILE *) recordData->sfile);
           recordData->sfile = NULL;
@@ -706,7 +706,7 @@ int32_t CsoundPerformanceThread::Perform()
                                                   spout, len);
           if (written != len) {
               csoundMessage(csound,
-                            "perfThread record buffer overrun.\n");
+                            Str("perfThread record buffer overrun.\n"));
           }
       }
       csoundCondSignal(recordData.condvar);

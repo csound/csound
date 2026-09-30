@@ -225,7 +225,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
             // Create a wrapper node that references the struct node without modifying its next pointer
             TREE* wrapper = (TREE*)csound->Malloc(csound, sizeof(TREE));
             if (UNLIKELY(wrapper == NULL)) {
-              csound->ErrorMsg(csound, "Memory allocation failed for struct wrapper node\n");
+              csound->ErrorMsg(csound, Str("Memory allocation failed for struct wrapper node\n"));
               err = 3;
 
               // Clean up any already allocated wrapper nodes before jumping to ending
@@ -267,7 +267,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         // Process all struct definitions in two phases
         if (structList != NULL) {
           if (!process_struct_definitions_two_phase(csound, structList)) {
-            csound->ErrorMsg(csound, "Error in early two-phase struct processing\n");
+            csound->ErrorMsg(csound, Str("Error in early two-phase struct processing\n"));
             err = 3;
 
             // Clean up wrapper nodes before exiting
@@ -295,7 +295,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
       typeTable->globalPool = csoundCreateVarPool(csound);
       if (typeTable->globalPool == NULL) {
-        csound->ErrorMsg(csound, "Failed to create globalPool in parser\n");
+        csound->ErrorMsg(csound, Str("Failed to create globalPool in parser\n"));
         csound->Free(csound, typeTable);
         err = 3;
         goto ending;
@@ -304,7 +304,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
       typeTable->instr0LocalPool = csoundCreateVarPool(csound);
       if (typeTable->instr0LocalPool == NULL) {
-        csound->ErrorMsg(csound, "Failed to create instr0LocalPool in parser\n");
+        csound->ErrorMsg(csound, Str("Failed to create instr0LocalPool in parser\n"));
         csoundFreeVarPool(csound, typeTable->globalPool);
         csound->Free(csound, typeTable);
         err = 3;

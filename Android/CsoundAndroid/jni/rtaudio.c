@@ -160,7 +160,7 @@ static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
       aaudio_stream_state_t state = AAudioStream_getState(cdata->stream);
       if (state == AAUDIO_STREAM_STATE_OPEN) {
         AAudioStream_requestStart(cdata->stream);
-        csound->Message(csound, "AAUDIO output opened\n");
+        csound->Message(csound, Str("AAUDIO output opened\n"));
         return OK;
       }
       AAudioStream_close(stream);
@@ -168,7 +168,7 @@ static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
     csound->Free(csound, cdata);
     *data = NULL;
   }
-  csound->Message(csound, "AAUDIO output open failed\n");
+  csound->Message(csound, Str("AAUDIO output open failed\n"));
   return CSOUND_ERROR;
 }
 
@@ -207,7 +207,7 @@ static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
                                     parm->bufSamp_HW*parm->nChannels,
                                     sizeof(float));
          AAudioStream_requestStart(cdata->stream);
-         csound->Message(csound, "AAUDIO input opened\n");
+         csound->Message(csound, Str("AAUDIO input opened\n"));
          return OK;
        }
        AAudioStream_close(stream);
@@ -215,7 +215,7 @@ static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
      csound->Free(csound, cdata);
      *data = NULL;  
    }
-   csound->Message(csound, "AAUDIO input open failed\n");
+   csound->Message(csound, Str("AAUDIO input open failed\n"));
    return CSOUND_ERROR;
 }
 
@@ -240,13 +240,13 @@ static void close_io(CSOUND *csound) {
     inputState = AAudioStream_getState(cdata->stream);
     nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     AAudioStream_requestStop(cdata->stream);
-    csound->Message(csound, "requested AAudio output stop\n");
+    csound->Message(csound, Str("requested AAudio output stop\n"));
     AAudioStream_waitForStateChange(cdata->stream, 
                                 inputState, 
                                 &nextState, 
                                 timeout);
     AAudioStream_close(cdata->stream);
-    csound->Message(csound, "closed AAudio output\n");
+    csound->Message(csound, Str("closed AAudio output\n"));
     *(csound->GetRtPlayUserData(csound)) = NULL;
     csound->Free(csound, cdata);
   }
@@ -257,13 +257,13 @@ static void close_io(CSOUND *csound) {
     inputState = AAudioStream_getState(cdata->stream);
     nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     AAudioStream_requestStop(cdata->stream);
-    csound->Message(csound, "requested AAudio input stop\n");
+    csound->Message(csound, Str("requested AAudio input stop\n"));
     AAudioStream_waitForStateChange(cdata->stream, 
                                     inputState, 
                                     &nextState, 
                                     timeout);    
     AAudioStream_close(cdata->stream);
-    csound->Message(csound, "closed AAudio input\n");
+    csound->Message(csound, Str("closed AAudio input\n"));
     if(cdata->incb)
       csound->DestroyCircularBuffer(csound, cdata->incb);
     *(csound->GetRtRecordUserData(csound)) = NULL;

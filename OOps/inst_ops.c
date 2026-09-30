@@ -384,8 +384,8 @@ static int32_t splice_after_instance(CSOUND *csound,
 int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
   if(p->inst->readonly)
     return
-      csound->InitError(csound, "cannot write to instance ref for instr %d\n"
-                        "- read-only variable",
+      csound->InitError(csound, Str("cannot write to instance ref for instr %d\n"
+                        "- read-only variable"),
                         instr_num(csound, ((INSTREF *) p->args[0])->instr));
   else {
     EVTBLK  evt;
@@ -437,10 +437,10 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
         return OK;
       }
       else return csound->InitError(csound,
-                                    "could not initialise instr %d",
+                                    Str("could not initialise instr %d"),
                                     res);
     } else return csound->InitError(csound,
-                                    "could not instantiate instr %d",
+                                    Str("could not instantiate instr %d"),
                                     res);
   }
 }
@@ -454,15 +454,15 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
 */
 int32_t create_instance_opcode(CSOUND *csound, CREATE_INSTANCE *p) {
   if(p->out->readonly) return
-                         csound->InitError(csound, "cannot write to instance ref for instr %d\n"
-                                           "- read-only variable",
+                         csound->InitError(csound, Str("cannot write to instance ref for instr %d\n"
+                                           "- read-only variable"),
                                            instr_num(csound,p->in->instr));
   INSDS *ip = create_instance(csound, instr_num(csound,p->in->instr));
   if(ip != NULL) {
     p->out->instance = ip;
     return OK;
   } else return csound->InitError(csound,
-                                  "could not instantiate instr %d",
+                                  Str("could not instantiate instr %d"),
                                   instr_num(csound,p->in->instr));
 }
 
@@ -493,7 +493,7 @@ int32_t init_instance_opcode(CSOUND *csound, INIT_INSTANCE *p) {
     *p->err = init_instance(csound, ref->instance, &evt);
     return OK;
   } else
-    return csound->InitError(csound, "NULL instance\n");
+    return csound->InitError(csound, Str("NULL instance\n"));
 }
 
 /** Instance performance opcode
@@ -527,19 +527,19 @@ int32_t perf_instance_opcode(CSOUND *csound, PERF_INSTR *p) {
         int32_t ierr = init_instance(csound, ip, &evt);
         if (UNLIKELY(ierr != OK))
           return csound->PerfError(csound, &(p->h),
-                                   "instr %d not initialised (init failed)\n",
+                                   Str("instr %d not initialised (init failed)\n"),
                                    ip->insno);
       }
       // Run one k-pass and return any perf errors
       *p->out = FL(perf_instance(csound, ip));
     } else {
-      return csound->PerfError(csound, &(p->h), "context mismatch, "
-                               "cannot perform instr %d instance",
+      return csound->PerfError(csound, &(p->h), Str("context mismatch, "
+                               "cannot perform instr %d instance"),
                                ip->insno);
     }
   }
   else csound->PerfError(csound, &(p->h),
-                         "NULL instance\n");
+                         Str("NULL instance\n"));
   return OK;
 }
 /** Instance deletion
@@ -705,6 +705,6 @@ int32_t perf_loop_opcode(CSOUND *csound, PERF_INSTR *p) {
       err = perf_instance(csound, ip);
       csound->spoutran(csound); /* send to audio_out */
     }
-  } else csound->Warning(csound, "perfloop: only allowed in instr 0\n");
+  } else csound->Warning(csound, Str("perfloop: only allowed in instr 0\n"));
   return OK;
 }

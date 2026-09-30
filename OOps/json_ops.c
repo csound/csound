@@ -45,7 +45,7 @@ static JSON_CONTEXT *new_context(CSOUND *csound, INSDS *instance, cs_float depth
   JSON_CONTEXT *ctx = csound->Calloc(csound, sizeof(*ctx));
   ctx->csound = csound;
   ctx->instance = instance;
-  ctx->error = "could not allocate JSON value";
+  ctx->error = Str_noop("could not allocate JSON value");
   ctx->maxdepth = depth ? (unsigned)depth : JSON_MAX_DEPTH;
   strcpy(ctx->path, "$");
   return ctx;
@@ -130,14 +130,14 @@ static int check_type(JSON_CONTEXT *ctx, const CS_TYPE *type,
       type == &CS_VAR_TYPE_S || type == &CS_VAR_TYPE_b || type == &CS_VAR_TYPE_B)
     return OK;
   if (type == NULL) {
-    ctx->error = "unsupported array element type";
+    ctx->error = Str_noop("unsupported array element type");
     return NOTOK;
   }
   if (type->userDefinedType) {
     JSON_LAYOUT *layout = layout_for(ctx, type);
     if (layout->checked) return OK;
     if (depth > JSON_MAX_DEPTH) {
-      ctx->error = "maximum type nesting depth exceeded";
+      ctx->error = Str_noop("maximum type nesting depth exceeded");
       return NOTOK;
     }
     layout->checked = 1;
@@ -152,7 +152,7 @@ static int check_type(JSON_CONTEXT *ctx, const CS_TYPE *type,
   }
   if (type == &CS_VAR_TYPE_ARRAY && depth <= JSON_MAX_DEPTH)
     return check_type(ctx, element_type, NULL, depth + 1);
-  ctx->error = "unsupported member type";
+  ctx->error = Str_noop("unsupported member type");
   return NOTOK;
 }
 
@@ -180,7 +180,7 @@ static int check_depth(JSON_CONTEXT *ctx, yyjson_val *value)
   for (;;) {
     if (yyjson_is_ctn(value)) {
       if (used == ctx->maxdepth) {
-        ctx->error = "maximum nesting depth exceeded";
+        ctx->error = Str_noop("maximum nesting depth exceeded");
         result = NOTOK;
         break;
       }
@@ -214,13 +214,13 @@ static int decode_value(JSON_CONTEXT *ctx, const CS_TYPE *type, void *value,
   CSOUND *csound = ctx->csound;
   if ((type->userDefinedType || type == &CS_VAR_TYPE_ARRAY) &&
       depth > ctx->maxdepth) {
-    ctx->error = "maximum nesting depth exceeded";
+    ctx->error = Str_noop("maximum nesting depth exceeded");
     return NOTOK;
   }
   if (type->userDefinedType) {
     CS_STRUCT_VAR *object = value;
     if (!yyjson_is_obj(json)) {
-      ctx->error = "expected an object";
+      ctx->error = Str_noop("expected an object");
       return NOTOK;
     }
     JSON_LAYOUT *layout = layout_for(ctx, type);
@@ -236,17 +236,17 @@ static int decode_value(JSON_CONTEXT *ctx, const CS_TYPE *type, void *value,
     while ((key = yyjson_obj_iter_next(&iter)) != NULL) {
       const char *name = yyjson_get_str(key);
       if (memchr(name, '\0', yyjson_get_len(key)) != NULL) {
-        ctx->error = "NUL in object key";
+        ctx->error = Str_noop("NUL in object key");
         return NOTOK;
       }
       size_t saved = field_path(ctx, name);
       const JSON_FIELD *field = find_field(layout, name);
       if (field == NULL) {
-        ctx->error = "unknown field";
+        ctx->error = Str_noop("unknown field");
         return NOTOK;
       }
       if (bindings->values[field->index] != NULL) {
-        ctx->error = "duplicate field";
+        ctx->error = Str_noop("duplicate field");
         return NOTOK;
       }
       bindings->values[field->index] = yyjson_obj_iter_get_val(key);
@@ -257,7 +257,7 @@ static int decode_value(JSON_CONTEXT *ctx, const CS_TYPE *type, void *value,
       const CS_VARIABLE *field = cell->value;
       size_t saved = field_path(ctx, field->varName);
       if (bindings->values[i] == NULL) {
-        ctx->error = "missing field";
+        ctx->error = Str_noop("missing field");
         return NOTOK;
       }
       if (decode_value(ctx, field->varType, &object->members[i]->value,
@@ -271,12 +271,12 @@ static int decode_value(JSON_CONTEXT *ctx, const CS_TYPE *type, void *value,
     ARRAYDAT *array = value;
     if (!yyjson_is_arr(json) || array->arrayType == NULL ||
         array->dimensions != 1 || yyjson_arr_size(json) > INT_MAX) {
-      ctx->error = "expected a one-dimensional typed array";
+      ctx->error = Str_noop("expected a one-dimensional typed array");
       return NOTOK;
     }
     if (tabinit(csound, array, (int32_t)yyjson_arr_size(json),
                 ctx->instance) != OK) {
-      ctx->error = "could not allocate array";
+      ctx->error = Str_noop("could not allocate array");
       return NOTOK;
     }
     size_t i, count;
@@ -295,7 +295,7 @@ static int decode_value(JSON_CONTEXT *ctx, const CS_TYPE *type, void *value,
     size_t length = yyjson_get_len(json);
     if (text == NULL || memchr(text, '\0', length) != NULL ||
         length >= MAX_STRINGDAT_SIZE) {
-      ctx->error = "expected a string without NUL bytes";
+      ctx->error = Str_noop("expected a string without NUL bytes");
       return NOTOK;
     }
     STRINGDAT source = {(char *)text, length + 1, 0};
@@ -307,7 +307,7 @@ static int decode_value(JSON_CONTEXT *ctx, const CS_TYPE *type, void *value,
     double number = yyjson_get_num(json);
     if (!yyjson_is_num(json) || !isfinite(number) ||
         !isfinite((cs_float)number)) {
-      ctx->error = "expected a finite number in cs_float range";
+      ctx->error = Str_noop("expected a finite number in cs_float range");
       return NOTOK;
     }
     *(cs_float *)value = (cs_float)number;
@@ -315,13 +315,13 @@ static int decode_value(JSON_CONTEXT *ctx, const CS_TYPE *type, void *value,
   }
   if (type == &CS_VAR_TYPE_b || type == &CS_VAR_TYPE_B) {
     if (!yyjson_is_bool(json)) {
-      ctx->error = "expected a Boolean";
+      ctx->error = Str_noop("expected a Boolean");
       return NOTOK;
     }
     *(int32_t *)value = yyjson_get_bool(json) ? 1 : 0;
     return OK;
   }
-  ctx->error = "unsupported member type";
+  ctx->error = Str_noop("unsupported member type");
   return NOTOK;
 }
 
@@ -331,7 +331,7 @@ static yyjson_mut_val *encode_value(JSON_CONTEXT *ctx, yyjson_mut_doc *doc,
 {
   if ((type->userDefinedType || type == &CS_VAR_TYPE_ARRAY) &&
       depth > ctx->maxdepth) {
-    ctx->error = "maximum nesting depth exceeded";
+    ctx->error = Str_noop("maximum nesting depth exceeded");
     return NULL;
   }
   if (type->userDefinedType) {
@@ -359,7 +359,7 @@ static yyjson_mut_val *encode_value(JSON_CONTEXT *ctx, yyjson_mut_doc *doc,
     if (json == NULL || array->arrayType == NULL || array->dimensions != 1 ||
         csound_array_member_count(array, &count) != OK ||
         (count > 0 && (array->data == NULL || array->arrayMemberSize <= 0))) {
-      ctx->error = "expected a one-dimensional typed array";
+      ctx->error = Str_noop("expected a one-dimensional typed array");
       return NULL;
     }
     for (size_t i = 0; i < count; ++i) {
@@ -379,14 +379,14 @@ static yyjson_mut_val *encode_value(JSON_CONTEXT *ctx, yyjson_mut_doc *doc,
   }
   if (type == &CS_VAR_TYPE_I || type == &CS_VAR_TYPE_K) {
     if (!isfinite(*(const cs_float *)value)) {
-      ctx->error = "expected a finite number";
+      ctx->error = Str_noop("expected a finite number");
       return NULL;
     }
     return yyjson_mut_real(doc, (double)*(const cs_float *)value);
   }
   if (type == &CS_VAR_TYPE_b || type == &CS_VAR_TYPE_B)
     return yyjson_mut_bool(doc, *(const int32_t *)value != 0);
-  ctx->error = "unsupported member type";
+  ctx->error = Str_noop("unsupported member type");
   return NULL;
 }
 
@@ -421,9 +421,9 @@ static int32_t unmarshal(CSOUND *csound, JSON_UNMARSHAL *p, int from_file)
   yyjson_doc *doc;
   if (!integer_option(*p->flags, 3) ||
       !integer_option(*p->maxdepth, JSON_MAX_DEPTH))
-    return csound->InitError(csound, "%s: invalid flags or maximum depth", opcode);
+    return csound->InitError(csound, Str("%s: invalid flags or maximum depth"), opcode);
   if (p->source->data == NULL)
-    return csound->InitError(csound, "%s: empty source", opcode);
+    return csound->InitError(csound, Str("%s: empty source"), opcode);
   if ((unsigned)*p->flags & 1) flags |= YYJSON_READ_ALLOW_COMMENTS;
   if ((unsigned)*p->flags & 2) flags |= YYJSON_READ_ALLOW_TRAILING_COMMAS;
   if (from_file) {
@@ -432,7 +432,7 @@ static int32_t unmarshal(CSOUND *csound, JSON_UNMARSHAL *p, int from_file)
                                     "rb", "INCDIR;SSDIR;SFDIR",
                                     CSFTYPE_OTHER_TEXT, 0);
     if (handle == NULL)
-      return csound->InitError(csound, "%s: cannot open file '%s'", opcode,
+      return csound->InitError(csound, Str("%s: cannot open file '%s'"), opcode,
                                p->source->data);
     doc = yyjson_read_fp(file, flags, NULL, &read_error);
     csound->FileClose(csound, handle, CSFILE_CLOSE_SYNC);
@@ -441,12 +441,12 @@ static int32_t unmarshal(CSOUND *csound, JSON_UNMARSHAL *p, int from_file)
     doc = yyjson_read_opts(p->source->data, strlen(p->source->data),
                            flags, NULL, &read_error);
   if (doc == NULL)
-    return csound->InitError(csound, "%s: %s at byte %zu", opcode,
+    return csound->InitError(csound, Str("%s: %s at byte %zu"), opcode,
                              read_error.msg, read_error.pos);
   yyjson_val *object = yyjson_doc_get_root(doc);
   CS_VARIABLE *variable = NULL;
   void *value = NULL;
-  const char *error = "expected a declared UDT or typed array";
+  const char *error = Str_noop("expected a declared UDT or typed array");
   JSON_CONTEXT *context = new_context(csound, p->h.insdshead, *p->maxdepth);
   int32_t result = NOTOK;
   if (!type->userDefinedType && type != &CS_VAR_TYPE_ARRAY)
@@ -471,7 +471,7 @@ static int32_t unmarshal(CSOUND *csound, JSON_UNMARSHAL *p, int from_file)
     csound, type, type == &CS_VAR_TYPE_ARRAY ? &array_init : NULL,
     p->h.insdshead);
   if (variable == NULL) {
-    error = "could not create destination value";
+    error = Str_noop("could not create destination value");
     goto done;
   }
   value = csound->Calloc(csound, variable->memBlockSize);
@@ -490,7 +490,7 @@ done:
   csound->Free(csound, variable);
   yyjson_doc_free(doc);
   if (result != OK)
-    result = csound->InitError(csound, "%s: %s at %s", opcode, error,
+    result = csound->InitError(csound, Str("%s: %s at %s"), opcode, Str(error),
                                context->path);
   free_context(context);
   return result;
@@ -512,12 +512,12 @@ int32_t json_marshal(CSOUND *csound, JSON_MARSHAL *p)
   if (!integer_option(*p->pretty, 1) ||
       !integer_option(*p->maxdepth, JSON_MAX_DEPTH))
     return csound->InitError(csound,
-                            "jsonmarshal: invalid pretty or maximum depth option");
+                            Str("jsonmarshal: invalid pretty or maximum depth option"));
   yyjson_mut_doc *doc = yyjson_mut_doc_new(NULL);
   JSON_CONTEXT *context = new_context(csound, p->h.insdshead, *p->maxdepth);
   yyjson_mut_val *object = NULL;
   char *encoded = NULL;
-  const char *error = "expected a declared UDT or typed array";
+  const char *error = Str_noop("expected a declared UDT or typed array");
   int32_t result = NOTOK;
   if ((!type->userDefinedType && type != &CS_VAR_TYPE_ARRAY) || doc == NULL)
     goto done;
@@ -536,11 +536,11 @@ int32_t json_marshal(CSOUND *csound, JSON_MARSHAL *p)
   size_t length;
   encoded = yyjson_mut_write(doc, *p->pretty ? YYJSON_WRITE_PRETTY : 0, &length);
   if (encoded == NULL) {
-    error = "could not encode JSON";
+    error = Str_noop("could not encode JSON");
     goto done;
   }
   if (length >= MAX_STRINGDAT_SIZE) {
-    error = "encoded JSON exceeds the Csound string size limit";
+    error = Str_noop("encoded JSON exceeds the Csound string size limit");
     goto done;
   }
   STRINGDAT source = {encoded, length + 1, 0};
@@ -551,7 +551,7 @@ done:
   free(encoded);
   yyjson_mut_doc_free(doc);
   if (result != OK)
-    result = csound->InitError(csound, "jsonmarshal: %s at %s", error,
+    result = csound->InitError(csound, Str("jsonmarshal: %s at %s"), Str(error),
                                context->path);
   free_context(context);
   return result;

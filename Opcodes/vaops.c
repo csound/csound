@@ -61,7 +61,7 @@ static int32_t vaget(CSOUND *csound, VA_GET *p)
     /* A checked nonnegative index truncates to the same sample as floor. */
     ndx = (uint32_t)index;
     if (UNLIKELY(ndx < offset || ndx >= CS_KSMPS-early))
-      csound->Warning(csound, "index %u outside sample-accurate bounds [%u, %u)",
+      csound->Warning(csound, Str("index %u outside sample-accurate bounds [%u, %u)"),
                       ndx, offset, CS_KSMPS-early);
     *p->kout = p->avar[ndx];
     return OK;
@@ -78,7 +78,7 @@ static int32_t vaset(CSOUND *csound, VA_SET *p)
                               Str("Out of range in vaset.k (%g)"), index);
     ndx = (uint32_t)index;
     if (UNLIKELY(ndx < offset || ndx >= CS_KSMPS-early))
-      csound->Warning(csound, "index %u outside sample-accurate bounds [%u, %u)",
+      csound->Warning(csound, Str("index %u outside sample-accurate bounds [%u, %u)"),
                       ndx, offset, CS_KSMPS-early);
     p->avar[ndx] = *p->kval;
     return OK;
@@ -97,7 +97,7 @@ static int32_t vasigget(CSOUND *csound, VASIG_GET *p)
                               Str("Out of range in vasigget.k (%g)"), index);
     ndx = (uint32_t)index;
     if (UNLIKELY(ndx < offset || ndx >= CS_KSMPS-early))
-      csound->Warning(csound, "index %u outside sample-accurate bounds [%u, %u)",
+      csound->Warning(csound, Str("index %u outside sample-accurate bounds [%u, %u)"),
                       ndx, offset, CS_KSMPS-early);
     *p->kout = p->avar[ndx];
     return OK;
@@ -115,7 +115,7 @@ static int32_t vasigset(CSOUND *csound, VASIG_SET *p)
                               Str("Out of range in vasigset.k (%g)"), index);
     ndx = (uint32_t)index;
     if (UNLIKELY(ndx < offset || ndx >= CS_KSMPS-early))
-      csound->Warning(csound, "index %u outside sample-accurate bounds [%u, %u)",
+      csound->Warning(csound, Str("index %u outside sample-accurate bounds [%u, %u)"),
                       ndx, offset, CS_KSMPS-early);
     p->avar[ndx] = *p->kval;
     return OK;

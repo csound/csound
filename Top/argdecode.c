@@ -1157,7 +1157,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       *ports = '\0';
       csoundUDPConsole(csound, s, atoi(ports + 1), 0);
     } else
-      csound->Warning(csound, "UDP console: needs address and port\n");
+      csound->Warning(csound, Str("UDP console: needs address and port\n"));
     return 1;
   } else if (!(strncmp(s, "udp-mirror-console=", 19))) {
     char *ports;
@@ -1167,7 +1167,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       *ports = '\0';
       csoundUDPConsole(csound, s, atoi(ports + 1), 1);
     } else
-      csound->Warning(csound, "UDP console: needs address and port\n");
+      csound->Warning(csound, Str("UDP console: needs address and port\n"));
     return 1;
   } else if (!(strncmp(s, "fftlib=", 7))) {
     s += 7;
@@ -1632,7 +1632,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           }
 #endif
           if (!decode_long(csound, s, argc, argv)) {
-            csound->Message(csound, "\n...failing to parse options\n");
+            csound->Message(csound, Str("\n...failing to parse options\n"));
             return 0; // fail
           }
           while (*(++s))

@@ -654,7 +654,7 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
 static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
 {
 #ifdef IOS
-  csoundErrorMsg(csound, "External scores not supported on iOS");
+  csoundErrorMsg(csound, Str("External scores not supported on iOS"));
   return FALSE;
 #else
     char *extname;

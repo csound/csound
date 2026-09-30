@@ -660,8 +660,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
   //rtfqc = SQRT(fqc);
   knh = (int32_t)(CS_ESR*p->nyq/fqc);
   if (UNLIKELY((n = (int32_t)knh) <= 0)) {
-    csound->Warning(csound, "knh=%x nyq=%f fqc=%f\n"
-                    "vco knh (%d) <= 0; taken as 1\n", knh, p->nyq, fqc, n);
+    csound->Warning(csound, Str("knh=%x nyq=%f fqc=%f\n"
+                    "vco knh (%d) <= 0; taken as 1\n"), knh, p->nyq, fqc, n);
     n = 1;
   }
   tnp1 = n + n + 1;           /* calc 2n + 1 */

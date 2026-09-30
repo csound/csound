@@ -719,16 +719,16 @@ int32_t csound_cleanup(CSOUND *csound)
         int32_t passed = csound->total_assert_cnt - csound->perferrcnt;
         csound->ErrorMsg(csound, "\n");
         csound->ErrorMsg(csound, "=====================================\n");
-        csound->ErrorMsg(csound, "         UNIT TEST REPORT            \n");
+        csound->ErrorMsg(csound, Str("         UNIT TEST REPORT            \n"));
         csound->ErrorMsg(csound, "=====================================\n");
-        csound->ErrorMsg(csound, "  Total assertions: %d\n", csound->total_assert_cnt);
-        csound->ErrorMsg(csound, "  Passed: %d\n", passed);
-        csound->ErrorMsg(csound, "  Failed: %d\n", csound->perferrcnt);
+        csound->ErrorMsg(csound, Str("  Total assertions: %d\n"), csound->total_assert_cnt);
+        csound->ErrorMsg(csound, Str("  Passed: %d\n"), passed);
+        csound->ErrorMsg(csound, Str("  Failed: %d\n"), csound->perferrcnt);
         csound->ErrorMsg(csound, "\n");
         if (csound->perferrcnt == 0) {
-          csound->ErrorMsg(csound, "  Result: ✓ ALL TESTS PASSED\n");
+          csound->ErrorMsg(csound, Str("  Result: ✓ ALL TESTS PASSED\n"));
         } else {
-          csound->ErrorMsg(csound, "  Result: ✗ TESTS FAILED\n");
+          csound->ErrorMsg(csound, Str("  Result: ✗ TESTS FAILED\n"));
         }
         csound->ErrorMsg(csound, "=====================================\n");
       }
@@ -775,7 +775,7 @@ int32_t turnon(CSOUND *csound, TURNON *p)
     // VL prevent i-time infinite loop
   if(*p->insno == p->h.insdshead->insno &&
      *p->itime == 0)
-    return csound->InitError(csound, "cannot turnon self with zero delay\n");
+    return csound->InitError(csound, Str("cannot turnon self with zero delay\n"));
 
   evt.p[0] = (cs_float) insno;
   evt.p[1] = *p->itime;
@@ -803,7 +803,7 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
   // VL prevent i-time infinite loop
   if(*p->insno == p->h.insdshead->insno &&
      *p->itime == 0)
-    return csound->InitError(csound, "cannot turnon self with zero delay\n");
+    return csound->InitError(csound, Str("cannot turnon self with zero delay\n"));
 
   evt.p[0] = (cs_float) insno;
   evt.p[1] = *p->itime;

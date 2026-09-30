@@ -147,12 +147,12 @@ TYPE_POOL *csoundGetTypePool(CSOUND* csound) {
 CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound) {
     CS_VAR_POOL* varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
     if (varPool == NULL || (uintptr_t)varPool < 0x1000) {
-        csound->Message(csound, "ERROR: csoundCreateVarPool failed to allocate memory, got %p\n", varPool);
+        csound->Message(csound, Str("ERROR: csoundCreateVarPool failed to allocate memory, got %p\n"), varPool);
         return NULL;
     }
     varPool->table = cs_hash_table_create(csound);
     if (varPool->table == NULL) {
-        csound->Message(csound, "ERROR: cs_hash_table_create failed in csoundCreateVarPool\n");
+        csound->Message(csound, Str("ERROR: cs_hash_table_create failed in csoundCreateVarPool\n"));
         csound->Free(csound, varPool);
         return NULL;
     }
@@ -262,7 +262,7 @@ CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
 {
     // Check for null or corrupted pool to prevent segfault
     if (pool == NULL || (uintptr_t)pool < 0x1000) {
-      csound->ErrorMsg(csound, "csoundFindVariableWithName: skipping due to null/corrupted pool (pool=%p, name=%s)\n", pool, name ? name : "(null)");
+      csound->ErrorMsg(csound, Str("csoundFindVariableWithName: skipping due to null/corrupted pool (pool=%p, name=%s)\n"), pool, name ? name : "(null)");
       return NULL;
     }
 
@@ -291,7 +291,7 @@ CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int32_t index) {
 int32_t csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
   // Check for null or corrupted pool to prevent segfault
   if (pool == NULL || (uintptr_t)pool < 0x1000) {  // Detect corrupted small addresses
-    csound->ErrorMsg(csound, "csoundAddVariable: skipping due to null/corrupted pool (pool=%p)\n", pool);
+    csound->ErrorMsg(csound, Str("csoundAddVariable: skipping due to null/corrupted pool (pool=%p)\n"), pool);
     return 0;
   }
 
@@ -299,7 +299,7 @@ int32_t csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
   // If table is NULL, treat this as an invalid/mis-cast pool and bail out safely.
   if (pool->table == NULL) {
     csound->ErrorMsg(csound,
-                     "csoundAddVariable: invalid pool (table==NULL) at %p; refusing to add var '%s'\n",
+                     Str("csoundAddVariable: invalid pool (table==NULL) at %p; refusing to add var '%s'\n"),
                      (void*)pool, var ? var->varName : "(null)");
     return -1;
   }
@@ -326,11 +326,11 @@ void csoundRecalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool)
 {
     // Check for null or corrupted pool to prevent segfault
     if (pool == NULL) {
-        csound->ErrorMsg(csound, "csoundRecalculateVarPoolMemory: pool is NULL, skipping\n");
+        csound->ErrorMsg(csound, Str("csoundRecalculateVarPoolMemory: pool is NULL, skipping\n"));
         return;
     }
     if ((uintptr_t)pool < 0x1000) {
-        csound->ErrorMsg(csound, "csoundRecalculateVarPoolMemory: pool address %p is corrupted, skipping\n", pool);
+        csound->ErrorMsg(csound, Str("csoundRecalculateVarPoolMemory: pool address %p is corrupted, skipping\n"), pool);
         return;
     }
 
@@ -357,7 +357,7 @@ void csoundRecalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool)
 void csoundReallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
     // Check for null or corrupted pool to prevent segfault
     if (pool == NULL || (uintptr_t)pool < 0x1000) {  // Detect corrupted small addresses
-      csound->Message(csound, "csoundReallocateVarPoolMemory: skipping due to null/corrupted pool (pool=%p)\n", pool);
+      csound->Message(csound, Str("csoundReallocateVarPoolMemory: skipping due to null/corrupted pool (pool=%p)\n"), pool);
       return;
     }
 
@@ -406,7 +406,7 @@ void csoundDeleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
 
 void csoundInitializeVarPool(CSOUND* csound, cs_float* memBlock, CS_VAR_POOL* pool) {
     if (pool == NULL) {
-        csound->ErrorMsg(csound, "Warning: csoundInitializeVarPool called with NULL pool\n");
+        csound->ErrorMsg(csound, Str("Warning: csoundInitializeVarPool called with NULL pool\n"));
         return;
     }
     CS_VARIABLE* current = pool->head;
@@ -669,9 +669,9 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
                      assign->h.insdshead,
                      structCopyMode) != OK)) {
         return initializing
-          ? csound->InitError(csound, "could not copy structured value")
+          ? csound->InitError(csound, Str("could not copy structured value"))
           : csound->PerfError(csound, &assign->h,
-                              "could not copy structured value");
+                              Str("could not copy structured value"));
       }
       return OK;
     }
@@ -711,7 +711,7 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
                            csound, dstArr, srcArr, assign->h.insdshead,
                            CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
               return csound->InitError(
-                csound, "could not copy structured array value");
+                csound, Str("could not copy structured array value"));
             }
             return OK;
         }

@@ -147,7 +147,7 @@ void bqPlayerCallback(SLBufferQueueItf bq, void *context)
       else {
         paused = *((int *) csound->QueryGlobalVariable(csound,"::paused::"));
         if(!paused) ret = perform_buffer(csound);
-        else csound->Message(csound, "paused \n");
+        else csound->Message(csound, Str("paused \n"));
         if(ret==0) {
           for(i=0;i < items; i++)
             playBuffer[i] = (short) (outputBuffer[i]*CONV16BIT);
@@ -346,7 +346,7 @@ int openSLInitOutParams(open_sl_params *params){
   if((params->outputBuffer =
       (cs_float *) csound->Calloc(csound, params->outBufSamples*sizeof(cs_float)))
      == NULL){
-    csound->Message(csound, "Memory allocation failure in opensl module.\n");
+    csound->Message(csound, Str("Memory allocation failure in opensl module.\n"));
     goto err_return;
   }
   if((params->outcb = csoundCreateCircularBuffer(csound,
@@ -356,7 +356,7 @@ int openSLInitOutParams(open_sl_params *params){
     return -1;
   }
   memset(params->outputBuffer, 0, params->outBufSamples*sizeof(cs_float));
-  csound->Message(csound, "HW buffersize = %d, SW = %d \n", params->outParm.bufSamp_HW,
+  csound->Message(csound, Str("HW buffersize = %d, SW = %d \n"), params->outParm.bufSamp_HW,
                   params->outParm.bufSamp_SW);
 
   return OK;
@@ -517,13 +517,13 @@ int openSLRecOpen(open_sl_params *params){
                                                  &(params->recorderObject),
                                                  &audioSrc,&audioSnk, 1, id, req);
   if (SL_RESULT_SUCCESS != result) {
-    csound->Message(csound, "OpenSL: CreateAudioRecorder failed.\n");
+    csound->Message(csound, Str("OpenSL: CreateAudioRecorder failed.\n"));
     goto end_recopen;
   }
   // realize the audio recorder
   result = (*params->recorderObject)->Realize(params->recorderObject, SL_BOOLEAN_FALSE);
   if (SL_RESULT_SUCCESS != result) {
-    csound->Message(csound, "OpenSL: Realize failed.\n");
+    csound->Message(csound, Str("OpenSL: Realize failed.\n"));
     goto end_recopen;
   } 
   // get the record interface
@@ -531,7 +531,7 @@ int openSLRecOpen(open_sl_params *params){
                                                    SL_IID_RECORD,
                                                    &(params->recorderRecord));
   if (SL_RESULT_SUCCESS != result) {
-    csound->Message(csound, "OpenSL: GetInterface SL_IID_RECORD failed.\n");
+    csound->Message(csound, Str("OpenSL: GetInterface SL_IID_RECORD failed.\n"));
     goto end_recopen;
   } 
   // get the buffer queue interface
@@ -539,7 +539,7 @@ int openSLRecOpen(open_sl_params *params){
                                                    SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
 						   &(params->recorderBufferQueue));
   if (SL_RESULT_SUCCESS != result) {
-    csound->Message(csound, "OpenSL: GetInterface SL_IID_BUFFERQUEUE failed.\n");
+    csound->Message(csound, Str("OpenSL: GetInterface SL_IID_BUFFERQUEUE failed.\n"));
     goto end_recopen;
   } 
   // register callback on the buffer queue
@@ -547,13 +547,13 @@ int openSLRecOpen(open_sl_params *params){
                                                             bqRecorderCallback,
 							    params);
   if (SL_RESULT_SUCCESS != result) {
-    csound->Message(csound, "OpenSL: RegisterCallback failed.\n");
+    csound->Message(csound, Str("OpenSL: RegisterCallback failed.\n"));
     goto end_recopen;
   } 
   result = (*params->recorderRecord)->SetRecordState(params->recorderRecord,
                                                      SL_RECORDSTATE_RECORDING);
   if (SL_RESULT_SUCCESS != result) {
-    csound->Message(csound, "OpenSL: SetRecordState failed.\n");
+    csound->Message(csound, Str("OpenSL: SetRecordState failed.\n"));
     goto end_recopen;
   } 
 
@@ -578,7 +578,7 @@ int openSLInitInParams(open_sl_params *params){
       (cs_float *)csound->Calloc(csound, params->inBufSamples*sizeof(cs_float)))
      == NULL){
     csound->Message(params->csound,
-                    "Memory allocation failure in opensl module.\n");
+                    Str("Memory allocation failure in opensl module.\n"));
     return -1;
   }
   memset(params->inputBuffer, 0, params->inBufSamples*sizeof(cs_float));
@@ -614,12 +614,12 @@ int androidrecopen_(CSOUND *csound, const csRtAudioParams *parm)
   *(p->GetRtRecordUserData(p)) = (void*) params;
   returnVal = openSLInitInParams(params);
   if(returnVal !=  SL_RESULT_SUCCESS) {
-    csound->Message(csound, "OpenSL: openSLInitInParams error (%d).\n",
+    csound->Message(csound, Str("OpenSL: openSLInitInParams error (%d).\n"),
                     returnVal);
   }
   returnVal = openSLRecOpen(params);
   if(returnVal !=  SL_RESULT_SUCCESS) {
-    csound->Message(csound, "OpenSL: openSLRecOpen error (%d).\n",
+    csound->Message(csound, Str("OpenSL: openSLRecOpen error (%d).\n"),
                     returnVal);
     returnVal = -1;
   } else
@@ -724,6 +724,6 @@ void androidrtclose_(CSOUND *csound)
   }
 
   csound->DestroyGlobalVariable(csound, "_openslGlobals");
-  csound->Message(csound, "Closing Cound realtime audio.\n");
+  csound->Message(csound, Str("Closing Csound realtime audio.\n"));
 
 }

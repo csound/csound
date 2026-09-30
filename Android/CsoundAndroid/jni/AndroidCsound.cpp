@@ -23,6 +23,7 @@
 */
 
 #include "AndroidCsound.hpp"
+#include "text.h"
 #include <android/log.h>
 #include <jni.h>
 
@@ -80,7 +81,7 @@ int AndroidCsound::SetGlobalEnv(const char* name, const char* variable) {
 void AndroidCsound::Pause(bool pause){
    int *p = ((int *)csoundQueryGlobalVariable(csound,"::paused::"));
    if(p) *p = pause ?  1  : 0;
-   else csoundMessage(csound, "pause control not set up\n");
+   else csoundMessage(csound, Str("pause control not set up\n"));
 }
 
 unsigned long AndroidCsound::getStreamTime(){

@@ -637,7 +637,7 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
   p->wintype = wintype;
   p->format = p->fsig->format;
   if(p->format != PVS_AMP_FREQ)
-    return csound->InitError(csound, "PVS format not supported\n");
+    return csound->InitError(csound, Str("PVS format not supported\n"));
   
   if (p->fsig->sliding) {
     /* get params from input fsig */

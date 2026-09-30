@@ -69,7 +69,7 @@ int32_t csoundDebuggerInit(CSOUND *csound)
 {
   /* to be removed if/when multicore is supported */
   if(csound->oparms->numThreads > 1) {
-    csoundErrorMsg(csound, "cannot initialise debugger for multicore\n");
+    csoundErrorMsg(csound, Str("cannot initialise debugger for multicore\n"));
     return CSOUND_ERROR;
   }
   

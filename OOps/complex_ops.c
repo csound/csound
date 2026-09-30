@@ -395,7 +395,7 @@ static inline int32_t complex_div_rr(CSOUND *csound, CXOP *p) {
     p->ans->real = (ra*rb + ia*ib)/den;
     p->ans->imag = (ia*rb - ra*ib)/den;
   } else {
-    csound->Message(csound, "complex div by zero\n");
+    csound->Message(csound, Str("complex div by zero\n"));
     return NOTOK;
   }
   p->ans->isPolar = 0;
@@ -412,7 +412,7 @@ static inline int32_t complex_div_rp(CSOUND *csound, CXOP *p) {
     p->ans->real = (ra*rb + ia*ib)/den;
     p->ans->imag = (ia*rb - ra*ib)/den;
   } else {
-    csound->Message(csound, "complex div by zero\n");
+    csound->Message(csound, Str("complex div by zero\n"));
     return NOTOK;
   }
   p->ans->isPolar = 0;
@@ -429,7 +429,7 @@ static inline int32_t complex_div_pr(CSOUND *csound, CXOP *p) {
     p->ans->real = (ra*rb + ia*ib)/den;
     p->ans->imag = (ia*rb - ra*ib)/den;
   } else {
-    csound->Message(csound, "complex div by zero\n");
+    csound->Message(csound, Str("complex div by zero\n"));
     return NOTOK;
   }
   p->ans->isPolar = 0;
@@ -441,7 +441,7 @@ static inline int32_t complex_div_pp(CSOUND *csound, CXOP *p) {
     p->ans->real = p->a->real / p->b->real;
     p->ans->imag = p->a->imag - p->b->imag;
   } else {
-    csound->Message(csound, "complex polar div by zero\n");
+    csound->Message(csound, Str("complex polar div by zero\n"));
     return NOTOK;
   }
   p->ans->isPolar = 1;
@@ -466,7 +466,7 @@ static inline int32_t complex_divin_rr(CSOUND *csound, CXOP *p) {
     p->ans->real = (ra*rb + ia*ib)/den;
     p->ans->imag = (ia*rb - ra*ib)/den;
   } else {
-    csound->Message(csound, "complex div by zero\n");
+    csound->Message(csound, Str("complex div by zero\n"));
     return NOTOK;
   }
   p->ans->isPolar = 0;
@@ -483,7 +483,7 @@ static inline int32_t complex_divin_rp(CSOUND *csound, CXOP *p) {
     p->ans->real = (ra*rb + ia*ib)/den;
     p->ans->imag = (ia*rb - ra*ib)/den;
   } else {
-    csound->Message(csound, "complex div by zero\n");
+    csound->Message(csound, Str("complex div by zero\n"));
     return NOTOK;
   }
   p->ans->isPolar = 0;
@@ -500,7 +500,7 @@ static inline int32_t complex_divin_pr(CSOUND *csound, CXOP *p) {
     p->ans->real = (ra*rb + ia*ib)/den;
     p->ans->imag = (ia*rb - ra*ib)/den;
   } else {
-    csound->Message(csound, "complex div by zero\n");
+    csound->Message(csound, Str("complex div by zero\n"));
     return NOTOK;
   }
   p->ans->isPolar = 0;
@@ -512,7 +512,7 @@ static inline int32_t complex_divin_pp(CSOUND *csound, CXOP *p) {
     p->ans->real = p->ans->real / p->a->real;
     p->ans->imag = p->ans->imag - p->a->imag;
   } else {
-    csound->Message(csound, "complex polar div by zero\n");
+    csound->Message(csound, Str("complex polar div by zero\n"));
     return NOTOK;
   }
   p->ans->isPolar = 1;
@@ -711,26 +711,26 @@ int32_t cops_init(CSOUND *csound, COPS1 *p) {
     ARRAYDAT *aa = (ARRAYDAT *) p->a;
     ARRAYDAT *ab = (ARRAYDAT *) p->b;
     if(aa->dimensions == 0)
-      return csound->InitError(csound, "array1 unitialised\n");
+      return csound->InitError(csound, Str("array1 uninitialised\n"));
     if(ab->dimensions == 0)
-      return csound->InitError(csound, "array2 unitialised\n");
+      return csound->InitError(csound, Str("array2 uninitialised\n"));
     // Use the maximum size, or CS_KSMPS if both are 0
     size = aa->sizes[0] > ab->sizes[0] ? aa->sizes[0] : ab->sizes[0];
     if (size == 0) size = CS_KSMPS;
   } else if (IS_ARRAY_ARG(p->a)) {
     if(((ARRAYDAT *)p->a)->sizes == NULL)
-      return csound->InitError(csound, "array unitialised\n");
+      return csound->InitError(csound, Str("array uninitialised\n"));
     size = ((ARRAYDAT *)p->a)->sizes[0];
   }
   else if (IS_ARRAY_ARG(p->b)) {
     if(((ARRAYDAT *)p->b)->sizes == NULL)
-      return csound->InitError(csound, "array unitialised\n");
+      return csound->InitError(csound, Str("array uninitialised\n"));
     size = ((ARRAYDAT *)p->b)->sizes[0];
   }
   } else {
     ARRAYDAT *aa = (ARRAYDAT *) p->a;
     if(aa->dimensions == 0)
-      return csound->InitError(csound, "array unitialised\n");
+      return csound->InitError(csound, Str("array uninitialised\n"));
     size = aa->sizes[0];
   }
   if (UNLIKELY(tabinit(csound, p->out, size, p->h.insdshead) != OK))
@@ -1478,10 +1478,10 @@ int32_t cops_init_r(CSOUND *csound, COPS1 *p) {
     } else {
       int32_t inSize = ((ARRAYDAT *)p->a)->sizes ? ((ARRAYDAT *)p->a)->sizes[0] : 0;
       if(inSize < 0 || (uint32_t) inSize < CS_KSMPS)
-        return csound->InitError(csound, "array length < ksmps\n");
+        return csound->InitError(csound, Str("array length < ksmps\n"));
     }
     return OK;
-  } else return csound->InitError(csound, "array not initialised\n");
+  } else return csound->InitError(csound, Str("array not initialised\n"));
 }
 
 int32_t complex_array_real(CSOUND *csound, COPS1 *p) {
@@ -1606,9 +1606,9 @@ int32_t cops_init_a(CSOUND *csound, COPS1 *p) {
     ARRAYDAT *aa = (ARRAYDAT *) p->a;
     ARRAYDAT *ab = (ARRAYDAT *) p->b;
     if(aa->dimensions == 0)
-      return csound->InitError(csound, "array1 unitialised\n");
+      return csound->InitError(csound, Str("array1 uninitialised\n"));
     if(ab->dimensions == 0)
-      return csound->InitError(csound, "array2 unitialised\n");
+      return csound->InitError(csound, Str("array2 uninitialised\n"));
     // Use the minimum non-zero array size, or CS_KSMPS if both are 0
     if (aa->sizes[0] == 0 && ab->sizes[0] == 0) {
       size = CS_KSMPS;

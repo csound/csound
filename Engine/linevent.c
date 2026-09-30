@@ -306,7 +306,7 @@ void sense_line(CSOUND *csound, void *userData)
             STA(oflag) = 0;
             STA(orchestra) = STA(orchestrab);
             csoundCompileOrc(csound, STA(orchestrab), 0);
-            csound->Message(csound, "::compiling orchestra::\n");
+            csound->Message(csound, Str("::compiling orchestra::\n"));
             Linestart = (++cp);
             continue;
           }
@@ -332,7 +332,7 @@ void sense_line(CSOUND *csound, void *userData)
         } else if(c == '{') {
           STA(oflag) = 1;
           csound->Message(csound,
-                          "::reading orchestra, use '}' to terminate::\n");
+                          Str("::reading orchestra, use '}' to terminate::\n"));
           cp++;
           continue;
         }

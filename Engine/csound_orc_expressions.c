@@ -218,7 +218,7 @@ static TREE *create_unary_token(CSOUND *csound, char *sym)
   ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
    if(csoundGetDebug(csound) & DEBUG_EXPRESSIONS)
-    csoundMessage(csound, "Out of memory\n");
+    csoundMessage(csound, Str("Out of memory\n"));
    exit(1);
   }
   ans->type = INTEGER_TOKEN;
@@ -411,8 +411,8 @@ static TREE *create_cond_expression(CSOUND *csound,
 
   if(last->left == NULL) {
     csound->Message(csound,
-                    "missing boolean expression in "
-                    "conditional expression, line %d\n", root->line-1);
+                    Str("missing boolean expression in "
+                    "conditional expression, line %d\n"), root->line-1);
     return NULL;
   }
 
@@ -1787,7 +1787,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
 
       if (expressionNodes == NULL) {
-        csound->Message(csound, "error creating expression.\n");
+        csound->Message(csound, Str("error creating expression.\n"));
         return NULL;
       }
       nextArg = currentArg->next;
@@ -2234,7 +2234,7 @@ TREE* expand_switch_statement(
     } else {
       /* Ignore duplicate default clauses: print a warning */
       csound->Warning(csound,
-                      "duplicate default case in switch, line %d",
+                      Str("duplicate default case in switch, line %d"),
                       caseNode->line-1);
     }
 
@@ -2393,8 +2393,8 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
       isPerfRate = strcmp("k",vartype) == 0 ? 1 : 0;
     if(isPerfRate == 0 &&
        isItime == 0) {
-      synterr(csound, "cannot run a perf-time loop"
-              " with an i-time index, line %d",
+      synterr(csound, Str("cannot run a perf-time loop"
+              " with an i-time index, line %d"),
               current->line);
       csoundLongJmp(csound, 0);
     }
@@ -2478,8 +2478,8 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
                                         current->left->next->value->lexeme, typeTable);
     // variable will replace any existing variable
     if(var != NULL)
-    csound->Warning(csound, "redefining variable %s in loop (type: %s)\n"
-		            "\t - now using %s type, line %d",
+    csound->Warning(csound, Str("redefining variable %s in loop (type: %s)\n"
+		            "\t - now using %s type, line %d"),
 		              var->varName,  var->varType->varTypeName,
 		              isPerfRate ? "k" : "i", current->line);
     add_arg(csound, current->left->next->value->lexeme, isPerfRate ? "k" : "i", typeTable, NULL);

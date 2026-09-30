@@ -112,7 +112,7 @@ static inline cs_float complex_rect_imag(const COMPLEXDAT *value) {
 static int32_t init_fft_complex_common(CSOUND *csound, FFT *p,
                                        int32_t inverse) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   int32_t N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s", inverse ?
@@ -224,7 +224,7 @@ static int32_t validate_real_fft_size(CSOUND *csound, const char *opcode,
 
 static int32_t init_rfft_r2c(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
@@ -260,7 +260,7 @@ static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
 
 static int32_t init_rfft_c2r(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   int32_t M = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
@@ -299,7 +299,7 @@ static int32_t perf_rfft_c2r(CSOUND *csound, FFT *p) {
 
 static int32_t init_rfft(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
@@ -329,7 +329,7 @@ static  int32_t rfft_i(CSOUND *csound, FFT *p) {
 
 static int32_t init_rifft(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
@@ -367,9 +367,9 @@ static int32_t validate_packed_fft_size(CSOUND *csound, const char *opcode,
 
 static int32_t init_rfftmult(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   if(p->in2->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions != 1 || p->in2->dimensions != 1 ||
                p->out->dimensions > 1))
@@ -428,7 +428,7 @@ static int32_t fft_i(CSOUND *csound, FFT *p) {
 
 static int32_t init_ifft(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   int32_t   N2 = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
@@ -459,7 +459,7 @@ static int32_t ifft_i(CSOUND *csound, FFT *p) {
 
 static int32_t init_recttopol(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   int32_t N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1 ||
                N < 2 || (N & 1)))
@@ -516,7 +516,7 @@ static int32_t perf_poltorect(CSOUND *csound, FFT *p) {
 
 static int32_t init_poltorect2(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL || p->in2->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   int32_t N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions != 1 || p->in2->dimensions != 1 ||
                p->out->dimensions > 1 || p->in2->sizes[0] != N ||
@@ -555,7 +555,7 @@ static int32_t perf_poltorect2(CSOUND *csound, FFT *p) {
 
 static int32_t init_mags(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   int32_t N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1 ||
                N < 2 || (N & 1)))
@@ -605,7 +605,7 @@ static int32_t perf_phs(CSOUND *csound, FFT *p) {
 
 static int32_t init_logarray(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   if (UNLIKELY(tabinit(csound, p->out, p->in->sizes[0],
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
@@ -635,7 +635,7 @@ static int32_t perf_logarray(CSOUND *csound, FFT *p) {
 
 static int32_t init_rtoc(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   int32_t N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1 ||
                N > INT32_MAX/2))
@@ -675,7 +675,7 @@ static int32_t rtoc_i(CSOUND *csound, FFT *p) {
 
 static int32_t init_ctor(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   int32_t N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1 || (N & 1)))
     return csound->InitError(csound, "%s",
@@ -712,7 +712,7 @@ static int32_t ctor_i(CSOUND *csound, FFT *p) {
 
 static int32_t init_window(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1))
     return csound->InitError(csound, "%s",
                             Str("window: expected one-dimensional arrays"));
@@ -905,7 +905,7 @@ static int32_t perf_iceps(CSOUND *csound, FFT *p) {
 
 static int32_t rows_init(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   if (p->in->dimensions == 2) {
     int32_t siz = p->in->sizes[1];
     if (UNLIKELY(tabinit(csound, p->out, siz, p->h.insdshead) != OK))
@@ -1111,7 +1111,7 @@ static int32_t rows_init_S(CSOUND *csound, FFT *p) {
 
 static int32_t cols_init(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   if (LIKELY(p->in->dimensions == 2)) {
     int32_t siz = p->in->sizes[0];
     if (UNLIKELY(tabinit(csound, p->out, siz, p->h.insdshead) != OK))
@@ -1234,7 +1234,7 @@ static int32_t shiftin_perf(CSOUND *csound, SHIFTIN *p) {
 
 static int32_t shiftout_init(CSOUND *csound, SHIFTOUT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   if (UNLIKELY(p->in->dimensions != 1))
     return csound->InitError(csound, "%s",
                             Str("shiftout: expected a one-dimensional array"));
@@ -1290,7 +1290,7 @@ typedef struct {
 
 static int32_t unwrap_set(CSOUND *csound, UNWRAP *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1))
     return csound->InitError(csound, "%s",
                             Str("unwrap: expected one-dimensional arrays"));
@@ -1427,7 +1427,7 @@ static inline int32_t mel2bin(cs_float m, int32_t N, cs_float sr) {
 
 static int32_t mfb_init(CSOUND *csound, MFB *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1))
     return csound->InitError(csound, "%s",
                             Str("mfb: expected one-dimensional arrays"));
@@ -1575,9 +1575,9 @@ typedef struct interl{
 
 static int32_t interleave_i (CSOUND *csound, INTERL *p) {
   if(p->b->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   if(p->c->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   if(p->b->dimensions == 1 &&
      p->c->dimensions == 1 &&
      p->a->dimensions <= 1 &&
@@ -1619,7 +1619,7 @@ static int32_t interleave_perf (CSOUND *csound, INTERL *p) {
 
 static int32_t deinterleave_i (CSOUND *csound, INTERL *p) {
   if(p->c->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n");
+    return csound->InitError(csound, Str("array not initialised\n"));
   if(p->c->dimensions == 1) {
     const CS_TYPE *arrayContainerType = csound->GetType(csound, "[");
     ARRAYDAT preparedA = {0}, preparedB = {0};

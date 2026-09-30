@@ -2516,14 +2516,14 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
 #ifdef BETA
         if ((csound->oparms_.msglevel & 7) == 7) {
           csoundMessage(csound,
-                  "Base Note : %u\tDetune    : %u\n"
+                  Str("Base Note : %u\tDetune    : %u\n"
                   "Low  Note : %u\tHigh Note : %u\n"
                   "Low  Vel. : %u\tHigh Vel. : %u\n"
                   "Gain      : %d\tCount     : %d\n"
                   "mode      : %d\n"
                   "start     : %d\tend       : %d\tcount  :%d\n"
                   "mode      : %d\n"
-                  "start     : %d\tend       : %d\tcount  :%d\n\n",
+                  "start     : %d\tend       : %d\tcount  :%d\n\n"),
                   lpd.basenote, 0U, lpd.key_lo, lpd.key_hi,
                   lpd.velocity_lo, lpd.velocity_hi, lpd.gain, lpd.loop_count,
                   lpd.loops[0].mode, lpd.loops[0].start, lpd.loops[0].end,
@@ -2947,7 +2947,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     if (wbuf != NULL && !(mode & 4))    /* apply window if requested */
       gen53_apply_window(obuf, wbuf, npts, wpts, 0);
     if (!(mode & 1)) {
-      csound->Message(csound, "linear-phase output\n");
+      csound->Message(csound, Str("linear-phase output\n"));
       return;
     }
     /* ---- minimum phase impulse response ---- */
@@ -3010,7 +3010,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
       obuf[i] = buf2[i];
     csound->Free(csound, buf2);
     csound->Free(csound, buf1);
-     csound->Message(csound, "minimum-phase output\n");
+     csound->Message(csound, Str("minimum-phase output\n"));
     if (wbuf != NULL && !(mode & 8))    /* apply window if requested */
       gen53_apply_window(obuf, wbuf, npts, wpts, 1);
 }
@@ -3187,7 +3187,7 @@ int32_t resize_table(CSOUND *csound, RESIZE *p)
     FUNC *ftp;
 
     if (UNLIKELY(warned==0)) {
-      printf("WARNING: EXPERIMENTAL CODE\n");
+      printf(Str("WARNING: EXPERIMENTAL CODE\n"));
       warned = 1;
     }
     if (UNLIKELY((ftp = csoundFTFind(csound, p->fn)) == NULL))
