@@ -226,7 +226,6 @@ Source: frontends/CsoundAC/*.hpp; DestDir: "{#APP_INCLUDE}\csoundac"; Flags: ign
 Source: {#MyManualSourceDir}html\*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs;  Components: core
 
 Source: "build\docs\doxygen\html\*.*"; DestDir: "{#APP_APIREF}/csound"; Flags: ignoreversion recursesubdirs;  Components: core
-Source: "doc\doxygen\csoundac\html\*.*"; DestDir: "{#APP_APIREF}/csoundac"; Flags: ignoreversion recursesubdirs;  Components: core
 
 Source: "examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav *.html"; Flags: ignoreversion recursesubdirs;  Components: core
 
@@ -249,7 +248,6 @@ Name: "{group}\Audio device information"; Filename: "cmd"; Parameters: "/K pa_de
 Name: "{group}\Audio device latency"; Filename: "cmd"; Parameters: "/K pa_minlat.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
 Name: "{group}\Csound Reference Manual"; Filename: "{#APP_MANUAL}indexframes.html";  Components: core
 Name: "{group}\Csound API Reference Manual"; Filename: "{#APP_APIREF}csound\index.html";  Components: core
-Name: "{group}\CsoundAC API Reference Manual"; Filename: "{#APP_APIREF}csoundac\index.html";  Components: core
 Name: "{group}\Csound Tutorial"; Filename: "{#APP_TUTORIAL}tutorial.pdf";  Components: core
 Name: "{group}\CsoundAC Tutorial"; Filename: "{#APP_TUTORIAL}Csound_Algorithmic_Composition_Tutorial.pdf";  Components: core
 

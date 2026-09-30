@@ -1327,7 +1327,7 @@ jobs:
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Use custom vcpkg manifest for 32-bit (without libsndfile)
-        run: cp platform/vcpkg/vcpkg-x86.json platform/vcpkg/vcpkg.json
+        run: cp vcpkg-x86.json vcpkg.json
 
       - name: Download libsndfile pre-built binaries for Win32
         run: |

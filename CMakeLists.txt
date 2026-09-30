@@ -115,8 +115,6 @@ if (USE_VCPKG)
         set(VCPKG_TARGET_TRIPLET "x64-linux")
     endif()
 
-    set(VCPKG_MANIFEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/platform/vcpkg"
-        CACHE PATH "Directory containing the Csound vcpkg manifest")
     set(VCPKG_FEATURE_FLAGS versions)
     set(X_VCPKG_APPLOCAL_DEPS_INSTALL ON)
     set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_CURRENT_SOURCE_DIR}/platform/vcpkg/triplets)
