@@ -326,7 +326,8 @@ $(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_new_dispatch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
-$(CSOUND_SRC_ROOT)/Java/cs_glue.cpp
+$(CSOUND_SRC_ROOT)/Java/cs_glue.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/savgol.c
 #CsoundObj.cpp
 
 # Some sources include the generated header through csound_orc.h. Generate it

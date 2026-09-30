@@ -1253,6 +1253,7 @@ set(stdopcod_SRCS
     Opcodes/wterrain2.c
     Opcodes/stdopcod.c
     Opcodes/dbap.c
+    Opcodes/savgol.c
     )
 
 set(sock_ops_SRCS
