@@ -51,7 +51,7 @@ This option is disabled by default.
 it finds the Wasmtime C API. This option is enabled by default. Set it to
 `OFF` to disable the feature even when Wasmtime is installed. Set
 `Wasmtime_ROOT` if the Wasmtime package is outside CMake's normal search paths.
-See [Native Csound WebAssembly plugins](wasm/NATIVE_OPCODE_PLUGINS.md).
+See [Native Csound WebAssembly plugins](platform/wasm-wasi/NATIVE_OPCODE_PLUGINS.md).
 
 -`DCUSTOM_CMAKE=`: with this option you can specify a custom.cmake
 file containing build options and CMake variables to control the build.

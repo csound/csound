@@ -45,6 +45,7 @@ enum {
   WASM_HOST_HEAP_LIMIT = 64 * 1024 * 1024,
   WASM_PLUGIN_GLOBAL_BASE = 128 * 1024 * 1024,
   WASM_HOST_TABLE_ENTRIES = 3837,
+  WASM_HOST_CALLOC_INDEX = 1,
   WASM_PLUGIN_TABLE_BASE = 4096,
   WASM_MAX_MEMORY_BYTES = 256 * 1024 * 1024,
   WASM_MAX_TABLE_ELEMENTS = 65536,
@@ -180,6 +181,7 @@ static void store_u32_le(uint8_t *data, uint32_t offset, uint32_t value)
   p[3] = (uint8_t) (value >> 24);
 }
 
+/* The guest format always uses IEEE 64-bit values, even in a USE_FLOAT build. */
 static void store_f64_le(uint8_t *data, uint32_t offset, double value)
 {
   union {
@@ -661,7 +663,9 @@ unsupported_import:
                       &function);
     wasm_functype_delete(type);
     value.of.funcref = function;
-    error = wasmtime_table_set(guest->context, &guest->table, 0, &value);
+    /* Index zero must remain null, as it does for every unbridged API slot. */
+    error = wasmtime_table_set(guest->context, &guest->table,
+                               WASM_HOST_CALLOC_INDEX, &value);
     if (error != NULL) {
       print_wasmtime_error(csound, "install Wasm plugin Calloc", error, NULL);
       goto done;
@@ -671,7 +675,8 @@ unsupported_import:
     uint8_t *memory = wasmtime_memory_data(guest->context, &guest->memory);
     memset(memory + WASM_HOST_CSOUND_ADDRESS, 0, 1024);
     store_u32_le(memory,
-                 WASM_HOST_CSOUND_ADDRESS + WASM32_CSOUND_CALLOC_OFFSET, 0);
+                 WASM_HOST_CSOUND_ADDRESS + WASM32_CSOUND_CALLOC_OFFSET,
+                 WASM_HOST_CALLOC_INDEX);
     store_u32_le(memory, WASM_HOST_OPCODE_LIST_SLOT, 0);
   }
   result = CSOUND_SUCCESS;
@@ -689,7 +694,7 @@ static int32_t module_info_is_compatible(int32_t info)
   int32_t float_size = info & 0xff;
   int32_t minor = (info >> 8) & 0xff;
   int32_t major = (info >> 16) & 0xffff;
-  return float_size == (int32_t) sizeof(MYFLT) && major == CS_VERSION &&
+  return float_size == (int32_t) sizeof(cs_float) && major == CS_VERSION &&
          minor <= CS_SUBVER;
 }
 
@@ -1237,8 +1242,8 @@ static uint32_t voice_allocation_size(const WasmOpcodeDescriptor *descriptor,
   for (i = 0; i < descriptor->argument_count; i++) {
     size += WASM32_VAR_TYPE_OFFSET;
     size += descriptor->argument_types[i] == 'a'
-                ? (uint64_t) ksmps * sizeof(MYFLT)
-                : sizeof(MYFLT);
+                ? (uint64_t) ksmps * sizeof(cs_float)
+                : sizeof(cs_float);
     size = (size + 7u) & ~(uint64_t) 7u;
   }
   return size > UINT32_MAX ? 0 : (uint32_t) size;
@@ -1312,8 +1317,8 @@ static WasmVoice *create_voice(CSOUND *csound,
 
   for (i = 0; i < descriptor->argument_count; i++) {
     uint32_t capacity = descriptor->argument_types[i] == 'a'
-                            ? ksmps * (uint32_t) sizeof(MYFLT)
-                            : (uint32_t) sizeof(MYFLT);
+                            ? ksmps * (uint32_t) sizeof(cs_float)
+                            : (uint32_t) sizeof(cs_float);
     cursor += WASM32_VAR_TYPE_OFFSET;
     voice->arguments[i].address = cursor;
     voice->arguments[i].capacity = capacity;
@@ -1361,12 +1366,12 @@ static int32_t copy_inputs_to_guest(WasmOpcodeInstance *opcode,
   uint8_t *memory = wasmtime_memory_data(guest->context, &guest->memory);
   uint32_t i;
   for (i = descriptor->output_count; i < descriptor->argument_count; i++) {
-    MYFLT *argument = (MYFLT *) opcode->arguments[i];
+    cs_float *argument = (cs_float *) opcode->arguments[i];
     uint32_t bytes = descriptor->argument_types[i] == 'a'
-                         ? sample_count * (uint32_t) sizeof(MYFLT)
-                         : (uint32_t) sizeof(MYFLT);
+                         ? sample_count * (uint32_t) sizeof(cs_float)
+                         : (uint32_t) sizeof(cs_float);
     uint64_t guest_offset = descriptor->argument_types[i] == 'a'
-                                ? (uint64_t) offset * sizeof(MYFLT)
+                                ? (uint64_t) offset * sizeof(cs_float)
                                 : 0;
     if (argument == NULL || guest_offset > voice->arguments[i].capacity ||
         bytes > voice->arguments[i].capacity - guest_offset)
@@ -1379,7 +1384,7 @@ static int32_t copy_inputs_to_guest(WasmOpcodeInstance *opcode,
                      voice->arguments[i].address + (offset + sample) * 8,
                      (double) argument[offset + sample]);
 #else
-      memcpy(memory + voice->arguments[i].address + offset * sizeof(MYFLT),
+      memcpy(memory + voice->arguments[i].address + offset * sizeof(cs_float),
              argument + offset, bytes);
 #endif
     }
@@ -1398,12 +1403,12 @@ static int32_t copy_outputs_from_guest(WasmOpcodeInstance *opcode,
   const uint8_t *memory = wasmtime_memory_data(guest->context, &guest->memory);
   uint32_t i;
   for (i = 0; i < descriptor->output_count; i++) {
-    MYFLT *argument = (MYFLT *) opcode->arguments[i];
+    cs_float *argument = (cs_float *) opcode->arguments[i];
     uint32_t bytes = descriptor->argument_types[i] == 'a'
-                         ? sample_count * (uint32_t) sizeof(MYFLT)
-                         : (uint32_t) sizeof(MYFLT);
+                         ? sample_count * (uint32_t) sizeof(cs_float)
+                         : (uint32_t) sizeof(cs_float);
     uint64_t guest_offset = descriptor->argument_types[i] == 'a'
-                                ? (uint64_t) offset * sizeof(MYFLT)
+                                ? (uint64_t) offset * sizeof(cs_float)
                                 : 0;
     if (argument == NULL || guest_offset > voice->arguments[i].capacity ||
         bytes > voice->arguments[i].capacity - guest_offset)
@@ -1412,16 +1417,16 @@ static int32_t copy_outputs_from_guest(WasmOpcodeInstance *opcode,
 #ifdef WORDS_BIGENDIAN
       uint32_t sample;
       for (sample = 0; sample < sample_count; sample++)
-        argument[offset + sample] = (MYFLT) load_f64_le(
+        argument[offset + sample] = (cs_float) load_f64_le(
             memory, voice->arguments[i].address + (offset + sample) * 8);
 #else
       memcpy(argument + offset,
-             memory + voice->arguments[i].address + offset * sizeof(MYFLT),
+             memory + voice->arguments[i].address + offset * sizeof(cs_float),
              bytes);
 #endif
     }
     else
-      *argument = (MYFLT) load_f64_le(memory, voice->arguments[i].address);
+      *argument = (cs_float) load_f64_le(memory, voice->arguments[i].address);
   }
   return CSOUND_SUCCESS;
 }
@@ -1433,8 +1438,8 @@ static void clear_audio_outputs(WasmOpcodeInstance *opcode, uint32_t offset,
   uint32_t i;
   for (i = 0; i < descriptor->output_count; i++) {
     if (descriptor->argument_types[i] == 'a' && opcode->arguments[i] != NULL)
-      memset((MYFLT *) opcode->arguments[i] + offset, 0,
-             sample_count * sizeof(MYFLT));
+      memset((cs_float *) opcode->arguments[i] + offset, 0,
+             sample_count * sizeof(cs_float));
   }
 }
 
@@ -1554,9 +1559,9 @@ int32_t csoundLoadWasmOpcodeLibrary(CSOUND *csound, const char *path)
 
   if (csound == NULL || path == NULL || path[0] == '\0')
     return CSOUND_ERROR;
-  if (sizeof(MYFLT) != 8) {
+  if (sizeof(cs_float) != 8) {
     csound->ErrorMsg(csound,
-                     "Wasm opcode libraries require a 64-bit MYFLT build\n");
+                     "Wasm opcode libraries require a 64-bit cs_float build\n");
     return CSOUND_ERROR;
   }
   registry = create_registry(csound);
