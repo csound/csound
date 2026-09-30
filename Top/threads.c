@@ -233,6 +233,13 @@ typedef struct barrier {
     return ppthread;
 }
 
+ int32_t csoundIsCurrentThread(void *thread)
+{
+    if (thread == NULL)
+      return 0;
+    return pthread_equal(*(pthread_t *)thread, pthread_self()) ? 1 : 0;
+}
+
  uintptr_t csoundJoinThread(void *thread)
 {
     void *threadRoutineReturnValue = NULL;
@@ -587,6 +594,14 @@ static uint32_t __stdcall threadRoutineWrapper(void *arg)
     return (void*) d;
 }
 
+ int32_t csoundIsCurrentThread(void *thread)
+{
+    threadParams *p = (threadParams *)thread;
+    if (p == NULL || p->handle == NULL)
+      return 0;
+    return (GetThreadId(p->handle) == GetCurrentThreadId()) ? 1 : 0;
+}
+
  uintptr_t csoundJoinThread(void *thread)
 {
   threadParams *p = (threadParams *)thread;
@@ -861,6 +876,12 @@ typedef struct barrier {
     return NULL;
 }
 
+ int32_t csoundIsCurrentThread(void *thread)
+{
+    (void) thread;
+    return 0;
+}
+
  uintptr_t csoundJoinThread(void *thread)
 {
     //notImplementedWarning_("csoundJoinThread");
@@ -1013,6 +1034,14 @@ static int threadRoutineWrapper(void *arg)
     return NULL;
   *thread = thrd_current();
   return thread;
+}
+
+ int32_t csoundIsCurrentThread(void *thread)
+{
+  threadParams *p = (threadParams *)thread;
+  if (p == NULL)
+    return 0;
+  return thrd_equal(p->thread, thrd_current()) ? 1 : 0;
 }
 
  uintptr_t csoundJoinThread(void *thread)

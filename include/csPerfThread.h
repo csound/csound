@@ -173,7 +173,10 @@ extern "C" {
   /**
       Waits until all pending messages (pause, send score event, etc.)
       and their callbacks have been processed by the performance thread.
-      Must not be called from a message callback.
+      Must not be called from the performance thread itself, i.e. from a
+      message callback or from the process callback: the performance thread
+      cannot wait for itself. Such a call is ignored (with a one-time
+      warning) instead of deadlocking.
    */
   PUBLIC void csoundPerformanceThreadFlushMessageQueue(CS_PERF_THREAD* pt);
 

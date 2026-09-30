@@ -94,6 +94,30 @@ void onProcessCallback(void *userdata) {
         processRanAfterFirst.store(true);
 }
 
+// State for ProcessCallbackCanFlush: the process callback calls
+// FlushMessageQueue() from the performance thread and must not deadlock.
+std::atomic<bool> processFlushFinished{false};
+std::atomic<bool> processFlushCallbackRan{false};
+std::atomic<bool> processFlushReturned{false};
+
+void onProcessCallbackFlush(void *userdata) {
+    CsoundPerformanceThread *pt =
+        static_cast<CsoundPerformanceThread *>(userdata);
+    processFlushCallbackRan.store(true);
+    pt->FlushMessageQueue();
+    processFlushReturned.store(true);
+    pt->Stop();
+}
+
+// State for SetProcessCallbackWhileRunning: the callback is set/cleared from
+// another thread while the performance thread reads and invokes it.
+std::atomic<int> processCallbackInvocations{0};
+
+void onCountProcessCallback(void *userdata) {
+    (void) userdata;
+    processCallbackInvocations.fetch_add(1);
+}
+
 }  // namespace
 
 TEST(PerfThreadsTests, PerfThread) {
@@ -276,7 +300,104 @@ TEST(PerfThreadsTests, AudioBlockRunsBetweenBatches) {
     EXPECT_TRUE(firstBatchDone.load());
     EXPECT_TRUE(secondSawProcess.load());
 
+    performanceThread.Stop();
+    performanceThread.Join();
+    // The performance thread has exited, so it can no longer read the
+    // callback fields: clearing them here is race-free.
     performanceThread.SetProcessCallback(nullptr, nullptr);
+    csound.Reset();
+}
+
+TEST(PerfThreadsTests, ProcessCallbackCanFlush) {
+    const char *instrument =
+        "sr=48000\n"
+        "ksmps=64\n"
+        "nchnls=1\n"
+        "instr 1\n"
+        "endin\n";
+
+    processFlushFinished.store(false);
+    processFlushCallbackRan.store(false);
+    processFlushReturned.store(false);
+
+    // Run the whole thing on a worker so a regression can be detected with a
+    // timeout instead of hanging the test process forever.
+    std::thread runner([instrument] {
+        Csound csound;
+        csound.SetOption("-n");
+        if (csound.CompileOrc(instrument)) {
+            processFlushFinished.store(true);
+            return;
+        }
+        csound.EventString((char *) "i 1 0 3600\n");
+        if (csound.Start()) {
+            processFlushFinished.store(true);
+            return;
+        }
+        CsoundPerformanceThread performanceThread(csound.GetCsound());
+        performanceThread.SetProcessCallback(onProcessCallbackFlush,
+                                             &performanceThread);
+        performanceThread.Play();
+        performanceThread.Join();
+        csound.Reset();
+        processFlushFinished.store(true);
+    });
+
+    for (int i = 0; i < 100 && !processFlushFinished.load(); ++i)
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    if (!processFlushFinished.load()) {
+        // Leak the stuck worker: joining it would deadlock too. The process
+        // exits when the test run finishes.
+        runner.detach();
+        FAIL() << "FlushMessageQueue() from the process callback deadlocked";
+    }
+    runner.join();
+
+    EXPECT_TRUE(processFlushCallbackRan.load());
+    EXPECT_TRUE(processFlushReturned.load());
+}
+
+TEST(PerfThreadsTests, SetProcessCallbackWhileRunning) {
+    const char *instrument =
+        "sr=48000\n"
+        "ksmps=64\n"
+        "nchnls=1\n"
+        "instr 1\n"
+        "endin\n";
+
+    processCallbackInvocations.store(0);
+
+    Csound csound;
+    csound.SetOption("-n");
+    ASSERT_EQ(csound.CompileOrc(instrument), 0);
+    csound.EventString((char *) "i 1 0 3600\n");
+    ASSERT_EQ(csound.Start(), 0);
+
+    CsoundPerformanceThread performanceThread(csound.GetCsound());
+    performanceThread.SetProcessCallback(onCountProcessCallback, nullptr);
+    performanceThread.Play();
+
+    // Wait until the process callback is actually being invoked.
+    for (int i = 0; i < 500 && processCallbackInvocations.load() == 0; ++i)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    ASSERT_GT(processCallbackInvocations.load(), 0);
+
+    // Hammer the setter from this thread while the performance thread reads
+    // the callback. This is the access pattern that used to be unsynchronized.
+    for (int i = 0; i < 1000; ++i) {
+        performanceThread.SetProcessCallback(
+            (i & 1) ? onCountProcessCallback : nullptr, nullptr);
+        std::this_thread::yield();
+    }
+
+    // Leave it enabled and make sure it takes effect again.
+    performanceThread.SetProcessCallback(onCountProcessCallback, nullptr);
+    int before = processCallbackInvocations.load();
+    for (int i = 0; i < 500 && processCallbackInvocations.load() == before; ++i)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    EXPECT_GT(processCallbackInvocations.load(), before);
+
     performanceThread.Stop();
     performanceThread.Join();
     csound.Reset();

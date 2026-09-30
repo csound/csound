@@ -710,13 +710,33 @@ int32_t CsoundPerformanceThread::Perform()
         }
         // Only process the batch detached above before running an audio
         // block, so a new messages will be picked up in the next cycle and
-        // cannot block performance. While paused there is no audio block, it 
+        // cannot block. While paused audio is not processed so it
         // should be ok to keep processing events
-        if (!paused)
+        if (!paused) {
+          // If this batch drained the queue, mark it as empty **before** the
+          // process callback and the audio block. Otherwise a thread calling
+          // FlushMessageQueue() would have to wait one cycle (even though the
+          // queue is empty). Messages queued after this point (by the process
+          // callback or another thread) keep the queue non-empty and are waited for as usual.
+          csoundLockMutex(queueLock);
+          if (!firstMessage)
+            csoundNotifyThreadLock(flushLock);
+          csoundUnlockMutex(queueLock);
           break;
+        }
       }
-      if(processcallback != NULL)
-           processcallback(cdata);
+      // Snapshot the callback under the lock, then release it before
+      // invoking: the callback is user code and may call back into this API.
+      {
+        void (*processCallback)(void *) = NULL;
+        void *callbackData = NULL;
+        csoundLockMutex(callbackLock);
+        processCallback = processcallback;
+        callbackData = cdata;
+        csoundUnlockMutex(callbackLock);
+        if (processCallback != NULL)
+          processCallback(callbackData);
+      }
       retval = csoundPerformKsmps(csound);
       if (ATOMIC_GET_BOOL(recordData.running)) {
           const cs_float *spout = csoundGetSpout(csound);
@@ -792,12 +812,14 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
     pauseLock = (void*) 0;
     flushLock = (void*) 0;
     recordLock = (void *) 0;
+    callbackLock = (void *) 0;
     perfThread = (void*) 0;
     paused = 1;
     status = CSOUND_MEMORY;
     cdata = 0;
     processcallback = 0;
     running = 0;
+    flushWarned = 0;
     queueLock = csoundCreateMutex(0);
     if (!queueLock)
       return;
@@ -809,6 +831,9 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
       return;
     recordLock = csoundCreateMutex(0);
     if (!recordLock)
+      return;
+    callbackLock = csoundCreateMutex(0);
+    if (!callbackLock)
       return;
 #if defined(EMSCRIPTEN) || defined(__wasi__)
     lastMessage = new CsPerfThreadMsg_Pause(this);
@@ -885,12 +910,35 @@ CsoundPerformanceThread::~CsoundPerformanceThread()
     if (recordLock) {
         csoundDestroyMutex(recordLock);
     }
+    if (callbackLock) {
+        csoundDestroyMutex(callbackLock);
+    }
     if (recordData.mutex) {
         csoundDestroyMutex(recordData.mutex);
     }
     if (recordData.condvar) {
         csoundDestroyCondVar(recordData.condvar);
     }
+}
+
+// ----------------------------------------------------------------------------
+
+void *CsoundPerformanceThread::GetProcessCallback()
+{
+    void *callback;
+    csoundLockMutex(callbackLock);
+    callback = (void *) processcallback;
+    csoundUnlockMutex(callbackLock);
+    return callback;
+}
+
+void CsoundPerformanceThread::SetProcessCallback(void (*Callback)(void *),
+                                                 void *cbdata)
+{
+    csoundLockMutex(callbackLock);
+    processcallback = Callback;
+    cdata = cbdata;
+    csoundUnlockMutex(callbackLock);
 }
 
 // ----------------------------------------------------------------------------
@@ -1043,6 +1091,19 @@ void CsoundPerformanceThread::FlushMessageQueue()
     // to flush then.
     if (!flushLock)
       return;
+    // A thread cannot wait for itself. The performance thread runs the
+    // process and message callbacks, so flushing from one of them would
+    // deadlock. Ignore the call and warn once.
+    if (perfThread && csoundIsCurrentThread(perfThread)) {
+      if (!flushWarned) {
+        flushWarned = 1;
+        csoundMessage(csound, "CsoundPerformanceThread: "
+                      "FlushMessageQueue() called from the performance "
+                      "thread (process or message callback); ignoring "
+                      "the call.\n");
+      }
+      return;
+    }
     // flushLock is cleared when a message is queued and set once the queue
     // has been drained and no message is in flight, so wait for it
     // unconditionally: firstMessage may be NULL while a detached batch of
