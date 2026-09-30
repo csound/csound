@@ -524,6 +524,8 @@ typedef struct {
     cs_float   *spin;         /* offset into csound->spin */
     cs_float   *spout;        /* offset into csound->spout, or local spout */
     int32_t  init_done;
+    /* Incremented when this instance starts an init or reinit pass. */
+    uint64_t init_pass;
     /* Init work can be nested or queued more than once. Only
        instance_init_begin/finish update init_running, under
        async_ref_spinlock. A terminal turnoff remains sticky until the

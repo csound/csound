@@ -817,6 +817,7 @@ static const CSOUND cenviron_ = {
     NULL,
     NULL,
     0,  /* init_done */
+    0,  /* init_pass */
     0,  /* init_running */
     0,  /* turnoff_pending */
     0,  /* free_pending */
