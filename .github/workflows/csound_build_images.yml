@@ -37,7 +37,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v7.3.0
         with:
-          context: platform/android
+          context: platform/androidcross
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/csound-android:${{ env.VERSION }},ghcr.io/${{ github.repository_owner }}/csound-android:latest
 

@@ -1,4 +1,4 @@
-/* Csound numeric types. See doc/numeric-types.md for the CS7 migration. */
+/* Csound numeric types. See docs/numeric-types.md for the CS7 migration. */
 #ifndef CSOUND_TYPES_H
 #define CSOUND_TYPES_H
 

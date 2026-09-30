@@ -53,8 +53,8 @@ may be found online at http://csound.github.io/docs/api/index.html.
 Information on how to build Csound on various platforms is given in
 the BUILD.md file at the top level directory of this repository.
 
-Information about build pipelines with Azure and Github actions is given in
-[DockerFiles/Readme.md](DockerFiles/ReadMe.md).
+GitHub Actions builds use the workflows in [.github/workflows/](.github/workflows).
+See [platform/dockerfiles/ReadMe.md](platform/dockerfiles/ReadMe.md) for Docker recipes.
 
 # DEPRECATED OPCODES
 
@@ -120,3 +120,9 @@ from around the world. They include (but are not limited to):
 * Victor Lazzarini
 * Ville Pulkki
 * Werner Mendizabal
+
+## Source tree
+
+Platform builds live in [`platform/`](platform/README.md), and language bindings
+in [`languages/`](languages/README.md). See [`docs/`](docs/README.md) for developer
+guides and API documentation, and [`attic/`](attic/README.md) for old tools.

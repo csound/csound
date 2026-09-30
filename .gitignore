@@ -151,8 +151,8 @@ installer/macosx/DmgResources
 installer/macosx/201*
 
 ## Generated Doxygen
-doc/html
-doc/doxygen
+/docs/doxygen/html/
+/docs/doxygen/man/
 
 #Generated files if running in-source CMake build
 cmake_install.cmake
@@ -181,14 +181,14 @@ Custom.cmake
 Engine/.csound_orc.l.swn
 Engine/.csound_orc.y.swn
 *.swm
-android/CSDPlayer/assets/samples/README
-android/CSDPlayer/assets/samples/hrtf-44100-left.dat
-android/CSDPlayer/assets/samples/hrtf-44100-right.dat
-android/CSDPlayer/assets/samples/hrtf-48000-left.dat
-android/CSDPlayer/assets/samples/hrtf-48000-right.dat
-android/CSDPlayer/assets/samples/hrtf-96000-left.dat
-android/CSDPlayer/assets/samples/hrtf-96000-right.dat
-android/CSDPlayer/assets/samples/sf_GMbank.sf2
+platform/android/CSDPlayer/assets/samples/README
+platform/android/CSDPlayer/assets/samples/hrtf-44100-left.dat
+platform/android/CSDPlayer/assets/samples/hrtf-44100-right.dat
+platform/android/CSDPlayer/assets/samples/hrtf-48000-left.dat
+platform/android/CSDPlayer/assets/samples/hrtf-48000-right.dat
+platform/android/CSDPlayer/assets/samples/hrtf-96000-left.dat
+platform/android/CSDPlayer/assets/samples/hrtf-96000-right.dat
+platform/android/CSDPlayer/assets/samples/sf_GMbank.sf2
 nacl/csound_orclex.c
 nacl/csound_orcparse.c
 nacl/csound_orcparse.h
@@ -207,8 +207,8 @@ tests/soak/Output
 Opcodes/stk/
 *-e
 installer/macosx/20*
-iOS/Csound-iOS
-iOS/share
+platform/ios/Csound-iOS
+platform/ios/share
 
 # Emscripten
 emscripten/examples/javascripts/CsoundObj.js
@@ -233,7 +233,7 @@ CMakeLists.txt.user
 CMakeDoxy*
 CPackConfig.cmake
 CPackSourceConfig.cmake
-Doxyfile
+/Doxyfile
 
 # vscode
 .vscode/
@@ -256,16 +256,16 @@ bin
 debug
 floats-debug
 vanilla
-attic
 
 *.code-workspace
-Android/*.zip
-Android/*.tgz
-Android/env_vars.sh
-Android/CsoundForAndroid/.idea
+platform/android/*.zip
+platform/android/*.tgz
+platform/android/env_vars.sh
+platform/android/CsoundForAndroid/.idea
 dependencies
+!/attic/dependencies/
 *.dylib
-iOS/include
+platform/ios/include
 tmp
 *-g
 .zed

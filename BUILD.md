@@ -157,7 +157,7 @@ be installed (`brew install bison` is an alternative to building from
 upstream sources).
 
 ```
-cd iOS
+cd platform/ios
 chmod +x build_libsndfile.sh
 ./build_libsndfile.sh
 build.sh

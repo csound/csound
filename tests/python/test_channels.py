@@ -5,7 +5,7 @@ import sys
 import unittest
 import ctypes as ct
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'Python'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'languages', 'python'))
 import ctcsound
 
 
