@@ -20,11 +20,11 @@ for a missing native opcode library.
 
 The first version supports plugins built for the current OPCODE.WASM wasm32
 Csound plugin ABI. The plugin must use the same Csound major version, a minor
-version no newer than the host, and the same `MYFLT` size. The module must
+version no newer than the host, and the same `cs_float` size. The module must
 contain its `OPCODE.WASM` marker and the fixed loader layout used by the browser
 build. It supports:
 
-- 64-bit `MYFLT` values
+- 64-bit `cs_float` values
 - fixed numeric audio-rate (`a`), control-rate (`k`), and init-rate (`i`)
   arguments
 - opcode init, perf, and deinit callbacks
@@ -51,10 +51,13 @@ or native host layouts to the plugin.
 
 The frozen wasm32 offsets live in the private `Top/wasm_opcode_abi.h` header.
 Browser builds check each bridged size and offset at compile time. The native
-loader supplies only the documented 256-byte `INSDS` prefix. Guest code must
-not read later `INSDS` fields. A change to `OENTRY`, `OPDS`, `INSDS`, `CS_TYPE`,
-or the bridged part of `CSOUND` needs a versioned ABI change in the header,
-browser loader, native loader, and plugin compiler.
+loader reserves a 256-byte `INSDS` prefix, but supplies values only for `esr`,
+`ekr`, `ksmps`, `ksmps_offset`, and `ksmps_no_end`. Guest code must not use
+other `INSDS` fields, even within that prefix. In particular, helpers such as
+`GetLocalKcounter()` and `GetReleaseFlag()` are not supported. A change to
+`OENTRY`, `OPDS`, `INSDS`, `CS_TYPE`, or the bridged part of `CSOUND` needs a
+versioned ABI change in the header, browser loader, native loader, and plugin
+compiler.
 
 ## Build support
 

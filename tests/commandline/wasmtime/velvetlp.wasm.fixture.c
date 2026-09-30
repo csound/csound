@@ -6,15 +6,15 @@
 
 typedef struct {
   OPDS h;
-  MYFLT *out;
-  MYFLT *in;
-  MYFLT *cutoff;
-  MYFLT state;
+  cs_float *out;
+  cs_float *in;
+  cs_float *cutoff;
+  cs_float state;
 } VELVETLP_FIXTURE;
 
 typedef struct {
   OPDS h;
-  MYFLT *out;
+  cs_float *out;
 } RETRY_FIXTURE;
 
 static uint32_t retry_call_count = 0;
@@ -31,7 +31,7 @@ static int32_t velvetlp_perf(CSOUND *csound, VELVETLP_FIXTURE *opcode)
   uint32_t offset = opcode->h.insdshead->ksmps_offset;
   uint32_t early = opcode->h.insdshead->ksmps_no_end;
   uint32_t end = opcode->h.insdshead->ksmps - early;
-  MYFLT coefficient = *opcode->cutoff / opcode->h.insdshead->esr;
+  cs_float coefficient = *opcode->cutoff / opcode->h.insdshead->esr;
   uint32_t index;
 
   (void) csound;
@@ -71,7 +71,12 @@ static int32_t retry_count_init(CSOUND *csound, RETRY_FIXTURE *opcode)
 
 PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **entries_out)
 {
-  OENTRY *entries = (OENTRY *) csound->Calloc(csound, 3 * sizeof(*entries));
+  OENTRY *entries;
+
+  /* A supported host callback must have a non-null function pointer. */
+  if (csound->Calloc == NULL)
+    return 0;
+  entries = (OENTRY *) csound->Calloc(csound, 3 * sizeof(*entries));
 
   *entries_out = entries;
   if (entries == NULL)
@@ -101,5 +106,5 @@ PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **entries_out)
 
 PUBLIC int32_t csoundModuleInfo(void)
 {
-  return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+  return CSOUND_MODULE_INFO;
 }

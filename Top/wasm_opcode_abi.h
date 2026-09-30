@@ -3,10 +3,10 @@
 
   Frozen wasm32 structure layout used by OPCODE.WASM plugins.
 
-  Top/wasm_plugins.c and wasm/browser/src/dlinit.js read these structures from
-  guest memory. These offsets form a frozen ABI. Do not change them without a
-  versioned migration for existing plugins. Wasm builds check the current
-  structure layout against this file in Top/wasm_opcode_abi_check.c.
+  Top/wasm_plugins.c and platform/wasm-wasi/browser/src/dlinit.js read these
+  structures from guest memory. These offsets form a frozen ABI. Do not change
+  them without a versioned migration for existing plugins. Wasm builds check
+  the current layout against this file in Top/wasm_opcode_abi_check.c.
 */
 
 #ifndef CSOUND_WASM_OPCODE_ABI_H
@@ -99,7 +99,7 @@ CSOUND_WASM_ABI_ASSERT(CS_VAR_TYPE_OFFSET == WASM32_VAR_TYPE_OFFSET,
 CSOUND_WASM_ABI_ASSERT(offsetof(CSOUND, Calloc) == WASM32_CSOUND_CALLOC_OFFSET,
                        "OPCODE.WASM CSOUND.Calloc offset changed");
 
-/* The bridge exposes only this prefix. Guest code must not use later fields. */
+/* Only the five INSDS fields checked below have values in the native bridge. */
 CSOUND_WASM_ABI_ASSERT(sizeof(INSDS) >= WASM32_INSDS_PREFIX_SIZE,
                        "OPCODE.WASM INSDS prefix no longer fits");
 CSOUND_WASM_ABI_ASSERT(offsetof(INSDS, esr) == WASM32_INSDS_ESR_OFFSET,
