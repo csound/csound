@@ -1911,6 +1911,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   ATOMIC_SET(p->ip->init_done, 0);
   csound->mode = 1;
   buf->iflag = 0;
+  lcurip->init_pass++;
   int err = udo_prepare_rate(csound, p, &rate_op);
   if (UNLIKELY(err != OK))
     goto finish_init;
@@ -3212,6 +3213,7 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   ATOMIC_SET(p->ip->init_done, 0);
   csound->ids = (OPDS *)p->ip;
   csound->mode = 1;
+  p->ip->init_pass++;
   while ((csound->ids = csound->ids->nxti) != NULL) {
     csound->op = csound->ids->optext->t.oentry->opname;
     (*csound->ids->init)(csound, csound->ids);

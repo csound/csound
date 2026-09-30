@@ -675,6 +675,7 @@ static int32_t init_pass(CSOUND *csound, INSDS *ip) {
     csoundLockMutex(csound->init_pass_threadlock);
   csound->curip = ip;
   csound->ids = (OPDS *)ip;
+  ip->init_pass++;
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL) {
     csound->mode = 1;
     csound->op = csound->ids->optext->t.oentry->opname;
@@ -711,6 +712,7 @@ static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   csound->curip = ip;
   csound->ids = ids;
   csound->mode = 1;
+  ip->init_pass++;
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL &&
          (csound->ids->init != (SUBR) rireturn)){
     csound->op = csound->ids->optext->t.oentry->opname;
@@ -907,6 +909,7 @@ int32_t init0(CSOUND *csound)
   ip->kicvt = csound->kicvt;
   csound->inerrcnt = 0;
   csound->mode = 1;
+  ip->init_pass++;
 
   while ((csound->ids = csound->ids->nxti) != NULL) {
     csound->op = csound->ids->optext->t.oentry->opname;

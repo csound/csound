@@ -154,6 +154,7 @@ typedef struct {
   cs_float     *Sfile;
   FILE      *fd;
   int32_t   lineno;
+  uint64_t  init_pass;
 } READF;
 
 static int32_t readf_delete(CSOUND *csound, void *p)
@@ -178,6 +179,7 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
     readf_delete(csound, p);
     p->fd = fopen(name, "r");
     p->lineno = 0;
+    p->init_pass = p->h.insdshead->init_pass;
     if (p->Sline->size < MAXLINE) {
       if (p->Sline->data != NULL) csound->Free(csound, p->Sline->data);
       p->Sline->data = (char *) csound->Calloc(csound, MAXLINE);
@@ -225,7 +227,8 @@ static int32_t readf(CSOUND *csound, READF *p)
 
 static int32_t readfi(CSOUND *csound, READF *p)
 {
-    if (p->fd==NULL && p->lineno==0)
+    if (p->init_pass != p->h.insdshead->init_pass ||
+        (p->fd==NULL && p->lineno==0))
       if (UNLIKELY(readf_init(csound, p)!= OK))
         return NOTOK;
     return readf(csound, p);
@@ -233,7 +236,8 @@ static int32_t readfi(CSOUND *csound, READF *p)
 
 static int32_t readfi_S(CSOUND *csound, READF *p)
 {
-    if (p->fd==NULL && p->lineno==0)
+    if (p->init_pass != p->h.insdshead->init_pass ||
+        (p->fd==NULL && p->lineno==0))
       if (UNLIKELY(readf_init_S(csound, p)!= OK))
         return NOTOK;
     return readf(csound, p);
