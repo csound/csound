@@ -47,6 +47,10 @@ extern "C" {
       void *cs, const struct cstype *type, const void *typeArg,
       struct insds *ctx);
     
+  /* userDefinedType flags: test for nonzero to recognize any struct. */
+  #define CS_TYPE_USER_DEFINED 1
+  #define CS_TYPE_PLUGIN_DEFINED 2
+
   typedef struct cstype {
     char* varTypeName;
     char* varDescription;

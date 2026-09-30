@@ -35,11 +35,7 @@ typedef struct initstructvar {
   cs_float* inArgs[VARGMAX];
 } INIT_STRUCT_VAR;
 
-typedef struct csstructvar {
-  CS_VAR_MEM** members;      /* Pointer array of member memory blocks (owned or aliased) */
-  int32_t      memberCount;  /* Number of members; needed for deallocation without type */
-  int32_t      ownsMembers;  /* 1 if this instance owns members storage and should free */
-} CS_STRUCT_VAR;
+#include "csound_structs.h"
 
 typedef struct {
     OPDS          h;

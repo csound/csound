@@ -3335,7 +3335,7 @@ int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) {
   type->createVariable = createStructVar;
   type->copyValue = copyStructVar;
   type->freeVariableMemory = freeStructVarMemory;
-  type->userDefinedType = 1;
+  type->userDefinedType = CS_TYPE_USER_DEFINED;
   type->members = NULL; // Will be filled in Phase 2
 
   // Register the placeholder type
@@ -3350,8 +3350,8 @@ int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) {
 
 int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   TREE* current = structDefTree->right;
-  int32_t index = 0;
-  char temp[256];
+  size_t index = 0;
+  char *temp;
   CS_TYPE* type;
 
   // Create internal name format to check if placeholder already exists
@@ -3369,6 +3369,8 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   if (type != NULL) {
     // Update existing placeholder with member information
     csound->Free(csound, internalName);
+    if (type->userDefinedType & CS_TYPE_PLUGIN_DEFINED)
+      return 0;
     type->varDescription = "user-defined struct";
   } else {
     // Create new type if no placeholder exists (for backward compatibility)
@@ -3379,8 +3381,11 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     type->createVariable = createStructVar;
     type->copyValue = copyStructVar;
     type->freeVariableMemory = freeStructVarMemory;
-    type->userDefinedType = 1;
+    type->userDefinedType = CS_TYPE_USER_DEFINED;
   }
+
+  if (csoundGetTypeWithVarTypeName(csound->typePool, type->varTypeName) == NULL)
+    csoundAddVariableType(csound, csound->typePool, type);
 
   // Clear existing members if updating placeholder
   if (type->members != NULL) {
@@ -3447,7 +3452,14 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
 
   OENTRY oentry;
   memset(&oentry, 0, sizeof(OENTRY));
-  memset(temp, 0, 256);
+  size_t signature_size = 1;
+  for (CONS_CELL *cell = type->members; cell != NULL; cell = cell->next) {
+    CS_VARIABLE *field = cell->value;
+    signature_size += strlen(field->subType != NULL
+      ? field->subType->varTypeName : field->varType->varTypeName) + 4;
+  }
+  size_t temp_size = signature_size + strlen(type->varTypeName) + 8;
+  temp = csound->Calloc(csound, temp_size);
 
   // Extract plain struct name from internal format (:name;) for opcode name
   char* plainName = type->varTypeName + 1;  // Skip leading ':'
@@ -3464,7 +3476,7 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentry.useropinfo = NULL;
 
   /* FIXME - this is not yet implemented */
-  memset(temp, 0, 256);
+  memset(temp, 0, temp_size);
   csoundSprintf(temp, "%s", type->varTypeName);  // Use internal format for outypes
   oentry.outypes = csoundStrdup(csound, temp);
 
@@ -3523,6 +3535,7 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentry.dsblksiz = sizeof(ASSIGN);
   oentry.init = copy_var_generic_init;
   csoundAppendOpcodes(csound, &oentry, 1);
+  csound->Free(csound, temp);
   return 1;
 }
 

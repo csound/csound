@@ -247,6 +247,37 @@ if(BUILD_TESTS)
         gtest_discover_tests(diskin2_concurrency_tests)
     endif()
 
+    if(NOT EMSCRIPTEN AND NOT IOS AND NOT BARE_METAL AND
+       NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+        add_library(struct_test_plugin MODULE fixtures/struct_plugin.c)
+        # Deliberately expose only installed SDK headers to this plugin.
+        set_property(TARGET struct_test_plugin PROPERTY INCLUDE_DIRECTORIES
+            "${Csound_SOURCE_DIR}/include;${PROJECT_BINARY_DIR}/include")
+        if(USE_LIBSNDFILE)
+            target_include_directories(struct_test_plugin PRIVATE
+                $<TARGET_PROPERTY:SndFile::sndfile,INTERFACE_INCLUDE_DIRECTORIES>)
+        endif()
+        target_compile_definitions(struct_test_plugin PRIVATE BUILD_PLUGINS)
+        set_target_properties(struct_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/struct-plugin
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/struct-plugin)
+        add_executable(plugin_struct_tests plugin_struct_test.cpp)
+        target_compile_options(plugin_struct_tests PRIVATE ${unittests_CFLAGS})
+        target_compile_features(plugin_struct_tests PRIVATE cxx_std_17)
+        target_link_libraries(plugin_struct_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        file(GENERATE
+            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/struct_plugin_path.hpp
+            CONTENT "#pragma once\n#define CSOUND_TEST_STRUCT_PLUGIN_DIR R\"csound($<TARGET_FILE_DIR:struct_test_plugin>)csound\"\n"
+            TARGET struct_test_plugin)
+        target_include_directories(plugin_struct_tests PRIVATE
+            ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>)
+        add_dependencies(plugin_struct_tests struct_test_plugin)
+        add_dependencies(unittests plugin_struct_tests)
+        gtest_discover_tests(plugin_struct_tests)
+    endif()
+
     add_executable(json_udt_tests json_udt_test.cpp)
     target_compile_options(json_udt_tests PRIVATE ${unittests_CFLAGS})
     target_compile_features(json_udt_tests PRIVATE cxx_std_17)

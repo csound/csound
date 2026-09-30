@@ -1116,6 +1116,8 @@ typedef struct _CSOUND_UTIL {
  * New functions only need to be added here if
  * they are required by plugins.
  */
+#include "csound_structs.h"
+
 struct CSOUND_ {
 
   /** @name Attributes */
@@ -1221,6 +1223,7 @@ struct CSOUND_ {
   int32_t (*FTDelete)(CSOUND *, int32_t tableNum);
   FUNC *(*FTFind)(CSOUND *, cs_float *argp);
   void *(*GetNamedGens)(CSOUND *);
+  int32_t (*GetTableArgs)(CSOUND *, cs_float **, int32_t);
   /**@}*/
 
   /** @name Instance variables */
@@ -1532,18 +1535,21 @@ struct CSOUND_ {
   int32_t (*Deprecate)(CSOUND *csound, char *name,
                        char *o, char *i, int32_t deprec);
   /**@}*/
-  /** @name Placeholders
-      To allow the API to grow while maintining backward binary compatibility.
-   */
+  /** @name Arrays & Structs */
   /**@{ */
-  /* These consume former placeholders; the 50-pointer reserve keeps the
-     offsets of private CSOUND fields unchanged. */
   int32_t (*ArrayPrepareWrite)(CSOUND *, ARRAYDAT *, INSDS *, int32_t);
-  int32_t (*GetTableArgs)(CSOUND *, cs_float **, int32_t);
   int32_t (*ArrayPrepareOpcodeWrite)(CSOUND *, ARRAYDAT *, OPDS *, int32_t,
                                      const char *);
   int32_t (*ArrayEnsureCapacity)(CSOUND *, ARRAYDAT *, size_t, INSDS *);
-  SUBR dummyfn_2[46];
+  const CS_TYPE *(*RegisterStruct)(CSOUND *, const char *,
+                                    const CSOUND_STRUCT_MEMBER *, size_t);
+  /**@}*/
+
+  /** @name Placeholders
+      To allow the API to grow while maintaining backward binary compatibility.
+   */
+  /**@{ */
+  SUBR dummyfn_2[45];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */

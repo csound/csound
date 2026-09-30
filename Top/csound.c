@@ -426,6 +426,7 @@ static const CSOUND cenviron_ = {
     csoundFTFree,
     csoundFTFind,
     csoundGetNamedGens,
+    csoundGetTableArgs,
     /* instance variables */
     csoundCreateInstanceVariable,
     csoundQueryInstanceVariable,
@@ -609,16 +610,17 @@ static const CSOUND cenviron_ = {
     csoundSprintf, // csoundSprintf
     csoundSscanf,  // csoundSscanf
     csoundDeprecate,
+    /* arrays & structs */
     csound_array_prepare_write_impl,
-    csoundGetTableArgs,
     csound_array_prepare_opcode_write_impl,
     csound_array_ensure_capacity_impl,
-    /* space for API expansion: 46 slots */
+    csoundRegisterStruct,
+    /* space for API expansion: 45 slots */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL, NULL, NULL},
+     NULL, NULL, NULL, NULL, NULL},
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
   (SUBR) NULL,    /*  first_callback_     */
