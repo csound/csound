@@ -387,6 +387,12 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
     streamBuffer,
   });
 
+  options["env"]["csoundWasiJsReadlineCallback"] = (csound, requestId, offset, length) => {
+    // Copy now: the prompt pointer belongs to Csound and can change or be freed.
+    const prompt = offset === 0 ? null : uint2String(new Uint8Array(memory.buffer, offset, length));
+    messagePort.post({ readline: { csound, requestId: requestId >>> 0, prompt } });
+  };
+
   options["env"]["csoundWasiJsDebugCallback"] = () => {
     messagePort.post({ debugCallback: true });
   };

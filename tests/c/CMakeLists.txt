@@ -62,6 +62,7 @@ if(BUILD_TESTS)
         instance_variable_test.cpp
         doppler_test.cpp
         io_test.cpp
+        readline_host_test.cpp
         local_ksmps_test.cpp
         lfsr_test.cpp
         serial_test.cpp

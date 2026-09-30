@@ -15,7 +15,11 @@
 
 // exec log-event: msg => cb(msg)
 export const messageEventHandler = (worker) => (event) => {
-  if (event.data.log) {
+  if (event.data.log && event.data.log["readline"]) {
+    if (worker && worker.publicEvents) {
+      worker.publicEvents.triggerReadline(event.data.log["readline"]);
+    }
+  } else if (event.data.log) {
     if (worker && worker.publicEvents && worker.publicEvents.triggerMessage) {
       worker.publicEvents.triggerMessage(event.data.log);
     } else {

@@ -1288,6 +1288,43 @@ extern "C" {
   PUBLIC int32_t csoundReadlinePushText(CSOUND *, const char *text);
 
   /**
+   * Called when readline opens or closes a host input request. A non-NULL
+   * prompt opens the request (the string may be empty); NULL closes it.
+   * The prompt is UTF-8 and valid only for the duration of the callback.
+   * requestId identifies one line, not one opcode instance.
+   */
+  typedef void (*readlineCallback_t)(CSOUND *csound, void *userData,
+                                     uint32_t requestId, const char *prompt);
+
+  /**
+   * Select host input for readline and report prompt changes through callback.
+   * Set this before performance; pass NULL to restore terminal input.
+   * The callback and userData survive csoundReset(). Requests close on line
+   * completion, EOF, an error, instrument deinitialization, or reset.
+   * Each new line opens a new request, including in instruments started later.
+   *
+   * Called on the thread running Csound, including the audio thread. Do not
+   * block, call UI code, or re-enter Csound from it, except to submit a line
+   * with csoundReadlineSubmit(). Copy the prompt before returning if needed.
+   * Serialize this setter and submissions with Csound performance/reset.
+   */
+  PUBLIC void csoundSetReadlineCallback(CSOUND *, readlineCallback_t callback,
+                                        void *userData);
+
+  /**
+   * Submit one UTF-8 line to the current host request, appending its newline.
+   * Returns CSOUND_ERROR for a stale/closed request, queued input, insufficient
+   * queue space, or text containing control bytes other than tab. Empty text
+   * submits an empty line. On success the request closes immediately; the
+   * opcode consumes the line during subsequent control periods.
+   * Request IDs are nonzero and are not reused, even across csoundReset().
+   * Do not mix this API with keyboard input or csoundReadlinePushText() for
+   * the same line. Call from the performance thread or while it is suspended.
+   */
+  PUBLIC int32_t csoundReadlineSubmit(CSOUND *, uint32_t requestId,
+                                     const char *text);
+
+  /**
    * Registers general purpose callback functions that will be called to query
    * keyboard events. These callbacks are called on every control period by
    * opcodes that consume keyboard input.

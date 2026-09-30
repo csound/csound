@@ -7,6 +7,7 @@ import type {
   CSOUND_PARAMS,
   LibCsoundObj,
   PublicEvents,
+  ReadlineEvent,
   UgenArgTypeEnum,
   UgenContextPtr,
   UgenFactoryPtr,
@@ -87,3 +88,10 @@ browserCsound.listenerCount();
 // @ts-expect-error removeAllListeners accepts one event, not an array.
 browserCsound.removeAllListeners(["play", "pause"]);
 void messageCount;
+
+const promptEvent: ReadlineEvent = { requestId: 1, prompt: "" };
+const closedEvent: ReadlineEvent = { requestId: 1, prompt: null };
+browserCsound.on("readline", (event: ReadlineEvent) => { void event; });
+void browserCsound.readlineSubmit(promptEvent.requestId, "answer");
+void localLibCsound.csoundReadlineSubmit(1, closedEvent.requestId, "answer");
+void libcsound({ onReadline(event) { const id: number = event.csound; void id; } });

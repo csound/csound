@@ -63,6 +63,30 @@ csoundReadlinePushText["toString"] = () =>
   "readlinePushText = async (text) => Number;";
 
 /**
+ * Submits one complete line for an open readline request (no newline needed).
+ * Returns an error for a closed request or invalid input.
+ * @function
+ */
+export const csoundReadlineSubmit = (wasm) => (csound, requestId, text) => {
+  if (
+    !Number.isInteger(requestId) ||
+    requestId <= 0 ||
+    requestId > 0xffff_ffff ||
+    typeof text !== "string" ||
+    text.includes("\0")
+  )
+    return -1;
+  const stringPtr = string2ptr(wasm, text);
+  try {
+    return wasm.exports["csoundReadlineSubmit"](csound, requestId, stringPtr);
+  } finally {
+    freeStringPtr(wasm, stringPtr);
+  }
+};
+
+csoundReadlineSubmit["toString"] = () => "readlineSubmit = async (requestId, text) => Number;";
+
+/**
  * Retrieves the value of control channel identified by channelName.
  * If the err argument is not NULL, the error (or success) code finding
  * or accessing the channel is stored in it.

@@ -37,11 +37,13 @@ import libcsoundFactory from "./libcsound";
  * The returned object exposes synchronous functions matching the C API.
  * @function
  */
-const libcsound = async function ({ withPlugins = [] } = {}) {
+const libcsound = async function ({ withPlugins = [], onReadline } = {}) {
   // Minimal message port that prints to console
   const messagePort = {
     post: (msg) => {
-      if (msg && msg.log) {
+      if (msg && msg["readline"]) {
+        if (onReadline) onReadline(msg["readline"]);
+      } else if (msg && msg.log) {
         console.log(msg.log);
       }
     },

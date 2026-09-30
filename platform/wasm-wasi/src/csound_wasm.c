@@ -229,6 +229,18 @@ void csoundSetMidiCallbacks(CSOUND *csound) {
 }
 
 
+void csoundWasiJsReadlineCallback(CSOUND *, uint32_t, const char *, size_t)
+  __attribute__((used, __import_module__("env"),
+                 __import_name__("csoundWasiJsReadlineCallback")));
+
+static void csoundWasiCReadlineCallback(CSOUND *csound, void *userData,
+                                       uint32_t requestId, const char *prompt)
+{
+  (void) userData;
+  csoundWasiJsReadlineCallback(csound, requestId, prompt,
+                              prompt != NULL ? strlen(prompt) : 0);
+}
+
 // same as csoundCreate but also loads
 // opcodes which need initialization to
 // be callable (aka static_modules)
@@ -237,6 +249,7 @@ CSOUND *csoundCreateWasi() {
   CSOUND *csound = csoundCreate(NULL, NULL);
   // printDebug("DEBUG: csoundCreateWasi called, setting message callback");
   csoundSetMessageCallback(csound, &csoundWasiCMessageCallback);
+  csoundSetReadlineCallback(csound, csoundWasiCReadlineCallback, NULL);
   csoundSetMidiCallbacks(csound);
   return csound;
 }

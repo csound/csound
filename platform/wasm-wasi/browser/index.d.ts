@@ -54,6 +54,12 @@ declare interface CsoundFs {
   pathExists: (path: string) => Promise<boolean>;
 }
 
+/** A non-null prompt opens a request; null closes it. IDs survive reset. */
+declare interface ReadlineEvent {
+  requestId: number;
+  prompt: string | null;
+}
+
 /**
  * @property "play" - called anytime performance goes from pause/stop to a running state.
  * @property "pause" - called after any successful csound.pause() calls.
@@ -82,6 +88,7 @@ declare type PublicEvents =
   | "renderEnded"
   | "onAudioNodeCreated"
   | "message"
+  | "readline"
   /**
    * @property "debugCallback" - fired after every k-cycle when the Csound debugger
    * is active (requires enableDebugCallback() to have been called before performance
@@ -254,6 +261,12 @@ declare interface CsoundObj {
    * Queues text for the readline opcode. Include a newline to submit the line.
    */
   readlinePushText: (text: string) => Promise<number>;
+  /** Submit a complete line without a newline. Returns 0 on success, -1 on error.
+   * Listen for "readline" events before start(). Null prompt closes a request.
+   * Empty prompts still request input. Stale IDs and control bytes except tab
+   * are rejected. Do not mix with readlinePushText for the same line.
+   */
+  readlineSubmit: (requestId: number, text: string) => Promise<number>;
   /**
    * Retrieves the value of control channel identified by channelName.
    * If the err argument is not NULL, the error (or success) code finding
@@ -654,6 +667,7 @@ declare interface LibCsoundObj {
   csoundInputMessage: (csound: number, scoreEvent: string) => number;
   csoundInputMessageAsync: (csound: number, scoreEvent: string) => number;
   csoundReadlinePushText: (csound: number, text: string) => number;
+  csoundReadlineSubmit: (csound: number, requestId: number, text: string) => number;
   csoundGetControlChannel: (csound: number, channelName: string) => number;
   csoundSetControlChannel: (csound: number, channelName: string, value: number) => void;
   csoundGetStringChannel: (csound: number, channelName: string) => string;
@@ -801,6 +815,8 @@ declare interface LibCsoundObj {
  */
 declare function libcsound(params?: {
   withPlugins?: object[];
+  /** Runs synchronously while Csound performs; copy state and avoid blocking. */
+  onReadline?: (event: ReadlineEvent & { csound: number }) => void;
 }): Promise<LibCsoundObj>;
 
 export { Csound, libcsound };
@@ -811,6 +827,7 @@ export type {
   CSOUND_PARAMS,
   LibCsoundObj,
   PublicEvents,
+  ReadlineEvent,
   UgenArgTypeEnum,
   UgenContextPtr,
   UgenFactoryPtr,

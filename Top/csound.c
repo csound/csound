@@ -1957,6 +1957,9 @@ static void reset(CSOUND *csound) {
   length = (uintptr_t)p2 - (uintptr_t)p1;
   memcpy(p1, (void *)&(saved_env->first_callback_), (size_t)length);
   csound->csoundCallbacks_ = saved_env->csoundCallbacks_;
+  csound->readlineCallback = saved_env->readlineCallback;
+  csound->readlineUserData = saved_env->readlineUserData;
+  csound->readlineRequestId = saved_env->readlineRequestId;
   csound->API_lock = saved_env->API_lock;
   csound->array_storage_lock = saved_env->array_storage_lock;
 #ifdef HAVE_PTHREAD_SPIN_LOCK

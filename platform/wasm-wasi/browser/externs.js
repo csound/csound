@@ -36,6 +36,13 @@
  */
 var CsoundEventEmitter;
 
+/** @typedef {{requestId: number, prompt: ?string, csound: number}} */
+var CsoundReadlineEvent;
+/** @typedef {{readline: !CsoundReadlineEvent}} */
+var CsoundReadlineMessage;
+/** @typedef {{onReadline: function(!CsoundReadlineEvent): void}} */
+var CsoundReadlineOptions;
+
 /**
  * @param {number} index
  * @return {number}
@@ -161,6 +168,7 @@ var WasiFS;
  * csoundInputMessage: function(CsoundInst, string): number,
  * csoundInputMessageAsync: function(CsoundInst, string): number,
  * csoundReadlinePushText: function(CsoundInst, string): number,
+ * csoundReadlineSubmit: function(CsoundInst, number, string): number,
  * csoundGetControlChannel: function(CsoundInst, string): number,
  * csoundSetControlChannel: function(CsoundInst, string, number): undefined,
  * csoundGetStringChannel: function(CsoundInst, string): string,

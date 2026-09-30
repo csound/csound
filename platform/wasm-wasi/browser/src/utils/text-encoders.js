@@ -56,18 +56,59 @@ function TextDecoderPoly() {
 
     if (ArrayBuffer.isView(view)) {
       const array = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
-      const charArray = Array.from({ length: array.length });
-      array.forEach(function (charcode, index) {
-        charArray[index] = String.fromCodePoint(charcode);
-      });
-      return this.trimNull(charArray.join(""));
+      // AudioWorklet has no TextDecoder. Decode UTF-8 rather than treating
+      // each byte as a character; prompts and string channels use UTF-8.
+      let text = "";
+      for (let index = 0; index < array.length;) {
+        const first = array[index++];
+        if (first < 0x80) {
+          text += String.fromCodePoint(first);
+          continue;
+        }
+        const count =
+          first >= 0xc2 && first <= 0xdf
+            ? 1
+            : first >= 0xe0 && first <= 0xef
+              ? 2
+              : first >= 0xf0 && first <= 0xf4
+                ? 3
+                : 0;
+        if (count === 0) {
+          text += "\u{FFFD}";
+          continue;
+        }
+        let codepoint = first & (0x7f >> count);
+        let consumed = 0;
+        for (; consumed < count && index < array.length; consumed++) {
+          const byte = array[index];
+          const lower =
+            consumed === 0 && first === 0xe0
+              ? 0xa0
+              : consumed === 0 && first === 0xf0
+                ? 0x90
+                : 0x80;
+          const upper =
+            consumed === 0 && first === 0xed
+              ? 0x9f
+              : consumed === 0 && first === 0xf4
+                ? 0x8f
+                : 0xbf;
+          if (byte < lower || byte > upper) break;
+          codepoint = (codepoint << 6) | (byte & 0x3f);
+          index++;
+        }
+        text += consumed === count ? String.fromCodePoint(codepoint) : "\u{FFFD}";
+      }
+      return this.trimNull(text);
     } else {
       throw new TypeError("passed argument must be an array buffer view");
     }
   };
 }
 
-export const decoder = WITH_TEXT_ENCODER_POLYFILL ? new TextDecoderPoly() : new TextDecoder("utf-8");
+export const decoder = WITH_TEXT_ENCODER_POLYFILL
+  ? new TextDecoderPoly()
+  : new TextDecoder("utf-8");
 
 export const encoder = WITH_TEXT_ENCODER_POLYFILL ? new TextEncoderPoly() : new TextEncoder("utf8");
 

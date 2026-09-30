@@ -30,6 +30,8 @@ import EE3 from "eventemitter3";
  * @property {string} "renderEnded" called at the end of offline/non-realtime render to disk.
  * @property {string} "onAudioNodeCreated" called when an audioNode is created from the AudioContext before realtime performance.
  * the event callback will include the audioNode itself, which is needed if autoConnect is set to false.
+ * @property {string} "readline" reports {requestId, prompt} when a line is requested.
+ * A null prompt closes that request; an empty string opens an unlabeled prompt.
  * @property {string} "message" the main entrypoint to csound's messaging (-m) system,
  * a default event listener will print the message to the browser console, this default
  * listener can be removed by the user.
@@ -41,6 +43,7 @@ export class PublicEventAPI {
     this.parent = parent;
     this.eventEmitter = /** @type {!CsoundEventEmitter} */ (new EE3());
     this.currentDerivedPlayState = undefined;
+    this.readlineRequestId = undefined;
     this.decorateAPI = this.decorateAPI.bind(this);
     this.triggerRealtimePerformanceStarted = this.triggerRealtimePerformanceStarted.bind(this);
     this.triggerRealtimePerformancePaused = this.triggerRealtimePerformancePaused.bind(this);
@@ -81,6 +84,7 @@ export class PublicEventAPI {
   }
 
   triggerRealtimePerformanceEnded() {
+    this.closeReadline();
     this.eventEmitter.emit("realtimePerformanceEnded");
     if (this.currentDerivedPlayState !== "stop") {
       this.eventEmitter.emit("stop");
@@ -97,6 +101,7 @@ export class PublicEventAPI {
   }
 
   triggerRenderEnded() {
+    this.closeReadline();
     this.eventEmitter.emit("renderEnded");
     if (this.currentDerivedPlayState !== "stop") {
       this.eventEmitter.emit("stop");
@@ -106,6 +111,25 @@ export class PublicEventAPI {
 
   triggerOnAudioNodeCreated(audioNode) {
     this.eventEmitter.emit("onAudioNodeCreated", audioNode);
+  }
+
+  closeReadline() {
+    if (this.readlineRequestId !== undefined) {
+      this.triggerReadline({ requestId: this.readlineRequestId, prompt: null });
+    }
+  }
+
+  triggerReadline(request) {
+    if (request["prompt"] === null) {
+      if (request["requestId"] !== this.readlineRequestId) return;
+      this.readlineRequestId = undefined;
+    } else {
+      this.readlineRequestId = request["requestId"];
+    }
+    this.eventEmitter.emit("readline", {
+      requestId: request["requestId"],
+      prompt: request["prompt"],
+    });
   }
 
   triggerMessage({ log }) {
