@@ -118,12 +118,14 @@ class PUBLIC CsoundPerformanceThread {
     void    *pauseLock;
     void    *flushLock;
     void    *recordLock;
+    void    *callbackLock;      // guards processcallback/cdata
     void    *perfThread;
     int32_t     paused;
     int32_t     status;
     void    *cdata;
     recordData_t recordData;
     int32_t  running;
+    int32_t  flushWarned;
     void (*processcallback)(void *cdata);
     int32_t  Perform();
     void csPerfThread_constructor(CSOUND *);
@@ -142,15 +144,12 @@ class PUBLIC CsoundPerformanceThread {
   /**
   * Returns the process callback as a void pointer
   */
-  void *GetProcessCallback() { return (void *)processcallback; }
+  void *GetProcessCallback();
 
   /**
    * Sets the process callback.
    */
-   void SetProcessCallback(void (*Callback)(void *), void *cbdata){
-    processcallback = Callback;
-    cdata = cbdata;
-   }
+   void SetProcessCallback(void (*Callback)(void *), void *cbdata);
     /**
      * Returns the Csound instance pointer.
      */
@@ -248,10 +247,14 @@ class PUBLIC CsoundPerformanceThread {
     void RequestCallback(void (*func)(CsoundPerformanceThread *));
 
 
-     /**
-     * Waits until all pending messages (pause, send score event, etc.)
-     * are actually received by the performance thread.
-     */
+      /**
+      * Waits until all pending messages (pause, send score event, etc.)
+      * and their callbacks have been processed by the performance thread.
+      * Must not be called from the performance thread itself, i.e. from a
+      * message callback or from the process callback: the performance thread
+      * cannot wait for itself. Such a call is ignored (with a one-time
+      * warning) instead of deadlocking.
+      */
     void FlushMessageQueue();
 
      /**

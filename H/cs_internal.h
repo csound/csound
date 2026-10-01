@@ -357,6 +357,17 @@ extern "C" {
   struct evt_cb_func  *nxt;
 } EVT_CB_FUNC;
 
+  /* Internal-only helper: returns non-zero when 'thread' is the thread handle
+     returned by csoundCreateThread() for the calling thread.
+
+     NOTE: this is internal because there is currently no public API to compare
+     thread identities. csoundGetCurrentThreadId() returns a freshly allocated
+     id that the caller must free and that cannot be compared with '==', and
+     csoundCreateThread() returns an opaque handle whose layout is platform
+     specific. Should a public API for this be added later, this function can
+     be promoted. */
+  int32_t csoundIsCurrentThread(void *thread);
+
 
 #ifdef __cplusplus
 }
