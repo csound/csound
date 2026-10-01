@@ -19,11 +19,11 @@ namespace {
 struct EvalCodeResult {
     std::atomic<int> legacyCalls{0};
     std::atomic<int> userdataCalls{0};
-    std::atomic<double> legacyValue{0.0};
-    std::atomic<double> userdataValue{0.0};
+    std::atomic<cs_float> legacyValue{0.0};
+    std::atomic<cs_float> userdataValue{0.0};
     std::atomic<void *> userdataPtr{nullptr};
     std::atomic<int> nestedCalls{0};
-    std::atomic<double> nestedValue{0.0};
+    std::atomic<cs_float> nestedValue{0.0};
 };
 
 EvalCodeResult evalCodeResult;
@@ -35,33 +35,33 @@ std::condition_variable evalCodeSyncCv;
 bool evalCodeCallbackEntered = false;
 bool evalCodeCallbackRelease = false;
 
-void onEvalCodeDone(MYFLT value) {
-    evalCodeResult.legacyValue.store((double) value);
+void onEvalCodeDone(cs_float value) {
+    evalCodeResult.legacyValue.store((cs_float) value);
     evalCodeResult.legacyCalls.fetch_add(1);
 }
 
-void onEvalCodeDoneWithData(MYFLT value, void *userdata) {
+void onEvalCodeDoneWithData(cs_float value, void *userdata) {
     {
         std::unique_lock<std::mutex> lock(evalCodeSyncMutex);
         evalCodeCallbackEntered = true;
         evalCodeSyncCv.notify_all();
         evalCodeSyncCv.wait(lock, [] { return evalCodeCallbackRelease; });
     }
-    evalCodeResult.userdataValue.store((double) value);
+    evalCodeResult.userdataValue.store((cs_float) value);
     evalCodeResult.userdataPtr.store(userdata);
     evalCodeResult.userdataCalls.fetch_add(1);
 }
 
-void onNestedEvalCodeDone(MYFLT value) {
-    evalCodeResult.nestedValue.store((double) value);
+void onNestedEvalCodeDone(cs_float value) {
+    evalCodeResult.nestedValue.store((cs_float) value);
     evalCodeResult.nestedCalls.fetch_add(1);
 }
 
 // Runs on the performance thread and queues another message on the same
 // performance thread. Only queueing methods (EvalCode, Play, ScoreEvent, ...)
 // may be called this way; FlushMessageQueue() and Join() would self-deadlock.
-void onEvalCodeQueuesMoreWork(MYFLT value, void *userdata) {
-    evalCodeResult.legacyValue.store((double) value);
+void onEvalCodeQueuesMoreWork(cs_float value, void *userdata) {
+    evalCodeResult.legacyValue.store((cs_float) value);
     evalCodeResult.legacyCalls.fetch_add(1);
     CsoundPerformanceThread *pt =
         static_cast<CsoundPerformanceThread *>(userdata);
@@ -75,12 +75,12 @@ std::atomic<bool> firstBatchDone{false};
 std::atomic<bool> processRanAfterFirst{false};
 std::atomic<bool> secondSawProcess{false};
 
-void onSecondBatchDone(MYFLT value) {
+void onSecondBatchDone(cs_float value) {
     (void) value;
     secondSawProcess.store(processRanAfterFirst.load());
 }
 
-void onFirstBatchDone(MYFLT value, void *userdata) {
+void onFirstBatchDone(cs_float value, void *userdata) {
     (void) value;
     firstBatchDone.store(true);
     CsoundPerformanceThread *pt =
