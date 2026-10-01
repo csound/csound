@@ -6,7 +6,7 @@ latest beta release installers for MacOS, iOS, and Windows can be
 downloaded from the relevant
 [github actions page](https://github.com/csound/csound/actions/workflows/csound_builds.yml).
 Selecting the latest develop build brings a page with the download
-artefacts at the bottom.
+artefacts at the bottom. Regular beta releases are also available, open to all for download.
 
 The develop branch of this repository contains Csound version 7.x.
 Anyone seeking the latest 6.x version please checkout the csound6
