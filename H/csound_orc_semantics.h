@@ -62,6 +62,12 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                            char* outArgTypes);
 CS_VARIABLE* find_var_from_pools(CSOUND* csound, const char* varName,
                                  const char* varBaseName, TYPE_TABLE* typeTable);
+/* Indexing a variable that is neither an array nor an a-signal is
+   delegated to the "##array_get" / "##array_set" entries whose first
+   argument is the variable's own type, so a plugin type can provide []. */
+int32_t type_has_index_opcode(CSOUND* csound, const CS_TYPE* type, const char* opname);
+char* resolve_index_get_type(CSOUND* csound, const CS_TYPE* type, TREE* indices, TYPE_TABLE* typeTable);
+char* resolve_index_set_type(CSOUND* csound, const CS_TYPE* type, TREE* value, TREE* indices, TYPE_TABLE* typeTable);
 TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable);
 int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable);
 // bison functions

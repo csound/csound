@@ -277,6 +277,34 @@ if(BUILD_TESTS)
         add_dependencies(plugin_struct_tests struct_test_plugin)
         add_dependencies(unittests plugin_struct_tests)
         gtest_discover_tests(plugin_struct_tests)
+
+        add_library(index_test_plugin MODULE fixtures/indexed_plugin.c)
+        # Deliberately expose only installed SDK headers to this plugin.
+        set_property(TARGET index_test_plugin PROPERTY INCLUDE_DIRECTORIES
+            "${Csound_SOURCE_DIR}/include;${PROJECT_BINARY_DIR}/include")
+        if(USE_LIBSNDFILE)
+            target_include_directories(index_test_plugin PRIVATE
+                $<TARGET_PROPERTY:SndFile::sndfile,INTERFACE_INCLUDE_DIRECTORIES>)
+        endif()
+        target_compile_definitions(index_test_plugin PRIVATE BUILD_PLUGINS)
+        set_target_properties(index_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/index-plugin
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/index-plugin)
+        add_executable(plugin_index_tests plugin_index_test.cpp)
+        target_compile_options(plugin_index_tests PRIVATE ${unittests_CFLAGS})
+        target_compile_features(plugin_index_tests PRIVATE cxx_std_17)
+        target_link_libraries(plugin_index_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        file(GENERATE
+            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/index_plugin_path.hpp
+            CONTENT "#pragma once\n#define CSOUND_TEST_INDEX_PLUGIN_DIR R\"csound($<TARGET_FILE_DIR:index_test_plugin>)csound\"\n"
+            TARGET index_test_plugin)
+        target_include_directories(plugin_index_tests PRIVATE
+            ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>)
+        add_dependencies(plugin_index_tests index_test_plugin)
+        add_dependencies(unittests plugin_index_tests)
+        gtest_discover_tests(plugin_index_tests)
     endif()
 
     add_executable(json_udt_tests json_udt_test.cpp)
