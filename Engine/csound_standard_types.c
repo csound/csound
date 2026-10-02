@@ -123,20 +123,17 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
     /* Guard against NULL data pointers */
     if (UNLIKELY(sSrc->data == NULL)) return;
+    size_t size = strlen(sSrc->data) + 1;
     if (UNLIKELY(sDest->data == NULL)) {
-        /* Destination has no buffer; allocate one to match source size */
-        sDest->data = csound->Calloc(csound, sSrc->size);
-        sDest->size = sSrc->size;
+        sDest->data = csound->Calloc(csound, size);
+        sDest->size = size;
         sDest->refcount = 0;
     }
 
-    if (sSrc->size > sDest->size) {
-      string_resize_internal(csound, sDest, sSrc->size);
-      memcpy(sDest->data, sSrc->data, sSrc->size);
-    } else {
-        strncpy(sDest->data, sSrc->data, sDest->size-1);
-        sDest->data[sDest->size-1] = '\0';
+    if (sDest->refcount == -1 || size > sDest->size) {
+      string_resize_internal(csound, sDest, size);
     }
+    memcpy(sDest->data, sSrc->data, size);
 }
 
 /* The ownership implementation is private to the engine. A short-held lock
@@ -886,8 +883,8 @@ static void array_init_memory(CSOUND *csound, CS_VARIABLE* var, cs_float* memblo
 
 static void var_init_memory_string(CSOUND *csound, CS_VARIABLE* var, cs_float* memblock) {
     STRINGDAT *str = (STRINGDAT *)memblock;
-    str->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
-    str->size = DEFAULT_STRING_SIZE;
+    str->data = (char *) csound->Calloc(csound, 1);
+    str->size = 1;
     str->refcount = 0;  // Initialize refcount (0 = unmanaged)
 }
 

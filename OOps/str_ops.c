@@ -982,14 +982,15 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
 #endif
   char        buf[32];
 
-  if (p->Sdst->size < 32){
-    char *temp = csound->ReAlloc(csound, p->Sdst->data, 32);
+  /* Keep the usual capacity reported by getcfg(1). */
+  if (p->Sdst->size < DEFAULT_STRING_SIZE){
+    char *temp = csound->ReAlloc(csound, p->Sdst->data, DEFAULT_STRING_SIZE);
     if (UNLIKELY(temp == NULL)) {
       /* ReAlloc failed, keep the original buffer and return error */
       return csound->InitError(csound, Str("getcfg: memory allocation failure"));
     }
     p->Sdst->data = temp;
-    p->Sdst->size = 32;
+    p->Sdst->size = DEFAULT_STRING_SIZE;
   }
   //((char*) p->Sdst->data)[0] = '\0';
   buf[0] = '\0';

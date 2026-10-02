@@ -690,6 +690,84 @@ TEST_F (TypeSystemTests, testManagedArrayCapacityInitializesOnlyNewElements)
     csound_free_array_storage(csound, &array);
 }
 
+TEST_F (TypeSystemTests, EmptyStringsGrowWhenAssigned)
+{
+    ARRAYDAT strings{};
+    strings.arrayType = &CS_VAR_TYPE_S;
+    ASSERT_EQ(OK, csound_array_ensure_capacity(csound, &strings, 1024, nullptr));
+
+    size_t bufferBytes = 0;
+    for (size_t i = 0; i < 1024; i++) {
+        auto *string = reinterpret_cast<STRINGDAT *>(
+          reinterpret_cast<char *>(strings.data) + i * strings.arrayMemberSize);
+        ASSERT_NE(nullptr, string->data);
+        EXPECT_STREQ("", string->data);
+        bufferBytes += string->size;
+    }
+    EXPECT_EQ(1024u, bufferBytes);
+
+    char text[] = "This string grows after initialization.";
+    STRINGDAT input{};
+    input.data = text;
+    input.size = sizeof(text);
+    auto *first = reinterpret_cast<STRINGDAT *>(strings.data);
+    CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, first, &input, nullptr);
+    EXPECT_STREQ(text, first->data);
+    EXPECT_GE(first->size, sizeof(text));
+    auto *second = reinterpret_cast<STRINGDAT *>(
+      reinterpret_cast<char *>(strings.data) + strings.arrayMemberSize);
+    EXPECT_STREQ("", second->data);
+
+    csound_free_array_storage(csound, &strings);
+}
+
+TEST_F (TypeSystemTests, StringCopiesGrowForTextOnly)
+{
+    CS_VARIABLE *variable = csoundCreateVariableForType(
+      csound, &CS_VAR_TYPE_S, nullptr, nullptr);
+    ASSERT_NE(nullptr, variable);
+    STRINGDAT output{};
+    variable->initializeVariableMemory(
+      csound, variable, reinterpret_cast<cs_float *>(&output));
+
+    char data[4096] = "small";
+    STRINGDAT input{};
+    input.data = data;
+    input.size = sizeof(data);
+    CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, &output, &input, nullptr);
+    EXPECT_STREQ("small", output.data);
+    EXPECT_EQ(sizeof("small"), output.size);
+
+    data[0] = '\0';
+    CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, &output, &input, nullptr);
+    EXPECT_STREQ("", output.data);
+    EXPECT_EQ(sizeof("small"), output.size);
+
+    CS_VAR_TYPE_S.freeVariableMemory(csound, &output);
+    csound->Free(csound, variable);
+}
+
+TEST_F (TypeSystemTests, StringCopiesDetachBorrowedBuffers)
+{
+    char borrowed[] = "old";
+    STRINGDAT output{};
+    output.data = borrowed;
+    output.size = sizeof(borrowed);
+    output.refcount = -1;
+    char data[64] = "x";
+    STRINGDAT input{};
+    input.data = data;
+    input.size = sizeof(data);
+
+    CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, &output, &input, nullptr);
+    EXPECT_STREQ("x", output.data);
+    EXPECT_STREQ("old", borrowed);
+    EXPECT_NE(borrowed, output.data);
+    EXPECT_EQ(0, output.refcount);
+
+    CS_VAR_TYPE_S.freeVariableMemory(csound, &output);
+}
+
 TEST_F (TypeSystemTests, testArrayCapacityReusesPreparedElementVariable)
 {
     CS_TYPE probeType{
