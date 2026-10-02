@@ -87,10 +87,42 @@ PUBLIC bool csoundUgenContextDelete(UGEN_CONTEXT* context);
  * instrument-like state. */
 PUBLIC bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context);
 
+
+/**
+ * Let ugen know how long the note would play.
+ * Call before init.
+ */
+PUBLIC bool csoundUgenContextSetDuration(UGEN_CONTEXT *context, cs_float p3);
+
+/**
+ * Makes ugen know that the note has been released
+ */
+PUBLIC bool csoundUgenContextReleaseNote(UGEN_CONTEXT *context);
+
+/**
+ * Offset the samples within audio buffer from the start
+ */
+PUBLIC bool csoundUgenContextSetStartOffset(UGEN_CONTEXT *context, uint32_t start);
+
+/**
+ * Offet the samples within audio buffer from the end
+ */
+PUBLIC bool csoundUgenContextSetEndOffset(UGEN_CONTEXT *context, uint32_t end);
+
+/**
+ * Sets start and end offsets to zero
+ */
+PUBLIC bool csoundUgenContextResetOffsets(UGEN_CONTEXT *context);
+
+/**
+ * Returns extra type the ugen will output non-zero values after note release
+ */
+PUBLIC int32_t csoundUgenContextGetExtraTime(UGEN_CONTEXT *context);
+
 /* ==== UGEN Creation/Destruction ==== */
 
 /** Create a new UGEN, using the given UGEN_FACTORY and opcode name/types.
- * The outargTypes and inargTypes must match an OENTRY exactly. */
+ * The outargTypes and inargTypes must resolve to OENTRY. */
 PUBLIC UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
                       char* outargTypes, char* inargTypes);
 
