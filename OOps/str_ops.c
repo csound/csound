@@ -772,17 +772,6 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     size_t       len, i;
 
     if (p->Ssrc->data == NULL) return NOTOK;
-    if (p->Sdst->size < p->Ssrc->size) {
-      size_t size = p->Ssrc->size;
-      char *temp = csound->ReAlloc(csound, p->Sdst->data, size);
-      if (UNLIKELY(temp == NULL)) {
-        /* ReAlloc failed, keep the original buffer and return error */
-        return StrOp_ErrMsg(p, Str("strsub: memory allocation failure"));
-      }
-      p->Sdst->data = temp;
-      p->Sdst->size = size;
-    }
-
     src = (char*) p->Ssrc->data;
     dst = (char*) p->Sdst->data;
     len = (int32_t) strlen(src);
@@ -797,11 +786,6 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       strt = (int32_t) len;
     if (end < 0 || (size_t)end > len)
       end = (int32_t) len;
-    if (strt == end) {
-      /* trivial case: empty output */
-      dst[0] = '\0';
-      return OK;
-    }
     if (strt > end) {
       size_t   tmp = strt;
       /* reverse output */
@@ -821,6 +805,11 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       p->Sdst->data = temp;
       p->Sdst->size = len+1;
       dst = (char*) p->Sdst->data;
+    }
+    if (len == 0) {
+      /* Even an empty result needs space for its terminator. */
+      dst[0] = '\0';
+      return OK;
     }
     i = 0;
     if (!rev || p->Sdst->data == p->Ssrc->data) {
