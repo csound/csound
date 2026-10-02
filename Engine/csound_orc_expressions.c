@@ -1208,7 +1208,7 @@ static void collapse_last_assigment(CSOUND* csound, TREE* anchor,
 /* Expand struct array member assignment: array[index].member = value
  * Transforms into:
  *   1. temp = ##array_get_struct(array, index)
- *   2. ##member_set(temp, memberIndex, value)
+ *   2. temp.member = value for init-rate scalars, otherwise ##member_set
  *   3. array[index] = temp (standard assignment, becomes ##array_set_struct)
  */
 enum {
@@ -1538,6 +1538,27 @@ static TREE* create_struct_array_set_call(CSOUND* csound,
   return arraySetOp;
 }
 
+static TREE* create_struct_member_assignment(CSOUND* csound,
+                                             TREE* current,
+                                             const char* structArg,
+                                             const STRUCT_ARRAY_MEMBER_PATH* path)
+{
+  TREE* member = create_ident_leaf(csound, current->line, current->locn,
+                                   structArg);
+  for (int32_t i = 0; i < path->memberCount; i++) {
+    member = make_node(csound, current->line, current->locn, STRUCT_EXPR,
+                       member,
+                       create_ident_leaf(csound, current->line, current->locn,
+                                          path->memberVars[i]->varName));
+  }
+  TREE* assignment = make_node(csound, current->line, current->locn,
+                                T_ASSIGNMENT, member,
+                                copy_node(csound, current->right));
+  assignment->value = make_token(csound, "=", NULL);
+  assignment->value->type = T_ASSIGNMENT;
+  return assignment;
+}
+
 int expand_struct_array_member_assignment(CSOUND* csound,
                                           TREE* current,
                                           TYPE_TABLE* typeTable,
@@ -1547,8 +1568,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
   TREE* assignmentOps = NULL;
   char* structTemps[STRUCT_ARRAY_MEMBER_PATH_MAX_DEPTH];
   int32_t i;
-  /* This path handles ordinary assignment only. There is no init-only member
-     setter, so its intermediate reads must retain the ordinary context. */
+  /* Generic member setters need their intermediate reads at performance too. */
   const int32_t initContext = 0;
 
   if (!current || !current->left || current->left->type != STRUCT_EXPR ||
@@ -1571,6 +1591,29 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                                                 current->locn,
                                                 structTemps[0],
                                                 path.arrayExpr));
+
+  const CS_TYPE* memberType = path.memberVars[path.memberCount - 1]->varType;
+  int32_t initAssignment = !path.hasKRateIndex &&
+    (memberType == &CS_VAR_TYPE_I || memberType == &CS_VAR_TYPE_b);
+  if (initAssignment) {
+    char* valueType = get_arg_type2(csound, current->right, typeTable);
+    initAssignment = valueType != NULL && strlen(valueType) == 1 &&
+      strchr("cipb", valueType[0]) != NULL &&
+      !tree_has_k_rate_array_index(csound, current->right, typeTable);
+    if (valueType != NULL) csound->Free(csound, valueType);
+  }
+  if (initAssignment) {
+    /* Use typed assignment when the field and value are both init-rate.
+       A full member path also avoids two-phase getters for nested structs. */
+    assignmentOps = tree_append(assignmentOps,
+      create_struct_member_assignment(csound, current, structTemps[0], &path));
+    assignmentOps = tree_append(assignmentOps,
+      create_struct_array_set_call(csound, current->line, current->locn,
+                                    path.arrayExpr, structTemps[0]));
+    csound->Free(csound, structTemps[0]);
+    *anchor = tree_append(*anchor, assignmentOps);
+    return 1;
+  }
 
   for (i = 0; i < path.memberCount - 1; i++) {
     structTemps[i + 1] = create_out_arg(csound,

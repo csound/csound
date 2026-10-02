@@ -416,6 +416,62 @@ endop
 }
 
 
+TEST_F (OrcCompileTests, testStructArrayMemberAssignmentRates)
+{
+    const char* orchestra = R"(
+struct Field value:i, enabled:b
+struct Record field:Field
+fields@global:Field[] init 1
+records@global:Record[] init 1
+
+opcode WriteFlat(index:i):void
+  fields[index].value = 7
+endop
+opcode WriteNested(index:i):void
+  records[index].field.value = 9
+endop
+opcode WriteBoolean(index:i):void
+  records[index].field.enabled = (index == 0)
+endop
+opcode WriteWithPerformance(index:i):void
+  fields[index].value = 7
+  printks "", 1
+endop
+opcode WriteKValue(input:i):void
+  value:k init input
+  fields[0].value = value
+endop
+opcode WriteKBoolean(input:i):void
+  value:k init input
+  fields[0].enabled = (value > 0)
+endop
+opcode WriteFromKIndex(input:i):void
+  index:k init input
+  fields[0].value = fields[index].value
+endop
+opcode WriteToKIndex(input:i):void
+  index:k init input
+  fields[index].value = 7
+endop
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    for (const char* name : {"WriteFlat", "WriteNested", "WriteBoolean"}) {
+        OENTRY* entry = find_opcode_new(csound, name, "", "i");
+        ASSERT_NE(nullptr, entry) << name;
+        EXPECT_EQ(nullptr, entry->perf) << name;
+    }
+    OENTRY* perf = find_opcode_new(csound, "WriteWithPerformance", "", "i");
+    ASSERT_NE(nullptr, perf);
+    EXPECT_NE(nullptr, perf->perf);
+    for (const char* name : {"WriteKValue", "WriteKBoolean",
+                             "WriteFromKIndex", "WriteToKIndex"}) {
+        OENTRY* entry = find_opcode_new(csound, name, "", "i");
+        ASSERT_NE(nullptr, entry) << name;
+        EXPECT_NE(nullptr, entry->perf) << name;
+    }
+}
+
 TEST_F (OrcCompileTests, testInitOnlyGeneratedGetterConsumers)
 {
     const char* orchestra = R"(
