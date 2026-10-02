@@ -37,6 +37,9 @@ typedef struct initstructvar {
 
 #include "csound_structs.h"
 
+/* Owned member blocks stored with the member pointer table. */
+#define CSOUND_STRUCT_MEMBERS_POOLED 2
+
 typedef struct {
     OPDS          h;
     CS_STRUCT_VAR*   out;

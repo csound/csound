@@ -16,10 +16,13 @@
 #include "csound_standard_types.h"
 #include "arrays_internal.h"
 #include "csoundCore.h"
-#include "csound_orc_structs.h"
 #include "arrays.h"
 extern "C" {
+#include "csound_orc_structs.h"
 #include "array_ops.h"
+#include "struct_ops.h"
+int32_t struct_alias(CSOUND *, STRUCT_ALIAS *);
+int32_t struct_alias_deinit(CSOUND *, STRUCT_ALIAS *);
 }
 #include "gtest/gtest.h"
 
@@ -29,6 +32,22 @@ int32_t initErrorCalls;
 int32_t perfErrorCalls;
 int32_t rangeConstructorCalls;
 int32_t rangeInitializerCalls;
+size_t structAllocationCount;
+void *(*allocateStructMemory)(CSOUND *, size_t);
+size_t structFreeCount;
+void (*freeStructMemory)(CSOUND *, void *);
+
+void *countStructAllocation(CSOUND *csound, size_t bytes)
+{
+    structAllocationCount++;
+    return allocateStructMemory(csound, bytes);
+}
+
+void countStructFree(CSOUND *csound, void *memory)
+{
+    structFreeCount++;
+    freeStructMemory(csound, memory);
+}
 
 int32_t countInitError(CSOUND *, const char *, ...)
 {
@@ -688,6 +707,102 @@ TEST_F (TypeSystemTests, testManagedArrayCapacityInitializesOnlyNewElements)
     EXPECT_EQ(secondMembers, elementAt(1)->members);
 
     csound_free_array_storage(csound, &array);
+}
+
+TEST_F (TypeSystemTests, StructFieldsShareOneAllocation)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(
+      csound, "struct MemoryProbe first:i, second:k, signal:a\n", 0));
+    const CS_TYPE *type = csoundGetTypeWithVarTypeName(
+      csound->typePool, ":MemoryProbe;");
+    ASSERT_NE(nullptr, type);
+    CS_VARIABLE *variable = csoundCreateVariableForType(
+      csound, type, nullptr, nullptr);
+    ASSERT_NE(nullptr, variable);
+    CS_STRUCT_VAR value{};
+
+    allocateStructMemory = csound->Calloc;
+    structAllocationCount = 0;
+    csound->Calloc = countStructAllocation;
+    variable->initializeVariableMemory(
+      csound, variable, reinterpret_cast<cs_float *>(&value));
+    csound->Calloc = allocateStructMemory;
+
+    EXPECT_EQ(1u, structAllocationCount);
+    ASSERT_EQ(3, value.memberCount);
+    for (int i = 0; i < value.memberCount; i++) {
+        EXPECT_EQ(0u, reinterpret_cast<uintptr_t>(value.members[i]) %
+                        alignof(CS_VAR_MEM));
+        EXPECT_EQ(FL(0.0), value.members[i]->value);
+    }
+
+    type->freeVariableMemory(csound, &value);
+    EXPECT_EQ(nullptr, value.members);
+    csound->Free(csound, variable);
+}
+
+TEST_F (TypeSystemTests, StructAliasCleanupPreservesSharedFields)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(
+      csound, "struct AliasValue text:S, values:i[]\n", 0));
+    const CS_TYPE *type = csoundGetTypeWithVarTypeName(
+      csound->typePool, ":AliasValue;");
+    ASSERT_NE(nullptr, type);
+    CS_VARIABLE *variable = csoundCreateVariableForType(
+      csound, type, nullptr, nullptr);
+    ASSERT_NE(nullptr, variable);
+    CS_STRUCT_VAR source{}, destination{};
+    variable->initializeVariableMemory(
+      csound, variable, reinterpret_cast<cs_float *>(&source));
+    variable->initializeVariableMemory(
+      csound, variable, reinterpret_cast<cs_float *>(&destination));
+
+    auto *sourceValues = reinterpret_cast<ARRAYDAT *>(&source.members[1]->value);
+    auto *oldValues = reinterpret_cast<ARRAYDAT *>(&destination.members[1]->value);
+    ASSERT_EQ(OK, tabinit(csound, sourceValues, 2, nullptr));
+    ASSERT_EQ(OK, tabinit(csound, oldValues, 3, nullptr));
+    sourceValues->data[0] = FL(42.0);
+
+    STRUCT_ALIAS alias{};
+    alias.src = &source;
+    alias.dst = &destination;
+    ASSERT_EQ(OK, struct_alias(csound, &alias));
+    EXPECT_EQ(source.members, destination.members);
+    ASSERT_EQ(OK, struct_alias_deinit(csound, &alias));
+    EXPECT_EQ(nullptr, alias.oldMembers);
+    EXPECT_EQ(FL(42.0), sourceValues->data[0]);
+    EXPECT_STREQ("", reinterpret_cast<STRINGDAT *>(
+                        &destination.members[0]->value)->data);
+
+    type->freeVariableMemory(csound, &destination);
+    EXPECT_EQ(FL(42.0), sourceValues->data[0]);
+    type->freeVariableMemory(csound, &source);
+    csound->Free(csound, variable);
+}
+
+TEST_F (TypeSystemTests, LegacyStructFieldsFreeSeparateAllocations)
+{
+    CS_STRUCT_VAR value{};
+    value.memberCount = 2;
+    value.ownsMembers = 1;
+    value.members = static_cast<CS_VAR_MEM **>(
+      csound->Calloc(csound, 2 * sizeof(CS_VAR_MEM *)));
+    for (int i = 0; i < value.memberCount; i++) {
+        value.members[i] = static_cast<CS_VAR_MEM *>(
+          csound->Calloc(csound, sizeof(CS_VAR_MEM)));
+        value.members[i]->varType = &CS_VAR_TYPE_I;
+    }
+
+    freeStructMemory = csound->Free;
+    structFreeCount = 0;
+    csound->Free = countStructFree;
+    csound_free_struct_members(csound, &value);
+    csound->Free = freeStructMemory;
+
+    EXPECT_EQ(3u, structFreeCount);
+    EXPECT_EQ(nullptr, value.members);
+    EXPECT_EQ(0, value.memberCount);
+    EXPECT_EQ(0, value.ownsMembers);
 }
 
 TEST_F (TypeSystemTests, testArrayCapacityReusesPreparedElementVariable)
