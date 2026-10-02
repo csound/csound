@@ -2061,7 +2061,10 @@ static int32_t specialize_init_getters(CSOUND *csound,
           !strncmp(name, "##member_get.", 13)) {
         initEntry = find_opcode(csound, "##member_get_init");
       }
-      else if (!strncmp(name, "##array_get.", 12)) {
+      /* ##array_get_init reads an ARRAYDAT: only a built-in array getter
+         may be swapped for it, never a type's own [] entry. */
+      else if (!strncmp(name, "##array_get.", 12) &&
+               entry->intypes != NULL && strstr(entry->intypes, "[]")) {
         initEntry = find_opcode(csound, "##array_get_init");
       }
       else continue;

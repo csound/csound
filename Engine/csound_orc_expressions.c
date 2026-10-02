@@ -827,6 +827,13 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         } else if (var->varType == &CS_VAR_TYPE_A) {
           strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
           outype = strdup("k");
+        } else if (type_has_index_opcode(csound, var->varType, "##array_get")) {
+          /* The type's own entries decide the element type and the rate,
+             so there is no init-only variant to pick here. */
+          char *elementType = resolve_index_get_type(csound, var->varType, root->right, typeTable);
+          strNcpy(op, "##array_get", 80);
+          outype = elementType != NULL ? strdup(elementType) : NULL;
+          if (elementType != NULL) csound->Free(csound, elementType);
         } else {
           // Typed array like k[], varType is the element type
           strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
@@ -1883,6 +1890,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       char *outType;
       CS_VARIABLE* var;
       int32_t arrayElementIsStruct = 0;
+      int32_t typeIndexed = 0;
 
       if (array_target_missing_lexeme(currentArg)) {
         const CS_TYPE* outCsType;
@@ -1918,14 +1926,20 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                         "for var %s line %d\n"),
                     varBaseName, current->line);
             return NULL;
+          } else if (type_has_index_opcode(csound, var->varType, "##array_set")) {
+            // The type's "##array_set" entries name the values they take;
+            // only an assignment's right-hand side is the value written
+            int32_t assigns = init || !strcmp(current->value->lexeme, "=");
+            outType = resolve_index_set_type(csound, var->varType, assigns ? current->right : NULL, currentArg->right, typeTable);
+            typeIndexed = 1;
           } else {
             // Typed array like k[], varType is the element type
             outType = csoundStrdup(csound, var->varType->varTypeName);
           }
-          arrayElementIsStruct =
-            (var->subType && var->subType->userDefinedType) ||
-            (var->subType == NULL && var->varType &&
-             var->varType->userDefinedType);
+          arrayElementIsStruct = !typeIndexed &&
+            ((var->subType && var->subType->userDefinedType) ||
+             (var->subType == NULL && var->varType &&
+              var->varType->userDefinedType));
         }
       }
 
@@ -1946,7 +1960,9 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
       // Choose the appropriate array set opcode based on element type
       char* opcodeNameBase;
-      if (init) {
+      if (typeIndexed) {
+        opcodeNameBase = "##array_set";
+      } else if (init) {
         opcodeNameBase = "##array_init";
       } else if (arrayElementIsStruct) {
         opcodeNameBase = "##array_set_struct";

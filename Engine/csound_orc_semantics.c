@@ -514,7 +514,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
 }
 
 /* convert array type string from type[] to [type]
-   accepts multidimensional type strings (type[][]) 
+   accepts multidimensional type strings (type[][])
    non-op for non-array type strings
 */
 static const char *convert_array_type_string(CSOUND *csound,
@@ -634,6 +634,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             return csoundStrdup(csound, var->varType->varTypeName);
           } else if (var->varType == &CS_VAR_TYPE_A) {
             return csoundStrdup(csound, "k");
+          } else if (type_has_index_opcode(csound, var->varType, "##array_get")) {
+            return resolve_index_get_type(csound, var->varType, tree->right, typeTable);
           } else if (tree->type == T_ARRAY) {
             // If we're accessing as T_ARRAY but have no subType/dimensions,
             // it's a typed array like k[], return the varType (element type)
@@ -1607,6 +1609,153 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
   return NULL;
 }
 
+/* An entry belongs to a type when its first argument is exactly that type,
+   ":Name;" and not ":Name;[]": the built-in array entries take ".[]". */
+static int32_t entry_indexes_type(const OENTRY* entry, const char* quoted, size_t quotedLen) {
+  return entry->intypes != NULL &&
+    strncmp(entry->intypes, quoted, quotedLen) == 0 &&
+    entry->intypes[quotedLen] != '[';
+}
+
+/* Struct types are already named ":Name;"; every other type gets quoted. */
+static char* quote_type_name(CSOUND* csound, const CS_TYPE* type) {
+  size_t len = strlen(type->varTypeName);
+  char* quoted;
+  if (type->varTypeName[0] == ':') return csoundStrdup(csound, type->varTypeName);
+  quoted = csound->Malloc(csound, len + 3);
+  quoted[0] = ':';
+  memcpy(quoted + 1, type->varTypeName, len);
+  quoted[len + 1] = ';';
+  quoted[len + 2] = '\0';
+  return quoted;
+}
+
+int32_t type_has_index_opcode(CSOUND* csound, const CS_TYPE* type, const char* opname) {
+  OENTRIES* entries;
+  char* quoted;
+  size_t quotedLen;
+  int32_t i, found = 0;
+
+  if (type == NULL || type->varTypeName == NULL ||
+      type == &CS_VAR_TYPE_ARRAY || type == &CS_VAR_TYPE_A) {
+    return 0;
+  }
+  entries = find_opcode2(csound, (char*) opname);
+  if (entries == NULL) return 0;
+  quoted = quote_type_name(csound, type);
+  quotedLen = strlen(quoted);
+  for (i = 0; i < entries->count && !found; i++) {
+    found = entry_indexes_type(entries->entries[i], quoted, quotedLen);
+  }
+  csound->Free(csound, quoted);
+  csound->Free(csound, entries);
+  return found;
+}
+
+/* The element type of type[...] read: the out-type of the "##array_get"
+   entry matching the type plus the index types. Returned in internal form
+   ("k", or "Name" for a quoted type), owned by the caller. A missing entry
+   is a syntax error only when report is set. */
+static char* resolve_index_read(CSOUND* csound, const CS_TYPE* type, TREE* indices, TYPE_TABLE* typeTable, int32_t report) {
+  OENTRIES* entries = find_opcode2(csound, "##array_get");
+  char* inArgTypes = quote_type_name(csound, type);
+  char* out;
+  TREE* index;
+
+  for (index = indices; index != NULL; index = index->next) {
+    char* indexType = get_arg_type2(csound, index, typeTable);
+    char* external;
+    char* joined;
+    if (indexType == NULL) {
+      csound->Free(csound, inArgTypes);
+      csound->Free(csound, entries);
+      return NULL;
+    }
+    external = convert_internal_to_external(csound, indexType);
+    joined = csound->Malloc(csound, strlen(inArgTypes) + strlen(external) + 1);
+    strcpy(joined, inArgTypes);
+    strcat(joined, external);
+    if (external != indexType) csound->Free(csound, external);
+    csound->Free(csound, indexType);
+    csound->Free(csound, inArgTypes);
+    inArgTypes = joined;
+  }
+
+  out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
+  csound->Free(csound, entries);
+  if (out == NULL) {
+    if (report) {
+      char* display = csoundFormatTypeList(csound, inArgTypes);
+      synterr(csound, Str("no [] read for arg types %s\n"), display);
+      csound->Free(csound, display);
+    }
+    csound->Free(csound, inArgTypes);
+    return NULL;
+  }
+  csound->Free(csound, inArgTypes);
+  return *out == ':' ? remove_type_quoting(csound, out)
+                     : csoundStrdup(csound, out);
+}
+
+char* resolve_index_get_type(CSOUND* csound, const CS_TYPE* type, TREE* indices, TYPE_TABLE* typeTable) {
+  return resolve_index_read(csound, type, indices, typeTable, 1);
+}
+
+/* The element type of type[...] written: the value slot of the type's
+   "##array_set" entry that takes the wanted type, or of the first entry when
+   none does (a constant, say), so the plugin's order sets the default. An
+   assignment wants the type of its value; an opcode writing into the element
+   wants the type the element has when read, as an opcode writing into a
+   variable does. Returned in internal form, owned by the caller. */
+char* resolve_index_set_type(CSOUND* csound, const CS_TYPE* type, TREE* value, TREE* indices, TYPE_TABLE* typeTable) {
+  OENTRIES* entries = find_opcode2(csound, "##array_set");
+  char* quoted = quote_type_name(csound, type);
+  size_t quotedLen = strlen(quoted);
+  char* valueType = value != NULL ? get_arg_type2(csound, value, typeTable)
+    : type_has_index_opcode(csound, type, "##array_get") ? resolve_index_read(csound, type, indices, typeTable, 0)
+    : NULL;
+  char* wanted = valueType != NULL ? convert_internal_to_external(csound, valueType) : NULL;
+  const char* chosen = NULL;
+  size_t chosenLen = 0;
+  char* result;
+  int32_t i;
+
+  for (i = 0; entries != NULL && i < entries->count; i++) {
+    const OENTRY* entry = entries->entries[i];
+    const char* slot;
+    size_t len;
+    if (!entry_indexes_type(entry, quoted, quotedLen)) continue;
+    slot = entry->intypes + quotedLen;
+    len = *slot == ':' ? (size_t) (strchr(slot, ';') - slot) + 1 : 1;
+    if (chosen == NULL) {
+      chosen = slot;
+      chosenLen = len;
+    }
+    if (wanted != NULL && strlen(wanted) == len && !strncmp(slot, wanted, len)) {
+      chosen = slot;
+      chosenLen = len;
+      break;
+    }
+  }
+
+  result = NULL;
+  if (chosen != NULL) {
+    result = csound->Malloc(csound, chosenLen + 1);
+    memcpy(result, chosen, chosenLen);
+    result[chosenLen] = '\0';
+    if (*result == ':') {
+      char* unquoted = remove_type_quoting(csound, result);
+      csound->Free(csound, result);
+      result = unquoted;
+    }
+  }
+  if (wanted != NULL && wanted != valueType) csound->Free(csound, wanted);
+  if (valueType != NULL) csound->Free(csound, valueType);
+  csound->Free(csound, quoted);
+  if (entries != NULL) csound->Free(csound, entries);
+  return result;
+}
+
 /**
  * Converts array type from INTERNAL to EXTERNAL format.
  *
@@ -2567,13 +2716,10 @@ static int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         csound->LongJmp(csound, 1);
       }
       // & needs to be an array or asigs
-      if(arrvar->varType != &CS_VAR_TYPE_ARRAY &&
-         arrvar->varType != &CS_VAR_TYPE_A) {
-        synterr(csound,Str("variable %s is not an array, line %d\n"),
-                varName, current->line);
+      if(arrvar->varType != &CS_VAR_TYPE_ARRAY && arrvar->varType != &CS_VAR_TYPE_A) {
+        synterr(csound,Str("variable %s is not an array, line %d\n"), varName, current->line);
         csound->LongJmp(csound, 1);
       }
-
       add_arg(csound, varName, current->left->value->optype,
               typeTable, current);
       break;
