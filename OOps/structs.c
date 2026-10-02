@@ -542,7 +542,7 @@ int32_t struct_alias(CSOUND *csound, STRUCT_ALIAS *p)
   if (dst->ownsMembers && dst->members && dst->memberCount > 0) {
     p->oldMembers = dst->members;
     p->oldMemberCount = dst->memberCount;
-    p->oldOwned = 1;
+    p->oldOwned = dst->ownsMembers;
   }
 
   /* BIDIRECTIONAL ALIASING: Both structs should point to the same shared memory
@@ -688,7 +688,7 @@ int32_t struct_alias_deinit(CSOUND *csound, STRUCT_ALIAS *p)
     CS_STRUCT_VAR tmp;
     tmp.members     = p->oldMembers;
     tmp.memberCount = p->oldMemberCount;
-    tmp.ownsMembers = 1;
+    tmp.ownsMembers = p->oldOwned;
     /* Deep-free the previously owned member storage now that i-time is over */
     csound_free_struct_members(csound, &tmp);
     p->oldMembers = NULL;

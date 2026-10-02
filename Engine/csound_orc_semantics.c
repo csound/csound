@@ -3203,6 +3203,12 @@ int32_t initStructVar(CSOUND* csound, void* p) {
   return CSOUND_SUCCESS;
 }
 
+static size_t align_struct_member(size_t size) {
+  const size_t alignment = sizeof(void *) > sizeof(cs_float)
+                            ? sizeof(void *) : sizeof(cs_float);
+  return (size + alignment - 1) & ~(alignment - 1);
+}
+
 void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, cs_float* mem) {
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
   const CS_TYPE* type = var->varType;
@@ -3210,33 +3216,41 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, cs_float* mem) {
 
   int32_t len = cs_cons_length(members);
   int32_t i;
+  size_t offset = align_struct_member(len * sizeof(CS_VAR_MEM *));
+  size_t size = offset;
 
-  structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
+  for (CONS_CELL *member = members; member != NULL; member = member->next) {
+    CS_VARIABLE *field = member->value;
+    /* Audio fields were sized before the orchestra header set ksmps. */
+    if (field->updateMemBlockSize != NULL) {
+      field->updateMemBlockSize(csound, field);
+    }
+    size += align_struct_member(CS_VAR_TYPE_OFFSET + field->memBlockSize);
+  }
+  structVar->members = csound->Calloc(csound, size);
   structVar->memberCount = len;  // Set the member count
-  structVar->ownsMembers = 1;    // This struct owns its members
+  structVar->ownsMembers = CSOUND_STRUCT_MEMBERS_POOLED;
   if(csoundGetDebug(csound) & DEBUG_SEMANTICS) {
       csound->Message(csound, "Initializing Struct...\n");
       csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
   }
   for (i = 0; i < len; i++) {
     CS_VARIABLE* var = members->value;
-    size_t size;
-    CS_VAR_MEM* mem;
-    /* member vars are created at parse time, before the header is applied:
-       a-rate members carry a memBlockSize based on the default ksmps, so
-       refresh it here or copyValue overruns the allocation at perf time */
-    if (var->updateMemBlockSize != NULL) {
-      var->updateMemBlockSize(csound, var);
-    }
-    size = CS_VAR_TYPE_OFFSET + var->memBlockSize;
-    mem = csound->Calloc(csound, size);
-    if (var->initializeVariableMemory != NULL) {
-      var->initializeVariableMemory(csound, var, &mem->value);
-    }
+    CS_VAR_MEM* mem = (CS_VAR_MEM *)((char *)structVar->members + offset);
+    offset += align_struct_member(CS_VAR_TYPE_OFFSET + var->memBlockSize);
     mem->varType = var->varType;
     structVar->members[i] = mem;
-
     members = members->next;
+  }
+
+  /* Finish the layout before callbacks initialize nested values. */
+  members = type->members;
+  for (i = 0; i < len; i++, members = members->next) {
+    CS_VARIABLE *field = members->value;
+    if (field->initializeVariableMemory != NULL) {
+      field->initializeVariableMemory(csound, field,
+                                      &structVar->members[i]->value);
+    }
   }
 }
 
