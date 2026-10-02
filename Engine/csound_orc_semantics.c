@@ -22,6 +22,7 @@
 */
 
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include "csoundCore.h"
@@ -3512,7 +3513,9 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   csoundSprintf(temp, "init.");
   strncat(temp, plainName, plainNameLen);
   oentry.opname = csoundStrdup(csound, temp);
-  oentry.dsblksiz = sizeof(INIT_STRUCT_VAR);
+  oentry.dsblksiz = CS_FLOAT_ALIGN(
+    offsetof(INIT_STRUCT_VAR, inArgs) +
+    cs_cons_length(type->members) * sizeof(cs_float *));
   oentry.flags = 0;
   oentry.init = initStructVar;
   oentry.perf = NULL;

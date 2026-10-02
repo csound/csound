@@ -805,6 +805,25 @@ TEST_F (TypeSystemTests, LegacyStructFieldsFreeSeparateAllocations)
     EXPECT_EQ(0, value.ownsMembers);
 }
 
+TEST_F (TypeSystemTests, StructConstructorsKeepSmallArgumentBlocks)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(
+      csound, "struct Pair first:i, second:i\n", 0));
+    char name[] = "init.Pair";
+    char output[] = ":Pair;";
+    char fields[] = "ii";
+    char defaults[] = "";
+
+    for (char *inputs : {fields, defaults}) {
+        const OENTRY *constructor = csound->FindOpcode(
+          csound, 1, name, output, inputs);
+        ASSERT_NE(nullptr, constructor);
+        // One output and two fields need three argument pointers.
+        EXPECT_LE(constructor->dsblksiz,
+                  CS_FLOAT_ALIGN(sizeof(OPDS) + 3 * sizeof(cs_float *)));
+    }
+}
+
 TEST_F (TypeSystemTests, testArrayCapacityReusesPreparedElementVariable)
 {
     CS_TYPE probeType{
