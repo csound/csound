@@ -97,8 +97,9 @@ CS_HASH_TABLE* cs_hash_table_create(CSOUND* csound) {
     CS_HASH_TABLE* table =
       (CS_HASH_TABLE*) csound->Calloc(csound, sizeof(CS_HASH_TABLE));
     table->count = 0;
-    table->table_size = 8192;
-    table->buckets = csound->Calloc(csound, sizeof(CS_HASH_TABLE_ITEM*) * 8192);
+    table->table_size = 64;
+    table->buckets = csound->Calloc(csound,
+                                  sizeof(CS_HASH_TABLE_ITEM*) * table->table_size);
 
     return table;
 }
@@ -113,6 +114,7 @@ static int32_t cs_hash_table_check_resize(CSOUND* csound, CS_HASH_TABLE* table) 
 
         table->buckets = newTable;
         table->table_size = newSize;
+        table->count = 0;
 
         for (int32_t i = 0; i < oldSize; i++) {
             CS_HASH_TABLE_ITEM* item = oldTable[i];
