@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 #include "csoundCore.h"
 #include "gtest/gtest.h"
 
@@ -81,6 +82,45 @@ TEST_F (CsoundDataStructuresTests, testCsConsAppend)
     
   ASSERT_EQ (cs_cons_length(list1), 6);
   ASSERT_EQ (cs_cons_length(list2), 3);
+}
+
+TEST_F (CsoundDataStructuresTests, HashTableStartsSmall)
+{
+  CS_HASH_TABLE* table = cs_hash_table_create(csound);
+
+  EXPECT_LE(table->table_size, 64);
+  EXPECT_EQ(table->count, 0);
+}
+
+TEST_F (CsoundDataStructuresTests, HashTableKeepsEntriesWhenItGrows)
+{
+  CS_HASH_TABLE* table = cs_hash_table_create(csound);
+  const int initialCapacity = table->table_size;
+  const int entryCount = initialCapacity * 2;
+  std::vector<int> values(entryCount);
+  char key[32];
+
+  for (int index = 0; index < entryCount; index++) {
+    values[index] = index;
+    snprintf(key, sizeof(key), "key_%d", index);
+    cs_hash_table_put(csound, table, key, &values[index]);
+  }
+
+  EXPECT_GT(table->table_size, initialCapacity);
+  EXPECT_EQ(table->count, entryCount);
+  for (int index = 0; index < entryCount; index++) {
+    snprintf(key, sizeof(key), "key_%d", index);
+    EXPECT_EQ(cs_hash_table_get(csound, table, key), &values[index]);
+  }
+
+  snprintf(key, sizeof(key), "key_%d", 0);
+  cs_hash_table_put(csound, table, key, &values[1]);
+  EXPECT_EQ(table->count, entryCount);
+  EXPECT_EQ(cs_hash_table_get(csound, table, key), &values[1]);
+
+  cs_hash_table_remove(csound, table, key);
+  EXPECT_EQ(table->count, entryCount - 1);
+  EXPECT_EQ(cs_hash_table_get(csound, table, key), nullptr);
 }
 
 TEST_F (CsoundDataStructuresTests, testCsHashTable)
