@@ -1805,6 +1805,81 @@ TEST_F (OrcCompileTests, StrcatDoesNotCopyUnusedInputCapacity)
     }
 }
 
+TEST_F (OrcCompileTests, StrsubAllocatesForSubstringLength)
+{
+    char inputData[65536]{};
+    std::memset(inputData, 'x', sizeof(inputData) - 1);
+    STRINGDAT input{};
+    input.data = inputData;
+    input.size = sizeof(inputData);
+    STRINGDAT output{};
+    cs_float start = 0;
+    cs_float end = 1;
+    STRSUB_OP op{};
+    op.Ssrc = &input;
+    op.Sdst = &output;
+    op.istart = &start;
+    op.iend = &end;
+
+    ASSERT_EQ(OK, strsub_opcode(csound, &op));
+    EXPECT_STREQ("x", output.data);
+    EXPECT_EQ(2, output.size);
+    csound->Free(csound, output.data);
+}
+
+TEST_F (OrcCompileTests, StrsubReusesThenGrowsOutputBuffer)
+{
+    char inputData[128] = "abcdef";
+    STRINGDAT input{};
+    input.data = inputData;
+    input.size = sizeof(inputData);
+    STRINGDAT output{};
+    output.data = static_cast<char *>(csound->Calloc(csound, 4));
+    output.size = 4;
+    char *originalBuffer = output.data;
+    cs_float start = 1;
+    cs_float end = 3;
+    STRSUB_OP op{};
+    op.Ssrc = &input;
+    op.Sdst = &output;
+    op.istart = &start;
+    op.iend = &end;
+
+    ASSERT_EQ(OK, strsub_opcode(csound, &op));
+    EXPECT_STREQ("bc", output.data);
+    EXPECT_EQ(originalBuffer, output.data);
+    EXPECT_EQ(4, output.size);
+
+    start = 6;
+    end = 0;
+    ASSERT_EQ(OK, strsub_opcode(csound, &op));
+    EXPECT_STREQ("fedcba", output.data);
+    EXPECT_EQ(7, output.size);
+    csound->Free(csound, output.data);
+}
+
+TEST_F (OrcCompileTests, StrsubAllocatesEmptyOutputTerminator)
+{
+    char inputData[128] = "abc";
+    STRINGDAT input{};
+    input.data = inputData;
+    input.size = sizeof(inputData);
+    STRINGDAT output{};
+    cs_float start = 1;
+    cs_float end = 1;
+    STRSUB_OP op{};
+    op.Ssrc = &input;
+    op.Sdst = &output;
+    op.istart = &start;
+    op.iend = &end;
+
+    ASSERT_EQ(OK, strsub_opcode(csound, &op));
+    ASSERT_NE(nullptr, output.data);
+    EXPECT_STREQ("", output.data);
+    EXPECT_EQ(1, output.size);
+    csound->Free(csound, output.data);
+}
+
 /* Functional init(-1) used to fail: unary minus is an expression, so
    convert_statement_to_opcall type-checked init in isolation and matched a
    multi-out overload ("out-args != 1"). Positive init(1) never hit that path. */
