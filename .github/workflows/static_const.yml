@@ -25,6 +25,8 @@ jobs:
       CLANG_TIDY: clang-tidy-19
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - name: Install Clang and build dependencies
         run: |
           sudo apt-get update
