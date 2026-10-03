@@ -1900,18 +1900,7 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
         continue;
 
       udo = (UOPCODE *) current->opcod_deact;
-      for (int32_t k = 0; k < OPCODENUMOUTS_MAX; k++) {
-        if (udo->cvt_in[k] != NULL) {
-          src_deinit(csound, udo->cvt_in[k]);
-          udo->cvt_in[k] = NULL;
-        }
-      }
-      for (int32_t k = 0; k < OPCODENUMOUTS_MAX; k++) {
-        if (udo->cvt_out[k] != NULL) {
-          src_deinit(csound, udo->cvt_out[k]);
-          udo->cvt_out[k] = NULL;
-        }
-      }
+      free_user_opcode_converters(csound, udo);
 
       if (udo->ip == NULL || ATOMIC_GET8(udo->ip->actflg) == 0 ||
           !instance_turnoff_claim(csound, udo->ip))
@@ -3012,20 +3001,8 @@ static void free_unlinked_instance(CSOUND *csound, INSDS *ip)
   // NB: memory for these is freed elsewhere (free_inactive_instances)
   // as opcodes exist in the instr act_instance chain
   if (ip->opcod_deact) {
-    int32_t k;
     UOPCODE *p = (UOPCODE*) ip->opcod_deact;
-    // free converter if it has already been created (maybe we could reuse?)
-    for(k=0; k<OPCODENUMOUTS_MAX; k++)
-      if(p->cvt_in[k] != NULL) {
-        src_deinit(csound, p->cvt_in[k]);
-        p->cvt_in[k] = NULL; // clear pointer
-      }
-
-    for(k=0; k<OPCODENUMOUTS_MAX; k++)
-      if(p->cvt_out[k] != NULL) {
-        src_deinit(csound, p->cvt_out[k]);
-        p->cvt_out[k] = NULL; // clear pointer
-      }
+    free_user_opcode_converters(csound, p);
 
     deact(csound, p->ip);     /* deactivate */
     p->ip = NULL;

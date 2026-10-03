@@ -19,6 +19,7 @@
 #include <vector>
 extern "C" {
 #include "str_ops.h"
+#include "udo.h"
 }
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
@@ -589,6 +590,112 @@ endin
     }
     // Completed branches reuse frames; only recursion depth sets the bound.
     EXPECT_LE(instances, 16);
+}
+
+TEST_F (OrcCompileTests, UdosAtParentSampleRateDoNotAllocateConverters)
+{
+    const char* orchestra = R"(
+sr = 64
+ksmps = 8
+nchnls = 1
+0dbfs = 1
+opcode SameRate(signal:a):a
+  xout signal * 2
+endop
+opcode SmallerBlock(signal:a):a
+  setksmps 2
+  xout signal * 2
+endop
+instr 1
+  input:a = 0.25
+  out SameRate(input) + SmallerBlock(input)
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    EXPECT_EQ(FL(1.0), csoundGetSpout(csound)[0]);
+
+    for (const char* name : {"SameRate", "SmallerBlock"}) {
+        SCOPED_TRACE(name);
+        OENTRY* entry = find_opcode_new(csound, name, "a", "a");
+        ASSERT_NE(nullptr, entry);
+        OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+        ASSERT_NE(nullptr, info->ip->instance);
+        OPCOD_IOBUFS* buffers = (OPCOD_IOBUFS*)info->ip->instance->opcod_iobufs;
+        ASSERT_NE(nullptr, buffers);
+        UOPCODE* call = (UOPCODE*)buffers->uopcode_struct;
+        ASSERT_NE(nullptr, call);
+        EXPECT_EQ(nullptr, call->cvt_in);
+        EXPECT_EQ(nullptr, call->cvt_out);
+    }
+}
+
+TEST_F (OrcCompileTests, UdoConvertersFollowRateChangesAndTurnoff)
+{
+    const char* orchestra = R"(
+sr = 64
+ksmps = 8
+nchnls = 1
+0dbfs = 1
+opcode ResampledGain(signal:a, factor:i):a
+  oversample factor, 3, 3
+  xout signal * 2
+endop
+instr 1
+  cycle:k timeinstk
+  factor:k init 2
+  if cycle == 4 then
+    factor = 1
+    reinit SET_RATE
+  elseif cycle == 7 then
+    factor = 2
+    reinit SET_RATE
+  elseif cycle == 10 then
+    turnoff
+  endif
+  input:a = 0.25
+SET_RATE:
+  result:a = ResampledGain(input, i(factor))
+  rireturn
+  out result
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 2\nf 0 2\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    UOPCODE* call = nullptr;
+    for (int cycle = 1; cycle <= 10; ++cycle) {
+        SCOPED_TRACE(cycle);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+        if (call == nullptr) {
+            OENTRY* entry = find_opcode_new(csound, "ResampledGain", "a", "ai");
+            ASSERT_NE(nullptr, entry);
+            OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+            ASSERT_NE(nullptr, info->ip->instance);
+            OPCOD_IOBUFS* buffers = (OPCOD_IOBUFS*)info->ip->instance->opcod_iobufs;
+            ASSERT_NE(nullptr, buffers);
+            call = (UOPCODE*)buffers->uopcode_struct;
+            ASSERT_NE(nullptr, call);
+        }
+        if ((cycle >= 4 && cycle <= 6) || cycle == 10) {
+            EXPECT_EQ(nullptr, call->cvt_in);
+            EXPECT_EQ(nullptr, call->cvt_out);
+        } else {
+            ASSERT_NE(nullptr, call->cvt_in);
+            ASSERT_NE(nullptr, call->cvt_out);
+            EXPECT_NE(nullptr, call->cvt_in[0]);
+            EXPECT_NE(nullptr, call->cvt_out[0]);
+        }
+        // Each converter has settled by the third block after initialization.
+        if (cycle % 3 == 0)
+            EXPECT_NEAR(0.5, csoundGetSpout(csound)[0], 1e-6);
+    }
+    EXPECT_EQ(0, csoundErrCnt(csound));
 }
 
 TEST_F (OrcCompileTests, testCompile)

@@ -207,16 +207,30 @@ static int32_t udo_audio_array_range_valid(size_t strideSamples,
     sampleCount <= strideSamples - (size_t)offset;
 }
 
+static void free_rate_converters(CSOUND *csound, SR_CONVERTER **converters)
+{
+  int32_t i;
+
+  if (converters == NULL)
+    return;
+  for (i = 0; i < OPCODENUMOUTS_MAX; i++) {
+    if (converters[i] != NULL)
+      src_deinit(csound, converters[i]);
+  }
+  csound->Free(csound, converters);
+}
+
+void free_user_opcode_converters(CSOUND *csound, UOPCODE *opcode)
+{
+  free_rate_converters(csound, opcode->cvt_in);
+  free_rate_converters(csound, opcode->cvt_out);
+  opcode->cvt_in = NULL;
+  opcode->cvt_out = NULL;
+}
+
 static int32_t udo_has_rate_converter(const UOPCODE *opcode)
 {
-  int32_t index;
-
-  for (index = 0; index < OPCODENUMOUTS_MAX; index++) {
-    if (opcode->cvt_in[index] != NULL || opcode->cvt_out[index] != NULL) {
-      return 1;
-    }
-  }
-  return 0;
+  return opcode->cvt_in != NULL || opcode->cvt_out != NULL;
 }
 
 static int32_t udo_call_is_init_only(const UOPCODE *opcode)
@@ -1606,16 +1620,7 @@ static int32_t udo_prepare_rate(CSOUND *csound, UOPCODE *p, OPDS **rate_op) {
 
   /* Reinitialization may change the ratio or converter mode. Do not retain
      converters prepared for an earlier invocation of this instance. */
-  for (i = 0; i < OPCODENUMOUTS_MAX; i++) {
-    if (p->cvt_in[i] != NULL) {
-      src_deinit(csound, p->cvt_in[i]);
-      p->cvt_in[i] = NULL;
-    }
-    if (p->cvt_out[i] != NULL) {
-      src_deinit(csound, p->cvt_out[i]);
-      p->cvt_out[i] = NULL;
-    }
-  }
+  free_user_opcode_converters(csound, p);
   return OK;
 }
 
@@ -2183,6 +2188,9 @@ static int32_t set_inbufs(CSOUND *csound,
     }
     // set up src units one per input arg - non k/a sigs/arrays are bypassed
     if(esr != parent_sr) {
+        if (udo->cvt_in == NULL)
+          udo->cvt_in = (SR_CONVERTER **) csound->Calloc(
+            csound, OPCODENUMOUTS_MAX * sizeof(SR_CONVERTER *));
         if((udo->cvt_in[i] = src_init(csound, h->insdshead->in_cvt,
                                         ratio, current, h->insdshead,
                                         buf->parent_ip->ksmps,
@@ -2244,6 +2252,9 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
       }
     }
     if(CS_ESR != parent_sr) {
+        if (udo->cvt_out == NULL)
+          udo->cvt_out = (SR_CONVERTER **) csound->Calloc(
+            csound, OPCODENUMOUTS_MAX * sizeof(SR_CONVERTER *));
         // set up src units one per input arg - non k/a sigs/arrays are bypassed
         if((udo->cvt_out[i] = src_init(csound, p->h.insdshead->out_cvt,
                                          parent_sr/CS_ESR, current,

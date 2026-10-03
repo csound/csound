@@ -17,8 +17,8 @@ typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
     OPDS          h;
     INSDS         *ip, *parent_ip;
     OPCOD_IOBUFS  *buf;
-    SR_CONVERTER  *cvt_in[OPCODENUMOUTS_MAX];
-    SR_CONVERTER  *cvt_out[OPCODENUMOUTS_MAX];
+    SR_CONVERTER  **cvt_in;
+    SR_CONVERTER  **cvt_out;
     /* special case: the argument list is stored at the end of the */
     /* opcode data structure */
     cs_float         *ar[1];
@@ -112,6 +112,7 @@ int32_t useropcdset(CSOUND *, UOPCODE *p);
 int32_t useropcd_local_ksmps(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_copy(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_ref(CSOUND *, UOPCODE *);
+void free_user_opcode_converters(CSOUND *, UOPCODE *);
 void recycle_init_only_udo_instances(CSOUND *, INSDS *);
 void build_user_opcode_rewire_plan(CSOUND *, OPCODINFO *);
 void free_opcode_info_chain(CSOUND *);
