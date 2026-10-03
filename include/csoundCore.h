@@ -1906,6 +1906,10 @@ struct CSOUND_ {
   int32_t parflag;
   int32_t *taskflag;
   int32_t midiout_port;
+  /* Host readline state survives reset; requests never reuse an ID. */
+  readlineCallback_t readlineCallback;
+  void *readlineUserData;
+  uint32_t readlineRequestId;
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

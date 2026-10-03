@@ -100,6 +100,8 @@ typedef struct {
   int32_t outputCompleted;
   int32_t pendingStatus;
   int32_t pendingTarget;
+  uint32_t requestId;
+  int32_t submitted;
   int32_t promptPending;
   int32_t lineOpen;
   int32_t eof;
@@ -212,6 +214,63 @@ int32_t csoundReadlinePushText(CSOUND *csound, const char *text)
   return csound->WriteCircularBuffer(
            csound, globals->inputBuffer, text, (int32_t) length) ==
          (int32_t) length ? CSOUND_SUCCESS : CSOUND_ERROR;
+}
+
+void csoundSetReadlineCallback(CSOUND *csound, readlineCallback_t callback,
+                               void *userData)
+{
+  if (csound != NULL) {
+    csound->readlineCallback = callback;
+    csound->readlineUserData = userData;
+  }
+}
+
+static void close_host_prompt(READLINE_STATE *state)
+{
+  uint32_t requestId = state->requestId;
+  CSOUND *csound = state->csound;
+
+  state->requestId = 0;
+  if (requestId != 0 && csound->readlineCallback != NULL)
+    csound->readlineCallback(csound, csound->readlineUserData, requestId, NULL);
+}
+
+int32_t csoundReadlineSubmit(CSOUND *csound, uint32_t requestId,
+                             const char *text)
+{
+  READLINE_GLOBALS *globals;
+  READLINE_STATE *state;
+  size_t length;
+  const char newline = '\n';
+
+  if (csound == NULL || text == NULL || requestId == 0)
+    return CSOUND_ERROR;
+  globals = (READLINE_GLOBALS *) csound->QueryGlobalVariable(
+      csound, READLINE_GLOBALS_NAME);
+  if (globals == NULL || globals->active == NULL)
+    return CSOUND_ERROR;
+  state = (READLINE_STATE *) globals->active->state;
+  if (state == NULL || state->requestId != requestId ||
+      csound->CheckCircularBuffer(csound, globals->inputBuffer, 0) != 0)
+    return CSOUND_ERROR;
+
+  length = strlen(text);
+  if (length >= READLINE_INPUT_CAPACITY ||
+      csound->CheckCircularBuffer(csound, globals->inputBuffer, 1) <
+          (int32_t) length + 1)
+    return CSOUND_ERROR;
+  for (size_t index = 0; index < length; index++) {
+    unsigned char byte = (unsigned char) text[index];
+    if ((byte < 32 && byte != '\t') || byte == 127)
+      return CSOUND_ERROR;
+  }
+  /* Calls are serialized with performance, so both writes fit together. */
+  csound->WriteCircularBuffer(csound, globals->inputBuffer, text,
+                              (int32_t) length);
+  csound->WriteCircularBuffer(csound, globals->inputBuffer, &newline, 1);
+  state->submitted = 1;
+  close_host_prompt(state);
+  return CSOUND_SUCCESS;
 }
 
 static int32_t grow_buffer(CSOUND *csound, READLINE_STATE *state,
@@ -380,6 +439,15 @@ static int32_t write_prompt(READLINE_OPCODE *p)
     state->lineOpen = 1;
   }
   state->promptPending = 0;
+  if (state->csound->readlineCallback != NULL) {
+    /* Refuse exhaustion instead of letting an old reply match a new prompt. */
+    if (UNLIKELY(state->csound->readlineRequestId == UINT32_MAX))
+      return NOTOK;
+    state->requestId = ++state->csound->readlineRequestId;
+    state->csound->readlineCallback(
+        state->csound, state->csound->readlineUserData, state->requestId,
+        p->prompt->data != NULL ? p->prompt->data : "");
+  }
   return OK;
 }
 
@@ -556,6 +624,10 @@ static int32_t finish_terminal_line(READLINE_STATE *state)
 
 static int32_t configure_terminal(CSOUND *csound, READLINE_STATE *state)
 {
+  if (csound->readlineCallback != NULL) {
+    state->interactive = 0;
+    return OK;
+  }
 #if defined(WIN32)
   state->interactive = _isatty(_fileno(stdin)) &&
                        _isatty(_fileno(stdout));
@@ -636,6 +708,12 @@ static void release_readline(CSOUND *csound, READLINE_OPCODE *p)
 
   state = (READLINE_STATE *) p->state;
   state->lineOpen = 0;
+  if (state->submitted) {
+    /* An answer for a stopped instrument must not reach the next prompt. */
+    csound->FlushCircularBuffer(csound, state->globals->inputBuffer);
+    state->submitted = 0;
+  }
+  close_host_prompt(state);
   restore_terminal_modes(state);
 
   if (state->globals != NULL && state->globals->active == p)
@@ -706,6 +784,10 @@ static int32_t poll_terminal(CSOUND *csound, READLINE_STATE *state,
       return READLINE_POLL_CHARACTER;
     }
   }
+
+  /* A host UI may have no stdin, or stdin may already be at EOF. */
+  if (csound->readlineCallback != NULL)
+    return READLINE_POLL_NONE;
 
 #if defined(WIN32)
   if (_kbhit()) {
@@ -971,6 +1053,8 @@ int32_t readline_perf(CSOUND *csound, READLINE_OPCODE *p)
     return OK;
 
   if (key == '\n' || key == '\r') {
+    state->submitted = 0;
+    close_host_prompt(state);
     if (UNLIKELY(copy_line_to_output(csound, p) != OK))
       return readline_perf_error(
         csound, p, Str("readline: memory allocation failure"));

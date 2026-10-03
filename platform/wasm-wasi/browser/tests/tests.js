@@ -353,6 +353,52 @@ e
         cs.terminateInstance && (await cs.terminateInstance());
       });
 
+      it("readline reports late prompts, accepts a line and closes on stop", async function () {
+        const cs = await Csound(test);
+        const events = [];
+        cs.on("readline", (event) => events.push(event));
+        const nextPrompt = () => new Promise((resolve) => {
+          const listener = (event) => {
+            if (event.prompt !== null) {
+              cs.off("readline", listener);
+              resolve(event);
+            }
+          };
+          cs.on("readline", listener);
+        });
+        try {
+          assert.equal(await cs.setOption("-odac"), 0);
+          assert.equal(await cs.compileOrc(`
+ksmps = 32
+nchnls = 1
+chnS "answer", 2
+instr 1
+  Sline, kstatus readline "名前> "
+  if kstatus == 1 then
+    chnset Sline, "answer"
+  endif
+endin
+schedule(1, 0.05, 10)`), 0);
+          assert.deepEqual(events, []);
+          const firstPending = nextPrompt();
+          assert.equal(await cs.start(), 0);
+          const first = await firstPending;
+          assert.equal(first.prompt, "名前> ");
+          const secondPending = nextPrompt();
+          assert.equal(await cs.readlineSubmit(first.requestId, "héllo"), 0);
+          const second = await secondPending;
+          assert.isAbove(second.requestId, first.requestId);
+          assert.equal(await cs.getStringChannel("answer"), "héllo");
+          assert.equal(await cs.readlineSubmit(first.requestId, "late"), -1);
+          await cs.stop();
+          assert.deepInclude(events, { requestId: first.requestId, prompt: null });
+          assert.deepInclude(events, { requestId: second.requestId, prompt: null });
+        } finally {
+          await cs.stop();
+          await cs.terminateInstance();
+        }
+      });
+
       it("has expected methods", async function () {
         const cs = await Csound(test);
         assert.property(cs, "getAudioContext", "has .getAudioContext() method");
@@ -1661,6 +1707,41 @@ schedule(1, 0, 1)`,
       } finally {
         cs.csoundStop(csound);
         cs.csoundDestroy(csound);
+      }
+    });
+
+    it("readline exposes empty prompts and preserves request IDs across reset", async function () {
+      const { libcsound } = await import(url);
+      const events = [];
+      const api = await libcsound({ onReadline: (event) => events.push(event) });
+      const csound = api.csoundCreate();
+      const start = () => {
+        assert.equal(api.csoundSetOption(csound, "-n"), 0);
+        assert.equal(api.csoundCompileOrc(csound, `
+ksmps = 1
+instr 1
+  Sline, kstatus readline ""
+endin
+schedule(1, 0, 1)`), 0);
+        assert.equal(api.csoundStart(csound), 0);
+        assert.equal(api.csoundPerformKsmps(csound), 0);
+      };
+      try {
+        start();
+        assert.equal(events.length, 1);
+        assert.equal(events[0].csound, csound);
+        assert.equal(events[0].prompt, "");
+        const firstId = events[0].requestId;
+        api.csoundReset(csound);
+        assert.equal(events[1].prompt, null);
+        assert.equal(events[1].requestId, firstId);
+        start();
+        assert.isAbove(events[2].requestId, firstId);
+        assert.equal(api.csoundReadlineSubmit(csound, firstId, "late"), -1);
+        assert.equal(api.csoundReadlineSubmit(csound, events[2].requestId, ""), 0);
+        assert.equal(events[3].prompt, null);
+      } finally {
+        api.csoundDestroy(csound);
       }
     });
 
