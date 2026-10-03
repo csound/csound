@@ -131,6 +131,7 @@ typedef struct {
 
 typedef struct {
   uint32_t address;
+  uint32_t storage_address;
   uint32_t capacity;
 } WasmArgumentBuffer;
 
@@ -146,7 +147,7 @@ typedef struct {
   int32_t has_init;
   int32_t has_perf;
   int32_t has_deinit;
-  int32_t guest_initialized;
+  int32_t deinit_ready;
   int32_t failed;
 } WasmVoice;
 
@@ -315,14 +316,6 @@ static void print_wasmtime_error(CSOUND *csound, const char *action,
   }
 }
 
-static void discard_wasmtime_error(wasmtime_error_t *error, wasm_trap_t *trap)
-{
-  if (error != NULL)
-    wasmtime_error_delete(error);
-  if (trap != NULL)
-    wasm_trap_delete(trap);
-}
-
 static uint8_t *read_module_file(const char *path, size_t *size)
 {
   FILE *file = fopen(path, "rb");
@@ -444,17 +437,14 @@ static int32_t call_function(CSOUND *csound, wasmtime_context_t *context,
                              const wasmtime_func_t *function,
                              const wasmtime_val_t *args, size_t nargs,
                              wasmtime_val_t *results, size_t nresults,
-                             const char *action, int32_t report)
+                             const char *action)
 {
   wasm_trap_t *trap = NULL;
   wasmtime_error_t *error = wasmtime_func_call(
       context, function, args, nargs, results, nresults, &trap);
   if (error == NULL && trap == NULL)
     return CSOUND_SUCCESS;
-  if (report)
-    print_wasmtime_error(csound, action, error, trap);
-  else
-    discard_wasmtime_error(error, trap);
+  print_wasmtime_error(csound, action, error, trap);
   return CSOUND_ERROR;
 }
 
@@ -713,7 +703,7 @@ static int32_t prepare_guest(CSOUND *csound, WasmModule *module,
   if (get_exported_function(guest->context, &guest->instance,
                             "__wasm_call_ctors", &function) == CSOUND_SUCCESS &&
       call_function(csound, guest->context, &function, NULL, 0, NULL, 0,
-                    "run Wasm opcode constructors", 1) != CSOUND_SUCCESS)
+                    "run Wasm opcode constructors") != CSOUND_SUCCESS)
     goto fail;
 
   if (get_exported_function(guest->context, &guest->instance,
@@ -724,7 +714,8 @@ static int32_t prepare_guest(CSOUND *csound, WasmModule *module,
   }
   result.kind = WASMTIME_I32;
   if (call_function(csound, guest->context, &function, NULL, 0, &result, 1,
-                    "read Wasm opcode module info", 1) != CSOUND_SUCCESS ||
+                    "read Wasm opcode module info") != CSOUND_SUCCESS ||
+      result.kind != WASMTIME_I32 ||
       !module_info_is_compatible(result.of.i32)) {
     csound->ErrorMsg(csound,
                      "Wasm opcode library '%s' is not compatible with this "
@@ -746,7 +737,8 @@ static int32_t prepare_guest(CSOUND *csound, WasmModule *module,
         {.kind = WASMTIME_I32, .of.i32 = WASM_HOST_OPCODE_LIST_SLOT}};
     result.kind = WASMTIME_I64;
     if (call_function(csound, guest->context, &function, arguments, 2, &result,
-                      1, "read Wasm opcode list", 1) != CSOUND_SUCCESS ||
+                      1, "read Wasm opcode list") != CSOUND_SUCCESS ||
+        result.kind != WASMTIME_I64 ||
         result.of.i64 <= 0 || result.of.i64 % WASM32_OENTRY_SIZE != 0 ||
         result.of.i64 / WASM32_OENTRY_SIZE > WASM_MAX_OPCODES) {
       csound->ErrorMsg(csound, "Invalid opcode list in '%s'\n", module->path);
@@ -1159,7 +1151,7 @@ static WasmOpcodeDescriptor *find_descriptor(CSOUND *csound,
 
 static int32_t call_opcode_function(CSOUND *csound, WasmVoice *voice,
                                     const wasmtime_func_t *function,
-                                    const char *action, int32_t report,
+                                    const char *action,
                                     int32_t *guest_result)
 {
   WasmGuest *guest = &voice->module->guest;
@@ -1168,24 +1160,27 @@ static int32_t call_opcode_function(CSOUND *csound, WasmVoice *voice,
       {.kind = WASMTIME_I32, .of.i32 = (int32_t) voice->guest_opcode}};
   wasmtime_val_t result = {.kind = WASMTIME_I32};
   if (call_function(csound, guest->context, function, arguments, 2,
-                    &result, 1, action, report) != CSOUND_SUCCESS)
+                    &result, 1, action) != CSOUND_SUCCESS)
     return CSOUND_ERROR;
   *guest_result = result.of.i32;
   return CSOUND_SUCCESS;
 }
 
-static void destroy_voice(CSOUND *csound, WasmVoice *voice)
+static int32_t destroy_voice(CSOUND *csound, WasmVoice *voice)
 {
   WasmModule *module;
+  int32_t result = OK;
   if (voice == NULL)
-    return;
+    return OK;
   module = voice->module;
   if (module != NULL && module->mutex != NULL)
     csound->LockMutex(module->mutex);
-  if (voice->guest_initialized && voice->has_deinit) {
+  if (voice->deinit_ready && voice->has_deinit) {
     int32_t guest_result;
-    (void) call_opcode_function(csound, voice, &voice->deinit,
-                                "deinitialise Wasm opcode", 0, &guest_result);
+    result = call_opcode_function(csound, voice, &voice->deinit,
+                                   "deinitialise Wasm opcode", &guest_result);
+    if (result == CSOUND_SUCCESS)
+      result = guest_result;
   }
   if (module != NULL) {
     release_voice_block(csound, module, voice->allocation);
@@ -1194,6 +1189,7 @@ static void destroy_voice(CSOUND *csound, WasmVoice *voice)
   if (module != NULL && module->mutex != NULL)
     csound->UnlockMutex(module->mutex);
   csound->Free(csound, voice);
+  return result;
 }
 
 static int32_t descriptor_matches_guest(const WasmOpcodeDescriptor *descriptor)
@@ -1321,11 +1317,10 @@ static WasmVoice *create_voice(CSOUND *csound,
                             : (uint32_t) sizeof(cs_float);
     cursor += WASM32_VAR_TYPE_OFFSET;
     voice->arguments[i].address = cursor;
+    voice->arguments[i].storage_address = cursor;
     voice->arguments[i].capacity = capacity;
     store_u32_le(memory, cursor - WASM32_VAR_TYPE_OFFSET,
                  argument_type_record(module, descriptor->argument_types[i]));
-    store_u32_le(memory, voice->guest_opcode + WASM32_OPDS_SIZE + i * 4,
-                 cursor);
     cursor = (cursor + capacity + 7u) & ~7u;
   }
   csound->UnlockMutex(module->mutex);
@@ -1357,15 +1352,39 @@ static void set_guest_block(WasmOpcodeInstance *opcode, WasmVoice *voice,
                voice->guest_insds + WASM32_INSDS_KSMPS_NO_END_OFFSET, early);
 }
 
-static int32_t copy_inputs_to_guest(WasmOpcodeInstance *opcode,
-                                    WasmVoice *voice, uint32_t offset,
-                                    uint32_t sample_count)
+static void bind_guest_arguments(WasmOpcodeInstance *opcode, WasmVoice *voice)
 {
   WasmOpcodeDescriptor *descriptor = opcode->descriptor;
   WasmGuest *guest = &voice->module->guest;
   uint8_t *memory = wasmtime_memory_data(guest->context, &guest->memory);
   uint32_t i;
-  for (i = descriptor->output_count; i < descriptor->argument_count; i++) {
+  /* Recheck aliases at init, when Csound can bind new argument pointers. */
+  for (i = 0; i < descriptor->argument_count; i++) {
+    uint32_t j;
+    voice->arguments[i].address = voice->arguments[i].storage_address;
+    for (j = 0; j < i; j++) {
+      if (opcode->arguments[j] == opcode->arguments[i] &&
+          descriptor->argument_types[j] == descriptor->argument_types[i]) {
+        voice->arguments[i].address = voice->arguments[j].address;
+        break;
+      }
+    }
+    store_u32_le(memory, voice->guest_opcode + WASM32_OPDS_SIZE + i * 4,
+                 voice->arguments[i].address);
+  }
+}
+
+static int32_t copy_arguments_to_guest(WasmOpcodeInstance *opcode,
+                                       WasmVoice *voice, uint32_t offset,
+                                       uint32_t sample_count)
+{
+  WasmOpcodeDescriptor *descriptor = opcode->descriptor;
+  WasmGuest *guest = &voice->module->guest;
+  uint8_t *memory = wasmtime_memory_data(guest->context, &guest->memory);
+  uint32_t i;
+  /* Outputs can hold values set by an earlier opcode, which a callback may
+     read or leave unchanged. Copy them along with the inputs. */
+  for (i = 0; i < descriptor->argument_count; i++) {
     cs_float *argument = (cs_float *) opcode->arguments[i];
     uint32_t bytes = descriptor->argument_types[i] == 'a'
                          ? sample_count * (uint32_t) sizeof(cs_float)
@@ -1455,35 +1474,38 @@ static int32_t wasm_opcode_init(CSOUND *csound, WasmOpcodeInstance *opcode)
   opcode->descriptor = find_descriptor(csound, opcode);
   if (opcode->descriptor == NULL)
     return csound->InitError(csound, "Could not resolve Wasm opcode\n");
-  if (opcode->voice != NULL) {
-    destroy_voice(csound, opcode->voice);
-    opcode->voice = NULL;
-  }
   ksmps = opcode->h.insdshead->ksmps;
   offset = opcode->h.insdshead->ksmps_offset;
   early = opcode->h.insdshead->ksmps_no_end;
-  voice = create_voice(csound, opcode->descriptor, ksmps);
-  if (voice == NULL)
-    return csound->InitError(csound, "Could not create Wasm opcode instance\n");
-  opcode->voice = voice;
+  voice = opcode->voice;
+  if (voice == NULL) {
+    voice = create_voice(csound, opcode->descriptor, ksmps);
+    if (voice == NULL)
+      return csound->InitError(csound, "Could not create Wasm opcode instance\n");
+    opcode->voice = voice;
+  }
   module = voice->module;
   csound->LockMutex(module->mutex);
   set_guest_block(opcode, voice, ksmps, offset, early);
-  if (copy_inputs_to_guest(opcode, voice, 0, ksmps) != CSOUND_SUCCESS) {
+  bind_guest_arguments(opcode, voice);
+  if (copy_arguments_to_guest(opcode, voice, 0, ksmps) != CSOUND_SUCCESS) {
     csound->UnlockMutex(module->mutex);
     goto fail;
   }
+  /* A failed init can still leave guest resources for deinit to release. */
+  voice->deinit_ready = 1;
   if (voice->has_init) {
     if (call_opcode_function(csound, voice, &voice->init,
-                             "initialise Wasm opcode", 1,
+                             "initialise Wasm opcode",
                              &guest_result) != CSOUND_SUCCESS ||
         guest_result != OK) {
       csound->UnlockMutex(module->mutex);
       goto fail;
     }
   }
-  voice->guest_initialized = 1;
-  if (copy_outputs_from_guest(opcode, voice, 0, ksmps) != CSOUND_SUCCESS) {
+  voice->failed = 0;
+  if (voice->has_init &&
+      copy_outputs_from_guest(opcode, voice, 0, ksmps) != CSOUND_SUCCESS) {
     csound->UnlockMutex(module->mutex);
     goto fail;
   }
@@ -1491,7 +1513,7 @@ static int32_t wasm_opcode_init(CSOUND *csound, WasmOpcodeInstance *opcode)
   return OK;
 
 fail:
-  destroy_voice(csound, voice);
+  (void) destroy_voice(csound, voice);
   opcode->voice = NULL;
   return csound->InitError(csound, "Wasm opcode initialisation failed\n");
 }
@@ -1517,10 +1539,10 @@ static int32_t wasm_opcode_perf(CSOUND *csound, WasmOpcodeInstance *opcode)
   module = voice->module;
   csound->LockMutex(module->mutex);
   set_guest_block(opcode, voice, ksmps, offset, early);
-  if (copy_inputs_to_guest(opcode, voice, offset, active) != CSOUND_SUCCESS)
+  if (copy_arguments_to_guest(opcode, voice, offset, active) != CSOUND_SUCCESS)
     goto fail;
   if (call_opcode_function(csound, voice, &voice->perf,
-                           "perform Wasm opcode", 1,
+                           "perform Wasm opcode",
                            &guest_result) != CSOUND_SUCCESS)
     goto fail;
   if (guest_result != OK) {
@@ -1542,9 +1564,9 @@ fail:
 
 static int32_t wasm_opcode_deinit(CSOUND *csound, WasmOpcodeInstance *opcode)
 {
-  destroy_voice(csound, opcode->voice);
+  int32_t result = destroy_voice(csound, opcode->voice);
   opcode->voice = NULL;
-  return OK;
+  return result;
 }
 
 int32_t csoundLoadWasmOpcodeLibrary(CSOUND *csound, const char *path)

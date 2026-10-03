@@ -161,12 +161,12 @@ def main():
     output = Path(args.output).resolve()
     common = [
         args.compiler,
-        "--target=wasm32-unknown-wasi",
+        "--target=wasm32-wasip1",
         "-fPIC",
         "-fno-builtin",
         # csoundCore.h needs the jmp_buf type, but this fixture never calls
-        # setjmp. Do not require Clang's private WebAssembly SJLJ switch.
-        "-D__wasm_exception_handling__=1",
+        # setjmp. Enable the public feature flag required by WASI headers.
+        "-mexception-handling",
         "-I",
         str(Path(args.generated_include).resolve()),
         "-I",

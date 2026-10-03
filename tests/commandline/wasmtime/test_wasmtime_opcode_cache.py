@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# This test reads Wasmtime's private cache layout. CI pins Wasmtime 47.0.2 in
+# This test reads Wasmtime's private cache layout. CI pins Wasmtime 48.0.5 in
 # .github/workflows/csound_builds.yml. Recheck module_cache_files() when the pin
 # changes.
 
@@ -46,7 +46,7 @@ def run_csound(
         )
     if not should_succeed and result.returncode == 0:
         raise RuntimeError(
-            "Csound accepted a missing explicit Wasm opcode library\n"
+            "Csound succeeded when an error was expected\n"
             f"stdout:\n{result.stdout}\n"
             f"stderr:\n{result.stderr}"
         )
@@ -73,6 +73,44 @@ def add_cache_variant_section(module):
     if len(payload) >= 128:
         raise RuntimeError("cache variant section is too large")
     return module + b"\x00" + bytes([len(payload)]) + payload
+
+
+def run_callback_checks(csound, plugin, opcode_dir, environment, source_dir):
+    lifecycle_csd = source_dir / "test_wasmtime_opcode_lifecycle.csd"
+    result = run_csound(csound, lifecycle_csd, plugin, opcode_dir, environment)
+    output = result.stdout + result.stderr
+    expected = {
+        "WASM_REINIT": ["1", "2"],
+        "WASM_TIE": ["1", "2"],
+        "WASM_DEINIT_COUNT": ["2"],
+        "WASM_NOINIT": ["17"],
+        "WASM_INIT_ADD": ["18"],
+    }
+    for name, values in expected.items():
+        actual = re.findall(rf"{name}=([0-9]+)", output)
+        if actual != values:
+            raise RuntimeError(f"{name}: expected {values}, got {actual}\n{output}")
+
+    deinit_csd = source_dir / "test_wasmtime_opcode_deinit_errors.csd"
+    result = run_csound(csound, deinit_csd, plugin, opcode_dir, environment)
+    output = result.stdout + result.stderr
+    if (
+        output.count("wasmdeiniterror deinit error") != 2
+        or "deinitialise Wasm opcode trapped" not in output
+        or "WASM_DEINIT_ERRORS=2" not in output
+    ):
+        raise RuntimeError(f"Wasm deinit failures were not reported\n{output}")
+
+    init_error_csd = source_dir / "test_wasmtime_opcode_init_error.csd"
+    result = run_csound(
+        csound, init_error_csd, plugin, opcode_dir, environment, should_succeed=False
+    )
+    output = result.stdout + result.stderr
+    if (
+        "Wasm opcode initialisation failed" not in output
+        or re.findall(r"WASM_FAILED_INIT_CLEANUP=([0-9]+)", output) != ["1"]
+    ):
+        raise RuntimeError(f"Failed Wasm init did not run deinit once\n{output}")
 
 
 def main():
@@ -195,6 +233,10 @@ i 2 0.012 0.001
             raise RuntimeError("Csound --env cache override was not used")
         if module_cache_files(cache_dir):
             raise RuntimeError("process cache config overrode Csound --env")
+
+        run_callback_checks(
+            args.csound_executable, plugin, args.opcode7dir64, environment, source_dir
+        )
 
         retry_result = run_csound(
             args.csound_executable,

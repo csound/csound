@@ -120,7 +120,7 @@ if(Python3_Interpreter_FOUND)
     endif()
     if(NOT _wasm_test_compiler)
       find_program(_wasm_test_program
-        NAMES wasm32-wasi-clang wasm32-unknown-wasi-clang
+        NAMES wasm32-wasip1-clang wasm32-wasi-clang wasm32-unknown-wasi-clang
       )
       set(_wasm_test_compiler "${_wasm_test_program}")
     endif()

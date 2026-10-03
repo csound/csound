@@ -17,7 +17,27 @@ typedef struct {
   cs_float *out;
 } RETRY_FIXTURE;
 
+typedef struct {
+  OPDS h;
+  cs_float *out;
+  cs_float init_count;
+} STATE_FIXTURE;
+
+typedef struct {
+  OPDS h;
+  cs_float *trap;
+} DEINIT_ERROR_FIXTURE;
+
+typedef struct {
+  OPDS h;
+  cs_float *out;
+  cs_float *in;
+} ALIAS_FIXTURE;
+
 static uint32_t retry_call_count = 0;
+static uint32_t deinit_count = 0;
+
+enum { OPCODE_COUNT = 10 };
 
 static int32_t velvetlp_init(CSOUND *csound, VELVETLP_FIXTURE *opcode)
 {
@@ -69,6 +89,57 @@ static int32_t retry_count_init(CSOUND *csound, RETRY_FIXTURE *opcode)
   return OK;
 }
 
+static int32_t state_init(CSOUND *csound, STATE_FIXTURE *opcode)
+{
+  (void) csound;
+  *opcode->out = ++opcode->init_count;
+  return OK;
+}
+
+static int32_t state_deinit(CSOUND *csound, STATE_FIXTURE *opcode)
+{
+  (void) csound;
+  deinit_count += opcode->init_count != 0;
+  return OK;
+}
+
+static int32_t init_error(CSOUND *csound, STATE_FIXTURE *opcode)
+{
+  (void) csound;
+  opcode->init_count = 1;
+  return NOTOK;
+}
+
+static int32_t deinit_count_init(CSOUND *csound, RETRY_FIXTURE *opcode)
+{
+  (void) csound;
+  *opcode->out = deinit_count;
+  return OK;
+}
+
+static int32_t add_one(CSOUND *csound, RETRY_FIXTURE *opcode)
+{
+  (void) csound;
+  *opcode->out += 1;
+  return OK;
+}
+
+static int32_t deinit_error(CSOUND *csound, DEINIT_ERROR_FIXTURE *opcode)
+{
+  deinit_count++;
+  if (*opcode->trap != 0)
+    csound->Message(csound, "This host call is not supported\n");
+  return NOTOK;
+}
+
+static int32_t alias_perf(CSOUND *csound, ALIAS_FIXTURE *opcode)
+{
+  (void) csound;
+  *opcode->out = 99;
+  *opcode->out = (*opcode->in == 99);
+  return OK;
+}
+
 PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **entries_out)
 {
   OENTRY *entries;
@@ -76,7 +147,7 @@ PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **entries_out)
   /* A supported host callback must have a non-null function pointer. */
   if (csound->Calloc == NULL)
     return 0;
-  entries = (OENTRY *) csound->Calloc(csound, 3 * sizeof(*entries));
+  entries = (OENTRY *) csound->Calloc(csound, OPCODE_COUNT * sizeof(*entries));
 
   *entries_out = entries;
   if (entries == NULL)
@@ -101,7 +172,51 @@ PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **entries_out)
   entries[2].intypes = "";
   entries[2].init = (SUBR) retry_count_init;
 
-  return 3 * (int64_t) sizeof(*entries);
+  entries[3].opname = "wasmstate";
+  entries[3].dsblksiz = sizeof(STATE_FIXTURE);
+  entries[3].outypes = "i";
+  entries[3].intypes = "";
+  entries[3].init = (SUBR) state_init;
+  entries[3].deinit = (SUBR) state_deinit;
+
+  entries[4].opname = "wasmdeinitcount";
+  entries[4].dsblksiz = sizeof(RETRY_FIXTURE);
+  entries[4].outypes = "i";
+  entries[4].intypes = "";
+  entries[4].init = (SUBR) deinit_count_init;
+
+  entries[5].opname = "wasmnoinit";
+  entries[5].dsblksiz = sizeof(RETRY_FIXTURE);
+  entries[5].outypes = "k";
+  entries[5].intypes = "";
+  entries[5].perf = (SUBR) add_one;
+
+  entries[6].opname = "wasminitadd";
+  entries[6].dsblksiz = sizeof(RETRY_FIXTURE);
+  entries[6].outypes = "i";
+  entries[6].intypes = "";
+  entries[6].init = (SUBR) add_one;
+
+  entries[7].opname = "wasmdeiniterror";
+  entries[7].dsblksiz = sizeof(DEINIT_ERROR_FIXTURE);
+  entries[7].outypes = "";
+  entries[7].intypes = "i";
+  entries[7].deinit = (SUBR) deinit_error;
+
+  entries[8].opname = "wasmalias";
+  entries[8].dsblksiz = sizeof(ALIAS_FIXTURE);
+  entries[8].outypes = "k";
+  entries[8].intypes = "k";
+  entries[8].perf = (SUBR) alias_perf;
+
+  entries[9].opname = "wasminiterror";
+  entries[9].dsblksiz = sizeof(STATE_FIXTURE);
+  entries[9].outypes = "i";
+  entries[9].intypes = "";
+  entries[9].init = (SUBR) init_error;
+  entries[9].deinit = (SUBR) state_deinit;
+
+  return OPCODE_COUNT * (int64_t) sizeof(*entries);
 }
 
 PUBLIC int32_t csoundModuleInfo(void)
