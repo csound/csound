@@ -19,16 +19,16 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
-      CC: clang-18
-      CXX: clang++-18
-      CLANG: clang-18
-      CLANG_TIDY: clang-tidy-18
+      CC: clang-19
+      CXX: clang++-19
+      CLANG: clang-19
+      CLANG_TIDY: clang-tidy-19
     steps:
       - uses: actions/checkout@v7.0.1
       - name: Install Clang and build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-18 clang-tidy-18 python3-clang-18 \
+          sudo apt-get install -y clang-19 clang-tidy-19 python3-clang-19 \
             cmake ninja-build bison flex gettext libsndfile1-dev libsamplerate0-dev
       - name: Check the lint runner
         run: /usr/bin/python3 tests/test_static_const.py
@@ -47,4 +47,4 @@ jobs:
       - name: Check static and const declarations
         run: >
           /usr/bin/python3 scripts/check_static_const.py -p build-lint
-          --clang clang-18 --clang-tidy clang-tidy-18 --jobs 2
+          --clang clang-19 --clang-tidy clang-tidy-19 --jobs 2

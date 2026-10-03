@@ -13,17 +13,17 @@ parameter passed by value does not make the caller's data safer.
 
 The `Static and const correctness` workflow fails on violations. It uses
 clang-tidy for read-only pointer parameters and C++ internal linkage. A small
-libclang check covers C functions, which clang-tidy's internal-linkage check
-skips. clang-format cannot check these rules.
+libclang check covers C functions and checks references across the repository.
+clang-format cannot check these rules.
 
-On Ubuntu 24.04, install `clang-18`, `clang-tidy-18` and `python3-clang-18`.
+On Ubuntu 24.04, install `clang-19`, `clang-tidy-19` and `python3-clang-19`.
 Configure and build Csound with Clang to create `compile_commands.json` and
 the parser sources, then run
 
 ```sh
-CLANG=clang-18 CLANG_TIDY=clang-tidy-18 /usr/bin/python3 tests/test_static_const.py
+CLANG=clang-19 CLANG_TIDY=clang-tidy-19 /usr/bin/python3 tests/test_static_const.py
 /usr/bin/python3 scripts/check_static_const.py -p build \
-  --clang clang-18 --clang-tidy clang-tidy-18
+  --clang clang-19 --clang-tidy clang-tidy-19
 ```
 
 Keep libclang, its Python bindings and clang-tidy on the same major version.

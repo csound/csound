@@ -31,6 +31,7 @@ REFERENCE_SUFFIXES = SOURCE_SUFFIXES | {
 }
 IDENTIFIER = re.compile(r"\b[A-Za-z_]\w*\b")
 IGNORE = re.compile(r"csound-linkage-ignore:\s*[A-Za-z0-9]")
+REQUIRED_CHECKS = {"readability-non-const-parameter", "misc-use-internal-linkage"}
 
 
 def checked_source(path):
@@ -179,6 +180,12 @@ def main():
     root, build = args.root.resolve(), args.build.resolve()
     if args.libclang:
         cindex.Config.set_library_file(args.libclang)
+    available = subprocess.check_output(
+        [args.clang_tidy, "--list-checks", "--config-file=" + str(ROOT / ".clang-tidy")],
+        text=True)
+    missing = REQUIRED_CHECKS - set(available.split())
+    if missing:
+        raise ValueError("clang-tidy lacks required checks: " + ", ".join(sorted(missing)))
     paths = tracked_files(root)
     references = reference_files(root, paths)
     entries = compilation_entries(build, root, paths)
@@ -189,9 +196,12 @@ def main():
 
     def check(item):
         source, entry = item
-        result = subprocess.run(
-            [args.clang_tidy, str(source), "-p", str(build),
-             "--config-file=" + str(ROOT / ".clang-tidy"), "--quiet"],
+        command = [args.clang_tidy, str(source), "-p", str(build),
+                   "--config-file=" + str(ROOT / ".clang-tidy"), "--quiet"]
+        if source.suffix == ".c":
+            # Our C check also protects references outside this translation unit.
+            command.append("--checks=-misc-use-internal-linkage")
+        result = subprocess.run(command,
             cwd=entry["directory"], capture_output=True, text=True)
         errors = ([result.stdout + result.stderr] if result.returncode else [])
         if source.suffix == ".c":
