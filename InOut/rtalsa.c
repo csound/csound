@@ -455,8 +455,8 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
     {
       void  (*fp)(void) = NULL;
       alsaFmt = set_format(&fp, dev->format, play, csound->GetDitherMode(csound));
-      if (play) dev->playconv = (void (*)(int32_t, cs_float*, void*, int*)) fp;
-      else      dev->rec_conv = (void (*)(int32_t, void*, cs_float*)) fp;
+      if (play) dev->playconv = (void (*)(int32_t, const cs_float*, void*, int*)) fp;
+      else      dev->rec_conv = (void (*)(int32_t, const void*, cs_float*)) fp;
     }
 
     if (UNLIKELY(alsaFmt == SND_PCM_FORMAT_UNKNOWN)) {
@@ -732,8 +732,8 @@ static int32_t open_device(CSOUND *csound, const csRtAudioParams *parm, int32_t 
     dev->nchns = parm->nChannels;
 
     dev->period_smps = parm->bufSamp_SW;
-    dev->playconv = (void (*)(int32_t, cs_float*, void*, int*)) NULL;
-    dev->rec_conv = (void (*)(int32_t, void*, cs_float*)) NULL;
+    dev->playconv = NULL;
+    dev->rec_conv = NULL;
     dev->seed = 1;
     /* open device */
     retval = set_device_params(csound, dev, play);
