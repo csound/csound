@@ -17,9 +17,9 @@
  * white-box tests can inspect struct internals.
  */
 
+#include "csound_types.h"
 #include "sysdep.h"
 #include "ugen.h"
-#include <vector>
 #define __BUILDING_LIBCSOUND
 #include "ugen_internal.h"
 #include "csound.h"
@@ -60,7 +60,7 @@ public:
     CSOUND* csound{nullptr};
 };
 
-class UGenContextTests : public UGenTests {
+class UGenInstTests : public UGenTests {
 public:
     void SetUp() override {
         csound = csoundCreate(NULL, NULL);
@@ -81,8 +81,6 @@ TEST_F(UGenTests, FactoryCreateDelete) {
     UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
     ASSERT_NE(factory, nullptr);
     EXPECT_EQ(factory->csound, csound);
-    EXPECT_NE(factory->insds, nullptr);
-    EXPECT_EQ((uint32_t)factory->insds->ksmps, csoundGetKsmps(csound));
     EXPECT_TRUE(csoundUgenFactoryDelete(factory));
 }
 
@@ -456,54 +454,24 @@ TEST_F(UGenTests, FindOpcode) {
 }
 
 /* ------------------------------------------------------------------
- *  Context API
+ *  Ugen instrument API
  * ------------------------------------------------------------------ */
 
-TEST_F(UGenTests, ContextCreateDelete) {
-    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
-    UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
-    ASSERT_NE(ctx, nullptr);
-    EXPECT_NE(ctx->insds, nullptr);
-    EXPECT_EQ((uint32_t)ctx->insds->ksmps, csoundGetKsmps(csound));
 
-    EXPECT_TRUE(csoundUgenContextDelete(ctx));
-    csoundUgenFactoryDelete(factory);
-}
-
-TEST_F(UGenTests, SetContext) {
+TEST_F(UGenTests, UgenInstrumentProperties) {
     UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
-    UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
     UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
-
-    EXPECT_TRUE(csoundUgenSetContext(ugen, ctx));
-    /* After setting context, the ugen's insds should be the context's */
-    EXPECT_EQ(ugen->insds, ctx->insds);
-
-
+    ASSERT_NE(ugen->insds, nullptr);
     csoundUgenDelete(ugen);
-    csoundUgenContextDelete(ctx);
     csoundUgenFactoryDelete(factory);
 }
 
-TEST_F(UGenTests, ContextProperties) {
+TEST_F(UGenInstTests, ContextSetDurationNoRelease) {
     UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
-    UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
-    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
-                           (char*)"a", (char*)"iiio");
-    ASSERT_NE(ugen, nullptr);
-    csoundUgenDelete(ugen);
-    csoundUgenContextDelete(ctx);
-    csoundUgenFactoryDelete(factory);
-}
-
-TEST_F(UGenContextTests, ContextSetDurationNoRelease) {
-    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
-    UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
     UGEN* adsr = csoundUgenNew(factory, (char*)"adsr",
                            (char*)"k", (char*)"iiiio");
-    EXPECT_TRUE(csoundUgenSetContext(adsr, ctx));
     // a
     csoundUgenSetValue(adsr, 0, 1);
     // d
@@ -516,7 +484,7 @@ TEST_F(UGenContextTests, ContextSetDurationNoRelease) {
 
     csoundUgenInit(adsr);
 
-    MYFLT o = csoundUgenGetValue(adsr, 0);
+    cs_float o = csoundUgenGetValue(adsr, 0);
     float e = 1e-2;
     perform(adsr, 1);
     // init
@@ -548,18 +516,15 @@ TEST_F(UGenContextTests, ContextSetDurationNoRelease) {
     EXPECT_NEAR(o, 0.25, e);
 
     csoundUgenDelete(adsr);
-    csoundUgenContextDelete(ctx);
     csoundUgenFactoryDelete(factory);
 
 }
 
 // with known duration
-TEST_F(UGenContextTests, ContextSetDuration) {
+TEST_F(UGenInstTests, ContextSetDuration) {
     UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
-    UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
     UGEN* adsr = csoundUgenNew(factory, (char*)"adsr",
                            (char*)"k", (char*)"iiiio");
-    EXPECT_TRUE(csoundUgenSetContext(adsr, ctx));
     // a
     csoundUgenSetValue(adsr, 0, 1);
     // d
@@ -573,11 +538,11 @@ TEST_F(UGenContextTests, ContextSetDuration) {
 
     // if we know note duration before hand
     // we can set it in context before performance
-    csoundUgenContextSetDuration(ctx, 4);
+    csoundUgenSetDuration(adsr, 4);
 
     csoundUgenInit(adsr);
 
-    MYFLT o = csoundUgenGetValue(adsr, 0);
+    cs_float o = csoundUgenGetValue(adsr, 0);
     float e = 1e-2;
     perform(adsr, 1);
     // init
@@ -609,18 +574,15 @@ TEST_F(UGenContextTests, ContextSetDuration) {
     EXPECT_NEAR(o, 0.0, e);
 
     csoundUgenDelete(adsr);
-    csoundUgenContextDelete(ctx);
     csoundUgenFactoryDelete(factory);
 }
 
 // release event
-TEST_F(UGenContextTests, ContextSetDurationRelease) {
+TEST_F(UGenInstTests, ContextSetDurationRelease) {
     UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
-    UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
     UGEN* madsr = csoundUgenNew(factory, (char*)"madsr",
                            (char*)"k", (char*)"iiiiii");
     ASSERT_NE(madsr, nullptr);
-    ASSERT_TRUE(csoundUgenSetContext(madsr, ctx));
     // a
     csoundUgenSetValue(madsr, 0, 1.0);
     // d
@@ -639,7 +601,7 @@ TEST_F(UGenContextTests, ContextSetDurationRelease) {
 
     ASSERT_EQ(csoundUgenInit(madsr), 0);
 
-    MYFLT o = csoundUgenGetValue(madsr, 0);
+    cs_float o = csoundUgenGetValue(madsr, 0);
     float e = 1e-2;
     perform(madsr, 1);
     // init
@@ -671,7 +633,7 @@ TEST_F(UGenContextTests, ContextSetDurationRelease) {
     EXPECT_NEAR(o, 0.25, e);
 
     // we release
-    csoundUgenContextReleaseNote(ctx);
+    csoundUgenReleaseNote(madsr);
     perform(madsr, 8);
     o = csoundUgenGetValue(madsr, 0);
     EXPECT_NEAR(o, 0.14, e);
@@ -680,14 +642,12 @@ TEST_F(UGenContextTests, ContextSetDurationRelease) {
     EXPECT_NEAR(o, 0.0, e);
 
     csoundUgenDelete(madsr);
-    csoundUgenContextDelete(ctx);
     csoundUgenFactoryDelete(factory);
 }
 
 
-TEST_F(UGenContextTests, ContextOffsets) {
+TEST_F(UGenInstTests, ContextOffsets) {
    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
-   UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
    UGEN* line = csoundUgenNew(factory, (char*)"line",
                           (char*)"a", (char*)"iii");
    csoundUgenSetValue(line, 0, 0.25);
@@ -695,22 +655,21 @@ TEST_F(UGenContextTests, ContextOffsets) {
    csoundUgenSetValue(line, 2, 0.75);
 
    ASSERT_NE(line, nullptr);
-   ASSERT_TRUE(csoundUgenSetContext(line, ctx));
    ASSERT_EQ(csoundUgenInit(line), 0);
    csoundUgenPerform(line);
    auto audioVar = csoundUgenGetOutVar(line, 0);
-   MYFLT* srcOutBuf = (MYFLT*)csoundUgenVarGetData(audioVar);
+   cs_float* srcOutBuf = (cs_float*)csoundUgenVarGetData(audioVar);
    auto size = csoundGetKsmps(csound);
-   MYFLT first = srcOutBuf[0];
-   MYFLT last = srcOutBuf[size-1];
+   cs_float first = srcOutBuf[0];
+   cs_float last = srcOutBuf[size-1];
    auto e = 1e-2;
    EXPECT_NEAR(first, 0.25, e);
    EXPECT_NEAR(last, 0.68, e);
-   csoundUgenContextSetStartOffset(ctx, 2);
-   csoundUgenContextSetEndOffset(ctx, 2);
+   csoundUgenSetStartOffset(line, 2);
+   csoundUgenSetEndOffset(line, 2);
    csoundUgenPerform(line);
 
-   MYFLT* srcOutBuf2 = (MYFLT*)csoundUgenVarGetData(audioVar);
+   cs_float* srcOutBuf2 = (cs_float*)csoundUgenVarGetData(audioVar);
 
    EXPECT_NEAR(srcOutBuf2[0], 0.0, e);
    EXPECT_NEAR(srcOutBuf2[1], 0.0, e);
@@ -721,10 +680,10 @@ TEST_F(UGenContextTests, ContextOffsets) {
    EXPECT_NEAR(srcOutBuf2[6], 0.0, e);
    EXPECT_NEAR(srcOutBuf2[7], 0.0, e);
 
-   EXPECT_TRUE(csoundUgenContextResetOffsets(ctx));
+   EXPECT_TRUE(csoundUgenResetOffsets(line));
    csoundUgenPerform(line);
 
-   MYFLT* srcOutBuf3 = (MYFLT*)csoundUgenVarGetData(audioVar);
+   cs_float* srcOutBuf3 = (cs_float*)csoundUgenVarGetData(audioVar);
 
    EXPECT_GE(srcOutBuf2[0], 1);
    EXPECT_GE(srcOutBuf2[1], 1);
@@ -736,18 +695,15 @@ TEST_F(UGenContextTests, ContextOffsets) {
    EXPECT_GE(srcOutBuf2[7], 1);
 
    csoundUgenDelete(line);
-   csoundUgenContextDelete(ctx);
    csoundUgenFactoryDelete(factory);
 }
 
 
-TEST_F(UGenContextTests, ContextSetDurationExtraTime) {
+TEST_F(UGenInstTests, ContextSetDurationExtraTime) {
     UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
-    UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
     UGEN* madsr = csoundUgenNew(factory, (char*)"madsr",
                            (char*)"k", (char*)"iiiiii");
     ASSERT_NE(madsr, nullptr);
-    ASSERT_TRUE(csoundUgenSetContext(madsr, ctx));
     csoundUgenSetValue(madsr, 0, 1.0);
     csoundUgenSetValue(madsr, 1, 1.0);
     csoundUgenSetValue(madsr, 2, 0.25);
@@ -755,12 +711,11 @@ TEST_F(UGenContextTests, ContextSetDurationExtraTime) {
     csoundUgenSetValue(madsr, 4, 0.0);
     csoundUgenSetValue(madsr, 5, -1.0);
 
-    EXPECT_EQ(csoundUgenContextGetExtraTime(ctx), 0);
+    EXPECT_EQ(csoundUgenGetExtraTime(madsr), 0);
     ASSERT_EQ(csoundUgenInit(madsr), 0);
-    EXPECT_EQ(csoundUgenContextGetExtraTime(ctx), 16);
+    EXPECT_EQ(csoundUgenGetExtraTime(madsr), 16);
 
     csoundUgenDelete(madsr);
-    csoundUgenContextDelete(ctx);
     csoundUgenFactoryDelete(factory);
 }
 
@@ -954,11 +909,11 @@ TEST_F(UGenTests, MemoryLayoutHeaderAlignment) {
         cs_float* next = p[outCount + i + 1];
         UGEN_VAR* currVar = csoundUgenGetInVar(ugen, i);
         size_t currArgSizeBytes = csoundUgenVarGetSize(currVar);
-        size_t currArgSizeMYFLTs = currArgSizeBytes / sizeof(cs_float);
+        size_t currArgSizecs_floats = currArgSizeBytes / sizeof(cs_float);
 
         ptrdiff_t headerStartOffset = CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(cs_float);
         cs_float* nextHeaderStart = next - headerStartOffset;
-        EXPECT_GE(nextHeaderStart, curr + (ptrdiff_t)currArgSizeMYFLTs)
+        EXPECT_GE(nextHeaderStart, curr + (ptrdiff_t)currArgSizecs_floats)
             << "input[" << i+1 << "] header overlaps input[" << i << "] data";
     }
 

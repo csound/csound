@@ -8,7 +8,6 @@ import type {
   LibCsoundObj,
   PublicEvents,
   UgenArgTypeEnum,
-  UgenContextPtr,
   UgenFactoryPtr,
   UgenGraphPtr,
   UgenOpcodeInfo,
@@ -30,7 +29,6 @@ declare const ugenFactoryPtr: UgenFactoryPtr;
 declare const ugenPtr: UgenPtr;
 declare const ugenVarPtr: UgenVarPtr;
 declare const ugenGraphPtr: UgenGraphPtr;
-declare const ugenContextPtr: UgenContextPtr;
 declare const ugenOpcodeInfo: UgenOpcodeInfo;
 
 const createBrowserCsound: Csound = createCsound;
@@ -58,7 +56,6 @@ void [
   ugenPtr,
   ugenVarPtr,
   ugenGraphPtr,
-  ugenContextPtr,
   ugenOpcodeInfo,
   loadedCsound,
   loadedLibCsound,

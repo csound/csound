@@ -188,10 +188,13 @@ var WasiFS;
  * UGEN_ARG_TYPE: UgenArgTypeEnum,
  * csoundUgenFactoryNew: function(CsoundInst): number,
  * csoundUgenFactoryDelete: function(number): number,
- * csoundUgenContextNew: function(CsoundInst): number,
- * csoundUgenContextDelete: function(number): number,
- * csoundUgenSetContext: function(number, number): number,
  * csoundUgenNew: function(number, string, string, string): number,
+ * csoundUgenSetDuration(ugen: UgenPtr, p3: number) => bool;
+ * csoundUgenReleaseNote(ugen: UgenPtr) => bool;
+ * csoundUgenSetStartOffset(ugen: UgenPtr, start: number) => bool;
+ * csoundUgenSetEndOffset(ugen: UgenPtr, end: number) => bool;
+ * csoundUgenResetOffsets(ugen: UgenPtr) => bool;
+ * csoundUgenGetExtraTime(ugen: UgenPtr) => number;
  * csoundUgenDelete: function(number): number,
  * csoundUgenGetOutVar: function(number, number): number,
  * csoundUgenGetInVar: function(number, number): number,

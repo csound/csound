@@ -1,3 +1,4 @@
+#include "ugen.h"
 #define __BUILDING_LIBCSOUND
 #include "ugen_internal.h"
 #include "gtest/gtest.h"
@@ -89,7 +90,6 @@ protected:
     Observations observed;
     CSOUND *csound = nullptr;
     UGEN_FACTORY *factory = nullptr;
-    UGEN_CONTEXT *context = nullptr;
 
     void SetUp() override
     {
@@ -104,12 +104,10 @@ protected:
             sizeof(ReadOpcode), 0, "k", "", readInit, readPerf, nullptr),
             CSOUND_SUCCESS);
         factory = csoundUgenFactoryNew(csound);
-        context = csoundUgenContextNew(factory);
     }
 
     void TearDown() override
     {
-        csoundUgenContextDelete(context);
         csoundUgenFactoryDelete(factory);
         csoundDestroy(csound);
     }
@@ -145,8 +143,12 @@ protected:
 
 TEST_F(InstanceVariableTests, NamesAndOwnersAreIndependent)
 {
-    INSDS *first = factory->insds;
-    INSDS *second = context->insds;
+    UGEN *u1 = csoundUgenNew(factory, const_cast<char *>("test_state_read"),
+                               const_cast<char *>("k"), const_cast<char *>(""));
+    UGEN *u2 = csoundUgenNew(factory, const_cast<char *>("test_state_read"),
+                               const_cast<char *>("k"), const_cast<char *>(""));
+    INSDS *first = u1->insds;
+    INSDS *second = u2->insds;
     char name[] = "family.first";
     ASSERT_EQ(csound->CreateInstanceVariable(
         csound, first, name, sizeof(cs_double)), CSOUND_SUCCESS);
@@ -169,11 +171,15 @@ TEST_F(InstanceVariableTests, NamesAndOwnersAreIndependent)
     ASSERT_NE(other, nullptr);
     EXPECT_NE(other, value);
     EXPECT_EQ(*other, 0);
+    EXPECT_TRUE(csoundUgenDelete(u1));
+    EXPECT_TRUE(csoundUgenDelete(u2));
 }
 
 TEST_F(InstanceVariableTests, RejectsInvalidRequestsWithoutChangingExistingData)
 {
-    INSDS *owner = factory->insds;
+    UGEN *u1 = csoundUgenNew(factory, const_cast<char *>("test_state_read"),
+                               const_cast<char *>("k"), const_cast<char *>(""));
+    INSDS *owner = u1->insds;
     ASSERT_EQ(csound->CreateInstanceVariable(
         csound, owner, stateName, sizeof(int)), CSOUND_SUCCESS);
     auto *value = static_cast<int *>(
@@ -197,6 +203,7 @@ TEST_F(InstanceVariableTests, RejectsInvalidRequestsWithoutChangingExistingData)
     EXPECT_EQ(csound->QueryInstanceVariable(otherEngine, owner, stateName), nullptr);
     csoundDestroy(otherEngine);
     EXPECT_EQ(*value, 42);
+    EXPECT_TRUE(csoundUgenDelete(u1));
 }
 
 TEST_F(InstanceVariableTests, OverlappingNotesKeepTheirOwnValues)
@@ -279,31 +286,6 @@ endin
     EXPECT_EQ(observed.creations[1].previousValue, 11);
     EXPECT_EQ(observed.creations[0].storage, observed.creations[1].storage);
     EXPECT_EQ(observed.deinits, (std::vector<cs_float>{22}));
-}
-
-TEST_F(InstanceVariableTests, UgensShareOnlyTheirChosenContext)
-{
-    ASSERT_NO_FATAL_FAILURE(start("instr 1\nendin", "f 0 .1"));
-    UGEN *source = csoundUgenNew(factory, const_cast<char *>("test_state_store"),
-                               const_cast<char *>(""), const_cast<char *>("io"));
-    UGEN *reader = csoundUgenNew(factory, const_cast<char *>("test_state_read"),
-                               const_cast<char *>("k"), const_cast<char *>(""));
-    ASSERT_NE(source, nullptr);
-    ASSERT_NE(reader, nullptr);
-    ASSERT_TRUE(csoundUgenSetContext(source, context));
-    ASSERT_TRUE(csoundUgenSetContext(reader, context));
-    csoundUgenVarSetValue(csoundUgenGetInVar(source, 0), 23);
-    ASSERT_EQ(csoundUgenInit(source), CSOUND_SUCCESS);
-    ASSERT_EQ(csoundUgenInit(reader), CSOUND_SUCCESS);
-    ASSERT_EQ(csoundUgenPerform(reader), CSOUND_SUCCESS);
-    EXPECT_EQ(csoundUgenVarGetValue(csoundUgenGetOutVar(reader, 0)), 23);
-    EXPECT_EQ(csound->QueryInstanceVariable(csound, factory->insds, stateName), nullptr);
-
-    // The context must outlive the UGENs so their deinit can still query it.
-    EXPECT_TRUE(csoundUgenDelete(reader));
-    EXPECT_TRUE(csoundUgenDelete(source));
-    EXPECT_EQ(observed.deinits, (std::vector<cs_float>{23}));
-    EXPECT_NE(csound->QueryInstanceVariable(csound, context->insds, stateName), nullptr);
 }
 
 TEST_F(InstanceVariableTests, NestedUdosAndSubinstrKeepSeparateScopes)

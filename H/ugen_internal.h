@@ -58,21 +58,11 @@ struct UGEN {
 
 /**
  * UGEN_FACTORY creates and manages individual opcode instances.
- * A factory shares a single CSOUND and INSDS context across all
+ * A factory shares a single CSOUND context across all
  * UGENs it creates.
  */
 struct UGEN_FACTORY {
   CSOUND* csound;
-  INSDS* insds;
-};
-
-/**
- * UGEN_CONTEXT provides instrument-like context for UGENs
- * (hold/release state, MIDI context, etc.)
- */
-struct UGEN_CONTEXT {
-  CSOUND* csound;
-  INSDS* insds;
 };
 
 /**

@@ -2032,29 +2032,6 @@ schedule(1, 0, 1)`,
       cs.csoundDestroy(csound);
     });
 
-    it("can use UGEN context for instrument-like state", function () {
-      const csound = makeStartedCsound();
-
-      const factory = cs.csoundUgenFactoryNew(csound);
-
-      const ctx = cs.csoundUgenContextNew(factory);
-      assert.notEqual(ctx, 0, "context is valid");
-
-      const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
-      cs.csoundUgenSetContext(osc, ctx);
-      cs.csoundUgenSetValue(osc, 0, 0.5); // amp
-      cs.csoundUgenSetValue(osc, 1, 440.0); // freq
-      cs.csoundUgenSetValue(osc, 2, 0.0); // phase
-      assert.equal(0, cs.csoundUgenInit(osc));
-      assert.equal(0, cs.csoundUgenPerform(osc));
-
-      cs.csoundUgenDelete(osc);
-      cs.csoundUgenContextDelete(ctx);
-      cs.csoundUgenFactoryDelete(factory);
-      cs.csoundStop(csound);
-      cs.csoundDestroy(csound);
-    });
-
     it("can use UGEN graph for ordered init/perform", function () {
       const csound = makeStartedCsound();
 
