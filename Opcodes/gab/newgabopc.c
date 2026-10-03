@@ -270,7 +270,7 @@ static OENTRY localops[] = {
                     (SUBR)lposc_stereo_set, (SUBR)lposca_stereo_no_trasp}
 };
 
-int32_t newgabopc_init_(CSOUND *csound) {
+static int32_t newgabopc_init_(CSOUND *csound) {
   return csound->AppendOpcodes(csound, &(localops[0]),
                                (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }

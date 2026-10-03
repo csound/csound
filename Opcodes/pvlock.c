@@ -1791,13 +1791,13 @@ typedef struct amfm {
 } AMFM;
 
 
-int32_t am_fm_init(CSOUND *csound, AMFM *p) {
+static int32_t am_fm_init(CSOUND *csound, AMFM *p) {
     p->ph = FL(0.0);
     p->scal = CS_ESR/(2*PI);
     return OK;
 }
 
-int32_t am_fm(CSOUND *csound, AMFM *p) {
+static int32_t am_fm(CSOUND *csound, AMFM *p) {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

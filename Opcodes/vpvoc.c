@@ -156,7 +156,7 @@ int32_t ktablexseg(CSOUND *csound, TABLESEG *p)
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */
 
-int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
+static int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
 {
   uint32_t i;
   char     pvfilnam[MAXNAME];

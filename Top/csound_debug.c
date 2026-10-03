@@ -30,8 +30,8 @@
 int32_t kperf(CSOUND *csound);
 int32_t kperf_debug(CSOUND *csound);  
 debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound);
-debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound);
-void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list);
+static debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound);
+static void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list);
 int32_t dag_get_task(CSOUND *csound, int32_t index, int32_t numThreads,
                      int32_t next_task);
 int32_t dag_end_task(CSOUND *csound, int32_t task);
@@ -301,7 +301,7 @@ debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound)
 }
 
 
-debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound)
+static debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
@@ -320,7 +320,7 @@ debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound)
     return opcode_list;
 }
 
-void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
+static void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
 {
     csound->Free(csound, opcode_list);
 }
@@ -822,7 +822,7 @@ int32_t csoundDebugSerializeArray(CSOUND *csound, void *varData,
     return total;
 }
 
-inline static void mix_out(cs_float *out, cs_float *in, uint32_t smps) {
+inline static void mix_out(cs_float *out, const cs_float *in, uint32_t smps) {
   uint32_t i;
   for (i = 0; i < smps; i++)
     out[i] += in[i];

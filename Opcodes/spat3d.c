@@ -70,7 +70,7 @@ static int32_t    spat3d_init_window(CSOUND *csound, SPAT3D *p)
 
 /* initialise parameric equalizer (code taken from pareq opcode) */
 
-static int32_t spat3d_init_eq(SPAT3D *p, SPAT3D_WALL *wstruct, cs_float *ftable)
+static int32_t spat3d_init_eq(SPAT3D *p, SPAT3D_WALL *wstruct, const cs_float *ftable)
 {
     int32_t eqmode;
     cs_double  omega, k, kk, vk, vkk, vkdq, sq, a0, a1, a2, b0, b1, b2;

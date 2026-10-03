@@ -650,7 +650,7 @@ int32_t vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
                          p->f, round(layout));
 }
 
-int32_t vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
+static int32_t vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
 {
   int32_t dim = (int32_t) *p->dim;
   cs_float  layout = (*p->dim-dim)*100;
@@ -977,7 +977,7 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 
 static int32_t vbap1_moving_control(CSOUND *, VBAP1_MOVE_DATA *, OPDS *, cs_float,
                                     cs_float, cs_float, cs_float**);
-static int32_t vbap1_control(CSOUND *, VBAP1_DATA *, cs_float*, cs_float*, cs_float*);
+static int32_t vbap1_control(CSOUND *, VBAP1_DATA *, const cs_float*, cs_float*, cs_float*);
 
 int32_t vbap1(CSOUND *csound, VBAP1 *p) /* during note performance: */
 {
@@ -993,7 +993,7 @@ int32_t vbap1(CSOUND *csound, VBAP1 *p) /* during note performance: */
 }
 
 static int32_t vbap1_control(CSOUND *csound, VBAP1_DATA *p,
-                             cs_float* azi, cs_float* ele, cs_float* spread)
+                             const cs_float* azi, cs_float* ele, cs_float* spread)
 {
   CART_VEC spreaddir[16];
   CART_VEC spreadbase[16];
@@ -1611,8 +1611,8 @@ int32_t vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
 
 #include "arrays.h"
 
-int32_t vbap_moving_control(CSOUND *, VBAP_MOVE_DATA *, OPDS*, cs_float,
-                            cs_float *, cs_float*,cs_float**);
+static int32_t vbap_moving_control(CSOUND *, VBAP_MOVE_DATA *, OPDS*, cs_float,
+                            cs_float *, const cs_float*,cs_float**);
 
 int32_t vbap(CSOUND *csound, VBAP *p) /* during note performance: */
 {
@@ -1727,7 +1727,7 @@ int32_t vbap_a(CSOUND *csound, VBAPA *p) /* during note performance: */
 }
 
 int32_t vbap_control(CSOUND *csound, VBAP_DATA *p,
-                     cs_float *azi, cs_float *ele, cs_float *spread)
+                     const cs_float *azi, cs_float *ele, cs_float *spread)
 {
   CART_VEC spreaddir[16];
   CART_VEC spreadbase[16];
@@ -2024,8 +2024,8 @@ int32_t vbap_moving(CSOUND *csound, VBAP_MOVING *p)
   return OK;
 }
 
-int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
-                            cs_float ONEDKR, cs_float* spread, cs_float* field_am, cs_float *fld[])
+static int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
+                            cs_float ONEDKR, cs_float* spread, const cs_float* field_am, cs_float *fld[])
 {
   CART_VEC spreaddir[16];
   CART_VEC spreadbase[16];
@@ -2452,8 +2452,8 @@ int32_t vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
   return OK;
 }
 
-int32_t vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
-int32_t vbap_zak_control(CSOUND *,VBAP_ZAK *);
+static int32_t vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
+static int32_t vbap_zak_control(CSOUND *,VBAP_ZAK *);
 
 int32_t vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
 {
@@ -2503,7 +2503,7 @@ int32_t vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
   return OK;
 }
 
-int32_t vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
+static int32_t vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
 {
   CART_VEC spreaddir[16];
   CART_VEC spreadbase[16];
@@ -2730,7 +2730,7 @@ int32_t vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
   return OK;
 }
 
-int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
+static int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
 {
   CART_VEC spreaddir[16];
   CART_VEC spreadbase[16];

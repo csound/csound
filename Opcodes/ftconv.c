@@ -222,7 +222,7 @@ static int32_t ftconv_init_common(CSOUND *csound, OPDS *h, FTCONV_STATE *p,
 }
 
 static int32_t ftconv_perf_common(CSOUND *csound, OPDS *h, FTCONV_STATE *p,
-                                  cs_float *aIn)
+                                  const cs_float *aIn)
 {
     cs_float         *x, *rBuf;
     int32_t           i, n, nSamples, rBufPos;

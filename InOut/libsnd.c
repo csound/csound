@@ -1080,6 +1080,8 @@ static void sndfilein_noscale(CSOUND *csound)
     sndfilein_(csound, FL(1.0));
 }
 
+/* Matches the audio input callback signature. */
+/* NOLINTNEXTLINE(readability-non-const-parameter) */
 static int32_t audrecv_dummy(CSOUND *csound, cs_float *buf, int32_t nbytes)
 {
     (void) csound; (void) buf;

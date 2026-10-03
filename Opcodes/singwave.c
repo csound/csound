@@ -42,7 +42,6 @@
 #include "moog1.h"
 
 void OneZero_setCoeff(OneZero*, cs_float);
-cs_float Wave_tick(cs_float *, int32_t len, cs_float *, cs_float, cs_float);
 
 static void SingWave_setFreq(CSOUND *csound, SingWave *p, cs_float aFreq);
 static cs_float SingWave_tick(CSOUND *csound, SingWave *p);

@@ -2142,7 +2142,7 @@ int32_t useropcd(CSOUND *csound, UOPCODE *p)
     buffers.
 */
 
-int32_t set_inbufs(CSOUND *csound,
+static int32_t set_inbufs(CSOUND *csound,
                    OPDS *h,
                    OPCOD_IOBUFS *buf) {
   OPCODINFO   *inm;

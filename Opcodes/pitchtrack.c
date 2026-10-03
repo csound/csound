@@ -365,7 +365,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
     }
 }
 
-int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
+static int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
 {
 
     int32_t i, winsize, powtwo, tmp;
@@ -440,7 +440,7 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     return (OK);
 }
 
-int32_t pitchtrackprocess(CSOUND *csound, PITCHTRACK *p)
+static int32_t pitchtrackprocess(CSOUND *csound, PITCHTRACK *p)
 {
     cs_float *sig = p->asig; int32_t i;
     cs_float *buf = (cs_float *)p->signal.auxp;
@@ -476,7 +476,7 @@ typedef struct _pitchaf{
   int32_t len,size;
 } PITCHAF;
 
-int32_t pitchafset(CSOUND *csound, PITCHAF *p){
+static int32_t pitchafset(CSOUND *csound, PITCHAF *p){
     cs_double samples = CS_ESR / (cs_double)*p->iflow;
     if (UNLIKELY(!(samples >= 1.0 && samples <= (INT32_MAX + 0.0) &&
                    samples <= (cs_double)(SIZE_MAX / sizeof(cs_float)))))
@@ -501,7 +501,7 @@ int32_t pitchafset(CSOUND *csound, PITCHAF *p){
     return OK;
 }
 
-int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
+static int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
 {
 
     int32_t lag = p->lag,n, i, j, len = p->len;
@@ -579,7 +579,7 @@ typedef struct plltrack_
 
 } PLLTRACK;
 
-void update_coefs(PLLTRACK *p, cs_double fr, cs_double Q, BIQUAD *biquad, int32_t TYPE)
+static void update_coefs(PLLTRACK *p, cs_double fr, cs_double Q, BIQUAD *biquad, int32_t TYPE)
 {
     cs_double k, ksq, div, ksqQ;
 
@@ -620,7 +620,7 @@ void update_coefs(PLLTRACK *p, cs_double fr, cs_double Q, BIQUAD *biquad, int32_
 }
 
 
-int32_t plltrack_set(CSOUND *csound, PLLTRACK *p)
+static int32_t plltrack_set(CSOUND *csound, PLLTRACK *p)
 {
     int32_t i;
     p->x1 = p->cos_x = p->sin_x = 0.0;
@@ -634,7 +634,7 @@ int32_t plltrack_set(CSOUND *csound, PLLTRACK *p)
     return OK;
 }
 
-int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
+static int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
 {
     int32_t ksmps, i, k;
     uint32_t offset = p->h.insdshead->ksmps_offset;

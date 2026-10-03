@@ -40,9 +40,9 @@ void    RewrapPhase(cs_float *, int32, cs_float *);
 void    FrqToPhase(cs_float *, int32, cs_float, cs_float, cs_float);
 void    FetchIn(float *, cs_float *, int32, cs_float);
 void    ApplyHalfWin(cs_float *, cs_float *, int32);
-void    addToCircBuf(cs_float *, cs_float *, int32, int32, int32);
+void    addToCircBuf(const cs_float *, cs_float *, int32, int32, int32);
 void    writeClrFromCircBuf(cs_float *, cs_float *, int32, int32, int32);
-void    UDSample(PVOC_GLOBALS *, cs_float *, cs_float, cs_float *, int32, int32, cs_float);
+void    UDSample(PVOC_GLOBALS *, const cs_float *, cs_float, cs_float *, int32, int32, cs_float);
 void    MakeSinc(PVOC_GLOBALS *);
 void    PreWarpSpec(cs_float *, int32, cs_float, cs_float *);
 

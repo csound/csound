@@ -223,7 +223,7 @@ typedef struct {
   uint32 lastframe;
 }PVSFWRITE;
 
-uintptr_t pvs_io_thread(void *pp);
+static uintptr_t pvs_io_thread(void *pp);
 
 static int32_t pvsfwrite_destroy(CSOUND *csound, void *pp)
 {
@@ -312,7 +312,7 @@ static int32_t pvsfwriteset_S(CSOUND *csound, PVSFWRITE *p){
 }
 
 
-uintptr_t pvs_io_thread(void *pp){
+static uintptr_t pvs_io_thread(void *pp){
   PVSFWRITE *p = (PVSFWRITE *) pp;
   CSOUND *csound = p->csound;
   cs_float  *buf = (cs_float *) p->buf.auxp;
@@ -586,7 +586,7 @@ typedef struct _pvst {
   void *fwdsetup;
 } PVST;
 
-int32_t pvstanalset(CSOUND *csound, PVST *p)
+static int32_t pvstanalset(CSOUND *csound, PVST *p)
 {
 
   int32_t i, N, hsize, nChannels;
@@ -670,7 +670,7 @@ typedef struct _pvst1 {
   void *fwdsetup;
 } PVST1;
 
-int32_t pvstanalset1(CSOUND *csound, PVST1 *p)
+static int32_t pvstanalset1(CSOUND *csound, PVST1 *p)
 {
 
   int32_t i, N, hsize, nChannels;
@@ -888,7 +888,7 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
 
 }
 
-int32_t pvstanal1(CSOUND *csound, PVST1 *p)
+static int32_t pvstanal1(CSOUND *csound, PVST1 *p)
 {
   int32_t hsize = p->fout[0]->overlap, i, k;
   uint32_t j;
@@ -2721,7 +2721,7 @@ typedef struct pvs2tab_t {
   PVSDAT *fsig;
 } PVS2TAB_T;
 
-int32_t pvs2tab_init(CSOUND *csound, PVS2TAB_T *p)
+static int32_t pvs2tab_init(CSOUND *csound, PVS2TAB_T *p)
 {
     if (UNLIKELY(!((p->fsig->format == PVS_AMP_FREQ) ||
                    (p->fsig->format == PVS_AMP_PHASE))))
@@ -2734,7 +2734,7 @@ int32_t pvs2tab_init(CSOUND *csound, PVS2TAB_T *p)
   return csound->InitError(csound, "%s", Str("array-variable not initialised"));
 }
 
-int32_t  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
+static int32_t  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
    IGN(csound);
   int32_t size = p->ans->sizes[0], N = p->fsig->N, i;
   float *fsig = (float *) p->fsig->frame.auxp;
@@ -2752,7 +2752,7 @@ typedef struct pvs2tabsplit_t {
   PVSDAT *fsig;
 } PVS2TABSPLIT_T;
 
-int32_t pvs2tabsplit_init(CSOUND *csound, PVS2TABSPLIT_T *p)
+static int32_t pvs2tabsplit_init(CSOUND *csound, PVS2TABSPLIT_T *p)
 {
     if (UNLIKELY(!((p->fsig->format == PVS_AMP_FREQ) ||
                    (p->fsig->format == PVS_AMP_PHASE))))
@@ -2768,7 +2768,7 @@ int32_t pvs2tabsplit_init(CSOUND *csound, PVS2TABSPLIT_T *p)
   return csound->InitError(csound, "%s", Str("array-variable not initialised"));
 }
 
-int32_t  pvs2tabsplit(CSOUND *csound, PVS2TABSPLIT_T *p){
+static int32_t  pvs2tabsplit(CSOUND *csound, PVS2TABSPLIT_T *p){
 
    IGN(csound);
   int32_t mags_size = p->mags->sizes[0], freqs_size = p->freqs->sizes[0],
@@ -2835,7 +2835,7 @@ typedef struct tab2pvs_t {
   uint32  lastframe;
 } TAB2PVS_T;
 
-int32_t tab2pvs_init(CSOUND *csound, TAB2PVS_T *p)
+static int32_t tab2pvs_init(CSOUND *csound, TAB2PVS_T *p)
 {
   if (UNLIKELY(!TAB2PVS_ARRAY(p->in) || p->in->sizes[0] < 4 ||
                (p->in->sizes[0] & 1)))
@@ -2884,7 +2884,7 @@ typedef struct tab2pvssplit_t {
   uint32  lastframe;
 } TAB2PVSSPLIT_T;
 
-int32_t tab2pvssplit_init(CSOUND *csound, TAB2PVSSPLIT_T *p)
+static int32_t tab2pvssplit_init(CSOUND *csound, TAB2PVSSPLIT_T *p)
 {
   if (UNLIKELY(!TAB2PVS_ARRAY(p->mags) || !TAB2PVS_ARRAY(p->freqs) ||
                p->mags->sizes[0] < 2 || p->mags->sizes[0] > INT32_MAX / 2 ||
@@ -2899,7 +2899,7 @@ int32_t tab2pvssplit_init(CSOUND *csound, TAB2PVSSPLIT_T *p)
                          *p->olap, *p->winsize, *p->wintype, CS_KSMPS);
 }
 
-int32_t  tab2pvssplit(CSOUND *csound, TAB2PVSSPLIT_T *p)
+static int32_t  tab2pvssplit(CSOUND *csound, TAB2PVSSPLIT_T *p)
 {
   int32_t size = p->size, i;
   float *fout = (float *) p->fout->frame.auxp;

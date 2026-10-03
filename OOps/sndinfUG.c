@@ -280,7 +280,7 @@ int32_t filebit(CSOUND *csound, SNDINFO *p)
 
 
 
-int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
+static int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
 {
     int32_t     channel = (int32_t)(*p->channel + FL(0.5));
     char    *sfname;

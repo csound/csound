@@ -994,7 +994,7 @@ typedef struct _mvcf {
   cs_double fr, w;
 } mvclpf24;
 
-int32_t mvclpf24_init(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_init(CSOUND *csound, mvclpf24 *p){
   IGN(csound);
   if (!*p->skipinit){
     p->c1 = p->c2  = p->c3 =
@@ -1025,7 +1025,7 @@ int32_t mvclpf24_init(CSOUND *csound, mvclpf24 *p){
   }                                                                    \
 } while (0)
 
-int32_t mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, res;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1074,7 +1074,7 @@ int32_t mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, res, *freq = p->freq;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1120,7 +1120,7 @@ int32_t mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, *res = p->res;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1169,7 +1169,7 @@ int32_t mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, *res = p->res, *freq = p->freq;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1214,7 +1214,7 @@ int32_t mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, res;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1262,7 +1262,7 @@ int32_t mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, res, *freq = p->freq ;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1306,7 +1306,7 @@ int32_t mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, *res = p->res;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1353,7 +1353,7 @@ int32_t mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, *res = p->res, *freq = p->freq ;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1396,7 +1396,7 @@ int32_t mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, res;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1468,7 +1468,7 @@ int32_t mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, res, *freq = p->freq;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1537,7 +1537,7 @@ int32_t mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, *res  = p->res;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1611,7 +1611,7 @@ int32_t mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
+static int32_t mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, *res = p->res, *freq = p->freq;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1692,7 +1692,7 @@ typedef struct _mvcf4 {
 } mvclpf24_4;
 
 
-int32_t mvclpf24_4_init(CSOUND *csound, mvclpf24_4 *p){
+static int32_t mvclpf24_4_init(CSOUND *csound, mvclpf24_4 *p){
   IGN(csound);
   if (!*p->skipinit){
     p->c1 = p->c2  = p->c3 =
@@ -1703,7 +1703,7 @@ int32_t mvclpf24_4_init(CSOUND *csound, mvclpf24_4 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
+static int32_t mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
   cs_float *out0 = p->out0, *out1 = p->out1,
     *out2 = p->out2, *out3 = p->out3;
   cs_float *in = p->in, res;
@@ -1790,7 +1790,7 @@ int32_t mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
 }
 
 
-int32_t mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
+static int32_t mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
   cs_float *out0 = p->out0, *out1 = p->out1,
     *out2 = p->out2, *out3 = p->out3;
   cs_float *in = p->in, res, *freq = p->freq;
@@ -1870,7 +1870,7 @@ int32_t mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
+static int32_t mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
   cs_float *out0 = p->out0, *out1 = p->out1,
     *out2 = p->out2, *out3 = p->out3;
   cs_float *in = p->in, *res = p->res;
@@ -1956,7 +1956,7 @@ int32_t mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
   return OK;
 }
 
-int32_t mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
+static int32_t mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
   cs_float *out0 = p->out0, *out1 = p->out1,
     *out2 = p->out2, *out3 = p->out3;
   cs_float *in = p->in, *res = p->res, *freq = p->freq;
@@ -2048,7 +2048,7 @@ typedef struct _mvcfh {
   cs_double fr, w, x;
 } mvchpf24;
 
-int32_t mvchpf24_init(CSOUND *csound, mvchpf24 *p){
+static int32_t mvchpf24_init(CSOUND *csound, mvchpf24 *p){
   IGN(csound);
   if (!*p->skipinit){
     p->c1 = p->c2  = p->c3 =
@@ -2059,7 +2059,7 @@ int32_t mvchpf24_init(CSOUND *csound, mvchpf24 *p){
   return OK;
 }
 
-int32_t mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
+static int32_t mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -2124,7 +2124,7 @@ int32_t mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
   return OK;
 }
 
-int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
+static int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
   cs_float *out = p->out;
   cs_float *in = p->in, *freq = p->freq;
   cs_double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -2290,7 +2290,7 @@ typedef struct vps {
   cs_float *out, *in, *kd, *ke;
 } VPS;
 
-int32_t vps_process(CSOUND *csound, VPS *p) {
+static int32_t vps_process(CSOUND *csound, VPS *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2343,7 +2343,7 @@ typedef struct vcfnl {
   size_t size;
 } VCFNL;
 
-int32_t vcfnl_init(CSOUND *csound, VCFNL *p) {
+static int32_t vcfnl_init(CSOUND *csound, VCFNL *p) {
   cs_float *tab;
   cs_double g, *G = p->G;
   p->piosr = CS_PIDSR;
@@ -2372,7 +2372,7 @@ int32_t vcfnl_init(CSOUND *csound, VCFNL *p) {
   return OK;
 }
 
-int32_t vcfnl_perfk(CSOUND *csound, VCFNL *p) {
+static int32_t vcfnl_perfk(CSOUND *csound, VCFNL *p) {
   cs_double *G = p->G, A = p->A, *s = p->s, ss;
   cs_float *y = p->y, *x = p->x, *y1 = p->y1,
     kn = (*p->kn > 0 ? *p->kn : 0)+FL(1.0), kno1;
@@ -2423,7 +2423,7 @@ int32_t vcfnl_perfk(CSOUND *csound, VCFNL *p) {
   return OK;
 }
 
-int32_t vcfnl_perfak(CSOUND *csound, VCFNL *p) {
+static int32_t vcfnl_perfak(CSOUND *csound, VCFNL *p) {
   cs_double *G = p->G, A = p->A, *s = p->s, ss, g;
   cs_float *y = p->y, *x = p->x, *y1 = p->y1, *f = p->f,
     kn = (*p->kn > 0 ? *p->kn : 0)+FL(1.0), kno1;
@@ -2470,7 +2470,7 @@ int32_t vcfnl_perfak(CSOUND *csound, VCFNL *p) {
   return OK;
 }
 
-int32_t vcfnl_perfka(CSOUND *csound, VCFNL *p) {
+static int32_t vcfnl_perfka(CSOUND *csound, VCFNL *p) {
   cs_double *G = p->G, A = p->A, *s = p->s, ss;
   cs_float *y = p->y, *x = p->x, *y1 = p->y1, *r = p->r,
     kn = (*p->kn > 0 ? *p->kn : 0)+FL(1.0), kno1;
@@ -2522,7 +2522,7 @@ int32_t vcfnl_perfka(CSOUND *csound, VCFNL *p) {
   return OK;
 }
 
-int32_t vcfnl_perfaa(CSOUND *csound, VCFNL *p) {
+static int32_t vcfnl_perfaa(CSOUND *csound, VCFNL *p) {
   cs_double *G = p->G, A = p->A, *s = p->s, ss, g;
   cs_float *y = p->y, *x = p->x, *y1 = p->y1, *f = p->f, *r = p->r,
     kn = (*p->kn > 0 ? *p->kn : 0)+FL(1.0), kno1;
@@ -2583,7 +2583,7 @@ typedef struct vcf {
   cs_double piosr;
 } VCF;
 
-int32_t vcf_init(CSOUND *csound, VCF *p) {
+static int32_t vcf_init(CSOUND *csound, VCF *p) {
   cs_double g, *G = p->G;
   p->piosr = PI/CS_ESR;
   p->ff = *p->f;
@@ -2598,7 +2598,7 @@ int32_t vcf_init(CSOUND *csound, VCF *p) {
   return OK;
 }
 
-int32_t vcf_perfk(CSOUND *csound, VCF *p) {
+static int32_t vcf_perfk(CSOUND *csound, VCF *p) {
   cs_double *G = p->G, A = p->A, *s = p->s, ss;
   cs_float *y = p->y, *x = p->x;
   cs_double w, u, o;
@@ -2641,7 +2641,7 @@ int32_t vcf_perfk(CSOUND *csound, VCF *p) {
   return OK;
 }
 
-int32_t vcf_perfak(CSOUND *csound, VCF *p) {
+static int32_t vcf_perfak(CSOUND *csound, VCF *p) {
   cs_double *G = p->G, A, *s = p->s, ss, g;
   cs_float *y = p->y, *x = p->x, *f = p->f;
   cs_double w, u, o;
@@ -2682,7 +2682,7 @@ int32_t vcf_perfak(CSOUND *csound, VCF *p) {
 }
 
 
-int32_t vcf_perfka(CSOUND *csound, VCF *p) {
+static int32_t vcf_perfka(CSOUND *csound, VCF *p) {
   cs_double *G = p->G, A = p->A, *s = p->s, ss;
   cs_float *y = p->y, *x = p->x;
   cs_double w, u, o;
@@ -2725,7 +2725,7 @@ int32_t vcf_perfka(CSOUND *csound, VCF *p) {
   return OK;
 }
 
-int32_t vcf_perfaa(CSOUND *csound, VCF *p) {
+static int32_t vcf_perfaa(CSOUND *csound, VCF *p) {
   cs_double *G = p->G, A, *s = p->s, ss, g;
   cs_float *y = p->y, *x = p->x, *f = p->f;
   cs_double w, u, o;
@@ -2776,7 +2776,7 @@ typedef struct _spf {
 } SPF;
 
 
-int32_t spf_init(CSOUND *csound, SPF *p) {
+static int32_t spf_init(CSOUND *csound, SPF *p) {
   cs_double w, w2, fac;
   cs_double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
   p->piosr = PI/CS_ESR;
@@ -2797,7 +2797,7 @@ int32_t spf_init(CSOUND *csound, SPF *p) {
   return OK;
 }
 
-int32_t spf_perfkk(CSOUND *csound, SPF *p) {
+static int32_t spf_perfkk(CSOUND *csound, SPF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2851,7 +2851,7 @@ int32_t spf_perfkk(CSOUND *csound, SPF *p) {
 }
 
 
-int32_t spf_perfak(CSOUND *csound, SPF *p) {
+static int32_t spf_perfak(CSOUND *csound, SPF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2899,7 +2899,7 @@ int32_t spf_perfak(CSOUND *csound, SPF *p) {
   return OK;
 }
 
-int32_t spf_perfaa(CSOUND *csound, SPF *p) {
+static int32_t spf_perfaa(CSOUND *csound, SPF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2946,7 +2946,7 @@ int32_t spf_perfaa(CSOUND *csound, SPF *p) {
   return OK;
 }
 
-int32_t spf_perfka(CSOUND *csound, SPF *p) {
+static int32_t spf_perfka(CSOUND *csound, SPF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -3003,7 +3003,7 @@ typedef struct _skf {
   cs_double piosr;
 } SKF;
 
-int32_t skf_init(CSOUND *csound, SKF *p) {
+static int32_t skf_init(CSOUND *csound, SKF *p) {
   cs_double w, w2, fac;
   cs_double *s = p->s;
   p->piosr = PI/CS_ESR;
@@ -3028,7 +3028,7 @@ int32_t skf_init(CSOUND *csound, SKF *p) {
   return OK;
 }
 
-int32_t skf_perfkk(CSOUND *csound, SKF *p) {
+static int32_t skf_perfkk(CSOUND *csound, SKF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -3074,7 +3074,7 @@ int32_t skf_perfkk(CSOUND *csound, SKF *p) {
   return OK;
 }
 
-int32_t skf_perfak(CSOUND *csound, SKF *p) {
+static int32_t skf_perfak(CSOUND *csound, SKF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -3114,7 +3114,7 @@ int32_t skf_perfak(CSOUND *csound, SKF *p) {
   return OK;
 }
 
-int32_t skf_perfaa(CSOUND *csound, SKF *p) {
+static int32_t skf_perfaa(CSOUND *csound, SKF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -3155,7 +3155,7 @@ int32_t skf_perfaa(CSOUND *csound, SKF *p) {
   return OK;
 }
 
-int32_t skf_perfka(CSOUND *csound, SKF *p) {
+static int32_t skf_perfka(CSOUND *csound, SKF *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -3224,7 +3224,7 @@ typedef struct _svn {
 
 
 
-int32_t svn_init(CSOUND *csound, SVN *p) {
+static int32_t svn_init(CSOUND *csound, SVN *p) {
   cs_double w2;
   cs_double *s = p->s;
   if (UNLIKELY((*p->ifn != FL(0.0) || *p->inm != FL(0.0)) &&
@@ -3267,7 +3267,7 @@ int32_t svn_init(CSOUND *csound, SVN *p) {
   return OK;
 }
 
-int32_t svn_perfkk(CSOUND *csound, SVN *p) {
+static int32_t svn_perfkk(CSOUND *csound, SVN *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -3351,7 +3351,7 @@ int32_t svn_perfkk(CSOUND *csound, SVN *p) {
   return OK;
 }
 
-int32_t svn_perfak(CSOUND *csound, SVN *p) {
+static int32_t svn_perfak(CSOUND *csound, SVN *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -3429,7 +3429,7 @@ int32_t svn_perfak(CSOUND *csound, SVN *p) {
   return OK;
 }
 
-int32_t svn_perfka(CSOUND *csound, SVN *p) {
+static int32_t svn_perfka(CSOUND *csound, SVN *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -3513,7 +3513,7 @@ int32_t svn_perfka(CSOUND *csound, SVN *p) {
   return OK;
 }
 
-int32_t svn_perfaa(CSOUND *csound, SVN *p) {
+static int32_t svn_perfaa(CSOUND *csound, SVN *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -3599,7 +3599,7 @@ typedef struct midsid {
   cs_float *a0, *a1, *a2, *a3, *kw;
 } MIDSID;
 
-int32_t ms_encod(CSOUND *csound, MIDSID *p) {
+static int32_t ms_encod(CSOUND *csound, MIDSID *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -3623,7 +3623,7 @@ int32_t ms_encod(CSOUND *csound, MIDSID *p) {
   return OK;
 }
 
-int32_t ms_decod(CSOUND *csound, MIDSID *p) {
+static int32_t ms_decod(CSOUND *csound, MIDSID *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;

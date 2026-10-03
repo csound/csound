@@ -474,7 +474,7 @@ int32_t midichn(CSOUND *csound, MIDICHN *p)
 
 /* pgmassign - assign MIDI program to instrument */
 
-int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
+static int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
 {
     int32_t pgm, ins, chn;
 

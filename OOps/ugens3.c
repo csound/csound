@@ -499,7 +499,7 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
 }
 
 static inline void loscil_linear_interp_mono(cs_float *ar,
-                                             cs_float *ftbl, cs_float phs, int32_t flen)
+                                             const cs_float *ftbl, cs_float phs, int32_t flen)
 {
   cs_float   fract, tmp;
   int32_t   x;
@@ -513,7 +513,7 @@ static inline void loscil_linear_interp_mono(cs_float *ar,
 }
 
 static inline void loscil_linear_interp_stereo(cs_float *arL, cs_float *arR,
-                                               cs_float *ftbl, cs_float phs, int32_t flen)
+                                               const cs_float *ftbl, cs_float phs, int32_t flen)
 {
   cs_float   fract, tmpL, tmpR;
   int32_t     x;
@@ -529,7 +529,7 @@ static inline void loscil_linear_interp_stereo(cs_float *arL, cs_float *arR,
 }
 
 static inline void loscil_cubic_interp_mono(cs_float *ar,
-                                            cs_float *ftbl, cs_float phs, int32_t flen)
+                                            const cs_float *ftbl, cs_float phs, int32_t flen)
 {
   cs_float   fract, tmp, a0, a1, a2, a3;
   int32_t     x;
@@ -552,7 +552,7 @@ static inline void loscil_cubic_interp_mono(cs_float *ar,
 
 static CS_NOINLINE void
 loscil_cubic_interp_stereo(cs_float *arL, cs_float *arR,
-                           cs_float *ftbl, cs_float phs, int32_t flen)
+                           const cs_float *ftbl, cs_float phs, int32_t flen)
 {
   cs_float   fract, tmpL, tmpR, a0, a1, a2, a3;
   int32_t     x;

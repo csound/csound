@@ -40,7 +40,7 @@ ksmps offset] = number of k-cycle before breakpoint is hit
 
 using namespace std;
 
-void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata);
+static void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata);
 
 int main(int argc, char **argv)
 {

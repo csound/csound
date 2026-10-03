@@ -127,7 +127,7 @@ int32_t retval_i(CSOUND *csound, RETVAL *p){
 
 /** Read OSC message from linked list
  */
-OSC_MESS *csoundReadOSCMessage(CSOUND *csound, const char *address,
+static OSC_MESS *csoundReadOSCMessage(CSOUND *csound, const char *address,
                                const char *type){  
   OSC_MESS *p = &csound->osc_message_anchor;
   spin_lock_t *lock = &csound->osc_spinlock;
@@ -143,7 +143,7 @@ OSC_MESS *csoundReadOSCMessage(CSOUND *csound, const char *address,
 
 /** Clear flag for OSC message so its slot can be reused.
  */
-void csoundClearOSCMessage(OSC_MESS *mess){
+static void csoundClearOSCMessage(OSC_MESS *mess){
   ATOMIC_SET(mess->flag, 0);
 }
 
@@ -154,7 +154,7 @@ void csoundClearOSCMessage(OSC_MESS *mess){
 /** Get float from Osc Message data 
     returns pointer to next datum
 */
-const char *csoundOSCMessageGetFloat(const char *buf, cs_float *mf) {
+static const char *csoundOSCMessageGetFloat(const char *buf, cs_float *mf) {
   float f;
   memcpy(&f, buf, sizeof(f));
   byteswap((char*)&f,4);
@@ -162,7 +162,7 @@ const char *csoundOSCMessageGetFloat(const char *buf, cs_float *mf) {
   return buf + 4;
 }
 
-const char *csoundOSCMessageGetDouble(const char *buf, cs_float *mf) {
+static const char *csoundOSCMessageGetDouble(const char *buf, cs_float *mf) {
   double f; /* OSC type d is always 64 bits. */
   memcpy(&f, buf, sizeof(f));
   byteswap((char*)&f,8);
@@ -174,7 +174,7 @@ const char *csoundOSCMessageGetDouble(const char *buf, cs_float *mf) {
 /** Get int32_t from Osc Message data 
     returns pointer to next datum
 */
-const char *csoundOSCMessageGetInt32(const char *buf, cs_float *mf) {
+static const char *csoundOSCMessageGetInt32(const char *buf, cs_float *mf) {
   int32_t i;
   memcpy(&i, buf, sizeof(i));
   byteswap((char*)&i,4);
@@ -185,7 +185,7 @@ const char *csoundOSCMessageGetInt32(const char *buf, cs_float *mf) {
 /** Get int64 from Osc Message data 
     returns pointer to next datum
 */
-const char *csoundOSCMessageGetInt64(const char *buf, cs_float *mf) {
+static const char *csoundOSCMessageGetInt64(const char *buf, cs_float *mf) {
   int64_t i;
   memcpy(&i, buf, sizeof(i));
   byteswap((char*)&i,8);
@@ -196,7 +196,7 @@ const char *csoundOSCMessageGetInt64(const char *buf, cs_float *mf) {
 /** Get char from Osc Message data 
     returns pointer to next datum
 */
-const char *csoundOSCMessageGetChar(const char *buf, cs_float *mf) {
+static const char *csoundOSCMessageGetChar(const char *buf, cs_float *mf) {
   return csoundOSCMessageGetInt32(buf, mf);
 }
 

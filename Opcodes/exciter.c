@@ -254,7 +254,7 @@ static inline void params_changed(CSOUND *csound, EXCITER *p)
     set_distort(csound, p);
 }
 
-int32_t exciter_perf(CSOUND *csound, EXCITER *p)
+static int32_t exciter_perf(CSOUND *csound, EXCITER *p)
 //uint32_t inputs_mask, uint32_t outputs_mask)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;

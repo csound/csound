@@ -92,7 +92,7 @@ int32_t nstrstr(CSOUND *csound, NSTRSTR *p)
   return OK;
 }
 
-int32_t prealloc_(CSOUND *csound, AOP *p, int32_t instname)
+static int32_t prealloc_(CSOUND *csound, AOP *p, int32_t instname)
 {
   int32_t     n, a;
 

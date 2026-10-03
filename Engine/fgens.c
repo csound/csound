@@ -2350,6 +2350,8 @@ int32_t csoundTableLength(CSOUND *csound, int32_t table) {
 /* at any stage                                 */
 /* find ptr to a deferred-size ftable structure */
 /***********************************************/
+/* Matches the public FTFind function pointer in CSOUND. */
+/* NOLINTNEXTLINE(readability-non-const-parameter) */
 FUNC *csoundFTFind(CSOUND *csound, cs_float *argp)
 {
     FUNC    *ftp;
@@ -2890,7 +2892,7 @@ static int32_t gen52(FGDATA *ff, FUNC *ftp)
     return OK;
 }
 
-static void gen53_apply_window(cs_float *buf, cs_float *w,
+static void gen53_apply_window(cs_float *buf, const cs_float *w,
                                int32_t npts, int32_t wpts, int32_t minphase)
 {
     int64_t ph, ph_inc;

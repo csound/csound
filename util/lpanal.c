@@ -83,7 +83,7 @@ typedef struct {
 
 static  void    alpol(CSOUND *, LPC *, cs_float *,
                       cs_double *, cs_double *, cs_double *, cs_double *);
-static  void    gauss(LPC *, cs_double (*)[MAXPOLES], cs_double*, cs_double*);
+static  void    gauss(LPC *, cs_double (*)[MAXPOLES], const cs_double*, cs_double*);
 static  void    quit(CSOUND *, char *), lpdieu(CSOUND *, char *);
 static  void    usage(CSOUND *);
 static  void    ptable(CSOUND *, cs_float, cs_float, cs_float, int32_t, LPANAL_GLOBALS*);
@@ -889,7 +889,7 @@ static void alpol(CSOUND *csound, LPC *thislp, cs_float *sig, cs_double *errn,
  *
  */
 static void gauss(LPC* thislp,
-                  cs_double (*a/*old*/)[MAXPOLES], cs_double *bold, cs_double b[])
+                  cs_double (*a/*old*/)[MAXPOLES], const cs_double *bold, cs_double b[])
 {
     cs_double amax, dum, pivot;
     cs_double c[MAXPOLES];
@@ -1013,7 +1013,7 @@ typedef cs_float (*psi_typ)[HWIN];
 static  void   trigpo(cs_float, phi_typ, psi_typ, cs_float *, cs_float *,
                       int32_t, LPANAL_GLOBALS*);
 static  cs_float  lowpass(cs_float, LPANAL_GLOBALS*);
-static  cs_float  search(cs_float *fm, cs_float qsum, cs_float g[], cs_float h[], LPANAL_GLOBALS*);
+static  cs_float  search(cs_float *fm, cs_float qsum, const cs_float g[], const cs_float h[], LPANAL_GLOBALS*);
 
 static void trigpo(cs_float omega,
                    phi_typ phi, psi_typ psi, cs_float *gamphi, cs_float *gampsi,
@@ -1098,7 +1098,7 @@ static void trigpo(cs_float omega,
     }
 }
 
-static cs_float search(cs_float *fm, cs_float qsum, cs_float g[], cs_float h[],
+static cs_float search(cs_float *fm, cs_float qsum, const cs_float g[], const cs_float h[],
                     LPANAL_GLOBALS  *lpg)
 {
     cs_float fun[FREQS], funmin = FL(1.e10);

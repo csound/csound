@@ -65,6 +65,8 @@ typedef struct _message_queue {
 
 
 /* atomicGetAndIncrementWithModulus */
+/* ATOMIC_CMP_XCH writes through this pointer. */
+/* NOLINTNEXTLINE(readability-non-const-parameter) */
 static long atomicGet_Incr_Mod(volatile long* val, long mod) {
   long oldVal;
   long newVal;
@@ -95,7 +97,7 @@ void allocate_message_queue(CSOUND *csound) {
 
 
 /* enqueue should be called by the relevant API function */
-void *message_enqueue(CSOUND *csound, int32_t message, char *args,
+static void *message_enqueue(CSOUND *csound, int32_t message, char *args,
                       int32_t argsiz) {
   if(csound->msg_queue != NULL) {
     int64_t *rtn;
@@ -290,7 +292,7 @@ static inline int64_t *score_event_enqueue(CSOUND *csound, char type,
 
 
 
-void kill_instance_enqueue(CSOUND *csound, cs_float instr, int32_t insno,
+static void kill_instance_enqueue(CSOUND *csound, cs_float instr, int32_t insno,
                           INSDS *ip, int32_t mode,
                           int32_t allow_release) {
   const int32_t argsize = ARG_ALIGN*5;

@@ -170,7 +170,7 @@ void ApplyHalfWin(cs_float *buf, cs_float *win, int32 len)
 /* Overlap (some of) new data window with stored previous data
    in circular buffer */
 void addToCircBuf(
-    cs_float   *sce, cs_float *dst, /* linear source and circular destination */
+    const cs_float   *sce, cs_float *dst, /* linear source and circular destination */
     int32    dstStart,         /* Current starting point index in circular dst */
     int32    numToDo,          /* how many points to add ( <= circBufSize ) */
     int32    circBufSize)      /* Size of circ buf i.e. dst[0..circBufSize-1] */
@@ -236,7 +236,7 @@ void writeClrFromCircBuf(
 
 void UDSample(
     PVOC_GLOBALS  *p,
-    cs_float   *inSnd,
+    const cs_float   *inSnd,
     cs_float   stindex,
     cs_float   *outSnd,
     int32    inLen,

@@ -93,7 +93,7 @@ static CS_NOINLINE int32_t PVS_CreateWindow(CSOUND *csound, cs_float *buf,
 }
 
 
-int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
+static int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
 {
   /* opcode params */
   int32_t N;
@@ -444,7 +444,7 @@ static inline cs_double mod2Pi(cs_double x)
   }                                                                 \
 } while (0)
 
-int32_t pvssanal(CSOUND *csound, PVSANAL *p)
+static int32_t pvssanal(CSOUND *csound, PVSANAL *p)
 {
   cs_float *ain;
   int32_t NB = p->Ii, loc;
@@ -881,7 +881,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
   p->IOi =  p->Ii;
 }
 
-int32_t pvssynth(CSOUND *csound, PVSYNTH *p)
+static int32_t pvssynth(CSOUND *csound, PVSYNTH *p)
 {
   int32_t k;
   uint32_t i, offset = p->h.insdshead->ksmps_offset;

@@ -66,6 +66,8 @@ static void msg_callback(CSOUND *csound,
 }
 
 static void nomsg_callback(CSOUND *csound,
+    /* Matches the message callback signature. va_list differs between platforms. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
   int attr, const char *format, va_list args){
   IGN(csound); IGN(attr);  IGN(format);  IGN(args);
 }

@@ -44,7 +44,7 @@
 #define LBUFSIZ1 32768
 #define LF        '\n'
 
-void sense_line(CSOUND *csound, void *userData);
+static void sense_line(CSOUND *csound, void *userData);
 static int32_t set_sense_event_callback(CSOUND *csound, void (*func)(CSOUND *, void *),
                  void *userData)
 {
@@ -162,7 +162,7 @@ void linevent_close(CSOUND *csound)
 
 /* does string segment contain LF? */
 
-static inline int32_t containsLF(char *cp, char *endp)
+static inline int32_t containsLF(char *cp, const char *endp)
 {
     while (cp < endp) {
       if (UNLIKELY(*cp++ == LF))
@@ -261,7 +261,7 @@ void csoundInputMessage(CSOUND *csound, const char *message) {
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
 /* does more syntax checking than rdscor, since not preprocessed  */
 
-void sense_line(CSOUND *csound, void *userData)
+static void sense_line(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
     int32_t     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);

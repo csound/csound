@@ -399,7 +399,7 @@ int32_t delwset(CSOUND *csound, DELAYW *p)
     return OK;
 }
 
-static DELAYR *delayr_find(CSOUND *csound, INSDS *owner, cs_float *ndx)
+static DELAYR *delayr_find(CSOUND *csound, INSDS *owner, const cs_float *ndx)
 {
     DELAY_PAIRING *pairing = delay_pairing(csound, owner);
     DELAYR *d = pairing != NULL ? pairing->first : NULL;
@@ -1159,7 +1159,7 @@ int32_t alpass(CSOUND *csound, COMB *p)
 static const cs_float revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
                                     FL(0.0437), FL(0.0050), FL(0.0017)};
 
-void reverbinit(CSOUND *csound, REVERB *p)
+static void reverbinit(CSOUND *csound, REVERB *p)
 {
     const cs_float *lptimp = revlptimes;
     int32_t     *lpsizp = p->revlpsiza;

@@ -111,9 +111,9 @@ typedef struct devparams_ {
     int32_t             buffer_smps;    /* buffer length in samples         */
     int32_t             period_smps;    /* period time in samples           */
     /* playback sample conversion function */
-    void            (*playconv)(int32_t, cs_float *, void *, int32_t *);
+    void            (*playconv)(int32_t, const cs_float *, void *, int32_t *);
     /* record sample conversion function */
-    void            (*rec_conv)(int32_t, void *, cs_float *);
+    void            (*rec_conv)(int32_t, const void *, cs_float *);
     int32_t             seed;           /* random seed for dithering        */
 } DEVPARAMS;
 
@@ -150,7 +150,7 @@ static const unsigned char dataBytes[16] = {
     0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 2, 0
 };
 
-int32_t set_scheduler_priority(CSOUND *csound, int32_t priority)
+static int32_t set_scheduler_priority(CSOUND *csound, int32_t priority)
 {
     struct sched_param p;
 
@@ -190,7 +190,8 @@ int32_t set_scheduler_priority(CSOUND *csound, int32_t priority)
 
 /* sample conversion routines for playback */
 
-static void CS_FLOAT_to_short(int32_t nSmps, cs_float *inBuf, int16_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_short(int32_t nSmps, const cs_float *inBuf,
+                              int16_t *outBuf, int32_t *seed)
 {
     cs_float tmp_f;
     int32_t   tmp_i;
@@ -212,7 +213,8 @@ static void CS_FLOAT_to_short(int32_t nSmps, cs_float *inBuf, int16_t *outBuf, i
     }
 }
 
-static void CS_FLOAT_to_short_u(int32_t nSmps, cs_float *inBuf, int16_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_short_u(int32_t nSmps, const cs_float *inBuf,
+                                int16_t *outBuf, int32_t *seed)
 {
     cs_float tmp_f;
     int32_t   tmp_i;
@@ -233,8 +235,11 @@ static void CS_FLOAT_to_short_u(int32_t nSmps, cs_float *inBuf, int16_t *outBuf,
     }
 }
 
-static void CS_FLOAT_to_short_no_dither(int32_t nSmps, cs_float *inBuf,
-                                     int16_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_short_no_dither(int32_t nSmps, const cs_float *inBuf,
+                                       int16_t *outBuf,
+    /* The playback callback shares writable dither state. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
+                                       int32_t *seed)
 {
   IGN(seed);
     cs_float tmp_f;
@@ -253,7 +258,10 @@ static void CS_FLOAT_to_short_no_dither(int32_t nSmps, cs_float *inBuf,
     }
 }
 
-static void CS_FLOAT_to_long(int32_t nSmps, cs_float *inBuf, int32_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_long(int32_t nSmps, const cs_float *inBuf, int32_t *outBuf,
+    /* The playback callback shares writable dither state. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
+                             int32_t *seed)
 {
     cs_float   tmp_f;
     int64_t tmp_i;
@@ -273,7 +281,10 @@ static void CS_FLOAT_to_long(int32_t nSmps, cs_float *inBuf, int32_t *outBuf, in
     }
 }
 
-static void CS_FLOAT_to_float(int32_t nSmps, cs_float *inBuf, float *outBuf, int32_t *seed)
+static void CS_FLOAT_to_float(int32_t nSmps, const cs_float *inBuf, float *outBuf,
+    /* The playback callback shares writable dither state. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
+                              int32_t *seed)
 {
     (void) seed;
     int32_t n;
@@ -283,7 +294,7 @@ static void CS_FLOAT_to_float(int32_t nSmps, cs_float *inBuf, float *outBuf, int
 
 /* sample conversion routines for recording */
 
-static void short_to_CS_FLOAT(int32_t nSmps, int16_t *inBuf, cs_float *outBuf)
+static void short_to_CS_FLOAT(int32_t nSmps, const int16_t *inBuf, cs_float *outBuf)
 {
     int32_t n;
     cs_float adjust = FL(1.0) / (cs_float) 0x8000;
@@ -291,7 +302,7 @@ static void short_to_CS_FLOAT(int32_t nSmps, int16_t *inBuf, cs_float *outBuf)
       outBuf[n] = (cs_float) inBuf[n] * adjust;
 }
 
-static void long_to_CS_FLOAT(int32_t nSmps, int32_t *inBuf, cs_float *outBuf)
+static void long_to_CS_FLOAT(int32_t nSmps, const int32_t *inBuf, cs_float *outBuf)
 {
     int32_t n;
     cs_float adjust = FL(1.0) / (cs_float) 0x80000000UL;
@@ -299,7 +310,7 @@ static void long_to_CS_FLOAT(int32_t nSmps, int32_t *inBuf, cs_float *outBuf)
       outBuf[n] = (cs_float) inBuf[n] * adjust;
 }
 
-static void float_to_CS_FLOAT(int32_t nSmps, float *inBuf, cs_float *outBuf)
+static void float_to_CS_FLOAT(int32_t nSmps, const float *inBuf, cs_float *outBuf)
 {
     int32_t n;
     for (n=0; n<nSmps; n++)
@@ -444,8 +455,8 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
     {
       void  (*fp)(void) = NULL;
       alsaFmt = set_format(&fp, dev->format, play, csound->GetDitherMode(csound));
-      if (play) dev->playconv = (void (*)(int32_t, cs_float*, void*, int*)) fp;
-      else      dev->rec_conv = (void (*)(int32_t, void*, cs_float*)) fp;
+      if (play) dev->playconv = (void (*)(int32_t, const cs_float*, void*, int*)) fp;
+      else      dev->rec_conv = (void (*)(int32_t, const void*, cs_float*)) fp;
     }
 
     if (UNLIKELY(alsaFmt == SND_PCM_FORMAT_UNKNOWN)) {
@@ -721,8 +732,8 @@ static int32_t open_device(CSOUND *csound, const csRtAudioParams *parm, int32_t 
     dev->nchns = parm->nChannels;
 
     dev->period_smps = parm->bufSamp_SW;
-    dev->playconv = (void (*)(int32_t, cs_float*, void*, int*)) NULL;
-    dev->rec_conv = (void (*)(int32_t, void*, cs_float*)) NULL;
+    dev->playconv = NULL;
+    dev->rec_conv = NULL;
     dev->seed = 1;
     /* open device */
     retval = set_device_params(csound, dev, play);
@@ -1686,7 +1697,7 @@ static int32_t alsaseq_out_close(CSOUND *csound, void *userData)
     return 0;
 }
 
-int32_t listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
+static int32_t listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
     int32_t count = 0;
     int32_t card, err;
 
@@ -1852,7 +1863,7 @@ static int32_t check_permission(snd_seq_port_info_t *pinfo, int32_t perm)
     return 1;
 }
 
-int32_t listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
+static int32_t listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
     snd_seq_client_info_t *cinfo;
     snd_seq_port_info_t *pinfo;
     int32_t numdevs = 0;
