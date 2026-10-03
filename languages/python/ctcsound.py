@@ -102,7 +102,6 @@ CS_VAR_MEM_p = ct.POINTER(CS_VAR_MEM)
 # Opaque pointers for UGen API structs
 UGEN_p = ct.c_void_p
 UGEN_FACTORY_p = ct.c_void_p
-UGEN_CONTEXT_p = ct.c_void_p
 UGEN_GRAPH_p = ct.c_void_p
 UGEN_VAR_p = ct.c_void_p
 
@@ -552,14 +551,6 @@ libcsound.csoundUgenFactoryNew.argtypes = [CSOUND_p]
 libcsound.csoundUgenFactoryDelete.restype = ct.c_bool
 libcsound.csoundUgenFactoryDelete.argtypes = [UGEN_FACTORY_p]
 
-# Context API
-libcsound.csoundUgenContextNew.restype = UGEN_CONTEXT_p
-libcsound.csoundUgenContextNew.argtypes = [UGEN_FACTORY_p]
-libcsound.csoundUgenContextDelete.restype = ct.c_bool
-libcsound.csoundUgenContextDelete.argtypes = [UGEN_CONTEXT_p]
-libcsound.csoundUgenSetContext.restype = ct.c_bool
-libcsound.csoundUgenSetContext.argtypes = [UGEN_p, UGEN_CONTEXT_p]
-
 # UGen creation/destruction
 libcsound.csoundUgenNew.restype = UGEN_p
 libcsound.csoundUgenNew.argtypes = [UGEN_FACTORY_p, ct.c_char_p, ct.c_char_p, ct.c_char_p]
@@ -625,6 +616,24 @@ libcsound.csoundUgenInit.restype = ct.c_int32
 libcsound.csoundUgenInit.argtypes = [UGEN_p]
 libcsound.csoundUgenPerform.restype = ct.c_int32
 libcsound.csoundUgenPerform.argtypes = [UGEN_p]
+
+libcsound.csoundUgenSetDuration.restype = ct.c_bool
+libcsound.csoundUgenSetDuration.argtypes = [UGEN_p, cs_float]
+
+libcsound.csoundUgenReleaseNote.restype = ct.c_bool
+libcsound.csoundUgenReleaseNote.argtypes = [UGEN_p]
+
+libcsound.csoundUgenSetStartOffset.restype = ct.c_bool
+libcsound.csoundUgenSetStartOffset.argtypes = [UGEN_p, ct.c_uint32]
+
+libcsound.csoundUgenSetEndOffset.restype = ct.c_bool
+libcsound.csoundUgenSetEndOffset.argtypes = [UGEN_p, ct.c_uint32]
+
+libcsound.csoundUgenResetOffsets.restype = ct.c_bool
+libcsound.csoundUgenResetOffsets.argtypes = [UGEN_p]
+
+libcsound.csoundUgenGetExtraTime.restype = ct.c_int32
+libcsound.csoundUgenGetExtraTime.argtypes = [UGEN_p]
 
 # Opcode listing API
 libcsound.csoundUgenListOpcodes.restype = ct.c_int32
@@ -2065,7 +2074,7 @@ class CsoundPerformanceThread:
 
     def __del__(self):
         libcspt.csoundDestroyPerformanceThread(self.cpt)
-    
+
     #
     # Realtime MIDI I/O
     #
@@ -2326,11 +2335,6 @@ class UgenFactory:
         ptr = libcsound.csoundUgenGraphNew(self.factory)
         return UgenGraph(ptr, self) if ptr else None
 
-    def new_context(self):
-        """Create a new UgenContext for instrument-like state."""
-        ptr = libcsound.csoundUgenContextNew(self.factory)
-        return UgenContext(ptr) if ptr else None
-
     def new_var(self, arg_type):
         """Create a standalone UGEN_VAR with its own memory.
 
@@ -2354,7 +2358,6 @@ class Ugen:
     def __init__(self, ptr, factory=None):
         self.ugen = ptr
         self._factory = factory  # prevent GC of factory while ugen alive
-        self._context = None     # set by set_context()
 
     def __del__(self):
         self.delete()
@@ -2470,20 +2473,6 @@ class Ugen:
         """Get the UGEN_ARG_TYPE for output argument at index."""
         return libcsound.csoundUgenGetOutType(self.ugen, index)
 
-    # Context
-
-    def set_context(self, context):
-        """Associate this ugen with a UgenContext.
-
-        Must be called before init() if the opcode needs
-        instrument-like state (hold, release, MIDI, etc.).
-
-        Args:
-            context: A UgenContext instance.
-        """
-        self._context = context  # prevent GC of context while ugen alive
-        return libcsound.csoundUgenSetContext(self.ugen, context.ctx)
-
     # Init / Perform
 
     def init(self):
@@ -2494,28 +2483,24 @@ class Ugen:
         """Run the opcode's perf-pass (one ksmps block)."""
         return libcsound.csoundUgenPerform(self.ugen)
 
+    def set_duration(self, duration):
+        """Let ugen know how long the note will play"""
+        return libcsound.csoundUgenSetDuration(self.ugen, duration)
 
-class UgenContext:
-    """Provides instrument-like context (hold/release state) for UGENs.
+    def release_note(self):
+        return libcsound.csoundUgenReleaseNote(self.ugen)
 
-    Created via UgenFactory.new_context(). Do not instantiate directly.
-    """
+    def set_start_offset(self, start):
+        return libcsound.csoundUgenSetStartOffset(self.ugen, start)
 
-    def __init__(self, ptr):
-        self.ctx = ptr
+    def set_end_offset(self, end):
+        return libcsound.csoundUgenSetEndOffset(self.ugen, end)
 
-    def __del__(self):
-        self.delete()
+    def reset_offsets(self):
+        return libcsound.csoundUgenResetOffsets(self.ugen)
 
-    def delete(self):
-        """Free the context. Safe to call multiple times."""
-        if self.ctx:
-            libcsound.csoundUgenContextDelete(self.ctx)
-            self.ctx = None
-
-    def set_on_ugen(self, ugen):
-        """Associate this context with a Ugen."""
-        return libcsound.csoundUgenSetContext(ugen.ugen, self.ctx)
+    def get_extra_teme(self):
+        return libcsound.csoundUgenGetExtraTime(self.ugen)
 
 
 class UgenGraph:

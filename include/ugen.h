@@ -37,7 +37,6 @@ extern "C" {
 /* Opaque types – defined in H/ugen_internal.h */
 typedef struct UGEN UGEN;
 typedef struct UGEN_FACTORY UGEN_FACTORY;
-typedef struct UGEN_CONTEXT UGEN_CONTEXT;
 typedef struct UGEN_GRAPH UGEN_GRAPH;
 typedef struct UGEN_VAR UGEN_VAR;
 
@@ -74,51 +73,6 @@ PUBLIC UGEN_FACTORY* csoundUgenFactoryNew(CSOUND* csound);
 /** Delete a UGEN_FACTORY */
 PUBLIC bool csoundUgenFactoryDelete(UGEN_FACTORY* factory);
 
-/* ==== Context API ==== */
-
-/** Create a new UGEN_CONTEXT for instrument-like state management */
-PUBLIC UGEN_CONTEXT* csoundUgenContextNew(UGEN_FACTORY* factory);
-
-/** Delete a UGEN_CONTEXT */
-PUBLIC bool csoundUgenContextDelete(UGEN_CONTEXT* context);
-
-/** Associate a UGEN with a context for hold/release/MIDI support.
- * Must be called before csoundUgenInit() if the opcode needs
- * instrument-like state. */
-PUBLIC bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context);
-
-
-/**
- * Let ugen know how long the note would play.
- * Call before init.
- */
-PUBLIC bool csoundUgenContextSetDuration(UGEN_CONTEXT *context, cs_float p3);
-
-/**
- * Makes ugen know that the note has been released
- */
-PUBLIC bool csoundUgenContextReleaseNote(UGEN_CONTEXT *context);
-
-/**
- * Offset the samples within audio buffer from the start
- */
-PUBLIC bool csoundUgenContextSetStartOffset(UGEN_CONTEXT *context, uint32_t start);
-
-/**
- * Offet the samples within audio buffer from the end
- */
-PUBLIC bool csoundUgenContextSetEndOffset(UGEN_CONTEXT *context, uint32_t end);
-
-/**
- * Sets start and end offsets to zero
- */
-PUBLIC bool csoundUgenContextResetOffsets(UGEN_CONTEXT *context);
-
-/**
- * Returns extra type the ugen will output non-zero values after note release
- */
-PUBLIC int32_t csoundUgenContextGetExtraTime(UGEN_CONTEXT *context);
-
 /* ==== UGEN Creation/Destruction ==== */
 
 /** Create a new UGEN, using the given UGEN_FACTORY and opcode name/types.
@@ -128,6 +82,39 @@ PUBLIC UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
 
 /** Delete a UGEN and free all associated resources */
 PUBLIC bool csoundUgenDelete(UGEN* ugen);
+
+/* ==== UGEN: instrument control ==== */
+
+/**
+ * Let ugen know how long the note would play.
+ * Call before init.
+ */
+PUBLIC bool csoundUgenSetDuration(UGEN *ugen, cs_float p3);
+
+/**
+ * Makes ugen know that the note has been released
+ */
+PUBLIC bool csoundUgenReleaseNote(UGEN *ugen);
+
+/**
+ * Offset the samples within audio buffer from the start
+ */
+PUBLIC bool csoundUgenSetStartOffset(UGEN *ugen, uint32_t start);
+
+/**
+ * Offet the samples within audio buffer from the end
+ */
+PUBLIC bool csoundUgenSetEndOffset(UGEN *ugen, uint32_t end);
+
+/**
+ * Sets start and end offsets to zero
+ */
+PUBLIC bool csoundUgenResetOffsets(UGEN *ugen);
+
+/**
+ * Returns extra type the ugen will output non-zero values after note release
+ */
+PUBLIC int32_t csoundUgenGetExtraTime(UGEN *ugen);
 
 /* ==== UGEN_VAR: Typed Variable Handles ==== */
 
