@@ -55,6 +55,12 @@ typedef struct TwoZero {
     cs_float zeroCoeffs[2];
 } TwoZero;
 
+void make_TwoZero(TwoZero *p);
+void TwoZero_setZeroCoeffs(TwoZero *p, const cs_float *coeffs);
+cs_float TwoZero_tick(TwoZero *p, cs_float sample);
+cs_float Wave_tick(cs_float *vTime, int32_t len, const cs_float *data,
+                   cs_float rate, cs_float phase);
+
 /* ********************************************************************** */
 
 typedef struct FM4OP {

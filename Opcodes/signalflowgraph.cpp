@@ -163,16 +163,8 @@ struct FtGenOnce;
 static const int32_t MAX_STRING = 256;
 
 
-std::ostream &operator<<(std::ostream &stream, const EVTBLK &a) {
-  stream << a.opcod;
-  for (int32_t i = 0; i < a.pcnt; i++) {
-    stream << " " << a.p[i];
-  }
-  return stream;
-}
-
 // Stupid hash from http://www.cse.yorku.ca/~oz/hash.html.
-unsigned long djb2_hash(unsigned char *str) {
+static unsigned long djb2_hash(unsigned char *str) {
   unsigned long hash = 5381;
   int32_t c;
   while ((c = *str++))
@@ -213,7 +205,7 @@ struct EventBlock {
 };
 
 
-bool operator<(const EventBlock &a, const EventBlock &b) {
+static bool operator<(const EventBlock &a, const EventBlock &b) {
   // If the number of p-fields differ, compare and exit.
   if (a.evtblk.pcnt != b.evtblk.pcnt) {
     return a.evtblk.pcnt < b.evtblk.pcnt;

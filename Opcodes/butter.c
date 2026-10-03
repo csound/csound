@@ -43,9 +43,9 @@ typedef struct  {
 #include <math.h>
 //#define ROOT2 (1.4142135623730950488)
 
-static void butter_filter(uint32_t, uint32_t, cs_float *, cs_float *, cs_double *);
+static void butter_filter(uint32_t, uint32_t, const cs_float *, cs_float *, cs_double *);
 
-int32_t butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
+static int32_t butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 {
      IGN(csound);
     if (*p->istor==FL(0.0)) {
@@ -133,7 +133,7 @@ static int32_t lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       
 /* Filter loop */
 
 static void butter_filter(uint32_t n, uint32_t offset,
-                          cs_float *in, cs_float *out, cs_double *a)
+                          const cs_float *in, cs_float *out, cs_double *a)
 {
     cs_double t, y;
     uint32_t nn;

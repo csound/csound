@@ -252,7 +252,7 @@ int32_t printk(CSOUND *csound, PRINTK *p)
 #define ESC (0x1B)
 
 /* printksset is called when the instance of the instrument is initialised. */
-int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
+static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
 {
     char        *sdest;
     char        temp, tempn;

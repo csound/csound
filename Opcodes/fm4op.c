@@ -59,7 +59,7 @@ void make_TwoZero(TwoZero *p)
     p->lastOutput = FL(0.0);
 }
 
-void TwoZero_setZeroCoeffs(TwoZero* p, cs_float *coeffs)
+void TwoZero_setZeroCoeffs(TwoZero* p, const cs_float *coeffs)
 {
     p->zeroCoeffs[0] = coeffs[0];
     p->zeroCoeffs[1] = coeffs[1];
@@ -77,7 +77,7 @@ cs_float TwoZero_tick(TwoZero *p, cs_float sample)
     return lastOutput;
 }
 
-cs_float Wave_tick(cs_float *vTime, int32_t len, cs_float *data, cs_float rate, cs_float phase)
+cs_float Wave_tick(cs_float *vTime, int32_t len, const cs_float *data, cs_float rate, cs_float phase)
 {                                /* Tick on vibrato table */
     int32   temp;
     cs_float   alpha;
@@ -116,7 +116,7 @@ static cs_float    FM4Op_gains[100];
 static cs_float    FM4Op_susLevels[16];
 static cs_float    FM4Op_attTimes[32];
 
-void build_FM(void)
+static void build_FM(void)
 {                                /* The following tables are pre-built */
     cs_float       temp = FL(1.0);
     int32_t         i;
@@ -138,7 +138,7 @@ void build_FM(void)
     FM_tabs_built = 1;
 }
 
-int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
+static int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
 {
     cs_float       tempCoeffs[2] = {FL(0.0), -FL(1.0)};
     FUNC        *ftp;
@@ -189,7 +189,7 @@ static int32_t FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
     return csound->InitError(csound, "%s", Str("No table for FM4Op"));
 }
 
-void FM4Op_setRatio(FM4OP *p, int32_t whichOne, cs_float ratio)
+static void FM4Op_setRatio(FM4OP *p, int32_t whichOne, cs_float ratio)
 {
     p->ratios[whichOne] = ratio;
     if (ratio>FL(0.0))

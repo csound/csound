@@ -29,7 +29,7 @@
 
 /* FOG generator */
 
-static int32_t newpulse(CSOUND *, FOGS *, OVERLAP *, cs_float *, cs_float *, cs_float *);
+static int32_t newpulse(CSOUND *, FOGS *, OVERLAP *, const cs_float *, const cs_float *, const cs_float *);
 
 static int32_t fogset(CSOUND *csound, FOGS *p)
 {
@@ -232,8 +232,8 @@ static int32_t fog(CSOUND *csound, FOGS *p)
                              "%s", Str("FOF needs more overlaps"));
 }
 
-static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, cs_float   *amp,
-                        cs_float *fund, cs_float *ptch)
+static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, const cs_float   *amp,
+                        const cs_float *fund, const cs_float *ptch)
 {
   cs_float       octamp = *amp, oct;
   cs_float       form = *ptch / CS_SICVT, fogcvt = p->fogcvt;

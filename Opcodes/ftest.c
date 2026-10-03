@@ -105,7 +105,7 @@ typedef struct {
 } WAVELET;
 
 static int32_t deconvolve(cs_float *pInp, WAVELET *pwaveS, uint32_t *pnewLen,
-                          cs_float *pBuf, int32_t *pOrder)
+                          cs_float *pBuf, const int32_t *pOrder)
 {
   uint32_t i, j;
   *pnewLen *= 2;

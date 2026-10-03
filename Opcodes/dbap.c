@@ -55,7 +55,7 @@ static inline cs_float clamp_elevation(cs_float x) {
     return x;
 }
 
-CARTESIAN_COORD pol_to_car(const POLAR_COORD *p, int32_t polar_mode) {
+static CARTESIAN_COORD pol_to_car(const POLAR_COORD *p, int32_t polar_mode) {
     CARTESIAN_COORD pol;
 
     cs_float phi = p->phi;
@@ -89,7 +89,7 @@ static inline void swap(cs_float *a, cs_float *b) {
     *b = temp;
 }
 
-void build_source(CARTESIAN_COORD *source, cs_float *input_source, int32_t source_size, int32_t coord_mode) {
+static void build_source(CARTESIAN_COORD *source, const cs_float *input_source, int32_t source_size, int32_t coord_mode) {
     cs_float rho;
     cs_float phi;
     cs_float theta;
@@ -143,13 +143,13 @@ static cs_float quickselect(cs_float *arr, int32_t n, int32_t k) {
     return arr[k];
 }
 
-int32_t init_dbap(
+static int32_t init_dbap(
     CSOUND *csound,
     DBAP_STATE *dbap,
     int32_t n,
     int32_t ncoords,
     cs_float rolloff,
-    cs_float *weights,
+    const cs_float *weights,
     int32_t nsamples,
     int32_t coord_kind
 ) {
@@ -195,7 +195,7 @@ int32_t init_dbap(
     return OK;
 }
 
-void update_loudspeaker_distances(DBAP_STATE *dbap, const CARTESIAN_COORD *source, cs_float spatial_blur) {
+static void update_loudspeaker_distances(DBAP_STATE *dbap, const CARTESIAN_COORD *source, cs_float spatial_blur) {
     cs_float *distances = (cs_float *)dbap->distances.auxp;
     CARTESIAN_COORD *lpos = (CARTESIAN_COORD *)dbap->lpos.auxp;
     distances[2 * dbap->nchnls] = FL(0.0);
@@ -217,7 +217,7 @@ void update_loudspeaker_distances(DBAP_STATE *dbap, const CARTESIAN_COORD *sourc
 
 }
 
-cs_float get_spatial_blur(DBAP_STATE *dbap) {
+static cs_float get_spatial_blur(DBAP_STATE *dbap) {
     cs_float *distances = (cs_float *)dbap->distances.auxp;
     update_loudspeaker_distances(dbap, &dbap->center, 0.0);
     cs_float sb = FL(0.0);
@@ -227,7 +227,7 @@ cs_float get_spatial_blur(DBAP_STATE *dbap) {
     return (sb / dbap->nchnls) + FL(0.2);
 }
 
-void set_loudspeakers_position(CARTESIAN_COORD *lpos, cs_float *input_coords, int32_t n, int32_t ncoords, int32_t coord_kind) {
+static void set_loudspeakers_position(CARTESIAN_COORD *lpos, const cs_float *input_coords, int32_t n, int32_t ncoords, int32_t coord_kind) {
 
     for (int i = 0; i < n; i++) {
         int32_t index = i * ncoords;
@@ -255,7 +255,7 @@ void set_loudspeakers_position(CARTESIAN_COORD *lpos, cs_float *input_coords, in
     }
 };
 
-void finalize_dbap(DBAP_STATE *dbap, cs_float *input_coords, int32_t ncoords) {
+static void finalize_dbap(DBAP_STATE *dbap, cs_float *input_coords, int32_t ncoords) {
     CARTESIAN_COORD *lpos = (CARTESIAN_COORD *)dbap->lpos.auxp;
     set_loudspeakers_position(lpos, input_coords, dbap->nchnls, ncoords, dbap->coord_kind);
 
@@ -298,7 +298,7 @@ int32_t initialize_dbap(
     return OK;
 }
 
-cs_float get_p(DBAP_STATE *dbap, CARTESIAN_COORD *source) {
+static cs_float get_p(DBAP_STATE *dbap, CARTESIAN_COORD *source) {
     cs_float dist_source_center = get_distance(dbap->center, *source, dbap->spatial_blur);
     dist_source_center = dist_source_center > FL(0.0) ? dist_source_center : FL(1.0);
     cs_float q = ((cs_float *)dbap->distances.auxp)[2 * dbap->nchnls] / dist_source_center;
@@ -306,7 +306,7 @@ cs_float get_p(DBAP_STATE *dbap, CARTESIAN_COORD *source) {
     return p;
 }
 
-void get_b(DBAP_STATE *dbap, cs_float p) {
+static void get_b(DBAP_STATE *dbap, cs_float p) {
     memset(dbap->temp_b.auxp, 0, sizeof(cs_float) * dbap->nchnls);
     memset(dbap->temp_u.auxp, 0, sizeof(cs_float) * dbap->nchnls);
 
@@ -348,7 +348,7 @@ void get_b(DBAP_STATE *dbap, cs_float p) {
     }
 }
 
-cs_float get_k(DBAP_STATE *dbap, cs_float p) {
+static cs_float get_k(DBAP_STATE *dbap, cs_float p) {
     cs_float pfac = FL(2.0) * dbap->a;
     cs_float k_num = POWER(p, pfac);
     cs_float k_den = FL(0.0);
@@ -364,7 +364,7 @@ cs_float get_k(DBAP_STATE *dbap, cs_float p) {
     return k;
 }
 
-void solve_dbap_gain_vector(DBAP_STATE *dbap, CARTESIAN_COORD *source, cs_float *spread) {
+static void solve_dbap_gain_vector(DBAP_STATE *dbap, CARTESIAN_COORD *source, const cs_float *spread) {
     memset(dbap->lgains.auxp, 0, sizeof(cs_float) * dbap->nchnls);
     cs_float *gains = (cs_float *)dbap->lgains.auxp;
 
@@ -395,7 +395,7 @@ void solve_dbap_gain_vector(DBAP_STATE *dbap, CARTESIAN_COORD *source, cs_float 
     }
 }
 
-void gain_vector_interpolation(DBAP_STATE *dbap, cs_float *input_frame, int32_t nsamples) {
+static void gain_vector_interpolation(DBAP_STATE *dbap, const cs_float *input_frame, int32_t nsamples) {
     cs_float *curr_gains = (cs_float *)dbap->lgains.auxp;
     cs_float *prev_gains = (cs_float *)curr_gains + dbap->nchnls;
     cs_float *internal_out = (cs_float *)dbap->internal_out_frame.auxp;

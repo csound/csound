@@ -114,14 +114,14 @@ typedef struct csdata_ {
 } csdata;
 
 
-OSStatus  Csound_Input(void *inRefCon,
+static OSStatus  Csound_Input(void *inRefCon,
                        AudioUnitRenderActionFlags *ioActionFlags,
                        const AudioTimeStamp *inTimeStamp,
                        UInt32 inBusNumber,
                        UInt32 inNumberFrames,
                        AudioBufferList *ioData);
 
-OSStatus  Csound_Render(void *inRefCon,
+static OSStatus  Csound_Render(void *inRefCon,
                         AudioUnitRenderActionFlags *ioActionFlags,
                         const AudioTimeStamp *inTimeStamp,
                         UInt32 dump,
@@ -150,7 +150,7 @@ static void ADC_channels(CSOUND *csound, int32_t chans){
     }
 }
 
-int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
+static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                csdata *cdata, int32_t isInput)
 {
     UInt32  psize, devnum, devnos;
@@ -711,7 +711,7 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams * parm)
 }
 
 
-OSStatus  Csound_Input(void *inRefCon,
+static OSStatus  Csound_Input(void *inRefCon,
                        AudioUnitRenderActionFlags *ioActionFlags,
                        const AudioTimeStamp *inTimeStamp,
                        UInt32 inBusNumber,
@@ -762,7 +762,9 @@ static int32_t rtrecord_(CSOUND *csound, cs_float *inbuff_, int32_t nbytes)
     return nbytes;
 }
 
-OSStatus Csound_Render(void *inRefCon,
+static OSStatus Csound_Render(void *inRefCon,
+    /* Matches the AudioUnit callback signature. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
                         AudioUnitRenderActionFlags *ioActionFlags,
                         const AudioTimeStamp *inTimeStamp,
                         UInt32 inBusNumber,

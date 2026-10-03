@@ -41,7 +41,7 @@
 // It was removed as nowhere else in the
 // system we check for this.
 
-int32_t is_perf_thread(OPDS *p){
+static int32_t is_perf_thread(OPDS *p){
   return p->insdshead->init_done;
 }
 

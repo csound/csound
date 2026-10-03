@@ -719,7 +719,7 @@ int32_t areson(CSOUND *csound, RESON *p)
  *
  */
 
-int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
+static int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
 {
     LPHEADER *lph;
     MEMFIL *mfp;
@@ -949,7 +949,7 @@ static inline void InvertPoles(int32_t count, cs_double *real, cs_double *imag)
 
 static inline void
     synthetize(int32_t    poleCount,
-               cs_double *poleReal, cs_double *poleImag,
+               const cs_double *poleReal, const cs_double *poleImag,
                cs_double *polyReal, cs_double *polyImag)
 {
     int32_t    j, k;

@@ -1001,7 +1001,7 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 
 #define SWAP(a,b) temp=(a);(a)=(b);(b)=temp
 
-cs_float medianvalue(uint32 n, cs_float *vals)
+static cs_float medianvalue(uint32 n, cs_float *vals)
 {   /* vals must point to 1 below relevant data! */
     uint32 i, ir, j, l, mid;
     uint32 k = (n + 1) / 2;

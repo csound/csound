@@ -35,6 +35,8 @@ void csoundRewriteHeader(CSOUND *csound, void *ofd)
 /* Returns NULL on failure */
 
 void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
+                  /* Matches the public SAsndgetset function pointer in CSOUND. */
+                  /* NOLINTNEXTLINE(readability-non-const-parameter) */
                   cs_float *abeg_time, cs_float *ainput_dur, cs_float *asr,
                   int32_t channel)
 {

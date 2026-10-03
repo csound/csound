@@ -1213,7 +1213,7 @@ int32_t complexa_subin(CSOUND *csound, COPS1 *p) {
 }
 
 static inline void
-cmplx_real_proda(COMPLEXDAT *out, COMPLEXDAT *in, cs_float *num, int32_t n) {
+cmplx_real_proda(COMPLEXDAT *out, COMPLEXDAT *in, const cs_float *num, int32_t n) {
   for(int i = 0; i < n; i++) {
     out[i].isPolar = in[i].isPolar;
     if(!in[i].isPolar) {
@@ -1266,7 +1266,7 @@ int32_t complexa_mulrealin(CSOUND *csound, COPS1 *p) {
 
 
 static inline void
-cmplx_real_diva(COMPLEXDAT *out, COMPLEXDAT *in, cs_float *num, int32_t n) {
+cmplx_real_diva(COMPLEXDAT *out, COMPLEXDAT *in, const cs_float *num, int32_t n) {
   for(int i = 0; i < n; i++) {
     out[i].isPolar = in[i].isPolar;
     if(!in[i].isPolar) {
@@ -1280,7 +1280,7 @@ cmplx_real_diva(COMPLEXDAT *out, COMPLEXDAT *in, cs_float *num, int32_t n) {
 }
 
 static inline void
-real_cmplx_diva(COMPLEXDAT *out, cs_float *num, COMPLEXDAT *in, int32_t n) {
+real_cmplx_diva(COMPLEXDAT *out, const cs_float *num, COMPLEXDAT *in, int32_t n) {
   for(int i = 0; i < n; i++) {
     cs_float real = in[i].real;
     cs_float imag = in[i].imag;
@@ -1337,7 +1337,7 @@ int32_t complexa_divrealin(CSOUND *csound, COPS1 *p) {
 
 
 static inline void
-cmplx_real_suma(COMPLEXDAT *out, COMPLEXDAT *in, cs_float *num, int32_t n) {
+cmplx_real_suma(COMPLEXDAT *out, COMPLEXDAT *in, const cs_float *num, int32_t n) {
   for(int i = 0; i < n; i++) {
     out[i].isPolar = in[i].isPolar;
     if(!in[i].isPolar) {
@@ -1394,7 +1394,7 @@ int32_t complexa_addrealin(CSOUND *csound, COPS1 *p) {
 
 
 static inline void
-cmplx_real_minusa(COMPLEXDAT *out, COMPLEXDAT *in, cs_float *num, int32_t n) {
+cmplx_real_minusa(COMPLEXDAT *out, COMPLEXDAT *in, const cs_float *num, int32_t n) {
   for(int i = 0; i < n; i++) {
     out[i].isPolar = in[i].isPolar;
     if(!in[i].isPolar) {
@@ -1411,7 +1411,7 @@ cmplx_real_minusa(COMPLEXDAT *out, COMPLEXDAT *in, cs_float *num, int32_t n) {
 }
 
 static inline void
-real_cmplx_minusa(COMPLEXDAT *out, cs_float *num, COMPLEXDAT *in, int32_t n) {
+real_cmplx_minusa(COMPLEXDAT *out, const cs_float *num, COMPLEXDAT *in, int32_t n) {
   for(int i = 0; i < n; i++) {
     out[i].isPolar = in[i].isPolar;
     if(!in[i].isPolar) {

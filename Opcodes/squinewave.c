@@ -113,7 +113,7 @@ static inline cs_float Clamp(const cs_float x, const cs_float minval, const cs_f
 /* ================================================================== */
 
 
-int32_t squinewave_init(CSOUND* csound, SQUINEWAVE *p)
+static int32_t squinewave_init(CSOUND* csound, SQUINEWAVE *p)
 {
     const cs_double sr = CS_ESR;
 
@@ -149,7 +149,7 @@ int32_t squinewave_init(CSOUND* csound, SQUINEWAVE *p)
 
 /* ================================================================== */
 
-int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
+static int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 {
     IGN(csound);
     const uint32_t nsmps = CS_KSMPS;

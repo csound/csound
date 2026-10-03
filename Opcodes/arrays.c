@@ -41,7 +41,7 @@ typedef struct _autocorr {
   int32_t FN;
 } AUTOCORR;
 
-int32_t init_autocorr(CSOUND *csound, AUTOCORR *p) {
+static int32_t init_autocorr(CSOUND *csound, AUTOCORR *p) {
   if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
                p->out->dimensions > 1))
     return csound->InitError(csound, "%s",
@@ -61,7 +61,7 @@ int32_t init_autocorr(CSOUND *csound, AUTOCORR *p) {
   return OK;
 }
 
-int32_t perf_autocorr(CSOUND *csound, AUTOCORR *p) {
+static int32_t perf_autocorr(CSOUND *csound, AUTOCORR *p) {
   if (UNLIKELY(p->in->sizes == NULL || p->in->dimensions != 1 ||
                p->out->dimensions != 1))
     return csound->PerfError(csound, &p->h, "%s",

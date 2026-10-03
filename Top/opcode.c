@@ -375,7 +375,7 @@ int32_t opcode_info(CSOUND *csound, OPINFO *p) {
 /**
  * Set a constant (for optional arguments)
  */
-cs_float *set_constant(CSOUND *csound, const char *name, cs_float value) {
+static cs_float *set_constant(CSOUND *csound, const char *name, cs_float value) {
   return (cs_float *)
     ((char *)find_or_add_constant(csound, csound->engineState.constantsPool,
                           name, value) + CS_VAR_TYPE_OFFSET);
@@ -384,7 +384,7 @@ cs_float *set_constant(CSOUND *csound, const char *name, cs_float value) {
 /**
  * Check arg type directly or from types list
  */
-CS_TYPE *check_arg_type(void *arg, CS_TYPE **types, int32_t n) {
+static CS_TYPE *check_arg_type(void *arg, CS_TYPE **types, int32_t n) {
   if(types == NULL)
   return csoundGetTypeForArg(arg);
   else return types[n];
@@ -398,7 +398,7 @@ CS_TYPE *check_arg_type(void *arg, CS_TYPE **types, int32_t n) {
  * expects inargs to follow outargs + 1 skip (for obj arg)
  * returns an error if args do not match
  */
-int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *args[],
+static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *args[],
                    CS_TYPE **cstypes, int32_t no, int32_t ni){
   TEXT *t = &(obj->dataspace->optext->t);
   OENTRY *ep = t->oentry;
@@ -1130,7 +1130,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *args[],
  *  if types do not match or if object was not initialised,
  *  return an error
  */
-int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
+static int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
                           cs_float *arg) {
   if(obj->inargp != NULL) {
     cs_float **inargp = obj->inargp;
@@ -1164,7 +1164,7 @@ int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
 /**
  * connect caller locn to opcode TXT
  */
-void set_line_num_and_loc(OPCODEOBJ *obj, OPRUN *p) {
+static void set_line_num_and_loc(OPCODEOBJ *obj, OPRUN *p) {
   obj->dataspace->optext->t.linenum = p->h.optext->t.linenum;
   obj->dataspace->optext->t.locn = p->h.optext->t.locn;
 }
@@ -1193,7 +1193,7 @@ int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds) {
 /**
  * check consistency of arg pointers (for perf-time)
  */
-int32_t check_consistency(OPCODEOBJ *obj, cs_float **args,
+static int32_t check_consistency(OPCODEOBJ *obj, cs_float **args,
                           int32_t no, int32_t ni) {
   int32_t n, i = no + 1;
   cs_float **oargs = (cs_float **) (obj->dataspace + 1);
@@ -1208,7 +1208,7 @@ int32_t check_consistency(OPCODEOBJ *obj, cs_float **args,
 /**
  * allocate and initialise opcode dataspace
  */
-OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
+static OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
     OPDS *dataspace;
     dataspace = (OPDS *) csound->Calloc(csound, entry->dsblksiz);
     if(dataspace != NULL) {

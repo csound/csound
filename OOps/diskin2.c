@@ -491,6 +491,8 @@ enum {
 #ifndef __EMSCRIPTEN__
 
 static void diskin2_wait_for_readers(CSOUND *csound,
+    /* ATOMIC_GET uses InterlockedExchangeAdd on Windows and needs writable storage. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
                                      volatile int32_t *readers)
 {
   while (ATOMIC_GET(*readers) != 0) {
@@ -809,6 +811,8 @@ static int32_t diskin2_remove_async_instance(
 static int32_t diskin2_add_async_instance(
   CSOUND *csound, void *instance, void **entrySlot,
   INSDS *owner, volatile int32_t *stopRequested,
+    /* ATOMIC_GET uses InterlockedExchangeAdd on Windows and needs writable storage. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
   volatile int32_t *instanceReaders, volatile int32_t *asyncState,
   int32_t *async, int32_t array)
 {
@@ -885,7 +889,11 @@ static int32_t diskin2_add_array_instance(CSOUND *csound, DISKIN2_ARRAY *p)
 }
 
 static int32_t diskin2_remove_async_instance(
+    /* ATOMIC_GET uses InterlockedExchangeAdd on Windows and needs writable storage. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
   CSOUND *csound, void **entrySlot, volatile int32_t *stopRequested,
+    /* ATOMIC_GET uses InterlockedExchangeAdd on Windows and needs writable storage. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
   volatile int32_t *asyncState, int32_t *async, int32_t array,
   int32_t terminalStop)
 {
@@ -1079,7 +1087,11 @@ static inline int32_t diskin2_async_available(CSOUND *csound, int32_t array)
 
 static int32_t diskin2_begin_async_init(CSOUND *csound, int32_t reinit,
                                         INSDS *owner,
+    /* ATOMIC_GET uses InterlockedExchangeAdd on Windows and needs writable storage. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
                                         volatile int32_t *asyncState,
+    /* ATOMIC_GET uses InterlockedExchangeAdd on Windows and needs writable storage. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
                                         volatile int32_t *stopRequested)
 {
   int32_t cancelled;
@@ -1875,7 +1887,7 @@ diskin2_perf_synchronous_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
 
 }
 
-int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
+static int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 {
     return diskin2_perf_synchronous_(csound, p, 0);
 }
@@ -2107,7 +2119,7 @@ diskin_file_read_(CSOUND *csound, DISKIN2 *p, const int32_t xf)
 
 }
 
-void diskin_file_read(CSOUND *csound, DISKIN2 *p)
+static void diskin_file_read(CSOUND *csound, DISKIN2 *p)
 {
     diskin_file_read_(csound, p, 0);
 }
@@ -2604,7 +2616,7 @@ diskin_file_read_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t xf)
 
 }
 
-void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
+static void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
 {
     diskin_file_read_array_(csound, p, 0);
 }
@@ -3211,7 +3223,7 @@ diskin2_perf_synchronous_array_(CSOUND *csound, DISKIN2_ARRAY *p, const int32_t 
 
 }
 
-int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
+static int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
 {
     return diskin2_perf_synchronous_array_(csound, p, 0);
 }

@@ -281,7 +281,7 @@ typedef struct {
     RUBBER *rubber;
 } CSPP;
 
-int32_t init_pp(CSOUND *csound, CSPP *p)
+static int32_t init_pp(CSOUND *csound, CSPP *p)
 {
     if (*p->K >= FL(0.0)) {
       cs_double K = *p->K; /* stiffness parameter, dimensionless */
@@ -377,7 +377,7 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
     return OK;
 }
 
-int32_t play_pp(CSOUND *csound, CSPP *p)
+static int32_t play_pp(CSOUND *csound, CSPP *p)
 {
     cs_float *ar = p->ar;
     cs_float *ar1 = p->ar1;

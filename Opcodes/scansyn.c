@@ -449,12 +449,12 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     return OK;
 }
 
-int32_t scsnu_init1(CSOUND *csound, PSCSNU *p)
+static int32_t scsnu_init1(CSOUND *csound, PSCSNU *p)
 {
     p->revised = 0;
     return scsnu_init(csound, p);
 }
-int32_t scsnu_init2(CSOUND *csound, PSCSNU *p)
+static int32_t scsnu_init2(CSOUND *csound, PSCSNU *p)
 {
     p->revised = 1;
     return scsnu_init(csound, p);

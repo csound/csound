@@ -215,8 +215,8 @@ typedef struct BiQuad {
 void make_BiQuad(BiQuad*);
 void dest_BiQuad(BiQuad*);
 void BiQuad_clear(BiQuad*);
-void BiQuad_setPoleCoeffs(BiQuad*, cs_float *);
-void BiQuad_setZeroCoeffs(BiQuad*, cs_float *);
+void BiQuad_setPoleCoeffs(BiQuad*, const cs_float *);
+void BiQuad_setZeroCoeffs(BiQuad*, const cs_float *);
 #define BiQuad_setGain(b,aValue)        ((b).gain = aValue)
 #define BiQuad_setEqualGainZeroes(b)    \
         { (b).zeroCoeffs[1] = -FL(1.0); (b).zeroCoeffs[0] = FL(0.0); }

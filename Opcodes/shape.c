@@ -556,7 +556,7 @@ typedef struct {
     cs_double  curphase;
 } SYNCPHASOR;
 
-int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
+static int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
 {
     cs_double phs = (cs_double)*p->initphase;
 
@@ -571,7 +571,7 @@ int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
     return OK;
 }
 
-int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
+static int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
 {
     /* Keep floor() below: FLOOR() would narrow the phase in float builds. */
     cs_double      phase;

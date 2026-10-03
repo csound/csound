@@ -58,7 +58,7 @@ typedef struct {
 
 } MP3LEN;
 
-int32_t mp3in_cleanup(CSOUND *csound, MP3IN *p)
+static int32_t mp3in_cleanup(CSOUND *csound, MP3IN *p)
 {
   IGN(csound);
   if (LIKELY(p->mpa != NULL))
@@ -69,7 +69,7 @@ int32_t mp3in_cleanup(CSOUND *csound, MP3IN *p)
 }
 
 
-int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
+static int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
 {
   char    name[1024];
   FILE *f;
@@ -191,11 +191,11 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
   return OK;
 }
 
-int32_t mp3ininit(CSOUND *csound, MP3IN *p){
+static int32_t mp3ininit(CSOUND *csound, MP3IN *p){
   return mp3ininit_(csound,p,0);
 }
 
-int32_t mp3ininit_S(CSOUND *csound, MP3IN *p){
+static int32_t mp3ininit_S(CSOUND *csound, MP3IN *p){
   return mp3ininit_(csound,p,1);
 }
 
@@ -252,7 +252,7 @@ int32_t mp3in(CSOUND *csound, MP3IN *p)
   return OK;
 }
 
-int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
+static int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
 {
   char     name[1024];
   FILE     *f;
@@ -312,7 +312,7 @@ int32_t mp3len(CSOUND *csound, MP3LEN *p){
   return mp3len_(csound,p,0);
 }
 
-int32_t mp3len_S(CSOUND *csound, MP3LEN *p){
+static int32_t mp3len_S(CSOUND *csound, MP3LEN *p){
   return mp3len_(csound,p,1);
 }
 
@@ -346,7 +346,7 @@ typedef struct dats{
   void *fwdsetup, *invsetup;
 } DATASPACE;
 
-int32_t mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
+static int32_t mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
 {
   IGN(csound);
   if (p->mpa != NULL)
@@ -893,7 +893,7 @@ static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
   }
 }
 
-int32_t gen49raw(FGDATA *ff, FUNC *ftp)
+static int32_t gen49raw(FGDATA *ff, FUNC *ftp)
 {
   CSOUND  *csound        = ff->csound;
   cs_float   *fp           = ftp == NULL ? NULL: ftp->ftable;

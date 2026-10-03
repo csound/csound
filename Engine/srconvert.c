@@ -99,7 +99,7 @@ static inline cs_double mod1(cs_double x){
 }
 
 static
-void src_linear_process(SR_CONVERTER *pp, cs_float *in, cs_float *out,
+void src_linear_process(SR_CONVERTER *pp, const cs_float *in, cs_float *out,
                         cs_float *data, int32_t outsamps){
 
   int32_t outcnt, incnt;
@@ -118,7 +118,7 @@ void src_linear_process(SR_CONVERTER *pp, cs_float *in, cs_float *out,
 
 /* A whole input block covers the same time as a whole output block.
    Use integer positions so rounded local ksmps cannot cause phase drift. */
-static void src_linear_block(SR_CONVERTER *pp, cs_float *in, cs_float *out,
+static void src_linear_block(SR_CONVERTER *pp, const cs_float *in, cs_float *out,
                              cs_float *previous)
 {
   int32_t insize = pp->insize, outsize = pp->outsize;

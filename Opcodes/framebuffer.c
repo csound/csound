@@ -51,8 +51,8 @@
         cs_float **frames;
     } OLABuffer;
 
-    int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self);
-    int32_t OLABuffer_process(CSOUND *csound, OLABuffer *self);
+    static int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self);
+    static int32_t OLABuffer_process(CSOUND *csound, OLABuffer *self);
 
 
 
@@ -84,15 +84,15 @@
         int32_t ksmps;
     } Framebuffer;
 
-    int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self);
-    int32_t Framebuffer_process(CSOUND *csound, Framebuffer *self);
+    static int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self);
+    static int32_t Framebuffer_process(CSOUND *csound, Framebuffer *self);
 
-ArgumentType Framebuffer_getArgumentType(CSOUND *csound, cs_float *argument);
-int32_t Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self);
+static ArgumentType Framebuffer_getArgumentType(CSOUND *csound, cs_float *argument);
+static int32_t Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self);
 
-int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self);
+static int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self);
 
-int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
+static int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
 {
     int32_t result = OLABuffer_checkArgumentSanity(csound, self);
     if (UNLIKELY(result != OK))
@@ -121,7 +121,7 @@ int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
     return OK;
 }
 
-void OLABuffer_writeFrame(OLABuffer *self, cs_float *inputFrame, int32_t frameIndex)
+static void OLABuffer_writeFrame(OLABuffer *self, cs_float *inputFrame, int32_t frameIndex)
 {
     int32_t firstHalfOffset = self->overlapSamplesCount * frameIndex;
     int32_t firstHalfCount = self->frameSamplesCount - firstHalfOffset;
@@ -132,7 +132,7 @@ void OLABuffer_writeFrame(OLABuffer *self, cs_float *inputFrame, int32_t frameIn
            secondHalfCount * sizeof(cs_float));
 }
 
-void OLABuffer_readFrame(OLABuffer *self, cs_float *outputFrame,
+static void OLABuffer_readFrame(OLABuffer *self, cs_float *outputFrame,
                          int32_t outputFrameOffset,
                          int32_t olaBufferOffset, int32_t samplesCount)
 {
@@ -149,7 +149,7 @@ void OLABuffer_readFrame(OLABuffer *self, cs_float *outputFrame,
     }
 }
 
-int32_t OLABuffer_process(CSOUND *csound, OLABuffer *self)
+static int32_t OLABuffer_process(CSOUND *csound, OLABuffer *self)
 {
      IGN(csound);
     int32_t nextKPassSampleIndex =
@@ -200,7 +200,7 @@ int32_t OLABuffer_process(CSOUND *csound, OLABuffer *self)
     return OK;
 }
 
-int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
+static int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 {
     cs_float overlapCount = *self->overlapArgument;
 
@@ -244,7 +244,7 @@ int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
     return OK;
 }
 
-int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
+static int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
 {
     cs_double size;
     if (UNLIKELY(self->INOCOUNT != 2 || self->OUTOCOUNT != 1))
@@ -287,7 +287,7 @@ int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
     return OK;
 }
 
-void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self,
+static void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self,
                              cs_float *inputSamples, int32_t inputSamplesCount)
 {
      IGN(csound);
@@ -313,7 +313,7 @@ void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self,
     }
 }
 
-void Framebuffer_readBuffer(CSOUND *csound, Framebuffer *self,
+static void Framebuffer_readBuffer(CSOUND *csound, Framebuffer *self,
                             cs_float *outputSamples, int32_t outputSamplesCount)
 {
      IGN(csound);
@@ -370,7 +370,7 @@ static int32_t Framebuffer_processFrameInAudioOut(CSOUND *csound, Framebuffer *s
     return OK;
 }
 
-int32_t Framebuffer_process(CSOUND *csound, Framebuffer *self)
+static int32_t Framebuffer_process(CSOUND *csound, Framebuffer *self)
 {
     if (self->inputType == KRATE_ARRAY) {
 
@@ -386,7 +386,7 @@ int32_t Framebuffer_process(CSOUND *csound, Framebuffer *self)
     return OK;
 }
 
-int32_t Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
+static int32_t Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 {
     if (self->inputType == ARATE_VAR) {
 
@@ -429,7 +429,7 @@ int32_t Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
     return OK;
 }
 
-ArgumentType Framebuffer_getArgumentType(CSOUND *csound, cs_float *argument)
+static ArgumentType Framebuffer_getArgumentType(CSOUND *csound, cs_float *argument)
 {
     const CS_TYPE *csoundType = GetTypeForArg((void *)argument);
     const char *type = csoundType->varTypeName;

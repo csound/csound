@@ -28,10 +28,6 @@
 
 #include "moog1.h"
 
-extern void make_TwoZero(TwoZero *);
-extern void TwoZero_setZeroCoeffs(TwoZero *, cs_float*);
-extern cs_float TwoZero_tick(TwoZero *, cs_float);
-
 /********************************************/
 /*  Sweepable Formant (2-pole)              */
 /*  Filter Class, by Perry R. Cook, 1995-96 */

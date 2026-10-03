@@ -229,7 +229,7 @@ cs_float *csoundCepsLP(CSOUND *csound, cs_float *b, cs_float *c,
     size: size of buf (N + 2)
     returns: real-valued cepstrum
 */
-cs_float *csoundPvs2RealCepstrum(CSOUND *csound, cs_float *buf, int32_t size){
+static cs_float *csoundPvs2RealCepstrum(CSOUND *csound, cs_float *buf, int32_t size){
   int32_t i;
   for(i = 0; i < size - 2; i+=2) {
     buf[i] = LOG(buf[i]);
@@ -300,7 +300,7 @@ static void pkinterp(LPCparam *p){
 
 /* autocorrelation CPS
  */
-cs_float csoundLPcps(CSOUND *csound, void *parm){
+static cs_float csoundLPcps(CSOUND *csound, void *parm){
   LPCparam *p = (LPCparam *) parm;
   int32_t i;
   cs_float mx = FL(0.0), pmx, sr = csoundGetSr(csound);
@@ -324,7 +324,7 @@ cs_float csoundLPrms(CSOUND *csound, void *parm){
 }
 
 
-cs_float *csoundLPcoefs(CSOUND *csound, void *parm) {
+static cs_float *csoundLPcoefs(CSOUND *csound, void *parm) {
   LPCparam *p = (LPCparam *) parm;
   return &(p->b[p->M*(p->M+1)]);
 }
@@ -489,7 +489,9 @@ static cs_float *zero2coef(int32_t M, MYCMPLX *zr, cs_float *c, cs_float *tmp)
 }
 
 #define MAX_ITER 2000
-MYCMPLX *csoundCoef2Pole(CSOUND *csound, void *parm, cs_float *c){
+/* Matches the public Coef2Pole function pointer in CSOUND. */
+/* NOLINTNEXTLINE(readability-non-const-parameter) */
+static MYCMPLX *csoundCoef2Pole(CSOUND *csound, void *parm, cs_float *c){
   LPCparam *p = (LPCparam *) parm;
   MYCMPLX *pl = p->pl;
   cs_float *buf = p->tmpmem, *cf = p->cf;
@@ -509,13 +511,13 @@ MYCMPLX *csoundCoef2Pole(CSOUND *csound, void *parm, cs_float *c){
   return pl;
 }
 
-cs_float *csoundPole2Coef(CSOUND *csound, void *parm, MYCMPLX *pl) {
+static cs_float *csoundPole2Coef(CSOUND *csound, void *parm, MYCMPLX *pl) {
   LPCparam *p = (LPCparam *) parm;
   pl = invertfilter(p->M, pl);
   return zero2coef(p->M, pl, p->cf, p->tmpmem);
 }
 
-cs_float *csoundStabiliseAllpole(CSOUND *csound, void *parm, cs_float *c, int32_t mode){
+static cs_float *csoundStabiliseAllpole(CSOUND *csound, void *parm, cs_float *c, int32_t mode){
   if (mode) {
     LPCparam *p = (LPCparam *) parm;
     MYCMPLX *pl;

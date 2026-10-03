@@ -24,7 +24,7 @@
 
 #define HASH_LOAD_FACTOR 0.75
 
-char* cs_hash_table_put_no_key_copy(CSOUND* csound,
+static char* cs_hash_table_put_no_key_copy(CSOUND* csound,
     CS_HASH_TABLE* hashTable,
     char* key, void* value);
 
@@ -189,7 +189,7 @@ void* cs_hash_table_get(CSOUND* csound,
  * If item exists, replace.
  * Else, check for resize, then do insert.
 */
-char* cs_hash_table_put_no_key_copy(CSOUND* csound,
+static char* cs_hash_table_put_no_key_copy(CSOUND* csound,
                                    CS_HASH_TABLE* hashTable,
                                     char* key, void* value) {
     if (key == NULL) {

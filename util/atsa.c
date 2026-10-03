@@ -292,7 +292,7 @@ static void evaluate_smr(ATS_PEAK *peaks, int32_t peaks_size);
  * win: pointer to a window
  * size: window size
  */
-static float window_norm(float *win, int32_t size);
+static float window_norm(const float *win, int32_t size);
 
 /* make_window
  * ===========
@@ -371,8 +371,8 @@ static ATS_PEAK *peak_detection(CSOUND *csound, ATS_FFT *ats_fft,
  * n_partials: pointer to the number of partials before tracking
  */
 static ATS_FRAME *peak_tracking(CSOUND *csound, ATS_PEAK *tracks,
-                                int32_t *tracks_size, ATS_PEAK *peaks,
-                                int32_t *peaks_size, float frq_dev,
+                                const int32_t *tracks_size, ATS_PEAK *peaks,
+                                const int32_t *peaks_size, float frq_dev,
                                 float SMR_cont, int32_t *n_partials);
 
 /* update_tracks
@@ -742,7 +742,7 @@ static int32_t atsa_main(CSOUND *csound, int32_t argc, char **argv)
 static void clear_mask(ATS_PEAK *peaks, int32_t peaks_size);
 static cs_double compute_slope_r(cs_double val);
 static cs_double frq2bark(cs_double frq, cs_double *edges);
-static int32_t find_band(cs_double frq, cs_double *edges);
+static int32_t find_band(cs_double frq, const cs_double *edges);
 
 /* frq2bark
  * ========
@@ -769,7 +769,7 @@ static cs_double frq2bark(cs_double frq, cs_double *edges)
  * returns the critical band number
  * corresponding to frq
  */
-static int32_t find_band(cs_double frq, cs_double *edges)
+static int32_t find_band(cs_double frq, const cs_double *edges)
 {
     int32_t     i = 0;
 
@@ -887,7 +887,7 @@ static float *make_window(CSOUND *csound, int32_t win_type, int32_t win_size)
  * win: pointer to a window
  * size: window size
  */
-static float window_norm(float *win, int32_t size)
+static float window_norm(const float *win, int32_t size)
 {
     float   acc = 0.0f;
     int32_t     i;
@@ -1151,8 +1151,8 @@ static void sort_candidates(ATS_CANDS *cands, ATS_PEAK peak, float SMR_cont);
  * n_partials: pointer to the number of partials before tracking
  */
 static ATS_FRAME *peak_tracking(CSOUND *csound, ATS_PEAK *tracks,
-                                int32_t *tracks_size, ATS_PEAK *peaks,
-                                int32_t *peaks_size, float frq_dev,
+                                const int32_t *tracks_size, ATS_PEAK *peaks,
+                                const int32_t *peaks_size, float frq_dev,
                                 float SMR_cont, int32_t *n_partials)
 {
     ATS_CANDS *track_candidates =
@@ -1374,7 +1374,7 @@ static ATS_PEAK *update_tracks(CSOUND *csound, ATS_PEAK *tracks,
 
 /* private function prototypes */
 static int32_t residual_get_N(int32_t M, int32_t min_fft_size, int32_t factor);
-static void residual_get_bands(cs_double fft_mag, cs_double *true_bands,
+static void residual_get_bands(cs_double fft_mag, const cs_double *true_bands,
                                int32_t *limits, int32_t bands);
 //static cs_double residual_compute_time_domain_energy(ATS_FFT *fft_struct);
 static cs_double residual_get_band_energy(int32_t lo, int32_t hi, ATS_FFT *fft_struct,
@@ -1392,7 +1392,7 @@ static int32_t residual_get_N(int32_t M, int32_t min_fft_size, int32_t factor)
     return (def_size);
 }
 
-static void residual_get_bands(cs_double fft_mag, cs_double *true_bands,
+static void residual_get_bands(cs_double fft_mag, const cs_double *true_bands,
                                int32_t *limits, int32_t bands)
 {
     int32_t     k;
@@ -2421,9 +2421,9 @@ static int32_t compute_frames(ANARGS *anargs)
  /* ------------------------------------------------------------------------ */
 
 /* private function prototypes */
-static int32_t find_next_val_arr(cs_double *arr, int32_t beg, int32_t size);
-static int32_t find_next_zero_arr(cs_double *arr, int32_t beg, int32_t size);
-static int32_t find_prev_val_arr(cs_double *arr, int32_t beg);
+static int32_t find_next_val_arr(const cs_double *arr, int32_t beg, int32_t size);
+static int32_t find_next_zero_arr(const cs_double *arr, int32_t beg, int32_t size);
+static int32_t find_prev_val_arr(const cs_double *arr, int32_t beg);
 static void fill_sound_gaps(CSOUND *csound, ATS_SOUND *sound, int32_t min_gap_len);
 static void trim_partials(CSOUND *csound, ATS_SOUND *sound, int32_t min_seg_len,
                           float min_seg_smr);
@@ -2647,7 +2647,7 @@ static void trim_partials(CSOUND *csound, ATS_SOUND *sound, int32_t min_seg_len,
 }
 
 /* auxiliary functions to fill_sound_gaps and trim_partials */
-static int32_t find_next_val_arr(cs_double *arr, int32_t beg, int32_t size)
+static int32_t find_next_val_arr(const cs_double *arr, int32_t beg, int32_t size)
 {
     int32_t     j, next_val = NIL;
 
@@ -2659,7 +2659,7 @@ static int32_t find_next_val_arr(cs_double *arr, int32_t beg, int32_t size)
     return (next_val);
 }
 
-static int32_t find_next_zero_arr(cs_double *arr, int32_t beg, int32_t size)
+static int32_t find_next_zero_arr(const cs_double *arr, int32_t beg, int32_t size)
 {
     int32_t     j, next_zero = NIL;
 
@@ -2671,7 +2671,7 @@ static int32_t find_next_zero_arr(cs_double *arr, int32_t beg, int32_t size)
     return (next_zero);
 }
 
-static int32_t find_prev_val_arr(cs_double *arr, int32_t beg)
+static int32_t find_prev_val_arr(const cs_double *arr, int32_t beg)
 {
     int32_t     j, prev_val = NIL;
 

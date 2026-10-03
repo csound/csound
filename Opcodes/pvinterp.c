@@ -53,7 +53,7 @@ int32_t pvbufread_deinit(CSOUND *csound, PVBUFREAD *p)
   return OK;
 }
 
-int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
+static int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
 {
   char     pvfilnam[MAXNAME];
   PVOCEX_MEMFILE  pp;
@@ -174,7 +174,7 @@ int32_t pvbufread(CSOUND *csound, PVBUFREAD *p)
 /************************************************************/
 /*************PVINTERP**************************************/
 /************************************************************/
-int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
+static int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
 {
   uint32_t i;
   char     pvfilnam[MAXNAME];
@@ -368,7 +368,7 @@ int32_t pvinterp(CSOUND *csound, PVINTERP *p)
 /************************************************************/
 /************* PVCROSS **************************************/
 /************************************************************/
-int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
+static int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
 {
   uint32_t i;
   char     pvfilnam[MAXNAME];

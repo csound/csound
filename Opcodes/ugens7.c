@@ -28,7 +28,7 @@
 
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 
-static   int32_t    newpulse(CSOUND *, FOFS *, OVRLAP *, cs_float *, cs_float *, cs_float *);
+static   int32_t    newpulse(CSOUND *, FOFS *, OVRLAP *, const cs_float *, const cs_float *, const cs_float *);
 
 static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
 {
@@ -251,7 +251,7 @@ static int32_t fof(CSOUND *csound, FOFS *p)
 }
 
 static int32_t newpulse(CSOUND *csound,
-                        FOFS *p, OVRLAP *ovp, cs_float *amp, cs_float *fund, cs_float *form)
+                        FOFS *p, OVRLAP *ovp, const cs_float *amp, const cs_float *fund, const cs_float *form)
 {
   cs_float   octamp = *amp, oct;
   int32   rismps, newexp = 0;

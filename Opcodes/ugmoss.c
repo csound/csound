@@ -67,7 +67,7 @@ static int32_t dconvset_common(CSOUND *csound, OPDS *h, DCONV_STATE *p,
     return OK;
 }
 
-static int32_t dconv_common(CSOUND *csound, OPDS *h, DCONV_STATE *p, cs_float *ain)
+static int32_t dconv_common(CSOUND *csound, OPDS *h, DCONV_STATE *p, const cs_float *ain)
 {
     uint32_t offset = h->insdshead->ksmps_offset;
     uint32_t early = h->insdshead->ksmps_no_end;

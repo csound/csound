@@ -655,7 +655,7 @@ typedef struct {
 
 
 
-static inline int64_t bpfarr_find(cs_float x, cs_float *xs, int64_t xslen, int64_t lastidx) {
+static inline int64_t bpfarr_find(cs_float x, const cs_float *xs, int64_t xslen, int64_t lastidx) {
     // -1: lower bound, -2: upper bound
     if(x <= xs[0]) {
         return -1;

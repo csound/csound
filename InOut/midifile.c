@@ -192,7 +192,7 @@ static int32_t msgDataBytes(int32_t c)
 }
 
 static int32_t alloc_event(CSOUND *csound, midifile_t *midifile,
-                           unsigned long kcnt, unsigned char *data,
+                           unsigned long kcnt, const unsigned char *data,
                            int32_t st, int32_t d1, int32_t d2)
 {
   midiEvent_t *tmp;
