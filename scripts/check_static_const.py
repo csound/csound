@@ -98,7 +98,7 @@ def parse_arguments(entry, source, resource_dir, sdk):
 
 
 def check_c_linkage(source, entry, references, resource_dir, sdk):
-    """Clang-tidy's internal-linkage check skips C language linkage.
+    """Check C linkage with references beyond the current translation unit.
 
     Use libclang's declarations to check C helpers, including local forward
     declarations. Leave shared interfaces and explicitly exported functions
