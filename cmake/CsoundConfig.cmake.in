@@ -88,7 +88,7 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/CsoundStaticTargets.cmake")
 	if(@HAVE_WASMTIME@)
 		set(_csound_module_path "${CMAKE_MODULE_PATH}")
 		set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR};${CMAKE_MODULE_PATH}")
-		find_package(Wasmtime @Wasmtime_VERSION@ QUIET MODULE)
+		find_package(Wasmtime @Wasmtime_VERSION_MAJOR@ QUIET MODULE)
 		set(CMAKE_MODULE_PATH "${_csound_module_path}")
 		unset(_csound_module_path)
 		# The installed archive uses the Wasmtime C ABI from its build. New
