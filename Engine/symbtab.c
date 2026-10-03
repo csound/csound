@@ -308,7 +308,7 @@ early_exit:
 }
 
 
-OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
+static OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
     CONS_CELL *items;
     char *shortName;
     OENTRY *ep, *retVal = NULL;

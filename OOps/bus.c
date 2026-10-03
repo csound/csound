@@ -1455,7 +1455,7 @@ int32_t chnset_opcode_perf_S(CSOUND* csound, CHNGET* p)
 }
 
 /* declare control channel, optionally with special parameters */
-int32_t chn_k_opcode_init_(CSOUND *csound, CHN_OPCODE_K *p, int32_t mode)
+static int32_t chn_k_opcode_init_(CSOUND *csound, CHN_OPCODE_K *p, int32_t mode)
 {
   cs_float *dummy;
   int32_t   type, err;
@@ -2624,7 +2624,7 @@ static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int32_t type) {
   return OK;
 }
 
-int32_t array_perf_check(CSOUND* csound, CHNGET* p, int32_t type) {
+static int32_t array_perf_check(CSOUND* csound, CHNGET* p, int32_t type) {
   if (strncmp(p->chname, p->iname->data, MAX_CHAN_NAME)
       || !strcmp(p->iname->data, ""))
     {

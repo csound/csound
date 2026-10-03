@@ -252,7 +252,7 @@ int32_t event_opcode_i_Instr(CSOUND *csound, LINEVENT *p){
 }
 #include "csound_standard_types.h"
 
-int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
+static int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
                         int32_t mode)
 {
     EVTBLK  evt;
@@ -1015,7 +1015,7 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
 void set_evt_strarg(CSOUND *csound, EVTBLK *e, int32_t pcnt, const
                     char *str);
 
-int32_t remove_event_op(CSOUND *csound, RMEVT *p, int32_t cont) {
+static int32_t remove_event_op(CSOUND *csound, RMEVT *p, int32_t cont) {
   EVTBLK evt;
   cs_float pfields[VARGMAX] = {0};
   int i, pcnt = p->INOCOUNT;

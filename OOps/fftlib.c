@@ -96,7 +96,7 @@ static void fftBRInit(int32_t M, int16 *BRLow)
  * parts of ffts1 *
  *****************/
 
-static void bitrevR2(cs_float *ioptr, int32_t M, int16 *BRLow)
+static void bitrevR2(cs_float *ioptr, int32_t M, const int16 *BRLow)
 {
   /*** bit reverse and first radix 2 stage of forward or inverse fft ***/
   cs_float f0r;
@@ -1135,7 +1135,7 @@ static void ffts1(cs_float *ioptr, int32_t M, cs_float *Utbl, int16 *BRLow)
  * parts of iffts1 *
  ******************/
 
-static void scbitrevR2(cs_float *ioptr, int32_t M, int16 *BRLow, cs_float scale)
+static void scbitrevR2(cs_float *ioptr, int32_t M, const int16 *BRLow, cs_float scale)
 {
   /*** scaled bit reverse and first radix 2 stage forward or inverse fft ***/
   cs_float f0r;
@@ -3320,6 +3320,8 @@ void csoundInverseRealFFT(CSOUND *csound, cs_float *buf, int32_t FFTsize)
  */
 
 void csoundRealFFTMult(CSOUND *csound, cs_float *outbuf,
+    /* Matches the public RealFFTMult function pointer in CSOUND. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
                        cs_float *buf1, cs_float *buf2, int32_t FFTsize, cs_float scaleFac)
 {
   cs_float re, im;
@@ -3427,7 +3429,7 @@ void *align_alloc(CSOUND *csound, size_t nb_bytes){
   return p;
 }
 
-int32_t setupDispose(CSOUND *csound, void *pp){
+static int32_t setupDispose(CSOUND *csound, void *pp){
   IGN(csound);
   CSOUND_FFT_SETUP *setup =(CSOUND_FFT_SETUP *) pp;
   switch(setup->lib){
@@ -3567,7 +3569,7 @@ void *csoundDCTSetup(CSOUND *csound,
 }
 
 
-void pffft_DCT_execute(CSOUND *csound,
+static void pffft_DCT_execute(CSOUND *csound,
                      void *p, cs_float *sig){
   IGN(csound);
   CSOUND_FFT_SETUP *setup =
@@ -3613,7 +3615,7 @@ void pffft_DCT_execute(CSOUND *csound,
 }
 
 #if defined(__MACH__)
-void vDSP_DCT_execute(CSOUND *csound,
+static void vDSP_DCT_execute(CSOUND *csound,
                      void *p, cs_float *sig){
   IGN(csound);
   CSOUND_FFT_SETUP *setup =
@@ -3672,7 +3674,7 @@ void vDSP_DCT_execute(CSOUND *csound,
 }
 #endif
 
-void DCT_execute(CSOUND *csound,
+static void DCT_execute(CSOUND *csound,
                      void *p, cs_float *sig){
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;

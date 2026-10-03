@@ -105,7 +105,7 @@ return OK;
 
 #endif
 
-int32_t call_system_i(CSOUND *csound, SYSTEM *p)
+static int32_t call_system_i(CSOUND *csound, SYSTEM *p)
 {
     if (*p->ktrig <= FL(0.0)) {
       *p->res=FL(0.0);
@@ -115,14 +115,14 @@ int32_t call_system_i(CSOUND *csound, SYSTEM *p)
       return call_system(csound, p);
 }
 
-int32_t call_system_set(CSOUND *csound, SYSTEM *p)
+static int32_t call_system_set(CSOUND *csound, SYSTEM *p)
 {
     IGN(csound);
     p->prv_ktrig = FL(0.0);
     return OK;
 }
 
-int32_t
+static int32_t
 call_system_k(CSOUND *csound, SYSTEM *p)
 {
     if (*p->ktrig == p->prv_ktrig)

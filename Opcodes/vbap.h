@@ -236,7 +236,7 @@ extern void cart_to_angle(CART_VEC cvec, ANG_VEC *avec);
 extern void angle_to_cart(ANG_VEC avec, CART_VEC *cvec);
 extern void normalize_wts(OUT_WTS *wts);
 
-extern int32_t vbap_control(CSOUND*, VBAP_DATA *p, cs_float*, cs_float*, cs_float*);
+extern int32_t vbap_control(CSOUND*, VBAP_DATA *p, const cs_float*, cs_float*, cs_float*);
 
 void calc_vbap_gns(int32_t ls_set_am, int32_t dim, LS_SET *sets,
                    cs_float *gains, int32_t ls_amount,

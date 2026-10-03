@@ -39,7 +39,7 @@ static cs_double *get_dummy_rtaudio_globals(CSOUND *csound) {
   return p;
 }
 
-static void dummy_rtaudio_timer(CSOUND *csound, cs_double *p) {
+static void dummy_rtaudio_timer(CSOUND *csound, const cs_double *p) {
   cs_double timeWait;
   int32_t i;
 
@@ -216,6 +216,9 @@ int32_t DummyMidiInOpen(CSOUND *csound, void **userData, const char *devName) {
   return -1;
 }
 
+/* Matches the MIDI input callback signature. */
+
+/* NOLINTNEXTLINE(readability-non-const-parameter) */
 int32_t DummyMidiRead(CSOUND *csound, void *userData, unsigned char *buf,
                       int32_t nbytes) {
   (void)csound;

@@ -52,7 +52,7 @@ typedef struct _cdata {
 
 
 /* coremidi callback, called when MIDI data is available */
-void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
+static void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
 {
   IGN(srcConnRefCon);
   cdata *data = (cdata *)refcon;

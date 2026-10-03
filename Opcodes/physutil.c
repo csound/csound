@@ -349,7 +349,7 @@ void ADSR_setReleaseRate(CSOUND *csound, ADSR *a, cs_float aRate)
     a->releaseRate *= (FL(22050.0)/a->sr);
 }
 
-void ADSR_setAttackTime(CSOUND *csound, ADSR *a, cs_float aTime)
+static void ADSR_setAttackTime(CSOUND *csound, ADSR *a, cs_float aTime)
 {
     if (UNLIKELY(aTime < FL(0.0))) {
       csound->Warning(csound,
@@ -359,7 +359,7 @@ void ADSR_setAttackTime(CSOUND *csound, ADSR *a, cs_float aTime)
     else a->attackRate = FL(1.0) / (aTime*a->sr);
 }
 
-void ADSR_setDecayTime(CSOUND *csound, ADSR *a, cs_float aTime)
+static void ADSR_setDecayTime(CSOUND *csound, ADSR *a, cs_float aTime)
 {
     if (UNLIKELY(aTime < FL(0.0))) {
       csound->Warning(csound,
@@ -369,7 +369,7 @@ void ADSR_setDecayTime(CSOUND *csound, ADSR *a, cs_float aTime)
     else a->decayRate = FL(1.0) / (aTime*a->sr);
 }
 
-void ADSR_setReleaseTime(CSOUND *csound, ADSR *a, cs_float aTime)
+static void ADSR_setReleaseTime(CSOUND *csound, ADSR *a, cs_float aTime)
 {
     if (UNLIKELY(aTime < FL(0.0))) {
       csound->Warning(csound,
@@ -478,13 +478,13 @@ void BiQuad_clear(BiQuad *b)
     b->lastOutput = FL(0.0);
 }
 
-void BiQuad_setPoleCoeffs(BiQuad *b, cs_float *coeffs)
+void BiQuad_setPoleCoeffs(BiQuad *b, const cs_float *coeffs)
 {
     b->poleCoeffs[0] = coeffs[0];
     b->poleCoeffs[1] = coeffs[1];
 }
 
-void BiQuad_setZeroCoeffs(BiQuad *b, cs_float *coeffs)
+void BiQuad_setZeroCoeffs(BiQuad *b, const cs_float *coeffs)
 {
     b->zeroCoeffs[0] = coeffs[0];
     b->zeroCoeffs[1] = coeffs[1];

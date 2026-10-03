@@ -38,7 +38,7 @@ using namespace csound;
 /* this function will load all samples of supported types into function
    tables number 'index' and upwards.
    It return the number of samples loaded */
-int32_t loadSamplesToTables(CSOUND *csound, int32_t index, char *directory,
+static int32_t loadSamplesToTables(CSOUND *csound, int32_t index, char *directory,
                         cs_float skiptime, int32_t format, int32_t channel);
 
 //-----------------------------------------------------------------

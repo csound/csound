@@ -73,7 +73,7 @@ static CS_NOINLINE int32_t fout_deinit(CSOUND *csound, FOUT_FILE *p)
 }
 
 static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
-                                             int32_t fileType, cs_float *iFile,
+                                             int32_t fileType, const cs_float *iFile,
                                              int32_t isString,
                                              void *fileParams, int32_t forceSync,
                                              int32_t *handle)
@@ -540,7 +540,7 @@ static int32_t koutfile(CSOUND *csound, KOUTFILE *p)
   return OK;
 }
 
-int32_t koutfile_deinit(CSOUND *csound, KOUTFILE *p) {
+static int32_t koutfile_deinit(CSOUND *csound, KOUTFILE *p) {
   if (p->f.sf != NULL && p->buf_pos > 0) {
     if (p->f.async == 1)
       csound->WriteAsync(csound, p->f.fd, (cs_float *)p->buf.auxp, p->buf_pos);
@@ -832,7 +832,7 @@ static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
   return OK;
 }
 
-int32_t infile_deinit(CSOUND *csound, INFILE *p) {
+static int32_t infile_deinit(CSOUND *csound, INFILE *p) {
   return fout_deinit(csound, &(p->f));
 }
 
@@ -905,7 +905,7 @@ static int32_t infile_set_S(CSOUND *csound, INFILE *p){
 }
 
 #include "arrays.h"
-int32_t infilea_deinit(CSOUND *csound, INFILEA *p) {
+static int32_t infilea_deinit(CSOUND *csound, INFILEA *p) {
   return fout_deinit(csound, &(p->f));
 }
 static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
@@ -1075,7 +1075,7 @@ static int32_t infile_arr(CSOUND *csound, INFILEA *p)
 }
 
 /* ---------------------------- */
-int32_t kinfile_deinit(CSOUND *csound, KINFILE *p) {
+static int32_t kinfile_deinit(CSOUND *csound, KINFILE *p) {
   return fout_deinit(csound, &(p->f));
 }
 
@@ -1313,7 +1313,7 @@ static int32_t clear(CSOUND *csound, CLEARS *p)
   return OK;
 }
 
-int32_t fprintf_deinit(CSOUND *csound, FPRINTF *p) {
+static int32_t fprintf_deinit(CSOUND *csound, FPRINTF *p) {
   return fout_deinit(csound, &(p->f));
 }
 

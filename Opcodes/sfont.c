@@ -162,7 +162,7 @@ static int32_t SfLoad_S(CSOUND *csound, SFLOAD *p){
   return SfLoad_(csound,p,1);
 }
 
-static char *filter_string(char *s, char temp_string[24])
+static char *filter_string(const char *s, char temp_string[24])
 {
     int32_t i=0, j=0;
     int32_t c;

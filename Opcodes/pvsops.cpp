@@ -449,7 +449,7 @@ struct Gtadsr : public csnd::Plugin<1,6> {
 
 
 
-void onload(csnd::Csound *csound) {
+static void onload(csnd::Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace",  csnd::thread::ik);
   csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);
   csnd::plugin<TVConv>(csound, "tvconv", "a", "aaxxii", csnd::thread::ia);

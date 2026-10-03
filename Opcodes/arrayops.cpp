@@ -25,15 +25,15 @@
 #include <plugin.h>
 
 
-inline cs_float logb(cs_float a, cs_float b) {
+static inline cs_float logb(cs_float a, cs_float b) {
   return log(a)/log(b);
 }  
 
 // extern
-inline cs_float frac(cs_float f) { return std::modf(f, &f); }
+static inline cs_float frac(cs_float f) { return std::modf(f, &f); }
 
 // extern
-inline cs_float lim1(cs_float f) {
+static inline cs_float lim1(cs_float f) {
   return f > FL(0.0) ? (f < FL(1.0) ? f : FL(1.0)) : FL(0.0);
 }
 

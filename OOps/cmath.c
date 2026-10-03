@@ -961,7 +961,7 @@ int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
    VL April 2020
  */
 
-cs_float gausscompute(CSOUND *csound, GAUSS *p) {
+static cs_float gausscompute(CSOUND *csound, GAUSS *p) {
   if(p->flag == 0) {
     cs_float u1;
     /* The uniform generator includes zero, but log(u1) must be finite. */

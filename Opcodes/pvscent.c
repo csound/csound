@@ -315,7 +315,7 @@ typedef struct _pvspitch
   Numerator/Denominator - (int32_t) (Numerator/Denominator)
 
 
-int32_t pvspitch_init(CSOUND *csound, PVSPITCH *p)
+static int32_t pvspitch_init(CSOUND *csound, PVSPITCH *p)
 {
     /* Initialise frame count to zero. */
     uint32_t size;
@@ -336,7 +336,7 @@ int32_t pvspitch_init(CSOUND *csound, PVSPITCH *p)
     return OK;
 }
 
-int32_t pvspitch_process(CSOUND *csound, PVSPITCH *p)
+static int32_t pvspitch_process(CSOUND *csound, PVSPITCH *p)
 {
     /* Initialised inputs */
     float *Frame            = (float *) p->fin->frame.auxp;

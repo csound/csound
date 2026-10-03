@@ -122,14 +122,14 @@ char *remove_type_quoting(CSOUND *csound, const char *outype) {
      return type;
 }
 
-int32_t find_brace(char *s) {
+static int32_t find_brace(char *s) {
   while(*s != '\0') {
     if(*s++ == '[') return 1;
   }
   return 0;
 }
 
-char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
+static char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
                      TYPE_TABLE* typeTable)
 {
   char* s = (char *)csound->Malloc(csound, 256);
@@ -184,7 +184,7 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
  * Handles expression opcode type, appending to passed in opname
  * returns outarg type
  */
-char * get_boolean_arg(CSOUND *csound, TYPE_TABLE* typeTable, int32_t type)
+static char * get_boolean_arg(CSOUND *csound, TYPE_TABLE* typeTable, int32_t type)
 {
   char* s = (char *)csound->Malloc(csound, 8);
   snprintf(s, 8, "#%c%d", type?'B':'b', typeTable->localPool->synthArgCount++);
@@ -2133,7 +2133,7 @@ TREE* expand_if_statement(CSOUND* csound,
   return anchor->type == T_IDENT ? anchor->next : anchor;
 }
 
-TREE* create_equality_statement(
+static TREE* create_equality_statement(
   CSOUND* csound,
   TREE* left,
   TREE* right
@@ -2173,7 +2173,7 @@ TREE* expand_switch_statement(
   CSOUND* csound,
   TREE* current,
   TYPE_TABLE* typeTable,
-  char* switchArgType
+  const char* switchArgType
 ) {
   int isPerfRate = switchArgType[0] == 'k';
   // TODO: assign to synthetic variable

@@ -45,7 +45,7 @@ static CS_VAR_POOL *find_global_annotation(char *varName,
 static int32_t is_label(char* ident, CONS_CELL* labelList);
 static char* convert_internal_to_external(CSOUND* csound, char* arg);
 static int32_t is_reserved(char*);
-char *check_optional_type(CSOUND *csound, char *name);
+static char *check_optional_type(CSOUND *csound, char *name);
 static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
                                       TYPE_TABLE *typeTable);
 
@@ -92,7 +92,7 @@ char* cs_strndup(CSOUND* csound, const char* str, size_t size) {
   return retVal;
 }
 
-char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
+static char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
   switch(tree->type) {
   case '+':
     return "##add";
@@ -130,7 +130,7 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
   return NULL;
 }
 
-char* get_boolean_expression_opcode_type(CSOUND* csound, TREE* tree) {
+static char* get_boolean_expression_opcode_type(CSOUND* csound, TREE* tree) {
   switch(tree->type) {
   case S_EQ:
     return "==";
@@ -1153,7 +1153,7 @@ inline static int32_t is_in_var_arg(char* arg) {
   return (strlen(arg) == 1) && (strchr("mMNnWyzZ*", *arg) != NULL);
 }
 
-int32_t check_array_arg(char* found, char* required) {
+static int32_t check_array_arg(char* found, char* required) {
   char* f = found;
   char* r = required;
 
@@ -1168,7 +1168,7 @@ int32_t check_array_arg(char* found, char* required) {
   return (*f == *r);
 }
 
-int32_t check_array_arg_in(char* found, char* required) {
+static int32_t check_array_arg_in(char* found, char* required) {
   char* f = found;
   char* r = required;
 
@@ -1829,7 +1829,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
  * This string is passed to add_udo_definition() and ultimately to split_args()
  * which expects EXTERNAL format input.
  */
-char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
+static char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
   int32_t len = tree_arg_list_count(tree);
 
   if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
@@ -1928,7 +1928,7 @@ char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) 
  * This string is passed to add_udo_definition() and ultimately to split_args()
  * which expects EXTERNAL format input.
  */
-char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
+static char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
 
   int32_t len = tree_arg_list_count(tree);
   char* argTypes = csound->Malloc(csound, len * 256 * sizeof(char));
@@ -2024,7 +2024,7 @@ OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
 
 //FIXME - this needs to be updated to take into account array names
 // that could clash with non-array names, i.e. kVar and kVar[]
-int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
+static int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
   CS_VARIABLE *var = 0;
   TREE* current;
   char* argType;
@@ -2153,7 +2153,7 @@ static CS_VAR_POOL *get_var_pool(CSOUND *csound, TYPE_TABLE* typeTable,
 // on new-type UDOS type-annotations can
 // be used for optional types
 // this checks and converts it to i or k type names
-char *check_optional_type(CSOUND *csound, char *name) {
+static char *check_optional_type(CSOUND *csound, char *name) {
     if(is_in_optional_arg(name)) {
       char *t = (char*)OPTIONAL_IN_TYPES[0];
       char *o, str[2] =  {0};
@@ -2492,7 +2492,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
 }
 
 /* return 1 on succcess, 0 on failure */
-int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
+static int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
   TREE* current;
   char* varName;
@@ -2570,7 +2570,7 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
   return 1;
 }
 
-TREE* get_initial_unary_operator(TREE* tree) {
+static TREE* get_initial_unary_operator(TREE* tree) {
   if (tree == NULL) return NULL;
 
   TREE* current = tree;
@@ -2583,7 +2583,7 @@ TREE* get_initial_unary_operator(TREE* tree) {
   return NULL;
 }
 
-TREE* get_left_parent(TREE* root, TREE* node) {
+static TREE* get_left_parent(TREE* root, TREE* node) {
   TREE* current = root;
   while (current != NULL) {
     if (current->left == node) {
@@ -2594,7 +2594,7 @@ TREE* get_left_parent(TREE* root, TREE* node) {
   return NULL;
 }
 
-TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* unary_op) {
+static TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* unary_op) {
   TREE* retVal = NULL;
   new_left->type = T_IDENT;
 
@@ -3045,7 +3045,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 }
 
 /* Walks tree and finds all label: definitions */
-CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
+static CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
   CONS_CELL* head = NULL, *ret = NULL;
   TREE* current = root;
   char* labelText;
@@ -3113,7 +3113,7 @@ int32_t is_reserved(char* varname) {
           strcmp("A4", varname) == 0;
 }
 
-int32_t verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
+static int32_t verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   char* outArg;
   TREE* right = root->right;
@@ -3161,7 +3161,7 @@ int32_t verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
 }
 
-int32_t verify_until_statement(CSOUND* csound, TREE* root,
+static int32_t verify_until_statement(CSOUND* csound, TREE* root,
                                TYPE_TABLE* typeTable) {
   char* outArg;
 
@@ -3347,7 +3347,7 @@ void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest,
 }
 
 // Phase 1: Register struct name as placeholder type (for recursive references)
-int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) {
+static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) {
   if (!structDefTree || !structDefTree->left || !structDefTree->left->value) {
     return 0;
   }
@@ -3623,7 +3623,7 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
     needs to check:
     xin/xout number of args matches UDO input/output arg specifications
     xin/xout statements exist if UDO in and out args are not 0 */
-int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
+static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
   if (udoTree->right == NULL) {
     return 1;
   }

@@ -221,7 +221,7 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
     STA(toremove) = tmp;
 }
 
-static int32_t blank_buffer(/*CSOUND *csound,*/ char *buffer)
+static int32_t blank_buffer(/*CSOUND *csound,*/ const char *buffer)
 {
     const char *s;
     for (s = &(buffer[0]); *s != '\0' && *s != '\n'; s++) {

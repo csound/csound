@@ -51,7 +51,7 @@ static int32_t pan2set(CSOUND *csound, PAN2 *p)
     return OK;
 }
 
-static int32_t pan2run_common(CSOUND *csound, OPDS *opds, cs_float *pan, int32_t type, cs_float *ain, cs_float *al, cs_float *ar) {
+static int32_t pan2run_common(CSOUND *csound, OPDS *opds, cs_float *pan, int32_t type, const cs_float *ain, cs_float *al, cs_float *ar) {
     IGN(csound);
 
     uint32_t offset = opds->insdshead->ksmps_offset;

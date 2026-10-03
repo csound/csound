@@ -33,7 +33,7 @@
 static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p);
 
 /* This is used in pvadd instead of the Fetch() from dsputil.c */
-void FetchInForAdd(float *inp, cs_float *buf, int32 fsize,
+static void FetchInForAdd(float *inp, cs_float *buf, int32 fsize,
                    cs_float pos, int32_t binoffset, int32_t maxbin, int32_t binincr)
 {
     int32    j;
@@ -61,7 +61,7 @@ void FetchInForAdd(float *inp, cs_float *buf, int32 fsize,
     }
 }
 
-int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
+static int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
 {
     int32_t      ibins;
     char     pvfilnam[MAXNAME];

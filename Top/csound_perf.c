@@ -32,7 +32,7 @@ void message_dequeue(CSOUND *csound);
 int32_t sense_events(CSOUND *);
 
 
-inline static void mix_out(cs_float *out, cs_float *in, uint32_t smps) {
+inline static void mix_out(cs_float *out, const cs_float *in, uint32_t smps) {
   uint32_t i;
   for (i = 0; i < smps; i++)
     out[i] += in[i];

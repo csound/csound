@@ -67,7 +67,7 @@ static void FetchInOne(
   }
 }
 
-int32_t pvreadset_(CSOUND *csound, PVREAD *p, int32_t stringname)
+static int32_t pvreadset_(CSOUND *csound, PVREAD *p, int32_t stringname)
 {
   char generated_name[MAXNAME];
   const char *pvfilnam;

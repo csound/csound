@@ -227,7 +227,7 @@ typedef struct
 
 }hrtfreverb;
 
-int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
+static int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 {
   /* left and right data files: spectral mag, phase format */
   MEMFIL *fpl = NULL, *fpr = NULL;
@@ -885,7 +885,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
   return OK;
 }
 
-int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
+static int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
 {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;

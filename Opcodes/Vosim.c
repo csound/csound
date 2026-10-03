@@ -64,7 +64,7 @@ typedef struct {
 
 
 /* Post: unless skipping init, timrem == 0 */
-int32_t vosimset(CSOUND* csound, VOSIM *p)
+static int32_t vosimset(CSOUND* csound, VOSIM *p)
 {
   if (*p->iskip)
     return OK;
@@ -88,7 +88,7 @@ int32_t vosimset(CSOUND* csound, VOSIM *p)
  *    ELSE pulsephs < 0.
  *    timrem > 0.
  */
-void vosim_event(CSOUND* csound, VOSIM *p)
+static void vosim_event(CSOUND* csound, VOSIM *p)
 {
   cs_float fundabs = FABS(*p->kfund);
   /* count of pulses, (+1 since decr at start of pulse) */
@@ -133,7 +133,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
  *    0 <= pulsephs < FMAXLEN.
  *    In corrected mode, the pulse factor applies only after the first pulse.
  */
-void vosim_pulse(CSOUND* csound, VOSIM *p, int32_t first)
+static void vosim_pulse(CSOUND* csound, VOSIM *p, int32_t first)
 {
   IGN(csound);
   int32 pulselen;
@@ -169,7 +169,7 @@ void vosim_pulse(CSOUND* csound, VOSIM *p, int32_t first)
 }
 
 
-int32_t vosim(CSOUND* csound, VOSIM *p)
+static int32_t vosim(CSOUND* csound, VOSIM *p)
 {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;

@@ -338,11 +338,11 @@ cs_float csoundSystemSr(CSOUND *csound, cs_float val) {
 }
 
 /* get type from name */
- const CS_TYPE *csoundGetType(CSOUND *csound, const char *type) {
+ static const CS_TYPE *csoundGetType(CSOUND *csound, const char *type) {
   return csoundGetTypeWithVarTypeName(csound->typePool, type);
 }
 
-const CSOUND_UTIL *csoundGetCsoundUtility(CSOUND *csound) {
+static const CSOUND_UTIL *csoundGetCsoundUtility(CSOUND *csound) {
   return &csound->csound_util;
 }
 

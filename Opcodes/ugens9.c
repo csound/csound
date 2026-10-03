@@ -185,7 +185,7 @@ static void writeFromCircBuf(
                              cs_float   **sce,
                              cs_float   **dst,              /* Circular source and linear destination */
                              cs_float   *sceStart,
-                             cs_float   *sceEnd,            /* Address of start & end of source buffer */
+                             const cs_float   *sceEnd,            /* Address of start & end of source buffer */
                              int32    numToDo)            /* How many points to write (<= circBufSize) */
 {
   cs_float   *srcindex = *sce;

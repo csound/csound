@@ -659,6 +659,8 @@ static void message_string_enqueue(CSOUND *csound, int32_t attr,
 }
 
 static void no_op(CSOUND *csound, int32_t attr,
+    /* Matches the message callback signature. va_list differs between platforms. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
                   const char *format, va_list args) {
   IGN(csound);
   IGN(attr);
@@ -2612,7 +2614,7 @@ static void setup_opcode_argpp(
  * This should be called when reusing a UDO instance to ensure argpp pointers
  * are fresh and not stale from previous usage.
  */
-void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip)
+static void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip)
 {
     INSTRTXT *tp = ip->instr;
     OPTXT *optxt = (OPTXT*)tp;

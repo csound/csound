@@ -197,20 +197,20 @@ typedef struct {
     cs_float *kr, *kn;
 } FAREYLEN;
 
-int32_t tablefilter (CSOUND*,TABFILT *p);
-int32_t tablefilterset (CSOUND*,TABFILT *p);
-int32_t tableifilter (CSOUND*, TABFILT *p);
-int32_t fareylen (CSOUND*, FAREYLEN *p);
-int32_t fareyleni (CSOUND*, FAREYLEN *p);
-int32_t tableshuffle (CSOUND*, TABSHUFFLE *p);
-int32_t tableshuffleset (CSOUND*, TABSHUFFLE *p);
-int32_t tableishuffle (CSOUND *, TABSHUFFLE *p);
+static int32_t tablefilter (CSOUND*,TABFILT *p);
+static int32_t tablefilterset (CSOUND*,TABFILT *p);
+static int32_t tableifilter (CSOUND*, TABFILT *p);
+static int32_t fareylen (CSOUND*, FAREYLEN *p);
+static int32_t fareyleni (CSOUND*, FAREYLEN *p);
+static int32_t tableshuffle (CSOUND*, TABSHUFFLE *p);
+static int32_t tableshuffleset (CSOUND*, TABSHUFFLE *p);
+static int32_t tableishuffle (CSOUND *, TABSHUFFLE *p);
 
 /* utility functions */
 int32_t EulerPhi (int32_t n);
 int32_t FareyLength (int32_t n);
-cs_float Digest (int32_t n);
-void float2frac (CSOUND *csound, cs_float in, int32_t *p, int32_t *q);
+static cs_float Digest (int32_t n);
+static void float2frac (CSOUND *csound, cs_float in, int32_t *p, int32_t *q);
 
 /* a filter and table copy opcode for filtering tables containing
    Farey Sequences generated with fateytable GEN */
@@ -221,7 +221,7 @@ void float2frac (CSOUND *csound, cs_float in, int32_t *p, int32_t *q);
  *
  */
 
-int32_t tablefilterset(CSOUND *csound, TABFILT *p)
+static int32_t tablefilterset(CSOUND *csound, TABFILT *p)
 {
    IGN(csound);
     p->pdft = 0;
@@ -236,7 +236,7 @@ int32_t tablefilterset(CSOUND *csound, TABFILT *p)
  */
 static int32_t dotablefilter (CSOUND *csound, TABFILT *p);
 
-int32_t tablefilter (CSOUND *csound, TABFILT *p)
+static int32_t tablefilter (CSOUND *csound, TABFILT *p)
 {
     /* Check the state of the two table number variables.
      * Error message if any are < 1 and no further action.     */
@@ -286,7 +286,7 @@ int32_t tablefilter (CSOUND *csound, TABFILT *p)
 
 /*-----------------------------------*/
 
-int32_t tableifilter (CSOUND *csound, TABFILT *p)
+static int32_t tableifilter (CSOUND *csound, TABFILT *p)
 {
     /* Check the state of the two table number variables.
      * Error message if any are < 1 and no further action. */
@@ -421,7 +421,7 @@ functions for shuffling an f-table
 ***************************************/
 static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p);
 
-int32_t tableshuffleset(CSOUND *csound, TABSHUFFLE *p)
+static int32_t tableshuffleset(CSOUND *csound, TABSHUFFLE *p)
 {
     IGN(csound);
     p->psft = 0;
@@ -429,7 +429,7 @@ int32_t tableshuffleset(CSOUND *csound, TABSHUFFLE *p)
 }
 
 
-int32_t tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
+static int32_t tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
 
     if (UNLIKELY(*p->sft < 1)) {
       return csound->PerfError(csound, &(p->h),
@@ -450,7 +450,7 @@ int32_t tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
     return OK;
 }
 
-int32_t tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
+static int32_t tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
 
     if (UNLIKELY(*p->sft < 1)) {
       return csound->PerfError(csound, &(p->h),
@@ -511,7 +511,7 @@ static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
     return OK;
 }
 
-int32_t fareylen (CSOUND *csound, FAREYLEN *p)
+static int32_t fareylen (CSOUND *csound, FAREYLEN *p)
 {
     int32_t length;
     if (UNLIKELY(!(*p->kn >= FL(1.0) && (cs_double)*p->kn <= (INT32_MAX + 0.0))))
@@ -525,7 +525,7 @@ int32_t fareylen (CSOUND *csound, FAREYLEN *p)
     return OK;
 }
 
-int32_t fareyleni (CSOUND *csound, FAREYLEN *p)
+static int32_t fareyleni (CSOUND *csound, FAREYLEN *p)
 {
     int32_t length;
     if (UNLIKELY(!(*p->kn >= FL(1.0) && (cs_double)*p->kn <= (INT32_MAX + 0.0))))
@@ -581,7 +581,7 @@ int32_t FareyLength (int32_t n)
  * The order of the first 16 integers according to Digest is:
  * 1, 2, 4, 3, 8, 6, 16, 12, 9, 5, 10, 15, 7, 14
  * ----------------------------------------------- */
-cs_float Digest (int32_t n)
+static cs_float Digest (int32_t n)
 {
     cs_float result = FL(0.0);
     uint32_t remaining = n < 0 ? (uint32_t)(-(int64_t)n) : (uint32_t)n;
@@ -614,7 +614,7 @@ cs_float Digest (int32_t n)
 
 /* Return the first continued-fraction approximation within 10^-5.
    Stop before an exact remainder is inverted or a convergent exceeds int32. */
-void float2frac (CSOUND *csound, cs_float in, int32_t *num, int32_t *denom)
+static void float2frac (CSOUND *csound, cs_float in, int32_t *num, int32_t *denom)
 {
     IGN(csound);
     cs_double value = fabs((cs_double)in), x = value;

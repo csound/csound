@@ -37,7 +37,7 @@ static int32_t pvx_loadfile(CSOUND *, const char *, PVOC *);
 #define WLN   1                         /* time window is WLN*2*ksmps long  */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */
 
-int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
+static int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
 {
   uint32_t      i;
   int32    memsize;

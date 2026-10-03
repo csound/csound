@@ -439,7 +439,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     return OK;
 }
 
-int32_t harm2set(CSOUND *csound, HARM234 *p)
+static int32_t harm2set(CSOUND *csound, HARM234 *p)
 {
     VOCDAT *vdp = p->vocdat;
     vdp->kfrq = p->kfrq1;       vdp->phase = 0; vdp++;
@@ -451,7 +451,7 @@ int32_t harm2set(CSOUND *csound, HARM234 *p)
     return hm234set(csound, p);
 }
 
-int32_t harm3set(CSOUND *csound, HARM234 *p)
+static int32_t harm3set(CSOUND *csound, HARM234 *p)
 {
     VOCDAT *vdp = p->vocdat;
     vdp->kfrq = p->kfrq1;       vdp->phase = 0; vdp++;
@@ -468,7 +468,7 @@ int32_t harm3set(CSOUND *csound, HARM234 *p)
     return hm234set(csound, p);
 }
 
-int32_t harm4set(CSOUND *csound, HARM234 *p)
+static int32_t harm4set(CSOUND *csound, HARM234 *p)
 {
     VOCDAT *vdp = p->vocdat;
     vdp->kfrq = p->kfrq1;       vdp->phase = 0; vdp++;

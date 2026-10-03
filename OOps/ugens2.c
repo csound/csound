@@ -462,7 +462,7 @@ int32_t posc_set(CSOUND *csound, OSC *p)
     p->phs     -= p->tablen;
   return OK;
 }
-int32_t posckkt(CSOUND *csound, OSC *p)
+static int32_t posckkt(CSOUND *csound, OSC *p)
 {
   FUNC        *ftp = p->ftp;
   cs_float       *out = p->sr, *ft;
@@ -494,7 +494,7 @@ int32_t posckkt(CSOUND *csound, OSC *p)
   return OK;
 }
 
-int32_t poscaat(CSOUND *csound, OSC *p)
+static int32_t poscaat(CSOUND *csound, OSC *p)
 {
   FUNC        *ftp = p->ftp;
   cs_float       *out = p->sr, *ft;
@@ -527,7 +527,7 @@ int32_t poscaat(CSOUND *csound, OSC *p)
   return OK;
 }
 
-int32_t posckat(CSOUND *csound, OSC *p)
+static int32_t posckat(CSOUND *csound, OSC *p)
 {
   FUNC        *ftp = p->ftp;
   cs_float       *out = p->sr, *ft;
@@ -560,7 +560,7 @@ int32_t posckat(CSOUND *csound, OSC *p)
   return OK;
 }
 
-int32_t poscakt(CSOUND *csound, OSC *p)
+static int32_t poscakt(CSOUND *csound, OSC *p)
 {
 
   FUNC        *ftp = p->ftp;
@@ -593,7 +593,7 @@ int32_t poscakt(CSOUND *csound, OSC *p)
   return OK;
 }
 
-int32_t kposct(CSOUND *csound, OSC *p)
+static int32_t kposct(CSOUND *csound, OSC *p)
 {
   IGN(csound);
   cs_double      phs = p->phs;

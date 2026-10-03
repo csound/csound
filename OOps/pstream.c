@@ -180,7 +180,7 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     return OK;
 }
 /* c/o John Lazzaro, for SAOL, and many other sources */
-static inline cs_float fastoscil(cs_float *a, cs_float *x, cs_float *y)
+static inline cs_float fastoscil(const cs_float *a, cs_float *x, cs_float *y)
 {
     *x = *x - *a * *y;
     *y = *y + *a * *x;

@@ -355,7 +355,7 @@ static const char *longUsageList[] = {
     NULL};
 
 /* IV - Feb 19 2005 */
-void print_short_usage(CSOUND *csound) {
+static void print_short_usage(CSOUND *csound) {
   char buf[256];
   int32_t i;
   i = -1;
@@ -462,7 +462,7 @@ static const SAMPLE_FORMAT_ENTRY sample_format_map[] = {
     {"double", 'd'}, {"long", 'l'},   {"short", 's'}, {"ulaw", 'u'},
     {"24bit", '3'},  {"vorbis", 'v'}, {NULL, '\0'}};
 
-const char *get_output_format(OPARMS *O) {
+static const char *get_output_format(OPARMS *O) {
   int32_t i = 0;
   char c;
   switch (O->outformat) {
@@ -1678,7 +1678,7 @@ end:
 
 void check_options(CSOUND *csound);
 
-char *unquote_arg(CSOUND *csound, char *arg) {
+static char *unquote_arg(CSOUND *csound, char *arg) {
   char *out = csoundStrdup(csound, arg);
   char *op = out;
   while(*arg != '\0') {

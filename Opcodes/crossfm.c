@@ -46,7 +46,7 @@
       (phase_) = FL(0.0);                             \
   } while (0)
 
-int32_t xfmset(CSOUND *csound, CROSSFM *p)
+static int32_t xfmset(CSOUND *csound, CROSSFM *p)
 {
     FUNC *ftp1 = csound->FTFind(csound, p->ifn1);
     FUNC *ftp2 = csound->FTFind(csound, p->ifn2);
@@ -75,7 +75,7 @@ int32_t xfmset(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int32_t xfm(CSOUND *csound, CROSSFM *p)
+static int32_t xfm(CSOUND *csound, CROSSFM *p)
 {
     cs_float *out1, *out2;
     cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;
@@ -146,7 +146,7 @@ int32_t xfm(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int32_t xfmi(CSOUND *csound, CROSSFM *p)
+static int32_t xfmi(CSOUND *csound, CROSSFM *p)
 {
     cs_float *out1, *out2;
     cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;
@@ -222,7 +222,7 @@ int32_t xfmi(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int32_t xpm(CSOUND *csound, CROSSFM *p)
+static int32_t xpm(CSOUND *csound, CROSSFM *p)
 {
     cs_float *out1, *out2;
     cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;
@@ -295,7 +295,7 @@ int32_t xpm(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int32_t xpmi(CSOUND *csound, CROSSFM *p)
+static int32_t xpmi(CSOUND *csound, CROSSFM *p)
 {
     cs_float *out1, *out2;
     cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;
@@ -373,7 +373,7 @@ int32_t xpmi(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int32_t xfmpm(CSOUND *csound, CROSSFM *p)
+static int32_t xfmpm(CSOUND *csound, CROSSFM *p)
 {
     cs_float *out1, *out2;
     cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;
@@ -445,7 +445,7 @@ int32_t xfmpm(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
+static int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
 {
     cs_float *out1, *out2;
     cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;

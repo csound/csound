@@ -179,7 +179,7 @@ typedef struct {
       cs_double      t_down;
 } VACTROL;
 
-int32_t vactrol_init(CSOUND *csound, VACTROL* p)
+static int32_t vactrol_init(CSOUND *csound, VACTROL* p)
 {
     p->s1 = 0;
     p->a_base = 1000.0*PI/(CS_ESR);
@@ -188,7 +188,7 @@ int32_t vactrol_init(CSOUND *csound, VACTROL* p)
     return OK;
 }
 
-int32_t vactrol_perf(CSOUND *csound, VACTROL* p)
+static int32_t vactrol_perf(CSOUND *csound, VACTROL* p)
 {
     cs_double s1 = p->s1;
     cs_double a_base = p->a_base;

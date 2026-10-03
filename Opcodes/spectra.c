@@ -63,7 +63,7 @@ static const char *outstring[] = {"mag", "db", "mag sqrd", "root mag"};
 
 /* DO NOT FIX historical behavior here without an explicit maintainer decision. */
 CSOUND_PRESERVE_LEGACY_BEHAVIOR("spectrum")
-int32_t spectset(CSOUND *csound, SPECTRUM *p)
+static int32_t spectset(CSOUND *csound, SPECTRUM *p)
 /* spectrum - calcs disc Fourier transform of */
 /* oct-downsampled data outputs coefs (mag, */
 /* db or mag2) of log freq within each octave */
@@ -535,7 +535,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*     return OK; */
 /* } */
 
-int32_t spdspset(CSOUND *csound, SPECDISP *p)
+static int32_t spdspset(CSOUND *csound, SPECDISP *p)
 {
   char  strmsg[256];
   /* RWD is this enough? */
@@ -584,7 +584,7 @@ int32_t specdisp(CSOUND *csound, SPECDISP *p)
                            "%s", Str("specdisp: not initialised"));
 }
 
-int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
+static int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
 {
   SPECDAT *inspecp = p->wsig;
   int32_t   npts, nptls, nn, lobin;
@@ -847,7 +847,7 @@ int32_t specptrk(CSOUND *csound, SPECPTRK *p)
                            "%s", Str("specptrk: not initialised"));
 }
 
-int32_t spsumset(CSOUND *csound, SPECSUM *p)
+static int32_t spsumset(CSOUND *csound, SPECSUM *p)
 {
   IGN(csound);
   p->kinterp = (*p->interp == FL(0.0)) ? 0 : 1;
@@ -883,7 +883,7 @@ int32_t specsum(CSOUND *csound, SPECSUM *p)
 
 /* DO NOT FIX historical behavior here without an explicit maintainer decision. */
 CSOUND_PRESERVE_LEGACY_BEHAVIOR("specaddm")
-int32_t spadmset(CSOUND *csound, SPECADDM *p)
+static int32_t spadmset(CSOUND *csound, SPECADDM *p)
 {
   SPECDAT *inspec1p = p->wsig1;
   SPECDAT *inspec2p = p->wsig2;
@@ -940,7 +940,7 @@ int32_t specaddm(CSOUND *csound, SPECADDM *p)
                            "%s", Str("specaddm: not initialised"));
 }
 
-int32_t spdifset(CSOUND *csound, SPECDIFF *p)
+static int32_t spdifset(CSOUND *csound, SPECDIFF *p)
 {
   SPECDAT *inspecp = p->wsig;
   cs_float *lclp;
@@ -1003,7 +1003,7 @@ int32_t specdiff(CSOUND *csound, SPECDIFF *p)
                            "%s", Str("specdiff: not initialised"));
 }
 
-int32_t spsclset(CSOUND *csound, SPECSCAL *p)
+static int32_t spsclset(CSOUND *csound, SPECSCAL *p)
 {
   SPECDAT *inspecp = p->wsig;
   SPECDAT *outspecp = p->wscaled;
@@ -1109,7 +1109,7 @@ int32_t specscal(CSOUND *csound, SPECSCAL *p)
                            "%s", Str("specscal: not initialised"));
 }
 
-int32_t sphstset(CSOUND *csound, SPECHIST *p)
+static int32_t sphstset(CSOUND *csound, SPECHIST *p)
 {
   SPECDAT *inspecp = p->wsig;
   cs_float *lclp;
@@ -1166,7 +1166,7 @@ int32_t spechist(CSOUND *csound, SPECHIST *p)
                            "%s", Str("spechist: not initialised"));
 }
 
-int32_t spfilset(CSOUND *csound, SPECFILT *p)
+static int32_t spfilset(CSOUND *csound, SPECFILT *p)
 {
   SPECDAT *inspecp = p->wsig;
   SPECDAT *outspecp = p->wfil;

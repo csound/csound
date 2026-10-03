@@ -507,7 +507,7 @@ typedef struct  _partxt{
 } PARTXT;
 
 
-int32_t part2txt_init(CSOUND *csound, PARTXT *p){
+static int32_t part2txt_init(CSOUND *csound, PARTXT *p){
 
     if (UNLIKELY(p->tracks->format != PVS_TRACKS))
       return csound->InitError(csound, "%s",
@@ -524,7 +524,7 @@ int32_t part2txt_init(CSOUND *csound, PARTXT *p){
     return OK;
 }
 
-int32_t part2txt_perf(CSOUND *csound, PARTXT *p){
+static int32_t part2txt_perf(CSOUND *csound, PARTXT *p){
      IGN(csound);
     float *tracks = (float *) p->tracks->frame.auxp;
     size_t i, end = p->tracks->frame.size / sizeof(float);
