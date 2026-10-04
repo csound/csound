@@ -557,6 +557,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   OENTRIES* opentries;
   CS_VARIABLE* var;
   int32_t childContext = initContext;
+  OENTRY *indexEntry = NULL;
 
   /* HANDLE SUB EXPRESSIONS */
   if (root->type=='?') return create_cond_expression(csound, root, line,
@@ -828,12 +829,18 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
           strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
           outype = strdup("k");
         } else if (type_has_index_opcode(csound, var->varType, "##array_get")) {
-          /* The type's own entries decide the element type and the rate,
-             so there is no init-only variant to pick here. */
-          char *elementType = resolve_index_get_type(csound, var->varType, root->right, typeTable);
+          /* As for a built-in array, the read follows changes unless an
+             init-only consumer reads it with i indices; the type's entries
+             for that rate give the element type. */
+          indexEntry = resolve_index_read_entry(csound, var->varType, root->right,
+                                                typeTable, !initArrayRead);
+          if (indexEntry == NULL) {
+            return NULL;
+          }
           strNcpy(op, "##array_get", 80);
-          outype = elementType != NULL ? strdup(elementType) : NULL;
-          if (elementType != NULL) csound->Free(csound, elementType);
+          char *elementType = remove_type_quoting(csound, indexEntry->outypes);
+          outype = strdup(elementType);
+          csound->Free(csound, elementType);
         } else {
           // Typed array like k[], varType is the element type
           strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
@@ -856,6 +863,8 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   }
   opTree = create_opcode_token(csound, op);
   if (root->value) opTree->value->optype = root->value->optype;
+  /* verify_opcode keeps the entry the type's [] resolution chose */
+  opTree->markup = indexEntry;
   if (root->left != NULL) {
     opTree->right = root->left;
     opTree->right->next = root->right;
@@ -1891,6 +1900,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       CS_VARIABLE* var;
       int32_t arrayElementIsStruct = 0;
       int32_t typeIndexed = 0;
+      OENTRY* indexEntry = NULL;
 
       if (array_target_missing_lexeme(currentArg)) {
         const CS_TYPE* outCsType;
@@ -1926,11 +1936,20 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                         "for var %s line %d\n"),
                     varBaseName, current->line);
             return NULL;
-          } else if (type_has_index_opcode(csound, var->varType, "##array_set")) {
-            // The type's "##array_set" entries name the values they take;
-            // only an assignment's right-hand side is the value written
+          } else if (type_has_index_opcode(csound, var->varType, "##array_set") ||
+                     type_has_index_opcode(csound, var->varType, "##array_init")) {
+            // The type's writer entries name the values they take; only an
+            // assignment's right-hand side is the value written
+            const char* writer = init ? "##array_init" : "##array_set";
             int32_t assigns = init || !strcmp(current->value->lexeme, "=");
-            outType = resolve_index_set_type(csound, var->varType, assigns ? current->right : NULL, currentArg->right, typeTable);
+            indexEntry = resolve_index_set_entry(csound, var->varType, writer,
+                                                 assigns ? current->right : NULL,
+                                                 currentArg->right, typeTable, &outType);
+            if (indexEntry == NULL) {
+              synterr(csound, Str("cannot write %s[] here, line %d\n"),
+                      varBaseName, current->line);
+              return NULL;
+            }
             typeIndexed = 1;
           } else {
             // Typed array like k[], varType is the element type
@@ -1960,9 +1979,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
       // Choose the appropriate array set opcode based on element type
       char* opcodeNameBase;
-      if (typeIndexed) {
-        opcodeNameBase = "##array_set";
-      } else if (init) {
+      if (init) {
         opcodeNameBase = "##array_init";
       } else if (arrayElementIsStruct) {
         opcodeNameBase = "##array_set_struct";
@@ -1971,6 +1988,9 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       }
 
       TREE* arraySet = create_opcode_token(csound, opcodeNameBase);
+      arraySet->markup = indexEntry;
+      arraySet->line = current->line;
+      arraySet->locn = current->locn;
       arraySet->right = currentArg->left;
       arraySet->right->next =
         make_leaf(csound, temp->line, temp->locn,

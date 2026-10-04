@@ -1652,14 +1652,20 @@ int32_t type_has_index_opcode(CSOUND* csound, const CS_TYPE* type, const char* o
   return found;
 }
 
-/* The element type of type[...] read: the out-type of the "##array_get"
-   entry matching the type plus the index types. Returned in internal form
-   ("k", or "Name" for a quoted type), owned by the caller. A missing entry
-   is a syntax error only when report is set. */
-static char* resolve_index_read(CSOUND* csound, const CS_TYPE* type, TREE* indices, TYPE_TABLE* typeTable, int32_t report) {
-  OENTRIES* entries = find_opcode2(csound, "##array_get");
-  char* inArgTypes = quote_type_name(csound, type);
-  char* out;
+/* The length of the type at the start of a type list: ":Name;" or one
+   letter, without any "[]" that follows. */
+static size_t type_slot_length(const char* slot) {
+  const char* end;
+  if (*slot != ':') return *slot != '\0';
+  end = strchr(slot, ';');
+  return end != NULL ? (size_t) (end - slot) + 1 : strlen(slot);
+}
+
+/* The external types of an index list, concatenated, owned by the caller.
+   Constants and p-fields are i values; with asK every i index is taken as
+   k, the way a k argument takes an i one. NULL when an index has no type. */
+static char* index_arg_types(CSOUND* csound, TREE* indices, TYPE_TABLE* typeTable, int32_t asK) {
+  char* types = csoundStrdup(csound, "");
   TREE* index;
 
   for (index = indices; index != NULL; index = index->next) {
@@ -1667,93 +1673,275 @@ static char* resolve_index_read(CSOUND* csound, const CS_TYPE* type, TREE* indic
     char* external;
     char* joined;
     if (indexType == NULL) {
-      csound->Free(csound, inArgTypes);
-      csound->Free(csound, entries);
+      csound->Free(csound, types);
       return NULL;
     }
+    if (indexType[1] == '\0' && strchr("icp", indexType[0]) != NULL) {
+      indexType[0] = asK ? 'k' : 'i';
+    }
     external = convert_internal_to_external(csound, indexType);
-    joined = csound->Malloc(csound, strlen(inArgTypes) + strlen(external) + 1);
-    strcpy(joined, inArgTypes);
+    joined = csound->Malloc(csound, strlen(types) + strlen(external) + 1);
+    strcpy(joined, types);
     strcat(joined, external);
     if (external != indexType) csound->Free(csound, external);
     csound->Free(csound, indexType);
-    csound->Free(csound, inArgTypes);
-    inArgTypes = joined;
+    csound->Free(csound, types);
+    types = joined;
   }
-
-  out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
-  csound->Free(csound, entries);
-  if (out == NULL) {
-    if (report) {
-      char* display = csoundFormatTypeList(csound, inArgTypes);
-      synterr(csound, Str("no [] read for arg types %s\n"), display);
-      csound->Free(csound, display);
-    }
-    csound->Free(csound, inArgTypes);
-    return NULL;
-  }
-  csound->Free(csound, inArgTypes);
-  return *out == ':' ? remove_type_quoting(csound, out)
-                     : csoundStrdup(csound, out);
+  return types;
 }
 
-char* resolve_index_get_type(CSOUND* csound, const CS_TYPE* type, TREE* indices, TYPE_TABLE* typeTable) {
-  return resolve_index_read(csound, type, indices, typeTable, 1);
+static char* join_index_args(CSOUND* csound, const char* quoted, const char* value, const char* indices) {
+  char* args = csound->Malloc(csound, strlen(quoted) + (value ? strlen(value) : 0) + strlen(indices) + 1);
+  strcpy(args, quoted);
+  if (value != NULL) strcat(args, value);
+  strcat(args, indices);
+  return args;
 }
 
-/* The element type of type[...] written: the value slot of the type's
-   "##array_set" entry that takes the wanted type, or of the first entry when
-   none does (a constant, say), so the plugin's order sets the default. An
-   assignment wants the type of its value; an opcode writing into the element
-   wants the type the element has when read, as an opcode writing into a
-   variable does. Returned in internal form, owned by the caller. */
-char* resolve_index_set_type(CSOUND* csound, const CS_TYPE* type, TREE* value, TREE* indices, TYPE_TABLE* typeTable) {
-  OENTRIES* entries = find_opcode2(csound, "##array_set");
+/* Picks the type's own entry of opname ("##array_get", "##array_set" or
+   "##array_init") for an access, the same way whatever order the entries
+   were registered in. A candidate takes the type, the value (writers only)
+   and the indices. It ranks first when its value slot is the value's type
+   rather than k taking an i value, then when its index slots match the
+   access's rate: perf prefers entries that take k indices, so the access
+   follows changes, and init prefers entries that take only i indices. Two
+   candidates of the best rank are ambiguous. With outTypes set, only entries
+   writing those types are candidates. NULL when no single entry ranks best,
+   reported when report is set. */
+static OENTRY* choose_index_entry(CSOUND* csound, const CS_TYPE* type, const char* opname,
+                                  const char* value, TREE* indices, TYPE_TABLE* typeTable,
+                                  const char* outTypes, int32_t perf, int32_t report) {
+  OENTRIES* entries = find_opcode2(csound, (char*) opname);
   char* quoted = quote_type_name(csound, type);
   size_t quotedLen = strlen(quoted);
-  char* valueType = value != NULL ? get_arg_type2(csound, value, typeTable)
-    : type_has_index_opcode(csound, type, "##array_get") ? resolve_index_read(csound, type, indices, typeTable, 0)
-    : NULL;
-  char* wanted = valueType != NULL ? convert_internal_to_external(csound, valueType) : NULL;
-  const char* chosen = NULL;
-  size_t chosenLen = 0;
-  char* result;
-  int32_t i;
+  char* iIndices = index_arg_types(csound, indices, typeTable, 0);
+  char* kIndices = index_arg_types(csound, indices, typeTable, 1);
+  char* args = NULL;
+  char* kArgs = NULL;
+  OENTRY* best = NULL;
+  int32_t bestRank = INT32_MAX, count = 0, i;
 
-  for (i = 0; entries != NULL && i < entries->count; i++) {
-    const OENTRY* entry = entries->entries[i];
-    const char* slot;
-    size_t len;
-    if (!entry_indexes_type(entry, quoted, quotedLen)) continue;
-    slot = entry->intypes + quotedLen;
-    len = *slot == ':' ? (size_t) (strchr(slot, ';') - slot) + 1 : 1;
-    if (chosen == NULL) {
-      chosen = slot;
-      chosenLen = len;
-    }
-    if (wanted != NULL && strlen(wanted) == len && !strncmp(slot, wanted, len)) {
-      chosen = slot;
-      chosenLen = len;
-      break;
+  if (entries != NULL && iIndices != NULL && kIndices != NULL) {
+    args = join_index_args(csound, quoted, value, iIndices);
+    kArgs = join_index_args(csound, quoted, value, kIndices);
+    for (i = 0; i < entries->count; i++) {
+      OENTRY* entry = entries->entries[i];
+      int32_t rank = 0, takesK;
+      if (!entry_indexes_type(entry, quoted, quotedLen)) continue;
+      if (outTypes != NULL &&
+          !check_out_args(csound, (char*) outTypes, entry->outypes)) continue;
+      if (value != NULL) {
+        const char* slot = entry->intypes + quotedLen;
+        size_t len = type_slot_length(slot);
+        if (len == strlen(value) && !strncmp(slot, value, len)) rank = 0;
+        else if (!strcmp(value, "i") && len == 1 && *slot == 'k') rank = 2;
+        else continue;
+      }
+      if (check_in_args(csound, args, entry->intypes) <= 0) continue;
+      takesK = check_in_args(csound, kArgs, entry->intypes) > 0;
+      rank += perf ? !takesK : takesK;
+      if (rank < bestRank) {
+        best = entry;
+        bestRank = rank;
+        count = 1;
+      } else if (rank == bestRank) {
+        count++;
+      }
     }
   }
 
-  result = NULL;
-  if (chosen != NULL) {
-    result = csound->Malloc(csound, chosenLen + 1);
-    memcpy(result, chosen, chosenLen);
-    result[chosenLen] = '\0';
-    if (*result == ':') {
-      char* unquoted = remove_type_quoting(csound, result);
-      csound->Free(csound, result);
-      result = unquoted;
-    }
+  if (report && args != NULL && count != 1) {
+    char* display = csoundFormatTypeList(csound, args);
+    char* name = csoundFormatTypeName(csound, type->varTypeName, 0);
+    if (count == 0)
+      synterr(csound, Str("no %s entry of type %s takes arg types %s\n"),
+              opname, name, display);
+    else
+      synterr(csound, Str("ambiguous %s entries of type %s: %d take arg types %s "
+                          "with the same rank\n"),
+              opname, name, count, display);
+    csound->Free(csound, name);
+    csound->Free(csound, display);
   }
-  if (wanted != NULL && wanted != valueType) csound->Free(csound, wanted);
-  if (valueType != NULL) csound->Free(csound, valueType);
+  if (args != NULL) csound->Free(csound, args);
+  if (kArgs != NULL) csound->Free(csound, kArgs);
+  if (iIndices != NULL) csound->Free(csound, iIndices);
+  if (kIndices != NULL) csound->Free(csound, kIndices);
   csound->Free(csound, quoted);
   if (entries != NULL) csound->Free(csound, entries);
-  return result;
+  return count == 1 ? best : NULL;
+}
+
+/* A type from an entry's type list in internal form ("k", or "Name" for
+   ":Name;"), owned by the caller. */
+static char* entry_slot_type(CSOUND* csound, const char* slot) {
+  size_t len = type_slot_length(slot);
+  char* type = csound->Malloc(csound, len + 1);
+  memcpy(type, slot, len);
+  type[len] = '\0';
+  if (*type == ':') {
+    char* unquoted = remove_type_quoting(csound, type);
+    csound->Free(csound, type);
+    return unquoted;
+  }
+  return type;
+}
+
+OENTRY* resolve_index_read_entry(CSOUND* csound, const CS_TYPE* type, TREE* indices,
+                                 TYPE_TABLE* typeTable, int32_t perf) {
+  return choose_index_entry(csound, type, "##array_get", NULL, indices,
+                            typeTable, NULL, perf, 1);
+}
+
+/* Whether any index of type[...] is k-rate. */
+static int32_t index_is_krate(CSOUND* csound, TREE* indices, TYPE_TABLE* typeTable) {
+  TREE* index;
+  for (index = indices; index != NULL; index = index->next) {
+    char* indexType = get_arg_type2(csound, index, typeTable);
+    int32_t krate = indexType != NULL && *indexType == 'k';
+    if (indexType != NULL) csound->Free(csound, indexType);
+    if (krate) return 1;
+  }
+  return 0;
+}
+
+/* The element type of type[...] for choosing the statement's overload:
+   that of the init-time read with i indices, of the perf-time read with any
+   k index. The element of a plugin type has no rate of its own, so with i
+   indices it is typed as i and the statement decides when it is read: an
+   init-only consumer reads it at init time, any other one at perf time (see
+   create_expression). Returned in internal form, owned by the caller. */
+char* resolve_index_get_type(CSOUND* csound, const CS_TYPE* type, TREE* indices, TYPE_TABLE* typeTable) {
+  OENTRY* entry = resolve_index_read_entry(csound, type, indices, typeTable,
+                                           index_is_krate(csound, indices, typeTable));
+  return entry != NULL ? entry_slot_type(csound, entry->outypes) : NULL;
+}
+
+/* The entry writing type[...] through opname: "##array_set" for "=" and
+   opcode outputs, "##array_init" for init. An assignment writes its value,
+   as k when any index is k-rate, so that "=" runs at init time only when
+   all its arguments are i-rate, as for any other variable; init always
+   writes at init time. An opcode writing into the element writes the type
+   the element has when read at init time with i indices, at perf time with
+   any k index. *valueType receives the value slot's type in internal form,
+   owned by the caller. NULL, reported, when no single entry takes it. */
+OENTRY* resolve_index_set_entry(CSOUND* csound, const CS_TYPE* type, const char* opname,
+                                TREE* value, TREE* indices, TYPE_TABLE* typeTable,
+                                char** valueType) {
+  int32_t init = !strcmp(opname, "##array_init");
+  int32_t krate = index_is_krate(csound, indices, typeTable);
+  char* wanted = NULL;
+  char* external;
+  OENTRY* entry;
+
+  *valueType = NULL;
+  if (value != NULL) {
+    wanted = get_arg_type2(csound, value, typeTable);
+  } else {
+    OENTRY* reader = choose_index_entry(csound, type, "##array_get", NULL, indices,
+                                        typeTable, NULL, krate, 0);
+    if (reader != NULL) wanted = entry_slot_type(csound, reader->outypes);
+  }
+  if (wanted == NULL) {
+    char* name = csoundFormatTypeName(csound, type->varTypeName, 0);
+    synterr(csound, Str("no ##array_get entry of type %s gives the element type "
+                        "an opcode writes\n"), name);
+    csound->Free(csound, name);
+    return NULL;
+  }
+  if (wanted[1] == '\0' && strchr("icp", wanted[0]) != NULL) {
+    wanted[0] = !init && value != NULL && krate ? 'k' : 'i';
+  }
+  external = convert_internal_to_external(csound, wanted);
+  entry = choose_index_entry(csound, type, opname, external, indices, typeTable,
+                             NULL, !init && (*external == 'k' || krate), 1);
+  if (entry != NULL) {
+    char* quoted = quote_type_name(csound, type);
+    *valueType = entry_slot_type(csound, entry->intypes + strlen(quoted));
+    csound->Free(csound, quoted);
+  }
+  if (external != wanted) csound->Free(csound, external);
+  csound->Free(csound, wanted);
+  return entry;
+}
+
+/* verify_opcode for "##array_get", "##array_set" and "##array_init" on a
+   type that provides []: the entry the expansion chose, kept in markup, or
+   else the choice remade from the arguments. NULL, without error, when the
+   opcode is not one of those or the variable's type does not index itself. */
+/* Reports reading [] of a variable that is neither an array nor an
+   a-signal and whose type has no "##array_get" entry. */
+static int32_t report_missing_index_read(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
+  CS_VARIABLE* var;
+  char* name;
+  if (strcmp(root->value->lexeme, "##array_get") || root->right == NULL ||
+      root->right->value == NULL) return 0;
+  var = find_var_from_pools(csound, root->right->value->lexeme,
+                            root->right->value->lexeme, typeTable);
+  if (var == NULL || var->varType == NULL || var->subType != NULL ||
+      var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY ||
+      var->varType == &CS_VAR_TYPE_A ||
+      type_has_index_opcode(csound, var->varType, "##array_get")) return 0;
+  name = csoundFormatTypeName(csound, var->varType->varTypeName, 0);
+  synterr(csound, Str("variable %s of type %s cannot be read with []: the type "
+                      "has no ##array_get entry, line %d\n"),
+          var->varName, name, root->line);
+  csound->Free(csound, name);
+  return 1;
+}
+
+static OENTRY* resolve_index_opcode(CSOUND* csound, TREE* root, char* outArgs,
+                                    char* inArgs, TYPE_TABLE* typeTable) {
+  const char* name = root->value->lexeme;
+  const char* opname;
+  CS_VARIABLE* var;
+  OENTRY* chosen = (OENTRY*) root->markup;
+  char* quoted;
+  int32_t ours;
+  TREE* value = NULL;
+  TREE* indices;
+  char* valueType = NULL;
+  OENTRY* entry;
+
+  if (!strcmp(name, "##array_get")) opname = "##array_get";
+  else if (!strcmp(name, "##array_set")) opname = "##array_set";
+  else if (!strcmp(name, "##array_init")) opname = "##array_init";
+  else return NULL;
+  if (root->right == NULL || root->right->value == NULL) return NULL;
+  var = find_var_from_pools(csound, root->right->value->lexeme,
+                            root->right->value->lexeme, typeTable);
+  if (var == NULL || !type_has_index_opcode(csound, var->varType, opname)) return NULL;
+
+  quoted = quote_type_name(csound, var->varType);
+  ours = chosen != NULL && chosen->opname != NULL &&
+    !strncmp(chosen->opname, opname, strlen(opname)) &&
+    entry_indexes_type(chosen, quoted, strlen(quoted)) &&
+    check_in_args(csound, inArgs, chosen->intypes) > 0 &&
+    check_out_args(csound, outArgs, chosen->outypes);
+  csound->Free(csound, quoted);
+  if (ours) return chosen;
+
+  indices = root->right->next;
+  if (strcmp(opname, "##array_get")) {
+    value = indices;
+    indices = value != NULL ? value->next : NULL;
+  }
+  if (value != NULL) {
+    char* type = get_arg_type2(csound, value, typeTable);
+    if (type == NULL) return NULL;
+    if (type[1] == '\0' && strchr("cp", type[0]) != NULL) type[0] = 'i';
+    valueType = convert_internal_to_external(csound, type);
+    if (valueType != type) csound->Free(csound, type);
+  }
+  entry = choose_index_entry(csound, var->varType, opname, valueType, indices,
+                             typeTable, value == NULL ? outArgs : NULL,
+                             strcmp(opname, "##array_init") &&
+                             (value == NULL ? (outArgs == NULL || strcmp(outArgs, "i"))
+                                            : *valueType == 'k'),
+                             1);
+  if (valueType != NULL) csound->Free(csound, valueType);
+  return entry;
 }
 
 /**
@@ -2716,8 +2904,11 @@ static int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         csound->LongJmp(csound, 1);
       }
       // & needs to be an array or asigs
-      if(arrvar->varType != &CS_VAR_TYPE_ARRAY && arrvar->varType != &CS_VAR_TYPE_A) {
-        synterr(csound,Str("variable %s is not an array, line %d\n"), varName, current->line);
+      if(arrvar->varType != &CS_VAR_TYPE_ARRAY &&
+         arrvar->varType != &CS_VAR_TYPE_A &&
+         !type_has_index_opcode(csound, arrvar->varType, "##array_set") &&
+         !type_has_index_opcode(csound, arrvar->varType, "##array_init")) {
+        synterr(csound, Str("variable %s is not an array, line %d\n"), varName, current->line);
         csound->LongJmp(csound, 1);
       }
       add_arg(csound, varName, current->left->value->optype,
@@ -3074,6 +3265,10 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   OENTRY* oentry = resolve_inplace_rate_opcode(csound, entries, root,
                                                leftArgString,
                                                rightArgString);
+  if (oentry == NULL) {
+    oentry = resolve_index_opcode(csound, root, leftArgString,
+                                  rightArgString, typeTable);
+  }
   if (oentry == NULL && (root->value->optype == NULL ||
                          leftArgString == NULL)) {
     if(root->value->optype) {
@@ -3133,6 +3328,13 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       csoundWarning(csound, Str("%s, line %d\n"), message, root->line);
   }
 
+  if (UNLIKELY(oentry == NULL) &&
+      report_missing_index_read(csound, root, typeTable)) {
+    csound->Free(csound, leftArgString);
+    csound->Free(csound, rightArgString);
+    csound->Free(csound, entries);
+    return 0;
+  }
   if (UNLIKELY(oentry == NULL)) {
     int32_t i;
     char *name = strip_extension(csound, opcodeName);
