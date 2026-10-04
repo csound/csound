@@ -23,13 +23,13 @@ symlinks that point at your local builds.
 ## 1. Build the WASM binary
 
 The build uses [Nix](https://nixos.org/) to guarantee a reproducible
-Emscripten toolchain. Make sure you have Nix installed.
+WASI cross compiler. Make sure you have Nix installed.
 
 ```bash
 # From the repo root
 cd platform/wasm-wasi
 npm install           # install build-script dependencies
-npm run build         # runs scripts/compile.sh via nix-build
+npm run build         # builds Csound, plugins and accessory commands with Nix
 ```
 
 `scripts/compile.sh` produces the following artefacts in `platform/wasm-wasi/lib/`:
@@ -43,6 +43,39 @@ npm run build         # runs scripts/compile.sh via nix-build
 Both Csound modules are published in `@csound/wasm-bin`. The package `main`
 entry remains the browser reactor, `csound.wasm`. Command-line runtimes should
 load `csound-cli.wasm` explicitly.
+
+The command build also places these tools in `lib`. Each file uses the tool
+name followed by `.wasm`.
+
+```text
+atsa        csbeats     cvanal      dnoise      envext
+extract     extractor   het_export  het_import  hetro
+lpanal      lpc_export  lpc_import  mixer       mkir
+pv_export   pv_import   pvanal      pvlook      scale
+scot        scsort      sdif2ad     smf_conv    src_conv
+```
+
+`npm run build` builds everything through `scripts/compile.sh`. In command
+mode, `src/csound.nix` compiles Csound's core once for the main command and
+all tools. This mode also runs the Wasmtime checks in `postInstall`. The
+libsamplerate build lives in `src/libsamplerate.nix`. Both the command and
+browser builds link it, so `oversample` and `undersample` can use the sinc
+converters. Configuration fails if CMake cannot find the library.
+
+Each tool is a standalone WASI Preview 1 command with an exported `_start`
+entry point and its own exported memory. It includes its utility code and
+libraries, so it does not need a native Csound installation or a utility plugin.
+For example, convert a sound file to 48 kHz with Wasmtime.
+
+```bash
+wasmtime run -Wexceptions=y --dir=. ./lib/src_conv.wasm -r48000 -ooutput.wav input.wav
+```
+
+A browser WASI host can load the same commands as its main module. The host
+must provide WASI Preview 1 imports, arguments, files and standard streams,
+then call `_start` once on a fresh instance. The browser must support standard
+WebAssembly exception handling. These commands are separate from the
+`@csound/browser` audio reactor and its plugin loader.
 
 The build defaults to the local Nix system. To use a configured remote builder,
 set `NIX_SYSTEM` to the system provided by that builder. For example, from

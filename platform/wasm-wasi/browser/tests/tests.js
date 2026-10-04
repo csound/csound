@@ -954,6 +954,63 @@ schedule(1, 0.05, 10)`), 0);
         await csoundObj.terminateInstance();
       });
 
+      if (test.useSAB) {
+        // A zero-duration offline note can finish before start() returns.
+        const shortOfflineScore = helloWorld.replace("-odac", "-n");
+
+        for (const action of ["stop", "reset"]) {
+          it(`waits for pending render cleanup in ${action}()`, async function () {
+            const cs = await Csound(test);
+            try {
+              assert.equal(await cs.compileCSD(shortOfflineScore), 0);
+              const cleanedUp = new Promise((resolve, reject) => {
+                // Completion is announced just before the stop promise resolves.
+                cs.once("renderEnded", () => cs[action]().then(resolve, reject));
+              });
+              assert.equal(await cs.start(), 0);
+              assert.equal(await cleanedUp, 0);
+            } finally {
+              await cs.terminateInstance();
+            }
+          });
+        }
+
+        it("rejects failed calls queued as an offline render ends", async function () {
+          const cs = await Csound(test);
+          try {
+            assert.equal(await cs.compileCSD(shortOfflineScore), 0);
+            const failure = new Promise((resolve) => {
+              // null makes the worker throw before it accesses any table memory.
+              cs.once("renderStarted", () => cs.tableCopyIn(1, null).then(
+                () => resolve(undefined),
+                resolve,
+              ));
+            });
+            assert.equal(await cs.start(), 0);
+            const error = await failure;
+            assert.equal(error?.name, "TypeError");
+            assert.notInclude(error.message, "timed out");
+          } finally {
+            await cs.terminateInstance();
+          }
+        });
+
+        it("answers calls queued as an offline render ends", async function () {
+          const cs = await Csound(test);
+          try {
+            assert.equal(await cs.compileCSD(shortOfflineScore), 0);
+            const sampleRate = new Promise((resolve, reject) => {
+              // The worker can finish before it sees this queued request.
+              cs.once("renderStarted", () => cs.getSr().then(resolve, reject));
+            });
+            assert.equal(await cs.start(), 0);
+            assert.isAbove(await sampleRate, 0);
+          } finally {
+            await cs.terminateInstance();
+          }
+        });
+      }
+
       it("renders audio samples to an offline WAV file", async function () {
         const csoundObj = await Csound(test);
         try {

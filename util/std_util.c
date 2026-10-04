@@ -20,6 +20,7 @@
 
 #include "std_util.h"
 
+#ifndef CSOUND_STATIC_UTILITIES
 /* Modified from BSD sources for strlcpy */
 /*
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
@@ -54,9 +55,15 @@ strNcpy(char *dst, const char *src, size_t siz)
     return dst;        /* count does not include NUL */
 }
 
+#endif
+
 /* module interface */
 
+#ifdef CSOUND_STATIC_UTILITIES
+ int32_t csoundInitUtilities(CSOUND *csound)
+#else
  int32_t csoundModuleCreate(CSOUND *csound)
+#endif
 {
     int32_t   err = 0;
 
@@ -84,8 +91,9 @@ strNcpy(char *dst, const char *src, size_t siz)
     return err;
 }
 
+#ifndef CSOUND_STATIC_UTILITIES
  int32_t csoundModuleInfo(void)
 {
   return CSOUND_MODULE_INFO;
 }
-
+#endif

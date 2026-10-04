@@ -187,6 +187,16 @@ class SharedArrayBufferMainThread {
   }
 
   finishPerformanceEnd(performanceEndState) {
+    // Both completion signals have arrived, including any earlier callback
+    // replies. Send calls the worker did not pick up before it finished.
+    Object.values(this.callbackBuffer).forEach((payload) => {
+      this.proxyPort["callUncloned"](payload["apiKey"], payload["argumentz"]).then(
+        payload["resolveCallback"],
+        payload["rejectCallback"],
+      );
+    });
+    this.callbackBuffer = {};
+
     // Logs and play-state changes share one ordered port. releaseStop uses a
     // second port, so wait for both before exposing completion to callers.
     if (performanceEndState === "renderEnded") {
@@ -230,13 +240,6 @@ class SharedArrayBufferMainThread {
       case "realtimePerformanceEnded": {
         this.eventPromises.createStopPromise();
 
-        // flush out events sent during the time which the worker was stopping
-        Object.values(this.callbackBuffer).forEach((payload) => {
-          this.proxyPort["callUncloned"](payload["apiKey"], payload["argumentz"]).then(
-            payload["resolveCallback"],
-          );
-        });
-        this.callbackBuffer = {};
         log(`event: realtimePerformanceEnded received, beginning cleanup`)();
         // Preserve audio configuration while re-initializing SAB runtime state.
         userProvidedSampleRate = Atomics.load(this.audioStatePointer, AUDIO_STATE.SAMPLE_RATE);
@@ -517,6 +520,11 @@ class SharedArrayBufferMainThread {
                 this.currentPlayState,
               ].join("\n"),
             )();
+            // Natural completion may have already started cleanup.
+            if (this.eventPromises.isWaitingToStop()) {
+              await this.eventPromises.waitForStop();
+              return 0;
+            }
             if (this.eventPromises.isWaiting("stop")) {
               log("already waiting to stop, doing nothing")();
               return -1;
@@ -556,6 +564,7 @@ class SharedArrayBufferMainThread {
               return;
             }
 
+            await this.eventPromises.waitForStop();
             if (this.eventPromises.isWaiting("reset")) {
               return -1;
             } else {
@@ -625,9 +634,15 @@ class SharedArrayBufferMainThread {
                   resolve(answer);
                 };
 
+                const rejectCallback = (error) => {
+                  clearTimeout(timeout);
+                  reject(error);
+                };
+
                 const callbackBufferDispatch = {};
 
                 callbackBufferDispatch["resolveCallback"] = resolveCallback;
+                callbackBufferDispatch["rejectCallback"] = rejectCallback;
                 callbackBufferDispatch["apiKey"] = apiKey;
                 callbackBufferDispatch["argumentz"] = [csoundInstance, ...arguments_];
 
