@@ -14,6 +14,14 @@
     else if moduleKind == "command"
     then false
     else throw "csound.nix: moduleKind must be either 'command' or 'browser'";
+  tools = [
+    "atsa" "csbeats" "cvanal" "dnoise" "envext" "extract" "extractor"
+    "het_export" "het_import" "hetro" "lpanal" "lpc_export" "lpc_import"
+    "mixer" "mkir" "pv_export" "pv_import" "pvanal" "pvlook" "scale"
+    "scot" "scsort" "sdif2ad" "smf_conv" "src_conv"
+  ];
+  toolTargets = map (name: if name == "mixer" then "mixer-bin" else name) tools;
+  libsamplerate = pkgs.callPackage ./libsamplerate.nix {inherit pkgs stdenvWasm;};
   libsndfile = pkgs.callPackage ./libsndfile.nix {inherit pkgs pkgsWasm stdenvWasm;};
   libogg = pkgs.callPackage ./libogg.nix {inherit pkgs pkgsWasm stdenvWasm;};
   libvorbis = pkgs.callPackage ./libvorbis.nix {inherit pkgs pkgsWasm stdenvWasm;};
@@ -30,7 +38,7 @@
   };
   inherit (import gitignoreSrc {inherit (pkgs) lib;}) gitignoreSource;
 in
-  stdenvWasm.mkDerivation rec {
+  stdenvWasm.mkDerivation ({
     pname =
       if browserHosted
       then "csound-wasm-browser"
@@ -46,7 +54,7 @@ in
       ninja
       zopfli
       pkg-config
-    ];
+    ] ++ lib.optionals (!browserHosted) [pkgs.wasmtime];
 
     buildInputs = [
       libsndfile
@@ -54,12 +62,13 @@ in
       libvorbis
       libmpg123
       liblame
-    ];
+    ] ++ lib.optionals (!browserHosted) [libsamplerate];
 
     enableParallelBuilding = false;
 
     cmakeFlags =
       [
+        "-GNinja"
         "-DBUILD_DIR=build"
         "-DUSE_IPMIDI=OFF"
         "-DBUILD_SHARED_LIBS=OFF"
@@ -67,8 +76,8 @@ in
         # would generate the same libcsound64.a output and Ninja rejects it.
         "-DBUILD_STATIC_LIBRARY=OFF"
         "-DBUILD_CSOUND_COMMAND=ON"
-        # Skip util libraries that try to build .so
-        "-DBUILD_UTILITIES=OFF"
+        "-DBUILD_UTILITIES=${if browserHosted then "OFF" else "ON"}"
+        "-DBUILD_CSBEATS=${if browserHosted then "OFF" else "ON"}"
         "-DINSTALL_PYTHON_INTERFACE=OFF"
         # Skip deprecated opcodes that try to build .so
         "-DBUILD_DEPRECATED_OPCODES=OFF"
@@ -79,6 +88,10 @@ in
         }"
         "-DBISON_EXECUTABLE=${pkgs.buildPackages.bison}/bin/bison"
         "-DFLEX_EXECUTABLE=${pkgs.buildPackages.flex}/bin/flex"
+      ]
+      ++ lib.optionals (!browserHosted) [
+        "-DBUILD_SRC_CONV=ON"
+        "-DUSE_LIBSAMPLERATE=ON"
       ]
       ++ lib.optionals (gitHash != "") [
         "-DCSOUND_GIT_HASH=${gitHash}"
@@ -162,5 +175,38 @@ in
       else ''
         # This command module owns its memory and has a real WASI _start entry.
         cp $out/bin/csound $out/lib/csound-cli.wasm
+        for tool in ${lib.escapeShellArgs tools}; do
+          cp "$out/bin/$tool" "$out/lib/$tool.wasm"
+        done
+
+        # Most tools report usage with a nonzero status and have no --help mode.
+        # Run small valid inputs where practical, on the build host.
+        export HOME="$TMPDIR"
+        run_tool() {
+          local tool="$1"
+          shift
+          wasmtime run -Wexceptions=y -Ccache=n --dir=. "$out/lib/$tool.wasm" "$@"
+        }
+        printf 'i1 m1 b1 C4 q mf\n' | run_tool csbeats >beats.sco
+        printf 'i 1 0 1\ne\n' | run_tool scsort >sorted.sco
+        run_tool mkir -g -t0.01 sweep.wav
+        test -s sweep.wav
+        run_tool src_conv -r22050 -oconverted.wav sweep.wav
+        test -s converted.wav
       '';
-  }
+  } // lib.optionalAttrs (!browserHosted) {
+    # Build Csound and the requested tools together, without native launchers.
+    buildPhase = ''
+      runHook preBuild
+      cmake --build . --parallel "$NIX_BUILD_CORES" --target csound-bin ${lib.escapeShellArgs toolTargets}
+      runHook postBuild
+    '';
+    installPhase = ''
+      runHook preInstall
+      mkdir -p "$out/bin" "$out/lib"
+      for tool in csound ${lib.escapeShellArgs tools}; do
+        install -m755 "$tool" "$out/bin/$tool"
+      done
+      runHook postInstall
+    '';
+  })

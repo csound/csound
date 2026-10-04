@@ -44,8 +44,8 @@ Both Csound modules are published in `@csound/wasm-bin`. The package `main`
 entry remains the browser reactor, `csound.wasm`. Command-line runtimes should
 load `csound-cli.wasm` explicitly.
 
-The build also runs `scripts/build_tools.sh` and places these commands in `lib`.
-Each file uses the tool name followed by `.wasm`.
+The command build also places these tools in `lib`. Each file uses the tool
+name followed by `.wasm`.
 
 ```text
 atsa        csbeats     cvanal      dnoise      envext
@@ -55,9 +55,10 @@ pv_export   pv_import   pvanal      pvlook      scale
 scot        scsort      sdif2ad     smf_conv    src_conv
 ```
 
-To build just the tools, run `npm run build:tools` or
-`bash scripts/build_tools.sh`. This keeps any existing Csound modules in `lib`.
-The commands share one build in `src/tools.nix`.
+`npm run build` builds everything through `scripts/compile.sh`. In command
+mode, `src/csound.nix` compiles Csound's core once for the main command and
+all tools. This mode also runs the Wasmtime checks in `postInstall`. The
+libsamplerate build lives in `src/libsamplerate.nix`.
 
 Each tool is a standalone WASI Preview 1 command with an exported `_start`
 entry point and its own exported memory. It includes its utility code and
