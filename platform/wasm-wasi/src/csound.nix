@@ -62,7 +62,8 @@ in
       libvorbis
       libmpg123
       liblame
-    ] ++ lib.optionals (!browserHosted) [libsamplerate];
+      libsamplerate
+    ];
 
     enableParallelBuilding = false;
 
@@ -71,6 +72,9 @@ in
         "-GNinja"
         "-DBUILD_DIR=build"
         "-DUSE_IPMIDI=OFF"
+        "-DUSE_LIBSAMPLERATE=ON"
+        # Fail configuration rather than silently using linear conversion.
+        "-DCMAKE_REQUIRE_FIND_PACKAGE_SampleRate=ON"
         "-DBUILD_SHARED_LIBS=OFF"
         # WASI makes the primary Csound library static; a second static target
         # would generate the same libcsound64.a output and Ninja rejects it.
@@ -91,7 +95,6 @@ in
       ]
       ++ lib.optionals (!browserHosted) [
         "-DBUILD_SRC_CONV=ON"
-        "-DUSE_LIBSAMPLERATE=ON"
       ]
       ++ lib.optionals (gitHash != "") [
         "-DCSOUND_GIT_HASH=${gitHash}"

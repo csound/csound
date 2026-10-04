@@ -58,7 +58,9 @@ scot        scsort      sdif2ad     smf_conv    src_conv
 `npm run build` builds everything through `scripts/compile.sh`. In command
 mode, `src/csound.nix` compiles Csound's core once for the main command and
 all tools. This mode also runs the Wasmtime checks in `postInstall`. The
-libsamplerate build lives in `src/libsamplerate.nix`.
+libsamplerate build lives in `src/libsamplerate.nix`. Both the command and
+browser builds link it, so `oversample` and `undersample` can use the sinc
+converters. Configuration fails if CMake cannot find the library.
 
 Each tool is a standalone WASI Preview 1 command with an exported `_start`
 entry point and its own exported memory. It includes its utility code and
