@@ -20,7 +20,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "bash ./scripts/compile.sh"
+    "build": "bash ./scripts/compile.sh && bash ./scripts/build_tools.sh",
+    "build:tools": "bash ./scripts/build_tools.sh"
   },
   "keywords": [
     "@csound",

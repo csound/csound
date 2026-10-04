@@ -1368,7 +1368,9 @@ typedef int32_t (*INITFN2)(CSOUND *);
  int32_t csoundModuleInit_fractalnoise(CSOUND *csound);
  int32_t scansyn_init_(CSOUND *csound);
  int32_t scansynx_init_(CSOUND *csound);
-#ifdef CSOUND_WASI_CLI
+#ifdef CSOUND_STATIC_UTILITIES
+ int32_t csoundInitUtilities(CSOUND *csound);
+#elif defined(CSOUND_WASI_CLI)
  int32_t mkir_init_(CSOUND *csound);
 #endif
 
@@ -1471,7 +1473,9 @@ CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
 #endif
     scansyn_init_,
     scansynx_init_,
-#ifdef CSOUND_WASI_CLI
+#ifdef CSOUND_STATIC_UTILITIES
+    csoundInitUtilities,
+#elif defined(CSOUND_WASI_CLI)
     mkir_init_,
 #endif
     NULL
