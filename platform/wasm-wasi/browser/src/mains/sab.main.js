@@ -192,6 +192,7 @@ class SharedArrayBufferMainThread {
     Object.values(this.callbackBuffer).forEach((payload) => {
       this.proxyPort["callUncloned"](payload["apiKey"], payload["argumentz"]).then(
         payload["resolveCallback"],
+        payload["rejectCallback"],
       );
     });
     this.callbackBuffer = {};
@@ -633,9 +634,15 @@ class SharedArrayBufferMainThread {
                   resolve(answer);
                 };
 
+                const rejectCallback = (error) => {
+                  clearTimeout(timeout);
+                  reject(error);
+                };
+
                 const callbackBufferDispatch = {};
 
                 callbackBufferDispatch["resolveCallback"] = resolveCallback;
+                callbackBufferDispatch["rejectCallback"] = rejectCallback;
                 callbackBufferDispatch["apiKey"] = apiKey;
                 callbackBufferDispatch["argumentz"] = [csoundInstance, ...arguments_];
 

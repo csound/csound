@@ -975,6 +975,26 @@ schedule(1, 0.05, 10)`), 0);
           });
         }
 
+        it("rejects failed calls queued as an offline render ends", async function () {
+          const cs = await Csound(test);
+          try {
+            assert.equal(await cs.compileCSD(shortOfflineScore), 0);
+            const failure = new Promise((resolve) => {
+              // null makes the worker throw before it accesses any table memory.
+              cs.once("renderStarted", () => cs.tableCopyIn(1, null).then(
+                () => resolve(undefined),
+                resolve,
+              ));
+            });
+            assert.equal(await cs.start(), 0);
+            const error = await failure;
+            assert.equal(error?.name, "TypeError");
+            assert.notInclude(error.message, "timed out");
+          } finally {
+            await cs.terminateInstance();
+          }
+        });
+
         it("answers calls queued as an offline render ends", async function () {
           const cs = await Csound(test);
           try {
