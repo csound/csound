@@ -889,8 +889,13 @@ uintptr_t event_insert_thread(void *p) {
 
 int32_t init0(CSOUND *csound)
 {
-  INSTRTXT  *tp = csound->engineState.instrtxtp[0];
+  INSTRTXT  *tp = (csound->engineState.instrtxtp != NULL)
+                    ? csound->engineState.instrtxtp[0] : NULL;
   INSDS     *ip;
+
+  if (UNLIKELY(tp == NULL))
+    return csound->InitError(csound, "%s",
+                             Str("instrument 0 is not compiled"));
 
   csound->curip = ip = allocate_or_take_instance(csound, tp, 0);
   if (UNLIKELY(ip == NULL))
