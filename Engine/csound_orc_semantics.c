@@ -2169,6 +2169,24 @@ static char *check_optional_type(CSOUND *csound, char *name) {
     return csoundStrdup(csound, name);
 }
 
+/* Look up a type by its exact internal name (":Name;"), without the quote
+   stripping that csoundGetTypeWithVarTypeName() applies. That fallback makes
+   the lookup ":Name;" also match a builtin type called "Name", so a struct
+   named after a builtin type would resolve to the builtin. Builtin types are
+   registered from const storage, so writing through such a result crashes.
+   Struct types are only ever registered under their internal name, so
+   requiring an exact match is enough to tell them apart. */
+static CS_TYPE* get_struct_type_by_internal_name(const TYPE_POOL* pool,
+                                                 const char* internalName) {
+  CS_TYPE_ITEM* current = pool->head;
+  while (current != NULL) {
+    if (strcmp(internalName, current->cstype->varTypeName) == 0)
+      return current->cstype;
+    current = current->next;
+  }
+  return NULL;
+}
+
 static const CS_TYPE *resolve_type_annotation(CSOUND *csound,
                                               const char *annotation,
                                               ARRAY_VAR_INIT *varInit,
@@ -3364,7 +3382,7 @@ static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) 
 
   // Check if struct type already exists (using internal name format)
   const CS_TYPE *existingType =
-      csoundGetTypeWithVarTypeName(csound->typePool, internalName);
+      get_struct_type_by_internal_name(csound->typePool, internalName);
   if (existingType != NULL) {
     csound->Free(csound, internalName);
     // Struct already registered, return success
@@ -3409,7 +3427,7 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   internalName[nameLen + 2] = '\0';
 
   // Check if placeholder type already exists
-  type = (CS_TYPE*)csoundGetTypeWithVarTypeName(csound->typePool, internalName);
+  type = get_struct_type_by_internal_name(csound->typePool, internalName);
 
   if (type != NULL) {
     // Update existing placeholder with member information
@@ -3429,7 +3447,8 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     type->userDefinedType = CS_TYPE_USER_DEFINED;
   }
 
-  if (csoundGetTypeWithVarTypeName(csound->typePool, type->varTypeName) == NULL)
+  if (get_struct_type_by_internal_name(csound->typePool, type->varTypeName)
+      == NULL)
     csoundAddVariableType(csound, csound->typePool, type);
 
   // Clear existing members if updating placeholder
@@ -3488,7 +3507,8 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   }
 
   // Only add to type pool if it's a new type (not updating placeholder)
-  const CS_TYPE* existingType = csoundGetTypeWithVarTypeName(csound->typePool, type->varTypeName);
+  const CS_TYPE* existingType =
+      get_struct_type_by_internal_name(csound->typePool, type->varTypeName);
   if(existingType == NULL) {
     if(!csoundAddVariableType(csound, csound->typePool, type)) {
       return 0;
