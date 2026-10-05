@@ -222,7 +222,7 @@ static int32_t directory(CSOUND *csound, DIR_STRUCT *p) {
         csound, "%s", Str("directory expects a path and an optional extension"));
 
   if (inArgCount == 2) {
-    CS_TYPE *argType = GetTypeForArg(p->extension);
+    const CS_TYPE *argType = GetTypeForArg(p->extension);
     if (strcmp("S", argType->varTypeName) == 0) {
       extension = ((STRINGDAT *)p->extension)->data;
     } else

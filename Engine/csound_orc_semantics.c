@@ -888,7 +888,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                            "false", typeTable);
     if(var == NULL) {
     var = add_global_variable(csound, &csound->engineState,
-                        (CS_TYPE*)&CS_VAR_TYPE_b, "false", NULL);
+                        &CS_VAR_TYPE_b, "false", NULL);
     int32_t *p = (int32_t *) &(var->memBlock->value);
     *p = 0;
     }
@@ -899,7 +899,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                            "true", typeTable);
     if(var == NULL) {
      var = add_global_variable(csound, &csound->engineState,
-                        (CS_TYPE*)&CS_VAR_TYPE_b, "true", NULL);
+                        &CS_VAR_TYPE_b, "true", NULL);
     int32_t *p = (int32_t *) &(var->memBlock->value);
     *p = 1;
     }
@@ -910,7 +910,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                            "falsek", typeTable);
     if(var == NULL) {
     var = add_global_variable(csound, &csound->engineState,
-                        (CS_TYPE*)&CS_VAR_TYPE_B, "falsek", NULL);
+                        &CS_VAR_TYPE_B, "falsek", NULL);
     int32_t *p = (int32_t *) &(var->memBlock->value);
     *p = 0;
     }
@@ -921,7 +921,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                            "truek", typeTable);
     if(var == NULL) {
      var = add_global_variable(csound, &csound->engineState,
-                        (CS_TYPE*)&CS_VAR_TYPE_B, "truek", NULL);
+                        &CS_VAR_TYPE_B, "truek", NULL);
     int32_t *p = (int32_t *) &(var->memBlock->value);
     *p = 1;
     }
@@ -3184,7 +3184,7 @@ static int32_t verify_until_statement(CSOUND* csound, TREE* root,
 int32_t initStructVar(CSOUND* csound, void* p) {
   INIT_STRUCT_VAR* init = (INIT_STRUCT_VAR*)p;
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)init->out;
-  CS_TYPE* type = csoundGetTypeForArg(init->out);
+  const CS_TYPE* type = csoundGetTypeForArg(init->out);
   int32_t len = cs_cons_length(type->members);
   int32_t incnt = (int32_t)init->h.optext->t.inArgCount;
   int32_t i;
@@ -4827,7 +4827,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
 
 
 CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
-                                 CS_TYPE *type, char *name,
+                                 const CS_TYPE *type, char *name,
                                  const void *typeArg);
 void add_instr_variable(CSOUND *csound,  TREE *x) {
   /* add instr variable to engine varpool
@@ -4836,7 +4836,7 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
   if (x->type == T_IDENT) {
     char *varname = x->value->lexeme;
     CS_VARIABLE *var = add_global_variable(csound, &csound->engineState,
-                                         (CS_TYPE*)&CS_VAR_TYPE_INSTR, varname,
+                                         &CS_VAR_TYPE_INSTR, varname,
                                            NULL);
     if(var == NULL)
       csound->Warning(csound, Str("Could not add instrument ref %s"), varname);

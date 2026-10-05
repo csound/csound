@@ -207,7 +207,7 @@ static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
 
 int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
-  CS_TYPE *strType = GetTypeForArg(p->str);
+  const CS_TYPE *strType = GetTypeForArg(p->str);
   strType->copyValue(csound, strType, p->r, p->str,  p->h.insdshead);
   }
   return  OK;

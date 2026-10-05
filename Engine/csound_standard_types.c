@@ -1426,23 +1426,23 @@ const CS_TYPE CS_VAR_TYPE_COMPLEX = {
 };
 
 void add_standard_types(CSOUND* csound, TYPE_POOL* pool) {
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_K);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_I);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_COMPLEX);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_S);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_P);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_R);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_C);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_W);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_F);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_B);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_b);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_OPCODEREF);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_OPCODEOBJ);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_ARRAY);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_INSTR);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_INSTR_INSTANCE);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_A);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_K);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_I);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_COMPLEX);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_S);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_P);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_R);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_C);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_W);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_F);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_B);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_b);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_OPCODEREF);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_OPCODEOBJ);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_ARRAY);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_INSTR);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_INSTR_INSTANCE);
 
     // CS_OBJ_TYPE & OPS
     add_csobj(csound, pool);

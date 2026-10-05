@@ -1279,13 +1279,13 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
   if (n > newevtp->pcnt) n = newevtp->pcnt; /* IV - Oct 20 2002 */
   for (i = 1; i < n + 1; i++) {
     CS_VAR_MEM* pfield = pfields + i;
-    pfield->varType = (CS_TYPE*)&CS_VAR_TYPE_P;
+    pfield->varType = &CS_VAR_TYPE_P;
     pfield->value = fep[i];
   }
   if (n < tp->pmax && tp->psetdata==NULL) {
     for (i = 0; i < tp->pmax - n; i++) {
       CS_VAR_MEM* pfield = pfields + i + n + 1;
-      pfield->varType = (CS_TYPE*)&CS_VAR_TYPE_P;
+      pfield->varType = &CS_VAR_TYPE_P;
       pfield->value = 0;
     }
   }
@@ -2498,7 +2498,7 @@ static void setup_opcode_argpp(
 
           next = cs_strtok_r(path, ".", &th);
           while (next != NULL) {
-            CS_TYPE* type = csoundGetTypeForArg(fltp);
+            const CS_TYPE* type = csoundGetTypeForArg(fltp);
             CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
             CONS_CELL* members = type->members;
             int32_t i = 0;
@@ -2570,7 +2570,7 @@ static void setup_opcode_argpp(
           cs_float* fltp = argpp[n];
           next = cs_strtok_r(path, ".", &th);
           while (next != NULL) {
-            CS_TYPE* type = csoundGetTypeForArg(fltp);
+            const CS_TYPE* type = csoundGetTypeForArg(fltp);
             CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
             if (type == NULL || structVar == NULL || structVar->members == NULL)
               break;
@@ -3088,13 +3088,13 @@ int32_t init_instance(CSOUND *csound, INSDS *ip,
   n = newevtp->pcnt;
   for (i = 1; i < n + 1; i++) {
     CS_VAR_MEM* pfield = pfields + i;
-    pfield->varType = (CS_TYPE*)&CS_VAR_TYPE_P;
+    pfield->varType = &CS_VAR_TYPE_P;
     pfield->value = fep[i];
   }
   if (n < tp->pmax && tp->psetdata==NULL) {
     for (i = 0; i < tp->pmax - n; i++) {
       CS_VAR_MEM* pfield = pfields + i + n + 1;
-      pfield->varType = (CS_TYPE*)&CS_VAR_TYPE_P;
+      pfield->varType = &CS_VAR_TYPE_P;
       pfield->value = 0;
     }
   }

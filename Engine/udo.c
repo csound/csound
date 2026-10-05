@@ -1061,9 +1061,9 @@ static void pbr_apply_entries(CSOUND *csound,
 
 static int32_t pbr_copy_value(CSOUND *csound, cs_float *dst, cs_float *src,
                               INSDS *ctx, int32_t allowAllocation) {
-  CS_TYPE *dst_type;
-  CS_TYPE *src_type;
-  CS_TYPE *type;
+  const CS_TYPE *dst_type;
+  const CS_TYPE *src_type;
+  const CS_TYPE *type;
 
   if (dst == NULL || src == NULL || dst == src) {
     return OK;
@@ -1165,7 +1165,7 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
 }
 
 static int32_t pbr_is_readonly_source(cs_float *src) {
-  CS_TYPE *src_type = src != NULL ? csoundGetTypeForArg(src) : NULL;
+  const CS_TYPE *src_type = src != NULL ? csoundGetTypeForArg(src) : NULL;
   return src_type == &CS_VAR_TYPE_C || src_type == &CS_VAR_TYPE_P;
 }
 
@@ -1472,7 +1472,7 @@ static cs_float *pbr_resolve_struct_target(CSOUND *csound, cs_float *argPtr,
         break;
       }
 
-      CS_TYPE *type = csoundGetTypeForArg(target_ptr);
+      const CS_TYPE *type = csoundGetTypeForArg(target_ptr);
       CS_STRUCT_VAR *structVar = (CS_STRUCT_VAR*)target_ptr;
 
       if (type == NULL || structVar == NULL || structVar->members == NULL) {
@@ -2241,7 +2241,7 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   for (i = 0; i < inm->outchns; i++) {
     void* in = (void*) p->args[i];
     void* out = (void*) bufs[i];
-    CS_TYPE* outType = csoundGetTypeForArg(out);
+    const CS_TYPE* outType = csoundGetTypeForArg(out);
     tmp[i] = in;
     if (outType != &CS_VAR_TYPE_K && outType != &CS_VAR_TYPE_A) {
       if (UNLIKELY(udo_copy_value(csound, current, out, in,

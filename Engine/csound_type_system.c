@@ -38,7 +38,7 @@
 /* Forward declaration for p-field string extraction */
 extern char* csoundGetArgString(CSOUND *csound, cs_float p);
 
-static int32_t type_exists_with_same_name(TYPE_POOL* pool, CS_TYPE* typeInstance) {
+static int32_t type_exists_with_same_name(TYPE_POOL* pool, const CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
 
@@ -110,7 +110,7 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
     return NULL;
 }
 
-int32_t csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance)
+int32_t csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, const CS_TYPE* typeInstance)
 {
     CS_TYPE_ITEM* item;
     if (type_exists_with_same_name(pool, typeInstance)) {
@@ -576,8 +576,8 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
                                      CSOUND_STRUCT_COPY_MODE structCopyMode,
                                      int32_t initializing) {
     ASSIGN* assign = (ASSIGN*)p;
-    CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
-    CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
+    const CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
+    const CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
 
     // Check for type equivalence, handling both internal (:Type;) and external (Type) formats
     int types_different = (typeR != typeA) && !types_are_equivalent(csound, typeR->varTypeName, typeA->varTypeName);
@@ -693,8 +693,8 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
     ASSIGN *assign = (ASSIGN *)p;
 
     // Determine destination (right-hand?) type once.
-    CS_TYPE *destType = csoundGetTypeForArg(assign->r);
-    CS_TYPE *srcType = csoundGetTypeForArg(assign->a);
+    const CS_TYPE *destType = csoundGetTypeForArg(assign->r);
+    const CS_TYPE *srcType = csoundGetTypeForArg(assign->a);
 
     // If destination is an array, handle array-specific init/copy paths.
     if (destType == &CS_VAR_TYPE_ARRAY) {

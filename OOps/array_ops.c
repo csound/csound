@@ -103,7 +103,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     const char* opname = p->h.optext && p->h.optext->t.oentry ? p->h.optext->t.oentry->opname : NULL;
     if (opname && strncmp(opname, "init.", 5) == 0) {
       const char* typeName = opname + 5; // Skip "init." prefix
-      CS_TYPE* structType = (CS_TYPE*)csoundGetTypeWithVarTypeName(csound->typePool, typeName);
+      const CS_TYPE* structType = csoundGetTypeWithVarTypeName(csound->typePool, typeName);
       if (structType) {
         arrayDat->arrayType = structType;
       }
