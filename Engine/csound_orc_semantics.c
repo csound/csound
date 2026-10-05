@@ -3463,6 +3463,18 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
       char* baseType = cs_strndup(csound, typedIdentArg, typeLen - 2);
       const CS_TYPE* baseCSType = csoundGetTypeWithVarTypeName(csound->typePool, baseType);
 
+      if (baseCSType == NULL) {
+        // create_array() stores the element type without validating it, so an
+        // unknown base type would yield a member with a NULL subType and only
+        // fail much later with a misleading message.
+        csound->ErrorMsg(csound,
+                         Str("unknown type '%s' for member '%s' of struct\n"),
+                         baseType, memberName);
+        csound->Free(csound, baseType);
+        csound->Free(csound, memberName);
+        return 0;
+      }
+
       // Get the array type (use "[" which has create_array as its createVariable function)
       const CS_TYPE* arrayType = csoundGetTypeWithVarTypeName(csound->typePool, "[");
 
@@ -3478,6 +3490,16 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     } else {
       memberType = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
       var = csoundCreateVariableForType(csound, memberType, NULL, NULL);
+    }
+
+    // Both helpers return NULL when the type is unknown or cannot allocate a
+    // variable. Dereferencing var below would fault, so report it instead.
+    if (UNLIKELY(var == NULL)) {
+      csound->ErrorMsg(csound,
+                       Str("unknown type '%s' for member '%s' of struct\n"),
+                       typedIdentArg, memberName);
+      csound->Free(csound, memberName);
+      return 0;
     }
 
     var->varName = csoundStrdup(csound, memberName);
