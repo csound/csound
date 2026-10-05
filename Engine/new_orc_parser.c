@@ -314,20 +314,23 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
 
+      /* astTree is NULL for empty input; that is valid and verify_tree
+         handles it by returning NULL with no errors recorded */
       astTree = verify_tree(csound, astTree, typeTable);
 
-      if (UNLIKELY(astTree == NULL || csound->synterrcnt)) {
+      if (UNLIKELY(csound->synterrcnt)) {
         err = 3;
         if (astTree)
           csound->Message(csound,
                           Str("Parsing failed due to %d semantic error%s!, line %d\n"),
                           csound->synterrcnt, csound->synterrcnt==1?"":"s", astTree->line);
-        else if (csound->synterrcnt)
-          csoundErrorMsg(csound, Str("Parsing failed due to syntax errors\n"));
         else
-          csoundErrorMsg(csound, Str("Parsing failed due to no input!\n"));
+          csoundErrorMsg(csound, Str("Parsing failed due to syntax errors\n"));
         goto ending;
       }
+      /* NULL astTree is valid here: it means the input contained no code, so
+         the compiler is given just the sentinel root carrying the TYPE_TABLE
+         and can still create instr0 and initialise the system constants */
       err = 0;
 
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_PARSER)) {
@@ -353,8 +356,12 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       }
 
       astTree = csound_orc_optimize(csound, astTree);
-      // small hack: use an extra node as head of tree list to hold the
-      // typeTable, to be used during compilation
+      /* Prepend a sentinel node to the statement list to carry the
+         TYPE_TABLE across to the compilation step, which receives only the
+         tree root and reads the table back from root->markup. The node is
+         type 0 with no value, which is how csound_compile_tree recognises and
+         skips it. For empty input astTree is NULL, so this node is the only
+         one in the list and carries the table by itself. */
       newRoot = make_leaf(csound, 0, 0, 0, NULL);
       newRoot->markup = typeTable;
       newRoot->next = astTree;

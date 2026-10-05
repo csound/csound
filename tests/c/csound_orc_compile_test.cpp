@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "csoundCore.h"
+#include "csound_type_system.h"
 #include "gtest/gtest.h"
 #include <cstring>
 #include <cmath>
@@ -1811,6 +1812,66 @@ i 1 0 -1
   result = csoundStart(csound);
   ASSERT_TRUE(result == 0);
   result = csoundPerformKsmps(csound);
+}
+
+TEST_F (OrcCompileTests, testEmptyOrchestraCreatesInstr0)
+{
+  /* main.c compiles an empty string at startup so that instr0 exists and the
+     system constants are initialised even with no orchestra. */
+  ASSERT_EQ (nullptr, csound->instr0);
+  ASSERT_EQ (CSOUND_SUCCESS, csoundCompileOrc(csound, ""));
+  ASSERT_NE (nullptr, csound->instr0);
+
+  /* instr0 must be usable afterwards, so a later real orchestra still works. */
+  const char* instrument = R"(
+instr 1
+  aOut = 1
+  out aOut
+endin
+)";
+  ASSERT_EQ (CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testEmptyOrchestraInitialisesSystemConstants)
+{
+  ASSERT_EQ (CSOUND_SUCCESS, csoundCompileOrc(csound, ""));
+  ASSERT_NE (nullptr, csound->instr0);
+
+  /* create_instrument0() registers these globals in the engine state pool;
+     finding them back proves they were created and given memory. */
+  static const char* constants[] = {"sr",     "kr",         "ksmps",
+                                    "nchnls", "nchnls_i",   "0dbfs",
+                                    "A4",     "$sr",        "$kr",
+                                    "$ksmps"};
+  for (const char* name : constants) {
+    CS_VARIABLE *var = csoundFindVariableWithName(csound,
+                                                 csound->engineState.varPool,
+                                                 (char *) name);
+    EXPECT_NE(nullptr, var) << "missing system constant " << name;
+    if (var != nullptr)
+      EXPECT_NE(nullptr, var->memBlock) << "unallocated constant " << name;
+  }
+
+  /* A real orchestra must still compile against those globals. */
+  const char* instrument = R"(
+instr 1
+  aOut = sr
+  out aOut
+endin
+)";
+  ASSERT_EQ (CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testMalformedOrchestraStillFails)
+{
+  /* Empty input is legal, but that must not make real syntax errors pass:
+     the parser signals failure by returning no tree. */
+  const char* instrument = R"(
+instr 1
+  a1 =
+endin
+)";
+  EXPECT_EQ (CSOUND_ERROR, csoundCompileOrc(csound, instrument));
 }
 
 TEST (ScoreCompileTests, testUnmatchedScoreParenthesis)
