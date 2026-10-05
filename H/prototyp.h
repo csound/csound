@@ -201,7 +201,7 @@ int32_t csoundGetInputArgCnt(void *p);
 
 /** Returns the CS_TYPE for an opcode's arg pointer */
 
-const CS_TYPE* csoundGetTypeForArg(void* argPtr);
+const CS_TYPE* csoundGetTypeForArg(const void* argPtr);
 
 /* Display text only; never use these strings for type matching or OENTRYs.
    Each result belongs to the caller and must be freed with csound->Free().

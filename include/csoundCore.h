@@ -912,9 +912,9 @@ static inline char *GetOutputArgName(OPDS *p, uint32_t n) {
 /**
  * Returns the CS_TYPE for an opcode argument argPtr
  */
-static inline const CS_TYPE *GetTypeForArg(void *argPtr) {
-  char *ptr = (char *)argPtr;
-  const CS_TYPE *varType = *(const CS_TYPE **)(ptr - CS_VAR_TYPE_OFFSET);
+static inline const CS_TYPE *GetTypeForArg(const void *argPtr) {
+  const char *ptr = (const char *)argPtr;
+  const CS_TYPE *varType = *(const CS_TYPE *const *)(ptr - CS_VAR_TYPE_OFFSET);
   return varType;
 }
 

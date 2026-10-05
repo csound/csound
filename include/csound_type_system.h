@@ -110,6 +110,7 @@ extern "C" {
    *  Registers a type descriptor without copying or modifying it.
    *  The descriptor must remain valid for the lifetime of the pool.
    *  Returns 1 on success, or 0 if the type name is already registered.
+   *  Allocation failure invokes Csound's non-returning memory error handler.
    */
   PUBLIC int32_t csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool,
                                    const CS_TYPE* typeInstance);

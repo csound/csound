@@ -33,12 +33,13 @@ namespace {
 static_assert(std::is_same<decltype(CS_TYPE_ITEM::cstype),
                            const CS_TYPE *>::value,
               "Type pool entries must not expose writable type descriptors");
-static_assert(std::is_same<decltype(GetTypeForArg(nullptr)),
-                           const CS_TYPE *>::value,
-              "Plugin argument type lookup must preserve const");
-static_assert(std::is_same<decltype(csoundGetTypeForArg(nullptr)),
-                           const CS_TYPE *>::value,
-              "Core argument type lookup must preserve const");
+using GetArgumentType = const CS_TYPE *(*)(const void *);
+static_assert(std::is_same<decltype(&GetTypeForArg),
+                           GetArgumentType>::value,
+              "Plugin argument type lookup must preserve const input and output");
+static_assert(std::is_same<decltype(&csoundGetTypeForArg),
+                           GetArgumentType>::value,
+              "Core argument type lookup must preserve const input and output");
 
 using AddVariableType = int32_t (*)(CSOUND *, TYPE_POOL *, const CS_TYPE *);
 static_assert(std::is_same<decltype(&csoundAddVariableType),
