@@ -173,6 +173,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       TREE* newRoot;
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
+      int32_t hadStatements = 0;
 
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
@@ -314,23 +315,29 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
 
-      /* astTree is NULL for empty input; that is valid and verify_tree
-         handles it by returning NULL with no errors recorded */
+      /* Empty input parses to no statements, which is valid: the compiler is
+         then given just the sentinel root carrying the TYPE_TABLE and can
+         still create instr0 and initialise the system constants. Verification
+         returns NULL both for that case and for failure, so remember whether
+         there was anything to verify rather than inferring it from the result.
+         synterrcnt alone is not sufficient: some verify_tree failures, such
+         as a rejected struct definition, report through ErrorMsg only and
+         leave synterrcnt unchanged. */
+      hadStatements = (astTree != NULL);
       astTree = verify_tree(csound, astTree, typeTable);
 
-      if (UNLIKELY(csound->synterrcnt)) {
+      if (UNLIKELY(csound->synterrcnt || (hadStatements && astTree == NULL))) {
         err = 3;
         if (astTree)
           csound->Message(csound,
                           Str("Parsing failed due to %d semantic error%s!, line %d\n"),
                           csound->synterrcnt, csound->synterrcnt==1?"":"s", astTree->line);
-        else
+        else if (csound->synterrcnt)
           csoundErrorMsg(csound, Str("Parsing failed due to syntax errors\n"));
+        else
+          csoundErrorMsg(csound, Str("Parsing failed due to semantic errors\n"));
         goto ending;
       }
-      /* NULL astTree is valid here: it means the input contained no code, so
-         the compiler is given just the sentinel root carrying the TYPE_TABLE
-         and can still create instr0 and initialise the system constants */
       err = 0;
 
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_PARSER)) {
