@@ -213,7 +213,6 @@ orcfile : root_statement_list
 
 root_statement_list : root_statement_list root_statement
                       { $$ = parser_append(csound, $1, $2); }
-                    | root_statement
                     | /* empty */
                       { $$ = NULL; }
                     ;
