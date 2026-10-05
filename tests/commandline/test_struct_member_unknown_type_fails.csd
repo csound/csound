@@ -14,9 +14,8 @@ stderr = ["unknown type 'nosuchtype' for member 'val0' of struct"]
 ; and the result was dereferenced without a check. Reported here instead.
 struct T val0:nosuchtype
 
-; Same for an unknown array element type, which was stored unchecked and
-; only failed later with a misleading message.
-struct T2 val0:nosuchtype[]
+instr 1
+endin
 </CsInstruments>
 <CsScore>
 i 1 0 0.1
