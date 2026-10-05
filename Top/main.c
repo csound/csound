@@ -635,9 +635,8 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
       csound->LongJmp(csound, 1);
     csound->modules_loaded = 1;
   }
-  if (csound->instr0 == NULL) { /* compile dummy instr0 to allow csound to
-                                   start with no orchestra */
-    if (UNLIKELY(csound_compile_orc(csound, "idummy = 0\n", 0) != CSOUND_SUCCESS
+  if (csound->instr0 == NULL) { /* compile empty code to create instr0 */
+    if (UNLIKELY(csound_compile_orc(csound, "", 0) != CSOUND_SUCCESS
                  || csound->instr0 == NULL)) {
       return CSOUND_ERROR;
     }

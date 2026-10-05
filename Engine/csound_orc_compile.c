@@ -2171,8 +2171,18 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   TREE * current = root;
   ENGINE_STATE *engineState;
   CS_VARIABLE* var;
-  TYPE_TABLE* typeTable = (TYPE_TABLE*)current->markup;
+  TYPE_TABLE* typeTable;
   CS_VAR_POOL *globalPool = csound->engineState.varPool;
+
+  if (current == NULL) {
+    csound->Message(csound, Str("Error: root is NULL in csound_compile_tree\n"));
+    return CSOUND_ERROR;
+  }
+  typeTable = (TYPE_TABLE*)current->markup;
+  if (typeTable == NULL) {
+    csound->Message(csound, Str("Error: missing TYPE_TABLE on AST root\n"));
+    return CSOUND_ERROR;
+  }
 
   /* Advance past sentinel header node only if this node is the synthetic head
      created by the parser (type==0 and no value). If verify_tree returned a
@@ -2585,6 +2595,9 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
 #endif
     csoundDeleteTree(csound, root);
   } else {
+    /* csoundParseOrc only returns NULL when parsing itself failed; empty
+       input yields a valid sentinel root holding just the TYPE_TABLE, so
+       any NULL here is a genuine error and must not be reported as success */
     memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
     return CSOUND_ERROR;
   }

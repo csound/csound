@@ -3702,6 +3702,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
   TREE *anchor = NULL;
   TREE *current = root;
   TREE *previous = NULL;
+  /* Empty input is valid: there is nothing to verify, so report success
+     with no tree rather than treating it as a failure. */
+  if (root == NULL)
+    return NULL;
   TREE* newRight;
   TREE* transformed;
   TREE* top;

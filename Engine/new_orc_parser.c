@@ -173,6 +173,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       TREE* newRoot;
       PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
+      int32_t hadStatements = 0;
 
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
@@ -314,9 +315,18 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
 
+      /* Empty input parses to no statements, which is valid: the compiler is
+         then given just the sentinel root carrying the TYPE_TABLE and can
+         still create instr0 and initialise the system constants. Verification
+         returns NULL both for that case and for failure, so remember whether
+         there was anything to verify rather than inferring it from the result.
+         synterrcnt alone is not sufficient: some verify_tree failures, such
+         as a rejected struct definition, report through ErrorMsg only and
+         leave synterrcnt unchanged. */
+      hadStatements = (astTree != NULL);
       astTree = verify_tree(csound, astTree, typeTable);
 
-      if (UNLIKELY(astTree == NULL || csound->synterrcnt)) {
+      if (UNLIKELY(csound->synterrcnt || (hadStatements && astTree == NULL))) {
         err = 3;
         if (astTree)
           csound->Message(csound,
@@ -325,7 +335,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         else if (csound->synterrcnt)
           csoundErrorMsg(csound, Str("Parsing failed due to syntax errors\n"));
         else
-          csoundErrorMsg(csound, Str("Parsing failed due to no input!\n"));
+          csoundErrorMsg(csound, Str("Parsing failed due to semantic errors\n"));
         goto ending;
       }
       err = 0;
@@ -353,8 +363,12 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       }
 
       astTree = csound_orc_optimize(csound, astTree);
-      // small hack: use an extra node as head of tree list to hold the
-      // typeTable, to be used during compilation
+      /* Prepend a sentinel node to the statement list to carry the
+         TYPE_TABLE across to the compilation step, which receives only the
+         tree root and reads the table back from root->markup. The node is
+         type 0 with no value, which is how csound_compile_tree recognises and
+         skips it. For empty input astTree is NULL, so this node is the only
+         one in the list and carries the table by itself. */
       newRoot = make_leaf(csound, 0, 0, 0, NULL);
       newRoot->markup = typeTable;
       newRoot->next = astTree;
