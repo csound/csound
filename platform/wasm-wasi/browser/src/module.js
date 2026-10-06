@@ -15,6 +15,7 @@
 
 import { dlinit } from "./dlinit";
 import { WASI } from "./filesystem/wasi";
+import { createSystem } from "./filesystem/system.js";
 import { clearArray } from "./utils/clear-array";
 import { decoder, uint2String } from "./utils/text-encoders.js";
 import { getBinaryHeaderData as parseBinaryHeaderData } from "./utils/wasm-dylink.js";
@@ -371,6 +372,9 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   options["env"]["__table_base"] = tableBase;
   options["env"]["csoundLoadModules"] = csoundLoadModules;
   options["env"]["csoundLoadExternals"] = csoundLoadExternals;
+  options["env"]["csoundWasiJsSystem"] = createSystem(wasi, (log) =>
+    messagePort.post({ log }),
+  );
 
   // Add setjmp/longjmp functions to the environment
   options["env"]["saveSetjmp"] = saveSetjmp;

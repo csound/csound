@@ -241,6 +241,18 @@ static void csoundWasiCReadlineCallback(CSOUND *csound, void *userData,
                               prompt != NULL ? strlen(prompt) : 0);
 }
 
+/* wasi-libc declares system(), but Preview 1 has no implementation or exec
+ * syscall. Browser hosts provide this explicit extension; command builds do
+ * not import it. The host returns a system()-style status, not a WASI errno. */
+int csoundWasiJsSystem(const char *)
+  __attribute__((__import_module__("env"),
+                 __import_name__("csoundWasiJsSystem")));
+
+int system(const char *command)
+{
+  return command == NULL ? 0 : csoundWasiJsSystem(command);
+}
+
 // same as csoundCreate but also loads
 // opcodes which need initialization to
 // be callable (aka static_modules)

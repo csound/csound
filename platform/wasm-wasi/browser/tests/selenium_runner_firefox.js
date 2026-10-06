@@ -23,6 +23,8 @@ const webDriverCapabilities = {
     prefs: {
       "media.navigator.streams.fake": true,
       "media.navigator.permission.disabled": true,
+      "media.autoplay.default": 0,
+      "media.autoplay.block-webaudio": false,
     },
   },
 };

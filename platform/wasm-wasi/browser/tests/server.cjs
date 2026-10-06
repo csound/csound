@@ -21,6 +21,9 @@ const serve = serveStatic(process.cwd() + "/tests", {
   index: "index.html",
   setHeaders: setHeaders,
 });
+const serveWasm = serveStatic(process.cwd() + "/node_modules/@csound/wasm-bin/lib", {
+  setHeaders: setHeaders,
+});
 
 function setHeaders(res, path) {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
@@ -29,6 +32,10 @@ function setHeaders(res, path) {
 
 // Create server
 const server = http.createServer(function onRequest(req, res) {
+  if (req.url.startsWith("/wasm-bin/")) {
+    req.url = req.url.slice("/wasm-bin".length);
+    return serveWasm(req, res, finalhandler(req, res));
+  }
   serve(req, res, finalhandler(req, res));
 });
 

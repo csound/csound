@@ -698,15 +698,16 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
         char sys[1024];
         csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
         snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
-#if defined(IOS) || defined(__wasi__)
-int system_result = 0;
+#if defined(__wasi__) && !defined(CSOUND_WASI_BROWSER)
+        /* WASI Preview 1 has no process API. Do not report false success. */
+        int system_result = -1;
 #else
-int system_result = system(sys);
+        int system_result = system(sys);
 #endif
         if (UNLIKELY(system_result != 0)) {
           csoundErrorMsg(csound, Str("External generation failed"));
-          if (UNLIKELY(remove(extname) || remove(STA(sconame))))
-            csoundErrorMsg(csound, Str("and cannot remove"));
+          remove(extname);
+          remove(STA(sconame));
           csound->Free(csound, extname);
           return FALSE;
         }

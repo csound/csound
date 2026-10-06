@@ -115,7 +115,53 @@ publishing `@csound/browser`; older binary packages do not contain the new
 
 ---
 
+## External score programs in the browser
+
+The browser build supports `<CsScore bin="csbeats">` through the usual
+Csound score parser. Upload a WASI Preview 1 command to Csound's filesystem
+before compiling the document:
+
+```js
+await csound.fs.writeFile("csbeats.wasm", bytes);
+await csound.compileCSD(document);
+```
+
+The binding first looks for the exact `bin` program path, relative to
+`csound.fs.getcwd()`, then tries that path with `.wasm` appended. It loads
+and compiles the file only when Csound calls it. It caches up to four compiled
+modules and checks the bytes again on each call, so replacing an uploaded
+file takes effect. No command binaries or URLs are built into the binding.
+An app such as the Web IDE can fetch its bundled `csbeats.wasm` on demand
+and write it through the same filesystem API.
+
+Other uploaded commands use the same path. They must export `memory` and
+`_start` and use WASI Preview 1 imports. Each run has fresh memory and file
+descriptors. The command sees Csound's current directory at `/`, like a
+WASI runtime preopening one directory; files outside that directory are
+not mounted. Csound passes the score input and output filenames as the last
+two arguments. Changed files return to Csound's filesystem when the command
+exits. Unread project files are not copied. Standard input is empty, and the
+last 16 KB from each output stream goes to Csound's message listeners.
+
+The call is synchronous because Csound reads the generated score as soon as
+`system()` returns. Long commands can hold up the engine thread. Arguments
+can use quotes and backslash escapes, but there is no shell, pipe,
+redirection, variable expansion or process spawning. A nonzero exit status,
+missing command, invalid module or trap fails score generation.
+
+This is a Csound browser extension, not a WASI syscall. The pinned wasi-libc
+declares `system()` but does not define it, and Preview 1 has no `exec` or
+`system` import. The browser binary supplies `system()` through the explicit
+`env.csoundWasiJsSystem(commandPointer)` import. The host reads a NUL-terminated
+UTF-8 string from Csound memory and returns `exitCode << 8`, or `-1` on a host
+error. `system(NULL)` returns zero because no shell is available. Use the
+matching browser wrapper with this binary. The standalone WASI command has
+no new host import and reports external score generation as unsupported.
+
+---
+
 ## 2. Link `@csound/wasm-bin` locally
+
 
 ```bash
 # Inside platform/wasm-wasi/

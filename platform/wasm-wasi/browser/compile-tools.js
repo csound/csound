@@ -35,11 +35,16 @@ fs.writeFileSync(
   const closureConfig = {
     entry_point: "./tools/csound-no-audio.js",
     js_output_file: path.join(rootDir, "dist", "csound-no-audio.js"),
-    browser_featureset_year: 2020,
+    browser_featureset_year: 2021,
     js: [
       "./tools/csound-no-audio.js",
       "./src/*.js",
       "./src/**/*.js",
+      "./node_modules/@bjorn3/browser_wasi_shim/dist/wasi.js",
+      "./node_modules/@bjorn3/browser_wasi_shim/dist/fs_mem.js",
+      "./node_modules/@bjorn3/browser_wasi_shim/dist/fd.js",
+      "./node_modules/@bjorn3/browser_wasi_shim/dist/wasi_defs.js",
+      "./node_modules/@bjorn3/browser_wasi_shim/dist/debug.js",
       "./dist/*tools.inline.js",
       "./goog/mocks/package.json",
       "./goog/mocks/index.js",

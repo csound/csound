@@ -252,10 +252,8 @@ WASI.prototype.chdir = function (path) {
   }
 
   this.cwd = targetPath;
-  if (this.fd[3]) {
-    this.fd[3].path = targetPath;
-    this.fd[3].type = "dir";
-  }
+  // Keep the preopen name stable. wasi-libc resolves relative paths against
+  // its root; path_open maps those paths into this wrapper's working directory.
 
   return constants.WASI_ESUCCESS;
 };
@@ -1068,8 +1066,12 @@ WASI.prototype.path_unlink_file = function (fd, pathPtr, pathLength) {
   if (fd > 3 && DEBUG_WASI) {
     console.log("path_unlink_file", fd, pathPtr, pathLength, arguments);
   }
-  // actual file removal goes here
-
+  const directory = this.fd[fd];
+  if (!directory) return constants.WASI_EBADF;
+  const path = decoder.decode(new Uint8Array(this.memory.buffer, pathPtr, pathLength));
+  const resolved = fd === 3 ? this.resolvePath(path) : ensureAbsolutePath(directory.path, path);
+  if (!this.findEntry(resolved)) return constants.WASI_ENOENT;
+  this.unlink(resolved);
   return constants.WASI_ESUCCESS;
 };
 
