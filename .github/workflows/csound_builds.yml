@@ -972,7 +972,7 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $redistUrl = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+          $redistUrl = "https://aka.ms/vs/18/release/vc_redist.x64.exe"
           $redistPath = "installer/windows/vc_redist.x64.exe"
           Write-Host "Downloading Visual C++ Redistributable (x64) from $redistUrl ..."
           Invoke-WebRequest -Uri $redistUrl -OutFile $redistPath
