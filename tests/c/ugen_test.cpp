@@ -685,14 +685,14 @@ TEST_F(UGenInstTests, ContextOffsets) {
 
    cs_float* srcOutBuf3 = (cs_float*)csoundUgenVarGetData(audioVar);
 
-   EXPECT_GE(srcOutBuf2[0], 1);
-   EXPECT_GE(srcOutBuf2[1], 1);
-   EXPECT_GE(srcOutBuf2[2], 1);
-   EXPECT_GE(srcOutBuf2[3], 1);
-   EXPECT_GE(srcOutBuf2[4], 1);
-   EXPECT_GE(srcOutBuf2[5], 1);
-   EXPECT_GE(srcOutBuf2[6], 1);
-   EXPECT_GE(srcOutBuf2[7], 1);
+   EXPECT_GE(srcOutBuf3[0], 1);
+   EXPECT_GE(srcOutBuf3[1], 1);
+   EXPECT_GE(srcOutBuf3[2], 1);
+   EXPECT_GE(srcOutBuf3[3], 1);
+   EXPECT_GE(srcOutBuf3[4], 1);
+   EXPECT_GE(srcOutBuf3[5], 1);
+   EXPECT_GE(srcOutBuf3[6], 1);
+   EXPECT_GE(srcOutBuf3[7], 1);
 
    csoundUgenDelete(line);
    csoundUgenFactoryDelete(factory);

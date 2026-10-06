@@ -106,7 +106,6 @@ import {
   csoundUgenSetEndOffset,
   csoundUgenResetOffsets,
   csoundUgenGetExtraTime,
-  csoundUgenSetContext,
   csoundUgenNew,
   csoundUgenDelete,
   csoundUgenGetOutVar,
