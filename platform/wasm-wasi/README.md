@@ -139,15 +139,18 @@ Other uploaded commands use the same path. They must export `memory` and
 descriptors. The command sees Csound's current directory at `/`, like a
 WASI runtime preopening one directory; files outside that directory are
 not mounted. Csound passes the score input and output filenames as the last
-two arguments. Changed files return to Csound's filesystem when the command
-exits. Unread project files are not copied. Standard input is empty, and the
+two arguments. Commands use the binding's existing WASI code and share its
+file storage directly, with no extra runtime dependency or file copies. File
+changes take effect as the command writes, including when it later fails.
+Each open handle keeps its own position. Standard input is empty, and the
 last 16 KB from each output stream goes to Csound's message listeners.
 
 The call is synchronous because Csound reads the generated score as soon as
 `system()` returns. Long commands can hold up the engine thread. Arguments
 can use quotes and backslash escapes, but there is no shell, pipe,
 redirection, variable expansion or process spawning. A nonzero exit status,
-missing command, invalid module or trap fails score generation.
+missing command, invalid module or trap fails score generation. Unsupported
+WASI calls return `ENOSYS`.
 
 This is a Csound browser extension, not a WASI syscall. The pinned wasi-libc
 declares `system()` but does not define it, and Preview 1 has no `exec` or

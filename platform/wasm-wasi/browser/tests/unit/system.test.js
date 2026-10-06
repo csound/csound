@@ -84,7 +84,10 @@ describe("WASI filesystem commands", () => {
     host.writeFile("custom.wasm", exitCommand(0));
     host.writeFile("large.wav", new Uint8Array(1024));
     const sample = host.findEntry("/large.wav");
-    sample.seekPos = 17n;
+    new Uint8Array(host.memory.buffer).set(encode("large.wav"), 256);
+    assert.equal(host.path_open(3, 0, 256, 9, 0, 2n, 0n, 0, 8), 0);
+    const fd = host.getMemory().getUint32(8, true);
+    assert.equal(host.fd_seek(fd, 17n, 0, 8), 0);
     const readFile = host.readFile.bind(host);
     host.readFile = (path) => {
       assert.notEqual(path, "/large.wav", "the command never opens this file");
@@ -92,7 +95,7 @@ describe("WASI filesystem commands", () => {
     };
     assert.equal(run("custom"), 0);
     assert.equal(host.findEntry("/large.wav"), sample);
-    assert.equal(sample.seekPos, 17n);
+    assert.equal(host.fd[fd].seekPos, 17n);
   });
 
   it("preserves both files when an uploaded command swaps their paths", () => {

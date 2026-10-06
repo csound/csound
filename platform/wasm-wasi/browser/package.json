@@ -88,7 +88,6 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@bjorn3/browser_wasi_shim": "0.4.2",
     "eventemitter3": "^5.0.4",
     "google-closure-compiler": "20260923.0.0",
     "google-closure-library": "^20230802.0.0",
