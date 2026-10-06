@@ -93,7 +93,7 @@ extern "C" {
   } CS_VARIABLE;
 
   typedef struct cstypeitem {
-    CS_TYPE* cstype;
+    const CS_TYPE* cstype;
     struct cstypeitem* next;
   } CS_TYPE_ITEM;
 
@@ -107,11 +107,13 @@ extern "C" {
   PUBLIC TYPE_POOL *csoundGetTypePool(CSOUND* csound);
   
   /** 
-   *  Adds a new type to type table pool
-   *  Returns if variable type redefined
+   *  Registers a type descriptor without copying or modifying it.
+   *  The descriptor must remain valid for the lifetime of the pool.
+   *  Returns 1 on success, or 0 if the type name is already registered.
+   *  Allocation failure invokes Csound's non-returning memory error handler.
    */
   PUBLIC int32_t csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool,
-                                   CS_TYPE* typeInstance);
+                                   const CS_TYPE* typeInstance);
 
   /**
    * Invokes a type's variable constructor with separate type and optional
@@ -133,7 +135,7 @@ extern "C" {
                                            const void* typeArg);
   /** 
    *  Gets a type variable from a type name string
-   *  Returns the CS_TYPE*, NULL on failure
+   *  Returns the const CS_TYPE*, NULL on failure
    */ 
   PUBLIC const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool,
                                                const char* typeName);

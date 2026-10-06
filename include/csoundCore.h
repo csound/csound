@@ -912,9 +912,9 @@ static inline char *GetOutputArgName(OPDS *p, uint32_t n) {
 /**
  * Returns the CS_TYPE for an opcode argument argPtr
  */
-static inline CS_TYPE *GetTypeForArg(void *argPtr) {
-  char *ptr = (char *)argPtr;
-  CS_TYPE *varType = *(CS_TYPE **)(ptr - CS_VAR_TYPE_OFFSET);
+static inline const CS_TYPE *GetTypeForArg(const void *argPtr) {
+  const char *ptr = (const char *)argPtr;
+  const CS_TYPE *varType = *(const CS_TYPE *const *)(ptr - CS_VAR_TYPE_OFFSET);
   return varType;
 }
 
@@ -1198,7 +1198,7 @@ struct CSOUND_ {
   const CS_TYPE *(*GetType)(CSOUND *csound, const char *type);
   TYPE_POOL *(*GetTypePool)(CSOUND *csound);
   int32_t (*AddVariableType)(CSOUND *csound, TYPE_POOL *pool,
-                             CS_TYPE *typeInstance);
+                             const CS_TYPE *typeInstance);
 
   /**@}*/
 

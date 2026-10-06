@@ -339,7 +339,7 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
   evt.opcod = 'i';
   evt.pcnt = p->INOCOUNT;
 
-  CS_TYPE *argType = GetTypeForArg(p->argums[0]);
+  const CS_TYPE *argType = GetTypeForArg(p->argums[0]);
   if (argType == &CS_VAR_TYPE_INSTR ||
       (argType != NULL && strcmp(argType->varTypeName, "InstrDef") == 0)) {
     // handling argum[0] as instrument type
@@ -436,7 +436,7 @@ static int32_t schedule_string_event(CSOUND *csound, SCHED *p, cs_float insno)
 int32_t schedule_N(CSOUND *csound, SCHED *p)
 {
     cs_float insno;
-    CS_TYPE *type = GetTypeForArg(p->which);
+    const CS_TYPE *type = GetTypeForArg(p->which);
     if (type == &CS_VAR_TYPE_INSTR) {
       INSTREF *ref = (INSTREF *) p->which;
       insno = (cs_float) instr_num(csound, ref->instr);

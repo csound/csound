@@ -572,7 +572,7 @@ const CS_TYPE CS_VAR_TYPE_CSOBJ = {
  */
 void add_csobj(CSOUND *csound, TYPE_POOL *pool) {
   csoundAddVariableType(csound, pool,
-                        (CS_TYPE*) &CS_VAR_TYPE_CSOBJ);
+                        &CS_VAR_TYPE_CSOBJ);
   csoundAppendOpcode(csound, "create", sizeof(ASSIGN), 0,
                        ":Csound;", "", (SUBR) create_csobj, NULL, NULL);
   csoundAppendOpcode(csound, "setoption", sizeof(AOP), 0,

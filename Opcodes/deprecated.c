@@ -26,7 +26,7 @@
  stackops: copyright (C) 2006 Istvan Varga
 */
 static int32_t STR_ARG_P(CSOUND *csound, void* arg) {
-    CS_TYPE *cs_type = GetTypeForArg(arg);
+    const CS_TYPE *cs_type = GetTypeForArg(arg);
     if (strcmp("S", cs_type->varTypeName) == 0) {
       return 1;
     } else {
@@ -35,7 +35,7 @@ static int32_t STR_ARG_P(CSOUND *csound, void* arg) {
 }
 
 static int32_t ASIG_ARG_P(CSOUND *csound, void* arg) {
-    CS_TYPE *cs_type = GetTypeForArg(arg);
+    const CS_TYPE *cs_type = GetTypeForArg(arg);
     if (strcmp("a", cs_type->varTypeName) == 0) {
       return 1;
     } else {

@@ -888,7 +888,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                            "false", typeTable);
     if(var == NULL) {
     var = add_global_variable(csound, &csound->engineState,
-                        (CS_TYPE*)&CS_VAR_TYPE_b, "false", NULL);
+                        &CS_VAR_TYPE_b, "false", NULL);
     int32_t *p = (int32_t *) &(var->memBlock->value);
     *p = 0;
     }
@@ -899,7 +899,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                            "true", typeTable);
     if(var == NULL) {
      var = add_global_variable(csound, &csound->engineState,
-                        (CS_TYPE*)&CS_VAR_TYPE_b, "true", NULL);
+                        &CS_VAR_TYPE_b, "true", NULL);
     int32_t *p = (int32_t *) &(var->memBlock->value);
     *p = 1;
     }
@@ -910,7 +910,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                            "falsek", typeTable);
     if(var == NULL) {
     var = add_global_variable(csound, &csound->engineState,
-                        (CS_TYPE*)&CS_VAR_TYPE_B, "falsek", NULL);
+                        &CS_VAR_TYPE_B, "falsek", NULL);
     int32_t *p = (int32_t *) &(var->memBlock->value);
     *p = 0;
     }
@@ -921,7 +921,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                            "truek", typeTable);
     if(var == NULL) {
      var = add_global_variable(csound, &csound->engineState,
-                        (CS_TYPE*)&CS_VAR_TYPE_B, "truek", NULL);
+                        &CS_VAR_TYPE_B, "truek", NULL);
     int32_t *p = (int32_t *) &(var->memBlock->value);
     *p = 1;
     }
@@ -2176,9 +2176,9 @@ static char *check_optional_type(CSOUND *csound, char *name) {
    registered from const storage, so writing through such a result crashes.
    Struct types are only ever registered under their internal name, so
    requiring an exact match is enough to tell them apart. */
-static CS_TYPE* get_struct_type_by_internal_name(const TYPE_POOL* pool,
-                                                 const char* internalName) {
-  CS_TYPE_ITEM* current = pool->head;
+static const CS_TYPE* get_struct_type_by_internal_name(const TYPE_POOL* pool,
+                                                       const char* internalName) {
+  const CS_TYPE_ITEM* current = pool->head;
   while (current != NULL) {
     if (strcmp(internalName, current->cstype->varTypeName) == 0)
       return current->cstype;
@@ -3202,7 +3202,7 @@ static int32_t verify_until_statement(CSOUND* csound, TREE* root,
 int32_t initStructVar(CSOUND* csound, void* p) {
   INIT_STRUCT_VAR* init = (INIT_STRUCT_VAR*)p;
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)init->out;
-  CS_TYPE* type = csoundGetTypeForArg(init->out);
+  const CS_TYPE* type = csoundGetTypeForArg(init->out);
   int32_t len = cs_cons_length(type->members);
   int32_t incnt = (int32_t)init->h.optext->t.inArgCount;
   int32_t i;
@@ -3427,13 +3427,16 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   internalName[nameLen + 2] = '\0';
 
   // Check if placeholder type already exists
-  type = get_struct_type_by_internal_name(csound->typePool, internalName);
+  const CS_TYPE *placeholder =
+      get_struct_type_by_internal_name(csound->typePool, internalName);
 
-  if (type != NULL) {
+  if (placeholder != NULL) {
     // Update existing placeholder with member information
     csound->Free(csound, internalName);
-    if (type->userDefinedType & CS_TYPE_PLUGIN_DEFINED)
+    if (placeholder->userDefinedType != CS_TYPE_USER_DEFINED)
       return 0;
+    /* This file allocates orchestra struct descriptors as writable objects. */
+    type = (CS_TYPE *)placeholder;
     type->varDescription = "user-defined struct";
   } else {
     // Create new type if no placeholder exists (for backward compatibility)
@@ -4847,7 +4850,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
 
 
 CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
-                                 CS_TYPE *type, char *name,
+                                 const CS_TYPE *type, char *name,
                                  const void *typeArg);
 void add_instr_variable(CSOUND *csound,  TREE *x) {
   /* add instr variable to engine varpool
@@ -4856,7 +4859,7 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
   if (x->type == T_IDENT) {
     char *varname = x->value->lexeme;
     CS_VARIABLE *var = add_global_variable(csound, &csound->engineState,
-                                         (CS_TYPE*)&CS_VAR_TYPE_INSTR, varname,
+                                         &CS_VAR_TYPE_INSTR, varname,
                                            NULL);
     if(var == NULL)
       csound->Warning(csound, Str("Could not add instrument ref %s"), varname);

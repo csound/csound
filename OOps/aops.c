@@ -2534,7 +2534,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
     const int32_t upto = (nargs < limit ? nargs : limit);
     for (n=0; n<upto; n++) {
       // Use proper type checking to determine if output is string
-      CS_TYPE *outType = GetTypeForArg(p->inits[n]);
+      const CS_TYPE *outType = GetTypeForArg(p->inits[n]);
       int isStringOutput = (outType != NULL &&
                            strcmp(outType->varTypeName, "S") == 0);
 

@@ -753,7 +753,7 @@ static OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
  * in separate blocks, pointed by var->memBlock
  */
 CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
-                                 CS_TYPE *type, char *name,
+                                 const CS_TYPE *type, char *name,
                                  const void *typeArg) {
   // Check for null or corrupted engineState and varPool to prevent segfault
   if (engineState == NULL || engineState->varPool == NULL ||
@@ -781,7 +781,7 @@ void *find_or_add_constant(CSOUND *csound, CS_HASH_TABLE *constantsPool,
   void *retVal = cs_hash_table_get(csound, constantsPool, (char *)name);
   if (retVal == NULL) {
     CS_VAR_MEM *memValue = csound->Calloc(csound, sizeof(CS_VAR_MEM));
-    memValue->varType = (CS_TYPE *)&CS_VAR_TYPE_C;
+    memValue->varType = &CS_VAR_TYPE_C;
     memValue->value = value;
     cs_hash_table_put(csound, constantsPool, (char *)name, memValue);
     retVal = cs_hash_table_get(csound, constantsPool, (char *)name);
@@ -804,7 +804,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     inchnls = -FL(1.0), _0dbfs = FL(-1.0);
   int32_t krdef = 0; //, ksmpsdef = 0, srdef = 0;
   cs_double A4 = 0.0;
-  CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
+  const CS_TYPE *rType = &CS_VAR_TYPE_R;
   OPARMS *O = csound->oparms;
 
   add_global_variable(csound, engineState, rType, "sr", NULL);
@@ -1262,7 +1262,7 @@ static INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   ip->t.inlist->count = 1;
 
   /* create local ksmps variable */
-  CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
+  const CS_TYPE *rType = &CS_VAR_TYPE_R;
   CS_VARIABLE *var =
     csoundCreateVariable(csound, csound->typePool, rType, "ksmps", NULL);
   csoundAddVariable(csound, ip->varPool, var);
@@ -2918,7 +2918,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     size_t memSize = CS_VAR_TYPE_OFFSET + sizeof(STRINGDAT);
     CS_VAR_MEM *varMem = csound->Calloc(csound, memSize);
     STRINGDAT *str = (STRINGDAT *)&varMem->value;
-    varMem->varType = (CS_TYPE *)&CS_VAR_TYPE_S;
+    varMem->varType = &CS_VAR_TYPE_S;
     arg->type = ARG_STRING;
     temp = csound->Calloc(csound, strlen(s) + 1);
     unquote_string(temp, s);

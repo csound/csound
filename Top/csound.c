@@ -2388,9 +2388,9 @@ char *csoundGetOpcodeName(void *p) {
 
 /** Returns the CS_TYPE for an opcode's arg pointer */
 
-CS_TYPE *csoundGetTypeForArg(void *argPtr) {
-  char *ptr = (char *)argPtr;
-  CS_TYPE *varType = *(CS_TYPE **)(ptr - CS_VAR_TYPE_OFFSET);
+const CS_TYPE *csoundGetTypeForArg(const void *argPtr) {
+  const char *ptr = (const char *)argPtr;
+  const CS_TYPE *varType = *(const CS_TYPE *const *)(ptr - CS_VAR_TYPE_OFFSET);
   return varType;
 }
 

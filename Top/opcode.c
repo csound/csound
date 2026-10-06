@@ -281,8 +281,9 @@ static int32_t check_oentry(OENTRY *ep) {
   else return 0;
 }
 
-CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState, CS_TYPE *type,
-                               char *name, void *typeArg);
+CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
+                                 const CS_TYPE *type, char *name,
+                                 const void *typeArg);
 
 /** This function takes an OENTRY and adds a corresponding
  *   OpcodeDef global var, if the variable does not exist.
@@ -303,7 +304,7 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep) {
                                           varName)) == NULL) {
       // printf("var: %s \n", varName);
       // create new variable
-      var = add_global_variable(csound, &csound->engineState, (CS_TYPE *) type, varName,
+      var = add_global_variable(csound, &csound->engineState, type, varName,
                               NULL);
     } else csound->Free(csound, varName);
     if(var != NULL) {
@@ -384,7 +385,7 @@ static cs_float *set_constant(CSOUND *csound, const char *name, cs_float value) 
 /**
  * Check arg type directly or from types list
  */
-static CS_TYPE *check_arg_type(void *arg, CS_TYPE **types, int32_t n) {
+static const CS_TYPE *check_arg_type(void *arg, const CS_TYPE **types, int32_t n) {
   if(types == NULL)
   return csoundGetTypeForArg(arg);
   else return types[n];
@@ -399,12 +400,12 @@ static CS_TYPE *check_arg_type(void *arg, CS_TYPE **types, int32_t n) {
  * returns an error if args do not match
  */
 static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *args[],
-                   CS_TYPE **cstypes, int32_t no, int32_t ni){
+                   const CS_TYPE **cstypes, int32_t no, int32_t ni){
   TEXT *t = &(obj->dataspace->optext->t);
   OENTRY *ep = t->oentry;
   char *opname = ep->opname;
   char *types;
-  CS_TYPE *argtype;
+  const CS_TYPE *argtype;
   int32_t n = 0, opt = 0;
   int32_t  len, i = 0;
   cs_float **outargs;
@@ -1451,7 +1452,7 @@ static int32_t isTypeArray(OPCODEOBJ *obj, int32_t n, int32_t isInput) {
 int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
   int32_t i, j, n = 0, m;
   cs_float *args[VARGMAX] = {0};
-  CS_TYPE *types[VARGMAX] = {0};
+  const CS_TYPE *types[VARGMAX] = {0};
   ARRAYDAT  *array;
   OPCODEOBJ *obj;
   CS_VAR_MEM *argmem = NULL;
@@ -1497,9 +1498,9 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
         }
         size = array->arrayMemberSize;
         ndx = i + j*n;
-        csound->AuxAlloc(csound, sizeof(CS_TYPE *) + size, &mem[ndx]);
+        csound->AuxAlloc(csound, sizeof(const CS_TYPE *) + size, &mem[ndx]);
         argmem = (CS_VAR_MEM *)mem[ndx].auxp;
-        types[j] = (CS_TYPE *)array->arrayType;
+        types[j] = array->arrayType;
         argmem->varType = types[j];
         args[j] = &argmem->value;
       } else // single var
@@ -1522,10 +1523,10 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
         }
         ndx = i + n*m;
         size = array->arrayMemberSize;
-        csound->AuxAlloc(csound, sizeof(CS_TYPE *) + size, &mem[ndx]);
+        csound->AuxAlloc(csound, sizeof(const CS_TYPE *) + size, &mem[ndx]);
         argmem = (CS_VAR_MEM *)mem[ndx].auxp;
         data = (char *)array->data;
-        types[m] = (CS_TYPE *)array->arrayType;
+        types[m] = array->arrayType;
         argmem->varType = types[m];
         args[m] = &argmem->value;
         // copy array args data in - but not k or a vars
@@ -1617,8 +1618,7 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
 
 
 int32_t copy_opcode_obj(CSOUND *csound, ASSIGN *p) {
-  CS_VAR_TYPE_OPCODEOBJ.copyValue(csound, (CS_TYPE *)
-                                  &CS_VAR_TYPE_OPCODEOBJ, p->r,
+  CS_VAR_TYPE_OPCODEOBJ.copyValue(csound, &CS_VAR_TYPE_OPCODEOBJ, p->r,
                                   p->a, p->h.insdshead);
   return OK;
 }
@@ -1644,8 +1644,8 @@ static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
   OPCODEOBJ *obj = (OPCODEOBJ *) p->a;
   uint32_t ndx = (uint32_t) (*p->b >= 0 ? *p->b : 0);
   cs_float **outargs;
-  CS_TYPE *destinationType;
-  CS_TYPE *sourceType;
+  const CS_TYPE *destinationType;
+  const CS_TYPE *sourceType;
   int32_t result;
 
   if (UNLIKELY(obj == NULL || obj->dataspace == NULL)) {

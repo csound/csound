@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <atomic>
 #include <thread>
+#include <type_traits>
 #include <vector>
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
@@ -27,6 +28,26 @@ int32_t struct_alias_deinit(CSOUND *, STRUCT_ALIAS *);
 #include "gtest/gtest.h"
 
 namespace {
+
+// Builtin types live in read-only storage. All access paths must preserve const.
+static_assert(std::is_same<decltype(CS_TYPE_ITEM::cstype),
+                           const CS_TYPE *>::value,
+              "Type pool entries must not expose writable type descriptors");
+using GetArgumentType = const CS_TYPE *(*)(const void *);
+static_assert(std::is_same<decltype(&GetTypeForArg),
+                           GetArgumentType>::value,
+              "Plugin argument type lookup must preserve const input and output");
+static_assert(std::is_same<decltype(&csoundGetTypeForArg),
+                           GetArgumentType>::value,
+              "Core argument type lookup must preserve const input and output");
+
+using AddVariableType = int32_t (*)(CSOUND *, TYPE_POOL *, const CS_TYPE *);
+static_assert(std::is_same<decltype(&csoundAddVariableType),
+                           AddVariableType>::value,
+              "Type registration must accept read-only descriptors");
+static_assert(std::is_same<decltype(CSOUND::AddVariableType),
+                           AddVariableType>::value,
+              "Plugin type registration must accept read-only descriptors");
 
 int32_t initErrorCalls;
 int32_t perfErrorCalls;
@@ -220,7 +241,7 @@ TEST_F (TypeSystemTests, testTypeSystem)
   TYPE_POOL* pool = csound->typePool;
   CS_VAR_POOL* varPool = csound->engineState.varPool;
   
-  CS_VARIABLE* var = csoundCreateVariable(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A,
+  CS_VARIABLE* var = csoundCreateVariable(csound, pool, &CS_VAR_TYPE_A,
                                           const_cast<char*>("a1"), NULL);
   ASSERT_TRUE (var != NULL);
   

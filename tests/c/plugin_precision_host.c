@@ -47,9 +47,10 @@ int main(int argc, char **argv)
   csound = csoundCreate(NULL, NULL);
   CHECK(csound != NULL);
   csoundCreateMessageBuffer(csound, 0);
-  option = malloc(strlen(argv[1]) + sizeof("--opcode-lib="));
+  size_t option_size = strlen(argv[1]) + sizeof("--opcode-lib=");
+  option = malloc(option_size);
   CHECK(option != NULL);
-  sprintf(option, "--opcode-lib=%s", argv[1]);
+  snprintf(option, option_size, "--opcode-lib=%s", argv[1]);
   CHECK(csoundSetOption(csound, option) == 0);
   int result = csoundCompileOrc(csound, linkage
       ? "instr 1\nprecision_test_opcode\nendin\n"
