@@ -352,7 +352,12 @@ e
           await cs.fs.chdir("/project");
           await cs.fs.writeFile("uploaded.wasm", new Uint8Array(await response.arrayBuffer()));
           assert.equal(await cs.compileCSD(beatsCsd("uploaded")), 0, messages.join("\n"));
-          assert.isFalse((await cs.fs.readdir("/")).some((name) => /csound-.*\.(ext|sco)$/.test(name)));
+          for (const directory of ["/", "/project"]) {
+            assert.isFalse(
+              (await cs.fs.readdir(directory)).some((name) => /csound-.*\.(ext|sco)$/.test(name)),
+              `temporary score files left in ${directory}`,
+            );
+          }
           const ended = waitForPerformanceEnd(cs);
           assert.equal(await cs.start(), 0);
           await ended;
