@@ -22,6 +22,7 @@ import pako from "pako/dist/pako.min.js";
 import wasmDataURI from "../dist/__csound_wasm_static_tools.inline.js";
 import libcsoundFactory from "../src/libcsound";
 import { WASI } from "../src/filesystem/wasi";
+import { createSystem } from "../src/filesystem/system.js";
 import { uint2String } from "../src/utils/text-encoders";
 import { clearArray } from "../src/utils/clear-array";
 import { csoundApiRename } from "../src/utils";
@@ -99,6 +100,7 @@ const Csound = async ({ logCallback }) => {
   options.env.memory = memory;
 
   const messagePort = { post: ({ log }) => typeof logCallback === "function" && logCallback(log) };
+  options.env.csoundWasiJsSystem = createSystem(wasi, (log) => messagePort.post({ log }));
 
   options.env.csoundWasiJsMessageCallback = csoundWasiJsMessageCallback({
     memory: options.env.memory,

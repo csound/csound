@@ -14,1342 +14,731 @@
  */
 
 import { encoder, decoder } from "../utils/text-encoders.js";
+import { getGlobalScope } from "../utils/global-scope.js";
 import * as constants from "./constants.js";
 
-const googPath = goog.require("goog.string.path");
+const ZERO = BigInt(0);
+const MAX_FILE_SIZE = 0x7fffffff;
+const OUTPUT_LIMIT = 16000;
+// Keep the WASI import surface separate from the JavaScript filesystem API.
+const SYSCALLS = new Set([
+  "args_sizes_get",
+  "args_get",
+  "environ_sizes_get",
+  "environ_get",
+  "proc_exit",
+  "clock_time_get",
+  "clock_res_get",
+  "random_get",
+  "fd_prestat_get",
+  "fd_prestat_dir_name",
+  "fd_close",
+  "fd_fdstat_get",
+  "fd_fdstat_set_flags",
+  "fd_filestat_get",
+  "fd_filestat_set_size",
+  "fd_read",
+  "fd_write",
+  "fd_seek",
+  "fd_tell",
+  "fd_pread",
+  "fd_pwrite",
+  "fd_sync",
+  "fd_datasync",
+  "path_open",
+  "path_filestat_get",
+  "path_create_directory",
+  "path_unlink_file",
+  "path_remove_directory",
+  "path_rename",
+  "fd_readdir",
+]);
 
-/** @define {boolean} */
-const DEBUG_WASI = goog.define("DEBUG_WASI", false);
-
-function removeLeadingSlash(path) {
-  return path.replace(/^\//, "");
-}
-
-function splitPathSegments(path) {
-  return path ? path.split("/").filter((segment) => segment.length > 0 && segment !== ".") : [];
-}
-
-function normalizeAbsolutePath(path) {
-  if (!path) {
-    return "/";
+function absolutePath(base, path) {
+  const parts = path.startsWith("/") ? [] : base.split("/").filter(Boolean);
+  for (const part of path.split("/")) {
+    if (part === "..") parts.pop();
+    else if (part && part !== ".") parts.push(part);
   }
-  const segments = splitPathSegments(path);
-  const resolved = [];
-  segments.forEach((segment) => {
-    if (segment === "..") {
-      if (resolved.length > 0) {
-        resolved.pop();
-      }
-    } else {
-      resolved.push(segment);
-    }
-  });
-  return resolved.length > 0 ? `/${resolved.join("/")}` : "/";
+  return `/${parts.join("/")}`;
 }
 
-function ensureAbsolutePath(basePath, path) {
-  if (!path || path === ".") {
-    return normalizeAbsolutePath(basePath || "/");
-  }
-  if (/^\//.test(path)) {
-    return normalizeAbsolutePath(path);
-  }
-  const baseSegments = splitPathSegments(basePath || "/");
-  const relativeSegments = path.split("/");
-  const resolvedSegments = [...baseSegments];
-  relativeSegments.forEach((segment) => {
-    if (!segment || segment === ".") {
-      return;
-    }
-    if (segment === "..") {
-      if (resolvedSegments.length > 0) {
-        resolvedSegments.pop();
-      }
-      return;
-    }
-    resolvedSegments.push(segment);
-  });
-  return resolvedSegments.length > 0 ? `/${resolvedSegments.join("/")}` : "/";
+function parentPath(path) {
+  return path.slice(0, path.lastIndexOf("/")) || "/";
 }
 
-function shouldOpenReader(rights) {
-  /** @suppress {checkTypes} */
-  const bor = constants.WASI_RIGHT_FD_READ | constants.WASI_RIGHT_FD_READDIR;
-  /** @suppress {suspiciousCode} */
-  const result = (rights & bor) !== goog.global.BigInt(0);
+function nodeType(node) {
+  return node.type === "dir"
+    ? constants.WASI_FILETYPE_DIRECTORY
+    : node.type === "stream"
+      ? constants.WASI_FILETYPE_CHARACTER_DEVICE
+      : constants.WASI_FILETYPE_REGULAR_FILE;
+}
+
+function sliceBuffers(buffers, start, length) {
+  const result = [];
+  for (const buffer of buffers) {
+    if (length <= 0) break;
+    if (start >= buffer.length) start -= buffer.length;
+    else {
+      const chunk = buffer.subarray(start, start + length);
+      result.push(chunk);
+      length -= chunk.length;
+      start = 0;
+    }
+  }
   return result;
 }
 
-function performanceNowPoly() {
-  /* eslint-disable-next-line unicorn/no-typeof-undefined */
-  if (typeof performance === "undefined" || typeof performance.now === "undefined") {
-    const nowOffset = Date.now();
-    return Date.now() - nowOffset;
-  } else {
-    return performance.now();
+function concatenate(buffers, size) {
+  const result = new Uint8Array(size);
+  let offset = 0;
+  for (const buffer of buffers) {
+    result.set(buffer, offset);
+    offset += buffer.length;
   }
-}
-
-function concatUint8Arrays(arrays) {
-  // sum of individual array lengths
-  const totalLength = arrays.reduce((accumulator, value) => accumulator + value.length, 0);
-
-  if (arrays.length === 0) return;
-
-  const result = new Uint8Array(totalLength);
-
-  // for each array - copy it over result
-  // next array is copied right after the previous one
-  let length = 0;
-  for (const array of arrays) {
-    result.set(array, length);
-    length += array.length;
-  }
-
   return result;
 }
 
-/**
- * @constructor
- * @this {WasiThis}
- */
-export const WASI = function ({ preopens }) {
-  this.fd = Array.from({ length: 4 });
-
-  this.fd[0] = { fd: 0, path: "/dev/stdin", seekPos: goog.global.BigInt(0), buffers: [] };
-  this.fd[1] = { fd: 1, path: "/dev/stdout", seekPos: goog.global.BigInt(0), buffers: [] };
-  this.fd[2] = { fd: 2, path: "/dev/stderr", seekPos: goog.global.BigInt(0), buffers: [] };
-  this.fd[3] = { fd: 3, path: "/", seekPos: goog.global.BigInt(0), buffers: [], type: "dir" };
-
-  this.getMemory = this.getMemory.bind(this);
-  this.CPUTIME_START = 0;
-  this.cwd = "/";
-  this.preopens = preopens || {};
-};
-
-/**
- * @function
- * @param {!WasmInst} instance
- */
-WASI.prototype.start = function (instance) {
-  this.CPUTIME_START = performanceNowPoly();
-  const exports = instance["exports"];
-  const initialize = exports["_initialize"];
-  if (typeof initialize !== "function") {
-    throw new TypeError("Browser WASI module does not export _initialize");
+function writeBytes(node, offset, bytes) {
+  if (offset === node.size) node.buffers.push(bytes);
+  else {
+    const before = sliceBuffers(node.buffers, 0, offset);
+    if (offset > node.size) before.push(new Uint8Array(offset - node.size));
+    node.buffers = [
+      ...before,
+      bytes,
+      ...sliceBuffers(node.buffers, offset + bytes.length, node.size),
+    ];
   }
-  initialize();
-};
+  node.size = Math.max(node.size, offset + bytes.length);
+}
 
-/**
- * @function
- * @param {!WebAssembly.Module} module
- */
-WASI.prototype.getImports = function (module) {
-  const options = {};
-  const neededImports = WebAssembly.Module.imports(module);
-
-  for (const neededImport of neededImports) {
-    if (neededImport["kind"] === "function" && neededImport.module.startsWith("wasi_")) {
-      if (typeof options[neededImport["module"]] !== "object") {
-        options[neededImport["module"]] = {};
-      }
-      options[neededImport["module"]][neededImport["name"]] = this[neededImport["name"]].bind(this);
-    }
+class WasiExit extends Error {
+  constructor(code) {
+    super(`WASI command exited with status ${code}`);
+    this.code = code;
   }
+}
 
-  return options;
-};
-
-/**
- * @function
- * @param {!WebAssembly.Memory} memory
- */
-WASI.prototype.setMemory = function (memory) {
-  this.memory = memory;
-};
-
-/**
- * @function
- * @return {DataView}
- */
-WASI.prototype.getMemory = function () {
-  if (!this.view || !this.view.buffer || !this.view.buffer.byteLength) {
-    this.view = new DataView(this.memory.buffer);
-  }
-  return this.view;
-};
-
-/**
- * @function
- * @param {string} path
- * @return {string}
- */
-WASI.prototype.resolvePath = function (path) {
-  return ensureAbsolutePath(this.cwd, path);
-};
-
-/**
- * @function
- * @param {string} filePath
- * @return {!Array<!Object>}
- */
-WASI.prototype.findEntries = function (filePath) {
-  const normalized = normalizeAbsolutePath(filePath);
-  const matches = [];
-  const entries = Object.values(this.fd);
-
-  for (const entry of entries) {
-    if (entry?.path === normalized) {
-      matches.push(entry);
-    }
-  }
-
-  return matches;
-};
-
-/**
- * @function
- * @param {string} filePath
- * @return {?Object}
- */
-WASI.prototype.findEntry = function (filePath) {
-  const matches = this.findEntries(filePath);
-  return matches.length > 0 ? matches[matches.length - 1] : null;
-};
-
-/**
- * @function
- * @param {string} path
- * @return {number}
- */
-WASI.prototype.chdir = function (path) {
-  const targetPath = normalizeAbsolutePath(ensureAbsolutePath(this.cwd, path));
-
-  if (targetPath === "/") {
+// A filesystem node owns the bytes; a descriptor owns its position and rights.
+// Reactors and commands use the same callbacks without sharing open handles.
+export class WASI {
+  constructor({ filesystem, root = "/", args, preopens } = {}) {
+    this.filesystem = filesystem || { nodes: new Map(), nextInode: 1 };
+    this.root = root;
     this.cwd = "/";
-    if (this.fd[3]) {
-      this.fd[3].path = "/";
-      this.fd[3].type = "dir";
-    }
-    return constants.WASI_ESUCCESS;
-  }
-
-  const entry = this.findEntry(targetPath);
-
-  if (!entry) {
-    if (DEBUG_WASI) {
-      console.warn(`chdir: path ${targetPath} does not exist`);
-    }
-    return constants.WASI_ENOENT;
-  }
-
-  if (entry.type && entry.type !== "dir") {
-    if (DEBUG_WASI) {
-      console.warn(`chdir: path ${targetPath} not a directory`);
-    }
-    return constants.WASI_ENOTDIR;
-  }
-
-  this.cwd = targetPath;
-  if (this.fd[3]) {
-    this.fd[3].path = targetPath;
-    this.fd[3].type = "dir";
-  }
-
-  return constants.WASI_ESUCCESS;
-};
-
-WASI.prototype.msToNs = function (ms) {
-  const msInt = Math.trunc(ms);
-  const decimal = goog.global.BigInt(Math.round((ms - msInt) * 1000000));
-  const ns = goog.global.BigInt(msInt) * goog.global.BigInt(1000000);
-  return ns + decimal;
-};
-
-WASI.prototype.now = function (clockId) {
-  switch (clockId) {
-    case constants.WASI_CLOCK_MONOTONIC: {
-      return Math.floor(performanceNowPoly());
-    }
-    case constants.WASI_CLOCK_REALTIME: {
-      return this.msToNs(Date.now());
-    }
-    case constants.WASI_CLOCK_PROCESS_CPUTIME_ID:
-    case constants.WASI_CLOCK_THREAD_CPUTIME_ID: {
-      return Math.floor(performanceNowPoly() - this.CPUTIME_START);
-    }
-    default: {
-      return 0;
-    }
-  }
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.args_get = function (argv, argvBuf) {
-  if (DEBUG_WASI) {
-    console.log("args_get", argv, argvBuf, constants);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.args_sizes_get = function (argc, argvBufSize) {
-  if (DEBUG_WASI) {
-    console.log("args_sizes_get", argc, argvBufSize, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.clock_res_get = function (clockId, resolution) {
-  if (DEBUG_WASI) {
-    console.log("args_get", clockId, resolution, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.clock_time_get = function (clockId, precision, time) {
-  if (DEBUG_WASI) {
-    console.log("clock_time_get", clockId, precision, time, arguments);
-  }
-  const memory = this.getMemory();
-  const nextTime = this.now(clockId);
-  memory.setBigUint64(time, goog.global.BigInt(nextTime), true);
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.environ_get = function (environ, environBuf) {
-  if (DEBUG_WASI) {
-    console.log("environ_get", environ, environBuf, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.environ_sizes_get = function (environCount, environBufSize) {
-  if (DEBUG_WASI) {
-    console.log("environ_sizes_get", environCount, environBufSize, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_advise = function (fd, offset, length_, advice) {
-  if (DEBUG_WASI) {
-    console.log("fd_advise", fd, offset, length_, advice, arguments);
-  }
-  return constants.WASI_ENOSYS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_allocate = function (fd, offset, length_) {
-  if (DEBUG_WASI) {
-    console.log("fd_allocate", fd, offset, length_, arguments);
-  }
-  return constants.WASI_ENOSYS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_close = function (fd) {
-  if (DEBUG_WASI) {
-    console.log("fd_close", fd, arguments);
-  }
-
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_datasync = function (fd) {
-  if (DEBUG_WASI) {
-    console.log("fd_datasync", fd, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-// always write access in browser scope
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_fdstat_get = function (fd, bufPtr) {
-  if (DEBUG_WASI) {
-    console.log("fd_fdstat_get", fd, bufPtr, arguments);
-  }
-
-  const memory = this.getMemory();
-
-  memory.setUint8(bufPtr + 4, constants.WASI_FILETYPE_REGULAR_FILE);
-  memory.setUint16(bufPtr + 2, 0, true);
-  memory.setUint16(bufPtr + 4, 0, true);
-  memory.setBigUint64(bufPtr + 8, goog.global.BigInt(constants.RIGHTS_REGULAR_FILE_BASE), true);
-  memory.setBigUint64(
-    bufPtr + 8 + 8,
-    goog.global.BigInt(constants.RIGHTS_REGULAR_FILE_INHERITING),
-    true,
-  );
-
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_fdstat_set_flags = function (fd, flags) {
-  if (DEBUG_WASI) {
-    console.log("fd_fdstat_set_flags", fd, flags, arguments);
-  }
-  return constants.WASI_ENOSYS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_fdstat_set_rights = function (fd, fsRightsBase, fsRightsInheriting) {
-  if (DEBUG_WASI) {
-    console.log("fd_fdstat_set_rights", fd, fsRightsBase, fsRightsInheriting, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_filestat_get = function (fd, bufPtr) {
-  if (DEBUG_WASI) {
-    console.log("fd_filestat_get", fd, bufPtr, arguments);
-  }
-  let filesize = 0;
-
-  if (this.fd[fd]) {
-    filesize = this.fd[fd].buffers.reduce(function (accumulator, uintArray) {
-      return accumulator + uintArray?.byteLength ? uintArray?.byteLength : 0;
-    }, 0);
-  }
-
-  const memory = this.getMemory();
-  memory.setBigUint64(bufPtr, goog.global.BigInt(fd), true);
-  bufPtr += 8;
-  memory.setBigUint64(bufPtr, goog.global.BigInt(fd), true);
-  bufPtr += 8;
-  memory.setUint8(bufPtr, constants.WASI_FILETYPE_REGULAR_FILE);
-  bufPtr += 8;
-  memory.setBigUint64(bufPtr, goog.global.BigInt(1), true);
-  bufPtr += 8;
-  memory.setBigUint64(bufPtr, goog.global.BigInt(filesize), true);
-  bufPtr += 8;
-  memory.setBigUint64(bufPtr, this.msToNs(this.CPUTIME_START), true);
-  bufPtr += 8;
-  memory.setBigUint64(bufPtr, this.msToNs(this.CPUTIME_START), true);
-  bufPtr += 8;
-  memory.setBigUint64(bufPtr, this.msToNs(this.CPUTIME_START), true);
-
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_filestat_set_size = function (fd, newSize) {
-  if (DEBUG_WASI) {
-    console.log("fd_filestat_set_size", fd, newSize, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_filestat_set_times = function (fd, stAtim, stMtim, filestatFags) {
-  if (DEBUG_WASI) {
-    console.log("fd_filestat_set_times", fd, stAtim, stMtim, filestatFags, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_pread = function (fd, iovs, iovsLength, offset, nread) {
-  if (DEBUG_WASI) {
-    console.log("fd_pread", fd, iovs, iovsLength, offset, nread, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_prestat_dir_name = function (fd, pathPtr, pathLength) {
-  if (DEBUG_WASI) {
-    console.log("fd_prestat_dir_name", fd, pathPtr, pathLength, this.fd[fd]);
-  }
-  if (!this.fd[fd] && !this.fd[fd - 1]) {
-    return constants.WASI_EBADF;
-  }
-
-  const { path: directoryName } = this.fd[fd];
-
-  const memory = this.getMemory();
-
-  const directoryNameBuffer = encoder.encode(directoryName);
-  new Uint8Array(memory.buffer).set(directoryNameBuffer, pathPtr);
-
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_prestat_get = function (fd, bufPtr) {
-  if (DEBUG_WASI) {
-    console.log("fd_prestat_get", fd, bufPtr, this.fd[fd]);
-  }
-  if (!this.fd[fd]) {
-    return constants.WASI_EBADF;
-  }
-  const { path: directoryName } = this.fd[fd];
-  const memory = this.getMemory();
-
-  const directoryNameBuffer = encoder.encode(directoryName);
-  memory.setUint8(bufPtr, constants.WASI_PREOPENTYPE_DIR);
-  memory.setUint32(bufPtr + 4, directoryNameBuffer.byteLength, true);
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_pwrite = function (fd, iovs, iovsLength, offset, nwritten) {
-  console.log("fd_pwrite", fd, iovs, iovsLength, offset, nwritten, arguments);
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {(number | undefined)}
- */
-WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
-  if (DEBUG_WASI) {
-    console.log("fd_read", fd, iovs, iovsLength, nread, arguments);
-  }
-
-  const memory = this.getMemory();
-  const entry = this.fd[fd];
-
-  if (!entry || !Array.isArray(entry.buffers)) {
-    if (DEBUG_WASI) {
-      console.error("fd_read: non-existent file descriptor", fd, entry);
-    }
-    memory.setUint32(nread, 0, true);
-    return constants.WASI_EBADF;
-  }
-
-  const buffers = entry.buffers;
-
-  if (buffers.length === 0) {
-    memory.setUint32(nread, 0, true);
-    entry.seekPos = goog.global.BigInt(0);
-    return constants.WASI_ESUCCESS;
-  }
-
-  const totalBuffersLength = buffers.reduce((accumulator, b) => accumulator + b.length, 0);
-
-  let read = Number(entry.seekPos);
-
-  let thisRead = 0;
-  let reduced = false;
-
-  // check for EOF
-  if (read >= totalBuffersLength) {
-    const buf = memory.getUint32(iovs, true);
-    memory.setUint8(buf, 0);
-    memory.setUint32(nread, 0, true);
-    return constants.WASI_ESUCCESS;
-  }
-
-  for (let index = 0; index < iovsLength; index++) {
-    const ptr = iovs + index * 8;
-    const buf = memory.getUint32(ptr, true);
-    const bufLength = memory.getUint32(ptr + 4, true);
-
-    if (!reduced) {
-      thisRead += bufLength;
-      Array.from({ length: bufLength }, (_, index) => index).reduce(
-        (accumulator, currentRead) => {
-          if (reduced) {
-            return accumulator;
-          }
-          const [chunkIndex, chunkOffset] = accumulator;
-          let currentChunkIndex = 0;
-          let currentChunkOffset = 0;
-
-          let found = false;
-          let leadup = 0;
-
-          if (currentRead === 0) {
-            while (!found) {
-              const currentBufferChunkLength = buffers[currentChunkIndex]
-                ? buffers[currentChunkIndex].byteLength
-                : 0;
-              if (leadup <= read && currentBufferChunkLength + leadup > read) {
-                found = true;
-                currentChunkOffset = read - leadup;
-              } else {
-                leadup += currentBufferChunkLength;
-                currentChunkIndex += 1;
-              }
-            }
-          } else {
-            currentChunkIndex = chunkIndex;
-            currentChunkOffset = chunkOffset;
-          }
-
-          if (buffers[currentChunkIndex]) {
-            memory.setUint8(buf + currentRead, buffers[currentChunkIndex][currentChunkOffset]);
-
-            if (currentChunkOffset + 1 >= buffers[currentChunkIndex].byteLength) {
-              currentChunkIndex = chunkIndex + 1;
-              currentChunkOffset = 0;
-            } else {
-              currentChunkOffset += 1;
-            }
-          } else {
-            memory.setUint8(buf + currentRead, 0);
-            read += currentRead;
-            reduced = true;
-          }
-
-          return [currentChunkIndex, currentChunkOffset];
-        },
-        [0, 0],
-      );
-      if (!reduced) {
-        read += bufLength;
-      }
-    }
-  }
-
-  entry.seekPos = goog.global.BigInt(read);
-  memory.setUint32(nread, thisRead, true);
-
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_readdir = function (fd, bufPtr, bufLength, cookie, bufusedPtr) {
-  if (DEBUG_WASI) {
-    console.log("fd_readdir", fd, bufPtr, bufLength, cookie, bufusedPtr, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_renumber = function (from, to) {
-  if (DEBUG_WASI) {
-    console.log("fd_renumber", from, to, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_seek = function (fd, offset, whence, newOffsetPtr) {
-  if (DEBUG_WASI) {
-    console.log("fd_seek", fd, offset, whence, newOffsetPtr, arguments);
-  }
-  const memory = this.getMemory();
-
-  switch (whence) {
-    case constants.WASI_WHENCE_CUR: {
-      /** @suppress {checkTypes} */
-      this.fd[fd].seekPos =
-        (this.fd[fd].seekPos ?? goog.global.BigInt(0)) + goog.global.BigInt(offset);
-      break;
-    }
-    case constants.WASI_WHENCE_END: {
-      const currentLength = (this.fd[fd].buffers || []).reduce(
-        (accumulator, value) => accumulator + value.length,
-        0,
-      );
-      this.fd[fd].seekPos = BigInt(currentLength) + BigInt(offset);
-      break;
-    }
-
-    case constants.WASI_WHENCE_SET: {
-      this.fd[fd].seekPos = BigInt(offset);
-      break;
-    }
-  }
-
-  memory.setBigUint64(newOffsetPtr, this.fd[fd].seekPos, true);
-
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_sync = function (fd) {
-  if (DEBUG_WASI) {
-    console.log("fd_sync", fd, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_tell = function (fd, offsetPtr) {
-  if (DEBUG_WASI) {
-    console.log("fd_tell", fd, offsetPtr, arguments);
-  }
-  const memory = this.getMemory();
-
-  if (!this.fd[fd].seekPos) {
-    this.fd[fd].seekPos = goog.global.BigInt(0);
-  }
-
-  memory.setBigUint64(offsetPtr, this.fd[fd].seekPos, true);
-
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
-  if (DEBUG_WASI) {
-    console.log("fd_write", { fd, iovs, iovsLength, nwritten });
-  }
-
-  let append = false;
-  const memory = this.getMemory();
-  this.fd[fd].buffers = this.fd[fd].buffers || [];
-
-  // append-only, if starting new write from beginning
-  if (this.fd[fd].seekPos === goog.global.BigInt(0) && this.fd[fd].buffers.length > 0) {
-    append = true;
-  }
-  let written = 0;
-
-  for (let index = 0; index < iovsLength; index++) {
-    const ptr = iovs + index * 8;
-    const buf = memory.getUint32(ptr, true);
-    const bufLength = memory.getUint32(ptr + 4, true);
-    written += bufLength;
-    const chunk = new Uint8Array(memory.buffer, buf, bufLength);
-    if (append) {
-      this.fd[fd].buffers.unshift(chunk.slice(0, bufLength));
-    } else {
-      this.fd[fd].buffers.push(chunk.slice(0, bufLength));
-    }
-  }
-
-  /** @suppress {checkTypes} */
-  this.fd[fd].seekPos += goog.global.BigInt(written);
-
-  memory.setUint32(nwritten, written, true);
-
-  if ([1, 2].includes(fd)) {
-    console.log(decoder.decode(concatUint8Arrays(this.fd[fd].buffers)));
-  }
-
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.path_create_directory = function (fd, pathPtr, pathLength) {
-  if (DEBUG_WASI) {
-    console.log("path_create_directory", fd, pathPtr, pathLength, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.path_filestat_get = function (fd, flags, pathPtr, pathLength, bufPtr) {
-  if (DEBUG_WASI) {
-    console.log("path_filestat_get", fd, flags, pathPtr, pathLength, bufPtr, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.path_filestat_set_times = function (
-  fd,
-  dirflags,
-  pathPtr,
-  pathLength,
-  stAtim,
-  stMtim,
-  fstflags,
-) {
-  if (DEBUG_WASI) {
-    console.log(
-      "path_filestat_set_times",
-      fd,
-      dirflags,
-      pathPtr,
-      pathLength,
-      stAtim,
-      stMtim,
-      fstflags,
-      arguments,
-    );
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.path_link = function (
-  oldFd,
-  oldFlags,
-  oldPath,
-  oldPathLength,
-  newFd,
-  newPath,
-  newPathLength,
-) {
-  if (DEBUG_WASI) {
-    console.log(
-      "path_link",
-      oldFd,
-      oldFlags,
-      oldPath,
-      oldPathLength,
-      newFd,
-      newPath,
-      newPathLength,
-      arguments,
-    );
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.path_open = function (
-  dirfd,
-  dirflags,
-  pathPtr,
-  pathLength,
-  oflags,
-  fsRightsBase,
-  fsRightsInheriting,
-  fsFlags,
-  fd,
-) {
-  if (DEBUG_WASI) {
-    console.log(
-      "path_open",
-      dirfd,
-      dirflags,
-      pathPtr,
-      pathLength,
-      oflags,
-      fsRightsBase,
-      fsRightsInheriting,
-      fsFlags,
-      fd,
-      arguments,
-    );
-  }
-  const memory = this.getMemory();
-  const directoryPath = (this.fd[dirfd] || { path: this.cwd }).path;
-  const pathOpenBytes = new Uint8Array(memory.buffer, pathPtr, pathLength);
-  const pathOpenString = decoder.decode(pathOpenBytes);
-
-  let pathOpen;
-  if (dirfd === 3) {
-    // Opening relative to the preopen root (cwd)
-    pathOpen = this.resolvePath(pathOpenString);
-  } else {
-    // Opening relative to a specific directory fd
-    const joined = googPath.join(directoryPath, pathOpenString);
-    pathOpen = normalizeAbsolutePath(joined);
-  }
-
-  if (pathOpen.startsWith("/..") || pathOpen === "/._" || pathOpen === "/.AppleDouble") {
-    return constants.WASI_EBADF;
-  }
-
-  const wantsDirectory = (oflags & constants.WASI_O_DIRECTORY) !== 0;
-  const allowCreate = (oflags & constants.WASI_O_CREAT) !== 0;
-  const existingEntry = this.findEntry(pathOpen);
-
-  if (DEBUG_WASI) {
-    console.log(";; path_open:", pathOpen, "from dirfd", dirfd);
-    console.log("  withReader:", shouldOpenReader(fsRightsBase));
-    console.log("  oflags:", oflags.toString(16), "fsRightsBase:", fsRightsBase.toString());
-    console.log("  allowCreate:", allowCreate, "wantsDirectory:", wantsDirectory);
-    console.log("  existingEntry:", existingEntry ? "exists" : "does not exist");
-  }
-
-  if (existingEntry && existingEntry.type === "dir" && !wantsDirectory) {
-    return constants.WASI_EISDIR;
-  }
-
-  if (!existingEntry && wantsDirectory) {
-    return constants.WASI_ENOENT;
-  }
-
-  // Check if file doesn't exist and shouldn't be created
-  if (!existingEntry && !allowCreate && !wantsDirectory) {
-    // File doesn't exist - write invalid fd and return ENOENT
-    if (DEBUG_WASI) {
-      console.warn(`path_open: file not found: ${pathOpen}`);
-    }
-    // Write maximum unsigned 32-bit value (-1 as signed) to indicate bad fd
-    memory.setUint32(fd, 0xffffffff, true);
-    return constants.WASI_ENOENT;
-  }
-
-  const actualFd = existingEntry ? existingEntry.fd : this.fd.length;
-
-  if (!existingEntry && this.fd[actualFd] === undefined) {
-    this.fd[actualFd] = { fd: actualFd };
-  }
-
-  const entryTemplate = existingEntry || this.fd[actualFd] || { fd: actualFd };
-
-  this.fd[actualFd] = {
-    ...entryTemplate,
-    fd: actualFd,
-    path: pathOpen,
-    type: wantsDirectory ? "dir" : entryTemplate.type || "file",
-    seekPos: goog.global.BigInt(0),
-    buffers: Array.isArray(entryTemplate.buffers) ? entryTemplate.buffers : [],
-  };
-
-  if ((oflags & constants.WASI_O_TRUNC) !== 0 && !wantsDirectory) {
-    this.fd[actualFd].buffers.length = 0;
-  }
-
-  if (shouldOpenReader(fsRightsBase) && DEBUG_WASI) {
-    console.log("should open a read handle for", pathOpen);
-  }
-
-  memory.setUint32(fd, actualFd, true);
-
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.path_readlink = function (fd, pathPtr, pathLength, buf, bufLength, bufused) {
-  if (DEBUG_WASI) {
-    console.log("path_readlink", fd, pathPtr, pathLength, buf, bufLength, bufused, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.path_remove_directory = function (fd, pathPtr, pathLength) {
-  if (DEBUG_WASI) {
-    console.log("path_remove_directory", fd, pathPtr, pathLength);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.path_rename = function (
-  oldFd,
-  oldPath,
-  oldPathLength,
-  newFd,
-  newPath,
-  newPathLength,
-) {
-  if (DEBUG_WASI) {
-    console.log(
-      "path_rename",
-      oldFd,
-      oldPath,
-      oldPathLength,
-      newFd,
-      newPath,
-      newPathLength,
-      arguments,
-    );
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.path_symlink = function (oldPath, oldPathLength, fd, newPath, newPathLength) {
-  if (DEBUG_WASI) {
-    console.log("path_symlink", oldPath, oldPathLength, fd, newPath, newPathLength, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.path_unlink_file = function (fd, pathPtr, pathLength) {
-  if (fd > 3 && DEBUG_WASI) {
-    console.log("path_unlink_file", fd, pathPtr, pathLength, arguments);
-  }
-  // actual file removal goes here
-
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.poll_oneoff = function (sin, sout, nsubscriptions, nevents) {
-  if (DEBUG_WASI) {
-    console.log("poll_oneoff", sin, sout, nsubscriptions, nevents, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.proc_exit = function (rval) {
-  if (DEBUG_WASI) {
-    console.log("proc_exit", rval, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.proc_raise = function (sig) {
-  if (DEBUG_WASI) {
-    console.log("proc_raise", sig, arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.random_get = function (bufPtr, bufLength) {
-  if (DEBUG_WASI) {
-    console.log("random_get", bufPtr, bufLength);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.sched_yield = function () {
-  if (DEBUG_WASI) {
-    console.log("sched_yield", arguments);
-  }
-  return constants.WASI_ESUCCESS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.sock_recv = function () {
-  if (DEBUG_WASI) {
-    console.log("sock_recv", arguments);
-  }
-  return constants.WASI_ENOSYS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.sock_accept = function () {
-  if (DEBUG_WASI) {
-    console.log("sock_accept", arguments);
-  }
-  return constants.WASI_ENOSYS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.sock_send = function () {
-  if (DEBUG_WASI) {
-    console.log("sock_send", arguments);
-  }
-  return constants.WASI_ENOSYS;
-};
-
-/**
- * @export
- * @return {number}
- */
-WASI.prototype.sock_shutdown = function () {
-  if (DEBUG_WASI) {
-    console.log("sock_shutdown", arguments);
-  }
-  return constants.WASI_ENOSYS;
-};
-
-// helpers
-
-WASI.prototype.findBuffers = function (filePath /* string */) {
-  const maybeFd = this.findEntry(filePath);
-  return maybeFd?.buffers;
-};
-
-// fs api
-
-WASI.prototype.readdir = function (dirname /* string */) {
-  const absoluteDir = this.resolvePath(dirname);
-  const prefixPath = absoluteDir === "/" ? "/" : `${absoluteDir}/`;
-  const files = [];
-  Object.values(this.fd).forEach((entry) => {
-    if (!entry?.path) {
-      return;
-    }
-    const { path } = entry;
-    if (!path.startsWith(prefixPath)) {
-      return;
-    }
-    const rest = path.slice(prefixPath.length);
-    if (rest.length === 0) {
-      return;
-    }
-    if (!/\//g.test(rest)) {
-      files.push(path);
-    }
-  });
-  const normalized = files
-    .map((p) => removeLeadingSlash(p.replace(prefixPath, "")))
-    .filter((p) => !!p);
-  return [...new Set(normalized)];
-};
-
-WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) {
-  const filePath = this.resolvePath(fname);
-  const existingEntries = this.findEntries(filePath);
-
-  if (existingEntries.length > 0) {
-    const maybeDirectory = existingEntries.find((entry) => entry.type === "dir");
-    if (maybeDirectory) {
-      console.error(`Can't write file ${filePath}, path is a directory`);
-      return;
-    }
-
-    const newestEntry = existingEntries[existingEntries.length - 1];
-    newestEntry.seekPos = goog.global.BigInt(0);
-    newestEntry.buffers = [data];
-    newestEntry.type = "file";
-
-    // If stale duplicate fds exist for the same path, keep only the latest one.
-    existingEntries.slice(0, -1).forEach((entry) => {
-      delete this.fd[entry.fd];
-    });
-    return;
-  }
-
-  const nextFd = this.fd.length;
-  this.fd[nextFd] = {
-    fd: nextFd,
-    path: filePath,
-    seekPos: goog.global.BigInt(0),
-    buffers: [data],
-    type: "file",
-  };
-};
-
-WASI.prototype.appendFile = function (fname /* string */, data /* Uint8Array */) {
-  const filePath = this.resolvePath(fname);
-
-  const buffers = this.findBuffers(filePath);
-
-  if (buffers) {
-    buffers.push(data);
-  } else {
-    console.error(`Can't append to non-existing file ${fname}`);
-  }
-};
-
-WASI.prototype.readFile = function (fname /* string */) {
-  const filePath = this.resolvePath(fname);
-
-  const buffers = this.findBuffers(filePath);
-
-  if (buffers) {
-    return concatUint8Arrays(buffers);
-  }
-};
-
-WASI.prototype.readStdOut = function () {
-  const maybeFd = this.fd[1];
-  const buffers = maybeFd?.buffers ?? [];
-  return concatUint8Arrays(buffers);
-};
-
-WASI.prototype.unlink = function (fname /* string */) {
-  const filePath = this.resolvePath(fname);
-  const entries = this.findEntries(filePath);
-
-  if (entries.length > 0) {
-    entries.forEach((entry) => {
-      delete this.fd[entry.fd];
-    });
-  } else {
-    console.error(`While trying to unlink ${filePath}, path not found`);
-  }
-};
-
-WASI.prototype.mkdir = function (dirname /* string */) {
-  const cleanPath = this.resolvePath(dirname);
-  const files = [];
-  Object.values(this.fd).forEach((entry) => {
-    if (!entry?.path) {
-      return;
-    }
-    return entry.path.startsWith(cleanPath) && files.push(entry.path);
-  });
-
-  const alreadyExist = files.length > 0;
-  if (alreadyExist) {
-    console.warn(`mkdir: path ${dirname} already exists`);
-  } else {
-    const nextFd = this.fd.length;
-    this.fd[nextFd] = {
-      fd: nextFd,
-      path: cleanPath,
-      type: "dir",
+    this.command = args !== undefined;
+    this.args = (args || []).map((arg) => encoder.encode(arg));
+    this.preopens = preopens || {};
+    this.CPUTIME_START = Date.now();
+    if (!this.filesystem.nodes.has("/")) this.makeNode("/", "dir");
+    this.fd = [0, 1, 2].map((fd) => ({
+      node: { type: "stream", buffers: [], size: 0, inode: fd },
+      seekPos: ZERO,
+      flags: 0,
+      rights: fd === 0 ? constants.WASI_RIGHT_FD_READ : constants.WASI_RIGHT_FD_WRITE,
+    }));
+    this.fd[3] = {
+      node: this.filesystem.nodes.get(root),
+      seekPos: ZERO,
+      flags: 0,
+      rights: constants.RIGHTS_DIRECTORY_BASE,
     };
   }
-};
 
-WASI.prototype.stat = function (fname /* string */) {
-  const filePath = this.resolvePath(fname);
-  const maybeFd = this.findEntry(filePath);
-
-  if (!maybeFd) {
-    return undefined;
+  createCommand(args) {
+    return new WASI({ filesystem: this.filesystem, root: this.storagePath(this.cwd), args });
   }
 
-  const buffers = maybeFd?.buffers ?? [];
-  const size = buffers.reduce((accumulator, buffer) => {
-    return accumulator + (buffer?.byteLength || 0);
-  }, 0);
+  start(instance) {
+    const initialize = instance["exports"]["_initialize"];
+    if (typeof initialize !== "function")
+      throw new TypeError("Browser WASI module does not export _initialize");
+    initialize();
+  }
 
-  const isDirectory = maybeFd.type === "dir";
+  startCommand(instance) {
+    const exports = instance["exports"];
+    if (
+      !(exports["memory"] instanceof WebAssembly.Memory) ||
+      typeof exports["_start"] !== "function"
+    ) {
+      throw new TypeError("Expected a WASI Preview 1 command with memory and _start exports");
+    }
+    this.setMemory(exports["memory"]);
+    try {
+      exports["_start"]();
+      return 0;
+    } catch (error) {
+      if (error instanceof WasiExit) return error.code;
+      throw error;
+    }
+  }
 
-  return {
-    dev: 0,
-    ino: maybeFd.fd,
-    mode: isDirectory ? 16877 : 33188, // 0o40755 for dir, 0o100644 for file
-    nlink: 1,
-    uid: 0,
-    gid: 0,
-    rdev: 0,
-    size,
-    blksize: 4096,
-    blocks: Math.ceil(size / 512),
-    atimeMs: this.CPUTIME_START,
-    mtimeMs: this.CPUTIME_START,
-    ctimeMs: this.CPUTIME_START,
-    birthtimeMs: this.CPUTIME_START,
-    atime: new Date(this.CPUTIME_START),
-    mtime: new Date(this.CPUTIME_START),
-    ctime: new Date(this.CPUTIME_START),
-    birthtime: new Date(this.CPUTIME_START),
-    isFile: !isDirectory,
-    isDirectory,
-    isBlockDevice: false,
-    isCharacterDevice: false,
-    isSymbolicLink: false,
-    isFIFO: false,
-    isSocket: false,
-  };
-};
+  getImports(module) {
+    const options = {};
+    for (const item of WebAssembly.Module.imports(module)) {
+      if (item.kind !== "function" || item.module !== "wasi_snapshot_preview1") continue;
+      options[item.module] ||= {};
+      // An unimplemented syscall must fail, not claim it performed an operation.
+      options[item.module][item.name] = SYSCALLS.has(item.name)
+        ? this[item.name].bind(this)
+        : () => constants.WASI_ENOSYS;
+    }
+    return options;
+  }
 
-WASI.prototype.pathExists = function (fname /* string */) {
-  const filePath = this.resolvePath(fname);
-  const maybeFd = this.findEntry(filePath);
-  return !!maybeFd;
-};
+  setMemory(memory) {
+    this.memory = memory;
+    this.view = undefined;
+  }
+
+  getMemory() {
+    if (!this.view || this.view.buffer !== this.memory.buffer)
+      this.view = new DataView(this.memory.buffer);
+    return this.view;
+  }
+
+  resolvePath(path) {
+    return absolutePath(this.cwd, path);
+  }
+
+  storagePath(path) {
+    const absolute = this.resolvePath(path);
+    return this.root === "/" ? absolute : this.root + (absolute === "/" ? "" : absolute);
+  }
+
+  findEntry(path) {
+    return this.filesystem.nodes.get(this.storagePath(path));
+  }
+
+  pathExists(path) {
+    return !!this.findEntry(path);
+  }
+
+  makeNode(path, type) {
+    const node = { path, type, buffers: [], size: 0, inode: this.filesystem.nextInode++ };
+    this.filesystem.nodes.set(path, node);
+    return node;
+  }
+
+  chdir(path) {
+    const entry = this.findEntry(path);
+    if (!entry) return constants.WASI_ENOENT;
+    if (entry.type !== "dir") return constants.WASI_ENOTDIR;
+    this.cwd = this.resolvePath(path);
+    return 0;
+  }
+
+  // JS filesystem methods use guest paths. A command's root is the directory
+  // selected by its parent, so even absolute paths cannot escape that mount.
+  readdir(path) {
+    const prefix = this.storagePath(path).replace(/\/$/, "") + "/";
+    return [...this.filesystem.nodes.keys()]
+      .filter((name) => name.startsWith(prefix))
+      .map((name) => name.slice(prefix.length))
+      .filter((name) => name && !name.includes("/"));
+  }
+
+  mkdir(path) {
+    const full = this.storagePath(path);
+    let current = "";
+    for (const part of full.split("/").filter(Boolean)) {
+      current += `/${part}`;
+      const node = this.filesystem.nodes.get(current);
+      if (node && node.type !== "dir") throw new Error(`Not a directory: ${path}`);
+      if (!node) this.makeNode(current, "dir");
+    }
+  }
+
+  writeFile(path, data) {
+    const full = this.storagePath(path);
+    let node = this.filesystem.nodes.get(full);
+    if (node?.type === "dir") throw new Error(`Cannot write a directory: ${path}`);
+    if (!node) {
+      this.mkdir(parentPath(this.resolvePath(path)));
+      node = this.makeNode(full, "file");
+    }
+    node.buffers = [data];
+    node.size = data.length;
+  }
+
+  appendFile(path, data) {
+    const node = this.findEntry(path);
+    if (!node || node.type !== "file") throw new Error(`File not found: ${path}`);
+    writeBytes(node, node.size, data);
+  }
+
+  readFile(path) {
+    const node = this.findEntry(path);
+    return node?.type === "file" ? concatenate(node.buffers, node.size) : undefined;
+  }
+
+  unlink(path) {
+    this.filesystem.nodes.delete(this.storagePath(path));
+  }
+
+  readStdOut() {
+    const node = this.fd[1]?.node;
+    return node && concatenate(node.buffers, node.size);
+  }
+
+  readOutput(fd) {
+    const node = this.output?.[fd] || this.fd[fd]?.node;
+    return node ? decoder.decode(concatenate(node.buffers, node.size)) : "";
+  }
+
+  stat(path) {
+    const node = this.findEntry(path);
+    if (!node) return undefined;
+    const directory = node.type === "dir";
+    return {
+      dev: 0,
+      ino: node.inode,
+      mode: directory ? 16877 : 33188,
+      nlink: 1,
+      uid: 0,
+      gid: 0,
+      rdev: 0,
+      size: node.size,
+      blksize: 4096,
+      blocks: Math.ceil(node.size / 512),
+      atimeMs: this.CPUTIME_START,
+      mtimeMs: this.CPUTIME_START,
+      ctimeMs: this.CPUTIME_START,
+      birthtimeMs: this.CPUTIME_START,
+      atime: new Date(this.CPUTIME_START),
+      mtime: new Date(this.CPUTIME_START),
+      ctime: new Date(this.CPUTIME_START),
+      birthtime: new Date(this.CPUTIME_START),
+      isFile: !directory,
+      isDirectory: directory,
+      isBlockDevice: false,
+      isCharacterDevice: false,
+      isSymbolicLink: false,
+      isFIFO: false,
+      isSocket: false,
+    };
+  }
+
+  args_sizes_get(argc, size) {
+    const view = this.getMemory();
+    view.setUint32(argc, this.args.length, true);
+    view.setUint32(
+      size,
+      this.args.reduce((sum, arg) => sum + arg.length + 1, 0),
+      true,
+    );
+    return 0;
+  }
+
+  args_get(argv, buffer) {
+    const view = this.getMemory();
+    const bytes = new Uint8Array(this.memory.buffer);
+    for (const arg of this.args) {
+      view.setUint32(argv, buffer, true);
+      argv += 4;
+      bytes.set(arg, buffer);
+      bytes[buffer + arg.length] = 0;
+      buffer += arg.length + 1;
+    }
+    return 0;
+  }
+
+  environ_sizes_get(count, size) {
+    const view = this.getMemory();
+    view.setUint32(count, 0, true);
+    view.setUint32(size, 0, true);
+    return 0;
+  }
+
+  environ_get() {
+    return 0;
+  }
+
+  proc_exit(code) {
+    throw new WasiExit(code);
+  }
+
+  clock_time_get(id, precision, pointer) {
+    let ms;
+    switch (id) {
+      case constants.WASI_CLOCK_REALTIME: {
+        ms = Date.now();
+        break;
+      }
+      case constants.WASI_CLOCK_MONOTONIC: {
+        ms = getGlobalScope().performance?.now() ?? Date.now();
+        break;
+      }
+      case constants.WASI_CLOCK_PROCESS_CPUTIME_ID:
+      case constants.WASI_CLOCK_THREAD_CPUTIME_ID: {
+        ms = Date.now() - this.CPUTIME_START;
+        break;
+      }
+      default: {
+        return constants.WASI_EINVAL;
+      }
+    }
+    this.getMemory().setBigUint64(pointer, BigInt(Math.floor(ms * 1000)) * BigInt(1000), true);
+    return 0;
+  }
+
+  clock_res_get(id, pointer) {
+    if (id < 0 || id > 3) return constants.WASI_EINVAL;
+    this.getMemory().setBigUint64(pointer, BigInt(1000000), true);
+    return 0;
+  }
+
+  random_get(pointer, length) {
+    const crypto = getGlobalScope().crypto;
+    if (!crypto?.getRandomValues) return constants.WASI_ENOSYS;
+    for (let offset = 0; offset < length; offset += 65536) {
+      crypto.getRandomValues(
+        new Uint8Array(this.memory.buffer, pointer + offset, Math.min(65536, length - offset)),
+      );
+    }
+    return 0;
+  }
+
+  fd_prestat_get(fd, pointer) {
+    if (fd !== 3 || !this.fd[fd]) return constants.WASI_EBADF;
+    const view = this.getMemory();
+    view.setUint32(pointer, 0, true);
+    view.setUint32(pointer + 4, 1, true);
+    return 0;
+  }
+
+  fd_prestat_dir_name(fd, pointer, length) {
+    if (fd !== 3 || !this.fd[fd]) return constants.WASI_EBADF;
+    if (length < 1) return constants.WASI_ENAMETOOLONG;
+    this.getMemory().setUint8(pointer, 47);
+    return 0;
+  }
+
+  fd_close(fd) {
+    if (!this.fd[fd]) return constants.WASI_EBADF;
+    if (fd === 1 || fd === 2) {
+      this.output ||= {};
+      this.output[fd] = this.fd[fd].node;
+    }
+    delete this.fd[fd];
+    return 0;
+  }
+
+  fd_fdstat_get(fd, pointer) {
+    const handle = this.fd[fd];
+    if (!handle) return constants.WASI_EBADF;
+    const view = this.getMemory();
+    new Uint8Array(this.memory.buffer, pointer, 24).fill(0);
+    view.setUint8(pointer, nodeType(handle.node));
+    view.setUint16(pointer + 2, handle.flags, true);
+    view.setBigUint64(pointer + 8, handle.rights, true);
+    view.setBigUint64(
+      pointer + 16,
+      constants.RIGHTS_REGULAR_FILE_BASE | constants.RIGHTS_DIRECTORY_BASE,
+      true,
+    );
+    return 0;
+  }
+
+  fd_fdstat_set_flags(fd, flags) {
+    if (!this.fd[fd]) return constants.WASI_EBADF;
+    this.fd[fd].flags = flags;
+    return 0;
+  }
+
+  writeStat(node, pointer) {
+    const view = this.getMemory();
+    new Uint8Array(this.memory.buffer, pointer, 64).fill(0);
+    view.setBigUint64(pointer + 8, BigInt(node.inode), true);
+    view.setUint8(pointer + 16, nodeType(node));
+    view.setBigUint64(pointer + 24, BigInt(1), true);
+    view.setBigUint64(pointer + 32, BigInt(node.size), true);
+    return 0;
+  }
+
+  fd_filestat_get(fd, pointer) {
+    return this.fd[fd] ? this.writeStat(this.fd[fd].node, pointer) : constants.WASI_EBADF;
+  }
+
+  fd_filestat_set_size(fd, size) {
+    const handle = this.fd[fd];
+    if (!handle) return constants.WASI_EBADF;
+    if (!(handle.rights & constants.WASI_RIGHT_FD_WRITE)) return constants.WASI_ENOTCAPABLE;
+    if (size < ZERO || size > BigInt(MAX_FILE_SIZE)) return constants.WASI_EFBIG;
+    const node = handle.node;
+    const length = Number(size);
+    if (node.type !== "file") return constants.WASI_EINVAL;
+    if (length > node.size) node.buffers.push(new Uint8Array(length - node.size));
+    else node.buffers = sliceBuffers(node.buffers, 0, length);
+    node.size = length;
+    return 0;
+  }
+
+  fd_read(fd, iovs, count, readPointer) {
+    const handle = this.fd[fd];
+    if (!handle) return constants.WASI_EBADF;
+    if (!(handle.rights & constants.WASI_RIGHT_FD_READ)) return constants.WASI_ENOTCAPABLE;
+    if (handle.node.type === "dir") return constants.WASI_EISDIR;
+    const view = this.getMemory();
+    let read = 0;
+    for (let i = 0; i < count; i++) {
+      const pointer = view.getUint32(iovs + i * 8, true);
+      const length = view.getUint32(iovs + i * 8 + 4, true);
+      const chunks = sliceBuffers(handle.node.buffers, Number(handle.seekPos), length);
+      let offset = pointer;
+      for (const chunk of chunks) {
+        new Uint8Array(this.memory.buffer, offset, chunk.length).set(chunk);
+        offset += chunk.length;
+      }
+      const copied = offset - pointer;
+      read += copied;
+      handle.seekPos += BigInt(copied);
+      if (copied < length) break;
+    }
+    view.setUint32(readPointer, read, true);
+    return 0;
+  }
+
+  fd_write(fd, iovs, count, writtenPointer) {
+    const handle = this.fd[fd];
+    if (!handle) return constants.WASI_EBADF;
+    if (!(handle.rights & constants.WASI_RIGHT_FD_WRITE)) return constants.WASI_ENOTCAPABLE;
+    if (handle.node.type === "dir") return constants.WASI_EISDIR;
+    const view = this.getMemory();
+    const node = handle.node;
+    let written = 0;
+    for (let i = 0; i < count; i++) {
+      const pointer = view.getUint32(iovs + i * 8, true);
+      const length = view.getUint32(iovs + i * 8 + 4, true);
+      const offset =
+        handle.flags & 1 || node.type === "stream" ? node.size : Number(handle.seekPos);
+      if (offset + length > MAX_FILE_SIZE) return constants.WASI_EFBIG;
+      const bytes = new Uint8Array(this.memory.buffer, pointer, length).slice();
+      if (length) writeBytes(node, offset, bytes);
+      handle.seekPos = BigInt(offset + length);
+      written += length;
+      if (node.type === "stream") {
+        if (!this.command && bytes.length > 0) console.log(decoder.decode(bytes));
+        if (node.size > OUTPUT_LIMIT) {
+          node.buffers = sliceBuffers(node.buffers, node.size - OUTPUT_LIMIT, OUTPUT_LIMIT);
+          node.size = OUTPUT_LIMIT;
+        }
+      }
+    }
+    view.setUint32(writtenPointer, written, true);
+    return 0;
+  }
+
+  fd_seek(fd, offset, whence, pointer) {
+    const handle = this.fd[fd];
+    if (!handle) return constants.WASI_EBADF;
+    if (handle.node.type !== "file") return constants.WASI_ESPIPE;
+    let position;
+    switch (whence) {
+      case constants.WASI_WHENCE_SET: {
+        position = offset;
+        break;
+      }
+      case constants.WASI_WHENCE_CUR: {
+        position = handle.seekPos + offset;
+        break;
+      }
+      case constants.WASI_WHENCE_END: {
+        position = BigInt(handle.node.size) + offset;
+        break;
+      }
+      default: {
+        return constants.WASI_EINVAL;
+      }
+    }
+    if (position < ZERO || position > BigInt(MAX_FILE_SIZE)) return constants.WASI_EINVAL;
+    handle.seekPos = position;
+    this.getMemory().setBigUint64(pointer, position, true);
+    return 0;
+  }
+
+  fd_tell(fd, pointer) {
+    if (!this.fd[fd]) return constants.WASI_EBADF;
+    this.getMemory().setBigUint64(pointer, this.fd[fd].seekPos, true);
+    return 0;
+  }
+
+  fd_pread(fd, iovs, count, offset, result) {
+    return this.positionedIO(fd, iovs, count, offset, result, false);
+  }
+
+  fd_pwrite(fd, iovs, count, offset, result) {
+    return this.positionedIO(fd, iovs, count, offset, result, true);
+  }
+
+  positionedIO(fd, iovs, count, offset, result, writing) {
+    const handle = this.fd[fd];
+    if (!handle) return constants.WASI_EBADF;
+    if (handle.node.type !== "file") return constants.WASI_ESPIPE;
+    if (offset < ZERO || offset > BigInt(MAX_FILE_SIZE)) return constants.WASI_EINVAL;
+    const previous = handle.seekPos;
+    handle.seekPos = offset;
+    try {
+      return writing
+        ? this.fd_write(fd, iovs, count, result)
+        : this.fd_read(fd, iovs, count, result);
+    } finally {
+      handle.seekPos = previous;
+    }
+  }
+
+  fd_sync(fd) {
+    return this.fd[fd] ? 0 : constants.WASI_EBADF;
+  }
+
+  fd_datasync(fd) {
+    return this.fd_sync(fd);
+  }
+
+  // Resolve a WASI path relative to an open directory. The root descriptor
+  // follows the wrapper's cwd, since browser fs.chdir() does not call libc.
+  pathAt(fd, pointer, length) {
+    const handle = this.fd[fd];
+    if (!handle) return { error: constants.WASI_EBADF };
+    if (handle.node.type !== "dir") return { error: constants.WASI_ENOTDIR };
+    const text = decoder.decode(new Uint8Array(this.memory.buffer, pointer, length));
+    if (text.includes("\0")) return { error: constants.WASI_EINVAL };
+    if (text.startsWith("/")) return { error: constants.WASI_ENOTCAPABLE };
+    const guest =
+      this.root === "/" ? handle.node.path : handle.node.path.slice(this.root.length) || "/";
+    const path = this.storagePath(absolutePath(fd === 3 ? this.cwd : guest, text));
+    return { path };
+  }
+
+  path_open(fd, dirflags, pointer, length, oflags, rights, inheriting, flags, result) {
+    const target = this.pathAt(fd, pointer, length);
+    if (target.error) return target.error;
+    const path = target.path;
+    let node = this.filesystem.nodes.get(path);
+    if (!node) {
+      if (!(oflags & constants.WASI_O_CREAT)) return constants.WASI_ENOENT;
+      const parent = this.filesystem.nodes.get(parentPath(path));
+      if (!parent) return constants.WASI_ENOENT;
+      if (parent.type !== "dir") return constants.WASI_ENOTDIR;
+      if (oflags & constants.WASI_O_DIRECTORY) return constants.WASI_ENOTDIR;
+      node = this.makeNode(path, "file");
+    } else if (oflags & constants.WASI_O_CREAT && oflags & constants.WASI_O_EXCL)
+      return constants.WASI_EEXIST;
+    if (oflags & constants.WASI_O_DIRECTORY && node.type !== "dir") return constants.WASI_ENOTDIR;
+    if (oflags & constants.WASI_O_TRUNC) {
+      if (node.type === "dir") return constants.WASI_EISDIR;
+      if (!(rights & constants.WASI_RIGHT_FD_WRITE)) return constants.WASI_ENOTCAPABLE;
+      node.buffers = [];
+      node.size = 0;
+    }
+    let next = 4;
+    while (this.fd[next]) next++;
+    this.fd[next] = { node, seekPos: ZERO, flags, rights };
+    this.getMemory().setUint32(result, next, true);
+    return 0;
+  }
+
+  path_filestat_get(fd, flags, pointer, length, result) {
+    const target = this.pathAt(fd, pointer, length);
+    if (target.error) return target.error;
+    const node = this.filesystem.nodes.get(target.path);
+    return node ? this.writeStat(node, result) : constants.WASI_ENOENT;
+  }
+
+  path_create_directory(fd, pointer, length) {
+    const target = this.pathAt(fd, pointer, length);
+    if (target.error) return target.error;
+    if (this.filesystem.nodes.has(target.path)) return constants.WASI_EEXIST;
+    const parent = this.filesystem.nodes.get(parentPath(target.path));
+    if (!parent) return constants.WASI_ENOENT;
+    if (parent.type !== "dir") return constants.WASI_ENOTDIR;
+    this.makeNode(target.path, "dir");
+    return 0;
+  }
+
+  path_unlink_file(fd, pointer, length) {
+    const target = this.pathAt(fd, pointer, length);
+    if (target.error) return target.error;
+    const node = this.filesystem.nodes.get(target.path);
+    if (!node) return constants.WASI_ENOENT;
+    if (node.type === "dir") return constants.WASI_EISDIR;
+    this.filesystem.nodes.delete(target.path);
+    return 0;
+  }
+
+  path_remove_directory(fd, pointer, length) {
+    const target = this.pathAt(fd, pointer, length);
+    if (target.error) return target.error;
+    const node = this.filesystem.nodes.get(target.path);
+    if (!node) return constants.WASI_ENOENT;
+    if (node.type !== "dir") return constants.WASI_ENOTDIR;
+    if ([...this.filesystem.nodes.keys()].some((path) => path.startsWith(target.path + "/")))
+      return constants.WASI_ENOTEMPTY;
+    if (target.path === this.root) return constants.WASI_ENOTCAPABLE;
+    this.filesystem.nodes.delete(target.path);
+    return 0;
+  }
+
+  path_rename(oldFd, oldPointer, oldLength, newFd, newPointer, newLength) {
+    const from = this.pathAt(oldFd, oldPointer, oldLength);
+    if (from.error) return from.error;
+    const to = this.pathAt(newFd, newPointer, newLength);
+    if (to.error) return to.error;
+    const node = this.filesystem.nodes.get(from.path);
+    if (!node) return constants.WASI_ENOENT;
+    if (from.path === to.path) return 0;
+    if (from.path === this.root || to.path === this.root) return constants.WASI_ENOTCAPABLE;
+    const parent = this.filesystem.nodes.get(parentPath(to.path));
+    if (!parent) return constants.WASI_ENOENT;
+    if (parent.type !== "dir") return constants.WASI_ENOTDIR;
+    const existing = this.filesystem.nodes.get(to.path);
+    if (existing && existing.type !== node.type)
+      return existing.type === "dir" ? constants.WASI_EISDIR : constants.WASI_ENOTDIR;
+    if (node.type === "dir" && to.path.startsWith(from.path + "/")) return constants.WASI_EINVAL;
+    if (
+      existing?.type === "dir" &&
+      [...this.filesystem.nodes.keys()].some((path) => path.startsWith(to.path + "/"))
+    )
+      return constants.WASI_ENOTEMPTY;
+    const moving = [...this.filesystem.nodes].filter(
+      ([path]) => path === from.path || path.startsWith(from.path + "/"),
+    );
+    for (const [path] of moving) this.filesystem.nodes.delete(path);
+    for (const [path, entry] of moving) {
+      entry.path = to.path + path.slice(from.path.length);
+      this.filesystem.nodes.set(entry.path, entry);
+    }
+    return 0;
+  }
+
+  fd_readdir(fd, pointer, length, cookie, used) {
+    const handle = this.fd[fd];
+    if (!handle) return constants.WASI_EBADF;
+    if (handle.node.type !== "dir") return constants.WASI_ENOTDIR;
+    if (cookie < ZERO) return constants.WASI_EINVAL;
+    const entries = [...this.filesystem.nodes.values()].filter(
+      (node) => node.path !== handle.node.path && parentPath(node.path) === handle.node.path,
+    );
+    const bytes = new Uint8Array(this.memory.buffer, pointer, length);
+    let written = 0;
+    for (let i = Number(cookie); i < entries.length && written < length; i++) {
+      const node = entries[i];
+      const name = encoder.encode(node.path.slice(node.path.lastIndexOf("/") + 1));
+      const record = new Uint8Array(24 + name.length);
+      const view = new DataView(record.buffer);
+      view.setBigUint64(0, BigInt(i + 1), true);
+      view.setBigUint64(8, BigInt(node.inode), true);
+      view.setUint32(16, name.length, true);
+      view.setUint8(20, nodeType(node));
+      record.set(name, 24);
+      const amount = Math.min(record.length, length - written);
+      bytes.set(record.subarray(0, amount), written);
+      written += amount;
+    }
+    this.getMemory().setUint32(used, written, true);
+    return 0;
+  }
+}

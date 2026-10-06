@@ -15,6 +15,7 @@
 
 import { assert } from "./chai/index.js";
 import { runWithXmlReport } from "./browser-test-report.js";
+import { beatsCsd, exitCommand } from "./score-command-fixtures.js";
 
 (async () => {
   const isCI = ["8081", "8082"].includes(location.port) && location.search.includes("ci=true");
@@ -341,6 +342,51 @@ e
   csoundVariations.forEach((test) => {
     describe(`@csound/browser : ${test.name}`, async function () {
       this.timeout(10000);
+      it("runs a filesystem score command and renders its generated notes", async function () {
+        const cs = await Csound(test);
+        const { messages, stop } = collectCsoundMessages(cs);
+        try {
+          const response = await fetch("/wasm-bin/csbeats.wasm");
+          assert.isTrue(response.ok);
+          await cs.fs.mkdir("/project");
+          await cs.fs.chdir("/project");
+          await cs.fs.writeFile("uploaded.wasm", new Uint8Array(await response.arrayBuffer()));
+          assert.equal(await cs.compileCSD(beatsCsd("uploaded")), 0, messages.join("\n"));
+          for (const directory of ["/", "/project"]) {
+            assert.isFalse(
+              (await cs.fs.readdir(directory)).some((name) => /csound-.*\.(ext|sco)$/.test(name)),
+              `temporary score files left in ${directory}`,
+            );
+          }
+          const ended = waitForPerformanceEnd(cs);
+          assert.equal(await cs.start(), 0);
+          await ended;
+          assert.include(messages.join("\n"), "generated frequency 261.6256");
+          const wav = await cs.fs.readFile("score-test.wav");
+          assert.isAbove(wav.length, 44);
+        } finally {
+          stop();
+          await cs.terminateInstance();
+        }
+      });
+
+      it("rejects a missing score command and an uploaded command's nonzero exit", async function () {
+        for (const uploaded of [false, true]) {
+          const cs = await Csound(test);
+          const { messages, stop } = collectCsoundMessages(cs);
+          try {
+            if (uploaded) await cs.fs.writeFile("custom.wasm", exitCommand(7));
+            assert.notEqual(await cs.compileCSD(beatsCsd("custom")), 0);
+            if (uploaded) assert.notInclude(messages.join("\n"), "Cannot run score command", messages.join("\n"));
+            else assert.include(messages.join("\n"), "WASI command not found");
+            assert.isFalse((await cs.fs.readdir("/")).some((name) => /csound-.*\.(ext|sco)$/.test(name)));
+          } finally {
+            stop();
+            await cs.terminateInstance();
+          }
+        }
+      });
+
       it("can be started", async function () {
         console.log("initialising Csound object");
         const cs = await Csound(test);
