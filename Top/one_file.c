@@ -705,7 +705,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
         int system_result = system(sys);
 #endif
         if (UNLIKELY(system_result != 0)) {
-          csoundErrorMsg(csound, Str("External generation failed"));
+          csoundErrorMsg(csound, Str("External generation failed\n"));
           remove(extname);
           remove(STA(sconame));
           csound->Free(csound, extname);
