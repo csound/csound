@@ -13,8 +13,8 @@ the Csound 7 beta on the `develop` branch.
 - Explicit types let you name variables without a type prefix.
 - User-defined opcodes (UDOs) have a new declaration form and can change
   caller variables through references.
-- User-defined structs keep related values together. JSON opcodes read and
-  write these values.
+- User-defined structs keep named members in one typed variable. UDOs can
+  accept and return structs, and arrays can contain them.
 - Opcode and instrument objects let orchestra code store references and
   control separate instances.
 - UDOs can use a local sample rate through `oversample` and `undersample`.
@@ -27,11 +27,12 @@ the Csound 7 beta on the `develop` branch.
 The following articles explain these features with examples:
 
 1. [Explicit types and user-defined opcodes](Csound7/Language.md)
-2. [Structs and JSON data](Csound7/Structured_Data.md)
+2. [User-defined structs](Csound7/Structs.md)
 3. [Opcode and instrument objects](Csound7/Objects.md)
 4. [Local sample rates](Csound7/Local_Sample_Rates.md)
 5. [Host applications and unit generators](Csound7/Host_API.md)
 6. [WebAssembly and browser applications](Csound7/WebAssembly.md)
+7. [Module API changes](Csound7/Module_API.md)
 
 Each Csound example contains orchestra code for the `<CsInstruments>` section
 of a CSD. Use each example in a separate CSD.
@@ -84,7 +85,7 @@ These groups cover the main additions. The
 | --- | --- |
 | Objects | `create`, `init`, `perf`, `run`, and `delete` control opcode or instrument objects. |
 | Local rates | `oversample` and `undersample` change the sample rate inside a UDO. |
-| Structured data | `jsonunmarshal`, `jsonunmarshalfile`, and `jsonmarshal` convert between JSON and typed data. |
+| JSON conversion | [`jsonunmarshal`, `jsonunmarshalfile`, and `jsonmarshal`](../docs/json-opcodes.md) read and write JSON values. |
 | Complex numbers | `complex`, `polar`, `real`, `imag`, and `arg` construct or inspect complex values. |
 | Sample playback | `memplay` reads decoded audio from a shared memory cache. |
 | Spatial audio | `dbap` and `dbapgains` provide distance-based amplitude panning. |
@@ -183,21 +184,35 @@ The API includes factories, typed variable handles, and ordered UGen graphs.
 The Python binding exposes these objects too. See the
 [host API article](Csound7/Host_API.md) for setup and ownership rules.
 
-### Plugin API and numeric types
+### Module API
 
-Rebuild native opcode plugins with the Csound 7 headers.
-`csoundAppendOpcode` now takes `init`, `perf`, and `deinit` callbacks.
-It no longer takes the separate `thread` argument. Update opcode
-registrations to the current `OENTRY` layout.
+The Module API serves opcode plugins, GENs, audio and MIDI backends, and
+utilities. Modules include `csdl.h` to use the structures, inline functions,
+macros, and public `CSOUND` function table from `csoundCore.h`.
+This interface has its own changes, separate from the host API.
+
+Rebuild native modules with the Csound 7 headers.
+The `CSOUND` function table and the `OENTRY`, `OPDS`, and `INSDS` layouts
+have changed. Opcode registrations now use `init`, `perf`, and `deinit`
+callbacks. The `thread` field and `RegisterDeinitCallback` are no longer
+part of this interface.
+
+Opcode context queries now use inline functions such as `GetInputArgCnt`
+and `GetLocalSr`. Rate macros such as `CS_ESR` use the owning instance's
+local rate. Audio backends still register their callbacks through `CSOUND`.
+Utilities access their functions through `csound->GetUtility(csound)`.
+
+The [Module API article](Csound7/Module_API.md) explains these changes, with
+an opcode example and migration guidance for GENs, backends, and utilities.
+
+### Numeric types
 
 Use `cs_float` for sample data and API values. `MYFLT` remains a deprecated
 alias. The `cs_double` type represents calculations that normally need
 double precision. Hosts and plugins must match the library's precision.
 
-Plugins can register struct types for their opcode inputs and outputs.
-The orchestra can use these types without a second declaration. See the
-[plugin struct guide](../docs/plugin-structs.md) and
-[numeric type guide](../docs/numeric-types.md).
+See the [numeric type guide](../docs/numeric-types.md) for precision options
+and compatibility aliases.
 
 ## System-level changes
 
