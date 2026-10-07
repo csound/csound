@@ -26,6 +26,7 @@ Use `perf` for control-rate or audio-rate processing. Register separate
 opcode entries when argument types need different routines.
 Move an old audio callback into `perf`. The third callback slot now runs
 at deinitialization.
+
 Use `deinit` for opcode cleanup in place of `RegisterDeinitCallback`.
 `OPDS.iopadr` and `OPDS.opadr` become `init` and `perf`.
 The engine maintains a deinitialization chain in `OPDS` and `INSDS`.
