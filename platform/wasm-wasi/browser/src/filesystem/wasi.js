@@ -54,6 +54,15 @@ const SYSCALLS = new Set([
   "fd_readdir",
 ]);
 
+/**
+ * @param {bigint} rights
+ * @param {bigint} right
+ * @return {boolean}
+ */
+function hasRight(rights, right) {
+  return (rights & right) !== ZERO;
+}
+
 function absolutePath(base, path) {
   const parts = path.startsWith("/") ? [] : base.split("/").filter(Boolean);
   for (const part of path.split("/")) {
@@ -123,6 +132,8 @@ class WasiExit extends Error {
 
 // A filesystem node owns the bytes; a descriptor owns its position and rights.
 // Reactors and commands use the same callbacks without sharing open handles.
+// WASI imports select syscall methods by name.
+/** @unrestricted */
 export class WASI {
   constructor({ filesystem, root = "/", args, preopens } = {}) {
     this.filesystem = filesystem || { nodes: new Map(), nextInode: 1 };
@@ -132,7 +143,14 @@ export class WASI {
     this.args = (args || []).map((arg) => encoder.encode(arg));
     this.preopens = preopens || {};
     this.CPUTIME_START = Date.now();
+    /** @type {WebAssembly.Memory|undefined} */
+    this.memory = undefined;
+    /** @type {DataView|undefined} */
+    this.view = undefined;
+    this.output = {};
     if (!this.filesystem.nodes.has("/")) this.makeNode("/", "dir");
+    // WASI passes rights and file offsets as 64-bit integers, exposed as BigInt.
+    /** @type {!Array<{node: ?, seekPos: bigint, flags: number, rights: bigint}>} */
     this.fd = [0, 1, 2].map((fd) => ({
       node: { type: "stream", buffers: [], size: 0, inode: fd },
       seekPos: ZERO,
@@ -466,7 +484,7 @@ export class WASI {
   fd_filestat_set_size(fd, size) {
     const handle = this.fd[fd];
     if (!handle) return constants.WASI_EBADF;
-    if (!(handle.rights & constants.WASI_RIGHT_FD_WRITE)) return constants.WASI_ENOTCAPABLE;
+    if (!hasRight(handle.rights, constants.WASI_RIGHT_FD_WRITE)) return constants.WASI_ENOTCAPABLE;
     if (size < ZERO || size > BigInt(MAX_FILE_SIZE)) return constants.WASI_EFBIG;
     const node = handle.node;
     const length = Number(size);
@@ -480,7 +498,7 @@ export class WASI {
   fd_read(fd, iovs, count, readPointer) {
     const handle = this.fd[fd];
     if (!handle) return constants.WASI_EBADF;
-    if (!(handle.rights & constants.WASI_RIGHT_FD_READ)) return constants.WASI_ENOTCAPABLE;
+    if (!hasRight(handle.rights, constants.WASI_RIGHT_FD_READ)) return constants.WASI_ENOTCAPABLE;
     if (handle.node.type === "dir") return constants.WASI_EISDIR;
     const view = this.getMemory();
     let read = 0;
@@ -505,7 +523,7 @@ export class WASI {
   fd_write(fd, iovs, count, writtenPointer) {
     const handle = this.fd[fd];
     if (!handle) return constants.WASI_EBADF;
-    if (!(handle.rights & constants.WASI_RIGHT_FD_WRITE)) return constants.WASI_ENOTCAPABLE;
+    if (!hasRight(handle.rights, constants.WASI_RIGHT_FD_WRITE)) return constants.WASI_ENOTCAPABLE;
     if (handle.node.type === "dir") return constants.WASI_EISDIR;
     const view = this.getMemory();
     const node = handle.node;
@@ -532,6 +550,7 @@ export class WASI {
     return 0;
   }
 
+  /** @param {bigint} offset */
   fd_seek(fd, offset, whence, pointer) {
     const handle = this.fd[fd];
     if (!handle) return constants.WASI_EBADF;
@@ -613,6 +632,7 @@ export class WASI {
     return { path };
   }
 
+  /** @param {bigint} rights */
   path_open(fd, dirflags, pointer, length, oflags, rights, inheriting, flags, result) {
     const target = this.pathAt(fd, pointer, length);
     if (target.error) return target.error;
@@ -630,7 +650,7 @@ export class WASI {
     if (oflags & constants.WASI_O_DIRECTORY && node.type !== "dir") return constants.WASI_ENOTDIR;
     if (oflags & constants.WASI_O_TRUNC) {
       if (node.type === "dir") return constants.WASI_EISDIR;
-      if (!(rights & constants.WASI_RIGHT_FD_WRITE)) return constants.WASI_ENOTCAPABLE;
+      if (!hasRight(rights, constants.WASI_RIGHT_FD_WRITE)) return constants.WASI_ENOTCAPABLE;
       node.buffers = [];
       node.size = 0;
     }
