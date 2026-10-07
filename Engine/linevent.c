@@ -243,7 +243,7 @@ void csoundInputMessage(CSOUND *csound, const char *message) {
 #if 1
       if ((n=linevent_alloc(csound, (STA(linebufsiz) + extralloc))) != 0) {
         csoundErrorMsg(csound, Str("LineBuffer Overflow - "
-                                   "Input Data has been Lost"));
+                                   "Input Data has been Lost\n"));
         return;
       }
 #else

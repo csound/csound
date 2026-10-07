@@ -398,6 +398,35 @@ e
         });
       }
 
+      for (const [name, score, expected] of [
+        ["unquoted score command", beatsCsd("custom").replace('bin="custom"', "bin=custom"),
+          /^Missing program in tag <CsScore>$/],
+        ["unterminated score command", beatsCsd("custom").replace('bin="custom"', 'bin="custom'),
+          /^Missing program in tag <CsScore>$/],
+        ["missing score end tag", beatsCsd("custom").replace("</CsScore>", ""),
+          /^Missing end tag <\/CsScore>$/],
+        ["missing generated score", beatsCsd("custom"), /^cannot open .*\.sco$/],
+      ]) {
+        it(`reports ${name} before cleanup`, async function () {
+          const cs = await Csound(test);
+          const { messages, stop } = collectCsoundMessages(cs);
+          try {
+            // Exiting successfully without writing the score exercises the
+            // missing-output error without depending on an external program.
+            await cs.fs.writeFile("custom.wasm", exitCommand(0));
+            assert.notEqual(await cs.compileCSD(score), 0);
+            const deadline = performance.now() + 2000;
+            while (!messages.some((message) => expected.test(message)) && performance.now() < deadline) {
+              await new Promise((resolve) => setTimeout(resolve, 10));
+            }
+            assert.isTrue(messages.some((message) => expected.test(message)), messages.join("\n"));
+          } finally {
+            stop();
+            await cs.terminateInstance();
+          }
+        });
+      }
+
       it("can be started", async function () {
         console.log("initialising Csound object");
         const cs = await Csound(test);

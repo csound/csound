@@ -60,11 +60,11 @@ int32_t playopen_dummy(CSOUND *csound, const csRtAudioParams *parm) {
                      strcmp(s, "NULL") == 0)) {
     if (s[0] == '\0')
       csoundErrorMsg(csound,
-                     Str(" *** error: rtaudio module set to empty string"));
+                     Str(" *** error: rtaudio module set to empty string\n"));
     else {
       // print_opcodedir_warning(csound);
       csoundErrorMsg(
-          csound, Str(" unknown rtaudio module: '%s', using dummy module"), s);
+          csound, Str(" unknown rtaudio module: '%s', using dummy module\n"), s);
     }
     // return CSOUND_ERROR;
   }
@@ -94,11 +94,11 @@ int32_t recopen_dummy(CSOUND *csound, const csRtAudioParams *parm) {
                      strcmp(s, "NULL") == 0)) {
     if (s[0] == '\0')
       csoundErrorMsg(csound,
-                     Str(" *** error: rtaudio module set to empty string"));
+                     Str(" *** error: rtaudio module set to empty string\n"));
     else {
       // print_opcodedir_warning(csound);
       csoundErrorMsg(
-          csound, Str(" unknown rtaudio module: '%s', using dummy module"), s);
+          csound, Str(" unknown rtaudio module: '%s', using dummy module\n"), s);
     }
     // return CSOUND_ERROR;
   }
@@ -208,10 +208,10 @@ int32_t DummyMidiInOpen(CSOUND *csound, void **userData, const char *devName) {
     return 0;
   }
   if (s[0] == '\0')
-    csoundErrorMsg(csound, Str("error: -+rtmidi set to empty string"));
+    csoundErrorMsg(csound, Str("error: -+rtmidi set to empty string\n"));
   else {
     print_opcodedir_warning(csound);
-    csoundErrorMsg(csound, Str("error: -+rtmidi='%s': unknown module"), s);
+    csoundErrorMsg(csound, Str("error: -+rtmidi='%s': unknown module\n"), s);
   }
   return -1;
 }
@@ -241,10 +241,10 @@ int32_t DummyMidiOutOpen(CSOUND *csound, void **userData, const char *devName) {
     return 0;
   }
   if (s[0] == '\0')
-    csoundErrorMsg(csound, Str("error: -+rtmidi set to empty string"));
+    csoundErrorMsg(csound, Str("error: -+rtmidi set to empty string\n"));
   else {
     print_opcodedir_warning(csound);
-    csoundErrorMsg(csound, Str("error: -+rtmidi='%s': unknown module"), s);
+    csoundErrorMsg(csound, Str("error: -+rtmidi='%s': unknown module\n"), s);
   }
   return -1;
 }
