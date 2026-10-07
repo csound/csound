@@ -1,5 +1,6 @@
 # Developer documentation
 
+- [Csound 7 release notes and feature articles](../Release_Notes/Version_7.00.md)
 - [Building Csound](../BUILD.md)
 - [Submitting opcodes](Submitting_opcodes.md)
 - [Csound 6 to 7 API migration](API_Migration_Guide_Csound_6_to_7.md)
