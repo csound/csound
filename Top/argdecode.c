@@ -525,6 +525,27 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
 extern void sf_open_out(CSOUND *csound);
 extern void sf_close_out(CSOUND *csound);
 
+/* Parse a verbosity/debug level. A "0x"/"0X" prefix selects hexadecimal,
+   anything else is read as decimal. Leading zeros are decimal, not octal
+   (e.g. "08" is 8), so a value is never silently truncated. On return
+   *odebug is only modified if a valid number was found; the number of
+   characters consumed is returned (0 if there was no number). */
+static int parse_odebug(const char *s, int32_t *odebug) {
+  char *end;
+  unsigned long v;
+  if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
+    v = strtoul(s + 2, &end, 16);
+    if (end == s + 2)
+      return 0;                 /* "0x" with no hex digits */
+  } else {
+    v = strtoul(s, &end, 10);
+    if (end == s)
+      return 0;                 /* no digits */
+  }
+  *odebug = (int32_t)v;
+  return (int)(end - s);
+}
+
 static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   OPARMS *O = csound->oparms;
   /* Add other long options here */
@@ -976,6 +997,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     if (*s == '\0')
       dieu(csound, Str("no utility name"));
     csound->info_message_request = 1;
+    csoundLoadDefaultModules(csound);
     retval = csoundRunUtility(csound, s, argc, argv);
     if (retval) {
       csound->orchname = NULL;
@@ -986,12 +1008,13 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   }
   /* -v */
   else if (!strncmp(s, "verbose", 7)) {
-    O->odebug = DEBUG_FULL; 
-    if(strlen(s) > 7) {
-      s += 8;
-      if(sscanf(s, "0x%x", &(O->odebug)) == 0)
-        sscanf(s, "%d", &(O->odebug));
-    }   
+    O->odebug = DEBUG_FULL;
+    if (strlen(s) > 7) {
+      s += 7;
+      if (*s == '=' || *s == ':' || *s == ' ')
+        s++;
+      parse_odebug(s, &(O->odebug));
+    }
     return 1;
   }
   /* -x fnam extract from score.srt using extract file 'fnam' */
@@ -1012,6 +1035,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       if (isdigit(*s))
         full = *s++ - '0';
     }
+    csoundLoadDefaultModules(csound);
     list_opcodes(csound, full);
     return 1;
     // csound->LongJmp(csound, 0);
@@ -1359,6 +1383,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           FIND(Str("no utility name"));
           {
             csound->info_message_request = 1;
+            csoundLoadDefaultModules(csound);
             int32_t retval = csoundRunUtility(csound, s, argc, argv);
             if (retval) {
               csound->orchname = NULL;
@@ -1453,10 +1478,8 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           break;
         case 'v':
           if (isdigit(*s)) {
-	    /* verbose level try hex first*/
-            if(sscanf(s, "0x%x%n", &(O->odebug), &n) == 0)
-              sscanf(s, "%d%n", &(O->odebug), &n);
-            s += n;		
+            /* verbose level, "0x" prefix means hexadecimal */
+            s += parse_odebug(s, &(O->odebug));
           } else
             O->odebug = 0xFFFFFFF; /* full verbose  */
           break;
@@ -1578,6 +1601,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             if (isdigit(*s))
               full = *s++ - '0';
           }
+          csoundLoadDefaultModules(csound);
           list_opcodes(csound, full);
         }
           csound->info_message_request = 1;

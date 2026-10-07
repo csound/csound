@@ -536,10 +536,10 @@ extern "C" {
 
 
   /**
-   * retrieves a module name and type ("audio" or "midi") given a
+   * Retrieves a module name and type ("audio" or "midi") given a
    * number Modules are added to list as csound loads them returns
    * CSOUND_SUCCESS on success and CSOUND_ERROR if module number
-   * was not found
+   * was not found. The first call may load the default modules.
    *
    * \code
    *  char *name, *type;

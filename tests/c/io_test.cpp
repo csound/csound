@@ -131,6 +131,14 @@ TEST_F (IOTests, testDeviceList)
     }
 }
 
+TEST_F (IOTests, testRunUtilityLoadsDefaultModules)
+{
+    char utility[] = "sndinfo";
+    char *argv[] = {utility};
+
+    EXPECT_EQ(csoundRunUtility(csound, "sndinfo", 1, argv), 0);
+}
+
 int32_t key_callback_evt(void *userData, void *p, uint32_t type)
 {
     int32_t *prev = (int32_t *) userData;
