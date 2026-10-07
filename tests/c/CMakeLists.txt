@@ -38,6 +38,7 @@ if(BUILD_TESTS)
         csound_debug_fsig_globals_arrays_test.cpp
         csound_message_buffer_test.cpp
         csound_option_parser_test.cpp
+        csound_csd_compile_test.cpp
         csound_orc_compile_test.cpp
         csound_orc_semantics_test.cpp
         csound_type_system_test.cpp

@@ -469,13 +469,16 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   return CSOUND_SUCCESS;
 }
 
-static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text, int32_t async) {
+static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
+                               const char *csd_name, int32_t async) {
   int32_t res = read_unified_file4(csound, corfile_create_r(csound, csd_text));
   int32_t scoreErrCnt;
   if (LIKELY(res)) {
+    /* File mode supplies its path; text mode supplies "*string*". */
+    char *name = csoundStrdup(csound, csd_name);
     if (csound->csdname != NULL)
       csound->Free(csound, csound->csdname);
-    csound->csdname = csoundStrdup(csound, "*string*"); /* Mark as from text. */
+    csound->csdname = name;
     /* Ensure any stale orchname from a previous compile is not used */
     csound->orchname = NULL;
 
@@ -535,10 +538,10 @@ int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t 
     result = (result - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS;
   } else if (mode == 0) {
     input = copy_to_corefile(csound, str, NULL, 0);
-    result = input != NULL ? compile_csd_txt(csound, input->body, async)
+    result = input != NULL ? compile_csd_txt(csound, input->body, str, async)
                            : CSOUND_ERROR;
   } else {
-    result = compile_csd_txt(csound, str, async);
+    result = compile_csd_txt(csound, str, "*string*", async);
   }
   if (input != NULL) {
     CORFIL *file = input;
