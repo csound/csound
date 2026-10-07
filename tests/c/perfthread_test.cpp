@@ -111,11 +111,25 @@ void onProcessCallbackFlush(void *userdata) {
 
 // State for SetProcessCallbackWhileRunning: the callback is set/cleared from
 // another thread while the performance thread reads and invokes it.
-std::atomic<int> processCallbackInvocations{0};
+struct ProcessCallbackSignal {
+    std::mutex mutex;
+    std::condition_variable cv;
+    bool called = false;
 
-void onCountProcessCallback(void *userdata) {
-    (void) userdata;
-    processCallbackInvocations.fetch_add(1);
+    bool wait() {
+        std::unique_lock<std::mutex> lock(mutex);
+        return cv.wait_for(lock, std::chrono::seconds(5),
+                           [this] { return called; });
+    }
+};
+
+void onSignalProcessCallback(void *userdata) {
+    auto *signal = static_cast<ProcessCallbackSignal *>(userdata);
+    {
+        std::lock_guard<std::mutex> lock(signal->mutex);
+        signal->called = true;
+    }
+    signal->cv.notify_one();
 }
 
 }  // namespace
@@ -366,37 +380,35 @@ TEST(PerfThreadsTests, SetProcessCallbackWhileRunning) {
         "instr 1\n"
         "endin\n";
 
-    processCallbackInvocations.store(0);
+    ProcessCallbackSignal initialCallback, finalCallback;
 
     Csound csound;
     csound.SetOption("-n");
     ASSERT_EQ(csound.CompileOrc(instrument), 0);
-    csound.EventString((char *) "i 1 0 3600\n");
+    // With -n, even an hour of score time can finish before the setter loop.
+    // Keep the score and note alive until the test stops the thread.
+    csound.EventString("f 0 z\ni 1 0 -1\n");
     ASSERT_EQ(csound.Start(), 0);
 
     CsoundPerformanceThread performanceThread(csound.GetCsound());
-    performanceThread.SetProcessCallback(onCountProcessCallback, nullptr);
+    performanceThread.SetProcessCallback(onSignalProcessCallback, &initialCallback);
     performanceThread.Play();
 
     // Wait until the process callback is actually being invoked.
-    for (int i = 0; i < 500 && processCallbackInvocations.load() == 0; ++i)
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ASSERT_GT(processCallbackInvocations.load(), 0);
+    ASSERT_TRUE(initialCallback.wait());
 
     // Hammer the setter from this thread while the performance thread reads
     // the callback. This is the access pattern that used to be unsynchronized.
     for (int i = 0; i < 1000; ++i) {
         performanceThread.SetProcessCallback(
-            (i & 1) ? onCountProcessCallback : nullptr, nullptr);
+            (i & 1) ? onSignalProcessCallback : nullptr, &initialCallback);
         std::this_thread::yield();
     }
 
-    // Leave it enabled and make sure it takes effect again.
-    performanceThread.SetProcessCallback(onCountProcessCallback, nullptr);
-    int before = processCallbackInvocations.load();
-    for (int i = 0; i < 500 && processCallbackInvocations.load() == before; ++i)
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    EXPECT_GT(processCallbackInvocations.load(), before);
+    // Fresh user data ensures an earlier in-flight callback cannot satisfy
+    // this check. The last setter call must take effect.
+    performanceThread.SetProcessCallback(onSignalProcessCallback, &finalCallback);
+    EXPECT_TRUE(finalCallback.wait());
 
     performanceThread.Stop();
     performanceThread.Join();
