@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "7.0.0-beta37",
+  "version": "7.0.0-beta38",
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
@@ -61,7 +61,7 @@
     "test:open": "node tests/server.cjs"
   },
   "devDependencies": {
-    "@csound/wasm-bin": "7.0.0-beta27",
+    "@csound/wasm-bin": "7.0.0-beta28",
     "@eslint/js": "^10.0.1",
     "browser-or-node": "^3.0.0",
     "chai": "^6.2.2",
