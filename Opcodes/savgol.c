@@ -222,20 +222,20 @@ static void get_coeffs(const SAVGOL_BUFFER *sg, double *coeffs_buffer, uint32_t 
     }
 }
 
-static int32_t validate_params(CSOUND *csound, MYFLT winsize_arg, MYFLT order_arg, MYFLT delta_arg, uint32_t *winsize, uint32_t *ncoef) {
+static int32_t validate_params(CSOUND *csound, cs_float winsize_arg, cs_float order_arg, cs_float delta_arg, uint32_t *winsize, uint32_t *ncoef) {
     int32_t w = (int32_t) winsize_arg;
     int32_t o = (int32_t) order_arg;
 
     if (UNLIKELY(w < 3 || (w & 1) == 0)) {
-        return csound->InitError(csound, "[savgol] winsize must be odd and at least 3");
+        return csound->InitError(csound, "[savgol] winsize must be odd and at least 3\n");
     }
 
     if (UNLIKELY(o < 0 || o >= w)) {
-        return csound->InitError(csound, "[savgol] order must be >= 0 and less than winsize");
+        return csound->InitError(csound, "[savgol] order must be >= 0 and less than winsize\n");
     }
 
     if (UNLIKELY(delta_arg <= FL(0.0))) {
-        return csound->InitError(csound, "[savgol] delta must be greater than 0");
+        return csound->InitError(csound, "[savgol] delta must be greater than 0\n");
     }
 
     *winsize = (uint32_t) w;
@@ -255,7 +255,7 @@ static int32_t savgol_setup(CSOUND *csound, SAVGOL *p) {
 
     int32_t deriv = (int32_t) *p->deriv;
     if (UNLIKELY(deriv < 0 || (uint32_t) deriv >= ncoef)) {
-        return csound->InitError(csound, "[savgol] deriv must be >= 0 and <= order");
+        return csound->InitError(csound, "[savgol] deriv must be >= 0 and <= order\n");
     }
 
     SAVGOL_BUFFER sg = { NULL, 0, 0 };
@@ -263,7 +263,7 @@ static int32_t savgol_setup(CSOUND *csound, SAVGOL *p) {
 
     if (UNLIKELY(calculate_savgol_coeffs(csound, &sg, winsize, ncoef) != OK)) {
         csound->Free(csound, sg.coeffs);
-        return csound->InitError(csound, "[savgol] could not compute savgol coefficients");
+        return csound->InitError(csound, "[savgol] could not compute savgol coefficients\n");
     }
 
     csound->AuxAlloc(csound, sizeof(double) * (size_t) winsize, &p->coeffs);
@@ -280,8 +280,8 @@ int32_t savgol_audio_init(CSOUND *csound, SAVGOL *p) {
         return res;
     }
 
-    csound->AuxAlloc(csound, sizeof(MYFLT) * (size_t) ((p->winsize_i - 1U) + CS_KSMPS), &p->buffer_mem);
-    p->buffer_ptr = (MYFLT *) p->buffer_mem.auxp;
+    csound->AuxAlloc(csound, sizeof(cs_float) * (size_t) ((p->winsize_i - 1U) + CS_KSMPS), &p->buffer_mem);
+    p->buffer_ptr = (cs_float *) p->buffer_mem.auxp;
 
     return OK;
 }
@@ -289,8 +289,8 @@ int32_t savgol_audio_init(CSOUND *csound, SAVGOL *p) {
 int32_t savgol_audio_perf(CSOUND *csound, SAVGOL *p) {
     (void) csound;
 
-    MYFLT *out = p->y;
-    const MYFLT *in = p->signal;
+    cs_float *out = p->y;
+    const cs_float *in = p->signal;
     const double *coeffs = (const double *) p->coeffs.auxp;
     uint32_t winsize = p->winsize_i;
     uint32_t win_offset = winsize - 1U;
@@ -300,15 +300,15 @@ int32_t savgol_audio_perf(CSOUND *csound, SAVGOL *p) {
     uint32_t nsmps = CS_KSMPS;
 
     if (UNLIKELY(offset)) {
-        memset(out, 0, sizeof(MYFLT) * (size_t) offset);
+        memset(out, 0, sizeof(cs_float) * (size_t) offset);
     }
 
     if (UNLIKELY(early)) {
         nsmps -= early;
-        memset(out + nsmps, 0, sizeof(MYFLT) * (size_t) early);
+        memset(out + nsmps, 0, sizeof(cs_float) * (size_t) early);
     }
 
-    memcpy(p->buffer_ptr + win_offset, in, sizeof(MYFLT) * (size_t) nsmps);
+    memcpy(p->buffer_ptr + win_offset, in, sizeof(cs_float) * (size_t) nsmps);
 
     /* buffer_ptr[i .. i + winsize - 1] runs oldest to newest, matching the
        coefficient order; out[i] is the fit at the window centre, so the
@@ -318,10 +318,10 @@ int32_t savgol_audio_perf(CSOUND *csound, SAVGOL *p) {
         for (uint32_t j = 0; j < winsize; j++) {
             sum += coeffs[j] * (double) p->buffer_ptr[i + j];
         }
-        out[i] = (MYFLT) sum;
+        out[i] = (cs_float) sum;
     }
 
-    memmove(p->buffer_ptr, p->buffer_ptr + nsmps, sizeof(MYFLT) * (size_t) win_offset);
+    memmove(p->buffer_ptr, p->buffer_ptr + nsmps, sizeof(cs_float) * (size_t) win_offset);
 
     return OK;
 }
@@ -332,8 +332,8 @@ int32_t savgol_control_init(CSOUND *csound, SAVGOL *p) {
         return res;
     }
 
-    csound->AuxAlloc(csound, sizeof(MYFLT) * (size_t) p->winsize_i, &p->buffer_mem);
-    p->buffer_ptr = (MYFLT *) p->buffer_mem.auxp;
+    csound->AuxAlloc(csound, sizeof(cs_float) * (size_t) p->winsize_i, &p->buffer_mem);
+    p->buffer_ptr = (cs_float *) p->buffer_mem.auxp;
     p->write_pos = 0;
 
     return OK;
@@ -343,7 +343,7 @@ int32_t savgol_control_perf(CSOUND *csound, SAVGOL *p) {
     (void) csound;
 
     const double *coeffs = (const double *) p->coeffs.auxp;
-    MYFLT *buffer = p->buffer_ptr;
+    cs_float *buffer = p->buffer_ptr;
     uint32_t winsize = p->winsize_i;
     uint32_t oldest = p->write_pos;
 
@@ -367,7 +367,7 @@ int32_t savgol_control_perf(CSOUND *csound, SAVGOL *p) {
         sum += coeffs[head + i] * (double) buffer[i];
     }
 
-    *p->y = (MYFLT) sum;
+    *p->y = (cs_float) sum;
     return OK;
 }
 
@@ -383,7 +383,7 @@ int32_t savgol_matrix(CSOUND *csound, SAVGOL_MATRIX *p) {
 
     if (UNLIKELY(calculate_savgol_coeffs(csound, &sg, winsize, ncoef) != OK)) {
         csound->Free(csound, sg.coeffs);
-        return csound->InitError(csound, "[savgol] could not compute savgol coefficients");
+        return csound->InitError(csound, "[savgol] could not compute savgol coefficients\n");
     }
 
     /* tabinit only maintains sizes[] for 1-D arrays, so the 2-D shape is set
@@ -396,13 +396,13 @@ int32_t savgol_matrix(CSOUND *csound, SAVGOL_MATRIX *p) {
     p->mat->sizes[1] = (int32_t) sg.ncols;
     tabinit(csound, p->mat, (int32_t) (ncoef * winsize), p->h.insdshead);
 
-    MYFLT *out = (MYFLT *) p->mat->data;
+    cs_float *out = (cs_float *) p->mat->data;
     double *row = (double *) csound->Calloc(csound, sizeof(double) * (size_t) sg.ncols);
 
     for (uint32_t i = 0; i < sg.nrows; i++) {
         get_coeffs(&sg, row, i, (double) *p->delta);
         for (uint32_t j = 0; j < sg.ncols; j++) {
-            out[i * sg.ncols + j] = (MYFLT) row[j];
+            out[i * sg.ncols + j] = (cs_float) row[j];
         }
     }
 

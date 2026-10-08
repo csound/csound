@@ -89,18 +89,18 @@ typedef struct {
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *y;
+    cs_float *y;
     // inputs;
-    MYFLT *signal;
-    MYFLT *winsize; // must be odd
-    MYFLT *order;   // order + 1 coefficient rows
-    MYFLT *deriv;
-    MYFLT *delta;
+    cs_float *signal;
+    cs_float *winsize; // must be odd
+    cs_float *order;   // order + 1 coefficient rows
+    cs_float *deriv;
+    cs_float *delta;
     // private
     AUXCH coeffs;     // winsize scaled doubles for the requested derivative
     AUXCH buffer_mem; // a-rate: (winsize - 1) history samples + ksmps
                       // k-rate: winsize samples used as a ring buffer
-    MYFLT *buffer_ptr;
+    cs_float *buffer_ptr;
     uint32_t winsize_i;
     uint32_t write_pos; // k-rate only: next ring slot to overwrite
 } SAVGOL;
@@ -110,9 +110,9 @@ typedef struct {
     // outputs
     ARRAYDAT *mat;
     // inputs;
-    MYFLT *winsize;
-    MYFLT *order;
-    MYFLT *delta;
+    cs_float *winsize;
+    cs_float *order;
+    cs_float *delta;
 } SAVGOL_MATRIX;
 
 
