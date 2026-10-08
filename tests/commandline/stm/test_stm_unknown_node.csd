@@ -4,6 +4,7 @@ description = "expected failure: stmnext rejects an unknown node name"
 [expect]
 exit = 1
 stderr = ["[stm] stmnext: node 'Zeta' not found"]
+output_excludes = ["Segmentation fault", "AddressSanitizer", "UndefinedBehaviorSanitizer", "Abort trap"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

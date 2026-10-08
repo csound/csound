@@ -633,14 +633,14 @@ static int32_t stm_release_owner(CSOUND *csound, STM_OWNER_TOKEN *owner) {
 static int32_t stm_get_object_init_locked(CSOUND *csound, OPDS *opds, cs_float handle, STM_OBJECT_TYPE expected_type, const char *msg, STM_REGISTRY **reg_out, void **object_out) {
     STM_REGISTRY *reg = stm_registry_query(csound);
     if (reg == NULL) {
-        return csound->InitError(csound, "%s", msg);
+        return csound->InitError(csound, "%s\n", msg);
     }
 
     stm_registry_lock(csound, reg);
     void *object = stm_handle_to_object_locked(reg, handle, expected_type);
     if (object == NULL) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "%s", msg);
+        return csound->InitError(csound, "%s\n", msg);
     }
 
     (void) opds;
@@ -659,12 +659,8 @@ static INSDS *stm_top_level_instrument(OPDS *opds) {
     return owner;
 }
 
-<<<<<<< HEAD
 static int32_t stm_runner_ref_init(CSOUND *csound, OPDS *opds, cs_float handle,
         STM_RUNNER_ACCESS access, const char *msg, STM_RUNNER_REF *ref) {
-=======
-static int32_t stm_runner_ref_init(CSOUND *csound, OPDS *opds, MYFLT handle, STM_RUNNER_ACCESS access, const char *msg, STM_RUNNER_REF *ref) {
->>>>>>> 42fbfe53 (add feat(checkpoint/resume))
     /* Csound may rerun an init callback without invoking deinit first. */
     if (ref->runner != NULL) {
         stm_runner_ref_deinit(csound, opds, ref);
@@ -680,11 +676,11 @@ static int32_t stm_runner_ref_init(CSOUND *csound, OPDS *opds, MYFLT handle, STM
         INSDS *owner = stm_top_level_instrument(opds);
         if (runner->writer_owner != NULL && runner->writer_owner != owner) {
             stm_registry_unlock(csound, reg);
-            return csound->InitError(csound, "[stm] runner already has another active writer");
+            return csound->InitError(csound, "[stm] runner already has another active writer\n");
         }
         if (runner->writer_claims == UINT32_MAX) {
             stm_registry_unlock(csound, reg);
-            return csound->InitError(csound, "[stm] runner writer claim limit reached");
+            return csound->InitError(csound, "[stm] runner writer claim limit reached\n");
         }
         runner->writer_owner = owner;
         runner->writer_claims++;
@@ -702,7 +698,7 @@ static int32_t stm_runner_ref_init(CSOUND *csound, OPDS *opds, MYFLT handle, STM
             ref->writer_claimed = 0;
         }
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] runner reference limit reached");
+        return csound->InitError(csound, "[stm] runner reference limit reached\n");
     }
     stm_ref_increment(&runner->refcount);
     ref->runner = runner;
@@ -820,14 +816,14 @@ int32_t graph_create(CSOUND *csound, GRAPH_CREATE *p) {
 
     GRAPH_BUILDER *builder = csound->Calloc(csound, sizeof(GRAPH_BUILDER));
     if (builder == NULL) {
-        return csound->InitError(csound, "[stm] stmcreate: builder memory error");
+        return csound->InitError(csound, "[stm] stmcreate: builder memory error\n");
     }
 
     builder->node_capacity = INITIAL_NODE_CAPACITY;
     builder->nodes = csound->Calloc(csound, sizeof(GRAPH_NODE) * builder->node_capacity);
     if (builder->nodes == NULL) {
         csound->Free(csound, builder);
-        return csound->InitError(csound, "[stm] stmcreate: builder memory error");
+        return csound->InitError(csound, "[stm] stmcreate: builder memory error\n");
     }
 
     builder->start_node = STM_NO_NODE;
@@ -836,7 +832,7 @@ int32_t graph_create(CSOUND *csound, GRAPH_CREATE *p) {
     if (handle == 0) {
         stm_free_nodes(csound, builder->nodes, builder->node_count);
         csound->Free(csound, builder);
-        return csound->InitError(csound, "[stm] stmcreate: registry error");
+        return csound->InitError(csound, "[stm] stmcreate: registry error\n");
     }
 
     *p->handle = (cs_float) handle;
@@ -852,12 +848,12 @@ int32_t graph_add_node(CSOUND *csound, GRAPH_ADD_NODE *p) {
 
     if (builder->compiled) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stmaddnode: builder already compiled (immutable)");
+        return csound->InitError(csound, "[stm] stmaddnode: builder already compiled (immutable)\n");
     }
 
     if (graph_find_node(builder->nodes, builder->node_count, p->node_name->data) >= 0) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stmaddnode: duplicate node name '%s'", p->node_name->data);
+        return csound->InitError(csound, "[stm] stmaddnode: duplicate node name '%s'\n", p->node_name->data);
     }
 
     if (builder->node_count == builder->node_capacity) {
@@ -865,7 +861,7 @@ int32_t graph_add_node(CSOUND *csound, GRAPH_ADD_NODE *p) {
         GRAPH_NODE *grown = csound->ReAlloc(csound, builder->nodes, sizeof(GRAPH_NODE) * newcap);
         if (grown == NULL) {
             stm_registry_unlock(csound, reg);
-            return csound->InitError(csound, "[stm] stmaddnode: memory error");
+            return csound->InitError(csound, "[stm] stmaddnode: memory error\n");
         }
         builder->nodes = grown;
         builder->node_capacity = newcap;
@@ -880,7 +876,7 @@ int32_t graph_add_node(CSOUND *csound, GRAPH_ADD_NODE *p) {
     node->name = csound->Calloc(csound, namelen + 1);
     if (node->name == NULL) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stmaddnode: memory error");
+        return csound->InitError(csound, "[stm] stmaddnode: memory error\n");
     }
     memcpy(node->name, p->node_name->data, namelen);
 
@@ -890,7 +886,7 @@ int32_t graph_add_node(CSOUND *csound, GRAPH_ADD_NODE *p) {
     if (node->edges == NULL) {
         csound->Free(csound, node->name);
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stmaddnode: memory error");
+        return csound->InitError(csound, "[stm] stmaddnode: memory error\n");
     }
 
     builder->node_count++;
@@ -907,12 +903,12 @@ int32_t graph_add_edge(CSOUND *csound, GRAPH_ADD_EDGE *p) {
 
     if (builder->compiled) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stmaddedge: graph already compiled (immutable)");
+        return csound->InitError(csound, "[stm] stmaddedge: graph already compiled (immutable)\n");
     }
 
     if (add_edge_helper(csound, builder, p->from->data, p->to->data) == NOTOK) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stmaddedge, something went wrong");
+        return csound->InitError(csound, "[stm] stmaddedge, something went wrong\n");
     }
 
     stm_registry_unlock(csound, reg);
@@ -975,12 +971,12 @@ int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
     }
 
     if (builder->compiled) {
-        return csound->InitError(csound, "[stm] stmcompile: graph already compiled");
+        return csound->InitError(csound, "[stm] stmcompile: graph already compiled\n");
     }
 
     if (builder->node_count == 0) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stmcompile: graph has no nodes");
+        return csound->InitError(csound, "[stm] stmcompile: graph has no nodes\n");
     }
 
     for (uint32_t i = 0; i < builder->node_count; i++) {
@@ -988,7 +984,7 @@ int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
         for (uint32_t e = 0; e < n->edge_count; e++) {
             if (n->edges[e] >= builder->node_count) {
                 stm_registry_unlock(csound, reg);
-                return csound->InitError(csound, "[stm] stmcompile: invalid edge");
+                return csound->InitError(csound, "[stm] stmcompile: invalid edge\n");
             }
         }
     }
@@ -996,7 +992,7 @@ int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
     GRAPH_DEFINITION *definition = graph_copy_definition(csound, builder);
     if (definition == NULL) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stmcompile: definition memory error");
+        return csound->InitError(csound, "[stm] stmcompile: definition memory error\n");
     }
     builder->compiled = 1;
 
@@ -1006,7 +1002,7 @@ int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
     uint32_t handle = stm_register_object(csound, STM_OBJECT_DEFINITION, object, &p->owner);
     if (handle == 0) {
         stm_definition_release(csound, definition);
-        return csound->InitError(csound, "[stm] stmcompile: registry error");
+        return csound->InitError(csound, "[stm] stmcompile: registry error\n");
     }
     *p->def_handle = (cs_float) handle;
     return OK;
@@ -1028,19 +1024,19 @@ int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p) {
     }
     if (stm_ref_load(&definition->refcount) == UINT32_MAX) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stminstance: definition reference limit reached");
+        return csound->InitError(csound, "[stm] stminstance: definition reference limit reached\n");
     }
 
     GRAPH_RUNNER *runner = csound->Calloc(csound, sizeof(GRAPH_RUNNER));
     if (runner == NULL) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stminstance: runner memory error");
+        return csound->InitError(csound, "[stm] stminstance: runner memory error\n");
     }
     runner->transitions = csound->Calloc(csound, sizeof(GRAPH_TRANSITION_EVENT) * TRANSITION_BUFFER_CAPACITY);
     if (runner->transitions == NULL) {
         csound->Free(csound, runner);
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stminstance: runner memory error");
+        return csound->InitError(csound, "[stm] stminstance: runner memory error\n");
     }
 
     runner->checkpoints = csound->Calloc(csound, sizeof(STM_CHECKPOINT) * CHECKPOINT_BUFFER_CAPACITY);
@@ -1048,7 +1044,7 @@ int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p) {
         csound->Free(csound, runner->transitions);
         csound->Free(csound, runner);
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stminstance: runner memory error");
+        return csound->InitError(csound, "[stm] stminstance: runner memory error\n");
     }
 
 #if !defined(HAVE_ATOMIC_BUILTIN) && STM_MUTEX_AVAILABLE
@@ -1058,7 +1054,7 @@ int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p) {
         csound->Free(csound, runner->checkpoints);
         csound->Free(csound, runner);
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stminstance: runner mutex error");
+        return csound->InitError(csound, "[stm] stminstance: runner mutex error\n");
     }
 #endif
 
@@ -1080,14 +1076,9 @@ int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p) {
     uint32_t handle = stm_register_object(csound, STM_OBJECT_RUNNER, object, &p->owner);
     if (handle == 0) {
         stm_destroy_object(csound, STM_OBJECT_RUNNER, object);
-        return csound->InitError(csound, "[stm] stminstance: registry error");
+        return csound->InitError(csound, "[stm] stminstance: registry error\n");
     }
-<<<<<<< HEAD
     *p->runner_handle = (cs_float) handle;
-=======
-
-    *p->runner_handle = (MYFLT) handle;
->>>>>>> 42fbfe53 (add feat(checkpoint/resume))
     return OK;
 }
 
@@ -1231,7 +1222,7 @@ int32_t graph_current(CSOUND *csound, GRAPH_CURRENT *p) {
     GRAPH_DEFINITION *definition = g->definition;
     uint32_t current_node = stm_snapshot_u32(csound, g, &g->current_node);
     if (current_node >= definition->node_count) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmcurrent: invalid current node");
+        return csound->PerfError(csound, &(p->h), "[stm] stmcurrent: invalid current node\n");
     }
 
     const char *name = definition->nodes[current_node].name;
@@ -1239,7 +1230,7 @@ int32_t graph_current(CSOUND *csound, GRAPH_CURRENT *p) {
     if (len >= p->cur->size) {
         void *newp = csound->ReAlloc(csound, p->cur->data, len + 1);
         if (newp == NULL) {
-            return csound->PerfError(csound, &(p->h), "[stm] stmcurrent: memory error");
+            return csound->PerfError(csound, &(p->h), "[stm] stmcurrent: memory error\n");
         }
         p->cur->data = newp;
         p->cur->size = len + 1;
@@ -1253,7 +1244,7 @@ int32_t graph_current_id(CSOUND *csound, GRAPH_RUNNER_QUERY *p) {
     GRAPH_RUNNER *g = p->ref.runner;
     uint32_t current_node = stm_snapshot_u32(csound, g, &g->current_node);
     if (current_node >= g->definition->node_count) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmcurrentid: invalid current node");
+        return csound->PerfError(csound, &(p->h), "[stm] stmcurrentid: invalid current node\n");
     }
 
     *p->out = current_node;
@@ -1268,7 +1259,7 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
     GRAPH_DEFINITION *definition = g->definition;
     uint32_t current_node = STM_LOAD(&g->current_node);
     if (current_node >= definition->node_count) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmadvance: invalid current node");
+        return csound->PerfError(csound, &(p->h), "[stm] stmadvance: invalid current node\n");
     }
 
     stm_runner_update_begin(csound, g);
@@ -1276,7 +1267,7 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
     int32_t run_state = STM_LOAD(&g->run_state);
     if (run_state == STM_RUNNER_DELETED) {
         *p->status = STM_DELETED;
-        *p->id_from = (MYFLT) STM_LOAD(&g->current_node);
+        *p->id_from = (cs_float) STM_LOAD(&g->current_node);
         *p->id_to = FL(-1.0);
         stm_runner_update_end(csound, g);
         return OK;
@@ -1284,7 +1275,7 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
 
     if (run_state == STM_RUNNER_PAUSED) {
         *p->status = STM_PAUSED;
-        *p->id_from = (MYFLT) STM_LOAD(&g->current_node);
+        *p->id_from = (cs_float) STM_LOAD(&g->current_node);
         *p->id_to = FL(-1.0);
         stm_runner_update_end(csound, g);
         return OK;
@@ -1307,7 +1298,7 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
             g->requested_node = STM_NO_NODE;
             g->request_conflict = STM_REQUEST_OK;
             stm_runner_update_end(csound, g);
-            return csound->PerfError(csound, &(p->h), "[stm] stmadvance: invalid requested node");
+            return csound->PerfError(csound, &(p->h), "[stm] stmadvance: invalid requested node\n");
         }
 
         GRAPH_NODE *node = &definition->nodes[source];
@@ -1357,7 +1348,7 @@ int32_t graph_next(CSOUND *csound, GRAPH_NEXT *p) {
 
     int32_t requested_node = graph_find_node(g->definition->nodes, g->definition->node_count, p->next_node->data);
     if (requested_node < 0) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmnext: node '%s' not found", p->next_node->data);
+        return csound->PerfError(csound, &(p->h), "[stm] stmnext: node '%s' not found\n", p->next_node->data);
     }
 
     graph_request_node(g, (uint32_t) requested_node);
@@ -1373,7 +1364,7 @@ int32_t graph_next_id(CSOUND *csound, GRAPH_NEXT_ID *p) {
 
     uint32_t requested_node;
     if (!stm_cs_float_to_uint32(*p->next_node, g->definition->node_count, &requested_node)) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmnextid: invalid node id");
+        return csound->PerfError(csound, &(p->h), "[stm] stmnextid: invalid node id\n");
     }
 
     graph_request_node(g, requested_node);
@@ -1389,7 +1380,7 @@ int32_t graph_add_cond_edge(CSOUND *csound, GRAPH_ADD_COND_EDGE *p) {
 
     if (builder->compiled) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stmaddcondedge: graph already compiled (immutable)");
+        return csound->InitError(csound, "[stm] stmaddcondedge: graph already compiled (immutable)\n");
     }
 
     STRINGDAT *items = (STRINGDAT *) p->targets->data;
@@ -1397,7 +1388,7 @@ int32_t graph_add_cond_edge(CSOUND *csound, GRAPH_ADD_COND_EDGE *p) {
     for (int32_t i = 0; i < ntargets; i++) {
         if (add_edge_helper(csound, builder, p->from->data, items[i].data) == NOTOK) {
             stm_registry_unlock(csound, reg);
-            return csound->InitError(csound, "[stm] stmaddcondedge, something went wrong");
+            return csound->InitError(csound, "[stm] stmaddcondedge, something went wrong\n");
         }
     }
 
@@ -1415,7 +1406,7 @@ int32_t graph_on_ee_init(CSOUND *csound, GRAPH_ON_EE *p) {
     int32_t n = graph_find_node(g->definition->nodes, g->definition->node_count, p->node->data);
     if (n < 0) {
         stm_runner_ref_deinit(csound, &(p->h), &p->ref);
-        return csound->InitError(csound, "[stm] on enter/exit : node '%s' not found", p->node->data);
+        return csound->InitError(csound, "[stm] on enter/exit : node '%s' not found\n", p->node->data);
     }
 
     p->node_id = n;
@@ -1453,7 +1444,7 @@ int32_t graph_node_id(CSOUND *csound, GRAPH_NODE_ID *p) {
     GRAPH_RUNNER *g = p->ref.runner;
     int32_t n = graph_find_node(g->definition->nodes, g->definition->node_count, p->node_name->data);
     if (n < 0) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmnodeid: node not found");
+        return csound->PerfError(csound, &(p->h), "[stm] stmnodeid: node not found\n");
     }
 
     *p->node_id = (cs_float) n;
@@ -1465,7 +1456,7 @@ int32_t graph_node_name(CSOUND *csound, GRAPH_NODE_NAME *p) {
     GRAPH_DEFINITION *definition = g->definition;
     uint32_t node_id;
     if (!stm_cs_float_to_uint32(*p->node_id, definition->node_count, &node_id)) {
-        return csound->PerfError(csound, &(p->h), "[stm] stmnodename: invalid node id");
+        return csound->PerfError(csound, &(p->h), "[stm] stmnodename: invalid node id\n");
     }
 
     const char *name = definition->nodes[node_id].name;
@@ -1473,7 +1464,7 @@ int32_t graph_node_name(CSOUND *csound, GRAPH_NODE_NAME *p) {
     if (len >= p->node_name->size) {
         void *newp = csound->ReAlloc(csound, p->node_name->data, len + 1);
         if (newp == NULL) {
-            return csound->PerfError(csound, &(p->h), "[stm] stmnodename: memory error");
+            return csound->PerfError(csound, &(p->h), "[stm] stmnodename: memory error\n");
         }
         p->node_name->data = newp;
         p->node_name->size = len + 1;
@@ -1540,13 +1531,13 @@ int32_t graph_entry(CSOUND *csound, GRAPH_ENTRY *p) {
 
     if (builder->compiled) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stmentry: graph already compiled. Move entry before stmcompile");
+        return csound->InitError(csound, "[stm] stmentry: graph already compiled. Move entry before stmcompile\n");
     }
 
     int32_t n = graph_find_node(builder->nodes, builder->node_count, p->entry_node->data);
     if (n < 0) {
         stm_registry_unlock(csound, reg);
-        return csound->InitError(csound, "[stm] stmentry: node not found");
+        return csound->InitError(csound, "[stm] stmentry: node not found\n");
     }
 
     builder->start_node = (uint32_t) n;
@@ -1635,7 +1626,7 @@ int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
 
     GRAPH_RUNNER *runner = p->ref.runner;
     if (runner == NULL) {
-        return csound->PerfError(csound, &p->h,"[stm] stmcall: runner is not initialized");
+        return csound->PerfError(csound, &p->h,"[stm] stmcall: runner is not initialized\n");
     }
 
     if (STM_LOAD(&runner->run_state) == STM_RUNNER_DELETED) {
@@ -1646,7 +1637,7 @@ int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
         return OK;
     } else {
         if (p->checkpoint_name->data[0] == '\0') {
-            return csound->PerfError(csound, &p->h,"[stm] stmcall: empty checkpoint name");
+            return csound->PerfError(csound, &p->h,"[stm] stmcall: empty checkpoint name\n");
         }
     }
 
@@ -1660,7 +1651,7 @@ int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     stm_runner_update_end(csound, runner);
 
     if (result != OK) {
-        return csound->PerfError(csound, &p->h,"[stm] stmcall: could not record checkpoint '%s'",p->checkpoint_name->data);
+        return csound->PerfError(csound, &p->h,"[stm] stmcall: could not record checkpoint '%s'\n",p->checkpoint_name->data);
     }
 
     snprintf(p->last_name, sizeof(p->last_name), "%s", p->checkpoint_name->data);
@@ -1673,7 +1664,7 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
 
     GRAPH_RUNNER *runner = p->ref.runner;
     if (runner == NULL) {
-        return csound->PerfError(csound, &p->h,"[stm] stmrecall: runner is not initialized");
+        return csound->PerfError(csound, &p->h,"[stm] stmrecall: runner is not initialized\n");
     }
 
     if (*p->trig != FL(1.0)) {
@@ -1687,7 +1678,7 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     }
 
     if (p->checkpoint_name->data[0] == '\0') {
-        return csound->PerfError(csound, &p->h,"[stm] stmrecall: empty checkpoint name");
+        return csound->PerfError(csound, &p->h,"[stm] stmrecall: empty checkpoint name\n");
     }
 
     if (strcmp(p->checkpoint_name->data, p->last_name) == 0) {
@@ -1700,7 +1691,7 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     stm_runner_update_end(csound, runner);
 
     if (result != OK) {
-        return csound->PerfError(csound, &p->h,"[stm] stmrecall: could not resume checkpoint '%s'",p->checkpoint_name->data);
+        return csound->PerfError(csound, &p->h,"[stm] stmrecall: could not resume checkpoint '%s'\n",p->checkpoint_name->data);
     }
 
     snprintf(p->last_name, sizeof(p->last_name), "%s", p->checkpoint_name->data);
@@ -1713,7 +1704,7 @@ int32_t graph_pause(CSOUND *csound, GRAPH_ONE_SHOT *p) {
 
     GRAPH_RUNNER *runner = p->ref.runner;
     if (runner == NULL) {
-        return csound->PerfError(csound, &p->h,"[stm] stmpause: runner is not initialized");
+        return csound->PerfError(csound, &p->h,"[stm] stmpause: runner is not initialized\n");
     }
 
     stm_runner_update_begin(csound, runner);
@@ -1738,7 +1729,7 @@ int32_t graph_resume(CSOUND *csound, GRAPH_ONE_SHOT *p) {
 
     GRAPH_RUNNER *runner = p->ref.runner;
     if (runner == NULL) {
-        return csound->PerfError(csound, &p->h,"[stm] stmresume: runner is not initialized");
+        return csound->PerfError(csound, &p->h,"[stm] stmresume: runner is not initialized\n");
     }
 
     stm_runner_update_begin(csound, runner);
@@ -1763,7 +1754,7 @@ int32_t graph_delete(CSOUND *csound, GRAPH_ONE_SHOT *p) {
 
     GRAPH_RUNNER *runner = p->ref.runner;
     if (runner == NULL) {
-        return csound->PerfError(csound, &p->h,"[stm] stmdelete: runner is not initialized");
+        return csound->PerfError(csound, &p->h,"[stm] stmdelete: runner is not initialized\n");
     }
 
     stm_runner_update_begin(csound, runner);

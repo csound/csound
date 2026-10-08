@@ -5,6 +5,7 @@ description = "stm runner pins active observers and rejects stale handles"
 exit = 1
 stderr = ["INIT ERROR in instr 30 (opcode stmonenter)", "[stm] on enter/exit: invalid runner"]
 output = ["[lifetime] retained observer remained safe after owner ended"]
+output_excludes = ["Segmentation fault", "AddressSanitizer", "UndefinedBehaviorSanitizer", "Abort trap"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

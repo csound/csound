@@ -4,6 +4,7 @@ description = "expected failure: stm rejects fractional node id"
 [expect]
 exit = 1
 stderr = ["[stm] stmnextid: invalid node id"]
+output_excludes = ["Segmentation fault", "AddressSanitizer", "UndefinedBehaviorSanitizer", "Abort trap"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
