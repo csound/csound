@@ -95,14 +95,14 @@ typedef struct {
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *y;
+    cs_float *y;
     // inputs
-    MYFLT *x;
+    cs_float *x;
     ARRAYDAT *xdata;
     ARRAYDAT *ydata;
-    MYFLT *mode;
-    MYFLT *bounds;
-    MYFLT *fill;
+    cs_float *mode;
+    cs_float *bounds;
+    cs_float *fill;
     // private
     double fill_value;
     int32_t imode;
@@ -120,9 +120,9 @@ typedef struct {
     ARRAYDAT *x;
     ARRAYDAT *xdata;
     ARRAYDAT *ydata;
-    MYFLT *mode;
-    MYFLT *bounds;
-    MYFLT *fill;
+    cs_float *mode;
+    cs_float *bounds;
+    cs_float *fill;
     // private
     double fill_value;
     int32_t imode;

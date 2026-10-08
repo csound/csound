@@ -115,7 +115,7 @@ static int32_t check_bounds(int32_t bounds) {
  * on unsorted input.
  * Requires xdata[0] <= x <= xdata[data_size - 1].
  */
-static int32_t find_interval(double x, const MYFLT *xdata, int32_t data_size) {
+static int32_t find_interval(double x, const cs_float *xdata, int32_t data_size) {
     int32_t base = 0;
     int32_t len = data_size - 1;
 
@@ -128,7 +128,7 @@ static int32_t find_interval(double x, const MYFLT *xdata, int32_t data_size) {
     return base;
 }
 
-static void find_lerp_interval(LERP_INTERVAL *interval, double x, const MYFLT *xdata, const MYFLT *ydata, int32_t data_size, INTERP_BOUNDS bounds) {
+static void find_lerp_interval(LERP_INTERVAL *interval, double x, const cs_float *xdata, const cs_float *ydata, int32_t data_size, INTERP_BOUNDS bounds) {
 
     if (x < xdata[0] || x > xdata[data_size - 1]) {
         switch (bounds) {
@@ -219,7 +219,7 @@ static double pchip_endpoint(double h0, double h1, double d0, double d1) {
  * removes the need to tabulate (and re-tabulate) the whole curve whenever the
  * breakpoints change at k-rate.
  */
-static double pchip_slope(const MYFLT *x, const MYFLT *y, int32_t n, int32_t i) {
+static double pchip_slope(const cs_float *x, const cs_float *y, int32_t n, int32_t i) {
     double h0, h1, d0, d1;
 
     if (n == 2) {
@@ -260,7 +260,7 @@ static double pchip_slope(const MYFLT *x, const MYFLT *y, int32_t n, int32_t i) 
  * the fly. Kept separate from the evaluation so that the vector opcode can
  * reuse them across every input value falling in the same segment.
  */
-static void pchip_segment(PCHIP_SEGMENT *s, const MYFLT *xdata, const MYFLT *ydata, int32_t n, int32_t i) {
+static void pchip_segment(PCHIP_SEGMENT *s, const cs_float *xdata, const cs_float *ydata, int32_t n, int32_t i) {
     const double x0 = (double) xdata[i];
     const double y0 = (double) ydata[i];
     const double h = (double) xdata[i + 1] - x0;
@@ -290,7 +290,7 @@ static double pchip_segment_eval(const PCHIP_SEGMENT *s, double x) {
     return ((s->d * t + s->c) * t + s->b) * t + s->a;
 }
 
-static double pchip_eval(double x, const MYFLT *xdata, const MYFLT *ydata, int32_t n, int32_t i) {
+static double pchip_eval(double x, const cs_float *xdata, const cs_float *ydata, int32_t n, int32_t i) {
     PCHIP_SEGMENT s;
     pchip_segment(&s, xdata, ydata, n, i);
     return pchip_segment_eval(&s, x);
@@ -327,7 +327,7 @@ static int32_t data_is_static(OPDS *h) {
  * at performance time.
  */
 static int32_t check_increasing(ARRAYDAT *vec) {
-    const MYFLT *v = vec->data;
+    const cs_float *v = vec->data;
     for (int32_t i = 0; i < vec->sizes[0] - 1; ++i) {
         if (v[i + 1] <= v[i]) {
             return NOTOK;
@@ -343,33 +343,33 @@ int32_t remap_value_init(CSOUND *csound, REMAP_VALUE *p) {
     p->fill_value = (double) *p->fill;
 
     if (check_mode(p->imode) == NOTOK) {
-        return csound->InitError(csound, "[remap] Invalid interpolation mode");
+        return csound->InitError(csound, "[remap] Invalid interpolation mode\n");
     }
 
     if (check_bounds(p->ibounds) == NOTOK) {
-        return csound->InitError(csound, "[remap] Invalid interpolation bounds");
+        return csound->InitError(csound, "[remap] Invalid interpolation bounds\n");
     }
 
     if (p->xdata->sizes == NULL || p->ydata->sizes == NULL)
-        return csound->InitError(csound, "[remap] array not initialised");
+        return csound->InitError(csound, "[remap] array not initialised\n");
 
     p->static_data = data_is_static(&p->h);
 
     if (p->static_data) {
         if (check_vector(p->xdata) != OK) {
-            return csound->InitError(csound, "[remap] Invalid x data array");
+            return csound->InitError(csound, "[remap] Invalid x data array\n");
         }
 
         if (check_vector(p->ydata) != OK) {
-            return csound->InitError(csound, "[remap] Invalid y data array");
+            return csound->InitError(csound, "[remap] Invalid y data array\n");
         }
 
         if (p->xdata->sizes[0] != p->ydata->sizes[0]) {
-            return csound->InitError(csound, "[remap] x and y must have same length");
+            return csound->InitError(csound, "[remap] x and y must have same length\n");
         }
 
         if (check_increasing(p->xdata) != OK) {
-            return csound->InitError(csound, "[remap] x data must be strictly increasing");
+            return csound->InitError(csound, "[remap] x data must be strictly increasing\n");
         }
     }
 
@@ -379,20 +379,20 @@ int32_t remap_value_init(CSOUND *csound, REMAP_VALUE *p) {
 int32_t remap_value_perf(CSOUND *csound, REMAP_VALUE *p) {
     if (!p->static_data) {
         if (check_vector(p->xdata) != OK) {
-            return csound->PerfError(csound, &(p->h), "[remap] Invalid x data array");
+            return csound->PerfError(csound, &(p->h), "[remap] Invalid x data array\n");
         }
 
         if (check_vector(p->ydata) != OK) {
-            return csound->PerfError(csound, &(p->h), "[remap] Invalid y data array");
+            return csound->PerfError(csound, &(p->h), "[remap] Invalid y data array\n");
         }
 
         if (p->xdata->sizes[0] != p->ydata->sizes[0]) {
-            return csound->PerfError(csound, &(p->h), "[remap] x and y must have same length");
+            return csound->PerfError(csound, &(p->h), "[remap] x and y must have same length\n");
         }
     }
 
-    const MYFLT *xdata = p->xdata->data;
-    const MYFLT *ydata = p->ydata->data;
+    const cs_float *xdata = p->xdata->data;
+    const cs_float *ydata = p->ydata->data;
     const double x = (double) *p->x;
     int32_t size = p->ydata->sizes[0];
 
@@ -400,7 +400,7 @@ int32_t remap_value_perf(CSOUND *csound, REMAP_VALUE *p) {
     find_lerp_interval(&l_interval, x, xdata, ydata, size, (INTERP_BOUNDS) p->ibounds);
     switch (l_interval.bmode) {
         case REMAP_NOT_VALID:
-            return csound->PerfError(csound, &(p->h), "[remap] x value out of bounds");
+            return csound->PerfError(csound, &(p->h), "[remap] x value out of bounds\n");
         case REMAP_CLAMP_LEFT:
             *p->y = ydata[0];
             break;
@@ -408,26 +408,26 @@ int32_t remap_value_perf(CSOUND *csound, REMAP_VALUE *p) {
             *p->y = ydata[size - 1];
             break;
         case REMAP_FILL_VALUE:
-            *p->y = (MYFLT) p->fill_value;
+            *p->y = (cs_float) p->fill_value;
             break;
         case REMAP_VALID:
         case REMAP_EXTRAPOLATE_LEFT:
         case REMAP_EXTRAPOLATE_RIGHT:
             switch (p->imode) {
                 case REMAP_LINEAR:
-                    *p->y = (MYFLT) lerp(x, l_interval.x0, l_interval.x1, l_interval.y0, l_interval.y1);
+                    *p->y = (cs_float) lerp(x, l_interval.x0, l_interval.x1, l_interval.y0, l_interval.y1);
                     break;
                 case REMAP_NEAREST:
-                    *p->y = (MYFLT) nearest(x, l_interval.x0, l_interval.x1, l_interval.y0, l_interval.y1);
+                    *p->y = (cs_float) nearest(x, l_interval.x0, l_interval.x1, l_interval.y0, l_interval.y1);
                     break;
                 case REMAP_PREVIOUS:
-                    *p->y = (MYFLT) l_interval.y0;
+                    *p->y = (cs_float) l_interval.y0;
                     break;
                 case REMAP_NEXT:
-                    *p->y = (MYFLT) l_interval.y1;
+                    *p->y = (cs_float) l_interval.y1;
                     break;
                 case REMAP_CUBIC:
-                    *p->y = (MYFLT) pchip_eval(x, xdata, ydata, size, l_interval.index);
+                    *p->y = (cs_float) pchip_eval(x, xdata, ydata, size, l_interval.index);
                     break;
             }
             break;
@@ -443,34 +443,34 @@ int32_t remap_vec_init(CSOUND *csound, REMAP_VEC *p) {
     p->fill_value = (double) *p->fill;
 
     if (check_mode(p->imode) == NOTOK) {
-        return csound->InitError(csound, "[remap] Invalid interpolation mode");
+        return csound->InitError(csound, "[remap] Invalid interpolation mode\n");
     }
 
     if (check_bounds(p->ibounds) == NOTOK) {
-        return csound->InitError(csound, "[remap] Invalid interpolation bounds");
+        return csound->InitError(csound, "[remap] Invalid interpolation bounds\n");
     }
 
     if (p->xdata->sizes == NULL || p->ydata->sizes == NULL || p->x->sizes == NULL) {
-        return csound->InitError(csound, "[remap] array not initialised");
+        return csound->InitError(csound, "[remap] array not initialised\n");
     }
 
     p->static_data = data_is_static(&p->h);
 
     if (p->static_data) {
         if (check_vector(p->xdata) != OK) {
-            return csound->InitError(csound, "[remap] Invalid x data array");
+            return csound->InitError(csound, "[remap] Invalid x data array\n");
         }
 
         if (check_vector(p->ydata) != OK) {
-            return csound->InitError(csound, "[remap] Invalid y data array");
+            return csound->InitError(csound, "[remap] Invalid y data array\n");
         }
 
         if (p->xdata->sizes[0] != p->ydata->sizes[0]) {
-            return csound->InitError(csound, "[remap] x and y must have same length");
+            return csound->InitError(csound, "[remap] x and y must have same length\n");
         }
 
         if (check_increasing(p->xdata) != OK) {
-            return csound->InitError(csound, "[remap] x data must be strictly increasing");
+            return csound->InitError(csound, "[remap] x data must be strictly increasing\n");
         }
     }
 
@@ -480,33 +480,33 @@ int32_t remap_vec_init(CSOUND *csound, REMAP_VEC *p) {
 
 int32_t remap_vec_perf(CSOUND *csound, REMAP_VEC *p) {
     if (p->x == NULL || p->x->sizes == NULL || p->x->sizes[0] < 1) {
-        return csound->PerfError(csound, &(p->h), "[remap] Invalid x array");
+        return csound->PerfError(csound, &(p->h), "[remap] Invalid x array\n");
     }
 
     if (!p->static_data) {
         if (check_vector(p->xdata) != OK) {
-            return csound->PerfError(csound, &(p->h), "[remap] Invalid x data array");
+            return csound->PerfError(csound, &(p->h), "[remap] Invalid x data array\n");
         }
 
         if (check_vector(p->ydata) != OK) {
-            return csound->PerfError(csound, &(p->h), "[remap] Invalid y data array");
+            return csound->PerfError(csound, &(p->h), "[remap] Invalid y data array\n");
         }
 
         if (p->xdata->sizes[0] != p->ydata->sizes[0]) {
-            return csound->PerfError(csound, &(p->h), "[remap] x and y must have same length");
+            return csound->PerfError(csound, &(p->h), "[remap] x and y must have same length\n");
         }
     }
 
-    const MYFLT *xdata = p->xdata->data;
-    const MYFLT *ydata = p->ydata->data;
-    const MYFLT *x = p->x->data;
+    const cs_float *xdata = p->xdata->data;
+    const cs_float *ydata = p->ydata->data;
+    const cs_float *x = p->x->data;
     int32_t size = p->ydata->sizes[0];
     int32_t out_size = p->x->sizes[0];
 
     if (p->y->sizes[0] != out_size) {       /* the input array may be resized */
         tabinit(csound, p->y, out_size, p->h.insdshead);
     }
-    MYFLT *y = p->y->data;
+    cs_float *y = p->y->data;
 
     /* The PCHIP coefficients are rebuilt only when the segment changes, so at
        most min(out_size, size - 1) times: never more work than tabulating the
@@ -521,7 +521,7 @@ int32_t remap_vec_perf(CSOUND *csound, REMAP_VEC *p) {
         find_lerp_interval(&l_interval, xv, xdata, ydata, size, (INTERP_BOUNDS) p->ibounds);
         switch (l_interval.bmode) {
             case REMAP_NOT_VALID:
-                return csound->PerfError(csound, &(p->h), "[remap] x value out of bounds");
+                return csound->PerfError(csound, &(p->h), "[remap] x value out of bounds\n");
             case REMAP_CLAMP_LEFT:
                 y[k] = ydata[0];
                 break;
@@ -529,30 +529,30 @@ int32_t remap_vec_perf(CSOUND *csound, REMAP_VEC *p) {
                 y[k] = ydata[size - 1];
                 break;
             case REMAP_FILL_VALUE:
-                y[k] = (MYFLT) p->fill_value;
+                y[k] = (cs_float) p->fill_value;
                 break;
             case REMAP_VALID:
             case REMAP_EXTRAPOLATE_LEFT:
             case REMAP_EXTRAPOLATE_RIGHT:
                 switch (p->imode) {
                     case REMAP_LINEAR:
-                        y[k] = (MYFLT) lerp(xv, l_interval.x0, l_interval.x1, l_interval.y0, l_interval.y1);
+                        y[k] = (cs_float) lerp(xv, l_interval.x0, l_interval.x1, l_interval.y0, l_interval.y1);
                         break;
                     case REMAP_NEAREST:
-                        y[k] = (MYFLT) nearest(xv, l_interval.x0, l_interval.x1, l_interval.y0, l_interval.y1);
+                        y[k] = (cs_float) nearest(xv, l_interval.x0, l_interval.x1, l_interval.y0, l_interval.y1);
                         break;
                     case REMAP_PREVIOUS:
-                        y[k] = (MYFLT) l_interval.y0;
+                        y[k] = (cs_float) l_interval.y0;
                         break;
                     case REMAP_NEXT:
-                        y[k] = (MYFLT) l_interval.y1;
+                        y[k] = (cs_float) l_interval.y1;
                         break;
                     case REMAP_CUBIC:
                         if (l_interval.index != cached) {
                             pchip_segment(&segment, xdata, ydata, size, l_interval.index);
                             cached = l_interval.index;
                         }
-                        y[k] = (MYFLT) pchip_segment_eval(&segment, xv);
+                        y[k] = (cs_float) pchip_segment_eval(&segment, xv);
                         break;
                 }
                 break;
@@ -566,20 +566,20 @@ int32_t remap_vec_perf(CSOUND *csound, REMAP_VEC *p) {
 int32_t remap_audio_perf(CSOUND *csound, REMAP_VALUE *p) {
     if (!p->static_data) {
         if (check_vector(p->xdata) != OK) {
-            return csound->PerfError(csound, &(p->h), "[remap] Invalid x data array");
+            return csound->PerfError(csound, &(p->h), "[remap] Invalid x data array\n");
         }
 
         if (check_vector(p->ydata) != OK) {
-            return csound->PerfError(csound, &(p->h), "[remap] Invalid y data array");
+            return csound->PerfError(csound, &(p->h), "[remap] Invalid y data array\n");
         }
 
         if (p->xdata->sizes[0] != p->ydata->sizes[0]) {
-            return csound->PerfError(csound, &(p->h), "[remap] x and y must have same length");
+            return csound->PerfError(csound, &(p->h), "[remap] x and y must have same length\n");
         }
     }
 
-    const MYFLT *xdata = p->xdata->data;
-    const MYFLT *ydata = p->ydata->data;
+    const cs_float *xdata = p->xdata->data;
+    const cs_float *ydata = p->ydata->data;
     int32_t size = p->ydata->sizes[0];
 
     PCHIP_SEGMENT segment;
@@ -589,15 +589,15 @@ int32_t remap_audio_perf(CSOUND *csound, REMAP_VALUE *p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t nsamples = CS_KSMPS;
 
-    MYFLT *y = p->y;
+    cs_float *y = p->y;
 
     if (UNLIKELY(offset)) {
-        memset(y, 0, sizeof(MYFLT) * offset);
+        memset(y, 0, sizeof(cs_float) * offset);
     }
 
     if (UNLIKELY(early)) {
         nsamples -= early;
-        memset(y + nsamples, 0, sizeof(MYFLT) * early);
+        memset(y + nsamples, 0, sizeof(cs_float) * early);
     }
 
     for (uint32_t k = offset; k < nsamples; ++k) {
@@ -607,7 +607,7 @@ int32_t remap_audio_perf(CSOUND *csound, REMAP_VALUE *p) {
         find_lerp_interval(&l_interval, xv, xdata, ydata, size, (INTERP_BOUNDS) p->ibounds);
         switch (l_interval.bmode) {
             case REMAP_NOT_VALID:
-                return csound->PerfError(csound, &(p->h), "[remap] x value out of bounds");
+                return csound->PerfError(csound, &(p->h), "[remap] x value out of bounds\n");
             case REMAP_CLAMP_LEFT:
                 y[k] = ydata[0];
                 break;
@@ -615,30 +615,30 @@ int32_t remap_audio_perf(CSOUND *csound, REMAP_VALUE *p) {
                 y[k] = ydata[size - 1];
                 break;
             case REMAP_FILL_VALUE:
-                y[k] = (MYFLT) p->fill_value;
+                y[k] = (cs_float) p->fill_value;
                 break;
             case REMAP_VALID:
             case REMAP_EXTRAPOLATE_LEFT:
             case REMAP_EXTRAPOLATE_RIGHT:
                 switch (p->imode) {
                     case REMAP_LINEAR:
-                        y[k] = (MYFLT) lerp(xv, l_interval.x0, l_interval.x1, l_interval.y0, l_interval.y1);
+                        y[k] = (cs_float) lerp(xv, l_interval.x0, l_interval.x1, l_interval.y0, l_interval.y1);
                         break;
                     case REMAP_NEAREST:
-                        y[k] = (MYFLT) nearest(xv, l_interval.x0, l_interval.x1, l_interval.y0, l_interval.y1);
+                        y[k] = (cs_float) nearest(xv, l_interval.x0, l_interval.x1, l_interval.y0, l_interval.y1);
                         break;
                     case REMAP_PREVIOUS:
-                        y[k] = (MYFLT) l_interval.y0;
+                        y[k] = (cs_float) l_interval.y0;
                         break;
                     case REMAP_NEXT:
-                        y[k] = (MYFLT) l_interval.y1;
+                        y[k] = (cs_float) l_interval.y1;
                         break;
                     case REMAP_CUBIC:
                         if (l_interval.index != cached) {
                             pchip_segment(&segment, xdata, ydata, size, l_interval.index);
                             cached = l_interval.index;
                         }
-                        y[k] = (MYFLT) pchip_segment_eval(&segment, xv);
+                        y[k] = (cs_float) pchip_segment_eval(&segment, xv);
                         break;
                 }
                 break;
