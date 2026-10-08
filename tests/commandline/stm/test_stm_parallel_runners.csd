@@ -1,8 +1,5 @@
 <CsTest>
-description = "testing independent stm writers on parallel multicore runners"
-
-[expect]
-exit = 0
+description = "testing independent stm writers on parallel runners"
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

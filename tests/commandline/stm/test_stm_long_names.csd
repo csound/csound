@@ -1,8 +1,5 @@
 <CsTest>
 description = "testing stm string outputs with long node names"
-
-[expect]
-exit = 0
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

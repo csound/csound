@@ -1,8 +1,5 @@
 <CsTest>
 description = "testing stm transition event ring"
-
-[expect]
-exit = 0
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

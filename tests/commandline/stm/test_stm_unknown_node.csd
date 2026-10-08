@@ -1,5 +1,5 @@
 <CsTest>
-description = "expected failure: stmnext rejects an unknown node name"
+description = "stmnext rejects an unknown node name"
 
 [expect]
 exit = 1

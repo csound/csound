@@ -1,8 +1,5 @@
 <CsTest>
-description = "testing one stm writer with lock-free multicore observers"
-
-[expect]
-exit = 0
+description = "testing one stm writer with multicore observers"
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

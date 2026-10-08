@@ -1,8 +1,5 @@
 <CsTest>
 description = "testing terminal stm runner deletion"
-
-[expect]
-exit = 0
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
