@@ -361,6 +361,7 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
 
  void csoundSetRTAudioModule(CSOUND *csound, const char *module) {
   char *s;
+  int32_t modules_loaded = csound->default_modules_loaded;
   if ((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
     strNcpy(s, module, 20);
   if (UNLIKELY(s == NULL))
@@ -376,12 +377,15 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
     csound->SetAudioDeviceListCallback(csound, audio_dev_list_dummy);
     return;
   }
-  if (csoundInitModules(csound) != 0)
+  if (csoundLoadDefaultModules(csound) != CSOUND_SUCCESS)
+    csound->LongJmp(csound, 1);
+  if (modules_loaded && csoundInitModules(csound) != 0)
     csound->LongJmp(csound, 1);
 }
 
  void csoundSetMIDIModule(CSOUND *csound, const char *module) {
   char *s;
+  int32_t modules_loaded = csound->default_modules_loaded;
 
   if ((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
     strNcpy(s, module, 20);
@@ -399,6 +403,8 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
 
     return;
   }
-  if (csoundInitModules(csound) != 0)
+  if (csoundLoadDefaultModules(csound) != CSOUND_SUCCESS)
+    csound->LongJmp(csound, 1);
+  if (modules_loaded && csoundInitModules(csound) != 0)
     csound->LongJmp(csound, 1);
 }

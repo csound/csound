@@ -422,6 +422,11 @@ int32_t csoundLoadExternals(CSOUND *csound) {
   char *libraries = csound->dl_opcodes_oplibs;
   int32_t retval;
 
+  /* Ensure default host modules are loaded even when no explicit
+     --opcode-lib was requested (e.g. csoundStart() called directly). */
+  if (UNLIKELY(csoundLoadDefaultModules(csound) != CSOUND_SUCCESS))
+    return CSOUND_ERROR;
+
   if (libraries == NULL || libraries[0] == '\0')
     return CSOUND_SUCCESS;
 
@@ -438,6 +443,44 @@ int32_t csoundLoadExternals(CSOUND *csound) {
 
 int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
   return 0;
+}
+
+/* WASI stub: keep in sync with the native implementation below
+   (after #else __wasi__). Any behavioural change must be applied to both. */
+int32_t csoundLoadDefaultModules(CSOUND *csound) {
+  int32_t err;
+  if (LIKELY(csound->default_modules_loaded))
+    return CSOUND_SUCCESS;
+  /* Host MIDI callbacks belong to the embedding application. Do this before
+     module initialization so a matching MIDI backend does not replace them. */
+  if (csound->enableHostImplementedMIDIIO) {
+    char *rtmidi = (char *)csoundQueryGlobalVariable(csound, "_RTMIDI");
+    if (rtmidi != NULL)
+      strcpy(rtmidi, "hostbased");
+    csoundSetConfigurationVariable(csound, "rtmidi", "hostbased");
+  }
+  /* Mark as in progress before loading. A plugin's csoundModuleInit() may
+     call csoundGetModule(), which re-enters here; that call must read the
+     module list instead of starting a second scan (csoundLoadModules()
+     rejects the non-empty module database and would call Die). The flag is
+     cleared on failure so that a later call can retry. */
+  csound->default_modules_loaded = 1;
+  err = csoundLoadModules(csound);
+  if (csound->delayederrormessages &&
+      csound->printerrormessagesflag == NULL) {
+    csound->Warning(csound, "%s", csound->delayederrormessages);
+    csound->Free(csound, csound->delayederrormessages);
+    csound->delayederrormessages = NULL;
+  }
+  if (UNLIKELY(err != CSOUND_SUCCESS)) {
+    csound->default_modules_loaded = 0;
+    csound->Die(csound, Str("Failed during csoundLoadModules"));
+  }
+  if (csoundInitModules(csound) != 0) {
+    csound->default_modules_loaded = 0;
+    csound->LongJmp(csound, 1);
+  }
+  return CSOUND_SUCCESS;
 }
 
 #else /* __wasi__ */
@@ -631,6 +674,8 @@ int32_t csoundLoadModules(CSOUND *csound)
   int32_t i, n, len, err = CSOUND_SUCCESS;
   char *dname1, *end;
   int32_t read_directory = 1;
+  int32_t warn_bad_directory = 0;
+  const char *userplugindir_start = NULL;
   char searchpath_buf[searchpath_buflen];
   char sep =
 #ifdef WIN32
@@ -648,28 +693,28 @@ int32_t csoundLoadModules(CSOUND *csound)
   /* open plugin directory */
   dname = csoundGetEnv(csound, (sizeof(cs_float) == sizeof(float) ?
                                 plugindir_envvar : plugindir64_envvar));
+  warn_bad_directory = (dname != NULL);
   if (dname == NULL) {
 #if ENABLE_OPCODEDIR_WARNINGS
     csound->opcodedirWasOK = 0;
-#  ifdef USE_DOUBLE
-    dname = csoundGetEnv(csound, plugindir_envvar);
-    if (dname == NULL)
-#  endif
 #endif
-#ifdef  CS_DEFAULT_PLUGINDIR
-      dname = CS_DEFAULT_PLUGINDIR;
-#ifdef __HAIKU__
-    dfltdir = 1;
-#endif
+
+#ifdef CS_DEFAULT_PLUGINDIR
+    dname = CS_DEFAULT_PLUGINDIR;
 #else
     dname = "";
 #endif
-  }
 
+#if defined(CS_DEFAULT_PLUGINDIR) && defined(__HAIKU__)
+    dfltdir = 1;
+#endif
+  }
   /* opcodedir GLOBAL override **experimental** */
   if (csound->opcodedir != NULL) {
     dname = csound->opcodedir;
-    csound->Message(csound, Str("OPCODEDIR overridden to %s \n"), dname);
+    warn_bad_directory = 1;
+    if (csound->oparms->odebug)
+      csound->Message(csound, Str("OPCODEDIR overridden to %s \n"), dname);
   }
   size_t pos = strlen(dname);
   char *userplugindir = getenv("CS_USER_PLUGINDIR");
@@ -677,6 +722,7 @@ int32_t csoundLoadModules(CSOUND *csound)
   // should be absolute and should not need variable expansion
   if(userplugindir != NULL) {
     snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, userplugindir);
+    userplugindir_start = searchpath_buf + pos + 1;
     dname = searchpath_buf;
   } else {
 #ifdef CS_DEFAULT_USER_PLUGINDIR
@@ -723,6 +769,8 @@ int32_t csoundLoadModules(CSOUND *csound)
       *end = sep;  /* restore for re-execution */
       /* move to next directory name */
       dname = end + 1;
+      if (dname == userplugindir_start)
+        warn_bad_directory = 1;
 
     } else {
       /* copy last directory name) */
@@ -741,8 +789,11 @@ int32_t csoundLoadModules(CSOUND *csound)
 #if defined(__HAIKU__)
       if(!dfltdir)
 #endif
-        csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
-                        dname1, strerror(errno));
+        /* Always report explicitly configured paths; fallback directories
+           remain quiet unless verbose mode is enabled. */
+        if (warn_bad_directory || csound->oparms->odebug)
+          csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
+                          dname1, strerror(errno));
       csound->Free(csound, dname1);
       continue;
     }
@@ -804,6 +855,56 @@ int32_t csoundLoadModules(CSOUND *csound)
 #endif  /* HAVE_DIRENT_H */
 }
 
+/**
+ * Scan and initialise the default plugin directories once per instance.
+ *
+ * csoundLoadModules() used to run from csoundReset(), before command-line
+ * options were decoded, which meant option-only runs such as
+ * `csound --version` still inspected installed modules and diagnostics
+ * could not observe the requested verbosity. Instead the scan is triggered
+ * lazily, before the first operation that actually needs loaded modules.
+ *
+ * The default_modules_loaded flag is set while the scan/init runs (so that
+ * re-entrant enumeration during csoundModuleInit() does not start a second
+ * scan) and stays set on success, even if the directories were empty. It is
+ * cleared if loading fails, allowing a later retry. Callers ensure the
+ * default scan runs before any explicit plugin load. Safe to call repeatedly.
+ */
+int32_t csoundLoadDefaultModules(CSOUND *csound) {
+  int32_t err;
+  if (LIKELY(csound->default_modules_loaded))
+    return CSOUND_SUCCESS;
+  /* Preserve host-installed MIDI callbacks while initializing modules. */
+  if (csound->enableHostImplementedMIDIIO) {
+    char *rtmidi = (char *)csoundQueryGlobalVariable(csound, "_RTMIDI");
+    if (rtmidi != NULL)
+      strcpy(rtmidi, "hostbased");
+    csoundSetConfigurationVariable(csound, "rtmidi", "hostbased");
+  }
+  /* Mark as in progress before loading. A plugin's csoundModuleInit() may
+     call csoundGetModule(), which re-enters here; that call must read the
+     module list instead of starting a second scan (csoundLoadModules()
+     rejects the non-empty module database and would call Die). The flag is
+     cleared on failure so that a later call can retry. */
+  csound->default_modules_loaded = 1;
+  err = csoundLoadModules(csound);
+  if (csound->delayederrormessages &&
+      csound->printerrormessagesflag == NULL) {
+    csound->Warning(csound, "%s", csound->delayederrormessages);
+    csound->Free(csound, csound->delayederrormessages);
+    csound->delayederrormessages = NULL;
+  }
+  if (UNLIKELY(err != CSOUND_SUCCESS)) {
+    csound->default_modules_loaded = 0;
+    csound->Die(csound, Str("Failed during csoundLoadModules"));
+  }
+  if (csoundInitModules(csound) != 0) {
+    csound->default_modules_loaded = 0;
+    csound->LongJmp(csound, 1);
+  }
+  return CSOUND_SUCCESS;
+}
+
 
 static int cmp_func(const void *p1, const void *p2)
 {
@@ -853,6 +954,11 @@ int32_t csoundLoadExternals(CSOUND *csound)
 {
   char    *s, **lst;
   int32_t     i, cnt, err;
+
+  /* Make sure the default directories are scanned before any explicit
+     --opcode-lib libraries are added. */
+  if (UNLIKELY(csoundLoadDefaultModules(csound) != CSOUND_SUCCESS))
+    return CSOUND_ERROR;
 
   s = csound->dl_opcodes_oplibs;
   if (UNLIKELY(s == NULL || s[0] == '\0'))
@@ -961,6 +1067,10 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
 #ifdef __HAIKU__
   int32_t dfltdir = 0;
 #endif
+  /* Scan the default directories first so that loading an explicit
+     --opcode-dir adds to, rather than replaces, the default set. */
+  if (UNLIKELY(csoundLoadDefaultModules(csound) != CSOUND_SUCCESS))
+    return CSOUND_ERROR;
   /* open plugin directory */
   // EM'2021: This seems to be dead code since opdir will never be NULL and
   // the value of dname will be discarded, see "dname = opdir" later
@@ -1130,8 +1240,15 @@ int32_t csoundLoadRequestedPlugins(CSOUND *csound) {
   int32_t err;
   int32_t retval;
 
-  if (csound == NULL || csound->dl_opcodes_oplibs == NULL ||
-      csound->dl_opcodes_oplibs[0] == '\0')
+  if (csound == NULL)
+    return CSOUND_SUCCESS;
+
+  /* Ensure default plugin directories are available even when no explicit
+     --opcode-lib was requested (e.g. csoundCompileOrc() before csoundStart()). */
+  if (UNLIKELY(csoundLoadDefaultModules(csound) != CSOUND_SUCCESS))
+    return CSOUND_ERROR;
+
+  if (csound->dl_opcodes_oplibs == NULL || csound->dl_opcodes_oplibs[0] == '\0')
     return CSOUND_SUCCESS;
 
   oldHead = (csoundModule_t *)csound->csmodule_db;

@@ -1827,9 +1827,13 @@ static int32_t csoundDeprecate(CSOUND *csound, char *name,
 
  int32_t csoundGetModule(CSOUND *csound, int32_t no, char **module,
                                char **type) {
-  MODULE_INFO **modules =
+  MODULE_INFO **modules;
+  /* Module enumeration implies the default directories have been scanned. */
+  if (UNLIKELY(csoundLoadDefaultModules(csound) != CSOUND_SUCCESS))
+    return CSOUND_ERROR;
+  modules =
       (MODULE_INFO **)csoundQueryGlobalVariable(csound, "_MODULES");
-  if (UNLIKELY(modules[no] == NULL || no >= MAX_MODULES))
+  if (UNLIKELY(modules == NULL || no >= MAX_MODULES || modules[no] == NULL))
     return CSOUND_ERROR;
   *module = modules[no]->module;
   *type = modules[no]->type;
@@ -1977,6 +1981,7 @@ static void reset(CSOUND *csound) {
   csound->memalloc_db = saved_env->memalloc_db;
   csound->message_buffer =
       saved_env->message_buffer; /*VL 19.06.21 keep msg buffer */
+  csound->default_modules_loaded = 0;
   // csound->self = self;
   free(saved_env);
 }
@@ -2027,9 +2032,8 @@ static void reset(CSOUND *csound) {
   /* now load and pre-initialise external modules for this instance */
   /* this function returns an error value that may be worth checking */
   {
-    int32_t err;
 #ifndef BUILD_PLUGINS
-    err = csoundInitStaticModules(csound);
+    int32_t err = csoundInitStaticModules(csound);
     if (csound->delayederrormessages &&
         csound->printerrormessagesflag == NULL) {
       csound->Warning(csound, "%s", csound->delayederrormessages);
@@ -2045,15 +2049,10 @@ static void reset(CSOUND *csound) {
     char *modules = (char *)csoundQueryGlobalVariable(csound, "_MODULES");
     memset(modules, 0, sizeof(MODULE_INFO *) * MAX_MODULES);
 
-    err = csoundLoadModules(csound);
-    if (csound->delayederrormessages &&
-        csound->printerrormessagesflag == NULL) {
-      csound->Warning(csound, "%s", csound->delayederrormessages);
-      csound->Free(csound, csound->delayederrormessages);
-      csound->delayederrormessages = NULL;
-    }
-    if (UNLIKELY(err != CSOUND_SUCCESS))
-      csound->Die(csound, Str("Failed during csoundLoadModules"));
+    /* The default plugin directories are scanned lazily, on first use
+       (csoundLoadDefaultModules()), rather than here. This keeps option-only
+       runs such as `csound --version` from touching installed modules, and
+       lets the scan observe the decoded verbosity. */
 
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);

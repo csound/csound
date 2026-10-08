@@ -86,6 +86,13 @@ extern "C" {
   int32_t csoundLoadModules(CSOUND *csound);
 
   /**
+   * Scan and initialise the default plugin directories once per instance,
+   * if not already done. Called lazily by the operations that need loaded
+   * modules. Safe to call repeatedly.
+   */
+  int32_t csoundLoadDefaultModules(CSOUND *csound);
+
+  /**
    * Call initialisation functions of all loaded modules that have a
    * csoundModuleInit symbol, for Csound instance 'csound'.
    * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if

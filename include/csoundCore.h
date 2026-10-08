@@ -1910,6 +1910,11 @@ struct CSOUND_ {
   readlineCallback_t readlineCallback;
   void *readlineUserData;
   uint32_t readlineRequestId;
+  /* Set while the default plugin directories are being scanned/initialised,
+     and left set once that succeeds; cleared on failure and by csoundReset().
+     Guards against a re-entrant scan during csoundModuleInit(). Module
+     enumeration through csoundGetModule() can trigger the initial scan. */
+  int32_t default_modules_loaded;
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */
