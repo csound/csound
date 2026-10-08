@@ -203,7 +203,7 @@ static void stm_free_nodes(CSOUND *csound, GRAPH_NODE *nodes, uint32_t node_coun
     csound->Free(csound, nodes);
 }
 
-static uint32_t stm_ref_decrement(uint32_t *refcount) {
+static uint32_t stm_ref_decrement(uint32_t *refcount) { // NOLINT(readability-non-const-parameter)
 #if defined(MSVC)
     return (uint32_t) InterlockedDecrement((LONG *) refcount);
 #elif defined(HAVE_ATOMIC_BUILTIN)
@@ -213,7 +213,7 @@ static uint32_t stm_ref_decrement(uint32_t *refcount) {
 #endif
 }
 
-static uint32_t stm_ref_increment(uint32_t *refcount) {
+static uint32_t stm_ref_increment(uint32_t *refcount) { // NOLINT(readability-non-const-parameter)
 #if defined(MSVC)
     return (uint32_t) InterlockedIncrement((LONG *) refcount);
 #elif defined(HAVE_ATOMIC_BUILTIN)
@@ -223,7 +223,7 @@ static uint32_t stm_ref_increment(uint32_t *refcount) {
 #endif
 }
 
-static uint32_t stm_ref_load(uint32_t *refcount) {
+static uint32_t stm_ref_load(uint32_t *refcount) { // NOLINT(readability-non-const-parameter)
 #if defined(MSVC)
     return (uint32_t) InterlockedCompareExchange((LONG *) refcount, 0, 0);
 #elif defined(HAVE_ATOMIC_BUILTIN)
@@ -251,7 +251,7 @@ static uint32_t stm_ref_load(uint32_t *refcount) {
 #define STM_STORE(p, v) (*(p) = (v))
 #endif
 
-static void stm_increment_state_version(uint32_t *value) {
+static void stm_increment_state_version(uint32_t *value) { // NOLINT(readability-non-const-parameter)
 #if defined(HAVE_ATOMIC_BUILTIN)
     __atomic_add_fetch(value, 1U, __ATOMIC_SEQ_CST);
 #else
