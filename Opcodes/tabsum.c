@@ -41,7 +41,7 @@ typedef struct {
 static int32_t tabsuminit(CSOUND *csound, TABSUM *p)
 {
     if (UNLIKELY((p->ftp = csound->FTFind(csound, p->itab)) == NULL)) {
-      return csound->InitError(csound, "%s", Str("tabsum: No table"));
+      return csound->InitError(csound, "%s\n", Str("tabsum: No table"));
     }
     return OK;
 }
@@ -60,17 +60,17 @@ static int32_t tabsum(CSOUND *csound, TABSUM *p)
     if (UNLIKELY(ftp==NULL))
 
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("tabsum: Not initialised"));
+                               "%s\n", Str("tabsum: Not initialised"));
     t = p->ftp->ftable;
     /* Allow rounding to index zero or the allocated guard point. */
     if (UNLIKELY(!(min_value > -1.0 && min_value < (cs_double)ftp->flen + 1.0 &&
                    max_value > -1.0 && max_value < (cs_double)ftp->flen + 1.0)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("tabsum: range is outside table bounds"));
     min = CS_FLOAT2LRND(min_value);
     max = CS_FLOAT2LRND(max_value);
     if (UNLIKELY((uint32_t)min > ftp->flen || (uint32_t)max > ftp->flen))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("tabsum: range is outside table bounds"));
     if (UNLIKELY(min == 0 && max == 0)) max = ftp->flen-1;
     else if (UNLIKELY(min > max)) {

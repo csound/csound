@@ -421,9 +421,9 @@ static int32_t unmarshal(CSOUND *csound, JSON_UNMARSHAL *p, int from_file)
   yyjson_doc *doc;
   if (!integer_option(*p->flags, 3) ||
       !integer_option(*p->maxdepth, JSON_MAX_DEPTH))
-    return csound->InitError(csound, Str("%s: invalid flags or maximum depth"), opcode);
+    return csound->InitError(csound, Str("%s: invalid flags or maximum depth\n"), opcode);
   if (p->source->data == NULL)
-    return csound->InitError(csound, Str("%s: empty source"), opcode);
+    return csound->InitError(csound, Str("%s: empty source\n"), opcode);
   if ((unsigned)*p->flags & 1) flags |= YYJSON_READ_ALLOW_COMMENTS;
   if ((unsigned)*p->flags & 2) flags |= YYJSON_READ_ALLOW_TRAILING_COMMAS;
   if (from_file) {
@@ -432,7 +432,7 @@ static int32_t unmarshal(CSOUND *csound, JSON_UNMARSHAL *p, int from_file)
                                     "rb", "INCDIR;SSDIR;SFDIR",
                                     CSFTYPE_OTHER_TEXT, 0);
     if (handle == NULL)
-      return csound->InitError(csound, Str("%s: cannot open file '%s'"), opcode,
+      return csound->InitError(csound, Str("%s: cannot open file '%s'\n"), opcode,
                                p->source->data);
     doc = yyjson_read_fp(file, flags, NULL, &read_error);
     csound->FileClose(csound, handle, CSFILE_CLOSE_SYNC);
@@ -441,7 +441,7 @@ static int32_t unmarshal(CSOUND *csound, JSON_UNMARSHAL *p, int from_file)
     doc = yyjson_read_opts(p->source->data, strlen(p->source->data),
                            flags, NULL, &read_error);
   if (doc == NULL)
-    return csound->InitError(csound, Str("%s: %s at byte %zu"), opcode,
+    return csound->InitError(csound, Str("%s: %s at byte %zu\n"), opcode,
                              read_error.msg, read_error.pos);
   yyjson_val *object = yyjson_doc_get_root(doc);
   CS_VARIABLE *variable = NULL;
@@ -490,7 +490,7 @@ done:
   csound->Free(csound, variable);
   yyjson_doc_free(doc);
   if (result != OK)
-    result = csound->InitError(csound, Str("%s: %s at %s"), opcode, Str(error),
+    result = csound->InitError(csound, Str("%s: %s at %s\n"), opcode, Str(error),
                                context->path);
   free_context(context);
   return result;
@@ -512,7 +512,7 @@ int32_t json_marshal(CSOUND *csound, JSON_MARSHAL *p)
   if (!integer_option(*p->pretty, 1) ||
       !integer_option(*p->maxdepth, JSON_MAX_DEPTH))
     return csound->InitError(csound,
-                            Str("jsonmarshal: invalid pretty or maximum depth option"));
+                            Str("jsonmarshal: invalid pretty or maximum depth option\n"));
   yyjson_mut_doc *doc = yyjson_mut_doc_new(NULL);
   JSON_CONTEXT *context = new_context(csound, p->h.insdshead, *p->maxdepth);
   yyjson_mut_val *object = NULL;
@@ -551,7 +551,7 @@ done:
   free(encoded);
   yyjson_mut_doc_free(doc);
   if (result != OK)
-    result = csound->InitError(csound, Str("jsonmarshal: %s at %s"), Str(error),
+    result = csound->InitError(csound, Str("jsonmarshal: %s at %s\n"), Str(error),
                                context->path);
   free_context(context);
   return result;

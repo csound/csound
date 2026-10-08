@@ -65,20 +65,20 @@ void csp_barrier_alloc(CSOUND *csound, void **barrier,
                        int32_t thread_count)
 {
     if (UNLIKELY(barrier == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter barrier"));
+      csound->Die(csound, Str("Invalid NULL Parameter barrier\n"));
     if (UNLIKELY(thread_count < 1))
-      csound->Die(csound, Str("Invalid Parameter thread_count must be > 0"));
+      csound->Die(csound, Str("Invalid Parameter thread_count must be > 0\n"));
 
     *barrier = csound->CreateBarrier(thread_count);
     if (UNLIKELY(*barrier == NULL)) {
-        csound->Die(csound, Str("Failed to allocate barrier"));
+        csound->Die(csound, Str("Failed to allocate barrier\n"));
     }
 }
 
 void csp_barrier_dealloc(CSOUND *csound, void **barrier)
 {
     if (UNLIKELY(barrier == NULL || *barrier == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter barrier"));
+      csound->Die(csound, Str("Invalid NULL Parameter barrier\n"));
 
     csound->DestroyBarrier(*barrier);
 }
@@ -106,7 +106,7 @@ struct set_t *csp_set_alloc(CSOUND *csound,
 {
     struct set_t *p = csound->Malloc(csound, sizeof(struct set_t));
     if (UNLIKELY(p == NULL)) {
-      csound->Die(csound, Str("Failed to allocate set"));
+      csound->Die(csound, Str("Failed to allocate set\n"));
     }
     memset(p, 0, sizeof(struct set_t));
     memcpy(p->hdr, SET_HDR, HDR_LEN);
@@ -122,9 +122,9 @@ void csp_set_dealloc(CSOUND *csound, struct set_t **set)
     struct set_element_t *ele;
     struct set_t *p = *set;
     if (UNLIKELY(set == NULL || *set == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter set"));
+      csound->Die(csound, Str("Invalid NULL Parameter set\n"));
     if (UNLIKELY(!set_is_set(*set)))
-      csound->Die(csound, Str("Invalid Parameter set not a set"));
+      csound->Die(csound, Str("Invalid Parameter set not a set\n"));
 
     if (p->cache != NULL) csound->Free(csound, p->cache);
 
@@ -146,11 +146,11 @@ static struct set_element_t* set_element_alloc(CSOUND *csound,
 {
     struct set_element_t *p;
     if (data == NULL)
-      csound->Die(csound, Str("Invalid NULL Parameter data"));
+      csound->Die(csound, Str("Invalid NULL Parameter data\n"));
 
     p = (struct set_element_t*)csound->Malloc(csound, sizeof(struct set_element_t));
     if (UNLIKELY(p == NULL)) {
-      csound->Die(csound, Str("Failed to allocate set element"));
+      csound->Die(csound, Str("Failed to allocate set element\n"));
     }
     memset(p, 0, sizeof(struct set_element_t));
     memcpy(p->hdr, SET_ELEMENT_HDR, HDR_LEN);
@@ -163,7 +163,7 @@ static void set_element_delloc(CSOUND *csound,
                               struct set_element_t **set_element)
 {
     if (UNLIKELY(set_element == NULL || *set_element == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter set_element"));
+      csound->Die(csound, Str("Invalid NULL Parameter set_element\n"));
     csound->Free(csound, *set_element);
     *set_element = NULL;
 
@@ -272,9 +272,9 @@ void csp_set_add(CSOUND *csound, struct set_t *set, void *data)
     struct set_element_t *ele = NULL;
 #ifdef SET_DEBUG
     if (UNLIKELY(set == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter set"));
+      csound->Die(csound, Str("Invalid NULL Parameter set\n"));
     if (UNLIKELY(data == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter data"));
+      csound->Die(csound, Str("Invalid NULL Parameter data\n"));
 #endif
 
     if (csp_set_exists(set, data)) {
@@ -301,9 +301,9 @@ void csp_set_remove(CSOUND *csound, struct set_t *set, void *data)
 {
 #ifdef SET_DEBUG
     if (UNLIKELY(set == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter set"));
+      csound->Die(csound, Str("Invalid NULL Parameter set\n"));
     if (UNLIKELY(data == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter data"));
+      csound->Die(csound, Str("Invalid NULL Parameter data\n"));
 #endif
     {
       struct set_element_t *ele = set->head, *prev = NULL;
@@ -352,9 +352,9 @@ void csp_set_print(CSOUND *csound, struct set_t *set)
     struct set_element_t *ele;
 #ifdef SET_DEBUG
     if (UNLIKELY(set == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter set"));
+      csound->Die(csound, Str("Invalid NULL Parameter set\n"));
     if (UNLIKELY(!set_is_set(set)))
-      csound->Die(csound, Str("Invalid Parameter set not a set"));
+      csound->Die(csound, Str("Invalid Parameter set not a set\n"));
 #endif
 
     ele = set->head;
@@ -425,18 +425,18 @@ struct set_t *csp_set_union(CSOUND *csound, struct set_t *first,
     struct set_t *result;
 #ifdef SET_DEBUG
     if (UNLIKELY(first == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter first"));
+      csound->Die(csound, Str("Invalid NULL Parameter first\n"));
     if (UNLIKELY(!set_is_set(first)))
-      csound->Die(csound, Str("Invalid Parameter set not a first"));
+      csound->Die(csound, Str("Invalid Parameter set not a first\n"));
     if (UNLIKELY(second == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter second"));
+      csound->Die(csound, Str("Invalid NULL Parameter second\n"));
     if (UNLIKELY(!set_is_set(second)))
-      csound->Die(csound, Str("Invalid Parameter set not a second"));
+      csound->Die(csound, Str("Invalid Parameter set not a second\n"));
     if (UNLIKELY(result == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter result"));
+      csound->Die(csound, Str("Invalid NULL Parameter result\n"));
     if (UNLIKELY(first->ele_eq_func != second->ele_eq_func))
       csound->Die(csound,
-                  Str("Invalid sets for comparison (different equality)"));
+                  Str("Invalid sets for comparison (different equality)\n"));
 #endif
 
     result = csp_set_alloc(csound,
@@ -470,18 +470,18 @@ struct set_t *csp_set_intersection(CSOUND *csound, struct set_t *first,
     struct set_t *result;
 #ifdef SET_DEBUG
     if (UNLIKELY(first == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter first"));
+      csound->Die(csound, Str("Invalid NULL Parameter first\n"));
     if (UNLIKELY(!set_is_set(first)))
-      csound->Die(csound, Str("Invalid Parameter set not a first"));
+      csound->Die(csound, Str("Invalid Parameter set not a first\n"));
     if (UNLIKELY(second == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter second"));
+      csound->Die(csound, Str("Invalid NULL Parameter second\n"));
     if (UNLIKELY(!set_is_set(second)))
-      csound->Die(csound, Str("Invalid Parameter set not a second"));
+      csound->Die(csound, Str("Invalid Parameter set not a second\n"));
     if (UNLIKELY(result == NULL))
-      csound->Die(csound, Str("Invalid NULL Parameter result"));
+      csound->Die(csound, Str("Invalid NULL Parameter result\n"));
     if (UNLIKELY(first->ele_eq_func != second->ele_eq_func))
       csound->Die(csound,
-                  Str("Invalid sets for comparison (different equality)"));
+                  Str("Invalid sets for comparison (different equality)\n"));
 #endif
 
     result = csp_set_alloc(csound,

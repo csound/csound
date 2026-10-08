@@ -168,7 +168,7 @@ static cs_float *pluckShape(CSOUND *csound, WGPLUCK* p)
     shape = (cs_float *)csound->Malloc(csound, len*sizeof(cs_float));
     if (UNLIKELY(!shape)) {
       csound->InitError(csound,
-                        "%s", Str("wgpluck:Could not allocate for initial shape"));
+                        "%s\n", Str("wgpluck:Could not allocate for initial shape"));
       return NULL;
     }
     scale = FL(0.5) * scale;      /* Scale was squared!! */

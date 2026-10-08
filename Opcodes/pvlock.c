@@ -96,7 +96,7 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
     nchans = p->nchans;
 
     if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
-      return csound->InitError(csound, "%s", Str("invalid number of output arguments"));
+      return csound->InitError(csound, "%s\n", Str("invalid number of output arguments"));
     p->nchans = nchans;
 
     for (i=0; i < nchans; i++) {
@@ -165,7 +165,7 @@ static int32_t sinitm(CSOUND *csound, DATASPACEM *p)
     nchans = p->nchans;
 
     if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
-      return csound->InitError(csound, "%s", Str("invalid number of output arguments"));
+      return csound->InitError(csound, "%s\n", Str("invalid number of output arguments"));
     p->nchans = nchans;
 
     for (i=0; i < nchans; i++) {
@@ -264,14 +264,14 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
         cs_double resamp;
         ft = csound->FTFind(csound,p->knum);
         if (UNLIKELY(ft==NULL))
-          return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
+          return csound->PerfError(csound, &(p->h), "%s\n", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         tab = ft->ftable;
         size = ft->flen;
 
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
-          return csound->PerfError(csound, &(p->h), "%s", Str("number of output arguments "
+          return csound->PerfError(csound, &(p->h), "%s\n", Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -469,14 +469,14 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
         cs_double resamp;
         ft = csound->FTFind(csound,p->knum);
         if (UNLIKELY(ft==NULL))
-          return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
+          return csound->PerfError(csound, &(p->h), "%s\n", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         tab = ft->ftable;
         size = ft->flen;
 
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
-          return csound->PerfError(csound, &(p->h), "%s", Str("number of output arguments "
+          return csound->PerfError(csound, &(p->h), "%s\n", Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -703,7 +703,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
         cs_double resamp;
         ft = csound->FTFind(csound,p->knum);
         if (UNLIKELY(ft==NULL))
-          return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
+          return csound->PerfError(csound, &(p->h), "%s\n", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         time  *= resamp;
@@ -725,7 +725,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
         }
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
           return csound->PerfError(csound, &(p->h),
-                                   "%s", Str("number of output arguments "
+                                   "%s\n", Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -923,7 +923,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
         cs_double resamp;
         ft = csound->FTFind(csound,p->knum);
         if (UNLIKELY(ft==NULL))
-          return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
+          return csound->PerfError(csound, &(p->h), "%s\n", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         time  *= resamp;
@@ -945,7 +945,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
         }
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
           return csound->PerfError(csound, &(p->h),
-                                   "%s", Str("number of output arguments "
+                                   "%s\n", Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -1424,7 +1424,7 @@ static int32_t pvslockset(CSOUND *csound, PVSLOCK *p)
     int32    N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
+      csound->Warning(csound, "%s\n", Str("Unsafe to have same fsig as in and out"));
     p->fout->N = N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -1436,7 +1436,7 @@ static int32_t pvslockset(CSOUND *csound, PVSLOCK *p)
         p->fout->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ))
-      return csound->InitError(csound, "%s", Str("pvsfreeze: signal format "
+      return csound->InitError(csound, "%s\n", Str("pvsfreeze: signal format "
                                            "must be amp-freq."));
 
     return OK;
@@ -1496,7 +1496,7 @@ static int32_t hilbert_sizes(CSOUND *csound, cs_double fftsize, cs_double hopsiz
     int32_t requested, decim;
     if (UNLIKELY(!(fftsize >= 2.0 && fftsize <= (INT32_MAX + 0.0) &&
                    hopsize >= 1.0 && hopsize <= (INT32_MAX + 0.0))))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("hilbert2: invalid FFT or hop size"));
 
     /* Retain the existing rounding down to powers of two and hop clamp. */
@@ -1516,7 +1516,7 @@ static int32_t hilbert_sizes(CSOUND *csound, cs_double fftsize, cs_double hopsiz
     decim = *N / *h;
     if (UNLIKELY(*N > INT32_MAX / 2 / decim ||
                  (size_t)*N > SIZE_MAX / (2 * sizeof(cs_float)) / decim))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("hilbert2: frame buffers too large"));
     return OK;
 }

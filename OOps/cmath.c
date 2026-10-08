@@ -77,7 +77,7 @@ int32_t seedrand(CSOUND *csound, PRAND *p)
 {
     cs_double rounded = (cs_double)*p->out + 0.5;
     if (UNLIKELY(!(rounded >= 0.0 && rounded < 4294967296.0)))
-      return csound->InitError(csound, Str("seed: value out of range"));
+      return csound->InitError(csound, Str("seed: value out of range\n"));
     uint32_t seedVal = (uint32_t)rounded;
     int32_t *holdrand = (int32_t *) csound->QueryGlobalVariable(csound, "::HOLDRAND::");
 

@@ -102,28 +102,47 @@ TEST_F(DiagnosticLineTests, InvalidMidiModules)
   }
 }
 
-TEST_F(DiagnosticLineTests, CompleteLinesKeepTheirNewlines)
+// Both callback APIs must receive exactly the caller's line endings.
+TEST_F(DiagnosticLineTests, MessageHelpersPreserveLineEndings)
 {
-  for (const char *text : {"message", "message\n", "message\n\n", ""}) {
-    SCOPED_TRACE(text);
-    csoundMessageLine(csound, CSOUNDMSG_ERROR, "%s", text);
-    std::string expected = text;
-    if (expected.empty() || expected.back() != '\n') expected += '\n';
-    ASSERT_EQ(csoundGetMessageCnt(csound), 1);
-    EXPECT_EQ(std::string(csoundGetFirstMessage(csound)), expected);
-    EXPECT_EQ(csoundGetFirstMessageAttr(csound), CSOUNDMSG_ERROR);
-    csoundPopFirstMessage(csound);
+  for (bool stringCallback : {false, true}) {
+    SCOPED_TRACE(stringCallback);
+    std::string output;
+    if (stringCallback) {
+      csoundSetHostData(csound, &output);
+      csoundSetMessageStringCallback(csound,
+        [](CSOUND *cs, int32_t, const char *message) {
+          *static_cast<std::string *>(csoundGetHostData(cs)) += message;
+        });
+    }
+    csoundSetDebug(csound, 99);
+    for (const char *text : {"message", "message\n", "message\n\n", ""}) {
+      SCOPED_TRACE(text);
+      output.clear();
+      csoundMessage(csound, "%s", text);
+      csoundMessageS(csound, CSOUNDMSG_ERROR, "%s", text);
+      csoundErrorMsg(csound, "%s", text);
+      csoundErrorMsgS(csound, 0, "%s", text);
+      csoundWarning(csound, "%s", text);
+      csoundDebugMsg(csound, "%s", text);
+      csoundSetDebug(csound, 0);
+      synterr(csound, "%s", text); // Also exercises ErrMsgV.
+      csoundSetDebug(csound, 99);
+      if (!stringCallback) {
+        while (csoundGetMessageCnt(csound)) {
+          output += csoundGetFirstMessage(csound);
+          csoundPopFirstMessage(csound);
+        }
+      }
+      const std::string t = text;
+      EXPECT_EQ(output, t + t + t + t + "warning: " + t + t +
+                        "\nsyntax error, " + t);
+    }
+    if (stringCallback) {
+      csoundSetMessageCallback(csound, nullptr);
+      csoundSetHostData(csound, nullptr);
+    }
   }
-}
-
-TEST_F(DiagnosticLineTests, TranslatedTextIsTerminatedAfterFormatting)
-{
-  // The caller supplies the gettext result, without changing its lookup key.
-  csoundMessageLine(csound, CSOUNDMSG_ERROR,
-                    "Le chargement différé de '%s' a échoué", "piano.wav");
-  ASSERT_EQ(csoundGetMessageCnt(csound), 1);
-  EXPECT_STREQ(csoundGetFirstMessage(csound),
-               "Le chargement différé de 'piano.wav' a échoué\n");
 }
 
 TEST_F(DiagnosticLineTests, PublicMessageCallsPreserveFragments)
@@ -138,45 +157,4 @@ TEST_F(DiagnosticLineTests, PublicMessageCallsPreserveFragments)
     csoundPopFirstMessage(csound);
   }
   EXPECT_EQ(output, "left middle right\n");
-}
-
-TEST_F(DiagnosticLineTests, WarningAndSyntaxErrorsDoNotAddBlankLines)
-{
-  for (const char *text : {"diagnostic", "diagnostic\n"}) {
-    csoundWarning(csound, "%s", text);
-    synterr(csound, "%s", text);
-    std::string output;
-    while (csoundGetMessageCnt(csound)) {
-      output += csoundGetFirstMessage(csound);
-      csoundPopFirstMessage(csound);
-    }
-    EXPECT_EQ(output, "warning: diagnostic\n\nsyntax error, diagnostic\n");
-  }
-}
-
-TEST_F(DiagnosticLineTests, LongLinesReachBothCallbackTypes)
-{
-  const std::string text(4096, 'x');
-  csoundMessageLine(csound, CSOUNDMSG_ERROR, "%s", text.c_str());
-  ASSERT_EQ(csoundGetMessageCnt(csound), 1);
-  EXPECT_EQ(std::string(csoundGetFirstMessage(csound)), text + "\n");
-  csoundPopFirstMessage(csound);
-
-  std::string output;
-  csoundSetHostData(csound, &output);
-  csoundSetMessageStringCallback(csound,
-    [](CSOUND *cs, int32_t, const char *message) {
-      *static_cast<std::string *>(csoundGetHostData(cs)) += message;
-    });
-  csoundMessageLine(csound, CSOUNDMSG_ERROR, "%s", text.c_str());
-  EXPECT_EQ(output, text + "\n");
-  csoundSetMessageCallback(csound, nullptr);
-  csoundSetHostData(csound, nullptr);
-}
-
-TEST_F(DiagnosticLineTests, SilentModeSuppressesCompleteDiagnostics)
-{
-  csoundSetMessageLevel(csound, CS_NOMSG);
-  csoundMessageLine(csound, CSOUNDMSG_ERROR, "hidden");
-  EXPECT_EQ(csoundGetMessageCnt(csound), 0);
 }

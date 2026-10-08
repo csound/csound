@@ -56,7 +56,7 @@ int32_t ephsset(CSOUND *csound, EPHSOR *p)
 {
   cs_double phs = (cs_double)*p->iphs;
   if (UNLIKELY(!isfinite(phs)))
-    return csound->InitError(csound, "%s", Str("ephasor: initial phase must be finite"));
+    return csound->InitError(csound, "%s\n", Str("ephasor: initial phase must be finite"));
   if (phs >= 0.0) {
     if (UNLIKELY(phs >= 1.0)) {
       csound->Warning(csound, Str("init phase truncation\n"));
@@ -223,7 +223,7 @@ int32_t ko1set(CSOUND *csound, OSCIL1 *p)
   if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
     return NOTOK;
   if (UNLIKELY(!isfinite(*p->idur)))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("oscil1: duration must be finite"));
 
   p->ftp = ftp;
@@ -303,7 +303,7 @@ int32_t kosc1(CSOUND *csound, OSCIL1 *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscil1(krate): not initialised"));
+                           Str("oscil1(krate): not initialised\n"));
 }
 
 int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
@@ -370,7 +370,7 @@ int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscil1i(krate): not initialised"));
+                           Str("oscil1i(krate): not initialised\n"));
 }
 
 int32_t oscnset(CSOUND *csound, OSCILN *p)
@@ -382,9 +382,9 @@ int32_t oscnset(CSOUND *csound, OSCILN *p)
 
     if (UNLIKELY(ftp == NULL)) return NOTOK;
     if (UNLIKELY(!(repeats >= 0.0 && repeats < 2147483648.0)))
-      return csound->InitError(csound, "%s", Str("osciln: invalid repeat count"));
+      return csound->InitError(csound, "%s\n", Str("osciln: invalid repeat count"));
     if (UNLIKELY(frequency < 0.0 || !isfinite(frequency)))
-      return csound->InitError(csound, "%s", Str("osciln: invalid frequency"));
+      return csound->InitError(csound, "%s\n", Str("osciln: invalid frequency"));
 
     p->ftp = ftp;
     p->ntimes = (int32_t)repeats;
@@ -411,7 +411,7 @@ int32_t osciln(CSOUND *csound, OSCILN *p)
   uint32_t n = offset, nsmps = CS_KSMPS;
 
   if (UNLIKELY(p->ftp == NULL))
-    return csound->PerfError(csound, &(p->h), Str("osciln: not initialised"));
+    return csound->PerfError(csound, &(p->h), Str("osciln: not initialised\n"));
   if (UNLIKELY(offset)) memset(rs, 0, offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
@@ -452,7 +452,7 @@ int32_t posc_set(CSOUND *csound, OSC *p)
 {
   FUNC *ftp;
   if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
-    return csound->InitError(csound, Str("table not found in poscil"));
+    return csound->InitError(csound, Str("table not found in poscil\n"));
   p->ftp        = ftp;
   p->tablen     = ftp->flen;
   p->tablenUPsr = p->tablen * (FL(1.0)/CS_ESR);
@@ -475,7 +475,7 @@ static int32_t posckkt(CSOUND *csound, OSC *p)
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("poscil: not initialised"));
+                             Str("poscil: not initialised\n"));
   ft = p->ftp->ftable;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
@@ -507,7 +507,7 @@ static int32_t poscaat(CSOUND *csound, OSC *p)
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("poscil: not initialised"));
+                             Str("poscil: not initialised\n"));
   ft = p->ftp->ftable;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
@@ -540,7 +540,7 @@ static int32_t posckat(CSOUND *csound, OSC *p)
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("poscil: not initialised"));
+                             Str("poscil: not initialised\n"));
   ft = p->ftp->ftable;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
@@ -574,7 +574,7 @@ static int32_t poscakt(CSOUND *csound, OSC *p)
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("poscil: not initialised"));
+                             Str("poscil: not initialised\n"));
   ft = p->ftp->ftable;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
@@ -623,7 +623,7 @@ int32_t posckk(CSOUND *csound, OSC *p)
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("poscil: not initialised"));
+                             Str("poscil: not initialised\n"));
   ft = p->ftp->ftable;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
@@ -658,7 +658,7 @@ int32_t poscaa(CSOUND *csound, OSC *p)
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("poscil: not initialised"));
+                             Str("poscil: not initialised\n"));
   ft = p->ftp->ftable;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
@@ -695,7 +695,7 @@ int32_t poscka(CSOUND *csound, OSC *p)
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("poscil: not initialised"));
+                             Str("poscil: not initialised\n"));
   ft = p->ftp->ftable;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
@@ -732,7 +732,7 @@ int32_t poscak(CSOUND *csound, OSC *p)
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("poscil: not initialised"));
+                             Str("poscil: not initialised\n"));
   ft = p->ftp->ftable;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
@@ -788,7 +788,7 @@ int32_t posc3kk(CSOUND *csound, OSC *p)
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("poscil3: not initialised"));
+                             Str("poscil3: not initialised\n"));
   ftab = p->ftp->ftable;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
@@ -843,7 +843,7 @@ int32_t posc3ak(CSOUND *csound, OSC *p)
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("poscil3: not initialised"));
+                             Str("poscil3: not initialised\n"));
   ftab = p->ftp->ftable;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
@@ -899,7 +899,7 @@ int32_t posc3ka(CSOUND *csound, OSC *p)
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("poscil3: not initialised"));
+                             Str("poscil3: not initialised\n"));
   ftab = p->ftp->ftable;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
@@ -956,7 +956,7 @@ int32_t posc3aa(CSOUND *csound, OSC *p)
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("poscil3: not initialised"));
+                             Str("poscil3: not initialised\n"));
   ftab = p->ftp->ftable;
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
@@ -1111,7 +1111,7 @@ int32_t oscset(CSOUND *csound, OSC *p)
 {
   FUNC *ftp;
   if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
-    return csound->InitError(csound, Str("table not found"));
+    return csound->InitError(csound, Str("table not found\n"));
   p->ftp = ftp;
   osc_init_phase(csound, p);
   return OK;
@@ -1129,7 +1129,7 @@ int32_t oscsetA(CSOUND *csound, OSC *p)
   if (UNLIKELY(a->dimensions != 1 || a->sizes == NULL || a->data == NULL ||
                a->sizes[0] < 1 || a->sizes[0] > MAXLEN))
     return csound->InitError(csound,
-                            Str("oscil: invalid waveform array size or dimensions"));
+                            Str("oscil: invalid waveform array size or dimensions\n"));
   flen = f->flen = a->sizes[0];
   /* Array inputs have no guard point and may move when resized. Keep an
      init-time copy with the wraparound sample expected by interpolation. */
@@ -1180,7 +1180,7 @@ int32_t koscil(CSOUND *csound, OSC *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscil(krate): not initialised"));
+                           Str("oscil(krate): not initialised\n"));
 }
 
 int32_t osckk(CSOUND *csound, OSC *p)
@@ -1219,7 +1219,7 @@ int32_t osckk(CSOUND *csound, OSC *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscil: not initialised"));
+                           Str("oscil: not initialised\n"));
 }
 
 int32_t oscka(CSOUND *csound, OSC *p)
@@ -1256,7 +1256,7 @@ int32_t oscka(CSOUND *csound, OSC *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscil: not initialised"));
+                           Str("oscil: not initialised\n"));
 }
 
 int32_t oscak(CSOUND *csound, OSC *p)
@@ -1294,7 +1294,7 @@ int32_t oscak(CSOUND *csound, OSC *p)
 
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscil: not initialised"));
+                           Str("oscil: not initialised\n"));
 }
 
 int32_t oscaa(CSOUND *csound, OSC *p)
@@ -1333,7 +1333,7 @@ int32_t oscaa(CSOUND *csound, OSC *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscil: not initialised"));
+                           Str("oscil: not initialised\n"));
 }
 
 int32_t koscli(CSOUND *csound, OSC   *p)
@@ -1356,7 +1356,7 @@ int32_t koscli(CSOUND *csound, OSC   *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscili(krate): not initialised"));
+                           Str("oscili(krate): not initialised\n"));
 }
 
 int32_t osckki(CSOUND *csound, OSC   *p){
@@ -1393,7 +1393,7 @@ int32_t osckki(CSOUND *csound, OSC   *p){
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscili: not initialised"));
+                           Str("oscili: not initialised\n"));
 }
 
 int32_t osckai(CSOUND *csound, OSC   *p)
@@ -1434,7 +1434,7 @@ int32_t osckai(CSOUND *csound, OSC   *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscili: not initialised"));
+                           Str("oscili: not initialised\n"));
 }
 
 int32_t oscaki(CSOUND *csound, OSC   *p)
@@ -1471,7 +1471,7 @@ int32_t oscaki(CSOUND *csound, OSC   *p)
 
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscili: not initialised"));
+                           Str("oscili: not initialised\n"));
 }
 
 int32_t oscaai(CSOUND *csound, OSC   *p)
@@ -1510,7 +1510,7 @@ int32_t oscaai(CSOUND *csound, OSC   *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscili: not initialised"));
+                           Str("oscili: not initialised\n"));
 }
 
 int32_t koscl3(CSOUND *csound, OSC   *p)
@@ -1551,7 +1551,7 @@ int32_t koscl3(CSOUND *csound, OSC   *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscil3(krate): not initialised"));
+                           Str("oscil3(krate): not initialised\n"));
 }
 
 
@@ -1611,7 +1611,7 @@ int32_t osckk3(CSOUND *csound, OSC   *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("oscil3: not initialised"));
+                             Str("oscil3: not initialised\n"));
 }
 
 int32_t oscka3(CSOUND *csound, OSC   *p)
@@ -1667,7 +1667,7 @@ int32_t oscka3(CSOUND *csound, OSC   *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("oscil3: not initialised"));
+                             Str("oscil3: not initialised\n"));
 }
 
 int32_t oscak3(CSOUND *csound, OSC   *p)
@@ -1720,7 +1720,7 @@ int32_t oscak3(CSOUND *csound, OSC   *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscil3: not initialised"));
+                           Str("oscil3: not initialised\n"));
 }
 
 int32_t oscaa3(CSOUND *csound, OSC   *p)
@@ -1775,7 +1775,7 @@ int32_t oscaa3(CSOUND *csound, OSC   *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("oscil3: not initialised"));
+                           Str("oscil3: not initialised\n"));
 }
 
 
@@ -1811,7 +1811,7 @@ int32_t lposc_set(CSOUND *csound, LPOSC *p)
   if ((end = *p->kend) > p->tablen || end <=0 )
     end = (cs_float)p->tablen;
   if (UNLIKELY(!(loop < end)))
-    return csound->InitError(csound, Str("lposcil: loop start must precede end"));
+    return csound->InitError(csound, Str("lposcil: loop start must precede end\n"));
   looplength = end - loop;
 
   if (*p->iphs >= 0)
@@ -1837,7 +1837,7 @@ int32_t lposca(CSOUND *csound, LPOSC *p)
   if ((end = *p->kend) > p->tablen || end <= 0) end = p->tablen;
   if (UNLIKELY(!(loop < end)))
     return csound->PerfError(csound, &(p->h),
-                             Str("lposcil: loop start must precede end"));
+                             Str("lposcil: loop start must precede end\n"));
   looplength = end - loop;
   if (phs >= end || phs < 0)
     LPOSC_WRAP(phs, loop, end, looplength);
@@ -1874,7 +1874,7 @@ int32_t lposc(CSOUND *csound, LPOSC *p)
     end = p->tablen;
   if (UNLIKELY(!(loop < end)))
     return csound->PerfError(csound, &(p->h),
-                             Str("lposcil: loop start must precede end"));
+                             Str("lposcil: loop start must precede end\n"));
   looplength = end - loop;
   if (phs >= end || phs < 0)
     LPOSC_WRAP(phs, loop, end, looplength);
@@ -1913,7 +1913,7 @@ int32_t lposc3(CSOUND *csound, LPOSC *p)
   if ((end = *p->kend) > p->tablen || end <=0 ) end = p->tablen;
   if (UNLIKELY(!(loop < end)))
     return csound->PerfError(csound, &(p->h),
-                             Str("lposcil: loop start must precede end"));
+                             Str("lposcil: loop start must precede end\n"));
   looplength = end - loop;
   if (phs >= end || phs < 0)
     LPOSC_WRAP(phs, loop, end, looplength);

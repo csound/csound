@@ -84,7 +84,7 @@ static int32_t make_Modulatr(CSOUND *csound,Modulatr *p, cs_float *i)
     if (LIKELY((ftp = csound->FTFind(csound,i)) != NULL))
       p->wave = ftp;
     else { /* Expect sine wave */
-      return csound->InitError(csound, "%s", Str("No table for Modulatr"));
+      return csound->InitError(csound, "%s\n", Str("No table for Modulatr"));
     }
     p->v_time = FL(0.0);
 /*  p->v_rate = 6.0; */
@@ -126,7 +126,7 @@ static int32_t make_SingWave(CSOUND *csound, SingWave *p, cs_float *ifn, cs_floa
 
     if (LIKELY((ftp = csound->FTFind(csound,ifn)) != NULL)) p->wave = ftp;
     else {
-      return csound->InitError(csound, "%s", Str("No table for Singwave"));
+      return csound->InitError(csound, "%s\n", Str("No table for Singwave"));
     }
     p->mytime = FL(0.0);
     p->rate = FL(1.0);
@@ -322,7 +322,7 @@ int32_t voicformset(CSOUND *csound, VOICF *p)
     int32_t i;
 
     if (UNLIKELY(!(*p->phoneme >= FL(0.0) && *p->phoneme <= FL(16.0))))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("voice: phoneme must be between 0 and 16"));
     p->voiced.h = p->h;
     if (UNLIKELY(make_SingWave(csound, &p->voiced, p->ifn, p->ivfn)!=OK))
@@ -357,7 +357,7 @@ int32_t voicformset(CSOUND *csound, VOICF *p)
     {
       cs_float temp, freq = *p->frequency;
       if ((freq * FL(22.0)) > CS_ESR)      {
-        csound->Warning(csound, "%s", Str("This note is too high!!\n"));
+        csound->Warning(csound, "%s\n", Str("This note is too high!!\n"));
         freq = CS_ESR / FL(22.0);
       }
       p->basef = *p->frequency;
@@ -378,7 +378,7 @@ int32_t voicform(CSOUND *csound, VOICF *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(!(*p->phoneme >= FL(0.0) && *p->phoneme <= FL(16.0))))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("voice: phoneme must be between 0 and 16"));
     if (p->basef != *p->frequency) {
       cs_float temp, freq = *p->frequency;

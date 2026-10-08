@@ -101,7 +101,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
                                  OPCODINFO *inm)
 {
     if (inm == NULL) {
-      synterr(csound, Str("invalid opcode info for opcode %s"),
+      synterr(csound, Str("invalid opcode info for opcode %s\n"),
               opc && opc->opname ? opc->opname : "(unknown)");
       return NOTOK;
     }
@@ -241,7 +241,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
           const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
           if (UNLIKELY(type == NULL)) {
-            synterr(csound, Str("invalid output type for opcode %s"), out_args[i]);
+            synterr(csound, Str("invalid output type for opcode %s\n"), out_args[i]);
             err++;
             i++;
             continue;
@@ -259,7 +259,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
           const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, c);
 
           if (UNLIKELY(type == NULL)) {
-            synterr(csound, Str("invalid output type for opcode %s"), out_arg);
+            synterr(csound, Str("invalid output type for opcode %s\n"), out_arg);
             err++;
             i++;
             continue;
@@ -355,7 +355,7 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     int32_t isRedefinition = 0;
 
     if (UNLIKELY(!check_instr_name(opname))) {
-      synterr(csound, Str("invalid name for opcode"));
+      synterr(csound, Str("invalid name for opcode\n"));
       return -1;
     }
 
@@ -386,7 +386,7 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
                    !strcmp(opname, "xin") ||
                    !strcmp(opname, "xout") ||
                    !strcmp(opname, "subinstr"))) {
-        synterr(csound, Str("cannot redefine %s"), opname);
+        synterr(csound, Str("cannot redefine %s\n"), opname);
         return -2;
       }
       csound->Message(csound,
@@ -454,7 +454,7 @@ void synterr(CSOUND *csound, const char *s, ...)
     if(csoundGetDebug(csound)) {
     // Also echo semantic errors to the normal message channel to make them visible in verbose runs
      csound->Message(csound, "SEMERR: ");
-     csoundMessageLineV(csound, 0, s, args_copy);
+     csoundMessageV(csound, 0, s, args_copy);
     }
     va_end(args_copy);
 #endif

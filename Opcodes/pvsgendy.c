@@ -50,25 +50,25 @@ static int32_t pvsgendyinit(CSOUND *csound, PVSGENDY *p)
     size_t stride, samples;
 
     if (UNLIKELY(p->fin == p->fout))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("pvsgendy: input and output must differ"));
     if (UNLIKELY(p->fin->format != PVS_AMP_FREQ))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("pvsgendy: input format must be amp-freq"));
     if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) ||
                  (p->fin->sliding && p->fin->NB != N / 2 + 1)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("pvsgendy: invalid input frame size"));
 
     stride = p->fin->sliding ? sizeof(cs_float) : sizeof(float);
     samples = p->fin->sliding ? CS_KSMPS : 1;
     if (UNLIKELY((size_t)(N + 2) > SIZE_MAX / stride / samples))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("pvsgendy: input frame is too large"));
     p->framebytes = (size_t)(N + 2) * stride * samples;
     if (UNLIKELY(p->fin->frame.auxp == NULL ||
                  p->fin->frame.size < p->framebytes))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("pvsgendy: input frame is not initialised"));
     csound->AuxAlloc(csound, p->framebytes, &p->fout->frame);
     p->fout->N = N;
@@ -103,7 +103,7 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
                  p->fin->winsize != p->fout->winsize ||
                  p->fin->wintype != p->fout->wintype ||
                  (p->fin->sliding && p->fin->NB != p->fout->NB)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                          Str("pvsgendy: analysis settings changed; reinitialise"));
 
     if (p->fin->sliding) {
@@ -148,7 +148,7 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("pvsgendy: not initialised"));
+                             "%s\n", Str("pvsgendy: not initialised"));
 }
 
 static OENTRY pvsgendy_localops[] = {

@@ -96,7 +96,7 @@ static int32_t init_send_common(CSOUND *csound, SOCKSEND *p, int32_t isString)
     bwidth = isString ? 1 : (p->ff ? sizeof(int16) : sizeof(cs_float));
     if (!(*p->buffersize >= FL(1.0) &&
           *p->buffersize <= UDP_MAX_PAYLOAD / bwidth))
-      return csound->InitError(csound, "%s", Str("socksend: invalid buffer length"));
+      return csound->InitError(csound, "%s\n", Str("socksend: invalid buffer length"));
     bsize = (int32_t)*p->buffersize;
     p->bsize = bsize;
     p->wp = 0;
@@ -105,14 +105,14 @@ static int32_t init_send_common(CSOUND *csound, SOCKSEND *p, int32_t isString)
       WSADATA wsaData = {0};
       int32_t err = WSAStartup(MAKEWORD(2,2), &wsaData);
       if (UNLIKELY(err != 0))
-        return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+        return csound->InitError(csound, Str("Winsock2 failed to start: %d\n"), err);
 #endif
       p->sock = socket(AF_INET, SOCK_DGRAM, 0);
       if (UNLIKELY(p->sock == SOCKET_ERROR)) {
 #if defined(WIN32) && !defined(__CYGWIN__)
         WSACleanup();
 #endif
-        return csound->InitError(csound, "%s", Str("creating socket"));
+        return csound->InitError(csound, "%s\n", Str("creating socket"));
       }
       p->init_done = 1;
     }
@@ -172,7 +172,7 @@ static int32_t send_send(CSOUND *csound, SOCKSEND *p)
       if (++wp == buffersize) {
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
                             sizeof(p->server_addr)) == SOCKET_ERROR))
-          return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
+          return csound->PerfError(csound, &(p->h), "%s\n", Str("sendto failed"));
         wp = 0;
       }
     }
@@ -201,7 +201,7 @@ static int32_t send_send_k(CSOUND *csound, SOCKSEND *p)
     if (++p->wp == buffersize) {
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
                           sizeof(p->server_addr)) == SOCKET_ERROR))
-        return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
+        return csound->PerfError(csound, &(p->h), "%s\n", Str("sendto failed"));
       p->wp = 0;
     }
 
@@ -218,7 +218,7 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     size_t     len = q != NULL ? strlen(q) : 0;
 
     if (UNLIKELY(len >= (size_t) buffersize)) {
-      csound->Warning(csound, "%s", Str("string truncated in socksend"));
+      csound->Warning(csound, "%s\n", Str("string truncated in socksend"));
       len = buffersize-1;
     }
     if (len != 0) memcpy(out, q, len);
@@ -226,7 +226,7 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     /* send the package with the string each time */
     if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                         sizeof(p->server_addr)) ==SOCKET_ERROR)) {
-      return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
+      return csound->PerfError(csound, &(p->h), "%s\n", Str("sendto failed"));
     }
     return OK;
 }
@@ -241,10 +241,10 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
     bwidth = p->ff ? sizeof(int16) : sizeof(cs_float);
     if (!(*p->buffersize >= FL(1.0) &&
           *p->buffersize <= UDP_MAX_PAYLOAD / bwidth))
-      return csound->InitError(csound, "%s", Str("socksend: invalid buffer length"));
+      return csound->InitError(csound, "%s\n", Str("socksend: invalid buffer length"));
     bsize = (int32_t)*p->buffersize;
     if (bsize < 2 || (bsize & 1))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("socksends: buffer length must be even"));
     p->bsize = bsize;
     p->wp = 0;
@@ -253,14 +253,14 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
       WSADATA wsaData = {0};
       int32_t err = WSAStartup(MAKEWORD(2,2), &wsaData);
       if (UNLIKELY(err != 0))
-        return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+        return csound->InitError(csound, Str("Winsock2 failed to start: %d\n"), err);
 #endif
       p->sock = socket(AF_INET, SOCK_DGRAM, 0);
       if (UNLIKELY(p->sock == SOCKET_ERROR)) {
 #if defined(WIN32) && !defined(__CYGWIN__)
         WSACleanup();
 #endif
-        return csound->InitError(csound, "%s", Str("creating socket"));
+        return csound->InitError(csound, "%s\n", Str("creating socket"));
       }
       p->init_done = 1;
     }
@@ -316,7 +316,7 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
       if (wp == buffersize) {
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
                             sizeof(p->server_addr)) == SOCKET_ERROR))
-          return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
+          return csound->PerfError(csound, &(p->h), "%s\n", Str("sendto failed"));
         wp = 0;
       }
     }
@@ -366,7 +366,7 @@ static int32_t init_ssend(CSOUND *csound, STSEND *p)
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d\n"), err);
 #endif
     p->init_done = 1;
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
@@ -409,7 +409,7 @@ static int32_t init_ssend(CSOUND *csound, STSEND *p)
     err = errno;
 #endif
     stsend_deinit(csound, p);
-    return csound->InitError(csound, "%s (%d)", message, err);
+    return csound->InitError(csound, "%s (%d)\n", message, err);
 }
 
 static int32_t send_ssend(CSOUND *csound, STSEND *p)
@@ -434,7 +434,7 @@ static int32_t send_ssend(CSOUND *csound, STSEND *p)
         }
         stsend_deinit(csound, p);
         return csound->PerfError(csound, &p->h,
-                                 "%s", Str("write to socket failed"));
+                                 "%s\n", Str("write to socket failed"));
       }
       data += sent;
       remaining -= sent;
@@ -494,14 +494,14 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     size_t     bsize;
 
     if (p->init_done) {
-      csound->Warning(csound, Str("already initialised"));
+      csound->Warning(csound, Str("already initialised\n"));
       return OK;
     }
 
     if(p->INOCOUNT > 4) {
       if(!IS_STR_ARG(p->type))
                return csound->InitError(csound,
-                             "%s", Str("Message type is not given as a string\n"));
+                             "%s\n", Str("Message type is not given as a string\n"));
     }
 
 
@@ -511,7 +511,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       for (size_t i = 0; i < ntypes; i++)
         nargs += p->type->data[i] == 't' ? 2 : 1;
       if (UNLIKELY(nargs > p->INOCOUNT - 5))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                 Str("insufficient number of arguments for "
                                     "OSC message types\n"));
       p->ntypes = (int32_t)ntypes;
@@ -544,7 +544,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         break;
       case 's':
         if (UNLIKELY(!IS_STR_ARG(p->arg[iarg])))
-          return csound->InitError(csound, "%s", Str("expecting a string argument\n"));
+          return csound->InitError(csound, "%s\n", Str("expecting a string argument\n"));
         s = (STRINGDAT *)p->arg[iarg];
         bsize += strlen(s->data) + 64;
         iarg++;
@@ -567,7 +567,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       case 'G':
         ft = csound->FTFind(csound, p->arg[iarg]);
         if (UNLIKELY(ft == NULL))
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                    Str("ftable not found for OSC message\n"));
         bsize += (sizeof(cs_float)*ft->flen);
         iarg++;
@@ -584,7 +584,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
                      blobBytes >
                        SIZE_MAX - bsize - sizeof(int32_t))) {
           return csound->InitError(
-            csound, "%s", Str("OSC array payload is invalid or too large\n"));
+            csound, "%s\n", Str("OSC array payload is invalid or too large\n"));
         }
         bsize += sizeof(int32_t) + blobBytes;
         iarg++;
@@ -621,14 +621,14 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d\n"), err);
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
 #if defined(WIN32) && !defined(__CYGWIN__)
       WSACleanup();
 #endif
-      return csound->InitError(csound, "%s", Str("creating socket"));
+      return csound->InitError(csound, "%s\n", Str("creating socket"));
     }
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;
@@ -797,7 +797,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
         case 'G':
           ft = csound->FTFind(csound, p->arg[iarg]);
           if (UNLIKELY(ft == NULL))
-            return csound->PerfError(csound, &(p->h), "%s",
+            return csound->PerfError(csound, &(p->h), "%s\n",
                                      Str("ftable not found for OSC message\n"));
           size = (int32_t)(sizeof(cs_float)*ft->flen);
           if((size_t) buffersize + size + 4 > bsize) {
@@ -824,14 +824,14 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
                        (size_t)buffersize >
                          SIZE_MAX - sizeof(int32_t) - blobBytes)) {
             return csound->PerfError(
-              csound, &(p->h), "%s",
+              csound, &(p->h), "%s\n",
               Str("OSC array payload is invalid or too large\n"));
           }
           requiredBytes =
             (size_t)buffersize + sizeof(int32_t) + blobBytes;
           if (UNLIKELY(requiredBytes > INT32_MAX)) {
             return csound->PerfError(
-              csound, &(p->h), "%s", Str("OSC message is too large\n"));
+              csound, &(p->h), "%s\n", Str("OSC message is too large\n"));
           }
           if (requiredBytes > bsize) {
             aux_realloc(csound, requiredBytes + 128, &p->aux);
@@ -865,14 +865,14 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
                        (size_t)buffersize >
                          SIZE_MAX - sizeof(int32_t) - blobBytes)) {
             return csound->PerfError(
-              csound, &(p->h), "%s",
+              csound, &(p->h), "%s\n",
               Str("OSC array payload is invalid or too large\n"));
           }
           requiredBytes =
             (size_t)buffersize + sizeof(int32_t) + blobBytes;
           if (UNLIKELY(requiredBytes > INT32_MAX)) {
             return csound->PerfError(
-              csound, &(p->h), "%s", Str("OSC message is too large\n"));
+              csound, &(p->h), "%s\n", Str("OSC message is too large\n"));
           }
           if (requiredBytes > bsize) {
             aux_realloc(csound, requiredBytes + 128, &p->aux);
@@ -954,11 +954,11 @@ static int32_t oscbundle_arrays_valid(OSCBUNDLE *p)
 
 static int32_t oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
     if (!oscbundle_arrays_valid(p))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
         Str("oscbundle: expected matching destination, type and argument rows"));
     if (*p->imtu != FL(0.0) &&
         !(*p->imtu >= FL(16.0) && *p->imtu <= MAX_PACKET_SIZE))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
         Str("oscbundle: packet size must be between 16 and 65536 bytes"));
     p->mtu = *p->imtu == FL(0.0) ? MAX_PACKET_SIZE : (int32_t)*p->imtu;
     if (!p->init_done) {
@@ -966,14 +966,14 @@ static int32_t oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
       WSADATA wsaData = {0};
       int32_t err;
       if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-        return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+        return csound->InitError(csound, Str("Winsock2 failed to start: %d\n"), err);
 #endif
       p->sock = socket(AF_INET, SOCK_DGRAM, 0);
       if (UNLIKELY(p->sock == SOCKET_ERROR)) {
 #if defined(WIN32) && !defined(__CYGWIN__)
         WSACleanup();
 #endif
-        return csound->InitError(csound, "%s", Str("creating socket"));
+        return csound->InitError(csound, "%s\n", Str("creating socket"));
       }
       p->init_done = 1;
     }
@@ -999,7 +999,7 @@ static int32_t oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
 static int32_t oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
     if (p->first || *p->kwhen != p->last) {
       if (!oscbundle_arrays_valid(p))
-        return csound->PerfError(csound, &p->h, "%s",
+        return csound->PerfError(csound, &p->h, "%s\n",
           Str("oscbundle: expected matching destination, type and argument rows"));
       char *buffer = (char *)p->aux.auxp;
       size_t used = 16;
@@ -1037,7 +1037,7 @@ static int32_t oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
           else if (types[n] == 'i')
             encoded = (uint32_t)(int32_t)value;
           else
-            return csound->PerfError(csound, &p->h, "%s",
+            return csound->PerfError(csound, &p->h, "%s\n",
               Str("oscbundle: only i and f types are supported"));
           encoded = htonl(encoded);
           memcpy(buffer + used, &encoded, 4);
@@ -1047,13 +1047,13 @@ static int32_t oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
       if (UNLIKELY(sendto(p->sock, buffer, (int32_t)used, 0,
                          (const struct sockaddr *)&p->server_addr,
                          sizeof(p->server_addr)) < 0))
-        return csound->PerfError(csound, &p->h, "%s", Str("OSCbundle failed"));
+        return csound->PerfError(csound, &p->h, "%s\n", Str("OSCbundle failed"));
       p->first = 0;
       p->last = *p->kwhen;
     }
     return OK;
  too_large:
-    csound->Warning(csound, "%s",
+    csound->Warning(csound, "%s\n",
                    Str("Bundle msg exceeded max packet size, not sent\n"));
     return OK;
 }

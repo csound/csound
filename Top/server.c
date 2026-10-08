@@ -147,7 +147,7 @@ static void udp_socksend(CSOUND *csound, int32_t *sock, const char *addr,
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)) {
-      csound->Warning(csound, Str("UDP: Winsock2 failed to start: %d"), err);
+      csound->Warning(csound, Str("UDP: Winsock2 failed to start: %d\n"), err);
       return;
     }
 #endif
@@ -157,12 +157,12 @@ static void udp_socksend(CSOUND *csound, int32_t *sock, const char *addr,
     *sock = socket(AF_INET, SOCK_DGRAM, 0);
 #endif
     if (UNLIKELY(*sock < 0)) {
-      csound->Warning(csound, Str("UDP: error creating socket"));
+      csound->Warning(csound, Str("UDP: error creating socket\n"));
       return;
     }
 #ifndef WIN32
     if (UNLIKELY(fcntl(*sock, F_SETFL, O_NONBLOCK)<0)) {
-      csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
+      csound->Warning(csound, Str("UDP Server: Cannot set nonblock\n"));
       if (*sock>=0) close(*sock);
       return;
     }
@@ -171,7 +171,7 @@ static void udp_socksend(CSOUND *csound, int32_t *sock, const char *addr,
       u_long argp = 1;
       err = ioctlsocket(*sock, FIONBIO, &argp);
       if (UNLIKELY(err != NO_ERROR)) {
-        csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
+        csound->Warning(csound, Str("UDP Server: Cannot set nonblock\n"));
         closesocket(*sock);
         return;
       }
@@ -192,7 +192,7 @@ static void udp_socksend(CSOUND *csound, int32_t *sock, const char *addr,
   if (UNLIKELY(sendto(*sock, (void*) msg, strlen(msg)+1, 0,
                       (const struct sockaddr *) &server_addr,
                       sizeof(server_addr)) < 0)) {
-    csound->Warning(csound,  Str("UDP: sock end failed"));
+    csound->Warning(csound,  Str("UDP: sock end failed\n"));
   }
 #endif
 }
@@ -394,7 +394,7 @@ static uintptr_t udp_recv(void *pdata){
           csound->Free(csound, msg);
         }
         else
-          csound->Warning(csound, Str("could not retrieve channel %s"), chn);
+          csound->Warning(csound, Str("could not retrieve channel %s\n"), chn);
       }
       else {
         //csound->Message(csound, "%s\n", orchestra);
@@ -422,7 +422,7 @@ static int32_t udp_start(CSOUND *csound, UDPCOM *p)
   WSADATA wsaData = {0};
   int32_t err;
   if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)){
-    csound->Warning(csound, Str("Winsock2 failed to start: %d"), err);
+    csound->Warning(csound, Str("Winsock2 failed to start: %d\n"), err);
     return CSOUND_ERROR;
   }
 #endif
@@ -432,7 +432,7 @@ static int32_t udp_start(CSOUND *csound, UDPCOM *p)
 #endif
 #ifndef WIN32
   if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0)) {
-    csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
+    csound->Warning(csound, Str("UDP Server: Cannot set nonblock\n"));
     if (p->sock>=0) close(p->sock);
     return CSOUND_ERROR;
   }
@@ -441,14 +441,14 @@ static int32_t udp_start(CSOUND *csound, UDPCOM *p)
     u_long argp = 1;
     err = ioctlsocket(p->sock, FIONBIO, &argp);
     if (UNLIKELY(err != NO_ERROR)) {
-      csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
+      csound->Warning(csound, Str("UDP Server: Cannot set nonblock\n"));
       closesocket(p->sock);
       return CSOUND_ERROR;
     }
   }
 #endif
   if (UNLIKELY(p->sock < 0)) {
-    csound->Warning(csound, Str("error creating socket"));
+    csound->Warning(csound, Str("error creating socket\n"));
     return CSOUND_ERROR;
   }
   /* create server address: where we want to send to and clear it out */
@@ -463,7 +463,7 @@ static int32_t udp_start(CSOUND *csound, UDPCOM *p)
   int32_t rc = -1;
 #endif
   if (UNLIKELY(rc)) {
-    csound->Warning(csound, Str("bind failed"));
+    csound->Warning(csound, Str("bind failed\n"));
     p->thrid = NULL;
 #ifndef WIN32
     close(p->sock);
@@ -508,13 +508,13 @@ int32_t csoundUDPServerStart(CSOUND *csound, uint32_t port){
   if (connection != NULL){
     connection->port = port;
     if(connection->status) {
-      csound->Warning(csound,  Str("UDP Server: already running"));
+      csound->Warning(csound,  Str("UDP Server: already running\n"));
       return CSOUND_ERROR;
     }
     else {
       int32_t res = udp_start(csound, connection);
       if (res  != CSOUND_SUCCESS) {
-        csound->Warning(csound,  Str("UDP Server: could not start"));
+        csound->Warning(csound,  Str("UDP Server: could not start\n"));
         csound->DestroyGlobalVariable(csound,"::UDPCOM");
         return CSOUND_ERROR;
       }
@@ -522,7 +522,7 @@ int32_t csoundUDPServerStart(CSOUND *csound, uint32_t port){
     }
   }
   else {
-    csound->Warning(csound,  Str("UDP Server: failed to allocate memory"));
+    csound->Warning(csound,  Str("UDP Server: failed to allocate memory\n"));
     return CSOUND_ERROR;
   }
 }

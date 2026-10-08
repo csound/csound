@@ -173,10 +173,10 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
     const OPARMS *parms;
     parms =   csound->GetOParms(csound) ;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->itab)) == NULL)) {
-      return csound->PerfError(csound, &(p->h), Str("tabaudio: No table %g"), *p->itab);
+      return csound->PerfError(csound, &(p->h), Str("tabaudio: No table %g\n"), *p->itab);
     }
     if (UNLIKELY(ftaudio_range(ftp, *p->beg, *p->end, &t, &frames) != OK))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("ftaudio: illegal range"));
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     if (format >= 51)
@@ -197,12 +197,12 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
                                                  parms->outformat), 0);
     if (fd == NULL)
       return csound->PerfError(csound, &(p->h),
-                               Str("tabaudio: failed to open file %s"),
+                               Str("tabaudio: failed to open file %s\n"),
                                p->file->data);
     if (*p->sync==FL(0.0)) {  /* write in perf thread */
       if ((n = csound->SndfileWrite(csound, sf, t, frames)) != frames) {
         int32_t result = csound->PerfError(
-          csound, &(p->h), Str("tabaudio: failed to write data: %s"),
+          csound, &(p->h), Str("tabaudio: failed to write data: %s\n"),
           csound->SndfileStrError(csound, sf));
         csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
         return result;
@@ -228,13 +228,13 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
         csound->Free(csound, q->samples);
         csound->Free(csound, q);
         return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("Error creating thread"));
+                                 "%s\n", Str("Error creating thread"));
       }
       if (UNLIKELY(csound->RegisterResetCallback(csound, (void *) q,
                                                  on_reset_audio) != OK)) {
         csound->JoinThread(q->thread);
         csound->Free(csound, q);
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("Error registering thread cleanup"));
       }
       p->job = q;
@@ -261,11 +261,11 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
   parms =   csound->GetOParms(csound) ;
 
   if (UNLIKELY((ftp = csound->FTFind(csound, p->itab)) == NULL)) {
-    return csound->InitError(csound, "%s", Str("tabaudio: No table"));
+    return csound->InitError(csound, "%s\n", Str("tabaudio: No table"));
   }
   *p->kans = FL(0.0);
   if (UNLIKELY(ftaudio_range(ftp, *p->beg, *p->end, &t, &frames) != OK))
-    return csound->InitError(csound, "%s", Str("ftaudio: illegal range"));
+    return csound->InitError(csound, "%s\n", Str("ftaudio: illegal range"));
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
   if (format >= 51)
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
@@ -286,11 +286,11 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
                         csound->Type2CsfileType(parms->filetyp,
                                                parms->outformat), 0);
   if (fd == NULL)
-    return csound->InitError(csound, Str("tabaudio: failed to open file %s"),
+    return csound->InitError(csound, Str("tabaudio: failed to open file %s\n"),
                              p->file->data);
   if ((n = csound->SndfileWrite(csound, sf, t, frames)) != frames) {
     int32_t result = csound->InitError(
-      csound, Str("tabaudio: failed to write data: %s"),
+      csound, Str("tabaudio: failed to write data: %s\n"),
       csound->SndfileStrError(csound, sf));
     csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     return result;

@@ -219,16 +219,16 @@ static int32_t sndloop_init(CSOUND *csound, sndloop *p)
     if (UNLIKELY(!(durs >= 1.0 && durs <= (INT32_MAX + 0.0) &&
                    durs <= (cs_double)(SIZE_MAX / sizeof(cs_float)) &&
                    cfds >= 0.0 && cfds <= (INT32_MAX + 0.0))))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("sndloop: invalid loop or crossfade duration"));
     p->durs = (int32)durs;
     p->cfds = (int32)cfds;
     if (UNLIKELY(p->durs < p->cfds))
       return
-        csound->InitError(csound, "%s", Str("crossfade cannot be longer than loop\n"));
+        csound->InitError(csound, "%s\n", Str("crossfade cannot be longer than loop\n"));
 
     if (UNLIKELY(p->durs > INT32_MAX - p->cfds))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("sndloop: recording is too long"));
     p->inc  = p->cfds ? FL(1.0)/p->cfds : FL(0.0);
     p->a    = FL(0.0);
@@ -257,7 +257,7 @@ static int32_t sndloop_process(CSOUND *csound, sndloop *p)
     if (UNLIKELY(!(pitch > -durs && pitch < durs))) {
       pitch = fmod(pitch, (cs_double)durs);
       if (UNLIKELY(!(pitch > -durs && pitch < durs)))
-        return csound->PerfError(csound, &p->h, "%s",
+        return csound->PerfError(csound, &p->h, "%s\n",
                                  Str("sndloop: invalid pitch ratio"));
     }
 
@@ -327,24 +327,24 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
 
     p->sfunc = csound->FTFind(csound, p->ifn) ;  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
-      return csound->InitError(csound,"%s", Str("function table not found\n"));
+      return csound->InitError(csound,"%s\n", Str("function table not found\n"));
     }
     cfds_f = (cs_double)*p->cfd * p->sfunc->gen01args.sample_rate;
     starts_f = (cs_double)*p->start * p->sfunc->gen01args.sample_rate;
     durs_f = (cs_double)*p->dur * p->sfunc->gen01args.sample_rate;
 
     if (UNLIKELY(!isfinite(starts_f) || starts_f < 0.0))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("loop start must be finite and non-negative\n"));
     if (UNLIKELY(!isfinite(durs_f) || durs_f < 1.0))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("loop duration must be at least one sample\n"));
     if (UNLIKELY(!isfinite(cfds_f) || cfds_f < 0.0))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("crossfade must be finite and non-negative\n"));
     if (UNLIKELY(starts_f > (INT32_MAX + 0.0) || durs_f > (INT32_MAX + 0.0) ||
                  cfds_f > (INT32_MAX + 0.0)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("loop parameters exceed the supported range\n"));
 
     cfds = (int32)cfds_f;
@@ -353,22 +353,22 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
 
     if (UNLIKELY(cfds > durs))
       return csound->InitError(csound,
-                               "%s", Str("crossfade longer than loop duration\n"));
+                               "%s\n", Str("crossfade longer than loop duration\n"));
 
     tab = p->sfunc->ftable;  /* func table pointer */
     nchnls = p->sfunc->nchanls;
     if (UNLIKELY((uint32_t) nchnls != p->OUTOCOUNT)) {
      return
        csound->InitError(csound,
-                         "%s", Str("function table channel count does not match output"));
+                         "%s\n", Str("function table channel count does not match output"));
     }
     len = p->sfunc->flen / (uint32_t)nchnls;
     if (UNLIKELY((uint32_t)starts >= len)) {
-      return csound->InitError(csound,"%s", Str("start time beyond end of table\n"));
+      return csound->InitError(csound,"%s\n", Str("start time beyond end of table\n"));
     }
 
     if (UNLIKELY((uint64_t)starts + (uint64_t)durs + (uint64_t)cfds > len)) {
-      return csound->InitError(csound,"%s", Str("table not long enough for loop\n"));
+      return csound->InitError(csound,"%s\n", Str("table not long enough for loop\n"));
     }
 
     buffer_size = ((size_t)durs + 1u) * (size_t)nchnls * sizeof(cs_float);
@@ -487,7 +487,7 @@ static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
 
     p->sfunc = csound->FTFind(csound, p->ifn);  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
-      return csound->InitError(csound,"%s", Str("function table not found\n"));
+      return csound->InitError(csound,"%s\n", Str("function table not found\n"));
     }
     if (*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
     else p->efunc = NULL;
@@ -509,7 +509,7 @@ static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
     p->nchnls = (int32_t)(p->OUTOCOUNT);
     if(p->nchnls != p->sfunc->nchanls) {
       csound->Warning(csound,
-       "%s", Str("function table channels do not match opcode outputs"));
+       "%s\n", Str("function table channels do not match opcode outputs"));
     }
     return OK;
 }
@@ -544,7 +544,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
 
     if(p->nchnls != p->sfunc->nchanls) {
        csound->Warning(csound,
-          "%s", Str("function table channels do not match opcode outputs"));
+          "%s\n", Str("function table channels do not match opcode outputs"));
       }
     }
     sr = p->sfunc->gen01args.sample_rate;
@@ -1169,7 +1169,7 @@ static int32_t pvsarp_init(CSOUND *csound, pvsarp *p)
     int32 N = p->fin->N;
 
     if (UNLIKELY(p->fin->sliding))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("pvsarp: sliding analysis is not supported"));
 
     if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
@@ -1186,7 +1186,7 @@ static int32_t pvsarp_init(CSOUND *csound, pvsarp *p)
     if (UNLIKELY(!((p->fout->format==PVS_AMP_FREQ) ||
                    (p->fout->format==PVS_AMP_PHASE)))) {
       return csound->InitError(csound,
-                               "%s", Str("pvsarp: signal format must be amp-phase "
+                               "%s\n", Str("pvsarp: signal format must be amp-phase "
                                    "or amp-freq.\n"));
     }
 
@@ -1218,7 +1218,7 @@ static int32_t pvsarp_process(CSOUND *csound, pvsarp *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("pvsarp: not initialised\n"));
+                             "%s\n", Str("pvsarp: not initialised\n"));
 }
 
 static int32_t pvsvoc_init(CSOUND *csound, pvsvoc *p)
@@ -1226,14 +1226,14 @@ static int32_t pvsvoc_init(CSOUND *csound, pvsvoc *p)
     int32 N = p->fin->N;
 
     if (UNLIKELY(p->fin->sliding || p->ffr->sliding))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("pvsvoc: sliding analysis is not supported"));
     if (UNLIKELY(p->fin->N != p->ffr->N ||
                  p->fin->overlap != p->ffr->overlap ||
                  p->fin->winsize != p->ffr->winsize ||
                  p->fin->wintype != p->ffr->wintype ||
                  p->fin->format != p->ffr->format))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("pvsvoc: input spectra must have matching formats"));
 
     if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
@@ -1250,7 +1250,7 @@ static int32_t pvsvoc_init(CSOUND *csound, pvsvoc *p)
     if (UNLIKELY(!((p->fout->format==PVS_AMP_FREQ) ||
                    (p->fout->format==PVS_AMP_PHASE)))) {
       return csound->InitError(csound,
-                               "%s", Str("signal format must be amp-phase "
+                               "%s\n", Str("signal format must be amp-phase "
                                    "or amp-freq.\n"));
     }
    if (p->ceps.auxp == NULL ||
@@ -1337,7 +1337,7 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("pvsvoc: not initialised\n"));
+                             "%s\n", Str("pvsvoc: not initialised\n"));
 }
 
 /* Frame counters need not match: each source can start at a different time. */
@@ -1354,25 +1354,25 @@ static int32_t pvsmorph_init(CSOUND *csound, pvsmorph *p)
     size_t itemsize = p->fin->sliding ? sizeof(cs_float) : sizeof(float);
 
     if (UNLIKELY(p->fout == p->fin || p->fout == p->ffr))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("pvsmorph: output must differ from inputs"));
     if (UNLIKELY(p->fin->format != PVS_AMP_FREQ &&
                  p->fin->format != PVS_AMP_PHASE))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("pvsmorph: input format must be amp-freq or amp-phase"));
     if (UNLIKELY(!PVSMORPH_MATCH(p->fin, p->ffr)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("pvsmorph: inputs must have matching analysis settings"));
     if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) ||
                  (p->fin->sliding && p->fin->NB != N / 2 + 1) ||
                  (size_t)N + 2 > SIZE_MAX / itemsize / samples))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("pvsmorph: invalid frame size"));
     p->framebytes = ((size_t)N + 2) * itemsize * samples;
     if (UNLIKELY(p->fin->frame.auxp == NULL || p->ffr->frame.auxp == NULL ||
                  p->fin->frame.size < p->framebytes ||
                  p->ffr->frame.size < p->framebytes))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("pvsmorph: input frame is not initialised"));
 
     /* AuxAlloc also clears reused output when reinitialising. */
@@ -1401,7 +1401,7 @@ static int32_t pvsmorph_process(CSOUND *csound, pvsmorph *p)
 
     if (UNLIKELY(!PVSMORPH_MATCH(p->fout, p->fin) ||
                  !PVSMORPH_MATCH(p->fout, p->ffr)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("pvsmorph: analysis settings changed; reinitialise"));
     if (UNLIKELY(fout == NULL || fi1 == NULL || fi2 == NULL ||
                  p->fout->frame.size < p->framebytes ||
@@ -1446,7 +1446,7 @@ static int32_t pvsmorph_process(CSOUND *csound, pvsmorph *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("pvsmorph: not initialised\n"));
+                             "%s\n", Str("pvsmorph: not initialised\n"));
 }
 
 #undef PVSMORPH_MATCH

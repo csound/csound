@@ -141,17 +141,17 @@ static int32_t ftconv_init_common(CSOUND *csound, OPDS *h, FTCONV_STATE *p,
     cs_double length = nearbyint((cs_double) totalFrames);
 
     if (UNLIKELY(nChannels < 1))
-      return csound->InitError(csound, "%s", Str("ftconv: invalid number of channels"));
+      return csound->InitError(csound, "%s\n", Str("ftconv: invalid number of channels"));
     if (UNLIKELY(!(part >= 4 && part <= (INT32_MAX + 0.0) / 2)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("ftconv: invalid impulse response partition length"));
     int32_t partSize = (int32_t) part;
     if (UNLIKELY((partSize & (partSize - 1)) != 0))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("ftconv: invalid impulse response partition length"));
     if (UNLIKELY(!(skip >= INT32_MIN && skip <= (INT32_MAX + 0.0) &&
                    length >= INT32_MIN && length <= (INT32_MAX + 0.0))))
-      return csound->InitError(csound, "%s", Str("ftconv: invalid impulse response range"));
+      return csound->InitError(csound, "%s\n", Str("ftconv: invalid impulse response range"));
     ftp = csound->FTFind(csound, ftnum);
     if (UNLIKELY(ftp == NULL))
       return NOTOK;
@@ -162,16 +162,16 @@ static int32_t ftconv_init_common(CSOUND *csound, OPDS *h, FTCONV_STATE *p,
     if (length > 0 && irLength > (int64_t) length)
       irLength = (int64_t) length;
     if (UNLIKELY(irLength <= 0 || irLength > INT32_MAX))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("ftconv: invalid length, or insufficient IR data for convolution"));
     int32_t nPartitions = (int32_t) ((irLength - 1) / partSize + 1);
     /* FFT and ring-buffer indices use signed 32-bit sample counts. */
     if (UNLIKELY(nPartitions > INT32_MAX / (partSize << 1)))
-      return csound->InitError(csound, "%s", Str("ftconv: impulse response too large"));
+      return csound->InitError(csound, "%s\n", Str("ftconv: impulse response too large"));
     uint64_t nSamples = (uint64_t) (partSize << 1) *
                        ((uint64_t)nChannels + 1) * ((uint64_t) nPartitions + 1);
     if (UNLIKELY(nSamples > SIZE_MAX / sizeof(cs_float)))
-      return csound->InitError(csound, "%s", Str("ftconv: impulse response too large"));
+      return csound->InitError(csound, "%s\n", Str("ftconv: impulse response too large"));
     size_t nBytes = (size_t) nSamples * sizeof(cs_float);
 
     if (conv_output_init(csound, h, &p->out) != OK)
@@ -284,7 +284,7 @@ static int32_t ftconv_perf_common(CSOUND *csound, OPDS *h, FTCONV_STATE *p,
     return OK;
  err1:
     return csound->PerfError(csound, h,
-                             "%s", Str("ftconv: not initialised"));
+                             "%s\n", Str("ftconv: not initialised"));
 }
 
 static int32_t ftconv_init(CSOUND *csound, FTCONV *p)

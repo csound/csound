@@ -142,54 +142,6 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
   }
 }
 
-/* Format before checking the last byte: a translated string or a %s argument
-   can supply the final newline. Keep the whole line in one callback. */
-void csoundMessageLineV(CSOUND *csound, int32_t attr, const char *format,
-                       va_list args) {
-  char local[MAX_MESSAGE_STR];
-  char *text = local;
-  size_t length;
-  int needed;
-  va_list copy;
-
-  if (csound->oparms->msglevel & CS_NOMSG)
-    return;
-  va_copy(copy, args);
-  needed = vsnprintf(local, sizeof(local) - 1, format, copy);
-  va_end(copy);
-  if (needed < 0)
-    return;
-  if ((size_t)needed >= sizeof(local) - 1) {
-    text = (char *)malloc((size_t)needed + 2);
-    if (text != NULL) {
-      va_copy(copy, args);
-      vsnprintf(text, (size_t)needed + 1, format, copy);
-      va_end(copy);
-    } else {
-      /* Still finish the truncated diagnostic if memory is exhausted. */
-      text = local;
-    }
-  }
-  length = strlen(text);
-  if (length == 0 || text[length - 1] != '\n') {
-    text[length++] = '\n';
-    text[length] = '\0';
-  }
-  if (csound->csoundMessageCallback_)
-    csoundMessageS(csound, attr, "%s", text);
-  else
-    csound->csoundMessageStringCallback(csound, attr, text);
-  if (text != local)
-    free(text);
-}
-
-void csoundMessageLine(CSOUND *csound, int32_t attr, const char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  csoundMessageLineV(csound, attr, format, args);
-  va_end(args);
-}
-
 void csoundDie(CSOUND *csound, const char *msg, ...) {
   va_list args;
   va_start(args, msg);
@@ -205,7 +157,7 @@ void csoundWarning(CSOUND *csound, const char *msg, ...) {
     return;
   csoundMessageS(csound, CSOUNDMSG_WARNING, Str("warning: "));
   va_start(args, msg);
-  csoundMessageLineV(csound, CSOUNDMSG_WARNING, msg, args);
+  csoundMessageV(csound, CSOUNDMSG_WARNING, msg, args);
   va_end(args);
 }
 
@@ -215,7 +167,7 @@ void csoundDebugMsg(CSOUND *csound, const char *msg, ...) {
         csoundGetDebug(csound) < 99)
     return;
   va_start(args, msg);
-  csoundMessageLineV(csound, 0, msg, args);
+  csoundMessageV(csound, 0, msg, args);
   va_end(args);
 }
 
@@ -230,7 +182,7 @@ void csoundErrMsgV(CSOUND *csound, const char *hdr, const char *msg,
                    va_list args) {
   if (hdr != NULL)
     csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
-  csoundMessageLineV(csound, CSOUNDMSG_ERROR, msg, args);
+  csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
 }
 
 void csoundErrorMsgS(CSOUND *csound, int32_t attr, const char *msg, ...) {
@@ -400,7 +352,7 @@ void  csoundDestroyMessageBuffer(CSOUND *csound) {
   csMsgBuffer *pp = (csMsgBuffer *)csound->message_buffer;
   if (!pp) {
     csound->Warning(csound, Str("csoundDestroyMessageBuffer: "
-                                "Message buffer not allocated."));
+                                "Message buffer not allocated.\n"));
     return;
   }
   csMsgStruct *msg = pp->firstMsg;

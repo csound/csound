@@ -47,7 +47,7 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
       if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
         return NOTOK;
       if (UNLIKELY(ftp->flen < 2))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                 Str("trajectory table must contain an xy pair"));
       p->ftp = ftp;
     }
@@ -90,7 +90,7 @@ static int32_t space(CSOUND *csound, SPACE *p)
       if (UNLIKELY((ftp = p->ftp) == NULL)) goto err1;
 
       if (UNLIKELY(!isfinite(*p->time)))
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                 Str("trajectory time must be finite"));
       ndx = (cs_double)*p->time * RESOLUTION;
       halflen = ftp->flen / 2;
@@ -188,7 +188,7 @@ static int32_t space(CSOUND *csound, SPACE *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("space: not initialised"));
+                             "%s\n", Str("space: not initialised"));
 }
 
 static int32_t spsendset(CSOUND *csound, SPSEND *p)
@@ -197,7 +197,7 @@ static int32_t spsendset(CSOUND *csound, SPSEND *p)
                                               SPATIAL_SPACE);
 
     if (UNLIKELY(source == NULL))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("spsend: no previous space in this "
                                    "instrument instance"));
     p->space = source;
@@ -225,7 +225,7 @@ static int32_t spdistset(CSOUND *csound, SPDIST *p)
      if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
        return NOTOK;
      if (UNLIKELY(ftp->flen < 2))
-       return csound->InitError(csound, "%s",
+       return csound->InitError(csound, "%s\n",
                                Str("trajectory table must contain an xy pair"));
      p->ftp = ftp;
    }
@@ -247,7 +247,7 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
       if (UNLIKELY((ftp = p->ftp)==NULL)) goto err1;
 
       if (UNLIKELY(!isfinite(*p->time)))
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                 Str("trajectory time must be finite"));
       ndx = (cs_double)*p->time * RESOLUTION;
       halflen = ftp->flen / 2;
@@ -284,7 +284,7 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("spdist: not initialised"));
+                             "%s\n", Str("spdist: not initialised"));
 }
 
 #define S(x)    sizeof(x)

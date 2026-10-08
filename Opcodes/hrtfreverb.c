@@ -325,13 +325,13 @@ static int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
                                CSFTYPE_FLOATS_BINARY, swap4bytes);
   if (UNLIKELY(fpl == NULL))
     return
-      csound->InitError(csound, "%s",
+      csound->InitError(csound, "%s\n",
                         Str("\n\n\nCannot load left data file, exiting\n\n"));
 
   fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,swap4bytes);
   if (UNLIKELY(fpr == NULL))
     return
-      csound->InitError(csound, "%s",
+      csound->InitError(csound, "%s\n",
                         Str("\n\n\nCannot load right data file, exiting\n\n"));
 
   /* do not need to be in p, as only used in init */

@@ -105,7 +105,7 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
     if (UNLIKELY(CS_ESR != SAMP_RATE)) {
       return csound->InitError(csound,
                   Str("Orchestra sampling rate is not compatible with HRTF.\n"
-                      "Should be %d...exiting."), SAMP_RATE);
+                      "Should be %d...exiting.\n"), SAMP_RATE);
       return NOTOK; /* not reached */
     }
 
@@ -116,7 +116,7 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
     p->mfp = mfp = csound->LoadMemoryFile(csound, "HRTFcompact", CSFTYPE_HRTF,
                                         hrtfer_prepare_data);
     if (UNLIKELY(mfp == NULL))
-      return csound->InitError(csound, "%s", Str("hrtfer: cannot load HRTFcompact"));
+      return csound->InitError(csound, "%s\n", Str("hrtfer: cannot load HRTFcompact"));
     p->fpbegin = (int16 *)mfp->beginp;
     if (p->aIn == p->aLeft || p->aIn == p->aRight)
       csound->AuxAlloc(csound, CS_KSMPS * sizeof(cs_float), &p->auxch);
@@ -395,7 +395,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csound->PerfError(csound, &(p->h), "%s\n",
                              Str("hrtfer: not initialised"));
 }
 

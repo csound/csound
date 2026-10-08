@@ -72,13 +72,13 @@ static int32_t linuxjoystick(CSOUND *csound, LINUXJOYSTICK *stick)
     *stick->kresult = FL(0.0);
     if (UNLIKELY(!(*stick->kdev >= FL(0.0) &&
                    *stick->kdev <= (INT32_MAX + 0.0))))
-      return csound->PerfError(csound, &stick->h, "%s",
+      return csound->PerfError(csound, &stick->h, "%s\n",
                               Str("joystick: invalid device number"));
     dev = (int32_t)CS_FLOAT2LRND(*stick->kdev);
     /* Resolve ktab each cycle: the table may have been replaced or freed. */
     ftp = csound->FTFind(csound, stick->ktable);
     if (UNLIKELY(ftp == NULL))
-      return csound->PerfError(csound, &stick->h, "%s",
+      return csound->PerfError(csound, &stick->h, "%s\n",
                               Str("joystick: no such table"));
 
     if (dev != stick->dev) {
@@ -99,13 +99,13 @@ static int32_t linuxjoystick(CSOUND *csound, LINUXJOYSTICK *stick)
       }
       if (stick->devFD < 0) {
         stick->timeout = 10000;
-        csound->Warning(csound, Str("joystick: could not open device %d: %s"),
+        csound->Warning(csound, Str("joystick: could not open device %d: %s\n"),
                         dev, strerror(errno));
         return OK;
       }
       if (ioctl(stick->devFD, JSIOCGAXES, &stick->numk) < 0 ||
           ioctl(stick->devFD, JSIOCGBUTTONS, &stick->numb) < 0) {
-        csound->Warning(csound, Str("joystick: could not query device %d: %s"),
+        csound->Warning(csound, Str("joystick: could not query device %d: %s\n"),
                         dev, strerror(errno));
         linuxjoystick_deinit(csound, stick);
         stick->timeout = 10000;
@@ -116,7 +116,7 @@ static int32_t linuxjoystick(CSOUND *csound, LINUXJOYSTICK *stick)
 
     /* Check the current table even after a successful device open. */
     if (UNLIKELY(ftp->flen < 2u + stick->numk + stick->numb))
-      return csound->PerfError(csound, &stick->h, "%s",
+      return csound->PerfError(csound, &stick->h, "%s\n",
                               Str("joystick: table too small for device data"));
     if (ftp != stick->ftp || *stick->ktable != stick->table ||
         ftp->ftable[0] != stick->numk || ftp->ftable[1] != stick->numb) {
@@ -134,7 +134,7 @@ static int32_t linuxjoystick(CSOUND *csound, LINUXJOYSTICK *stick)
       if (read_size < 0 && errno == EINTR) continue;
       if (read_size < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) break;
       if (UNLIKELY(read_size != (ssize_t)sizeof(js))) {
-        csound->Warning(csound, Str("joystick: read failed, closing device %d"),
+        csound->Warning(csound, Str("joystick: read failed, closing device %d\n"),
                         dev);
         linuxjoystick_deinit(csound, stick);
         stick->timeout = 10000;

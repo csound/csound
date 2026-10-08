@@ -253,7 +253,7 @@ void csoundFree(CSOUND *csound, void *p)
     CSOUND_MEM_SPINUNLOCK
     if (UNLIKELY(pp == NULL || pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
       if (pp != NULL && pp->magic != MEMALLOC_MAGIC) {
-        csound->Warning(csound, Str("csound->Free() called with corrupted pointer (%p)"),
+        csound->Warning(csound, Str("csound->Free() called with corrupted pointer (%p)\n"),
                         p);
       }
       return;

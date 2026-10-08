@@ -791,12 +791,12 @@ static int32_t rtrecord_(CSOUND *csound, cs_float *inbuf, int32_t nbytes)
       /* handle I/O errors */
       if (UNLIKELY(err == -EPIPE)) {
         /* buffer underrun */
-        warning(Str("Buffer overrun in real-time audio input"));     /* complain */
+        warning(Str("Buffer overrun in real-time audio input\n"));     /* complain */
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
       else if (err == -ESTRPIPE) {
         /* suspend */
-        warning(Str("Real-time audio input suspended"));
+        warning(Str("Real-time audio input suspended\n"));
         while (snd_pcm_resume(dev->handle) == -EAGAIN) sleep(1);
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
@@ -836,12 +836,12 @@ static void rtplay_(CSOUND *csound, const cs_float *outbuf, int32_t nbytes)
       /* handle I/O errors */
       if (err == -EPIPE) {
         /* buffer underrun */
-        warning(Str("Buffer underrun in real-time audio output"));   /* complain */
+        warning(Str("Buffer underrun in real-time audio output\n"));   /* complain */
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
       else if (err == -ESTRPIPE) {
         /* suspend */
-        warning(Str("Real-time audio output suspended"));
+        warning(Str("Real-time audio output suspended\n"));
         while (snd_pcm_resume(dev->handle) == -EAGAIN) sleep(1);
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
@@ -1830,7 +1830,7 @@ static int32_t listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput
       snd_ctl_close(ctl);
       if ((err = snd_card_next(&card)) < 0) {
         csound->Warning(csound,
-                        Str("cannot determine card number: %s"), snd_strerror(err));
+                        Str("cannot determine card number: %s\n"), snd_strerror(err));
         break;
       }
     } while (card >= 0);

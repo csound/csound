@@ -598,12 +598,12 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
         if(assign->h.perf != copy_var_no_op)
           error = csound->PerfError(csound,&(assign->h),
             Str("Opcode given variables "
-                "with two different types: %s : %s"),
+                "with two different types: %s : %s\n"),
             resultType, argumentType);
         else
           error = csound->InitError(csound,
             Str("Opcode given variables "
-                "with two different types: %s : %s"),
+                "with two different types: %s : %s\n"),
             resultType, argumentType);
         csound->Free(csound, resultType);
         csound->Free(csound, argumentType);
@@ -669,9 +669,9 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
                      assign->h.insdshead,
                      structCopyMode) != OK)) {
         return initializing
-          ? csound->InitError(csound, Str("could not copy structured value"))
+          ? csound->InitError(csound, Str("could not copy structured value\n"))
           : csound->PerfError(csound, &assign->h,
-                              Str("could not copy structured value"));
+                              Str("could not copy structured value\n"));
       }
       return OK;
     }
@@ -711,7 +711,7 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
                            csound, dstArr, srcArr, assign->h.insdshead,
                            CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
               return csound->InitError(
-                csound, Str("could not copy structured array value"));
+                csound, Str("could not copy structured array value\n"));
             }
             return OK;
         }
@@ -719,7 +719,7 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
         if (csoundGetTypeForArg(dstArr) == &CS_VAR_TYPE_ARRAY) {
             if (UNLIKELY(tabinit_like(csound, dstArr, srcArr) != OK)) {
                 return csound->InitError(
-                  csound, "%s",
+                  csound, "%s\n",
                   Str("array assignment: could not initialize destination"));
             }
         }

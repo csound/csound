@@ -112,7 +112,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
     if (UNLIKELY(idx < 0 || idx > pp->file_num ||
                  (fileType == CSFILE_STD && pp->file_opened[idx].raw == NULL) ||
                  (fileType != CSFILE_STD && pp->file_opened[idx].file == NULL))) {
-      csound->InitError(csound, "%s", Str("invalid file handle"));
+      csound->InitError(csound, "%s\n", Str("invalid file handle"));
       return NULL;
     }
     goto returnHandle;
@@ -120,7 +120,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
   /* check for a valid name */
   if (UNLIKELY(name == NULL || name[0] == '\0')) {
     csound->Free(csound, name);
-    csound->InitError(csound, "%s", Str("invalid file name"));
+    csound->InitError(csound, "%s\n", Str("invalid file name"));
     return NULL;
   }
   /* is this file already open ? */
@@ -173,7 +173,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
     fd = csound->FileOpen(csound, &f, fileType, name, fileParams, "",
                            csFileType, 0);
     if (UNLIKELY(fd == NULL)) {
-      csound->InitError(csound, Str("error opening file '%s'"), name);
+      csound->InitError(csound, Str("error opening file '%s'\n"), name);
       csound->Free(csound, name);
       return NULL;
     }
@@ -223,7 +223,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
     }
     do_scale = (SF2TYPE(do_scale) == TYP_RAW ? 0 : 1);
     if (UNLIKELY(fd == NULL)) {
-      csound->InitError(csound, Str("error opening sound file '%s'"), name);
+      csound->InitError(csound, Str("error opening sound file '%s'\n"), name);
       csound->Free(csound, name);
       return NULL;
     }
@@ -246,7 +246,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
   if (UNLIKELY(fileType == CSFILE_SND_W &&
                pp->file_opened[idx].nchnls !=
                    ((SFLIB_INFO*)fileParams)->channels)) {
-    csound->InitError(csound, "%s",
+    csound->InitError(csound, "%s\n",
                      Str("fout: file channel count does not match input"));
     return NULL;
   }
@@ -323,7 +323,7 @@ static int32_t outfile_array(CSOUND *csound, OUTFILEA *p)
   if (UNLIKELY(p->tabin->dimensions != 1 ||
                p->tabin->sizes[0] != (int32_t)nargs))
     return csound->PerfError(csound, &p->h,
-                            "%s", Str("fout: array channel count changed"));
+                            "%s\n", Str("fout: array channel count changed"));
 
   if (UNLIKELY(early)) nsmps -= early;
   if (p->f.sf == NULL) {
@@ -478,13 +478,13 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
   p->buf_pos = 0;
   if (UNLIKELY(p->tabin->dimensions != 1 || p->tabin->sizes == NULL ||
                p->tabin->sizes[0] <= 0))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("fout: expected a nonempty one-dimensional array"));
   len = p->tabin->sizes[0];
   frames = CS_KSMPS >= 512 ? CS_KSMPS : (1 + 512 / CS_KSMPS) * CS_KSMPS;
   /* The asynchronous file queue also needs four times this byte count. */
   if (UNLIKELY((size_t)len > INT32_MAX / 4 / sizeof(cs_float) / frames))
-    return csound->InitError(csound, "%s", Str("fout: too many channels"));
+    return csound->InitError(csound, "%s\n", Str("fout: too many channels"));
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
   format_ = (int32_t) CS_FLOAT2LRND(*p->iflag);
   if (format_ >=  51)
@@ -647,7 +647,7 @@ static int32_t ficlose_opcode_(CSOUND *csound, FICLOSE *p, int32_t istring)
       fname = csound->Strdup(csound, csound->GetArgString(csound, *p->iFile));
     if (UNLIKELY(fname == NULL || fname[0] == (char) 0)) {
       if (fname != NULL) csound->Free(csound, fname);
-      return csound->InitError(csound, "%s", Str("invalid file name"));
+      return csound->InitError(csound, "%s\n", Str("invalid file name"));
     }
     for (idx = 0; idx <= pp->file_num; idx++) {
       if (pp->file_opened[idx].fd != NULL &&
@@ -657,7 +657,7 @@ static int32_t ficlose_opcode_(CSOUND *csound, FICLOSE *p, int32_t istring)
     }
     if (UNLIKELY(idx > pp->file_num)) {
       csound->Warning(csound, Str("cannot close '%s': "
-                                  "not found in list of open files"), fname);
+                                  "not found in list of open files\n"), fname);
       csound->Free(csound, fname);
       return OK;
     }
@@ -668,7 +668,7 @@ static int32_t ficlose_opcode_(CSOUND *csound, FICLOSE *p, int32_t istring)
     if (UNLIKELY(idx < 0 || idx > pp->file_num ||
                  pp->file_opened[idx].fd == NULL)) {
       csound->Warning(csound,
-                      Str("cannot close file #%d: not a valid handle"), idx);
+                      Str("cannot close file #%d: not a valid handle\n"), idx);
       return OK;
     }
   }
@@ -676,7 +676,7 @@ static int32_t ficlose_opcode_(CSOUND *csound, FICLOSE *p, int32_t istring)
     if (UNLIKELY(!(pp->file_opened[idx].refCount & 0x80000000U))) {
       pp->file_opened[idx].refCount |= 0x80000000U;
       csound->Warning(csound, Str("file #%d (%s) is in use, will be closed "
-                                  "when released"),
+                                  "when released\n"),
                       idx, pp->file_opened[idx].name);
     }
   }
@@ -712,10 +712,10 @@ static int32_t ioutfile_set(CSOUND *csound, IOUTFILE *p)
   uint32_t j;
   int32_t     n = (int32_t) CS_FLOAT2LRND(*p->ihandle);
   if (UNLIKELY(n < 0 || n > pp->file_num))
-    return csound->InitError(csound, "%s", Str("fouti: invalid file handle"));
+    return csound->InitError(csound, "%s\n", Str("fouti: invalid file handle"));
   rfil = pp->file_opened[n].raw;
   if (UNLIKELY(rfil == NULL))
-    return csound->InitError(csound, "%s", Str("fouti: invalid file handle"));
+    return csound->InitError(csound, "%s\n", Str("fouti: invalid file handle"));
   if (*p->iascii == 0) { /* ascii format */
     switch ((int32_t) CS_FLOAT2LRND(*p->iflag)) {
     case 1:
@@ -789,10 +789,10 @@ static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
   args = p->argums;
   n = (int32_t) CS_FLOAT2LRND(*p->ihandle);
   if (UNLIKELY(n < 0 || n > pp->file_num))
-    return csound->InitError(csound, "%s", Str("fouti: invalid file handle"));
+    return csound->InitError(csound, "%s\n", Str("fouti: invalid file handle"));
   rfil = pp->file_opened[n].raw;
   if (UNLIKELY(rfil == NULL))
-    return csound->InitError(csound, "%s", Str("fouti: invalid file handle"));
+    return csound->InitError(csound, "%s\n", Str("fouti: invalid file handle"));
   if (*p->iascii == 0) { /* ascii format */
     switch ((int32_t) CS_FLOAT2LRND(*p->iflag)) {
     case 1:
@@ -844,7 +844,7 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
   p->nargs = p->INOCOUNT - 3;
   if (UNLIKELY(!(*p->iskpfrms >= FL(0.0) &&
                  (cs_double)*p->iskpfrms <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, "%s", Str("invalid frame skip"));
+    return csound->InitError(csound, "%s\n", Str("invalid frame skip"));
   p->currpos = CS_FLOAT2LRND(*p->iskpfrms);
   p->flag = 1;
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
@@ -862,7 +862,7 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
     p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
   if (UNLIKELY(sfinfo.channels <= 0 ||
                (size_t)sfinfo.channels > INT32_MAX / 4 / sizeof(cs_float) / p->frames))
-    return csound->InitError(csound, "%s", Str("invalid file channel count"));
+    return csound->InitError(csound, "%s\n", Str("invalid file channel count"));
   /* Keep the asynchronous queue's existing headroom. */
   p->f.bufsize = p->frames * sfinfo.channels * sizeof(cs_float);
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
@@ -873,7 +873,7 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
 
   if (UNLIKELY(p->f.nchnls != p->nargs)) {
     fout_deinit(csound, &p->f);
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("file channels do not match input arguments"));
   }
   buf_reqd = (size_t)p->frames * p->f.nchnls * sizeof(cs_float);
@@ -916,7 +916,7 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
   size_t      buf_reqd;
   if (UNLIKELY(!(*p->iskpfrms >= FL(0.0) &&
                  (cs_double)*p->iskpfrms <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, "%s", Str("invalid frame skip"));
+    return csound->InitError(csound, "%s\n", Str("invalid frame skip"));
   p->currpos = CS_FLOAT2LRND(*p->iskpfrms);
   p->flag = 1;
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
@@ -935,7 +935,7 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
     p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
   if (UNLIKELY(sfinfo.channels <= 0 ||
                (size_t)sfinfo.channels > INT32_MAX / 4 / sizeof(cs_float) / p->frames))
-    return csound->InitError(csound, "%s", Str("invalid file channel count"));
+    return csound->InitError(csound, "%s\n", Str("invalid file channel count"));
   /* Keep the asynchronous queue's existing headroom. */
   p->f.bufsize = p->frames * sfinfo.channels * sizeof(cs_float);
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
@@ -948,7 +948,7 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
   if (UNLIKELY(p->f.nchnls <= 0 ||
                p->f.nchnls > INT32_MAX / p->frames)) {
     fout_deinit(csound, &p->f);
-    return csound->InitError(csound, "%s", Str("invalid file channel count"));
+    return csound->InitError(csound, "%s\n", Str("invalid file channel count"));
   }
   buf_reqd = (size_t)p->frames * p->f.nchnls * sizeof(cs_float);
   if (p->buf.auxp == NULL || p->buf.size < buf_reqd)
@@ -1098,7 +1098,7 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
   p->nargs = p->INOCOUNT - 3;
   if (UNLIKELY(!(*p->iskpfrms >= FL(0.0) &&
                  (cs_double)*p->iskpfrms <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, "%s", Str("invalid frame skip"));
+    return csound->InitError(csound, "%s\n", Str("invalid frame skip"));
   p->currpos = CS_FLOAT2LRND(*p->iskpfrms);
   p->flag = 1;
 
@@ -1109,7 +1109,7 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
 
   if (UNLIKELY(sfinfo.channels <= 0 ||
                (size_t)sfinfo.channels > INT32_MAX / 4 / sizeof(cs_float) / p->frames))
-    return csound->InitError(csound, "%s", Str("invalid file channel count"));
+    return csound->InitError(csound, "%s\n", Str("invalid file channel count"));
   /* Keep the asynchronous queue's existing headroom. */
   p->f.bufsize = p->frames * sfinfo.channels * sizeof(cs_float);
 
@@ -1121,7 +1121,7 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
 
   if (UNLIKELY(p->f.nchnls != p->nargs)) {
     fout_deinit(csound, &p->f);
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("file channels do not match input arguments"));
   }
   buf_reqd = (size_t)p->frames * p->f.nchnls * sizeof(cs_float);
@@ -1191,7 +1191,7 @@ static int32_t fini_read_text(CSOUND *csound, FILE *fp, cs_float *value)
     len = 0;
     do {
       if (len == sizeof(token) - 1)
-        return csound->InitError(csound, Str("fini: numeric token too long"));
+        return csound->InitError(csound, Str("fini: numeric token too long\n"));
       token[len++] = (char)c;
       c = getc(fp);
     } while (c != EOF && !isspace(c));
@@ -1203,7 +1203,7 @@ static int32_t fini_read_text(CSOUND *csound, FILE *fp, cs_float *value)
     start++;
   number = csound->Strtod(start, &end);
   if (end == start || *end != '\0')
-    return csound->InitError(csound, Str("fini: invalid numeric data"));
+    return csound->InitError(csound, Str("fini: invalid numeric data\n"));
   *value = (cs_float)number;
   return 1;
 }
@@ -1218,9 +1218,9 @@ static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
 
   if (*p->iflag != FL(0.0) && *p->iflag != FL(1.0) &&
       *p->iflag != FL(2.0))
-    return csound->InitError(csound, Str("fini: format must be 0, 1 or 2"));
+    return csound->InitError(csound, Str("fini: format must be 0, 1 or 2\n"));
   if (!(skip >= 0.0 && skip <= (INT32_MAX + 0.0)))
-    return csound->InitError(csound, Str("fini: invalid skip frame count"));
+    return csound->InitError(csound, Str("fini: invalid skip frame count\n"));
   format = (int32_t)*p->iflag;
   /* The stream is shared across init calls; it has no per-note borrower. */
   fout_open_file(csound, NULL, &fp, CSFILE_STD, p->fname, istring,
@@ -1237,13 +1237,13 @@ static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
     if (format == 2) {
       uint64_t bytes = (uint64_t)skip * (uint64_t)nargs * sizeof(float);
       if (bytes > LONG_MAX || fseek(fp, (long)bytes, SEEK_SET) != 0)
-        return csound->InitError(csound, Str("fini: cannot seek to frame"));
+        return csound->InitError(csound, Str("fini: cannot seek to frame\n"));
     }
     else {
       int64_t count = (int64_t)skip * nargs;
       cs_float ignored;
       if (fseek(fp, 0, SEEK_SET) != 0)
-        return csound->InitError(csound, Str("fini: cannot seek to frame"));
+        return csound->InitError(csound, Str("fini: cannot seek to frame\n"));
       while (count-- > 0) {
         int32_t status = fini_read_text(csound, fp, &ignored);
         if (status < 0)
@@ -1265,7 +1265,7 @@ static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
       int32_t status = fini_read_text(csound, fp, args[j]);
       if (status == 0 && format == 0 && !ferror(fp)) {
         if (fseek(fp, 0, SEEK_SET) != 0)
-          return csound->InitError(csound, Str("fini: cannot rewind file"));
+          return csound->InitError(csound, Str("fini: cannot rewind file\n"));
         /* Retry once: empty input must not loop forever. */
         status = fini_read_text(csound, fp, args[j]);
       }
@@ -1276,7 +1276,7 @@ static int32_t i_infile_(CSOUND *csound, I_INFILE *p, int32_t istring)
     }
   }
   if (ferror(fp))
-    return csound->InitError(csound, Str("fini: file read failed"));
+    return csound->InitError(csound, Str("fini: file read failed\n"));
   return OK;
 }
 
@@ -1340,7 +1340,7 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
                      (temp == '%' && tempn == '%')) ? 2 : 1;
     if ((size_t)(sdest - p->txtstring) + needed >= sizeof(p->txtstring))
       return csound->InitError(csound,
-                              Str("expanded format exceeds 8192 characters"));
+                              Str("expanded format exceeds 8192 characters\n"));
     /* Look for a single caret and insert an escape char.  */
     if ((temp  == '^') && (tempn != '^')) {
       *sdest++ = 0x1B; /* ESC */
@@ -1558,8 +1558,8 @@ static int32_t fprintf_output(CSOUND *csound, FPRINTF *p, int32_t init)
     error = Str("file write failed");
   if (error != NULL) {
     if (init)
-      return csound->InitError(csound, "%s", error);
-    return csound->PerfError(csound, &p->h, "%s", error);
+      return csound->InitError(csound, "%s\n", error);
+    return csound->PerfError(csound, &p->h, "%s\n", error);
   }
   return OK;
 }

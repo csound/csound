@@ -48,7 +48,7 @@ int32_t fassign_set(CSOUND *csound, FASSIGN *p)
     framesize = FASSIGN_FRAME_BYTES(p);
     if (UNLIKELY(p->fsrc->frame.auxp == NULL || framesize == 0 ||
                  p->fsrc->frame.size < framesize))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("fsig = : source is not initialised"));
 
     p->fout->N = p->fsrc->N;
@@ -80,7 +80,7 @@ int32_t fassign(CSOUND *csound, FASSIGN *p)
                  p->fout->frame.auxp == NULL ||
                  p->fsrc->frame.size < framesize ||
                  p->fout->frame.size < framesize))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("fsig = : incompatible frames"));
 
     /* A second assignment may have changed the destination while this
@@ -115,7 +115,7 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     cs_float *p_x;
 
     if (UNLIKELY(fs->sliding))
-      return csound->InitError(csound, Str("Sliding version not yet available"));
+      return csound->InitError(csound, Str("Sliding version not yet available\n"));
     p->overlap = fs->overlap;
     /* a moot question, whether window params are relevant for adsyn?*/
     /* but for now, we validate all params in fsig */
@@ -153,7 +153,7 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     if (UNLIKELY(lastbin >= numbins))
       return csound->InitError(csound, Str("pvsadsyn: "
                               "ibinoffset + ((inoscs - 1) * ibinincr) "
-                              "too large."));
+                              "too large.\n"));
     p->startbin = startbin;
     p->binincr = binincr;
     p->lastbin = (int32_t)lastbin;
@@ -293,7 +293,7 @@ int32_t pvscrosset(CSOUND *csound, PVSCROSS *p)
     p->format  = fsrc->format;
 
     if (UNLIKELY(p->format != PVS_AMP_FREQ && p->format != PVS_AMP_PHASE))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("pvscross: signal format must be "
                                    "amp-phase or amp-freq"));
     /* make sure fdest is same format */
@@ -392,7 +392,7 @@ static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
     else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.", 0);
 
     if (UNLIKELY(csoundPVOCEX_LoadFile(csound, pvfilnam, &pp) != 0)) {
-      return csound->InitError(csound, Str("Failed to load PVOC-EX file"));
+      return csound->InitError(csound, Str("Failed to load PVOC-EX file\n"));
     }
     p->ptr = 0;
     p->overlap = pp.overlap;
@@ -406,7 +406,7 @@ static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
     p->membase = (float*) pp.data;
 
     if (UNLIKELY(p->overlap < (int32_t)CS_KSMPS || p->overlap < 10))
-      return csound->InitError(csound, Str("Sliding version not yet available"));
+      return csound->InitError(csound, Str("Sliding version not yet available\n"));
     if (UNLIKELY(p->nframes <= 0))
       return csound->InitError(csound, Str("pvsfread: file is empty!\n"));
     /* special case if only one frame - it is an impulse response */
@@ -527,7 +527,7 @@ int32_t pvsmaskaset(CSOUND *csound, PVSMASKA *p)
     p->fftsize = N;
     if (UNLIKELY(!((p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE))))
       return csound->InitError(csound, Str("pvsmaska: "
-                              "signal format must be amp-phase or amp-freq."));
+                              "signal format must be amp-phase or amp-freq.\n"));
     /* setup output signal */
     p->fout->N =  N;
     p->fout->overlap = p->overlap;
@@ -582,7 +582,7 @@ int32_t pvsmaska(CSOUND *csound, PVSMASKA *p)
                                Str("pvsmaska: not initialised\n"));
     if (UNLIKELY(p->fsrc->N != p->fftsize ||
                  !fsigs_equal(p->fout, p->fsrc)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("pvsmaska: input format changed; "
                                    "reinitialise pvsmaska"));
 
@@ -679,7 +679,7 @@ int32_t pvsftwset(CSOUND *csound, PVSFTW *p)
     if (UNLIKELY(*p->ifnf < 0.0f))                /* 0 = notused */
       return csound->InitError(csound, Str("pvsftw: bad value for ifnf.\n"));
     if (UNLIKELY(p->fsrc->sliding))
-      return csound->InitError(csound, Str("Sliding version not yet available"));
+      return csound->InitError(csound, Str("Sliding version not yet available\n"));
     fsrc = (float *) p->fsrc->frame.auxp;               /* RWD MUST be 32bit */
     if (UNLIKELY(fsrc==NULL))
       return csound->InitError(csound, Str("pvsftw: not initialised\n"));
@@ -794,7 +794,7 @@ int32_t pvsftrset(CSOUND *csound, PVSFTR *p)
     if (UNLIKELY(*p->ifnf < FL(0.0)))
       return csound->InitError(csound, Str("pvsftr: bad value for ifnf.\n"));
     if (UNLIKELY(p->fdest->sliding))
-      return csound->InitError(csound, Str("Sliding version not yet available"));
+      return csound->InitError(csound, Str("Sliding version not yet available\n"));
     fdest = (float *) p->fdest->frame.auxp;             /* RWD MUST be 32bit */
     if (UNLIKELY(fdest==NULL))
       return csound->InitError(csound, Str("pvsftr: not initialised\n"));

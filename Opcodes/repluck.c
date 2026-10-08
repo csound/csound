@@ -57,7 +57,7 @@ static int32_t wgpsetin(CSOUND *csound, WGPLUCK2 *p)
     periodSamples = CS_ESR / (cs_double)*p->icps;
     if (UNLIKELY(!(periodSamples >= 1.0 &&
                    periodSamples <= (INT32_MAX + 0.0))))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("repluck/wgpluck2: invalid frequency"));
     period = (int32_t)periodSamples;
     scale = 512 / period;
@@ -70,7 +70,7 @@ static int32_t wgpsetin(CSOUND *csound, WGPLUCK2 *p)
     }
     pickpt = (int32_t)(rail_len * plk);
     if (UNLIKELY((size_t)rail_len > SIZE_MAX / sizeof(cs_float)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("repluck: delay line too large"));
     railBytes = (size_t)rail_len * sizeof(cs_float);
 

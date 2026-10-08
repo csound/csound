@@ -460,7 +460,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     s += ((int32_t) strlen(envList) + 1);
     p->nxt = (searchPathCacheEntry_t*) csound->searchPathCache;
     if (UNLIKELY(csoundGetDebug(csound) > 99))
-      csound->DebugMsg(csound, Str("Creating search path cache for '%s':"),
+      csound->DebugMsg(csound, Str("Creating search path cache for '%s':\n"),
                                p->name);
     for (i = 0; (i < pathCnt) && (path_lst != NULL); i++) {
       p->lst[i] = s;
@@ -470,7 +470,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
       csound->Free(csound, path_lst);
       path_lst = nxt;
       if (UNLIKELY(csoundGetDebug(csound) > 99))
-        csound->DebugMsg(csound, "%5d: \"%s\"", (i + 1), p->lst[i]);
+        csound->DebugMsg(csound, "%5d: \"%s\"\n", (i + 1), p->lst[i]);
     }
     p->lst[i] = NULL;
     /* link into database */

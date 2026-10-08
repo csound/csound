@@ -219,7 +219,7 @@ static int32_t directory(CSOUND *csound, DIR_STRUCT *p) {
 
   if (inArgCount < 1 || inArgCount > 2)
     return csound->InitError(
-        csound, "%s", Str("directory expects a path and an optional extension"));
+        csound, "%s\n", Str("directory expects a path and an optional extension"));
 
   if (inArgCount == 2) {
     const CS_TYPE *argType = GetTypeForArg(p->extension);
@@ -227,7 +227,7 @@ static int32_t directory(CSOUND *csound, DIR_STRUCT *p) {
       extension = ((STRINGDAT *)p->extension)->data;
     } else
       return csound->InitError(csound,
-                               "%s", Str("Error: second parameter to directory"
+                               "%s\n", Str("Error: second parameter to directory"
                                    " must be a string"));
   }
 
@@ -285,7 +285,7 @@ static int32_t searchDir(CSOUND *csound, const char *directory,
     // Sort names
     std::sort(fileNames.begin(), fileNames.end());
   } else {
-    return csound->InitError(csound, Str("cannot open directory: %s"), path);
+    return csound->InitError(csound, Str("cannot open directory: %s\n"), path);
   }
   return OK;
 }

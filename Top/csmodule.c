@@ -216,13 +216,13 @@ static int32_t check_plugin_compatibility(CSOUND *csound, const char *fname, int
   /* No metadata (n == 0) denotes the legacy ABI, never USE_FLOAT. */
   if (UNLIKELY((n & CSOUND_MODULE_USE_FLOAT) != floatABI)) {
     csoundWarning(csound, Str("not loading '%s' (incompatible cs_double precision; "
-                              "rebuild the plugin with matching USE_FLOAT)"), fname);
+                              "rebuild the plugin with matching USE_FLOAT)\n"), fname);
     return -1;
   }
   sampleSize = n & (0xFF ^ CSOUND_MODULE_USE_FLOAT);
   if (UNLIKELY(sampleSize != 0 && sampleSize != (int32_t) sizeof(cs_float))) {
     csoundWarning(csound, Str("not loading '%s' (uses incompatible "
-                              "floating point type)"), fname);
+                              "floating point type)\n"), fname);
     return -1;
   }
   if (UNLIKELY(n & (~0xFF))) {
@@ -231,7 +231,7 @@ static int32_t check_plugin_compatibility(CSOUND *csound, const char *fname, int
     if (majorVersion != (int32_t) CS_VERSION ||
         (minorVersion > (int32_t) CS_SUBVER)) { /* NOTE **** REFACTOR *** */
       csoundWarning(csound, Str("not loading '%s' (incompatible "
-                                "with this version of Csound (%d.%d/%d.%d)"),
+                                "with this version of Csound (%d.%d/%d.%d)\n"),
                     fname, majorVersion,minorVersion,
                     CS_VERSION,CS_SUBVER);
       return -1;
@@ -468,13 +468,13 @@ int32_t csoundLoadDefaultModules(CSOUND *csound) {
   err = csoundLoadModules(csound);
   if (csound->delayederrormessages &&
       csound->printerrormessagesflag == NULL) {
-    csound->Warning(csound, "%s", csound->delayederrormessages);
+    csound->Warning(csound, "%s\n", csound->delayederrormessages);
     csound->Free(csound, csound->delayederrormessages);
     csound->delayederrormessages = NULL;
   }
   if (UNLIKELY(err != CSOUND_SUCCESS)) {
     csound->default_modules_loaded = 0;
-    csound->Die(csound, Str("Failed during csoundLoadModules"));
+    csound->Die(csound, Str("Failed during csoundLoadModules\n"));
   }
   if (csoundInitModules(csound) != 0) {
     csound->default_modules_loaded = 0;
@@ -581,7 +581,7 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
       /* must have csound_opcode_init() or csound_fgen_init() */
       close_library(h);
       if (UNLIKELY(csound->oparms->msglevel & 0x400))
-        csound->Warning(csound, Str("'%s' is not a Csound plugin library"),
+        csound->Warning(csound, Str("'%s' is not a Csound plugin library\n"),
                         libraryPath);
       return CSOUND_ERROR;
     }
@@ -792,7 +792,7 @@ int32_t csoundLoadModules(CSOUND *csound)
         /* Always report explicitly configured paths; fallback directories
            remain quiet unless verbose mode is enabled. */
         if (warn_bad_directory || csound->oparms->odebug)
-          csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
+          csound->Warning(csound, Str("Error opening plugin directory '%s': %s\n"),
                           dname1, strerror(errno));
       csound->Free(csound, dname1);
       continue;
@@ -826,7 +826,7 @@ int32_t csoundLoadModules(CSOUND *csound)
         continue;
       /* found a dynamic library, attempt to open it */
       if (UNLIKELY(((int32_t) strlen(dname) + len + 2) > 1024)) {
-        csound->Warning(csound, Str("path name too long, skipping '%s'"),
+        csound->Warning(csound, Str("path name too long, skipping '%s'\n"),
                         fname);
         continue;
       }
@@ -890,13 +890,13 @@ int32_t csoundLoadDefaultModules(CSOUND *csound) {
   err = csoundLoadModules(csound);
   if (csound->delayederrormessages &&
       csound->printerrormessagesflag == NULL) {
-    csound->Warning(csound, "%s", csound->delayederrormessages);
+    csound->Warning(csound, "%s\n", csound->delayederrormessages);
     csound->Free(csound, csound->delayederrormessages);
     csound->delayederrormessages = NULL;
   }
   if (UNLIKELY(err != CSOUND_SUCCESS)) {
     csound->default_modules_loaded = 0;
-    csound->Die(csound, Str("Failed during csoundLoadModules"));
+    csound->Die(csound, Str("Failed during csoundLoadModules\n"));
   }
   if (csoundInitModules(csound) != 0) {
     csound->default_modules_loaded = 0;
@@ -988,7 +988,7 @@ int32_t csoundLoadExternals(CSOUND *csound)
     if (fname[0] != '\0' && !(i && strcmp(fname, lst[i - 1]) == 0)) {
       err = load_explicit_opcode_library(csound, fname);
       if (UNLIKELY(err == CSOUND_INITIALIZATION || err == CSOUND_MEMORY))
-        csoundDie(csound, Str(" *** error loading '%s'"), fname);
+        csoundDie(csound, Str(" *** error loading '%s'\n"), fname);
       else if (!err)
         csoundMessage(csound, Str("loaded %s\n"), fname);
       else
@@ -1126,7 +1126,7 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
 #if defined(__HAIKU__)
       if(!dfltdir)
 #endif
-        csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
+        csound->Warning(csound, Str("Error opening plugin directory '%s': %s\n"),
                         dname1, strerror(errno));
       csound->Free(csound, dname1);
       continue;
@@ -1161,7 +1161,7 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
         continue;
       /* found a dynamic library, attempt to open it */
       if (UNLIKELY(((int32_t) strlen(dname) + len + 2) > 1024)) {
-        csound->Warning(csound, Str("path name too long, skipping '%s'"),
+        csound->Warning(csound, Str("path name too long, skipping '%s'\n"),
                         fname);
         continue;
       }

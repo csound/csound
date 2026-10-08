@@ -74,7 +74,7 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
   case 9:  sfinfo.format |= (int32_t) FORMAT2SF(AE_DOUBLE); break;
   default:
     csound->Free(csound, fname);
-    return csound->InitError(csound, Str("invalid sample format: %d"),
+    return csound->InitError(csound, Str("invalid sample format: %d\n"),
                              sampleFormat);
   }
   if (sfinfo.format) {
@@ -86,7 +86,7 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
   }
   sf = csound->LoadSoundFile(csound, fname,  &sfinfo);
   if (UNLIKELY(sf == NULL)) {
-    int32_t xx = csound->InitError(csound, Str("could not load '%s'"), fname);
+    int32_t xx = csound->InitError(csound, Str("could not load '%s'\n"), fname);
     csound->Free(csound, fname);
     return xx;
   }
@@ -100,7 +100,7 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
   loopMode = (int32_t) CS_FLOAT2LRND(*(p->iLoopMode1));
   if (loopMode >= 0) {
     if (UNLIKELY(loopMode > 3))
-      return csound->InitError(csound, Str("invalid loop mode: %d"),
+      return csound->InitError(csound, Str("invalid loop mode: %d\n"),
                                loopMode);
     sf->loopMode = loopMode + 1;
     sf->loopStart = *(p->iLoopStart1);
@@ -218,7 +218,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
   nChannels = GetOutputArgCnt((OPDS *)p);
   if (UNLIKELY(nChannels < 1 || nChannels > LOSCILX_MAXOUTS))
     return csound->InitError(csound,
-                             "%s", Str("loscilx: invalid number of output arguments"));
+                             "%s\n", Str("loscilx: invalid number of output arguments"));
   p->nChannels = nChannels;
   if (IsStringCode(*p->ifn)) {
     SNDMEMFILE  *sf;
@@ -228,7 +228,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
                                (char*) csound->GetArgString(csound, *p->ifn),
                                (SFLIB_INFO *) NULL);
     if (UNLIKELY(sf == NULL))
-      return csound->InitError(csound, Str("could not load '%s'"),
+      return csound->InitError(csound, Str("could not load '%s'\n"),
                                (char*) p->ifn);
     if (sf->loopMode < 2 || sf->loopStart == sf->loopEnd) {
       sf->loopStart = 0.0;
@@ -240,7 +240,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       sf->loopEnd = tmp;
     }
     if (UNLIKELY(sf->nChannels != nChannels))
-      return csound->InitError(csound, "%s", Str("number of output arguments "
+      return csound->InitError(csound, "%s\n", Str("number of output arguments "
                                                  "inconsistent with number of "
                                                  "sound file channels"));
     dataPtr = (void*) &(sf->data[0]);
@@ -269,7 +269,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     if (ftp == NULL)
       return NOTOK;
     if (UNLIKELY((int32_t) ftp->nchanls != nChannels))
-      return csound->InitError(csound, "%s", Str("number of output arguments "
+      return csound->InitError(csound, "%s\n", Str("number of output arguments "
                                                  "inconsistent with number of "
                                                  "sound file channels"));
     dataPtr = (void*) &(ftp->ftable[0]);
@@ -301,7 +301,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     p->ampScale = FL(1.0);
     p->nFrames = ftp->flenfrms;
     if (UNLIKELY(p->nFrames < 1))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("loscilx: table contains no complete frames"));
   }
   if (*(p->istrt) >= FL(0.0))
@@ -311,7 +311,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
   loopMode = (int32_t) CS_FLOAT2LRND(*(p->imod1));
   if (loopMode >= 0) {
     if (UNLIKELY(loopMode > 3))
-      return csound->InitError(csound, Str("invalid loop mode: %d"),
+      return csound->InitError(csound, Str("invalid loop mode: %d\n"),
                                loopMode);
     p->curLoopMode = loopMode;
     p->curLoopStart = loscilx_convert_phase((cs_double) *(p->ibeg1));
@@ -380,7 +380,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
                                (char*) csound->GetArgString(csound, *p->ifn),
                                (SFLIB_INFO *) NULL);
     if (UNLIKELY(sf == NULL))
-      return csound->InitError(csound, Str("could not load '%s'"),
+      return csound->InitError(csound, Str("could not load '%s'\n"),
                                (char*) p->ifn);
     if (sf->loopMode < 2 || sf->loopStart == sf->loopEnd) {
       sf->loopStart = 0.0;
@@ -453,7 +453,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
     p->ampScale = FL(1.0);
     p->nFrames = ftp->flenfrms;
     if (UNLIKELY(p->nFrames < 1))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("loscilx: table contains no complete frames"));
   }
   if (*(p->istrt) >= FL(0.0))
@@ -463,7 +463,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
   loopMode = (int32_t) CS_FLOAT2LRND(*(p->imod1));
   if (loopMode >= 0) {
     if (UNLIKELY(loopMode > 3))
-      return csound->InitError(csound, Str("invalid loop mode: %d"),
+      return csound->InitError(csound, Str("invalid loop mode: %d\n"),
                                loopMode);
     p->curLoopMode = loopMode;
     p->curLoopStart = loscilx_convert_phase((cs_double) *(p->ibeg1));
@@ -881,7 +881,7 @@ static int32_t loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("loscilx: not initialised"));
+                           "%s\n", Str("loscilx: not initialised"));
 }
 
 static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
@@ -1149,7 +1149,7 @@ static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("loscilxa: not initialised"));
+                           "%s\n", Str("loscilxa: not initialised"));
 }
 
 /* ------------------------------------------------------------------------ */

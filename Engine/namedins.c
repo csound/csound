@@ -92,7 +92,7 @@ int32 csoundStringArg2Insno(CSOUND *csound, void *p, int32_t is_string)
       insno = (int32) *((cs_float*) p);
       if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                    !csound->engineState.instrtxtp[insno])) {
-        csound->Warning(csound, Str("Cannot Find Instrument %d"), (int32_t) insno);
+        csound->Warning(csound, Str("Cannot Find Instrument %d\n"), (int32_t) insno);
         return csound->engineState.maxinsno;
       }
     }
@@ -130,7 +130,7 @@ int32 string_arg_to_opcno(CSOUND *csound, void *p, int32_t is_string, int32_t fo
         insno = (int32) *((cs_float*) p);
         if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                      !csound->engineState.instrtxtp[insno])) {
-          csound->InitError(csound, Str("Cannot Find Instrument %d"), (int32_t) insno);
+          csound->InitError(csound, Str("Cannot Find Instrument %d\n"), (int32_t) insno);
           return NOT_AN_INSTRUMENT;
         }
       }
@@ -142,7 +142,7 @@ int32 string_arg_to_opcno(CSOUND *csound, void *p, int32_t is_string, int32_t fo
     }
     if (UNLIKELY(insno < 1)) {
       csound->InitError(csound,
-                        Str("cannot find the specified instrument or opcode"));
+                        Str("cannot find the specified instrument or opcode\n"));
       insno = NOT_AN_INSTRUMENT;
     }
     return insno;

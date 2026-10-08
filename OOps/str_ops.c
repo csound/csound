@@ -85,7 +85,7 @@ static void str_set(CSOUND *csound, int32_t ndx, const char *s)
     csound->strsmax = newmax;
   }
   if (UNLIKELY(ndx < 0))  {  /* -ve index */
-    csound->InitError(csound, Str("illegal strset index"));
+    csound->InitError(csound, Str("illegal strset index\n"));
     return;
   }
 
@@ -93,8 +93,8 @@ static void str_set(CSOUND *csound, int32_t ndx, const char *s)
     if (strcmp(s, csound->strsets[ndx]) == 0)
       return;
     if (UNLIKELY(csound->oparms->msglevel & CS_WARNMSG)) {
-      csound->Warning(csound, Str("strset index conflict at %d"), ndx);
-      csound->Warning(csound, Str("previous value: '%s', replaced with '%s'"),
+      csound->Warning(csound, Str("strset index conflict at %d\n"), ndx);
+      csound->Warning(csound, Str("previous value: '%s', replaced with '%s'\n"),
 		      csound->strsets[ndx], s);
     }
     csound->Free(csound, csound->strsets[ndx]);
@@ -118,14 +118,14 @@ void strset_option(CSOUND *csound, char *s)
   int32_t indx = 0;
 
   if (UNLIKELY(!isdigit(*s))) {
-    csound->Warning(csound, Str("--strset: invalid format"));
+    csound->Warning(csound, Str("--strset: invalid format\n"));
     return;
   }
   do {
     indx = (indx * 10) + (int32_t) (*s++ - '0');
   } while (isdigit(*s));
   if (UNLIKELY(*s++ != '=')){
-    csound->Warning(csound, Str("--strset: invalid format"));
+    csound->Warning(csound, Str("--strset: invalid format\n"));
     return;
   }
   str_set(csound, indx, s);
@@ -143,7 +143,7 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
     if (len >= p->r->size) {
       char *temp = csound->ReAlloc(csound, p->r->data, len + 1);
       if (UNLIKELY(temp == NULL)) {
-        return csoundInitError(csound, Str("strget_init: allocation failure"));
+        return csoundInitError(csound, Str("strget_init: allocation failure\n"));
       }
       /* Only update the structure after successful reallocation */
       p->r->data = temp;
@@ -195,12 +195,12 @@ static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
   const char  *opname = GetOpcodeName(p);
 
   if (UNLIKELY(csound->ids != NULL && csound->ids->insdshead == csound->curip))
-    return csound->InitError(csound, "%s: %s", opname, Str(msg));
+    return csound->InitError(csound, "%s: %s\n", opname, Str(msg));
   else if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
     return csound->PerfError(csound, (OPDS*)p,
-			     "%s: %s", opname, Str(msg));
+			     "%s: %s\n", opname, Str(msg));
   else
-    csound->Warning(csound, "%s: %s", opname, Str(msg));
+    csound->Warning(csound, "%s: %s\n", opname, Str(msg));
 
   return NOTOK;
 }
@@ -236,7 +236,7 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
           return csoundPerfError(csound, (OPDS*)p,
                                  Str("strcpy_opcode_p: Memory allocation failed\n"));
         } else {
-          return csoundInitError(csound, Str("strcpy_opcode_p: allocation failure"));
+          return csoundInitError(csound, Str("strcpy_opcode_p: allocation failure\n"));
         }
       }
       /* Only update the structure after successful reallocation */
@@ -284,11 +284,11 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
   if(size >= MAX_STRINGDAT_SIZE) {
      if(is_perf_thread(&p->h))
      return csound->PerfError(csound, &p->h,
-		       Str("strcatk: requested alloc size exceeds max (%u bytes)"),
+		       Str("strcatk: requested alloc size exceeds max (%u bytes)\n"),
 		       MAX_STRINGDAT_SIZE);
      else
      return csound->InitError(csound,
-		       Str("strcat: requested alloc size exceeds max (%u bytes)"),
+		       Str("strcat: requested alloc size exceeds max (%u bytes)\n"),
 		       MAX_STRINGDAT_SIZE);
    }
   if(p->str1 != p->r && p->str2 != p->r) {
@@ -298,18 +298,18 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
       if (size > (SIZE_MAX - 1) / 2) {
         if(is_perf_thread(&p->h))
           return csound->PerfError(csound, &p->h,
-                         Str("strcatk: allocation size overflow"));
+                         Str("strcatk: allocation size overflow\n"));
         else
-          return csound->InitError(csound, Str("strcat: allocation size overflow"));
+          return csound->InitError(csound, Str("strcat: allocation size overflow\n"));
       }
       alloc_size = 2 * size + 1; // +1 for null terminator
       char *temp = csound->ReAlloc(csound, p->r->data, alloc_size);
       if (UNLIKELY(temp == NULL)) {
         if(is_perf_thread(&p->h))
           return csound->PerfError(csound, &p->h,
-                         Str("strcatk: allocation failure"));
+                         Str("strcatk: allocation failure\n"));
         else
-          return csound->InitError(csound, Str("strcat: allocation failure"));
+          return csound->InitError(csound, Str("strcat: allocation failure\n"));
       }
       p->r->data = temp;
       p->r->size = alloc_size;
@@ -324,18 +324,18 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
        if (size > SIZE_MAX / 2) {
          if(is_perf_thread(&p->h))
            return csound->PerfError(csound, &p->h,
-                          Str("strcatk: allocation size overflow"));
+                          Str("strcatk: allocation size overflow\n"));
          else
-           return csound->InitError(csound, Str("strcat: allocation size overflow"));
+           return csound->InitError(csound, Str("strcat: allocation size overflow\n"));
        }
        alloc_size = 2 * size;
        char *temp = csound->ReAlloc(csound, p->r->data, alloc_size);
        if (UNLIKELY(temp == NULL)) {
          if(is_perf_thread(&p->h))
            return csound->PerfError(csound, &p->h,
-                          Str("strcatk: allocation failure"));
+                          Str("strcatk: allocation failure\n"));
          else
-           return csound->InitError(csound, Str("strcat: allocation failure"));
+           return csound->InitError(csound, Str("strcat: allocation failure\n"));
        }
        p->r->data = temp;
        p->r->size = alloc_size;
@@ -351,18 +351,18 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
        if (size > SIZE_MAX / 2) {
          if(is_perf_thread(&p->h))
            return csound->PerfError(csound, &p->h,
-                          Str("strcatk: allocation size overflow"));
+                          Str("strcatk: allocation size overflow\n"));
          else
-           return csound->InitError(csound, Str("strcat: allocation size overflow"));
+           return csound->InitError(csound, Str("strcat: allocation size overflow\n"));
        }
        alloc_size = 2 * size;
        char *temp = csound->ReAlloc(csound, p->r->data, alloc_size);
        if (UNLIKELY(temp == NULL)) {
          if(is_perf_thread(&p->h))
            return csound->PerfError(csound, &p->h,
-                          Str("strcatk: allocation failure"));
+                          Str("strcatk: allocation failure\n"));
          else
-           return csound->InitError(csound, Str("strcat: allocation failure"));
+           return csound->InitError(csound, Str("strcat: allocation failure\n"));
        }
        p->r->data = temp;
        p->r->size = alloc_size;
@@ -380,18 +380,18 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
         if (size > SIZE_MAX / 2) {
           if(is_perf_thread(&p->h))
             return csound->PerfError(csound, &p->h,
-                           Str("strcatk: allocation size overflow"));
+                           Str("strcatk: allocation size overflow\n"));
           else
-            return csound->InitError(csound, Str("strcat: allocation size overflow"));
+            return csound->InitError(csound, Str("strcat: allocation size overflow\n"));
         }
         alloc_size = 2 * size;
         char *temp = csound->ReAlloc(csound, p->r->data, alloc_size);
         if (UNLIKELY(temp == NULL)) {
           if(is_perf_thread(&p->h))
             return csound->PerfError(csound, &p->h,
-                           Str("strcatk: allocation failure"));
+                           Str("strcatk: allocation failure\n"));
           else
-            return csound->InitError(csound, Str("strcat: allocation failure"));
+            return csound->InitError(csound, Str("strcat: allocation failure\n"));
         }
         p->r->data = temp;
         p->r->size = alloc_size;
@@ -905,7 +905,7 @@ int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
       char *temp = csound->ReAlloc(csound, p->Sdst->data, size);
       if (UNLIKELY(temp == NULL)) {
         /* ReAlloc failed, keep the original buffer and return error */
-        return csound->InitError(csound, Str("strupper: memory allocation failure"));
+        return csound->InitError(csound, Str("strupper: memory allocation failure\n"));
       }
       p->Sdst->data = temp;
       p->Sdst->size = size;
@@ -936,7 +936,7 @@ int32_t strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
       char *temp = csound->ReAlloc(csound, p->Sdst->data, size);
       if (UNLIKELY(temp == NULL)) {
         /* ReAlloc failed, keep the original buffer and return error */
-        return csound->InitError(csound, Str("strlower: memory allocation failure"));
+        return csound->InitError(csound, Str("strlower: memory allocation failure\n"));
       }
       p->Sdst->data = temp;
       p->Sdst->size = size;
@@ -975,7 +975,7 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
     char *temp = csound->ReAlloc(csound, p->Sdst->data, 32);
     if (UNLIKELY(temp == NULL)) {
       /* ReAlloc failed, keep the original buffer and return error */
-      return csound->InitError(csound, Str("getcfg: memory allocation failure"));
+      return csound->InitError(csound, Str("getcfg: memory allocation failure\n"));
     }
     p->Sdst->data = temp;
     p->Sdst->size = 32;
@@ -1025,7 +1025,7 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
     buf[1] = '\0';
     break;
   default:
-    return csound->InitError(csound, Str("invalid option code: %g"),
+    return csound->InitError(csound, Str("invalid option code: %g\n"),
 			     *(p->iopt));
   }
   if (s != NULL) {
@@ -1040,7 +1040,7 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
       char *temp = csound->ReAlloc(csound, p->Sdst->data, len);
       if (UNLIKELY(temp == NULL)) {
         /* ReAlloc failed, keep the original buffer and return error */
-        return csound->InitError(csound, Str("getcfg: memory allocation failure"));
+        return csound->InitError(csound, Str("getcfg: memory allocation failure\n"));
       }
       p->Sdst->data = temp;
       p->Sdst->size = len;

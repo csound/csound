@@ -121,12 +121,12 @@ struct LFSR : csnd::Plugin<1, 3> {
 
     int32_t init() {
         if (!(inargs[0] >= 1 && inargs[0] < 32))
-            return csound->init_error(Str_noop("lfsr: register length must be 1 to 31"));
+            return csound->init_error(Str_noop("lfsr: register length must be 1 to 31\n"));
         if (!(inargs[1] >= 1 && inargs[1] < 256))
-            return csound->init_error(Str_noop("lfsr: probability must be 1 to 255"));
+            return csound->init_error(Str_noop("lfsr: probability must be 1 to 255\n"));
         cs_double seed = in_count() == 3 ? static_cast<cs_double>(inargs[2]) : -1.0;
         if (!std::isfinite(seed))
-            return csound->init_error(Str_noop("lfsr: seed must be finite"));
+            return csound->init_error(Str_noop("lfsr: seed must be finite\n"));
         // Convert bit patterns modulo 2^32, including the documented -1.
         seed = std::fmod(std::trunc(seed), 4294967296.0);
         length_ = static_cast<uint8_t>(inargs[0]);

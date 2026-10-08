@@ -177,7 +177,7 @@ static int32_t CloseMidiInDevice_(CSOUND *csound, void *userData)
     if (strcmp(drv, "ipmidi") != 0)
       return 0;
 
-    csound->DebugMsg(csound, "%s", Str("ipmidi: ipMIDI module enabled\n"));
+    csound->DebugMsg(csound, "%s\n", Str("ipmidi: ipMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
     csound->SetExternalMidiReadCallback(csound, ReadMidiData_);
     csound->SetExternalMidiInCloseCallback(csound, CloseMidiInDevice_);

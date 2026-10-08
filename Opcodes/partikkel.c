@@ -23,9 +23,9 @@ Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 #include <limits.h>
 #include <math.h>
 
-#define INITERROR(x) csound->InitError(csound, "%s", Str("partikkel: " x))
-#define PERFERROR(x) csound->PerfError(csound, &(p->h), "%s", Str("partikkel: " x))
-#define WARNING(x) csound->Warning(csound, "%s", Str("partikkel: " x))
+#define INITERROR(x) csound->InitError(csound, "%s\n", Str("partikkel: " x))
+#define PERFERROR(x) csound->PerfError(csound, &(p->h), "%s\n", Str("partikkel: " x))
+#define WARNING(x) csound->Warning(csound, "%s\n", Str("partikkel: " x))
 
 /* Assume csound and p pointers are always available */
 #define frand() (csound->RandMT(&p->randstate)/(cs_double)(0xffffffff))
@@ -878,17 +878,17 @@ static int32_t partikkelsync_init(CSOUND *csound, PARTIKKEL_SYNC *p)
 
     if (UNLIKELY((int32_t)*p->opcodeid == 0))
         return csound->InitError(csound,
-            "%s", Str("partikkelsync: opcode id needs to be a non-zero integer"));
+            "%s\n", Str("partikkelsync: opcode id needs to be a non-zero integer"));
     pg = csound->QueryGlobalVariable(csound, "partikkel");
     if (UNLIKELY(pg == NULL || pg->rootentry == NULL))
         return csound->InitError(csound,
-            "%s", Str("partikkelsync: could not find opcode id"));
+            "%s\n", Str("partikkelsync: could not find opcode id"));
     pe = pg->rootentry;
     while (pe->id != *p->opcodeid && pe->next != NULL)
         pe = pe->next;
     if (UNLIKELY(pe->id != *p->opcodeid))
         return csound->InitError(csound,
-            "%s", Str("partikkelsync: could not find opcode id"));
+            "%s\n", Str("partikkelsync: could not find opcode id"));
     p->ge = pe;
     /* find out if we're supposed to output grain scheduler phase too */
     p->output_schedphase = GetOutputArgCnt((OPDS *)p) > 1;
@@ -919,7 +919,7 @@ static int32_t get_global_entry(CSOUND *csound, PARTIKKEL_GLOBALS_ENTRY **entry,
     pg = csound->QueryGlobalVariable(csound, "partikkel");
     if (UNLIKELY(pg == NULL))
         return csound->InitError(csound,
-                                 Str("%s: partikkel not initialized"), prefix);
+                                 Str("%s: partikkel not initialized\n"), prefix);
     /* try to find entry corresponding to our opcodeid */
     pe = pg->rootentry;
     while (pe != NULL && pe->id != opcodeid)
@@ -927,7 +927,7 @@ static int32_t get_global_entry(CSOUND *csound, PARTIKKEL_GLOBALS_ENTRY **entry,
 
     if (UNLIKELY(pe == NULL))
         return csound->InitError(csound,
-                                 Str("%s: could not find opcode id"), prefix);
+                                 Str("%s: could not find opcode id\n"), prefix);
     *entry = pe;
     return OK;
 }

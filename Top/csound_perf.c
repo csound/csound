@@ -202,7 +202,7 @@ unsigned long kperf_thread(void *cs) {
                       "%d starting.\n"),
                   index + 1, numThreads);
   if (UNLIKELY(index < 0)) {
-    csound->Die(csound, Str("Bad ThreadId"));
+    csound->Die(csound, Str("Bad ThreadId\n"));
     return ULONG_MAX;
   }
   index++;

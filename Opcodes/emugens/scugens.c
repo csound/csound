@@ -140,7 +140,7 @@ static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
     cs_float y0 = *p->in;
 
     if(UNLIKELY(em_isinfornan(y0))) {
-        return PERFERRF("Non-finite or nan value detected: %f", y0);
+        return PERFERRF("Non-finite or nan value detected: %f\n", y0);
     }
 
     cs_float lag = *p->lagtime;
@@ -167,7 +167,7 @@ static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
     }
     cs_float out = *(p->out);
     if (UNLIKELY(em_isnan(out))) {
-        return PERFERR("Output should not be nan!");
+        return PERFERR("Output should not be nan!\n");
     }
     return OK;
 }
@@ -287,7 +287,7 @@ lagud_k(CSOUND *csound, LagUD *p) {
     double y1;
 
     if(UNLIKELY(em_isinfornan(y0))) {
-        return PERFERRF("Non-finite value detected: %f", y0);
+        return PERFERRF("Non-finite value detected: %f\n", y0);
     }
 
     if(LIKELY(p->started))

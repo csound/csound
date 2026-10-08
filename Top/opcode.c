@@ -348,7 +348,7 @@ int32_t opcode_ref(CSOUND *csound, ASSIGN *p) {
   STRINGDAT *str = (STRINGDAT *) p->a;
   if(find_opcode(csound, str->data))
     pp->entries = find_opcode2(csound, str->data);
-  else return csound->InitError(csound, Str("could not find opcode %s"), str->data);
+  else return csound->InitError(csound, Str("could not find opcode %s\n"), str->data);
   return OK;
 }
 
@@ -1245,13 +1245,13 @@ int32_t create_opcode_simple(CSOUND *csound, AOP *p) {
     if(obj->dataspace == NULL || obj->size < entry->dsblksiz) {
       if((obj->dataspace = opcode_dataspace_new(csound, entry, &(p->h)))
           == NULL)
-        return csound->InitError(csound, Str("could not allocate opcode object"));
+        return csound->InitError(csound, Str("could not allocate opcode object\n"));
      }
       obj->udo_flag = entry->useropinfo == NULL ? 0  : 1;
       obj->size = entry->dsblksiz;
       return OK;
   }
-  return csound->InitError(csound, Str("invalid opcode reference"));
+  return csound->InitError(csound, Str("invalid opcode reference\n"));
 }
 
 /**
@@ -1274,14 +1274,14 @@ int32_t create_opcode_array(CSOUND *csound, OPARRAY *p) {
       if(obj[i].dataspace == NULL || obj[i].size < entry->dsblksiz) {
        if((obj[i].dataspace = opcode_dataspace_new(csound, entry, &(p->h)))
           == NULL)
-        return csound->InitError(csound, Str("could not allocate opcode object"));
+        return csound->InitError(csound, Str("could not allocate opcode object\n"));
       }
       obj[i].udo_flag = entry->useropinfo == NULL ? 0  : 1;
       obj[i].size = entry->dsblksiz;
       }
     return OK;
   }
-  return csound->InitError(csound, Str("invalid opcode reference"));
+  return csound->InitError(csound, Str("invalid opcode reference\n"));
 }
 
 /**
@@ -1345,7 +1345,7 @@ int32_t opcode_object_init(CSOUND *csound, OPRUN *p) {
   }
   return csound->InitError(csound, Str("mismatching arguments\n"
                            "for opcode obj %s\t"
-                           "outypes: %s\tintypes: %s"),
+                           "outypes: %s\tintypes: %s\n"),
                            obj->dataspace->optext->t.oentry->opname,
                            obj->dataspace->optext->t.oentry->outypes,
                            obj->dataspace->optext->t.oentry->intypes);
@@ -1371,7 +1371,7 @@ int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
                 p->INOCOUNT - 1) != OK)
       return csound->PerfError(csound, &(p->h), Str("mismatching arguments\n"
                            "for opcode obj %s\t"
-                           "outypes: %s\tintypes: %s"),
+                           "outypes: %s\tintypes: %s\n"),
                            obj->dataspace->optext->t.oentry->opname,
                            obj->dataspace->optext->t.oentry->outypes,
                                obj->dataspace->optext->t.oentry->intypes);
@@ -1494,7 +1494,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
         if (UNLIKELY(csound_array_has_managed_elements(array))) {
           return csound->InitError(
             csound,
-            Str("Opcode[] run does not support managed array output elements"));
+            Str("Opcode[] run does not support managed array output elements\n"));
         }
         size = array->arrayMemberSize;
         ndx = i + j*n;
@@ -1519,7 +1519,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
         if (UNLIKELY(csound_array_has_managed_elements(array))) {
           return csound->InitError(
             csound,
-            Str("Opcode[] run does not support managed array input elements"));
+            Str("Opcode[] run does not support managed array input elements\n"));
         }
         ndx = i + n*m;
         size = array->arrayMemberSize;
@@ -1559,7 +1559,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       }
     } else return csound->InitError(csound, Str("mismatching arguments\n"
                                     "for opcode obj %s\t"
-                                    "outypes: %s\tintypes: %s"),
+                                    "outypes: %s\tintypes: %s\n"),
                                     obj->dataspace->optext->t.oentry->opname,
                                     obj->dataspace->optext->t.oentry->outypes,
                                     obj->dataspace->optext->t.oentry->intypes);
@@ -1707,10 +1707,10 @@ static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
     if (UNLIKELY(csound_array_has_managed_elements(source))) {
       return initializing
         ? csound->InitError(
-            csound, Str("getp does not support managed array outputs"))
+            csound, Str("getp does not support managed array outputs\n"))
         : csound->PerfError(
             csound, &p->h,
-            Str("getp does not support managed array outputs"));
+            Str("getp does not support managed array outputs\n"));
     }
     result = csound_array_copy_independent(
       csound, destination, source, p->h.insdshead,
@@ -1719,10 +1719,10 @@ static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
     if (UNLIKELY(result != OK)) {
       return initializing
         ? csound->InitError(csound,
-                            Str("could not prepare getp array output"))
+                            Str("could not prepare getp array output\n"))
         : csound->PerfError(
             csound, &p->h,
-            Str("getp array output changed capacity during performance"));
+            Str("getp array output changed capacity during performance\n"));
     }
     return OK;
   }
@@ -1731,9 +1731,9 @@ static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
                destinationType->copyValue == NULL)) {
     return initializing
       ? csound->InitError(csound,
-                          Str("getp does not support managed outputs"))
+                          Str("getp does not support managed outputs\n"))
       : csound->PerfError(csound, &p->h,
-                          Str("getp does not support managed outputs"));
+                          Str("getp does not support managed outputs\n"));
   }
   destinationType->copyValue(csound, destinationType, p->r,
                              outargs[ndx], p->h.insdshead);

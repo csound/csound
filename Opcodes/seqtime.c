@@ -54,7 +54,7 @@ static int32_t seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
     p->pfn = (int32) *p->kfn;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL)) {
       return csound->InitError(csound,
-                               "%s", Str("seqtime: incorrect table number"));
+                               "%s\n", Str("seqtime: incorrect table number"));
     }
     *ndx = (int32) *p->initndx;
     p->done = 0;
@@ -146,7 +146,7 @@ static int32_t seqtim(CSOUND *csound, SEQTIM *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("seqtime: incorrect table number"));
+                             "%s\n", Str("seqtime: incorrect table number"));
 }
 
 /**---------------------------------------**/
@@ -197,14 +197,14 @@ static int32_t seqtim2_set(CSOUND *csound, SEQTIM2 *p)
     if (UNLIKELY(!(number >= INT32_MIN && number <= (INT32_MAX + 0.0)) ||
                  (ftp = csound->FTFind(csound, p->kfn)) == NULL ||
                  ftp->flen > INT32_MAX))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("seqtime2: incorrect table number or size"));
     p->pfn = (int32_t)number;
     p->table = ftp->ftable;
     p->flen = ftp->flen;
     if (UNLIKELY(!(index >= 0.0 && index < p->flen) ||
                  seqtim2_range(p, &start, &loop) != OK))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("seqtime2: index or loop out of range"));
     p->ndx = (int32_t)index;
     p->done = 0;
@@ -267,10 +267,10 @@ static int32_t seqtim2(CSOUND *csound, SEQTIM2 *p)
       *p->ktrig = FL(0.0);
     return OK;
  table_error:
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csound->PerfError(csound, &(p->h), "%s\n",
                              Str("seqtime2: incorrect table number or size"));
  range_error:
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csound->PerfError(csound, &(p->h), "%s\n",
                              Str("seqtime2: index or loop out of range"));
 }
 

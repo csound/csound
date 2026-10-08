@@ -47,18 +47,14 @@ extern "C" {
   void fdchclose(CSOUND *, INSDS *);
   char *csoundStrdup(CSOUND*, const char*);
   char *cs_strndup(CSOUND*, const char*, size_t);
+  /* Messaging functions never append a newline. Complete diagnostics must
+     include their line endings in the caller's format or text. */
   CS_PRINTF2  void synterr(CSOUND *, const char *, ...);
   CS_NORETURN CS_PRINTF2  void csoundDie(CSOUND *, const char *, ...);
   CS_PRINTF2  int32_t csoundInitError(CSOUND *, const char *, ...);
   CS_PRINTF3  int32_t csoundPerfError(CSOUND *, OPDS *h, const char *, ...);
   CS_PRINTF2  void csoundWarning(CSOUND *, const char *, ...);
   CS_PRINTF2  void csoundDebugMsg(CSOUND *, const char *, ...);
-  /* Complete diagnostics end in a newline. Pass Str(format) unchanged so
-     line termination does not change gettext keys. Existing trailing
-     newlines are preserved. Message/MessageS/MessageV and ErrorMsg/ErrorMsgS
-     remain exact-output APIs for fragments and formatted output. */
-  CS_PRINTF3 void csoundMessageLine(CSOUND *, int32_t attr, const char *, ...);
-  void csoundMessageLineV(CSOUND *, int32_t attr, const char *, va_list);
   CS_PRINTF2  void csoundErrorMsg(CSOUND *, const char *, ...);
   void csoundErrorMsgS(CSOUND *, int32_t attr, const char *, ...);
   void csoundErrMsgV(CSOUND *, const char *, const char *, va_list);

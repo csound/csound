@@ -109,7 +109,7 @@ int32_t pvread(CSOUND *csound, PVREAD *p)
     frIndx = (cs_float)p->maxFr;
     if (p->prFlg) {
       p->prFlg = 0;   /* false */
-      csound->Warning(csound, "%s", Str("PVOC ktimpnt truncated to last frame"));
+      csound->Warning(csound, "%s\n", Str("PVOC ktimpnt truncated to last frame"));
     }
   }
   FetchInOne(p->frPtr, &(buf[0]), size, frIndx, p->mybin);
@@ -117,7 +117,7 @@ int32_t pvread(CSOUND *csound, PVREAD *p)
   *p->kamp = buf[0];
   return OK;
  err1:
-  return csound->PerfError(csound, &(p->h), "%s", Str("PVOC timpnt < 0"));
+  return csound->PerfError(csound, &(p->h), "%s\n", Str("PVOC timpnt < 0"));
 }
 
 static int32_t pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)
@@ -125,11 +125,11 @@ static int32_t pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)
   PVOCEX_MEMFILE  pp;
 
   if (UNLIKELY(csound->PVOCEX_LoadFile(csound, fname, &pp) != 0)) {
-    return csound->InitError(csound, Str("PVREAD cannot load %s"), fname);
+    return csound->InitError(csound, Str("PVREAD cannot load %s\n"), fname);
   }
   /* have to reject m/c files for now, until opcodes upgraded */
   if (UNLIKELY(pp.chans > 1)) {
-    return csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
+    return csound->InitError(csound, Str("pvoc-ex file %s is not mono\n"), fname);
   }
   /* ignore the window spec until we can use it! */
   p->frSiz    = pp.fftsize;

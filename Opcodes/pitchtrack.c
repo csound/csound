@@ -480,7 +480,7 @@ static int32_t pitchafset(CSOUND *csound, PITCHAF *p){
     cs_double samples = CS_ESR / (cs_double)*p->iflow;
     if (UNLIKELY(!(samples >= 1.0 && samples <= (INT32_MAX + 0.0) &&
                    samples <= (cs_double)(SIZE_MAX / sizeof(cs_float)))))
-      return csound->InitError(csound, "%s", Str("pitchac: invalid lowest frequency"));
+      return csound->InitError(csound, "%s\n", Str("pitchac: invalid lowest frequency"));
     int32_t siz = (int32_t)samples;
     if (p->buff1.auxp == NULL || p->buff1.size < siz*sizeof(cs_float))
       csound->AuxAlloc(csound, siz*sizeof(cs_float), &p->buff1);
@@ -510,11 +510,11 @@ static int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
     cs_double samples;
     int32_t nextlen;
     if (UNLIKELY(!(*p->kfmin > FL(0.0))))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("pitchac: minimum frequency must be positive"));
     samples = CS_ESR / (cs_double)*p->kfmin;
     if (UNLIKELY(!(samples >= 1.0)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("pitchac: minimum frequency exceeds sample rate"));
     nextlen = samples >= p->size ? p->size : (int32_t)samples;
     cs_float *buff1 = (cs_float *)p->buff1.auxp;

@@ -293,14 +293,14 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
     if (UNLIKELY(fpl == NULL))
       return
         csound->InitError(csound,
-                          "%s", Str("\n\n\nCannot load left data file, exiting\n\n"));
+                          "%s\n", Str("\n\n\nCannot load left data file, exiting\n\n"));
 
     fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
         csound->InitError(csound,
-                          "%s", Str("\n\n\nCannot load right data file, exiting\n\n"));
+                          "%s\n", Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     p->irlength = irlength;
     p->irlengthpad = irlengthpad;
@@ -1486,14 +1486,14 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
     if (UNLIKELY(fpl == NULL))
       return
         csound->InitError(csound,
-                          "%s", Str("\n\n\nCannot load left data file, exiting\n\n"));
+                          "%s\n", Str("\n\n\nCannot load left data file, exiting\n\n"));
 
     fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
         csound->InitError(csound,
-                          "%s", Str("\n\n\nCannot load right data file, exiting\n\n"));
+                          "%s\n", Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     p->irlength = irlength;
     p->irlengthpad = irlengthpad;
@@ -2115,14 +2115,14 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     if (UNLIKELY(fpl == NULL))
      return
         csound->InitError(csound,
-                          "%s", Str("\n\n\nCannot load left data file, exiting\n\n"));
+                          "%s\n", Str("\n\n\nCannot load left data file, exiting\n\n"));
 
     fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
         csound->InitError(csound,
-                          "%s", Str("\n\n\nCannot load right data file, exiting\n\n"));
+                          "%s\n", Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     p->irlength = irlength;
     p->sroverN = sr / irlength;

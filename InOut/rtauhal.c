@@ -303,7 +303,7 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
         }
         else {
        if(O->msglevel || O->odebug)
-          csound->Warning(csound, Str("requested device %d out of range"),
+          csound->Warning(csound, Str("requested device %d out of range\n"),
                              devnum);
         }
 
@@ -321,7 +321,7 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
         }
         else {
           if(O->msglevel || O->odebug)
-          csound->Warning(csound, Str("requested device %d (%s) out of range"),
+          csound->Warning(csound, Str("requested device %d (%s) out of range\n"),
                              devnum, devinfo[CoreAudioDev].name);
         }
       }
@@ -400,7 +400,7 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     while (UNLIKELY(sr != srate)) {
        if(O->odebug)
         csound->Warning(csound,
-                      Str("Attempted to set device SR, tried %.1f, got %.1f"),
+                      Str("Attempted to set device SR, tried %.1f, got %.1f\n"),
                       srate, sr);
        // wait for it
        csound->Sleep(500);
@@ -409,7 +409,7 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
        AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
        // try another 5 times max (2.5 sec wait)
        if(++attempts > 5) {
-         csound->Warning(csound, Str("could not set sr to %.1f after %d attempts"),
+         csound->Warning(csound, Str("could not set sr to %.1f after %d attempts\n"),
                          srate, attempts);
          break;
        }
@@ -919,7 +919,7 @@ static void rtclose_(CSOUND *csound)
       csound->DestroyCircularBuffer(csound, cdata->incb);
       csound->DestroyCircularBuffer(csound, cdata->outcb);
       csound->Free(csound,cdata);
-      csound->DebugMsg(csound, "%s", Str("AuHAL module: device closed\n"));
+      csound->DebugMsg(csound, "%s\n", Str("AuHAL module: device closed\n"));
     }
 }
 
@@ -935,7 +935,7 @@ int32_t csoundModuleInit(CSOUND *csound)
           strcmp(drv, "coreaudio") == 0 || strcmp(drv, "CoreAudio") == 0 ||
           strcmp(drv, "COREAUDIO") == 0))
       return 0;
-    csound->DebugMsg(csound, "%s", Str("rtaudio: coreaaudio-AuHAL module enabled\n"));
+    csound->DebugMsg(csound, "%s\n", Str("rtaudio: coreaaudio-AuHAL module enabled\n"));
     csound->SetPlayopenCallback(csound, playopen_);
     csound->SetRecopenCallback(csound, recopen_);
     csound->SetRtplayCallback(csound, rtplay_);

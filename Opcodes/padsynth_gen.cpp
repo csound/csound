@@ -468,9 +468,9 @@ static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
   cs_float p2_score_time = ff->e.p[2];
   void *setup;
   int32_t N = ff->flen;
-  if (N < 2) return csound->FtError(ff, Str("Illegal table size %d"), N);
+  if (N < 2) return csound->FtError(ff, Str("Illegal table size %d\n"), N);
   if (ff->e.pcnt < 11)
-    return csound->FtError(ff, Str("insufficient arguments"));
+    return csound->FtError(ff, Str("insufficient arguments\n"));
 
   cs_float p5_fundamental_frequency = ff->e.p[5];
   cs_float p6_partial_bandwidth = ff->e.p[6];
