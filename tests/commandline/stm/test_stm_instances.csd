@@ -1,8 +1,5 @@
 <CsTest>
-description = "testing shared definition, independent stm runners and instance overload"
-
-[expect]
-exit = 0
+description = "testing shared definition and independent stm runners"
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

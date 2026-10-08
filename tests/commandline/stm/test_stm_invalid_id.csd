@@ -1,5 +1,5 @@
 <CsTest>
-description = "expected failure: stm rejects fractional node id"
+description = "stm rejects fractional node id"
 
 [expect]
 exit = 1

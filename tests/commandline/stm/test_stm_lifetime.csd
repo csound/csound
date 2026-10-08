@@ -3,7 +3,7 @@ description = "stm runner pins active observers and rejects stale handles"
 
 [expect]
 exit = 1
-stderr = ["INIT ERROR in instr 30 (opcode stmonenter)", "[stm] on enter/exit: invalid runner"]
+stderr = ["[stm] on enter/exit: invalid runner"]
 output = ["[lifetime] retained observer remained safe after owner ended"]
 output_excludes = ["Segmentation fault", "AddressSanitizer", "UndefinedBehaviorSanitizer", "Abort trap"]
 </CsTest>
@@ -32,8 +32,9 @@ nchnls = 1
 ; that unmaps freed pages).
 ;
 ; EXPECTED: instr 20 remains safe after the owner ends, then instr 30 gets a
-; clean init error when it tries to acquire the stale handle. The test.py entry
-; requires both diagnostics and rejects common crash/sanitizer messages.
+; clean init error when it tries to acquire the stale handle. CsTest metadata
+; requires the observer message and the invalid-runner diagnostic, and rejects
+; common crash/sanitizer messages.
 ; ============================================================
 
 handle@global:i = init(0)

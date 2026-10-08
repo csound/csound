@@ -1,5 +1,5 @@
 <CsTest>
-description = "expected failure: stm rejects a builder where a definition is required"
+description = "stm rejects a builder where a definition is required"
 
 [expect]
 exit = 1

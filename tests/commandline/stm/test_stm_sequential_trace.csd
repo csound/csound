@@ -1,8 +1,5 @@
 <CsTest>
 description = "testing sequential stm state trace"
-
-[expect]
-exit = 0
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

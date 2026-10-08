@@ -1,5 +1,5 @@
 <CsTest>
-description = "expected failure: stm rejects overlapping writer instruments"
+description = "stm rejects overlapping writer instruments"
 
 [expect]
 exit = 1

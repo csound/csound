@@ -1,8 +1,5 @@
 <CsTest>
 description = "testing stm reinit cleanup and reset cycle"
-
-[expect]
-exit = 0
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
