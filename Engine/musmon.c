@@ -218,8 +218,10 @@ cs_float initialise_io(CSOUND *csound) {
       O->outbufsamps = new_b;
       O->inbufsamps = new_b;
     }
-     csound->ErrorMsg(csound, Str("audio buffered in %d sample-frame blocks\n"),
-                    (int32_t) O->outbufsamps);
+    if (O->odebug > 0) {
+      csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
+                     (int32_t) O->outbufsamps);
+    }
     O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
     O->outbufsamps *= csound->nchnls;
     set_io_backend(csound);          /* point recv & tran to audio formatter */
@@ -354,7 +356,8 @@ void print_sndfile_version(CSOUND* csound);
 int32_t start_engine(CSOUND *csound)
 {
     OPARMS  *O = csound->oparms;
-    print_sndfile_version(csound);
+    if (O->odebug > 0)
+      print_sndfile_version(csound);
 
     /* initialise search path cache */
     csoundGetSearchPathFromEnv(csound, "SNAPDIR");
@@ -400,7 +403,8 @@ int32_t start_engine(CSOUND *csound)
     csound->cyclesRemaining = 0;
     memset(&(csound->evt), 0, sizeof(EVTBLK));
 
-    print_engine_parameters(csound);
+    if(O->odebug > 0)
+      print_engine_parameters(csound);
 
     /* Enable musmon to handle external MIDI input, if it has been enabled.
        called before init() so that any file passed -F is the first on the
@@ -457,7 +461,9 @@ int32_t start_engine(CSOUND *csound)
          initialise_io(csound);
 
     if (csound->playscore!=NULL) corfile_flush(csound, csound->playscore);
-     csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    ++STA(sectno);
+    if (O->msglevel & SEGAMPS)
+      csound->Message(csound, Str("SECTION %d:\n"), STA(sectno));
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
@@ -692,7 +698,7 @@ int32_t csound_cleanup(CSOUND *csound)
     /* print stats only if musmon was actually run */
     /* NOT SURE HOW   ************************** */
     // if(csound->oparms->msglevel)
-    if(!csound->info_message_request){
+    if(!csound->info_message_request && csound->oparms->msglevel) {
       csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
       corfile_rm(csound, &csound->expanded_sco);
       for (n = 0; n < csound->nchnls; n++) {
@@ -705,9 +711,16 @@ int32_t csound_cleanup(CSOUND *csound)
       for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
         print_maxamp(csound, *maxp++);
       if (csound->oparms->outformat != AE_FLOAT) {
-        csound->ErrorMsg(csound, Str("\n\t   overall samples out of range:"));
+        // only print samples out of range if there were actually any
+        size_t samples_out_of_range = 0;
         for (rngp = STA(orngcnt), n = csound->nchnls; n--; )
-          csound->ErrorMsg(csound, "%9d", *rngp++);
+          samples_out_of_range += *rngp++;
+        if (samples_out_of_range > 0) {
+          csound->ErrorMsg(csound, Str("\n\t   overall samples out of range:"));
+          for (rngp = STA(orngcnt), n = csound->nchnls; n--; ) {
+            csound->ErrorMsg(csound, "%9d", *rngp++);
+          }
+        }
       }
       if(csound->perferrcnt > 0) {
         csound->ErrorMsg(csound, Str("\n%d errors in performance\n"),
