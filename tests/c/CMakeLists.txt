@@ -183,6 +183,12 @@ if(BUILD_TESTS)
             CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN)
     endif()
 
+    if(TARGET stdutil)
+        add_dependencies(unittests stdutil)
+        target_compile_definitions(unittests PRIVATE
+            CSOUND_TEST_PLUGIN_DIR="$<TARGET_FILE_DIR:stdutil>")
+    endif()
+
     # BUILD_OSC_OPCODES stays ON in the cache when check_deps disables it
     # in Opcodes/, so require the target too.
     if(BUILD_OSC_OPCODES AND TARGET osc)
