@@ -218,7 +218,7 @@ cs_float initialise_io(CSOUND *csound) {
       O->outbufsamps = new_b;
       O->inbufsamps = new_b;
     }
-    if (O->odebug > 0) {
+    if (O->msglevel > 0) {
       csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
                      (int32_t) O->outbufsamps);
     }
@@ -403,7 +403,7 @@ int32_t start_engine(CSOUND *csound)
     csound->cyclesRemaining = 0;
     memset(&(csound->evt), 0, sizeof(EVTBLK));
 
-    if(O->odebug > 0)
+    if(O->msglevel > 0)
       print_engine_parameters(csound);
 
     /* Enable musmon to handle external MIDI input, if it has been enabled.
